@@ -240,9 +240,15 @@ namespace Arc {
     int AttributesSize(void) const;
     /** Assigns namespaces of XML document at point specified by this instance.
        If namespace already exists it gets new prefix. New namespaces are added.
-       It is useful to apply this method to XML being processed in order to refer to it's
-       elements by known prefix. */
-    void Namespaces(const NS& namespaces);
+       It is useful to apply this method to XML being processed in order to 
+       refer to it's elements by known prefix.
+       If keep is set to false existing namespace definition residing at
+       this instance and below are removed (default beavior).
+       If recursion is set to positive number then depth of prefix replacement
+       is limited by this number (0 limits it to this node only). For unlimted
+       recursion use -1. If recursion is limited then value of keep is ignored
+       and existing namespaces are always kept.  */
+    void Namespaces(const NS& namespaces, bool keep = false, int recursion = -1);
     /** Returns namespaces known at this node */
     NS Namespaces(void);
     /** Returns prefix of specified namespace.

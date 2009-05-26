@@ -119,7 +119,8 @@ namespace Arc {
       return;
   }
 
-  static void ReassignNamespace(xmlNsPtr ns, xmlNodePtr node) {
+  static void ReassignNamespace(xmlNsPtr ns, xmlNodePtr node,bool keep = false,int recursion = -1) {
+    if(recursion >= 0) keep = true;
     xmlNsPtr ns_cur = node->nsDef;
     xmlNsPtr ns_prev = NULL;
     for (; ns_cur;) {
@@ -129,39 +130,54 @@ namespace Arc {
         continue;
       }
       if (ns->href && ns_cur->href && (xmlStrcmp(ns->href, ns_cur->href) == 0)) {
-        // Unlinking namespace from tree
         ReplaceNamespace(ns_cur, node, ns);
-        if (ns_prev)
-          ns_prev->next = ns_cur->next;
-        else
-          node->nsDef = ns_cur->next;
-        xmlNsPtr ns_tmp = ns_cur;
-        ns_cur = ns_cur->next;
-        xmlFreeNs(ns_tmp);
+        if(!keep) {
+          // Unlinking namespace from tree
+          if (ns_prev)
+            ns_prev->next = ns_cur->next;
+          else
+            node->nsDef = ns_cur->next;
+          xmlNsPtr ns_tmp = ns_cur;
+          ns_cur = ns_cur->next;
+          xmlFreeNs(ns_tmp);
+        } else {
+          ns_cur = ns_cur->next;
+        }
         continue;
       }
       ns_prev = ns_cur;
       ns_cur = ns_cur->next;
     }
+    if(recursion == 0) return;
+    if(recursion > 0) --recursion;
     for (xmlNodePtr node_ = node->children; node_; node_ = node_->next)
-      ReassignNamespace(ns, node_);
+      ReassignNamespace(ns, node_, keep, recursion);
   }
 
-  static void SetNamespaces(const NS& namespaces, xmlNodePtr node_) {
+  // Adds new 'namespaces' to namespace definitions of 'node_'.
+  // The 'node_' and its children are converted to new prefixes.
+  // If keep == false all existing namespaces with same href
+  // defined in 'node_' or children are removed.
+  // 'recursion' limits how deep to follow children nodes. 0 for 
+  // 'node_' only. -1 for unlimited depth. If 'recursion' is set
+  //  to >=0 then existing namespaces always kept disregarding
+  //  value of 'keep'. Otherwise some XML node would be left 
+  //  without valid namespaces.
+  static void SetNamespaces(const NS& namespaces, xmlNodePtr node_,bool keep = false,int recursion = -1) {
     for (NS::const_iterator ns = namespaces.begin();
          ns != namespaces.end(); ++ns) {
       // First check maybe this namespace is already defined
       xmlNsPtr ns_ = xmlSearchNsByHref(node_->doc, node_, (const xmlChar*)(ns->second.c_str()));
       if (ns_) {
         const char *prefix = (const char*)(ns_->prefix);
-        if (!prefix)
-          prefix = "";
+        if (!prefix) prefix = "";
         if (ns->first == prefix) {
           // Same namespace with same prefix - doing nothing
         }
-        else
-          // TODO: optional change of prefix
+        else {
+          // Change to new prefix
           ns_ = NULL;
+        }
       }
       if (!ns_) {
         // New namespace needed
@@ -173,7 +189,7 @@ namespace Arc {
           return;
       }
       // Go through all children removing same namespaces and reassigning elements to this one.
-      ReassignNamespace(ns_, node_);
+      ReassignNamespace(ns_, node_, keep, recursion);
     }
   }
 
@@ -629,12 +645,12 @@ namespace Arc {
     return;
   }
 
-  void XMLNode::Namespaces(const NS& namespaces) {
+  void XMLNode::Namespaces(const NS& namespaces, bool keep, int recursion) {
     if (node_ == NULL)
       return;
     if (node_->type != XML_ELEMENT_NODE)
       return;
-    SetNamespaces(namespaces, node_);
+    SetNamespaces(namespaces, node_, keep, recursion);
   }
 
   NS XMLNode::Namespaces(void) {
