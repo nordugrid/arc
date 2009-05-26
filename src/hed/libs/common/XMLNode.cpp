@@ -161,7 +161,7 @@ namespace Arc {
         }
         else
           // TODO: optional change of prefix
-          ReassignNamespace(ns_, node_);
+          ReassignNamespace(ns, node_);
         ns_ = NULL;
       }
       if (!ns_) {
@@ -187,19 +187,9 @@ namespace Arc {
     xmlNsPtr ns = node_->nsDef;
     for (; ns; ns = ns->next) {
       std::string prefix = ns->prefix ? (char*)(ns->prefix) : "";
-      if ((ns->href) && (ns->prefix != NULL)) {
+      if (ns->href)
         if (namespaces[prefix].empty())
           namespaces[prefix] = (char*)(ns->href);
-      }
-      else if((ns->href) && (ns->prefix == NULL)) {
-        for(NS::iterator it = namespaces.begin();
-         it != namespaces.end(); ++it) {
-          if ((*it).second == std::string((char*)(ns->href))) {
-            namespaces[""] = (char*)(ns->href);
-            namespaces.erase(it);
-          }
-        }
-      };
     }
     GetNamespaces(namespaces, node_->parent);
   }
