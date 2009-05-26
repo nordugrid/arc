@@ -34,28 +34,6 @@ sechandler_descriptors ARC_SECHANDLER_LOADER = {
 };
 */
 
-static std::string convert_dn(const std::string& dn) {
-  std::string ret;
-  size_t pos1 = std::string::npos;
-  size_t pos2;
-  do {
-    std::string str;
-    pos2 = dn.find_last_of("/", pos1);
-    if(pos2 != std::string::npos && pos1 == std::string::npos) {
-      str = dn.substr(pos2+1);
-      ret.append(str);
-      pos1 = pos2-1;
-    }
-    else if (pos2 != std::string::npos && pos1 != std::string::npos) {
-      str = dn.substr(pos2+1, pos1-pos2);
-      ret.append(str);
-      pos1 = pos2-1;
-    }
-    if(pos2 != (std::string::npos+1)) ret.append(",");
-  }while(pos2 != std::string::npos && pos2 != (std::string::npos+1));
-  return ret;
-}
-
 namespace ArcSec {
 using namespace Arc;
 
@@ -98,7 +76,7 @@ SAMLTokenSH::SAMLTokenSH(Config *cfg,ChainContext*):SecHandler(cfg){
   };
   if(!cert_file_.empty()) {
     Arc::Credential cred(cert_file_, key_file_, ca_dir_, ca_file_);
-    local_dn_ = convert_dn(cred.GetDN());
+    local_dn_ = convert_to_rdn(cred.GetDN());
   }
 }
 

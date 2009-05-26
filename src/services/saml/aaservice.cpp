@@ -45,28 +45,6 @@ Arc::MCC_Status Service_AA::make_soap_fault(Arc::Message& outmsg, const std::str
   return Arc::MCC_Status(Arc::STATUS_OK);
 }
 
-static std::string convert_dn(const std::string& dn) {
-  std::string ret;
-  size_t pos1 = std::string::npos;
-  size_t pos2;
-  do {
-    std::string str;
-    pos2 = dn.find_last_of("/", pos1);
-    if(pos2 != std::string::npos && pos1 == std::string::npos) {
-      str = dn.substr(pos2+1);
-      ret.append(str);
-      pos1 = pos2-1;
-    }
-    else if (pos2 != std::string::npos && pos1 != std::string::npos) {
-      str = dn.substr(pos2+1, pos1-pos2);
-      ret.append(str);
-      pos1 = pos2-1;
-    }
-    if(pos2 != (std::string::npos+1)) ret.append(",");
-  }while(pos2 != std::string::npos && pos2 != (std::string::npos+1));
-  return ret;
-}
-
 static std::string get_cert_str(const std::string& cert) {
   std::size_t pos = cert.find("BEGIN CERTIFICATE");
   if(pos != std::string::npos) {
@@ -93,7 +71,7 @@ Arc::MCC_Status Service_AA::process(Arc::Message& inmsg,Arc::Message& outmsg) {
   //document "SAML V2.0 Deployment Profiles for X.509 Subjects"
 
   std::string peer_rdn = inmsg.Attributes()->get("TLS:PEERDN");
-  std::string peer_dn = convert_dn(peer_rdn);
+  std::string peer_dn = Arc::convert_to_rdn(peer_rdn);
 
   // Extracting payload
   Arc::PayloadSOAP* inpayload = NULL;
@@ -250,7 +228,7 @@ Arc::MCC_Status Service_AA::process(Arc::Message& inmsg,Arc::Message& outmsg) {
 
   Arc::Credential cred(certfile_, keyfile_, cadir_, cafile_);
   std::string local_dn = cred.GetDN();
-  std::string aa_name = convert_dn(local_dn);
+  std::string aa_name = Arc::convert_to_rdn(local_dn);
   attr_response.NewChild("samlp:Issuer") = aa_name;
 
   std::string response_id = Arc::UUID();

@@ -43,7 +43,8 @@ namespace Arc {
   xmlSecKeysMngrPtr load_trusted_certs(xmlSecKeysMngrPtr* keys_manager, const char* cafile, const char* capath);
   /**Generate a new child XMLNode with specified name*/
   XMLNode get_node(XMLNode& parent,const char* name);
-
+  /**Convert dn to rdn: /O=Grid/OU=Knowarc/CN=abc ---> CN=abc,OU=Knowarc,O=Grid */
+  std::string convert_to_rdn(const std::string& dn);
 }// namespace Arc
 
 #endif /* __ARC_WSSSUTIL_H__ */
