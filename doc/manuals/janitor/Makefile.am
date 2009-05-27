@@ -19,9 +19,6 @@ docsrcdeps = $(images) \
              tex_installation/installation.tex tex_introduction/introduction.tex tex_layout/layout.tex \
              tex_maintenance/maintenance.tex tex_titlepage/titlepage.tex tex_usage/usage.tex
 
-images/dependencies.tex: images/dependencies.dot
-	dot2tex --figonly $< -o $@
-
 images/dependencies.png: images/dependencies.dot
 	dot -Tpng $< -o $@
 
@@ -66,4 +63,4 @@ EXTRA_DIST = $(doc_DATA) $(docsource) $(docsrcdeps)
 
 CLEANFILES = *.blg *.bbl *.ind *.ilg *.out *.log *.idx *.aux *.toc
 
-MAINTAINERCLEANFILES = $(doc_DATA) $(STYLES) images/dependencies.tex
+MAINTAINERCLEANFILES = $(doc_DATA) $(STYLES) images/dependencies.png
