@@ -289,6 +289,9 @@ namespace Arc {
     if (bool(resource["CandidateTarget"]["HostName"])) {
       URL host_url((std::string)resource["CandidateTarget"]["HostName"]);
       job.EndPointURL = host_url;
+    } else if (bool(resource["CandidateHosts"]["HostName"])) {
+      URL host_url((std::string)resource["CandidateHosts"]["HostName"]);
+      job.EndPointURL = host_url;
     }
 
     if (bool(resource["CandidateTarget"]["QueueName"]))
