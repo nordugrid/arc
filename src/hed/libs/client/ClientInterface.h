@@ -59,7 +59,7 @@ namespace Arc {
       : tcp_entry(NULL),
         tls_entry(NULL) {}
     ClientTCP(const BaseConfig& cfg, const std::string& host, int port,
-              SecurityLayer sec);
+              SecurityLayer sec, bool no_delay = false);
     virtual ~ClientTCP();
     MCC_Status process(PayloadRawInterface *request,
                        PayloadStreamInterface **response, bool tls);

@@ -125,7 +125,7 @@ namespace Arc {
   }
 
   ClientTCP::ClientTCP(const BaseConfig& cfg, const std::string& host,
-                       int port, SecurityLayer sec)
+                       int port, SecurityLayer sec, bool no_delay)
     : ClientInterface(cfg),
       tcp_entry(NULL),
       tls_entry(NULL) {
@@ -134,6 +134,7 @@ namespace Arc {
     comp = comp.NewChild("Connect");
     comp.NewChild("Host") = host;
     comp.NewChild("Port") = tostring(port);
+    if(no_delay) comp.NewChild("NoDelay") = "true";
 
     if ((sec == TLSSec) || (sec == SSL3Sec)) {
       comp = ConfigMakeComponent(xmlcfg["Chain"], "tls.client", "tls", "tcp");
