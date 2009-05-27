@@ -1472,8 +1472,8 @@ AC_CONFIG_FILES([Makefile
                  src/clients/credentials/Makefile
                  src/clients/credentials/arcproxy.1
                  src/clients/credentials/arcslcs.1
-                 src/clients/voms/Makefile
-                 src/clients/voms/voms_assertion_init.1
+                 src/clients/saml/Makefile
+                 src/clients/saml/saml_assertion_init.1
                  src/clients/arclib/Makefile
                  src/clients/arclib/arcstat.1
                  src/clients/arclib/arcinfo.1
