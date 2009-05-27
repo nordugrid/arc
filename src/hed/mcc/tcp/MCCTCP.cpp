@@ -41,6 +41,7 @@ inline const char *inet_ntop(int af, const void *__restrict src, char *__restric
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
+#include <netinet/tcp.h>
 #include <netdb.h>
 #define ErrNo errno
 #endif
@@ -142,7 +143,12 @@ MCC_TCP_Service::MCC_TCP_Service(Config *cfg):MCC_TCP(cfg) {
                 close(s);
                 continue;
             };
-            handles_.push_back(s);
+            bool no_delay = false;
+            if(l["NoDelay"]) {
+                std::string v = l["NoDelay"];
+                if((v == "true") || (v == "1")) no_delay=true;
+            };
+            handles_.push_back(mcc_tcp_handle_t(s,no_delay));
             logger.msg(INFO, "Listening on TCP port %s(%s)", port_s, PROTO_NAME(info_));
         };
         freeaddrinfo(info);
@@ -153,15 +159,15 @@ MCC_TCP_Service::MCC_TCP_Service(Config *cfg):MCC_TCP(cfg) {
     };
     if(!CreateThreadFunction(&listener,this)) {
         logger.msg(ERROR, "Failed to start thread for listening");
-        for(std::list<int>::iterator i = handles_.begin();i!=handles_.end();i=handles_.erase(i)) ::close(*i);
+        for(std::list<mcc_tcp_handle_t>::iterator i = handles_.begin();i!=handles_.end();i=handles_.erase(i)) ::close(i->handle);
     };
 }
 
 MCC_TCP_Service::~MCC_TCP_Service(void) {
     //logger.msg(DEBUG, "TCP_Service destroy");
     lock_.lock();
-    for(std::list<int>::iterator i = handles_.begin();i!=handles_.end();++i) {
-        ::close(*i); *i=-1;
+    for(std::list<mcc_tcp_handle_t>::iterator i = handles_.begin();i!=handles_.end();++i) {
+        ::close(i->handle); i->handle=-1;
     };
     for(std::list<mcc_tcp_exec_t>::iterator e = executers_.begin();e != executers_.end();++e) {
         ::close(e->handle); e->handle=-1;
@@ -179,7 +185,7 @@ MCC_TCP_Service::~MCC_TCP_Service(void) {
 #endif
 }
 
-MCC_TCP_Service::mcc_tcp_exec_t::mcc_tcp_exec_t(MCC_TCP_Service* o,int h):obj(o),handle(h) {
+MCC_TCP_Service::mcc_tcp_exec_t::mcc_tcp_exec_t(MCC_TCP_Service* o,int h,bool nd):obj(o),handle(h),no_delay(nd) {
     static int local_id = 0;
     if(handle == -1) return;
     id=local_id++;
@@ -203,8 +209,8 @@ void MCC_TCP_Service::listener(void* arg) {
         fd_set readfds;
         FD_ZERO(&readfds);
         it.lock_.lock();
-        for(std::list<int>::iterator i = it.handles_.begin();i!=it.handles_.end();) {
-            int s = *i;
+        for(std::list<mcc_tcp_handle_t>::iterator i = it.handles_.begin();i!=it.handles_.end();) {
+            int s = i->handle;
             if(s == -1) { i=it.handles_.erase(i); continue; };
             FD_SET(s,&readfds);
             if(s > max_s) max_s = s;
@@ -219,8 +225,8 @@ void MCC_TCP_Service::listener(void* arg) {
 	        logger.msg(ERROR,
 			"Failed while waiting for connection request");
                 it.lock_.lock();
-                for(std::list<int>::iterator i = it.handles_.begin();i!=it.handles_.end();) {
-                    int s = *i;
+                for(std::list<mcc_tcp_handle_t>::iterator i = it.handles_.begin();i!=it.handles_.end();) {
+                    int s = i->handle;
                     ::close(s); 
                     i=it.handles_.erase(i);
                 };
@@ -230,8 +236,8 @@ void MCC_TCP_Service::listener(void* arg) {
             continue;
         } else if(n == 0) continue;
         it.lock_.lock();
-        for(std::list<int>::iterator i = it.handles_.begin();i!=it.handles_.end();++i) {
-            int s = *i;
+        for(std::list<mcc_tcp_handle_t>::iterator i = it.handles_.begin();i!=it.handles_.end();++i) {
+            int s = i->handle;
             if(s == -1) continue;
             if(FD_ISSET(s,&readfds)) {
                 it.lock_.unlock();
@@ -243,7 +249,7 @@ void MCC_TCP_Service::listener(void* arg) {
                     it.lock_.lock();
                 } else {
                     it.lock_.lock();
-                    mcc_tcp_exec_t t(&it,h);
+                    mcc_tcp_exec_t t(&it,h,i->no_delay);
                 };
             };
         };
@@ -368,6 +374,7 @@ void MCC_TCP_Service::executer(void* arg) {
     MCC_TCP_Service& it = *(((mcc_tcp_exec_t*)arg)->obj);
     int s = ((mcc_tcp_exec_t*)arg)->handle;
     int id = ((mcc_tcp_exec_t*)arg)->id;
+    int no_delay = ((mcc_tcp_exec_t*)arg)->no_delay;
     std::string host_attr,port_attr;
     std::string remotehost_attr,remoteport_attr;
     std::string endpoint_attr;
@@ -389,6 +396,7 @@ void MCC_TCP_Service::executer(void* arg) {
 
     // Creating stream payload
     PayloadTCPSocket stream(s, logger);
+    stream.NoDelay(no_delay);
     MessageAttributes attributes_in;
     MessageAttributes attributes_out;
     MessageAuth auth_in;
@@ -498,7 +506,12 @@ MCC_TCP_Client::MCC_TCP_Client(Config *cfg):MCC_TCP(cfg),s_(NULL) {
     int port = atoi(port_s.c_str());
 
     s_ = new PayloadTCPSocket(host_s.c_str(),port,logger);
-    if(!(*s_)) { delete s_; s_ = NULL; };
+    if(!(*s_)) {
+        delete s_; s_ = NULL;
+    } else {
+       std::string v = c["NoDelay"];
+       s_->NoDelay((v == "true") || (v == "1"));
+    };
 }
 
 MCC_TCP_Client::~MCC_TCP_Client(void) {

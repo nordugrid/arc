@@ -9,10 +9,12 @@
 #ifdef WIN32
 #include <arc/win32.h>
 #else // UNIX
+#include <sys/types.h>
 #include <sys/socket.h>
 #include <netdb.h>
 #include <netinet/in.h>
 #include <sys/poll.h>
+#include <netinet/tcp.h>
 #endif
 
 #include <arc/StringConv.h>
@@ -91,14 +93,6 @@ bool PayloadTCPSocket::Get(char* buf,int& size) {
   if(handle_ == -1) return false;
   ssize_t l = size;
   size=0;
-  if(seekable_) { // check for EOF
-    struct stat st;
-    if(fstat(handle_,&st) != 0) return false;
-    off_t o = lseek(handle_,0,SEEK_CUR);
-    if(o == (off_t)(-1)) return false;
-    o++;
-    if(o >= st.st_size) return false;
-  };
 #ifndef WIN32
   struct pollfd fd;
   fd.fd=handle_; fd.events=POLLIN | POLLPRI | POLLERR; fd.revents=0;
@@ -138,6 +132,12 @@ bool PayloadTCPSocket::Put(const char* buf,int size) {
 #endif
   };  
   return true;
+}
+
+void PayloadTCPSocket::NoDelay(bool val) {
+  if(handle_ == -1) return;
+  int flag = val?1:0;
+  ::setsockopt(handle_,IPPROTO_TCP,TCP_NODELAY,&flag,sizeof(flag));
 }
 
 } // namespace Arc

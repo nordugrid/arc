@@ -34,6 +34,8 @@ class PayloadTCPSocket: public PayloadStream {
   virtual ~PayloadTCPSocket(void);
   virtual bool Get(char* buf,int& size);
   virtual bool Put(const char* buf,int size);
+  int GetHandle() { return handle_; };
+  void NoDelay(bool val);
 };
 
 } // namespace Arc 
