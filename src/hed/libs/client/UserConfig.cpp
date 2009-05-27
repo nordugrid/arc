@@ -77,16 +77,12 @@ namespace Arc {
       else {
         logger.msg(ERROR, "Can not access ARC job list file: %s (%s)",
                    joblistfile, StrError());
-        std::cerr << IString("Can not access ARC job list file: %s (%s)",
-                             joblistfile, StrError()) << std::endl;
         return;
       }
     }
     else if (!S_ISREG(st.st_mode)) {
       logger.msg(ERROR, "ARC job list file is not a regular file: %s",
                  joblistfile);
-        std::cerr << IString("ARC job list file is not a regular file: %s",
-                             joblistfile) << std::endl;
         return;
     }
 
@@ -231,12 +227,13 @@ namespace Arc {
     for (std::list<std::string>::iterator it = resolvedAlias.begin();
          it != resolvedAlias.end(); it++) {
       if (*it == alias) {
-        std::cerr << "Cannot resolve alias \"" << *resolvedAlias.begin() << "\". Loop detected." << std::endl;
+        std::string loopstr = "";
         for (std::list<std::string>::iterator itloop = resolvedAlias.begin();
              itloop != resolvedAlias.end(); itloop++) {
-          std::cerr << *itloop << " -> ";
+          loopstr += *itloop + " -> ";
         }
-        std::cerr << alias << std::endl;
+        loopstr += alias;
+        logger.msg(ERROR, "Cannot resolve alias \"%s\". Loop detected: %s", *resolvedAlias.begin(), alias);
         
         resolvedAlias.clear();
         return false;
