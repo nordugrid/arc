@@ -702,7 +702,7 @@ namespace Arc {
   {
     if (!cfg["TimeOut"])
       cfg.NewChild("TimeOut") = DEFAULT_TIMEOUT;
-    else if ((std::string)cfg["TimeOut"]).empty() || stringtoi((std::string)cfg["TimeOut"]) <= 0)
+    else if (((std::string)cfg["TimeOut"]).empty() || stringtoi((std::string)cfg["TimeOut"]) <= 0)
       cfg["TimeOut"] = DEFAULT_TIMEOUT;
 
     if (!cfg["Broker"]["Name"]) {
