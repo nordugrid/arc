@@ -3,19 +3,19 @@
 
 .SH NAME
 
-voms_assertion_init \- ARC client to voms saml service
+saml_assertion_init \- ARC client to voms saml service, or arc aa service
 
 .SH DESCRIPTION
 
 The
-.B voms_assertion_init
-command is a prototype client which is used for sending an attribute query request to a voms saml service.
+.B saml_assertion_init
+command is a prototype client which is used for sending an attribute query request to a voms saml service or arc aa service.
 
 .SH SYNOPSIS
 
-.B voms_assertion_init [options] [filename ...]
+.B saml_assertion_init [options] [filename ...]
 
-./voms_assertion_init -c voms_assertion_init_client.xml -d VERBOSE  https://squark.uio.no:8443/voms/saml/knowarc/services/AttributeAuthorityPortType
+./saml_assertion_init -c saml_assertion_init_client.xml -d VERBOSE  https://squark.uio.no:8443/voms/saml/knowarc/services/AttributeAuthorityPortType
 
 .SH OPTIONS
 
@@ -32,17 +32,17 @@ print help
 .SH ARGUMENTS
 
 .IP "\fBserviceurl\fR ..."
-url to voms saml service
+url to saml aa service
 .LP
 
 .SH EXTENDED DESCRIPTION
 
 The
-.B voms_assertion_init
-command is a prototype client which is used for sending an attribute query request to a voms saml service.
+.B saml_assertion_init
+command is a prototype client which is used for sending an attribute query request to a saml aa service.
 
 .IR Examples :
-.IP "\fBvoms_assertion_init -c voms_assertion_init_client.xml -d VERBOSE  https://squark.uio.no:8443/voms/saml/knowarc/services/AttributeAuthorityPortType\fR ..."
+.IP "\fBsaml_assertion_init -c saml_assertion_init_client.xml -d VERBOSE  https://squark.uio.no:8443/voms/saml/knowarc/services/AttributeAuthorityPortType\fR ..."
 send the attribute query request to https://squark.uio.no:8443/voms/saml/knowarc/services/AttributeAuthorityPortType
 .LP
 
