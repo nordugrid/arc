@@ -207,7 +207,7 @@ sub _collect($$) {
 
         unless ($states{$gmstatus}) {
             $log->warning("Unexpected job status for job $jobid: $gmstatus");
-            $gmstatus = $job->{status} = 'UNDEFINED';
+            #$gmstatus = $job->{status} = 'UNDEFINED';
         }
         my ($age, $category) = @{$states{$gmstatus}};
 
@@ -744,7 +744,7 @@ sub _collect($$) {
         #TODO: mechanism for getting metadata about RTEs, even for manually installed ones
 	# Could use tags inside the RTE script inspired by as doxygen or init scripts
         $appenv->{State} = [ 'installednotverified' ];
-        $appenv->{Description} = [ 'NotImplemented' ];
+        #$appenv->{Description} = [ 'NotImplemented' ];
         $appenv->{ParallelSupport} = [ 'none' ];
     }
 
@@ -799,11 +799,11 @@ sub _collect($$) {
         my $usbmissiontime = mdstoiso($gmjob->{starttime} || '');
         $cact->{SubmissionTime} = [ $usbmissiontime ] if $usbmissiontime;
         # TODO: change gm to save LRMSSubmissionTime
-        $cact->{ComputingManagerSubmissionTime} = [ 'NotImplemented' ];
+        #$cact->{ComputingManagerSubmissionTime} = [ 'NotImplemented' ];
         # TODO: this should be queried in scan-job.
-        $cact->{StartTime} = [ 'NotImplemented' ];
+        #$cact->{StartTime} = [ 'NotImplemented' ];
         # TODO: scan-job has to produce this
-        $cact->{ComputingManagerEndTime} = [ 'NotImplemented' ];
+        #$cact->{ComputingManagerEndTime} = [ 'NotImplemented' ];
         my $endtime = mdstoiso($gmjob->{completiontime} || '');
         $cact->{EndTime} = [ $endtime ] if $endtime;
         $cact->{WorkingAreaEraseTime} = [ $gmjob->{cleanuptime} ] if $gmjob->{cleanuptime};
