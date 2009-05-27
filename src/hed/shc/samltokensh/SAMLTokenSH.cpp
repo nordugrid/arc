@@ -37,6 +37,101 @@ sechandler_descriptors ARC_SECHANDLER_LOADER = {
 namespace ArcSec {
 using namespace Arc;
 
+class SAMLAssertionSecAttr: public Arc::SecAttr {
+ public:
+  SAMLAssertionSecAttr(XMLNode& node);
+  SAMLAssertionSecAttr(std::string& str);
+  virtual ~SAMLAssertionSecAttr(void);
+  virtual operator bool(void) const;
+  virtual bool Export(SecAttrFormat format,XMLNode &val) const;
+  virtual bool Import(SecAttrFormat format, const XMLNode& val);
+ protected:
+  virtual bool equal(const SecAttr &b) const;
+ private:
+  XMLNode saml_assertion_node_;
+};
+
+SAMLAssertionSecAttr::SAMLAssertionSecAttr(XMLNode& node) {
+  Import(SAML, node);
+}
+
+SAMLAssertionSecAttr::SAMLAssertionSecAttr(std::string& node_str) {
+  Import(SAML, node_str);
+}
+
+SAMLAssertionSecAttr::~SAMLAssertionSecAttr(){}
+
+bool SAMLAssertionSecAttr::equal(const SecAttr& b) const {
+  try {
+    const SAMLAssertionSecAttr& a = dynamic_cast<const SAMLAssertionSecAttr&>(b);
+    if (!a) return false;
+    // ...
+    return false;
+  } catch(std::exception&) { };
+  return false;
+}
+
+SAMLAssertionSecAttr::operator bool() const {
+  return true;
+}
+
+static void add_subject_attribute(XMLNode item,const std::string& subject,const char* id) {
+   XMLNode attr = item.NewChild("ra:SubjectAttribute");
+   attr=subject; attr.NewAttribute("Type")="string";
+   attr.NewAttribute("AttributeId")=id;
+}
+
+bool SAMLAssertionSecAttr::Export(Arc::SecAttrFormat format, XMLNode& val) const {
+  if(format == UNDEFINED) {
+  } else if(format == SAML) {
+    saml_assertion_node_.New(val);
+    return true;
+  } else if(format == ARCAuth) { 
+    //Parse the attributes inside saml assertion, 
+    //and compose it into Arc request
+    NS ns;
+    ns["ra"]="http://www.nordugrid.org/schemas/request-arc";
+    val.Namespaces(ns); val.Name("ra:Request");
+    XMLNode item = val.NewChild("ra:RequestItem");
+    XMLNode subj = item.NewChild("ra:Subject");
+
+    Arc::XMLNode subject_nd = saml_assertion_node_["Subject"]["NameID"];
+    add_subject_attribute(subj,subject_nd,"http://www.nordugrid.org/schemas/policy-arc/types/wss-saml/subject");
+
+    Arc::XMLNode issuer_nd = saml_assertion_node_["Issuer"];
+    add_subject_attribute(subj,issuer_nd,"http://www.nordugrid.org/schemas/policy-arc/types/wss-saml/issuer");
+
+    Arc::XMLNode attr_statement = saml_assertion_node_["AttributeStatement"];
+    Arc::XMLNode attr_nd;
+    for(int i=0;;i++) {
+      attr_nd = attr_statement["Attribute"][i];
+      if(!attr_nd) break;
+      std::string attr_name = attr_nd.Attribute("Name");
+      //std::string attr_nameformat = attr_nd.Attribute("NameFormat");
+      //std::string attr_friendname = attribute.Attribute("FriendlyName");
+      Arc::XMLNode attrval_nd;
+      for(int j=0;;j++) {
+        attrval_nd = attr_nd["AttributeValue"][j];
+        if(!attrval_nd) break;
+        std::string tmp = "http://www.nordugrid.org/schemas/policy-arc/types/wss-saml/"+attr_name;
+        add_subject_attribute(subj,attrval_nd,tmp.c_str());
+      }
+    }
+  }
+  else {};
+  return true;
+}
+
+bool SAMLAssertionSecAttr::Import(Arc::SecAttrFormat format, const XMLNode& val) {
+  if(format == UNDEFINED) {
+  } else if(format == SAML) {
+    val.New(saml_assertion_node_);
+    return true;
+  }
+  else {};
+  return false;
+}
+
 SAMLTokenSH::SAMLTokenSH(Config *cfg,ChainContext*):SecHandler(cfg){
   if(!init_xmlsec()) return;
   process_type_=process_none;
@@ -104,10 +199,16 @@ bool SAMLTokenSH::Handle(Arc::Message* msg){
         return false;
       };
       logger.msg(INFO, "Succeeded to authenticate SAMLToken");
+
+      //Store the saml assertion into message context
+      Arc::XMLNode assertion_nd = st["Assertion"];
+      SAMLAssertionSecAttr* sattr = new SAMLAssertionSecAttr(assertion_nd);
+      msg->Auth()->set("SAMLAssertion", sattr);
+
     } catch(std::exception) {
       logger.msg(ERROR,"Incoming Message is not SOAP");
       return false;
-    }  
+    } 
   } else if(process_type_ == process_generate) {
     try {
       if(!saml_assertion_) {
