@@ -45,6 +45,8 @@ class PayloadStreamInterface: virtual public MessagePayload {
   virtual void Timeout(int to) = 0;
   /** Returns current position in stream if supported. */
   virtual Size_t Pos(void) const = 0;
+  /** Returns size of underlying object if supported. */
+  virtual Size_t Size(void) const = 0;
 };
 
 /// POSIX handle as Payload
@@ -70,11 +72,8 @@ class PayloadStream: virtual public PayloadStreamInterface {
   virtual bool operator!(void) { return (handle_ == -1); };
   virtual int Timeout(void) const { return timeout_; };
   virtual void Timeout(int to) { timeout_=to; };
-  /** Returns POSIX handle of the stream. 
-    This method is deprecated and will be removed soon. Currently it is
-   only used by Transport Layer Security MCC. */
-  virtual int GetHandle(void) { return handle_; };
   virtual Size_t Pos(void) const { return 0; };
+  virtual Size_t Size(void) const { return 0; };
 };
 }
 #endif /* __ARC_PAYLOADSTREAM_H__ */
