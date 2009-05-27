@@ -110,7 +110,7 @@ static void message_send_thread(void *arg) {
 
 void SendToNeighbors(Arc::XMLNode& node, std::vector<Arc::ISIS_description> neighbors_,
                      Arc::Logger& logger_, Arc::ISIS_description isis_desc, std::vector<std::string>* not_availables_neighbors,
-                     std::string endpoint, std::multimap<std::string,Arc::ISIS_description>* hash_table) {
+                     std::string endpoint, std::multimap<std::string,Arc::ISIS_description>& hash_table) {
     if ( !bool(node) ) {
        logger_.msg(Arc::WARNING, "Empty message can not be send to the neighbors.");
        return;
@@ -123,22 +123,24 @@ void SendToNeighbors(Arc::XMLNode& node, std::vector<Arc::ISIS_description> neig
            data = new ISIS::Thread_data;
            std::string url = (*it).url;
            std::string next_url = endpoint;
-           if ( it++ < neighbors_.end() ) {
-               next_url = (*it).url;
+           if ( it+1 < neighbors_.end() ) {
+               next_url = (*(it+1)).url;
            }
-           it--;
+
            // find neighbor's place in the hash table
            std::multimap<std::string,Arc::ISIS_description>::const_iterator it_hash;
-           for (it_hash = hash_table->begin(); it_hash!=hash_table->end(); it_hash++) {
+           for (it_hash = hash_table.begin(); it_hash!=hash_table.end(); it_hash++) {
                if ( (it_hash->second).url == url )
-	          break;
+                   break;
            }
            // add isis into the list until the next neighbor
-           while ( (it_hash->second).url != next_url ){
+           int i=0;
+           while ( (it_hash->second).url != next_url && i < neighbors_.size() ){
                data->isis_list.push_back(it_hash->second);
                it_hash++;
-               if ( it_hash == hash_table->end() )
-                   it_hash = hash_table->begin();
+               i++;
+               if ( it_hash == hash_table.end() )
+                   it_hash = hash_table.begin();
            }
            node.New(data->node);
            data->not_av_neighbors = not_availables_neighbors;
@@ -523,7 +525,9 @@ static void soft_state_thread(void *data) {
                Arc::ISIS_description isis;
                isis.url = endpoint_;
                logger_.msg(Arc::DEBUG, "RemoveRegistration message send to neighbors.");
-               SendToNeighbors(remove_message, neighbors_, logger_, isis, &not_availables_neighbors_,endpoint_,&hash_table);
+               std::multimap<std::string,Arc::ISIS_description> local_hash_table;
+               local_hash_table = hash_table;
+               SendToNeighbors(remove_message, neighbors_, logger_, isis, &not_availables_neighbors_,endpoint_,local_hash_table);
             }
             break;
         }
@@ -628,7 +632,9 @@ static void soft_state_thread(void *data) {
         Arc::ISIS_description isis;
         isis.url = endpoint_;
         if ( bool(request["RegEntry"]) ) {
-            SendToNeighbors(request, neighbors_, logger_, isis,&not_availables_neighbors_,endpoint_,&hash_table);
+            std::multimap<std::string,Arc::ISIS_description> local_hash_table;
+            local_hash_table = hash_table;
+            SendToNeighbors(request, neighbors_, logger_, isis,&not_availables_neighbors_,endpoint_,local_hash_table);
             for (int i=0; bool(request["RegEntry"][i]); i++) {
                 Arc::XMLNode regentry = request["RegEntry"][i];
                 if ( (std::string)regentry["SrcAdv"]["Type"] == "org.nordugrid.infosys.isis" ) {
@@ -698,7 +704,9 @@ static void soft_state_thread(void *data) {
         Arc::ISIS_description isis;
         isis.url = endpoint_;
         if ( bool(request["ServiceID"]) ){
-           SendToNeighbors(request, neighbors_, logger_, isis, &not_availables_neighbors_,endpoint_,&hash_table);
+           std::multimap<std::string,Arc::ISIS_description> local_hash_table;
+           local_hash_table = hash_table;
+           SendToNeighbors(request, neighbors_, logger_, isis, &not_availables_neighbors_,endpoint_,local_hash_table);
            for (int i=0; bool(request["ServiceID"][i]); i++) {
               // Search the hash value in my database
               Arc::XMLNode data;
@@ -1165,7 +1173,8 @@ static void soft_state_thread(void *data) {
             }
             if(response) delete response;
 
-            hash_table.clear();
+            if ( available_provider )
+                hash_table.clear();
             for (int i=0; i < find_servicedatas.size(); i++) {
                 logger_.msg(Arc::DEBUG, "find ServiceID: %s , hash: %d", find_servicedatas[i].serviceID, find_servicedatas[i].peerID );
                 // add the hash and the service info into the hash table
@@ -1315,7 +1324,9 @@ static void soft_state_thread(void *data) {
                      //isis.proxy = ;
                      //isis.cadir = ;
 
-                     SendToNeighbors(sync_datas, neighbors_, logger_, isis, &not_availables_neighbors_,endpoint_,&hash_table);
+                     std::multimap<std::string,Arc::ISIS_description> local_hash_table;
+                     local_hash_table = hash_table;
+                     SendToNeighbors(sync_datas, neighbors_, logger_, isis, &not_availables_neighbors_,endpoint_,local_hash_table);
                   }
                   logger_.msg(Arc::DEBUG, "Database stored." );
                   /*TODO: -Config update
