@@ -36,7 +36,7 @@ class PayloadHTTP: virtual public PayloadRaw, virtual public PayloadStreamInterf
   std::string method_;             /** HTTP method being used or requested */
   int code_;                       /** HTTP code being sent or supplied */
   std::string reason_;             /** HTTP reason being sent or supplied */
-  int64_t length_;                     /** Content-length of HTTP message */
+  int64_t length_;                 /** Content-length of HTTP message */
   //int offset_;                   /** Logical beginning of content computed from Content-Range */
   //int size_;                     /** Logical size of content obtained from Content-Range */
   bool chunked_;                   /** true if content is chunked */

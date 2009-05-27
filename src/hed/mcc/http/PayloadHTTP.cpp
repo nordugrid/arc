@@ -104,7 +104,7 @@ bool PayloadHTTP::parse_header(void) {
   if(it != attributes_.end()) {
     const char* token = it->second.c_str();
     const char* p = token; for(;*p;p++) if(isspace(*p)) break;
-    int range_start,range_end,entity_size;
+    int64_t range_start,range_end,entity_size;
     if(strncasecmp("bytes",token,p-token) == 0) {
       for(;*p;p++) if(!isspace(*p)) break;
       char *e;
@@ -161,7 +161,7 @@ bool PayloadHTTP::read(char* buf,int64_t& size) {
     int64_t l = size-tbuflen_;
     size=tbuflen_; tbuflen_=0; tbuf_[0]=0; 
     for(;l;) {
-      int l_ = l;
+      int l_ = (l>INT_MAX)?INT_MAX:l;
       if(!stream_->Get(buf,l_)) return (size>0);
       size+=l_; buf+=l_; l-=l_;
     };
@@ -175,7 +175,7 @@ bool PayloadHTTP::get_body(void) {
   valid_=false; // But object is invalid till whole body is available
   // TODO: Check for methods and responses which can't have body
   char* result = NULL;
-  int result_size = 0;
+  int64_t result_size = 0;
   if(chunked_) {
     for(;;) {
       std::string line;
@@ -311,8 +311,8 @@ bool PayloadHTTP::Flush(void) {
     };
     if(length_ != Size()) {
       // Add range definition if Body represents part of logical buffer size
-      int start = BufferPos(0);
-      int end = start+length_;
+      int64_t start = BufferPos(0);
+      int64_t end = start+length_;
       if(end <= Size()) {
         header+="Content-Range: bytes "+tostring(start)+"-"+tostring(end-1)+"/"+tostring(Size())+"\r\n";
       } else {
@@ -338,7 +338,7 @@ bool PayloadHTTP::Flush(void) {
       for(int n=0;;++n) {
         char* tbuf = Buffer(n);
         if(tbuf == NULL) break;
-        int lbuf = BufferSize(n);
+        int64_t lbuf = BufferSize(n);
         if(lbuf > 0) if(!stream_->Put(tbuf,lbuf)) return false;
       };
     };
