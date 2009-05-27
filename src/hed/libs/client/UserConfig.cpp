@@ -701,9 +701,9 @@ namespace Arc {
   void UserConfig::setDefaults()
   {
     if (!cfg["TimeOut"])
-      cfg.NewChild("TimeOut") = DEFAULT_TIMEOUT;
+      cfg.NewChild("TimeOut") = tostring(DEFAULT_TIMEOUT);
     else if (((std::string)cfg["TimeOut"]).empty() || stringtoi((std::string)cfg["TimeOut"]) <= 0)
-      cfg["TimeOut"] = DEFAULT_TIMEOUT;
+      cfg["TimeOut"] = tostring(DEFAULT_TIMEOUT);
 
     if (!cfg["Broker"]["Name"]) {
       if (!cfg["Broker"])
