@@ -41,6 +41,7 @@ public:
   virtual int Timeout(void) const { return timeout_; };
   virtual void Timeout(int to) { timeout_=to; };
   virtual Size_t Pos(void) const { return 0; };
+  virtual Size_t Size(void) const { return 0; };
 
   /**Get peer certificate from the established ssl.
     Obtained X509 object is owned by this instance and becomes invalid
