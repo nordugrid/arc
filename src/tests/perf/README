@@ -21,3 +21,6 @@ perftest_slcs:
 
 perftest_deleg_bysechandler:
   ./perftest_deleg_bysechandler https://squark.uio.no:60000/echo 1 120
+
+perftest_msgsize:
+  ./perftest_msgsize https://squark.uio.no:60000/echo 1 120 1000
