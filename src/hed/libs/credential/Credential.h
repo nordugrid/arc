@@ -108,7 +108,7 @@ class Credential {
                const std::string& cafile, const std::string& passphrase4key = "");
 
     /**Initiate nid for proxy certificate extension*/
-    void static InitProxyCertInfo(void);
+    static void InitProxyCertInfo(void);
 
     /**General method for adding a new nid into openssl's global const*/
     void AddCertExtObj(std::string& sn, std::string& oid);

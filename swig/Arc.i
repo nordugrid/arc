@@ -76,6 +76,7 @@ class listiteratorhandler
 %include "common.i" 
 %include "message.i"
 %include "client.i"
+%include "credential.i"
 %include "data.i"
 %include "delegation.i"
 #ifdef SWIGPYTHON

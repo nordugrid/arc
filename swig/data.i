@@ -61,6 +61,12 @@ and the second member is the original return value, the DataStatus. */
 
 }
 
+%ignore Arc::DataHandle::operator->;
+#endif
+
+#ifdef SWIGJAVA
+%ignore Arc::DataHandle::operator->;
+%ignore Arc::DataHandle::operator*;
 #endif
 
 

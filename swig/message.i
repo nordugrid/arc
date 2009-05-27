@@ -22,6 +22,7 @@
 
 %include "../src/hed/libs/message/MCC_Status.h"
 %rename(next) Arc::AttributeIterator::operator++;
+
 #ifdef SWIGPYTHON
 %pythonappend Arc::MessageAttributes::getAll %{
         d = dict()
@@ -31,10 +32,12 @@
         return d
 %}
 #endif
+
 %include "../src/hed/libs/message/MessageAttributes.h"
 %apply std::string& OUTPUT { std::string &val };
 %include "../src/hed/libs/message/SecAttr.h"
 %clear std::string &val;
+
 #ifdef SWIGPYTHON
 %pythonprepend Arc::MessageAuth::Export %{
         x = XMLNode("<dummy/>")
@@ -43,7 +46,16 @@
 %pythonappend Arc::MessageAuth::Export %{
         return x
 %}
+
+%import "../src/hed/libs/loader/Loader.h"
+%import "../src/hed/libs/loader/ModuleManager.h"
+%import "../src/hed/libs/loader/Plugin.h"
 #endif
+
+%ignore operator Arc::Config*;
+%ignore operator Arc::ChainContext*;
+%ignore operator Arc::XMLNode;
+
 %include "../src/hed/libs/message/MessageAuth.h"
 %include "../src/hed/libs/message/Message.h"
 %include "../src/hed/libs/message/MCC.h"

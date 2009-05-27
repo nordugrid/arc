@@ -8,7 +8,7 @@ javashare_DATA = arc.jar
 
 libjarc_la_SOURCES = arc_wrap.cpp JNI.h
 libjarc_la_CXXFLAGS = -fno-strict-aliasing $(JDK_CFLAGS) -I$(top_srcdir)/include $(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS)
-libjarc_la_LIBADD = $(top_srcdir)/src/hed/libs/common/libarccommon.la $(top_srcdir)/src/hed/libs/loader/libarcloader.la $(top_srcdir)/src/hed/libs/message/libarcmessage.la $(top_srcdir)/src/hed/libs/client/libarcclient.la $(top_srcdir)/src/hed/libs/data/libarcdata2.la $(LIBXML2_LIBS)
+libjarc_la_LIBADD = $(top_srcdir)/src/hed/libs/common/libarccommon.la $(top_srcdir)/src/hed/libs/loader/libarcloader.la $(top_srcdir)/src/hed/libs/message/libarcmessage.la $(top_srcdir)/src/hed/libs/client/libarcclient.la $(top_srcdir)/src/hed/libs/data/libarcdata2.la $(top_srcdir)/src/hed/libs/credential/libarccredential.la $(LIBXML2_LIBS)
 libjarc_la_LDFLAGS = -no-undefined -avoid-version -module
 
 SWIG_OUTPUTS = arc_wrap.cpp $(JAVA_PATH)/*.java
@@ -25,10 +25,10 @@ arc_wrap.cpp $(JAVA_PATH)/*.java: $(top_srcdir)/swig/*.i
 	$(CXXCOMPILE) $(libjarc_la_CXXFLAGS) -M -MT arc_wrap.cpp -MT $(JAVA_PATH)/arc.java -MP -MF "$(DEPDIR)/arc_wrap.deps" -x c++ -
 	rm -rf $(JAVA_PATH)
 	mkdir -p $(JAVA_PATH)
-	$(SWIG) -v -c++ -java -nodefault -module arc \
+	$(SWIG) -v -c++ -java -nodefaultctor -nodefaultdtor -module arc \
 		-package nordugrid.arc -o arc_wrap.cpp \
 		-outdir $(JAVA_PATH) \
-		-I$(top_srcdir)/include $(top_srcdir)/swig/Arc.i
+		-I/usr/include -I$(top_srcdir)/include $(top_srcdir)/swig/Arc.i
 	sed 's%#include <jni.h>%#include <JNI.h>%' < \
 	arc_wrap.cpp > arc_wrap.cpp.tmp
 	mv arc_wrap.cpp.tmp arc_wrap.cpp

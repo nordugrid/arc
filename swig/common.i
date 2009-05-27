@@ -16,7 +16,12 @@
 #ifdef SWIGJAVA
 %ignore Arc::MatchXMLName(const XMLNode&, const char*);
 %ignore Arc::MatchXMLNamespace(const XMLNode&, const char*);
-%ignore XMLNode(const char*, int);
+%ignore Arc::XMLNode::XMLNode(const char*);
+%ignore Arc::XMLNode::XMLNode(const char*, int);
+%ignore Arc::XMLNode::NewChild(const std::string&);
+%ignore Arc::XMLNode::NewChild(const std::string&, int);
+%ignore Arc::XMLNode::NewChild(const std::string&, NS const&, int);
+%ignore Arc::XMLNode::NewChild(const std::string&, NS const&);
 %ignore Name(const char*);
 %ignore Attribute(const char*) const;
 %ignore NewAttribute(const char*);
@@ -28,6 +33,17 @@
 %ignore operator =;
 %ignore operator <<;
 %ignore operator ++;
+
+%ignore *::operator==;
+%ignore *::operator!=;
+%ignore *::operator>>;
+%ignore *::operator<;
+%ignore *::operator>;
+%ignore *::operator<=;
+%ignore *::operator>=;
+%ignore *::operator+;
+%ignore *::operator-;
+
 %rename(toString) operator std::string;
 %rename(toBool) operator bool;
 #endif
@@ -42,7 +58,17 @@
 %ignore operator <<;
 %rename(toBool) operator bool;
 %rename(__str__) operator std::string;
+
 #endif
+
+%ignore Arc::MatchXMLName;
+%ignore Arc::MatchXMLNamespace;
+
+%ignore *::operator[];
+%ignore *::operator++;
+%ignore *::operator--;
+%ignore *::operator=;
+%rename(_print) Arc::Config::print;
 
 %apply std::string& OUTPUT { std::string& out_xml_str }; 
 %include "../src/hed/libs/common/XMLNode.h"
@@ -59,7 +85,6 @@
 
 
 #ifdef SWIGPYTHON
-
 // code from: http://www.nabble.com/Using-std%3A%3Aistream-from-Python-ts7920114.html#a7923253
 %inline %{ 
 class CPyOutbuf : public std::streambuf 
