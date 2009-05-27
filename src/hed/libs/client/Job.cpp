@@ -13,11 +13,11 @@ namespace Arc {
   Job::Job()
     : ExitCode(-1),
       WaitingPosition(-1),
-      RequestedWallTime(-1),
+      RequestedTotalWallTime(-1),
       RequestedTotalCPUTime(-1),
       RequestedMainMemory(-1),
       RequestedSlots(-1),
-      UsedWallTime(-1),
+      UsedTotalWallTime(-1),
       UsedTotalCPUTime(-1),
       UsedMainMemory(-1),
       UsedSlots(-1),
@@ -48,7 +48,7 @@ namespace Arc {
       for (iter = Error.begin(); iter != Error.end(); iter++)
         std::cout << IString(" Error: %s", *iter) << std::endl;
     }
-    if (longlist) {
+/*    if (longlist) {
       if (!Owner.empty())
         std::cout << IString(" Owner: %s", Owner) << std::endl;
       if (!OtherMessages.empty())
@@ -115,7 +115,7 @@ namespace Arc {
         std::cout << IString(" Entry valid for: %s",
                                   (std::string)Validity) << std::endl;
     }
-
+*/
     std::cout << std::endl;
 
   } // end Print

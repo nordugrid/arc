@@ -9,9 +9,12 @@
 #include <arc/loader/Loader.h>
 #include <arc/ws-addressing/WSA.h>
 #include <arc/wsrf/WSResourceProperties.h>
+#include <arc/StringConv.h>
+
 #include "AREXClient.h"
 
 namespace Arc {
+  const std::string mainStateModel = "nordugrid";
 
   static const std::string BES_FACTORY_ACTIONS_BASE_URL("http://schemas.ggf.org/bes/2006/08/bes-factory/BESFactoryPortType/");
   static const std::string BES_MANAGEMENT_ACTIONS_BASE_URL("http://schemas.ggf.org/bes/2006/08/bes-management/BESManagementPortType/");
@@ -110,7 +113,7 @@ namespace Arc {
         return false;
       }
     }
-    
+
     // Send job request + delegation
     if (client) {
       if (delegate) {
@@ -226,7 +229,7 @@ namespace Arc {
 
     if (!process(req, &resp, delegate))
       return false;
-    
+
     XMLNode id;
     SOAPFault fs(*resp);
     if (!fs) {
@@ -269,6 +272,13 @@ namespace Arc {
       return false;
 
     SOAPFault *fs = (*resp).Fault();
+    (*resp).Namespaces(arex_ns);
+    //XMLNode jobNode = (*resp)["QueryResourcePropertiesResponse"]["ComputingActivity"];
+    XMLNode jobNode;
+    (*resp)["QueryResourcePropertiesResponse"]["ComputingActivity"].New(jobNode);
+
+    delete resp;
+
     if (fs) {
       faultstring = fs->Reason();
       if (faultstring.empty())
@@ -276,31 +286,96 @@ namespace Arc {
     }
     if (faultstring != "") {
       logger.msg(ERROR, faultstring);
-      delete resp;
       return false;
     }
     else {
       logger.msg(DEBUG, "Fetching job state");
-      (*resp).Namespaces(arex_ns);
-      XMLNode jobNode = (*resp)["QueryResourcePropertiesResponse"]["ComputingActivity"];
       logger.msg(DEBUG, "%s", (std::string)jobNode["State"]);
-      // Fetch the nordugrid state.
-      const std::string stateModel = "nordugrid:";
+      // Fetch the proper state.
       for (int i = 0; jobNode["State"][i]; i++) {
-        const std::string state = (std::string)jobNode["State"][i];
-        if (state.size() > stateModel.size() && state.substr(0, stateModel.size()) == stateModel) {
-          job.State = state.substr(stateModel.size());
-          break;
+        const std::string rawState = (std::string)jobNode["State"][i];
+        std::vector<std::string> tokens;
+        tokenize(rawState, tokens, ":");
+        if (tokens.size() < 2) {
+          logger.msg(WARNING, "Found malformed job state string: %s", rawState);
+          continue;
         }
+        const std::string model = tokens[0];
+        const std::string state = rawState.substr(model.size()+1);
+        if (model == mainStateModel) job.State = state;
+        job.AuxStates[model] = state;
       }
 
       if (job.State == "") {
         logger.msg(ERROR, "The job status could not be retrieved");
-        delete resp;
         return false;
       }
 
-      delete resp;
+      //The job is found and data about it can be collected
+
+      if (jobNode["ComputingManagerEndTime"]){
+        job.ComputingManagerEndTime=Time((std::string)jobNode["ComputingManagerEndTime"]);
+      }
+      else {
+        logger.msg(INFO, "The job doesn't advertise a computing manager end time");
+      }
+
+      if (jobNode["ComputingManagerSubmissionTime"]){
+        job.ComputingManagerSubmissionTime=Time((std::string)jobNode["ComputingManagerSubmissionTime"]);
+      }
+      else {
+        logger.msg(INFO, "The job doesn't advertise a computing manager submission time");
+      }
+
+      if (jobNode["CreationTime"]){
+        job.CreationTime=Time((std::string)jobNode["CreationTime"]);
+      }
+      else {
+        logger.msg(INFO, "The job doesn't advertise a creation time");
+      }
+
+      if (jobNode["EndTime"]){
+        job.EndTime=Time((std::string)jobNode["EndTime"]);
+      }
+      else {
+        logger.msg(INFO, "The job doesn't advertise an end time");
+      }
+
+      if (jobNode["LocalSubmissionTime"]){
+        job.LocalSubmissionTime=Time((std::string)jobNode["LocalSubmissionTime"]);
+      }
+      else {
+        logger.msg(INFO, "The job doesn't advertise a local submission time");
+      }
+
+      if (jobNode["ProxyExpirationTime"]){
+        job.ProxyExpirationTime=Time((std::string)jobNode["ProxyExpirationTime"]);
+      }
+      else {
+        logger.msg(INFO, "The job doesn't advertise a proxy expiration time");
+      }
+
+      if (jobNode["StartTime"]){
+        job.StartTime=Time((std::string)jobNode["StartTime"]);
+      }
+      else {
+        logger.msg(INFO, "The job doesn't advertise a start time");
+      }
+
+      if (jobNode["SubmissionTime"]){
+        job.SubmissionTime=Time((std::string)jobNode["SubmissionTime"]);
+      }
+      else {
+        logger.msg(INFO, "The job doesn't advertise a submission time");
+      }
+
+      if (jobNode["WorkingAreaEraseTime"]){
+        job.WorkingAreaEraseTime=Time((std::string)jobNode["WorkingAreaEraseTime"]);
+      }
+      else {
+        logger.msg(INFO, "The job doesn't advertise a working area erase time");
+      }
+
       return true;
     }
   }
@@ -365,7 +440,7 @@ namespace Arc {
       logger.msg(ERROR, "There is no connection chain configured");
       return false;
     }
-    
+
     SOAPFault* fault = resp->Fault();
     if(fault) {
       logger.msg(ERROR, "The response to a service status request "
@@ -484,7 +559,7 @@ namespace Arc {
       NewChild(XMLNode(jobid));
     set_bes_factory_action(req, "TerminateActivities");
     WSAHeader(req).To(rurl.str());
-    
+
     PayloadSOAP *resp = NULL;
     if (!process(req, &resp, false))
       return false;
@@ -527,7 +602,7 @@ namespace Arc {
     jobstate.NewChild("a-rex:state") = "Deleted";
     WSAHeader(req).Action("");
     WSAHeader(req).To(rurl.str());
-    
+
     // Send clean request
     PayloadSOAP *resp = NULL;
     if (!process(req, &resp, false))
@@ -572,7 +647,7 @@ namespace Arc {
     PayloadSOAP *resp = NULL;
     if (!process(req, &resp, false))
       return false;
-    
+
     XMLNode st;
     (*resp)["GetActivityDocumentsResponse"]["Response"]
     ["JobDefinition"].New(st);
@@ -678,7 +753,7 @@ namespace Arc {
     jobstate.NewChild("a-rex:state") = "";
     WSAHeader(req).Action("");
     WSAHeader(req).To(rurl.str());
-    
+
     PayloadSOAP *resp = NULL;
     if (!process(req, &resp, true))
       return false;

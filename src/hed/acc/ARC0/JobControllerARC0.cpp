@@ -134,7 +134,7 @@ namespace Arc {
           (*it)->UsedTotalCPUTime =
             (std::string)jobinfo["nordugrid-job-usedcputime"];
         if (jobinfo["nordugrid-job-usedwalltime"])
-          (*it)->UsedWallTime =
+          (*it)->UsedTotalWallTime =
             (std::string)jobinfo["nordugrid-job-usedwalltime"];
         if (jobinfo["nordugrid-job-exitcode"])
           (*it)->ExitCode = stringtoi(jobinfo["nordugrid-job-exitcode"]);
@@ -155,7 +155,7 @@ namespace Arc {
           (*it)->RequestedTotalCPUTime =
             (std::string)(jobinfo["nordugrid-job-reqcputime"]);
         if (jobinfo["nordugrid-job-reqwalltime"])
-          (*it)->RequestedWallTime =
+          (*it)->RequestedTotalWallTime =
             (std::string)(jobinfo["nordugrid-job-reqwalltime"]);
         if (jobinfo["nordugrid-job-rerunable"])
           (*it)->RestartState =
@@ -164,8 +164,8 @@ namespace Arc {
           (*it)->WaitingPosition =
             stringtoi(jobinfo["nordugrid-job-queuerank"]);
         if (jobinfo["nordugrid-job-comment"])
-          (*it)->OtherMessages =
-            (std::string)(jobinfo["nordugrid-job-comment"]);
+          (*it)->OtherMessages.push_back(
+            (std::string)(jobinfo["nordugrid-job-comment"]));
         if (jobinfo["nordugrid-job-usedmem"])
           (*it)->UsedMainMemory =
             stringtoi(jobinfo["nordugrid-job-usedmem"]);

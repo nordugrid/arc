@@ -36,8 +36,10 @@ namespace Arc {
     URL IDFromEndpoint;
     std::string LocalIdFromManager;
     std::string JobDescription;
-    std::string State;
-    std::string RestartState;
+    std::string State; //for the main state model, currently nordugrid state
+    std::map<std::string, std::string> AuxStates; //for all state models
+    std::string RestartState; //for the main state model, currently nordugrid state
+    std::map<std::string, std::string> RestartStates; //for all state models
     int ExitCode;
     std::string ComputingManagerExitCode;
     std::list<std::string> Error;
@@ -45,18 +47,19 @@ namespace Arc {
     std::string UserDomain;
     std::string Owner;
     std::string LocalOwner;
-    Period RequestedWallTime;
+    Period RequestedTotalWallTime;
     Period RequestedTotalCPUTime;
-    int RequestedMainMemory;
+    int RequestedMainMemory;//Deprecated??
     int RequestedSlots;
+    std::list<std::string> RequestedApplicationEnvironment;
     std::string StdIn;
     std::string StdOut;
     std::string StdErr;
     std::string LogDir;
     std::list<std::string> ExecutionNode;
-    std::string ExecutionCE;
+    std::string ExecutionCE;//Deprecated??
     std::string Queue;
-    Period UsedWallTime;
+    Period UsedTotalWallTime;
     Period UsedTotalCPUTime;
     int UsedMainMemory;
     std::list<std::string> UsedApplicationEnvironment;
@@ -73,7 +76,7 @@ namespace Arc {
     std::string SubmissionClientName;
     Time CreationTime;
     Period Validity;
-    std::string OtherMessages;
+    std::list<std::string> OtherMessages;
     //Associations
     URL JobManagementEndpoint;
     URL DataStagingEndpoint;
