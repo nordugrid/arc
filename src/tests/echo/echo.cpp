@@ -137,9 +137,21 @@ Arc::MCC_Status Service_Echo::process(Arc::Message& inmsg,Arc::Message& outmsg) 
     };
     outpayload = new Arc::PayloadSOAP(*outxml);
     delete outxml;
-  } else {
+  }
+  else if((*inpayload)["size"]){
+    Arc::XMLNode echo_op = (*inpayload)["size"];
+    int size = atoi(std::string(echo_op["size"]).c_str());
+    std::string msg = "Message for you, sir";
+    msg.resize(size,'0');
+    std::string say = echo_op["say"];
+    std::string hear = prefix_+say+suffix_;
+    outpayload = new Arc::PayloadSOAP(ns_);
+    outpayload->NewChild("echo:echoResponse").NewChild("echo:hear")=msg;
+  }
+  else {
     // Then it must be 'echo' operation requested
     Arc::XMLNode echo_op = (*inpayload)["echo"];
+    logger.msg(ERROR,echo_op["size"]);
     if(!echo_op) {
       return make_fault(outmsg,"Request is not supported - "+echo_op.Name());
     };
