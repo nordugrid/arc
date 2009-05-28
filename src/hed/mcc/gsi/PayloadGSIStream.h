@@ -61,6 +61,9 @@ namespace Arc {
     virtual Size_t Pos() const {
       return 0;
     }
+    virtual Size_t Size(void) const { 
+      return 0; 
+    }
 
   protected:
     int timeout;
