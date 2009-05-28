@@ -134,11 +134,11 @@ void SendToNeighbors(Arc::XMLNode& node, std::vector<Arc::ISIS_description> neig
                    break;
            }
            // add isis into the list until the next neighbor
-           int i=0;
-           while ( (it_hash->second).url != next_url && i < neighbors_.size() ){
+           while ( (it_hash->second).url != next_url ){
+               if ( 0 < data->isis_list.size() && (it_hash->second).url == url)
+                   break;
                data->isis_list.push_back(it_hash->second);
                it_hash++;
-               i++;
                if ( it_hash == hash_table.end() )
                    it_hash = hash_table.begin();
            }
