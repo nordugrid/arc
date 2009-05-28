@@ -4,9 +4,7 @@
 
 #ifdef SWIGPYTHON
 %include <std_list.i>
-%template(StringList) std::list<std::string>;
 #endif
-
 
 #ifdef SWIGJAVA
 %include <std_common.i>
@@ -68,10 +66,15 @@ class listiteratorhandler
 };
 
 %}
+#endif
 
 %template(StringList) std::list<std::string>;
+%template(StringStringMap) std::map<std::string, std::string>;
+
+#ifdef SWIGJAVA
 %template(StringListIteratorHandler) listiteratorhandler<std::string>;
 #endif
+
 
 %include "common.i" 
 %include "message.i"

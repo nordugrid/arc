@@ -10,12 +10,26 @@
 %}
 %include <typemaps.i>
 
-%template(NS_map) std::map<std::string, std::string>;
+
+%ignore operator !;
+%ignore operator [];
+%ignore operator =;
+%ignore operator ++;
+%ignore operator <<;
+
+%ignore *::operator[];
+%ignore *::operator++;
+%ignore *::operator--;
+%ignore *::operator=;
+
+%ignore Arc::MatchXMLName;
+%ignore Arc::MatchXMLNamespace;
+
+%template(XMLNodeList) std::list<Arc::XMLNode>;
+%template(URLList) std::list<Arc::URL>;
 
 
 #ifdef SWIGJAVA
-%ignore Arc::MatchXMLName(const XMLNode&, const char*);
-%ignore Arc::MatchXMLNamespace(const XMLNode&, const char*);
 %ignore Arc::XMLNode::XMLNode(const char*);
 %ignore Arc::XMLNode::XMLNode(const char*, int);
 %ignore Arc::XMLNode::NewChild(const std::string&);
@@ -28,11 +42,7 @@
 %ignore NewChild(const char*, int, bool);
 %ignore NewChild(const char*, const NS&, int, bool);
 %ignore Config(const char*);
-%ignore operator !;
-%ignore operator [];
-%ignore operator =;
-%ignore operator <<;
-%ignore operator ++;
+
 
 %ignore *::operator==;
 %ignore *::operator!=;
@@ -49,25 +59,11 @@
 #endif
 
 #ifdef SWIGPYTHON
-%include <std_list.i>
-%template(XMLNodeList) std::list<Arc::XMLNode>;
-%ignore operator !;
-%ignore operator [];
-%ignore operator =;
-%ignore operator ++;
-%ignore operator <<;
 %rename(toBool) operator bool;
 %rename(__str__) operator std::string;
 
 #endif
 
-%ignore Arc::MatchXMLName;
-%ignore Arc::MatchXMLNamespace;
-
-%ignore *::operator[];
-%ignore *::operator++;
-%ignore *::operator--;
-%ignore *::operator=;
 %rename(_print) Arc::Config::print;
 
 %apply std::string& OUTPUT { std::string& out_xml_str }; 

@@ -15,11 +15,27 @@
 #include <arc/client/UserConfig.h>
 %}
 
-#ifdef SWIGPYTHON
 %template(ExecutionTargetList) std::list<Arc::ExecutionTarget>;
 %template(JobControllerList) std::list<Arc::JobController *>;
 %template(JobList) std::list<Arc::Job>;
+%template(SourceTypeList) std::list<Arc::SourceType>;
+%template(TargetTypeList) std::list<Arc::TargetType>;
+%template(EnvironmentTypeList) std::list<Arc::EnvironmentType>;
+%template(NotificationTypeList) std::list<Arc::NotificationType>;
+%template(ReferenceTimeTypeList) std::list<Arc::ReferenceTimeType>;
+%template(RunTimeEnvironmentTypeList) std::list<Arc::RunTimeEnvironmentType>;
+%template(FileTypeList) std::list<Arc::FileType>;
+%template(DirectoryTypeList) std::list<Arc::DirectoryType>;
+%template(OptionalElementTypeList) std::list<Arc::OptionalElementType>;
+%template(ApplicationEnvironmentList) std::list<Arc::ApplicationEnvironment>;
 
+#ifdef SWIGJAVA
+%template(ExecutionTargetListIteratorHandler) listiteratorhandler<Arc::ExecutionTarget>;
+%template(JobControllerListIteratorHandler) listiteratorhandler<Arc::JobController *>;
+#endif
+
+
+#ifdef SWIGPYTHON
 namespace Arc {
 
 /* this typemap tells SWIG that we don't want to use the 'PayloadSOAP ** response' argument from the target language,
@@ -56,12 +72,6 @@ the first member will be the '*response' and the second member is the original r
 
 
 #ifdef SWIGJAVA
-%template(ExecutionTargetList) std::list<Arc::ExecutionTarget>;
-%template(ExecutionTargetListIteratorHandler) listiteratorhandler<Arc::ExecutionTarget>;
-%template(JobControllerList) std::list<Arc::JobController *>;
-%template(JobControllerListIteratorHandler) listiteratorhandler<Arc::JobController *>;
-%template(JobList) std::list<Arc::Job>;
-
 %inline %{
 void stream(std::ostream& os) {
  os << "hello from stream method" << std::endl;
