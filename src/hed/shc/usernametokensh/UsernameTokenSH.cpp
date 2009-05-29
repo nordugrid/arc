@@ -5,7 +5,6 @@
 #include <iostream>
 #include <fstream>
 
-#include <arc/security/SecHandler.h>
 #include <arc/loader/Loader.h>
 #include <arc/message/PayloadSOAP.h>
 #include <arc/XMLNode.h>

@@ -22,7 +22,6 @@
 #include <sstream>
 
 #include <arc/message/PayloadSOAP.h>
-#include <arc/security/SecHandler.h>
 #include <arc/URL.h>
 
 #include "arex_client.h"

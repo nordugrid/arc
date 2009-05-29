@@ -5,7 +5,7 @@
 
 #include <arc/ArcConfig.h>
 #include <arc/message/Message.h>
-#include <arc/security/SecHandler.h>
+#include <arc/message/SecHandler.h>
 
 namespace ArcSec {
 

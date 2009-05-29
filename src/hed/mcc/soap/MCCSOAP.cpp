@@ -9,7 +9,6 @@
 #include <arc/XMLNode.h>
 #include <arc/loader/Plugin.h>
 #include <arc/ws-addressing/WSA.h>
-#include <arc/security/SecHandler.h>
 
 #include "MCCSOAP.h"
 

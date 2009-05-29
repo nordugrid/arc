@@ -10,7 +10,6 @@
 #include <arc/URL.h>
 #include <arc/XMLNode.h>
 #include <arc/message/PayloadRaw.h>
-#include <arc/security/SecHandler.h>
 #include <arc/credential/Credential.h>
 #include <arc/client/ClientInterface.h>
 

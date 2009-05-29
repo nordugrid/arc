@@ -5,7 +5,7 @@
 #include <arc/Logger.h>
 #include <arc/message/MCC.h>
 #include <arc/loader/Plugin.h>
-#include <arc/security/SecHandler.h>
+#include <arc/message/SecHandler.h>
 
 namespace Arc {
 

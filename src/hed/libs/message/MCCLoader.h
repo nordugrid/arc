@@ -8,7 +8,7 @@
 #include <arc/message/MCC.h>
 #include <arc/message/Service.h>
 #include <arc/message/Plexer.h>
-#include <arc/security/SecHandler.h>
+#include <arc/message/SecHandler.h>
 
 #include <arc/loader/Plugin.h>
 #include <arc/loader/Loader.h>

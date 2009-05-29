@@ -3,7 +3,7 @@
 
 #include <stdlib.h>
 
-#include <arc/security/SecHandler.h>
+#include <arc/message/SecHandler.h>
 #include <arc/ArcConfig.h>
 #include <arc/loader/Plugin.h>
 

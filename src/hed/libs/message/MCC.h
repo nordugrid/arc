@@ -5,7 +5,7 @@
 #include <map>
 #include <arc/ArcConfig.h>
 #include <arc/Logger.h>
-#include <arc/security/SecHandler.h>
+#include <arc/message/SecHandler.h>
 #include <arc/loader/Plugin.h>
 #include <arc/message/Message.h>
 #include <arc/message/MCC_Status.h>
