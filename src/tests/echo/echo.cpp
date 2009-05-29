@@ -8,7 +8,7 @@
 #include <arc/message/MCCLoader.h>
 #include <arc/infosys/RegisteredService.h>
 #include <arc/message/PayloadSOAP.h>
-#include <arc/security/SecHandler.h>
+#include <arc/message/SecHandler.h>
 
 #include "echo.h"
 
