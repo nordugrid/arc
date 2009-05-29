@@ -95,6 +95,10 @@ namespace Arc {
     triesleft = std::max(0, n);
   }
 
+  bool DataPoint::NextTry() {
+    if(triesleft) --triesleft;
+  }
+
   void DataPoint::SetMeta(const DataPoint& p) {
     if (!CheckSize())
       SetSize(p.GetSize());

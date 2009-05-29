@@ -239,7 +239,7 @@ namespace Arc {
       }
       else
         logger.msg(ERROR, "Failed to resolve source: %s", source.str());
-      source.NextLocation(); /* try again */
+      source.NextTry(); /* try again */
       if (!do_retries)
         return DataStatus::ReadResolveError;
       if (!source.LocationValid())
@@ -255,7 +255,7 @@ namespace Arc {
       }
       else
         logger.msg(ERROR, "Failed to resolve destination: %s", destination.str());
-      destination.NextLocation(); /* try again */
+      destination.NextTry(); /* try again */
       if (!do_retries)
         return DataStatus::WriteResolveError;
       if (!destination.LocationValid())
@@ -284,7 +284,7 @@ namespace Arc {
       if (strcasecmp(value.c_str(), "no") != 0)
         destination_overwrite = true;
     }
-    if (destination_overwrite)
+    if (destination_overwrite) {
       if ((destination.IsIndex() && destination_meta_initially_stored)
           || (!destination.IsIndex())) {
         URL del_url = destination.GetURL();
@@ -300,7 +300,7 @@ namespace Arc {
           if (!destination.IsIndex())
             break; // pfn has chance to be overwritten directly
           logger.msg(INFO, "Failed to delete %s", del_url.str());
-          destination.NextLocation(); /* try again */
+          destination.NextTry(); /* try again */
           if (!do_retries)
             return res;
           if ((--try_num) <= 0)
@@ -317,7 +317,7 @@ namespace Arc {
             else
               logger.msg(ERROR, "Failed to resolve destination: %s",
                          destination.str());
-            destination.NextLocation(); /* try again */
+            destination.NextTry(); /* try again */
             if (!do_retries)
               return DataStatus::WriteResolveError;
             if (!destination.LocationValid())
@@ -331,6 +331,7 @@ namespace Arc {
           }
         }
       }
+    }
     DataStatus res = DataStatus::TransferError;
     int try_num;
     for (try_num = 0;; try_num++) { /* cycle for retries */

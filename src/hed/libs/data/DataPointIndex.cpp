@@ -46,8 +46,10 @@ namespace Arc {
   }
 
   bool DataPointIndex::NextLocation() {
-    if (!LocationValid())
+    if (!LocationValid()) {
+      --triesleft;
       return false;
+    }
     ++location;
     if (locations.end() == location)
       if (--triesleft > 0)
