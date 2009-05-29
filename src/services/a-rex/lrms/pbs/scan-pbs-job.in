@@ -89,6 +89,23 @@ translate_time_to_seconds () {
     ttts_new_time=`echo $orig_time | awk 'BEGIN { FS = ":" } ; { print $1*3600+$2*60+$3}'`
 }
 
+find_by_local() {
+  eval "set -- $control_dirs"
+  for ctr_dir in "$@"; do
+    find ${ctr_dir} -name 'job.*.local' -print0 | xargs -0 grep -F -l "localid=$job_id" 2>/dev/null
+  done \
+  | head -n 1
+}
+
+find_by_grami() {
+  eval "set -- $control_dirs"
+  for ctr_dir in "$@"; do
+    find ${ctr_dir} -name 'job.*.grami' -print0 | xargs -0 grep -F -l "joboption_jobid=$job_id" 2>/dev/null
+  done \
+  | sed 's/\.grami$/.local/' \
+  | head -n 1
+}
+
 #
 #  Main fnction for processing one PBS log.
 #  Extracts log lines with code 0010 (job exited) and 0008 (job killed)
@@ -137,15 +154,13 @@ sort -u | \
     #UserTime
     cputime=`echo "$job_message" | sed 's/^.*resources_used.cput=\(\([0-9]*:\)*[0-9][0-9]\).*/\1/;t leave;s/.*//;:leave'`
 
-    # look for this id in job.ID.local
-    {
-      for ctr_dir in "$@" ; do
-        find ${ctr_dir} -name 'job.*.local' -print0 | xargs -0 grep -F -l "localid=$job_id" 2>/dev/null
-      done
-    } | {
-      while true ; do
-        read -r name
-        if [ -z "$name" ] ; then break ; fi
+    # look for this id in job.ID.local, then in job.ID.grami
+    name=`find_by_local`
+    if [ -z "$name" ]; then
+        name=`find_by_grami`
+        if [ -z "$name" ]; then continue; fi
+    fi
+
         if [ "$my_id" != '0' ] ; then
           if [ ! -O "$name" ] ; then continue ; fi
         fi
@@ -174,7 +189,7 @@ sort -u | \
         if [ -f "${base_name}.lrms_done" ] ; then continue ; fi
 
         # more protection - check if grid-manager thinks job is still running
-        grep INLRMS "${base_name}.status" 2>/dev/null 1>/dev/null
+        egrep 'INLRMS|SUBMIT' "${base_name}.status" > /dev/null 2>&1
         if [ ! $? = '0' ] ; then continue ; fi
 
 	# So far only PBS exit code is available
@@ -256,9 +271,6 @@ sort -u | \
 	fi
 	# wake up GM
 	${GMKICK} "${base_name}.status"
-        break 	  
-      done
-    }
   done
 }
 }
