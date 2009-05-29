@@ -215,6 +215,7 @@ namespace Arc {
 
   std::string Credential::GetDN(void) {
     X509_NAME *subject = NULL;
+    if(!cert_) return "";
     subject = X509_get_subject_name(cert_);
     std::string str;
     char buf[256];
@@ -227,6 +228,7 @@ namespace Arc {
   std::string Credential::GetIdentityName(void) {
     X509_NAME *subject = NULL;
     X509_NAME_ENTRY *ne = NULL;
+    if(!cert_) return "";
     subject = X509_NAME_dup(X509_get_subject_name(cert_));
 
 #if 0
