@@ -1582,7 +1582,7 @@ err:
     }
 
     //Set "not After"
-    if( X509_cmp_time(X509_get_notAfter(issuer), &t2) > 0) {
+    if( X509_cmp_time(X509_get_notAfter(issuer), &t2) >= 0) {
       notAfter = M_ASN1_UTCTIME_new();
       if(notAfter == NULL) {
         CredentialLogger.msg(ERROR, "Failed to create new ASN1_UTCTIME for expiration time of proxy certificate");
