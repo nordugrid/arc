@@ -273,7 +273,8 @@ namespace Arc {
                 get_http_proxy_port(url,proxy_host,proxy_port),
                 url.Protocol() == "https" ? TLSSec
                   : url.Protocol() == "httpg" ? GSISec
-                    : NoSec),
+                    : NoSec,
+                url.Option("tcpnodelay") == "yes"),
       http_entry(NULL),
       default_url(url),
       relative_uri(false),
