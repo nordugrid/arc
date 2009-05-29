@@ -265,8 +265,8 @@ exit 0
 %doc %{_mandir}/man1/arcrenew.1*
 %{_bindir}/arcresume
 %doc %{_mandir}/man1/arcresume.1*
-%{_bindir}/voms_assertion_init
-%doc %{_mandir}/man1/voms_assertion_init.1*
+%{_bindir}/saml_assertion_init
+%doc %{_mandir}/man1/saml_assertion_init.1*
 %{_bindir}/perftest
 %doc %{_mandir}/man1/perftest.1.gz
 %{_bindir}/arc_storage_cli
