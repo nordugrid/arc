@@ -137,7 +137,13 @@ bool PayloadTCPSocket::Put(const char* buf,int size) {
 void PayloadTCPSocket::NoDelay(bool val) {
   if(handle_ == -1) return;
   int flag = val?1:0;
-  ::setsockopt(handle_,IPPROTO_TCP,TCP_NODELAY,&flag,sizeof(flag));
+
+#ifdef WIN32
+ ::setsockopt(handle_,IPPROTO_TCP,TCP_NODELAY,(const char*)(&flag),sizeof(flag));
+#else
+ ::setsockopt(handle_,IPPROTO_TCP,TCP_NODELAY,&flag,sizeof(flag));
+#endif
+
 }
 
 } // namespace Arc
