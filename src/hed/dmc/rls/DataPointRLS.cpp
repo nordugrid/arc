@@ -72,7 +72,7 @@ namespace Arc {
     meta_resolve_rls_t(DataPointRLS& d, bool s)
       : dprls(d),
         source(s),
-        success(DataStatus::Success),
+        success(DataStatus::NoLocationError),
         obtained_info(false) {}
   };
 
