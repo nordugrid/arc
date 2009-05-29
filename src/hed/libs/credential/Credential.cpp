@@ -1555,7 +1555,8 @@ err:
   }
 
   bool Credential::SetProxyPeriod(X509* tosign, X509* issuer, Time& start, Period& lifetime) {
-    ASN1_UTCTIME  *notBefore = NULL, *notAfter = NULL;
+    ASN1_UTCTIME* notBefore = NULL;
+    ASN1_UTCTIME* notAfter = NULL;
     time_t t1 = start.GetTime();
     Time tmp = start + lifetime;
     time_t t2 = tmp.GetTime();
@@ -1580,29 +1581,28 @@ err:
       CredentialLogger.msg(ERROR, "Failed to set notBefore for proxy certificate");
       LogError(); ASN1_UTCTIME_free(notBefore); return false;
     }
+    ASN1_UTCTIME_free(notBefore);
 
     //Set "not After"
-    if( X509_cmp_time(X509_get_notAfter(issuer), &t2) >= 0) {
+    if( X509_cmp_time(X509_get_notAfter(issuer), &t2) > 0) {
       notAfter = M_ASN1_UTCTIME_new();
       if(notAfter == NULL) {
         CredentialLogger.msg(ERROR, "Failed to create new ASN1_UTCTIME for expiration time of proxy certificate");
-        LogError(); ASN1_UTCTIME_free(notBefore); return false;
+        LogError(); return false;
       }
       X509_time_adj(notAfter, 0, &t2);
     }
     else {
       if((notAfter = M_ASN1_UTCTIME_dup(X509_get_notAfter(issuer))) == NULL) {
         CredentialLogger.msg(ERROR, "Failed to duplicate ASN1_UTCTIME for expiration time of proxy certificate");
-        LogError(); ASN1_UTCTIME_free(notBefore); return false;
+        LogError(); return false;
       }
     }
 
     if(!X509_set_notAfter(tosign, notAfter)) {
       CredentialLogger.msg(ERROR, "Failed to set notBefore for proxy certificate");
-      LogError(); ASN1_UTCTIME_free(notBefore);  ASN1_UTCTIME_free(notAfter); return false;
+      LogError(); ASN1_UTCTIME_free(notAfter); return false;
     }
-
-    ASN1_UTCTIME_free(notBefore);
     ASN1_UTCTIME_free(notAfter);
 
     return true;
