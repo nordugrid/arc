@@ -183,7 +183,7 @@ int main(int argc, char **argv) {
       retval = 1;
     for (std::list<Arc::URL>::iterator it = migratedJobIDs.begin();
          it != migratedJobIDs.end(); it++) {
-      std::cout << Arc::IString("Job migrated with jobid: %s", *it) << std::endl;
+      std::cout << Arc::IString("Job migrated with jobid: %s", it->str()) << std::endl;
     }
   } // Loop over job controllers
 
