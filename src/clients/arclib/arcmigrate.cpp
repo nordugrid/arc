@@ -8,6 +8,7 @@
 #include <list>
 #include <string>
 
+#include <arc/ArcConfig.h>
 #include <arc/ArcLocation.h>
 #include <arc/IString.h>
 #include <arc/Logger.h>
@@ -162,7 +163,8 @@ int main(int argc, char **argv) {
     return 1;
   }
 
-  Arc::ACCLoader loader(Arc::ACCConfig().MakeConfig());
+  Arc::Config cfg;
+  Arc::ACCLoader loader(Arc::ACCConfig().MakeConfig(cfg).Parent());
   Arc::Broker *chosenBroker = dynamic_cast<Arc::Broker*>(loader.loadACC(usercfg.ConfTree()["Broker"]["Name"], usercfg));
   logger.msg(Arc::INFO, "Broker %s loaded", broker);
 

@@ -12,6 +12,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
+#include <arc/ArcConfig.h>
 #include <arc/ArcLocation.h>
 #include <arc/DateTime.h>
 #include <arc/FileLock.h>
@@ -238,7 +239,8 @@ int main(int argc, char **argv) {
   int jobnr = 1;
   std::list<std::string> jobids;
 
-  Arc::ACCLoader loader(Arc::ACCConfig().MakeConfig());
+  Arc::Config cfg;
+  Arc::ACCLoader loader(Arc::ACCConfig().MakeConfig(cfg).Parent());
   Arc::Broker *ChosenBroker = dynamic_cast<Arc::Broker*>(loader.loadACC(usercfg.ConfTree()["Broker"]["Name"], usercfg));
   logger.msg(Arc::INFO, "Broker %s loaded", broker);
 
