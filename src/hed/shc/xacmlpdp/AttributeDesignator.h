@@ -3,8 +3,10 @@
 
 #include <string>
 #include <list>
+
 #include <arc/XMLNode.h>
 #include <arc/security/ArcPDP/attr/AttributeValue.h>
+#include <arc/security/ArcPDP/Evaluator.h>
 
 namespace ArcSec {
 
@@ -24,7 +26,7 @@ private:
   std::string type;
   std::string issuer;
   
-  boolean present;
+  bool present;
 };
 
 } // namespace ArcSec

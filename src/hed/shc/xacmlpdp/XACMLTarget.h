@@ -8,21 +8,21 @@
 #include <arc/security/ArcPDP/fn/FnFactory.h>
 #include <arc/security/ArcPDP/Evaluator.h>
 
-#include <./AttributeSelector.h>
-#include <./AttributeDesginator.h>
+#include "./AttributeSelector.h"
+#include "./AttributeDesignator.h"
 
 namespace ArcSec {
 
 //<SubjectMatch/> <ResourceMatch/> <ActionMatch/>, or <EnvironmentMatch/>
 class XACMLTargetMatch {
 public:
-  XACMLTarget(Arc::XMLNode& node, EvaluatorContext* ctx);
+  XACMLTargetMatch(Arc::XMLNode& node, EvaluatorContext* ctx);
   virtual ~XACMLTargetMatch();
   virtual MatchResult match(EvaluationCtx* ctx);
 
 private:
   AttributeFactory* attrfactory;
-  FnFactoty* fnfactory;
+  FnFactory* fnfactory;
   Arc::XMLNode matchnode;
   std::string matchId;
 
@@ -66,7 +66,9 @@ public:
 
 private:
   Arc::XMLNode targetnode;
-  std::list<XACMLTargetMatchSection*> sections;
+  //std::list<XACMLTargetMatchSection*> sections;
+  std::list<XACMLTargetSection*> sections;
+
 };
 
 } // namespace ArcSec

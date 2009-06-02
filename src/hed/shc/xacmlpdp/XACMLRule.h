@@ -28,7 +28,17 @@ public:
 
   virtual ~XACMLRule();
 
+  virtual operator bool(void) const { return true; };
+
+  virtual std::string getEffect() const { return effect; };
+
   virtual EvalResult& getEvalResult();
+
+  virtual void setEvalResult(EvalResult& res) { evalres = res; };
+
+  const char* getEvalName() const {   return "xacml.evaluator"; };
+
+  const char* getName() const {   return "xacml.rule"; };
 
 private:
   std::string effect;

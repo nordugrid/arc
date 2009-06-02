@@ -30,11 +30,12 @@ AttributeSelector::~AttributeSelector() {
 
 std::list<AttributeValue*> AttributeSelector::evaluate(EvaluationCtx* ctx) {
   std::list<AttributeValue*> res;
-  
-  res = ctx->getAttributes(reqctxpath, policyroot, type, xpathver);
+
+//TODO  
+//  res = ctx->getAttributes(reqctxpath, policyroot, type, xpathver);
   
   if(present && (res.size() ==0)) {
-    std::cerr<<"AttributeSelector requires at least one attributes from request's"<<target<<std::endl;
+    //std::cerr<<"AttributeSelector requires at least one attributes from request's"<<target<<std::endl;
   }
 
   return res;

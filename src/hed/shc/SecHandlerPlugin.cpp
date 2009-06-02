@@ -8,6 +8,7 @@
 #include "pdpserviceinvoker/ArcPDPServiceInvoker.h"
 #include "delegationpdp/DelegationPDP.h"
 #include "arcpdp/ArcPDP.h"
+//#include "xacmlpdp/XACMLPDP.h"
 #include "countpdp/CountPDP.h"
 #include "allowpdp/AllowPDP.h"
 #include "denypdp/DenyPDP.h"
@@ -20,17 +21,24 @@
 #include "delegationsh/DelegationSH.h"
 
 #include "arcpdp/ArcPolicy.h"
+#include "xacmlpdp/XACMLPolicy.h"
 #include "gaclpdp/GACLPolicy.h"
 
 #include "arcpdp/ArcEvaluator.h"
+//#include "xacmlpdp/XACMLEvaluator.h"
 #include "gaclpdp/GACLEvaluator.h"
 
 #include "arcpdp/ArcRequest.h"
+#include "xacmlpdp/XACMLRequest.h"
 #include "gaclpdp/GACLRequest.h"
 
 #include "arcpdp/ArcAttributeFactory.h"
 #include "arcpdp/ArcAlgFactory.h"
 #include "arcpdp/ArcFnFactory.h"
+
+//#include "xacmlpdp/XACMLAttributeFactory.h"
+//#include "xacmlpdp/XACMLAlgFactory.h"
+//#include "xacmlpdp/XACMLFnFactory.h"
 
 using namespace ArcSec;
 
@@ -65,7 +73,9 @@ Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
                   &ArcSec::DelegationSH::get_sechandler},
     { "arc.policy", "__arc_policy_modules__", 0,
                   &ArcSec::ArcPolicy::get_policy },
-    { "gacl.policy", "__arc_policy_modules__", 0,
+    { "xacml.policy", "__xacml_policy_modules__", 0,
+                 &ArcSec::XACMLPolicy::get_policy },
+    { "gacl.policy", "__gacl_policy_modules__", 0,
                   &ArcSec::GACLPolicy::get_policy },
     { "arc.evaluator", "__arc_evaluator_modules__", 0,
                   &ArcSec::ArcEvaluator::get_evaluator },
@@ -73,6 +83,8 @@ Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
                  &ArcSec::GACLEvaluator::get_evaluator },
     { "arc.request", "__arc_request_modules__", 0,
                  &ArcSec::ArcRequest::get_request },
+    { "xacml.request", "__xacml_request_modules__", 0,
+                 &ArcSec::XACMLRequest::get_request },
     { "gacl.request", "__arc_request_modules__", 0,
                  &ArcSec::GACLRequest::get_request },
     { "attr.factory", "__arc_attrfactory_modules__", 0,

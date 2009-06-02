@@ -5,6 +5,8 @@
 #include <list>
 #include <arc/XMLNode.h>
 #include <arc/security/ArcPDP/attr/AttributeValue.h>
+#include <arc/security/ArcPDP/attr/AttributeFactory.h>
+#include <arc/security/ArcPDP/Evaluator.h>
 
 namespace ArcSec {
 
@@ -24,7 +26,7 @@ private:
   //The <Policy> node from which the xpath searchs
   Arc::XMLNode policyroot;
   std::string xpathver; 
-  boolean present;
+  bool present;
 };
 
 } // namespace ArcSec

@@ -2,9 +2,13 @@
 #include <config.h>
 #endif
 
+#include <list>
+
+#include <arc/security/ArcPDP/attr/AttributeValue.h>
+#include <arc/security/ArcPDP/fn/EqualFunction.h>
+
 #include "XACMLPolicy.h"
 #include "XACMLRule.h"
-#include <list>
 
 static Arc::Logger logger(Arc::Logger::rootLogger, "XACMLTarget");
 
@@ -34,13 +38,16 @@ XACMLTargetMatch::XACMLTargetMatch(XMLNode& node, EvaluatorContext* ctx) : match
 
   //create the AttributeValue, AttributeDesignator and AttributeSelector
   XMLNode cnd;
-  AttributeValue attrval;
+  AttributeValue* attrval = NULL;
+
+  std::string type;
+  //TODO
 
   for(int i = 0;;i++ ) {
     cnd = node.Child(i);
     if(!cnd) break;
     if(MatchXMLName(cnd, "AttributeValue")) {
-       function = attrfactory->createValue(cnd, );
+       attrval = attrfactory->createValue(cnd, type);
     }
     else if(MatchXMLName(cnd, "AttributeSelector")) {
        selector = new AttributeSelector(cnd, attrfactory);
@@ -66,7 +73,7 @@ MatchResult XACMLTargetMatch::match(EvaluationCtx* ctx) {
   bool evalres = false;
   std::list<AttributeValue*>::iterator i;
   for(i = attrlist.begin(); i != attrlist.end(); i++) {
-    evalres = function.evaluate(attrval, (*i));
+    //evalres = function.evaluate(attrval, (*i));   //TODO
     if(evalres) return MATCH;
   }
   return NO_MATCH;
@@ -80,15 +87,17 @@ XACMLTargetMatchGroup::XACMLTargetMatchGroup(XMLNode& node, EvaluatorContext* ct
     cnd = node.Child(i);
     if(!cnd) break;
     name = cnd.Name();
-    if(name.find("Match") != npos)
-      matches.push_back(new XACMLTarget(cnd, ctx));
-    }
+    if(name.find("Match") != std::string::npos)
+      matches.push_back(new XACMLTargetMatch(cnd, ctx)); //TODO
   }
 }
 
+
 XACMLTargetMatchGroup::~XACMLTargetMatchGroup() {
+  XACMLTargetMatch* tm = NULL;
   while(!(matches.empty())) {
-    XACMLTargetMatch* tm = matches.pop_back();
+    tm = matches.back();
+    matches.pop_back();
     delete tm;
   }
 }
@@ -115,7 +124,7 @@ XACMLTargetSection::XACMLTargetSection(Arc::XMLNode& node, EvaluatorContext* ctx
       name == "Action" || name == "Environment" || 
       name == "AnySubject" || name == "AnyResource" || 
       name == "AnyAction" || name == "AnyEnvironment") {
-      groups.push_back(new XACMLTargetGroup(cnd, ctx));
+      groups.push_back(new XACMLTargetMatchGroup(cnd, ctx));
     }
     if(name == "AnySubject" || name == "AnyResource" ||
       name == "AnyAction" || name == "AnyEnvironment") break;
@@ -125,7 +134,8 @@ XACMLTargetSection::XACMLTargetSection(Arc::XMLNode& node, EvaluatorContext* ctx
 
 XACMLTargetSection::~XACMLTargetSection() {
   while(!(groups.empty())) {
-    XACMLTargetMatchGroup* grp = groups.pop_back();
+    XACMLTargetMatchGroup* grp = groups.back();
+    groups.pop_back();
     delete grp;
   }
 }
@@ -158,14 +168,15 @@ XACMLTarget::XACMLTarget(Arc::XMLNode& node, EvaluatorContext* ctx) : targetnode
 
 XACMLTarget::~XACMLTarget() {
   while(!(sections.empty())) {
-    XACMLTargetMatchSection* section = sections.pop_back();
+    XACMLTargetSection* section = sections.back();
+    sections.pop_back();
     delete section;
   }
 }
 
 MatchResult XACMLTarget::match(EvaluationCtx* ctx) {
   MatchResult res;
-  std::list<XACMLTargetMatchSection*>::iterator i;
+  std::list<XACMLTargetSection*>::iterator i;
   for(i = sections.begin(); i!= sections.end(); i++) {
     res = (*i)->match(ctx);
     if(res != MATCH) break;

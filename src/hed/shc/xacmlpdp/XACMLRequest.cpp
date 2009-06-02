@@ -2,27 +2,38 @@
 #include <config.h>
 #endif
 
-#include <arc/loader/ClassLoader.h>
+#include <arc/security/ClassLoader.h>
 
 #include <fstream>
 #include "XACMLRequest.h"
-#include "XACMLRequestItem.h"
+//#include "XACMLRequestItem.h"
 
 /** get_request (in charge of class-loading of XACMLRequest) can only accept two types of argument: NULL, XMLNode*/
-static Arc::LoadableClass* get_xacmlrequest(void** arg) {
-    if(arg==NULL) return new ArcSec::XACMLRequest();
-    else{
-    std::string xml;
-    Arc::XMLNode node(*((Arc::XMLNode*)arg));
-    node.GetXML(xml);
-    return new ArcSec::XACMLRequest((Arc::XMLNode*) arg);
-   }
+Arc::Plugin* ArcSec::XACMLRequest::get_request(Arc::PluginArgument* arg) {
+  //std::cout<<"Argument type of XACMLRequest:"<<typeid(arg).name()<<std::endl;
+  if(arg==NULL) return NULL;
+  else {
+    /*
+    {
+      std::string xml;
+      ((Arc::XMLNode*)arg)->GetXML(xml);
+      std::cout<<"node inside XACMLRequest:"<<xml<<std::endl;
+    };
+    */
+    Arc::ClassLoaderPluginArgument* clarg =
+            arg?dynamic_cast<Arc::ClassLoaderPluginArgument*>(arg):NULL;
+    if(!clarg) return NULL;
+    Arc::XMLNode* xarg = (Arc::XMLNode*)(*clarg);
+    if(xarg==NULL) { return new ArcSec::XACMLRequest(); } // ???
+    ArcSec::Source source(*xarg);
+    return new ArcSec::XACMLRequest(source);
+  }
 }
 
-loader_descriptors __xacml_request_modules__  = {
-    { "xacml.request", 0, &get_xacmlrequest },
-    { NULL, 0, NULL }
-};
+//loader_descriptors __xacml_request_modules__  = {
+//    { "xacml.request", 0, &get_xacmlrequest },
+//    { NULL, 0, NULL }
+//};
 
 
 using namespace Arc;
@@ -98,8 +109,8 @@ void XACMLRequest::make_request(){
 
 
 
-}
 
+/*
 XACMLRequest::XACMLRequest(const char* filename) : Request(filename) {
   std::string str;
   std::string xml_str = "";
@@ -120,6 +131,14 @@ XACMLRequest::XACMLRequest(const char* filename) : Request(filename) {
 
 XACMLRequest::XACMLRequest (const XMLNode* node) : Request(node) {
   node->New(reqnode);
+}
+*/
+
+XACMLRequest::XACMLRequest (const Source& req) : Request(req) {
+  req.Get().New(reqnode);
+  NS ns;
+  ns["ra"]="urn:oasis:names:tc:xacm:2.0:context:schema:os";
+  reqnode.Namespaces(ns);
 }
 
 XACMLRequest::XACMLRequest () {

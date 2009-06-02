@@ -7,33 +7,46 @@
 #include <arc/security/ArcPDP/attr/AttributeFactory.h>
 #include <arc/security/ArcPDP/Request.h>
 
-#include "ArcEvaluator.h"
+//#include "ArcEvaluator.h"
 
 ///XACMLRequest, Parsing the xacml request format
 
 namespace ArcSec {
 
 class XACMLRequest : public Request {
-friend class ArcEvaluator;
+//friend class ArcEvaluator;
 
 public:
+  /**Get all the RequestItem inside RequestItem container */
+  virtual ReqItemList getRequestItems () const { };
+
+  /**Set the content of the container*/
+  virtual void setRequestItems (ReqItemList sl) { };
+
+  /**Add request tuple from non-XMLNode*/
+  virtual void addRequestItem(Attrs& sub, Attrs& res, Attrs& act, Attrs& ctx) {};
+
+  /**Get the name of corresponding evaulator*/
+  virtual const char* getEvalName() const { };
+
+  /**Get the name of this request*/
+  virtual const char* getName() const { };
+
+  static Arc::Plugin* get_request(Arc::PluginArgument* arg);
+
   //**Set the attribute factory for the usage of Request*/
   virtual void setAttributeFactory(AttributeFactory* attributefactory) { attrfactory = attributefactory; };
 
   //**Default constructor*/
   XACMLRequest ();
 
-  //**Parse request information from a xml stucture in memory*/
-  XACMLRequest (const Arc::XMLNode* node);
+  //**Parse request information from external source*/
+  XACMLRequest (const Source& source);
 
   virtual ~XACMLRequest();
 
   //**Create the objects included in Request according to the node attached to the Request object*/
   virtual void make_request();
-
-protected:
-  //**Parse request information from a file*/
-  XACMLRequest (const char* filename);
 
 private:
   //**AttributeFactory which is in charge of producing Attribute*/

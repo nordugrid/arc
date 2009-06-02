@@ -2,16 +2,63 @@
 #include <config.h>
 #endif
 
-#include "XACMLPolicy.h"
-#include "XACMLRule.h"
 #include <list>
 
+#include "XACMLPolicy.h"
+#include "XACMLRule.h"
+
 Arc::Logger ArcSec::XACMLPolicy::logger(Arc::Logger::rootLogger, "XACMLPolicy");
+
+static Arc::NS policyns("policy", "urn:oasis:names:tc:xacm:2.0:policy:schema:os");
+
+/** get_policy (in charge of class-loading of XACMLPolicy) can only
+ * accept one type of argument--XMLNode */
+Arc::Plugin* ArcSec::XACMLPolicy::get_policy(Arc::PluginArgument* arg) {
+    //std::cout<<"Argument type of XACMLPolicy:"<<typeid(arg).name()<<std::endl;
+    if(arg==NULL) return NULL;
+    Arc::ClassLoaderPluginArgument* clarg =
+            arg?dynamic_cast<Arc::ClassLoaderPluginArgument*>(arg):NULL;
+    if(!clarg) return NULL;
+    // Check if empty or valid policy is supplied
+    Arc::XMLNode* doc = (Arc::XMLNode*)(*clarg);
+    if(doc==NULL) {
+        std::cerr<<"XACMLPolicy creation requires XMLNode as argument"<<std::endl;
+        return NULL;
+    }
+    //if(!(*doc)) return new ArcSec::XACMLPolicy;
+    ArcSec::XACMLPolicy* policy = new ArcSec::XACMLPolicy(*doc);
+    if((!policy) || (!(*policy))) {
+      delete policy;
+      return NULL;
+    };
+    return policy;
+}
 
 using namespace Arc;
 using namespace ArcSec;
 
-XACMLPolicy::XACMLPolicy(XMLNode& node, EvaluatorContext* ctx) : Policy(node), comalg(NULL), target(NULL) {
+XACMLPolicy::XACMLPolicy(void) : Policy(), comalg(NULL) {
+  Arc::XMLNode newpolicy(policyns,"policy:Policy");
+  newpolicy.New(policynode);
+  //TODO
+  //policytop=policynode;
+}
+
+XACMLPolicy::XACMLPolicy(const XMLNode node) : Policy(node), comalg(NULL) {
+  if((!node) || (node.Size() == 0)) {
+    logger.msg(ERROR,"Policy is empty");
+    return;
+  }
+  node.New(policynode);
+  std::list<XMLNode> res = policynode.XPathLookup("//policy:Policy",policyns);
+  if(res.empty()) {
+    policynode.Destroy();
+    return;
+  }
+  //policytop = *(res.begin());
+}
+
+XACMLPolicy::XACMLPolicy(const XMLNode node, EvaluatorContext* ctx) : Policy(node), comalg(NULL), target(NULL) {
   node.New(policynode);
 
   std::string xml;

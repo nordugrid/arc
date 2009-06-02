@@ -17,7 +17,7 @@ AttributeDesignator::AttributeDesignator(Arc::XMLNode& node) : present(false) {
 
   std::string tp = (std::string)(node.Attribute("DataType"));
   if(tp.empty()) {std::cerr<<"Required DataType does not exist in AttributeDesignator"<<std::endl; exit(0);}
-  size_t found = tp.find_last_of("#");
+  found = tp.find_last_of("#");
   type = tp.substr(found+1);
 
   issuer = (std::string)(node.Attribute("Issuer"));
@@ -37,10 +37,13 @@ AttributeDesignator::~AttributeDesignator() {
 
 std::list<AttributeValue*> AttributeDesignator::evaluate(EvaluationCtx* ctx) {
   std::list<AttributeValue*> res;
+//TODO
+#if 0
   if(target == "Subject") { res = ctx->getSubjectAttributes(id, type, issuer, category); } 
   else if(target == "Resource") { res = ctx->getResourceAttributes(id, type, issuer); }
   else if(target == "Action") { res = ctx->getActionAttributes(id, type, issuer); }
   else if(target == "Environment") { res = ctx->getContextAttributes(id, type, issuer); }
+#endif
 
   if(present && (res.size() ==0)) {
     std::cerr<<"AttributeDesignator requires at least one attributes from request's"<<target<<std::endl;
