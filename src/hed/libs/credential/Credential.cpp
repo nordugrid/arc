@@ -904,167 +904,168 @@ namespace Arc {
   }
 
   X509_REQ* Credential::GetCertReq(void) {
-	  return req_;
+    return req_;
   }
 
   bool Credential::GenerateEECRequest(BIO* &reqbio, BIO* &keybio, std::string dn) {
- 		bool res = false;
- 		RSA* rsa_key = NULL;
- 		const EVP_MD *digest = signing_alg_;
- 		EVP_PKEY* pkey;
- 		int keybits = keybits_;
+    bool res = false;
+    RSA* rsa_key = NULL;
+    const EVP_MD *digest = signing_alg_;
+    EVP_PKEY* pkey;
+    int keybits = keybits_;
 
- 		#ifdef HAVE_OPENSSL_OLDRSA
- 			unsigned long prime = RSA_F4;
- 			rsa_key = RSA_generate_key(keybits, prime, keygen_cb, NULL);
- 			if(!rsa_key) {
- 			  CredentialLogger.msg(ERROR, "RSA_generate_key failed");
- 			  if(rsa_key) RSA_free(rsa_key);
- 			  return false;
- 			}
- 		#else
- 			BN_GENCB cb;
- 			BIGNUM *prime = BN_new();
- 			rsa_key = RSA_new();
+#ifdef HAVE_OPENSSL_OLDRSA
+    unsigned long prime = RSA_F4;
+    rsa_key = RSA_generate_key(keybits, prime, keygen_cb, NULL);
+    if(!rsa_key) {
+      CredentialLogger.msg(ERROR, "RSA_generate_key failed");
+      if(rsa_key) RSA_free(rsa_key);
+      return false;
+    }
+#else
+    BN_GENCB cb;
+    BIGNUM *prime = BN_new();
+    rsa_key = RSA_new();
 
- 			BN_GENCB_set(&cb,&keygen_cb,NULL);
- 			if(prime && rsa_key) {
- 			  if(BN_set_word(prime,RSA_F4)) {
- 				if(!RSA_generate_key_ex(rsa_key, keybits, prime, &cb)) {
- 				  CredentialLogger.msg(ERROR, "RSA_generate_key_ex failed");
- 				  LogError();
- 				  if(prime) BN_free(prime);
- 				  return false;
- 				}
- 			  }
- 			  else{
- 				CredentialLogger.msg(ERROR, "BN_set_word failed");
- 				LogError();
- 				if(prime) BN_free(prime);
- 				if(rsa_key) RSA_free(rsa_key);
- 				return false; }
- 			}
- 			else {
- 			  CredentialLogger.msg(ERROR, "BN_new || RSA_new failed");
- 			  LogError();
- 			  if(prime) BN_free(prime);
- 			  if(rsa_key) RSA_free(rsa_key);
- 			  return false;
- 			}
- 			if(prime) BN_free(prime);
- 		#endif
+    BN_GENCB_set(&cb,&keygen_cb,NULL);
+    if(prime && rsa_key) {
+      if(BN_set_word(prime,RSA_F4)) {
+        if(!RSA_generate_key_ex(rsa_key, keybits, prime, &cb)) {
+          CredentialLogger.msg(ERROR, "RSA_generate_key_ex failed");
+          LogError();
+          if(prime) BN_free(prime);
+          return false;
+        }
+      }
+      else{
+        CredentialLogger.msg(ERROR, "BN_set_word failed");
+        LogError();
+        if(prime) BN_free(prime);
+        if(rsa_key) RSA_free(rsa_key);
+        return false; 
+      }
+    }
+    else {
+      CredentialLogger.msg(ERROR, "BN_new || RSA_new failed");
+      LogError();
+      if(prime) BN_free(prime);
+      if(rsa_key) RSA_free(rsa_key);
+      return false;
+    }
+    if(prime) BN_free(prime);
+#endif
 
- 		X509_REQ *req = NULL;
- 		CredentialLogger.msg(DEBUG, "Created RSA key, proceeding with request");
- 		pkey = EVP_PKEY_new();
+    X509_REQ *req = NULL;
+    CredentialLogger.msg(DEBUG, "Created RSA key, proceeding with request");
+    pkey = EVP_PKEY_new();
 
- 		if (pkey) {
- 			if (rsa_key) {
- 				CredentialLogger.msg(DEBUG, "pkey and rsa_key exist!");
- 				if (EVP_PKEY_set1_RSA(pkey, rsa_key)) {
- 					req = X509_REQ_new();
- 					CredentialLogger.msg(DEBUG, "Generate new X509 request!");
- 					if(req) {
- 						if (X509_REQ_set_version(req,3L)) {
- 							X509_NAME *name = NULL;
- 							unsigned long chtype = MBSTRING_ASC;  //TODO
- 							name = parse_name((char*)(dn.c_str()), chtype, 0);
- 							CredentialLogger.msg(DEBUG, "Setting subject name!");
+    if (pkey) {
+      if (rsa_key) {
+        CredentialLogger.msg(DEBUG, "pkey and rsa_key exist!");
+        if (EVP_PKEY_set1_RSA(pkey, rsa_key)) {
+          req = X509_REQ_new();
+          CredentialLogger.msg(DEBUG, "Generate new X509 request!");
+          if(req) {
+            if (X509_REQ_set_version(req,3L)) {
+              X509_NAME *name = NULL;
+              unsigned long chtype = MBSTRING_ASC;  //TODO
+              name = parse_name((char*)(dn.c_str()), chtype, 0);
+              CredentialLogger.msg(DEBUG, "Setting subject name!");
 
- 							X509_REQ_set_subject_name(req, name);
- 							X509_NAME_free(name);
+              X509_REQ_set_subject_name(req, name);
+              X509_NAME_free(name);
 
- 							 if(X509_REQ_set_pubkey(req,pkey)) {
-								if(X509_REQ_sign(req,pkey,digest)) {
-									if(!(PEM_write_bio_X509_REQ(reqbio,req))){
-									  CredentialLogger.msg(ERROR, "PEM_write_bio_X509_REQ failed");
-									  LogError();
-									  res = false;
-									} else {
-										rsa_key_ = rsa_key;
-										rsa_key = NULL;
-										pkey_ = pkey;
-										pkey = NULL;
-										req_ = req;
-										res = true;
-									}
-								  }
- 							 }
- 						}
- 					}
- 				}
- 			}
-		}
+              if(X509_REQ_set_pubkey(req,pkey)) {
+                if(X509_REQ_sign(req,pkey,digest)) {
+                  if(!(PEM_write_bio_X509_REQ(reqbio,req))){
+                    CredentialLogger.msg(ERROR, "PEM_write_bio_X509_REQ failed");
+                    LogError();
+                    res = false;
+                  } 
+                  else {
+                    rsa_key_ = rsa_key;
+                    rsa_key = NULL;
+                    pkey_ = pkey;
+                    pkey = NULL;
+                    req_ = req;
+                    res = true;
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
 
- 		req_ = req;
- 		return res;
- 	  }
+    req_ = req;
+    return res;
+  }
 
-	bool Credential::GenerateEECRequest(std::string &req_content, std::string &key_content, std::string dn) {
-	    BIO *req_out = BIO_new(BIO_s_mem());
-	    BIO *key_out = BIO_new(BIO_s_mem());
-	    if(!req_out || !key_out) {
-	      CredentialLogger.msg(ERROR, "Can not create BIO for request");
-	      LogError(); return false;
-	    }
+  bool Credential::GenerateEECRequest(std::string &req_content, std::string &key_content, std::string dn) {
+    BIO *req_out = BIO_new(BIO_s_mem());
+    BIO *key_out = BIO_new(BIO_s_mem());
+    if(!req_out || !key_out) {
+      CredentialLogger.msg(ERROR, "Can not create BIO for request");
+      LogError(); return false;
+    }
 
-	    if(GenerateEECRequest(req_out, key_out,dn)) {
-	      int l = 0;
-	      char s[256];
+    if(GenerateEECRequest(req_out, key_out,dn)) {
+      int l = 0;
+      char s[256];
 
-	      while ((l = BIO_read(req_out,s,sizeof(s))) >= 0) {
-	    	  req_content.append(s,l);
-	      }
+      while ((l = BIO_read(req_out,s,sizeof(s))) >= 0) {
+        req_content.append(s,l);
+      }
 
-	      l = 0;
+      l = 0;
 
-	      while ((l=BIO_read(key_out,s,sizeof(s))) >= 0) {
-	    	  key_content.append(s,l);
-	      }
+      while ((l=BIO_read(key_out,s,sizeof(s))) >= 0) {
+        key_content.append(s,l);
+      }
+    } else {
+      CredentialLogger.msg(ERROR, "Failed to write request into string");
+      BIO_free_all(req_out);
+      BIO_free_all(key_out);
+      return false;
+    }
 
-	    } else {
-	    	CredentialLogger.msg(ERROR, "Failed to write request into string");
-	    	BIO_free_all(req_out);
-	    	BIO_free_all(key_out);
-	    	return false;
-	    }
+    BIO_free_all(req_out);
+    BIO_free_all(key_out);
+    return true;
+  }
 
-	    BIO_free_all(req_out);
-	    BIO_free_all(key_out);
-	    return true;
-	}
+  bool Credential::GenerateEECRequest(const char* req_filename, const char* key_filename, std::string dn) {
+    BIO *req_out = BIO_new(BIO_s_file());
+    BIO *key_out = BIO_new(BIO_s_file());
+    if(!req_out || !key_out) {
+      CredentialLogger.msg(ERROR, "Can not create BIO for request");
+      return false;
+    }
+    if (!(BIO_write_filename(req_out, (char*)req_filename))) {
+      CredentialLogger.msg(ERROR, "Can not set writable file for request BIO");
+      BIO_free_all(req_out); return false;
+    }
 
- 	bool Credential::GenerateEECRequest(const char* req_filename, const char* key_filename, std::string dn) {
- 	    BIO *req_out = BIO_new(BIO_s_file());
- 	    BIO *key_out = BIO_new(BIO_s_file());
- 	    if(!req_out || !key_out) {
- 	      CredentialLogger.msg(ERROR, "Can not create BIO for request");
- 	      return false;
- 	    }
- 	    if (!(BIO_write_filename(req_out, (char*)req_filename))) {
- 	      CredentialLogger.msg(ERROR, "Can not set writable file for request BIO");
- 	      BIO_free_all(req_out); return false;
- 	    }
+    if (!(BIO_write_filename(key_out, (char*)key_filename))) {
+      CredentialLogger.msg(ERROR, "Can not set writable file for request BIO");
+      BIO_free_all(key_out);
+      return false;
+    }
 
- 	    if (!(BIO_write_filename(key_out, (char*)key_filename))) {
- 	      CredentialLogger.msg(ERROR, "Can not set writable file for request BIO");
- 	      BIO_free_all(key_out);
- 	      return false;
- 	    }
+    if(GenerateEECRequest(req_out,key_out, dn)) {
+      CredentialLogger.msg(INFO, "Wrote request into a file");
+    } else {
+      CredentialLogger.msg(ERROR, "Failed to write request into a file");
+      BIO_free_all(req_out);
+      BIO_free_all(key_out);
+      return false;
+    }
 
- 	    if(GenerateEECRequest(req_out,key_out, dn)) {
- 	      CredentialLogger.msg(INFO, "Wrote request into a file");
- 	    } else {
- 	      CredentialLogger.msg(ERROR, "Failed to write request into a file");
- 	      BIO_free_all(req_out);
- 	      BIO_free_all(key_out);
- 	      return false;
- 	    }
-
- 	    BIO_free_all(req_out);
- 	    BIO_free_all(key_out);
- 	    return true;
- 	  }
+    BIO_free_all(req_out);
+    BIO_free_all(key_out);
+    return true;
+  }
 
   //TODO: self request/sign proxy
 
