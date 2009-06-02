@@ -97,10 +97,11 @@ int main(int argc, char **argv) {
                     dryrun);
 
    */
-  bool dumpdescription = false;
+  std::string dumpdescription;
   options.AddOption('x', "dumpdescription",
                     istring("do not submit - dump job description "
-                            "in the format matching the selected cluster."),
+                            "in the specified language (xrsl, posixjsdl, jsdl, ...). "),
+                    istring("job description language"),
                     dumpdescription);
 
   int timeout = -1;
@@ -249,9 +250,8 @@ int main(int argc, char **argv) {
 
     while (true) {
       const Arc::ExecutionTarget* target = ChosenBroker->GetBestTarget();
-      if (dumpdescription) {
+      if (!dumpdescription.empty()) {
         std::string flavour;
-        std::string jobdesc;
         if (!target)
           flavour = target->GridFlavour;
         else if (!clusters.empty()) {
@@ -259,22 +259,18 @@ int main(int argc, char **argv) {
           Arc::URLListMap clusterreject;
           if (!usercfg.ResolveAlias(clusters, clusterselect, clusterreject)) {
             logger.msg(Arc::ERROR, "Failed resolving aliases");
-            return 0;
+            return 1;
           }
           Arc::URLListMap::iterator it = clusterselect.begin();
           flavour = it->first;
         }
-        if (flavour == "ARC1" || flavour == "UNICORE")
-          jobdesc = it->UnParse("POSIXJSDL");
-        else if (flavour == "ARC0")
-          jobdesc = it->UnParse("XRSL");
-        else if (flavour == "CREAM")
-          jobdesc = it->UnParse("JDL");
-        else {
-          std::cout << "Cluster requires unknown format:"
-                    << flavour << std::endl;
+
+        const std::string jobdesc = it->UnParse(dumpdescription);
+        if (jobdesc.empty()) {
+          std::cout << "Specified language (" << dumpdescription << ") unknown." << std::endl;
           return 1;
         }
+
         if (!target)
           std::cout << "Job description to be send to " << target->Cluster.str() << ":" << std::endl;
         else if (!clusters.empty())
