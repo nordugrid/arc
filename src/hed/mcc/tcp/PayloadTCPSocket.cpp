@@ -70,6 +70,7 @@ PayloadTCPSocket::PayloadTCPSocket(const char* hostname,
 {
   handle_=connect_socket(hostname,port);
   acquired_=true;
+  timeout_=60;
 }
 
 PayloadTCPSocket::PayloadTCPSocket(const std::string endpoint,
@@ -83,6 +84,7 @@ PayloadTCPSocket::PayloadTCPSocket(const std::string endpoint,
   hostname.resize(p);
   handle_=connect_socket(hostname.c_str(),port);
   acquired_=true;
+  timeout_=60;
 }
 
 PayloadTCPSocket::~PayloadTCPSocket(void) {
@@ -110,7 +112,15 @@ bool PayloadTCPSocket::Get(char* buf,int& size) {
   return true;
 }
 
-bool PayloadTCPSocket::Put(const char* buf,int size) {
+bool PayloadTCPSocket::Get(std::string& buf) {
+  char tbuf[1024];
+  int l = sizeof(tbuf);
+  bool result = Get(tbuf,l);
+  buf.assign(tbuf,l);
+  return result;
+}
+
+bool PayloadTCPSocket::Put(const char* buf,Size_t size) {
   ssize_t l;
   if(handle_ == -1) return false;
   time_t start = time(NULL);
