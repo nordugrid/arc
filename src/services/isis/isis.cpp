@@ -68,10 +68,10 @@ static void message_send_thread(void *arg) {
         //Send SOAP message to the neighbor.
         Arc::PayloadSOAP *response = NULL;
         Arc::MCCConfig mcc_cfg;
-//        mcc_cfg.AddPrivateKey(((ISIS::Thread_data *)data)->isis_list[i].key);
-//        mcc_cfg.AddCertificate(((ISIS::Thread_data *)data)->isis_list[i].cert);
-//        mcc_cfg.AddProxy(((ISIS::Thread_data *)data)->isis_list[i].proxy);
-//        mcc_cfg.AddCADir(((ISIS::Thread_data *)data)->isis_list[i].cadir);
+        mcc_cfg.AddPrivateKey(((ISIS::Thread_data *)data)->isis_list[i].key);
+        mcc_cfg.AddCertificate(((ISIS::Thread_data *)data)->isis_list[i].cert);
+        mcc_cfg.AddProxy(((ISIS::Thread_data *)data)->isis_list[i].proxy);
+        mcc_cfg.AddCADir(((ISIS::Thread_data *)data)->isis_list[i].cadir);
 
         Arc::ClientSOAP client_entry(mcc_cfg, url);
 
@@ -137,7 +137,12 @@ void SendToNeighbors(Arc::XMLNode& node, std::vector<Arc::ISIS_description> neig
            while ( (it_hash->second).url != next_url ){
                if ( 0 < data->isis_list.size() && (it_hash->second).url == url)
                    break;
-               data->isis_list.push_back(it_hash->second);
+               Arc::ISIS_description isis(it_hash->second);
+               isis.key = isis_desc.key;
+               isis.cert = isis_desc.cert;
+               isis.proxy = isis_desc.proxy;
+               isis.cadir = isis_desc.cadir;
+               data->isis_list.push_back(isis);
                it_hash++;
                if ( it_hash == hash_table.end() )
                    it_hash = hash_table.begin();
@@ -288,9 +293,29 @@ static void soft_state_thread(void *data) {
            return;
         }
         // Key from the configuration
+        my_key=(std::string)((*cfg)["keypath"]);
+        logger_.msg(Arc::DEBUG, "keypath: %s", endpoint_);
+        if ( my_key.empty()){
+           logger_.msg(Arc::ERROR, "Empty keypath element in the configuration!");
+        }
         // Cert from the configuration
+        my_cert=(std::string)((*cfg)["certpath"]);
+        logger_.msg(Arc::DEBUG, "certpath: %s", endpoint_);
+        if ( my_cert.empty()){
+           logger_.msg(Arc::ERROR, "Empty certpath element in the configuration!");
+        }
         // Proxy from the configuration
+        my_proxy=(std::string)((*cfg)["proxypath"]);
+        logger_.msg(Arc::DEBUG, "proxypath: %s", endpoint_);
+        if ( my_proxy.empty()){
+           logger_.msg(Arc::ERROR, "Empty proxypath element in the configuration!");
+        }
         // CaDir url from the configuration
+        my_cadir=(std::string)((*cfg)["cadirpath"]);
+        logger_.msg(Arc::DEBUG, "cadirpath: %s", endpoint_);
+        if ( my_cadir.empty()){
+           logger_.msg(Arc::ERROR, "Empty cadirpath element in the configuration!");
+        }
 
         // Assigning service description - Glue2 document should go here.
         infodoc_.Assign(Arc::XMLNode(
@@ -524,6 +549,10 @@ static void soft_state_thread(void *data) {
                remove_message.NewChild("MessageGenerationTime") = out.str();
                Arc::ISIS_description isis;
                isis.url = endpoint_;
+               isis.key = my_key;
+               isis.cert = my_cert;
+               isis.proxy = my_proxy;
+               isis.cadir = my_cadir;
                logger_.msg(Arc::DEBUG, "RemoveRegistration message send to neighbors.");
                std::multimap<std::string,Arc::ISIS_description> local_hash_table;
                local_hash_table = hash_table;
@@ -631,6 +660,10 @@ static void soft_state_thread(void *data) {
         //Send to neighbors the Registration(s).
         Arc::ISIS_description isis;
         isis.url = endpoint_;
+        isis.key = my_key;
+        isis.cert = my_cert;
+        isis.proxy = my_proxy;
+        isis.cadir = my_cadir;
         if ( bool(request["RegEntry"]) ) {
             std::multimap<std::string,Arc::ISIS_description> local_hash_table;
             local_hash_table = hash_table;
@@ -703,6 +736,10 @@ static void soft_state_thread(void *data) {
         // Send RemoveRegistration message to the other(s) neighbors ISIS.
         Arc::ISIS_description isis;
         isis.url = endpoint_;
+        isis.key = my_key;
+        isis.cert = my_cert;
+        isis.proxy = my_proxy;
+        isis.cadir = my_cadir;
         if ( bool(request["ServiceID"]) ){
            std::multimap<std::string,Arc::ISIS_description> local_hash_table;
            local_hash_table = hash_table;
@@ -1094,10 +1131,10 @@ static void soft_state_thread(void *data) {
             // 3. step: Send Query SOAP message to the providerISIS with Filter
             Arc::PayloadSOAP *response = NULL;
             Arc::MCCConfig mcc_cfg;
-            // mcc_cfg.AddPrivateKey(((ISIS::Thread_data *)data)->isis.key);
-            // mcc_cfg.AddCertificate(((ISIS::Thread_data *)data)->isis.cert);
-            // mcc_cfg.AddProxy(((ISIS::Thread_data *)data)->isis.proxy);
-            // mcc_cfg.AddCADir(((ISIS::Thread_data *)data)->isis.cadir);
+            mcc_cfg.AddPrivateKey(my_key);
+            mcc_cfg.AddCertificate(my_cert);
+            mcc_cfg.AddProxy(my_proxy);
+            mcc_cfg.AddCADir(my_cadir);
 
             // Create and send "Query" request
             logger_.msg(Arc::INFO, "Creating and sending Query request");
@@ -1202,10 +1239,6 @@ static void soft_state_thread(void *data) {
                // 5. step: Connect message send to one ISIS of the neighbors
                Arc::PayloadSOAP connect_req(message_ns);
                connect_req.NewChild("Connect").NewChild("URL") = endpoint_;
-               connect_req["Connect"].NewChild("Key") = "mykey";
-               connect_req["Connect"].NewChild("Cert") = "mycert";
-               connect_req["Connect"].NewChild("Proxy") = "myproxy";
-               connect_req["Connect"].NewChild("CaDir") = "mycadir";
 
                bool isavailable_connect = false;
                bool no_more_isis = false;
@@ -1319,10 +1352,10 @@ static void soft_state_thread(void *data) {
                      logger_.msg(Arc::DEBUG, "Send to neighbors the DB diff.");
                      Arc::ISIS_description isis;
                      isis.url = endpoint_;
-                     //isis.key = ;
-                     //isis.cert = ;
-                     //isis.proxy = ;
-                     //isis.cadir = ;
+                     isis.key = my_key;
+                     isis.cert = my_cert;
+                     isis.proxy = my_proxy;
+                     isis.cadir = my_cadir;
 
                      std::multimap<std::string,Arc::ISIS_description> local_hash_table;
                      local_hash_table = hash_table;
