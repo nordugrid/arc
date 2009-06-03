@@ -10,6 +10,7 @@
 #include <arc/IString.h>
 #include <arc/Logger.h>
 #include <arc/client/ClientInterface.h>
+#include <arc/client/UserConfig.h>
 #include <arc/message/MCCLoader.h>
 #include <arc/message/PayloadSOAP.h>
 #include <arc/XMLNode.h>
@@ -18,13 +19,21 @@
 Arc::Logger logger(Arc::Logger::rootLogger, "ISISTest");
 
 // Query function
-std::string Query( Arc::URL url, std::string query ){
+std::string Query( Arc::URL url, std::string query, Arc::UserConfig usercfg ){
+
+    Arc::NS uns;
+    Arc::Config ucfg(uns);
+    usercfg.ApplySecurity(ucfg);
 
     Arc::MCCConfig mcc_cfg;
-    //    mcc_cfg.AddPrivateKey(((ISIS::Thread_data *)data)->isis.key);
-    //    mcc_cfg.AddCertificate(((ISIS::Thread_data *)data)->isis.cert);
-    //    mcc_cfg.AddProxy(((ISIS::Thread_data *)data)->isis.proxy);
-    //    mcc_cfg.AddCADir(((ISIS::Thread_data *)data)->isis.cadir);
+    if (ucfg["ProxyPath"])
+        mcc_cfg.AddProxy((std::string)ucfg["ProxyPath"]);
+    if (ucfg["CertificatePath"])
+        mcc_cfg.AddCertificate((std::string)ucfg["CertificatePath"]);
+    if (ucfg["KeyPath"])
+        mcc_cfg.AddPrivateKey((std::string)ucfg["KeyPath"]);
+    if (ucfg["CACertificatesDir"])
+        mcc_cfg.AddCADir((std::string)ucfg["CACertificatesDir"]);
     Arc::ClientSOAP client_entry(mcc_cfg, url);
 
     // Create and send Query request
@@ -61,18 +70,26 @@ std::string Query( Arc::URL url, std::string query ){
 
 // Register function
 std::string Register( Arc::URL url, std::vector<std::string> &serviceID, std::vector<std::string> &epr,
-                      std::vector<std::string> type, std::vector<std::string> expiration ){
+                      std::vector<std::string> type, std::vector<std::string> expiration, Arc::UserConfig usercfg ){
 
     if (serviceID.size() != epr.size()){
        logger.msg(Arc::DEBUG, " Service_ID's number is not equivalent with the EPR's number!");
        return "-1";
     }
 
+    Arc::NS uns;
+    Arc::Config ucfg(uns);
+    usercfg.ApplySecurity(ucfg);
+
     Arc::MCCConfig mcc_cfg;
-    //    mcc_cfg.AddPrivateKey(((ISIS::Thread_data *)data)->isis.key);
-    //    mcc_cfg.AddCertificate(((ISIS::Thread_data *)data)->isis.cert);
-    //    mcc_cfg.AddProxy(((ISIS::Thread_data *)data)->isis.proxy);
-    //    mcc_cfg.AddCADir(((ISIS::Thread_data *)data)->isis.cadir);
+    if (ucfg["ProxyPath"])
+        mcc_cfg.AddProxy((std::string)ucfg["ProxyPath"]);
+    if (ucfg["CertificatePath"])
+        mcc_cfg.AddCertificate((std::string)ucfg["CertificatePath"]);
+    if (ucfg["KeyPath"])
+        mcc_cfg.AddPrivateKey((std::string)ucfg["KeyPath"]);
+    if (ucfg["CACertificatesDir"])
+        mcc_cfg.AddCADir((std::string)ucfg["CACertificatesDir"]);
     Arc::ClientSOAP client_entry(mcc_cfg, url);
 
     // Create and send Register request
@@ -138,13 +155,21 @@ std::string Register( Arc::URL url, std::vector<std::string> &serviceID, std::ve
 
 
 // RemoveRegistrations function
-std::string RemoveRegistrations( Arc::URL url, std::vector<std::string> &serviceID ){
+std::string RemoveRegistrations( Arc::URL url, std::vector<std::string> &serviceID, Arc::UserConfig usercfg ){
+
+    Arc::NS uns;
+    Arc::Config ucfg(uns);
+    usercfg.ApplySecurity(ucfg);
 
     Arc::MCCConfig mcc_cfg;
-    //    mcc_cfg.AddPrivateKey(((ISIS::Thread_data *)data)->isis.key);
-    //    mcc_cfg.AddCertificate(((ISIS::Thread_data *)data)->isis.cert);
-    //    mcc_cfg.AddProxy(((ISIS::Thread_data *)data)->isis.proxy);
-    //    mcc_cfg.AddCADir(((ISIS::Thread_data *)data)->isis.cadir);
+    if (ucfg["ProxyPath"])
+        mcc_cfg.AddProxy((std::string)ucfg["ProxyPath"]);
+    if (ucfg["CertificatePath"])
+        mcc_cfg.AddCertificate((std::string)ucfg["CertificatePath"]);
+    if (ucfg["KeyPath"])
+        mcc_cfg.AddPrivateKey((std::string)ucfg["KeyPath"]);
+    if (ucfg["CACertificatesDir"])
+        mcc_cfg.AddCADir((std::string)ucfg["CACertificatesDir"]);
     Arc::ClientSOAP client_entry(mcc_cfg, url);
 
     // Create and send RemoveRegistrations request
@@ -195,16 +220,24 @@ std::string RemoveRegistrations( Arc::URL url, std::vector<std::string> &service
 }
 
 // GetISISList function
-std::vector<std::string> GetISISList( Arc::URL url ){
+std::vector<std::string> GetISISList( Arc::URL url, Arc::UserConfig usercfg ){
 
     //The response vector
     std::vector<std::string> response;
 
+    Arc::NS uns;
+    Arc::Config ucfg(uns);
+    usercfg.ApplySecurity(ucfg);
+
     Arc::MCCConfig mcc_cfg;
-    //    mcc_cfg.AddPrivateKey(((ISIS::Thread_data *)data)->isis.key);
-    //    mcc_cfg.AddCertificate(((ISIS::Thread_data *)data)->isis.cert);
-    //    mcc_cfg.AddProxy(((ISIS::Thread_data *)data)->isis.proxy);
-    //    mcc_cfg.AddCADir(((ISIS::Thread_data *)data)->isis.cadir);
+    if (ucfg["ProxyPath"])
+        mcc_cfg.AddProxy((std::string)ucfg["ProxyPath"]);
+    if (ucfg["CertificatePath"])
+        mcc_cfg.AddCertificate((std::string)ucfg["CertificatePath"]);
+    if (ucfg["KeyPath"])
+        mcc_cfg.AddPrivateKey((std::string)ucfg["KeyPath"]);
+    if (ucfg["CACertificatesDir"])
+        mcc_cfg.AddCADir((std::string)ucfg["CACertificatesDir"]);
     Arc::ClientSOAP client_entry(mcc_cfg, url);
 
     // Create and send GetISISList request
@@ -291,6 +324,11 @@ int main(int argc, char** argv) {
                 istring("get neighbors list from the BootstrapISIS"),
                 neighbors);
 
+    std::string conffile;
+      options.AddOption('z', "conffile",
+                istring("configuration file (default ~/.arc/client.xml)"),
+                istring("filename"), conffile);
+
     std::list<std::string> parameters = options.Parse(argc, argv);
     if (!method.empty() && parameters.empty()) {
        std::cout << "Use --help option for detailed usage information" << std::endl;
@@ -304,6 +342,9 @@ int main(int argc, char** argv) {
     if (!debug.empty())
        Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(debug));
 
+    // Create UserConfig
+    Arc::UserConfig usercfg(conffile);
+
     std::cout << " [ ISIS tester ] " << std::endl;
     logger.msg(Arc::INFO, " ISIS tester start!");
 
@@ -314,7 +355,7 @@ int main(int argc, char** argv) {
         Arc::URL BootstrapISIS(infosys_url);
 
         // Get the a list of known ISIS's and choose one from them randomly
-        std::vector<std::string> neighbors_ = GetISISList( BootstrapISIS );
+        std::vector<std::string> neighbors_ = GetISISList( BootstrapISIS, usercfg );
 
         std::srand(time(NULL));
         if (neighbors) {
@@ -341,7 +382,7 @@ int main(int argc, char** argv) {
        for (std::list<std::string>::const_iterator it=parameters.begin(); it!=parameters.end(); it++){
            query_string += " " + *it;
        }
-       response = Query( ContactISIS, *parameters.begin() );
+       response = Query( ContactISIS, *parameters.begin(), usercfg );
        if ( response != "-1" ){
           Arc::XMLNode resp(response);
           Arc::XMLNode queryresponse_;
@@ -372,7 +413,7 @@ int main(int argc, char** argv) {
               return 1;
            }
        }
-       response = Register( ContactISIS, serviceID, epr, type, expiration );
+       response = Register( ContactISIS, serviceID, epr, type, expiration, usercfg );
        if ( response != "-1" ){
           Arc::XMLNode resp(response);
           if ( bool(resp["Body"]["Fault"]) ){ 
@@ -393,7 +434,7 @@ int main(int argc, char** argv) {
        for (std::list<std::string>::const_iterator it=parameters.begin(); it!=parameters.end(); it++){
               serviceID.push_back(*it);
        }
-       response = RemoveRegistrations( ContactISIS, serviceID );
+       response = RemoveRegistrations( ContactISIS, serviceID, usercfg );
        if ( response != "-1" ){
           Arc::XMLNode resp(response);
           int i=0;
