@@ -81,11 +81,11 @@
 \begin{figure}[ht]
  \centering{
   \scalebox{0.6}{\includegraphics{SystemOverview.png}}
-  \caption{\label{fig:infosys_architecture}Architecture of Information System}
+  \caption{\label{fig:infosys_architecture}Architecture of the Information System}
  }
 \end{figure}
 
-Information System of ARC middleware is composed of 3 main parts. The Information System Indexing Services (ISIS) form a set of information containers. Every generic ARC Service pushes information about itself into nearby ISIS container/service hence registering itself to Information System. The information stored in every ISIS is propagated among all ISIS services. Clients can query any nearby ISIS service for registered information in order to perform discovery of services which posses specific properties. Clients can also query ARC Services to obtain more detailed information about Service properties.
+The Information System of the ARC middleware is composed of 3 main parts. The Information System Indexing Services (ISIS) form a set of information containers. Every generic ARC Service pushes information about itself into a nearby ISIS container/service hence registering itself to the Information System. The information stored in every ISIS is propagated among all ISIS services. Clients can query any nearby ISIS service for registered information in order to perform discovery of services that possess specific properties. Clients can also query ARC Services to obtain more detailed information about Service properties.
 
 \chapter{ISIS}
 \label{cha:isis}
@@ -96,12 +96,12 @@ Information System of ARC middleware is composed of 3 main parts. The Informatio
 \subsection{Functionality}
 \label{sub:isis_functionality}
 
- The functionality of ISIS is made of two parts. On the one hand they are working as ordinary Web Services, and on the other hand maintain a peer-to-peer network - \texttt{ISIS cloud}.
+ The functionality of the ISIS services consists of two parts. On the one hand they are working as ordinary Web Services, and on the other hand they maintain a peer-to-peer network --- the ISIS cloud.
 
- Main functionality of ISIS service visible from outside of ISIS cloud is to accept registration and provide collected information to clients. For that ISIS implements operations described in following section.
-The single ISIS service accepts Registration Records pushed to it by other services (including ISIS services too) and stores them in local XML database. Stored records can be queried by clients using mandatory and service-specific attributes for selection criteria.
+ The main functionality of the ISIS service visible from the outside of the ISIS cloud is to accept registrations from and provide collected information to clients. For that ISIS implements the operations described in following section.
+A single ISIS service accepts Registration Records pushed to it by other services (including ISIS services) and stores them in a local XML database. Stored records can be queried by clients using mandatory and service-specific attributes as selection criteria.
 
- In case of multiple ISIS services they form a peer-to-peer network. Inside that cloud Registration Records are propagated between services in such a way that all ISIS instances continuously try to synchronize their databases.
+ When multiple ISIS services are used they form a peer-to-peer network. Inside this cloud Registration Records are propagated between services in such a way that all ISIS instances continuously try to synchronize their databases.
 
 % TODO: put figure here
 
@@ -117,11 +117,11 @@ The single ISIS service accepts Registration Records pushed to it by other servi
   \item[Input]~\begin{description}
     \item[Header]~\begin{description}
       \item[RequesterID] Identifier of the client.
-      \item[MessageGenerationTime] Time when following set of RegEntry was generated. There may be multiple RegEntry elements.
+      \item[MessageGenerationTime] Time when the following set of RegEntries was generated. There may be multiple RegEntry elements.
     \end{description}
     \item[RegEntry]~\begin{description}
       \item[SrcAdv]~\begin{description}
-        \item[Type] Type of service being registered. This element is opaque string for now. There shall be service types defined later.
+        \item[Type] Type of service being registered. This element is an opaque string for now. There shall be service types defined later.
         \item[EPR] Endpoint Reference of service being registered in terms of WS-Addressing.
         \item[SSPair] Set of key/value pairs representing service specific information.
       \end{description}
@@ -143,17 +143,17 @@ The single ISIS service accepts Registration Records pushed to it by other servi
 
 \end{description}
 
-This operation is usually called by service which wants to register it's presence in ISIS. This message consists of one or more \textbf{Registration Entry} and at most one \textbf{Registration Header}. The \textbf{Registration Entry}(RegEntry) contains a \textbf{Service Advertisement}(SrcAdv) and a corresponding \textbf{Service Advertisement Metadata}(MetaSrcAdv). This structure is shown on Figure \ref{fig:registration_message}.
+This operation is usually called by a service that wants to register its presence in ISIS. This message consists of one or more \textbf{Registration Entries} and at most one \textbf{Registration Header}. The \textbf{Registration Entry}(RegEntry) contains a \textbf{Service Advertisement}(SrcAdv) and a corresponding \textbf{Service Advertisement Metadata}(MetaSrcAdv). This structure is shown on Figure \ref{fig:registration_message}.
 \begin{figure}[ht]
 \centering{{\scalebox{0.6}{\includegraphics{RegistrationMessage.png}}}
 \caption{\label{fig:registration_message}Embedded structure of Registration Message} }
 \end{figure}
 
-Service must supply mandatory information. Among those the \texttt{Endpoint Reference} is used to contact service - only required element is contact URL of service. \texttt{Type} specifies kind of service and is used to find out functionality and interface of service. \texttt{ServiceID} is used to distinguish between registered services and to deal with case of service changing it's contact URL. For more information about mandatory and optional information see Section \ref{service_advertisement}
+The service must supply mandatory information. This includes the \texttt{Endpoint Reference} used to contact the service --- the only required element is the contact URL of the service. \texttt{Type} specifies the kind of service and is used to find out functionality and interface of the service. \texttt{ServiceID} is used to distinguish between registered services and to deal with the case when the service changes its contact URL. For more information about mandatory and optional information see Section \ref{service_advertisement}.
 
-As result of this operation new Registration Record is stored inside ISIS internal database and eventually propagated to other ISISes. If registration record of same ID already existed it will be renewed.
+As a result of this operation a new Registration Record is stored inside the ISIS internal database and eventually propagated to other ISISes. If a registration record with the same ID already existed it will be renewed.
 
-This operation is also used by ISIS services to propagate Registration Records inside ISIS cloud.
+This operation is also used by ISIS services to propagate Registration Records inside the ISIS cloud.
 
 \subsubsection{Operation RemoveRegistrations}
 
@@ -177,7 +177,7 @@ This operation is also used by ISIS services to propagate Registration Records i
 
 \end{description}
 
-This operation is used to explicitly requesting the removal of zero or more Registration Entries associated with specified ServiceID values stored in the Information System. If corresponding record does not exist it's identifier will be present in response message together with corresponding Fault element.
+This operation is used to explicitly request the removal of zero or more Registration Entries associated with specified ServiceID values stored in the Information System. If the corresponding record does not exist its identifier will be present in the response message together with a corresponding Fault element.
 
 \subsubsection{Operation GetISISList}
 
@@ -197,7 +197,7 @@ This operation is used to explicitly requesting the removal of zero or more Regi
 
 \end{description}
 
-In response to this operation the EndpointReferences to all known ISIS services are returned. The operation is used for obtaining a list of known ISIS instances from any particular ISIS. Clients can then use the obtained list to run direct queries against the ISIS instances. The operation is provided for fault tolerance and for providing optional performance boost. This operation returns the known peer-to-peer neighbors. If client is interested in all ISIS instances they can be obtained using the Query operation because they are ordinary services registered into the Information System.
+In response to this operation the EndpointReferences to all known ISIS services are returned. The operation is used for obtaining a list of known ISIS instances from any particular ISIS. Clients can then use the obtained list to run direct queries against the ISIS instances. The operation is provided for fault tolerance and for providing optional performance boost. This operation returns the known peer-to-peer neighbors. If a client is interested in all ISIS instances they can be obtained using the Query operation because they are ordinary services registered into the Information System.
 
 \subsubsection{Operation Query}
 
@@ -217,7 +217,7 @@ In response to this operation the EndpointReferences to all known ISIS services 
 
 \end{description}
 
-This operation allows any XPath queries to be performed on stored Registration Records. The records are treated as merged in one XML document with each record being equivalent to \texttt{RegEntry} element of \texttt{Register} operation. In response all elements produced by XPath query are returned. The purpose of this operation is to make it possible to obtain any kind of information related to the Indexing Database.
+This operation allows any XPath queries to be performed on stored Registration Records. The records are treated as merged in one XML document with each record being equivalent to a \texttt{RegEntry} element of a \texttt{Register} operation. In the response all elements produced by the XPath query are returned. The purpose of this operation is to make it possible to obtain any kind of information related to the Indexing Database.
 
 % subsection interface (end)
 
@@ -228,21 +228,21 @@ This operation allows any XPath queries to be performed on stored Registration R
 
 \subsection{Functionality}
 \label{sub:peer_to_peer_functionality}
-The ISIS nodes are able to organize themselves into a peer-to-peer network by synchronizing the stored replicated database and maintain this synchronicity and the network topology. Every node of this peer-to-peer cloud (that is an ISIS service) has an own PeerID, an identifier only used in this network, made as a hash of its endpoint URL. The members are ordered by this identifier where there is also a sequence defined between them where the successor entity is the ISIS with the smallest PeerID of the greater PeerIDs. This metric is used for defining the neighbour relation that is the base of the inter-peer-to-peer network communication. It is presumed that only registered ISIS nodes can have any role in the cloud.
+The ISIS nodes are able to organize themselves into a peer-to-peer network by synchronizing the stored replicated database and maintaining this synchronicity and the network topology. Every node of this peer-to-peer cloud (that is an ISIS service) has its own PeerID, an identifier only used in this network, made as a hash of its endpoint URL. The members are ordered by this identifier in a ring topology, where the successor entity of the ISIS with the largest PeerID is the ISIS with the smallest PeerID. This metric is used to define the neighbor relations that are the basis of the inter-peer-to-peer network communication. It is presumed that only registered ISIS nodes can have any role in the cloud.
 
 \subsubsection{Connecting to the peer-to-peer network}
-Every ISIS tries to connect to the network at its startup by accessing the InfoProvider ISIS nodes known from its configuration. The choice from among the few pre-configured InfoProviders is random to achieve as much load-balancing as possible. (In the design it is assumed that a huge amount of ISIS nodes are configured in very similar way, where the InfoProvider ISIS nodes are mainly the same.) If there is no InfoProvider available or nothing is known from the configuration, the node decides to be the fist member and to build a new network.
+Every ISIS tries to connect to the network at its startup by accessing the InfoProvider ISIS nodes known from its configuration. The choice from among the few pre-configured InfoProviders is random to achieve as much load-balancing as possible. (In the design it is assumed that a huge amount of ISIS nodes are configured in very similar way, where the InfoProvider ISIS nodes are mainly the same.) If there is no InfoProvider available or nothing is known from the configuration, the node decides to be the first member and to build a new network.
 
-If there are any InfoProvider nodes available the list of member ISIS nodes will be queried and the ÒsuccessorÓ will be defined using the previously mentioned metric. This ÒsuccessorÓ node will help the entering ISIS to connect to the cloud. The new member will use ÒConnectÓ Web Service operation to get the newest version of database stored in the peer-to-peer network, and place its own entries to the cloud by registering them. An initial database synchronization can be achieved using this method.
+If there are any InfoProvider nodes available the list of member ISIS nodes will be queried and the `successor' will be defined using the previously mentioned metric. This `successor' node will help the entering ISIS to connect to the cloud. The new member will use the `Connect' Web Service operation to get the newest version of the database stored in the peer-to-peer network, and place its own entries in the cloud by registering them. An initial database synchronization can be achieved using this method.
 
-We can prevent the InfoProvider ISIS nodes from overloading by balancing the operation of database synchronizing being the most costly procedure in the connection phase.
+We can prevent the InfoProvider ISIS nodes from overloading by balancing the operation of database synchronizing --- this being the most costly procedure in the connection phase.
 
-There is also an other extension used regarding the InfoProvider ISIS nodes. If a node is not able to connect any of the InfoProviders then it tries to repeat it later. This results that the network is able to fuse two disjoint parts of network when the missing InfoProvider ISIS appears again.
+There is also an other extension used regarding the InfoProvider ISIS nodes. If a node is not able to connect to any of the InfoProviders then it tries to repeat it later. This results in that the network is able to fuse two disjoint parts of the network when the missing InfoProvider ISIS appears again.
 
 \subsubsection{Routing in the peer-to-peer network}
-We are keeping the databases in synch by passing every Registration and RemoveRegistrations to every node acting in the network. This yields redundancy and the fault tolerant message routing is very important between any two ISIS nodes.
+We are keeping the databases in synch by passing every Registration and RemoveRegistrations to every node acting in the network. This yields redundancy and fault tolerant message routing between any two ISIS nodes.
 
-The most important parameter of the network is the {\it sparsity}. This is an integer not less then 2. It determines the number of neighbors in the function of the actual number of member nodes of the network, where the number of neighbors can change when new members connecting to the network or members leave. A sparse graph can be shaped by choosing a great value for sparsity or a dense one by choosing the less. This value is defined during the design and determines the main properties of the peer-to-peer network.
+The most important parameter of the network is the {\it sparsity}. This is an integer not less than 2. It determines the number of neighbors as a function of the actual number of member nodes of the network, where the number of neighbors can change when new members connect to the network or old members leave. A sparse graph can be shaped by choosing a great value for sparsity or a dense one by choosing a smaller one. This value is defined during the design and determines the main properties of the peer-to-peer network.
 \begin{figure}[ht]
 \centering{{\scalebox{0.6}{\includegraphics{Circle2-1.png}}}
 \caption{\label{fig:p2p_neighbors_2} The neighbor connections in the peer-to-peer network in case of sparsity=2} }
@@ -250,34 +250,34 @@ The most important parameter of the network is the {\it sparsity}. This is an in
 
 Every node has always exactly n = $\lceil \log_s{N} \rceil$ neighbors where the $N$ is the number of ISIS nodes registered into the network. The node has as many neighbors as the ISIS nodes with PeerID $s^0$-th, $s^1$-th ... $s^{n-1}$-th greater than its own. (For example: There are 19 nodes in this network with sparsity=2. Then the first node has the following neighbors: the 2nd, 3rd, 5th, 9th, and 17th node as seen in figure \ref{fig:p2p_neighbors_2}.)
 
-There can be exactly n-way redundancy achieved in the system so at most $n-1$ node can disappear without any serious communication impair. Since there is also an emergency method used trying to deliver messages even if all neighbors are unavailable, this fault tolerance is greater. With this extension, messages are passed to one of the non-neighbor, yet available ISIS, so the message will surely be delivered to one of the operational node of the network. This solution provides a secure and quite fast solution for the message delivery but has a high communication cost because there are $n*N$ messages necessary in general for every Registration or RemoveRegistrations.
+There can be exactly n-way redundancy achieved in the system so at most $n-1$ node can disappear without any serious communication impair. Since there is also an emergency method used trying to deliver messages even if all neighbors are unavailable, the fault tolerance is even greater. With this extension, messages are passed to one of the non-neighbor, yet available, ISIS, so the message will surely be delivered to one of the operational node of the network. This solution provides a secure and quite fast solution for the message delivery but has a high communication cost because there are $n \times N$ messages necessary in general for every Registration or RemoveRegistrations.
 
-If there is a much greater {\it sparsity} used, then the number of the expected members decrease, even only to one neighbor. This situation can be seen in Figure \ref{fig:p2p_neighbors_40}. In this case such functioning is achieved when there are only N (the theoretically minimum) messages traversing in the network at the expense of a slower data propagation.
+If there is a much greater {\it sparsity} used, then the number of expected members decreases, in the extreme case to only one neighbor. This situation can be seen in Figure \ref{fig:p2p_neighbors_40}. In this case there are only N (the theoretically minimum) messages traversing in the network at the expense of a slower data propagation.
 \begin{figure}[ht]
 \centering{{\scalebox{0.6}{\includegraphics{Circle40-40.png}}}
-\caption{\label{fig:p2p_neighbors_40} The neighbor connections in the peer-to-peer network in case of sparsity>N} }
+\caption{\label{fig:p2p_neighbors_40} The neighbor connections in the peer-to-peer network in case of sparsity $>$ N} }
 \end{figure}
 
-There is a data-driven routing used in the peer-to-peer cloud. It means that the given nodes examine the received Registration Entries then store and forward only those messages that are newer than the already stored version belonging to the same service identifier. If the information in the message is out-of-date then it will be simple dropped. (A Coordinated Universal Time (UTC) standard time and date format is used for the time stamps that is also able to handle the differences originated from the different time zones.) By using this method it is achieved that it is not necessary to store the formerly seen nodes in the messages, but the routing decision that is who to send the message to is based on local information. Since the routing is based on time stamps, it is very important to keep the nodes clock in synch with each other or with an outer reference, say, by using NTP.
+There is a data-driven routing used in the peer-to-peer cloud. This means that the nodes examine the received Registration Entries and then store and forward only those messages that are newer than the already stored version belonging to the same service identifier. If the information in the message is out-of-date it will be simply dropped. (A Coordinated Universal Time (UTC) standard time and date format is used for the time stamps that is also able to handle the differences originated from the different time zones.) By using this method it is not necessary to store the formerly seen nodes in the messages, but the routing decision --- that is who to send the message to --- is based on local information. Since the routing is based on time stamps, it is very important to keep the nodes clock in synch with each other or with an outer reference, say, by using NTP.
 
 Another advantage of this solution is the capability of handling the case of swapped Register and RemoveRegistrations messages. It is possible for a RemoveRegistrations message to forerun a previously generated Register message. This causes just a temporary imprecise entry in the database but the mistake can be quickly fixed and is not much further propagated.
 
-Since the applied routing is based on the state of the messages belonging to some service identifier it is important to keep the fact of message deleting for a while. If a RemoveRegistrations message is received, then the named entry from the database is not removed immediately, just its state changes to {\it deleted} and a piece of data about it (the service identifier and the deletion time) is kept.
+Since the applied routing is based on the state of the messages belonging to some service identifier it is important to keep the fact of message deleting for a while. If a RemoveRegistrations message is received, then the named entry from the database is not removed immediately, instead its state changes to {\it deleted} and a piece of data about it (the service identifier and the deletion time) is kept.
 
 \subsubsection{Maintenance of the peer-to-peer network}
-In the network there are two different maintenance methods needed. On one hand the database have to be periodically cleaned and on the other hand the list of neighbors have always got to be up-to-date.
+In the network there are two different maintenance methods needed. On one hand the database has to be periodically cleaned and on the other hand the list of neighbors has always to be up-to-date.
 
-The database applied in the system is a soft-state database so the entries are {\it valid} just for a limited time. Without any registration freshening its validity will expire and the state of the entry will change to {\it expired}. The time of expiration is set in every singe message by the registrar entity. The RemoveRegistrations message turn the state of registration entry to {\it deleted} as it was previously mentioned. The {\it expired} or {\it deleted} messages will be purged in the course of periodical database maintenance. The states of registration entries are shown in Figure \ref{fig:RegEntry states}.
+The database applied in the system is a soft-state database so the entries are {\it valid} just for a limited time. Without any registration freshening the entry's validity will expire and its state will change to {\it expired}. The time of expiration is set in every singe message by the registrar entity. The RemoveRegistrations message turns the state of the registration entry to {\it deleted} as was previously mentioned. The {\it expired} or {\it deleted} messages will be purged in the course of periodical database maintenance. The states of registration entries are shown in Figure \ref{fig:RegEntry states}.
 \begin{figure}[ht]
 \centering{{\scalebox{0.6}{\includegraphics{RegEntryStates.png}}}
 \caption{\label{fig:RegEntry states} Registration entry states} }
 \end{figure}
 
-The second kind of maintenance is keeping the list of neighbors up-to-date. While receiving even Registration or RemoveRegistrations messages or finding an outdated entry during the periodical database cleaning nodes perform necessary steps to update our list. Since every leaving or entering node infulences the neighbor registry of all the other nodes at a high probability the local set of neighbors will be rebuilt in these cases. The modifications are passing locally because these connections are asymmetric so there is no compliance or network communication is needed.
+The second kind of maintenance is keeping the list of neighbors up-to-date. While receiving Registration or RemoveRegistrations messages or when finding an outdated entry during the periodical database cleaning nodes perform the necessary steps to update the list. Since every leaving or entering node infulences the neighbor registry of all the other nodes at a high probability the local set of neighbors will be rebuilt in these cases. These modifications are passed locally because these connections are asymmetric so there is no compliance or network communication needed.
 
-There is no special action done and no additional network traffic needed during the neighbor checking. The fact the node sends periodically messages to every neighbor can be exploited. If the node is not successful in sending its messages to the neighbors after some tries, then the unavailable node will be marked. If every neighbor has been marked then the node changes its PeerID and reconnects to the network if there are any InfoProvider ISIS nodes available.
+There is no special action done and no additional network traffic needed during the neighbor checking. The fact that the node periodically sends messages to every neighbor can be exploited. If the node is not successful in sending its messages to the neighbors after some tries, then the unavailable node will be marked. If every neighbor has been marked then the node changes its PeerID and reconnects to the network if there are any InfoProvider ISIS nodes available.
 
-When a neighbor is unavailable ISIS keeps trying to deliver the message to the successor of the neighbor until either the information is passed to at least one available node or it is diagnosed that all the nodes are unavailable. Here the successor means thhose nodes that have greater PeerID than the neighbor but less then the next ISIS neighbor.
+When a neighbor is unavailable ISIS keeps trying to deliver the message to the successor of the neighbor until either the information is passed to at least one available node or it is diagnosed that all the nodes are unavailable. Here the successor means those nodes that have greater PeerID than the neighbor but less then the next ISIS neighbor.
 % subsection functionality (end)
 
 \subsection{Interface}
@@ -316,10 +316,10 @@ This operation allows the ISIS to get the already existing database from the ISI
 
 \textit{This section extensively uses terms defined in "Security Framework of ARC1" document"~\cite{arcsec}.}
 
-To ensure information stored in ISIS cloud can't be tampered and only available to proper clients following authorization framework is implemented. All actions performed by ISIS clients are divided into three following groups:
+To ensure that the information stored in the ISIS cloud can't be tampered with and only is available to proper clients the following authorization framework is implemented. All actions performed by ISIS clients are divided into the three following groups:
 
 \begin{itemize}
- \item Operations initiated by other ISISes in the cloud. Those include:
+ \item Operations initiated by other ISIS services in the cloud. Those include:
  \begin{itemize}
   \item Register with Registration Message containing information not about contacting client
   \item RemoveRegistrations with request to remove Registration Message representing not contacting client
@@ -328,21 +328,21 @@ To ensure information stored in ISIS cloud can't be tampered and only available 
 
  Those operations may cause uncontrollable changes in collected information and must be granted only for highly trusted entities like ISISes themselves.
 
- \item Operations initiated by the Services registering to Information System. Those are:
+ \item Operations initiated by the Services registering to the Information System. Those are:
  \begin{itemize}
   \item Register with Registration Message containing information about contacting client
   \item RemoveRegistrations with request to remove Registration Message representing contacting client
  \end{itemize}
 
- \item Operations which are allowed for any liable client of particular Grid infrastructure.
+ \item Operations which are allowed for any liable client of a particular Grid infrastructure.
  \begin{itemize}
   \item Query
   \item GetISISList
  \end{itemize}
 \end{itemize}
 
-Those 3 action groups are handled using Security Framework of ARC~\cite{arcsec}. For each group corresponding 
-Action is defined for ARC policy language as described in table \ref{tab:policy_actions}.
+Those 3 action groups are handled using Security Framework of ARC~\cite{arcsec}. For each group a corresponding
+Action is defined for the ARC policy language as described in table \ref{tab:policy_actions}.
 
 \begin{table}[h]
 \caption{ARC Policy Actions of ISIS}
@@ -361,8 +361,8 @@ Request from generic client&\textit{client}&http://www.nordugrid.org/schemas/pol
 \end{table}
 
 Access restrictions for clients are defined using ARC Policies which are specified and 
-processed using generic Security Handlers approach. Corresponding Security Handlers have to be 
-configured inside configuration block of corresponding ISIS service and attached 
+processed using a generic Security Handlers approach. The corresponding Security Handlers have to be 
+configured inside the configuration block of the corresponding ISIS service and attached to the
 \textit{incoming} queue.
 
 % subsection client_authorization (end)
@@ -371,29 +371,29 @@ configured inside configuration block of corresponding ISIS service and attached
 \subsection{Information Authorization}
 \label{sub:isis_authorization_information_authorization}
 
-Because all ISIS services trust each other they freely exchanging collected information. But 
-not all information stored inside ISIS cloud is public or readable by clients authorized according 
-to procedure described in section \ref{sub:isis_authorization_client_authorization}. There
-may be some pieces of information available only for specific clients. An example could be 
-information about resources serving particular Virtual Organization (VO) could be visible only to
+Because all ISIS services trust each other they freely exchange collected information. But 
+not all information stored inside the ISIS cloud is public or readable by clients authorized according 
+to the procedure described in section \ref{sub:isis_authorization_client_authorization}. There
+may be some pieces of information available only for specific clients. An example could be that
+information about resources serving a particular Virtual Organization (VO) might be visible only to
 members of that VO.
 
-To implement functionality described above each node in aggregated XML documents of information
-collected by ISIS cloud may have Access Control Policy associated with it. Access control is 
-defined at level of XML node and propagates all children nodes - similar to file systems.
-Children nodes can only additionally restrict access control imposed by parent node. For example
+To implement the functionality described above each node in the aggregated XML documents of information
+collected by the ISIS cloud may have an Access Control Policy associated with it. Access control is 
+defined at the level of an XML node and propagates to all children nodes --- similar to file systems.
+Children nodes can only additionally restrict access control imposed by the parent node. For example
 if parent node A allows access only to VO1 then children node B can narrow access to Administrator 
 of VO1 and can't grant access for VO2 members.
 
 By default all XML nodes are public. Access Control Policies are embedded into XML document
-as XML nodes (see Appendix \ref{annex:info_policies_schema} for schema) even if that violates schema 
-of document. Then nodes are assigned policies by adding XML attributes referring to defined Policies.
-Access permission to particular information node is evaluated by traversing all nodes prom 
-parent to children. At first node which gives negative result evaluation is stopped and
+as XML nodes (see Appendix \ref{annex:info_policies_schema} for schema) even if that violates the schema 
+of the document. Then nodes are assigned policies by adding XML attributes referring to defined Policies.
+Access permission to a particular information node is evaluated by traversing all nodes from 
+parent to children. At the first node that gives a negative result the evaluation is stopped and
 this node including all its children is removed from document.
 
-Before providing results of query operation ISIS runs procedure described above on results and 
-also removes Access Control Policies. Reduced document obtained in this way is returned to
+Before providing results of a query operation ISIS runs the procedure described above on the results and 
+also removes Access Control Policies. The reduced document obtained in this way is returned to the
 requesting client.
 
 %* Clasification of information
@@ -402,14 +402,14 @@ requesting client.
 %into 3 groups:
 % a. public
 % b. available to trusted clients (like broker or scheduler service)
-% c. private - available to owner of information object and entities
+% c. private --- available to owner of information object and entities
 %trusted by owner.
 %Distinction between 2 and 3 is not clear. One may accept that 2 is
 %imposed by architecture/deployment of system and 3 is controlled by
 %entities which are users of the system.
 % 2. From storage/access location point of view information is divided
 %into:
-% a. local - stored at endpoint representing resource which is
+% a. local --- stored at endpoint representing resource which is
 %described by information. This information is obtainable through
 %ALIS interface.
 % b. propagated to dedicated services (ISIS) which collect information
@@ -436,8 +436,8 @@ requesting client.
 %Control Rules (PCR) assigned. Because curently information system is made
 %of one layer of ISIS PCRs may consist of one boolean property.
 %
-% Information is structured in tree-like fashion - XML document.
-%Access control is defined at node and follows all branches - similar
+% Information is structured in tree-like fashion --- XML document.
+%Access control is defined at node and follows all branches --- similar
 %to file systems. Propagation control is similar to access control (if
 %needed at all). Children nodes can't widen access defined at parent
 %nodes. This should decrease amount of ACR to be evaluated.
@@ -457,7 +457,7 @@ requesting client.
 %other tricks to reduce cost are needed.
 %
 % To reduce access control evaluation cost ACRs may/should/must(?)
-%be assigned to information nodes in one-to-many way - one ACR per
+%be assigned to information nodes in one-to-many way --- one ACR per
 %multiple information nodes. This grouping may be initiated either
 %interactively (by clients explicitely specifying that same ACR is
 %applicable to multiple nodes) or automatically (by comapring new
@@ -501,23 +501,23 @@ requesting client.
 
 \textit{For information about sophisticated authorization policies and how to deploy various Policy Decision Point entities please see "Security Framework of ARC1" document"~\cite{arcsec}.}
 
-To restrict set of clients allowed to perform operations in ISIS service proper authorization policy is needed. Let's assume ISIS is operating over TLS connection and all participants posses X.509 certificates with following subject names:
+To restrict the set of clients allowed to perform operations on the ISIS service a proper authorization policy is needed. Let's assume ISIS is operating over a TLS connection and all participants possess X.509 certificates with the following subject names:
 \begin{itemize}
-\item /O=Grid/O=Test/CN=CLIENT - generic client entities
-\item /O=Grid/O=Test/CN=SERVICE - generic service entities
-\item /O=Grid/O=Test/CN=ISIS - all ISIS belonging to ISIS cloud
+\item /O=Grid/O=Test/CN=CLIENT --- generic client entities
+\item /O=Grid/O=Test/CN=SERVICE --- generic service entities
+\item /O=Grid/O=Test/CN=ISIS --- all ISIS belonging to ISIS cloud
 \end{itemize}
 
-\textit{In NO way we suggest to use such setup. Real installation should use more sophisticated way to 
-identify clients contacting ISIS service. For an infrastructure with quite static roles distribution for 
+\textit{In NO way do we suggest to use such setup. A real installation should use more sophisticated ways to 
+identify clients contacting the ISIS service. For an infrastructure with a quite static roles distribution for 
 example we suggest to use Virtual Organization Management Service (VOMS) attributes embedded into X.509 
-certificates representing participating entities.}
+certificates representing the participating entities.}
 
-Below is an example policy made of 3 rules defined in lines 4-17, 18-29 and 30-39. Those define allowed 
-behavior for ISIS, generic service and generic client. Lines 6-7, 20-21 and 32-33 specify attributes 
-used to recognise type of connecting client. In this case those are subjects of X.509 certificates with 
-values defined above. Lines 10-15, 24-27 and 36-37 specify allowed actions. One can see that this policy 
-allows all operations to be performed by ISIS client. It limits operations allowed for generic service 
+Below is an example policy made of 3 rules defined in lines 4--17, 18--29 and 30--39. Those define the allowed 
+behavior for the ISIS, generic services and generic clients. Lines 6--7, 20--21 and 32--33 specify attributes 
+used to recognise the type of the connecting client. In this case those are subjects of X.509 certificates with 
+values defined above. Lines 10--15, 24--27 and 36--37 specify allowed actions. One can see that this policy 
+allows all operations to be performed by the ISIS client. It limits operations allowed for generic service 
 to "service" and "client" types. And client entities are allowed to perform "client" type operations only.
 
 \begin{verbatim}
@@ -564,15 +564,15 @@ to "service" and "client" types. And client entities are allowed to perform "cli
 
 \end{verbatim}
 
-This policy is not as restrictive as it could be in order to allow ISIS register themselves as ordinary 
+This policy is not as restrictive as it could be in order to allow ISIS services to register themselves as ordinary 
 services and to allow services which perform discovery of other services to behave like ordinary clients.
 
-In order to activate policy it must be linked to ISIS service through Security Handle and Policy 
-Decision Point emedded into configuration of ISIS. Below is minimal example configuration element of 
-ISIS service. In lines 7-17 a set of Security Handler and Policy Decision Point is configured to handle
-policies written in ARC Policy Language (described in ~\cite{arcsec}). Line 14 specifies that policy is 
-read from file \textit{/opt/arc/etc/isis/policy.xml} every time new request is arrived. If policy is not 
-satisfied then ISIS returns SOAP Fault instead of usual informative response.
+In order to activate the policy it must be linked to the ISIS service through the Security Handle and the Policy 
+Decision Point emedded into the configuration of ISIS. Below is a minimal example configuration element of 
+an ISIS service. In lines 7--17 a set of Security Handlers and Policy Decision Points is configured to handle
+policies written in the ARC Policy Language (described in ~\cite{arcsec}). Line 14 specifies that the policy is 
+read from file \textit{/opt/arc/etc/isis/policy.xml} every time a new request arrives. If the policy is not 
+satisfied then the ISIS returns SOAP Fault instead of the usual informative response.
 
 \begin{verbatim}
  1: <Service 
@@ -610,28 +610,28 @@ satisfied then ISIS returns SOAP Fault instead of usual informative response.
 \label{sec:service_information_generation}
 
 The service developers have to ensure that the services are providing the necessary information about 
-themselves when registering to ISISes. This is done by implementing the subclass of the Arc::Service class - 
+themselves when registering to ISISes. This is done by implementing a subclass of the Arc::Service class ---
 the RegistrationCollector function has to provide up-to-date status information about the service and anything 
 else it wants to be advertised. This information package is called \textbf{Service Advertisement}.
 \label{service_advertisement}
-The \textbf{Service Advertisement} can contain any information service wants to advertise but the mandatory 
-elements have to be always present:
+The \textbf{Service Advertisement} can contain any information the service wants to advertise but the mandatory 
+elements have to always be present:
 \begin{itemize}
   \item Service ID: A globally unique identifier of the service.
   \item Service Type: The Glue2 type of service.
   \item Endpoint URL: The URL where the service can be contacted provided as part of EPR element.
 \end{itemize}
 
-Because there may be multiple registration processes running in parallel it is important to ensure that 
-implementation of RegistrationCollector is thread safe or there are internal locks implemented.
+Because there may be multiple registration processes running in parallel it is important to ensure that the
+implementation of the RegistrationCollector is thread safe or there are internal locks implemented.
 
 Every service registering to ISIS should also provide an interface for direct querying of information 
-describing service. Normally this information should be more detailed than one sent to ISIS. For this 
-purpose LIDI interface is defined which is a subset of WS Resource Properties (WSRP)~\cite{wsrf-rp}. Following WSRP
-operations must be supported - \textit{GetResourcePropertDocument}, \textit{GetResourceProperty},
+describing the service. Normally this information should be more detailed than the one sent to ISIS. For this 
+purpose the LIDI interface is defined which is a subset of WS Resource Properties (WSRP)~\cite{wsrf-rp}. The following WSRP
+operations must be supported --- \textit{GetResourcePropertDocument}, \textit{GetResourceProperty},
 \textit{GetMultipleResourceProperties} and \textit{QueryResourceProperties}.
 
-%TODO: define names of mandatory properties - at least Glue2 property
+%TODO: define names of mandatory properties --- at least Glue2 property
 
 
 % section information (end)
@@ -639,13 +639,13 @@ operations must be supported - \textit{GetResourcePropertDocument}, \textit{GetR
 \section{Registration}
 \label{sec:service_registration}
 
-The registration of service is carried out by internal module called Registrant. The Registrant is active module of the HED (Hosting Environment Daemon) which is bound to a set of ISISes. In practice, the configuration part of the Registrant contains exactly one ISIS to bind, and the Registrant will collect the necessary information about the other ISISes belonging to the same network.
+The registration of a service is carried out by an internal module called Registrant. The Registrant is an active module of the HED (Hosting Environment Daemon) which is bound to a set of ISISes. In practice, the configuration part of the Registrant contains exactly one ISIS to bind, and the Registrant will collect the necessary information about the other ISISes belonging to the same network.
 
-To register services to more than one ISIS network multiple Registrant instances has to be configured. In this case, the default Registrant will be used for registering every services unless configured explicitly.
-The registration of service can be done once or periodically based either on the configuration of the Registrant or overwritten for every service separately. The Registrant is also performing message aggregation of all services linked to it if possible. The simplified algorithm of the Registrant is presented below.
+To register services to more than one ISIS network multiple Registrant instances has to be configured. In this case, the default Registrant will be used for registering every service unless configured explicitly.
+The registration of a service can be done once or periodically based either on the configuration of the Registrant or overwritten for every service separately. The Registrant is also performing message aggregation of all services linked to it if possible. The simplified algorithm of the Registrant is presented below.
 
 \begin{framed}
-  Registrant - pseudo algorithm\\
+  Registrant --- pseudo algorithm\\
   \\
   \verb#// Initialize phase#\\
   \verb#Read the configuration and store the information about the services in a list#\\
@@ -666,9 +666,9 @@ The registration of service can be done once or periodically based either on the
   \verb#  }#\\
   \verb#} while(true)#\\
 \end{framed}
-Current implementation does not allow value of the period to be less than 2 minutes.
+The current implementation does not allow the value of the period to be less than 2 minutes.
 
-Service provides \textbf{Service Advertisement} part of information sent to ISIS (see Section \ref{sub:isis_interface}).
+The service provides the \textbf{Service Advertisement} part of the information sent to ISIS (see Section \ref{sub:isis_interface}).
 Before sending this information the Registrant extends it with additional data (\textbf{Service Advertisement Metadata}).
 
 An example layout of services is shown on Figure \ref{fig:registration_overview}. In this configuration example 
@@ -681,7 +681,7 @@ default Registrant and the services configured in the following way:
   \item Service 3: The \textit{Registrant B} is configured explicitly.
 \end{itemize}
 
-So the Service 1 and 2 are handled both by \textit{Registrant A} and Service 3 by \textit{Registrant B}.
+So Service 1 and 2 are both handled by \textit{Registrant A} and Service 3 by \textit{Registrant B}.
 In the first step each Registrant performs information collection from all assigned services sequentially. Registrants themselves are executing in parallel. For Figure \ref{fig:registration_overview} the approximate sequence of information collection is (\textit{A1}-\textit{A2}, \textit{B1}-\textit{B2}) followed by (\textit{A3}, \textit{A4}). After collection  the aggregated information is sent to the corresponding ISISes independently by each other Registrant (\textit{A5}, \textit{B5}).
 
 \begin{figure}[ht]
@@ -698,7 +698,7 @@ This registration operation is done once during the start-up phase and periodica
 \section{Authorization}
 \label{sec:service_authorization}
 
-For each information provided by service through the LIDI interface same procedure as described in 
+For every piece of information provided by the service through the LIDI interface the same procedure as described in 
 Section \ref{sub:isis_authorization_information_authorization} should be applied.
 
 % section authorization (end)
@@ -708,24 +708,24 @@ Section \ref{sub:isis_authorization_information_authorization} should be applied
 \label{sec:service_configuration}
 
 The registration operation is done by the Registrants as described in Section \ref{sec:service_registration}.
-Each Registrant is instantiated by corresponding InfoRegistrar XML element in configuration file as 
-defined in Section \ref{annex:service_configuration_schema}. First InfoRegistrar defines Registrant 
-which is used to register every service by default.
+Each Registrant is instantiated by the corresponding InfoRegistrar XML element in the configuration file as 
+defined in Section \ref{annex:service_configuration_schema}. The first InfoRegistrar defines the Registrant 
+that is used to register every service by default.
 
-Registration parameters per service are defined by InfoRegister element located inside corresponding 
-service configuration element. To assign service to specific Registrant(s) one may use Registrar 
-configuration elements situated inside InfoRegister. If none Registrar element is defined service will 
-be registered using first (default) Registrant. To make not register itself special configuration element 
+Registration parameters per service are defined by the InfoRegister element located inside the corresponding 
+service configuration element. To assign a service to specific Registrant(s) one may use Registrar 
+configuration elements situated inside InfoRegister. If no Registrar element is defined the service will 
+be registered using first (default) Registrant. To make a service not register itself the special configuration element 
 NoRegister has to be used.
 
-Following elements are defined inside configuration element of the Registrant:
+The Following elements are defined inside the configuration element of the Registrant:
 \begin{description}
-\item{URL} specifies contact endpoint of a bootstrap ISIS. If neede further ISIS addresses will be 
+\item{URL} specifies the contact endpoint of a bootstrap ISIS. If needed further ISIS addresses will be 
 queried from this service. This element is mandatory.
 \item{KeyPath, CertificatePath, ProxyPath and CACertificatesDir} are paths to files storing X509 
 credentials used for establishing connections. Those elements are optional and needed only if 
 TLS communication is used.
-\item{Retry} specifies how many times communication to ISIS have to fail/timeout to start treating is
+\item{Retry} specifies how many times communication to ISIS have to fail/timeout to start treating it
 as unavailable. The default value is 5.
 \end{description}
 
