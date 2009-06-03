@@ -1564,48 +1564,33 @@ err:
 
     //Set "notBefore"
     if( X509_cmp_time(X509_get_notBefore(issuer), &t1) < 0) {
-      notBefore = M_ASN1_UTCTIME_new();
-      if(notBefore == NULL) {
-        CredentialLogger.msg(ERROR, "Failed to create new ASN1_UTCTIME for expiration time of proxy certificate");
-        LogError(); return false;
-      }
-      X509_time_adj(notBefore, 0, &t1);
+      X509_time_adj(X509_get_notBefore(tosign), 0L, &t1);
     }
     else {
-      if((notBefore = M_ASN1_UTCTIME_dup(X509_get_notBefore(issuer))) == NULL) {
-        CredentialLogger.msg(ERROR, "Failed to duplicate ASN1_UTCTIME for expiration time of proxy certificate");
-        LogError(); return false;
-      }
+      X509_set_notBefore(tosign, X509_get_notBefore(issuer));
     }
-
-    if(!X509_set_notBefore(tosign, notBefore)) {
-      CredentialLogger.msg(ERROR, "Failed to set notBefore for proxy certificate");
-      LogError(); ASN1_UTCTIME_free(notBefore); return false;
-    }
-    ASN1_UTCTIME_free(notBefore);
 
     //Set "not After"
+#ifdef WIN32  //Kind of hack here for Win, because X509_cmp_time always return 0 on Win when the second calling, which is not as expected
+    X509_gmtime_adj(X509_get_notAfter(tosign), t2-t1);
+/*
+    ASN1_UTCTIME* atime = NULL;
+    atime = X509_get_notAfter(tosign);
+    Time end = asn1_to_utctime(atime);
+    time_t end_t = end.GetTime();
+    if( X509_cmp_time(X509_get_notAfter(issuer), &end_t) < 0) {
+      X509_set_notAfter(tosign, X509_get_notAfter(issuer));
+    } 
+*/
+#else
     if( X509_cmp_time(X509_get_notAfter(issuer), &t2) > 0) {
-      notAfter = M_ASN1_UTCTIME_new();
-      if(notAfter == NULL) {
-        CredentialLogger.msg(ERROR, "Failed to create new ASN1_UTCTIME for expiration time of proxy certificate");
-        LogError(); return false;
-      }
-      X509_time_adj(notAfter, 0, &t2);
+      X509_gmtime_adj(X509_get_notAfter(tosign), t2-t1);
     }
     else {
-      if((notAfter = M_ASN1_UTCTIME_dup(X509_get_notAfter(issuer))) == NULL) {
-        CredentialLogger.msg(ERROR, "Failed to duplicate ASN1_UTCTIME for expiration time of proxy certificate");
-        LogError(); return false;
-      }
+      X509_set_notAfter(tosign, X509_get_notAfter(issuer));
     }
-
-    if(!X509_set_notAfter(tosign, notAfter)) {
-      CredentialLogger.msg(ERROR, "Failed to set notBefore for proxy certificate");
-      LogError(); ASN1_UTCTIME_free(notAfter); return false;
-    }
-    ASN1_UTCTIME_free(notAfter);
-
+#endif
+ 
     return true;
   }
 
