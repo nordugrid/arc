@@ -4,7 +4,7 @@ libaccARC0_la_SOURCES  = TargetRetrieverARC0.cpp TargetRetrieverARC0.h \
                          SubmitterARC0.cpp SubmitterARC0.h \
                          DescriptorsARC0.cpp \
 			 JobControllerARC0.cpp JobControllerARC0.h \
-			 FTPControl.cpp FTPControl.h
+			 FTPControl.cpp FTPControl.h JobStateARC0.cpp JobStateARC0.h
 libaccARC0_la_CXXFLAGS = $(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) \
                          $(GLOBUS_FTP_CONTROL_CFLAGS) \
                          -I$(top_srcdir)/include

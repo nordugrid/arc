@@ -5,7 +5,8 @@ libaccCREAM_la_SOURCES  = DescriptorsCREAM.cpp \
 	SubmitterCREAM.cpp SubmitterCREAM.h \
 	JobControllerCREAM.cpp JobControllerCREAM.h \
 	CREAMClient.cpp CREAMClient.h \
-	OpenSSLFunctions.cpp OpenSSLFunctions.h
+	OpenSSLFunctions.cpp OpenSSLFunctions.h \
+	JobStateCREAM.cpp JobStateCREAM.h
 libaccCREAM_la_CXXFLAGS = $(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) \
 	$(OPENSSL_CFLAGS) -I$(top_srcdir)/include
 libaccCREAM_la_LIBADD   = $(LIBXML2_LIBS) $(GLIBMM_LIBS) $(OPENSSL_LIBS) \

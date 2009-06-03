@@ -5,7 +5,7 @@ libaccARC1_la_SOURCES  = TargetRetrieverARC1.cpp TargetRetrieverARC1.h \
 			 SubmitterARC1.cpp SubmitterARC1.h \
 			 JobControllerARC1.cpp JobControllerARC1.h \
 			 AREXClient.cpp AREXClient.h \
-			 DescriptorsARC1.cpp
+			 DescriptorsARC1.cpp JobStateARC1.h JobStateARC1.cpp
 libaccARC1_la_CXXFLAGS = $(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) \
 			 -I$(top_srcdir)/include
 libaccARC1_la_LIBADD   = $(LIBXML2_LIBS) $(GLIBMM_LIBS) \

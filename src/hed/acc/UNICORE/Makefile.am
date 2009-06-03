@@ -4,7 +4,8 @@ libaccUNICORE_la_SOURCES  = TargetRetrieverUNICORE.cpp TargetRetrieverUNICORE.h 
 			 SubmitterUNICORE.cpp SubmitterUNICORE.h \
 			 JobControllerUNICORE.cpp JobControllerUNICORE.h \
 			 UNICOREClient.cpp UNICOREClient.h \
-			 DescriptorsUNICORE.cpp
+			 DescriptorsUNICORE.cpp \
+			 JobStateUNICORE.cpp JobStateUNICORE.h
 libaccUNICORE_la_CXXFLAGS = $(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) \
 			 -I$(top_srcdir)/include
 libaccUNICORE_la_LIBADD   = $(LIBXML2_LIBS) $(GLIBMM_LIBS) \

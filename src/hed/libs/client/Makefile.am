@@ -37,7 +37,7 @@ LIBS_CONFUSA = $(OPENSSL_LIBS) $(LIBS_WITH_OAUTH)
 libarcclient_ladir = $(pkgincludedir)/client
 libarcclient_la_HEADERS  = ACC.h ACCLoader.h Broker.h ExecutionTarget.h \
 	Submitter.h TargetRetriever.h TargetGenerator.h \
-	Job.h JobController.h JobSupervisor.h JobDescription.h JobDescriptionParser.h \
+	JobState.h Job.h JobController.h JobSupervisor.h JobDescription.h JobDescriptionParser.h \
         PosixJSDLParser.h JSDLParser.h JDLParser.h XRSLParser.h \
 	ClientInterface.h $(HEADER_WITH_XMLSEC) ClientX509Delegation.h UserConfig.h Sandbox.h RSLParser.h \
         $(HEADER_CONFUSA)
@@ -46,7 +46,7 @@ libarcclient_la_SOURCES  = ACC.cpp ACCLoader.cpp Broker.cpp ExecutionTarget.cpp 
 	Job.cpp JobController.cpp JobSupervisor.cpp JobDescription.cpp JobDescriptionParser.cpp \
         PosixJSDLParser.cpp JSDLParser.cpp JDLParser.cpp XRSLParser.cpp \
 	ClientInterface.cpp $(SOURCE_WITH_XMLSEC) ClientX509Delegation.cpp UserConfig.cpp \
-	Sandbox.cpp RSLParser.cpp $(SOURCE_CONFUSA)
+	Sandbox.cpp RSLParser.cpp $(SOURCE_CONFUSA) JobState.cpp
 libarcclient_la_CXXFLAGS = -I$(top_srcdir)/include \
 	$(CFLAGS_WITH_XMLSEC) $(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(CXX_FLAGS_CONFUSA)
 libarcclient_la_LIBADD   = $(top_srcdir)/src/hed/libs/common/libarccommon.la \

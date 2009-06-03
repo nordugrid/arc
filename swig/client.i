@@ -5,6 +5,7 @@
 #include <arc/client/ClientX509Delegation.h>
 #include <arc/client/Submitter.h>
 #include <arc/client/ExecutionTarget.h>
+#include <arc/client/JobState.h>
 #include <arc/client/Job.h>
 #include <arc/client/TargetGenerator.h>
 #include <arc/client/Broker.h>
@@ -18,6 +19,7 @@
 %template(ExecutionTargetList) std::list<Arc::ExecutionTarget>;
 %template(JobControllerList) std::list<Arc::JobController *>;
 %template(JobList) std::list<Arc::Job>;
+%template(JobStateList) std::list<Arc::JobState>;
 %template(SourceTypeList) std::list<Arc::SourceType>;
 %template(TargetTypeList) std::list<Arc::TargetType>;
 %template(EnvironmentTypeList) std::list<Arc::EnvironmentType>;
@@ -28,6 +30,7 @@
 %template(DirectoryTypeList) std::list<Arc::DirectoryType>;
 %template(OptionalElementTypeList) std::list<Arc::OptionalElementType>;
 %template(ApplicationEnvironmentList) std::list<Arc::ApplicationEnvironment>;
+
 
 #ifdef SWIGJAVA
 %template(ExecutionTargetListIteratorHandler) listiteratorhandler<Arc::ExecutionTarget>;
@@ -91,6 +94,7 @@ std::ostream& getStdout() {
 %clear std::string& delegation_id;
 %include "../src/hed/libs/client/Submitter.h"
 %include "../src/hed/libs/client/ExecutionTarget.h"
+%include "../src/hed/libs/client/JobState.h"
 %include "../src/hed/libs/client/Job.h"
 %include "../src/hed/libs/client/TargetGenerator.h"
 %include "../src/hed/libs/client/Broker.h"
