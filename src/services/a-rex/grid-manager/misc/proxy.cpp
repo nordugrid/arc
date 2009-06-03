@@ -66,3 +66,73 @@ int remove_proxy(void) {
   return 0;
 }
 
+int renew_proxy(const char* old_proxy,const char* new_proxy) {
+  int h = -1;
+  off_t len,l,ll;
+  char* buf = NULL;
+  char* proxy_file_tmp = NULL;
+  struct stat st;
+  int res = -1;
+
+  h=open(new_proxy,O_RDONLY);
+  if(h==-1) {
+    fprintf(stderr,"Can't open new proxy: %s\n",new_proxy);
+    goto exit;
+  };
+  if((len=lseek(h,0,SEEK_END))==-1) goto exit;
+  lseek(h,0,SEEK_SET);
+  if((buf=(char*)(malloc(len))) == NULL) {
+    fprintf(stderr,"Out of memory\n");
+    goto exit;
+  };
+  for(l=0;l<len;) {
+    ll=read(h,buf+l,len-l);
+    if(ll==-1) {
+      fprintf(stderr,"Can't read new proxy: %s\n",new_proxy);
+      goto exit;
+    };
+    if(ll==0) break;
+    l+=ll;
+  };
+  close(h); h=-1; len=l;
+  proxy_file_tmp=(char*)(malloc(strlen(old_proxy)+7));
+  if(proxy_file_tmp==NULL) {
+    fprintf(stderr,"Out of memory\n");
+    goto exit;
+  };
+  strcpy(proxy_file_tmp,old_proxy); strcat(proxy_file_tmp,".renew");
+  remove(proxy_file_tmp);
+  h=open(proxy_file_tmp,O_WRONLY | O_CREAT | O_EXCL,S_IRUSR | S_IWUSR);
+  if(h==-1) {
+    fprintf(stderr,"Can't create temporary proxy: %s\n",proxy_file_tmp);
+    goto exit;
+  };
+  (void)chmod(proxy_file_tmp,S_IRUSR | S_IWUSR);
+  for(l=0;l<len;) {
+    ll=write(h,buf+l,len-l);
+    if(ll==-1) {
+      fprintf(stderr,"Can't write temporary proxy: %s\n",proxy_file_tmp);
+      goto exit;
+    };
+    l+=ll;
+  };
+  if(stat(old_proxy,&st) == 0) {
+    fchown(h,st.st_uid,st.st_gid);
+    if(remove(old_proxy) != 0) {
+      fprintf(stderr,"Can't remove proxy: %s\n",old_proxy);
+      goto exit;
+    };
+  };
+  close(h); h=-1;
+  if(rename(proxy_file_tmp,old_proxy) != 0) {
+    fprintf(stderr,"Can't rename temporary proxy: %s\n",proxy_file_tmp);
+    goto exit;
+  };
+  res=0;
+ exit:
+  if(h!=-1) close(h);
+  if(buf) free(buf);
+  if(proxy_file_tmp) { remove(proxy_file_tmp); free (proxy_file_tmp); };
+  return res;
+}
+
