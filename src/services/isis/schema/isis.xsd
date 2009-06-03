@@ -89,7 +89,36 @@
     </xsd:complexType>
     <xsd:element name="QueryResponse" type="isis:QueryResponseType"/>
 
+    <!-- Input type for Connect operation -->
+    <xsd:complexType name="ConnectType">
+        <xsd:sequence>
+            <xsd:element name="URL" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="Connect" type="isis:ConnectType"/>
+
+    <!-- Output type for Connect operation -->
+    <xsd:complexType name="ConnectResponseType">
+        <xsd:sequence>
+            <xsd:element name="Config" type="isis:ConfigType" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="EndpointURL" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="Database" type="isis:DatabaseType" minOccurs="1" maxOccurs="1"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="ConnectResponse" type="isis:ConnectResponseType"/>
+
     <!-- === Helper type definitions === -->
+    <xsd:complexType name="DatabaseType">
+        <xsd:sequence>
+            <xsd:element name="RegEntry" type="isis:RegEntry" minOccurs="0" maxOccurs="1"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="ConfigType">
+        <xsd:sequence>
+        </xsd:sequence>
+    </xsd:complexType>
+
     <xsd:simpleType name="StatusType">
         <xsd:restriction base="xsd:string">
             <xsd:enumeration value="1"/>

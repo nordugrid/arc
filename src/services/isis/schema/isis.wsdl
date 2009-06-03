@@ -71,6 +71,15 @@ Interface of Information Indexing Service
     <wsdl:part name="QueryResponse" element="isis:QueryResponse"/>
 </wsdl:message>
 
+<!-- ====== Connect ====== -->
+<wsdl:message name="ConnectRequest">
+    <wsdl:part name="Connect" element="isis:Connect"/>
+</wsdl:message>
+
+<wsdl:message name="ConnectResponse">
+    <wsdl:part name="ConnectResponse" element="isis:ConnectResponse"/>
+</wsdl:message>
+
 <!-- ====== PortType definitions ====== -->
 <wsdl:portType name="ISISPortType">
     <wsdl:operation name="Register">
@@ -88,6 +97,10 @@ Interface of Information Indexing Service
     <wsdl:operation name="Query">
         <wsdl:input name="QueryRequest" message="isis:QueryRequest"/>
         <wsdl:output name="QueryResponse" message="isis:QueryResponse"/>
+    </wsdl:operation>
+    <wsdl:operation name="Connect">
+        <wsdl:input name="ConnectRequest" message="isis:ConnectRequest"/>
+        <wsdl:output name="ConnectResponse" message="isis:ConnectResponse"/>
     </wsdl:operation>
 </wsdl:portType>
 
@@ -128,6 +141,15 @@ Interface of Information Indexing Service
             <soap:body use="literal"/>
         </wsdl:input>
         <wsdl:output name="QueryResponse">
+            <soap:body use="literal"/>
+        </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="Connect">
+        <soap:operation soapAction="Connect"/>
+        <wsdl:input name="ConnectRequest">
+            <soap:body use="literal"/>
+        </wsdl:input>
+        <wsdl:output name="ConnectResponse">
             <soap:body use="literal"/>
         </wsdl:output>
     </wsdl:operation>
