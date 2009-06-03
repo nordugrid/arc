@@ -7,12 +7,19 @@
   elementFormDefault="qualified" attributeFormDefault="unqualified"
 >
 
-  <xsd:element name="endpoint" type="xsd:anyURI"/>  
+  <!-- Optional KeyPath, CertificatePath, ProxyPath and CACertificatesDir are 
+  paths to files storing X509 credentials used for establishing connections. -->
+  <xsd:element name="keypath" type="xsd:string" minOccurs="0"/>
+  <xsd:element name="certpath" type="xsd:string" minOccurs="0"/>
+  <xsd:element name="proxypath" type="xsd:string" minOccurs="0"/>
+  <xsd:element name="cadirpath" type="xsd:string" minOccurs="0"/>
+
+  <xsd:element name="endpoint" type="xsd:anyURI"/>
 
   <xsd:element name="retry" type="xsd:nonNegativeInteger" minOccurs="0"/>
 
   <xsd:element name="sparsity" type="xsd:nonNegativeInteger" minOccurs="0"/>
- 
+
   <xsd:simpleType name="Logger_Type">
     <xsd:restriction base="xsd:string"/>
     <xsd:attribute name="level" type="xsd:string" use="optional"/>
