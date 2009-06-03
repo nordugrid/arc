@@ -23,7 +23,7 @@ std::string Query( Arc::URL url, std::string query, Arc::UserConfig usercfg ){
 
     Arc::NS uns;
     Arc::Config ucfg(uns);
-    usercfg.ApplySecurity(ucfg);
+    usercfg.ApplyToConfig(ucfg);
 
     Arc::MCCConfig mcc_cfg;
     if (ucfg["ProxyPath"])
@@ -79,7 +79,7 @@ std::string Register( Arc::URL url, std::vector<std::string> &serviceID, std::ve
 
     Arc::NS uns;
     Arc::Config ucfg(uns);
-    usercfg.ApplySecurity(ucfg);
+    usercfg.ApplyToConfig(ucfg);
 
     Arc::MCCConfig mcc_cfg;
     if (ucfg["ProxyPath"])
@@ -159,7 +159,7 @@ std::string RemoveRegistrations( Arc::URL url, std::vector<std::string> &service
 
     Arc::NS uns;
     Arc::Config ucfg(uns);
-    usercfg.ApplySecurity(ucfg);
+    usercfg.ApplyToConfig(ucfg);
 
     Arc::MCCConfig mcc_cfg;
     if (ucfg["ProxyPath"])
@@ -227,7 +227,7 @@ std::vector<std::string> GetISISList( Arc::URL url, Arc::UserConfig usercfg ){
 
     Arc::NS uns;
     Arc::Config ucfg(uns);
-    usercfg.ApplySecurity(ucfg);
+    usercfg.ApplyToConfig(ucfg);
 
     Arc::MCCConfig mcc_cfg;
     if (ucfg["ProxyPath"])
