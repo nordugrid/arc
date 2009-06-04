@@ -87,10 +87,10 @@ struct Registrar_data {
         mcc_cfg.AddProxy(isis.proxy);
         mcc_cfg.AddCADir(isis.cadir);
 
-        ClientSOAP cli(mcc_cfg,isis.url);
         int retry_ = retry;
         int reconnection = 0;
         while ( retry_ >= 1 ) {
+            ClientSOAP cli(mcc_cfg,isis.url);
             MCC_Status status = cli.process(&request, &response);
             retry_--;
             reconnection++;

@@ -286,10 +286,9 @@ bool InfoRegistrar::removeService(InfoRegister* reg) {
             mcc_cfg.AddProxy(usedISIS.proxy);
             mcc_cfg.AddCADir(usedISIS.cadir);
 
-            ClientSOAP cli(mcc_cfg,usedISIS.url);
-
             int retry_ = retry;
             while ( retry_ >= 1 ){
+                ClientSOAP cli(mcc_cfg,usedISIS.url);
                 MCC_Status status = cli.process(&request, &response);
 
                 std::string response_string;
@@ -515,10 +514,9 @@ void InfoRegistrar::registration(void) {
             }
             //logger_.msg(DEBUG, "Call the ISIS.process method.");
 
-            ClientSOAP cli(mcc_cfg,usedISIS.url);
-
             int retry_ = retry;
             while ( retry_ >= 1 ) {
+                ClientSOAP cli(mcc_cfg,usedISIS.url);
                 MCC_Status status = cli.process(&request, &response);
 
                 // multiple tries
