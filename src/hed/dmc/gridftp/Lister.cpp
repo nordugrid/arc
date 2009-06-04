@@ -525,7 +525,7 @@ namespace Arc {
     return 0;
   }
 
-  int Lister::retrieve_dir(const URL& url) {
+  int Lister::retrieve_dir(const URL& url,bool names_only) {
     GlobusResult res;
     /* get listing */
     fnames.clear();
@@ -648,7 +648,6 @@ namespace Arc {
     dcau.mode = GLOBUS_FTP_CONTROL_DCAU_NONE;
     globus_ftp_control_local_dcau(handle, &dcau, GSS_C_NO_CREDENTIAL);
     globus_ftp_control_host_port_t pasv_addr;
-    /* try MLSD */
     facts = true;
     if (setup_pasv(pasv_addr) != 0)
       return -1;
@@ -660,10 +659,16 @@ namespace Arc {
       logger.msg(INFO, "Failed to open data channel");
       return -1;
     }
-    cmd_resp = send_command("MLSD", path.c_str(), true, &sresp);
-    if (cmd_resp == GLOBUS_FTP_PERMANENT_NEGATIVE_COMPLETION_REPLY) {
-      logger.msg(INFO, "MLSD is not supported - trying NLST");
-      /* run NLST */
+    if(!names_only) {
+      /* try MLSD */
+      cmd_resp = send_command("MLSD", path.c_str(), true, &sresp);
+      if (cmd_resp == GLOBUS_FTP_PERMANENT_NEGATIVE_COMPLETION_REPLY) {
+        logger.msg(INFO, "MLSD is not supported - trying NLST");
+        /* run NLST */
+        facts = false;
+        cmd_resp = send_command("NLST", path.c_str(), true, &sresp);
+      }
+    } else {
       facts = false;
       cmd_resp = send_command("NLST", path.c_str(), true, &sresp);
     }

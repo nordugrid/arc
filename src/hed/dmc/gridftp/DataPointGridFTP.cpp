@@ -645,7 +645,7 @@ namespace Arc {
       return DataStatus::IsWritingError;
     set_attributes();
     Lister lister(*credential);
-    if (lister.retrieve_dir(url) != 0) {
+    if (lister.retrieve_dir(url,!(long_list | resolve | metadata)) != 0) {
       logger.msg(ERROR, "Failed to obtain listing from ftp: %s", url.str());
       return DataStatus::ListError;
     }

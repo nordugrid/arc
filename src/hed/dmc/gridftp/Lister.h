@@ -69,7 +69,7 @@ namespace Arc {
   public:
     Lister(GSSCredential& credential);
     ~Lister();
-    int retrieve_dir(const URL& url);
+    int retrieve_dir(const URL& url,bool names_only = false);
     operator bool() {
       return inited;
     }
