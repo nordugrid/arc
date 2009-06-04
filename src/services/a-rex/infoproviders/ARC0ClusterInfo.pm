@@ -341,11 +341,11 @@ sub _collect($$) {
             $j->{'xmlns:nuj0'} = "urn:nordugrid-job";
             $j->{'nuj0:name'} = [ $jobid ];
             $j->{'nuj0:globalid'} = [ $c->{'nc0:contactstring'}[0]."/$jobid" ];
-            $j->{'nuj0:globalowner'} = [ $gmjob->{subject} ];
+            $j->{'nuj0:globalowner'} = [ $gmjob->{subject} ] if $gmjob->{subject};
             $j->{'nuj0:jobname'} = [ $gmjob->{jobname} ] if $gmjob->{jobname};
             $j->{'nuj0:submissiontime'} = [ $gmjob->{starttime} ] if $gmjob->{starttime};
-            $j->{'nuj0:execcluster'} = [ $host_info->{hostname} ];
-            $j->{'nuj0:execqueue'} = [ $qname ];
+            $j->{'nuj0:execcluster'} = [ $host_info->{hostname} ] if $host_info->{hostname};
+            $j->{'nuj0:execqueue'} = [ $qname ] if $qname;
             $j->{'nuj0:cpucount'} = [ $gmjob->{count} || 1 ];
             $j->{'nuj0:sessiondirerasetime'} = [ $gmjob->{cleanuptime} ] if $gmjob->{cleanuptime};
             $j->{'nuj0:stdin'}  = [ $gmjob->{stdin} ]  if $gmjob->{stdin};
@@ -353,7 +353,7 @@ sub _collect($$) {
             $j->{'nuj0:stderr'} = [ $gmjob->{stderr} ] if $gmjob->{stderr};
             $j->{'nuj0:gmlog'}  = [ $gmjob->{gmlog} ]  if $gmjob->{gmlog};
             $j->{'nuj0:runtimeenvironment'} = $gmjob->{runtimeenvironments} if $gmjob->{runtimeenvironments};
-            $j->{'nuj0:submissionui'} = [ $gmjob->{clientname} ];
+            $j->{'nuj0:submissionui'} = [ $gmjob->{clientname} ] if $gmjob->{clientname};
             $j->{'nuj0:clientsoftware'} = [ $gmjob->{clientsoftware} ] if $gmjob->{clientsoftware};
             $j->{'nuj0:proxyexpirationtime'} = [ $gmjob->{delegexpiretime} ] if $gmjob->{delegexpiretime};
             $j->{'nuj0:rerunable'} = [ $gmjob->{failedstate} ? $gmjob->{failedstate} : 'none' ]

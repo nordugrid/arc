@@ -6,7 +6,7 @@ our @EXPORT_OK = qw(arc1_info_schema);
 sub arc1_info_schema {
 
     my $location_t = {
-            'LocalID'   => [ '' ],
+            'ID'        => [ '' ],
             'Name'      => [ '' ],
             'Address'   => [ '*' ],
             'Place'     => [ '*' ],
@@ -17,26 +17,26 @@ sub arc1_info_schema {
     };
 
     my $benchmark_t = {
-            'LocalID' => [ '' ],
+            'ID'      => [ '' ],
             'Type'    => [ '' ],
             'Value'   => [ '' ],
     };
 
     my $contact_t = {
-            'LocalID'   => [ '' ],
+            'ID'        => [ '' ],
             'Type'      => [ '' ],
             'URL'       => [ '' ],
             'OtherInfo' => [ '*' ],
     };
 
     my $access_pol_t = {
-            'LocalID' => [ '' ],
+            'ID'      => [ '' ],
             'Scheme'  => [ '' ],
             'Rule'    => [ '' ],
     };
 
     my $mapping_pol_t = {
-            'LocalID' => [ '' ],
+            'ID'      => [ '' ],
             'Scheme'  => [ '' ],
             'Rule'    => [ '' ],
     };
@@ -78,7 +78,7 @@ sub arc1_info_schema {
             'PreLRMSWaitingJobs' => [ '' ],
             'AccessPolicy'       => [ $access_pol_t ],
              'Associations' => {
-                'ComputingShareLocalID' =>  [ '' ],
+                'ComputingShareID'      =>  [ '' ],
                 'ComputingActivityID'   =>  [ '' ],
             }
     };
@@ -87,7 +87,7 @@ sub arc1_info_schema {
             'BaseType'     => '',
             'CreationTime' => '',
             'Validity'     => '',
-            'LocalID'               => [ '' ],
+            'ID'                    => [ '' ],
             'Name'                  => [ '*' ],
             'Description'           => [ '*' ],
             'MappingQueue'          => [ '' ],
@@ -132,13 +132,13 @@ sub arc1_info_schema {
             #'MappingPolicy' => [ $mapping_pol_t ],
             'Associations' => {
                 'ComputingEndpointID'         => [ '' ],
-                'ExecutionEnvironmentLocalID' => [ '' ],
+                'ExecutionEnvironmentID'      => [ '' ],
                 'ComputingActivityID'         => [ '' ],
             },
     };
 
     my $exec_env_t = {
-            'LocalID'              => [ '' ],
+            'ID'                   => [ '' ],
             'PlatformType'         => [ '' ],
             'VirtualMachine'       => [ '' ],
             'TotalInstances'       => [ '' ],
@@ -162,15 +162,15 @@ sub arc1_info_schema {
             'ConnectivityOut'      => [ '' ],
             'NetworkInfo'          => [ '' ],
             'Associations' => {
-                'ComputingShareLocalID'         => [ '' ],
-                'ApplicationEnvironmentLocalID' => [ '' ],
-                'BenchmarkLocalID'              => [ '*' ],
-                'ComputingActivityID'           => [ '*' ],
+                'ComputingShareID'         => [ '' ],
+                'ApplicationEnvironmentID' => [ '' ],
+                'BenchmarkID'              => [ '*' ],
+                'ComputingActivityID'      => [ '*' ],
              },
     };
 
     my $app_env_t = {
-            'LocalID'      => [ '' ],
+            'ID'           => [ '' ],
             'AppName'      => [ '' ],
             'AppVersion'   => [ '*' ],
             'State'        => [ '*' ],
@@ -184,12 +184,12 @@ sub arc1_info_schema {
             'FreeJobs'     => [ '*' ],
             'FreeUserSeats' => [ '*' ],
             #'ApplicationHandle' => [ {
-            #    'LocalID' => [ '' ],
+            #    'ID'      => [ '' ],
             #    'Type'    => [ '' ],
             #    'Value'   => [ '' ],
             #} ],
             #'Associations' => {
-            #    'ExecutionEnvironmentLocalID' => [ '' ],
+            #    'ExecutionEnvironmentID' => [ '' ],
             #}
     };
 
@@ -275,7 +275,7 @@ my $comp_activity_t = {
             'SubmissionClientName'    => [ '' ],
             'OtherMessages'           => [ '*' ],
             'Associations' => {
-                'ComputingShareLocalID'  => [ '' ],
+                'ComputingShareID'       => [ '' ],
                 'ComputingEndpointID'    => [ '' ],
                 'ExecutionEnvironmentID' => [ '' ],
                 'ActivityID'             => [ '' ],

@@ -273,35 +273,31 @@ sub _collect($$) {
     my $arexhostport = "$host_info->{hostname}:$config->{gm_port}";
 
     # Global IDs
-    my $csvID = "urn:grid:csv:$arexhostport"; # ComputingService
-    my $cepID = "urn:grid:cep:$arexhostport"; # ComputingEndpoint
-    my $cmgrID = "urn:grid:cmgr:$arexhostport"; # ComputingManager
+    my $csvID = "urn:ogsa:ComputingService:$arexhostport"; # ComputingService ID
+    my $cepID = "urn:ogsa:ComputingEndpoint:$arexhostport"; # ComputingEndpoint ID
+    my $cmgrID = "urn:ogsa:ComputingManager:$arexhostport"; # ComputingManager ID
+    my $cactIDp = "urn:ogsa:ComputingActivity:$arexhostport"; # ComputingActivity ID prefix
+    my $cshaIDp = "urn:ogsa:ComputingShare:$arexhostport"; # ComputingShare ID prefix
+    my $xenvIDp = "urn:ogsa:ExecutionEnvironment:$arexhostport"; # ExecutionEnvironment ID prefix
+    my $aenvIDp = "urn:ogsa:ApplicationEnvironment:$arexhostport"; # ApplicationEnvironment ID prefix
     my %cactIDs; # ComputingActivity IDs
+    my %cshaIDs; # ComputingShare IDs
+    my %aenvIDs; # ApplicationEnvironment IDs
 
-    # Locally Unique IDs
-    my $cshaLID = 'csha0'; my %cshaLIDs; # ComputingShare
-    my $xenvLID = 'xenv0'; my %xenvLIDs; # ExecutionEnvironment
-    my $aenvLID = 'aenv0'; my %aenvLIDs; # ApplicationEnvironment
-    my $locLID = 'loc0';   my @locLIDs;  # Location
-    my $conLID = 'con0';   my @conLIDs;  # Contact
-    my $apolLID = 'apol0'; my @apolLIDs; # AccessPolicy
-    my $mpolLID = 'mpol0'; my @mpolLIDs; # MappingPolicy
-
-    # Generate CompShare LocalIDs
+    # Generate ComputingShare IDs
     for my $share (keys %{$config->{shares}}) {
-        $cshaLIDs{$share} = $cshaLID++;
+        $cshaIDs{$share} = "$cshaIDp:$share";
     }
 
-    # Generate AppEnv LocalIDs
+    # Generate ApplicationEnvironment IDs
     for my $rte (@{$host_info->{runtimeenvironments}}) {
-        $aenvLIDs{$rte} = $aenvLID++;
+        $aenvIDs{$rte} = "$aenvIDp:$rte";
     }
 
-    # generate CompActivity Global IDs
+    # generate ComputingActivity IDs
     for my $jobid (keys %$gmjobs_info) {
         my $share = $gmjobs_info->{$jobid}{share};
-        my $gridid = "https://$arexhostport/arex/$jobid";
-        $cactIDs{$share}{$jobid} = $gridid;
+        $cactIDs{$share}{$jobid} = "$cactIDp:$jobid";
     }
 
     my $csv = {};
@@ -408,7 +404,7 @@ sub _collect($$) {
 
     $cep->{PreLRMSWaitingJobs} = [ $pendingtotal || 0 ];
 
-    $cep->{Associations}{ComputingShareLocalID} = [ values %cshaLIDs ];
+    $cep->{Associations}{ComputingShareID} = [ values %cshaIDs ];
     $cep->{Associations}{ComputingActivityID} = [ map { values %{$_} } values %cactIDs ];
 
 
@@ -437,7 +433,7 @@ sub _collect($$) {
         $csha->{Validity} = $validity_ttl;
         $csha->{BaseType} = 'Share';
 
-        $csha->{LocalID} = [ $cshaLIDs{$share} ];
+        $csha->{ID} = [ $cshaIDs{$share} ];
 
         $csha->{Name} = [ $share ];
         $csha->{Description} = [ $sconfig->{comment} ] if $sconfig->{comment};
@@ -644,7 +640,7 @@ sub _collect($$) {
 
         # Tag: skip it for now
 
-        $csha->{Associations}{ExecutionEnvironmentLocalID} = [];
+        $csha->{Associations}{ExecutionEnvironmentID} = [];
         $csha->{Associations}{ComputingEndpointID} = [ $cepID ];
         $csha->{Associations}{ComputingActivityID} = [ values %{$cactIDs{$share}} ];
 
@@ -740,7 +736,7 @@ sub _collect($$) {
 
         $appenv->{AppName} = [ $name ];
         $appenv->{AppVersion} = [ $version ];
-        $appenv->{LocalID} = [ $aenvLIDs{$rte} ];
+        $appenv->{ID} = [ $aenvIDs{$rte} ];
         #TODO: mechanism for getting metadata about RTEs, even for manually installed ones
 	# Could use tags inside the RTE script inspired by as doxygen or init scripts
         $appenv->{State} = [ 'installednotverified' ];
@@ -764,10 +760,10 @@ sub _collect($$) {
         $cact->{BaseType} = 'Activity';
 
         my $share = $gmjob->{share};
-        my $gridid = $cactIDs{$share}{$jobid};
+        my $gridid = "https://$arexhostport/arex/$jobid";
 
         $cact->{Type} = [ 'Computing' ];
-        $cact->{ID} = [ $gridid ];
+        $cact->{ID} = [ $cactIDs{$share}{$jobid} ];
         $cact->{IDFromEndpoint} = [ $gridid ];
         $cact->{Name} = [ $gmjob->{jobname} ] if $gmjob->{jobname};
         # TODO: properly set either ogf:jsdl:1.0 or nordugrid:xrsl
@@ -778,14 +774,14 @@ sub _collect($$) {
         $cact->{ComputingManagerExitCode} = [ $gmjob->{lrmsexitcode} ] if $gmjob->{lrmsexitcode};
         $cact->{Error} = [ map { substr($_,0,255) } @{$gmjob->{errors}} ] if $gmjob->{errors};
         # TODO: VO info, like <UserDomain>ATLAS/Prod</UserDomain>; check whether this information is available to A-REX
-        $cact->{Owner} = [ $gmjob->{subject} ];
+        $cact->{Owner} = [ $gmjob->{subject} ] if $gmjob->{subject};
         $cact->{LocalOwner} = [ $gmjob->{localowner} ] if $gmjob->{localowner};
         # OBS: Times are in seconds.
         $cact->{RequestedTotalWallTime} = [ $gmjob->{reqwalltime} ] if defined $gmjob->{reqwalltime};
         $cact->{RequestedTotalCPUTime} = [ $gmjob->{reqcputime} ] if defined $gmjob->{reqcputime};
         # OBS: Should include name and version. Exact format not specified
         $cact->{RequestedApplicationEnvironment} = $gmjob->{runtimeenvironments} if $gmjob->{runtimeenvironments};
-        $cact->{RequestedSlots} = [ $gmjob->{count} ];
+        $cact->{RequestedSlots} = [ $gmjob->{count} ] if defined $gmjob->{count};
         $cact->{StdIn} = [ $gmjob->{stdin} ] if $gmjob->{stdin};
         $cact->{StdOut} = [ $gmjob->{stdout} ] if $gmjob->{stdout};
         $cact->{StdErr} = [ $gmjob->{stderr} ] if $gmjob->{stderr};
@@ -808,10 +804,12 @@ sub _collect($$) {
         $cact->{EndTime} = [ $endtime ] if $endtime;
         $cact->{WorkingAreaEraseTime} = [ $gmjob->{cleanuptime} ] if $gmjob->{cleanuptime};
         $cact->{ProxyExpirationTime} = [ $gmjob->{delegexpiretime} ] if $gmjob->{delegexpiretime};
-        # OBS: address of client as seen by the server is used.
-        my $dnschars = '-.A-Za-z0-9';  # RFC 1034,1035
-        my ($external_address, $port, $clienthost) = $gmjob->{clientname} =~ /^([$dnschars]+)(?::(\d+))?(?:;(.+))?$/;
-        $cact->{SubmissionHost} = [ $external_address ] if $external_address;
+        if ($gmjob->{clientname}) {
+            # OBS: address of client as seen by the server is used.
+            my $dnschars = '-.A-Za-z0-9';  # RFC 1034,1035
+            my ($external_address, $port, $clienthost) = $gmjob->{clientname} =~ /^([$dnschars]+)(?::(\d+))?(?:;(.+))?$/;
+            $cact->{SubmissionHost} = [ $external_address ] if $external_address;
+        }
         $cact->{SubmissionClientName} = [ $gmjob->{clientsoftware} ] if $gmjob->{clientsoftware};
 
         # Computing Activity Associations
@@ -820,7 +818,7 @@ sub _collect($$) {
         $cact->{Associations}{ExecutionEnvironmentID} = [];
         $cact->{Associations}{ComputingEndpointID} = [ $cepID ];
         $cact->{Associations}{ActivityID} = $gmjob->{activityid} if $gmjob->{activityid};
-        $cact->{Associations}{ComputingShareLocalID} = [ $cshaLIDs{$share} || 'UNDEFINEDVALUE' ];
+        $cact->{Associations}{ComputingShareID} = [ $cshaIDs{$share} || 'UNDEFINEDVALUE' ];
 
         if ( $gmjob->{status} eq "INLRMS" ) {
             my $lrmsid = $gmjob->{localid};
