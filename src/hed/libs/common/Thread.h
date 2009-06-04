@@ -3,6 +3,7 @@
 #ifndef __ARC_THREAD_H__
 #define __ARC_THREAD_H__
 
+#include <glibmm/init.h>
 #include <glibmm/thread.h>
 
 #include <arc/User.h>
@@ -10,7 +11,10 @@
 namespace Arc {
   /// This module provides convenient helpers for Glibmm interface for thread management.
   /** So far it takes care of automatic initialization
-     of threading environment and creation of simple detached threads. */
+     of threading environment and creation of simple detached threads.
+     Always use it instead of glibmm/thread.h and keep among first
+     includes. It safe to use it multiple times and to include it both
+     from source files and other include files. */
 
   /// Defines size of stack assigned to every new thread.
   /* It seems like MacOS has very small stack per thread by default.
@@ -131,6 +135,25 @@ namespace Arc {
     }
   };
 
+
+  // This class initializes glibmm thread system
+  class ThreadInitializer {
+  public:
+    ThreadInitializer(void) {
+      Glib::init();
+      if (!Glib::thread_supported())
+        Glib::thread_init();
+    }
+  };
+
+  // This is done intentionally to make sure glibmm is
+  // properly initialized before every module starts
+  // using threads functionality. To make it work this
+  // header must be included before defining any 
+  // variable/class instance using static threads-related
+  // elements. The simplest way to do that is to use
+  // this header instead of glibmm/thread.h
+  static ThreadInitializer _local_thread_initializer;
 
 } // namespace Arc
 

@@ -14,8 +14,7 @@
 #include <iostream>
 //#include <iomanip>
 
-#include <glibmm.h>
-#include <glibmm/thread.h>
+//#include <glibmm.h>
 
 #include <xmlsec/base64.h>
 #include <xmlsec/errors.h>

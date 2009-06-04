@@ -7,7 +7,8 @@
 
 #include <map>
 #include <queue>
-#include <glibmm/thread.h>
+
+#include <arc/Thread.h>
 
 #include "Counter.h"
 

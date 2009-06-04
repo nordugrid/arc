@@ -6,8 +6,8 @@
 #include <list>
 #include <string>
 
-#include <glibmm/thread.h>
 
+#include <arc/Thread.h>
 #include <arc/client/ExecutionTarget.h>
 #include <arc/client/Job.h>
 #include <arc/client/UserConfig.h>

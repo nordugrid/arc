@@ -5,7 +5,7 @@
 #include <list>
 #include <map>
 
-#include <glibmm/thread.h>
+#include <arc/Thread.h>
 #include <arc/message/SOAPEnvelope.h>
 #include <arc/message/MCC.h>
 #include <arc/message/Message.h>

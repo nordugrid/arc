@@ -8,8 +8,8 @@
 
 #include <globus_io.h>
 #include <glibmm/fileutils.h>
-#include <glibmm/thread.h>
 
+#include <arc/Thread.h>
 #include <arc/StringConv.h>
 #include <arc/Logger.h>
 #include <arc/URL.h>

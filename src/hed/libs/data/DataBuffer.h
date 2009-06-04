@@ -3,8 +3,7 @@
 #ifndef __ARC_DATABUFFER_H__
 #define __ARC_DATABUFFER_H__
 
-#include <glibmm/thread.h>
-
+#include <arc/Thread.h>
 #include <arc/data/DataSpeed.h>
 
 namespace Arc {

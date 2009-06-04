@@ -5,8 +5,7 @@
 
 #include <list>
 
-#include <glibmm/thread.h>
-
+#include <arc/Thread.h>
 #include <arc/ArcConfig.h>
 #include <arc/loader/Plugin.h>
 

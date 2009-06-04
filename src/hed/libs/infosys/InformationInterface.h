@@ -3,7 +3,7 @@
 
 #include <string>
 #include <list>
-#include <glibmm/thread.h>
+#include <arc/Thread.h>
 #include <arc/XMLNode.h>
 #include <arc/message/SOAPEnvelope.h>
 #include <arc/wsrf/WSResourceProperties.h>

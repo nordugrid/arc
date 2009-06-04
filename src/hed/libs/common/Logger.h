@@ -5,8 +5,8 @@
 
 #include <string>
 #include <iostream>
-#include <glibmm/thread.h>
 
+#include <arc/Thread.h>
 #include <arc/IString.h>
 
 namespace Arc {

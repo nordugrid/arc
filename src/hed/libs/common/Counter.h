@@ -5,7 +5,7 @@
 #ifndef __Counter__
 #define __Counter__
 
-#include <glibmm/thread.h>
+#include <glibmm/timeval.h>
 
 namespace Arc {
 

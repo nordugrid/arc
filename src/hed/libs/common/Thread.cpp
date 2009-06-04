@@ -4,22 +4,10 @@
 #include <config.h>
 #endif
 
-#include <glibmm/init.h>
-
 #include "Thread.h"
 #include "Logger.h"
 
 namespace Arc {
-
-  class ThreadInitializer {
-  public:
-    ThreadInitializer(void) {
-      Glib::init();
-      //threadLogger.msg(INFO, "Initialize thread system");
-      if (!Glib::thread_supported())
-        Glib::thread_init();
-    }
-  };
 
   class ThreadArgument {
   public:
@@ -41,7 +29,7 @@ namespace Arc {
   // TODO: do something to make sure this static object is
   // initialized before any other static object which uses
   // mutexes, semaphors, etc.
-  static ThreadInitializer thread_initializer;
+  // static ThreadInitializer thread_initializer;
 
   static Logger threadLogger(Logger::getRootLogger(), "Thread");
 
