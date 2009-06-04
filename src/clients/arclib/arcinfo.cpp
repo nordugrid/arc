@@ -29,7 +29,7 @@ int main(int argc, char **argv) {
 
   Arc::ArcLocation::Init(argv[0]);
 
-  Arc::OptionParser options(istring("[job ...]"),
+  Arc::OptionParser options(istring("[cluster ...]"),
                             istring("The arcinfo command is used for "
                                     "obtaining the status of clusters\n"
                                     "on the grid."),
@@ -81,7 +81,10 @@ int main(int argc, char **argv) {
   options.AddOption('v', "version", istring("print version information"),
                     version);
 
-  std::list<std::string> jobs = options.Parse(argc, argv);
+  {
+    std::list<std::string> clusterstmp = options.Parse(argc, argv);
+    clusters.insert(clusters.end(), clusterstmp.begin(), clusterstmp.end());
+  }
 
   Arc::UserConfig usercfg(conffile);
   if (!usercfg) {
