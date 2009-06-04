@@ -39,8 +39,8 @@ namespace Arc {
           // Merging Globus and OpenSSL extensions - probably dangerous
           if((ext != NULL) && (gext != NULL)) {
             gext->ext_nid = gnid;
-            if((ext->d2i == NULL) && (gext->d2i != NULL)) ext->d2i=(X509V3_EXT_D2I)(gext->d2i);
-            if((ext->i2d == NULL) && (gext->i2d != NULL)) ext->i2d=(X509V3_EXT_I2D)(gext->i2d);
+            if(ext->d2i == NULL) ext->d2i=gext->d2i;
+            if(ext->i2d == NULL) ext->i2d=gext->i2d;
             return true;
           }
         }
