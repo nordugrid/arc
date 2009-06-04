@@ -32,9 +32,7 @@ int main(int argc, char **argv) {
   Arc::OptionParser options(istring("[job ...]"),
                             istring("The arcstat command is used for "
                                     "obtaining the status of jobs that have\n"
-                                    "been submitted to grid enabled resources "
-                                    "and the status of the clusters\n"
-                                    "in the grid."),
+                                    "been submitted to grid enabled resources."),
                             istring("Argument to -i has the format "
                                     "Flavour:URL e.g.\n"
                                     "ARC0:ldap://grid.tsl.uu.se:2135/"
