@@ -228,7 +228,7 @@ sub _collect($$) {
     $cluster_info->{'Domains'}->{'xsi:schemaLocation'} = "http://schemas.ogf.org/glue/2008/05/spec_2.0_d41_r01 pathto/GLUE2.xsd";
     $cluster_info->{'Domains'}->{'AdminDomain'}->{'xmlns'} = "http://schemas.ogf.org/glue/2008/05/spec_2.0_d41_r01";
     $cluster_info->{'Domains'}->{'AdminDomain'}->{'Services'}->{'xmlns'} = "http://schemas.ogf.org/glue/2008/05/spec_2.0_d41_r01";
-    $cluster_info->{'Domains'}->{'AdminDomain'}->{'Services'}->{'Service'} = ARC1ClusterInfo->new()->get_info($rawdata);
+    $cluster_info->{'Domains'}->{'AdminDomain'}->{'Services'}->{'ComputingService'} = ARC1ClusterInfo->new()->get_info($rawdata);
 
     return $cluster_info;
 }
