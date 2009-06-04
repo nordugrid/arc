@@ -248,7 +248,7 @@ namespace Arc {
     }
     else if ((c = dynamic_cast<const RSLCondition*>(this))) {
       RSLList *l = new RSLList;
-      if (c->Attr() == "rslsubstitution")
+      if (c->Attr() == "rsl_substitution")
         for (std::list<RSLValue*>::const_iterator it = c->begin();
              it != c->end(); it++) {
           const RSLSequence *s = dynamic_cast<const RSLSequence*>(*it);

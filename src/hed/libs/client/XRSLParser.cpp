@@ -515,7 +515,7 @@ namespace Arc {
         return true;
       }
 
-      if (c->Attr() == "rslsubstitution")
+      if (c->Attr() == "rsl_substitution")
         // Handled internally by the RSL parser
         return true;
 
