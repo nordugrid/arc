@@ -48,6 +48,12 @@ our $log = LogUtils->getLogger(__PACKAGE__);
 
 # override InfoCollector base class methods 
 
+sub _initialize($) {
+    my ($self) = @_;
+    $self->SUPER::_initialize();
+    $self->{resname} = "host";
+}
+
 sub _get_options_schema {
     return $host_options_schema;
 }

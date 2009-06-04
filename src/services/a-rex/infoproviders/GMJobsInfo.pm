@@ -67,6 +67,12 @@ our $log = LogUtils->getLogger(__PACKAGE__);
 
 # override InfoCollector base class methods 
 
+sub _initialize($) {
+    my ($self) = @_;
+    $self->SUPER::_initialize();
+    $self->{resname} = "jobs";
+}
+
 sub _get_options_schema {
     return $gmjobs_options_schema;
 }

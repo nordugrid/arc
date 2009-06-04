@@ -19,7 +19,7 @@ use InfoChecker;
 use strict;
 
 sub new($) {
-    my ($this) = @_;
+    my $this = shift;
     my $class = ref($this) || $this;
     my $self = {};
     bless $self, $class;
@@ -30,6 +30,9 @@ sub new($) {
 sub _initialize($) {
     my ($self) = @_;
     $self->{logger} = LogUtils->getLogger(ref($self));
+    $self->{loglevel} = $LogUtils::WARNING;
+    $self->{optname} = "options";
+    $self->{resname} = "results";
 }
 
 sub get_info($$) {
@@ -65,18 +68,22 @@ sub _collect($$) {
 sub _check_options($) {
     my ($self,$options) = @_;
     my $log = $self->{logger};
+    my $level = $self->{loglevel};
+    my $what = $self->{optname};
     my $schema = $self->_get_options_schema();
     my @messages = InfoChecker->new($schema)->verify($options);
-    $log->warning("Checker: options->$_") foreach @messages;
+    $log->log($level,"Checker: $what->$_") foreach @messages;
     $log->error("Checker: ".@messages." required options are missing") if @messages;
 }
 
 sub _check_results($) {
     my ($self,$results) = @_;
     my $log = $self->{logger};
+    my $level = $self->{loglevel};
+    my $what = $self->{resname};
     my $schema = $self->_get_results_schema();
     my @messages = InfoChecker->new($schema)->verify($results,1);
-    $log->warning("Checker: results->$_") foreach @messages;
+    $log->log($level,"Checker: $what->$_") foreach @messages;
 }
 
 

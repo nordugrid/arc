@@ -88,6 +88,14 @@ sub glueState {
 
 # override InfoCollector base class methods
 
+sub _initialize($) {
+    my ($self) = @_;
+    $self->SUPER::_initialize();
+    $self->{loglevel} = $LogUtils::DEBUG;
+    $self->{optname} = "input";
+    $self->{resname} = "ComputingService";
+}
+
 sub _get_options_schema {
     return {}; # too many inputs to name all
 }

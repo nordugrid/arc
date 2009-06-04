@@ -4,13 +4,12 @@ package LogUtils;
 # 
 #    $log = LogUtils->getLogger("MyProg.MyClass");
 #    $log->level($LogUtils::INFO);
-#    $log->logfile("log");
 #    $log->warning("Oops!");
 #    $log->error("Can't go on!");
 
 # Procedural usage example:
 #
-#    start_logging($LogUtils::INFO,'log');
+#    start_logging($LogUtils::INFO);
 #    warning("Oops!");
 #    error("Can't go on!");
 
@@ -27,10 +26,7 @@ use strict;
 our ($ERROR, $WARNING, $INFO, $DEBUG) = (0, 1, 2, 3);
 our @lnames = qw(ERROR WARNING INFO DEBUG);
 
-our %opts = (
-    logfiles => { '' => undef },    # default logging goes to STDERR
-    levels   => { '' => $WARNING }  # default level is WARNING
-);
+our $levels = { '' => $WARNING };  # default level is WARNING
 
 our $default_logger = LogUtils->getLogger(basename($0));
 
@@ -49,22 +45,14 @@ sub level {
     unshift(@_, $default_logger) unless ref($_[0]) eq __PACKAGE__;
     my ($self,$level) = @_;
     $level = @lnames - 1 if $level > @lnames - 1;
-    return $self->_searchopt($opts{levels}) unless defined $level;
-    return $opts{levels}{$self->{name}} = $level;
-}
-
-sub logfile {
-    unshift(@_, $default_logger) unless ref($_[0]) eq __PACKAGE__;
-    my ($self,$logfile) = @_;
-    return $self->_searchopt($opts{logfiles}) unless defined $logfile;
-    return $opts{logfiles}{$self->{name}} = $logfile;
+    return $self->_searchopt($levels) unless defined $level;
+    return $levels->{$self->{name}} = $level;
 }
 
 # convenience functions
 
-sub start_logging($$) {
+sub start_logging($) {
     $default_logger->level(shift);
-    $default_logger->logfile(shift);
 }
 
 sub error {
@@ -96,18 +84,9 @@ sub debug {
 
 sub log($$$) {
     my ($self, $level, $msg) = @_;
-    return if $level > $self->_searchopt($opts{levels});
+    return if $level > $self->_searchopt($levels);
 
-    my $logfile = $self->_searchopt($opts{logfiles});
-
-    unless ($logfile) {
-        print STDERR $self->_format($level,$msg);
-    } else {
-        my $fh = new FileHandle ">>$logfile"
-            or die "Error opening logfile $logfile: $!";
-        print $fh $self->_format($level,$msg);
-        close $fh;
-    }
+    print STDERR $self->_format($level,$msg);
 }
 
 sub _format {
@@ -140,17 +119,15 @@ sub test {
     $log = LogUtils->getLogger("main.sub");
     print "LEvEl "  . $log->level()."\n";
     print "LEvEl "  . $log->level($LogUtils::INFO)."\n";
-    print "Logfile ". $log->logfile("log.$$")."\n";
     $log->warning("Hi");
     $log = LogUtils->getLogger("main.sub.one");
     $log->warning("Hi");
     LogUtils->getLogger("main.sub.too")->info("Boo");
     LogUtils->getLogger("main.sub.too")->debug("Hoo");
-    print "Contents of log.$$:\n". `cat log.$$; rm log.$$`;
 }
 
 sub test2 {
-    start_logging(2,'logfile');
+    start_logging(2);
     debug('geee');
     info('beee');
     warning('meee');

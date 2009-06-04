@@ -145,6 +145,12 @@ sub load_lrms($) {
 
 # override InfoCollector base class methods 
 
+sub _initialize($) {
+    my ($self) = @_;
+    $self->SUPER::_initialize();
+    $self->{resname} = "lrms";
+}
+
 sub _check_options($$) {
     my ($self,$options) = @_;
 
