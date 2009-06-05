@@ -711,11 +711,11 @@ sub _collect($$) {
         $cmgr->{WorkingAreaTotal} = [ $gigstotal ];
         $cmgr->{WorkingAreaFree} = [ $gigsfree ];
 
-        # OBS: There is no special area for MPI jobs
-        $cmgr->{WorkingAreaMPIShared} = [ $sharedsession ];
-        $cmgr->{WorkingAreaMPITotal} = [ $gigstotal ];
-        $cmgr->{WorkingAreaMPIFree} = [ $gigsfree ];
-        $cmgr->{WorkingAreaMPILifeTime} = [ $sessionlifetime ];
+        # OBS: There is no special area for MPI jobs, no need to advertize anything
+        #$cmgr->{WorkingAreaMPIShared} = [ $sharedsession ];
+        #$cmgr->{WorkingAreaMPITotal} = [ $gigstotal ];
+        #$cmgr->{WorkingAreaMPIFree} = [ $gigsfree ];
+        #$cmgr->{WorkingAreaMPILifeTime} = [ $sessionlifetime ];
     }
     {
         my $gigstotal = ceil($host_info->{cache_total} / 1024);
