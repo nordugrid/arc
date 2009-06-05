@@ -482,7 +482,7 @@ namespace Arc {
             std::string dn;
             Time exp_time(0);
             try {
-              Credential ci(GetEnv("X509_USER_PROXY"), GetEnv("X509_USER_PROXY"), GetEnv("X509_CERT_DIR"), GetEnv("X509_CERT_DIR"));
+              Credential ci(GetEnv("X509_USER_PROXY"), GetEnv("X509_USER_PROXY"), GetEnv("X509_CERT_DIR"), "");
               dn = ci.GetIdentityName();
               if (cache.CheckDN(canonic_url, dn))
                 have_permission = true;
