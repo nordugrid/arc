@@ -515,7 +515,8 @@ namespace Arc {
         return true;
       }
 
-      if (c->Attr() == "rsl_substitution")
+      // Underscore, in 'rsl_substitution', is removed by normalization. 
+      if (c->Attr() == "rslsubstitution")
         // Handled internally by the RSL parser
         return true;
 
