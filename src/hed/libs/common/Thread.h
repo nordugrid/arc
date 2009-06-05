@@ -3,7 +3,6 @@
 #ifndef __ARC_THREAD_H__
 #define __ARC_THREAD_H__
 
-#include <glibmm/init.h>
 #include <glibmm/thread.h>
 
 #include <arc/User.h>
@@ -135,14 +134,13 @@ namespace Arc {
     }
   };
 
+  void GlibThreadInitialize(void);
 
   // This class initializes glibmm thread system
   class ThreadInitializer {
   public:
     ThreadInitializer(void) {
-      Glib::init();
-      if (!Glib::thread_supported())
-        Glib::thread_init();
+      GlibThreadInitialize();
     }
   };
 

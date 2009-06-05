@@ -4,6 +4,8 @@
 #include <config.h>
 #endif
 
+#include <glibmm/init.h>
+
 #include "Thread.h"
 #include "Logger.h"
 
@@ -86,5 +88,11 @@ namespace Arc {
      CreateThreadClass(tc,testclass::run);
      }
    */
+
+  void GlibThreadInitialize(void) {
+    Glib::init();
+    if (!Glib::thread_supported())
+      Glib::thread_init();
+  }
 
 } // namespace Arc
