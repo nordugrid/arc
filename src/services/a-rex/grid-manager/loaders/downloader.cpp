@@ -487,6 +487,13 @@ int main(int argc,char** argv) {
     failure_reason+="Internal error in downloader\n";
     olog << "Can't read list of input files" << std::endl; res=1; goto exit;
   };
+  // check for duplicates (see bug 1285)
+  for (std::list<FileData>::iterator i = job_files_.begin(); i != job_files_.end(); i++) {
+    for (std::list<FileData>::iterator j = job_files_.begin(); j != job_files_.end(); j++) {
+      if (i != j && j->pfn == i->pfn) { olog << "Error: duplicate file in list of input files: " << i->pfn << std::endl; res=1; goto exit; }
+    }
+  }
+  
   // remove bad files
   if(clean_files(job_files_,session_dir) != 0) { 
     failure_reason+="Internal error in downloader\n";
