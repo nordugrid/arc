@@ -74,6 +74,10 @@ namespace Arc {
   }
 
   TargetGenerator::~TargetGenerator() {
+
+    // MacOSX need this unlock
+    threadMutex.unlock();    
+
     if (loader) {
       delete loader;
     }
