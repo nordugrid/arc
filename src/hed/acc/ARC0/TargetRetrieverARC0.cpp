@@ -549,6 +549,11 @@ namespace Arc {
              n; ++n) {
           ApplicationEnvironment rte;
           rte.Name = (std::string)n;
+          rte.Version = "";
+          rte.State = "";
+          rte.FreeSlots = 0;
+          rte.FreeUserSeats = 0;
+          rte.FreeJobs = 0;
           target.ApplicationEnvironments.push_back(rte);
         }
 
