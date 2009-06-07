@@ -167,7 +167,7 @@ namespace Arc {
     if (targetType == 0) {
       XMLNode GLUEService = ServerStatus;
       std::string tmpsa[] = {
-        "GetResourcePropertyDocumentResponse", "InfoRoot", "Domains", "AdminDomain", "Services", "Service"
+        "GetResourcePropertyDocumentResponse", "InfoRoot", "Domains", "AdminDomain", "Services", "ComputingService"
       };
       std::list<std::string> tmpsl(tmpsa, tmpsa + 6);
 
