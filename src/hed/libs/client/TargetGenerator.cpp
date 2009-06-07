@@ -75,9 +75,6 @@ namespace Arc {
 
   TargetGenerator::~TargetGenerator() {
 
-    // MacOSX need this unlock
-    threadMutex.unlock();    
-
     if (loader) {
       delete loader;
     }
@@ -103,8 +100,11 @@ namespace Arc {
                                                              tostring(i))));
          i++)
       TR->GetTargets(*this, targetType, detailLevel);
-    while (threadCounter > 0)
-      threadCond.wait(threadMutex);
+    {
+      Glib::Mutex::Lock threadLock(threadMutex);
+      while (threadCounter > 0)
+        threadCond.wait(threadMutex);
+    }
 
     logger.msg(INFO, "Found %ld targets", foundTargets.size());
 
