@@ -20,25 +20,25 @@ libarccredential_la_LIBADD   = $(top_srcdir)/src/hed/libs/common/libarccommon.la
 testproxy_SOURCES  = testproxy.cpp
 testproxy_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS) -I$(top_srcdir)/include
 testproxy_LDFLAGS  = $(GLIBMM_LIBS) $(LIBXML2_LIBS) $(OPENSSL_LIBS) $(EXTRA_LIBS)
-testproxy_LDADD    = ./libarccredential.la
+testproxy_LDADD    = ./libarccredential.la $(top_srcdir)/src/hed/libs/common/libarccommon.la
 
 testcertinfo_SOURCES  = testcertinfo.cpp
 testcertinfo_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS) -I$(top_srcdir)/include
 testcertinfo_LDFLAGS  = $(GLIBMM_LIBS) $(LIBXML2_LIBS) $(OPENSSL_LIBS) $(EXTRA_LIBS)
-testcertinfo_LDADD    = ./libarccredential.la
+testcertinfo_LDADD    = ./libarccredential.la $(top_srcdir)/src/hed/libs/common/libarccommon.la
 
 testproxy2proxy_SOURCES  = testproxy2proxy.cpp
 testproxy2proxy_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS) -I$(top_srcdir)/include
 testproxy2proxy_LDFLAGS  = $(GLIBMM_LIBS) $(LIBXML2_LIBS) $(OPENSSL_LIBS) $(EXTRA_LIBS)
-testproxy2proxy_LDADD    = ./libarccredential.la
+testproxy2proxy_LDADD    = ./libarccredential.la $(top_srcdir)/src/hed/libs/common/libarccommon.la
 
 testvoms_SOURCES  = testvoms.cpp
 testvoms_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS) -I$(top_srcdir)/include
 testvoms_LDFLAGS  = $(GLIBMM_LIBS) $(LIBXML2_LIBS) $(OPENSSL_LIBS) $(EXTRA_LIBS)
-testvoms_LDADD    = ./libarccredential.la
+testvoms_LDADD    = ./libarccredential.la $(top_srcdir)/src/hed/libs/common/libarccommon.la
 
 testeec_SOURCES  = testeec.cpp
 testeec_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS) -I$(top_srcdir)/include
 testeec_LDFLAGS  = $(GLIBMM_LIBS) $(LIBXML2_LIBS) $(OPENSSL_LIBS) $(EXTRA_LIBS)
-testeec_LDADD    = ./libarccredential.la
+testeec_LDADD    = ./libarccredential.la $(top_srcdir)/src/hed/libs/common/libarccommon.la
 

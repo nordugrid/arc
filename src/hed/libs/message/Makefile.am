@@ -14,5 +14,5 @@ libtestmcc_la_LIBADD   = $(GLIBMM_LIBS) ./libarcmessage.la $(top_srcdir)/src/hed
 
 test_SOURCES  = test.cpp
 test_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
-test_LDADD    = ./libarcmessage.la
+test_LDADD    = ./libarcmessage.la $(top_srcdir)/src/hed/libs/common/libarccommon.la
 
