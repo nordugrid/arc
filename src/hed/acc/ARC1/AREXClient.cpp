@@ -261,7 +261,8 @@ namespace Arc {
     jobref.NewAttribute("Dialect") = "http://www.w3.org/TR/1999/REC-xpath-19991116";
 
     std::string jobidnumber = (std::string)(XMLNode(jobid)["ReferenceParameters"]["JobID"]);
-    jobref = "//glue:Services/glue:Service/glue:ComputingActivities/glue:ComputingActivity/glue:ID[contains(.,'"+jobidnumber+"')]/..";
+    jobref = "//glue:Services/glue:ComputingService/glue:ComputingActivities/glue:ComputingActivity/glue:ID[contains(.,'"+jobidnumber+"')]/..";
+
     WSAHeader(req).To(rurl.str());
     WSAHeader(req).Action("http://docs.oasis-open.org/wsrf/rpw-2"
                           "/QueryResourceProperties/QueryResourcePropertiesRequest");
