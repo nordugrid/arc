@@ -63,3 +63,84 @@ TODO:\\
  \item Dynamic RTEs are now listed as manually installed in the ``janitor list'' command.. change that
  \item Verfication
 \end{itemize}
+
+
+
+%(1) The HostInfoJanitor.pm queries the catalog for available RTE names.
+%    It is fast, such that I assume a fork or a cache is currently not needed. 
+%    > Nevertheless I installed an alarm of 15 Seconds
+
+%(2) In order to enable the Grid-Manager to invoke Janitor, a wrapper rJanitor.c has
+%    (already) been written (by Daniel). 
+%    This wrapper gives Janitor the necessary rights using a suid bit. 
+%    >It is installed and used but not yet tested well
+%    >In case Daniel is right, it will work
+
+% (3) > ... ?? hmm... well seems there is some information loss here... point 3... suppose it must have been important.
+
+%(4) The function "check" (nowadays ``info'') was ment to return the information about a runtime 
+%      environment. It may possible to merge with the deploy functionality 
+%      if desired. (The Janitor source code will remain the same, only the interface will 
+%      be changed.)
+%      >Due to this is beautification, this is postponed
+
+%(5) The information about the runtime environments is passed to the backend
+%    script. (It is not specifed yet how this has to be done)
+%       o Installation directories
+%       o Script to set environment variables
+%    > Currently a ``deploy'' action will set symbolic links for *ALL* dynamically installed
+%    > METAPACKAGES!  That means, nothing has to be done here. The backends script won't (hopefully)
+%    > except the symbolic links and execute the corresponding script delievered along with the tarball 
+%    > package. 
+%    > The symbolic link will be removed respictvely on ``remove''
+%
+%    > TODO: Dynamic RTEs are now listed as manually installed in the ``janitor list'' command.. change *that*
+%
+%    > TODO: Think about the user rights of the symbolic link...
+
+%(6) Once the grid job has been finished, the token on the runtime environment will
+%      be removed. (If no tokens left, the environment may be deinstalled)
+%    > Well, that's nothing new for me, but maybe nice to know :-)
+
+%(7) GLUE2 specification: Balazs like to have an interface for Janitor. This task is 
+%   put on the agenda. It is still unclear how the interaction with that interface shall be 
+%   realised. Janitor can only access data concerning the class ApplicationEnvironment.
+%   Shall a XML snippet be returned?
+%  > Alright now, almost 1.5 month later I know what he asked for.
+%  >
+%  > Please examine following files in src/services/a-rex/infoproviders/:
+%    o ARC1ClusterInfo.pm:~744
+%    o HostInfo.pm:~218
+%    o HostInfoJanitor.pm
+%  >
+%  > The HostInfo.pm collects a list of manually and dynamically (HostInfoJanitor.pm) installed RTE *NAMES*.
+%  > ARC1ClusterInfo.pm adds some hard coded information (description, states, etc.) to it and puts it into the schema.
+%  >
+%  > WHAT HAS TO BE DONE?
+%  >
+%  > HostInfo.pm has to create a *HASH MAP* with must have as much information as possible (description, states, etc.).
+%  > Therefore HostInfoJanitor.pm has to be extended to gather more information out of the catalog.
+%  > ARC1ClusterInfo.pm needs to be stultified such that the *HASH MAP* received from HostInfo.pm will simply mapped
+%  > to the schema.
+
+%(8) Verfication
+%    o Of validity of tar-package (Store the catalog somewhere safe! Hash-value database?)
+%    o Of the executer of Janitor (This can be done using a WEB SERVICE!!! )
+%    o TODO: I experienced some problems in case some shell tools are not installed on clusters
+%            i.e.  unzip
+%            There should be some kind of check or RESTRICTION to what can be used
+
+%(9) The missing feature for dependencies 
+%    Assume, one wants to install package A which depends on package B.
+%    Both are getting installed dynamically.
+%    Right before job execution, the runtime scripts of package A is executed. 
+%    Still missing is the execution of the runtime script of B!
+%
+%    Simple workaround: Request package B in job description too
+%    Correct solution:  Dependencies have to be returned by Janitor and added to the job.description file!!!!!
+%                       (Janitor info 21 or *EXTEND* Janitor deploy + Get Janitor output in states.cpp and put
+%			it into the description file)
+
+
+
+
