@@ -41,7 +41,7 @@ config_parse_file() {
                 print_section() if $nb; $nb++; $bn=$1;
               } elsif (/^(\w+)\s*=\s*([\"'\'']?)(.*)(\2)\s*$/) {
                 my ($opt,$val)=($1,$3); $val=~s/'\''/'\''\\'\'''\''/g;
-                $bn =~ s|^(.+?)(/[^/]*)?$|$1/$val| if $opt eq "name";
+                $bn =~ s|^([^/]+)$|$1/$val| if $opt eq "name" || $opt eq "id";
                 unshift @{$opts{$opt}}, $val;
               } elsif (/^\s*#/) { # skip comment line
               } elsif (/^\s*$/) { # skip empty line

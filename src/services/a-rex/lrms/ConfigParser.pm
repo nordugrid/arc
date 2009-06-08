@@ -98,9 +98,9 @@ sub _parse($$) {
             my $opt=$1;
             my $value=$3;
     
-            # 'name' option is special: it names a subsection
-            if ($opt eq 'name') {
-                $sname =~ s|^(.+?)(/[^/]*)?$|$1/$value|;
+            # options 'name' and 'id' are special: if the section name contains no '/', a subsection name is created.
+            if ($opt eq 'name' || $opt eq 'id') {
+                $sname =~ s|^([^/]*)$|$1/$value|;
             }
 
             # Special treatment for the 'control' and 'controldir' options
@@ -160,11 +160,11 @@ sub get_section($$) {
 
 sub list_subsections($$) {
     my ($self,$sname) = @_;
-    my @ssnames = ();
+    my %ssnames = ();
     for (keys %{$self->{config}}) {
-        push @ssnames, $1 if /$sname\/(.*)/;
+        $ssnames{$1}='' if m|$sname/([^/]+)|;
     }
-    return @ssnames;
+    return keys %ssnames;
 }
 
 
