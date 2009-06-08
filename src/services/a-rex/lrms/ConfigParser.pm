@@ -98,10 +98,9 @@ sub _parse($$) {
             my $opt=$1;
             my $value=$3;
     
-            # options 'name' and 'id' are special: if the section name contains no '/', a subsection name is created.
-            if ($opt eq 'name' || $opt eq 'id') {
-                $sname =~ s|^([^/]*)$|$1/$value|;
-            }
+            # Special treatment for 'group' and 'vo' sections: create subsections for each group, vo
+            $sname .= "/$value" if $sname eq "group" && $opt eq "name";
+            $sname .= "/$value" if $sname eq "vo"    && $opt eq "id";
 
             # Special treatment for the 'control' and 'controldir' options
             if ($sname eq 'grid-manager' and $opt eq 'control') {
