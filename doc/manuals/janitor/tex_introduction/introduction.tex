@@ -1,7 +1,7 @@
 \chapter{Introduction}
 
 Janitor is a service for the automated installation of runtime environment for grid computing elements.
-It is addressed transparently via the A-REX service used for job submission but can also be used as a standalone tool.
+It is addressed transparently via the A-REX service for job submission but can also be used as a standalone tool.
 
 \section{Motivation}
 
@@ -12,28 +12,37 @@ the respective other side's research aims. Hence, the proper installation of non
 Environments) is not guaranteed and the priorities of manual labour will be mostly disjunctive.
 
 A core problem remains to distribute a locally working solution, the Know-How, quickly across all
-contributing sites, i. e., without manual interference. Every scientific discipline has its respective own set of
+contributing sites, i.e., without manual interference. Every scientific discipline has its respective own set of
 technologies for the distribution of work load. E.g. research in bioinformatics requires access to so many
 different tools and databases, that few sites, if any, install them all. Instead, the use of web services became
 a commodity, with all their intrinsic problems as there are bottlenecks and restrictions of repeated access.
-The EU project KnowARC1\footnote{\href{http://www.knowarc.eu}{http://www.knowarc.eu}} amongst other challenges
+The EU project KnowARC\footnote{\href{http://www.knowarc.eu}{http://www.knowarc.eu}} amongst other challenges
 with the here presented work extends the NorduGrid's
 Advanced Research Connector (ARC) grid middleware~\cite{ELLERT_2007} towards an infrastructure for the
 automated installation of software packages.
 
 An automation of the software installation, referred to as dynamic Runtime Environments, seems the only
 approach to use the computational grid to its full potential. Components of workflows shall be spawned
-as jobs in a computational grid using dynamic Runtime Environments rather than as shared web services.
-The grid introduces an extra level of parallelism that web services cannot provide. The required short
+as jobs in a computational grid using dynamic Runtime Environments rather than accessing a web service
+at one particular machine that is shared amongst all users.
+The grid introduces an extra level of parallelism that web services cannot provide. The demands for short
 response times and the heterogeneous education of site-administrators on a grid demand an automatism for
 the installation of software and databases without manual interference~\cite{BAYER_2007}.
 
 \section{Overview}
 
-This document will start with a chapter on how to set-up the Janitor locally. The following chapter will then give furhter instructions on how to 
+This document first dedicates a chapter on how to set-up the Janitor locally. It is followed by a chapter that gives furhter instructions on how to 
 use the Janitor with A-REX and/or without A-REX. Afterwards, in the third chapter, the maintenance of the program will be presented, 
 which is basically covering the method how to prepare new runtime environments. Deeper insights on the design of the Janitor will 
-be given by the subsequent forth chapter. In the fifth chapter, an outlook to anticipated future developments will given.
+be given by the forth chapter. The document ends with an outlook to anticipated future developments and opportunities.
+
+\section*{Abbreviations}
+
+\begin{tabular}{l@{--}p{150mm}}
+RTE&Runtime Environment\\
+dRTE&dynamic Runtime Environment\\
+RDF&Resource Description Framework (supporting the RTE Catalog)\\
+\end{tabular}
 
 
 % BASIC CONCEPT

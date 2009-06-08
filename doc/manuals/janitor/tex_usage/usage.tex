@@ -24,6 +24,8 @@ Listing~\ref{lst:xrsl_job} shows the xRSL example in which two runtime environme
  ("runtimeenvironment" = "APPS/BIO/WEKA-3.4.10")
  ("runtimeenvironment" = "APPS/BIO/WISE-2.4.1-5")
 \end{lstlisting}
+\task{The runtime environment names are composed out a directory name, the package name and the version number.}
+
 
 A comprehensive reference manual of the Extended Resource Specification Language (XRSL) can be
 found at \href{www.nordugrid.org/documents/xrsl.pdf}{www.nordugrid.org/documents/xrsl.pdf}~\cite{NORDUGRID_MANUAL_4}.
@@ -78,8 +80,8 @@ currently only defined within the nordugrid jsdl-arc schema~
 
 \section{Janitor without A-REX}
 
-In addition to using the Janitor together with A-REX, the Janitor can also be used as a standalone commandline tool.
-The available commands are listed in the Table~\ref{janitor_commandline_man}.
+In addition to using the Janitor together with A-REX, the Janitor can also be used as a standalone command line tool.
+The available commands are listed in table~\ref{janitor_commandline_man}.
 \begin{table}[!h]
    \begin{center}
         \mycaption{Overview about the available commands in Janitor.}{}
@@ -98,7 +100,7 @@ The available commands are listed in the Table~\ref{janitor_commandline_man}.
 	&	list				& Lists all information about jobs, automatically installed runtime environments and manually installed runtime environments. No additional parameters have to be passed.\\
 	&	info				& Renders information about a job. Requires the parameter [JOB-ID].\\
 	\multicolumn{3}{l}{\textbf{Job id:}}\\
-	&					& A unique sequence of numbers. Once Janitor registered a job id it cannot register a second job having the same job id.\\
+	&					& A unique sequence of numbers. Once Janitor registered a job id, it cannot register a second job having the same job id.\\
 	\multicolumn{3}{l}{\textbf{Runtime environments:}}\\
 	&					& Runtime environments are defined by a continuous string. The name of valid runtime environment names can be investigated using the \texttt{list} or the \texttt{search} commands. They are defined in the catalog or by the directories and scripts of the \texttt{runtimedir} of the \texttt{grid-manager}.\\
 	\end{tabular} 
@@ -113,11 +115,19 @@ The command \texttt{deploy} extracts the necessary dependencies of the desired r
 the required packages. %How dependecies can are defined will be explained later in the section~\ref{sec:catalog}.
 
 % PROCEED HERE!!!!!!!! !! ! ! !
-In order to remove jobs registered in Janitor the command \texttt{remove} has to be used. 
-The command only removes the job entry and the lock on the runtime environment. If there are no more locks on the runtime environment
-it might be deleted for real.
+In order to remove jobs registered in Janitor, the command \texttt{remove}
+has to be used.  The command only removes the job entry and the lock
+on the runtime environment. If there are no more locks on the runtime
+environment it might be deleted for real. The demand to pass a job
+number for the removal of a RTE is irritating at first.  This shall
+prevent the removal of runtime envrironments that are still being used
+by jobs in the system. Instead, the janitor is informed about a job's
+termination and is requested to remove the assignment of that job to the
+runtime environment. Only those RTEs with no job-assignment are eligible
+for being sweeped. RTEs come with an expiry time or the command may be
+performed via the command line.
 
-Easy commandline examples are provided in Listing~\ref{lst:janitor_example}.
+Easy command line examples are provided in Listing~\ref{lst:janitor_example}.
 
 Every command has a certain behaviour for its exit status. The Table~\ref{tab:janitor_commandline_exit_status} lists the possible
 outcomes.

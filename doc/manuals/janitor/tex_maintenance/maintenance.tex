@@ -1,10 +1,10 @@
 \chapter{Maintenance}
 
-This chapter explains how to maintain the Catalog and the Janitor itself. 
-In order to administrate the catalog, it is strongly recommended (but not ultimately required) to use the ontology editor Prot\`eg\`e. The first
-section will explain how this is done.
-The second section presents a detailed explanation how to create new packages for the Janitor.
-In the last section, a typical use case in maintaining Janitor will be listed.
+This chapter explains how to maintain the {\em Catalog} and the {\em Janitor} itself. 
+It gives detailed instructions how to create new packages for the Janitor.
+To administrate the catalog, it is strongly recommended (but not ultimately required) to use the ontology editor Prot\`eg\`e,
+as explained in the next section.
+In the last section, a typical use case in maintaining the Janitor will be shown.
 
 % * Maintainance
 % ** Protege and RDF files
@@ -12,11 +12,9 @@ In the last section, a typical use case in maintaining Janitor will be listed.
 
 \section{Catalog}\label{sec:catalog}
 
-
-
 The Catalog describes runtime environments and is either served through a web server or is distributed together with the Janitor as a regular file. 
 It is specifed by a (Resource Description Framework) RDF file assigned to 
-Janitor using the tag \texttt{catlog} within the configuration file (see~\ref{sec:janitor_configuration}). 
+Janitor using the tag \texttt{catalog} within the configuration file (see~\ref{sec:janitor_configuration}). 
 The format of the RDF file is defined by a RDF schema file \texttt{knowarc.rdfs}
 which can be found along with an RDF example file \texttt{knowarc.rdf} in the janitor source directory \href{http://svn.nordugrid.org/repos/nordugrid/arc1/trunk/src/services/janitor/resources/catalog/}
 {http://svn.nordugrid.org/repos/nordugrid/arc1/trunk/src/services/janitor/resources/catalog/}.\\
@@ -40,7 +38,7 @@ and \texttt{Tag} to describe the \texttt{MetaPackage}. The \texttt{BaseSystem} d
 The class \texttt{Tag} provides small keywords which can be assigned to \texttt{MetaPackages} such that
 they can be found more easily.  \texttt{TarPackage} and \texttt{DebianPackage} or currently the only subclasses of \texttt{Package}.
 They are representing the necessary information (i.e. URL or Packagename) for the installation. In order to have an overview how the 
-classes are interacting with each other the Tables~\ref{tab:main_class_meta},\ref{tab:main_class_base}, \ref{tab:main_class_tag},
+classes are interacting with each other the tables~\ref{tab:main_class_meta}, \ref{tab:main_class_base}, \ref{tab:main_class_tag},
 \ref{tab:main_class_debian} and \ref{tab:main_class_tar} are pictured.
 
 \begin{table}[!h]
@@ -125,13 +123,14 @@ classes are interacting with each other the Tables~\ref{tab:main_class_meta},\re
 
 The dynamic Runtime Environments stored in the Catalog are presented on the aforementioned dedicated web
 page\footnote{http://dre.knowarc.eu:8080/list.pl}. This site also links to both the formal Catalog in 
-RDF syntax and an automated transformation to
+RDF syntax and its automated transformation to
 HTML. The latter mimics the traditional site describing Runtime Environments in the Runtime Environment
 Registry\footnote{http://gridrer.csc.fi/} in order to minimise issues with an eventual transition to the new system. 
 That page collects descriptions for Runtime Environments to encourage human site administrators to install these.
 This HTML page listing the manually or automatically installable REs is prepared by the script web/list.pl.
-This script is meant to be run by a mod\_perl-enabled Apache. The script itself is only loosely coupled
-with the Janitor. In the first lines of the script some variables specific to the site are set. To configure the
+This script is meant to be run by a mod\_perl-enabled Apache. The script itself does not contribute to the 
+core functionality of the Janitor.
+In the first lines of the script some variables specific to the site are set. To configure the
 script these have to be changed~\cite[p. 9]{BAYER_2007}.
 
 
@@ -145,7 +144,8 @@ There is no limitiation to newer Debian distributions.
 \subsection{Debian Etch (tar based)}
 
 At the time of writing, only the tape archive (tar) file format is accepted for dynamic Runtime Environment installation, 
-a well accepted file format throughout the UNIX community. This section explains the inner structure of the tar files. 
+a well accepted file format throughout the UNIX community. The reflects the traditional manual approach towards RTE in ARC,
+for which one directory is made available to all compute nodes. This section explains the inner structure of the tar files. 
 Subdirectories are visualised in Figure~\ref{fig:tar_folder}.
 
 \begin{figure}
@@ -165,14 +165,17 @@ The Janitor stores the file \texttt{control/remove}. It will be executed in the 
 before the tar-package is removed. In most cases \texttt{control/remove} will be empty.
 Finally, the file \texttt{control/runtime} is sourced multiple times by the Grid Manager's job-submit script. After
 installing the package, the Janitor changes all occurences of \%BASEDIR\% in the runtime script to \textdollar BAR.
-To be offered to computing elements for an installation, the such prepared runtime environment must be
-announced to a Catalog to which the Janitor on the computing element subscribes~\cite[p. 10]{BAYER_2007}.
+Once the tar file was prepared, it must its entry to a RTE Catalogue~\cite[p. 10]{BAYER_2007}.
 
-
+From such Catalogues, the Janitor finds all information to install packages that possibly have never been installed
+on the site before. The offers of RTEs in a catalogue are cross-checked against the local infrastructure and a subset
+of the available packages will be accepted as "installable". This list of installable RTEs is forwarded to the
+grid information system.
 
 \subsection{Protoypes}
 
-In order to have an impression how the tar files are created, several prototypes are provided at \task{URL required!!}.:\\
+In order to have an impression how the tar files are created, several
+prototypes are provided at \url{http://dre.knowarc.eu}.
 
 
 The WEKA package for machine learning~\cite{FRANK_20074} and the Java Runtime Environment
@@ -218,11 +221,11 @@ is nothing more to be done.\\
 
 
 
-\textbf{CRAN and BioConductor.org} To demonstrate the technical proximity to scientific communities that
-provide packages for the Debian Linux distribution, a tool was prepared to transform Debian packages to
-dynamic runtime environments\cite{MOELLER_2007}. This effort comprising more than 1700 packages and
-thus also helps to analyse the scalability of the RDF-based tool for the analysis of dependencies between
-projects.  \task{Why is CRAN and BioConductor.org mentioned here??}\\
+%\textbf{CRAN and BioConductor.org} To demonstrate the technical proximity to scientific communities that
+%provide packages for the Debian Linux distribution, a tool was prepared to transform Debian packages to
+%dynamic runtime environments\cite{MOELLER_2007}. This effort comprising more than 1700 packages and
+%thus also helps to analyse the scalability of the RDF-based tool for the analysis of dependencies between
+%projects.  \task{Why is CRAN and BioConductor.org mentioned here??}\\
 
 
 To address the concerns of the physicists using ARC, a dynamic runtime environment for the
@@ -243,15 +246,15 @@ service, e.g. a software manager of a big experiment will be able to deploy soft
 sites simply by creating a tarball and adding an entry to the Catalog.
 
 
-\subsection{Debian Etch}
-
-These kind of packages are not yet supported.
-
-\subsection{Debian Sid}
-
-These kind of packages are not yet supported.
-
-\subsection{Adminstrating the Catalog}
+%\subsection{Debian Etch}
+%
+%These kind of packages are not yet supported.
+%
+%\subsection{Debian Sid}
+%
+%These kind of packages are not yet supported.
+%
+%\subsection{Adminstrating the Catalog}
 
 \section{Typical use cases}\label{sec:catalog}
 
