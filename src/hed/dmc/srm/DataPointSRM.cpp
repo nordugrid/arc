@@ -62,7 +62,7 @@ namespace Arc {
 
     if (metadata.empty())
       return DataStatus::CheckError;
-    logger.msg(INFO, "Check: obtained size: %s", metadata.front().size);
+    logger.msg(INFO, "Check: obtained size: %l", metadata.front().size);
     if (metadata.front().size > 0)
       SetSize(metadata.front().size);
     logger.msg(INFO, "Check: obtained checksum: %s", metadata.front().checkSumValue);
@@ -153,7 +153,7 @@ namespace Arc {
       }
       // provide some metadata
       if (!metadata.empty()) {
-        logger.msg(INFO, "StartReading: obtained size: %s", metadata.front().size);
+        logger.msg(INFO, "StartReading: obtained size: %l", metadata.front().size);
         if (metadata.front().size > 0)
           SetSize(metadata.front().size);
         logger.msg(INFO, "StartReading: obtained checksum: %s:%s", metadata.front().checkSumType, metadata.front().checkSumValue);
