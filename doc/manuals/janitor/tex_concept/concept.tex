@@ -321,6 +321,24 @@ It is suggested to create a user and a group "janitor" for the Janitor.\\
 % % \texttt{\textdollar chown janitor:janitor $<$shared_volume$>$/janitor}
 
 
+\subsection{What happens during installation}
+
+Register
+\begin{enumerate}
+ \item Look up Catalog and find corresponding runtime environments.
+ \item Check if dependcies are available (installed or installable)
+ \item Store job in \textit{registrationdir}
+\end{enumerate}
+
+Deploy
+\begin{enumerate}
+ \item Load job out of \textit{registrationdir}
+ \item Look up Catalog and find corresponding runtime environments.
+ \item Check if dependcies are available (installed or installable)
+ \item Download RTEs into the \textit{downloaddir}
+ \item $\lbrack$ to be continued or skipped $\rbrack$
+\end{enumerate}
+
 \subsection{Security Consideration}
 
 
