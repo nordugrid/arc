@@ -7,7 +7,7 @@
 namespace Arc
 {
 
-XmlDatabase::XmlDatabase(const std::string &db_path, 
+XmlDatabase::XmlDatabase(const std::string &db_path,
                          const std::string &db_name)
 {
     container_ = new Arc::XmlContainer(db_path, db_name);
@@ -40,7 +40,7 @@ XmlDatabase::get(const std::string &name, Arc::XMLNode &doc)
         Arc::XMLNode nn(content);
         nn.New(doc);
     }
-}   
+}
 
 void
 XmlDatabase::del(const std::string &name)
@@ -57,7 +57,7 @@ XmlDatabase::query(const std::string &name, const std::string &q)
 }
 
 void
-XmlDatabase::queryAll(const std::string &q, 
+XmlDatabase::queryAll(const std::string &q,
                       std::map<std::string, Arc::XMLNodeList> &result)
 {
     std::vector<std::string> doc_names = container_->get_doc_names();
@@ -83,3 +83,4 @@ XmlDatabase::update(const std::string &name, const std::string &query,
 }
 
 } // namespace Arc
+

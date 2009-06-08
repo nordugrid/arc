@@ -22,15 +22,16 @@ class XmlDatabase
         void put(const std::string &name, Arc::XMLNode &doc);
         void get(const std::string &name, Arc::XMLNode &doc);
         void del(const std::string &name);
-        Arc::XMLNodeList query(const std::string &name, 
+        Arc::XMLNodeList query(const std::string &name,
                                const std::string &q);
-        void queryAll(const std::string &q, 
+        void queryAll(const std::string &q,
                       std::map<std::string, Arc::XMLNodeList> &result);
-        void update(const std::string &name, 
-                    const std::string &query, 
+        void update(const std::string &name,
+                    const std::string &query,
                     Arc::XMLNode &new_value);
 };
 
 }
 
 #endif
+
