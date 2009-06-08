@@ -175,6 +175,12 @@ InfoRegistrar::InfoRegistrar(XMLNode cfg):stretch_window("PT20S") {
 
     logger_.msg(DEBUG, "Retry: %d", retry);
 
+    // Parsing security attributes
+    key_ = (std::string)cfg["KeyPath"];
+    cert_ = (std::string)cfg["CertificatePath"];
+    proxy_ = (std::string)cfg["ProxyPath"];
+    cadir_ = (std::string)cfg["CACertificatesDir"];
+
     initISIS(cfg);
 
     time_t rawtime;
@@ -281,10 +287,15 @@ bool InfoRegistrar::removeService(InfoRegister* reg) {
             PayloadSOAP *response;
             MCCConfig mcc_cfg;
             ISIS_description usedISIS = getISIS();
-            mcc_cfg.AddPrivateKey(usedISIS.key);
-            mcc_cfg.AddCertificate(usedISIS.cert);
-            mcc_cfg.AddProxy(usedISIS.proxy);
-            mcc_cfg.AddCADir(usedISIS.cadir);
+            if (!key_.empty())
+                mcc_cfg.AddPrivateKey(key_);
+            if (!cert_.empty())
+                mcc_cfg.AddCertificate(cert_);
+            if (!proxy_.empty())
+                mcc_cfg.AddProxy(proxy_);
+            if (!cadir_.empty())
+                mcc_cfg.AddCADir(cadir_);
+            logger_.msg(DEBUG, "Key: %s, Cert: %s, Proxy: %s, CADir: %s", key_, cert_, proxy_, cadir_);
 
             int retry_ = retry;
             while ( retry_ >= 1 ){
@@ -387,12 +398,12 @@ void InfoRegistrar::registration(void) {
                 if(!((r->p_register)->getService())) continue;
                 (r->p_register)->getService()->RegistrationCollector(services_doc);
 
-                {
+                /* {
                 //DEBUG//
                 std::string services_string;
                 services_doc.GetDoc(services_string, true);
                 logger_.msg(DEBUG, "InfoRegister created with config:\n%s", services_string);
-                }
+                }*/
                 // Fill attributes from InfoRegister configuration
                 if (!((bool)services_doc["SrcAdv"]["EPR"]["Address"]) && !((r->endpoint).empty()) ) {
                     if (!(bool)services_doc["SrcAdv"]) services_doc.NewChild("SrcAdv");
@@ -503,10 +514,15 @@ void InfoRegistrar::registration(void) {
             // send
             PayloadSOAP *response;
             MCCConfig mcc_cfg;
-            mcc_cfg.AddPrivateKey(usedISIS.key);
-            mcc_cfg.AddCertificate(usedISIS.cert);
-            mcc_cfg.AddProxy(usedISIS.proxy);
-            mcc_cfg.AddCADir(usedISIS.cadir);
+            if (!key_.empty())
+                mcc_cfg.AddPrivateKey(key_);
+            if (!cert_.empty())
+                mcc_cfg.AddCertificate(cert_);
+            if (!proxy_.empty())
+                mcc_cfg.AddProxy(proxy_);
+            if (!cadir_.empty())
+                mcc_cfg.AddCADir(cadir_);
+            logger_.msg(DEBUG, "Key: %s, Cert: %s, Proxy: %s, CADir: %s", key_, cert_, proxy_, cadir_);
 
             {std::string services_document;
              op.GetDoc(services_document, true);

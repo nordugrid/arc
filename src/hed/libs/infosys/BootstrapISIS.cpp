@@ -28,10 +28,6 @@ struct Registrar_data {
     void InfoRegistrar::initISIS(XMLNode cfg) {
         logger_.msg(DEBUG, "Initialize ISIS handler");
         // Process configuration
-        defaultBootstrapISIS.key   = (std::string)cfg["KeyPath"];
-        defaultBootstrapISIS.cert  = (std::string)cfg["CertificatePath"];
-        defaultBootstrapISIS.proxy = (std::string)cfg["ProxyPath"];
-        defaultBootstrapISIS.cadir = (std::string)cfg["CACertificatesDir"];
         defaultBootstrapISIS.url   = (std::string)cfg["URL"];
         if(defaultBootstrapISIS.url.empty()) {
             logger_.msg(ERROR, "Can't recognize URL: %s",(std::string)cfg["URL"]);

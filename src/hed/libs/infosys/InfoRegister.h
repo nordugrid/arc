@@ -101,6 +101,11 @@ class InfoRegistrar {
         // Configuration parameters
         std::string id_;
         int retry;
+        // Security attributes
+        std::string key_;
+        std::string cert_;
+        std::string proxy_;
+        std::string cadir_;
         // Associated services
         std::list<Register_Info_Type> reg_;
         // Mutex protecting reg_ list
