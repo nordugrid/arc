@@ -100,22 +100,22 @@ namespace Arc {
 
     URL& url = thrarg->url;
     MCCConfig cfg;
-    /*    if (!thrarg->proxyPath.empty())
-          cfg.AddProxy(thrarg->proxyPath);*/                                           //Normally proxies should not be used, possibly some provisions should be made if the user insists.
+    if (!thrarg->proxyPath.empty())
+          cfg.AddProxy(thrarg->proxyPath);                                           //Normally proxies should not be used, possibly some provisions should be made if the user insists.
     if (!thrarg->certificatePath.empty())
       cfg.AddCertificate(thrarg->certificatePath);
     if (!thrarg->keyPath.empty())
       cfg.AddPrivateKey(thrarg->keyPath);
     if (!thrarg->caCertificatesDir.empty())
       cfg.AddCADir(thrarg->caCertificatesDir);
-    std::cout << "Cert: " << thrarg->certificatePath << "  Key: " << thrarg->keyPath << std::endl;
+    //std::cout << "Cert: " << thrarg->certificatePath << "  Key: " << thrarg->keyPath << std::endl;
 
     UNICOREClient uc(url, cfg);
     std::string thePayload;
     std::list<Config> beses;
     //beses should hold a list of trees each suitable to configure a new TargetRetriever
     uc.listTargetSystemFactories(beses, thePayload);
-    std::cout << thePayload << std::endl; //debug remove!
+    //std::cout << thePayload << std::endl; //debug remove!
     //The following loop should work even for mixed lists of index and computing services
     for (std::list<Config>::iterator it = beses.begin(); it != beses.end(); it++) {
       if (!thrarg->certificatePath.empty())
@@ -140,8 +140,8 @@ namespace Arc {
 
     URL& url = thrarg->url;
     MCCConfig cfg;
-    /*    if (!thrarg->proxyPath.empty())
-               cfg.AddProxy(thrarg->proxyPath);*/                                           //Normally proxies should not be used, possibly some provisions should be made if the user insists.
+    if (!thrarg->proxyPath.empty())
+               cfg.AddProxy(thrarg->proxyPath);                                           //Normally proxies should not be used, possibly some provisions should be made if the user insists.
     if (!thrarg->certificatePath.empty())
       cfg.AddCertificate(thrarg->certificatePath);
     if (!thrarg->keyPath.empty())
@@ -155,7 +155,7 @@ namespace Arc {
       mom.RetrieverDone();
       return;
     }
-    std::cout << status << std::endl; //debug remove!
+    //std::cout << status << std::endl; //debug remove!
 
 
     ExecutionTarget target;
