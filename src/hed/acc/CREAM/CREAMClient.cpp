@@ -16,9 +16,10 @@
 #include <arc/DateTime.h>
 #include <arc/client/JobDescription.h>
 #include <arc/StringConv.h>
+#include <arc/credential/Credential.h>
 
 #include "CREAMClient.h"
-#include "OpenSSLFunctions.h"
+//#include "OpenSSLFunctions.h"
 
 namespace Arc {
 
@@ -644,11 +645,11 @@ namespace Arc {
     delegid.Set(delegation_id);
     PayloadSOAP *resp = NULL;
 
-    // Send job request
+    // Send getProxyReq request
     if (client) {
       MCC_Status status = client->process("", &req, &resp);
       if (!status) {
-        logger.msg(ERROR, "Submission request failed");
+        logger.msg(ERROR, "Delegation getProxyReq request failed");
         return false;
       }
       if (resp == NULL) {
@@ -670,11 +671,12 @@ namespace Arc {
       getProxyReqReturnValue =
         (std::string)(*resp)["getProxyReqResponse"]["getProxyReqReturn"];
     else {
-      logger.msg(ERROR, "Creating delegation failed");
+      logger.msg(ERROR, "Creating delegation to CREAM delegation service failed");
       return false;
     }
     delete resp;
 
+#if 0
     std::string signedcert;
     char *cert = NULL;
     int timeleft = getCertTimeLeft(proxy);
@@ -685,6 +687,25 @@ namespace Arc {
       return false;
     }
     signedcert.assign(cert);
+#endif
+
+    Credential signer(proxy, "", "", "");
+    //Sign the proxy certificate
+    Time start;
+    start = start - Period(300);
+    Credential proxy_cred(start);
+    std::string signedcert;
+    //std::cout<<"X509 Request: \n"<<getProxyReqReturnValue<<std::endl;
+    proxy_cred.InquireRequest(getProxyReqReturnValue);
+    proxy_cred.SetProxyPolicy("gsi2", "", "", -1);
+    if (!(signer.SignRequest(&proxy_cred, signedcert))) {
+      logger.msg(ERROR, "DelegateProxy failed");
+      return false;
+    }
+    std::string signerstr, signerchain_str;
+    signer.OutputCertificate(signerstr);
+    signer.OutputCertificateChain(signerchain_str);
+    signedcert.append(signerstr).append(signerchain_str);
 
     PayloadSOAP req2(cream_ns);
     XMLNode putProxyRequest = req2.NewChild("ns1:putProxy", ns1);
