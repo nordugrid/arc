@@ -679,11 +679,18 @@ std::string DelegationProvider::Delegate(const std::string& request,const Delega
   } else if(!(restrictions_["validityPeriod"].empty())) {
     validity_end=validity_start+Period(restrictions_["validityPeriod"]).GetPeriod();
   };
-  ASN1_TIME_set(X509_get_notBefore(cert),validity_start);
+  //Set "notBefore"
+  if( X509_cmp_time(X509_get_notBefore((X509*)cert_), &validity_start) < 0) {
+    X509_time_adj(X509_get_notBefore(cert), 0L, &validity_start);
+  }
+  else {
+    X509_set_notBefore(cert, X509_get_notBefore((X509*)cert_));
+  }
+  //Set "not After"
   if(validity_end == (time_t)(-1)) {
     X509_set_notAfter(cert,X509_get_notAfter((X509*)cert_));
   } else {
-    ASN1_TIME_set(X509_get_notAfter(cert),validity_end);
+    X509_gmtime_adj(X509_get_notAfter(cert), (validity_end-validity_start));
   };
   X509_set_pubkey(cert,pkey);
   EVP_PKEY_free(pkey); pkey=NULL;
