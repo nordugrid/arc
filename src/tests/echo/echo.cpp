@@ -150,7 +150,6 @@ Arc::MCC_Status Service_Echo::process(Arc::Message& inmsg,Arc::Message& outmsg) 
   else {
     // Then it must be 'echo' operation requested
     Arc::XMLNode echo_op = (*inpayload)["echo"];
-    logger.msg(ERROR,echo_op["size"]);
     if(!echo_op) {
       return make_fault(outmsg,"Request is not supported - "+echo_op.Name());
     };
