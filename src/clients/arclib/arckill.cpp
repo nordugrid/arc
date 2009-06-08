@@ -85,7 +85,7 @@ int main(int argc, char **argv) {
 
   std::list<std::string> jobs = options.Parse(argc, argv);
 
-  Arc::UserConfig usercfg(conffile);
+  Arc::UserConfig usercfg(conffile, joblist);
   if (!usercfg) {
     logger.msg(Arc::ERROR, "Failed configuration initialization");
     return 1;
