@@ -11,11 +11,10 @@
     };
     valid=true;
     if(port <= 0) port=8443;
-    std::string::size_type p = path.find("?SFN=");
-    if(p != std::string::npos) {
-      filename=path.c_str()+p+5;
-      path.resize(p);
+    if(HTTPOption("SFN", "") != "") {
+      filename=HTTPOption("SFN");
       isshort=false;
+      path = '/'+path;
       for(;path.size() > 1;) {
         if(path[1] != '/') break;
         path.erase(0,1);
