@@ -92,6 +92,7 @@ sub collect_job_data() {
     return if $alljobdata_initialized;
     $alljobdata_initialized = 1;
     my ($out, $err, $ret) = condor_run("condor_q -long -global -constraint 'NiceUser == False'");
+    return if $out =~ m/All queues are empty/;
     error("Failed collecting job information.") if $ret;
     for (split /\n\n+/, $out) {
         my %job = condor_digest_classad($_);
