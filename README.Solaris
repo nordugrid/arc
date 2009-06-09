@@ -110,7 +110,7 @@ options are also recommended to use:
   export GPT_LOCATION="/opt/globus"
   export PKG_CONFIG_PATH="/usr/local/xmlsec1/lib/pkgconfig:${PKG_CONFIG_PATH}"
 
-  ./configure CXXFLAGS="-g -O0 -I/usr/local/ssl/include"\
+  ./configure CXXFLAGS="-I/usr/local/ssl/include"\
     --with-dbcxx-include="/usr/local/db47/include"\
     LDFLAGS="-L/usr/local/db47/lib -L/usr/local/ssl/lib"\
     --with-python=/usr/local/python2.4/bin/python

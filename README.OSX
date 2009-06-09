@@ -45,7 +45,6 @@ before the compilation:
     "/usr/local/sbin:${PATH}"
   export GLOBUS_LOCATION="/opt/globus"
   export GPT_LOCATION="/opt/globus"
-  export ARC_BARTENDER_URL="http://localhost:50000/Bartender"
   export PKG_CONFIG_PATH="/usr/local/xmlsec1/lib/pkgconfig:${PKG_CONFIG_PATH}"
 
   ./configure --with-xmlsec1=/usr/local/xmlsec1 --with-dbcxx-include="/opt/local/include/db44"\
