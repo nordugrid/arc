@@ -1574,10 +1574,10 @@ err:
 #ifdef WIN32  //Different process here for Win, because X509_cmp_time always return 0 on Win when the second calling, which is not as expected
     ASN1_UTCTIME*  atime = X509_get_notAfter(issuer);
     Time end = asn1_to_utctime(atime);
-    if(t2 < end)
+    if(Time(t2) < end)
       X509_gmtime_adj(X509_get_notAfter(tosign), t2-t1);
     else
-      X509_gmtime_adj(X509_get_notAfter(tosign), end-t1);
+      X509_gmtime_adj(X509_get_notAfter(tosign), end.GetTime()-t1);
 /*
     ASN1_UTCTIME* atime = NULL;
     atime = X509_get_notAfter(tosign);
