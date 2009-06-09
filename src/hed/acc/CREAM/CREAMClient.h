@@ -40,6 +40,8 @@ namespace Arc {
 
   private:
     ClientSOAP *client;
+    std::string cafile;
+    std::string cadir;
     NS cream_ns;
     std::string delegationId;
     static Logger logger;

@@ -149,7 +149,7 @@ namespace Arc {
   }
 
   CREAMClient::CREAMClient(const URL& url, const MCCConfig& cfg)
-    : client(NULL) {
+    : client(NULL), cafile(cfg.cafile), cadir(cfg.cadir) {
     logger.msg(INFO, "Creating a CREAM client");
     client = new ClientSOAP(cfg, url);
     set_cream_namespaces(cream_ns);
@@ -689,7 +689,7 @@ namespace Arc {
     signedcert.assign(cert);
 #endif
 
-    Credential signer(proxy, "", "", "");
+    Credential signer(proxy, "", cadir, cafile);
     //Sign the proxy certificate
     Time start;
     Credential proxy_cred(start);
