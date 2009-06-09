@@ -42,7 +42,7 @@ Source code:
 
 Performing configuration and installation:
   cd build_unix/
-  ../dist/configure --enable-cxx  --enable-debug --prefix=/home/<user>/db47
+  ../dist/configure --enable-cxx  --prefix=/usr/local/db47
   gmake
   gmake install
 
@@ -54,11 +54,9 @@ Source code:
 
 Performing configuration and installation:
 
-  ./configure --prefix=/home/<user>/xmlsec1
+  ./configure --prefix=/usr/local/xmlsec1
   gmake
   gmake install
-  export PKG_CONFIG_PATH="/home/<user>/xmlsec1/lib/pkgconfig:${PKG_CONFIG_PATH}"
-
 
 4. Building the Globus Toolkit from a source distribution:
 
@@ -97,7 +95,7 @@ Source code:
 
 Performing configuration and installation:
 
-  ./configure --enable-shared
+  ./configure --enable-shared --prefix=/usr/local/python2.4
   gmake
   gmake install
 
@@ -108,21 +106,16 @@ options are also recommended to use:
 
   export PATH="/opt/globus/bin:/opt/globus/sbin:/usr/local/bin:"\
     "/usr/local/sbin:${PATH}"
-  export ARC_LOCATION="/usr/local"
-  export ARC_CONFIG="/etc/arc.conf"
-  export SVN_EDITOR="vim"
-  export CXXFLAGS="-g3 -O0 -Wall"
   export GLOBUS_LOCATION="/opt/globus"
   export GPT_LOCATION="/opt/globus"
-  export ARC_BARTENDER_URL="http://localhost:50000/Bartender"
-  export PKG_CONFIG_PATH="/home/<user>/xmlsec1/lib/pkgconfig:${PKG_CONFIG_PATH}"
+  export PKG_CONFIG_PATH="/usr/local/xmlsec1/lib/pkgconfig:${PKG_CONFIG_PATH}"
 
-  ./configure --with-dbcxx-include="/home/<user>/db47/include" \
-    LDFLAGS="-L/home/<user>/db47/lib"
-
+  ./configure CXXFLAGS="-g -O0 -I/usr/local/ssl/include"\
+    --with-dbcxx-include="/usr/local/db47/include"\
+    LDFLAGS="-L/usr/local/db47/lib -L/usr/local/ssl/lib"\
+    --with-python=/usr/local/python2.4/bin/python
 
 7. Building the software:
 
 To complete building and installation follow the instructions in the generic
 README file.
-

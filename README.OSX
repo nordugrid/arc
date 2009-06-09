@@ -30,10 +30,9 @@ Source code:
 
 Performing configuration and installation:
 
-  ./configure --prefix=/Users/<user>/xmlsec1
+  ./configure --prefix=/usr/local/xmlsec1
   make
   make install
-  export PKG_CONFIG_PATH="/Users/<user>/xmlsec1/lib/pkgconfig:${PKG_CONFIG_PATH}"
 
 3. Building the Globus Toolkit from a source distribution: 
 
@@ -44,16 +43,13 @@ before the compilation:
 
   export PATH="/opt/globus/bin:/opt/globus/sbin:/usr/local/bin:"\
     "/usr/local/sbin:${PATH}"
-  export ARC_LOCATION="/usr/local"
-  export ARC_CONFIG="/etc/arc.conf"
-  export SVN_EDITOR="vim"
-  export CXXFLAGS="-g3 -O0 -Wall"
   export GLOBUS_LOCATION="/opt/globus"
   export GPT_LOCATION="/opt/globus"
   export ARC_BARTENDER_URL="http://localhost:50000/Bartender"
+  export PKG_CONFIG_PATH="/usr/local/xmlsec1/lib/pkgconfig:${PKG_CONFIG_PATH}"
 
-  ./configure --with-xmlsec1=/Users/<user>/xmlsec1 --with-dbcxx-include="/opt/local/include/db44" LDFLAGS="-L/opt/local/lib/db44"
-
+  ./configure --with-xmlsec1=/usr/local/xmlsec1 --with-dbcxx-include="/opt/local/include/db44"\
+     LDFLAGS="-L/opt/local/lib/db44"
 
 5. Building the software:
 
