@@ -11,11 +11,6 @@
 #include <list>
 #include <signal.h>
 
-#ifdef HAVE_GLOBUS_RSL
-#include <globus_common.h>
-#include <globus_rsl.h>
-#endif
-
 #include <arc/Logger.h>
 #include <arc/Run.h>
 #include <arc/Thread.h>
@@ -243,23 +238,12 @@ static void grid_manager(void* arg) {
 
   // I hope nothing till now used Globus
 
-#ifdef HAVE_GLOBUS_RSL
-  // Initialize globus modules
-  if(globus_module_activate(GLOBUS_COMMON_MODULE) != GLOBUS_SUCCESS) {
-    logger.msg(Arc::FATAL,"Globus COMMON module activation failed - EXITING"); return;
-  };
-  if(globus_module_activate(GLOBUS_RSL_MODULE) != GLOBUS_SUCCESS) {
-    logger.msg(Arc::FATAL,"Globus RSL module activation failed - EXITING");
-    globus_module_deactivate(GLOBUS_COMMON_MODULE); return;
-  };
-#endif
-
   // It looks like Globus screws signal setup somehow
   //# run.reinit(false);
 
   /* start timer thread - wake up every 2 minutes */
   if(pthread_create(&wakeup_thread,NULL,&wakeup_func,&wakeup_h) != 0) {
-    logger.msg(Arc::ERROR,"Failed to start new thread"); goto exit;
+    logger.msg(Arc::ERROR,"Failed to start new thread"); return;
   };
   RunParallel::kicker(&kick_func,&wakeup_h);
   if(clean_first_level) {
@@ -346,11 +330,6 @@ static void grid_manager(void* arg) {
       logger.msg(Arc::VERBOSE,"Timer kicking");
 //#    };
   };
-exit:
-#ifdef HAVE_GLOBUS_RSL
-  globus_module_deactivate(GLOBUS_RSL_MODULE);
-  globus_module_deactivate(GLOBUS_COMMON_MODULE);
-#endif
   return;
 }
 

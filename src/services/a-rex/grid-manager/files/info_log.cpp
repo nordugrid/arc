@@ -12,16 +12,11 @@
 #include <pwd.h>
 
 #include <arc/StringConv.h>
-#include <../jobdesc/job.h>
+#include <arc/client/JobDescription.h>
+#include "../jobs/job_desc.h"
 #include "info_files.h"
 #include "../conf/conf.h"
 //@ #include <arc/certificate.h>
-
-#include <../jobdesc/job_jsdl.h>
-
-#ifdef HAVE_GLOBUS_RSL
-#include <../jobdesc/job_xrsl.h>
-#endif
 
 #include "info_log.h"
 
@@ -184,36 +179,25 @@ bool job_log_make_file(const JobDescription &desc,JobUser &user,const std::strin
 
   // Extract requested resources
   {
-  fname_src = user.ControlDir() + "/job." + desc.get_id() + sfx_rsl;
-  JobRequest* job = NULL;
-  if(job == NULL) try {
-    std::ifstream i_src(fname_src.c_str());
-    job = new JobRequestJSDL(i_src); 
-  } catch (std::exception e) { };
-#ifdef HAVE_GLOBUS_RSL
-  if(job == NULL) try {
-      std::ifstream i_src(fname_src.c_str());
-      job = new JobRequestXRSL(i_src); 
-  } catch (std::exception e) { };
-#endif
-  if(job == NULL) goto error;
-  if(job->Memory()>=0) o_dst<<"requestedmemory="<<job->Memory()<<std::endl;
-  if(job->CPUTime()>=0) o_dst<<"requestedcputime="<<job->CPUTime()<<std::endl;
-  if(job->WallTime()>=0) o_dst<<"requestedwalltime="<<job->WallTime()<<std::endl;
-  if(job->Disk()>=0) o_dst<<"requesteddisk="<<job->Disk()<<std::endl;
-  std::list<RuntimeEnvironment> re = job->RuntimeEnvironments();
-  if (re.size()>0)
-  {
-    std::string runtimeenvironments;
-    for(std::list<RuntimeEnvironment>::const_iterator it=re.begin(); it!=re.end(); ++it)
-    {
-      runtimeenvironments+=" ";
-	runtimeenvironments+=it->str();
+    fname_src = user.ControlDir() + "/job." + desc.get_id() + sfx_rsl;
+    Arc::JobDescription arc_job_desc;
+    if(!get_arc_job_description(fname_src, arc_job_desc)) goto error;
+    if(arc_job_desc.IndividualPhysicalMemory>=0) o_dst<<"requestedmemory="<<arc_job_desc.IndividualPhysicalMemory<<std::endl;
+    if(arc_job_desc.TotalCPUTime>=0) o_dst<<"requestedcputime="<<arc_job_desc.TotalCPUTime<<std::endl;
+    if(arc_job_desc.TotalWallTime>=0) o_dst<<"requestedwalltime="<<arc_job_desc.TotalWallTime<<std::endl;
+    if(arc_job_desc.DiskSpace>=0) o_dst<<"requesteddisk="<<arc_job_desc.DiskSpace<<std::endl;
+    if(arc_job_desc.RunTimeEnvironment.size()>0) {
+      o_dst<<"runtimeenvironment=";
+      for(std::list<Arc::RunTimeEnvironmentType>::const_iterator itRTE=arc_job_desc.RunTimeEnvironment.begin();
+          itRTE!=arc_job_desc.RunTimeEnvironment.end(); itRTE++) {
+        for(std::list<std::string>::const_iterator itVer = itRTE->Version.begin();
+            itVer!=itRTE->Version.end(); itVer++) {
+          if (itRTE!=arc_job_desc.RunTimeEnvironment.begin() || itVer!=itRTE->Version.begin()) o_dst<<" ";
+          o_dst<<itRTE->Name<<"-"<<(*itVer);
+        }
+      }
+      o_dst<<std::endl;
     }
-    o_dst<<"runtimeenvironment="<<runtimeenvironments<<std::endl;
-  }
-
-  delete job;
   };
   // Analyze diagnostics and store relevant information
   {

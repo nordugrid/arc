@@ -308,7 +308,7 @@ ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& crede
   };
   // Analyze JSDL (checking, substituting, etc)
   std::string acl("");
-  if((failure_type_=setfail(parse_job_req(fname.c_str(),job_,&acl,&failure_))) != ARexJobNoError) {
+  if((failure_type_=setfail(parse_job_req(fname.c_str(),job_,&acl))) != ARexJobNoError) {
     if(failure_.empty()) {
       failure_="Failed to parse job/action description";
       failure_type_=ARexJobInternalError;
@@ -348,12 +348,6 @@ ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& crede
       };
       if(*q == job_.queue) break;
     };
-  };
-  if(!preprocess_job_req(fname,config_.User()->SessionRoot()+"/"+id_,id_)) {
-    failure_="Failed to preprocess job description";
-    failure_type_=ARexJobInternalError;
-    delete_job_id();
-    return;
   };
   // Start local file 
   /* !!!!! some parameters are unchecked here - rerun,diskspace !!!!! */
