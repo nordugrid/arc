@@ -30,6 +30,8 @@ our $levels = { '' => $WARNING };  # default level is WARNING
 
 our $default_logger = LogUtils->getLogger(basename($0));
 
+my $linecount = 0;
+
 # constructor
 
 sub getLogger {
@@ -86,6 +88,8 @@ sub log($$$) {
     my ($self, $level, $msg) = @_;
     return if $level > $self->_searchopt($levels);
 
+    # Start log with an empty line
+    print STDERR "\n" if $linecount++ == 0;
     print STDERR $self->_format($level,$msg);
 }
 

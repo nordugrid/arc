@@ -758,7 +758,7 @@ sub jobs_info ($) {
             # Querying accounting system is slow, so we skip it for now.
             # That will be done by scan-sge-jobs.
         
-            $log->info("SGE job $jid has finished");
+            $log->debug("SGE job $jid has finished");
             $lrms_jobs->{$jid}{status} = 'EXECUTED';
         }
     }

@@ -248,6 +248,9 @@ sub _collect($$) {
 
             if (defined $lrmsjob) {
                 if ($lrmsjob->{status} ne 'EXECUTED') {
+                    $inlrmsslots{$share}{running} ||= 0;
+                    $inlrmsslots{$share}{suspended} ||= 0;
+                    $inlrmsslots{$share}{queued} ||= 0;
                     if ($lrmsjob->{status} eq 'R') {
                         $inlrmsjobstotal{running}++;
                         $inlrmsjobs{$share}{running}++;
