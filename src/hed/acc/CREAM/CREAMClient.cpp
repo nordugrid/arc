@@ -691,9 +691,10 @@ namespace Arc {
 
     Credential signer(proxy, "", "", "");
     //Sign the proxy certificate
-    Time start;
+    Time start, end;
     start = start - Period(300);
-    Credential proxy_cred(start);
+    end = signer.GetEndTime();
+    Credential proxy_cred(start, end-Time());
     std::string signedcert;
     //std::cout<<"X509 Request: \n"<<getProxyReqReturnValue<<std::endl;
     proxy_cred.InquireRequest(getProxyReqReturnValue);
