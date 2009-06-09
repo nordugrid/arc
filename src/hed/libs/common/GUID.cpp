@@ -83,28 +83,28 @@ void Arc::GUID(std::string& guid) {
     if(getaddrinfo(hostname,NULL,NULL,&res) == 0) {
       for(struct addrinfo* r=res;r;r=r->ai_next) {
         if(!(r->ai_addr)) continue;
-        u_int32_t s_addr = INADDR_ANY;
+        uint32_t s_address = INADDR_ANY;
         if(r->ai_addr->sa_family == AF_INET) {
           struct sockaddr_in* addr = (struct sockaddr_in*)(r->ai_addr);
-          s_addr = addr->sin_addr.s_addr;
-          if(s_addr == htonl(INADDR_LOOPBACK)) continue;
+          s_address = addr->sin_addr.s_addr;
+          if(s_address == htonl(INADDR_LOOPBACK)) continue;
         } else if(r->ai_addr->sa_family == AF_INET6) {
           struct sockaddr_in6* addr = (struct sockaddr_in6*)(r->ai_addr);
-          s_addr = 0;
+          s_address = 0;
           for(int i=0;i<16;++i) {
-            s_addr ^= addr->sin6_addr.s6_addr[i];
-            s_addr <<= 2;
+            s_address ^= addr->sin6_addr.s6_addr[i];
+            s_address <<= 2;
           }
         }
-        if(s_addr == INADDR_ANY) continue;
+        if(s_address == INADDR_ANY) continue;
         int i;
         for (i = 0; i < 3; i++) {
           if (hostid[i] == INADDR_ANY) break;
-          if (s_addr == hostid[i]) break;
+          if (s_address == hostid[i]) break;
         }
         if (i >= 3) continue;
         if (hostid[i] != INADDR_ANY) continue;
-        hostid[i] = s_addr;
+        hostid[i] = s_address;
       }
       freeaddrinfo(res);  
     }
