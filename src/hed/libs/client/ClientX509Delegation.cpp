@@ -176,10 +176,9 @@ namespace Arc {
       delete response;
 
       //Sign the proxy certificate
-      Time start, end;
-      start = start - Period(300);
-      end = signer_->GetEndTime();
-      Credential proxy(start, end-Time());
+      Time start;
+      //start = start - Period(300);
+      Credential proxy(start);
       std::string signedcert;
       //std::cout<<"X509 Request: \n"<<getProxyReqReturnValue<<std::endl;
       proxy.InquireRequest(getProxyReqReturnValue);
