@@ -21,7 +21,7 @@ namespace Arc {
 #if OPENSSL_VERSION_NUMBER > 0x0090804f
 #  warning *********************************************************
 #  warning ** Since OpenSSL 0.9.8e proxy extension is const.      **
-#  warning ** Hence we can't manipulate it. That means combining  **
+#  warning ** Hence we can not manipulate it. That means combining**
 #  warning ** it with Globus Toolkit libraries may cause problems **
 #  warning ** during runtime. Problematic behavior was observed   **
 #  warning ** at least for Globus Toolkit version 2.0. But it was **
