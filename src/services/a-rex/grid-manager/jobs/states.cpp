@@ -419,7 +419,7 @@ bool JobsList::state_loading(const JobsList::iterator &i,bool &state_changed,boo
     if(!use_secure_transfer) { 
       args[argn]="-c"; argn++;
     };
-    if(!use_passive_transfer) { 
+    if(use_passive_transfer) { 
       args[argn]="-p"; argn++;
     };
     if(use_local_transfer) { 
