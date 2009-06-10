@@ -554,8 +554,13 @@ namespace Arc {
            node; ++node) {
         ApplicationEnvironment RT;
         RT.Name = (std::string)node;
+        RT.Version = "UNDEFINEDVALUE"; 
+        RT.State = "UNDEFINEDVALUE"; 
+        RT.FreeSlots = -1;
+        RT.FreeUserSeats = -1;
+        RT.FreeJobs = -1;
         target.ApplicationEnvironments.push_back(RT);
-      }
+      } 
       //Register target in TargetGenerator list
       mom.AddTarget(target);
     }

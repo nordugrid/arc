@@ -497,7 +497,7 @@ namespace Arc {
         keyPath.clear();
       }
     }
-    else if (stat((proxyPath = G_DIR_SEPARATOR_S + Glib::build_filename(std::string("tmp"), std::string("x509up_u") + tostring(user.get_uid()))).c_str(), &st) == 0) {
+    else if (stat((proxyPath = Glib::build_filename(Glib::get_tmp_dir(), std::string("x509up_u") + tostring(user.get_uid()))).c_str(), &st) == 0) { 
       if (!S_ISREG(st.st_mode)) {
         logger.msg(ERROR, "Proxy is not a file: %s", proxyPath);
         proxyPath.clear();
