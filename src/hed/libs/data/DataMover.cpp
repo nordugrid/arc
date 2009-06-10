@@ -118,8 +118,9 @@ namespace Arc {
             url_was_deleted = true;
             break;
           }
-        if (url_was_deleted)
+        if (url_was_deleted) {
           logger.msg(VERBOSE, "This instance was already deleted");
+        }
         else {
           url.SetSecure(false);
           if (!url.Remove()) {
@@ -143,12 +144,16 @@ namespace Arc {
           else
             url.RemoveLocation();
         }
+        else {
+          // Leave immediately in case of direct URL
+          break;
+        }
       }
-    if (url.HaveLocations()) {
-      logger.msg(ERROR, "Failed to remove all physical instances");
-      return DataStatus::DeleteError;
-    }
-    if (url.IsIndex())
+    if (url.IsIndex()) {
+      if (url.HaveLocations()) {
+        logger.msg(ERROR, "Failed to remove all physical instances");
+        return DataStatus::DeleteError;
+      }
       if (remove_lfn) {
         logger.msg(INFO, "Removing logical file from metadata %s", url.str());
         DataStatus err = url.Unregister(true);
@@ -157,6 +162,13 @@ namespace Arc {
           return err;
         }
       }
+    }
+    else {
+      if (!url.LocationValid()) {
+        logger.msg(ERROR, "Failed to remove instance");
+        return DataStatus::DeleteError;
+      }
+    }
     return DataStatus::Success;
   }
 
