@@ -758,52 +758,52 @@ AC_SUBST(DBCXX_CPPFLAGS)
 
 if test "$HAVE_DBCXX" = no
 then
-	DBCXX_LIBS=""
+  DBCXX_LIBS=""
 else
-	SAVE_LDFLAGS=$LDFLAGS
+  SAVE_LDFLAGS=$LDFLAGS
+  SAVE_CXXFLAGS=$CXXFLAGS
 
-        case $host in
-           *-*-mingw*)
-	     SAVE_CXXFLAGS=$CXXFLAGS
-             CXXFLAGS="-I$dbcxx_dir $CXXFLAGS"
-            ;;        
-           *)
-	     # pthread needed for RH9
-	     LDFLAGS="$LDFLAGS -lpthread"
-	     SAVE_CXXFLAGS=$
-           ;;        
-        esac
+  case $host in
+    *-*-mingw*)
+      CXXFLAGS="-I$dbcxx_dir $CXXFLAGS"
+      ;;        
+    *)
+      # pthread needed for RH9
+      LDFLAGS="$LDFLAGS -lpthread"
+      ;;        
+  esac
 
-	AC_CHECK_LIB(db_cxx,main,DBCXX_LIBS="-ldb_cxx",DBCXX_LIBS="") 
+  AC_CHECK_LIB(db_cxx,main,DBCXX_LIBS="-ldb_cxx",DBCXX_LIBS="") 
 
-	if test "$DBCXX_LIBS" = ""
-	then
-		AC_MSG_WARN([BerkeleyDB library libdb_cxx was not found!])
-		AC_CHECK_LIB(db_cxx-4.2,main,DBCXX_LIBS="-ldb_cxx-4.2",DBCXX_LIBS="") 
-	fi
+  if test "$DBCXX_LIBS" = ""
+  then
+    AC_MSG_WARN([BerkeleyDB library libdb_cxx was not found!])
+    AC_CHECK_LIB(db_cxx-4.2,main,DBCXX_LIBS="-ldb_cxx-4.2",DBCXX_LIBS="") 
+  fi
 
-	if test "$DBCXX_LIBS" = ""
-	then
-		AC_MSG_WARN([BerkeleyDB library libdb_cxx-4.2 was not found!])
-	fi
+  if test "$DBCXX_LIBS" = ""
+  then
+    AC_MSG_WARN([BerkeleyDB library libdb_cxx-4.2 was not found!])
+  fi
 
-	if test "$DBCXX_LIBS" = ""
-	then
-		AC_MSG_WARN([BerkeleyDB library libdb_cxx was not found!])
-		AC_CHECK_LIB(db_cxx-4.7,main,DBCXX_LIBS="-ldb_cxx-4.7",DBCXX_LIBS="") 
-	fi
+  if test "$DBCXX_LIBS" = ""
+  then
+    AC_MSG_WARN([BerkeleyDB library libdb_cxx was not found!])
+    AC_CHECK_LIB(db_cxx-4.7,main,DBCXX_LIBS="-ldb_cxx-4.7",DBCXX_LIBS="") 
+  fi
 
-	if test "$DBCXX_LIBS" = ""
-	then
-		AC_MSG_WARN([BerkeleyDB library libdb_cxx-4.7 was not found!])
-	fi
+  if test "$DBCXX_LIBS" = ""
+  then
+    AC_MSG_WARN([BerkeleyDB library libdb_cxx-4.7 was not found!])
+  fi
 
-	if test "$DBCXX_LIBS" = ""
-	then
-		AC_MSG_WARN([No BerkeleyDB library found!])
-	fi
-	LDFLAGS=$SAVE_LDFLAGS
-        CXXFLAGS=$SAVE_CXXFLAGS
+  if test "$DBCXX_LIBS" = ""
+  then
+    AC_MSG_WARN([No BerkeleyDB library found!])
+  fi
+
+  LDFLAGS=$SAVE_LDFLAGS
+  CXXFLAGS=$SAVE_CXXFLAGS
 fi
 
 AM_CONDITIONAL([DBXML_ENABLED],[test ! "x$DBCXX_LIBS" = "x"])
