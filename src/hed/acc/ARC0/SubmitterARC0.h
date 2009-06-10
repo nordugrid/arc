@@ -5,7 +5,7 @@
 
 #ifdef WIN32
 #include <arc/win32.h>
-#define _NO_OLDNAMES
+#include <fcntl.h>
 #endif
 
 #include <arc/client/Submitter.h>
