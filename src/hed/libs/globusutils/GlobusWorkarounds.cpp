@@ -24,8 +24,8 @@ namespace Arc {
 #  warning ** Hence we can not manipulate it. That means combining**
 #  warning ** it with Globus Toolkit libraries may cause problems **
 #  warning ** during runtime. Problematic behavior was observed   **
-#  warning ** at least for Globus Toolkit version 2.0. But it was **
-#  warning ** tested and worked for Globus Toolkit 2.4.1.         **
+#  warning ** at least for Globus Toolkit version 4.0. But it was **
+#  warning ** tested and worked for Globus Toolkit 4.2.1.         **
 #  warning *********************************************************
     return true;
 #else
