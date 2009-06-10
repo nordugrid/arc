@@ -15,9 +15,22 @@ namespace Arc {
 
   bool GlobusRecoverProxyOpenSSL(void) {
 #ifdef HAVE_OPENSSL_PROXY
+    // No harm even if not needed - shall trun proxies on for code 
+    // which was written with no proxies in mind
+    SetEnv("OPENSSL_ALLOW_PROXY_CERTS","1");
+#if OPENSSL_VERSION_NUMBER > 0x0090804f
+#  warning *********************************************************
+#  warning ** Since OpenSSL 0.9.8e proxy extension is const.      **
+#  warning ** Hence we can't manipulate it. That means combining  **
+#  warning ** it with Globus Toolkit libraries may cause problems **
+#  warning ** during runtime. Problematic behavior was observed   **
+#  warning ** at least for Globus Toolkit version 2.0. But it was **
+#  warning ** tested and worked for Globus Toolkit 2.4.1.         **
+#  warning *********************************************************
+    return true;
+#else
     // OBJ_create(OBJ_proxyCertInfo,SN_proxyCertInfo,LN_proxyCertInfo);
     // Use OpenSSL hack to make proxies work with Globus disabled
-    SetEnv("OPENSSL_ALLOW_PROXY_CERTS","1");
     const char* sn = "proxyCertInfo";
     const char* gsn = "PROXYCERTINFO";
     int nid = OBJ_sn2nid(sn);
@@ -47,9 +60,10 @@ namespace Arc {
       }
     }
     return false;
-#else
+#endif // OPENSSL_VERSION_NUMBER > 0x0090804f
+#else  // HAVE_OPENSSL_PROXY
     return true;
-#endif
+#endif // HAVE_OPENSSL_PROXY
   }
 
 }
