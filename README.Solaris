@@ -30,7 +30,7 @@ sources highlighted:
   m4-1.4.7: http://www.sunfreeware.com/; installed from package
   neon-0.25.5: http://www.sunfreeware.com/; installed from package
   openssl-0.9.8e: http://www.sunfreeware.com/; installed from package
-  swig-1.3.29: http://www.sunfreeware.com/; installed from package
+  swig-1.3.36: http://www.sunfreeware.com/; installed from package
   GNU time 1.7: http://prep.ai.mit.edu/pub/gnu/time/time-1.7.tar.gz; built from source
   XML-Simple: http://search.cpan.org/dist/XML-Simple/; built from source
   Storable-1.0.14: http://www.cpan.org/modules/by-module/Storable/; built from source

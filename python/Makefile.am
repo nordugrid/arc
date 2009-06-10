@@ -21,4 +21,5 @@ arc_wrap.cpp arc.py: $(top_srcdir)/swig/*.i
 	grep -h '^#' $(top_srcdir)/swig/*.i | \
 	$(CXXCOMPILE) $(_arc_la_CXXFLAGS) -M -MT arc_wrap.cpp -MT arc.py -MP -MF "$(DEPDIR)/arc_wrap.deps" -x c++ -
 	$(SWIG) -v -c++ -python -threads -module arc -o arc_wrap.cpp \
-		-I/usr/include -I$(top_srcdir)/include $(top_srcdir)/swig/Arc.i
+		-I/usr/include -I$(top_srcdir)/include \
+		$(OPENSSL_CFLAGS) $(top_srcdir)/swig/Arc.i

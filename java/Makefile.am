@@ -28,7 +28,8 @@ arc_wrap.cpp $(JAVA_PATH)/*.java: $(top_srcdir)/swig/*.i
 	$(SWIG) -v -c++ -java -nodefaultctor -nodefaultdtor -module arc \
 		-package nordugrid.arc -o arc_wrap.cpp \
 		-outdir $(JAVA_PATH) \
-		-I/usr/include -I$(top_srcdir)/include $(top_srcdir)/swig/Arc.i
+		-I/usr/include -I$(top_srcdir)/include \
+                $(OPENSSL_CFLAGS) $(top_srcdir)/swig/Arc.i
 	sed 's%#include <jni.h>%#include <JNI.h>%' < \
 	arc_wrap.cpp > arc_wrap.cpp.tmp
 	mv arc_wrap.cpp.tmp arc_wrap.cpp
