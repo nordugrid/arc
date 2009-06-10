@@ -4,19 +4,18 @@
 #include <config.h>
 #endif
 
-#include <glibmm.h>
+
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <fcntl.h>
 
 #include <iostream>
 
+#include <glibmm.h>
+
 #include <arc/Thread.h>
 #include <arc/Logger.h>
-#include <sys/types.h>
-#include <signal.h>
-#include <sys/types.h>
-#include <sys/wait.h>
 
-#include <unistd.h>
-#include <fcntl.h>
 #include "User.h"
 #include "Run.h"
 
@@ -383,7 +382,15 @@ namespace Arc {
     CloseStdin();
     lock_.lock();
     cond_.signal();
-    result_ = (result >> 8); // Why ?
+    // There is reference in Glib manual that 'result' is same
+    // as returned by waitpid. It is not clear how it works for
+    // windows but atleast for *nix we can use waitpid related
+    // macros.
+    if(WIFEXITED(result)) {
+      result_ = WEXITSTATUS(result);
+    } else {
+      result_ = -1;
+    }
     running_ = false;
     lock_.unlock();
     if (kicker_func_)
