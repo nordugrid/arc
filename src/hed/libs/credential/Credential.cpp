@@ -899,6 +899,8 @@ namespace Arc {
       return NULL;
     }
 
+    if(ext_oct) ASN1_OCTET_STRING_free(ext_oct);
+
     ext_oct = NULL;
     return ext;
   }
@@ -1095,7 +1097,7 @@ namespace Arc {
     BN_GENCB_set(&cb,&keygen_cb,NULL);
     if(prime && rsa_key) {
       if(BN_set_word(prime,RSA_F4)) {
-        if(!RSA_generate_key_ex(rsa_key, keybits, prime, &cb)) {
+        if(RSA_generate_key_ex(rsa_key, keybits, prime, &cb) != 1) {
           CredentialLogger.msg(ERROR, "RSA_generate_key_ex failed");
           LogError();
           if(prime) BN_free(prime);
@@ -1203,7 +1205,7 @@ namespace Arc {
               }
 
               if(X509_REQ_set_pubkey(req,pkey)) {
-                if(X509_REQ_sign(req,pkey,digest)) {
+                if(X509_REQ_sign(req,pkey,digest)  != 0) {
                   if(if_der == false) {
                     if(!(PEM_write_bio_X509_REQ(reqbio,req))){
                       CredentialLogger.msg(ERROR, "PEM_write_bio_X509_REQ failed");
@@ -1613,7 +1615,7 @@ err:
       CredentialLogger.msg(ERROR, "Can not convert private key to DER format");
       LogError(); BIO_free(bio); return NULL;
     }
-    key = d2i_PrivateKey_bio(bio, &key);
+    key = d2i_PrivateKey_bio(bio, NULL);
     BIO_free(bio);
 
     return key;
@@ -1990,7 +1992,7 @@ err:
     if(issuer_priv) { EVP_PKEY_free(issuer_priv);}
     if(proxy_cert) { X509_free(proxy_cert);}
     if(req_pubkey) { EVP_PKEY_free(req_pubkey); }
-
+    if(issuer_pub) { EVP_PKEY_free(issuer_pub); }
     return res;
   }
 
