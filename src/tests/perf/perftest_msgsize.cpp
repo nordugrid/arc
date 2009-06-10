@@ -36,9 +36,11 @@ std::string url_str;
 bool alwaysReconnect = false;
 bool printTimings = false;
 bool tcpNoDelay = false;
+bool fixedMsgSize = false;
 int start;
 int stop;
 int steplength;
+int msgSize;
 
 // Round off a double to an integer.
 int Round(double x){
@@ -68,23 +70,24 @@ void sendRequests(){
   Arc::NS echo_ns; echo_ns["echo"]="urn:echo";
   
   std::string size;
+  Arc::ClientSOAP *client = NULL;
   while(run){
-    Arc::ClientSOAP *client = NULL;
     connected=false;
     for(int i=start; i<stop; i+=steplength){
       // Create a Client.
       if(!connected){
+        if(client) delete client;
         client = NULL;
         client = new Arc::ClientSOAP(mcc_cfg,url);
         connected = true;
-        //client.NoDelay(tcpNoDelay);
       }
       
       // Prepare the request.
       Arc::PayloadSOAP req(echo_ns);
       std::stringstream sstr;
-      sstr << i;
+      fixedMsgSize ? sstr << msgSize : sstr << i;
       size = sstr.str();
+      //req.NewChild("echo").NewChild("say")="HELLO";
       req.NewChild("size").NewChild("size")=size;
       // Send the request and time it.
       tBefore.assign_current_time();
@@ -121,7 +124,7 @@ void sendRequests(){
             // Everything worked just fine!
             completedRequests++;
             completedTime+=tAfter-tBefore;
-            if (printTimings) std::cout << size << " " << tAfter.as_double()-tBefore.as_double() << std::endl;
+            if (printTimings) std::cout << completedRequests << " " << size << " " << tAfter.as_double()-tBefore.as_double() << std::endl;
           }
         }
       }
@@ -160,6 +163,9 @@ int main(int argc, char* argv[]){
     } else if(strcmp(argv[1],"-d") == 0) {
       debug_level=Arc::string_to_level(argv[2]);
       argv[2]=argv[0]; argv+=2; argc-=2;
+    } else if(strcmp(argv[1],"-f") == 0) {
+      fixedMsgSize = true; msgSize=atoi(argv[2]);
+      argv[2]=argv[0]; argv+=2; argc-=2;
     } else if(strcmp(argv[1],"-r") == 0) {
       alwaysReconnect=true; argv+=1; argc-=1;
     } else if(strcmp(argv[1],"-v") == 0) {
@@ -196,6 +202,7 @@ int main(int argc, char* argv[]){
               << "-r         If specified close connection and reconnect after " << std::endl
               << "            every request." << std::endl
               << "-t         Toggles TCP_NODELAY option " << std::endl
+              << "-f size    Fixed message size " << std::endl
               << "-v         If specified print out timings for each iteration " << std::endl;
     exit(EXIT_FAILURE);
   }
