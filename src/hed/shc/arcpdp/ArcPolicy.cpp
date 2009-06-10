@@ -28,7 +28,7 @@ Arc::Plugin* ArcSec::ArcPolicy::get_policy(Arc::PluginArgument* arg) {
         return NULL;
     }
     // NOTE: Following line is not good for autodetection. Should it be removed?
-    if(!(*doc)) return new ArcSec::ArcPolicy;
+    //if(!(*doc)) return new ArcSec::ArcPolicy;
     ArcSec::ArcPolicy* policy = new ArcSec::ArcPolicy(*doc);
     if((!policy) || (!(*policy))) {
       delete policy;

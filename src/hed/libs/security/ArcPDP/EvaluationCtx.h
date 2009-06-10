@@ -1,71 +1,59 @@
-#ifndef __ARC_SEC_ARCEVALUATIONCTX_H__
-#define __ARC_SEC_ARCEVALUATIONCTX_H__
+#ifndef __ARC_SEC_EVALUATIONCTX_H__
+#define __ARC_SEC_EVALUATIONCTX_H__
 
 #include <list>
 #include <fstream>
 #include <arc/XMLNode.h>
 #include <arc/Logger.h>
-#include "attr/AttributeValue.h"
 
+#include "attr/AttributeValue.h"
 #include "Request.h"
 
 namespace ArcSec {
 
-///RequestTuple, container which includes the   
 class RequestTuple {
+public:
+  virtual RequestTuple* duplicate(const RequestTuple*) { return NULL; };
+  virtual Arc::XMLNode& getNode() { return tuple; };
+  RequestTuple() { };
+  virtual ~RequestTuple(){ };
+  virtual void erase() { };
 public:
   Subject sub;
   Resource res;
   Action act;
   Context ctx;
-public:
-  RequestTuple& duplicate(const RequestTuple&);
-  Arc::XMLNode& getNode() {return tuple;};
-  RequestTuple();
-  ~RequestTuple();
-  void erase();
-private:
+protected:
   Arc::XMLNode tuple;
 };
 
-///EvaluationCtx, in charge of storing some context information for evaluation, including Request, current time, etc.
+///EvaluationCtx, in charge of storing some context information for 
+//evaluation, including Request, current time, etc.
 class EvaluationCtx {
 public:
   /**Construct a new EvaluationCtx based on the given request */
-  EvaluationCtx (Request* request);
-  virtual ~EvaluationCtx();
+  EvaluationCtx (Request* request) { req = request; };
+
+  virtual ~EvaluationCtx() { };
   
-  virtual Request* getRequest() const;
+  virtual Request* getRequest() const { return req; };
  
-  virtual void setRequestItem(RequestItem* reqit){reqitem = reqit;};
+  //virtual void setRequestItem(RequestItem* reqit) { };
 
-  virtual RequestItem* getRequestItem() const {return reqitem;};
+  //virtual RequestItem* getRequestItem() const { return NULL; };
 
-  //virtual std::list<AttributeValue*> getSubjectAttributes(std::string& id, std::string& type, std::string& issuer, std::string& category) =0;
-  //virtual std::list<AttributeValue*> getResourceAttributes(std::string& id, std::string& type, std::string& issuer) =0;
-  //virtual std::list<AttributeValue*> getActionAttributes(std::string& id, std::string& type, std::string& issuer) =0;
-  //virtual std::list<AttributeValue*> getContextAttributes(std::string& id, std::string& type, std::string& issuer) =0;
-  //virtual std::list<AttributeValue*> getAttributes(std::string& reqctxpath, Arc::XMLNode& policy, std::string& xpathver) =0;
+  virtual std::list<AttributeValue*> getSubjectAttributes(std::string& id, std::string& type, std::string& issuer, std::string& category) { std::list<AttributeValue*> attrlist; return attrlist; };
 
-  
-  /**Convert/split one RequestItem ( one tuple <SubList, ResList, ActList, CtxList>)  into a few <Subject, Resource, Action, Context> tuples.
-  The purpose is for evaluation. The evaluator will evaluate each RequestTuple one by one, not the RequestItem because it includes some 
-  independent <Subject, Resource, Action, Context>s and the evaluator should deal with them independently. 
-  */
-  virtual void split();
+  virtual std::list<AttributeValue*> getResourceAttributes(std::string& id, std::string& type, std::string& issuer)  { std::list<AttributeValue*> attrlist; return attrlist; };
 
-  virtual std::list<RequestTuple*> getRequestTuples() const { return reqtuples; };
-  virtual void setEvalTuple(RequestTuple* tuple){ evaltuple = tuple; };
-  virtual RequestTuple* getEvalTuple()const { return evaltuple; };
-  
+  virtual std::list<AttributeValue*> getActionAttributes(std::string& id, std::string& type, std::string& issuer)  { std::list<AttributeValue*> attrlist; return attrlist; };
+
+  virtual std::list<AttributeValue*> getContextAttributes(std::string& id, std::string& type, std::string& issuer)  { std::list<AttributeValue*> attrlist; return attrlist; };
+
+  virtual std::list<AttributeValue*> getAttributes(std::string& reqctxpath, Arc::XMLNode& policy, std::string& data_type, AttributeFactory* attrfactory)  { std::list<AttributeValue*> attrlist; return attrlist; };
+
 private:
-  static Arc::Logger logger;
   Request* req;
-  RequestItem* reqitem;
-  std::list<RequestTuple*> reqtuples;
-  /**The RequestTuple for evaluation at present*/
-  RequestTuple* evaltuple;
- 
 };
 
 } // namespace ArcSec

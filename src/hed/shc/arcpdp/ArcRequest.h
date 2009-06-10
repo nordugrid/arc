@@ -44,6 +44,8 @@ public:
 
   virtual const char* getName() const;
 
+  virtual Arc::XMLNode& getReqNode() { return reqnode; };
+
   static Arc::Plugin* get_request(Arc::PluginArgument* arg);
 
 private:

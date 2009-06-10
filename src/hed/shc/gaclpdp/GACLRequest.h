@@ -34,6 +34,8 @@ public:
 
   static Arc::Plugin* get_request(Arc::PluginArgument* arg);
 
+  virtual Arc::XMLNode& getReqNode() { return reqnode; };
+
 private:
   Arc::XMLNode reqnode;
 

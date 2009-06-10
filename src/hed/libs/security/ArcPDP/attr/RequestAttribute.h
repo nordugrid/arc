@@ -1,11 +1,12 @@
 #ifndef __ARC_SEC_REQUESTATTRIBUTE_H__
 #define __ARC_SEC_REQUESTATTRIBUTE_H__
 
-#include "AttributeValue.h"
-#include "AttributeFactory.h"
 #include <list>
 #include <arc/XMLNode.h>
 #include <arc/Logger.h>
+
+#include "AttributeValue.h"
+#include "AttributeFactory.h"
 
 namespace ArcSec {
 

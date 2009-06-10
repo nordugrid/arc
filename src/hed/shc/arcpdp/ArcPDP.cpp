@@ -104,7 +104,8 @@ bool ArcPDP::isPermitted(Message *msg){
       ArcPDPContext* pdpctx = dynamic_cast<ArcPDPContext*>(mctx);
       if(pdpctx) {
         eval=pdpctx->eval;
-      };
+      }
+      else { logger.msg(INFO, "Can not find ArcPDPContext"); }
     };
   } catch(std::exception& e) { };
   if(!eval) {

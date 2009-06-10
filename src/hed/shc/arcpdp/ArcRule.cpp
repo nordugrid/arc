@@ -12,6 +12,7 @@
 #include <arc/security/ArcPDP/fn/MatchFunction.h>
 #include <arc/security/ArcPDP/fn/InRangeFunction.h>
 
+#include "ArcEvaluationCtx.h"
 #include "ArcRule.h"
 
 Arc::Logger ArcSec::ArcRule::logger(Arc::Logger::rootLogger, "ArcRule");
@@ -253,8 +254,9 @@ static ArcSec::MatchResult itemMatch(ArcSec::OrList items, std::list<ArcSec::Req
   return NO_MATCH;
 }
 
-MatchResult ArcRule::match(EvaluationCtx* ctx){
-  ArcSec::RequestTuple* evaltuple = ctx->getEvalTuple();  
+MatchResult ArcRule::match(EvaluationCtx* eval_ctx){
+  ArcEvaluationCtx* ctx = dynamic_cast<ArcEvaluationCtx*>(eval_ctx);
+  ArcRequestTuple* evaltuple = dynamic_cast<ArcRequestTuple*>(ctx->getEvalTuple());  
 
   //Reset the value for id matching, since the Rule object could be 
   //used a number of times for match-making

@@ -11,6 +11,7 @@
 #include <arc/security/ArcPDP/EvaluationCtx.h>
 
 #include "ArcEvaluator.h"
+#include "ArcEvaluationCtx.h"
 
 Arc::Plugin* ArcSec::ArcEvaluator::get_evaluator(Arc::PluginArgument* arg) {
     Arc::ClassLoaderPluginArgument* clarg =
@@ -184,7 +185,7 @@ Response* ArcEvaluator::evaluate(Request* request){
   req->make_request();
 
   EvaluationCtx * evalctx = NULL;
-  evalctx =  new EvaluationCtx(req);
+  evalctx =  new ArcEvaluationCtx(req);
 
   //evaluate the request based on policy
   if(evalctx)
@@ -209,7 +210,7 @@ Response* ArcEvaluator::evaluate(const Source& req){
   request->make_request();
   
   EvaluationCtx * evalctx = NULL;
-  evalctx =  new EvaluationCtx(request);
+  evalctx =  new ArcEvaluationCtx(request);
   
   //3.evaluate the request based on policy
   Response* resp = NULL;
@@ -221,8 +222,9 @@ Response* ArcEvaluator::evaluate(const Source& req){
   return resp;
 }
 
-Response* ArcEvaluator::evaluate(EvaluationCtx* ctx){
+Response* ArcEvaluator::evaluate(EvaluationCtx* evl_ctx){
   //Split request into <subject, action, object, environment> tuples
+  ArcEvaluationCtx* ctx = dynamic_cast<ArcEvaluationCtx*>(evl_ctx);
   ctx->split();
   
   std::list<PolicyStore::PolicyElement> policies;
@@ -325,8 +327,9 @@ Response* ArcEvaluator::evaluate(EvaluationCtx* ctx){
 
 
     ResponseItem* item = new ResponseItem;
-    RequestTuple* reqtuple = new RequestTuple;
-    reqtuple->duplicate(*(*it));
+    ArcRequestTuple* reqtuple = new ArcRequestTuple;
+    reqtuple->duplicate(*it);
+
     item->reqtp = reqtuple;
     item->reqxml = reqtuple->getNode();
     item->res = result;
@@ -358,8 +361,9 @@ Response* ArcEvaluator::evaluate(EvaluationCtx* ctx){
       // TODO: record permitset (is it really needed?)
       Result result = combining_alg_ex->combine(ctx,plist);
       ResponseItem* item = new ResponseItem;
-      RequestTuple* reqtuple = new RequestTuple;
-      reqtuple->duplicate(*(*it));
+      ArcRequestTuple* reqtuple = new ArcRequestTuple;
+//      reqtuple->duplicate((ArcRequestTuple*)(*it));
+      reqtuple->duplicate(*it);
       item->reqtp = reqtuple;
       item->reqxml = reqtuple->getNode();
       item->res = result;

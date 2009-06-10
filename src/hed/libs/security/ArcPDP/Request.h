@@ -83,6 +83,8 @@ public:
   /**Constructor: Parse request information from a xml stucture in memory*/
   Request (const Source&) {};
 
+  virtual Arc::XMLNode& getReqNode() = 0;
+
   virtual ~Request(){};
 };
 
