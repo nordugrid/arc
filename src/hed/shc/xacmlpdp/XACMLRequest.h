@@ -32,6 +32,8 @@ public:
   /**Get the name of this request*/
   virtual const char* getName() const { };
 
+  virtual Arc::XMLNode& getReqNode() { return reqnode; };
+
   static Arc::Plugin* get_request(Arc::PluginArgument* arg);
 
   //**Set the attribute factory for the usage of Request*/

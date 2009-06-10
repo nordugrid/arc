@@ -29,7 +29,6 @@ AttributeDesignator::AttributeDesignator(Arc::XMLNode& node) : present(false) {
   
   std::string must = node.Attribute("MustBePresent");
   if(!must.empty()) present = true;
-  
 }
 
 AttributeDesignator::~AttributeDesignator() {

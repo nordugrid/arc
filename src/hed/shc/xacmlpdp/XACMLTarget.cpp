@@ -16,7 +16,7 @@ using namespace Arc;
 using namespace ArcSec;
 
 XACMLTargetMatch::XACMLTargetMatch(XMLNode& node, EvaluatorContext* ctx) : matchnode(node), 
-  function(NULL), selector(NULL), designator(NULL){
+  attrval(NULL), function(NULL), selector(NULL), designator(NULL){
   attrfactory = (AttributeFactory*)(*ctx);
   fnfactory = (FnFactory*)(*ctx); 
 
@@ -24,7 +24,7 @@ XACMLTargetMatch::XACMLTargetMatch(XMLNode& node, EvaluatorContext* ctx) : match
   //get the suffix of xacml-formated matchId, like
   //"urn:oasis:names:tc:xacml:1.0:function:string-equal",
   //and use it as the function name
-  size_t found = matchId.find_last_of(":");
+  std::size_t found = matchId.find_last_of(":");
   std::string funcname = matchId.substr(found+1);
 
   //If matchId does not exist, compose the DataType and "equal" function
@@ -38,15 +38,17 @@ XACMLTargetMatch::XACMLTargetMatch(XMLNode& node, EvaluatorContext* ctx) : match
 
   //create the AttributeValue, AttributeDesignator and AttributeSelector
   XMLNode cnd;
-  AttributeValue* attrval = NULL;
-
-  std::string type;
-  //TODO
 
   for(int i = 0;;i++ ) {
     cnd = node.Child(i);
     if(!cnd) break;
     if(MatchXMLName(cnd, "AttributeValue")) {
+       std::string data_type = cnd.Attribute("DataType");
+       //<AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">
+       //  http://www.med.example.com/schemas/record.xsd
+       //</AttributeValue>
+       std::size_t f = data_type.find_last_of("#");
+       std::string type = data_type.substr(f+1);
        attrval = attrfactory->createValue(cnd, type);
     }
     else if(MatchXMLName(cnd, "AttributeSelector")) {
@@ -60,6 +62,7 @@ XACMLTargetMatch::XACMLTargetMatch(XMLNode& node, EvaluatorContext* ctx) : match
 }
 
 XACMLTargetMatch::~XACMLTargetMatch() {
+  if(attrval != NULL) delete attrval;
   if(function != NULL) delete function;
   if(selector != NULL) delete selector;
   if(designator != NULL) delete designator;
@@ -73,7 +76,7 @@ MatchResult XACMLTargetMatch::match(EvaluationCtx* ctx) {
   bool evalres = false;
   std::list<AttributeValue*>::iterator i;
   for(i = attrlist.begin(); i != attrlist.end(); i++) {
-    //evalres = function.evaluate(attrval, (*i));   //TODO
+    evalres = function->evaluate(attrval, (*i));
     if(evalres) return MATCH;
   }
   return NO_MATCH;
@@ -88,10 +91,9 @@ XACMLTargetMatchGroup::XACMLTargetMatchGroup(XMLNode& node, EvaluatorContext* ct
     if(!cnd) break;
     name = cnd.Name();
     if(name.find("Match") != std::string::npos)
-      matches.push_back(new XACMLTargetMatch(cnd, ctx)); //TODO
+      matches.push_back(new XACMLTargetMatch(cnd, ctx));
   }
 }
-
 
 XACMLTargetMatchGroup::~XACMLTargetMatchGroup() {
   XACMLTargetMatch* tm = NULL;
@@ -163,7 +165,6 @@ XACMLTarget::XACMLTarget(Arc::XMLNode& node, EvaluatorContext* ctx) : targetnode
       sections.push_back(new XACMLTargetSection(cnd, ctx));
     }
   }
-
 }
 
 XACMLTarget::~XACMLTarget() {
@@ -182,6 +183,5 @@ MatchResult XACMLTarget::match(EvaluationCtx* ctx) {
     if(res != MATCH) break;
   }
   return res;
-
 }
 

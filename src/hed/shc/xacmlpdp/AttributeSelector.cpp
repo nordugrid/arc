@@ -2,12 +2,14 @@
 #include <config.h>
 #endif
 
+#include "XACMLEvaluationCtx.h"
 #include "AttributeSelector.h"
 
 using namespace Arc;
 using namespace ArcSec;
 
-AttributeSelector::AttributeSelector(Arc::XMLNode& node, AttributeFactory* attrfactory) : present(false) {
+AttributeSelector::AttributeSelector(Arc::XMLNode& node, AttributeFactory* attr_factory) : present(false), 
+    attrfactory(attr_factory) {
   std::string tp = (std::string)(node.Attribute("DataType"));
   if(tp.empty()) {std::cerr<<"Required DataType does not exist in AttributeSelector"<<std::endl; exit(0);}
   size_t found = tp.find_last_of("#");
@@ -30,9 +32,7 @@ AttributeSelector::~AttributeSelector() {
 
 std::list<AttributeValue*> AttributeSelector::evaluate(EvaluationCtx* ctx) {
   std::list<AttributeValue*> res;
-
-//TODO  
-//  res = ctx->getAttributes(reqctxpath, policyroot, type, xpathver);
+  res = ctx->getAttributes(reqctxpath, policyroot, type, attrfactory);
   
   if(present && (res.size() ==0)) {
     //std::cerr<<"AttributeSelector requires at least one attributes from request's"<<target<<std::endl;

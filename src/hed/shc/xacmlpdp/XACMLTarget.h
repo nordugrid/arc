@@ -3,6 +3,7 @@
 
 #include <list>
 #include <arc/XMLNode.h>
+#include <arc/security/ArcPDP/attr/AttributeValue.h>
 #include <arc/security/ArcPDP/fn/Function.h>
 #include <arc/security/ArcPDP/attr/AttributeFactory.h>
 #include <arc/security/ArcPDP/fn/FnFactory.h>
@@ -26,6 +27,7 @@ private:
   Arc::XMLNode matchnode;
   std::string matchId;
 
+  AttributeValue* attrval;
   Function* function;
   AttributeDesignator* designator;
   AttributeSelector* selector;

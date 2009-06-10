@@ -46,7 +46,7 @@ MatchResult XACMLRule::match(EvaluationCtx* ctx){
 Result XACMLRule::eval(EvaluationCtx* ctx){
   Result result = DECISION_NOT_APPLICABLE;
   if(target != NULL) {
-    MatchResult matchres; // = target.match(ctx);
+    MatchResult matchres = target->match(ctx);
     if(matchres == NO_MATCH)  return result;
     else if(matchres == INDETERMINATE) {result = DECISION_INDETERMINATE; return result;}
   }

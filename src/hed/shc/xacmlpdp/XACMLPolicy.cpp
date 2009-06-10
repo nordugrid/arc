@@ -40,8 +40,7 @@ using namespace ArcSec;
 XACMLPolicy::XACMLPolicy(void) : Policy(), comalg(NULL) {
   Arc::XMLNode newpolicy(policyns,"policy:Policy");
   newpolicy.New(policynode);
-  //TODO
-  //policytop=policynode;
+  policytop=policynode;
 }
 
 XACMLPolicy::XACMLPolicy(const XMLNode node) : Policy(node), comalg(NULL) {
@@ -55,7 +54,7 @@ XACMLPolicy::XACMLPolicy(const XMLNode node) : Policy(node), comalg(NULL) {
     policynode.Destroy();
     return;
   }
-  //policytop = *(res.begin());
+  policytop = *(res.begin());
 }
 
 XACMLPolicy::XACMLPolicy(const XMLNode node, EvaluatorContext* ctx) : Policy(node), comalg(NULL), target(NULL) {
@@ -77,11 +76,8 @@ XACMLPolicy::XACMLPolicy(const XMLNode node, EvaluatorContext* ctx) : Policy(nod
 
   XMLNode nd, rnd;
 
-  Arc::NS nsList;
   std::list<XMLNode> res;
-  nsList.insert(std::pair<std::string, std::string>("policy","http://www.nordugrid.org/ws/schemas/policy-arc"));
-
-  res = policynode.XPathLookup("//policy:Policy", nsList);
+  res = policynode.XPathLookup("//policy:Policy", policyns);
   if(!(res.empty())){
     nd = *(res.begin());
     id = (std::string)(nd.Attribute("PolicyId"));
@@ -98,6 +94,10 @@ XACMLPolicy::XACMLPolicy(const XMLNode node, EvaluatorContext* ctx) : Policy(nod
     else comalg = algfactory->createAlg("Deny-Overrides");
     
     description = (std::string)(nd["Description"]);  
+  }
+  else {
+    policynode.Destroy();
+    return;
   }
   
   logger.msg(INFO, "PolicyId: %s  Alg inside this policy is:-- %s", id, comalg?(comalg->getalgId()):"");

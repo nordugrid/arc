@@ -62,6 +62,9 @@ private:
   /**Corresponding <Policy> node*/
   Arc::XMLNode policynode;
 
+  /**Top element of policy tree*/
+  Arc::XMLNode policytop;
+
   /**The object for containing <Target/> information*/
   XACMLTarget* target;
 
