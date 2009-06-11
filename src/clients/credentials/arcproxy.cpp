@@ -580,9 +580,10 @@ int main(int argc, char *argv[]) {
         vomses_path = (std::string)usercfg.ConfTree()["VOMSServerPath"];
 
       if (vomses_path.empty()) {
-        if (user.get_uid() == 0)
           vomses_path = "/etc/grid-security/.vomses";
-        else {
+          if (!Glib::file_test(vomses_path, Glib::FILE_TEST_IS_REGULAR)) {
+          vomses_path = Arc::ArcLocation::Get() + G_DIR_SEPARATOR_S + "etc" + G_DIR_SEPARATOR_S + "grid-security" + G_DIR_SEPARATOR_S + ".vomses";
+          if (!Glib::file_test(vomses_path, Glib::FILE_TEST_IS_REGULAR)) {
           vomses_path = user.Home() + "/.vomses";
           if (!Glib::file_test(vomses_path, Glib::FILE_TEST_IS_REGULAR)) {
             vomses_path = "/etc/grid-security/.vomses";
@@ -591,13 +592,15 @@ int main(int argc, char *argv[]) {
               if (!Glib::file_test(vomses_path, Glib::FILE_TEST_IS_REGULAR)) {
                 std::string tmp1 = user.Home() + "/.vomses";
                 std::string tmp2 = user.Home() + "/.voms/vomses";
-                logger.msg(Arc::ERROR, "Cannot find vomses at %s, %s, and /etc/grid-security/.vomses", 
-                  tmp1.c_str(), tmp2.c_str());
+                std::string tmp3 = Arc::ArcLocation::Get() + G_DIR_SEPARATOR_S +"etc" + G_DIR_SEPARATOR_S + "grid-security" + G_DIR_SEPARATOR_S + ".vomses";
+                logger.msg(Arc::ERROR, "Cannot find vomses at %s, %s, %s and /etc/grid-security/.vomses", 
+                  tmp1.c_str(), tmp2.c_str(), tmp3.c_str());
                 return EXIT_FAILURE;
               }
             }
           }
-        }
+            }
+          }
       }
 
       std::ifstream in_f(vomses_path.c_str());
