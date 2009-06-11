@@ -809,10 +809,26 @@ namespace Arc {
 
     try {
       loadCertificate(certfile, cert_, &cert_chain_);
-      std::cout<<"Your identity: "<<GetDN() << std::endl;
-      if(keyfile.empty())
-        loadKey(certfile, pkey_, passphrase4key);
-      else loadKey(keyfile, pkey_, passphrase4key);
+      //std::cout<<"Your identity: "<<GetDN() << std::endl;
+      if(keyfile.empty()) {
+        //Detect if the certificate file/string contains private key.
+        //If the key file is absent, and the private key is not contained inside
+        //certificate file/string, then the certificate file will not 
+        //be parsed for private key.
+        //Note this detection only applies to PEM file
+        std::string keystr;
+        if(Glib::file_test(keyfile,Glib::FILE_TEST_EXISTS)) {      
+          std::ifstream in(keyfile.c_str(), std::ios::in);
+          std::getline<char>(in, keystr, 0);
+        }
+        else {
+          keystr = keyfile;
+        }
+        if(keystr.find("BEGIN RSA PRIVATE KEY") != std::string::npos)
+          loadKey(certfile, pkey_, passphrase4key);
+      }
+      else
+        loadKey(keyfile, pkey_, passphrase4key);
     } catch(std::exception& err){
       CredentialLogger.msg(ERROR, "ERROR:%s", err.what());
       LogError(); return;
