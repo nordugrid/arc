@@ -25,6 +25,9 @@ DIST_SUBDIRS = src swig java python po doc include debian
 
 EXTRA_DIST = arc.spec autogen.sh LICENSE
 
+pkgconfigdir = $(libdir)/pkgconfig
+pkgconfig_DATA = arcbase.pc
+
 doc:
 	for d in $(DOCDIRS); do \
 		$(MAKE) -C $$d ; \

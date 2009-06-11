@@ -1517,6 +1517,7 @@ AC_CONFIG_FILES([Makefile
                  debian/nordugrid-arc1-plugins-base.install
                  arc.spec
                  src/hed/daemon/arched.8
+                 arcbase.pc
 ])
 AC_OUTPUT
 
