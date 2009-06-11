@@ -394,7 +394,7 @@ sub _collect($$) {
                 # is still in LRMS while the job have already left LRMS              
 
                 if ($lrmsjob->{status} and $lrmsjob->{status} ne 'EXECUTED') {
-                    $j->{'nuj0:status'} = [ "INLRMS: $lrmsjob->{status}" ];
+                    $j->{'nuj0:status'} = [ "INLRMS:$lrmsjob->{status}" ];
                 } else {
                     $j->{'nuj0:status'} = [ 'EXECUTED' ];
                 }
