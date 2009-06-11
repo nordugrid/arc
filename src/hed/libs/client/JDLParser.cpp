@@ -7,6 +7,7 @@
 #include <list>
 #include <string>
 #include <vector>
+#include <glibmm.h>
 
 #include <arc/StringConv.h>
 #include <arc/XMLNode.h>
@@ -605,9 +606,20 @@ namespace Arc {
       bool executable = false;
       bool input = false;
       bool empty = true;
-      product += "  InputSandbox = {\n";
       std::list<FileType>::const_iterator iter;
+      int SourceFileCounter = 0;
+
       for (iter = job.File.begin(); iter != job.File.end(); iter++) {
+        std::list<SourceType>::const_iterator it_source;
+        for (it_source = (*iter).Source.begin(); it_source != (*iter).Source.end(); it_source++) 
+           SourceFileCounter++;
+      }
+      if (SourceFileCounter != 0 || !job.Input.empty() ||\
+          !Glib::path_is_absolute(job.Executable)) 
+          product += "  InputSandbox = {\n";
+
+      for (iter = job.File.begin(); iter != job.File.end(); iter++) {
+
         if ((*iter).Name == job.Executable)
           executable = true;
         if ((*iter).Name == job.Input)
@@ -621,7 +633,8 @@ namespace Arc {
           empty = false;
         }
       }
-      if (!job.Executable.empty() && !executable) {
+      if (!job.Executable.empty() && !executable && \
+          !Glib::path_is_absolute(job.Executable)) {
         if (!empty)
           product += ",\n";
         empty = false;
@@ -633,7 +646,9 @@ namespace Arc {
         empty = false;
         product += "    \"" + job.Input + "\"";
       }
-      product += "\n    };\n";
+      if (SourceFileCounter != 0 || !job.Input.empty() ||\
+          !Glib::path_is_absolute(job.Executable)) 
+         product += "\n    };\n";
     }
     if (!job.File.empty() ||
         !job.Error.empty() ||
