@@ -446,7 +446,8 @@ namespace Arc {
     FileCache cache;
     std::string failure;
     URL source_url(cluster + "/info/" + shortid + "/description");
-    std::string localfile = "/tmp/" + shortid + "/description";
+    std::string tmpfile = shortid + G_DIR_SEPARATOR_S + "description";
+    std::string localfile = Glib::build_filename(Glib::get_tmp_dir(), tmpfile);
     URL dest_url(localfile);
     DataHandle source(source_url);
     DataHandle destination(dest_url);
