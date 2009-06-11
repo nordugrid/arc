@@ -817,12 +817,17 @@ namespace Arc {
         //be parsed for private key.
         //Note this detection only applies to PEM file
         std::string keystr;
-        if(Glib::file_test(keyfile,Glib::FILE_TEST_EXISTS)) {      
-          std::ifstream in(keyfile.c_str(), std::ios::in);
+        if(Glib::file_test(certfile,Glib::FILE_TEST_EXISTS)) {      
+          std::ifstream in(certfile.c_str(), std::ios::in);
+          if (!in) {
+            CredentialLogger.msg(ERROR,"Can not read certificate file: %s", certfile);
+            throw CredentialError("Can not read certificate file");
+          }
           std::getline<char>(in, keystr, 0);
+          in.close();
         }
         else {
-          keystr = keyfile;
+          keystr = certfile;
         }
         if(keystr.find("BEGIN RSA PRIVATE KEY") != std::string::npos)
           loadKey(certfile, pkey_, passphrase4key);
