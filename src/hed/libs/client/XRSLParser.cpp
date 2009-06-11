@@ -559,6 +559,78 @@ namespace Arc {
         return true;
       }
 
+      // GM-side attributes.
+      if (c->Attr() == "action") {
+        std::string action;
+        if (!SingleValue(c, action))
+          return false;
+        if (action != "request" && action != "cancel" && action != "clean") {
+          logger.msg(DEBUG, "Invalid action value %s", action);
+          return false;
+        }
+        j.XRSL_elements["action"] = action;
+        return true;
+      }
+
+      if (c->Attr() == "hostname") {
+        std::string hostname;
+        if (!SingleValue(c, hostname))
+          return false;
+        j.XRSL_elements["hostname"] = hostname;
+        return true;
+      }
+
+      if (c->Attr() == "jobid") {
+        std::string jobid;
+        if (!SingleValue(c, jobid))
+          return false;
+        j.XRSL_elements["jobid"] = jobid;
+        return true;
+      }
+
+      if (c->Attr() == "clientxrsl") {
+        std::string clientxrsl;
+        if (!SingleValue(c, clientxrsl))
+          return false;
+        j.XRSL_elements["clientxrsl"] = clientxrsl;
+        return true;
+      }
+
+      if (c->Attr() == "clientsoftware") {
+        std::string clientsoftware;
+        if (!SingleValue(c, clientsoftware))
+          return false;
+        j.XRSL_elements["clientsoftware"] = clientsoftware;
+        return true;
+      }
+
+      // Unsupported Globus RSL attributes.
+      if (c->Attr() == "resourcemanagercontact" ||
+          c->Attr() == "directory" ||
+          c->Attr() == "maxcputime" ||
+          c->Attr() == "maxwalltime" ||
+          c->Attr() == "maxtime" ||
+          c->Attr() == "maxmemory" ||
+          c->Attr() == "minmemory" ||
+          c->Attr() == "grammyjob" ||
+          c->Attr() == "project" ||
+          c->Attr() == "hostcount" ||
+          c->Attr() == "label" ||
+          c->Attr() == "subjobcommstype" ||
+          c->Attr() == "subjobstarttype" ||
+          c->Attr() == "filecleanup" ||
+          c->Attr() == "filestagein" ||
+          c->Attr() == "filestageinshared" ||
+          c->Attr() == "filestageout" ||
+          c->Attr() == "gasscache" ||
+          c->Attr() == "jobtype" ||
+          c->Attr() == "librarypath" ||
+          c->Attr() == "remoteiourl" ||
+          c->Attr() == "scratchdir") {
+        logger.msg(WARNING, "The specified Globus attribute (%s) is not supported. %s ignored.", c->Attr(), c->Attr());
+        return true;
+      }
+
       logger.msg(DEBUG, "Unknown XRSL attribute: %s", c->Attr());
       return false;
     }
@@ -858,6 +930,13 @@ namespace Arc {
       RSLList *l = new RSLList;
       l->Add(new RSLLiteral(j.CredentialService.fullstr()));
       r.Add(new RSLCondition("credentialserver", RSLEqual, l));
+    }
+
+    for (std::map<std::string, std::string>::const_iterator it = j.XRSL_elements.begin();
+         it != j.XRSL_elements.end(); it++) {
+      RSLList *l = new RSLList;
+      l->Add(new RSLLiteral(it->second));
+      r.Add(new RSLCondition(it->first, RSLEqual, l));
     }
 
     std::stringstream ss;
