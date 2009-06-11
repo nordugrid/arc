@@ -10,6 +10,7 @@
 
 #include <unistd.h>
 #include <glibmm/fileutils.h>
+#include <glibmm.h>
 
 #include <arc/ArcConfig.h>
 #include <arc/FileLock.h>
@@ -436,31 +437,31 @@ namespace Arc {
     bool ok = true;
     for (std::list<Job*>::iterator it = catable.begin();
          it != catable.end(); it++) {
-      std::string filename("/tmp/arccat.XXXXXX");
-      int tmp_h = Glib::mkstemp(filename);
-      if (tmp_h == -1) {
-        logger.msg(ERROR, "Could not create temporary file \"%s\"", filename);
-        ok = false;
-        continue;
-      }
-      close(tmp_h);
+       std::string filename = Glib::build_filename(Glib::get_tmp_dir(), "arccat.XXXXXX");
+       int tmp_h = Glib::mkstemp(filename);
+       if (tmp_h == -1) {
+          logger.msg(ERROR, "Could not create temporary file \"%s\"", filename);
+          ok = false;
+          continue;
+       }
+       close(tmp_h);
 
-      URL src = GetFileUrlForJob((**it), whichfile);
-      URL dst(filename);
-      bool copied = ARCCopyFile(src, dst);
+       URL src = GetFileUrlForJob((**it), whichfile);
+       URL dst(filename);
+       bool copied = ARCCopyFile(src, dst);
 
-      if (copied) {
-        std::cout << IString("%s from job %s", whichfile,
+       if (copied) {
+          std::cout << IString("%s from job %s", whichfile,
                              (*it)->JobID.str()) << std::endl;
-        std::ifstream is(filename.c_str());
-        char c;
-        while (is.get(c))
-          std::cout.put(c);
-        is.close();
-        unlink(filename.c_str());
-      }
-      else
-        ok = false;
+          std::ifstream is(filename.c_str());
+          char c;
+          while (is.get(c))
+            std::cout.put(c);
+            is.close();
+            unlink(filename.c_str());
+       }
+       else
+          ok = false;
     }
 
     return ok;
