@@ -379,7 +379,7 @@ namespace Arc {
       std::string exec_option = source.GetURL().Option("exec");
       if (exec_option == "yes")
         executable = true;
-      unsigned long int bufsize;
+      long long int bufsize;
       int bufnum;
       if (source.Cache() && destination.Local() && cache)
         cacheable = true;

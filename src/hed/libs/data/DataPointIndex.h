@@ -38,7 +38,7 @@ namespace Arc {
     virtual void SetTries(const int n);
 
     // the following are relayed to the current location
-    virtual unsigned long long int BufSize() const;
+    virtual long long int BufSize() const;
     virtual int BufNum() const;
     virtual bool Cache() const;
     virtual bool Local() const;

@@ -32,7 +32,7 @@ namespace Arc {
 
     virtual bool IsIndex() const;
 
-    virtual unsigned long long int BufSize() const;
+    virtual long long int BufSize() const;
     virtual int BufNum() const;
 
     virtual bool Cache() const;
@@ -73,7 +73,7 @@ namespace Arc {
 
   protected:
     DataBuffer *buffer;
-    unsigned long long int bufsize;
+    long long int bufsize;
     int bufnum;
     bool cache;
     bool local;

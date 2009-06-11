@@ -218,7 +218,7 @@ namespace Arc {
     virtual const Time& GetValid() const;
 
     /// Get suggested buffer size for transfers.
-    virtual unsigned long long int BufSize() const = 0;
+    virtual long long int BufSize() const = 0;
 
     /// Get suggested number of buffers for transfers.
     virtual int BufNum() const = 0;

@@ -12,7 +12,7 @@ namespace Arc {
   DataPointDirect::DataPointDirect(const URL& url)
     : DataPoint(url),
       buffer(NULL),
-      bufsize((unsigned long long int)(-1)),
+      bufsize(-1),
       bufnum(1),
       cache(true),
       local(false),
@@ -51,7 +51,7 @@ namespace Arc {
     return false;
   }
 
-  unsigned long long int DataPointDirect::BufSize() const {
+  long long int DataPointDirect::BufSize() const {
     return bufsize;
   }
 

@@ -172,9 +172,9 @@ namespace Arc {
     return h->Check();
   }
 
-  unsigned long long int DataPointIndex::BufSize() const {
+  long long int DataPointIndex::BufSize() const {
     if (!h)
-      return (unsigned long long int)(-1);
+      return -1;
     return h->BufSize();
   }
 
