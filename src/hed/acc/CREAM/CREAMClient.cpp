@@ -61,7 +61,7 @@ namespace Arc {
 
   //This funtion is convert from the Proxy time to valid Time string.
   std::string Str_to_TimeStr(std::string timestring) {
-    if (timestring == "" || timestring.length() < 16)
+    if (timestring == "" || timestring.length() < 15)
       return "";
 
     //The conversion for example:
