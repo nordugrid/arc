@@ -68,12 +68,20 @@ namespace Arc {
     virtual void Range(unsigned long long int start = 0,
                        unsigned long long int end = 0);
   protected:
+    bool resolved;
+    bool registered;
+    void ClearLocations(void) {
+      locations.clear();
+      location = locations.end();
+      SetHandle();
+    };
+  private:
+    // Following members must be kept synchronised hence they are private
     /// List of locations at which file can be probably found.
     std::list<URLLocation> locations;
     std::list<URLLocation>::iterator location;
     DataHandle h;
-    bool resolved;
-    bool registered;
+    bool SetHandle(void);
   };
 
 } // namespace Arc

@@ -81,6 +81,31 @@ namespace Arc {
     return ((meta_resolve_rls_t*)arg)->dprls.ResolveCallback(h, rlsurl, arg);
   }
 
+  URL DataPointRLS::AddPFN(const URL& purl,bool source) {
+    if(source) return url;
+    bool se_uses_lfn = false;
+    std::string u = purl.str();
+    if (purl.Protocol() == "se") {
+      u += "?";
+      se_uses_lfn = true;
+    } else {
+      u += "/";
+    }
+    if (guid_enabled) {
+      std::string guid = UUID();
+      if ((!se_uses_lfn) && (!pfn_path.empty()))
+        u += pfn_path;
+      else
+        u += guid;
+    }
+    else if ((!se_uses_lfn) && (!pfn_path.empty()))
+      u += pfn_path;
+    else
+      u += url.Path();
+    return URL(u);
+  }
+
+
   bool DataPointRLS::ResolveCallback(globus_rls_handle_t *h,
                                      const URL& rlsurl, void *arg) {
     bool& source(((meta_resolve_rls_t*)arg)->source);
@@ -123,24 +148,25 @@ namespace Arc {
       globus_rls_client_free_list(guids);
     }
     globus_list_t *pfns_list = NULL;
-    if (source)
+    if (source) {
       if (!guid.empty())
         err = globus_rls_client_lrc_get_pfn
                 (h, const_cast<char*>(guid.c_str()), 0, 0, &pfns_list);
       else
         err = globus_rls_client_lrc_get_pfn
                 (h, const_cast<char*>(url.Path().c_str()), 0, 0, &pfns_list);
-    else
+    } else {
       err = globus_rls_client_lrc_get_pfn
               (h, const_cast<char*>("__storage_service__"), 0, 0, &pfns_list);
+    }
     if (err != GLOBUS_SUCCESS) {
       globus_rls_client_error_info(err, &errcode, errmsg, MAXERRMSG + 32,
                                    GLOBUS_FALSE);
-      if (errcode == GLOBUS_RLS_INVSERVER)
+      if (errcode == GLOBUS_RLS_INVSERVER) {
         return true;
-      else if (errcode == GLOBUS_RLS_LFN_NEXIST)
+      } else if (errcode == GLOBUS_RLS_LFN_NEXIST) {
         return true;
-      else { // do not know
+      } else { // do not know
         logger.msg(INFO, "Warning: can't get PFNs from server %s: %s",
                    rlsurl.str(), errmsg);
         return true;
@@ -151,17 +177,23 @@ namespace Arc {
       if (source)
         registered = true;
     }
-    if (url.Locations().size() == 0)
+    if (url.Locations().size() == 0) {
       for (globus_list_t *lp = pfns_list; lp; lp = globus_list_rest(lp)) {
         globus_rls_string2_t *str2 =
           (globus_rls_string2_t*)globus_list_first(lp);
         URL pfn(str2->s2);
-        locations.push_back(URLLocation(pfn, rlsurl.str()));
+        for (std::map<std::string, std::string>::const_iterator i =
+               url.CommonLocOptions().begin();
+             i != url.CommonLocOptions().end(); i++) {
+          pfn.AddOption(i->first, i->second, false);
+        }
+        URL pfn_ = AddPFN(pfn,source);
+        AddLocation(pfn_, rlsurl.str());
         logger.msg(DEBUG, "Adding location: %s - %s", rlsurl.str(), pfn.str());
       }
-    else
+    } else {
       for (std::list<URLLocation>::const_iterator loc = url.Locations().begin();
-           loc != url.Locations().end(); loc++)
+           loc != url.Locations().end(); loc++) {
         for (globus_list_t *lp = pfns_list; lp; lp = globus_list_rest(lp)) {
           globus_rls_string2_t *str2 =
             (globus_rls_string2_t*)globus_list_first(lp);
@@ -170,13 +202,29 @@ namespace Arc {
           if (pfn == *loc) {
             logger.msg(DEBUG, "Adding location: %s - %s",
                        rlsurl.str(), pfn.str());
-            if (source)
-              locations.push_back(URLLocation(pfn, rlsurl.str()));
-            else
-              locations.push_back(URLLocation(*loc, rlsurl.str()));
+            if (source) {
+              for (std::map<std::string, std::string>::const_iterator i =
+                     url.CommonLocOptions().begin();
+                   i != url.CommonLocOptions().end(); i++) {
+                pfn.AddOption(i->first, i->second, false);
+              }
+              URL pfn_ = AddPFN(pfn,source);
+              AddLocation(pfn_, rlsurl.str());
+            } else {
+              URL pfn_(*loc);
+              for (std::map<std::string, std::string>::const_iterator i =
+                     url.CommonLocOptions().begin();
+                   i != url.CommonLocOptions().end(); i++) {
+                pfn_.AddOption(i->first, i->second, false);
+              }
+              pfn_ = AddPFN(pfn_,source);
+              AddLocation(pfn_, rlsurl.str());
+            }
             break;
           }
         }
+      }
+    }
     globus_rls_client_free_list(pfns_list);
     if (!obtained_info) {
       /* obtain metadata - assume it is same everywhere */
@@ -271,34 +319,19 @@ namespace Arc {
                     &meta_resolve_callback, (void*)&arg);
       if (!arg.success)
         return arg.success;
-      if (locations.size() == 0) {
+      if (!HaveLocations()) {
         logger.msg(INFO, "No locations found for destination");
         return DataStatus::WriteResolveError;
       }
+/*
+      // This part is done directly in callback. The difference
+      // is that instead of "arbitrary" LRC the one provided by
+      // callback is used
       // Make pfns
       std::list<URL>::iterator lrc_p = lrcs.begin();
       for (std::list<URLLocation>::iterator loc = locations.begin();
            loc != locations.end();) {
-        bool se_uses_lfn = false;
-        std::string u = loc->str();
-        if (loc->Protocol() == "se") {
-          u += "?";
-          se_uses_lfn = true;
-        }
-        else
-          u += "/";
-        if (guid_enabled) {
-          std::string guid = UUID();
-          if ((!se_uses_lfn) && (!pfn_path.empty()))
-            u += pfn_path;
-          else
-            u += guid;
-        }
-        else if ((!se_uses_lfn) && (!pfn_path.empty()))
-          u += pfn_path;
-        else
-          u += url.Path();
-        *loc = URLLocation(u, loc->Name());
+        // AddPFN
         if (!loc->Name().empty()) {
           logger.msg(DEBUG, "Using location: %s - %s",
                      loc->Name(), loc->str());
@@ -320,18 +353,11 @@ namespace Arc {
           ++loc;
         }
       }
+*/
     }
     logger.msg(DEBUG, "meta_get_data: checksum: %s", GetCheckSum());
     logger.msg(DEBUG, "meta_get_data: size: %llu", GetSize());
     logger.msg(DEBUG, "meta_get_data: created: %s", GetCreated().str());
-    if (!url.CommonLocOptions().empty())
-      for (std::list<URLLocation>::iterator loc = locations.begin();
-           loc != locations.end(); loc++)
-        for (std::map<std::string, std::string>::const_iterator i =
-               url.CommonLocOptions().begin();
-             i != url.CommonLocOptions().end(); i++)
-          loc->AddOption(i->first, i->second, false);
-    location = locations.begin();
     resolved = true;
     return DataStatus::Success;
   }
@@ -371,7 +397,7 @@ namespace Arc {
 
     std::string pfn;
     std::string guid;
-    pfn = location->str();
+    pfn = CurrentLocation().str();
     // it is always better to register pure url
     std::string rls_lfn = url.Path();
     if (!replication)
@@ -686,7 +712,7 @@ namespace Arc {
     else { // ! all
       err = globus_rls_client_lrc_delete
               (h, const_cast<char*>(url.Path().c_str()),
-              const_cast<char*>(location->str().c_str()));
+              const_cast<char*>(CurrentLocation().str().c_str()));
       if (err != GLOBUS_SUCCESS) {
         globus_rls_client_error_info(err, &errcode, errmsg, MAXERRMSG + 32,
                                      GLOBUS_FALSE);
@@ -704,11 +730,11 @@ namespace Arc {
 
   DataStatus DataPointRLS::Unregister(bool all) {
     if (!all) {
-      if (location == locations.end()) {
+      if (!LocationValid()) {
         logger.msg(ERROR, "Location is missing");
         return DataStatus::UnregisterError;
       }
-      if (location->Protocol() == "se") {
+      if (CurrentLocation().Protocol() == "se") {
         logger.msg(DEBUG, "SE location will be unregistered automatically");
         return DataStatus::Success;
       }
@@ -831,7 +857,7 @@ namespace Arc {
         else { // ! all
           err = globus_rls_client_lrc_delete
                   (h_, const_cast<char*>(url.Path().c_str()),
-                  const_cast<char*>(location->str().c_str()));
+                  const_cast<char*>(CurrentLocation().str().c_str()));
           if (err != GLOBUS_SUCCESS) {
             globus_rls_client_error_info(err, &errcode, errmsg, MAXERRMSG + 32,
                                          GLOBUS_FALSE);
@@ -857,8 +883,7 @@ namespace Arc {
         globus_list_free(lrcs);
       if (!success) {
         registered = false;
-        locations.clear();
-        location = locations.end();
+        ClearLocations();
       }
       return success;
     }
@@ -872,8 +897,7 @@ namespace Arc {
                     &meta_unregister_callback, (void*)&arg);
       if (!arg.success) {
         registered = false;
-        locations.clear();
-        location = locations.end();
+        ClearLocations();
       }
       return arg.success;
     }

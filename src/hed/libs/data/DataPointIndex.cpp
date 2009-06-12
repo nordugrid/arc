@@ -45,6 +45,14 @@ namespace Arc {
     return true;
   }
 
+  bool DataPointIndex::SetHandle(void) {
+    // TODO: pass various options from old handler to new
+    if (locations.end() != location)
+      h = *location;
+    else
+      h.Clear();
+  }
+
   bool DataPointIndex::NextLocation() {
     if (!LocationValid()) {
       --triesleft;
@@ -54,10 +62,7 @@ namespace Arc {
     if (locations.end() == location)
       if (--triesleft > 0)
         location = locations.begin();
-    if (locations.end() != location)
-      h = *location;
-    else
-      h.Clear();
+    SetHandle();
     return LocationValid();
   }
 
@@ -67,10 +72,7 @@ namespace Arc {
     location = locations.erase(location);
     if (locations.end() == location)
       location = locations.begin();
-    if (locations.end() != location)
-      h = *location;
-    else
-      h.Clear();
+    SetHandle();
     return DataStatus::Success;
   }
 
@@ -94,22 +96,25 @@ namespace Arc {
           ++p_int;
     if (locations.end() == location)
       location = locations.begin();
-    if (locations.end() != location)
-      h = *location;
-    else
-      h.Clear();
+    SetHandle();
     return DataStatus::Success;
   }
 
   DataStatus DataPointIndex::AddLocation(const URL& url,
                                          const std::string& meta) {
-    logger.msg(DEBUG, "Add location: url: %s", url.str());
-    logger.msg(DEBUG, "Add location: metadata: %s", meta);
+    logger.msg(VERBOSE, "Add location: url: %s", url.str());
+    logger.msg(VERBOSE, "Add location: metadata: %s", meta);
+std::cerr<<"Current size: "<<locations.size()<<std::endl;
     for (std::list<URLLocation>::iterator i = locations.begin();
          i != locations.end(); ++i)
-      if (i->Name() == meta)
+      if ((i->Name() == meta) && (url == (*i)))
         return DataStatus::LocationAlreadyExistsError;
     locations.push_back(URLLocation(url, meta));
+    if(locations.end() == location) {
+      location = locations.begin();
+      SetHandle();
+    }
+std::cerr<<"New size: "<<locations.size()<<std::endl;
     return DataStatus::Success;
   }
 
@@ -119,10 +124,7 @@ namespace Arc {
       location = locations.end();
     else if (locations.end() == location)
       location = locations.begin();
-    if (locations.end() != location)
-      h = *location;
-    else
-      h.Clear();
+    SetHandle();
   }
 
   bool DataPointIndex::IsIndex() const {

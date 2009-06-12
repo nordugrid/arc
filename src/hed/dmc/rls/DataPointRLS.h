@@ -30,10 +30,11 @@ namespace Arc {
     bool ResolveCallback(globus_rls_handle_t *h, const URL& url, void *arg);
     bool ListFilesCallback(globus_rls_handle_t *h, const URL& url, void *arg);
     bool UnregisterCallback(globus_rls_handle_t *h, const URL& url, void *arg);
-  protected:
+  private:
     static Logger logger;
     bool guid_enabled;
     std::string pfn_path;
+    URL AddPFN(const URL& url,bool source);
   };
 
 } // namespace Arc

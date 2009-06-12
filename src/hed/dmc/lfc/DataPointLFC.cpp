@@ -60,6 +60,22 @@ namespace Arc {
 
   DataPointLFC::~DataPointLFC() {}
 
+  void DataPointLFC::AddPFN(URL& loc,bool source) {
+    if (source) return;
+    // Make pfns
+    std::string u = loc.str();
+    if (u.find_last_of("/") != u.length() - 1)
+      u += "/"; // take off leading dirs of LFN
+    std::string::size_type slash_index = url.Path().rfind("/", url.Path().length() + 1);
+    if (slash_index != std::string::npos)
+      u += url.Path().substr(slash_index + 1);
+    else
+      u += url.Path();
+    loc = u;
+    //logger.msg(DEBUG, "Using location: %s - %s", loc->Name(), loc.str());
+  }
+
+
   /* perform resolve operation, which can take long time */
   DataStatus DataPointLFC::Resolve(bool source) {
 
@@ -121,7 +137,12 @@ namespace Arc {
 
     if (url.Locations().size() == 0)
       for (int n = 0; n < nbentries; n++) {
-        locations.push_back(URLLocation(entries[n].sfn, url.ConnectionURL()));
+        URL uloc(entries[n].sfn);
+        for (std::map<std::string, std::string>::const_iterator i = url.CommonLocOptions().begin();
+             i != url.CommonLocOptions().end(); i++)
+          uloc.AddOption(i->first, i->second, false);
+        AddPFN(uloc,source);
+        AddLocation(uloc, url.ConnectionURL());
         logger.msg(DEBUG, "Adding location: %s - %s", url.ConnectionURL(), entries[n].sfn);
       }
     else
@@ -130,9 +151,19 @@ namespace Arc {
           if (strncmp(entries[n].sfn, loc->Name().c_str(), loc->Name().length()) == 0) {
             logger.msg(DEBUG, "Adding location: %s - %s", url.ConnectionURL(), entries[n].sfn);
             if (source)
-              locations.push_back(URLLocation(entries[n].sfn, url.ConnectionURL()));
+              URL uloc(entries[n].sfn);
+              for (std::map<std::string, std::string>::const_iterator i = url.CommonLocOptions().begin();
+                   i != url.CommonLocOptions().end(); i++)
+                uloc.AddOption(i->first, i->second, false);
+              AddPFN(uloc,source);
+              AddLocation(uloc, url.ConnectionURL());
             else
-              locations.push_back(URLLocation(*loc, url.ConnectionURL()));
+              URL loc(*loc);
+              for (std::map<std::string, std::string>::const_iterator i = url.CommonLocOptions().begin();
+                   i != url.CommonLocOptions().end(); i++)
+                loc.AddOption(i->first, i->second, false);
+              AddPFN(uloc,source);
+              AddLocation(uloc, url.ConnectionURL());
             break;
           }
     if (entries)
@@ -155,22 +186,9 @@ namespace Arc {
     }
     lfc_endsess();
     if (!source) {
-      if (locations.size() == 0) {
+      if (!HaveLocations()) {
         logger.msg(INFO, "No locations found for destination");
         return DataStatus::WriteResolveError;
-      }
-      // Make pfns
-      for (std::list<URLLocation>::iterator loc = locations.begin(); loc != locations.end(); loc++) {
-        std::string u = loc->str();
-        if (u.find_last_of("/") != u.length() - 1)
-          u += "/"; // take off leading dirs of LFN
-        std::string::size_type slash_index = url.Path().rfind("/", url.Path().length() + 1);
-        if (slash_index != std::string::npos)
-          u += url.Path().substr(slash_index + 1);
-        else
-          u += url.Path();
-        *loc = URLLocation(u, loc->Name());
-        logger.msg(DEBUG, "Using location: %s - %s", loc->Name(), loc->str());
       }
     }
     logger.msg(DEBUG, "meta_get_data: checksum: %s", GetCheckSum());
@@ -178,12 +196,6 @@ namespace Arc {
     logger.msg(DEBUG, "meta_get_data: created: %s", GetCreated().str());
 
     // add any url options
-    if (!url.CommonLocOptions().empty())
-      for (std::list<URLLocation>::iterator loc = locations.begin(); loc != locations.end(); ++loc)
-        for (std::map<std::string, std::string>::const_iterator i = url.CommonLocOptions().begin();
-             i != url.CommonLocOptions().end(); i++)
-          loc->AddOption(i->first, i->second, false);
-    location = locations.begin();
     resolved = true;
     return DataStatus::Success;
   }
@@ -375,7 +387,7 @@ namespace Arc {
     }
 #endif
 
-    if (!all && (location == locations.end())) {
+    if (!all && (!LocationValid())) {
       logger.msg(ERROR, "Location is missing");
       return DataStatus::UnregisterError;
     }
@@ -395,8 +407,7 @@ namespace Arc {
         lfc_endsess();
         if ((serrno == ENOENT) || (serrno == ENOTDIR)) {
           registered = false;
-          locations.clear();
-          location = locations.end();
+          ClearLocations();
           return DataStatus::Success;
         }
         logger.msg(ERROR, "Error getting replicas: %s", sstrerror(serrno));
@@ -437,8 +448,7 @@ namespace Arc {
     }
     lfc_endsess();
     registered = false;
-    locations.clear();
-    location = locations.end();
+    ClearLocations();
     return DataStatus::Success;
   }
 
