@@ -379,7 +379,7 @@ namespace Arc {
       std::string exec_option = source.GetURL().Option("exec");
       if (exec_option == "yes")
         executable = true;
-      long long int bufsize;
+      unsigned long long int bufsize;
       int bufnum;
       if (source.Cache() && destination.Local() && cache)
         cacheable = true;
@@ -399,7 +399,7 @@ namespace Arc {
           bufnum = destination.BufNum();
       }
       bufnum = bufnum * 2;
-      logger.msg(DEBUG, "Creating buffer: %i x %i", (int)bufsize, bufnum);
+      logger.msg(DEBUG, "Creating buffer: %llu x %i", (int)bufsize, bufnum);
       /* prepare crc */
       CheckSumAny crc;
       // Shold we trust indexing service or always compute checksum ?

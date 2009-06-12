@@ -877,7 +877,7 @@
     if(details->size){
       ULONG64 * fsize = details->size;
       metadata.size = *fsize;
-      logger.msg(Arc::DEBUG, "File size is %ul", *fsize);
+      logger.msg(Arc::DEBUG, "File size is %llu", *fsize);
     }
     else {metadata.size = -1;};
   
