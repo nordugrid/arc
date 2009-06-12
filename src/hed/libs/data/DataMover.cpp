@@ -388,7 +388,6 @@ namespace Arc {
       bool seekable = destination.WriteOutOfOrder();
       source.ReadOutOfOrder(seekable);
       bufnum = 1;
-std::cerr<<"bufnum(1) = "<<bufnum<<std::endl;
       if (source.BufSize() > bufsize)
         bufsize = source.BufSize();
       if (destination.BufSize() > bufsize)
@@ -396,13 +395,10 @@ std::cerr<<"bufnum(1) = "<<bufnum<<std::endl;
       if (seekable) {
         if (source.BufNum() > bufnum)
           bufnum = source.BufNum();
-std::cerr<<"bufnum(2) = "<<bufnum<<std::endl;
         if (destination.BufNum() > bufnum)
           bufnum = destination.BufNum();
-std::cerr<<"bufnum(3) = "<<bufnum<<std::endl;
       }
       bufnum = bufnum * 2;
-std::cerr<<"bufnum(4) = "<<bufnum<<std::endl;
       logger.msg(DEBUG, "Creating buffer: %i x %i", (int)bufsize, bufnum);
       /* prepare crc */
       CheckSumAny crc;
