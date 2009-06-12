@@ -180,6 +180,9 @@ InfoRegistrar::InfoRegistrar(XMLNode cfg):stretch_window("PT20S") {
     cert_ = (std::string)cfg["CertificatePath"];
     proxy_ = (std::string)cfg["ProxyPath"];
     cadir_ = (std::string)cfg["CACertificatesDir"];
+    cafile_ = (std::string)cfg["CACertificatePath"];
+
+    logger_.msg(DEBUG, "Key: %s, cert: %s", key_, cert_);
 
     initISIS(cfg);
 
@@ -295,7 +298,9 @@ bool InfoRegistrar::removeService(InfoRegister* reg) {
                 mcc_cfg.AddProxy(proxy_);
             if (!cadir_.empty())
                 mcc_cfg.AddCADir(cadir_);
-            logger_.msg(DEBUG, "Key: %s, Cert: %s, Proxy: %s, CADir: %s", key_, cert_, proxy_, cadir_);
+            if (!cafile_.empty())
+                mcc_cfg.AddCAFile(cafile_);
+            logger_.msg(DEBUG, "Key: %s, Cert: %s, Proxy: %s, CADir: %s CAPath", key_, cert_, proxy_, cadir_, cafile_);
 
             int retry_ = retry;
             while ( retry_ >= 1 ){
@@ -522,7 +527,9 @@ void InfoRegistrar::registration(void) {
                 mcc_cfg.AddProxy(proxy_);
             if (!cadir_.empty())
                 mcc_cfg.AddCADir(cadir_);
-            logger_.msg(DEBUG, "Key: %s, Cert: %s, Proxy: %s, CADir: %s", key_, cert_, proxy_, cadir_);
+            if (!cafile_.empty())
+                mcc_cfg.AddCAFile(cafile_);
+            logger_.msg(DEBUG, "Key: %s, Cert: %s, Proxy: %s, CADir: %s, CAFile", key_, cert_, proxy_, cadir_, cafile_);
 
             {std::string services_document;
              op.GetDoc(services_document, true);

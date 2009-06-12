@@ -83,6 +83,7 @@ struct ISIS_description {
     std::string cert;
     std::string proxy;
     std::string cadir;
+    std::string cafile;
 };
 
 /// Registration process associated with particular ISIS
@@ -106,6 +107,7 @@ class InfoRegistrar {
         std::string cert_;
         std::string proxy_;
         std::string cadir_;
+        std::string cafile_;
         // Associated services
         std::list<Register_Info_Type> reg_;
         // Mutex protecting reg_ list

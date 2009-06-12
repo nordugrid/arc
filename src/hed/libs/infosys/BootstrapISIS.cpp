@@ -34,7 +34,12 @@ struct Registrar_data {
         } else {
             //logger_.msg(DEBUG, "InfoRegistrar created for URL: %s",(std::string)cfg["URL"]);
         }
-
+        defaultBootstrapISIS.key = (std::string)cfg["KeyPath"];
+        defaultBootstrapISIS.cert = (std::string)cfg["CertificatePath"];
+        defaultBootstrapISIS.proxy = (std::string)cfg["ProxyPath"];
+        defaultBootstrapISIS.cadir = (std::string)cfg["CACertificatesDir"];
+        defaultBootstrapISIS.cafile = (std::string)cfg["CACertificatePath"];
+               
         // Set up default values
         myISIS = defaultBootstrapISIS;
         originalISISCount = 1;
@@ -66,6 +71,7 @@ struct Registrar_data {
 
     void InfoRegistrar::getISISList(ISIS_description isis) {
         logger_.msg(DEBUG, "getISISList from %s", isis.url);
+        logger_.msg(DEBUG, "Key %s, Cert: %s, CA: %s", isis.key, isis.cert, isis.cadir);
         // Try to get ISISList from the actual ISIS
         // Compose getISISList request
         NS query_ns;
@@ -81,7 +87,12 @@ struct Registrar_data {
         mcc_cfg.AddPrivateKey(isis.key);
         mcc_cfg.AddCertificate(isis.cert);
         mcc_cfg.AddProxy(isis.proxy);
-        mcc_cfg.AddCADir(isis.cadir);
+        if (!isis.cadir.empty()) {
+            mcc_cfg.AddCADir(isis.cadir);
+        }
+        if (!isis.cafile.empty()) {
+            mcc_cfg.AddCAFile(isis.cafile);
+        }
 
         int retry_ = retry;
         int reconnection = 0;
