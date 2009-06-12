@@ -27,7 +27,6 @@ namespace Arc {
     std::string guid;
   private:
     bool resolveGUIDToLFN();
-    void AddPFN(URL& loc, bool source);
   };
 
 } // namespace Arc

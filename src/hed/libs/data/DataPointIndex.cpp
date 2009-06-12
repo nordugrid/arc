@@ -104,7 +104,6 @@ namespace Arc {
                                          const std::string& meta) {
     logger.msg(VERBOSE, "Add location: url: %s", url.str());
     logger.msg(VERBOSE, "Add location: metadata: %s", meta);
-std::cerr<<"Current size: "<<locations.size()<<std::endl;
     for (std::list<URLLocation>::iterator i = locations.begin();
          i != locations.end(); ++i)
       if ((i->Name() == meta) && (url == (*i)))
@@ -114,7 +113,6 @@ std::cerr<<"Current size: "<<locations.size()<<std::endl;
       location = locations.begin();
       SetHandle();
     }
-std::cerr<<"New size: "<<locations.size()<<std::endl;
     return DataStatus::Success;
   }
 
