@@ -27,6 +27,7 @@ namespace ISIS {
             std::string my_cert;
             std::string my_proxy;
             std::string my_cadir;
+            std::string my_cafile;
 
             bool KillThread;
             int ThreadsCount;

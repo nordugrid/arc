@@ -72,7 +72,8 @@ static void message_send_thread(void *arg) {
         mcc_cfg.AddCertificate(((ISIS::Thread_data *)data)->isis_list[i].cert);
         mcc_cfg.AddProxy(((ISIS::Thread_data *)data)->isis_list[i].proxy);
         mcc_cfg.AddCADir(((ISIS::Thread_data *)data)->isis_list[i].cadir);
-
+        mcc_cfg.AddCAFile(((ISIS::Thread_data *)data)->isis_list[i].cafile);
+            
         Arc::ClientSOAP client_entry(mcc_cfg, url);
 
         // Create and send "Register/RemoveRegistrations" request
@@ -142,6 +143,7 @@ void SendToNeighbors(Arc::XMLNode& node, std::vector<Arc::ISIS_description> neig
                isis.cert = isis_desc.cert;
                isis.proxy = isis_desc.proxy;
                isis.cadir = isis_desc.cadir;
+               isis.cafile = isis_desc.cafile;
                data->isis_list.push_back(isis);
                it_hash++;
                if ( it_hash == hash_table.end() )
@@ -293,28 +295,34 @@ static void soft_state_thread(void *data) {
            return;
         }
         // Key from the configuration
-        my_key=(std::string)((*cfg)["keypath"]);
-        logger_.msg(Arc::DEBUG, "keypath: %s", endpoint_);
-        if ( my_key.empty()){
-           logger_.msg(Arc::ERROR, "Empty keypath element in the configuration!");
+        my_key=(std::string)((*cfg)["KeyPath"]);
+        logger_.msg(Arc::DEBUG, "KeyPath: %s", my_key);
+        if (my_key.empty()){
+           logger_.msg(Arc::WARNING, "Empty KeyPath element in the configuration!");
         }
         // Cert from the configuration
-        my_cert=(std::string)((*cfg)["certpath"]);
-        logger_.msg(Arc::DEBUG, "certpath: %s", endpoint_);
-        if ( my_cert.empty()){
-           logger_.msg(Arc::ERROR, "Empty certpath element in the configuration!");
+        my_cert=(std::string)((*cfg)["CertificatePath"]);
+        logger_.msg(Arc::DEBUG, "CertificatePath: %s", my_cert);
+        if (my_cert.empty()){
+           logger_.msg(Arc::WARNING, "Empty CertificatePath element in the configuration!");
         }
         // Proxy from the configuration
-        my_proxy=(std::string)((*cfg)["proxypath"]);
-        logger_.msg(Arc::DEBUG, "proxypath: %s", endpoint_);
-        if ( my_proxy.empty()){
-           logger_.msg(Arc::ERROR, "Empty proxypath element in the configuration!");
+        my_proxy=(std::string)((*cfg)["ProxyPath"]);
+        logger_.msg(Arc::DEBUG, "ProxyPath: %s", my_proxy);
+        if (my_proxy.empty()){
+           logger_.msg(Arc::WARNING, "Empty ProxyPath element in the configuration!");
         }
         // CaDir url from the configuration
-        my_cadir=(std::string)((*cfg)["cadirpath"]);
-        logger_.msg(Arc::DEBUG, "cadirpath: %s", endpoint_);
-        if ( my_cadir.empty()){
-           logger_.msg(Arc::ERROR, "Empty cadirpath element in the configuration!");
+        my_cadir=(std::string)((*cfg)["CACertificatesDir"]);
+        logger_.msg(Arc::DEBUG, "CACertificatesDir: %s", my_cadir);
+        if (my_cadir.empty()){
+           logger_.msg(Arc::WARNING, "Empty CACertificatesDir element in the configuration!");
+        }
+        
+        my_cafile=(std::string)((*cfg)["CACertificatePath"]);
+        logger_.msg(Arc::DEBUG, "CACertficatePath: %s", my_cafile);
+        if (my_cadir.empty()){
+           logger_.msg(Arc::WARNING, "Empty CACertificatePath element in the configuration!");
         }
 
         // Assigning service description - Glue2 document should go here.
@@ -553,6 +561,7 @@ static void soft_state_thread(void *data) {
                isis.cert = my_cert;
                isis.proxy = my_proxy;
                isis.cadir = my_cadir;
+               isis.cafile = my_cafile;
                logger_.msg(Arc::DEBUG, "RemoveRegistration message send to neighbors.");
                std::multimap<std::string,Arc::ISIS_description> local_hash_table;
                local_hash_table = hash_table;
@@ -664,6 +673,7 @@ static void soft_state_thread(void *data) {
         isis.cert = my_cert;
         isis.proxy = my_proxy;
         isis.cadir = my_cadir;
+        isis.cafile = my_cafile;
         if ( bool(request["RegEntry"]) ) {
             std::multimap<std::string,Arc::ISIS_description> local_hash_table;
             local_hash_table = hash_table;
@@ -740,6 +750,7 @@ static void soft_state_thread(void *data) {
         isis.cert = my_cert;
         isis.proxy = my_proxy;
         isis.cadir = my_cadir;
+        isis.cafile = my_cafile;
         if ( bool(request["ServiceID"]) ){
            std::multimap<std::string,Arc::ISIS_description> local_hash_table;
            local_hash_table = hash_table;
@@ -1135,7 +1146,7 @@ static void soft_state_thread(void *data) {
             mcc_cfg.AddCertificate(my_cert);
             mcc_cfg.AddProxy(my_proxy);
             mcc_cfg.AddCADir(my_cadir);
-
+            mcc_cfg.AddCAFile(my_cafile);
             // Create and send "Query" request
             logger_.msg(Arc::INFO, "Creating and sending Query request");
             Arc::NS message_ns;
@@ -1356,7 +1367,7 @@ static void soft_state_thread(void *data) {
                      isis.cert = my_cert;
                      isis.proxy = my_proxy;
                      isis.cadir = my_cadir;
-
+                     isis.cafile = my_cafile;
                      std::multimap<std::string,Arc::ISIS_description> local_hash_table;
                      local_hash_table = hash_table;
                      SendToNeighbors(sync_datas, neighbors_, logger_, isis, &not_availables_neighbors_,endpoint_,local_hash_table);
