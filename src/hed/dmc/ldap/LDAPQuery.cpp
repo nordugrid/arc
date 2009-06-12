@@ -38,13 +38,29 @@ namespace Arc {
 
   Logger LDAPQuery::logger(Logger::rootLogger, "LDAPQuery");
 
-  struct ldap_bind_arg {
+  class ldap_bind_arg {
+  public:
     LDAP *connection;
     LogLevel loglevel;
     SimpleCondition cond;
     bool valid;
     bool anonymous;
     std::string usersn;
+    ldap_bind_arg(void):count(2) { };
+    bool release(void) {
+      bool freeit = false;
+      cond.lock();
+      freeit = ((--count) <= 0);
+      cond.unlock();
+      if(freeit) {
+        if(connection) ldap_unbind_ext(connection,NULL,NULL);
+        delete this;
+      }
+      return freeit;
+    };
+  private:
+    int count;
+    ~ldap_bind_arg(void) { };
   };
 
   static void ldap_bind_with_timeout(void *arg);
@@ -274,38 +290,36 @@ namespace Arc {
       return false;
     }
 
-    ldap_bind_arg arg;
+    ldap_bind_arg* arg = new ldap_bind_arg;
 
-    arg.connection = connection;
-    arg.loglevel = logger.getThreshold();
-    arg.valid = true;
-    arg.anonymous = anonymous;
-    arg.usersn = usersn;
+    arg->connection = connection;
+    arg->loglevel = logger.getThreshold();
+    arg->valid = true;
+    arg->anonymous = anonymous;
+    arg->usersn = usersn;
 
-    Glib::Thread *thread;
-
-	if (!Arc::CreateThreadFunction(&ldap_bind_with_timeout, &arg, thread)) {
-      ldap_unbind_ext(connection, NULL, NULL);
+    if (!Arc::CreateThreadFunction(&ldap_bind_with_timeout, arg)) {
+      arg->release(); arg->release();
       connection = NULL;
       logger.msg(ERROR, "Failed to create ldap bind thread (%s)", host);
       return false;
     }
 
-    if (!arg.cond.wait(1000 * (timeout + 1))) {
-      // if bind fails unbind will fail too - so don't call it
+    if (!arg->cond.wait(1000 * (timeout + 1))) {
+      arg->release();
       connection = NULL;
       logger.msg(ERROR, "Ldap bind timeout (%s)", host);
       return false;
     }
 
-    thread->join();
-
-    if (!arg.valid) {
-      ldap_unbind_ext(connection, NULL, NULL);
+    if (!arg->valid) {
+      arg->release();
       connection = NULL;
       logger.msg(ERROR, "Failed to bind to ldap server (%s)", host);
       return false;
     }
+    arg->connection = NULL; // keep connection up
+    arg->release();
 
     return true;
   }
@@ -387,12 +401,13 @@ namespace Arc {
 #endif
     }
 
-    if (ldresult != LDAP_SUCCESS)
+    if (ldresult != LDAP_SUCCESS) {
       arg->valid = false;
-    else
+    } else {
       arg->valid = true;
-
+    }
     arg->cond.signal();
+    arg->release();
   }
 
 
