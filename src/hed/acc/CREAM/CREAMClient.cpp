@@ -7,6 +7,7 @@
 #include <glibmm/miscutils.h>
 #include <vector>
 #include <string>
+#include <stdlib.h>
 
 
 #include <arc/client/ClientInterface.h>
@@ -57,6 +58,15 @@ namespace Arc {
 
     if (str.length() > 0)
       results.push_back(str);
+  }
+
+  std::string ExtendNumber(int i){
+     char buffer[5];
+     itoa(i, buffer, 10);
+     std::string tmp_input(buffer);
+     if (tmp_input.length() == 1)
+       tmp_input = "0" + tmp_input;
+     return tmp_input;
   }
 
   //This funtion is convert from the Proxy time to valid Time string.
@@ -132,9 +142,9 @@ namespace Arc {
       hour += 12;
 
     std::ostringstream oss;
-    oss << year << "-" << month << "-" << day << "T" << hour << ":" << min << ":00.000Z";
+    oss << year << "-" << ExtendNumber(month) << "-" << ExtendNumber(day) << "T" << ExtendNumber(hour) << ":" << ExtendNumber(min) << ":00.000Z";
     std::string result(oss.str());
-
+ 
     return result;
   }
 
