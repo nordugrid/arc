@@ -201,15 +201,15 @@ namespace Arc {
     std::list<std::string> files = GetDownloadFiles(job.JobID);
 
     URL src(job.JobID);
-    URL dst(downloaddir.empty() ? jobidnum : downloaddir + '/' + jobidnum);
+    URL dst(downloaddir.empty() ? jobidnum : downloaddir + G_DIR_SEPARATOR_S + jobidnum);
 
     std::string srcpath = src.Path();
     std::string dstpath = dst.Path();
 
     if (srcpath[srcpath.size() - 1] != '/')
       srcpath += '/';
-    if (dstpath[dstpath.size() - 1] != '/')
-      dstpath += '/';
+    if (dstpath[dstpath.size() - 1] != G_DIR_SEPARATOR)
+      dstpath += G_DIR_SEPARATOR_S;
 
     bool ok = true;
 

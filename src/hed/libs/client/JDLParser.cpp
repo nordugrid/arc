@@ -711,19 +711,15 @@ namespace Arc {
         for (it_target = (*iter).Target.begin(); it_target != (*iter).Target.end(); it_target++) {
           if (first)
             product += "  OutputSandboxDestURI = {\n";
-          // first = false;
+          std::string uri_tmp = (*it_target).URI.Protocol() + "://" + (*it_target).URI.Host() + "/" + (*it_target).URI.Path();
+          if ((*it_target).URI.Host() != "localhost")
+             uri_tmp = (*it_target).URI.fullstr();
           if (it_target == (*iter).Target.begin() && first) {
             first = false;
-            product += "    \"" + (*it_target).URI.fullstr() + "\"";
+            product += "    \"" + uri_tmp + "\"";
           }
           else
-            product += ",\n    \"" + (*it_target).URI.fullstr() + "\"";
-          //                    product += "    \"" +  (*it_target).URI.fullstr() + "\"";
-          //                  if (it_target++ != (*iter).Target.end()) {
-          //                   product += ",";
-          //                 it_target--;
-          //            }
-          //          product += "\n";
+            product += ",\n    \"" + uri_tmp + "\"";
         }
       }
       if (!job.Error.empty() && !error) {
