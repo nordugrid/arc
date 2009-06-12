@@ -7,7 +7,6 @@
 #include <glibmm/miscutils.h>
 #include <vector>
 #include <string>
-#include <stdlib.h>
 
 
 #include <arc/client/ClientInterface.h>
@@ -61,9 +60,7 @@ namespace Arc {
   }
 
   std::string ExtendNumber(int i){
-     char buffer[5];
-     itoa(i, buffer, 10);
-     std::string tmp_input(buffer);
+     std::string tmp_input = tostring(i);
      if (tmp_input.length() == 1)
        tmp_input = "0" + tmp_input;
      return tmp_input;
