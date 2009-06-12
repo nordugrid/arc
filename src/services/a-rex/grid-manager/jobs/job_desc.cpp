@@ -5,6 +5,7 @@
 #include <list>
 #include <fstream>
 
+#include <arc/DateTime.h>
 #include <arc/Logger.h>
 #include <arc/StringConv.h>
 #include <arc/XMLNode.h>
@@ -100,7 +101,7 @@ bool write_grami(const Arc::JobDescription& arc_job_desc, const JobDescription& 
 
   f<<"joboption_jobname="<<value_for_shell(job_local_desc.jobname,true)<<std::endl;
   f<<"joboption_queue="<<value_for_shell(job_local_desc.queue,true)<<std::endl;
-  f<<"joboption_starttime="<<(job_local_desc.exectime.defined()?job_local_desc.exectime.str():"")<<std::endl;
+  f<<"joboption_starttime="<<(job_local_desc.exectime != -1?job_local_desc.exectime.str(Arc::MDSTime):"")<<std::endl;
   f<<"joboption_gridid="<<value_for_shell(job_desc.get_id(),true)<<std::endl;
 
   if(opt_add) f<<opt_add<<std::endl;

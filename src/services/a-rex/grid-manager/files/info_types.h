@@ -5,6 +5,8 @@
 #include <list>
 #include <iostream>
 
+#include <arc/DateTime.h>
+
 /* 
   Defines few data types used by grid-manager to store information
   about jobs.
@@ -29,33 +31,6 @@ class FileData {
 std::istream &operator>> (std::istream &i,FileData &fd);
 std::ostream &operator<< (std::ostream &o,const FileData &fd);
 
-/*
-  Time with visual representation suitable for puting into
-  MDS fields Mds-Valid-from and Mds-Valid-to. It looks like
-  YYYYMMDDhhmmssZ . Here Z stands for Z. All values are GMT.
-  Internally it's represented by Unix timestamp.
-*/
-class mds_time {
- private:
-  time_t t;
- public:
-  mds_time(void) { t=(time_t)(-1); };
-  mds_time(time_t tm) { t=tm; };
-  mds_time& operator= (time_t tm) { t=tm; return (*this); };
-  mds_time& operator= (std::string s);
-  mds_time& operator= (const char* s);
-  operator time_t (void) const { return t; };
-  bool defined(void) const { return (t != -1); };
-  bool operator>  (time_t tm) { return (t>tm);  };
-  bool operator>= (time_t tm) { return (t>=tm); };
-  bool operator<= (time_t tm) { return (t<=tm); };
-  bool operator<  (time_t tm) { return (t<tm);  };
-  bool operator== (time_t tm) { return (t==tm); };
-  std::string str(void) const;
-};
-
-std::istream &operator>> (std::istream &i,mds_time &t);
-std::ostream &operator<< (std::ostream &o,const mds_time &t);
 
 /*
   Most important information about job extracted from different sources
@@ -66,12 +41,12 @@ class JobLocalDescription {
  /* all values are public, this class is just for convenience */
  public:
  JobLocalDescription(void):jobid(""),globalid(""),lrms(""),queue(""),localid(""),
-                           DN(""),starttime(),lifetime(""),
-                           notify(""),processtime(),exectime(),
+                           DN(""),starttime((time_t)(-1)),lifetime(""),
+                           notify(""),processtime((time_t)(-1)),exectime((time_t)(-1)),
                            clientname(""),clientsoftware(""),
                            reruns(0),downloads(-1),uploads(-1),
                            jobname(""),jobreport(),
-                           cleanuptime(),expiretime(),
+                           cleanuptime((time_t)(-1)),expiretime((time_t)(-1)),
                            failedstate(""),fullaccess(false),
                            credentialserver(""),gsiftpthreads(1),
                            dryrun(false),diskspace(0), migrateactivityid(""),
@@ -86,11 +61,11 @@ class JobLocalDescription {
   std::string localid;       /* job's id in lrms */
   std::list<std::string> arguments;    /* executable + arguments */
   std::string DN;            /* user's distinguished name aka subject name */
-  mds_time starttime;        /* job submission time */
+  Arc::Time starttime;      /* job submission time */
   std::string lifetime;      /* time to live for submission directory */
   std::string notify;        /* notification flags used and email address */
-  mds_time processtime;      /* time to start job processing (downloading) */
-  mds_time exectime;         /* time to start execution */
+  Arc::Time processtime;      /* time to start job processing (downloading) */
+  Arc::Time exectime;         /* time to start execution */
   std::string clientname;    /* IP+port of user interface + info given by ui */
   std::string clientsoftware; /* Client's version */
   int    reruns;             /* number of allowed reruns left */
@@ -99,8 +74,8 @@ class JobLocalDescription {
   std::string jobname;       /* name of job given by user */
   std::list<std::string> projectnames;  /* project names, i.e. "ACIDs" */
   std::list<std::string> jobreport;     /* URLs of user's/VO's loggers */
-  mds_time cleanuptime;      /* time to remove job completely */
-  mds_time expiretime;       /* when delegation expires */
+  Arc::Time cleanuptime;      /* time to remove job completely */
+  Arc::Time expiretime;       /* when delegation expires */
   std::string stdlog;        /* dirname to which log messages will be
                                 put after job finishes */
   std::string sessiondir;    /* job's session directory */

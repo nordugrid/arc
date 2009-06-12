@@ -509,6 +509,14 @@ namespace Arc {
     return *this;
   }
 
+  Time& Time::operator=(const char* newtime) {
+    return operator=(std::string(newtime));
+  }
+
+  Time& Time::operator=(const std::string& newtime) {
+    return *this = Arc::Time(newtime);
+  }
+
   std::ostream& operator<<(std::ostream& out, const Time& time) {
     return (out << time.str());
   }

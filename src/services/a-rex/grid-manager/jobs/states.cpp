@@ -32,6 +32,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <glibmm.h>
+#include <arc/DateTime.h>
 #include <arc/StringConv.h>
 #include <arc/URL.h>
 
@@ -734,9 +735,9 @@ void JobsList::ActJobAccepted(JobsList::iterator &i,bool /*hard_job*/,
            ((JOB_NUM_FINISHING >= max_jobs_processing) && 
             (JOB_NUM_PREPARING < max_jobs_processing_emergency))) {
           /* check for user specified time */
-          if(i->local->processtime.defined()) {
+          if(i->local->processtime != -1) {
             logger.msg(Arc::INFO,"%s: State: ACCEPTED: have processtime %i",i->job_id.c_str(),
-                  i->local->processtime.str().c_str());
+                  i->local->processtime.str(Arc::MDSTime).c_str());
             if((i->local->processtime) <= time(NULL)) {
               logger.msg(Arc::INFO,"%s: State: ACCEPTED: moving to PREPARING",i->job_id);
               state_changed=true; once_more=true;

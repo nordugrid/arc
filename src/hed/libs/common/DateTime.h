@@ -103,6 +103,12 @@ namespace Arc {
     /** Assignment operator from a Time. */
     Time& operator=(const Time&);
 
+    /** Assignment operator from a char pointer. */
+    Time& operator=(const char*);
+    
+    /** Assignment operator from a string. */
+    Time& operator=(const std::string&);
+
     /** sets the time */
     void SetTime(const time_t&);
 

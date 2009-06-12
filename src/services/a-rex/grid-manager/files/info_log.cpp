@@ -12,6 +12,7 @@
 #include <pwd.h>
 
 #include <arc/StringConv.h>
+#include <arc/DateTime.h>
 #include <arc/client/JobDescription.h>
 #include "../jobs/job_desc.h"
 #include "info_files.h"
@@ -117,7 +118,7 @@ bool job_log_make_file(const JobDescription &desc,JobUser &user,const std::strin
   };
   // Start time and identifier
   t = job_mark_time(fname_src);
-  o_dst<<"submissiontime="<<mds_time(t)<<std::endl;
+  o_dst<<"submissiontime="<<Arc::Time(t).str(Arc::MDSTime)<<std::endl;
   o_dst<<"ngjobid="<<desc.get_id()<<std::endl;
   if(o_dst.fail()) goto error;
   // Analyze job.ID.local and store relevant information
@@ -261,7 +262,7 @@ bool job_log_make_file(const JobDescription &desc,JobUser &user,const std::strin
     status="completed";
     t = job_state_time(desc.get_id(),user);
     if(t == 0) t=::time(NULL);
-    o_dst<<"endtime="<<mds_time(t)<<std::endl;
+    o_dst<<"endtime="<<Arc::Time(t).str(Arc::MDSTime)<<std::endl;
     if(job_failed_mark_check(desc.get_id(),user)) {
       std::string failure = job_failed_mark_read(desc.get_id(),user);
       o_dst<<"failurestring="<<failure<<std::endl;

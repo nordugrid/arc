@@ -11,6 +11,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 
+#include <arc/DateTime.h>
 #include <arc/Thread.h>
 #include <arc/StringConv.h>
 #include <arc/FileUtils.h>
@@ -352,7 +353,7 @@ ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& crede
   // Start local file 
   /* !!!!! some parameters are unchecked here - rerun,diskspace !!!!! */
   job_.jobid=id_;
-  job_.starttime=time(NULL);
+  job_.starttime=Arc::Time();
   job_.DN=config_.GridName();
   job_.clientname=clientid;
   job_.migrateactivityid=(std::string)migration["ActivityIdentifier"];

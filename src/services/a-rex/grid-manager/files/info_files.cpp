@@ -18,6 +18,7 @@
 #include <limits>
 
 #include <arc/StringConv.h>
+#include <arc/DateTime.h>
 #include "../files/delete.h"
 #include "../misc/escaped.h"
 
@@ -650,8 +651,8 @@ inline void write_pair(std::ofstream &f,const std::string &name,const std::strin
   if(value.length()) f << name << '=' << value << std::endl;
 }
 
-inline void write_pair(std::ofstream &f,const std::string &name,const mds_time &value) {
-  if(value.defined()) f << name << '=' << value << std::endl;
+inline void write_pair(std::ofstream &f,const std::string &name,const Arc::Time &value) {
+  if(value != -1) f << name << '=' << value.str(Arc::MDSTime) << std::endl;
 }
 
 inline void write_pair(std::ofstream &f,const std::string &name,bool value) {
@@ -839,9 +840,7 @@ bool job_local_read_cleanuptime(const JobId &id,const JobUser &user,time_t &clea
   std::string fname = user.ControlDir() + "/job." + id + sfx_local;
   std::string str;
   if(!job_local_read_var(fname,"cleanuptime",str)) return false;
-  mds_time cupt;
-  cupt = str;
-  cleanuptime=(time_t)cupt;
+  cleanuptime=Arc::Time(str).GetTime();
   return true;
 }
 

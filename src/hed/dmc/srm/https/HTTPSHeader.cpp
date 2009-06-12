@@ -8,7 +8,7 @@ namespace Arc {
     keep_alive=alive;
     content_length_passed=false;
     content_range_passed=false;
-    expires=0; last_modified=0;
+    expires=(time_t)0; last_modified=(time_t)0;
   }
   
   bool HTTPResponseHeader::set(const char* name,const char* value) {
