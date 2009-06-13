@@ -193,7 +193,7 @@ void handleConfusaSLCS(bool use_oauth) {
 	}
 
 	int cn_len = handler.getCN().size();
-	int enc_len = ((int) cn_len*1.5+1);
+	int enc_len = (int)(cn_len*1.5+1);
 	char b64cn_char[enc_len];
 	Arc::Base64::encode(b64cn_char, handler.getCN().c_str(), cn_len);
 	std::string b64cn = b64cn_char;
