@@ -2031,6 +2031,9 @@ err:
         if(l <= 0) break;
         content.append(s,l);
       }
+    } else {
+      BIO_free_all(out);
+      return false;
     }
 
     BIO_free_all(out);

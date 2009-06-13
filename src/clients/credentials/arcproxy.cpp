@@ -769,7 +769,8 @@ int main(int argc, char *argv[]) {
       cred_request.SetProxyPolicy("gsi2", "", "", -1);
 
     std::string proxy_cert;
-    signer.SignRequest(&cred_request, proxy_cert);
+    if(!signer.SignRequest(&cred_request, proxy_cert))
+      throw std::runtime_error("Failed to sign proxy");
 
     proxy_cert.append(private_key).append(signing_cert).append(signing_cert_chain);
 
