@@ -6,6 +6,7 @@
 \usepackage{textcomp}                              %for various symbols, e.g. Registered Mark
 \usepackage{geometry}                              %for defining page size
 \usepackage{longtable}                             %for breaking tables
+\usepackage{soul}				       %package for highlight text
 %\usepackage{trackchanges}
 %
 \geometry{verbose,a4paper,tmargin=2.5cm,bmargin=2.5cm,lmargin=2.5cm,rmargin=2CM}
@@ -64,9 +65,9 @@
 %%%%---- A subtitle, if necessary ----
 {\centering \textit{\large Documentation and developer's guide}\large \par}
     
-\vspace*{1.5cm}
+%%%%\vspace*{1.5cm}
 %%%%---- A list of authors ----
-    {\centering \large \footnote{@} \large \par}
+%%%%    {\centering \large \footnote{@} \large \par}
 \end{titlepage}
 
 \tableofcontents                          %Comment if use article style
@@ -242,7 +243,7 @@ There is also an other extension used regarding the InfoProvider ISIS nodes. If 
 \subsubsection{Routing in the peer-to-peer network}
 We are keeping the databases in synch by passing every Registration and RemoveRegistrations to every node acting in the network. This yields redundancy and fault tolerant message routing between any two ISIS nodes.
 
-The most important parameter of the network is the {\it sparsity}. This is an integer not less than 2. It determines the number of neighbors as a function of the actual number of member nodes of the network, where the number of neighbors can change when new members connect to the network or old members leave. A sparse graph can be shaped by choosing a great value for sparsity or a dense one by choosing a smaller one. This value is defined during the design and determines the main properties of the peer-to-peer network.
+The most important parameter of the network is the {\it sparsity}. This is an integer not less than 2. It determines the number of neighbors as a function of the actual number of member nodes of the network, where the number of neighbors can change when new members connect to the network or old members leave. A sparse graph can be shaped by choosing a great value for sparsity or a dense one by choosing a smaller one. This value is defined during the service configuration and determines the main properties of the peer-to-peer network.
 \begin{figure}[ht]
 \centering{{\scalebox{0.6}{\includegraphics{Circle2-1.png}}}
 \caption{\label{fig:p2p_neighbors_2} The neighbor connections in the peer-to-peer network in case of sparsity=2} }
@@ -639,13 +640,13 @@ operations must be supported --- \textit{GetResourcePropertDocument}, \textit{Ge
 \section{Registration}
 \label{sec:service_registration}
 
-The registration of a service is carried out by an internal module called Registrant. The Registrant is an active module of the HED (Hosting Environment Daemon) which is bound to a set of ISISes. In practice, the configuration part of the Registrant contains exactly one ISIS to bind, and the Registrant will collect the necessary information about the other ISISes belonging to the same network.
+The registration of a service is carried out by an internal module called \hl{Registrant}. The \hl{Registrant} is an active module of the HED (Hosting Environment Daemon) which is bound to a set of ISISes. In practice, the configuration part of the \hl{Registrant} contains exactly one ISIS to bind, and the \hl{Registrant} will collect the necessary information about the other ISISes belonging to the same network.
 
-To register services to more than one ISIS network multiple Registrant instances has to be configured. In this case, the default Registrant will be used for registering every service unless configured explicitly.
-The registration of a service can be done once or periodically based either on the configuration of the Registrant or overwritten for every service separately. The Registrant is also performing message aggregation of all services linked to it if possible. The simplified algorithm of the Registrant is presented below.
+To register services to more than one ISIS network multiple \hl{Registrant} instances has to be configured. In this case, the default \hl{Registrant} will be used for registering every service unless configured explicitly.
+The registration of a service can be done once or periodically based either on the configuration of the \hl{Registrant} or overwritten for every service separately. The \hl{Registrant} is also performing message aggregation of all services linked to it if possible. The simplified algorithm of the \hl{Registrant} is presented below.
 
 \begin{framed}
-  Registrant --- pseudo algorithm\\
+  \hl{Registrant} --- pseudo algorithm\\
   \\
   \verb#// Initialize phase#\\
   \verb#Read the configuration and store the information about the services in a list#\\
@@ -669,20 +670,20 @@ The registration of a service can be done once or periodically based either on t
 The current implementation does not allow the value of the period to be less than 2 minutes.
 
 The service provides the \textbf{Service Advertisement} part of the information sent to ISIS (see Section \ref{sub:isis_interface}).
-Before sending this information the Registrant extends it with additional data (\textbf{Service Advertisement Metadata}).
+Before sending this information the \hl{Registrant} extends it with additional data (\textbf{Service Advertisement Metadata}).
 
 An example layout of services is shown on Figure \ref{fig:registration_overview}. In this configuration example 
-there are two Registrants configured in one HED container for three services. The \textit{Registrant A} is the 
-default Registrant and the services configured in the following way:
+there are two \hl{Registrant}s configured in one HED container for three services. The \textit{\hl{Registrant} A} is the 
+default \hl{Registrant} and the services configured in the following way:
 
 \begin{itemize}
-  \item Service 1: There is no Registrant configured so the default one will register it.
-  \item Service 2: The \textit{Registrant A} is configured explicitly.
-  \item Service 3: The \textit{Registrant B} is configured explicitly.
+  \item Service 1: There is no \hl{Registrant} configured so the default one will register it.
+  \item Service 2: The \textit{\hl{Registrant} A} is configured explicitly.
+  \item Service 3: The \textit{\hl{Registrant} B} is configured explicitly.
 \end{itemize}
 
-So Service 1 and 2 are both handled by \textit{Registrant A} and Service 3 by \textit{Registrant B}.
-In the first step each Registrant performs information collection from all assigned services sequentially. Registrants themselves are executing in parallel. For Figure \ref{fig:registration_overview} the approximate sequence of information collection is (\textit{A1}-\textit{A2}, \textit{B1}-\textit{B2}) followed by (\textit{A3}, \textit{A4}). After collection  the aggregated information is sent to the corresponding ISISes independently by each other Registrant (\textit{A5}, \textit{B5}).
+So Service 1 and 2 are both handled by \textit{\hl{Registrant} A} and Service 3 by \textit{\hl{Registrant} B}.
+In the first step each \hl{Registrant} performs information collection from all assigned services sequentially. \hl{Registrant}s themselves are executing in parallel. For Figure \ref{fig:registration_overview} the approximate sequence of information collection is (\textit{A1}-\textit{A2}, \textit{B1}-\textit{B2}) followed by (\textit{A3}, \textit{A4}). After collection  the aggregated information is sent to the corresponding ISISes independently by each other \hl{Registrant} (\textit{A5}, \textit{B5}).
 
 \begin{figure}[ht]
 \centering{{\scalebox{0.6}{\includegraphics{Registration.png}}}
@@ -707,18 +708,18 @@ Section \ref{sub:isis_authorization_information_authorization} should be applied
 \section{Configuration}
 \label{sec:service_configuration}
 
-The registration operation is done by the Registrants as described in Section \ref{sec:service_registration}.
-Each Registrant is instantiated by the corresponding InfoRegistrar XML element in the configuration file as 
-defined in Section \ref{annex:service_configuration_schema}. The first InfoRegistrar defines the Registrant 
+The registration operation is done by the \hl{Registrant}s as described in Section \ref{sec:service_registration}.
+Each \hl{Registrant} is instantiated by the corresponding InfoRegistrar XML element in the configuration file as 
+defined in Section \ref{annex:service_configuration_schema}. The first InfoRegistrar defines the \hl{Registrant} 
 that is used to register every service by default.
 
 Registration parameters per service are defined by the InfoRegister element located inside the corresponding 
-service configuration element. To assign a service to specific Registrant(s) one may use Registrar 
+service configuration element. To assign a service to specific \hl{Registrant}(s) one may use Registrar 
 configuration elements situated inside InfoRegister. If no Registrar element is defined the service will 
-be registered using first (default) Registrant. To make a service not register itself the special configuration element 
+be registered using first (default) \hl{Registrant}. To make a service not register itself the special configuration element 
 NoRegister has to be used.
 
-The Following elements are defined inside the configuration element of the Registrant:
+The Following elements are defined inside the configuration element of the \hl{Registrant}:
 \begin{description}
 \item{URL} specifies the contact endpoint of a bootstrap ISIS. If needed further ISIS addresses will be 
 queried from this service. This element is mandatory.
@@ -1196,7 +1197,7 @@ Interface of Information Indexing Service
         <!-- This element defines configuration of Information Registration
              active element. This element is located at top level configuration
              document. Each instance if such element instatiates one instance
-             of Information Registrant active element. -->
+             of Information \hl{Registrant} active element. -->
         <xsd:sequence>
             <!-- URL specifies contact endpoint of a bootstrap Information
                  Registration service. Further ISIS adresses will be queried
