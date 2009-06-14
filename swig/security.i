@@ -64,10 +64,13 @@ namespace ArcSec {
     };
     
     %nodefaultctor Evaluator;
+    %newobject Evaluator::evaluate;
     class Evaluator {
     public:
         void addPolicy(const Source& policy,const std::string& id = "");
+        %apply SWIGTYPE *DISOWN {Policy *policy};
         void addPolicy(Policy* policy,const std::string& id = "");
+        %clear Policy *policy;
         Response* evaluate(Request* request);
         Response* evaluate(const Source& request);
         Response* evaluate(const Source& request, const Source& policy);
@@ -76,6 +79,9 @@ namespace ArcSec {
         Response* evaluate(Request* request, const Source& policy);
     };
 
+    %newobject EvaluatorLoader::getEvaluator;
+    %newobject EvaluatorLoader::getRequest;
+    %newobject EvaluatorLoader::getPolicy;
     class EvaluatorLoader {
     public:
         EvaluatorLoader();
