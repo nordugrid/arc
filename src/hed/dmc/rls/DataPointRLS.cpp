@@ -194,15 +194,16 @@ namespace Arc {
     } else {
       for (std::list<URLLocation>::const_iterator loc = url.Locations().begin();
            loc != url.Locations().end(); loc++) {
-        for (globus_list_t *lp = pfns_list; lp; lp = globus_list_rest(lp)) {
-          globus_rls_string2_t *str2 =
-            (globus_rls_string2_t*)globus_list_first(lp);
-          URL pfn(str2->s2);
-          // for RLS URLs are used instead of metanames
-          if (pfn == *loc) {
-            logger.msg(DEBUG, "Adding location: %s - %s",
-                       rlsurl.str(), pfn.str());
-            if (source) {
+        if(source) {
+          // for source find subset of locations registered in RLS
+          for (globus_list_t *lp = pfns_list; lp; lp = globus_list_rest(lp)) {
+            globus_rls_string2_t *str2 =
+              (globus_rls_string2_t*)globus_list_first(lp);
+            URL pfn(str2->s2);
+            // for RLS URLs are used instead of metanames
+            if (pfn == *loc) {
+              logger.msg(DEBUG, "Adding location: %s - %s",
+                         rlsurl.str(), pfn.str());
               for (std::map<std::string, std::string>::const_iterator i =
                      url.CommonLocOptions().begin();
                    i != url.CommonLocOptions().end(); i++) {
@@ -210,18 +211,19 @@ namespace Arc {
               }
               URL pfn_ = AddPFN(pfn,source);
               AddLocation(pfn_, rlsurl.str());
-            } else {
-              URL pfn_(*loc);
-              for (std::map<std::string, std::string>::const_iterator i =
-                     url.CommonLocOptions().begin();
-                   i != url.CommonLocOptions().end(); i++) {
-                pfn_.AddOption(i->first, i->second, false);
-              }
-              pfn_ = AddPFN(pfn_,source);
-              AddLocation(pfn_, rlsurl.str());
+              break;
             }
-            break;
           }
+        } else {
+          // for destination accept specified locations
+          URL pfn_(*loc);
+          for (std::map<std::string, std::string>::const_iterator i =
+                 url.CommonLocOptions().begin();
+            i != url.CommonLocOptions().end(); i++) {
+            pfn_.AddOption(i->first, i->second, false);
+          }
+          pfn_ = AddPFN(pfn_,source);
+          AddLocation(pfn_, rlsurl.str());
         }
       }
     }
@@ -285,9 +287,11 @@ namespace Arc {
 
   /* perform resolve operation, which can take long time */
   DataStatus DataPointRLS::Resolve(bool source) {
+std::cerr<<"DataPointRLS::Resolve: "<<url.str()<<std::endl;
     resolved = false;
     registered = false;
     if (source) {
+std::cerr<<"DataPointRLS::Resolve: is source"<<std::endl;
       if (url.Path().empty()) {
         logger.msg(INFO, "Source must contain LFN");
         return DataStatus::ReadResolveError;
@@ -303,6 +307,7 @@ namespace Arc {
         return arg.success;
     }
     else {
+std::cerr<<"DataPointRLS::Resolve: is destination: "<<url.Path()<<std::endl;
       if (url.Path().empty()) {
         logger.msg(INFO, "Destination must contain LFN");
         return DataStatus::WriteResolveError;
