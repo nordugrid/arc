@@ -182,8 +182,12 @@ int main(int argc, char *argv[]) {
 
     if (key_path.empty()) 
       key_path = Arc::GetEnv("X509_USER_KEY");
+    if (!Glib::file_test(key_path, Glib::FILE_TEST_IS_REGULAR)) 
+      key_path = "";
     if (key_path.empty())
       key_path = (std::string)usercfg.ConfTree()["KeyPath"];
+    if (!Glib::file_test(key_path, Glib::FILE_TEST_IS_REGULAR))
+      key_path = "";
     if (key_path.empty()) {
       key_path = std::string(g_get_home_dir()) + G_DIR_SEPARATOR_S ".globus" + G_DIR_SEPARATOR_S + "userkey.pem";
       if (!Glib::file_test(key_path, Glib::FILE_TEST_IS_REGULAR)) {
@@ -195,8 +199,12 @@ int main(int argc, char *argv[]) {
 
     if (cert_path.empty())
       cert_path = Arc::GetEnv("X509_USER_CERT");
+    if (!Glib::file_test(cert_path, Glib::FILE_TEST_IS_REGULAR)) 
+      cert_path = "";
     if (cert_path.empty())
       cert_path = (std::string)usercfg.ConfTree()["CertificatePath"];
+    if (!Glib::file_test(cert_path, Glib::FILE_TEST_IS_REGULAR)) 
+      cert_path = "";
     if (cert_path.empty()) {
       cert_path = std::string(g_get_home_dir()) + G_DIR_SEPARATOR_S ".globus" + G_DIR_SEPARATOR_S + "usercert.pem";
       if (!Glib::file_test(cert_path, Glib::FILE_TEST_IS_REGULAR)) {
@@ -208,8 +216,12 @@ int main(int argc, char *argv[]) {
 
     if (proxy_path.empty())
       proxy_path = Arc::GetEnv("X509_USER_PROXY");
+    if (!Glib::file_test(proxy_path, Glib::FILE_TEST_IS_REGULAR)) 
+      proxy_path = "";
     if (proxy_path.empty())
       proxy_path = (std::string)usercfg.ConfTree()["ProxyPath"];
+    if (!Glib::file_test(proxy_path, Glib::FILE_TEST_IS_REGULAR)) 
+      proxy_path = "";
     if (proxy_path.empty()) {
       std::string proxy_tmp = "x509up_u" + Arc::tostring(user.get_uid());
       proxy_path  = Glib::build_filename(Glib::get_tmp_dir(),proxy_tmp); 
@@ -217,8 +229,12 @@ int main(int argc, char *argv[]) {
 
     if (ca_dir.empty())
       ca_dir = Arc::GetEnv("X509_CERT_DIR");
+    if (!Glib::file_test(ca_dir, Glib::FILE_TEST_IS_DIR)) 
+      ca_dir="";
     if (ca_dir.empty())
       ca_dir = (std::string)usercfg.ConfTree()["CACertificatesDir"];
+    if (!Glib::file_test(ca_dir, Glib::FILE_TEST_IS_DIR)) 
+      ca_dir="";
     if (ca_dir.empty()) {
         ca_dir = std::string(g_get_home_dir()) + G_DIR_SEPARATOR_S + ".globus" + G_DIR_SEPARATOR_S + "certificates";
         if (!Glib::file_test(ca_dir, Glib::FILE_TEST_IS_DIR)) {
