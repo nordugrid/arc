@@ -49,8 +49,11 @@ namespace Arc {
     if (!client)
       return DataStatus::CheckError;
 
-    std::string canonic_url = url.Protocol() + "://" + url.Host() + "/" + url.HTTPOption("SFN");
-    srm_request = new SRMClientRequest(canonic_url);
+    if (url.HTTPOption("SFN", "") == "")
+      srm_request = new SRMClientRequest(url.str());
+    else
+      srm_request = new SRMClientRequest(url.Protocol() + "://" + url.Host() + "/" + url.HTTPOption("SFN"));
+    
     if (!srm_request)
       return DataStatus::CheckError;
 
@@ -62,7 +65,7 @@ namespace Arc {
 
     if (metadata.empty())
       return DataStatus::CheckError;
-    logger.msg(INFO, "Check: obtained size: %l", metadata.front().size);
+    logger.msg(INFO, "Check: obtained size: %lli", metadata.front().size);
     if (metadata.front().size > 0)
       SetSize(metadata.front().size);
     logger.msg(INFO, "Check: obtained checksum: %s", metadata.front().checkSumValue);
@@ -153,7 +156,7 @@ namespace Arc {
       }
       // provide some metadata
       if (!metadata.empty()) {
-        logger.msg(INFO, "StartReading: obtained size: %l", metadata.front().size);
+        logger.msg(INFO, "StartReading: obtained size: %lli", metadata.front().size);
         if (metadata.front().size > 0)
           SetSize(metadata.front().size);
         logger.msg(INFO, "StartReading: obtained checksum: %s:%s", metadata.front().checkSumType, metadata.front().checkSumValue);
