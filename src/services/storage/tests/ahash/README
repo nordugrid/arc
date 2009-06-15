@@ -1,0 +1,8 @@
+This directory contains test scripts for testing performance and 
+consistency of the ahash service.
+
+It has the following files:
+ahashsetup.py    module for setting up an ahash client
+ahashtest.py     script repeatedly getting or setting entries in A-Hash
+                 choosing randomly between replicas when getting
+ahashkiller.py   Restarting random A-Hash replicas remotly
