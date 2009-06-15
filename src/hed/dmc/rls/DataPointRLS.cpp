@@ -82,7 +82,7 @@ namespace Arc {
   }
 
   URL DataPointRLS::AddPFN(const URL& purl,bool source) {
-    if(source) return url;
+    if(source) return purl;
     bool se_uses_lfn = false;
     std::string u = purl.str();
     if (purl.Protocol() == "se") {
@@ -188,8 +188,8 @@ namespace Arc {
           pfn.AddOption(i->first, i->second, false);
         }
         URL pfn_ = AddPFN(pfn,source);
-        AddLocation(pfn_, rlsurl.str());
         logger.msg(DEBUG, "Adding location: %s - %s", rlsurl.str(), pfn.str());
+        AddLocation(pfn_, rlsurl.str());
       }
     } else {
       for (std::list<URLLocation>::const_iterator loc = url.Locations().begin();
