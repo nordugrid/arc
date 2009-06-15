@@ -381,7 +381,7 @@ namespace Arc {
     }
 
     if (r_handle == NULL) {
-      logger.msg(INFO, "SRM returned no useful Transfer URLs: %s", url);
+      logger.msg(INFO, "SRM returned no useful Transfer URLs: %s", url.str());
       delete client;
       client = NULL;
       return DataStatus::WriteError;
