@@ -585,6 +585,30 @@ namespace Arc {
         caCertificatesDir.clear();
       }
     }
+    else if (stat((caCertificatesDir = std::string(g_get_home_dir()) + G_DIR_SEPARATOR_S + ".globus" + G_DIR_SEPARATOR_S + "certificates").c_str(), &st) == 0) {
+      if (!S_ISDIR(st.st_mode)) {
+        logger.msg(ERROR, "CA certificate directory is not a directory: %s", caCertificatesDir);
+        caCertificatesDir.clear();
+      }
+    }
+    else if (stat((caCertificatesDir = Arc::ArcLocation::Get() + G_DIR_SEPARATOR_S + "etc" + G_DIR_SEPARATOR_S + "certificates").c_str(), &st) == 0) {
+      if (!S_ISDIR(st.st_mode)) {
+        logger.msg(ERROR, "CA certificate directory is not a directory: %s", caCertificatesDir);
+        caCertificatesDir.clear();
+      }
+    }
+    else if (stat((caCertificatesDir = Arc::ArcLocation::Get() + G_DIR_SEPARATOR_S + "etc" + G_DIR_SEPARATOR_S + G_DIR_SEPARATOR_S + "grid-security" + "certificates").c_str(), &st) == 0) {
+      if (!S_ISDIR(st.st_mode)) {
+        logger.msg(ERROR, "CA certificate directory is not a directory: %s", caCertificatesDir);
+        caCertificatesDir.clear();
+      }
+    }
+    else if (stat((caCertificatesDir = Arc::ArcLocation::Get() + G_DIR_SEPARATOR_S + "share"  + G_DIR_SEPARATOR_S + "certificates").c_str(), &st) == 0) {
+      if (!S_ISDIR(st.st_mode)) {
+        logger.msg(ERROR, "CA certificate directory is not a directory: %s", caCertificatesDir);
+        caCertificatesDir.clear();
+      }
+    }
     else {
       strv_t caCertificatesPath(3);
       caCertificatesPath[0] = "etc";

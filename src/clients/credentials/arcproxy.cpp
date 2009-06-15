@@ -243,11 +243,14 @@ int main(int argc, char *argv[]) {
            ca_dir = Arc::ArcLocation::Get() + G_DIR_SEPARATOR_S + "etc" +  G_DIR_SEPARATOR_S + "certificates";
            if (!Glib::file_test(ca_dir, Glib::FILE_TEST_IS_DIR)) {
              ca_dir = user.Home() + G_DIR_SEPARATOR_S + ".globus" + G_DIR_SEPARATOR_S + "certificates";
-             if (!Glib::file_test(ca_dir, Glib::FILE_TEST_IS_DIR)) {
-               ca_dir = "/etc/grid-security/certificates";
-               if (!Glib::file_test(ca_dir, Glib::FILE_TEST_IS_DIR)) 
-                  ca_dir="";
-             }
+               if (!Glib::file_test(ca_dir, Glib::FILE_TEST_IS_DIR)) {
+                   ca_dir = Arc::ArcLocation::Get() + G_DIR_SEPARATOR_S + "share" +  G_DIR_SEPARATOR_S + "certificates";
+                   if (!Glib::file_test(ca_dir, Glib::FILE_TEST_IS_DIR)) {
+                       ca_dir = "/etc/grid-security/certificates"; 
+                       if (!Glib::file_test(ca_dir, Glib::FILE_TEST_IS_DIR)) 
+                         ca_dir="";
+                   }
+               }
            }
         }
       }
