@@ -321,7 +321,7 @@ static void soft_state_thread(void *data) {
         
         my_cafile=(std::string)((*cfg)["CACertificatePath"]);
         logger_.msg(Arc::DEBUG, "CACertficatePath: %s", my_cafile);
-        if (my_cadir.empty()){
+        if (my_cafile.empty()){
            logger_.msg(Arc::WARNING, "Empty CACertificatePath element in the configuration!");
         }
 
