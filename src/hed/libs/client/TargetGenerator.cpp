@@ -81,8 +81,8 @@ namespace Arc {
 
     if (foundJobs.size() > 0) {
       for (std::list<XMLNode*>::iterator it = foundJobs.begin();
-           it != foundJobs.end(); foundJobs.begin()) {
-        delete *foundJobs.erase(it);
+           it != foundJobs.end(); it++) {
+        delete *it;
       }
     }
   }
