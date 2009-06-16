@@ -12,3 +12,5 @@ LoggerTest_LDADD = $(CPPUNIT_LIBS) ../libarccommon.la
 RunTest_SOURCES = $(top_srcdir)/src/Test.cpp RunTest.cpp
 RunTest_CXXFLAGS = $(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) -I$(top_srcdir)/include
 RunTest_LDADD = $(CPPUNIT_LIBS) ../libarccommon.la
+
+EXTRA_DIST = rcode
