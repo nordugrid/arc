@@ -1,6 +1,8 @@
 #ifndef __ARC_MCCTLS_H__
 #define __ARC_MCCTLS_H__
 
+#include <arc/Thread.h>
+#include <arc/Logger.h>
 #include <arc/message/MCC.h>
 
 namespace Arc {
