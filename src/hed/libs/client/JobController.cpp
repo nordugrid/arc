@@ -186,12 +186,12 @@ namespace Arc {
     }
 
     if (!job.JobID) {
-      logger.msg(WARNING, "The job ID (%s) is not a valid URL", job.JobID);
+      logger.msg(WARNING, "The job ID (%s) is not a valid URL", job.JobID.str());
       return;
     }
 
     if (!job.Cluster) {
-      logger.msg(WARNING, "The cluster URL is not a valid URL", job.Cluster);
+      logger.msg(WARNING, "The cluster URL is not a valid URL", job.Cluster.str());
       return;
     }
 
