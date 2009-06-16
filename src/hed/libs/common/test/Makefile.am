@@ -1,4 +1,4 @@
-TESTS = URLTest LoggerTest RunTest
+TESTS = URLTest LoggerTest RunTest ThreadTest
 check_PROGRAMS = $(TESTS)
 
 URLTest_SOURCES = $(top_srcdir)/src/Test.cpp URLTest.cpp
@@ -12,5 +12,9 @@ LoggerTest_LDADD = $(CPPUNIT_LIBS) ../libarccommon.la
 RunTest_SOURCES = $(top_srcdir)/src/Test.cpp RunTest.cpp
 RunTest_CXXFLAGS = $(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) -I$(top_srcdir)/include
 RunTest_LDADD = $(CPPUNIT_LIBS) ../libarccommon.la
+
+ThreadTest_SOURCES = $(top_srcdir)/src/Test.cpp ThreadTest.cpp
+ThreadTest_CXXFLAGS = $(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) -I$(top_srcdir)/include
+ThreadTest_LDADD = $(CPPUNIT_LIBS) ../libarccommon.la
 
 EXTRA_DIST = rcode

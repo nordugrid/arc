@@ -18,7 +18,7 @@ namespace Arc {
   /// Defines size of stack assigned to every new thread.
   /* It seems like MacOS has very small stack per thread by default.
      So it's safer to have bigger one defined. If this value is set
-     to 0 default value wil lbe used. */
+     to 0 default value will be used. */
   const size_t thread_stacksize = (16 * 1024 * 1024);
 
   /// This macro behaves like function which makes thread of class' method.
@@ -28,17 +28,19 @@ namespace Arc {
      Specified instance must be valid during whole lifetime of
      thread. So probably it is safer to destroy 'instance' in
      'method' just before exiting. */
+/*
 #define CreateThreadClass(instance, method) \
   { \
     Glib::Thread *thr = NULL; \
-    /* ThreadLock.lock(); */ \
+    * ThreadLock.lock(); * \
     try { \
       UserSwitch usw(0,0); \
       thr = Glib::Thread::create(sigc::mem_fun((instance), &method), false); \
     } catch (std::exception& e) {}; \
-    /* ThreadLock.unlock(); */ \
+    * ThreadLock.unlock(); * \
     (thr != NULL); \
-  } \
+  }
+*/
 
   /// Helper function to create simple thread.
   /** It takes care of all pecularities of Glib::Thread API.
@@ -51,9 +53,10 @@ namespace Arc {
   /** It takes care of all pecularities of Glib::Thread API.
      As result it runs function 'func' with argument 'arg' in a separate
      thread. The created thread will be joinable.
-     Returns true on success. */
-
-  bool CreateThreadFunction(void (*func)(void*), void *arg, Glib::Thread *&thr);
+     Returns true on success.
+     This function is currently disable becaueit is not clear if
+     joinability is a needed feature */
+  //bool CreateThreadFunction(void (*func)(void*), void *arg, Glib::Thread *&thr);
 
   /// Simple triggered condition.
   /** Provides condition and semaphor objects in one element. */
