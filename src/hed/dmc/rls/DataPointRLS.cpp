@@ -84,7 +84,7 @@ namespace Arc {
   URL DataPointRLS::AddPFN(const URL& purl,bool source) {
     if(source) return purl;
     bool se_uses_lfn = false;
-    std::string u = purl.str();
+    std::string u = purl.fullstr();
     if (purl.Protocol() == "se") {
       u += "?";
       se_uses_lfn = true;
@@ -287,11 +287,9 @@ namespace Arc {
 
   /* perform resolve operation, which can take long time */
   DataStatus DataPointRLS::Resolve(bool source) {
-std::cerr<<"DataPointRLS::Resolve: "<<url.str()<<std::endl;
     resolved = false;
     registered = false;
     if (source) {
-std::cerr<<"DataPointRLS::Resolve: is source"<<std::endl;
       if (url.Path().empty()) {
         logger.msg(INFO, "Source must contain LFN");
         return DataStatus::ReadResolveError;
@@ -307,7 +305,6 @@ std::cerr<<"DataPointRLS::Resolve: is source"<<std::endl;
         return arg.success;
     }
     else {
-std::cerr<<"DataPointRLS::Resolve: is destination: "<<url.Path()<<std::endl;
       if (url.Path().empty()) {
         logger.msg(INFO, "Destination must contain LFN");
         return DataStatus::WriteResolveError;
