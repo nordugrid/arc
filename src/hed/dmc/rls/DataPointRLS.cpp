@@ -360,9 +360,9 @@ std::cerr<<"DataPointRLS::Resolve: is destination: "<<url.Path()<<std::endl;
       }
 */
     }
-    logger.msg(DEBUG, "meta_get_data: checksum: %s", GetCheckSum());
-    logger.msg(DEBUG, "meta_get_data: size: %llu", GetSize());
-    logger.msg(DEBUG, "meta_get_data: created: %s", GetCreated().str());
+    if (CheckCheckSum()) logger.msg(DEBUG, "meta_get_data: checksum: %s", GetCheckSum());
+    if (CheckSize()) logger.msg(DEBUG, "meta_get_data: size: %llu", GetSize());
+    if (CheckCreated()) logger.msg(DEBUG, "meta_get_data: created: %s", GetCreated().str());
     resolved = true;
     return DataStatus::Success;
   }
