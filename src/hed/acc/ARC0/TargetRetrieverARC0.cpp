@@ -369,7 +369,7 @@ namespace Arc {
             stringtoi((std::string)cluster["nordugrid-cluster-nodememory"]);
         if (authuser["nordugrid-authuser-diskspace"])
           target.MaxDiskSpace =
-            0.001 * stringtoi((std::string)authuser["nordugrid-authuser-diskspace"]);
+            stringtoi((std::string)authuser["nordugrid-authuser-diskspace"])/1000;
         if (cluster["nordugrid-cluster-localse"])
           target.DefaultStorageService =
             (std::string)cluster["nordugrid-cluster-localse"];
@@ -458,12 +458,12 @@ namespace Arc {
             target.Homogeneous = false;
         if (cluster["nordugrid-cluster-sessiondir-total"])
           target.WorkingAreaTotal =
-            0.001 * stringtoi((std::string)
-                              cluster["nordugrid-cluster-sessiondir-total"]);
+            stringtoi((std::string)
+                       cluster["nordugrid-cluster-sessiondir-total"])/1000;
         if (cluster["nordugrid-cluster-sessiondir-free"])
           target.WorkingAreaFree =
-            0.001 * stringtoi((std::string)
-                              cluster["nordugrid-cluster-sessiondir-free"]);
+            stringtoi((std::string)
+                        cluster["nordugrid-cluster-sessiondir-free"])/1000;
         if (cluster["nordugrid-cluster-sessiondir-lifetime"])
           target.WorkingAreaLifeTime =
             (std::string)cluster["nordugrid-cluster-sessiondir-lifetime"];
