@@ -4,6 +4,8 @@
 #include <config.h>
 #endif
 
+#include <glib.h>
+
 #include <arc/Logger.h>
 #include <arc/URL.h>
 #include <arc/message/MCC.h>
