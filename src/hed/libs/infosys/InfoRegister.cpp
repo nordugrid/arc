@@ -41,6 +41,8 @@ InfoRegister::InfoRegister(XMLNode &cfg, Service *service):reg_period_(0),servic
     if (!s_reg_period.empty()) {
         Period p(s_reg_period);
         reg_period_ = p.GetPeriod();
+        if (reg_period_ < 120)
+            reg_period_ = 120;
     } else {
         reg_period_ = -1;
     }
