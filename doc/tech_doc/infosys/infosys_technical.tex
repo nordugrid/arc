@@ -59,7 +59,7 @@
 \vspace*{2cm}
 
 %%%%---- The title ----
-{\centering \textsc{\Large ARC Information System}\Large \par}
+{\centering \textsc{\Large ARC peer-to-peer information system}\Large \par}
 \vspace*{0.5cm}
     
 %%%%---- A subtitle, if necessary ----
@@ -640,13 +640,13 @@ operations must be supported --- \textit{GetResourcePropertDocument}, \textit{Ge
 \section{Registration}
 \label{sec:service_registration}
 
-The registration of a service is carried out by an internal module called \hl{Registrant}. The \hl{Registrant} is an active module of the HED (Hosting Environment Daemon) which is bound to a set of ISISes. In practice, the configuration part of the \hl{Registrant} contains exactly one ISIS to bind, and the \hl{Registrant} will collect the necessary information about the other ISISes belonging to the same network.
+The registration of a service is carried out by an internal module called InfoRegistrar. The InfoRegistrar is an active module of the HED (Hosting Environment Daemon) which is bound to a set of ISISes. In practice, the configuration part of the InfoRegistrar contains exactly one ISIS to bind, and the InfoRegistrar will collect the necessary information about the other ISISes belonging to the same network.
 
-To register services to more than one ISIS network multiple \hl{Registrant} instances has to be configured. In this case, the default \hl{Registrant} will be used for registering every service unless configured explicitly.
-The registration of a service can be done once or periodically based either on the configuration of the \hl{Registrant} or overwritten for every service separately. The \hl{Registrant} is also performing message aggregation of all services linked to it if possible. The simplified algorithm of the \hl{Registrant} is presented below.
+To register services to more than one ISIS network multiple InfoRegistrar instances has to be configured. In this case, every InfoRegistrar will be used parallel for registering every service unless configured explicitly.
+The registration of a service can be done once or periodically based either on the configuration of the service or overwritten for every InfoRegistrar per service separately. The InfoRegistrar is also performing message aggregation of all services linked to it if possible. The simplified algorithm of the InfoRegistrar is presented below.
 
 \begin{framed}
-  \hl{Registrant} --- pseudo algorithm\\
+  InfoRegistrar --- simplified pseudo algorithm\\
   \\
   \verb#// Initialize phase#\\
   \verb#Read the configuration and store the information about the services in a list#\\
@@ -670,20 +670,19 @@ The registration of a service can be done once or periodically based either on t
 The current implementation does not allow the value of the period to be less than 2 minutes.
 
 The service provides the \textbf{Service Advertisement} part of the information sent to ISIS (see Section \ref{sub:isis_interface}).
-Before sending this information the \hl{Registrant} extends it with additional data (\textbf{Service Advertisement Metadata}).
+Before sending this information the InfoRegistrar extends it with additional data (\textbf{Service Advertisement Metadata}).
 
 An example layout of services is shown on Figure \ref{fig:registration_overview}. In this configuration example 
-there are two \hl{Registrant}s configured in one HED container for three services. The \textit{\hl{Registrant} A} is the 
-default \hl{Registrant} and the services configured in the following way:
+there are two InfoRegistrars configured in one HED container for three services. The services are configured in the following way:
 
 \begin{itemize}
-  \item Service 1: There is no \hl{Registrant} configured so the default one will register it.
-  \item Service 2: The \textit{\hl{Registrant} A} is configured explicitly.
-  \item Service 3: The \textit{\hl{Registrant} B} is configured explicitly.
+  \item Service 1: The \textit{InfoRegistrar A} is configured explicitly.
+  \item Service 2: There is no InfoRegistrar configured so all existing InfoRegistrar will register it parallel.
+  \item Service 3: The \textit{InfoRegistrar B} is configured explicitly.
 \end{itemize}
 
-So Service 1 and 2 are both handled by \textit{\hl{Registrant} A} and Service 3 by \textit{\hl{Registrant} B}.
-In the first step each \hl{Registrant} performs information collection from all assigned services sequentially. \hl{Registrant}s themselves are executing in parallel. For Figure \ref{fig:registration_overview} the approximate sequence of information collection is (\textit{A1}-\textit{A2}, \textit{B1}-\textit{B2}) followed by (\textit{A3}, \textit{A4}). After collection  the aggregated information is sent to the corresponding ISISes independently by each other \hl{Registrant} (\textit{A5}, \textit{B5}).
+So Service 1 and 2 are both handled by \textit{InfoRegistrar A} since Service 2 and Service 3 by \textit{InfoRegistrar B}.
+In the first step each InfoRegistrar performs information collection from all assigned services sequentially. InfoRegistrars themselves are executing in parallel. After collection  the aggregated information is sent to the corresponding ISISes independently by each other InfoRegistrar.
 
 \begin{figure}[ht]
 \centering{{\scalebox{0.6}{\includegraphics{Registration.png}}}
@@ -708,18 +707,17 @@ Section \ref{sub:isis_authorization_information_authorization} should be applied
 \section{Configuration}
 \label{sec:service_configuration}
 
-The registration operation is done by the \hl{Registrant}s as described in Section \ref{sec:service_registration}.
-Each \hl{Registrant} is instantiated by the corresponding InfoRegistrar XML element in the configuration file as 
-defined in Section \ref{annex:service_configuration_schema}. The first InfoRegistrar defines the \hl{Registrant} 
-that is used to register every service by default.
+The registration operation is done by the InfoRegistrars as described in Section \ref{sec:service_registration}.
+Each InfoRegistrar is instantiated by the corresponding InfoRegistrar XML element in the configuration file as 
+defined in Section \ref{annex:service_configuration_schema}.
 
-Registration parameters per service are defined by the InfoRegister element located inside the corresponding 
-service configuration element. To assign a service to specific \hl{Registrant}(s) one may use Registrar 
+The default registration parameters per service are defined by the InfoRegister elements located inside the corresponding 
+service configuration element. To assign a service to specific InfoRegistrar(s) one may use Registrar 
 configuration elements situated inside InfoRegister. If no Registrar element is defined the service will 
-be registered using first (default) \hl{Registrant}. To make a service not register itself the special configuration element 
+be registered using every InfoRegistrars. To make a service not register itself the special configuration element 
 NoRegister has to be used.
 
-The Following elements are defined inside the configuration element of the \hl{Registrant}:
+The Following elements are defined inside the configuration element of the InfoRegistrar:
 \begin{description}
 \item{URL} specifies the contact endpoint of a bootstrap ISIS. If needed further ISIS addresses will be 
 queried from this service. This element is mandatory.
