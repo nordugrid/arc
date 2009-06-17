@@ -312,7 +312,7 @@ static void soft_state_thread(void *data) {
         if (my_proxy.empty()){
            logger_.msg(Arc::WARNING, "Empty ProxyPath element in the configuration!");
         }
-        // CaDir url from the configuration
+        // CaDir from the configuration
         my_cadir=(std::string)((*cfg)["CACertificatesDir"]);
         logger_.msg(Arc::DEBUG, "CACertificatesDir: %s", my_cadir);
         if (my_cadir.empty()){
@@ -999,7 +999,7 @@ static void soft_state_thread(void *data) {
              db_->get(query_it->first, data_);
              Arc::XMLNode regentry = data_;
              Arc::ISIS_description service;
-             service.url = (std::string)data_["RegEntry"]["SrcAdv"]["EPR"]["Address"];
+             service.url = (std::string)data_["SrcAdv"]["EPR"]["Address"];
              if ( service.url.empty() )
                 service.url = query_it->first;
              //service.key = Key( regentry);
