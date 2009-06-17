@@ -126,6 +126,11 @@ struct Registrar_data {
             if ( !ISIS_found ) {
                 ISIS_description new_ISIS;
                 new_ISIS.url = (std::string)(*response)["GetISISListResponse"]["EPR"][i];
+                new_ISIS.key = defaultBootstrapISIS.key;
+                new_ISIS.cert = defaultBootstrapISIS.cert;
+                new_ISIS.proxy = defaultBootstrapISIS.proxy;
+                new_ISIS.cadir = defaultBootstrapISIS.cadir;
+                new_ISIS.cafile = defaultBootstrapISIS.cafile;
                 myISISList.push_back(new_ISIS);
                 logger_.msg(DEBUG, "GetISISList add this (%s) ISIS into the list.", new_ISIS.url);
             }
