@@ -606,8 +606,9 @@ bool check_cert_type(X509* cert, certType& type) {
 
   X509_NAME* issuer = NULL;
   X509_NAME* subject = X509_get_subject_name(cert);
+  X509_NAME_ENTRY * name_entry = NULL;
   if(!subject) goto err;
-  X509_NAME_ENTRY * name_entry = X509_NAME_get_entry(subject, X509_NAME_entry_count(subject)-1);
+  name_entry = X509_NAME_get_entry(subject, X509_NAME_entry_count(subject)-1);
   if(!name_entry) goto err;
   if (!OBJ_cmp(name_entry->object,OBJ_nid2obj(NID_commonName))) {
     /* the name entry is of the type: common name */
