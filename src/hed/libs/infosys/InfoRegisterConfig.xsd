@@ -40,9 +40,9 @@
             <!-- Element defines the unique id of the service propagated outside. -->
             <xsd:element name="ServiceID" type="xsd:string" minOccurs="0" maxOccurs="1"/>
             <!-- This element defines URL of the service as seen from outside. -->
-            <xsd:element name="endpoint" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="Endpoint" type="xsd:string" minOccurs="0" maxOccurs="1"/>
             <!-- This element defines the expiration time of the information provided by the service. -->
-            <xsd:element name="expiration" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="Expiration" type="xsd:string" minOccurs="0" maxOccurs="1"/>
         </xsd:sequence>
         <!-- Attribute id is to define the previously configured InfoRegistrar to be refered -->
         <xsd:attribute name="id" type="xsd:string" use="required"/>
@@ -66,9 +66,9 @@
             <!-- Element defines the unique id of the service propagated outside. -->
             <xsd:element name="ServiceID" type="xsd:string" minOccurs="0" maxOccurs="1"/>
             <!-- This element defines URL of the service as seen from outside. -->
-            <xsd:element name="endpoint" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="Endpoint" type="xsd:string" minOccurs="1" maxOccurs="1"/>
             <!-- This element defines the expiration time of the information provided by the service. -->
-            <xsd:element name="expiration" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="Expiration" type="xsd:string" minOccurs="1" maxOccurs="1"/>
         </xsd:sequence>
     </xsd:complexType>
     <xsd:element name="InfoRegister" type="iregc:InfoRegister_Type"/>
