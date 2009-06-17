@@ -115,9 +115,8 @@ namespace ArcCredential {
     } cert_verify_context;
 
     int verify_cert_chain(X509* cert, STACK_OF(X509)** certchain, cert_verify_context* vctx);
-    int verify_callback(int ok, X509_STORE_CTX* store_ctx);
     bool check_cert_type(X509* cert, certType& type);
-    int check_issued(X509_STORE_CTX* ctx, X509* x, X509* issuer);
+    const char* certTypeToString(certType type);
 
 }
 

@@ -19,7 +19,8 @@ namespace ArcCredential {
 
   static Arc::Logger& logger = Arc::Logger::rootLogger;
 
-static const char* certTypeToString(certType type);
+static int check_issued(X509_STORE_CTX*, X509* x, X509* issuer);
+static int verify_callback(int ok, X509_STORE_CTX* store_ctx);
 
 int verify_cert_chain(X509* cert, STACK_OF(X509)** certchain, cert_verify_context* vctx) {
   int i;
@@ -52,11 +53,13 @@ int verify_cert_chain(X509* cert, STACK_OF(X509)** certchain, cert_verify_contex
       }
     }
   }
+  if(user_cert == NULL) goto err;
 
-  if (X509_STORE_load_locations(cert_store, vctx->ca_file.empty() ? NULL:vctx->ca_file.c_str(),
-     vctx->ca_dir.empty() ? NULL:vctx->ca_dir.c_str())) {
+  if (X509_STORE_load_locations(cert_store,
+           vctx->ca_file.empty() ? NULL:vctx->ca_file.c_str(),
+           vctx->ca_dir.empty() ? NULL:vctx->ca_dir.c_str())) {
     store_ctx = X509_STORE_CTX_new();
-    X509_STORE_CTX_init(store_ctx, cert_store, user_cert,NULL);
+    X509_STORE_CTX_init(store_ctx, cert_store, user_cert, NULL);
     //Last parameter is "untrusted", probably related globus code is wrong.
 
 #if SSLEAY_VERSION_NUMBER >=  0x0090600fL
@@ -78,7 +81,8 @@ int verify_cert_chain(X509* cert, STACK_OF(X509)** certchain, cert_verify_contex
 #endif
 
     if (!X509_STORE_CTX_set_ex_data(store_ctx, VERIFY_CTX_STORE_EX_DATA_IDX, (void *)vctx)) {
-      std::cerr<<"Can not set the STORE_CTX"<<std::endl; goto err;
+      logger.msg(Arc::ERROR,"Can not set the STORE_CTX for chain verification");
+      goto err;
     }
 
     //X509_STORE_CTX_set_depth(store_ctx, 10);
@@ -90,7 +94,8 @@ int verify_cert_chain(X509* cert, STACK_OF(X509)** certchain, cert_verify_contex
   //trusted ca certificate is added
   if(*certchain) { sk_X509_pop_free(*certchain, X509_free); }
   *certchain = sk_X509_new_null();
-  for (i=0; i < sk_X509_num(store_ctx->chain); i++) {
+
+  if(store_ctx != NULL) for (i=0; i < sk_X509_num(store_ctx->chain); i++) {
     X509* tmp = NULL; tmp = X509_dup(sk_X509_value(store_ctx->chain,i));
     sk_X509_insert(*certchain, tmp, i);
   }
@@ -104,7 +109,7 @@ err:
   return retval;
 }
 
-int verify_callback(int ok, X509_STORE_CTX* store_ctx) {
+static int verify_callback(int ok, X509_STORE_CTX* store_ctx) {
   cert_verify_context*      vctx;
   vctx = (cert_verify_context *) X509_STORE_CTX_get_ex_data(store_ctx, VERIFY_CTX_STORE_EX_DATA_IDX);
   //TODO get SSL object here, special for GSSAPI
@@ -384,14 +389,15 @@ int verify_callback(int ok, X509_STORE_CTX* store_ctx) {
 #endif /* X509_V_ERR_CERT_REVOKED */
 
 
-// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     /** Only need to check signing policy file for no-proxy certificate*/
     char* cadir = NULL;
     char* ca_policy_file_path = NULL;
     if (X509_NAME_cmp(X509_get_subject_name(store_ctx->current_cert), X509_get_issuer_name(store_ctx->current_cert))) {
-      //cadir = vctx->ca_dir.empty() ? getenv(X509_CERT_DIR) : vctx->ca_dir.c_str();
       cadir = (char*)(vctx->ca_dir.c_str());
-      if(!cadir) { std::cerr<<"Can not find the directory of trusted CAs"<<std::endl; return (0);}
+      if(!(*cadir)) {
+        logger.msg(Arc::ERROR,"Directory of trusted CAs is not specified/found");
+        return (0);
+      }
 
       unsigned int buffer_len;
       unsigned long hash;
@@ -400,8 +406,13 @@ int verify_callback(int ok, X509_STORE_CTX* store_ctx) {
       buffer_len = strlen(cadir) + strlen(FILE_SEPERATOR) + 8 /* hash */
         + strlen(SIGNING_POLICY_FILE_EXTENSION) + 1 /* NULL */;
       ca_policy_file_path = (char*) malloc(buffer_len);
-      if(ca_policy_file_path == NULL) {store_ctx->error = X509_V_ERR_APPLICATION_VERIFICATION; return (0); }
-      sprintf(ca_policy_file_path,"%s%s%08lx%s", cadir, FILE_SEPERATOR, hash, SIGNING_POLICY_FILE_EXTENSION);
+      if(ca_policy_file_path == NULL) {
+        logger.msg(Arc::ERROR,"Can't allocate memory for CA policy path");
+        store_ctx->error = X509_V_ERR_APPLICATION_VERIFICATION;
+        return (0);
+      }
+      snprintf(ca_policy_file_path,buffer_len,"%s%s%08lx%s", cadir, FILE_SEPERATOR, hash, SIGNING_POLICY_FILE_EXTENSION);
+      ca_policy_file_path[buffer_len-1]=0;
 
       //TODO check the certificate against policy
 
@@ -420,7 +431,7 @@ int verify_callback(int ok, X509_STORE_CTX* store_ctx) {
   ASN1_OBJECT* extension_obj;
   extensions = store_ctx->current_cert->cert_info->extensions;
   int i;
-  for (i=0;i<sk_X509_EXTENSION_num(extensions);i++) {
+  if(extensions) for (i=0;i<sk_X509_EXTENSION_num(extensions);i++) {
     ext = (X509_EXTENSION *) sk_X509_EXTENSION_value(extensions,i);
     if(X509_EXTENSION_get_critical(ext)) {
       extension_obj = X509_EXTENSION_get_object(ext);
@@ -440,15 +451,17 @@ int verify_callback(int ok, X509_STORE_CTX* store_ctx) {
 #endif
         ) {
         store_ctx->error = X509_V_ERR_CERT_REJECTED;
-        std::cerr<<"Certificate has unknown extension with numeric ID: "<<nid<<" and SN: "<<OBJ_nid2sn(nid)<<std::endl;
+        logger.msg(Arc::ERROR,"Certificate has unknown extension with numeric ID %u and SN %s",(unsigned int)nid,OBJ_nid2sn(nid));
         return (0);
       }
 
+// TODO: do not use openssl version - instead use result of check if
+// proxy extension is supported
 #if (OPENSSL_VERSION_NUMBER > 0x0090706fL) && (nid == NID_proxyCertInfo)
-      /* If the openssl version >=097g (which means proxy cert info is supported), and
-       * NID_proxyCertInfo can be got from the extension, then we use
-       * the proxy cert info support from openssl itself. Otherwise we need
-       * use globus-customized proxy cert info support.
+      /* If the openssl version >=097g (which means proxy cert info is 
+       * supported), and NID_proxyCertInfo can be got from the extension, 
+       * then we use the proxy cert info support from openssl itself. 
+       * Otherwise we have to use globus-customized proxy cert info support.
        */
       PROXY_CERT_INFO_EXTENSION*  proxycertinfo = NULL;
       proxycertinfo = (PROXY_CERT_INFO_EXTENSION*) X509V3_EXT_d2i(ext);
@@ -488,7 +501,7 @@ int verify_callback(int ok, X509_STORE_CTX* store_ctx) {
                    proxycertinfo->proxyPolicy->policy->length);
               }
               /* Use : as seperator for policies parsed from different proxy certificate*/
-              /* !!!! Taking int oacclount previous proxy_policy.clear() !!!!
+              /* !!!! Taking int account previous proxy_policy.clear() !!!!
                  !!!! it seems to be impossible to have more than one    !!!!
                  !!!!  policy collected anyway !!!! */
               vctx->proxy_policy.append(":");
@@ -541,7 +554,7 @@ int verify_callback(int ok, X509_STORE_CTX* store_ctx) {
               vctx->proxy_policy.append(policy_string, length);
               /* Use : as seperator for policies parsed from different 
                  proxy certificate*/
-              /* !!!! Taking int oacclount previous proxy_policy.clear() !!!!
+              /* !!!! Taking int account previous proxy_policy.clear() !!!!
                  !!!! it seems to be impossible to have more than one    !!!!
                  !!!!  policy collected anyway !!!! */
               vctx->proxy_policy.append(":");
@@ -565,7 +578,7 @@ int verify_callback(int ok, X509_STORE_CTX* store_ctx) {
   * all we do is substract off the proxy_dpeth
   */
   if(store_ctx->current_cert == store_ctx->cert) {
-    for (i=0; i < sk_X509_num(store_ctx->chain); i++) {
+    if(store_ctx->chain) for (i=0; i < sk_X509_num(store_ctx->chain); i++) {
       X509* cert = sk_X509_value(store_ctx->chain,i);
       if (((i - vctx->proxy_depth) > 1) && (cert->ex_pathlen != -1)
                && ((i - vctx->proxy_depth) > (cert->ex_pathlen + 1))
@@ -707,10 +720,10 @@ err:
 
 #if SSLEAY_VERSION_NUMBER >=  0x0090600fL
 /**Replace the OpenSSL check_issued in x509_vfy.c with our own,
- *so we can override the key usage checks if its a proxy.
+ *so we can override the key usage checks if it's a proxy.
  *We are only looking for X509_V_ERR_KEYUSAGE_NO_CERTSIGN
 */
-int check_issued(X509_STORE_CTX*, X509* x, X509* issuer) {
+static int check_issued(X509_STORE_CTX*, X509* x, X509* issuer) {
   int  ret;
   int  ret_code = 1;
 
@@ -746,7 +759,7 @@ int check_issued(X509_STORE_CTX*, X509* x, X509* issuer) {
 }
 #endif
 
-static const char* certTypeToString(certType type) {
+const char* certTypeToString(certType type) {
   switch(type) {
     case CERT_TYPE_EEC:
     case CERT_TYPE_CA:

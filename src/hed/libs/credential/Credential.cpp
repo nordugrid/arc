@@ -270,6 +270,10 @@ namespace Arc {
     return str;
   }
 
+  certType Credential::GetType(void) {
+    return cert_type_;
+  }
+
   std::string Credential::GetProxyPolicy(void) {
     return (verify_ctx_.proxy_policy);
   }
@@ -807,8 +811,12 @@ namespace Arc {
       return;
     }
 
+    //Initiate the proxy certificate constant and  method which is required by openssl
+    if(!proxy_init_) InitProxyCertInfo();
+
     try {
       loadCertificate(certfile, cert_, &cert_chain_);
+      if(cert_) check_cert_type(cert_,cert_type_);
       //std::cout<<"Your identity: "<<GetDN() << std::endl;
       if(keyfile.empty()) {
         //Detect if the certificate file/string contains private key.
@@ -841,9 +849,6 @@ namespace Arc {
 
     //Get the lifetime of the credential
     getLifetime(cert_chain_, cert_, start_, lifetime_);
-
-    //Initiate the proxy certificate constant and  method which is required by openssl
-    if(!proxy_init_) InitProxyCertInfo();
 
     if(!cacertfile_.empty() || !cacertdir_.empty())
       Verify();
@@ -2075,10 +2080,14 @@ err:
 
     InitVerification();
 
+    //Initiate the proxy certificate constant and  method which is required by openssl
+    if(!proxy_init_) InitProxyCertInfo();
+
     extensions_ = sk_X509_EXTENSION_new_null();
 
     try {
       loadCertificate(CAfile, cert_, &cert_chain_);
+      if(cert_) check_cert_type(cert_,cert_type_);
       loadKey(CAkey, pkey_, passphrase4key);
     } catch(std::exception& err){
       CredentialLogger.msg(ERROR, "ERROR:%s", err.what());

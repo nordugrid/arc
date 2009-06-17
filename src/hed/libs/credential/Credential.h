@@ -190,6 +190,9 @@ class Credential {
      */
     std::string GetIdentityName(void);
 
+    /**Get type of the certificate attached to this object*/
+    ArcCredential::certType GetType(void);
+
     /**Get the proxy policy attached to the "proxy certificate
      * information" extension of the proxy certicate
      */
