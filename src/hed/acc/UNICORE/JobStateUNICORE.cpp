@@ -27,4 +27,15 @@ JobState::StateType JobStateUNICORE::StateMap(const std::string& state)
 118      <xsd:enumeration value="FAILED"/>
 119      <xsd:enumeration value="STAGINGIN"/>
 120      <xsd:enumeration value="STAGINGOUT"/>
+
+     UNICORE shows the following job states:
+
+        * STAGINGIN - the server is staging in data from remote sites into the job directory
+        * READY - job is ready to be started
+        * QUEUED - job is waiting in the batch queue
+        * RUNNING - job is running
+        * STAGINGOUT - execution has finished, and the server is staging out data to remote sites
+        * SUCCESSFUL - all finished, no errors occured
+        * FAILED - errors occured in the execution and/or data staging phases
+        * UNDEFINED - this state formally exists, but is not seen on clients
 */
