@@ -291,6 +291,7 @@ int main(int argc, char *argv[]) {
     std::cout << "Identity: " << holder.GetIdentityName() << std::endl;
     std::cout << "Timeleft for proxy: " << (holder.GetEndTime() - Arc::Time()).tolongstring() << std::endl;
     std::cout << "Proxy path: " << proxy_path << std::endl;
+    std::cout << "Proxy type: " << certTypeToString(holder.GetType()) << std::endl;
 
     std::vector<std::string> voms_trust_dn;
     res = parseVOMSAC(holder, "", "", voms_trust_dn, voms_attributes, false);
