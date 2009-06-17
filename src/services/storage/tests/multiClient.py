@@ -31,26 +31,42 @@ def myfunc(thread, start, stop, subcoll, clientnum):
     request={}
     i_path = '/'+subcoll+str(thread)
     request[i_path] = (i_path,{})
-    res = bartender.makeCollection(request)
+    while True:
+        try:		
+            res = bartender.makeCollection(request)
+            print 'successfully Created'
+            break
+            
+        except:       
+            print 'Faile: try retry ... '
+
     #res = bartender.stat(request)
-    time.sleep(random.random())
+    #time.sleep(random.random())
     print res
     for i in range(start,stop):
         request={}
         i_path = '/'+subcoll+str(thread)+"/w"+str(i)
         request[i_path] = (i_path,{})
         start_create = time.time()
-        res = bartender.makeCollection(request)
+        while True:
+	    try:
+                res = bartender.makeCollection(request)
+                print 'successfully Created:'
+                break
+            except:
+                print 'Failed: retry .... '
+        print res 
+        stop_create = time.time()
+        f.write(str(i)+"\t"+str(stop_create-start_create)+"\n") 
         #res = bartender.stat(request)
         #while res[i_path] != 'done':
 	#	time.sleep(random.random()*1.5)
 	#	print 'retry ...'
         #        res = bartender.makeCollection(request) 
         #res = bartender.stat({'0':('/c'+str(thread)+"/w"+str(i))})
-        stop_create = time.time()
-        print res
-	f.write(str(i)+"\t"+str(stop_create-start_create)+"\n")
-	time.sleep(random.random()*2)
+        #stop_create = time.time()
+	#f.write(str(i)+"\t"+str(stop_create-start_create)+"\n")
+        #time.sleep(random.random()*0.1)
     f.close()
 
 ssl_config = {}
