@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ArcConfig>
+  <!-- Default services. Services to be used if none is given on the commandline.
+       Overrides the default services set in the system configuration.
+   -->
+  <DefaultServices>
+    <!-- Specify middleware (Flavour), service (computing or index) and destination. -->
+    <URL Flavour="ARC0" ServiceType="index">ldap://grid.tsl.uu.se:2135/Mds-Vo-name=Sweden,o=grid</URL>
+    <URL Flavour="CREAM" ServiceType="index">ldap://cream.grid.upjs.sk:2170/o=Grid</URL>
+  </DefaultServices>
+  <!-- Specify the broker used in resource discovery. The default broker is RandomBroker. -->
+  <Broker>FastestQueueBroker</Broker>
+  <!-- If you have your certificate, etc. in a non standard localtion you can specify it here. -->
+  <CertificatePath>/home/username/cert.pem</CertificatePath>
+  <KeyPath>/home/username/key.pem</KeyPath>
+  <ProxyPath>/tmp/my-proxy</ProxyPath>
+  <!-- Alias definition. Instead of typing the whole URL on the commandline use a alias instead. -->
+  <AliasList>
+    <Alias name="myfavorite1">
+      <URL Flavour="ARC0" ServiceType="computing">ldap://grid.tsl.uu.se:2135/nordugrid-cluster-name=grid.tsl.uu.se,Mds-Vo-name=local,o=grid</URL>
+    </Alias>
+    <Alias name="myfavorite2">
+      <URL Flavour="ARC1" ServiceType="computing">https://knowarc1.grid.niif.hu:60000/arex</URL>
+    </Alias>
+    <Alias name="myfavorite3">
+      <URL Flavour="CREAM" ServiceType="computing">ldap://cream.grid.upjs.sk:2170/Mds-Vo-name=knowarc-cream,o=grid</URL>
+    </Alias>
+    <!-- It is also possible to define a alias from already defined alias. -->
+    <Alias name="myfavorites">
+      <AliasRef>myfavorite1</AliasRef>
+      <AliasRef>myfavorite2</AliasRef>
+      <AliasRef>myfavorite3</AliasRef>
+    </Alias>
+  </AliasList>
+</ArcConfig>

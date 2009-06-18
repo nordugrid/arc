@@ -469,10 +469,10 @@ namespace Arc {
             (std::string)cluster["nordugrid-cluster-sessiondir-lifetime"];
         if (cluster["nordugrid-cluster-cache-total"])
           target.CacheTotal =
-            0.001 * stringtoi((std::string)cluster["nordugrid-cluster-cache-total"]);
+            stringtoi((std::string)cluster["nordugrid-cluster-cache-total"])/1000;
         if (cluster["nordugrid-cluster-cache-free"])
           target.CacheFree =
-            0.001 * stringtoi((std::string)cluster["nordugrid-cluster-cache-free"]);
+            stringtoi((std::string)cluster["nordugrid-cluster-cache-free"])/1000;
 
         // Benchmarks
         if (queue["nordugrid-queue-benchmark"])
