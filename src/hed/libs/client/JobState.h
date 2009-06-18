@@ -13,7 +13,7 @@
 
 namespace Arc {
 
-  // Each plugin should contain a class which inherits this class.
+  // Each plugin should contain a class which inherits from this class.
   // Only the constructor and the static method StateMap is supposed to overridden.
 
   class JobState {
@@ -21,19 +21,20 @@ namespace Arc {
       JobState() : type(UNDEFINED) {}
       JobState(const std::string& state) : type(StateMap(state)), state(state) {}
 
+      // Order is important!
 #define JOBSTATE_TABLE \
+        JOBSTATE_X(UNDEFINED, "Undefined")\
         JOBSTATE_X(ACCEPTED, "Accepted")\
         JOBSTATE_X(PREPARING, "Preparing")\
         JOBSTATE_X(SUBMITTING, "Submitting")\
+        JOBSTATE_X(HOLD, "Hold")\
         JOBSTATE_X(QUEUING, "Queuing")\
         JOBSTATE_X(RUNNING, "Running")\
         JOBSTATE_X(FINISHING, "Finishing")\
         JOBSTATE_X(FINISHED, "Finished")\
         JOBSTATE_X(KILLED, "Killed")\
         JOBSTATE_X(FAILED, "Failed")\
-        JOBSTATE_X(DELETED, "Deleted")\
-        JOBSTATE_X(HOLD, "Hold")\
-        JOBSTATE_X(UNDEFINED, "Undefined")
+        JOBSTATE_X(DELETED, "Deleted")
 
 #define JOBSTATE_X(a, b) a,
       enum StateType { JOBSTATE_TABLE };
@@ -44,6 +45,10 @@ namespace Arc {
 
       bool operator==(const StateType& st) const { return type == st; }
       bool operator!=(const StateType& st) const { return type != st; }
+      bool operator<(const StateType& st) const { return type < st; }
+      bool operator>(const StateType& st) const { return type > st; }
+      bool operator<=(const StateType& st) const { return type <= st; }
+      bool operator>=(const StateType& st) const { return type >= st; }
 
       std::string operator()() const { return state; } // State reported by Plugin.
 

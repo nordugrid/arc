@@ -18,6 +18,7 @@
 #include <arc/StringConv.h>
 #include <arc/credential/Credential.h>
 
+#include "JobStateCREAM.h"
 #include "CREAMClient.h"
 //#include "OpenSSLFunctions.h"
 
@@ -214,7 +215,7 @@ namespace Arc {
 
     //Set the job's attributes
     if (last_status_id > 0)
-      job.State = (std::string)(*resp)["JobInfoResponse"]["result"]["jobInfo"]["status"][last_status_id - 1]["name"];
+      job.State = JobStateCREAM((std::string)(*resp)["JobInfoResponse"]["result"]["jobInfo"]["status"][last_status_id - 1]["name"]);
 
     if (Setting_Checker((*resp)["JobInfoResponse"]["result"]["jobInfo"]["jobId"]["id"]) &&
         Setting_Checker((*resp)["JobInfoResponse"]["result"]["jobInfo"]["jobId"]["creamURL"])) {
@@ -383,7 +384,7 @@ namespace Arc {
       logger.msg(ERROR, (std::string)(fault["Description"]));
       return false;
     }
-    if (job.State == "") {
+    if (job.State().empty()) {
       logger.msg(ERROR, "The job status could not be retrieved");
       return false;
     }

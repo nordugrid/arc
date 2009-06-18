@@ -11,10 +11,11 @@
 #include <arc/wsrf/WSResourceProperties.h>
 #include <arc/StringConv.h>
 
+#include "JobStateARC1.h"
 #include "AREXClient.h"
 
 namespace Arc {
-  const std::string mainStateModel = "nordugrid";
+  const std::string AREXClient::mainStateModel = "nordugrid";
 
   static const std::string BES_FACTORY_ACTIONS_BASE_URL("http://schemas.ggf.org/bes/2006/08/bes-factory/BESFactoryPortType/");
   static const std::string BES_MANAGEMENT_ACTIONS_BASE_URL("http://schemas.ggf.org/bes/2006/08/bes-management/BESManagementPortType/");
@@ -303,11 +304,11 @@ namespace Arc {
         }
         const std::string model = tokens[0];
         const std::string state = rawState.substr(model.size()+1);
-        if (model == mainStateModel) job.State = state;
+        if (model == mainStateModel) job.State = JobStateARC1(state);
         job.AuxStates[model] = state;
       }
 
-      if (job.State == "") {
+      if (job.State().empty()) {
         logger.msg(ERROR, "The job status could not be retrieved");
         return false;
       }

@@ -131,6 +131,8 @@ namespace Arc {
       return client;
     }
 
+    static const std::string mainStateModel;
+
   private:
     bool process(PayloadSOAP& req, PayloadSOAP** resp, bool delegate);
 

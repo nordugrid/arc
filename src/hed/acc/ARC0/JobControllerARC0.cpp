@@ -22,6 +22,7 @@
 #endif
 
 
+#include "JobStateARC0.h"
 #include "JobControllerARC0.h"
 #include "FTPControl.h"
 
@@ -105,7 +106,7 @@ namespace Arc {
         XMLNode& jobinfo = *jobinfolist.begin();
 
         if (jobinfo["nordugrid-job-status"])
-          (*it)->State = (std::string)jobinfo["nordugrid-job-status"];
+          (*it)->State = JobStateARC0((std::string)jobinfo["nordugrid-job-status"]);
         if (jobinfo["nordugrid-job-globalowner"])
           (*it)->Owner = (std::string)jobinfo["nordugrid-job-globalowner"];
         if (jobinfo["nordugrid-job-execcluster"])

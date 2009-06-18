@@ -5,6 +5,7 @@
 
 #include <arc/DateTime.h>
 #include <arc/URL.h>
+#include <arc/client/JobState.h>
 #include <string>
 
 namespace Arc {
@@ -36,9 +37,9 @@ namespace Arc {
     URL IDFromEndpoint;
     std::string LocalIdFromManager;
     std::string JobDescription;
-    std::string State; //for the main state model, currently nordugrid state
+    JobState State;
+    std::string RestartState;
     std::map<std::string, std::string> AuxStates; //for all state models
-    std::string RestartState; //for the main state model, currently nordugrid state
     std::map<std::string, std::string> RestartStates; //for all state models
     int ExitCode;
     std::string ComputingManagerExitCode;

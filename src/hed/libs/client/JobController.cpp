@@ -211,28 +211,24 @@ namespace Arc {
     for (std::list<Job>::iterator it = jobstore.begin();
          it != jobstore.end(); it++) {
 
-      if (it->State.empty()) {
+      if (it->State().empty()) {
         logger.msg(WARNING, "Job information not found: %s", it->JobID.str());
         continue;
       }
 
       if (!status.empty() && std::find(status.begin(), status.end(),
-                                       it->State) == status.end())
+                                       it->State()) == status.end())
         continue;
 
-      /* Need to fix this after we have implemented "normalized states"
-         if (it->State == "DELETED") {
-         logger.msg(WARNING, "Job has already been deleted: %s",
-          it->JobID.str());
-         continue;
-         }
-
-         if (it->State != "FINISHED" && it->State != "FAILED" &&
-          it->State != "KILLED"){
-         logger.msg(WARNING, "Job has not finished yet: %s", it->JobID.str());
-         continue;
-         }
-       */
+      if (it->State == JobState::DELETED) {
+        logger.msg(WARNING, "Job has already been deleted: %s",
+         it->JobID.str());
+        continue;
+      }
+      else if (it->State < JobState::FINISHED) {
+        logger.msg(WARNING, "Job has not finished yet: %s", it->JobID.str());
+        continue;
+      }
 
       downloadable.push_back(&(*it));
     }
@@ -276,28 +272,23 @@ namespace Arc {
     for (std::list<Job>::iterator it = jobstore.begin();
          it != jobstore.end(); it++) {
 
-      if (it->State.empty()) {
+      if (it->State().empty()) {
         logger.msg(WARNING, "Job information not found: %s", it->JobID.str());
         continue;
       }
 
-      if (!status.empty() && std::find(status.begin(), status.end(),
-                                       it->State) == status.end())
+      if (!status.empty() &&
+          std::find(status.begin(), status.end(), it->State()) == status.end())
         continue;
 
-      /* Need to fix this after we have implemented "normalized states"
-         if (it->State == "DELETED") {
-         logger.msg(WARNING, "Job has already been deleted: %s",
-          it->JobID.str());
-         continue;
-         }
-
-         if (it->State == "FINISHED" || it->State == "FAILED" ||
-          it->State == "KILLED") {
-         logger.msg(WARNING, "Job has already finished: %s", it->JobID.str());
-         continue;
-         }
-       */
+      if (it->State == JobState::DELETED) {
+        logger.msg(WARNING, "Job has already been deleted: %s", it->JobID.str());
+        continue;
+      }
+      else if (it->State >= JobState::FINISHED) {
+        logger.msg(WARNING, "Job has already finished: %s", it->JobID.str());
+        continue;
+      }
 
       killable.push_back(&(*it));
     }
@@ -341,29 +332,26 @@ namespace Arc {
     for (std::list<Job>::iterator it = jobstore.begin();
          it != jobstore.end(); it++) {
 
-      if (force && it->State.empty() && status.empty()) {
+      if (force && it->State().empty() && status.empty()) {
         logger.msg(WARNING, "Job %s will only be deleted from local job list",
                    it->JobID.str());
         toberemoved.push_back(it->JobID);
         continue;
       }
 
-      if (it->State.empty()) {
+      if (it->State().empty()) {
         logger.msg(WARNING, "Job information not found: %s", it->JobID.str());
         continue;
       }
 
       if (!status.empty() && std::find(status.begin(), status.end(),
-                                       it->State) == status.end())
+                                       it->State()) == status.end())
         continue;
 
-      /* Need to fix this after we have implemented "normalized states"
-         if (it->State != "FINISHED" && it->State != "FAILED" &&
-          it->State != "KILLED" && it->State != "DELETED") {
-         logger.msg(WARNING, "Job has not finished yet: %s", it->JobID.str());
-         continue;
-         }
-       */
+      if (it->State < JobState::FINISHED) {
+        logger.msg(WARNING, "Job has not finished yet: %s", it->JobID.str());
+        continue;
+      }
 
       cleanable.push_back(&(*it));
     }
@@ -398,27 +386,22 @@ namespace Arc {
     for (std::list<Job>::iterator it = jobstore.begin();
          it != jobstore.end(); it++) {
 
-      if (it->State.empty()) {
+      if (it->State().empty()) {
         logger.msg(WARNING, "Job state information not found: %s",
                    it->JobID.str());
         continue;
       }
 
-      /* Need to fix this after we have implemented "normalized states"
-         if (whichfile == "stdout" || whichfile == "stderr") {
-         if(it->State == "DELETED") {
-          logger.msg(WARNING, "Job has already been deleted: %s",
-            it->JobID.str());
+      if (whichfile == "stdout" || whichfile == "stderr") {
+        if (it->State == JobState::DELETED) {
+          logger.msg(WARNING, "Job has already been deleted: %s", it->JobID.str());
           continue;
-         }
-         if(it->State == "ACCEPTING" || it->State == "ACCEPTED" ||
-           it->State == "PREPARING" || it->State == "PREPARED" ||
-           it->State == "INLRMS:Q") {
+        }
+        if (it->State < JobState::RUNNING) {
           logger.msg(WARNING, "Job has not started yet: %s", it->JobID.str());
           continue;
-         }
-         }
-       */
+        }
+      }
 
       if (whichfile == "stdout" && it->StdOut.empty()) {
         logger.msg(ERROR, "Can not determine the stdout location: %s",
@@ -474,7 +457,7 @@ namespace Arc {
 
     for (std::list<Job>::iterator it = jobstore.begin();
          it != jobstore.end(); it++) {
-      if (it->State.empty()) {
+      if (it->State().empty()) {
         logger.msg(WARNING, "Job state information not found: %s",
                    it->JobID.str());
         Time now;
@@ -498,7 +481,7 @@ namespace Arc {
     GetJobInformation();
     // Loop over job descriptions.
     for (std::list<Job>::iterator itJob = jobstore.begin(); itJob != jobstore.end(); itJob++) {
-      if (itJob->State != "Running/Executing/Queuing") {
+      if (itJob->State != JobState::QUEUING) {
         logger.msg(WARNING, "Cannot migrate job %s, it is not queuing in the batch system.", itJob->JobID.str());
         continue;
       }
@@ -550,22 +533,19 @@ namespace Arc {
     for (std::list<Job>::iterator it = jobstore.begin();
          it != jobstore.end(); it++) {
 
-      if (it->State.empty()) {
+      if (it->State().empty()) {
         logger.msg(WARNING, "Job information not found: %s", it->JobID.str());
         continue;
       }
 
       if (!status.empty() && std::find(status.begin(), status.end(),
-                                       it->State) == status.end())
+                                       it->State()) == status.end())
         continue;
 
-      /* Need to fix this after we have implemented "normalized states"
-         if (it->State != "FINISHED" && it->State != "FAILED" &&
-          it->State != "KILLED" && it->State != "DELETED") {
-         logger.msg(WARNING, "Job has not finished yet: %s", it->JobID.str());
-         continue;
-         }
-       */
+      if (it->State < JobState::FINISHED) {
+        logger.msg(WARNING, "Job has not finished yet: %s", it->JobID.str());
+        continue;
+      }
 
       renewable.push_back(&(*it));
     }
@@ -591,22 +571,19 @@ namespace Arc {
     for (std::list<Job>::iterator it = jobstore.begin();
          it != jobstore.end(); it++) {
 
-      if (it->State.empty()) {
+      if (it->State().empty()) {
         logger.msg(WARNING, "Job information not found: %s", it->JobID.str());
         continue;
       }
 
       if (!status.empty() && std::find(status.begin(), status.end(),
-                                       it->State) == status.end())
+                                       it->State()) == status.end())
         continue;
 
-      /* Need to fix this after we have implemented "normalized states"
-         if (it->State != "FINISHED" && it->State != "FAILED" &&
-          it->State != "KILLED" && it->State != "DELETED") {
-         logger.msg(WARNING, "Job has not finished yet: %s", it->JobID.str());
-         continue;
-         }
-       */
+      if (it->State < JobState::FINISHED) {
+        logger.msg(WARNING, "Job has not finished yet: %s", it->JobID.str());
+        continue;
+      }
 
       resumable.push_back(&(*it));
     }
@@ -756,13 +733,13 @@ namespace Arc {
     std::list<Job> gettable;
     for (std::list<Job>::iterator it = jobstore.begin();
          it != jobstore.end(); it++) {
-      if (!status.empty() && it->State.empty()) {
+      if (!status.empty() && it->State().empty()) {
         logger.msg(WARNING, "Job information not found: %s", it->JobID.str());
         continue;
       }
 
       if (!status.empty() && std::find(status.begin(), status.end(),
-                                       it->State) == status.end())
+                                       it->State()) == status.end())
         continue;
       gettable.push_back(*it);
     }

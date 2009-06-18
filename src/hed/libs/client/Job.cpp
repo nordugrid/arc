@@ -39,8 +39,8 @@ namespace Arc {
     std::cout << IString("Job: %s", JobID.str()) << std::endl;
     if (!Name.empty())
       std::cout << IString(" Name: %s", Name) << std::endl;
-    if (!State.empty())
-      std::cout << IString(" State: %s", State) << std::endl;
+    if (!State().empty())
+      std::cout << IString(" State: %s", State()) << std::endl;
     if (ExitCode != -1)
       std::cout << IString(" Exit Code: %d", ExitCode) << std::endl;
     if (!Error.empty()) {
@@ -99,7 +99,7 @@ namespace Arc {
         std::cout << IString(" Used Memory: %d", UsedMainMemory)
                   << std::endl;
       if (WorkingAreaEraseTime != -1)
-        std::cout << IString((State == "DELETED") ?
+        std::cout << IString((State == JobState::DELETED) ?
                                   " Results were deleted: %s" :
                                   " Results must be retrieved before: %s",
                                   (std::string)WorkingAreaEraseTime)

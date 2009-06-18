@@ -10,6 +10,7 @@
 #include <arc/ws-addressing/WSA.h>
 
 #include "UNICOREClient.h"
+#include "JobStateUNICORE.h"
 #include "JobControllerUNICORE.h"
 
 namespace Arc {
@@ -73,7 +74,7 @@ namespace Arc {
         logger.msg(ERROR, "Failed retrieving job status information");
         continue;
       }
-      iter->State = state;
+      iter->State = JobStateUNICORE(state);
     }
 
 
