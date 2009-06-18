@@ -238,8 +238,7 @@ namespace Arc {
       return true;
     }
     else if (attributeName == "batchsystem") {
-      // Not supported yet, only store it
-      job.JDL_elements["BatchSystem"] = "\"" + simpleJDLvalue(attributeValue) + "\"";
+      job.BatchSystem = simpleJDLvalue(attributeValue);
       return true;
     }
     else if (attributeName == "prologue") {
@@ -344,8 +343,7 @@ namespace Arc {
       return true;
     }
     else if (attributeName == "virtualorganisation") {
-      // Not supported yet, only store it
-      job.JDL_elements["VirtualOrganisation"] = "\"" + simpleJDLvalue(attributeValue) + "\"";
+      job.JobProject = simpleJDLvalue(attributeValue);
       return true;
     }
     else if (attributeName == "queuename") {
@@ -550,6 +548,19 @@ namespace Arc {
       product += job.Error;
       product += "\";\n";
     }
+
+    if (!job.JobProject.empty()) {
+      product += "  VirtualOrganisation = \"";
+      product += job.JobProject;
+      product += "\";\n";
+    }
+
+    if (!job.BatchSystem.empty()) {
+      product += "  BatchSystem = \"";
+      product += job.BatchSystem;
+      product += "\";\n";
+    }
+
     if (!job.Environment.empty()) {
       product += "  Environment = {\n";
       for (std::list<EnvironmentType>::const_iterator it = job.Environment.begin();

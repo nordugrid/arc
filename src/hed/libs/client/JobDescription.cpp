@@ -200,6 +200,8 @@ namespace Arc {
         std::cout << IString(" EndPointURL: %s", EndPointURL.str()) << std::endl;
       if (!QueueName.empty())
         std::cout << IString(" QueueName: %s", QueueName) << std::endl;
+      if (!BatchSystem.empty())
+        std::cout << IString(" BatchSystem: %s", BatchSystem) << std::endl;
       if (!Country.empty())
         std::cout << IString(" Country: %s", Country) << std::endl;
       if (!Place.empty())

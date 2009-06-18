@@ -297,6 +297,9 @@ namespace Arc {
     if (bool(resource["CandidateTarget"]["QueueName"]))
       job.QueueName = (std::string)resource["CandidateTarget"]["QueueName"];
 
+    if (bool(resource["BatchSystem"]))
+      job.BatchSystem = (std::string)resource["BatchSystem"];
+
     if (bool(resource["Middleware"]["Name"]))
       job.CEType = (std::string)resource["Middleware"]["Name"];
 
@@ -589,6 +592,14 @@ namespace Arc {
       if (!bool(jobdescription["Resources"]["CandidateTarget"]["QueueName"]))
         jobdescription["Resources"]["CandidateTarget"].NewChild("jsdl-arc:QueueName");
       jobdescription["Resources"]["CandidateTarget"]["QueueName"] = job.QueueName;
+    }
+
+    if (!job.BatchSystem.empty()) {
+      if (!bool(jobdescription["Resources"]))  {
+        jobdescription.NewChild("Resources");
+        jobdescription["Resources"].NewChild("jsdl-arc:BatchSystem");
+        jobdescription["Resources"]["BatchSystem"] = job.BatchSystem;
+      }
     }
 
     if (!job.Platform.empty()) {

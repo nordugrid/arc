@@ -168,6 +168,7 @@ namespace Arc {
     std::string Alias;          //CandidateTarget
     URL EndPointURL;            //CandidateTarget
     std::string QueueName;      //CandidateTarget
+    std::string BatchSystem;     
     std::string Country;        //Location
     std::string Place;          //Location
     std::string PostCode;       //Location
