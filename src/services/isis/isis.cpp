@@ -286,7 +286,7 @@ static void soft_state_thread(void *data) {
     }
 }
 
-    ISIService::ISIService(Arc::Config *cfg):RegisteredService(cfg),logger_(Arc::Logger::rootLogger, "ISIS"),db_(NULL),valid("PT1D"),remove("PT1D"),neighbors_lock(false),neighbors_count(0), available_provider(false), neighbors_update_needed(false) {
+    ISIService::ISIService(Arc::Config *cfg):RegisteredService(cfg),logger_(Arc::Logger::rootLogger, "ISIS"),log_stream(NULL),db_(NULL),valid("PT1D"),remove("PT1D"),neighbors_lock(false),neighbors_count(0), available_provider(false), neighbors_update_needed(false) {
         // Endpoint url from the configuration
         endpoint_=(std::string)((*cfg)["endpoint"]);
         logger_.msg(Arc::DEBUG, "endpoint: %s", endpoint_);
