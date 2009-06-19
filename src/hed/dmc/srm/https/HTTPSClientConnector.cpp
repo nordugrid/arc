@@ -3,16 +3,65 @@
 #include <sys/socket.h>
 #include <string.h>
 #include <globus_io.h>
+#include <gssapi.h>
+#include <globus_gsi_credential.h>
+#include <globus_gsi_cert_utils.h>
 
 #include <arc/globusutils/GlobusErrorUtils.h>
 
 #include "HTTPSClient.h"
+
+// This is unexposed Globus internal structure. 
+// Without doubt its usage is dangerous. But it
+// seems to be stable across different version of
+// Globus Toolkit (tested for 4.0.8 and 4.2.1).
+typedef struct gss_cred_id_desc_struct {
+    globus_gsi_cred_handle_t            cred_handle;
+    gss_name_t                          globusid;
+    gss_cred_usage_t                    cred_usage;
+    SSL_CTX *                           ssl_context;
+} gss_cred_id_desc;
 
 namespace Arc {
   
   Logger HTTPSClientConnector::logger(Logger::getRootLogger(), "HTTPSClientConnector");
 
   // ------------------ Globus -------------------------------
+
+  static globus_io_secure_delegation_mode_t ChooseDelegationMode(gss_cred_id_t cred) {
+    globus_io_secure_delegation_mode_t mode = GLOBUS_IO_SECURE_DELEGATION_MODE_NONE;
+    gss_cred_id_desc cred_desc;
+std::cerr<<"ChooseDelegationMode: enter"<<std::endl;
+    if(cred == GSS_C_NO_CREDENTIAL) {
+std::cerr<<"ChooseDelegationMode: loading cred"<<std::endl;
+      globus_gsi_cred_handle_init(&cred_desc.cred_handle,NULL);
+      if(globus_gsi_cred_read(cred_desc.cred_handle,NULL) == GLOBUS_SUCCESS) {
+std::cerr<<"ChooseDelegationMode: assigning cred"<<std::endl;
+        cred = &cred_desc;
+      };
+    }
+    if(cred != GSS_C_NO_CREDENTIAL) {
+      globus_gsi_cert_utils_cert_type_t cred_type;
+std::cerr<<"ChooseDelegationMode: looking for type"<<std::endl;
+      if(globus_gsi_cred_get_cert_type(cred->cred_handle,&cred_type) ==
+         GLOBUS_SUCCESS) {
+std::cerr<<"ChooseDelegationMode: type is "<<(int)cred_type<<std::endl;
+        if(cred_type & GLOBUS_GSI_CERT_UTILS_TYPE_LIMITED_PROXY) {
+std::cerr<<"ChooseDelegationMode: type is LIMITED"<<std::endl;
+          mode=GLOBUS_IO_SECURE_DELEGATION_MODE_LIMITED_PROXY;
+        } else {
+std::cerr<<"ChooseDelegationMode: type is FULL"<<std::endl;
+          mode=GLOBUS_IO_SECURE_DELEGATION_MODE_FULL_PROXY;
+        };
+      };
+    };
+    if(cred == &cred_desc) {
+std::cerr<<"ChooseDelegationMode: destroy cred"<<std::endl;
+      globus_gsi_cred_handle_destroy(cred_desc.cred_handle);
+    };
+std::cerr<<"ChooseDelegationMode: exit: "<<mode<<std::endl;
+    return mode;
+  }
     
   HTTPSClientConnectorGlobus::HTTPSClientConnectorGlobus(const char* base,bool heavy_encryption,int timeout_,gss_cred_id_t cred_) try: base_url(base) {
     valid=false; connected=false;
@@ -67,7 +116,7 @@ namespace Arc {
                                    GLOBUS_IO_SECURE_PROTECTION_MODE_SAFE);
       };
       globus_io_attr_set_secure_delegation_mode(&attr,
-                                   GLOBUS_IO_SECURE_DELEGATION_MODE_FULL_PROXY);
+                                   ChooseDelegationMode(cred));
     } else {
       return;
     };
