@@ -5,7 +5,10 @@
 #include <iostream>
 
 #include <sys/types.h>
+
+#ifndef WIN32
 #include <pwd.h>
+#endif
 
 #include <arc/message/PayloadSOAP.h>
 #include <arc/message/PayloadRaw.h>

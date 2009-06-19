@@ -18,9 +18,13 @@
 
 ///A example about how to compose a Request and call the Charon service
 int main(void) {
+
+#ifndef WIN32
   signal(SIGTTOU,SIG_IGN);
   signal(SIGTTIN,SIG_IGN);
   signal(SIGPIPE,SIG_IGN);
+#endif
+
   Arc::Logger logger(Arc::Logger::rootLogger, "Test");
   Arc::LogStream logcerr(std::cerr);
   Arc::Logger::rootLogger.addDestination(logcerr);
