@@ -924,7 +924,24 @@ AC_MSG_RESULT($DEFAULT_GLOBUS_LOCATION)
 AC_SUBST(DEFAULT_GLOBUS_LOCATION)
 
 # Check for LFC
-AC_CHECK_HEADER(lfc/lfc_api.h,[LFC=yes],[LFC=no])
+LFC_LOCATION=
+LFC_CFLAGS=
+LFC_LIBS="-llfc"
+AC_ARG_ENABLE(lfc, AC_HELP_STRING([--disable-lfc], [disable the LFC support, default is enable]),[disable_lfc="yes"],[disable_lfc="no"])
+if test "x$disable_lfc" = "xno"; then
+  AC_ARG_WITH(lfc, [  --with-lfc=(PATH)  LFC location])
+  if test ! "x$with_lfc" = "x" ; then
+    LFC_LOCATION="$with_lfc"
+    LFC_CFLAGS="-I$LFC_LOCATION/include"
+    LFC_LIBS="-L$LFC_LOCATION/lib -llfc"
+  fi
+  SAVE_CPPFLAGS=$CPPFLAGS
+  CPPFLAGS="$CPPFLAGS $LFC_CFLAGS"
+  AC_CHECK_HEADER(lfc/lfc_api.h,[LFC=yes],[LFC=no])
+  CPPFLAGS=$SAVE_CPPFLAGS
+fi
+AC_SUBST(LFC_CFLAGS)
+AC_SUBST(LFC_LIBS)
 
 # Check if user asks to skip documentation build
 AC_ARG_ENABLE(doc, AC_HELP_STRING([--disable-doc], [disable building documentation (requires doxygen and pdflatex)]),[],enable_doc="yes")
