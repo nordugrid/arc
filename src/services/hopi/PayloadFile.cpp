@@ -6,7 +6,9 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <fcntl.h>
+#ifndef WIN32 
 #include <sys/mman.h>
+#endif
 #include <iostream>
 #include "PayloadFile.h"
 
@@ -18,8 +20,13 @@ PayloadFile::PayloadFile(const char* filename):handle_(-1),addr_(NULL),size_(0) 
   struct stat st;
   if(fstat(handle_,&st) != 0) goto error;
   size_=st.st_size;
+
+#ifndef WIN32 
+
   addr_=(char*)mmap(NULL,size_,PROT_READ,MAP_SHARED,handle_,0);
   if(addr_ == MAP_FAILED) goto error;
+#endif
+
   return;
 error:
   perror("PayloadFile");
@@ -29,7 +36,11 @@ error:
 }
 
 PayloadFile::~PayloadFile(void) {
+
+#ifndef WIN32 
   if(addr_ != NULL) munmap(addr_,size_);
+#endif
+
   close(handle_);
   handle_=-1; size_=0; addr_=NULL;
   return;
