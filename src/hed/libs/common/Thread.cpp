@@ -73,7 +73,9 @@ namespace Arc {
 
   ThreadPool::ThreadPool(void):max_count(32),count(0) {
     // Very rough estimation of number of threads which can be run
-    max_count = (1<<(8*sizeof(int) - 2))/thread_stacksize;
+    uint64_t n = (((uint64_t)1)<<(8*sizeof(int*) - 2))/thread_stacksize;
+    if(n > INT_MAX) n = INT_MAX;
+    max_count = (int)n;
     // TODO: can't use logger here because it will try to initilize pool
     //threadLogger.msg(VERBOSE, "Maximum number of threads is %i",max_count);
   }
