@@ -363,11 +363,24 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
                                      'control' commands. MUST BE thing */
       default_lrms = config_next_arg(rest);
       default_queue = config_next_arg(rest);
-      if(default_lrms.length() == 0) {
+      if(default_lrms.empty()) {
         logger.msg(Arc::ERROR,"defaultlrms is empty"); goto exit;
       };
-      if(rest.length() != 0) {
+      if(!rest.empty()) {
         logger.msg(Arc::ERROR,"junk in defaultlrms command"); goto exit;
+      };
+      std::string tool_path;
+      tool_path=nordugrid_libexec_loc+"/cancel-"+default_lrms+"-job";
+      if(!Glib::file_test(tool_path,Glib::FILE_TEST_IS_REGULAR)) {
+        logger.msg(Arc::WARNING,"Missing cancel-%s-job - job cancelation may not work",default_lrms);
+      };
+      tool_path=nordugrid_libexec_loc+"/submit-"+default_lrms+"-job";
+      if(!Glib::file_test(tool_path,Glib::FILE_TEST_IS_REGULAR)) {
+        logger.msg(Arc::WARNING,"Missing submit-%s-job - job submission to LRMS may not work",default_lrms);
+      };
+      tool_path=nordugrid_libexec_loc+"/scan-"+default_lrms+"-job";
+      if(!Glib::file_test(tool_path,Glib::FILE_TEST_IS_REGULAR)) {
+        logger.msg(Arc::WARNING,"Missing scan-%s-job - may miss when job finished executing",default_lrms);
       };
     }
     else if(command == "authplugin") { /* set plugin to be called on 
