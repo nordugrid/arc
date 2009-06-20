@@ -28,7 +28,7 @@ extern int Cthread_init(); /* from <Cthread_api.h> */
 #ifndef _THREAD_SAFE
 #define _THREAD_SAFE
 #endif
-#include <serrno.h>
+#include <lfc/serrno.h>
 }
 
 #include <arc/GUID.h>
