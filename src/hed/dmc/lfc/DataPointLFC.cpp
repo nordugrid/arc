@@ -23,12 +23,12 @@ extern int Cthread_init(); /* from <Cthread_api.h> */
 #define thread_create(tid_p, func, arg)  pthread_create(tid_p, NULL, func, arg)
 #define thread_join(tid)               pthread_join(tid, NULL)
 
-#include <lfc/lfc_api.h>
+#include <lfc_api.h>
 
 #ifndef _THREAD_SAFE
 #define _THREAD_SAFE
 #endif
-#include <lfc/serrno.h>
+#include <serrno.h>
 }
 
 #include <arc/GUID.h>

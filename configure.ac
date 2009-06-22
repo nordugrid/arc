@@ -932,12 +932,12 @@ if test "x$disable_lfc" = "xno"; then
   AC_ARG_WITH(lfc, [  --with-lfc=(PATH)  LFC location])
   if test ! "x$with_lfc" = "x" ; then
     LFC_LOCATION="$with_lfc"
-    LFC_CFLAGS="-I$LFC_LOCATION/include"
+    LFC_CFLAGS="-I$LFC_LOCATION/include/lfc"
     LFC_LIBS="-L$LFC_LOCATION/lib -llfc"
   fi
   SAVE_CPPFLAGS=$CPPFLAGS
   CPPFLAGS="$CPPFLAGS $LFC_CFLAGS"
-  AC_CHECK_HEADER(lfc/lfc_api.h,[LFC=yes],[LFC=no])
+  AC_CHECK_HEADER(lfc_api.h,[LFC=yes],[LFC=no])
   CPPFLAGS=$SAVE_CPPFLAGS
 fi
 AC_SUBST(LFC_CFLAGS)
