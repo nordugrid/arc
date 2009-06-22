@@ -51,6 +51,9 @@ class Client:
             else:
                 raise Exception, 'no CA file or CA dir found!'
                 
+    def reset(self):
+        tid = thread.get_ident()
+        self.connection_cache[tid] = None
 
     def call(self, tree, return_tree_only = False):
         """ Create a SOAP message from an XMLTree and send it to the service.
