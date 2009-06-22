@@ -1,22 +1,24 @@
 // -*- indent-tabs-mode: nil -*-
 
-#ifndef __ARC_FASTESTCPUBROKER_H__
-#define __ARC_FASTESTCPUBROKER_H__
+#ifndef __ARC_BENCHMARKBROKER_H__
+#define __ARC_BENCHMARKBROKER_H__
 
 #include <arc/client/Broker.h>
 
 namespace Arc {
 
-  class FastestCPUBroker
+  class BenchmarkBroker
     : public Broker {
 
   public:
-    FastestCPUBroker(Config *cfg);
-    ~FastestCPUBroker();
+    BenchmarkBroker(Config *cfg);
+    ~BenchmarkBroker();
     static Plugin* Instance(PluginArgument *arg);
 
   protected:
     void SortTargets();
+    std::string benchmark;
+
   };
 
 } // namespace Arc
