@@ -24,7 +24,8 @@ class Librarian:
         # URL of the A-Hash
         ahash_urls =  get_child_values_by_name(cfg, 'AHashURL')
         self.master_ahash = arc.URL(ahash_urls[0])
-        self.ahash = AHashClient(ahash_urls, ssl_config = ssl_config)
+        self.ahash_reader = AHashClient(ahash_urls, ssl_config = ssl_config)
+        self.ahash_writer = AHashClient(ahash_urls, ssl_config = ssl_config)
         try:
             period = float(str(cfg.Get('CheckPeriod')))
             self.hbtimeout = float(str(cfg.Get('HeartbeatTimeout')))
@@ -35,7 +36,7 @@ class Librarian:
 
     def _update_ahash_urls(self):
         try:
-            ahash_list = self.ahash.get(ahash_list_guid)[ahash_list_guid]
+            ahash_list = self.ahash_reader.get(ahash_list_guid)[ahash_list_guid]
             if ahash_list:
                 master = [url for type,url in ahash_list.items() 
                           if 'master' in type and type[1].endswith('online')]
@@ -43,8 +44,11 @@ class Librarian:
                            if 'client' in type and type[1].endswith('online')]
                 if master:
                     self.master_ahash = arc.URL(master[0])
+                    self.ahash_writer.urls = [arc.URL(url) for url in master]
+                    self.ahash_writer.reset()
                 if clients:
-                    self.ahash.urls = [arc.URL(url) for url in clients]
+                    self.ahash_reader.urls = [arc.URL(url) for url in clients]
+                    self.ahash_reader.reset()
         except:
             pass
         
@@ -53,7 +57,7 @@ class Librarian:
         Wrapper for ahash.get_tree updating ahashes and calling ahash.get_tree
         """
         try:
-            ret = self.ahash.get_tree(IDs, neededMetadata)
+            ret = self.ahash_reader.get_tree(IDs, neededMetadata)
             return ret
         except:
             # if get_tree fails, there are no clients available, so there is
@@ -66,7 +70,7 @@ class Librarian:
         Wrapper for ahash.get updating ahashes and calling ahash.get
         """
         try:
-            ret = self.ahash.get(IDs, neededMetadata)
+            ret = self.ahash_reader.get(IDs, neededMetadata)
             return ret
         except:
             # if get fails, there are no clients available, so there is
@@ -80,28 +84,26 @@ class Librarian:
         ahash.change, putting back ahash.urls
         ahash.change can only call master ahash
         """
-        ahash_urls = self.ahash.urls
-        self.ahash.urls = [self.master_ahash]
         ret = None
         try:
-            ret = self.ahash.change(changes)
-            self.ahash.urls = ahash_urls
+            ret = self.ahash_writer.change(changes)
             return ret
         except:
             # put back all known ahashes so we don't only ask the master
             # for an update
-            self.ahash.urls = ahash_urls
+            ahash_reader_urls = self.ahash_reader.urls
+            ahash_writer_urls = self.ahash_writer.urls
             # retry, updating ahash urls in case master is outdated
             self._update_ahash_urls()
-            ahash_urls = self.ahash.urls
-            self.ahash.urls = [self.master_ahash]
             try:
-                ret = self.ahash.change(changes)
-                self.ahash.urls = ahash_urls
+                ret = self.ahash_writer.change(changes)
                 return ret
             except:
                 # make sure ahash.urls are restored even is change failed
-                self.ahash.urls = ahash_urls
+                self.ahash_reader.urls = ahash_reader_urls
+                self.ahash_reader.reset()
+                self.ahash_writer.urls = ahash_writer_urls
+                self.ahash_writer.reset()
                 raise
     
     def checkingThread(self, period):
