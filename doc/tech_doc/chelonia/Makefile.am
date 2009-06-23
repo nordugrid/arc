@@ -1,8 +1,8 @@
 docdir = @docdir@
 
-docsource = arc-storage-documentation.tex arc-storage-manual.tex
+docsource = arc-storage-documentation.tex
 
-doc_DATA = arc-storage-documentation.pdf arc-storage-manual.pdf
+doc_DATA = arc-storage-documentation.pdf
 
 STYLES = IEEEtran.bst color.sty framed.sty geometry.sty makeidx.sty gind.ist \
 	ng-logo.png
