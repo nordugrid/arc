@@ -115,12 +115,16 @@ class Credential {
   private:
 
     /**load key from argument keybio, and put key information into argument pkey */
-    void loadKey(const std::string& key, EVP_PKEY* &pkey, const std::string& passphrase = "");
+    void loadKeyString(const std::string& key, EVP_PKEY* &pkey, const std::string& passphrase = "");
+    void loadKeyFile(const std::string& keyfile, EVP_PKEY* &pkey, const std::string& passphrase = "");
+    void loadKey(BIO* bio, EVP_PKEY* &pkey, const std::string& passphrase = "");
 
     /**load certificate from argument certbio, and put certificate information into
     * argument cert and certchain
     */
-    void loadCertificate(const std::string& cert, X509* &x509, STACK_OF(X509)** certchain);
+    void loadCertificateString(const std::string& cert, X509* &x509, STACK_OF(X509)** certchain);
+    void loadCertificateFile(const std::string& certfile, X509* &x509, STACK_OF(X509)** certchain);
+    void loadCertificate(BIO* bio, X509* &x509, STACK_OF(X509)** certchain);
 
     /**Initiate cert_verify_context which will be used for certificate verification*/
     void InitVerification(void);
