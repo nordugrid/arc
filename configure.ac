@@ -917,8 +917,8 @@ AC_MSG_RESULT($DEFAULT_GLOBUS_LOCATION)
 AC_SUBST(DEFAULT_GLOBUS_LOCATION)
 
 # Check for LFC
-LFC_LOCATION=
-LFC_CFLAGS=
+LFC_LOCATION=/usr
+LFC_CFLAGS="-I$LFC_LOCATION/include/lfc"
 LFC_LIBS="-llfc"
 AC_ARG_ENABLE(lfc, AC_HELP_STRING([--disable-lfc], [disable the LFC support, default is enable]),[disable_lfc="yes"],[disable_lfc="no"])
 if test "x$disable_lfc" = "xno"; then
