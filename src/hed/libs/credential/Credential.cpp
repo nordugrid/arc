@@ -1673,14 +1673,15 @@ err:
     X509_EXTENSION* ext = NULL;
     ext = CreateExtension(name, data, crit);
     if(ext && sk_X509_EXTENSION_push(extensions_, ext)) return true;
-    else return false;
+    return false;
   }
 
   bool Credential::AddExtension(std::string name, char** binary, bool) {
     X509_EXTENSION* ext = NULL;
+    if(binary == NULL) return false;
     ext = X509V3_EXT_conf_nid(NULL, NULL, OBJ_txt2nid((char*)(name.c_str())), (char*)binary);
     if(ext && sk_X509_EXTENSION_push(extensions_, ext)) return true;
-    else return false;
+    return false;
   }
 
   bool Credential::SignRequestAssistant(Credential* &proxy, EVP_PKEY* &req_pubkey, X509** tosign){
