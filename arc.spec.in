@@ -35,7 +35,6 @@ BuildRequires: globus_common-devel
 BuildRequires: globus_ftp_client-devel
 BuildRequires: globus_ftp_control-devel
 BuildRequires: globus_rls_client-devel
-BuildRequires: globus_rsl-devel
 #
 BuildRequires: LFC-client-devel
 #
@@ -85,7 +84,6 @@ Group: System Environment/Libraries
 Requires: %{name} = %{version}
 Requires: %{name}-server = %{version}
 Requires: globus_common
-Requires: globus_rsl
 Requires: perl-XML-Simple
 
 %description arex
