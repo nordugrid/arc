@@ -3,6 +3,8 @@
 #ifndef ARCLIB_TIME
 #define ARCLIB_TIME
 
+#include <sigc++/slot.h>
+
 #include <ctime>
 #include <iostream>
 #include <string>
@@ -51,8 +53,8 @@ namespace Arc {
     /** gets the period */
     time_t GetPeriod() const;
 
-    /** Returns a string representation of the period in long format. */
-    std::string tolongstring() const;
+    /** For use with IString */
+    const sigc::slot<const char*>* istr() const;
 
     /** Returns a string representation of the period. */
     operator std::string() const;
@@ -78,6 +80,11 @@ namespace Arc {
   private:
     /** The duration of the period */
     time_t seconds;
+
+    /** Internal IString implementation */
+    const char* IStr() const;
+    sigc::slot<const char*> slot;
+    std::string is;
   };
 
   /** Prints a Period-object to the given ostream -- typically cout. */

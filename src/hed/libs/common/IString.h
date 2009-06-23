@@ -7,6 +7,8 @@
 #include <string>
 #include <ostream>
 
+#include <sigc++/slot.h>
+
 #include <stdio.h>  // snprintf
 #include <stdlib.h> // free
 #include <string.h> // strcpy, strdup
@@ -31,6 +33,7 @@ namespace Arc {
   };
 
   const char* FindTrans(const char *p);
+  const char* FindNTrans(const char *s, const char *p, unsigned long n);
 
   template<class T0 = int, class T1 = int, class T2 = int, class T3 = int,
            class T4 = int, class T5 = int, class T6 = int, class T7 = int>
@@ -121,6 +124,11 @@ namespace Arc {
     // std::string ()()
     inline static const char* Get(std::string (*t)()) {
       return FindTrans(t().c_str());
+    }
+
+    // sigc::slot<const char*>*
+    inline static const char* Get(const sigc::slot<const char*> *t) {
+      return (*t)();
     }
 
     std::string m;

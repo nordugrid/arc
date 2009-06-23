@@ -28,10 +28,22 @@ namespace Arc {
 
   const char* FindTrans(const char *p) {
 #ifdef ENABLE_NLS
-    return dgettext(PACKAGE, p ? *p ? p : istring("(empty)") :
-                    istring("(null)"));
+    return dgettext(PACKAGE,
+                    p ? *p ? p : istring("(empty)") : istring("(null)"));
 #else
     return p ? *p ? p : "(empty)" : "(null)";
+#endif
+  }
+
+  const char* FindNTrans(const char *s, const char *p, unsigned long n) {
+#ifdef ENABLE_NLS
+    return dngettext(PACKAGE,
+                     s ? *s ? s : istring("(empty)") : istring("(null)"),
+                     p ? *p ? p : istring("(empty)") : istring("(null)"), n);
+#else
+    return n == 1 ?
+      s ? *s ? s : "(empty)" : "(null)" :
+      p ? *p ? p : "(empty)" : "(null)";
 #endif
   }
 

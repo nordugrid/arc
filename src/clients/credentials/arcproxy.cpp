@@ -289,7 +289,7 @@ int main(int argc, char *argv[]) {
     Arc::Credential holder(proxy_path, "", ca_dir, "");
     std::cout << "Subject:  " << holder.GetDN() << std::endl;
     std::cout << "Identity: " << holder.GetIdentityName() << std::endl;
-    std::cout << "Timeleft for proxy: " << (holder.GetEndTime() - Arc::Time()).tolongstring() << std::endl;
+    std::cout << Arc::IString("Timeleft for proxy: %s", (holder.GetEndTime() - Arc::Time()).istr()) << std::endl;
     std::cout << "Proxy path: " << proxy_path << std::endl;
     std::cout << "Proxy type: " << certTypeToString(holder.GetType()) << std::endl;
 

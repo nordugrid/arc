@@ -1310,7 +1310,7 @@ err:
   }
 
   static bool check_acinfo(X509* cert, X509* issuer, AC* ac, 
-    std::vector<std::string>& output, std::string& period_left) {
+    std::vector<std::string>& output, Period& period_left) {
     if(!ac || !cert || !(ac->acinfo) || !(ac->acinfo->version) || !(ac->acinfo->holder) 
        || (ac->acinfo->holder->digest) || !(ac->acinfo->form) || !(ac->acinfo->form->names) 
        || (ac->acinfo->form->is) || (ac->acinfo->form->digest) || !(ac->acinfo->serial) 
@@ -1343,7 +1343,7 @@ err:
       CredentialLogger.msg(ERROR,"VOMS: AC has expired");
       return false;
     }
-    period_left = (Time(ASN1_GENERALIZEDTIME_get(end)) - Time()).tolongstring();
+    period_left = Time(ASN1_GENERALIZEDTIME_get(end)) - Time();
 
     STACK_OF(GENERAL_NAME) *names;
     GENERAL_NAME  *name;
@@ -1439,7 +1439,7 @@ err:
         const VOMSTrustList& vomscert_trust_dn,
         //const std::vector<std::string>& vomscert_trust_dn,
         X509* holder, std::vector<std::string>& attr_output, 
-        std::string& vo_name, std::string& period_left, bool verify) {
+        std::string& vo_name, Period& period_left, bool verify) {
     //Extract name 
     STACK_OF(AC_ATTR) * atts = ac->acinfo->attrib;
     int nid = 0;
@@ -1532,7 +1532,7 @@ err:
     for (int i = 0; i < num; i++) {
       AC *ac = (AC *)sk_AC_value(aclist->acs, i);
       std::string vo_name;
-      std::string period_left;
+      Period period_left;
       if (verifyVOMSAC(ac, ca_cert_dir, ca_cert_file, vomscert_trust_dn, 
           holder, output, vo_name, period_left, verify)) {
         verified = true;
@@ -1540,7 +1540,7 @@ err:
         for(int i = 0; i < output.size(); i++) {
           std::cout<<"Attribute: "<<output[i]<<std::endl;
         }
-        std::cout<<"Timeleft for AC: "<<period_left<<std::endl;
+        std::cout << IString("Timeleft for AC: %s", period_left.istr())<<std::endl;
       }
       if (!verified) break;
     } 

@@ -71,9 +71,8 @@ namespace Arc {
   TimeFormat Time::time_format = UserTime;
 
 
-  Time::Time() {
-    gtime = time(NULL);
-  }
+  Time::Time()
+    : gtime(time(NULL)) {}
 
 
   Time::Time(const time_t& time)
@@ -725,42 +724,54 @@ namespace Arc {
     return seconds;
   }
 
+  const sigc::slot<const char*>* Period::istr() const {
+    const_cast<Period*>(this)->slot = sigc::mem_fun(this, &Arc::Period::IStr);
+    return &slot;
+  }
 
-  std::string Period::tolongstring() const {
+  const char* Period::IStr() const {
+
     time_t remain = seconds;
 
     std::stringstream ss;
 
     if (remain >= Time::YEAR) {
-      ss << remain / Time::YEAR << " " << (remain >= 2*Time::YEAR ? istring("years") : istring("year"));
+      ss << remain / Time::YEAR << " "
+         << FindNTrans("year", "years", remain / Time::YEAR);
       remain %= Time::YEAR;
     }
     if (remain >= Time::MONTH) {
       if (remain != seconds) ss << " ";
-      ss << remain / Time::MONTH << " " << (remain >= 2*Time::MONTH ? istring("months") : istring("month"));
+      ss << remain / Time::MONTH << " "
+         << FindNTrans("month", "months", remain / Time::MONTH);
       remain %= Time::MONTH;
     }
     if (remain >= Time::DAY) {
       if (remain != seconds) ss << " ";
-      ss << remain / Time::DAY << " " << (remain >= 2*Time::DAY ? istring("days") : istring("day"));
+      ss << remain / Time::DAY << " "
+         << FindNTrans("day", "days", remain / Time::DAY);
       remain %= Time::DAY;
     }
     if (remain >= Time::HOUR) {
       if (remain != seconds) ss << " ";
-      ss << remain / Time::HOUR << " " << (remain >= 2*Time::HOUR ? istring("hours") : istring("hour"));
+      ss << remain / Time::HOUR << " "
+         << FindNTrans("hour", "hours", remain / Time::HOUR);
       remain %= Time::HOUR;
     }
     if (remain >= 60) {
       if (remain != seconds) ss << " ";
-      ss << remain / 60 << " " << (remain >= 120 ? istring("minutes") : istring("minute"));
+      ss << remain / 60 << " "
+         << FindNTrans("minute", "minutes", remain / 60);
       remain %= 60;
     }
     if (remain >= 1) {
       if (remain != seconds) ss << " ";
-      ss << remain << " " << (remain >= 2 ? istring("seconds") : istring("second"));
+      ss << remain << " "
+         << FindNTrans("second", "seconds", remain);
     }
 
-    return ss.str();
+    const_cast<Period*>(this)->is = ss.str();
+    return is.c_str();
   }
 
   Period::operator std::string() const {
