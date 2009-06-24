@@ -28,6 +28,33 @@ namespace ISIS
 {
 static Arc::Logger thread_logger(Arc::Logger::rootLogger, "ISIS_Thread");
 
+// Current time calculation and convert to the UTC time format.
+std::string Current_Time( time_t parameter_time = time(NULL) ){
+
+    time_t rawtime;
+    if ( parameter_time == time(NULL) ){
+        time ( &rawtime );    //current time
+    } else {
+        rawtime = parameter_time;
+    }
+    tm * ptm;
+    ptm = gmtime ( &rawtime );
+
+    std::string mon_prefix = (ptm->tm_mon+1 < 10)?"0":"";
+    std::string day_prefix = (ptm->tm_mday < 10)?"0":"";
+    std::string hour_prefix = (ptm->tm_hour < 10)?"0":"";
+    std::string min_prefix = (ptm->tm_min < 10)?"0":"";
+    std::string sec_prefix = (ptm->tm_sec < 10)?"0":"";
+    std::stringstream out;
+    if ( parameter_time == time(NULL) ){
+        out << ptm->tm_year+1900<<"-"<<mon_prefix<<ptm->tm_mon+1<<"-"<<day_prefix<<ptm->tm_mday<<"T"<<hour_prefix<<ptm->tm_hour<<":"<<min_prefix<<ptm->tm_min<<":"<<sec_prefix<<ptm->tm_sec;
+    } else {
+        out << ptm->tm_year+1900<<mon_prefix<<ptm->tm_mon+1<<day_prefix<<ptm->tm_mday<<"."<<hour_prefix<<ptm->tm_hour<<min_prefix<<ptm->tm_min<<sec_prefix<<ptm->tm_sec;
+    }
+    if (ptm) delete ptm;
+    return out.str();
+}
+
 class Service_data {
     public:
         std::string serviceID;
@@ -238,19 +265,7 @@ static void soft_state_thread(void *data) {
                Arc::Time gentime( (std::string)data["MetaSrcAdv"]["GenTime"]);
                Arc::Period expiration((std::string)data["MetaSrcAdv"]["Expiration"]);
 
-               time_t rawtime;
-               time ( &rawtime );    //current time
-               tm * ptm;
-               ptm = gmtime ( &rawtime );
-
-               std::string mon_prefix = (ptm->tm_mon+1 < 10)?"0":"";
-               std::string day_prefix = (ptm->tm_mday < 10)?"0":"";
-               std::string hour_prefix = (ptm->tm_hour < 10)?"0":"";
-               std::string min_prefix = (ptm->tm_min < 10)?"0":"";
-               std::string sec_prefix = (ptm->tm_sec < 10)?"0":"";
-               std::stringstream out;
-               out << ptm->tm_year+1900<<"-"<<mon_prefix<<ptm->tm_mon+1<<"-"<<day_prefix<<ptm->tm_mday<<"T"<<hour_prefix<<ptm->tm_hour<<":"<<min_prefix<<ptm->tm_min<<":"<<sec_prefix<<ptm->tm_sec;
-               Arc::Time current_time(out.str());
+               Arc::Time current_time(Current_Time());
 
                 if ( (gentime.GetTime() + 2* expiration.GetPeriod()) > current_time.GetTime() ) {
                     // Now the information is not expired
@@ -457,16 +472,6 @@ static void soft_state_thread(void *data) {
         time ( &rawtime );    //current time
 
         time_t valid_time(rawtime - (int)valid.GetPeriod());
-        tm * pvtm;
-        pvtm = gmtime ( &rawtime );
-
-        std::string mon_prefix = (pvtm->tm_mon+1 < 10)?"0":"";
-        std::string day_prefix = (pvtm->tm_mday < 10)?"0":"";
-        std::string hour_prefix = (pvtm->tm_hour < 10)?"0":"";
-        std::string min_prefix = (pvtm->tm_min < 10)?"0":"";
-        std::string sec_prefix = (pvtm->tm_sec < 10)?"0":"";
-        std::stringstream vout;
-        vout << pvtm->tm_year+1900<<mon_prefix<<pvtm->tm_mon+1<<day_prefix<<pvtm->tm_mday<<"."<<hour_prefix<<pvtm->tm_hour<<min_prefix<<pvtm->tm_min<<sec_prefix<<pvtm->tm_sec;
 
         // Current this is the Query
         //"//RegEntry/MetaSrcAdv[count(Expiration)=1 and number(translate(GenTime,'TZ:-','.')) < number('20090420.082903')]/ServiceID"
@@ -474,7 +479,7 @@ static void soft_state_thread(void *data) {
         // This Query is better, but it is not working now
         //"//RegEntry/MetaSrcAdv[count(Expiration)=1 and ( (years-from-duration(Expiration)*1000) +(months-from-duration(Expiration)*10) + (days-from-duration(Expiration)) + (hours-from-duration(Expiration)*0.01) + (minutes-from-duration(Expiration)*0.0001) + (seconds-from-duration(Expiration)*0.000001) + number(translate(GenTime,'TZ:-','.'))) < number('20090420.132903')]/ServiceID"
         std::string valid_query("//RegEntry/MetaSrcAdv[count(Expiration)=1 and number(translate(GenTime,'TZ:-','.')) < number('");
-        valid_query += vout.str();
+        valid_query += Current_Time(rawtime);
         valid_query += "')]/ServiceID";
 
         valid_data->query = valid_query;
@@ -494,18 +499,8 @@ static void soft_state_thread(void *data) {
         remove_data->sleep = ((int)remove.GetPeriod())/2;
 
         time_t remove_time(rawtime - (int)remove.GetPeriod());
-        tm * prtm;
-        prtm = gmtime ( &rawtime );
-
-        mon_prefix = (prtm->tm_mon+1 < 10)?"0":"";
-        day_prefix = (prtm->tm_mday < 10)?"0":"";
-        hour_prefix = (prtm->tm_hour < 10)?"0":"";
-        min_prefix = (prtm->tm_min < 10)?"0":"";
-        sec_prefix = (prtm->tm_sec < 10)?"0":"";
-        std::stringstream rout;
-        rout << prtm->tm_year+1900<<mon_prefix<<prtm->tm_mon+1<<day_prefix<<prtm->tm_mday<<"."<<hour_prefix<<prtm->tm_hour<<min_prefix<<prtm->tm_min<<sec_prefix<<prtm->tm_sec;
         std::string remove_query("/RegEntry/MetaSrcAdv[count(Expiration)=0 and number(translate(GenTime,'TZ:-','.')) < number('");
-        remove_query += rout.str();
+        remove_query += Current_Time(rawtime);
         remove_query += "')]/ServiceID";
 
         remove_data->query = remove_query;
@@ -538,23 +533,9 @@ static void soft_state_thread(void *data) {
                Arc::NS reg_ns;
                reg_ns["isis"] = ISIS_NAMESPACE;
 
-               time_t current_time;
-               time ( &current_time );  //current time
-               tm * ptm;
-               ptm = gmtime ( &current_time );
-
-               std::string mon_prefix = (ptm->tm_mon+1 < 10)?"0":"";
-               std::string day_prefix = (ptm->tm_mday < 10)?"0":"";
-               std::string hour_prefix = (ptm->tm_hour < 10)?"0":"";
-               std::string min_prefix = (ptm->tm_min < 10)?"0":"";
-               std::string sec_prefix = (ptm->tm_sec < 10)?"0":"";
-               std::stringstream out;
-               out << ptm->tm_year+1900<<"-"<<mon_prefix<<ptm->tm_mon+1<<"-"<<day_prefix<<ptm->tm_mday<<"T";
-               out << hour_prefix<<ptm->tm_hour<<":"<<min_prefix<<ptm->tm_min<<":"<<sec_prefix<<ptm->tm_sec;
-
                Arc::XMLNode remove_message(reg_ns,"isis:RemoveRegistrations");
                remove_message.NewChild("ServiceID") = serviceid;
-               remove_message.NewChild("MessageGenerationTime") = out.str();
+               remove_message.NewChild("MessageGenerationTime") = Current_Time();
                Arc::ISIS_description isis;
                isis.url = endpoint_;
                isis.key = my_key;
@@ -1318,19 +1299,7 @@ static void soft_state_thread(void *data) {
                   Arc::XMLNode sync_datas(reg_ns,"isis:Register");
                   Arc::XMLNode header = sync_datas.NewChild("isis:Header");
 
-                  time_t current_time;
-                  time ( &current_time );  //current time
-                  tm * ptm;
-                  ptm = gmtime ( &current_time );
-
-                  std::string mon_prefix = (ptm->tm_mon+1 < 10)?"0":"";
-                  std::string day_prefix = (ptm->tm_mday < 10)?"0":"";
-                  std::string hour_prefix = (ptm->tm_hour < 10)?"0":"";
-                  std::string min_prefix = (ptm->tm_min < 10)?"0":"";
-                  std::string sec_prefix = (ptm->tm_sec < 10)?"0":"";
-                  std::stringstream out;
-                  out << ptm->tm_year+1900<<"-"<<mon_prefix<<ptm->tm_mon+1<<"-"<<day_prefix<<ptm->tm_mday<<"T"<<hour_prefix<<ptm->tm_hour<<":"<<min_prefix<<ptm->tm_min<<":"<<sec_prefix<<ptm->tm_sec;
-                  header.NewChild("MessageGenerationTime") = out.str();
+                  header.NewChild("MessageGenerationTime") = Current_Time();
 
                   for ( int i=0; bool((*response_c)["ConnectResponse"]["Database"]["RegEntry"][i]); i++ ){
                       Arc::XMLNode regentry_xml;
