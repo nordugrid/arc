@@ -51,7 +51,6 @@ std::string Current_Time( time_t parameter_time = time(NULL) ){
     } else {
         out << ptm->tm_year+1900<<mon_prefix<<ptm->tm_mon+1<<day_prefix<<ptm->tm_mday<<"."<<hour_prefix<<ptm->tm_hour<<min_prefix<<ptm->tm_min<<sec_prefix<<ptm->tm_sec;
     }
-    if (ptm) delete ptm;
     return out.str();
 }
 
