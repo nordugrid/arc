@@ -290,13 +290,21 @@ namespace Arc {
       }
       std::string dirpath = url.Path();
       int n = dirpath.rfind(DIR_SEPARATOR);
+#ifndef WIN32
       if (n == 0)
         dirpath = "/";
-      else
+#else
+      if (n == 2){ /* Example: n == 2, C:\ */
+        dirpath = dirpath.at(0);
+        dirpath += ":";
+        dirpath += "\\";
+      }
+#endif
+      else 
         dirpath.erase(n, dirpath.length() - n + 1);
       if (mkdir_recursive("", dirpath, S_IRWXU, user) != 0)
         if (errno != EEXIST) {
-          logger.msg(ERROR, "Failed to create/find directory %s", dirpath);
+          logger.msg(ERROR, "Failed to create/find directory %s, (%d)", dirpath, errno);
           buffer->error_write(true);
           buffer->eof_write(true);
           writing = false;

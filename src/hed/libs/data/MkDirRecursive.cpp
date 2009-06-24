@@ -34,6 +34,10 @@ int mkdir_recursive(const std::string& base_path, const std::string& path,
   if (path[0] != '/')
     name += '/';
 #else
+  /* Example: path == C:\ */
+  if (path.length() == 3 && path[1] == ':' && path[2] == '\\') {
+    return 0;
+  }
 #endif
   name += path;
   std::string::size_type name_start = base_path.length();
