@@ -20,6 +20,7 @@ e.g.:
   sudo port install openssl
   sudo port install cppunit
   sudo port install gtime
+  sudo port install gsoap
   sudo port install p5-xml-simple
   (if you have python 2.5 you may need to install 'py25-hashlib' as well for md5)
 

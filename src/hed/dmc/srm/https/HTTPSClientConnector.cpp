@@ -8,6 +8,7 @@
 #include <globus_gsi_cert_utils.h>
 
 #include <arc/globusutils/GlobusErrorUtils.h>
+#include <arc/Utils.h>
 
 #include "HTTPSClient.h"
 
@@ -400,17 +401,13 @@ namespace Arc {
     s=::socket(r->ai_family,r->ai_socktype,r->ai_protocol);
     if(s==-1) {
       freeaddrinfo(res);
-      char buf[1024];
-      char* str = strerror_r(errno,buf,sizeof(buf));
-      logger.msg(ERROR, "Socket creation failed: %s", (str?str:""));
+      logger.msg(ERROR, "Socket creation failed: %s", Arc::StrError(errno));
       return false;
     };
   
     if(::connect(s,r->ai_addr,r->ai_addrlen)==-1) {
       freeaddrinfo(res);
-      char buf[1024];
-      char* str = strerror_r(errno,buf,sizeof(buf));
-      logger.msg(ERROR, "Connection to server failed: %s", (str?str:""));
+      logger.msg(ERROR, "Connection to server failed: %s", Arc::StrError(errno));
       ::close(s); s=-1;
       return false;
     };
