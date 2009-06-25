@@ -1,3 +1,5 @@
+#include <glib.h>
+
 #include "SRM22Client.h"
 
 //namespace Arc {
@@ -332,7 +334,7 @@
     request->transferParameters=transfer_params;
   
     // store the user id as part of the request, so they can find it later
-    char * user = getlogin();
+    char * user = const_cast<char*>(g_get_user_name());
     if (user != "") {
       logger.msg(Arc::DEBUG, "Setting userRequestDescription to %s", user);
       request->userRequestDescription = user;

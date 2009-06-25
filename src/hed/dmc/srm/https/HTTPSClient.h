@@ -1,6 +1,10 @@
 #ifndef __HTTPS__CLIENT_H__
 #define __HTTPS__CLIENT_H__
 
+#ifdef WIN32
+#include <arc/win32.h> 
+#endif
+
 #include <string>
 
 #include <globus_io.h>
@@ -219,7 +223,13 @@ namespace Arc {
     struct Namespace* namespaces;
     static int local_fsend(struct soap *sp, const char* buf, size_t l);
     static size_t local_frecv(struct soap* sp, char* buf, size_t l);
+
+#ifndef WIN32
     static int local_fopen(struct soap* sp, const char* endpoint, const char* host, int port);
+#else
+    static SOCKET local_fopen(struct soap* sp, const char* endpoint, const char* host, int port);
+#endif
+
     static int local_fclose(struct soap* sp);
     std::string soap_url;
    public:

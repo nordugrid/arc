@@ -36,8 +36,13 @@ namespace Arc {
     if(!isread) return 0;
     return it->answer_size;
   }
-  
+
+#ifndef WIN32  
   int HTTPSClientSOAP::local_fopen(struct soap* sp, const char* endpoint, const char* host, int port) {
+#else
+  SOCKET HTTPSClientSOAP::local_fopen(struct soap* sp, const char* endpoint, const char* host, int port) {
+#endif
+
     if(sp->socket == 0) return 0;
     HTTPSClientSOAP *it = (HTTPSClientSOAP*)(sp->user);
     if(it->connect() != 0) return -1;

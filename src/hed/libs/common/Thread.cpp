@@ -9,6 +9,13 @@
 #include "Thread.h"
 #include "Logger.h"
 
+#ifdef WIN32
+/* Resolve this error: expected unqualified-id before numeric constant */
+#ifdef THREAD_PRIORITY_NORMAL
+#undef THREAD_PRIORITY_NORMAL
+#endif
+#endif
+
 #define USE_THREAD_POOL
 
 namespace Arc {

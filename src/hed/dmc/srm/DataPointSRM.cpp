@@ -4,6 +4,10 @@
 #include <config.h>
 #endif
 
+#ifdef WIN32
+#include <arc/win32.h>
+#endif
+
 //#include <stdlib.h>
 
 #include <globus_io.h>
@@ -176,11 +180,13 @@ namespace Arc {
     }
     client->disconnect();
 
+    std::srand(time(NULL));
+
     // Choose handled URL randomly
     for (;;) {
       if (turls.size() <= 0)
         break;
-      int n = (int)((random() * ((double)(turls.size() - 1))) / RAND_MAX + 0.25);
+      int n = (int)((std::rand() * ((double)(turls.size() - 1))) / RAND_MAX + 0.25);
       std::list<std::string>::iterator i = turls.begin();
       for (; n; ++i, ++n) {}
       if (i == turls.end())
@@ -341,12 +347,14 @@ namespace Arc {
       return DataStatus::WriteError;
     }
     client->disconnect();
+ 
+    std::srand(time(NULL));
 
     // Choose handled URL randomly
     for (;;) {
       if (turls.size() <= 0)
         break;
-      int n = (int)((random() * ((double)(turls.size() - 1))) / RAND_MAX + 0.25);
+      int n = (int)((std::rand() * ((double)(turls.size() - 1))) / RAND_MAX + 0.25);
       std::list<std::string>::iterator i = turls.begin();
       for (; n; ++i, ++n) {}
       if (i == turls.end())

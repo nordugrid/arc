@@ -1,11 +1,17 @@
+#ifdef WIN32
+#include <arc/win32.h>
+#else
+#include <sys/socket.h>
+#endif
+
 #include <sys/timeb.h>
 #include <sys/types.h>
-#include <sys/socket.h>
 #include <string.h>
 #include <globus_io.h>
 #include <gssapi.h>
 #include <globus_gsi_credential.h>
 #include <globus_gsi_cert_utils.h>
+
 
 #include <arc/globusutils/GlobusErrorUtils.h>
 #include <arc/Utils.h>

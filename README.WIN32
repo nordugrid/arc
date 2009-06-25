@@ -72,11 +72,11 @@ That's it! You are ready to go write OpenSSL-capable code!
   TODO: We have to make as little custom steps as possible
   * Checkout code usng any tool You like
   * Reopen MSYS
-  * Make aclocal see m4 macros which come with GTK. If your GTK is installed in C:\GTK\2.0
-    export ACLOCAL="aclocal -I /c/GTK/2.0/share/aclocal"
+  * Make aclocal see m4 macros which come with GTK. If your GTK is installed in C:\GTK
+    export ACLOCAL="aclocal -I /c/GTK/share/aclocal"
     Adjust path in command according to installation location of GTK.
   * You may also check if pkg-config sees GTK. echo $PKG_CONFIG_PATH should print something
-    like /C/GTK/2.0/lib/pkgconfig. If there is no GTK in path You may need to add it.
+    like /C/GTK/lib/pkgconfig. If there is no GTK in path You may need to add it.
   * Prepare source tree for configuration by running
     autoreconf --verbose --force --install
       * Configure source tree with something like
@@ -154,8 +154,29 @@ Configure setup:
    
     LDFLAGS="-L/usr/local/bin"  CXXFLAGS="-I/usr/local/include"
 
+gSOAP (SRM DMC need this):
+
+gSOAP compilation need flex:
+
+   http://cobcurses.wiki.sourceforge.net/Installing-MinGW-flex
+
+Source code (2.7.10):
+
+   https://olex.openlogic.com/packages/gsoap
+
+Performing configuration and installation:
+
+   ./makemake
+   ./configure --disable-samples LIBS="-lws2_32"
+   make
+   make install
+
+Configure setup: 
+   
+   export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:/usr/local/lib/pkgconfig 
+
 - Explain how to make it work.
-  * After building ARC1, you might want to run it. Currently only some limited functionality of the clients are working
+  * After building ARC1, you might want to run it. 
     - If you haven't build ARC1 yourself, but you have got the already builded files, you have to make sure to install the following in addition:
       - The runtime environment of glibmm (http://ftp.acc.umu.se/pub/gnome/binaries/win32/gtkmm/2.16/), make sure the "Add the gtkmm runtime directory to the PATH variable" option is checked.
         For additional information, please visit http://live.gnome.org/gtkmm/MSWindows
