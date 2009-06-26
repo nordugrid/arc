@@ -506,24 +506,36 @@ namespace Arc {
     X509V3_EXT_METHOD *pci_x509v3_ext_meth = NULL;
 
     /* Proxy Certificate Extension's related objects */
-    OBJC(PROXYCERTINFO_V3, "PROXYCERTINFO_V3");
-    pci_x509v3_ext_meth = PROXYCERTINFO_v3_x509v3_ext_meth();
-    if (pci_x509v3_ext_meth) {
-      pci_x509v3_ext_meth->ext_nid = OBJ_txt2nid("PROXYCERTINFO_V3");
-      X509V3_EXT_add(pci_x509v3_ext_meth);
+    if(OBJ_txt2nid(PROXYCERTINFO_V3) == NID_undef) {
+      OBJC(PROXYCERTINFO_V3, "PROXYCERTINFO_V3");
+      pci_x509v3_ext_meth = PROXYCERTINFO_v3_x509v3_ext_meth();
+      if (pci_x509v3_ext_meth) {
+        pci_x509v3_ext_meth->ext_nid = OBJ_txt2nid("PROXYCERTINFO_V3");
+        X509V3_EXT_add(pci_x509v3_ext_meth);
+      }
     }
 
-    OBJC(PROXYCERTINFO_V4, "PROXYCERTINFO_V4");
-    pci_x509v3_ext_meth = PROXYCERTINFO_v4_x509v3_ext_meth();
-    if (pci_x509v3_ext_meth) {
-      pci_x509v3_ext_meth->ext_nid = OBJ_txt2nid("PROXYCERTINFO_V4");
-      X509V3_EXT_add(pci_x509v3_ext_meth);
+    if(OBJ_txt2nid(PROXYCERTINFO_V4) == NID_undef) {
+      OBJC(PROXYCERTINFO_V4, "PROXYCERTINFO_V4");
+      pci_x509v3_ext_meth = PROXYCERTINFO_v4_x509v3_ext_meth();
+      if (pci_x509v3_ext_meth) {
+        pci_x509v3_ext_meth->ext_nid = OBJ_txt2nid("PROXYCERTINFO_V4");
+        X509V3_EXT_add(pci_x509v3_ext_meth);
+      }
     }
 
-    OBJ_create(IMPERSONATION_PROXY_OID, IMPERSONATION_PROXY_SN, IMPERSONATION_PROXY_LN);
-    OBJ_create(INDEPENDENT_PROXY_OID, INDEPENDENT_PROXY_SN, INDEPENDENT_PROXY_LN);
-    OBJ_create(ANYLANGUAGE_PROXY_OID, ANYLANGUAGE_PROXY_SN, ANYLANGUAGE_PROXY_LN);
-    OBJ_create(LIMITED_PROXY_OID, LIMITED_PROXY_SN, LIMITED_PROXY_LN);
+    if(OBJ_txt2nid(IMPERSONATION_PROXY_OID) == NID_undef) {
+      OBJ_create(IMPERSONATION_PROXY_OID, IMPERSONATION_PROXY_SN, IMPERSONATION_PROXY_LN);
+    }
+    if(OBJ_txt2nid(INDEPENDENT_PROXY_OID) == NID_undef) {
+      OBJ_create(INDEPENDENT_PROXY_OID, INDEPENDENT_PROXY_SN, INDEPENDENT_PROXY_LN);
+    }
+    if(OBJ_txt2nid(ANYLANGUAGE_PROXY_OID) == NID_undef) {
+      OBJ_create(ANYLANGUAGE_PROXY_OID, ANYLANGUAGE_PROXY_SN, ANYLANGUAGE_PROXY_LN);
+    }
+    if(OBJ_txt2nid(LIMITED_PROXY_OID) == NID_undef) {
+      OBJ_create(LIMITED_PROXY_OID, LIMITED_PROXY_SN, LIMITED_PROXY_LN);
+    }
     proxy_init_=true;
   }
 
