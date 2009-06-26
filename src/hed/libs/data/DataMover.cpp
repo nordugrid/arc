@@ -494,6 +494,8 @@ namespace Arc {
             std::string dn;
             Time exp_time(0);
             try {
+              // TODO (important) load credential in unified way or 
+              // use already loaded one
               Credential ci(GetEnv("X509_USER_PROXY"), GetEnv("X509_USER_PROXY"), GetEnv("X509_CERT_DIR"), "");
               dn = ci.GetIdentityName();
               if (cache.CheckDN(canonic_url, dn))
@@ -752,6 +754,18 @@ namespace Arc {
         if (!download_error) {
           if (source.CheckValid())
             cache.SetValid(canonic_url, source.GetValid());
+          try {
+            std::string dn;
+            Time exp_time(0);
+            // TODO (important) load credential in unified way or
+            // use already loaded one
+            Credential ci(GetEnv("X509_USER_PROXY"), GetEnv("X509_USER_PROXY"), GetEnv("X509_CERT_DIR"), "");
+            dn = ci.GetIdentityName();
+            exp_time = ci.GetEndTime();
+            cache.AddDN(canonic_url, dn, exp_time);
+          } catch (CredentialError e) {
+            logger.msg(WARNING, "Couldn't handle certificate: %s", e.what());
+          }
           bool cache_link_result;
           if (executable) {
             logger.msg(DEBUG, "Copying cached file");
