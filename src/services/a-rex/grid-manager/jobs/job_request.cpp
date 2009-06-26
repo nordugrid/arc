@@ -156,7 +156,79 @@ JobReqResult parse_job_req(const std::string &fname,JobLocalDescription &job_des
     *failure = "Unable to read or parse job description.";
     return JobReqInternalFailure;
   }
+  // Fill internal job description
+  // TODO elements (not all of them must be filled here)
+  // std::string jobid;
+  // std::string globalid;
+  // std::string lrms;
+  // std::string localid;
+  // std::string DN;
+  // Arc::Time starttime;
+  // std::string lifetime;
+  // std::string notify;
+  // Arc::Time processtime;
+  // Arc::Time exectime;
+  // std::string clientname;
+  // std::string clientsoftware;
+  // int    reruns;
+  // std::string jobname;
+  // std::list<std::string> projectnames;
+  // std::list<std::string> jobreport;
+  // Arc::Time cleanuptime;
+  // Arc::Time expiretime;
+  // std::string stdlog; 
+  // std::string sessiondir;
+  // std::string failedstate;
+  // bool fullaccess;
+  // std::string credentialserver;
+  // std::string rc;
+  // std::string cache;
+  // int    gsiftpthreads;
+  // bool   dryrun;
+  // unsigned long long int diskspace;
+  // std::list<std::string> activityid;
+  // std::string migrateactivityid;
+  // bool forcemigration;
 
+  // Minimal set of elements filled here 
+  job_desc.action = "request";
+  if(!arc_job_desc.QueueName.empty()) job_desc.queue = arc_job_desc.QueueName;
+  if(!arc_job_desc.Executable.empty()) {
+    job_desc.arguments.clear();
+    job_desc.arguments.push_back(arc_job_desc.Executable);
+    job_desc.arguments.insert(job_desc.arguments.end(),arc_job_desc.Argument.begin(),arc_job_desc.Argument.end());
+  } else {
+    *failure = "Job description is missing executable.";
+    return JobReqMissingFailure;
+  }
+  job_desc.stdin_ = arc_job_desc.Input;
+  job_desc.stdout_ = arc_job_desc.Output;
+  job_desc.stderr_ = arc_job_desc.Error;
+  job_desc.downloads = 0;
+  job_desc.uploads = 0;
+  for(std::list<Arc::FileType>::iterator file = arc_job_desc.File.begin();
+                          file != arc_job_desc.File.end();++file) {
+    std::string fname = file->Name;
+    if(fname.empty()) continue; // Can handle only named files
+    if(fname[0] != '/') fname = "/"+fname; // Just for safety
+    // Because ARC job description does not keep enough information
+    // about initial JSDL description we have to make some guesses here.
+    if(file->Source.size() > 0) { // input file
+      // Only one source per file supported
+      FileData fdata(fname.c_str(),file->Source.begin()->URI.fullstr().c_str());
+      job_desc.inputdata.push_back(fdata);
+      if(file->Source.begin()->URI) ++job_desc.downloads;
+    }
+    if(file->Target.size() > 0) { // output file
+      FileData fdata(fname.c_str(),file->Target.begin()->URI.fullstr().c_str());
+      job_desc.outputdata.push_back(fdata); ++job_desc.uploads;
+    }
+    if((file->Source.size() <= 0) && (file->Target.size() <= 0)) {
+      // user downloadable file
+      FileData fdata(fname.c_str(),NULL);
+      job_desc.outputdata.push_back(fdata);
+    }
+  }
   if (acl) return get_acl(arc_job_desc, *acl);
   return JobReqSuccess;
 }
