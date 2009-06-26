@@ -566,6 +566,18 @@ namespace Arc {
   }
 
   DataStatus DataPointHTTP::Check() {
+    MCCConfig cfg;
+    ApplySecurity(cfg);
+    ClientHTTP client(cfg, url);
+    PayloadRaw request;
+    PayloadRawInterface *inbuf;
+    HTTPClientInfo transfer_info;
+    // Do HEAD to obtain some metadata
+    MCC_Status r = client.process("HEAD", &request, &transfer_info, &inbuf);
+    if (inbuf) delete inbuf;
+    // Fail only if protocol involves authentication
+    if ((!r) && (url.Protocol() != "http")) return DataStatus::CheckError;
+    created = transfer_info.lastModified;
     return DataStatus::Success;
   }
 
@@ -653,6 +665,8 @@ namespace Arc {
         transfer_failure = true;
         break;
       }
+      // pick up usefull information from HTTP header
+      point.created = transfer_info.lastModified;
       retries = 0;
       bool whole = (inbuf &&
                     ((transfer_info.size == inbuf->Size()) && (inbuf->BufferPos(0) == 0)) ||
