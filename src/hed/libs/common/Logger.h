@@ -9,10 +9,6 @@
 #include <arc/Thread.h>
 #include <arc/IString.h>
 
-#ifdef WIN32
-#include <arc/win32.h>
-#endif
-
 namespace Arc {
 
   //! Logging levels.
