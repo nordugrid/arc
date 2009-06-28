@@ -1,5 +1,9 @@
 // -*- indent-tabs-mode: nil -*-
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <arc/client/ACCLoader.h>
 
 #include "SubmitterCREAM.h"

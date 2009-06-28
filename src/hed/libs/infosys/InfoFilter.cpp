@@ -1,3 +1,7 @@
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <arc/security/ArcPDP/policy/Policy.h>
 #include <arc/security/ArcPDP/EvaluatorLoader.h>
 #include <arc/Utils.h>

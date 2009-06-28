@@ -8,7 +8,7 @@
 #include <arc/win32.h>
 #endif
 
-//#include <stdlib.h>
+#include <cstdlib>
 
 #include <globus_io.h>
 #include <glibmm/fileutils.h>

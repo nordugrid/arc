@@ -167,7 +167,7 @@ std::ostream& operator<<(std::ostream &o,const value_for_shell &s) {
   if(s.quote) o<<"'";
   const char* p = s.str;
   for(;;) {
-    char* pp = strchr(p,'\'');
+    const char* pp = strchr(p,'\'');
     if(pp == NULL) { o<<p; if(s.quote) o<<"'"; break; };
     o.write(p,pp-p); o<<"'\\''"; p=pp+1;
   };

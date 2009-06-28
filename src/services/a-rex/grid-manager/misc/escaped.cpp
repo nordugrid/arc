@@ -121,7 +121,7 @@ int input_escaped_string(const char* buf,std::string &str,char separator,char qu
   for(i=0;isspace(buf[i]) || buf[i]==separator;i++) {}
   ii=i;
   if((quotes) && (buf[i] == quotes)) { 
-    char* e = strchr(buf+ii+1,quotes);
+    const char* e = strchr(buf+ii+1,quotes);
     while(e) { // look for unescaped quote
       if((*(e-1)) != '\\') break; // check for escaped quote
       e = strchr(e+1,quotes);

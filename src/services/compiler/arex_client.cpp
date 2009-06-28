@@ -1,3 +1,7 @@
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 // arex_client.cpp
 
 #include <arc/delegation/DelegationInterface.h>

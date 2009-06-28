@@ -4,6 +4,10 @@
 #include <config.h>
 #endif
 
+#ifdef HAVE_STDINT_H
+#include <stdint.h>
+#endif
+
 #include <glibmm/init.h>
 
 #include "Thread.h"

@@ -4,6 +4,10 @@
 #include <string>
 #include <map>
 
+#ifdef HAVE_STDINT_H
+#include <stdint.h>
+#endif
+
 #include <arc/message/PayloadRaw.h>
 #include <arc/message/PayloadStream.h>
 
