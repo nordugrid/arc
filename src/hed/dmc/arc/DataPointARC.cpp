@@ -339,10 +339,13 @@ namespace Arc {
     md5sum->result(md5res_u, length);
     std::string md5str = "";
     for (int i = 0; i < length; i++) {
-      char tmpChar[2];
+      char tmpChar[3];
       sprintf(tmpChar, "%.2x", md5res_u[i]);
       md5str += tmpChar;
     }
+    // TODO: figure out how to delete md5res_u
+    // This causes segfaults:
+    // delete [] md5res_u;
     logger.msg(DEBUG, "Calculated checksum: %s", md5str);
 
     MCCConfig cfg;
