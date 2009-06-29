@@ -23,17 +23,17 @@ namespace Arc {
       Config cfg_(cn, cfg.getFileName());
 
       if(MatchXMLName(cn, "ModuleManager")) {
-	continue;
+        continue;
       }
 
       if(MatchXMLName(cn, "Plugins")) {
-	std::string name = cn["Name"];
-	if(name.empty()) {
-	  logger.msg(ERROR, "Plugins element has no Name defined");
-	  continue;
-	}
-	factory_->load(name);
-	continue;
+        std::string name = cn["Name"];
+        if(name.empty()) {
+          logger.msg(ERROR, "Plugins element has no Name defined");
+          continue;
+        }
+        factory_->load(name);
+        continue;
       }
 
       // Configuration processing is split to multiple functions - hence
