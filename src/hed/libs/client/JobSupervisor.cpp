@@ -119,10 +119,7 @@ namespace Arc {
         }
     }
 
-    ACCConfig acccfg;
-    NS ns;
-    Config cfg(ns);
-    acccfg.MakeConfig(cfg);
+    Config cfg;
     int ctrlnum = 0;
 
     for (std::list<std::string>::iterator it = controllers.begin();

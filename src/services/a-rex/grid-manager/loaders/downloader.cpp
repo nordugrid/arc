@@ -650,18 +650,11 @@ int main(int argc,char** argv) {
         job.JobID = Arc::URL(desc.get_local()->migrateactivityid);
         job.Cluster = Arc::URL(desc.get_local()->migrateactivityid.substr(0, found));
 
-        Arc::ACCConfig acccfg;
-        Arc::NS ns;
-        Arc::Config cfg(ns);
-        acccfg.MakeConfig(cfg);
-        
-        cfg.NewChild("ArcClientComponent");
-        cfg["ArcClientComponent"].NewAttribute("name") = "JobControllerARC1";
-        cfg["ArcClientComponent"].NewAttribute("id") = "JobControllerARC1";
-        cfg["ArcClientComponent"].NewChild("ProxyPath") = Arc::GetEnv("X509_USER_PROXY");
+        Arc::Config cfg;
+        cfg.NewChild("ProxyPath") = Arc::GetEnv("X509_USER_PROXY");
 
-        Arc::ACCLoader* loader = new Arc::ACCLoader(cfg);
-        Arc::JobController *jobctrl = dynamic_cast<Arc::JobController*>(loader->getACC("JobControllerARC1"));
+        Arc::ACCLoader loader;
+        Arc::JobController *jobctrl = dynamic_cast<Arc::JobController*>(loader.loadACC("JobControllerARC1", &cfg));
         if (jobctrl) {
           jobctrl->FillJobStore(job);
 

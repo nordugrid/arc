@@ -7,13 +7,13 @@
 #include <map>
 #include <string>
 
+#include <arc/client/ACCLoader.h>
 #include <arc/client/JobDescription.h>
 #include <arc/DateTime.h>
 #include <arc/URL.h>
 
 namespace Arc {
 
-  class ACCLoader;
   class Submitter;
   class UserConfig;
 
@@ -174,7 +174,7 @@ namespace Arc {
     URL Cluster; // contains the URL of the infosys that provided the info
 
   private:
-    ACCLoader *loader;
+    ACCLoader loader;
   };
 
 } // namespace Arc

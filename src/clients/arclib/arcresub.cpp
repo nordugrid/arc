@@ -210,9 +210,10 @@ int main(int argc, char **argv) {
   }
 
   Arc::Config cfg;
-  Arc::ACCLoader loader(Arc::ACCConfig().MakeConfig(cfg).Parent());
-  Arc::Broker *ChosenBroker = dynamic_cast<Arc::Broker*>(loader.loadACC(usercfg.ConfTree()["Broker"]["Name"], usercfg));
-  logger.msg(Arc::INFO, "Broker %s loaded", broker);
+  usercfg.ApplyToConfig(cfg);
+  Arc::ACCLoader loader;
+  Arc::Broker *ChosenBroker = dynamic_cast<Arc::Broker*>(loader.loadACC(usercfg.ConfTree()["Broker"]["Name"], &cfg));
+  logger.msg(Arc::INFO, "Broker %s loaded", (std::string)usercfg.ConfTree()["Broker"]["Name"]);
 
   // Loop over jobs
   for (std::list<Arc::Job>::iterator it = toberesubmitted.begin();

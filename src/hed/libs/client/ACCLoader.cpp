@@ -11,8 +11,11 @@
 
 namespace Arc {
 
+  ACCLoader::ACCLoader()
+    : Loader(ACCConfig().MakeConfig(Config()).Parent()) {}
+
   ACCLoader::ACCLoader(const Config& cfg)
-    : Loader(cfg) {
+    : Loader(ACCConfig().MakeConfig(cfg).Parent()) {
     make_elements(cfg);
   }
 
@@ -61,7 +64,7 @@ namespace Arc {
     }
   }
 
-  ACC* ACCLoader::loadACC(const std::string& name, const UserConfig& ucfg) {
+  ACC* ACCLoader::loadACC(const std::string& name, const XMLNode * cfg) {
     if (name.empty()) return NULL;
     
     std::string id = "loadACCid_1";
@@ -71,15 +74,13 @@ namespace Arc {
 
     // It seems that two Config objects are needed when creating the config
     // object which should be passed to the ACCPlugin.
-    Config cfg;
-    Config acccfg = cfg.NewChild("ArcClientComponent");
+    Config acccfg_;
+    Config acccfg = acccfg_.NewChild("ArcClientComponent");
     acccfg.NewAttribute("name") = name;
     acccfg.NewAttribute("id") = id;
-    if (ucfg.ConfTree()["Broker"]["Arguments"]) {
-      acccfg.NewChild("Arguments") = (std::string)ucfg.ConfTree()["Broker"]["Arguments"];
-      logger.msg(DEBUG, "The following arguments will be passed to the broker: %s", (std::string)ucfg.ConfTree()["Broker"]["Arguments"]);
-    }
-    ucfg.ApplyToConfig(acccfg);
+    if (cfg)
+      for (int i = 0; cfg->Child(i); i++)
+        acccfg.NewChild(cfg->Child(i));
 
     ACCPluginArgument arg(&acccfg);
 
@@ -95,8 +96,8 @@ namespace Arc {
     return acc;
   }
 
-  ACC* ACCLoader::getACC(const std::string& id) {
-    acc_container_t::iterator acc = accs_.find(id);
+  ACC* ACCLoader::getACC(const std::string& id) const {
+    acc_container_t::const_iterator acc = accs_.find(id);
     if (acc != accs_.end())
       return acc->second;
     return NULL;

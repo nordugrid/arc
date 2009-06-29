@@ -36,10 +36,7 @@ namespace Arc {
       if (!usercfg.DefaultServices(clusterselect, indexselect))
         return;
 
-    ACCConfig acccfg;
-    NS ns;
-    Config cfg(ns);
-    acccfg.MakeConfig(cfg);
+    Config cfg;
     int targetcnt = 0;
 
     for (URLListMap::iterator it = clusterselect.begin();

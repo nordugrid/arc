@@ -70,8 +70,8 @@ namespace Arc {
       CPUClockSpeed(-1),
       MainMemorySize(-1),
       ConnectivityIn(false),
-      ConnectivityOut(false),
-      loader(NULL) {}
+      ConnectivityOut(false)
+      {}
 
   ExecutionTarget::ExecutionTarget(const ExecutionTarget& target) {
     Copy(target);
@@ -87,8 +87,6 @@ namespace Arc {
   }
 
   ExecutionTarget::~ExecutionTarget() {
-    if (loader)
-      delete loader;
   }
 
   void ExecutionTarget::Copy(const ExecutionTarget& target) {
@@ -222,31 +220,16 @@ namespace Arc {
 
     GridFlavour = target.GridFlavour;
     Cluster = target.Cluster;
-
-    loader = NULL;
   }
 
   Submitter* ExecutionTarget::GetSubmitter(const UserConfig& ucfg) const {
-
-    ACCConfig acccfg;
-    NS ns;
-    Config cfg(ns);
-    acccfg.MakeConfig(cfg);
-
-    XMLNode SubmitterComp = cfg.NewChild("ArcClientComponent");
-    SubmitterComp.NewAttribute("name") = "Submitter" + GridFlavour;
-    SubmitterComp.NewAttribute("id") = "submitter";
+    Config SubmitterComp;
     SubmitterComp.NewChild("Cluster") = Cluster.str();
     SubmitterComp.NewChild("Queue") = MappingQueue;
     SubmitterComp.NewChild("SubmissionEndpoint") = url.str();
     ucfg.ApplyToConfig(SubmitterComp);
 
-    if (loader)
-      delete loader;
-
-    const_cast<ExecutionTarget*>(this)->loader = new ACCLoader(cfg);
-
-    return dynamic_cast<Submitter*>(loader->getACC("submitter"));
+    return dynamic_cast<Submitter*>(const_cast<ExecutionTarget*>(this)->loader.loadACC("Submitter" + GridFlavour, &SubmitterComp));
   }
 
   void ExecutionTarget::Update(const JobDescription& jobdesc) {

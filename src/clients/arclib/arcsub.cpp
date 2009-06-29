@@ -240,9 +240,10 @@ int main(int argc, char **argv) {
   std::list<std::string> jobids;
 
   Arc::Config cfg;
-  Arc::ACCLoader loader(Arc::ACCConfig().MakeConfig(cfg).Parent());
-  Arc::Broker *ChosenBroker = dynamic_cast<Arc::Broker*>(loader.loadACC(usercfg.ConfTree()["Broker"]["Name"], usercfg));
-  logger.msg(Arc::INFO, "Broker %s loaded", broker);
+  usercfg.ApplyToConfig(cfg);
+  Arc::ACCLoader loader;
+  Arc::Broker *ChosenBroker = dynamic_cast<Arc::Broker*>(loader.loadACC(usercfg.ConfTree()["Broker"]["Name"], &cfg));
+  logger.msg(Arc::INFO, "Broker %s loaded", (std::string)usercfg.ConfTree()["Broker"]["Name"]);
 
   for (std::list<Arc::JobDescription>::iterator it =
          jobdescriptionlist.begin(); it != jobdescriptionlist.end();
