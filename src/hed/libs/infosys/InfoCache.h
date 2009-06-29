@@ -3,7 +3,6 @@
 
 #include <string>
 #include <list>
-#include <vector>
 #include <arc/ArcConfig.h>
 #include <arc/XMLNode.h>
 #include <arc/ArcRegex.h>

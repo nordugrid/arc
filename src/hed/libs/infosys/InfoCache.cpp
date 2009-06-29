@@ -13,7 +13,6 @@
 #include <sys/types.h>
 #include <iostream>
 #include <fstream>
-#include <vector>
 #include <cstdio>
 
 #ifdef WIN32
@@ -97,45 +96,48 @@ static void clean_path(std::string s)
     } while (idx != std::string::npos);
 }
 
-static bool set_path(const std::string &path_base,const std::vector<std::string> &tokens,const XMLNode &node)
+static bool set_path(const std::string &path_base,const std::list<std::string> &tokens,const XMLNode &node)
 {
     if(tokens.size() < 1) return false;
     std::string dir = path_base;
-    int n = 0;
-    for(; n < (tokens.size()-1);++n) {
-        dir = Glib::build_filename(dir,tokens[n]);
+    const std::list<std::string>::const_iterator itLastElement = --tokens.end();
+    for (std::list<std::string>::const_iterator it = tokens.begin();
+         it != itLastElement; it++) {
+        dir = Glib::build_filename(dir, *it);
         if (!create_directory(dir)) return false;
     };
-    std::string file = Glib::build_filename(dir, tokens[n] + ".xml");
-    // Workaround needed to save namespacesc properly.
+    std::string file = Glib::build_filename(dir, tokens.back() + ".xml");
+    // Workaround needed to save namespaces properly.
     // TODO: solve it in some better way.
     XMLNode doc; node.New(doc);
     return doc.SaveToFile(file);
 }
 
-static bool unset_path(const std::string &path_base,const std::vector<std::string> &tokens)
+static bool unset_path(const std::string &path_base,const std::list<std::string> &tokens)
 {
     if(tokens.size() < 1) return false;
     std::string dir = path_base;
-    int n = 0;
-    for(; n < (tokens.size()-1);++n) {
-        dir = Glib::build_filename(dir,tokens[n]);
+    const std::list<std::string>::const_iterator itLastElement = --tokens.end();
+    for (std::list<std::string>::const_iterator it = tokens.begin();
+         it != itLastElement; it++) {
+        dir = Glib::build_filename(dir, *it);
         if (!create_directory(dir)) return false;
     };
-    std::string file = Glib::build_filename(dir, tokens[n] + ".xml");
+    std::string file = Glib::build_filename(dir, tokens.back() + ".xml");
     return (::remove(file.c_str()) == 0);
 }
 
-static bool get_path(const std::string &path_base,const std::vector<std::string> &tokens,XMLNode &node)
+static bool get_path(const std::string &path_base,const std::list<std::string> &tokens,XMLNode &node)
 {
     if(tokens.size() < 1) return false;
     std::string dir = path_base;
-    int n = 0;
-    for(; n < (tokens.size()-1);++n) {
-        dir = Glib::build_filename(dir,tokens[n]);
+    const std::list<std::string>::const_iterator itLastElement = --tokens.end();
+    for (std::list<std::string>::const_iterator it = tokens.begin();
+         it != itLastElement; it++) {
+        dir = Glib::build_filename(dir, *it);
         if (!create_directory(dir)) return false;
     };
-    std::string file = Glib::build_filename(dir, tokens[n] + ".xml");
+    std::string file = Glib::build_filename(dir, tokens.back() + ".xml");
     return node.ReadFromFile(file);
 }
 
@@ -151,7 +153,7 @@ bool InfoCache::Set(const char *xml_path, XMLNode &value)
     }
     std::string p(xml_path);
     clean_path(p);
-    std::vector<std::string> tokens;
+    std::list<std::string> tokens;
     tokenize(p, tokens, "/");
     bool ret;
     ret = set_path(path_base, tokens, value);
@@ -170,7 +172,7 @@ bool InfoCache::Unset(const char *xml_path)
     }
     std::string p(xml_path);
     clean_path(p);
-    std::vector<std::string> tokens;
+    std::list<std::string> tokens;
     tokenize(p, tokens, "/");
     bool ret;
     ret = unset_path(path_base, tokens);
@@ -189,7 +191,7 @@ bool InfoCache::Get(const char *xml_path, XMLNodeContainer &result)
     }
     std::string p(xml_path);
     clean_path(p);
-    std::vector<std::string> tokens;
+    std::list<std::string> tokens;
     tokenize(p, tokens, "/");
     if (tokens.size() <= 0) {
         NS ns;

@@ -296,14 +296,13 @@ namespace Arc {
       // Fetch the proper state.
       for (int i = 0; jobNode["State"][i]; i++) {
         const std::string rawState = (std::string)jobNode["State"][i];
-        std::vector<std::string> tokens;
-        tokenize(rawState, tokens, ":");
-        if (tokens.size() < 2) {
+        const std::size_t pos = rawState.find_first_of(':');
+        if (pos == std::string::npos) {
           logger.msg(WARNING, "Found malformed job state string: %s", rawState);
           continue;
         }
-        const std::string model = tokens[0];
-        const std::string state = rawState.substr(model.size()+1);
+        const std::string model = rawState.substr(0, pos);
+        const std::string state = rawState.substr(pos+1);
         if (model == mainStateModel) job.State = JobStateARC1(state);
         job.AuxStates[model] = state;
       }
