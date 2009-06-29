@@ -434,7 +434,7 @@ namespace Arc {
       LogError();
       throw CredentialError("Can not read key string");
     }
-    loadKey(keybio,pkey,passphrase);
+    loadKey(keybio,pkey,passphrase, "Load key from a string");
   }
 
   void Credential::loadKeyFile(const std::string& keyfile, EVP_PKEY* &pkey, const std::string& passphrase) {
@@ -448,10 +448,10 @@ namespace Arc {
       LogError();
       throw CredentialError("Can not read key file");
     }
-    loadKey(keybio,pkey,passphrase);
+    loadKey(keybio,pkey,passphrase, keyfile);
   }
 
-  void Credential::loadKey(BIO* keybio, EVP_PKEY* &pkey, const std::string& passphrase) {
+  void Credential::loadKey(BIO* keybio, EVP_PKEY* &pkey, const std::string& passphrase, const std::string& prompt_info) {
     //Read key
     Credformat format;
     PKCS12* pkcs12 = NULL;
@@ -470,7 +470,7 @@ namespace Arc {
 #endif
         PW_CB_DATA cb_data;
         cb_data.password = (passphrase.empty()) ? NULL : (void*)(passphrase.c_str());
-        cb_data.prompt_info = NULL; // Glib::file_test(key,Glib::FILE_TEST_EXISTS) ? key.c_str() : NULL;
+        cb_data.prompt_info = prompt_info.empty() ? NULL : prompt_info.c_str();
         if(!(pkey = PEM_read_bio_PrivateKey(keybio, NULL, (pem_password_cb *)passwordcb, &cb_data))) {
           throw CredentialError("Can not read credential key from PEM key BIO");
         }
@@ -506,7 +506,7 @@ namespace Arc {
     X509V3_EXT_METHOD *pci_x509v3_ext_meth = NULL;
 
     /* Proxy Certificate Extension's related objects */
-    if(OBJ_txt2nid(PROXYCERTINFO_V3) == NID_undef) {
+    if(OBJ_sn2nid(PROXYCERTINFO_V3) == NID_undef) {
       OBJC(PROXYCERTINFO_V3, "PROXYCERTINFO_V3");
       pci_x509v3_ext_meth = PROXYCERTINFO_v3_x509v3_ext_meth();
       if (pci_x509v3_ext_meth) {
@@ -515,7 +515,7 @@ namespace Arc {
       }
     }
 
-    if(OBJ_txt2nid(PROXYCERTINFO_V4) == NID_undef) {
+    if(OBJ_sn2nid(PROXYCERTINFO_V4) == NID_undef) {
       OBJC(PROXYCERTINFO_V4, "PROXYCERTINFO_V4");
       pci_x509v3_ext_meth = PROXYCERTINFO_v4_x509v3_ext_meth();
       if (pci_x509v3_ext_meth) {
@@ -524,16 +524,16 @@ namespace Arc {
       }
     }
 
-    if(OBJ_txt2nid(IMPERSONATION_PROXY_OID) == NID_undef) {
+    if(OBJ_sn2nid(IMPERSONATION_PROXY_OID) == NID_undef) {
       OBJ_create(IMPERSONATION_PROXY_OID, IMPERSONATION_PROXY_SN, IMPERSONATION_PROXY_LN);
     }
-    if(OBJ_txt2nid(INDEPENDENT_PROXY_OID) == NID_undef) {
+    if(OBJ_sn2nid(INDEPENDENT_PROXY_OID) == NID_undef) {
       OBJ_create(INDEPENDENT_PROXY_OID, INDEPENDENT_PROXY_SN, INDEPENDENT_PROXY_LN);
     }
-    if(OBJ_txt2nid(ANYLANGUAGE_PROXY_OID) == NID_undef) {
+    if(OBJ_sn2nid(ANYLANGUAGE_PROXY_OID) == NID_undef) {
       OBJ_create(ANYLANGUAGE_PROXY_OID, ANYLANGUAGE_PROXY_SN, ANYLANGUAGE_PROXY_LN);
     }
-    if(OBJ_txt2nid(LIMITED_PROXY_OID) == NID_undef) {
+    if(OBJ_sn2nid(LIMITED_PROXY_OID) == NID_undef) {
       OBJ_create(LIMITED_PROXY_OID, LIMITED_PROXY_SN, LIMITED_PROXY_LN);
     }
     proxy_init_=true;

@@ -117,7 +117,7 @@ class Credential {
     /**load key from argument keybio, and put key information into argument pkey */
     void loadKeyString(const std::string& key, EVP_PKEY* &pkey, const std::string& passphrase = "");
     void loadKeyFile(const std::string& keyfile, EVP_PKEY* &pkey, const std::string& passphrase = "");
-    void loadKey(BIO* bio, EVP_PKEY* &pkey, const std::string& passphrase = "");
+    void loadKey(BIO* bio, EVP_PKEY* &pkey, const std::string& passphrase = "", const std::string& prompt_info = "");
 
     /**load certificate from argument certbio, and put certificate information into
     * argument cert and certchain
