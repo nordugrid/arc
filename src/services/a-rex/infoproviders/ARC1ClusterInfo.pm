@@ -311,6 +311,9 @@ sub _collect($$) {
         $cactIDs{$share}{$jobid} = "$cactIDp:$jobid";
     }
 
+
+    # ComputingService
+
     my $csv = {};
 
     $csv->{CreationTime} = $creation_time;
@@ -364,9 +367,12 @@ sub _collect($$) {
 
     # OBS: ideally HED should be asked for the URL
     $cep->{URL} = [ "https://$arexhostport/arex" ];
+    $cep->{Capability} = [ 'executionmanagement.jobexecution' ];
     $cep->{Technology} = [ 'webservice' ];
-    $cep->{Interface} = [ 'OGSA-BES' ];
-    #$cep->{InterfaceExtension} = '';
+    $cep->{InterfaceName} = [ 'ogf.bes' ];
+    $cep->{InterfaceVersion} = [ '1.0' ];
+    # InterfaceExtension should return the same as BESExtension attribute of BES-Factory 
+    #$cep->{InterfaceExtension} = [ 'http://www.nordugrid.org/schemas/a-rex' ];
     $cep->{WSDL} = [ "https://$arexhostport/arex/?wsdl" ];
     # Wrong type, should be URI
     $cep->{SupportedProfile} = [ "WS-I 1.0", "HPC-BP" ];
@@ -517,11 +523,13 @@ sub _collect($$) {
         $csha->{MaxStageOutStreams} = [ $maxstaging ] if $maxstaging;
 
         # TODO: new return value scheduling_policy from LRMS infocollector.
-        my $shedpolicy = $lrms_info->{scheduling_policy} || undef;
-        if ($sconfig->{scheduling_policy} and not $shedpolicy) {
-            $shedpolicy = 'fifo' if lc($sconfig->{scheduling_policy}) eq 'fifo';
-            $shedpolicy = 'fairshare' if lc($sconfig->{scheduling_policy}) eq 'maui';
+        my $schedpolicy = $lrms_info->{scheduling_policy} || undef;
+        if ($sconfig->{scheduling_policy} and not $schedpolicy) {
+            $schedpolicy = 'fifo' if lc($sconfig->{scheduling_policy}) eq 'fifo';
+            $schedpolicy = 'fairshare' if lc($sconfig->{scheduling_policy}) eq 'maui';
         }
+        $csha->{SchedulingPolicy} = [ $schedpolicy ];
+
 
         # TODO: get it from ExecutionEnviromnets mapped to this share instead
 	# GuaranteedVirtualMemory -- all nodes must be able to provide this
@@ -541,7 +549,7 @@ sub _collect($$) {
         # DefaultStorageService: Has no meaning for ARC
 
         # TODO: new return value from LRMS infocollector.
-        # OBS: Should be ExtendedBoolean_t (one of 'True', 'False', 'Undefined')
+        # OBS: Should be ExtendedBoolean_t (one of 'true', 'false', 'undefined')
         $csha->{Preemption} = [ $qinfo->{preemption} ] if $qinfo->{preemption};
 
         # ServingState: closed and queuing are not yet supported
@@ -672,10 +680,10 @@ sub _collect($$) {
 
     # Name not needed
 
-    $cmgr->{Type} = [ $cluster_info->{lrms_glue_type} ];
-    $cmgr->{Version} = [ $cluster_info->{lrms_version} ];
-    $cmgr->{Reservation} = [ "Undefined" ];
-    $cmgr->{BulkSubmission} = [ "False" ];
+    $cmgr->{ProductName} = [ $cluster_info->{lrms_glue_type} ];
+    $cmgr->{ProductVersion} = [ $cluster_info->{lrms_version} ];
+    # $cmgr->{Reservation} = [ "undefined" ];
+    $cmgr->{BulkSubmission} = [ "false" ];
     # OBS: most LRMSes don't differentiate between Physical and Logical CPUs.
     # Make it possible to override these values from the config.
     $cmgr->{TotalPhysicalCPUs} = [ $config->{totalcpusockets} || $cluster_info->{totalcpus} ];
@@ -689,8 +697,8 @@ sub _collect($$) {
     $cmgr->{SlotsUsedByLocalJobs} = [ $localrunningslots ];
     $cmgr->{SlotsUsedByGridJobs} = [ $gridrunningslots ];
 
-    my $homogeneity = "True";
-    $homogeneity = "False" if lc($config->{homogeneity}) eq "no";
+    my $homogeneity = "true";
+    $homogeneity = "false" if lc($config->{homogeneity}) eq "no";
     $cmgr->{Homogeneous} = [ $homogeneity ];
 
     # OBS: Can be 100megabitethernet, gigabitethernet, infiniband, myrinet or something else.
@@ -701,9 +709,10 @@ sub _collect($$) {
     $cmgr->{LogicalCPUDistribution} = [ $cpuistribution ];
 
     {
-        my $sharedsession = "True";
-        $sharedsession = "False" if lc($config->{shared_filesystem}) eq "no";
+        my $sharedsession = "true";
+        $sharedsession = "false" if lc($config->{shared_filesystem}) eq "no";
         $cmgr->{WorkingAreaShared} = [ $sharedsession ];
+        $cmgr->{WorkingAreaGuaranteed} = [ "false" ];
 
         my ($sessionlifetime) = (split ' ', $config->{defaultttl});
         $sessionlifetime ||= 7*24*60*60;
