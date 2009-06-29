@@ -4,9 +4,6 @@
 #include <config.h>
 #endif
 
-#include <list>
-#include <string>
-#include <vector>
 #include <glibmm.h>
 
 #include <arc/StringConv.h>
@@ -24,7 +21,7 @@ namespace Arc {
   JDLParser::~JDLParser() {}
 
   bool JDLParser::splitJDL(const std::string& original_string,
-                           std::vector<std::string>& lines) const {
+                           std::list<std::string>& lines) const {
 
     // Clear the return variable
     lines.clear();
@@ -32,7 +29,7 @@ namespace Arc {
     std::string jdl_text = original_string;
 
     bool quotation = false;
-    std::vector<char> stack;
+    std::list<char> stack;
     std::string actual_line;
 
     for (int i = 0; i < jdl_text.size() - 1; i++) {
@@ -93,11 +90,11 @@ namespace Arc {
       elements.push_back(simpleJDLvalue(attributeValue));
       return elements;
     }
-    std::vector<std::string> listElements;
+    std::list<std::string> listElements;
     tokenize(attributeValue.substr(first_bracket + 1,
                                    last_bracket - first_bracket - 1),
              listElements, ",");
-    for (std::vector<std::string>::const_iterator it = listElements.begin();
+    for (std::list<std::string>::const_iterator it = listElements.begin();
          it != listElements.end(); it++)
       elements.push_back(simpleJDLvalue(*it));
     return elements;
@@ -131,9 +128,9 @@ namespace Arc {
     }
     else if (attributeName == "arguments") {
       std::string value = simpleJDLvalue(attributeValue);
-      std::vector<std::string> parts;
+      std::list<std::string> parts;
       tokenize(value, parts);
-      for (std::vector<std::string>::const_iterator it = parts.begin();
+      for (std::list<std::string>::const_iterator it = parts.begin();
            it != parts.end(); it++)
         job.Argument.push_back((*it));
       return true;
@@ -155,14 +152,13 @@ namespace Arc {
       for (std::list<std::string>::const_iterator it = inputfiles.begin();
            it != inputfiles.end(); it++) {
         FileType file;
-        std::vector<std::string> parts;
-        tokenize(*it, parts, "/");
-        file.Name = parts.back();
+        const std::size_t pos = it->find_last_of('/');
+        file.Name = (pos == std::string::npos ? *it : it->substr(pos+1));
         SourceType source;
         source.URI = *it;
         source.Threads = -1;
         file.Source.push_back(source);
-        //initializing this variables
+        // Initializing these variables
         file.KeepData = false;
         file.IsExecutable = false;
         file.DownloadToCache = false;
@@ -173,16 +169,15 @@ namespace Arc {
     else if (attributeName == "inputsandboxbaseuri") {
       for (std::list<FileType>::iterator it = job.File.begin();
            it != job.File.end(); it++)
-        for (std::list<SourceType>::iterator sit = it->Source.begin();
-             sit != it->Source.end(); sit++)
-          if (!sit->URI)
-            sit->URI = simpleJDLvalue(attributeValue);
+        /* Since JDL does not have support for multiple locations the size of
+         * the Source member is exactly 1.
+         */
+        if (!it->Source.front().URI)
+          it->Source.front().URI = simpleJDLvalue(attributeValue);
       for (std::list<DirectoryType>::iterator it = job.Directory.begin();
            it != job.Directory.end(); it++)
-        for (std::list<SourceType>::iterator sit = it->Source.begin();
-             sit != it->Source.end(); sit++)
-          if (!sit->URI)
-            sit->URI = simpleJDLvalue(attributeValue);
+        if (!it->Source.front().URI)
+          it->Source.front().URI = simpleJDLvalue(attributeValue);
       return true;
     }
     else if (attributeName == "outputsandbox") {
@@ -197,7 +192,7 @@ namespace Arc {
         target.Mandatory = false;
         target.NeededReplicas = -1;
         file.Target.push_back(target);
-        //initializing this variables
+        // Initializing these variables
         file.KeepData = false;
         file.IsExecutable = false;
         file.DownloadToCache = false;
@@ -210,31 +205,26 @@ namespace Arc {
       std::list<std::string>::iterator i = value.begin();
       for (std::list<FileType>::iterator it = job.File.begin();
            it != job.File.end(); it++)
-        if (!it->Target.empty()) {
-          if (i != value.end()) {
-            it->Target.begin()->URI = *i;
-            i++;
-          }
-          else {
-            logger.msg(DEBUG, "Not enough outputsandboxdesturi element!");
-            return false;
-          }
+        //if (!it->Target.empty()) {
+        if (i != value.end()) {
+          it->Target.front().URI = *i;
+          i++;
+        }
+        else {
+          logger.msg(DEBUG, "Not enough outputsandboxdesturi element!");
+          return false;
         }
       return true;
     }
     else if (attributeName == "outputsandboxbaseuri") {
       for (std::list<FileType>::iterator it = job.File.begin();
            it != job.File.end(); it++)
-        for (std::list<TargetType>::iterator tit = it->Target.begin();
-             tit != it->Target.end(); tit++)
-          if (!tit->URI)
-            tit->URI = simpleJDLvalue(attributeValue);
+        if (!it->Target.front().URI)
+          it->Target.front().URI = simpleJDLvalue(attributeValue);
       for (std::list<DirectoryType>::iterator it = job.Directory.begin();
            it != job.Directory.end(); it++)
-        for (std::list<TargetType>::iterator tit = it->Target.begin();
-             tit != it->Target.end(); tit++)
-          if (!tit->URI)
-            tit->URI = simpleJDLvalue(attributeValue);
+        if (!it->Target.front().URI)
+          it->Target.front().URI = simpleJDLvalue(attributeValue);
       return true;
     }
     else if (attributeName == "batchsystem") {
@@ -247,9 +237,9 @@ namespace Arc {
     }
     else if (attributeName == "prologuearguments") {
       std::string value = simpleJDLvalue(attributeValue);
-      std::vector<std::string> parts;
+      std::list<std::string> parts;
       tokenize(value, parts);
-      for (std::vector<std::string>::const_iterator it = parts.begin();
+      for (std::list<std::string>::const_iterator it = parts.begin();
            it != parts.end(); it++)
         job.Prologue.Arguments.push_back(*it);
       return true;
@@ -260,9 +250,9 @@ namespace Arc {
     }
     else if (attributeName == "epiloguearguments") {
       std::string value = simpleJDLvalue(attributeValue);
-      std::vector<std::string> parts;
+      std::list<std::string> parts;
       tokenize(value, parts);
-      for (std::vector<std::string>::const_iterator it = parts.begin();
+      for (std::list<std::string>::const_iterator it = parts.begin();
            it != parts.end(); it++)
         job.Epilogue.Arguments.push_back(*it);
       return true;
@@ -453,6 +443,21 @@ namespace Arc {
     return false;
   }
 
+  std::string JDLParser::generateOutputList(const std::string& attribute, const std::list<std::string>& list) const {
+    const std::string space = "             "; // 13 spaces seems to be standard padding.
+    std::ostringstream output;
+    output << "  " << attribute << " = {" << std::endl;
+    for (std::list<std::string>::const_iterator it = list.begin();
+         it != list.end(); it++) {
+      if (it != list.begin())
+        output << "," << std::endl;
+      output << space << "\"" << *it << "\"";
+    }
+
+    output << std::endl << space << "};" << std::endl;
+    return output.str();    
+  }
+
   JobDescription JDLParser::Parse(const std::string& source) const {
     unsigned long first = source.find_first_of("[");
     unsigned long last = source.find_last_of("]");
@@ -468,21 +473,24 @@ namespace Arc {
       input_text.erase(input_text.begin() + comment_start, input_text.begin() + input_text.find("*/", comment_start) + 2);
 
     std::string wcpy = "";
-    std::vector<std::string> lines;
+    std::list<std::string> lines;
     tokenize(input_text, lines, "\n");
-    for (unsigned long i = 0; i < lines.size();) {
+    for (std::list<std::string>::iterator it = lines.begin();
+         it != lines.end();) {
       // Remove empty lines
-      std::string trimmed_line = trim(lines[i]);
+      const std::string trimmed_line = trim(*it);
       if (trimmed_line.length() == 0)
-        lines.erase(lines.begin() + i);
+        lines.erase(it);
       // Remove lines starts with '#' - Comments
       else if (trimmed_line.length() >= 1 && trimmed_line.substr(0, 1) == "#")
-        lines.erase(lines.begin() + i);
+        lines.erase(it);
       // Remove lines starts with '//' - Comments
       else if (trimmed_line.length() >= 2 && trimmed_line.substr(0, 2) == "//")
-        lines.erase(lines.begin() + i);
-      else
-        wcpy += lines[i++] + "\n";
+        lines.erase(it);
+      else {
+        wcpy += *it + "\n";
+        it++;
+      }
     }
 
     if (!splitJDL(wcpy, lines)) {
@@ -496,17 +504,18 @@ namespace Arc {
 
     JobDescription job;
 
-    for (unsigned long i = 0; i < lines.size(); i++) {
-      unsigned long equal_pos = lines[i].find_first_of("=");
+    for (std::list<std::string>::iterator it = lines.begin();
+         it != lines.end(); it++) {
+      const unsigned long equal_pos = it->find_first_of("=");
       if (equal_pos == std::string::npos) {
-        if (i == lines.size() - 1)
+        if (it == --lines.end())
           continue;
         else {
           logger.msg(DEBUG, "[JDLParser] JDL syntax error. There is at least one equal sign missing where it would be expected.");
           return JobDescription();
         }
       }
-      if (!handleJDLattribute(trim(lines[i].substr(0, equal_pos)), trim(lines[i].substr(equal_pos + 1, std::string::npos)), job))
+      if (!handleJDLattribute(trim(it->substr(0, equal_pos)), trim(it->substr(equal_pos + 1, std::string::npos)), job))
         return JobDescription();
     }
     return job;
@@ -610,151 +619,60 @@ namespace Arc {
       }
       product += "\";\n";
     }
-    if (!job.File.empty() ||
-        !job.Executable.empty() ||
-        !job.Input.empty()) {
+    if (!job.Executable.empty() ||
+        !job.File.empty() ||
+        !job.Input.empty() ||
+        !job.Output.empty() ||
+        !job.Error.empty()) {
 
-      bool executable = false;
-      bool input = false;
-      bool empty = true;
-      std::list<FileType>::const_iterator iter;
-      int SourceFileCounter = 0;
+      bool addExecutable = !job.Executable.empty();
+      bool addInput      = !job.Input.empty();
+      bool addOutput     = !job.Output.empty();
+      bool addError      = !job.Error.empty();
 
-      for (iter = job.File.begin(); iter != job.File.end(); iter++) {
-        std::list<SourceType>::const_iterator it_source;
-        for (it_source = (*iter).Source.begin(); it_source != (*iter).Source.end(); it_source++) 
-           SourceFileCounter++;
-      }
-      if (SourceFileCounter != 0 || !job.Input.empty() ||\
-          !Glib::path_is_absolute(job.Executable)) 
-          product += "  InputSandbox = {\n";
+      std::list<std::string> inputSandboxList;
+      std::list<std::string> outputSandboxList;
+      std::list<std::string> outputSandboxDestURIList;
+      for (std::list<FileType>::const_iterator it = job.File.begin();
+           it != job.File.end(); it++) {
+        /* Since JDL does not have support for multiple locations only the first
+         * location will be added.
+         */
+        inputSandboxList.push_back((it->Source.front().URI ? it->Source.front().URI.fullstr() : it->Name));
+        if (it->Target.front().URI) {
+          outputSandboxList.push_back(it->Name);
+          outputSandboxDestURIList.push_back(it->Target.front().URI.fullstr());
+        }
+        else if (it->KeepData) {
+          outputSandboxList.push_back(it->Name);
+          outputSandboxDestURIList.push_back(it->Name);
+        }
 
-      for (iter = job.File.begin(); iter != job.File.end(); iter++) {
+        addExecutable &= (it->Name != job.Executable);
+        addInput      &= (it->Name != job.Input);
+        addOutput     &= (it->Name != job.Output);
+        addError      &= (it->Name != job.Error);
+      }
 
-        if ((*iter).Name == job.Executable)
-          executable = true;
-        if ((*iter).Name == job.Input)
-          input = true;
-        std::list<SourceType>::const_iterator it_source;
-        for (it_source = (*iter).Source.begin(); it_source != (*iter).Source.end(); it_source++) {
-          if (it_source == (*iter).Source.begin() && empty)
-            product += "    \"" + (*it_source).URI.fullstr() + "\"";
-          else
-            product += ",\n    \"" + (*it_source).URI.fullstr() + "\"";
-          empty = false;
-        }
+      if (addExecutable)
+        inputSandboxList.push_back(job.Executable);
+      if (addInput)
+        inputSandboxList.push_back(job.Input);
+      if (addOutput) {
+        outputSandboxList.push_back(job.Output);
+        outputSandboxDestURIList.push_back(job.Output);
       }
-      if (!job.Executable.empty() && !executable && \
-          !Glib::path_is_absolute(job.Executable)) {
-        if (!empty)
-          product += ",\n";
-        empty = false;
-        product += "    \"" + job.Executable + "\"";
+      if (addError) {
+        outputSandboxList.push_back(job.Error);
+        outputSandboxDestURIList.push_back(job.Error);
       }
-      if (!job.Input.empty() && !input) {
-        if (!empty)
-          product += ",\n";
-        empty = false;
-        product += "    \"" + job.Input + "\"";
-      }
-      if (SourceFileCounter != 0 || !job.Input.empty() ||\
-          !Glib::path_is_absolute(job.Executable)) 
-         product += "\n    };\n";
-    }
-    if (!job.File.empty() ||
-        !job.Error.empty() ||
-        !job.Output.empty()) {
 
-      std::list<FileType>::const_iterator iter;
-      bool first = true;
-      bool error = false;
-      bool output = false;
-      for (iter = job.File.begin(); iter != job.File.end(); iter++) {
-        if ((*iter).Name == job.Error)
-          error = true;
-        if ((*iter).Name == job.Output)
-          output = true;
-        if (!(*iter).Target.empty()) {
-          if (!first)
-            product += ",";
-          else {
-            product += "  OutputSandbox = {";
-            first = false;
-          }
-          product += " \"" + (*iter).Name + "\"";
-        }
-      }
-      if (!job.Error.empty() && !error) {
-        if (first) {
-          product += "  OutputSandbox = {";
-          first = false;
-        }
-        else
-          product += ", ";
-        product += " \"" + job.Error + "\"";
-      }
-      if (!job.Output.empty() && !output) {
-        if (first) {
-          product += "  OutputSandbox = {";
-          first = false;
-        }
-        else
-          product += ", ";
-        product += " \"" + job.Output + "\"";
-      }
-      if (!first)
-        product += " };\n";
-    }
-    if (!job.File.empty() ||
-        !job.Error.empty() ||
-        !job.Output.empty()) {
-
-      std::list<FileType>::const_iterator iter;
-      bool first = true;
-      bool error = false;
-      bool output = false;
-      for (iter = job.File.begin(); iter != job.File.end(); iter++) {
-        if ((*iter).Name == job.Error)
-          error = true;
-        if ((*iter).Name == job.Output)
-          output = true;
-        std::list<TargetType>::const_iterator it_target;
-        for (it_target = (*iter).Target.begin(); it_target != (*iter).Target.end(); it_target++) {
-          if (first)
-            product += "  OutputSandboxDestURI = {\n";
-          std::string uri_tmp = (*it_target).URI.Protocol() + "://" + (*it_target).URI.Host() + "/" + (*it_target).URI.Path();
-          if ((*it_target).URI.Host() != "localhost")
-             uri_tmp = (*it_target).URI.fullstr();
-          if (it_target == (*iter).Target.begin() && first) {
-            first = false;
-            product += "    \"" + uri_tmp + "\"";
-          }
-          else
-            product += ",\n    \"" + uri_tmp + "\"";
-        }
-      }
-      if (!job.Error.empty() && !error) {
-        if (first) {
-          product += "  OutputSandboxDestURI = {";
-          first = false;
-        }
-        else
-          product += ", \n";
-        URL errorURL("gsiftp://localhost/" + job.Error);
-        product += "    \"" + errorURL.fullstr() + "\"";
-      }
-      if (!job.Output.empty() && !output) {
-        if (first) {
-          product += "  OutputSandboxDestURI = {";
-          first = false;
-        }
-        else
-          product += ", \n";
-        URL outputURL("gsiftp://localhost/" + job.Output);
-        product += "    \"" + outputURL.fullstr() + "\"";
-      }
-      if (!first)
-        product += "\n    };\n";
+      if (!inputSandboxList.empty())
+        product += generateOutputList("InputSandbox", inputSandboxList);
+      if (!outputSandboxList.empty())
+        product += generateOutputList("OutputSandbox", outputSandboxList);
+      if (!outputSandboxDestURIList.empty())
+        product += generateOutputList("OutputSandboxDestURI", outputSandboxDestURIList);
     }
     if (!job.QueueName.empty()) {
       product += "  QueueName = \"";

@@ -5,7 +5,6 @@
 
 #include <list>
 #include <string>
-#include <vector>
 
 #include "JobDescriptionParser.h"
 
@@ -20,13 +19,15 @@ namespace Arc {
     std::string UnParse(const JobDescription& job) const;
   private:
     bool splitJDL(const std::string& original_string,
-                  std::vector<std::string>& lines) const;
+                  std::list<std::string>& lines) const;
     bool handleJDLattribute(const std::string& attributeName,
                             const std::string& attributeValue,
                             JobDescription& job) const;
     std::string simpleJDLvalue(const std::string& attributeValue) const;
     std::list<std::string> listJDLvalue(const std::string&
                                         attributeValue) const;
+    std::string generateOutputList(const std::string& attribute,
+                                   const std::list<std::string>& list) const;
   };
 
 } // namespace Arc
