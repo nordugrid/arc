@@ -21,15 +21,18 @@ public:
 private:
   static void func(void*);
   static int counter;
+  static Glib::Mutex* lock;
 };
 
 
 void ThreadTest::setUp() {
   counter = 0;
+  lock = new Glib::Mutex;
 }
 
 
 void ThreadTest::tearDown() {
+  if(lock) delete lock;
 }
 
 void ThreadTest::TestThread() {
@@ -43,10 +46,13 @@ void ThreadTest::TestThread() {
 
 void ThreadTest::func(void*) {
   sleep(1);
+  lock->lock();
   ++counter;
+  lock->unlock();
 }
 
 int ThreadTest::counter = 0;
+Glib::Mutex* ThreadTest::lock = NULL;
 
 CPPUNIT_TEST_SUITE_REGISTRATION(ThreadTest);
 
