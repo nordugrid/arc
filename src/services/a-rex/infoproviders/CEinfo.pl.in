@@ -56,6 +56,7 @@ sub main {
     
     my %config = (
                    ttl            =>  600,
+                   arcversion     => '@VERSION@',
                    gm_mount_point => "/jobs",
                    gm_port        => 2811,
                    homogeneity    => "TRUE",

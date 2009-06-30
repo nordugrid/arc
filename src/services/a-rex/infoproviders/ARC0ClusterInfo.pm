@@ -246,9 +246,8 @@ sub _collect($$) {
     $c->{'nc0:cache-total'} = [ $host_info->{cache_total} ];
     $c->{'nc0:runtimeenvironment'} = $host_info->{runtimeenvironments};
     push @{$c->{'nc0:middleware'}}, "globus-$host_info->{globusversion}" if $host_info->{globusversion};
-    push @{$c->{'nc0:middleware'}}, grep {! /nordugrid/i and $host_info->{ngversion} }
-        split /\[separator\]/, $config->{middleware}
-        if $config->{middleware};
+    push @{$c->{'nc0:middleware'}}, split /\[separator\]/, $config->{middleware} if $config->{middleware};
+    push @{$c->{'nc0:middleware'}}, "ARC-".$config->{arcversion};
     $c->{'M0:validfrom'} = [ $valid_from ] if $valid_from;
     $c->{'M0:validto'} = [ $valid_to ] if $valid_to;
 

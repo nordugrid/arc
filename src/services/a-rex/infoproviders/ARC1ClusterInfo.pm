@@ -379,9 +379,7 @@ sub _collect($$) {
     $cep->{Semantics} = [ "http://www.nordugrid.org/documents/arex.pdf" ];
     $cep->{Implementor} = [ "NorduGrid" ];
     $cep->{ImplementationName} = [ "ARC" ];
-
-    # TODO: use value from config.h
-    $cep->{ImplementationVersion} = [ "0.9" ];
+    $cep->{ImplementationVersion} = [ $config->{arcversion} ];
 
     # TODO: add config option
     $cep->{QualityLevel} = [ "development" ];
