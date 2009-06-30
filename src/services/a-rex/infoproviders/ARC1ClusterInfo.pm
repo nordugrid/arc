@@ -342,7 +342,7 @@ sub _collect($$) {
     $csv->{SuspendedJobs} = [ $inlrmsjobstotal{suspended} || 0 ];
     $csv->{WaitingJobs} = [ $inlrmsjobstotal{queued} || 0 ];
 
-    $csv->{StagingJobs} = [ ( $gmtotalcount{perparing} || 0 )
+    $csv->{StagingJobs} = [ ( $gmtotalcount{preparing} || 0 )
                          + ( $gmtotalcount{finishing} || 0 ) ];
 
     $csv->{PreLRMSWaitingJobs} = [ $pendingtotal || 0 ];
@@ -378,7 +378,7 @@ sub _collect($$) {
     $cep->{SupportedProfile} = [ "WS-I 1.0", "HPC-BP" ];
     $cep->{Semantics} = [ "http://www.nordugrid.org/documents/arex.pdf" ];
     $cep->{Implementor} = [ "NorduGrid" ];
-    $cep->{ImplementationName} = [ "ARC1" ];
+    $cep->{ImplementationName} = [ "ARC" ];
 
     # TODO: use value from config.h
     $cep->{ImplementationVersion} = [ "0.9" ];
@@ -416,7 +416,7 @@ sub _collect($$) {
     $cep->{SuspendedJobs} = [ $inlrmsjobstotal{suspended} || 0 ];
     $cep->{WaitingJobs} = [ $inlrmsjobstotal{queued} || 0 ];
 
-    $cep->{StagingJobs} = [ ( $gmtotalcount{perparing} || 0 )
+    $cep->{StagingJobs} = [ ( $gmtotalcount{preparing} || 0 )
                          + ( $gmtotalcount{finishing} || 0 ) ];
 
     $cep->{PreLRMSWaitingJobs} = [ $pendingtotal || 0 ];
@@ -584,7 +584,7 @@ sub _collect($$) {
         $csha->{LocalWaitingJobs} = [ $localqueued ];
         $csha->{LocalSuspendedJobs} = [ $localsuspended ];
 
-        $csha->{StagingJobs} = [ ( $gmsharecount{$share}{perparing} || 0 )
+        $csha->{StagingJobs} = [ ( $gmsharecount{$share}{preparing} || 0 )
                                + ( $gmsharecount{$share}{finishing} || 0 ) ];
 
         $csha->{PreLRMSWaitingJobs} = [ $gmsharecount{$share}{notsubmitted} || 0 ];
