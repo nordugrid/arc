@@ -510,7 +510,7 @@ namespace Arc {
       OBJC(PROXYCERTINFO_V3, "PROXYCERTINFO_V3");
       pci_x509v3_ext_meth = PROXYCERTINFO_v3_x509v3_ext_meth();
       if (pci_x509v3_ext_meth) {
-        pci_x509v3_ext_meth->ext_nid = OBJ_txt2nid("PROXYCERTINFO_V3");
+        pci_x509v3_ext_meth->ext_nid = OBJ_sn2nid("PROXYCERTINFO_V3");
         X509V3_EXT_add(pci_x509v3_ext_meth);
       }
     }
@@ -519,7 +519,7 @@ namespace Arc {
       OBJC(PROXYCERTINFO_V4, "PROXYCERTINFO_V4");
       pci_x509v3_ext_meth = PROXYCERTINFO_v4_x509v3_ext_meth();
       if (pci_x509v3_ext_meth) {
-        pci_x509v3_ext_meth->ext_nid = OBJ_txt2nid("PROXYCERTINFO_V4");
+        pci_x509v3_ext_meth->ext_nid = OBJ_sn2nid("PROXYCERTINFO_V4");
         X509V3_EXT_add(pci_x509v3_ext_meth);
       }
     }
@@ -694,26 +694,26 @@ namespace Arc {
       {
         case CERT_TYPE_GSI_3_IMPERSONATION_PROXY:
         case CERT_TYPE_RFC_IMPERSONATION_PROXY:
-          if((policy_object = OBJ_nid2obj(OBJ_sn2nid(IMPERSONATION_PROXY_SN))) != NULL) {
+          if((policy_object = OBJ_nid2obj(OBJ_txt2nid(IMPERSONATION_PROXY_OID))) != NULL) {
             PROXYPOLICY_set_policy_language(ppolicy, policy_object);
           }
           break;
 
         case CERT_TYPE_GSI_3_INDEPENDENT_PROXY:
         case CERT_TYPE_RFC_INDEPENDENT_PROXY:
-          if((policy_object = OBJ_nid2obj(OBJ_sn2nid(INDEPENDENT_PROXY_SN))) != NULL) {
+          if((policy_object = OBJ_nid2obj(OBJ_txt2nid(INDEPENDENT_PROXY_OID))) != NULL) {
             PROXYPOLICY_set_policy_language(ppolicy, policy_object);
           }
           break;
 
         case CERT_TYPE_GSI_3_LIMITED_PROXY:
         case CERT_TYPE_RFC_LIMITED_PROXY:
-          if((policy_object = OBJ_nid2obj(OBJ_sn2nid(LIMITED_PROXY_SN))) != NULL) {
+          if((policy_object = OBJ_nid2obj(OBJ_txt2nid(LIMITED_PROXY_OID))) != NULL) {
             PROXYPOLICY_set_policy_language(ppolicy, policy_object);
           }
           break;
         case CERT_TYPE_RFC_ANYLANGUAGE_PROXY:
-          if((policy_object = OBJ_nid2obj(OBJ_sn2nid(ANYLANGUAGE_PROXY_SN))) != NULL) {
+          if((policy_object = OBJ_nid2obj(OBJ_txt2nid(ANYLANGUAGE_PROXY_OID))) != NULL) {
             PROXYPOLICY_set_policy_language(ppolicy, policy_object);
           }
           break;
@@ -1518,16 +1518,16 @@ namespace Arc {
       }
       int policy_nid = OBJ_obj2nid(policy_lang);
       if((nid != 0) && (nid == certinfo_v3_NID || nid == certinfo_old_NID)) {
-        if(policy_nid == OBJ_sn2nid(IMPERSONATION_PROXY_SN)) { cert_type_= CERT_TYPE_GSI_3_IMPERSONATION_PROXY; }
-        else if(policy_nid == OBJ_sn2nid(INDEPENDENT_PROXY_SN)) { cert_type_ = CERT_TYPE_GSI_3_INDEPENDENT_PROXY; }
-        else if(policy_nid == OBJ_sn2nid(LIMITED_PROXY_SN)) { cert_type_ = CERT_TYPE_GSI_3_LIMITED_PROXY; }
+        if(policy_nid == OBJ_txt2nid(IMPERSONATION_PROXY_OID)) { cert_type_= CERT_TYPE_GSI_3_IMPERSONATION_PROXY; }
+        else if(policy_nid == OBJ_txt2nid(INDEPENDENT_PROXY_OID)) { cert_type_ = CERT_TYPE_GSI_3_INDEPENDENT_PROXY; }
+        else if(policy_nid == OBJ_txt2nid(LIMITED_PROXY_OID)) { cert_type_ = CERT_TYPE_GSI_3_LIMITED_PROXY; }
         else { cert_type_ = CERT_TYPE_GSI_3_RESTRICTED_PROXY; }
       }
       else {
-        if(policy_nid == OBJ_sn2nid(IMPERSONATION_PROXY_SN)) { cert_type_ = CERT_TYPE_RFC_IMPERSONATION_PROXY; }
-        else if(policy_nid == OBJ_sn2nid(INDEPENDENT_PROXY_SN)) { cert_type_ = CERT_TYPE_RFC_INDEPENDENT_PROXY; }
-        else if(policy_nid == OBJ_sn2nid(ANYLANGUAGE_PROXY_SN)) { cert_type_ = CERT_TYPE_RFC_ANYLANGUAGE_PROXY; }
-        else if(policy_nid == OBJ_sn2nid(LIMITED_PROXY_SN)) { cert_type_ = CERT_TYPE_RFC_LIMITED_PROXY; }
+        if(policy_nid == OBJ_txt2nid(IMPERSONATION_PROXY_OID)) { cert_type_ = CERT_TYPE_RFC_IMPERSONATION_PROXY; }
+        else if(policy_nid == OBJ_txt2nid(INDEPENDENT_PROXY_OID)) { cert_type_ = CERT_TYPE_RFC_INDEPENDENT_PROXY; }
+        else if(policy_nid == OBJ_txt2nid(ANYLANGUAGE_PROXY_OID)) { cert_type_ = CERT_TYPE_RFC_ANYLANGUAGE_PROXY; }
+        else if(policy_nid == OBJ_txt2nid(LIMITED_PROXY_OID)) { cert_type_ = CERT_TYPE_RFC_LIMITED_PROXY; }
         else { cert_type_ = CERT_TYPE_RFC_RESTRICTED_PROXY; }
       }
     }
