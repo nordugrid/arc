@@ -566,6 +566,7 @@ void InfoRegistrar::registration(void) {
                 retry_--;
                 logger_.msg(DEBUG, "Retry connecting to the ISIS (%s) %d. time(s).", isis_name, retry-retry_);
             }
+            if (response) delete response;
 
             if ( retry_ == 0 )
                 removeISIS(usedISIS);

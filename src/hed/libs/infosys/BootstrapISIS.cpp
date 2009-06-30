@@ -147,6 +147,7 @@ struct Registrar_data {
         logger_.msg(DEBUG, "Chosen ISIS for communication: %s", rndISIS.url);
         myISIS = rndISIS;
 
+        if (response) delete response;
     }
 
     ISIS_description InfoRegistrar::getISIS(void) {
