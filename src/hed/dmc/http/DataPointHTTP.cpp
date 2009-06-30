@@ -576,7 +576,8 @@ namespace Arc {
     MCC_Status r = client.process("HEAD", &request, &transfer_info, &inbuf);
     if (inbuf) delete inbuf;
     // Fail only if protocol involves authentication
-    if ((!r) && (url.Protocol() != "http")) return DataStatus::CheckError;
+    if (((!r) || (transfer_info.code != 200)) &&
+        (url.Protocol() != "http")) return DataStatus::CheckError;
     created = transfer_info.lastModified;
     return DataStatus::Success;
   }
