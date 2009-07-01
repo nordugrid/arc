@@ -1316,6 +1316,7 @@ AC_CONFIG_FILES([Makefile
                  src/Makefile
                  src/hed/Makefile
                  src/hed/libs/client/Makefile
+                 src/hed/libs/client/test/Makefile
                  src/hed/libs/common/Makefile
                  src/hed/libs/common/test/Makefile
                  src/hed/libs/credential/Makefile
