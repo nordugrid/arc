@@ -629,7 +629,7 @@ bool check_cert_type(X509* cert, certType& type) {
     if(!data) goto err;
     if (data->length == 5 && !memcmp(data->data,"proxy",5)) { type = CERT_TYPE_GSI_2_PROXY; }
     else if(data->length == 13 && !memcmp(data->data,"limited proxy",13)) { type = CERT_TYPE_GSI_2_LIMITED_PROXY; }
-    else if((index = X509_get_ext_by_NID(cert, OBJ_txt2nid("PROXYCERTINFO_V4"), -1)) != -1) {
+    else if((index = X509_get_ext_by_NID(cert, OBJ_txt2nid(PROXYCERTINFO_V4), -1)) != -1) {
       certinfo_ext = X509_get_ext(cert,index);
       if(X509_EXTENSION_get_critical(certinfo_ext)) {
         if((certinfo = (PROXYCERTINFO *)X509V3_EXT_d2i(certinfo_ext)) == NULL) {
@@ -651,13 +651,13 @@ bool check_cert_type(X509* cert, certType& type) {
         else if(policynid == OBJ_sn2nid(LIMITED_PROXY_SN)) { type = CERT_TYPE_RFC_LIMITED_PROXY; }
         else { type = CERT_TYPE_RFC_RESTRICTED_PROXY; }
 
-        if((index = X509_get_ext_by_NID(cert, OBJ_txt2nid("PROXYCERTINFO_V3"), -1)) != -1) {
+        if((index = X509_get_ext_by_NID(cert, OBJ_txt2nid(PROXYCERTINFO_V3), -1)) != -1) {
           logger.msg(Arc::ERROR,"Found more than one PCI extension");
           goto err;
         }
       }
     }
-    else if((index = X509_get_ext_by_NID(cert, OBJ_txt2nid("PROXYCERTINFO_V3"), -1)) != -1) {
+    else if((index = X509_get_ext_by_NID(cert, OBJ_txt2nid(PROXYCERTINFO_V3), -1)) != -1) {
       certinfo_ext = X509_get_ext(cert,index);
       if(X509_EXTENSION_get_critical(certinfo_ext)) {
         if((certinfo = (PROXYCERTINFO *)X509V3_EXT_d2i(certinfo_ext)) == NULL) {
@@ -678,7 +678,7 @@ bool check_cert_type(X509* cert, certType& type) {
         else if(policynid == OBJ_sn2nid(LIMITED_PROXY_SN)) { type = CERT_TYPE_GSI_3_LIMITED_PROXY; }
         else {type = CERT_TYPE_GSI_3_RESTRICTED_PROXY; }
 
-        if((index = X509_get_ext_by_NID(cert, OBJ_txt2nid("PROXYCERTINFO_V4"), -1)) != -1) {
+        if((index = X509_get_ext_by_NID(cert, OBJ_txt2nid(PROXYCERTINFO_V4), -1)) != -1) {
           logger.msg(Arc::ERROR,"Found more than one PCI extension");
           goto err;
         }

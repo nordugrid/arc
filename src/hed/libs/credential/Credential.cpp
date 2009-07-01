@@ -500,26 +500,24 @@ namespace Arc {
   static bool proxy_init_ = false;
 
   void Credential::InitProxyCertInfo(void) {
-    #define PROXYCERTINFO_V3      "1.3.6.1.4.1.3536.1.222"
-    #define PROXYCERTINFO_V4      "1.3.6.1.5.5.7.1.14"
     #define OBJC(c,n) OBJ_create(c,n,#c)
     X509V3_EXT_METHOD *pci_x509v3_ext_meth = NULL;
 
     /* Proxy Certificate Extension's related objects */
-    if(OBJ_sn2nid("PROXYCERTINFO_V3") == NID_undef) {
+    if(OBJ_txt2nid(PROXYCERTINFO_V3) == NID_undef) {
       OBJC(PROXYCERTINFO_V3, "PROXYCERTINFO_V3");
       pci_x509v3_ext_meth = PROXYCERTINFO_v3_x509v3_ext_meth();
       if (pci_x509v3_ext_meth) {
-        pci_x509v3_ext_meth->ext_nid = OBJ_sn2nid("PROXYCERTINFO_V3");
+        pci_x509v3_ext_meth->ext_nid = OBJ_txt2nid(PROXYCERTINFO_V3);
         X509V3_EXT_add(pci_x509v3_ext_meth);
       }
     }
 
-    if(OBJ_sn2nid("PROXYCERTINFO_V4") == NID_undef) {
+    if(OBJ_txt2nid(PROXYCERTINFO_V4) == NID_undef) {
       OBJC(PROXYCERTINFO_V4, "PROXYCERTINFO_V4");
       pci_x509v3_ext_meth = PROXYCERTINFO_v4_x509v3_ext_meth();
       if (pci_x509v3_ext_meth) {
-        pci_x509v3_ext_meth->ext_nid = OBJ_sn2nid("PROXYCERTINFO_V4");
+        pci_x509v3_ext_meth->ext_nid = OBJ_txt2nid(PROXYCERTINFO_V4);
         X509V3_EXT_add(pci_x509v3_ext_meth);
       }
     }
@@ -1222,7 +1220,8 @@ namespace Arc {
                   }
                   if(data) {
                     std::string ext_data((char*)data, length); free(data);
-                    ext = CreateExtension(certinfo_sn, ext_data, 1);
+                    std::string certinfo_oid = PROXYCERTINFO_OPENSSL;
+                    ext = CreateExtension(certinfo_oid, ext_data, 1);
                   }
                 }
 
@@ -1480,21 +1479,18 @@ namespace Arc {
     PROXYPOLICY*  policy = NULL;
     ASN1_OBJECT*  policy_lang = NULL;
     ASN1_OBJECT*  extension_oid = NULL;
-    int certinfo_v3_NID, certinfo_v4_NID, certinfo_old_NID, certinfo_NID, nid = NID_undef;
+    int certinfo_old_NID, certinfo_NID, nid = NID_undef;
     int i;
 
     //Get the PROXYCERTINFO from request' extension
     req_extensions = X509_REQ_get_extensions(req_);
-    certinfo_v3_NID = OBJ_sn2nid("PROXYCERTINFO_V3");
-    certinfo_old_NID = OBJ_sn2nid("OLD_PROXYCERTINFO");
-    certinfo_v4_NID = OBJ_sn2nid("PROXYCERTINFO_V4");
-    certinfo_NID = OBJ_sn2nid("PROXYCERTINFO");
+    certinfo_old_NID = OBJ_txt2nid(PROXYCERTINFO_V3);
+    certinfo_NID = OBJ_txt2nid(PROXYCERTINFO_V4);
     for(i=0;i<sk_X509_EXTENSION_num(req_extensions);i++) {
       ext = sk_X509_EXTENSION_value(req_extensions,i);
       extension_oid = X509_EXTENSION_get_object(ext);
       nid = OBJ_obj2nid(extension_oid);
-      if((nid != 0) && (nid == certinfo_v3_NID || nid == certinfo_v4_NID ||
-         nid == certinfo_old_NID || nid == certinfo_NID)) {
+      if((nid != 0) && (nid == certinfo_old_NID || nid == certinfo_NID)) {
         if(proxy_cert_info_) {
           PROXYCERTINFO_free(proxy_cert_info_);
           proxy_cert_info_ = NULL;
@@ -1517,7 +1513,7 @@ namespace Arc {
         LogError(); goto err;
       }
       int policy_nid = OBJ_obj2nid(policy_lang);
-      if((nid != 0) && (nid == certinfo_v3_NID || nid == certinfo_old_NID)) {
+      if((nid != 0) && (nid == certinfo_old_NID)) {
         if(policy_nid == OBJ_txt2nid(IMPERSONATION_PROXY_OID)) { cert_type_= CERT_TYPE_GSI_3_IMPERSONATION_PROXY; }
         else if(policy_nid == OBJ_txt2nid(INDEPENDENT_PROXY_OID)) { cert_type_ = CERT_TYPE_GSI_3_INDEPENDENT_PROXY; }
         else if(policy_nid == OBJ_txt2nid(LIMITED_PROXY_OID)) { cert_type_ = CERT_TYPE_GSI_3_LIMITED_PROXY; }
@@ -1723,8 +1719,8 @@ err:
     }
 
     //TODO: VOMS
-    if(CERT_IS_GSI_3_PROXY(proxy->cert_type_)) { certinfo_NID = OBJ_sn2nid("PROXYCERTINFO_V3"); }
-    else if(CERT_IS_RFC_PROXY(proxy->cert_type_)) { certinfo_NID = OBJ_sn2nid("PROXYCERTINFO_V4"); }
+    if(CERT_IS_GSI_3_PROXY(proxy->cert_type_)) { certinfo_NID = OBJ_txt2nid(PROXYCERTINFO_V3); }
+    else if(CERT_IS_RFC_PROXY(proxy->cert_type_)) { certinfo_NID = OBJ_txt2nid(PROXYCERTINFO_V4); }
 
     if(proxy->cert_type_ == CERT_TYPE_GSI_2_LIMITED_PROXY){
       CN_name = const_cast<char*>("limited proxy");
@@ -1778,8 +1774,8 @@ err:
       if(certinfo_data) {
         std::string certinfo_string((char*)certinfo_data, length); free(certinfo_data);
         certinfo_data = NULL;
-        std::string NID_sn = OBJ_nid2sn(certinfo_NID);
-        certinfo_ext = CreateExtension(NID_sn, certinfo_string, 1);
+        std::string NID_txt = PROXYCERTINFO_OPENSSL;
+        certinfo_ext = CreateExtension(NID_txt, certinfo_string, 1);
       }
       if(certinfo_ext != NULL) {
         //if(!X509_add_ext(*tosign, certinfo_ext, 0)) {
