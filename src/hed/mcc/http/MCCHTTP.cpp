@@ -236,33 +236,42 @@ MCC_Status MCC_HTTP_Service::process(Message& inmsg,Message& outmsg) {
     return make_http_fault(logger,*inpayload,outmsg,HTTP_INTERNAL_ERR);
   }
   PayloadRawInterface* retpayload = NULL;
+  PayloadStreamInterface* strpayload = NULL;
   try {
     retpayload = dynamic_cast<PayloadRawInterface*>(nextoutmsg.Payload());
   } catch(std::exception& e) { };
-  if(!retpayload) {
-    logger.msg(WARNING, "next element of the chain returned invalid payload");
+  if(!retpayload) try {
+    strpayload = dynamic_cast<PayloadStreamInterface*>(nextoutmsg.Payload());
+  } catch(std::exception& e) { };
+  if((!retpayload) && (!strpayload)) {
+    logger.msg(WARNING, "next element of the chain returned invalid/unsupported payload");
     delete nextoutmsg.Payload();
     return make_http_fault(logger,*inpayload,outmsg,HTTP_INTERNAL_ERR);
   };
   if(!ProcessSecHandlers(nextinmsg,"outgoing")) {
     delete nextoutmsg.Payload(); return make_http_fault(logger,*inpayload,outmsg,HTTP_BAD_REQUEST); // Maybe not 400 ?
   };
-  //if(!(*retpayload)) { delete retpayload; return make_http_fault(logger,*inpayload,outmsg); };
   // Create HTTP response from raw body content
   // Use stream payload of inmsg to send HTTP response
-  //// TODO: make it possible for HTTP payload to acquire Raw payload to exclude double buffering
   int http_code = HTTP_OK;
   const char* http_resp = "OK";
   int l = 0;
-  if(retpayload->BufferPos(0) != 0) {
-    http_code=HTTP_PARTIAL;
-    http_resp="Partial content";
-  } else {
-    for(int i = 0;;++i) {
-      if(retpayload->Buffer(i) == NULL) break;
-      l=retpayload->BufferPos(i) + retpayload->BufferSize(i);
+  if(retpayload) {
+    if(retpayload->BufferPos(0) != 0) {
+      http_code=HTTP_PARTIAL;
+      http_resp="Partial content";
+    } else {
+      for(int i = 0;;++i) {
+        if(retpayload->Buffer(i) == NULL) break;
+        l=retpayload->BufferPos(i) + retpayload->BufferSize(i);
+      };
+      if(l != retpayload->Size()) {
+        http_code=HTTP_PARTIAL;
+        http_resp="Partial content";
+      };
     };
-    if(l != retpayload->Size()) {
+  } else {
+    if(strpayload->Pos() != 0) {
       http_code=HTTP_PARTIAL;
       http_resp="Partial content";
     };
@@ -278,7 +287,11 @@ MCC_Status MCC_HTTP_Service::process(Message& inmsg,Message& outmsg) {
     };
   };
   outpayload->KeepAlive(keep_alive);
-  outpayload->Body(*retpayload);
+  if(retpayload) {
+    outpayload->Body(*retpayload);
+  } else {
+    outpayload->Body(*strpayload);
+  }
   if(!outpayload->Flush()) {
     logger.msg(WARNING, "Error to flush output payload");
     return make_http_fault(logger,*inpayload,outmsg,HTTP_INTERNAL_ERR);

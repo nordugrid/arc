@@ -32,7 +32,8 @@ class PayloadHTTP: virtual public PayloadRaw, virtual public PayloadStreamInterf
                                        be read through stream_. */
   PayloadStreamInterface* stream_; /** stream used to comminicate to outside */
   bool stream_own_;                /** if true stream_ is owned by this */
-  PayloadRawInterface* body_;      /** associated HTTP Body if any (to avoid copying to own buffer) */
+  PayloadRawInterface* rbody_;     /** associated HTTP Body buffer if any (to avoid copying to own buffer) */
+  PayloadStreamInterface* sbody_;  /** associated HTTP Body stream if any (to avoid copying to own buffer) */
   bool body_own_;                  /** if true body_ is owned by this */
   std::string uri_;                /** URI being contacted */
   int version_major_;              /** major number of HTTP version - must be 1 */
@@ -108,6 +109,7 @@ class PayloadHTTP: virtual public PayloadRaw, virtual public PayloadStreamInterf
     through Raw interface. If 'ownership' is true then passed object
     is treated as being owned by this instance and destroyed in destructor. */
   virtual void Body(PayloadRawInterface& body,bool ownership = true);
+  virtual void Body(PayloadStreamInterface& body,bool ownership = true);
 
   // PayloadRawInterface reimplemented methods
   virtual char operator[](PayloadRawInterface::Size_t pos) const;
