@@ -638,9 +638,8 @@ int main(int argc,char** argv) {
 
   // Job migration functionality
   if (res == 0) {
-    desc.GetLocalDescription(user);
-
-    if (desc.get_local()->migrateactivityid != "") {
+    if(desc.GetLocalDescription(user) &&
+       (desc.get_local()->migrateactivityid != "")) {
     // Complete the migration.
       const size_t found = desc.get_local()->migrateactivityid.rfind("/");
 
