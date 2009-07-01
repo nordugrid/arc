@@ -31,6 +31,22 @@ namespace Arc {
   
   const std::string UserConfig::DEFAULT_BROKER = "RandomBroker";
 
+  UserConfig::UserConfig(bool initializeCredentials) {
+    if (initializeCredentials) {
+      InitializeCredentials();
+      if (!CredentialsFound()) return;
+    }
+
+    ok = true;
+
+    setDefaults();
+  }
+
+  UserConfig::UserConfig(const XMLNode& ccfg) {
+    ccfg.New(cfg);
+    ok = true;
+  }
+
   UserConfig::UserConfig(const std::string& file, bool initializeCredentials)
     : conffile(file), userSpecifiedJobList(false), ok(false) {
     if (!loadUserConfiguration(file))
