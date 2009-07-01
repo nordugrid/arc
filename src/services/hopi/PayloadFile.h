@@ -4,6 +4,7 @@
 #include <vector>
 
 #include <arc/message/PayloadRaw.h>
+#include <arc/message/PayloadStream.h>
 
 namespace Hopi {
 
@@ -36,6 +37,27 @@ class PayloadFile: public Arc::PayloadRawInterface {
   bool operator!(void) { return (handle_ == -1); };
 };
 
-} // namespace ARex
+class PayloadBigFile: public Arc::PayloadStream {
+ private:
+  static Size_t threshold_;
+ public:
+  /** Creates object associated with file for reading from it */
+  PayloadBigFile(const char* filename);
+  /** Creates object associated with file for writing into it.
+    Use size=-1 for undefined size. */
+  PayloadBigFile(const char* filename,Size_t size);
+  virtual ~PayloadBigFile(void);
+  virtual Size_t Pos(void) const;
+  virtual Size_t Size(void) const;
+
+  operator bool(void) { return (handle_ != -1); };
+  bool operator!(void) { return (handle_ == -1); };
+  static Size_t Threshold(void) { return threshold_; };
+  static void Threshold(Size_t t) { if(t > 0) threshold_=t; };
+};
+
+Arc::MessagePayload* newFileRead(const char* filename);
+
+} // namespace Hopi
 
 #endif /* __ARC_PAYLOADFILE_H__ */

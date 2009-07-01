@@ -301,6 +301,10 @@ Hopi::Hopi(Arc::Config *cfg):RegisteredService(cfg),slave_mode(false)
     if(Arc::stringto((std::string)((*cfg)["UploadTimeout"]),timeout)) {
         if(timeout > 0) HopiFileChunks::Timeout(timeout);
     }
+    uint64_t threshold;
+    if(Arc::stringto((std::string)((*cfg)["MemoryMapThreshold"]),threshold)) {
+      if(threshold > 0) PayloadBigFile::Threshold(threshold);
+    }
 }
 
 bool Hopi::RegistrationCollector(Arc::XMLNode &doc) {
@@ -316,13 +320,13 @@ Hopi::~Hopi(void)
     logger.msg(Arc::INFO, "Hopi shutdown");
 }
 
-Arc::PayloadRawInterface *Hopi::Get(const std::string &path, const std::string &base_url)
+Arc::MessagePayload *Hopi::Get(const std::string &path, const std::string &base_url)
 {
     // XXX eliminate relativ paths first
     std::string full_path = Glib::build_filename(doc_root, path);
     if (Glib::file_test(full_path, Glib::FILE_TEST_EXISTS) == true) {
         if (Glib::file_test(full_path, Glib::FILE_TEST_IS_REGULAR) == true) {
-            PayloadFile * pf = new PayloadFile(full_path.c_str());
+            Arc::MessagePayload * pf = newFileRead(full_path.c_str());
             if (slave_mode) unlink(full_path.c_str());
             return pf;
         } else if (Glib::file_test(full_path, Glib::FILE_TEST_IS_DIR) && !slave_mode) {
@@ -438,7 +442,7 @@ Arc::MCC_Status Hopi::process(Arc::Message &inmsg, Arc::Message &outmsg)
 
     logger.msg(Arc::DEBUG, "method=%s, path=%s, url=%s, base=%s", method, path, inmsg.Attributes()->get("HTTP:ENDPOINT"), base_url);
     if (method == "GET") {
-        Arc::PayloadRawInterface *buf = Get(path, base_url);
+        Arc::MessagePayload *buf = Get(path, base_url);
         if (!buf) {
             // XXX: HTTP error
             return Arc::MCC_Status();
