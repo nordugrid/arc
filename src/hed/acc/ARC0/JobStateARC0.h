@@ -8,7 +8,7 @@ namespace Arc {
   class JobStateARC0
     : public JobState {
     public:
-      JobStateARC0(const std::string& state) : JobState(state) {}
+      JobStateARC0(const std::string& state) : JobState(state, &StateMap) {}
       static JobState::StateType StateMap(const std::string& state);
   };
 

@@ -2,6 +2,7 @@
 #define __ARC_JOBSTATE_H__
 
 #include <string>
+#include <map>
 
 #ifdef JOBSTATE_TABLE
 #undef JOBSTATE_TABLE
@@ -18,9 +19,6 @@ namespace Arc {
 
   class JobState {
     public:
-      JobState() : type(UNDEFINED) {}
-      JobState(const std::string& state) : type(StateMap(state)), state(state) {}
-
       // Order is important!
 #define JOBSTATE_TABLE \
         JOBSTATE_X(UNDEFINED, "Undefined")\
@@ -41,6 +39,11 @@ namespace Arc {
 #undef JOBSTATE_X
       static const std::string StateTypeString[];
 
+
+      JobState() : type(UNDEFINED) {}
+      JobState(const std::string& state, JobState::StateType (*map)(const std::string&))
+        : state(state), type((*map)(state)) {};
+
       JobState& operator=(const JobState& newState) { type = newState.type; state = newState.state; return *this; }
 
       bool operator==(const StateType& st) const { return type == st; }
@@ -54,13 +57,12 @@ namespace Arc {
 
       std::string GetGeneralState() const { return StateTypeString[type]; } // General state.
 
-      static StateType StateMap(const std::string& state) { return UNDEFINED; } // This method should be overridden in the child class.
-      
     private:
       StateType type;
       std::string state;
   };
 
+  typedef JobState::StateType (*JobStateMap)(const std::string&);
 }
 
 #endif // __ARC_JOBSTATE_H__
