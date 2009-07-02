@@ -652,7 +652,7 @@ int main(int argc,char** argv) {
         Arc::UserConfig cfg(true);
 
         Arc::ACCLoader loader;
-        Arc::JobController *jobctrl = dynamic_cast<Arc::JobController*>(loader.loadACC("JobControllerARC1", cfg));
+	Arc::JobController *jobctrl = dynamic_cast<Arc::JobController*>(loader.loadACC("JobControllerARC1", &cfg.ConfTree()));
         if (jobctrl) {
           jobctrl->FillJobStore(job);
 
