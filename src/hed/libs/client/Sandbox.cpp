@@ -90,13 +90,15 @@ namespace Arc {
     buffer.speed.reset();
     DataStatus read_failure = DataStatus::Success;
     logger.msg(INFO, "Waiting for buffer");
-    while (!buffer.eof_read() && !buffer.error()) {
-      if (buffer.eof_read())
-        std::cout << IString("eof_read()") << std::endl;
-      if (buffer.error())
-        std::cout << IString("error()") << std::endl;
-      buffer.wait_read();
-    }
+
+    int handle;
+    unsigned int length;
+    unsigned long long int offset;
+
+    while (buffer.for_write() || !buffer.eof_read())
+      if (buffer.for_write(handle, length, offset, true))
+        buffer.is_written(handle);
+
     logger.msg(INFO, "buffer: read eof : %i", (int)buffer.eof_read());
     logger.msg(INFO, "buffer: error    : %i", (int)buffer.error());
     logger.msg(INFO, "Closing read channel");
