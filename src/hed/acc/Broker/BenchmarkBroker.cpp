@@ -49,9 +49,6 @@ namespace Arc {
     
     benchmark = (std::string)(*cfg)["Arguments"];
     
-    logger.msg(DEBUG, "SearchString");
-    (*cfg).SaveToStream(std::cout);
-
     if(benchmark.empty())
       benchmark = "specint2000";
 
