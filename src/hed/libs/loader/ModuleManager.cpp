@@ -154,5 +154,35 @@ void ModuleManager::setCfg (Config *cfg) {
   }
 }
 
+bool ModuleManager::makePersistent(const std::string& name) {
+  if (!Glib::Module::get_supported()) {
+    return false;
+  }
+  // find name in plugin_cache
+  {
+    plugin_cache_t::iterator p = plugin_cache.find(name);
+    if (p != plugin_cache.end()) {
+      p->second.makePersistent();
+      ModuleManager::logger.msg(VERBOSE, "%s made persistent", name);
+      return true;
+    }
+  }
+  ModuleManager::logger.msg(VERBOSE, "Not found %s in cache", name);
+  return false;
+}
+
+bool ModuleManager::makePersistent(Glib::Module* module) {
+  for(plugin_cache_t::iterator p = plugin_cache.begin();
+                               p!=plugin_cache.end();++p) {
+    if(p->second == module) {
+      ModuleManager::logger.msg(VERBOSE, "%s made persistent", p->first);
+      p->second.makePersistent();
+      return true;
+    }
+  }
+  ModuleManager::logger.msg(VERBOSE, "Specified module not found in cache");
+  return false;
+}
+
 } // namespace Arc
 

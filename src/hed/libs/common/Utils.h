@@ -154,6 +154,7 @@ namespace Arc {
     }
   };
 
+  bool PersistentLibraryInit(const std::string& name);
 
 } // namespace Arc
 

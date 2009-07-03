@@ -242,9 +242,9 @@ namespace Arc {
 
   PluginArgument::PluginArgument(void) {
   }
- 
+
   PluginArgument::~PluginArgument(void) {
   }
- 
+
 } // namespace Arc
 

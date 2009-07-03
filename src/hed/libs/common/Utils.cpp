@@ -22,9 +22,14 @@
 #include <stdlib.h>
 #endif
 
+#include <glibmm/module.h>
+#include <glibmm/fileutils.h>
+
 #include <string.h>
 
+#include <arc/ArcLocation.h>
 #include <arc/StringConv.h>
+#include <arc/Thread.h>
 
 #ifndef BUFLEN
 #define BUFLEN 1024
@@ -79,6 +84,30 @@ namespace Arc {
 #else
     return strerror(errnum);
 #endif
+  }
+  
+  static Glib::Mutex persistent_libraries_lock;
+  static std::list<std::string> persistent_libraries_list;
+
+  bool PersistentLibraryInit(const std::string& name) {
+    std::string arc_lib_path = ArcLocation::Get();
+    if(!arc_lib_path.empty()) {
+      arc_lib_path = arc_lib_path + G_DIR_SEPARATOR_S + PKGLIBSUBDIR;
+    }
+    std::string libpath = Glib::build_filename(arc_lib_path,"lib"+name+"."+G_MODULE_SUFFIX);
+    persistent_libraries_lock.lock();
+    for(std::list<std::string>::iterator l = persistent_libraries_list.begin();
+            l != persistent_libraries_list.end();++l) {
+      if(*l == libpath) {
+        persistent_libraries_lock.unlock();
+        return true;
+      };
+    };
+    persistent_libraries_lock.unlock();
+    Glib::Module *module = new Glib::Module(libpath);
+    if(module && (*module)) return true;
+    if(module) delete module;
+    return false;
   }
 
 } // namespace Arc

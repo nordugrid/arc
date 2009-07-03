@@ -6,6 +6,7 @@
 #include <vector>
 #include <glibmm/module.h>
 #include <arc/ArcConfig.h>
+#include <arc/Thread.h>
 #include <arc/Logger.h>
 
 namespace Arc {
@@ -19,7 +20,7 @@ class LoadableModuleDesciption {
   LoadableModuleDesciption(void):module(NULL),count(0) { };
   LoadableModuleDesciption(Glib::Module* m):module(m),count(0) { };
   LoadableModuleDesciption& operator=(Glib::Module* m) {
-    module=m;
+    if(module == NULL) module=m;
     return *this;
   }; 
   operator Glib::Module*(void) { return module; };
@@ -33,6 +34,7 @@ class LoadableModuleDesciption {
     }
     return count;
   };
+  void makePersistent(void) { if(module) module->make_resident(); };
 };
 typedef std::map<std::string, LoadableModuleDesciption> plugin_cache_t;
 
@@ -61,10 +63,16 @@ class ModuleManager
           old module handler is unloaded. In case of error old 
           module is not unloaded. */
         Glib::Module* reload(Glib::Module* module);
+        /** Unload module by its identifier */
         void unload(Glib::Module* module);
+        /** Unload module by its name */
         void unload(const std::string& name);
         /** Finds shared library corresponding to module 'name' and returns path to it */
         std::string findLocation(const std::string& name);
+        /** Make sure this module is never unloaded. Even if unload() is called. */
+        bool makePersistent(Glib::Module* module);
+        /** Make sure this module is never unloaded. Even if unload() is called. */
+        bool makePersistent(const std::string& name);
         /** Input the configuration subtree, and trigger the module loading (do almost the same as the Constructor); 
         It is function desgined for ClassLoader to adopt the singleton pattern */
         void setCfg (Config *cfg);
