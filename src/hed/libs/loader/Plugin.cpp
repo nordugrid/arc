@@ -72,12 +72,21 @@ namespace Arc {
   }
 
   Plugin* PluginsFactory::get_instance(const std::string& kind,int min_version,int max_version,PluginArgument* arg) {
+    if(arg) arg->set_factory(this);
     descriptors_t_::iterator i = descriptors_.begin();
     for(;i != descriptors_.end();++i) {
       PluginDescriptor* desc = i->second;
       for(;;) {
         desc=find_constructor(desc,kind,min_version,max_version);
         if(!desc) break;
+        if(arg) {
+          modules_t_::iterator m = modules_.find(i->first);
+          if(m != modules_.end()) {
+            arg->set_module(m->second);
+          } else {
+            arg->set_module(NULL);
+          };
+        };
         Plugin* plugin = desc->instance(arg);
         if(plugin) return plugin;
         ++desc;
@@ -102,6 +111,7 @@ namespace Arc {
     for(;;) {
       desc=find_constructor(desc,kind,min_version,max_version);
       if(!desc) break;
+      if(arg) arg->set_module(module);
       Plugin* plugin = desc->instance(arg);
       if(plugin) {
         // Keep plugin loaded and registered
@@ -132,9 +142,18 @@ namespace Arc {
   }
 
   Plugin* PluginsFactory::get_instance(const std::string& kind,const std::string& name,int min_version,int max_version,PluginArgument* arg) {
+    if(arg) arg->set_factory(this);
     descriptors_t_::iterator i = descriptors_.begin();
     for(;i != descriptors_.end();++i) {
       PluginDescriptor* desc = find_constructor(i->second,kind,name,min_version,max_version);
+      if(arg) {
+        modules_t_::iterator m = modules_.find(i->first);
+        if(m != modules_.end()) {
+          arg->set_module(m->second);
+        } else {
+          arg->set_module(NULL);
+        };
+      };
       if(desc) return desc->instance(arg);
     };
     // Try to load module - first by name of plugin
@@ -168,6 +187,7 @@ namespace Arc {
       modules_[mname]=nmodule;
       //descriptors_.push_back((PluginDescriptor*)ptr);
       //modules_.push_back(module);
+      if(arg) arg->set_module(nmodule);
       return desc->instance(arg);
     };
     unload_module(module,*this);
@@ -240,11 +260,28 @@ namespace Arc {
   PluginsFactory::PluginsFactory(const Config& cfg): ModuleManager(&cfg) {
   }
 
-  PluginArgument::PluginArgument(void) {
+  PluginArgument::PluginArgument(void): factory_(NULL), module_(NULL) {
   }
 
   PluginArgument::~PluginArgument(void) {
   }
+
+  PluginsFactory* PluginArgument::get_factory(void) {
+    return factory_;
+  }
+
+  Glib::Module* PluginArgument::get_module(void) {
+    return module_;
+  }
+
+  void PluginArgument::set_factory(PluginsFactory* factory) {
+    factory_=factory;
+  }
+
+  void PluginArgument::set_module(Glib::Module* module) {
+    module_=module;
+  }
+
 
 } // namespace Arc
 

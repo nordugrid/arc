@@ -14,6 +14,8 @@
 
 namespace Arc {
 
+  class PluginsFactory;
+
   /// Base class for loadable ARC components.
   /** All classes representing loadable ARC components must be either 
      descendants of this class or be wrapped by its offspring. */
@@ -29,10 +31,28 @@ namespace Arc {
      expects instance of class inherited from this one or wrapped in it.
      Then dynamic type casting is used for obtaining class of expected kind. */
   class PluginArgument {
+    friend class PluginsFactory;
+    private:
+      PluginsFactory* factory_;
+      Glib::Module* module_;
+      void set_factory(PluginsFactory* factory);
+      void set_module(Glib::Module* module);
     protected:
       PluginArgument(void);
     public:
       virtual ~PluginArgument(void);
+      /// Returns pointer to factory which instantiated plugin.
+      /** Because factory usually destroys/unloads plugins in its
+         destructor it should be safe to keep this pointer inside
+         plugin for later use. But one must always check. */
+      PluginsFactory* get_factory(void);
+      /// Returns pointer to loadable module/library which contains plugin.
+      /** Corresponding factory keeps list of modules till itself is destroyed.
+         So it should be safe to keep that pointer. But care must be taken
+         if module contains persistent plugins. Such modules stay in memory
+         after factory is detroyed. So it is advisable to use obtained 
+         pointer only in constructor function of plugin. */
+      Glib::Module* get_module(void);
   };
 
   /// Name of symbol refering to table of plugins.
