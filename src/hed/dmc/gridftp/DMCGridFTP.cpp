@@ -46,6 +46,11 @@ namespace Arc {
       arg ? dynamic_cast<DMCPluginArgument*>(arg) : NULL;
     if (!dmcarg)
       return NULL;
+    // Make this code non-unloadable because both OpenSSL
+    // and Globus have problems with unloading
+    Glib::Module* module = dmcarg->get_module();
+    PluginsFactory* factory = dmcarg->get_factory();
+    if(factory && module) factory->makePersistent(module);
     openssl_lock.lock();
     if (!openssl_initialized) {
       SSL_load_error_strings();
