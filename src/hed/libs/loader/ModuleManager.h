@@ -20,7 +20,7 @@ class LoadableModuleDesciption {
   LoadableModuleDesciption(void):module(NULL),count(0) { };
   LoadableModuleDesciption(Glib::Module* m):module(m),count(0) { };
   LoadableModuleDesciption& operator=(Glib::Module* m) {
-    if(module == NULL) module=m;
+    module=m;
     return *this;
   }; 
   operator Glib::Module*(void) { return module; };
