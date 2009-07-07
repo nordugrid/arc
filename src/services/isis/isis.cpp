@@ -81,14 +81,6 @@ static void message_send_thread(void *arg) {
     }
     std::vector<std::string>* not_availables_neighbors  = data->not_av_neighbors;
 
-    /*{// for DEBUG
-       std::string node_str;
-       (((ISIS::Thread_data *)data)->node).GetXML(node_str, true);
-
-       thread_logger.msg(Arc::DEBUG, "Neighbor's url: %s", url);
-       thread_logger.msg(Arc::DEBUG, "Sent XML: %s", node_str);
-    }*/
-
     for ( int i=0; i<data->isis_list.size(); i++ ){
         std::string url = data->isis_list[i].url;
         //Send SOAP message to the neighbor.
@@ -99,11 +91,10 @@ static void message_send_thread(void *arg) {
         mcc_cfg.AddProxy(((ISIS::Thread_data *)data)->isis_list[i].proxy);
         mcc_cfg.AddCADir(((ISIS::Thread_data *)data)->isis_list[i].cadir);
         mcc_cfg.AddCAFile(((ISIS::Thread_data *)data)->isis_list[i].cafile);
-            
+
         Arc::ClientSOAP client_entry(mcc_cfg, url);
 
         // Create and send "Register/RemoveRegistrations" request
-        thread_logger.msg(Arc::INFO, "Creating and sending request");
         Arc::NS message_ns;
         //message_ns[""] = "http://www.nordugrid.org/schemas/isis/2007/06";
         message_ns["wsa"] = "http://www.w3.org/2005/08/addressing";
@@ -113,14 +104,14 @@ static void message_send_thread(void *arg) {
 
         req.NewChild(((ISIS::Thread_data *)data)->node);
         Arc::MCC_Status status;
-        thread_logger.msg(Arc::DEBUG, " Sending request to %s and waiting for the response.", url );
+        thread_logger.msg(Arc::DEBUG, "Sending \"Register/RemoveRegistrations\" message to %s and waiting for the response.", url );
         status= client_entry.process(&req,&response);
 
         if ( (!status.isOk()) || (!response) || (response->IsFault()) ) {
            if ( find(not_availables_neighbors->begin(),not_availables_neighbors->end(),url)
                 == not_availables_neighbors->end() && i == 0)
               not_availables_neighbors->push_back(url);
-           thread_logger.msg(Arc::ERROR, "%s Request failed", url);
+           thread_logger.msg(Arc::ERROR, "Status (%s): Failed", url);
         } else {
            std::vector<std::string>::iterator it;
            it = find(not_availables_neighbors->begin(),not_availables_neighbors->end(),url);
@@ -139,7 +130,7 @@ void SendToNeighbors(Arc::XMLNode& node, std::vector<Arc::ISIS_description> neig
                      Arc::Logger& logger_, Arc::ISIS_description isis_desc, std::vector<std::string>* not_availables_neighbors,
                      std::string endpoint, std::multimap<std::string,Arc::ISIS_description>& hash_table) {
     if ( !bool(node) ) {
-       logger_.msg(Arc::WARNING, "Empty message can not be send to the neighbors.");
+       logger_.msg(Arc::WARNING, "Empty message won't be send to the neighbors.");
        return;
     }
 
@@ -181,7 +172,6 @@ void SendToNeighbors(Arc::XMLNode& node, std::vector<Arc::ISIS_description> neig
         }
     }
 
-    logger_.msg(Arc::DEBUG, "All message sender thread created.");
     return;
 }
 
@@ -211,12 +201,11 @@ static void soft_state_thread(void *data) {
     std::vector<Arc::ISIS_description>* providers_ = self->providers;
 
     (*(self->threads_count))++;
-    thread_logger.msg(Arc::DEBUG, "%s Soft-State thread starts. It's the %d. thread in the ISIS", method, *(self->threads_count));
 
     // "sleep_period" is the time, when the thread wakes up and checks the "KillTread" variable's value and then sleep away.
     unsigned int sleep_period = 60;
     while (true){
-        thread_logger.msg(Arc::DEBUG, "%s thread is waiting for %d seconds to the next database cleaning.", method, sleep_time);
+        thread_logger.msg(Arc::DEBUG, "%s: %d seconds to the next database cleaning.", method, sleep_time);
 
         // "sleep_time" is comminuted to some little period
         unsigned int tmp_sleep_time = sleep_time;
@@ -224,7 +213,7 @@ static void soft_state_thread(void *data) {
             // Whether ISIS's destructor called or not
             if( *(self->kill_thread) ) {
                (*(self->threads_count))--;
-               thread_logger.msg(Arc::DEBUG, "%s Soft-State thread is finished.", method);
+               thread_logger.msg(Arc::DEBUG, "%s: Soft-State thread is finished.", method);
                return;
             }
 
@@ -245,7 +234,6 @@ static void soft_state_thread(void *data) {
         std::map<std::string, Arc::XMLNodeList> result;
         db_->queryAll(query_string, result);
         std::map<std::string, Arc::XMLNodeList>::iterator it;
-        // DEBUGING // thread_logger.msg(Arc::DEBUG, "Result.size(): %d", result.size());
         for (it = result.begin(); it != result.end(); it++) {
             if (it->second.size() == 0 || it->first == "" ) {
                 continue;
@@ -254,13 +242,8 @@ static void soft_state_thread(void *data) {
             // If add better XPath for ETValid, then this block can be remove
             if ( method == "ETValid" ){
                Arc::XMLNode data;
-               //db_->get(ServiceID, RegistrationEntry);
+               //The next function calling is db_->get(ServiceID, RegistrationEntry);
                db_->get(it->first, data);
-               { //DEBUGING
-                 /*std::string data_s;
-                 data.GetXML(data_s, true);
-                 thread_logger.msg(Arc::DEBUG, "Data: %s", data_s);*/
-               }
                Arc::Time gentime( (std::string)data["MetaSrcAdv"]["GenTime"]);
                Arc::Period expiration((std::string)data["MetaSrcAdv"]["Expiration"]);
 
@@ -287,12 +270,10 @@ static void soft_state_thread(void *data) {
             }
             // end of the block
 
-            // DEBUGING // thread_logger.msg(Arc::DEBUG, "ServiceID: %s", it->first);
             service_ids.push_back(it->first);
         }
 
         // Remove all old datas
-        // DEBUGING // thread_logger.msg(Arc::DEBUG, "service_ids.size(): %d", service_ids.size());
         std::vector<std::string>::iterator id_it;
         for (id_it = service_ids.begin(); id_it != service_ids.end(); id_it++) {
             db_->del(*id_it);
@@ -301,9 +282,22 @@ static void soft_state_thread(void *data) {
 }
 
     ISIService::ISIService(Arc::Config *cfg):RegisteredService(cfg),logger_(Arc::Logger::rootLogger, "ISIS"),log_stream(NULL),db_(NULL),valid("PT1D"),remove("PT1D"),neighbors_lock(false),neighbors_count(0), available_provider(false), neighbors_update_needed(false) {
+
+        // Set up custom logger if there is any in the configuration
+        Arc::XMLNode logger_node = (*cfg)["Logger"];
+        if ((bool) logger_node) {
+            Arc::LogLevel threshold = Arc::string_to_level((std::string)logger_node.Attribute("level"));
+            log_destination.open(((std::string)logger_node).c_str());
+            log_stream = new Arc::LogStream(log_destination);
+            thread_logger.addDestination(*log_stream);
+            logger_.addDestination(*log_stream);
+            logger_.setThreshold(threshold);
+        }
+
+        logger_.msg(Arc::DEBUG, "Parsing configuration parameters");
         // Endpoint url from the configuration
         endpoint_=(std::string)((*cfg)["endpoint"]);
-        logger_.msg(Arc::DEBUG, "endpoint: %s", endpoint_);
+        logger_.msg(Arc::DEBUG, "Endpoint: %s", endpoint_);
         if ( endpoint_.empty()){
            logger_.msg(Arc::ERROR, "Empty endpoint element in the configuration!");
            return;
@@ -332,7 +326,7 @@ static void soft_state_thread(void *data) {
         if (my_cadir.empty()){
            logger_.msg(Arc::WARNING, "Empty CACertificatesDir element in the configuration!");
         }
-        
+
         my_cafile=(std::string)((*cfg)["CACertificatePath"]);
         logger_.msg(Arc::DEBUG, "CACertficatePath: %s", my_cafile);
         if (my_cafile.empty()){
@@ -356,7 +350,7 @@ static void soft_state_thread(void *data) {
             } else retry = 5;
         } else retry = 5;
 
-        logger_.msg(Arc::DEBUG, "ISIS Retry: %d", retry);
+        logger_.msg(Arc::DEBUG, "Retry: %d", retry);
 
         if ((bool)(*cfg)["sparsity"]) {
             if (!((std::string)(*cfg)["sparsity"]).empty()) {
@@ -368,21 +362,10 @@ static void soft_state_thread(void *data) {
             } else sparsity = 2;
         } else sparsity = 2;
 
-        logger_.msg(Arc::DEBUG, "ISIS Sparsity: %d", sparsity);
+        logger_.msg(Arc::DEBUG, "Sparsity: %d", sparsity);
 
         ThreadsCount = 0;
         KillThread = false;
-
-        // Set up custom logger if there is any in the configuration
-        Arc::XMLNode logger_node = (*cfg)["Logger"];
-        if ((bool) logger_node) {
-            Arc::LogLevel threshold = Arc::string_to_level((std::string)logger_node.Attribute("level"));
-            log_destination.open(((std::string)logger_node).c_str());
-            log_stream = new Arc::LogStream(log_destination);
-            thread_logger.addDestination(*log_stream);
-            logger_.addDestination(*log_stream);
-            logger_.setThreshold(threshold);
-        }
 
         // Set up ETValid if there is any in the configuration
         if ((bool)(*cfg)["ETValid"]) {
@@ -424,7 +407,6 @@ static void soft_state_thread(void *data) {
         FileCacheHash md5;
         // calculate my hash from the endpoint URL
         my_hash = md5.getHash(endpoint_);
-        logger_.msg(Arc::DEBUG, "My hash is: %s", my_hash);
 
         // Init database
         db_ = new Arc::XmlDatabase(db_path, "isis");
@@ -433,12 +415,10 @@ static void soft_state_thread(void *data) {
         std::map<std::string, Arc::XMLNodeList> result;
         db_->queryAll("/*", result);
         std::map<std::string, Arc::XMLNodeList>::iterator it;
-        // DEBUGING // logger_.msg(Arc::DEBUG, "Result.size(): %d", result.size());
         for (it = result.begin(); it != result.end(); it++) {
              if (it->second.size() == 0) {
                 continue;
              }
-             // DEBUGING // logger_.msg(Arc::DEBUG, "ServiceID: %s", it->first);
              db_->del(it->first);
         }
 
@@ -449,10 +429,6 @@ static void soft_state_thread(void *data) {
             if ( endpoint_ != (std::string)(*cfg)["InfoProvider"][i]["URL"] ) {
                Arc::ISIS_description isisdesc;
                isisdesc.url = (std::string)(*cfg)["InfoProvider"][i]["URL"];
-               //isisdesc.proxy = (std::string)(*cfg)["InfoProvider"][i]["Proxy"];;
-               //isisdesc.cadir = (std::string)(*cfg)["InfoProvider"][i]["CaDir"];;
-               // DEBUG //
-               logger_.msg(Arc::DEBUG, "InfoProvider from config: %s", isisdesc.url);
                infoproviders_.push_back(isisdesc);
             }
             i++;
@@ -518,16 +494,14 @@ static void soft_state_thread(void *data) {
         query_string += "']";
         db_->queryAll(query_string, result);
         std::map<std::string, Arc::XMLNodeList>::iterator it;
-        // DEBUGING // thread_logger.msg(Arc::DEBUG, "Result.size(): %d", result.size());
         for (it = result.begin(); it != result.end(); it++) {
             if (it->second.size() == 0 || it->first == "" ) {
                 continue;
             }
             Arc::XMLNode data;
-            //db_->get(ServiceID, RegistrationEntry);
+            //The next function calling is db_->get(ServiceID, RegistrationEntry);
             db_->get(it->first, data);
             std::string serviceid((std::string)data["MetaSrcAdv"]["ServiceID"]);
-            logger_.msg(Arc::DEBUG, "My ServiceID: %s", serviceid);
             if ( !serviceid.empty() ) {
                Arc::NS reg_ns;
                reg_ns["isis"] = ISIS_NAMESPACE;
@@ -542,21 +516,18 @@ static void soft_state_thread(void *data) {
                isis.proxy = my_proxy;
                isis.cadir = my_cadir;
                isis.cafile = my_cafile;
-               logger_.msg(Arc::DEBUG, "RemoveRegistration message send to neighbors.");
                std::multimap<std::string,Arc::ISIS_description> local_hash_table;
                local_hash_table = hash_table;
+               logger_.msg(Arc::DEBUG, "RemoveRegistrations message sent to neighbors.");
                SendToNeighbors(remove_message, neighbors_, logger_, isis, &not_availables_neighbors_,endpoint_,local_hash_table);
             }
             break;
         }
 
-        // TODO: stop message threads
         KillThread = true;
         //Waiting until the all RemoveRegistration message send to neighbors.
         sleep(10);
         for (int i=0; i< garbage_collector.size(); i++) {
-            if ( i == 0 )
-               logger_.msg(Arc::DEBUG, "Garbage Collector working.");
             delete garbage_collector[i];
         }
         while (ThreadsCount > 0){
@@ -575,7 +546,6 @@ static void soft_state_thread(void *data) {
     }
 
     bool ISIService::RegistrationCollector(Arc::XMLNode &doc) {
-          logger.msg(Arc::DEBUG, "RegistrationCollector function is running.");
           // RegEntry element generation
           Arc::XMLNode empty(ns_, "RegEntry");
           empty.New(doc);
@@ -593,7 +563,7 @@ static void soft_state_thread(void *data) {
 
     Arc::MCC_Status ISIService::Query(Arc::XMLNode &request, Arc::XMLNode &response) {
         std::string querystring_ = request["QueryString"];
-        logger_.msg(Arc::DEBUG, "Query: %s", querystring_);
+        logger_.msg(Arc::DEBUG, "Query received: %s", querystring_);
         if (querystring_.empty()) {
             Arc::SOAPEnvelope fault(ns_, true);
             if (fault) {
@@ -607,14 +577,12 @@ static void soft_state_thread(void *data) {
         std::map<std::string, Arc::XMLNodeList> result;
         db_->queryAll(querystring_, result);
         std::map<std::string, Arc::XMLNodeList>::iterator it;
-        // DEBUGING // logger_.msg(Arc::DEBUG, "Result.size(): %d", result.size());
         for (it = result.begin(); it != result.end(); it++) {
             if (it->second.size() == 0) {
                 continue;
             }
-            // DEBUGING // logger_.msg(Arc::DEBUG, "ServiceID: %s", it->first);
             Arc::XMLNode data_;
-            //db_->get(ServiceID, RegistrationEntry);
+            //The next function calling is db_->get(ServiceID, RegistrationEntry);
             db_->get(it->first, data_);
             // add data to output
             response.NewChild(data_);
@@ -626,13 +594,13 @@ static void soft_state_thread(void *data) {
         int i=0;
         while ((bool) request["RegEntry"][i]) {
             Arc::XMLNode regentry_ = request["RegEntry"][i++];
-            logger_.msg(Arc::DEBUG, "Register: ID=%s; EPR=%s; MsgGenTime=%s",
+            logger_.msg(Arc::DEBUG, "Register received: ID=%s; EPR=%s; MsgGenTime=%s",
                 (std::string) regentry_["MetaSrcAdv"]["ServiceID"], (std::string) regentry_["SrcAdv"]["EPR"]["Address"],
                 (std::string) request["Header"]["MessageGenerationTime"]);
 
             //search and check in the database
             Arc::XMLNode db_regentry;
-            //db_->get(ServiceID, RegistrationEntry);
+            //The next function calling is db_->get(ServiceID, RegistrationEntry);
             db_->get((std::string) regentry_["MetaSrcAdv"]["ServiceID"], db_regentry);
 
             Arc::Time new_gentime((std::string) regentry_["MetaSrcAdv"]["GenTime"]);
@@ -674,14 +642,13 @@ static void soft_state_thread(void *data) {
         int i=0;
         while ((bool) request["ServiceID"][i]) {
             std::string service_id = (std::string) request["ServiceID"][i];
-            logger_.msg(Arc::DEBUG, "RemoveRegistrations: ID=%s", service_id);
+            logger_.msg(Arc::DEBUG, "RemoveRegistrations received: ID=%s", service_id);
 
             //search and check in the database
             Arc::XMLNode regentry;
-            //db_->get(ServiceID, RegistrationEntry);
+            //The next function calling is db_->get(ServiceID, RegistrationEntry);
             db_->get(service_id, regentry);
             if ( bool(regentry) ) {
-               logger_.msg(Arc::DEBUG, "The ServiceID (%s) is found in the database.", service_id);
                std::string type = (std::string)regentry["SrcAdv"]["Type"];
                if ( type == "org.nordugrid.infosys.isis") {
                   std::string url = (std::string)regentry["SrcAdv"]["EPR"]["Address"];
@@ -702,7 +669,6 @@ static void soft_state_thread(void *data) {
                }
                else {
                   //update the database
-                  logger_.msg(Arc::DEBUG,"Database update with the new \"MessageGenerationTime\".");
                   Arc::XMLNode new_data(ns_, "RegEntry");
                   new_data.NewChild("MetaSrcAdv").NewChild("ServiceID") = service_id;
                   new_data["MetaSrcAdv"].NewChild("GenTime") = (std::string)request["MessageGenerationTime"];
@@ -710,10 +676,7 @@ static void soft_state_thread(void *data) {
                }
             }
             else {
-               logger_.msg(Arc::DEBUG, "The ServiceID (%s) is not found in the database.", service_id);
-               logger_.msg(Arc::DEBUG, "Now added this ServiceID (%s) in the database.", service_id);
                //add this element in the database
-               logger_.msg(Arc::DEBUG,"Database update with the new \"MessageGenerationTime\".");
                Arc::XMLNode new_data(ns_, "RegEntry");
                new_data.NewChild("MetaSrcAdv").NewChild("ServiceID") = service_id;
                new_data["MetaSrcAdv"].NewChild("GenTime") = (std::string)request["MessageGenerationTime"];
@@ -721,7 +684,6 @@ static void soft_state_thread(void *data) {
             }
             i++;
         }
-        logger_.msg(Arc::DEBUG, "RemoveRegistrations: MGenTime=%s", (std::string)request["MessageGenerationTime"]);
 
         // Send RemoveRegistration message to the other(s) neighbors ISIS.
         Arc::ISIS_description isis;
@@ -738,7 +700,7 @@ static void soft_state_thread(void *data) {
            for (int i=0; bool(request["ServiceID"][i]); i++) {
               // Search the hash value in my database
               Arc::XMLNode data;
-              //db_->get(ServiceID, RegistrationEntry);
+              //The next function calling is db_->get(ServiceID, RegistrationEntry);
               db_->get((std::string)request["ServiceID"][i], data);
            }
         }
@@ -746,7 +708,7 @@ static void soft_state_thread(void *data) {
     }
 
     Arc::MCC_Status ISIService::GetISISList(Arc::XMLNode &request, Arc::XMLNode &response) {
-        logger_.msg(Arc::DEBUG, "GetISISList");
+        logger_.msg(Arc::DEBUG, "GetISISList received");
         // If the neighbors_ vector is empty, then return with the own
         // address else with the list of neighbors.
         if (neighbors_.size() == 0 ) {
@@ -759,21 +721,19 @@ static void soft_state_thread(void *data) {
     }
 
     Arc::MCC_Status ISIService::Connect(Arc::XMLNode &request, Arc::XMLNode &response) {
-        logger_.msg(Arc::DEBUG, "Connect");
+        logger_.msg(Arc::DEBUG, "Connect received");
 
         // Database Dump
         response.NewChild("Database");
         std::map<std::string, Arc::XMLNodeList> result;
         db_->queryAll("/RegEntry", result);
         std::map<std::string, Arc::XMLNodeList>::iterator it;
-        // DEBUGING // logger_.msg(Arc::DEBUG, "Result.size(): %d", result.size());
         for (it = result.begin(); it != result.end(); it++) {
             if (it->second.size() == 0) {
                continue;
             }
-            // DEBUGING // logger_.msg(Arc::DEBUG, "ServiceID: %s", it->first);
             Arc::XMLNode data_;
-            //db_->get(ServiceID, RegistrationEntry);
+            //The next function calling is db_->get(ServiceID, RegistrationEntry);
             db_->get(it->first, data_);
             // add data to output
             response["Database"].NewChild(data_);
@@ -781,7 +741,6 @@ static void soft_state_thread(void *data) {
 
         response.NewChild("Config");
         response.NewChild("EndpointURL") = endpoint_;
-        logger_.msg(Arc::DEBUG, "Connect response creation successed.");
 
         return Arc::MCC_Status(Arc::STATUS_OK);
     }
@@ -842,7 +801,7 @@ static void soft_state_thread(void *data) {
             inpayload = dynamic_cast<Arc::PayloadSOAP*>(inmsg.Payload());
         } catch(std::exception& e) { };
         if(!inpayload) {
-            logger_.msg(Arc::ERROR, "input is not SOAP");
+            logger_.msg(Arc::ERROR, "Communication error: input is not SOAP");
             return make_soap_fault(outmsg);
         }
 
@@ -852,7 +811,6 @@ static void soft_state_thread(void *data) {
         // TODO: needed agereement on what is service id
         std::string client_id = inmsg.Attributes()->get("TLS:IDENTITYDN");
 
-        logger_.msg(Arc::DEBUG,"Operation: %s", (std::string) (*inpayload).Child(0).Name());
         // If the requested operation was: Register
         if (MatchXMLName((*inpayload).Child(0), "Register")) {
             Arc::XMLNode r = res.NewChild("isis:RegisterResponse");
@@ -968,31 +926,25 @@ static void soft_state_thread(void *data) {
         std::map<std::string, Arc::XMLNodeList> result;
         db_->queryAll("/RegEntry/SrcAdv[ Type = 'org.nordugrid.infosys.isis']", result);
         std::map<std::string, Arc::XMLNodeList>::iterator query_it;
-        // DEBUGING // logger_.msg(Arc::DEBUG, "Result.size(): %d", result.size());
         for (query_it = result.begin(); query_it != result.end(); query_it++) {
              if (query_it->second.size() == 0) {
                 continue;
              }
-             // DEBUGING // logger_.msg(Arc::DEBUG, "ServiceID add to the hash table: %s", it->first);
              Arc::XMLNode data_;
-             //db_->get(ServiceID, RegistrationEntry);
+             //The next function calling is db_->get(ServiceID, RegistrationEntry);
              db_->get(query_it->first, data_);
              Arc::XMLNode regentry = data_;
              Arc::ISIS_description service;
              service.url = (std::string)data_["SrcAdv"]["EPR"]["Address"];
              if ( service.url.empty() )
                 service.url = query_it->first;
-             //service.key = Key( regentry);
-             //service.cert = Cert( regentry);
-             //service.proxy = Proxy( regentry);
-             //service.cadir = CaDir( regentry);
              hash_table.insert( std::pair<std::string,Arc::ISIS_description>( PeerID(regentry), service) );
         }
 
         // neighbors count update
         // log(2)x = (log(10)x)/(log(10)2)
         int new_neighbors_count = (int)ceil(log10(hash_table.size())/log10(sparsity));
-        logger_.msg(Arc::DEBUG, "old_neighbors_count: %d, new_neighbors_count: %d (%s)", neighbors_count, new_neighbors_count, endpoint_);
+        logger_.msg(Arc::DEBUG, "Neighbors count recalculate from %d to %d (at ISIS %s)", neighbors_count, new_neighbors_count, endpoint_);
 
         // neighbors vector filling
         std::multimap<std::string,Arc::ISIS_description>::const_iterator it = hash_table.upper_bound(my_hash);
@@ -1001,7 +953,6 @@ static void soft_state_thread(void *data) {
 
         // neighbors lock end
         neighbors_lock = false;
-        logger_.msg(Arc::DEBUG, "Neighbors update success.");
         return;
     }
 
@@ -1024,11 +975,6 @@ static void soft_state_thread(void *data) {
     }
 
     std::string ISIService::PeerID( Arc::XMLNode& regentry){
-        /*{ //DEBUGING
-          std::string s;
-          regentry.GetXML(s, true);
-          logger_.msg(Arc::DEBUG, "[PeerID] request xml: %s", s);
-        }*/
         std::string peerid;
         for (int j=0; bool(regentry["SrcAdv"]["SSPair"][j]); j++ ){
             if ("peerID" == (std::string)regentry["SrcAdv"]["SSPair"][j]["Name"]){
@@ -1048,7 +994,6 @@ static void soft_state_thread(void *data) {
                peerid = md5.getHash((std::string)regentry["MetaSrcAdv"]["ServiceID"]);
             }
         }
-        logger_.msg(Arc::DEBUG, "[PeerID] calculated hash: %s", peerid);
         return peerid;
     }
 
@@ -1062,7 +1007,6 @@ static void soft_state_thread(void *data) {
                continue;
             }
         }
-        logger_.msg(Arc::DEBUG, "[Cert] calculated value: %s", cert);
         return cert;
     }
 
@@ -1076,7 +1020,6 @@ static void soft_state_thread(void *data) {
                continue;
             }
         }
-        logger_.msg(Arc::DEBUG, "[Key] calculated value: %s", key);
         return key;
     }
 
@@ -1090,7 +1033,6 @@ static void soft_state_thread(void *data) {
                continue;
             }
         }
-        logger_.msg(Arc::DEBUG, "[Proxy] calculated value: %s", proxy);
         return proxy;
     }
 
@@ -1104,7 +1046,6 @@ static void soft_state_thread(void *data) {
                continue;
             }
         }
-        logger_.msg(Arc::DEBUG, "[CaDir] calculated value: %s", cadir);
         return cadir;
     }
 
@@ -1128,7 +1069,6 @@ static void soft_state_thread(void *data) {
             mcc_cfg.AddCADir(my_cadir);
             mcc_cfg.AddCAFile(my_cafile);
             // Create and send "Query" request
-            logger_.msg(Arc::INFO, "Creating and sending Query request");
             Arc::NS message_ns;
             message_ns[""] = "http://www.nordugrid.org/schemas/isis/2007/06";
             message_ns["wsa"] = "http://www.w3.org/2005/08/addressing";
@@ -1145,13 +1085,12 @@ static void soft_state_thread(void *data) {
             bool isavailable = false;
             while ( !isavailable && retry_.size() > 0 ) {
                 Arc::ClientSOAP client_entry(mcc_cfg, rndProvider.url);
-                logger_.msg(Arc::DEBUG, " Sending request to the infoProvider (%s) and waiting for the response.", rndProvider.url );
+                logger_.msg(Arc::DEBUG, "Sending Query message to the InfoProvider (%s) and waiting for the response.", rndProvider.url );
                 status= client_entry.process(&req,&response);
 
                 if ( (!status.isOk()) || (!response) || (response->IsFault()) ) {
-                   logger_.msg(Arc::ERROR, "%s Request failed, choose new infoProviderISIS.", rndProvider.url);
+                   logger_.msg(Arc::INFO, "Query failed at %s, choosing new InfoProvider.", rndProvider.url);
                    retry_[rndProvider.url]--;
-                   // DEBUG //logger_.msg(Arc::DEBUG, "Retry decrement: %d", retry_[rndProvider.url]);
                    if ( retry_[rndProvider.url] < 1 ) {
                       retry_.erase(rndProvider.url);
                       for (int i=0; i<temporary_provider.size(); i++){
@@ -1160,7 +1099,7 @@ static void soft_state_thread(void *data) {
                              break;
                           }
                       }
-                      logger_.msg(Arc::ERROR, "%s erase from the infoProviderISIS list.", rndProvider.url);
+                      logger_.msg(Arc::INFO, "Remove ISIS (%s) from the list of InfoProviders.", rndProvider.url);
                    }
                    // new provider search
                    if ( temporary_provider.size() > 0 )
@@ -1169,15 +1108,9 @@ static void soft_state_thread(void *data) {
                    logger_.msg(Arc::DEBUG, "Status (%s): OK", rndProvider.url );
                    isavailable = true;
                    bootstrapISIS = rndProvider.url;
-                   /*{// for DEBUG
-                     std::string resp;
-                     response->GetXML(resp, true);
-                     logger_.msg(Arc::DEBUG, "The response from the %s: %s",bootstrapISIS, resp );
-                   }*/
                 };
             }
             available_provider = isavailable;
-            logger_.msg(Arc::DEBUG, "available provider:  %d (0=false, 1=true)",available_provider);
 
             // 4. step: Hash table and neighbors filling
             std::vector<Service_data> find_servicedatas;
@@ -1204,14 +1137,13 @@ static void soft_state_thread(void *data) {
             if ( available_provider )
                 hash_table.clear();
             for (int i=0; i < find_servicedatas.size(); i++) {
-                logger_.msg(Arc::DEBUG, "find ServiceID: %s , hash: %d", find_servicedatas[i].serviceID, find_servicedatas[i].peerID );
                 // add the hash and the service info into the hash table
                 hash_table.insert( std::pair<std::string,Arc::ISIS_description>( find_servicedatas[i].peerID, find_servicedatas[i].service) );
             }
 
             neighbors_count = 0;
             if ( !isavailable) {
-               logger_.msg(Arc::DEBUG, "All infoProvider are not available." );
+               logger_.msg(Arc::DEBUG, "No InfoProvider is available." );
             }
             else if ( hash_table.size() == 0 ) {
                logger_.msg(Arc::DEBUG, "The hash table is empty. New cloud has been created." );
@@ -1240,11 +1172,11 @@ static void soft_state_thread(void *data) {
                    // Try to connect one ISIS of the neighbors list
                    while ( !isavailable_connect && retry_connect>0) {
                        Arc::ClientSOAP connectclient_entry(mcc_cfg, neighbors_[current].url);
-                       logger_.msg(Arc::DEBUG, " Sending Connect request to the ISIS(%s) and waiting for the response.", neighbors_[current].url );
+                       logger_.msg(Arc::DEBUG, "Sending Connect request to the ISIS(%s) and waiting for the response.", neighbors_[current].url );
 
                        status= connectclient_entry.process(&connect_req,&response_c);
                        if ( (!status.isOk()) || (!response_c) || (response_c->IsFault()) ) {
-                          logger_.msg(Arc::ERROR, "Connect request failed, try again.");
+                          logger_.msg(Arc::INFO, "Connect status (%s): Failed", neighbors_[current].url );
                           retry_connect--;
                        } else {
                           logger_.msg(Arc::DEBUG, "Connect status (%s): OK", neighbors_[current].url );
@@ -1261,17 +1193,11 @@ static void soft_state_thread(void *data) {
                            == not_availables_neighbors_.end() )
                          not_availables_neighbors_.push_back(neighbors_[current].url);
                       current++;
-                      logger_.msg(Arc::DEBUG, " The choosed new ISIS:  %s", neighbors_[current].url );
                    }
                }
 
                if ( isavailable_connect ){
                   // 6. step: response data processing (DB sync, Config saving)
-                  /*{// for DEBUG
-                   std::string resp;
-                   response_c->GetXML(resp, true);
-                   logger_.msg(Arc::DEBUG, "The response from the %s: %s",bootstrapISIS, resp );
-                  }*/
                   std::vector<std::string>::iterator it;
                   it = find(not_availables_neighbors_.begin(),not_availables_neighbors_.end(),neighbors_[current].url);
                   if ( it != not_availables_neighbors_.end() )
@@ -1283,12 +1209,10 @@ static void soft_state_thread(void *data) {
                   std::map<std::string, Arc::XMLNodeList> result;
                   db_->queryAll("/RegEntry", result);
                   std::map<std::string, Arc::XMLNodeList>::iterator it_db;
-                  // DEBUGING // logger_.msg(Arc::DEBUG, "Result.size(): %d", result.size());
                   for (it_db = result.begin(); it_db != result.end(); it_db++) {
                       if (it_db->second.size() == 0) {
                           continue;
                       }
-                      // DEBUGING // logger_.msg(Arc::DEBUG, "ServiceID: %s", it->first);
                       ids.push_back(it_db->first);
                   }
 
@@ -1309,7 +1233,7 @@ static void soft_state_thread(void *data) {
                       } else {
                          // ID is in the DataBase.
                          Arc::XMLNode data_;
-                         //db_->get(ServiceID, RegistrationEntry);
+                         //The next function calling is db_->get(ServiceID, RegistrationEntry);
                          db_->get(id, data_);
                          if ( Arc::Time((std::string)data_["MetaSrcAdv"]["GenTime"]) <=
                               Arc::Time((std::string)regentry_xml["MetaSrcAdv"]["GenTime"])){
@@ -1323,12 +1247,11 @@ static void soft_state_thread(void *data) {
                   }
                   for (int i=0; i<ids.size(); i++){
                       Arc::XMLNode data_;
-                      //db_->get(ServiceID, RegistrationEntry);
+                      //The next function calling is db_->get(ServiceID, RegistrationEntry);
                       db_->get(ids[i], data_);
                       sync_datas.NewChild(data_);
                   }
                   if ( bool(sync_datas["RegEntry"]) ){
-                     logger_.msg(Arc::DEBUG, "Send to neighbors the DB diff.");
                      Arc::ISIS_description isis;
                      isis.url = endpoint_;
                      isis.key = my_key;
@@ -1340,11 +1263,7 @@ static void soft_state_thread(void *data) {
                      local_hash_table = hash_table;
                      SendToNeighbors(sync_datas, neighbors_, logger_, isis, &not_availables_neighbors_,endpoint_,local_hash_table);
                   }
-                  logger_.msg(Arc::DEBUG, "Database stored." );
-                  /*TODO: -Config update
-                  Arc::XMLNode config_xml;
-                  (*response_c)["ConnectResponse"]["Config"].New(config_xml);
-                  */
+                  logger_.msg(Arc::DEBUG, "Database mass updated." );
                }
                if (response_c) delete response_c;
             }
