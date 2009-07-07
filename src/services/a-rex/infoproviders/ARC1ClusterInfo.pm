@@ -284,13 +284,13 @@ sub _collect($$) {
     my $arexhostport = "$host_info->{hostname}:$config->{gm_port}";
 
     # Global IDs
-    my $csvID = "urn:ogsa:ComputingService:$arexhostport"; # ComputingService ID
-    my $cepID = "urn:ogsa:ComputingEndpoint:$arexhostport"; # ComputingEndpoint ID
-    my $cmgrID = "urn:ogsa:ComputingManager:$arexhostport"; # ComputingManager ID
-    my $cactIDp = "urn:ogsa:ComputingActivity:$arexhostport"; # ComputingActivity ID prefix
-    my $cshaIDp = "urn:ogsa:ComputingShare:$arexhostport"; # ComputingShare ID prefix
-    my $xenvIDp = "urn:ogsa:ExecutionEnvironment:$arexhostport"; # ExecutionEnvironment ID prefix
-    my $aenvIDp = "urn:ogsa:ApplicationEnvironment:$arexhostport"; # ApplicationEnvironment ID prefix
+    my $csvID = "urn:ogf:ComputingService:$arexhostport"; # ComputingService ID
+    my $cepID = "urn:ogf:ComputingEndpoint:$arexhostport"; # ComputingEndpoint ID
+    my $cmgrID = "urn:ogf:ComputingManager:$arexhostport"; # ComputingManager ID
+    my $cactIDp = "urn:ogf:ComputingActivity:$arexhostport"; # ComputingActivity ID prefix
+    my $cshaIDp = "urn:ogf:ComputingShare:$arexhostport"; # ComputingShare ID prefix
+    my $xenvIDp = "urn:ogf:ExecutionEnvironment:$arexhostport"; # ExecutionEnvironment ID prefix
+    my $aenvIDp = "urn:ogf:ApplicationEnvironment:$arexhostport"; # ApplicationEnvironment ID prefix
     my %cactIDs; # ComputingActivity IDs
     my %cshaIDs; # ComputingShare IDs
     my %aenvIDs; # ApplicationEnvironment IDs
@@ -403,12 +403,12 @@ sub _collect($$) {
     # TODO: Downtime, is this necessary, and how should it work?
 
     $cep->{Staging} =  [ 'staginginout' ];
-    $cep->{JobDescription} = [ 'ogf:jsdl:1.0' ];
+    $cep->{JobDescription} = [ 'ogf:jsdl:1.0', "nordugrid:xrsl" ];
 
     # TODO: AccessPolicy, needs studying the security configuration
     $cep->{AccessPolicy} = [];
 
-    $cep->{TotalJobs} = [ $gmtotalcount{totaljobs} || 0 ];
+    $cep->{TotalJobs} = [ $gmtotalcount{notfinished} || 0 ];
 
     $cep->{RunningJobs} = [ $inlrmsjobstotal{running} || 0 ];
     $cep->{SuspendedJobs} = [ $inlrmsjobstotal{suspended} || 0 ];
@@ -460,7 +460,7 @@ sub _collect($$) {
         $csha->{DefaultCPUTime} = [ $qinfo->{defaultcput} ] if defined $qinfo->{defaultcput};
         $csha->{MaxWallTime} =  [ $qinfo->{maxwalltime} ] if defined $qinfo->{maxwalltime};
         # TODO: MaxMultiSlotWallTime replaces MaxTotalWallTime, but has different meaning. Check that it's used correctly
-        $csha->{MaxMultiSlotWallTime} =  [ $qinfo->{maxwalltime} ] if defined $qinfo->{maxwalltime};
+        #$csha->{MaxMultiSlotWallTime} =  [ $qinfo->{maxwalltime} ] if defined $qinfo->{maxwalltime};
         $csha->{MinWallTime} =  [ $qinfo->{minwalltime} ] if defined $qinfo->{minwalltime};
         $csha->{DefaultWallTime} = [ $qinfo->{defaultwallt} ] if defined $qinfo->{defaultwallt};
 
@@ -477,22 +477,17 @@ sub _collect($$) {
         # use values from lrms if avaialble
         if (defined $qinfo->{maxrunning}) {
             $maxrunning = $qinfo->{maxrunning};
-            if (defined $qinfo->{maxqueuable}) {
-                $maxwaiting = $qinfo->{maxqueuable} - $maxrunning;
-            }
+        }
+        if (defined $qinfo->{maxqueuable}) {
+            $maxwaiting = $qinfo->{maxqueuable};
         }
 
         # maxjobs config option sets upper limits
         if (defined $maxlrms) {
             $maxrunning = $maxlrms
-                if not defined $maxrunning
-                    or $maxrunning > $maxlrms;
-
-            if (defined $maxrunning) {
-                $maxwaiting = $maxlrms - $maxrunning
-                    if not defined $maxwaiting
-                        or $maxwaiting > $maxlrms - $maxrunning;
-            }
+                if not defined $maxrunning or $maxrunning > $maxlrms;
+            $maxwaiting = $maxlrms
+                if not defined $maxwaiting or $maxwaiting > $maxlrms;
         }
        
         $csha->{MaxRunningJobs} = [ $maxrunning ] if defined $maxrunning;
@@ -516,12 +511,16 @@ sub _collect($$) {
         # MaxStageInStreams, MaxStageOutStreams
         # OBS: A-REX does not have separate limits for up and downloads.
         # OBS: A-REX only cares about totals, not per share limits!
-        my ($maxstaging) = split ' ', ($sconfig->{maxload} || '');
-        $csha->{MaxStageInStreams}  = [ $maxstaging ] if $maxstaging;
-        $csha->{MaxStageOutStreams} = [ $maxstaging ] if $maxstaging;
+        my ($maxloaders, $dummy, $maxthreads) = split ' ', ($sconfig->{maxload} || '');
+        if ($maxloaders) {
+            # default is 5 (see MAX_DOWNLOADS defined in a-rex/grid-manager/loaders/downloader.cpp)
+            $maxthreads = 5 unless defined $maxthreads and $maxthreads > 0;
+            $csha->{MaxStageInStreams}  = [ $maxloaders * $maxthreads ];
+            $csha->{MaxStageOutStreams} = [ $maxloaders * $maxthreads ];
+        }
 
-        # TODO: new return value scheduling_policy from LRMS infocollector.
-        my $schedpolicy = $lrms_info->{scheduling_policy} || undef;
+        # TODO: new return value schedpolicy from LRMS infocollector.
+        my $schedpolicy = $lrms_info->{schedpolicy} || undef;
         if ($sconfig->{scheduling_policy} and not $schedpolicy) {
             $schedpolicy = 'fifo' if lc($sconfig->{scheduling_policy}) eq 'fifo';
             $schedpolicy = 'fairshare' if lc($sconfig->{scheduling_policy}) eq 'maui';
@@ -533,7 +532,7 @@ sub _collect($$) {
 	# GuaranteedVirtualMemory -- all nodes must be able to provide this
 	# much memory per job. Some nodes might be able to afford more per job
 	# (MaxVirtualMemory)
-        $csha->{GuaranteedVirtualMemory} = [ $sconfig->{nodememory} ] if $sconfig->{nodememory};
+        $csha->{MaxVirtualMemory} = [ $sconfig->{nodememory} ] if $sconfig->{nodememory};
         # MaxMainMemory -- usage not being tracked by most LRMSs
 
         # OBS: new config option (space measured in GB !?)
@@ -780,7 +779,7 @@ sub _collect($$) {
         my $share = $gmjob->{share};
         my $gridid = "https://$arexhostport/arex/$jobid";
 
-        $cact->{Type} = [ 'Computing' ];
+        $cact->{Type} = [ 'single' ];
         $cact->{ID} = [ $cactIDs{$share}{$jobid} ];
         $cact->{IDFromEndpoint} = [ $gridid ];
         $cact->{Name} = [ $gmjob->{jobname} ] if $gmjob->{jobname};
