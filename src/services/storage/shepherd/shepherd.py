@@ -322,6 +322,10 @@ class Shepherd:
                                     # TODO: this should be done in some other thread
                                 else:
                                     log.msg(arc.DEBUG, 'checkingThread error, bartender responded', success)
+                            elif state == OFFLINE:
+                                # online now
+                                state = ALIVE
+                                self.changeState(referenceID, ALIVE)
                             if state == DELETED:
                                 # remove replica if marked it as deleted
                                 bsuccess = self.backend.remove(localID)
