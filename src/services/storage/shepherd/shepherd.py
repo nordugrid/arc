@@ -237,6 +237,8 @@ class Shepherd:
                             #   if _checking_checksum changed the state then the new state is returned here:
                             state = self._checking_checksum(referenceID, localData)
                             # now the file's state is according to its checksum
+                            # checksum takes time, so refreshing metadata...
+                            metadata = self.librarian.get([GUID])[GUID]
                             # if it is CREATING or ALIVE:
                             if state == CREATING or state == ALIVE:
                                 # if this metadata is not a valid file then the file must be already removed
