@@ -333,7 +333,8 @@ class Shepherd:
                         except:
                             log.msg(arc.DEBUG, 'ERROR checking checksum of', referenceID)
                             log.msg()
-                        time.sleep(interval)
+                        # sleep for interval +/- 0.5*interval seconds to avoid race condition
+                        time.sleep(interval+((random.random()-0.5)*interval))
                 else:
                     time.sleep(period)
             except:
