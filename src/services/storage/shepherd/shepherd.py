@@ -265,15 +265,19 @@ class Shepherd:
                                             # if the state of this replica is not proper in the Librarian, fix it
                                             metadata[('locations', mylocation)] = ALIVE
                                             self.changeState(referenceID, ALIVE)
-                                        # and the number of alive (or creating) replicas
-                                        alive_replicas = len([property for (section, property), value in metadata.items()
-                                                                  if section == 'locations' and value in [ALIVE, CREATING]])
+                                        # and the number of shepherds with alive (or creating) replicas
+                                        alive_replicas = len(dict([(property.split(' ')[0], value) 
+                                                                   for (section, property), value in metadata.items()
+                                                                   if section == 'locations' and value in [ALIVE, CREATING,STALLED]]))
                                         if alive_replicas < needed_replicas:
                                             # if the file has fewer replicas than needed
                                             log.msg(arc.DEBUG, '\n\nFile', GUID, 'has fewer replicas than needed.')
                                             # we offer our copy to replication
                                             response = self.bartender.addReplica({'checkingThread' : GUID}, common_supported_protocols)
-                                            success, turl, protocol = response['checkingThread']
+                                            try:
+                                                success, turl, protocol = response['checkingThread']
+                                            except:
+                                                success = ''
                                             #print 'addReplica response', success, turl, protocol
                                             if success == 'done':
                                                 # if it's OK, we asks the backend to upload our copy to the TURL we got from the bartender
@@ -285,7 +289,11 @@ class Shepherd:
                                             alive_GUIDs.append(GUID)
                                         elif alive_replicas > needed_replicas:
                                             log.msg(arc.DEBUG, '\n\nFile', GUID, 'has %d more replicas than needed.' % (alive_replicas-needed_replicas))
-                                            self.changeState(referenceID, THIRDWHEEL)
+                                            thirdwheels = len([property for (section, property), value in metadata.items()
+                                                               if section == 'locations' and value == THIRDWHEEL])
+
+                                            if thirdwheels == 0:
+                                                self.changeState(referenceID, THIRDWHEEL)
                                         else:
                                             # so this GUID has an alive replica here
                                             alive_GUIDs.append(GUID)
