@@ -583,7 +583,10 @@ namespace Arc {
         inputSandboxList.push_back((it->Source.front().URI ? it->Source.front().URI.fullstr() : it->Name));
         if (it->Target.front().URI) {
           outputSandboxList.push_back(it->Name);
-          outputSandboxDestURIList.push_back(it->Target.front().URI.fullstr());
+          const std::string uri_tmp = (it->Target.front().URI.Host() == "localhost" ?
+                                       it->Target.front().URI.Protocol() + "://" + it->Target.front().URI.Host() + "/" + it->Target.front().URI.Path() :
+                                       it->Target.front().URI.fullstr());
+          outputSandboxDestURIList.push_back(uri_tmp);
         }
         else if (it->KeepData) {
           outputSandboxList.push_back(it->Name);
