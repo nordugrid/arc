@@ -13,7 +13,7 @@ from storage.client import LibrarianClient, ShepherdClient
 from storage.common import parse_metadata, create_metadata, splitLN, remove_trailing_slash, global_root_guid, serialize_ids, deserialize_ids, sestore_guid, make_decision_metadata
 import traceback
 
-from storage.common import ALIVE, CREATING
+from storage.common import ALIVE, CREATING, THIRDWHEEL
 
 
 from arcom.logger import Logger
@@ -330,7 +330,7 @@ class Bartender:
             checksum = metadata[('states','checksum')]
             # list of shepherds with an alive or creating replica of this file (to avoid using one shepherd twice)
             exceptedSEs = [deserialize_ids(location)[0] 
-                           for (section, location), status in metadata.items() if section == 'locations' and status in [ALIVE, CREATING]]
+                           for (section, location), status in metadata.items() if section == 'locations' and status in [ALIVE, CREATING, THIRDWHEEL]]
             # initiate replica addition of this file with the given protocols 
             success, turl, protocol = self._add_replica(size, checksumType, checksum, GUID, protocols, exceptedSEs)
             # set the response of this request
