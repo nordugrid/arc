@@ -415,13 +415,15 @@ namespace Arc {
       if (CE["GlueCEInfoContactString"])
         target.url = (std::string)CE["GlueCEInfoContactString"];
 
-      if (CE["GlueCEImplementationName"])
-        target.ImplementationName =
-          (std::string)CE["GlueCEImplementationName"];
-
-      if (CE["GlueCEImplementationVersion"])
-        target.ImplementationVersion =
-          (std::string)CE["GlueCEImplementationVersion"];
+      if (CE["GlueCEImplementationName"]) {
+        if (CE["GlueCEImplementationVersion"])
+          target.Implementation =
+            SoftwareVersion((std::string)CE["GlueCEImplementationName"],
+                            (std::string)CE["GlueCEImplementationVersion"]);
+        else 
+          target.Implementation =
+            (std::string)CE["GlueCEImplementationName"];
+      }
 
       if (VOView["GlueCEStateTotalJobs"])
         target.TotalJobs = stringtoi(VOView["GlueCEStateTotalJobs"]);
@@ -552,14 +554,12 @@ namespace Arc {
       for (XMLNode node =
              SubCluster["GlueHostApplicationSoftwareRunTimeEnvironment"];
            node; ++node) {
-        ApplicationEnvironment RT;
-        RT.Name = (std::string)node;
-        RT.Version = "UNDEFINEDVALUE"; 
-        RT.State = "UNDEFINEDVALUE"; 
-        RT.FreeSlots = -1;
-        RT.FreeUserSeats = -1;
-        RT.FreeJobs = -1;
-        target.ApplicationEnvironments.push_back(RT);
+        ApplicationEnvironment ae((std::string)node);
+        ae.State = "UNDEFINEDVALUE"; 
+        ae.FreeSlots = -1;
+        ae.FreeUserSeats = -1;
+        ae.FreeJobs = -1;
+        target.ApplicationEnvironments.push_back(ae);
       } 
       //Register target in TargetGenerator list
       mom.AddTarget(target);

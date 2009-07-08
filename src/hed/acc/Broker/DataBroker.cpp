@@ -27,13 +27,10 @@ namespace Arc {
     PayloadSOAP request(ns);
     XMLNode req = request.NewChild("CacheCheck").NewChild("TheseFilesNeedToCheck");
 
-    for (std::list<FileType>::const_iterator it = job->File.begin();
-         it != job->File.end(); it++)
-      if ((*it).Source.size() != 0) {
-        std::list<SourceType>::const_iterator it2;
-        it2 = ((*it).Source).begin();
-        req.NewChild("FileURL") = ((*it2).URI).fullstr();
-      }
+    for (std::list<FileType>::const_iterator it = job->DataStaging.File.begin();
+         it != job->DataStaging.File.end(); it++)
+      if (!it->Source.empty())
+        req.NewChild("FileURL") = it->Source.front().URI.fullstr();
 
     PayloadSOAP *response = NULL;
 
@@ -94,7 +91,7 @@ namespace Arc {
     std::list<ExecutionTarget*>::iterator iter = PossibleTargets.begin();
 
     while (iter != PossibleTargets.end()) {
-      if (((*iter)->ImplementationName) != "A-REX") {
+      if ((*iter)->Implementation != "ARC1") {
         iter = PossibleTargets.erase(iter);
         continue;
       }

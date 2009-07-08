@@ -221,11 +221,8 @@ int main(int argc, char **argv) {
 
     Arc::JobDescription jobdesc;
     jobdesc.Parse(it->JobDescription);
-    // Checking for previous OldJobIDs and adding this JobID
-    for (std::list<Arc::URL>::iterator oldjob = it->OldJobIDs.begin();
-         oldjob != it->OldJobIDs.end(); oldjob++)
-      jobdesc.addOldJobID(*oldjob);
-    jobdesc.addOldJobID(it->JobID);
+    jobdesc.Identification.ActivityOldId = it->ActivityOldId;
+    jobdesc.Identification.ActivityOldId.push_back(it->JobID.str());
     ChosenBroker->PreFilterTargets(targen.ModifyFoundTargets(), jobdesc);
     while (true) {
       const Arc::ExecutionTarget* target = ChosenBroker->GetBestTarget();

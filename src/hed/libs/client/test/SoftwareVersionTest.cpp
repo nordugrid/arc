@@ -4,14 +4,14 @@
 #include <arc/client/SoftwareVersion.h>
 
 #define SV Arc::SoftwareVersion
-#define SR Arc::SoftwareRequirements
+#define SR Arc::SoftwareRequirement
 
 class SoftwareVersionTest
   : public CppUnit::TestFixture {
 
   CPPUNIT_TEST_SUITE(SoftwareVersionTest);
   CPPUNIT_TEST(TestSoftwareComparison);
-  CPPUNIT_TEST(TestSoftwareRequirements);
+  CPPUNIT_TEST(TestSoftwareRequirement);
   CPPUNIT_TEST_SUITE_END();
 
 public:
@@ -21,7 +21,7 @@ public:
   void setUp();
   void tearDown();
   void TestSoftwareComparison();
-  void TestSoftwareRequirements();
+  void TestSoftwareRequirement();
 
 private:
   Arc::LogStream logcerr;
@@ -76,7 +76,7 @@ void SoftwareVersionTest::TestSoftwareComparison() {
   CPPUNIT_ASSERT(!(SV("XX-YY-1.2.ZZ") > SV("XX-YY-1.2")));
 }
 
-void SoftwareVersionTest::TestSoftwareRequirements() {
+void SoftwareVersionTest::TestSoftwareRequirement() {
   std::list<SV> versions;
   versions.push_back(SV("A-1.03"));
 

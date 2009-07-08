@@ -705,7 +705,6 @@ bool job_local_write_file(const std::string &fname,const JobLocalDescription &jo
   write_pair(f,"sessiondir",job_desc.sessiondir);
   write_pair(f,"diskspace",Arc::tostring(job_desc.diskspace));
   write_pair(f,"failedstate",job_desc.failedstate);
-  write_pair(f,"fullaccess",job_desc.fullaccess);
   write_pair(f,"credentialserver",job_desc.credentialserver);
   for(std::list<std::string>::const_iterator act_id=job_desc.activityid.begin();
       act_id != job_desc.activityid.end(); ++act_id) {
@@ -781,11 +780,6 @@ bool job_local_read_file(const std::string &fname,JobLocalDescription &job_desc)
     else if(name == "sessiondir") { job_desc.sessiondir = buf+p; }
     else if(name == "failedstate") { job_desc.failedstate = buf+p; }
     else if(name == "credentialserver") { job_desc.credentialserver = buf+p; }
-    else if(name == "fullaccess") { 
-      if(strcasecmp("yes",buf+p) == 0) { job_desc.fullaccess = true; }
-      else if(strcasecmp("true",buf+p) == 0) { job_desc.fullaccess = true; }
-      else job_desc.fullaccess = false;
-    }
     else if(name == "diskspace") {
       std::string temp_s(buf+p);
       unsigned long long int n;

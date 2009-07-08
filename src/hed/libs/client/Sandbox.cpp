@@ -33,12 +33,12 @@ namespace Arc {
   bool Sandbox::Add(const JobDescription& jobdesc, XMLNode& info) {
     logger.msg(DEBUG, "Adding job info to sandbox");
     // Create sandbox XML node
-    for (std::list<URL>::const_iterator it = jobdesc.OldJobIDs.begin();
-         it != jobdesc.OldJobIDs.end(); it++)
-      info.NewChild("OldJobID") = it->str();
+    for (std::list<std::string>::const_iterator it = jobdesc.Identification.ActivityOldId.begin();
+         it != jobdesc.Identification.ActivityOldId.end(); it++)
+      info.NewChild("OldJobID") = *it;
     // Store original job description string
     // - this is not quite the original - needs fixing
-    std::string rep = jobdesc.UnParse("POSIXJSDL");
+    std::string rep = jobdesc.UnParse("ARCJSDL");
     info.NewChild("JobDescription") = (std::string)rep;
 
     // Getting cksum of input files

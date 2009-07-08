@@ -1345,7 +1345,6 @@ AC_CONFIG_FILES([Makefile
                  src/hed/libs/dbxml/Makefile
                  src/hed/libs/xmlsec/Makefile
                  src/hed/libs/globusutils/Makefile
-                 src/hed/libs/job/Makefile
                  src/hed/libs/python/Makefile
                  src/hed/libs/python/arcom/Makefile
                  src/hed/libs/python/arcom/store/Makefile

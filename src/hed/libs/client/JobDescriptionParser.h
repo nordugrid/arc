@@ -7,6 +7,13 @@
 
 #include <arc/client/JobDescription.h>
 
+/** JobDescriptionParser
+ * The JobDescriptionParser class is abstract which provide a interface for job
+ * description parsers. A job description parser should inherit this class and
+ * overwrite the JobDescriptionParser::Parse and
+ * JobDescriptionParser::UnParse methods.
+ */
+
 namespace Arc {
 
   class Logger;

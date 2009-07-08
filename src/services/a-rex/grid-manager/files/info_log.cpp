@@ -183,10 +183,11 @@ bool job_log_make_file(const JobDescription &desc,JobUser &user,const std::strin
     fname_src = user.ControlDir() + "/job." + desc.get_id() + sfx_rsl;
     Arc::JobDescription arc_job_desc;
     if(!get_arc_job_description(fname_src, arc_job_desc)) goto error;
-    if(arc_job_desc.IndividualPhysicalMemory>=0) o_dst<<"requestedmemory="<<arc_job_desc.IndividualPhysicalMemory<<std::endl;
-    if(arc_job_desc.TotalCPUTime>=0) o_dst<<"requestedcputime="<<arc_job_desc.TotalCPUTime<<std::endl;
-    if(arc_job_desc.TotalWallTime>=0) o_dst<<"requestedwalltime="<<arc_job_desc.TotalWallTime<<std::endl;
-    if(arc_job_desc.DiskSpace>=0) o_dst<<"requesteddisk="<<arc_job_desc.DiskSpace<<std::endl;
+    if(arc_job_desc.Resources.IndividualPhysicalMemory>=0) o_dst<<"requestedmemory="<<arc_job_desc.Resources.IndividualPhysicalMemory<<std::endl;
+    if(arc_job_desc.Resources.TotalCPUTime>=0) o_dst<<"requestedcputime="<<arc_job_desc.Resources.TotalCPUTime<<std::endl;
+    if(arc_job_desc.Resources.TotalWallTime>=0) o_dst<<"requestedwalltime="<<arc_job_desc.Resources.TotalWallTime<<std::endl;
+    if(arc_job_desc.Resources.IndividualDiskSpace>=0) o_dst<<"requesteddisk="<<arc_job_desc.Resources.IndividualDiskSpace<<std::endl;
+/** Skou: Currently not supported.
     if(arc_job_desc.RunTimeEnvironment.size()>0) {
       o_dst<<"runtimeenvironment=";
       for(std::list<Arc::RunTimeEnvironmentType>::const_iterator itRTE=arc_job_desc.RunTimeEnvironment.begin();
@@ -199,6 +200,7 @@ bool job_log_make_file(const JobDescription &desc,JobUser &user,const std::strin
       }
       o_dst<<std::endl;
     }
+*/
   };
   // Analyze diagnostics and store relevant information
   {

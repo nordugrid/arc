@@ -4,6 +4,7 @@
 #include <arc/client/ClientInterface.h>
 #include <arc/client/ClientX509Delegation.h>
 #include <arc/client/Submitter.h>
+#include <arc/client/SoftwareVersion.h>
 #include <arc/client/ExecutionTarget.h>
 #include <arc/client/JobState.h>
 #include <arc/client/Job.h>
@@ -20,16 +21,13 @@
 %template(JobControllerList) std::list<Arc::JobController *>;
 %template(JobList) std::list<Arc::Job>;
 %template(JobStateList) std::list<Arc::JobState>;
-%template(SourceTypeList) std::list<Arc::SourceType>;
-%template(TargetTypeList) std::list<Arc::TargetType>;
-%template(EnvironmentTypeList) std::list<Arc::EnvironmentType>;
-%template(NotificationTypeList) std::list<Arc::NotificationType>;
-%template(ReferenceTimeTypeList) std::list<Arc::ReferenceTimeType>;
-%template(RunTimeEnvironmentTypeList) std::list<Arc::RunTimeEnvironmentType>;
+%template(SourceTypeList) std::list<Arc::DataSourceType>;
+%template(TargetTypeList) std::list<Arc::DataTargetType>;
 %template(FileTypeList) std::list<Arc::FileType>;
 %template(DirectoryTypeList) std::list<Arc::DirectoryType>;
-%template(OptionalElementTypeList) std::list<Arc::OptionalElementType>;
 %template(ApplicationEnvironmentList) std::list<Arc::ApplicationEnvironment>;
+%template(SoftwareVersionList) std::list<Arc::SoftwareVersion>;
+%template(SoftwareRequirementList) std::list<Arc::SoftwareRequirement>;
 
 
 #ifdef SWIGJAVA
@@ -93,6 +91,7 @@ std::ostream& getStdout() {
 %include "../src/hed/libs/client/ClientX509Delegation.h"
 %clear std::string& delegation_id;
 %include "../src/hed/libs/client/Submitter.h"
+%include "../src/hed/libs/client/SoftwareVersion.h"
 %include "../src/hed/libs/client/ExecutionTarget.h"
 %include "../src/hed/libs/client/JobState.h"
 %include "../src/hed/libs/client/Job.h"

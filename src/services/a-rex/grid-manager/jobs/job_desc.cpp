@@ -40,49 +40,50 @@ bool write_grami(const Arc::JobDescription& arc_job_desc, const JobDescription& 
   f<<"joboption_directory='"<<session_dir<<"'"<<std::endl;
 
   {
-    std::string executable = Arc::trim(arc_job_desc.Executable);
+    std::string executable = Arc::trim(arc_job_desc.Application.Executable.Name);
     if (executable[0] != '/' && executable[0] != '.' && executable[1] != '/') executable = "./"+executable;
     f<<"joboption_arg_0"<<"="<<value_for_shell(executable.c_str(),true)<<std::endl;
     int i = 1;
-    for (std::list<std::string>::const_iterator it = arc_job_desc.Argument.begin();
-         it != arc_job_desc.Argument.end(); it++, i++) {
+    for (std::list<std::string>::const_iterator it = arc_job_desc.Application.Executable.Argument.begin();
+         it != arc_job_desc.Application.Executable.Argument.end(); it++, i++) {
       f<<"joboption_arg_"<<i<<"="<<value_for_shell(it->c_str(),true)<<std::endl;
     }
   }
   
-  f<<"joboption_stdin="<<value_for_shell(arc_job_desc.Input.empty()?NG_RSL_DEFAULT_STDIN:arc_job_desc.Input,true)<<std::endl;
+  f<<"joboption_stdin="<<value_for_shell(arc_job_desc.Application.Input.empty()?NG_RSL_DEFAULT_STDIN:arc_job_desc.Application.Input,true)<<std::endl;
 
-  if (!arc_job_desc.Output.empty()) {
-    std::string output = arc_job_desc.Output;
+  if (!arc_job_desc.Application.Output.empty()) {
+    std::string output = arc_job_desc.Application.Output;
     if (canonical_dir(output) != 0) {
       logger.msg(Arc::ERROR,"Bad name for stdout: %s", output);
       return false;
     }
   }
-  f<<"joboption_stdout="<<value_for_shell(arc_job_desc.Output.empty()?NG_RSL_DEFAULT_STDOUT:session_dir+"/"+arc_job_desc.Output,true)<<std::endl;
-  if (!arc_job_desc.Error.empty()) {
-    std::string error = arc_job_desc.Error;
+  f<<"joboption_stdout="<<value_for_shell(arc_job_desc.Application.Output.empty()?NG_RSL_DEFAULT_STDOUT:session_dir+"/"+arc_job_desc.Application.Output,true)<<std::endl;
+  if (!arc_job_desc.Application.Error.empty()) {
+    std::string error = arc_job_desc.Application.Error;
     if (canonical_dir(error) != 0) {
       logger.msg(Arc::ERROR,"Bad name for stderr: %s", error);
       return false;
     }
   }
-  f<<"joboption_stderr="<<value_for_shell(arc_job_desc.Error.empty()?NG_RSL_DEFAULT_STDERR:session_dir+"/"+arc_job_desc.Error,true)<<std::endl;
+  f<<"joboption_stderr="<<value_for_shell(arc_job_desc.Application.Error.empty()?NG_RSL_DEFAULT_STDERR:session_dir+"/"+arc_job_desc.Application.Error,true)<<std::endl;
 
   {
     int i = 0;
-    for (std::list<Arc::EnvironmentType>::const_iterator it = arc_job_desc.Environment.begin();
-         it != arc_job_desc.Environment.end(); it++, i++) {
-        f<<"joboption_env_"<<i<<"="<<value_for_shell(it->name_attribute+"="+it->value,true)<<std::endl;
+    for (std::list< std::pair<std::string, std::string> >::const_iterator it = arc_job_desc.Application.Environment.begin();
+         it != arc_job_desc.Application.Environment.end(); it++, i++) {
+        f<<"joboption_env_"<<i<<"="<<value_for_shell(it->first+"="+it->second,true)<<std::endl;
     }
   }
 
   
-  f<<"joboption_cputime="<<(arc_job_desc.TotalCPUTime>0?Arc::tostring((int)arc_job_desc.TotalCPUTime.GetPeriod()):"")<<std::endl;
-  f<<"joboption_walltime="<<(arc_job_desc.TotalWallTime>0?Arc::tostring((int)arc_job_desc.TotalWallTime.GetPeriod()):"")<<std::endl;
-  f<<"joboption_memory="<<(arc_job_desc.IndividualPhysicalMemory>0?Arc::tostring(arc_job_desc.IndividualPhysicalMemory):"")<<std::endl;
-  f<<"joboption_count="<<(arc_job_desc.ProcessPerHost>0?Arc::tostring(arc_job_desc.ProcessPerHost):"1")<<std::endl;
+  f<<"joboption_cputime="<<(arc_job_desc.Resources.TotalCPUTime>0?Arc::tostring((int)arc_job_desc.Resources.TotalCPUTime):"")<<std::endl;
+  f<<"joboption_walltime="<<(arc_job_desc.Resources.TotalWallTime>0?Arc::tostring((int)arc_job_desc.Resources.TotalWallTime):"")<<std::endl;
+  f<<"joboption_memory="<<(arc_job_desc.Resources.IndividualPhysicalMemory>0?Arc::tostring(arc_job_desc.Resources.IndividualPhysicalMemory):"")<<std::endl;
+  f<<"joboption_count="<<(arc_job_desc.Resources.Slots.ProcessPerHost>0?Arc::tostring(arc_job_desc.Resources.Slots.ProcessPerHost):"1")<<std::endl;
 
+/** Skou: Currently not supported...
   {
     int i = 0; 
     for (std::list<Arc::RunTimeEnvironmentType>::const_iterator itRTE = arc_job_desc.RunTimeEnvironment.begin();
@@ -98,6 +99,7 @@ bool write_grami(const Arc::JobDescription& arc_job_desc, const JobDescription& 
       }
     }
   }
+*/
 
   f<<"joboption_jobname="<<value_for_shell(job_local_desc.jobname,true)<<std::endl;
   f<<"joboption_queue="<<value_for_shell(job_local_desc.queue,true)<<std::endl;
@@ -110,9 +112,9 @@ bool write_grami(const Arc::JobDescription& arc_job_desc, const JobDescription& 
 }
      
 JobReqResult get_acl(const Arc::JobDescription& arc_job_desc, std::string& acl) {
-  if( !arc_job_desc.AccessControl ) return JobReqSuccess;
-  Arc::XMLNode typeNode = arc_job_desc.AccessControl["Type"];
-  Arc::XMLNode contentNode = arc_job_desc.AccessControl["Content"];
+  if( !arc_job_desc.Application.AccessControl ) return JobReqSuccess;
+  Arc::XMLNode typeNode = arc_job_desc.Application.AccessControl["Type"];
+  Arc::XMLNode contentNode = arc_job_desc.Application.AccessControl["Content"];
   if( !contentNode ) {
     logger.msg(Arc::ERROR, "ARC: acl element wrongly formated - missing Content element");
     return JobReqMissingFailure;
@@ -137,8 +139,8 @@ JobReqResult get_acl(const Arc::JobDescription& arc_job_desc, std::string& acl) 
 bool set_execs(const Arc::JobDescription& desc, const std::string& session_dir) {
   if (!desc) return false;
 
-  if (desc.Executable[0] != '/' && desc.Executable[0] != '$') {
-    std::string executable = desc.Executable;
+  if (desc.Application.Executable.Name[0] != '/' && desc.Application.Executable.Name[0] != '$') {
+    std::string executable = desc.Application.Executable.Name;
     if(canonical_dir(executable) != 0) {
       logger.msg(Arc::ERROR, "Bad name for executable: ", executable);
       return false;
@@ -146,8 +148,8 @@ bool set_execs(const Arc::JobDescription& desc, const std::string& session_dir) 
     fix_file_permissions(session_dir+"/"+executable,true);
   }
 
-  for(std::list<Arc::FileType>::const_iterator it = desc.File.begin();
-      it!=desc.File.end();it++) {
+  for(std::list<Arc::FileType>::const_iterator it = desc.DataStaging.File.begin();
+      it!=desc.DataStaging.File.end();it++) {
     if(it->IsExecutable) {
       std::string executable = it->Name;
       if (executable[0] != '/' && executable[0] != '.' && executable[1] != '/') executable = "./"+executable;

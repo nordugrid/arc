@@ -6,6 +6,7 @@
 #include <iostream>
 
 #include <arc/DateTime.h>
+#include <arc/client/JobDescription.h>
 
 /* 
   Defines few data types used by grid-manager to store information
@@ -47,12 +48,14 @@ class JobLocalDescription {
                            reruns(0),downloads(-1),uploads(-1),
                            jobname(""),jobreport(),
                            cleanuptime((time_t)(-1)),expiretime((time_t)(-1)),
-                           failedstate(""),fullaccess(false),
+                           failedstate(""),
                            credentialserver(""),gsiftpthreads(1),
                            dryrun(false),diskspace(0), migrateactivityid(""),
                            forcemigration(false)
-  {
-  };
+  {}
+
+  JobLocalDescription& operator=(const Arc::JobDescription& arc_job_desc);
+  
   std::string jobid;         /* job's unique identificator */
   /* attributes stored in job.ID.local */
   std::string globalid;      /* BES ActivityIdentifier, i.e. globally unique id */
@@ -80,7 +83,6 @@ class JobLocalDescription {
                                 put after job finishes */
   std::string sessiondir;    /* job's session directory */
   std::string failedstate;   /* state at which job failed, used for rerun */
-  bool fullaccess;           /* full access to session directory while job is running */
   std::string credentialserver; /* URL of server used to renew credentials - MyProxy */
   /* attributes stored in other files */
   std::list<FileData> inputdata;  /* input files */
@@ -95,7 +97,7 @@ class JobLocalDescription {
   int    gsiftpthreads;      /* number of parallel connections to use 
                                 during gsiftp down/uploads */
   bool   dryrun;             /* if true, this is test job */
-  unsigned long long int diskspace;  /* anount of requested space on disk */
+  unsigned long long int diskspace;  /* anount of requested space on disk (unit bytes) */
   std::list<std::string> activityid;     /* ID of activity */
   std::string migrateactivityid;     /* ID of activity that is being migrated*/
   bool forcemigration;      /* Ignore if killing of old job fails */

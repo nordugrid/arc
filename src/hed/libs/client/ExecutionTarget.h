@@ -7,19 +7,24 @@
 #include <map>
 #include <string>
 
-#include <arc/client/ACCLoader.h>
-#include <arc/client/JobDescription.h>
 #include <arc/DateTime.h>
 #include <arc/URL.h>
+#include <arc/client/ACCLoader.h>
+#include <arc/client/JobDescription.h>
+#include <arc/client/SoftwareVersion.h>
 
 namespace Arc {
 
   class Submitter;
   class UserConfig;
 
-  struct ApplicationEnvironment {
-    std::string Name;
-    std::string Version;
+  class ApplicationEnvironment
+    : public SoftwareVersion {
+  public:
+    ApplicationEnvironment() {};
+    ApplicationEnvironment(const std::string& Name) : SoftwareVersion(Name) {};
+    ApplicationEnvironment(const std::string& Name, const std::string& Version) : SoftwareVersion(Name, Version) {};
+    ApplicationEnvironment& operator=(const SoftwareVersion& sv) { SoftwareVersion::operator=(sv); return *this; }
     std::string State;
     int FreeSlots;
     int FreeJobs;
@@ -72,8 +77,9 @@ namespace Arc {
     std::list<std::string> InterfaceExtension;
     std::list<std::string> SupportedProfile;
     std::string Implementor;
-    std::string ImplementationName;
-    std::string ImplementationVersion;
+    //std::string ImplementationName;
+    //std::string ImplementationVersion;
+    SoftwareVersion Implementation;
     std::string QualityLevel;
     std::string HealthState;
     std::string HealthStateInfo;

@@ -62,7 +62,7 @@ namespace Arc {
     XMLNode act_doc = op.NewChild("bes-factory:ActivityDocument");
     WSAHeader(req).Action("http://schemas.ggf.org/bes/2006/08/bes-factory/BESFactoryPortType/CreateActivity");
     WSAHeader(req).To(submissionEndpoint.str());
-    std::string jsdl_str = jobdesc.UnParse("POSIXJSDL");
+    std::string jsdl_str = jobdesc.UnParse("ARCJSDL");
     act_doc.NewChild(XMLNode(jsdl_str));
     //act_doc.Child(0).Namespaces(arex_ns); // Unify namespaces
     PayloadSOAP *resp = NULL;
@@ -103,8 +103,8 @@ namespace Arc {
     NS ns1;
     XMLNode info(ns1, "Job");
     info.NewChild("JobID") = (std::string)id["Address"];
-    if (!jobdesc.JobName.empty())
-      info.NewChild("Name") = jobdesc.JobName;
+    if (!jobdesc.Identification.JobName.empty())
+      info.NewChild("Name") = jobdesc.Identification.JobName;
     info.NewChild("Flavour") = flavour;
     info.NewChild("Cluster") = cluster.str();
     info.NewChild("AuxInfo") = jobid;

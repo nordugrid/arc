@@ -24,7 +24,7 @@ int main(int argc, char **argv) {
 
   std::string requested_format = "";
   options.AddOption('f', "format",
-                    istring("define the requested format (POSIXJSDL, JSDL, JDL, XRSL)"),
+                    istring("define the requested format (ARCJSDL, JDL, XRSL)"),
                     istring("format"),
                     requested_format);
 
@@ -69,7 +69,7 @@ int main(int argc, char **argv) {
     else
       original_description = (*it);
 
-    if (requested_format == "JDL" || requested_format == "JSDL" || requested_format == "XRSL" || requested_format == "POSIXJSDL" || requested_format == "") {
+    if (requested_format == "JDL" || requested_format == "ARCJSDL" || requested_format == "XRSL" || requested_format == "") {
       Arc::JobDescription jd;
 
       if (show_original_description) {
@@ -83,11 +83,6 @@ int main(int argc, char **argv) {
       if (requested_format == "")
         jd.Print(true);
 
-      if (requested_format == "JSDL" || requested_format == "") {
-        test = jd.UnParse("JSDL");
-        std::cout << std::endl << " [ JSDL ] " << std::endl << test << std::endl;
-      }
-
       if (requested_format == "JDL" || requested_format == "") {
         test = jd.UnParse("JDL");
         std::cout << std::endl << " [ JDL ] " << std::endl << test << std::endl;
@@ -98,9 +93,9 @@ int main(int argc, char **argv) {
         std::cout << std::endl << " [ XRSL ] " << std::endl << test << std::endl;
       }
 
-      if (requested_format == "POSIXJSDL" || requested_format == "") {
-        test = jd.UnParse("POSIXJSDL");
-        std::cout << std::endl << " [ POSIXJSDL ] " << std::endl << test << std::endl;
+      if (requested_format == "ARCJSDL" || requested_format == "") {
+        test = jd.UnParse("ARCJSDL");
+        std::cout << std::endl << " [ ARCJSDL ] " << std::endl << test << std::endl;
       }
     }
   }

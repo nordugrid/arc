@@ -13,6 +13,9 @@
 
 #include "JDLParser.h"
 
+#define ADDJDLSTRING(X, Y) (!(X).empty() ? "  " Y " = \"" + X + "\";\n" : "")
+#define ADDJDLNUMBER(X, Y) ((X) > -1 ? "  " Y " = \"" + tostring(X) + "\";\n" : "")
+
 namespace Arc {
 
   JDLParser::JDLParser()
@@ -123,28 +126,23 @@ namespace Arc {
     else if (attributeName == "jobtype")
       return true;     // Skip this attribute
     else if (attributeName == "executable") {
-      job.Executable = simpleJDLvalue(attributeValue);
+      job.Application.Executable.Name = simpleJDLvalue(attributeValue);
       return true;
     }
     else if (attributeName == "arguments") {
-      std::string value = simpleJDLvalue(attributeValue);
-      std::list<std::string> parts;
-      tokenize(value, parts);
-      for (std::list<std::string>::const_iterator it = parts.begin();
-           it != parts.end(); it++)
-        job.Argument.push_back((*it));
+      tokenize(simpleJDLvalue(attributeValue), job.Application.Executable.Argument);
       return true;
     }
     else if (attributeName == "stdinput") {
-      job.Input = simpleJDLvalue(attributeValue);
+      job.Application.Input = simpleJDLvalue(attributeValue);
       return true;
     }
     else if (attributeName == "stdoutput") {
-      job.Output = simpleJDLvalue(attributeValue);
+      job.Application.Output = simpleJDLvalue(attributeValue);
       return true;
     }
     else if (attributeName == "stderror") {
-      job.Error = simpleJDLvalue(attributeValue);
+      job.Application.Error = simpleJDLvalue(attributeValue);
       return true;
     }
     else if (attributeName == "inputsandbox") {
@@ -154,7 +152,7 @@ namespace Arc {
         FileType file;
         const std::size_t pos = it->find_last_of('/');
         file.Name = (pos == std::string::npos ? *it : it->substr(pos+1));
-        SourceType source;
+        DataSourceType source;
         source.URI = *it;
         source.Threads = -1;
         file.Source.push_back(source);
@@ -162,20 +160,20 @@ namespace Arc {
         file.KeepData = false;
         file.IsExecutable = false;
         file.DownloadToCache = false;
-        job.File.push_back(file);
+        job.DataStaging.File.push_back(file);
       }
       return true;
     }
     else if (attributeName == "inputsandboxbaseuri") {
-      for (std::list<FileType>::iterator it = job.File.begin();
-           it != job.File.end(); it++)
+      for (std::list<FileType>::iterator it = job.DataStaging.File.begin();
+           it != job.DataStaging.File.end(); it++)
         /* Since JDL does not have support for multiple locations the size of
          * the Source member is exactly 1.
          */
         if (!it->Source.front().URI)
           it->Source.front().URI = simpleJDLvalue(attributeValue);
-      for (std::list<DirectoryType>::iterator it = job.Directory.begin();
-           it != job.Directory.end(); it++)
+      for (std::list<DirectoryType>::iterator it = job.DataStaging.Directory.begin();
+           it != job.DataStaging.Directory.end(); it++)
         if (!it->Source.front().URI)
           it->Source.front().URI = simpleJDLvalue(attributeValue);
       return true;
@@ -186,25 +184,25 @@ namespace Arc {
            it != outputfiles.end(); it++) {
         FileType file;
         file.Name = *it;
-        TargetType target;
+        DataTargetType target;
         target.URI = *it;
         target.Threads = -1;
         target.Mandatory = false;
-        target.NeededReplicas = -1;
+        target.NeededReplica = -1;
         file.Target.push_back(target);
         // Initializing these variables
         file.KeepData = false;
         file.IsExecutable = false;
         file.DownloadToCache = false;
-        job.File.push_back(file);
+        job.DataStaging.File.push_back(file);
       }
       return true;
     }
     else if (attributeName == "outputsandboxdesturi") {
       std::list<std::string> value = listJDLvalue(attributeValue);
       std::list<std::string>::iterator i = value.begin();
-      for (std::list<FileType>::iterator it = job.File.begin();
-           it != job.File.end(); it++)
+      for (std::list<FileType>::iterator it = job.DataStaging.File.begin();
+           it != job.DataStaging.File.end(); it++)
         //if (!it->Target.empty()) {
         if (i != value.end()) {
           it->Target.front().URI = *i;
@@ -217,44 +215,36 @@ namespace Arc {
       return true;
     }
     else if (attributeName == "outputsandboxbaseuri") {
-      for (std::list<FileType>::iterator it = job.File.begin();
-           it != job.File.end(); it++)
+      for (std::list<FileType>::iterator it = job.DataStaging.File.begin();
+           it != job.DataStaging.File.end(); it++)
         if (!it->Target.front().URI)
           it->Target.front().URI = simpleJDLvalue(attributeValue);
-      for (std::list<DirectoryType>::iterator it = job.Directory.begin();
-           it != job.Directory.end(); it++)
+      for (std::list<DirectoryType>::iterator it = job.DataStaging.Directory.begin();
+           it != job.DataStaging.Directory.end(); it++)
         if (!it->Target.front().URI)
           it->Target.front().URI = simpleJDLvalue(attributeValue);
       return true;
     }
+/** Skou: this need to be done differently...
     else if (attributeName == "batchsystem") {
       job.BatchSystem = simpleJDLvalue(attributeValue);
       return true;
     }
+*/
     else if (attributeName == "prologue") {
-      job.Prologue.Name = simpleJDLvalue(attributeValue);
+      job.Application.Prologue.Name = simpleJDLvalue(attributeValue);
       return true;
     }
     else if (attributeName == "prologuearguments") {
-      std::string value = simpleJDLvalue(attributeValue);
-      std::list<std::string> parts;
-      tokenize(value, parts);
-      for (std::list<std::string>::const_iterator it = parts.begin();
-           it != parts.end(); it++)
-        job.Prologue.Arguments.push_back(*it);
+      tokenize(simpleJDLvalue(attributeValue), job.Application.Prologue.Argument);
       return true;
     }
     else if (attributeName == "epilogue") {
-      job.Epilogue.Name = simpleJDLvalue(attributeValue);
+      job.Application.Epilogue.Name = simpleJDLvalue(attributeValue);
       return true;
     }
     else if (attributeName == "epiloguearguments") {
-      std::string value = simpleJDLvalue(attributeValue);
-      std::list<std::string> parts;
-      tokenize(value, parts);
-      for (std::list<std::string>::const_iterator it = parts.begin();
-           it != parts.end(); it++)
-        job.Epilogue.Arguments.push_back(*it);
+      tokenize(simpleJDLvalue(attributeValue), job.Application.Epilogue.Argument);
       return true;
     }
     else if (attributeName == "allowzippedisb") {
@@ -268,9 +258,7 @@ namespace Arc {
       return true;
     }
     else if (attributeName == "expirytime") {
-      Time expirytime = stringtol(simpleJDLvalue(attributeValue));
-      Time now = Time();
-      job.SessionLifeTime = expirytime - now;
+      job.Application.ExpiryTime = Time(stringtol(simpleJDLvalue(attributeValue)));
       return true;
     }
     else if (attributeName == "environment") {
@@ -279,10 +267,10 @@ namespace Arc {
            it != variables.end(); it++) {
         std::string::size_type equal_pos = it->find('=');
         if (equal_pos != std::string::npos) {
-          EnvironmentType env;
-          env.name_attribute = it->substr(0, equal_pos);
-          env.value = it->substr(equal_pos + 1);
-          job.Environment.push_back(env);
+          job.Application.Environment.push_back(
+            std::pair<std::string, std::string>(
+              trim(it->substr(0, equal_pos)),
+              trim(it->substr(equal_pos + 1))));
         }
         else {
           logger.msg(DEBUG, "[JDLParser] Environment variable has been defined without any equal sign.");
@@ -333,25 +321,25 @@ namespace Arc {
       return true;
     }
     else if (attributeName == "virtualorganisation") {
-      job.JobProject = simpleJDLvalue(attributeValue);
+      job.Identification.JobVOName = simpleJDLvalue(attributeValue);
       return true;
     }
+/** Skou: Unclear how queuename should be saved.
     else if (attributeName == "queuename") {
       job.QueueName = simpleJDLvalue(attributeValue);
       return true;
     }
+*/
     else if (attributeName == "retrycount") {
-      int count = stringtoi(simpleJDLvalue(attributeValue));
-      if (job.LRMSReRun > count)
-        count = job.LRMSReRun;
-      job.LRMSReRun = count;
+      const int count = stringtoi(simpleJDLvalue(attributeValue));
+      if (job.Application.Rerun < count)
+        job.Application.Rerun = count;
       return true;
     }
     else if (attributeName == "shallowretrycount") {
-      int count = stringtoi(simpleJDLvalue(attributeValue));
-      if (job.LRMSReRun > count)
-        count = job.LRMSReRun;
-      job.LRMSReRun = count;
+      const int count = stringtoi(simpleJDLvalue(attributeValue));
+      if (job.Application.Rerun < count)
+        job.Application.Rerun = count;
       return true;
     }
     else if (attributeName == "lbaddress") {
@@ -360,8 +348,7 @@ namespace Arc {
       return true;
     }
     else if (attributeName == "myproxyserver") {
-      URL url(simpleJDLvalue(attributeValue));
-      job.CredentialService = url;
+      job.Application.CredentialService.push_back(URL(simpleJDLvalue(attributeValue)));
       return true;
     }
     else if (attributeName == "hlrlocation") {
@@ -414,19 +401,15 @@ namespace Arc {
       return true;
     }
     else if (attributeName == "rank") {
-      job.Rank = simpleJDLvalue(attributeValue);
+      job.JobMeta.Rank = simpleJDLvalue(attributeValue);
       return true;
     }
     else if (attributeName == "fuzzyrank") {
-      bool fuzzyrank = false;
-      if (upper(simpleJDLvalue(attributeValue)) == "TRUE")
-        fuzzyrank = true;
-      job.FuzzyRank = fuzzyrank;
+      job.JobMeta.FuzzyRank = (upper(simpleJDLvalue(attributeValue)) == "TRUE");
       return true;
     }
     else if (attributeName == "usertags") {
-      // They have no standard and no meaning.
-      job.UserTag.push_back(simpleJDLvalue(attributeValue));
+      job.Identification.UserTag.push_back(simpleJDLvalue(attributeValue));
       return true;
     }
     else if (attributeName == "outputse") {
@@ -443,18 +426,18 @@ namespace Arc {
     return false;
   }
 
-  std::string JDLParser::generateOutputList(const std::string& attribute, const std::list<std::string>& list) const {
+  std::string JDLParser::generateOutputList(const std::string& attribute, const std::list<std::string>& list, std::pair<char, char> brackets, char lineEnd) const {
     const std::string space = "             "; // 13 spaces seems to be standard padding.
     std::ostringstream output;
-    output << "  " << attribute << " = {" << std::endl;
+    output << "  " << attribute << " = " << brackets.first << std::endl;
     for (std::list<std::string>::const_iterator it = list.begin();
          it != list.end(); it++) {
       if (it != list.begin())
-        output << "," << std::endl;
+        output << lineEnd << std::endl;
       output << space << "\"" << *it << "\"";
     }
 
-    output << std::endl << space << "};" << std::endl;
+    output << std::endl << space << ";" << brackets.second << std::endl;
     return output.str();    
   }
 
@@ -524,117 +507,76 @@ namespace Arc {
   std::string JDLParser::UnParse(const JobDescription& job) const {
     std::string product;
     product = "[\n  Type = \"job\";\n";
-    if (!job.Executable.empty()) {
-      product += "  Executable = \"";
-      product += job.Executable;
-      product += "\";\n";
-    }
-    if (!job.Argument.empty()) {
+
+    product += ADDJDLSTRING(job.Application.Executable.Name, "Executable");
+    if (!job.Application.Executable.Argument.empty()) {
       product += "  Arguments = \"";
-      bool first = true;
-      for (std::list<std::string>::const_iterator it = job.Argument.begin();
-           it != job.Argument.end(); it++) {
-        if (!first)
+      for (std::list<std::string>::const_iterator it = job.Application.Executable.Argument.begin();
+           it != job.Application.Executable.Argument.end(); it++) {
+        if (it != job.Application.Executable.Argument.begin())
           product += " ";
-        else
-          first = false;
         product += *it;
       }
       product += "\";\n";
     }
-    if (!job.Input.empty()) {
-      product += "  StdInput = \"";
-      product += job.Input;
-      product += "\";\n";
-    }
-    if (!job.Output.empty()) {
-      product += "  StdOutput = \"";
-      product += job.Output;
-      product += "\";\n";
-    }
-    if (!job.Error.empty()) {
-      product += "  StdError = \"";
-      product += job.Error;
-      product += "\";\n";
-    }
 
-    if (!job.JobProject.empty()) {
-      product += "  VirtualOrganisation = \"";
-      product += job.JobProject;
-      product += "\";\n";
-    }
+    product += ADDJDLSTRING(job.Application.Input, "StdInput");
+    product += ADDJDLSTRING(job.Application.Output, "StdOutput");
+    product += ADDJDLSTRING(job.Application.Error, "StdError");
+    product += ADDJDLSTRING(job.Identification.JobVOName, "VirtualOrganisation");
+    //product += ADDJDLSTRING(job.BatchSystem, "BatchSystem");
 
-    if (!job.BatchSystem.empty()) {
-      product += "  BatchSystem = \"";
-      product += job.BatchSystem;
-      product += "\";\n";
-    }
-
-    if (!job.Environment.empty()) {
-      product += "  Environment = {\n";
-      for (std::list<EnvironmentType>::const_iterator it = job.Environment.begin();
-           it != job.Environment.end(); it++) {
-        product += "    \"" + (*it).name_attribute + "=" + (*it).value + "\"";
-        if (it++ != job.Environment.end()) {
-          product += ",";
-          it--;
-        }
-        product += "\n";
+    if (!job.Application.Environment.empty()) {
+      std::list<std::string> environment;
+      for (std::list< std::pair<std::string, std::string> >::const_iterator it = job.Application.Environment.begin();
+           it != job.Application.Environment.end(); it++) {
+        environment.push_back(it->first + " = " + it->second);
       }
-      product += "    };\n";
+
+      if (!environment.empty())
+        product += generateOutputList("Environment", environment);
     }
-    if (!job.Prologue.Name.empty()) {
-      product += "  Prologue = \"";
-      product += job.Prologue.Name.empty();
-      product += "\";\n";
-    }
-    if (!job.Prologue.Arguments.empty()) {
+
+    product += ADDJDLSTRING(job.Application.Prologue.Name, "Prologue");
+    if (!job.Application.Prologue.Argument.empty()) {
       product += "  PrologueArguments = \"";
-      bool first = true;
-      for (std::list<std::string>::const_iterator iter = job.Prologue.Arguments.begin();
-           iter != job.Prologue.Arguments.end(); iter++) {
-        if (!first)
+      for (std::list<std::string>::const_iterator iter = job.Application.Prologue.Argument.begin();
+           iter != job.Application.Prologue.Argument.end(); iter++) {
+        if (iter != job.Application.Prologue.Argument.begin())
           product += " ";
-        else
-          first = false;
         product += *iter;
       }
       product += "\";\n";
     }
-    if (!job.Epilogue.Name.empty()) {
-      product += "  Epilogue = \"";
-      product += job.Epilogue.Name;
-      product += "\";\n";
-    }
-    if (!job.Epilogue.Arguments.empty()) {
-      product += "  EpilogueArguments = \"";
-      bool first = true;
-      for (std::list<std::string>::const_iterator iter = job.Epilogue.Arguments.begin();
-           iter != job.Epilogue.Arguments.end(); iter++) {
-        if (!first)
-          product += " ";
-        else
-          first = false;
-        product += *iter;
-      }
-      product += "\";\n";
-    }
-    if (!job.Executable.empty() ||
-        !job.File.empty() ||
-        !job.Input.empty() ||
-        !job.Output.empty() ||
-        !job.Error.empty()) {
 
-      bool addExecutable = !job.Executable.empty();
-      bool addInput      = !job.Input.empty();
-      bool addOutput     = !job.Output.empty();
-      bool addError      = !job.Error.empty();
+    product += ADDJDLSTRING(job.Application.Epilogue.Name, "Epilogue");
+    if (!job.Application.Epilogue.Argument.empty()) {
+      product += "  EpilogueArguments = \"";
+      for (std::list<std::string>::const_iterator iter = job.Application.Epilogue.Argument.begin();
+           iter != job.Application.Epilogue.Argument.end(); iter++) {
+        if (iter != job.Application.Epilogue.Argument.begin())
+          product += " ";
+        product += *iter;
+      }
+      product += "\";\n";
+    }
+    
+    if (!job.Application.Executable.Name.empty() ||
+        !job.DataStaging.File.empty() ||
+        !job.Application.Input.empty() ||
+        !job.Application.Output.empty() ||
+        !job.Application.Error.empty()) {
+
+      bool addExecutable = !job.Application.Executable.Name.empty();
+      bool addInput      = !job.Application.Input.empty();
+      bool addOutput     = !job.Application.Output.empty();
+      bool addError      = !job.Application.Error.empty();
 
       std::list<std::string> inputSandboxList;
       std::list<std::string> outputSandboxList;
       std::list<std::string> outputSandboxDestURIList;
-      for (std::list<FileType>::const_iterator it = job.File.begin();
-           it != job.File.end(); it++) {
+      for (std::list<FileType>::const_iterator it = job.DataStaging.File.begin();
+           it != job.DataStaging.File.end(); it++) {
         /* Since JDL does not have support for multiple locations only the first
          * location will be added.
          */
@@ -648,23 +590,23 @@ namespace Arc {
           outputSandboxDestURIList.push_back(it->Name);
         }
 
-        addExecutable &= (it->Name != job.Executable);
-        addInput      &= (it->Name != job.Input);
-        addOutput     &= (it->Name != job.Output);
-        addError      &= (it->Name != job.Error);
+        addExecutable &= (it->Name != job.Application.Executable.Name);
+        addInput      &= (it->Name != job.Application.Input);
+        addOutput     &= (it->Name != job.Application.Output);
+        addError      &= (it->Name != job.Application.Error);
       }
 
       if (addExecutable)
-        inputSandboxList.push_back(job.Executable);
+        inputSandboxList.push_back(job.Application.Executable.Name);
       if (addInput)
-        inputSandboxList.push_back(job.Input);
+        inputSandboxList.push_back(job.Application.Input);
       if (addOutput) {
-        outputSandboxList.push_back(job.Output);
-        outputSandboxDestURIList.push_back(job.Output);
+        outputSandboxList.push_back(job.Application.Output);
+        outputSandboxDestURIList.push_back(job.Application.Output);
       }
       if (addError) {
-        outputSandboxList.push_back(job.Error);
-        outputSandboxDestURIList.push_back(job.Error);
+        outputSandboxList.push_back(job.Application.Error);
+        outputSandboxDestURIList.push_back(job.Application.Error);
       }
 
       if (!inputSandboxList.empty())
@@ -674,54 +616,34 @@ namespace Arc {
       if (!outputSandboxDestURIList.empty())
         product += generateOutputList("OutputSandboxDestURI", outputSandboxDestURIList);
     }
+    
+/** Skou: Unclear how to handle this attribute.
     if (!job.QueueName.empty()) {
       product += "  QueueName = \"";
       product += job.QueueName;
       product += "\";\n";
     }
-    if (job.LRMSReRun > -1) {
-      product += "  RetryCount = \"";
-      std::ostringstream oss;
-      oss << job.LRMSReRun;
-      product += oss.str();
-      product += "\";\n";
-    }
-    if (job.SessionLifeTime != -1) {
-      std::string outputValue;
-      int attValue = atoi(((std::string)job.SessionLifeTime).c_str());
-      int nowSeconds = time(NULL);
-      std::stringstream ss;
-      ss << attValue + nowSeconds;
-      ss >> outputValue;
-      product += "  ExpiryTime = \"";
-      product += outputValue;
-      product += "\";\n";
-    }
-    if (bool(job.CredentialService)) {
+*/
+
+    product += ADDJDLNUMBER(job.Application.Rerun, "RetryCount");
+    product += ADDJDLNUMBER(job.Application.Rerun, "ShallowRetryCount");
+    product += ADDJDLNUMBER(job.Application.ExpiryTime.GetTime(), "ExpiryTime");
+
+    if (!job.Application.CredentialService.empty() &&
+        job.Application.CredentialService.front()) {
       product += "  MyProxyServer = \"";
-      product += job.CredentialService.fullstr();
+      product += job.Application.CredentialService.front().fullstr();
       product += "\";\n";
     }
-    if (!job.Rank.empty()) {
-      product += "  Rank = \"";
-      product += job.Rank;
-      product += "\";\n";
-    }
-    if (job.FuzzyRank)
+    
+    product += ADDJDLSTRING(job.JobMeta.Rank, "Rank");
+    
+    if (job.JobMeta.FuzzyRank)
       product += "  FuzzyRank = true;\n";
-    if (!job.UserTag.empty()) {
-      product += "  UserTag = ";
-      bool first = true;
-      std::list<std::string>::const_iterator iter;
-      for (iter = job.UserTag.begin(); iter != job.UserTag.end(); iter++) {
-        if (!first)
-          product += ",";
-        else
-          first = false;
-        product += *iter;
-      }
-      product += ";\n";
-    }
+
+    if (!job.Identification.UserTag.empty())
+      product += generateOutputList("UserTags", job.Identification.UserTag, std::pair<char, char>('[', ']'), ';');
+    
     if (!job.JDL_elements.empty()) {
       std::map<std::string, std::string>::const_iterator it;
       for (it = job.JDL_elements.begin(); it != job.JDL_elements.end(); it++) {

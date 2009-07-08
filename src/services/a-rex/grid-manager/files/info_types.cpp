@@ -103,6 +103,163 @@ bool FileData::has_lfn(void) {
   return (lfn.find(':') != std::string::npos);
 }
 
+/** Skou: Currently not used, due to transition in job description parsing.
+static bool insert_RC_to_url(std::string& url,const std::string& rc_url) {
+  Arc::URL url_(url);
+  if(!url_) return false;
+  if(url_.Protocol() != "rc") return false;
+  if(!url_.Host().empty()) return false;
+  Arc::URL rc_url_(rc_url);
+  if(!rc_url_) return false;
+  if(rc_url_.Protocol() != "ldap") return false;
+  url_.ChangePort(rc_url_.Port());
+  url_.ChangeHost(rc_url_.Host());
+  url_.ChangePath(rc_url_.Path()+"/"+url_.Path());
+  url=url_.str();
+  return true;
+}
+*/
+
+JobLocalDescription& JobLocalDescription::operator=(const Arc::JobDescription& arc_job_desc)
+{
+  action = "request";
+
+  projectnames.clear();
+  projectnames.push_back(arc_job_desc.Identification.JobVOName);
+
+  jobname = arc_job_desc.Identification.JobName;
+  downloads = 0;
+  uploads = 0;
+  outputdata.clear();
+  inputdata.clear();
+  for (std::list<Arc::FileType>::const_iterator file = arc_job_desc.DataStaging.File.begin();
+       file != arc_job_desc.DataStaging.File.end(); ++file) {
+    std::string fname = file->Name;
+    if(fname.empty()) continue; // Can handle only named files
+    if(fname[0] != '/') fname = "/"+fname; // Just for safety
+    // Because ARC job description does not keep enough information
+    // about initial JSDL description we have to make some guesses here.
+    if(!file->Source.empty()) { // input file
+      // Only one source per file supported
+      FileData fdata(fname.c_str(), file->Source.front().URI.fullstr().c_str());
+      inputdata.push_back(fdata);
+      if (file->Source.front().URI) ++downloads;
+
+      if (inputdata.back().has_lfn()) {
+        Arc::URL u(inputdata.back().lfn);
+        
+        if (file->IsExecutable ||
+            file->Name == arc_job_desc.Application.Executable.Name)
+          u.AddOption("exec", "yes");
+        else if (u.Option("cache").empty()) // Do not add to cache if executable.
+          u.AddOption("cache", (file->DownloadToCache ? "yes" : "no"));
+        if (u.Option("threads").empty() && file->Source.front().Threads > 1)
+          u.AddOption("threads", Arc::tostring(file->Source.front().Threads));
+        inputdata.back().lfn = u.fullstr();
+      }
+    }
+    if (!file->Target.empty()) { // output file
+      FileData fdata(fname.c_str(), file->Target.front().URI.fullstr().c_str());
+      outputdata.push_back(fdata);
+      ++uploads;
+
+      if (outputdata.back().has_lfn()) {
+        Arc::URL u(outputdata.back().lfn);
+        if (u.Option("threads").empty() && file->Target.front().Threads > 1)
+          u.AddOption("threads", Arc::tostring(file->Source.front().Threads));
+        if (u.Option("cache").empty())
+          u.AddOption("cache", (file->DownloadToCache ? "yes" : "no"));
+        outputdata.back().lfn = u.fullstr();
+      }      
+    }
+    if (file->Source.empty() && file->Target.empty() && file->KeepData) {
+      // user downloadable file
+      FileData fdata(fname.c_str(), NULL);
+      outputdata.push_back(fdata);
+    }
+  }
+  
+/** Skou: Currently not supported, due to transition in job description parsing.
+  if(job_desc.rc.length() != 0) {
+    for(FileData::iterator i=job_desc.outputdata.begin();
+                         i!=job_desc.outputdata.end();++i) {
+      insert_RC_to_url(i->lfn,job_desc.rc);
+    };
+    for(FileData::iterator i=job_desc.inputdata.begin();
+                         i!=job_desc.inputdata.end();++i) {
+      insert_RC_to_url(i->lfn,job_desc.rc);
+    };
+  };
+*/
+
+  // Order of the following calls matters!
+  arguments.clear();
+  arguments = arc_job_desc.Application.Executable.Argument;
+  arguments.push_front(arc_job_desc.Application.Executable.Name);
+
+  stdin_ = arc_job_desc.Application.Input;
+  stdout_ = arc_job_desc.Application.Output;
+  stderr_ = arc_job_desc.Application.Error;
+
+  if (arc_job_desc.Resources.IndividualDiskSpace > -1)
+    diskspace = (unsigned long long int)arc_job_desc.Resources.IndividualDiskSpace;
+
+  processtime = arc_job_desc.Application.ProcessingStartTime;
+  
+  const int lifetimeTemp = (int)arc_job_desc.Application.SessionLifeTime.GetPeriod();
+  if (lifetimeTemp > 0) lifetime = lifetimeTemp;
+
+  activityid = arc_job_desc.Identification.ActivityOldId;
+
+  stdlog = arc_job_desc.Application.LogDir;
+
+  jobreport.clear();
+  for (std::list<Arc::URL>::const_iterator it = arc_job_desc.Application.RemoteLogging.begin();
+       it != arc_job_desc.Application.RemoteLogging.end(); it++) {
+    jobreport.push_back(it->str());
+  }
+  
+  /** Skou: Currently not supported, due to transition in job description parsing.
+   * New notification structure need to be defined.
+   * Old parsing structure follows...
+  // Notification.
+  for( int j=0; (bool)(stateNode[j]); j++ ) {
+    std::string value = (std::string) stateNode[i];
+    if ( value == "PREPARING" ) {
+      s_+="b";
+    } else if ( value == "INLRMS" ) {
+      s_+="q";
+    } else if ( value == "FINISHING" ) {
+      s_+="f";
+    } else if ( value == "FINISHED" ) {
+      s_+="e";
+    } else if ( value == "DELETED" ) {
+      s_+="d";
+    } else if ( value == "CANCELING" ) {
+      s_+="c";
+    };
+  };
+
+  if(s_.length()) {
+    s+=s_; s+= (std::string) endpointNode; s+=" ";
+  };
+  if(!get_notification(job_desc.notify)) return false;
+  */
+  
+  if (!arc_job_desc.Resources.CandidateTarget.empty() &&
+      !arc_job_desc.Resources.CandidateTarget.front().QueueName.empty())
+    queue = arc_job_desc.Resources.CandidateTarget.front().QueueName;
+
+  if (!arc_job_desc.Application.CredentialService.empty() &&
+      arc_job_desc.Application.CredentialService.front())
+    credentialserver = arc_job_desc.Application.CredentialService.front().str();
+
+  if (arc_job_desc.Application.Rerun > -1)
+    reruns = arc_job_desc.Application.Rerun;
+  
+  return *this;
+};
+
 bool LRMSResult::set(const char* s) {
   // 1. Empty string = exit code 0
   if(s == NULL) s="";

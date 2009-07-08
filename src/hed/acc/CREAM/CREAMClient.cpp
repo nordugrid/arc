@@ -239,23 +239,17 @@ namespace Arc {
 
       JobDescription jd;
       if (jd.Parse(job.JobDescription) && jd) {
-        if (!jd.Input.empty())
-          job.StdIn = jd.Input;
+        if (!jd.Application.Input.empty())
+          job.StdIn = jd.Application.Input;
 
-        if (!jd.Output.empty())
-          job.StdOut = jd.Output;
+        if (!jd.Application.Output.empty())
+          job.StdOut = jd.Application.Output;
 
-        if (!jd.Error.empty())
-          job.StdErr = jd.Error;
+        if (!jd.Application.Error.empty())
+          job.StdErr = jd.Application.Error;
 
-        if (!jd.QueueName.empty())
-          job.Queue = jd.QueueName;
-
-        /*           job.RequestedWallTime =
-                     job.RequestedTotalCPUTime =
-                     job.RequestedMainMemory =
-                     job.RequestedSlots =
-         */
+        if (!jd.Resources.CandidateTarget.empty())
+          job.Queue = jd.Resources.CandidateTarget.front().QueueName;
       }
     }
 

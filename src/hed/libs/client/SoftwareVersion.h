@@ -9,13 +9,29 @@
 
 namespace Arc {
 
+  class ApplicationEnvironment;
+
   class SoftwareVersion {
   public:
     SoftwareVersion() {};
     SoftwareVersion(const std::string& name);
+    SoftwareVersion(const std::string& name, const std::string& version);
+    SoftwareVersion(const SoftwareVersion& sv) : version(sv.version), tokenizedVersion(sv.tokenizedVersion) {};
 
     SoftwareVersion& operator=(const SoftwareVersion& sv);
-    
+    SoftwareVersion& operator=(const std::string& sv);
+
+    enum ComparisonOperator {
+      NOTEQUAL = 0,
+      EQUAL = 1,
+      GREATERTHAN = 2,
+      LESSTHAN = 3,
+      GREATERTHANOREQUAL = 4,
+      LESSTHANOREQUAL = 5
+    };
+
+    bool operator==(const std::string& sv) const { return version == sv; }
+    bool operator!=(const std::string& sv) const { return version != sv; }
     bool operator==(const SoftwareVersion& sv) const { return sv.version == version; }
     bool operator!=(const SoftwareVersion& sv) const { return sv.version != version; }
     bool operator> (const SoftwareVersion& sv) const;
@@ -30,8 +46,9 @@ namespace Arc {
     }
 
     std::string operator()() const { return version; }
+    operator std::string(void) const { return version; }
 
-  private:
+  protected:
     std::string version;
     std::list<std::string> tokenizedVersion;
 
@@ -40,24 +57,37 @@ namespace Arc {
 
   typedef bool (SoftwareVersion::*SVComparisonOperator)(const SoftwareVersion&) const;
 
-  class SoftwareRequirements {
+  class SoftwareRequirement {
   public:
-    SoftwareRequirements(bool requiresAll = true) : requiresAll(requiresAll) {}
-    SoftwareRequirements(const SoftwareVersion& sv,
-                         const SVComparisonOperator& svComOp = &SoftwareVersion::operator==,
-                         bool requiresAll = true)
-      : versions(1, SVComparison(sv, svComOp)), requiresAll(requiresAll) {}
+    SoftwareRequirement(bool requiresAll = true) : requiresAll(requiresAll) {}
+#ifndef SWIG
+    SoftwareRequirement(const SoftwareVersion& sv,
+                        SVComparisonOperator svComOp = &SoftwareVersion::operator==,
+                        bool requiresAll = true);
+#endif
+    SoftwareRequirement(const SoftwareVersion& sv,
+                        SoftwareVersion::ComparisonOperator co,
+                        bool requiresAll = true);
+    SoftwareRequirement& operator=(const SoftwareRequirement& sr);
 
-    void add(const SoftwareVersion& sv, const SVComparisonOperator& svComOp = &SoftwareVersion::operator==) { versions.push_back(SVComparison(sv, svComOp)); }
-    void add(const SoftwareRequirements& sr) { requirements.push_back(sr); }
+#ifndef SWIG
+    void add(const SoftwareVersion& sv, SVComparisonOperator svComOp = &SoftwareVersion::operator==) { versions.push_back(SVComparison(sv, svComOp)); }
+#endif
+    void add(const SoftwareRequirement& sr) { requirements.push_back(sr); }
+
+    void setRequirement(bool all) { requiresAll = all; }
     
+    bool isSatisfied(const SoftwareVersion& svList) const { return isSatisfied(std::list<SoftwareVersion>(1, svList)); }
     bool isSatisfied(const std::list<SoftwareVersion>& svList) const;
+    bool isSatisfied(const std::list<ApplicationEnvironment>& svList) const;
+    
+    bool empty() const { return requirements.empty() && versions.empty(); }
 
   private:
-    typedef std::pair<SoftwareVersion, const SVComparisonOperator> SVComparison;
-    std::list<SoftwareRequirements> requirements;
+    typedef std::pair<SoftwareVersion, SVComparisonOperator> SVComparison;
+    std::list<SoftwareRequirement> requirements;
     std::list<SVComparison> versions;
-    const bool requiresAll;
+    bool requiresAll;
 
     static Logger logger;
   };

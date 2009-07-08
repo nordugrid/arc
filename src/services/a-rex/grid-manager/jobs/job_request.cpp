@@ -40,21 +40,6 @@
 
 static Arc::Logger& logger = Arc::Logger::getRootLogger();
 
-static bool insert_RC_to_url(std::string& url,const std::string& rc_url) {
-  Arc::URL url_(url);
-  if(!url_) return false;
-  if(url_.Protocol() != "rc") return false;
-  if(!url_.Host().empty()) return false;
-  Arc::URL rc_url_(rc_url);
-  if(!rc_url_) return false;
-  if(rc_url_.Protocol() != "ldap") return false;
-  url_.ChangePort(rc_url_.Port());
-  url_.ChangeHost(rc_url_.Host());
-  url_.ChangePath(rc_url_.Path()+"/"+url_.Path());
-  url=url_.str();
-  return true;
-}
-
 typedef enum {
   job_req_unknown,
   job_req_rsl,
@@ -100,48 +85,6 @@ bool process_job_req(JobUser &user,const JobDescription &desc,JobLocalDescriptio
   if((job_desc.diskspace>user.DiskSpace()) || (job_desc.diskspace==0)) {
     job_desc.diskspace=user.DiskSpace();
   };
-  if(job_desc.rc.length() != 0) {
-    for(FileData::iterator i=job_desc.outputdata.begin();
-                         i!=job_desc.outputdata.end();++i) {
-      insert_RC_to_url(i->lfn,job_desc.rc);
-    };
-    for(FileData::iterator i=job_desc.inputdata.begin();
-                         i!=job_desc.inputdata.end();++i) {
-      insert_RC_to_url(i->lfn,job_desc.rc);
-    };
-  };
-  if(job_desc.gsiftpthreads > 1) {
-    std::string v = Arc::tostring(job_desc.gsiftpthreads);
-    for(FileData::iterator i=job_desc.outputdata.begin();
-                         i!=job_desc.outputdata.end();++i) {
-      Arc::URL u(i->lfn);
-      if(u) { u.AddOption("threads",v); i->lfn=u.fullstr(); };
-    };
-    for(FileData::iterator i=job_desc.inputdata.begin();
-                         i!=job_desc.inputdata.end();++i) {
-      Arc::URL u(i->lfn);
-      if(u) { u.AddOption("threads",v); i->lfn=u.fullstr(); };
-    };
-  };
-  if(job_desc.cache.length() != 0) {
-    std::string value;
-    for(FileData::iterator i=job_desc.outputdata.begin();
-                         i!=job_desc.outputdata.end();++i) {
-      Arc::URL u(i->lfn);
-      value=u.Option("cache");
-      if(u && value.empty()) {
-        u.AddOption("cache",job_desc.cache); i->lfn=u.fullstr();
-      };
-    };
-    for(FileData::iterator i=job_desc.inputdata.begin();
-                         i!=job_desc.inputdata.end();++i) {
-      Arc::URL u(i->lfn);
-      value=u.Option("cache");
-      if(value.empty()) {
-        u.AddOption("cache",job_desc.cache); i->lfn=u.fullstr();
-      };
-    };
-  };
   if(!job_local_write_file(desc,user,job_desc)) return false;
   if(!job_input_write_file(desc,user,job_desc.inputdata)) return false;
   if(!job_output_write_file(desc,user,job_desc.outputdata)) return false;
@@ -156,79 +99,9 @@ JobReqResult parse_job_req(const std::string &fname,JobLocalDescription &job_des
     *failure = "Unable to read or parse job description.";
     return JobReqInternalFailure;
   }
-  // Fill internal job description
-  // TODO elements (not all of them must be filled here)
-  // std::string jobid;
-  // std::string globalid;
-  // std::string lrms;
-  // std::string localid;
-  // std::string DN;
-  // Arc::Time starttime;
-  // std::string lifetime;
-  // std::string notify;
-  // Arc::Time processtime;
-  // Arc::Time exectime;
-  // std::string clientname;
-  // std::string clientsoftware;
-  // int    reruns;
-  // std::string jobname;
-  // std::list<std::string> projectnames;
-  // std::list<std::string> jobreport;
-  // Arc::Time cleanuptime;
-  // Arc::Time expiretime;
-  // std::string stdlog; 
-  // std::string sessiondir;
-  // std::string failedstate;
-  // bool fullaccess;
-  // std::string credentialserver;
-  // std::string rc;
-  // std::string cache;
-  // int    gsiftpthreads;
-  // bool   dryrun;
-  // unsigned long long int diskspace;
-  // std::list<std::string> activityid;
-  // std::string migrateactivityid;
-  // bool forcemigration;
 
-  // Minimal set of elements filled here 
-  job_desc.action = "request";
-  if(!arc_job_desc.QueueName.empty()) job_desc.queue = arc_job_desc.QueueName;
-  if(!arc_job_desc.Executable.empty()) {
-    job_desc.arguments.clear();
-    job_desc.arguments.push_back(arc_job_desc.Executable);
-    job_desc.arguments.insert(job_desc.arguments.end(),arc_job_desc.Argument.begin(),arc_job_desc.Argument.end());
-  } else {
-    *failure = "Job description is missing executable.";
-    return JobReqMissingFailure;
-  }
-  job_desc.stdin_ = arc_job_desc.Input;
-  job_desc.stdout_ = arc_job_desc.Output;
-  job_desc.stderr_ = arc_job_desc.Error;
-  job_desc.downloads = 0;
-  job_desc.uploads = 0;
-  for(std::list<Arc::FileType>::iterator file = arc_job_desc.File.begin();
-                          file != arc_job_desc.File.end();++file) {
-    std::string fname = file->Name;
-    if(fname.empty()) continue; // Can handle only named files
-    if(fname[0] != '/') fname = "/"+fname; // Just for safety
-    // Because ARC job description does not keep enough information
-    // about initial JSDL description we have to make some guesses here.
-    if(file->Source.size() > 0) { // input file
-      // Only one source per file supported
-      FileData fdata(fname.c_str(),file->Source.begin()->URI.fullstr().c_str());
-      job_desc.inputdata.push_back(fdata);
-      if(file->Source.begin()->URI) ++job_desc.downloads;
-    }
-    if(file->Target.size() > 0) { // output file
-      FileData fdata(fname.c_str(),file->Target.begin()->URI.fullstr().c_str());
-      job_desc.outputdata.push_back(fdata); ++job_desc.uploads;
-    }
-    if((file->Source.size() <= 0) && (file->Target.size() <= 0)) {
-      // user downloadable file
-      FileData fdata(fname.c_str(),NULL);
-      job_desc.outputdata.push_back(fdata);
-    }
-  }
+  job_desc = arc_job_desc;
+
   if (acl) return get_acl(arc_job_desc, *acl);
   return JobReqSuccess;
 }

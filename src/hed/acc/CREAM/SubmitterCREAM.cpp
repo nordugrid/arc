@@ -62,8 +62,8 @@ namespace Arc {
     Arc::NS ns;
     Arc::XMLNode info(ns, "Job");
     info.NewChild("JobID") = submissionurl.str() + '/' + jobInfo.jobId;
-    if (!jobdesc.JobName.empty())
-      info.NewChild("Name") = jobdesc.JobName;
+    if (!jobdesc.Identification.JobName.empty())
+      info.NewChild("Name") = jobdesc.Identification.JobName;
     info.NewChild("Flavour") = flavour;
     info.NewChild("Cluster") = cluster.str();
     info.NewChild("LocalSubmissionTime") = (std::string)Arc::Time();

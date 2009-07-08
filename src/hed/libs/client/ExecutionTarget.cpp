@@ -120,8 +120,7 @@ namespace Arc {
     InterfaceExtension = target.InterfaceExtension;
     SupportedProfile = target.SupportedProfile;
     Implementor = target.Implementor;
-    ImplementationName = target.ImplementationName;
-    ImplementationVersion = target.ImplementationVersion;
+    Implementation = target.Implementation;
     QualityLevel = target.QualityLevel;
     HealthState = target.HealthState;
     HealthStateInfo = target.HealthStateInfo;
@@ -235,8 +234,8 @@ namespace Arc {
   void ExecutionTarget::Update(const JobDescription& jobdesc) {
 
     //WorkingAreaFree
-    if (jobdesc.DiskSpace) {
-      WorkingAreaFree -= (int)(jobdesc.DiskSpace / 10E9);
+    if (jobdesc.Resources.IndividualDiskSpace) {
+      WorkingAreaFree -= (int)(jobdesc.Resources.IndividualDiskSpace / 10E9);
       if (WorkingAreaFree < 0)
         WorkingAreaFree = 0;
     }
@@ -244,15 +243,15 @@ namespace Arc {
     // FreeSlotsWithDuration
     if (!FreeSlotsWithDuration.empty()) {
       std::map<Period, int>::iterator cpuit, cpuit2;
-      cpuit = FreeSlotsWithDuration.lower_bound(jobdesc.TotalCPUTime);
+      cpuit = FreeSlotsWithDuration.lower_bound((unsigned int)jobdesc.Resources.TotalCPUTime);
       if (cpuit != FreeSlotsWithDuration.end()) {
-        if (jobdesc.Slots >= cpuit->second)
+        if (jobdesc.Resources.Slots.NumberOfProcesses >= cpuit->second)
           cpuit->second = 0;
         else
           for (cpuit2 = FreeSlotsWithDuration.begin();
                cpuit2 != FreeSlotsWithDuration.end(); cpuit2++) {
             if (cpuit2->first <= cpuit->first)
-              cpuit2->second -= jobdesc.Slots;
+              cpuit2->second -= jobdesc.Resources.Slots.NumberOfProcesses;
             else if (cpuit2->second >= cpuit->second) {
               cpuit2->second = cpuit->second;
               Period oldkey = cpuit->first;
@@ -274,13 +273,13 @@ namespace Arc {
     }
 
     //FreeSlots, UsedSlots, WaitingJobs
-    if (FreeSlots >= abs(jobdesc.Slots)) { //The job will start directly
-      FreeSlots -= abs(jobdesc.Slots);
+    if (FreeSlots >= abs(jobdesc.Resources.Slots.NumberOfProcesses)) { //The job will start directly
+      FreeSlots -= abs(jobdesc.Resources.Slots.NumberOfProcesses);
       if (UsedSlots != -1)
-        UsedSlots += abs(jobdesc.Slots);
+        UsedSlots += abs(jobdesc.Resources.Slots.NumberOfProcesses);
     }
     else if (WaitingJobs != -1)    //The job will enter the queue (or the cluster doesn't report FreeSlots)
-      WaitingJobs += abs(jobdesc.Slots);
+      WaitingJobs += abs(jobdesc.Resources.Slots.NumberOfProcesses);
 
     return;
 
@@ -357,12 +356,9 @@ namespace Arc {
       }
       if (!Implementor.empty())
         std::cout << IString(" Implementor: %s", Implementor) << std::endl;
-      if (!ImplementationName.empty())
-        std::cout << IString(" Implementation Name: %s", ImplementationName)
+      if (!Implementation().empty())
+        std::cout << IString(" Implementation Name: %s", (std::string)Implementation)
                   << std::endl;
-      if (!ImplementationVersion.empty())
-        std::cout << IString(" Implementation Version: %s",
-                             ImplementationVersion) << std::endl;
       if (!QualityLevel.empty())
         std::cout << IString(" QualityLevel: %s", QualityLevel) << std::endl;
       if (!HealthState.empty())

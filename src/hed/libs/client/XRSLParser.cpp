@@ -13,7 +13,6 @@
 
 #include <arc/StringConv.h>
 #include <arc/URL.h>
-#include <arc/job/runtimeenvironment.h>
 #include <arc/client/JobDescription.h>
 
 #include "RSLParser.h"
@@ -168,19 +167,19 @@ namespace Arc {
     }
     else if ((c = dynamic_cast<const RSLCondition*>(r))) {
       if (c->Attr() == "executable")
-        return SingleValue(c, j.Executable);
+        return SingleValue(c, j.Application.Executable.Name);
 
       if (c->Attr() == "arguments")
-        return ListValue(c, j.Argument);
+        return ListValue(c, j.Application.Executable.Argument);
 
       if (c->Attr() == "stdin")
-        return SingleValue(c, j.Input);
+        return SingleValue(c, j.Application.Input);
 
       if (c->Attr() == "stdout")
-        return SingleValue(c, j.Output);
+        return SingleValue(c, j.Application.Output);
 
       if (c->Attr() == "stderr")
-        return SingleValue(c, j.Error);
+        return SingleValue(c, j.Application.Error);
 
       if (c->Attr() == "inputfiles") {
         std::list<std::list<std::string> > ll;
@@ -191,7 +190,7 @@ namespace Arc {
           std::list<std::string>::iterator it2 = it->begin();
           FileType file;
           file.Name = *it2++;
-          SourceType source;
+          DataSourceType source;
           if (!it2->empty())
             source.URI = *it2;
           else
@@ -200,8 +199,8 @@ namespace Arc {
           file.Source.push_back(source);
           file.KeepData = false;
           file.IsExecutable = false;
-          file.DownloadToCache = j.cached;
-          j.File.push_back(file);
+          file.DownloadToCache = cached;
+          j.DataStaging.File.push_back(file);
         }
         return true;
       }
@@ -212,8 +211,8 @@ namespace Arc {
           return false;
         for (std::list<std::string>::iterator it = execs.begin();
              it != execs.end(); it++)
-          for (std::list<FileType>::iterator it2 = j.File.begin();
-               it2 != j.File.end(); it2++)
+          for (std::list<FileType>::iterator it2 = j.DataStaging.File.begin();
+               it2 != j.DataStaging.File.end(); it2++)
             if (it2->Name == (*it))
               it2->IsExecutable = true;
         return true;
@@ -224,9 +223,9 @@ namespace Arc {
         if (!SingleValue(c, cache))
           return false;
         if (lower(cache) == "yes") {
-          j.cached = true;
-          for (std::list<FileType>::iterator it = j.File.begin();
-               it != j.File.end(); it++)
+          const_cast<XRSLParser*>(this)->cached = true;
+          for (std::list<FileType>::iterator it = j.DataStaging.File.begin();
+               it != j.DataStaging.File.end(); it++)
             if (!it->Source.empty())
               it->DownloadToCache = true;
         }
@@ -242,27 +241,29 @@ namespace Arc {
           std::list<std::string>::iterator it2 = it->begin();
           FileType file;
           file.Name = *it2++;
-          TargetType target;
+          DataTargetType target;
           if (!it2->empty())
             target.URI = *it2;
           target.Threads = -1;
           file.Target.push_back(target);
           file.KeepData = false;
           file.IsExecutable = false;
-          file.DownloadToCache = j.cached;
-          j.File.push_back(file);
+          file.DownloadToCache = cached;
+          j.DataStaging.File.push_back(file);
         }
         return true;
       }
 
-      if (c->Attr() == "queue")
-        return SingleValue(c, j.QueueName);
+      if (c->Attr() == "queue") {
+        j.Resources.CandidateTarget.push_back(ResourceTargetType());
+        return SingleValue(c, j.Resources.CandidateTarget.back().QueueName);
+      }
 
       if (c->Attr() == "starttime") {
         std::string time;
         if (!SingleValue(c, time))
           return false;
-        j.ProcessingStartTime = time;
+        j.Application.ProcessingStartTime = time;
         return true;
       }
 
@@ -270,7 +271,7 @@ namespace Arc {
         std::string time;
         if (!SingleValue(c, time))
           return false;
-        j.SessionLifeTime = Period(time, PeriodMinutes);
+        j.Application.SessionLifeTime = Period(time, PeriodMinutes);
         return true;
       }
 
@@ -278,7 +279,7 @@ namespace Arc {
         std::string time;
         if (!SingleValue(c, time))
           return false;
-        j.TotalCPUTime = Period(time, PeriodMinutes);
+        j.Resources.TotalCPUTime = Period(time, PeriodMinutes).GetPeriod();
         return true;
       }
 
@@ -286,10 +287,11 @@ namespace Arc {
         std::string time;
         if (!SingleValue(c, time))
           return false;
-        j.TotalWallTime = Period(time, PeriodMinutes);
+        j.Resources.TotalWallTime = Period(time, PeriodMinutes).GetPeriod();
         return true;
       }
 
+/** Skou: Currently not supported...
       if (c->Attr() == "gridtime") {
         std::string time;
         if (!SingleValue(c, time))
@@ -301,7 +303,9 @@ namespace Arc {
         j.ReferenceTime.push_back(rtime);
         return true;
       }
+*/
 
+/** Skou: Currently not supported...
       if (c->Attr() == "benchmarks") {
         std::list<std::list<std::string> > bm;
         if (!SeqListValue(c, bm, 3))
@@ -317,12 +321,12 @@ namespace Arc {
         }
         return true;
       }
-
+*/
       if (c->Attr() == "memory") {
         std::string mem;
         if (!SingleValue(c, mem))
           return false;
-        j.IndividualPhysicalMemory = stringtoi(mem);
+        j.Resources.IndividualPhysicalMemory = stringto<int64_t>(mem);
         return true;
       }
 
@@ -330,7 +334,7 @@ namespace Arc {
         std::string disk;
         if (!SingleValue(c, disk))
           return false;
-        j.DiskSpace = stringtoi(disk);
+          j.Resources.IndividualDiskSpace = stringto<int64_t>(disk);
         return true;
       }
 
@@ -338,62 +342,46 @@ namespace Arc {
         std::string runtime;
         if (!SingleValue(c, runtime))
           return false;
-		RuntimeEnvironment rt(runtime);
-        Arc::RunTimeEnvironmentType rt_tmp;
-        rt_tmp.Name = rt.Name();
-		if (!rt.Version().empty())
-		   rt_tmp.Version.push_back(rt.Version());
-        j.RunTimeEnvironment.push_back(rt_tmp);
+        j.Resources.RunTimeEnvironment.add(SoftwareVersion(runtime));
         return true;
        }
 
-      if (c->Attr() == "middleware")
-        return SingleValue(c, j.CEType);
+      if (c->Attr() == "middleware") {
+        std::string cetype;
+        if (!SingleValue(c, cetype))
+          return false;
+        j.Resources.CEType.add(SoftwareVersion(cetype));
+        return true;
+      }
 
       if (c->Attr() == "opsys")
-        return SingleValue(c, j.OSName);
+        return SingleValue(c, j.Resources.OSName);
 
       if (c->Attr() == "join") {
         std::string join;
         if (!SingleValue(c, join))
           return false;
-        if (lower(join) == "true")
-          j.Join = true;
+        j.Application.Join = (lower(join) == "true");
         return true;
       }
 
       if (c->Attr() == "gmlog")
-        return SingleValue(c, j.LogDir);
+        return SingleValue(c, j.Application.LogDir);
 
       if (c->Attr() == "jobname")
-        return SingleValue(c, j.JobName);
+        return SingleValue(c, j.Identification.JobName);
 
       if (c->Attr() == "ftpthreads") {
         std::string sthreads;
         if (!SingleValue(c, sthreads))
           return false;
         int threads = stringtoi(sthreads);
-        for (std::list<FileType>::iterator it = j.File.begin();
-             it != j.File.end(); it++) {
-          for (std::list<SourceType>::iterator sit = it->Source.begin();
-               sit != it->Source.end(); sit++)
-            if (sit->Threads > threads || sit->Threads == -1)
-              sit->Threads = threads;
-          for (std::list<TargetType>::iterator tit = it->Target.begin();
-               tit != it->Target.end(); tit++)
-            if (tit->Threads > threads || tit->Threads == -1)
-              tit->Threads = threads;
-        }
-        for (std::list<DirectoryType>::iterator it = j.Directory.begin();
-             it != j.Directory.end(); it++) {
-          for (std::list<SourceType>::iterator sit = it->Source.begin();
-               sit != it->Source.end(); sit++)
-            if (sit->Threads > threads || sit->Threads == -1)
-              sit->Threads = threads;
-          for (std::list<TargetType>::iterator tit = it->Target.begin();
-               tit != it->Target.end(); tit++)
-            if (tit->Threads > threads || tit->Threads == -1)
-              tit->Threads = threads;
+        for (std::list<FileType>::iterator it = j.DataStaging.File.begin();
+             it != j.DataStaging.File.end(); it++) {
+          if (it->Source.front().Threads > threads || it->Source.front().Threads == -1)
+            it->Source.front().Threads = threads;
+          if (it->Target.front().Threads > threads || it->Target.front().Threads == -1)
+            it->Target.front().Threads = threads;
         }
         return true;
       }
@@ -403,7 +391,7 @@ namespace Arc {
         if (!SingleValue(c, acl))
           return false;
         XMLNode node(acl);
-        node.New(j.AccessControl);
+        node.New(j.Application.AccessControl);
         return true;
       }
 
@@ -411,10 +399,12 @@ namespace Arc {
         std::string cluster;
         if (!SingleValue(c, cluster))
           return false;
-        j.EndPointURL = cluster;
+        j.Resources.CandidateTarget.push_back(ResourceTargetType());
+        j.Resources.CandidateTarget.back().EndPointURL = cluster;
         return true;
       }
 
+/** Skou: Structure need to be defined.
       if (c->Attr() == "notify") {
         std::list<std::string> l;
         if (!ListValue(c, l))
@@ -463,18 +453,16 @@ namespace Arc {
         j.Notification.push_back(nofity);
         return true;
       }
+*/
 
       if (c->Attr() == "replicacollection") {
         std::string collection;
         if (!SingleValue(c, collection))
           return false;
         URL url(collection);
-        for (std::list<FileType>::iterator it = j.File.begin();
-             it != j.File.end(); it++)
-          it->DataIndexingService = url;
-        for (std::list<DirectoryType>::iterator it = j.Directory.begin();
-             it != j.Directory.end(); it++)
-          it->DataIndexingService = url;
+        for (std::list<FileType>::iterator it = j.DataStaging.File.begin();
+             it != j.DataStaging.File.end(); it++)
+          it->DataIndexingService.push_back(url);
         return true;
       }
 
@@ -482,12 +470,12 @@ namespace Arc {
         std::string rerun;
         if (!SingleValue(c, rerun))
           return false;
-        j.LRMSReRun = stringtoi(rerun);
+        j.Application.Rerun = stringtoi(rerun);
         return true;
       }
 
       if (c->Attr() == "architecture")
-        return SingleValue(c, j.Platform);
+        return SingleValue(c, j.Resources.Platform);
 
       if (c->Attr() == "nodeaccess") {
         std::list<std::string> l;
@@ -496,9 +484,9 @@ namespace Arc {
         for (std::list<std::string>::iterator it = l.begin();
              it != l.end(); it++)
           if (*it == "inbound")
-            j.InBound = true;
+            j.Resources.NodeAccess = (j.Resources.NodeAccess == NAT_OUTBOUND || j.Resources.NodeAccess == NAT_INOUTBOUND ? NAT_INOUTBOUND : NAT_INBOUND);
           else if (*it == "outbound")
-            j.OutBound = true;
+            j.Resources.NodeAccess = (j.Resources.NodeAccess == NAT_INBOUND || j.Resources.NodeAccess == NAT_INOUTBOUND ? NAT_INOUTBOUND : NAT_OUTBOUND);
           else {
             logger.msg(DEBUG, "Invalid nodeaccess value: %s", *it);
             return false;
@@ -526,11 +514,7 @@ namespace Arc {
           return false;
         for (std::list<std::list<std::string> >::iterator it = ll.begin();
              it != ll.end(); it++) {
-          EnvironmentType env;
-          std::list<std::string>::iterator it2 = it->begin();
-          env.name_attribute = *it2++;
-          env.value = *it2++;
-          j.Environment.push_back(env);
+          j.Application.Environment.push_back(std::make_pair(it->front(), it->back()));
         }
         return true;
       }
@@ -539,7 +523,7 @@ namespace Arc {
         std::string count;
         if (!SingleValue(c, count))
           return false;
-        j.ProcessPerHost = stringtoi(count);
+        j.Resources.Slots.ProcessPerHost = stringtoi(count);
         return true;
       }
 
@@ -547,7 +531,7 @@ namespace Arc {
         std::string jobreport;
         if (!SingleValue(c, jobreport))
           return false;
-        j.RemoteLogging = jobreport;
+        j.Application.RemoteLogging.push_back(URL(jobreport));
         return true;
       }
 
@@ -555,7 +539,7 @@ namespace Arc {
         std::string credentialserver;
         if (!SingleValue(c, credentialserver))
           return false;
-        j.CredentialService = credentialserver;
+        j.Application.CredentialService.push_back(credentialserver);
         return true;
       }
 
@@ -647,33 +631,33 @@ namespace Arc {
   std::string XRSLParser::UnParse(const JobDescription& j) const {
     RSLBoolean r(RSLAnd);
 
-    if (!j.Executable.empty()) {
+    if (!j.Application.Executable.Name.empty()) {
       RSLList *l = new RSLList;
-      l->Add(new RSLLiteral(j.Executable));
+      l->Add(new RSLLiteral(j.Application.Executable.Name));
       r.Add(new RSLCondition("executable", RSLEqual, l));
     }
 
-    if (!j.Argument.empty()) {
+    if (!j.Application.Executable.Argument.empty()) {
       RSLList *l = new RSLList;
-      for (std::list<std::string>::const_iterator it = j.Argument.begin();
-           it != j.Argument.end(); it++)
+      for (std::list<std::string>::const_iterator it = j.Application.Executable.Argument.begin();
+           it != j.Application.Executable.Argument.end(); it++)
         l->Add(new RSLLiteral(*it));
       r.Add(new RSLCondition("arguments", RSLEqual, l));
     }
 
-    if (!j.Input.empty()) {
+    if (!j.Application.Input.empty()) {
       RSLList *l = new RSLList;
-      l->Add(new RSLLiteral(j.Input));
+      l->Add(new RSLLiteral(j.Application.Input));
       r.Add(new RSLCondition("stdin", RSLEqual, l));
     }
 
-    if (j.Join) {
-      if (!j.Output.empty() && !j.Error.empty() && j.Output != j.Error) {
+    if (j.Application.Join) {
+      if (!j.Application.Output.empty() && !j.Application.Error.empty() && j.Application.Output != j.Application.Error) {
         logger.msg(ERROR, "Incompatible RSL attributes");
         return "";
       }
-      if (!j.Output.empty() || j.Error.empty()) {
-        const std::string& eo = !j.Output.empty() ? j.Output : j.Error;
+      if (!j.Application.Output.empty() || j.Application.Error.empty()) {
+        const std::string& eo = !j.Application.Output.empty() ? j.Application.Output : j.Application.Error;
         RSLList *l1 = new RSLList;
         l1->Add(new RSLLiteral(eo));
         r.Add(new RSLCondition("stdout", RSLEqual, l1));
@@ -683,54 +667,54 @@ namespace Arc {
       }
     }
     else {
-      if (!j.Output.empty()) {
+      if (!j.Application.Output.empty()) {
         RSLList *l = new RSLList;
-        l->Add(new RSLLiteral(j.Output));
+        l->Add(new RSLLiteral(j.Application.Output));
         r.Add(new RSLCondition("stdout", RSLEqual, l));
       }
 
-      if (!j.Error.empty()) {
+      if (!j.Application.Error.empty()) {
         RSLList *l = new RSLList;
-        l->Add(new RSLLiteral(j.Error));
+        l->Add(new RSLLiteral(j.Application.Error));
         r.Add(new RSLCondition("stderr", RSLEqual, l));
       }
     }
 
-    if (j.TotalCPUTime != -1) {
+    if (j.Resources.TotalCPUTime != -1) {
       RSLList *l = new RSLList;
-      l->Add(new RSLLiteral(tostring(j.TotalCPUTime.GetPeriod())));
+      l->Add(new RSLLiteral(tostring(j.Resources.TotalCPUTime)));
       r.Add(new RSLCondition("cputime", RSLEqual, l));
     }
 
-    if (j.TotalWallTime != -1) {
+    if (j.Resources.TotalWallTime != -1) {
       RSLList *l = new RSLList;
-      l->Add(new RSLLiteral(tostring(j.TotalWallTime.GetPeriod())));
+      l->Add(new RSLLiteral(tostring(j.Resources.TotalWallTime)));
       r.Add(new RSLCondition("walltime", RSLEqual, l));
     }
 
-    if (j.IndividualPhysicalMemory != -1) {
+    if (j.Resources.IndividualPhysicalMemory != -1) {
       RSLList *l = new RSLList;
-      l->Add(new RSLLiteral(tostring(j.IndividualPhysicalMemory)));
+      l->Add(new RSLLiteral(tostring(j.Resources.IndividualPhysicalMemory)));
       r.Add(new RSLCondition("memory", RSLEqual, l));
     }
 
-    if (!j.Environment.empty()) {
+    if (!j.Application.Environment.empty()) {
       RSLList *l = new RSLList;
-      for (std::list<EnvironmentType>::const_iterator it = j.Environment.begin();
-           it != j.Environment.end(); it++) {
+      for (std::list< std::pair<std::string, std::string> >::const_iterator it = j.Application.Environment.begin();
+           it != j.Application.Environment.end(); it++) {
         RSLList *s = new RSLList;
-        s->Add(new RSLLiteral(it->name_attribute));
-        s->Add(new RSLLiteral(it->value));
+        s->Add(new RSLLiteral(it->first));
+        s->Add(new RSLLiteral(it->second));
         l->Add(new RSLSequence(s));
       }
       r.Add(new RSLCondition("environment", RSLEqual, l));
     }
 
-    if (!j.File.empty()) {
+    if (!j.DataStaging.File.empty()) {
       RSLList *l = NULL;
-      for (std::list<FileType>::const_iterator it = j.File.begin();
-           it != j.File.end(); it++)
-        for (std::list<SourceType>::const_iterator sit = it->Source.begin();
+      for (std::list<FileType>::const_iterator it = j.DataStaging.File.begin();
+           it != j.DataStaging.File.end(); it++)
+        for (std::vector<DataSourceType>::const_iterator sit = it->Source.begin();
              sit != it->Source.end(); sit++) {
           RSLList *s = new RSLList;
           s->Add(new RSLLiteral(it->Name));
@@ -756,10 +740,10 @@ namespace Arc {
         r.Add(new RSLCondition("inputfiles", RSLEqual, l));
     }
 
-    if (!j.File.empty()) {
+    if (!j.DataStaging.File.empty()) {
       RSLList *l = NULL;
-      for (std::list<FileType>::const_iterator it = j.File.begin();
-           it != j.File.end(); it++)
+      for (std::list<FileType>::const_iterator it = j.DataStaging.File.begin();
+           it != j.DataStaging.File.end(); it++)
         if (it->IsExecutable) {
           if (!l)
             l = new RSLList;
@@ -769,18 +753,18 @@ namespace Arc {
         r.Add(new RSLCondition("executables", RSLEqual, l));
     }
 
-    if (!j.File.empty() || !j.Output.empty() || !j.Error.empty()) {
+    if (!j.DataStaging.File.empty() || !j.Application.Output.empty() || !j.Application.Error.empty()) {
       bool output(false), error(false);
       RSLList *l = NULL;
-      for (std::list<FileType>::const_iterator it = j.File.begin();
-           it != j.File.end(); it++)
-        for (std::list<TargetType>::const_iterator tit = it->Target.begin();
+      for (std::list<FileType>::const_iterator it = j.DataStaging.File.begin();
+           it != j.DataStaging.File.end(); it++)
+        for (std::list<DataTargetType>::const_iterator tit = it->Target.begin();
              tit != it->Target.end(); tit++) {
           RSLList *s = new RSLList;
           s->Add(new RSLLiteral(it->Name));
-          if (it->Name == j.Output)
+          if (it->Name == j.Application.Output)
             output = true;
-          if (it->Name == j.Error)
+          if (it->Name == j.Application.Error)
             error = true;
           if (!tit->URI || tit->URI.Protocol() == "file")
             s->Add(new RSLLiteral(""));
@@ -790,17 +774,17 @@ namespace Arc {
             l = new RSLList;
           l->Add(new RSLSequence(s));
         }
-      if (!j.Output.empty() && !output) {
+      if (!j.Application.Output.empty() && !output) {
         RSLList *s = new RSLList;
-        s->Add(new RSLLiteral(j.Output));
+        s->Add(new RSLLiteral(j.Application.Output));
         s->Add(new RSLLiteral(""));
         if (!l)
           l = new RSLList;
         l->Add(new RSLSequence(s));
       }
-      if (!j.Error.empty() && !error) {
+      if (!j.Application.Error.empty() && !error) {
         RSLList *s = new RSLList;
-        s->Add(new RSLLiteral(j.Error));
+        s->Add(new RSLLiteral(j.Application.Error));
         s->Add(new RSLLiteral(""));
         if (!l)
           l = new RSLList;
@@ -810,84 +794,87 @@ namespace Arc {
         r.Add(new RSLCondition("outputfiles", RSLEqual, l));
     }
 
-    if (!j.QueueName.empty()) {
+    if (!j.Resources.CandidateTarget.empty()) {
       RSLList *l = new RSLList;
-      l->Add(new RSLLiteral(j.QueueName));
+      l->Add(new RSLLiteral(j.Resources.CandidateTarget.front().QueueName));
       r.Add(new RSLCondition("queue", RSLEqual, l));
     }
 
-    if (j.LRMSReRun != -1) {
+    if (j.Application.Rerun != -1) {
       RSLList *l = new RSLList;
-      l->Add(new RSLLiteral(tostring(j.LRMSReRun)));
+      l->Add(new RSLLiteral(tostring(j.Application.Rerun)));
       r.Add(new RSLCondition("rerun", RSLEqual, l));
     }
 
-    if (j.SessionLifeTime != -1) {
+    if (j.Application.SessionLifeTime != -1) {
       RSLList *l = new RSLList;
-      l->Add(new RSLLiteral(tostring(j.SessionLifeTime.GetPeriod())));
+      l->Add(new RSLLiteral(tostring(j.Application.SessionLifeTime)));
       r.Add(new RSLCondition("lifetime", RSLEqual, l));
     }
 
-    if (j.DiskSpace != -1) {
+    if (j.Resources.IndividualDiskSpace != -1) {
       RSLList *l = new RSLList;
-      l->Add(new RSLLiteral(tostring(j.DiskSpace)));
+      l->Add(new RSLLiteral(tostring(j.Resources.IndividualDiskSpace)));
       r.Add(new RSLCondition("disk", RSLEqual, l));
     }
 
-    if (!j.RunTimeEnvironment.empty()) {
+/** Skou: Currently not supported.
+    if (!j.Resources.RunTimeEnvironment.empty()) {
       RSLList *l = new RSLList;
-      for (std::list<RunTimeEnvironmentType>::const_iterator it =
-             j.RunTimeEnvironment.begin();
+      for (std::list<>::const_iterator it =
+             j.Resources.RunTimeEnvironment.begin();
            it != j.RunTimeEnvironment.end(); it++)
         l->Add(new RSLLiteral(it->Name + (it->Version.empty() ? "" :
                                           '-' + *it->Version.begin())));
       r.Add(new RSLCondition("runtimeenvironment", RSLEqual, l));
     }
+*/
 
-    if (!j.OSName.empty()) {
+    if (!j.Resources.OSName.empty()) {
       RSLList *l = new RSLList;
-      l->Add(new RSLLiteral(j.OSName));
+      l->Add(new RSLLiteral(j.Resources.OSName));
       r.Add(new RSLCondition("opsys", RSLEqual, l));
     }
 
-    if (!j.Platform.empty()) {
+    if (!j.Resources.Platform.empty()) {
       RSLList *l = new RSLList;
-      l->Add(new RSLLiteral(j.Platform));
+      l->Add(new RSLLiteral(j.Resources.Platform));
       r.Add(new RSLCondition("architacture", RSLEqual, l));
     }
 
-    if (j.ProcessPerHost != -1) {
+    if (j.Resources.Slots.ProcessPerHost != -1) {
       RSLList *l = new RSLList;
-      l->Add(new RSLLiteral(tostring(j.ProcessPerHost)));
+      l->Add(new RSLLiteral(tostring(j.Resources.Slots.ProcessPerHost)));
       r.Add(new RSLCondition("count", RSLEqual, l));
     }
 
-    if (j.ProcessingStartTime != -1) {
+    if (j.Application.ProcessingStartTime != -1) {
       RSLList *l = new RSLList;
-      l->Add(new RSLLiteral(j.ProcessingStartTime.str(MDSTime)));
+      l->Add(new RSLLiteral(j.Application.ProcessingStartTime.str(MDSTime)));
       r.Add(new RSLCondition("starttime", RSLEqual, l));
     }
 
-    if (!j.LogDir.empty()) {
+    if (!j.Application.LogDir.empty()) {
       RSLList *l = new RSLList;
-      l->Add(new RSLLiteral(j.LogDir));
+      l->Add(new RSLLiteral(j.Application.LogDir));
       r.Add(new RSLCondition("gmlog", RSLEqual, l));
     }
 
-    if (!j.JobName.empty()) {
+    if (!j.Identification.JobName.empty()) {
       RSLList *l = new RSLList;
-      l->Add(new RSLLiteral(j.JobName));
+      l->Add(new RSLLiteral(j.Identification.JobName));
       r.Add(new RSLCondition("jobname", RSLEqual, l));
     }
 
-    if (j.AccessControl) {
+    if (j.Application.AccessControl) {
       RSLList *l = new RSLList;
       std::string acl;
-      j.AccessControl.GetXML(acl, true);
+      j.Application.AccessControl.GetXML(acl, true);
       l->Add(new RSLLiteral(acl));
       r.Add(new RSLCondition("acl", RSLEqual, l));
     }
 
+/** Skou: Currently not supported...
     if (!j.Notification.empty()) {
       RSLList *l = new RSLList;
       for (std::list<NotificationType>::const_iterator it =
@@ -919,16 +906,17 @@ namespace Arc {
       }
       r.Add(new RSLCondition("notify", RSLEqual, l));
     }
+*/
 
-    if (bool(j.RemoteLogging)) {
+    if (!j.Application.RemoteLogging.empty()) {
       RSLList *l = new RSLList;
-      l->Add(new RSLLiteral(j.RemoteLogging.fullstr()));
+      l->Add(new RSLLiteral(j.Application.RemoteLogging.front().fullstr()));
       r.Add(new RSLCondition("jobreport", RSLEqual, l));
     }
 
-    if (bool(j.CredentialService)) {
+    if (!j.Application.CredentialService.empty()) {
       RSLList *l = new RSLList;
-      l->Add(new RSLLiteral(j.CredentialService.fullstr()));
+      l->Add(new RSLLiteral(j.Application.CredentialService.front().fullstr()));
       r.Add(new RSLCondition("credentialserver", RSLEqual, l));
     }
 

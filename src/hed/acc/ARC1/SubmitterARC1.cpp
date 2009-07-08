@@ -38,7 +38,7 @@ namespace Arc {
     ApplySecurity(cfg);
     AREXClient ac(submissionEndpoint, cfg);
 
-    std::string jobdescstring = jobdesc.UnParse("POSIXJSDL");
+    std::string jobdescstring = jobdesc.UnParse("ARCJSDL");
     std::istringstream jsdlfile(jobdescstring);
 
     std::string jobid;
@@ -62,8 +62,8 @@ namespace Arc {
     Arc::NS ns;
     Arc::XMLNode info(ns, "Job");
     info.NewChild("JobID") = session_url.str();
-    if (!jobdesc.JobName.empty())
-      info.NewChild("Name") = jobdesc.JobName;
+    if (!jobdesc.Identification.JobName.empty())
+      info.NewChild("Name") = jobdesc.Identification.JobName;
     info.NewChild("Flavour") = flavour;
     info.NewChild("Cluster") = cluster.str();
     info.NewChild("InfoEndpoint") = session_url.str();
@@ -89,7 +89,7 @@ namespace Arc {
     std::string idstr;
     AREXClient::createActivityIdentifier(jobid, idstr);
     
-    std::string jobdescstring = jobdesc.UnParse("POSIXJSDL");
+    std::string jobdescstring = jobdesc.UnParse("ARCJSDL");
 
     std::string newjobid;
     if (!ac.migrate(idstr, jobdescstring, forcemigration, newjobid,
@@ -113,8 +113,8 @@ namespace Arc {
     Arc::NS ns;
     Arc::XMLNode info(ns, "Job");
     info.NewChild("JobID") = session_url.str();
-    if (!jobdesc.JobName.empty())
-      info.NewChild("Name") = jobdesc.JobName;
+    if (!jobdesc.Identification.JobName.empty())
+      info.NewChild("Name") = jobdesc.Identification.JobName;
     info.NewChild("Flavour") = flavour;
     info.NewChild("Cluster") = cluster.str();
     info.NewChild("InfoEndpoint") = session_url.str();

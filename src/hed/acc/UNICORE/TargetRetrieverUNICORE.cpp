@@ -165,7 +165,7 @@ namespace Arc {
     target.url = url;
     target.InterfaceName = "BES";
     target.Implementor = "Unicore";
-    target.ImplementationName = "Unicore";
+    target.Implementation = "Unicore";
     target.HealthState = "ok";
 
     target.DomainName = url.Host();

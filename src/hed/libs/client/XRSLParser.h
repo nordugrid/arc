@@ -8,6 +8,12 @@
 
 #include "JobDescriptionParser.h"
 
+/** XRSLParser
+ * The XRSLParser class, derived from the JobDescriptionParser class, is a
+ * job description parser for the Extended Resource Specification Language
+ * (XRSL) specified in the NORDUGRID-MANUAL-4 document.
+ */
+
 namespace Arc {
 
   class RSL;
@@ -29,6 +35,7 @@ namespace Arc {
     static bool SeqListValue(const RSLCondition *c,
                              std::list<std::list<std::string> >& value,
                              int seqlength = -1);
+    bool cached;
   };
 
 } // namespace Arc

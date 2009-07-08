@@ -5,21 +5,33 @@
 #include <iostream>
 
 #include <arc/StringConv.h>
+#include <arc/client/ExecutionTarget.h>
 
 #include "SoftwareVersion.h"
 
 namespace Arc {
 
   Logger SoftwareVersion::logger(Logger::getRootLogger(), "SoftwareVersion");
-  Logger SoftwareRequirements::logger(Logger::getRootLogger(), "SoftwareRequirements");
+  Logger SoftwareRequirement::logger(Logger::getRootLogger(), "SoftwareRequirement");
 
 SoftwareVersion::SoftwareVersion(const std::string& name) : version(name) {
   tokenize(name, tokenizedVersion, "-.");
 }
 
+SoftwareVersion::SoftwareVersion(const std::string& name, const std::string& version)
+  : version(name + "-" + version) {
+  tokenize(version, tokenizedVersion, "-.");
+}
+
 SoftwareVersion& SoftwareVersion::operator=(const SoftwareVersion& sv) {
   version = sv.version;
   tokenizedVersion = sv.tokenizedVersion;
+  return *this;
+}
+
+SoftwareVersion& SoftwareVersion::operator=(const std::string& sv) {
+  version = sv;
+  tokenize(sv, tokenizedVersion);
   return *this;
 }
 
@@ -134,7 +146,47 @@ bool SoftwareVersion::operator<(const SoftwareVersion& sv) const {
   return res;
 }
 
-bool SoftwareRequirements::isSatisfied(const std::list<SoftwareVersion>& svList) const {
+SoftwareRequirement::SoftwareRequirement(const SoftwareVersion& sv,
+                                         SVComparisonOperator svComOp,
+                                         bool requiresAll)
+  : requiresAll(requiresAll) {
+  versions.push_back(SVComparison(sv, svComOp));
+}
+
+SoftwareRequirement::SoftwareRequirement(const SoftwareVersion& sv,
+                                         SoftwareVersion::ComparisonOperator co,
+                                         bool requiresAll)
+  : requiresAll(requiresAll) {
+  switch (co) {
+  case SoftwareVersion::EQUAL:
+    versions.push_back(SVComparison(sv, &SoftwareVersion::operator==));
+    break;
+  case SoftwareVersion::NOTEQUAL:
+    versions.push_back(SVComparison(sv, &SoftwareVersion::operator!=));
+    break;
+  case SoftwareVersion::GREATERTHAN:
+    versions.push_back(SVComparison(sv, &SoftwareVersion::operator>));
+    break;
+  case SoftwareVersion::LESSTHAN:
+    versions.push_back(SVComparison(sv, &SoftwareVersion::operator<));
+    break;
+  case SoftwareVersion::GREATERTHANOREQUAL:
+    versions.push_back(SVComparison(sv, &SoftwareVersion::operator>=));
+    break;
+  case SoftwareVersion::LESSTHANOREQUAL:
+    versions.push_back(SVComparison(sv, &SoftwareVersion::operator<=));
+    break;
+  };
+}
+
+SoftwareRequirement& SoftwareRequirement::operator=(const SoftwareRequirement& sr) {
+  requirements = sr.requirements;
+  requiresAll = sr.requiresAll;
+  versions = sr.versions;
+  return *this;
+}
+
+bool SoftwareRequirement::isSatisfied(const std::list<SoftwareVersion>& svList) const {
   // Compare SoftwareVersion objects in the 'versions' list with those in 'svList'.
   for (std::list<SVComparison>::const_iterator it = versions.begin();
        it != versions.end(); it++) {
@@ -157,7 +209,7 @@ bool SoftwareRequirements::isSatisfied(const std::list<SoftwareVersion>& svList)
   }
 
   // Loop over Sub-requirements.
-  for (std::list<SoftwareRequirements>::const_iterator it = requirements.begin();
+  for (std::list<SoftwareRequirement>::const_iterator it = requirements.begin();
        it != requirements.end(); it++) {
     if (requiresAll) {
       if (!it->isSatisfied(svList)) {
@@ -177,6 +229,10 @@ bool SoftwareRequirements::isSatisfied(const std::list<SoftwareVersion>& svList)
     logger.msg(DEBUG, "Requirements not satisfied.");
 
   return requiresAll;
+}
+
+bool SoftwareRequirement::isSatisfied(const std::list<ApplicationEnvironment>& svList) const {
+  return isSatisfied(reinterpret_cast< const std::list<SoftwareVersion>& >(svList));
 }
 
 } // namespace Arc

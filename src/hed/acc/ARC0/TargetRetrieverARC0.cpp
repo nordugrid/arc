@@ -300,13 +300,7 @@ namespace Arc {
             target.Implementor = mw;
           else {
             target.Implementor = mw.substr(0, pos1);
-            std::string::size_type pos2 = mw.find('-', pos1 + 1);
-            if (pos2 == std::string::npos)
-              target.ImplementationName = mw.substr(pos1 + 1);
-            else {
-              target.ImplementationName = mw.substr(pos1 + 1, pos2 - pos1 - 1);
-              target.ImplementationVersion = mw.substr(pos2 + 1);
-            }
+            target.Implementation = mw.substr(pos1 + 1);
           }
         }
         if (queue["nordugrid-queue-status"]) {
@@ -547,9 +541,7 @@ namespace Arc {
         // Application Environments
         for (XMLNode n = cluster["nordugrid-cluster-runtimeenvironment"];
              n; ++n) {
-          ApplicationEnvironment rte;
-          rte.Name = (std::string)n;
-          rte.Version = "UNDEFINEDVALUE";
+          ApplicationEnvironment rte((std::string)n);
           rte.State = "UNDEFINEDVALUE";
           rte.FreeSlots = -1;
           rte.FreeUserSeats = -1;

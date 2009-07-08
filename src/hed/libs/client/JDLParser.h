@@ -8,6 +8,14 @@
 
 #include "JobDescriptionParser.h"
 
+/** JDLParser
+ * The JDLParser class, derived from the JobDescriptionParser class, is a job
+ * description parser for the Job Description Language (JDL) specified in CREAM
+ * Job Description Language Attributes Specification for the EGEE middleware
+ * (EGEE-JRA1-TEC-592336) and Job Description Language Attributes Specification
+ * for the gLite middleware (EGEE-JRA1-TEC-590869-JDL-Attributes-v0-8).
+ */
+
 namespace Arc {
 
   class JDLParser
@@ -27,7 +35,9 @@ namespace Arc {
     std::list<std::string> listJDLvalue(const std::string&
                                         attributeValue) const;
     std::string generateOutputList(const std::string& attribute,
-                                   const std::list<std::string>& list) const;
+                                   const std::list<std::string>& list,
+                                   std::pair<char, char> bracket = std::make_pair('{', '}'),
+                                   char lineEnd = ',') const;
   };
 
 } // namespace Arc

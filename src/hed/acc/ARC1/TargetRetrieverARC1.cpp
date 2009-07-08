@@ -216,7 +216,6 @@ namespace Arc {
       target.url = url;
       target.InterfaceName = "BES";
       target.Implementor = "NorduGrid";
-      target.ImplementationName = "A-REX";
 
       target.DomainName = url.Host();
 
@@ -270,10 +269,18 @@ namespace Arc {
       else
         logger.msg(INFO, "The Service doesn't advertise any Supported Profile.");
 
-      if (GLUEService["ComputingEndpoint"]["ImplementationVersion"])
-        target.ImplementationVersion = (std::string)GLUEService["ComputingEndpoint"]["ImplementationVersion"];
+      if (GLUEService["ComputingEndpoint"]["ImplementationName"])
+        if (GLUEService["ComputingEndpoint"]["ImplementationVersion"])
+          target.Implementation =
+            SoftwareVersion((std::string)GLUEService["ComputingEndpoint"]["ImplementationName"],
+                            (std::string)GLUEService["ComputingEndpoint"]["ImplementationVersion"]);
+        else {
+          target.Implementation = SoftwareVersion((std::string)GLUEService["ComputingEndpoint"]["ImplementationName"]);
+          logger.msg(INFO, "The Service doesn't advertise an Implementation Version.");
+        }
       else
-        logger.msg(INFO, "The Service doesn't advertise an Implementation Version.");
+        logger.msg(INFO, "The Service doesn't advertise an Implementation Name.");
+
 
       if (GLUEService["ComputingEndpoint"]["ServingState"])
         target.ServingState = (std::string)GLUEService["ComputingEndpoint"]["ServingState"];
@@ -678,9 +685,7 @@ namespace Arc {
  
       if (GLUEService["ComputingManager"]["ApplicationEnvironments"]["ApplicationEnvironment"])
         for (XMLNode n = GLUEService["ComputingManager"]["ApplicationEnvironments"]["ApplicationEnvironment"]; n; ++n) {
-          ApplicationEnvironment ae;
-          ae.Name = (std::string)n["AppName"];
-          ae.Version = (std::string)n["AppVersion"];
+          ApplicationEnvironment ae((std::string)n["AppName"], (std::string)n["AppVersion"]);
           ae.State = (std::string)n["State"];
           if (n["FreeSlots"]) ae.FreeSlots = stringtoi((std::string)n["FreeSlots"]);
           else ae.FreeSlots = target.FreeSlots;
@@ -688,20 +693,6 @@ namespace Arc {
           else ae.FreeJobs = -1;
           if (n["FreeUserSeats"]) ae.FreeUserSeats = stringtoi((std::string)n["FreeUserSeats"]);
           else ae.FreeUserSeats = -1;
-          target.ApplicationEnvironments.push_back(ae);
-        }
-      else {
-        logger.msg(INFO, "The Service doesn't advertise any Application Environments.");
-      }
-      if (GLUEService["ComputingManager"]["ApplicationEnvironments"]["ApplicationEnvironment"])
-        for (XMLNode n = GLUEService["ComputingManager"]["ApplicationEnvironments"]["ApplicationEnvironment"]; n; ++n) {
-          ApplicationEnvironment ae;
-          ae.Name = (std::string)n["AppName"];
-          ae.Version = (std::string)n["Version"];
-          ae.State = (std::string)n["State"];
-          ae.FreeSlots = target.FreeSlots;
-          ae.FreeJobs = 42;  //These last two are temporary dummy values because I have no idea what they should represent
-          ae.FreeUserSeats = 42; // The number of small Spanish cars the user can obtain without payment
           target.ApplicationEnvironments.push_back(ae);
         }
       else {

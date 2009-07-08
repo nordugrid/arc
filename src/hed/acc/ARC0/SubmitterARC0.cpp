@@ -58,7 +58,8 @@ namespace Arc {
     std::string jobnumber = response.substr(pos1 + 1, pos2 - pos1 - 1);
 
     JobDescription job(jobdesc);
-    job.QueueName = queue;
+    job.Resources.CandidateTarget.push_back(ResourceTargetType());
+    job.Resources.CandidateTarget.front().QueueName = queue;
     std::string jobdescstring = job.UnParse("XRSL");
 
     if (!ctrl.SendData(jobdescstring, "job", 500)) {
@@ -89,8 +90,8 @@ namespace Arc {
     Arc::NS ns;
     Arc::XMLNode info(ns, "Job");
     info.NewChild("JobID") = jobid.str();
-    if (!jobdesc.JobName.empty())
-      info.NewChild("Name") = jobdesc.JobName;
+    if (!jobdesc.Identification.JobName.empty())
+      info.NewChild("Name") = jobdesc.Identification.JobName;
     info.NewChild("Flavour") = flavour;
     info.NewChild("Cluster") = cluster.str();
     info.NewChild("InfoEndpoint") = infoEndpoint.str();
