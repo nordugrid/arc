@@ -3,7 +3,7 @@ Building ARC on Windows system using MinGW
 
 - Install Automated MingW Installer - http://www.mingw.org
 (http://sourceforge.net/project/showfiles.php?group_id=2435)
-	- During installtion make sure You have "g++" and "mingw make" selected
+  - During installtion make sure You have "g++" and "mingw make" selected
   From MinGW also install
   - MSYS - http://www.mingw.org/wiki/msys
     From MSYS additionally install
@@ -37,16 +37,15 @@ Building ARC on Windows system using MinGW
   - Install package automake version 1.10 (http://sourceforge.net/project/showfiles.php?group_id=2435&package_id=67879)
   - Install libtool1.5-1.5.25a-1-src.tar.bz2
   
-- If you run into this errormessage: "Couldn't reserve space for cygwin's heap (0x715B0000 <0x2600000>) in child, Win32 error 0", you should
-	either try to rebase msys-1.0.dll or download the rebased dll found here: http://www.madwizard.org/electronics/articles/winavrvista
+- If you run into this errormessage: "Couldn't reserve space for cygwin's heap (0x715B0000 <0x2600000>) in child, Win32 error 0", you should either try to rebase msys-1.0.dll or download the rebased dll found here: http://www.madwizard.org/electronics/articles/winavrvista
 
 - Install gtkmm devel package. It includes glibmm. 
   (http://ftp.acc.umu.se/pub/gnome/binaries/win32/gtkmm/2.16/)
   TODO: We probably need to provide either mingwPORT or some other port which 
   includes only glibmm.
   - Add mktime.m4 and functions.m4 to C:\GTK\share\aclocal
-  	(https://svn.habolinux.de/filedetails.php?repname=tar&path=%2Fm4%2Fmktime.m4&rev=0&sc=0)
-  	(http://cvs.savannah.gnu.org/viewvc/*checkout*/autoconf/autoconf/lib/autoconf/functions.m4?revision=1.119)
+    (https://svn.habolinux.de/filedetails.php?repname=tar&path=%2Fm4%2Fmktime.m4&rev=0&sc=0)
+    (http://cvs.savannah.gnu.org/viewvc/*checkout*/autoconf/autoconf/lib/autoconf/functions.m4?revision=1.119)
 
 - Install OpenSSL. 
   (http://www.slproweb.com/products/Win32OpenSSL.html)
