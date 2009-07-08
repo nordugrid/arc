@@ -418,8 +418,11 @@ namespace Arc {
     inet_pton(AF_INET, remoteip.c_str(), &sa.sin_addr);
 
     char host[NI_MAXHOST];
-    getnameinfo((sockaddr*)&sa, sizeof(sa), host, NI_MAXHOST, NULL, 0,
-                NI_NAMEREQD);
+    if(getnameinfo((sockaddr*)&sa, sizeof(sa), host, NI_MAXHOST, NULL, 0,
+                NI_NAMEREQD)) {
+      logger.msg(ERROR, "Could not resolve peer side's hostname");
+      return MCC_Status();
+    }
 
     OM_uint32 majstat, minstat;
 
@@ -439,6 +442,8 @@ namespace Arc {
     gss_buffer_desc namebuf = GSS_C_EMPTY_BUFFER;
     namebuf.value = (void*)hostname.c_str();
     namebuf.length = hostname.size();
+
+    logger.msg(DEBUG, "Peer host name to which this client will access: %s", hostname.c_str());
 
     majstat = gss_import_name(&minstat, &namebuf, GSS_C_NT_HOSTBASED_SERVICE,
                               &target_name);
