@@ -525,7 +525,10 @@ bool ARexJob::Failed(void) {
 
 bool ARexJob::UpdateCredentials(const std::string& credentials) {
   if(id_.empty()) return false;
-  return update_credentials(credentials);
+  if(!update_credentials(credentials)) return false;
+  JobDescription job(id_,config_.User()->SessionRoot()+"/"+id_,JOB_STATE_ACCEPTED);
+  if(!job_local_write_file(job,*config_.User(),job_)) return false;
+  return true;
 }
 
 bool ARexJob::update_credentials(const std::string& credentials) {
@@ -541,13 +544,7 @@ bool ARexJob::update_credentials(const std::string& credentials) {
   for(;(ll>0) && (l!=-1);s+=l,ll-=l) l=::write(h,s,ll);
   ::close(h);
   if(l==-1) return false;
-  //@try {
-  //////Credential(const std::string& cert, const std::string& key, const std::string& cadir, const std::string& cafile);
-  //@   Certificate ci(PROXY,fname);
-  //@   job_desc.expiretime = ci.Expires().GetTime();
-  //@ } catch (std::exception) {
-  //@   job_desc.expiretime = time(NULL);
-  //@ };
+  job_.expiretime = Arc::Credential(fname,"","","").GetEndTime();
   return true;
 }
 
