@@ -18,7 +18,7 @@ from storage.client import LibrarianClient, BartenderClient
 from arcom.logger import Logger
 log = Logger(arc.Logger(arc.Logger_getRootLogger(), 'Storage.Shepherd'))
 
-from storage.common import ALIVE, CREATING, STALLED, INVALID, DELETED, THIRDWHEEL
+from storage.common import ALIVE, CREATING, STALLED, INVALID, DELETED, THIRDWHEEL, OFFLINE
 
 class Shepherd:
 
