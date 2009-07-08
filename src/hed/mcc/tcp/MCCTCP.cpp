@@ -328,6 +328,7 @@ bool TCPSecAttr::Export(SecAttrFormat format,XMLNode &val) const {
 static bool get_host_port(struct sockaddr_storage *addr, std::string &host, std::string &port)
 {
     char buf[INET6_ADDRSTRLEN];
+    memset(buf,0,sizeof(buf));
     const char *ret = NULL;
     switch (addr->ss_family) {
         case AF_INET: {
