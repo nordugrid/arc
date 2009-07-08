@@ -307,8 +307,12 @@ class Shepherd:
                                 # get the number of THIRDWHEELS not on this Shepherd (self.serviceID)
                                 thirdwheels = len([property for (section, property), value in metadata.items()
                                                    if section == 'locations' and value == THIRDWHEEL and not property.startswith(self.serviceID)])
-                                # if no-one else have a thirdwheel replica, and the file still has enough replicas, we delete this replica
-                                if thirdwheels == 0 and alive_replicas >= needed_replicas:
+                                my_replicas = len([property for (section, property), value in metadata.items()
+                                                   if section == 'locations' and value == ALIVE 
+                                                   and property.startswith(self.serviceID)])
+                                # if shephered has other alive replicas or no-one else have a thirdwheel replica, 
+                                # and the file still has enough replicas, we delete this replica
+                                if my_replicas != 0 or (thirdwheels == 0 and alive_replicas >= needed_replicas):
                                     #bsuccess = self.backend.remove(localID)
                                     #self.store.set(referenceID, None)
                                     self.changeState(referenceID, DELETED)
@@ -319,9 +323,17 @@ class Shepherd:
                             # or if this replica is INVALID
                             elif state == INVALID:
                                 log.msg(arc.DEBUG, '\n\nI have an invalid replica of file', GUID)
-                                # we try to get a valid one by simply downloading this file
-                                response = self.bartender.getFile({'checkingThread' : (GUID, common_supported_protocols)})
-                                success, turl, protocol = response['checkingThread']
+                                my_replicas = len([property for (section, property), value in metadata.items()
+                                                   if section == 'locations' and value in [ALIVE,CREATING] 
+                                                   and property.startswith(self.serviceID)])
+                                # we try to get a valid one by simply downloading this file if we have no alive or 
+                                # creating replica
+                                if my_replicas == 0:
+                                    response = self.bartender.getFile({'checkingThread' : (GUID, common_supported_protocols)})
+                                try:
+                                    success, turl, protocol = response['checkingThread']
+                                except:
+                                    success = ''
                                 if success == 'done':
                                     # if it's OK, then we change the state of our replica to CREATING
                                     self.changeState(referenceID, CREATING)
