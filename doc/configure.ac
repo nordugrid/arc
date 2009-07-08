@@ -39,6 +39,7 @@ AC_CONFIG_FILES([Makefile
                  tech_doc/backend_interface/Makefile
                  tech_doc/jura/Makefile
                  tech_doc/chelonia/Makefile
+                 tech_doc/sec/Makefile
                  tutorials/Makefile
                  tutorials/ws-programming-tutorial/Makefile
                  tutorials/ws-programming-tutorial/doc/Makefile
