@@ -33,24 +33,51 @@ namespace Arc {
       // TODO: if the type is a number than we need to check the measure
 
       if (!job->Resources.CandidateTarget.empty()) {
-        if (!((std::string)((*target).url.Host())).empty()) {
-          std::list<ResourceTargetType>::const_iterator it = job->Resources.CandidateTarget.begin();
-          for (; it != job->Resources.CandidateTarget.end(); it++) {
-            if (((std::string)(*target).url.Host()) == it->EndPointURL.Host()) {   // Example: knowarc1.grid.niif.hu
+        if (target->url.Host().empty())
+          logger.msg(DEBUG, "Matchmaking, ExecutionTarget: URL is not properly defined");
+        if (target->MappingQueue.empty())
+          logger.msg(DEBUG, "Matchmaking, ExecutionTarget:  MappingQueue is not defined");
+
+        bool dropTarget = true;
+        
+        if (!target->url.Host().empty() || !target->MappingQueue.empty()) {
+          for (std::list<ResourceTargetType>::const_iterator it = job->Resources.CandidateTarget.begin();
+               it != job->Resources.CandidateTarget.end(); it++) {
+
+            if (!it->EndPointURL.Host().empty() &&
+                target->url.Host().empty()) { // Drop target since URL is not defined.
+              logger.msg(DEBUG, "Matchmaking problem, URL of ExecutionTarget is not properly defined: %s.", target->url.str());
+              break;
+            }
+
+            if (!it->QueueName.empty() &&
+                target->MappingQueue.empty()) { // Drop target since MappingQueue is not advertised.
+              logger.msg(DEBUG, "Matchmaking problem, MappingQueue of ExecutionTarget is not advertised, and a queue (%s) have been requested.", it->QueueName);
+              break;
+            }
+            
+            if (!it->EndPointURL.Host().empty() &&
+                target->url.Host() == it->EndPointURL.Host()) { // Example: knowarc1.grid.niif.hu
+              dropTarget = false;
+              break;
+            }
+
+            if (!it->QueueName.empty() &&
+                target->MappingQueue == it->QueueName) {
+              dropTarget = false;
               break;
             }
           }
           
-          if (it == job->Resources.CandidateTarget.end()) {
-            logger.msg(DEBUG, "Matchmaking, URL problem, ExecutionTarget:  %s (url) != JobDescription: %s (EndPointURL)", (std::string)(*target).url.Host(), it->EndPointURL.Host());
+          if (dropTarget) {
+            logger.msg(DEBUG, "Matchmaking problem, ExecutionTarget does not satisfy any of the CandidateTargets.");
             continue;
           }
         }
         else {
-          logger.msg(DEBUG, "Matchmaking, ExecutionTarget:  %s, URL is not defined", (std::string)(*target).url.str());
+          // TODO: CREAM, MappingQueue not available in schema
           continue;
         }
-
       }
 
       if ((int)job->Application.ProcessingStartTime.GetTime() != -1) {
@@ -96,22 +123,6 @@ namespace Arc {
           continue;
         }
       }
-
-/** Skou: Unclear how to handle this...
-      if (!job->QueueName.empty()) {
-        if (!(*target).MappingQueue.empty()) {
-          if ((*target).MappingQueue != job->QueueName) {   // Example: gridlong
-            logger.msg(DEBUG, "Matchmaking, queue problem, ExecutionTarget: %s (MappingQueue) != JobDescription: %s (QueueName)", (*target).MappingQueue, job->QueueName);
-            continue;
-          }
-        }
-        else
-          logger.msg(DEBUG, "Matchmaking, ExecutionTarget:  %s, MappingQueue is not defined", (std::string)(*target).url.str());
-        // TODO: CREAM, MappingQueue not available in schema
-        //
-        // continue;
-      }
-*/
 
       if ((int)job->Resources.TotalWallTime != -1) {
         if ((int)(*target).MaxWallTime.GetPeriod() != -1) {     // Example: 123

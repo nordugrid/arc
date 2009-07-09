@@ -321,9 +321,14 @@ namespace Arc {
       return true;
     }
     else if (attributeName == "queuename") {
-      ResourceTargetType candidateTarget;
-      candidateTarget.QueueName = simpleJDLvalue(attributeValue);
-      job.Resources.CandidateTarget.push_back(candidateTarget);
+        if (job.Resources.CandidateTarget.empty()) {
+          ResourceTargetType candidateTarget;
+          candidateTarget.EndPointURL = URL();
+          candidateTarget.QueueName = simpleJDLvalue(attributeValue);
+          job.Resources.CandidateTarget.push_back(candidateTarget);
+        }
+        else
+          job.Resources.CandidateTarget.front().EndPointURL = simpleJDLvalue(attributeValue);
       return true;
     }
     else if (attributeName == "batchsystem") {

@@ -17,7 +17,9 @@ namespace Arc {
   Logger SubmitterARC0::logger(Submitter::logger, "ARC0");
 
   SubmitterARC0::SubmitterARC0(Config *cfg)
-    : Submitter(cfg, "ARC0") {}
+    : Submitter(cfg, "ARC0") {
+    queue = (std::string)(*cfg)["Queue"];
+  }
 
   SubmitterARC0::~SubmitterARC0() {}
 
@@ -58,8 +60,12 @@ namespace Arc {
     std::string jobnumber = response.substr(pos1 + 1, pos2 - pos1 - 1);
 
     JobDescription job(jobdesc);
-    job.Resources.CandidateTarget.push_back(ResourceTargetType());
-    job.Resources.CandidateTarget.front().QueueName = queue;
+    if (job.Resources.CandidateTarget.empty()) {
+      ResourceTargetType candidateTarget;
+      candidateTarget.EndPointURL = URL();
+      candidateTarget.QueueName = queue;
+      job.Resources.CandidateTarget.push_back(candidateTarget);
+    }
     std::string jobdescstring = job.UnParse("XRSL");
 
     if (!ctrl.SendData(jobdescstring, "job", 500)) {

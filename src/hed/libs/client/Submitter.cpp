@@ -22,7 +22,6 @@ namespace Arc {
     : ACC(cfg, flavour) {
     submissionEndpoint = (std::string)(*cfg)["SubmissionEndpoint"];
     cluster = (std::string)(*cfg)["Cluster"];
-    queue = (std::string)(*cfg)["Queue"];
   }
 
   Submitter::~Submitter() {}

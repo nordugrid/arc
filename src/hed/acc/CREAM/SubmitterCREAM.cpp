@@ -16,7 +16,11 @@
 namespace Arc {
 
   SubmitterCREAM::SubmitterCREAM(Config *cfg)
-    : Submitter(cfg, "CREAM") {}
+    : Submitter(cfg, "CREAM") {
+    queue = (std::string)(*cfg)["Queue"];
+    if ((*cfg)["LRMSType"])
+      lrmsType = (std::string)(*cfg)["LRMSType"];
+  }
 
   SubmitterCREAM::~SubmitterCREAM() {}
 
@@ -44,7 +48,20 @@ namespace Arc {
     submissionurl.ChangePath(submissionurl.Path() + "/CREAM2");
     CREAMClient gLiteClientSubmission(submissionurl, cfg);
     gLiteClientSubmission.setDelegationId(delegationid);
-    std::string jobdescstring = jobdesc.UnParse("JDL");
+
+    JobDescription job(jobdesc);
+    if (job.JDL_elements.find("LRMSType") == job.JDL_elements.end() &&
+        !lrmsType.empty())
+      job.JDL_elements["LRMSType"] = lrmsType;
+
+    if (job.Resources.CandidateTarget.empty()) {
+      ResourceTargetType candidateTarget;
+      candidateTarget.EndPointURL = URL();
+      candidateTarget.QueueName = queue;
+      job.Resources.CandidateTarget.push_back(candidateTarget);
+    }
+
+    std::string jobdescstring = job.UnParse("JDL");
     creamJobInfo jobInfo;
     if (!gLiteClientSubmission.registerJob(jobdescstring, jobInfo)) {
       logger.msg(ERROR, "Job registration failed");

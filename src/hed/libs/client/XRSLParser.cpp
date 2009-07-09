@@ -255,8 +255,18 @@ namespace Arc {
       }
 
       if (c->Attr() == "queue") {
-        j.Resources.CandidateTarget.push_back(ResourceTargetType());
-        return SingleValue(c, j.Resources.CandidateTarget.back().QueueName);
+        std::string queueName;
+        if (!SingleValue(c, queueName))
+          return false;
+        if (j.Resources.CandidateTarget.empty()) {
+          ResourceTargetType candidateTarget;
+          candidateTarget.EndPointURL = URL();
+          candidateTarget.QueueName = queueName;
+          j.Resources.CandidateTarget.push_back(candidateTarget);
+        }
+        else
+          j.Resources.CandidateTarget.front().QueueName = queueName;
+        return true;
       }
 
       if (c->Attr() == "starttime") {
@@ -399,8 +409,14 @@ namespace Arc {
         std::string cluster;
         if (!SingleValue(c, cluster))
           return false;
-        j.Resources.CandidateTarget.push_back(ResourceTargetType());
-        j.Resources.CandidateTarget.back().EndPointURL = cluster;
+        if (j.Resources.CandidateTarget.empty()) {
+          ResourceTargetType candidateTarget;
+          candidateTarget.EndPointURL = cluster;
+          candidateTarget.QueueName = "";
+          j.Resources.CandidateTarget.push_back(candidateTarget);
+        }
+        else
+          j.Resources.CandidateTarget.front().EndPointURL = cluster;
         return true;
       }
 

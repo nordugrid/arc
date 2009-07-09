@@ -400,6 +400,12 @@ namespace Arc {
       target.HealthState = "ok";
 
 
+      if (CE["GlueCEName"])
+        target.MappingQueue = (std::string)CE["GlueCEName"];
+        
+      if (CE["GlueCEInfoLRMSType"])
+        target.OtherInfo["LRMSType"] = (std::string)CE["GlueCEInfoLRMSType"];
+
       if (Site["GlueSiteName"])
         target.DomainName = (std::string)Site["GlueSiteName"];
 

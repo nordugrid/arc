@@ -16,6 +16,9 @@ namespace Arc {
     SubmitterCREAM(Config *cfg);
     ~SubmitterCREAM();
 
+    std::string queue;
+    std::string lrmsType;
+
   public:
     static Plugin* Instance(PluginArgument *arg);
     URL Submit(const JobDescription& jobdesc,

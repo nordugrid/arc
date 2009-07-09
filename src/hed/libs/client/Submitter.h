@@ -30,7 +30,6 @@ namespace Arc {
 
     URL submissionEndpoint;
     URL cluster;
-    std::string queue;
 
     static Logger logger;
   };

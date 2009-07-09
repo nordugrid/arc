@@ -20,6 +20,9 @@ namespace Arc {
   private:
     SubmitterARC0(Config *cfg);
     ~SubmitterARC0();
+
+    std::string queue;
+    
     static Logger logger;
 
   public:

@@ -176,6 +176,8 @@ namespace Arc {
 
     // Other
 
+    std::map<std::string, std::string> OtherInfo;
+
     std::string GridFlavour;
     URL Cluster; // contains the URL of the infosys that provided the info
 
