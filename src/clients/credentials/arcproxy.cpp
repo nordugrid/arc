@@ -19,6 +19,7 @@
 #include <unistd.h>
 #include <openssl/ssl.h>
 #include <openssl/err.h>
+#include <openssl/ui.h>
 
 #include <arc/ArcLocation.h>
 #include <arc/Logger.h>
@@ -47,6 +48,51 @@ static void tls_process_error(void) {
     logger.msg(Arc::ERROR, "Reason   : %s", ERR_reason_error_string(err));
   }
   return;
+}
+
+#define PASS_MIN_LENGTH 4
+static int input_password(char* password, int passwdsz, bool verify, 
+    const std::string prompt_info, const std::string prompt_verify_info) {
+  UI *ui = NULL;
+  int res = 0;
+  ui = UI_new();
+  if (ui) {
+    int ok = 0;
+    char buf[256];
+    memset(buf,0,256);
+    int ui_flags = 0;
+    char *prompt1 = NULL;
+    char *prompt2 = NULL;
+    prompt1 = UI_construct_prompt(ui, "passphrase", prompt_info.c_str());
+    prompt2 = UI_construct_prompt(ui, "passphrase", prompt_verify_info.c_str());
+    ui_flags |= UI_INPUT_FLAG_DEFAULT_PWD;
+    UI_ctrl(ui, UI_CTRL_PRINT_ERRORS, 1, 0, 0);
+    ok = UI_add_input_string(ui,prompt1,ui_flags,password,PASS_MIN_LENGTH,BUFSIZ-1);
+    if (ok >= 0 && verify) {
+      ok = UI_add_verify_string(ui,prompt2,ui_flags,buf,PASS_MIN_LENGTH,BUFSIZ-1, password);
+    }
+    if (ok >= 0)
+      do{
+        ok = UI_process(ui);
+      }while (ok < 0 && UI_ctrl(ui, UI_CTRL_IS_REDOABLE, 0, 0, 0));
+
+    if (ok >= 0) res = strlen(password);
+    if (ok == -1){
+      std::cerr<<"User interface error\n"<<std::endl;
+      tls_process_error();
+      memset(password,0,(unsigned int)passwdsz);
+      res = 0;
+    }
+    if (ok == -2) {
+      std::cerr<<"Aborted!\n"<<std::endl;
+      memset(password,0,(unsigned int)passwdsz);
+      res = 0;
+    }
+    UI_free(ui);
+    OPENSSL_free(prompt1);
+    OPENSSL_free(prompt2);
+  }
+  return res;
 }
 
 int main(int argc, char *argv[]) {
@@ -119,8 +165,8 @@ int main(int argc, char *argv[]) {
                     istring("string"), user_name);
 
   std::string passphrase; //passphrase to myproxy server
-  options.AddOption('R', "pass", istring("passphrase to myproxy server"),
-                    istring("string"), passphrase);
+//  options.AddOption('R', "pass", istring("passphrase to myproxy server"),
+//                    istring("string"), passphrase);
 
   std::string myproxy_server; //url of myproxy server
   options.AddOption('L', "myproxysrv", istring("url of myproxy server"),
@@ -375,8 +421,17 @@ int main(int argc, char *argv[]) {
       if (user_name.empty())
         throw std::invalid_argument("Username to myproxy server is missing");
       send_msg.append("USERNAME=").append(user_name).append("\n ");
-      if (passphrase.empty())
-        throw std::invalid_argument("Passphrase to myproxy server is missing");
+
+//      if (passphrase.empty())
+//        throw std::invalid_argument("Passphrase to myproxy server is missing");
+
+      std::string prompt1 = "MyProxy server";
+      char password[256];
+      int res = input_password(password, 256, false, prompt1, "");
+      if(!res) throw std::invalid_argument("Error entering passphrase"); 
+
+      passphrase = password;
+
       send_msg.append("PASSPHRASE=").append(passphrase).append("\n ");
       send_msg.append("LIFETIME=43200\n");
 
@@ -824,8 +879,17 @@ int main(int argc, char *argv[]) {
       if (user_name.empty())
         throw std::invalid_argument("Username to myproxy server is missing");
       send_msg.append("USERNAME=").append(user_name).append("\n ");
-      if (passphrase.empty())
-        throw std::invalid_argument("Passphrase to myproxy server is missing");
+//      if (passphrase.empty())
+//        throw std::invalid_argument("Passphrase to myproxy server is missing");
+
+      std::string prompt1 = "MyProxy server";
+      std::string prompt2 = "MyProxy server";
+      char password[256];
+      int res = input_password(password, 256, true, prompt1, prompt2);
+      if(!res) throw std::invalid_argument("Error entering passphrase");
+
+      passphrase = password;
+
       send_msg.append("PASSPHRASE=").append(passphrase).append("\n ");
       send_msg.append("LIFETIME=43200\n");
 
