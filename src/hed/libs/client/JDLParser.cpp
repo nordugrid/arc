@@ -170,11 +170,11 @@ namespace Arc {
         /* Since JDL does not have support for multiple locations the size of
          * the Source member is exactly 1.
          */
-        if (!it->Source.front().URI)
+        if (!it->Source.empty() && !it->Source.front().URI)
           it->Source.front().URI = simpleJDLvalue(attributeValue);
       for (std::list<DirectoryType>::iterator it = job.DataStaging.Directory.begin();
            it != job.DataStaging.Directory.end(); it++)
-        if (!it->Source.front().URI)
+        if (!it->Source.empty() && !it->Source.front().URI)
           it->Source.front().URI = simpleJDLvalue(attributeValue);
       return true;
     }
@@ -217,11 +217,11 @@ namespace Arc {
     else if (attributeName == "outputsandboxbaseuri") {
       for (std::list<FileType>::iterator it = job.DataStaging.File.begin();
            it != job.DataStaging.File.end(); it++)
-        if (!it->Target.front().URI)
+        if (!it->Target.empty() && !it->Target.front().URI)
           it->Target.front().URI = simpleJDLvalue(attributeValue);
       for (std::list<DirectoryType>::iterator it = job.DataStaging.Directory.begin();
            it != job.DataStaging.Directory.end(); it++)
-        if (!it->Target.front().URI)
+        if (!it->Target.empty() && !it->Target.front().URI)
           it->Target.front().URI = simpleJDLvalue(attributeValue);
       return true;
     }
@@ -463,13 +463,13 @@ namespace Arc {
       // Remove empty lines
       const std::string trimmed_line = trim(*it);
       if (trimmed_line.length() == 0)
-        lines.erase(it);
+        it = lines.erase(it);
       // Remove lines starts with '#' - Comments
       else if (trimmed_line.length() >= 1 && trimmed_line.substr(0, 1) == "#")
-        lines.erase(it);
+        it = lines.erase(it);
       // Remove lines starts with '//' - Comments
       else if (trimmed_line.length() >= 2 && trimmed_line.substr(0, 2) == "//")
-        lines.erase(it);
+        it = lines.erase(it);
       else {
         wcpy += *it + "\n";
         it++;
