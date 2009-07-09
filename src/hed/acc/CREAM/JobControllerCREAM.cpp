@@ -129,10 +129,6 @@ namespace Arc {
     return false;
   }
 
-  bool JobControllerCREAM::PatchInputFileLocation(const Job& job, JobDescription& jobDesc) const {
-    return false;
-  }
-
   URL JobControllerCREAM::GetFileUrlForJob(const Job& job,
                                            const std::string& whichfile) {}
   bool JobControllerCREAM::GetJobDescription(const Job& job, std::string& desc_str) {}

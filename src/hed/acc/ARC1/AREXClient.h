@@ -48,12 +48,11 @@ namespace Arc {
     //! Submit a job.
     /*! This method submits a job to the A-REX service corresponding
        to this client instance.
-       @param jsdl_file An input stream from which the JSDL file for
-       the job can be read.
+       @param jobdesc A string containing the job description.
        @param jobid The Job ID of the the submitted job.
        @return true on success
      */
-    bool submit(std::istream& jsdl_file, std::string& jobid,
+    bool submit(const std::string& jobdesc, std::string& jobid,
                 bool delegate = false);
 
     //! Query the status of a job.

@@ -174,10 +174,6 @@ namespace Arc {
     return false;
   }
 
-  bool JobControllerUNICORE::PatchInputFileLocation(const Job& job, JobDescription& jobDesc) const {
-    return false;
-  }
-
   URL JobControllerUNICORE::GetFileUrlForJob(const Job& job,
                                              const std::string& whichfile) {}
 

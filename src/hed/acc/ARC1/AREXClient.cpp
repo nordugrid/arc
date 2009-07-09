@@ -57,10 +57,6 @@ namespace Arc {
     WSAHeader(soap).Action(BES_FACTORY_ACTIONS_BASE_URL + op);
   }
 
-  // static void set_bes_management_action(SOAPEnvelope& soap,const char* op) {
-  //   WSAHeader(soap).Action(BES_MANAGEMENT_ACTIONS_BASE_URL+op);
-  // }
-
   AREXClient::AREXClient(const URL& url,
                          const MCCConfig& cfg)
     : client_config(NULL),
@@ -188,7 +184,7 @@ namespace Arc {
     return true;
   }
 
-  bool AREXClient::submit(std::istream& jsdl_file, std::string& jobid,
+  bool AREXClient::submit(const std::string& jobdesc, std::string& jobid,
                           bool delegate) {
 
     std::string faultstring;
@@ -201,33 +197,19 @@ namespace Arc {
          bes-factory:ActivityDocument
            jsdl:JobDefinition
      */
+    
     PayloadSOAP req(arex_ns);
     XMLNode op = req.NewChild("bes-factory:CreateActivity");
     XMLNode act_doc = op.NewChild("bes-factory:ActivityDocument");
     set_bes_factory_action(req, "CreateActivity");
     WSAHeader(req).To(rurl.str());
-    std::string jsdl_str;
-    std::getline<char>(jsdl_file, jsdl_str, 0);
-    act_doc.NewChild(XMLNode(jsdl_str));
+    act_doc.NewChild(XMLNode(jobdesc));
     act_doc.Child(0).Namespaces(arex_ns); // Unify namespaces
+
+    logger.msg(VERBOSE, "Job description to be sent: %s", jobdesc);
+
     PayloadSOAP *resp = NULL;
-
-    // Remove DataStaging/Source/URI elements from job description satisfying:
-    // * Invalid URLs
-    // * URIs with the file protocol
-    // * Empty URIs
-    for (XMLNode ds = act_doc["JobDefinition"]["JobDescription"]["DataStaging"];
-         ds; ++ds)
-      if (ds["Source"] && !((std::string)ds["FileName"]).empty()) {
-        URL url((std::string)ds["Source"]["URI"]);
-        if (((std::string)ds["Source"]["URI"]).empty() ||
-            !url ||
-            url.Protocol() == "file")
-          ds["Source"]["URI"].Destroy();
-      }
-    act_doc.GetXML(jsdl_str);
-    logger.msg(VERBOSE, "Job description to be sent: %s", jsdl_str);
-
+    
     if (!process(req, &resp, delegate))
       return false;
 
@@ -684,7 +666,7 @@ namespace Arc {
         bes-factory:ActivityDocument
           jsdl:JobDefinition
      */
-
+    
     PayloadSOAP req(arex_ns);
     XMLNode op = req.NewChild("a-rex:MigrateActivity");
     XMLNode act_doc = op.NewChild("bes-factory:ActivityDocument");
@@ -695,26 +677,7 @@ namespace Arc {
     act_doc.NewChild(XMLNode(jobdesc));
     act_doc.Child(0).Namespaces(arex_ns); // Unify namespaces
 
-
-    // Remove DataStaging/Source/URI elements from job description satisfying:
-    // * Invalid URLs
-    // * URIs with the file protocol
-    // * Empty URIs
-    for (XMLNode ds = act_doc["JobDefinition"]["JobDescription"]["DataStaging"];
-         ds; ++ds)
-      if (ds["Source"] && !((std::string)ds["FileName"]).empty()) {
-        URL url((std::string)ds["Source"]["URI"]);
-        if (((std::string)ds["Source"]["URI"]).empty() ||
-            !url ||
-            url.Protocol() == "file")
-          ds["Source"]["URI"].Destroy();
-      }
-
-    {
-      std::string logJobdesc;
-      act_doc.GetXML(logJobdesc);
-      logger.msg(VERBOSE, "Job description to be sent: %s", logJobdesc);
-    }
+    logger.msg(VERBOSE, "Job description to be sent: %s", jobdesc);
 
     PayloadSOAP *resp = NULL;
     if (!process(req, &resp, false))

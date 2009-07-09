@@ -125,51 +125,6 @@ namespace Arc {
     return ok;
   }
 
-  bool JobControllerARC1::PatchInputFileLocation(const Job& job, JobDescription& jobDesc) const {
-    XMLNode xmlDesc(job.JobDescription);
-
-    // Set OldJobID to current JobID.
-    xmlDesc["JobDescription"]["JobIdentification"].NewChild("jsdl-arc:OldJobID") = job.JobID.str();
-
-    const XMLNode xPosixApp = xmlDesc["JobDescription"]["Application"]["POSIXApplication"];
-    const std::string outputfilename = (xPosixApp["Output"] ? xPosixApp["Output"] : "");
-    const std::string errorfilename = (xPosixApp["Error"]  ? xPosixApp["Error"] : "");
-
-    URL jobid = job.JobID;
-    // Files which were originally local should not be cached.
-    jobid.AddOption("cache", "no");
-
-    // Loop over data staging elements in XML file.
-    for (XMLNode files = xmlDesc["JobDescription"]["DataStaging"]; files; ++files) {
-      const std::string filename = files["FileName"];
-      // Do not modify the DataStaging element of the output and error files.
-      const bool isOutputOrError = (filename != "" && (filename == outputfilename || filename == errorfilename));
-      if (!isOutputOrError && !files["Source"]["URI"]) {
-        if (!files["Source"])
-          files.NewChild("Source");
-        files["Source"].NewChild("URI") = jobid.fullstr() + "/" + filename;
-      }
-      else if (!isOutputOrError) {
-        const size_t foundRSlash = ((std::string)files["Source"]["URI"]).rfind("/");
-        if (foundRSlash == std::string::npos)
-          continue;
-
-        URL fileURI(((std::string)files["Source"]["URI"]).substr(0, foundRSlash));
-        // Check if the input file URI is pointing to a old job session directory.
-        for (XMLNode oldJobID = xmlDesc["JobDescription"]["JobIdentification"]["OldJobID"]; oldJobID; ++oldJobID)
-          if (fileURI.str() == (std::string)oldJobID) {
-            files["Source"]["URI"] = jobid.fullstr() + "/" + filename;
-            break;
-          }
-      }
-    }
-
-    // Parse and set JobDescription.
-    jobDesc.Parse(xmlDesc);
-
-    return true;
-  }
-
   URL JobControllerARC1::GetFileUrlForJob(const Job& job,
                                           const std::string& whichfile) {}
 

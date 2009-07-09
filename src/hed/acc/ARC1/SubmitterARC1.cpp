@@ -38,11 +38,8 @@ namespace Arc {
     ApplySecurity(cfg);
     AREXClient ac(submissionEndpoint, cfg);
 
-    std::string jobdescstring = jobdesc.UnParse("ARCJSDL");
-    std::istringstream jsdlfile(jobdescstring);
-
     std::string jobid;
-    if (!ac.submit(jsdlfile, jobid, submissionEndpoint.Protocol() == "https")) {
+    if (!ac.submit(jobdesc.UnParse("ARCJSDL"), jobid, submissionEndpoint.Protocol() == "https")) {
       logger.msg(ERROR, "Failed submitting job");
       return URL();
     }
@@ -88,11 +85,50 @@ namespace Arc {
 
     std::string idstr;
     AREXClient::createActivityIdentifier(jobid, idstr);
-    
-    std::string jobdescstring = jobdesc.UnParse("ARCJSDL");
+
+    JobDescription job(jobdesc);
+
+    // Add ActivityOldId.
+    job.Identification.ActivityOldId.push_back(jobid.str());
+
+    // Modify the location of local files and files residing in a old session directory.
+    for (std::list<FileType>::iterator it = job.DataStaging.File.begin();
+         it != job.DataStaging.File.end(); it++) {
+      // Do not modify Output and Error files.
+      if (it->Name == job.Application.Output ||
+          it->Name == job.Application.Error)
+        continue;
+
+      if (it->Source.size() == 0) {
+        DataSourceType source;
+        source.URI = URL(jobid.str() + "/" + it->Name);
+        it->Source.push_back(source);
+        it->DownloadToCache = false;
+      }
+      else if (!it->Source.front().URI) {
+        it->Source.front().URI = URL(jobid.str() + "/" + it->Name);
+        it->DownloadToCache = false;
+      }
+      else {
+        const size_t foundRSlash = it->Source.front().URI.str().rfind('/');
+        if (foundRSlash == std::string::npos)
+          continue;
+        
+        const std::string uriPath = it->Source.front().URI.str().substr(0, foundRSlash);
+        // Check if the input file URI is pointing to a old job session directory.
+        for (std::list<std::string>::const_iterator itAOID = job.Identification.ActivityOldId.begin();
+             itAOID != job.Identification.ActivityOldId.end(); itAOID++) {
+          if (uriPath == *itAOID) {
+            it->Source.front().URI = URL(jobid.str() + "/" + it->Name);
+            it->DownloadToCache = false;
+            break;
+          }
+        }
+      }
+    }
 
     std::string newjobid;
-    if (!ac.migrate(idstr, jobdescstring, forcemigration, newjobid,
+    if (!ac.migrate(idstr, job.UnParse("ARCJSDL"), forcemigration, newjobid,
                     submissionEndpoint.Protocol() == "https")) {
       logger.msg(ERROR, "Failed migrating job");
       return URL();

@@ -141,9 +141,12 @@ JobLocalDescription& JobLocalDescription::operator=(const Arc::JobDescription& a
     // about initial JSDL description we have to make some guesses here.
     if(!file->Source.empty()) { // input file
       // Only one source per file supported
-      FileData fdata(fname.c_str(), file->Source.front().URI.fullstr().c_str());
-      inputdata.push_back(fdata);
-      if (file->Source.front().URI) ++downloads;
+      inputdata.push_back(FileData(fname.c_str(), ""));
+      if (file->Source.front().URI &&
+          file->Source.front().URI.Protocol() != "file") {
+        inputdata.back().lfn = file->Source.front().URI.fullstr();
+        ++downloads;
+      }
 
       if (inputdata.back().has_lfn()) {
         Arc::URL u(inputdata.back().lfn);

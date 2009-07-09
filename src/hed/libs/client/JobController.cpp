@@ -489,8 +489,6 @@ namespace Arc {
       JobDescription jobDesc;
       if (!GetJobDescription(*itJob, itJob->JobDescription))
         continue;
-      if (!PatchInputFileLocation(*itJob, jobDesc))
-        continue;
 
       broker->PreFilterTargets(targetGen.ModifyFoundTargets(), jobDesc);
       // Try to submit modified JSDL. Only to ARC1 clusters.
