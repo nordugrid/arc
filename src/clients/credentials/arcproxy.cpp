@@ -489,9 +489,9 @@ int main(int argc, char *argv[]) {
 
       //Output the PEM formated proxy certificate
       std::string tmpcert_file("tmpcert.pem");
-      std::ofstream tmpcert_f(tmpcert_file.c_str());
+      std::ofstream tmpcert_f(tmpcert_file.c_str(), std::ofstream::binary);
       std::string tmpkey_file("tmpkey.pem");
-      std::ofstream tmpkey_f(tmpkey_file.c_str());
+      std::ofstream tmpkey_f(tmpkey_file.c_str(), std::ofstream::binary);
       tmpcert_f.write(proxy_cert_str.c_str(), proxy_cert_str.size());
       tmpkey_f.write(proxy_key_str.c_str(), proxy_key_str.size());
       tmpcert_f.close();
