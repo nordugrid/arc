@@ -404,7 +404,10 @@ namespace Arc {
         target.MappingQueue = (std::string)CE["GlueCEName"];
         
       if (CE["GlueCEInfoLRMSType"])
-        target.OtherInfo["LRMSType"] = (std::string)CE["GlueCEInfoLRMSType"];
+        target.ManagerProductName = (std::string)CE["GlueCEInfoLRMSType"];
+
+      if (CE["GlueCEInfoLRMSVersion"])
+        target.ManagerProductVersion = (std::string)CE["GlueCEInfoLRMSVersion"];
 
       if (Site["GlueSiteName"])
         target.DomainName = (std::string)Site["GlueSiteName"];

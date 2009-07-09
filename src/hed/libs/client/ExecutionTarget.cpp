@@ -225,9 +225,7 @@ namespace Arc {
     Config SubmitterComp;
     SubmitterComp.NewChild("Cluster") = Cluster.str();
     SubmitterComp.NewChild("Queue") = MappingQueue;
-    std::map<std::string, std::string>::const_iterator itLRMSType = OtherInfo.find("LRMSType");
-    if (itLRMSType != OtherInfo.end())
-      SubmitterComp.NewChild("LRMSType") = itLRMSType->second;
+    SubmitterComp.NewChild("LRMSType") = ManagerProductName;
     SubmitterComp.NewChild("SubmissionEndpoint") = url.str();
     ucfg.ApplyToConfig(SubmitterComp);
 
