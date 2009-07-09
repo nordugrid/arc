@@ -418,11 +418,18 @@ namespace Arc {
     inet_pton(AF_INET, remoteip.c_str(), &sa.sin_addr);
 
     char host[NI_MAXHOST];
+    memset(host,0,NI_MAXHOST);
     if(getnameinfo((sockaddr*)&sa, sizeof(sa), host, NI_MAXHOST, NULL, 0,
                 NI_NAMEREQD)) {
-      logger.msg(ERROR, "Could not resolve peer side's hostname");
-      return MCC_Status();
-    }
+      struct hostent* hp;
+      hp = gethostbyaddr((void*)(&(sa.sin_addr.s_addr)), sizeof(sa.sin_addr.s_addr), AF_INET);
+      if(hp == NULL) {
+        logger.msg(ERROR, "Could not resolve peer side's hostname");
+        return MCC_Status();
+      }
+      std::string tmp(hp->h_name);
+      memcpy(host, tmp.c_str(), tmp.length()); 
+   }
 
     OM_uint32 majstat, minstat;
 
