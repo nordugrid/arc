@@ -50,7 +50,7 @@ static void tls_process_error(void) {
   return;
 }
 
-#define PASS_MIN_LENGTH 4
+#define PASS_MIN_LENGTH 6
 static int input_password(char* password, int passwdsz, bool verify, 
     const std::string prompt_info, const std::string prompt_verify_info) {
   UI *ui = NULL;
