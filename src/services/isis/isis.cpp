@@ -1245,6 +1245,10 @@ static void soft_state_thread(void *data) {
                           ids.erase(find(ids.begin(),ids.end(),id));
                       }
                   }
+
+                  // with almost one probability the neighbor update will necessary after connection
+                  neighbors_update_needed = true;
+
                   for (int i=0; i<ids.size(); i++){
                       Arc::XMLNode data_;
                       //The next function calling is db_->get(ServiceID, RegistrationEntry);
