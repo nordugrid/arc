@@ -202,8 +202,9 @@ namespace Arc {
       std::list<std::string> value = listJDLvalue(attributeValue);
       std::list<std::string>::iterator i = value.begin();
       for (std::list<FileType>::iterator it = job.DataStaging.File.begin();
-           it != job.DataStaging.File.end(); it++)
-        //if (!it->Target.empty()) {
+           it != job.DataStaging.File.end(); it++) {
+        if (it->Target.empty())
+          continue;
         if (i != value.end()) {
           it->Target.front().URI = *i;
           i++;
@@ -212,6 +213,7 @@ namespace Arc {
           logger.msg(DEBUG, "Not enough outputsandboxdesturi element!");
           return false;
         }
+      }
       return true;
     }
     else if (attributeName == "outputsandboxbaseuri") {
@@ -225,12 +227,6 @@ namespace Arc {
           it->Target.front().URI = simpleJDLvalue(attributeValue);
       return true;
     }
-/** Skou: this need to be done differently...
-    else if (attributeName == "batchsystem") {
-      job.BatchSystem = simpleJDLvalue(attributeValue);
-      return true;
-    }
-*/
     else if (attributeName == "prologue") {
       job.Application.Prologue.Name = simpleJDLvalue(attributeValue);
       return true;
@@ -324,12 +320,16 @@ namespace Arc {
       job.Identification.JobVOName = simpleJDLvalue(attributeValue);
       return true;
     }
-/** Skou: Unclear how queuename should be saved.
     else if (attributeName == "queuename") {
-      job.QueueName = simpleJDLvalue(attributeValue);
+      ResourceTargetType candidateTarget;
+      candidateTarget.QueueName = simpleJDLvalue(attributeValue);
+      job.Resources.CandidateTarget.push_back(candidateTarget);
       return true;
     }
-*/
+    else if (attributeName == "batchsystem") {
+      job.JDL_elements["batchsystem"] = simpleJDLvalue(attributeValue);
+      return true;
+    }
     else if (attributeName == "retrycount") {
       const int count = stringtoi(simpleJDLvalue(attributeValue));
       if (job.Application.Rerun < count)
@@ -524,7 +524,6 @@ namespace Arc {
     product += ADDJDLSTRING(job.Application.Output, "StdOutput");
     product += ADDJDLSTRING(job.Application.Error, "StdError");
     product += ADDJDLSTRING(job.Identification.JobVOName, "VirtualOrganisation");
-    //product += ADDJDLSTRING(job.BatchSystem, "BatchSystem");
 
     if (!job.Application.Environment.empty()) {
       std::list<std::string> environment;
@@ -580,8 +579,9 @@ namespace Arc {
         /* Since JDL does not have support for multiple locations only the first
          * location will be added.
          */
-        inputSandboxList.push_back((it->Source.front().URI ? it->Source.front().URI.fullstr() : it->Name));
-        if (it->Target.front().URI) {
+        if (!it->Source.empty())
+          inputSandboxList.push_back((it->Source.front().URI ? it->Source.front().URI.fullstr() : it->Name));
+        if (!it->Target.empty() && it->Target.front().URI) {
           outputSandboxList.push_back(it->Name);
           const std::string uri_tmp = (it->Target.front().URI.Host() == "localhost" ?
                                        it->Target.front().URI.Protocol() + "://" + it->Target.front().URI.Host() + "/" + it->Target.front().URI.Path() :
@@ -620,13 +620,12 @@ namespace Arc {
         product += generateOutputList("OutputSandboxDestURI", outputSandboxDestURIList);
     }
     
-/** Skou: Unclear how to handle this attribute.
-    if (!job.QueueName.empty()) {
+    if (!job.Resources.CandidateTarget.empty() &&
+        !job.Resources.CandidateTarget.front().QueueName.empty()) {
       product += "  QueueName = \"";
-      product += job.QueueName;
+      product += job.Resources.CandidateTarget.front().QueueName;
       product += "\";\n";
     }
-*/
 
     product += ADDJDLNUMBER(job.Application.Rerun, "RetryCount");
     product += ADDJDLNUMBER(job.Application.Rerun, "ShallowRetryCount");
