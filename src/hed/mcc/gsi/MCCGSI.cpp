@@ -6,7 +6,6 @@
 
 #ifdef WIN32 
 #include <arc/win32.h>
-#define _NO_OLDNAMES 
 #endif
 
 #include <sys/types.h>
@@ -422,7 +421,11 @@ namespace Arc {
     if(getnameinfo((sockaddr*)&sa, sizeof(sa), host, NI_MAXHOST, NULL, 0,
                 NI_NAMEREQD)) {
       struct hostent* hp;
+#ifndef WIN32
       hp = gethostbyaddr((void*)(&(sa.sin_addr.s_addr)), sizeof(sa.sin_addr.s_addr), AF_INET);
+#else
+      hp = gethostbyaddr((char*)(&(sa.sin_addr.s_addr)), sizeof(sa.sin_addr.s_addr), AF_INET);
+#endif
       if(hp == NULL) {
         logger.msg(ERROR, "Could not resolve peer side's hostname");
         return MCC_Status();
