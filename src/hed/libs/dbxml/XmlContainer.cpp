@@ -53,7 +53,7 @@ XmlContainer::XmlContainer(const std::string &db_path, const std::string &db_nam
     }
 }
 
-XmlContainer::~XmlContainer(void)
+XmlContainer::~XmlContainer()
 {
     if (db_ != NULL) {
         db_->close(0);
@@ -177,17 +177,17 @@ XmlContainer::del(const std::string &name)
 }
 
 void
-XmlContainer::start_update(void)
+XmlContainer::start_update()
 {
 }
 
 void 
-XmlContainer::end_update(void)
+XmlContainer::end_update()
 {
 }
 
 std::vector<std::string> 
-XmlContainer::get_doc_names(void)
+XmlContainer::get_doc_names()
 {
     Dbc *cursor = NULL;
     Dbt key, value;
@@ -237,6 +237,16 @@ XmlContainer::get_doc_names(void)
             }
             return empty_result;
         }
+    }
+}
+
+void
+XmlContainer::checkpoint()
+{
+    try {
+        env_->txn_checkpoint(0, 0, 0);
+    } catch(DbException &e) {
+        logger_.msg(Arc::ERROR, "checkpoint: %s", e.what());
     }
 }
 

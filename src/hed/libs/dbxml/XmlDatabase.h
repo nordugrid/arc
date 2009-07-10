@@ -29,6 +29,7 @@ class XmlDatabase
         void update(const std::string &name,
                     const std::string &query,
                     Arc::XMLNode &new_value);
+        void checkpoint();
 };
 
 }

@@ -82,5 +82,11 @@ XmlDatabase::update(const std::string &name, const std::string &query,
     container_->end_update();
 }
 
+void
+XmlDatabase::checkpoint()
+{
+    container_->checkpoint();
+}
+
 } // namespace Arc
 
