@@ -617,7 +617,7 @@ int main(int argc, char *argv[]) {
     std::string policy;
     policy = constraints["proxyPolicy"].empty() ? constraints["proxyPolicyFile"] : constraints["proxyPolicy"];
     //Arc::Credential cred_request(start, period, keybits, "rfc", policy.empty() ? "inheritAll" : "anylanguage", policy, -1);
-    Arc::Credential cred_request(start, period, keybits);
+    Arc::Credential cred_request(start - Arc::Period(300), period, keybits);
     cred_request.GenerateRequest(req_str);
     cred_request.OutputPrivatekey(private_key);
     signer.OutputCertificate(signing_cert);
