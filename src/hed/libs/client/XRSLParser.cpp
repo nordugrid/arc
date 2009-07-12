@@ -193,7 +193,7 @@ namespace Arc {
           DataSourceType source;
           if (!it2->empty())
             source.URI = *it2;
-          else
+          if (!source.URI || source.URI.Protocol() == "file")
             source.URI = file.Name;
           source.Threads = -1;
           file.Source.push_back(source);
@@ -244,9 +244,10 @@ namespace Arc {
           DataTargetType target;
           if (!it2->empty())
             target.URI = *it2;
+          else
+            file.KeepData = true;
           target.Threads = -1;
           file.Target.push_back(target);
-          file.KeepData = false;
           file.IsExecutable = false;
           file.DownloadToCache = cached;
           j.DataStaging.File.push_back(file);
@@ -729,29 +730,29 @@ namespace Arc {
     if (!j.DataStaging.File.empty()) {
       RSLList *l = NULL;
       for (std::list<FileType>::const_iterator it = j.DataStaging.File.begin();
-           it != j.DataStaging.File.end(); it++)
-        for (std::vector<DataSourceType>::const_iterator sit = it->Source.begin();
-             sit != it->Source.end(); sit++) {
-          RSLList *s = new RSLList;
-          s->Add(new RSLLiteral(it->Name));
-          if (sit->URI.Protocol() == "file") {
-            struct stat fileStat;
-            if (stat(sit->URI.Path().c_str(), &fileStat) == 0)
-              s->Add(new RSLLiteral(tostring(fileStat.st_size)));
-            else {
-              logger.msg(ERROR, "Can not stat local input file");
-              delete s;
-              if (l)
-                delete l;
-              return "";
-            }
+           it != j.DataStaging.File.end(); it++) {
+        if (it->Source.empty())
+          continue;
+        RSLList *s = new RSLList;
+        s->Add(new RSLLiteral(it->Name));
+        if (it->Source.front().URI.Protocol() == "file") {
+          struct stat fileStat;
+          if (stat(it->Source.front().URI.Path().c_str(), &fileStat) == 0)
+            s->Add(new RSLLiteral(tostring(fileStat.st_size)));
+          else {
+            logger.msg(ERROR, "Can not stat local input file");
+            delete s;
+            if (l)
+              delete l;
+            return "";
           }
-          else
-            s->Add(new RSLLiteral(sit->URI.fullstr()));
-          if (!l)
-            l = new RSLList;
-          l->Add(new RSLSequence(s));
         }
+        else
+          s->Add(new RSLLiteral(it->Source.front().URI.fullstr()));
+        if (!l)
+          l = new RSLList;
+        l->Add(new RSLSequence(s));
+      }
       if (l)
         r.Add(new RSLCondition("inputfiles", RSLEqual, l));
     }
@@ -773,23 +774,33 @@ namespace Arc {
       bool output(false), error(false);
       RSLList *l = NULL;
       for (std::list<FileType>::const_iterator it = j.DataStaging.File.begin();
-           it != j.DataStaging.File.end(); it++)
-        for (std::list<DataTargetType>::const_iterator tit = it->Target.begin();
-             tit != it->Target.end(); tit++) {
+           it != j.DataStaging.File.end(); it++) {
+        if (!it->Target.empty()) {
           RSLList *s = new RSLList;
           s->Add(new RSLLiteral(it->Name));
-          if (it->Name == j.Application.Output)
-            output = true;
-          if (it->Name == j.Application.Error)
-            error = true;
-          if (!tit->URI || tit->URI.Protocol() == "file")
+          if (!it->Target.front().URI || it->Target.front().URI.Protocol() == "file")
             s->Add(new RSLLiteral(""));
           else
-            s->Add(new RSLLiteral(tit->URI.fullstr()));
+            s->Add(new RSLLiteral(it->Target.front().URI.fullstr()));
           if (!l)
             l = new RSLList;
           l->Add(new RSLSequence(s));
+
+          output &= (it->Name == j.Application.Output);
+          error  &= (it->Name == j.Application.Error);
         }
+        else if (it->KeepData) {
+          RSLList *s = new RSLList;
+          s->Add(new RSLLiteral(it->Name));
+          s->Add(new RSLLiteral(""));
+          if (!l)
+            l = new RSLList;
+          l->Add(new RSLSequence(s));
+          
+          output &= (it->Name == j.Application.Output);
+          error  &= (it->Name == j.Application.Error);
+        }
+      }
       if (!j.Application.Output.empty() && !output) {
         RSLList *s = new RSLList;
         s->Add(new RSLLiteral(j.Application.Output));

@@ -27,7 +27,7 @@
 
 
 namespace Arc {
-  
+
   template<class T>
   class Range {
   public:
@@ -161,7 +161,7 @@ namespace Arc {
     std::list<ResourceTargetType> CandidateTarget;
     SoftwareRequirement RunTimeEnvironment;
   };
-    
+
   class DataSourceType {
   public:
     DataSourceType() :
@@ -218,7 +218,7 @@ class DirectoryType : public DataType {};
   public:
     JobMetaType() :
       DocumentExpiration(-1),
-      FuzzyRank(-1) {}
+      FuzzyRank(false) {}
     std::string Author;
     Time DocumentExpiration;
     std::string Rank;

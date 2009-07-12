@@ -41,10 +41,10 @@ namespace Arc {
 
   JobDescription ARCJSDLParser::Parse(const std::string& source) const {
     JobDescription job;
-    
+
     xmlParserCtxtPtr ctxt = xmlNewParserCtxt();
 
-	if (ctxt == NULL) {
+    if (ctxt == NULL) {
         logger.msg(DEBUG, "[ARCJSDLParser] Failed to create parser context");
     }
     xmlSetGenericErrorFunc(NULL, (xmlGenericErrorFunc)XmlErrorHandler);
@@ -108,7 +108,7 @@ namespace Arc {
       logger.msg(ERROR, "[ARCJSDLParser] An extended application element (POSIXApplication or HPCProfileApplication) was not found in the job description.");
       return JobDescription();
     }
-      
+
 
     // ExecutableType Executable;
     if (bool(xmlXApplication["Executable"]))
@@ -248,7 +248,7 @@ namespace Arc {
       if (value > -1)
         job.Resources.IndividualPhysicalMemory = value;
     }
-    
+
     // Range<unsigned int> IndividualVirtualMemory;
     // If the consolidated element exist parse it, else try to parse the POSIX one.
     if (bool(resource["IndividualVirtualMemory"])) {
@@ -261,7 +261,7 @@ namespace Arc {
       if (value > -1)
         job.Resources.IndividualVirtualMemory = value;
     }
-    
+
     // Range<unsigned int> TotalCPUTime;
     // If the consolidated element exist parse it, else try to parse the POSIX one.
     if (bool(resource["TotalCPUTime"])) {
@@ -274,14 +274,14 @@ namespace Arc {
       if (value > -1)
         job.Resources.TotalCPUTime = value;
     }
-    
+
     // Range<unsigned int> IndividualCPUTime;
     if (bool(resource["IndividualCPUTime"])) {
       long value = get_limit(resource["IndividualCPUTime"]);
       if (value > -1)
         job.Resources.IndividualCPUTime = value;
     }
-    
+
     // Range<unsigned int> TotalWallTime;
     // If the consolidated element exist parse it, else try to parse the POSIX one.
     if (bool(resource["TotalWallTime"])) {
@@ -298,10 +298,10 @@ namespace Arc {
     // Range<unsigned int> IndividualWallTime;
     if (bool(resource["IndividualWallTime"])) {
       long value = get_limit(resource["IndividualWallTime"]);
-      if (value > -1) 
+      if (value > -1)
         job.Resources.IndividualWallTime = value;
     }
-    
+
 /** Skou: Structure need to be defined.
  * Old structure follows...
     // XMLNode ReferenceTime;
@@ -326,7 +326,7 @@ namespace Arc {
       if (value > -1)
         job.Resources.IndividualDiskSpace = value;
     }
-    
+
     // unsigned int CacheDiskSpace; // Skou: Unclear.
     // unsigned int SessionDiskSpace; // Skou: Unclear.
     // SessionDirectoryAccessMode SessionDirectoryAccess; // Skou: Need to be defined.
@@ -358,12 +358,12 @@ namespace Arc {
     else if (bool(xmlXApplication["ThreadCountLimit"])) {
       int64_t value = stringto<int64_t>((std::string)xmlXApplication["ThreadCountLimit"]);
       if (value > -1)
-        job.Resources.Slots.NumberOfProcesses = value;
+        job.Resources.Slots.ThreadsPerProcesses = value;
     }
     if (bool(resource["TotalCPUCount"]))
       job.Resources.Slots.ProcessPerHost = abs(get_limit(resource["TotalCPUCount"]));
     // XMLNode SPMDVariation;
-      
+
     // std::list<ResourceTargetType> CandidateTarget;
     if (bool(resource["CandidateTarget"])) {
       for (int i = 0; (bool)(resource["CandidateTarget"][i]); i++)
@@ -415,7 +415,7 @@ namespace Arc {
           if (bool(source_uri))
             source.URI = (std::string)source_uri;
           else
-            source.URI = "file://"+Glib::build_filename(Glib::get_current_dir(),file.Name);
+            source.URI = file.Name;
           source.Threads = -1;
           file.Source.push_back(source);
         }
@@ -428,15 +428,9 @@ namespace Arc {
           file.Target.push_back(target);
         }
 
-        if (lower(((std::string)ds["IsExecutable"])) == "true")
-          file.IsExecutable = true;
-        else
-          file.IsExecutable = false;
-        if (lower(((std::string)ds["DeleteOnTermination"])) == "true")
-          file.KeepData = false;
-        else
-          file.KeepData = true;
-        file.DownloadToCache = false;
+        file.KeepData = !(ds["DeleteOnTermination"] && lower(((std::string)ds["DeleteOnTermination"])) == "true");
+        file.IsExecutable = ds["IsExecutable"] && lower(((std::string)ds["IsExecutable"])) == "true";
+        file.DownloadToCache = ds["DownloadToCache"] && lower(((std::string)ds["DownloadToCache"])) == "true";
         job.DataStaging.File.push_back(file);
       }
     }
@@ -487,36 +481,49 @@ namespace Arc {
 
     // Application
     XMLNode xmlApplication("<Application/>");
-    XMLNode xmlXApplication("<POSIXApplication/>");
+    XMLNode xmlPApplication("<POSIXApplication/>");
+    XMLNode xmlHApplication("<HPCProfileApplication/>");
 
     // ExecutableType Executable;
     if (!job.Application.Executable.Name.empty()) {
-      xmlXApplication.NewChild("jsdl-posix:Executable") = job.Application.Executable.Name;
+      xmlPApplication.NewChild("jsdl-posix:Executable") = job.Application.Executable.Name;
+      xmlHApplication.NewChild("jsdl-hpcpa:Executable") = job.Application.Executable.Name;
       for (std::list<std::string>::const_iterator it = job.Application.Executable.Argument.begin();
-           it != job.Application.Executable.Argument.end(); it++)
-        xmlXApplication.NewChild("jsdl-posix:Argument") = *it;
+           it != job.Application.Executable.Argument.end(); it++) {
+        xmlPApplication.NewChild("jsdl-posix:Argument") = *it;
+        xmlHApplication.NewChild("jsdl-hpcpa:Argument") = *it;
+      }
     }
 
     // std::string Input;
-    if (!job.Application.Input.empty())
-      xmlXApplication.NewChild("jsdl-posix:Input") = job.Application.Input;
+    if (!job.Application.Input.empty()) {
+      xmlPApplication.NewChild("jsdl-posix:Input") = job.Application.Input;
+      xmlHApplication.NewChild("jsdl-hpcpa:Input") = job.Application.Input;
+    }
 
     // std::string Output;
-    if (!job.Application.Output.empty())
-      xmlXApplication.NewChild("jsdl-posix:Output") = job.Application.Output;
+    if (!job.Application.Output.empty()) {
+      xmlPApplication.NewChild("jsdl-posix:Output") = job.Application.Output;
+      xmlHApplication.NewChild("jsdl-hpcpa:Output") = job.Application.Output;
+    }
 
     // std::string Error;
-    if (!job.Application.Error.empty())
-      xmlXApplication.NewChild("jsdl-posix:Error") = job.Application.Error;
+    if (!job.Application.Error.empty()) {
+      xmlPApplication.NewChild("jsdl-posix:Error") = job.Application.Error;
+      xmlHApplication.NewChild("jsdl-hpcpa:Error") = job.Application.Error;
+    }
 
     // bool Join; // Skou: Unclear...
-    
+
     // std::list< std::pair<std::string, std::string> > Environment;
     for (std::list< std::pair<std::string, std::string> >::const_iterator it = job.Application.Environment.begin();
          it != job.Application.Environment.end(); it++) {
-      XMLNode environment = xmlXApplication.NewChild("jsdl-posix:Environment");
-      environment.NewAttribute("name") = it->first;
-      environment = it->second;
+      XMLNode pEnvironment = xmlPApplication.NewChild("jsdl-posix:Environment");
+      XMLNode hEnvironment = xmlHApplication.NewChild("jsdl-hpcpa:Environment");
+      pEnvironment.NewAttribute("name") = it->first;
+      pEnvironment = it->second;
+      hEnvironment.NewAttribute("name") = it->first;
+      hEnvironment = it->second;
     }
 
     // ExecutableType Prologue;
@@ -526,7 +533,7 @@ namespace Arc {
            it != job.Application.Prologue.Argument.end(); it++)
         xmlApplication.NewChild("PrologueArgument") = *it;
     }
-    
+
     // ExecutableType Epilogue;
     if (!job.Application.Epilogue.Name.empty()) {
       xmlApplication.NewChild("Epilogue") = job.Application.Epilogue.Name;
@@ -534,7 +541,7 @@ namespace Arc {
            it != job.Application.Epilogue.Argument.end(); it++)
         xmlApplication.NewChild("EpilogueArgument") = *it;
     }
-    
+
     // std::string LogDir;
     if (!job.Application.LogDir.empty())
       xmlApplication.NewChild("LocalLogging") = job.Application.LogDir;
@@ -543,7 +550,7 @@ namespace Arc {
     for (std::list<URL>::const_iterator it = job.Application.RemoteLogging.begin();
          it != job.Application.RemoteLogging.end(); it++)
       xmlApplication.NewChild("RemoteLogging") = it->str();
-    
+
     // int Rerun;
     if (job.Application.Rerun > -1)
       xmlApplication.NewChild("Rerun") = tostring(job.Application.Rerun);
@@ -555,8 +562,8 @@ namespace Arc {
     // Time ExpiryTime;
     if (job.Application.ExpiryTime > -1)
       xmlApplication.NewChild("ExpiryTime") = job.Application.ExpiryTime.str();
-    
-    
+
+
     // Time ProcessingStartTime;
     if (job.Application.ProcessingStartTime > -1)
       xmlApplication.NewChild("ProcessingStartTime") = job.Application.ProcessingStartTime.str();
@@ -592,27 +599,29 @@ namespace Arc {
 
     // POSIX compliance...
     if (job.Resources.TotalWallTime > -1)
-      xmlXApplication.NewChild("jsdl-posix:WallTimeLimit") = tostring(job.Resources.TotalWallTime);
+      xmlPApplication.NewChild("jsdl-posix:WallTimeLimit") = tostring(job.Resources.TotalWallTime);
     if (job.Resources.IndividualPhysicalMemory > -1)
-      xmlXApplication.NewChild("jsdl-posix:MemoryLimit") = tostring(job.Resources.IndividualPhysicalMemory);
+      xmlPApplication.NewChild("jsdl-posix:MemoryLimit") = tostring(job.Resources.IndividualPhysicalMemory);
     if (job.Resources.TotalCPUTime > -1)
-      xmlXApplication.NewChild("jsdl-posix:CPUTimeLimit") = tostring(job.Resources.TotalCPUTime);
+      xmlPApplication.NewChild("jsdl-posix:CPUTimeLimit") = tostring(job.Resources.TotalCPUTime);
     if (job.Resources.Slots.NumberOfProcesses > -1)
-      xmlXApplication.NewChild("jsdl-posix:ProcessCountLimit") = tostring(job.Resources.Slots.NumberOfProcesses);
+      xmlPApplication.NewChild("jsdl-posix:ProcessCountLimit") = tostring(job.Resources.Slots.NumberOfProcesses);
     if (job.Resources.IndividualVirtualMemory > -1)
-      xmlXApplication.NewChild("jsdl-posix:VirtualMemoryLimit") = tostring(job.Resources.IndividualVirtualMemory);
+      xmlPApplication.NewChild("jsdl-posix:VirtualMemoryLimit") = tostring(job.Resources.IndividualVirtualMemory);
     if (job.Resources.Slots.ThreadsPerProcesses > -1)
-      xmlXApplication.NewChild("jsdl-posix:ThreadCountLimit") = tostring(job.Resources.Slots.ThreadsPerProcesses);
+      xmlPApplication.NewChild("jsdl-posix:ThreadCountLimit") = tostring(job.Resources.Slots.ThreadsPerProcesses);
 
-    if (xmlXApplication.Size() > 0)
-      xmlApplication.NewChild(xmlXApplication);
+    if (xmlPApplication.Size() > 0)
+      xmlApplication.NewChild(xmlPApplication);
+    if (xmlHApplication.Size() > 0)
+      xmlApplication.NewChild(xmlHApplication);
     if (xmlApplication.Size() > 0)
       jobdescription.NewChild(xmlApplication);
     // end of Application
 
     // Resources
     XMLNode xmlResources("<Resources/>");
-    
+
     // std::string OSFamily;
     if (!job.Resources.OSFamily.empty())
       xmlResources.NewChild("OSFamily") = job.Resources.OSFamily;
@@ -661,7 +670,7 @@ namespace Arc {
     // Range<int> TotalCPUTime;
     if (job.Resources.TotalCPUTime != -1)
       xmlResources.NewChild("TotalCPUTime").NewChild("LowerBoundRange") = tostring(job.Resources.TotalCPUTime);
-    
+
     // Range<int> IndividualCPUTime;
     if (job.Resources.IndividualCPUTime != -1)
       xmlResources.NewChild("IndividualCPUTime").NewChild("LowerBoundRange") = tostring(job.Resources.IndividualCPUTime);
@@ -673,7 +682,7 @@ namespace Arc {
     // Range<int> IndividualWallTime;
     if (job.Resources.IndividualWallTime != -1)
       xmlResources.NewChild("IndividualWallTime").NewChild("LowerBoundRange") = tostring(job.Resources.IndividualWallTime);
-    
+
 /** Skou: Currently not supported...
     // XMLNode ReferenceTime;
     if (!job.ReferenceTime.empty()) {
@@ -772,12 +781,11 @@ namespace Arc {
         if (trim(((*it3).URI).fullstr()) != "")
           target.NewChild("URI") = ((*it3).URI).fullstr();
       }
-      if ((*it).IsExecutable || (*it).Name == job.Application.Executable.Name)
+      if (it->IsExecutable || it->Name == job.Application.Executable.Name)
         datastaging.NewChild("jsdl-arc:IsExecutable") = "true";
-      if ((*it).KeepData)
-        datastaging.NewChild("DeleteOnTermination") = "false";
-      else
-        datastaging.NewChild("DeleteOnTermination") = "true";
+      datastaging.NewChild("DeleteOnTermination") = (it->KeepData ? "false" : "true");
+      if (it->DownloadToCache)
+        datastaging.NewChild("DownloadToCache") = "true";
     }
     // End of DataStaging
 

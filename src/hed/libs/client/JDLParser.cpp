@@ -25,7 +25,6 @@ namespace Arc {
 
   bool JDLParser::splitJDL(const std::string& original_string,
                            std::list<std::string>& lines) const {
-
     // Clear the return variable
     lines.clear();
 
@@ -41,6 +40,10 @@ namespace Arc {
         lines.push_back(actual_line);
         actual_line.clear();
         continue;
+      }
+      else if (jdl_text[i] == ';' && !quotation && stack.back() == '{') {
+        logger.msg(ERROR, "[JDLParser] Semicolon (;) is not allowed inside brackets, at '%s;'.", actual_line);
+        return false;
       }
       // Determinize the quotations
       if (jdl_text[i] == '"') {
@@ -207,6 +210,7 @@ namespace Arc {
           continue;
         if (i != value.end()) {
           it->Target.front().URI = *i;
+          it->KeepData = (it->Target.front().URI.Protocol() == "file");
           i++;
         }
         else {
@@ -442,8 +446,8 @@ namespace Arc {
       output << space << "\"" << *it << "\"";
     }
 
-    output << std::endl << space << ";" << brackets.second << std::endl;
-    return output.str();    
+    output << std::endl << space << brackets.second << ";" << std::endl;
+    return output.str();
   }
 
   JobDescription JDLParser::Parse(const std::string& source) const {
@@ -564,7 +568,7 @@ namespace Arc {
       }
       product += "\";\n";
     }
-    
+
     if (!job.Application.Executable.Name.empty() ||
         !job.DataStaging.File.empty() ||
         !job.Application.Input.empty() ||
@@ -585,7 +589,7 @@ namespace Arc {
          * location will be added.
          */
         if (!it->Source.empty())
-          inputSandboxList.push_back((it->Source.front().URI ? it->Source.front().URI.fullstr() : it->Name));
+          inputSandboxList.push_back(it->Source.front().URI ? it->Source.front().URI.fullstr() : it->Name);
         if (!it->Target.empty() && it->Target.front().URI) {
           outputSandboxList.push_back(it->Name);
           const std::string uri_tmp = (it->Target.front().URI.Host() == "localhost" ?
@@ -624,7 +628,7 @@ namespace Arc {
       if (!outputSandboxDestURIList.empty())
         product += generateOutputList("OutputSandboxDestURI", outputSandboxDestURIList);
     }
-    
+
     if (!job.Resources.CandidateTarget.empty() &&
         !job.Resources.CandidateTarget.front().QueueName.empty()) {
       product += "  QueueName = \"";
@@ -642,15 +646,15 @@ namespace Arc {
       product += job.Application.CredentialService.front().fullstr();
       product += "\";\n";
     }
-    
+
     product += ADDJDLSTRING(job.JobMeta.Rank, "Rank");
-    
+
     if (job.JobMeta.FuzzyRank)
       product += "  FuzzyRank = true;\n";
 
     if (!job.Identification.UserTag.empty())
       product += generateOutputList("UserTags", job.Identification.UserTag, std::pair<char, char>('[', ']'), ';');
-    
+
     if (!job.JDL_elements.empty()) {
       std::map<std::string, std::string>::const_iterator it;
       for (it = job.JDL_elements.begin(); it != job.JDL_elements.end(); it++) {

@@ -58,7 +58,7 @@ namespace Arc {
         for (; iter != Application.Executable.Argument.end(); iter++)
           std::cout << IString(" Argument: %s", *iter) << std::endl;
       }
-      
+
       STRPRINT(Application.Input, Input)
       STRPRINT(Application.Output, Output)
       STRPRINT(Application.Error, Error)
@@ -79,21 +79,21 @@ namespace Arc {
       }
 
       INTPRINT(Application.Rerun, Rerun)
-        
+
       STRPRINT(Application.Prologue.Name, Prologue)
       if (!Application.Prologue.Argument.empty()) {
         std::list<std::string>::const_iterator iter = Application.Prologue.Argument.begin();
         for (; iter != Application.Prologue.Argument.end(); iter++)
           std::cout << IString(" Prologue.Arguments: %s", *iter) << std::endl;
       }
-      
+
       STRPRINT(Application.Epilogue.Name, Epilogue)
       if (!Application.Epilogue.Argument.empty()) {
         std::list<std::string>::const_iterator iter = Application.Epilogue.Argument.begin();
         for (; iter != Application.Epilogue.Argument.end(); iter++)
           std::cout << IString(" Epilogue.Arguments: %s", *iter) << std::endl;
       }
-      
+
       INTPRINT(Application.SessionLifeTime.GetPeriod(), SessionLifeTime)
 
       if (bool(Application.AccessControl)) {
@@ -101,7 +101,7 @@ namespace Arc {
         Application.AccessControl.GetXML(str, true);
         std::cout << IString(" AccessControl: %s", str) << std::endl;
       }
-      
+
       if (Application.ProcessingStartTime.GetTime() > 0)
         std::cout << IString(" ProcessingStartTime: %s", Application.ProcessingStartTime.str()) << std::endl;
 
@@ -125,7 +125,7 @@ namespace Arc {
 
       if (Application.Join)
         std::cout << " Join: true" << std::endl;
-        
+
       INTPRINT(Resources.TotalCPUTime.current, TotalCPUTime)
       INTPRINT(Resources.IndividualCPUTime.current, IndividualCPUTime)
       INTPRINT(Resources.TotalWallTime.current, TotalWallTime)
@@ -200,7 +200,7 @@ namespace Arc {
             std::cout << IString("     Source.URI: %s", itSource->URI.fullstr()) << std::endl;
             INTPRINT(itSource->Threads, Source.Threads)
           }
-          
+
           std::list<DataTargetType>::const_iterator itTarget = iter->Target.begin();
           for (; itTarget != iter->Target.end(); itTarget++) {
             std::cout << IString("     Target.URI: %s", itTarget->URI.fullstr()) << std::endl;
@@ -234,7 +234,7 @@ namespace Arc {
             std::cout << IString("     Source.URI: %s", itSource->URI.fullstr()) << std::endl;
             INTPRINT(itSource->Threads, Source.Threads)
           }
-          
+
           std::list<DataTargetType>::const_iterator itTarget = iter->Target.begin();
           for (; itTarget != iter->Target.end(); itTarget++) {
             std::cout << IString("     Target.URI: %s", itTarget->URI.fullstr()) << std::endl;
