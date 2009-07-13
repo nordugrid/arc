@@ -18,6 +18,7 @@
 #include <arc/XMLNode.h>
 #include <arc/client/ExecutionTarget.h>
 #include <arc/client/Submitter.h>
+#include <arc/client/UserConfig.h>
 #include <arc/data/DataMover.h>
 #include <arc/data/DataHandle.h>
 #include <arc/data/FileCache.h>
@@ -31,8 +32,7 @@ namespace Arc {
 
   JobController::JobController(Config *cfg, const std::string& flavour)
     : ACC(cfg, flavour),
-      joblist((*cfg)["JobList"]),
-      usercfg((*cfg)["UserConfig"]) {}
+      joblist((*cfg)["JobList"]) {}
 
   JobController::~JobController() {}
 
@@ -474,9 +474,11 @@ namespace Arc {
 
   bool JobController::Migrate(TargetGenerator& targetGen,
                               Broker *broker,
+                              const UserConfig& usercfg,
                               const bool forcemigration,
                               std::list<URL>& migratedJobIDs) {
     bool retVal = true;
+    std::list<URL> toberemoved;
 
     GetJobInformation();
     // Loop over job descriptions.
@@ -489,6 +491,8 @@ namespace Arc {
       JobDescription jobDesc;
       if (!GetJobDescription(*itJob, itJob->JobDescription))
         continue;
+
+      jobDesc.Parse(itJob->JobDescription);
 
       broker->PreFilterTargets(targetGen.ModifyFoundTargets(), jobDesc);
       // Try to submit modified JSDL. Only to ARC1 clusters.
@@ -506,19 +510,20 @@ namespace Arc {
           continue;
         }
 
-        URL jobid = currentTarget->GetSubmitter(usercfg)->Migrate(itJob->JobID, jobDesc, forcemigration, usercfg.JobListFile());
+        URL jobid = currentTarget->GetSubmitter(usercfg)->Migrate(itJob->JobID, jobDesc, forcemigration, joblist);
         if (!jobid) {
           logger.msg(WARNING, "Migration to %s failed, trying next target", currentTarget->url.str());
           continue;
         }
 
         broker->RegisterJobsubmission();
-        migratedJobIDs.push_back(URL(itJob->JobID.str()));
+        migratedJobIDs.push_back(jobid);
+        toberemoved.push_back(URL(itJob->JobID.str()));
         break;
       } // Loop over all possible targets
     } // Loop over jobs
 
-    if (migratedJobIDs.size() > 0) RemoveJobs(migratedJobIDs);   // Saves file aswell.
+    if (toberemoved.size() > 0) RemoveJobs(toberemoved);   // Saves file aswell.
 
     return retVal;
   }

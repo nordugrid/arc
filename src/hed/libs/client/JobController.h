@@ -12,12 +12,12 @@
 #include <arc/client/Broker.h>
 #include <arc/client/Job.h>
 #include <arc/client/JobDescription.h>
-#include <arc/client/UserConfig.h>
 #include <arc/client/TargetGenerator.h>
 
 namespace Arc {
 
   class Logger;
+  class UserConfig;
 
   class JobController
     : public ACC {
@@ -51,6 +51,7 @@ namespace Arc {
 
     bool Migrate(TargetGenerator& targetGen,
                  Broker *broker,
+                 const UserConfig& usercfg,
                  const bool forcemigration,
                  std::list<URL>& migratedJobIDs);
 
@@ -86,7 +87,6 @@ namespace Arc {
     Config jobstorage;
     std::string joblist;
     static Logger logger;
-    UserConfig usercfg;
   };
 
 } // namespace Arc

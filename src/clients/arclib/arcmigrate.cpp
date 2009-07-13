@@ -136,7 +136,7 @@ int main(int argc, char **argv) {
   // Proxy check
   if (!usercfg.CheckProxy())
     return 1;
-    
+
   // If user specifies a joblist on the command line, he means to migrate jobs
   // stored in this file. So we should check if joblist is set or not, and not
   // if usercfg.JobListFile() is empty or not.
@@ -170,7 +170,7 @@ int main(int argc, char **argv) {
   logger.msg(Arc::INFO, "Broker %s loaded", (std::string)usercfg.ConfTree()["Broker"]["Name"]);
 
   std::list<Arc::URL> migratedJobIDs;
-  
+
   int retval = 0;
   // Loop over job controllers - arcmigrate should only support ARC-1 thus no loop...?
   for (std::list<Arc::JobController*>::iterator itJobCont = jobcont.begin(); itJobCont != jobcont.end(); itJobCont++) {
@@ -180,7 +180,7 @@ int main(int argc, char **argv) {
       continue;
     }
 
-    if (!(*itJobCont)->Migrate(targetGen, chosenBroker, forcemigration, migratedJobIDs))
+    if (!(*itJobCont)->Migrate(targetGen, chosenBroker, usercfg, forcemigration, migratedJobIDs))
       retval = 1;
     for (std::list<Arc::URL>::iterator it = migratedJobIDs.begin();
          it != migratedJobIDs.end(); it++) {
