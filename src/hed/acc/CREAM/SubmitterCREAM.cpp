@@ -50,9 +50,9 @@ namespace Arc {
     gLiteClientSubmission.setDelegationId(delegationid);
 
     JobDescription job(jobdesc);
-    if (job.JDL_elements.find("LRMSType") == job.JDL_elements.end() &&
+    if (job.JDL_elements.find("BatchSystem") == job.JDL_elements.end() &&
         !lrmsType.empty())
-      job.JDL_elements["LRMSType"] = lrmsType;
+      job.JDL_elements["BatchSystem"] = lrmsType;
 
     if (job.Resources.CandidateTarget.empty()) {
       ResourceTargetType candidateTarget;

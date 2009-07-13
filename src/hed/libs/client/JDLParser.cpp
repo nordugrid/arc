@@ -575,7 +575,7 @@ namespace Arc {
         !job.Application.Output.empty() ||
         !job.Application.Error.empty()) {
 
-      bool addExecutable = !job.Application.Executable.Name.empty();
+      bool addExecutable = !job.Application.Executable.Name.empty() && !Glib::path_is_absolute(job.Application.Executable.Name);
       bool addInput      = !job.Application.Input.empty();
       bool addOutput     = !job.Application.Output.empty();
       bool addError      = !job.Application.Error.empty();
