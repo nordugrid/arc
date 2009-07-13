@@ -28,4 +28,4 @@ SUBDIRS = common loader message credential data delegation security \
 	infosys ws $(GLOBUSUTILS_DIR) $(PYTHON_DIR)
 DIST_SUBDIRS = common loader message credential data delegation security \
 	ws-addressing xmlsec ws-security wsrf client dbxml \
-	infosys ws globusutils python
+	infosys ws globusutils python crypto
