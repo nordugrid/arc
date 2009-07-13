@@ -21,7 +21,7 @@ namespace Arc {
     certificatePath = (std::string)(*cfg)["CertificatePath"];
     keyPath = (std::string)(*cfg)["KeyPath"];
     caCertificatesDir = (std::string)(*cfg)["CACertificatesDir"];
-    if ((*cfg)["TimeOut"])
+    if ((*cfg)["TimeOut"] && !((std::string)(*cfg)["TimeOut"]).empty())
       timeout = stringtoi((std::string)(*cfg)["TimeOut"]);
   }
 
