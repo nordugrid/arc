@@ -88,28 +88,22 @@ namespace Arc {
 
     JobDescription job(jobdesc);
 
-    // Add ActivityOldId.
-    job.Identification.ActivityOldId.push_back(jobid.str());
-
     // Modify the location of local files and files residing in a old session directory.
     for (std::list<FileType>::iterator it = job.DataStaging.File.begin();
          it != job.DataStaging.File.end(); it++) {
       // Do not modify Output and Error files.
       if (it->Name == job.Application.Output ||
-          it->Name == job.Application.Error)
+          it->Name == job.Application.Error ||
+          it->Source.empty())
         continue;
 
-      if (it->Source.size() == 0) {
-        DataSourceType source;
-        source.URI = URL(jobid.str() + "/" + it->Name);
-        it->Source.push_back(source);
-        it->DownloadToCache = false;
-      }
-      else if (!it->Source.front().URI) {
+      if (!it->Source.front().URI || it->Source.front().URI.Protocol() == "file") {
         it->Source.front().URI = URL(jobid.str() + "/" + it->Name);
         it->DownloadToCache = false;
       }
       else {
+        // URL is valid, and not a local file. Check if the source reside at a
+        // old job session directory.
         const size_t foundRSlash = it->Source.front().URI.str().rfind('/');
         if (foundRSlash == std::string::npos)
           continue;
@@ -126,6 +120,9 @@ namespace Arc {
         }
       }
     }
+
+    // Add ActivityOldId.
+    job.Identification.ActivityOldId.push_back(jobid.str());
 
     std::string newjobid;
     if (!ac.migrate(idstr, job.UnParse("ARCJSDL"), forcemigration, newjobid,
