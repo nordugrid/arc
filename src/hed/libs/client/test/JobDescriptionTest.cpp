@@ -1,5 +1,6 @@
 #include <iostream>
 #include <string>
+#include <fstream>
 
 #include <cppunit/extensions/HelperMacros.h>
 
@@ -172,6 +173,11 @@ void JobDescriptionTest::TestDataStaging() {
     file.KeepData = false;
     job.DataStaging.File.push_back(file);
 
+    // Needed by the XRSLParser.
+    std::ofstream f("3-Upload-Delete", std::ifstream::trunc);
+    f << "3-Upload-Delete";
+    f.close();
+
     arcJob.Parse(job.UnParse("ARCJSDL"));
     ARC_ASSERT(arcJob);
     ARC_ASSERT(arcJob.DataStaging.File.size() == 1);
@@ -274,6 +280,11 @@ void JobDescriptionTest::TestDataStaging() {
     file.KeepData = true;
     job.DataStaging.File.push_back(file);
 
+    // Needed by the XRSLParser.
+    std::ofstream f(file.Name.c_str(), std::ifstream::trunc);
+    f << "6-Upload-Download";
+    f.close();
+    
     arcJob.Parse(job.UnParse("ARCJSDL"));
     ARC_ASSERT(arcJob);
     ARC_ASSERT(arcJob.DataStaging.File.size() == 1);
@@ -407,6 +418,11 @@ void JobDescriptionTest::TestDataStaging() {
     file.KeepData = false;
     job.DataStaging.File.push_back(file);
 
+    // Needed by the XRSLParser.
+    std::ofstream f(file.Name.c_str(), std::ifstream::trunc);
+    f << "9-Upload-Upload";
+    f.close();
+    
     arcJob.Parse(job.UnParse("ARCJSDL"));
     ARC_ASSERT(arcJob);
     ARC_ASSERT(arcJob.DataStaging.File.size() == 1);
