@@ -13,7 +13,11 @@
 #include <glibmm/thread.h>
 #include <glibmm/timer.h>
 #include <vector>
+#ifndef WIN32
 #include <sys/wait.h>
+#else
+#include <windows.h>
+#endif
 
 
 // Some global shared variables...
@@ -52,11 +56,40 @@ void execCommand() {
 
     tBefore.assign_current_time();
 
+#ifdef WIN32
+    STARTUPINFO si = {0};
+    si.cb = sizeof(si);
+    PROCESS_INFORMATION pi;
+    if(CreateProcess(cmd_str.c_str(),NULL,NULL,NULL,FALSE,0,NULL,NULL,&si,&pi
+)) {
+      std::cout << "Create process failed: "<<GetLastError()<<std::endl;
+      exit(1);
+    };
+
+    int status;
+    status = WaitForSingleObject(pi.hProcess, INFINITE);
+    CloseHandle(pi.hProcess);
+    CloseHandle(pi.hThread);
+
+    tAfter.assign_current_time();
+
+    if (status != WAIT_OBJECT_0 && status != WAIT_ABANDONED) {
+      std::cout << "ERROR: " << cmd_str << " returns code " << status
+ << std::endl;
+      Glib::Mutex::Lock lock(*mutex);
+      ::failedCommands++;
+      ::failedTime+=tAfter-tBefore;
+      finishedProcesses++;
+    }
+    else {
+      Glib::Mutex::Lock lock(*mutex);
+      ::completedCommands++;
+      ::completedTime+=tAfter-tBefore;
+      finishedProcesses++;
+    }
+#else
     pid = fork();
     if(pid == 0) {
-//if(i ==0)
-// Glib::usleep(1000000);
-
       int e = execvp(cmd_str.c_str(), list);
       //If execvp returns, it must have failed.
       std::cout << "[child] error " << e << " errno: " << errno << std::endl;
@@ -67,13 +100,10 @@ void execCommand() {
       exit(1);
     }
     else {
-//      int child_status, child_pid;
-//      child_pid = wait(&child_status);
+      int child_status, child_pid;
+      child_pid = wait(&child_status);
 
       tAfter.assign_current_time();
-//if(i ==0)
-// Glib::usleep(1000000);
-#if 0
       if(child_status != 0) {
         std::cout << "ERROR: " << cmd_str << " returns code " << child_status << std::endl;
         Glib::Mutex::Lock lock(*mutex);
@@ -87,8 +117,8 @@ void execCommand() {
         ::completedTime+=tAfter-tBefore;
         finishedProcesses++;
       }
-#endif
     }
+#endif
   } 
 
   std::cout << "Number of finished processes: " << finishedProcesses << std::endl;
