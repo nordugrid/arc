@@ -2,6 +2,10 @@
 #include <config.h>
 #endif
 
+#ifdef WIN32 
+#define NOGDI
+#endif 
+
 #include <iostream>
 #include <fstream>
 #include <sstream>
