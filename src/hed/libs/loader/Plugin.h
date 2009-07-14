@@ -5,6 +5,7 @@
 #include <string>
 #include <map>
 #include <typeinfo>
+#include <cstdlib>
 #ifdef HAVE_STDINT_H
 #include <stdint.h>
 #endif
