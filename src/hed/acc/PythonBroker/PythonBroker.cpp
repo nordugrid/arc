@@ -110,9 +110,9 @@ namespace Arc {
       return;
     }
 
-    logger.msg(DEBUG, "PyhtonBroker init");
+    logger.msg(DEBUG, "PythonBroker init");
 
-    std::string args = (std::string)(*cfg)["Arguments"];
+    std::string args = (std::string)(*cfg)["Broker"]["Arguments"];
     std::string::size_type pos = args.find(':');
     if (pos != std::string::npos)
       args.resize(pos);

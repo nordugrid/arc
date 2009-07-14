@@ -18,9 +18,9 @@ class MyBroker:
         self.certificatepath = cfg.Get('CertificatePath')
         self.keypath = cfg.Get('KeyPath')
         self.cacertificatesdir = cfg.Get('CACertificatesDir')
-        pos = str(cfg.Get('Arguments')).find(':')
+        pos = str(cfg.Get('Broker').Get('Arguments')).find(':')
         if pos > 0:
-            self.args = str(cfg.Get('Arguments'))[pos + 1:]
+            self.args = str(cfg.Get('Broker').Get('Arguments'))[pos + 1:]
         else:
             self.args = ""
 
@@ -35,9 +35,9 @@ class MyBroker:
 
         print 'Broker arguments:', self.args
 
-        print 'JobName:', job.JobName
-        print 'Executable:', job.Executable
-        for i in range(job.Argument.size()):
+        print 'JobName:', job.Identification.JobName
+        print 'Executable:', job.Application.Executable.Name
+        for i in range(job.Application.Executable.Argument.size()):
             print 'Argument', i, ':', job.Argument[i]
 
         # Broker implementation starts here
