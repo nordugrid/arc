@@ -608,6 +608,8 @@ if test "x$disable_xmlsec1" = "xno"; then
   #AC_SUBST(XMLSEC_MIN_VERSION)
 fi
 
+enable_xmlsec1="$XMLSEC_INSTALLED"
+
 #########################
 #
 # Check liboauth
@@ -1547,6 +1549,7 @@ SAML:               ${enable_saml}
 MYSQL CLIENT LIB:   ${enable_mysql}
 gSOAP:              ${enable_gsoap}
 LDAP:               ${enable_ldap}
+xmlsec1:            ${enable_xmlsec1}
 
 Included components:
 A-Rex service:      ${enable_a_rex_service}
