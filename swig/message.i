@@ -41,7 +41,8 @@
 #ifdef SWIGPYTHON
 %pythonprepend Arc::MessageAuth::Export %{
         x = XMLNode("<dummy/>")
-        args = (args[0], args[1].fget(), x)
+        args = args[:-1] + (args[-1].fget(), x)
+
 %}
 %pythonappend Arc::MessageAuth::Export %{
         return x
