@@ -289,8 +289,8 @@ namespace Arc {
         job.AuxStates[model] = state;
       }
 
-      if (job.State().empty()) {
-        logger.msg(ERROR, "The job status could not be retrieved");
+      if (!job.State) {
+        logger.msg(ERROR, "The status of the job (%s) could not be retrieved.", job.JobID.str());
         return false;
       }
 
@@ -680,7 +680,7 @@ namespace Arc {
     logger.msg(VERBOSE, "Job description to be sent: %s", jobdesc);
 
     PayloadSOAP *resp = NULL;
-    if (!process(req, &resp, false))
+    if (!process(req, &resp, delegate))
       return false;
 
     XMLNode id;
