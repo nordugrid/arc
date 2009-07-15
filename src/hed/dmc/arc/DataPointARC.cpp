@@ -38,8 +38,8 @@ namespace Arc {
       transfer(NULL),
       reading(false),
       writing(false),
-      usercfg(""),
-      bartender_url("") {
+      usercfg((std::string)""),
+      bartender_url((std::string)"") {
 
     std::string bartender_str = url.HTTPOption("BartenderURL");
     if(bartender_str != ""){
