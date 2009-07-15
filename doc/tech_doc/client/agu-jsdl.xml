@@ -1,0 +1,266 @@
+<?xml version="1.0"?>
+<JobSpecification>
+  <JobIdentification>
+    <JobName>Evolution Modeller</JobName>
+    <Description>Long description of this job</Description>
+    <JobType>workflownode</JobType>
+    <UserTag>PRODUCTION</UserTag>
+    <UserTag>v120</UserTag>
+    <JobVOName>BIOATLAS</JobVOName>
+  </JobIdentification>
+  <Application>
+    <Executable>
+        <Path>foo/bar/grandchallenge</Path>
+        <Argument>-c</Argument>
+        <Argument>arg1</Argument>
+        <Argument>arg2</Argument>
+        <Argument>-f</Argument>
+        <!-- foo/bar/grandchallenge -c arg1 arg2 -f -->
+    </Executable>
+    <Input>foo/stdin.dat</Input>
+    <Output>foo/stdout.dat</Output>
+    <Error>log/error.log</Error>
+    <Join>false</Join>
+    <Environment>
+        <Name>TERM</Name>
+        <Value>linux</Value>
+    </Environment>
+    <Environment>
+        <Name>LOGLEVEL</Name>
+        <Value>verbose</Value>
+    </Environment>
+    <Prologue>
+        <Path>scripts/bootstrap</Path>
+        <Argument>-g</Argument>
+        <Argument>linux</Argument>
+    </Prologue>
+    <Epilogue>
+        <Path>scripts/cleanup</Path>
+        <Argument>now</Argument>
+        <Argument>full</Argument>
+    </Epilogue>
+    <LogDir>log/</LogDir>
+    <RemoteLogging>http://hep.lu.se/locallogger</RemoteLogging>
+    <RemoteLogging>http://cern.ch/centrallogger</RemoteLogging>
+    <Rerun>5</Rerun>
+    <ExpiryTime>2009-07-12-12:00Z</ExpiryTime>
+    <StartOnHold>false</StartOnHold>
+    <ProcessingStartTime>2009-07-10-13:00Z</ProcessingStartTime>
+    <Notification>R|E szferi@wsbricks.com</Notification>
+    <Notification>R|D sysadmin@barhol.hu</Notification>
+    <CredentialService>https://myproxy.cern.ch/</CredentialService>
+    <CredentialService>https://proxystore.uio.no/</CredentialService>
+    <AccessControl>
+        <GACL>
+            <any-user/>
+            <person>
+                <dn>/O=Grid/O=NorduGrid/OU=quark.lu.se/CN=Some User</dn>
+            </person>
+            <voms>
+                <voms>DN of VOMS server</voms>
+                <vo>VO name</vo> 
+                <group>Group</group> 
+                <role>Role</role> 
+                <capability>Capability</capability>
+            </voms>
+        </GACL>
+    </AccessControl>
+  </Application>
+  <Resources>
+    <OperatingSystem>
+        <!-- XXX need more work idea to have logical relation and comparison -->
+        <Requirement>
+            <Software>
+                <Family>linux</Family>
+                <Name>debian</Name>
+                <Version> >= 4.0</Version>
+            </Software>
+        </Requirement>
+        <Requirement operator="OR">
+            <Software>
+                <Family>linux</Family>
+                <Name>gentoo</Name>
+                <Version> = foo</Version>
+            </Software>
+        </Requirement>
+    </OperatingSystem>
+    <Platform>i386</Platform>
+    <NetworkInfo>gigabitethernet</NetworkInfo>
+    <NodeAccess>inoutbound</NodeAccess>
+    <IndividualPhysicalMemory>
+        <Min>1000000000</Min> <!-- 1G -->
+        <Max>5000000000</Max> <!-- 5G -->
+    </IndividualPhysicalMemory>
+    <IndividualVirtualMemory>
+        <Min>6700000000</Min> <!-- 6.7 G -->
+    </IndividualVirtualMemory>
+    <DiskSpaceRequirement>
+        <DiskSpace>
+            <Max>10000000000</Max> <!-- 100 G -->
+        </DiskSpace>
+        <CacheDiskSpace>3000000000</CacheDiskSpace> <!-- 30 G -->
+        <SessionDiskSpace>4000000000</SessionDiskSpace> <!-- 40 G -->
+    </DiskSpaceRequirement>
+    <SessionLifetime>P5DT</SessionLifetime> <!-- 5 days -->
+    <IndividualCPUTime>
+        <Value>
+            <Min>5000</Min>
+            <Max>6000</Max>
+        </Value>
+        <BenchmarkName>linpack</BenchmarkName>
+        <BenchmarkValue>50</BenchmarkValue>
+    </IndividualCPUTime>
+    <TotalCPUTime>
+        <Value>
+            <Min>50000</Min>
+        </Value>
+        <BenchmarkName>linpack</BenchmarkName>
+        <BenchmarkValue>50</BenchmarkValue>
+    </TotalCPUTime>
+    <IndividualWallTime>
+        <Value>
+            <Max>12000</Max>
+        </Value>
+    </IndividualWallTime>
+    <TotalWallTime>
+        <Value>
+            <Min>184560</Min>
+            <Max>345623</Max>
+        </Value>
+    </TotalWallTime>
+    <Homogeneous>true</Homogeneous>
+    <Benchmark>
+        <Name>linpack</Name>
+        <Value>100</Value>
+    </Benchmark>
+    <Benchmark>
+        <Name>biobench</Name>
+        <Value>314</Value>
+    </Benchmark>
+    <CEType>
+        <!-- XXX need more work idea to have logical relation and comparison -->
+        <Requirement>
+            <Software>
+                <Name>ARC</Name>
+                <Version> >= 0.9</Version>
+            </Software>
+        </Requirement>
+    </CEType>
+    <SlotRequirement>
+        <NumberOfSlots>10</NumberOfSlots>
+        <ProcessPerHost>4</ProcessPerHost>
+        <ThreadsPerProcesses>30</ThreadsPerProcesses>
+        <SPMDVariation>POE</SPMDVariation>
+    </SlotRequirement>
+    <CandidateTarget>
+        <EndpointURL>https://large.cluster.de</EndpointURL>
+        <QueueName>bio</QueueName>
+    </CandidateTarget>
+    <CandidateTarget>
+        <EndpointURL>https://large.cluster.uk</EndpointURL>
+        <QueueName>bio</QueueName>
+    </CandidateTarget>
+    <RunTimeEnvironment>
+        <Requirement>
+            <Software>
+                <Name>EVOL_FRAMEWORK</Name>
+                <Version> >= 1.32 RX3 </Version>
+            </Software>
+        </Requirement>
+        <Requirement operation="AND">
+            <Software>
+                <Name>EVOL_FRAMEWORK</Name>
+                <Version> => 1.21 GQ </Version>
+            </Software>
+        </Requirement>
+        <Requirement operation="AND">
+            <Software>
+                <Name>EVOL_DB</Name>
+                <Version> >= 2009-02-28 </Version>
+            </Software>
+        </Requirement>
+    </RunTimeEnvironment>
+  </Resources>
+  <DataStaging>
+        <File>
+            <!-- stage in example with data upload from client -->
+            <Name>foo/bar/grandchallenge</Name>
+            <Source>
+                <URL>file:///home/user/genom/grand</URL>
+                <Threads>1</Threads>
+            </Source>
+            <KeepData>false</KeepData>
+            <isExecutable>true</isExecutable>
+            <DownloadToCache>false</DownloadToCache>
+        </File>
+        <File>
+            <!-- stage in example with data download from external 
+                 storage with indexing -->
+            <Name>data/input/genom.dat</Name>
+            <Source>
+                <URL>http://bank.genom.de/genom.data</URL>
+                <Threads>3</Threads>
+            </Source>
+            <Source>
+                <URL>arc:///grid/storage/genom/data</URL>
+                <Threads>2</Threads>
+                <DataIndexingService>https://bartender.niif.hu/</DataIndexingService>
+                <DataIndexingService>https://bartender-backup.niif.hu/</DataIndexingService>
+            </Source>
+            <KeepData>false</KeepData>
+            <isExecutable>false</isExecutable>
+            <DownloadToCache>true</DownloadToCache>
+        </File>
+        <Directory>
+            <!-- directory stage in example -->
+            <Name>data/params/</Name>
+            <Source>
+                <URL>file:///home/user/genom/params</URL>
+                <Threads>1</Threads>
+            </Source>
+            <KeepData>false</KeepData>
+            <isExecutable>false</isExecutable>
+            <DownloadToCache>false</DownloadToCache>
+        </Directory>
+        <File>
+            <!-- stage out example with upload to external storage -->
+            <Name>data/output/meaningoflife</Name>
+            <Target>
+                <URL>lfc://bio/production/results/user/run12.dat</URL>
+                <Threads>3</Threads>
+                <Mandatory>true</Mandatory>
+                <NeededReplica>1</NeededReplica>
+                <DataIndexingService>https://lfc.cern.ch/</DataIndexingService>
+            </Target>
+            <Target>
+                <URL>arc:///grid/storage/genom/results/run12.dat</URL>
+                <Threads>1</Threads>
+                <Mandatory>false</Mandatory>
+                <NeededReplica>3</NeededReplica>
+                <DataIndexingService>https://bartender.niif.hu/</DataIndexingService>
+                <DataIndexingService>https://bartender-backup.niif.hu/</DataIndexingService>
+            </Target>
+            <KeepData>true</KeepData>
+        </File>
+        <File>
+            <!-- stage out when client pulls down files from the server -->
+            <Name>log/error.log</Name>
+            <Target>
+                <!-- XXX open questions -->
+                <URL>file:///home/user/runs/run12/error.log</URL>
+            </Target>
+        </File>
+        <Directory>
+            <Name>log</Name>
+            <Target>
+                <URL>ftp://cloudstorage.com/bio/logs</URL>
+            </Target>    
+        </Directory>
+  </DataStaging>
+  <Meta>
+    <Author>BIOCLIENT12</Author>
+    <DocumentExpiration>2009-07-20-00:00Z</DocumentExpiration>
+    <Rank>foobar > 2</Rank>
+    <FuzzyRank>trune</FuzzyRank>
+  </Meta>
+</JobSpecification>
