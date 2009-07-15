@@ -38,7 +38,7 @@ class MyBroker:
         print 'JobName:', job.Identification.JobName
         print 'Executable:', job.Application.Executable.Name
         for i in range(job.Application.Executable.Argument.size()):
-            print 'Argument', i, ':', job.Argument[i]
+            print 'Argument', i, ':', job.Application.Executable.Argument[i]
 
         # Broker implementation starts here
 
