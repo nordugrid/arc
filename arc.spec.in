@@ -160,6 +160,8 @@ ARC API docmentation
 %build
 %configure --disable-static %{?disable_java:--disable-java}
 make all doc %{?_smp_mflags}
+
+%check
 make check
 
 %install
@@ -394,9 +396,9 @@ exit 0
 %files python
 %defattr(-,root,root,-)
 %{_libdir}/python?.?/site-packages/
+%{_libdir}/%{pkgdir}/libaccPythonBroker.so
+%doc src/hed/acc/PythonBroker/SampleBroker.py
 %{ifpy}%{_libdir}/%{pkgdir}/libpythonservice.so
-%{ifpy}%{_libdir}/%{pkgdir}/libaccPythonBroker.so
-%{ifpy}%doc src/hed/acc/PythonBroker/SampleBroker.py
 
 %if "%{!?disable_java:java}"
 %files java
