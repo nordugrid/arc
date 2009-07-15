@@ -74,15 +74,15 @@ class FileDataEx : public FileData {
   Arc::DataStatus res;
   std::string failure_description;
   PointPair* pair;
-  FileDataEx(const FileData& f) : FileData(f),
-				  res(Arc::DataStatus::Success),
-				  pair(NULL) {}
-  FileDataEx(const FileData& f,
-	     Arc::DataStatus r,
-	     const std::string& fd) : FileData(f),
-				      res(r),
-				      failure_description(fd),
-				      pair(NULL) {}
+  FileDataEx(const FileData& f)
+    : FileData(f),
+      res(Arc::DataStatus::Success),
+      pair(NULL) {}
+  FileDataEx(const FileData& f, Arc::DataStatus r, const std::string& fd)
+    : FileData(f),
+      res(r),
+      failure_description(fd),
+      pair(NULL) {}
 };
 
 static std::list<FileData> job_files_;
@@ -545,10 +545,10 @@ int main(int argc,char** argv) {
         };
         FileDataEx::iterator* it = new FileDataEx::iterator(i);
         if(!mover.Transfer(*(i->pair->source), *(i->pair->destination), *cache,
-			   url_map, min_speed, min_speed_time,
-			   min_average_speed, max_inactivity_time,
-			   i->failure_description, &PointPair::callback, it,
-			   i->pfn.c_str())) {
+                           url_map, min_speed, min_speed_time,
+                           min_average_speed, max_inactivity_time,
+                           i->failure_description, &PointPair::callback, it,
+                           i->pfn.c_str())) {
           failure_reason+=std::string("Failed to initiate file transfer: ")+source.c_str()+" - "+i->failure_description+"\n";
           olog<<"FATAL ERROR: Failed to initiate file transfer: "<<source<<" - "<<i->failure_description<<std::endl;
           delete it; res=1; goto exit;
@@ -640,7 +640,7 @@ int main(int argc,char** argv) {
   if (res == 0) {
     if(desc.GetLocalDescription(user) &&
        (desc.get_local()->migrateactivityid != "")) {
-    // Complete the migration.
+      // Complete the migration.
       const size_t found = desc.get_local()->migrateactivityid.rfind("/");
 
       if (found != std::string::npos) {
@@ -652,12 +652,12 @@ int main(int argc,char** argv) {
         Arc::UserConfig cfg(true);
 
         Arc::ACCLoader loader;
-	Arc::JobController *jobctrl = dynamic_cast<Arc::JobController*>(loader.loadACC("JobControllerARC1", &cfg.ConfTree()));
+        Arc::JobController *jobctrl = dynamic_cast<Arc::JobController*>(loader.loadACC("JobControllerARC1", &cfg.ConfTree()));
         if (jobctrl) {
           jobctrl->FillJobStore(job);
 
           std::list<std::string> status;
-          status.push_back("Running/Executing/Queuing");
+          status.push_back("Queuing");
           
           if (!jobctrl->Kill(status, true) && !desc.get_local()->forcemigration) {
             res = 1;
