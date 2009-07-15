@@ -80,9 +80,12 @@ namespace Arc {
           job.StdErr = (std::string)xmljob["StdErr"];
           job.AuxURL = (std::string)xmljob["AuxURL"];
           job.AuxInfo = (std::string)xmljob["AuxInfo"];
-          job.LocalSubmissionTime = (std::string)xmljob["LocalSubmissionTime"];
-          for (int i = 0; (bool)xmljob["OldJobID"][i]; i++)
-            job.ActivityOldId.push_back((std::string)xmljob["OldJobID"][i]);
+          if (!((std::string)xmljob["LocalSubmissionTime"]).empty())
+            job.LocalSubmissionTime = (std::string)xmljob["LocalSubmissionTime"];
+          else
+            job.LocalSubmissionTime = Time(-1);
+          for (int i = 0; (bool)xmljob["ActivityOldId"][i]; i++)
+            job.ActivityOldId.push_back((std::string)xmljob["ActivityOldId"][i]);
           jobstore.push_back(job);
         }
       }
@@ -114,9 +117,12 @@ namespace Arc {
           job.StdErr = (std::string)(*it)["StdErr"];
           job.AuxURL = (std::string)(*it)["AuxURL"];
           job.AuxInfo = (std::string)(*it)["AuxInfo"];
-          job.LocalSubmissionTime = (std::string)(*it)["LocalSubmissionTime"];
-          for (int i = 0; (bool)(*it)["OldJobID"][i]; i++)
-            job.ActivityOldId.push_back((std::string)(*it)["OldJobID"][i]);
+          if (!((std::string)(*it)["LocalSubmissionTime"]).empty())
+            job.LocalSubmissionTime = (std::string)(*it)["LocalSubmissionTime"];
+          else
+            job.LocalSubmissionTime = Time(-1);
+          for (int i = 0; (bool)(*it)["ActivityOldId"][i]; i++)
+            job.ActivityOldId.push_back((std::string)(*it)["ActivityOldId"][i]);
           jobstore.push_back(job);
         }
       }
@@ -165,9 +171,12 @@ namespace Arc {
           job.StdErr = (std::string)(*it)["StdErr"];
           job.AuxURL = (std::string)(*it)["AuxURL"];
           job.AuxInfo = (std::string)(*it)["AuxInfo"];
-          job.LocalSubmissionTime = (std::string)(*it)["LocalSubmissionTime"];
-          for (int i = 0; (bool)(*it)["OldJobID"][i]; i++)
-            job.ActivityOldId.push_back((std::string)(*it)["OldJobID"][i]);
+          if (!((std::string)(*it)["LocalSubmissionTime"]).empty())
+            job.LocalSubmissionTime = (std::string)(*it)["LocalSubmissionTime"];
+          else
+            job.LocalSubmissionTime = Time(-1);
+          for (int i = 0; (bool)(*it)["ActivityOldId"][i]; i++)
+            job.ActivityOldId.push_back((std::string)(*it)["ActivityOldId"][i]);
           jobstore.push_back(job);
         }
       }
@@ -211,13 +220,14 @@ namespace Arc {
     for (std::list<Job>::iterator it = jobstore.begin();
          it != jobstore.end(); it++) {
 
-      if (it->State().empty()) {
+      if (!it->State) {
         logger.msg(WARNING, "Job information not found: %s", it->JobID.str());
         continue;
       }
 
-      if (!status.empty() && std::find(status.begin(), status.end(),
-                                       it->State()) == status.end())
+      if (!status.empty() &&
+          std::find(status.begin(), status.end(), it->State()) == status.end() &&
+          std::find(status.begin(), status.end(), it->State.GetGeneralState()) == status.end())
         continue;
 
       if (it->State == JobState::DELETED) {
@@ -225,7 +235,7 @@ namespace Arc {
          it->JobID.str());
         continue;
       }
-      else if (it->State < JobState::FINISHED) {
+      else if (!it->State.IsFinished()) {
         logger.msg(WARNING, "Job has not finished yet: %s", it->JobID.str());
         continue;
       }
@@ -272,20 +282,21 @@ namespace Arc {
     for (std::list<Job>::iterator it = jobstore.begin();
          it != jobstore.end(); it++) {
 
-      if (it->State().empty()) {
+      if (!it->State) {
         logger.msg(WARNING, "Job information not found: %s", it->JobID.str());
         continue;
       }
 
       if (!status.empty() &&
-          std::find(status.begin(), status.end(), it->State()) == status.end())
+          std::find(status.begin(), status.end(), it->State()) == status.end() &&
+          std::find(status.begin(), status.end(), it->State.GetGeneralState()) == status.end())
         continue;
 
       if (it->State == JobState::DELETED) {
         logger.msg(WARNING, "Job has already been deleted: %s", it->JobID.str());
         continue;
       }
-      else if (it->State >= JobState::FINISHED) {
+      else if (it->State.IsFinished()) {
         logger.msg(WARNING, "Job has already finished: %s", it->JobID.str());
         continue;
       }
@@ -332,23 +343,25 @@ namespace Arc {
     for (std::list<Job>::iterator it = jobstore.begin();
          it != jobstore.end(); it++) {
 
-      if (force && it->State().empty() && status.empty()) {
+      if (!it->State && (status.empty() && force ||
+                         std::find(status.begin(), status.end(), it->State.GetGeneralState()) != status.end())) {
         logger.msg(WARNING, "Job %s will only be deleted from local job list",
                    it->JobID.str());
         toberemoved.push_back(it->JobID);
         continue;
       }
 
-      if (it->State().empty()) {
+      if (!it->State) {
         logger.msg(WARNING, "Job information not found: %s", it->JobID.str());
         continue;
       }
 
-      if (!status.empty() && std::find(status.begin(), status.end(),
-                                       it->State()) == status.end())
+      if (!status.empty() &&
+          std::find(status.begin(), status.end(), it->State()) == status.end() &&
+          std::find(status.begin(), status.end(), it->State.GetGeneralState()) == status.end())
         continue;
 
-      if (it->State < JobState::FINISHED) {
+      if (!it->State.IsFinished()) {
         logger.msg(WARNING, "Job has not finished yet: %s", it->JobID.str());
         continue;
       }
@@ -386,7 +399,7 @@ namespace Arc {
     for (std::list<Job>::iterator it = jobstore.begin();
          it != jobstore.end(); it++) {
 
-      if (it->State().empty()) {
+      if (!it->State) {
         logger.msg(WARNING, "Job state information not found: %s",
                    it->JobID.str());
         continue;
@@ -397,7 +410,9 @@ namespace Arc {
           logger.msg(WARNING, "Job has already been deleted: %s", it->JobID.str());
           continue;
         }
-        if (it->State < JobState::RUNNING) {
+        if (!it->State.IsFinished() &&
+            it->State != JobState::RUNNING &&
+            it->State != JobState::FINISHING) {
           logger.msg(WARNING, "Job has not started yet: %s", it->JobID.str());
           continue;
         }
@@ -457,11 +472,10 @@ namespace Arc {
 
     for (std::list<Job>::iterator it = jobstore.begin();
          it != jobstore.end(); it++) {
-      if (it->State().empty()) {
+      if (!it->State) {
         logger.msg(WARNING, "Job state information not found: %s",
                    it->JobID.str());
-        Time now;
-        if (now - it->LocalSubmissionTime < 90)
+        if (Time() - it->LocalSubmissionTime < 90)
           logger.msg(WARNING, "This job was very recently "
                      "submitted and might not yet "
                      "have reached the information-system");
@@ -536,16 +550,17 @@ namespace Arc {
     for (std::list<Job>::iterator it = jobstore.begin();
          it != jobstore.end(); it++) {
 
-      if (it->State().empty()) {
+      if (!it->State) {
         logger.msg(WARNING, "Job information not found: %s", it->JobID.str());
         continue;
       }
 
-      if (!status.empty() && std::find(status.begin(), status.end(),
-                                       it->State()) == status.end())
+      if (!status.empty() &&
+          std::find(status.begin(), status.end(), it->State()) == status.end() &&
+          std::find(status.begin(), status.end(), it->State.GetGeneralState()) == status.end())
         continue;
 
-      if (it->State < JobState::FINISHED) {
+      if (!it->State.IsFinished()) {
         logger.msg(WARNING, "Job has not finished yet: %s", it->JobID.str());
         continue;
       }
@@ -574,16 +589,17 @@ namespace Arc {
     for (std::list<Job>::iterator it = jobstore.begin();
          it != jobstore.end(); it++) {
 
-      if (it->State().empty()) {
+      if (!it->State) {
         logger.msg(WARNING, "Job information not found: %s", it->JobID.str());
         continue;
       }
 
-      if (!status.empty() && std::find(status.begin(), status.end(),
-                                       it->State()) == status.end())
+      if (!status.empty() &&
+          std::find(status.begin(), status.end(), it->State()) == status.end() &&
+          std::find(status.begin(), status.end(), it->State.GetGeneralState()) == status.end())
         continue;
 
-      if (it->State < JobState::FINISHED) {
+      if (!it->State.IsFinished()) {
         logger.msg(WARNING, "Job has not finished yet: %s", it->JobID.str());
         continue;
       }
@@ -736,7 +752,7 @@ namespace Arc {
     std::list<Job> gettable;
     for (std::list<Job>::iterator it = jobstore.begin();
          it != jobstore.end(); it++) {
-      if (!status.empty() && it->State().empty()) {
+      if (!status.empty() && !it->State) {
         logger.msg(WARNING, "Job information not found: %s", it->JobID.str());
         continue;
       }

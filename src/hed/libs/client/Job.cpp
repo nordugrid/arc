@@ -40,7 +40,7 @@ namespace Arc {
     if (!Name.empty())
       std::cout << IString(" Name: %s", Name) << std::endl;
     if (!State().empty())
-      std::cout << IString(" State: %s", State()) << std::endl;
+      std::cout << IString(" State: %s (%s)", State.GetGeneralState(), State()) << std::endl;
     if (ExitCode != -1)
       std::cout << IString(" Exit Code: %d", ExitCode) << std::endl;
     if (!Error.empty()) {
