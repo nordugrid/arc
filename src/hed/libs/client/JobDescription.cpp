@@ -23,6 +23,8 @@ namespace Arc {
 
   Logger JobDescription::logger(Logger::getRootLogger(), "JobDescription");
 
+  JobDescription::JobDescription(const long int& ptraddr) { *this = *((JobDescription*)ptraddr); }
+
   void JobDescription::Print(bool longlist) const {
 
     STRPRINT(Application.Executable.Name, Executable);

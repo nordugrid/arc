@@ -301,7 +301,7 @@ namespace Arc {
     PythonLock pylock;
 
     // Convert JobDescription to python object
-    PyObjectP arg = Py_BuildValue("(l)", &job);
+    PyObjectP arg = Py_BuildValue("(l)", job);
     if (!arg) {
       logger.msg(ERROR, "Cannot create JobDescription argument");
       if (PyErr_Occurred())

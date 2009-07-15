@@ -229,6 +229,9 @@ class DirectoryType : public DataType {};
   public:
     JobDescription() {};
 
+    // Language wrapper constructor
+    JobDescription(const long int& ptraddr);
+
     operator bool() const {
       return (!Application.Executable.Name.empty());
     }
