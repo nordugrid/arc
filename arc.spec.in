@@ -31,7 +31,7 @@ BuildRequires: gettext-devel
 BuildRequires: openldap-devel
 %endif
 #
-BuildRequires: globus_common-devel
+BuildRequires: globus-common-devel
 BuildRequires: globus-ftp-client-devel
 BuildRequires: globus-ftp-control-devel
 BuildRequires: globus-rls-client-devel
@@ -83,7 +83,7 @@ Summary: ARC Remote EXecution service
 Group: System Environment/Libraries
 Requires: %{name} = %{version}
 Requires: %{name}-server = %{version}
-Requires: globus_common
+Requires: globus-common
 Requires: perl-XML-Simple
 
 %description arex
@@ -102,7 +102,7 @@ Data Manager Components (DMCs).
 Summary: ARC Globus plugins
 Group: System Environment/Libraries
 Requires: %{name} = %{version}
-Requires: globus_common
+Requires: globus-common
 Requires: globus-ftp-client
 Requires: globus-ftp-control
 Requires: globus-rls-client
