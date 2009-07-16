@@ -67,5 +67,8 @@
      -->
     <xsd:element name="OperatingSystem" type="xsd:string"/>
 
+    <!-- The GLUE2 infoprovider wake up period time in second -->
+    <xsd:element name="InfoproviderWakeupPeriod" type="xsd:nonNegativeInteger"/>
+
 </xsd:schema>
 

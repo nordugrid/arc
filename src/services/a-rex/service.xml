@@ -55,10 +55,11 @@
     </Plexer>
     <Service name="a-rex" id="a-rex">
       <arex:endpoint>https://localhost:60000/arex</arex:endpoint>
-      <arex:usermap><arex:defaultLocalName>sanjak</arex:defaultLocalName></arex:usermap>
-      <arex:gmconfig>/etc/arc.conf</arex:gmconfig>
+      <arex:usermap><arex:defaultLocalName>nobody</arex:defaultLocalName></arex:usermap>
+      <arex:gmconfig>arc_arex.conf</arex:gmconfig>
       <arex:LRMSName>uri:unknown</arex:LRMSName>
       <arex:OperatingSystem>Unknown</arex:OperatingSystem>
+      <arex:InfoproviderWakeupPeriod>10</arex:InfoproviderWakeupPeriod>
     </Service>
     <Service name="echo" id="echo">
       <echo:prefix>[ </echo:prefix>

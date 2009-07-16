@@ -16,8 +16,9 @@
 #include <arc/message/PayloadStream.h>
 #include <arc/ws-addressing/WSA.h>
 #include <arc/Thread.h>
-#include "job.h"
+#include <arc/StringConv.h>
 
+#include "job.h"
 #include "arex.h"
 
 namespace ARex {
@@ -392,6 +393,10 @@ ARexService::ARexService(Arc::Config *cfg):RegisteredService(cfg),logger_(Arc::L
   long_description_ = (std::string)((*cfg)["longDescription"]);
   lrms_name_ = (std::string)((*cfg)["LRMSName"]);
   os_name_ = (std::string)((*cfg)["OperatingSystem"]);
+  if ((*cfg)["InfoproviderWakeupPeriod"])
+      infoprovider_wakeup_period_ = Arc::stringtoi((std::string)((*cfg)["InfoproviderWakeupPeriod"]));
+  else
+      infoprovider_wakeup_period_ = 60;
   CreateThreadFunction(&thread_starter,this);
   // Run grid-manager in thread
   /*

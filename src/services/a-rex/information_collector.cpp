@@ -26,12 +26,12 @@ void ARexService::InformationCollector(void) {
     // Parse configuration to construct command lines for information providers
     if(!ARexGMConfig::InitEnvironment(gmconfig_)) {
       logger_.msg(Arc::ERROR,"Failed to initialize GM environment");
-      sleep(60); continue;
+      sleep(infoprovider_wakeup_period_); continue;
     };
     std::ifstream f(nordugrid_config_loc.c_str());
     if(!f) {
       logger_.msg(Arc::ERROR,"Failed to read GM configuation file at %s",nordugrid_config_loc);
-      sleep(60); continue;
+      sleep(infoprovider_wakeup_period_); continue;
     };
     try {
       Config cfg = NGConfig().Read(f);
@@ -74,7 +74,7 @@ void ARexService::InformationCollector(void) {
       logger_.msg(Arc::DEBUG,"Cluster information provider: %s",cmd);
       if(!run.Start()) {
       };
-      if(!run.Wait(60)) {
+      if(!run.Wait(infoprovider_wakeup_period_)) {
       };
       int r = run.Result();
       logger_.msg(Arc::DEBUG,"Cluster information provider result: %i",r);
@@ -91,7 +91,7 @@ void ARexService::InformationCollector(void) {
     } else {
       logger_.msg(Arc::ERROR,"Failed to create informational document");
     };
-    sleep(60);
+    sleep(infoprovider_wakeup_period_);
   };
 }
 
