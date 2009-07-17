@@ -1121,7 +1121,7 @@ WIN32=""
 case "${host}" in
   *-*-mingw32)
     WIN32="yes"
-    REGEX_LIBS="-L$ARC_WIN_REGEX_LIBS_PATH -lgnurx -lregex"
+    REGEX_LIBS="-lregex"
     SOCKET_LIBS="-lws2_32"
     EXTRA_LIBS="-lole32"
     # its required to libtool generate .dlls on win32 using mingw

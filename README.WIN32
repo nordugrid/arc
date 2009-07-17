@@ -60,9 +60,6 @@ That's it! You are ready to go write OpenSSL-capable code!
 - After all installs are completed reopen MSYS shell to make it 
   acquire new environment variables.
   
-- Set the following PATH variable to point to where the libraries for regular expressions have been installed; e.g.:
-  - export ARC_WIN_REGEX_LIBS_PATH=/usr/local/lib
-
 - If You have other GNU/POSIX-like environments it could be a good idea to adjust PATH 
   variable to make sure there are no conflicting utilities picked.
 
@@ -76,10 +73,13 @@ That's it! You are ready to go write OpenSSL-capable code!
     Adjust path in command according to installation location of GTK.
   * You may also check if pkg-config sees GTK. echo $PKG_CONFIG_PATH should print something
     like /C/GTK/lib/pkgconfig. If there is no GTK in path You may need to add it.
+  * Make sure LDFLAGS contains the location of the libraries for regular expressions and include it on
+    the configure line:
+      LDFLAGS="-L/usr/local/lib"
   * Prepare source tree for configuration by running
     autoreconf --verbose --force --install
       * Configure source tree with something like
-    ./configure CXXFLAGS="-g" OPENSSL_CFLAGS=-I/c/OpenSSL/include OPENSSL_LIBS="-L/c/OpenSSL -lssl32 -leay32" --prefix=/c/arc
+    ./configure CXXFLAGS="-g" OPENSSL_CFLAGS=-I/c/OpenSSL/include OPENSSL_LIBS="-L/c/OpenSSL -lssl32 -leay32" --prefix=/c/arc LDFLAGS="-L/usr/local/lib"
     If You have installed OpenSSL at different location You may need to adjust paths.
     During configuration stage You will see that most or all services are disabled. You may
     enable them with --enable-servicename option. But take into account that building of services
