@@ -140,7 +140,7 @@
 			<extension base="glue:Domain_t">
 				<sequence>
 					<element name="Level" type="unsignedInt" minOccurs="0" maxOccurs="1"/>
-					<element name="ManagerService" type="anyURI" minOccurs="0" maxOccurs="unbounded"/>
+					<element name="UserManager" type="anyURI" minOccurs="0" maxOccurs="unbounded"/>
 					<element name="Member" type="string" minOccurs="0" maxOccurs="unbounded"/>
 					<element name="Location" type="glue:Location_t" minOccurs="0" maxOccurs="1"/>
 					<element name="Contact" type="glue:Contact_t" minOccurs="0" maxOccurs="unbounded"/>
@@ -165,13 +165,6 @@
 						<complexType>
 							<sequence>
 								<element name="ServiceID" type="anyURI" minOccurs="0" maxOccurs="unbounded"/>
-							</sequence>
-						</complexType>
-					</element>
-					<element name="Activities" minOccurs="0" maxOccurs="1">
-						<complexType>
-							<sequence>
-								<element name="Activity" type="glue:Activity_t" minOccurs="0" maxOccurs="unbounded"/>
 							</sequence>
 						</complexType>
 					</element>
@@ -228,10 +221,17 @@
 				<sequence>
 					<element name="Description" type="string" minOccurs="0" maxOccurs="1"/>
 					<element name="MappingPolicy" type="glue:MappingPolicy_t" minOccurs="0" maxOccurs="unbounded"/>
+					<element name="Activities" minOccurs="0" maxOccurs="1">
+						<complexType>
+							<sequence>
+								<element name="Activity" type="glue:Activity_t" minOccurs="0" maxOccurs="unbounded"/>
+							</sequence>
+						</complexType>
+					</element>
 					<element name="Associations" minOccurs="0" maxOccurs="1">
 						<complexType>
 							<sequence>
-								<element name="ActivityID" type="anyURI" minOccurs="0" maxOccurs="unbounded"/>
+								<element name="EndpointID" type="anyURI" minOccurs="0" maxOccurs="unbounded"/>
 							</sequence>
 						</complexType>
 					</element>

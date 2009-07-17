@@ -5,7 +5,7 @@
               xsi:schemaLocation="http://schemas.ogf.org/glue/2009/03/spec/2/0 ../xsd/GLUE2.xsd">
     
     <AdminDomain CreationTime="2008-04-21T10:05:12Z" Validity="500" BaseType="Domain">
-        <ID>urn:ogf:AdminDomain:admindomain-1.niif.nu</ID>
+        <ID>urn:ogf:AdminDomain:NIIF-TOP.niif.hu</ID>
         <Name>NIIF-TOP</Name> <!-- string -->
 	    <OtherInfo>Top domain of the Hungarian Clustergrid</OtherInfo>
 	    <Description>This is the main NIIF admin unit</Description>        
@@ -40,7 +40,7 @@
 
         <Services>
             <ComputingService CreationTime="2008-04-21T10:05:12Z" Validity="500"  BaseType="Service">
-                <ID>computing-service-1</ID>
+                <ID>urn:ogf:ComputingService:arex.niif.hu:8000</ID>
 		        <Name>NIIF CE</Name>
 		        <Otherinfo>warning: frequent reconfiguration</Otherinfo>                                             
 		        <Capability>executionmanagement.jobexecution</Capability>
@@ -327,21 +327,41 @@ fill this in
     </AdminDomain>
     
     <UserDomain CreationTime="2008-04-21T10:05:12Z" Validity="500" BaseType="Domain">
-    	<ID>urn:ogf:UserDomain:voms:atlas</ID>
-	    <Name>ATLAS VO</Name>
+    	<ID>urn:ogf:UserDomain:atlas</ID>
+	    <Name>ATLAS VO members</Name>
 	    <Description>HEP ATLAS USER GROUP</Description>
-	    <WWW>http://www.cern.ch/ATLAS-VO</WWW>
+	    <WWW>http://atlas.web.cern.ch</WWW>
 	    <Otherinfo>AUP document is available on VO webpage</Otherinfo>
 	    <Level>0</Level>
-	    <ManagerService>[URI]</ManagerService>
-        <Member></Member>
+	    <UserManager>https://lcg-voms.cern.ch:8443/vo/atlas/vomrs</UserManager>
+        <Member>/atlas</Member>
+        <Member>/atlas.ch</Member>
         <Location CreationTime="2008-04-21T10:05:12Z" Validity="500">>
         </Location>
         <Contact CreationTime="2008-04-21T10:05:12Z" Validity="500">>
         </Contact>
     </UserDomain>
     <UserDomain CreationTime="2008-04-21T10:05:12Z" Validity="500" BaseType="Domain">
-        <ID></ID>
+        <ID>urn:ogf:UserDomain:nordugrid.org</ID>
+	    <Name>Nordugrid VO members</Name>
+	    <Level>0</Level>
+        <Member>/nordugrid.org</Member>
+	    <UserManager>https://voms.ndgf.org:8443/voms/nordugrid.org</UserManager>
+    </UserDomain>
+    <UserDomain CreationTime="2008-04-21T10:05:12Z" Validity="500" BaseType="Domain">
+        <ID>urn:ogf:UserDomain:nordugrid.org/Role=developer</ID>
+	    <Name>Nordugrid VO developers</Name>
+	    <Level>1</Level>
+        <Member>/nordugrid.org/Role=developer</Member>
+	    <UserManager>https://voms.ndgf.org:8443/voms/nordugrid.org</UserManager>
+        <Associations>
+    </UserDomain>
+    <UserDomain CreationTime="2008-04-21T10:05:12Z" Validity="500" BaseType="Domain">
+        <ID>urn:ogf:UserDomain:knowarc.eu</ID>
+	    <Name>KnowARC VO members</Name>
+	    <Level>0</Level>
+        <Member>/knowarc.eu</Member>
+	    <UserManager>https://arthur.hep.lu.se:8443/voms/knowarc.eu</UserManager>
     </UserDomain>
 </glue:Domains>
 
