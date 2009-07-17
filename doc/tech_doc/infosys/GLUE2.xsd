@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- 	OGF GLUE 2.0 - XML Schema mapping  
 	Updated to draft 34 of GLUE Specification
-	Release: 10 Apr 2008
+	Release: 10 Apr 2009
 	
 	Copyright 2008 Istituto Nazionale di Fisica Nucleare http://www.infn.it
 	Authors: Sergio Andreozzi, Michele Carpene', Marco Canaparo
@@ -25,18 +25,10 @@
 	xmlns="http://www.w3.org/2001/XMLSchema"
 	xmlns:glue="http://schemas.ogf.org/glue/2009/03/spec/2/0">
 
-	<complexType name="Entity">
-		<attribute name="CreationTime" type="dateTime"/>
-		<attribute name="Validity" type="unsignedLong"/>
-		<element name="ID" type="anyURI" minOccurs="1" maxOccurs="1"/>
-		<element name="Name" type="string" minOccurs="0" maxOccurs="1"/>
-		<element name="OtherInfo" type="string" minOccurs="0" maxOccurs="unbounded"/>
-	</complexType>
-
 	<!-- BEGIN AUXILIARIES ENTITIES -->
 	<complexType name="Extension_t">
 		<sequence>
-			<element name="LocalID" type="glue:LocalID_t" minOccurs="1" maxOccurs="1"/>
+			<element name="LocalID" type="glue:ID_t" minOccurs="1" maxOccurs="1"/>
 			<element name="Key" type="string" minOccurs="1" maxOccurs="1"/>
 			<element name="Value" type="string" minOccurs="1" maxOccurs="1"/>
 		</sequence>
@@ -48,6 +40,17 @@
 		</sequence>
 	</complexType>
 	<!-- END AUXILIARIES ENTITIES -->
+	
+    <complexType name="Entity">
+        <sequence>
+		    <element name="ID" type="anyURI" minOccurs="1" maxOccurs="1"/>
+		    <element name="Name" type="string" minOccurs="0" maxOccurs="1"/>
+		    <element name="OtherInfo" type="string" minOccurs="0" maxOccurs="unbounded"/>
+		    <element name="Extensions" type="glue:Extensions_t" minOccurs="0" maxOccurs="1"/>
+        </sequence>
+		<attribute name="CreationTime" type="dateTime"/>
+		<attribute name="Validity" type="unsignedLong"/>
+	</complexType>
 
 	<!-- BEGIN MAIN ENTITIES -->
 	<element name="Domains" type="glue:Domains_t"/>
@@ -83,12 +86,14 @@
 			<extension base="glue:Entity">
 				<sequence>
 					<element name="Detail" type="anyURI" minOccurs="1" maxOccurs="1"/>
-					<element name="Type" type="string" minOccurs="1" maxOccurs="1"/>
+					<element name="Type" type="string" minOccurs="1" maxOccurs="1">
 						<annotation>
-							<appinfo>general</appinfo>
-							<appinfo>security</appinfo>
-							<appinfo>sysadmin</appinfo>
-							<appinfo>usersupport</appinfo>
+                            <appinfo>
+                                <enumeration value="general"/>
+                                <enumeration value="security"/>
+                                <enumeration value="sysadmin"/>
+                                <enumeration value="usersupport"/>
+							</appinfo>
 						</annotation>
 					</element>
 				</sequence>
@@ -125,7 +130,6 @@
 							</sequence>							
 						</complexType>
 					</element>
-					<element name="Extensions" type="glue:Extensions_t" minOccurs="0" maxOccurs="1"/>
 				</sequence>
 			</extension>
 		</complexContent>
@@ -141,7 +145,6 @@
 					<element name="Location" type="glue:Location_t" minOccurs="0" maxOccurs="1"/>
 					<element name="Contact" type="glue:Contact_t" minOccurs="0" maxOccurs="unbounded"/>
 				</sequence>
-			    <element name="Extensions" type="glue:Extensions_t" minOccurs="0" maxOccurs="1"/>
 			</extension>
 		</complexContent>
 	</complexType>
@@ -238,7 +241,6 @@
 		</complexContent>
 	</complexType>
 	
-
 	<complexType abstract="true" name="Manager_t">
 		<complexContent>
 			<extension base="glue:Entity">
@@ -272,7 +274,6 @@
 		<complexContent>
 			<extension base="glue:Entity">
 				<sequence>
-					<!-- <element name="Type" type="glue:ActivityType_t"/> -->
 					<element name="Associations" minOccurs="0" maxOccurs="1">
 						<complexType>
 							<sequence>
@@ -326,7 +327,7 @@
 					<element name="PreLRMSWaitingJobs" type="unsignedInt" minOccurs="0" maxOccurs="1"/>
 					<element name="ComputingEndpoint" type="glue:ComputingEndpoint_t" minOccurs="0" maxOccurs="unbounded"/>
 					<element name="ComputingManager" type="glue:ComputingResource_t" minOccurs="0" maxOccurs="unbounded"/>
-					<element name="ComputingShare" type="glue:ComutingShare_t" minOccurs="0" maxoOccurs="unbounded">
+					<element name="ComputingShare" type="glue:ComutingShare_t" minOccurs="0" maxoOccurs="unbounded"/>
 				</sequence>				
 			</extension>
 		</complexContent>
@@ -379,9 +380,11 @@
 					<element name="MaxStageOutStreams" type="unsignedInt" minOccurs="0" maxOccurs="1"/>
 					<element name="SchedulingPolicy" type="string" minOccurs="0">
 						<annotation>
-							<appinfo>fairshare</appinfo>
-							<appinfo>fifo</appinfo>
-							<appinfo>random</appinfo>
+							<appinfo>
+                                <enumeration value="fairshare"/>
+                                <enumeration value="fifo"/>
+                                <enumeration value="random"/>
+							</appinfo>
 						</annotation>
 					</element>
 					<element name="MaxMainMemory" type="unsignedLong" minOccurs="0" maxOccrus="1"/>
@@ -390,7 +393,7 @@
 					<element name="GaranteedVirtualMemory" type="unsignedLong" minOccurs="0" maxOccrus="1"/>
 					<element name="MaxDiskSpace" type="unsignedLong" minOccurs="0" maxOccurs="1"/>
 					<element name="DefaultStorageService" type="anyURI" minOccurs="0" maxOccurs="1"/>
-					<element name="Preemption" type="glue:ExtendedBoolean_t" minOccurs="0" maxOccurs="1"/>					
+					<element name="Preemption" type="glue:ExtendedBoolean_t" minOccurs="0" maxOccurs="1"/>
 					<element name="ServingState" type="glue:ServingState_t" minOccurs="1" maxOccurs="1"/>
 					<element name="TotalJobs" type="unsignedInt" minOccurs="0" maxOccurs="1"/>
 					<element name="RunningJobs" type="unsignedInt" minOccurs="0" maxOccurs="1"/>
@@ -457,14 +460,14 @@
 					<element name="ScatchDir" type="string" minOccurs="0" maxOccurs="1"/>
 					<element name="AppliciationDir" type="string" minOccurs="0" maxOccurs="1"/>
 					<element name="Benchmark" type="glue:Benchmark_t" minOccurs="0" maxOccurs="unbounded"/>
-					<element name="ExecutionEnvironments" minOccurs="0" maxOccurs="1"/>
+					<element name="ExecutionEnvironments" minOccurs="0" maxOccurs="1">
 				        <complexType>
                             <sequence>
-                                <element name="ExecutionEnvironment" ype="glue:ExecutionEnvironment_t" minOccurs="0" maxOccurs="unbounded"/>
+                                <element name="ExecutionEnvironment" type="glue:ExecutionEnvironment_t" minOccurs="0" maxOccurs="unbounded"/> 
                             </sequence>
-                        </complexType>
+                        </complexType> 
                     </element>
-					<element name="ApplicationEnvironments" type="anyURI" minOccurs="0" maxOccurs="unbounded"/>
+					<element name="ApplicationEnvironments" type="anyURI" minOccurs="0" maxOccurs="unbounded">
 						<complexType>
 							<sequence>
 					            <element name="ApplicationEnvironment" type="glue:ApplicationEnvironment_t" minOccurs="0" maxOccurs="unbounded"/>
@@ -482,9 +485,11 @@
 		        <sequence>
 			        <element name="Type" type="string" minOccurs="1" maxOccurs="1">
 				        <annotation>
-					        <appinfo>specint2000</appinfo>
-					        <appinfo>specfp2000</appinfo>
-					        <appinfo>bogomips</appinfo>
+                            <appinfo>
+                                <enumeration value="specint2000"/>
+                                <enumeration value="specfp2000"/>
+                                <enumeration value="bogomips"/>
+					        </appinfo>
 				        </annotation>
 			        </element>
 			        <element name="Value" type="float" minOccurs="1" maxOccurs="1"/>
@@ -531,7 +536,7 @@
 			        </element>
 		        </sequence>
 			</extension>
-		<complexContent>
+		</complexContent>
 	</complexType>
 
 	<complexType name="ApplicationEnvironment_t">
@@ -547,9 +552,11 @@
 			        <element name="BestBenchmark" type="glue:Benchmark" minOccurs="0" maxOccurs="unbounded"/>
 			        <element name="ParallelSupport" type="string" minOccurs="0" maxOccurs="1">
 				        <annotation>
-					        <appinfo>mpi</appinfo>
-					        <appinfo>openmp</appinfo>
-					        <appinfo>none</appinfo>
+                            <appinfo>
+                                <enumeration value="mpi"/>
+                                <enumeration value="openmp"/>
+                                <enumeration value="none"/>
+					        </appinfo>
 				        </annotation>
 			        </element>
 			        <element name="MaxSlots" type="unsignedInt" minOccurs="0" maxOccurs="1"/>
@@ -577,10 +584,12 @@
 		        <sequence>
 			        <element name="Type" type="string" minOccurs="1" maxOccrus="1">
 				        <annotation>
-					        <appinfo>module</appinfo>
-					        <appinfo>softenv</appinfo>
-					        <appinfo>path</appinfo>
-					        <appinfo>executable</appinfo>
+                            <appinfo>
+                                <enumeration value="module"/>
+                                <enumeration value="softenv"/>
+                                <enumeration value="path"/>
+                                <enumeration value="executable"/>
+					        </appinfo>
 				        </annotation>
 			        </element>
 			        <element name="Value" type="string" minOccurs="1" maxOccurs="1"/>
@@ -803,12 +812,12 @@
 	</simpleType>
 
 	<simpleType name="PolicyScheme_t">
-		<restriction base="string"/>
+		<restriction base="string">
 			<annotation>
                 <appinfo>
 			        <enumeration value="basic"/>
 			        <enumeration value="gacl"/>
-                <appinfo>
+                </appinfo>
 			</annotation>
         </restriction>
 	</simpleType>
@@ -919,10 +928,6 @@
 
 	<simpleType name="ID_t">
 		<restriction base="anyURI"/>
-	</simpleType>
-
-	<simpleType name="LocalID_t">
-		<restriction base="string"/>
 	</simpleType>
 
 	<simpleType name="Staging_t">
@@ -1072,7 +1077,7 @@
                     <enumeration value="macosx"/>
                     <enumeration value="solaris"/>
                     <enumeration value="windows"/>
-				<appinfo>
+				</appinfo>
             </annotation>
         </restriction>
 	</simpleType>
@@ -1096,7 +1101,7 @@
                     <enumeration value="ubuntu"/>
                     <enumeration value="windowsvista"/>
                     <enumeration value="windowsxp"/>
-				<appinfo>
+				</appinfo>
             </annotation>
         </restriction>
 	</simpleType>
@@ -1110,7 +1115,7 @@
                     <enumeration value="globus:rsl"/>
                     <enumeration value="nordugrid:xrsl"/>
                     <enumeration value="cogf:jsdl:1.0"/>
-				<appinfo>
+				</appinfo>
             </annotation>
         </restriction>
 	</simpleType>
@@ -1118,10 +1123,12 @@
     <simpleType name="ComputingActivityType_t">
         <restriction base="string">
 			<annotation>
+                <appinfo>
                     <enumeration value="collectionelement"/>
                     <enumeration value="parallelelement"/>
                     <enumeration value="single"/>
                     <enumeration value="workflownode"/>
+                </appinfo>
             </annotation>
         </restriction>
 	</simpleType>
