@@ -102,8 +102,8 @@
 		            <!-- Computing endpoint specific attributes -->
 		            <Staging>staginginout</Staging>
 		            <Associations>
-		                    <ComputingShareID>computing-share-1</ComputingShareLocalID>
-			                <ComputingShareID>computing-share-2</ComputingShareLocalID>
+		                    <ComputingShareID>computing-share-1</ComputingShareID>
+			                <ComputingShareID>computing-share-2</ComputingShareID>
 			                <ComputingActivityID>...</ComputingActivityID> <!--related activities can be listed here-->
 		            </Associations>
 		        </ComputingEndpoint>
@@ -156,7 +156,7 @@
 			        </Associations>			
 			        <ComputingActivities>
                         <ComputingActivity>..</ComputingActivity>
-                    </ComputingActivites>
+                    </ComputingActivities>
 		        </ComputingShare>		    
 	            <ComputingShare CreationTime="2008-04-21T10:05:12Z" Validity="500" BaseType="Share">	    
 			        <ID>computing-share-2</ID>
@@ -207,7 +207,7 @@
         			</Associations>				
 			        <ComputingActivities>
                         <ComputingActivity>..</ComputingActivity>
-                    </ComputingActivites>
+                    </ComputingActivities>
         		</ComputingShare>
 		    
                 <ComputingManager CreationTime="2008-04-21T10:05:12Z" Validity="500" BaseType="Resource">
@@ -253,7 +253,7 @@
             <ComputingManager>
                 <ID></ID>
             </ComputingManager>
-	    <ComputingService>
+	    </ComputingService>
         <Service CreationTime="2008-04-21T10:05:12Z" Validity="500">
             <ID></ID>
         </Service>
@@ -276,21 +276,21 @@
 		    <StorageShare CreationTime="2008-04-21T10:05:12Z" Validity="500" BaseType="Share">
 		        <StorageShareCapacity/>
 			<MappingPolicy>
-			    <LocalID>idxx</LocalID>
+			    <ID>idxx</ID>
 			    <Scheme>basic</Scheme>
 			    <Rule>VO:ATLAS</Rule>
 			</MappingPolicy>			
 		    </StorageShare>
 		    <StorageShare CreationTime="2008-04-21T10:05:12Z" Validity="500" BaseType="Share">
 			<MappingPolicy>
-			    <LocalID>idxx</LocalID>
+			    <ID>idxx</ID>
 			    <Scheme>basic</Scheme>
 			    <Rule>VO:BIO</Rule>
 			</MappingPolicy>			    
 		    </StorageShare>
 		    <StorageShare CreationTime="2008-04-21T10:05:12Z" Validity="500" BaseType="Share">
 			<MappingPolicy>
-			    <LocalID>idxx</LocalID>
+			    <ID>idxx</ID>
 			    <Scheme>basic</Scheme>
 			    <Rule>VO:GEO</Rule>
 			</MappingPolicy>		    
