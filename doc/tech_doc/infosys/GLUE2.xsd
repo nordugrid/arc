@@ -423,7 +423,7 @@
                     <element name="ComputingActivitites" minOccurs="0" maxOccurs="1">
 						<complexType>
 							<sequence>
-								<element name="ComputingActivitiy" type="glue:ComputingActivity_t" minOccurs="0" maxOccurs="unbounded"/>
+								<element name="ComputingActivity" type="glue:ComputingActivity_t" minOccurs="0" maxOccurs="unbounded"/>
 							</sequence>							
 						</complexType>
 					</element>
