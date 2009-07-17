@@ -7,12 +7,14 @@
 #ifdef WIN32
 #define NOGDI
 #include <objbase.h>
+#include <cstdio>
 #else
 #include <sys/time.h>
 #include <netinet/in.h>
 #include <netdb.h>
 #include <unistd.h>
 #include <cstdlib>
+#include <cstdio>
 #endif
 
 #include "GUID.h"
