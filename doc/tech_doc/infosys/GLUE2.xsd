@@ -678,7 +678,7 @@
 					<element name="Associations" minOccurs="0">
 						<complexType>
 							<sequence>
-								<element name="StorageShareLocalID" type="glue:ID_t" minOccurs="0"
+								<element name="StorageShareID" type="glue:ID_t" minOccurs="0"
 									maxOccurs="unbounded"/>
 							</sequence>
 						</complexType>
@@ -771,7 +771,7 @@
 			<element name="Associations" minOccurs="0">
 				<complexType>
 					<sequence>
-						<element name="StorageShareLocalID" type="glue:ID_t" minOccurs="0"
+						<element name="StorageShareID" type="glue:ID_t" minOccurs="0"
 							maxOccurs="unbounded"/>
 					</sequence>
 				</complexType>
