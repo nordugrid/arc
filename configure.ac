@@ -1010,14 +1010,7 @@ if test x$XMLSEC_INSTALLED = xyes ; then enable_saml=yes; fi
 
 # Check for LDAP
 
-SAVE_CFLAGS=$CFLAGS
-case "${host}" in
-  *-*-mingw32):
-     CFLAGS="$CFLAGS -I/usr/local/include"
-  ;;
-esac
 AC_CHECK_HEADER(ldap.h, [LDAP=yes], [LDAP=no])
-CFLAGS=$SAVE_CFLAGS
 
 SAVE_LDFLAGS=$LDFLAGS
 
