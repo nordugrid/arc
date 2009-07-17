@@ -5,6 +5,7 @@
 #include <arc/message/Service.h>
 #include <arc/delegation/DelegationInterface.h>
 #include <arc/infosys/InformationInterface.h>
+#include <arc/infosys/RegisteredService.h>
 #include <vector>
 #include <map>
 #include "job.h"
@@ -14,10 +15,11 @@
 
 namespace Paul {
 
-class PaulService: public Arc::Service {
+class PaulService: public Arc::RegisteredService {
     protected:
         Configurator configurator;
         std::string uuid;
+        std::string endpoint;
         bool in_shutdown;
         Arc::NS ns_;
         Arc::Logger logger_;
@@ -38,6 +40,7 @@ class PaulService: public Arc::Service {
         PaulService(Arc::Config *cfg);
         virtual ~PaulService(void);
         Arc::MCC_Status process(Arc::Message &in, Arc::Message &out);
+        bool RegistrationCollector(Arc::XMLNode &doc);
         void GetActivities(const std::string &url, std::vector<std::string> &ret);
 
 }; // class PaulService

@@ -1,6 +1,7 @@
 #ifndef __ARC_SCHED_H__
 #define __ARC_SCHED_H__
 
+#include <arc/infosys/RegisteredService.h>
 #include <arc/message/Service.h>
 #include <arc/delegation/DelegationInterface.h>
 #include <arc/infosys/InformationInterface.h>
@@ -12,7 +13,7 @@ namespace GridScheduler {
 
 // Sched job queue initializator
 
-class GridSchedulerService: public Arc::Service {
+class GridSchedulerService: public Arc::RegisteredService {
     private:
         bool IsAcceptingNewActivities;
         Arc::JobQueue jobq;
@@ -70,6 +71,7 @@ class GridSchedulerService: public Arc::Service {
         int getPeriod(void) { return period; };
         int getReschedulePeriod(void) { return reschedule_period; };
         void InformationCollector(void);
+        virtual bool RegistrationCollector(Arc::XMLNode &doc);
 }; // class GridSchedulerService
 
 } // namespace GridScheduler

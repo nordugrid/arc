@@ -4,7 +4,7 @@ noinst_PROGRAMS=test
 
 AM_CPPFLAGS=@DBCXX_CPPFLAGS@
 
-JOBQ_SOURCES=job.h job.cpp job_request.cpp job_request.h job_sched_meta.cpp job_sched_meta.h job_status.h job_status.cpp job_queue.h job_queue.cpp 
+JOBQ_SOURCES=information_collector.cpp job.h job.cpp job_request.cpp job_request.h job_sched_meta.cpp job_sched_meta.h job_status.h job_status.cpp job_queue.h job_queue.cpp 
 
 libgrid_sched_la_SOURCES = grid_sched.cpp grid_sched.h resource.h resource.cpp resources_handling.h resources_handling.cpp bes.cpp ibes.cpp get_factory_document.cpp $(JOBQ_SOURCES)
 
@@ -16,6 +16,7 @@ libgrid_sched_la_LIBADD   = $(top_srcdir)/src/hed/libs/loader/libarcloader.la \
                             $(top_srcdir)/src/hed/libs/delegation/libarcdelegation.la \
                             $(top_srcdir)/src/hed/libs/common/libarccommon.la \
                             $(top_srcdir)/src/hed/libs/client/libarcclient.la \
+                            $(top_srcdir)/src/hed/libs/infosys/libinfosys.la \
                             $(GLIBMM_LIBS) $(LIBXML2_LIBS) $(DBCXX_LIBS)
 libgrid_sched_la_LDFLAGS = -no-undefined -avoid-version -module
 

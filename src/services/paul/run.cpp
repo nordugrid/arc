@@ -7,6 +7,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <arc/Run.h>
+#include <arc/StringConv.h>
 #ifdef WIN32
 #include <arc/win32.h>
 #else
@@ -63,14 +64,26 @@ bool PaulService::run(Job &j)
     for (int i=0; (arg = app["Argument"][i]) != false; i++) {
         arg_str += (std::string)arg + " ";
     }
+
     std::string std_in = (std::string)app["Input"];
     std::string std_out = (std::string)app["Output"];
     std::string std_err = (std::string)app["Error"];
     std::string cmd;
-    
+
     std::string wd = Glib::build_filename(configurator.getJobRoot(), j.getID());
     mkdir(wd.c_str(), 0700);
     if (!Glib::path_is_absolute(exec)) {
+#ifdef WIN32
+        size_t found = exec.find_last_of(".");
+        std::string extension = exec.substr(found+1);
+        extension = Arc::upper(extension);
+        if (extension == "BAT") {
+          std::string cmd_path = Glib::find_program_in_path("cmd");
+          logger_.msg(Arc::DEBUG, "Windows cmd path: %s", cmd_path);
+          cmd = cmd_path + " /c " + exec;
+        }
+        if (extension != "BAT")
+#endif
         cmd = Glib::build_filename(wd, exec);
         chmod(cmd.c_str(), 0700);
 #ifndef WIN32
@@ -84,17 +97,17 @@ bool PaulService::run(Job &j)
 #ifdef WIN32
     cmd = save_filename(cmd);
 #endif
-    // cmd += " > s.out";
+    logger_.msg(Arc::DEBUG, "Cmd: %s", cmd);
 
     Arc::Run *run = NULL;
     try {
         run = new Arc::Run(cmd);
-        std::string stdin_str;
-        std::string stderr_str;
-        std::string stdout_str;
-        run->AssignStdin(stdin_str);
-        run->AssignStdout(stdout_str);
-        run->AssignStderr(stderr_str);
+        if (!std_in.empty())
+          run->AssignStdin(std_in);
+        if (!std_out.empty())
+          run->AssignStdout(std_out);
+        if (!std_err.empty())
+          run->AssignStderr(std_err);
         run->AssignWorkingDirectory(wd);
         logger_.msg(Arc::DEBUG, "Command: %s", cmd);
         if(!run->Start()) {
@@ -104,11 +117,14 @@ bool PaulService::run(Job &j)
         j.setStatus(RUNNING);
         runq[j.getID()] = run;
         if(run->Wait()) {
-            logger_.msg(Arc::DEBUG, "StdOut: %s", stdout_str);
-            logger_.msg(Arc::DEBUG, "StdErr: %s", stderr_str);
+            logger_.msg(Arc::DEBUG, "StdOut: %s", std_out);
+            logger_.msg(Arc::DEBUG, "StdErr: %s", std_err);
             if (run != NULL) {
-                logger_.msg(Arc::DEBUG, "delete run");
-                runq.erase(j.getID());
+                //logger_.msg(Arc::DEBUG, "delete run");
+
+                // TODO: erase should be delayed
+                //runq.erase(j.getID());
+
                 delete run;
                 run = NULL;
             }
@@ -129,6 +145,8 @@ bool PaulService::run(Job &j)
     } catch (Glib::SpawnError &e) {
         logger_.msg(Arc::ERROR, "SpawnError");
         goto error;
+    } catch (Glib::SpawnError &e) {
+        std::cerr << e.what() << std::endl;
     }
 
 error:

@@ -14,8 +14,17 @@
 #include <arc/win32.h>
 #include "Run.h"
 
+#define BUFSIZE 4096 
+
 
 namespace Arc {
+
+  struct PipeThreadArg {
+    HANDLE child;
+    HANDLE parent;
+  };
+
+  void pipe_handler(void *arg);
 
   class RunPump {
     // NOP
@@ -86,21 +95,70 @@ namespace Arc {
       return false;
     try {
       running_ = true;
+ 
+      // Stdin, stdout, stderr redirect code is from here:
+      // http://msdn.microsoft.com/en-us/library/ms682499(VS.85).aspx
+
+      SECURITY_ATTRIBUTES saAttr; 
+      saAttr.nLength = sizeof(SECURITY_ATTRIBUTES); 
+      saAttr.bInheritHandle = TRUE; 
+      saAttr.lpSecurityDescriptor = NULL; 
+
+      HANDLE g_hChildStd_OUT_Rd = NULL;
+      HANDLE g_hChildStd_OUT_Wr = NULL;
+      HANDLE g_hChildStd_ERR_Rd = NULL;
+      HANDLE g_hChildStd_ERR_Wr = NULL;
+      HANDLE g_hChildStd_IN_Rd = NULL;
+      HANDLE g_hChildStd_IN_Wr = NULL;
+
+      HANDLE g_hOutputFile = NULL;
+      HANDLE g_hErrorFile = NULL;
+      HANDLE g_hInputFile = NULL;
+
+      // Create pipe for child process stdout
+
+      if ( ! CreatePipe(&g_hChildStd_OUT_Rd, &g_hChildStd_OUT_Wr, &saAttr, 0) )  
+        throw "StdoutRd create pipe error!";
+      
+      if ( ! SetHandleInformation(g_hChildStd_OUT_Rd, HANDLE_FLAG_INHERIT, 0) )
+        throw "Stdout SetHandleInformation error";
+
+      // Create pipe for child process stderr
+
+      if ( ! CreatePipe(&g_hChildStd_ERR_Rd, &g_hChildStd_ERR_Wr, &saAttr, 0) ) 
+        throw "StderrRd create pipe error!";
+      
+      if ( ! SetHandleInformation(g_hChildStd_ERR_Rd, HANDLE_FLAG_INHERIT, 0) )
+        throw "Stderr SetHandleInformation error";
+
+      // Create pipe for child process stdin
+
+      if ( ! CreatePipe(&g_hChildStd_IN_Rd, &g_hChildStd_IN_Wr, &saAttr, 0) ) 
+        throw "StdinRd create pipe error!";
+      
+      if ( ! SetHandleInformation(g_hChildStd_IN_Wr, HANDLE_FLAG_INHERIT, 0) )
+        throw "Stdin SetHandleInformation error";
 
       STARTUPINFO startupinfo;
       memset(&startupinfo, 0, sizeof(startupinfo));
+
+      startupinfo.cb = sizeof(STARTUPINFO);
+      startupinfo.hStdError = g_hChildStd_ERR_Wr;
+      startupinfo.hStdOutput = g_hChildStd_OUT_Wr;
+      startupinfo.hStdInput = g_hChildStd_IN_Rd;
+      startupinfo.dwFlags |= STARTF_USESTDHANDLES;
+
       char **args = const_cast<char**>(argv_.data());
       std::string cmd = "";
       for (int i = 0; args[i] != NULL; i++) {
         std::string a(args[i]);
         cmd += (a + " ");
       }
-      std::cout << "Cmd: " << cmd << std::endl;
       int result = CreateProcess(NULL,
                                  (LPSTR)cmd.c_str(),
                                  NULL,
                                  NULL,
-                                 FALSE,
+                                 TRUE,
                                  CREATE_NEW_PROCESS_GROUP | CREATE_NO_WINDOW | IDLE_PRIORITY_CLASS,
                                  NULL,
                                  (LPSTR)working_directory.c_str(),
@@ -112,12 +170,122 @@ namespace Arc {
         return false;
       }
       started_ = true;
-    } catch (std::exception& e) {
+
+      if (stdin_str_ != NULL) {
+
+      g_hInputFile = CreateFile(
+         (working_directory + "\\" + (*stdin_str_)).c_str(), 
+         GENERIC_READ, 
+         0, 
+         NULL, 
+         OPEN_EXISTING, 
+         FILE_ATTRIBUTE_READONLY, 
+         NULL); 
+       
+   if ( g_hInputFile == INVALID_HANDLE_VALUE ) 
+      throw "Stdin file open error";
+
+   if ( ! CloseHandle(g_hChildStd_IN_Wr) ) 
+      throw "StdInWr CloseHandle error";
+
+   PipeThreadArg *arg_in = new PipeThreadArg;
+   arg_in->child = g_hInputFile;
+   arg_in->parent = g_hChildStd_IN_Wr;
+
+   if (!CreateThreadFunction(&pipe_handler, arg_in)) {
+     delete arg_in;
+   }
+
+   } // end of the stdin handler
+
+   if (stdout_str_ != NULL) {
+
+   g_hOutputFile = CreateFile (
+         (working_directory + "\\" + (*stdout_str_)).c_str(), 
+         GENERIC_WRITE, 
+         0, 
+         NULL, 
+         CREATE_NEW, 
+         FILE_ATTRIBUTE_NORMAL, 
+         NULL); 
+       
+   if ( g_hOutputFile == INVALID_HANDLE_VALUE ) 
+     throw "Stdout file creation error";
+
+   if (!CloseHandle(g_hChildStd_OUT_Wr)) 
+     throw "StdoutWr CloseHandle error";
+
+   PipeThreadArg *arg_out = new PipeThreadArg;
+   arg_out->child = g_hChildStd_OUT_Rd;
+   arg_out->parent = g_hOutputFile;
+
+   if (!CreateThreadFunction(&pipe_handler, arg_out)) {
+     delete arg_out;
+   }
+
+   } // end of the stdout handler
+
+   if (stderr_str_ != NULL) {
+
+   g_hErrorFile = CreateFile (
+         (working_directory + "\\" + (*stderr_str_)).c_str(), 
+         GENERIC_WRITE, 
+         0, 
+         NULL, 
+         CREATE_NEW, 
+         FILE_ATTRIBUTE_NORMAL, 
+         NULL); 
+
+   if ( g_hErrorFile == INVALID_HANDLE_VALUE ) 
+      throw "Stderr file creation error";
+
+   if (!CloseHandle(g_hChildStd_ERR_Wr)) 
+      throw "StdErrWr CloseHandle error";
+
+   PipeThreadArg *arg_err = new PipeThreadArg;
+   arg_err->child = g_hChildStd_ERR_Rd;
+   arg_err->parent = g_hErrorFile;
+
+   if (!CreateThreadFunction(&pipe_handler, arg_err)) {
+     delete arg_err;
+   }
+
+   } // end of the stderr handler
+
+    } // end of the try block
+
+    catch(char * str) {
+       std::cerr << "Exception raised: " << str << std::endl;
+    }
+    catch (std::exception& e) {
       running_ = false;
+      std::cerr << e.what() << std::endl;
       return false;
     }
-    ;
+    catch (Glib::Exception& e) {
+      std::cerr << e.what() << std::endl;
+    }
     return true;
+  }
+
+  void pipe_handler(void *arg) {
+    DWORD dwRead, dwWritten; 
+    CHAR chBuf[BUFSIZE];
+    BOOL bSuccess = FALSE;
+
+    PipeThreadArg *thrarg = (PipeThreadArg*)arg;
+
+    for (;;) {
+      bSuccess = ReadFile(thrarg->child, chBuf, BUFSIZE, &dwRead, NULL);
+      if( ! bSuccess || dwRead == 0 ) break;
+
+      bSuccess = WriteFile(thrarg->parent, chBuf, 
+                           dwRead, &dwWritten, NULL);
+      if (! bSuccess ) break; 
+    } 
+
+    if (!CloseHandle(thrarg->parent)) 
+      throw "Parent CloseHandle";
   }
 
   void Run::Kill(int timeout) {
@@ -129,80 +297,18 @@ namespace Arc {
   }
 
   bool Run::stdout_handler(Glib::IOCondition) {
-    if (stdout_str_) {
-      char buf[256];
-      int l = ReadStdout(0, buf, sizeof(buf));
-      if ((l == 0) || (l == -1)) {
-        CloseStdout();
-        return false;
-      }
-      else
-        stdout_str_->append(buf, l);
-    }
-    else {
-      // Event shouldn't happen if not expected
-
-    }
     return true;
   }
 
   bool Run::stderr_handler(Glib::IOCondition) {
-    if (stderr_str_) {
-      char buf[256];
-      int l = ReadStderr(0, buf, sizeof(buf));
-      if ((l == 0) || (l == -1)) {
-        CloseStderr();
-        return false;
-      }
-      else
-        stderr_str_->append(buf, l);
-    }
-    else {
-      // Event shouldn't happen if not expected
-
-    }
     return true;
   }
 
   bool Run::stdin_handler(Glib::IOCondition) {
-    if (stdin_str_) {
-      if (stdin_str_->length() == 0) {
-        CloseStdin();
-        stdin_str_ = NULL;
-      }
-      else {
-        int l = WriteStdin(0, stdin_str_->c_str(), stdin_str_->length());
-        if (l == -1) {
-          CloseStdin();
-          return false;
-        }
-        else
-          // Not very effective
-          *stdin_str_ = stdin_str_->substr(l);
-      }
-    }
-    else {
-      // Event shouldn't happen if not expected
-
-    }
     return true;
   }
 
   void Run::child_handler(Glib::Pid, int result) {
-    if (stdout_str_)
-      for (;;)
-        if (!stdout_handler(Glib::IO_IN))
-          break;
-    if (stderr_str_)
-      for (;;)
-        if (!stderr_handler(Glib::IO_IN))
-          break;
-    CloseStdout();
-    CloseStderr();
-    CloseStdin();
-    running_ = false;
-    if (kicker_func_)
-      (*kicker_func_)(kicker_arg_);
   }
 
   void Run::CloseStdout(void) {
@@ -238,10 +344,7 @@ namespace Arc {
   }
 
   int Run::WriteStdin(int /*timeout*/, const char *buf, int size) {
-    if (stdin_ == -1)
-      return -1;
-    // TODO: do it through context for timeout
-    return write(stdin_, buf, size);
+    return 0;
   }
 
   bool Run::Running(void) {

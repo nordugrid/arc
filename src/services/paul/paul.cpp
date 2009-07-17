@@ -60,6 +60,7 @@ void PaulService::GetActivities(const std::string &url_str, std::vector<std::str
         cfg.AddPrivateKey(configurator.getPki()["PrivateKey"]);
         cfg.AddCertificate(configurator.getPki()["CertificatePath"]);
         cfg.AddCAFile(configurator.getPki()["CACertificatePath"]);
+        cfg.AddCADir(configurator.getPki()["CACertificatesDir"]);
     }
     client = new Arc::ClientSOAP(cfg, url);
     // invoke GetActivity SOAP call
@@ -255,6 +256,7 @@ void PaulService::do_report(void)
             cfg.AddPrivateKey(configurator.getPki()["PrivateKey"]);
             cfg.AddCertificate(configurator.getPki()["CertificatePath"]);
             cfg.AddCAFile(configurator.getPki()["CACertificatePath"]);
+            cfg.AddCADir(configurator.getPki()["CACertificatesDir"]);
         }
         client = new Arc::ClientSOAP(cfg, url);
 
@@ -353,6 +355,7 @@ void PaulService::do_action(void)
             cfg.AddPrivateKey(configurator.getPki()["PrivateKey"]);
             cfg.AddCertificate(configurator.getPki()["CertificatePath"]);
             cfg.AddCAFile(configurator.getPki()["CACertificatePath"]);
+            cfg.AddCADir(configurator.getPki()["CACertificatesDir"]);
         }
         client = new Arc::ClientSOAP(cfg, url);
         Arc::PayloadSOAP *response;
@@ -453,13 +456,14 @@ void PaulService::report_and_action_loop(void *arg)
 }
 
 // Constructor
-PaulService::PaulService(Arc::Config *cfg):Service(cfg),in_shutdown(false),logger_(Arc::Logger::rootLogger, "Paul"),configurator(cfg)
+PaulService::PaulService(Arc::Config *cfg):RegisteredService(cfg),in_shutdown(false),logger_(Arc::Logger::rootLogger, "Paul"),configurator(cfg)
 {
     // Define supported namespaces
     ns_["ibes"] = "http://www.nordugrid.org/schemas/ibes";
     ns_["glue2"] = "http://schemas.ogf.org/glue/2008/05/spec_2.0_d42_r1";
     ns_["sched"] = "http://www.nordugrid.org/schemas/sched";
     ns_["wsa"] = "http://www.w3.org/2005/08/addressing";
+
     configurator.setJobQueue(&jobq);
     // Start sched thread
     Arc::CreateThreadFunction(&request_loop, this);

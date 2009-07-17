@@ -235,7 +235,10 @@ static void Remove(const std::string &path)
 void Job::clean(const std::string &jobroot)
 {
     std::string wd = Glib::build_filename(jobroot, id);
-    Remove(wd);
+
+    // TODO: clean should be delayed
+
+    //Remove(wd);
 }
 
 const std::string Job::getFailure(void)

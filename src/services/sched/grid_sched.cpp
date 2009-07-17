@@ -87,6 +87,14 @@ GridSchedulerService::process(Arc::Message& inmsg, Arc::Message& outmsg)
         logger_.msg(Arc::ERROR, "input is not SOAP");
         return make_soap_fault(outmsg);
     }
+
+    inpayload->Namespaces(ns_);
+    {   
+        std::string str;
+        inpayload->GetDoc(str, true);
+        logger_.msg(Arc::DEBUG, "process: request=%s",str);
+    }; 
+
     // Get operation
     Arc::XMLNode op = inpayload->Child(0);
     if(!op) {
@@ -341,7 +349,12 @@ void reschedule(void *arg)
     }
 }
 
-GridSchedulerService::GridSchedulerService(Arc::Config *cfg):Service(cfg),logger_(Arc::Logger::rootLogger, "GridScheduler") 
+static void thread_starter(void* arg) {
+  if(!arg) return;
+  ((GridSchedulerService*)arg)->InformationCollector();
+}
+
+GridSchedulerService::GridSchedulerService(Arc::Config *cfg):RegisteredService(cfg),logger_(Arc::Logger::rootLogger, "GridScheduler") 
 {
     // Define supported namespaces
     // XXX use defs from ARC1 LIBS
@@ -381,6 +394,8 @@ GridSchedulerService::GridSchedulerService(Arc::Config *cfg):Service(cfg),logger
     cli_config["PrivateKey"] = (std::string)((*cfg)["arccli:PrivateKey"]);  
     cli_config["CACertificatePath"] = (std::string)((*cfg)["arccli:CACertificatePath"]);  
     IsAcceptingNewActivities = true;
+
+    CreateThreadFunction(&thread_starter,this);
   
     if (period > 0) { 
         // start scheduler thread

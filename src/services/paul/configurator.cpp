@@ -38,6 +38,7 @@ Configurator::getPki(void)
     out["CertificatePath"] = (std::string)cfg_["CertificatePath"];
     out["PrivateKey"] = (std::string)cfg_["PrivateKey"];
     out["CACertificatePath"] = (std::string)cfg_["CACertificatePath"];
+    out["CACertificatesDir"] = (std::string)cfg_["CACertificatesDir"];
     return out;
 }
 
@@ -57,6 +58,12 @@ std::string
 Configurator::getCachePath(void)
 {
     return (std::string)cfg_["CacheDirectoryPath"];
+}
+
+std::string 
+Configurator::getEndpoint(void) 
+{
+    return (std::string)cfg_["Endpoint"];
 }
 
 std::string

@@ -67,6 +67,7 @@ class Configurator
         std::vector<std::string> getSchedulers(void);
         std::string getCachePath(void);
         std::string getJobRoot(void);
+        std::string getEndpoint(void);
         void setJobQueue(JobQueue *jq) { jobq_ = jq; };
         JobQueue *getJobQueue(void) { return jobq_; };
         // view functions

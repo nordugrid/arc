@@ -89,6 +89,8 @@ GridSchedulerService::CreateActivity(Arc::XMLNode& in, Arc::XMLNode& out)
         // Make job's ERP
         identifier.Address(endpoint); // address of service
         identifier.ReferenceParameters().NewChild("sched:JobID") = job.getID();
+        identifier.ReferenceParameters().NewChild("a-rex:JobSessionDir")=endpoint+"/"+job.getID();
+        identifier.ReferenceParameters().NewChild("a-rex:JobID") = job.getID();
         out.NewChild(in["ActivityDocument"]);
     }
     logger_.msg(Arc::DEBUG, "CreateActivity finished successfully");

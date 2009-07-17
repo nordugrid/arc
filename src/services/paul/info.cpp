@@ -122,5 +122,18 @@ bool PaulService::information_collector(Arc::XMLNode &doc)
     return true;
 }
 
+bool PaulService::RegistrationCollector(Arc::XMLNode &doc) {
+  logger_.msg(Arc::VERBOSE,"Passing service's information from collector to registrator");
+  Arc::XMLNode empty(ns_, "RegEntry");
+  empty.New(doc);
+
+  doc.NewChild("SrcAdv");
+  doc.NewChild("MetaSrcAdv");
+  doc["SrcAdv"].NewChild("Type") = "org.nordugrid.execution.paul";
+  doc["SrcAdv"].NewChild("EPR").NewChild("Address") = configurator.getEndpoint();
+
+  return true;
+}
+
 
 } // namespace

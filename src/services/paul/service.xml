@@ -33,6 +33,7 @@
        <paul:CacheDirectoryPath>./cache</paul:CacheDirectoryPath>
        <paul:RequestPeriod>30</paul:RequestPeriod>
        <paul:Timeout>5</paul:Timeout> 
+       <paul:Endpoint>http://localhost:60000/paul</paul:Endpoint> 
        <paul:CertificatePath>../../tests/echo/cert.pem</paul:CertificatePath>
        <paul:PrivateKey>../../tests/echo/key.pem</paul:PrivateKey>
        <paul:CACertificatePath>../../tests/echo/ca.pem</paul:CACertificatePath>
