@@ -88,14 +88,14 @@
 					<element name="Detail" type="anyURI" minOccurs="1" maxOccurs="1"/>
 					<element name="Type" type="string" minOccurs="1" maxOccurs="1">
 						<annotation>
-                            <appinfo>
-                                <enumeration value="general"/>
-                                <enumeration value="security"/>
-                                <enumeration value="sysadmin"/>
-                                <enumeration value="usersupport"/>
-							</appinfo>
+                            			  <appinfo>
+			                                <enumeration value="general"/>
+                        			        <enumeration value="security"/>
+                                			<enumeration value="sysadmin"/>
+                                			<enumeration value="usersupport"/>
+						  </appinfo>
 						</annotation>
-					</element>
+					</element>				
 				</sequence>
 			</extension>
 		</complexContent>
@@ -461,16 +461,16 @@
 					<element name="AppliciationDir" type="string" minOccurs="0" maxOccurs="1"/>
 					<element name="Benchmark" type="glue:Benchmark_t" minOccurs="0" maxOccurs="unbounded"/>
 					<element name="ExecutionEnvironments" minOccurs="0" maxOccurs="1">
-				        <complexType>
-                            <sequence>
-                                <element name="ExecutionEnvironment" type="glue:ExecutionEnvironment_t" minOccurs="0" maxOccurs="unbounded"/> 
-                            </sequence>
-                        </complexType> 
-                    </element>
+				        	<complexType>
+                            				<sequence>
+                                			  <element name="ExecutionEnvironment" type="glue:ExecutionEnvironment_t" minOccurs="0" maxOccurs="unbounded"/>
+                            				</sequence>
+                        			</complexType>
+                    			</element>
 					<element name="ApplicationEnvironments" type="anyURI" minOccurs="0" maxOccurs="unbounded">
 						<complexType>
 							<sequence>
-					            <element name="ApplicationEnvironment" type="glue:ApplicationEnvironment_t" minOccurs="0" maxOccurs="unbounded"/>
+					            	   <element name="ApplicationEnvironment" type="glue:ApplicationEnvironment_t" minOccurs="0" maxOccurs="unbounded"/>
 							</sequence>
 						</complexType>
 					</element>
@@ -482,16 +482,16 @@
 	<complexType name="Benchmark_t">
 		<complexContent>
 			<extension base="glue:Entity">
-		        <sequence>
+		        <sequence>			 
 			        <element name="Type" type="string" minOccurs="1" maxOccurs="1">
 				        <annotation>
-                            <appinfo>
-                                <enumeration value="specint2000"/>
-                                <enumeration value="specfp2000"/>
-                                <enumeration value="bogomips"/>
-					        </appinfo>
-				        </annotation>
-			        </element>
+                            		   <appinfo>
+                                		<enumeration value="specint2000"/>
+                                		<enumeration value="specfp2000"/>
+                                		<enumeration value="bogomips"/>
+					   </appinfo>
+				        </annotation>	
+			        </element>		        
 			        <element name="Value" type="float" minOccurs="1" maxOccurs="1"/>
 		        </sequence>
 			</extension>
@@ -814,12 +814,12 @@
 	<simpleType name="PolicyScheme_t">
 		<restriction base="string">
 			<annotation>
-                <appinfo>
+                	  <appinfo>
 			        <enumeration value="basic"/>
 			        <enumeration value="gacl"/>
-                </appinfo>
+                	  </appinfo>
 			</annotation>
-        </restriction>
+        	</restriction>
 	</simpleType>
 
 	<simpleType name="EndpointTechnology_t">
@@ -1071,20 +1071,20 @@
     
     <simpleType name="OSFamily_t">
         <restriction base="string">
-			<annotation>
-                <appinfo>
+		<annotation>
+                  <appinfo>
                     <enumeration value="linux"/>
                     <enumeration value="macosx"/>
                     <enumeration value="solaris"/>
                     <enumeration value="windows"/>
-				</appinfo>
-            </annotation>
+		  </appinfo>
+            	</annotation>
         </restriction>
 	</simpleType>
     
     <simpleType name="OSName_t">
         <restriction base="string">
-			<annotation>
+	    <annotation>
                 <appinfo>
                     <enumeration value="aix"/>
                     <enumeration value="centos"/>
@@ -1101,21 +1101,21 @@
                     <enumeration value="ubuntu"/>
                     <enumeration value="windowsvista"/>
                     <enumeration value="windowsxp"/>
-				</appinfo>
+		</appinfo>
             </annotation>
         </restriction>
-	</simpleType>
+    </simpleType>
     
     <simpleType name="JobDescription_t">
         <restriction base="string">
-			<annotation>
+	    <annotation>
                 <appinfo>
                     <enumeration value="condor"/>
                     <enumeration value="egee:jdl"/>
                     <enumeration value="globus:rsl"/>
                     <enumeration value="nordugrid:xrsl"/>
-                    <enumeration value="cogf:jsdl:1.0"/>
-				</appinfo>
+                    <enumeration value="jsdl:1.0"/>
+		</appinfo>
             </annotation>
         </restriction>
 	</simpleType>
