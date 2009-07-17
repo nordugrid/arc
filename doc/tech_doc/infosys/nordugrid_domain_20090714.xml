@@ -5,7 +5,7 @@
               xsi:schemaLocation="http://schemas.ogf.org/glue/2009/03/spec/2/0 ../xsd/GLUE2.xsd">
     
     <AdminDomain CreationTime="2008-04-21T10:05:12Z" Validity="500" BaseType="Domain">
-        <ID>admin-domain-1</ID>
+        <ID>urn:ogf:AdminDomain:admindomain-1.niif.nu</ID>
         <Name>NIIF-TOP</Name> <!-- string -->
 	    <OtherInfo>Top domain of the Hungarian Clustergrid</OtherInfo>
 	    <Description>This is the main NIIF admin unit</Description>        
@@ -14,7 +14,7 @@
         <Owner>NIIF</Owner> <!-- string -->
 	    <Owner>HGCC</Owner> <!-- string -->
         <Location CreationTime="2008-04-21T10:05:12Z" Validity="500">
-            <ID>location1</ID>
+            <ID>urn:ogf:Location:Hungary/HU-1200/Budapest/Victor+Hugo+11</ID>
             <Name>Budapest, Hungary</Name>
 	        <Address>Victor Hugo 11</Address>
 	        <Place>Budapest</Place>
@@ -24,14 +24,16 @@
 	        <Longitude>19.05</Longitude>
         </Location>
         <Contact CreationTime="2008-04-21T10:05:12Z" Validity="500">
-            <ID>contact1</ID>
+            <ID>urn:ogf:Contact:mailto:support@niif.hu</ID>
+            <Name>User Support</Name>
             <Detail>mailto:support@niif.hu</Detail>
             <Type>usersupport</Type>
 	        <OtherInfo>Only for NIIF users</OtherInfo>
         </Contact>
         <Contact CreationTime="2008-04-21T10:05:12Z" Validity="500">
-            <ID>contact2</ID>
-            <URL>http:www.niif.hu/contacts</URL>
+            <ID>urn:ogf:Contact:http://www.niif.hu/contacts</ID>
+            <Name>Who to contact</Name>
+            <URL>http://www.niif.hu/contacts</URL>
             <Type>general</Type>
 	        <OtherInfo>E-mail is preferred</OtherInfo>
         </Contact>
@@ -46,14 +48,17 @@
 		        <QualityLevel>preproduction</QualityLevel>
 		        <StatusInfo>http://arex.niif.hu/status</StatusInfo>
 		        <Complexity>endpoint=1,share=2,manager=1</Complexity>
-		        <Location>
+		        <Location CreationTime="2008-04-21T10:05:12Z" Validity="500">
 		            <ID>location2</ID>
 		            <Name>...</Name>
+                    <OtherInfo></OtherInfo>
 		        </Location>
-		        <Contact>
+		        <Contact CreationTime="2008-04-21T10:05:12Z" Validity="500">>
 		            <ID>contact3</ID>
+		            <Name>contact3</Name>
                     <Detail>...</Detail>
 		            <Type>...</Type>
+                    <OtherInfo></OtherInfo>
 		        </Contact>   
                 <!-- Computing service specific attributes -->
                 <TotalJobs>36</TotalJobs>
@@ -62,7 +67,7 @@
                 <StagingJobs>7</StagingJobs>
 		        <SuspendedJobs>4</SuspendedJobs>
                 <PreLRMSWaitingJobs>16</PreLRMSWaitingJobs>
-		        <Endpoint CreationTime="2008-04-21T10:05:12Z" Validity="500">
+		        <Endpoint CreationTime="2008-04-21T10:05:12Z" Validity="500" BaseType="Endpoint">
                     <ID>endpoint1</ID>
                     <URL>https://129.12.231:60000/delegation</URL>
                     <Capability>security.delegation</Capability>
@@ -149,13 +154,15 @@
 			        <ReservationPolicy>none</ReservationPolicy>
 			        <Tag>HEPPO</Tag>
 			        <Tag>MIT12</Tag>			
-			        <MappingPolicy/>
+			        <MappingPolicy CreationTime="2008-04-21T10:05:12Z" Validity="500" BaseType="Policy"/>
 			        <Associations>
 			            <ComputingEndpointID>..</ComputingEndpointID>
 			            <ExecutionEnvironmentID>..</ExecutionEnvironmentID>
 			        </Associations>			
 			        <ComputingActivities>
-                        <ComputingActivity>..</ComputingActivity>
+                        <ComputingActivity CreationTime="2008-04-21T10:05:12Z" Validity="500" BaseType="Activity">
+fill this in
+                        </ComputingActivity>
                     </ComputingActivities>
 		        </ComputingShare>		    
 	            <ComputingShare CreationTime="2008-04-21T10:05:12Z" Validity="500" BaseType="Share">	    
@@ -200,27 +207,31 @@
         			<ReservationPolicy>none</ReservationPolicy>
         			<Tag>TT1</Tag>
         			<Tag>HH12</Tag> 			
-        			<MappingPolicy/>
+        			<MappingPolicy CreationTime="2008-04-21T10:05:12Z" Validity="500" BaseType="Policy"/>
         			<Associations>
         			    <ComputingEndpointID>..</ComputingEndpointID>
         			    <ExecutionEnvironmentID>..</ExecutionEnvironmentID>
         			</Associations>				
 			        <ComputingActivities>
-                        <ComputingActivity>..</ComputingActivity>
+                        <ComputingActivity CreationTime="2008-04-21T10:05:12Z" Validity="500" BaseType="Activity">
+                        </ComputingActivity>
                     </ComputingActivities>
         		</ComputingShare>
 		    
-                <ComputingManager CreationTime="2008-04-21T10:05:12Z" Validity="500" BaseType="Resource">
+                <ComputingManager CreationTime="2008-04-21T10:05:12Z" Validity="500" BaseType="Manager">
                     <ID>comuting-manager-1</ID>
                     <Name>Cluster A</Name>
                     <!-- Comuting Resource specific attributes -->
-		            <Benchmark>
-		                <ID></ID>
-			            <Type>SPECINT2000</Type>
+		            <Benchmark CreationTime="2008-04-21T10:05:12Z" Validity="500">
+		                <ID>urn:ogf:Benchmark:specint2000:399</ID>
+		                <Name></Name>
+		                <OtherInfo>Compiler: gcc version 3.4.6 20060404</OtherInfo>
+		                <OtherInfo>Optimization flags: -O5 -msse3</OtherInfo>
+			            <Type>specint2000</Type>
 			            <Value>399</Value>
 		            </Benchmark>		    	
 		        <ApplicationEnvironments>
-		            <ApplicationEnvironment>
+		            <ApplicationEnvironment CreationTime="2008-04-21T10:05:12Z" Validity="500">
 			            <ID>..</ID> 
 			            <ApplicationHandle>
 			                <ID>..</ID>
@@ -229,12 +240,12 @@
 			                <ExecutionEnvironmentID>..</ExecutionEnvironmentID>
 			            </Associations>
 			        </ApplicationEnvironment>		    
-		            <ApplicationEnvironment>
+		            <ApplicationEnvironment CreationTime="2008-04-21T10:05:12Z" Validity="500">
 			            <ID>..</ID> 
 			        </ApplicationEnvironment>										
 		        </ApplicationEnvironments>
                 <ExecutionEnvironments>
-                    <ExecutionEnvironment> <!--there is only one, it is a homogeneous cluster-->
+                    <ExecutionEnvironment CreationTime="2008-04-21T10:05:12Z" Validity="500" BaseType="Resource"> <!--there is only one, it is a homogeneous cluster-->
 			            <ID>..</ID> 
 		                <Benchmark>
 		                    <ID></ID>
@@ -254,7 +265,7 @@
                 <ID></ID>
             </ComputingManager>
 	    </ComputingService>
-        <Service CreationTime="2008-04-21T10:05:12Z" Validity="500">
+        <Service CreationTime="2008-04-21T10:05:12Z" Validity="500" BaseType="Service">
             <ID></ID>
         </Service>
             
@@ -262,11 +273,11 @@
         <StorageService CreationTime="2008-04-21T10:05:12Z" Validity="500"  BaseType="Service"> <!--not complete, just the skeleton elements-->
 	        <ID>[URI]</ID>
 	        <StorageEndpoint>
-		    <AccessPolicy/> 
+		    <AccessPolicy CreationTime="2008-04-21T10:05:12Z" Validity="500" BaseType="Policy"/> 
 		    <Associations/>		        
 		</StorageEndpoint>
-		<StorageEndpoint>
-		    <AccessPolicy/> 
+		<StorageEndpoint CreationTime="2008-04-21T10:05:12Z" Validity="500" BaseType="Endpoint">
+		    <AccessPolicy CreationTime="2008-04-21T10:05:12Z" Validity="500" BaseType="Policy"/> 
 		    <Associations/>			
 		</StorageEndpoint>
 	        <StorageAccessProtocol></StorageAccessProtocol>
@@ -275,28 +286,28 @@
 		<StorageShares>
 		    <StorageShare CreationTime="2008-04-21T10:05:12Z" Validity="500" BaseType="Share">
 		        <StorageShareCapacity/>
-			<MappingPolicy>
+			<MappingPolicy CreationTime="2008-04-21T10:05:12Z" Validity="500" BaseType="Policy">
 			    <ID>idxx</ID>
 			    <Scheme>basic</Scheme>
 			    <Rule>VO:ATLAS</Rule>
 			</MappingPolicy>			
 		    </StorageShare>
 		    <StorageShare CreationTime="2008-04-21T10:05:12Z" Validity="500" BaseType="Share">
-			<MappingPolicy>
+			<MappingPolicy CreationTime="2008-04-21T10:05:12Z" Validity="500" BaseType="Policy">
 			    <ID>idxx</ID>
 			    <Scheme>basic</Scheme>
 			    <Rule>VO:BIO</Rule>
 			</MappingPolicy>			    
 		    </StorageShare>
 		    <StorageShare CreationTime="2008-04-21T10:05:12Z" Validity="500" BaseType="Share">
-			<MappingPolicy>
+			<MappingPolicy CreationTime="2008-04-21T10:05:12Z" Validity="500" BaseType="Policy">
 			    <ID>idxx</ID>
 			    <Scheme>basic</Scheme>
 			    <Rule>VO:GEO</Rule>
 			</MappingPolicy>		    
 		    </StorageShare>		    		    
 		</StorageShares>		
-		<StorageResource>
+		<StorageResource CreationTime="2008-04-21T10:05:12Z" Validity="500" BaseType="Resource">
 		    <DataStore>
 		        <Associations/>
 		    </DataStore>
@@ -316,13 +327,18 @@
     </AdminDomain>
     
     <UserDomain CreationTime="2008-04-21T10:05:12Z" Validity="500" BaseType="Domain">
-    	<ID>[URI]</ID>
+    	<ID>urn:ogf:UserDomain:voms:atlas</ID>
 	    <Name>ATLAS VO</Name>
 	    <Description>HEP ATLAS USER GROUP</Description>
 	    <WWW>http://www.cern.ch/ATLAS-VO</WWW>
 	    <Otherinfo>AUP document is available on VO webpage</Otherinfo>
 	    <Level>0</Level>
-	    <ManagerEndpoint>[URI]</ManagerEndpoint>
+	    <ManagerService>[URI]</ManagerService>
+        <Member></Member>
+        <Location CreationTime="2008-04-21T10:05:12Z" Validity="500">>
+        </Location>
+        <Contact CreationTime="2008-04-21T10:05:12Z" Validity="500">>
+        </Contact>
     </UserDomain>
     <UserDomain CreationTime="2008-04-21T10:05:12Z" Validity="500" BaseType="Domain">
         <ID></ID>
