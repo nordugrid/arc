@@ -1010,7 +1010,8 @@ if test x$XMLSEC_INSTALLED = xyes ; then enable_saml=yes; fi
 
 # Check for LDAP
 
-AC_CHECK_HEADER(ldap.h, [LDAP=yes], [LDAP=no])
+AC_CHECK_HEADER(ldap.h, [
+LDAP=yes
 
 SAVE_LDFLAGS=$LDFLAGS
 
@@ -1033,6 +1034,26 @@ AC_CHECK_LIB([ldap_r], [ldap_first_message], [
 AC_CHECK_LIB([lber], [ber_init], [LDAP_LIBS="$LDAP_LIBS -llber"], []) 
 AC_SUBST(LDAP_LIBS)
 LDFLAGS=$SAVE_LDFLAGS
+],
+
+[
+  LDAP=no
+
+  # Try native LDAP on Win32 if OpenLDAP fails
+  case "${host}" in
+    *-*-mingw32)
+  AC_CHECK_HEADER([winldap.h],
+  [
+    AC_CHECK_LIB([wldap32], [ldap_init],
+    [
+      LDAP=yes
+      LDAP_LIBS="-lwldap32"
+      AC_DEFINE(USE_WIN32_LDAP_API,,[Define if using WIN32 LDAP API])
+    ])
+  ], [], [[#include <windows.h>]]) ;; 
+  esac
+
+])
 
 AM_CONDITIONAL([LDAP_ENABLED], test x$LDAP = xyes)
 enable_ldap="$LDAP"

@@ -4,12 +4,36 @@
 #include "config.h"
 #endif
 
+#ifdef WIN32
+#include <arc/win32.h> 
+#endif
+
 #include <cstring>
 #include <iostream>
 #include <list>
 #include <string>
 
+#ifdef USE_WIN32_LDAP_API
+#include <winldap.h>
+
+#define timeval l_timeval
+
+# ifndef ldap_msgtype
+# define ldap_msgtype(m) ((m)->lm_msgtype)
+# endif
+
+# ifndef ldap_first_message
+# define ldap_first_message ldap_first_entry
+# endif
+
+# ifndef ldap_next_message
+# define ldap_next_message ldap_next_entry
+# endif
+
+#else
 #include <ldap.h>
+#endif
+
 #include <sys/time.h>
 #include <unistd.h>
 
@@ -18,6 +42,10 @@
 #endif
 #ifdef HAVE_SASL_SASL_H
 #include <sasl/sasl.h>
+#endif
+
+#ifndef LDAP_SASL_SIMPLE
+#define LDAP_SASL_SIMPLE 0 /* Does not exist in Win32 LDAP */
 #endif
 
 #ifndef LDAP_SASL_QUIET
@@ -53,7 +81,7 @@ namespace Arc {
       freeit = ((--count) <= 0);
       cond.unlock();
       if(freeit) {
-        if(connection) ldap_unbind_ext(connection,NULL,NULL);
+        if(connection) ldap_unbind(connection);
         delete this;
       }
       return freeit;
@@ -254,7 +282,7 @@ namespace Arc {
   LDAPQuery::~LDAPQuery() {
 
     if (connection) {
-      ldap_unbind_ext(connection, NULL, NULL);
+      ldap_unbind(connection);
       connection = NULL;
     }
   }
@@ -276,7 +304,11 @@ namespace Arc {
     ldap_initialize(&connection,
                     ("ldap://" + host + ':' + tostring(port)).c_str());
 #else
+#ifdef USE_WIN32_LDAP_API
+    connection = ldap_init(const_cast<char *>(host.c_str()), port);
+#else
     connection = ldap_init(host.c_str(), port);
+#endif
 #endif
 
     if (!connection) {
@@ -285,7 +317,7 @@ namespace Arc {
     }
 
     if (!SetConnectionOptions(version)) {
-      ldap_unbind_ext(connection, NULL, NULL);
+      ldap_unbind(connection);
       connection = NULL;
       return false;
     }
@@ -450,14 +482,22 @@ namespace Arc {
     }
 
     int ldresult = ldap_search_ext(connection,
+#ifdef USE_WIN32_LDAP_API
+                                   const_cast<char *>(base.c_str()),
+#else
                                    base.c_str(),
+#endif
                                    scope,
                                    filt,
                                    attrs,
                                    0,
                                    NULL,
                                    NULL,
+#ifdef USE_WIN32_LDAP_API
+                                   timeout,
+#else
                                    &tout,
+#endif
                                    0,
                                    &messageid);
 
@@ -466,7 +506,7 @@ namespace Arc {
 
     if (ldresult != LDAP_SUCCESS) {
       logger.msg(ERROR, "%s (%s)", ldap_err2string(ldresult), host);
-      ldap_unbind_ext(connection, NULL, NULL);
+      ldap_unbind(connection);
       connection = NULL;
       return false;
     }
@@ -479,7 +519,7 @@ namespace Arc {
 
     bool result = HandleResult(callback, ref);
 
-    ldap_unbind_ext(connection, NULL, NULL);
+    ldap_unbind(connection);
     connection = NULL;
     messageid = 0;
 
