@@ -32,6 +32,7 @@ class Service:
     def __init__(self, request_config, cfg = None):
         self._trust_manager = []
         self.ssl_config = {}
+        self._force_trust = False
         if cfg:
             self.ssl_config = parse_ssl_config(cfg)
             trust_manager_node = cfg.Get('TrustManager')
