@@ -14,9 +14,6 @@
 #include <arc/win32.h>
 #include "Run.h"
 
-#define BUFSIZE 4096 
-
-
 namespace Arc {
 
   struct PipeThreadArg {
@@ -103,50 +100,12 @@ namespace Arc {
       saAttr.nLength = sizeof(SECURITY_ATTRIBUTES); 
       saAttr.bInheritHandle = TRUE; 
       saAttr.lpSecurityDescriptor = NULL; 
-
-      HANDLE g_hChildStd_OUT_Rd = NULL;
-      HANDLE g_hChildStd_OUT_Wr = NULL;
-      HANDLE g_hChildStd_ERR_Rd = NULL;
-      HANDLE g_hChildStd_ERR_Wr = NULL;
-      HANDLE g_hChildStd_IN_Rd = NULL;
-      HANDLE g_hChildStd_IN_Wr = NULL;
-
-      HANDLE g_hOutputFile = NULL;
-      HANDLE g_hErrorFile = NULL;
-      HANDLE g_hInputFile = NULL;
-
-      // Create pipe for child process stdout
-
-      if ( ! CreatePipe(&g_hChildStd_OUT_Rd, &g_hChildStd_OUT_Wr, &saAttr, 0) )  
-        throw "StdoutRd create pipe error!";
       
-      if ( ! SetHandleInformation(g_hChildStd_OUT_Rd, HANDLE_FLAG_INHERIT, 0) )
-        throw "Stdout SetHandleInformation error";
-
-      // Create pipe for child process stderr
-
-      if ( ! CreatePipe(&g_hChildStd_ERR_Rd, &g_hChildStd_ERR_Wr, &saAttr, 0) ) 
-        throw "StderrRd create pipe error!";
-      
-      if ( ! SetHandleInformation(g_hChildStd_ERR_Rd, HANDLE_FLAG_INHERIT, 0) )
-        throw "Stderr SetHandleInformation error";
-
-      // Create pipe for child process stdin
-
-      if ( ! CreatePipe(&g_hChildStd_IN_Rd, &g_hChildStd_IN_Wr, &saAttr, 0) ) 
-        throw "StdinRd create pipe error!";
-      
-      if ( ! SetHandleInformation(g_hChildStd_IN_Wr, HANDLE_FLAG_INHERIT, 0) )
-        throw "Stdin SetHandleInformation error";
-
       STARTUPINFO startupinfo;
       memset(&startupinfo, 0, sizeof(startupinfo));
-
       startupinfo.cb = sizeof(STARTUPINFO);
-      startupinfo.hStdError = g_hChildStd_ERR_Wr;
-      startupinfo.hStdOutput = g_hChildStd_OUT_Wr;
-      startupinfo.hStdInput = g_hChildStd_IN_Rd;
-      startupinfo.dwFlags |= STARTF_USESTDHANDLES;
+
+      // TODO: stdin, stdout, stderr redirections (Apache/BSD license)
 
       char **args = const_cast<char**>(argv_.data());
       std::string cmd = "";
@@ -170,122 +129,15 @@ namespace Arc {
         return false;
       }
       started_ = true;
-
-      if (stdin_str_ != NULL) {
-
-      g_hInputFile = CreateFile(
-         (working_directory + "\\" + (*stdin_str_)).c_str(), 
-         GENERIC_READ, 
-         0, 
-         NULL, 
-         OPEN_EXISTING, 
-         FILE_ATTRIBUTE_READONLY, 
-         NULL); 
-       
-   if ( g_hInputFile == INVALID_HANDLE_VALUE ) 
-      throw "Stdin file open error";
-
-   if ( ! CloseHandle(g_hChildStd_IN_Wr) ) 
-      throw "StdInWr CloseHandle error";
-
-   PipeThreadArg *arg_in = new PipeThreadArg;
-   arg_in->child = g_hInputFile;
-   arg_in->parent = g_hChildStd_IN_Wr;
-
-   if (!CreateThreadFunction(&pipe_handler, arg_in)) {
-     delete arg_in;
-   }
-
-   } // end of the stdin handler
-
-   if (stdout_str_ != NULL) {
-
-   g_hOutputFile = CreateFile (
-         (working_directory + "\\" + (*stdout_str_)).c_str(), 
-         GENERIC_WRITE, 
-         0, 
-         NULL, 
-         CREATE_NEW, 
-         FILE_ATTRIBUTE_NORMAL, 
-         NULL); 
-       
-   if ( g_hOutputFile == INVALID_HANDLE_VALUE ) 
-     throw "Stdout file creation error";
-
-   if (!CloseHandle(g_hChildStd_OUT_Wr)) 
-     throw "StdoutWr CloseHandle error";
-
-   PipeThreadArg *arg_out = new PipeThreadArg;
-   arg_out->child = g_hChildStd_OUT_Rd;
-   arg_out->parent = g_hOutputFile;
-
-   if (!CreateThreadFunction(&pipe_handler, arg_out)) {
-     delete arg_out;
-   }
-
-   } // end of the stdout handler
-
-   if (stderr_str_ != NULL) {
-
-   g_hErrorFile = CreateFile (
-         (working_directory + "\\" + (*stderr_str_)).c_str(), 
-         GENERIC_WRITE, 
-         0, 
-         NULL, 
-         CREATE_NEW, 
-         FILE_ATTRIBUTE_NORMAL, 
-         NULL); 
-
-   if ( g_hErrorFile == INVALID_HANDLE_VALUE ) 
-      throw "Stderr file creation error";
-
-   if (!CloseHandle(g_hChildStd_ERR_Wr)) 
-      throw "StdErrWr CloseHandle error";
-
-   PipeThreadArg *arg_err = new PipeThreadArg;
-   arg_err->child = g_hChildStd_ERR_Rd;
-   arg_err->parent = g_hErrorFile;
-
-   if (!CreateThreadFunction(&pipe_handler, arg_err)) {
-     delete arg_err;
-   }
-
-   } // end of the stderr handler
-
-    } // end of the try block
-
-    catch(char * str) {
-       std::cerr << "Exception raised: " << str << std::endl;
     }
-    catch (std::exception& e) {
-      running_ = false;
-      std::cerr << e.what() << std::endl;
-      return false;
+    catch (std::exception &e) {
+        std::cerr << e.what() << std::endl;
+        return false;
     }
     catch (Glib::Exception& e) {
       std::cerr << e.what() << std::endl;
     }
     return true;
-  }
-
-  void pipe_handler(void *arg) {
-    DWORD dwRead, dwWritten; 
-    CHAR chBuf[BUFSIZE];
-    BOOL bSuccess = FALSE;
-
-    PipeThreadArg *thrarg = (PipeThreadArg*)arg;
-
-    for (;;) {
-      bSuccess = ReadFile(thrarg->child, chBuf, BUFSIZE, &dwRead, NULL);
-      if( ! bSuccess || dwRead == 0 ) break;
-
-      bSuccess = WriteFile(thrarg->parent, chBuf, 
-                           dwRead, &dwWritten, NULL);
-      if (! bSuccess ) break; 
-    } 
-
-    if (!CloseHandle(thrarg->parent)) 
-      throw "Parent CloseHandle";
   }
 
   void Run::Kill(int timeout) {
