@@ -93,9 +93,6 @@ namespace Arc {
     try {
       running_ = true;
  
-      // Stdin, stdout, stderr redirect code is from here:
-      // http://msdn.microsoft.com/en-us/library/ms682499(VS.85).aspx
-
       SECURITY_ATTRIBUTES saAttr; 
       saAttr.nLength = sizeof(SECURITY_ATTRIBUTES); 
       saAttr.bInheritHandle = TRUE; 
