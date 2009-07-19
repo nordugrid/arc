@@ -4,6 +4,8 @@ from arcom.security import parse_ssl_config, AuthRequest
 from arcom.logger import Logger
 log = Logger(arc.Logger(arc.Logger_getRootLogger(), 'EchoService.py'))
 
+import threading
+
 class EchoService:
 
     def __init__(self, cfg):
@@ -14,6 +16,30 @@ class EchoService:
         self.suffix = str(cfg.Get('suffix'))
         log.msg("EchoService (python) has prefix '%s' and suffix '%s'" % (self.prefix, self.suffix))
         self.ssl_config = parse_ssl_config(cfg)
+        thread_test = str(cfg.Get('ThreadTest'))
+        if thread_test:
+            threading.Thread(target = self.infinite, args=[thread_test]).start()
+        
+    def __del__(self):
+        print "__del__"
+        log.msg(arc.ERROR, "__del__")
+        
+    def infinite(self, url):
+        log.msg(arc.INFO, "EchoService (python) thread test starting")
+        i = 0
+        while True:
+            try:
+                i += 1
+                cfg = arc.MCCConfig()
+                s = arc.ClientSOAP(cfg, arc.URL(url))
+                ns = arc.NS('echo', 'urn:echo')
+                outpayload = arc.PayloadSOAP(ns)
+                outpayload.NewChild('echo:echo').NewChild('echo:say').Set('hi!')
+                resp, status = s.process(outpayload)
+                log.msg(arc.INFO, "EchoService (python) thread test, iteration", i, status)
+                time.sleep(3)
+            except Exception, e:
+                log.msg()                
 
     def RegistrationCollector(self, doc):
         regentry = arc.XMLNode('<RegEntry />')
