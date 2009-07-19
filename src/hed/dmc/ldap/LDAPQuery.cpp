@@ -48,6 +48,10 @@
 #include <sasl/sasl.h>
 #endif
 
+#ifndef LDAP_SASL_SIMPLE
+#define LDAP_SASL_SIMPLE 0 /* Does not exist in Win32 LDAP */
+#endif
+
 #ifndef LDAP_SASL_QUIET
 #define LDAP_SASL_QUIET 0  /* Does not exist in Solaris LDAP */
 #endif
