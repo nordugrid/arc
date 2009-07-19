@@ -30,6 +30,10 @@
 # define ldap_next_message ldap_next_entry
 # endif
 
+# ifndef ldap_unbind_ext
+# define ldap_unbind_ext(l,s,c) ldap_unbind(l)
+# endif
+
 #else
 #include <ldap.h>
 #endif
@@ -42,10 +46,6 @@
 #endif
 #ifdef HAVE_SASL_SASL_H
 #include <sasl/sasl.h>
-#endif
-
-#ifndef LDAP_SASL_SIMPLE
-#define LDAP_SASL_SIMPLE 0 /* Does not exist in Win32 LDAP */
 #endif
 
 #ifndef LDAP_SASL_QUIET
@@ -81,7 +81,7 @@ namespace Arc {
       freeit = ((--count) <= 0);
       cond.unlock();
       if(freeit) {
-        if(connection) ldap_unbind(connection);
+        if(connection) ldap_unbind_ext(connection,NULL,NULL);
         delete this;
       }
       return freeit;
@@ -282,7 +282,7 @@ namespace Arc {
   LDAPQuery::~LDAPQuery() {
 
     if (connection) {
-      ldap_unbind(connection);
+      ldap_unbind_ext(connection, NULL, NULL);
       connection = NULL;
     }
   }
@@ -317,7 +317,7 @@ namespace Arc {
     }
 
     if (!SetConnectionOptions(version)) {
-      ldap_unbind(connection);
+      ldap_unbind_ext(connection, NULL, NULL);
       connection = NULL;
       return false;
     }
@@ -506,7 +506,7 @@ namespace Arc {
 
     if (ldresult != LDAP_SUCCESS) {
       logger.msg(ERROR, "%s (%s)", ldap_err2string(ldresult), host);
-      ldap_unbind(connection);
+      ldap_unbind_ext(connection, NULL, NULL);
       connection = NULL;
       return false;
     }
@@ -519,7 +519,7 @@ namespace Arc {
 
     bool result = HandleResult(callback, ref);
 
-    ldap_unbind(connection);
+    ldap_unbind_ext(connection, NULL, NULL);
     connection = NULL;
     messageid = 0;
 
