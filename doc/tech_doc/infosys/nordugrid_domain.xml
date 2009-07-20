@@ -241,8 +241,8 @@
 			        <Associations>
 			            <ComputingEndpointID>urn:ogf:Endpoint:ce01.niif.hu:60000/delegation</ComputingEndpointID>
 			            <ComputingEndpointID>urn:ogf:ComputingEndpoint:ce01.niif.hu:60000/arex</ComputingEndpointID>
-			            <ExecutionEnvironmentID>..</ExecutionEnvironmentID>
-        			    <ExecutionEnvironmentID>..</ExecutionEnvironmentID>
+			            <ExecutionEnvironmentID>urn:ogf:ExecutionEnvironment:HU/NIIF/PGS-CE/torque/dualcore</ExecutionEnvironmentID>
+        			    <ExecutionEnvironmentID>urn:ogf:ExecutionEnvironment:HU/NIIF/PGS-CE/torque/dualsocket</ExecutionEnvironmentID>
 			        </Associations>			
 			        <ComputingActivities>
                         <ComputingActivity CreationTime="2008-04-21T10:05:12Z" Validity="500" BaseType="Activity">
@@ -395,7 +395,7 @@
         			<Associations>
 			            <ComputingEndpointID>urn:ogf:Endpoint:ce01.niif.hu:60000/delegation</ComputingEndpointID>
 			            <ComputingEndpointID>urn:ogf:ComputingEndpoint:ce01.niif.hu:60000/arex</ComputingEndpointID>
-        			    <ExecutionEnvironmentID>..</ExecutionEnvironmentID>
+			            <ExecutionEnvironmentID>urn:ogf:ExecutionEnvironment:HU/NIIF/PGS-CE/torque/dualcore</ExecutionEnvironmentID>
         			</Associations>				
 			        <ComputingActivities>
                     </ComputingActivities>
@@ -510,8 +510,73 @@
                     </ApplicationEnvironments>
                     <ExecutionEnvironments>
                         <ExecutionEnvironment CreationTime="2008-04-21T10:05:12Z" Validity="500" BaseType="Resource">
+                            <ID>urn:ogf:ExecutionEnvironment:HU/NIIF/PGS-CE/torque/dualsocket</ID>
+                            <Name>dualsocket</Name>
+                            <Platform>amd64</Platform>
+                            <VirtualMachine>false</VirtualMachine>
+                            <TotalInstances>16</TotalInstances>
+                            <UsedInstances>15</UsedInstances>
+                            <UnavailableInstances>1</UnavailableInstances>
+                            <PhysicalCPUs>2</PhysicalCPUs>
+                            <LogicalCPUs>4</LogicalCPUs>
+                            <CPUMultiplicity>multicpu-multicore</CPUMultiplicity>
+                            <CPUVendor>AMD</CPUVendor>
+                            <CPUModel>Dual Core AMD Opteron(tm) Processor 275</CPUModel>
+                            <CPUVersion>2</CPUVersion>
+                            <CPUClockSpeed>2193</CPUClockSpeed>
+                            <CPUTimeScalingFactor>2.45</CPUTimeScalingFactor>
+                            <WallTimeScalingFactor>2.45</WallTimeScalingFactor>
+                            <MainMemorySize>4096</MainMemorySize>
+                            <VirtualMemorySize>20230</VirtualMemorySize>
+                            <OSFamily>linux</OSFamily>
+                            <OSName>centos</OSName>
+                            <OSVersion>5.4</OSVersion>
+                            <ConnectivityIn>false</ConnectivityIn>
+                            <ConnectivityOut>false</ConnectivityOut>
+                            <NetworkInfo>1000BASE-T</NetworkInfo>
+                            <NetworkInfo>InfiniBand</NetworkInfo>
+                            <Associations>
+                                <ComputingShareID>urn:ogf:ComputingShare:HU/NIIF/PGS-CE/atlas</ComputingShareID>
+                                <ComputingActivityID>urn:ogf:ComputingActivity:ce01.niif.hu:60000/arex/123456</ComputingActivityID>
+                                <ComputingActivityID>urn:ogf:ComputingActivity:ce01.niif.hu:60000/arex/123561</ComputingActivityID>
+                                <ComputingActivityID>urn:ogf:ComputingActivity:ce01.niif.hu:60000/arex/123562</ComputingActivityID>
+                                <ComputingActivityID>urn:ogf:ComputingActivity:ce01.niif.hu:60000/arex/123563</ComputingActivityID>
+                                <ComputingActivityID>urn:ogf:ComputingActivity:ce01.niif.hu:60000/arex/123564</ComputingActivityID>
+                                <ApplicationEnvironmentID>urn:ogf:ApplicationEnvironment:HU/NIIF/PGS-CE/torque/ENV/JAVA/JRE-1.4.2</ApplicationEnvironmentID>
+                                <ApplicationEnvironmentID>urn:ogf:ApplicationEnvironment:HU/NIIF/PGS-CE/torque/APPS/HEP/TEST-ATLAS-13.0.20</ApplicationEnvironmentID>
+                            </Associations>
                         </ExecutionEnvironment>
                         <ExecutionEnvironment CreationTime="2008-04-21T10:05:12Z" Validity="500" BaseType="Resource">
+                            <ID>urn:ogf:ExecutionEnvironment:HU/NIIF/PGS-CE/torque/dualcore</ID>
+                            <Name>dualcore</Name>
+                            <Platform>amd64</Platform>
+                            <VirtualMachine>false</VirtualMachine>
+                            <TotalInstances>16</TotalInstances>
+                            <UsedInstances>2</UsedInstances>
+                            <UnavailableInstances>0</UnavailableInstances>
+                            <PhysicalCPUs>1</PhysicalCPUs>
+                            <LogicalCPUs>2</LogicalCPUs>
+                            <CPUMultiplicity>single-multicore</CPUMultiplicity>
+                            <CPUVendor>Intel</CPUVendor>
+                            <CPUModel>Intel(R) Core(TM)2 CPU E8500</CPUModel>
+                            <CPUVersion>2</CPUVersion>
+                            <CPUClockSpeed>3820</CPUClockSpeed>
+                            <CPUTimeScalingFactor>4.45</CPUTimeScalingFactor>
+                            <WallTimeScalingFactor>4.45</WallTimeScalingFactor>
+                            <MainMemorySize>2048</MainMemorySize>
+                            <VirtualMemorySize>10230</VirtualMemorySize>
+                            <OSFamily>linux</OSFamily>
+                            <OSName>gentoo</OSName>
+                            <OSVersion>2.6</OSVersion>
+                            <ConnectivityIn>false</ConnectivityIn>
+                            <ConnectivityOut>true</ConnectivityOut>
+                            <NetworkInfo>1000BASE-T</NetworkInfo>
+                            <Associations>
+                                <ComputingShareID>urn:ogf:ComputingShare:HU/NIIF/PGS-CE/niif</ComputingShareID>
+                                <ComputingActivityID>urn:ogf:ComputingActivity:ce01.niif.hu:60000/arex/123343</ComputingActivityID>
+                                <ComputingActivityID>urn:ogf:ComputingActivity:ce01.niif.hu:60000/arex/124545</ComputingActivityID>
+                                <ApplicationEnvironmentID>urn:ogf:ApplicationEnvironment:HU/NIIF/PGS-CE/torque/ENV/JAVA/JRE-1.4.2</ApplicationEnvironmentID>
+                            </Associations>
                         </ExecutionEnvironment>
                     </ExecutionEnvironments>
                 </ComputingManager>
