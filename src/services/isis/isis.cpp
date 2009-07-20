@@ -568,7 +568,7 @@ static void soft_state_thread(void *data) {
             Arc::SOAPEnvelope fault(ns_, true);
             if (fault) {
                 fault.Fault()->Code(Arc::SOAPFault::Sender);
-                fault.Fault()->Reason("Invalid query");
+                fault.Fault()->Reason("Invalid query (It is empty.)");
                 response.Replace(fault.Child());
             }
             return Arc::MCC_Status();
@@ -583,7 +583,18 @@ static void soft_state_thread(void *data) {
             }
             Arc::XMLNode data_;
             //The next function calling is db_->get(ServiceID, RegistrationEntry);
-            db_->get(it->first, data_);
+            try {
+                db_->get(it->first, data_);
+            } catch ( std::exception &e ) {
+                Arc::SOAPEnvelope fault(ns_, true);
+                if (fault) {
+                    fault.Fault()->Code(Arc::SOAPFault::Sender);
+                    fault.Fault()->Reason("Invalid query (not supported expression)");
+                    fault.Fault()->Reason(e.what());
+                    response.Replace(fault.Child());
+                }
+                return Arc::MCC_Status();
+            }
             // add data to output
             response.NewChild(data_);
         }
