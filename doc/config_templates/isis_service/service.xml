@@ -14,6 +14,9 @@
     <!-- Contact and behavior details of the InfoRegsitrar element-->
     <infosys:URL>http://knowarc3.grid.niif.hu:50000/isis1</infosys:URL>
     <!-- Retry node is missing - default value: 5 will be used -->
+    <!-- Security elements -->
+    <CertificatePath>/home/user/cert.pem</CertificatePath>
+    <CACertificatesDir>/etc/grid-security/certificates</CACertificatesDir>
   </infosys:InfoRegistrar>
 
   <!--Other plugins-->
@@ -37,6 +40,10 @@
         <InfoProviderISIS>
             <URL>http://knowarc3.grid.niif.hu:50000/isis1</URL>
         </InfoProviderISIS>
+        <!-- Security elements -->
+        <KeyPath>/home/user/key_open.pem</KeyPath>
+        <CertificatePath>/home/user/cert.pem</CertificatePath>
+        <CACertificatesDir>/etc/grid-security/certificates</CACertificatesDir>
         <!-- This element explicitly sais that the service have not to be registered.
             It has the same effect then the missing InfoRegister element. -->
         <infosys:NoRegister />
