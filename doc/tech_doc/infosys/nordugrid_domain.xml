@@ -5,8 +5,8 @@
               xsi:schemaLocation="http://schemas.ogf.org/glue/2009/03/spec/2/0 ../xsd/GLUE2.xsd">
     
     <AdminDomain CreationTime="2008-04-21T10:05:12Z" Validity="500" BaseType="Domain">
-        <ID>urn:ogf:AdminDomain:NIIF-TOP.niif.hu</ID>
-        <Name>NIIF-TOP</Name> <!-- string -->
+        <ID>urn:ogf:AdminDomain:HU/NIIF-TOP</ID>
+        <Name>HU/NIIF-TOP</Name> <!-- string -->
 	    <OtherInfo>Top domain of the Hungarian Clustergrid</OtherInfo>
 	    <Description>This is the main NIIF admin unit</Description>        
 	    <WWW>http://www.niif.hu</WWW>
@@ -25,7 +25,7 @@
         </Location>
         <Contact CreationTime="2008-04-21T10:05:12Z" Validity="500">
             <ID>urn:ogf:Contact:mailto:support@niif.hu</ID>
-            <Name>User Support</Name>
+            <Name>NIIF User Support</Name>
             <Detail>mailto:support@niif.hu</Detail>
             <Type>usersupport</Type>
 	        <OtherInfo>Only for NIIF users</OtherInfo>
@@ -40,26 +40,38 @@
 
         <Services>
             <ComputingService CreationTime="2008-04-21T10:05:12Z" Validity="500"  BaseType="Service">
-                <ID>urn:ogf:ComputingService:arex.niif.hu:8000</ID>
-		        <Name>NIIF CE</Name>
+                <ID>urn:ogf:ComputingService:HU/NIIF/PGS-CE</ID>
+		        <Name>NIIF PGS CE</Name>
 		        <Otherinfo>warning: frequent reconfiguration</Otherinfo>                                             
 		        <Capability>executionmanagement.jobexecution</Capability>
 		        <Type>org.nordugrid.arex</Type>
-		        <QualityLevel>preproduction</QualityLevel>
+		        <QualityLevel>pre-production</QualityLevel>
 		        <StatusInfo>http://arex.niif.hu/status</StatusInfo>
-		        <Complexity>endpoint=1,share=2,manager=1</Complexity>
-		        <Location CreationTime="2008-04-21T10:05:12Z" Validity="500">
-		            <ID>location2</ID>
-		            <Name>...</Name>
-                    <OtherInfo></OtherInfo>
-		        </Location>
-		        <Contact CreationTime="2008-04-21T10:05:12Z" Validity="500">>
-		            <ID>contact3</ID>
-		            <Name>contact3</Name>
-                    <Detail>...</Detail>
-		            <Type>...</Type>
-                    <OtherInfo></OtherInfo>
-		        </Contact>   
+		        <Complexity>endpointType=1,share=2,resource=1</Complexity>
+                <Location CreationTime="2008-04-21T10:05:12Z" Validity="500">  <!-- This is the same location as for AdminDomain-->
+                    <ID>urn:ogf:Location:Hungary/HU-1200/Budapest/Victor+Hugo+11</ID>
+                    <Name>Budapest, Hungary</Name>
+	                <Address>Victor Hugo 11</Address>
+	                <Place>Budapest</Place>
+	                <Country>Hungary</Country>
+	                <PostCode>HU-1200</PostCode>
+	                <Latitude>47.51</Latitude>
+	                <Longitude>19.05</Longitude>
+                </Location>
+		        <Contact CreationTime="2008-04-21T10:05:12Z" Validity="500">
+					<ID>urn:ogf:Contact:mailto:pgs-support@niif.hu</ID>
+		            <Name>PGS CE support</Name>
+                    <Detail>mailto:pgs-support@niif.hu</Detail>
+		            <Type>usersupport</Type>
+                    <OtherInfo>Only for NIIF users</OtherInfo>
+		        </Contact>
+		        <Contact CreationTime="2008-04-21T10:05:12Z" Validity="500">
+					<ID>urn:ogf:Contact:mailto:security@niif.hu</ID>
+		            <Name>NIIF security contact</Name>
+                    <Detail>mailto:security@niif.hu</Detail>
+		            <Type>security</Type>
+                    <OtherInfo>Please only security related issues</OtherInfo>
+		        </Contact>
                 <!-- Computing service specific attributes -->
                 <TotalJobs>36</TotalJobs>
                 <RunningJobs>3</RunningJobs> 
@@ -68,30 +80,73 @@
 		        <SuspendedJobs>4</SuspendedJobs>
                 <PreLRMSWaitingJobs>16</PreLRMSWaitingJobs>
 		        <Endpoint CreationTime="2008-04-21T10:05:12Z" Validity="500" BaseType="Endpoint">
-                    <ID>endpoint1</ID>
-                    <URL>https://129.12.231:60000/delegation</URL>
+                    <ID>urn:ogf:Endpoint:ce01.niif.hu:60000/delegation</ID>
+                    <Name>PGS delegating endpoint</Name>
+                    <OtherInfo>Highly experimental</OtherInfo>
+                    <URL>https://ce01.niif.hu:60000/delegation</URL>
                     <Capability>security.delegation</Capability>
                     <Technology>webservice</Technology>
-                    <InterfaceName>NORDUGRID-DELEGATION</InterfaceName>
-                    <InterfaceVersion>0.98</InterfaceVersion>
-                    <QualityLevel>preproduction</QualityLevel>
-                    <HealthState></HealthState>
-                    <ServingState></ServingState>
+                    <InterfaceName>nordugrid.delegation</InterfaceName>
+                    <InterfaceVersion>1.0</InterfaceVersion>
+                    <InterfaceVersion>1.2</InterfaceVersion>
+                    <InterfaceExtension>http://nordugrid.org/ws/idelegate</InterfaceExtension>
+                    <InterfaceExtension>http://nordugrid.org/ws/youdelegate</InterfaceExtension>
+                    <WSDL>https://ce01.niif.hu:60000/delegation/?wsdl</WSDL>
+                    <SupportedProfile>http://nordugrid.org/ws/delegation.html</SupportedProfile>
+                    <Semantics>http://nordugrid.org/docs/Delegation.pdf</Semantics>
+                    <Implementor>NorduGrid</Implementor>
+                    <ImplementationName>iDelegate</ImplementationName>
+                    <ImplementationVersion>0.05</ImplementationVersion>
+                    <QualityLevel>development</QualityLevel>
+                    <HealthState>critical</HealthState>
+                    <HealthStateInfo>Failed to start: configuration error</HealthStateInfo>
+                    <ServingState>closed</ServingState>
+                    <StartTime>2008-03-21T10:23:33Z</StartTime>
+                    <IssuerCA>/O=Grid/O=NorduGrid/CN=NorduGrid Certification Authority</IssuerCA>
+		            <TrustedCA>/O=Grid/O=NorduGrid/CN=NorduGrid Certification Authority</TrustedCA>
+		            <TrustedCA>/C=HU/O=NIIF/OU=Certificate Authorities/CN=NIIF Root CA</TrustedCA>
+                    <DowntimeAnnounce>2008-04-22T00:00:00Z</DowntimeAnnounce>
+                    <DowntimeStart>2008-04-23T08:00:00Z</DowntimeStart>
+                    <DowntimeEnd>2008-04-23T12:00:00Z</DowntimeEnd>
+                    <DowntimeInfo>Kernel upgrade</DowntimeInfo>
+                    <AccessPolicy CreationTime="2008-04-21T10:05:12Z" Validity="500" BaseType="Policy">
+                        <ID>urn:ogf:AccessPolicy:ce01.niif.hu:60000/delegation/1</ID>
+                        <Name>HEP policy </Name>
+                        <Scheme>basic</Scheme>
+                        <Rule>vo:atlas</Rule>
+                        <Rule>vo:cms</Rule>
+                    </AccessPolicy>
+                    <AccessPolicy CreationTime="2008-04-21T10:05:12Z" Validity="500" BaseType="Policy">
+                        <ID>urn:ogf:AccessPolicy:ce01.niif.hu:60000/delegation/2</ID>
+                        <Name>Testers Policy</Name>
+                        <Scheme>basic</Scheme>
+                        <Rule>vo:dteam</Rule>
+                        <Rule>dn:/DC=eu/DC=KnowARC/O=GPC-Grid/CN=demo1</Rule>
+                        <Rule>dn:/DC=eu/DC=KnowARC/O=GPC-Grid/CN=demo2</Rule>
+                        <OtherInfo>Allow users doing monitoring</OtherInfo>
+                    </AccessPolicy>
+                    <Associations>
+                        <ActivityID>https://ce01.niif.hu:60000/delegation/5345453</ActivityID>
+                        <ActivityID>https://ce01.niif.hu:60000/delegation/5345454</ActivityID>
+                    </Associations>
                 </Endpoint>
 		        <ComputingEndpoint CreationTime="2008-04-21T10:05:12Z" Validity="500" BaseType="Endpoint">
-		            <ID>computing-endpoint-1</ID>
+		            <ID>urn:ogf:ComputingEndpoint:ce01.niif.hu:60000/arex</ID>
 		            <Name>AREX</Name>
-		            <URL>https://129.12.231:60000/arex</URL>				    
+		            <URL>https://ce01.niif.hu:60000/arex</URL>				    
                     <Capability>executionmanagement.jobexecution</Capability>
 		            <Technology>webservice</Technology> 				    
 		            <InterfaceName>OGSA-BES</InterfaceName> <!-- what about extensions? -->
 		            <InterfaceVersion>1.0</InterfaceVersion>
-                    <WSDL>https://129.12.231:60000/arex/?wsdl</WSDL>
-		            <SupportedProfile>WS-I 1.0</SupportedProfile> <!-- wrong type, it should be URI--> 
-		            <SupportedProfile>HPC-BP </SupportedProfile> <!-- wrong type, it should be URI-->
+                    <InterfaceVersion>2.0</InterfaceVersion>
+                    <InterfaceExtension>http://nordugrid.org/ws/bes-ng</InterfaceExtension>
+                    <InterfaceExtension>http://nordugrid.org/ws/bes++</InterfaceExtension>
+                    <WSDL>https://ce01.niif.hu:60000/arex/?wsdl</WSDL>
+		            <SupportedProfile>http://www.ws-i.org/Profiles/BasicProfile-1.0.html</SupportedProfile> <!-- wrong type, it should be URI--> 
+		            <SupportedProfile>urn:ogf:specs:HPC-BP </SupportedProfile> <!-- wrong type, it should be URI-->
                     <Semantics>http://www.nordugrid.org/documents/arex.pdf </Semantics>
                     <Implementor>NorduGrid</Implementor>
-		            <ImplementationName>ARC1</ImplementationName>
+		            <ImplementationName>ARC</ImplementationName>
 		            <ImplementationVersion>0.9</ImplementationVersion>
 		            <QualityLevel>testing</QualityLevel>
 		            <HealthState>ok</HealthState>
@@ -100,61 +155,79 @@
 		            <StartTime>2008-04-12T09:47:53+01:00</StartTime>
 		            <IssuerCA>/O=Grid/O=NorduGrid/CN=NorduGrid Certification Authority</IssuerCA>
 		            <TrustedCA>/O=Grid/O=NorduGrid/CN=NorduGrid Certification Authority</TrustedCA>
-                    <DowntimeAnnounce>2008-03-12T09:59:56+01:00</DowntimeAnnounce>
-		            <DowntimeStart>2008-04-29T09:57:56+01:00</DowntimeStart>
-		            <DowntimeEnd>2008-04-30T09:59:56+01:00</DowntimeEnd>
+		            <TrustedCA>/C=HU/O=NIIF/OU=Certificate Authorities/CN=NIIF Root CA</TrustedCA>
+                    <DowntimeAnnounce>2008-03-12T09:59:56Z</DowntimeAnnounce>
+		            <DowntimeStart>2008-04-29T09:57:56Z</DowntimeStart>
+		            <DowntimeEnd>2008-04-30T09:59:56Z</DowntimeEnd>
 		            <DowntimeInfo>Opsys update</DowntimeInfo> 	    
 		            <!-- Computing endpoint specific attributes -->
 		            <Staging>staginginout</Staging>
+                    <JobDescription>nordugrid:xrsl</JobDescription>
+                    <JobDescription>jsdl:1.0</JobDescription>
+                    <TotalJobs>36</TotalJobs>
+                    <RunningJobs>3</RunningJobs>
+                    <WaitingJobs>6</WaitingJobs>
+                    <StagingJobs>7</StagingJobs>
+		            <SuspendedJobs>4</SuspendedJobs>
+                    <PreLRMSWaitingJobs>16</PreLRMSWaitingJobs>
 		            <Associations>
-		                    <ComputingShareID>computing-share-1</ComputingShareID>
-			                <ComputingShareID>computing-share-2</ComputingShareID>
+		                    <ComputingShareID>urn:ogf:ComputingShare:HU/NIIF/PGS-CE/atlas</ComputingShareID>
+			                <ComputingShareID>urn:ogf:ComputingShare:HU/NIIF/PGS-CE/niif</ComputingShareID>
 			                <ComputingActivityID>...</ComputingActivityID> <!--related activities can be listed here-->
 		            </Associations>
 		        </ComputingEndpoint>
 	            <ComputingShare CreationTime="2008-04-21T10:05:12Z" Validity="500" BaseType="Share">	    
-			        <ID>computing-share-1</ID>
-			        <Name>Atlas-short</Name>
-			        <Description>a share set up for short Atlas jobs</Description>
+			        <ID>urn:ogf:ComputingShare:HU/NIIF/PGS-CE/atlas</ID>
+			        <Name>Atlas production</Name>
+			        <Description>a share set up for Atlas users</Description>
 			        <!-- Computing share specific attributes -->
 			        <MappingQueue>pbs-short</MappingQueue>  						        		   
 			        <MaxWallTime>12000</MaxWallTime>  <!-- do not attribute meaning to the numbers below-->
+			        <MaxMultiSlotWallTime>12000</MaxMultiSlotWallTime>
 			        <MinWallTime>11</MinWallTime>
 			        <DefaultWallTime>9000</DefaultWallTime>
-			        <MaxCPUTime>43200</MaxCPUTime>
+			        <MaxCPUTime>12000</MaxCPUTime>
+			        <MaxTotalCPUTime>48000</MaxTotalCPUTime>
 			        <MinCPUTime>32</MinCPUTime>
 			        <DefaultCPUTime>11</DefaultCPUTime>
 			        <MaxTotalJobs>500</MaxTotalJobs>
 			        <MaxRunningJobs>50</MaxRunningJobs>
 			        <MaxWaitingJobs>200</MaxWaitingJobs>
 			        <MaxPreLRMSWaitingJobs>400</MaxPreLRMSWaitingJobs>
-			        <MaxUserRunningJobs>1</MaxUserRunningJobs>
+			        <MaxUserRunningJobs>8</MaxUserRunningJobs>
 			        <MaxSlotsPerJob>4</MaxSlotsPerJob>
 			        <MaxStateInStreams>3</MaxStateInStreams>
 			        <MaxStageOutStreams>2</MaxStageOutStreams>
 			        <SchedulingPolicy>fairshare</SchedulingPolicy>
-			        <MaxMainMemory>1</MaxMainMemory>
-			        <MaxDiskSpace>1</MaxDiskSpace>
-			        <DefaultStorageService>https://storage.niif.hu/default</DefaultStorageService>
+			        <MaxMainMemory>2048</MaxMainMemory>
+			        <GuaranteedMainMemory>1000</GuaranteedMainMemory>
+			        <MaxVirtualMemory>16000</MaxVirtualMemory>
+			        <GuaranteedVirtualMemory>6000</GuaranteedVirtualMemory>
+			        <MaxDiskSpace>5</MaxDiskSpace>
+			        <DefaultStorageService>uri:ogf:StorageService:HU/NIIF/SE01</DefaultStorageService>
 			        <Preemption>true</Preemption>
 			        <ServingState>production</ServingState>
-			        <TotalJobs>40</TotalJobs>
-			        <RunningJobs>30</RunningJobs>
-			        <LocalRunningJobs>0</LocalRunningJobs>
+			        <TotalJobs>20</TotalJobs>
+			        <RunningJobs>5</RunningJobs>
+			        <LocalRunningJobs>4</LocalRunningJobs>
 			        <WaitingJobs>1</WaitingJobs>
 			        <LocalWaitingJobs>1</LocalWaitingJobs>
+			        <SuspendedJobs>2</SuspendedJobs>
+			        <LocalSuspendedJobs>2</LocalSuspendedJobs>
 			        <StagingJobs>1</StagingJobs>
-			        <SuspendedJobs>12</SuspendedJobs>
 			        <PreLRMSWaitingJobs>1</PreLRMSWaitingJobs>
-			        <EstimatedAverageWaitingTime>1</EstimatedAverageWaitingTime>
-			        <EstimatedWorstWaitingTime>1</EstimatedWorstWaitingTime>
+			        <EstimatedAverageWaitingTime>12000</EstimatedAverageWaitingTime>
+			        <EstimatedWorstWaitingTime>70000</EstimatedWorstWaitingTime>
 			        <FreeSlots>14</FreeSlots>
+			        <FreeSlotsWithDuration>4:12000 14:3000</FreeSlotsWithDuration>
 			        <UsedSlots>7</UsedSlots>
 			        <RequestedSlots>378</RequestedSlots>
 			        <ReservationPolicy>none</ReservationPolicy>
 			        <Tag>HEPPO</Tag>
 			        <Tag>MIT12</Tag>			
-			        <MappingPolicy CreationTime="2008-04-21T10:05:12Z" Validity="500" BaseType="Policy"/>
+			        <MappingPolicy CreationTime="2008-04-21T10:05:12Z" Validity="500" BaseType="Policy">
+
+                    </MappingPolicy>
 			        <Associations>
 			            <ComputingEndpointID>..</ComputingEndpointID>
 			            <ExecutionEnvironmentID>..</ExecutionEnvironmentID>
@@ -271,7 +344,7 @@ fill this in
             
         <!-- XXX update needed -->
         <StorageService CreationTime="2008-04-21T10:05:12Z" Validity="500"  BaseType="Service"> <!--not complete, just the skeleton elements-->
-	        <ID>[URI]</ID>
+	        <ID>uri:ogf:StorageService:HU/NIIF/SE01</ID>
 	        <StorageEndpoint>
 		    <AccessPolicy CreationTime="2008-04-21T10:05:12Z" Validity="500" BaseType="Policy"/> 
 		    <Associations/>		        
@@ -328,40 +401,95 @@ fill this in
     
     <UserDomain CreationTime="2008-04-21T10:05:12Z" Validity="500" BaseType="Domain">
     	<ID>urn:ogf:UserDomain:atlas</ID>
-	    <Name>ATLAS VO members</Name>
+	    <Name>ATLAS VO</Name>
 	    <Description>HEP ATLAS USER GROUP</Description>
 	    <WWW>http://atlas.web.cern.ch</WWW>
 	    <Otherinfo>AUP document is available on VO webpage</Otherinfo>
 	    <Level>0</Level>
 	    <UserManager>https://lcg-voms.cern.ch:8443/vo/atlas/vomrs</UserManager>
         <Member>/atlas</Member>
-        <Member>/atlas.ch</Member>
-        <Location CreationTime="2008-04-21T10:05:12Z" Validity="500">>
+        <Member>/VO=atlas/GROUP=atlas</Member>
+        <Location CreationTime="2008-04-21T10:05:12Z" Validity="500">
+            <ID>urn:ogf:Location:Switzerland/1211/Geneva/Route_de_Meyrin</ID>
+            <Name>CERN, Meyrin site</Name>
+            <Address>Route de Meyrin</Address>
+            <Place>Geneva</Place>
+            <Country>Switzerland</Country>
+            <PostCode>1211</PostCode>
+            <Latitude>46.1359</Latitude>
+            <Longitude>6.0245</Longitude>
         </Location>
-        <Contact CreationTime="2008-04-21T10:05:12Z" Validity="500">>
+        <Contact CreationTime="2008-04-21T10:05:12Z" Validity="500">
+            <ID>urn:ogf:Contact:mailto:atlas-grid-support@cern.ch</ID>
+            <Name>Atlas User Support</Name>
+            <Detail>mailto:atlas-grid-support@cern.ch</Detail>
+            <Type>usersupport</Type>
+	        <OtherInfo>Suport for Atlas VO grid users</OtherInfo>
+        </Contact>
+        <Contact CreationTime="2008-04-21T10:05:12Z" Validity="500">
+            <ID>urn:ogf:Contact:mailto:project-lcg-vo-atlas-admin@cern.ch</ID>
+            <Name>Generic contact for Atlas VO admins</Name>
+            <Detail>mailto:project-lcg-vo-atlas-admin@cern.ch</Detail>
+            <Type>sysadmin</Type>
+        </Contact>
+    </UserDomain>
+    <UserDomain CreationTime="2008-04-21T10:05:12Z" Validity="500" BaseType="Domain">
+        <ID>urn:ogf:UserDomain:atlas/no</ID>
+        <Name>ATLAS VO Norway</Name>
+        <Description>Norwegian HEP Atlas User group</Description>
+        <WWW>http://folk.uio.no/farido</WWW>
+        <Level>0</Level>
+        <Member>/atlas/no</Member>        
+        <Member>/VO=atlas/GROUP=atlas/no</Member>        
+        <UserManager>https://lcg-voms.cern.ch:8443/vo/atlas/vomrs</UserManager>
+        <Contact CreationTime="2008-04-21T10:05:12Z" Validity="500">
+            <ID>urn:ogf:Contact:mailto:atlas-norway@cern.ch</ID>
+            <Name>Support mailing list</Name>
+            <Detail>mailto:atlas-norway@cern.ch</Detail>
+            <Type>usersupport</Type>
         </Contact>
     </UserDomain>
     <UserDomain CreationTime="2008-04-21T10:05:12Z" Validity="500" BaseType="Domain">
         <ID>urn:ogf:UserDomain:nordugrid.org</ID>
-	    <Name>Nordugrid VO members</Name>
+	    <Name>Nordugrid VO</Name>
+	    <Description>Members of the Nordugrid VO</Description>
+        <WWW>http://www.nordugrid.org/NorduGridVO</WWW>
 	    <Level>0</Level>
         <Member>/nordugrid.org</Member>
+        <Member>/VO=nordugrid.org/GROUP=nordugrid.org</Member>
 	    <UserManager>https://voms.ndgf.org:8443/voms/nordugrid.org</UserManager>
+        <Location CreationTime="2008-04-21T10:05:12Z" Validity="500">
+            <ID>urn:ogf:Location:DENMARK/2100/Copenhagen/Blegdamsvej_17</ID>
+            <Name>Niels Bohr Institute</Name>
+            <Address>Blegdamsvej 17</Address>
+            <PostCode>2100</PostCode>
+            <Place>Copenhagen</Place>
+            <Country>DENMARK</Country>
+            <Latitude>55.69681</Latitude>
+            <Longitude>12.571851</Longitude>
+        </Location>
+        <Contact CreationTime="2008-04-21T10:05:12Z" Validity="500">
+            <ID>urn:ogf:Contact:mailto:nordugrid-support@nordugrid.org</ID>
+            <Name>Nordugrid User support</Name>
+            <Detail>mailto:nordugrid-support@nordugrid.org</Detail>
+            <Type>usersupport</Type>
+        </Contact>
+        <Contact CreationTime="2008-04-21T10:05:12Z" Validity="500">
+            <ID>urn:ogf:Contact:http://www.nordugrid.org/contact.html</ID>
+            <Name>Nordugrid Contacts</Name>
+            <Detail>http://www.nordugrid.org/contact.html</Detail>
+            <Type>general</Type>
+            <OtherInfo>Link to Nordugrid contacts page</OtherInfo>
+        </Contact>
     </UserDomain>
     <UserDomain CreationTime="2008-04-21T10:05:12Z" Validity="500" BaseType="Domain">
         <ID>urn:ogf:UserDomain:nordugrid.org/Role=developer</ID>
-	    <Name>Nordugrid VO developers</Name>
-	    <Level>1</Level>
-        <Member>/nordugrid.org/Role=developer</Member>
-	    <UserManager>https://voms.ndgf.org:8443/voms/nordugrid.org</UserManager>
-        <Associations>
-    </UserDomain>
-    <UserDomain CreationTime="2008-04-21T10:05:12Z" Validity="500" BaseType="Domain">
-        <ID>urn:ogf:UserDomain:knowarc.eu</ID>
-	    <Name>KnowARC VO members</Name>
+	    <Name>Nordugrid VO Developers</Name>
+	    <Description>Nordugrid developers group</Description>
 	    <Level>0</Level>
-        <Member>/knowarc.eu</Member>
-	    <UserManager>https://arthur.hep.lu.se:8443/voms/knowarc.eu</UserManager>
+        <Member>/nordugrid.org/Role=developer</Member>
+        <Member>/VO=nordugrid.org/GROUP=nordugrid.org/Role=developer</Member>
+	    <UserManager>https://voms.ndgf.org:8443/voms/nordugrid.org</UserManager>
     </UserDomain>
 </glue:Domains>
 
