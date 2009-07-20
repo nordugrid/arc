@@ -111,14 +111,14 @@
                     <DowntimeInfo>Kernel upgrade</DowntimeInfo>
                     <AccessPolicy CreationTime="2008-04-21T10:05:12Z" Validity="500" BaseType="Policy">
                         <ID>urn:ogf:AccessPolicy:ce01.niif.hu:60000/delegation/1</ID>
-                        <Name>HEP policy </Name>
+                        <Name>Allow HEP</Name>
                         <Scheme>basic</Scheme>
                         <Rule>vo:atlas</Rule>
                         <Rule>vo:cms</Rule>
                     </AccessPolicy>
                     <AccessPolicy CreationTime="2008-04-21T10:05:12Z" Validity="500" BaseType="Policy">
                         <ID>urn:ogf:AccessPolicy:ce01.niif.hu:60000/delegation/2</ID>
-                        <Name>Testers Policy</Name>
+                        <Name>Allow Testers</Name>
                         <Scheme>basic</Scheme>
                         <Rule>vo:dteam</Rule>
                         <Rule>dn:/DC=eu/DC=KnowARC/O=GPC-Grid/CN=demo1</Rule>
@@ -184,11 +184,11 @@
 			        <MappingQueue>pbs-short</MappingQueue>  						        		   
 			        <MaxWallTime>12000</MaxWallTime>  <!-- do not attribute meaning to the numbers below-->
 			        <MaxMultiSlotWallTime>12000</MaxMultiSlotWallTime>
-			        <MinWallTime>11</MinWallTime>
+			        <MinWallTime>2000</MinWallTime>
 			        <DefaultWallTime>9000</DefaultWallTime>
 			        <MaxCPUTime>12000</MaxCPUTime>
 			        <MaxTotalCPUTime>48000</MaxTotalCPUTime>
-			        <MinCPUTime>32</MinCPUTime>
+			        <MinCPUTime>2000</MinCPUTime>
 			        <DefaultCPUTime>11</DefaultCPUTime>
 			        <MaxTotalJobs>500</MaxTotalJobs>
 			        <MaxRunningJobs>50</MaxRunningJobs>
@@ -226,44 +226,147 @@
 			        <Tag>HEPPO</Tag>
 			        <Tag>MIT12</Tag>			
 			        <MappingPolicy CreationTime="2008-04-21T10:05:12Z" Validity="500" BaseType="Policy">
-
+                        <ID>urn:ogsa:MappingPolicy:HU/NIIF/PGS-CE/atlas/1</ID>
+                        <Name>Map Atlas</Name>
+                        <Scheme>basic</Scheme>
+                        <Rule>vo:atlas</Rule>
+                        <Rule>vo:cms</Rule>
+                    </MappingPolicy>
+			        <MappingPolicy CreationTime="2008-04-21T10:05:12Z" Validity="500" BaseType="Policy">
+                        <ID>urn:ogsa:MappingPolicy:HU/NIIF/PGS-CE/atlas/2</ID>
+                        <Name>Map Testers</Name>
+                        <Scheme>basic</Scheme>
+                        <Rule>vo:dteam</Rule>
                     </MappingPolicy>
 			        <Associations>
-			            <ComputingEndpointID>..</ComputingEndpointID>
+			            <ComputingEndpointID>urn:ogf:Endpoint:ce01.niif.hu:60000/delegation</ComputingEndpointID>
+			            <ComputingEndpointID>urn:ogf:ComputingEndpoint:ce01.niif.hu:60000/arex</ComputingEndpointID>
 			            <ExecutionEnvironmentID>..</ExecutionEnvironmentID>
+        			    <ExecutionEnvironmentID>..</ExecutionEnvironmentID>
 			        </Associations>			
 			        <ComputingActivities>
                         <ComputingActivity CreationTime="2008-04-21T10:05:12Z" Validity="500" BaseType="Activity">
-fill this in
+                            <ID>urn:ogf:ComputingActivity:ce01.niif.hu:60000/arex/123456</ID>
+                            <Name>mc08.1050.J7</Name>
+                            <Type>single</Type>
+                            <IDFromEndpoint>https://ce01.niif.hu:60000/arex/123456</IDFromEndpoint>
+                            <LocalIDFromManager>345.ce01</LocalIDFromManager>
+                            <JobDescription>nordugrid:xrsl</JobDescription>
+                            <State>bes:failed</State>
+                            <State>nordugrid:FAILED</State>
+                            <RestartState>bes:running</RestartState>
+                            <RestartState>nordugrid:FINISHING</RestartState>
+                            <ExitCode>0</ExitCode>
+                            <ComputingManagerExitCode>0</ComputingManagerExitCode>
+                            <Error>Uploading timed out</Error>
+                            <Error>Failed stage-out</Error>
+                            <WaitingPosition>0</WaitingPosition>
+                            <UserDomain>vo:atlas</UserDomain>
+                            <Owner>CONFIDENTIAL</Owner>
+                            <LocalOwner>grid02</LocalOwner>
+                            <RequestedTotalWallTime>5000</RequestedTotalWallTime>
+                            <RequestedTotalCPUTime>20000</RequestedTotalCPUTime>
+                            <RequestedSlots>4</RequestedSlots>
+                            <RequestedApplicationEnvironment>ENV/JAVA/JRE-1.6.0</RequestedApplicationEnvironment>
+                            <RequestedApplicationEnvironment>APPS/HEP/ATLAS-14.2.23.4</RequestedApplicationEnvironment>
+                            <StdIn>input.dat</StdIn>
+                            <StdOut>job.out</StdOut>
+                            <StdErr>job.out</StdErr>
+                            <LogDir>gmlog</LogDir>
+                            <ExecutionNode>wn043</ExecutionNode>
+                            <ExecutionNode>wn056</ExecutionNode>
+                            <Queue>pbs-short</Queue>
+                            <UsedTotalWallTime>2893</UsedTotalWallTime>
+                            <UsedTotalCPUTime>12340</UsedTotalCPUTime>
+                            <UsedMainMemory>4453</UsedMainMemory>
+                            <SubmissionTime>2008-04-21T10:05:12Z</SubmissionTime>
+                            <ComputingManagerSubmissionTime>2008-04-20T60:05:12Z</ComputingManagerSubmissionTime>
+                            <StartTime>2008-04-20T06:45:12Z</StartTime>
+                            <ComputingManagerEndTime>2008-04-20T10:05:12Z</ComputingManagerEndTime>
+                            <EndTime>2008-04-20T10:15:12Z</EndTime>
+                            <WorkingAreaEraseTime>2008-04-24T10:05:12Z</WorkingAreaEraseTime>
+                            <ProxyExpirationTime>2008-04-31T10:05:12Z</ProxyExpirationTime>
+                            <SubmissionHost>pc4.niif.hu:3432</SubmissionHost>
+                            <SubmissionClientName>nordugrid-arc-0.94</SubmissionClientName>
+                            <OtherMessages>Cached input file is outdated; downloading again</OtherMessages>
+                            <OtherMessages>User proxy has expired</OtherMessages>
+                            <Associations>
+                               <UserDomainID>urn:ogf:UserDomain:atlas</UserDomainID>
+                               <ComputingEndpointID>urn:ogf:ComputingEndpoint:ce01.niif.hu:60000/arex</ComputingEndpointID>
+                               <Activity>urn:ogf:ComputingEndpoint:ce01.niif.hu:60000/delegation/1212121</Activity>
+                               <ExecutionEnvironmentID>..</ExecutionEnvironmentID>
+                            </Associations>
+                        </ComputingActivity>
+                        <ComputingActivity CreationTime="2008-04-21T10:05:12Z" Validity="500" BaseType="Activity">
+                            <ID>urn:ogf:ComputingActivity:ce01.niif.hu:60000/arex/123565</ID>
+                            <Name>srmtestjob</Name>
+                            <Type>single</Type>
+                            <IDFromEndpoint>https://ce01.niif.hu:60000/arex/123565</IDFromEndpoint>
+                            <LocalIDFromManager>346.ce01</LocalIDFromManager>
+                            <JobDescription>jsdl:1.0</JobDescription>
+                            <State>bes:running</State>
+                            <State>nordugrid:PREPARING</State>
+                            <WaitingPosition>0</WaitingPosition>
+                            <UserDomain>vo:dteam</UserDomain>
+                            <Owner>/O=grid/OU=nordugrid/CN=Joe Tester</Owner>
+                            <LocalOwner>grid05</LocalOwner>
+                            <RequestedTotalWallTime>4000</RequestedTotalWallTime>
+                            <RequestedTotalCPUTime>4000</RequestedTotalCPUTime>
+                            <RequestedSlots>1</RequestedSlots>
+                            <RequestedApplicationEnvironment>ENV/JAVA/JRE-1.6.0</RequestedApplicationEnvironment>
+                            <RequestedApplicationEnvironment>APPS/HEP/ATLAS-14.2.23.4</RequestedApplicationEnvironment>
+                            <StdIn>input.dat</StdIn>
+                            <StdOut>job.out</StdOut>
+                            <StdErr>job.out</StdErr>
+                            <LogDir>gmlog</LogDir>
+                            <Queue>pbs-short</Queue>
+                            <SubmissionTime>2008-04-21T10:05:12Z</SubmissionTime>
+                            <ComputingManagerSubmissionTime>2008-04-20T60:05:12Z</ComputingManagerSubmissionTime>
+                            <StartTime>2008-04-20T06:45:12Z</StartTime>
+                            <ProxyExpirationTime>2008-04-31T10:05:12Z</ProxyExpirationTime>
+                            <SubmissionHost>lx23.cern.ch:3323</SubmissionHost>
+                            <SubmissionClientName>nordugrid-arc-0.94</SubmissionClientName>
+                            <OtherMessages>Cached input file is outdated; downloading again</OtherMessages>
+                            <Associations>
+                               <UserDomainID>urn:ogf:UserDomain:atlas</UserDomainID>
+                               <ComputingEndpointID>urn:ogf:ComputingEndpoint:ce01.niif.hu:60000/arex</ComputingEndpointID>
+                               <Activity>urn:ogf:ComputingEndpoint:ce01.niif.hu:60000/delegation/1212121</Activity>
+                               <ExecutionEnvironmentID>..</ExecutionEnvironmentID>
+                            </Associations>
                         </ComputingActivity>
                     </ComputingActivities>
 		        </ComputingShare>		    
 	            <ComputingShare CreationTime="2008-04-21T10:05:12Z" Validity="500" BaseType="Share">	    
-			        <ID>computing-share-2</ID>
-			        <Name>Atlas-LONG</Name>
-			        <Description>a share set up for long Atlas jobs</Description>
+			        <ID>urn:ogf:ComputingShare:HU/NIIF/PGS-CE/niif</ID>
+			        <Name>NIIF</Name>
+			        <Description>a share set up for NIIF users</Description>
 			        <!-- Computing share specific attributes -->
 			        <MappingQueue>pbs-long</MappingQueue>							        		   
-			        <MaxWallTime>12000</MaxWallTime>  <!-- do not attribute meaning to the numbers below-->
-			        <MinWallTime>11</MinWallTime>
-			        <DefaultWallTime>9000</DefaultWallTime>
-			        <MaxCPUTime>43200</MaxCPUTime>
-			        <MinCPUTime>32</MinCPUTime>
-			        <DefaultCPUTime>11</DefaultCPUTime>
+			        <MaxWallTime>2000</MaxWallTime>  <!-- do not attribute meaning to the numbers below-->
+			        <MaxMultiSlotWallTime>2000</MaxMultiSlotWallTime>
+			        <MinWallTime>0</MinWallTime>
+			        <DefaultWallTime>2000</DefaultWallTime>
+			        <MaxCPUTime>2000</MaxCPUTime>
+			        <MaxTotalCPUTime>16000</MaxTotalCPUTime>
+			        <MinCPUTime>0</MinCPUTime>
+			        <DefaultCPUTime>2000</DefaultCPUTime>
 			        <MaxTotalJobs>500</MaxTotalJobs>
 			        <MaxRunningJobs>50</MaxRunningJobs>
 			        <MaxWaitingJobs>200</MaxWaitingJobs>
 			        <MaxPreLRMSWaitingJobs>400</MaxPreLRMSWaitingJobs>
 			        <MaxUserRunningJobs>1</MaxUserRunningJobs>
-			        <MaxSlotsPerJob>4</MaxSlotsPerJob>
+			        <MaxSlotsPerJob>16</MaxSlotsPerJob>
 			        <MaxStateInStreams>3</MaxStateInStreams>
 			        <MaxStageOutStreams>2</MaxStageOutStreams>
-			        <SchedulingPolicy>fairshare</SchedulingPolicy>
+			        <SchedulingPolicy>fifo</SchedulingPolicy>
 			        <MaxMainMemory>1</MaxMainMemory>
-			        <MaxDiskSpace>1</MaxDiskSpace>
-			        <DefaultStorageService>https://storage.niif.hu/default</DefaultStorageService>
+			        <GuaranteedMainMemory>1</GuaranteedMainMemory>
+			        <MaxVirtualMemory>1</MaxVirtualMemory>
+			        <GuaranteedVirtualMemory>1</GuaranteedVirtualMemory>
+			        <MaxDiskSpace>20</MaxDiskSpace>
+                    <DefaultStorageService>uri:ogf:StorageService:HU/NIIF/SE01</DefaultStorageService>
 			        <Preemption>true</Preemption>
-			        <ServingState>production</ServingState>
+			        <ServingState>draining</ServingState>
         			<TotalJobs>40</TotalJobs>
         			<RunningJobs>30</RunningJobs>
         			<LocalRunningJobs>0</LocalRunningJobs>
@@ -271,76 +374,154 @@ fill this in
         			<LocalWaitingJobs>1</LocalWaitingJobs>
         			<StagingJobs>1</StagingJobs>
         			<SuspendedJobs>12</SuspendedJobs>
-        			<PreLRMSWaitingJobs>1</PreLRMSWaitingJobs>
-        			<EstimatedAverageWaitingTime>1</EstimatedAverageWaitingTime>
-        			<EstimatedWorstWaitingTime>1</EstimatedWorstWaitingTime>
+        			<LocalSuspendedJobs>12</LocalSuspendedJobs>
+        			<PreLRMSWaitingJobs>0</PreLRMSWaitingJobs>
+        			<EstimatedAverageWaitingTime>200</EstimatedAverageWaitingTime>
+        			<EstimatedWorstWaitingTime>2000</EstimatedWorstWaitingTime>
         			<FreeSlots>14</FreeSlots>
+			        <FreeSlotsWithDuration>1:2000 7:1000</FreeSlotsWithDuration>
         			<UsedSlots>7</UsedSlots>
         			<RequestedSlots>378</RequestedSlots>
         			<ReservationPolicy>none</ReservationPolicy>
         			<Tag>TT1</Tag>
         			<Tag>HH12</Tag> 			
-        			<MappingPolicy CreationTime="2008-04-21T10:05:12Z" Validity="500" BaseType="Policy"/>
+			        <MappingPolicy CreationTime="2008-04-21T10:05:12Z" Validity="500" BaseType="Policy">
+                        <ID>urn:ogsa:MappingPolicy:HU/NIIF/PGS-CE/niif/1</ID>
+                        <Name>Map Testers</Name>
+                        <Scheme>basic</Scheme>
+                        <Rule>dn:/DC=eu/DC=KnowARC/O=GPC-Grid/CN=demo1</Rule>
+                        <Rule>dn:/DC=eu/DC=KnowARC/O=GPC-Grid/CN=demo2</Rule>
+                    </MappingPolicy>
         			<Associations>
-        			    <ComputingEndpointID>..</ComputingEndpointID>
+			            <ComputingEndpointID>urn:ogf:Endpoint:ce01.niif.hu:60000/delegation</ComputingEndpointID>
+			            <ComputingEndpointID>urn:ogf:ComputingEndpoint:ce01.niif.hu:60000/arex</ComputingEndpointID>
         			    <ExecutionEnvironmentID>..</ExecutionEnvironmentID>
         			</Associations>				
 			        <ComputingActivities>
-                        <ComputingActivity CreationTime="2008-04-21T10:05:12Z" Validity="500" BaseType="Activity">
-                        </ComputingActivity>
                     </ComputingActivities>
         		</ComputingShare>
-		    
                 <ComputingManager CreationTime="2008-04-21T10:05:12Z" Validity="500" BaseType="Manager">
-                    <ID>comuting-manager-1</ID>
-                    <Name>Cluster A</Name>
-                    <!-- Comuting Resource specific attributes -->
+                    <ID>urn:ogf:ComputingManager:HU/NIIF/PGS-CE/torque</ID>
+                    <Name>torque</Name>
+                    <OtherInfo></OtherInfo>
+                    <ProductName>torque</ProductName>
+                    <ProductVersion>2.3.3</ProductVersion>
+                    <Reservation>false</Reservation>
+                    <BulkSubmission>false</BulkSubmission>
+                    <TotalPhysicalCPUs>32</TotalPhysicalCPUs>
+                    <TotalLogicalCPUs>96</TotalLogicalCPUs>
+                    <TotalSlots>96</TotalSlots>
+                    <SlotsUsedByLocalJobs>40</SlotsUsedByLocalJobs>
+                    <SlotsUsedByGridJobs>20</SlotsUsedByGridJobs>
+                    <Homogeneous>false</Homogeneous>
+                    <NetworkInfo>InfiniBand</NetworkInfo>
+                    <NetworkInfo>1000BASE-T</NetworkInfo>
+                    <LogicalCPUDistribution>4:16 2:16</LogicalCPUDistribution>
+                    <WorkingAreaShared>true</WorkingAreaShared>
+                    <WorkingAreaGuaranteed>false</WorkingAreaGuaranteed>
+                    <WorkingAreaTotal>6005</WorkingAreaTotal>
+                    <WorkingAreaFree>3405</WorkingAreaFree>
+                    <WorkingAreaLifeTime>604800</WorkingAreaLifeTime>
+                    <WorkingAreaMultiSlotTotal>4134</WorkingAreaMultiSlotTotal>
+                    <WorkingAreaMultiSlotFree>405</WorkingAreaMultiSlotFree>
+                    <WorkingAreaMultiSlotLifeTime>604800</WorkingAreaMultiSlotLifeTime>
+                    <CacheTotal>10232</CacheTotal>
+                    <CacheFree>3405</CacheFree>
+                    <TmpDir>/tmp</TmpDir>
+                    <ScratchDir>/shared/scratch</ScratchDir>
+                    <ApplicationDir>/shared/Apps</ApplicationDir>
 		            <Benchmark CreationTime="2008-04-21T10:05:12Z" Validity="500">
-		                <ID>urn:ogf:Benchmark:specint2000:399</ID>
-		                <Name></Name>
+		                <ID>urn:ogf:Benchmark:HU/NIIF/PGS-CE/torque/specfp2000</ID>
+		                <Name>Specfp2000</Name>
 		                <OtherInfo>Compiler: gcc version 3.4.6 20060404</OtherInfo>
 		                <OtherInfo>Optimization flags: -O5 -msse3</OtherInfo>
-			            <Type>specint2000</Type>
-			            <Value>399</Value>
+			            <Type>specfp2000</Type>
+			            <Value>956.876</Value>
 		            </Benchmark>		    	
-		        <ApplicationEnvironments>
-		            <ApplicationEnvironment CreationTime="2008-04-21T10:05:12Z" Validity="500">
-			            <ID>..</ID> 
-			            <ApplicationHandle>
-			                <ID>..</ID>
-			            </ApplicationHandle>
-			            <Associations> <!-- check how to use wildcards for all the executionenvironments-->
-			                <ExecutionEnvironmentID>..</ExecutionEnvironmentID>
-			            </Associations>
-			        </ApplicationEnvironment>		    
-		            <ApplicationEnvironment CreationTime="2008-04-21T10:05:12Z" Validity="500">
-			            <ID>..</ID> 
-			        </ApplicationEnvironment>										
-		        </ApplicationEnvironments>
-                <ExecutionEnvironments>
-                    <ExecutionEnvironment CreationTime="2008-04-21T10:05:12Z" Validity="500" BaseType="Resource"> <!--there is only one, it is a homogeneous cluster-->
-			            <ID>..</ID> 
-		                <Benchmark>
-		                    <ID></ID>
-			                <Type>SPECINT2000</Type>
-			                <Value>399</Value>
-		                </Benchmark>		    	
-		                <Associations>
-		    	            <ComputingShareID>..</ComputingShareID>
-			                <ComputingShareID>..</ComputingShareID>
-			                <ApplicationEnvironmentID>..</ApplicationEnvironmentID>
-			                <ComputingActivityID>..</ComputingActivityID>			    
-		                </Associations>	                          
-                    </ExecutionEnvironment> 
-                </ExecutionEnvironments>
-            </ComputingManager>
-            <ComputingManager>
+		            <Benchmark CreationTime="2008-04-21T10:05:12Z" Validity="500">
+		                <ID>urn:ogf:Benchmark:HU/NIIF/PGS-CE/torque/jbench</ID>
+		                <Name>jbench</Name>
+		                <OtherInfo>JVM options: -d64 -server</OtherInfo>
+			            <Type>jbench</Type>
+			            <Value>3399.0</Value>
+		            </Benchmark>		    	
+		            <Benchmark CreationTime="2008-04-21T10:05:12Z" Validity="500">
+		                <ID>urn:ogf:Benchmark:HU/NIIF/PGS-CE/torque/bogomips</ID>
+			            <Type>bogomips</Type>
+			            <Value>2399.0</Value>
+		            </Benchmark>		    	
+                    <ApplicationEnvironments>
+                        <ApplicationEnvironment CreationTime="2008-04-21T10:05:12Z" Validity="500">
+			                <ID>urn:ogf:ApplicationEnvironment:HU/NIIF/PGS-CE/torque/ENV/JAVA/JRE-1.4.2</ID>
+			                <Name>JRE</Name>
+			                <AppName>ENV/JAVA/JRE</AppName>
+			                <AppVersion>1.4.2</AppVersion>
+			                <State>installedverified</State>
+			                <RemovalDate>2011-04-21T10:05:12Z</RemovalDate>
+			                <License>unknown</License>
+			                <Description>Sun JRE</Description>
+			                <BestBenchmark>jbench</BestBenchmark>
+			                <BestBenchmark>bogomips</BestBenchmark>
+			                <ParallelSupport>false</ParallelSupport>
+			                <MaxSlots>4</MaxSlots>
+			                <MaxJobs>4</MaxJobs>
+			                <MaxUserSeats>1</MaxUserSeats>
+			                <FreeSlots>4</FreeSlots>
+			                <FreeJobs>4</FreeJobs>
+			                <FreeUserSeats>1</FreeUserSeats>
+			                <ApplicationHandle>
+			                    <ID>urn:ogf:ApplicationEnvironment:HU/NIIF/PGS-CE/torque/ENV/JAVA/JRE-1.4.2/module</ID>
+                                <Name>java module</Name>
+                                <OtherInfo>command: "module load java-1.4.2"</OtherInfo>
+                                <Type>module</Type>
+                                <Value>java-1.4.2</Value>
+			                </ApplicationHandle>
+			                <ApplicationHandle>
+			                    <ID>urn:ogf:ApplicationEnvironment:HU/NIIF/PGS-CE/torque/ENV/JAVA/JRE-1.4.2/path</ID>
+                                <Name>java path</Name>
+                                <OtherInfo>Path to java install</OtherInfo>
+                                <Type>path</Type>
+                                <Value>/local/jre-1.4.2</Value>
+			                </ApplicationHandle>
+                        </ApplicationEnvironment>
+                        <ApplicationEnvironment CreationTime="2008-04-21T10:05:12Z" Validity="500">
+                            <ID>urn:ogf:ApplicationEnvironment:HU/NIIF/PGS-CE/torque/APPS/HEP/TEST-ATLAS-13.0.20</ID>
+                            <Name>TEST-ATLAS</Name>
+                            <AppName>APPS/HEP/TEST-ATLAS</AppName>
+                            <AppVersion>13.0.20</AppVersion>
+                            <State>installednotverified</State>
+                            <License>opensource</License>
+                            <Description>Atlas offline software</Description>
+                            <BestBenchmark>specfp2000</BestBenchmark>
+                            <ParallelSupport>false</ParallelSupport>
+                            <MaxSlots>100</MaxSlots>
+                            <MaxJobs>100</MaxJobs>
+                            <MaxUserSeats>60</MaxUserSeats>
+                            <FreeSlots>4</FreeSlots>
+                            <FreeJobs>4</FreeJobs>
+                            <FreeUserSeats>1</FreeUserSeats>
+                            <ApplicationHandle>
+                                <ID>urn:ogf:ApplicationEnvironment:HU/NIIF/PGS-CE/torque/APPS/HEP/TEST-ATLAS-13.0.20/path</ID>
+                                <Name>Atlas install location</Name>
+                                <Type>path</Type>
+                                <Value>/shared/Apps</Value>
+                            </ApplicationHandle>
+                        </ApplicationEnvironment>
+                    </ApplicationEnvironments>
+                    <ExecutionEnvironments>
+                        <ExecutionEnvironment CreationTime="2008-04-21T10:05:12Z" Validity="500" BaseType="Resource">
+                        </ExecutionEnvironment>
+                        <ExecutionEnvironment CreationTime="2008-04-21T10:05:12Z" Validity="500" BaseType="Resource">
+                        </ExecutionEnvironment>
+                    </ExecutionEnvironments>
+                </ComputingManager>
+                <ComputingManager>
+                    <ID></ID>
+                </ComputingManager>
+	        </ComputingService>
+            <Service CreationTime="2008-04-21T10:05:12Z" Validity="500" BaseType="Service">
                 <ID></ID>
-            </ComputingManager>
-	    </ComputingService>
-        <Service CreationTime="2008-04-21T10:05:12Z" Validity="500" BaseType="Service">
-            <ID></ID>
-        </Service>
+            </Service>
             
         <!-- XXX update needed -->
         <StorageService CreationTime="2008-04-21T10:05:12Z" Validity="500"  BaseType="Service"> <!--not complete, just the skeleton elements-->
