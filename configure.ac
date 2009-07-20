@@ -8,6 +8,9 @@ AM_INIT_AUTOMAKE([tar-pax])
 AC_CONFIG_SRCDIR([Makefile.am])
 AM_CONFIG_HEADER([config.h])
 
+# This macro was introduced in autoconf 2.57g? but we currently only require 2.56
+m4_ifdef([AC_CONFIG_MACRO_DIR], [AC_CONFIG_MACRO_DIR([m4])])
+
 m4_pattern_allow([AC_PATH_PROG])
 m4_pattern_allow([AC_MSG_WARN])
 
