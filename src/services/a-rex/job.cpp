@@ -636,6 +636,10 @@ std::string ARexJob::SessionDir(void) {
   return config_.User()->SessionRoot()+"/"+id_;
 }
 
+std::string ARexJob::LogDir(void) {
+  return job_.stdlog;
+}
+
 static bool normalize_filename(std::string& filename) {
   std::string::size_type p = 0;
   if(filename[0] != G_DIR_SEPARATOR) filename.insert(0,G_DIR_SEPARATOR_S);
@@ -703,6 +707,48 @@ Glib::Dir* ARexJob::OpenDir(const std::string& dirname) {
   if(!normalize_filename(dname)) return NULL;
   //if(dname.empty()) return NULL;
   dname = config_.User()->SessionRoot()+"/"+id_+"/"+dname;
-  return Arc::DirOpen(dname.c_str(),config_.User()->get_uid(),config_.User()->get_gid());
+  Glib::Dir* dir = Arc::DirOpen(dname.c_str(),config_.User()->get_uid(),config_.User()->get_gid());
+  return dir;
+  return NULL;
+}
+
+int ARexJob::OpenLogFile(const std::string& name) {
+  if(id_.empty()) return -1;
+  if(strchr(name.c_str(),'/')) return -1;
+  std::string fname = config_.User()->ControlDir() + "/job." + id_ + "." + name;
+  return Arc::FileOpen(fname.c_str(),O_RDONLY,0,0,0);
+}
+
+std::list<std::string> ARexJob::LogFiles(void) {
+  std::list<std::string> logs;
+  if(id_.empty()) return logs;
+  std::string dname = config_.User()->ControlDir();
+  std::string prefix = "job." + id_ + ".";
+std::cerr<<"LogFiles: prefix: "<<prefix<<std::endl;
+std::cerr<<"LogFiles: dname: "<<dname<<std::endl;
+  Glib::Dir* dir = Arc::DirOpen(dname.c_str(),config_.User()->get_uid(),config_.User()->get_gid());
+  if(!dir) return logs;
+  for(;;) {
+    std::string name = dir->read_name();
+std::cerr<<"LogFiles: name: "<<name<<std::endl;
+    if(name.empty()) break;
+    if(strncmp(prefix.c_str(),name.c_str(),prefix.length()) != 0) continue;
+std::cerr<<"LogFiles: added"<<std::endl;
+    logs.push_back(name.substr(prefix.length())); 
+  };
+  return logs;
+}
+
+std::string ARexJob::GetFilePath(const std::string& filename) {
+  if(id_.empty()) return "";
+  std::string fname = filename;
+  if(!normalize_filename(fname)) return "";
+  if(fname.empty()) config_.User()->SessionRoot()+"/"+id_;
+  return config_.User()->SessionRoot()+"/"+id_+"/"+fname;
+}
+
+std::string ARexJob::GetLogFilePath(const std::string& name) {
+  if(id_.empty()) return "";
+  return config_.User()->ControlDir() + "/job." + id_ + "." + name;
 }
 

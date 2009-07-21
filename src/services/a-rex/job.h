@@ -100,6 +100,8 @@ class ARexJob {
   bool Failed(void);
   /** Returns path to session directory */
   std::string SessionDir(void);
+  /** Returns name of virtual log directory */
+  std::string LogDir(void);
   /** Return number of jobs associated with this configuration.
       TODO: total for all user configurations. */
   static int TotalJobs(ARexGMConfig& config,Arc::Logger& logger);
@@ -107,8 +109,16 @@ class ARexJob {
   static std::list<std::string> Jobs(ARexGMConfig& config,Arc::Logger& logger);
   /** Creates file in job's session directory and returns handler */
   int CreateFile(const std::string& filename);
+  /** Opens file in job's session directory and returns handler */
   int OpenFile(const std::string& filename,bool for_read,bool for_write);
+  std::string GetFilePath(const std::string& filename);
+  /** Opens log file in control directory */
+  int OpenLogFile(const std::string& name);
+  std::string GetLogFilePath(const std::string& name);
+  /** Opens directory inside session directory */
   Glib::Dir* OpenDir(const std::string& dirname);
+  /** Returns list of existing log files */
+  std::list<std::string> LogFiles(void);
   /** Updates job credentials */
   bool UpdateCredentials(const std::string& credentials);
 };
