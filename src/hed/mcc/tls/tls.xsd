@@ -70,7 +70,7 @@
     <xsd:element name="VOMSCertTrustDNChainsLocation" type="xsd:string"/>
 
     <!-- Type of handshake applied. Default is TLS. -->
-    <xsd:element name="Handshake" type="arc:Handshake_Type">
+    <xsd:element name="Handshake" type="arc:Handshake_Type"/>
     <xsd:simpleType name="Handshake_Type">
       <xsd:restriction base="xsd:string">
         <xsd:enumeration value="TLS"/>

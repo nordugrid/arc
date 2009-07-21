@@ -129,7 +129,7 @@
   </xsd:simpleContent>
  </xsd:complexType>
 
- <!-- Context element will be evaluted against Condition element in Policy->
+ <!-- Context element will be evaluted against Condition element in Policy -->
  <xsd:element name="ContextAttribute" type="request-arc:ContextAttributeType"/>
  <xsd:complexType name="ContextAttributeType">
   <xsd:simpleContent>

@@ -165,7 +165,7 @@
   <xsd:restriction base="xsd:dateTime"/>
  </xsd:simpleType>
 
- <xsd:OldJobID name="OldJobID_Type">
+ <xsd:simpleType name="OldJobID_Type">
   <xsd:annotation><xsd:documentation> For jsdl:JobIdentification_Type </xsd:documentation></xsd:annotation>
   <!-- xsd:element ref="OldJobID" minOccurs="0"/ -->
   <xsd:restriction base="xsd:anyURI"/>

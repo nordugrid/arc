@@ -44,7 +44,7 @@
          EvaluatorStopsOnDeny,
          EvaluatorStopsOnPermit,
          EvaluatorStopsNever.
-       Unfortunately they behavior is not well defined.
+       Unfortunately they behavior is not well defined. -->
     <xsd:element name="PolicyCombiningAlg" type="xsd:string"/>
 
 </xsd:schema>

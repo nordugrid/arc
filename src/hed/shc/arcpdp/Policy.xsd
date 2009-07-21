@@ -115,7 +115,7 @@
   </xsd:simpleContent>
  </xsd:complexType>
 
- <!---SubjectsRef for specifying a Subjects reference ->
+ <!---SubjectsRef for specifying a Subjects reference -->
  <xsd:element name="SubjectsRef" type="policy-arc:RefType"/>
 
  <!--Definition of Subjects-->
