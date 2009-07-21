@@ -470,8 +470,8 @@ namespace Arc {
     xmlNsPtr ns = GetNamespace(node_);
     if (!ns)
       return "";
-    //if (!(ns->prefix))
-    //  return "";
+    if (!(ns->href))
+      return "";
     return (const char*)(ns->href);
   }
 
