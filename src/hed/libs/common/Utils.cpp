@@ -92,7 +92,7 @@ namespace Arc {
   bool PersistentLibraryInit(const std::string& name) {
     std::string arc_lib_path = ArcLocation::Get();
     if(!arc_lib_path.empty()) {
-      arc_lib_path = arc_lib_path + G_DIR_SEPARATOR_S + PKGLIBSUBDIR;
+      arc_lib_path = arc_lib_path + G_DIR_SEPARATOR_S + LIBSUBDIR;
     }
     std::string libpath = Glib::build_filename(arc_lib_path,"lib"+name+"."+G_MODULE_SUFFIX);
     persistent_libraries_lock.lock();
