@@ -15,7 +15,7 @@ cleanup() {
         -o -name Makefile.in -o -name config.h.in -o -name aclocal.m4 \
         -o -name autoscan.log -o -name configure.scan -o -name config.log \
         -o -name config.status -o -name config.h -o -name stamp-h1 \
-        -o -name Makefile -o -name libtool \) \
+        -o -name Makefile -o -name libtool -o -name COPYING \) \
         -print | xargs rm -f
 }
 

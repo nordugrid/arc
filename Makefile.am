@@ -2,6 +2,8 @@
 
 ACLOCAL_AMFLAGS = -I m4 `test -d /opt/local/share/aclocal && echo -I /opt/local/share/aclocal`
 
+AUTOMAKE_OPTIONS = foreign
+
 distdir = nordugrid-arc1-@VERSION@
 
 if JAVA_ENABLED 
@@ -39,4 +41,3 @@ install-doc:
 	done
 
 .PHONY: doc
-
