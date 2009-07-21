@@ -5,6 +5,7 @@
   xmlns:tls="http://www.nordugrid.org/schemas/ArcMCCTLS/2007"
   xmlns:arcpdp="http://www.nordugrid.org/schemas/ArcPDP"
   xmlns:deleg="http://www.nordugrid.org/schemas/ArcConfig/2007/deleg"
+  xmlns:register="http://www.nordugrid.org/schemas/InfoRegisterConfig/2008"
 >
 
     <ModuleManager>

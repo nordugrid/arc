@@ -24,5 +24,5 @@
                 <gmconfig>/etc/arc.conf</gmconfig>
             </Service>
         </Chain>
-    <Chain>
+    </Chain>
 </ArcConfig>
