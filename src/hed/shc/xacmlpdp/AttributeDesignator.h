@@ -15,7 +15,7 @@ namespace ArcSec {
 
 class AttributeDesignator {
 public:
-  AttributeDesignator(Arc::XMLNode& node);
+  AttributeDesignator(Arc::XMLNode& node, AttributeFactory* attr_factory);
   virtual ~AttributeDesignator();
 
   virtual std::list<AttributeValue*> evaluate(EvaluationCtx* ctx);
@@ -24,9 +24,12 @@ private:
   std::string target;
   std::string id;
   std::string type;
+  std::string category;
   std::string issuer;
   
   bool present;
+
+  AttributeFactory* attrfactory;
 };
 
 } // namespace ArcSec

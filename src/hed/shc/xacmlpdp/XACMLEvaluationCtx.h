@@ -32,13 +32,29 @@ public:
   virtual ~XACMLEvaluationCtx();
   
   virtual Request* getRequest() const;
+
+  virtual std::list<AttributeValue*> getSubjectAttributes(std::string& id, std::string& type, std::string& issuer, std::string& category, AttributeFactory* attrfactory);
+
+  virtual std::list<AttributeValue*> getResourceAttributes(std::string& id, std::string& type, std::string& issuer, AttributeFactory* attrfactory);
+
+  virtual std::list<AttributeValue*> getActionAttributes(std::string& id, std::string& type, std::string& issuer, AttributeFactory* attrfactory);
+
+  virtual std::list<AttributeValue*> getContextAttributes(std::string& id, std::string& type, std::string& issuer, AttributeFactory* attrfactory);
  
   virtual std::list<AttributeValue*> getAttributes(std::string& reqctxpath,
        Arc::XMLNode& policy, std::string& data_type, AttributeFactory* attrfactory); 
 
 private:
+  std::list<AttributeValue*> getAttributesHelper(std::string& id,
+       std::string& type, std::string& issuer, AttributeFactory* attrfactory, const std::string& target_class);
+
+private:
   static Arc::Logger logger;
   Request* req;
+  std::map<std::string, std::string> subjects;
+  std::map<std::string, std::string> resources;
+  std::map<std::string, std::string> actions;
+  std::map<std::string, std::string> enviornments;
 
 };
 

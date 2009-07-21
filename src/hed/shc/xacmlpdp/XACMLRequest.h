@@ -17,15 +17,6 @@ class XACMLRequest : public Request {
 //friend class ArcEvaluator;
 
 public:
-  /**Get all the RequestItem inside RequestItem container */
-  virtual ReqItemList getRequestItems () const { };
-
-  /**Set the content of the container*/
-  virtual void setRequestItems (ReqItemList sl) { };
-
-  /**Add request tuple from non-XMLNode*/
-  virtual void addRequestItem(Attrs& sub, Attrs& res, Attrs& act, Attrs& ctx) {};
-
   /**Get the name of corresponding evaulator*/
   virtual const char* getEvalName() const { };
 
@@ -62,6 +53,8 @@ private:
   Action act;
   Context env;
 
+protected:
+  static Arc::Logger logger;
 };
 
 } // namespace ArcSec

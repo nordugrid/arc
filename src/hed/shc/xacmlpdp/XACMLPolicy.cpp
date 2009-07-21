@@ -9,7 +9,7 @@
 
 Arc::Logger ArcSec::XACMLPolicy::logger(Arc::Logger::rootLogger, "XACMLPolicy");
 
-static Arc::NS policyns("policy", "urn:oasis:names:tc:xacm:2.0:policy:schema:os");
+static Arc::NS policyns("policy", "urn:oasis:names:tc:xacml:2.0:policy:schema:os");
 
 /** get_policy (in charge of class-loading of XACMLPolicy) can only
  * accept one type of argument--XMLNode */
@@ -49,8 +49,10 @@ XACMLPolicy::XACMLPolicy(const XMLNode node) : Policy(node), comalg(NULL) {
     return;
   }
   node.New(policynode);
+
   std::list<XMLNode> res = policynode.XPathLookup("//policy:Policy",policyns);
   if(res.empty()) {
+    logger.msg(ERROR,"Can not find <Policy/> element with proper namespace");
     policynode.Destroy();
     return;
   }
@@ -58,28 +60,42 @@ XACMLPolicy::XACMLPolicy(const XMLNode node) : Policy(node), comalg(NULL) {
 }
 
 XACMLPolicy::XACMLPolicy(const XMLNode node, EvaluatorContext* ctx) : Policy(node), comalg(NULL), target(NULL) {
+  if((!node) || (node.Size() == 0)) {
+    logger.msg(ERROR,"Policy is empty");
+    return;
+  }
   node.New(policynode);
+  std::list<XMLNode> res = policynode.XPathLookup("//policy:Policy",policyns);
+  if(res.empty()) {
+    policynode.Destroy();
+    return;
+  }
+  policytop = *(res.begin());
+  setEvaluatorContext(ctx);
+  make_policy();
+}
 
-  std::string xml;
-  policynode.GetDoc(xml);
-  std::cout<<xml<<std::endl;
-  
-  //EvalResult.node record the policy(in XMLNode) information about evaluation result. According to the developer's requirement, 
-  //EvalResult.node can include rules(in XMLNode) that "Permit" or "Deny" the request tuple. In the existing code, it include all 
+void XACMLPolicy::make_policy() {
+  //EvalResult.node record the policy(in XMLNode) information about evaluation result.
+  //According to the developer's requirement, 
+  //EvalResult.node can include rules(in XMLNode) that "Permit" or "Deny" 
+  //the request tuple. In the existing code, it include all 
   //the original rules.
+
+  if(!policynode) return;
+  if(!policytop) return;
+
   evalres.node = policynode;
   evalres.effect = "Not_applicable";
 
   XACMLRule *rule;
   //Get AlgFactory from EvaluatorContext
-  algfactory = (AlgFactory*)(*ctx); 
+  algfactory = (AlgFactory*)(*evaluatorctx); 
 
-  XMLNode nd, rnd;
-
-  std::list<XMLNode> res;
-  res = policynode.XPathLookup("//policy:Policy", policyns);
-  if(!(res.empty())){
-    nd = *(res.begin());
+  XMLNode nd = policytop;
+  XMLNode rnd;
+  if((bool)nd){
+    nd = policytop;
     id = (std::string)(nd.Attribute("PolicyId"));
 
     //Setup the rules' combining algorithm inside one policy, according to the "RuleCombiningAlgId" name
@@ -95,20 +111,16 @@ XACMLPolicy::XACMLPolicy(const XMLNode node, EvaluatorContext* ctx) : Policy(nod
     
     description = (std::string)(nd["Description"]);  
   }
-  else {
-    policynode.Destroy();
-    return;
-  }
   
   logger.msg(INFO, "PolicyId: %s  Alg inside this policy is:-- %s", id, comalg?(comalg->getalgId()):"");
 
-  XMLNode targetnode = node["Target"];
-  if((bool)targetnode) target = new XACMLTarget(targetnode, ctx);
+  XMLNode targetnode = nd["Target"];
+  if((bool)targetnode) target = new XACMLTarget(targetnode, evaluatorctx);
  
   for ( int i=0;; i++ ){
     rnd = nd["Rule"][i];
     if(!rnd) break;
-    rule = new XACMLRule(rnd, ctx);
+    rule = new XACMLRule(rnd, evaluatorctx);
     subelements.push_back(rule);
   }
 }
@@ -121,7 +133,14 @@ MatchResult XACMLPolicy::match(EvaluationCtx* ctx){
 }
 
 Result XACMLPolicy::eval(EvaluationCtx* ctx){
-  Result result = comalg?comalg->combine(ctx, subelements):DECISION_INDETERMINATE;
+  Result result = DECISION_NOT_APPLICABLE;
+  if(target != NULL) {
+    MatchResult matchres = target->match(ctx);
+    if(matchres == NO_MATCH)  return result;
+    else if(matchres == INDETERMINATE) {result = DECISION_INDETERMINATE; return result;}
+  }
+
+  result = comalg?comalg->combine(ctx, subelements):DECISION_INDETERMINATE;
   if(result == DECISION_PERMIT) evalres.effect = "Permit";
   else if(result == DECISION_DENY) evalres.effect = "Deny";
   else if(result == DECISION_INDETERMINATE) evalres.effect = "Indeterminate";

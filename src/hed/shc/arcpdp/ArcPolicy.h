@@ -41,9 +41,9 @@ public:
 
   virtual void setEvalResult(EvalResult& res);
 
-  virtual const char* getEvalName() const;
+  const char* getEvalName() const;
 
-  virtual const char* getName() const;
+  const char* getName() const;
 
   static Arc::Plugin* get_policy(Arc::PluginArgument* arg);
 

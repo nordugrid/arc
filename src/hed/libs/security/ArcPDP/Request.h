@@ -57,13 +57,13 @@ protected:
   ReqItemList rlist;
 public:
   /**Get all the RequestItem inside RequestItem container */
-  virtual ReqItemList getRequestItems () const = 0;
+  virtual ReqItemList getRequestItems () const { ReqItemList list; return list; };
 
   /**Set the content of the container*/
-  virtual void setRequestItems (ReqItemList sl) = 0;
+  virtual void setRequestItems (ReqItemList sl) { };
 
   /**Add request tuple from non-XMLNode*/
-  virtual void addRequestItem(Attrs& sub, Attrs& res, Attrs& act, Attrs& ctx)=0;
+  virtual void addRequestItem(Attrs& sub, Attrs& res, Attrs& act, Attrs& ctx) { };
 
   /**Set the attribute factory for the usage of Request*/
   virtual void setAttributeFactory(AttributeFactory* attributefactory) = 0;

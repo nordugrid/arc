@@ -76,6 +76,7 @@ ArcPolicy::ArcPolicy(const XMLNode node, EvaluatorContext* ctx) : Policy(node), 
     policynode.Destroy();
     return;
   }
+  policytop = *(res.begin());
   setEvaluatorContext(ctx); 
   make_policy();
 }

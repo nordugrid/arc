@@ -24,8 +24,8 @@ int main(void){
   signal(SIGTTIN,SIG_IGN);
   signal(SIGPIPE,SIG_IGN);
   Arc::Logger logger(Arc::Logger::rootLogger, "PDPTest");
-  Arc::LogStream logcerr(std::cerr);
-  Arc::Logger::rootLogger.addDestination(logcerr);
+  //Arc::LogStream logcerr(std::cerr);
+  //Arc::Logger::rootLogger.addDestination(logcerr);
 
   logger.msg(Arc::INFO, "Start test");
   // NOTE: ClassLoader can't distiguish between object of different kinds of classes
@@ -33,6 +33,7 @@ int main(void){
   // that it is supplied with configuration of different type method Instance() may return
   // unexpected object type. Because of that we need separate loaders for different types
   // of classes.
+
   ArcSec::EvaluatorLoader eval_loader;
   ArcSec::Evaluator* eval = NULL;
   ArcSec::Policy* policy = NULL;

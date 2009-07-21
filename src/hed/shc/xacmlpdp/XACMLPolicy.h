@@ -31,6 +31,11 @@ public:
 
   virtual Result eval(EvaluationCtx* ctx);
 
+  virtual void setEvaluatorContext(EvaluatorContext* evaluatorcontext) { evaluatorctx = evaluatorcontext; };
+
+  /**Parse XMLNode, and construct the low-level Rule object*/
+  virtual void make_policy();
+
   virtual MatchResult match(EvaluationCtx* ctx);
 
   virtual std::string getEffect() const { return "Not_applicable";};
@@ -53,6 +58,9 @@ private:
   /**The combining algorithm between lower-lever element, <Rule>*/
   CombiningAlg *comalg;
   std::string description;
+
+  /**Evaluator Context which contains factory object*/
+  EvaluatorContext* evaluatorctx;
 
   /**Algorithm factory*/
   AlgFactory *algfactory;

@@ -30,6 +30,8 @@ int main(void){
 
   ArcSec::EvaluatorLoader eval_loader;
 
+  //TEST: ArcEvaluator, ArcPolicy, ArcRequest
+
   //Load the Evaluator
   ArcSec::Evaluator* eval = NULL;
   std::string evaluator = "arc.evaluator";
@@ -70,10 +72,10 @@ int main(void){
   /**Three options to create policy object*/
   ArcSec::SourceFile policy_source("Policy_Example.xml");
   //ArcSec::Source policy_source(policy_str);
-  //ArcSec::Source policy_source(Arc::XMLNode policynode);
+  //ArcSec::Source policy_source(policynode);
   policy = eval_loader.getPolicy(policyclassname, policy_source);
   if(policy == NULL)
-    logger.msg(Arc::ERROR, "Can not dynamically produce Request");
+    logger.msg(Arc::ERROR, "Can not dynamically produce Policy");
 
   Arc::XMLNode reqnode("\
      <ra:Request xmlns:ra=\"http://www.nordugrid.org/schemas/request-arc\">\
@@ -94,8 +96,8 @@ int main(void){
   ArcSec::Request* request = NULL;
   std::string requestclassname = "arc.request";
   /**Three options to create request object*/
-  ArcSec::Source request_source(reqnode);
-  //ArcSec::Source request_source(request_str);
+  //ArcSec::Source request_source(reqnode);
+  ArcSec::Source request_source(request_str);
   //ArcSec::SourceFile request_source("Request.xml");
   request = eval_loader.getRequest(requestclassname, request_source);
 
@@ -155,7 +157,6 @@ int main(void){
   } 
   if(eval) delete eval;
   if(request) delete request;
-  if(policy) delete policy;
 
   return 0;
 }

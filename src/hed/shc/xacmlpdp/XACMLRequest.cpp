@@ -2,24 +2,19 @@
 #include <config.h>
 #endif
 
+#include <fstream>
 #include <arc/security/ClassLoader.h>
 
-#include <fstream>
 #include "XACMLRequest.h"
-//#include "XACMLRequestItem.h"
+
+Arc::Logger ArcSec::XACMLRequest::logger(Arc::Logger::rootLogger, "XACMLRequest");
+
+static Arc::NS reqns("request", "urn:oasis:names:tc:xacml:2.0:context:schema:os");
 
 /** get_request (in charge of class-loading of XACMLRequest) can only accept two types of argument: NULL, XMLNode*/
 Arc::Plugin* ArcSec::XACMLRequest::get_request(Arc::PluginArgument* arg) {
-  //std::cout<<"Argument type of XACMLRequest:"<<typeid(arg).name()<<std::endl;
   if(arg==NULL) return NULL;
   else {
-    /*
-    {
-      std::string xml;
-      ((Arc::XMLNode*)arg)->GetXML(xml);
-      std::cout<<"node inside XACMLRequest:"<<xml<<std::endl;
-    };
-    */
     Arc::ClassLoaderPluginArgument* clarg =
             arg?dynamic_cast<Arc::ClassLoaderPluginArgument*>(arg):NULL;
     if(!clarg) return NULL;
@@ -30,23 +25,22 @@ Arc::Plugin* ArcSec::XACMLRequest::get_request(Arc::PluginArgument* arg) {
   }
 }
 
-//loader_descriptors __xacml_request_modules__  = {
-//    { "xacml.request", 0, &get_xacmlrequest },
-//    { NULL, 0, NULL }
-//};
-
-
 using namespace Arc;
 using namespace ArcSec;
 
 void XACMLRequest::make_request(){
-
-  std::string xml;
-  reqnode.GetDoc(xml);
-  std::cout<<xml<<std::endl;
-
   //Parse the XMLNode structure, and generate the RequestAttribute object
-  XMLNode node = reqnode["Request"];
+  if((!reqnode) || (reqnode.Size() == 0)) {
+    logger.msg(ERROR,"Request is empty");
+    return;
+  }
+  std::list<XMLNode> r = reqnode.XPathLookup("//request:Request", reqns);
+  if(r.empty()) {
+    logger.msg(ERROR,"Can not find <Request/> element with proper namespace");
+    return;
+  }
+  XMLNode node = *(r.begin());
+
   XMLNode nd, cnd;
 
   //Parse the <Subject> part
@@ -91,49 +85,6 @@ void XACMLRequest::make_request(){
 
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/*
-XACMLRequest::XACMLRequest(const char* filename) : Request(filename) {
-  std::string str;
-  std::string xml_str = "";
-  std::ifstream f(filename);
-
-  while (f >> str) {
-    xml_str.append(str);
-    xml_str.append(" ");
-  }
-  f.close();
-
-  Arc::XMLNode node(xml_str);
-  NS ns;
-  ns["ra"]="urn:oasis:names:tc:xacm:2.0:context:schema:os";
-  node.Namespaces(ns);
-  node.New(reqnode);
-}
-
-XACMLRequest::XACMLRequest (const XMLNode* node) : Request(node) {
-  node->New(reqnode);
-}
-*/
-
 XACMLRequest::XACMLRequest (const Source& req) : Request(req) {
   req.Get().New(reqnode);
   NS ns;
@@ -149,8 +100,4 @@ XACMLRequest::XACMLRequest () {
 }
 
 XACMLRequest::~XACMLRequest(){
-  while(!(rlist.empty())){
-    delete rlist.back();
-    rlist.pop_back();
-  }
 }

@@ -14,9 +14,9 @@
     <pdp:PDPConfig>
           <pdp:PolicyStore name="test" location="Policy_Example.xml"/>
           <!--pdp:PolicyStore name="test" location="http://www.w3schools.com/xml/plant_catalog.xml"/-->
-          <pdp:AttributeFactory name="attr.factory" />
-          <pdp:CombingAlgorithmFactory name="alg.factory" />
-          <pdp:FunctionFactory name="fn.factory" />
+          <pdp:AttributeFactory name="arc.attrfactory" />
+          <pdp:CombingAlgorithmFactory name="arc.algfactory" />
+          <pdp:FunctionFactory name="arc.fnfactory" />
           <pdp:Evaluator name="arc.evaluator" />
           <pdp:Request name="arc.request" />
     </pdp:PDPConfig>

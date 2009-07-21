@@ -12,11 +12,25 @@ AttributeSelector::AttributeSelector(Arc::XMLNode& node, AttributeFactory* attr_
     attrfactory(attr_factory) {
   std::string tp = (std::string)(node.Attribute("DataType"));
   if(tp.empty()) {std::cerr<<"Required DataType does not exist in AttributeSelector"<<std::endl; exit(0);}
+
+  type = tp;
+
+#if 0
   size_t found = tp.find_last_of("#");
-  type = tp.substr(found+1);
+  if(found!=std::string::npos) {
+    type = tp.substr(found+1);
+  }
+  else {
+    found=tp.find_last_of(":"); //urn:oasis:names:tc:xacml:1.0:data-type:rfc822Name
+    type = tp.substr(found+1);
+  }
+#endif
 
   reqctxpath = (std::string)(node.Attribute("RequestContextPath"));
   if(reqctxpath.empty()) {std::cerr<<"Required RequestContextPath does not exist in AttributeSelector"<<std::endl; exit(0);} 
+
+std::cout<<"=====!!!!!  "<<reqctxpath<<std::endl;
+
   
   std::string must = node.Attribute("MustBePresent");
   if(!must.empty()) present = true;

@@ -8,7 +8,7 @@
 #include "pdpserviceinvoker/ArcPDPServiceInvoker.h"
 #include "delegationpdp/DelegationPDP.h"
 #include "arcpdp/ArcPDP.h"
-//#include "xacmlpdp/XACMLPDP.h"
+#include "xacmlpdp/XACMLPDP.h"
 #include "countpdp/CountPDP.h"
 #include "allowpdp/AllowPDP.h"
 #include "denypdp/DenyPDP.h"
@@ -25,7 +25,7 @@
 #include "gaclpdp/GACLPolicy.h"
 
 #include "arcpdp/ArcEvaluator.h"
-//#include "xacmlpdp/XACMLEvaluator.h"
+#include "xacmlpdp/XACMLEvaluator.h"
 #include "gaclpdp/GACLEvaluator.h"
 
 #include "arcpdp/ArcRequest.h"
@@ -36,9 +36,9 @@
 #include "arcpdp/ArcAlgFactory.h"
 #include "arcpdp/ArcFnFactory.h"
 
-//#include "xacmlpdp/XACMLAttributeFactory.h"
-//#include "xacmlpdp/XACMLAlgFactory.h"
-//#include "xacmlpdp/XACMLFnFactory.h"
+#include "xacmlpdp/XACMLAttributeFactory.h"
+#include "xacmlpdp/XACMLAlgFactory.h"
+#include "xacmlpdp/XACMLFnFactory.h"
 
 using namespace ArcSec;
 
@@ -47,6 +47,8 @@ Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
                   &ArcSec::SimpleListPDP::get_simplelist_pdp},
     { "arc.pdp", "HED:PDP", 0,
                   &ArcSec::ArcPDP::get_arc_pdp},
+    { "xacml.pdp", "HED:PDP", 0,
+                  &ArcSec::XACMLPDP::get_xacml_pdp},
     { "pdpservice.invoker", "HED:PDP", 0,
                   &ArcSec::ArcPDPServiceInvoker::get_pdpservice_invoker},
     { "delegation.pdp", "HED:PDP", 0,
@@ -73,26 +75,34 @@ Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
                   &ArcSec::DelegationSH::get_sechandler},
     { "arc.policy", "__arc_policy_modules__", 0,
                   &ArcSec::ArcPolicy::get_policy },
-    { "xacml.policy", "__xacml_policy_modules__", 0,
+    { "xacml.policy", "__arc_policy_modules__", 0,
                  &ArcSec::XACMLPolicy::get_policy },
-    { "gacl.policy", "__gacl_policy_modules__", 0,
+    { "gacl.policy", "__arc_policy_modules__", 0,     //__gacl_policy_modules__  --> __arc_policy_modules__
                   &ArcSec::GACLPolicy::get_policy },
     { "arc.evaluator", "__arc_evaluator_modules__", 0,
                   &ArcSec::ArcEvaluator::get_evaluator },
+    { "xacml.evaluator", "__arc_evaluator_modules__", 0,
+                  &ArcSec::XACMLEvaluator::get_evaluator },
     { "gacl.evaluator", "__arc_evaluator_modules__", 0,
                  &ArcSec::GACLEvaluator::get_evaluator },
     { "arc.request", "__arc_request_modules__", 0,
                  &ArcSec::ArcRequest::get_request },
-    { "xacml.request", "__xacml_request_modules__", 0,
+    { "xacml.request", "__arc_request_modules__", 0,
                  &ArcSec::XACMLRequest::get_request },
     { "gacl.request", "__arc_request_modules__", 0,
                  &ArcSec::GACLRequest::get_request },
-    { "attr.factory", "__arc_attrfactory_modules__", 0,
+    { "arc.attrfactory", "__arc_attrfactory_modules__", 0,
                  &get_arcpdp_attr_factory },
-    { "alg.factory", "__arc_algfactory_modules__", 0,
+    { "arc.algfactory", "__arc_algfactory_modules__", 0,
                  &get_arcpdp_alg_factory },
-    { "fn.factory", "__arc_fnfactory_modules__", 0,
+    { "arc.fnfactory", "__arc_fnfactory_modules__", 0,
                  &get_arcpdp_fn_factory },
+    { "xacml.attrfactory", "__arc_attrfactory_modules__", 0,
+                 &get_xacmlpdp_attr_factory },
+    { "xacml.algfactory", "__arc_algfactory_modules__", 0,
+                 &get_xacmlpdp_alg_factory },
+    { "xacml.fnfactory", "__arc_fnfactory_modules__", 0,
+                 &get_xacmlpdp_fn_factory },
     { NULL, NULL, 0, NULL }
 };
 

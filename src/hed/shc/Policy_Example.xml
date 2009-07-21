@@ -22,7 +22,7 @@
          <Action>list</Action>
       </Actions>
       <Conditions>
-	 <Condition Type="period">2007-09-10T20:30:20/P1Y1M</Condition>
+	 <!--Condition Type="period">2007-09-10T20:30:20/P1Y1M</Condition-->
          <GroupIdRef Location="./conditiongroup.xml">normalcondition</GroupIdRef>   
       </Conditions>
    </Rule>

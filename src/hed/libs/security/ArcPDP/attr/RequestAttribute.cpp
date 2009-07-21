@@ -19,9 +19,15 @@ RequestAttribute::RequestAttribute(XMLNode& node, AttributeFactory* attrfactory)
 
   std::string tp = (std::string)(node.Attribute("Type"));
   if(tp.empty())
-    tp = (std::string)(node.Attribute("DataType"));
-  size_t found = tp.find_last_of("#");
-  type = tp.substr(found+1);
+    tp = (std::string)(node.Attribute("DataType")); 
+  std::size_t found = tp.find_last_of("#"); //http://www.w3.org/2001/XMLSchema#string
+  if(found!=std::string::npos) {
+    type = tp.substr(found+1);
+  }
+  else {
+    found=tp.find_last_of(":"); //urn:oasis:names:tc:xacml:1.0:data-type:rfc822Name
+    type = tp.substr(found+1);
+  }
 
   issuer = (std::string)(node.Attribute("Issuer"));
 

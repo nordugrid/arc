@@ -35,35 +35,51 @@ XACMLTargetMatch::XACMLTargetMatch(XMLNode& node, EvaluatorContext* ctx) : match
   
   //create the Function based on the function name
   function = fnfactory->createFn(funcname);
+  if(!function) { logger.msg(ERROR, "Can not create function %s", funcname); return; }
 
   //create the AttributeValue, AttributeDesignator and AttributeSelector
   XMLNode cnd;
 
+  XMLNode attrval_nd;
+  std::string attrval_id;
+  std::string attrval_type;
   for(int i = 0;;i++ ) {
     cnd = node.Child(i);
     if(!cnd) break;
-    if(MatchXMLName(cnd, "AttributeValue")) {
+    std::string name = cnd.Name();
+    if(name.find("AttributeValue") != std::string::npos) {
        std::string data_type = cnd.Attribute("DataType");
        //<AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">
        //  http://www.med.example.com/schemas/record.xsd
        //</AttributeValue>
-       std::size_t f = data_type.find_last_of("#");
-       std::string type = data_type.substr(f+1);
-       attrval = attrfactory->createValue(cnd, type);
+       attrval_nd = cnd;
+       std::size_t f = data_type.find_last_of("#"); //http://www.w3.org/2001/XMLSchema#string
+       if(f!=std::string::npos) {
+         attrval_type = data_type.substr(f+1);
+       }
+       else {
+         f=data_type.find_last_of(":"); //urn:oasis:names:tc:xacml:1.0:data-type:rfc822Name
+         attrval_type = data_type.substr(f+1);
+       }
     }
-    else if(MatchXMLName(cnd, "AttributeSelector")) {
-       selector = new AttributeSelector(cnd, attrfactory);
+    else if(name.find("AttributeSelector") != std::string::npos) {
+      selector = new AttributeSelector(cnd, attrfactory);
+      attrval_id = (std::string)(cnd.Attribute("AttributeId"));   
     }
-    else if(MatchXMLName(cnd, "AttributeDesignator")) {
-       designator = new AttributeDesignator(cnd);
+    else if(name.find("AttributeDesignator") != std::string::npos) {
+      designator = new AttributeDesignator(cnd, attrfactory);
+      attrval_id = (std::string)(cnd.Attribute("AttributeId"));
     }
   }
-
+  //kind of hack here. Because in xacml, <AttributeValue/> (the policy side)
+  //normally xml attribute "AttributeId" is absent, but in our implementation 
+  //about comparing two attribute, "AttributeId" is required.
+  attrval_nd.NewAttribute("AttributeId") = attrval_id;
+  attrval = attrfactory->createValue(attrval_nd, attrval_type);
 }
 
 XACMLTargetMatch::~XACMLTargetMatch() {
   if(attrval != NULL) delete attrval;
-  if(function != NULL) delete function;
   if(selector != NULL) delete selector;
   if(designator != NULL) delete designator;
 }
@@ -76,10 +92,17 @@ MatchResult XACMLTargetMatch::match(EvaluationCtx* ctx) {
   bool evalres = false;
   std::list<AttributeValue*>::iterator i;
   for(i = attrlist.begin(); i != attrlist.end(); i++) {
+std::cout<<"Request side: "<<(*i)->encode()<<" Policy side:  "<<attrval->encode()<<std::endl;
     evalres = function->evaluate(attrval, (*i));
-    if(evalres) return MATCH;
+    if(evalres) { std::cout<<"Matched!"<<std::endl; break; }
   }
-  return NO_MATCH;
+  while(!(attrlist.empty())) {
+    AttributeValue* val = attrlist.back();
+    attrlist.pop_back();
+    delete val;
+  }
+  if(evalres) return MATCH;
+  else return NO_MATCH;
 }
 
 
@@ -96,9 +119,8 @@ XACMLTargetMatchGroup::XACMLTargetMatchGroup(XMLNode& node, EvaluatorContext* ct
 }
 
 XACMLTargetMatchGroup::~XACMLTargetMatchGroup() {
-  XACMLTargetMatch* tm = NULL;
   while(!(matches.empty())) {
-    tm = matches.back();
+    XACMLTargetMatch* tm = matches.back();
     matches.pop_back();
     delete tm;
   }

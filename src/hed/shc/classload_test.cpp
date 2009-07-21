@@ -13,7 +13,7 @@ int main(void)
 {
     Arc::Config cfg("EvaluatorCfg.xml");
     Arc::ClassLoader classloader(&cfg);
-    std::string id = "attr.factory";
+    std::string id = "arc.attrfactory";
     ArcSec::AttributeFactory* attrfactory=NULL;
     attrfactory = (ArcSec::AttributeFactory*)(classloader.Instance(id));
 
@@ -29,7 +29,7 @@ int main(void)
     }
     
     Arc::ClassLoader classloader1(NULL);
-    id = "attr.factory";
+    id = "arc.attrfactory";
     attrfactory=NULL;
     attrfactory = (ArcSec::AttributeFactory*)(classloader.Instance(id));
 

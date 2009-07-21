@@ -7,7 +7,7 @@ SUBDIRS_XMLSEC =
 endif
 SUBDIRS = allowpdp denypdp countpdp simplelistpdp arcpdp xacmlpdp pdpserviceinvoker arcauthzsh delegationpdp usernametokensh gaclpdp $(SUBDIRS_XMLSEC) delegationsh
 DIST_SUBDIRS = allowpdp denypdp countpdp simplelistpdp arcpdp xacmlpdp pdpserviceinvoker arcauthzsh delegationpdp usernametokensh gaclpdp x509tokensh samltokensh saml2sso_assertionconsumersh delegationsh
-noinst_PROGRAMS = test testinterface
+noinst_PROGRAMS = test testinterface_arc testinterface_xacml
 # classload_test 
 
 pkglib_LTLIBRARIES = libarcshc.la
@@ -32,11 +32,15 @@ test_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
 test_LDFLAGS  = $(GLIBMM_LIBS) $(LIBXML2_LIBS)
 test_LDADD    = $(top_srcdir)/src/hed/libs/common/libarccommon.la $(top_srcdir)/src/hed/libs/loader/libarcloader.la $(top_srcdir)/src/hed/libs/message/libarcmessage.la $(top_srcdir)/src/hed/libs/security/libarcsecurity.la
 
-testinterface_SOURCES  = testinterface.cpp
-testinterface_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
-testinterface_LDFLAGS  = $(GLIBMM_LIBS) $(LIBXML2_LIBS)
-testinterface_LDADD    = $(top_srcdir)/src/hed/libs/common/libarccommon.la $(top_srcdir)/src/hed/libs/loader/libarcloader.la $(top_srcdir)/src/hed/libs/message/libarcmessage.la $(top_srcdir)/src/hed/libs/security/libarcsecurity.la
+testinterface_arc_SOURCES  = testinterface_arc.cpp
+testinterface_arc_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
+testinterface_arc_LDFLAGS  = $(GLIBMM_LIBS) $(LIBXML2_LIBS)
+testinterface_arc_LDADD    = $(top_srcdir)/src/hed/libs/common/libarccommon.la $(top_srcdir)/src/hed/libs/loader/libarcloader.la $(top_srcdir)/src/hed/libs/message/libarcmessage.la $(top_srcdir)/src/hed/libs/security/libarcsecurity.la
 
+testinterface_xacml_SOURCES  = testinterface_xacml.cpp
+testinterface_xacml_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
+testinterface_xacml_LDFLAGS  = $(GLIBMM_LIBS) $(LIBXML2_LIBS)
+testinterface_xacml_LDADD    = $(top_srcdir)/src/hed/libs/common/libarccommon.la $(top_srcdir)/src/hed/libs/loader/libarcloader.la $(top_srcdir)/src/hed/libs/message/libarcmessage.la $(top_srcdir)/src/hed/libs/security/libarcsecurity.la
 
 #classload_test_SOURCES = classload_test.cpp
 #classload_test_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include

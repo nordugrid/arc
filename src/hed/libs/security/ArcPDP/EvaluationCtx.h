@@ -42,13 +42,13 @@ public:
 
   //virtual RequestItem* getRequestItem() const { return NULL; };
 
-  virtual std::list<AttributeValue*> getSubjectAttributes(std::string& id, std::string& type, std::string& issuer, std::string& category) { std::list<AttributeValue*> attrlist; return attrlist; };
+  virtual std::list<AttributeValue*> getSubjectAttributes(std::string& id, std::string& type, std::string& issuer, std::string& category, AttributeFactory* attrfactory) { std::list<AttributeValue*> attrlist; return attrlist; };
 
-  virtual std::list<AttributeValue*> getResourceAttributes(std::string& id, std::string& type, std::string& issuer)  { std::list<AttributeValue*> attrlist; return attrlist; };
+  virtual std::list<AttributeValue*> getResourceAttributes(std::string& id, std::string& type, std::string& issuer, AttributeFactory* attrfactory)  { std::list<AttributeValue*> attrlist; return attrlist; };
 
-  virtual std::list<AttributeValue*> getActionAttributes(std::string& id, std::string& type, std::string& issuer)  { std::list<AttributeValue*> attrlist; return attrlist; };
+  virtual std::list<AttributeValue*> getActionAttributes(std::string& id, std::string& type, std::string& issuer, AttributeFactory* attrfactory)  { std::list<AttributeValue*> attrlist; return attrlist; };
 
-  virtual std::list<AttributeValue*> getContextAttributes(std::string& id, std::string& type, std::string& issuer)  { std::list<AttributeValue*> attrlist; return attrlist; };
+  virtual std::list<AttributeValue*> getContextAttributes(std::string& id, std::string& type, std::string& issuer, AttributeFactory* attrfactory)  { std::list<AttributeValue*> attrlist; return attrlist; };
 
   virtual std::list<AttributeValue*> getAttributes(std::string& reqctxpath, Arc::XMLNode& policy, std::string& data_type, AttributeFactory* attrfactory)  { std::list<AttributeValue*> attrlist; return attrlist; };
 

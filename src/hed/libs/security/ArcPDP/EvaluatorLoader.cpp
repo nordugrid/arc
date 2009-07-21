@@ -32,20 +32,43 @@ namespace ArcSec {
           <Plugin Name='__arc_policy_modules__'>policy</Plugin>\
      </Plugins>\
      <pdp:PDPConfig>\
-          <pdp:AttributeFactory name='attr.factory' />\
-          <pdp:CombingAlgorithmFactory name='alg.factory' />\
-          <pdp:FunctionFactory name='fn.factory' />\
+          <pdp:AttributeFactory name='arc.attrfactory' />\
+          <pdp:CombingAlgorithmFactory name='arc.algfactory' />\
+          <pdp:FunctionFactory name='arc.fnfactory' />\
           <pdp:Evaluator name='arc.evaluator' />\
           <pdp:Request name='arc.request' />\
           <pdp:Policy name='arc.policy' />\
      </pdp:PDPConfig>\
     </ArcConfig>");
 
-  //Arc::XMLNode xacml_evaluator_cfg_nd
+  Arc::XMLNode xacml_evaluator_cfg_nd("\
+    <ArcConfig\
+     xmlns=\"http://www.nordugrid.org/schemas/ArcConfig/2007\"\
+     xmlns:pdp=\"http://www.nordugrid.org/schemas/pdp/Config\">\
+     <ModuleManager>\
+        <Path></Path>\
+     </ModuleManager>\
+     <Plugins Name='arcshc'>\
+          <Plugin Name='__arc_attrfactory_modules__'>attrfactory</Plugin>\
+          <Plugin Name='__arc_fnfactory_modules__'>fnfactory</Plugin>\
+          <Plugin Name='__arc_algfactory_modules__'>algfactory</Plugin>\
+          <Plugin Name='__arc_evaluator_modules__'>evaluator</Plugin>\
+          <Plugin Name='__arc_request_modules__'>request</Plugin>\
+          <Plugin Name='__arc_policy_modules__'>policy</Plugin>\
+     </Plugins>\
+     <pdp:PDPConfig>\
+          <pdp:AttributeFactory name='xacml.attrfactory' />\
+          <pdp:CombingAlgorithmFactory name='xacml.algfactory' />\
+          <pdp:FunctionFactory name='xacml.fnfactory' />\
+          <pdp:Evaluator name='xacml.evaluator' />\
+          <pdp:Request name='xacml.request' />\
+          <pdp:Policy name='xacml.policy' />\
+     </pdp:PDPConfig>\
+    </ArcConfig>");
 
 EvaluatorLoader::EvaluatorLoader() {
   class_config_list_.push_back(arc_evaluator_cfg_nd);
-  //class_config_map_.push_back(xacml_evaluator_cfg_nd);
+  class_config_list_.push_back(xacml_evaluator_cfg_nd);
 }
 
 Evaluator* EvaluatorLoader::getEvaluator(const std::string& classname) {
