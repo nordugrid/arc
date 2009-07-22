@@ -552,7 +552,9 @@ sub jobs_info ($$$) {
  	# Setting cputime, should be converted to minutes
         my (@cput) = split(/:/,$jobinfo{$id}{Step_Total_Time});       
 	$lrms_jobs{$id}{cputime} = int($cput[0]*60 + $cput[1] + $cput[2]/60); 
-	$lrms_jobs{$id}{reqwalltime} = $jobinfo{$id}{Wall_Clk_Hard_Limit};
+	if ($jobinfo{$id}{Wall_Clk_Hard_Limit} =~ / \(([0-9]*) seconds\)/) {
+		$lrms_jobs{$id}{reqwalltime} = $1;
+	}
 	$lrms_jobs{$id}{reqcputime} = $lrms_jobs{$id}{reqwalltime};
 	$lrms_jobs{$id}{comment} = [ "LRMS: $jobinfo{$id}{Status}" ];
         $lrms_jobs{$id}{nodes} = ["$jobinfo{$id}{Allocated_Host}"];
