@@ -23,7 +23,8 @@
 
 <schema targetNamespace="http://schemas.ogf.org/glue/2009/03/spec/2/0"
 	xmlns="http://www.w3.org/2001/XMLSchema"
-	xmlns:glue="http://schemas.ogf.org/glue/2009/03/spec/2/0">
+	xmlns:glue="http://schemas.ogf.org/glue/2009/03/spec/2/0"
+    elementFormDefault="qualified">
 
 	<!-- BEGIN AUXILIARIES ENTITIES -->
 	<complexType name="Extension_t">
@@ -153,7 +154,7 @@
 		<complexContent>
 			<extension base="glue:Entity">
 				<sequence>
-					<element name="Capability" type="glue:ServiceCapability_t" minOccurs="0" maxOccurs="unbounded"/>
+					<element name="Capability" type="glue:Capability_t" minOccurs="0" maxOccurs="unbounded"/>
 					<element name="Type" type="glue:ServiceType_t" minOccurs="1" maxOccurs="1"/>
 					<element name="QualityLevel" type="glue:QualityLevel_t" minOccurs="1" maxOccurs="1"/>
 					<element name="StatusInfo" type="anyURI" minOccurs="0" maxOccurs="unbounded"/>
@@ -188,9 +189,9 @@
 					<element name="SupportedProfile" type="anyURI" minOccurs="0" maxOccurs="unbounded"/>
 					<element name="Semantics" type="anyURI" minOccurs="0" maxOccurs="unbounded"/>
 					<element name="Implementor" type="string" minOccurs="0" maxOccurs="1"/>
-					<element name="ImplementationName" type="string" minOccurs="0" maxOccrus="1"/>
+					<element name="ImplementationName" type="string" minOccurs="0" maxOccurs="1"/>
 					<element name="ImplementationVersion" type="string" minOccurs="0" maxOccurs="1"/>
-					<element name="QualityLevel" type="glue:QualityLevel_t" minOccurs="1" maxOccrus="1"/>
+					<element name="QualityLevel" type="glue:QualityLevel_t" minOccurs="1" maxOccurs="1"/>
 					<element name="HealthState" type="glue:EndpointHealthState_t" minOccurs="1" maxOccurs="1"/>
 					<element name="HealthStateInfo" type="string" minOccurs="0" maxOccurs="1"/>
 					<element name="ServingState" type="glue:ServingState_t" minOccurs="1" maxOccurs="1"/>
@@ -202,13 +203,14 @@
 					<element name="DowntimeEnd" type="dateTime" minOccurs="0" maxOccurs="1"/>
 					<element name="DowntimeInfo" type="string" minOccurs="0" maxOccurs="1"/>
 					<element name="AccessPolicy" type="glue:AccessPolicy_t" minOccurs="0" maxOccurs="unbounded"/>
-					<element name="Associations" minOccurs="0" maxOccurs="1">
+                    <!--TODO: Uncomment after resolving conflict with Associations element of derived types-->
+					<!--element name="Associations" minOccurs="0" maxOccurs="1">
 						<complexType>
 							<sequence>
 								<element name="ActivityID" type="anyURI" minOccurs="0" maxOccurs="unbounded"/>
 							</sequence>
 						</complexType>
-					</element>
+					</element-->
 				</sequence>
 				<attribute name="BaseType" fixed="Endpoint" use="required" />
 			</extension>
@@ -228,13 +230,14 @@
 							</sequence>
 						</complexType>
 					</element>
-					<element name="Associations" minOccurs="0" maxOccurs="1">
+                    <!--TODO: Uncomment after resolving conflict with Associations element of derived types-->
+					<!--element name="Associations" minOccurs="0" maxOccurs="1">
 						<complexType>
 							<sequence>
 								<element name="EndpointID" type="anyURI" minOccurs="0" maxOccurs="unbounded"/>
 							</sequence>
 						</complexType>
-					</element>
+					</element-->
 				</sequence>
 				<attribute name="BaseType" fixed="Share" use="required"/>
 			</extension>
@@ -257,13 +260,14 @@
 		<complexContent>
 			<extension base="glue:Entity">
 				<sequence>
-					<element name="Associations" minOccurs="0" maxOccurs="1">
+                    <!--TODO: Uncomment after resolving conflict with Associations element of derived types-->
+					<!--element name="Associations" minOccurs="0" maxOccurs="1">
 						<complexType>
 							<sequence>
 								<element name="ActivityID" type="anyURI" minOccurs="0" maxOccurs="unbounded"/>
 							</sequence>
 						</complexType>
-					</element>
+					</element-->
                 </sequence>
 				<attribute name="BaseType" fixed="Resource" use="required"/>
 			</extension>
@@ -274,7 +278,8 @@
 		<complexContent>
 			<extension base="glue:Entity">
 				<sequence>
-					<element name="Associations" minOccurs="0" maxOccurs="1">
+                    <!--TODO: Uncomment after resolving conflict with Associations element of derived types-->
+					<!--element name="Associations" minOccurs="0" maxOccurs="1">
 						<complexType>
 							<sequence>
 								<element name="UserDomainID" type="anyURI" minOccurs="0" maxOccurs="1"/>
@@ -282,7 +287,7 @@
 								<element name="ActivityID" type="anyURI" minOccurs="0" maxOccurs="unbounded"/>
 							</sequence>
 						</complexType>
-					</element>
+					</element-->
 				</sequence>
 				<attribute name="BaseType" fixed="Activity" use="required"/>
 			</extension>
@@ -326,8 +331,8 @@
 					<element name="SuspendedJobs" type="unsignedInt" minOccurs="0" maxOccurs="1"/>
 					<element name="PreLRMSWaitingJobs" type="unsignedInt" minOccurs="0" maxOccurs="1"/>
 					<element name="ComputingEndpoint" type="glue:ComputingEndpoint_t" minOccurs="0" maxOccurs="unbounded"/>
-					<element name="ComputingManager" type="glue:ComputingResource_t" minOccurs="0" maxOccurs="unbounded"/>
-					<element name="ComputingShare" type="glue:ComutingShare_t" minOccurs="0" maxoOccurs="unbounded"/>
+					<element name="ComputingManager" type="glue:ComputingManager_t" minOccurs="0" maxOccurs="unbounded"/>
+					<element name="ComputingShare" type="glue:ComputingShare_t" minOccurs="0" maxOccurs="unbounded"/>
 				</sequence>				
 			</extension>
 		</complexContent>
@@ -387,10 +392,10 @@
 							</appinfo>
 						</annotation>
 					</element>
-					<element name="MaxMainMemory" type="unsignedLong" minOccurs="0" maxOccrus="1"/>
-					<element name="GaranteedMainMemory" type="unsignedLong" minOccurs="0" maxOccrus="1"/>
-					<element name="MaxVirtualMemory" type="unsignedLong" minOccurs="0" maxOccrus="1"/>
-					<element name="GaranteedVirtualMemory" type="unsignedLong" minOccurs="0" maxOccrus="1"/>
+					<element name="MaxMainMemory" type="unsignedLong" minOccurs="0" maxOccurs="1"/>
+					<element name="GaranteedMainMemory" type="unsignedLong" minOccurs="0" maxOccurs="1"/>
+					<element name="MaxVirtualMemory" type="unsignedLong" minOccurs="0" maxOccurs="1"/>
+					<element name="GaranteedVirtualMemory" type="unsignedLong" minOccurs="0" maxOccurs="1"/>
 					<element name="MaxDiskSpace" type="unsignedLong" minOccurs="0" maxOccurs="1"/>
 					<element name="DefaultStorageService" type="anyURI" minOccurs="0" maxOccurs="1"/>
 					<element name="Preemption" type="glue:ExtendedBoolean_t" minOccurs="0" maxOccurs="1"/>
@@ -467,7 +472,7 @@
                             				</sequence>
                         			</complexType>
                     			</element>
-					<element name="ApplicationEnvironments" type="anyURI" minOccurs="0" maxOccurs="unbounded">
+					<element name="ApplicationEnvironments" minOccurs="0" maxOccurs="1">
 						<complexType>
 							<sequence>
 					            	   <element name="ApplicationEnvironment" type="glue:ApplicationEnvironment_t" minOccurs="0" maxOccurs="unbounded"/>
@@ -545,11 +550,11 @@
 		        <sequence>
 			        <element name="AppName" type="string" minOccurs="1" maxOccurs="1"/>
 			        <element name="AppVersion" type="string" minOccurs="0" maxOccurs="1"/>
-			        <element name="State" type="glue:AppEnvState_t" minOccurs="0" maxOccrus="1"/>
-			        <element name="RemovalDate" type="datetime" minOccurs="0" maxOccrus="1"/>
+			        <element name="State" type="glue:AppEnvState_t" minOccurs="0" maxOccurs="1"/>
+			        <element name="RemovalDate" type="dateTime" minOccurs="0" maxOccurs="1"/>
 			        <element name="License" type="glue:License_t" minOccurs="0" maxOccurs="1"/>
 			        <element name="Description" type="string" minOccurs="0" maxOccurs="1"/>
-			        <element name="BestBenchmark" type="glue:Benchmark" minOccurs="0" maxOccurs="unbounded"/>
+			        <element name="BestBenchmark" type="glue:Benchmark_t" minOccurs="0" maxOccurs="unbounded"/>
 			        <element name="ParallelSupport" type="string" minOccurs="0" maxOccurs="1">
 				        <annotation>
                             <appinfo>
@@ -582,7 +587,7 @@
 		<complexContent>
 			<extension base="glue:Entity">
 		        <sequence>
-			        <element name="Type" type="string" minOccurs="1" maxOccrus="1">
+			        <element name="Type" type="string" minOccurs="1" maxOccurs="1">
 				        <annotation>
                             <appinfo>
                                 <enumeration value="module"/>
@@ -628,7 +633,7 @@
                     <element name="UsedTotalWallTime" type="unsignedLong" minOccurs="0" maxOccurs="1"/>
 					<element name="UsedTotalCPUTime" type="unsignedLong" minOccurs="0" maxOccurs="1"/>
 					<element name="UsedMainMemory" type="unsignedLong" minOccurs="0" maxOccurs="1"/>
-					<element name="SubmissionTime" type="dateTime" minOccurs="0" maxOccrus="1"/>
+					<element name="SubmissionTime" type="dateTime" minOccurs="0" maxOccurs="1"/>
 					<element name="ComputingManagerSubmissionTime" type="dateTime" minOccurs="0" maxOccurs="1"/>
 					<element name="StartTime" type="dateTime" minOccurs="0" maxOccurs="1"/>
 					<element name="ComputingManagerEndTime" type="dateTime" minOccurs="0" maxOccurs="1"/>
@@ -641,8 +646,10 @@
 			        <element name="Associations" minOccurs="0" maxOccurs="1">
 				        <complexType>
 					        <sequence>
-						        <element name="ComputingEndpointID" type="anyURI" minOccurs="0" maxOccurs="unbounded"/>
-						        <element name="ExecutionEnvironmentID" type="anyURI" minOccurs="0" maxOccurs="unbounded"/>
+						        <element name="UserDomainID" type="anyURI" minOccurs="0" maxOccurs="1"/>
+						        <element name="ActivityID" type="anyURI" minOccurs="0" maxOccurs="unbounded"/>
+						        <element name="ComputingEndpointID" type="anyURI" minOccurs="0" maxOccurs="1"/>
+						        <element name="ExecutionEnvironmentID" type="anyURI" minOccurs="0" maxOccurs="1"/>
 					        </sequence>
 				        </complexType>
 			        </element>
@@ -880,7 +887,7 @@
 		</restriction>
 	</simpleType>
 
-	<simpleType name="ServiceCapability_t">
+	<simpleType name="Capability_t">
 		<restriction base="string">
 			<enumeration value="data.access.flatfiles"/>
 			<enumeration value="data.access.relational"/>
@@ -993,10 +1000,6 @@
 		<restriction base="string"> </restriction>
 	</simpleType>
 
-	<simpleType name="OSName_t">
-		<restriction base="string"> </restriction>
-	</simpleType>
-
 	<simpleType name="Platform_t">
 		<restriction base="string"> 
 			<annotation>
@@ -1012,7 +1015,7 @@
     </simpleType>
 
 	<simpleType name="AppEnvState_t">
-		<restriction base="string"> </restriction>
+		<restriction base="string">
 			<annotation>
 				<appinfo>
 					<enumeration value="installable"/>
@@ -1027,6 +1030,7 @@
                     <enumeration value="removing"/>
 				</appinfo>
 			</annotation>
+	    </restriction> 
 	</simpleType>
 
 	<simpleType name="ExpirationMode_t">
