@@ -3,6 +3,7 @@
 #endif
 
 #include "InRangeFunction.h"
+#include "../attr/BooleanAttribute.h"
 #include "../attr/DateTimeAttribute.h"
 #include "../attr/StringAttribute.h"
 
@@ -20,7 +21,7 @@ InRangeFunction::InRangeFunction(std::string functionName, std::string argumentT
   argType = argumentType;
 }
 
-bool InRangeFunction::evaluate(AttributeValue* arg0, AttributeValue* arg1){
+AttributeValue* InRangeFunction::evaluate(AttributeValue* arg0, AttributeValue* arg1){
   //TODO
   //arg0 is the attributevalue in policy
   //arg1 is the attributevalue in request
@@ -32,7 +33,7 @@ bool InRangeFunction::evaluate(AttributeValue* arg0, AttributeValue* arg1){
       v1 = dynamic_cast<DateTimeAttribute*>(arg1);
     } catch(std::exception&){ };
     if(v1->inrange(v0))
-      return true;
+      return new BooleanAttribute(true);
   }
   else if(fnName == NAME_STRING_IN_RANGE) {
     StringAttribute* v0;
@@ -42,9 +43,21 @@ bool InRangeFunction::evaluate(AttributeValue* arg0, AttributeValue* arg1){
       v1 = dynamic_cast<StringAttribute*>(arg1);
     } catch(std::exception&){ };
     if(v1->inrange(v0))
-      return true;
+      return new BooleanAttribute(true);
   }
-  return false;
+  return new BooleanAttribute(false);
+}
+
+std::list<AttributeValue*> InRangeFunction::evaluate(std::list<AttributeValue*> args) {
+  AttributeValue* arg0 = NULL;
+  AttributeValue* arg1 = NULL;
+  std::list<AttributeValue*>::iterator it = args.begin();
+  arg0 = *it; it++;
+  if(it!= args.end()) arg1 = *it;
+  AttributeValue* res = evaluate(arg0, arg1);
+  std::list<AttributeValue*> ret;
+  ret.push_back(res);
+  return ret;
 }
 
 }

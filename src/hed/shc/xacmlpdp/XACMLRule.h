@@ -12,6 +12,7 @@
 #include <arc/security/ArcPDP/Evaluator.h>
 
 #include "./XACMLTarget.h"
+#include "./XACMLCondition.h"
 
 namespace ArcSec {
 ///XACMLRule class to parse XACML specific <Rule> node
@@ -53,7 +54,7 @@ private:
   Arc::XMLNode rulenode;
 
   XACMLTarget* target;
-
+  XACMLCondition* condition;
 protected:
   static Arc::Logger logger;
 };

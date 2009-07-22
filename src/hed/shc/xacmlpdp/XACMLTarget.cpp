@@ -9,6 +9,7 @@
 
 #include "XACMLPolicy.h"
 #include "XACMLRule.h"
+#include "XACMLTarget.h"
 
 static Arc::Logger logger(Arc::Logger::rootLogger, "XACMLTarget");
 

@@ -23,6 +23,7 @@
 				<md:patient>
 					<md:patientDoB>1992-03-21</md:patientDoB>
 					<md:patient-number>555555</md:patient-number>
+                                        <md:patient-role>physician</md:patient-role>
 				</md:patient>
 			</md:record>
 		</ResourceContent>

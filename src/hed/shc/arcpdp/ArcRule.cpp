@@ -8,6 +8,7 @@
 #include <list>
 
 #include <arc/security/ArcPDP/attr/AttributeValue.h>
+#include <arc/security/ArcPDP/attr/BooleanAttribute.h>
 #include <arc/security/ArcPDP/fn/EqualFunction.h>
 #include <arc/security/ArcPDP/fn/MatchFunction.h>
 #include <arc/security/ArcPDP/fn/InRangeFunction.h>
@@ -216,12 +217,14 @@ static ArcSec::MatchResult itemMatch(ArcSec::OrList items, std::list<ArcSec::Req
       //all of the <Attribute> should be satisfied.
       for(reqit = req.begin(); reqit != req.end(); reqit++){
         //evaluate two "AttributeValue*" based on "Function" definition in "Rule"
-        bool res = false;
+        AttributeValue* res = NULL;
         try{
           res = ((*andit).second)->evaluate((*andit).first, (*reqit)->getAttributeValue());
         } catch(std::exception&) { };
-        if(res)
+        BooleanAttribute bool_attr(true);
+        if(res->equal(&bool_attr))
           one_req_matched = true;
+        if(res) delete res;
 
         //distinguish whether the "id" of the two <Attribute>s (from request and policy) are matched
         //here we distinguish three kinds of situation: 

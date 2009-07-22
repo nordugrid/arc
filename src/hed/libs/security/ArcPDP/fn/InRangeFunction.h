@@ -14,7 +14,8 @@ public:
   InRangeFunction(std::string functionName, std::string argumentType);
 
 public:
-  virtual bool evaluate(AttributeValue* arg0, AttributeValue* arg1);
+  virtual AttributeValue* evaluate(AttributeValue* arg0, AttributeValue* arg1);
+  virtual std::list<AttributeValue*> evaluate(std::list<AttributeValue*> args);
    //help function specific for existing policy expression because of no exiplicit function defined in policy
   static std::string getFunctionName(std::string datatype);
 

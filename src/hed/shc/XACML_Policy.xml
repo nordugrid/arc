@@ -58,5 +58,21 @@
 				</Action>
 			</Actions>
 		</Target>
+                <Condition>
+                        <!--request with "patient-role" can only access the recode with the same value of "md:patiant-role"-->
+                        <Apply FunctionId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+                                        <SubjectAttributeDesignator AttributeId="urn:oasis:names:tc:xacml:2.0:example:attribute:role" DataType="http://www.w3.org/2001/XMLSchema#string"/>
+                                        <AttributeSelector RequestContextPath="//xacml-context:Resource/xacml-context:ResourceContent/md:record/md:patient/md:patient-role/text()" DataType="http://www.w3.org/2001/XMLSchema#string"/>
+                        </Apply>
+
+                        <!--Apply FunctionId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+                                <Apply FunctionId="urn:oasis:names:tc:xacml:1.0:function:string-one-and-only">
+                                        <SubjectAttributeDesignator AttributeId="urn:oasis:names:tc:xacml:2.0:example:attribute:role" DataType="http://www.w3.org/2001/XMLSchema#string"/>
+                                </Apply>
+                                <Apply FunctionId="urn:oasis:names:tc:xacml:1.0:function:string-one-and-only">
+                                        <AttributeSelector RequestContextPath="//xacml-context:Resource/xacml-context:ResourceContent/md:record/md:patient/md:patient-role/text()" DataType="http://www.w3.org/2001/XMLSchema#string"/>
+                                </Apply>
+                        </Apply-->
+                </Condition>
 	</Rule>
 </Policy>

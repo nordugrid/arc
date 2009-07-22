@@ -3,6 +3,7 @@
 #endif
 
 #include "MatchFunction.h"
+#include "../attr/BooleanAttribute.h"
 #include "../attr/StringAttribute.h"
 #include "../attr/DateTimeAttribute.h"
 #include "../attr/X500NameAttribute.h"
@@ -23,7 +24,7 @@ MatchFunction::MatchFunction(std::string functionName, std::string argumentType)
   argType = argumentType;
 }
 
-bool MatchFunction::evaluate(AttributeValue* arg0, AttributeValue* arg1){
+AttributeValue* MatchFunction::evaluate(AttributeValue* arg0, AttributeValue* arg1){
   //TODO
   //arg0 is the attributevalue in policy
   //arg1 is the attributevalue in request
@@ -33,10 +34,21 @@ bool MatchFunction::evaluate(AttributeValue* arg0, AttributeValue* arg1){
   if(regex.isOk()){
     std::list<std::string> unmatched, matched;
     if(regex.match(value, unmatched, matched))
-      return true;
+      return new BooleanAttribute(true);
   }
   // std::cerr<<"Bad Regex"<<std::endl;
-  return false;
+  return new BooleanAttribute(false);
 }
 
+std::list<AttributeValue*> MatchFunction::evaluate(std::list<AttributeValue*> args) {
+  AttributeValue* arg0 = NULL;
+  AttributeValue* arg1 = NULL;
+  std::list<AttributeValue*>::iterator it = args.begin();
+  arg0 = *it; it++;
+  if(it!= args.end()) arg1 = *it;
+  AttributeValue* res = evaluate(arg0, arg1);
+  std::list<AttributeValue*> ret;
+  ret.push_back(res);
+  return ret;
+}
 }

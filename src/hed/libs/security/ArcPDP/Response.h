@@ -13,14 +13,17 @@ typedef std::list<Policy*> Policies;
 
 ///Evaluation result concerning one RequestTuple
 /**Include the RequestTuple, related XMLNode, the set of policy objects which give positive evaluation result, and the related XMLNode*/
-typedef struct{
-  //Convertion method to decrease memory consumption
+class ResponseItem {
+public:
+  ResponseItem():reqtp(NULL){};
+public:
+  //TODO: Convertion method to decrease memory consumption
   RequestTuple* reqtp;
   Result res;
   Arc::XMLNode reqxml;
   Policies pls;
   std::list<Arc::XMLNode> plsxml;
-} ResponseItem;
+};
 
 class ResponseList {
 public:

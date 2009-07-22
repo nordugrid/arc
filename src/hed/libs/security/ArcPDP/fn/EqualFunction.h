@@ -30,7 +30,8 @@ public:
   EqualFunction(std::string functionName, std::string argumentType);
 
 public:
-  virtual bool evaluate(AttributeValue* arg0, AttributeValue* arg1);
+  virtual AttributeValue* evaluate(AttributeValue* arg0, AttributeValue* arg1);
+  virtual std::list<AttributeValue*> evaluate(std::list<AttributeValue*> args);
   /**help function to get the FunctionName*/
   static std::string getFunctionName(std::string datatype);
 

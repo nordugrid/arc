@@ -5,6 +5,7 @@
 #include <fstream>
 #include <iostream>
 #include <arc/security/ArcPDP/attr/AttributeValue.h>
+#include <arc/security/ArcPDP/attr/BooleanAttribute.h>
 #include "XACMLRule.h"
 #include <list>
 
@@ -15,7 +16,8 @@ Arc::Logger ArcSec::XACMLRule::logger(Arc::Logger::rootLogger, "XACMLRule");
 using namespace Arc;
 using namespace ArcSec;
 
-XACMLRule::XACMLRule(XMLNode& node, EvaluatorContext* ctx) : Policy(node), target(NULL) {
+XACMLRule::XACMLRule(XMLNode& node, EvaluatorContext* ctx) : Policy(node), 
+  target(NULL), condition(NULL) {
   rulenode = node;
   evalres.node = node;
   evalres.effect = "Not_applicable";
@@ -34,6 +36,9 @@ XACMLRule::XACMLRule(XMLNode& node, EvaluatorContext* ctx) : Policy(node), targe
 
   XMLNode targetnode = node["Target"];
   if((bool)targetnode) target = new XACMLTarget(targetnode, ctx);
+
+  XMLNode conditionnode = node["Condition"];
+  if((bool)conditionnode) condition = new XACMLCondition(conditionnode, ctx);
 }
 
 MatchResult XACMLRule::match(EvaluationCtx* ctx){
@@ -51,7 +56,18 @@ Result XACMLRule::eval(EvaluationCtx* ctx){
     else if(matchres == INDETERMINATE) {result = DECISION_INDETERMINATE; return result;}
   }
 
-  //TODO: evaluate the "Condition"
+  //evaluate the "Condition"
+  bool cond_res = false;
+  if(condition != NULL) {
+    std::list<AttributeValue*> res_list = condition->evaluate(ctx);
+    AttributeValue* attrval = *(res_list.begin()); 
+    //Suppose only one "bool" attribute value in the evaluation result.
+    BooleanAttribute bool_attr(true);
+    if(attrval->equal(&bool_attr))
+      cond_res = true;
+    if(attrval) delete attrval;
+    if(!cond_res) { result = DECISION_INDETERMINATE; return result; } 
+  }
 
   if (effect == "Permit") { 
     result = DECISION_PERMIT;
@@ -74,4 +90,5 @@ EvalResult& XACMLRule::getEvalResult(){
 
 XACMLRule::~XACMLRule(){
   if(target != NULL) delete target;
+  if(condition != NULL) delete condition;
 }

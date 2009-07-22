@@ -3,6 +3,7 @@
 #endif
 
 #include "EqualFunction.h"
+#include "../attr/BooleanAttribute.h"
 #include "../attr/StringAttribute.h"
 #include "../attr/DateTimeAttribute.h"
 #include "../attr/X500NameAttribute.h"
@@ -13,7 +14,7 @@ namespace ArcSec {
 std::string EqualFunction::getFunctionName(std::string datatype){
   std::string ret;
   if (datatype ==  StringAttribute::getIdentifier()) ret = NAME_STRING_EQUAL;
-  //else if(datatype == BooleanAttribute::getIdentify()) ret = NAME_BOOLEAN_EQUAL;
+  else if(datatype == BooleanAttribute::getIdentifier()) ret = NAME_BOOLEAN_EQUAL;
   //else if(datatype == IntegerAttribute::getIdentify()) ret = NAME_INTEGER_EQUAL;
   //else if(datatype == DoubleAttribute::getIdentify()) ret = NAME_DOUBLE_EQUAL;
   else if(datatype == DateAttribute::getIdentifier()) ret = NAME_DATE_EQUAL;
@@ -38,9 +39,20 @@ EqualFunction::EqualFunction(std::string functionName, std::string argumentType)
   argType = argumentType;
 }
 
-bool EqualFunction::evaluate(AttributeValue* arg0, AttributeValue* arg1){
+AttributeValue* EqualFunction::evaluate(AttributeValue* arg0, AttributeValue* arg1){
   //TODO
-  return arg0->equal(arg1);
+  return new BooleanAttribute(arg0->equal(arg1));
 }
 
+std::list<AttributeValue*> EqualFunction::evaluate(std::list<AttributeValue*> args) {
+  AttributeValue* arg0 = NULL;
+  AttributeValue* arg1 = NULL;
+  std::list<AttributeValue*>::iterator it = args.begin();
+  arg0 = *it; it++;
+  if(it!= args.end()) arg1 = *it;
+  AttributeValue* res = new BooleanAttribute(arg0->equal(arg1));
+  std::list<AttributeValue*> ret;
+  ret.push_back(res);
+  return ret;
+}
 }
