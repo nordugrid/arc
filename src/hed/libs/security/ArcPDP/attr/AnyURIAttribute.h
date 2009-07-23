@@ -15,7 +15,7 @@ public:
   AnyURIAttribute(const std::string& v,const std::string& i) : value(v), id(i){ };
   virtual ~AnyURIAttribute(){ };
 
-  virtual bool equal(AttributeValue* other);
+  virtual bool equal(AttributeValue* other, bool check_id = true);
   virtual std::string encode() {return value;};
   std::string getValue(){ return value; };
   std::string getId(){ return id; };

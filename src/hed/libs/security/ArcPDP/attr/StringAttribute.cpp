@@ -9,7 +9,7 @@ namespace ArcSec {
 
 std::string StringAttribute::identifier = "string";
 
-bool StringAttribute::equal(AttributeValue* o){
+bool StringAttribute::equal(AttributeValue* o, bool check_id){
   StringAttribute *other;
   try{
     other = dynamic_cast<StringAttribute*>(o);
@@ -18,7 +18,7 @@ bool StringAttribute::equal(AttributeValue* o){
     //std::cerr<<"not StringAttribute"<<std::endl;
     return false;
   }
-  if(id != other->id) return false;
+  if(check_id) { if(id != other->id) return false; }
   if((value.compare(other->getValue()))==0)
     return true;
   else

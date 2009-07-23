@@ -28,7 +28,7 @@ public:
   DateTimeAttribute(const std::string& v,const std::string& i) : value(v), id(i) {};
   virtual ~DateTimeAttribute(){ };
 
-  virtual bool equal(AttributeValue* other);
+  virtual bool equal(AttributeValue* other, bool check_id = true);
   virtual bool lessthan(AttributeValue* other);
   virtual bool inrange(AttributeValue* other);
   virtual std::string encode(); //encode value into ISOTime format
@@ -56,7 +56,7 @@ public:
   TimeAttribute(const std::string& v,const std::string& i);
   virtual ~TimeAttribute(){ };
 
-  virtual bool equal(AttributeValue* other);
+  virtual bool equal(AttributeValue* other, bool check_id = true);
   virtual bool lessthan(AttributeValue* other);
   virtual std::string encode();
   Arc::Time getValue(){ return value; };
@@ -79,7 +79,7 @@ public:
   DateAttribute(const std::string& v,const std::string& i);
   virtual ~DateAttribute(){ };
 
-  virtual bool equal(AttributeValue* other);
+  virtual bool equal(AttributeValue* other, bool check_id = true);
   virtual bool lessthan(AttributeValue* other);
   virtual std::string encode();
   Arc::Time getValue(){ return value; };
@@ -104,7 +104,7 @@ public:
   DurationAttribute(const std::string& v,const std::string& i) : value(v), id(i){};
   virtual ~DurationAttribute(){ };
 
-  virtual bool equal(AttributeValue* other);
+  virtual bool equal(AttributeValue* other, bool check_id = true);
   virtual std::string encode();
   Arc::Period getValue(){ return value; };
   virtual std::string getType() {return identifier;};
@@ -135,7 +135,7 @@ public:
   PeriodAttribute(const std::string& v,const std::string& i);
   virtual ~PeriodAttribute(){ };
 
-  virtual bool equal(AttributeValue* other);
+  virtual bool equal(AttributeValue* other, bool check_id = true);
   virtual std::string encode();
   ArcPeriod getValue(){ return value; };
   virtual std::string getType() {return identifier; };

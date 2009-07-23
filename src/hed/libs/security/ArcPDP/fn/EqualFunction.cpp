@@ -39,18 +39,18 @@ EqualFunction::EqualFunction(std::string functionName, std::string argumentType)
   argType = argumentType;
 }
 
-AttributeValue* EqualFunction::evaluate(AttributeValue* arg0, AttributeValue* arg1){
+AttributeValue* EqualFunction::evaluate(AttributeValue* arg0, AttributeValue* arg1, bool check_id){
   //TODO
-  return new BooleanAttribute(arg0->equal(arg1));
+  return new BooleanAttribute(arg0->equal(arg1, check_id));
 }
 
-std::list<AttributeValue*> EqualFunction::evaluate(std::list<AttributeValue*> args) {
+std::list<AttributeValue*> EqualFunction::evaluate(std::list<AttributeValue*> args, bool check_id) {
   AttributeValue* arg0 = NULL;
   AttributeValue* arg1 = NULL;
   std::list<AttributeValue*>::iterator it = args.begin();
   arg0 = *it; it++;
   if(it!= args.end()) arg1 = *it;
-  AttributeValue* res = new BooleanAttribute(arg0->equal(arg1));
+  AttributeValue* res = new BooleanAttribute(arg0->equal(arg1, check_id));
   std::list<AttributeValue*> ret;
   ret.push_back(res);
   return ret;

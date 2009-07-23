@@ -15,7 +15,7 @@ public:
   BooleanAttribute(const bool& v,const std::string& i = std::string()) : value(v), id(i){ };
   virtual ~BooleanAttribute(){ };
 
-  virtual bool equal(AttributeValue* o);
+  virtual bool equal(AttributeValue* o, bool check_id = true);
   virtual std::string encode() { if(value) return std::string("true"); else return std::string("false"); };
   bool getValue(){ return value; };
   std::string getId(){ return id; };

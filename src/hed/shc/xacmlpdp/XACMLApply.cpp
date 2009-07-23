@@ -155,7 +155,7 @@ std::list<AttributeValue*> XACMLApply::evaluate(EvaluationCtx* ctx) {
   std::list<AttributeValue*> res;
   try{
     std::cout<<"There are "<<attrlist.size()<<" attribute values to be evaluated"<<std::endl;
-    res = function->evaluate(attrlist);
+    res = function->evaluate(attrlist, false);
   } catch(std::exception&) { };
 
   while(!(attrlist_to_remove.empty())) {

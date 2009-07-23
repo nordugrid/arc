@@ -103,6 +103,32 @@ bool SOAPSecAttr::Export(SecAttrFormat format,XMLNode &val) const {
       context.NewAttribute("AttributeId")="http://www.nordugrid.org/schemas/policy-arc/types/soap/namespace";
     };
     return true;
+  } else if(format == XACML) {
+    NS ns;
+    ns["ra"]="urn:oasis:names:tc:xacml:2.0:context:schema:os";
+    val.Namespaces(ns); val.Name("ra:Request");
+    if(!object_.empty()) {
+      XMLNode object = val.NewChild("ra:Resource");
+      XMLNode attr = object.NewChild("ra:Attribute");
+      attr.NewChild("ra:AttributeValue") = object_;
+      attr.NewAttribute("DataType")="xs:string";
+      attr.NewAttribute("AttributeId")="http://www.nordugrid.org/schemas/policy-arc/types/soap/endpoint";
+    };
+    if(!action_.empty()) {
+      XMLNode action = val.NewChild("ra:Action");
+      XMLNode attr = action.NewChild("ra:Attribute");
+      attr.NewChild("ra:AttributeValue") = action_;
+      attr.NewAttribute("DataType")="xs:string";
+      attr.NewAttribute("AttributeId")="http://www.nordugrid.org/schemas/policy-arc/types/soap/operation";
+    };
+    if(!context_.empty()) {
+      XMLNode context = val.NewChild("ra:Environment");
+      XMLNode attr = context.NewChild("ra:Attribute");
+      attr.NewChild("ra:AttributeValue") = context_;
+      attr.NewAttribute("DataType")="xs:string";
+      attr.NewAttribute("AttributeId")="http://www.nordugrid.org/schemas/policy-arc/types/soap/namespace";
+    };
+    return true;
   } else {
   };
   return false;

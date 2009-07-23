@@ -16,7 +16,7 @@ public:
   GenericAttribute(const std::string& v,const std::string& i) : value(v), id(i) { };
   virtual ~GenericAttribute() { };
 
-  virtual bool equal(AttributeValue* other);
+  virtual bool equal(AttributeValue* other, bool check_id = true);
   virtual std::string encode() { return value; };
   std::string getValue() { return value; };
   virtual std::string getType() { return type; };

@@ -18,9 +18,9 @@ public:
 
 public:
   /**Evaluate two AttributeValue objects, and return one AttributeValue object */
-  virtual AttributeValue* evaluate(AttributeValue* arg0, AttributeValue* arg1) = 0;
+  virtual AttributeValue* evaluate(AttributeValue* arg0, AttributeValue* arg1, bool check_id = true) = 0;
   /**Evaluate a list of AttributeValue objects, and return a list of Attribute objects*/
-  virtual std::list<AttributeValue*> evaluate(std::list<AttributeValue*> args) = 0;
+  virtual std::list<AttributeValue*> evaluate(std::list<AttributeValue*> args, bool check_id = true) = 0;
 };
 
 } // namespace ArcSec

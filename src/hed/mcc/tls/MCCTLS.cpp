@@ -208,10 +208,17 @@ bool TLSSecAttr::equal(const SecAttr &b) const {
   return false;
 }
 
-static void add_subject_attribute(XMLNode item,const std::string& subject,const char* id) {
+static void add_arc_subject_attribute(XMLNode item,const std::string& subject,const char* id) {
    XMLNode attr = item.NewChild("ra:SubjectAttribute");
    attr=subject; attr.NewAttribute("Type")="string";
    attr.NewAttribute("AttributeId")=id;
+}
+
+static void add_xacml_subject_attribute(XMLNode item,const std::string& subject,const char* id) {
+   XMLNode attr = item.NewChild("ra:Attribute");
+   attr.NewAttribute("DataType")="xs:string";
+   attr.NewAttribute("AttributeId")=id;
+   attr.NewChild("ra:AttributeValue") = subject;
 }
 
 bool TLSSecAttr::Export(SecAttrFormat format,XMLNode &val) const {
@@ -226,19 +233,19 @@ bool TLSSecAttr::Export(SecAttrFormat format,XMLNode &val) const {
     std::string subject;
     if(s != subjects_.end()) {
       subject=*s;
-      add_subject_attribute(subj,subject,"http://www.nordugrid.org/schemas/policy-arc/types/tls/ca");
+      add_arc_subject_attribute(subj,subject,"http://www.nordugrid.org/schemas/policy-arc/types/tls/ca");
       for(;s != subjects_.end();++s) {
         subject=*s;
-        add_subject_attribute(subj,subject,"http://www.nordugrid.org/schemas/policy-arc/types/tls/chain");
+        add_arc_subject_attribute(subj,subject,"http://www.nordugrid.org/schemas/policy-arc/types/tls/chain");
       };
-      add_subject_attribute(subj,subject,"http://www.nordugrid.org/schemas/policy-arc/types/tls/subject");
+      add_arc_subject_attribute(subj,subject,"http://www.nordugrid.org/schemas/policy-arc/types/tls/subject");
     };
     if(!identity_.empty()) {
-       add_subject_attribute(subj,identity_,"http://www.nordugrid.org/schemas/policy-arc/types/tls/identity");
+       add_arc_subject_attribute(subj,identity_,"http://www.nordugrid.org/schemas/policy-arc/types/tls/identity");
     };
     if(!voms_attributes_.empty()) {
       for(int k=0; k < voms_attributes_.size(); k++) {
-        add_subject_attribute(subj, voms_attributes_[k],"http://www.nordugrid.org/schemas/policy-arc/types/tls/vomsattribute");
+        add_arc_subject_attribute(subj, voms_attributes_[k],"http://www.nordugrid.org/schemas/policy-arc/types/tls/vomsattribute");
       };
     };
     if(!target_.empty()) {
@@ -249,7 +256,44 @@ bool TLSSecAttr::Export(SecAttrFormat format,XMLNode &val) const {
       //hostidentity should be SubjectAttribute, because hostidentity is be constrained to access
       //the peer delegation identity, or some resource which is attached to the peer delegation identity.
       //The constrant is defined in delegation policy.
-      //add_subject_attribute(subj,target_,"http://www.nordugrid.org/schemas/policy-arc/types/tls/hostidentity");
+      //add_arc_subject_attribute(subj,target_,"http://www.nordugrid.org/schemas/policy-arc/types/tls/hostidentity");
+    };
+    return true;
+  } else if(format == XACML) {
+    NS ns;
+    ns["ra"]="urn:oasis:names:tc:xacml:2.0:context:schema:os";
+    val.Namespaces(ns); val.Name("ra:Request");
+    XMLNode subj = val.NewChild("ra:Subject");
+    std::list<std::string>::const_iterator s = subjects_.begin();
+    std::string subject;
+    if(s != subjects_.end()) {
+      subject=*s;
+      add_xacml_subject_attribute(subj,subject,"http://www.nordugrid.org/schemas/policy-arc/types/tls/ca");
+      for(;s != subjects_.end();++s) {
+        subject=*s;
+        add_xacml_subject_attribute(subj,subject,"http://www.nordugrid.org/schemas/policy-arc/types/tls/chain");
+      };
+      add_xacml_subject_attribute(subj,subject,"http://www.nordugrid.org/schemas/policy-arc/types/tls/subject");
+    };
+    if(!identity_.empty()) {
+       add_xacml_subject_attribute(subj,identity_,"http://www.nordugrid.org/schemas/policy-arc/types/tls/identity");
+    };
+    if(!voms_attributes_.empty()) {
+      for(int k=0; k < voms_attributes_.size(); k++) {
+        add_xacml_subject_attribute(subj, voms_attributes_[k],"http://www.nordugrid.org/schemas/policy-arc/types/tls/vomsattribute");
+      };
+    };
+    if(!target_.empty()) {
+      XMLNode resource = val.NewChild("ra:Resource");
+      XMLNode attr = resource.NewChild("ra:Attribute");
+      attr.NewChild("ra:AttributeValue") = target_; 
+      attr.NewAttribute("DataType")="xs:string";
+      attr.NewAttribute("AttributeId")="http://www.nordugrid.org/schemas/policy-arc/types/tls/hostidentity";
+      // Following is agreed to not be use till all use cases are clarified (Bern agreement)
+      //hostidentity should be SubjectAttribute, because hostidentity is be constrained to access
+      //the peer delegation identity, or some resource which is attached to the peer delegation identity.
+      //The constrant is defined in delegation policy.
+      //add_xacml_subject_attribute(subj,target_,"http://www.nordugrid.org/schemas/policy-arc/types/tls/hostidentity");
     };
     return true;
   } else {

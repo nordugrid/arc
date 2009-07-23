@@ -103,7 +103,7 @@ std::cout<<id<<"  "<<type<<"  "<<issuer<<std::endl;
 
     if(attr_id.empty()) continue;
     if(attr_type.empty()) attr_type = "xs:string";
-    if((id == attr_id) && (attr_type == type) && (issuer.empty() || 
+    if((id == attr_id) && (issuer.empty() || 
       (!attr_issuer.empty() && (attr_issuer==issuer)))) {
       //If category does not match
       if(!category.empty() && sub_category!=category) continue;
@@ -141,7 +141,7 @@ std::cout<<id<<"  "<<type<<"  "<<issuer<<std::endl;
 
     if(attr_id.empty()) continue;
     if(attr_type.empty()) attr_type = "xs:string";
-    if((id == attr_id) && (attr_type == type) && (issuer.empty() ||
+    if((id == attr_id) && (issuer.empty() ||
       (!attr_issuer.empty() && (attr_issuer==issuer)))) {
       AttributeValue* attr = NULL;
       std::string tp;

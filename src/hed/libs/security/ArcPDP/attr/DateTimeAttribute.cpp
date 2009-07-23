@@ -9,7 +9,7 @@ namespace ArcSec {
 
 //DateTimeAttribute
 std::string DateTimeAttribute::identifier = "datetime";
-bool DateTimeAttribute::equal(AttributeValue* o){
+bool DateTimeAttribute::equal(AttributeValue* o, bool check_id){
   DateTimeAttribute *other;
   try{
     other = dynamic_cast<DateTimeAttribute*>(o);
@@ -18,7 +18,7 @@ bool DateTimeAttribute::equal(AttributeValue* o){
     //std::cerr<<"not DateTimeAttribute"<<std::endl;
     return false;
   }
-  if(id != other->id) return false;
+  if(check_id) { if(id != other->id) return false; }
   if(value==(other->getValue()))
     return true;
   else
@@ -78,7 +78,7 @@ TimeAttribute::TimeAttribute(const std::string& v,const std::string& i) {
   value = attr.getValue(); 
 }
 
-bool TimeAttribute::equal(AttributeValue* o){
+bool TimeAttribute::equal(AttributeValue* o, bool check_id){
   TimeAttribute *other;
   try{
     other = dynamic_cast<TimeAttribute*>(o);
@@ -87,7 +87,7 @@ bool TimeAttribute::equal(AttributeValue* o){
     //std::cerr<<"not TimeAttribute"<<std::endl;
     return false;
   }
-  if(id != other->id) return false;
+  if(check_id) { if(id != other->id) return false; }
   if(value==(other->getValue()))
     return true;
   else
@@ -124,7 +124,7 @@ DateAttribute::DateAttribute(const std::string& v,const std::string& i) {
   value = attr.getValue();
 }
 
-bool DateAttribute::equal(AttributeValue* o){
+bool DateAttribute::equal(AttributeValue* o, bool check_id){
   DateAttribute *other;
   try{
     other = dynamic_cast<DateAttribute*>(o);
@@ -133,7 +133,7 @@ bool DateAttribute::equal(AttributeValue* o){
     //std::cerr<<"not DateAttribute"<<std::endl;
     return false;
   }
-  if(id != other->id) return false;
+  if(check_id) { if(id != other->id) return false; }
   if(value==(other->getValue()))
     return true;
   else
@@ -164,7 +164,7 @@ std::string DateAttribute::encode(){
 
 //DurationAttribute
 std::string DurationAttribute::identifier = "duration";
-bool DurationAttribute::equal(AttributeValue* o){
+bool DurationAttribute::equal(AttributeValue* o, bool check_id){
   DurationAttribute *other;
   try{
     other = dynamic_cast<DurationAttribute*>(o);
@@ -173,7 +173,7 @@ bool DurationAttribute::equal(AttributeValue* o){
     //std::cerr<<"not DurationAttribute"<<std::endl;
     return false;
   }
-  if(id != other->id) return false;
+  if(check_id) { if(id != other->id) return false; }
   if((value.GetPeriod())==((other->getValue()).GetPeriod()))
     return true;
   else
@@ -246,7 +246,7 @@ PeriodAttribute::PeriodAttribute(const std::string& v,const std::string& i) {
   }
 }
 
-bool PeriodAttribute::equal(AttributeValue* o){
+bool PeriodAttribute::equal(AttributeValue* o, bool check_id){
   PeriodAttribute *other;
   try{
     other = dynamic_cast<PeriodAttribute*>(o);
@@ -255,7 +255,7 @@ bool PeriodAttribute::equal(AttributeValue* o){
     //std::cerr<<"not PeriodAttribute"<<std::endl;
     return false;
   }
-  if(id != other->id) return false;
+  if(check_id) { if(id != other->id) return false; }
   
   ArcPeriod oth = other->getValue();
   Arc::Time ls, le, os, oe;

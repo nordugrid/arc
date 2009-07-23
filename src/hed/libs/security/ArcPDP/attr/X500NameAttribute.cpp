@@ -9,7 +9,7 @@ namespace ArcSec {
 
 std::string X500NameAttribute::identifier = "x500Name";
 
-bool X500NameAttribute::equal(AttributeValue* o){
+bool X500NameAttribute::equal(AttributeValue* o, bool check_id){
   X500NameAttribute *other;
   try{
     other = dynamic_cast<X500NameAttribute*>(o);
@@ -18,7 +18,7 @@ bool X500NameAttribute::equal(AttributeValue* o){
     //std::cerr<<"not X500NameAttribute"<<std::endl;
     return false;
   }
-  if(id != other->id) return false;
+  if(check_id) { if(id != other->id) return false; }
   if((value.compare(other->getValue()))==0)  //Now, deal with it the same as StringAttribute.  
     return true;
   else 

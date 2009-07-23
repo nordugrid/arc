@@ -94,7 +94,7 @@ MatchResult XACMLTargetMatch::match(EvaluationCtx* ctx) {
   std::list<AttributeValue*>::iterator i;
   for(i = attrlist.begin(); i != attrlist.end(); i++) {
 std::cout<<"Request side: "<<(*i)->encode()<<" Policy side:  "<<attrval->encode()<<std::endl;
-    evalres = function->evaluate(attrval, (*i));
+    evalres = function->evaluate(attrval, (*i), false);
     if(evalres) { std::cout<<"Matched!"<<std::endl; break; }
   }
   while(!(attrlist.empty())) {

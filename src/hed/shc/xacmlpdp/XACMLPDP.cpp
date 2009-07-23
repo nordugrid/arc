@@ -72,18 +72,9 @@ XACMLPDP::XACMLPDP(Config* cfg):PDP(cfg) /*, eval(NULL)*/ {
 }
 
 bool XACMLPDP::isPermitted(Message *msg){
-  //Compose Request based on the information inside message, the Request will be like below:
-  /*
-  <Request xmlns="http://www.nordugrid.org/schemas/request-arc">
-    <RequestItem>
-        <Subject>
-          <Attribute AttributeId="123" Type="string">123.45.67.89</Attribute>
-          <Attribute AttributeId="xyz" Type="string">/O=NorduGrid/OU=UIO/CN=test</Attribute>
-        </Subject>
-        <Action AttributeId="ijk" Type="string">GET</Action>
-    </RequestItem>
-  </Request>
-  */
+  //Compose Request based on the information inside message, the Request will be
+  //compatible to xacml request schema
+
   Evaluator* eval = NULL;
 
   std::string ctxid = "arcsec.xacmlpdp";
@@ -155,17 +146,17 @@ bool XACMLPDP::isPermitted(Message *msg){
   NS ns;
   XMLNode requestxml(ns,"");
   if(mauth) {
-    if(!mauth->Export(SecAttr::ARCAuth,requestxml)) {
+    if(!mauth->Export(SecAttr::XACML,requestxml)) {
       delete mauth;
-      logger.msg(ERROR,"Failed to convert security information to ARC request");
+      logger.msg(ERROR,"Failed to convert security information to XACML request");
       return false;
     };
     delete mauth;
   };
   if(cauth) {
-    if(!cauth->Export(SecAttr::ARCAuth,requestxml)) {
+    if(!cauth->Export(SecAttr::XACML,requestxml)) {
       delete mauth;
-      logger.msg(ERROR,"Failed to convert security information to ARC request");
+      logger.msg(ERROR,"Failed to convert security information to XACML request");
       return false;
     };
     delete cauth;
@@ -173,8 +164,8 @@ bool XACMLPDP::isPermitted(Message *msg){
   {
     std::string s;
     requestxml.GetXML(s);
-    logger.msg(VERBOSE,"ARC Auth. request: %s",s);
-    std::cout<<"ARC Auth. request "<<s<<std::endl;
+    logger.msg(VERBOSE,"XACML request: %s",s);
+    std::cout<<"XACML request "<<s<<std::endl;
   };
   if(requestxml.Size() <= 0) {
     logger.msg(ERROR,"No requested security information was collected");
@@ -183,51 +174,11 @@ bool XACMLPDP::isPermitted(Message *msg){
 
   //Call the evaluation functionality inside Evaluator
   Response *resp = eval->evaluate(requestxml);
-  ResponseList rlist = resp->getResponseItems();
-  int size = rlist.size();
-
-  //  The current ArcPDP is supposed to be used as policy decision point for Arc1 HED components, and
-  // those services which are based on HED.
-  //  Each message/session comes with one unique <Subject/> (with a number of <Attribute/>s),
-  // and different <Resource/> and <Action/> elements (possibly plus <Context/>).
-  //  The results from all tuples are combined using following decision algorithm: 
-  // 1. If any of tuples made of <Subject/>, <Resource/>, <Action/> and <Context/> gets "DENY"
-  //    then final result is negative (false).
-  // 2. Otherwise if any of tuples gets "PERMIT" then final result is positive (true).
-  // 3. Otherwise result is negative (false).
-
-  bool atleast_onedeny = false;
-  bool atleast_onepermit = false;
-
-  for(int i = 0; i < size; i++) {
-    ResponseItem* item = rlist[i];
-    RequestTuple* tp = item->reqtp;
-
-    if(item->res == DECISION_DENY)
-      atleast_onedeny = true;
-    if(item->res == DECISION_PERMIT)
-      atleast_onepermit = true;
-
-    Subject::iterator it;
-    Subject subject = tp->sub;
-    for (it = subject.begin(); it!= subject.end(); it++){
-      AttributeValue *attrval;
-      RequestAttribute *attr;
-      attr = dynamic_cast<RequestAttribute*>(*it);
-      if(attr){
-        attrval = (*it)->getAttributeValue();
-        if(attrval) logger.msg(INFO, "%s", attrval->encode());
-      }
-    }
-  } 
-  
+  ArcSec::ResponseList rlist = resp->getResponseItems();
+  std::cout<<rlist[0]->res<<std::endl;
   bool result = false;
-  if(atleast_onedeny) result = false;
-  else if(atleast_onepermit) result = true;
-  else result = false;
-
-  if(result) logger.msg(INFO, "Authorized from arc.pdp");
-  else logger.msg(ERROR, "UnAuthorized from arc.pdp; Some of the RequestItem does not satisfy Policy");
+  if(rlist[0]->res == DECISION_PERMIT) { logger.msg(INFO, "Authorized from xacml.pdp"); result = true; }
+  else logger.msg(ERROR, "UnAuthorized from xacml.pdp");
   
   if(resp) delete resp;
     

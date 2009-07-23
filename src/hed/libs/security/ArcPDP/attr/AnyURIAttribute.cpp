@@ -9,7 +9,7 @@ namespace ArcSec {
 
 std::string AnyURIAttribute::identifier = "anyURI";
 
-bool AnyURIAttribute::equal(AttributeValue* o){
+bool AnyURIAttribute::equal(AttributeValue* o, bool check_id){
   AnyURIAttribute *other;
   try{
     other = dynamic_cast<AnyURIAttribute*>(o);
@@ -18,7 +18,7 @@ bool AnyURIAttribute::equal(AttributeValue* o){
     //std::cerr<<"not AnyURIAttribute"<<std::endl;
     return false;
   }
-  if(id != other->id) return false;
+  if(check_id) { if(id != other->id) return false; }
   if((value.compare(other->getValue()))==0)  //Now, deal with it the same as StringAttribute.  
     return true;
   else 

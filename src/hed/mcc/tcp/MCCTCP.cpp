@@ -296,9 +296,15 @@ bool TCPSecAttr::equal(const SecAttr &b) const {
   return false;
 }
 
-static void fill_string_attribute(XMLNode object,std::string value,const char* id) {
+static void fill_arc_string_attribute(XMLNode object,std::string value,const char* id) {
   object=value;
   object.NewAttribute("Type")="string";
+  object.NewAttribute("AttributeId")=id;
+}
+
+static void fill_xacml_string_attribute(XMLNode object,std::string value,const char* id) {
+  object.NewChild("ra:AttributeValue")=value;
+  object.NewAttribute("DataType")="xs:string";
   object.NewAttribute("AttributeId")=id;
 }
 
@@ -310,14 +316,29 @@ bool TCPSecAttr::Export(SecAttrFormat format,XMLNode &val) const {
     val.Namespaces(ns); val.Name("ra:Request");
     XMLNode item = val.NewChild("ra:RequestItem");
     if(!local_port_.empty()) {
-      fill_string_attribute(item.NewChild("ra:Resource"),local_ip_+":"+local_port_,"http://www.nordugrid.org/schemas/policy-arc/types/tcp/localendpoint");
+      fill_arc_string_attribute(item.NewChild("ra:Resource"),local_ip_+":"+local_port_,"http://www.nordugrid.org/schemas/policy-arc/types/tcp/localendpoint");
     } else if(!local_ip_.empty()) {
-      fill_string_attribute(item.NewChild("ra:Resource"),local_ip_,"http://www.nordugrid.org/schemas/policy-arc/types/tcp/localendpoint");
+      fill_arc_string_attribute(item.NewChild("ra:Resource"),local_ip_,"http://www.nordugrid.org/schemas/policy-arc/types/tcp/localendpoint");
     };
     if(!remote_port_.empty()) {
-      fill_string_attribute(item.NewChild("ra:Subject").NewChild("ra:SubjectAttribute"),remote_ip_+":"+remote_port_,"http://www.nordugrid.org/schemas/policy-arc/types/tcp/remoteendpoint");
+      fill_arc_string_attribute(item.NewChild("ra:Subject").NewChild("ra:SubjectAttribute"),remote_ip_+":"+remote_port_,"http://www.nordugrid.org/schemas/policy-arc/types/tcp/remoteendpoint");
     } else if(!remote_ip_.empty()) {
-      fill_string_attribute(item.NewChild("ra:Subject").NewChild("ra:SubjectAttribute"),remote_ip_,"http://www.nordugrid.org/schemas/policy-arc/types/tcp/remoteiendpoint");
+      fill_arc_string_attribute(item.NewChild("ra:Subject").NewChild("ra:SubjectAttribute"),remote_ip_,"http://www.nordugrid.org/schemas/policy-arc/types/tcp/remoteiendpoint");
+    };
+    return true;
+  } else if(format == XACML) {
+    NS ns;
+    ns["ra"]="urn:oasis:names:tc:xacml:2.0:context:schema:os";
+    val.Namespaces(ns); val.Name("ra:Request");
+    if(!local_port_.empty()) {
+      fill_xacml_string_attribute(val.NewChild("ra:Resource").NewChild("ra:Attribute"),local_ip_+":"+local_port_,"http://www.nordugrid.org/schemas/policy-arc/types/tcp/localendpoint");
+    } else if(!local_ip_.empty()) {
+      fill_xacml_string_attribute(val.NewChild("ra:Resource").NewChild("ra:Attribute"),local_ip_,"http://www.nordugrid.org/schemas/policy-arc/types/tcp/localendpoint");
+    };
+    if(!remote_port_.empty()) {
+      fill_xacml_string_attribute(val.NewChild("ra:Subject").NewChild("ra:Attribute"),remote_ip_+":"+remote_port_,"http://www.nordugrid.org/schemas/policy-arc/types/tcp/remoteendpoint");
+    } else if(!remote_ip_.empty()) {
+      fill_xacml_string_attribute(val.NewChild("ra:Subject").NewChild("ra:Attribute"),remote_ip_,"http://www.nordugrid.org/schemas/policy-arc/types/tcp/remoteiendpoint");
     };
     return true;
   } else {

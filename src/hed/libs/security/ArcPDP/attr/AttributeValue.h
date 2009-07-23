@@ -18,17 +18,17 @@ public:
   virtual ~AttributeValue(){};
 
   /**Evluate whether "this" equale to the parameter value */
-  virtual bool equal(AttributeValue* value) = 0;
+  virtual bool equal(AttributeValue* value, bool check_id = true) = 0;
 
   //virtual int compare(AttributeValue* other){};
 
   /**encode the value in a string format*/
   virtual std::string encode() = 0;
 
-  /**Get the type of the <Attribute>*/
+  /**Get the DataType of the <Attribute>*/
   virtual std::string getType() = 0;
 
-  /**Get the identifier of the <Attribute>*/
+  /**Get the AttributeId of the <Attribute>*/
   virtual std::string getId() = 0;
 
 };

@@ -24,10 +24,11 @@ MatchFunction::MatchFunction(std::string functionName, std::string argumentType)
   argType = argumentType;
 }
 
-AttributeValue* MatchFunction::evaluate(AttributeValue* arg0, AttributeValue* arg1){
+AttributeValue* MatchFunction::evaluate(AttributeValue* arg0, AttributeValue* arg1, bool check_id){
   //TODO
   //arg0 is the attributevalue in policy
   //arg1 is the attributevalue in request
+  if(check_id) { if(arg0->getId() != arg1->getId()) return new BooleanAttribute(false); }
   std::string label = arg0->encode();
   std::string value = arg1->encode();
   Arc::RegularExpression regex(label);
@@ -40,12 +41,19 @@ AttributeValue* MatchFunction::evaluate(AttributeValue* arg0, AttributeValue* ar
   return new BooleanAttribute(false);
 }
 
-std::list<AttributeValue*> MatchFunction::evaluate(std::list<AttributeValue*> args) {
+std::list<AttributeValue*> MatchFunction::evaluate(std::list<AttributeValue*> args, bool check_id) {
   AttributeValue* arg0 = NULL;
   AttributeValue* arg1 = NULL;
   std::list<AttributeValue*>::iterator it = args.begin();
   arg0 = *it; it++;
   if(it!= args.end()) arg1 = *it;
+  if(check_id) { 
+    if(arg0->getId() != arg1->getId()) {
+      std::list<AttributeValue*> ret;
+      ret.push_back(new BooleanAttribute(false));
+      return ret;
+    }
+  }
   AttributeValue* res = evaluate(arg0, arg1);
   std::list<AttributeValue*> ret;
   ret.push_back(res);
