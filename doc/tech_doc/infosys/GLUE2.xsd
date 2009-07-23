@@ -23,6 +23,7 @@
 
 <schema targetNamespace="http://schemas.ogf.org/glue/2009/03/spec/2/0"
 	xmlns="http://www.w3.org/2001/XMLSchema"
+	xmlns:xs="http://www.w3.org/2001/XMLSchema"
 	xmlns:glue="http://schemas.ogf.org/glue/2009/03/spec/2/0"
     elementFormDefault="qualified">
 
@@ -49,7 +50,7 @@
 		    <element name="OtherInfo" type="string" minOccurs="0" maxOccurs="unbounded"/>
 		    <element name="Extensions" type="glue:Extensions_t" minOccurs="0" maxOccurs="1"/>
         </sequence>
-		<attribute name="CreationTime" type="dateTime"/>
+		<attribute name="CreationTime" type="glue:dateTime"/>
 		<attribute name="Validity" type="unsignedLong"/>
 	</complexType>
 
@@ -199,12 +200,12 @@
 			<element name="HealthState" type="glue:EndpointHealthState_t" minOccurs="1" maxOccurs="1"/>
 			<element name="HealthStateInfo" type="string" minOccurs="0" maxOccurs="1"/>
 			<element name="ServingState" type="glue:ServingState_t" minOccurs="1" maxOccurs="1"/>
-			<element name="StartTime" type="dateTime" minOccurs="0" maxOccurs="1"/>
+			<element name="StartTime" type="glue:dateTime" minOccurs="0" maxOccurs="1"/>
 			<element name="IssuerCA" type="glue:DN_t" minOccurs="0" maxOccurs="1"/>
 			<element name="TrustedCA" type="glue:DN_t" minOccurs="0" maxOccurs="unbounded"/>
-			<element name="DowntimeAnnounce" type="dateTime" minOccurs="0" maxOccurs="1"/>
-			<element name="DowntimeStart" type="dateTime" minOccurs="0" maxOccurs="1"/>
-			<element name="DowntimeEnd" type="dateTime" minOccurs="0" maxOccurs="1"/>
+			<element name="DowntimeAnnounce" type="glue:dateTime" minOccurs="0" maxOccurs="1"/>
+			<element name="DowntimeStart" type="glue:dateTime" minOccurs="0" maxOccurs="1"/>
+			<element name="DowntimeEnd" type="glue:dateTime" minOccurs="0" maxOccurs="1"/>
 			<element name="DowntimeInfo" type="string" minOccurs="0" maxOccurs="1"/>
 			<element name="AccessPolicy" type="glue:AccessPolicy_t" minOccurs="0" maxOccurs="unbounded"/>
 		</sequence>
@@ -388,6 +389,7 @@
 					<group ref="glue:Endpoint_g"/>
 					<element name="Staging" type="glue:Staging_t" minOccurs="0" maxOccurs="1"/>
 					<element name="JobDescription" type="glue:JobDescription_t" minOccurs="0" maxOccurs="unbounded"/>
+					<element name="TotalJobs" type="unsignedInt" minOccurs="0" maxOccurs="1"/>
 					<element name="RunningJobs" type="unsignedInt" minOccurs="0" maxOccurs="1"/>
 					<element name="WaitingJobs" type="unsignedInt" minOccurs="0" maxOccurs="1"/>
 					<element name="StagingJobs" type="unsignedInt" minOccurs="0" maxOccurs="1"/>
@@ -439,9 +441,9 @@
 						</annotation>
 					</element>
 					<element name="MaxMainMemory" type="unsignedLong" minOccurs="0" maxOccurs="1"/>
-					<element name="GaranteedMainMemory" type="unsignedLong" minOccurs="0" maxOccurs="1"/>
+					<element name="GuaranteedMainMemory" type="unsignedLong" minOccurs="0" maxOccurs="1"/>
 					<element name="MaxVirtualMemory" type="unsignedLong" minOccurs="0" maxOccurs="1"/>
-					<element name="GaranteedVirtualMemory" type="unsignedLong" minOccurs="0" maxOccurs="1"/>
+					<element name="GuaranteedVirtualMemory" type="unsignedLong" minOccurs="0" maxOccurs="1"/>
 					<element name="MaxDiskSpace" type="unsignedLong" minOccurs="0" maxOccurs="1"/>
 					<element name="DefaultStorageService" type="anyURI" minOccurs="0" maxOccurs="1"/>
 					<element name="Preemption" type="glue:ExtendedBoolean_t" minOccurs="0" maxOccurs="1"/>
@@ -463,7 +465,7 @@
 					<element name="RequestedSlots" type="unsignedInt" minOccurs="0" maxOccurs="1"/>
 					<element name="ReservationPolicy" type="glue:ReservationPolicy_t" minOccurs="0" maxOccurs="1"/>
 					<element name="Tag" type="string" minOccurs="0" maxOccurs="unbounded"/>
-                    <element name="ComputingActivitites" minOccurs="0" maxOccurs="1">
+                    <element name="ComputingActivities" minOccurs="0" maxOccurs="1">
 						<complexType>
 							<sequence>
 								<element name="ComputingActivity" type="glue:ComputingActivity_t" minOccurs="0" maxOccurs="unbounded"/>
@@ -491,7 +493,7 @@
 					<element name="Reservation" type="glue:ExtendedBoolean_t" minOccurs="0" maxOccurs="1"/>
 					<element name="BulkSubmission" type="glue:ExtendedBoolean_t" minOccurs="0" maxOccurs="1"/>
 					<element name="TotalPhysicalCPUs" type="unsignedInt" minOccurs="0" maxOccurs="1"/>
-					<element name="TotalLogiclCPUs" type="unsignedInt" minOccurs="0" maxOccurs="1"/>
+					<element name="TotalLogicalCPUs" type="unsignedInt" minOccurs="0" maxOccurs="1"/>
 					<element name="TotalSlots" type="unsignedInt" minOccurs="0" maxOccurs="1"/>
 					<element name="SlotsUsedByLocalJobs" type="unsignedInt" minOccurs="0" maxOccurs="1"/>
 					<element name="SlotsUsedByGridJobs" type="unsignedInt" minOccurs="0" maxOccurs="1"/>
@@ -499,7 +501,7 @@
 					<element name="NetworkInfo" type="glue:NetworkInfo_t" minOccurs="0" maxOccurs="unbounded"/>
 					<element name="LogicalCPUDistribution" type="string" minOccurs="0" maxOccurs="1"/>
 					<element name="WorkingAreaShared" type="glue:ExtendedBoolean_t" minOccurs="0" maxOccurs="1"/>
-					<element name="WorkingAreaGaranteed" type="glue:ExtendedBoolean_t" minOccurs="0" maxOccurs="1"/>
+					<element name="WorkingAreaGuaranteed" type="glue:ExtendedBoolean_t" minOccurs="0" maxOccurs="1"/>
 					<element name="WorkingAreaTotal" type="unsignedLong" minOccurs="0" maxOccurs="1"/>
 					<element name="WorkingAreaFree" type="unsignedLong" minOccurs="0" maxOccurs="1"/>
 					<element name="WorkingAreaLifeTime" type="unsignedLong" minOccurs="0" maxOccurs="1"/>
@@ -509,8 +511,8 @@
 					<element name="CacheTotal" type="unsignedLong" minOccurs="0" maxOccurs="1"/>
 					<element name="CacheFree" type="unsignedLong" minOccurs="0" maxOccurs="1"/>
 					<element name="TmpDir" type="string" minOccurs="0" maxOccurs="1"/>
-					<element name="ScatchDir" type="string" minOccurs="0" maxOccurs="1"/>
-					<element name="AppliciationDir" type="string" minOccurs="0" maxOccurs="1"/>
+					<element name="ScratchDir" type="string" minOccurs="0" maxOccurs="1"/>
+					<element name="ApplicationDir" type="string" minOccurs="0" maxOccurs="1"/>
 					<element name="ExecutionEnvironments" minOccurs="0" maxOccurs="1">
 				        	<complexType>
                             				<sequence>
@@ -538,9 +540,12 @@
 			        <element name="Type" type="string" minOccurs="1" maxOccurs="1">
 				        <annotation>
                             		   <appinfo>
-                                		<enumeration value="specint2000"/>
-                                		<enumeration value="specfp2000"/>
                                 		<enumeration value="bogomips"/>
+                                		<enumeration value="cfp2006"/>
+                                		<enumeration value="cint2006"/>
+                                		<enumeration value="linpack"/>
+                                		<enumeration value="specfp2000"/>
+                                		<enumeration value="specint2000"/>
 					   </appinfo>
 				        </annotation>	
 			        </element>		        
@@ -600,10 +605,21 @@
 			        <element name="AppName" type="string" minOccurs="1" maxOccurs="1"/>
 			        <element name="AppVersion" type="string" minOccurs="0" maxOccurs="1"/>
 			        <element name="State" type="glue:AppEnvState_t" minOccurs="0" maxOccurs="1"/>
-			        <element name="RemovalDate" type="dateTime" minOccurs="0" maxOccurs="1"/>
+			        <element name="RemovalDate" type="glue:dateTime" minOccurs="0" maxOccurs="1"/>
 			        <element name="License" type="glue:License_t" minOccurs="0" maxOccurs="1"/>
 			        <element name="Description" type="string" minOccurs="0" maxOccurs="1"/>
-			        <element name="BestBenchmark" type="glue:Benchmark_t" minOccurs="0" maxOccurs="unbounded"/>
+			        <element name="BestBenchmark" type="string" minOccurs="0" maxOccurs="unbounded">
+						<annotation>
+							<appinfo>
+								<enumeration value="bogomips"/>
+								<enumeration value="cfp2006"/>
+								<enumeration value="cint2006"/>
+								<enumeration value="linpack"/>
+								<enumeration value="specfp2000"/>
+								<enumeration value="specint2000"/>
+							</appinfo>
+						</annotation>
+					</element>
 			        <element name="ParallelSupport" type="string" minOccurs="0" maxOccurs="1">
 				        <annotation>
                             <appinfo>
@@ -683,13 +699,13 @@
                     <element name="UsedTotalWallTime" type="unsignedLong" minOccurs="0" maxOccurs="1"/>
 					<element name="UsedTotalCPUTime" type="unsignedLong" minOccurs="0" maxOccurs="1"/>
 					<element name="UsedMainMemory" type="unsignedLong" minOccurs="0" maxOccurs="1"/>
-					<element name="SubmissionTime" type="dateTime" minOccurs="0" maxOccurs="1"/>
-					<element name="ComputingManagerSubmissionTime" type="dateTime" minOccurs="0" maxOccurs="1"/>
-					<element name="StartTime" type="dateTime" minOccurs="0" maxOccurs="1"/>
-					<element name="ComputingManagerEndTime" type="dateTime" minOccurs="0" maxOccurs="1"/>
-					<element name="EndTime" type="dateTime" minOccurs="0" maxOccurs="1"/>
-					<element name="WorkingAreaEraseTime" type="dateTime" minOccurs="0" maxOccurs="1"/>
-					<element name="ProxyExpirationTime" type="dateTime" minOccurs="0" maxOccurs="1"/>
+					<element name="SubmissionTime" type="glue:dateTime" minOccurs="0" maxOccurs="1"/>
+					<element name="ComputingManagerSubmissionTime" type="glue:dateTime" minOccurs="0" maxOccurs="1"/>
+					<element name="StartTime" type="glue:dateTime" minOccurs="0" maxOccurs="1"/>
+					<element name="ComputingManagerEndTime" type="glue:dateTime" minOccurs="0" maxOccurs="1"/>
+					<element name="EndTime" type="glue:dateTime" minOccurs="0" maxOccurs="1"/>
+					<element name="WorkingAreaEraseTime" type="glue:dateTime" minOccurs="0" maxOccurs="1"/>
+					<element name="ProxyExpirationTime" type="glue:dateTime" minOccurs="0" maxOccurs="1"/>
 					<element name="SubmissionHost" type="string" minOccurs="0" maxOccurs="1"/>
 					<element name="SubmissionClientName" type="string" minOccurs="0" maxOccurs="1"/>
 					<element name="OtherMessages" type="string" minOccurs="0" maxOccurs="unbounded"/>
@@ -878,6 +894,12 @@
 	<!--  END STORAGE ENTITIES  -->
 
 	<!-- BEGIN DATA TYPES -->
+	<simpleType name="dateTime">
+		<restriction base="xs:dateTime">
+			<pattern value="\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\dZ"/>
+		</restriction>
+	</simpleType>
+
 	<simpleType name="Latitude_t">
 		<restriction base="float">
 			<minInclusive value="-90"/>
