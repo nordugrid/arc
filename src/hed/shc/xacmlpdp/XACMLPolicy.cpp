@@ -135,9 +135,11 @@ MatchResult XACMLPolicy::match(EvaluationCtx* ctx){
 
 Result XACMLPolicy::eval(EvaluationCtx* ctx){
   Result result = DECISION_NOT_APPLICABLE;
-  MatchResult matchres = match(ctx);
-  if(matchres == NO_MATCH)  return result;
-  else if(matchres == INDETERMINATE) {result = DECISION_INDETERMINATE; return result;}
+  if(target != NULL) {
+    MatchResult matchres = target->match(ctx);
+    if(matchres == NO_MATCH)  return result;
+    else if(matchres == INDETERMINATE) {result = DECISION_INDETERMINATE; return result;}
+  }
  
   result = comalg?comalg->combine(ctx, subelements):DECISION_INDETERMINATE;
   if(result == DECISION_PERMIT) evalres.effect = "Permit";
