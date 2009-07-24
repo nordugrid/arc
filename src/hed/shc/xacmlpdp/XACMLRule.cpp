@@ -35,7 +35,8 @@ XACMLRule::XACMLRule(XMLNode& node, EvaluatorContext* ctx) : Policy(node),
     logger.msg(Arc::ERROR, "Invalid Effect");
 
   XMLNode targetnode = node["Target"];
-  if((bool)targetnode) target = new XACMLTarget(targetnode, ctx);
+  if(((bool)targetnode) && ((bool)(targetnode.Child()))) 
+    target = new XACMLTarget(targetnode, ctx);
 
   XMLNode conditionnode = node["Condition"];
   if((bool)conditionnode) condition = new XACMLCondition(conditionnode, ctx);

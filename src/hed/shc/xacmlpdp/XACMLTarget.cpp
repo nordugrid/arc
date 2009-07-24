@@ -5,6 +5,7 @@
 #include <list>
 
 #include <arc/security/ArcPDP/attr/AttributeValue.h>
+#include <arc/security/ArcPDP/attr/BooleanAttribute.h>
 #include <arc/security/ArcPDP/fn/EqualFunction.h>
 
 #include "XACMLPolicy.h"
@@ -90,12 +91,17 @@ MatchResult XACMLTargetMatch::match(EvaluationCtx* ctx) {
   if(selector != NULL) attrlist = selector->evaluate(ctx);
   else if(designator != NULL) attrlist = designator->evaluate(ctx);
 
-  bool evalres = false;
+  AttributeValue* evalres = NULL;
   std::list<AttributeValue*>::iterator i;
   for(i = attrlist.begin(); i != attrlist.end(); i++) {
 std::cout<<"Request side: "<<(*i)->encode()<<" Policy side:  "<<attrval->encode()<<std::endl;
     evalres = function->evaluate(attrval, (*i), false);
-    if(evalres) { std::cout<<"Matched!"<<std::endl; break; }
+    BooleanAttribute bool_attr(true);
+    if((evalres != NULL) && (evalres->equal(&bool_attr))) { 
+      std::cout<<"Matched!"<<std::endl; 
+      delete evalres; break; 
+    }
+    if(evalres) delete evalres;
   }
   while(!(attrlist.empty())) {
     AttributeValue* val = attrlist.back();

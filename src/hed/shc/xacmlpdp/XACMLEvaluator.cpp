@@ -177,7 +177,7 @@ Request* XACMLEvaluator::make_reqobj(XMLNode& reqnode){
 Response* XACMLEvaluator::evaluate(Request* request){
   Request* req = request;
   req->setAttributeFactory(attrfactory);
-  req->make_request();
+  //req->make_request();
 
   EvaluationCtx * evalctx = NULL;
   evalctx =  new XACMLEvaluationCtx(req);
@@ -202,7 +202,7 @@ Response* XACMLEvaluator::evaluate(const Source& req){
   
   //2.Pre-process the Request object
   request->setAttributeFactory(attrfactory);
-  request->make_request();
+  //request->make_request();
   
   EvaluationCtx * evalctx = NULL;
   evalctx =  new XACMLEvaluationCtx(request);

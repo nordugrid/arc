@@ -43,7 +43,7 @@ XACMLPolicy::XACMLPolicy(void) : Policy(), comalg(NULL) {
   policytop=policynode;
 }
 
-XACMLPolicy::XACMLPolicy(const XMLNode node) : Policy(node), comalg(NULL) {
+XACMLPolicy::XACMLPolicy(const XMLNode node) : Policy(node), comalg(NULL), target(NULL) {
   if((!node) || (node.Size() == 0)) {
     logger.msg(ERROR,"Policy is empty");
     return;
@@ -115,8 +115,9 @@ void XACMLPolicy::make_policy() {
   logger.msg(INFO, "PolicyId: %s  Alg inside this policy is:-- %s", id, comalg?(comalg->getalgId()):"");
 
   XMLNode targetnode = nd["Target"];
-  if((bool)targetnode) target = new XACMLTarget(targetnode, evaluatorctx);
- 
+  if(((bool)targetnode) && ((bool)(targetnode.Child()))) 
+    target = new XACMLTarget(targetnode, evaluatorctx);
+
   for ( int i=0;; i++ ){
     rnd = nd["Rule"][i];
     if(!rnd) break;
@@ -134,12 +135,10 @@ MatchResult XACMLPolicy::match(EvaluationCtx* ctx){
 
 Result XACMLPolicy::eval(EvaluationCtx* ctx){
   Result result = DECISION_NOT_APPLICABLE;
-  if(target != NULL) {
-    MatchResult matchres = target->match(ctx);
-    if(matchres == NO_MATCH)  return result;
-    else if(matchres == INDETERMINATE) {result = DECISION_INDETERMINATE; return result;}
-  }
-
+  MatchResult matchres = match(ctx);
+  if(matchres == NO_MATCH)  return result;
+  else if(matchres == INDETERMINATE) {result = DECISION_INDETERMINATE; return result;}
+ 
   result = comalg?comalg->combine(ctx, subelements):DECISION_INDETERMINATE;
   if(result == DECISION_PERMIT) evalres.effect = "Permit";
   else if(result == DECISION_DENY) evalres.effect = "Deny";

@@ -88,13 +88,13 @@ void XACMLRequest::make_request(){
 XACMLRequest::XACMLRequest (const Source& req) : Request(req) {
   req.Get().New(reqnode);
   NS ns;
-  ns["ra"]="urn:oasis:names:tc:xacm:2.0:context:schema:os";
+  ns["ra"]="urn:oasis:names:tc:xacml:2.0:context:schema:os";
   reqnode.Namespaces(ns);
 }
 
 XACMLRequest::XACMLRequest () {
   NS ns;
-  ns["ra"]="urn:oasis:names:tc:xacm:2.0:context:schema:os";
+  ns["ra"]="urn:oasis:names:tc:xacml:2.0:context:schema:os";
   XMLNode request(ns,"ra:Request");
   request.New(reqnode);
 }
