@@ -256,12 +256,12 @@ Arc::MCC_Status Service_SP::process(Arc::Message& inmsg,Arc::Message& outmsg) {
   }
   else {  
     //The http content should be <saml:EncryptedAssertion/> or <saml:Assertion/>
-    //Decrypted the assertion (if it is encrypted) by using SP's private key (the key is the 
+    //Decrypt the assertion (if it is encrypted) by using SP's private key (the key is the 
     //same as the one for the main message chain)
     //std::cout<<"saml assertion from peer side: "<<msg_content<<std::endl;
     Arc::XMLNode assertion_nd(msg_content);
     if(MatchXMLName(assertion_nd, "EncryptedAssertion")) {
-      //Decrypte the encrypted saml assertion
+      //Decrypt the encrypted saml assertion
       //std::string saml_assertion;
       //assertion_nd.GetXML(saml_assertion);
       //std::cout<<"Encrypted saml assertion: "<<saml_assertion<<std::endl;
@@ -271,7 +271,7 @@ Arc::MCC_Status Service_SP::process(Arc::Message& inmsg,Arc::Message& outmsg) {
 
       bool r = sec_assertion_nd.DecryptNode(privkey_file_, decrypted_assertion_nd);
       if(!r) { 
-        logger.msg(Arc::ERROR,"Can not decrypted the EncryptedAssertion from saml response"); 
+        logger.msg(Arc::ERROR,"Can not decrypt the EncryptedAssertion from saml response"); 
         return Arc::MCC_Status(); 
       }
 
@@ -279,7 +279,7 @@ Arc::MCC_Status Service_SP::process(Arc::Message& inmsg,Arc::Message& outmsg) {
       //decrypted_assertion_nd.GetXML(decrypted_saml_assertion);
       //std::cout<<"Decrypted SAML Assertion: "<<decrypted_saml_assertion<<std::endl;
      
-      //Decrypted the <saml:EncryptedID/> if it exists in the above saml assertion
+      //Decrypt the <saml:EncryptedID/> if it exists in the above saml assertion
       Arc::XMLNode nameid_nd = decrypted_assertion_nd["saml:Subject"]["saml:EncryptedID"];
       //std::string nameid;
       //nameid_nd.GetXML(nameid);
@@ -288,7 +288,7 @@ Arc::MCC_Status Service_SP::process(Arc::Message& inmsg,Arc::Message& outmsg) {
       Arc::XMLSecNode sec_nameid_nd(nameid_nd);
       Arc::XMLNode decrypted_nameid_nd;
       r = sec_nameid_nd.DecryptNode(privkey_file_, decrypted_nameid_nd);
-      if(!r) { logger.msg(Arc::ERROR,"Can not decrypted the EncryptedID from saml assertion"); return Arc::MCC_Status(); }
+      if(!r) { logger.msg(Arc::ERROR,"Can not decrypt the EncryptedID from saml assertion"); return Arc::MCC_Status(); }
 
       //std::string decrypted_nameid;
       //decrypted_nameid_nd.GetXML(decrypted_nameid);

@@ -511,7 +511,7 @@ Configurator::process(Arc::Message &in, Arc::Message &out)
     HTMLRequest request(in);
     Arc::PayloadRaw *out_buf = new Arc::PayloadRaw;
     if (!out_buf) {
-        logger_.msg(Arc::ERROR, "Cannot callocate output raw buffer");
+        logger_.msg(Arc::ERROR, "Cannot allocate output raw buffer");
         return Arc::MCC_Status();
     }
     Controller::iterator it;
