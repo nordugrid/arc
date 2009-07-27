@@ -178,6 +178,7 @@ void arcregister(const Arc::URL& source_url,
 
 void arccp(const Arc::URL& source_url_,
            const Arc::URL& destination_url_,
+           const std::string& cache_dir,
            Arc::XMLNode credentials,
            bool secure,
            bool passive,
@@ -218,7 +219,7 @@ void arccp(const Arc::URL& source_url_,
                                        destination = destinations.begin();
          (source != sources.end()) && (destination != destinations.end());
          source++, destination++)
-      arccp(*source, *destination, credentials, secure, passive, force_meta, recursion,
+      arccp(*source, *destination, cache_dir, credentials, secure, passive, force_meta, recursion,
             tries, verbose, timeout);
     return;
   }
@@ -232,7 +233,7 @@ void arccp(const Arc::URL& source_url_,
 
     for (std::list<Arc::URL>::iterator source = sources.begin();
          source != sources.end(); source++)
-      arccp(*source, destination_url, credentials, secure, passive, force_meta, recursion,
+      arccp(*source, destination_url, cache_dir, credentials, secure, passive, force_meta, recursion,
             tries, verbose, timeout);
     return;
   }
@@ -245,7 +246,7 @@ void arccp(const Arc::URL& source_url_,
     }
     for (std::list<Arc::URL>::iterator destination = destinations.begin();
          destination != destinations.end(); destination++)
-      arccp(source_url, *destination, credentials, secure, passive, force_meta, recursion,
+      arccp(source_url, *destination, cache_dir, credentials, secure, passive, force_meta, recursion,
             tries, verbose, timeout);
     return;
   }
@@ -341,6 +342,7 @@ void arccp(const Arc::URL& source_url_,
         }
         Arc::User cache_user;
         Arc::FileCache cache;
+        if (!cache_dir.empty()) cache = Arc::FileCache(cache_dir+" .", "", getuid(), getgid());  
         std::string failure;
         if (!mover.Transfer(*source, *destination, cache, Arc::URLMap(),
                             0, 0, 0, timeout, failure)) {
@@ -377,7 +379,7 @@ void arccp(const Arc::URL& source_url_,
           d_url += i->GetName();
           s_url += "/";
           d_url += "/";
-          arccp(s_url, d_url, credentials, secure, passive, force_meta, recursion - 1,
+          arccp(s_url, d_url, cache_dir, credentials, secure, passive, force_meta, recursion - 1,
                 tries, verbose, timeout);
         }
       return;
@@ -406,8 +408,9 @@ void arccp(const Arc::URL& source_url_,
     source->SetTries(tries); // try all locations "tries" times
     destination->SetTries(tries);
   }
-  Arc::User cache_user;
   Arc::FileCache cache;
+  // always copy to destination rather than link
+  if (!cache_dir.empty()) cache = Arc::FileCache(cache_dir+" .", "", getuid(), getgid());
   if (verbose)
     mover.set_progress_indicator(&progress);
   std::string failure;
@@ -485,13 +488,10 @@ int main(int argc, char **argv) {
 
   std::string cache_path;
   options.AddOption('y', "cache",
-                    istring("path to local cache (use to put file into cache)"),
+                    istring("path to local cache (use to put file into cache). "
+                            "The X509_USER_PROXY and X509_CERT_DIR environment "
+                            "variables must be set correctly."),
                     istring("path"), cache_path);
-
-  std::string cache_data_path;
-  options.AddOption('Y', "cachedata",
-                    istring("path for cache data (if different from -y)"),
-                    istring("path"), cache_data_path);
 
   int recursion = 0;
   options.AddOption('r', "recursive",
@@ -570,7 +570,7 @@ int main(int argc, char **argv) {
   if (nocopy)
     arcregister(source, destination, cred, secure, passive, force, timeout);
   else
-    arccp(source, destination, cred, secure, passive, force, recursion,
+    arccp(source, destination, cache_path, cred, secure, passive, force, recursion,
           retries + 1, verbose, timeout);
 
   return 0;
