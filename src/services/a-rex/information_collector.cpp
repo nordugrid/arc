@@ -87,7 +87,7 @@ void ARexService::InformationCollector(void) {
       GetGlueStates(root,glue_states_);
       // Put result into container
       infodoc_.Assign(root,true);
-      logger_.msg(Arc::INFO,"Assigned new informational document");
+      logger_.msg(Arc::DEBUG,"Assigned new informational document");
     } else {
       logger_.msg(Arc::ERROR,"Failed to create informational document");
     };
