@@ -96,7 +96,7 @@ JobReqResult parse_job_req(const std::string &fname,JobLocalDescription &job_des
   // TODO: Set failure string.
   Arc::JobDescription arc_job_desc;
   if (!get_arc_job_description(fname, arc_job_desc)) {
-    *failure = "Unable to read or parse job description.";
+    if (failure) *failure = "Unable to read or parse job description.";
     return JobReqInternalFailure;
   }
 
