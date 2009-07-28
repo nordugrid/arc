@@ -1292,11 +1292,19 @@ pbs_bin_path=/usr/bin
 pbs_log_path=/var/spool/pbs/server_logs
 tmp_dir=/tmp
 gnu_time=/usr/bin/time
-nodename="/bin/hostname -f"
 runtime_config_dir=
 runtime_local_scratch_dir=
 runtime_frontend_sees_node=
 runtime_node_sees_frontend=
+
+case "${host}" in
+    *linux*)
+        nodename="/bin/hostname -f" ;;
+    *)
+        # hostname -f does not work on Solaris, OS X
+        nodename="hostname" ;;
+esac
+
 arc_location=$prefix
 
 AC_SUBST(arc_location)
