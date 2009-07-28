@@ -605,6 +605,14 @@ namespace Arc {
         return true;
       }
 
+      if (c->Attr() == "savestate") {
+        std::string savestate;
+        if (!SingleValue(c, savestate))
+          return false;
+        j.XRSL_elements["savestate"] = savestate;
+        return true;
+      }
+
       // Unsupported Globus RSL attributes.
       if (c->Attr() == "resourcemanagercontact" ||
           c->Attr() == "directory" ||
