@@ -41,7 +41,7 @@ namespace Arc {
     if (bufsize > MAX_BLOCK_SIZE)
       bufsize = MAX_BLOCK_SIZE;
 
-    cache = (url.Option("cache", "yes") == "yes");
+    cache = (url.Option("cache") != "no");
     readonly = (url.Option("readonly", "yes") == "yes");
   }
 
