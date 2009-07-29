@@ -1,13 +1,7 @@
 # Makefile for the whole janitor service (.)
-if JANITOR_SERVICE_ENABLED
 
 # install perl module
 SUBDIRS = module interfaces
-
-
-
-
-endif 
 
 
 #
