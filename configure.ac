@@ -1286,6 +1286,12 @@ else
 fi
 AM_CONDITIONAL([STORAGE_SERVICE_ENABLED],[test "x$enable_storage_service" = "xyes"])
 
+# Janitor service
+AC_ARG_ENABLE(janitor_service, AC_HELP_STRING([--disable-janitor-service], [disable building JANITOR Service]),[],enable_janitor_service="no")
+AC_MSG_NOTICE([JANITOR Service enabled: $enable_janitor_service])
+AM_CONDITIONAL([JANITOR_SERVICE_ENABLED],[test "x$enable_janitor_service" = "xyes"])
+AM_CONDITIONAL([JANITOR_WEBSERVICE_ENABLED],[test "x$enable_janitor_service" = "xyes"])
+
 # hack for backend scripts
 
 pbs_bin_path=/usr/bin
@@ -1489,6 +1495,14 @@ AC_CONFIG_FILES([Makefile
                  src/services/storage/ahash/Makefile 
                  src/services/storage/bartender/Makefile
                  src/services/storage/bartender/gateway/Makefile 
+                 src/services/janitor/interfaces/commandline/Makefile
+                 src/services/janitor/interfaces/commandline/janitor
+                 src/services/janitor/interfaces/webservice/Makefile
+                 src/services/janitor/interfaces/Makefile
+                 src/services/janitor/interfaces/client/Makefile
+                 src/services/janitor/module/Catalog/Makefile
+                 src/services/janitor/module/Makefile
+                 src/services/janitor/Makefile
                  src/services/echo_java/Makefile
                  src/services/echo_python/Makefile
                  src/tests/echo/echo_service.xml.example
@@ -1577,12 +1591,13 @@ LDAP:               ${enable_ldap}
 xmlsec1:            ${enable_xmlsec1}
 
 Included components:
-A-Rex service:      ${enable_a_rex_service}
+A-REX service:      ${enable_a_rex_service}
 ISI service:        ${enable_isi_service}
 CHARON service:     ${enable_charon_service}
 HOPI service:       ${enable_hopi_service}
 SCHED service:      ${enable_sched_service}
 STORAGE service:    ${enable_storage_service}
+JANITOR service:    ${enable_janitor_service}
 PAUL service:       ${enable_paul_service}
 SRM client (DMC):   ${enable_srm_dmc}
 GSI channel (MCC):  ${enable_gsi_mcc}
