@@ -1,8 +1,0 @@
-This folder collects files associated with the Catalog component. In this
-first implementation, the Catalog is an RDF file edited with the Protégé
-graphical RDF editor. It is downloadable from http://protege.stanford.edu.
-
-knowarc.pprj	- Protégé project file - to be loaded from within the editor
-knowarc.rdf	- exported RDF
-knowarc.rdfs	- RDF schema for the runtime environments
-knowarc_Jambalaya.properties
