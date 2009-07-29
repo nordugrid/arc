@@ -8,6 +8,7 @@
 
 #include <arc/URL.h>
 #include <arc/XMLNode.h>
+#include <arc/client/JobDescription.h>
 
 namespace Arc {
 
@@ -24,6 +25,8 @@ namespace Arc {
      - Job submission
      - Job status queries
      - Job termination
+
+     Internal requirement: for correct behaviour instances of this class should not further instanciate it.
    */
   class UNICOREClient {
   public:
@@ -47,7 +50,7 @@ namespace Arc {
        @param jobid The Job ID of the the submitted job.
        @return true on success
      */
-    bool submit(std::istream& jsdl_file, std::string& jobid,
+    bool submit(const JobDescription& jobdesc, XMLNode& id,
                 bool delegate = false);
 
     //! Query the status of a job.
@@ -125,6 +128,7 @@ namespace Arc {
 
     URL rurl;
 
+    std::string proxyPath;
     //! A logger for the UNICORE client.
     /*! This is a logger to which all logging messages from the UNICORE
        client are sent.

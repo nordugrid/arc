@@ -8,6 +8,7 @@
 #include <arc/delegation/DelegationInterface.h>
 #include <arc/loader/Loader.h>
 #include <arc/ws-addressing/WSA.h>
+#include <fstream>
 // headers for debugging
 #include <sstream>
 // end headers for debugging
@@ -45,6 +46,7 @@ namespace Arc {
     ns["jsdl-hpcpa"] = "http://schemas.ggf.org/jsdl/2006/07/jsdl-hpcpa";
     ns["ns0"] = "urn:oasis:names:tc:SAML:2.0:assertion";
     ns["rp"] = "http://docs.oasis-open.org/wsrf/rp-2";
+    ns["u6"] = "http://www.unicore.eu/unicore6";
   }
 
   static void set_bes_factory_action(SOAPEnvelope& soap, const char *op) {
@@ -63,7 +65,12 @@ namespace Arc {
       client_entry(NULL) {
 
     logger.msg(INFO, "Creating a UNICORE client");
-    client = new ClientSOAP(cfg, url);
+    MCCConfig client_cfg(cfg);
+    proxyPath = cfg.proxy;
+    if (false) { //future test if proxy should be used or not
+      client_cfg.AddProxy("");
+    }
+    client = new ClientSOAP(client_cfg, url);
     rurl = url;
     set_UNICORE_namespaces(unicore_ns);
   }
@@ -77,7 +84,7 @@ namespace Arc {
       delete client;
   }
 
-  bool UNICOREClient::submit(std::istream& jsdl_file, std::string& jobid,
+  bool UNICOREClient::submit(const JobDescription& jobdesc, XMLNode& id,
                              bool delegate) {
 
     std::string faultstring;
@@ -95,9 +102,19 @@ namespace Arc {
     XMLNode act_doc = op.NewChild("bes-factory:ActivityDocument");
     set_bes_factory_action(req, "CreateActivity");
     WSAHeader(req).To(rurl.str());
-    std::string jsdl_str;
-    std::getline<char>(jsdl_file, jsdl_str, 0);
+    //XMLNode proxyHeader = req.Header().NewChild("u6:Proxy");
+    if (true){
+      std::string pem_str;
+      std::ifstream proxy_file(proxyPath.c_str()/*, ifstream::in*/);
+      std::getline<char>(proxy_file, pem_str, 0);
+      req.Header().NewChild("u6:Proxy") = pem_str;
+      std::cout << "\n----\n" << "pem_str = " << pem_str << "\n----\n";
+    }
+    //std::string jsdl_str;
+    //std::getline<char>(jsdl_file, jsdl_str, 0);
+    std::string jsdl_str = jobdesc.UnParse("POSIXJSDL");
     act_doc.NewChild(XMLNode(jsdl_str));
+    std::cout << "\n----\n" << (std::string)act_doc << "\n----\n";
     act_doc.Child(0).Namespaces(unicore_ns); // Unify namespaces
     PayloadSOAP *resp = NULL;
 
@@ -236,11 +253,11 @@ namespace Arc {
       logger.msg(ERROR, "There is no connection chain configured");
       return false;
     }
-    XMLNode id;
+    //XMLNode id;
     SOAPFault fs(*resp);
     if (!fs) {
       (*resp)["CreateActivityResponse"]["ActivityIdentifier"].New(id);
-      id.GetDoc(jobid);
+      //id.GetDoc(jobid);
       delete resp;
       return true;
     }
@@ -344,7 +361,7 @@ namespace Arc {
   bool UNICOREClient::listTargetSystemFactories(std::list<Config>& tsf, std::string& status) {
 
     std::string state, faultstring;
-    logger.msg(INFO, "Creating and sending a service an index service query");
+    logger.msg(INFO, "Creating and sending an index service query");
     PayloadSOAP req(unicore_ns);
     XMLNode query = req.NewChild("rp:QueryResourceProperties");
     XMLNode exp = query.NewChild("rp:QueryExpression");

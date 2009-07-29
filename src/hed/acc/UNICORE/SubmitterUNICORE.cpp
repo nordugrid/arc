@@ -37,6 +37,20 @@ namespace Arc {
     MCCConfig cfg;
     ApplySecurity(cfg);
 
+    //new code to use the UNICOREClient
+    UNICOREClient uc(submissionEndpoint, cfg);
+
+    XMLNode id;
+
+    if (uc.submit(jobdesc, id)){
+    }
+    else {
+      return URL();
+    }
+    //end new code
+
+
+/*
     logger.msg(INFO, "Creating client chain for UNICORE BES service");
     ClientSOAP client(cfg, submissionEndpoint);
     //if((!client) || (!(*client))) {
@@ -48,11 +62,11 @@ namespace Arc {
     logger.msg(INFO, "Creating and sending request");
 
     // Create job request
-    /*
-       bes-factory:CreateActivity
-         bes-factory:ActivityDocument
-           jsdl:JobDefinition
-     */
+
+    //   bes-factory:CreateActivity
+    //     bes-factory:ActivityDocument
+    //       jsdl:JobDefinition
+
     NS ns;
     ns["bes-factory"] = "http://schemas.ggf.org/bes/2006/08/bes-factory";
     ns["wsa"] = "http://www.w3.org/2005/08/addressing";
@@ -98,7 +112,10 @@ namespace Arc {
     if (jobid.empty()) {
       logger.msg(ERROR, "Service returned no job identifier");
       return URL();
-    }
+    }*/
+
+    std::string jobid;
+    id.GetDoc(jobid);
 
     NS ns1;
     XMLNode info(ns1, "Job");
