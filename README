@@ -43,6 +43,10 @@ requirements is shown:
     o doxygen (build)
     o GNU gettext (build, run)
 
+  Mandatory for A-REX service:
+    o Perl, libxml-simple-perl package (run)
+    o GNU time (run)
+
   Optional (mainly applicable on server side):
     o swig version 1.3.28 or later (build)
     o java sdk 1.4 or later for Java bindings (build, run)
