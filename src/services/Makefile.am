@@ -52,11 +52,17 @@ else
 STORAGE_SERVICE =
 endif
 
+if JANITOR_SERVICE_ENABLED
+JANITOR_SERVICE = janitor
+else
+JANITOR_SERVICE =
+endif
+
 if PYTHON_SERVICE
 PYTHON_SERVICE = echo_python
 else
 PYTHON_SERVICE =
 endif
 
-SUBDIRS=$(AREX_SERVICE) $(ISI_SERVICE) $(CHARON_SERVICE) $(COMPILER_SERVICE) $(HOPI_SERVICE) $(PAUL_SERVICE) $(SCHED_SERVICE) $(STORAGE_SERVICE) arex2 wrappers $(SAML) $(PYTHON_SERVICE) slcs delegation
-DIST_SUBDIRS = echo_java echo_python a-rex isis charon compiler hopi paul sched storage arex2 wrappers saml slcs delegation
+SUBDIRS=$(AREX_SERVICE) $(ISI_SERVICE) $(CHARON_SERVICE) $(COMPILER_SERVICE) $(HOPI_SERVICE) $(PAUL_SERVICE) $(SCHED_SERVICE) $(STORAGE_SERVICE) $(JANITOR_SERVICE) arex2 wrappers $(SAML) $(PYTHON_SERVICE) slcs delegation
+DIST_SUBDIRS = echo_java echo_python a-rex isis charon compiler hopi paul sched storage janitor arex2 wrappers saml slcs delegation

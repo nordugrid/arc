@@ -1,0 +1,1602 @@
+; Tue Apr 14 07:49:49 GMT+01:00 2009
+; 
+;+ (version "3.4")
+;+ (build "Build 533")
+
+([BROWSER_SLOT_NAMES] of  Property_List
+
+	(properties
+		[knowarc_ProjectKB_Class100]
+		[knowarc_ProjectKB_Class101]
+		[knowarc_ProjectKB_Class102]
+		[knowarc_ProjectKB_Class103]
+		[knowarc_ProjectKB_Class104]
+		[knowarc_ProjectKB_Class105]
+		[knowarc_ProjectKB_Class106]
+		[knowarc_ProjectKB_Class107]))
+
+([CLSES_TAB] of  Widget
+
+	(widget_class_name "edu.stanford.smi.protege.widget.ClsesTab"))
+
+([FORMS_TAB] of  Widget
+
+	(widget_class_name "edu.stanford.smi.protege.widget.FormsTab"))
+
+([INSTANCE_ANNOTATION_FORM_WIDGET] of  Widget
+
+	(height 476)
+	(is_hidden FALSE)
+	(name ":INSTANCE-ANNOTATION")
+	(property_list [KB_604125_Instance_33])
+	(widget_class_name "edu.stanford.smi.protege.widget.FormWidget")
+	(width 603)
+	(x 0)
+	(y 0))
+
+([INSTANCES_TAB] of  Widget
+
+	(widget_class_name "edu.stanford.smi.protege.widget.InstancesTab"))
+
+([KB_228663_Class2] of  Map
+)
+
+([KB_604125_Instance_0] of  Property_List
+
+	(name "class widget properties")
+	(properties
+		[KB_604125_Instance_1]
+		[KB_604125_Instance_2]
+		[KB_604125_Instance_3]
+		[KB_604125_Instance_4]
+		[KB_604125_Instance_5]
+		[KB_604125_Instance_6]
+		[KB_604125_Instance_7]
+		[KB_604125_Instance_8]
+		[KB_604125_Instance_9]
+		[KB_604125_Instance_10]))
+
+([KB_604125_Instance_1] of  Widget
+
+	(height 120)
+	(label "Constraints")
+	(name ":SLOT-CONSTRAINTS")
+	(property_list [knowarc_ProjectKB_Instance_30107])
+	(widget_class_name "edu.stanford.smi.protege.widget.ConstraintsWidget")
+	(width 200)
+	(x 400)
+	(y 0))
+
+([KB_604125_Instance_10] of  Property_List
+
+	(name "layout properties")
+	(properties [KB_604125_Instance_11]))
+
+([KB_604125_Instance_11] of  String
+
+	(name "vertical_stretcher")
+	(string_value ":DIRECT-TEMPLATE-SLOTS"))
+
+([KB_604125_Instance_12] of  Property_List
+
+	(name "slot widget properties")
+	(properties
+		[KB_604125_Instance_13]
+		[KB_604125_Instance_14]
+		[KB_604125_Instance_15]
+		[KB_604125_Instance_16]
+		[KB_604125_Instance_17]
+		[KB_604125_Instance_18]
+		[KB_604125_Instance_19]
+		[KB_604125_Instance_20]
+		[KB_604125_Instance_21]
+		[KB_604125_Instance_22]
+		[KB_604125_Instance_23]
+		[KB_604125_Instance_24]
+		[KB_604125_Instance_25]
+		[KB_604125_Instance_26]
+		[KB_604125_Instance_27]
+		[KB_604125_Instance_28]
+		[knowarc_ProjectKB_Instance_30116]))
+
+([KB_604125_Instance_13] of  Widget
+
+	(height 60)
+	(label "Cardinality")
+	(name ":SLOT-MINIMUM-CARDINALITY")
+	(property_list [knowarc_ProjectKB_Instance_30120])
+	(widget_class_name "edu.stanford.smi.protege.widget.MinimumCardinalityWidget")
+	(width 200)
+	(x 200)
+	(y 120))
+
+([KB_604125_Instance_14] of  Widget
+
+	(height 35)
+	(name ":SLOT-MAXIMUM-CARDINALITY")
+	(property_list [knowarc_ProjectKB_Instance_30121])
+	(widget_class_name "edu.stanford.smi.protege.widget.MaximumCardinalityWidget")
+	(width 200)
+	(x 200)
+	(y 180))
+
+([KB_604125_Instance_15] of  Widget
+
+	(name ":SLOT-CONSTRAINTS"))
+
+([KB_604125_Instance_16] of  Widget
+
+	(name ":DIRECT-TYPE"))
+
+([KB_604125_Instance_17] of  Widget
+
+	(height 95)
+	(label "Domain")
+	(name ":DIRECT-DOMAIN")
+	(property_list [knowarc_ProjectKB_Instance_30117])
+	(widget_class_name "edu.stanford.smi.protege.widget.DirectDomainWidget")
+	(width 200)
+	(x 400)
+	(y 180))
+
+([KB_604125_Instance_18] of  Widget
+
+	(height 90)
+	(label "Template Values")
+	(name ":SLOT-VALUES")
+	(property_list [knowarc_ProjectKB_Instance_30118])
+	(widget_class_name "edu.stanford.smi.protege.widget.SlotValuesWidget")
+	(width 200)
+	(x 400)
+	(y 0))
+
+([KB_604125_Instance_19] of  Widget
+
+	(name ":DIRECT-SUPERSLOTS"))
+
+([KB_604125_Instance_2] of  Widget
+
+	(name ":DIRECT-INSTANCES"))
+
+([KB_604125_Instance_20] of  Widget
+
+	(name ":DIRECT-SUBSLOTS"))
+
+([KB_604125_Instance_21] of  Widget
+
+	(height 90)
+	(label "Default")
+	(name ":SLOT-DEFAULTS")
+	(property_list [knowarc_ProjectKB_Instance_30119])
+	(widget_class_name "edu.stanford.smi.protege.widget.DefaultValuesWidget")
+	(width 200)
+	(x 400)
+	(y 90))
+
+([KB_604125_Instance_22] of  Widget
+
+	(height 120)
+	(label "Documentation")
+	(name ":DOCUMENTATION")
+	(property_list [knowarc_ProjectKB_Instance_30122])
+	(widget_class_name "edu.stanford.smi.protege.widget.DocumentationWidget")
+	(width 200)
+	(x 200)
+	(y 0))
+
+([KB_604125_Instance_23] of  Widget
+
+	(height 60)
+	(label "Maximum")
+	(name ":SLOT-NUMERIC-MAXIMUM")
+	(property_list [knowarc_ProjectKB_Instance_30123])
+	(widget_class_name "edu.stanford.smi.protege.widget.NumericMaximumWidget")
+	(width 100)
+	(x 100)
+	(y 215))
+
+([KB_604125_Instance_24] of  Widget
+
+	(height 60)
+	(label "Minimum")
+	(name ":SLOT-NUMERIC-MINIMUM")
+	(property_list [knowarc_ProjectKB_Instance_30124])
+	(widget_class_name "edu.stanford.smi.protege.widget.NumericMinimumWidget")
+	(width 100)
+	(x 0)
+	(y 215))
+
+([KB_604125_Instance_25] of  Widget
+
+	(name ":ASSOCIATED-FACET"))
+
+([KB_604125_Instance_26] of  Widget
+
+	(height 60)
+	(label "Name")
+	(name ":NAME")
+	(property_list [knowarc_ProjectKB_Instance_30125])
+	(widget_class_name "edu.stanford.smi.protege.widget.InstanceNameWidget")
+	(width 200)
+	(x 0)
+	(y 0))
+
+([KB_604125_Instance_27] of  Widget
+
+	(height 60)
+	(label "Inverse Slot")
+	(name ":SLOT-INVERSE")
+	(property_list [knowarc_ProjectKB_Instance_30126])
+	(widget_class_name "edu.stanford.smi.protege.widget.InverseSlotWidget")
+	(width 200)
+	(x 200)
+	(y 215))
+
+([KB_604125_Instance_28] of  Widget
+
+	(height 155)
+	(label "Value Type")
+	(name ":SLOT-VALUE-TYPE")
+	(property_list [knowarc_ProjectKB_Instance_30127])
+	(widget_class_name "edu.stanford.smi.protege.widget.ValueTypeWidget")
+	(width 200)
+	(x 0)
+	(y 60))
+
+([KB_604125_Instance_29] of  Property_List
+
+	(name "facet widget properties")
+	(properties
+		[KB_604125_Instance_30]
+		[KB_604125_Instance_31]
+		[KB_604125_Instance_32]))
+
+([KB_604125_Instance_3] of  Widget
+
+	(name ":DIRECT-SUBCLASSES"))
+
+([KB_604125_Instance_30] of  Widget
+
+	(height 60)
+	(label "Name")
+	(name ":NAME")
+	(widget_class_name "edu.stanford.smi.protege.widget.InstanceNameWidget")
+	(width 200)
+	(x 0)
+	(y 0))
+
+([KB_604125_Instance_31] of  Widget
+
+	(height 120)
+	(label "Documentation")
+	(name ":DOCUMENTATION")
+	(widget_class_name "edu.stanford.smi.protege.widget.DocumentationWidget")
+	(width 200)
+	(x 200)
+	(y 0))
+
+([KB_604125_Instance_32] of  Widget
+
+	(height 60)
+	(label "Associated Slot")
+	(name ":ASSOCIATED-SLOT")
+	(widget_class_name "edu.stanford.smi.protege.widget.InstanceFieldWidget")
+	(width 200)
+	(x 0)
+	(y 60))
+
+([KB_604125_Instance_33] of  Property_List
+
+	(properties
+		[KB_604125_Instance_34]
+		[KB_604125_Instance_35]
+		[KB_604125_Instance_36]
+		[KB_604125_Instance_37]
+		[knowarc_ProjectKB_Class86]))
+
+([KB_604125_Instance_34] of  Widget
+
+	(name ":ANNOTATED-INSTANCE"))
+
+([KB_604125_Instance_35] of  Widget
+
+	(name ":CREATOR"))
+
+([KB_604125_Instance_36] of  Widget
+
+	(name ":CREATION-TIMESTAMP"))
+
+([KB_604125_Instance_37] of  Widget
+
+	(height 100)
+	(is_hidden FALSE)
+	(name ":ANNOTATION-TEXT")
+	(property_list [knowarc_ProjectKB_Class87])
+	(widget_class_name "edu.stanford.smi.protege.widget.YellowStickyWidget")
+	(width 200)
+	(x 0)
+	(y 0))
+
+([KB_604125_Instance_38] of  Property_List
+
+	(properties
+		[KB_604125_Instance_39]
+		[KB_604125_Instance_40]
+		[KB_604125_Instance_41]
+		[KB_604125_Instance_42]))
+
+([KB_604125_Instance_39] of  Widget
+
+	(height 60)
+	(is_hidden FALSE)
+	(label "Name")
+	(name ":PAL-NAME")
+	(widget_class_name "edu.stanford.smi.protege.widget.TextFieldWidget")
+	(width 275)
+	(x 0)
+	(y 0))
+
+([KB_604125_Instance_4] of  Widget
+
+	(name ":DIRECT-SUPERCLASSES"))
+
+([KB_604125_Instance_40] of  Widget
+
+	(height 180)
+	(is_hidden FALSE)
+	(label "Range")
+	(name ":PAL-RANGE")
+	(widget_class_name "edu.stanford.smi.protegex.widget.pal.constraint.PalRangeWidget")
+	(width 250)
+	(x 275)
+	(y 180))
+
+([KB_604125_Instance_41] of  Widget
+
+	(height 180)
+	(is_hidden FALSE)
+	(label "Description")
+	(name ":PAL-DESCRIPTION")
+	(widget_class_name "edu.stanford.smi.protege.widget.TextAreaWidget")
+	(width 250)
+	(x 275)
+	(y 0))
+
+([KB_604125_Instance_42] of  Widget
+
+	(height 300)
+	(is_hidden FALSE)
+	(label "Statement")
+	(name ":PAL-STATEMENT")
+	(widget_class_name "edu.stanford.smi.protegex.widget.pal.constraint.PalConstraintWidget")
+	(width 275)
+	(x 0)
+	(y 60))
+
+([KB_604125_Instance_5] of  Widget
+
+	(height 120)
+	(label "Documentation")
+	(name ":DOCUMENTATION")
+	(property_list [knowarc_ProjectKB_Instance_30113])
+	(widget_class_name "edu.stanford.smi.protege.widget.DocumentationWidget")
+	(width 200)
+	(x 200)
+	(y 0))
+
+([KB_604125_Instance_6] of  Widget
+
+	(height 60)
+	(label "Name")
+	(name ":NAME")
+	(property_list [knowarc_ProjectKB_Instance_30114])
+	(widget_class_name "edu.stanford.smi.protege.widget.InstanceNameWidget")
+	(width 200)
+	(x 0)
+	(y 0))
+
+([KB_604125_Instance_7] of  Widget
+
+	(height 60)
+	(label "Role")
+	(name ":ROLE")
+	(property_list [knowarc_ProjectKB_Instance_30115])
+	(widget_class_name "edu.stanford.smi.protege.widget.RoleWidget")
+	(width 200)
+	(x 0)
+	(y 60))
+
+([KB_604125_Instance_8] of  Widget
+
+	(name ":DIRECT-TYPE"))
+
+([KB_604125_Instance_9] of  Widget
+
+	(height 150)
+	(label "Template Slots")
+	(name ":DIRECT-TEMPLATE-SLOTS")
+	(property_list [knowarc_ProjectKB_Instance_30110])
+	(widget_class_name "edu.stanford.smi.protege.widget.TemplateSlotsWidget")
+	(width 600)
+	(x 0)
+	(y 120))
+
+([KB_800114_Instance_0] of  String
+
+	(name "renaming_namespaces"))
+
+([KB_800114_Instance_1] of  String
+
+	(name "namespaces")
+	(string_value "rdfs http://www.w3.org/2000/01/rdf-schema# rdf http://www.w3.org/1999/02/22-rdf-syntax-ns# "))
+
+([KB_933958_Instance_0] of  String
+
+	(name "factory_class_name")
+	(string_value "edu.stanford.smi.protegex.storage.rdf.configurable.RDFCBackend"))
+
+([KB_933958_Instance_1] of  Options
+
+	(confirm_on_remove FALSE)
+	(display_abstract_class_icon TRUE)
+	(display_hidden_classes TRUE)
+	(display_multi_parent_class_icon TRUE)
+	(is_readonly FALSE)
+	(update_modification_slots FALSE))
+
+([KB_933958_Instance_77] of  Property_List
+
+	(properties [knowarc_ProjectKB_Instance_82]))
+
+([KB_933958_Instance_78] of  String
+
+	(name "rdfs_file_name")
+	(string_value "knowarc.rdfs"))
+
+([KB_933958_Instance_79] of  String
+
+	(name "rdf_file_name")
+	(string_value "knowarc.rdf"))
+
+([KB_933958_Instance_80] of  String
+
+	(name "namespace_name")
+	(string_value "http://knowarc.eu/kb#"))
+
+([KB_933958_Instance_81] of  Boolean
+
+	(boolean_value FALSE)
+	(name "use_roundtrip"))
+
+([knowarc_ProjectKB_Class10] of  Property_List
+)
+
+([knowarc_ProjectKB_Class100] of  String
+
+	(name "DebianPackage")
+	(string_value "basesystem{%3A+}package"))
+
+([knowarc_ProjectKB_Class101] of  String
+
+	(name "TarPackage")
+	(string_value "basesystem{%3A+}url"))
+
+([knowarc_ProjectKB_Class102] of  String
+
+	(name ":INSTANCE-ANNOTATION")
+	(string_value "%3AANNOTATION-TEXT"))
+
+([knowarc_ProjectKB_Class103] of  String
+
+	(name ":META-CLASS")
+	(string_value "%3ANAME"))
+
+([knowarc_ProjectKB_Class104] of  String
+
+	(name "BaseSystem")
+	(string_value "short_description"))
+
+([knowarc_ProjectKB_Class105] of  String
+
+	(name "Tag")
+	(string_value "name"))
+
+([knowarc_ProjectKB_Class106] of  String
+
+	(name "MetaPackage")
+	(string_value "name"))
+
+([knowarc_ProjectKB_Class107] of  String
+
+	(name ":PAL-CONSTRAINT")
+	(string_value "%3APAL-NAME"))
+
+([knowarc_ProjectKB_Class108] of  Map
+
+	(entries
+		[knowarc_ProjectKB_Class109]
+		[knowarc_ProjectKB_Class110]))
+
+([knowarc_ProjectKB_Class109] of  Map_Entry
+
+	(key "knowarc_Class1")
+	(key_class "edu.stanford.smi.protege.model.Frame")
+	(value "25 25 202 123")
+	(value_class "java.awt.Rectangle"))
+
+([knowarc_ProjectKB_Class11] of  Widget
+
+	(is_hidden TRUE)
+	(property_list [knowarc_ProjectKB_Class12])
+	(widget_class_name "edu.stanford.smi.protege.keywordsearch.StringSearch"))
+
+([knowarc_ProjectKB_Class110] of  Map_Entry
+
+	(key "knowarc_Class2")
+	(key_class "edu.stanford.smi.protege.model.Frame")
+	(value "50 50 202 123")
+	(value_class "java.awt.Rectangle"))
+
+([knowarc_ProjectKB_Class111] of  Map_Entry
+
+	(key "InstanceDisplay.yellow_stickies")
+	(key_class "java.lang.String")
+	(value "knowarc_ProjectKB_Class108")
+	(value_class "java.util.Map"))
+
+([knowarc_ProjectKB_Class12] of  Property_List
+)
+
+([knowarc_ProjectKB_Class13] of  Widget
+
+	(is_hidden TRUE)
+	(property_list [knowarc_ProjectKB_Class14])
+	(widget_class_name "edu.stanford.smi.protegex.evaluation.MetaAnalysis"))
+
+([knowarc_ProjectKB_Class14] of  Property_List
+)
+
+([knowarc_ProjectKB_Class15] of  Widget
+
+	(is_hidden TRUE)
+	(property_list [knowarc_ProjectKB_Class16])
+	(widget_class_name "edu.stanford.smi.RemoteKBTab.WordNetTab"))
+
+([knowarc_ProjectKB_Class16] of  Property_List
+)
+
+([knowarc_ProjectKB_Class17] of  Widget
+
+	(is_hidden TRUE)
+	(property_list [knowarc_ProjectKB_Class18])
+	(widget_class_name "edu.stanford.smi.protegex.owl.ui.metadatatab.OWLMetadataTab"))
+
+([knowarc_ProjectKB_Class18] of  Property_List
+)
+
+([knowarc_ProjectKB_Class19] of  Widget
+
+	(is_hidden TRUE)
+	(property_list [knowarc_ProjectKB_Class20])
+	(widget_class_name "edu.stanford.smi.protegex.changes.ChangesTab"))
+
+([knowarc_ProjectKB_Class20] of  Property_List
+)
+
+([knowarc_ProjectKB_Class21] of  Widget
+
+	(is_hidden TRUE)
+	(property_list [knowarc_ProjectKB_Class22])
+	(widget_class_name "edu.stanford.smi.protegex.owl.ui.widget.OWLFormsTab"))
+
+([knowarc_ProjectKB_Class22] of  Property_List
+)
+
+([knowarc_ProjectKB_Class23] of  Widget
+
+	(is_hidden TRUE)
+	(property_list [knowarc_ProjectKB_Class24])
+	(widget_class_name "ezpal.EZPalTab"))
+
+([knowarc_ProjectKB_Class24] of  Property_List
+)
+
+([knowarc_ProjectKB_Class25] of  Widget
+
+	(is_hidden TRUE)
+	(property_list [knowarc_ProjectKB_Class26])
+	(widget_class_name "edu.stanford.smi.protegex.owl.swrl.ui.tab.SWRLTab"))
+
+([knowarc_ProjectKB_Class26] of  Property_List
+)
+
+([knowarc_ProjectKB_Class27] of  Widget
+
+	(is_hidden TRUE)
+	(property_list [knowarc_ProjectKB_Class28])
+	(widget_class_name "edu.stanford.smi.protegex.fctab.FacetConstraintsTab"))
+
+([knowarc_ProjectKB_Class28] of  Property_List
+)
+
+([knowarc_ProjectKB_Class29] of  Widget
+
+	(is_hidden TRUE)
+	(property_list [knowarc_ProjectKB_Class30])
+	(widget_class_name "edu.stanford.smi.protegex.changes.changesKBViewTab.ChangesKBViewTab"))
+
+([knowarc_ProjectKB_Class3] of  Widget
+
+	(is_hidden TRUE)
+	(property_list [knowarc_ProjectKB_Class4])
+	(widget_class_name "TGViztab.TGVizTab"))
+
+([knowarc_ProjectKB_Class30] of  Property_List
+)
+
+([knowarc_ProjectKB_Class31] of  Widget
+
+	(is_hidden TRUE)
+	(property_list [knowarc_ProjectKB_Class32])
+	(widget_class_name "edu.stanford.smi.protegex.xml.tab.XMLTab"))
+
+([knowarc_ProjectKB_Class32] of  Property_List
+)
+
+([knowarc_ProjectKB_Class33] of  Widget
+
+	(is_hidden TRUE)
+	(property_list [knowarc_ProjectKB_Class34])
+	(widget_class_name "edu.stanford.smi.protegex.prompt.PromptTab"))
+
+([knowarc_ProjectKB_Class34] of  Property_List
+)
+
+([knowarc_ProjectKB_Class35] of  Widget
+
+	(is_hidden TRUE)
+	(property_list [knowarc_ProjectKB_Class36])
+	(widget_class_name "edu.stanford.smi.protege.widget.KAToolTab"))
+
+([knowarc_ProjectKB_Class36] of  Property_List
+)
+
+([knowarc_ProjectKB_Class37] of  Widget
+
+	(is_hidden TRUE)
+	(property_list [knowarc_ProjectKB_Class38])
+	(widget_class_name "edu.stanford.smi.protegex.owl.ui.properties.OWLPropertiesTab"))
+
+([knowarc_ProjectKB_Class38] of  Property_List
+)
+
+([knowarc_ProjectKB_Class39] of  Widget
+
+	(is_hidden TRUE)
+	(property_list [knowarc_ProjectKB_Class40])
+	(widget_class_name "edu.stanford.smi.protege.widget.ProtegePropertiesTab"))
+
+([knowarc_ProjectKB_Class4] of  Property_List
+)
+
+([knowarc_ProjectKB_Class40] of  Property_List
+)
+
+([knowarc_ProjectKB_Class41] of  Widget
+
+	(is_hidden TRUE)
+	(property_list [knowarc_ProjectKB_Class42])
+	(widget_class_name "edu.stanford.smi.protegex.widget.pal.PalConstraintsTab"))
+
+([knowarc_ProjectKB_Class42] of  Property_List
+)
+
+([knowarc_ProjectKB_Class43] of  Widget
+
+	(is_hidden TRUE)
+	(property_list [knowarc_ProjectKB_Class44])
+	(widget_class_name "edu.stanford.smi.protege.widget.instance_tree.KnowledgeTreeTab"))
+
+([knowarc_ProjectKB_Class44] of  Property_List
+)
+
+([knowarc_ProjectKB_Class45] of  Widget
+
+	(is_hidden TRUE)
+	(property_list [knowarc_ProjectKB_Class46])
+	(widget_class_name "edu.stanford.smi.protege.widget.instance_tree.InstanceTreeTab"))
+
+([knowarc_ProjectKB_Class46] of  Property_List
+)
+
+([knowarc_ProjectKB_Class47] of  Widget
+
+	(is_hidden TRUE)
+	(property_list [knowarc_ProjectKB_Class48])
+	(widget_class_name "edu.stanford.smi.protegex.changes.stats.ChangeStatisticsTab"))
+
+([knowarc_ProjectKB_Class48] of  Property_List
+)
+
+([knowarc_ProjectKB_Class49] of  Widget
+
+	(is_hidden TRUE)
+	(property_list [knowarc_ProjectKB_Class50])
+	(widget_class_name "ca.uvic.csr.shrimp.jambalaya.JambalayaTab"))
+
+([knowarc_ProjectKB_Class5] of  Widget
+
+	(is_hidden TRUE)
+	(property_list [knowarc_ProjectKB_Class6])
+	(widget_class_name "dfki.protege.ontoviz_tab.OntovizTab"))
+
+([knowarc_ProjectKB_Class50] of  Property_List
+)
+
+([knowarc_ProjectKB_Class51] of  Widget
+
+	(is_hidden TRUE)
+	(property_list [knowarc_ProjectKB_Class52])
+	(widget_class_name "se.liu.ida.JessTab.JessTab"))
+
+([knowarc_ProjectKB_Class52] of  Property_List
+)
+
+([knowarc_ProjectKB_Class53] of  Widget
+
+	(is_hidden TRUE)
+	(property_list [knowarc_ProjectKB_Class54])
+	(widget_class_name "edu.stanford.smi.protegex.datamaster.DataMasterTab"))
+
+([knowarc_ProjectKB_Class54] of  Property_List
+)
+
+([knowarc_ProjectKB_Class55] of  Widget
+
+	(is_hidden TRUE)
+	(property_list [knowarc_ProjectKB_Class56])
+	(widget_class_name "edu.stanford.smi.protegex.owl.ui.individuals.OWLIndividualsTab"))
+
+([knowarc_ProjectKB_Class56] of  Property_List
+)
+
+([knowarc_ProjectKB_Class57] of  Widget
+
+	(is_hidden TRUE)
+	(property_list [knowarc_ProjectKB_Class58])
+	(widget_class_name "uk.ac.man.cs.mig.coode.debugger.test.DebuggerTestTab"))
+
+([knowarc_ProjectKB_Class58] of  Property_List
+)
+
+([knowarc_ProjectKB_Class59] of  Widget
+
+	(is_hidden TRUE)
+	(property_list [knowarc_ProjectKB_Class60])
+	(widget_class_name "edu.stanford.smi.protegex.owl.ui.cls.OWLClassesTab"))
+
+([knowarc_ProjectKB_Class6] of  Property_List
+)
+
+([knowarc_ProjectKB_Class60] of  Property_List
+)
+
+([knowarc_ProjectKB_Class61] of  Widget
+
+	(is_hidden TRUE)
+	(property_list [knowarc_ProjectKB_Class62])
+	(widget_class_name "org.algernon.kb.okbc.protege.plugins.AlgernonTab"))
+
+([knowarc_ProjectKB_Class62] of  Property_List
+)
+
+([knowarc_ProjectKB_Class63] of  Widget
+
+	(is_hidden TRUE)
+	(property_list [knowarc_ProjectKB_Class64])
+	(widget_class_name "edu.stanford.smi.protegex.widget.pal.PalQueriesTab"))
+
+([knowarc_ProjectKB_Class64] of  Property_List
+)
+
+([knowarc_ProjectKB_Class65] of  Widget
+
+	(is_hidden TRUE)
+	(property_list [knowarc_ProjectKB_Class66])
+	(widget_class_name "edu.stanford.smi.protegex.chatPlugin.ChatTab"))
+
+([knowarc_ProjectKB_Class66] of  Property_List
+)
+
+([knowarc_ProjectKB_Class67] of  Widget
+
+	(is_hidden TRUE)
+	(property_list [knowarc_ProjectKB_Class68])
+	(widget_class_name "edu.stanford.smi.RemoteKBTab.UMLSTab"))
+
+([knowarc_ProjectKB_Class68] of  Property_List
+)
+
+([knowarc_ProjectKB_Class69] of  Widget
+
+	(is_hidden TRUE)
+	(property_list [knowarc_ProjectKB_Class70])
+	(widget_class_name "edu.stanford.smi.protegex.server_changes.prompt.UsersTab"))
+
+([knowarc_ProjectKB_Class7] of  Widget
+
+	(is_hidden TRUE)
+	(property_list [knowarc_ProjectKB_Class8])
+	(widget_class_name "script.ProtegeScriptTab"))
+
+([knowarc_ProjectKB_Class70] of  Property_List
+)
+
+([knowarc_ProjectKB_Class71] of  Widget
+
+	(is_hidden TRUE)
+	(property_list [knowarc_ProjectKB_Class72])
+	(widget_class_name "uk.ac.man.ac.mig.coode.individuals.ui.OWLDLIndividualsTab"))
+
+([knowarc_ProjectKB_Class72] of  Property_List
+)
+
+([knowarc_ProjectKB_Class73] of  Widget
+
+	(is_hidden TRUE)
+	(property_list [knowarc_ProjectKB_Class74])
+	(widget_class_name "uk.ac.man.cs.mig.coode.owlviz.ui.OWLVizTab"))
+
+([knowarc_ProjectKB_Class74] of  Property_List
+)
+
+([knowarc_ProjectKB_Class8] of  Property_List
+)
+
+([knowarc_ProjectKB_Class86] of  Property_List
+
+	(name "layout properties"))
+
+([knowarc_ProjectKB_Class87] of  Property_List
+)
+
+([knowarc_ProjectKB_Class9] of  Widget
+
+	(is_hidden TRUE)
+	(property_list [knowarc_ProjectKB_Class10])
+	(widget_class_name "edu.stanford.smi.protege.widget.ClsesAndInstancesTab"))
+
+([knowarc_ProjectKB_Instance_10064] of  Boolean
+
+	(boolean_value FALSE)
+	(name "ButtonDisplayed-View References to Value"))
+
+([knowarc_ProjectKB_Instance_10065] of  Boolean
+
+	(boolean_value FALSE)
+	(name "ButtonDisplayed-View References to Value"))
+
+([knowarc_ProjectKB_Instance_10066] of  Boolean
+
+	(boolean_value FALSE)
+	(name "ButtonDisplayed-View References to Value"))
+
+([knowarc_ProjectKB_Instance_10082] of  Property_List
+
+	(properties
+		[knowarc_ProjectKB_Instance_10083]
+		[knowarc_ProjectKB_Instance_10084]
+		[knowarc_ProjectKB_Instance_30189]))
+
+([knowarc_ProjectKB_Instance_10083] of  Boolean
+
+	(boolean_value FALSE)
+	(name "ButtonDisplayed-View References to Value  "))
+
+([knowarc_ProjectKB_Instance_10084] of  Boolean
+
+	(boolean_value FALSE)
+	(name "ButtonDisplayed-Delete Instance"))
+
+([knowarc_ProjectKB_Instance_10085] of  Widget
+
+	(height 120)
+	(is_hidden FALSE)
+	(name "environ")
+	(property_list [knowarc_ProjectKB_Instance_10086])
+	(widget_class_name "edu.stanford.smi.protege.widget.StringListWidget")
+	(width 400)
+	(x 0)
+	(y 120))
+
+([knowarc_ProjectKB_Instance_10086] of  Property_List
+)
+
+([knowarc_ProjectKB_Instance_10087] of  Widget
+
+	(height 60)
+	(is_hidden FALSE)
+	(name "basesystem")
+	(property_list [knowarc_ProjectKB_Instance_10088])
+	(widget_class_name "edu.stanford.smi.protege.widget.InstanceFieldWidget")
+	(width 200)
+	(x 0)
+	(y 60))
+
+([knowarc_ProjectKB_Instance_10088] of  Property_List
+
+	(properties
+		[knowarc_ProjectKB_Instance_10089]
+		[knowarc_ProjectKB_Instance_10090]
+		[knowarc_ProjectKB_Instance_30190]))
+
+([knowarc_ProjectKB_Instance_10089] of  Boolean
+
+	(boolean_value FALSE)
+	(name "ButtonDisplayed-View References to Value  "))
+
+([knowarc_ProjectKB_Instance_10090] of  Boolean
+
+	(boolean_value FALSE)
+	(name "ButtonDisplayed-Delete Instance"))
+
+([knowarc_ProjectKB_Instance_10099] of  Boolean
+
+	(boolean_value FALSE)
+	(name "ButtonDisplayed-View References to Value  "))
+
+([knowarc_ProjectKB_Instance_10100] of  Boolean
+
+	(boolean_value FALSE)
+	(name "ButtonDisplayed-Delete Instance"))
+
+([knowarc_ProjectKB_Instance_103] of  Widget
+
+	(is_hidden FALSE)
+	(name "BaseSystem")
+	(property_list [knowarc_ProjectKB_Instance_104])
+	(widget_class_name "edu.stanford.smi.protege.widget.FormWidget"))
+
+([knowarc_ProjectKB_Instance_104] of  Property_List
+
+	(properties
+		[knowarc_ProjectKB_Instance_105]
+		[knowarc_ProjectKB_Instance_110]
+		[knowarc_ProjectKB_Instance_115]
+		[knowarc_ProjectKB_Instance_133]
+		[knowarc_ProjectKB_Instance_185]
+		[knowarc_ProjectKB_Instance_40156]))
+
+([knowarc_ProjectKB_Instance_105] of  Property_List
+
+	(name "layout properties"))
+
+([knowarc_ProjectKB_Instance_110] of  Widget
+
+	(height 60)
+	(is_hidden FALSE)
+	(name "name")
+	(property_list [knowarc_ProjectKB_Instance_111])
+	(widget_class_name "edu.stanford.smi.protege.widget.TextFieldWidget")
+	(width 200)
+	(x 0)
+	(y 0))
+
+([knowarc_ProjectKB_Instance_111] of  Property_List
+)
+
+([knowarc_ProjectKB_Instance_115] of  Widget
+
+	(height 60)
+	(is_hidden FALSE)
+	(name "url")
+	(property_list [knowarc_ProjectKB_Instance_116])
+	(widget_class_name "edu.stanford.smi.protege.widget.TextFieldWidget")
+	(width 200)
+	(x 0)
+	(y 180))
+
+([knowarc_ProjectKB_Instance_116] of  Property_List
+)
+
+([knowarc_ProjectKB_Instance_120] of  Widget
+
+	(is_hidden FALSE)
+	(name "DebianPackage")
+	(property_list [knowarc_ProjectKB_Instance_121])
+	(widget_class_name "edu.stanford.smi.protege.widget.FormWidget"))
+
+([knowarc_ProjectKB_Instance_121] of  Property_List
+
+	(properties
+		[knowarc_ProjectKB_Instance_122]
+		[knowarc_ProjectKB_Instance_123]
+		[knowarc_ProjectKB_Instance_151]
+		[knowarc_ProjectKB_Instance_174]
+		[knowarc_ProjectKB_Instance_64]))
+
+([knowarc_ProjectKB_Instance_122] of  Property_List
+
+	(name "layout properties"))
+
+([knowarc_ProjectKB_Instance_123] of  Widget
+
+	(height 60)
+	(is_hidden FALSE)
+	(name "basesystem")
+	(property_list [knowarc_ProjectKB_Instance_124])
+	(widget_class_name "edu.stanford.smi.protege.widget.InstanceFieldWidget")
+	(width 200)
+	(x 0)
+	(y 0))
+
+([knowarc_ProjectKB_Instance_124] of  Property_List
+
+	(properties
+		[knowarc_ProjectKB_Instance_10099]
+		[knowarc_ProjectKB_Instance_10100]
+		[knowarc_ProjectKB_Instance_10065]))
+
+([knowarc_ProjectKB_Instance_129] of  Widget
+
+	(height 60)
+	(is_hidden FALSE)
+	(name "name")
+	(property_list [knowarc_ProjectKB_Instance_130])
+	(widget_class_name "edu.stanford.smi.protege.widget.TextFieldWidget")
+	(width 200)
+	(x 0)
+	(y 0))
+
+([knowarc_ProjectKB_Instance_130] of  Property_List
+)
+
+([knowarc_ProjectKB_Instance_131] of  Widget
+
+	(height 120)
+	(is_hidden FALSE)
+	(name "description")
+	(property_list [knowarc_ProjectKB_Instance_132])
+	(widget_class_name "edu.stanford.smi.protege.widget.TextAreaWidget")
+	(width 210)
+	(x 200)
+	(y 0))
+
+([knowarc_ProjectKB_Instance_132] of  Property_List
+)
+
+([knowarc_ProjectKB_Instance_133] of  Widget
+
+	(height 240)
+	(is_hidden FALSE)
+	(name "description")
+	(property_list [knowarc_ProjectKB_Instance_134])
+	(widget_class_name "edu.stanford.smi.protege.widget.TextAreaWidget")
+	(width 200)
+	(x 200)
+	(y 0))
+
+([knowarc_ProjectKB_Instance_134] of  Property_List
+)
+
+([knowarc_ProjectKB_Instance_135] of  Widget
+
+	(height 210)
+	(is_hidden FALSE)
+	(name "homepage")
+	(property_list [knowarc_ProjectKB_Instance_136])
+	(widget_class_name "edu.stanford.smi.protege.widget.URLWidget")
+	(width 410)
+	(x 0)
+	(y 240))
+
+([knowarc_ProjectKB_Instance_136] of  Property_List
+)
+
+([knowarc_ProjectKB_Instance_137] of  Widget
+
+	(height 60)
+	(is_hidden FALSE)
+	(name "lastupdated")
+	(property_list [knowarc_ProjectKB_Instance_138])
+	(widget_class_name "edu.stanford.smi.protege.widget.TextFieldWidget")
+	(width 200)
+	(x 0)
+	(y 60))
+
+([knowarc_ProjectKB_Instance_138] of  Property_List
+)
+
+([knowarc_ProjectKB_Instance_145] of  Widget
+
+	(height 120)
+	(is_hidden FALSE)
+	(name "instance")
+	(property_list [knowarc_ProjectKB_Instance_146])
+	(widget_class_name "edu.stanford.smi.protege.widget.InstanceListWidget")
+	(width 200)
+	(x 0)
+	(y 120))
+
+([knowarc_ProjectKB_Instance_146] of  Property_List
+
+	(properties
+		[knowarc_ProjectKB_Instance_147]
+		[knowarc_ProjectKB_Instance_148]
+		[knowarc_ProjectKB_Instance_10064]))
+
+([knowarc_ProjectKB_Instance_147] of  Boolean
+
+	(boolean_value FALSE)
+	(name "ButtonDisplayed-View References to Value  "))
+
+([knowarc_ProjectKB_Instance_148] of  Boolean
+
+	(boolean_value FALSE)
+	(name "ButtonDisplayed-Delete Instance"))
+
+([knowarc_ProjectKB_Instance_151] of  Widget
+
+	(height 120)
+	(is_hidden FALSE)
+	(name "package")
+	(property_list [knowarc_ProjectKB_Instance_152])
+	(widget_class_name "edu.stanford.smi.protege.widget.StringListWidget")
+	(width 200)
+	(x 0)
+	(y 60))
+
+([knowarc_ProjectKB_Instance_152] of  Property_List
+)
+
+([knowarc_ProjectKB_Instance_174] of  Widget
+
+	(height 120)
+	(is_hidden FALSE)
+	(name "debconf")
+	(property_list [knowarc_ProjectKB_Instance_175])
+	(widget_class_name "edu.stanford.smi.protege.widget.StringListWidget")
+	(width 400)
+	(x 0)
+	(y 180))
+
+([knowarc_ProjectKB_Instance_175] of  Property_List
+)
+
+([knowarc_ProjectKB_Instance_185] of  Widget
+
+	(height 60)
+	(is_hidden FALSE)
+	(name "distribution")
+	(property_list [knowarc_ProjectKB_Instance_186])
+	(widget_class_name "edu.stanford.smi.protege.widget.TextFieldWidget")
+	(width 200)
+	(x 0)
+	(y 120))
+
+([knowarc_ProjectKB_Instance_186] of  Property_List
+)
+
+([knowarc_ProjectKB_Instance_192] of  Map
+
+	(entries [knowarc_ProjectKB_Class111])
+	(referenced_maps [knowarc_ProjectKB_Class108]))
+
+([knowarc_ProjectKB_Instance_20099] of  String
+
+	(name "horizontal_stretcher")
+	(string_value "<<all>>"))
+
+([knowarc_ProjectKB_Instance_20100] of  String
+
+	(name "vertical_stretcher")
+	(string_value "homepage"))
+
+([knowarc_ProjectKB_Instance_30107] of  Property_List
+
+	(properties
+		[knowarc_ProjectKB_Instance_30108]
+		[knowarc_ProjectKB_Instance_30109]))
+
+([knowarc_ProjectKB_Instance_30108] of  Boolean
+
+	(boolean_value FALSE)
+	(name "ButtonDisplayed-View References to Value"))
+
+([knowarc_ProjectKB_Instance_30109] of  Boolean
+
+	(boolean_value FALSE)
+	(name "ButtonDisplayed-Delete Instance"))
+
+([knowarc_ProjectKB_Instance_30110] of  Property_List
+
+	(properties
+		[knowarc_ProjectKB_Instance_30111]
+		[knowarc_ProjectKB_Instance_30112]))
+
+([knowarc_ProjectKB_Instance_30111] of  Boolean
+
+	(boolean_value FALSE)
+	(name "ButtonDisplayed-Move up"))
+
+([knowarc_ProjectKB_Instance_30112] of  Boolean
+
+	(boolean_value FALSE)
+	(name "ButtonDisplayed-Move down"))
+
+([knowarc_ProjectKB_Instance_30113] of  Property_List
+)
+
+([knowarc_ProjectKB_Instance_30114] of  Property_List
+)
+
+([knowarc_ProjectKB_Instance_30115] of  Property_List
+)
+
+([knowarc_ProjectKB_Instance_30116] of  Property_List
+
+	(name "layout properties"))
+
+([knowarc_ProjectKB_Instance_30117] of  Property_List
+)
+
+([knowarc_ProjectKB_Instance_30118] of  Property_List
+)
+
+([knowarc_ProjectKB_Instance_30119] of  Property_List
+)
+
+([knowarc_ProjectKB_Instance_30120] of  Property_List
+)
+
+([knowarc_ProjectKB_Instance_30121] of  Property_List
+)
+
+([knowarc_ProjectKB_Instance_30122] of  Property_List
+)
+
+([knowarc_ProjectKB_Instance_30123] of  Property_List
+)
+
+([knowarc_ProjectKB_Instance_30124] of  Property_List
+)
+
+([knowarc_ProjectKB_Instance_30125] of  Property_List
+)
+
+([knowarc_ProjectKB_Instance_30126] of  Property_List
+)
+
+([knowarc_ProjectKB_Instance_30127] of  Property_List
+)
+
+([knowarc_ProjectKB_Instance_30128] of  Boolean
+
+	(boolean_value FALSE)
+	(name "ButtonDisplayed-View References to Value"))
+
+([knowarc_ProjectKB_Instance_30189] of  Boolean
+
+	(boolean_value FALSE)
+	(name "ButtonDisplayed-View References to Value"))
+
+([knowarc_ProjectKB_Instance_30190] of  Boolean
+
+	(boolean_value FALSE)
+	(name "ButtonDisplayed-View References to Value"))
+
+([knowarc_ProjectKB_Instance_40101] of  Widget
+
+	(height 120)
+	(is_hidden FALSE)
+	(name "tag")
+	(property_list [knowarc_ProjectKB_Instance_40102])
+	(widget_class_name "edu.stanford.smi.protege.widget.InstanceListWidget")
+	(width 210)
+	(x 200)
+	(y 120))
+
+([knowarc_ProjectKB_Instance_40102] of  Property_List
+
+	(properties
+		[knowarc_ProjectKB_Instance_40103]
+		[knowarc_ProjectKB_Instance_40104]
+		[knowarc_ProjectKB_Instance_30128]))
+
+([knowarc_ProjectKB_Instance_40103] of  Boolean
+
+	(boolean_value FALSE)
+	(name "ButtonDisplayed-View References to Value  "))
+
+([knowarc_ProjectKB_Instance_40104] of  Boolean
+
+	(boolean_value FALSE)
+	(name "ButtonDisplayed-Delete Instance"))
+
+([knowarc_ProjectKB_Instance_40123] of  Widget
+
+	(is_hidden FALSE)
+	(name "Tag")
+	(property_list [knowarc_ProjectKB_Instance_40124])
+	(widget_class_name "edu.stanford.smi.protege.widget.FormWidget"))
+
+([knowarc_ProjectKB_Instance_40124] of  Property_List
+
+	(properties
+		[knowarc_ProjectKB_Instance_40125]
+		[knowarc_ProjectKB_Instance_40126]
+		[knowarc_ProjectKB_Instance_40128]))
+
+([knowarc_ProjectKB_Instance_40125] of  Property_List
+
+	(name "layout properties"))
+
+([knowarc_ProjectKB_Instance_40126] of  Widget
+
+	(height 60)
+	(is_hidden FALSE)
+	(name "description")
+	(property_list [knowarc_ProjectKB_Instance_40127])
+	(widget_class_name "edu.stanford.smi.protege.widget.TextFieldWidget")
+	(width 200)
+	(x 0)
+	(y 60))
+
+([knowarc_ProjectKB_Instance_40127] of  Property_List
+)
+
+([knowarc_ProjectKB_Instance_40128] of  Widget
+
+	(height 60)
+	(is_hidden FALSE)
+	(name "name")
+	(property_list [knowarc_ProjectKB_Instance_40129])
+	(widget_class_name "edu.stanford.smi.protege.widget.TextFieldWidget")
+	(width 200)
+	(x 0)
+	(y 0))
+
+([knowarc_ProjectKB_Instance_40129] of  Property_List
+)
+
+([knowarc_ProjectKB_Instance_40130] of  Widget
+
+	(is_hidden FALSE)
+	(name "Note")
+	(property_list [knowarc_ProjectKB_Instance_40131])
+	(widget_class_name "edu.stanford.smi.protege.widget.FormWidget"))
+
+([knowarc_ProjectKB_Instance_40131] of  Property_List
+
+	(properties
+		[knowarc_ProjectKB_Instance_40132]
+		[knowarc_ProjectKB_Instance_40133]
+		[knowarc_ProjectKB_Instance_40135]))
+
+([knowarc_ProjectKB_Instance_40132] of  Property_List
+
+	(name "layout properties"))
+
+([knowarc_ProjectKB_Instance_40133] of  Widget
+
+	(height 60)
+	(is_hidden FALSE)
+	(name "description")
+	(property_list [knowarc_ProjectKB_Instance_40134])
+	(widget_class_name "edu.stanford.smi.protege.widget.TextFieldWidget")
+	(width 200)
+	(x 0)
+	(y 60))
+
+([knowarc_ProjectKB_Instance_40134] of  Property_List
+)
+
+([knowarc_ProjectKB_Instance_40135] of  Widget
+
+	(height 60)
+	(is_hidden FALSE)
+	(name "name")
+	(property_list [knowarc_ProjectKB_Instance_40136])
+	(widget_class_name "edu.stanford.smi.protege.widget.TextFieldWidget")
+	(width 200)
+	(x 0)
+	(y 0))
+
+([knowarc_ProjectKB_Instance_40136] of  Property_List
+)
+
+([knowarc_ProjectKB_Instance_40156] of  Widget
+
+	(height 60)
+	(is_hidden FALSE)
+	(name "short_description")
+	(property_list [knowarc_ProjectKB_Instance_40157])
+	(widget_class_name "edu.stanford.smi.protege.widget.TextFieldWidget")
+	(width 200)
+	(x 0)
+	(y 60))
+
+([knowarc_ProjectKB_Instance_40157] of  Property_List
+)
+
+([knowarc_ProjectKB_Instance_64] of  Widget
+
+	(height 180)
+	(is_hidden FALSE)
+	(name "depends")
+	(property_list [knowarc_ProjectKB_Instance_65])
+	(widget_class_name "edu.stanford.smi.protege.widget.InstanceListWidget")
+	(width 200)
+	(x 200)
+	(y 0))
+
+([knowarc_ProjectKB_Instance_65] of  Property_List
+
+	(properties
+		[knowarc_ProjectKB_Instance_66]
+		[knowarc_ProjectKB_Instance_67]
+		[knowarc_ProjectKB_Instance_10066]))
+
+([knowarc_ProjectKB_Instance_66] of  Boolean
+
+	(boolean_value FALSE)
+	(name "ButtonDisplayed-View References to Value  "))
+
+([knowarc_ProjectKB_Instance_67] of  Boolean
+
+	(boolean_value FALSE)
+	(name "ButtonDisplayed-Delete Instance"))
+
+([knowarc_ProjectKB_Instance_76] of  Widget
+
+	(is_hidden FALSE)
+	(name "TarPackage")
+	(property_list [knowarc_ProjectKB_Instance_77])
+	(widget_class_name "edu.stanford.smi.protege.widget.FormWidget"))
+
+([knowarc_ProjectKB_Instance_77] of  Property_List
+
+	(properties
+		[knowarc_ProjectKB_Instance_78]
+		[knowarc_ProjectKB_Instance_79]
+		[knowarc_ProjectKB_Instance_81]
+		[knowarc_ProjectKB_Instance_10085]
+		[knowarc_ProjectKB_Instance_10087]))
+
+([knowarc_ProjectKB_Instance_78] of  Property_List
+
+	(name "layout properties"))
+
+([knowarc_ProjectKB_Instance_79] of  Widget
+
+	(height 60)
+	(is_hidden FALSE)
+	(name "url")
+	(property_list [knowarc_ProjectKB_Instance_80])
+	(widget_class_name "edu.stanford.smi.protege.widget.TextFieldWidget")
+	(width 200)
+	(x 0)
+	(y 0))
+
+([knowarc_ProjectKB_Instance_80] of  Property_List
+)
+
+([knowarc_ProjectKB_Instance_81] of  Widget
+
+	(height 120)
+	(is_hidden FALSE)
+	(name "depends")
+	(property_list [knowarc_ProjectKB_Instance_10082])
+	(widget_class_name "edu.stanford.smi.protege.widget.InstanceListWidget")
+	(width 200)
+	(x 200)
+	(y 0))
+
+([knowarc_ProjectKB_Instance_82] of  String
+
+	(name "SearchTab_Query")
+	(string_value "Query Name: test\nMatch All:true\nLength: 1\nMetaPackage	 	contains	Other:typ	1	\n\n"))
+
+([knowarc_ProjectKB_Instance_89] of  Widget
+
+	(is_hidden FALSE)
+	(name "MetaPackage")
+	(property_list [knowarc_ProjectKB_Instance_90])
+	(widget_class_name "edu.stanford.smi.protege.widget.FormWidget"))
+
+([knowarc_ProjectKB_Instance_90] of  Property_List
+
+	(properties
+		[knowarc_ProjectKB_Instance_91]
+		[knowarc_ProjectKB_Instance_129]
+		[knowarc_ProjectKB_Instance_131]
+		[knowarc_ProjectKB_Instance_135]
+		[knowarc_ProjectKB_Instance_137]
+		[knowarc_ProjectKB_Instance_145]
+		[knowarc_ProjectKB_Instance_40101]))
+
+([knowarc_ProjectKB_Instance_91] of  Property_List
+
+	(name "layout properties")
+	(properties
+		[knowarc_ProjectKB_Instance_20099]
+		[knowarc_ProjectKB_Instance_20100]))
+
+([PAL_FORM_WIDGET] of  Widget
+
+	(height 476)
+	(is_hidden FALSE)
+	(name ":PAL-CONSTRAINT")
+	(property_list [KB_604125_Instance_38])
+	(widget_class_name "edu.stanford.smi.protege.widget.FormWidget")
+	(width 603)
+	(x 0)
+	(y 0))
+
+([PROJECT] of  Project
+
+	(browser_slot_names [BROWSER_SLOT_NAMES])
+	(customized_instance_widgets
+		[knowarc_ProjectKB_Instance_120]
+		[knowarc_ProjectKB_Instance_76]
+		[INSTANCE_ANNOTATION_FORM_WIDGET]
+		[STANDARD_FACET_FORM_WIDGET]
+		[knowarc_ProjectKB_Instance_103]
+		[STANDARD_SLOT_FORM_WIDGET]
+		[knowarc_ProjectKB_Instance_40123]
+		[STANDARD_CLASS_FORM_WIDGET]
+		[knowarc_ProjectKB_Instance_89]
+		[knowarc_ProjectKB_Instance_40130]
+		[PAL_FORM_WIDGET])
+	(default_cls_metaclass ":STANDARD-CLASS")
+	(default_facet_metaclass ":STANDARD-FACET")
+	(default_instance_widget_class_name "edu.stanford.smi.protege.widget.FormWidget")
+	(default_slot_metaclass ":STANDARD-SLOT")
+	(next_frame_number 0)
+	(options [KB_933958_Instance_1])
+	(property_map [knowarc_ProjectKB_Instance_192])
+	(sources [SOURCES])
+	(tabs
+		[CLSES_TAB]
+		[SLOTS_TAB]
+		[FORMS_TAB]
+		[INSTANCES_TAB]
+		[QUERIES_TAB]))
+
+([QUERIES_TAB] of  Widget
+
+	(property_list [KB_933958_Instance_77])
+	(widget_class_name "edu.stanford.smi.protegex.queries_tab.QueriesTab"))
+
+([SLOTS_TAB] of  Widget
+
+	(widget_class_name "edu.stanford.smi.protege.widget.SlotsTab"))
+
+([SOURCES] of  Property_List
+
+	(properties
+		[KB_933958_Instance_0]
+		[KB_933958_Instance_78]
+		[KB_933958_Instance_79]
+		[KB_933958_Instance_80]
+		[KB_933958_Instance_81]
+		[KB_800114_Instance_0]
+		[KB_800114_Instance_1]))
+
+([STANDARD_CLASS_FORM_WIDGET] of  Widget
+
+	(name ":STANDARD-CLASS")
+	(property_list [KB_604125_Instance_0])
+	(widget_class_name "edu.stanford.smi.protege.widget.FormWidget"))
+
+([STANDARD_FACET_FORM_WIDGET] of  Widget
+
+	(name ":STANDARD-FACET")
+	(property_list [KB_604125_Instance_29])
+	(widget_class_name "edu.stanford.smi.protege.widget.FormWidget"))
+
+([STANDARD_SLOT_FORM_WIDGET] of  Widget
+
+	(name ":STANDARD-SLOT")
+	(property_list [KB_604125_Instance_12])
+	(widget_class_name "edu.stanford.smi.protege.widget.FormWidget"))

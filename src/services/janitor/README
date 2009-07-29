@@ -1,0 +1,24 @@
+Main folder for the janitor service.
+
+The functionality is stored in the folder "module". The data contained in this folder is installed into the perl library.
+The access to Janitor (i.e. commandline or webservice) is stored in the folder interfaces.
+
+
+CURRENT CHECKLIST TO INSTALL JANITOR
+
+logconf="/opt/nordugrid/etc/log.conf"
+
+registrationdir="/var/spool/nordugrid/janitor"
+
+installationdir="/var/spool/nordugrid/janitor/runtime"
+
+downloaddir="/var/spool/nordugrid/janitor/download"
+
+#jobexpirytime="7200"
+#rteexpirytime="36"
+uid="root"
+gid="0"
+#allow_base="*"
+#allow_rte="*"
+
+catalog="/root/janitor/src/services/janitor/spool/catalog/knowarc.rdf"

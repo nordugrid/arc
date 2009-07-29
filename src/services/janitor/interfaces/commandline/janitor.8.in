@@ -1,0 +1,127 @@
+.\" -*- nroff -*-
+.TH JANITOR 8 "May 2009" "NorduGrid ARC @VERSION@" "NorduGrid System Managers Manual"
+.SH NAME
+janitor \- ARC Dynamic Runtime Environment Maintenance
+.SH SYNOPSIS
+.B janitor
+[\fIOPTION\fR]...
+.SH DESCRIPTION
+A core problem for grid computing is to provide a large set of libraries across all contributing sites. In order to do so, an automation of the software installation, referred to as dynamic Runtime Environments, is a suitable solution to get the computational grid to its full potential. Janitor is a tool providing a dynamical installation, deinstallation and maintenance of supporting libraries for jobs running in the grid. 
+.SH OPTIONS
+.TP
+\fBregister\fR
+Registers a job and a set of runtime environments in the Janitor database. Requires [JOB-ID] and a list of [RTE]s
+.TP
+\fBdeploy\fR
+Downloads and installs the desired runtime environments. Requires an already registered [JOB-ID].
+.TP
+\fBremove\fR
+Removes the placeholder of the job on the runtime environments. If no more jobs are using the runtime environment and the lifespan of the runtime environment has be expired, the runtime environment can be removed using the sweep command. Requires an existing [JOB-ID] to be removed.
+.TP
+\fBsweep\fR
+Removes unused runtime environments. No further arguements are required. Using the additional option \fB\-\-force\fR enforces the removal of all unused runtime environments and expired jobs. Runtime environments having the state FAILED will not be removed.
+.TP
+\fBsetstate\fR
+Changes the state of a dynamically installed runtime environment. This might be useful in case a runtime environment with a state FAILED shall be removed (new state might be REMOVAL\_PENDING). Requires a [STATE] followd by a list of [RTE]s.
+.TP
+\fBsearch\fR
+Performs a simple search in the catalog and the manually installed runtime environments (see \fBruntimedir\fR of the arc configuration file). Requires a list of string to be searched for (no [JOB-ID] nor [RTE]s).
+.TP
+\fBlist\fR
+Lists all information about jobs, automatically installed runtime environments and manually installed runtime environments. No additional parameters have to be passed.
+.TP
+\fBinfo\fR
+Renders information about a job. Requires the parameter [JOB-ID].
+.PP
+
+.TP
+\fB[JOB-ID]\fR
+A unique sequence of numbers. Once Janitor registered a job id, it cannot register a second job having the same job id.
+.TP
+\fB[RTE]\fR
+Runtime environments are defined by a continuous string. The name of valid runtime environment names can be investigated using the \fBlist\fR or the \fBsearch\fR commands. They are defined in the catalog or by the directories and scripts of the \fBruntimedir\fR of the \texttt{grid-manager}.
+.SH EXIT STATUS
+\fBregister\fR
+.RS
+.TP
+\fB0\fR
+Registration was successful. No noteworthy occurrences.
+.TP
+\fB1\fR 
+Registration was successful but some runtime environments aren't installed yet. Deploy is mandatory.
+.TP
+\fB2\fR 
+An error occured.
+.br
+.RE
+
+\fBdeploy\fR
+.RS
+.TP
+\fB0\fR
+Sucessfully initialized job.
+.TP
+\fB1\fR
+Can't provide requested runtime environments.
+.RE
+
+\fBremove\fR
+.RS
+.TP
+\fB0\fR
+Sucessfully removed job or no such job.
+.TP
+\fB1\fR
+Can't provide requested runtime environments.
+.RE
+
+\fBsweep\fR
+.RS
+.TP
+\fB0\fR
+Always returns this exit code.
+.RE
+
+\fBsetstate\fR
+.RS
+.TP
+\fB0\fR
+Changing the state was successful.
+.TP
+\fB1\fR
+Can not change the state.
+.RE
+
+\fBsearch\fR
+.RS
+.TP
+\fB0\fR
+Search sucessfully finished.
+.RE
+
+\fBlist\fR
+.RS
+.TP
+\fB0\fR
+Successfully retrieved information.
+.RE
+
+\fBinfo\fR
+.RS
+.TP
+\fB0\fR
+Successfully retrieved job information.
+.TP
+\fB1\fR
+No such job.
+.TP
+\fB2\fR
+Error while retrieving job information.
+.RE
+.SH "REPORTING BUGS"
+.br
+Report bugs to http://bugzilla.nordugrid.org/
+.SH COPYRIGHT
+The current copyright can found at http://nordugrid.org
+.SH AUTHOR
+Nordugrid

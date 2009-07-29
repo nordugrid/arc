@@ -1,0 +1,117 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE rdf:RDF [
+	 <!ENTITY rdf 'http://www.w3.org/1999/02/22-rdf-syntax-ns#'>
+	 <!ENTITY kb 'http://knowarc.eu/kb#'>
+	 <!ENTITY rdfs 'http://www.w3.org/2000/01/rdf-schema#'>
+]>
+<rdf:RDF xmlns:rdf="&rdf;"
+	 xmlns:kb="&kb;"
+	 xmlns:rdfs="&rdfs;">
+<rdfs:Class rdf:about="&kb;BaseSystem"
+	 rdfs:label="BaseSystem">
+	<rdfs:subClassOf rdf:resource="&kb;Note"/>
+</rdfs:Class>
+<rdfs:Class rdf:about="&kb;DebianPackage"
+	 rdfs:label="DebianPackage">
+	<rdfs:subClassOf rdf:resource="&kb;Package"/>
+</rdfs:Class>
+<rdfs:Class rdf:about="&kb;MetaPackage"
+	 rdfs:label="MetaPackage">
+	<rdfs:subClassOf rdf:resource="&rdfs;Resource"/>
+</rdfs:Class>
+<rdfs:Class rdf:about="&kb;Note"
+	 rdfs:label="Note">
+	<rdfs:subClassOf rdf:resource="&rdfs;Resource"/>
+</rdfs:Class>
+<rdfs:Class rdf:about="&kb;Package"
+	 rdfs:label="Package">
+	<rdfs:subClassOf rdf:resource="&rdfs;Resource"/>
+</rdfs:Class>
+<rdfs:Class rdf:about="&kb;Tag"
+	 rdfs:label="Tag">
+	<rdfs:subClassOf rdf:resource="&kb;Note"/>
+</rdfs:Class>
+<rdfs:Class rdf:about="&kb;TarPackage"
+	 rdfs:label="TarPackage">
+	<rdfs:subClassOf rdf:resource="&kb;Package"/>
+</rdfs:Class>
+<rdf:Property rdf:about="&kb;basesystem"
+	 rdfs:comment="which basesystem this package is for"
+	 rdfs:label="basesystem">
+	<rdfs:range rdf:resource="&kb;BaseSystem"/>
+	<rdfs:domain rdf:resource="&kb;Package"/>
+</rdf:Property>
+<rdf:Property rdf:about="&kb;debconf"
+	 rdfs:comment="strings to feed to debconf"
+	 rdfs:label="debconf">
+	<rdfs:domain rdf:resource="&kb;DebianPackage"/>
+	<rdfs:range rdf:resource="&rdfs;Literal"/>
+</rdf:Property>
+<rdf:Property rdf:about="&kb;depends"
+	 rdfs:comment="lists dependencies of this package"
+	 rdfs:label="depends">
+	<rdfs:domain rdf:resource="&kb;Package"/>
+	<rdfs:range rdf:resource="&rdfs;Resource"/>
+</rdf:Property>
+<rdf:Property rdf:about="&kb;description"
+	 rdfs:label="description">
+	<rdfs:domain rdf:resource="&kb;MetaPackage"/>
+	<rdfs:domain rdf:resource="&kb;Note"/>
+	<rdfs:range rdf:resource="&rdfs;Literal"/>
+</rdf:Property>
+<rdf:Property rdf:about="&kb;distribution"
+	 rdfs:comment="which kind of distribution"
+	 rdfs:label="distribution">
+	<rdfs:domain rdf:resource="&kb;BaseSystem"/>
+	<rdfs:range rdf:resource="&rdfs;Literal"/>
+</rdf:Property>
+<rdf:Property rdf:about="&kb;environ"
+	 rdfs:comment="The environment variables to set up for this package."
+	 rdfs:label="environ">
+	<rdfs:domain rdf:resource="&kb;TarPackage"/>
+	<rdfs:range rdf:resource="&rdfs;Literal"/>
+</rdf:Property>
+<rdf:Property rdf:about="&kb;homepage"
+	 rdfs:label="homepage">
+	<rdfs:domain rdf:resource="&kb;MetaPackage"/>
+	<rdfs:range rdf:resource="&rdfs;Literal"/>
+</rdf:Property>
+<rdf:Property rdf:about="&kb;instance"
+	 rdfs:label="instance">
+	<rdfs:domain rdf:resource="&kb;MetaPackage"/>
+	<rdfs:range rdf:resource="&kb;Package"/>
+</rdf:Property>
+<rdf:Property rdf:about="&kb;lastupdated"
+	 rdfs:label="lastupdated">
+	<rdfs:domain rdf:resource="&kb;MetaPackage"/>
+	<rdfs:range rdf:resource="&rdfs;Literal"/>
+</rdf:Property>
+<rdf:Property rdf:about="&kb;name"
+	 rdfs:label="name">
+	<rdfs:domain rdf:resource="&kb;MetaPackage"/>
+	<rdfs:domain rdf:resource="&kb;Note"/>
+	<rdfs:range rdf:resource="&rdfs;Literal"/>
+</rdf:Property>
+<rdf:Property rdf:about="&kb;package"
+	 rdfs:label="package">
+	<rdfs:comment>List of debian packages, which must be installed to provide this metapackage.</rdfs:comment>
+	<rdfs:domain rdf:resource="&kb;DebianPackage"/>
+	<rdfs:range rdf:resource="&rdfs;Literal"/>
+</rdf:Property>
+<rdf:Property rdf:about="&kb;short_description"
+	 rdfs:label="short_description">
+	<rdfs:domain rdf:resource="&kb;BaseSystem"/>
+	<rdfs:range rdf:resource="&rdfs;Literal"/>
+</rdf:Property>
+<rdf:Property rdf:about="&kb;tag"
+	 rdfs:label="tag">
+	<rdfs:domain rdf:resource="&kb;MetaPackage"/>
+	<rdfs:range rdf:resource="&kb;Tag"/>
+</rdf:Property>
+<rdf:Property rdf:about="&kb;url"
+	 rdfs:label="url">
+	<rdfs:domain rdf:resource="&kb;BaseSystem"/>
+	<rdfs:domain rdf:resource="&kb;TarPackage"/>
+	<rdfs:range rdf:resource="&rdfs;Literal"/>
+</rdf:Property>
+</rdf:RDF>

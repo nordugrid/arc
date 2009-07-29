@@ -1,0 +1,82 @@
+o Was soll der RTE-Catalog  Service im SVN??
+o Store identity for each jobID in order to control access
+o create a admin identity to control
+o Bessere Ideen als Perl
+
+o Client ohne job kriegen eine Random JobID
+o AREX, die AREX Jobid
+
+
+
+namespace: dynamicruntime
+
+<Request action="SEARCH|SWEEP|LIST|DEPLOY|REMOVE|CHECK|REGISTER">
+	<Initiator jobid="1234"/>  <!-- Needed for: CHECK|REGISTER|DEPLOY|REMOVE -->
+                                  <!-- May contain no jobID in this case a new one will 
+                                       be created and returned via the response message-->
+
+	<Runtimeenvironment type="dynamic">      <!-- Needed for: SEARCH|REGISTER-->
+		<Package name="APPS/BIO/WEKA-3.4.10"/>
+		<Package name="APPS/BIO/WEKA-3.4.11"/>
+	</Runtimeenvironment>
+                                  <!-- SWEEP and LIST only works, if the TLS-adminstrator identity 
+                                       (which is assigned in the arched configuration file) is
+                                       to be found by the SecHandler. Both need neither initiator 
+                                       nor runtimeenvironment elements -->
+</Request>
+
+<response action="SEARCH|SWEEP|LIST|DEPLOY|REMOVE|CHECK|REGISTER">
+	<initiator jobid="1234"/>  <!-- Needed for REMOVE|REGISTER|DEPLOY|CHECK-->
+	<result code="0" message="Sucessfully initailized job."> <!-- -->
+	<jobs> <!--LIST|CHECK-->
+		<job jobid="1234">
+			<created>1234567890</created>    <!-- in unix time-->
+			<age>0</age>           <!-- in seconds-->
+			<runtimeenvironment>
+				<package>APPS/BIO/WEKA-3.4.10</package>
+			</runtimeenvironment>
+			<state>INITIALIZED</state>
+		</job>
+		<job jobid="4321">
+			<created>1234567891</created>
+			<age>0</age>
+			<package>APPS/BIO/WEKA-3.4.10</package>
+			<state>INITIALIZED</state>
+			<runtimeenvironmentkey>APPS_BIO_WEKA_3_4_10-835614b62c98c4eb6cb03d74d3161b5d</runtimeenvironmentkey> <!-- at least CHECK -->
+			<uses>/nfshome/knowarc/dredesign/src/services/dRE3/perl/spool/runtime/jre__57T1ke1UVz/runtime</uses> <!-- at least CHECK -->
+			<uses>/nfshome/knowarc/dredesign/src/services/dRE3/perl/spool/runtime/weka_wHfyytarlE/runtime</uses> <!-- at least CHECK -->
+		</job>
+	</jobs>
+
+	<runtimeenvironment type="local">      <!-- Needed for: LIST|SEARCH -->
+		<package name="APPS/BIO/MUSTANG-3.0-1"/>
+		<package name="APPS/BIO/EXONERATE-2.1.0-1"/>
+	</runtimeenvironment>
+
+	<runtimeenvironment type="dynamic">      <!-- Needed for: LIST -->
+		<package name="APPS/BIO/WEKA-3.4.11">
+			<state>INSTALLED_A</state>
+			<lastused>1234567890</lastused>
+			<jobid>1234</jobid>
+		</package>
+		<package name="APPS/BIO/WEKA-3.4.10">
+			<state>INSTALLED_A</state>
+			<lastused>1234567890</lastused>
+			<jobid>1234</jobid>
+			<jobid>4321</jobid>
+		</package>
+	</runtimeenvironment>
+
+	<runtimeenvironment type="installable">      <!-- Needed for: LIST -->
+		<package name="APPS/GRAPH/POVRAY-3.6">
+			<description>The Persistence of Vision Raytracer</description>
+			<lastupdate>1234567890</lastupdate>
+		</package>
+		<package name="APPS/BIO/WEKA-3.4.8A">
+			<description>WEKA Machine Learning Software</description>
+			<lastupdate>1234567890</lastupdate>
+		</package>
+	</runtimeenvironment>
+
+
+</response>

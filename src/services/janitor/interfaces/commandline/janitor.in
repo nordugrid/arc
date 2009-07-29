@@ -1,0 +1,464 @@
+#!/usr/bin/perl 
+
+
+BEGIN {
+	push @INC, "@prefix@/share/arc/perl/";
+}
+
+
+use warnings;
+use strict;
+use Switch;
+use Janitor::Janitor qw(process);
+use Janitor::Util qw(sane_rte_name sane_job_id);
+
+
+
+######################################################################
+
+=head1 SYNOPSIS
+
+Janitor.pl [ deploy | help | info | new | register | remove | setstate | sweep ]
+
+=head1 DESCRIPTION
+
+Mangages Dynamic Runtime Environment for Grid Jobs.
+
+=head1 OPTIONS
+
+=over 4
+
+=cut
+
+######################################################################
+# Argument processing switch
+######################################################################
+&usage unless @ARGV > 0;
+
+my $format = "   %-12s %s\n";
+
+
+
+
+switch ($ARGV[0]) {
+
+
+
+######################################################################
+
+=item help
+
+Shows a short summary of the options of the program.
+
+=cut
+
+######################################################################
+
+	case "help" {
+		&usage(0);
+	}
+
+######################################################################
+
+=item list
+
+List all information of the current system
+
+=cut
+
+######################################################################
+
+	case "list" {
+		my $response = &process(new Janitor::Request(Janitor::Request::LIST));
+		my %result = $response->result();
+		if($result{errorcode} == 0){
+			# JOBS
+			print "Jobs:\n\n";
+			my @joblist = $response->runningJob();
+			if(defined $joblist[0]){
+				foreach my $job(@joblist){
+					my %hash = %{$job};
+					printf $format, "jobid:", $hash{jobid};
+					printf $format, "created:", $hash{created};
+					printf $format, "age:", $hash{age};
+					printf $format, "state:", $hash{state};
+					printf $format, "rte:", $hash{rte_list};
+					printf $format, "rte key:", $hash{runtimeenvironmentkey} if defined $hash{runtimeenvironmentkey};
+					if(defined $hash{uses}){
+						my @uses = $hash{uses};
+						foreach my $use(@uses){
+							printf $format, "uses:", $use;
+						}
+					}
+					print "\n";
+				}
+			}
+			print "\n";
+			# MANUAL RTEs
+			print "Locally installed runtime environments:\n\n";
+			my @rtelist = $response->runtimeLocal();
+			if(defined $rtelist[0]){
+				foreach my $rte(@rtelist){
+					my %hash = %{$rte};
+					printf $format, "name:", $hash{name};
+					print "\n";
+				}
+			}
+			print "\n";
+			print "Dynamically installed runtime environments:\n\n";
+			@rtelist = $response->runtimeDynamic();
+			if(defined $rtelist[0]){
+				foreach my $rte(@rtelist){
+					my %hash = %{$rte};
+					printf $format, "name:",        $hash{name};
+					printf $format, "state:",       $hash{state};
+					printf $format, "lastused:",    $hash{lastused};
+					if(defined $hash{uses}){
+						my @uses = $hash{uses};
+						foreach my $use(@uses){
+							printf $format, "uses:", $use;
+						}
+					}
+					print "\n";
+				}
+			}
+			print "\n";
+			print "Installable runtime environments:\n\n";
+			@rtelist = $response->runtimeInstallable();
+			if(defined $rtelist[0]){
+				foreach my $rte(@rtelist){
+					my %hash = %{$rte};
+					printf $format, "name:",        $hash{name};
+					printf $format, "description:", $hash{description};
+					if ($hash{supported}){
+						printf $format, "supported:", "yes";
+					}else{
+						printf $format, "supported:", "no";
+					}
+					print "\n";
+				}
+			}
+			print "\n";
+			print $result{errorcode}." ".$result{message}."\n";
+		}else{ # if result is valid
+			print $result{errorcode}." ".$result{message}."\n";
+		}
+		exit $result{errorcode};
+	}
+
+######################################################################
+
+=item info [<job-id>]
+
+Lists informations about known jobs. If a <job-id> is given detailed informations
+about this job are listed.
+
+=cut
+
+######################################################################
+
+	case "info" {
+		if (scalar @ARGV != 2) {
+			&usage;
+		}else{
+			my $jobid = $ARGV[1];
+
+			if (sane_job_id($jobid) == 0) {
+				printf STDERR "invalid jobid: \"" . $jobid . "\"\n";
+				exit (1);
+			}
+
+			my $request = new Janitor::Request(Janitor::Request::INFO, $jobid);
+;
+			my $response = &process($request);
+
+			my %result = $response->result();
+			if($result{errorcode} == 0){
+				my @joblist = $response->runningJob();
+				foreach my $job(@joblist){
+					my %hash = %{$job};
+					printf $format, "jobid:", $hash{jobid};
+					printf $format, "created:", $hash{created};
+					printf $format, "age:", $hash{age};
+					printf $format, "state:", $hash{state};
+					printf $format, "rte:", $hash{rte_list};
+					printf $format, "rte key:", $hash{runtimeenvironmentkey} if defined $hash{runtimeenvironmentkey};
+					if(defined $hash{uses}){
+						my $rUses = $hash{uses};
+						foreach my $use(@$rUses){
+							printf $format, "uses:", $use;
+						}
+					}
+					print "\n";
+				}
+				print $result{errorcode}." ".$result{message}."\n";
+			}else{ # if result is valid
+				print $result{errorcode}." ".$result{message}."\n";
+			}
+
+			exit $result{errorcode};
+		}
+	}
+
+######################################################################
+
+=item sarch [RE1 [RE2 ...]]
+
+Searches for informations about matching installable and 
+manually installed runtime environments.
+
+=cut
+
+######################################################################
+
+	case "search" {
+
+		&usage unless scalar @ARGV > 1; 
+		
+		my @rte = @ARGV;
+
+		my $request = new Janitor::Request(Janitor::Request::SEARCH, undef, \@rte);
+		my $response = &process($request);
+
+		my %result = $response->result();
+		if($result{errorcode} == 0){
+						# MANUAL RTEs
+			print "Locally installed runtime environments:\n\n";
+			my @rtelist = $response->runtimeLocal();
+			if(defined $rtelist[0]){
+				foreach my $rte(@rtelist){
+					my %hash = %{$rte};
+					printf $format, "name:", $hash{name};
+					print "\n";
+				}
+			}
+			print "\n";
+			print "Installable runtime environments:\n\n";
+			@rtelist = $response->runtimeInstallable();
+			if(defined $rtelist[0]){
+				foreach my $rte(@rtelist){
+					my %hash = %{$rte};
+					printf $format, "name:",        $hash{name};
+					printf $format, "description:", $hash{description};
+					if ($hash{supported}){
+						printf $format, "supported:", "yes";
+					}else{
+						printf $format, "supported:", "no";
+					}
+					print "\n";
+				}
+			}
+			print "\n";
+
+			print $result{errorcode}." ".$result{message}."\n";
+		}else{ # if result is valid
+			print $result{errorcode}." ".$result{message}."\n";
+		}
+
+		exit $result{errorcode};
+		
+	}
+
+######################################################################
+
+=item register <job-id> [RE1 [RE2 ...]]
+
+Registers the job <job-id> within the Janitor. RE1 ... REn are the REs the
+Job requested. If the requested REs are already installed the Janitor returns
+the value 0. In this case it is not necessary to call the Janitor with the
+option deploy. If the requested REs are not installed but installable 1 is
+returned. To actually deploy the Janitor must be executed with the deploy
+argument. If it is not possible to install the requested REs or an error
+occured 2 is returned.
+
+=cut
+
+######################################################################
+
+
+	case "register" {
+		&usage(2) unless scalar @ARGV > 1; 
+		
+		my @rte = @ARGV;
+		shift @rte;
+		my $jobid = shift @rte;
+		map { s/'(.*)'/$1/; } @rte ; # this changes @ARGV
+
+		if (sane_job_id($jobid) == 0) {
+			printf STDERR "invalid jobid: \"" . $jobid . "\"\n";
+			exit (2);
+		}
+ 
+		if (sane_rte_name(@rte) == 0) {
+			printf STDERR "I don't like this kind of RE name!\n";
+			exit(2);
+		}
+
+		my $request  = new Janitor::Request(Janitor::Request::REGISTER, $jobid, \@rte);
+
+		my $response = &process($request);
+		my %result   = $response->result();
+ 
+		print $result{errorcode}." ".$result{message}."\n";
+		exit  $result{errorcode};
+	}
+
+######################################################################
+
+=item deploy <job-id>
+
+Deploys all the REs needed by the previously registered Job <job-id>. If
+successfull it returns 0, otherwise 1.
+
+=cut
+
+######################################################################
+
+	case "deploy" {
+		&usage unless scalar @ARGV == 2; 
+
+		my $jobid = $ARGV[1];
+
+		if (sane_job_id($jobid) == 0) {
+			printf STDERR "invalid jobid: \"" . $jobid . "\"\n";
+			exit (1);
+		}
+
+		my $request  = new Janitor::Request(Janitor::Request::DEPLOY, $jobid);
+		my $response = &process($request);
+		my %result   = $response->result();
+
+		print $result{errorcode}." ".$result{message}."\n";
+		exit  $result{errorcode};
+	}
+######################################################################
+
+=item remove <job-id>
+
+Removes the job <job-id> from the Janitors database.
+
+=cut
+
+######################################################################
+
+	case "remove" {
+		&usage unless scalar @ARGV == 2;
+
+		my $request = new Janitor::Request(Janitor::Request::REMOVE, $ARGV[1]);
+		
+		if (sane_job_id($request->jobid()) == 0) {
+			printf STDERR "invalid jobid: \"" . $request->jobid() . "\"\n";
+			exit (2);
+		}
+
+		my $response =  &process($request);
+		my %result   = $response->result();
+
+		print $result{errorcode}." ".$result{message}."\n";
+		exit $result{errorcode};
+	}
+
+######################################################################
+
+=item setstate <newstate> RE1 [RE2 ...]
+
+Sets the state of a RE.
+
+=cut
+
+######################################################################
+
+	case "setstate" {
+		&usage unless scalar @ARGV > 1; 
+
+		my @rte = @ARGV;
+		shift @rte;
+		my $state = shift @rte;
+		map { s/'(.*)'/$1/; } @rte ; # this changes @ARGV
+
+		if (sane_rte_name(@rte) == 0) {
+			printf STDERR "I don't like this kind of RE name!\n";
+			exit(2);
+		}
+
+
+		my $request = new Janitor::Request(Janitor::Request::SETSTATE, undef, \@rte, undef, $state);
+
+		my $response =  &process($request);
+		my %result   = $response->result();
+
+		print $result{errorcode}." ".$result{message}."\n";
+		exit $result{errorcode};
+		
+	}
+
+######################################################################
+
+=item sweep [--force]
+
+Removes dynamically installed REs which were not used for a long time. If
+--force is given it will also remove old Jobs. These timespans can be
+configured in the arc.conf configuration file.
+
+=cut
+
+######################################################################
+
+	case "sweep" {
+		&usage unless scalar @ARGV <= 2;
+
+		my $request = new Janitor::Request(Janitor::Request::SWEEP);
+
+		if (scalar @ARGV == 2) {
+			&usage unless $ARGV[1] eq "--force";
+			$request->force(1);
+		}
+
+		my $response =  &process($request);
+		my %result   = $response->result();
+	
+		print $result{errorcode}." ".$result{message}."\n";
+		exit $result{errorcode};
+	}
+
+
+	else {	
+		&usage;
+	}
+}
+
+######################################################################
+
+=back
+
+=cut
+
+######################################################################
+
+sub usage {
+	my ($ret) = @_;
+	$ret = 1 unless defined $ret;
+
+	# get the name of this programm
+	my $name = $0;
+	$name =~ s#^.*/([^/]*)$#$1#; 	#
+
+	printf STDERR <<EOUSAGE, $name;
+Usage: %s [ deploy | help | list | info | new | register |
+            remove | setstate | sweep ]
+  deploy <job-id>:             deploys all REs needed by job <job-id>
+  help:                        displays this message
+  list:                        lists details about all registered jobs
+  info <job-id>:               lists information about this job's REs
+  new <job-id> [ REs ]:        executes register and deploy
+  register <job-id> [ REs ]:   registers a new job
+  remove <job-id>:             unregister job <job-id>
+  setstate <newstate> [ REs ]: sets the state of a RE
+  sweep [--force]:             clean up runtime environments
+
+See janitor(8) for detailed instructions.
+
+EOUSAGE
+
+	exit $ret;
+}

@@ -42,7 +42,7 @@ def make_decision(policy, request):
     return 0
 
 import time
-for i in range(100):
+for i in range(1000):
     time.sleep(0.05)
     make_decision(policy, request)
 

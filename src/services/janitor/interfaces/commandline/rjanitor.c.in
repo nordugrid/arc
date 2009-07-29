@@ -1,0 +1,13 @@
+#include <stdio.h>
+#include <unistd.h>
+#include <sys/types.h>
+
+int main(int argc, char **argv)
+{
+	setuid(0);
+	setgid(0);
+
+	execv("@prefix@/share/arc/perl/Janitor/interfaces/commandline/janitor", argv);
+
+	return 1;
+}

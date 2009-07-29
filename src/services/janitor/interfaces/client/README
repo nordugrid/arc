@@ -1,0 +1,5 @@
+The perl library which can be found in this folder provides an access to a running janitor webservice.
+
+The access is simlar to the command line tool. In future version the access to janitor shall be done 
+via this executable.
+

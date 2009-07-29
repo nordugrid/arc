@@ -1,0 +1,27 @@
+Welcome to ARC's Dynamic Runtime Environments
+=============================================
+
+When reading this file, you have either unpacked the .tgz or .zip
+file or are accessing it via subversion at 
+ http://svn.nordugrid.org/trac/workarea/browser/T2.5/janitor/trunk/README.txt
+Since this work is under continous development and the communication
+with us is helped when referring to the same sources, we would prefer
+everyone to check out the latest versions from svn.
+
+This folder contains all the sources that are required to run the
+Janitor and the Catalog in conjunction with a local NorduGrid server
+installation. Also presented are those files that present the Catalog
+to the web. All executables can also be tested independently, i.e., as
+for particular interest to those who investigate the integration of the
+Janitor and its associated components with a different grid system. For
+a start refer to the README.txt files of the subdirectories and in
+particular to the handbook at ./doc/documentation.pdf.
+
+To contact us send your concern to the 
+  nordugrid-discuss@nordugrid.org
+mailing list or to us directly at
+
+	Daniel  Bayer  <bayer@inb.uni-luebeck.de>
+	Steffen Möller <moeller@inb.uni-luebeck.de>
+
+Lübeck, 31 May 2007
