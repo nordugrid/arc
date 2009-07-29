@@ -1,8 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <glue:Domains xmlns:glue="http://schemas.ogf.org/glue/2009/03/spec/2/0" 
               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
-              targetNamespace="http://schemas.ogf.org/glue/2009/03/spec/2/0"
               xsi:schemaLocation="http://schemas.ogf.org/glue/2009/03/spec/2/0 ../xsd/GLUE2.xsd">
+    
+	<ID>urn:ogf:Domains</ID>
+	<Name>Root</Name>
+    <OtherInfo>GLUE Root element</OtherInfo>
     
     <AdminDomain CreationTime="2008-04-21T10:05:12Z" Validity="500" BaseType="Domain">
         <ID>urn:ogf:AdminDomain:HU/NIIF-TOP</ID>
@@ -26,28 +29,29 @@
         <Contact CreationTime="2008-04-21T10:05:12Z" Validity="500">
             <ID>urn:ogf:Contact:mailto:support@niif.hu</ID>
             <Name>NIIF User Support</Name>
+	        <OtherInfo>Only for NIIF users</OtherInfo>
             <Detail>mailto:support@niif.hu</Detail>
             <Type>usersupport</Type>
-	        <OtherInfo>Only for NIIF users</OtherInfo>
         </Contact>
         <Contact CreationTime="2008-04-21T10:05:12Z" Validity="500">
             <ID>urn:ogf:Contact:http://www.niif.hu/contacts</ID>
             <Name>Who to contact</Name>
-            <URL>http://www.niif.hu/contacts</URL>
-            <Type>general</Type>
 	        <OtherInfo>E-mail is preferred</OtherInfo>
+            <Detail>http://www.niif.hu/contacts</Detail>
+            <Type>general</Type>
         </Contact>
 
         <Services>
-            <ComputingService CreationTime="2008-04-21T10:05:12Z" Validity="500"  BaseType="Service">
-                <ID>urn:ogf:ComputingService:HU/NIIF/PGS-CE</ID>
-		        <Name>NIIF PGS CE</Name>
-		        <Otherinfo>warning: frequent reconfiguration</Otherinfo>                                             
-		        <Capability>executionmanagement.jobexecution</Capability>
-		        <Type>org.nordugrid.arex</Type>
+			<!-- question: do we need the basetype this case as well?-->
+            <Service CreationTime="2008-04-21T10:05:12Z" Validity="500" BaseType="Service">
+                <ID>urn:ogf:Service:HU/NIIF/PGS-delegation</ID>
+		        <Name>PGS Delegation</Name>
+		        <OtherInfo>warning: frequent reconfiguration</OtherInfo>                                             
+		        <Capability>security.delegation</Capability>
+		        <Type>org.nordugrid.delegation</Type>
 		        <QualityLevel>pre-production</QualityLevel>
-		        <StatusInfo>http://arex.niif.hu/status</StatusInfo>
-		        <Complexity>endpointType=1,share=2,resource=1</Complexity>
+		        <StatusInfo>http://delg.niif.hu/status</StatusInfo>
+		        <Complexity>endpointType=1,share=0,resource=1</Complexity>
                 <Location CreationTime="2008-04-21T10:05:12Z" Validity="500">  <!-- This is the same location as for AdminDomain-->
                     <ID>urn:ogf:Location:Hungary/HU-1200/Budapest/Victor+Hugo+11</ID>
                     <Name>Budapest, Hungary</Name>
@@ -61,24 +65,17 @@
 		        <Contact CreationTime="2008-04-21T10:05:12Z" Validity="500">
 					<ID>urn:ogf:Contact:mailto:pgs-support@niif.hu</ID>
 		            <Name>PGS CE support</Name>
+                    <OtherInfo>Only for NIIF users</OtherInfo>
                     <Detail>mailto:pgs-support@niif.hu</Detail>
 		            <Type>usersupport</Type>
-                    <OtherInfo>Only for NIIF users</OtherInfo>
 		        </Contact>
 		        <Contact CreationTime="2008-04-21T10:05:12Z" Validity="500">
 					<ID>urn:ogf:Contact:mailto:security@niif.hu</ID>
 		            <Name>NIIF security contact</Name>
+                    <OtherInfo>Please only security related issues</OtherInfo>
                     <Detail>mailto:security@niif.hu</Detail>
 		            <Type>security</Type>
-                    <OtherInfo>Please only security related issues</OtherInfo>
 		        </Contact>
-                <!-- Computing service specific attributes -->
-                <TotalJobs>36</TotalJobs>
-                <RunningJobs>3</RunningJobs> 
-                <WaitingJobs>6</WaitingJobs>
-                <StagingJobs>7</StagingJobs>
-		        <SuspendedJobs>4</SuspendedJobs>
-                <PreLRMSWaitingJobs>16</PreLRMSWaitingJobs>
 		        <Endpoint CreationTime="2008-04-21T10:05:12Z" Validity="500" BaseType="Endpoint">
                     <ID>urn:ogf:Endpoint:ce01.niif.hu:60000/delegation</ID>
                     <Name>PGS delegating endpoint</Name>
@@ -119,17 +116,60 @@
                     <AccessPolicy CreationTime="2008-04-21T10:05:12Z" Validity="500" BaseType="Policy">
                         <ID>urn:ogf:AccessPolicy:ce01.niif.hu:60000/delegation/2</ID>
                         <Name>Allow Testers</Name>
+                        <OtherInfo>Allow users doing monitoring</OtherInfo>
                         <Scheme>basic</Scheme>
                         <Rule>vo:dteam</Rule>
                         <Rule>dn:/DC=eu/DC=KnowARC/O=GPC-Grid/CN=demo1</Rule>
                         <Rule>dn:/DC=eu/DC=KnowARC/O=GPC-Grid/CN=demo2</Rule>
-                        <OtherInfo>Allow users doing monitoring</OtherInfo>
                     </AccessPolicy>
                     <Associations>
                         <ActivityID>https://ce01.niif.hu:60000/delegation/5345453</ActivityID>
                         <ActivityID>https://ce01.niif.hu:60000/delegation/5345454</ActivityID>
                     </Associations>
                 </Endpoint>
+            </Service>
+			<!--another general service example will come here-->
+
+            <ComputingService CreationTime="2008-04-21T10:05:12Z" Validity="500"  BaseType="Service">
+                <ID>urn:ogf:ComputingService:HU/NIIF/PGS-CE</ID>
+		        <Name>NIIF PGS CE</Name>
+		        <OtherInfo>warning: frequent reconfiguration</OtherInfo>                                             
+		        <Capability>executionmanagement.jobexecution</Capability>
+		        <Type>org.nordugrid.arex</Type>
+		        <QualityLevel>pre-production</QualityLevel>
+		        <StatusInfo>http://arex.niif.hu/status</StatusInfo>
+		        <Complexity>endpointType=1,share=2,resource=1</Complexity>
+                <Location CreationTime="2008-04-21T10:05:12Z" Validity="500">  <!-- This is the same location as for AdminDomain-->
+                    <ID>urn:ogf:Location:Hungary/HU-1200/Budapest/Victor+Hugo+11</ID>
+                    <Name>Budapest, Hungary</Name>
+	                <Address>Victor Hugo 11</Address>
+	                <Place>Budapest</Place>
+	                <Country>Hungary</Country>
+	                <PostCode>HU-1200</PostCode>
+	                <Latitude>47.51</Latitude>
+	                <Longitude>19.05</Longitude>
+                </Location>
+		        <Contact CreationTime="2008-04-21T10:05:12Z" Validity="500">
+					<ID>urn:ogf:Contact:mailto:pgs-support@niif.hu</ID>
+		            <Name>PGS CE support</Name>
+                    <OtherInfo>Only for NIIF users</OtherInfo>
+                    <Detail>mailto:pgs-support@niif.hu</Detail>
+		            <Type>usersupport</Type>
+		        </Contact>
+		        <Contact CreationTime="2008-04-21T10:05:12Z" Validity="500">
+					<ID>urn:ogf:Contact:mailto:security@niif.hu</ID>
+		            <Name>NIIF security contact</Name>
+                    <OtherInfo>Please only security related issues</OtherInfo>
+                    <Detail>mailto:security@niif.hu</Detail>
+		            <Type>security</Type>
+		        </Contact>
+                <!-- Computing service specific attributes -->
+                <TotalJobs>36</TotalJobs>
+                <RunningJobs>3</RunningJobs> 
+                <WaitingJobs>6</WaitingJobs>
+                <StagingJobs>7</StagingJobs>
+		        <SuspendedJobs>4</SuspendedJobs>
+                <PreLRMSWaitingJobs>16</PreLRMSWaitingJobs>
 		        <ComputingEndpoint CreationTime="2008-04-21T10:05:12Z" Validity="500" BaseType="Endpoint">
 		            <ID>urn:ogf:ComputingEndpoint:ce01.niif.hu:60000/arex</ID>
 		            <Name>AREX</Name>
@@ -152,7 +192,7 @@
 		            <HealthState>ok</HealthState>
 		            <HealthStateInfo>normal operation</HealthStateInfo>
 		            <ServingState>draining</ServingState> 				    
-		            <StartTime>2008-04-12T09:47:53+01:00</StartTime>
+		            <StartTime>2008-04-12T09:47:53Z</StartTime>
 		            <IssuerCA>/O=Grid/O=NorduGrid/CN=NorduGrid Certification Authority</IssuerCA>
 		            <TrustedCA>/O=Grid/O=NorduGrid/CN=NorduGrid Certification Authority</TrustedCA>
 		            <TrustedCA>/C=HU/O=NIIF/OU=Certificate Authorities/CN=NIIF Root CA</TrustedCA>
@@ -180,6 +220,19 @@
 			        <ID>urn:ogf:ComputingShare:HU/NIIF/PGS-CE/atlas</ID>
 			        <Name>Atlas production</Name>
 			        <Description>a share set up for Atlas users</Description>
+			        <MappingPolicy CreationTime="2008-04-21T10:05:12Z" Validity="500" BaseType="Policy">
+                        <ID>urn:ogsa:MappingPolicy:HU/NIIF/PGS-CE/atlas/1</ID>
+                        <Name>Map Atlas</Name>
+                        <Scheme>basic</Scheme>
+                        <Rule>vo:atlas</Rule>
+                        <Rule>vo:cms</Rule>
+                    </MappingPolicy>
+			        <MappingPolicy CreationTime="2008-04-21T10:05:12Z" Validity="500" BaseType="Policy">
+                        <ID>urn:ogsa:MappingPolicy:HU/NIIF/PGS-CE/atlas/2</ID>
+                        <Name>Map Testers</Name>
+                        <Scheme>basic</Scheme>
+                        <Rule>vo:dteam</Rule>
+                    </MappingPolicy>
 			        <!-- Computing share specific attributes -->
 			        <MappingQueue>pbs-short</MappingQueue>  						        		   
 			        <MaxWallTime>12000</MaxWallTime>  <!-- do not attribute meaning to the numbers below-->
@@ -225,25 +278,6 @@
 			        <ReservationPolicy>none</ReservationPolicy>
 			        <Tag>HEPPO</Tag>
 			        <Tag>MIT12</Tag>			
-			        <MappingPolicy CreationTime="2008-04-21T10:05:12Z" Validity="500" BaseType="Policy">
-                        <ID>urn:ogsa:MappingPolicy:HU/NIIF/PGS-CE/atlas/1</ID>
-                        <Name>Map Atlas</Name>
-                        <Scheme>basic</Scheme>
-                        <Rule>vo:atlas</Rule>
-                        <Rule>vo:cms</Rule>
-                    </MappingPolicy>
-			        <MappingPolicy CreationTime="2008-04-21T10:05:12Z" Validity="500" BaseType="Policy">
-                        <ID>urn:ogsa:MappingPolicy:HU/NIIF/PGS-CE/atlas/2</ID>
-                        <Name>Map Testers</Name>
-                        <Scheme>basic</Scheme>
-                        <Rule>vo:dteam</Rule>
-                    </MappingPolicy>
-			        <Associations>
-			            <ComputingEndpointID>urn:ogf:Endpoint:ce01.niif.hu:60000/delegation</ComputingEndpointID>
-			            <ComputingEndpointID>urn:ogf:ComputingEndpoint:ce01.niif.hu:60000/arex</ComputingEndpointID>
-			            <ExecutionEnvironmentID>urn:ogf:ExecutionEnvironment:HU/NIIF/PGS-CE/torque/dualcore</ExecutionEnvironmentID>
-        			    <ExecutionEnvironmentID>urn:ogf:ExecutionEnvironment:HU/NIIF/PGS-CE/torque/dualsocket</ExecutionEnvironmentID>
-			        </Associations>			
 			        <ComputingActivities>
                         <ComputingActivity CreationTime="2008-04-21T10:05:12Z" Validity="500" BaseType="Activity">
                             <ID>urn:ogf:ComputingActivity:ce01.niif.hu:60000/arex/123456</ID>
@@ -280,21 +314,22 @@
                             <UsedTotalCPUTime>12340</UsedTotalCPUTime>
                             <UsedMainMemory>4453</UsedMainMemory>
                             <SubmissionTime>2008-04-21T10:05:12Z</SubmissionTime>
-                            <ComputingManagerSubmissionTime>2008-04-20T60:05:12Z</ComputingManagerSubmissionTime>
+                            <ComputingManagerSubmissionTime>2008-04-20T06:05:12Z</ComputingManagerSubmissionTime>
                             <StartTime>2008-04-20T06:45:12Z</StartTime>
                             <ComputingManagerEndTime>2008-04-20T10:05:12Z</ComputingManagerEndTime>
                             <EndTime>2008-04-20T10:15:12Z</EndTime>
                             <WorkingAreaEraseTime>2008-04-24T10:05:12Z</WorkingAreaEraseTime>
-                            <ProxyExpirationTime>2008-04-31T10:05:12Z</ProxyExpirationTime>
+                            <ProxyExpirationTime>2008-04-30T10:05:12Z</ProxyExpirationTime>
                             <SubmissionHost>pc4.niif.hu:3432</SubmissionHost>
                             <SubmissionClientName>nordugrid-arc-0.94</SubmissionClientName>
                             <OtherMessages>Cached input file is outdated; downloading again</OtherMessages>
                             <OtherMessages>User proxy has expired</OtherMessages>
                             <Associations>
-                               <UserDomainID>urn:ogf:UserDomain:atlas</UserDomainID>
                                <ComputingEndpointID>urn:ogf:ComputingEndpoint:ce01.niif.hu:60000/arex</ComputingEndpointID>
-                               <Activity>urn:ogf:ComputingEndpoint:ce01.niif.hu:60000/delegation/1212121</Activity>
-                               <ExecutionEnvironmentID>..</ExecutionEnvironmentID>
+                               <ExecutionEnvironmentID>urn:ogf:ExecutionEnvironment:HU/NIIF/PGS-CE/torque/dualcore</ExecutionEnvironmentID>
+                               <UserDomainID>urn:ogf:UserDomain:atlas</UserDomainID>
+                               <ActivityID>urn:ogf:ComputingEndpoint:ce01.niif.hu:60000/delegation/1212121</ActivityID>
+                               <ActivityID>urn:ogf:ComputingEndpoint:ce01.niif.hu:60000/delegation/1214545</ActivityID>
                             </Associations>
                         </ComputingActivity>
                         <ComputingActivity CreationTime="2008-04-21T10:05:12Z" Validity="500" BaseType="Activity">
@@ -321,25 +356,39 @@
                             <LogDir>gmlog</LogDir>
                             <Queue>pbs-short</Queue>
                             <SubmissionTime>2008-04-21T10:05:12Z</SubmissionTime>
-                            <ComputingManagerSubmissionTime>2008-04-20T60:05:12Z</ComputingManagerSubmissionTime>
+                            <ComputingManagerSubmissionTime>2008-04-20T06:05:12Z</ComputingManagerSubmissionTime>
                             <StartTime>2008-04-20T06:45:12Z</StartTime>
-                            <ProxyExpirationTime>2008-04-31T10:05:12Z</ProxyExpirationTime>
+                            <ProxyExpirationTime>2008-04-30T10:05:12Z</ProxyExpirationTime>
                             <SubmissionHost>lx23.cern.ch:3323</SubmissionHost>
                             <SubmissionClientName>nordugrid-arc-0.94</SubmissionClientName>
                             <OtherMessages>Cached input file is outdated; downloading again</OtherMessages>
                             <Associations>
-                               <UserDomainID>urn:ogf:UserDomain:atlas</UserDomainID>
                                <ComputingEndpointID>urn:ogf:ComputingEndpoint:ce01.niif.hu:60000/arex</ComputingEndpointID>
-                               <Activity>urn:ogf:ComputingEndpoint:ce01.niif.hu:60000/delegation/1212121</Activity>
-                               <ExecutionEnvironmentID>..</ExecutionEnvironmentID>
+                               <ExecutionEnvironmentID>urn:ogf:ExecutionEnvironment:HU/NIIF/PGS-CE/torque/dualcore</ExecutionEnvironmentID>
+                               <UserDomainID>urn:ogf:UserDomain:atlas</UserDomainID>
+                               <ActivityID>urn:ogf:ComputingEndpoint:ce01.niif.hu:60000/delegation/1212322</ActivityID>
+                               <ActivityID>urn:ogf:ComputingEndpoint:ce01.niif.hu:60000/delegation/1213433</ActivityID>
                             </Associations>
                         </ComputingActivity>
                     </ComputingActivities>
+			        <Associations>
+			            <ComputingEndpointID>urn:ogf:Endpoint:ce01.niif.hu:60000/delegation</ComputingEndpointID>
+			            <ComputingEndpointID>urn:ogf:ComputingEndpoint:ce01.niif.hu:60000/arex</ComputingEndpointID>
+			            <ExecutionEnvironmentID>urn:ogf:ExecutionEnvironment:HU/NIIF/PGS-CE/torque/dualcore</ExecutionEnvironmentID>
+        			    <ExecutionEnvironmentID>urn:ogf:ExecutionEnvironment:HU/NIIF/PGS-CE/torque/dualsocket</ExecutionEnvironmentID>
+			        </Associations>			
 		        </ComputingShare>		    
 	            <ComputingShare CreationTime="2008-04-21T10:05:12Z" Validity="500" BaseType="Share">	    
 			        <ID>urn:ogf:ComputingShare:HU/NIIF/PGS-CE/niif</ID>
 			        <Name>NIIF</Name>
 			        <Description>a share set up for NIIF users</Description>
+			        <MappingPolicy CreationTime="2008-04-21T10:05:12Z" Validity="500" BaseType="Policy">
+                        <ID>urn:ogsa:MappingPolicy:HU/NIIF/PGS-CE/niif/1</ID>
+                        <Name>Map Testers</Name>
+                        <Scheme>basic</Scheme>
+                        <Rule>dn:/DC=eu/DC=KnowARC/O=GPC-Grid/CN=demo1</Rule>
+                        <Rule>dn:/DC=eu/DC=KnowARC/O=GPC-Grid/CN=demo2</Rule>
+                    </MappingPolicy>
 			        <!-- Computing share specific attributes -->
 			        <MappingQueue>pbs-long</MappingQueue>							        		   
 			        <MaxWallTime>2000</MaxWallTime>  <!-- do not attribute meaning to the numbers below-->
@@ -372,9 +421,9 @@
         			<LocalRunningJobs>0</LocalRunningJobs>
         			<WaitingJobs>1</WaitingJobs>
         			<LocalWaitingJobs>1</LocalWaitingJobs>
-        			<StagingJobs>1</StagingJobs>
         			<SuspendedJobs>12</SuspendedJobs>
         			<LocalSuspendedJobs>12</LocalSuspendedJobs>
+        			<StagingJobs>1</StagingJobs>
         			<PreLRMSWaitingJobs>0</PreLRMSWaitingJobs>
         			<EstimatedAverageWaitingTime>200</EstimatedAverageWaitingTime>
         			<EstimatedWorstWaitingTime>2000</EstimatedWorstWaitingTime>
@@ -385,20 +434,13 @@
         			<ReservationPolicy>none</ReservationPolicy>
         			<Tag>TT1</Tag>
         			<Tag>HH12</Tag> 			
-			        <MappingPolicy CreationTime="2008-04-21T10:05:12Z" Validity="500" BaseType="Policy">
-                        <ID>urn:ogsa:MappingPolicy:HU/NIIF/PGS-CE/niif/1</ID>
-                        <Name>Map Testers</Name>
-                        <Scheme>basic</Scheme>
-                        <Rule>dn:/DC=eu/DC=KnowARC/O=GPC-Grid/CN=demo1</Rule>
-                        <Rule>dn:/DC=eu/DC=KnowARC/O=GPC-Grid/CN=demo2</Rule>
-                    </MappingPolicy>
+			        <ComputingActivities>
+                    </ComputingActivities>
         			<Associations>
 			            <ComputingEndpointID>urn:ogf:Endpoint:ce01.niif.hu:60000/delegation</ComputingEndpointID>
 			            <ComputingEndpointID>urn:ogf:ComputingEndpoint:ce01.niif.hu:60000/arex</ComputingEndpointID>
 			            <ExecutionEnvironmentID>urn:ogf:ExecutionEnvironment:HU/NIIF/PGS-CE/torque/dualcore</ExecutionEnvironmentID>
         			</Associations>				
-			        <ComputingActivities>
-                    </ComputingActivities>
         		</ComputingShare>
                 <ComputingManager CreationTime="2008-04-21T10:05:12Z" Validity="500" BaseType="Manager">
                     <ID>urn:ogf:ComputingManager:HU/NIIF/PGS-CE/torque</ID>
@@ -414,8 +456,8 @@
                     <SlotsUsedByLocalJobs>40</SlotsUsedByLocalJobs>
                     <SlotsUsedByGridJobs>20</SlotsUsedByGridJobs>
                     <Homogeneous>false</Homogeneous>
-                    <NetworkInfo>InfiniBand</NetworkInfo>
-                    <NetworkInfo>1000BASE-T</NetworkInfo>
+                    <NetworkInfo>infiniband</NetworkInfo>
+                    <NetworkInfo>gigabitethernet</NetworkInfo>
                     <LogicalCPUDistribution>4:16 2:16</LogicalCPUDistribution>
                     <WorkingAreaShared>true</WorkingAreaShared>
                     <WorkingAreaGuaranteed>false</WorkingAreaGuaranteed>
@@ -430,26 +472,77 @@
                     <TmpDir>/tmp</TmpDir>
                     <ScratchDir>/shared/scratch</ScratchDir>
                     <ApplicationDir>/shared/Apps</ApplicationDir>
-		            <Benchmark CreationTime="2008-04-21T10:05:12Z" Validity="500">
-		                <ID>urn:ogf:Benchmark:HU/NIIF/PGS-CE/torque/specfp2000</ID>
-		                <Name>Specfp2000</Name>
-		                <OtherInfo>Compiler: gcc version 3.4.6 20060404</OtherInfo>
-		                <OtherInfo>Optimization flags: -O5 -msse3</OtherInfo>
-			            <Type>specfp2000</Type>
-			            <Value>956.876</Value>
-		            </Benchmark>		    	
-		            <Benchmark CreationTime="2008-04-21T10:05:12Z" Validity="500">
-		                <ID>urn:ogf:Benchmark:HU/NIIF/PGS-CE/torque/jbench</ID>
-		                <Name>jbench</Name>
-		                <OtherInfo>JVM options: -d64 -server</OtherInfo>
-			            <Type>jbench</Type>
-			            <Value>3399.0</Value>
-		            </Benchmark>		    	
-		            <Benchmark CreationTime="2008-04-21T10:05:12Z" Validity="500">
-		                <ID>urn:ogf:Benchmark:HU/NIIF/PGS-CE/torque/bogomips</ID>
-			            <Type>bogomips</Type>
-			            <Value>2399.0</Value>
-		            </Benchmark>		    	
+                    <ExecutionEnvironments>
+                        <ExecutionEnvironment CreationTime="2008-04-21T10:05:12Z" Validity="500" BaseType="Resource">
+                            <ID>urn:ogf:ExecutionEnvironment:HU/NIIF/PGS-CE/torque/dualsocket</ID>
+                            <Name>dualsocket</Name>
+                            <Platform>amd64</Platform>
+                            <VirtualMachine>false</VirtualMachine>
+                            <TotalInstances>16</TotalInstances>
+                            <UsedInstances>15</UsedInstances>
+                            <UnavailableInstances>1</UnavailableInstances>
+                            <PhysicalCPUs>2</PhysicalCPUs>
+                            <LogicalCPUs>4</LogicalCPUs>
+                            <CPUMultiplicity>multicpu-multicore</CPUMultiplicity>
+                            <CPUVendor>AMD</CPUVendor>
+                            <CPUModel>Dual Core AMD Opteron(tm) Processor 275</CPUModel>
+                            <CPUVersion>2</CPUVersion>
+                            <CPUClockSpeed>2193</CPUClockSpeed>
+                            <CPUTimeScalingFactor>2.45</CPUTimeScalingFactor>
+                            <WallTimeScalingFactor>2.45</WallTimeScalingFactor>
+                            <MainMemorySize>4096</MainMemorySize>
+                            <VirtualMemorySize>20230</VirtualMemorySize>
+                            <OSFamily>linux</OSFamily>
+                            <OSName>centos</OSName>
+                            <OSVersion>5.4</OSVersion>
+                            <ConnectivityIn>false</ConnectivityIn>
+                            <ConnectivityOut>false</ConnectivityOut>
+                            <NetworkInfo>gigabitethernet</NetworkInfo>
+                            <NetworkInfo>infiniband</NetworkInfo>
+                            <Associations>
+                                <ComputingShareID>urn:ogf:ComputingShare:HU/NIIF/PGS-CE/atlas</ComputingShareID>
+                                <ComputingActivityID>urn:ogf:ComputingActivity:ce01.niif.hu:60000/arex/123456</ComputingActivityID>
+                                <ComputingActivityID>urn:ogf:ComputingActivity:ce01.niif.hu:60000/arex/123561</ComputingActivityID>
+                                <ComputingActivityID>urn:ogf:ComputingActivity:ce01.niif.hu:60000/arex/123562</ComputingActivityID>
+                                <ComputingActivityID>urn:ogf:ComputingActivity:ce01.niif.hu:60000/arex/123563</ComputingActivityID>
+                                <ComputingActivityID>urn:ogf:ComputingActivity:ce01.niif.hu:60000/arex/123564</ComputingActivityID>
+                                <ApplicationEnvironmentID>urn:ogf:ApplicationEnvironment:HU/NIIF/PGS-CE/torque/ENV/JAVA/JRE-1.4.2</ApplicationEnvironmentID>
+                                <ApplicationEnvironmentID>urn:ogf:ApplicationEnvironment:HU/NIIF/PGS-CE/torque/APPS/HEP/TEST-ATLAS-13.0.20</ApplicationEnvironmentID>
+                            </Associations>
+                        </ExecutionEnvironment>
+                        <ExecutionEnvironment CreationTime="2008-04-21T10:05:12Z" Validity="500" BaseType="Resource">
+                            <ID>urn:ogf:ExecutionEnvironment:HU/NIIF/PGS-CE/torque/dualcore</ID>
+                            <Name>dualcore</Name>
+                            <Platform>amd64</Platform>
+                            <VirtualMachine>false</VirtualMachine>
+                            <TotalInstances>16</TotalInstances>
+                            <UsedInstances>2</UsedInstances>
+                            <UnavailableInstances>0</UnavailableInstances>
+                            <PhysicalCPUs>1</PhysicalCPUs>
+                            <LogicalCPUs>2</LogicalCPUs>
+                            <CPUMultiplicity>singlecpu-multicore</CPUMultiplicity>
+                            <CPUVendor>Intel</CPUVendor>
+                            <CPUModel>Intel(R) Core(TM)2 CPU E8500</CPUModel>
+                            <CPUVersion>2</CPUVersion>
+                            <CPUClockSpeed>3820</CPUClockSpeed>
+                            <CPUTimeScalingFactor>4.45</CPUTimeScalingFactor>
+                            <WallTimeScalingFactor>4.45</WallTimeScalingFactor>
+                            <MainMemorySize>2048</MainMemorySize>
+                            <VirtualMemorySize>10230</VirtualMemorySize>
+                            <OSFamily>linux</OSFamily>
+                            <OSName>gentoo</OSName>
+                            <OSVersion>2.6</OSVersion>
+                            <ConnectivityIn>false</ConnectivityIn>
+                            <ConnectivityOut>true</ConnectivityOut>
+                            <NetworkInfo>gigabitethernet</NetworkInfo>
+                            <Associations>
+                                <ComputingShareID>urn:ogf:ComputingShare:HU/NIIF/PGS-CE/niif</ComputingShareID>
+                                <ComputingActivityID>urn:ogf:ComputingActivity:ce01.niif.hu:60000/arex/123343</ComputingActivityID>
+                                <ComputingActivityID>urn:ogf:ComputingActivity:ce01.niif.hu:60000/arex/124545</ComputingActivityID>
+                                <ApplicationEnvironmentID>urn:ogf:ApplicationEnvironment:HU/NIIF/PGS-CE/torque/ENV/JAVA/JRE-1.4.2</ApplicationEnvironmentID>
+                            </Associations>
+                        </ExecutionEnvironment>
+                    </ExecutionEnvironments>
                     <ApplicationEnvironments>
                         <ApplicationEnvironment CreationTime="2008-04-21T10:05:12Z" Validity="500">
 			                <ID>urn:ogf:ApplicationEnvironment:HU/NIIF/PGS-CE/torque/ENV/JAVA/JRE-1.4.2</ID>
@@ -508,85 +601,31 @@
                             </ApplicationHandle>
                         </ApplicationEnvironment>
                     </ApplicationEnvironments>
-                    <ExecutionEnvironments>
-                        <ExecutionEnvironment CreationTime="2008-04-21T10:05:12Z" Validity="500" BaseType="Resource">
-                            <ID>urn:ogf:ExecutionEnvironment:HU/NIIF/PGS-CE/torque/dualsocket</ID>
-                            <Name>dualsocket</Name>
-                            <Platform>amd64</Platform>
-                            <VirtualMachine>false</VirtualMachine>
-                            <TotalInstances>16</TotalInstances>
-                            <UsedInstances>15</UsedInstances>
-                            <UnavailableInstances>1</UnavailableInstances>
-                            <PhysicalCPUs>2</PhysicalCPUs>
-                            <LogicalCPUs>4</LogicalCPUs>
-                            <CPUMultiplicity>multicpu-multicore</CPUMultiplicity>
-                            <CPUVendor>AMD</CPUVendor>
-                            <CPUModel>Dual Core AMD Opteron(tm) Processor 275</CPUModel>
-                            <CPUVersion>2</CPUVersion>
-                            <CPUClockSpeed>2193</CPUClockSpeed>
-                            <CPUTimeScalingFactor>2.45</CPUTimeScalingFactor>
-                            <WallTimeScalingFactor>2.45</WallTimeScalingFactor>
-                            <MainMemorySize>4096</MainMemorySize>
-                            <VirtualMemorySize>20230</VirtualMemorySize>
-                            <OSFamily>linux</OSFamily>
-                            <OSName>centos</OSName>
-                            <OSVersion>5.4</OSVersion>
-                            <ConnectivityIn>false</ConnectivityIn>
-                            <ConnectivityOut>false</ConnectivityOut>
-                            <NetworkInfo>1000BASE-T</NetworkInfo>
-                            <NetworkInfo>InfiniBand</NetworkInfo>
-                            <Associations>
-                                <ComputingShareID>urn:ogf:ComputingShare:HU/NIIF/PGS-CE/atlas</ComputingShareID>
-                                <ComputingActivityID>urn:ogf:ComputingActivity:ce01.niif.hu:60000/arex/123456</ComputingActivityID>
-                                <ComputingActivityID>urn:ogf:ComputingActivity:ce01.niif.hu:60000/arex/123561</ComputingActivityID>
-                                <ComputingActivityID>urn:ogf:ComputingActivity:ce01.niif.hu:60000/arex/123562</ComputingActivityID>
-                                <ComputingActivityID>urn:ogf:ComputingActivity:ce01.niif.hu:60000/arex/123563</ComputingActivityID>
-                                <ComputingActivityID>urn:ogf:ComputingActivity:ce01.niif.hu:60000/arex/123564</ComputingActivityID>
-                                <ApplicationEnvironmentID>urn:ogf:ApplicationEnvironment:HU/NIIF/PGS-CE/torque/ENV/JAVA/JRE-1.4.2</ApplicationEnvironmentID>
-                                <ApplicationEnvironmentID>urn:ogf:ApplicationEnvironment:HU/NIIF/PGS-CE/torque/APPS/HEP/TEST-ATLAS-13.0.20</ApplicationEnvironmentID>
-                            </Associations>
-                        </ExecutionEnvironment>
-                        <ExecutionEnvironment CreationTime="2008-04-21T10:05:12Z" Validity="500" BaseType="Resource">
-                            <ID>urn:ogf:ExecutionEnvironment:HU/NIIF/PGS-CE/torque/dualcore</ID>
-                            <Name>dualcore</Name>
-                            <Platform>amd64</Platform>
-                            <VirtualMachine>false</VirtualMachine>
-                            <TotalInstances>16</TotalInstances>
-                            <UsedInstances>2</UsedInstances>
-                            <UnavailableInstances>0</UnavailableInstances>
-                            <PhysicalCPUs>1</PhysicalCPUs>
-                            <LogicalCPUs>2</LogicalCPUs>
-                            <CPUMultiplicity>single-multicore</CPUMultiplicity>
-                            <CPUVendor>Intel</CPUVendor>
-                            <CPUModel>Intel(R) Core(TM)2 CPU E8500</CPUModel>
-                            <CPUVersion>2</CPUVersion>
-                            <CPUClockSpeed>3820</CPUClockSpeed>
-                            <CPUTimeScalingFactor>4.45</CPUTimeScalingFactor>
-                            <WallTimeScalingFactor>4.45</WallTimeScalingFactor>
-                            <MainMemorySize>2048</MainMemorySize>
-                            <VirtualMemorySize>10230</VirtualMemorySize>
-                            <OSFamily>linux</OSFamily>
-                            <OSName>gentoo</OSName>
-                            <OSVersion>2.6</OSVersion>
-                            <ConnectivityIn>false</ConnectivityIn>
-                            <ConnectivityOut>true</ConnectivityOut>
-                            <NetworkInfo>1000BASE-T</NetworkInfo>
-                            <Associations>
-                                <ComputingShareID>urn:ogf:ComputingShare:HU/NIIF/PGS-CE/niif</ComputingShareID>
-                                <ComputingActivityID>urn:ogf:ComputingActivity:ce01.niif.hu:60000/arex/123343</ComputingActivityID>
-                                <ComputingActivityID>urn:ogf:ComputingActivity:ce01.niif.hu:60000/arex/124545</ComputingActivityID>
-                                <ApplicationEnvironmentID>urn:ogf:ApplicationEnvironment:HU/NIIF/PGS-CE/torque/ENV/JAVA/JRE-1.4.2</ApplicationEnvironmentID>
-                            </Associations>
-                        </ExecutionEnvironment>
-                    </ExecutionEnvironments>
+		            <Benchmark CreationTime="2008-04-21T10:05:12Z" Validity="500">
+		                <ID>urn:ogf:Benchmark:HU/NIIF/PGS-CE/torque/specfp2000</ID>
+		                <Name>Specfp2000</Name>
+		                <OtherInfo>Compiler: gcc version 3.4.6 20060404</OtherInfo>
+		                <OtherInfo>Optimization flags: -O5 -msse3</OtherInfo>
+			            <Type>specfp2000</Type>
+			            <Value>956.876</Value>
+		            </Benchmark>		    	
+		            <Benchmark CreationTime="2008-04-21T10:05:12Z" Validity="500">
+		                <ID>urn:ogf:Benchmark:HU/NIIF/PGS-CE/torque/jbench</ID>
+		                <Name>jbench</Name>
+		                <OtherInfo>JVM options: -d64 -server</OtherInfo>
+			            <Type>jbench</Type>
+			            <Value>3399.0</Value>
+		            </Benchmark>		    	
+		            <Benchmark CreationTime="2008-04-21T10:05:12Z" Validity="500">
+		                <ID>urn:ogf:Benchmark:HU/NIIF/PGS-CE/torque/bogomips</ID>
+			            <Type>bogomips</Type>
+			            <Value>2399.0</Value>
+		            </Benchmark>		    	
                 </ComputingManager>
-                <ComputingManager>
+                <!--ComputingManager>
                     <ID></ID>
-                </ComputingManager>
+                </ComputingManager-->
 	        </ComputingService>
-            <Service CreationTime="2008-04-21T10:05:12Z" Validity="500" BaseType="Service">
-                <ID></ID>
-            </Service>
             
         <!-- XXX update needed -->
         <StorageService CreationTime="2008-04-21T10:05:12Z" Validity="500"  BaseType="Service"> <!--not complete, just the skeleton elements-->
@@ -635,12 +674,6 @@
 		    </DataStore>		    
 		</StorageResource>		
 	    </StorageService>
-	    <Service> <!-- question: do we need the basetype this case as well?-->
-	       <!--general service will come here-->
-	    </Service>
-	    <Service>
-	       <!--another general service example will come here-->
-	    </Service>
         </Services>
 	
     </AdminDomain>
@@ -648,11 +681,12 @@
     <UserDomain CreationTime="2008-04-21T10:05:12Z" Validity="500" BaseType="Domain">
     	<ID>urn:ogf:UserDomain:atlas</ID>
 	    <Name>ATLAS VO</Name>
+	    <OtherInfo>AUP document is available on VO webpage</OtherInfo>
 	    <Description>HEP ATLAS USER GROUP</Description>
 	    <WWW>http://atlas.web.cern.ch</WWW>
-	    <Otherinfo>AUP document is available on VO webpage</Otherinfo>
 	    <Level>0</Level>
 	    <UserManager>https://lcg-voms.cern.ch:8443/vo/atlas/vomrs</UserManager>
+	    <UserManager>https://voms.cern.ch:8443/vo/atlas/vomrs</UserManager>
         <Member>/atlas</Member>
         <Member>/VO=atlas/GROUP=atlas</Member>
         <Location CreationTime="2008-04-21T10:05:12Z" Validity="500">
@@ -668,9 +702,9 @@
         <Contact CreationTime="2008-04-21T10:05:12Z" Validity="500">
             <ID>urn:ogf:Contact:mailto:atlas-grid-support@cern.ch</ID>
             <Name>Atlas User Support</Name>
+	        <OtherInfo>Suport for Atlas VO grid users</OtherInfo>
             <Detail>mailto:atlas-grid-support@cern.ch</Detail>
             <Type>usersupport</Type>
-	        <OtherInfo>Suport for Atlas VO grid users</OtherInfo>
         </Contact>
         <Contact CreationTime="2008-04-21T10:05:12Z" Validity="500">
             <ID>urn:ogf:Contact:mailto:project-lcg-vo-atlas-admin@cern.ch</ID>
@@ -685,9 +719,10 @@
         <Description>Norwegian HEP Atlas User group</Description>
         <WWW>http://folk.uio.no/farido</WWW>
         <Level>0</Level>
+        <UserManager>https://lcg-voms.cern.ch:8443/vo/atlas/vomrs</UserManager>
+        <UserManager>https://voms.cern.ch:8443/vo/atlas/vomrs</UserManager>
         <Member>/atlas/no</Member>        
         <Member>/VO=atlas/GROUP=atlas/no</Member>        
-        <UserManager>https://lcg-voms.cern.ch:8443/vo/atlas/vomrs</UserManager>
         <Contact CreationTime="2008-04-21T10:05:12Z" Validity="500">
             <ID>urn:ogf:Contact:mailto:atlas-norway@cern.ch</ID>
             <Name>Support mailing list</Name>
@@ -701,16 +736,17 @@
 	    <Description>Members of the Nordugrid VO</Description>
         <WWW>http://www.nordugrid.org/NorduGridVO</WWW>
 	    <Level>0</Level>
+	    <UserManager>https://voms.ndgf.org:8443/voms/nordugrid.org</UserManager>
+	    <UserManager>https://voms-backup.ndgf.org:8443/voms/nordugrid.org</UserManager>
         <Member>/nordugrid.org</Member>
         <Member>/VO=nordugrid.org/GROUP=nordugrid.org</Member>
-	    <UserManager>https://voms.ndgf.org:8443/voms/nordugrid.org</UserManager>
         <Location CreationTime="2008-04-21T10:05:12Z" Validity="500">
             <ID>urn:ogf:Location:DENMARK/2100/Copenhagen/Blegdamsvej_17</ID>
             <Name>Niels Bohr Institute</Name>
             <Address>Blegdamsvej 17</Address>
-            <PostCode>2100</PostCode>
             <Place>Copenhagen</Place>
             <Country>DENMARK</Country>
+            <PostCode>2100</PostCode>
             <Latitude>55.69681</Latitude>
             <Longitude>12.571851</Longitude>
         </Location>
@@ -723,9 +759,9 @@
         <Contact CreationTime="2008-04-21T10:05:12Z" Validity="500">
             <ID>urn:ogf:Contact:http://www.nordugrid.org/contact.html</ID>
             <Name>Nordugrid Contacts</Name>
+            <OtherInfo>Link to Nordugrid contacts page</OtherInfo>
             <Detail>http://www.nordugrid.org/contact.html</Detail>
             <Type>general</Type>
-            <OtherInfo>Link to Nordugrid contacts page</OtherInfo>
         </Contact>
     </UserDomain>
     <UserDomain CreationTime="2008-04-21T10:05:12Z" Validity="500" BaseType="Domain">
@@ -733,9 +769,10 @@
 	    <Name>Nordugrid VO Developers</Name>
 	    <Description>Nordugrid developers group</Description>
 	    <Level>0</Level>
+	    <UserManager>https://voms.ndgf.org:8443/voms/nordugrid.org</UserManager>
+	    <UserManager>https://voms-backup.ndgf.org:8443/voms/nordugrid.org</UserManager>
         <Member>/nordugrid.org/Role=developer</Member>
         <Member>/VO=nordugrid.org/GROUP=nordugrid.org/Role=developer</Member>
-	    <UserManager>https://voms.ndgf.org:8443/voms/nordugrid.org</UserManager>
     </UserDomain>
 </glue:Domains>
 
