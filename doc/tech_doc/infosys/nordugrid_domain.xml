@@ -200,6 +200,13 @@
 		            <DowntimeStart>2008-04-29T09:57:56Z</DowntimeStart>
 		            <DowntimeEnd>2008-04-30T09:59:56Z</DowntimeEnd>
 		            <DowntimeInfo>Opsys update</DowntimeInfo> 	    
+                    <AccessPolicy CreationTime="2008-04-21T10:05:12Z" Validity="500" BaseType="Policy">
+                        <ID>urn:ogf:AccessPolicy:ce01.niif.hu:60000/arex/1</ID>
+                        <Name>Allow HEP</Name>
+                        <Scheme>basic</Scheme>
+                        <Rule>vo:atlas</Rule>
+                        <Rule>vo:cms</Rule>
+                    </AccessPolicy>
 		            <!-- Computing endpoint specific attributes -->
 		            <Staging>staginginout</Staging>
                     <JobDescription>nordugrid:xrsl</JobDescription>
@@ -278,10 +285,21 @@
 			        <ReservationPolicy>none</ReservationPolicy>
 			        <Tag>HEPPO</Tag>
 			        <Tag>MIT12</Tag>			
+			        <Associations>
+			            <ComputingEndpointID>urn:ogf:Endpoint:ce01.niif.hu:60000/delegation</ComputingEndpointID>
+			            <ComputingEndpointID>urn:ogf:ComputingEndpoint:ce01.niif.hu:60000/arex</ComputingEndpointID>
+			            <ExecutionEnvironmentID>urn:ogf:ExecutionEnvironment:HU/NIIF/PGS-CE/torque/dualcore</ExecutionEnvironmentID>
+        			    <ExecutionEnvironmentID>urn:ogf:ExecutionEnvironment:HU/NIIF/PGS-CE/torque/dualsocket</ExecutionEnvironmentID>
+			        </Associations>			
 			        <ComputingActivities>
                         <ComputingActivity CreationTime="2008-04-21T10:05:12Z" Validity="500" BaseType="Activity">
                             <ID>urn:ogf:ComputingActivity:ce01.niif.hu:60000/arex/123456</ID>
                             <Name>mc08.1050.J7</Name>
+                            <Associations>
+                               <UserDomainID>urn:ogf:UserDomain:atlas</UserDomainID>
+                               <ActivityID>urn:ogf:ComputingEndpoint:ce01.niif.hu:60000/delegation/1212121</ActivityID>
+                               <ActivityID>urn:ogf:ComputingEndpoint:ce01.niif.hu:60000/delegation/1214545</ActivityID>
+                            </Associations>
                             <Type>single</Type>
                             <IDFromEndpoint>https://ce01.niif.hu:60000/arex/123456</IDFromEndpoint>
                             <LocalIDFromManager>345.ce01</LocalIDFromManager>
@@ -327,14 +345,16 @@
                             <Associations>
                                <ComputingEndpointID>urn:ogf:ComputingEndpoint:ce01.niif.hu:60000/arex</ComputingEndpointID>
                                <ExecutionEnvironmentID>urn:ogf:ExecutionEnvironment:HU/NIIF/PGS-CE/torque/dualcore</ExecutionEnvironmentID>
-                               <UserDomainID>urn:ogf:UserDomain:atlas</UserDomainID>
-                               <ActivityID>urn:ogf:ComputingEndpoint:ce01.niif.hu:60000/delegation/1212121</ActivityID>
-                               <ActivityID>urn:ogf:ComputingEndpoint:ce01.niif.hu:60000/delegation/1214545</ActivityID>
                             </Associations>
                         </ComputingActivity>
                         <ComputingActivity CreationTime="2008-04-21T10:05:12Z" Validity="500" BaseType="Activity">
                             <ID>urn:ogf:ComputingActivity:ce01.niif.hu:60000/arex/123565</ID>
                             <Name>srmtestjob</Name>
+                            <Associations>
+                               <UserDomainID>urn:ogf:UserDomain:atlas</UserDomainID>
+                               <ActivityID>urn:ogf:ComputingEndpoint:ce01.niif.hu:60000/delegation/1212322</ActivityID>
+                               <ActivityID>urn:ogf:ComputingEndpoint:ce01.niif.hu:60000/delegation/1213433</ActivityID>
+                            </Associations>
                             <Type>single</Type>
                             <IDFromEndpoint>https://ce01.niif.hu:60000/arex/123565</IDFromEndpoint>
                             <LocalIDFromManager>346.ce01</LocalIDFromManager>
@@ -365,18 +385,9 @@
                             <Associations>
                                <ComputingEndpointID>urn:ogf:ComputingEndpoint:ce01.niif.hu:60000/arex</ComputingEndpointID>
                                <ExecutionEnvironmentID>urn:ogf:ExecutionEnvironment:HU/NIIF/PGS-CE/torque/dualcore</ExecutionEnvironmentID>
-                               <UserDomainID>urn:ogf:UserDomain:atlas</UserDomainID>
-                               <ActivityID>urn:ogf:ComputingEndpoint:ce01.niif.hu:60000/delegation/1212322</ActivityID>
-                               <ActivityID>urn:ogf:ComputingEndpoint:ce01.niif.hu:60000/delegation/1213433</ActivityID>
                             </Associations>
                         </ComputingActivity>
                     </ComputingActivities>
-			        <Associations>
-			            <ComputingEndpointID>urn:ogf:Endpoint:ce01.niif.hu:60000/delegation</ComputingEndpointID>
-			            <ComputingEndpointID>urn:ogf:ComputingEndpoint:ce01.niif.hu:60000/arex</ComputingEndpointID>
-			            <ExecutionEnvironmentID>urn:ogf:ExecutionEnvironment:HU/NIIF/PGS-CE/torque/dualcore</ExecutionEnvironmentID>
-        			    <ExecutionEnvironmentID>urn:ogf:ExecutionEnvironment:HU/NIIF/PGS-CE/torque/dualsocket</ExecutionEnvironmentID>
-			        </Associations>			
 		        </ComputingShare>		    
 	            <ComputingShare CreationTime="2008-04-21T10:05:12Z" Validity="500" BaseType="Share">	    
 			        <ID>urn:ogf:ComputingShare:HU/NIIF/PGS-CE/niif</ID>
@@ -434,13 +445,13 @@
         			<ReservationPolicy>none</ReservationPolicy>
         			<Tag>TT1</Tag>
         			<Tag>HH12</Tag> 			
-			        <ComputingActivities>
-                    </ComputingActivities>
         			<Associations>
 			            <ComputingEndpointID>urn:ogf:Endpoint:ce01.niif.hu:60000/delegation</ComputingEndpointID>
 			            <ComputingEndpointID>urn:ogf:ComputingEndpoint:ce01.niif.hu:60000/arex</ComputingEndpointID>
 			            <ExecutionEnvironmentID>urn:ogf:ExecutionEnvironment:HU/NIIF/PGS-CE/torque/dualcore</ExecutionEnvironmentID>
         			</Associations>				
+			        <ComputingActivities>
+                    </ComputingActivities>
         		</ComputingShare>
                 <ComputingManager CreationTime="2008-04-21T10:05:12Z" Validity="500" BaseType="Manager">
                     <ID>urn:ogf:ComputingManager:HU/NIIF/PGS-CE/torque</ID>
@@ -472,6 +483,26 @@
                     <TmpDir>/tmp</TmpDir>
                     <ScratchDir>/shared/scratch</ScratchDir>
                     <ApplicationDir>/shared/Apps</ApplicationDir>
+		            <Benchmark CreationTime="2008-04-21T10:05:12Z" Validity="500">
+		                <ID>urn:ogf:Benchmark:HU/NIIF/PGS-CE/torque/specfp2000</ID>
+		                <Name>Specfp2000</Name>
+		                <OtherInfo>Compiler: gcc version 3.4.6 20060404</OtherInfo>
+		                <OtherInfo>Optimization flags: -O5 -msse3</OtherInfo>
+			            <Type>specfp2000</Type>
+			            <Value>956.876</Value>
+		            </Benchmark>		    	
+		            <Benchmark CreationTime="2008-04-21T10:05:12Z" Validity="500">
+		                <ID>urn:ogf:Benchmark:HU/NIIF/PGS-CE/torque/jbench</ID>
+		                <Name>jbench</Name>
+		                <OtherInfo>JVM options: -d64 -server</OtherInfo>
+			            <Type>jbench</Type>
+			            <Value>3399.0</Value>
+		            </Benchmark>		    	
+		            <Benchmark CreationTime="2008-04-21T10:05:12Z" Validity="500">
+		                <ID>urn:ogf:Benchmark:HU/NIIF/PGS-CE/torque/bogomips</ID>
+			            <Type>bogomips</Type>
+			            <Value>2399.0</Value>
+		            </Benchmark>		    	
                     <ExecutionEnvironments>
                         <ExecutionEnvironment CreationTime="2008-04-21T10:05:12Z" Validity="500" BaseType="Resource">
                             <ID>urn:ogf:ExecutionEnvironment:HU/NIIF/PGS-CE/torque/dualsocket</ID>
@@ -601,26 +632,6 @@
                             </ApplicationHandle>
                         </ApplicationEnvironment>
                     </ApplicationEnvironments>
-		            <Benchmark CreationTime="2008-04-21T10:05:12Z" Validity="500">
-		                <ID>urn:ogf:Benchmark:HU/NIIF/PGS-CE/torque/specfp2000</ID>
-		                <Name>Specfp2000</Name>
-		                <OtherInfo>Compiler: gcc version 3.4.6 20060404</OtherInfo>
-		                <OtherInfo>Optimization flags: -O5 -msse3</OtherInfo>
-			            <Type>specfp2000</Type>
-			            <Value>956.876</Value>
-		            </Benchmark>		    	
-		            <Benchmark CreationTime="2008-04-21T10:05:12Z" Validity="500">
-		                <ID>urn:ogf:Benchmark:HU/NIIF/PGS-CE/torque/jbench</ID>
-		                <Name>jbench</Name>
-		                <OtherInfo>JVM options: -d64 -server</OtherInfo>
-			            <Type>jbench</Type>
-			            <Value>3399.0</Value>
-		            </Benchmark>		    	
-		            <Benchmark CreationTime="2008-04-21T10:05:12Z" Validity="500">
-		                <ID>urn:ogf:Benchmark:HU/NIIF/PGS-CE/torque/bogomips</ID>
-			            <Type>bogomips</Type>
-			            <Value>2399.0</Value>
-		            </Benchmark>		    	
                 </ComputingManager>
                 <!--ComputingManager>
                     <ID></ID>
