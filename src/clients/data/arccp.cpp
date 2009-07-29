@@ -7,6 +7,9 @@
 #include <string>
 #include <list>
 
+#include <unistd.h>
+#include <sys/types.h>
+
 #include <arc/ArcLocation.h>
 #include <arc/Logger.h>
 #include <arc/StringConv.h>
