@@ -16,17 +16,6 @@ const static SOAP_NMAC struct Namespace srm2_2_soap_namespaces[] =
   {NULL, NULL, NULL, NULL}
 };
 
-// put here to avoid multiple definition errors
-//const static SOAP_NMAC struct Namespace srm2_2_soap_namespaces[] =
-//{
-// {"SOAP-ENV", "http://schemas.xmlsoap.org/soap/envelope/", "http://www.w3.org/*/soap-envelope", NULL},
-//  {"SOAP-ENC", "http://schemas.xmlsoap.org/soap/encoding/", "http://www.w3.org/*/soap-encoding", NULL},
-//  {"xsi", "http://www.w3.org/2001/XMLSchema-instance", "http://www.w3.org/*/XMLSchema-instance", NULL},
-//  {"xsd", "http://www.w3.org/2001/XMLSchema", "http://www.w3.org/*/XMLSchema", NULL},
-//  {"SRMv2", "http://srm.lbl.gov/StorageResourceManager", NULL, NULL},
-//  {NULL, NULL, NULL, NULL}
-//};
-
 /**
  * The max number of files returned when listing dirs
  * current limits are 1000 for dcache, 1024 for castor
@@ -48,21 +37,21 @@ const static unsigned int max_files_list = 999;
      * @param offset The index to start at
      * @param count The number of files to list
      */
-    bool info(SRMClientRequest& req,
-               std::list<struct SRMFileMetaData>& metadata,
-               const int recursive,
-               const int offset,
-               const int count);
+    SRMReturnCode info(SRMClientRequest& req,
+                       std::list<struct SRMFileMetaData>& metadata,
+                       const int recursive,
+                       const int offset,
+                       const int count);
   
     /**
      * Remove a file by srmRm
      */
-    bool removeFile(SRMClientRequest& req);
+    SRMReturnCode removeFile(SRMClientRequest& req);
   
     /**
      * Remove a directory by srmRmDir
      */
-    bool removeDir(SRMClientRequest& req);
+    SRMReturnCode removeDir(SRMClientRequest& req);
   
     /**
      * Return a metadata struct with values filled from the given details
@@ -104,17 +93,17 @@ const static unsigned int max_files_list = 999;
      * until file is ready (online and pinned). Although a list is returned,
      * SRMv2.2 only returns one TURL per SURL.
      */
-    bool getTURLs(SRMClientRequest& req,
-                  std::list<std::string>& urls);
+    SRMReturnCode getTURLs(SRMClientRequest& req,
+                           std::list<std::string>& urls);
   
     /**
      * Retrieve TURLs which a file can be written to. Uses srmPrepareToPut and
      * waits until a suitable TURL has been assigned. Although a list is returned,
      * SRMv2.2 only returns one TURL per SURL.
      */
-    bool putTURLs(SRMClientRequest& req,
-                  std::list<std::string>& urls,
-                  unsigned long long size = 0);
+    SRMReturnCode putTURLs(SRMClientRequest& req,
+                           std::list<std::string>& urls,
+                           unsigned long long size = 0);
   
     /**
      * Call srmBringOnline with the SURLs specified in req.
@@ -130,45 +119,49 @@ const static unsigned int max_files_list = 999;
      * Use srmLs to get info on the given SURL. Info on each file is put in a 
      * metadata struct and added to the list.
      */
-    bool info(SRMClientRequest& req,
-              std::list<struct SRMFileMetaData>& metadata,
-              const int recursive = 0);
+    SRMReturnCode info(SRMClientRequest& req,
+                       std::list<struct SRMFileMetaData>& metadata,
+                       const int recursive = 0);
   
     /**
      * Release files that have been pinned by srmPrepareToGet using
      * srmReleaseFiles. Called after successful file transfer or
      * failed prepareToGet.
      */
-    bool releaseGet(SRMClientRequest& req);
+    SRMReturnCode releaseGet(SRMClientRequest& req);
   
     /**
      * Mark a put request as finished.
      * Called after successful file transfer or failed prepareToPut.
      */
-    bool releasePut(SRMClientRequest& req);
+    SRMReturnCode releasePut(SRMClientRequest& req);
   
     /**
      * Not used in this version of SRM
      */
-    bool release(SRMClientRequest& req) {return false;};
+    SRMReturnCode release(SRMClientRequest& req) {return SRM_ERROR_NOT_SUPPORTED;};
   
     /**
      * Abort request. Called after any failure in the data transfer or putDone calls
      */
-    bool abort(SRMClientRequest& req);
+    SRMReturnCode abort(SRMClientRequest& req);
   
     /**
      * Delete by srmRm or srmRmDir
      */
-    bool remove(SRMClientRequest& req);
+    SRMReturnCode remove(SRMClientRequest& req);
   
     /**
      * Implemented in pull mode, ie the endpoint defined in the
      * request object performs the copy.
      */
-    bool copy(SRMClientRequest& req,
-              const std::string& source);
-  
+    SRMReturnCode copy(SRMClientRequest& req,
+                       const std::string& source);
+    
+    /**
+     * Call srmMkDir
+     */
+    SRMReturnCode mkDir(SRMClientRequest& req);
   };
 //} // namespace Arc
 

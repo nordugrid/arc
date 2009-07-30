@@ -59,14 +59,22 @@ namespace Arc {
       srm_request = new SRMClientRequest(url.Protocol() + "://" + url.Host() + "/" + url.HTTPOption("SFN"));
     
     if (!srm_request)
+      delete client;
+      client = NULL;
       return DataStatus::CheckError;
 
     logger.msg(DEBUG, "Check: looking for metadata: %s", CurrentLocation().str());
     std::list<struct SRMFileMetaData> metadata;
 
-    if (!client->info(*srm_request, metadata))
-      return DataStatus::CheckError;
+    SRMReturnCode res = client->info(*srm_request, metadata);
+    delete client;
+    client = NULL;
 
+    if (res != SRM_OK) {
+      if (res == SRM_ERROR_TEMPORARY) return DataStatus::CheckErrorRetryable;
+      return DataStatus::CheckError;
+    }
+    
     if (metadata.empty())
       return DataStatus::CheckError;
     logger.msg(INFO, "Check: obtained size: %lli", metadata.front().size);
@@ -82,6 +90,7 @@ namespace Arc {
       logger.msg(INFO, "Check: obtained creation date: %s", Time(metadata.front().createdAtTime).str());
       SetCreated(Time(metadata.front().createdAtTime));
     }
+
     return DataStatus::Success;
   }
 
@@ -107,14 +116,12 @@ namespace Arc {
     }
     logger.msg(DEBUG, "remove_srm: deleting: %s", CurrentLocation().str());
 
-    if (!client->remove(*srm_request)) {
-      delete client;
-      client = NULL;
+    SRMReturnCode res = client->remove(*srm_request);
+    delete client;
+    client = NULL;
+    if (res != SRM_OK) {
+      if (res == SRM_ERROR_TEMPORARY) return DataStatus::DeleteErrorRetryable;              
       return DataStatus::DeleteError;
-    }
-    if (client) {
-      delete client;
-      client = NULL;
     }
 
     return DataStatus::Success;
@@ -134,7 +141,7 @@ namespace Arc {
     SRMClient *client = SRMClient::getInstance(url.fullstr());
     if (!client) {
       reading = false;
-      return DataStatus::ReadError;
+      return DataStatus::ReadStartError;
     }
 
     // take out options in srm url
@@ -148,15 +155,17 @@ namespace Arc {
     if (!srm_request) {
       delete client;
       client = NULL;
-      return DataStatus::ReadError;
+      return DataStatus::ReadStartError;
     }
-
+    SRMReturnCode res;
     if (additional_checks) {
       logger.msg(DEBUG, "StartReading: looking for metadata: %s", CurrentLocation().str());
       std::list<struct SRMFileMetaData> metadata;
-      if (!client->info(*srm_request, metadata)) {
+      res = client->info(*srm_request, metadata);
+      if (res != SRM_OK) {
         reading = false;
-        return DataStatus::ReadError;
+        if (res == SRM_ERROR_TEMPORARY) return DataStatus::ReadStartErrorRetryable;
+        return DataStatus::ReadStartError;
       }
       // provide some metadata
       if (!metadata.empty()) {
@@ -173,10 +182,12 @@ namespace Arc {
     }
 
     std::list<std::string> turls;
-    if (!client->getTURLs(*srm_request, turls)) {
+    res = client->getTURLs(*srm_request, turls);
+    if (res != SRM_OK) {
       delete client;
       client = NULL;
-      return DataStatus::ReadError;
+      if (res == SRM_ERROR_TEMPORARY) return DataStatus::ReadStartErrorRetryable;
+      return DataStatus::ReadStartError;
     }
     client->disconnect();
 
@@ -224,10 +235,10 @@ namespace Arc {
       logger.msg(INFO, "SRM returned no useful Transfer URLs: %s", url.str());
       delete client;
       client = NULL;
-      return DataStatus::ReadError;
+      return DataStatus::ReadStartError;
     }
 
-    (*r_handle)->SetAdditionalChecks(additional_checks);
+    (*r_handle)->SetAdditionalChecks(false); // checks at higher levels are always done on SRM metadata
     (*r_handle)->SetSecure(force_secure);
     (*r_handle)->Passive(force_passive);
 
@@ -246,7 +257,7 @@ namespace Arc {
         client = NULL;
       }
       reading = false;
-      return DataStatus::ReadError;
+      return DataStatus::ReadStartError;
     }
     delete client;
     client = NULL;
@@ -294,7 +305,7 @@ namespace Arc {
     SRMClient *client = SRMClient::getInstance(url.fullstr());
     if (!client) {
       writing = false;
-      return DataStatus::WriteError;
+      return DataStatus::WriteStartError;
     }
 
     // take out options in srm url
@@ -308,7 +319,7 @@ namespace Arc {
     if (!srm_request) {
       delete client;
       client = NULL;
-      return DataStatus::WriteError;
+      return DataStatus::WriteStartError;
     }
 
     // set space token
@@ -341,10 +352,12 @@ namespace Arc {
     }
 
     std::list<std::string> turls;
-    if (!client->putTURLs(*srm_request, turls)) {
+    SRMReturnCode res = client->putTURLs(*srm_request, turls);
+    if (res != SRM_OK) {
       delete client;
       client = NULL;
-      return DataStatus::WriteError;
+      if (res == SRM_ERROR_TEMPORARY) return DataStatus::WriteStartErrorRetryable;
+      return DataStatus::WriteStartError;
     }
     client->disconnect();
  
@@ -392,7 +405,7 @@ namespace Arc {
       logger.msg(INFO, "SRM returned no useful Transfer URLs: %s", url.str());
       delete client;
       client = NULL;
-      return DataStatus::WriteError;
+      return DataStatus::WriteStartError;
     }
 
     logger.msg(INFO, "Redirecting to new URL: %s", (*r_handle)->CurrentLocation().str());
@@ -410,7 +423,7 @@ namespace Arc {
         client = NULL;
       }
       reading = false;
-      return DataStatus::WriteError;
+      return DataStatus::WriteStartError;
     }
     delete client;
     client = NULL;
@@ -428,6 +441,14 @@ namespace Arc {
 
     DataStatus r = (*r_handle)->StopWriting();
     delete r_handle;
+    if (!r) {
+      SRMClient *client = SRMClient::getInstance(url.fullstr());
+      if(client) {
+        client->abort(*srm_request);
+        delete client;
+      }
+      return r;
+    }
     if (srm_request) {
       SRMClient *client = SRMClient::getInstance(url.fullstr());
       if (client) {
@@ -454,7 +475,7 @@ namespace Arc {
 
     SRMClient * client = SRMClient::getInstance(url.fullstr());
     if(!client) 
-      return DataStatus::CheckError;
+      return DataStatus::ListError;
     
     std::string canonic_url;
     if (!url.HTTPOption("SFN").empty())
@@ -468,14 +489,18 @@ namespace Arc {
       client = NULL;
       return DataStatus::ListError;
     }
-
     logger.msg(DEBUG, "ListFiles: looking for metadata: %s", CurrentLocation().str());
+    if (long_list || metadata) srm_request->long_list(true);
     std::list<struct SRMFileMetaData> srm_metadata;
 
     // get info from SRM
-    if (!client->info(*srm_request, srm_metadata)) {
+    int recursion = 0;
+    if (metadata) recursion = -1; // get info on directory rather than contents
+    SRMReturnCode res = client->info(*srm_request, srm_metadata, recursion);
+    if (res != SRM_OK) {
       delete client;
       client = NULL;
+      if (res == SRM_ERROR_TEMPORARY) return DataStatus::ListErrorRetryable;   
       return DataStatus::ListError;
     }
 
@@ -501,52 +526,57 @@ namespace Arc {
          ++i) {
 
       std::list<FileInfo>::iterator f =
-        files.insert(files.end(), FileInfo((*i).path));
+        files.insert(files.end(), FileInfo(i->path));
       f->SetMetaData("path", i->path);
       
-      if ((*i).fileType == SRM_FILE) {
+      if (i->fileType == SRM_FILE) {
         f->SetType(FileInfo::file_type_file);
         f->SetMetaData("type", "file");
       }
-      else if ((*i).fileType == SRM_DIRECTORY) {
+      else if (i->fileType == SRM_DIRECTORY) {
         f->SetType(FileInfo::file_type_dir);
         f->SetMetaData("type", "dir");
       }
 
-      if ((*i).size >= 0) {
-        f->SetSize((*i).size);
+      if (i->size >= 0) {
+        f->SetSize(i->size);
         f->SetMetaData("size", tostring(i->size));
       }
-      if ((*i).createdAtTime > 0) {
-        f->SetCreated(Time((*i).createdAtTime));
-        f->SetMetaData("ctime", (Time((*i).createdAtTime)).str());
+      if (i->createdAtTime > 0) {
+        f->SetCreated(Time(i->createdAtTime));
+        f->SetMetaData("ctime", (Time(i->createdAtTime)).str());
       }
-      if ((*i).checkSumType.length() > 0 &&
-          (*i).checkSumValue.length() > 0) {
-        std::string csum((*i).checkSumType + ":" + (*i).checkSumValue);
+      if (i->checkSumType.length() > 0 &&
+          i->checkSumValue.length() > 0) {
+        std::string csum(i->checkSumType + ":" + i->checkSumValue);
         f->SetCheckSum(csum);
         f->SetMetaData("checksum", csum);
       }
-      if ((*i).fileLocality == SRM_ONLINE) {
+      if (i->fileLocality == SRM_ONLINE) {
         f->SetLatency("ONLINE");
         f->SetMetaData("latency", "ONLINE");
       }
-      else if ((*i).fileLocality == SRM_NEARLINE) {
+      else if (i->fileLocality == SRM_NEARLINE) {
         f->SetLatency("NEARLINE");
         f->SetMetaData("latency", "NEARLINE");
       }
-      if(!(*i).arrayOfSpaceTokens.empty()) f->SetMetaData("spacetokens", (*i).arrayOfSpaceTokens);
-      if(!(*i).owner.empty()) f->SetMetaData("owner", (*i).owner);
-      if(!(*i).group.empty()) f->SetMetaData("group", (*i).group);
-      if(!(*i).permission.empty()) f->SetMetaData("accessperm", (*i).permission);
-      if((*i).lastModificationTime > 0)
-        f->SetMetaData("mtime", (Time((*i).lastModificationTime)).str());
-      if((*i).lifetimeLeft != 0) f->SetMetaData("lifetimeleft", tostring((*i).lifetimeLeft));
-      if((*i).lifetimeAssigned != 0) f->SetMetaData("lifetimeassigned", tostring((*i).lifetimeAssigned));
+      if(!i->arrayOfSpaceTokens.empty()) f->SetMetaData("spacetokens", i->arrayOfSpaceTokens);
+      if(!i->owner.empty()) f->SetMetaData("owner", i->owner);
+      if(!i->group.empty()) f->SetMetaData("group", i->group);
+      if(!i->permission.empty()) f->SetMetaData("accessperm", i->permission);
+      if(i->lastModificationTime > 0)
+        f->SetMetaData("mtime", (Time(i->lastModificationTime)).str());
+      if(i->lifetimeLeft != 0) f->SetMetaData("lifetimeleft", tostring(i->lifetimeLeft));
+      if(i->lifetimeAssigned != 0) f->SetMetaData("lifetimeassigned", tostring(i->lifetimeAssigned));
   
-      if ((*i).retentionPolicy == SRM_REPLICA) f->SetMetaData("retentionpolicy", "REPLICA");
-      else if ((*i).retentionPolicy == SRM_OUTPUT) f->SetMetaData("retentionpolicy", "OUTPUT");
-      else if ((*i).retentionPolicy == SRM_CUSTODIAL)  f->SetMetaData("retentionpolicy", "CUSTODIAL");
+      if (i->retentionPolicy == SRM_REPLICA) f->SetMetaData("retentionpolicy", "REPLICA");
+      else if (i->retentionPolicy == SRM_OUTPUT) f->SetMetaData("retentionpolicy", "OUTPUT");
+      else if (i->retentionPolicy == SRM_CUSTODIAL)  f->SetMetaData("retentionpolicy", "CUSTODIAL");
+
+      if (i->fileStorageType == SRM_VOLATILE) f->SetMetaData("filestoragetype", "VOLATILE");
+      else if (i->fileStorageType == SRM_DURABLE) f->SetMetaData("filestoragetype", "DURABLE");
+      else if (i->fileStorageType == SRM_PERMANENT) f->SetMetaData("filestoragetype", "PERMANENT"); 
+
     }
     delete client;
     client = NULL;

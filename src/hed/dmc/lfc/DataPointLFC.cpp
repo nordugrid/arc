@@ -67,7 +67,7 @@ namespace Arc {
     /* Initialize Cthread library - should be called before any LFC-API function */
     if (0 != Cthread_init()) {
       logger.msg(ERROR, "Cthread_init() error: %s", sstrerror(serrno));
-      return DataStatus::ReadResolveError;
+      return DataStatus::SystemError;
     }
 #endif
 
@@ -75,7 +75,9 @@ namespace Arc {
                       const_cast<char*>("ARC")) != 0) {
       logger.msg(ERROR, "Error starting session: %s", sstrerror(serrno));
       lfc_endsess();
-      return DataStatus::ReadResolveError;
+      if (serrno == SECOMERR || serrno == ENSNACT || serrno == SETIMEDOUT)
+        return source ? DataStatus::ReadResolveErrorRetryable : DataStatus::WriteResolveErrorRetryable;
+      return source ? DataStatus::ReadResolveError : DataStatus::WriteResolveError;
     }
 
     if (source && !resolveGUIDToLFN()) {
@@ -92,16 +94,19 @@ namespace Arc {
     if (source) {
       if (url.Path().empty()) {
         logger.msg(INFO, "Source must contain LFN");
+        lfc_endsess();
         return DataStatus::ReadResolveError;
       }
     }
     else {
       if (url.Path().empty()) {
         logger.msg(INFO, "Destination must contain LFN");
+        lfc_endsess();
         return DataStatus::WriteResolveError;
       }
       if (url.Locations().size() == 0) {
         logger.msg(INFO, "Locations are missing in destination LFC URL");
+        lfc_endsess();
         return DataStatus::WriteResolveError;
       }
     }
@@ -111,7 +116,7 @@ namespace Arc {
       if (source || ((serrno != ENOENT) && (serrno != ENOTDIR))) {
         logger.msg(ERROR, "Error finding replicas: %s", sstrerror(serrno));
         lfc_endsess();
-        return DataStatus::WriteResolveError;
+        return source ? DataStatus::ReadResolveError : DataStatus::WriteResolveError;
       }
       nbentries = 0;
       entries = NULL;
@@ -171,6 +176,8 @@ namespace Arc {
         std::string csum = st.csumtype;
         if (csum == "MD")
           csum = "md5";
+        else if (csum == "AD") 
+          csum = "adler32";
         csum += ":";
         csum += st.csumvalue;
         SetCheckSum(csum);
@@ -198,7 +205,7 @@ namespace Arc {
     /* Initialize Cthread library - should be called before any LFC-API function */
     if (0 != Cthread_init()) {
       logger.msg(ERROR, "Cthread_init() error: %s", sstrerror(serrno));
-      return DataStatus::PreRegisterError;
+      return DataStatus::SystemError;
     }
 #endif
 
@@ -219,6 +226,8 @@ namespace Arc {
     if (lfc_startsess(const_cast<char*>(url.Host().c_str()),
                       const_cast<char*>("ARC")) != 0) {
       logger.msg(ERROR, "Error starting session: %s", sstrerror(serrno));
+      if (serrno == SECOMERR || serrno == ENSNACT || serrno == SETIMEDOUT)
+        return DataStatus::PreRegisterErrorRetryable;      
       return DataStatus::PreRegisterError;
     }
     if (guid.empty())
@@ -276,12 +285,14 @@ namespace Arc {
         cksumvalue = cksumvalue.substr(p + 1);
       }
       if (CheckSize())
-        lfc_setfsizeg(guid.c_str(), GetSize(), ckstype.c_str(), const_cast<char*>(cksumvalue.c_str()));
-      else
-        lfc_setfsizeg(guid.c_str(), 0, ckstype.c_str(), const_cast<char*>(cksumvalue.c_str()));
+        if (lfc_setfsizeg(guid.c_str(), GetSize(), ckstype.c_str(), const_cast<char*>(cksumvalue.c_str())) != 0)
+          logger.msg(ERROR, "Error entering metadata: %s", sstrerror(serrno));
+      else if (lfc_setfsizeg(guid.c_str(), 0, ckstype.c_str(), const_cast<char*>(cksumvalue.c_str())) != 0)
+          logger.msg(ERROR, "Error entering metadata: %s", sstrerror(serrno));
     }
     else if (CheckSize())
-      lfc_setfsizeg(guid.c_str(), GetSize(), NULL, NULL);
+      if (lfc_setfsizeg(guid.c_str(), GetSize(), NULL, NULL) != 0)
+        logger.msg(ERROR, "Error entering metadata: %s", sstrerror(serrno));
 
     lfc_endsess();
     return DataStatus::Success;
@@ -293,7 +304,7 @@ namespace Arc {
     /* Initialize Cthread library - should be called before any LFC-API function */
     if (0 != Cthread_init()) {
       logger.msg(ERROR, "Cthread_init() error: %s", sstrerror(serrno));
-      return DataStatus::PostRegisterError;
+      return DataStatus::SystemError;
     }
 #endif
 
@@ -304,6 +315,8 @@ namespace Arc {
     std::string pfn(CurrentLocation().str());
     if (lfc_startsess(const_cast<char*>(url.Host().c_str()), const_cast<char*>("ARC")) != 0) {
       logger.msg(ERROR, "Error starting session: %s", sstrerror(serrno));
+      if (serrno == SECOMERR || serrno == ENSNACT || serrno == SETIMEDOUT)
+        return DataStatus::PostRegisterErrorRetryable;
       return DataStatus::PostRegisterError;
     }
     if (lfc_addreplica(guid.c_str(), NULL, CurrentLocation().Host().c_str(), CurrentLocation().str().c_str(), '-', 'P', NULL, NULL) != 0) {
@@ -327,12 +340,14 @@ namespace Arc {
         logger.msg(DEBUG, "Entering checksum type %s, value %s, file size %llu", ckstype, cksumvalue, GetSize());
       }
       if (CheckSize())
-        lfc_setfsizeg(guid.c_str(), GetSize(), ckstype.c_str(), const_cast<char*>(cksumvalue.c_str()));
-      else
-        lfc_setfsizeg(guid.c_str(), 0, ckstype.c_str(), const_cast<char*>(cksumvalue.c_str()));
+        if (lfc_setfsizeg(guid.c_str(), GetSize(), ckstype.c_str(), const_cast<char*>(cksumvalue.c_str())) != 0)
+          logger.msg(ERROR, "Error entering metadata: %s", sstrerror(serrno));
+      else if (lfc_setfsizeg(guid.c_str(), 0, ckstype.c_str(), const_cast<char*>(cksumvalue.c_str())) != 0)
+        logger.msg(ERROR, "Error entering metadata: %s", sstrerror(serrno));
     }
     else if (CheckSize())
-      lfc_setfsizeg(guid.c_str(), GetSize(), NULL, NULL);
+      if (lfc_setfsizeg(guid.c_str(), GetSize(), NULL, NULL) != 0)
+        logger.msg(ERROR, "Error entering metadata: %s", sstrerror(serrno));
 
     lfc_endsess();
     return DataStatus::Success;
@@ -344,7 +359,7 @@ namespace Arc {
     /* Initialize Cthread library - should be called before any LFC-API function */
     if (0 != Cthread_init()) {
       logger.msg(ERROR, "Cthread_init() error: %s", sstrerror(serrno));
-      return DataStatus::UnregisterError;
+      return DataStatus::SystemError;
     }
 #endif
 
@@ -353,6 +368,8 @@ namespace Arc {
     if (lfc_startsess(const_cast<char*>(url.Host().c_str()),
                       const_cast<char*>("ARC")) != 0) {
       logger.msg(ERROR, "Error starting session: %s", sstrerror(serrno));
+      if (serrno == SECOMERR || serrno == ENSNACT || serrno == SETIMEDOUT)
+        return DataStatus::UnregisterErrorRetryable;
       return DataStatus::UnregisterError;
     }
     if (!resolveGUIDToLFN()) {
@@ -375,7 +392,7 @@ namespace Arc {
     /* Initialize Cthread library - should be called before any LFC-API function */
     if (0 != Cthread_init()) {
       logger.msg(ERROR, "Cthread_init() error: %s", sstrerror(serrno));
-      return DataStatus::UnregisterError;
+      return DataStatus::SystemError;
     }
 #endif
 
@@ -386,6 +403,8 @@ namespace Arc {
     if (lfc_startsess(const_cast<char*>(url.Host().c_str()),
                       const_cast<char*>("ARC")) != 0) {
       logger.msg(ERROR, "Error starting session: %s", sstrerror(serrno));
+      if (serrno == SECOMERR || serrno == ENSNACT || serrno == SETIMEDOUT)
+        return DataStatus::UnregisterErrorRetryable;
       return DataStatus::UnregisterError;
     }
     if (!resolveGUIDToLFN()) {
@@ -454,13 +473,15 @@ namespace Arc {
     /* Initialize Cthread library - should be called before any LFC-API function */
     if (0 != Cthread_init()) {
       logger.msg(ERROR, "Cthread_init() error: %s", sstrerror(serrno));
-      return DataStatus::ListError;
+      return DataStatus::SystemError;
     }
 #endif
 
     if (lfc_startsess(const_cast<char*>(url.Host().c_str()),
                       const_cast<char*>("ARC")) != 0) {
       logger.msg(ERROR, "Error starting session: %s", sstrerror(serrno));
+      if (serrno == SECOMERR || serrno == ENSNACT || serrno == SETIMEDOUT)
+        return DataStatus::ListErrorRetryable;
       return DataStatus::ListError;
     }
     if (!resolveGUIDToLFN()) {

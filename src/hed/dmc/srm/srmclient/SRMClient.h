@@ -30,8 +30,11 @@
     SRM_OK,
     SRM_ERROR_CONNECTION,
     SRM_ERROR_SOAP,
-    SRM_ERROR_NOT_SUPPORTED,
-    SRM_ERROR_OTHER,
+    // the next two only apply to valid repsonses from the service 
+    SRM_ERROR_TEMPORARY, // eg SRM_INTERNAL_ERROR, SRM_FILE_BUSY
+    SRM_ERROR_PERMANENT, // eg no such file, permission denied
+    SRM_ERROR_NOT_SUPPORTED, // not supported by this version of the protocol
+    SRM_ERROR_OTHER, // eg bad input parameters, unexpected result format
   };
   
   /**
@@ -342,6 +345,7 @@
      * @param url A SURL. A client connects to the service host derived from
      * this SURL. All operations with a client instance must use SURLs with
      * the same host as this one.
+     * @param timeout Connection timeout.
      * @param version If this is non-NULL a client instance of this version
      * is returned.
      */
@@ -384,7 +388,7 @@
      * spaces, not user-readable strings.
      * @param tokens The list filled by the service
      * @param description The space token description
-     * @returns True on success, false on failure
+     * @returns SRMReturnCode specifying outcome of operation
      */
     virtual SRMReturnCode getSpaceTokens(std::list<std::string>& tokens,
                                          std::string description = "") = 0;
@@ -396,7 +400,7 @@
      * @param tokens The list filled by the service
      * @param description The user request description, which can be specified
      * when the request is created
-     * @returns True on success, false on failure
+     * @returns SRMReturnCode specifying outcome of operation
      */
     virtual SRMReturnCode getRequestTokens(std::list<std::string>& tokens,
                                            std::string description = "") = 0;
@@ -407,10 +411,10 @@
      * to retrieve the transport URL to copy the file from.
      * @param req The request object
      * @param urls A list of TURLs filled by the method
-     * @returns True on success, false on failure
+     * @returns SRMReturnCode specifying outcome of operation
      */
-    virtual bool getTURLs(SRMClientRequest& req,
-                          std::list<std::string>& urls) = 0;
+    virtual SRMReturnCode getTURLs(SRMClientRequest& req,
+                                   std::list<std::string>& urls) = 0;
   
     /**
      * Submit a request to bring online files. This operation is asynchronous
@@ -436,40 +440,40 @@
      * @param req The request object
      * @param urls A list of TURLs filled by the method
      * @param size The size of the file
-     * @returns True on success, false on failure
+     * @returns SRMReturnCode specifying outcome of operation
      */
-    virtual bool putTURLs(SRMClientRequest& req,
-                          std::list<std::string>& urls,
-                          unsigned long long size = 0) = 0;
+    virtual SRMReturnCode putTURLs(SRMClientRequest& req,
+                                   std::list<std::string>& urls,
+                                   unsigned long long size = 0) = 0;
   
     /**
      * Should be called after a successful copy from SRM storage.
      * @param req The request object
-     * @returns True on success, false on failure
+     * @returns SRMReturnCode specifying outcome of operation
      */
-    virtual bool releaseGet(SRMClientRequest& req) = 0;
+    virtual SRMReturnCode releaseGet(SRMClientRequest& req) = 0;
   
     /**
      * Should be called after a successful copy to SRM storage.
      * @param req The request object
-     * @returns True on success, false on failure
+     * @returns SRMReturnCode specifying outcome of operation
      */   
-    virtual bool releasePut(SRMClientRequest& req) = 0;
+    virtual SRMReturnCode releasePut(SRMClientRequest& req) = 0;
   
     /**
      * Used in SRM v1 only. Called to release files after successful transfer.
      * @param req The request object
-     * @returns True on success, false on failure
+     * @returns SRMReturnCode specifying outcome of operation
      */   
-    virtual bool release(SRMClientRequest& req) = 0;
+    virtual SRMReturnCode release(SRMClientRequest& req) = 0;
   
     /**
      * Called in the case of failure during transfer or releasePut. Releases
      * all TURLs involved in the transfer.
      * @param req The request object
-     * @returns True on success, false on failure
+     * @returns SRMReturnCode specifying outcome of operation
      */
-    virtual bool abort(SRMClientRequest& req) = 0;
+    virtual SRMReturnCode abort(SRMClientRequest& req) = 0;
   
     /**
      * Returns information on a file or files (v2.2 and higher)
@@ -478,29 +482,36 @@
      * @param req The request object
      * @param metadata A list of structs filled with file information
      * @param recursive The level of recursion into sub directories
-     * @returns True on success, false on failure
+     * @returns SRMReturnCode specifying outcome of operation
      * @see SRMFileMetaData
      */
-    virtual bool info(SRMClientRequest& req,
-                      std::list<struct SRMFileMetaData>& metadata,
-                      const int recursive = 0) = 0;
+    virtual SRMReturnCode info(SRMClientRequest& req,
+                               std::list<struct SRMFileMetaData>& metadata,
+                               const int recursive = 0) = 0;
   
     /**
      * Delete a file physically from storage and the SRM namespace.
      * @param req The request object
-     * @returns True on success, false on failure
+     * @returns SRMReturnCode specifying outcome of operation
      */
-    virtual bool remove(SRMClientRequest& req) = 0;
+    virtual SRMReturnCode remove(SRMClientRequest& req) = 0;
   
     /**
      * Copy a file between two SRM storages.
      * @param req The request object
      * @param source The source SURL
-     * @returns True on success, false on failure
+     * @returns SRMReturnCode specifying outcome of operation
      */
-    virtual bool copy(SRMClientRequest& req,
-                      const std::string& source) = 0;
+    virtual SRMReturnCode copy(SRMClientRequest& req,
+                               const std::string& source) = 0;
   
+    /**
+     * Make required directories for the SURL in the request
+     * @param req The request object
+     * @returns SRMReturnCode specifying outcome of operation
+     */
+    virtual SRMReturnCode mkDir(SRMClientRequest& req) = 0;
+
     operator bool(void) { return csoap; };
     bool operator!(void) { return !csoap; };
   };

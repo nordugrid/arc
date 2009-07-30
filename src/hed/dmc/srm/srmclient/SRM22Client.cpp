@@ -11,10 +11,10 @@
     implementation = SRM_IMPLEMENTATION_UNKNOWN;
     service_endpoint = url.ContactURL();
     csoap = new Arc::HTTPSClientSOAP(service_endpoint.c_str(),
-                                &soapobj,
-                                url.GSSAPI(),
-                                request_timeout,
-                                false);
+                                     &soapobj,
+                                     url.GSSAPI(),
+                                     request_timeout,
+                                     false);
     if(!csoap) { csoap=NULL; return; };
     if(!*csoap) { delete csoap; csoap=NULL; return; };
     soapobj.namespaces=srm2_2_soap_namespaces;
@@ -166,10 +166,10 @@
   };
   
   
-  bool SRM22Client::getTURLs(SRMClientRequest& req,
-                             std::list<std::string>& urls) {
-    if(!csoap) return false;
-    if(!connect()) return false;
+  SRMReturnCode SRM22Client::getTURLs(SRMClientRequest& req,
+                                      std::list<std::string>& urls) {
+    if(!csoap) return SRM_ERROR_OTHER;
+    if(!connect()) return SRM_ERROR_CONNECTION;
   
     // call get
     
@@ -203,9 +203,8 @@
     if((soap_err=soap_call_SRMv2__srmPrepareToGet(&soapobj, csoap->SOAP_URL(), "srmPrepareToGet", request, response_struct)) != SOAP_OK){
       logger.msg(Arc::INFO, "SOAP request failed (%s)", "srmPrepareToGet");
       soap_print_fault(&soapobj, stderr);
-      // TODO: add some retries for transient errors
       csoap->disconnect();
-      return false;
+      return SRM_ERROR_SOAP;
     };
   
     SRMv2__srmPrepareToGetResponse * response_inst = response_struct.srmPrepareToGetResponse;
@@ -226,12 +225,11 @@
         sleeptime = *(response_inst->arrayOfFileStatuses->statusArray[0]->estimatedWaitTime);
       int request_time = 0;
   
-      while(return_status != SRMv2__TStatusCode__SRM_USCORESUCCESS &&
-            request_time < request_timeout) {
+      while (return_status != SRMv2__TStatusCode__SRM_USCORESUCCESS) {
   
         // sleep for recommended time (within limits)
         sleeptime = sleeptime<1?1:sleeptime;
-        sleeptime = sleeptime>10?10:sleeptime;
+        sleeptime = sleeptime>request_timeout ? request_timeout-request_time : sleeptime;
         logger.msg(Arc::DEBUG, "%s: File request %s in SRM queue. Sleeping for %i seconds", req.surls().front(), request_token, sleeptime);
         sleep(sleeptime);
         request_time += sleeptime;
@@ -245,9 +243,8 @@
         if ((soap_err=soap_call_SRMv2__srmStatusOfGetRequest(&soapobj, csoap->SOAP_URL(), "srmStatusOfGetRequest", sog_request, sog_response_struct)) != SOAP_OK) {
           logger.msg(Arc::INFO, "SOAP request failed (%s)", "srmStatusOfGetRequest");
           soap_print_fault(&soapobj, stderr);
-          // TODO: add some retries for transient errors
           csoap->disconnect();
-          return false;
+          return SRM_ERROR_SOAP;
         };
   
         // check return codes - loop will exit on success or return false on error
@@ -258,27 +255,23 @@
         if (return_status == SRMv2__TStatusCode__SRM_USCOREREQUEST_USCOREQUEUED ||
             return_status == SRMv2__TStatusCode__SRM_USCOREREQUEST_USCOREINPROGRESS) {
           // still queued - keep waiting
-  
-          // estimatedWaitTime gives the total estimated wait time since the initial
-          // request, so take off what we have slept already
-          int stime = 2;
+          // check for timeout
+          if (request_time >= request_timeout) {
+            logger.msg(Arc::ERROR, "Error: PrepareToGet request timed out after %i seconds", request_timeout);
+            return SRM_ERROR_TEMPORARY;
+          }
           if(file_statuses->statusArray[0]->estimatedWaitTime)
-            stime = *(file_statuses->statusArray[0]->estimatedWaitTime);
-          sleeptime = stime-sleeptime;
+            sleeptime = *(file_statuses->statusArray[0]->estimatedWaitTime);
         }
         else if (return_status != SRMv2__TStatusCode__SRM_USCORESUCCESS) {
           // error
           char * msg = sog_response_struct.srmStatusOfGetRequestResponse->returnStatus->explanation;
           logger.msg(Arc::ERROR, "Error: %s", msg);
-          return false;
+          if (return_status == SRMv2__TStatusCode__SRM_USCOREINTERNAL_USCOREERROR)
+            return SRM_ERROR_TEMPORARY;
+          return SRM_ERROR_PERMANENT;
         };
       }; // while
-  
-      // check for timeout
-      if (request_time >= request_timeout) {
-        logger.msg(Arc::ERROR, "Error: PrepareToGet request timed out after %i seconds", request_timeout);
-        return false;
-      }
   
     } // if file queued
   
@@ -286,7 +279,9 @@
       // any other return code is a failure
       char * msg = response_inst->returnStatus->explanation;
       logger.msg(Arc::ERROR, "Error: %s", msg);
-      return false;
+      if (return_status == SRMv2__TStatusCode__SRM_USCOREINTERNAL_USCOREERROR)
+        return SRM_ERROR_TEMPORARY;
+      return SRM_ERROR_PERMANENT;
     };
   
     // the file is ready and pinned - we can get the TURL
@@ -295,7 +290,7 @@
     logger.msg(Arc::DEBUG, "File is ready! TURL is %s", turl);
     urls.push_back(std::string(turl));
   
-    return true;
+    return SRM_OK;
   }
   
   SRMReturnCode SRM22Client::requestBringOnline(SRMClientRequest& req) {
@@ -335,7 +330,7 @@
   
     // store the user id as part of the request, so they can find it later
     char * user = const_cast<char*>(g_get_user_name());
-    if (user != "") {
+    if (user) {
       logger.msg(Arc::DEBUG, "Setting userRequestDescription to %s", user);
       request->userRequestDescription = user;
     };
@@ -391,8 +386,9 @@
     char * msg = response_inst->returnStatus->explanation;
     logger.msg(Arc::ERROR, "Error: %s", msg);
     req.finished_error();
-    return SRM_ERROR_OTHER;
-  
+    if (return_status == SRMv2__TStatusCode__SRM_USCOREINTERNAL_USCOREERROR)
+      return SRM_ERROR_TEMPORARY;
+    return SRM_ERROR_PERMANENT;  
   };
   
   
@@ -415,7 +411,6 @@
     if ((soap_err=soap_call_SRMv2__srmStatusOfBringOnlineRequest(&soapobj, csoap->SOAP_URL(), "srmStatusOfBringOnlineRequest", sobo_request, sobo_response_struct)) != SOAP_OK) {
       logger.msg(Arc::INFO, "SOAP request failed (%s)", "srmStatusOfBringOnlineRequest");
       soap_print_fault(&soapobj, stderr);
-      // TODO: add some retries for transient errors
       csoap->disconnect();
       return SRM_ERROR_SOAP;
     };
@@ -467,12 +462,12 @@
       else if(explanation.length() != 0){
         logger.msg(Arc::DEBUG, "Request is reported as ABORTED. Reason: %s", explanation);
         req.finished_error();
-        return SRM_ERROR_OTHER;
+        return SRM_ERROR_PERMANENT;
       }
       else {
         logger.msg(Arc::DEBUG, "Request is reported as ABORTED");
         req.finished_error();
-        return SRM_ERROR_OTHER;
+        return SRM_ERROR_PERMANENT;
       }
       
     };
@@ -483,7 +478,9 @@
     logger.msg(Arc::ERROR, "Error: %s", msg);
     if(file_statuses) fileStatus(req, file_statuses);
     req.finished_error();
-    return SRM_ERROR_OTHER;
+    if (return_status == SRMv2__TStatusCode__SRM_USCOREINTERNAL_USCOREERROR)
+      return SRM_ERROR_TEMPORARY;
+    return SRM_ERROR_PERMANENT;
   };
   
   void SRM22Client::fileStatus(SRMClientRequest& req,
@@ -523,11 +520,11 @@
   };
   
   
-  bool SRM22Client::putTURLs(SRMClientRequest& req,
-                             std::list<std::string>& urls,
-                             unsigned long long size) {
-    if(!csoap) return false;
-    if(!connect()) return false;
+  SRMReturnCode SRM22Client::putTURLs(SRMClientRequest& req,
+                                      std::list<std::string>& urls,
+                                      unsigned long long size) {
+    if(!csoap) return SRM_ERROR_OTHER;
+    if(!connect()) return SRM_ERROR_CONNECTION;
   
     // call put
     
@@ -571,9 +568,8 @@
     if((soap_err=soap_call_SRMv2__srmPrepareToPut(&soapobj, csoap->SOAP_URL(), "srmPrepareToPut", request, response_struct)) != SOAP_OK){
       logger.msg(Arc::INFO, "SOAP request failed (%s)", "srmPrepareToPut");
       soap_print_fault(&soapobj, stderr);
-      // TODO: add some retries for transient errors
       csoap->disconnect();
-      return false;
+      return SRM_ERROR_SOAP;
     };
   
     SRMv2__srmPrepareToPutResponse * response_inst = response_struct.srmPrepareToPutResponse;
@@ -594,12 +590,11 @@
         sleeptime = *(response_inst->arrayOfFileStatuses->statusArray[0]->estimatedWaitTime);
       int request_time = 0;
   
-      while(return_status != SRMv2__TStatusCode__SRM_USCORESUCCESS &&
-            request_time < request_timeout) {
+      while(return_status != SRMv2__TStatusCode__SRM_USCORESUCCESS) {
   
         // sleep for recommended time (within limits)
         sleeptime = sleeptime<1?1:sleeptime;
-        sleeptime = sleeptime>10?10:sleeptime;
+        sleeptime = sleeptime>request_timeout ? request_timeout-request_time : sleeptime;
         logger.msg(Arc::DEBUG, "%s: File request %s in SRM queue. Sleeping for %i seconds", req.surls().front(), request_token, sleeptime);
         sleep(sleeptime);
         request_time += sleeptime;
@@ -613,9 +608,8 @@
         if ((soap_err=soap_call_SRMv2__srmStatusOfPutRequest(&soapobj, csoap->SOAP_URL(), "srmStatusOfPutRequest", sog_request, sog_response_struct)) != SOAP_OK) {
           logger.msg(Arc::INFO, "SOAP request failed (%s)", "srmStatusOfPutRequest");
           soap_print_fault(&soapobj, stderr);
-          // TODO: add some retries for transient errors
           csoap->disconnect();
-          return false;
+          return SRM_ERROR_SOAP;
         };
   
         // check return codes - loop will exit on success or return false on error
@@ -626,38 +620,65 @@
         if (return_status == SRMv2__TStatusCode__SRM_USCOREREQUEST_USCOREQUEUED ||
             return_status == SRMv2__TStatusCode__SRM_USCOREREQUEST_USCOREINPROGRESS) {
           // still queued - keep waiting
-  
-          // estimatedWaitTime gives the total estimated wait time since the initial
-          // request, so take off what we have slept already
-          if (file_statuses && 
+          // check for timeout
+          if (request_time >= request_timeout) {
+            logger.msg(Arc::ERROR, "Error: PrepareToPut request timed out after %i seconds", request_timeout);
+            return SRM_ERROR_TEMPORARY;
+          }
+          if (file_statuses &&
               file_statuses->statusArray &&
               file_statuses->statusArray[0] &&
               file_statuses->statusArray[0]->estimatedWaitTime) {
-            int stime = *(file_statuses->statusArray[0]->estimatedWaitTime);
-            sleeptime = stime-sleeptime;
+            sleeptime = *(file_statuses->statusArray[0]->estimatedWaitTime);
           }
         }
         else if (return_status != SRMv2__TStatusCode__SRM_USCORESUCCESS) {
           // error
+          // check individual file statuses
+          if (file_statuses &&
+              file_statuses->statusArray &&
+              file_statuses->statusArray[0] &&
+              file_statuses->statusArray[0]->status &&
+              file_statuses->statusArray[0]->status->statusCode &&
+              file_statuses->statusArray[0]->status->statusCode == SRMv2__TStatusCode__SRM_USCOREINVALID_USCOREPATH) {
+            // make directories
+            logger.msg(Arc::DEBUG, "Path %s is invalid, creating required directories", req.surls().front());
+            SRMReturnCode mkdirres = mkDir(req);
+            if (mkdirres == SRM_OK) return putTURLs(req, urls, size);
+            logger.msg(Arc::ERROR, "Error creating required directories for %s", req.surls().front());
+            return mkdirres;
+          }
           char * msg = sog_response_struct.srmStatusOfPutRequestResponse->returnStatus->explanation;
           logger.msg(Arc::ERROR, "Error: %s", msg);
-          return false;
+          if (return_status == SRMv2__TStatusCode__SRM_USCOREINTERNAL_USCOREERROR)
+            return SRM_ERROR_TEMPORARY;
+          return SRM_ERROR_PERMANENT;
         };
       }; // while
-  
-      // check for timeout
-      if (request_time >= request_timeout) {
-        logger.msg(Arc::ERROR, "Error: PrepareToPut request timed out after %i seconds", request_timeout);
-        return false;
-      }
   
     } // if file queued
   
     else if (return_status != SRMv2__TStatusCode__SRM_USCORESUCCESS) {
       // any other return code is a failure
+      // check individual file statuses
+      if (file_statuses &&
+          file_statuses->statusArray &&
+          file_statuses->statusArray[0] &&
+          file_statuses->statusArray[0]->status &&
+          file_statuses->statusArray[0]->status->statusCode &&
+          file_statuses->statusArray[0]->status->statusCode == SRMv2__TStatusCode__SRM_USCOREINVALID_USCOREPATH) {
+        // make directories
+        logger.msg(Arc::DEBUG, "Path %s is invalid, creating required directories", req.surls().front());
+        SRMReturnCode mkdirres = mkDir(req);
+        if (mkdirres == SRM_OK) return putTURLs(req, urls, size);
+        logger.msg(Arc::ERROR, "Error creating required directories for %s", req.surls().front());
+        return mkdirres;
+      }
       char * msg = response_inst->returnStatus->explanation;
       logger.msg(Arc::ERROR, "Error: %s", msg);
-      return false;
+      if (return_status == SRMv2__TStatusCode__SRM_USCOREINTERNAL_USCOREERROR)
+        return SRM_ERROR_TEMPORARY;
+      return SRM_ERROR_PERMANENT;
     };
   
     // the file is ready and pinned - we can get the TURL
@@ -666,23 +687,23 @@
     logger.msg(Arc::DEBUG, "File is ready! TURL is %s", turl);
     urls.push_back(std::string(turl));
   
-    return true;
+    return SRM_OK;
   }
   
-  bool SRM22Client::info(SRMClientRequest& req,
-                         std::list<struct SRMFileMetaData>& metadata,
-                         const int recursive) {
+  SRMReturnCode SRM22Client::info(SRMClientRequest& req,
+                                  std::list<struct SRMFileMetaData>& metadata,
+                                  const int recursive) {
     return info(req, metadata, recursive, 0, 0);
   }
   
-  bool SRM22Client::info(SRMClientRequest& req,
-                         std::list<struct SRMFileMetaData>& metadata,
-                         const int recursive,
-                         const int offset,
-                         const int count) {
+  SRMReturnCode SRM22Client::info(SRMClientRequest& req,
+                                  std::list<struct SRMFileMetaData>& metadata,
+                                  const int recursive,
+                                  const int offset,
+                                  const int count) {
   
-    if(!csoap) return false;
-    if(!connect()) return false;
+    if(!csoap) return SRM_ERROR_OTHER;
+    if(!connect()) return SRM_ERROR_CONNECTION;
   
     // call ls
   
@@ -715,9 +736,8 @@
     if((soap_err=soap_call_SRMv2__srmLs(&soapobj, csoap->SOAP_URL(), "srmLs", request, response_struct)) != SOAP_OK){
       logger.msg(Arc::INFO, "SOAP request failed (%s)", "srmLs");
       soap_print_fault(&soapobj, stderr);
-      // TODO: add some retries for transient errors
       csoap->disconnect();
-      return false;
+      return SRM_ERROR_SOAP;
     };
   
     SRMv2__srmLsResponse * response_inst = response_struct.srmLsResponse;
@@ -739,7 +759,7 @@
       while(return_status != SRMv2__TStatusCode__SRM_USCORESUCCESS &&
             request_time < request_timeout) {
   
-        // sleep for some time
+        // sleep for some time (no estimated time is given by the server)
         logger.msg(Arc::DEBUG, "%s: File request %s in SRM queue. Sleeping for %i seconds", req.surls().front(), request_token, sleeptime);
         sleep(sleeptime);
         request_time += sleeptime;
@@ -753,9 +773,8 @@
         if ((soap_err=soap_call_SRMv2__srmStatusOfLsRequest(&soapobj, csoap->SOAP_URL(), "srmStatusOfLsRequest", sols_request, sols_response_struct)) != SOAP_OK) {
           logger.msg(Arc::INFO, "SOAP request failed (%s)", "srmStatusOfLsRequest");
           soap_print_fault(&soapobj, stderr);
-          // TODO: add some retries for transient errors
           csoap->disconnect();
-          return false;
+          return SRM_ERROR_SOAP;
         };
   
         // check return codes - loop will exit on success or return false on error
@@ -769,14 +788,16 @@
           // error
           char * msg = sols_response_struct.srmStatusOfLsRequestResponse->returnStatus->explanation;
           logger.msg(Arc::ERROR, "Error: %s", msg);
-          return false;
+          if (return_status == SRMv2__TStatusCode__SRM_USCOREINTERNAL_USCOREERROR)
+            return SRM_ERROR_TEMPORARY;
+          return SRM_ERROR_PERMANENT;
         };
       }; // while
   
       // check for timeout
       if (request_time >= request_timeout) {
         logger.msg(Arc::ERROR, "Error: Ls request timed out after %i seconds", request_timeout);
-        return false;
+        return SRM_ERROR_TEMPORARY;
       }
   
     } // else if request queued
@@ -785,11 +806,13 @@
       // any other return code is a failure
       char * msg = response_inst->returnStatus->explanation;
       logger.msg(Arc::ERROR, "Error: %s", msg);
-      return false;
+      if (return_status == SRMv2__TStatusCode__SRM_USCOREINTERNAL_USCOREERROR)
+        return SRM_ERROR_TEMPORARY;
+      return SRM_ERROR_PERMANENT;
     };
   
     // the request is ready - collect the details
-    if (!file_details || !file_details->pathDetailArray || file_details->__sizepathDetailArray == 0 || !file_details->pathDetailArray[0]) return true; // see bug 1364
+    if (!file_details || !file_details->pathDetailArray || file_details->__sizepathDetailArray == 0 || !file_details->pathDetailArray[0]) return SRM_OK; // see bug 1364
     // first the file or directory corresponding to the surl
     SRMv2__TMetaDataPathDetail * details = file_details->pathDetailArray[0];
     if (!details->type || *(details->type) != SRMv2__TFileType__DIRECTORY || recursive < 0) {
@@ -809,7 +832,7 @@
     // castor
     else if (file_details->__sizepathDetailArray > 1) subpaths = file_details;
     // no subpaths
-    else return true;
+    else return SRM_OK;
   
     // if there are more entries than max_files_list, we have to call info()
     // multiple times, setting offset and count
@@ -826,7 +849,8 @@
           SRMClientRequest list_req(req.surls().front());
           list_offset = max_files_list * list_no;
           list_count = max_files_list;
-          if(!info(list_req, list_metadata, 0, list_offset, list_count)) return false;
+          SRMReturnCode res = info(list_req, list_metadata, 0, list_offset, list_count);
+          if (res != SRM_OK) return res;
           list_no++;
           // append to metadata
           for (std::list<SRMFileMetaData>::iterator it = list_metadata.begin();
@@ -852,7 +876,7 @@
     // sort list by filename
     //metadata.sort(compare_srm_file_meta_data);
   
-    return true;
+    return SRM_OK;
   }
   
   SRMFileMetaData SRM22Client::fillDetails(SRMv2__TMetaDataPathDetail * details,
@@ -873,34 +897,29 @@
       	// only use the basename of the path
       	metadata.path = metadata.path.substr(metadata.path.rfind("/", metadata.path.length())+1);
       };
-      logger.msg(Arc::DEBUG, "Path is %s", metadata.path);
     };
   
     if(details->size){
       ULONG64 * fsize = details->size;
       metadata.size = *fsize;
-      logger.msg(Arc::DEBUG, "File size is %llu", *fsize);
     }
     else {metadata.size = -1;};
   
     if(details->checkSumType){
       char * checksum_type = details->checkSumType;
       metadata.checkSumType = checksum_type;
-      logger.msg(Arc::DEBUG, "Checksum type is %s", checksum_type);
     }
     else {metadata.checkSumType = "";};
   
     if(details->checkSumValue){
       char * checksum_value = details->checkSumValue;
       metadata.checkSumValue = checksum_value;
-      logger.msg(Arc::DEBUG, "Checksum value is %s", checksum_value);
     }
     else {metadata.checkSumValue = "";};
   
     if(details->createdAtTime){
       time_t * creation_time = details->createdAtTime;
       metadata.createdAtTime = *creation_time;
-      logger.msg(Arc::DEBUG, "Creation date is %s", ctime(creation_time));
     } 
     else {metadata.createdAtTime = 0;};
   
@@ -983,13 +1002,13 @@
   
   }
   
-  bool SRM22Client::releaseGet(SRMClientRequest& req) {
+  SRMReturnCode SRM22Client::releaseGet(SRMClientRequest& req) {
   
     // Release all the pins referred to by the request token in the request object
     SRMv2__srmReleaseFilesRequest * request = new SRMv2__srmReleaseFilesRequest;
     if(req.request_token() == "") {
       logger.msg(Arc::ERROR, "No request token specified!");
-      return false;
+      return SRM_ERROR_OTHER;
     };
     request->requestToken=(char*)req.request_token().c_str();
   
@@ -1001,33 +1020,34 @@
     if((soap_err=soap_call_SRMv2__srmReleaseFiles(&soapobj, csoap->SOAP_URL(), "srmReleaseFiles", request, response_struct)) != SOAP_OK){
       logger.msg(Arc::INFO, "SOAP request failed (%s)", "srmReleaseFiles");
       soap_print_fault(&soapobj, stderr);
-      // TODO: add some retries for transient errors
       csoap->disconnect();
-      return false;
+      return SRM_ERROR_SOAP;
     };
   
     if (response_struct.srmReleaseFilesResponse->returnStatus->statusCode != SRMv2__TStatusCode__SRM_USCORESUCCESS) {
       char * msg = response_struct.srmReleaseFilesResponse->returnStatus->explanation;
       logger.msg(Arc::ERROR, "Error: %s", msg);
       csoap->disconnect();
-      return false;
+      if (response_struct.srmReleaseFilesResponse->returnStatus->statusCode == SRMv2__TStatusCode__SRM_USCOREINTERNAL_USCOREERROR)
+        return SRM_ERROR_TEMPORARY;
+      return SRM_ERROR_PERMANENT;
     };
   
     // release went ok
     logger.msg(Arc::DEBUG, "Files associated with request token %s released successfully", req.request_token());
-    return true;
+    return SRM_OK;
   
   };
   
   
-  bool SRM22Client::releasePut(SRMClientRequest& req) {
+  SRMReturnCode SRM22Client::releasePut(SRMClientRequest& req) {
   
     // Set the files referred to by the request token in the request object
     // which were prepared to put to done
     SRMv2__srmPutDoneRequest * request = new SRMv2__srmPutDoneRequest;
     if(req.request_token() == "") {
       logger.msg(Arc::ERROR, "No request token specified!");
-      return false;
+      return SRM_ERROR_OTHER;
     };
     request->requestToken=(char*)req.request_token().c_str();
 
@@ -1049,31 +1069,32 @@
     if((soap_err=soap_call_SRMv2__srmPutDone(&soapobj, csoap->SOAP_URL(), "srmPutDone", request, response_struct)) != SOAP_OK){
       logger.msg(Arc::INFO, "SOAP request failed (%s)", "srmPutDone");
       soap_print_fault(&soapobj, stderr);
-      // TODO: add some retries for transient errors
       csoap->disconnect();
-      return false;
+      return SRM_ERROR_SOAP;
     };
   
     if (response_struct.srmPutDoneResponse->returnStatus->statusCode != SRMv2__TStatusCode__SRM_USCORESUCCESS) {
       char * msg = response_struct.srmPutDoneResponse->returnStatus->explanation;
       logger.msg(Arc::ERROR, "Error: %s", msg);
       csoap->disconnect();
-      return false;
+      if (response_struct.srmPutDoneResponse->returnStatus->statusCode == SRMv2__TStatusCode__SRM_USCOREINTERNAL_USCOREERROR)
+        return SRM_ERROR_TEMPORARY;
+      return SRM_ERROR_PERMANENT;
     };
   
     // release went ok
     logger.msg(Arc::DEBUG, "Files associated with request token %s put done successfully", req.request_token());
-    return true;
+    return SRM_OK;
   
   };
   
-  bool SRM22Client::abort(SRMClientRequest& req) {
+  SRMReturnCode SRM22Client::abort(SRMClientRequest& req) {
   
     // Call srmAbortRequest on the files in the request token
     SRMv2__srmAbortRequestRequest * request = new SRMv2__srmAbortRequestRequest;
     if(req.request_token() == "") {
       logger.msg(Arc::ERROR, "No request token specified!");
-      return false;
+      return SRM_ERROR_OTHER;
     };
     request->requestToken=(char*)req.request_token().c_str();
   
@@ -1085,25 +1106,26 @@
     if((soap_err=soap_call_SRMv2__srmAbortRequest(&soapobj, csoap->SOAP_URL(), "srmAbortRequest", request, response_struct)) != SOAP_OK){
       logger.msg(Arc::INFO, "SOAP request failed (%s)", "srmAbortRequest");
       soap_print_fault(&soapobj, stderr);
-      // TODO: add some retries for transient errors
       csoap->disconnect();
-      return false;
+      return SRM_ERROR_SOAP;
     };
   
     if (response_struct.srmAbortRequestResponse->returnStatus->statusCode != SRMv2__TStatusCode__SRM_USCORESUCCESS) {
       char * msg = response_struct.srmAbortRequestResponse->returnStatus->explanation;
       logger.msg(Arc::ERROR, "Error: %s", msg);
       csoap->disconnect();
-      return false;
+      if (response_struct.srmAbortRequestResponse->returnStatus->statusCode == SRMv2__TStatusCode__SRM_USCOREINTERNAL_USCOREERROR)
+        return SRM_ERROR_TEMPORARY;
+      return SRM_ERROR_PERMANENT;
     };
   
     // release went ok
     logger.msg(Arc::DEBUG, "Files associated with request token %s aborted successfully", req.request_token());
-    return true;
+    return SRM_OK;
   
   };
   
-  bool SRM22Client::remove(SRMClientRequest& req) {
+  SRMReturnCode SRM22Client::remove(SRMClientRequest& req) {
   
     // TODO: bulk remove
   
@@ -1112,9 +1134,10 @@
     std::list<struct SRMFileMetaData> metadata;
   
     // set recursion to -1, meaning don't list entries in a dir
-    if(!info(inforeq, metadata, -1)) {
+    SRMReturnCode res = info(inforeq, metadata, -1);
+    if(res != SRM_OK) {
       logger.msg(Arc::ERROR, "Failed to find metadata info on file %s", inforeq.surls().front());
-      return false;
+      return res;
     };
   
     if(metadata.front().fileType == SRM_FILE) {
@@ -1126,11 +1149,13 @@
       return removeDir(req);
     };
   
-    logger.msg(Arc::ERROR, "File type is neither file or directory");
-    return false;
+    logger.msg(Arc::WARNING, "File type is not available, attempting file delete");
+    if (removeFile(req)) return SRM_OK;
+    logger.msg(Arc::WARNING, "File delete failed, attempting directory delete");
+    return removeDir(req);
   };
   
-  bool SRM22Client::removeFile(SRMClientRequest& req) {
+  SRMReturnCode SRM22Client::removeFile(SRMClientRequest& req) {
   
     // construct rm request - only one file requested at a time
     xsd__anyURI * req_array = new xsd__anyURI[1];
@@ -1152,26 +1177,27 @@
     if((soap_err=soap_call_SRMv2__srmRm(&soapobj, csoap->SOAP_URL(), "srmRm", request, response_struct)) != SOAP_OK){
       logger.msg(Arc::INFO, "SOAP request failed (%s)", "srmRm");
       soap_print_fault(&soapobj, stderr);
-      // TODO: add some retries for transient errors
       csoap->disconnect();
-      return false;
+      return SRM_ERROR_SOAP;
     };
   
     if (response_struct.srmRmResponse->returnStatus->statusCode != SRMv2__TStatusCode__SRM_USCORESUCCESS) {
       char * msg = response_struct.srmRmResponse->returnStatus->explanation;
       logger.msg(Arc::ERROR, "Error: %s", msg);
       csoap->disconnect();
-      return false;
+      if (response_struct.srmRmResponse->returnStatus->statusCode == SRMv2__TStatusCode__SRM_USCOREINTERNAL_USCOREERROR)
+        return SRM_ERROR_TEMPORARY;
+      return SRM_ERROR_PERMANENT;
     };
   
     // remove went ok
     logger.msg(Arc::DEBUG, "File %s removed successfully", req.surls().front());
-    return true;
+    return SRM_OK;
   
   };
   
   
-  bool SRM22Client::removeDir(SRMClientRequest& req) {
+  SRMReturnCode SRM22Client::removeDir(SRMClientRequest& req) {
   
     // construct rmdir request - only one file requested at a time
     xsd__anyURI surl = (char*)req.surls().front().c_str();
@@ -1188,25 +1214,26 @@
     if((soap_err=soap_call_SRMv2__srmRmdir(&soapobj, csoap->SOAP_URL(), "srmRmdir", request, response_struct)) != SOAP_OK){
       logger.msg(Arc::INFO, "SOAP request failed (%s)", "srmRmdir");
       soap_print_fault(&soapobj, stderr);
-      // TODO: add some retries for transient errors
       csoap->disconnect();
-      return false;
+      return SRM_ERROR_SOAP;
     };
   
     if (response_struct.srmRmdirResponse->returnStatus->statusCode != SRMv2__TStatusCode__SRM_USCORESUCCESS) {
       char * msg = response_struct.srmRmdirResponse->returnStatus->explanation;
       logger.msg(Arc::ERROR, "Error: %s", msg);
       csoap->disconnect();
-      return false;
+      if (response_struct.srmRmdirResponse->returnStatus->statusCode == SRMv2__TStatusCode__SRM_USCOREINTERNAL_USCOREERROR)
+        return SRM_ERROR_TEMPORARY;
+      return SRM_ERROR_PERMANENT;
     };
   
     // remove went ok
     logger.msg(Arc::DEBUG, "Directory %s removed successfully", req.surls().front());
-    return true;
+    return SRM_OK;
   
   };
   
-  bool SRM22Client::copy(SRMClientRequest& req, const std::string& source) {
+  SRMReturnCode SRM22Client::copy(SRMClientRequest& req, const std::string& source) {
     
     // construct copy request
     SRMv2__TCopyFileRequest * copyrequest = new SRMv2__TCopyFileRequest;
@@ -1233,9 +1260,8 @@
     if((soap_err=soap_call_SRMv2__srmCopy(&soapobj, csoap->SOAP_URL(), "srmCopy", request, response_struct)) != SOAP_OK){
       logger.msg(Arc::INFO, "SOAP request failed (%s)", "srmCopy");
       soap_print_fault(&soapobj, stderr);
-      // TODO: add some retries for transient errors
       csoap->disconnect();
-      return false;
+      return SRM_ERROR_SOAP;
     };
   
     SRMv2__srmCopyResponse * response_inst = response_struct.srmCopyResponse;
@@ -1279,9 +1305,8 @@
         if ((soap_err=soap_call_SRMv2__srmStatusOfCopyRequest(&soapobj, csoap->SOAP_URL(), "srmStatusOfCopyRequest", soc_request, soc_response_struct)) != SOAP_OK) {
           logger.msg(Arc::INFO, "SOAP request failed (%s)", "srmStatusOfCopyRequest");
           soap_print_fault(&soapobj, stderr);
-          // TODO: add some retries for transient errors
           csoap->disconnect();
-          return false;
+          return SRM_ERROR_SOAP;
         };
   
         // check return codes - loop will exit on success or return false on error
@@ -1299,14 +1324,16 @@
           // error
           char * msg = soc_response_struct.srmStatusOfCopyRequestResponse->returnStatus->explanation;
           logger.msg(Arc::ERROR, "Error: %s", msg);
-          return false;
+          if (return_status == SRMv2__TStatusCode__SRM_USCOREINTERNAL_USCOREERROR)
+            return SRM_ERROR_TEMPORARY;
+          return SRM_ERROR_PERMANENT;
         };
       }; // while
   
       // check for timeout
       if (request_time >= copy_timeout) {
         logger.msg(Arc::ERROR, "Error: copy request timed out after %i seconds", copy_timeout);
-        return false;
+        return SRM_ERROR_TEMPORARY;
       }
   
     } // if file queued
@@ -1315,9 +1342,66 @@
       // any other return code is a failure
       char * msg = response_inst->returnStatus->explanation;
       logger.msg(Arc::ERROR, "Error: %s", msg);
-      return false;
+      if (return_status == SRMv2__TStatusCode__SRM_USCOREINTERNAL_USCOREERROR)
+        return SRM_ERROR_TEMPORARY;
+      return SRM_ERROR_PERMANENT;
     };
-    return true;
+    return SRM_OK;
+  };
+  
+  SRMReturnCode SRM22Client::mkDir(SRMClientRequest& req) {
+    
+    std::string surl = req.surls().front();
+    std::string::size_type slashpos = surl.find('/', 6);
+    slashpos = surl.find('/', slashpos+1); // don't create root dir
+    bool keeplisting = true; // whether to keep checking dir exists
+    while (slashpos != std::string::npos) {
+      std::string dirname = surl.substr(0, slashpos);
+      // list dir to see if it exists
+      SRMClientRequest listreq(dirname);
+      std::list<struct SRMFileMetaData> metadata;
+      if (keeplisting) {
+        logger.msg(Arc::DEBUG, "Checking for existence of %s", dirname);
+        if (info(listreq, metadata, -1) == SRM_OK) {
+          slashpos = surl.find("/", slashpos+1);
+          continue;
+        }; 
+      };
+      
+      logger.msg(Arc::DEBUG, "Creating directory %s", dirname);
+      // construct mkdir request
+      xsd__anyURI dir = (char*)dirname.c_str();
+      SRMv2__srmMkdirRequest * request = new SRMv2__srmMkdirRequest;
+      request->SURL = dir;
+  
+      struct SRMv2__srmMkdirResponse_ response_struct;
+  
+      int soap_err = SOAP_OK;
+   
+      // do the srmMkdir call
+      if((soap_err=soap_call_SRMv2__srmMkdir(&soapobj, csoap->SOAP_URL(), "srmMkdir", request, response_struct)) != SOAP_OK){
+        logger.msg(Arc::INFO, "SOAP request failed (srmMkdir)");
+        soap_print_fault(&soapobj, stderr);
+        csoap->disconnect();
+        return SRM_ERROR_SOAP;
+      };
+  
+      slashpos = surl.find("/", slashpos+1);
+      
+      // there can be undetectable errors in creating dirs that already exist
+      // so only report error on creating the final dir
+      if (response_struct.srmMkdirResponse->returnStatus->statusCode == SRMv2__TStatusCode__SRM_USCORESUCCESS) 
+        keeplisting = false;
+      else if (slashpos == std::string::npos) {
+        char * msg = response_struct.srmMkdirResponse->returnStatus->explanation;
+        logger.msg(Arc::ERROR, "Error creating directory %s: %s", dir, msg);
+        csoap->disconnect();
+        if (response_struct.srmMkdirResponse->returnStatus->statusCode == SRMv2__TStatusCode__SRM_USCOREINTERNAL_USCOREERROR)
+          return SRM_ERROR_TEMPORARY;
+        return SRM_ERROR_PERMANENT;
+      };
+    };
+    return SRM_OK;
   };
 
 //} // namespace Arc

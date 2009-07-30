@@ -22,10 +22,10 @@
     "gsiftp","https","httpg","http","ftp","se"
   };
   
-  bool SRM1Client::getTURLs(SRMClientRequest& req,
-                            std::list<std::string>& urls) {
-    if(!csoap) return false;
-    if(!connect()) return false;
+  SRMReturnCode SRM1Client::getTURLs(SRMClientRequest& req,
+                                     std::list<std::string>& urls) {
+    if(!csoap) return SRM_ERROR_OTHER;
+    if(!connect()) return SRM_ERROR_CONNECTION;
   
     SRMURL srmurl(req.surls().front().c_str());
     int soap_err = SOAP_OK;
@@ -34,7 +34,7 @@
     ArrayOfstring* Protocols = soap_new_ArrayOfstring(&soapobj,-1);
     struct SRMv1Meth__getResponse r; r._Result=NULL;
     if((!SURLs) || (!Protocols)) {
-      csoap->reset(); return false;
+      csoap->reset(); return SRM_ERROR_OTHER;
     };
     Protocols->__ptr=(char**)Supported_Protocols;
     Protocols->__size=sizeof(Supported_Protocols)/sizeof(Supported_Protocols[0]);
@@ -46,11 +46,11 @@
       logger.msg(Arc::INFO, "SOAP request failed (get)");
       if(logger.getThreshold() > Arc::FATAL) soap_print_fault(&soapobj, stderr);
       csoap->disconnect();
-      return false;
+      return SRM_ERROR_SOAP;
     };
     if(r._Result == NULL) {  
       logger.msg(Arc::INFO, "SRM did not return any information");
-      return false;
+      return SRM_ERROR_OTHER;
     };
     char* request_state = r._Result->state;
     req.request_id(r._Result->requestId);
@@ -82,25 +82,25 @@
         logger.msg(Arc::INFO, "SOAP request failed (getRequestStatus)");
         if(logger.getThreshold() > Arc::FATAL) soap_print_fault(&soapobj, stderr);
         csoap->disconnect();
-        return false;
+        return SRM_ERROR_SOAP;
       };
       if(r._Result == NULL) {  
         logger.msg(Arc::INFO, "SRM did not return any information");
-        return false;
+        return SRM_ERROR_OTHER;
       };
       request_state = r._Result->state;
       result = *(r._Result);
     };
     req.file_ids(file_ids);
-    if(urls.size() == 0) return false;
+    if(urls.size() == 0) return SRM_ERROR_OTHER;
     return acquire(req,urls);
   }
   
-  bool SRM1Client::putTURLs(SRMClientRequest& req,
-                            std::list<std::string>& urls,
-                            unsigned long long size) {
-    if(!csoap) return false;
-    if(!connect()) return false;
+  SRMReturnCode SRM1Client::putTURLs(SRMClientRequest& req,
+                                     std::list<std::string>& urls,
+                                     unsigned long long size) {
+    if(!csoap) return SRM_ERROR_OTHER;
+    if(!connect()) return SRM_ERROR_CONNECTION;
   
     SRMURL srmurl(req.surls().front().c_str());
     int soap_err = SOAP_OK;
@@ -115,7 +115,7 @@
     //r._Result=soap_new_SRMv1Type__RequestStatus(&soapobj,-1);
     if((!src_file_names) || (!dst_file_names) || (!sizes) || 
        (!wantPermanent) || (!protocols)) {
-      csoap->reset(); return false;
+      csoap->reset(); return SRM_ERROR_OTHER;
     };
     protocols->__ptr=(char**)Supported_Protocols;
     protocols->__size=sizeof(Supported_Protocols)/sizeof(Supported_Protocols[0]);
@@ -133,11 +133,11 @@
       logger.msg(Arc::INFO, "SOAP request failed (put)");
       if(logger.getThreshold() > Arc::FATAL) soap_print_fault(&soapobj, stderr);
       csoap->disconnect();
-      return false;
+      return SRM_ERROR_SOAP;
     };
     if(r._Result == NULL) {
       logger.msg(Arc::INFO, "SRM did not return any information");
-      return false;
+      return SRM_ERROR_OTHER;
     };
     char* request_state = r._Result->state;
     req.request_id(r._Result->requestId);
@@ -172,24 +172,24 @@
         logger.msg(Arc::INFO, "SOAP request failed (getRequestStatus)");
         if(logger.getThreshold() > Arc::FATAL) soap_print_fault(&soapobj, stderr);
         csoap->disconnect();
-        return false;
+        return SRM_ERROR_SOAP;
       };
       if(r._Result == NULL) {
         logger.msg(Arc::INFO, "SRM did not return any information");
-        return false;
+        return SRM_ERROR_OTHER;
       };
       request_state = r._Result->state;
       result = r._Result;
     };
     req.file_ids(file_ids);
-    if(urls.size() == 0) return false;
+    if(urls.size() == 0) return SRM_ERROR_OTHER;
     return acquire(req,urls);
   }
   
-  bool SRM1Client::copy(SRMClientRequest& req,
-                        const std::string& source) {
-    if(!csoap) return false;
-    if(!connect()) return false;
+  SRMReturnCode SRM1Client::copy(SRMClientRequest& req,
+                                 const std::string& source) {
+    if(!csoap) return SRM_ERROR_OTHER;
+    if(!connect()) return SRM_ERROR_CONNECTION;
   
     SRMURL srmurl(req.surls().front().c_str());
     int soap_err = SOAP_OK;
@@ -200,7 +200,7 @@
     ArrayOfboolean* bools = soap_new_ArrayOfboolean(&soapobj,-1);
     struct SRMv1Meth__copyResponse r; r._Result=NULL;
     if((!src_file_names) || (!dst_file_names)) {
-      csoap->reset(); return false;
+      csoap->reset(); return SRM_ERROR_OTHER;
     };
     std::string file_url = srmurl.FullURL();
     const char* surl[] = { file_url.c_str() };
@@ -214,11 +214,11 @@
       logger.msg(Arc::INFO, "SOAP request failed (copy)");
       if(logger.getThreshold() > Arc::FATAL) soap_print_fault(&soapobj, stderr);
       csoap->disconnect();
-      return false;
+      return SRM_ERROR_SOAP;
     };
     if(r._Result == NULL) {
       logger.msg(Arc::INFO, "SRM did not return any information");
-      return false;
+      return SRM_ERROR_OTHER;
     };
     char* request_state = r._Result->state;
     req.request_id(r._Result->requestId);
@@ -250,21 +250,21 @@
         logger.msg(Arc::INFO, "SOAP request failed (getRequestStatus)");
         if(logger.getThreshold() > Arc::FATAL) soap_print_fault(&soapobj, stderr);
         csoap->disconnect();
-        return false;
+        return SRM_ERROR_SOAP;
       };
       if(r._Result == NULL) {
         logger.msg(Arc::INFO, "SRM did not return any information");
-        return false;
+        return SRM_ERROR_OTHER;
       };
       request_state = r._Result->state;
       result = r._Result;
     };
-    if(file_ids.size() == 0) return false;
+    if(file_ids.size() == 0) return SRM_ERROR_OTHER;
     req.file_ids(file_ids);
     return release(req);
   }
   
-  bool SRM1Client::acquire(SRMClientRequest& req,std::list<std::string>& urls) {
+  SRMReturnCode SRM1Client::acquire(SRMClientRequest& req,std::list<std::string>& urls) {
     int soap_err = SOAP_OK;
     std::list<int> file_ids = req.file_ids();
     // Tell server to move files into "Running" state
@@ -297,20 +297,20 @@
       file_id=file_ids.erase(file_id); f_url=urls.erase(f_url);
     };
     req.file_ids(file_ids);
-    if(urls.size() == 0) return false;
+    if(urls.size() == 0) return SRM_ERROR_OTHER;
     // Do not disconnect
-    return true;
+    return SRM_OK;
   }
   
-  bool SRM1Client::remove(SRMClientRequest& req) {
-    if(!csoap) return false;
-    if(!connect()) return false;
+  SRMReturnCode SRM1Client::remove(SRMClientRequest& req) {
+    if(!csoap) return SRM_ERROR_OTHER;
+    if(!connect()) return SRM_ERROR_CONNECTION;
   
     SRMURL srmurl(req.surls().front().c_str());
     int soap_err = SOAP_OK;
     ArrayOfstring* SURLs = soap_new_ArrayOfstring(&soapobj,-1);
     if(!SURLs) {
-      csoap->reset(); return false;
+      csoap->reset(); return SRM_ERROR_OTHER;
     };
     std::string file_url = srmurl.FullURL();
     const char* surl[] = { file_url.c_str() };
@@ -322,22 +322,22 @@
       logger.msg(Arc::INFO, "SOAP request failed (SRMv1Meth__advisoryDelete)");
       if(logger.getThreshold() > Arc::FATAL) soap_print_fault(&soapobj, stderr);
       csoap->disconnect();
-      return false;
+      return SRM_ERROR_SOAP;
     };
-    return true; 
+    return SRM_OK; 
   }
   
-  bool SRM1Client::info(SRMClientRequest& req,
-                        std::list<struct SRMFileMetaData>& metadata,
-                        const int recursive) {
-    if(!csoap) return false;
-    if(!connect()) return false;
+  SRMReturnCode SRM1Client::info(SRMClientRequest& req,
+                                 std::list<struct SRMFileMetaData>& metadata,
+                                 const int recursive) {
+    if(!csoap) return SRM_ERROR_OTHER;
+    if(!connect()) return SRM_ERROR_CONNECTION;
   
     SRMURL srmurl(req.surls().front().c_str());
     int soap_err = SOAP_OK;
     ArrayOfstring* SURLs = soap_new_ArrayOfstring(&soapobj,-1);
     if(!SURLs) {
-      csoap->reset(); return false;
+      csoap->reset(); return SRM_ERROR_OTHER;
     };
     std::string file_url = srmurl.FullURL();
     const char* surl[] = { file_url.c_str() };
@@ -349,17 +349,17 @@
       logger.msg(Arc::INFO, "SOAP request failed (getFileMetaData)");
       if(logger.getThreshold() > Arc::FATAL) soap_print_fault(&soapobj, stderr);
       csoap->disconnect();
-      return false;
+      return SRM_ERROR_SOAP;
     };
     if(r._Result == NULL) {
       logger.msg(Arc::INFO, "SRM did not return any information");
-      return false;
+      return SRM_ERROR_OTHER;
     };
     if((r._Result->__size == 0) || 
        (r._Result->__ptr == NULL) ||
        (r._Result->__ptr[0] == NULL)) {
       logger.msg(Arc::INFO, "SRM did not return any useful information");
-      return false;
+      return SRM_ERROR_OTHER;
     };
     SRMv1Type__FileMetaData& mdata = *(r._Result->__ptr[0]);
     struct SRMFileMetaData md;
@@ -381,12 +381,12 @@
     if(mdata.checksumType) { md.checkSumType=mdata.checksumType; };
     if(mdata.checksumValue) { md.checkSumValue=mdata.checksumValue; };
     metadata.push_back(md);
-    return true; 
+    return SRM_OK; 
   }
   
-  bool SRM1Client::release(SRMClientRequest& req) {
-    if(!csoap) return false;
-    if(!connect()) return false;
+  SRMReturnCode SRM1Client::release(SRMClientRequest& req) {
+    if(!csoap) return SRM_ERROR_OTHER;
+    if(!connect()) return SRM_ERROR_CONNECTION;
     int soap_err = SOAP_OK;
     std::list<int> file_ids = req.file_ids();
     // Tell server to move files into "Done" state
@@ -416,18 +416,18 @@
       ++file_id;
     };
     req.file_ids(file_ids);
-    return true; 
+    return SRM_OK; 
   }
    
-  bool SRM1Client::releaseGet(SRMClientRequest& req) {
+  SRMReturnCode SRM1Client::releaseGet(SRMClientRequest& req) {
     return release(req);
   }
   
-  bool SRM1Client::releasePut(SRMClientRequest& req) {
+  SRMReturnCode SRM1Client::releasePut(SRMClientRequest& req) {
     return release(req);
   }
   
-  bool SRM1Client::abort(SRMClientRequest& req) {
+  SRMReturnCode SRM1Client::abort(SRMClientRequest& req) {
     return release(req);
   }
   
