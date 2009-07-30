@@ -284,9 +284,10 @@ namespace Arc {
         ckstype = cksumvalue.substr(0, p);
         cksumvalue = cksumvalue.substr(p + 1);
       }
-      if (CheckSize())
+      if (CheckSize()) {
         if (lfc_setfsizeg(guid.c_str(), GetSize(), ckstype.c_str(), const_cast<char*>(cksumvalue.c_str())) != 0)
           logger.msg(ERROR, "Error entering metadata: %s", sstrerror(serrno));
+      }
       else if (lfc_setfsizeg(guid.c_str(), 0, ckstype.c_str(), const_cast<char*>(cksumvalue.c_str())) != 0)
           logger.msg(ERROR, "Error entering metadata: %s", sstrerror(serrno));
     }
@@ -334,14 +335,15 @@ namespace Arc {
         ckstype = cksumvalue.substr(0, p);
         if (ckstype == "md5")
           ckstype = "MD";
-        if (ckstype == "ad")
+        if (ckstype == "adler32")
           ckstype = "AD";
         cksumvalue = cksumvalue.substr(p + 1);
         logger.msg(DEBUG, "Entering checksum type %s, value %s, file size %llu", ckstype, cksumvalue, GetSize());
       }
-      if (CheckSize())
+      if (CheckSize()) {
         if (lfc_setfsizeg(guid.c_str(), GetSize(), ckstype.c_str(), const_cast<char*>(cksumvalue.c_str())) != 0)
           logger.msg(ERROR, "Error entering metadata: %s", sstrerror(serrno));
+      }
       else if (lfc_setfsizeg(guid.c_str(), 0, ckstype.c_str(), const_cast<char*>(cksumvalue.c_str())) != 0)
         logger.msg(ERROR, "Error entering metadata: %s", sstrerror(serrno));
     }

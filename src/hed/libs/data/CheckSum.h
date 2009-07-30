@@ -4,9 +4,11 @@
 #define __ARC_CHECKSUM_H__
 
 #include <cstring>
+#include <cstdio>
 
 #include <inttypes.h>
 #include <sys/types.h>
+#include <zlib.h>
 
 namespace Arc {
 
@@ -96,6 +98,47 @@ namespace Arc {
     }
   };
 
+  /// Implementation of Adler32 checksum
+  class Adler32Sum
+    : public CheckSum {
+   private:
+    uLong adler;
+    bool computed;
+   public:
+    Adler32Sum(void) : computed(false) { 
+      start(); 
+    }
+    virtual void start(void) {
+      adler = adler32(0L, Z_NULL, 0); 
+    }
+    virtual void add(void* buf,unsigned long long int len) {
+      adler = adler32(adler, (const Bytef *)buf, len); 
+    }
+    virtual void end(void) {
+      computed = true;
+    }
+    virtual void result(unsigned char*& res,unsigned int& len) const { 
+      res=(unsigned char*)&adler;
+      len=4;
+    }  
+    virtual int print(char* buf,int len) const { 
+      if(!computed) { 
+        if(len>0) {
+          buf[0]=0;
+          return 0;
+        }
+      }
+      return snprintf(buf,len,"adler32:%08x",adler);
+    };
+    virtual void scan(const char* buf) { };
+    virtual operator bool(void) const {
+      return computed;
+    }
+    virtual bool operator!(void) const {
+      return !computed;
+    }
+  };
+
   /// Wraper for CheckSum class
   /** To be used for manipulation of any supported checksum type
      in a transparent way. */
@@ -107,7 +150,8 @@ namespace Arc {
       unknown,
       undefined,
       cksum,
-      md5
+      md5,
+      adler32
     } type;
   private:
     CheckSum *cs;

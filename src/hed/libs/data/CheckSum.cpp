@@ -5,7 +5,6 @@
 #endif
 
 #include <cctype>
-#include <cstdio>
 
 #include <sys/types.h>
 
@@ -416,6 +415,11 @@ namespace Arc {
       tp = md5;
       return;
     }
+    if(strncasecmp("adler32",type,7) == 0) {
+      cs=new Adler32Sum; 
+      tp=adler32; 
+      return;
+    }
   }
 
   CheckSumAny::CheckSumAny(type type) {
@@ -426,6 +430,11 @@ namespace Arc {
     }
     if (type == md5) {
       cs = new MD5Sum;
+      tp = type;
+      return;
+    }
+    if (type == adler32) {
+      cs = new Adler32Sum;
       tp = type;
       return;
     }
@@ -450,6 +459,8 @@ namespace Arc {
       return cksum;
     if (((p - crc) == 3) && (strncasecmp(crc, "md5", 3) == 0))
       return md5;
+    if (((p - crc) == 7) && (strncasecmp(crc, "adler32", 7) == 0))
+      return adler32;
     if (((p - crc) == 9) && (strncasecmp(crc, "undefined", 9) == 0))
       return undefined;
     return unknown;
@@ -470,6 +481,11 @@ namespace Arc {
     if (strncasecmp("md5", type, 3) == 0) {
       cs = new MD5Sum;
       tp = md5;
+      return;
+    }
+    if (strncasecmp("adler32", type, 7) == 0) {
+      cs = new Adler32Sum;
+      tp = adler32;
       return;
     }
   }
