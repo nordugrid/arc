@@ -1497,6 +1497,7 @@ AC_CONFIG_FILES([Makefile
                  src/services/storage/bartender/gateway/Makefile 
                  src/services/janitor/interfaces/commandline/Makefile
                  src/services/janitor/interfaces/commandline/janitor
+                 src/services/janitor/interfaces/commandline/rjanitor.c
                  src/services/janitor/interfaces/webservice/Makefile
                  src/services/janitor/interfaces/Makefile
                  src/services/janitor/interfaces/client/Makefile
