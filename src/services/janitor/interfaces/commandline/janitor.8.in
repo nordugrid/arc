@@ -4,10 +4,10 @@
 janitor \- ARC Dynamic Runtime Environment Maintenance
 .SH SYNOPSIS
 .B janitor
-[\fIOPTION\fR]...
+[\fICOMMAND\fR] [\fIJOB-ID\fR] [\fIRTE\fR]...
 .SH DESCRIPTION
 A core problem for grid computing is to provide a large set of libraries across all contributing sites. In order to do so, an automation of the software installation, referred to as dynamic Runtime Environments, is a suitable solution to get the computational grid to its full potential. Janitor is a tool providing a dynamical installation, deinstallation and maintenance of supporting libraries for jobs running in the grid. 
-.SH OPTIONS
+.SH COMMANDS
 .TP
 \fBregister\fR
 Registers a job and a set of runtime environments in the Janitor database. Requires [JOB-ID] and a list of [RTE]s
@@ -36,7 +36,7 @@ Renders information about a job. Requires the parameter [JOB-ID].
 
 .TP
 \fB[JOB-ID]\fR
-A unique sequence of numbers. Once Janitor registered a job id, it cannot register a second job having the same job id.
+A unique sequence of digits. Once Janitor registered a job id, it cannot register a second job having the same job id.
 .TP
 \fB[RTE]\fR
 Runtime environments are defined by a continuous string. The name of valid runtime environment names can be investigated using the \fBlist\fR or the \fBsearch\fR commands. They are defined in the catalog or by the directories and scripts of the \fBruntimedir\fR of the \texttt{grid-manager}.
