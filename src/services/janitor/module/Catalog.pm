@@ -136,6 +136,7 @@ sub add {
 	my ($self, $file) = @_;
 
 	unless ( -e $file) {
+		print STDERR "Can not add file to catalog: $file does not exist\n";
 ###l4p 		$logger->error("Can not add file to catalog: "
 ###l4p					. "$file does not exist");
 		return;

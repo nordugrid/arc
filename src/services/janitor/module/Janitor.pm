@@ -144,7 +144,7 @@ BEGIN {
 }
 
 
-use 5.010000;
+use 5.008000;
 use strict;
 use warnings;
 
@@ -539,7 +539,7 @@ sub register_job {
 			$response->result(1, "Sucessfully initialized job.");
 			return $response;
 		} else {
-###l4p 			$logger->info("$job_id: Can't provide requested RTE: not supported");
+###l4p 			$logger->info("$job_id: Can't provide requested RTEs: not supported");
 #			The following two lines are replaced by the third line beneath this comment.
 #			Reason: Excogitated RTE names are leading to this state, in which a folder remains
 #				after the registration process. This is not desired for the amount is not limited!
@@ -547,7 +547,7 @@ sub register_job {
 #- 			$rte->disconnect;
 			$rte->remove;
 			$job->remove;
-			$response->result(2, "Can't provide requested RTE: not supported.");
+			$response->result(2, "Can't provide requested RTEs: not supported.");
 			return $response;
 		}
 	}
@@ -662,11 +662,11 @@ sub deploy_for_job {
 		my $catalog = &get_catalog;
 		my @bslist = $catalog->basesystems_supporting_metapackages(@rte_list);
 		unless ( @bslist ) {
-###l4p 			$logger->info("$job_id: Can't provide requested RTE: not supported");
+###l4p 			$logger->info("$job_id: Can't provide requested RTEs: not supported");
 			$rte->state(Janitor::RTE::UNKNOWN);
 			$rte->disconnect;
 			$job->remove;
-			$response->result(1, "Can't provide requested RTE: not supported.");
+			$response->result(1, "Can't provide requested RTEs: not supported.");
 			return $response;
 		}
 
