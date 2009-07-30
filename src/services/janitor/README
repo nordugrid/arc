@@ -22,3 +22,17 @@ gid="0"
 #allow_rte="*"
 
 catalog="/root/janitor/src/services/janitor/spool/catalog/knowarc.rdf"
+
+
+BUILD SOFTWARE DEPENDENCIES
+
+
+RUNTIME SOFTWARE DEPENDENCIES
+
+Perl version 5.10 or higher
+Perl RDF::Redland module (http://www.perlrdf.org)
+	On generic UNIX system try 'cpan RDF::Redland' to install it.
+	Or use system specific installation tools.
+Log4Perl - optional
+
+RUNTIME CONFIGURATION DEPENDENCIES
