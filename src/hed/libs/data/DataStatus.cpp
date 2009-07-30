@@ -22,7 +22,6 @@ namespace Arc {
     istring("Last stage of registration of index service URL failed"),
     istring("Unregistration of index service URL failed"),
     istring("Error in caching procedure"),
-    istring("Error in caching procedure (retryable)"),
     istring("Error due to provided credentials are expired"),
     istring("Error deleting location or URL"),
     istring("No valid location available"),
@@ -34,10 +33,13 @@ namespace Arc {
     istring("Access check failed"),
     istring("File listing failed"),
     istring("Object not initialized (internal error)"),
+    istring("System error"),
+    istring("Failed to stage file(s)"),
     istring("Unknown error")
   };
 
   DataStatus::operator std::string() const {
+    if (status > 100) return status_string[status-100];
     return status_string[status];
   }
 
