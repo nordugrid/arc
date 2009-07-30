@@ -40,8 +40,8 @@
 
 /* maximum number of retries (for every source/destination) */
 #define MAX_RETRIES 5
-/* maximum number simultaneous downloads */
-#define MAX_DOWNLOADS 5
+/* maximum number simultaneous uploads */
+#define MAX_UPLOADS 5
 /* maximum time for user files to upload (per file) */
 #define MAX_USER_TIME 600
 
@@ -104,7 +104,7 @@ class PointPair {
     if(!res) {
       it->failure_description=(std::string)res;
       it->res=res;
-      olog<<"Failed downloading file "<<it->lfn<<" - "<<it->failure_description<<std::endl;
+      olog<<"Failed uploading file "<<it->lfn<<" - "<<it->failure_description<<std::endl;
       if((it->pair->source->GetTries() <= 0) || (it->pair->destination->GetTries() <= 0)) {
         delete it->pair; it->pair=NULL;
         failed_files.push_back(*it);
@@ -166,7 +166,7 @@ int main(int argc,char** argv) {
   Arc::Logger::getRootLogger().addDestination(logcerr);
   int res=0;
   int n_threads = 1;
-  int n_files = MAX_DOWNLOADS;
+  int n_files = MAX_UPLOADS;
   /* used to find caches used by this user */
   std::string file_owner_username = "";
   uid_t file_owner = 0;
@@ -500,12 +500,12 @@ int main(int argc,char** argv) {
   };
   for(FileDataEx::iterator i=failed_files.begin();i!=failed_files.end();++i) {
     odlog(ERROR)<<"Failed to upload "<<i->lfn<<std::endl;
-    failure_reason+="Input file: "+i->lfn+" - "+(std::string)(i->res)+"\n";
+    failure_reason+="Output file: "+i->lfn+" - "+(std::string)(i->res)+"\n";
     if(i->res == Arc::DataStatus::CredentialsExpiredError)
       credentials_expired=true;
     transfered=false;
   };
-  // Check if all files have been properly downloaded
+  // Check if all files have been properly uploaded
   if(!transfered) {
     odlog(INFO)<<"Some uploads failed"<<std::endl; res=2;
     if(credentials_expired) res=3;
