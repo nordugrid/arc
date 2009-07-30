@@ -181,7 +181,7 @@ my $DEBUG = 0;
 ######################################################################
 # Read the config file
 ######################################################################
-my $conffile = $ENV{'NORDUGRID_CONFIG'};
+my $conffile = $ENV{'ARC_CONFIG'};
 $conffile = "/etc/arc.conf" unless defined $conffile;
 
 printf STDERR "DEBUG: using configuration file \"%s\"\n", $conffile	if $DEBUG;
@@ -1387,7 +1387,7 @@ __END__
 =head2 F<arc.conf>
 
 The Janitor can be configured in the [janitor]-section of the F<arc.conf>. 
-It is addressed using the environment variable NORDUGRID_CONFIG.
+It is addressed using the environment variable ARC_CONFIG.
 The following options are supported.
 
 =over 4
@@ -1463,7 +1463,7 @@ to configure Log4perl see the Log4perl documentation.
 
 =over 4
 
-=item NORDUGRID_CONFIG
+=item ARC_CONFIG
 
 Location of the nordugrid arc.conf. If unset /etc/arc.conf is used.
 

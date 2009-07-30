@@ -188,7 +188,7 @@ sub _parse {
 			next;}
 
 		unless ($line =~ /=\s*".*"\s*$/) {
-			my $msg =  "skipping incorrect arc.conf line ($c): $line";
+			my $msg =  "skipping incorrect $conf_file line ($c): $line";
 			printf STDERR "WARNING: %s\n", $msg;
 			next;
 		}
