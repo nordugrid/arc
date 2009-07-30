@@ -30,6 +30,11 @@ install-data-hook:
 	else \
 	$(LN_S) $(data_janitorcommandlinedir)/rjanitor $(sbindir)/janitor; \
 	fi
+	if [ -f $(pkglibexecdir)/janitor ] ; then \
+	echo "Softlink for janitor already exists. Skipping..."; \
+	else \
+	$(LN_S) $(data_janitorcommandlinedir)/rjanitor $(pkglibexecdir)/janitor; \
+	fi
 
 uninstall-local: 
 	if [ -f $(data_janitorcommandlinedir)/rjanitor ] ; then \
