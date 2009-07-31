@@ -141,6 +141,7 @@ namespace Arc {
   bool XRSLParser::Parse(const RSL *r, JobDescription& j) const {
     const RSLBoolean *b;
     const RSLCondition *c;
+    bool cached = true;
     if ((b = dynamic_cast<const RSLBoolean*>(r))) {
       if (b->Op() == RSLAnd) {
         for (std::list<RSL*>::const_iterator it = b->begin();
@@ -199,7 +200,7 @@ namespace Arc {
           file.Source.push_back(source);
           file.KeepData = false;
           file.IsExecutable = false;
-          file.DownloadToCache = cached;
+          file.DownloadToCache = true;
           j.DataStaging.File.push_back(file);
         }
         return true;
@@ -223,11 +224,9 @@ namespace Arc {
         if (!SingleValue(c, cache))
           return false;
         if (lower(cache) == "yes") {
-          const_cast<XRSLParser*>(this)->cached = true;
-          for (std::list<FileType>::iterator it = j.DataStaging.File.begin();
-               it != j.DataStaging.File.end(); it++)
-            if (!it->Source.empty())
-              it->DownloadToCache = true;
+          cached = true;
+        } else {
+          cached = false;
         }
         return true;
       }
@@ -249,7 +248,7 @@ namespace Arc {
           target.Threads = -1;
           file.Target.push_back(target);
           file.IsExecutable = false;
-          file.DownloadToCache = cached;
+          file.DownloadToCache = false;
           j.DataStaging.File.push_back(file);
         }
         return true;
@@ -649,6 +648,12 @@ namespace Arc {
     }
   
     // This part will run only when the parsing is at the end of the xrsl file
+
+    // Value defined in "cache" element is applicable to all input files
+    for (std::list<FileType>::iterator it = j.DataStaging.File.begin();
+         it != j.DataStaging.File.end(); it++)
+      if (!it->Source.empty())
+        it->DownloadToCache = cached;
 	
     return true;
   }
