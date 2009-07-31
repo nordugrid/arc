@@ -171,8 +171,6 @@ JobLocalDescription& JobLocalDescription::operator=(const Arc::JobDescription& a
         Arc::URL u(outputdata.back().lfn);
         if (u.Option("threads").empty() && file->Target.front().Threads > 1)
           u.AddOption("threads", Arc::tostring(file->Source.front().Threads));
-        if (u.Option("cache").empty())
-          u.AddOption("cache", (file->DownloadToCache ? "yes" : "no"));
         outputdata.back().lfn = u.fullstr();
       }      
     }
