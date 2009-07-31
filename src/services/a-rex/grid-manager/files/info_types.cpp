@@ -152,9 +152,11 @@ JobLocalDescription& JobLocalDescription::operator=(const Arc::JobDescription& a
         Arc::URL u(inputdata.back().lfn);
         
         if (file->IsExecutable ||
-            file->Name == arc_job_desc.Application.Executable.Name)
+            file->Name == arc_job_desc.Application.Executable.Name) {
           u.AddOption("exec", "yes");
-        else if (u.Option("cache").empty()) // Do not add to cache if executable.
+          u.AddOption("cache", "no"); // Do not add to cache if executable.
+        }
+        if (u.Option("cache").empty())
           u.AddOption("cache", (file->DownloadToCache ? "yes" : "no"));
         if (u.Option("threads").empty() && file->Source.front().Threads > 1)
           u.AddOption("threads", Arc::tostring(file->Source.front().Threads));
