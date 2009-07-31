@@ -18,7 +18,7 @@ use Janitor::Util qw(sane_rte_name sane_job_id);
 
 =head1 SYNOPSIS
 
-Janitor.pl [ deploy | help | info | new | register | remove | setstate | sweep ]
+Janitor.pl [ deploy | help | info | register | remove | setstate | search | sweep ]
 
 =head1 DESCRIPTION
 
@@ -202,7 +202,7 @@ about this job are listed.
 
 ######################################################################
 
-=item sarch [RE1 [RE2 ...]]
+=item search [RE1 [RE2 ...]]
 
 Searches for informations about matching installable and 
 manually installed runtime environments.
@@ -444,16 +444,16 @@ sub usage {
 	$name =~ s#^.*/([^/]*)$#$1#; 	#
 
 	printf STDERR <<EOUSAGE, $name;
-Usage: %s [ deploy | help | list | info | new | register |
-            remove | setstate | sweep ]
+Usage: %s [ deploy | help | list | info | register |
+            remove | setstate | search | sweep ]
   deploy <job-id>:             deploys all REs needed by job <job-id>
   help:                        displays this message
   list:                        lists details about all registered jobs
   info <job-id>:               lists information about this job's REs
-  new <job-id> [ REs ]:        executes register and deploy
   register <job-id> [ REs ]:   registers a new job
   remove <job-id>:             unregister job <job-id>
-  setstate <newstate> [ REs ]: sets the state of a RE
+  setstate <newstate> [ REs ]: sets the state of REs
+  search [ REs ]:              searches for informations about REs
   sweep [--force]:             clean up runtime environments
 
 See janitor(8) for detailed instructions.
