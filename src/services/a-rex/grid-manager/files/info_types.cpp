@@ -154,7 +154,6 @@ JobLocalDescription& JobLocalDescription::operator=(const Arc::JobDescription& a
         if (file->IsExecutable ||
             file->Name == arc_job_desc.Application.Executable.Name) {
           u.AddOption("exec", "yes");
-          u.AddOption("cache", "no"); // Do not add to cache if executable.
         }
         if (u.Option("cache").empty())
           u.AddOption("cache", (file->DownloadToCache ? "yes" : "no"));
