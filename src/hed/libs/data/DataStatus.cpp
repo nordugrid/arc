@@ -5,7 +5,7 @@
 
 namespace Arc {
 
-  static const char *status_string[] = {
+  static const char *status_string[DataStatus::UnknownError + 1] = {
     istring("Operation completed successfully"),
     istring("Source is bad URL or can't be used due to some reason"),
     istring("Destination is bad URL or can't be used due to some reason"),
@@ -39,8 +39,10 @@ namespace Arc {
   };
 
   DataStatus::operator std::string() const {
-    if (status > 100) return status_string[status-100];
-    return status_string[status];
+    unsigned int status_ = status;
+    if (status_ >= DataStatusRetryableBase) status_-=DataStatusRetryableBase;
+    if (status_ > UnknownError) status_=UnknownError;
+    return status_string[status_];
   }
 
 } // namespace Arc

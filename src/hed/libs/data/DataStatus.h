@@ -8,6 +8,7 @@
 
 namespace Arc {
   
+#define DataStatusRetryableBase (100)
   /**
    * A class to be used for return types of all major data handling
    * methods. It describes the outcome of the method.
@@ -23,70 +24,70 @@ namespace Arc {
 
       /// Source is bad URL or can't be used due to some reason
       ReadAcquireError = 1,
-      ReadAcquireErrorRetryable = 101,
+      ReadAcquireErrorRetryable = DataStatusRetryableBase+ReadAcquireError,
 
       /// Destination is bad URL or can't be used due to some reason
       WriteAcquireError = 2,
-      WriteAcquireErrorRetryable = 102,
+      WriteAcquireErrorRetryable = DataStatusRetryableBase+WriteAcquireError,
 
       /// Resolving of index service URL for source failed
       ReadResolveError = 3,
-      ReadResolveErrorRetryable = 103,
+      ReadResolveErrorRetryable = DataStatusRetryableBase+ReadResolveError,
 
       /// Resolving of index service URL for destination failed
       WriteResolveError = 4,
-      WriteResolveErrorRetryable = 104,
+      WriteResolveErrorRetryable = DataStatusRetryableBase+WriteResolveError,
 
       /// Can't read from source
       ReadStartError = 5,
-      ReadStartErrorRetryable = 105,
+      ReadStartErrorRetryable = DataStatusRetryableBase+ReadStartError,
 
       /// Can't write to destination
       WriteStartError = 6,
-      WriteStartErrorRetryable = 106,
+      WriteStartErrorRetryable = DataStatusRetryableBase+WriteStartError,
 
       /// Failed while reading from source
       ReadError = 7,
-      ReadErrorRetryable = 107,
+      ReadErrorRetryable = DataStatusRetryableBase+ReadError,
 
       /// Failed while writing to destination
       WriteError = 8,
-      WriteErrorRetryable = 108,
+      WriteErrorRetryable = DataStatusRetryableBase+WriteError,
 
       /// Failed while transfering data (mostly timeout)
       TransferError = 9,
-      TransferErrorRetryable = 109,
+      TransferErrorRetryable = DataStatusRetryableBase+TransferError,
 
       /// Failed while finishing reading from source
       ReadStopError = 10,
-      ReadStopErrorRetryable = 110,
+      ReadStopErrorRetryable = DataStatusRetryableBase+ReadStopError,
 
       /// Failed while finishing writing to destination
       WriteStopError = 11,
-      WriteStopErrorRetryable = 111,
+      WriteStopErrorRetryable = DataStatusRetryableBase+WriteStopError,
 
       /// First stage of registration of index service URL failed
       PreRegisterError = 12,
-      PreRegisterErrorRetryable = 112,
+      PreRegisterErrorRetryable = DataStatusRetryableBase+PreRegisterError,
 
       /// Last stage of registration of index service URL failed
       PostRegisterError = 13,
-      PostRegisterErrorRetryable = 113,
+      PostRegisterErrorRetryable = DataStatusRetryableBase+PostRegisterError,
 
       /// Unregistration of index service URL failed
       UnregisterError = 14,
-      UnregisterErrorRetryable = 114,
+      UnregisterErrorRetryable = DataStatusRetryableBase+UnregisterError,
 
       /// Error in caching procedure
       CacheError = 15,
-      CacheErrorRetryable = 115,
+      CacheErrorRetryable = DataStatusRetryableBase+CacheError,
 
       /// Error due to provided credentials are expired
       CredentialsExpiredError = 16,
 
       /// Error deleting location or URL
       DeleteError = 17,
-      DeleteErrorRetryable = 117,
+      DeleteErrorRetryable = DataStatusRetryableBase+DeleteError,
 
       /// No valid location available
       NoLocationError = 18,
@@ -108,11 +109,11 @@ namespace Arc {
 
       /// Access check failed
       CheckError = 24,
-      CheckErrorRetryable = 124,
+      CheckErrorRetryable = DataStatusRetryableBase+CheckError,
 
       /// File listing failed
       ListError = 25,
-      ListErrorRetryable = 125,
+      ListErrorRetryable = DataStatusRetryableBase+ListError,
 
       /// Object initialization failed
       NotInitializedError = 26,
@@ -122,7 +123,7 @@ namespace Arc {
     
       /// Staging error
       StageError = 28,
-      StageErrorRetryable = 128,
+      StageErrorRetryable = DataStatusRetryableBase+StageError,
  
       /// Undefined
       UnknownError = 29
