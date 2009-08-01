@@ -691,9 +691,13 @@ namespace Arc {
           if (transfer_handle == -1) {
             // Get transfer buffer if needed
             transfer_size = 0;
-            if (!point.buffer->for_read(transfer_handle, transfer_size, true))
+            point.transfer_lock.unlock();
+            if (!point.buffer->for_read(transfer_handle, transfer_size, true)) {
               // No transfer buffer - must be failure or close initiated externally
+              point.transfer_lock.lock();
               break;
+            }
+            point.transfer_lock.lock();
           }
           unsigned int l = length;
           if (l > transfer_size)
