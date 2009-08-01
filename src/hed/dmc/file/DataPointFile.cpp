@@ -58,6 +58,10 @@ namespace Arc {
     StopWriting();
   }
 
+  void DataPointFile::read_file_start(void* arg) {
+    ((DataPointFile*)arg)->read_file();
+  }
+
   void DataPointFile::read_file() {
     bool limit_length = false;
     unsigned long long int range_length = 0;
@@ -117,6 +121,10 @@ namespace Arc {
     close(fd);
     buffer->eof_read(true);
     transfer_cond.signal();
+  }
+
+  void DataPointFile::write_file_start(void* arg) {
+    ((DataPointFile*)arg)->write_file();
   }
 
   void DataPointFile::write_file() {
@@ -228,11 +236,7 @@ namespace Arc {
     buffer = &buf;
     transfer_cond.reset();
     /* create thread to maintain reading */
-    Glib::Thread *thr = NULL;
-    try {
-      thr = Glib::Thread::create(sigc::mem_fun(*this, &DataPointFile::read_file), false);
-    } catch (std::exception& e) {}
-    if (!thr) {
+    if(!CreateThreadFunction(&DataPointFile::read_file_start,this)) {
       close(fd);
       fd = -1;
       reading = false;
@@ -371,11 +375,7 @@ namespace Arc {
     buffer->speed.hold(false);
     transfer_cond.reset();
     /* create thread to maintain writing */
-    Glib::Thread *thr = NULL;
-    try {
-      thr = Glib::Thread::create(sigc::mem_fun(*this, &DataPointFile::write_file), false);
-    } catch (std::exception& e) {}
-    if (!thr) {
+    if(!CreateThreadFunction(&DataPointFile::write_file_start,this)) {
       close(fd);
       fd = -1;
       buffer->error_write(true);

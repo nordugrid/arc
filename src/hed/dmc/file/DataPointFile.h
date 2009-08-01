@@ -26,6 +26,8 @@ namespace Arc {
     virtual bool WriteOutOfOrder();
   private:
     SimpleCondition transfer_cond;
+    static void read_file_start(void* arg);
+    static void write_file_start(void* arg);
     void read_file();
     void write_file();
     bool reading;
