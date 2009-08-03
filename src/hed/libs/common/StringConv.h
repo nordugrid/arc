@@ -87,6 +87,9 @@ namespace Arc {
   /// This method unescape the URI encoded string
   std::string uri_unescape(const std::string& str);
 
+  ///Convert dn to rdn: /O=Grid/OU=Knowarc/CN=abc ---> CN=abc,OU=Knowarc,O=Grid
+  std::string convert_to_rdn(const std::string& dn);
+
 } // namespace Arc
 
 #endif // ARCLIB_STRINGCONV
