@@ -11,6 +11,7 @@
 #include <arc/ArcConfig.h>
 #include <arc/URL.h>
 #include <arc/GUID.h>
+#include <arc/StringConv.h>
 #include <arc/message/MCC.h>
 #include <arc/client/ClientInterface.h>
 #include <arc/credential/Credential.h>
