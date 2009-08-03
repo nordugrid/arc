@@ -49,9 +49,12 @@
             supposed to be used to get the location of policy-->
             <charon:PDPConfig>
                 <charon:PolicyStore>
-                  <charon:Location Type="file">charon_policy_xacml.xml.example</charon:Location>
+                  <charon:Location Type="file">charon_policy.xml.example_xacml</charon:Location>
                   <!-- other policy location-->
                 </charon:PolicyStore>
+                <!--change xacml.evaluator to arc.evaluator, if Arc 
+                  evaluator needs to be supported instead; also change 
+                  xacml.policy and xacml.request to arc.policy and arc.request-->
                 <charon:Evaluator name="xacml.evaluator" />
                 <charon:Policy name="xacml.policy" />
                 <charon:Request name="xacml.request" />

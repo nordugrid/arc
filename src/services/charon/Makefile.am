@@ -1,6 +1,6 @@
 pkglib_LTLIBRARIES = libcharon.la
 noinst_PROGRAMS = test
-doc_DATA = charon_service.xml.example charon_policy.xml.example
+doc_DATA = charon_service.xml.example charon_policy_arc.xml.example charon_policy_xacml.xml.example
 
 libcharon_la_SOURCES  = charon.cpp charon.h
 libcharon_la_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
