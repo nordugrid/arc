@@ -8,6 +8,7 @@
 #include <arc/XMLNode.h>
 #include <arc/GUID.h>
 #include <arc/URL.h>
+#include <arc/StringConv.h>
 #include <arc/message/MCC.h>
 #include <arc/ws-security/SAMLToken.h>
 #include <arc/xmlsec/XmlSecUtils.h>
