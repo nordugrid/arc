@@ -283,7 +283,8 @@ exit 0
 %doc %{_mandir}/man8/arched.8*
 %{_sbindir}/manage_jobq
 %doc %{_mandir}/man8/manage_jobq.8*
-%doc src/services/charon/charon_policy.xml.example
+%doc src/services/charon/charon_policy_arc.xml.example
+%doc src/services/charon/charon_policy_xacml.xml.example
 %doc src/services/charon/charon_service.xml.example
 %doc src/services/hopi/hopi_service.xml.example
 %doc src/services/storage/storage_service.xml.example
