@@ -15,26 +15,24 @@ command is a prototype client which is used for sending a policy decision reques
 
 .B arcdecision [options] [filename ...]
 
-./arcdecision -c pdp_client.xml -d VERBOSE https://127.0.0.1:60001 request.xml
+./arcdecision -c pdp_client.xml -d VERBOSE -s https://127.0.0.1:60001 -r request.xml
 
 .SH OPTIONS
 
 .IP "\fB-c\fR [-]\fIconfigurefile\fR, \fB-conf\fR [-]\fIconfigurefile\fR"
 specify the configuration file of pdp client
+.IP "\fB-s\fR [-]\fIserviceurl\fR, \fB-service\fR [-]\fIserviceurl\fR"
+specify the url to pdp service
+.IP "\fB-r\fR [-]\frequestfile\fR, \fB-request\fR [-]\fIrequestfile\fR"
+specify the request file that includes the formatted request (arc or xacml format)
+.IP "\fB-p\fR [-]\fIsamlprofile\fR, \fB-saml\fR [-]\fIsamlprofile\fR"
+specify the usage of the SAML2.0 profile of XACML
 .IP "\fB-d\fR \fIdebuglevel\fR, \fB-debug\fR \fIdebuglevel\fR"
 FATAL, ERROR, WARNING, INFO, DEBUG or VERBOSE
 .IP "\fB-v\fR, \fB-version\fR"
 print version information
 .IP "\fB-?\fR, \fB-help\fR"
 print help
-.LP
-
-.SH ARGUMENTS
-
-.IP "\fBserviceurl\fR ..."
-url to pdp service
-.IP "\fBrequestfile\fR ..."
-request file including the formatted pdp request
 .LP
 
 .SH EXTENDED DESCRIPTION
@@ -44,7 +42,7 @@ The
 command is a prototype client which is used for sending a policy decision request to a pdp service.
 
 .IR Examples :
-.IP "\fBarcdecision -c pdp_client.xml -d VERBOSE https://127.0.0.1:60001 request.xml\fR ..."
+.IP "\fBarcdecision -c pdp_client.xml -d VERBOSE -s https://127.0.0.1:60001 -r request.xml\fR ..."
 send the request to https://127.0.0.1:60001
 .LP
 
