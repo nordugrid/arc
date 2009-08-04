@@ -11,7 +11,7 @@
 #include <arc/message/SOAPEnvelope.h>
 #include <arc/DateTime.h>
 #include <arc/GUID.h>
-
+#include <arc/StringConv.h>
 #include <arc/credential/Credential.h>
 #include <arc/xmlsec/XmlSecUtils.h>
 #include <arc/xmlsec/XMLSecNode.h>
