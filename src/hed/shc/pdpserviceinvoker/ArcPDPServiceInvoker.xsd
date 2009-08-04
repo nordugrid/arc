@@ -16,9 +16,19 @@
     </xsd:complexType>
     <xsd:element name="Filter" type="FilterType"/>
 
-    <!--This element specified endpoint about remote pdpservice.
+    <!--This element is to specify endpoint about remote pdpservice.
      It will be configured under the <PDP name="pdpservice.invoker"/> -->
     <xsd:element name="ServiceEndpoint" type="xsd:string"/>
+
+    <!--This element is to specified the format of request. Two options
+     are recognized: xacml, arc -->
+    <xsd:element name="PolicyFormat" type="xsd:string"/>
+
+    <!--This element is to specified the protocol for transfering request. 
+     Default is the arc specific protocol; if "SAML" is specified, then 
+     the "SAML2.0 profile of the XACML v2.0" will be used for carrying
+     request-->
+    <xsd:element name="Transfer" type="xsd:string"/>
 
     <!--The following information is about credential. Since the pdpserviceinvoker is 
     actually a client which will invoke the remote pdpservice, it should has its credential
