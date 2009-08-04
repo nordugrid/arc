@@ -463,6 +463,8 @@ MCC_Status MCC_TLS_Service::process(Message& inmsg,Message& outmsg) {
       nextinmsg.Attributes()->set("TLS:CADN",sattr->CA());
 
       nextinmsg.Attributes()->set("TLS:PEERCERT",sattr->X509Str());
+      if(!((sattr->target_).empty()))
+        nextinmsg.Attributes()->set("TLS:LOCALDN",sattr->target_);
    }
 
    // Checking authentication and authorization;
