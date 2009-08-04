@@ -47,7 +47,7 @@ void URLTest::setUp() {
   gsiftpurl = new Arc::URL("gsiftp://hathi.hep.lu.se/public/test.txt");
   ldapurl = new Arc::URL("ldap://grid.uio.no/o=grid/mds-vo-name=local");
   httpurl = new Arc::URL("http://www.nordugrid.org/monitor.php?debug=2&sort=yes");
-  fileurl = new Arc::URL("file:///home/grid/runtime/TEST-ATLAS-8.0.5");
+  fileurl = new Arc::URL("file:////home/grid/runtime/TEST-ATLAS-8.0.5");
   ldapurl2 = new Arc::URL("ldap://grid.uio.no/mds-vo-name=local, o=grid");
   opturl = new Arc::URL("gsiftp://hathi.hep.lu.se;ftpthreads=10;upload=yes/public/test.txt");
   ftpurl = new Arc::URL("ftp://user:secret@ftp.nordugrid.org/pub/files/guide.pdf");
@@ -276,6 +276,7 @@ void URLTest::TestLfcUrl() {
   CPPUNIT_ASSERT_EQUAL(std::string("7d36da04-430f-403c-adfb-540b27506cfa"), lfcurl->MetaDataOption("guid"));
   CPPUNIT_ASSERT_EQUAL(std::string("ad"), lfcurl->MetaDataOption("checksumtype"));
   CPPUNIT_ASSERT_EQUAL(std::string("12345678"), lfcurl->MetaDataOption("checksumvalue"));
+  CPPUNIT_ASSERT_EQUAL(std::string("lfc://atlaslfc.nordugrid.org:5010;cache=no//grid/atlas/file1"), lfcurl->fullstr());
 }
 
 CPPUNIT_TEST_SUITE_REGISTRATION(URLTest);

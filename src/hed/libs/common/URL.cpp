@@ -132,7 +132,7 @@ namespace Arc {
       return;
     }
 
-    protocol = url.substr(0, pos);
+    protocol = lower(url.substr(0, pos));
     pos += 3;
 
     pos2 = url.find("@", pos);
@@ -197,7 +197,7 @@ namespace Arc {
     }
     else if (pos2 == pos) {
       host = "";
-      path = url.substr(pos2);
+      path = url.substr(pos2 + 1);
     }
     else {
       host = url.substr(pos, pos2 - pos);
@@ -309,6 +309,8 @@ namespace Arc {
 
     if (host.empty() && protocol != "file" && protocol != "arc" && protocol != "urllist")
       URLLogger.msg(ERROR, "Illegal URL - no hostname given");
+
+    host = lower(host);
   }
 
   URL::~URL() {}
@@ -527,8 +529,7 @@ namespace Arc {
       urlstr += ';' + OptionString(urloptions, ';');
 
     if ( (!urlstr.empty()) || (!path.empty()) )
-      if (path[0] != '/')
-        urlstr += '/';
+      urlstr += '/';
 
     if (!path.empty())
       urlstr += path;
@@ -583,8 +584,7 @@ namespace Arc {
       urlstr += ':' + tostring(port);
 
     if ( (!urlstr.empty()) || (!path.empty()) )
-      if (path[0] != '/')
-        urlstr += '/';
+      urlstr += '/';
 
     if (!path.empty())
       urlstr += path;
