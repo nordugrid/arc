@@ -2,11 +2,8 @@
 <ArcConfig 
   xmlns="http://www.nordugrid.org/schemas/ArcConfig/2007"
   xmlns:tcp="http://www.nordugrid.org/schemas/ArcMCCTCP/2007"
-  xmlns:pdp="http://www.nordugrid.org/schemas/pdp/Config"
   xmlns:charon="http://www.nordugrid.org/schemas/ArcConfig/2007/charon"
-  xmlns:echo="urn:echo_config"
 >
-  <!-- Common configuration of the daemon -->
   <Server>
     <PidFile>/var/run/arched.pid</PidFile>
     <Logger level="VERBOSE">/var/log/charon.log</Logger>
@@ -18,7 +15,7 @@
     <Plugins><Name>mcctls</Name></Plugins>
     <Plugins><Name>mcchttp</Name></Plugins>
     <Plugins><Name>mccsoap</Name></Plugins>
-    <Plugins><Name>arcpdc</Name></Plugins>
+    <Plugins><Name>arcshc</Name></Plugins>
     <Plugins><Name>charon</Name></Plugins>
 
     <Chain>
@@ -26,58 +23,35 @@
             <next id="tls"/>
             <tcp:Listen><tcp:Port>60000</tcp:Port></tcp:Listen>
         </Component>
-	<Component name="tls.service" id="tls">
+        <Component name="tls.service" id="tls">
             <next id="http"/>
-	 <!-- Location of host certificates -->
-	    <KeyPath>/etc/grid-security/hostkey.pem</KeyPath>
-	    <CertificatePath>/etc/grid-security/hostcert.pem</CertificatePath>
-	    <CACertificatesDir>/etc/grid-security/certificates</CACertificatesDir>
-	</Component>
+         <!-- Location of host certificates -->
+            <KeyPath>/etc/grid-security/hostkey.pem</KeyPath>
+            <CertificatePath>/etc/grid-security/hostcert.pem</CertificatePath>
+            <CACertificatesDir>/etc/grid-security/certificates</CACertificatesDir>
+        </Component>
         <Component name="http.service" id="http">
             <next id="soap">POST</next>
         </Component>
         <Component name="soap.service" id="soap">
-            <next id="plexer"/>
+            <next id="charon_service"/>
         </Component>
-        <Plexer name="plexer.service" id="plexer">
-            <next id="charon_service">^/Charon$</next>
-            <next id="echo">^/Echo$</next>
-        </Plexer>
         <Service name="charon" id="charon_service">
             <!--The element <Evaluator/>, <Policy/> and <Request/> configuration 
             are supposed to be used to load object; element <PolicyStore/> is 
             supposed to be used to get the location of policy-->
             <charon:PDPConfig>
                 <charon:PolicyStore>
-                  <charon:Location Type="file">charon_policy.xml.example</charon:Location>
+                  <charon:Location Type="file">charon_policy.xml.example_xacml</charon:Location>
                   <!-- other policy location-->
                 </charon:PolicyStore>
-                <charon:Evaluator name="arc.evaluator" />
-                <charon:Policy name="arc.policy" />
-                <charon:Request name="arc.request" />
+                <!--change xacml.evaluator to arc.evaluator, if Arc 
+                  evaluator needs to be supported instead; also change 
+                  xacml.policy and xacml.request to arc.policy and arc.request-->
+                <charon:Evaluator name="xacml.evaluator" />
+                <charon:Policy name="xacml.policy" />
+                <charon:Request name="xacml.request" />
             </charon:PDPConfig>
         </Service>
-        <!--Service name="echo" id="echo">
-            <SecHandler name="arc.authz" id="authz" event="incoming">
-              <PDP name="simplelist.pdp" location="simplelist"/>
-              <PDP name="arc.pdp">
-                <pdp:PolicyStore>
-                  <pdp:Location type="file">Policy_Example.xml</pdp:Location-->
-                  <!-- other policy location-->
-                <!--/pdp:PolicyStore-->
-              <!--/PDP-->
-              <!--Remote pdp service (charon) invoking-->
-              <!--PDP name="pdpservice.invoker">
-                <ServiceEndpoint>https://127.0.0.1:60000/Charon</ServiceEndpoint>
-                <KeyPath>./key.pem</KeyPath>
-                <CertificatePath>./cert.pem</CertificatePath>
-                <CACertificatePath>./ca.pem</CACertificatePath>
-              </PDP-->
-              <!--PDP name="delegation.pdp"/>
-            </SecHandler>
-            <next id="echo"/>
-            <echo:prefix>[ </echo:prefix>
-            <echo:suffix> ]</echo:suffix>
-        </Service-->
     </Chain>
 </ArcConfig>
