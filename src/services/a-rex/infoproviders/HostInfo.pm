@@ -129,11 +129,12 @@ sub get_host_info {
     
     # Hostcert issuer CA, trustedca, issuercahash
     # find an openssl							          
-    my $openssl_command = `which openssl 2>/dev/null`;
-    chomp $openssl_command;	
-    if ($? != 0) {
-       $openssl_command = "$globus_location/bin/openssl";
+    my $openssl_command = '';
+    for my $path (split ':', "$ENV{PATH}:$globus_location/bin") {
+        $openssl_command = "$path/openssl" and last if -x "$path/openssl";
     }
+    $log->error("Could not find openssl command") unless $openssl_command;
+
     my $issuerca=`$openssl_command x509 -noout -issuer -in $options->{x509_user_cert} 2>/dev/null`;    
     if ( $? ) {
         $log->error("error in executing $openssl_command x509 -noout -issuer -in $options->{x509_user_cert}");
