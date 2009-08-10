@@ -24,6 +24,7 @@ libarcshc_la_LIBADD   = allowpdp/liballowpdp.la denypdp/libdenypdp.la countpdp/l
                         $(top_srcdir)/src/hed/libs/loader/libarcloader.la \
                         $(top_srcdir)/src/hed/libs/security/libarcsecurity.la \
                         $(top_srcdir)/src/hed/libs/client/libarcclient.la \
+                        $(top_srcdir)/src/hed/libs/credential/libarccredential.la \
                         $(LIBXML2_LIBS)
 libarcshc_la_LDFLAGS  = -no-undefined -avoid-version -module
 
