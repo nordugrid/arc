@@ -55,7 +55,7 @@ static Arc::Logger& logger = Arc::Logger::getRootLogger();
 
 class PointPair;
 
-static bool CollectCredentials(std::string& proxy,std::string& cert,std::string& key,std::string& cadir) {
+static void CollectCredentials(std::string& proxy,std::string& cert,std::string& key,std::string& cadir) {
   proxy=Arc::GetEnv("X509_USER_PROXY");
   if(proxy.empty()) {
     cert=Arc::GetEnv("X509_USER_CERT");
@@ -72,16 +72,14 @@ class FileDataEx : public FileData {
  public:
   typedef std::list<FileDataEx>::iterator iterator;
   Arc::DataStatus res;
-  std::string failure_description;
   PointPair* pair;
   FileDataEx(const FileData& f)
     : FileData(f),
       res(Arc::DataStatus::Success),
       pair(NULL) {}
-  FileDataEx(const FileData& f, Arc::DataStatus r, const std::string& fd)
+  FileDataEx(const FileData& f, Arc::DataStatus r)
     : FileData(f),
       res(r),
-      failure_description(fd),
       pair(NULL) {}
 };
 
@@ -213,13 +211,12 @@ class PointPair {
                                                       source(Arc::DMC::GetDataPoint(source_url)),
                                                       destination(Arc::DMC::GetDataPoint(destination_url)) {};
   ~PointPair(void) { if(source) delete source; if(destination) delete destination; };
-  static void callback(Arc::DataMover*,Arc::DataStatus res,const std::string&,void* arg) {
+  static void callback(Arc::DataMover*,Arc::DataStatus res,void* arg) {
     FileDataEx::iterator &it = *((FileDataEx::iterator*)arg);
     pair_condition.lock();
-    if(!res) {
-      it->failure_description=(std::string)res;
+    if(!res.Passed()) {
       it->res=res;
-      olog<<"Failed downloading file "<<it->lfn<<" - "<<it->failure_description<<std::endl;
+      olog<<"Failed downloading file "<<it->lfn<<" - "<<std::string(res)<<std::endl;
       if((it->pair->source->GetTries() <= 0) || (it->pair->destination->GetTries() <= 0)) {
         delete it->pair; it->pair=NULL;
         failed_files.push_back(*it);
@@ -544,13 +541,14 @@ int main(int argc,char** argv) {
           i->pair=pair;
         };
         FileDataEx::iterator* it = new FileDataEx::iterator(i);
-        if(!mover.Transfer(*(i->pair->source), *(i->pair->destination), *cache,
-                           url_map, min_speed, min_speed_time,
-                           min_average_speed, max_inactivity_time,
-                           i->failure_description, &PointPair::callback, it,
-                           i->pfn.c_str())) {
-          failure_reason+=std::string("Failed to initiate file transfer: ")+source.c_str()+" - "+i->failure_description+"\n";
-          olog<<"FATAL ERROR: Failed to initiate file transfer: "<<source<<" - "<<i->failure_description<<std::endl;
+        Arc::DataStatus dres = mover.Transfer(*(i->pair->source), *(i->pair->destination), *cache,
+                                              url_map, min_speed, min_speed_time,
+                                              min_average_speed, max_inactivity_time,
+                                              &PointPair::callback, it,
+                                              i->pfn.c_str());
+        if (!dres.Passed()) {
+          failure_reason+=std::string("Failed to initiate file transfer: ")+source.c_str()+" - "+std::string(dres)+"\n";
+          olog<<"FATAL ERROR: Failed to initiate file transfer: "<<source<<" - "<<std::string(dres)<<std::endl;
           delete it; res=1; goto exit;
         };
         ++pairs_initiated;
@@ -569,6 +567,12 @@ int main(int argc,char** argv) {
     };
   };
   for(FileDataEx::iterator i=failed_files.begin();i!=failed_files.end();++i) {
+    if (i->res == Arc::DataStatus::CacheErrorRetryable) {
+      odlog(ERROR)<<"Failed to download (but may be retried) "<<i->lfn<<std::endl;
+      job_files.push_back(*i);
+      res = 4;
+      continue;
+    }
     odlog(ERROR)<<"Failed to download "<<i->lfn<<std::endl;
     failure_reason+="Input file: "+i->lfn+" - "+(std::string)(i->res)+"\n";
     if(i->res == Arc::DataStatus::CredentialsExpiredError)
@@ -581,6 +585,7 @@ int main(int argc,char** argv) {
     if(credentials_expired) res=3;
     goto exit;
   };
+  if(res == 4) odlog(INFO)<<"Some downloads failed, but may be retried"<<std::endl;
   job_files_.clear();
   for(FileDataEx::iterator i = job_files.begin();i!=job_files.end();++i) job_files_.push_back(*i);
   if(!job_input_write_file(desc,user,job_files_)) {
@@ -679,7 +684,7 @@ exit:
   for(FileDataEx::iterator i = job_files.begin();i!=job_files.end();++i) job_files_.push_back(*i);
   clean_files(job_files_,session_dir);
   // release cache just in case
-  if(res != 0) {
+  if(res != 0 && res != 4) {
     cache->Release();
   };
   remove_proxy();

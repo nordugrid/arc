@@ -89,7 +89,6 @@ namespace Arc {
     time_t min_speed_time;
     unsigned long long int min_average_speed;
     time_t max_inactivity_time;
-    std::string *failure_description;
     DataMover::callback cb;
     DataMover *it;
     void *arg;
@@ -174,15 +173,12 @@ namespace Arc {
 
   void transfer_func(void *arg) {
     transfer_struct *param = (transfer_struct*)arg;
-    std::string failure_description;
     DataStatus res = param->it->Transfer(*(param->source),
-                                         *(param->destination), *(param->cache), *(param->map), param->min_speed,
-                                         param->min_speed_time, param->min_average_speed,
-                                         param->max_inactivity_time, failure_description,
+                                         *(param->destination), *(param->cache), *(param->map),
+                                         param->min_speed, param->min_speed_time,
+                                         param->min_average_speed, param->max_inactivity_time,
                                          NULL, NULL, param->prefix);
-    if (param->failure_description)
-      *(param->failure_description) = failure_description;
-    (*(param->cb))(param->it, res, failure_description, param->arg);
+    (*(param->cb))(param->it, res, param->arg);
     if (param->prefix)
       free((void*)(param->prefix));
     delete param->cache;
@@ -191,18 +187,18 @@ namespace Arc {
 
   /* transfer data from source to destination */
   DataStatus DataMover::Transfer(DataPoint& source, DataPoint& destination,
-                                 FileCache& cache, const URLMap& map, std::string& failure_description,
+                                 FileCache& cache, const URLMap& map,
                                  DataMover::callback cb, void *arg, const char *prefix) {
     return Transfer(source, destination, cache, map, default_min_speed,
                     default_min_speed_time, default_min_average_speed,
-                    default_max_inactivity_time, failure_description, cb, arg, prefix);
+                    default_max_inactivity_time, cb, arg, prefix);
   }
 
   DataStatus DataMover::Transfer(DataPoint& source, DataPoint& destination,
                                  FileCache& cache, const URLMap& map, unsigned long long int min_speed,
                                  time_t min_speed_time, unsigned long long int
                                  min_average_speed, time_t max_inactivity_time,
-                                 std::string& failure_description, DataMover::callback cb, void *arg,
+                                 DataMover::callback cb, void *arg,
                                  const char *prefix) {
     if (cb != NULL) {
       logger.msg(DEBUG, "DataMover::Transfer : starting new thread");
@@ -217,7 +213,6 @@ namespace Arc {
       param->min_speed_time = min_speed_time;
       param->min_average_speed = min_average_speed;
       param->max_inactivity_time = max_inactivity_time;
-      param->failure_description = &failure_description;
       param->cb = cb;
       param->it = this;
       param->arg = arg;
@@ -232,7 +227,6 @@ namespace Arc {
       }
       return DataStatus::Success;
     }
-    failure_description = "";
     logger.msg(INFO, "Transfer from %s to %s", source.str(), destination.str());
     if (!source) {
       logger.msg(ERROR, "Not valid source");
@@ -244,7 +238,8 @@ namespace Arc {
     }
     for (;;) {
       // if(source.Resolve(true, map)) {
-      if (source.Resolve(true).Passed()) {
+      DataStatus dres = source.Resolve(true);
+      if (dres.Passed()) {
         if (source.HaveLocations())
           break;
         logger.msg(ERROR, "No locations for source found: %s", source.str());
@@ -253,13 +248,14 @@ namespace Arc {
         logger.msg(ERROR, "Failed to resolve source: %s", source.str());
       source.NextTry(); /* try again */
       if (!do_retries)
-        return DataStatus::ReadResolveError;
+        return dres;
       if (!source.LocationValid())
-        return DataStatus::ReadResolveError;
+        return dres;
     }
     for (;;) {
       // if(destination.Resolve(false, URLMap())) {
-      if (destination.Resolve(false).Passed()) {
+      DataStatus dres = destination.Resolve(false);
+      if (dres.Passed()) {
         if (destination.HaveLocations())
           break;
         logger.msg(ERROR, "No locations for destination found: %s",
@@ -269,9 +265,9 @@ namespace Arc {
         logger.msg(ERROR, "Failed to resolve destination: %s", destination.str());
       destination.NextTry(); /* try again */
       if (!do_retries)
-        return DataStatus::WriteResolveError;
+        return dres;
       if (!destination.LocationValid())
-        return DataStatus::WriteResolveError;
+        return dres;
     }
     bool replication = false;
     if (source.IsIndex() && destination.IsIndex())
@@ -309,8 +305,11 @@ namespace Arc {
           DataStatus res = Delete(*del);
           if (res == DataStatus::Success)
             break;
-          if (!destination.IsIndex())
-            break; // pfn has chance to be overwritten directly
+          if (!destination.IsIndex()) {
+            // pfn has chance to be overwritten directly
+            logger.msg(INFO, "Failed to delete %s but will still try to upload", del_url.str());
+            break;
+          }
           logger.msg(INFO, "Failed to delete %s", del_url.str());
           destination.NextTry(); /* try again */
           if (!do_retries)
@@ -320,7 +319,8 @@ namespace Arc {
         }
         if (destination.IsIndex()) {
           for (;;) {
-            if (destination.Resolve(false).Passed()) {
+            DataStatus dres = destination.Resolve(false);
+            if (dres.Passed()) {
               if (destination.HaveLocations())
                 break;
               logger.msg(ERROR, "No locations for destination found: %s",
@@ -331,9 +331,9 @@ namespace Arc {
                          destination.str());
             destination.NextTry(); /* try again */
             if (!do_retries)
-              return DataStatus::WriteResolveError;
+              return dres;
             if (!destination.LocationValid())
-              return DataStatus::WriteResolveError;
+              return dres;
           }
           destination_meta_initially_stored = destination.Registered();
           if (destination_meta_initially_stored) {
@@ -472,6 +472,7 @@ namespace Arc {
           if (!cache.Start(canonic_url, is_in_cache, is_locked)) {
             if (is_locked) {
               logger.msg(DEBUG, "Cached file is locked - should retry");
+              source.NextLocation(); /* to decrease retry counter */
               return DataStatus::CacheErrorRetryable;
             }
             cacheable = false;
@@ -505,12 +506,13 @@ namespace Arc {
               logger.msg(WARNING, "Couldn't handle certificate: %s", e.what());
             }
             if (!have_permission) {
-              if (!source.Check()) {
+              DataStatus cres = source.Check();
+              if (!cres.Passed()) {
                 logger.msg(ERROR, "Permission checking failed: %s", source.str());
                 cache.Stop(canonic_url);
                 source.NextLocation(); /* try another source */
                 logger.msg(DEBUG, "source.next_location");
-                res = DataStatus::ReadStartError;
+                res = cres;
                 break;
               }
               cache.AddDN(canonic_url, dn, exp_time);
@@ -519,7 +521,7 @@ namespace Arc {
             /* check if file is fresh enough */
             bool outdated = true;
             if (have_permission)
-              outdated = false;                 // cached DN means don't check creation date
+              outdated = false; // cached DN means don't check creation date
             if (source.CheckCreated() && cache.CheckCreated(canonic_url)) {
               Time sourcetime = source.GetCreated();
               Time cachetime = cache.GetCreated(canonic_url);
@@ -533,6 +535,8 @@ namespace Arc {
               logger.msg(DEBUG, "Cache file valid until: %s", validtime.str());
               if (validtime > Time())
                 outdated = false;
+              else
+                outdated = true;
             }
             if (outdated) {
               cache.StopAndDelete(canonic_url);
@@ -545,6 +549,7 @@ namespace Arc {
               if (!cache.Link(destination.CurrentLocation().Path(), canonic_url)) {
                 /* failed cache link is unhandable */
                 cache.Stop(canonic_url);
+                source.NextLocation(); /* to decrease retry counter */
                 return DataStatus::CacheError;
               }
             }
@@ -553,6 +558,7 @@ namespace Arc {
               if (!cache.Copy(destination.CurrentLocation().Path(), canonic_url, executable)) {
                 /* failed cache copy is unhandable */
                 cache.Stop(canonic_url);
+                source.NextLocation(); /* to decrease retry counter */
                 return DataStatus::CacheError;
               }
             }
@@ -562,7 +568,7 @@ namespace Arc {
           }
           break;
         }
-        if (cacheable && !(res == DataStatus::Success))
+        if (cacheable && !res.Passed())
           continue;
       }
 #endif /*WIN32*/
@@ -572,12 +578,13 @@ namespace Arc {
           /* check permissions first */
           logger.msg(INFO, "URL is mapped to local access - "
                      "checking permissions on original URL");
-          if (!source.Check()) {
+          DataStatus cres =  source.Check();
+          if (!cres.Passed()) {
             logger.msg(ERROR, "Permission checking on original URL failed: %s",
                        source.str());
             source.NextLocation(); /* try another source */
             logger.msg(DEBUG, "source.next_location");
-            res = DataStatus::ReadStartError;
+            res = cres;
 #ifndef WIN32
             if (cacheable)
               cache.StopAndDelete(canonic_url);
@@ -659,9 +666,13 @@ namespace Arc {
       DataPoint& destination_url = cacheable ? chdest : destination;
       // Disable checks meant to provide meta-information if not needed
       source_url.SetAdditionalChecks(do_checks & (checks_required | cacheable));
-      if (!(res = source_url.StartReading(buffer))) {
+      DataStatus datares = source_url.StartReading(buffer);
+      if (!datares.Passed()) {
         logger.msg(ERROR, "Failed to start reading from source: %s",
                    source_url.str());
+        res = datares;
+        if (source.GetFailureReason() != DataStatus::UnknownError)
+          res = source.GetFailureReason();
         /* try another source */
         if (source.NextLocation())
           logger.msg(DEBUG, "(Re)Trying next source");
@@ -690,12 +701,13 @@ namespace Arc {
       // from source to destination
       if (destination.CheckSize())
         buffer.speed.set_max_data(destination.GetSize());
-      if (!destination.PreRegister(replication, force_registration).Passed()) {
+      datares = destination.PreRegister(replication, force_registration);
+      if (!datares.Passed()) {
         logger.msg(ERROR, "Failed to preregister destination: %s",
                    destination.str());
         destination.NextLocation(); /* not exactly sure if this would help */
         logger.msg(DEBUG, "destination.next_location");
-        res = DataStatus::PreRegisterError;
+        res = datares;
         // Normally remote destination is not cached. But who knows.
 #ifndef WIN32
         if (cacheable)
@@ -707,7 +719,8 @@ namespace Arc {
       DataStatus read_failure = DataStatus::Success;
       DataStatus write_failure = DataStatus::Success;
       if (!cacheable) {
-        if (!(res = destination.StartWriting(buffer))) {
+        datares = destination.StartWriting(buffer);
+        if (!datares.Passed()) {
           logger.msg(ERROR, "Failed to start writing to destination: %s",
                      destination.str());
           source_url.StopReading();
@@ -717,12 +730,16 @@ namespace Arc {
                        "You may need to unregister it manually: %s", destination.str());
           if (destination.NextLocation())
             logger.msg(DEBUG, "(Re)Trying next destination");
+          res = datares;
+          if(destination.GetFailureReason() != DataStatus::UnknownError)
+            res = destination.GetFailureReason();
           continue;
         }
       }
       else {
 #ifndef WIN32
-        if (!chdest.StartWriting(buffer)) {
+        datares = chdest.StartWriting(buffer);
+        if (!datares.Passed()) {
           // TODO: put callback to clean cache into FileCache
           logger.msg(ERROR, "Failed to start writing to cache");
           source_url.StopReading();
@@ -747,51 +764,14 @@ namespace Arc {
       if (cacheable && mapped)
         source.SetMeta(mapped_p); // pass more metadata (checksum)
       logger.msg(DEBUG, "Closing write channel");
-      write_failure = destination_url.StopWriting();
-#ifndef WIN32
-      if (cacheable) {
-        bool download_error = buffer.error();
-        if (!download_error) {
-          if (source.CheckValid())
-            cache.SetValid(canonic_url, source.GetValid());
-          try {
-            std::string dn;
-            Time exp_time(0);
-            // TODO (important) load credential in unified way or
-            // use already loaded one
-            Credential ci(GetEnv("X509_USER_PROXY"), GetEnv("X509_USER_PROXY"), GetEnv("X509_CERT_DIR"), "");
-            dn = ci.GetIdentityName();
-            exp_time = ci.GetEndTime();
-            cache.AddDN(canonic_url, dn, exp_time);
-          } catch (CredentialError e) {
-            logger.msg(WARNING, "Couldn't handle certificate: %s", e.what());
-          }
-          bool cache_link_result;
-          if (executable) {
-            logger.msg(DEBUG, "Copying cached file");
-            cache_link_result = cache.Copy(destination.CurrentLocation().Path(), canonic_url, true);
-          }
-          else {
-            logger.msg(DEBUG, "Linking/copying cached file");
-            cache_link_result = cache.Link(destination.CurrentLocation().Path(), canonic_url);
-          }
-          if (!cache_link_result) {
-            buffer.error_write(true);
-            cache.Stop(canonic_url);
-            if (!destination.PreUnregister(replication ||
-                                           destination_meta_initially_stored).Passed())
-              logger.msg(ERROR, "Failed to unregister preregistered lfn. "
-                         "You may need to unregister it manually");
-            return DataStatus::CacheError; /* retry won't help */
-          }
-          cache.Stop(canonic_url);
-        }
-        else
-          cache.StopAndDelete(canonic_url);
-        // keep for retries
-      }
-#endif
+      if (!destination_url.StopWriting().Passed())
+        buffer.error_write(true);
+
       if (buffer.error()) {
+#ifndef WIN32
+        if (cacheable) 
+          cache.StopAndDelete(canonic_url);
+#endif        
         if (!destination.PreUnregister(replication ||
                                        destination_meta_initially_stored).Passed())
           logger.msg(ERROR, "Failed to unregister preregistered lfn. "
@@ -802,16 +782,20 @@ namespace Arc {
         if (buffer.error_read()) {
           if (source.NextLocation())
             logger.msg(DEBUG, "(Re)Trying next source");
-          res = read_failure;
-          if (res)
-            res = DataStatus::ReadError;
+          // check for error from callbacks etc
+          if(source.GetFailureReason() != DataStatus::UnknownError)
+            res=source.GetFailureReason();
+          else
+            res=DataStatus::ReadError;
         }
         else if (buffer.error_write()) {
           if (destination.NextLocation())
             logger.msg(DEBUG, "(Re)Trying next destination");
-          res = write_failure;
-          if (res)
-            res = DataStatus::WriteError;
+          // check for error from callbacks etc
+          if(destination.GetFailureReason() != DataStatus::UnknownError)
+            res=destination.GetFailureReason();
+          else
+            res=DataStatus::WriteError;
         }
         else if (buffer.error_transfer()) {
           // Here is more complicated case - operation timeout
@@ -819,11 +803,13 @@ namespace Arc {
           res = DataStatus::TransferError;
           if (!buffer.for_read()) {
             // No free buffers for 'read' side. Buffer must be full.
+            res.SetDesc(destination.GetFailureReason().GetDesc());
             if (destination.NextLocation())
               logger.msg(DEBUG, "(Re)Trying next destination");
           }
           else if (!buffer.for_write()) {
             // Buffer is empty
+            res.SetDesc(source.GetFailureReason().GetDesc());
             if (source.NextLocation())
               logger.msg(DEBUG, "(Re)Trying next source");
           }
@@ -832,11 +818,15 @@ namespace Arc {
             logger.msg(DEBUG, "Cause of failure unclear - choosing randomly");
             Glib::Rand r;
             if (r.get_int() < (RAND_MAX / 2)) {
+              res.SetDesc(source.GetFailureReason().GetDesc());
               if (source.NextLocation())
                 logger.msg(DEBUG, "(Re)Trying next source");
             }
-            else if (destination.NextLocation())
-              logger.msg(DEBUG, "(Re)Trying next destination");
+            else {
+              res.SetDesc(destination.GetFailureReason().GetDesc());
+              if (destination.NextLocation())
+                logger.msg(DEBUG, "(Re)Trying next destination");
+            }
           }
         }
         continue;
@@ -857,7 +847,8 @@ namespace Arc {
           logger.msg(DEBUG, "DataMover::Transfer: have valid checksum");
         }
       destination.SetMeta(source); // pass more metadata (checksum)
-      if (!destination.PostRegister(replication).Passed()) {
+      datares = destination.PostRegister(replication);
+      if (!datares.Passed()) {
         logger.msg(ERROR, "Failed to postregister destination %s",
                    destination.str());
         if (!destination.PreUnregister(replication ||
@@ -866,9 +857,44 @@ namespace Arc {
                      "You may need to unregister it manually: %s", destination.str());
         destination.NextLocation(); /* not sure if this can help */
         logger.msg(DEBUG, "destination.next_location");
-        res = DataStatus::PostRegisterError;
+#ifndef WIN32
+        if(cacheable) 
+          cache.Stop(canonic_url);
+#endif
+        res = datares;
         continue;
       }
+#ifndef WIN32
+      if (cacheable) {
+        if (source.CheckValid())
+          cache.SetValid(canonic_url, source.GetValid());
+        try {
+          // TODO (important) load credential in unified way or
+          // use already loaded one
+          Credential ci(GetEnv("X509_USER_PROXY"), GetEnv("X509_USER_PROXY"), GetEnv("X509_CERT_DIR"), "");
+          cache.AddDN(canonic_url, ci.GetIdentityName(), ci.GetEndTime());
+        } catch (CredentialError e) {
+          logger.msg(WARNING, "Couldn't handle certificate: %s", e.what());
+        }
+        bool cache_link_result;
+        if (executable) {
+          logger.msg(DEBUG, "Copying cached file");
+          cache_link_result = cache.Copy(destination.CurrentLocation().Path(), canonic_url, true);
+        }
+        else {
+          logger.msg(DEBUG, "Linking/copying cached file");
+          cache_link_result = cache.Link(destination.CurrentLocation().Path(), canonic_url);
+        }
+        cache.Stop(canonic_url);
+        if (!cache_link_result) {
+          if (!destination.PreUnregister(replication ||
+                                         destination_meta_initially_stored).Passed())
+            logger.msg(ERROR, "Failed to unregister preregistered lfn. "
+                       "You may need to unregister it manually");
+          return DataStatus::CacheError; /* retry won't help */
+        }
+      }
+#endif
       if (buffer.error())
         continue; // should never happen - keep just in case
       break;

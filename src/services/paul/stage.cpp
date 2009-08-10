@@ -125,12 +125,12 @@ class FileTransfer
                     delete pair;
                     continue;
                 }
-                if (!mover->Transfer(*(pair->source), *(pair->destination), 
-                                     *cache, url_map, 
-                                    min_speed, min_speed_time, 
-                                    min_average_speed, max_inactivity_time, 
-                                    failure)) {
-                    logger_.msg(Arc::ERROR, failure);
+                Arc::DataStatus res = mover->Transfer(*(pair->source), *(pair->destination), 
+                                                      *cache, url_map, 
+                                                      min_speed, min_speed_time, 
+                                                      min_average_speed, max_inactivity_time); 
+                if (!res.Passed()) {
+                    logger_.msg(Arc::ERROR, std::string(res));
                     delete pair;
                     continue;
                 }
@@ -184,12 +184,12 @@ class FileTransfer
                     delete pair;
                     continue;
                 }
-                if (!mover->Transfer(*(pair->source), *(pair->destination), 
-                                     *cache, url_map, 
-                                    min_speed, min_speed_time, 
-                                    min_average_speed, max_inactivity_time, 
-                                    failure)) {
-                    logger_.msg(Arc::ERROR, failure);
+                Arc::DataStatus res = mover->Transfer(*(pair->source), *(pair->destination), 
+                                                      *cache, url_map, 
+                                                      min_speed, min_speed_time, 
+                                                      min_average_speed, max_inactivity_time);
+                if (!res.Passed()) {
+                    logger_.msg(Arc::ERROR, std::string(res));
                     delete pair;
                     continue;
                 }

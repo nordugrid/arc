@@ -346,13 +346,13 @@ void arccp(const Arc::URL& source_url_,
         Arc::User cache_user;
         Arc::FileCache cache;
         if (!cache_dir.empty()) cache = Arc::FileCache(cache_dir+" .", "", getuid(), getgid());  
-        std::string failure;
-        if (!mover.Transfer(*source, *destination, cache, Arc::URLMap(),
-                            0, 0, 0, timeout, failure)) {
-          if (!failure.empty())
-            logger.msg(Arc::INFO, "Current transfer FAILED: %s", failure);
+        Arc::DataStatus res = mover.Transfer(*source, *destination, cache, Arc::URLMap(),
+                                             0, 0, 0, timeout);
+        if (!res.Passed()) {
+          if (!res.GetDesc().empty())
+            logger.msg(Arc::INFO, "Current transfer FAILED: %s - %s", std::string(res), res.GetDesc());
           else
-            logger.msg(Arc::INFO, "Current transfer FAILED");
+            logger.msg(Arc::INFO, "Current transfer FAILED: %s", std::string(res));
           destination->SetTries(1);
           // It is not clear how to clear half-registered file. So remove it
           // only in case of explicit destination.
@@ -417,16 +417,14 @@ void arccp(const Arc::URL& source_url_,
   if (verbose)
     mover.set_progress_indicator(&progress);
   std::string failure;
-  if (!mover.Transfer(*source, *destination, cache, Arc::URLMap(),
-                      0, 0, 0, timeout, failure)) {
-    if (failure.length()) {
-      logger.msg(Arc::ERROR, "Transfer FAILED: %s", failure);
-      return;
-    }
-    else {
-      logger.msg(Arc::ERROR, "Transfer FAILED");
-      return;
-    }
+  Arc::DataStatus res = mover.Transfer(*source, *destination, cache, Arc::URLMap(),
+                                       0, 0, 0, timeout);
+  if (!res.Passed()) {
+    if (!res.GetDesc().empty())
+      logger.msg(Arc::ERROR, "Transfer FAILED: %s - %s", std::string(res), res.GetDesc());
+    else
+      logger.msg(Arc::ERROR, "Transfer FAILED: %s", std::string(res));
+    return;
     destination->SetTries(1);
     // It is not clear how to clear half-registered file. So remove it only
     // in case of explicit destination.

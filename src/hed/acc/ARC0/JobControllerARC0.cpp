@@ -372,7 +372,6 @@ namespace Arc {
     // Send temporary file to cluster
     DataMover mover;
     FileCache cache;
-    std::string failure;
     URL source_url(filename);
     URL dest_url(urlstr);
     DataHandle source(source_url);
@@ -381,12 +380,13 @@ namespace Arc {
     source->SetTries(1);
     destination->AssignCredentials(proxyPath, certificatePath, keyPath, caCertificatesDir);
     destination->SetTries(1);
-    if (!mover.Transfer(*source, *destination, cache, URLMap(),
-                        0, 0, 0, timeout, failure)) {
-      if (!failure.empty())
-        logger.msg(INFO, "Current transfer FAILED: %s", failure);
+    DataStatus res = mover.Transfer(*source, *destination, cache, URLMap(),
+                                    0, 0, 0, timeout);
+    if (!res.Passed()) {
+      if (!res.GetDesc().empty())
+        logger.msg(INFO, "Current transfer FAILED: %s - %s", std::string(res), res.GetDesc());
       else
-        logger.msg(INFO, "Current transfer FAILED");
+        logger.msg(INFO, "Current transfer FAILED: %s", std::string(res));
       mover.Delete(*destination);
       return false;
     }
@@ -441,7 +441,6 @@ namespace Arc {
     mover.force_to_meta(false);
     mover.retry(true);
     FileCache cache;
-    std::string failure;
     URL source_url(cluster + "/info/" + shortid + "/description");
     std::string tmpfile = shortid + G_DIR_SEPARATOR_S + "description";
     std::string localfile = Glib::build_filename(Glib::get_tmp_dir(), tmpfile);
@@ -452,12 +451,13 @@ namespace Arc {
     source->SetTries(1);
     destination->AssignCredentials(proxyPath, certificatePath, keyPath, caCertificatesDir);
     destination->SetTries(1);
-    if (!mover.Transfer(*source, *destination, cache, URLMap(),
-                        0, 0, 0, timeout, failure)) {
-      if (!failure.empty())
-        logger.msg(INFO, "Current transfer FAILED: %s", failure);
+    DataStatus res = mover.Transfer(*source, *destination, cache, URLMap(),
+                                    0, 0, 0, timeout);
+    if (!res.Passed()) {
+      if (!res.GetDesc().empty())
+        logger.msg(INFO, "Current transfer FAILED: %s - %s", std::string(res), res.GetDesc());
       else
-        logger.msg(INFO, "Current transfer FAILED");
+        logger.msg(INFO, "Current transfer FAILED: %s", std::string(res));
       mover.Delete(*destination);
       return false;
     }

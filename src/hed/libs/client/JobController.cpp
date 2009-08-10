@@ -687,13 +687,13 @@ namespace Arc {
                                    keyPath, caCertificatesDir);
 
     FileCache cache;
-    std::string failure;
-    if (!mover.Transfer(*source, *destination, cache, URLMap(),
-                        0, 0, 0, timeout, failure)) {
-      if (!failure.empty())
-        logger.msg(ERROR, "File download failed: %s", failure);
+    DataStatus res = mover.Transfer(*source, *destination, cache, URLMap(),
+                                    0, 0, 0, timeout);
+    if (!res.Passed()) {
+      if (!res.GetDesc().empty())
+        logger.msg(ERROR, "File download failed: %s - %s", std::string(res), res.GetDesc());
       else
-        logger.msg(ERROR, "File download failed");
+        logger.msg(ERROR, "File download failed: %s", std::string(res));
       return false;
     }
 

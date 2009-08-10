@@ -36,8 +36,7 @@ namespace Arc {
     DataSpeed::show_progress_t show_progress;
     static Logger logger;
   public:
-    typedef void (*callback)(DataMover*, DataStatus, const std::string&,
-                             void*);
+    typedef void (*callback)(DataMover*, DataStatus, void*);
     /// Constructor
     DataMover();
     /// Destructor
@@ -56,7 +55,6 @@ namespace Arc {
     /// printed before each line representing current transfer status.
     DataStatus Transfer(DataPoint& source, DataPoint& destination,
                         FileCache& cache, const URLMap& map,
-                        std::string& failure_description,
                         callback cb = NULL, void *arg = NULL,
                         const char *prefix = NULL);
     /// Initiates transfer from 'source' to 'destination'.
@@ -72,7 +70,6 @@ namespace Arc {
                         time_t min_speed_time,
                         unsigned long long int min_average_speed,
                         time_t max_inactivity_time,
-                        std::string& failure_description,
                         callback cb = NULL, void *arg = NULL,
                         const char *prefix = NULL);
     DataStatus Delete(DataPoint& url, bool errcont = false);

@@ -478,6 +478,7 @@ namespace Arc {
     if (error != GLOBUS_SUCCESS) {
       logger.msg(INFO, "Failed to get ftp file");
       logger.msg(DEBUG, "Globus error: %s", globus_object_to_string(error));
+      it->failure_code = DataStatus(DataStatus::ReadStartError, globus_object_to_string(error));
       it->buffer->error_read(true);
       return;
     }
@@ -625,6 +626,7 @@ namespace Arc {
     /* data transfer finished */
     if (error != GLOBUS_SUCCESS) {
       logger.msg(INFO, "Failed to store ftp file");
+      it->failure_code = DataStatus(DataStatus::WriteStartError, globus_object_to_string(error));
       logger.msg(DEBUG, "Globus error: %s", globus_object_to_string(error));
       it->buffer->error_write(true);
       return;

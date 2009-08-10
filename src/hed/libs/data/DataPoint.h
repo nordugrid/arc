@@ -131,6 +131,10 @@ namespace Arc {
     /// \param true to request.
     virtual void Passive(bool v) = 0;
 
+    /// Returns reason of transfer failure, as reported by callbacks.
+    /// This could be different from the failure returned by the methods themselves.
+    virtual DataStatus GetFailureReason(void) const;
+
     /// Set range of bytes to retrieve.
     /** Default values correspond to whole file. */
     virtual void Range(unsigned long long int start = 0,
@@ -324,6 +328,7 @@ namespace Arc {
     Time created;
     Time valid;
     int triesleft;
+    DataStatus failure_code; /* filled by callback methods */
 
     // authentication
     std::string proxyPath;

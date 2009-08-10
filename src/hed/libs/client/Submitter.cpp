@@ -53,13 +53,13 @@ namespace Arc {
       destination->AssignCredentials(proxyPath, certificatePath,
                                      keyPath, caCertificatesDir);
 
-      std::string failure;
-      if (!mover.Transfer(*source, *destination, cache, URLMap(),
-                          0, 0, 0, timeout, failure)) {
-        if (!failure.empty())
-          logger.msg(ERROR, "Failed uploading file: %s", failure);
+      DataStatus res = mover.Transfer(*source, *destination, cache, URLMap(),
+                                      0, 0, 0, timeout);
+      if (!res.Passed()) {
+        if (!res.GetDesc().empty())
+          logger.msg(ERROR, "Failed uploading file: %s - %s", std::string(res), res.GetDesc());
         else
-          logger.msg(ERROR, "Failed uploading file");
+          logger.msg(ERROR, "Failed uploading file: %s", std::string(res));
         return false;
       }
     }

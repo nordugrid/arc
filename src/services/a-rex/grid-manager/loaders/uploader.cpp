@@ -3,7 +3,8 @@
 #endif
 /*
   Upload files specified in job.ID.output.
-  result: 0 - ok, 1 - unrecoverable error, 2 - potentially recoverable.
+  result: 0 - ok, 1 - unrecoverable error, 2 - potentially recoverable,
+  3 - certificate error, 4 - should retry.
 */
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -42,39 +43,22 @@
 #define MAX_RETRIES 5
 /* maximum number simultaneous uploads */
 #define MAX_UPLOADS 5
-/* maximum time for user files to upload (per file) */
-#define MAX_USER_TIME 600
 
 class PointPair;
-
-static bool CollectCredentials(std::string& proxy,std::string& cert,std::string& key,std::string& cadir) {
-  proxy=Arc::GetEnv("X509_USER_PROXY");
-  if(proxy.empty()) {
-    cert=Arc::GetEnv("X509_USER_CERT");
-    key=Arc::GetEnv("X509_USER_KEY");
-  };
-  if(proxy.empty() && cert.empty()) {
-    proxy="/tmp/x509_up"+Arc::tostring(getuid());
-  };
-  cadir=Arc::GetEnv("X509_CERT_DIR");
-  if(cadir.empty()) cadir="/etc/grid-security/certificates";
-}
 
 class FileDataEx : public FileData {
  public:
   typedef std::list<FileDataEx>::iterator iterator;
   Arc::DataStatus res;
-  std::string failure_description;
   PointPair* pair;
-  FileDataEx(const FileData& f) : FileData(f),
-				  res(Arc::DataStatus::Success),
-				  pair(NULL) {}
-  FileDataEx(const FileData& f,
-	     Arc::DataStatus r,
-	     const std::string& fd) : FileData(f),
-				      res(r),
-				      failure_description(fd),
-				      pair(NULL) {}
+  FileDataEx(const FileData& f) : 
+      FileData(f),
+      res(Arc::DataStatus::Success),
+      pair(NULL) {}
+  FileDataEx(const FileData& f, Arc::DataStatus r) :
+      FileData(f),
+      res(r),
+      pair(NULL) {}
 };
 
 static std::list<FileData> job_files_;
@@ -98,13 +82,12 @@ class PointPair {
                                                       source(Arc::DMC::GetDataPoint(source_url)),
                                                       destination(Arc::DMC::GetDataPoint(destination_url)) {};
   ~PointPair(void) { if(source) delete source; if(destination) delete destination; };
-  static void callback(Arc::DataMover*,Arc::DataStatus res,const std::string&,void* arg) {
+  static void callback(Arc::DataMover*,Arc::DataStatus res,void* arg) {
     FileDataEx::iterator &it = *((FileDataEx::iterator*)arg);
     pair_condition.lock();
-    if(!res) {
-      it->failure_description=(std::string)res;
+    if(!res.Passed()) {
       it->res=res;
-      olog<<"Failed uploading file "<<it->lfn<<" - "<<it->failure_description<<std::endl;
+      olog<<"Failed uploading file "<<it->lfn<<" - "<<std::string(res)<<std::endl;
       if((it->pair->source->GetTries() <= 0) || (it->pair->destination->GetTries() <= 0)) {
         delete it->pair; it->pair=NULL;
         failed_files.push_back(*it);
@@ -477,13 +460,14 @@ int main(int argc,char** argv) {
           i->pair=pair;
         };
         FileDataEx::iterator* it = new FileDataEx::iterator(i);
-        if(!mover.Transfer(*(i->pair->source), *(i->pair->destination), *cache,
-			   url_map, min_speed, min_speed_time,
-			   min_average_speed, max_inactivity_time,
-			   i->failure_description, &PointPair::callback, it,
-			   i->pfn.c_str())) {
-          failure_reason+=std::string("Failed to initiate file transfer: ")+source.c_str()+" - "+i->failure_description+"\n";
-          olog<<"FATAL ERROR: Failed to initiate file transfer: "<<source<<" - "<<i->failure_description<<std::endl;
+        Arc::DataStatus dres = mover.Transfer(*(i->pair->source), *(i->pair->destination), *cache,
+                                              url_map, min_speed, min_speed_time,
+                                              min_average_speed, max_inactivity_time,
+                                              &PointPair::callback, it,
+                                              i->pfn.c_str());
+        if (!dres.Passed()) {
+          failure_reason+=std::string("Failed to initiate file transfer: ")+source.c_str()+" - "+std::string(dres)+"\n";
+          olog<<"FATAL ERROR: Failed to initiate file transfer: "<<source<<" - "<<std::string(dres)<<std::endl;
           delete it; res=1; goto exit;
         };
         ++pairs_initiated;

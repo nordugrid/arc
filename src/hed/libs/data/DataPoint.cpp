@@ -19,7 +19,8 @@ namespace Arc {
       size((unsigned long long int)(-1)),
       created(-1),
       valid(-1),
-      triesleft(5) {}
+      triesleft(5),
+      failure_code(DataStatus::UnknownError) {}
 
   DataPoint::~DataPoint() {}
 
@@ -39,6 +40,10 @@ namespace Arc {
     return !url;
   }
 
+  DataStatus DataPoint::GetFailureReason() const {
+    return failure_code;
+  }
+  
   bool DataPoint::CheckSize() const {
     return (size != (unsigned long long int)(-1));
   }
