@@ -639,8 +639,8 @@ namespace Arc {
         return true;
       }
 
-      logger.msg(DEBUG, "Unknown XRSL attribute: %s", c->Attr());
-      return false;
+      logger.msg(DEBUG, "Unknown XRSL attribute: %s - Ignoring it.", c->Attr());
+      return true;
     }
     else {
       logger.msg(ERROR, "Unexpected RSL type");
@@ -654,7 +654,7 @@ namespace Arc {
          it != j.DataStaging.File.end(); it++)
       if (!it->Source.empty())
         it->DownloadToCache = cached;
-	
+  
     return true;
   }
 
