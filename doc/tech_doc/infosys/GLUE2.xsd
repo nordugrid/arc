@@ -104,6 +104,8 @@
                 <sequence>
                     <element name="Description" type="string" minOccurs="0" maxOccurs="1"/>
                     <element name="WWW" type="anyURI" minOccurs="0" maxOccurs="unbounded"/>
+                    <element name="Location" type="glue:Location_t" minOccurs="0" maxOccurs="1"/>
+                    <element name="Contact" type="glue:Contact_t" minOccurs="0" maxOccurs="unbounded"/>
                 </sequence>
                 <attribute name="BaseType" fixed="Domain" use="required"/>
             </extension>
@@ -116,8 +118,6 @@
                 <sequence>
                     <element name="Distributed" type="boolean" minOccurs="0" maxOccurs="1"/>
                     <element name="Owner" type="string" minOccurs="0" maxOccurs="unbounded"/>
-                    <element name="Location" type="glue:Location_t" minOccurs="0" maxOccurs="1"/>
-                    <element name="Contact" type="glue:Contact_t" minOccurs="0" maxOccurs="unbounded"/>
                     <element name="Services" minOccurs="0" maxOccurs="1">
                         <complexType>
                             <sequence>
@@ -140,15 +140,13 @@
                     <element name="Level" type="unsignedInt" minOccurs="0" maxOccurs="1"/>
                     <element name="UserManager" type="anyURI" minOccurs="0" maxOccurs="unbounded"/>
                     <element name="Member" type="string" minOccurs="0" maxOccurs="unbounded"/>
-                    <element name="Location" type="glue:Location_t" minOccurs="0" maxOccurs="1"/>
-                    <element name="Contact" type="glue:Contact_t" minOccurs="0" maxOccurs="unbounded"/>
                     <!-- <element name="UserDomain" type="glue:UserDomain_t" minOccurs="0" maxOccurs="unbounded"/> -->
                 </sequence>
             </extension>
         </complexContent>
     </complexType>
 
-    <complexType name="Service_t">
+    <complexType abstract="true" name="ServiceBase_t">
         <complexContent>
             <extension base="glue:Entity">
                 <sequence>
@@ -159,6 +157,16 @@
                     <element name="Complexity" type="string" minOccurs="0" maxOccurs="1"/>
                     <element name="Location" type="glue:Location_t" minOccurs="0" maxOccurs="1"/>
                     <element name="Contact" type="glue:Contact_t" minOccurs="0" maxOccurs="unbounded"/>
+                </sequence>
+                <attribute name="BaseType" fixed="Service" use="required"/>
+            </extension>
+        </complexContent>
+    </complexType>
+
+    <complexType name="Service_t">
+        <complexContent>
+            <extension base="glue:ServiceBase_t">
+                <sequence>
                     <element name="Endpoint" type="glue:Endpoint_t" minOccurs="0" maxOccurs="unbounded"/>
                     <element name="Associations" minOccurs="0" maxOccurs="1">
                         <complexType>
@@ -168,12 +176,11 @@
                         </complexType>
                     </element>
                 </sequence>
-                <attribute name="BaseType" fixed="Service" use="required"/>
             </extension>
         </complexContent>
     </complexType>
 
-    <complexType name="Endpoint_t">
+    <complexType abstract="true" name="EndpointBase_t">
         <complexContent>
             <extension base="glue:Entity">
                 <sequence>
@@ -201,6 +208,16 @@
                     <element name="DowntimeEnd" type="glue:dateTime" minOccurs="0" maxOccurs="1"/>
                     <element name="DowntimeInfo" type="string" minOccurs="0" maxOccurs="1"/>
                     <element name="AccessPolicy" type="glue:AccessPolicy_t" minOccurs="0" maxOccurs="unbounded"/>
+                </sequence>
+                <attribute name="BaseType" fixed="Endpoint" use="required" />
+            </extension>
+        </complexContent>
+    </complexType>
+
+    <complexType name="Endpoint_t">
+        <complexContent>
+            <extension base="glue:EndpointBase_t">
+                <sequence>
                     <element name="Activities" minOccurs="0" maxOccurs="1">
                        <complexType>
                            <sequence>
@@ -209,17 +226,26 @@
                        </complexType>
                     </element>
                 </sequence>
-                <attribute name="BaseType" fixed="Endpoint" use="required" />
+            </extension>
+        </complexContent>
+    </complexType>
+
+    <complexType abstract="true" name="ShareBase_t">
+        <complexContent>
+            <extension base="glue:Entity">
+                <sequence>
+                    <element name="Description" type="string" minOccurs="0" maxOccurs="1"/>
+                    <element name="MappingPolicy" type="glue:MappingPolicy_t" minOccurs="0" maxOccurs="unbounded"/>
+                </sequence>
+                <attribute name="BaseType" fixed="Share" use="required"/>
             </extension>
         </complexContent>
     </complexType>
 
     <complexType abstract="true" name="Share_t">
         <complexContent>
-            <extension base="glue:Entity">
+            <extension base="glue:ShareBase_t">
                 <sequence>
-                    <element name="Description" type="string" minOccurs="0" maxOccurs="1"/>
-                    <element name="MappingPolicy" type="glue:MappingPolicy_t" minOccurs="0" maxOccurs="unbounded"/>
                     <element name="Associations" minOccurs="0" maxOccurs="1">
                         <complexType>
                             <sequence>
@@ -229,11 +255,10 @@
                         </complexType>
                     </element>
                 </sequence>
-                <attribute name="BaseType" fixed="Share" use="required"/>
             </extension>
         </complexContent>
     </complexType>
-    
+
     <complexType abstract="true" name="Manager_t">
         <complexContent>
             <extension base="glue:Entity">
@@ -246,9 +271,19 @@
         </complexContent>
     </complexType>
 
-    <complexType abstract="true" name="Resource_t">
+    <complexType abstract="true" name="ResourceBase_t">
         <complexContent>
             <extension base="glue:Entity">
+                <sequence>
+                </sequence>
+                <attribute name="BaseType" fixed="Resource" use="required"/>
+            </extension>
+        </complexContent>
+    </complexType>
+
+    <complexType abstract="true" name="Resource_t">
+        <complexContent>
+            <extension base="glue:ResourceBase_t">
                 <sequence>
                     <element name="Associations" minOccurs="0" maxOccurs="1">
                         <complexType>
@@ -258,14 +293,23 @@
                         </complexType>
                     </element>
                 </sequence>
-                <attribute name="BaseType" fixed="Resource" use="required"/>
+            </extension>
+        </complexContent>
+    </complexType>
+
+    <complexType abstract="true" name="ActivityBase_t">
+        <complexContent>
+            <extension base="glue:Entity">
+                <sequence>
+                </sequence>
+                <attribute name="BaseType" fixed="Activity" use="required"/>
             </extension>
         </complexContent>
     </complexType>
 
     <complexType name="Activity_t">
         <complexContent>
-            <extension base="glue:Entity">
+            <extension base="glue:ActivityBase_t">
                 <sequence>
                     <element name="Associations" minOccurs="0" maxOccurs="1">
                         <complexType>
@@ -277,7 +321,6 @@
                         </complexType>
                     </element>
                 </sequence>
-                <attribute name="BaseType" fixed="Activity" use="required"/>
             </extension>
         </complexContent>
     </complexType>
@@ -317,7 +360,7 @@
     <!--  BEGIN COMPUTING ENTITIES  -->
     <complexType name="ComputingService_t">
         <complexContent>
-            <extension base="glue:Service_t">
+            <extension base="glue:ServiceBase_t">
                 <sequence>
                     <element name="TotalJobs" type="unsignedInt" minOccurs="0" maxOccurs="1"/>
                     <element name="RunningJobs" type="unsignedInt" minOccurs="0" maxOccurs="1"/>
@@ -329,6 +372,13 @@
                     <element name="ComputingShare" type="glue:ComputingShare_t" minOccurs="0" maxOccurs="unbounded"/>
                     <element name="ComputingManager" type="glue:ComputingManager_t" minOccurs="0" maxOccurs="unbounded"/>
                     <element name="ToStorageService" type="glue:ToStorageService_t" minOccurs="0" maxOccurs="1"/>
+                    <element name="Associations" minOccurs="0" maxOccurs="1">
+                        <complexType>
+                            <sequence>
+                                <element name="ServiceID" type="anyURI" minOccurs="0" maxOccurs="unbounded"/>
+                            </sequence>
+                        </complexType>
+                    </element>
                 </sequence>                
             </extension>
         </complexContent>
@@ -336,7 +386,7 @@
 
     <complexType name="ComputingEndpoint_t">
         <complexContent>
-            <extension base="glue:Endpoint_t">
+            <extension base="glue:EndpointBase_t">
                 <sequence>
                     <element name="Staging" type="glue:Staging_t" minOccurs="0" maxOccurs="1"/>
                     <element name="JobDescription" type="glue:JobDescription_t" minOccurs="0" maxOccurs="unbounded"/>
@@ -350,7 +400,13 @@
                         <complexType>
                             <sequence>
                                 <element name="ComputingShareID" type="anyURI" minOccurs="0" maxOccurs="unbounded"/>
-                                <element name="ComputingActivityID" type="anyURI" minOccurs="0" maxOccurs="unbounded"/>
+                            </sequence>
+                        </complexType>
+                    </element>
+                    <element name="ComputingActivities" minOccurs="0" maxOccurs="1">
+                        <complexType>
+                            <sequence>
+                                <element name="ComputingActivity" type="glue:ComputingActivity_t" minOccurs="0" maxOccurs="unbounded"/>
                             </sequence>
                         </complexType>
                     </element>
@@ -361,7 +417,7 @@
 
     <complexType name="ComputingShare_t">
         <complexContent>
-            <extension base="glue:Share_t">
+            <extension base="glue:ShareBase_t">
                 <sequence>
                     <element name="MappingQueue" type="string" minOccurs="0" maxOccurs="1"/>
                     <element name="MaxWallTime" type="unsignedLong" minOccurs="0" maxOccurs="1"/>
@@ -419,14 +475,8 @@
                             <sequence>
                                 <element name="ComputingEndpointID" type="anyURI" minOccurs="0" maxOccurs="unbounded"/>
                                 <element name="ExecutionEnvironmentID" type="anyURI" minOccurs="0" maxOccurs="unbounded"/>
+                                <element name="ComputingActivityID" type="anyURI" minOccurs="0" maxOccurs="unbounded"/>
                             </sequence>
-                        </complexType>
-                    </element>
-                    <element name="ComputingActivities" minOccurs="0" maxOccurs="1">
-                        <complexType>
-                            <sequence>
-                                <element name="ComputingActivity" type="glue:ComputingActivity_t" minOccurs="0" maxOccurs="unbounded"/>
-                            </sequence>                            
                         </complexType>
                     </element>
                 </sequence>
@@ -505,7 +555,7 @@
 
     <complexType name="ExecutionEnvironment_t">
         <complexContent>
-            <extension base="glue:Resource_t">
+            <extension base="glue:ResourceBase_t">
                 <sequence>
                     <element name="Platform" type="glue:Platform_t" minOccurs="1" maxOccurs="1"/>
                     <element name="VirtualMachine" type="glue:ExtendedBoolean_t" minOccurs="0" maxOccurs="1"/>
@@ -616,7 +666,7 @@
 
     <complexType name="ComputingActivity_t">
         <complexContent>
-            <extension base="glue:Activity_t">
+            <extension base="glue:ActivityBase_t">
                 <sequence>
                     <element name="Type" type="glue:ComputingActivityType_t" minOccurs="0" maxOccurs="1"/>
                     <element name="IDFromEndpoint" type="anyURI" minOccurs="0" maxOccurs="1"/>
@@ -657,8 +707,10 @@
                     <element name="Associations" minOccurs="0" maxOccurs="1">
                         <complexType>
                             <sequence>
+                                <element name="UserDomainID" type="anyURI" minOccurs="0" maxOccurs="1"/>
                                 <element name="ComputingEndpointID" type="anyURI" minOccurs="0" maxOccurs="1"/>
                                 <element name="ExecutionEnvironmentID" type="anyURI" minOccurs="0" maxOccurs="1"/>
+                                <element name="ActivityID" type="anyURI" minOccurs="0" maxOccurs="unbounded"/>
                             </sequence>
                         </complexType>
                     </element>
@@ -673,7 +725,13 @@
                 <sequence>
                     <element name="LocalPath" type="string" minOccurs="1" maxOccurs="1"/>
                     <element name="RemotePath" type="string" minOccurs="1" maxOccurs="1"/>
-                    <element name="StorageServiceID" type="anyURI" minOccurs="1" maxOccurs="1"/>
+                    <element name="Associations" minOccurs="1" maxOccurs="1">
+                        <complexType>
+                            <sequence>
+                                <element name="StorageServiceID" type="anyURI" minOccurs="1" maxOccurs="1"/>
+                            </sequence>
+                        </complexType>
+                    </element>
                 </sequence>
             </extension>
         </complexContent>
@@ -683,13 +741,20 @@
     <!--  BEGIN STORAGE ENTITIES  -->
     <complexType name="StorageService_t">
         <complexContent>
-            <extension base="glue:Service_t">
+            <extension base="glue:ServiceBase_t">
                 <sequence>
-                    <element name="StorageCapacity" type="glue:StorageCapacity_t" minOccurs="0" maxOccurs="unbounded"/>
                     <element name="StorageEndpoint" type="glue:StorageEndpoint_t" minOccurs="0" maxOccurs="unbounded"/>
                     <element name="StorageShare" type="glue:StorageShare_t" minOccurs="0" maxOccurs="unbounded"/>
                     <element name="StorageResource" type="glue:StorageResource_t" minOccurs="0"/>
                     <element name="StorageAccessProtocol" type="glue:StorageAccessProtocol_t" minOccurs="0" maxOccurs="unbounded"/>
+                    <element name="StorageCapacity" type="glue:StorageCapacity_t" minOccurs="0" maxOccurs="unbounded"/>
+                    <element name="Associations" minOccurs="0" maxOccurs="1">
+                        <complexType>
+                            <sequence>
+                                <element name="ServiceID" type="anyURI" minOccurs="0" maxOccurs="unbounded"/>
+                            </sequence>
+                        </complexType>
+                    </element>
                 </sequence>
             </extension>
         </complexContent>
@@ -697,9 +762,9 @@
 
     <complexType name="StorageEndpoint_t">
         <complexContent>
-            <extension base="glue:Endpoint_t">
+            <extension base="glue:EndpointBase_t">
                 <sequence>
-                    <element name="Associations" minOccurs="0">
+                    <element name="Associations" minOccurs="0" maxOccurs="1">
                         <complexType>
                             <sequence>
                                 <element name="StorageShareID" type="glue:ID_t" minOccurs="0" maxOccurs="unbounded"/>
@@ -713,7 +778,7 @@
 
     <complexType name="StorageShare_t">
         <complexContent>
-            <extension base="glue:Share_t">
+            <extension base="glue:ShareBase_t">
                 <sequence>
                     <element name="Type" type="glue:StorageEnvironmentType_t" minOccurs="0"/>
                     <element name="Path" type="string" minOccurs="0"/>
@@ -949,9 +1014,15 @@
         <restriction base="string"/>
     </simpleType>
 
+    <simpleType name="ID_t">
+        <restriction base="anyURI">
+            <pattern value="[a-zA-Z][a-zA-Z_0-9\-\.:]*"/>
+        </restriction>
+    </simpleType>
+
     <simpleType name="LocalID_t">
         <restriction base="string">
-            <pattern value="[a-zA-Z][a-zA-Z_0-9\-\.\:]*"/>
+            <pattern value="[a-zA-Z][a-zA-Z_0-9\-\.:]*"/>
         </restriction>
     </simpleType>
 
