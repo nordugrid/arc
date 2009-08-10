@@ -175,14 +175,14 @@ namespace Arc {
     if (writing)
       return DataStatus::IsWritingError;
     User user;
-    int res = user.check_file_access(url.Path(), O_RDONLY);
+    int res = user.check_file_access(DIR_SEPARATOR + url.Path(), O_RDONLY);
     if (res != 0) {
-      logger.msg(INFO, "File is not accessible: %s", url.Path());
+      logger.msg(INFO, "File is not accessible: %s", DIR_SEPARATOR + url.Path());
       return DataStatus::CheckError;
     }
     struct stat st;
-    if (stat(url.Path().c_str(), &st) != 0) {
-      logger.msg(INFO, "Can't stat file: %s", url.Path());
+    if (stat((DIR_SEPARATOR + url.Path()).c_str(), &st) != 0) {
+      logger.msg(INFO, "Can't stat file: %s", DIR_SEPARATOR + url.Path());
       return DataStatus::CheckError;
     }
     SetSize(st.st_size);
@@ -195,7 +195,7 @@ namespace Arc {
       return DataStatus::IsReadingError;
     if (writing)
       return DataStatus::IsReadingError;
-    if (unlink(url.Path().c_str()) == -1)
+    if (unlink((DIR_SEPARATOR + url.Path()).c_str()) == -1)
       if (errno != ENOENT)
         return DataStatus::DeleteError;
     return DataStatus::Success;
@@ -217,11 +217,11 @@ namespace Arc {
       fd = dup(STDIN_FILENO);
     else {
       User user;
-      if (user.check_file_access(url.Path(), flags) != 0) {
+      if (user.check_file_access(DIR_SEPARATOR + url.Path(), flags) != 0) {
         reading = false;
         return DataStatus::ReadStartError;
       }
-      fd = open(url.Path().c_str(), flags);
+      fd = open(DIR_SEPARATOR + url.Path().c_str(), flags);
     }
     if (fd == -1) {
       reading = false;
@@ -292,7 +292,7 @@ namespace Arc {
         writing = false;
         return DataStatus::WriteStartError;
       }
-      std::string dirpath = url.Path();
+      std::string dirpath = DIR_SEPARATOR + url.Path();
       int n = dirpath.rfind(DIR_SEPARATOR);
 #ifndef WIN32
       if (n == 0)
@@ -320,13 +320,13 @@ namespace Arc {
 #ifdef WIN32
       flags |= O_BINARY;
 #endif
-      fd = open(url.Path().c_str(), flags | O_CREAT | O_EXCL, S_IRUSR | S_IWUSR);
+      fd = open((DIR_SEPARATOR + url.Path()).c_str(), flags | O_CREAT | O_EXCL, S_IRUSR | S_IWUSR);
       if (fd == -1)
-        fd = open(url.Path().c_str(), flags | O_TRUNC, S_IRUSR | S_IWUSR);
+        fd = open((DIR_SEPARATOR + url.Path()).c_str(), flags | O_TRUNC, S_IRUSR | S_IWUSR);
       else  /* this file was created by us. Hence we can set it's owner */
         (fchown(fd, user.get_uid(), user.get_gid()) != 0);
       if (fd == -1) {
-        logger.msg(ERROR, "Failed to create/open file %s (%d)", url.Path(), errno);
+        logger.msg(ERROR, "Failed to create/open file %s (%d)", DIR_SEPARATOR + url.Path(), errno);
         buffer->error_write(true);
         buffer->eof_write(true);
         writing = false;
@@ -338,7 +338,7 @@ namespace Arc {
       if (CheckSize()) {
         unsigned long long int fsize = GetSize();
         logger.msg(INFO, "setting file %s to size %llu",
-                   url.Path(), fsize);
+                   DIR_SEPARATOR + url.Path(), fsize);
         /* because filesytem can skip empty blocks do real write */
         unsigned long long int old_size = lseek(fd, 0, SEEK_END);
         if (old_size < fsize) {
@@ -410,7 +410,7 @@ namespace Arc {
       return DataStatus::IsReadingError;
     if (writing)
       return DataStatus::IsWritingError;
-    std::string dirname = url.Path();
+    std::string dirname = DIR_SEPARATOR + url.Path();
     if (dirname[dirname.length() - 1] == '/')
       dirname.resize(dirname.length() - 1);
 
