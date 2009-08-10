@@ -896,12 +896,22 @@ If the file system containing the cache is full and it is impossible
 to free any space, the download fails and is retried without using
 cacheing.
 
-Before giving access to a file already in the cache, the A-REX contacts
-the initial file source to check if the user has read permission on
-the file. Also file creation or validity times from the original source
-are checked to make sure the cached file is fresh enough. If it is
-impossible to obtain creation and invalidation times for the file,
-it is invalidated 24 hours after download.
+Before giving access to a file already in the cache, the A-REX
+contacts the initial file source to check if the user has read
+permission on the file. In order to prevent repeated checks on source
+files, this authentication information is cached for a limited
+time. On passing the check for a cached file, the user's DN is stored
+in the \emph{.meta} file, with an expiry time equivalent to the
+lifetime remaining for the user's proxy certificate. This means that
+the permission check is not performed for this user for this file
+until this time is up (usually several hours). File creation and
+validity times from the original source are also checked to make sure
+the cached file is fresh enough. If the modification time of the
+source is later than that of the cached file, the file will be
+downloaded again. The file will also be downloaded again if the
+modification date of the source is not available, as it is assumed the
+cache file is out of date. These checks are not performed if the DN is
+cached and is still valid.
 
 The A-REX checks the cache periodically. If the used space on the file
 system containing the cache exceeds the high water-mark given in the
@@ -1121,7 +1131,7 @@ to A-REX\\
 \textit{max\_running jobs} -- maximal amount of jobs passed to Local
 Resource Management System\\
 Missing value or -1 means no limit.
-\item \textbf{\textit{maxlod}}\textit{={[}max\_frontend\_jobs {[}emergency\_frontend\_jobs
+\item \textbf{\textit{maxload}}\textit{={[}max\_frontend\_jobs {[}emergency\_frontend\_jobs
 {[}max\_transferred\_files]]]} -- specifies maximum load caused by
 jobs being processed on frontend:\\
 \textit{max\_frontend\_jobs} -- maximal amount of jobs heavily using
@@ -1210,10 +1220,9 @@ are 7days for \emph{ttl} and 30 days for \emph{ttr}.
 - specifies names for the LRMS and queue. Queue name can also be specified
 in the JD (currently it is not allowed to override LRMS by usingon
 the JD).
-\item \textbf{\textit{session}}\textit{=path} -- specifies path to the directory
+\item \textbf{\textit{sessiondir}}\textit{=path} -- specifies path to the directory
 in which the SD is created. If the path is {*} the default one is
-used -- \textit{\$HOME/.jobs}. In new configuration file this command
-is called \textbf{\textit{sessiondir}}.
+used -- \textit{\$HOME/.jobs}.
 \item \textbf{\textit{cachedir}}\textit{=path {[}link\_path]} - specifies
 a directory to store cached data (see \ref{sec:cache}).\emph{ }Multiple
 cache directories may be specified by specifying multiple \emph{cachedir}
@@ -1223,8 +1232,7 @@ disables caching. Optional \textit{link\_path} specifies the path
 at which \emph{path} is accessible on computing nodes, if it is different
 from the path on the A-REX host. If \textit{link\_path} is set to '.'
 files are not soft-linked, nor are per-job links created, but files
-are copied to the session directory. In old configuration file this
-command is called \textbf{\textit{cache}}.
+are copied to the session directory.
 \item \textbf{\textit{cachesize}}\textit{=high\_mark {[}low\_mark]} - specifies
 high and low watermarks for space used by each cache, as a percentage
 of the space on the file system on which the cache directory is located.
