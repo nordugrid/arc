@@ -29,22 +29,28 @@ namespace Arc {
 
   /// Class to hold general URL's.
   /** The URL is split into protocol, hostname, port and path.
-     This class does NOT follow RFC 3986 for spliting URLs.
+     This class tries to follow RFC 3986 for spliting URLs at least
+     for protocol + host part.
      It also accepts file paths which are converted to file://path.
-     Usual system dependant file paths are supported.
+     Usual system dependant file paths are supported. Relative
+     paths are converted to absolute ones by prepending them
+     with current working directory path.
      File path can't start from # symbol (why?).
      If string representation of URL starts from '@' then it is
      treated as path to file containing list of URLs.
      Simple URL is parsed in following way:
-        [protocol://][[username:passwd@]host][:port][;urloptions[;...]][/path[?httpoption[&...]][:metadataoption[:...]]]
+        [protocol:][//[username:passwd@][host][:port]][;urloptions[;...]][/path[?httpoption[&...]][:metadataoption[:...]]]
      The 'protocol' and 'host' parts are treated as case-insensitive and
      to avoid confusion are converted to lowercase in constructor.
      Note that 'path' part does not include /-separator. Users of this
      class should keep that in mind and prepend output of Path() method
-     with '/' if protocol expects absolute path only. (Actually this
-     is a topic for discussion because that breaks RFC 3986 badly)
-     That also means absolute local file must be referenced using 4
-     /-se[arators - file:////... .
+     with '/' if needed. 
+     For referencing local file using absolute path one may use either
+       file:///path/to/file
+     or
+       file:/path/to/file
+     Relative path will look like
+       file:file
      URLs representing LDAP resources have different structure of options
      following 'path' part
         ldap://host[:port][;urloptions[;...]][/path[?attributes[?scope[?filter]]]]

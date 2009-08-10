@@ -114,8 +114,19 @@ namespace Arc {
       return;
     }
 
-    pos = url.find("://");
+    // Looking for protocol separator
+    pos = url.find(":");
+    if (pos != std::string::npos) {
+      // Check if protocol looks like protocol
+      for(std::string::size_type p = 0; p < pos; ++p) {
+        char c = url[p];
+        if(isalnum(c) || (c == '+') || (c == '-') || (c == '.')) continue;
+        pos = std::string::npos;
+        break;
+      }
+    }
     if (pos == std::string::npos) {
+      // URL does not start from protocol - must be simple path
       if (url[0] == '@') {
         protocol = "urllist";
         path = url.substr(1);
@@ -129,96 +140,143 @@ namespace Arc {
         if (getcwd(cwd, PATH_MAX))
           path = Glib::build_filename(cwd, path);
       }
+      // This class (historically) stores paths without leading /
+      if (!path.empty())
+        path.erase(0,1);
       return;
     }
 
+    // RFC says protocols should be lowercase and uppercase 
+    // must be converted to lowercase
     protocol = lower(url.substr(0, pos));
-    pos += 3;
 
-    pos2 = url.find("@", pos);
-    if (pos2 != std::string::npos) {
+    // Checking if protocol followed by host/authority part 
+    // or by path directly
+    if((url[pos+1] != '/') || (url[pos+2] != '/')) {
+      host = "";
+      pos += 1;
+      pos2 = pos; // path start position
+      path = url.substr(pos2);
+      // This must be only path - we can accept path only for 
+      // limited set of protocols
+      if ((protocol == "file" || protocol == "urllist")) {
+        if (!Glib::path_is_absolute(path)) {
+          char cwd[PATH_MAX];
+          if (getcwd(cwd, PATH_MAX))
+            path = Glib::build_filename(cwd, path);
+        }
+        return;
+      } else if (protocol == "arc") {
+        // TODO: It is not defined how arc protocol discovers 
+        // entry point in general case.
+        // For same reason let's assume path must be always
+        // absolute.
+      } else {
+        URLLogger.msg(ERROR, "Illegal URL - no hostname given");
+        return;
+      }
+    } else {
+      // There is host/authority part in this URL. That also 
+      // means if present path is absolute 
+      pos += 3;
 
-      if (protocol == "rc" || protocol == "rls" ||
-          protocol == "fireman" || protocol == "lfc") {
+      pos2 = url.find("@", pos);
+      if (pos2 != std::string::npos) {
 
-        std::string locstring = url.substr(pos, pos2 - pos);
-        pos = pos2 + 1;
+        if (protocol == "rc" || protocol == "rls" ||
+            protocol == "fireman" || protocol == "lfc") {
 
-        pos2 = 0;
-        while (pos2 != std::string::npos) {
+          std::string locstring = url.substr(pos, pos2 - pos);
+          pos = pos2 + 1;
 
-          pos3 = locstring.find('|', pos2);
-          std::string loc = (pos3 == std::string::npos ?
-                             locstring.substr(pos2) :
-                             locstring.substr(pos2, pos3 - pos2));
+          pos2 = 0;
+          while (pos2 != std::string::npos) {
 
-          pos2 = pos3;
-          if (pos2 != std::string::npos)
-            pos2++;
+            pos3 = locstring.find('|', pos2);
+            std::string loc = (pos3 == std::string::npos ?
+                               locstring.substr(pos2) :
+                               locstring.substr(pos2, pos3 - pos2));
 
-          if (loc[0] == ';')
-            commonlocoptions = ParseOptions(loc.substr(1), ';');
-          else {
-            if (protocol == "rc") {
-              pos3 = loc.find(';');
-              if (pos3 == std::string::npos)
-                locations.push_back(URLLocation(ParseOptions("", ';'), loc));
-              else
-                locations.push_back(URLLocation(ParseOptions
+            pos2 = pos3;
+            if (pos2 != std::string::npos)
+              pos2++;
+
+            if (loc[0] == ';')
+              commonlocoptions = ParseOptions(loc.substr(1), ';');
+            else {
+              if (protocol == "rc") {
+                pos3 = loc.find(';');
+                if (pos3 == std::string::npos)
+                  locations.push_back(URLLocation(ParseOptions("", ';'), loc));
+                else
+                  locations.push_back(URLLocation(ParseOptions
                                                   (loc.substr(pos3 + 1), ';'),
-                                                loc.substr(pos3 + 1)));
+                                                  loc.substr(pos3 + 1)));
+              }
+              else
+                locations.push_back(loc);
             }
-            else
-              locations.push_back(loc);
           }
         }
+        else {
+          pos3 = url.find("/", pos);
+          if (pos3 == std::string::npos)
+            pos3 = url.length();
+          if (pos3 > pos2) {
+            username = url.substr(pos, pos2 - pos);
+            pos3 = username.find(':');
+            if (pos3 != std::string::npos) {
+              passwd = username.substr(pos3 + 1);
+              username.resize(pos3);
+            }
+            pos = pos2 + 1;
+          }
+        }
+      }
+
+      // Looking for end of host/authority part
+      pos2 = url.find("/", pos);
+      if (pos2 == std::string::npos) {
+        // Path part is empty
+        host = url.substr(pos);
+        path = "";
+      }
+      else if (pos2 == pos) {
+        // Empty host and non-empty absolute path 
+        host = "";
+        path = url.substr(pos2);
       }
       else {
-        pos3 = url.find("/", pos);
-        if (pos3 == std::string::npos)
-          pos3 = url.length();
-        if (pos3 > pos2) {
-          username = url.substr(pos, pos2 - pos);
-          pos3 = username.find(':');
-          if (pos3 != std::string::npos) {
-            passwd = username.substr(pos3 + 1);
-            username.resize(pos3);
-          }
-          pos = pos2 + 1;
-        }
+        // Both host and absolute path present
+        host = url.substr(pos, pos2 - pos);
+        path = url.substr(pos2);
       }
     }
 
-
-    pos2 = url.find("/", pos);
-    if (pos2 == std::string::npos) {
-      host = url.substr(pos);
-      path = "";
-    }
-    else if (pos2 == pos) {
-      host = "";
-      path = url.substr(pos2 + 1);
-    }
-    else {
-      host = url.substr(pos, pos2 - pos);
-      path = url.substr(pos2 + 1);
+    // At this point path must be absolute (starts with /)
+    if ((!path.empty()) && (path[0] != '/')) {
+      URLLogger.msg(ERROR, "Illegal URL - path must be absolute or empty");
+      return;
     }
 
-    pos2 = host.find(':');
-    if (pos2 != std::string::npos) {
-      pos3 = host.find(';', pos2);
-      port = stringtoi(pos3 == std::string::npos ?
-                       host.substr(pos2 + 1) :
-                       host.substr(pos2 + 1, pos3 - pos2 - 1));
+    // Extracting port URL options (ARC extension)
+    if (!host.empty()) {
+      pos2 = host.find(':');
+      if (pos2 != std::string::npos) {
+        pos3 = host.find(';', pos2);
+        port = stringtoi(pos3 == std::string::npos ?
+                         host.substr(pos2 + 1) :
+                         host.substr(pos2 + 1, pos3 - pos2 - 1));
+      }
+      else {
+        pos3 = host.find(';');
+        pos2 = pos3;
+      }
+      if (pos3 != std::string::npos)
+        urloptions = ParseOptions(host.substr(pos3 + 1), ';');
+      if (pos2 != std::string::npos)
+        host.resize(pos2);
     }
-    else {
-      pos3 = host.find(';');
-      pos2 = pos3;
-    }
-    if (pos3 != std::string::npos)
-      urloptions = ParseOptions(host.substr(pos3 + 1), ';');
-    if (pos2 != std::string::npos)
-      host.resize(pos2);
 
     if (port == -1) {
       if (protocol == "rc")
@@ -296,21 +354,17 @@ namespace Arc {
                       ldapscopestr);
       if (ldapfilter.empty())
         ldapfilter = "(objectClass=*)";
-      if (path.find("/") != std::string::npos)
-        path = Path2BaseDN(path);
+      if (path.find("/",1) != std::string::npos)
+        path = "/" + Path2BaseDN(path);
     }
 
-    // add absolute path for relative file URLs
-    if ((protocol == "file" || protocol == "urllist") && !Glib::path_is_absolute(path)) {
-      char cwd[PATH_MAX];
-      if (getcwd(cwd, PATH_MAX))
-        path = Glib::build_filename(cwd, path);
-    }
-
-    if (host.empty() && protocol != "file" && protocol != "arc" && protocol != "urllist")
-      URLLogger.msg(ERROR, "Illegal URL - no hostname given");
-
+    // Normally host/authority names are case-insensitive
     host = lower(host);
+
+    // This class (historically) stores paths without leading /
+    if (!path.empty())
+      path.erase(0,1);
+
   }
 
   URL::~URL() {}
@@ -320,7 +374,7 @@ namespace Arc {
   }
 
   void URL::ChangeProtocol(const std::string& newprot) {
-    protocol = newprot;
+    protocol = lower(newprot);
   }
 
   const std::string& URL::Username() const {
@@ -336,7 +390,7 @@ namespace Arc {
   }
 
   void URL::ChangeHost(const std::string& newhost) {
-    host = newhost;
+    host = lower(newhost);
   }
 
   int URL::Port() const {
@@ -669,11 +723,15 @@ namespace Arc {
 
     pos = newpath.size();
     while ((pos2 = newpath.rfind("/", pos - 1)) != std::string::npos) {
+      if (pos2 == 0) break;
       basedn += newpath.substr(pos2 + 1, pos - pos2 - 1) + ", ";
       pos = pos2;
     }
-
-    basedn += newpath.substr(0, pos);
+    
+    if (pos2 == std::string::npos)
+      basedn += newpath.substr(0, pos);
+    else
+      basedn += newpath.substr(pos2 + 1, pos - pos2 - 1);
 
     return basedn;
   }
