@@ -63,27 +63,21 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
   if(!config_open(cfile)) {
     logger.msg(Arc::ERROR,"Can't read configuration file"); return false;
   };
-  if(central_configuration) {
-    cf=new ConfigSections(cfile);
-    cf->AddSection("common");
-    cf->AddSection("grid-manager");
-    cf->AddSection("infosys");
-  };
+  cf=new ConfigSections(cfile);
+  cf->AddSection("common");
+  cf->AddSection("grid-manager");
+  cf->AddSection("infosys");
   /* process configuration information here */
   for(;;) {
     std::string rest;
     std::string command;
-    if(central_configuration) {
-      cf->ReadNext(command,rest);
-      if(cf->SectionNum() == 2) { // infosys - looking for user name only
-        if(command == "user") infosys_user=rest;
-        continue;
-      };
-      if(cf->SectionNum() == 0) { // infosys user may be in common too
-        if(command == "user") infosys_user=rest;
-      };
-    } else {
-      command = config_read_line(cfile,rest);
+    cf->ReadNext(command,rest);
+    if(cf->SectionNum() == 2) { // infosys - looking for user name only
+      if(command == "user") infosys_user=rest;
+      continue;
+    };
+    if(cf->SectionNum() == 0) { // infosys user may be in common too
+      if(command == "user") infosys_user=rest;
     };
     if(daemon) {
       int r = daemon->config(command,rest);
@@ -102,24 +96,24 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
       };
     };
     // pbs,gnu_time,etc. it is ugly hack here
-    if(central_configuration && (command == "pbs_bin_path")) {
+    if(command == "pbs_bin_path") {
       Arc::SetEnv("PBS_BIN_PATH",rest);
-    } else if(central_configuration && (command == "pbs_log_path")) {
+    } else if(command == "pbs_log_path") {
       Arc::SetEnv("PBS_LOG_PATH",rest);
-    } else if(central_configuration && (command == "gnu_time")) {
+    } else if(command == "gnu_time") {
       Arc::SetEnv("GNU_TIME",rest);
-    } else if(central_configuration && (command == "tmpdir")) {
+    } else if(command == "tmpdir") {
       Arc::SetEnv("TMP_DIR",rest);
-    } else if(central_configuration && (command == "runtimedir")) {
+    } else if(command == "runtimedir") {
       Arc::SetEnv("RUNTIME_CONFIG_DIR",rest);
-    } else if(central_configuration && (command == "shared_filesystem")) {
+    } else if(command == "shared_filesystem") {
       if(rest == "NO") rest="no";
       Arc::SetEnv("RUNTIME_NODE_SEES_FRONTEND",rest);
-    } else if(central_configuration && (command == "scratchdir")) {
+    } else if(command == "scratchdir") {
       Arc::SetEnv("RUNTIME_LOCAL_SCRATCH_DIR",rest);
-    } else if(central_configuration && (command == "shared_scratch")) {
+    } else if(command == "shared_scratch") {
       Arc::SetEnv("RUNTIME_FRONTEND_SEES_NODE",rest);
-    } else if(central_configuration && (command == "nodename")) {
+    } else if(command == "nodename") {
       Arc::SetEnv("NODENAME",rest);
     }
     else if(command == "joblog") { /* where to write job inforamtion */ 
@@ -356,11 +350,10 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
         logger.msg(Arc::ERROR,"wrong number in diskspace command"); goto exit;
       };      
     }
-    else if((!central_configuration && (command == "defaultlrms")) || 
-            (central_configuration  && (command == "lrms"))) {
-                                     /* set default lrms type and queue 
-                                     (optionally). Applied to all following
-                                     'control' commands. MUST BE thing */
+    else if(command == "lrms") {
+      /* set default lrms type and queue 
+         (optionally). Applied to all following
+         'control' commands. MUST BE thing */
       default_lrms = config_next_arg(rest);
       default_queue = config_next_arg(rest);
       if(default_lrms.empty()) {
@@ -412,10 +405,9 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
       cred_plugin = rest;
       cred_plugin.timeout(to);
     }
-    else if((!central_configuration && (command == "session")) ||
-            (central_configuration  && (command == "sessiondir"))) {
-                                /* set session root directory - applied
-                                   to all following 'control' commands */
+    else if(command == "sessiondir") {
+      /* set session root directory - applied
+         to all following 'control' commands */
       session_root = config_next_arg(rest);
       if(session_root.length() == 0) {
         logger.msg(Arc::ERROR,"session root dir is missing"); goto exit;
@@ -424,7 +416,7 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
         logger.msg(Arc::ERROR,"junk in session root command"); goto exit;
       };
       if(session_root == "*") session_root="";
-    } else if(central_configuration  && (command == "controldir")) {
+    } else if(command == "controldir") {
       central_control_dir=rest;
     } else if(command == "control") {
       std::string control_dir = config_next_arg(rest);
@@ -544,7 +536,7 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
       };
     };
   };
-  if(central_configuration) delete cf;
+  delete cf;
   config_close(cfile);
   if(infosys_user.length()) {
     struct passwd pw_;
@@ -573,7 +565,7 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
   job_log.set_credentials(jobreport_key,jobreport_cert,jobreport_cadir);
   return true;
 exit:
-  if(central_configuration) delete cf;
+  delete cf;
   config_close(cfile);
   return false;
 }

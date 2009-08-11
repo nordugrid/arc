@@ -27,10 +27,6 @@ std::string nordugrid_config_loc("");
 std::string support_mail_address;
 // Global gridmap files with welcomed users' DNs and UNIX names
 std::string globus_gridmap;
-// Name of non-central configuration file. Here it is for grid-manager, 
-// other modules has to modify this variable
-const char* nordugrid_config_basename = "grid-manager.conf";
-bool central_configuration = true;
 
 static bool file_exists(const char* name) {
   struct stat st;
@@ -76,32 +72,13 @@ bool read_env_vars(bool guess) {
     if(tmp.empty()) {
       tmp=Arc::GetEnv("NORDUGRID_CONFIG");
       if(tmp.empty()) {
-        if(!central_configuration) {
-          nordugrid_config_loc=nordugrid_loc+"/etc/"+nordugrid_config_basename;
-          if(!file_exists(nordugrid_config_loc.c_str())) {
-            nordugrid_config_loc=std::string("/etc/")+nordugrid_config_basename;
-          };
-          if(!file_exists(nordugrid_config_loc.c_str())) {
-            olog<<"Configation file is missing at all guessed locations:\n"
-                <<"  "<<nordugrid_loc<<"/etc/"<<nordugrid_config_basename<<"\n"
-                <<"  /etc/"<<nordugrid_config_basename<<"\n"
-                <<"Use ARC_CONFIG variable for non-standard location"
-                <<std::endl;
-            return false;
-          };
-        } else {
-          nordugrid_config_loc="/etc/arc.conf";
-          if(!file_exists(nordugrid_config_loc.c_str())) {
-            nordugrid_config_loc="/etc/nordugrid.conf";
-          };
-          if(!file_exists(nordugrid_config_loc.c_str())) {
-            olog<<"Central configuration file is missing at guessed locations:\n"
-                <<"  /etc/nordugrid.conf\n"
-                <<"  /etc/arc.conf\n"
-                <<"Use ARC_CONFIG variable for non-standard location"
-                <<std::endl;
-            return false;
-          };
+        nordugrid_config_loc="/etc/arc.conf";
+        if(!file_exists(nordugrid_config_loc.c_str())) {
+          olog<<"Central configuration file is missing at guessed location:\n"
+              <<"  /etc/arc.conf\n"
+              <<"Use ARC_CONFIG variable for non-standard location"
+              <<std::endl;
+          return false;
         };
       };
     };

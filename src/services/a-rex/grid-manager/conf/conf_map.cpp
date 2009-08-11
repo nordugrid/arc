@@ -23,19 +23,13 @@ UrlMapConfig::UrlMapConfig(void) {
     glogger.msg(Arc::ERROR,"Can't open configuration file");
     return;
   };
-  if(central_configuration) {
-    cf=new ConfigSections(cfile);
-    cf->AddSection("common");
-    cf->AddSection("grid-manager");
-  };
+  cf=new ConfigSections(cfile);
+  cf->AddSection("common");
+  cf->AddSection("grid-manager");
   for(;;) {
     std::string rest;
     std::string command;
-    if(central_configuration) {
-      cf->ReadNext(command,rest);
-    } else {
-      command = config_read_line(cfile,rest);
-    };
+    cf->ReadNext(command,rest);
     if(command.length() == 0) break;
     else if(command == "copyurl") {
       std::string initial = config_next_arg(rest);

@@ -265,11 +265,11 @@ int main(int argc,char** argv) {
   // process optional arguments
   for(;;) {
     opterr=0;
-    int optc=getopt(argc,argv,"+hclpZfn:t:n:u:U:s:S:a:i:d:");
+    int optc=getopt(argc,argv,"+hclpfn:t:n:u:U:s:S:a:i:d:");
     if(optc == -1) break;
     switch(optc) {
       case 'h': {
-        olog<<"Usage: downloader [-hclpZf] [-n files] [-t threads] [-U uid]"<<std::endl;
+        olog<<"Usage: downloader [-hclpf] [-n files] [-t threads] [-U uid]"<<std::endl;
         olog<<"          [-u username] [-s min_speed] [-S min_speed_time]"<<std::endl;
         olog<<"          [-a min_average_speed] [-i min_activity_time]"<<std::endl;
         olog<<"          [-d debug_level] job_id control_directory"<<std::endl;
@@ -284,9 +284,6 @@ int main(int argc,char** argv) {
       }; break;
       case 'p': {
         passive=true;
-      }; break;
-      case 'Z': {
-        central_configuration=true;
       }; break;
       case 'f': {
         use_conf_cache=true;

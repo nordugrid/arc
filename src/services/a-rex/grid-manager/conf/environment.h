@@ -15,9 +15,7 @@ extern std::string nordugrid_libexec_loc;
 extern std::string nordugrid_lib_loc;
 /// ARC configuration file 
 ///   /etc/arc.conf
-///   /etc/nordugrid.conf
-///   $ARC_LOCATION/etc/nordugrid_config_basename
-///   /etc/nordugrid_config_basename
+///   $ARC_LOCATION/etc/arc.conf
 extern std::string nordugrid_config_loc;
 /// Email address of person responsible for this ARC installation
 /// grid.manager@hostname, it can also be set from configuration file 
@@ -25,10 +23,6 @@ extern std::string support_mail_address;
 /// Global gridmap files with welcomed users' DNs and UNIX names
 /// $GRIDMAP, default /etc/grid-security/grid-mapfile
 extern std::string globus_gridmap;
-/// If central configuration fle should be used (default is yes)
-extern bool central_configuration;
-/// Name of non-central configuration file. Modify before calling functions.
-extern const char* nordugrid_config_basename;
 
 ///  Read environment, check files and set variables
 ///  Accepts:

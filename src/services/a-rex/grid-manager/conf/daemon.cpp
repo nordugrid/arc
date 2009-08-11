@@ -36,12 +36,6 @@ Daemon::~Daemon(void) {
 
 int Daemon::arg(char c) {
   switch(c) {
-    case 'Z': {
-      central_configuration=true;
-    }; break;
-    case 'z': {
-      central_configuration=false;
-    }; break;
     case 'F': {
       daemon_=false;
     }; break;
@@ -95,27 +89,25 @@ int Daemon::arg(char c) {
 }
 
 int Daemon::config(const std::string& cmd,std::string& rest) {
-  if(central_configuration) {
-    if(cmd == "gridmap") {
-      Arc::SetEnv("GRIDMAP",rest); return 0;
-    } else if(cmd == "hostname") {
-      Arc::SetEnv("GLOBUS_HOSTNAME",rest); return 0;
-    } else if(cmd == "globus_tcp_port_range") {
-      Arc::SetEnv("GLOBUS_TCP_PORT_RANGE",rest); return 0;
-    } else if(cmd == "globus_udp_port_range") {
-      Arc::SetEnv("GLOBUS_UDP_PORT_RANGE",rest); return 0;
-    } else if(cmd == "x509_user_key") {
-      Arc::SetEnv("X509_USER_KEY",rest); return 0;
-      key_path_=rest;
-    } else if(cmd == "x509_user_cert") {
-      Arc::SetEnv("X509_USER_CERT",rest); return 0;
-      cert_path_=rest;
-    } else if(cmd == "x509_cert_dir") {
-      Arc::SetEnv("X509_CERT_DIR",rest); return 0;
-      cadir_path_=rest;
-    } else if(cmd == "http_proxy") {
-      Arc::SetEnv("ARC_HTTP_PROXY",rest); return 0;
-    };
+  if(cmd == "gridmap") {
+    Arc::SetEnv("GRIDMAP",rest); return 0;
+  } else if(cmd == "hostname") {
+    Arc::SetEnv("GLOBUS_HOSTNAME",rest); return 0;
+  } else if(cmd == "globus_tcp_port_range") {
+    Arc::SetEnv("GLOBUS_TCP_PORT_RANGE",rest); return 0;
+  } else if(cmd == "globus_udp_port_range") {
+    Arc::SetEnv("GLOBUS_UDP_PORT_RANGE",rest); return 0;
+  } else if(cmd == "x509_user_key") {
+    Arc::SetEnv("X509_USER_KEY",rest); return 0;
+    key_path_=rest;
+  } else if(cmd == "x509_user_cert") {
+    Arc::SetEnv("X509_USER_CERT",rest); return 0;
+    cert_path_=rest;
+  } else if(cmd == "x509_cert_dir") {
+    Arc::SetEnv("X509_CERT_DIR",rest); return 0;
+    cadir_path_=rest;
+  } else if(cmd == "http_proxy") {
+    Arc::SetEnv("ARC_HTTP_PROXY",rest); return 0;
   };
   if(cmd == "daemon") {
     if(daemon_) {
@@ -219,8 +211,6 @@ int Daemon::getopt(int argc, char * const argv[],const char *optstring) {
   opts+=DAEMON_OPTS;
   while((n=::getopt(argc,argv,opts.c_str())) != -1) {
     switch(n) {
-      case 'Z':
-      case 'z':
       case 'F':
       case 'L':
       case 'U':
@@ -312,7 +302,7 @@ int Daemon::daemon(bool close_fds) {
 }
 
 const char* Daemon::short_help(void) {
-  return "[-Zz] [-F] [-U user[:group]] [-L logfile] [-P pidfile] [-d level]";
+  return "[-F] [-U user[:group]] [-L logfile] [-P pidfile] [-d level]";
 }
 
 void Daemon::logfile(const char* path) {

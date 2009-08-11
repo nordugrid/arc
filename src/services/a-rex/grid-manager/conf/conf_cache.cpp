@@ -11,11 +11,9 @@ CacheConfig::CacheConfig(std::string username): _cache_max(80),
   if(nordugrid_config_loc.length() == 0) read_env_vars(true);
   if(!config_open(cfile)) throw CacheConfigException("Can't open configuration file");
   
-  if(central_configuration) {
-    cf=new ConfigSections(cfile);
-    cf->AddSection("common");
-    cf->AddSection("grid-manager");
-  }
+  cf=new ConfigSections(cfile);
+  cf->AddSection("common");
+  cf->AddSection("grid-manager");
   
   // for backwards compatibility
   std::string cache_data_dir("");
@@ -24,11 +22,7 @@ CacheConfig::CacheConfig(std::string username): _cache_max(80),
   for(;;) {
     std::string rest;
     std::string command;
-    if(central_configuration) {
-      cf->ReadNext(command,rest);
-    } else {
-      command = config_read_line(cfile,rest);
-    }
+    cf->ReadNext(command,rest);
 
     if(command.length() == 0) break;
     

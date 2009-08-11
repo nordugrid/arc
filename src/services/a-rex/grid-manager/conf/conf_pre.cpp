@@ -38,20 +38,14 @@ bool configure_user_dirs(const std::string &my_username,
   if(!config_open(cfile)) {
     logger.msg(Arc::ERROR,"Can't open configuration file"); return false;
   };
-  if(central_configuration) {
-    cf=new ConfigSections(cfile);
-    cf->AddSection("common");
-    cf->AddSection("grid-manager");
-    cf->AddSection("queue");
-  };
+  cf=new ConfigSections(cfile);
+  cf->AddSection("common");
+  cf->AddSection("grid-manager");
+  cf->AddSection("queue");
   for(;;) {
     std::string rest;
     std::string command;
-    if(central_configuration) {
-      cf->ReadNext(command,rest);
-    } else {
-      command = config_read_line(cfile,rest);
-    };
+    cf->ReadNext(command,rest);
     if(command.length() == 0) {
       if(central_control_dir.length() != 0) {
         command="control"; rest=central_control_dir+" .";
@@ -60,7 +54,7 @@ bool configure_user_dirs(const std::string &my_username,
         break;
       };
     };
-    if(central_configuration && (cf->SectionNum() == 2)) { // queue
+    if(cf->SectionNum() == 2) { // queue
       if(cf->SectionNew()) {
         const char* name = cf->SubSection();
         if(!name) name="";
@@ -70,8 +64,7 @@ bool configure_user_dirs(const std::string &my_username,
         if(last_queue != queues.end()) *last_queue=config_next_arg(rest);
       };
     }
-    else if((!central_configuration && (command == "defaultlrms")) ||
-            (central_configuration  && (command == "lrms"))) {
+    else if(command == "lrms") {
       if(configured) continue;
       default_lrms = config_next_arg(rest);
       default_queue = config_next_arg(rest);
@@ -108,14 +101,13 @@ bool configure_user_dirs(const std::string &my_username,
         strict_session=false;
       };
     }
-    else if((!central_configuration && (command == "session")) ||
-            (central_configuration  && (command == "sessiondir"))) {
+    else if(command == "sessiondir") {
       if(configured) continue;
       session_root = config_next_arg(rest);
       if(session_root.length() == 0) { config_close(cfile); if(cf) delete cf; return false; };
       if(session_root == "*") session_root="";
     }
-    else if(central_configuration  && (command == "controldir")) {
+    else if(command == "controldir") {
       central_control_dir=rest;
     }
     else if(command == "control") {
