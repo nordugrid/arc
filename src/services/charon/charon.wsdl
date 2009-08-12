@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<wsdl:definitions targetNamespace="http://www.nordugrid.org/schemas/pdp"
+<wsdl:definitions targetNamespace="http://www.nordugrid.org/schemas/charon"
  xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
  xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/"
  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -8,62 +8,66 @@
  xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
  xmlns:request-arc="http://www.nordugrid.org/schemas/request-arc/"
  xmlns:reponse-arc="http://www.nordugrid.org/schemas/response-arc/"
- xmlns:pdp="http://www.nordugrid.org/schemas/pdp">
+ xmlns:xacml-samlp="urn:oasis:xacml:2.0:saml:protocol:schema:os"
+ xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol"
+ xmlns:charon="http://www.nordugrid.org/schemas/charon">
 
   <wsdl:types>
-    <xsd:schema targetNamespace="http://www.nordugrid.org/schemas/pdp">
+    <xsd:schema targetNamespace="http://www.nordugrid.org/schemas/charon">
 
-      <xsd:import namespace="http://www.nordugrid.org/schemas/request-arc/" location="./../hed/pdc/arcpdp/Request.xsd"/>
-      <xsd:import namespace="http://www.nordugrid.org/schemas/response-arc/" location="./../hed/pdc/arcpdp/Response.xsd"/>
+      <xsd:import namespace="http://www.nordugrid.org/schemas/request-arc/" location="./../hed/shc/arcpdp/Request.xsd"/>
+      <xsd:import namespace="http://www.nordugrid.org/schemas/response-arc/" location="./../hed/shc/arcpdp/Response.xsd"/>
       <xsd:complexType name="GetPolicyDecisionRequestType">
         <xsd:sequence>
           <xsd:element name="Request" type="request-arc:Request" minOccurs="1" maxOccurs="1"/>
         </xsd:sequence>
       </xsd:complexType>
-      <xsd:element name="GetPolicyDecisionRequest" type="pdp:GetPolicyDecisionRequestType"/>
+      <xsd:element name="GetPolicyDecisionRequest" type="charon:GetPolicyDecisionRequestType"/>
 		
       <xsd:complexType name="GetPolicyDecisionResponseType">
         <xsd:sequence>
           <xsd:element name="Response" type="response-arc:Response" minOccurs="1" maxOccurs="1"/>
         </xsd:sequence>
       </xsd:complexType>
-      <xsd:element name="GetPolicyDecisionResponse" type="pdp:GetPolicyDecisionResponseType"/>
+      <xsd:element name="GetPolicyDecisionResponse" type="charon:GetPolicyDecisionResponseType"/>
 		
     </xsd:schema>
   </wsdl:types>
 
-  <wsdl:message name="GetPolicyDecisionRequest">
-    <wsdl:part name="GetPolicyDecisionRequest" element="pdp:GetPolicyDecisionRequest"/>
+  <wsdl:message name="AuthzRequestMessage">
+    <wsdl:part name="GetPolicyDecisionRequest" element="charon:GetPolicyDecisionRequest"/>
+    <wsdl:part name="XACMLPolicyDecisionRequest" element="xacml-samlp:XACMLAuthzDecisionQuery"/>
   </wsdl:message>
 
-  <wsdl:message name="GetPolicyDecisionResponse">
-    <wsdl:part name="GetPolicyDecisionResponse" element="pdp:GetPolicyDecisionResponse"/>
+  <wsdl:message name="AuthzResponseMessage">
+    <wsdl:part name="GetPolicyDecisionResponse" element="charon:GetPolicyDecisionResponse"/>
+    <wsdl:part name="XACMLPolicyDecisionResponse" element="samlp:Response"/>
   </wsdl:message>
 
-  <wsdl:portType name="pdp">
-    <wsdl:operation name="GetPolicyDecision">
-      <wsdl:input name="GetPolicyDecisionRequest"
-        message="pdp:GetPolicyDecisionRequest"/>
-      <wsdl:output name="GetPolicyDecisionResponse"
-        message="pdp:GetPolicyDecisionResponse"/>
+  <wsdl:portType name="charon">
+    <wsdl:operation name="AuthZ">
+      <wsdl:input name="AuthzRequestMessage"
+        message="charon:AuthzRequestMessage"/>
+      <wsdl:output name="AuthzResponseMessage"
+        message="charon:AuthzResponseMessage"/>
     </wsdl:operation>
   </wsdl:portType>
 
-  <wsdl:binding name="pdp" type="pdp:pdp">
+  <wsdl:binding name="charon" type="charon:charon">
     <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
-    <wsdl:operation name="GetPolicyDecision">
-      <soap:operation soapAction="GetPolicyDecision"/>
-      <wsdl:input name="GetPolicyDecisionRequest">
+    <wsdl:operation name="AuthZ">
+      <soap:operation soapAction="AuthZ"/>
+      <wsdl:input name="AuthzRequestMessage">
         <soap:body use="literal"/>
       </wsdl:input>
-      <wsdl:output name="GetPolicyDecisionResponse">
+      <wsdl:output name="AuthzResponseMessage">
         <soap:body use="literal"/>
       </wsdl:output>
     </wsdl:operation>
   </wsdl:binding>
 
-  <wsdl:service name="pdp">
-    <wsdl:port name="pdp" binding="pdp:pdp">
+  <wsdl:service name="charon">
+    <wsdl:port name="charon" binding="charon:charon">
       <soap:address location="http://localhost:80"/>
     </wsdl:port>
   </wsdl:service>
