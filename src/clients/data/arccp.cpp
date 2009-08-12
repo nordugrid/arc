@@ -345,7 +345,7 @@ void arccp(const Arc::URL& source_url_,
         }
         Arc::User cache_user;
         Arc::FileCache cache;
-        if (!cache_dir.empty()) cache = Arc::FileCache(cache_dir+" .", "", getuid(), getgid());  
+        if (!cache_dir.empty()) cache = Arc::FileCache(cache_dir+" .", "", cache_user.get_uid(), cache_user.get_gid());  
         Arc::DataStatus res = mover.Transfer(*source, *destination, cache, Arc::URLMap(),
                                              0, 0, 0, timeout);
         if (!res.Passed()) {
@@ -412,8 +412,9 @@ void arccp(const Arc::URL& source_url_,
     destination->SetTries(tries);
   }
   Arc::FileCache cache;
+  Arc::User cache_user;
   // always copy to destination rather than link
-  if (!cache_dir.empty()) cache = Arc::FileCache(cache_dir+" .", "", getuid(), getgid());
+  if (!cache_dir.empty()) cache = Arc::FileCache(cache_dir+" .", "", cache_user.get_uid(), cache_user.get_gid());
   if (verbose)
     mover.set_progress_indicator(&progress);
   std::string failure;
