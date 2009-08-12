@@ -221,7 +221,7 @@ namespace Arc {
         reading = false;
         return DataStatus::ReadStartError;
       }
-      fd = open(DIR_SEPARATOR + url.Path().c_str(), flags);
+      fd = open((DIR_SEPARATOR + url.Path()).c_str(), flags);
     }
     if (fd == -1) {
       reading = false;
