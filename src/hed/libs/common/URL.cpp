@@ -165,6 +165,9 @@ namespace Arc {
           if (getcwd(cwd, PATH_MAX))
             path = Glib::build_filename(cwd, path);
         }
+        // This class (historically) stores paths without leading /
+        if (!path.empty())
+          path.erase(0,1);
         return;
       } else if (protocol == "arc") {
         // TODO: It is not defined how arc protocol discovers 
