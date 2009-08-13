@@ -66,10 +66,10 @@ PDPServiceInvoker::PDPServiceInvoker(Config* cfg):PDP(cfg), client(NULL),
   mcc_cfg.AddCAFile(ca_dir);
   mcc_cfg.AddCADir(ca_file);
 
-  std::string format = (std::string)((*cfg)["PolicyFormat"]);
+  std::string format = (std::string)((*cfg)["RequestFormat"]);
   if(format=="XACML" || format=="xacml") is_xacml = true;
 
-  std::string protocol = (std::string)((*cfg)["Transfer"]);
+  std::string protocol = (std::string)((*cfg)["TransferProtocol"]);
   if(protocol=="SAML" || protocol=="saml") is_saml = true;
 
   client = new Arc::ClientSOAP(mcc_cfg,url);

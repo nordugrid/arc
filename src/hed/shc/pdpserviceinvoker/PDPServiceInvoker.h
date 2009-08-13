@@ -27,7 +27,7 @@ class PDPServiceInvoker : public PDP {
   std::list<std::string> select_attrs;
   std::list<std::string> reject_attrs;
   std::list<std::string> policy_locations;
-  bool is_xacml; //If the policy is with XACML format
+  bool is_xacml; //If the policy decision request is with XACML format
   bool is_saml; //If the "SAML2.0 profile of XACML v2.0" is used
  protected:
   static Arc::Logger logger;
