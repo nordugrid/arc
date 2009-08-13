@@ -29,31 +29,14 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
   std::string session_root("");
   std::string default_lrms("");
   std::string default_queue("");
-  std::string default_reruns_s("");
-  std::string default_diskspace_s("");
   std::string last_control_dir("");
   time_t default_ttl = DEFAULT_KEEP_FINISHED;
   time_t default_ttr = DEFAULT_KEEP_DELETED;
   int default_reruns = DEFAULT_JOB_RERUNS;
   int default_diskspace = DEFAULT_DISKSPACE;
-  int max_jobs = -1;
-  int max_jobs_processing = -1;
-  int max_jobs_processing_emergency = -1;
-  int max_jobs_running = -1;
-  int max_downloads = -1;
-  unsigned long long int min_speed;
-  time_t min_speed_time;
-  unsigned long long int min_average_speed;
-  time_t max_inactivity_time;
-  bool use_secure_transfer = true;
-  bool use_passive_transfer = false;
-  bool use_local_transfer = false;
   bool superuser = (my_uid == 0);
-  bool cache_registration = false;
   bool strict_session = false;
-  unsigned int wakeup_period;
   std::string central_control_dir("");
-  ConfigSections* cf = NULL;
   std::string infosys_user("");
   std::string jobreport_key("");
   std::string jobreport_cert("");
@@ -63,7 +46,7 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
   if(!config_open(cfile)) {
     logger.msg(Arc::ERROR,"Can't read configuration file"); return false;
   };
-  cf=new ConfigSections(cfile);
+  ConfigSections* cf = new ConfigSections(cfile);
   cf->AddSection("common");
   cf->AddSection("grid-manager");
   cf->AddSection("infosys");
@@ -144,7 +127,7 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
     else if(command == "maxjobs") { /* maximum number of the jobs to support */ 
       std::string max_jobs_s = config_next_arg(rest);
       long int i;
-      max_jobs = -1; max_jobs_processing = -1; max_jobs_running = -1;
+      int max_jobs, max_jobs_running = -1;
       if(max_jobs_s.length() != 0) {
         if(!Arc::stringto(max_jobs_s,i)) {
           logger.msg(Arc::ERROR,"wrong number in maxjobs"); goto exit;
@@ -164,9 +147,7 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
     else if(command == "maxload") { /* maximum number of the jobs processed on frontend */
       std::string max_jobs_s = config_next_arg(rest);
       long int i;
-      max_jobs_processing=-1;
-      max_jobs_processing_emergency=-1;
-      max_downloads = -1;
+      int max_jobs_processing, max_jobs_processing_emergency, max_downloads = -1;
       if(max_jobs_s.length() != 0) {
         if(!Arc::stringto(max_jobs_s,i)) {
           logger.msg(Arc::ERROR,"wrong number in maxload"); goto exit;
@@ -192,8 +173,10 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
     }
     else if(command == "speedcontrol") {  
       std::string speed_s = config_next_arg(rest);
-      min_speed=0; min_speed_time=300;
-      min_average_speed=0; max_inactivity_time=300;
+      int min_speed=0;
+      int min_speed_time=300;
+      int min_average_speed=0;
+      int max_inactivity_time=300;
       if(speed_s.length() != 0) {
         if(!Arc::stringto(speed_s,min_speed)) {
           logger.msg(Arc::ERROR,"wrong number in speedcontrol"); goto exit;
@@ -222,6 +205,7 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
     }
     else if(command == "wakeupperiod") { 
       std::string wakeup_s = config_next_arg(rest);
+      unsigned int wakeup_period;
       if(wakeup_s.length() != 0) {
         if(!Arc::stringto(wakeup_s,wakeup_period)) {
           logger.msg(Arc::ERROR,"wrong number in wakeupperiod"); goto exit;
@@ -231,6 +215,7 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
     }
     else if(command == "securetransfer") {
       std::string s = config_next_arg(rest);
+      bool use_secure_transfer;
       if(strcasecmp("yes",s.c_str()) == 0) {
         use_secure_transfer=true;
       } 
@@ -244,6 +229,7 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
     }
     else if(command == "passivetransfer") {
       std::string s = config_next_arg(rest);
+      bool use_passive_transfer;
       if(strcasecmp("yes",s.c_str()) == 0) {
         use_passive_transfer=true;
       }
@@ -269,6 +255,7 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
     }
     else if(command == "localtransfer") {
       std::string s = config_next_arg(rest);
+      bool use_local_transfer;
       if(strcasecmp("yes",s.c_str()) == 0) {
         use_local_transfer=true;
       }
@@ -279,19 +266,6 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
         logger.msg(Arc::ERROR,"wrong option in localtransfer"); goto exit;
       };
       JobsList::SetLocalTransfer(use_local_transfer);
-    }
-    else if(command == "cacheregistration") {
-      std::string s = config_next_arg(rest);
-      if(strcasecmp("yes",s.c_str()) == 0) {
-        cache_registration=true;
-      }
-      else if(strcasecmp("no",s.c_str()) == 0) {
-        cache_registration=false;
-      }
-      else {
-        logger.msg(Arc::ERROR,"wrong option in cacheregistration"); goto exit;
-      };
-      JobsList::SetCacheRegistration(cache_registration);
     }
     else if(command == "mail") { /* internal address from which to send mail */ 
       support_mail_address = config_next_arg(rest);
@@ -323,7 +297,7 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
       };
     }
     else if(command == "maxrerun") { /* number of retries allowed */ 
-      default_reruns_s = config_next_arg(rest);
+      std::string default_reruns_s = config_next_arg(rest);
       if(default_reruns_s.length() == 0) {
         logger.msg(Arc::ERROR,"maxrerun is empty"); goto exit;
       };
@@ -337,7 +311,7 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
       };      
     }
     else if(command == "diskspace") { /* maximal amount of disk space */ 
-      default_diskspace_s = config_next_arg(rest);
+      std::string default_diskspace_s = config_next_arg(rest);
       if(default_diskspace_s.length() == 0) {
         logger.msg(Arc::ERROR,"diskspace is empty"); goto exit;
       };

@@ -92,7 +92,6 @@ static void* cache_func(void* arg) {
           args[argc++]=(char*)(*i).c_str();
         }
         args[argc]=NULL;
-        if(JobsList::CacheRegistration()) { } // TODO: do unregistration
         if(!RunParallel::run(gmuser,"cache-clean",args,&proc,false,false)) {
           logger.msg(Arc::ERROR,"Failed to run cache cleanup script: %s", cmd);
         };

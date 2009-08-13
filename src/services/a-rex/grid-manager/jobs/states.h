@@ -56,7 +56,6 @@ class JobsList {
   static bool use_secure_transfer;
   static bool use_passive_transfer;
   static bool use_local_transfer;
-  static bool cache_registration;
   static unsigned int wakeup_period;
   std::list<JobDescription> jobs;
   JobUser *user;
@@ -124,10 +123,6 @@ class JobsList {
   static void SetLocalTransfer(bool val) {
     use_local_transfer=val;
   };
-  static void SetCacheRegistration(bool val) {
-    cache_registration=val;
-  };
-  static bool CacheRegistration(void) { return cache_registration; };
   static void SetWakeupPeriod(unsigned int t) { wakeup_period=t; };
   static unsigned int WakeupPeriod(void) { return wakeup_period; };
  /* Add job to list */

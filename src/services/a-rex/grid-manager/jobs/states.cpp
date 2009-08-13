@@ -54,7 +54,6 @@ time_t JobsList::max_inactivity_time=300;
 bool JobsList::use_secure_transfer=false; /* secure data transfer is OFF by default !!! */
 bool JobsList::use_passive_transfer=false;
 bool JobsList::use_local_transfer=false;
-bool JobsList::cache_registration=false;
 unsigned int JobsList::wakeup_period = 120; // default wakeup every 3 min.
 
 
