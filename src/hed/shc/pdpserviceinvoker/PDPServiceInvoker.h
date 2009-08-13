@@ -1,5 +1,5 @@
-#ifndef __ARC_SEC_ARCPDPSERVICEINVOKER_H__
-#define __ARC_SEC_ARCPDPSERVICEINVOKER_H__
+#ifndef __ARC_SEC_PDPSERVICEINVOKER_H__
+#define __ARC_SEC_PDPSERVICEINVOKER_H__
 
 #include <stdlib.h>
 
@@ -10,12 +10,12 @@
 
 namespace ArcSec {
 
-///ArcPDPServiceInvoker - client which will invoke pdpservice
-class ArcPDPServiceInvoker : public PDP {
+///PDPServiceInvoker - client which will invoke pdpservice
+class PDPServiceInvoker : public PDP {
  public:
   static Arc::Plugin* get_pdpservice_invoker(Arc::PluginArgument* arg);
-  ArcPDPServiceInvoker(Arc::Config* cfg);
-  virtual ~ArcPDPServiceInvoker();
+  PDPServiceInvoker(Arc::Config* cfg);
+  virtual ~PDPServiceInvoker();
   virtual bool isPermitted(Arc::Message *msg);
  private:
   Arc::ClientSOAP* client;
@@ -35,5 +35,5 @@ class ArcPDPServiceInvoker : public PDP {
 
 } // namespace ArcSec
 
-#endif /* __ARC_SEC_ARCPDPSERVICEINVOKER_H__ */
+#endif /* __ARC_SEC_PDPSERVICEINVOKER_H__ */
 

@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xsd:schema
   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-  xmlns="http://www.nordugrid.org/schemas/ArcPDPServiceInvoker"
-  targetNamespace="http://www.nordugrid.org/schemas/ArcPDPServiceInvoker"
+  xmlns="http://www.nordugrid.org/schemas/PDPServiceInvoker"
+  targetNamespace="http://www.nordugrid.org/schemas/PDPServiceInvoker"
   elementFormDefault="qualified">
   
     <xsd:complexType name="FilterType">
@@ -27,7 +27,10 @@
     <!--This element is to specified the protocol for transfering request. 
      Default is the arc specific protocol; if "SAML" is specified, then 
      the "SAML2.0 profile of the XACML v2.0" will be used for carrying
-     request-->
+     request.
+     If PolicyFormat is specified to XACML, and Transfer is specified to SAML,
+     then this pdpservice invoker is able to interact with third-party pdp
+     service, such as the GLite authorization service -->
     <xsd:element name="Transfer" type="xsd:string"/>
 
     <!--The following information is about credential. Since the pdpserviceinvoker is 

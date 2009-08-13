@@ -16,9 +16,9 @@
 //#include <arc/security/ArcPDP/Response.h>
 //#include <arc/security/ArcPDP/attr/AttributeValue.h>
 
-#include "ArcPDPServiceInvoker.h"
+#include "PDPServiceInvoker.h"
 
-Arc::Logger ArcSec::ArcPDPServiceInvoker::logger(ArcSec::PDP::logger,"ArcPDPServiceInvoker");
+Arc::Logger ArcSec::PDPServiceInvoker::logger(ArcSec::PDP::logger,"PDPServiceInvoker");
 
 #define SAML_NAMESPACE "urn:oasis:names:tc:SAML:2.0:assertion"
 #define SAMLP_NAMESPACE "urn:oasis:names:tc:SAML:2.0:protocol"
@@ -27,14 +27,14 @@ Arc::Logger ArcSec::ArcPDPServiceInvoker::logger(ArcSec::PDP::logger,"ArcPDPServ
 using namespace Arc;
 
 namespace ArcSec {
-Plugin* ArcPDPServiceInvoker::get_pdpservice_invoker(PluginArgument* arg) {
+Plugin* PDPServiceInvoker::get_pdpservice_invoker(PluginArgument* arg) {
     PDPPluginArgument* pdparg =
             arg?dynamic_cast<PDPPluginArgument*>(arg):NULL;
     if(!pdparg) return NULL;
-    return new ArcPDPServiceInvoker((Config*)(*pdparg));
+    return new PDPServiceInvoker((Config*)(*pdparg));
 }
 
-ArcPDPServiceInvoker::ArcPDPServiceInvoker(Config* cfg):PDP(cfg), client(NULL), 
+PDPServiceInvoker::PDPServiceInvoker(Config* cfg):PDP(cfg), client(NULL), 
   is_xacml(false), is_saml(false) {
   XMLNode filter = (*cfg)["Filter"];
   if((bool)filter) {
@@ -75,7 +75,7 @@ ArcPDPServiceInvoker::ArcPDPServiceInvoker(Config* cfg):PDP(cfg), client(NULL),
   client = new Arc::ClientSOAP(mcc_cfg,url);
 }
 
-bool ArcPDPServiceInvoker::isPermitted(Message *msg){
+bool PDPServiceInvoker::isPermitted(Message *msg){
   if((!is_xacml) && is_saml) {
     logger.msg(ERROR,"Arc policy can not been carried by SAML2.0 profile of XACML");
     return false;
@@ -207,7 +207,7 @@ bool ArcPDPServiceInvoker::isPermitted(Message *msg){
 
 }
 
-ArcPDPServiceInvoker::~ArcPDPServiceInvoker(){
+PDPServiceInvoker::~PDPServiceInvoker(){
 }
 
 } // namespace ArcSec

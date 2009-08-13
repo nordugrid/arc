@@ -5,7 +5,7 @@
 #include <arc/loader/Plugin.h>
 
 #include "simplelistpdp/SimpleListPDP.h"
-#include "pdpserviceinvoker/ArcPDPServiceInvoker.h"
+#include "pdpserviceinvoker/PDPServiceInvoker.h"
 #include "delegationpdp/DelegationPDP.h"
 #include "arcpdp/ArcPDP.h"
 #include "xacmlpdp/XACMLPDP.h"
@@ -50,7 +50,7 @@ Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
     { "xacml.pdp", "HED:PDP", 0,
                   &ArcSec::XACMLPDP::get_xacml_pdp},
     { "pdpservice.invoker", "HED:PDP", 0,
-                  &ArcSec::ArcPDPServiceInvoker::get_pdpservice_invoker},
+                  &ArcSec::PDPServiceInvoker::get_pdpservice_invoker},
     { "delegation.pdp", "HED:PDP", 0,
                   &ArcSec::DelegationPDP::get_delegation_pdp},
     { "count.pdp", "HED:PDP", 0,
