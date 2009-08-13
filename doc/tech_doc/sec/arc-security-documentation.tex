@@ -830,7 +830,7 @@ The WSDL description of policy decision service is available at
 
  http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk/src/services/charon/charon.wsdl
 
-It's configuration is presented in Section 7.5. 
+It's configuration is presented in Section \ref{subsec:pdpservice_conf}. 
 
 %section policy_decision_service (end)
 
@@ -1099,15 +1099,15 @@ Currently the proxy creation utility arcproxy can also be used for creating VOMS
 
 \subsection{UsernameToken SecHandler} % (fold)
 \label{subsec:username_token}
-The UsernameToken SecHandler is meant for processing - generating and extracting - WS-Security [4] UsernameToken in the SOAP header. Hence it must be attached to the MCC which processes SOAP payloads - like SOAP MCC or Service accepting SOAP messages. For description of configuration see section 8.13.
+The UsernameToken SecHandler is meant for processing - generating and extracting - WS-Security [4] UsernameToken in the SOAP header. Hence it must be attached to the MCC which processes SOAP payloads - like SOAP MCC or Service accepting SOAP messages. For description of configuration see section \ref{subsec:ut_sechandler_conf}.
 
 For the incoming message this SecHandler authorizes SOAP message according to specified configuration.
 
-For the outgoing message this SecHandler creates adds proper token into SOAP header according to configuration.
+For the outgoing message this SecHandler creates and adds proper token into SOAP header according to configuration.
 
 \subsection{X509Token SecHandler} % (fold)
 \label{subsec:x509_token}
-The X509Token SecHandler is meant for processing - generating and extracting - WS-Security [4] X509Token from SOAP header. Hence it must be attached to the MCC which processes SOAP payloads – like SOAP MCC or Service accepting SOAP messages. For description of configuration see section 8.14.
+The X509Token SecHandler is meant for processing - generating and extracting - WS-Security [4] X509Token from SOAP header. Hence it must be attached to the MCC which processes SOAP payloads – like SOAP MCC or Service accepting SOAP messages. For description of configuration see section \ref{subsec:xt_sechandler_conf}.
 
 For the incoming message this SecHandler decrypts and checks signature of SOAP message using attached public key and verifies that key against specified CA certificate.
 
@@ -1115,6 +1115,12 @@ For the outgoing message this SecHandler creates X509Token in SOAP header. SOAP 
 
 \subsection{SAMLToken SecHandler} % (fold)
 \label{subsec:saml_token}
+The SAMLToken SecHandler is meant for processing - generating and extracting - WS-Security [4] SAMLToken from SOAP header. Hence it must be attached to the MCC which processes SOAP payloads – like SOAP MCC or Service accepting SOAP messages. For description of configuration see section \ref{subsec:st_sechandler_conf}.
+
+For the incoming message this SecHandler decrypts and checks signature of SOAP message using attached public key and verifies that key against specified CA certificate.
+
+For the outgoing message this SecHandler creates SAMLToken in SOAP header. SOAP message body is encrypted and signed.
+
 
 %section webservice (end)
 
@@ -1126,34 +1132,52 @@ For the outgoing message this SecHandler creates X509Token in SOAP header. SOAP 
 \label{subsec:authz_policy}
 XML schema with comments available at
 
-http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk/src/hed/pdc/arcpdp/Policy.xsd .
+http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk/src/hed/shc/arcpdp/Policy.xsd
 
 \subsection{Authorization Request} % (fold)
 \label{subsec:authz_request}
 XML schema with comments available at 
 
-http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk/src/hed/pdc/arcpdp/Request.xsd .
+http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk/src/hed/shc/arcpdp/Request.xsd
 
 
 \subsection{Authorization Response} % (fold)
 \label{subsec:authz_response}
 XML schema with comments available at 
 
-http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk/src/hed/pdc/arcpdp/Response.xsd .
+http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk/src/hed/shc/arcpdp/Response.xsd
 
 
-\subsection{Interface of policy decision service} % (fold)
+\subsection{Interface of policy decision service (Charon service)} % (fold)
 \label{subsec:interface_pds}
 WSDL with comments available at 
 
-http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk/src/services/pdp/pdp.wsdl .
+http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk/src/services/charon/charon.wsdl
 
+The following is the configuration about the Charon service, which is configured to use xacml policy engine. The policy engine is configurable by changing the ``name'' attribute of three elements: \textit{$<$Evaluator$>$}, \textit{$<$Policy$>$}, \textit{$<$Request$>$} into ``arc.evaluator'', ``arc.policy'', ``arc.request''. Also the policy should also be changed to the one with ARC specific format.
+
+\begin{verbatim}
+    <Service name="charon" id="charon_service">
+        <!--The element <Evaluator/>, <Policy/> and <Request/> configuration
+        are supposed to be used to load object; element <PolicyStore/> is
+        supposed to be used to get the location of policy-->
+        <charon:PDPConfig>
+            <charon:PolicyStore>
+                <charon:Location Type="file">charon_policy_xacml.xml.example</charon:Location>
+                <!-- other policy location-->
+            </charon:PolicyStore>
+            <charon:Evaluator name="xacml.evaluator" />
+            <charon:Policy name="xacml.policy" />
+            <charon:Request name="xacml.request" />
+        </charon:PDPConfig>
+    </Service>
+\end{verbatim}
 
 \subsection{TLS MCC configuration} % (fold)
 \label{subsec:tlsmcc_conf}
 For full description of TLS MCC configuration please read ``The Hosting Environment of the Advanced Resource Connector middleware''. Here only part related to VOMS attributes extraction is provided for convenience. Configuration schema can be found at 
 
-http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk/src/hed/mcc/tls/tls.xsd .
+http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk/src/hed/mcc/tls/tls.xsd
 
 While processing VOMS extension of X.509 certificate only attributes which can be verified are extracted and collected in the list of Security Attributes. To ensure proper authentication trusted VOMS services must to be configured. The VOMS services are identified by certificates which they use to sign AC with VOMS related information. And also by whole certificates chain used to sign VOMS service certificate. 
 
@@ -1189,7 +1213,7 @@ Below is an example presenting all possible options.
 \label{subsec:pdpservice_conf}
 XML schema with comments available at 
 
-http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk/src/services/pdp/pdp.xsd .
+http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk/src/services/charon/charon.xsd
 
 Below is an example configuration of PDP service which can evaluate ARC Request against ARC Policy stored in local file.
 
@@ -1217,7 +1241,7 @@ See Section 8.9for the explanation of ARC Policy.
 \label{subsec:authzhandler_conf}
 XML schema with comments available at 
 
-http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk/src/hed/shc/arcauthzsh/SimpleListAuthZ.xsd.
+http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk/src/hed/shc/arcauthzsh/SimpleListAuthZ.xsd
 
 Default behavior of Authorization SecHandler is to execute all PDPs corresponding to elements \textit{$<$PDP$>$} in configuration sequentially till either one of them fails or all produced positive results. This behavior may be modified by attribute ``action'' of embedded \textit{$<$PDP/$>$} elements. Following options are supported:
 
@@ -1261,7 +1285,7 @@ delegation.pdp – for evaluating restrictions embedded into X.509 proxy certifi
 \label{subsec:simplepdp_conf}
 XML schema with comments is available at 
 
-http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk/src/hed/shc/simplelistpdp/SimpleListPDP.xsd .
+http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk/src/hed/shc/simplelistpdp/SimpleListPDP.xsd
 
 Below is an example configuration of SimpleList PDP inside ``echo'' service.
 
@@ -1290,7 +1314,7 @@ For example content of simplelist file may look like this:
 \label{subsec:arcpdp_conf}
 XML schema with comments available at 
 
-http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk/src/hed/pdc/arcpdp/ArcPDP.xsd .
+http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk/src/hed/shc/arcpdp/ArcPDP.xsd
 
 Below is an example of configuration of Arc PDP inside ``echo'' service.
 \begin{verbatim}
@@ -1384,7 +1408,7 @@ Administrator of service can configure Authorization SecHandler - arc.authz - fo
 \label{subsec:pdpservice_invoker_conf}
 Configuration XML schema with comments is available at 
 
-http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk/src/hed/pdc/pdpserviceinvoker/ArcPDPServiceInvoker.xsd .
+http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk/src/hed/shc/pdpserviceinvoker/PDPServiceInvoker.xsd
 
 Below is an example of configuration of PDP Service Invoker inside ``echo'' service.
 
@@ -1397,6 +1421,8 @@ Below is an example of configuration of PDP Service Invoker inside ``echo'' serv
         <KeyPath>./key.pem</KeyPath>
         <CertificatePath>./cert.pem</CertificatePath>
         <CACertificatePath>./ca.pem</CACertificatePath>
+        <RequestFormat>XACML</RequestFormat>
+        <TransferProtocol>SAML</TransferProtocol>
       </PDP>
   </SecHandler>
   <next id="echo"/>
@@ -1407,14 +1433,52 @@ Below is an example of configuration of PDP Service Invoker inside ``echo'' serv
 
 The name ``pdpservice.invoker'' defines the PDP Service Invoker object.
 
-The PDP Service Invoker is a client of PDP Service. The configuration options include endpoint of service and credentials to be used for establishing secure connection.
+The PDP Service Invoker is a client of PDP Service. The configuration options include endpoint of service and credentials to be used for establishing secure connection. In addition, the $<$RequestFormat$>$ element is for specifying the format of the request, and the $<$TransferProtocol$>$ element is for specifying the protocol of tranfering the request.
+
+Table \ref{table:support_pdp_request_protocol} shows the support of request and protocol in remote policy decision making. Note that if ``SAML 2.0 profile of XACML v2.0'' is configured in ``pdpservice invoker'', besides the authorizaton service (called charon service) implemented in ARC, it can interact with external authorization services, such as gLite authorization service (Yet the interoperation test has not been done).
+
+\begin{table}[ht]
+\caption{Support of request and protocol in remote policy decision making}
+\centering
+\begin{tabular}{| l | p{7cm} | p{5cm} |}
+\hline
+\textbf{  } & \textbf{ARC Request/Response} & \textbf{XACML Request/Response} \\ \hline
+\textbf{ARC protocol} & support & support \\ \hline
+\textbf{SAML protocol} & not support & support (SAML 2.0 profile of XACML v2.0) \\ \hline
+\end{tabular}
+\label{table:support_pdp_request_protocol}
+\end{table}
+
+\textbf{ARC protocol}:
+
+http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk/src/services/charon/charon.wsdl
+
+\textbf{SAML protocol}:
+
+http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk/src/services/charon/charon.wsdl
+
+http://www.oasis-open.org/committees/download.php/11475/access\_control-xacml-2.0-saml-protocol-schema-os.xsd
+
+\textbf{ARC request/response}:
+
+http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk/src/hed/shc/arcpdp/Request.xsd
+
+http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk/src/hed/shc/arcpdp/Response.xsd
+
+\textbf{Note} that the format of ``Response'' is supposed to correspond with the format of ``Request''. 
+
+\textbf{XACML request/response}:
+
+http://docs.oasis-open.org/xacml/2.0/access\_control-xacml-2.0-context-schema-os.xsd
+
+http://www.oasis-open.org/committees/download.php/11474/access\_control-xacml-2.0-saml-assertion-schema-os.xsd
 
 
 \subsection{Delegation PDP configuration} % (fold)
 \label{subsec:delegpdp_conf}
 Configuration XML schema with comments available at 
 
-http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk/src/hed/pdc/delegationsh/DelegationPDP.xsd .
+http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk/src/hed/shc/delegationpdp/DelegationPDP.xsd
 
 Below is an example of configuration of Delegation PDP inside ``echo'' service.
 
@@ -1455,7 +1519,7 @@ Current implementation of Delegation SecHandler must be attached to TLS MCC.
 \label{subsec:ut_sechandler_conf}
 Configuration XML schema with comments is available at 
 
-http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk/src/hed/shc/usernametokensh/UsernameTokenSH.xsd .
+http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk/src/hed/shc/usernametokensh/UsernameTokenSH.xsd
 
 Below is an example of configuration of UsernameToken SecHandler inside MCCSOAP component of the service side. This example processes UsernameToken related information in SOAP message and returns failure if any problem found. In detail, this SecHandler will check header of the incoming SOAP message for the presence of UserName WS-Security token and compare provided password value to those stored in the local file password.txt.
 
@@ -1490,7 +1554,7 @@ For the client side, the developer should add the configuration information abou
 \label{subsec:xt_sechandler_conf}
 Configuration XML schema with comments is available at 
 
-http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk/src/hed/pdc/x509tokensh/X509TokenSH.xsd.
+http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk/src/hed/shc/x509tokensh/X509TokenSH.xsd
 
 Below is an example of configuration of X509Token SecHandler inside MCCSOAP component of the service side. This example processes X509Token related information in SOAP message and returns failure if any problem found.
 
@@ -1518,6 +1582,12 @@ For the client side, the developer should add the configuration information abou
   client->AddSecHandler(sechanlder_nd_xt, "arcshc");
 \end{verbatim}
 
+
+\subsection{SAMLToken SecHandler Configuration} % (fold)
+\label{subsec:st_sechandler_conf}
+Configuration XML schema with comments is available at 
+
+http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk/src/hed/shc/samltokensh/SAMLTokenSH.xsd
 
 %section schema_description_example (end)
 
@@ -1911,7 +1981,138 @@ Some explanation about the configuration is described.
 
 \section{SAML Attribute Authority Service} % (fold)
 \label{sec:saml_aa_service}
+SAML Attribute Authority Service (SAML AA Service) is implemented for accepting SAML \textit{$<$samlp:AttributeQuery$>$} from the requester, and issuing SAML \textit{$<$samlp:Response$>$} which is supposed to include \textit{$<$saml:Assertion$>$} that contains the attribute information about the requester.
 
+SAML AA service is implemented with the same functionality as VOMS SAML service. More specifically, the interface of SAML AA service is the same as VOMS SAML service. 
+
+The client functionality of \textbf{SAML AA service} exists in two places:
+
+\begin{itemize}
+    \item The specific client utility (saml\_assertion\_init), where the SAML AA service is contacted to get back the SAML assertion.
+
+    \item The security handler about SAML token, where the SAML AA service is contacted and then the responded SAML assertion is inserted into SOAP message according to WS-Security SAML Token profile.
+
+\end{itemize}
+
+The same as VOMS SAML Service, the VOMS Admin service is used in ARC for managing the attributes. Therefore the database schema from VOMS is also introduced into ARC.
+
+However the implementation of SAML AA Service in ARC is designed not to be coupled with any specific backend database. Therefore even if the database schema is changed, the implementation is not necessarily going to be changed. The way about decoupling the service implementation with database schema is through the service configuration.
+
+\begin{verbatim}
+        <Service name="aa.service" id="aa_service">
+            <aa:KeyPath>../../tests/echo/testkey-nopass.pem</aa:KeyPath>
+            <aa:CertificatePath>../../tests/echo/testcert.pem</aa:CertificatePath>
+            <aa:CACertificatesDir>../../tests/echo/certificates</aa:CACertificatesDir>
+            <aa:CACertificatePath>../../tests/echo/testcacert.pem</aa:CACertificatePath>
+
+            <aa:Database type="mysql" ip="localhost" port="3305" dbname="voms_knowarc" user="root" 
+              password="123456">
+              <!--The sql following sentences and their combination are introduced
+              according to the code of voms' mysql plugin.
+              The intention is that if some other database schema is used, you can
+              simply change the sql sentences here, without changing the code. But still,
+              the input argument to these queries should be with the same meaning,
+              and the same sequence as the following; also the output of these queries
+              should also be with the same meaning and the same sequence as the following-->
+              <aa:SQLSet name="UID">
+                <aa:SQL name="GetUID">SELECT userid FROM usr WHERE usr.dn = ?</aa:SQL>
+              </aa:SQLSet>
+
+              <aa:SQLSet name="Role">
+                <aa:SQL name="GetRole">SELECT groups.dn, role FROM groups, 
+                  m LEFT JOIN roles ON roles.rid = m.rid WHERE groups.gid = m.gid 
+                  AND m.userid = ? AND roles.role = ?</aa:SQL>
+                <aa:SQL name="GetGroup">SELECT groups.dn, NULL FROM groups, m 
+                  WHERE groups.gid = m.gid AND m.userid = ?</aa:SQL>
+              </aa:SQLSet>
+
+              <aa:SQLSet name="Group">
+                <aa:SQL name="GetGroup">SELECT groups.dn, NULL FROM groups, m 
+                  WHERE groups.gid = m.gid AND m.userid = ?</aa:SQL>
+              </aa:SQLSet>
+
+              <aa:SQLSet name="GroupAndRole">
+                <aa:SQL name="GetGroup">SELECT groups.dn, NULL FROM groups, m 
+                  WHERE groups.gid = m.gid AND m.userid = ?</aa:SQL>
+                <aa:SQL name="GetGroupAndRole">SELECT groups.dn, role FROM groups, 
+                  m LEFT JOIN roles ON roles.rid = m.rid WHERE groups.gid = m.gid 
+                  AND m.userid = ? AND roles.role = ? AND groups.dn = ?</aa:SQL>
+              </aa:SQLSet>
+
+              <aa:SQLSet name="All">
+                <aa:SQL name="GetAll">SELECT groups.dn, role FROM groups, 
+                  m LEFT JOIN roles ON roles.rid = m.rid WHERE groups.gid = m.gid 
+                  AND m.userid = ?</aa:SQL>
+              </aa:SQLSet>
+
+              <aa:SQLSet name="GroupAndRoleAttribute">
+                <aa:SQL name="GetUserAttribute">SELECT attributes.a_name, 
+                  usr_attrs.a_value, NULL, NULL FROM attributes, usr_attrs 
+                  WHERE attributes.a_id = usr_attrs.a_id AND usr_attrs.u_id = ?
+                </aa:SQL>
+                <aa:SQL name="GetGroupAttribute">SELECT attributes.a_name, 
+                  group_attrs.a_value, groups.dn, NULL FROM attributes, group_attrs, 
+                  groups, m WHERE attributes.a_id = group_attrs.a_id AND groups.gid = m.gid 
+                  AND m.userid = ? AND m.rid is NULL AND group_attrs.g_id = m.gid
+                </aa:SQL>
+                <aa:SQL name="GetGroupAndRoleAttribute">SELECT attributes.a_name, 
+                  role_attrs.a_value, groups.dn, roles.role FROM attributes, role_attrs, 
+                  groups, roles, m WHERE attributes.a_id = role_attrs.a_id 
+                  AND groups.gid = m.gid AND m.userid = ? AND m.rid = roles.rid 
+                  AND roles.role = ? AND groups.dn = ? AND role_attrs.g_id = m.gid 
+                  AND role_attrs.r_id = m.rid
+                </aa:SQL>
+              </aa:SQLSet>
+
+              <aa:SQLSet name="GroupAttribute">
+                <aa:SQL name="GetUserAttribute">SELECT attributes.a_name, 
+                  usr_attrs.a_value, NULL, NULL FROM attributes, usr_attrs 
+                  WHERE attributes.a_id = usr_attrs.a_id AND usr_attrs.u_id = ?
+                </aa:SQL>
+                <aa:SQL name="GetGroupAttribute">SELECT attributes.a_name, 
+                  group_attrs.a_value, groups.dn, NULL FROM attributes, group_attrs, 
+                  groups, m WHERE attributes.a_id = group_attrs.a_id AND groups.gid = m.gid 
+                  AND m.userid = ? AND m.rid is NULL AND group_attrs.g_id = m.gid
+                </aa:SQL>
+              </aa:SQLSet>
+
+              <aa:SQLSet name="RoleAttribute">
+                <aa:SQL name="GetUserAttribute">SELECT attributes.a_name, 
+                  usr_attrs.a_value, NULL, NULL FROM attributes, usr_attrs 
+                  WHERE attributes.a_id = usr_attrs.a_id AND usr_attrs.u_id = ?
+                </aa:SQL>
+                <aa:SQL name="GetRoleAttribute">SELECT attributes.a_name, 
+                  role_attrs.a_value, groups.dn, roles.role FROM m 
+                  INNER JOIN groups ON m.gid = groups.gid LEFT JOIN roles 
+                  ON roles.rid = m.rid INNER JOIN role_attrs on groups.gid = role_attrs.g_id 
+                  INNER JOIN attributes on attributes.a_id = role_attrs.a_id 
+                  WHERE role_attrs.r_id = roles.rid AND m.userid = ? AND roles.role = ?
+                </aa:SQL>
+              </aa:SQLSet>
+
+              <aa:SQLSet name="AllAttribute">
+                <aa:SQL name="GetUserAttribute">SELECT attributes.a_name, 
+                  usr_attrs.a_value, NULL, NULL FROM attributes, usr_attrs 
+                  WHERE attributes.a_id = usr_attrs.a_id AND usr_attrs.u_id = ?
+                </aa:SQL>
+                <aa:SQL name="GetGroupAttribute">SELECT attributes.a_name, 
+                  group_attrs.a_value, groups.dn, NULL FROM attributes, group_attrs, 
+                  groups, m WHERE attributes.a_id = group_attrs.a_id AND groups.gid = m.gid 
+                  AND m.userid = ? AND m.rid is NULL AND group_attrs.g_id = m.gid
+                </aa:SQL>
+                <aa:SQL name="GetGroupAndRoleAttributeAll">SELECT attributes.a_name, 
+                  role_attrs.a_value, groups.dn, roles.role FROM attributes, role_attrs, 
+                  groups, roles, m WHERE attributes.a_id = role_attrs.a_id 
+                  AND groups.gid = m.gid AND m.userid = ? AND m.rid = roles.rid 
+                  AND role_attrs.g_id = m.gid AND role_attrs.r_id = m.rid
+                </aa:SQL>
+              </aa:SQLSet>
+
+              <!--Other SQLSet-->
+
+            </aa:Database>
+        </Service>
+\end{verbatim}
 
 %section saml_aa_service (end)
 
