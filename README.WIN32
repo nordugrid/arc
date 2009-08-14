@@ -136,23 +136,6 @@ Performing configuration:
    GLOBUS_LOCATION=/c/Globus
    export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:/c/Globus/lib/pkgconfig 
 
-OpenLDAP (ARC0/CREAM are using LDAP DMC which need this):
-
-Source code:
-
-   http://www.openldap.org/software/download
-
-Performing configuration and installation:
-
-   ./configure --enable-bdb=no --enable-hdb=no CPPFLAGS="-I/usr/local/include" \
-   LDFLAGS="-L/usr/local/lib" LIBS="-lwsock32"
-   make
-   make install
-
-Configure setup: 
-   
-    LDFLAGS="-L/usr/local/bin"  CXXFLAGS="-I/usr/local/include"
-
 gSOAP (SRM DMC need this):
 
 gSOAP compilation need flex:
