@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    targetNamespace="http://www.nordugrid.org/schemas/echo/2009/08"
+    xmlns="http://www.nordugrid.org/schemas/echo/2009/08"
+    xmlns:ini="http://www.nordugrid.org/schemas/ini/2009/08"
+    elementFormDefault="qualified"
+    attributeFormDefault="unqualified">
+
+<!-- Imports -->
+<xsd:import namespace="http://www.nordugrid.org/schemas/ini/2009/08" schemaLocation="../../../daemon/schema/ini.xsd"/>
+ 
+<xsd:element name="prefix">
+    <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+        Prefix of the response string.
+        </xsd:documentation>
+        <xsd:appinfo>
+            <ini:tag>prefix</ini:tag>
+        </xsd:appinfo>
+    </xsd:annotation>
+</xsd:element>
+
+<xsd:element name="suffix">
+    <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+        Suffix of the response string.
+        </xsd:documentation>
+        <xsd:appinfo>
+            <ini:tag>suffix</ini:tag>
+        </xsd:appinfo>
+    </xsd:annotation>
+</xsd:element>
+
+</xsd:schema>
