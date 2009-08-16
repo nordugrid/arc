@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    targetNamespace="http://www.nordugrid.org/schemas/tcp/2009/08"
+    xmlns="http://www.nordugrid.org/schemas/tcp/2009/08"
+    xmlns:ini="http://www.nordugrid.org/schemas/ini/2009/08"
+    elementFormDefault="qualified"
+    attributeFormDefault="unqualified">
+
+<!-- Imports -->
+<xsd:import namespace="http://www.nordugrid.org/schemas/ini/2009/08" schemaLocation="../../../daemon/schema/ini.xsd"/>
+ 
+<!-- Listen --> 
+<xsd:element name="Listen">
+    <xsd:complexType>
+        <xsd:annotation>
+            <xsd:documentation xml:lang="en">
+            This element defines listening TCP socket. If interface is missing socket is bound to all local interfaces (not supported). There may be multiple Listen elements.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="Interface" type="xsd:string" minOccurs="0" maxOccurs="1" default="0.0.0.0">
+                <xsd:annotation>
+                    <xsd:documentation xml:lang="en">
+                    Listen network interface.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <ini:tag>listen</ini:tag>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="Port" type="xsd:int" minOccurs="0" maxOccurs="1" default="60000">
+                <xsd:annotation>
+                    <xsd:documentation xml:lang="en">
+                    Listen network port.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <ini:tag>port</ini:tag>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="Version" minOccurs="0" maxOccurs="1" default="4">
+                <xsd:simpleType name="Version_Type">
+                    <xsd:annotation>
+                        <xsd:documentation xml:lang="en">
+                        This element defines TCP/IP protocol version.
+                        </xsd:documentation>
+                        </xsd:appinfo>
+                            <ini:tag>tcpversion</ini:tag>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                    <xsd:restriction base="xsd:string">
+                        <xsd:enumeration value="4"/>
+                        <xsd:enumeration value="6"/>
+                    </xsd:restriction>
+                </xsd:simpleType>
+            </xsd:element>
+            <xsd:element name="NoDelay" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="true">
+                <xsd:annotation>
+                    <xsd:documentation xml:lang="en">
+                    Allow no delay socket option.
+                    </xsd:documentation>
+                    </xsd:appinfo>
+                        <ini:tag>nodelay</ini:tag>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+</xsd:element>
+
+<!-- Connect -->
+<xsd:element name="Connect">
+    <xsd:complexType>
+        <xsd:annotation>
+            <xsd:documentation xml:lang="en">
+            This element defines TCP connection to be established to specified Host at specified Port. If LocalPort is defined TCP socket will be bound to this port number (not supported).
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="Host" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="Port" type="xsd:int" minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="LocalPort" type="xsd:int" minOccurs="0" maxOccurs="1"/>
+        </xsd:sequence>
+    </xsd:complexType>
+</xsd:element>
+
+</xsd:schema>
