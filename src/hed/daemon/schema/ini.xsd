@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    targetNamespace="http://www.nordugrid.org/schemas/ini/2009/08"
+    xmlns="http://www.nordugrid.org/schemas/ini/2009/08"
+    elementFormDefault="qualified"
+    attributeFormDefault="unqualified">
+
+<xsd:element name="tag" type="xsd:string"/>
+
+</xsd:schema>

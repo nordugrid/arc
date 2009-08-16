@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    targetNamespace="http://www.nordugrid.org/schemas/arcconfig/2009/08"
+    xmlns="http://www.nordugrid.org/schemas/arcconfig/2009/08"
+    xmlns:ini="http://www.nordugrid.org/schemas/ini/2009/08"
+    xmlns:loader="http://www.nordugrid.org/schemas/loader/2009/08"
+    elementFormDefault="qualified"
+    attributeFormDefault="unqualified">
+<!-- Imports -->
+<xsd:import namespace="http://www.nordugrid.org/schemas/ini/2009/08" schemaLocation="./ini.xsd"/>
+<xsd:import namespace="http://www.nordugrid.org/schemas/loader/2009/08" schemaLocation="../../libs/loader/schema/loader.xsd"/> 
+<!-- Root element -->
+<xsd:element name="ArcConfig">
+    <xsd:complexType>
+        <xsd:annotation>
+            <xsd:documentation>
+            This is a top level element of ARC configuration document.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element ref="Server" minOccurs="0" maxOccurs="1"/>
+            <xsd:element ref="loader:ModuleManager" minOccurs="0" maxOccurs="1"/>
+            <xsd:element ref="loader:Plugins" minOccurs="0" maxOccurs="1"/>
+            <xsd:element ref="loader:Component" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element ref="loader:Chain" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element ref="loader:Plexer" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element ref="loader:Service" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element ref="loader:SecHandler" minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+    </xsd:complexType>
+</xsd:element>
+
+<!-- Server -->
+<xsd:element name="Server">
+    <xsd:complexType>
+        <xsd:annotation>
+            <xsd:documentation xml:lang="en">
+            Server specific configuration options.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:all>
+            <xsd:element name="PidFile" type="xsd:string" minOccurs="0" maxOccurs="1" default="">
+                <xsd:annotation>
+                    <xsd:documentation xml:lang="en">
+                    Path of pid file.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <ini:tag>pidfile</ini:tag>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="Foreground" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false">
+                <xsd:annotation>
+                    <xsd:documentation xml:lang="en">
+                    Indicate wether the server runs in foreground or in daemon mode. It it runs in foreground the log will goes to standard error as well.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <ini:tag>pidfile</ini:tag>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element ref="Logger" minOccurs="0" maxOccurs="1"/>
+        </xsd:all>
+    </xsd:complexType>
+</xsd:element>
+
+<!-- Logger -->
+<xsd:simpleType name="LoggerLevel_Type">
+    <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+        Define log level.
+        </xsd:documentation>
+        <xsd:appinfo>
+            <ini:tag>loglevel</ini:tag>
+        </xsd:appinfo>
+    </xsd:annotation>
+    <xsd:restriction base="xsd:string">
+        <xsd:enumeration value="DEBUG"/>
+        <xsd:enumeration value="INFO"/>
+        <xsd:enumeration value="ERROR"/>
+        <xsd:enumeration value="WARNING"/>
+        <xsd:enumeration value="VERBOSE"/>
+    </xsd:restriction>
+</xsd:simpleType>
+<xsd:element name="Logger" default="/var/log/arched.log">
+    <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+        Define the full path of log file.
+        </xsd:documentation>
+        <xsd:appinfo>
+            <ini:tag>logfile</ini:tag>
+        </xsd:appinfo>
+    </xsd:annotation>
+    <xsd:complexType>
+        <xsd:simpleContent>
+            <xsd:extension base="xsd:string">
+                <xsd:attribute name="level" type="LoggerLevel_Type" use="optional" default="INFO"/>
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+</xsd:element>
+</xsd:schema>
+
