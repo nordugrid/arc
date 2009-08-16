@@ -45,7 +45,7 @@
                         <xsd:documentation xml:lang="en">
                         This element defines TCP/IP protocol version.
                         </xsd:documentation>
-                        </xsd:appinfo>
+                        <xsd:appinfo>
                             <ini:tag>tcpversion</ini:tag>
                         </xsd:appinfo>
                     </xsd:annotation>
@@ -60,7 +60,7 @@
                     <xsd:documentation xml:lang="en">
                     Allow no delay socket option.
                     </xsd:documentation>
-                    </xsd:appinfo>
+                    <xsd:appinfo>
                         <ini:tag>nodelay</ini:tag>
                     </xsd:appinfo>
                 </xsd:annotation>
