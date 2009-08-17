@@ -61,9 +61,9 @@ namespace Arc {
     std::string srcpath = src.Path();
     std::string dstpath = dst.Path();
 
-    if (srcpath[srcpath.size() - 1] != '/')
+    if (srcpath.empty() || (srcpath[srcpath.size() - 1] != '/'))
       srcpath += '/';
-    if (dstpath[dstpath.size() - 1] != G_DIR_SEPARATOR)
+    if (dstpath.empty() || (dstpath[dstpath.size() - 1] != G_DIR_SEPARATOR))
       dstpath += G_DIR_SEPARATOR_S;
 
     bool ok = true;
