@@ -60,7 +60,7 @@ class Credential {
     /** Constructor with user-defined keylength. Needed for creation of EE certs, since some
 	 * applications will only support keys with a certain minimum length > 1024
 	 */
-	Credential(int keybits);
+    Credential(int keybits);
 
     virtual ~Credential();
 
