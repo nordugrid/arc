@@ -50,7 +50,7 @@ class PayloadStreamInterface: virtual public MessagePayload {
 };
 
 /// POSIX handle as Payload
-/** Thsi is an implemetation of PayloadStreamInterface for generic POSIX handle. */
+/** This is an implemetation of PayloadStreamInterface for generic POSIX handle. */
 class PayloadStream: virtual public PayloadStreamInterface {
  protected:
   int timeout_;   /** Timeout for read/write operations */
