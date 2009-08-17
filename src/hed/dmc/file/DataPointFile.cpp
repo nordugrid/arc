@@ -192,9 +192,27 @@ namespace Arc {
       return DataStatus::IsReadingError;
     if (writing)
       return DataStatus::IsReadingError;
-    if (unlink((url.Path()).c_str()) == -1)
-      if (errno != ENOENT)
+      
+    const char* path = url.Path().c_str();
+    struct stat st;
+    if(stat(path,&st) != 0) {
+      if (errno == ENOENT) return DataStatus::Success;
+      logger.msg(INFO, "File is not accessible: %s - %s", path, strerror(errno));
+      return DataStatus::DeleteError;
+    }
+    // path is a directory
+    if(S_ISDIR(st.st_mode)) {
+      if (rmdir(path) == -1) {
+        logger.msg(INFO, "Can't delete directory: %s - %s", path, strerror(errno));
         return DataStatus::DeleteError;
+      }
+      return DataStatus::Success;
+    }
+    // path is a file
+    if(unlink(path) == -1 && errno != ENOENT) {
+      logger.msg(INFO, "Can't delete file: %s - %s", path, strerror(errno));
+      return DataStatus::DeleteError;
+    }
     return DataStatus::Success;
   }
 
