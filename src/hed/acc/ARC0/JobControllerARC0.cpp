@@ -47,7 +47,7 @@ namespace Arc {
     std::map<std::string, std::list<Job*> > jobsbyhost;
     for (std::list<Job>::iterator it = jobstore.begin();
          it != jobstore.end(); it++)
-      jobsbyhost[it->InfoEndpoint.ConnectionURL() + '/' +
+      jobsbyhost[it->InfoEndpoint.ConnectionURL() +
                  it->InfoEndpoint.Path()].push_back(&*it);
 
     for (std::map<std::string, std::list<Job*> >::iterator hostit =

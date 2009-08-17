@@ -105,7 +105,7 @@ namespace Arc {
     if (!url.HTTPOption("SFN").empty())
       canonic_url = url.Protocol() + "://" + url.Host() + "/" + url.HTTPOption("SFN");
     else
-      canonic_url = url.Protocol() + "://" + url.Host() + "/" + url.Path();
+      canonic_url = url.Protocol() + "://" + url.Host() + url.Path();
 
     srm_request = new SRMClientRequest(canonic_url);
 
@@ -149,7 +149,7 @@ namespace Arc {
     if (!url.HTTPOption("SFN").empty())
       canonic_url = url.Protocol() + "://" + url.Host() + "/" + url.HTTPOption("SFN");
     else
-      canonic_url = url.Protocol() + "://" + url.Host() + "/" + url.Path();
+      canonic_url = url.Protocol() + "://" + url.Host() + url.Path();
 
     srm_request = new SRMClientRequest(canonic_url);
     if (!srm_request) {
@@ -313,7 +313,7 @@ namespace Arc {
     if (!url.HTTPOption("SFN").empty())
       canonic_url = url.Protocol() + "://" + url.Host() + "/" + url.HTTPOption("SFN");
     else
-      canonic_url = url.Protocol() + "://" + url.Host() + "/" + url.Path();
+      canonic_url = url.Protocol() + "://" + url.Host() + url.Path();
 
     srm_request = new SRMClientRequest(canonic_url);
     if (!srm_request) {
@@ -481,7 +481,7 @@ namespace Arc {
     if (!url.HTTPOption("SFN").empty())
       canonic_url = url.Protocol() + "://" + url.Host() + "/" + url.HTTPOption("SFN");
     else
-      canonic_url = url.Protocol() + "://" + url.Host() + "/" + url.Path();
+      canonic_url = url.Protocol() + "://" + url.Host() + url.Path();
 
     srm_request = new SRMClientRequest(canonic_url);
     if (!srm_request) {

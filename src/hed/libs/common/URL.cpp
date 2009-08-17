@@ -140,14 +140,12 @@ namespace Arc {
         if (getcwd(cwd, PATH_MAX))
           path = Glib::build_filename(cwd, path);
       }
-      // This class (historically) stores paths without leading /
-      if (!path.empty())
-        path.erase(0,1);
+      // Simple paths are not expected to contain any options or metadata
       return;
     }
 
     // RFC says protocols should be lowercase and uppercase 
-    // must be converted to lowercase
+    // must be converted to lowercase for consistency
     protocol = lower(url.substr(0, pos));
 
     // Checking if protocol followed by host/authority part 
@@ -165,22 +163,23 @@ namespace Arc {
           if (getcwd(cwd, PATH_MAX))
             path = Glib::build_filename(cwd, path);
         }
-        // This class (historically) stores paths without leading /
-        if (!path.empty())
-          path.erase(0,1);
         return;
       } else if (protocol == "arc") {
         // TODO: It is not defined how arc protocol discovers 
         // entry point in general case.
         // For same reason let's assume path must be always
         // absolute.
+        if(url[pos] != '/') {
+          URLLogger.msg(ERROR, "Illegal URL - path must be absolute");
+          return;
+        }
       } else {
         URLLogger.msg(ERROR, "Illegal URL - no hostname given");
         return;
       }
     } else {
       // There is host/authority part in this URL. That also 
-      // means if present path is absolute 
+      // means path is absolute if present
       pos += 3;
 
       pos2 = url.find("@", pos);
@@ -188,6 +187,7 @@ namespace Arc {
 
         if (protocol == "rc" || protocol == "rls" ||
             protocol == "fireman" || protocol == "lfc") {
+          // Indexing protocols may contain locations
 
           std::string locstring = url.substr(pos, pos2 - pos);
           pos = pos2 + 1;
@@ -240,7 +240,7 @@ namespace Arc {
       // Looking for end of host/authority part
       pos2 = url.find("/", pos);
       if (pos2 == std::string::npos) {
-        // Path part is empty
+        // Path part is empty, host may be empty too
         host = url.substr(pos);
         path = "";
       }
@@ -256,7 +256,7 @@ namespace Arc {
       }
     }
 
-    // At this point path must be absolute (starts with /)
+    // At this point path must be absolutely absolute (starts with /) or empty
     if ((!path.empty()) && (path[0] != '/')) {
       URLLogger.msg(ERROR, "Illegal URL - path must be absolute or empty");
       return;
@@ -358,15 +358,13 @@ namespace Arc {
       if (ldapfilter.empty())
         ldapfilter = "(objectClass=*)";
       if (path.find("/",1) != std::string::npos)
-        path = "/" + Path2BaseDN(path);
+        path = Path2BaseDN(path);
+      else
+        path.erase(0,1);
     }
 
     // Normally host/authority names are case-insensitive
     host = lower(host);
-
-    // This class (historically) stores paths without leading /
-    if (!path.empty())
-      path.erase(0,1);
 
   }
 
@@ -446,15 +444,18 @@ namespace Arc {
     path = newpath;
 
     // parse basedn in case of ldap-protocol
-    if (protocol == "ldap")
+    if (protocol == "ldap") {
       if (path.find("/") != std::string::npos)
         path = Path2BaseDN(path);
 
     // add absolute path for relative file URLs
-    if ((protocol == "file" || protocol == "urllist") && !Glib::path_is_absolute(path)) {
+    } else if ((protocol == "file" || protocol == "urllist") && !Glib::path_is_absolute(path)) {
       char cwd[PATH_MAX];
       if (getcwd(cwd, PATH_MAX))
         path = Glib::build_filename(cwd, path);
+    } else if ((path[0] != '/') && (!path.empty())) {
+      URLLogger.msg(WARNING, "Attempt to assign relative path to URL - making it absolute");
+      path = "/" + path;
     }
   }
 
@@ -551,8 +552,6 @@ namespace Arc {
   std::string URL::fullstr() const {
 
     std::string urlstr;
-    if (!protocol.empty())
-      urlstr = protocol + "://";
 
     if (!username.empty())
       urlstr += username;
@@ -585,11 +584,23 @@ namespace Arc {
     if (!urloptions.empty())
       urlstr += ';' + OptionString(urloptions, ';');
 
-    if ( (!urlstr.empty()) || (!path.empty()) )
-      urlstr += '/';
+    if (!protocol.empty()) {
+      if (!urlstr.empty())
+        urlstr = protocol + "://" + urlstr;
+      else
+        urlstr = protocol + ":";
+    }
 
-    if (!path.empty())
-      urlstr += path;
+    // Constructor makes sure path is absolute or empty.
+    // ChangePath() also makes such check.
+    if ( protocol == "ldap") // Unfortunately ldap is special case
+      urlstr += '/';
+    urlstr += path;
+
+    // If there is nothing at this point there is no sense
+    // to add any options
+    if (urlstr.empty())
+      return urlstr;
 
     if (!httpoptions.empty())
       urlstr += '?' + OptionString(httpoptions, '&');
@@ -622,8 +633,6 @@ namespace Arc {
   std::string URL::str() const {
 
     std::string urlstr;
-    if (!protocol.empty())
-      urlstr = protocol + "://";
 
     if (!username.empty())
       urlstr += username;
@@ -640,11 +649,23 @@ namespace Arc {
     if (port != -1)
       urlstr += ':' + tostring(port);
 
-    if ( (!urlstr.empty()) || (!path.empty()) )
-      urlstr += '/';
+    if (!protocol.empty()) {
+      if (!urlstr.empty())
+        urlstr = protocol + "://" + urlstr;
+      else
+        urlstr = protocol + ":";
+    }
 
-    if (!path.empty())
-      urlstr += path;
+    // Constructor makes sure path is absolute or empty.
+    // ChangePath also makes such check.
+    if ( protocol == "ldap") // Unfortunately ldap is special case
+      urlstr += '/';
+    urlstr += path;
+
+    // If there is nothing at this point there is no sense
+    // to add any options
+    if (urlstr.empty())
+      return urlstr;
 
     if (!httpoptions.empty())
       urlstr += '?' + OptionString(httpoptions, '&');
@@ -835,7 +856,7 @@ namespace Arc {
     if (pos != std::string::npos)
       pos = path.find('/', pos + 1);
     else if (!end && !path.empty())
-      pos = path.find('/');
+      pos = path.find('/',(path[0] == '/')?1:0);
     else
       done = true;
     end = true;
@@ -847,18 +868,18 @@ namespace Arc {
     if (pos != std::string::npos)
       pos = pos ? path.rfind('/', pos - 1) : std::string::npos;
     else if (end && !path.empty())
-      pos = path.rfind('/');
+      if((pos = path.rfind('/')) == 0) pos = std::string::npos;
     else
       done = true;
     end = false;
     return *this;
   }
 
-  PathIterator::operator bool() {
+  PathIterator::operator bool() const {
     return !done;
   }
 
-  std::string PathIterator::operator*() {
+  std::string PathIterator::operator*() const {
     if (pos != std::string::npos)
       return path.substr(0, pos);
     else if (end)
@@ -867,7 +888,7 @@ namespace Arc {
       return "";
   }
 
-  std::string PathIterator::Rest() {
+  std::string PathIterator::Rest() const {
     if (pos != std::string::npos)
       return path.substr(pos + 1);
     else if (!end)

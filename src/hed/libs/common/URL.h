@@ -31,7 +31,7 @@ namespace Arc {
   /** The URL is split into protocol, hostname, port and path.
      This class tries to follow RFC 3986 for spliting URLs at least
      for protocol + host part.
-     It also accepts file paths which are converted to file://path.
+     It also accepts local file paths which are converted to file:path.
      Usual system dependant file paths are supported. Relative
      paths are converted to absolute ones by prepending them
      with current working directory path.
@@ -42,18 +42,30 @@ namespace Arc {
         [protocol:][//[username:passwd@][host][:port]][;urloptions[;...]][/path[?httpoption[&...]][:metadataoption[:...]]]
      The 'protocol' and 'host' parts are treated as case-insensitive and
      to avoid confusion are converted to lowercase in constructor.
-     Note that 'path' part does not include /-separator. Users of this
-     class should keep that in mind and prepend output of Path() method
-     with '/' if needed. 
-     For referencing local file using absolute path one may use either
+     Note that 'path' is always converted to absolute path in constructor.
+     Meaning of 'absolute' may depend upon URL type. For generic URL and 
+     local PSOIX file paths that means path starts from / like
+       /path/to/file
+     For Windows paths absolute path may look like 
+       C:\path\to\file
+     It is important to note that path still can be empty.
+     For referencing local file using absolute path on POSIX filesystem 
+     one may use either
        file:///path/to/file
      or
        file:/path/to/file
      Relative path will look like
-       file:file
+       file:to/file
+     For local Windows files possible URLs are
+       file:C:\path\to\file
+       file:to\file
      URLs representing LDAP resources have different structure of options
      following 'path' part
         ldap://host[:port][;urloptions[;...]][/path[?attributes[?scope[?filter]]]]
+     For LDAP URLs paths are converted from /key1=value1/.../keyN=valueN
+     notation to keyN=valueN,...,key1=value1 and hence path does not contain
+     leading /. If LDAP URL initially had path in second notation leading
+     / is treated as separator only and is stripped.
      URLs of indexing services optionally may have locations specified
      before 'host' part
         protocol://[location[;location[;...]]@][host][:port]...
@@ -293,18 +305,29 @@ namespace Arc {
   };
 
 
+  /// Class to iterate through elements of path
   class PathIterator {
   public:
+    /** Constructor accepts path and stores it internally. If 
+      end is set to false iterator is pointing at first element
+      in path. Otherwise selected element is one before last. */
     PathIterator(const std::string& path, bool end = false);
     ~PathIterator();
 
+    /** Advances iterator to point at next path element */
     PathIterator& operator++();
+
+    /** Moves iterator to element before current */
     PathIterator& operator--();
 
-    operator bool();
+    /** Return false when iterator moved outside path elements */
+    operator bool() const;
 
-    std::string operator*();
-    std::string Rest();
+    /** Returns part of initial path from first till and including current */
+    std::string operator*() const;
+
+    /** Returns part of initial path from one after current till end */
+    std::string Rest() const;
 
   private:
     const std::string& path;

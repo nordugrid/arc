@@ -7,6 +7,7 @@
 #include <iostream>
 #include <string>
 #include <list>
+#include <signal.h>
 
 #include <arc/ArcLocation.h>
 #include <arc/Logger.h>
@@ -120,6 +121,7 @@ void arcls(const Arc::URL& dir_url,
 int main(int argc, char **argv) {
 
   setlocale(LC_ALL, "");
+signal(SIGTTOU,SIG_IGN);
 
   Arc::LogStream logcerr(std::cerr);
   Arc::Logger::getRootLogger().addDestination(logcerr);

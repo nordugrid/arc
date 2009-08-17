@@ -114,7 +114,7 @@ static bool insert_RC_to_url(std::string& url,const std::string& rc_url) {
   if(rc_url_.Protocol() != "ldap") return false;
   url_.ChangePort(rc_url_.Port());
   url_.ChangeHost(rc_url_.Host());
-  url_.ChangePath(rc_url_.Path()+"/"+url_.Path());
+  url_.ChangePath(rc_url_.Path()+url_.Path());
   url=url_.str();
   return true;
 }

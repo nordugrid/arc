@@ -593,7 +593,7 @@ namespace Arc {
         if (!it->Target.empty() && it->Target.front().URI) {
           outputSandboxList.push_back(it->Name);
           const std::string uri_tmp = (it->Target.front().URI.Host() == "localhost" ?
-                                       it->Target.front().URI.Protocol() + "://" + it->Target.front().URI.Host() + "/" + it->Target.front().URI.Path() :
+                                       it->Target.front().URI.Protocol() + "://" + it->Target.front().URI.Host() + it->Target.front().URI.Path() :
                                        it->Target.front().URI.fullstr());
           outputSandboxDestURIList.push_back(uri_tmp);
         }

@@ -14,7 +14,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-#include <glibmm/fileutils.h>
+#include <glibmm.h>
 
 #include <arc/Thread.h>
 #include <arc/Logger.h>
@@ -26,9 +26,6 @@
 
 #ifdef WIN32
 #include <arc/win32.h>
-#define DIR_SEPARATOR '\\'
-#else
-#define DIR_SEPARATOR '/'
 #endif
 
 #include "DataPointFile.h"
@@ -47,7 +44,7 @@ namespace Arc {
       is_channel = false;
       local = true;
     }
-    else if (url.Path() == "-") {
+    else if (url.Path() == "-") { // won't work
       linkable = false;
       is_channel = true;
     }
@@ -175,14 +172,14 @@ namespace Arc {
     if (writing)
       return DataStatus::IsWritingError;
     User user;
-    int res = user.check_file_access(DIR_SEPARATOR + url.Path(), O_RDONLY);
+    int res = user.check_file_access(url.Path(), O_RDONLY);
     if (res != 0) {
-      logger.msg(INFO, "File is not accessible: %s", DIR_SEPARATOR + url.Path());
+      logger.msg(INFO, "File is not accessible: %s", url.Path());
       return DataStatus::CheckError;
     }
     struct stat st;
-    if (stat((DIR_SEPARATOR + url.Path()).c_str(), &st) != 0) {
-      logger.msg(INFO, "Can't stat file: %s", DIR_SEPARATOR + url.Path());
+    if (stat((url.Path()).c_str(), &st) != 0) {
+      logger.msg(INFO, "Can't stat file: %s", url.Path());
       return DataStatus::CheckError;
     }
     SetSize(st.st_size);
@@ -195,7 +192,7 @@ namespace Arc {
       return DataStatus::IsReadingError;
     if (writing)
       return DataStatus::IsReadingError;
-    if (unlink((DIR_SEPARATOR + url.Path()).c_str()) == -1)
+    if (unlink((url.Path()).c_str()) == -1)
       if (errno != ENOENT)
         return DataStatus::DeleteError;
     return DataStatus::Success;
@@ -213,15 +210,15 @@ namespace Arc {
     flags |= O_BINARY;
 #endif
 
-    if (url.Path() == "-")
+    if (url.Path() == "-") // won't work
       fd = dup(STDIN_FILENO);
     else {
       User user;
-      if (user.check_file_access(DIR_SEPARATOR + url.Path(), flags) != 0) {
+      if (user.check_file_access(url.Path(), flags) != 0) {
         reading = false;
         return DataStatus::ReadStartError;
       }
-      fd = open((DIR_SEPARATOR + url.Path()).c_str(), flags);
+      fd = open((url.Path()).c_str(), flags);
     }
     if (fd == -1) {
       reading = false;
@@ -270,7 +267,7 @@ namespace Arc {
     writing = true;
     /* try to open */
     buffer = &buf;
-    if (url.Path() == "-") {
+    if (url.Path() == "-") { // won't work
       fd = dup(STDOUT_FILENO);
       if (fd == -1) {
         logger.msg(ERROR, "Failed to use channel stdout");
@@ -292,8 +289,8 @@ namespace Arc {
         writing = false;
         return DataStatus::WriteStartError;
       }
-      std::string dirpath = DIR_SEPARATOR + url.Path();
-      int n = dirpath.rfind(DIR_SEPARATOR);
+      std::string dirpath = url.Path();
+      int n = dirpath.rfind(G_DIR_SEPARATOR);
 #ifndef WIN32
       if (n == 0)
         dirpath = "/";
@@ -320,13 +317,13 @@ namespace Arc {
 #ifdef WIN32
       flags |= O_BINARY;
 #endif
-      fd = open((DIR_SEPARATOR + url.Path()).c_str(), flags | O_CREAT | O_EXCL, S_IRUSR | S_IWUSR);
+      fd = open((url.Path()).c_str(), flags | O_CREAT | O_EXCL, S_IRUSR | S_IWUSR);
       if (fd == -1)
-        fd = open((DIR_SEPARATOR + url.Path()).c_str(), flags | O_TRUNC, S_IRUSR | S_IWUSR);
+        fd = open((url.Path()).c_str(), flags | O_TRUNC, S_IRUSR | S_IWUSR);
       else  /* this file was created by us. Hence we can set it's owner */
         (fchown(fd, user.get_uid(), user.get_gid()) != 0);
       if (fd == -1) {
-        logger.msg(ERROR, "Failed to create/open file %s (%d)", DIR_SEPARATOR + url.Path(), errno);
+        logger.msg(ERROR, "Failed to create/open file %s (%d)", url.Path(), errno);
         buffer->error_write(true);
         buffer->eof_write(true);
         writing = false;
@@ -338,7 +335,7 @@ namespace Arc {
       if (CheckSize()) {
         unsigned long long int fsize = GetSize();
         logger.msg(INFO, "setting file %s to size %llu",
-                   DIR_SEPARATOR + url.Path(), fsize);
+                   url.Path(), fsize);
         /* because filesytem can skip empty blocks do real write */
         unsigned long long int old_size = lseek(fd, 0, SEEK_END);
         if (old_size < fsize) {
@@ -410,7 +407,7 @@ namespace Arc {
       return DataStatus::IsReadingError;
     if (writing)
       return DataStatus::IsWritingError;
-    std::string dirname = DIR_SEPARATOR + url.Path();
+    std::string dirname = url.Path();
     if (dirname[dirname.length() - 1] == '/')
       dirname.resize(dirname.length() - 1);
 

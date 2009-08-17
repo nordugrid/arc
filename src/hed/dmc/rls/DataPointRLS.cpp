@@ -34,6 +34,19 @@ namespace Arc {
 
   DataPointRLS::~DataPointRLS() {}
 
+  static const char* get_path_str(const URL& url) {
+    const std::string& path = url.Path();
+    if(path.empty() || (path[0] != '/')) return path.c_str();
+    return (path.c_str()+1);
+  }
+
+  static bool path_empty(const URL& url) {
+    const std::string& path = url.Path();
+    if(path.empty()) return true;
+    if((path.length() == 1) && (path[0] == '/')) return true;
+    return false;
+  }
+
   static globus_result_t globus_rls_client_lrc_attr_put(globus_rls_handle_t *h, char *key,
                                                         globus_rls_attribute_t *attr,
                                                         int overwrite) {
@@ -101,7 +114,7 @@ namespace Arc {
     else if ((!se_uses_lfn) && (!pfn_path.empty()))
       u += pfn_path;
     else
-      u += url.Path();
+      u += get_path(url);
     return URL(u);
   }
 
@@ -123,7 +136,7 @@ namespace Arc {
       // map lfn->guid (only once)
       globus_rls_attribute_t opr;
       opr.type = globus_rls_attr_type_str;
-      opr.val.s = const_cast<char*>(url.Path().c_str());
+      opr.val.s = const_cast<char*>(get_path(url));
       int off = 0;
       globus_list_t *guids = NULL;
       err = globus_rls_client_lrc_attr_search(h, const_cast<char*>("lfn"),
@@ -154,7 +167,7 @@ namespace Arc {
                 (h, const_cast<char*>(guid.c_str()), 0, 0, &pfns_list);
       else
         err = globus_rls_client_lrc_get_pfn
-                (h, const_cast<char*>(url.Path().c_str()), 0, 0, &pfns_list);
+                (h, const_cast<char*>(get_path(url)), 0, 0, &pfns_list);
     } else {
       err = globus_rls_client_lrc_get_pfn
               (h, const_cast<char*>("__storage_service__"), 0, 0, &pfns_list);
@@ -237,7 +250,7 @@ namespace Arc {
                 NULL, globus_rls_obj_lrc_lfn, &attr_list);
       else
         err = globus_rls_client_lrc_attr_value_get
-                (h, const_cast<char*>(url.Path().c_str()),
+                (h, const_cast<char*>(get_path(url)),
                 NULL, globus_rls_obj_lrc_lfn, &attr_list);
       if (err != GLOBUS_SUCCESS) {
         globus_rls_client_error_info(err, &errcode, errmsg, MAXERRMSG + 32,
@@ -290,7 +303,7 @@ namespace Arc {
     resolved = false;
     registered = false;
     if (source) {
-      if (url.Path().empty()) {
+      if (get_path(url)[0] == 0) {
         logger.msg(INFO, "Source must contain LFN");
         return DataStatus::ReadResolveError;
       }
@@ -305,7 +318,7 @@ namespace Arc {
         return arg.success;
     }
     else {
-      if (url.Path().empty()) {
+      if (get_path(url) == 0) {
         logger.msg(INFO, "Destination must contain LFN");
         return DataStatus::WriteResolveError;
       }
@@ -401,7 +414,7 @@ namespace Arc {
     std::string guid;
     pfn = CurrentLocation().str();
     // it is always better to register pure url
-    std::string rls_lfn = url.Path();
+    std::string rls_lfn = get_path(url);
     if (!replication)
       if (guid_enabled) {
         for (;;) {
@@ -432,7 +445,7 @@ namespace Arc {
         // Check if there is no same LFN
         globus_rls_attribute_t opr;
         opr.type = globus_rls_attr_type_str;
-        opr.val.s = const_cast<char*>(url.Path().c_str());
+        opr.val.s = const_cast<char*>(get_path(url));
         int off = 0;
         globus_list_t *guids = NULL;
         err = globus_rls_client_lrc_attr_search(h, const_cast<char*>("lfn"),
@@ -462,7 +475,7 @@ namespace Arc {
         attr.objtype = globus_rls_obj_lrc_lfn;
         attr.type = globus_rls_attr_type_str;
         attr.name = const_cast<char*>("lfn");
-        attr.val.s = const_cast<char*>(url.Path().c_str());
+        attr.val.s = const_cast<char*>(get_path(url));
         err = globus_rls_client_lrc_attr_put
                 (h, const_cast<char*>(rls_lfn.c_str()), &attr, 0);
         if (err != GLOBUS_SUCCESS) {
@@ -475,7 +488,7 @@ namespace Arc {
       }
       else {
         err = globus_rls_client_lrc_create
-                (h, const_cast<char*>(url.Path().c_str()),
+                (h, const_cast<char*>(get_path(url)),
                 const_cast<char*>(pfn.c_str()));
         if (err != GLOBUS_SUCCESS) {
           err = globus_rls_client_error_info(err, &errcode, NULL, 0,
@@ -483,7 +496,7 @@ namespace Arc {
           if (errcode == GLOBUS_RLS_LFN_EXIST) {
             globus_rls_free_result(err);
             err = globus_rls_client_lrc_add
-                    (h, const_cast<char*>(url.Path().c_str()),
+                    (h, const_cast<char*>(get_path(url)),
                     const_cast<char*>(pfn.c_str()));
           }
         }
@@ -493,7 +506,7 @@ namespace Arc {
         // get guid
         globus_rls_attribute_t opr;
         opr.type = globus_rls_attr_type_str;
-        opr.val.s = const_cast<char*>(url.Path().c_str());
+        opr.val.s = const_cast<char*>(get_path(url));
         int off = 0;
         globus_list_t *guids = NULL;
         err = globus_rls_client_lrc_attr_search(h, const_cast<char*>("lfn"),
@@ -646,7 +659,7 @@ namespace Arc {
       // map lfn->guid (only once)
       globus_rls_attribute_t opr;
       opr.type = globus_rls_attr_type_str;
-      opr.val.s = const_cast<char*>(url.Path().c_str());
+      opr.val.s = const_cast<char*>(get_path(url));
       int off = 0;
       globus_list_t *guids = NULL;
       err = globus_rls_client_lrc_attr_search(h, const_cast<char*>("lfn"),
@@ -677,7 +690,7 @@ namespace Arc {
                 &lrc_offset, lrc_limit, &pfns_list);
       else
         err = globus_rls_client_lrc_get_pfn
-                (h, const_cast<char*>(url.Path().c_str()),
+                (h, const_cast<char*>(get_path(url)),
                 &lrc_offset, lrc_limit, &pfns_list);
       if (err != GLOBUS_SUCCESS) {
         globus_rls_client_error_info(err, &errcode, errmsg, MAXERRMSG + 32,
@@ -713,7 +726,7 @@ namespace Arc {
     }
     else { // ! all
       err = globus_rls_client_lrc_delete
-              (h, const_cast<char*>(url.Path().c_str()),
+              (h, const_cast<char*>(get_path(url)),
               const_cast<char*>(CurrentLocation().str().c_str()));
       if (err != GLOBUS_SUCCESS) {
         globus_rls_client_error_info(err, &errcode, errmsg, MAXERRMSG + 32,
@@ -760,12 +773,12 @@ namespace Arc {
       globus_list_t *lrcs = NULL;
       globus_rls_string2_t lrc_direct;
       globus_bool_t free_lrcs = GLOBUS_FALSE;
-      lrc_direct.s1 = const_cast<char*>(url.Path().c_str());
+      lrc_direct.s1 = const_cast<char*>(get_path(url));
       lrc_direct.s2 = NULL; // for current connection
       int lrc_offset = 0;
       int lrc_limit = 0;
       err = globus_rls_client_rli_get_lrc
-              (h, const_cast<char*>(url.Path().c_str()),
+              (h, const_cast<char*>(get_path(url)),
               &lrc_offset, lrc_limit, &lrcs);
       if (err != GLOBUS_SUCCESS) {
         globus_rls_client_error_info(err, &errcode, errmsg, MAXERRMSG + 32,
@@ -807,7 +820,7 @@ namespace Arc {
           h_ = h; // This server is already connected
         if (all) {
           err = globus_rls_client_lrc_get_pfn
-                  (h_, const_cast<char*>(url.Path().c_str()),
+                  (h_, const_cast<char*>(get_path(url)),
                   &lrc_offset, lrc_limit, &pfns_list);
           if (err != GLOBUS_SUCCESS) {
             globus_rls_client_error_info(err, &errcode, errmsg, MAXERRMSG + 32,
@@ -835,7 +848,7 @@ namespace Arc {
                          "SE location will be unregistered automatically");
             else {
               err = globus_rls_client_lrc_delete
-                      (h_, const_cast<char*>(url.Path().c_str()), str2->s1);
+                      (h_, const_cast<char*>(get_path(url)), str2->s1);
               if (err != GLOBUS_SUCCESS) {
                 globus_rls_client_error_info(err, &errcode, errmsg,
                                              MAXERRMSG + 32, GLOBUS_FALSE);
@@ -858,7 +871,7 @@ namespace Arc {
         }
         else { // ! all
           err = globus_rls_client_lrc_delete
-                  (h_, const_cast<char*>(url.Path().c_str()),
+                  (h_, const_cast<char*>(get_path(url)),
                   const_cast<char*>(CurrentLocation().str().c_str()));
           if (err != GLOBUS_SUCCESS) {
             globus_rls_client_error_info(err, &errcode, errmsg, MAXERRMSG + 32,
@@ -982,12 +995,12 @@ namespace Arc {
     int errcode;
     char errmsg[MAXERRMSG + 32];
     globus_list_t *pfns = NULL;
-    if (guid_enabled && !url.Path().empty() && guid.empty()) {
+    if (guid_enabled && !path_empty(url) && guid.empty()) {
       // looking gor guid only once
       // looking for guid only if lfn specified
       globus_rls_attribute_t opr;
       opr.type = globus_rls_attr_type_str;
-      opr.val.s = const_cast<char*>(url.Path().c_str());
+      opr.val.s = const_cast<char*>(get_path(url));
       int off = 0;
       globus_list_t *guids = NULL;
       err = globus_rls_client_lrc_attr_search(h, const_cast<char*>("lfn"),
@@ -1014,9 +1027,9 @@ namespace Arc {
     if (!guid.empty())
       err = globus_rls_client_lrc_get_pfn
               (h, const_cast<char*>(guid.c_str()), &lrc_offset, 1000, &pfns);
-    else if (!url.Path().empty())
+    else if (!path_empty(url))
       err = globus_rls_client_lrc_get_pfn
-              (h, const_cast<char*>(url.Path().c_str()), &lrc_offset, 1000, &pfns);
+              (h, const_cast<char*>(get_path(url)), &lrc_offset, 1000, &pfns);
     else
       err = globus_rls_client_lrc_get_pfn_wc(h, const_cast<char*>("*"),
                                              rls_pattern_unix,

@@ -17,6 +17,8 @@
 #include <arc/message/PayloadRaw.h>
 #include <arc/client/ClientInterface.h>
 
+#include <glibmm.h>
+
 #ifdef WIN32
 #include <arc/win32.h>
 #endif
@@ -73,7 +75,7 @@ namespace Arc {
     NS ns("bar", "http://www.nordugrid.org/schemas/bartender");
     PayloadSOAP request(ns);
     request.NewChild("bar:list").NewChild("bar:listRequestList").NewChild("bar:listRequestElement").NewChild("bar:requestID") = "0";
-    request["bar:list"]["bar:listRequestList"]["bar:listRequestElement"].NewChild("bar:LN") = "/" + url.Path();
+    request["bar:list"]["bar:listRequestList"]["bar:listRequestElement"].NewChild("bar:LN") = url.Path();
     request["bar:list"].NewChild("bar:neededMetadataList").NewChild("bar:neededMetadataElement").NewChild("bar:section") = "entry";
     request["bar:list"]["bar:neededMetadatList"]["bar:neededMetadataElement"].NewChild("bar:property") = "";
     request.GetXML(xml, true);
@@ -130,14 +132,9 @@ namespace Arc {
     else {
       // its a file or something
       // we know it exists so we use file name from url
-      char sep = '/';
-
-      #ifdef _WIN32
-      sep = '\\';
-      #endif
       std::string path = url.Path();
-      size_t i = path.rfind(sep, path.length());
-      std::string file_name = path.substr(i + 1, path.length() - i);
+      std::string::size_type i = path.rfind(G_DIR_SEPARATOR, path.length());
+      std::string file_name = path.substr((i != std::string::npos)?(i+1):0);
       std::list<FileInfo>::iterator f = files.insert(files.end(), FileInfo(file_name.c_str()));
       f->SetType(FileInfo::file_type_file);
     }
@@ -170,7 +167,7 @@ namespace Arc {
     NS ns("bar", "http://www.nordugrid.org/schemas/bartender");
     PayloadSOAP request(ns);
     request.NewChild("bar:getFile").NewChild("bar:getFileRequestList").NewChild("bar:getFileRequestElement").NewChild("bar:requestID") = "0";
-    request["bar:getFile"]["bar:getFileRequestList"]["bar:getFileRequestElement"].NewChild("bar:LN") = "/" + url.Path();
+    request["bar:getFile"]["bar:getFileRequestList"]["bar:getFileRequestElement"].NewChild("bar:LN") = url.Path();
     // only supports http protocol:
     request["bar:getFile"]["bar:getFileRequestList"]["bar:getFileRequestElement"].NewChild("bar:protocol") = "http";
     request.GetXML(xml, true);
@@ -259,7 +256,7 @@ namespace Arc {
     NS ns("bar", "http://www.nordugrid.org/schemas/bartender");
     PayloadSOAP request(ns);
     request.NewChild("bar:putFile").NewChild("bar:putFileRequestList").NewChild("bar:putFileRequestElement").NewChild("bar:requestID") = "0";
-    request["bar:putFile"]["bar:putFileRequestList"]["bar:putFileRequestElement"].NewChild("bar:LN") = "/" + url.Path();
+    request["bar:putFile"]["bar:putFileRequestList"]["bar:putFileRequestElement"].NewChild("bar:LN") = url.Path();
     // only supports http protocol:
     request["bar:putFile"]["bar:putFileRequestList"]["bar:putFileRequestElement"].NewChild("bar:protocol") = "http";
     request["bar:putFile"]["bar:putFileRequestList"]["bar:putFileRequestElement"].NewChild("bar:metadataList").NewChild("bar:metadata").NewChild("bar:section") = "states";
@@ -360,7 +357,7 @@ namespace Arc {
     NS ns("bar", "http://www.nordugrid.org/schemas/bartender");
     PayloadSOAP request(ns);
     request.NewChild("bar:modify").NewChild("bar:modifyRequestList").NewChild("bar:modifyRequestElement").NewChild("bar:changeID") = "0";
-    request["bar:modify"]["bar:modifyRequestList"]["bar:modifyRequestElement"].NewChild("bar:LN") = "/" + url.Path();
+    request["bar:modify"]["bar:modifyRequestList"]["bar:modifyRequestElement"].NewChild("bar:LN") = url.Path();
     request["bar:modify"]["bar:modifyRequestList"]["bar:modifyRequestElement"].NewChild("bar:changeType") = "set";
     request["bar:modify"]["bar:modifyRequestList"]["bar:modifyRequestElement"].NewChild("bar:section") = "states";
     request["bar:modify"]["bar:modifyRequestList"]["bar:modifyRequestElement"].NewChild("bar:property") = "checksum";
@@ -414,7 +411,7 @@ namespace Arc {
     NS ns("bar", "http://www.nordugrid.org/schemas/bartender");
     PayloadSOAP request(ns);
     request.NewChild("bar:delFile").NewChild("bar:delFileRequestList").NewChild("bar:delFileRequestElement").NewChild("bar:requestID") = "0";
-    request["bar:delFile"]["bar:delFileRequestList"]["bar:delFileRequestElement"].NewChild("bar:LN") = "/" + url.Path();
+    request["bar:delFile"]["bar:delFileRequestList"]["bar:delFileRequestElement"].NewChild("bar:LN") = url.Path();
 
     request.GetXML(xml, true);
     logger.msg(INFO, "Request:\n%s", xml);
