@@ -788,6 +788,13 @@
           // error
           char * msg = sols_response_struct.srmStatusOfLsRequestResponse->returnStatus->explanation;
           logger.msg(Arc::ERROR, "Error: %s", msg);
+          // check if individual file status gives more info
+          if (sols_response_struct.srmStatusOfLsRequestResponse->details &&
+              sols_response_struct.srmStatusOfLsRequestResponse->details->pathDetailArray &&
+              sols_response_struct.srmStatusOfLsRequestResponse->details->__sizepathDetailArray > 0 &&
+              sols_response_struct.srmStatusOfLsRequestResponse->details->pathDetailArray[0]->status &&
+              sols_response_struct.srmStatusOfLsRequestResponse->details->pathDetailArray[0]->status->explanation)
+            logger.msg(Arc::ERROR, "Error: %s", sols_response_struct.srmStatusOfLsRequestResponse->details->pathDetailArray[0]->status->explanation);
           if (return_status == SRMv2__TStatusCode__SRM_USCOREINTERNAL_USCOREERROR)
             return SRM_ERROR_TEMPORARY;
           return SRM_ERROR_PERMANENT;
@@ -806,6 +813,13 @@
       // any other return code is a failure
       char * msg = response_inst->returnStatus->explanation;
       logger.msg(Arc::ERROR, "Error: %s", msg);
+      // check if individual file status gives more info
+      if (response_inst->details &&
+          response_inst->details->pathDetailArray &&
+          response_inst->details->__sizepathDetailArray > 0 &&
+          response_inst->details->pathDetailArray[0]->status &&
+          response_inst->details->pathDetailArray[0]->status->explanation)
+        logger.msg(Arc::ERROR, "Error: %s", response_inst->details->pathDetailArray[0]->status->explanation);
       if (return_status == SRMv2__TStatusCode__SRM_USCOREINTERNAL_USCOREERROR)
         return SRM_ERROR_TEMPORARY;
       return SRM_ERROR_PERMANENT;
