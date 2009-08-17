@@ -684,7 +684,7 @@ namespace Arc {
       }
       if (mapped)
         destination.SetMeta(mapped_p);
-      if (force_registration && destination.IsIndex())
+      if (force_registration && destination.IsIndex()) {
         // at least compare metadata
         if (!destination.CompareMeta(source)) {
           logger.msg(ERROR, "Metadata of source and destination are different");
@@ -696,6 +696,7 @@ namespace Arc {
 #endif
           continue;
         }
+      }
       destination.SetMeta(source);
       // pass metadata gathered during start_reading()
       // from source to destination

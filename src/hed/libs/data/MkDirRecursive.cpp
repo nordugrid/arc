@@ -16,14 +16,9 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#include <arc/data/MkDirRecursive.h>
+#include <glibmm.h>
 
-#ifdef WIN32
-#include <arc/win32.h>
-#define DIR_SEPARATOR '\\'
-#else
-#define DIR_SEPARATOR '/'
-#endif
+#include <arc/data/MkDirRecursive.h>
 
 static int mkdir_force(const char *path, mode_t mode);
 
@@ -53,7 +48,7 @@ int mkdir_recursive(const std::string& base_path, const std::string& path,
       for (;;) {
         if (name_end >= name.length())
           return 0;
-        name_end = name.find(DIR_SEPARATOR, name_end + 1);
+        name_end = name.find(G_DIR_SEPARATOR, name_end + 1);
         if (mkdir(name.substr(0, name_end).c_str(), mode) != 0) {
           if (errno == EEXIST)
             continue;
@@ -65,7 +60,7 @@ int mkdir_recursive(const std::string& base_path, const std::string& path,
       }
     }
     /* if(errno == EEXIST) { free(name); errno=EEXIST; return -1; } */
-    if ((name_end = name.rfind(DIR_SEPARATOR, name_end - 1)) ==
+    if ((name_end = name.rfind(G_DIR_SEPARATOR, name_end - 1)) ==
         std::string::npos)
       break;
     if (name_end == name_start)
