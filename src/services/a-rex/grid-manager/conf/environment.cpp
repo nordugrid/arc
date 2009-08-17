@@ -17,10 +17,12 @@ std::string globus_loc("");
 std::string globus_scripts_loc;
 // ARC installation path - $ARC_LOCATION, executable path
 std::string nordugrid_loc("");
-// ARC system tools - $ARC_LOCATION/libexec/arc
+// ARC system tools
 std::string nordugrid_libexec_loc;
-// ARC libraries and plugins - $ARC_LOCATION/lib
+// ARC libraries and plugins
 std::string nordugrid_lib_loc;
+// ARC administrator tools
+std::string nordugrid_sbin_loc;
 // ARC configuration file
 std::string nordugrid_config_loc("");
 // Email address of person responsible for this ARC installation

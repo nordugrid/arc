@@ -9,10 +9,12 @@ extern std::string globus_loc;
 extern std::string globus_scripts_loc;
 /// ARC installation path - $ARC_LOCATION, executable path
 extern std::string nordugrid_loc;
-/// ARC system tools - $ARC_LOCATION/libexec/nordugrid, $ARC_LOCATION/libexec
+/// ARC system tools - $ARC_LOCATION/libexec/arc, $ARC_LOCATION/libexec
 extern std::string nordugrid_libexec_loc;
-// ARC libraries and plugins - $ARC_LOCATION/lib/nordugrid, $ARC_LOCATION/lib
+// ARC libraries and plugins - $ARC_LOCATION/lib/arc, $ARC_LOCATION/lib
 extern std::string nordugrid_lib_loc;
+// ARC adminstrator tools - $ARC_LOCATION/sbin
+extern std::string nordugrid_sbin_loc;
 /// ARC configuration file 
 ///   /etc/arc.conf
 ///   $ARC_LOCATION/etc/arc.conf
