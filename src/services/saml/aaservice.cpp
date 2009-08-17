@@ -176,11 +176,22 @@ Arc::MCC_Status Service_AA::process(Arc::Message& inmsg,Arc::Message& outmsg) {
       return make_soap_fault(outmsg, retstr);
     }
     std::string query_type;
+/*
     if((attr_name!="Role") && (attr_name!="Group") && (attr_name!="GroupAndRole") &&
        (attr_name!="All") && (attr_name!="GroupAndRoleAttribute") && 
        (attr_name!="GroupAttribute") && (attr_name!="RoleAttribute") && (attr_name!="AllAttribute"))
       query_type = "All";
     else query_type=attr_name;
+*/
+    for(int i = 0;; i++) {
+      Arc::XMLNode cn = nd["aa:SQLSet"][i];
+      if(!cn) break;
+      //If the SQLSet's name matches to the name in the query
+      if(((std::string)(cn.Attribute("name"))) == attr_name) { 
+        query_type=attr_name; break; 
+      }
+    }
+    if(query_type.empty()) query_type="Default";
 
     std::vector<std::string> fqans;
     if(userid.size()==0) {

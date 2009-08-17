@@ -108,6 +108,10 @@
 
               <!--Other SQLSet-->
 
+              <aa:SQLSet name="Default">
+                <aa:SQL name="Default">SELECT groups.dn, role FROM groups, m LEFT JOIN roles ON roles.rid = m.rid WHERE groups.gid = m.gid AND m.userid = ?</aa:SQL>
+              </aa:SQLSet>
+
             </aa:Database>
         </Service>
     </Chain>
