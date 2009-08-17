@@ -1117,6 +1117,13 @@ For the outgoing message this SecHandler creates X509Token in SOAP header. SOAP 
 \label{subsec:saml_token}
 The SAMLToken SecHandler is meant for processing - generating and extracting - WS-Security [4] SAMLToken from SOAP header. Hence it must be attached to the MCC which processes SOAP payloads – like SOAP MCC or Service accepting SOAP messages. For description of configuration see section \ref{subsec:st_sechandler_conf}.
 
+\begin{figure}
+\centering{{{\includegraphics[width=0.9\textwidth]{samltoken_aa.pdf}}}
+\caption{\label{fig:samltoken_aa} Interaction among Client, Grid/Web Service and Attribute Authority} }
+\end{figure}
+
+Figure \ref{fig:samltoken_aa} shows the interaction among Client, Grid/Web Service and Attribute Authority when SAMLToken security hanlder is deployed. The Attribute Authority service is described in Section \ref{sec:saml_aa_service}. For the Grid/Web service, if the service is hosted on ARC middleware, then the SAMLToken security handler should be deployed; if the service is hosted on other middlewares, then there should be other ways for supporting SAML Token authentication, e.g., Rampart (WS-Security modlue for Axis2).
+
 For the incoming message this SecHandler decrypts and checks signature of SOAP message using attached public key and verifies that key against specified CA certificate.
 
 For the outgoing message this SecHandler creates SAMLToken in SOAP header. SOAP message body is encrypted and signed.
@@ -1981,22 +1988,53 @@ Some explanation about the configuration is described.
 
 \section{SAML Attribute Authority Service} % (fold)
 \label{sec:saml_aa_service}
-SAML Attribute Authority Service (SAML AA Service) is implemented for accepting SAML \textit{$<$samlp:AttributeQuery$>$} from the requester, and issuing SAML \textit{$<$samlp:Response$>$} which is supposed to include \textit{$<$saml:Assertion$>$} that contains the attribute information about the requester.
+SAML Attribute Authority Service (SAML AA Service) is implemented for accepting SAML \textit{$<$samlp:AttributeQuery$>$} from the requester, and issuing SAML \textit{$<$samlp:Response$>$} which is supposed to include \textit{$<$saml:Assertion$>$} that contains the attribute information about the requester. The implementation is according to the SAML 2.0 ``Assertion Query/Request Profile'', see paragraph 6 of the ``Profiles for the OASIS Security Assertion Markup Language (SAML) V2.0'':
 
-SAML AA service is implemented with the same functionality as VOMS SAML service. More specifically, the interface of SAML AA service is the same as VOMS SAML service. 
+http://docs.oasis-open.org/security/saml/v2.0/saml-profiles-2.0-os.pdf
+
+SAML AA service is implemented with the same functionality as VOMS SAML service. More specifically, the interface of SAML AA service is the same as VOMS SAML service.
 
 The client functionality of \textbf{SAML AA service} exists in two places:
 
 \begin{itemize}
-    \item The specific client utility (saml\_assertion\_init), where the SAML AA service is contacted to get back the SAML assertion.
+    \item The specific client utility (saml\_assertion\_init), where the SAML AA service is contacted to get back the SAML assertion; Also it is planned to put this client functionality into the client utility ``arcproxy'', so that the the returned SAML assertion will be one of the \textit{``extentions''} of proxy certificate.
 
     \item The security handler about SAML token, where the SAML AA service is contacted and then the responded SAML assertion is inserted into SOAP message according to WS-Security SAML Token profile.
 
 \end{itemize}
 
-The same as VOMS SAML Service, the VOMS Admin service is used in ARC for managing the attributes. Therefore the database schema from VOMS is also introduced into ARC.
+As a way of managing the attributes related to the requesters, the VOMS Admin service is used. Also the database schema that is used in VOMS is also introduced into ARC.
 
-However the implementation of SAML AA Service in ARC is designed not to be coupled with any specific backend database. Therefore even if the database schema is changed, the implementation is not necessarily going to be changed. The way about decoupling the service implementation with database schema is through the service configuration.
+Therefore, the following packages about VOMS Admin service are currently required for the running of SAML AA Service:
+
+glite-security-voms-admin-server-2.0.15-1
+
+glite-security-voms-admin-interface-2.0.2-1
+
+glite-security-voms-admin-client-2.0.8-1
+
+\textit{Note} that the version of these pakages could be updated according to the updating of gLite middlware.
+
+\begin{figure}[ht]
+\centering{{{\includegraphics[width=1.0\textwidth]{arc_voms.pdf}}}
+\caption{\label{fig:arc_voms}The relationship between ARC components and gLite (VOMS) components} }
+\end{figure}
+
+Howerver, the running of ARC's SAML AA Service does not neccessarily depend on VOMS Admin Service. As long as there is another attribute administration service (in parallel to VOMS Admin Service) which can nicely be used to manage the attributes, the SAML AA Service can be configured to adopt that service. The relationship between ARC's implementation and VOMS implementation is shown in \ref{figure:arc_voms}.
+
+In terms of implementation, SAML AA Service in ARC is designed not to be coupled with any specific backend database schema. Therefore even if the database schema is changed, the implementation is not necessarily going to be changed. The way about decoupling the service implementation with database schema is through the service configuration.
+
+\begin{verbatim}
+    <samlp:AttributeQuery>
+        <saml:Issuer/>
+        <saml:Subject/>
+        <saml:Attribute Name = "All">
+        <saml:Attribute Name = "Role">
+    <samlp:AttributeQuery>
+\end{verbatim}
+
+The following is the configuration about SAML AA Service, which uses the VOMS database schema when quering attributes.
+The database query is distinguished by the ``\textit{name}'' attribute of $<$SQLSet$>$ element. If the ``\textit{Name}'' of $<$saml:Attribute$>$ (see the above for an example about \textit{$<$samlp:AttributeQuery$>$}) matches the ``\textit{name}'' attribute of $<$SQLSet$>$ element, then the corresponding \textit{SQL} under this $<$SQLSet$>$ element will be executed, and the result will be put into the SAML asserion.
 
 \begin{verbatim}
         <Service name="aa.service" id="aa_service">
@@ -2108,11 +2146,20 @@ However the implementation of SAML AA Service in ARC is designed not to be coupl
                 </aa:SQL>
               </aa:SQLSet>
 
+              <aa:SQLSet name="Default">
+                <aa:SQL name="GetDefault">SELECT groups.dn, role FROM groups, 
+                  m LEFT JOIN roles ON roles.rid = m.rid WHERE groups.gid = m.gid 
+                  AND m.userid = ?</aa:SQL>
+              </aa:SQLSet>
               <!--Other SQLSet-->
 
             </aa:Database>
         </Service>
 \end{verbatim}
+
+The configuration of SAML AA service is according to the schema:
+
+http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk/src/services/saml/aaservice.xsd
 
 %section saml_aa_service (end)
 
