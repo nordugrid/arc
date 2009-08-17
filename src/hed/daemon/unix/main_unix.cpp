@@ -30,6 +30,7 @@ static void shutdown(int)
     logger.msg(Arc::DEBUG, "shutdown");
     delete loader;
     delete main_daemon;
+    logger.msg(Arc::VERBOSE, "exit");
     _exit(0);
 }
 
