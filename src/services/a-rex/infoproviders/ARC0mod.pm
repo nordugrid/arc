@@ -72,11 +72,9 @@ sub get_lrms_info($) {
     delete $cluster_info->{queue};
     $lrms_info->{cluster} = delete_empty($cluster_info);
 
-    my %queue_config = %{$options->{queues}};
+    for my $qname ( keys %{$options->{queues}} ) {
 
-    for my $qname ( keys %queue_config ) {
-
-        my %queue_config = (%cluster_config, %queue_config);
+        my %queue_config = (%cluster_config, %{$options->{queues}{$qname}});
         delete $queue_config{users};
 
         my $jids = $options->{jobs};
@@ -92,7 +90,7 @@ sub get_lrms_info($) {
         my $queue_info = { queue_info(\%queue_config, $qname) };
         $lrms_info->{queues}{$qname} = delete_empty($queue_info);
 
-        my $users = $queue_config{$qname}{users};
+        my $users = $options->{queues}{$qname}{users};
 
         $queue_info->{users} = { users_info(\%queue_config, $qname, $users) };
         for my $user ( values %{$queue_info->{users}} ) {
