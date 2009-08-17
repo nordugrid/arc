@@ -643,6 +643,7 @@ sub users_info($$@) {
 	    $lrms_users{$u}{queuelength} = $user_jobs_queued{$u} || 0;
 	}
 	else {
+	    $user_jobs_running{$u} = 0 unless $user_jobs_running{$u};
 	    if ($lrms_queue{maxuserrun} and ($lrms_queue{maxuserrun} - $user_jobs_running{$u}) < $lrms_queue{status} ) {
 		$lrms_users{$u}{freecpus} = $lrms_queue{maxuserrun} - $user_jobs_running{$u};
 	    }
