@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+  xmlns="http://www.nordugrid.org/schemas/ArcConfig/2007/aa"
+  targetNamespace="http://www.nordugrid.org/schemas/ArcConfig/2007/aa"
+  elementFormDefault="qualified">
+
+    <!--The following is the certificate and key, which are supposed to
+    to be used for signing the SAML assertion -->
+
+    <!-- Location of certificate. Default is none. -->
+    <xsd:element name="CertificatePath" type="xsd:string"/>
+
+    <!-- Location of key. Default is none. -->
+    <xsd:element name="KeyPath" type="xsd:string"/>
+
+    <!--The following is the CA file path, or CA directory, which are supposed
+    to be used for verifying the signature in SAML attribute query-->
+    <!-- Location of certificate of CA. Default is none. -->
+    <xsd:element name="CACertificatePath" type="xsd:string"/>
+
+    <!-- Location of certificate of CA. Default is none. -->
+    <xsd:element name="CACertificatesDir" type="xsd:string"/>
+
+   <!-- Configuration for SQL. -->
+    <xsd:element name="SQL" type="aa:SQL_Type"/>
+    <xsd:complexType name="SQL_Type">
+        <xsd:simpleContent>
+            <xsd:extension base="xsd:string">
+                <xsd:attribute name="name" type="xsd:string" use="optional"/>
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+
+   <!-- Configuration for SQL set. -->
+    <xsd:element name="SQLSet" type="aa:SQLSet_Type"/>
+    <xsd:complexType name="SQLSet_Type">
+        <xsd:sequence>
+            <xsd:element ref="aa:SQL" maxOccurs="unbounded"/>
+        </xsd:sequence>
+        <xsd:attribute name="name" type="xsd:string" use="required"/>
+    </xsd:complexType>
+
+    <!-- Configuration for Database. -->
+    <xsd:element name="Database" type="aa:Database_Type"/>
+    <xsd:complexType name="Database_Type">
+        <xsd:sequence>
+            <xsd:element ref="aa:SQLSet" maxOccurs="unbounded"/>
+        </xsd:sequence>
+        <xsd:attribute name="type" type="xsd:string" use="required"/>
+        <xsd:attribute name="ip" type="xsd:string" use="required"/>
+        <xsd:attribute name="port" type="xsd:string" use="required"/>
+        <xsd:attribute name="dbname" type="xsd:string" use="required"/>
+        <xsd:attribute name="user" type="xsd:string" use="required"/>
+        <xsd:attribute name="password" type="xsd:string" use="required"/>
+    </xsd:complexType>
+
+</xsd:schema>
+
