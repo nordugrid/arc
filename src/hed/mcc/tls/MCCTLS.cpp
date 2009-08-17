@@ -25,6 +25,7 @@
 #include <arc/XMLNode.h>
 #include <arc/message/SecAttr.h>
 #include <arc/credential/VOMSUtil.h>
+#include <arc/crypto/OpenSSL.h>
 
 #include "GlobusSigningPolicy.h"
 
@@ -81,10 +82,7 @@ class TLSSecAttr: public SecAttr {
 };
 }
 
-unsigned int Arc::MCC_TLS::ssl_initialized_ = 0;
-Glib::Mutex Arc::MCC_TLS::lock_;
-Glib::Mutex* Arc::MCC_TLS::ssl_locks_ = NULL;
-int Arc::MCC_TLS::ssl_locks_num_ = 0;
+//Glib::Mutex Arc::MCC_TLS::lock_;
 Arc::Logger Arc::MCC_TLS::logger(Arc::MCC::logger,"TLS");
 
 Arc::MCC_TLS::MCC_TLS(Arc::Config& cfg,bool client) : Arc::MCC(&cfg), config_(cfg,logger,client) {
@@ -301,95 +299,6 @@ bool TLSSecAttr::Export(SecAttrFormat format,XMLNode &val) const {
   return false;
 }
 
-void MCC_TLS::ssl_locking_cb(int mode, int n, const char * s_, int n_) {
-  if(!ssl_locks_) {
-    std::cerr<<"FATAL ERROR: SSL locks not initialized"<<std::endl;
-    _exit(-1);
-  };
-  if((n < 0) || (n >= ssl_locks_num_)) {
-    std::cerr<<"FATAL ERROR: wrong SSL lock requested: "<<n<<" of "<<ssl_locks_num_<<": "<<n_<<" - "<<s_<<std::endl;
-    _exit(-1);
-  };
-  if(mode & CRYPTO_LOCK) {
-    ssl_locks_[n].lock();
-  } else {
-    ssl_locks_[n].unlock();
-  };
-}
-
-unsigned long MCC_TLS::ssl_id_cb(void) {
-  return (unsigned long)(Glib::Thread::self());
-}
-
-//void* MCC_TLS::ssl_idptr_cb(void) {
-//  return (void*)(Glib::Thread::self());
-//}
-
-bool MCC_TLS::do_ssl_init(void) {
-   lock_.lock();
-   if(!ssl_initialized_) {
-     logger.msg(VERBOSE, "MCC_TLS::do_ssl_init");     
-     SSL_load_error_strings();
-     if(!SSL_library_init()){
-       logger.msg(ERROR, "SSL_library_init failed");
-       PayloadTLSStream::HandleError(logger);
-     } else {
-       // We could RAND_seed() here. But since 0.9.7 OpenSSL
-       // knows how to make use of OS specific source of random
-       // data. I think it's better to let OpenSSL do a job.
-       // Here we could also generate ephemeral DH key to avoid 
-       // time consuming genaration during connection handshake.
-       // But is not clear if it is needed for curently used
-       // connections types at all. Needs further investigation.
-       // Using RSA key violates TLS (according to OpenSSL 
-       // documentation) hence we do not use it.
-       //  A.K.
-       int num_locks = CRYPTO_num_locks();
-       if(num_locks) {
-         ssl_locks_=new Glib::Mutex[num_locks];
-         if(ssl_locks_) {
-           ssl_locks_num_=num_locks;
-           CRYPTO_set_locking_callback(&ssl_locking_cb);
-           CRYPTO_set_id_callback(&ssl_id_cb);
-           //CRYPTO_set_idptr_callback(&ssl_idptr_cb);
-           ++ssl_initialized_;
-         } else {
-           logger.msg(ERROR, "Failed to allocate SSL locks");
-         };
-       } else {
-         ++ssl_initialized_;
-       };
-     };
-   } else {
-     ++ssl_initialized_;
-   };
-   lock_.unlock();
-   return (ssl_initialized_ != 0);
-}
-
-// This is a temporary solution because there may be other 
-// components using OpenSSL.
-void MCC_TLS::do_ssl_deinit(void) {
-   lock_.lock();
-   if(!ssl_initialized_) {
-     logger.msg(ERROR, "SSL initialization counter lost sync");
-   } else {
-     logger.msg(VERBOSE, "MCC_TLS::do_ssl_deinit");     
-     --ssl_initialized_;
-     if(!ssl_initialized_) {
-       CRYPTO_set_locking_callback(NULL);
-       CRYPTO_set_id_callback(NULL);
-       //CRYPTO_set_idptr_callback(NULL);
-       if(ssl_locks_) {
-         ssl_locks_num_=0;
-         delete[] ssl_locks_;
-         ssl_locks_=NULL;
-       };
-     };
-   };
-   lock_.unlock();
-}
-
 class MCC_TLS_Context:public MessageContextElement {
  public:
   PayloadTLSMCC* stream;
@@ -400,11 +309,11 @@ class MCC_TLS_Context:public MessageContextElement {
 /* The main functionality of the constructor method is to 
    initialize SSL layer. */
 MCC_TLS_Service::MCC_TLS_Service(Config& cfg):MCC_TLS(cfg,false) {
-   if(!do_ssl_init()) return;
+   if(!OpenSSLInit()) return;
 }
 
 MCC_TLS_Service::~MCC_TLS_Service(void) {
-   do_ssl_deinit();
+   // SSL deinit not needed
 }
 
 MCC_Status MCC_TLS_Service::process(Message& inmsg,Message& outmsg) {
@@ -491,13 +400,13 @@ MCC_Status MCC_TLS_Service::process(Message& inmsg,Message& outmsg) {
 
 MCC_TLS_Client::MCC_TLS_Client(Config& cfg):MCC_TLS(cfg,true){
    stream_=NULL;
-   if(!do_ssl_init()) return;
+   if(!OpenSSLInit()) return;
    /* Get DN from certificate, and put it into message's attribute */
 }
 
 MCC_TLS_Client::~MCC_TLS_Client(void) {
    if(stream_) delete stream_;
-   do_ssl_deinit();
+   // SSL deinit not needed
 }
 
 MCC_Status MCC_TLS_Client::process(Message& inmsg,Message& outmsg) {

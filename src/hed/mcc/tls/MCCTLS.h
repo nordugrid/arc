@@ -16,8 +16,6 @@ namespace Arc {
     MCC_TLS(Config& cfg,bool client);
   protected:
     //bool tls_random_seed(std::string filename, long n);
-    bool do_ssl_init(void);
-    void do_ssl_deinit(void);
     static unsigned int ssl_initialized_;
     static Glib::Mutex lock_;
     static Glib::Mutex* ssl_locks_;
