@@ -343,13 +343,18 @@ sub queue_info ($$) {
 	}
 
 	if(defined $$config{totalcpus}){
-	    if ( $$config{totalcpus} < $lrms_queue{totalcpus} ) {
+	    if ($lrms_queue{totalcpus} eq "" or $$config{totalcpus} < $lrms_queue{totalcpus}) {
 		$lrms_queue{totalcpus}=$$config{totalcpus};
 	    }
 	}
 
-	$lrms_queue{status}=$lrms_queue{totalcpus}-$lrms_queue{running};
-	$lrms_queue{status}=0 if $lrms_queue{status} < 0;
+	if ($lrms_queue{totalcpus} ne "" and $lrms_queue{running} ne "") {
+	    $lrms_queue{status}=$lrms_queue{totalcpus}-$lrms_queue{running};
+	    $lrms_queue{status}=0 if $lrms_queue{status} < 0;
+	} else {
+	    warning("Can't determine number of free cpus for queue $qname");
+	    $lrms_queue{status}=-1;
+	}
 
 	if ( $qstat{state_count} =~ m/.*Queued:([0-9]*).*/ ){
 	    $lrms_queue{queued}=$1;
