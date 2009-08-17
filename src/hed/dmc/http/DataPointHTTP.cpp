@@ -381,6 +381,7 @@ namespace Arc {
       if (!StopReading())
         return DataStatus::ListError;
 
+      bool is_html = false;
       std::string::size_type tagstart = 0;
       std::string::size_type tagend = 0;
       std::string::size_type titlestart = std::string::npos;
@@ -395,8 +396,10 @@ namespace Arc {
         std::string tag = result.substr(tagstart + 1, tagend - tagstart - 1);
         if (strcasecmp(tag.c_str(), "title") == 0)
           titlestart = tagend + 1;
-        if (strcasecmp(tag.c_str(), "/title") == 0)
+        else if (strcasecmp(tag.c_str(), "/title") == 0)
           titleend = tagstart - 1;
+        else if (strcasecmp(tag.c_str(), "html") == 0)
+          is_html = true;
       } while (titlestart == std::string::npos || titleend == std::string::npos);
 
       std::string title;
@@ -404,8 +407,10 @@ namespace Arc {
         title = result.substr(titlestart, titleend - titlestart + 1);
 
       // should maybe find a better way to do this...
-      if (title.substr(0, 10) == "Index of /" ||
-          title.substr(0, 5) == "ARex:") {
+      //if (title.substr(0, 10) == "Index of /" ||
+      //    title.substr(0, 5) == "ARex:") {
+      // Treat every html as potential directory/set of links
+      if(is_html) {
         if (metadata) {
           std::list<FileInfo>::iterator f = files.insert(files.end(), url.FullPath());
           f->SetMetaData("path", url.FullPath());
@@ -613,7 +618,6 @@ namespace Arc {
       PayloadRaw request;
       PayloadRawInterface *inbuf;
       std::string path = point.CurrentLocation().FullPath();
-      path = "/" + path;
       MCC_Status r = client->process("GET", path, transfer_offset, transfer_end, &request, &transfer_info, &inbuf);
       if (!r) {
         // Failed to transfer chunk - retry.
@@ -762,7 +766,6 @@ namespace Arc {
                               point.CheckSize() ? point.GetSize() : 0);
       PayloadRawInterface *response;
       std::string path = point.CurrentLocation().FullPath();
-      path = "/" + path;
       MCC_Status r = client->process("PUT", path, &request, &transfer_info, &response);
       if (response)
         delete response;
@@ -821,7 +824,6 @@ namespace Arc {
           PayloadMemConst request(NULL,0,0,0);
           PayloadRawInterface *response;
           std::string path = point.CurrentLocation().FullPath();
-          path = "/" + path;
           MCC_Status r = client->process("PUT", path, &request, &transfer_info, &response);
           if (response) delete response;
           if (!r) {
