@@ -68,7 +68,7 @@ namespace Arc {
     Glib::Mutex count_lock;
     Glib::Mutex queue_lock;
     std::list<ThreadArgument*> queue;
-    void CheckQueue(void);
+    int CheckQueue(void);
     ~ThreadPool(void) { };
    public:
     ThreadPool(void);
@@ -83,9 +83,11 @@ namespace Arc {
     // TODO: can't use logger here because it will try to initilize pool
     //threadLogger.msg(VERBOSE, "Maximum number of threads is %i",max_count);
   }
-  void ThreadPool::CheckQueue(void) {
-    Glib::Mutex::Lock l(queue_lock);
-    while((count < max_count) && (queue.size() > 0)) {
+  int ThreadPool::CheckQueue(void) {
+    Glib::Mutex::Lock lock(queue_lock, Glib::TRY_LOCK);
+    if(!lock.locked()) return -1;
+    int size = queue.size();
+    while((count < max_count) && (size > 0)) {
       ThreadArgument* argument = *(queue.begin());
       argument->acquire();
       try {
@@ -102,18 +104,17 @@ namespace Arc {
         threadLogger.msg(ERROR, e.what());
         argument->release();
       };
+      size = queue.size();
     }
+    return size;
   }
 
   void ThreadPool::PushQueue(ThreadArgument* arg) {
-    queue_lock.lock();
+    Glib::Mutex::Lock lock(queue_lock);
     queue.push_back(arg);
-    queue_lock.unlock();
-    CheckQueue();
-    queue_lock.lock();
-    if(queue.size() > 0)
+    lock.release();
+    if(CheckQueue() > 0)
       threadLogger.msg(WARNING, "Maximum number of threads running - puting new request into queue");
-    queue_lock.unlock();
   }
 
   static ThreadPool* pool = NULL;
