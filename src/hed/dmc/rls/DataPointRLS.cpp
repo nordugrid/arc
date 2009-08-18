@@ -302,6 +302,13 @@ namespace Arc {
   DataStatus DataPointRLS::Resolve(bool source) {
     resolved = false;
     registered = false;
+    if (url.Host().empty()) {
+      logger.msg(INFO, "RLS URL must contain host");
+      if (source)
+        return DataStatus::ReadResolveError;
+      else
+        return DataStatus::WriteResolveError;
+    }
     if (source) {
       if (get_path_str(url)[0] == 0) {
         logger.msg(INFO, "Source must contain LFN");
@@ -378,6 +385,10 @@ namespace Arc {
   }
 
   DataStatus DataPointRLS::PreRegister(bool replication, bool force) {
+    if (url.Host().empty()) {
+      logger.msg(INFO, "RLS URL must contain host");
+      return DataStatus::PreRegisterError;
+    }
     if (replication) { /* replicating inside same lfn */
       if (!registered) { /* for replication it must be there */
         logger.msg(ERROR, "LFN is missing in RLS (needed for replication)");
@@ -400,6 +411,10 @@ namespace Arc {
     globus_result_t err;
     int errcode;
 
+    if (url.Host().empty()) {
+      logger.msg(INFO, "RLS URL must contain host");
+      return DataStatus::PostRegisterError;
+    }
     err = globus_rls_client_connect
             (const_cast<char*>(url.ConnectionURL().c_str()), &h);
     if (err != GLOBUS_SUCCESS) {
@@ -744,6 +759,10 @@ namespace Arc {
   }
 
   DataStatus DataPointRLS::Unregister(bool all) {
+    if (url.Host().empty()) {
+      logger.msg(INFO, "RLS URL must contain host");
+      return DataStatus::UnregisterError;
+    }
     if (!all) {
       if (!LocationValid()) {
         logger.msg(ERROR, "Location is missing");
@@ -974,7 +993,7 @@ namespace Arc {
                      bool r)
       : dprls(d),
         files(f),
-        success(success),
+        success(DataStatus::Success),
         resolve(r) {}
   };
 
@@ -1116,6 +1135,10 @@ namespace Arc {
   DataStatus DataPointRLS::ListFiles(std::list<FileInfo>& files, bool long_list, bool resolve, bool metadata) {
     std::list<URL> rlis;
     std::list<URL> lrcs;
+    if (url.Host().empty()) {
+      logger.msg(INFO, "RLS URL must contain host");
+      return DataStatus::ListError;
+    }
     rlis.push_back(url.ConnectionURL());
     lrcs.push_back(url.ConnectionURL());
 
