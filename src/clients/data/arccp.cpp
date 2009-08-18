@@ -52,7 +52,7 @@ static void progress(FILE *o, const char*, unsigned int,
   fprintf(o, "\r%llu kB                    \r", all / 1024);
 }
 
-void arcregister(const Arc::URL& source_url,
+bool arcregister(const Arc::URL& source_url,
                  const Arc::URL& destination_url,
                  Arc::XMLNode credentials,
                  bool secure,
@@ -66,55 +66,59 @@ void arcregister(const Arc::URL& source_url,
     if (sources.size() == 0) {
       logger.msg(Arc::ERROR, "Can't read list of sources from file %s",
                  source_url.Path());
-      return;
+      return false;
     }
     if (destinations.size() == 0) {
       logger.msg(Arc::ERROR, "Can't read list of destinations from file %s",
                  destination_url.Path());
-      return;
+      return false;
     }
     if (sources.size() != destinations.size()) {
       logger.msg(Arc::ERROR,
                  "Numbers of sources and destinations do not match");
-      return;
+      return false;
     }
+    bool r = true;
     for (std::list<Arc::URL>::iterator source = sources.begin(),
                                        destination = destinations.begin();
          (source != sources.end()) && (destination != destinations.end());
          source++, destination++)
-      arcregister(*source, *destination, credentials, secure, passive, force_meta, timeout);
-    return;
+      if(!arcregister(*source, *destination, credentials, secure, passive,
+                      force_meta, timeout)) r = false;
+    return r;
   }
   if (source_url.Protocol() == "urllist") {
     std::list<Arc::URL> sources = Arc::ReadURLList(source_url);
     if (sources.size() == 0) {
       logger.msg(Arc::ERROR, "Can't read list of sources from file %s",
                  source_url.Path());
-      return;
+      return false;
     }
+    bool r = true;
     for (std::list<Arc::URL>::iterator source = sources.begin();
          source != sources.end(); source++)
-      arcregister(*source, destination_url, credentials, secure, passive, force_meta,
-                  timeout);
-    return;
+      if(!arcregister(*source, destination_url, credentials, secure, passive,
+                      force_meta, timeout)) r = false;
+    return r;
   }
   if (destination_url.Protocol() == "urllist") {
     std::list<Arc::URL> destinations = Arc::ReadURLList(destination_url);
     if (destinations.size() == 0) {
       logger.msg(Arc::ERROR, "Can't read list of destinations from file %s",
                  destination_url.Path());
-      return;
+      return false;
     }
+    bool r = true;
     for (std::list<Arc::URL>::iterator destination = destinations.begin();
          destination != destinations.end(); destination++)
-      arcregister(source_url, *destination, credentials, secure, passive, force_meta,
-                  timeout);
-    return;
+      if(!arcregister(source_url, *destination, credentials, secure, passive,
+                      force_meta, timeout)) r = false;
+    return r;
   }
 
   if (destination_url.Path()[destination_url.Path().length() - 1] == '/') {
     logger.msg(Arc::ERROR, "Fileset registration is not supported yet");
-    return;
+    return false;
   }
   Arc::DataHandle source(source_url);
   source->AssignCredentials(credentials);
@@ -122,27 +126,27 @@ void arcregister(const Arc::URL& source_url,
   destination->AssignCredentials(credentials);
   if (!source) {
     logger.msg(Arc::ERROR, "Unsupported source url: %s", source_url.str());
-    return;
+    return false;
   }
   if (!destination) {
     logger.msg(Arc::ERROR, "Unsupported destination url: %s",
                destination_url.str());
-    return;
+    return false;
   }
   if (source->IsIndex() || !destination->IsIndex()) {
     logger.msg(Arc::ERROR, "For registration source must be ordinary URL"
                " and destination must be indexing service");
-    return;
+    return false;
   }
   // Obtain meta-information about source
   if (!source->Check()) {
     logger.msg(Arc::ERROR, "Source probably does not exist");
-    return;
+    return false;
   }
   // add new location
   if (!destination->Resolve(false)) {
     logger.msg(Arc::ERROR, "Problems resolving destination");
-    return;
+    return false;
   }
   bool replication = destination->Registered();
   destination->SetMeta(*source); // pass metadata
@@ -164,22 +168,22 @@ void arcregister(const Arc::URL& source_url,
   if (!destination->AddLocation(source_url, metaname)) {
     destination->PreUnregister(replication);
     logger.msg(Arc::ERROR, "Failed to accept new file/destination");
-    return;
+    return false;
   }
   destination->SetTries(1);
   if (!destination->PreRegister(replication, force_meta)) {
     logger.msg(Arc::ERROR, "Failed to register new file/destination");
-    return;
+    return false;
   }
   if (!destination->PostRegister(replication)) {
     destination->PreUnregister(replication);
     logger.msg(Arc::ERROR, "Failed to register new file/destination");
-    return;
+    return false;
   }
-  return;
+  return true;
 }
 
-void arccp(const Arc::URL& source_url_,
+bool arccp(const Arc::URL& source_url_,
            const Arc::URL& destination_url_,
            const std::string& cache_dir,
            Arc::XMLNode credentials,
@@ -206,59 +210,63 @@ void arccp(const Arc::URL& source_url_,
     if (sources.size() == 0) {
       logger.msg(Arc::ERROR, "Can't read list of sources from file %s",
                  source_url.Path());
-      return;
+      return false;
     }
     if (destinations.size() == 0) {
       logger.msg(Arc::ERROR, "Can't read list of destinations from file %s",
                  destination_url.Path());
-      return;
+      return false;
     }
     if (sources.size() != destinations.size()) {
       logger.msg(Arc::ERROR,
                  "Numbers of sources and destinations do not match");
-      return;
+      return false;
     }
+    bool r = true;
     for (std::list<Arc::URL>::iterator source = sources.begin(),
                                        destination = destinations.begin();
          (source != sources.end()) && (destination != destinations.end());
          source++, destination++)
-      arccp(*source, *destination, cache_dir, credentials, secure, passive, force_meta, recursion,
-            tries, verbose, timeout);
-    return;
+      if(!arccp(*source, *destination, cache_dir, credentials, secure, passive,
+                force_meta, recursion, tries, verbose, timeout)) r = false;
+    return r;
   }
   if (source_url.Protocol() == "urllist") {
     std::list<Arc::URL> sources = Arc::ReadURLList(source_url);
     if (sources.size() == 0) {
       logger.msg(Arc::ERROR, "Can't read list of sources from file %s",
                  source_url.Path());
-      return;
+      return false;
     }
-
+    bool r = true;
     for (std::list<Arc::URL>::iterator source = sources.begin();
          source != sources.end(); source++)
-      arccp(*source, destination_url, cache_dir, credentials, secure, passive, force_meta, recursion,
-            tries, verbose, timeout);
-    return;
+      if(!arccp(*source, destination_url, cache_dir, credentials, secure, 
+                passive, force_meta, recursion, tries, verbose, timeout))
+        r = false;
+    return r;
   }
   if (destination_url.Protocol() == "urllist") {
     std::list<Arc::URL> destinations = Arc::ReadURLList(destination_url);
     if (destinations.size() == 0) {
       logger.msg(Arc::ERROR, "Can't read list of destinations from file %s",
                  destination_url.Path());
-      return;
+      return false;
     }
+    bool r = true;
     for (std::list<Arc::URL>::iterator destination = destinations.begin();
          destination != destinations.end(); destination++)
-      arccp(source_url, *destination, cache_dir, credentials, secure, passive, force_meta, recursion,
-            tries, verbose, timeout);
-    return;
+      if(!arccp(source_url, *destination, cache_dir, credentials, secure,
+                passive, force_meta, recursion, tries, verbose, timeout))
+        r = false;
+    return r;
   }
 
   if (destination_url.Path()[destination_url.Path().length() - 1] != '/') {
     if (source_url.Path()[source_url.Path().length() - 1] == '/') {
       logger.msg(Arc::ERROR,
                  "Fileset copy to single object is not supported yet");
-      return;
+      return false;
     }
   }
   else {
@@ -268,7 +276,7 @@ void arccp(const Arc::URL& source_url_,
       std::string::size_type p = source_url.Path().rfind('/');
       if (p == std::string::npos) {
         logger.msg(Arc::ERROR, "Can't extract object's name from source url");
-        return;
+        return false;
       }
       destination_url.ChangePath(destination_url.Path() +
                                  source_url.Path().substr(p + 1));
@@ -287,25 +295,25 @@ void arccp(const Arc::URL& source_url_,
           (source_url.Protocol() != "ftp")) {
         logger.msg(Arc::ERROR,
                    "Fileset copy for this kind of source is not supported");
-        return;
+        return false;
       }
       Arc::DataHandle source(source_url);
       source->AssignCredentials(credentials);
       if (!source) {
         logger.msg(Arc::ERROR, "Unsupported source url: %s", source_url.str());
-        return;
+        return false;
       }
       std::list<Arc::FileInfo> files;
       if (source->IsIndex()) {
         if (!source->ListFiles(files, true, false, false)) {
           logger.msg(Arc::ERROR, "Failed listing metafiles");
-          return;
+          return false;
         }
       }
       else
         if (!source->ListFiles(files, true, false, false)) {
           logger.msg(Arc::ERROR, "Failed listing files");
-          return;
+          return false;
         }
       bool failures = false;
       // Handle transfer of files first (treat unknown like files)
@@ -365,9 +373,10 @@ void arccp(const Arc::URL& source_url_,
       }
       if (failures) {
         logger.msg(Arc::ERROR, "Some transfers failed");
-        return;
+        return false;
       }
       // Go deeper if allowed
+      bool r = true;
       if (recursion > 0)
         // Handle directories recursively
         for (std::list<Arc::FileInfo>::iterator i = files.begin();
@@ -382,22 +391,23 @@ void arccp(const Arc::URL& source_url_,
           d_url += i->GetName();
           s_url += "/";
           d_url += "/";
-          arccp(s_url, d_url, cache_dir, credentials, secure, passive, force_meta, recursion - 1,
-                tries, verbose, timeout);
+          if(!arccp(s_url, d_url, cache_dir, credentials, secure, passive,
+                    force_meta, recursion - 1, tries, verbose, timeout))
+            r = false;
         }
-      return;
+      return r;
     }
   }
   Arc::DataHandle source(source_url);
   Arc::DataHandle destination(destination_url);
   if (!source) {
     logger.msg(Arc::ERROR, "Unsupported source url: %s", source_url.str());
-    return;
+    return false;
   }
   if (!destination) {
     logger.msg(Arc::ERROR, "Unsupported destination url: %s",
                destination_url.str());
-    return;
+    return false;
   }
   source->AssignCredentials(credentials);
   destination->AssignCredentials(credentials);
@@ -425,7 +435,7 @@ void arccp(const Arc::URL& source_url_,
       logger.msg(Arc::ERROR, "Transfer FAILED: %s - %s", std::string(res), res.GetDesc());
     else
       logger.msg(Arc::ERROR, "Transfer FAILED: %s", std::string(res));
-    return;
+    return false;
     destination->SetTries(1);
     // It is not clear how to clear half-registered file. So remove it only
     // in case of explicit destination.
@@ -433,7 +443,7 @@ void arccp(const Arc::URL& source_url_,
       mover.Delete(*destination);
   }
   logger.msg(Arc::INFO, "Transfer complete");
-  return;
+  return true;
 }
 
 int main(int argc, char **argv) {
@@ -569,11 +579,14 @@ int main(int argc, char **argv) {
   Arc::XMLNode cred(ns, "cred");
   usercfg.ApplyToConfig(cred);
 
-  if (nocopy)
-    arcregister(source, destination, cred, secure, passive, force, timeout);
-  else
-    arccp(source, destination, cache_path, cred, secure, passive, force, recursion,
-          retries + 1, verbose, timeout);
+  if (nocopy) {
+    if(!arcregister(source, destination, cred, secure, passive, force, timeout))
+      return 1;
+  } else {
+    if(!arccp(source, destination, cache_path, cred, secure, passive, force,
+          recursion, retries + 1, verbose, timeout))
+      return 1;
+  }
 
   return 0;
 }

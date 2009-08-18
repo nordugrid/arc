@@ -19,7 +19,7 @@
 
 static Arc::Logger logger(Arc::Logger::getRootLogger(), "arcls");
 
-void arcls(const Arc::URL& dir_url,
+bool arcls(const Arc::URL& dir_url,
            Arc::XMLNode credentials,
            bool show_details,
            bool show_urls,
@@ -31,18 +31,20 @@ void arcls(const Arc::URL& dir_url,
     if (dirs.size() == 0) {
       logger.msg(Arc::ERROR, "Can't read list of locations from file %s",
                  dir_url.Path());
-      return;
+      return false;
     }
+    bool r = true;
     for (std::list<Arc::URL>::iterator dir = dirs.begin();
          dir != dirs.end(); dir++)
-      arcls(*dir, credentials, show_details, show_urls, show_meta, recursion, timeout);
-    return;
+      if(!arcls(*dir, credentials, show_details, show_urls, show_meta,
+               recursion, timeout)) r = false;
+    return r;
   }
 
   Arc::DataHandle url(dir_url);
   if (!url) {
     logger.msg(Arc::ERROR, "Unsupported url given");
-    return;
+    return false;
   }
   url->AssignCredentials(credentials);
   std::list<Arc::FileInfo> files;
@@ -50,7 +52,7 @@ void arcls(const Arc::URL& dir_url,
   if (!url->ListFiles(files, show_details, show_urls, show_meta)) {
     if (files.size() == 0) {
       logger.msg(Arc::ERROR, "Failed listing metafiles");
-      return;
+      return false;
     }
     logger.msg(Arc::INFO, "Warning: "
                "Failed listing metafiles but some information is obtained");
@@ -114,7 +116,7 @@ void arcls(const Arc::URL& dir_url,
         std::cout << std::endl;
       }
   }
-  return;
+  return true;
 }
 
 int main(int argc, char **argv) {
@@ -202,7 +204,8 @@ int main(int argc, char **argv) {
   Arc::XMLNode cred(ns, "cred");
   usercfg.ApplyToConfig(cred);
 
-  arcls(*it, cred, longlist, locations, metadata, recursion, timeout);
+  if(!arcls(*it, cred, longlist, locations, metadata, recursion, timeout))
+    return 1;
 
   return 0;
 }
