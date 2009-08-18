@@ -4,6 +4,10 @@
 #include <config.h>
 #endif
 
+#ifdef WIN32
+#include <arc/win32.h>
+#endif
+
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
