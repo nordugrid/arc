@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    targetNamespace="http://www.nordugrid.org/schemas/sched"
+    xmlns="http://www.nordugrid.org/schemas/sched"
+    xmlns:ini="http://www.nordugrid.org/schemas/ini/2009/08"
+    xmlns:arccli="http://www.nordugrid.org/schemas/arccli"
+    elementFormDefault="qualified"
+    attributeFormDefault="unqualified">
+
+<!-- Imports -->
+<xsd:import namespace="http://www.nordugrid.org/schemas/ini/2009/08" schemaLocation="../../../../src/hed/daemon/schema/ini.xsd"/>
+
+<xsd:element name="Endpoint" type="xsd:anyURI">
+    <xsd:annotation>
+       <xsd:documentation xml:lang="en">
+       The Endpoint element should be equal to the public URL of scheduler service, 
+       example: https://example.org:60000/sched
+       </xsd:documentation>
+    </xsd:annotation>
+</xsd:element>
+
+<xsd:element name="DataDirectoryPath" type="xsd:string">
+    <xsd:annotation>
+       <xsd:documentation xml:lang="en">
+        The Scheduler service use Berkeley DB to store persistently its job queue. 
+        The DataDirectoryPath defines the path of the directory where the database
+        will be stored. The directory should exist before the service started.
+       </xsd:documentation>
+    </xsd:annotation>
+</xsd:element>
+
+<xsd:element name="SchedulingPeriod" type="xsd:unsignedInt" default="60">
+    <xsd:annotation>
+       <xsd:documentation xml:lang="en">
+        The SchedulingPeriod element defines the period of internal scheduling cycle in seconds.
+        In one cycle the scheduler looks for jobs in NEW state and try to schedule them to any
+        BES services founded in Information System. If this value is 0 then the Scheduler
+        service will only serves iBES clients.
+       </xsd:documentation>
+    </xsd:annotation>
+</xsd:element>
+
+<xsd:element name="LifetimeAfterDone" type="xsd:unsignedInt" default="3600">
+    <xsd:annotation>
+       <xsd:documentation xml:lang="en">
+        The LifetimeAfterDone parameter defines how long the job staying in the queue
+        after FINSIHED or FAILED state.
+       </xsd:documentation>
+    </xsd:annotation>
+</xsd:element>
+
+<xsd:element name="ReschedulePeriod" type="xsd:unsignedInt" default="60">
+    <xsd:annotation>
+       <xsd:documentation xml:lang="en">
+       The ReschedulePeriod element defines in seconds how often the Scheduler check which
+       jobs should be rescheduled.
+       </xsd:documentation>
+    </xsd:annotation>
+</xsd:element>
+
+<xsd:element name="RescheduleWaitTime" type="xsd:unsignedInt" default="60">
+    <xsd:annotation>
+       <xsd:documentation xml:lang="en">
+        The Scheduler put the job into RESCHEDULED state if the resource does not report status of job after
+        time in seconds defined by this configuration element.
+       </xsd:documentation>
+    </xsd:annotation>
+</xsd:element>
+
+<xsd:element name="Timeout" type="xsd:unsignedInt" default="60">
+    <xsd:annotation>
+       <xsd:documentation xml:lang="en">
+       The Timeout parameter defines the socket timeout in seconds.
+       </xsd:documentation>
+    </xsd:annotation>
+</xsd:element>
+
+<xsd:element name="CertificatePath" type="xsd:string" default="/etc/grid-security/hostcert.pem">
+    <xsd:annotation>
+       <xsd:documentation xml:lang="en">
+        Certificate path, if the Sched access an A-REX service then this is needed.
+       </xsd:documentation>
+    </xsd:annotation>
+</xsd:element>
+
+<xsd:element name="PrivateKey" type="xsd:string" default="/etc/grid-security/hostkey.pem">
+    <xsd:annotation>
+       <xsd:documentation xml:lang="en">
+        Private key path, if the Sched access an A-REX service then this is needed.
+       </xsd:documentation>
+    </xsd:annotation>
+</xsd:element>
+
+<xsd:element name="CACertificatePath" type="xsd:string" default="/etc/grid-security/certificates">
+    <xsd:annotation>
+       <xsd:documentation xml:lang="en">
+        CA certificate path, if the Sched access an A-REX service then this is needed.
+       </xsd:documentation>
+    </xsd:annotation>
+</xsd:element>
+
+</xsd:schema>
