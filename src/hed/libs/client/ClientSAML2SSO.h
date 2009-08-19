@@ -28,12 +28,12 @@ namespace Arc {
     MCC_Status process(const std::string& method, PayloadRawInterface *request,
                        HTTPClientInfo *info, PayloadRawInterface **response,
                        const std::string& idp_name, const std::string& username,
-                       const std::string& password);
+                       const std::string& password, const bool reuse_authn = false);
     MCC_Status process(const std::string& method, const std::string& path,
                        PayloadRawInterface *request,
                        HTTPClientInfo *info, PayloadRawInterface **response,
                        const std::string& idp_name, const std::string& username,
-                       const std::string& password);
+                       const std::string& password, const bool reuse_authn = false);
   private:
     ClientHTTP *http_client_;
     bool authn_;
@@ -56,12 +56,12 @@ namespace Arc {
     /** Send SOAP request and receive response. */
     MCC_Status process(PayloadSOAP *request, PayloadSOAP **response,
                        const std::string& idp_name, const std::string& username,
-                       const std::string& password);
+                       const std::string& password, const bool reuse_authn = false);
     /** Send SOAP request with specified SOAP action and receive response. */
     MCC_Status process(const std::string& action,
                        PayloadSOAP *request, PayloadSOAP **response,
                        const std::string& idp_name, const std::string& username,
-                       const std::string& password);
+                       const std::string& password, const bool reuse_authn = false);
   private:
     ClientSOAP *soap_client_;
     bool authn_;
