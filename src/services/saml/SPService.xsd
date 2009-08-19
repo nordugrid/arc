@@ -5,10 +5,21 @@
   targetNamespace="http://www.nordugrid.org/schemas/ArcConfig/2007/SP"
   elementFormDefault="qualified">
 
-    <!-- Location of metadata. Default is none. -->
+    <!-- Location of SAML metadata. Default is none. 
+    The metadata should be compliant to the standard:
+    "Metadata for the OASIS Security Assertion Markup Language (SAML) V2.0"
+    http://docs.oasis-open.org/security/saml/v2.0/saml-metadata-2.0-os.pdf
+    http://docs.oasis-open.org/security/saml/v2.0/saml-schema-metadata-2.0.xsd
+    The metadata is supposed to be accessible by outsiders. 
+    See ../slcs/test_metadata.xml as an example.-->
     <xsd:element name= "MetaDataLocation" type="xsd:string"/>
 
-    <!-- Name of the service provider. Default is none. -->
+
+    <!-- Name of the service provider. Default is none. 
+    an example:  https://squark.uio.no/shibboleth-sp 
+    This value is actually the "entityID" of the <EntityDescriptor/>, 
+    which is inside the metadata file.
+    -->
     <xsd:element name="ServiceProviderName" type="xsd:anyURI"/>
 
 </xsd:schema>
