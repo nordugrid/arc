@@ -24,7 +24,7 @@
 
 <xsd:simpleType name="ArgumentsType">
    <xsd:restriction base="xsd:string">
-     <xsd:pattern value="([a-zA-Z0-9]\.)*[a-zA-Z0-9]:[a-zA-Z0-9]"/>
+     <xsd:pattern value="([a-zA-Z0-9]\.)*[a-zA-Z0-9]*:[a-zA-Z0-9]*"/>
    </xsd:restriction>
 </xsd:simpleType>
 
