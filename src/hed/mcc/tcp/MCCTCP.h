@@ -48,14 +48,16 @@ class MCC_TCP_Service: public MCC_TCP
                 /* pthread_t thread; */
                 int id;
                 bool no_delay;
-                mcc_tcp_exec_t(MCC_TCP_Service* o,int h,bool nd = false);
+                int timeout;
+                mcc_tcp_exec_t(MCC_TCP_Service* o,int h,int t, bool nd = false);
                 operator bool(void) { return (handle != -1); };
         };
         class mcc_tcp_handle_t {
             public:
                 int handle;
                 bool no_delay;
-                mcc_tcp_handle_t(int h,bool nd = false):handle(h),no_delay(nd) { };
+                int timeout;
+                mcc_tcp_handle_t(int h, int t, bool nd = false):handle(h),no_delay(nd),timeout(t) { };
                 operator int(void) { return handle; };
         };
         std::list<mcc_tcp_handle_t> handles_; /** listening sockets */

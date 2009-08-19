@@ -64,17 +64,18 @@ int PayloadTCPSocket::connect_socket(const char* hostname,int port)
 }
 
 PayloadTCPSocket::PayloadTCPSocket(const char* hostname,
-				   int port,
-				   Logger& logger) :
+				                   int port,
+                                   int timeout,
+				                   Logger& logger) :
   logger(logger)
 {
   handle_=connect_socket(hostname,port);
   acquired_=true;
-  timeout_=60;
+  timeout_=timeout;
 }
 
-PayloadTCPSocket::PayloadTCPSocket(const std::string endpoint,
-				   Logger& logger) :
+PayloadTCPSocket::PayloadTCPSocket(const std::string endpoint, int timeout,
+				                   Logger& logger) :
   logger(logger)
 {
   std::string hostname = endpoint;
@@ -84,7 +85,7 @@ PayloadTCPSocket::PayloadTCPSocket(const std::string endpoint,
   hostname.resize(p);
   handle_=connect_socket(hostname.c_str(),port);
   acquired_=true;
-  timeout_=60;
+  timeout_=timeout;
 }
 
 PayloadTCPSocket::~PayloadTCPSocket(void) {

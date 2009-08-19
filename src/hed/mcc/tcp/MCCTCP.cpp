@@ -147,8 +147,13 @@ MCC_TCP_Service::MCC_TCP_Service(Config *cfg):MCC_TCP(cfg) {
             if(l["NoDelay"]) {
                 std::string v = l["NoDelay"];
                 if((v == "true") || (v == "1")) no_delay=true;
-            };
-            handles_.push_back(mcc_tcp_handle_t(s,no_delay));
+            }
+            int timeout = 60;
+            if (l["Timeout"]) {
+                std::string v = l["Timeout"];
+                timeout = atoi(v.c_str());
+            }
+            handles_.push_back(mcc_tcp_handle_t(s,timeout,no_delay));
             logger.msg(INFO, "Listening on TCP port %s(%s)", port_s, PROTO_NAME(info_));
         };
         freeaddrinfo(info);
@@ -185,7 +190,7 @@ MCC_TCP_Service::~MCC_TCP_Service(void) {
 #endif
 }
 
-MCC_TCP_Service::mcc_tcp_exec_t::mcc_tcp_exec_t(MCC_TCP_Service* o,int h,bool nd):obj(o),handle(h),no_delay(nd) {
+MCC_TCP_Service::mcc_tcp_exec_t::mcc_tcp_exec_t(MCC_TCP_Service* o,int h,int t,bool nd):obj(o),handle(h),no_delay(nd),timeout(t) {
     static int local_id = 0;
     if(handle == -1) return;
     id=local_id++;
@@ -249,7 +254,7 @@ void MCC_TCP_Service::listener(void* arg) {
                     it.lock_.lock();
                 } else {
                     it.lock_.lock();
-                    mcc_tcp_exec_t t(&it,h,i->no_delay);
+                    mcc_tcp_exec_t t(&it,h,i->timeout,i->no_delay);
                 };
             };
         };
@@ -397,6 +402,7 @@ void MCC_TCP_Service::executer(void* arg) {
     int s = ((mcc_tcp_exec_t*)arg)->handle;
     int id = ((mcc_tcp_exec_t*)arg)->id;
     int no_delay = ((mcc_tcp_exec_t*)arg)->no_delay;
+    int timeout = ((mcc_tcp_exec_t*)arg)->timeout;
     std::string host_attr,port_attr;
     std::string remotehost_attr,remoteport_attr;
     std::string endpoint_attr;
@@ -417,7 +423,7 @@ void MCC_TCP_Service::executer(void* arg) {
     };
 
     // Creating stream payload
-    PayloadTCPSocket stream(s, logger);
+    PayloadTCPSocket stream(s, timeout, logger);
     stream.NoDelay(no_delay);
     MessageAttributes attributes_in;
     MessageAttributes attributes_out;
@@ -527,7 +533,12 @@ MCC_TCP_Client::MCC_TCP_Client(Config *cfg):MCC_TCP(cfg),s_(NULL) {
 
     int port = atoi(port_s.c_str());
 
-    s_ = new PayloadTCPSocket(host_s.c_str(),port,logger);
+    std::string timeout_s = c["Timeout"];
+    int timeout = 60;
+    if (!timeout_s.empty()) {
+        timeout = atoi(timeout_s.c_str());
+    }
+    s_ = new PayloadTCPSocket(host_s.c_str(),port,timeout,logger);
     if(!(*s_)) {
         delete s_; s_ = NULL;
     } else {

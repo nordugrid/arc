@@ -18,21 +18,21 @@ class PayloadTCPSocket: public PayloadStreamInterface {
   Logger& logger;
  public:
   /** Constructor - connects to TCP server at specified hostname:port */
-  PayloadTCPSocket(const char* hostname,int port,Logger& logger);
+  PayloadTCPSocket(const char* hostname,int port, int timeout, Logger& logger);
   /** Constructor - connects to TCP server at specified endpoint - hostname:port */
-  PayloadTCPSocket(const std::string endpoint,Logger& logger);
+  PayloadTCPSocket(const std::string endpoint,int timeout, Logger& logger);
   /** Constructor - creates object of already connected socket.
     Socket is NOT closed in destructor. */
-  PayloadTCPSocket(int s,Logger& logger):
-    handle_(s),acquired_(false),timeout_(60),logger(logger) { };
+  PayloadTCPSocket(int s, int timeout, Logger& logger):
+    handle_(s),acquired_(false),timeout_(timeout),logger(logger) { };
   /** Copy constructor - inherits socket of copied object.
     Socket is NOT closed in destructor. */
   PayloadTCPSocket(PayloadTCPSocket& s):
-    handle_(s.handle_),acquired_(false),timeout_(60),logger(s.logger) { };
+    handle_(s.handle_),acquired_(false),timeout_(s.timeout_),logger(s.logger) { };
   /** Copy constructor - inherits handle of copied object.
     Handle is NOT closed in destructor. */
   PayloadTCPSocket(PayloadTCPSocket& s,Logger& logger):
-    handle_(s.handle_),acquired_(false),timeout_(60),logger(logger) { };
+    handle_(s.handle_),acquired_(false),timeout_(s.timeout_),logger(logger) { };
   virtual ~PayloadTCPSocket(void);
   virtual bool Get(char* buf,int& size);
   virtual bool Get(std::string& buf);
