@@ -431,8 +431,8 @@ namespace Arc {
       job.JDL_elements["ShortDeadlineJob"] = simpleJDLvalue(attributeValue);
       return true;
     }
-    logger.msg(DEBUG, "[JDL Parser]: Unknown attribute name: \'%s\', with value: %s", attributeName, attributeValue);
-    return false;
+    logger.msg(WARNING, "[JDL Parser]: Unknown attribute name: \'%s\', with value: %s", attributeName, attributeValue);
+    return true;
   }
 
   std::string JDLParser::generateOutputList(const std::string& attribute, const std::list<std::string>& list, std::pair<char, char> brackets, char lineEnd) const {
