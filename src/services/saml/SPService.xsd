@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+  xmlns="http://www.nordugrid.org/schemas/ArcConfig/2007/SP"
+  targetNamespace="http://www.nordugrid.org/schemas/ArcConfig/2007/SP"
+  elementFormDefault="qualified">
+
+    <!-- Location of metadata. Default is none. -->
+    <xsd:element name= "MetaDataLocation" type="xsd:string"/>
+
+    <!-- Name of the service provider. Default is none. -->
+    <xsd:element name="ServiceProviderName" type="xsd:anyURI"/>
+
+</xsd:schema>
+

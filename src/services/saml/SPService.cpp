@@ -94,7 +94,6 @@ bool SAMLAssertionSecAttr::Import(Arc::SecAttrFormat format, const XMLNode& val)
 }
 
 Service_SP::Service_SP(Arc::Config *cfg):RegisteredService(cfg),logger(Arc::Logger::rootLogger, "SAML2SP") {
-/*
   Arc::XMLNode chain_node = (*cfg).Parent();
   Arc::XMLNode tls_node;
   for(int i = 0; ;i++) {
@@ -103,11 +102,14 @@ Service_SP::Service_SP(Arc::Config *cfg):RegisteredService(cfg),logger(Arc::Logg
     std::string tls_name = (std::string)(tls_node.Attribute("name"));
     if(tls_name == "tls.service") break;
   }
+  //Use the private key file of the main chain 
+  //for signing samlp:AuthnRequest
   cert_file_ = (std::string)(tls_node["CertificatePath"]);
   privkey_file_ = (std::string)(tls_node["KeyPath"]);
-*/
+/*
   cert_file_ = (std::string)((*cfg)["CertificatePath"]);
   privkey_file_ = (std::string)((*cfg)["KeyPath"]);
+*/
   sp_name_ = (std::string)((*cfg)["ServiceProviderName"]);
   logger.msg(Arc::INFO, "SP Service name is %s", sp_name_);
   std::string metadata_file = (std::string)((*cfg)["MetaDataLocation"]);
@@ -145,114 +147,119 @@ Arc::MCC_Status Service_SP::process(Arc::Message& inmsg,Arc::Message& outmsg) {
   //2. The saml assertion, which user agent gets from IdP, and then sends to SP 
   
   if(msg_content.substr(0,4) == "http") { //If IdP name is given from client/useragent
-  //Get the IdP name from the request
-  //Here we require the user agent to provide the idp name instead of the 
-  //WRYF(where are you from) or Discovery Service in some other implementation of SP
-  //like Shibboleth
-  std::string idp_name(msg_content);
-  //Compose <samlp:AuthnRequest/>
-  Arc::NS saml_ns;
-  saml_ns["saml"] = SAML_NAMESPACE;
-  saml_ns["samlp"] = SAMLP_NAMESPACE;
-  Arc::XMLNode authn_request(saml_ns, "samlp:AuthnRequest");
-  //std::string sp_name("https://squark.uio.no/shibboleth-sp");
-  std::string sp_name = sp_name_;
-  std::string req_id = Arc::UUID();
-  authn_request.NewAttribute("ID") = req_id;
-  Arc::Time t1;
-  std::string current_time1 = t1.str(Arc::UTCTime);
-  authn_request.NewAttribute("IssueInstant") = current_time1;
-  authn_request.NewAttribute("Version") = std::string("2.0");
+    //Get the IdP name from the request
+    //Here we require the user agent to provide the idp name instead of the 
+    //WAYF(where are you from) or Discovery Service in some other implementation of SP
+    //like Shibboleth
 
-  //Get url of assertion consumer service from metadata
-  std::string assertion_consumer_url;
-  for(int i = 0;;i++) {
-    Arc::XMLNode nd = metadata_node_.Child(i);
-    if(!nd) break;
-    if(sp_name == (std::string)(nd.Attribute("entityID"))) {
-      for(int j = 0;; j++) {
-        Arc::XMLNode sp_nd = nd.Child(j);
-        if(!sp_nd) break;
-        if(MatchXMLName(sp_nd,"SPSSODescriptor")) {
-          for(int k = 0;;k++) {
-            Arc::XMLNode assertionconsumer_nd = sp_nd.Child(k);
-            if(!assertionconsumer_nd) break;        
-            if(MatchXMLName(assertionconsumer_nd, "AssertionConsumerService")) {
-              if((std::string)(assertionconsumer_nd.Attribute("Binding")) == "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST")
-                assertion_consumer_url = (std::string)(assertionconsumer_nd.Attribute("Location"));
+    std::string idp_name(msg_content);
+
+    //Compose <samlp:AuthnRequest/>
+    Arc::NS saml_ns;
+    saml_ns["saml"] = SAML_NAMESPACE;
+    saml_ns["samlp"] = SAMLP_NAMESPACE;
+    Arc::XMLNode authn_request(saml_ns, "samlp:AuthnRequest");
+    //std::string sp_name("https://squark.uio.no/shibboleth-sp");
+    std::string sp_name = sp_name_;
+    std::string req_id = Arc::UUID();
+    authn_request.NewAttribute("ID") = req_id;
+    Arc::Time t1;
+    std::string current_time1 = t1.str(Arc::UTCTime);
+    authn_request.NewAttribute("IssueInstant") = current_time1;
+    authn_request.NewAttribute("Version") = std::string("2.0");
+
+    //Get url of assertion consumer service from metadata
+    std::string assertion_consumer_url;
+    for(int i = 0;;i++) {
+      Arc::XMLNode nd = metadata_node_.Child(i);
+      if(!nd) break;
+      if(sp_name == (std::string)(nd.Attribute("entityID"))) {
+        for(int j = 0;; j++) {
+          Arc::XMLNode sp_nd = nd.Child(j);
+          if(!sp_nd) break;
+          if(MatchXMLName(sp_nd,"SPSSODescriptor")) {
+            for(int k = 0;;k++) {
+              Arc::XMLNode assertionconsumer_nd = sp_nd.Child(k);
+              if(!assertionconsumer_nd) break;        
+              if(MatchXMLName(assertionconsumer_nd, "AssertionConsumerService")) {
+                if((std::string)(assertionconsumer_nd.Attribute("Binding")) == "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST")
+                  assertion_consumer_url = (std::string)(assertionconsumer_nd.Attribute("Location"));
+              }
+              if(!assertion_consumer_url.empty()) break;
             }
-            if(!assertion_consumer_url.empty()) break;
           }
+          if(!assertion_consumer_url.empty()) break;
         }
-        if(!assertion_consumer_url.empty()) break;
       }
     }
-  }
-  authn_request.NewAttribute("AssertionConsumerServiceURL") = assertion_consumer_url;
+    authn_request.NewAttribute("AssertionConsumerServiceURL") = assertion_consumer_url;
 
-  //Get url of sso service from metadata
-  std::string sso_url;
-  for(int i = 0;;i++) {
-    Arc::XMLNode nd = metadata_node_.Child(i);
-    if(!nd) break;
-    if(idp_name == (std::string)(nd.Attribute("entityID"))) {
-      for(int j = 0;; j++) {
-        Arc::XMLNode idp_nd = nd.Child(j);
-        if(!idp_nd) break;
-        if(MatchXMLName(idp_nd,"IDPSSODescriptor")) {
-          for(int k = 0;;k++) {
-            Arc::XMLNode sso_nd = idp_nd.Child(k);
-            if(!sso_nd) break;
-            if(MatchXMLName(sso_nd, "SingleSignOnService")) {
-              if((std::string)(sso_nd.Attribute("Binding")) == "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect")
-                sso_url = (std::string)(sso_nd.Attribute("Location"));
+    //Get url of sso service from metadata
+    std::string sso_url;
+    for(int i = 0;;i++) {
+      Arc::XMLNode nd = metadata_node_.Child(i);
+      if(!nd) break;
+      if(idp_name == (std::string)(nd.Attribute("entityID"))) {
+        for(int j = 0;; j++) {
+          Arc::XMLNode idp_nd = nd.Child(j);
+          if(!idp_nd) break;
+          if(MatchXMLName(idp_nd,"IDPSSODescriptor")) {
+            for(int k = 0;;k++) {
+              Arc::XMLNode sso_nd = idp_nd.Child(k);
+              if(!sso_nd) break;
+              if(MatchXMLName(sso_nd, "SingleSignOnService")) {
+                if((std::string)(sso_nd.Attribute("Binding")) == "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect")
+                  sso_url = (std::string)(sso_nd.Attribute("Location"));
+              }
+              if(!sso_url.empty()) break;
             }
-            if(!sso_url.empty()) break;
           }
+          if(!sso_url.empty()) break;
         }
-        if(!sso_url.empty()) break;
       }
     }
-  }
-  authn_request.NewAttribute("Destination") = sso_url;
-  authn_request.NewAttribute("ProtocolBinding") = std::string("urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST");
-  authn_request.NewChild("saml:Issuer") = sp_name;
+    authn_request.NewAttribute("Destination") = sso_url;
+    authn_request.NewAttribute("ProtocolBinding") = std::string("urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST");
+    authn_request.NewChild("saml:Issuer") = sp_name;
 
-  Arc::XMLNode nameid_policy = authn_request.NewChild("samlp:NameIDPolicy");
-  nameid_policy.NewAttribute("AllowCreate") = std::string("1");
+    Arc::XMLNode nameid_policy = authn_request.NewChild("samlp:NameIDPolicy");
+    nameid_policy.NewAttribute("AllowCreate") = std::string("1");
 
-  bool must_signed = true; //TODO: get the information from metadata
+    bool must_signed = true; //TODO: get the information from metadata
+    std::string authnRequestQuery;
+    std::string query = "SAMLRequest=" + BuildDeflatedQuery(authn_request);
+    logger.msg(Arc::VERBOSE,"AuthnRequest after deflation: %s", query.c_str());
+    if(must_signed) {
+      //SP service uses it's private key to sign the AuthnRequest,
+      //then after User Agent redirecting AuthnRequest to IdP, 
+      //IdP will verify the signature by picking up SP's certificate
+      //from IdP's metadata.
+      logger.msg(Arc::VERBOSE,"Using private key file to sign: %s", privkey_file_.c_str());
+      authnRequestQuery = SignQuery(query, Arc::RSA_SHA1, privkey_file_);
+      logger.msg(Arc::VERBOSE,"After signature: %s", authnRequestQuery.c_str());
+    }
+    else authnRequestQuery = query;
 
-  std::string authnRequestQuery;
-  std::string query = "SAMLRequest=" + BuildDeflatedQuery(authn_request);
-  std::cout<<"AuthnRequest after deflation: "<<query<<std::endl;
-  if(must_signed) {
-    authnRequestQuery = SignQuery(query, Arc::RSA_SHA1, privkey_file_);
-    std::cout<<"Private key file: "<<privkey_file_<<std::endl;
-    std::cout<<"After signature: "<<authnRequestQuery<<std::endl;
-  }
-  else authnRequestQuery = query;
-
-  //Verify the signature
 #if 0
-  std::string cert_str = get_cert_str(cert_file_.c_str());
-  std::cout<<"Cert to sign AuthnRequest: "<<cert_str<<std::endl;
-  if(VerifyQuery(authnRequestQuery, cert_str)) {
-    std::cout<<"Succeeded to verify the signature on AuthnRequest"<<std::endl;
-  }
-  else { std::cout<<"Failed to verify the signature on AuthnRequest"<<std::endl; }
+    //Verify the signature
+    std::string cert_str = get_cert_str(cert_file_.c_str());
+    std::cout<<"Cert to sign AuthnRequest: "<<cert_str<<std::endl;
+    if(VerifyQuery(authnRequestQuery, cert_str)) {
+      std::cout<<"Succeeded to verify the signature on AuthnRequest"<<std::endl;
+    }
+    else { std::cout<<"Failed to verify the signature on AuthnRequest"<<std::endl; }
 #endif
 
-  std::string authnRequestUrl;
-  authnRequestUrl = sso_url + "?" + authnRequestQuery;
+    std::string authnRequestUrl;
+    authnRequestUrl = sso_url + "?" + authnRequestQuery;
 
-  //Return the composed url back to user agent through http
-  Arc::PayloadRaw* outpayload = NULL;
-  outpayload = new Arc::PayloadRaw;
-  outpayload->Insert(authnRequestUrl.c_str(),0, authnRequestUrl.size());
-  //outmsg.Attributes()->set("HTTP:CODE","302");
-  //outmsg.Attributes()->set("HTTP:REASON","Moved Temporarily");
-  delete outmsg.Payload(outpayload);
+    //Return the composed url back to user agent through http
+    Arc::PayloadRaw* outpayload = NULL;
+    outpayload = new Arc::PayloadRaw;
+    outpayload->Insert(authnRequestUrl.c_str(),0, authnRequestUrl.size());
+    //outmsg.Attributes()->set("HTTP:CODE","302");
+    //outmsg.Attributes()->set("HTTP:REASON","Moved Temporarily");
+    delete outmsg.Payload(outpayload);
   }
   else {  
     //The http content should be <saml:EncryptedAssertion/> or <saml:Assertion/>
@@ -262,9 +269,9 @@ Arc::MCC_Status Service_SP::process(Arc::Message& inmsg,Arc::Message& outmsg) {
     Arc::XMLNode assertion_nd(msg_content);
     if(MatchXMLName(assertion_nd, "EncryptedAssertion")) {
       //Decrypt the encrypted saml assertion
-      //std::string saml_assertion;
-      //assertion_nd.GetXML(saml_assertion);
-      //std::cout<<"Encrypted saml assertion: "<<saml_assertion<<std::endl;
+      std::string saml_assertion;
+      assertion_nd.GetXML(saml_assertion);
+      logger.msg(Arc::VERBOSE,"Encrypted saml assertion: %s", saml_assertion.c_str());
 
       Arc::XMLSecNode sec_assertion_nd(assertion_nd);
       Arc::XMLNode decrypted_assertion_nd;
@@ -275,24 +282,24 @@ Arc::MCC_Status Service_SP::process(Arc::Message& inmsg,Arc::Message& outmsg) {
         return Arc::MCC_Status(); 
       }
 
-      //std::string decrypted_saml_assertion;
-      //decrypted_assertion_nd.GetXML(decrypted_saml_assertion);
-      //std::cout<<"Decrypted SAML Assertion: "<<decrypted_saml_assertion<<std::endl;
+      std::string decrypted_saml_assertion;
+      decrypted_assertion_nd.GetXML(decrypted_saml_assertion);
+      logger.msg(Arc::VERBOSE,"Decrypted SAML Assertion: %s", decrypted_saml_assertion.c_str());
      
       //Decrypt the <saml:EncryptedID/> if it exists in the above saml assertion
       Arc::XMLNode nameid_nd = decrypted_assertion_nd["saml:Subject"]["saml:EncryptedID"];
-      //std::string nameid;
-      //nameid_nd.GetXML(nameid);
-      //std::cout<<"Encrypted name id: "<<nameid<<std::endl;
+      std::string nameid;
+      nameid_nd.GetXML(nameid);
+      logger.msg(Arc::VERBOSE,"Encrypted name id: %s", nameid.c_str());
 
       Arc::XMLSecNode sec_nameid_nd(nameid_nd);
       Arc::XMLNode decrypted_nameid_nd;
       r = sec_nameid_nd.DecryptNode(privkey_file_, decrypted_nameid_nd);
       if(!r) { logger.msg(Arc::ERROR,"Can not decrypt the EncryptedID from saml assertion"); return Arc::MCC_Status(); }
 
-      //std::string decrypted_nameid;
-      //decrypted_nameid_nd.GetXML(decrypted_nameid);
-      //std::cout<<"Decrypted SAML NameID: "<<decrypted_nameid<<std::endl;
+      std::string decrypted_nameid;
+      decrypted_nameid_nd.GetXML(decrypted_nameid);
+      logger.msg(Arc::VERBOSE,"Decrypted SAML NameID: %s", decrypted_nameid.c_str());
 
       //Replace the <saml:EncryptedID/> with <saml:NameID/>
       nameid_nd.Replace(decrypted_nameid_nd);
@@ -302,13 +309,6 @@ Arc::MCC_Status Service_SP::process(Arc::Message& inmsg,Arc::Message& outmsg) {
 
 
 
-
-
-
-      //Record the saml assertion into message context, this information 
-      //will be checked by saml2sso_serviceprovider handler later to decide 
-      //whether authorize the incoming message which is from the same session 
-      //as this saml2sso process
 #if 0
       std::string authn_record;
       authn_record.append(inmsg.Attributes()->get("TCP:REMOTEHOST")).append(":")
@@ -318,7 +318,12 @@ Arc::MCC_Status Service_SP::process(Arc::Message& inmsg,Arc::Message& outmsg) {
       file_authn_record.write(authn_record.c_str(),authn_record.size());
       file_authn_record.close();
 #endif
-   
+  
+      //Record the saml assertion into message context, this information
+      //will be checked by saml2sso_serviceprovider handler later to decide
+      //whether authorize the incoming message which is from the same session
+      //as this saml2sso process
+
       SAMLAssertionSecAttr* sattr = new SAMLAssertionSecAttr(decrypted_assertion_nd);
       inmsg.Auth()->set("SAMLAssertion", sattr);
 
