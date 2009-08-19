@@ -125,7 +125,7 @@ X509* PayloadTLSStream::GetCert(void){
   if(ssl_ == NULL) return NULL;
   cert=SSL_get_certificate (ssl_);
   if(cert!=NULL) return cert;
-  logger_.msg(ERROR,"Certificate cannot be extracted");
+  logger_.msg(WARNING,"Certificate cannot be extracted, make sure it is the case where client side authentication is turned off");
   HandleError();
   return NULL;
 }
