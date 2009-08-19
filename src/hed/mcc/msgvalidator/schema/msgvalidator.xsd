@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    targetNamespace="http://www.nordugrid.org/schemas/ArcMCCMSGVALIDATOR/2008"
+    xmlns="http://www.nordugrid.org/schemas/ArcMCCMSGVALIDATOR/2008"
+    xmlns:ini="http://www.nordugrid.org/schemas/ini/2009/08"
+    elementFormDefault="qualified"
+    attributeFormDefault="unqualified">
+
+<!--  The MCCMsgValidator MCC should be placed between the MCCSOAP and Plexer. -->
+
+<!-- Imports -->
+<xsd:import namespace="http://www.nordugrid.org/schemas/ini/2009/08" schemaLocation="../../../daemon/schema/ini.xsd"/>
+
+<!-- ValidatedService -->
+
+<xsd:element name="ValidatedService">
+    <xsd:complexType>
+        <xsd:annotation>
+            <xsd:documentation xml:lang="en">
+            Node for a Service to be validated. There may be multiple ValidatedService elements.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="ServicePath" type="PathType" minOccurs="1" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation xml:lang="en">
+                    Relative path of the service to be validated
+                    e.g.: "http://example.org:50000/PythonServiceDemo" --> "/PythonServiceDemo"
+                    If omitted, validation of this Service will be skipped
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="SchemaPath" type="xsd:anyURI" minOccurs="1" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation xml:lang="en">
+                    Path of the schema to validate with. If omitted, validation of this Service will be skipped
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+</xsd:element>
+
+<xsd:simpleType name="PathType">
+   <xsd:restriction base="xsd:string">
+     <xsd:pattern value="/*"/>
+   </xsd:restriction>
+</xsd:simpleType>
+
+</xsd:schema>
