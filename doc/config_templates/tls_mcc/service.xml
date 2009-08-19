@@ -38,7 +38,7 @@
             which is specified in CACertificatePath or CACertificatesDir.
             Multiple DN chain can be specified, which "----NEXT CHAIN---" as seperator--.
             Regular expression can be used as well, in this case, only one regular expression
-            can be specified for one chain.>
+            can be specified for one chain.-->
             <tls:VOMSCertTrustDNChain>
               <tls:VOMSCertTrustDN>/O=Grid/O=NorduGrid/CN=host/arthur.hep.lu.se</tls:VOMSCertTrustDN>
               <tls:VOMSCertTrustDN>/O=Grid/O=NorduGrid/CN=NorduGrid Certification Authority</tls:VOMSCertTrustDN>
