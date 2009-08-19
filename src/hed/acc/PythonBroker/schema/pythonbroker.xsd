@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    targetNamespace="http://www.nordugrid.org/schemas/pythonbroker/2009/08"
+    xmlns="http://www.nordugrid.org/schemas/pythonbroker/2009/08"
+    xmlns:ini="http://www.nordugrid.org/schemas/ini/2009/08"
+    elementFormDefault="qualified"
+    attributeFormDefault="unqualified">
+
+<!-- Imports -->
+<xsd:import namespace="http://www.nordugrid.org/schemas/ini/2009/08" schemaLocation="../../../daemon/schema/ini.xsd"/>
+
+<xsd:element name="Arguments" type="ArgumentsType">
+    <xsd:annotation>
+       <xsd:documentation xml:lang="en">
+       These content the the python module name, the broker class name and
+       additional arguments for the broker.
+       Example:
+
+       SampleBroker.MyBroker:arguments
+       </xsd:documentation>
+    </xsd:annotation>
+</xsd:element>
+
+<xsd:simpleType name="ArgumentsType">
+   <xsd:restriction base="xsd:string">
+     <xsd:pattern value="[a-zA-Z0-9]\.[a-zA-Z0-9]:[a-zA-Z0-9]"/>
+   </xsd:restriction>
+</xsd:simpleType>
+
+</xsd:schema>
