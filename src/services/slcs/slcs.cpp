@@ -63,6 +63,24 @@ Arc::MCC_Status Service_SLCS::process(Arc::Message& inmsg,Arc::Message& outmsg) 
       for(int i=0;; i++) {
         Arc::XMLNode cnd = attr_statement.Child(i);
         if(!cnd) break;
+        //Since here we are specifically using shibboleth as IdP, and there
+        //is one distinguished attribute value which is created by Shibboleth IdP,
+        //see the following as an example:
+        //<saml:Attribute FriendlyName="eduPersonPrincipalName" 
+        //   Name="urn:oid:1.3.6.1.4.1.5923.1.1.1.6" 
+        //   NameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:uri">
+        //   <saml:AttributeValue xmlns:xs="http://www.w3.org/2001/XMLSchema" 
+        //      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+        //      xsi:type="xs:string">
+        //      staff@knowarc.eu
+        //   </saml:AttributeValue>
+        //</saml:Attribute>
+        //Therefore we base on "eduPersonPrincipalName" to create the DN 
+        //for the short-lived certificate. In addition, the "O=KnowARC" is 
+        //fixedly used as "/O=KnowARC".
+        //So in case of the above example, the DN is: /CN=staff/OU=knowarc.eu/O=KnowARC
+        //
+        //However, there should be more elegant and configurable way for creating DN.
         if((std::string)(cnd.Attribute("FriendlyName")) == "eduPersonPrincipalName") {
           identity = (std::string)(cnd["AttributeValue"]);
           std::size_t pos;
@@ -118,18 +136,10 @@ Arc::MCC_Status Service_SLCS::process(Arc::Message& inmsg,Arc::Message& outmsg) 
     Arc::Credential eec;
     eec.InquireRequest(x509_req, true);
 
-    // TODO: add extensions, e.g. saml extension parsed from SPService
-    /*
-    std::string ext_data("test extension data");
-    if(!(eec.AddExtension("1.2.3.4", ext_data))) {
-      std::cout<<"Failed to add an extension to certificate"<<std::endl;
-    }
-    */
     if(!(eec.AddExtension("1.3.6.1.4.1.3536.1.1.1.10", saml_assertion_str))) { //Need to investigate the OID 
       std::cout<<"Failed to add saml extension to certificate"<<std::endl;
     }
 
-    //std::string dn("/O=KnowARC/OU=UIO/CN=Test001"); 
     //TODO: compose the base name from configuration and name from saml assertion?
     std::string dn("/O=KnowARC/OU=");
     dn.append(ou).append("/CN=").append(cn);

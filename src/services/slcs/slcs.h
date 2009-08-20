@@ -7,8 +7,8 @@
 
 namespace ArcSec {
 
-///A Service which signs the short-lived certificate; it accepts the certificate request from
-///from client side through soap, signs a short-lived certificate and sends back through soap.
+///A Service which signs the short-lived certificate; it accepts the certificate signing request (CSR) 
+///from from client side through soap, signs a short-lived certificate and sends back through soap.
 ///This service is supposed to be deployed together with the SPService and saml2sso.serviceprovider
 ///handler, in order to sign certificate based on the authentication result from saml2sso profile.
 ///Also the saml attribute (inside the saml assertion from saml2sso profile) will be put into the 
