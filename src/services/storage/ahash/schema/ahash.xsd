@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    targetNamespace="http://www.nordugrid.org/schemas/ahash/2009/08"
+    xmlns="http://www.nordugrid.org/schemas/ahash/2009/08"
+    xmlns:ini="http://www.nordugrid.org/schemas/ini/2009/08"
+    elementFormDefault="qualified"
+    attributeFormDefault="unqualified">
+
+<!-- Imports -->
+<xsd:import namespace="http://www.nordugrid.org/schemas/ini/2009/08" schemaLocation="../../../daemon/schema/ini.xsd"/>
+
+
+<!-- ClassName -->
+<xsd:element name="ClassName" default="storage.ahash.ahash.AHashService">
+    <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+        Name of A-Hash class
+        </xsd:documentation>
+        <xsd:appinfo>
+            <ini:tag>classname</ini:tag>
+        </xsd:appinfo>
+    </xsd:annotation>
+</xsd:element>
+
+<!-- AHashClass -->
+<xsd:element name="AHashClass" default="storage.ahash.ahash.CentralAHash">
+    <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+        Which type of A-Hash to be used (CentralAHash or ReplicatedAHash)
+        </xsd:documentation>
+        <xsd:appinfo>
+            <ini:tag>ahashclass</ini:tag>
+        </xsd:appinfo>
+    </xsd:annotation>
+</xsd:element>
+
+<!-- StoreClass -->
+<xsd:element name="StoreClass" default="arcom.store.cachedpicklestore.CachedPickleStore">
+    <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+        Specifies the name of the store class, used to store the data on disk
+        </xsd:documentation>
+        <xsd:appinfo>
+            <ini:tag>storeclass</ini:tag>
+        </xsd:appinfo>
+    </xsd:annotation>
+</xsd:element>
+
+<!-- StoreCfg -->
+<xsd:element name="StoreCfg">
+    <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+        Configuration parameters for local store
+        </xsd:documentation>
+    </xsd:annotation>
+    <xsd:element name="DataDir" default="/var/spool/arc/ahash_data">
+      <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+          Specifies the name of the store class, used to store the data on disk
+        </xsd:documentation>
+        <xsd:appinfo>
+          <ini:tag>datadir</ini:tag>
+        </xsd:appinfo>
+      </xsd:annotation>    
+    </xsd:element>
+</xsd:element>
+
+<!-- LocalDir -->
+<xsd:element name="LocalDir" default="/var/spool/arc/rep_ahash_data">
+    <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+	  Specifies a directory on the local filesystem where this
+	  A-Hash replica should be stored
+        </xsd:documentation>
+        <xsd:appinfo>
+            <ini:tag>localdir</ini:tag>
+        </xsd:appinfo>
+    </xsd:annotation>
+</xsd:element>
+
+<!-- MyURL -->
+<xsd:element name="MyURL" default="https://localhost:60000/AHash1">
+    <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+	  URL to this A-Hash service and is used as an ID for this
+	  service in the replication group
+        </xsd:documentation>
+        <xsd:appinfo>
+            <ini:tag>localdir</ini:tag>
+        </xsd:appinfo>
+    </xsd:annotation>
+</xsd:element>
+
+<!-- OtherURL -->
+<!-- Todo: check if more than on url can be specified in ini-config -->
+<xsd:element name="MyURL" default="https://localhost:60000/AHash2">
+    <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+	  URL of another A-Hash in the replication group. More than
+	  one URL can be specified here.
+        </xsd:documentation>
+        <xsd:appinfo>
+            <ini:tag>localdir</ini:tag>
+        </xsd:appinfo>
+    </xsd:annotation>
+</xsd:element>
+
+<!-- Todo: what about optional parameters? -->
+
+</xsd:schema>
