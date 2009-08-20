@@ -491,7 +491,7 @@ class ReplicationManager:
                         self.locker.release_write()
             except:
                 # assume url is disconnected
-                log.msg(arc.ERROR, "failed to send to %d of %s"%(id,str(eids)))
+                log.msg(arc.WARNING, "failed to send to %d of %s"%(id,str(eids)))
                 #log.msg()
                 self.locker.acquire_write()
                 
