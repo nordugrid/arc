@@ -139,6 +139,9 @@ namespace Arc {
         delete responseIdP;
       return MCC_Status();
     }
+    //Record the returned html content in case something is wrong
+    if(responseIdP->Content() != NULL)
+      std::string html_content(responseIdP->Content());;
     if (responseIdP)
       delete responseIdP;
 
@@ -315,6 +318,11 @@ namespace Arc {
       if (responseSP)
         delete responseSP;
 
+    } else { 
+      // if "redirect_info.code == 200", then something could be wrong,
+      // because "200" is not supposed to appear in this step
+      logger.msg(Arc::ERROR,"IdP return some error message: %s", html_content.c_str());
+      return MCC_Status();
     }
 
     return Arc::MCC_Status(Arc::STATUS_OK);
