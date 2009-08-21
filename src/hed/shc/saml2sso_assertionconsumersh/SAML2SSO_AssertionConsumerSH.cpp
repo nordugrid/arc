@@ -37,50 +37,6 @@ using namespace Arc;
 
 SAML2SSO_AssertionConsumerSH::SAML2SSO_AssertionConsumerSH(Config *cfg,ChainContext*):SecHandler(cfg), SP_service_loader(NULL){
   if(!init_xmlsec()) return;
-#if 0
-  //Initialize an embeded http service for accepting saml request from client side
-  //Load service chain
-  logger.msg(Arc::INFO, "Creating http service side chain");
-  Arc::XMLNode service_doc("\
-    <ArcConfig\
-      xmlns=\"http://www.nordugrid.org/schemas/ArcConfig/2007\"\
-      xmlns:tcp=\"http://www.nordugrid.org/schemas/ArcMCCTCP/2007\"\
-      xmlns:tls=\"http://www.nordugrid.org/schemas/ArcMCCTLS/2007\">\
-     <ModuleManager>\
-        <Path>.libs/</Path>\
-        <Path>../../hed/mcc/http/.libs/</Path>\
-        <Path>../../hed/mcc/tls/.libs/</Path>\
-        <Path>../../hed/mcc/tcp/.libs/</Path>\
-        <Path>../../hed/pdc/saml2sso_serviceprovidersh/.libs/</Path>\
-     </ModuleManager>\
-     <Plugins><Name>mcctcp</Name></Plugins>\
-     <Plugins><Name>mcctls</Name></Plugins>\
-     <Plugins><Name>mcchttp</Name></Plugins>\
-     <Plugins><Name>saml2sp</Name></Plugins>\
-     <Chain>\
-      <Component name='tcp.service' id='tcp'><next id='tls'/><tcp:Listen><tcp:Port>8443</tcp:Port></tcp:Listen></Component>\
-      <Component name='tls.service' id='tls'><next id='http'/>\
-        <tls:KeyPath>testkey-nopass.pem</tls:KeyPath>\
-        <tls:CertificatePath>testcert.pem</tls:CertificatePath>\
-        <tls:CACertificatesDir>./certificates</tls:CACertificatesDir>\
-      </Component>\
-      <Component name='http.service' id='http'>\
-        <next id='samlsp'>POST</next>\
-      </Component>\
-      <Service name='saml.sp' id='samlsp'/>\
-     </Chain>\
-    </ArcConfig>");
-  Arc::Config service_config(service_doc);
-
-  if(!service_config) {
-    logger.msg(Arc::ERROR, "Failed to load service configuration");
-    return;
-  };
-  SP_service_loader = new Arc::MCCLoader(&service_config);
-  logger.msg(Arc::INFO, "Service side MCCs are loaded");
-  logger.msg(Arc::INFO, "Service is waiting for requests");
-#endif
-
 }
 
 SAML2SSO_AssertionConsumerSH::~SAML2SSO_AssertionConsumerSH() {
@@ -94,7 +50,7 @@ bool SAML2SSO_AssertionConsumerSH::Handle(Arc::Message* msg){
   //the real client (client to normal service) and user agent (client to SP service) share the 
   //same tcp/tls session (this is why only one copy of base class ClientTCP is needed in the 
   //ClientSAMLInterface), we can use the authentication result from user-agent/SPService for 
-  //the decision-making in normal Client/Service.
+  //the decision-making in normal Client/Service interaction.
   //
   //Here the message which includes the endpoint "/saml2sp" is avoided, because
   //this specific endpoint is supposed to participate the SAML2 SSO prifile, check 
@@ -104,29 +60,26 @@ bool SAML2SSO_AssertionConsumerSH::Handle(Arc::Message* msg){
   std::string http_endpoint = msg->Attributes()->get("HTTP:ENDPOINT");
   std::size_t pos = http_endpoint.find("saml2sp");
   if(pos == std::string::npos) {  
-#if 0
-    std::string authn_record;
-    authn_record.append(msg->Attributes()->get("TCP:REMOTEHOST")).append(":")
-                .append(msg->Attributes()->get("TCP:REMOTEPORT")).append(":")
-                .append(msg->Attributes()->get("TCP:SESSIONID"));
+    SecAttr* sattr = msg->Auth()->get("SAMLAssertion");
+    if(!sattr) {
+      logger.msg(ERROR, "Can not get SAMLAssertion SecAttr from message context");
+      return false;
+    }
 
     std::string str;
-    std::ifstream file_authn_record("authn_record",std::ios::in);
-    while(std::getline<char>(file_authn_record,str)) {
-      //logger.msg(Arc::INFO, "Incoming entity and authenticated entity: %s, %s", str.c_str(), authn_record.c_str());
-      if(authn_record == str) { 
-        logger.msg(Arc::INFO, "Incoming entity and authenticated entity: %s, %s", str.c_str(), authn_record.c_str());
-        file_authn_record.close(); return true; }
-    };
-    file_authn_record.close();
-#endif
+    XMLNode xacml_nd;
+    if(!(sattr->Export(SecAttr::XACML, xacml_nd))) return false;
+    xacml_nd.GetXML(str);
+    std::cout<<"XACML exported by SP service: "<<str<<std::endl;
 
-    SecAttr* sattr = msg->Auth()->get("SAMLAssertion");
+
     XMLNode saml_assertion_nd;
     if(!(sattr->Export(SecAttr::SAML, saml_assertion_nd))) return false;
-    std::string str;
     saml_assertion_nd.GetXML(str);
     std::cout<<"SAML Assertion parsed by SP service: "<<str<<std::endl;
+
+
+
     return true;
   }
   else { return true; }

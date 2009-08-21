@@ -165,7 +165,6 @@ bool XACMLPDP::isPermitted(Message *msg){
     std::string s;
     requestxml.GetXML(s);
     logger.msg(VERBOSE,"XACML request: %s",s);
-    std::cout<<"XACML request "<<s<<std::endl;
   };
   if(requestxml.Size() <= 0) {
     logger.msg(ERROR,"No requested security information was collected");

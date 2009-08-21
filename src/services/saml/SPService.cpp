@@ -73,11 +73,63 @@ SAMLAssertionSecAttr::operator bool() const {
   return true;
 }
 
+static void add_arc_subject_attribute(XMLNode item,const std::string& subject,const std::string& id) {
+   XMLNode attr = item.NewChild("ra:SubjectAttribute");
+   attr=subject; attr.NewAttribute("Type")="string";
+   attr.NewAttribute("AttributeId")=id;
+}
+
+static void add_xacml_subject_attribute(XMLNode item,const std::string& subject,const std::string& id) {
+   XMLNode attr = item.NewChild("ra:Attribute");
+   attr.NewAttribute("DataType")="xs:string";
+   attr.NewAttribute("AttributeId")=id;
+   attr.NewChild("ra:AttributeValue") = subject;
+}
+
 bool SAMLAssertionSecAttr::Export(Arc::SecAttrFormat format, XMLNode& val) const {
   if(format == UNDEFINED) {
   } else if(format == SAML) {
     saml_assertion_node_.New(val);
     return true;
+  } else if(format == ARCAuth) {
+    NS ns;
+    ns["ra"]="http://www.nordugrid.org/schemas/request-arc";
+    XMLNode nd(ns, "ra:Request");
+    nd.New(val);
+    XMLNode item = val.NewChild("ra:RequestItem");
+    XMLNode subj = item.NewChild("ra:Subject");
+
+    for(int i=0;;i++) {
+      XMLNode attr_statement = saml_assertion_node_["AttributeStatement"][i];
+      if(!attr_statement) break;
+      for(int j=0;;j++) {
+        XMLNode attr = attr_statement["Attribute"][j];
+        if(!attr) break;
+        std::string friendlyname = (std::string)(attr.Attribute("FriendlyName"));
+        std::string attr_val = (std::string)(attr["AttributeValue"]);
+        //Use the "FriendlyName" as the "AttributeId"
+        add_arc_subject_attribute(subj, attr_val, friendlyname);
+      };
+    };
+  } else if(format == XACML) {
+    NS ns;
+    ns["ra"]="urn:oasis:names:tc:xacml:2.0:context:schema:os";
+    XMLNode nd(ns, "ra:Request");
+    nd.New(val);
+    XMLNode subj = val.NewChild("ra:Subject");
+
+    for(int i=0;;i++) {
+      XMLNode attr_statement = saml_assertion_node_["AttributeStatement"][i];
+      if(!attr_statement) break;
+      for(int j=0;;j++) {
+        XMLNode attr = attr_statement["Attribute"][j];
+        if(!attr) break;
+        std::string friendlyname = (std::string)(attr.Attribute("FriendlyName"));
+        std::string attr_val = (std::string)(attr["AttributeValue"]);
+        //Use the "FriendlyName" as the "AttributeId"
+        add_xacml_subject_attribute(subj, attr_val, friendlyname);
+      };
+    };
   }
   else {};
   return true;
@@ -121,8 +173,6 @@ Service_SP::Service_SP(Arc::Config *cfg):RegisteredService(cfg),logger(Arc::Logg
 
 Service_SP::~Service_SP(void) {
   Arc::final_xmlsec();
-  std::ofstream file_authn_record("auth_record", std::ios_base::trunc);
-  file_authn_record.close();
 }
 
 Arc::MCC_Status Service_SP::process(Arc::Message& inmsg,Arc::Message& outmsg) {
@@ -308,16 +358,6 @@ Arc::MCC_Status Service_SP::process(Arc::Message& inmsg,Arc::Message& outmsg) {
       //
 
 
-
-#if 0
-      std::string authn_record;
-      authn_record.append(inmsg.Attributes()->get("TCP:REMOTEHOST")).append(":")
-                  .append(inmsg.Attributes()->get("TCP:REMOTEPORT")).append(":")
-                  .append(inmsg.Attributes()->get("TCP:SESSIONID")).append("\n");
-      std::ofstream file_authn_record("authn_record", std::ios_base::app);
-      file_authn_record.write(authn_record.c_str(),authn_record.size());
-      file_authn_record.close();
-#endif
   
       //Record the saml assertion into message context, this information
       //will be checked by saml2sso_serviceprovider handler later to decide
@@ -337,9 +377,9 @@ Arc::MCC_Status Service_SP::process(Arc::Message& inmsg,Arc::Message& outmsg) {
 
     }
     else {
-
+      logger.msg(Arc::ERROR,"Can not get saml:Assertion or saml:EncryptedAssertion from IdP");
+      Arc::MCC_Status();
     }
-
   }
 
   return Arc::MCC_Status(Arc::STATUS_OK);
