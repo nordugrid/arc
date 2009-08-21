@@ -67,12 +67,6 @@ bool SAML2SSO_AssertionConsumerSH::Handle(Arc::Message* msg){
     }
 
     std::string str;
-    XMLNode xacml_nd;
-    if(!(sattr->Export(SecAttr::XACML, xacml_nd))) return false;
-    xacml_nd.GetXML(str);
-    std::cout<<"XACML exported by SP service: "<<str<<std::endl;
-
-
     XMLNode saml_assertion_nd;
     if(!(sattr->Export(SecAttr::SAML, saml_assertion_nd))) return false;
     saml_assertion_nd.GetXML(str);

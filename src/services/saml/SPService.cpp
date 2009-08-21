@@ -94,8 +94,7 @@ bool SAMLAssertionSecAttr::Export(Arc::SecAttrFormat format, XMLNode& val) const
   } else if(format == ARCAuth) {
     NS ns;
     ns["ra"]="http://www.nordugrid.org/schemas/request-arc";
-    XMLNode nd(ns, "ra:Request");
-    nd.New(val);
+    val.Namespaces(ns); val.Name("ra:Request");
     XMLNode item = val.NewChild("ra:RequestItem");
     XMLNode subj = item.NewChild("ra:Subject");
 
@@ -114,8 +113,7 @@ bool SAMLAssertionSecAttr::Export(Arc::SecAttrFormat format, XMLNode& val) const
   } else if(format == XACML) {
     NS ns;
     ns["ra"]="urn:oasis:names:tc:xacml:2.0:context:schema:os";
-    XMLNode nd(ns, "ra:Request");
-    nd.New(val);
+    val.Namespaces(ns); val.Name("ra:Request");
     XMLNode subj = val.NewChild("ra:Subject");
 
     for(int i=0;;i++) {

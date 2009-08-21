@@ -222,10 +222,15 @@ bool MessageAuth::Export(SecAttrFormat format,XMLNode &val) const {
     };
 
     // Merge all collected elements into single request
-    XMLNode subject = newreq.NewChild("Subject");
-    XMLNode resource = newreq.NewChild("Resource");
-    XMLNode action = newreq.NewChild("Action");
-    XMLNode environment = newreq.NewChild("Environment");
+    XMLNode subject = newreq["Subject"];
+    if(!subject) subject = newreq.NewChild("Subject");
+    XMLNode resource = newreq["Resource"];
+    if(!resource) resource = newreq.NewChild("Resource");
+    XMLNode action = newreq["Action"];
+    if(!action) action = newreq.NewChild("Action");
+    XMLNode environment = newreq["Environment"];
+    if(!environment) environment = newreq.NewChild("Environment");
+
     for(int i=0; i<xmls.Size(); i++) {
       XMLNode r = xmls[i];
       copy_xml_elements(subject, r["Subject"].Child());
