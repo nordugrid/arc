@@ -140,8 +140,9 @@ namespace Arc {
       return MCC_Status();
     }
     //Record the returned html content in case something is wrong
+    std::string html_content;
     if(responseIdP->Content() != NULL)
-      std::string html_content(responseIdP->Content());;
+      html_content = responseIdP->Content();
     if (responseIdP)
       delete responseIdP;
 
