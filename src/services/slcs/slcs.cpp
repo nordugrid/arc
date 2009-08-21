@@ -51,6 +51,10 @@ Arc::MCC_Status Service_SLCS::process(Arc::Message& inmsg,Arc::Message& outmsg) 
   std::string saml_assertion_str; 
   {
     Arc::SecAttr* sattr = inmsg.Auth()->get("SAMLAssertion");
+    if(!sattr) { 
+      logger_.msg(Arc::ERROR, "Can not get SAMLAssertion SecAttr from message context");
+      return Arc::MCC_Status();
+    }
     Arc::XMLNode saml_assertion_nd;
     if(sattr->Export(Arc::SecAttr::SAML, saml_assertion_nd)) {
       saml_assertion_nd.GetXML(saml_assertion_str);
