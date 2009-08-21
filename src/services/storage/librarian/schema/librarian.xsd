@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    targetNamespace="http://www.nordugrid.org/schemas/librarian/2009/08"
+    xmlns="http://www.nordugrid.org/schemas/librarian/2009/08"
+    xmlns:ini="http://www.nordugrid.org/schemas/ini/2009/08"
+    elementFormDefault="qualified"
+    attributeFormDefault="unqualified">
+
+<!-- Imports -->
+<xsd:import namespace="http://www.nordugrid.org/schemas/ini/2009/08" schemaLocation="../../../daemon/schema/ini.xsd"/>
+
+<!-- ClassName -->
+<xsd:element name="ClassName" default="storage.librarian.librarian.LibrarianService">
+    <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+        Name of Librarian class
+        </xsd:documentation>
+        <xsd:appinfo>
+            <ini:tag>classname</ini:tag>
+        </xsd:appinfo>
+    </xsd:annotation>
+</xsd:element>
+
+<!-- AHashURL -->
+<!-- Todo: check if more than one url can be specified in ini-config -->
+<xsd:element name="AHashURL" default="https://localhost:60000/AHash">
+    <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+	  The URL of an A-Hash which the Librarian should use. Multiple A-Hashes may be specified
+        </xsd:documentation>
+        <xsd:appinfo>
+            <ini:tag>ahashurl</ini:tag>
+        </xsd:appinfo>
+    </xsd:annotation>
+</xsd:element>
+
+<!-- CheckPeriod -->
+<xsd:element name="CheckPeriod" default="20">
+    <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+	  Specifies in seconds how frequently the Librarian should check for late heartbeats
+        </xsd:documentation>
+        <xsd:appinfo>
+            <ini:tag>checkperiod</ini:tag>
+        </xsd:appinfo>
+    </xsd:annotation>
+</xsd:element>
+
+<!-- HeartbeatTimeout -->
+<xsd:element name="HeartbeatTimeout" default="20">
+    <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+	  Specifies in seconds how frequently the Sheperds should send reports to the Librarian
+        </xsd:documentation>
+        <xsd:appinfo>
+            <ini:tag>heartbeattimeout</ini:tag>
+        </xsd:appinfo>
+    </xsd:annotation>
+</xsd:element>
+
+<!-- ClientSSLConfig -->
+<!-- Todo: should this be in some more common file? -->
+<!-- Todo2: how about proxy path? would break key/cert part... -->
+<xsd:element name="ClientSSLConfig">
+    <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+        Configuration parameters for SSL
+        </xsd:documentation>
+    </xsd:annotation>
+    <xsd:element name="KeyPath" default="/etc/grid-security/hostkey.pem">
+      <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+          Specifies path to hostkey.pem
+        </xsd:documentation>
+        <xsd:appinfo>
+          <ini:tag>keypath</ini:tag>
+        </xsd:appinfo>
+      </xsd:annotation>    
+    </xsd:element>
+    <xsd:element name="CertificatePath" default="/etc/grid-security/hostcert.pem">
+      <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+          Specifies path to hostcert.pem
+        </xsd:documentation>
+        <xsd:appinfo>
+          <ini:tag>certificatepath</ini:tag>
+        </xsd:appinfo>
+      </xsd:annotation>    
+    </xsd:element>
+    <xsd:element name="CACertificatesDir" default="/etc/grid-security/certificates/">
+      <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+          Specifies path to CA dir
+        </xsd:documentation>
+        <xsd:appinfo>
+          <ini:tag>cacertificatesdir</ini:tag>
+        </xsd:appinfo>
+      </xsd:annotation>    
+    </xsd:element>
+</xsd:element>
+

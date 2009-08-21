@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xsd:schema
     xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-    targetNamespace="http://www.nordugrid.org/schemas/ahash/2009/08"
-    xmlns="http://www.nordugrid.org/schemas/ahash/2009/08"
+    targetNamespace="http://www.nordugrid.org/schemas/shepherd/2009/08"
+    xmlns="http://www.nordugrid.org/schemas/shepherd/2009/08"
     xmlns:ini="http://www.nordugrid.org/schemas/ini/2009/08"
     elementFormDefault="qualified"
     attributeFormDefault="unqualified">
@@ -11,10 +11,10 @@
 <xsd:import namespace="http://www.nordugrid.org/schemas/ini/2009/08" schemaLocation="../../../daemon/schema/ini.xsd"/>
 
 <!-- ClassName -->
-<xsd:element name="ClassName" default="storage.ahash.ahash.AHashService">
+<xsd:element name="ClassName" default="storage.shepherd.shepherd.ShepherdService">
     <xsd:annotation>
         <xsd:documentation xml:lang="en">
-        Name of A-Hash class
+        Name of Shepherd class
         </xsd:documentation>
         <xsd:appinfo>
             <ini:tag>classname</ini:tag>
@@ -22,14 +22,53 @@
     </xsd:annotation>
 </xsd:element>
 
-<!-- AHashClass -->
-<xsd:element name="AHashClass" default="storage.ahash.ahash.CentralAHash">
+<!-- ServiceID -->
+<xsd:element name="ServiceID" default="https://localhost:60000/Shepherd">
     <xsd:annotation>
         <xsd:documentation xml:lang="en">
-        Which type of A-Hash to be used (CentralAHash or ReplicatedAHash)
+        ID of the Shepherd service
         </xsd:documentation>
         <xsd:appinfo>
-            <ini:tag>ahashclass</ini:tag>
+            <ini:tag>serviceid</ini:tag>
+        </xsd:appinfo>
+    </xsd:annotation>
+</xsd:element>
+
+<!-- CheckPeriod -->
+<xsd:element name="CheckPeriod" default="20">
+    <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+	  Specifies in seconds how frequently the Shepherd should check the existence and checksum
+	  of all the files on the storage node.
+        </xsd:documentation>
+        <xsd:appinfo>
+            <ini:tag>checkperiod</ini:tag>
+        </xsd:appinfo>
+    </xsd:annotation>
+</xsd:element>
+
+<!-- MinCheckInterval -->
+<xsd:element name="MinCheckInterval" default="0.1">
+    <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+	  Specifies in seconds how much time the should Shepherd wait between two subsequent
+	  file checks
+        </xsd:documentation>
+        <xsd:appinfo>
+            <ini:tag>mincheckinterval</ini:tag>
+        </xsd:appinfo>
+    </xsd:annotation>
+</xsd:element>
+
+<!-- CreatingTimeout -->
+<xsd:element name="CreatingTimeout" default="600">
+    <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+	  Specifies in seconds the time before the Shepherd decides that a started file upload has
+	  failed
+        </xsd:documentation>
+        <xsd:appinfo>
+            <ini:tag>creatingtimeout</ini:tag>
         </xsd:appinfo>
     </xsd:annotation>
 </xsd:element>
@@ -65,84 +104,85 @@
     </xsd:element>
 </xsd:element>
 
-<!-- Replicated A-Hash specific parameters -->
-<!-- LocalDir -->
-<xsd:element name="LocalDir" default="/var/spool/arc/rep_ahash_data">
+<!-- BackendClass -->
+<xsd:element name="BackendClass" default="storage.shepherd.hardlinkingbackend.HopiBackend">
     <xsd:annotation>
         <xsd:documentation xml:lang="en">
-	  Specifies a directory on the local filesystem where this
-	  A-Hash replica should be stored
+	  Specifes which backend the Shepherd should use to communicate with the storage element
+	  service
         </xsd:documentation>
         <xsd:appinfo>
-            <ini:tag>localdir</ini:tag>
+            <ini:tag>backendclass</ini:tag>
         </xsd:appinfo>
     </xsd:annotation>
 </xsd:element>
 
-<!-- MyURL -->
-<xsd:element name="MyURL" default="https://localhost:60000/AHash1">
+<!-- BackendCfg -->
+<xsd:element name="BackendCfg">
     <xsd:annotation>
         <xsd:documentation xml:lang="en">
-	  URL to this A-Hash service and is used as an ID for this
-	  service in the replication group
+        Configuration parameters for backend
+        </xsd:documentation>
+    </xsd:annotation>
+    <xsd:element name="DataDir" default="/var/spool/arc/shepherd_store">
+      <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+          Specifies local dir to store data in
         </xsd:documentation>
         <xsd:appinfo>
-            <ini:tag>myurl</ini:tag>
+          <ini:tag>datadir</ini:tag>
         </xsd:appinfo>
-    </xsd:annotation>
+      </xsd:annotation>    
+    </xsd:element>
+    <xsd:element name="TransferDir" default="/var/spool/arc/shepherd_transfer">
+      <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+          Specifies directory accessible to both the backend and the
+          transfer service
+        </xsd:documentation>
+        <xsd:appinfo>
+          <ini:tag>transferdir</ini:tag>
+        </xsd:appinfo>
+      </xsd:annotation>    
+    </xsd:element>
+    <xsd:element name="TURLPrefix" default="http://localhost:60001/hopi/">
+      <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+	  URL of the storage element service ending with a '/'
+        </xsd:documentation>
+        <xsd:appinfo>
+          <ini:tag>turlprefix</ini:tag>
+        </xsd:appinfo>
+      </xsd:annotation>    
+    </xsd:element>
 </xsd:element>
 
-<!-- OtherURL -->
+<!-- LibrarianURL -->
 <!-- Todo: check if more than one url can be specified in ini-config -->
-<xsd:element name="MyURL" default="https://localhost:60000/AHash2">
+<xsd:element name="LibrarianURL" default="https://localhost:60000/Librarian">
     <xsd:annotation>
         <xsd:documentation xml:lang="en">
-	  URL of another A-Hash in the replication group. More than
-	  one URL can be specified here.
+	  The URL of a Librarian which the Shepherd should use. Multiple Bartenders may be specified
         </xsd:documentation>
         <xsd:appinfo>
-            <ini:tag>other</ini:tag>
+            <ini:tag>librarianurl</ini:tag>
         </xsd:appinfo>
     </xsd:annotation>
 </xsd:element>
 
-<!-- Priority -->
-<xsd:element name="Priority" default="10">
+<!-- BartenderURL -->
+<!-- Todo: check if more than one url can be specified in ini-config -->
+<xsd:element name="BartenderURL" default="https://localhost:60000/Bartender">
     <xsd:annotation>
         <xsd:documentation xml:lang="en">
-	  Related to the master election. Priority 0 means not
-	  electable, higher priority increases probability of being
-	  elected as master.
+	  The URL of a Bartender which the Shepherd should use. Multiple Bartenders may be specified
         </xsd:documentation>
         <xsd:appinfo>
-            <ini:tag>priority</ini:tag>
+            <ini:tag>bartenderurl</ini:tag>
         </xsd:appinfo>
     </xsd:annotation>
 </xsd:element>
 
-<!-- CheckPeriod -->
-<xsd:element name="CheckPeriod" default="10">
-    <xsd:annotation>
-        <xsd:documentation xml:lang="en">
-	  Period between updates to replication list (in seconds)
-        </xsd:documentation>
-        <xsd:appinfo>
-            <ini:tag>checkperiod</ini:tag>
-        </xsd:appinfo>
-    </xsd:annotation>
-</xsd:element>
-
-<!-- CacheSize -->
-<xsd:element name="CacheSize" default="10MB">
-    <xsd:annotation>
-        <xsd:documentation xml:lang="en">
-	  Amount of local storage to be cached in memory
-        </xsd:documentation>
-        <xsd:appinfo>
-            <ini:tag>cachesize</ini:tag>
-        </xsd:appinfo>
-    </xsd:annotation>
-</xsd:element>
 
 <!-- ClientSSLConfig -->
 <!-- Todo: should this be in some more common file? -->

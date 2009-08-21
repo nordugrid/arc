@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    targetNamespace="http://www.nordugrid.org/schemas/bartender/2009/08"
+    xmlns="http://www.nordugrid.org/schemas/bartender/2009/08"
+    xmlns:ini="http://www.nordugrid.org/schemas/ini/2009/08"
+    elementFormDefault="qualified"
+    attributeFormDefault="unqualified">
+
+<!-- Imports -->
+<xsd:import namespace="http://www.nordugrid.org/schemas/ini/2009/08" schemaLocation="../../../daemon/schema/ini.xsd"/>
+
+<!-- ClassName -->
+<xsd:element name="ClassName" default="storage.bartender.bartender.BartenderService">
+    <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+        Name of Bartender class
+        </xsd:documentation>
+        <xsd:appinfo>
+            <ini:tag>classname</ini:tag>
+        </xsd:appinfo>
+    </xsd:annotation>
+</xsd:element>
+
+<!-- LibrarianURL -->
+<!-- Todo: check if more than one url can be specified in ini-config -->
+<xsd:element name="LibrarianURL" default="https://localhost:60000/Librarian">
+    <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+	  The URL of a Librarian which the Bartender should use. Multiple Librarians may be specified
+        </xsd:documentation>
+        <xsd:appinfo>
+            <ini:tag>librarianurl</ini:tag>
+        </xsd:appinfo>
+    </xsd:annotation>
+</xsd:element>
+
+<!-- ProxyStore -->
+<xsd:element name="ProxyStore" default="/var/spool/arc/proxy_store">
+    <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+	  Local directory where the Bartender will store the delegated proxies
+        </xsd:documentation>
+        <xsd:appinfo>
+            <ini:tag>proxystore</ini:tag>
+        </xsd:appinfo>
+    </xsd:annotation>
+</xsd:element>
+
+<!-- GatewayClass -->
+<!-- todo: not sure if this one should have a default value; depends --
+  -- on third party libraries (globus) so shouldn't be enabled by default-->
+<xsd:element name="GatewayClass">
+    <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+        Name of Gateway class
+        </xsd:documentation>
+        <xsd:appinfo>
+            <ini:tag>gatewayclass</ini:tag>
+        </xsd:appinfo>
+    </xsd:annotation>
+</xsd:element>
+
+<!-- GatewayCfg -->
+<xsd:element name="GatewayCfg">
+    <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+        Configuration parameters for the gateway class
+        </xsd:documentation>
+    </xsd:annotation>
+k    <!-- todo: why do both bartender and gateway need proxystore parameter?
+    shouldn't this parameter be identical for bartender and
+    gateway anyway? -->
+    <xsd:element name="ProxyStore" default="/var/spool/arc/proxy_store">
+      <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+          Local directory where the Bartender will store the delegated proxies
+        </xsd:documentation>
+        <xsd:appinfo>
+          <ini:tag>proxystore</ini:tag>
+        </xsd:appinfo>
+      </xsd:annotation>    
+    </xsd:element>
+    <xsd:element name="CACertificatesDir" default="/etc/grid-security/certificates/">
+      <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+          Specifies path to CA dir
+        </xsd:documentation>
+        <xsd:appinfo>
+          <ini:tag>cacertificatesdir</ini:tag>
+        </xsd:appinfo>
+      </xsd:annotation>    
+    </xsd:element>
+</xsd:element>
+
+
+<!-- ClientSSLConfig -->
+<!-- Todo: should this be in some more common file? -->
+<!-- Todo2: how about proxy path? would break key/cert part... -->
+<xsd:element name="ClientSSLConfig">
+    <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+        Configuration parameters for SSL
+        </xsd:documentation>
+    </xsd:annotation>
+    <xsd:element name="KeyPath" default="/etc/grid-security/hostkey.pem">
+      <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+          Specifies path to hostkey.pem
+        </xsd:documentation>
+        <xsd:appinfo>
+          <ini:tag>keypath</ini:tag>
+        </xsd:appinfo>
+      </xsd:annotation>    
+    </xsd:element>
+    <xsd:element name="CertificatePath" default="/etc/grid-security/hostcert.pem">
+      <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+          Specifies path to hostcert.pem
+        </xsd:documentation>
+        <xsd:appinfo>
+          <ini:tag>certificatepath</ini:tag>
+        </xsd:appinfo>
+      </xsd:annotation>    
+    </xsd:element>
+    <xsd:element name="CACertificatesDir" default="/etc/grid-security/certificates/">
+      <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+          Specifies path to CA dir
+        </xsd:documentation>
+        <xsd:appinfo>
+          <ini:tag>cacertificatesdir</ini:tag>
+        </xsd:appinfo>
+      </xsd:annotation>    
+    </xsd:element>
+</xsd:element>
+
