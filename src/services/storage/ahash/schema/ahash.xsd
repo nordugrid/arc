@@ -66,6 +66,7 @@
     </xsd:element>
 </xsd:element>
 
+<!-- Replicated A-Hash specific parameters -->
 <!-- LocalDir -->
 <xsd:element name="LocalDir" default="/var/spool/arc/rep_ahash_data">
     <xsd:annotation>
@@ -87,7 +88,7 @@
 	  service in the replication group
         </xsd:documentation>
         <xsd:appinfo>
-            <ini:tag>localdir</ini:tag>
+            <ini:tag>myurl</ini:tag>
         </xsd:appinfo>
     </xsd:annotation>
 </xsd:element>
@@ -101,11 +102,47 @@
 	  one URL can be specified here.
         </xsd:documentation>
         <xsd:appinfo>
-            <ini:tag>localdir</ini:tag>
+            <ini:tag>other</ini:tag>
         </xsd:appinfo>
     </xsd:annotation>
 </xsd:element>
 
-<!-- Todo: what about optional parameters? -->
+<!-- Priority -->
+<xsd:element name="Priority" default="10">
+    <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+	  Related to the master election. Priority 0 means not
+	  electable, higher priority increases probability of being
+	  elected as master.
+        </xsd:documentation>
+        <xsd:appinfo>
+            <ini:tag>priority</ini:tag>
+        </xsd:appinfo>
+    </xsd:annotation>
+</xsd:element>
+
+<!-- CheckPeriod -->
+<xsd:element name="CheckPeriod" default="10">
+    <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+	  Period between updates to replication list (in seconds)
+        </xsd:documentation>
+        <xsd:appinfo>
+            <ini:tag>checkperiod</ini:tag>
+        </xsd:appinfo>
+    </xsd:annotation>
+</xsd:element>
+
+<!-- CacheSize -->
+<xsd:element name="CacheSize" default="10MB">
+    <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+	  Amount of local storage to be cached in memory
+        </xsd:documentation>
+        <xsd:appinfo>
+            <ini:tag>cachesize</ini:tag>
+        </xsd:appinfo>
+    </xsd:annotation>
+</xsd:element>
 
 </xsd:schema>
