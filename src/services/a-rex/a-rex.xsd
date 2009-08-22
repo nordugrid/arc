@@ -1,55 +1,340 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xsd:schema
   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-  xmlns="http://www.nordugrid.org/schemas/ArcConfig/2007/arex"
-  xmlns:arc="http://www.nordugrid.org/schemas/ArcConfig/2007/arex"
-  targetNamespace="http://www.nordugrid.org/schemas/ArcConfig/2007/arex"
+  xmlns="http://www.nordugrid.org/schemas/ArcConfig/2009/arex"
+  xmlns:arc="http://www.nordugrid.org/schemas/ArcConfig/2009/arex"
+  targetNamespace="http://www.nordugrid.org/schemas/ArcConfig/2009/arex"
   elementFormDefault="qualified">
+
     <xsd:complexType name="endpoint_Type">
-        <!--
-             This element defines URL of A-REX service as seen from outside.
-        -->
+        <xsd:annotation>
+            <xsd:documentation xml:lang="en">
+                This element defines URL of A-REX service as seen from outside.
+            </xsd:documentation>
+        </xsd:annotation>
         <xsd:simpleContent>
             <xsd:extension base="xsd:string">
             </xsd:extension>
         </xsd:simpleContent>
     </xsd:complexType>
-    <xsd:element name="endpoint" type="endpoint_Type"/>
+
+    <xsd:simpleType name="gmconfigtype_Type">
+        <xsd:annotation>
+            <xsd:documentation xml:lang="en">
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+          <xsd:enumeration value="INI"/>
+          <xsd:enumeration value="XML"/>
+        </xsd:restriction>
+    </xsd:simpleType>
 
     <xsd:complexType name="gmconfig_Type">
-        <!--
-             This element defines path to arc0 Grid Manager configuartion file.
-             By default it is /etc/arc.conf.
-        -->
+        <xsd:annotation>
+            <xsd:documentation xml:lang="en">
+                 This element defines path to arc0 Grid Manager 
+                 configuration file. If present values in that file will
+                 overwrite those defined as siblings of this element.
+                 If string is empty its value is /etc/arc.conf.
+            </xsd:documentation>
+        </xsd:annotation>
         <xsd:simpleContent>
             <xsd:extension base="xsd:string">
+                <xsd:attribute name="type" type="gmconfigtype_Type"
+                               use="optional" default="INI"/>
             </xsd:extension>
         </xsd:simpleContent>
     </xsd:complexType>
-    <xsd:element name="gmconfig" type="gmconfig_Type"/>
 
     <xsd:simpleType name="gmrun_Type">
-        <!--
-             This element defines how grid-manager part of A-Rex is run.
-             * internal - as a thread inside service container.
-             * none - no grid-manager is run.
-             * external - as a separate executable (not supported anymore).
-             Default is 'internal'.
-        -->
+        <xsd:annotation>
+            <xsd:documentation xml:lang="en">
+                 This element defines how grid-manager part of A-Rex is run.
+                 * internal - as a thread inside service container.
+                 * none - no grid-manager is run.
+                 * external - as a separate executable (not supported anymore).
+                 Default is 'internal'.
+            </xsd:documentation>
+        </xsd:annotation>
         <xsd:restriction base="xsd:string">
             <xsd:enumeration value="internal"/>
             <xsd:enumeration value="external"/>
             <xsd:enumeration value="none"/>
         </xsd:restriction>
     </xsd:simpleType>
-    <xsd:element name="gmrun" type="gmrun_Type"/>
 
     <xsd:complexType name="usermap_Type">
+        <xsd:annotation>
+            <xsd:documentation xml:lang="en">
+                Defines parameters for mapping Grid user identity to 
+                local account. Currently only default account name
+                can be specified.
+            </xsd:documentation>
+        </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="defaultLocalName" type="xsd:string" minOccurs="0"/>
+            <xsd:element name="defaultLocalName" type="xsd:string"
+                         minOccurs="0"/>
         </xsd:sequence>
     </xsd:complexType>
+
+    <!-- Grid Manager like configuration starts here -->
+
+    <xsd:complexType name="LRMS_Type">
+        <xsd:annotation>
+            <xsd:documentation xml:lang="en">
+                Defines parameters for controling LRMS specific 
+                and LRMS related functionality.
+                * type - name of LRMS/batch system
+                * defaultQueue - optional name of default queue
+                * sharedFilesystem - either session directory is shared
+                  with computing node
+                * GNUTimeUtility - location and name of GNU time executable
+                * any accomodates numerous LRMS configuration parameters
+                  * pbs_bin_path="/usr/bin"
+                  * pbs_log_path="/var/spool/pbs/server_logs"
+                  * condor_location="/opt/condor"
+                  * condor_config="/opt/condor/etc/condor_config"
+                  * condor_rank="(1-LoadAvg/2)*(1-LoadAvg/2)*Memory/1000*KFlops/1000000"
+                  * sge_bin_path="/opt/n1ge6/bin/lx24-x86"
+                  * sge_root="/opt/n1ge6"
+                  * sge_cell="default"
+                  * sge_execd_port="537"
+                  * lsf_bin_path="/usr/local/lsf/bin/"
+                  * lsf_profile_path="/usr/share/lsf/conf"
+                  * ll_bin_path="/opt/ibmll/LoadL/full/bin"
+                  * ll_consumable_resources="yes"
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="type" type="xsd:string"/>
+            <xsd:element name="defaultQueue" type="xsd:string"
+                         minOccurs="0"/>
+            <xsd:element name="sharedFilesystem" type="xsd:boolean"
+                         minOccurs="0"/>
+            <xsd:element name="GNUTimeUtility" type="xsd:string"
+                         minOccurs="0"/>
+            <xsd:any minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="loadLimits_Type">
+        <xsd:annotation>
+            <xsd:documentation xml:lang="en">
+                Defines parameters influencing load imposed on gateway 
+                computer. Unless specified missing element means do not limit.
+                * maxJobsTracked - jobs which are not in FINISHED state (jobs
+                  tracked in RAM)
+                * maxJobsRun - jobs being run (SUBMITTING, INLRMS states)
+                * maxJobsTransfered - jobs being processed on frontend 
+                  (PREPARING, FINISHING states)
+                * maxJobsTransferedAdditional - additional reserved number 
+                  of jobs being processed on frontend
+                * maxFilesTransfered - number of files being transfered 
+                  simultaneously by jobs in PREPARING and FINISHING states.
+                  Value is per job.
+                * maxJobsPerShare - specifies a sharing mechanism for data
+                  transfer. Its value is the maximum number of data transfer 
+                  processes that can run per transfer share and shareType is
+                  the scheme used to assign jobs to transfer shares. Current 
+                  possible values of sharetype are "dn", "voms:vo", 
+                  "voms:role", and "voms:group".
+                * wakeupPeriod - specifies how often cheks for new jobs 
+                  arrived, job state change requests, etc are done. That 
+                  is resposivity of the service. The period is in seconds. 
+                  Default is 3 minutes. Usually this element is not needed.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="maxJobsTracked" type="xsd:nonNegativeInteger"
+                         minOccurs="0"/>
+            <xsd:element name="maxJobsRun" type="xsd:nonNegativeInteger"
+                         minOccurs="0"/>
+            <xsd:element name="maxJobsTransfered" type="xsd:nonNegativeInteger"
+                         minOccurs="0"/>
+            <xsd:element name="maxJobsTransferedAdditional"
+                         type="xsd:nonNegativeInteger" minOccurs="0"/>
+            <xsd:element name="maxFilesTransfered"
+                         type="xsd:nonNegativeInteger" minOccurs="0"/>
+            <xsd:element name="maxJobsPerShare"
+                         minOccurs="0" maxOccurs="unbounded">
+                <xsd:simpleType>
+                    <xsd:restriction base="xsd:nonNegativeInteger">
+                        <xsd:attribute name="shareType" type="xsd:string"
+                                       use="required"/>
+                    </xsd:restriction>
+                </xsd:simpleType>
+            </xsd:element>
+            <xsd:element name="wakeupPeriod" type="xsd:nonNegativeInteger"
+                         minOccurs="0"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="cache_Type">
+        <xsd:annotation>
+            <xsd:documentation xml:lang="en">
+                Parameters related to cache functionality. Multiple caches
+                may be specified. Cached data will be distributed evenly 
+                over the caches. If none such element is present caching is 
+                disabled.
+                * location - path to a directory to store cached data. 
+                  Multiple cache directories may be specified by specifying
+                  multiple location elememts. Cached data will be distributed
+                  evenly over the caches.
+                * link - optional path at which the location is accessible on
+                  computing nodes, if it is different from the path on the
+                  service host.
+                * highWatermark, lowWatermark - specify high and low
+                  watermarks for space used by cache, as a percentage of
+                  the space on the file system on which the cache directory
+                  is located. When the max is exceeded, files will be deleted
+                  to bring the used space down to the min level. It is a
+                  good idea to have the cache on its own separate file system.
+                  To turn off this feature those elements must be absent.
+                * type - if set to REMOTE this element specifies cache which
+                  is under the control of other services, but which this
+                  service can have read-only access to. If a file is not
+                  available in paths specified by LOCAL caches, the service
+                  looks in remote caches.
+                * replicate - if set to true files in REMOTE cache will be 
+                  replicated to local caches when they are requested.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="location" type="xsd:string"/>
+            <xsd:element name="link" type="xsd:string"
+                         minOccurs="0"/>
+            <xsd:element name="highWatermark" type="xsd:nonNegativeInteger"
+                         minOccurs="0"/>
+            <xsd:element name="lowWatermark" type="xsd:nonNegativeInteger"
+                         minOccurs="0"/>
+        </xsd:sequence>
+        <xsd:attribute name="type" default="LOCAL" use="optional">
+            <xsd:restriction base="xsd:string">
+                <xsd:enumeration value="LOCAL"/>
+                <xsd:enumeration value="REMOTE"/>
+            </xsd:restriction>
+        </xsd:attribute>
+        <xsd:attribute name="replicate" type="xsd:boolean" use="optional"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="dataTransfer_Type">
+        <xsd:annotation>
+            <xsd:documentation xml:lang="en">
+                Parameters related to cache functionality. Multiple caches
+                may be specified. Cached data will be distributed evenly 
+                over the caches. If none such element is present caching is 
+                disabled.
+                * location - path to a directory to store cached data. 
+                  Multiple cache directories may be specified by specifying
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="secureTransfer" type="xsd::boolean"
+                         minOccurs="0"/>
+            <xsd:element name="passiveTransfer" type="xsd::boolean"
+                         minOccurs="0"/>
+            <xsd:element name="localTransfer" type="xsd::boolean"
+                         minOccurs="0"/>
+            <xsd:element name="timeouts" minOccurs="0">
+                <xsd:element name="minSpeed"
+                             type="xsd:nonNegativeInteger" minOccurs="0"/>
+                <xsd:element name="minSpeedTime"
+                             type="xsd:nonNegativeInteger" minOccurs="0"/>
+                <xsd:element name="minAverageSpeed"
+                             type="xsd:nonNegativeInteger" minOccurs="0"/>
+                <xsd:element name="maxInactivityTime"
+                             type="xsd:nonNegativeInteger" minOccurs="0"/>
+            </xsd:element>
+            <xsd:element name="maxRetries" type="xsd::nonNegativeInteger"
+                         minOccurs="0"/>
+            <xsd:element name="mapURL" minOccurs="0" maxOccurs="unbounded">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="from" type="xsd:anyURI"/>
+                        <xsd:element name="to" type="xsd:anyURI"/>
+                    </xsd:sequence>
+                    <xsd:attribute name="link" type="xsd:boolean"
+                                   use="optional"/>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="Globus" minOccurs="0">
+                <xsd:element name="gridmapfile" type="xsd:string"
+                         minOccurs="0"/>
+                <xsd:element name="cadir" type="xsd:string"
+                         minOccurs="0"/>
+                <xsd:element name="certpath" type="xsd:string"
+                         minOccurs="0"/>
+                <xsd:element name="keypath" type="xsd:string"
+                         minOccurs="0"/>
+                <xsd:element name="TCPPortRange" type="xsd:string"
+                         minOccurs="0"/>
+                <xsd:element name="UDPPortRange" type="xsd:string"
+                         minOccurs="0"/>
+            </xsd:element>
+            <xsd:element name="httpProxy" type="xsd:anyURI"
+                         minOccurs="0"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="control_Type">
+        <xsd:annotation>
+            <xsd:documentation xml:lang="en">
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="username" type="xsd::string" minOccurs="0"/>
+            <xsd:element name="controlDir" type="xsd::string"/>
+            <xsd:element name="sessionRootDir" type="xsd::string"
+                         maxOccurs="unbounded"/>
+            <xsd:element name="cache" type="cache_Type"
+                         minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="LRMS" type="LRMS_Type"/>
+            <xsd:element name="defaultTTL" type="xsd:nonNegativeInteger"
+                         minOccurs="0"/>
+            <xsd:element name="defaultTTR" type="xsd:nonNegativeInteger"
+                         minOccurs="0"/>
+            <xsd:element name="maxReruns" type="xsd:nonNegativeInteger"
+                         minOccurs="0"/>
+            <xsd:element name="noRootPower" type="xsd:boolean"
+                         minOccurs="0"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:simpleType name="authPluginAction_Type">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="FAIL"/>
+            <xsd:enumeration value="PASS"/>
+            <xsd:enumeration value="LOG"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:complexType name="authPlugin_Type">
+        <xsd:sequence>
+            <xsd:element name="state" type="xsd::string"/>
+            <xsd:element name="command" type="xsd::string"/>
+        </xsd:sequence>
+        <xsd:attribute name="timeout" type="xsd::nonNegativeInteger"
+                       use="optional"/>
+        <xsd:attribute name="onSuccess" type="authPluginAction_Type"
+                       use="optional" default="PASS"/>
+        <xsd:attribute name="onFailure" type="authPluginAction_Type"
+                       use="optional" default="FAIL"/>
+        <xsd:attribute name="onTimeout" type="authPluginAction_Type"
+                       use="optional" default="FAIL"/>
+    </xsd:complexType>
+
+
+    <!-- Top level elements -->
+
+    <xsd:element name="gmconfig" type="gmconfig_Type"/>
+
+    <xsd:element name="endpoint" type="endpoint_Type"/>
+
+    <xsd:element name="gmrun" type="gmrun_Type"/>
+
     <xsd:element name="usermap" type="usermap_Type"/>
+
+    <!-- BES informational elements. -->
 
     <!-- CommonName attribute of bes-factory. -->
     <xsd:element name="commonName" type="xsd:string"/>
@@ -62,13 +347,78 @@
 
     <!-- 
          Name of Operating System.
-         The values are based on the OSType field of the CIM_OperatingSystem model:
+         The values are based on the OSType field of the
+         CIM_OperatingSystem model:
          http://www.dmtf.org/standards/cim/cim_schema_v29
      -->
     <xsd:element name="OperatingSystem" type="xsd:string"/>
 
     <!-- The GLUE2 infoprovider wake up period time in second -->
     <xsd:element name="InfoproviderWakeupPeriod" type="xsd:nonNegativeInteger"/>
+
+    <xsd:element name="debugLevel" minOccurs="0">
+        <xsd:simpleType>
+            <xsd:restriction base="xsd:string">
+                <xsd:enumeration value="FATAL"/>
+                <xsd:enumeration value="ERROR"/>
+                <xsd:enumeration value="WARNING"/>
+                <xsd:enumeration value="INFO"/>
+                <xsd:enumeration value="DEBUG"/>
+                <xsd:enumeration value="VERBOSE"/>
+            </xsd:restriction>
+        </xsd:simpleType>
+    </xsd:element>
+
+    <xsd:element name="loadLimits" type="loadLimits_Type" minOccurs="0"/>
+
+    <xsd:element name="dataTransfer" type="dataTransfer_Type" minOccurs="0"/>
+
+    <xsd:element name="serviceMail" type="xsd:string" minOccurs="0"/>
+
+    <xsd:element name="runtimeDir" type="xsd:string" minOccurs="0"/>
+
+    <xsd:element name="jobLogPath" type="xsd:string" minOccurs="0"/>
+
+    <xsd:element name="jobReport" minOccurs="0" macOccurs="unbounded">
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element name="destination" type="xsd::anyURI"/>
+                <xsd:element name="expiration" type="xsd::nonNegativeInteger"
+                             minOccurs="0"/>
+                <xsd:element name="type" type="xsd::nonNegativeInteger"
+                             minOccurs="0"/>
+                <xsd:element name="parameters" type="xsd::nonNegativeInteger"
+                             minOccurs="0"/>
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="authPlugin" type="authPlugin_Type"
+                 minOccurs="0" maxOccurs="unbounded"/>
+ 
+    <!-- There should be minOccurs="1" here. But to allow this element to
+         be defined in separate file we keep minOccurs="0" for all elements -->
+    <xsd:element name="control" type="control_Type"
+                 minOccurs="0" maxOccurs="unbounded"/>
+
+    <xsd:element name="helperUtility" minOccurs="0" maxOccurs="unbounded">
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element name="username" type="xsd::string" minOccurs="0"/>
+                <xsd:element name="path" type="xsd::string"/>
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+    
+    <!-- Not ported elements
+    #logsize="100000 2"
+    #logfile="/var/log/grid-manager.log"
+    #pidfile="/var/run/grid-manager.pid"
+    #localcred="0 acquire@/opt/nordugrid/lib/afs.so %C/job.%I.proxy"
+    #allowsubmit="mygroup"
+    #allownew=no
+    #tmpdir="/tmp"
+    -->     
 
 </xsd:schema>
 
