@@ -93,7 +93,7 @@ namespace Arc {
     /// Returns list of software names and versions
     /// What to do with sub-requirements? Currently those are ignored.
     /// Must be redone anyway.
-    std::list<SoftwareVersion> getVersions(void);
+    std::list<SoftwareVersion> getVersions(void) const;
 
   private:
     typedef std::pair<SoftwareVersion, SVComparisonOperator> SVComparison;
