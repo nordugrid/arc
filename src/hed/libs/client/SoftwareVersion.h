@@ -71,17 +71,29 @@ namespace Arc {
     SoftwareRequirement& operator=(const SoftwareRequirement& sr);
 
 #ifndef SWIG
+    /// Adds software name and version to list of requirements and
+    /// associates comparison operator with it (equality by default)
     void add(const SoftwareVersion& sv, SVComparisonOperator svComOp = &SoftwareVersion::operator==) { versions.push_back(SVComparison(sv, svComOp)); }
 #endif
+    /// TODO: what is the purpose of sub-requirements?
     void add(const SoftwareRequirement& sr) { requirements.push_back(sr); }
 
+    /// Specifies if all requirements stored need to be satisfied
+    /// or it is enough to satisfy only one
     void setRequirement(bool all) { requiresAll = all; }
     
+    /// Returns true if stored requirements are satisfied by
+    /// software specified in svList.
     bool isSatisfied(const SoftwareVersion& svList) const { return isSatisfied(std::list<SoftwareVersion>(1, svList)); }
     bool isSatisfied(const std::list<SoftwareVersion>& svList) const;
     bool isSatisfied(const std::list<ApplicationEnvironment>& svList) const;
     
     bool empty() const { return requirements.empty() && versions.empty(); }
+
+    /// Returns list of software names and versions
+    /// What to do with sub-requirements? Currently those are ignored.
+    /// Must be redone anyway.
+    std::list<SoftwareVersion> getVersions(void);
 
   private:
     typedef std::pair<SoftwareVersion, SVComparisonOperator> SVComparison;

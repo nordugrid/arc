@@ -235,4 +235,14 @@ bool SoftwareRequirement::isSatisfied(const std::list<ApplicationEnvironment>& s
   return isSatisfied(reinterpret_cast< const std::list<SoftwareVersion>& >(svList));
 }
 
+std::list<SoftwareVersion> SoftwareRequirement::getVersions(void) {
+  std::list<SoftwareVersion> v;
+  for (std::list<SVComparison>::const_iterator it = versions.begin();
+       it != versions.end(); it++) {
+    v.push_back(it->first);
+  }
+  return v;
+}
+
+
 } // namespace Arc
