@@ -139,6 +139,8 @@ BEGIN {
 			$resurrect = undef;
 		} else { 
 			import Log::Log4perl qw(:resurrect get_logger); 
+			import Log::Log4perl::Level; 
+                        # TODO: define some kind of minimalistic logger
 		}
 	}
 }
@@ -251,9 +253,18 @@ umask 0022;
 # Logging setup
 ######################################################################
 ###l4p my $logconffile = $config->{'janitor'}{'logconf'};
-###l4p $logconffile = "./log.conf" unless defined $logconffile;
-###l4p Log::Log4perl->init( $logconffile );
-###l4p my $logger = get_logger();
+###l4p Log::Log4perl->init( $logconffile ) if defined $logconffile;
+###l4p  my $logger = get_logger();
+# ARC libexec utilities are required to
+# log to stderr - that channel is collected in
+# some unified way and output then goes to client
+# and/or administrator. Probably ARC specific parts
+# should be isolated into dedicated module.
+###l4p  my $stderr_layout = Log::Log4perl::Layout::SimpleLayout->new();
+###l4p  my $stderr_appender = Log::Log4perl::Appender->new("Log::Log4perl::Appender::Screen");
+###l4p  $stderr_appender->layout($stderr_layout);
+###l4p  $logger->add_appender($stderr_appender);
+###l4p  $logger->level($INFO);
 
 ######################################################################
 #directory where we keep the current state
@@ -768,7 +779,7 @@ sub setup_runtime_package {
 
 	my $state = $tarpackage->state;
 	if (! defined $state) {
-		print "state nicht definiert!\n";
+		print STDERR "package state not defined!\n";
 	}
 	if ($state == Janitor::TarPackageShared::INSTALLED) {
 		# everything available and nothing to do
