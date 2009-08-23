@@ -690,6 +690,7 @@ bool job_local_write_file(const std::string &fname,const JobLocalDescription &jo
   write_pair(f,"rerun",Arc::tostring(job_desc.reruns));
   if(job_desc.downloads>=0) write_pair(f,"downloads",Arc::tostring(job_desc.downloads));
   if(job_desc.uploads>=0) write_pair(f,"uploads",Arc::tostring(job_desc.uploads));
+  if(job_desc.rtes>=0) write_pair(f,"rtes",Arc::tostring(job_desc.rtes));
   write_pair(f,"jobname",job_desc.jobname);
   for (std::list<std::string>::const_iterator ppn=job_desc.projectnames.begin();
        ppn!=job_desc.projectnames.end();
@@ -764,6 +765,11 @@ bool job_local_read_file(const std::string &fname,JobLocalDescription &job_desc)
       std::string temp_s(buf+p); int n;
       if(!Arc::stringto(temp_s,n)) { f.close(); return false; };
       job_desc.uploads = n;
+    }
+    else if(name == "rtes") {
+      std::string temp_s(buf+p); int n;
+      if(!Arc::stringto(temp_s,n)) { f.close(); return false; };
+      job_desc.rtes = n;
     }
     else if(name == "args") {
       job_desc.arguments.clear();
@@ -870,6 +876,18 @@ bool job_input_read_file(const JobId &id,JobUser &user,std::list<FileData> &file
   return job_Xput_read_file(fname,files);
 }
 
+/* job.ID.rte functions */
+
+bool job_rte_write_file(const JobDescription &desc,JobUser &user,std::list<std::string> &rtes) {
+  std::string fname = user.ControlDir() + "/job." + desc.get_id() + ".rte";
+  return job_strings_write_file(fname,rtes) & fix_file_owner(fname,desc,user) & fix_file_permissions(fname);
+}
+
+bool job_rte_read_file(const JobId &id,JobUser &user,std::list<std::string> &rtes) {
+  std::string fname = user.ControlDir() + "/job." + id + ".rte";
+  return job_strings_read_file(fname,rtes);
+}
+
 /* job.ID.output functions */
 /*
 bool job_cache_write_file(const JobDescription &desc,JobUser &user,std::list<FileData> &files) {
@@ -932,6 +950,27 @@ bool job_Xput_read_file(const std::string &fname,std::list<FileData> &files) {
   return true;
 }
 
+bool job_strings_write_file(const std::string &fname,std::list<std::string> &strs) {
+  std::ofstream f(fname.c_str(),std::ios::out | std::ios::trunc);
+  if(! f.is_open() ) return false; /* can't open file */
+  for(std::list<std::string>::iterator i=strs.begin();i!=strs.end(); ++i) {
+    f << (*i) << std::endl;
+  };
+  f.close();
+  return true;
+}
+
+bool job_strings_read_file(const std::string &fname,std::list<std::string> &strs) {
+  std::ifstream f(fname.c_str());
+  if(! f.is_open() ) return false; /* can't open file */
+  for(;!f.eof();) {
+    std::string str; f >> str;
+    if(!str.empty()) strs.push_back(str);
+  };
+  f.close();
+  return true;
+}
+
 bool job_clean_finished(const JobId &id,JobUser &user) {
   std::string fname;
   fname = user.ControlDir()+"/job."+id+".proxy.tmp"; remove(fname.c_str());
@@ -952,6 +991,7 @@ bool job_clean_deleted(const JobDescription &desc,JobUser &user) {
   fname = user.ControlDir()+"/job."+id+sfx_clean;  remove(fname.c_str());
   fname = user.ControlDir()+"/job."+id+".output"; remove(fname.c_str());
   fname = user.ControlDir()+"/job."+id+".input"; remove(fname.c_str());
+  fname = user.ControlDir()+"/job."+id+".rte"; remove(fname.c_str());
   fname = user.SessionRoot()+"/"+id+sfx_lrmsoutput; remove(fname.c_str());
   /* remove session directory */
   std::list<FileData> flist;

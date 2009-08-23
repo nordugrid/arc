@@ -45,7 +45,7 @@ class JobLocalDescription {
                            DN(""),starttime((time_t)(-1)),lifetime(""),
                            notify(""),processtime((time_t)(-1)),exectime((time_t)(-1)),
                            clientname(""),clientsoftware(""),
-                           reruns(0),downloads(-1),uploads(-1),
+                           reruns(0),downloads(-1),uploads(-1),rtes(-1),
                            jobname(""),jobreport(),
                            cleanuptime((time_t)(-1)),expiretime((time_t)(-1)),
                            failedstate(""),
@@ -74,6 +74,7 @@ class JobLocalDescription {
   int    reruns;             /* number of allowed reruns left */
   int    downloads;          /* number of downloadable files requested */
   int    uploads;            /* number of uploadable files requested */
+  int    rtes;               /* number of RTEs requested (absent RTEs later) */
   std::string jobname;       /* name of job given by user */
   std::list<std::string> projectnames;  /* project names, i.e. "ACIDs" */
   std::list<std::string> jobreport;     /* URLs of user's/VO's loggers */
@@ -87,6 +88,7 @@ class JobLocalDescription {
   /* attributes stored in other files */
   std::list<FileData> inputdata;  /* input files */
   std::list<FileData> outputdata; /* output files */
+  std::list<std::string> rte; /* output files */
   /* attributes taken from RSL */
   std::string action;        /* what to do - must be 'request' */
   std::string rc;            /* url to contact replica collection */

@@ -5,10 +5,13 @@
 #include <iostream>
 #include <fstream>
 
+#include <glibmm.h>
+
 #include <arc/Logger.h>
 #include <arc/StringConv.h>
 #include <arc/URL.h>
 #include <arc/client/JobDescription.h>
+#include <arc/Utils.h>
 
 
 #include "users.h"
@@ -48,6 +51,18 @@ typedef enum {
 // #endif
 } job_req_type_t;
 
+
+static int filter_rtes(const std::string& rte_root,const std::list<std::string>& rte) {
+  int rtes = 0;
+  if(rte_root.empty()) return rte.size();
+  for(std::list<std::string>::const_iterator r = rte.begin();r!=rte.end();++r) {
+    std::string path = Glib::build_filename(rte_root,*r);
+    if(Glib::file_test(path,Glib::FILE_TEST_IS_REGULAR)) continue;
+    ++rtes;
+  }
+  return rtes;
+}
+
 /* function for jobmanager-ng */
 bool parse_job_req_for_action(const char* fname,
                std::string &action,std::string &jobid,
@@ -85,9 +100,12 @@ bool process_job_req(JobUser &user,const JobDescription &desc,JobLocalDescriptio
   if((job_desc.diskspace>user.DiskSpace()) || (job_desc.diskspace==0)) {
     job_desc.diskspace=user.DiskSpace();
   };
+  // Adjust number of rtes - exclude existing ones
+  job_desc.rtes = filter_rtes(Arc::GetEnv("RUNTIME_CONFIG_DIR"),job_desc.rte);
   if(!job_local_write_file(desc,user,job_desc)) return false;
   if(!job_input_write_file(desc,user,job_desc.inputdata)) return false;
   if(!job_output_write_file(desc,user,job_desc.outputdata)) return false;
+  if(!job_rte_write_file(desc,user,job_desc.rte)) return false;
   return true;  
 }
 

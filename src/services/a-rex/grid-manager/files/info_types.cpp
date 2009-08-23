@@ -130,8 +130,17 @@ JobLocalDescription& JobLocalDescription::operator=(const Arc::JobDescription& a
   jobname = arc_job_desc.Identification.JobName;
   downloads = 0;
   uploads = 0;
+  rtes = 0;
   outputdata.clear();
   inputdata.clear();
+  rte.clear();
+
+  std::list<Arc::SoftwareVersion> rte_names = arc_job_desc.Resources.RunTimeEnvironment.getVersions();
+  for (std::list<Arc::SoftwareVersion>::const_iterator rte_name = rte_names.begin(); rte_name != rte_names.end(); ++rte_name) {
+    rte.push_back(std::string(*rte_name));
+    ++rtes;
+  }
+
   for (std::list<Arc::FileType>::const_iterator file = arc_job_desc.DataStaging.File.begin();
        file != arc_job_desc.DataStaging.File.end(); ++file) {
     std::string fname = file->Name;

@@ -200,11 +200,19 @@ bool job_input_write_file(const JobDescription &desc,JobUser &user,std::list<Fil
 bool job_input_read_file(const JobId &id,JobUser &user,std::list<FileData> &files);
 
 /*
+  Same for RTEs.
+*/
+bool job_rte_write_file(const JobDescription &desc,JobUser &user,std::list<std::string> &rtes);
+bool job_rte_read_file(const JobId &id,JobUser &user,std::list<std::string> &rtes);
+
+/*
   Functions used by previous functions.
 */
 bool job_Xput_write_file(const std::string &fname,std::list<FileData> &files);
 bool job_Xput_read_file(const std::string &fname,std::list<FileData> &files);
 bool job_Xput_read_file(std::list<FileData> &files);
+bool job_strings_write_file(const std::string &fname,std::list<std::string> &strs);
+bool job_strings_read_file(const std::string &fname,std::list<std::string> &strs);
 
 /*
   Write and read file, containing most important/needed job parameters.

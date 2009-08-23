@@ -682,10 +682,10 @@ void JobsList::ActJobUndefined(JobsList::iterator &i,bool /*hard_job*/,
             job_desc = new JobLocalDescription;
             job_desc->sessiondir=i->session_dir;
             /* first phase of job - just  accepted - parse request */
-            logger.msg(Arc::INFO,"%s: State: ACCEPTED: parsing RSL",i->job_id);
+            logger.msg(Arc::INFO,"%s: State: ACCEPTED: parsing job description",i->job_id);
             if(!process_job_req(*user,*i,*job_desc)) {
-              logger.msg(Arc::ERROR,"%s: Processing RSL failed",i->job_id);
-              job_error=true; i->AddFailure("Could not process RSL");
+              logger.msg(Arc::ERROR,"%s: Processing job description failed",i->job_id);
+              job_error=true; i->AddFailure("Could not process job description");
               delete job_desc;
               return; /* go to next job */
             };
@@ -725,7 +725,7 @@ void JobsList::ActJobAccepted(JobsList::iterator &i,bool /*hard_job*/,
         };
         if((max_jobs_processing == -1) ||
            (use_local_transfer) ||
-           (i->local->downloads == 0) ||
+           ((i->local->downloads == 0) && (i->local->rtes == 0)) ||
            (JOB_NUM_PROCESSING < max_jobs_processing) ||
            ((JOB_NUM_FINISHING >= max_jobs_processing) && 
             (JOB_NUM_PREPARING < max_jobs_processing_emergency))) {
@@ -933,7 +933,7 @@ void JobsList::ActJobFinished(JobsList::iterator &i,bool hard_job,
               if(RecreateTransferLists(i)) {
                 job_failed_mark_remove(i->job_id,*user);
                 // state_changed=true;
-                if(i->local->downloads > 0) {
+                if((i->local->downloads > 0) || (i->local->rtes > 0)) {
                   // missing input files has to be re-downloaded
                   i->job_state = JOB_STATE_ACCEPTED;
                 } else {
