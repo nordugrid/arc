@@ -1,0 +1,194 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Data types of Information Indexing Service
+-->
+
+<xsd:schema
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+  xmlns:isis="http://www.nordugrid.org/schemas/isis/2007/06"
+  xmlns:wsa="http://www.w3.org/2005/08/addressing"
+  targetNamespace="http://www.nordugrid.org/schemas/isis/2007/06"
+  elementFormDefault="qualified" attributeFormDefault="unqualified"
+>
+
+    <xsd:import namespace="http://www.w3.org/2005/08/addressing" schemaLocation="http://www.w3.org/2006/03/addressing/ws-addr.xsd"/>
+
+
+<!-- This is an initial and incomplete DRAFT which mainly concentrates on the structure but not on the actual names. Final version will use GLUE-2.0 ternminology. -->
+
+    <!-- ==== Input and output types for IIS operations ==== -->
+    <!-- Input type for Register operation -->
+    <xsd:complexType name="RegisterType">
+        <xsd:sequence>
+            <xsd:element name="Header" type="isis:HeaderType" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="RegEntry" type="isis:RegistrationEntryType" minOccurs="1" maxOccurs="unbounded"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="Register" type="isis:RegisterType"/>
+
+    <!-- Output type for Register operation -->
+    <xsd:complexType name="RegisterResponseType">
+        <xsd:sequence>
+            <xsd:element name="Fault" type="isis:FaultType" minOccurs="0" maxOccurs="1"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="RegisterResponse" type="isis:RegisterResponseType"/>
+
+    <!-- Input type for RemoveRegistrations operation -->
+    <xsd:complexType name="RemoveRegistrationsType">
+        <xsd:sequence>
+            <xsd:element name="MessageGenerationTime" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="ServiceID" type="xsd:string" minOccurs="1" maxOccurs="unbounded"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="RemoveRegistrations" type="isis:RemoveRegistrationsType"/>
+
+    <!-- Output type for RemoveRegistrations operation -->
+    <xsd:complexType name="RemoveRegistrationResponseElementType">
+        <xsd:sequence>
+            <xsd:element name="ServiceID" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="Fault" type="isis:FaultType" minOccurs="1" maxOccurs="1"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="RemoveRegistrationsResponseType">
+        <xsd:sequence>
+            <xsd:element name="RemoveRegistrationResponseElement" type="isis:RemoveRegistrationResponseElementType" minOccurs="0" maxOccurs="unbounded" />
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="RemoveRegistrationsResponse" type="isis:RemoveRegistrationsResponseType"/>
+
+    <!-- Input type for GetISISList operation -->
+    <xsd:complexType name="GetISISListType">
+        <xsd:sequence>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="GetISISList" type="isis:GetISISListType"/>
+
+    <!-- Output type for GetISISList operation -->
+    <xsd:complexType name="GetISISListResponseType">
+        <xsd:sequence>
+            <xsd:element name="EPR" type="wsa:EndpointReferenceType" minOccurs="1" maxOccurs="unbounded"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="GetISISListResponse" type="isis:GetISISListResponseType"/>
+
+    <!-- Input type for Query operation -->
+    <xsd:complexType name="QueryType">
+        <xsd:sequence>
+            <xsd:element name="QueryString" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="Query" type="isis:QueryType"/>
+
+    <!-- Output type for Query operation -->
+    <xsd:complexType name="QueryResponseType">
+        <xsd:sequence>
+            <xsd:any minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="QueryResponse" type="isis:QueryResponseType"/>
+
+    <!-- Input type for Connect operation -->
+    <xsd:complexType name="ConnectType">
+        <xsd:sequence>
+            <xsd:element name="URL" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="Connect" type="isis:ConnectType"/>
+
+    <!-- Output type for Connect operation -->
+    <xsd:complexType name="ConnectResponseType">
+        <xsd:sequence>
+            <xsd:element name="Config" type="isis:ConfigType" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="EndpointURL" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="Database" type="isis:DatabaseType" minOccurs="1" maxOccurs="1"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="ConnectResponse" type="isis:ConnectResponseType"/>
+
+    <!-- === Helper type definitions === -->
+    <xsd:complexType name="DatabaseType">
+        <xsd:sequence>
+            <xsd:element name="RegEntry" type="isis:RegEntry" minOccurs="0" maxOccurs="1"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="ConfigType">
+        <xsd:sequence>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:simpleType name="StatusType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="1"/>
+            <xsd:enumeration value="2"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:complexType name="HeaderType">
+        <xsd:sequence>
+            <!-- Identifier of the source HED -->
+            <xsd:element name="RequesterID" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+            <!-- Time of the aggregated message generation -->
+            <xsd:element name="MessageGenerationTime" type="xsd:dateTime"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="RegistrationEntryType">
+        <xsd:sequence>
+            <xsd:element name="SrcAdv" type="isis:ServiceAdvertisementType" minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="MetaSrcAdv" type="isis:ServiceAdvertisementMetadataType" minOccurs="1" maxOccurs="1"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="ServiceAdvertisementType">
+        <xsd:sequence>
+            <!-- General part of the Service Advertisment -->
+            <xsd:element name="Type" type="isis:ServiceTypeType"/>
+            <xsd:element name="EPR" type="wsa:EndpointReferenceType"/>
+            <!-- Service specific part of the Service Advertisment -->
+            <xsd:element name="SSPair" type="isis:NameValuePairType" minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="ServiceAdvertisementMetadataType">
+        <xsd:sequence>
+            <!-- Globally unique and persistent ID of the service -->
+            <xsd:element name="ServiceID" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+            <!-- Time of information generation or collection -->
+            <xsd:element name="GenTime" type="xsd:dateTime" minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="Expiration" type="xsd:duration"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:simpleType name="FaultTypeType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="1"/>
+            <xsd:enumeration value="2"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <!-- description of fault -->
+    <xsd:complexType name="FaultType">
+        <xsd:sequence>
+            <xsd:element name="Name"        type="xsd:string"/>
+            <xsd:element name="Type"        type="isis:FaultTypeType"/>
+            <xsd:element name="Description" type="xsd:string"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <!-- List of the service types will be provided by the GLUE-2.0 -->
+    <xsd:simpleType name="ServiceTypeType">
+        <xsd:restriction base="xsd:string">
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:complexType name="NameValuePairType">
+        <xsd:sequence>
+            <xsd:element name="Name" type="xsd:string"/>
+            <xsd:element name="Value" type="xsd:string"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+</xsd:schema>

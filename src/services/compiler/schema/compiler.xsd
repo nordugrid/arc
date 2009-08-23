@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+  elementFormDefault="qualified" attributeFormDefault="unqualified"
+>
+
+  <xsd:element name="scriptfile_url" type="xsd:anyURI">
+      <xsd:annotation>
+          <xsd:documentation xml:lang="en">
+            The URL where the service can be download the compiler script file from outside.
+          </xsd:documentation>
+      </xsd:annotation>
+  </xsd:element>
+
+</xsd:schema>
+
