@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    targetNamespace="http://www.nordugrid.org/schemas/paul/2009/08"
+    xmlns="http://www.nordugrid.org/schemas/paul/2009/08"
+    xmlns:ini="http://www.nordugrid.org/schemas/ini/2009/08"
+    elementFormDefault="qualified"
+    attributeFormDefault="unqualified">
+
+<!-- Imports -->
+<xsd:import namespace="http://www.nordugrid.org/schemas/ini/2009/08" schemaLocation="../../../daemon/schema/ini.xsd"/>
+ 
+<xsd:element name="SchedulerEndpoint" type="xsd:anyURI">
+    <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+        Defines the endpoint of the sched service what the paul service connect to request jobs.
+        </xsd:documentation>
+    </xsd:annotation>
+</xsd:element>
+
+<xsd:element name="JobRoot" type="xsd:string">
+    <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+        Defines path of the directory which will be root of the session directories of jobs.
+        </xsd:documentation>
+    </xsd:annotation>
+</xsd:element>
+
+<xsd:element name="CacheDirectoryPath" type="xsd:string">
+    <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+        Path of the data transfer cache directory
+        </xsd:documentation>
+    </xsd:annotation>
+</xsd:element>
+
+<xsd:element name="RequestPeriod" type="xsd:int">
+    <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+        Defines request period in secunds which defines how often the paul contact to the schduler to request new jobs. The Paul service does not connect to the scheduler if it has no free resource.
+        </xsd:documentation>
+    </xsd:annotation>
+</xsd:element>
+
+<xsd:element name="Timeout" type="xsd:int">
+    <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+        Defines socket timeout in secunds.
+        </xsd:documentation>
+    </xsd:annotation>
+</xsd:element>
+
+<xsd:element name="Endpoint" type="xsd:anyURI">
+    <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+        Defines advertised endpoint URL of the Paul service. Used only for configuration interface.
+        </xsd:documentation>
+    </xsd:annotation>
+</xsd:element>
+
+<xsd:element name="PrivateKey" type="xsd:string">
+    <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+        Path of certificate private key
+        </xsd:documentation>
+    </xsd:annotation>
+</xsd:element>
+
+<xsd:element name="CertificatePath" type="xsd:string">
+    <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+        Path of certificate
+        </xsd:documentation>
+    </xsd:annotation>
+</xsd:element>
+
+<xsd:element name="CACertificatePath" type="xsd:string">
+    <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+        Path of the file contains CA certificates
+        </xsd:documentation>
+    </xsd:annotation>
+</xsd:element>
+
+</xsd:schema>
+

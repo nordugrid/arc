@@ -29,7 +29,6 @@
     <Service name="paul" id="paul">
        <paul:SchedulerEndpoint>http://10.211.55.9:60000/sched</paul:SchedulerEndpoint>
        <paul:JobRoot>/home/szferi/arc1/src/services/paul/jobroot</paul:JobRoot>
-       <paul:DataDirectoryPath>./db</paul:DataDirectoryPath>
        <paul:CacheDirectoryPath>./cache</paul:CacheDirectoryPath>
        <paul:RequestPeriod>30</paul:RequestPeriod>
        <paul:Timeout>5</paul:Timeout> 

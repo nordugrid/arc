@@ -28,7 +28,6 @@
     <Service name="paul" id="paul">
        <paul:SchedulerEndpoint>http://62.37.245.186:60000/sched</paul:SchedulerEndpoint>
        <paul:JobRoot>c:\Program Files\ARC</paul:JobRoot>
-       <paul:DataDirectoryPath>./db</paul:DataDirectoryPath>
        <paul:CacheDirectoryPath>./cache</paul:CacheDirectoryPath>
        <paul:RequestPeriod>40</paul:RequestPeriod>
        <paul:Timeout>5</paul:Timeout> 
