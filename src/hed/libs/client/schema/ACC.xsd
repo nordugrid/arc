@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    targetNamespace="http://www.nordugrid.org/schemas/acc/2009/08"
+    xmlns="http://www.nordugrid.org/schemas/acc/2009/08"
+    xmlns:ini="http://www.nordugrid.org/schemas/ini/2009/08"
+    elementFormDefault="qualified"
+    attributeFormDefault="unqualified">
+
+<!-- Imports -->
+<xsd:import namespace="http://www.nordugrid.org/schemas/ini/2009/08" schemaLocation="../../../daemon/schema/ini.xsd"/>
+	    
+<!-- Root element -->
+<xsd:element name="ArcClientComponent">
+    <xsd:attribute name="name" type="xsd:string" use="required"/>
+    <xsd:attribute name="id" type="xsd:string" use="required"/>
+    <xsd:complexType>
+	<xsd:annotation>
+	    <xsd:documentation>
+	    This is the top level element of a ARC Client Component configuration.
+	    </xsd:documentation>
+	</xsd:annotation>
+	<xsd:sequence>
+		<xsd:element ref="ProxyPath" minOccurs="0" maxOccurs="1"/>
+	       	<xsd:element ref="CACertificatesDir" minOccurs="0" maxOccurs="1"/>
+		<xsd:element ref="TimeOut" minOccurs="0" maxOccurs="1"/>
+		<xsd:element ref="CertificatePath" minOccurs="0" maxOccurs="1"/>
+		<xsd:element ref="KeyPath" minOccurs="0" maxOccurs="1"/>
+	</xsd:sequence>
+    </xsd:complexType>
+</xsd:element>
+
+<xsd:element name="ProxyPath" type="xsd:string" >
+    <xsd:annotation>
+       <xsd:documentation xml:lang="en">
+       Path to the proxy.
+       </xsd:documentation>
+    </xsd:annotation>
+</xsd:element>
+
+<xsd:element name="CACertificatesDir" type="xsd:string" default="/etc/grid-security/certificates">
+    <xsd:annotation>
+       <xsd:documentation xml:lang="en">
+       Path to directory containing CA certificates.
+       </xsd:documentation>
+    </xsd:annotation>
+</xsd:element>
+
+<xsd:element name="TimeOut" type="xsd:int" default="20">
+    <xsd:annotation>
+       <xsd:documentation xml:lang="en">
+       Number of seconds before an irresponsive connection is closed. 
+       </xsd:documentation>
+    </xsd:annotation>
+</xsd:element>
+
+<xsd:element name="CertificatePath" type="xsd:string">
+    <xsd:annotation>
+       <xsd:documentation xml:lang="en">
+       Path to the certificate.
+       </xsd:documentation>
+    </xsd:annotation>
+</xsd:element>
+
+<xsd:element name="KeyPath" type="xsd:string" >
+    <xsd:annotation>
+       <xsd:documentation xml:lang="en">
+       Path to the certificate.
+       </xsd:documentation>
+    </xsd:annotation>
+</xsd:element>
+
+</xsd:schema>
