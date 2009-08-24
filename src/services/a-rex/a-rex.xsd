@@ -132,12 +132,6 @@
                 * maxFilesTransfered - number of files being transfered 
                   simultaneously by jobs in PREPARING and FINISHING states.
                   Value is per job.
-                * maxJobsPerShare - specifies a sharing mechanism for data
-                  transfer. Its value is the maximum number of data transfer 
-                  processes that can run per transfer share and shareType is
-                  the scheme used to assign jobs to transfer shares. Current 
-                  possible values of sharetype are "dn", "voms:vo", 
-                  "voms:role", and "voms:group".
                 * wakeupPeriod - specifies how often cheks for new jobs 
                   arrived, job state change requests, etc are done. That 
                   is resposivity of the service. The period is in seconds. 
@@ -155,15 +149,6 @@
                          type="xsd:nonNegativeInteger" minOccurs="0"/>
             <xsd:element name="maxFilesTransfered"
                          type="xsd:nonNegativeInteger" minOccurs="0"/>
-            <xsd:element name="maxJobsPerShare"
-                         minOccurs="0" maxOccurs="unbounded">
-                <xsd:simpleType>
-                    <xsd:restriction base="xsd:nonNegativeInteger">
-                        <xsd:attribute name="shareType" type="xsd:string"
-                                       use="required"/>
-                    </xsd:restriction>
-                </xsd:simpleType>
-            </xsd:element>
             <xsd:element name="wakeupPeriod" type="xsd:nonNegativeInteger"
                          minOccurs="0"/>
         </xsd:sequence>
@@ -190,13 +175,6 @@
                   to bring the used space down to the min level. It is a
                   good idea to have the cache on its own separate file system.
                   To turn off this feature those elements must be absent.
-                * type - if set to REMOTE this element specifies cache which
-                  is under the control of other services, but which this
-                  service can have read-only access to. If a file is not
-                  available in paths specified by LOCAL caches, the service
-                  looks in remote caches.
-                * replicate - if set to true files in REMOTE cache will be 
-                  replicated to local caches when they are requested.
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
@@ -208,24 +186,11 @@
             <xsd:element name="lowWatermark" type="xsd:nonNegativeInteger"
                          minOccurs="0"/>
         </xsd:sequence>
-        <xsd:attribute name="type" default="LOCAL" use="optional">
-            <xsd:restriction base="xsd:string">
-                <xsd:enumeration value="LOCAL"/>
-                <xsd:enumeration value="REMOTE"/>
-            </xsd:restriction>
-        </xsd:attribute>
-        <xsd:attribute name="replicate" type="xsd:boolean" use="optional"/>
     </xsd:complexType>
 
     <xsd:complexType name="dataTransfer_Type">
         <xsd:annotation>
             <xsd:documentation xml:lang="en">
-                Parameters related to cache functionality. Multiple caches
-                may be specified. Cached data will be distributed evenly 
-                over the caches. If none such element is present caching is 
-                disabled.
-                * location - path to a directory to store cached data. 
-                  Multiple cache directories may be specified by specifying
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
