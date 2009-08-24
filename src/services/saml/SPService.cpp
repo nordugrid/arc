@@ -352,10 +352,47 @@ Arc::MCC_Status Service_SP::process(Arc::Message& inmsg,Arc::Message& outmsg) {
       //Replace the <saml:EncryptedID/> with <saml:NameID/>
       nameid_nd.Replace(decrypted_nameid_nd);
 
-      //TODO: Check the authentication part of saml assertion
-      //
+      //Check the <saml:Condition/> <saml:AuthnStatement/> 
+      //and <saml:/Subject> part of saml assertion
+      XMLNode subject   = decrypted_assertion_nd["saml:Subject"];
+      XMLNode conditions = decrypted_assertion_nd["saml:Conditions"];
+      XMLNode authnstatement = decrypted_assertion_nd["saml:AuthnStatement"];
 
+      std::string notbefore_str = (std::string)(conditions.Attribute("NotBefore"));
+      Time notbefore = notbefore_str;
+      std::string notonorafter_str = (std::string)(conditions.Attribute("NotOnOrAfter"));
+      Time notonorafter = notonorafter_str;
+      Time now = Time();
+      if(!notbefore_str.empty() && notbefore >= now) {
+        logger.msg(Arc::ERROR,"saml:Conditions, current time is before the start time"); 
+        return Arc::MCC_Status(); 
+      } else if (!notonorafter_str.empty() && notonorafter < now) {
+        logger.msg(Arc::ERROR,"saml:Conditions, current time is after the end time"); 
+        return Arc::MCC_Status(); 
+      }     
 
+      XMLNode subject_confirmation = subject["saml:SubjectConfirmation"];
+      std::string confirm_method = (std::string)(subject_confirmation.Attribute("Method"));
+      if(confirm_method == "urn:oasis:names:tc:SAML:2.0:cm:bearer") {
+        //TODO
+      } else if (confirm_method == "urn:oasis:names:tc:SAML:2.0:cm:holder-of-key") {
+        //TODO
+      }
+      notbefore_str = (std::string)(subject_confirmation.Attribute("NotBefore"));
+      notbefore = notbefore_str;
+      notonorafter_str = (std::string)(subject_confirmation.Attribute("NotOnOrAfter"));
+      notonorafter = notonorafter_str;
+      now = Time();
+      if(!notbefore_str.empty() && notbefore >= now) {
+        logger.msg(Arc::ERROR,"saml:Subject, current time is before the start time");
+        return Arc::MCC_Status();
+      } else if (!notonorafter_str.empty() && notonorafter < now) {
+        logger.msg(Arc::ERROR,"saml:Subject, current time is after the end time");
+        return Arc::MCC_Status();
+      }
+      //TODO: "InResponseTo", need to recorde the ID?
+
+      
   
       //Record the saml assertion into message context, this information
       //will be checked by saml2sso_serviceprovider handler later to decide
