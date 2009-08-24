@@ -123,6 +123,7 @@ namespace Arc {
       bool load(const std::string& name);
       bool load(const std::string& name,const std::string& kind);
       bool load(const std::string& name,const std::list<std::string>& kinds);
+      const descriptors_t_& Descriptors() {return descriptors_;};
       template<class P>
       P* GetInstance(const std::string& kind,PluginArgument* arg) {
         Plugin* plugin = get_instance(kind,arg);
