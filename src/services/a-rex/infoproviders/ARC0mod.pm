@@ -31,6 +31,7 @@ our %modnames = ( PBS    => "PBS",
                   LL     => "LL",
                   LSF    => "LSF",
                   CONDOR => "Condor",
+                  SLURM  => "SLURM",
                   FORK   => "Fork"
                 );
 

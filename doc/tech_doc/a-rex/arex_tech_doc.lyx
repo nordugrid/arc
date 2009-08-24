@@ -6314,7 +6314,7 @@ smtp-send.sh
 submit-*-job
 \shape default
  -- Here * stands for the name of the LRMS.
- Currently supported LRMS are PBS/Torque, Condor, LoadLeveler, LSF and SGE.
+ Currently supported LRMS are PBS/Torque, Condor, LoadLeveler, LSF, SLURM, and SGE.
  Also 
 \emph on
 fork

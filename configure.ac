@@ -40,7 +40,6 @@ AC_ARG_WITH(sysv-scripts-location,
   [ initddir="$withval" ],
   [ initddir="$sysconfdir/init.d" ]
 )
-AC_MSG_RESULT($initddir)
 AC_SUBST(initddir)
 
 # gettext
@@ -1472,6 +1471,10 @@ AC_CONFIG_FILES([Makefile
                  src/services/a-rex/lrms/sge/submit-sge-job
                  src/services/a-rex/lrms/sge/scan-sge-job
                  src/services/a-rex/lrms/sge/cancel-sge-job
+                 src/services/a-rex/lrms/slurm/Makefile
+                 src/services/a-rex/lrms/slurm/submit-SLURM-job
+                 src/services/a-rex/lrms/slurm/scan-SLURM-job
+                 src/services/a-rex/lrms/slurm/cancel-SLURM-job
                  src/services/a-rex/logger/Makefile
                  src/services/charon/Makefile
                  src/services/charon/charon_service.xml.example

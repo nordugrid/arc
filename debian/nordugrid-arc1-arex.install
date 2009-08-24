@@ -18,6 +18,7 @@ usr/lib/arc/LL.pm
 usr/lib/arc/LSF.pm
 usr/lib/arc/PBS.pm
 usr/lib/arc/Condor.pm
+usr/lib/arc/SLURM.pm
 
 usr/lib/arc/ARC0ClusterInfo.pm
 usr/lib/arc/ARC0ClusterSchema.pm

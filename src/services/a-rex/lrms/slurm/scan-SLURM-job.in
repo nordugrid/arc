@@ -1,0 +1,268 @@
+#!/bin/bash
+#
+# Periodically check state of grid jobs in SLURM, and put mark files
+# for finished jobs.
+#
+# usage: scan_slurm_job control_dir ...
+
+# Load arc.conf and set up environment
+joboption_lrms=SLURM
+
+basedir=`dirname $0`
+basedir=`cd $basedir > /dev/null && pwd` || exit $?
+
+pkglibdir="$basedir/@pkglibdir_rel_to_pkglibexecdir@"
+pkglibdir=`cd $pkglibdir > /dev/null && pwd` || exit $?
+
+. ${pkglibdir}/configure-${joboption_lrms}-env.sh || exit $?
+
+
+# Prevent multiple instances of scan-slurm-job to run concurrently
+lockfile="${CONFIG_tmpdir:-/tmp}/scan-slurm-job.lock"
+#Check if lockfile exist, if not, create it.
+(set -C; : > "$lockfile") 2> /dev/null
+if [ "$?" != "0" ]; then
+    if ps -p $(< "$lockfile") 2>/dev/null;then
+	echo "lockfile exists and PID $(< $lockfile) is running"
+	exit 1
+    fi
+    echo "old lockfile found, was scan-slurm-job killed?"
+
+    # sleep, and if no other have removed and recreated the lockfile we remove it.
+    # there are still races possible, but this will have to do
+    sleep $((${RANDOM}%30+10))
+    if ps -p $(< $lockfile) &>/dev/null;then
+        echo "lockfile exists and $(< $lockfile) is running"
+	exit 1
+    else
+	echo "still not running, removing lockfile"
+	rm $lockfile
+	exit 1
+    fi
+fi
+echo "$$" > "$lockfile"
+#If killed, remove lockfile
+trap 'rm $lockfile' EXIT KILL TERM
+#Default sleep-time is 30 seconds
+sleep ${CONFIG_SLURM_wakeupperiod:-30}
+
+
+
+### If GM sees the session dirs... copied from scan-pbs-jobs
+RUNTIME_NODE_SEES_FRONTEND=${RUNTIME_NODE_SEES_FRONTEND:-@runtime_node_sees_frontend@}
+#default is NFS
+if [ -z "${RUNTIME_NODE_SEES_FRONTEND}" ] ; then
+  RUNTIME_NODE_SEES_FRONTEND=yes
+fi
+# locally empty means no
+if [ "${RUNTIME_NODE_SEES_FRONTEND}" = 'no' ] ; then
+  RUNTIME_NODE_SEES_FRONTEND=
+fi
+
+# Prints the owner of the file given as argument
+# Perl is used because it's more protable than using the stat command
+printowner () {
+  code='$f=$ARGV[0];if(@s=stat $f){@p=getpwuid $s[4];if(@p){print $p[0]}else{exit 1}}else{die "$f: $!\n"}'
+  perl -we "$code" "$1"
+}
+
+# Append .comment (containing STDOUT & STDERR of the job wrapper) to .errors
+save_commentfile () {
+  username=$1
+  commentfile=$2
+  errorsfile=$3
+  action="
+    { echo '--------- Contents of output stream forwarded by SLURM ----------'
+      cat '$commentfile' 2> /dev/null
+      echo '------------------------- End of output -------------------------'
+    } >> '$errorsfile'
+  "
+  if [ -z "$username" ] ; then
+    eval "$action"
+  else
+    su "$username" -c "eval \"$action\""
+  fi
+}
+
+
+#Validate control directories supplied on command-line
+if [ -z "$1" ] ; then
+    echo "no control_dir specified" 1>&2; exit 1
+fi
+for ctr_dir in "$@"; do
+    if [ ! -d "$ctr_dir" ]; then
+	echo "called with erronous control dir: $ctr_dir"
+	exit 1
+    fi
+done
+
+
+# List of SLURM jobids for grid-jobs with state INLRMS
+declare -a localids
+# Array with basenames of grid-job files in ctrl_dir, indexed by localid
+# example /some/path/job.XXXXX /some/other/parh/job.YYYYY
+declare -a basenames
+# Array with states of the jobs in SLURM, indexed by localid
+declare -a jobstates
+# Array to store localids of jobs that are determined to have finished, which are sent to gm-kick
+declare -a kicklist
+
+# Find list of grid jobs with status INLRMS, store localid and
+# basename for those jobs
+for basename in $(find "$@" -name 'job.*.status' -print0 \
+    | xargs -0 grep -F -l "INLRMS" \
+    | sed 's/.status$//')
+  do
+  localid=$(grep ^localid= "${basename}.local" | cut -d= -f2)
+
+  verify_jobid "$localid" || continue
+
+  localids[${#localids[@]}]="$localid"
+  basenames[$localid]="$basename"
+done
+
+# No need to continue further if no jobs have status INLRMS
+if [ "${localids[@]}" = "" ];then
+    exit 0
+fi
+
+# Get JobStates from SLURM
+jobstate_squeue=$($squeue -a -h -o "%i:%T" -t all \
+    -j $(echo "${localids[@]}" | tr ' ' ,))\
+    || { echo "squeue failed" 1>&2; exit 1; }
+
+for record in $jobstate_squeue; do
+    localid=$(echo "$record"|cut -d: -f1)
+    state=$(echo "$record"|cut -d: -f2)
+    jobstates[$localid]=$state;
+done
+unset jobstate_squeue
+
+handle_commentfile () {
+    localid=$1
+    session=`grep -h '^sessiondir=' "${basenames[$localid]}.local" | sed 's/^sessiondir=\(.*\)/\1/'`
+    if [ "$my_id" = '0' ] ; then
+        username=`printowner "${basenames[$localid]}.local"`
+    else
+        username=
+    fi
+    save_commentfile "$username" "${session}.comment" "${basenames[$localid]}.errors"
+}
+
+# Call scontrol and find the exitcode of a job. Write this, together with a
+# message to the lrms_done file. This function is used in the loop below.
+function handle_exitcode {
+    localid="$1"
+    tmpexitcode="$2"
+    reason="$3"
+    
+    jobinfostring=$("$scontrol" -o show job $localid)
+    exitcode1=$(echo $jobinfostring|sed -n 's/.*ExitCode=\([0-9]*\):\([0-9]*\).*/\1/p')
+    exitcode2=$(echo $jobinfostring|sed -n 's/.*ExitCode=\([0-9]*\):\([0-9]*\).*/\2/p')
+
+    if [ -z "$exitcode1" ] && [ -z "$exitcode2" ] ; then
+	exitcode=$tmpexitcode
+    elif [ $exitcode2 -ne 0 ]; then
+	exitcode=$(( $exitcode2 + 256 ))
+    elif [ $exitcode1 -ne 0 ]; then
+	exitcode=$exitcode1
+    else 
+	exitcode=0
+    fi
+    
+    echo "$exitcode $reason" > "${basenames[$localid]}.lrms_done"
+    kicklist=(${kicklist[@]} $localid)
+}
+
+# Look at the list of jobstates and determine which jobs that have
+# finished. Write job.XXXX.lrms_done according to this
+for localid in ${localids[@]}; do
+#    state=${jobstates[$localid]}
+#     case $state in
+    case "${jobstates[$localid]}" in
+ 	"")
+	    # Job is missing (no state) from slurm but INLRMS.
+	    
+	    exitcode=''
+            # get session directory of this job
+	    session=`grep -h '^sessiondir=' "${basenames[$localid]}.local" | sed 's/^sessiondir=\(.*\)/\1/'`
+	    diagfile="${session}.diag"
+	    commentfile="${session}.comment"
+	    if [ "$my_id" = '0' ] ; then
+		username=`printowner "${basenames[$localid]}.local"`
+	    else
+		username=
+	    fi
+	    if [ ! -z "$session" ] ; then
+            # have chance to obtain exit code
+		if [ -z "${RUNTIME_NODE_SEES_FRONTEND}" ] ; then
+            # In case of non-NFS setup it may take some time till
+            # diagnostics file is delivered. Wait for it max 2 minutes.
+		    diag_tries=20
+		    while [ "$diag_tries" -gt 0 ] ; do
+			if [ -z "$username" ] ; then
+			    exitcode=`grep '^exitcode=' "$diagfile" 2>/dev/null | sed 's/^exitcode=//'`
+			else
+			    exitcode=`su "${username}" -c "grep '^exitcode=' $diagfile" 2>/dev/null | sed 's/^exitcode=//'`
+			fi
+			if [ ! -z "$exitcode" ] ; then break ; fi
+			sleep 10
+			diag_tries=$(( $diag_tries - 1 ))
+		    done
+		else
+		    if [ -z "$username" ] ; then
+			exitcode=`grep '^exitcode=' "$diagfile" 2>/dev/null | sed 's/^exitcode=//'`
+		    else
+			exitcode=`su "${username}" -c "grep '^exitcode=' $diagfile" 2>/dev/null | sed 's/^exitcode=//'`
+		    fi
+		fi
+	    fi
+
+	    jobstatus="$exitcode Job missing from SLURM, exitcode recovered from session directory"
+	    if [ -z $exitcode ];then
+		exitcode="-1"
+		jobstatus="$exitcode Job missing from SLURM"
+	    fi
+
+	    save_commentfile "$username" "$commentfile" "${basenames[$localid]}.errors"
+	    echo  "$jobstatus" > "${basenames[$localid]}.lrms_done"
+	    kicklist=(${kicklist[@]} $localid)
+	    
+ 	    ;;
+  	PENDING|RUNNING|SUSPENDE|COMPLETING)
+  	#Job is running, nothing to do.
+  	    ;;
+  	CANCELLED)
+	    handle_commentfile $localid
+	    echo "-1 Job was cancelled" > "${basenames[$localid]}.lrms_done"
+	    kicklist=(${kicklist[@]} $localid)
+	    # handle_exitcode $localid "-1" "Job was cancelled"
+	    ;;
+  	COMPLETED)
+	    handle_commentfile $localid
+	    handle_exitcode $localid "0" ""
+  	    ;;
+  	FAILED)
+	    handle_commentfile $localid
+	    handle_exitcode $localid "-1" "Job failed"
+  	    ;;
+  	TIMEOUT)
+	    handle_commentfile $localid
+	    handle_exitcode $localid "-1" "Job timeout"
+  	    ;;
+  	NODE_FAIL)
+	    handle_commentfile $localid
+	    handle_exitcode $localid "-1" "Node fail"
+  	    ;;
+    esac
+done
+
+# Kick the GM
+if [ -n "${kicklist[*]}" ];then
+    "${basedir}/gm-kick" \
+	$(for localid in "${kicklist[@]}";do
+	    echo "${basenames[$localid]}.status"
+	    done | xargs)
+fi
+
+exit 0

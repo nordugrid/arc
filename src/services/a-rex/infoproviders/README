@@ -26,7 +26,7 @@ XXXXmod.pm  - plugins for LRMSInfo implementing the new LRMS module interface,
     SGEmod.pm  - SGE information module
     ARC0mod.pm - special module that loads ARC0 information modules and does
                  the conversion between the old interface and the new one.
-PBS.pm, LL.pm, LSF.pm, Condor.pm - ARC0 information modules
+PBS.pm, LL.pm, LSF.pm, Condor.pm, SLURM.pm - ARC0 information modules
 
 ARC0ClusterInfo.pm - combines all information about A-REX and produces
                      information structured according to the classic NG schema.

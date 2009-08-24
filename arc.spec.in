@@ -326,6 +326,7 @@ exit 0
 %{_libdir}/%{pkgdir}/LSF.pm
 %{_libdir}/%{pkgdir}/PBS.pm
 %{_libdir}/%{pkgdir}/Condor.pm
+%{_libdir}/%{pkgdir}/SLURM.pm
 #
 %{_libdir}/%{pkgdir}/ARC0ClusterInfo.pm
 %{_libdir}/%{pkgdir}/ARC0ClusterSchema.pm
