@@ -18,6 +18,8 @@ namespace Arc {
 #endif
     AddOption('c', "config", "full path of config file", "path", config_file);
     AddOption('p', "pid-file", "full path of pid file", "path", pid_file);
+    AddOption('u', "user", "user name", "user", user);
+    AddOption('g', "group", "group name", "group", group);
 #ifdef WIN32
     install = false;
     AddOption('i', "install", "install windows service", install);

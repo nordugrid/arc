@@ -14,9 +14,7 @@
 #include <assert.h>
 #include <fcntl.h>
 #include <signal.h>
-#include <sys/types.h>
 #include <unistd.h>
-
 #include <sys/types.h>
 #include <sys/stat.h>
 
@@ -30,7 +28,7 @@ namespace Arc {
 
 Logger Daemon::logger(Logger::rootLogger, "Daemon");
 
-Daemon::Daemon(std::string& pid_file_, std::string& log_file_)
+Daemon::Daemon(const std::string& pid_file_, const std::string& log_file_)
 {
     pid_t pid;
     

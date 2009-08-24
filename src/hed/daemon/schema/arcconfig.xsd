@@ -60,6 +60,26 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="User" type="xsd:string" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation xml:lang="en">
+                    The daemon will switch to this specified user using the start time. If it is not specified the effective user won't be changed.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <ini:tag>user</ini:tag>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="Gser" type="xsd:string" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation xml:lang="en">
+                    The daemon will switch to this specified group using the start time. If it is not specified the effective group won't be changed.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <ini:tag>group</ini:tag>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element ref="Logger" minOccurs="0" maxOccurs="1"/>
         </xsd:all>
     </xsd:complexType>
