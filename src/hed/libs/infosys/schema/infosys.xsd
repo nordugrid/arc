@@ -14,31 +14,74 @@
             <xsd:documentation xml:lang="en">
              This element defines configuration of Information Registration 
              active element. This element is located at top level configuration
-             document. Each instance if such element instatiates one instance
+             document. Each instance if such element instantiates  one instance
              of Information Registrant active element.
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
+
+            <xsd:element name="URL" type="xsd:string" minOccurs="1" maxOccurs="unbounded"> 
+                <xsd:annotation>
+                    <xsd:documentation xml:lang="en">
+                     URL specifies contact endpoint of a bootstrap Information 
+                     Registration service. Further ISIS addresses will be queried 
+                     from this service.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+  
+  
+            <xsd:element name="KeyPath" type="xsd:string"  minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation xml:lang="en">
+                     Optional KeyPath for SSL connection
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+
+            <xsd:element name="CertificatePath" type="xsd:string"  minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation xml:lang="en">
+                     Optional CertificatePath for SSL connection
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+
+             <xsd:element name="ProxyPath" type="xsd:string"  minOccurs="0" maxOccurs="1">
+                 <xsd:annotation>
+                     <xsd:documentation xml:lang="en">
+                      Optional ProxyPath for SSL connection
+                     </xsd:documentation>
+                 </xsd:annotation>
+             </xsd:element>
+
+            <xsd:element name="CACertificatesDir" type="xsd:string"  minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation xml:lang="en">
+                     Optional CACertificatesDir for SSL connection
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            
+  
+            <xsd:element name="Retry" type="xsd:string" minOccurs="0" maxOccurs="1" default="5">
+                <xsd:annotation>
+                    <xsd:documentation xml:lang="en">
+                     Retry count. Specified how many times have an ISIS to timeout to handle it as 
+                     unavailable. If there is no value specified the default value: 5 will be used. 
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+
+        <xsd:attribute name="id" type="xsd:string" use="optional">
             <xsd:annotation>
                 <xsd:documentation xml:lang="en">
-                 URL specifies contact endpoint of a bootstrap Information 
-                 Registration service. Further ISIS adresses will be queried 
-                 from this service.
+                 Attribute id may be used to refer to this element 
                 </xsd:documentation>
             </xsd:annotation>
-            <xsd:element name="URL" type="xsd:string"/> <!-- maxOccurs="unbounded" -->
-            <!-- Optional KeyPath, CertificatePath, ProxyPath and CACertificatesDir are 
-                 paths to files storing X509 credentials used for establishing connections. -->
-            <xsd:element name="KeyPath" type="xsd:string" minOccurs="0"/>
-            <xsd:element name="CertificatePath" type="xsd:string" minOccurs="0"/>
-            <xsd:element name="ProxyPath" type="xsd:string" minOccurs="0"/>
-            <xsd:element name="CACertificatesDir" type="xsd:string" minOccurs="0"/>
-            <!-- Retry count. Specifie how many times have an ISIS to timeout to handle it as 
-                 unavailable. If there is no value specified the default value: 5 will be used. -->
-            <xsd:element name="Retry" type="xsd:string" minOccurs="0" maxOccurs="1" default="5"/>
-        </xsd:sequence>
-        <!--Attribute id may be used to refer to this element -->
-        <xsd:attribute name="id" type="xsd:string" use="optional"/>
+        </xsd:attribute>
+        
     </xsd:complexType>
     <xsd:element name="InfoRegistrar" type="iregc:InfoRegistrar_Type"/>
 
@@ -53,15 +96,39 @@
                 </xsd:documentation>
             </xsd:annotation>
             <xsd:element name="Period" type="xsd:nonNegativeInteger" minOccurs="0" maxOccurs="1" default="120"/>
-            <!--  Element defines the unique id of the service propagated outside. -->
-            <xsd:element name="ServiceID" type="xsd:string" minOccurs="0" maxOccurs="1"/>
-            <!--  This element defines URL of the service as seen from outside. -->
-            <xsd:element name="Endpoint" type="xsd:string" minOccurs="0" maxOccurs="1"/>
-            <!-- This element defines the expiration time of the information provided by the service. -->
-            <xsd:element name="Expiration" type="xsd:string" minOccurs="0" maxOccurs="1" default="PT10M"/>
+
+            <xsd:element name="ServiceID" type="xsd:string" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation xml:lang="en">
+                     Element defines the unique id of the service propagated outside.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+
+            <xsd:element name="Endpoint" type="xsd:string" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation xml:lang="en">
+                     This element defines URL of the service as seen from outside.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+ 
+            <xsd:element name="Expiration" type="xsd:string" minOccurs="0" maxOccurs="1" default="PT10M">
+                <xsd:annotation>
+                    <xsd:documentation xml:lang="en">
+                     This element defines the expiration time of the information provided by the service.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
-        <!-- Attribute id is to define the previously configured InfoRegistrar to be refered -->
-        <xsd:attribute name="id" type="xsd:string" use="required"/>
+ 
+         <xsd:attribute name="id" type="xsd:string" use="required">
+             <xsd:annotation>
+                 <xsd:documentation xml:lang="en">
+                  Attribute id is to define the previously configured InfoRegistrar to be preferred
+                 </xsd:documentation>
+             </xsd:annotation>
+         </xsd:attribute>
     </xsd:complexType>
 
     <xsd:complexType name="InfoRegister_Type">
@@ -84,25 +151,48 @@
             <xsd:element name="Registrar" type="iregc:Registrar_Type" minOccurs="0" maxOccurs="unbounded"/>
             <!-- Default values for every InfoRegistrar -->
 
-            <!-- Period specifies how often registration to be done in minutes.
-                 The 0 value means single registration. -->
-            <xsd:element name="Period" type="xsd:nonNegativeInteger" minOccurs="1" maxOccurs="1" default="120"/>
-            <!-- Element defines the unique id of the service propagated outside. -->
-            <xsd:element name="ServiceID" type="xsd:string" minOccurs="0" maxOccurs="1"/>
-            <!-- This element defines URL of the service as seen from outside. -->
-            <xsd:element name="Endpoint" type="xsd:string" minOccurs="1" maxOccurs="1"/>
-            <!-- This element defines the expiration time of the information provided by the service. -->
-            <xsd:element name="Expiration" type="xsd:string" minOccurs="1" maxOccurs="1" default="PT10M"/>
+            <xsd:element name="Period" type="xsd:nonNegativeInteger" minOccurs="1" maxOccurs="1" default="120">
+                <xsd:annotation>
+                    <xsd:documentation xml:lang="en">
+                     Period specifies how often registration to be done in minutes.
+                     The 0 value means single registration.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+
+            <xsd:element name="ServiceID" type="xsd:string" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation xml:lang="en">
+                     Element defines the unique id of the service propagated outside.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+
+            <xsd:element name="Endpoint" type="xsd:string" minOccurs="1" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation xml:lang="en">
+                     This element defines URL of the service as seen from outside.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+
+            <xsd:element name="Expiration" type="xsd:string" minOccurs="1" maxOccurs="1" default="PT10M">
+                <xsd:annotation>
+                    <xsd:documentation xml:lang="en">
+                     This element defines the expiration time of the information provided by the service.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
     <xsd:element name="InfoRegister" type="iregc:InfoRegister_Type"/>
 
-    <xsd:annotation>
-        <xsd:documentation xml:lang="en">
-         Configuration element force skipping the Self-Registration
-        </xsd:documentation>
-    </xsd:annotation>
     <xsd:element name="NoRegister">
+        <xsd:annotation>
+            <xsd:documentation xml:lang="en">
+             Configuration element force skipping the Self-Registration
+            </xsd:documentation>
+        </xsd:annotation>
         <xsd:complexType />
     </xsd:element>
 

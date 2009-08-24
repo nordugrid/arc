@@ -7,22 +7,47 @@
   elementFormDefault="qualified" attributeFormDefault="unqualified"
 >
 
-  <!-- Optional KeyPath, CertificatePath, ProxyPath and CACertificatesDir are 
-  paths to files storing X509 credentials used for establishing connections. -->
-  <xsd:element name="keypath" type="xsd:string" minOccurs="0"/>
-  <xsd:element name="certpath" type="xsd:string" minOccurs="0"/>
-  <xsd:element name="proxypath" type="xsd:string" minOccurs="0"/>
-  <xsd:element name="cadirpath" type="xsd:string" minOccurs="0"/>
-
-  <xsd:element name="endpoint" type="xsd:anyURI">
+  <xsd:element name="keypath" type="xsd:string">
       <xsd:annotation>
           <xsd:documentation xml:lang="en">
-            The URL where the service can be accessed from outside.
+              Optional KeyPath for SSL connection
           </xsd:documentation>
       </xsd:annotation>
   </xsd:element>
 
-  <xsd:element name="retry" type="xsd:nonNegativeInteger" minOccurs="0" default="5">
+  <xsd:element name="certpath" type="xsd:string">
+      <xsd:annotation>
+          <xsd:documentation xml:lang="en">
+              Optional CertificatePath for SSL connection
+          </xsd:documentation>
+      </xsd:annotation>
+  </xsd:element>
+
+  <xsd:element name="proxypath" type="xsd:string">
+      <xsd:annotation>
+          <xsd:documentation xml:lang="en">
+              Optional ProxyPath for SSL connection
+          </xsd:documentation>
+      </xsd:annotation>
+  </xsd:element>
+
+  <xsd:element name="cadirpath" type="xsd:string">
+      <xsd:annotation>
+          <xsd:documentation xml:lang="en">
+              Optional CACertificatesDir for SSL connection
+          </xsd:documentation>
+      </xsd:annotation>
+  </xsd:element>
+
+  <xsd:element name="endpoint" type="xsd:anyURI">
+      <xsd:annotation>
+          <xsd:documentation xml:lang="en">
+              The URL where the service can be accessed from outside.
+          </xsd:documentation>
+      </xsd:annotation>
+  </xsd:element>
+
+  <xsd:element name="retry" type="xsd:nonNegativeInteger" default="5">
       <xsd:annotation>
           <xsd:documentation xml:lang="en">
               Retry specifies how many times communication to ISIS have to fail/timeout to start treating it as unavailable.
@@ -30,7 +55,7 @@
       </xsd:annotation>
   </xsd:element>
 
-  <xsd:element name="sparsity" type="xsd:nonNegativeInteger" minOccurs="0" default="2">
+  <xsd:element name="sparsity" type="xsd:nonNegativeInteger" default="2">
       <xsd:annotation>
           <xsd:documentation xml:lang="en">
               It determines the number of neighbors as a function of the actual number of member nodes of the network.									      
@@ -38,11 +63,26 @@
       </xsd:annotation>
   </xsd:element>
 
-  <xsd:simpleType name="Logger_Type">
-    <xsd:restriction base="xsd:string"/>
-    <xsd:attribute name="level" type="xsd:string" use="optional"/>
-  </xsd:simpleType>
-  <xsd:element name="Logger" type="icfg:Logger_Type" minOccurs="0">
+  <xsd:complexType name="Logger_Type">
+    <xsd:simpleContent>
+      <xsd:extension base="xsd:string">
+        <xsd:attribute name="level" default="INFO">
+          <xsd:simpleType>
+            <xsd:restriction base="xsd:string">
+              <xsd:enumeration value="VERBOSE"/>          
+              <xsd:enumeration value="DEBUG"/>
+              <xsd:enumeration value="INFO"/>
+              <xsd:enumeration value="WARNING"/>
+              <xsd:enumeration value="ERROR"/>
+              <xsd:enumeration value="FATAL"/>
+            </xsd:restriction>
+          </xsd:simpleType>
+        </xsd:attribute>
+      </xsd:extension>
+    </xsd:simpleContent>
+  </xsd:complexType>
+
+  <xsd:element name="Logger" type="icfg:Logger_Type">
       <xsd:annotation>
           <xsd:documentation xml:lang="en">
               File location where the log message is locally stored.
@@ -50,18 +90,18 @@
       </xsd:annotation>
   </xsd:element>
 
-  <xsd:element name="ETValid" type="xsd:nonNegativeInteger" minOccurs="0">
+  <xsd:element name="ETValid" type="xsd:nonNegativeInteger" default="43200">
       <xsd:annotation>
           <xsd:documentation xml:lang="en">
-              Soft state database parameter. Time of the valid messages cheching period.
+              Soft state database parameter. Time of the valid messages checking period.
           </xsd:documentation>
       </xsd:annotation>
   </xsd:element>
 
-  <xsd:element name="ETRemove" type="xsd:nonNegativeInteger" minOccurs="0">
+  <xsd:element name="ETRemove" type="xsd:nonNegativeInteger" default="43200">
       <xsd:annotation>
           <xsd:documentation xml:lang="en">
-              Soft state database parameter. Time of the expired messages cheching period.
+              Soft state database parameter. Time of the expired messages checking period.
           </xsd:documentation>
       </xsd:annotation>
   </xsd:element>
@@ -69,7 +109,7 @@
   <xsd:element name="DBPath" type="xsd:string">
       <xsd:annotation>
           <xsd:documentation xml:lang="en">
-            File location where the database is locally stored.
+              File location where the database is locally stored.
           </xsd:documentation>
       </xsd:annotation>
   </xsd:element>
@@ -79,13 +119,14 @@
       <xsd:element name="URL" type="xsd:anyURI">
           <xsd:annotation>
               <xsd:documentation xml:lang="en">
-                  The URL of one or more ISIS where the other ISIS’s can be queried.
+                  The URL of one or more ISIS where the other ISIS's can be queried.
               </xsd:documentation>
           </xsd:annotation>
       </xsd:element>
     </xsd:sequence>
   </xsd:complexType>
-  <xsd:element name="InfoProvider" type="icfg:InfoProvider_Type" minOccurs="0" maxOccurs="unbounded"/>
+  
+  <xsd:element name="InfoProvider" type="icfg:InfoProvider_Type"/>
 
 </xsd:schema>
 

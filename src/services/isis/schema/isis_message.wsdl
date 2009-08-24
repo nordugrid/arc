@@ -28,7 +28,7 @@ Interface of Information Indexing Service
             attributeFormDefault="unqualified"
             elementFormDefault="qualified"
             >
-            <xsd:include schemaLocation="./isis.xsd"/>
+            <xsd:include schemaLocation="./isis_message.xsd"/>
         </xsd:schema>
     </wsdl:types>
 
@@ -230,16 +230,16 @@ Interface of Information Indexing Service
 <!-- ====== Service definition ====== -->
 <wsdl:service name="isis">
     <wsdl:port name="GetResourcePropertyDocument" binding="isis:GetResourcePropertyDocument">
-    	<soap:address location="mailto:test@test.com"/>
+    	<soap:address location="http://localhost:60000/isis"/>
     </wsdl:port>
     <wsdl:port name="GetResourceProperty" binding="isis:GetResourceProperty">
-    	<soap:address location="mailto:test@test.com"/>
+    	<soap:address location="http://localhost:60000/isis"/>
     </wsdl:port>
     <wsdl:port name="QueryResourceProperties" binding="isis:QueryResourceProperties">
-    	<soap:address location="mailto:test@test.com"/>
+    	<soap:address location="http://localhost:60000/isis"/>
     </wsdl:port>
     <wsdl:port name="isis" binding="isis:isis">
-    	<soap:address location="mailto:test@test.com"/>
+    	<soap:address location="http://localhost:60000/isis"/>
     </wsdl:port>
 </wsdl:service>
 

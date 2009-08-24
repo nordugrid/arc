@@ -14,8 +14,6 @@
     <xsd:import namespace="http://www.w3.org/2005/08/addressing" schemaLocation="http://www.w3.org/2006/03/addressing/ws-addr.xsd"/>
 
 
-<!-- This is an initial and incomplete DRAFT which mainly concentrates on the structure but not on the actual names. Final version will use GLUE-2.0 ternminology. -->
-
     <!-- ==== Input and output types for IIS operations ==== -->
     <!-- Input type for Register operation -->
     <xsd:complexType name="RegisterType">
@@ -110,7 +108,7 @@
     <!-- === Helper type definitions === -->
     <xsd:complexType name="DatabaseType">
         <xsd:sequence>
-            <xsd:element name="RegEntry" type="isis:RegEntry" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="RegEntry" type="isis:RegistrationEntryType" minOccurs="0" maxOccurs="1"/>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -144,10 +142,10 @@
 
     <xsd:complexType name="ServiceAdvertisementType">
         <xsd:sequence>
-            <!-- General part of the Service Advertisment -->
+            <!-- General part of the Service Advertisement -->
             <xsd:element name="Type" type="isis:ServiceTypeType"/>
             <xsd:element name="EPR" type="wsa:EndpointReferenceType"/>
-            <!-- Service specific part of the Service Advertisment -->
+            <!-- Service specific part of the Service Advertisement -->
             <xsd:element name="SSPair" type="isis:NameValuePairType" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
     </xsd:complexType>
@@ -172,8 +170,8 @@
     <!-- description of fault -->
     <xsd:complexType name="FaultType">
         <xsd:sequence>
-            <xsd:element name="Name"        type="xsd:string"/>
-            <xsd:element name="Type"        type="isis:FaultTypeType"/>
+            <xsd:element name="Name" type="xsd:string"/>
+            <xsd:element name="Type" type="isis:FaultTypeType"/>
             <xsd:element name="Description" type="xsd:string"/>
         </xsd:sequence>
     </xsd:complexType>

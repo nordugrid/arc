@@ -2,12 +2,14 @@
 <xsd:schema
   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
   elementFormDefault="qualified" attributeFormDefault="unqualified"
+  xmlns="http://www.nordugrid.org/schemas/compiler/2009/08"
+  targetNamespace="http://www.nordugrid.org/schemas/compiler/2009/08"
 >
 
   <xsd:element name="scriptfile_url" type="xsd:anyURI">
       <xsd:annotation>
           <xsd:documentation xml:lang="en">
-            The URL where the service can be download the compiler script file from outside.
+              The URL where the service can be download the compiler script file from outside.
           </xsd:documentation>
       </xsd:annotation>
   </xsd:element>
