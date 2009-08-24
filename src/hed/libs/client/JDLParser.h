@@ -32,8 +32,9 @@ namespace Arc {
                             const std::string& attributeValue,
                             JobDescription& job) const;
     std::string simpleJDLvalue(const std::string& attributeValue) const;
-    std::list<std::string> listJDLvalue(const std::string&
-                                        attributeValue) const;
+    std::list<std::string> listJDLvalue(const std::string& attributeValue,
+                                        std::pair<char, char> bracket = std::make_pair('{', '}'),
+                                        char lineEnd = ',') const;
     std::string generateOutputList(const std::string& attribute,
                                    const std::list<std::string>& list,
                                    std::pair<char, char> bracket = std::make_pair('{', '}'),

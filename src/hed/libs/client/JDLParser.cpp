@@ -84,14 +84,14 @@ namespace Arc {
       return attributeValue.substr(attributeValue.find_first_of("\"") + 1, last_pos - attributeValue.find_first_of("\"") - 1);
   }
 
-  std::list<std::string> JDLParser::listJDLvalue(const std::string& attributeValue) const {
+  std::list<std::string> JDLParser::listJDLvalue(const std::string& attributeValue, std::pair<char, char> brackets, char lineEnd) const {
     std::list<std::string> elements;
-    unsigned long first_bracket = attributeValue.find_first_of("{");
+    unsigned long first_bracket = attributeValue.find_first_of(brackets.first);
     if (first_bracket == std::string::npos) {
       elements.push_back(simpleJDLvalue(attributeValue));
       return elements;
     }
-    unsigned long last_bracket = attributeValue.find_last_of("}");
+    unsigned long last_bracket = attributeValue.find_last_of(brackets.second);
     if (last_bracket == std::string::npos) {
       elements.push_back(simpleJDLvalue(attributeValue));
       return elements;
@@ -99,7 +99,7 @@ namespace Arc {
     std::list<std::string> listElements;
     tokenize(attributeValue.substr(first_bracket + 1,
                                    last_bracket - first_bracket - 1),
-             listElements, ",");
+             listElements, &lineEnd);
     for (std::list<std::string>::const_iterator it = listElements.begin();
          it != listElements.end(); it++)
       elements.push_back(simpleJDLvalue(*it));
@@ -418,7 +418,7 @@ namespace Arc {
       return true;
     }
     else if (attributeName == "usertags") {
-      job.Identification.UserTag.push_back(simpleJDLvalue(attributeValue));
+      job.Identification.UserTag = listJDLvalue(attributeValue, std::make_pair('[', ']'), ';');
       return true;
     }
     else if (attributeName == "outputse") {
