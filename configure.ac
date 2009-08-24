@@ -40,6 +40,7 @@ AC_ARG_WITH(sysv-scripts-location,
   [ initddir="$withval" ],
   [ initddir="$sysconfdir/init.d" ]
 )
+AC_MSG_RESULT($initddir)
 AC_SUBST(initddir)
 
 # gettext
