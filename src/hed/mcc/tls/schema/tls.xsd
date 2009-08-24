@@ -28,7 +28,7 @@
 <xsd:element name="ProxyPath" type="xsd:string">
     <xsd:annotation>
         <xsd:documentation xml:lang="en">
-        Location of proxy credentials - includes certificates, key and chain of involved certificates. Overwrites elements KeyPath and CertificatePath. Default is none for client and none for service.
+        Location of proxy credentials - includes certificates, key and chain of involved certificates. Overwrites elements KeyPath and CertificatePath. Default is /tmp/hash{userid}.0 for client, and none for service.
         </xsd:documentation>
     </xsd:annotation>
 </xsd:element>
