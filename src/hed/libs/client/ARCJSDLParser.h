@@ -31,6 +31,22 @@ namespace Arc {
     ~ARCJSDLParser();
     JobDescription Parse(const std::string& source) const;
     std::string UnParse(const JobDescription& job) const;
+  private:
+    bool parseSoftware(const XMLNode& xmlSoftware, SoftwareRequirement& sr) const;
+    void outputSoftware(const SoftwareRequirement& sr, XMLNode& xmlSoftware) const;
+
+    template<typename T>
+    void parseRange(const XMLNode& xmlRange, Range<T>& range, const T& undefValue) const;
+    template<typename T>
+    Range<T> parseRange(const XMLNode& xmlRange, const T& undefValue) const;
+    template<typename T>
+    void outputARCJSDLRange(const Range<T>& range, XMLNode& arcJSDL, const T& undefValue) const;
+    template<typename T>
+    void outputJSDLRange(const Range<T>& range, XMLNode& jsdl, const T& undefValue) const;
+
+    
+    void parseBenchmark(const XMLNode& xmlBenchmark, std::pair<std::string, int>& benchmark) const;
+    void outputBenchmark(const std::pair<std::string, int>& benchmark, XMLNode& xmlBenchmark) const;
   };
 
 } // namespace Arc

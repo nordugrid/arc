@@ -519,18 +519,12 @@ namespace Arc {
         else if (cluster["nordugrid-cluster-nodememory"])
           target.MainMemorySize =
             stringtoi((std::string)cluster["nordugrid-cluster-nodememory"]);
-        if (queue["nordugrid-queue-opsys"]) {
-          target.OSName =
-            (std::string)queue["nordugrid-queue-opsys"][0];
-          target.OSVersion =
-            (std::string)queue["nordugrid-queue-opsys"][1];
-        }
-        else if (cluster["nordugrid-cluster-opsys"]) {
-          target.OSName =
-            (std::string)cluster["nordugrid-cluster-opsys"][0];
-          target.OSVersion =
-            (std::string)cluster["nordugrid-cluster-opsys"][1];
-        }
+        if (queue["nordugrid-queue-opsys"])
+          target.OperatingSystem = Software((std::string)queue["nordugrid-queue-opsys"][0],
+                                            (std::string)queue["nordugrid-queue-opsys"][1]);
+        else if (cluster["nordugrid-cluster-opsys"])
+          target.OperatingSystem = Software((std::string)cluster["nordugrid-cluster-opsys"][0],
+                                            (std::string)cluster["nordugrid-cluster-opsys"][1]);
         if (cluster["nordugrid-cluster-nodeaccess"])
           for (XMLNode n = cluster["nordugrid-cluster-nodeaccess"]; n; ++n)
             if ((std::string)n == "inbound")

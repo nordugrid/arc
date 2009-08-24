@@ -4,7 +4,7 @@
 #include <arc/client/ClientInterface.h>
 #include <arc/client/ClientX509Delegation.h>
 #include <arc/client/Submitter.h>
-#include <arc/client/SoftwareVersion.h>
+#include <arc/client/Software.h>
 #include <arc/client/ExecutionTarget.h>
 #include <arc/client/JobState.h>
 #include <arc/client/Job.h>
@@ -26,7 +26,7 @@
 %template(FileTypeList) std::list<Arc::FileType>;
 %template(DirectoryTypeList) std::list<Arc::DirectoryType>;
 %template(ApplicationEnvironmentList) std::list<Arc::ApplicationEnvironment>;
-%template(SoftwareVersionList) std::list<Arc::SoftwareVersion>;
+%template(SoftwareList) std::list<Arc::Software>;
 %template(SoftwareRequirementList) std::list<Arc::SoftwareRequirement>;
 
 
@@ -91,7 +91,7 @@ std::ostream& getStdout() {
 %include "../src/hed/libs/client/ClientX509Delegation.h"
 %clear std::string& delegation_id;
 %include "../src/hed/libs/client/Submitter.h"
-%include "../src/hed/libs/client/SoftwareVersion.h"
+%include "../src/hed/libs/client/Software.h"
 %include "../src/hed/libs/client/ExecutionTarget.h"
 %include "../src/hed/libs/client/JobState.h"
 %include "../src/hed/libs/client/Job.h"

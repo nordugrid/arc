@@ -153,7 +153,10 @@ void JobDescriptionTest::TestDataStaging() {
     XRSL_ASSERT(xrslJob.DataStaging.File.front().Source.size() == 1 && xrslJob.DataStaging.File.front().Source.front().URI);
     XRSL_ASSERT(job.DataStaging.File.front().Source.front().URI == xrslJob.DataStaging.File.front().Source.front().URI);
 
+    std::cout << job.UnParse("JDL") << std::endl;
+
     jdlJob.Parse(job.UnParse("JDL"));
+    jdlJob.Print(true);
     JDL_ASSERT(jdlJob);
     JDL_ASSERT(!jdlJob.DataStaging.File.empty());
     JDL_ASSERT_EQUAL(job.DataStaging.File.front().Name, jdlJob.DataStaging.File.front().Name);
@@ -185,6 +188,8 @@ void JobDescriptionTest::TestDataStaging() {
     ARC_ASSERT(arcJob.DataStaging.File.front().Source.size() == 1 && arcJob.DataStaging.File.front().Source.front().URI);
     ARC_ASSERT(job.DataStaging.File.front().Source.front().URI == arcJob.DataStaging.File.front().Source.front().URI);
 
+    std::cout << job.UnParse("XRSL") << std::endl;
+
     xrslJob.Parse(job.UnParse("XRSL"));
     XRSL_ASSERT(xrslJob);
     XRSL_ASSERT(!xrslJob.DataStaging.File.empty());
@@ -192,7 +197,10 @@ void JobDescriptionTest::TestDataStaging() {
     XRSL_ASSERT(xrslJob.DataStaging.File.front().Source.size() == 1 && xrslJob.DataStaging.File.front().Source.front().URI);
     XRSL_ASSERT(job.DataStaging.File.front().Source.front().URI == xrslJob.DataStaging.File.front().Source.front().URI);
 
+    std::cout << job.UnParse("JDL") << std::endl;
+
     jdlJob.Parse(job.UnParse("JDL"));
+    jdlJob.Print(true);
     JDL_ASSERT(jdlJob);
     JDL_ASSERT(!jdlJob.DataStaging.File.empty());
     JDL_ASSERT_EQUAL(job.DataStaging.File.front().Name, jdlJob.DataStaging.File.front().Name);
@@ -499,9 +507,9 @@ void JobDescriptionTest::TestPOSIXCompliance() {
   job.Resources.TotalWallTime = 50;
   job.Resources.IndividualPhysicalMemory = 100;
   job.Resources.TotalCPUTime = 110;
-  job.Resources.Slots.NumberOfProcesses = 2;
+  job.Resources.SlotRequirement.NumberOfProcesses = 2;
   job.Resources.IndividualVirtualMemory = 500;
-  job.Resources.Slots.ThreadsPerProcesses = 7;
+  job.Resources.SlotRequirement.ThreadsPerProcesses = 7;
 
   arcJob.Parse(posixJSDLStr);
 
@@ -512,12 +520,12 @@ void JobDescriptionTest::TestPOSIXCompliance() {
   CPPUNIT_ASSERT_EQUAL_MESSAGE("POSIX compliance failure", job.Application.Error, arcJob.Application.Error);
   CPPUNIT_ASSERT_MESSAGE("POSIX compliance failure", job.Application.Environment == arcJob.Application.Environment);
 
-  CPPUNIT_ASSERT_EQUAL_MESSAGE("POSIX compliance failure", job.Resources.TotalWallTime.current, arcJob.Resources.TotalWallTime.current);
-  CPPUNIT_ASSERT_EQUAL_MESSAGE("POSIX compliance failure", job.Resources.IndividualPhysicalMemory.current, arcJob.Resources.IndividualPhysicalMemory.current);
-  CPPUNIT_ASSERT_EQUAL_MESSAGE("POSIX compliance failure", job.Resources.TotalCPUTime.current, arcJob.Resources.TotalCPUTime.current);
-  CPPUNIT_ASSERT_EQUAL_MESSAGE("POSIX compliance failure", job.Resources.Slots.NumberOfProcesses.current, arcJob.Resources.Slots.NumberOfProcesses.current);
-  CPPUNIT_ASSERT_EQUAL_MESSAGE("POSIX compliance failure", job.Resources.IndividualVirtualMemory.current, arcJob.Resources.IndividualVirtualMemory.current);
-  CPPUNIT_ASSERT_EQUAL_MESSAGE("POSIX compliance failure", job.Resources.Slots.ThreadsPerProcesses.current, arcJob.Resources.Slots.ThreadsPerProcesses.current);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE("POSIX compliance failure", job.Resources.TotalWallTime.range.max, arcJob.Resources.TotalWallTime.range.max);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE("POSIX compliance failure", job.Resources.IndividualPhysicalMemory.max, arcJob.Resources.IndividualPhysicalMemory.max);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE("POSIX compliance failure", job.Resources.TotalCPUTime.range.max, arcJob.Resources.TotalCPUTime.range.max);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE("POSIX compliance failure", job.Resources.SlotRequirement.NumberOfProcesses.max, arcJob.Resources.SlotRequirement.NumberOfProcesses.max);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE("POSIX compliance failure", job.Resources.IndividualVirtualMemory.max, arcJob.Resources.IndividualVirtualMemory.max);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE("POSIX compliance failure", job.Resources.SlotRequirement.ThreadsPerProcesses.max, arcJob.Resources.SlotRequirement.ThreadsPerProcesses.max);
 
   Arc::XMLNode xmlArcJSDL(arcJob.UnParse("ARCJSDL"));
   Arc::XMLNode pApp = xmlArcJSDL["JobDescription"]["Application"]["POSIXApplication"];
@@ -538,12 +546,12 @@ void JobDescriptionTest::TestPOSIXCompliance() {
   CPPUNIT_ASSERT_EQUAL_MESSAGE("POSIX compliance failure", (std::string)"var3",   (std::string)pApp["Environment"][2].Attribute("name"));
   CPPUNIT_ASSERT_EQUAL_MESSAGE("POSIX compliance failure", (std::string)"value3", (std::string)pApp["Environment"][2]);
 
-  CPPUNIT_ASSERT_EQUAL_MESSAGE("POSIX compliance failure", job.Resources.TotalWallTime.current, Arc::stringto<int>(pApp["WallTimeLimit"]));
-  CPPUNIT_ASSERT_EQUAL_MESSAGE("POSIX compliance failure", job.Resources.IndividualPhysicalMemory.current, Arc::stringto<int64_t>(pApp["MemoryLimit"]));
-  CPPUNIT_ASSERT_EQUAL_MESSAGE("POSIX compliance failure", job.Resources.TotalCPUTime.current, Arc::stringto<int>(pApp["CPUTimeLimit"]));
-  CPPUNIT_ASSERT_EQUAL_MESSAGE("POSIX compliance failure", job.Resources.Slots.NumberOfProcesses.current, Arc::stringto<int>(pApp["ProcessCountLimit"]));
-  CPPUNIT_ASSERT_EQUAL_MESSAGE("POSIX compliance failure", job.Resources.IndividualVirtualMemory.current, Arc::stringto<int64_t>(pApp["VirtualMemoryLimit"]));
-  CPPUNIT_ASSERT_EQUAL_MESSAGE("POSIX compliance failure", job.Resources.Slots.ThreadsPerProcesses.current, Arc::stringto<int>(pApp["ThreadCountLimit"]));
+  CPPUNIT_ASSERT_EQUAL_MESSAGE("POSIX compliance failure", job.Resources.TotalWallTime.range.max, Arc::stringto<int>(pApp["WallTimeLimit"]));
+  CPPUNIT_ASSERT_EQUAL_MESSAGE("POSIX compliance failure", job.Resources.IndividualPhysicalMemory.max, Arc::stringto<int64_t>(pApp["MemoryLimit"]));
+  CPPUNIT_ASSERT_EQUAL_MESSAGE("POSIX compliance failure", job.Resources.TotalCPUTime.range.max, Arc::stringto<int>(pApp["CPUTimeLimit"]));
+  CPPUNIT_ASSERT_EQUAL_MESSAGE("POSIX compliance failure", job.Resources.SlotRequirement.NumberOfProcesses.max, Arc::stringto<int>(pApp["ProcessCountLimit"]));
+  CPPUNIT_ASSERT_EQUAL_MESSAGE("POSIX compliance failure", job.Resources.IndividualVirtualMemory.max, Arc::stringto<int64_t>(pApp["VirtualMemoryLimit"]));
+  CPPUNIT_ASSERT_EQUAL_MESSAGE("POSIX compliance failure", job.Resources.SlotRequirement.ThreadsPerProcesses.max, Arc::stringto<int>(pApp["ThreadCountLimit"]));
 }
 
 void JobDescriptionTest::TestHPCCompliance() {

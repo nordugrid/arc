@@ -11,25 +11,45 @@
 #include <arc/URL.h>
 #include <arc/client/ACCLoader.h>
 #include <arc/client/JobDescription.h>
-#include <arc/client/SoftwareVersion.h>
+#include <arc/client/Software.h>
 
 namespace Arc {
 
   class Submitter;
   class UserConfig;
 
+  /// ApplicationEnvironment
+  /**
+   * The ApplicationEnviroment is closely related to the definition given in
+   * GLUE2. By extending the Software class the two GLUE2 attributes AppName and
+   * AppVersion are mapped to two private members. However these can be obtained
+   * through the inheriated member methods getName and getVersion.
+   * 
+   * GLUE2 description:
+   * A description of installed application software or software environment
+   * characteristics available within one or more Execution Environments.
+   */
   class ApplicationEnvironment
-    : public SoftwareVersion {
+    : public Software {
   public:
     ApplicationEnvironment() {};
-    ApplicationEnvironment(const std::string& Name) : SoftwareVersion(Name) {};
-    ApplicationEnvironment(const std::string& Name, const std::string& Version) : SoftwareVersion(Name, Version) {};
-    ApplicationEnvironment& operator=(const SoftwareVersion& sv) { SoftwareVersion::operator=(sv); return *this; }
+    ApplicationEnvironment(const std::string& Name) : Software(Name) {};
+    ApplicationEnvironment(const std::string& Name, const std::string& Version) : Software(Name, Version) {};
+    ApplicationEnvironment& operator=(const Software& sv) { Software::operator=(sv); return *this; }
     std::string State;
     int FreeSlots;
     int FreeJobs;
     int FreeUserSeats;
   };
+
+
+  /// ExecutionTarget
+  /**
+   * This class describe a target which accept computing jobs. All of the
+   * members contained in this class, with a few exceptions, are directly
+   * linked to attributes defined in the GLUE Specification v. 2.0
+   * (GFD-R-P.147).
+   */
 
   class ExecutionTarget {
 
@@ -77,9 +97,7 @@ namespace Arc {
     std::list<std::string> InterfaceExtension;
     std::list<std::string> SupportedProfile;
     std::string Implementor;
-    //std::string ImplementationName;
-    //std::string ImplementationVersion;
-    SoftwareVersion Implementation;
+    Software Implementation;
     std::string QualityLevel;
     std::string HealthState;
     std::string HealthStateInfo;
@@ -111,9 +129,31 @@ namespace Arc {
     int MaxStageInStreams;
     int MaxStageOutStreams;
     std::string SchedulingPolicy;
-    int MaxMainMemory;
-    int MaxVirtualMemory;
-    int MaxDiskSpace;
+    
+    /// MaxMainMemory UInt64 0..1 MB
+    /**
+     * The maximum physical RAM that a job is allowed to use; if the limit is
+     * hit, then the LRMS MAY kill the job.
+     * A negative value specifies that this member is undefined.
+     */
+    int64_t MaxMainMemory;
+
+    /// MaxVirtualMemory UInt64 0..1 MB
+    /**
+     * The maximum total memory size (RAM plus swap) that a job is allowed to
+     * use; if the limit is hit, then the LRMS MAY kill the job.
+     * A negative value specifies that this member is undefined.
+     */
+    int64_t MaxVirtualMemory;
+    
+    /// MaxDiskSpace UInt64 0..1 GB
+    /**
+     * The maximum disk space that a job is allowed use in the working; if the
+     * limit is hit, then the LRMS MAY kill the job.
+     * A negative value specifies that this member is undefined.
+     */
+    int64_t MaxDiskSpace;
+    
     URL DefaultStorageService;
     bool Preemption;
     int TotalJobs;
@@ -164,14 +204,29 @@ namespace Arc {
     std::string CPUVersion;
     int CPUClockSpeed;
     int MainMemorySize;
-    std::string OSFamily;
-    std::string OSName;
-    std::string OSVersion;
+    
+    /// OperatingSystem
+    /**
+     * The OperatingSystem member is not present in GLUE2 but contains the three
+     * GLUE2 attributes OSFamily, OSName and OSVersion.
+     * - OSFamily OSFamily_t 1
+     *   * The general family to which the Execution Environment operating
+     *   * system belongs.
+     * - OSName OSName_t 0..1
+     *   * The specific name of the operating sytem
+     * - OSVersion String 0..1
+     *   * The version of the operating system, as defined by the vendor.
+     */
+    Software OperatingSystem;
+    
     bool ConnectivityIn;
     bool ConnectivityOut;
 
-    // Attributes from 6.7 Application Environment
-
+    /// ApplicationEnvironments
+    /**
+     * The ApplicationEnvironments member is a list of
+     * ApplicationEnvironment's, defined in section 6.7 GLUE2.
+     */
     std::list<ApplicationEnvironment> ApplicationEnvironments;
 
     // Other

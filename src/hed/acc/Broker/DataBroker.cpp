@@ -86,12 +86,12 @@ namespace Arc {
 
   void DataBroker::SortTargets() {
 
-    //Remove clusters which are not A-REX
+    // Remove targets which are not A-REX (>= ARC-1).
 
     std::list<ExecutionTarget*>::iterator iter = PossibleTargets.begin();
 
     while (iter != PossibleTargets.end()) {
-      if ((*iter)->Implementation != "ARC1") {
+      if ((*iter)->Implementation >= Software("ARC", "1")) {
         iter = PossibleTargets.erase(iter);
         continue;
       }

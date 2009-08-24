@@ -78,28 +78,24 @@ bool write_grami(const Arc::JobDescription& arc_job_desc, const JobDescription& 
   }
 
   
-  f<<"joboption_cputime="<<(arc_job_desc.Resources.TotalCPUTime>0?Arc::tostring((int)arc_job_desc.Resources.TotalCPUTime):"")<<std::endl;
-  f<<"joboption_walltime="<<(arc_job_desc.Resources.TotalWallTime>0?Arc::tostring((int)arc_job_desc.Resources.TotalWallTime):"")<<std::endl;
-  f<<"joboption_memory="<<(arc_job_desc.Resources.IndividualPhysicalMemory>0?Arc::tostring(arc_job_desc.Resources.IndividualPhysicalMemory):"")<<std::endl;
-  f<<"joboption_count="<<(arc_job_desc.Resources.Slots.ProcessPerHost>0?Arc::tostring(arc_job_desc.Resources.Slots.ProcessPerHost):"1")<<std::endl;
+  f<<"joboption_cputime="<<(arc_job_desc.Resources.TotalCPUTime.range.max != -1 ? Arc::tostring(arc_job_desc.Resources.TotalCPUTime.range.max):"")<<std::endl;
+  f<<"joboption_walltime="<<(arc_job_desc.Resources.TotalWallTime.range.max != -1 ? Arc::tostring(arc_job_desc.Resources.TotalWallTime.range.max):"")<<std::endl;
+  f<<"joboption_memory="<<(arc_job_desc.Resources.IndividualPhysicalMemory.max != -1 ? Arc::tostring(arc_job_desc.Resources.IndividualPhysicalMemory.max):"")<<std::endl;
+  f<<"joboption_count="<<(arc_job_desc.Resources.SlotRequirement.ProcessPerHost.max != -1 ? Arc::tostring(arc_job_desc.Resources.SlotRequirement.ProcessPerHost.max):"1")<<std::endl;
 
-/** Skou: Currently not supported...
   {
     int i = 0; 
-    for (std::list<Arc::RunTimeEnvironmentType>::const_iterator itRTE = arc_job_desc.RunTimeEnvironment.begin();
-         itRTE != arc_job_desc.RunTimeEnvironment.end(); itRTE++) {
-      for (std::list<std::string>::const_iterator itVer = itRTE->Version.begin();
-           itVer != itRTE->Version.end(); itVer++, i++) {
-        std::string rte = Arc::upper(itRTE->Name+"-"+(*itVer));
-        if (canonical_dir(rte) != 0) {
-          logger.msg(Arc::ERROR, "Bad name for runtime environment: %s", itRTE->Name+"-"+(*itVer));
-          return false;
-        }
-        f<<"joboption_runtime_"<<i<<"="<<value_for_shell(itRTE->Name+"-"+(*itVer),true)<<std::endl;
+    for (std::list<Arc::Software>::const_iterator itSW = arc_job_desc.Resources.RunTimeEnvironment.getSoftwareList().begin();
+         itSW != arc_job_desc.Resources.RunTimeEnvironment.getSoftwareList().end(); itSW++) {
+      if (itSW->empty() || itSW->getVersion().empty()) continue;
+      std::string rte = Arc::upper(*itSW);
+      if (canonical_dir(rte) != 0) {
+        logger.msg(Arc::ERROR, "Bad name for runtime environment: %s", (std::string)*itSW);
+        return false;
       }
+      f<<"joboption_runtime_"<<i++<<"="<<value_for_shell((std::string)*itSW,true)<<std::endl;
     }
   }
-*/
 
   f<<"joboption_jobname="<<value_for_shell(job_local_desc.jobname,true)<<std::endl;
   f<<"joboption_queue="<<value_for_shell(job_local_desc.queue,true)<<std::endl;

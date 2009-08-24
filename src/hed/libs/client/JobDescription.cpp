@@ -33,10 +33,20 @@ namespace Arc {
     STRPRINT(Identification.Description, Description)
     STRPRINT(Identification.JobVOName, Virtual Organization)
 
-/** Skou: Unclear...
-    if (!Identification.JobType.empty())
-      std::cout << IString(" JobType: %s", JobType) << std::endl;
-*/
+    switch (Identification.JobType) {
+    case SINGLE:
+      std::cout << IString("Job type: single") << std::endl;
+      break;
+    case COLLECTIONELEMENT:
+      std::cout << IString("Job type: collection") << std::endl;
+      break;
+    case PARALLELELEMENT:
+      std::cout << IString("Job type: parallel") << std::endl;
+      break;
+    case WORKFLOWNODE:
+      std::cout << IString("Job type: workflownode") << std::endl;
+      break;
+    }
 
     if (longlist) {
       if (!Identification.UserTag.empty()) {
@@ -96,7 +106,7 @@ namespace Arc {
           std::cout << IString(" Epilogue.Arguments: %s", *iter) << std::endl;
       }
 
-      INTPRINT(Application.SessionLifeTime.GetPeriod(), SessionLifeTime)
+      INTPRINT(Resources.SessionLifeTime.GetPeriod(), SessionLifeTime)
 
       if (bool(Application.AccessControl)) {
         std::string str;
@@ -107,18 +117,13 @@ namespace Arc {
       if (Application.ProcessingStartTime.GetTime() > 0)
         std::cout << IString(" ProcessingStartTime: %s", Application.ProcessingStartTime.str()) << std::endl;
 
-/** Skou: Currently not supported...
-      if (!Notification.empty())
-        for (std::list<NotificationType>::const_iterator it = Notification.begin(); it != Notification.end(); it++) {
-          std::cout << IString(" Notification element: ") << std::endl;
-          for (std::list<std::string>::const_iterator iter = (*it).Address.begin();
-               iter != (*it).Address.end(); iter++)
-            std::cout << IString("    Address: %s", (*iter)) << std::endl;
-          for (std::list<std::string>::const_iterator iter = (*it).State.begin();
-               iter != (*it).State.end(); iter++)
-            std::cout << IString("    State: %s", (*iter)) << std::endl;
-        }
-*/
+      if (Application.Notification.size() > 0) {
+        std::cout << IString(" Notify:") << std::endl;
+        for (std::list<std::string>::const_iterator it = Application.Notification.begin();
+             it != Application.Notification.end(); it++)
+          std::cout << "   " << *it << std::endl;
+      }
+
       if (!Application.CredentialService.empty()) {
         std::list<URL>::const_iterator iter = Application.CredentialService.begin();
         for (; iter != Application.CredentialService.end(); iter++)
@@ -128,31 +133,29 @@ namespace Arc {
       if (Application.Join)
         std::cout << " Join: true" << std::endl;
 
-      INTPRINT(Resources.TotalCPUTime.current, TotalCPUTime)
-      INTPRINT(Resources.IndividualCPUTime.current, IndividualCPUTime)
-      INTPRINT(Resources.TotalWallTime.current, TotalWallTime)
-      INTPRINT(Resources.IndividualWallTime.current, IndividualWallTime)
-
-/** Skou: Currently not supported...
-      for (std::list<ReferenceTimeType>::const_iterator it = ReferenceTime.begin();
-           it != ReferenceTime.end(); it++) {
-        std::cout << IString(" Benchmark: %s", it->benchmark) << std::endl;
-        std::cout << IString("  value: %d", it->value) << std::endl;
-        std::cout << IString("  time: %s", (std::string)it->time) << std::endl;
-      }
-*/
+      INTPRINT(Resources.TotalCPUTime.range.max, TotalCPUTime)
+      INTPRINT(Resources.IndividualCPUTime.range.max, IndividualCPUTime)
+      INTPRINT(Resources.TotalWallTime.range.max, TotalWallTime)
+      INTPRINT(Resources.IndividualWallTime.range.max, IndividualWallTime)
 
       STRPRINT(Resources.NetworkInfo, NetworkInfo)
-      STRPRINT(Resources.OSFamily, OSFamily)
-      STRPRINT(Resources.OSName, OSName)
-      STRPRINT(Resources.OSVersion, OSVersion)
+ 
+      if (!Resources.OperatingSystem.empty()) {
+        std::cout << IString(" Operating system requirements:") << std::endl;
+        std::list<Software>::const_iterator itOS = Resources.OperatingSystem.getSoftwareList().begin();
+        std::list<SWComparisonOperator>::const_iterator itCO = Resources.OperatingSystem.getComparisonOperatorList().begin();
+        for (; itOS != Resources.OperatingSystem.getSoftwareList().end(); itOS++, itCO++) {
+          if (*itCO != &Software::operator==) std::cout << Software::toString(*itCO) << " ";
+          std::cout << *itOS << std::endl;
+        }
+      }
+      
       STRPRINT(Resources.Platform, Platform)
-      INTPRINT(Resources.IndividualPhysicalMemory.current, IndividualPhysicalMemory)
-      INTPRINT(Resources.IndividualVirtualMemory.current, IndividualVirtualMemory)
-      INTPRINT(Resources.IndividualDiskSpace, IndividualDiskSpace)
-      INTPRINT(Resources.CacheDiskSpace, CacheDiskSpace)
-      INTPRINT(Resources.SessionDiskSpace, SessionDiskSpace)
-      INTPRINT(Resources.IndividualDiskSpace, IndividualDiskSpace)
+      INTPRINT(Resources.IndividualPhysicalMemory.max, IndividualPhysicalMemory)
+      INTPRINT(Resources.IndividualVirtualMemory.max, IndividualVirtualMemory)
+      INTPRINT(Resources.DiskSpaceRequirement.DiskSpace.max, DiskSpace)
+      INTPRINT(Resources.DiskSpaceRequirement.CacheDiskSpace, CacheDiskSpace)
+      INTPRINT(Resources.DiskSpaceRequirement.SessionDiskSpace, SessionDiskSpace)
 
       for (std::list<ResourceTargetType>::const_iterator it = Resources.CandidateTarget.begin();
            it != Resources.CandidateTarget.end(); it++) {
@@ -162,34 +165,42 @@ namespace Arc {
           std::cout << IString(" QueueName: %s", it->QueueName) << std::endl;
       }
 
-/** Skou: Currently not supported...
-      if (!CEType.empty())
-        std::cout << IString(" CEType: %s", CEType) << std::endl;
-*/
-
-/** Skou: Unclear...
-      if (InBound)
-        std::cout << IString(" InBound: true") << std::endl;
-      if (OutBound)
-        std::cout << IString(" OutBound: true") << std::endl;
-*/
-
-      INTPRINT(Resources.Slots.NumberOfProcesses.current, NumberOfProcesses)
-      INTPRINT(Resources.Slots.ProcessPerHost.current, ProcessPerHost)
-      INTPRINT(Resources.Slots.ThreadsPerProcesses.current, ThreadsPerProcesses)
-      //STRPRINT(Resources.Slots.SPMDVariation, SPMDVariation) // Skou: Unclear...
-
-/** Skou: Currently not supported...
-      if (!RunTimeEnvironment.empty()) {
-        std::list<RunTimeEnvironmentType>::const_iterator iter;
-        for (iter = RunTimeEnvironment.begin(); iter != RunTimeEnvironment.end(); iter++) {
-          std::cout << IString(" RunTimeEnvironment.Name: %s", (*iter).Name) << std::endl;
-          std::list<std::string>::const_iterator it;
-          for (it = (*iter).Version.begin(); it != (*iter).Version.end(); it++)
-            std::cout << IString("    RunTimeEnvironment.Version: %s", (*it)) << std::endl;
+      if (!Resources.CEType.empty()) {
+        std::cout << IString(" Computing endpoint requirements:") << std::endl;
+        std::list<Software>::const_iterator itCE = Resources.CEType.getSoftwareList().begin();
+        std::list<SWComparisonOperator>::const_iterator itCO = Resources.CEType.getComparisonOperatorList().begin();
+        for (; itCE != Resources.CEType.getSoftwareList().end(); itCE++, itCO++) {
+          if (*itCO != &Software::operator==) std::cout << Software::toString(*itCO) << " ";
+          std::cout << *itCE << std::endl;
         }
       }
-*/
+
+      switch (Resources.NodeAccess) {
+      case NAT_INBOUND:
+        std::cout << IString(" NodeAccess: Inbound") << std::endl;
+        break;
+      case NAT_OUTBOUND:
+        std::cout << IString(" NodeAccess: Outbound") << std::endl;
+        break;
+      case NAT_INOUTBOUND:
+        std::cout << IString(" NodeAccess: Inbound and Outbound") << std::endl;
+        break;
+      }
+
+      INTPRINT(Resources.SlotRequirement.NumberOfProcesses.max, NumberOfProcesses)
+      INTPRINT(Resources.SlotRequirement.ProcessPerHost.max, ProcessPerHost)
+      INTPRINT(Resources.SlotRequirement.ThreadsPerProcesses.max, ThreadsPerProcesses)
+      STRPRINT(Resources.SlotRequirement.SPMDVariation, SPMDVariation)
+
+      if (!Resources.RunTimeEnvironment.empty()) {
+        std::cout << IString(" Run time environment requirements:") << std::endl;
+        std::list<Software>::const_iterator itSW = Resources.RunTimeEnvironment.getSoftwareList().begin();
+        std::list<SWComparisonOperator>::const_iterator itCO = Resources.RunTimeEnvironment.getComparisonOperatorList().begin();
+        for (; itSW != Resources.RunTimeEnvironment.getSoftwareList().end(); itSW++, itCO++) {
+          if (*itCO != &Software::operator==) std::cout << Software::toString(*itCO) << " ";
+          std::cout << *itSW << std::endl;
+        }
+      }
 
       if (!DataStaging.File.empty()) {
         std::list<FileType>::const_iterator iter = DataStaging.File.begin();

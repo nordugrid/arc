@@ -36,13 +36,13 @@ libarcclient_ladir = $(pkgincludedir)/client
 libarcclient_la_HEADERS  = ACC.h ACCLoader.h Broker.h ExecutionTarget.h \
   Submitter.h TargetRetriever.h TargetGenerator.h \
   JobState.h Job.h JobController.h JobSupervisor.h JobDescription.h JobDescriptionParser.h \
-  ARCJSDLParser.h JDLParser.h XRSLParser.h SoftwareVersion.h \
+  ARCJSDLParser.h JDLParser.h XRSLParser.h Software.h \
   ClientInterface.h $(HEADER_WITH_XMLSEC) ClientX509Delegation.h UserConfig.h Sandbox.h RSLParser.h \
   $(HEADER_CONFUSA)
 libarcclient_la_SOURCES  = ACC.cpp ACCLoader.cpp Broker.cpp ExecutionTarget.cpp \
   Submitter.cpp TargetRetriever.cpp TargetGenerator.cpp \
   Job.cpp JobController.cpp JobSupervisor.cpp JobDescription.cpp JobDescriptionParser.cpp \
-  ARCJSDLParser.cpp JDLParser.cpp XRSLParser.cpp SoftwareVersion.cpp \
+  ARCJSDLParser.cpp JDLParser.cpp XRSLParser.cpp Software.cpp \
   ClientInterface.cpp $(SOURCE_WITH_XMLSEC) ClientX509Delegation.cpp UserConfig.cpp \
   Sandbox.cpp RSLParser.cpp $(SOURCE_CONFUSA) JobState.cpp
 libarcclient_la_CXXFLAGS = -I$(top_srcdir)/include \

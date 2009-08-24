@@ -154,24 +154,24 @@ bool job_log_make_file(const JobDescription &desc,JobUser &user,const std::strin
       std::string line;
       std::getline(proxy_src,line);
       if(in_private)  
-	{ // Skip private key
-	  if (line.find("-----END") != std::string::npos &&
-	      line.find("PRIVATE KEY-----") != std::string::npos
-	      )           // can be RSA, DSA etc.
-	    in_private=false;
-	}
+  { // Skip private key
+    if (line.find("-----END") != std::string::npos &&
+        line.find("PRIVATE KEY-----") != std::string::npos
+        )           // can be RSA, DSA etc.
+      in_private=false;
+  }
       else
-	{
-	  if (line.find("-----BEGIN") != std::string::npos &&
-	      line.find("PRIVATE KEY-----") != std::string::npos
-	      )           // can be RSA, DSA etc.
-	    in_private=true;
-	  else
-	    {
-	      user_cert+=line;
-	      if (!proxy_src.eof()) user_cert+='\\';
-	    }
-	}
+  {
+    if (line.find("-----BEGIN") != std::string::npos &&
+        line.find("PRIVATE KEY-----") != std::string::npos
+        )           // can be RSA, DSA etc.
+      in_private=true;
+    else
+      {
+        user_cert+=line;
+        if (!proxy_src.eof()) user_cert+='\\';
+      }
+  }
     }
     if(user_cert.length()) {
       o_dst<<"usercert="<<user_cert<<std::endl; if(o_dst.fail()) goto error;
@@ -183,24 +183,21 @@ bool job_log_make_file(const JobDescription &desc,JobUser &user,const std::strin
     fname_src = user.ControlDir() + "/job." + desc.get_id() + sfx_rsl;
     Arc::JobDescription arc_job_desc;
     if(!get_arc_job_description(fname_src, arc_job_desc)) goto error;
-    if(arc_job_desc.Resources.IndividualPhysicalMemory>=0) o_dst<<"requestedmemory="<<arc_job_desc.Resources.IndividualPhysicalMemory<<std::endl;
-    if(arc_job_desc.Resources.TotalCPUTime>=0) o_dst<<"requestedcputime="<<arc_job_desc.Resources.TotalCPUTime<<std::endl;
-    if(arc_job_desc.Resources.TotalWallTime>=0) o_dst<<"requestedwalltime="<<arc_job_desc.Resources.TotalWallTime<<std::endl;
-    if(arc_job_desc.Resources.IndividualDiskSpace>=0) o_dst<<"requesteddisk="<<arc_job_desc.Resources.IndividualDiskSpace<<std::endl;
-/** Skou: Currently not supported.
-    if(arc_job_desc.RunTimeEnvironment.size()>0) {
-      o_dst<<"runtimeenvironment=";
-      for(std::list<Arc::RunTimeEnvironmentType>::const_iterator itRTE=arc_job_desc.RunTimeEnvironment.begin();
-          itRTE!=arc_job_desc.RunTimeEnvironment.end(); itRTE++) {
-        for(std::list<std::string>::const_iterator itVer = itRTE->Version.begin();
-            itVer!=itRTE->Version.end(); itVer++) {
-          if (itRTE!=arc_job_desc.RunTimeEnvironment.begin() || itVer!=itRTE->Version.begin()) o_dst<<" ";
-          o_dst<<itRTE->Name<<"-"<<(*itVer);
+    if(arc_job_desc.Resources.IndividualPhysicalMemory.max>=0) o_dst<<"requestedmemory="<<arc_job_desc.Resources.IndividualPhysicalMemory.max<<std::endl;
+    if(arc_job_desc.Resources.TotalCPUTime.range.max>=0) o_dst<<"requestedcputime="<<arc_job_desc.Resources.TotalCPUTime.range.max<<std::endl;
+    if(arc_job_desc.Resources.TotalWallTime.range.max>=0) o_dst<<"requestedwalltime="<<arc_job_desc.Resources.TotalWallTime.range.max<<std::endl;
+    if(arc_job_desc.Resources.DiskSpaceRequirement.DiskSpace.max>=0) o_dst<<"requesteddisk="<<arc_job_desc.Resources.DiskSpaceRequirement.DiskSpace.max<<std::endl;
+    if(arc_job_desc.Resources.RunTimeEnvironment.getSoftwareList().size()>0) {
+      std::string rteStr;
+      for (std::list<Arc::Software>::const_iterator itSW = arc_job_desc.Resources.RunTimeEnvironment.getSoftwareList().begin();
+           itSW != arc_job_desc.Resources.RunTimeEnvironment.getSoftwareList().end(); itSW++) {
+        if (!itSW->empty() && !itSW->getVersion().empty()) {
+          if (!rteStr.empty()) rteStr += " ";
+          rteStr += *itSW;
         }
       }
-      o_dst<<std::endl;
+      if (!rteStr.empty()) o_dst<<"runtimeenvironment="<<rteStr<<std::endl;
     }
-*/
   };
   // Analyze diagnostics and store relevant information
   {

@@ -272,10 +272,10 @@ namespace Arc {
       if (GLUEService["ComputingEndpoint"]["ImplementationName"])
         if (GLUEService["ComputingEndpoint"]["ImplementationVersion"])
           target.Implementation =
-            SoftwareVersion((std::string)GLUEService["ComputingEndpoint"]["ImplementationName"],
+            Software((std::string)GLUEService["ComputingEndpoint"]["ImplementationName"],
                             (std::string)GLUEService["ComputingEndpoint"]["ImplementationVersion"]);
         else {
-          target.Implementation = SoftwareVersion((std::string)GLUEService["ComputingEndpoint"]["ImplementationName"]);
+          target.Implementation = Software((std::string)GLUEService["ComputingEndpoint"]["ImplementationName"]);
           logger.msg(INFO, "The Service doesn't advertise an Implementation Version.");
         }
       else

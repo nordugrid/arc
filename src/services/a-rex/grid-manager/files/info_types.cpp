@@ -135,11 +135,9 @@ JobLocalDescription& JobLocalDescription::operator=(const Arc::JobDescription& a
   inputdata.clear();
   rte.clear();
 
-  std::list<Arc::SoftwareVersion> rte_names = arc_job_desc.Resources.RunTimeEnvironment.getVersions();
-  for (std::list<Arc::SoftwareVersion>::const_iterator rte_name = rte_names.begin(); rte_name != rte_names.end(); ++rte_name) {
-    rte.push_back(std::string(*rte_name));
-    ++rtes;
-  }
+  const std::list<Arc::Software>& sw = arc_job_desc.Resources.RunTimeEnvironment.getSoftwareList();
+  for (std::list<Arc::Software>::const_iterator itSW = sw.begin(); itSW != sw.end(); ++itSW, ++rtes)
+    rte.push_back(std::string(*itSW));
 
   for (std::list<Arc::FileType>::const_iterator file = arc_job_desc.DataStaging.File.begin();
        file != arc_job_desc.DataStaging.File.end(); ++file) {
@@ -212,12 +210,12 @@ JobLocalDescription& JobLocalDescription::operator=(const Arc::JobDescription& a
   stdout_ = arc_job_desc.Application.Output;
   stderr_ = arc_job_desc.Application.Error;
 
-  if (arc_job_desc.Resources.IndividualDiskSpace > -1)
-    diskspace = (unsigned long long int)arc_job_desc.Resources.IndividualDiskSpace;
+  if (arc_job_desc.Resources.DiskSpaceRequirement.DiskSpace > -1)
+    diskspace = (unsigned long long int)arc_job_desc.Resources.DiskSpaceRequirement.DiskSpace;
 
   processtime = arc_job_desc.Application.ProcessingStartTime;
   
-  const int lifetimeTemp = (int)arc_job_desc.Application.SessionLifeTime.GetPeriod();
+  const int lifetimeTemp = (int)arc_job_desc.Resources.SessionLifeTime.GetPeriod();
   if (lifetimeTemp > 0) lifetime = lifetimeTemp;
 
   activityid = arc_job_desc.Identification.ActivityOldId;
@@ -230,33 +228,16 @@ JobLocalDescription& JobLocalDescription::operator=(const Arc::JobDescription& a
     jobreport.push_back(it->str());
   }
   
-  /** Skou: Currently not supported, due to transition in job description parsing.
-   * New notification structure need to be defined.
-   * Old parsing structure follows...
-  // Notification.
-  for( int j=0; (bool)(stateNode[j]); j++ ) {
-    std::string value = (std::string) stateNode[i];
-    if ( value == "PREPARING" ) {
-      s_+="b";
-    } else if ( value == "INLRMS" ) {
-      s_+="q";
-    } else if ( value == "FINISHING" ) {
-      s_+="f";
-    } else if ( value == "FINISHED" ) {
-      s_+="e";
-    } else if ( value == "DELETED" ) {
-      s_+="d";
-    } else if ( value == "CANCELING" ) {
-      s_+="c";
-    };
-  };
+  {
+    int n = 0;
+    for (std::list<std::string>::const_iterator it = arc_job_desc.Application.Notification.begin();
+         it != arc_job_desc.Application.Notification.end(); it++, n++) {
+      if (n >= 3) break; // Only 3 instances are allowed.
+      if (n != 0) notify += " ";
+      notify += *it;
+    }
+  }
 
-  if(s_.length()) {
-    s+=s_; s+= (std::string) endpointNode; s+=" ";
-  };
-  if(!get_notification(job_desc.notify)) return false;
-  */
-  
   if (!arc_job_desc.Resources.CandidateTarget.empty() &&
       !arc_job_desc.Resources.CandidateTarget.front().QueueName.empty())
     queue = arc_job_desc.Resources.CandidateTarget.front().QueueName;

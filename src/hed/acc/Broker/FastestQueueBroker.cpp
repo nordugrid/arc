@@ -67,7 +67,7 @@ namespace Arc {
     for (iter = PossibleTargets.begin(); iter != PossibleTargets.end(); iter++)
       if ((*iter)->WaitingJobs == 0) {
         ZeroQueueCluster++;
-        TotalFreeCPUs += (*iter)->FreeSlots / abs(job->Resources.Slots.NumberOfProcesses);
+        TotalFreeCPUs += (*iter)->FreeSlots / abs(job->Resources.SlotRequirement.NumberOfProcesses);
       }
 
     //If several clusters(queues) have free slots (CPUs) do basic load balancing
@@ -79,13 +79,13 @@ namespace Arc {
         for (std::list<ExecutionTarget*>::iterator itJ = itN;
              itJ != PossibleTargets.end() && (*itJ)->WaitingJobs == 0;
              itJ++) {
-          if (((*itJ)->FreeSlots / abs(job->Resources.Slots.NumberOfProcesses)) > RandomCPU) {
-            TotalFreeCPUs -= ((*itJ)->FreeSlots / abs(job->Resources.Slots.NumberOfProcesses));
+          if (((*itJ)->FreeSlots / abs(job->Resources.SlotRequirement.NumberOfProcesses)) > RandomCPU) {
+            TotalFreeCPUs -= ((*itJ)->FreeSlots / abs(job->Resources.SlotRequirement.NumberOfProcesses));
             std::iter_swap(itJ, itN);
             break;
           }
           else
-            RandomCPU -= ((*itJ)->FreeSlots / abs(job->Resources.Slots.NumberOfProcesses));
+            RandomCPU -= ((*itJ)->FreeSlots / abs(job->Resources.SlotRequirement.NumberOfProcesses));
         }
       }
 

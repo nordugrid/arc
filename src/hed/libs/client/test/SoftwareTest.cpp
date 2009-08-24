@@ -1,22 +1,22 @@
 #include <cppunit/extensions/HelperMacros.h>
 
 #include <arc/Logger.h>
-#include <arc/client/SoftwareVersion.h>
+#include <arc/client/Software.h>
 
-#define SV Arc::SoftwareVersion
+#define SV Arc::Software
 #define SR Arc::SoftwareRequirement
 
-class SoftwareVersionTest
+class SoftwareTest
   : public CppUnit::TestFixture {
 
-  CPPUNIT_TEST_SUITE(SoftwareVersionTest);
+  CPPUNIT_TEST_SUITE(SoftwareTest);
   CPPUNIT_TEST(TestSoftwareComparison);
   CPPUNIT_TEST(TestSoftwareRequirement);
   CPPUNIT_TEST_SUITE_END();
 
 public:
-  SoftwareVersionTest()
-    : logger(Arc::Logger::getRootLogger(), "SoftwareVersionTest"),
+  SoftwareTest()
+    : logger(Arc::Logger::getRootLogger(), "SoftwareTest"),
       logcerr(std::cerr) {}
   void setUp();
   void tearDown();
@@ -29,13 +29,13 @@ private:
 };
 
 
-void SoftwareVersionTest::setUp() {
+void SoftwareTest::setUp() {
 }
 
-void SoftwareVersionTest::tearDown() {
+void SoftwareTest::tearDown() {
 }
 
-void SoftwareVersionTest::TestSoftwareComparison() {
+void SoftwareTest::TestSoftwareComparison() {
   CPPUNIT_ASSERT(SV("XX-YY") == SV("XX-YY"));
   CPPUNIT_ASSERT(SV("XX-YY") != SV("XX.YY"));
   CPPUNIT_ASSERT(SV("XX-YY") != SV("xx-yy"));
@@ -76,7 +76,7 @@ void SoftwareVersionTest::TestSoftwareComparison() {
   CPPUNIT_ASSERT(!(SV("XX-YY-1.2.ZZ") > SV("XX-YY-1.2")));
 }
 
-void SoftwareVersionTest::TestSoftwareRequirement() {
+void SoftwareTest::TestSoftwareRequirement() {
   std::list<SV> versions;
   versions.push_back(SV("A-1.03"));
 
@@ -121,41 +121,6 @@ void SoftwareVersionTest::TestSoftwareRequirement() {
   }
 
   {
-    logger.msg(Arc::DEBUG, "c) job needs (A-3.83 OR A-3.84) AND (B-2.30 OR B-2.31)");
-    SR sr, sr1(false), sr2(false);
-    sr1.add(SV("A-3.83")); sr1.add(SV("A-3.84")); sr.add(sr1);
-    sr2.add(SV("B-2.30")); sr2.add(SV("B-2.31")); sr.add(sr2);
-    
-    CPPUNIT_ASSERT(!sr.isSatisfied(versions));
-    
-    versions.push_back(SV("B-2.30"));
-    CPPUNIT_ASSERT(sr.isSatisfied(versions));
-    versions.clear();
-  }
-
-  {
-    logger.msg(Arc::DEBUG, "d) job needs (A-3.83 AND B-2.05) OR (A-3.85 AND B-2.06)");
-    
-    SR sr(false), sr1, sr2;
-    sr1.add(SV("A-3.83")); sr1.add(SV("B-2.05")); sr.add(sr1);
-    sr2.add(SV("A-3.85")); sr2.add(SV("B-2.06")); sr.add(sr2);
-    
-    versions.push_back(SV("A-3.83"));
-    CPPUNIT_ASSERT(!sr.isSatisfied(versions));
-    versions.push_back(SV("B-2.05"));
-    CPPUNIT_ASSERT(sr.isSatisfied(versions));
-    versions.clear();
-    versions.push_back(SV("A-3.85"));
-    CPPUNIT_ASSERT(!sr.isSatisfied(versions));
-    versions.push_back(SV("B-2.06"));
-    CPPUNIT_ASSERT(sr.isSatisfied(versions));
-    versions.clear();
-    versions.push_back(SV("A-3.83")); versions.push_back(SV("B-2.06"));
-    CPPUNIT_ASSERT(!sr.isSatisfied(versions));
-    versions.clear();
-  }
-  
-  {
     logger.msg(Arc::DEBUG, "e) job needs any A except of A-2.45");
   }
   
@@ -177,4 +142,4 @@ void SoftwareVersionTest::TestSoftwareRequirement() {
   }
 }
 
-CPPUNIT_TEST_SUITE_REGISTRATION(SoftwareVersionTest);
+CPPUNIT_TEST_SUITE_REGISTRATION(SoftwareTest);

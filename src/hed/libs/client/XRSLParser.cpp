@@ -25,6 +25,24 @@ namespace Arc {
 
   XRSLParser::~XRSLParser() {}
 
+  static SWComparisonOperator convertOperator(const RSLRelOp& op) {
+    if (op == RSLNotEqual) return &Software::operator!=;
+    if (op == RSLLess) return &Software::operator<;
+    if (op == RSLGreater) return &Software::operator>;
+    if (op == RSLLessOrEqual) return &Software::operator <=;
+    if (op == RSLGreaterOrEqual) return &Software::operator>=;
+    return &Software::operator==;
+  }
+
+  static RSLRelOp convertOperator(const SWComparisonOperator& op) {
+    if (op == &Software::operator==) return RSLEqual;
+    if (op == &Software::operator<)  return RSLLess;
+    if (op == &Software::operator>)  return RSLGreater;
+    if (op == &Software::operator<=) return RSLLessOrEqual;
+    if (op == &Software::operator>=) return RSLGreaterOrEqual;
+    return RSLNotEqual;
+  }
+
   static std::list<const RSL*> SplitRSL(const RSL *r) {
     const RSLBoolean *b;
     std::list<const RSL*> l;
@@ -281,7 +299,7 @@ namespace Arc {
         std::string time;
         if (!SingleValue(c, time))
           return false;
-        j.Application.SessionLifeTime = Period(time, PeriodMinutes);
+        j.Resources.SessionLifeTime = Period(time, PeriodMinutes);
         return true;
       }
 
@@ -344,7 +362,7 @@ namespace Arc {
         std::string disk;
         if (!SingleValue(c, disk))
           return false;
-          j.Resources.IndividualDiskSpace = stringto<int64_t>(disk);
+          j.Resources.DiskSpaceRequirement.DiskSpace = stringto<int64_t>(disk);
         return true;
       }
 
@@ -352,7 +370,7 @@ namespace Arc {
         std::string runtime;
         if (!SingleValue(c, runtime))
           return false;
-        j.Resources.RunTimeEnvironment.add(SoftwareVersion(runtime));
+        j.Resources.RunTimeEnvironment.add(Software(runtime), convertOperator(c->Op()));
         return true;
        }
 
@@ -360,12 +378,17 @@ namespace Arc {
         std::string cetype;
         if (!SingleValue(c, cetype))
           return false;
-        j.Resources.CEType.add(SoftwareVersion(cetype));
+        j.Resources.CEType.add(Software(cetype), convertOperator(c->Op()));
         return true;
       }
 
-      if (c->Attr() == "opsys")
-        return SingleValue(c, j.Resources.OSName);
+      if (c->Attr() == "opsys") {
+        std::string opsys;
+        if (!SingleValue(c, opsys))
+          return false;
+        j.Resources.OperatingSystem.add(Software(opsys), convertOperator(c->Op()));
+        return true;
+      }
 
       if (c->Attr() == "join") {
         std::string join;
@@ -420,56 +443,39 @@ namespace Arc {
         return true;
       }
 
-/** Skou: Structure need to be defined.
       if (c->Attr() == "notify") {
         std::list<std::string> l;
         if (!ListValue(c, l))
           return false;
-        NotificationType nofity;
         if (l.size() < 2) {
-          logger.msg(DEBUG, "Invalid notify attribute");
+          logger.msg(DEBUG, "Syntax error in notify attribute. One or more job states and one or more email addresses must be specified.");
           return false;
         }
+        if (l.front().find('@') != std::string::npos) {
+          logger.msg(DEBUG, "Syntax error in notify attribute. It cannot begin with an email address.");
+          return false;
+        }
+        if (l.back().find('@') == std::string::npos) {
+          logger.msg(DEBUG, "Syntax error in notify attribute. It must end with an email address.");
+          return false;
+        }
+        
         for (std::list<std::string>::iterator it = l.begin();
              it != l.end(); it++) {
-          if (it == l.begin())
-            for (std::string::iterator i = it->begin(); i != it->end(); i++)
-              switch (*i) {
-              case 'b':
-                nofity.State.push_back("PREPARING");
-                break;
+          if (it->find('@') != std::string::npos) { // Not an email address.
+            if (j.Application.Notification.back().find('@') == std::string::npos) {
+              j.Application.Notification.back() += *it; // Another state.
+              continue;
+            }
 
-              case 'q':
-                nofity.State.push_back("INLRMS");
-                break;
+            j.Application.Notification.push_back(*it);
+            continue;
+          }
 
-              case 'f':
-                nofity.State.push_back("FINISHING");
-                break;
-
-              case 'e':
-                nofity.State.push_back("FINISHED");
-                break;
-
-              case 'c':
-                nofity.State.push_back("CANCELLED");
-                break;
-
-              case 'd':
-                nofity.State.push_back("DELETED");
-                break;
-
-              default:
-                logger.msg(DEBUG, "Invalid notify attribute: %c", *i);
-                return false;
-              }
-          else
-            nofity.Address.push_back(*it);
+          j.Application.Notification.back() += " " + *it;
         }
-        j.Notification.push_back(nofity);
         return true;
       }
-*/
 
       if (c->Attr() == "replicacollection") {
         std::string collection;
@@ -539,7 +545,7 @@ namespace Arc {
         std::string count;
         if (!SingleValue(c, count))
           return false;
-        j.Resources.Slots.ProcessPerHost = stringtoi(count);
+        j.Resources.SlotRequirement.ProcessPerHost = stringtoi(count);
         return true;
       }
 
@@ -654,7 +660,10 @@ namespace Arc {
          it != j.DataStaging.File.end(); it++)
       if (!it->Source.empty())
         it->DownloadToCache = cached;
-  
+
+    // Since OR expressions in XRSL is spilt into serveral JobDescriptions the requirement for RTE must be all (AND).
+    j.Resources.RunTimeEnvironment.setRequirement(true);
+
     return true;
   }
 
@@ -710,19 +719,19 @@ namespace Arc {
       }
     }
 
-    if (j.Resources.TotalCPUTime != -1) {
+    if (j.Resources.TotalCPUTime.range > -1) {
       RSLList *l = new RSLList;
-      l->Add(new RSLLiteral(tostring(j.Resources.TotalCPUTime)));
+      l->Add(new RSLLiteral(tostring(j.Resources.TotalCPUTime.range)));
       r.Add(new RSLCondition("cputime", RSLEqual, l));
     }
 
-    if (j.Resources.TotalWallTime != -1) {
+    if (j.Resources.TotalWallTime.range > -1) {
       RSLList *l = new RSLList;
-      l->Add(new RSLLiteral(tostring(j.Resources.TotalWallTime)));
+      l->Add(new RSLLiteral(tostring(j.Resources.TotalWallTime.range)));
       r.Add(new RSLCondition("walltime", RSLEqual, l));
     }
 
-    if (j.Resources.IndividualPhysicalMemory != -1) {
+    if (j.Resources.IndividualPhysicalMemory > -1) {
       RSLList *l = new RSLList;
       l->Add(new RSLLiteral(tostring(j.Resources.IndividualPhysicalMemory)));
       r.Add(new RSLCondition("memory", RSLEqual, l));
@@ -846,34 +855,46 @@ namespace Arc {
       r.Add(new RSLCondition("rerun", RSLEqual, l));
     }
 
-    if (j.Application.SessionLifeTime != -1) {
+    if (j.Resources.SessionLifeTime != -1) {
       RSLList *l = new RSLList;
-      l->Add(new RSLLiteral(tostring(j.Application.SessionLifeTime)));
+      l->Add(new RSLLiteral(tostring(j.Resources.SessionLifeTime)));
       r.Add(new RSLCondition("lifetime", RSLEqual, l));
     }
 
-    if (j.Resources.IndividualDiskSpace != -1) {
+    if (j.Resources.DiskSpaceRequirement.DiskSpace > -1) {
       RSLList *l = new RSLList;
-      l->Add(new RSLLiteral(tostring(j.Resources.IndividualDiskSpace)));
+      l->Add(new RSLLiteral(tostring(j.Resources.DiskSpaceRequirement.DiskSpace)));
       r.Add(new RSLCondition("disk", RSLEqual, l));
     }
 
-/** Skou: Currently not supported.
     if (!j.Resources.RunTimeEnvironment.empty()) {
-      RSLList *l = new RSLList;
-      for (std::list<>::const_iterator it =
-             j.Resources.RunTimeEnvironment.begin();
-           it != j.RunTimeEnvironment.end(); it++)
-        l->Add(new RSLLiteral(it->Name + (it->Version.empty() ? "" :
-                                          '-' + *it->Version.begin())));
-      r.Add(new RSLCondition("runtimeenvironment", RSLEqual, l));
+      std::list<Software>::const_iterator itSW = j.Resources.RunTimeEnvironment.getSoftwareList().begin();
+      std::list<SWComparisonOperator>::const_iterator itCO = j.Resources.RunTimeEnvironment.getComparisonOperatorList().begin();
+      for (; itSW != j.Resources.RunTimeEnvironment.getSoftwareList().end(); itSW++, itCO++) {
+        RSLList *l = new RSLList;
+        l->Add(new RSLLiteral(*itSW));
+        r.Add(new RSLCondition("runtimeenvironment", convertOperator(*itCO), l));
+      }
     }
-*/
 
-    if (!j.Resources.OSName.empty()) {
-      RSLList *l = new RSLList;
-      l->Add(new RSLLiteral(j.Resources.OSName));
-      r.Add(new RSLCondition("opsys", RSLEqual, l));
+    if (!j.Resources.CEType.empty()) {
+      std::list<Software>::const_iterator itSW = j.Resources.CEType.getSoftwareList().begin();
+      std::list<SWComparisonOperator>::const_iterator itCO = j.Resources.CEType.getComparisonOperatorList().begin();
+      for (; itSW != j.Resources.RunTimeEnvironment.getSoftwareList().end(); itSW++, itCO++) {
+        RSLList *l = new RSLList;
+        l->Add(new RSLLiteral(*itSW));
+        r.Add(new RSLCondition("middleware", convertOperator(*itCO), l));
+      }
+    }
+
+    if (!j.Resources.OperatingSystem.empty()) {
+      std::list<Software>::const_iterator itSW = j.Resources.OperatingSystem.getSoftwareList().begin();
+      std::list<SWComparisonOperator>::const_iterator itCO = j.Resources.OperatingSystem.getComparisonOperatorList().begin();
+      for (; itSW != j.Resources.OperatingSystem.getSoftwareList().end(); itSW++, itCO++) {
+        RSLList *l = new RSLList;
+        l->Add(new RSLLiteral((std::string)*itSW));
+        r.Add(new RSLCondition("opsys", convertOperator(*itCO), l));
+      }
     }
 
     if (!j.Resources.Platform.empty()) {
@@ -882,9 +903,9 @@ namespace Arc {
       r.Add(new RSLCondition("architacture", RSLEqual, l));
     }
 
-    if (j.Resources.Slots.ProcessPerHost != -1) {
+    if (j.Resources.SlotRequirement.ProcessPerHost > -1) {
       RSLList *l = new RSLList;
-      l->Add(new RSLLiteral(tostring(j.Resources.Slots.ProcessPerHost)));
+      l->Add(new RSLLiteral(tostring(j.Resources.SlotRequirement.ProcessPerHost)));
       r.Add(new RSLCondition("count", RSLEqual, l));
     }
 
@@ -914,39 +935,13 @@ namespace Arc {
       r.Add(new RSLCondition("acl", RSLEqual, l));
     }
 
-/** Skou: Currently not supported...
-    if (!j.Notification.empty()) {
+    if (!j.Application.Notification.empty()) {
       RSLList *l = new RSLList;
-      for (std::list<NotificationType>::const_iterator it =
-             j.Notification.begin(); it != j.Notification.end(); it++) {
-        std::string states;
-        for (std::list<std::string>::const_iterator it2 = it->State.begin();
-             it2 != it->State.end(); it2++) {
-          if (*it2 == "PREPARING")
-            states += "b";
-          else if (*it2 == "INLRMS")
-            states += "q";
-          else if (*it2 == "FINISHING")
-            states += "f";
-          else if (*it2 == "FINISHED")
-            states += "e";
-          else if (*it2 == "CANCELLED")
-            states += "c";
-          else if (*it2 == "DELETED")
-            states += "d";
-          else {
-            logger.msg(DEBUG, "Invalid State \"%s\" in Notification!", *it2);
-            return "";
-          }
-        }
-        l->Add(new RSLLiteral(states));
-        for (std::list<std::string>::const_iterator it2 = it->Address.begin();
-             it2 != it->Address.end(); it2++)
-          l->Add(new RSLLiteral(*it2));
-      }
+      for (std::list<std::string>::const_iterator it = j.Application.Notification.begin();
+           it != j.Application.Notification.end(); it++)
+        l->Add(new RSLLiteral(*it));
       r.Add(new RSLCondition("notify", RSLEqual, l));
     }
-*/
 
     if (!j.Application.RemoteLogging.empty()) {
       RSLList *l = new RSLList;

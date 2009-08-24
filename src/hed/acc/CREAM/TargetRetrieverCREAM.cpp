@@ -427,7 +427,7 @@ namespace Arc {
       if (CE["GlueCEImplementationName"]) {
         if (CE["GlueCEImplementationVersion"])
           target.Implementation =
-            SoftwareVersion((std::string)CE["GlueCEImplementationName"],
+            Software((std::string)CE["GlueCEImplementationName"],
                             (std::string)CE["GlueCEImplementationVersion"]);
         else 
           target.Implementation =

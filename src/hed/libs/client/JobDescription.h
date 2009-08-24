@@ -8,7 +8,7 @@
 #include <arc/DateTime.h>
 #include <arc/XMLNode.h>
 #include <arc/URL.h>
-#include <arc/client/SoftwareVersion.h>
+#include <arc/client/Software.h>
 
 /** JobDescription
  * The JobDescription class is the internal representation of a job description
@@ -32,14 +32,24 @@ namespace Arc {
   class Range {
   public:
     Range<T>() {}
-    Range<T>(const T& t) : current(t) {}
-    operator T(void) const { return current; }
+    Range<T>(const T& t) : min(t), max(t) {}
+    operator T(void) const { return max; }
 
-    Range<T>& operator=(const T& t) { current = t; return *this; };
+    Range<T>& operator=(const Range<T>& t) { min = t.min; max = t.max; return *this; };
+    Range<T>& operator=(const T& t) { max = t; return *this; };
 
     T min;
     T max;
-    T current;
+  };
+
+  template<class T>
+  class ScalableTime {
+  public:
+    ScalableTime<T>() : benchmark("", -1) {}
+    ScalableTime<T>(const T& t) : range(t) {}
+
+    std::pair<std::string, int> benchmark;
+    Range<T> range;
   };
 
   enum ComputingActivityType {
@@ -71,7 +81,6 @@ namespace Arc {
   public:
     ApplicationType() :
       Join(false),
-      SessionLifeTime(-1),
       Rerun(-1),
       ExpiryTime(-1),
       ProcessingStartTime(-1) {}
@@ -86,10 +95,9 @@ namespace Arc {
     std::string LogDir;
     std::list<URL> RemoteLogging;
     int Rerun;
-    Period SessionLifeTime;
     Time ExpiryTime;
     Time ProcessingStartTime;
-    XMLNode Notification;
+    std::list<std::string> Notification;
     std::list<URL> CredentialService;
     XMLNode AccessControl;
   };
@@ -103,7 +111,18 @@ namespace Arc {
     Range<int> NumberOfProcesses;
     Range<int> ProcessPerHost;
     Range<int> ThreadsPerProcesses;
-    XMLNode SPMDVariation;
+    std::string SPMDVariation;
+  };
+
+  class DiskSpaceRequirementType {
+  public:
+    DiskSpaceRequirementType() :
+      DiskSpace(-1),
+      CacheDiskSpace(-1),
+      SessionDiskSpace(-1) {}
+    Range<int64_t> DiskSpace;
+    int64_t CacheDiskSpace;
+    int64_t SessionDiskSpace;
   };
 
   class ResourceTargetType {
@@ -130,34 +149,28 @@ namespace Arc {
     ResourcesType() :
       IndividualPhysicalMemory(-1),
       IndividualVirtualMemory(-1),
-      TotalCPUTime(-1),
-      IndividualCPUTime(-1),
-      TotalWallTime(-1),
-      IndividualWallTime(-1),
-      IndividualDiskSpace(-1),
-      CacheDiskSpace(-1),
-      SessionDiskSpace(-1),
+      SessionLifeTime(-1),
       SessionDirectoryAccess(SDAM_NONE),
+      IndividualCPUTime(-1),
+      TotalCPUTime(-1),
+      IndividualWallTime(-1),
+      TotalWallTime(-1),
       NodeAccess(NAT_NONE) {}
-    std::string OSFamily;
-    std::string OSName;
-    std::string OSVersion;
+    SoftwareRequirement OperatingSystem;
     std::string Platform;
     std::string NetworkInfo;
+    NodeAccessType NodeAccess;
     Range<int64_t> IndividualPhysicalMemory;
     Range<int64_t> IndividualVirtualMemory;
-    Range<int> TotalCPUTime;
-    Range<int> IndividualCPUTime;
-    Range<int> TotalWallTime;
-    Range<int> IndividualWallTime;
-    XMLNode ReferenceTime;
-    int64_t IndividualDiskSpace;
-    int64_t CacheDiskSpace;
-    int64_t SessionDiskSpace;
+    DiskSpaceRequirementType DiskSpaceRequirement;
+    Period SessionLifeTime;
     SessionDirectoryAccessMode SessionDirectoryAccess;
+    ScalableTime<int> IndividualCPUTime;
+    ScalableTime<int> TotalCPUTime;
+    ScalableTime<int> IndividualWallTime;
+    ScalableTime<int> TotalWallTime;
     SoftwareRequirement CEType;
-    NodeAccessType NodeAccess;
-    ResourceSlotType Slots;
+    ResourceSlotType SlotRequirement;
     std::list<ResourceTargetType> CandidateTarget;
     SoftwareRequirement RunTimeEnvironment;
   };

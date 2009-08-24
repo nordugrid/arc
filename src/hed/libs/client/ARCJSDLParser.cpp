@@ -27,16 +27,125 @@ namespace Arc {
     return;
   }
 
-  static long get_limit(XMLNode range) {
-    if (!range)
-      return -1;
-    XMLNode n = range["LowerBoundRange"];
-    if (n)
-      return stringtol((std::string)n);
-    n = range["UpperBoundRange"];
-    if (n)
-      return stringtol((std::string)n);
-    return -1;
+  bool ARCJSDLParser::parseSoftware(const XMLNode& xmlSoftware, SoftwareRequirement& sr) const {
+    for (int i = 0; (bool)(xmlSoftware["Software"][i]); i++) {
+      SWComparisonOperator comOp = &Software::operator==;
+      if (bool(xmlSoftware["Software"][i]["Version"].Attribute("require"))) {
+        const std::string comOpStr = (std::string)xmlSoftware["Software"][i]["Version"].Attribute("require");
+        if (comOpStr == "!=" || lower(comOpStr) == "ne")
+          comOp = &Software::operator!=;
+        else if (comOpStr == ">" || lower(comOpStr) == "gt")
+          comOp = &Software::operator>;
+        else if (comOpStr == "<" || lower(comOpStr) == "lt")
+          comOp = &Software::operator<;
+        else if (comOpStr == ">=" || lower(comOpStr) == "ge")
+          comOp = &Software::operator>=;
+        else if (comOpStr == "<=" || lower(comOpStr) == "le")
+          comOp = &Software::operator<=;
+        else if (comOpStr != "=" && comOpStr != "==" && lower(comOpStr) != "eq") {
+          logger.msg(ERROR, "Unknown operator '%s' in attribute require in Version element", comOpStr);
+          return false;
+        }
+      }
+      
+      sr.add(Software(trim((std::string)xmlSoftware["Software"][i]["Name"]),
+                      trim((std::string)xmlSoftware["Software"][i]["Version"])),
+             comOp);
+    }
+
+    return true;
+  }
+
+  void ARCJSDLParser::outputSoftware(const SoftwareRequirement& sr, XMLNode& arcJSDL) const {
+    std::list<Software>::const_iterator itSW = sr.getSoftwareList().begin();
+    std::list<SWComparisonOperator>::const_iterator itCO = sr.getComparisonOperatorList().begin();
+    for (; itSW != sr.getSoftwareList().end(); itSW++, itCO++) {
+      if (itSW->empty()) continue;
+
+      XMLNode xmlSoftware = arcJSDL.NewChild("Software");
+      if (!itSW->getFamily().empty()) xmlSoftware.NewChild("Family") = itSW->getFamily();
+      xmlSoftware.NewChild("Name") = itSW->getName();
+      if (!itSW->getVersion().empty()) {
+        XMLNode xmlVersion = xmlSoftware.NewChild("Version");
+        xmlVersion = itSW->getVersion();
+        if (*itCO != &Software::operator ==)
+          xmlVersion.NewAttribute("require") = Software::toString(*itCO);
+      }
+    }
+
+    if (bool(arcJSDL["Software"]) && sr.isRequiringAll())
+      arcJSDL.NewAttribute("require") = "all";
+  }
+
+  template<typename T>
+  void ARCJSDLParser::parseRange(const XMLNode& xmlRange, Range<T>& range, const T& undefValue) const {
+    if (!xmlRange) return;
+    
+    if (bool(xmlRange["Min"])) {
+      if (!stringto<T>((std::string)xmlRange["Min"], range.min))
+        range.min = undefValue;
+    }
+    else if (bool(xmlRange["LowerBoundedRange"])) {
+      if (!stringto<T>((std::string)xmlRange["LowerBoundedRange"], range.min))
+        range.min = undefValue;
+    }
+    
+    if (bool(xmlRange["Max"])) {
+      if (!stringto<T>((std::string)xmlRange["Max"], range.max))
+        range.max = undefValue;
+    }
+    else if (bool(xmlRange["UpperBoundedRange"])) {
+      if (!stringto<T>((std::string)xmlRange["UpperBoundedRange"]), range.max)
+        range.max = undefValue;
+    }
+  }
+
+  template<typename T>
+  Range<T> ARCJSDLParser::parseRange(const XMLNode& xmlRange, const T& undefValue) const {
+    Range<T> range;
+    parseRange(xmlRange, range, undefValue);
+    return range;
+  }
+
+  template<typename T>
+  void ARCJSDLParser::outputARCJSDLRange(const Range<T>& range, XMLNode& arcJSDL, const T& undefValue) const {
+    if (range.min != undefValue) {
+      const std::string min = tostring(range.min);
+      if (!min.empty()) arcJSDL.NewChild("Min") = min;
+    }
+
+    if (range.max != undefValue) {
+      const std::string max = tostring(range.max);
+      if (!max.empty()) arcJSDL.NewChild("Max") = max;
+    }
+  }
+
+  template<typename T>
+  void ARCJSDLParser::outputJSDLRange(const Range<T>& range, XMLNode& jsdl, const T& undefValue) const {
+    if (range.min != undefValue) {
+      const std::string lower = tostring(range.min);
+      if (!lower.empty()) jsdl.NewChild("LowerBoundedRange") = lower;
+    }
+
+    if (range.max != undefValue) {
+      const std::string upper = tostring(range.max);
+      if (!upper.empty()) jsdl.NewChild("UpperBoundedRange") = upper;
+    }
+  }
+
+  void ARCJSDLParser::parseBenchmark(const XMLNode& xmlBenchmark, std::pair<std::string, int>& benchmark) const {
+    int value;
+    if (bool(xmlBenchmark["BenchmarkType"]) &&
+        bool(xmlBenchmark["BenchmarkValue"]) &&
+        stringto(xmlBenchmark["BenchmarkValue"], value))
+      benchmark = std::make_pair<std::string, int>((std::string)xmlBenchmark["BenchmarkType"], value);
+  }
+
+  void ARCJSDLParser::outputBenchmark(const std::pair<std::string, int>& benchmark, XMLNode& arcJSDL) const {
+    if (!benchmark.first.empty()) {
+      arcJSDL.NewChild("BenchmarkType") = benchmark.first;
+      arcJSDL.NewChild("BenchmarkValue") = tostring(benchmark.second);
+    }
   }
 
   JobDescription ARCJSDLParser::Parse(const std::string& source) const {
@@ -66,13 +175,6 @@ namespace Arc {
     }
 
     // The source parsing start now.
-    NS nsList;
-    nsList.insert(std::pair<std::string, std::string>("jsdl", "http://schemas.ggf.org/jsdl/2005/11/jsdl"));
-    nsList.insert(std::pair<std::string, std::string>("jsdl-posix", "http://schemas.ggf.org/jsdl/2005/11/jsdl-posix"));
-    nsList.insert(std::pair<std::string, std::string>("jsdl-arc", "http://www.nordugrid.org/ws/schemas/jsdl-arc"));
-
-    node.Namespaces(nsList);
-
     XMLNode jobdescription = node["JobDescription"];
 
     // JobIdentification
@@ -90,8 +192,19 @@ namespace Arc {
     if (bool(jobidentification["JobVOName"]))
       job.Identification.JobVOName = (std::string)jobidentification["JobVOName"];
 
-    // ComputingActivityType JobType; // Skou: Unclear...
-    // std::list<std::string> UserTag; // Skou: Unclear...
+    // ComputingActivityType JobType;
+    if (!bool(jobidentification["JobType"]) || lower((std::string)jobidentification["JobType"]) == "single")
+      job.Identification.JobType = SINGLE;
+    else if (lower((std::string)jobidentification["JobType"]) == "collectionelement")
+      job.Identification.JobType = COLLECTIONELEMENT;
+    else if (lower((std::string)jobidentification["JobType"]) == "parallelelement")
+      job.Identification.JobType = PARALLELELEMENT;
+    else if (lower((std::string)jobidentification["JobType"]) == "workflownode")
+      job.Identification.JobType = WORKFLOWNODE;
+    
+    // std::list<std::string> UserTag;
+    for (int i = 0; (bool)(jobidentification["UserTag"][i]); i++)
+      job.Identification.UserTag.push_back((std::string)jobidentification["UserTag"][i]);
 
     // std::list<std::string> ActivityOldId;
     for (int i = 0; (bool)(jobidentification["ActivityOldId"][i]); i++)
@@ -129,6 +242,7 @@ namespace Arc {
       job.Application.Error = (std::string)xmlXApplication["Error"];
 
     // bool Join;
+    job.Application.Join = lower((std::string)xmlApplication["Join"]) == "true";
 
     // std::list< std::pair<std::string, std::string> > Environment;
     for (int i = 0; (bool)(xmlXApplication["Environment"][i]); i++) {
@@ -154,8 +268,8 @@ namespace Arc {
       job.Application.Epilogue.Argument.push_back((std::string)xmlApplication["EpilogueArgument"][i]);
 
     // std::string LogDir;
-    if (bool(xmlApplication["LocalLogging"]))
-      job.Application.LogDir = (std::string)xmlApplication["LocalLogging"];
+    if (bool(xmlApplication["LogDir"]))
+      job.Application.LogDir = (std::string)xmlApplication["LogDir"];
 
     // std::list<URL> RemoteLogging;
     for (int i = 0; (bool)(xmlApplication["RemoteLogging"][i]); i++)
@@ -165,10 +279,6 @@ namespace Arc {
     if (bool(xmlApplication["Rerun"]))
       job.Application.Rerun = stringtoi((std::string)xmlApplication["Rerun"]);
 
-    // Period SessionLifeTime;
-    if (bool(xmlApplication["SessionLifeTime"]))
-      job.Application.SessionLifeTime = Period((std::string)xmlApplication["SessionLifeTime"]);
-
     // Time ExpiryTime;
     if (bool(xmlApplication["ExpiryTime"]))
       job.Application.ExpiryTime = Time((std::string)xmlApplication["ExpiryTime"]);
@@ -177,19 +287,9 @@ namespace Arc {
     if (bool(xmlApplication["ProcessingStartTime"]))
       job.Application.ProcessingStartTime = Time((std::string)xmlApplication["ProcessingStartTime"]);
 
-/** Skou: How should this element be interpretted.
     // XMLNode Notification;
-    if (bool(jobdescription["Notify"]))
-      for (int i = 0; bool(jobdescription["Notify"][i]); i++) {
-        NotificationType notify;
-        for (int j = 0; bool(jobdescription["Notify"][i]["Endpoint"][j]); j++)
-          notify.Address.push_back((std::string)jobdescription["Notify"][i]["Endpoint"][j]);
-
-        for (int j = 0; bool(jobdescription["Notify"][i]["State"][j]); j++)
-          notify.State.push_back((std::string)jobdescription["Notify"][i]["State"][j]);
-        job.Notification.push_back(notify);
-      }
-*/
+    for (int i = 0; bool(jobdescription["Notification"][i]); i++)
+      job.Application.Notification.push_back((std::string)jobdescription["Notification"][i]);
 
     // std::list<URL> CredentialService;
     for (int i = 0; (bool)(xmlApplication["CredentialService"][i]); i++)
@@ -204,165 +304,150 @@ namespace Arc {
     // Resources
     XMLNode resource = node["JobDescription"]["Resources"];
 
-    // std::string OSFamily;
-    if (bool(resource["OSFamily"]))
-      job.Resources.OSFamily = (std::string)resource["OSFamily"];
-
-    // std::string OSName;
-    if (bool(resource["OperatingSystem"]["OperatingSystemType"]["OperatingSystemName"]))
-      job.Resources.OSName = (std::string)resource["OperatingSystem"]["OperatingSystemType"]["OperatingSystemName"];
-
-    // std::string OSVersion;
-    if (bool(resource["OperatingSystem"]["OperatingSystemVersion"]))
-      job.Resources.OSVersion = (std::string)resource["OperatingSystem"]["OperatingSystemVersion"];
+    // SoftwareRequirement OperatingSystem;
+    if (bool(resource["OperatingSystem"])) {
+      if (!parseSoftware(resource["OperatingSystem"], job.Resources.OperatingSystem))
+        return JobDescription();
+    }
 
     // std::string Platform;
-    if (bool(resource["CPUArchitecture"]["CPUArchitectureName"]))
+    if (bool(resource["Platform"]))
+      job.Resources.Platform = (std::string)resource["Platform"];
+    else if (bool(resource["CPUArchitecture"]["CPUArchitectureName"]))
       job.Resources.Platform = (std::string)resource["CPUArchitecture"]["CPUArchitectureName"];
 
     // std::string NetworkInfo;
-    if (bool(resource["IndividualNetworkBandwidth"])) {
-      long bits_per_sec = get_limit(resource["IndividualNetworkBandwidth"]);
-      std::string value = "";
-      long network = 1024 * 1024;
+    if (bool(resource["NetworkInfo"]))
+      job.Resources.NetworkInfo = (std::string)resource["NetworkInfo"];
+    else if (bool(resource["IndividualNetworkBandwidth"])) {
+      Range<long> bits_per_sec;
+      parseRange<long>(resource["IndividualNetworkBandwidth"], bits_per_sec, -1);
+      const long network = 1024 * 1024;
       if (bits_per_sec < 100 * network)
-        value = "100megabitethernet";
+        job.Resources.NetworkInfo = "100megabitethernet";
       else if (bits_per_sec < 1024 * network)
-        value = "gigabitethernet";
+        job.Resources.NetworkInfo = "gigabitethernet";
       else if (bits_per_sec < 10 * 1024 * network)
-        value = "myrinet";
+        job.Resources.NetworkInfo = "myrinet";
       else
-        value = "infiniband";
-      job.Resources.NetworkInfo = value;
+        job.Resources.NetworkInfo = "infiniband";
     }
 
-    // Range<unsigned int> IndividualPhysicalMemory;
+    // Range<int64_t> IndividualPhysicalMemory;
     // If the consolidated element exist parse it, else try to parse the POSIX one.
-    if (bool(resource["IndividualPhysicalMemory"])) {
-      long value = get_limit(resource["IndividualPhysicalMemory"]);
-      if (value > -1)
-        job.Resources.IndividualPhysicalMemory = value;
-    }
+    if (bool(resource["IndividualPhysicalMemory"]))
+      parseRange<int64_t>(resource["IndividualPhysicalMemory"], job.Resources.IndividualPhysicalMemory, -1);
     else if (bool(xmlXApplication["MemoryLimit"])) {
-      int64_t value = stringto<int64_t>((std::string)xmlXApplication["MemoryLimit"]);
-      if (value > -1)
-        job.Resources.IndividualPhysicalMemory = value;
+      if (!stringto<int64_t>((std::string)xmlXApplication["MemoryLimit"], job.Resources.IndividualPhysicalMemory.max))
+        job.Resources.IndividualPhysicalMemory = Range<int64_t>(-1);
     }
 
-    // Range<unsigned int> IndividualVirtualMemory;
+    // Range<int64_t> IndividualVirtualMemory;
     // If the consolidated element exist parse it, else try to parse the POSIX one.
     if (bool(resource["IndividualVirtualMemory"])) {
-      long value = get_limit(resource["IndividualVirtualMemory"]);
-      if (value > -1)
-        job.Resources.IndividualVirtualMemory = value;
+      parseRange<int64_t>(resource["IndividualVirtualMemory"], job.Resources.IndividualVirtualMemory, -1);
     }
     else if (bool(xmlXApplication["VirtualMemoryLimit"])) {
-      int64_t value = stringto<int64_t>((std::string)xmlXApplication["VirtualMemoryLimit"]);
-      if (value > -1)
-        job.Resources.IndividualVirtualMemory = value;
+      if (!stringto<int64_t>((std::string)xmlXApplication["VirtualMemoryLimit"], job.Resources.IndividualVirtualMemory.max))
+        job.Resources.IndividualVirtualMemory = Range<int64_t>(-1);
     }
 
-    // Range<unsigned int> TotalCPUTime;
+    // Range<int> IndividualCPUTime;
+    if (bool(resource["IndividualCPUTime"]["Value"])) {
+      parseRange<int>(resource["IndividualCPUTime"]["Value"], job.Resources.IndividualCPUTime.range, -1);
+      parseBenchmark(resource["IndividualCPUTime"], job.Resources.IndividualCPUTime.benchmark);
+    }
+    else if (bool(resource["IndividualCPUTime"])) // JSDL compliance...
+      parseRange<int>(resource["IndividualCPUTime"], job.Resources.IndividualCPUTime.range, -1);
+
+    // Range<int> TotalCPUTime;
     // If the consolidated element exist parse it, else try to parse the POSIX one.
-    if (bool(resource["TotalCPUTime"])) {
-      long value = get_limit(resource["TotalCPUTime"]);
-      if (value > -1)
-        job.Resources.TotalCPUTime = value;
+    if (bool(resource["TotalCPUTime"]["Value"])) {
+      parseRange<int>(resource["TotalCPUTime"]["Value"], job.Resources.TotalCPUTime.range, -1);
+      parseBenchmark(resource["TotalCPUTime"], job.Resources.TotalCPUTime.benchmark);
     }
-    else if (bool(xmlXApplication["CPUTimeLimit"])) {
-      int64_t value = stringto<int64_t>((std::string)xmlXApplication["CPUTimeLimit"]);
-      if (value > -1)
-        job.Resources.TotalCPUTime = value;
-    }
-
-    // Range<unsigned int> IndividualCPUTime;
-    if (bool(resource["IndividualCPUTime"])) {
-      long value = get_limit(resource["IndividualCPUTime"]);
-      if (value > -1)
-        job.Resources.IndividualCPUTime = value;
+    else if (bool(resource["TotalCPUTime"])) // JSDL compliance...
+      parseRange<int>(resource["TotalCPUTime"], job.Resources.TotalCPUTime.range, -1);
+    else if (bool(xmlXApplication["CPUTimeLimit"])) { // POSIX compliance...
+      if (!stringto<int>((std::string)xmlXApplication["CPUTimeLimit"], job.Resources.TotalCPUTime.range.max))
+        job.Resources.TotalCPUTime.range = Range<int>(-1);
     }
 
-    // Range<unsigned int> TotalWallTime;
+    // Range<int> IndividualWallTime;
+    if (bool(resource["IndividualWallTime"]["Value"])) {
+      parseRange<int>(resource["IndividualWallTime"]["Value"], job.Resources.IndividualWallTime.range, -1);
+      parseBenchmark(resource["IndividualCPUTime"], job.Resources.IndividualWallTime.benchmark);
+    }
+
+    // Range<int> TotalWallTime;
     // If the consolidated element exist parse it, else try to parse the POSIX one.
-    if (bool(resource["TotalWallTime"])) {
-      long value = get_limit(resource["TotalWallTime"]);
-      if (value > -1)
-        job.Resources.TotalWallTime = value;
+    if (bool(resource["TotalWallTime"]["Value"])) {
+      parseRange<int>(resource["TotalWallTime"]["Value"], job.Resources.TotalWallTime.range, -1);
+      parseBenchmark(resource["TotalWallTime"], job.Resources.TotalWallTime.benchmark);
     }
     else if (bool(xmlXApplication["WallTimeLimit"])) {
-      int64_t value = stringto<int64_t>((std::string)xmlXApplication["WallTimeLimit"]);
-      if (value > -1)
-        job.Resources.TotalWallTime = value;
+      if (!stringto<int>((std::string)xmlXApplication["WallTimeLimit"], job.Resources.TotalWallTime.range.max))
+        job.Resources.TotalWallTime.range = Range<int>(-1);
     }
 
-    // Range<unsigned int> IndividualWallTime;
-    if (bool(resource["IndividualWallTime"])) {
-      long value = get_limit(resource["IndividualWallTime"]);
-      if (value > -1)
-        job.Resources.IndividualWallTime = value;
-    }
-
-/** Skou: Structure need to be defined.
- * Old structure follows...
-    // XMLNode ReferenceTime;
-    if (bool(resource["GridTimeLimit"])) {
-      ReferenceTimeType rt;
-      rt.benchmark = "gridtime";
-      rt.value = 2800;
-      rt.time = (std::string)resource["GridTimeLimit"];
-      job.ReferenceTime.push_back(rt);
-    }
-*/
-
-    // unsigned int IndividualDiskSpace;
+    // Range<int64_t> DiskSpace;
     // If the consolidated element exist parse it, else try to parse the POSIX one.
-    if (bool(resource["IndividualDiskSpace"])) {
-      long value = get_limit(resource["IndividualDiskSpace"]);
-      if (value > -1)
-        job.Resources.IndividualDiskSpace = value;
+    if (bool(resource["DiskSpaceRequirement"]["DiskSpace"]))
+      parseRange<int64_t>(resource["DiskSpaceRequirement"]["DiskSpace"], job.Resources.DiskSpaceRequirement.DiskSpace, -1);
+    else if (bool(resource["FileSystem"]["DiskSpace"]))
+      parseRange<int64_t>(resource["FileSystem"]["DiskSpace"], job.Resources.DiskSpaceRequirement.DiskSpace, -1);
+
+    // int64_t CacheDiskSpace;
+    if (bool(resource["DiskSpaceRequirement"]["CacheDiskSpace"])) {
+      if (!stringto<int64_t>((std::string)resource["DiskSpaceRequirement"]["CacheDiskSpace"], job.Resources.DiskSpaceRequirement.CacheDiskSpace))
+         job.Resources.DiskSpaceRequirement.CacheDiskSpace = -1;
     }
-    else if (bool(resource["FileSystem"]["DiskSpace"])) {
-      long value = get_limit(resource["FileSystem"]["DiskSpace"]);
-      if (value > -1)
-        job.Resources.IndividualDiskSpace = value;
+    
+    // int64_t SessionDiskSpace;
+    if (bool(resource["DiskSpaceRequirement"]["SessionDiskSpace"])) {
+      if (!stringto<int64_t>((std::string)resource["DiskSpaceRequirement"]["SessionDiskSpace"], job.Resources.DiskSpaceRequirement.SessionDiskSpace))
+        job.Resources.DiskSpaceRequirement.SessionDiskSpace = -1;
     }
 
-    // unsigned int CacheDiskSpace; // Skou: Unclear.
-    // unsigned int SessionDiskSpace; // Skou: Unclear.
-    // SessionDirectoryAccessMode SessionDirectoryAccess; // Skou: Need to be defined.
+    // Period SessionLifeTime;
+    if (bool(resource["SessionLifeTime"]))
+      job.Resources.SessionLifeTime = Period((std::string)resource["SessionLifeTime"]);
 
-/** Skou: Currently not supported...
     // SoftwareRequirement CEType;
-    if (bool(resource["Middleware"]["Name"]))
-      job.Resources.CEType = (std::string)resource["Middleware"]["Name"];
-*/
+    if (bool(resource["CEType"]))
+      if (!parseSoftware(resource["CEType"], job.Resources.CEType))
+        return JobDescription();
 
-    // NodeAccessType NodeAccess; // Skou: Need to be defined.
+    // NodeAccessType NodeAccess;
+    if (lower((std::string)resource["NodeAccess"]) == "inbound")
+      job.Resources.NodeAccess = NAT_INBOUND;
+    else if (lower((std::string)resource["NodeAccess"]) == "outbound")
+      job.Resources.NodeAccess = NAT_OUTBOUND;
+    else if (lower((std::string)resource["NodeAccess"]) == "inoutbound")
+      job.Resources.NodeAccess = NAT_INOUTBOUND;
 
     // ResourceSlotType Slots;
-    if (bool(resource["Slots"]["NumberOfProcesses"])) {
-      long value = get_limit(resource["Slots"]["NumberOfProcesses"]);
-      if (value > -1)
-        job.Resources.Slots.NumberOfProcesses = value;
-    }
+    if (bool(resource["SlotRequirement"]["NumberOfProcesses"]))
+      parseRange<int>(resource["SlotRequirement"]["NumberOfProcesses"], job.Resources.SlotRequirement.NumberOfProcesses, -1);
     else if (bool(xmlXApplication["ProcessCountLimit"])) {
-      int64_t value = stringto<int64_t>((std::string)xmlXApplication["ProcessCountLimit"]);
-      if (value > -1)
-        job.Resources.Slots.NumberOfProcesses = value;
+      if (!stringto<int>((std::string)xmlXApplication["ProcessCountLimit"], job.Resources.SlotRequirement.NumberOfProcesses.max))
+        job.Resources.SlotRequirement.NumberOfProcesses = Range<int>(-1);
     }
-    if (bool(resource["Slots"]["ThreadsPerProcesses"])) {
-      long value = get_limit(resource["Slots"]["ThreadsPerProcesses"]);
-      if (value > -1)
-        job.Resources.Slots.ThreadsPerProcesses = value;
-    }
+    if (bool(resource["SlotRequirement"]["ThreadsPerProcesses"]))
+      parseRange<int>(resource["SlotRequirement"]["ThreadsPerProcesses"], job.Resources.SlotRequirement.ThreadsPerProcesses, -1);
     else if (bool(xmlXApplication["ThreadCountLimit"])) {
-      int64_t value = stringto<int64_t>((std::string)xmlXApplication["ThreadCountLimit"]);
-      if (value > -1)
-        job.Resources.Slots.ThreadsPerProcesses = value;
+      if (!stringto<int>((std::string)xmlXApplication["ThreadCountLimit"], job.Resources.SlotRequirement.ThreadsPerProcesses.max))
+        job.Resources.SlotRequirement.ThreadsPerProcesses = Range<int>(-1);
     }
-    if (bool(resource["TotalCPUCount"]))
-      job.Resources.Slots.ProcessPerHost = abs(get_limit(resource["TotalCPUCount"]));
-    // XMLNode SPMDVariation;
+    if (bool(resource["SlotRequirement"]["ProcessPerHost"]))
+      parseRange<int>(resource["SlotRequirement"]["ProcessPerHost"], job.Resources.SlotRequirement.ProcessPerHost, -1);
+    else if (bool(resource["TotalCPUCount"]))
+      parseRange<int>(resource["TotalCPUCount"], job.Resources.SlotRequirement.ProcessPerHost, -1);
+
+    // std::string SPMDVariation;
+    if (bool(resource["SlotRequirement"]["SPMDVariation"]))
+      job.Resources.SlotRequirement.SPMDVariation = (std::string)resource["Slots"]["SPMDVariation"];
+    
 
     // std::list<ResourceTargetType> CandidateTarget;
     if (bool(resource["CandidateTarget"])) {
@@ -381,19 +466,13 @@ namespace Arc {
         job.Resources.CandidateTarget.push_back(candidateTarget);
       }
 
-/** Skou: Structure need to be defined.
     // SoftwareRequirement RunTimeEnvironment;
-    if (bool(resource["RunTimeEnvironment"]))
-      for (int i = 0; (bool)(resource["RunTimeEnvironment"][i]); i++) {
-        RunTimeEnvironmentType rt;
-        std::string version;
-        rt.Name = trim((std::string)resource["RunTimeEnvironment"][i]["Name"]);
-        version = trim((std::string)resource["RunTimeEnvironment"][i]["Version"]["Exact"]);
-        rt.Version.push_back(version);
-        job.RunTimeEnvironment.push_back(rt);
-      }
-*/
-
+    if (bool(resource["RunTimeEnvironment"])) {
+      if (bool(resource["RunTimeEnvironment"].Attribute("require")))
+        job.Resources.RunTimeEnvironment.setRequirement(lower((std::string)resource["RunTimeEnvironment"].Attribute("require")) == "all");
+      if (!parseSoftware(resource["RunTimeEnvironment"], job.Resources.RunTimeEnvironment))
+        return JobDescription();
+    }
     // end of Resources
 
     // Datastaging
@@ -440,15 +519,7 @@ namespace Arc {
   }
 
   std::string ARCJSDLParser::UnParse(const JobDescription& job) const {
-    NS nsList;
-    nsList.insert(std::pair<std::string, std::string>("", "http://schemas.ggf.org/jsdl/2005/11/jsdl"));
-    nsList.insert(std::pair<std::string, std::string>("jsdl-posix", "http://schemas.ggf.org/jsdl/2005/11/jsdl-posix"));
-    nsList.insert(std::pair<std::string, std::string>("jsdl-arc", "http://www.nordugrid.org/ws/schemas/jsdl-arc"));
-
-
-    XMLNode jobdefinition("<JobDefinition/>");
-
-    jobdefinition.Namespaces(nsList);
+    XMLNode jobdefinition(NS("", "http://schemas.ggf.org/jsdl/2005/11/jsdl"), "JobDefinition");
 
     XMLNode jobdescription = jobdefinition.NewChild("JobDescription");
 
@@ -467,8 +538,26 @@ namespace Arc {
     if (!job.Identification.JobVOName.empty())
       xmlIdentification.NewChild("JobVOName") = job.Identification.JobVOName;
 
-    // ComputingActivityType JobType; // Skou: Need to be defined.
-    // std::list<std::string> UserTag; // Skou: Need to be defined.
+    // ComputingActivityType JobType;
+    switch (job.Identification.JobType) {
+    case COLLECTIONELEMENT:
+      xmlIdentification.NewChild("JobType") = "collectionelement";
+      break;
+    case PARALLELELEMENT:
+      xmlIdentification.NewChild("JobType") = "parallelelement";
+      break;
+    case WORKFLOWNODE:
+      xmlIdentification.NewChild("JobType") = "workflownode";
+      break;
+    default:
+      xmlIdentification.NewChild("JobType") = "single";
+      break;
+    }
+      
+    // std::list<std::string> UserTag;
+    for (std::list<std::string>::const_iterator it = job.Identification.UserTag.begin();
+         it != job.Identification.UserTag.end(); it++)
+      xmlIdentification.NewChild("UserTag") = *it;
 
     // std::list<std::string> ActivityOldId;
     for (std::list<std::string>::const_iterator it = job.Identification.ActivityOldId.begin();
@@ -481,45 +570,47 @@ namespace Arc {
 
     // Application
     XMLNode xmlApplication("<Application/>");
-    XMLNode xmlPApplication("<POSIXApplication/>");
-    XMLNode xmlHApplication("<HPCProfileApplication/>");
+    XMLNode xmlPApplication(NS("posix-jsdl", "http://schemas.ggf.org/jsdl/2005/11/jsdl-posix"), "POSIXApplication");
+    XMLNode xmlHApplication(NS("hpcp-jsdl", "http://schemas.ggf.org/jsdl/2006/07/jsdl-hpcpa"), "HPCProfileApplication");
 
     // ExecutableType Executable;
     if (!job.Application.Executable.Name.empty()) {
-      xmlPApplication.NewChild("jsdl-posix:Executable") = job.Application.Executable.Name;
-      xmlHApplication.NewChild("jsdl-hpcpa:Executable") = job.Application.Executable.Name;
+      xmlPApplication.NewChild("posix-jsdl:Executable") = job.Application.Executable.Name;
+      xmlHApplication.NewChild("hpcp-jsdl:Executable") = job.Application.Executable.Name;
       for (std::list<std::string>::const_iterator it = job.Application.Executable.Argument.begin();
            it != job.Application.Executable.Argument.end(); it++) {
-        xmlPApplication.NewChild("jsdl-posix:Argument") = *it;
-        xmlHApplication.NewChild("jsdl-hpcpa:Argument") = *it;
+        xmlPApplication.NewChild("posix-jsdl:Argument") = *it;
+        xmlHApplication.NewChild("hpcp-jsdl:Argument") = *it;
       }
     }
 
     // std::string Input;
     if (!job.Application.Input.empty()) {
-      xmlPApplication.NewChild("jsdl-posix:Input") = job.Application.Input;
-      xmlHApplication.NewChild("jsdl-hpcpa:Input") = job.Application.Input;
+      xmlPApplication.NewChild("posix-jsdl:Input") = job.Application.Input;
+      xmlHApplication.NewChild("hpcp-jsdl:Input") = job.Application.Input;
     }
 
     // std::string Output;
     if (!job.Application.Output.empty()) {
-      xmlPApplication.NewChild("jsdl-posix:Output") = job.Application.Output;
-      xmlHApplication.NewChild("jsdl-hpcpa:Output") = job.Application.Output;
+      xmlPApplication.NewChild("posix-jsdl:Output") = job.Application.Output;
+      xmlHApplication.NewChild("hpcp-jsdl:Output") = job.Application.Output;
     }
 
     // std::string Error;
     if (!job.Application.Error.empty()) {
-      xmlPApplication.NewChild("jsdl-posix:Error") = job.Application.Error;
-      xmlHApplication.NewChild("jsdl-hpcpa:Error") = job.Application.Error;
+      xmlPApplication.NewChild("posix-jsdl:Error") = job.Application.Error;
+      xmlHApplication.NewChild("hpcp-jsdl:Error") = job.Application.Error;
     }
 
-    // bool Join; // Skou: Unclear...
+    // bool Join;
+    if (job.Application.Join)
+      xmlApplication.NewChild("Join") = "true";
 
     // std::list< std::pair<std::string, std::string> > Environment;
     for (std::list< std::pair<std::string, std::string> >::const_iterator it = job.Application.Environment.begin();
          it != job.Application.Environment.end(); it++) {
-      XMLNode pEnvironment = xmlPApplication.NewChild("jsdl-posix:Environment");
-      XMLNode hEnvironment = xmlHApplication.NewChild("jsdl-hpcpa:Environment");
+      XMLNode pEnvironment = xmlPApplication.NewChild("posix-jsdl:Environment");
+      XMLNode hEnvironment = xmlHApplication.NewChild("hpcp-jsdl:Environment");
       pEnvironment.NewAttribute("name") = it->first;
       pEnvironment = it->second;
       hEnvironment.NewAttribute("name") = it->first;
@@ -544,7 +635,7 @@ namespace Arc {
 
     // std::string LogDir;
     if (!job.Application.LogDir.empty())
-      xmlApplication.NewChild("LocalLogging") = job.Application.LogDir;
+      xmlApplication.NewChild("LogDir") = job.Application.LogDir;
 
     // std::list<URL> RemoteLogging;
     for (std::list<URL>::const_iterator it = job.Application.RemoteLogging.begin();
@@ -555,10 +646,6 @@ namespace Arc {
     if (job.Application.Rerun > -1)
       xmlApplication.NewChild("Rerun") = tostring(job.Application.Rerun);
 
-    // Period SessionLifeTime;
-    if (job.Application.SessionLifeTime > -1)
-      xmlApplication.NewChild("SessionLifeTime") = tostring(job.Application.SessionLifeTime);
-
     // Time ExpiryTime;
     if (job.Application.ExpiryTime > -1)
       xmlApplication.NewChild("ExpiryTime") = job.Application.ExpiryTime.str();
@@ -568,29 +655,14 @@ namespace Arc {
     if (job.Application.ProcessingStartTime > -1)
       xmlApplication.NewChild("ProcessingStartTime") = job.Application.ProcessingStartTime.str();
 
-/** Skou: Structure need to be defined.
- * Old structure follows...
     // XMLNode Notification;
-    if (!job.Notification.empty())
-      for (std::list<NotificationType>::const_iterator it = job.Notification.begin();
-           it != job.Notification.end(); it++) {
-        XMLNode notify = jobdescription.NewChild("jsdl-arc:Notify");
-        notify.NewChild("jsdl-arc:Type") = "Email";
-        for (std::list<std::string>::const_iterator it_address = (*it).Address.begin();
-             it_address != (*it).Address.end(); it_address++)
-          if (*it_address != "")
-            notify.NewChild("jsdl-arc:Endpoint") = *it_address;
-        for (std::list<std::string>::const_iterator it_state = (*it).State.begin();
-             it_state != (*it).State.end(); it_state++)
-          if (*it_state != "")
-            notify.NewChild("jsdl-arc:State") = *it_state;
-      }
-*/
+    for (std::list<std::string>::const_iterator it = job.Application.Notification.begin();
+         it != job.Application.Notification.end(); it++)
+      xmlApplication.NewChild("Notification") = *it;
 
     // XMLNode AccessControl;
     if (bool(job.Application.AccessControl))
       xmlApplication.NewChild("AccessControl").NewChild(job.Application.AccessControl);
-
 
     // std::list<URL> CredentialService;
     for (std::list<URL>::const_iterator it = job.Application.CredentialService.begin();
@@ -598,18 +670,18 @@ namespace Arc {
       xmlApplication.NewChild("CredentialService") = it->fullstr();
 
     // POSIX compliance...
-    if (job.Resources.TotalWallTime > -1)
-      xmlPApplication.NewChild("jsdl-posix:WallTimeLimit") = tostring(job.Resources.TotalWallTime);
-    if (job.Resources.IndividualPhysicalMemory > -1)
-      xmlPApplication.NewChild("jsdl-posix:MemoryLimit") = tostring(job.Resources.IndividualPhysicalMemory);
-    if (job.Resources.TotalCPUTime > -1)
-      xmlPApplication.NewChild("jsdl-posix:CPUTimeLimit") = tostring(job.Resources.TotalCPUTime);
-    if (job.Resources.Slots.NumberOfProcesses > -1)
-      xmlPApplication.NewChild("jsdl-posix:ProcessCountLimit") = tostring(job.Resources.Slots.NumberOfProcesses);
-    if (job.Resources.IndividualVirtualMemory > -1)
-      xmlPApplication.NewChild("jsdl-posix:VirtualMemoryLimit") = tostring(job.Resources.IndividualVirtualMemory);
-    if (job.Resources.Slots.ThreadsPerProcesses > -1)
-      xmlPApplication.NewChild("jsdl-posix:ThreadCountLimit") = tostring(job.Resources.Slots.ThreadsPerProcesses);
+    if (job.Resources.TotalWallTime.range.max != -1)
+      xmlPApplication.NewChild("posix-jsdl:WallTimeLimit") = tostring(job.Resources.TotalWallTime.range.max);
+    if (job.Resources.IndividualPhysicalMemory.max != -1)
+      xmlPApplication.NewChild("posix-jsdl:MemoryLimit") = tostring(job.Resources.IndividualPhysicalMemory.max);
+    if (job.Resources.TotalCPUTime.range.max != -1)
+      xmlPApplication.NewChild("posix-jsdl:CPUTimeLimit") = tostring(job.Resources.TotalCPUTime.range.max);
+    if (job.Resources.SlotRequirement.NumberOfProcesses.max != -1)
+      xmlPApplication.NewChild("posix-jsdl:ProcessCountLimit") = tostring(job.Resources.SlotRequirement.NumberOfProcesses.max);
+    if (job.Resources.IndividualVirtualMemory.max != -1)
+      xmlPApplication.NewChild("posix-jsdl:VirtualMemoryLimit") = tostring(job.Resources.IndividualVirtualMemory.max);
+    if (job.Resources.SlotRequirement.ThreadsPerProcesses.max != -1)
+      xmlPApplication.NewChild("posix-jsdl:ThreadCountLimit") = tostring(job.Resources.SlotRequirement.ThreadsPerProcesses.max);
 
     if (xmlPApplication.Size() > 0)
       xmlApplication.NewChild(xmlPApplication);
@@ -622,26 +694,24 @@ namespace Arc {
     // Resources
     XMLNode xmlResources("<Resources/>");
 
-    // std::string OSFamily;
-    if (!job.Resources.OSFamily.empty())
-      xmlResources.NewChild("OSFamily") = job.Resources.OSFamily;
+    // SoftwareRequirement OperatingSystem
+    if (!job.Resources.OperatingSystem.empty()) {
+      XMLNode xmlOS = xmlResources.NewChild("OperatingSystem");
+      
+      outputSoftware(job.Resources.OperatingSystem, xmlOS);
 
-    // std::string OSName;
-    if (!job.Resources.OSName.empty())
-      xmlResources.NewChild("OperatingSystem").
-                   NewChild("OperatingSystemType").
-                   NewChild("OperatingSystemName") = job.Resources.OSName;
-
-    // std::string OSVersion;
-    if (!job.Resources.OSVersion.empty()) {
-      if (!(bool)xmlResources["OperatingSystem"])
-        xmlResources.NewChild("OperatingSystem");
-      xmlResources["OperatingSystem"].NewChild("OperatingSystemVersion") = job.Resources.OSVersion;
+      // JSDL compliance. Only the first element in the OperatingSystem object is printed.
+      xmlOS.NewChild("jsdl:OperatingSystemType").NewChild("OperatingSystemName") = job.Resources.OperatingSystem.getSoftwareList().front().getName();
+      if (!job.Resources.OperatingSystem.getSoftwareList().front().getVersion().empty())
+        xmlOS.NewChild("jsdl:OperatingSystemVersion") = job.Resources.OperatingSystem.getSoftwareList().front().getVersion();
     }
 
     // std::string Platform;
-    if (!job.Resources.Platform.empty())
+    if (!job.Resources.Platform.empty()) {
+      xmlResources.NewChild("Platform") = job.Resources.Platform;
+      // JSDL compliance
       xmlResources.NewChild("CPUArchitecture").NewChild("CPUArchitectureName") = job.Resources.Platform;
+    }
 
     // std::string NetworkInfo;
     if (!job.Resources.NetworkInfo.empty()) {
@@ -656,75 +726,150 @@ namespace Arc {
         value = "10737418240.0";
 
       if (value != "")
-        xmlResources.NewChild("IndividualNetworkBandwidth").NewChild("LowerBoundRange") = value;
+        xmlResources.NewChild("IndividualNetworkBandwidth").NewChild("LowerBoundedRange") = value;
+    }
+
+    // NodeAccessType NodeAccess;
+    switch (job.Resources.NodeAccess) {
+    case NAT_INBOUND:
+      xmlResources.NewChild("NodeAccess") = "inbound";
+      break;
+    case NAT_OUTBOUND:
+      xmlResources.NewChild("NodeAccess") = "outbound";
+      break;
+    case NAT_INOUTBOUND:
+      xmlResources.NewChild("NodeAccess") = "inoutbound";
+      break;
     }
 
     // Range<int64_t> IndividualPhysicalMemory;
-    if (job.Resources.IndividualPhysicalMemory > -1)
-      xmlResources.NewChild("IndividualPhysicalMemory").NewChild("LowerBoundRange") = tostring(job.Resources.IndividualPhysicalMemory);
+    {
+      XMLNode xmlIPM("<IndividualPhysicalMemory/>");
+      outputARCJSDLRange(job.Resources.IndividualPhysicalMemory, xmlIPM, (int64_t)-1);
+      // JSDL compliance...
+      outputJSDLRange(job.Resources.IndividualPhysicalMemory, xmlIPM, (int64_t)-1);
+      if (xmlIPM.Size() > 0)
+        xmlResources.NewChild(xmlIPM);
+    }
 
     // Range<int64_t> IndividualVirtualMemory;
-    if (job.Resources.IndividualVirtualMemory > -1)
-      xmlResources.NewChild("IndividualVirtualMemory").NewChild("LowerBoundRange") = tostring(job.Resources.IndividualVirtualMemory);
-
-    // Range<int> TotalCPUTime;
-    if (job.Resources.TotalCPUTime != -1)
-      xmlResources.NewChild("TotalCPUTime").NewChild("LowerBoundRange") = tostring(job.Resources.TotalCPUTime);
-
-    // Range<int> IndividualCPUTime;
-    if (job.Resources.IndividualCPUTime != -1)
-      xmlResources.NewChild("IndividualCPUTime").NewChild("LowerBoundRange") = tostring(job.Resources.IndividualCPUTime);
-
-    // Range<int> TotalWallTime;
-    if (job.Resources.TotalWallTime != -1)
-      xmlResources.NewChild("TotalWallTime").NewChild("LowerBoundRange") = tostring(job.Resources.TotalWallTime);
-
-    // Range<int> IndividualWallTime;
-    if (job.Resources.IndividualWallTime != -1)
-      xmlResources.NewChild("IndividualWallTime").NewChild("LowerBoundRange") = tostring(job.Resources.IndividualWallTime);
-
-/** Skou: Currently not supported...
-    // XMLNode ReferenceTime;
-    if (!job.ReferenceTime.empty()) {
+    {
+      XMLNode xmlIVM("<IndividualVirtualMemory/>");
+      outputARCJSDLRange(job.Resources.IndividualVirtualMemory, xmlIVM, (int64_t)-1);
+      outputJSDLRange(job.Resources.IndividualVirtualMemory, xmlIVM, (int64_t)-1);
+      if (xmlIVM.Size() > 0)
+        xmlResources.NewChild(xmlIVM);
     }
-*/
 
-    // int64_t IndividualDiskSpace;
-    if (job.Resources.IndividualDiskSpace > -1) {
-      xmlResources.NewChild("IndividualDiskSpace").NewChild("LowerBoundRange") = tostring(job.Resources.IndividualDiskSpace);
+    {
+      // Range<int64_t> DiskSpace;
+      XMLNode xmlDiskSpace("<DiskSpace/>");
+      outputARCJSDLRange(job.Resources.DiskSpaceRequirement.DiskSpace, xmlDiskSpace, (int64_t)-1);
       // JSDL Compliance...
-      xmlResources.NewChild("FileSystem").NewChild("DiskSpace").NewChild("LowerBoundRange") = tostring(job.Resources.IndividualDiskSpace);
+      outputJSDLRange(job.Resources.DiskSpaceRequirement.DiskSpace, xmlDiskSpace, (int64_t)-1);
+
+      if (xmlDiskSpace.Size() > 0) {
+        xmlResources.NewChild("DiskSpaceRequirement").NewChild(xmlDiskSpace);
+          
+        // int64_t CacheDiskSpace;
+        if (job.Resources.DiskSpaceRequirement.CacheDiskSpace != -1)
+          xmlResources["DiskSpaceRequirement"].NewChild("CacheDiskSpace") = tostring(job.Resources.DiskSpaceRequirement.CacheDiskSpace);
+
+        // int64_t SessionDiskSpace;
+        if (job.Resources.DiskSpaceRequirement.SessionDiskSpace != -1)
+          xmlResources["DiskSpaceRequirement"].NewChild("SessionDiskSpace") = tostring(job.Resources.DiskSpaceRequirement.SessionDiskSpace);
+      }
     }
 
-    // int64_t CacheDiskSpace; // Skou: Unclear...
-    // int64_t SessionDiskSpace; // Skou: Unclear...
-    // SessionDirectoryAccessMode SessionDirectoryAccess; // Skou: Need to be defined...
+    // Period SessionLifeTime;
+    if (job.Resources.SessionLifeTime > -1)
+      xmlResources.NewChild("SessionLifeTime") = tostring(job.Resources.SessionLifeTime);
 
-/** Skou: Currently not supported...
+    // ScalableTime<int> IndividualCPUTime;
+    {
+      XMLNode xmlICPUT("<IndividualCPUTime><Value/></IndividualCPUTime>");
+      XMLNode xmlValue = xmlICPUT["Value"];
+      outputARCJSDLRange(job.Resources.IndividualCPUTime.range, xmlValue, -1);
+      if (xmlICPUT["Value"].Size() > 0) {
+        outputBenchmark(job.Resources.IndividualCPUTime.benchmark, xmlICPUT);
+        xmlResources.NewChild(xmlICPUT);
+
+        // JSDL compliance...
+        outputJSDLRange(job.Resources.IndividualCPUTime.range, xmlICPUT, -1);
+      }
+    }
+
+    // ScalableTime<int> TotalCPUTime;
+    {
+      XMLNode xmlTCPUT("<TotalCPUTime><Value/></TotalCPUTime>");
+      XMLNode xmlValue = xmlTCPUT["Value"];
+      outputARCJSDLRange(job.Resources.TotalCPUTime.range, xmlValue, -1);
+      if (xmlTCPUT["Value"].Size() > 0) {
+        outputBenchmark(job.Resources.TotalCPUTime.benchmark, xmlTCPUT);
+        xmlResources.NewChild(xmlTCPUT);
+
+        // JSDL compliance...
+        outputJSDLRange(job.Resources.TotalCPUTime.range, xmlTCPUT, -1);
+      }
+    }
+
+    // ScalableTime<int> IndividualWallTime;
+    {
+     XMLNode xmlIWT("<IndividualWallTime><Value/></IndividualWallTime>");
+      XMLNode xmlValue = xmlIWT["Value"];
+      outputARCJSDLRange(job.Resources.IndividualWallTime.range, xmlValue, -1);
+      if (xmlIWT["Value"].Size() > 0) {
+        outputBenchmark(job.Resources.IndividualWallTime.benchmark, xmlIWT);
+        xmlResources.NewChild(xmlIWT);
+      }
+    }
+
+    // ScalableTime<int> TotalWallTime;
+    {
+     XMLNode xmlTWT("<TotalWallTime><Value/></TotalWallTime>");
+      XMLNode xmlValue = xmlTWT["Value"];
+      outputARCJSDLRange(job.Resources.TotalWallTime.range, xmlValue, -1);
+      if (xmlTWT["Value"].Size() > 0) {
+        outputBenchmark(job.Resources.TotalWallTime.benchmark, xmlTWT);
+        xmlResources.NewChild(xmlTWT);
+      }
+    }
+
     // SoftwareRequirement CEType;
-    if (!job.CEType.empty()) {
-      if (!bool(jobdescription["Resources"]))
-        jobdescription.NewChild("Resources");
-      if (!bool(jobdescription["Resources"]["Middleware"]))
-        jobdescription["Resources"].NewChild("jsdl-arc:Middleware");
-      jobdescription["Resources"]["Middleware"].NewChild("jsdl-arc:Name") = job.CEType;
-      //jobdescription["Resources"]["Middleware"].NewChild("Version") = ?;
+    if (!job.Resources.CEType.empty()) {
+      XMLNode xmlCEType = xmlResources.NewChild("CEType");
+      outputSoftware(job.Resources.CEType, xmlCEType);
     }
-*/
-
-    // NodeAccessType NodeAccess; // Skou: Need to be defined.
 
     // ResourceSlotType Slots;
-    XMLNode xmlSlots("<Slots/>");
-    if (job.Resources.Slots.NumberOfProcesses > -1)
-      xmlSlots.NewChild("NumberOfProcesses").NewChild("LowerBoundedRange") = tostring(job.Resources.Slots.NumberOfProcesses);
-    if (job.Resources.Slots.ProcessPerHost > -1)
-      xmlSlots.NewChild("TotalCPUCount").NewChild("LowerBoundRange") = tostring(job.Resources.Slots.ProcessPerHost);
-    if (job.Resources.Slots.ThreadsPerProcesses > -1)
-      xmlSlots.NewChild("ThreadsPerProcesses").NewChild("LowerBoundedRange") = tostring(job.Resources.Slots.ThreadsPerProcesses);
-    // XMLNode SPMDVariation;
-    if (xmlSlots.Size() > 0)
-      xmlResources.NewChild(xmlSlots);
+    {
+      XMLNode xmlSlotRequirement("<SlotRequirement/>");
+
+      // Range<int> NumberOfProcesses;
+      XMLNode xmlNOP("<NumberOfProcesses/>");
+      outputARCJSDLRange(job.Resources.SlotRequirement.NumberOfProcesses, xmlNOP, -1);
+      if (xmlNOP.Size() > 0)
+        xmlSlotRequirement.NewChild(xmlNOP);
+      
+      // Range<int> ProcessPerHost;
+      XMLNode xmlPPH("<ProcessPerHost/>");
+      outputARCJSDLRange(job.Resources.SlotRequirement.ProcessPerHost, xmlPPH, -1);
+      if (xmlPPH.Size() > 0)
+        xmlSlotRequirement.NewChild(xmlPPH);
+
+      // Range<int> ThreadsPerProcesses;
+      XMLNode xmlTPP("<ThreadsPerProcesses/>");
+      outputARCJSDLRange(job.Resources.SlotRequirement.ThreadsPerProcesses, xmlTPP, -1);
+      if (xmlTPP.Size() > 0)
+        xmlSlotRequirement.NewChild(xmlTPP);
+
+      // std::string SPMDVariation;
+      if (!job.Resources.SlotRequirement.SPMDVariation.empty())
+        xmlSlotRequirement.NewChild("SPMDVariation") = job.Resources.SlotRequirement.SPMDVariation;
+      
+      if (xmlSlotRequirement.Size() > 0)
+        xmlResources.NewChild(xmlSlotRequirement);
+    }
 
     // std::list<ResourceTargetType> CandidateTarget;
     for (std::list<ResourceTargetType>::const_iterator it = job.Resources.CandidateTarget.begin();
@@ -738,29 +883,11 @@ namespace Arc {
         xmlResources.NewChild(xmlCandidateTarget);
     }
 
-/** Skou: Currently not supported...
     // SoftwareRequirement RunTimeEnvironment;
-    for (std::list<RunTimeEnvironmentType>::const_iterator it = job.RunTimeEnvironment.begin();
-         it != job.RunTimeEnvironment.end(); it++) {
-      if (!bool(jobdescription["Resources"]))
-        jobdescription.NewChild("Resources");
-
-      XMLNode resources = jobdescription["Resources"];
-
-      if (!(*it).Name.empty() && (*it).Version.empty())
-        resources.NewChild("jsdl-arc:RunTimeEnvironment").NewChild("jsdl-arc:Name") = (*it).Name;
-
-      // When more then one version are parsing
-      for (std::list<std::string>::const_iterator it_version = (*it).Version.begin();
-           it_version != (*it).Version.end(); it_version++) {
-        XMLNode RTE = resources.NewChild("jsdl-arc:RunTimeEnvironment");
-        RTE.NewChild("jsdl-arc:Name") = (*it).Name;
-        XMLNode version = RTE.NewChild("jsdl-arc:Version").NewChild("jsdl-arc:Exact");
-        version.NewAttribute("epsilon") = "0.5";
-        version = *it_version;
-      }
+    if (!job.Resources.RunTimeEnvironment.empty()) {
+      XMLNode xmlRTE = xmlResources.NewChild("RunTimeEnvironment");
+      outputSoftware(job.Resources.RunTimeEnvironment, xmlRTE);
     }
-*/
     // end of Resources
 
     // DataStaging
@@ -782,7 +909,7 @@ namespace Arc {
           target.NewChild("URI") = ((*it3).URI).fullstr();
       }
       if (it->IsExecutable || it->Name == job.Application.Executable.Name)
-        datastaging.NewChild("jsdl-arc:IsExecutable") = "true";
+        datastaging.NewChild("IsExecutable") = "true";
       datastaging.NewChild("DeleteOnTermination") = (it->KeepData ? "false" : "true");
       if (it->DownloadToCache)
         datastaging.NewChild("DownloadToCache") = "true";
