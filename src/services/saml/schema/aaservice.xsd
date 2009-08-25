@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+  xmlns="http://www.nordugrid.org/schemas/ArcConfig/2007/aa"
+  targetNamespace="http://www.nordugrid.org/schemas/ArcConfig/2007/aa"
+  xmlns:ini="http://www.nordugrid.org/schemas/ini/2009/08"
+  elementFormDefault="qualified">
+
+    <!-- Imports -->
+    <xsd:import namespace="http://www.nordugrid.org/schemas/ini/2009/08" schemaLocation="../../../daemon/schema/ini.xsd"/>
+
+    <xsd:element name="CertificatePath" type="xsd:string">
+        <xsd:annotation>
+            <xsd:documentation xml:lang="en">
+              The certificate together with the key, which are supposed to
+              to be used for signing the SAML assertion.
+              Default is none.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <ini:tag>certificatepath</ini:tag>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="KeyPath" type="xsd:string">
+        <xsd:annotation>
+            <xsd:documentation xml:lang="en">
+              Default is none.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <ini:tag>keypath</ini:tag>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="CertificatePath" type="xsd:string">
+        <xsd:annotation>
+            <xsd:documentation xml:lang="en">
+               The location of the CA file path, which is supposed
+               to be used for verifying the signature in SAML attribute query.
+               Default is none.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <ini:tag>cafile</ini:tag>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="CertificatesDir" type="xsd:string" default="/etc/grid-security/certificates">
+        <xsd:annotation>
+            <xsd:documentation xml:lang="en">
+               The location of the CA directory, which is supposed
+               to be used for verifying the signature in SAML attribute query.
+               Default is /etc/grid-security/certificates
+            </xsd:documentation>
+            <xsd:appinfo>
+                <ini:tag>cadir</ini:tag>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="SQL" type="aa:SQL_Type"/>
+    <xsd:complexType name="SQL_Type">
+        <xsd:annotation>
+            <xsd:documentation xml:lang="en">
+               The SQL sentence, which is supposed to be executed 
+               when the upper level SQLSet is selected. 
+               The SQL sentence is made configurable in order to
+               avoid changing the code if the database schema is changed.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:simpleContent>
+            <xsd:extension base="xsd:string">
+                <xsd:attribute name="name" type="xsd:string" use="optional"/>
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+
+    <xsd:element name="SQLSet" type="aa:SQLSet_Type"/>
+    <xsd:complexType name="SQLSet_Type">
+        <xsd:annotation>
+            <xsd:documentation xml:lang="en">
+               The SQL set, which includes at least one SQL element.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element ref="aa:SQL" maxOccurs="unbounded"/>
+        </xsd:sequence>
+        <xsd:attribute name="name" type="xsd:string" use="required"/>
+    </xsd:complexType>
+
+    <xsd:element name="Database" type="aa:Database_Type"/>
+    <xsd:complexType name="Database_Type">
+        <xsd:annotation>
+            <xsd:documentation xml:lang="en">
+               The Database, which includes at least one SQLSet element.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element ref="aa:SQLSet" maxOccurs="unbounded"/>
+        </xsd:sequence>
+        <xsd:attribute name="type" type="xsd:string" use="required"/>
+        <xsd:attribute name="ip" type="xsd:string" use="required"/>
+        <xsd:attribute name="port" type="xsd:string" use="required"/>
+        <xsd:attribute name="dbname" type="xsd:string" use="required"/>
+        <xsd:attribute name="user" type="xsd:string" use="required"/>
+        <xsd:attribute name="password" type="xsd:string" use="required"/>
+    </xsd:complexType>
+
+</xsd:schema>
+
