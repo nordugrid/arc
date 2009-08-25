@@ -426,11 +426,7 @@ namespace Arc {
       job.JDL_elements["OutputSE"] = "\"" + simpleJDLvalue(attributeValue) + "\"";
       return true;
     }
-    else if (attributeName == "shortdeadlinejob") {
-      // Not supported yet, only store it
-      job.JDL_elements["ShortDeadlineJob"] = simpleJDLvalue(attributeValue);
-      return true;
-    }
+
     logger.msg(WARNING, "[JDL Parser]: Unknown attribute name: \'%s\', with value: %s", attributeName, attributeValue);
     return true;
   }
