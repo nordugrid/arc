@@ -23,7 +23,7 @@
     <xsd:annotation>
         <xsd:documentation xml:lang="en">
         Location of public certificate.
-        Default is /etc/grid-security/hostkey.pem for service and none for client.
+        Default is /etc/grid-security/hostcert.pem for service and none for client.
         </xsd:documentation>
         <xsd:appinfo>
           <ini:tag>certificatepath</ini:tag>
