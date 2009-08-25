@@ -138,7 +138,7 @@ Arc::MCC_Status Service_Delegation::process(Arc::Message& inmsg,Arc::Message& ou
       Arc::Time start;
       //Set proxy path length to be -1, which means infinit length
       Arc::Credential proxy(start,Arc::Period(12*3600), 0, "rfc", "inheritAll","",-1);
-      Arc::Credential signer(cred, "", trusted_cadir, trusted_capath);
+      Arc::Credential signer(cred, "", trusted_cadir, trusted_capath, "", false);
       std::string signedcert;
       proxy.InquireRequest(x509req_value);
       if(!(signer.SignRequest(&proxy, signedcert))) {

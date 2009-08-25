@@ -103,9 +103,11 @@ class Credential {
     * credential files. only acts as a container for parsing the certificate and key
     * files, is meaningless for any other use. this constructor will parse the credential
     * information, and put them into "this" object
+    * @param is_file, specify if the cert/key are from file, otherwise they
+    *    are supposed to be from string. default is from file
     */
     Credential(const std::string& cert, const std::string& key, const std::string& cadir,
-               const std::string& cafile, const std::string& passphrase4key = "");
+               const std::string& cafile, const std::string& passphrase4key = "", const bool is_file = true);
 
     /**Initiate nid for proxy certificate extension*/
     static void InitProxyCertInfo(void);

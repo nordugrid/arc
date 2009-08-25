@@ -796,7 +796,8 @@ namespace Arc {
   }
 
   Credential::Credential(const std::string& certfile, const std::string& keyfile,
-        const std::string& cadir, const std::string& cafile, const std::string& passphrase4key) :
+        const std::string& cadir, const std::string& cafile, 
+        const std::string& passphrase4key, const bool is_file) :
         cacertfile_(cafile), cacertdir_(cadir), certfile_(certfile), keyfile_(keyfile),
         cert_(NULL), pkey_(NULL), cert_chain_(NULL), proxy_cert_info_(NULL),
         req_(NULL), rsa_key_(NULL), signing_alg_((EVP_MD*)EVP_sha1()),
@@ -817,37 +818,55 @@ namespace Arc {
     //Initiate the proxy certificate constant and  method which is required by openssl
     if(!proxy_init_) InitProxyCertInfo();
 
-    try {
-      loadCertificateFile(certfile, cert_, &cert_chain_);
-      if(cert_) check_cert_type(cert_,cert_type_);
-      //std::cout<<"Your identity: "<<GetDN() << std::endl;
-      if(keyfile.empty()) {
-        //Detect if the certificate file/string contains private key.
-        //If the key file is absent, and the private key is not contained inside
-        //certificate file/string, then the certificate file will not 
-        //be parsed for private key.
-        //Note this detection only applies to PEM file
-        std::string keystr;
-        if(Glib::file_test(certfile,Glib::FILE_TEST_EXISTS)) {      
-          std::ifstream in(certfile.c_str(), std::ios::in);
-          if (!in) {
-            CredentialLogger.msg(ERROR,"Can not read certificate file: %s", certfile);
-            throw CredentialError("Can not read certificate file");
+    if(is_file) {
+      try {
+        loadCertificateFile(certfile, cert_, &cert_chain_);
+        if(cert_) check_cert_type(cert_,cert_type_);
+        //std::cout<<"Your identity: "<<GetDN() << std::endl;
+        if(keyfile.empty()) {
+          //Detect if the certificate file/string contains private key.
+          //If the key file is absent, and the private key is not contained inside
+          //certificate file/string, then the certificate file will not 
+          //be parsed for private key.
+          //Note this detection only applies to PEM file
+          std::string keystr;
+          if(Glib::file_test(certfile,Glib::FILE_TEST_EXISTS)) {      
+            std::ifstream in(certfile.c_str(), std::ios::in);
+            if (!in) {
+              CredentialLogger.msg(ERROR,"Can not read certificate file: %s", certfile);
+              throw CredentialError("Can not read certificate file");
+            }
+            std::getline<char>(in, keystr, 0);
+            in.close();
           }
-          std::getline<char>(in, keystr, 0);
-          in.close();
+          else {
+            keystr = certfile;
+          }
+          if(keystr.find("BEGIN RSA PRIVATE KEY") != std::string::npos)
+            loadKeyFile(certfile, pkey_, passphrase4key);
         }
-        else {
-          keystr = certfile;
-        }
-        if(keystr.find("BEGIN RSA PRIVATE KEY") != std::string::npos)
-          loadKeyFile(certfile, pkey_, passphrase4key);
+        else
+          loadKeyFile(keyfile, pkey_, passphrase4key);
+      } catch(std::exception& err){
+        CredentialLogger.msg(ERROR, "ERROR:%s", err.what());
+        LogError(); return;
       }
-      else
-        loadKeyFile(keyfile, pkey_, passphrase4key);
-    } catch(std::exception& err){
-      CredentialLogger.msg(ERROR, "ERROR:%s", err.what());
-      LogError(); return;
+    } else {
+      try {
+        loadCertificateString(certfile, cert_, &cert_chain_);
+        if(cert_) check_cert_type(cert_,cert_type_);
+        if(keyfile.empty()) {
+          std::string keystr;
+          keystr = certfile;
+          if(keystr.find("BEGIN RSA PRIVATE KEY") != std::string::npos)
+            loadKeyString(certfile, pkey_, passphrase4key);
+        }
+        else
+          loadKeyString(keyfile, pkey_, passphrase4key);
+      } catch(std::exception& err){
+        CredentialLogger.msg(ERROR, "ERROR:%s", err.what());
+        LogError(); return;
+      }
     }
 
     //Get the lifetime of the credential
