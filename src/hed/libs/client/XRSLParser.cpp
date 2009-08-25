@@ -900,7 +900,7 @@ namespace Arc {
     if (!j.Resources.Platform.empty()) {
       RSLList *l = new RSLList;
       l->Add(new RSLLiteral(j.Resources.Platform));
-      r.Add(new RSLCondition("architacture", RSLEqual, l));
+      r.Add(new RSLCondition("architecture", RSLEqual, l));
     }
 
     if (j.Resources.SlotRequirement.ProcessPerHost > -1) {
