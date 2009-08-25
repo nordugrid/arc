@@ -192,7 +192,7 @@ Service_SLCS::Service_SLCS(Arc::Config *cfg):RegisteredService(cfg),
   CAcert = (std::string)((*cfg)["CACertificate"]);
   CAkey = (std::string)((*cfg)["CAKey"]);
   CAserial = (std::string)((*cfg)["CASerial"]);
-  ca_credential_ = new Arc::Credential(CAcert, CAkey, CAserial, 0, "", "");
+  ca_credential_ = new Arc::Credential(CAcert, CAkey, CAserial, 0, "", "", "");
 }
 
 Service_SLCS::~Service_SLCS(void) {
