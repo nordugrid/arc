@@ -246,7 +246,7 @@ Charon::Charon(Arc::Config *cfg):RegisteredService(cfg), logger_(Arc::Logger::ro
   ns_["pdp"]="http://www.nordugrid.org/schemas/pdp";
 
   //Load the Evaluator object
-  std::string evaluator = (*cfg)["PDPConfig"]["Evaluator"].Attribute("name");
+  std::string evaluator = (*cfg)["Evaluator"].Attribute("name");
   logger.msg(Arc::INFO, "Evaluator: %s", evaluator);
   ArcSec::EvaluatorLoader eval_loader;
   eval = eval_loader.getEvaluator(evaluator);
@@ -257,7 +257,7 @@ Charon::Charon(Arc::Config *cfg):RegisteredService(cfg), logger_(Arc::Logger::ro
 
   //Get the policy location, and put it into evaluator
   Arc::XMLNode policyfile;
-  Arc::XMLNode policystore = (*cfg)["PDPConfig"]["PolicyStore"];
+  Arc::XMLNode policystore = (*cfg)["PolicyStore"];
   if(policystore) {
     for(int i = 0; ; i++) {
       policyfile = policystore["Location"][i];

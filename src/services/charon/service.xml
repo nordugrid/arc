@@ -47,15 +47,13 @@
             <!--The element <Evaluator/>, <Policy/> and <Request/> configuration 
             are supposed to be used to load object; element <PolicyStore/> is 
             supposed to be used to get the location of policy-->
-            <charon:PDPConfig>
-                <charon:PolicyStore>
-                  <charon:Location Type="file">charon_policy_xacml.xml.example</charon:Location>
-                  <!-- other policy location-->
-                </charon:PolicyStore>
-                <charon:Evaluator name="xacml.evaluator" />
-                <charon:Policy name="xacml.policy" />
-                <charon:Request name="xacml.request" />
-            </charon:PDPConfig>
+            <charon:PolicyStore>
+              <charon:Location Type="file">charon_policy_xacml.xml.example</charon:Location>
+              <!-- other policy location-->
+            </charon:PolicyStore>
+            <charon:Evaluator name="xacml.evaluator" />
+            <charon:Policy name="xacml.policy" />
+            <charon:Request name="xacml.request" />
         </Service>
     </Chain>
 </ArcConfig>
