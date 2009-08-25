@@ -43,7 +43,7 @@ def upload_to_turl(turl, protocol, fobj, size = None, ssl_config = {}):
             dst.AssignCredentials(ssl_config.get('proxy_file',''), ssl_config.get('cert_file', '') ,ssl_config.get('key_file', ''), ssl_config.get('ca_dir', ''))
             mover = arc.DataMover()
             mover.verbose(True)
-            status, _ = mover.Transfer(src, dst, arc.FileCache(), arc.URLMap())            
+            status = mover.Transfer(src, dst, arc.FileCache(), arc.URLMap())            
             return str(status)
         else:
             return 'cannot upload file, import arc failed' 
@@ -61,7 +61,7 @@ def upload_to_turl(turl, protocol, fobj, size = None, ssl_config = {}):
                 ssl_config.get('key_file', ''), ssl_config.get('ca_dir', '')) 
             mover = arc.DataMover()
             mover.verbose(True)
-            status, _ = mover.Transfer(src, dst, arc.FileCache(), arc.URLMap())
+            status = mover.Transfer(src, dst, arc.FileCache(), arc.URLMap())
             return str(status)
         else:
             proto, host, port, path = parse_url(turl)
@@ -117,7 +117,7 @@ def download_from_turl(turl, protocol, fobj,  ssl_config = {}):
             mover = arc.DataMover()
             mover.verbose(True)
             #mover.passive(True)
-            status, _ = mover.Transfer(src, dst, arc.FileCache(), arc.URLMap())
+            status = mover.Transfer(src, dst, arc.FileCache(), arc.URLMap())
             return str(status)
         else:
             return 'cannot download file, import arc filed'
@@ -136,7 +136,7 @@ def download_from_turl(turl, protocol, fobj,  ssl_config = {}):
                 ssl_config.get('key_file', ''), ssl_config.get('ca_dir', '')) 
             mover = arc.DataMover()
             mover.verbose(True)
-            status, _ = mover.Transfer(src, dst, arc.FileCache(), arc.URLMap())
+            status = mover.Transfer(src, dst, arc.FileCache(), arc.URLMap())
             return str(status)
         else:
             proto, host, port, path = parse_url(turl)

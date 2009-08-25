@@ -36,7 +36,7 @@ def upload_to_turl(turl, protocol, fobj, size = None, ssl_config = {}):
             ssl_config.get('key_file', ''), ssl_config.get('ca_dir', '')) 
         mover = arc.DataMover()
         mover.verbose(True)
-        status, _ = mover.Transfer(src, dst, arc.FileCache(), arc.URLMap())
+        status = mover.Transfer(src, dst, arc.FileCache(), arc.URLMap())
         return str(status)
 
 def download_from_turl(turl, protocol, fobj, ssl_config = {}):
@@ -55,7 +55,7 @@ def download_from_turl(turl, protocol, fobj, ssl_config = {}):
             ssl_config.get('key_file', ''), ssl_config.get('ca_dir', '')) 
         mover = arc.DataMover()
         mover.verbose(True)
-        status, _ = mover.Transfer(src, dst, arc.FileCache(), arc.URLMap())
+        status = mover.Transfer(src, dst, arc.FileCache(), arc.URLMap())
         return str(status)
 
 def create_checksum(file, type):

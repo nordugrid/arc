@@ -50,5 +50,5 @@ dst.AssignCredentials(ssl_config.get('proxy_file',''), ssl_config.get('cert_file
 mover = arc.DataMover()
 mover.verbose(True)
 mover.retry(False)
-status, _ = mover.Transfer(src, dst, arc.FileCache(), arc.URLMap())
+status = mover.Transfer(src, dst, arc.FileCache(), arc.URLMap())
 print status
