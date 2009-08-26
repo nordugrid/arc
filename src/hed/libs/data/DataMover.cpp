@@ -230,10 +230,12 @@ namespace Arc {
     logger.msg(INFO, "Transfer from %s to %s", source.str(), destination.str());
     if (!source) {
       logger.msg(ERROR, "Not valid source");
+      source.NextTry();
       return DataStatus::ReadAcquireError;
     }
     if (!destination) {
       logger.msg(ERROR, "Not valid destination");
+      destination.NextTry();
       return DataStatus::WriteAcquireError;
     }
     for (;;) {
