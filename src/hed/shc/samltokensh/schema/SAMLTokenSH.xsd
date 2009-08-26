@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema
+   xmlns:xt="http://www.nordugrid.org/schemas/SAMLTokenSH"
+   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+   targetNamespace="http://www.nordugrid.org/schemas/SAMLTokenSH"
+   xmlns:ini="http://www.nordugrid.org/schemas/ini/2009/08"
+   elementFormDefault="qualified"
+   attributeFormDefault="unqualified">
+
+  <!-- Imports -->
+  <xsd:import namespace="http://www.nordugrid.org/schemas/ini/2009/08" schemaLocation="../../../daemon/schema/ini.xsd"/>
+
+  <!-- This schema defines elements which are accepted by SAMLToken
+       SecHandler. See mcc.xsd for general information about SecHandler
+       elements. SAMLTokenSH plugin is expected to be used to collect 
+       Security Attributes for messages comming to service and to form 
+       proper SAML Token SOAP Header for client's outgoing messages.
+       When client needs to contact some 3rd-party authority to get back
+       a SAML assertion (compliant to the hold-of-key subject confirmation 
+       method), by authenticating through TLS; and then uses this SAML 
+       assertion to protect the SOAP message that will be sent to the 
+       service side -->
+
+  <xsd:element name="Process" type="xt:ProcessType"/>
+  <xsd:simpleType name="ProcessType">
+    <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+          This element defines either SAML Token is extracted
+          from SOAP header or generated using other configuration elements.
+          Type of the processing of SAML Token to
+          SOAP message: extract or generate.
+          It is needed for both client and service side.
+          Default is none.
+        </xsd:documentation>
+        <xsd:appinfo>
+          <ini:tag>processtype</ini:tag>
+        </xsd:appinfo>
+    </xsd:annotation>
+    <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="extract"/>
+      <xsd:enumeration value="generate"/>
+    </xsd:restriction>
+  </xsd:simpleType>
+
+  <xsd:element name="KeyPath" type="xsd:string">
+    <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+          The location of private key which is used to sign the
+          SOAP message, only needed by the client side.
+          Default is none.
+        </xsd:documentation>
+        <xsd:appinfo>
+          <ini:tag>keypath</ini:tag>
+        </xsd:appinfo>
+    </xsd:annotation>
+  </xsd:element>
+
+  <xsd:element name="CertificatePath" type="xsd:string">
+    <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+          The location of certificate, the public key parsed from 
+          certificate is used to be as one part of SAML Token:
+          <Assertion><Subject><SubjectConfirmation><SubjectConfirmationData><KeyInfo><KeyValue>
+            public key
+          </KeyValue></KeyInfo></SubjectConfirmationData></SubjectConfirmation></Subject></Assertion>
+          Only needed by the client side.
+          Default is none.
+        </xsd:documentation>
+        <xsd:appinfo>
+          <ini:tag>certpath</ini:tag>
+        </xsd:appinfo>
+    </xsd:annotation>
+  </xsd:element>
+
+  <xsd:element name="CACertificatePath" type="xsd:string">
+    <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+          The location of the file of trusted CA certificate, the
+          certificate is used for verifying the signature to SOAP message.
+          Needed by client and service side.
+          Default is none.
+        </xsd:documentation>
+        <xsd:appinfo>
+          <ini:tag>cafile</ini:tag>
+        </xsd:appinfo>
+    </xsd:annotation>
+  </xsd:element>
+
+  <xsd:element name="CACertificatesDir" type="xsd:string" default="/etc/grid-security/certificates">
+    <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+          The location of the directory that contains trusted CA certificates,
+          the certificates are used for verifying the signature to SOAP message.
+          Needed by client and service side.
+          Default is "/etc/grid-security/certificates".
+        </xsd:documentation>
+        <xsd:appinfo>
+          <ini:tag>cadir</ini:tag>
+        </xsd:appinfo>
+    </xsd:annotation>
+  </xsd:element>
+
+  <xsd:element name="AAService" type="xsd:string">
+    <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+          Endpoint of the attribute authority service.
+          AA (attribute authority) service is an external third-party service
+          that is used for authenticate the requestor(client) and signing 
+          SAML Token with requestor's attributes embedded.
+          Needed by client side.
+          Default is none.
+        </xsd:documentation>
+        <xsd:appinfo>
+          <ini:tag>aaservice</ini:tag>
+        </xsd:appinfo>
+    </xsd:annotation>
+  </xsd:element>
+
+</xsd:schema>
+
