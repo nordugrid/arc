@@ -9,7 +9,6 @@
 #include "delegationpdp/DelegationPDP.h"
 #include "arcpdp/ArcPDP.h"
 #include "xacmlpdp/XACMLPDP.h"
-#include "countpdp/CountPDP.h"
 #include "allowpdp/AllowPDP.h"
 #include "denypdp/DenyPDP.h"
 
@@ -53,8 +52,6 @@ Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
                   &ArcSec::PDPServiceInvoker::get_pdpservice_invoker},
     { "delegation.pdp", "HED:PDP", 0,
                   &ArcSec::DelegationPDP::get_delegation_pdp},
-    { "count.pdp", "HED:PDP", 0,
-                  &ArcSec::CountPDP::get_count_pdp},
     { "allow.pdp", "HED:PDP", 0,
                   &ArcSec::AllowPDP::get_allow_pdp},
     { "deny.pdp", "HED:PDP", 0,
