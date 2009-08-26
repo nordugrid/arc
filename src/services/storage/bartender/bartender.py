@@ -7,9 +7,9 @@ import traceback
 import os
 import base64
 from arcom import import_class_from_string, get_child_nodes, get_child_values_by_name
-from arcom.service import librarian_uri, bartender_uri, gateway_uri, true, parse_node, create_response, node_to_data
+from arcom.service import librarian_uri, bartender_uri, librarian_servicetype, gateway_uri, true, parse_node, create_response, node_to_data
 from arcom.xmltree import XMLTree
-from storage.client import LibrarianClient, ShepherdClient
+from storage.client import LibrarianClient, ShepherdClient, ISISClient
 from storage.common import parse_metadata, create_metadata, splitLN, remove_trailing_slash, global_root_guid, serialize_ids, deserialize_ids, sestore_guid, make_decision_metadata
 import traceback
 
@@ -864,8 +864,23 @@ class BartenderService(Service):
             log.msg(arc.ERROR, 'The directory for storing proxies is not available. Proxy delegation disabled.')
         # get the URLs of the Librarians from the config file
         librarian_urls =  get_child_values_by_name(cfg, 'LibrarianURL')
+
+        isis_url =  get_child_values_by_name(cfg, 'ISISURL')
+
+        if librarian_urls:
+            log.msg(arc.DEBUG, "Librarian URL found in the configuration.")
+        elif not isis_url:
+            log.msg(arc.DEBUG, "Librarian URL and ISIS URL not found in the configuration.")            
+        else:
+            isis = ISISClient(isis_url, print_xml = False)
+            librarian_urls = isis.getServiceURLs(librarian_servicetype)
+
         # create a LibrarianClient from the URL
-        librarian = LibrarianClient(librarian_urls, ssl_config = self.ssl_config)
+        try:
+            librarian = LibrarianClient(librarian_urls, ssl_config = self.ssl_config)
+        except:
+            log.msg(arc.DEBUG, 'Cannot find Librarian url in the config or in the ISIS')
+            raise
         self.bartender = Bartender(librarian, self.ssl_config, cfg)
         
     def stat(self, inpayload):

@@ -7,10 +7,10 @@ import time
 
 from arcom import get_child_nodes, get_child_values_by_name
 from arcom.security import parse_ssl_config
-from arcom.service import librarian_uri, true, false, parse_node, create_response, node_to_data
+from arcom.service import librarian_uri, ahash_servicetype, true, false, parse_node, create_response, node_to_data
 
 from arcom.xmltree import XMLTree
-from storage.client import AHashClient
+from storage.client import AHashClient, ISISClient
 from storage.common import global_root_guid, sestore_guid, ahash_list_guid, parse_metadata, create_metadata, serialize_ids
 from storage.common import OFFLINE, DELETED
 import traceback
@@ -23,9 +23,24 @@ class Librarian:
     def __init__(self, cfg, ssl_config):
         # URL of the A-Hash
         ahash_urls =  get_child_values_by_name(cfg, 'AHashURL')
-        self.master_ahash = arc.URL(ahash_urls[0])
-        self.ahash_reader = AHashClient(ahash_urls, ssl_config = ssl_config)
-        self.ahash_writer = AHashClient(ahash_urls, ssl_config = ssl_config)
+        isis_url =  get_child_values_by_name(cfg, 'ISISURL')
+
+        if ahash_urls:
+	    log.msg(arc.DEBUG, "AHash URL found in the configuration.")
+        elif not isis_url:
+	    log.msg(arc.DEBUG, "AHash URL and ISIS URL not found in the configuration.")            
+        else:
+             isis = ISISClient(isis_url, print_xml = False)
+             ahash_urls = isis.getServiceURLs(ahash_servicetype)
+
+        try:
+            self.master_ahash = arc.URL(ahash_urls[0])
+            self.ahash_reader = AHashClient(ahash_urls, ssl_config = ssl_config)
+            self.ahash_writer = AHashClient(ahash_urls, ssl_config = ssl_config)
+        except:
+            log.msg(arc.DEBUG, 'Cannot find AHash url in the config or in the ISIS')
+            raise
+
         try:
             period = float(str(cfg.Get('CheckPeriod')))
             self.hbtimeout = float(str(cfg.Get('HeartbeatTimeout')))

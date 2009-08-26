@@ -9,11 +9,11 @@ import arc
 from arcom import get_child_nodes, get_child_values_by_name
 from arcom import import_class_from_string
 from arcom.security import parse_ssl_config
-from arcom.service import shepherd_uri, true, parse_node, create_response
+from arcom.service import shepherd_uri, librarian_servicetype, bartender_servicetype, true, parse_node, create_response
 
 from arcom.xmltree import XMLTree
 from storage.common import common_supported_protocols, serialize_ids
-from storage.client import LibrarianClient, BartenderClient
+from storage.client import LibrarianClient, BartenderClient, ISISClient
 
 from arcom.logger import Logger
 log = Logger(arc.Logger(arc.Logger_getRootLogger(), 'Storage.Shepherd'))
@@ -43,8 +43,27 @@ class Shepherd:
             raise
         try:
             librarian_urls =  get_child_values_by_name(cfg, 'LibrarianURL')
+            isis_url =  get_child_values_by_name(cfg, 'ISISURL')
+
+            if librarian_urls:
+                log.msg(arc.DEBUG, "Librarian URL found in the configuration.")
+            elif not isis_url:
+                log.msg(arc.DEBUG, "Librarian URL and ISIS URL not found in the configuration.")            
+            else:
+                isis = ISISClient(isis_url, print_xml = False)
+                librarian_urls =  isis.getServiceURLs(librarian_servicetype)
+
             self.librarian = LibrarianClient(librarian_urls, ssl_config = ssl_config)
             bartender_urls =  get_child_values_by_name(cfg, 'BartenderURL')
+
+            if bartender_urls:
+                log.msg(arc.DEBUG, "Bartender URL found in the configuration.")
+            elif not isis_url:
+                log.msg(arc.DEBUG, " Bartender URL and ISIS URL not found in the configuration.")            
+            else:
+                isis = ISISClient(isis_url, print_xml = False)
+                bartender_urls =  isis.getServiceURLs(bartender_servicetype)
+
             self.bartender = BartenderClient(bartender_urls, ssl_config = ssl_config)
             self.serviceID = str(cfg.Get('ServiceID'))
         except:

@@ -22,6 +22,19 @@
     </xsd:annotation>
 </xsd:element>
 
+<!-- ISISURL -->
+<!-- Todo: check if more than one url can be specified in ini-config -->
+<xsd:element name="ISISURL" default="https://localhost:60000/isis">
+    <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+	  The URL of an ISIS which the Librarian should use. Multiple ISISs may be specified
+        </xsd:documentation>
+        <xsd:appinfo>
+            <ini:tag>isisurl</ini:tag>
+        </xsd:appinfo>
+    </xsd:annotation>
+</xsd:element>
+
 <!-- AHashURL -->
 <!-- Todo: check if more than one url can be specified in ini-config -->
 <xsd:element name="AHashURL" default="https://localhost:60000/AHash">

@@ -14,6 +14,21 @@ import time
 import sys
 import socket
 
+class ISISClient(Client):
+
+    def __init__(self, url, print_xml = False, ssl_config = {}):
+        ns = self.NS_class('isis', 'http://www.nordugrid.org/schemas/isis/2007/06')
+        Client.__init__(self, url, ns, print_xml, ssl_config = ssl_config)
+
+    def getServiceURLs(self, service_type):
+        query = XMLTree(from_tree =
+            ('Query', [
+                ('QueryString', "/RegEntry/SrcAdv[Type = '%s']" % service_type)
+            ])
+        )
+        QueryResponse = self.call(query, True)
+        return QueryResponse.get_values('/QueryResponse/RegEntry/SrcAdv/EPR/Address')
+
 class AHashClient(Client):
 
     def __init__(self, url, print_xml = False, ssl_config = {}):
