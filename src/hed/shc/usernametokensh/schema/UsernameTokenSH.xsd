@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema
+   xmlns:ut="http://www.nordugrid.org/schemas/UsernameTokenSH"
+   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+   targetNamespace="http://www.nordugrid.org/schemas/UsernameTokenSH"
+   xmlns:ini="http://www.nordugrid.org/schemas/ini/2009/08"
+   elementFormDefault="qualified"
+   attributeFormDefault="unqualified">
+
+  <!-- Imports -->
+  <xsd:import namespace="http://www.nordugrid.org/schemas/ini/2009/08" schemaLocation="../../../daemon/schema/ini.xsd"/>
+
+  <!-- This schema defines elements which are accepted by UsernameToken
+       SecHandler. See mcc.xsd for general information about SecHandler
+       elements. UsernameTokenSH plugin is expected to be used to collect 
+       Security Attributes for messages comming to service and to form 
+       proper Username Token SOAP Header for client outgoing messages. -->
+
+  <xsd:element name="Process" type="ut:ProcessType"/>
+  <xsd:simpleType name="ProcessType">
+    <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+          This element defines either Username Token is extracted
+          from SOAP header or generated using other configuration elements.
+          Type of the processing of Username Token to
+          SOAP message: extract or generate.
+          It is needed for both client and service side.
+          Default is none.
+        </xsd:documentation>
+        <xsd:appinfo>
+          <ini:tag>processtype</ini:tag>
+        </xsd:appinfo>
+    </xsd:annotation>
+    <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="extract"/>
+      <xsd:enumeration value="generate"/>
+    </xsd:restriction>
+  </xsd:simpleType>
+
+  <xsd:element name="PasswordEncoding" type="ut:PasswordEncodingType"/>
+  <xsd:simpleType name="PasswordEncodingType">
+    <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+          The encoding type of the password (one part of 
+          UsernameToken): text or digest.
+          only needed for client side.
+          Default is none.
+        </xsd:documentation>
+        <xsd:appinfo>
+          <ini:tag>passwordencodingtype</ini:tag>
+        </xsd:appinfo>
+    </xsd:annotation>
+    <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="text"/>
+      <xsd:enumeration value="digest"/>
+    </xsd:restriction>
+  </xsd:simpleType>
+
+  <xsd:element name="Username" type="xsd:string">
+    <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+          The Username element of the token.
+          only needed for client side.
+          Default is none.
+        </xsd:documentation>
+        <xsd:appinfo>
+          <ini:tag>username</ini:tag>
+        </xsd:appinfo>
+    </xsd:annotation>
+  </xsd:element>
+  
+  <xsd:element name="Password" type="xsd:string">
+    <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+          The Password element of the token.
+          only needed for client side.
+          Default is none.
+        </xsd:documentation>
+        <xsd:appinfo>
+          <ini:tag>password</ini:tag>
+        </xsd:appinfo>
+    </xsd:annotation>
+  </xsd:element>
+
+  <!-- External source for password to read from. There should be a file name here. -->
+  <xsd:element name="PasswordSource" type="xsd:string">
+    <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+          Location of external source for password to read from. 
+          The content of the file should be like:
+            user1, password1
+            user2, password2
+          only needed for service side.
+          Default is none.
+        </xsd:documentation>
+        <xsd:appinfo>
+          <ini:tag>passwordsource</ini:tag>
+        </xsd:appinfo>
+    </xsd:annotation>
+  </xsd:element>
+
+</xsd:schema>
+
