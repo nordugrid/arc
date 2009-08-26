@@ -302,25 +302,45 @@
 
     <!-- BES informational elements. -->
 
-    <!-- CommonName attribute of bes-factory. -->
-    <xsd:element name="commonName" type="xsd:string"/>
+    <xsd:element name="commonName" type="xsd:string">
+      <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+          CommonName attribute of bes-factory.
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:element>
 
-    <!-- LongDescription attribute of bes-factory. -->
-    <xsd:element name="longDescription" type="xsd:string"/>
+    <xsd:element name="longDescription" type="xsd:string">
+      <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+          LongDescription attribute of bes-factory.
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:element>
 
-    <!-- Name of Local Resource Management System. -->
-    <xsd:element name="LRMSName" type="xsd:string"/>
+    <xsd:element name="LRMSName" type="xsd:string">
+      <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+          Name of Local Resource Management System.
 
-    <!-- 
+    <xsd:element name="OperatingSystem" type="xsd:string">
+      <xsd:annotation>
+        <xsd:documentation xml:lang="en">
          Name of Operating System.
          The values are based on the OSType field of the
          CIM_OperatingSystem model:
          http://www.dmtf.org/standards/cim/cim_schema_v29
-     -->
-    <xsd:element name="OperatingSystem" type="xsd:string"/>
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:element>
 
-    <!-- The GLUE2 infoprovider wake up period time in second -->
-    <xsd:element name="InfoproviderWakeupPeriod" type="xsd:nonNegativeInteger"/>
+    <xsd:element name="InfoproviderWakeupPeriod" type="xsd:nonNegativeInteger">
+      <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+          The GLUE2 infoprovider wake up period time in second
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:element>
 
     <xsd:element name="debugLevel" minOccurs="0">
         <xsd:simpleType>
