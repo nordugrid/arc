@@ -2,9 +2,14 @@
 <xsd:schema
    xmlns:spdp="http://www.nordugrid.org/schemas/SimpleListPDP"
    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+   xmlns:ini="http://www.nordugrid.org/schemas/ini/2009/08"
    targetNamespace="http://www.nordugrid.org/schemas/SimpleListPDP"
    elementFormDefault="qualified"
    attributeFormDefault="unqualified">
+
+ <!-- Imports -->
+ <xsd:import namespace="http://www.nordugrid.org/schemas/ini/2009/08" schemaLocation="../../../daemon/schema/ini.xsd"/>
+
 
  <!-- This schema defines configuration elements supported by
       SimpleListPDP PDP plugin. This plugin compares identifier 
@@ -17,14 +22,33 @@
       in configuration of PDP. -->
  
   <xsd:attribute name="location">
-    <!-- This attribute is to be used in top (and only) element of 
+    <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+         This attribute is to be used in top (and only) element of
          PDP configuration. It specified full path to file with list
-         of identities to be matched. -->
+         of identities to be matched.
+         Default is none.
+        </xsd:documentation>
+        <xsd:appinfo>
+          <ini:tag>location</ini:tag>
+        </xsd:appinfo>
+    </xsd:annotation>
     <xsd:simpleType>
       <xsd:restriction base="xsd:string"/>
     </xsd:simpleType>
   </xsd:attribute>
 
-  <xsd:element name="DN" type="xsd:string"/>
+  <xsd:element name="DN" type="xsd:string">
+    <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+         the list of dn that is directly specified by 
+         this pdp.
+         Default is none.
+        </xsd:documentation>
+        <xsd:appinfo>
+          <ini:tag>dn</ini:tag>
+        </xsd:appinfo>
+    </xsd:annotation>
+  </xsd:element>
 
 </xsd:schema>
