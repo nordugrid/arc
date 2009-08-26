@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema
+   xmlns:xt="http://www.nordugrid.org/schemas/X509TokenSH"
+   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+   targetNamespace="http://www.nordugrid.org/schemas/X509TokenSH"
+   xmlns:ini="http://www.nordugrid.org/schemas/ini/2009/08"
+   elementFormDefault="qualified"
+   attributeFormDefault="unqualified">
+
+  <!-- Imports -->
+  <xsd:import namespace="http://www.nordugrid.org/schemas/ini/2009/08" schemaLocation="../../../daemon/schema/ini.xsd"/>
+
+
+  <!-- This schema defines elements which are accepted by X509Token
+       SecHandler. See mcc.xsd for general information about SecHandler
+       elements. X509TokenSH plugin is expected to be used to collect 
+       Security Attributes for messages comming to service and to form 
+       proper X509 Token SOAP Header for client outgoing messages. -->
+
+  <xsd:element name="Process" type="xt:ProcessType"/>
+  <xsd:simpleType name="ProcessType">
+    <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+          This element defines either X509 Token is extracted 
+          from SOAP header or generated using other configuration elements.
+          Type of the processing of X509 Token to 
+          SOAP message: extract or generate .
+          Default is none.
+        </xsd:documentation>
+        <xsd:appinfo>
+          <ini:tag>processtype</ini:tag>
+        </xsd:appinfo>
+    </xsd:annotation>
+    <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="extract"/>
+      <xsd:enumeration value="generate"/>
+    </xsd:restriction>
+  </xsd:simpleType>
+
+  <xsd:element name="TokenUsage" type="xt:TokenUsageType"/>
+  <xsd:simpleType name="TokenUsageType" default="signature">
+    <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+          The usage of the X509 Token: signature or encryption.
+          Default is signature.
+        </xsd:documentation>
+        <xsd:appinfo>
+          <ini:tag>tokenusage</ini:tag>
+        </xsd:appinfo>
+    </xsd:annotation>
+    <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="signature"/>
+      <xsd:enumeration value="encryption"/>
+    </xsd:restriction>
+  </xsd:simpleType>
+
+  <xsd:element name="KeyPath" type="xsd:string">
+    <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+          The location of private key which is used to sign the 
+          SOAP message, only needed by the client side.
+          Default is none.
+        </xsd:documentation>
+        <xsd:appinfo>
+          <ini:tag>keypath</ini:tag>
+        </xsd:appinfo>
+    </xsd:annotation>
+  </xsd:element>
+
+  <xsd:element name="CertificatePath" type="xsd:string">
+    <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+          The location of certificate, the certificate is used to be as 
+          one part of X509 Token, only needed by the client side.
+          Default is none.
+        </xsd:documentation>
+        <xsd:appinfo>
+          <ini:tag>keypath</ini:tag>
+        </xsd:appinfo>
+    </xsd:annotation>
+  </xsd:element>
+
+  <xsd:element name="CACertificatePath" type="xsd:string">
+    <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+          The location of the file of trusted CA certificate, the 
+          certificate is used for verifying the signature to SOAP message. 
+          Only needed by the service side.
+          Default is none. 
+        </xsd:documentation>
+        <xsd:appinfo>
+          <ini:tag>cafile</ini:tag>
+        </xsd:appinfo>
+    </xsd:annotation>
+  </xsd:element>
+
+  <xsd:element name="CACertificatesDir" type="xsd:string" default="/etc/grid-security/certificates">
+    <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+          The location of the directory that contains trusted CA certificates, 
+          the certificates are used for verifying the signature to SOAP message. 
+          Only needed by the service side.
+          Default is "/etc/grid-security/certificates". 
+        </xsd:documentation>
+        <xsd:appinfo>
+          <ini:tag>cadir</ini:tag>
+        </xsd:appinfo>
+    </xsd:annotation>
+  </xsd:element>
+
+</xsd:schema>
+
