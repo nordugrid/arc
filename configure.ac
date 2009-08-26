@@ -1418,7 +1418,6 @@ AC_CONFIG_FILES([Makefile
                  src/hed/shc/pdpserviceinvoker/Makefile
                  src/hed/shc/allowpdp/Makefile
                  src/hed/shc/denypdp/Makefile
-                 src/hed/shc/countpdp/Makefile
                  src/hed/shc/simplelistpdp/Makefile
                  src/hed/shc/arcauthzsh/Makefile
                  src/hed/shc/usernametokensh/Makefile

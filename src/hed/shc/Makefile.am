@@ -5,15 +5,15 @@ else
 LIBS_WITH_XMLSEC = 
 SUBDIRS_XMLSEC =
 endif
-SUBDIRS = allowpdp denypdp countpdp simplelistpdp arcpdp xacmlpdp pdpserviceinvoker arcauthzsh delegationpdp usernametokensh gaclpdp $(SUBDIRS_XMLSEC) delegationsh
-DIST_SUBDIRS = allowpdp denypdp countpdp simplelistpdp arcpdp xacmlpdp pdpserviceinvoker arcauthzsh delegationpdp usernametokensh gaclpdp x509tokensh samltokensh saml2sso_assertionconsumersh delegationsh
+SUBDIRS = allowpdp denypdp simplelistpdp arcpdp xacmlpdp pdpserviceinvoker arcauthzsh delegationpdp usernametokensh gaclpdp $(SUBDIRS_XMLSEC) delegationsh
+DIST_SUBDIRS = allowpdp denypdp simplelistpdp arcpdp xacmlpdp pdpserviceinvoker arcauthzsh delegationpdp usernametokensh gaclpdp x509tokensh samltokensh saml2sso_assertionconsumersh delegationsh
 noinst_PROGRAMS = test testinterface_arc testinterface_xacml
 # classload_test 
 
 pkglib_LTLIBRARIES = libarcshc.la
 libarcshc_la_SOURCES  = SecHandlerPlugin.cpp
 libarcshc_la_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
-libarcshc_la_LIBADD   = allowpdp/liballowpdp.la denypdp/libdenypdp.la countpdp/libcountpdp.la \
+libarcshc_la_LIBADD   = allowpdp/liballowpdp.la denypdp/libdenypdp.la \
                         simplelistpdp/libsimplelistpdp.la arcpdp/libarcpdp.la \
                         xacmlpdp/libxacmlpdp.la gaclpdp/libgaclpdp.la \
                         pdpserviceinvoker/libarcpdpserviceinvoker.la delegationpdp/libdelegationpdp.la \
