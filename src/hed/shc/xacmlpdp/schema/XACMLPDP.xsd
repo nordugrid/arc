@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+  xmlns="http://www.nordugrid.org/schemas/XACMLPDP"
+  xmlns:ini="http://www.nordugrid.org/schemas/ini/2009/08"
+  targetNamespace="http://www.nordugrid.org/schemas/XACMLPDP"
+  elementFormDefault="qualified">
+ 
+
+    <!-- Imports -->
+    <xsd:import namespace="http://www.nordugrid.org/schemas/ini/2009/08" schemaLocation="../../../daemon/schema/ini.xsd"/>
+
+    <xsd:element name="PolicyStore" type="PolicyStoreType">
+        <xsd:annotation>
+            <xsd:documentation xml:lang="en">
+              This element specifies file containing policy document.
+              There could be multiple sub elements <Location/>.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <ini:tag>policystore</ini:tag> 
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:complexType name="PolicyStoreType">
+        <xsd:sequence>
+            <xsd:element name="Location" type="LocationType" minOccurs="1" maxOccurs="unbounded"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:complexType name="LocationType">
+        <xsd:attribute name="type">
+            <xsd:documentation xml:lang="en">
+              This attribute is to specify the type of policy soure which
+              will be used when parsing policy.
+            </xsd:documentation>
+            <xsd:simpleType>
+                <xsd:restriction base="xsd:string"/>
+            </xsd:simpleType>
+        </xsd:attribute>
+        <xsd:restriction base="xsd:string"/>
+    </xsd:complexType>
+
+</xsd:schema>
