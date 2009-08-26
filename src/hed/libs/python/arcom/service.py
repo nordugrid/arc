@@ -7,6 +7,12 @@ gateway_uri = 'http://www.nordugrid.org/schemas/gateway'
 delegation_uri = 'http://www.nordugrid.org/schemas/delegation'
 rbyteio_uri = 'http://schemas.ggf.org/byteio/2005/10/random-access'
 
+# service type names
+ahash_servicetype = 'org.nordugrid.storage.ahash'
+librarian_servicetype = 'org.nordugrid.storage.librarian'
+bartender_servicetype = 'org.nordugrid.storage.bartender'
+shepherd_servicetype = 'org.nordugrid.storage.shepherd'
+
 # URI for the simple transfer mechanism of ByteIO
 byteio_simple_uri = 'http://schemas.ggf.org/byteio/2005/10/transfer-mechanisms/simple'
 # True and False values used in the XML representation
