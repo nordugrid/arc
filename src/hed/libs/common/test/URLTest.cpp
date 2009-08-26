@@ -21,6 +21,7 @@ class URLTest
   CPPUNIT_TEST(TestRlsUrl2);
   CPPUNIT_TEST(TestRlsUrl3);
   CPPUNIT_TEST(TestLfcUrl);
+  CPPUNIT_TEST(TestBadUrl);
   CPPUNIT_TEST_SUITE_END();
 
 public:
@@ -37,6 +38,7 @@ public:
   void TestRlsUrl2();
   void TestRlsUrl3();
   void TestLfcUrl();
+  void TestBadUrl();
 
 private:
   Arc::URL *gsiftpurl, *ldapurl, *httpurl, *fileurl, *ldapurl2, *opturl, *ftpurl, *rlsurl, *rlsurl2, *rlsurl3, *lfcurl;
@@ -49,11 +51,11 @@ void URLTest::setUp() {
   httpurl = new Arc::URL("http://www.nordugrid.org/monitor.php?debug=2&sort=yes");
   fileurl = new Arc::URL("file:/home/grid/runtime/TEST-ATLAS-8.0.5");
   ldapurl2 = new Arc::URL("ldap://grid.uio.no/mds-vo-name=local, o=grid");
-  opturl = new Arc::URL("gsiftp://hathi.hep.lu.se;ftpthreads=10;upload=yes/public/test.txt");
+  opturl = new Arc::URL("gsiftp://hathi.hep.lu.se;threads=10;autodir=yes/public/test.txt");
   ftpurl = new Arc::URL("ftp://user:secret@ftp.nordugrid.org/pub/files/guide.pdf");
   rlsurl = new Arc::URL("rls://rls.nordugrid.org/test.txt");
   rlsurl2 = new Arc::URL("rls://gsiftp://hagrid.it.uu.se/storage/test.txt|http://www.nordugrid.org/files/test.txt@rls.nordugrid.org/test.txt");
-  rlsurl3 = new Arc::URL("rls://;exec=yes|gsiftp://hagrid.it.uu.se;threads=10/storage/test.txt|http://www.nordugrid.org;cache=no/files/test.txt@rls.nordugrid.org;local=yes/test.txt");
+  rlsurl3 = new Arc::URL("rls://;exec=yes|gsiftp://hagrid.it.uu.se;threads=10/storage/test.txt|http://www.nordugrid.org;cache=no/files/test.txt@rls.nordugrid.org;readonly=yes/test.txt");
   lfcurl = new Arc::URL("lfc://atlaslfc.nordugrid.org;cache=no/grid/atlas/file1:guid=7d36da04-430f-403c-adfb-540b27506cfa:checksumtype=ad:checksumvalue=12345678");
 }
 
@@ -74,6 +76,7 @@ void URLTest::tearDown() {
 
 
 void URLTest::TestGsiftpUrl() {
+  CPPUNIT_ASSERT(*gsiftpurl);
   CPPUNIT_ASSERT_EQUAL(std::string("gsiftp"), gsiftpurl->Protocol());
   CPPUNIT_ASSERT(gsiftpurl->Username().empty());
   CPPUNIT_ASSERT(gsiftpurl->Passwd().empty());
@@ -87,6 +90,7 @@ void URLTest::TestGsiftpUrl() {
 
 
 void URLTest::TestLdapUrl() {
+  CPPUNIT_ASSERT(*ldapurl);
   CPPUNIT_ASSERT_EQUAL(std::string("ldap"), ldapurl->Protocol());
   CPPUNIT_ASSERT(ldapurl->Username().empty());
   CPPUNIT_ASSERT(ldapurl->Passwd().empty());
@@ -100,6 +104,7 @@ void URLTest::TestLdapUrl() {
 
 
 void URLTest::TestHttpUrl() {
+  CPPUNIT_ASSERT(*httpurl);
   CPPUNIT_ASSERT_EQUAL(std::string("http"), httpurl->Protocol());
   CPPUNIT_ASSERT(httpurl->Username().empty());
   CPPUNIT_ASSERT(httpurl->Passwd().empty());
@@ -124,6 +129,7 @@ void URLTest::TestHttpUrl() {
 
 
 void URLTest::TestFileUrl() {
+  CPPUNIT_ASSERT(*fileurl);
   CPPUNIT_ASSERT_EQUAL(std::string("file"), fileurl->Protocol());
   CPPUNIT_ASSERT(fileurl->Username().empty());
   CPPUNIT_ASSERT(fileurl->Passwd().empty());
@@ -137,6 +143,7 @@ void URLTest::TestFileUrl() {
 
 
 void URLTest::TestLdapUrl2() {
+  CPPUNIT_ASSERT(*ldapurl);
   CPPUNIT_ASSERT_EQUAL(std::string("ldap"), ldapurl2->Protocol());
   CPPUNIT_ASSERT(ldapurl2->Username().empty());
   CPPUNIT_ASSERT(ldapurl2->Passwd().empty());
@@ -150,6 +157,7 @@ void URLTest::TestLdapUrl2() {
 
 
 void URLTest::TestOptUrl() {
+  CPPUNIT_ASSERT(*opturl);
   CPPUNIT_ASSERT_EQUAL(std::string("gsiftp"), opturl->Protocol());
   CPPUNIT_ASSERT(opturl->Username().empty());
   CPPUNIT_ASSERT(opturl->Passwd().empty());
@@ -163,16 +171,17 @@ void URLTest::TestOptUrl() {
   CPPUNIT_ASSERT_EQUAL(2, (int)options.size());
 
   std::map<std::string, std::string>::iterator mapit = options.begin();
-  CPPUNIT_ASSERT_EQUAL(std::string("ftpthreads"), mapit->first);
-  CPPUNIT_ASSERT_EQUAL(std::string("10"), mapit->second);
+  CPPUNIT_ASSERT_EQUAL(std::string("autodir"), mapit->first);
+  CPPUNIT_ASSERT_EQUAL(std::string("yes"), mapit->second);
 
   mapit++;
-  CPPUNIT_ASSERT_EQUAL(std::string("upload"), mapit->first);
-  CPPUNIT_ASSERT_EQUAL(std::string("yes"), mapit->second);
+  CPPUNIT_ASSERT_EQUAL(std::string("threads"), mapit->first);
+  CPPUNIT_ASSERT_EQUAL(std::string("10"), mapit->second);
 }
 
 
 void URLTest::TestFtpUrl() {
+  CPPUNIT_ASSERT(*ftpurl);
   CPPUNIT_ASSERT_EQUAL(std::string("ftp"), ftpurl->Protocol());
   CPPUNIT_ASSERT_EQUAL(std::string("user"), ftpurl->Username());
   CPPUNIT_ASSERT_EQUAL(std::string("secret"), ftpurl->Passwd());
@@ -186,6 +195,7 @@ void URLTest::TestFtpUrl() {
 
 
 void URLTest::TestRlsUrl() {
+  CPPUNIT_ASSERT(*rlsurl);
   CPPUNIT_ASSERT_EQUAL(std::string("rls"), rlsurl->Protocol());
   CPPUNIT_ASSERT(rlsurl->Username().empty());
   CPPUNIT_ASSERT(rlsurl->Passwd().empty());
@@ -199,6 +209,7 @@ void URLTest::TestRlsUrl() {
 
 
 void URLTest::TestRlsUrl2() {
+  CPPUNIT_ASSERT(*rlsurl2);
   CPPUNIT_ASSERT_EQUAL(std::string("rls"), rlsurl2->Protocol());
   CPPUNIT_ASSERT(rlsurl2->Username().empty());
   CPPUNIT_ASSERT(rlsurl2->Passwd().empty());
@@ -220,6 +231,7 @@ void URLTest::TestRlsUrl2() {
 
 
 void URLTest::TestRlsUrl3() {
+  CPPUNIT_ASSERT(*rlsurl3);
   CPPUNIT_ASSERT_EQUAL(std::string("rls"), rlsurl3->Protocol());
   CPPUNIT_ASSERT(rlsurl3->Username().empty());
   CPPUNIT_ASSERT(rlsurl3->Passwd().empty());
@@ -232,7 +244,7 @@ void URLTest::TestRlsUrl3() {
   CPPUNIT_ASSERT_EQUAL((int)options.size(), 1);
 
   std::map<std::string, std::string>::iterator mapit = options.begin();
-  CPPUNIT_ASSERT_EQUAL(mapit->first, std::string("local"));
+  CPPUNIT_ASSERT_EQUAL(mapit->first, std::string("readonly"));
   CPPUNIT_ASSERT_EQUAL(mapit->second, std::string("yes"));
 
   options = rlsurl3->CommonLocOptions();
@@ -253,6 +265,7 @@ void URLTest::TestRlsUrl3() {
 }
 
 void URLTest::TestLfcUrl() {
+  CPPUNIT_ASSERT(*lfcurl);
   CPPUNIT_ASSERT_EQUAL(std::string("lfc"), lfcurl->Protocol());
   CPPUNIT_ASSERT(lfcurl->Username().empty());
   CPPUNIT_ASSERT(lfcurl->Passwd().empty());
@@ -277,6 +290,20 @@ void URLTest::TestLfcUrl() {
   CPPUNIT_ASSERT_EQUAL(std::string("ad"), lfcurl->MetaDataOption("checksumtype"));
   CPPUNIT_ASSERT_EQUAL(std::string("12345678"), lfcurl->MetaDataOption("checksumvalue"));
   CPPUNIT_ASSERT_EQUAL(std::string("lfc://atlaslfc.nordugrid.org:5010;cache=no/grid/atlas/file1"), lfcurl->fullstr());
+}
+
+void URLTest::TestBadUrl() {
+  Arc::URL *url = new Arc::URL("");
+  CPPUNIT_ASSERT(!(*url));
+  url = new Arc::URL("#url");
+  CPPUNIT_ASSERT(!(*url));
+  url = new Arc::URL("arc:file1");
+  CPPUNIT_ASSERT(!(*url));
+  url = new Arc::URL("http:/file1");
+  CPPUNIT_ASSERT(!(*url));
+  url = new Arc::URL("gsiftp://my.host;badoption=true/file1");
+  CPPUNIT_ASSERT(!(*url));   
+  delete url;    
 }
 
 CPPUNIT_TEST_SUITE_REGISTRATION(URLTest);

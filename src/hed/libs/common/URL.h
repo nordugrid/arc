@@ -206,6 +206,10 @@ namespace Arc {
     /** Check if instance holds valid URL */
     operator bool() const;
     bool operator!() const;
+    
+    /** Parse a string of options separated by separator into an attribute->value map */
+    std::map<std::string, std::string> ParseOptions(const std::string& optstring,
+                                                    char separator);
 
     /** Returns a string representation of the options given in the options map */
     static std::string OptionString(const std::map<std::string,
@@ -254,6 +258,9 @@ namespace Arc {
     /** common location options for index server URLs. */
     std::map<std::string, std::string> commonlocoptions;
 
+    /** flag to describe validity of URL */
+    bool valid;
+    
     /** a private method that converts an ldap basedn to a path. */
     static std::string BaseDN2Path(const std::string&);
 

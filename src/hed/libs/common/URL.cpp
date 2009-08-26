@@ -21,9 +21,35 @@
 
 namespace Arc {
 
+  /*
+  * This list is used for validation of URL options.
+  * All valid options must be in this list.
+  * The definitive list is defined in "Protocols, Uniform Resource
+  * Locators (URL) and Extensions Supported in ARC" [NORDUGRID-TECH-7]
+  */
+  const int urloptionlistsize = 16;
+  const std::string urloptionlist[urloptionlistsize] = {
+    "threads",
+    "cache",
+    "readonly",
+    "secure",
+    "blocksize",
+    "checksum",
+    "exec",
+    "preserve",
+    "pattern",
+    "guid",
+    "overwrite",
+    "protocol",  
+    "spacetoken",
+    "autodir",
+    "checksumtype",
+    "checksumvalue"
+  };
+
   static Logger URLLogger(Logger::getRootLogger(), "URL");
 
-  static std::map<std::string, std::string> ParseOptions(const std::string& optstring, char separator) {
+  std::map<std::string, std::string> URL::ParseOptions(const std::string& optstring, char separator) {
 
     std::map<std::string, std::string> options;
 
@@ -44,10 +70,29 @@ namespace Arc {
         pos++;
 
       pos2 = opt.find('=');
-      if (pos2 == std::string::npos)
-        options[opt] = "";
-      else
-        options[opt.substr(0, pos2)] = opt.substr(pos2 + 1);
+      std::string option_name, option_value = "";
+      if (pos2 == std::string::npos) {
+        option_name = opt;
+      } else {
+        option_name = opt.substr(0, pos2);
+        option_value = opt.substr(pos2 + 1);
+      }
+      // option validation for URL options
+      if (separator == ';') {
+        bool passed = false;
+        for (int i = 0; i < urloptionlistsize; i++) {
+          if ( option_name == urloptionlist[i] ) {
+            passed = true;
+            break;
+          }
+        }
+        if (!passed) {
+          URLLogger.msg(ERROR, "Invalid URL option: %s", option_name); 
+          valid = false;
+          break;
+        }
+      }   
+      options[option_name] = option_value;
     }
     return options;
   }
@@ -98,19 +143,24 @@ namespace Arc {
 
   URL::URL()
     : port(-1),
-      ldapscope(base) {}
+      ldapscope(base),
+      valid(false) {}
 
   URL::URL(const std::string& url)
     : port(-1),
-      ldapscope(base) {
+      ldapscope(base),
+      valid(true) {
 
     std::string::size_type pos, pos2, pos3;
 
-    if (url[0] == '\0')
+    if (url[0] == '\0') {
+      valid = false;
       return;
+    }
 
     if (url[0] == '#') {
       URLLogger.msg(ERROR, "URL is not valid: %s", url);
+      valid = false;
       return;
     }
 
@@ -171,10 +221,12 @@ namespace Arc {
         // absolute.
         if(url[pos] != '/') {
           URLLogger.msg(ERROR, "Illegal URL - path must be absolute");
+          valid = false;
           return;
         }
       } else {
         URLLogger.msg(ERROR, "Illegal URL - no hostname given");
+        valid = false;
         return;
       }
     } else {
@@ -259,6 +311,7 @@ namespace Arc {
     // At this point path must be absolutely absolute (starts with /) or empty
     if ((!path.empty()) && (path[0] != '/')) {
       URLLogger.msg(ERROR, "Illegal URL - path must be absolute or empty");
+      valid = false;
       return;
     }
 
@@ -365,7 +418,6 @@ namespace Arc {
 
     // Normally host/authority names are case-insensitive
     host = lower(host);
-
   }
 
   URL::~URL() {}
@@ -761,11 +813,11 @@ namespace Arc {
   }
 
   URL::operator bool() const {
-    return (!protocol.empty());
+    return valid;
   }
 
   bool URL::operator!() const {
-    return (protocol.empty());
+    return !valid;
   }
 
   std::string URL::OptionString(const std::map<std::string,
@@ -865,12 +917,13 @@ namespace Arc {
 
   PathIterator& PathIterator::operator--() {
     done = false;
-    if (pos != std::string::npos)
+    if (pos != std::string::npos) {
       pos = pos ? path.rfind('/', pos - 1) : std::string::npos;
-    else if (end && !path.empty())
+    } else if (end && !path.empty()) {
       if((pos = path.rfind('/')) == 0) pos = std::string::npos;
-    else
+    } else {
       done = true;
+    }
     end = false;
     return *this;
   }

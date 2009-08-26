@@ -59,6 +59,14 @@ bool arcregister(const Arc::URL& source_url,
                  bool passive,
                  bool force_meta,
                  int timeout) {
+  if (!source_url) {
+    logger.msg(Arc::ERROR, "Invalid URL: %s", source_url.str());
+    return false;
+  }
+  if (!destination_url) {
+    logger.msg(Arc::ERROR, "Invalid URL: %s", destination_url.str());
+    return false;
+  }                  
   if (source_url.Protocol() == "urllist" &&
       destination_url.Protocol() == "urllist") {
     std::list<Arc::URL> sources = Arc::ReadURLList(source_url);
@@ -195,7 +203,15 @@ bool arccp(const Arc::URL& source_url_,
            bool verbose,
            int timeout) {
   Arc::URL source_url(source_url_);
+  if (!source_url) {
+    logger.msg(Arc::ERROR, "Invalid URL: %s", source_url.str());
+    return false;
+  }
   Arc::URL destination_url(destination_url_);
+  if (!destination_url) {
+    logger.msg(Arc::ERROR, "Invalid URL: %s", destination_url.str());
+    return false;
+  }
   std::string cache_path;
   std::string cache_data_path;
   std::string id = "<ngcp>";

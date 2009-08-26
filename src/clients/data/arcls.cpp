@@ -26,6 +26,10 @@ bool arcls(const Arc::URL& dir_url,
            bool show_meta,
            int recursion,
            int timeout) {
+  if (!dir_url) {
+    logger.msg(Arc::ERROR, "Invalid URL: %s", dir_url.fullstr());
+    return false;
+  }
   if (dir_url.Protocol() == "urllist") {
     std::list<Arc::URL> dirs = Arc::ReadURLList(dir_url);
     if (dirs.size() == 0) {

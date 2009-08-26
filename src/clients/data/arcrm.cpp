@@ -22,6 +22,10 @@ void arcrm(const Arc::URL& file_url,
            Arc::XMLNode credentials,
            bool errcont,
            int timeout) {
+  if (!file_url) {
+    logger.msg(Arc::ERROR, "Invalid URL: %s", file_url.str());
+    return;
+  }
   if (file_url.Protocol() == "filelist") {
     std::list<Arc::URL> files = Arc::ReadURLList(file_url);
     if (files.size() == 0) {
