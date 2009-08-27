@@ -442,10 +442,12 @@ class Bartender:
                         success = 'LN exists'
                     elif child_name == '': # this only can happen if the LN was a single GUID
                         # this means that the new file will have no parent
-                        # set the type and GUID of the new file
-                        child_metadata[('entry','GUID')] = rootguid or global_root_guid
-                        # create the new entry
-                        success, GUID = self._new(auth, child_metadata)
+                        # we don't want to allow this:
+                        success = 'cannot create a file without a parent collection'
+                        # # set the type and GUID of the new file
+                        # child_metadata[('entry','GUID')] = rootguid or global_root_guid
+                        # # create the new entry
+                        # success, GUID = self._new(auth, child_metadata)
                     elif restLN != child_name or GUID == '':
                         # if the non-traversed part of the Logical Name is not actully the name of the new file
                         #   or we have no parent guid
@@ -552,8 +554,12 @@ class Bartender:
                 success = 'LN exists'
             elif child_name == '': # this only can happen if the LN was a single GUID
                 # this means the collection has no parent
-                child_metadata[('entry','GUID')] = rootguid or global_root_guid
-                success, _ = self._new(auth, child_metadata)
+                # we only allow this for the global root
+                if rootguid != global_root_guid and rootguid != '':
+                    success = 'cannot create collection without a parent collection'
+                else:
+                    child_metadata[('entry','GUID')] = global_root_guid
+                    success, _ = self._new(auth, child_metadata)
             elif restLN != child_name or GUID == '':
                 success = 'parent does not exist'
             else:
