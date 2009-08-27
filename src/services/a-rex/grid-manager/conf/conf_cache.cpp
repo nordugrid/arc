@@ -31,11 +31,12 @@ CacheConfig::CacheConfig(std::string username): _cache_max(80),
       if(cache_dir.length() == 0) continue; // cache is disabled
       cache_link_dir = config_next_arg(rest);
 
-      // take off leading slashes
+      // take off trailing slashes
       if (cache_dir.rfind("/") == cache_dir.length()-1) cache_dir = cache_dir.substr(0, cache_dir.length()-1);
 
       // add this cache to our list
       std::string cache = cache_dir;
+      if (!cache_link_dir.empty()) cache += " "+cache_link_dir;
       _cache_dirs.push_back(cache);
     }
     else if(command == "cachedata") {
