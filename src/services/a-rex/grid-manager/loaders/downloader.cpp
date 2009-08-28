@@ -476,6 +476,7 @@ int main(int argc,char** argv) {
     mover.set_default_max_inactivity_time(max_inactivity_time);
   bool transfered = true;
   bool credentials_expired = false;
+  std::list<FileData> output_files;
 
   if(!job_input_read_file(desc.get_id(),user,job_files_)) {
     failure_reason+="Internal error in downloader\n";
@@ -487,7 +488,25 @@ int main(int argc,char** argv) {
       if (i != j && j->pfn == i->pfn) { olog << "Error: duplicate file in list of input files: " << i->pfn << std::endl; res=1; goto exit; }
     }
   }
-  
+  // check if any input files are also output files downloadable by user (bug 1387)
+  if(job_output_read_file(desc.get_id(),user,output_files)) {
+    for (std::list<FileData>::iterator j = output_files.begin(); j != output_files.end(); j++) {
+      for (std::list<FileData>::iterator i = job_files_.begin(); i != job_files_.end(); i++) {
+        if (i->pfn == j->pfn && j->lfn.empty()) {
+          Arc::URL u(i->lfn);
+          std::string opt = u.Option("cache");
+          // don't add copy option if exists or current option is "no" or "renew"
+          if (opt.empty() || !(opt == "no" || opt == "renew" || opt == "copy")) {
+            u.AddOption("cache", "copy", true);
+            i->lfn = u.fullstr();
+          }
+        }
+      }
+    }
+  }
+  else
+    olog << "WARNING: Can't read list of output files" << std::endl;
+      
   // remove bad files
   if(clean_files(job_files_,session_dir) != 0) { 
     failure_reason+="Internal error in downloader\n";

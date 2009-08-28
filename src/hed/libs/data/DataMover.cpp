@@ -381,6 +381,10 @@ namespace Arc {
       std::string exec_option = source.GetURL().Option("exec");
       if (exec_option == "yes")
         executable = true;
+      bool cache_copy = false;
+      std::string cache_option = source.GetURL().Option("cache");
+      if (cache_option == "copy")
+        cache_copy = true;
       long long int bufsize;
       int bufnum;
       if (source.Cache() && destination.Local() && cache)
@@ -546,7 +550,7 @@ namespace Arc {
               continue;
             }
             logger.msg(DEBUG, "Cached copy is still valid");
-            if (source.ReadOnly() && !executable) {
+            if (source.ReadOnly() && !executable && !cache_copy) {
               logger.msg(DEBUG, "Linking/copying cached file");
               if (!cache.Link(destination.CurrentLocation().Path(), canonic_url)) {
                 /* failed cache link is unhandable */
@@ -880,9 +884,9 @@ namespace Arc {
           logger.msg(WARNING, "Couldn't handle certificate: %s", e.what());
         }
         bool cache_link_result;
-        if (executable) {
+        if (executable || cache_copy) {
           logger.msg(DEBUG, "Copying cached file");
-          cache_link_result = cache.Copy(destination.CurrentLocation().Path(), canonic_url, true);
+          cache_link_result = cache.Copy(destination.CurrentLocation().Path(), canonic_url, executable);
         }
         else {
           logger.msg(DEBUG, "Linking/copying cached file");
