@@ -52,16 +52,16 @@ namespace Arc {
         else if (jdl_text[i - 1] != '\\')
           quotation = false;
       }
-      if (!quotation) {
+      else if (!quotation) {
         if (jdl_text[i] == '{' || jdl_text[i] == '[')
           stack.push_back(jdl_text[i]);
-        if (jdl_text[i] == '}') {
+        else if (jdl_text[i] == '}') {
           if (stack.back() == '{')
             stack.pop_back();
           else
             return false;
         }
-        if (jdl_text[i] == ']') {
+        else if (jdl_text[i] == ']') {
           if (stack.back() == '[')
             stack.pop_back();
           else
@@ -74,8 +74,9 @@ namespace Arc {
   }
 
   std::string JDLParser::simpleJDLvalue(const std::string& attributeValue) const {
-    std::string whitespaces(" \t\f\v\n\r");
-    unsigned long last_pos = attributeValue.find_last_of("\"");
+    const std::string whitespaces(" \t\f\v\n\r");
+    const size_t last_pos = attributeValue.find_last_of("\"");
+
     // If the text is not between quotation marks, then return with the original form
     if (attributeValue.substr(attributeValue.find_first_not_of(whitespaces), 1) != "\"" || last_pos == std::string::npos)
       return trim(attributeValue);
@@ -83,7 +84,7 @@ namespace Arc {
     else
       return attributeValue.substr(attributeValue.find_first_of("\"") + 1, last_pos - attributeValue.find_first_of("\"") - 1);
   }
-
+   
   std::list<std::string> JDLParser::listJDLvalue(const std::string& attributeValue, std::pair<char, char> brackets, char lineEnd) const {
     std::list<std::string> elements;
     unsigned long first_bracket = attributeValue.find_first_of(brackets.first);
@@ -99,7 +100,7 @@ namespace Arc {
     std::list<std::string> listElements;
     tokenize(attributeValue.substr(first_bracket + 1,
                                    last_bracket - first_bracket - 1),
-             listElements, &lineEnd);
+             listElements, tostring(lineEnd));
     for (std::list<std::string>::const_iterator it = listElements.begin();
          it != listElements.end(); it++)
       elements.push_back(simpleJDLvalue(*it));
@@ -157,6 +158,8 @@ namespace Arc {
         file.Name = (pos == std::string::npos ? *it : it->substr(pos+1));
         DataSourceType source;
         source.URI = *it;
+        if (!source.URI)
+          return false;
         source.Threads = -1;
         file.Source.push_back(source);
         // Initializing these variables
@@ -189,6 +192,8 @@ namespace Arc {
         file.Name = *it;
         DataTargetType target;
         target.URI = *it;
+        if (!target.URI)
+          return false;
         target.Threads = -1;
         target.Mandatory = false;
         target.NeededReplica = -1;
@@ -332,7 +337,7 @@ namespace Arc {
           job.Resources.CandidateTarget.push_back(candidateTarget);
         }
         else
-          job.Resources.CandidateTarget.front().EndPointURL = simpleJDLvalue(attributeValue);
+          job.Resources.CandidateTarget.front().QueueName = simpleJDLvalue(attributeValue);
       return true;
     }
     else if (attributeName == "batchsystem") {
@@ -357,7 +362,10 @@ namespace Arc {
       return true;
     }
     else if (attributeName == "myproxyserver") {
-      job.Application.CredentialService.push_back(URL(simpleJDLvalue(attributeValue)));
+      URL url(simpleJDLvalue(attributeValue));
+      if (!url)
+        return false;
+      job.Application.CredentialService.push_back(url);
       return true;
     }
     else if (attributeName == "hlrlocation") {
@@ -494,16 +502,12 @@ namespace Arc {
 
     for (std::list<std::string>::iterator it = lines.begin();
          it != lines.end(); it++) {
-      const unsigned long equal_pos = it->find_first_of("=");
+      const size_t equal_pos = it->find_first_of("=");
       if (equal_pos == std::string::npos) {
-        if (it == --lines.end())
-          continue;
-        else {
-          logger.msg(DEBUG, "[JDLParser] JDL syntax error. There is at least one equal sign missing where it would be expected.");
-          return JobDescription();
-        }
+        logger.msg(DEBUG, "[JDLParser] JDL syntax error. There is at least one equal sign missing where it would be expected.");
+        return JobDescription();
       }
-      if (!handleJDLattribute(trim(it->substr(0, equal_pos)), trim(it->substr(equal_pos + 1, std::string::npos)), job))
+      if (!handleJDLattribute(trim(it->substr(0, equal_pos)), trim(it->substr(equal_pos + 1)), job))
         return JobDescription();
     }
     return job;

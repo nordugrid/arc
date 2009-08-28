@@ -272,8 +272,14 @@ namespace Arc {
       job.Application.LogDir = (std::string)xmlApplication["LogDir"];
 
     // std::list<URL> RemoteLogging;
-    for (int i = 0; (bool)(xmlApplication["RemoteLogging"][i]); i++)
-      job.Application.RemoteLogging.push_back(URL((std::string)xmlApplication["RemoteLogging"][i]));
+    for (int i = 0; (bool)(xmlApplication["RemoteLogging"][i]); i++) {
+      URL url((std::string)xmlApplication["RemoteLogging"][i]);
+      if (!url) {
+        logger.msg(DEBUG, "[ARCJSDLParser] RemoteLogging URL is wrongly formatted.");
+        return JobDescription();
+      }
+      job.Application.RemoteLogging.push_back(url);
+    }
 
     // int Rerun;
     if (bool(xmlApplication["Rerun"]))

@@ -212,7 +212,9 @@ namespace Arc {
           DataSourceType source;
           if (!it2->empty())
             source.URI = *it2;
-          if (!source.URI || source.URI.Protocol() == "file")
+          if (!source.URI)
+            return false;
+          if (source.URI.Protocol() == "file")
             source.URI = file.Name;
           source.Threads = -1;
           file.Source.push_back(source);
@@ -259,10 +261,13 @@ namespace Arc {
           FileType file;
           file.Name = *it2++;
           DataTargetType target;
-          if (!it2->empty())
+          if (!it2->empty()) {
             target.URI = *it2;
-          else
+            if (!target.URI)
+              return false;
+          } else {
             file.KeepData = true;
+          }
           target.Threads = -1;
           file.Target.push_back(target);
           file.IsExecutable = false;
@@ -432,6 +437,8 @@ namespace Arc {
         std::string cluster;
         if (!SingleValue(c, cluster))
           return false;
+        if (!URL(cluster))
+          return false;
         if (j.Resources.CandidateTarget.empty()) {
           ResourceTargetType candidateTarget;
           candidateTarget.EndPointURL = cluster;
@@ -482,6 +489,8 @@ namespace Arc {
         if (!SingleValue(c, collection))
           return false;
         URL url(collection);
+        if (!url)
+          return false;
         for (std::list<FileType>::iterator it = j.DataStaging.File.begin();
              it != j.DataStaging.File.end(); it++)
           it->DataIndexingService.push_back(url);
@@ -553,6 +562,8 @@ namespace Arc {
         std::string jobreport;
         if (!SingleValue(c, jobreport))
           return false;
+        if (!URL(jobreport))
+          return false;
         j.Application.RemoteLogging.push_back(URL(jobreport));
         return true;
       }
@@ -560,6 +571,8 @@ namespace Arc {
       if (c->Attr() == "credentialserver") {
         std::string credentialserver;
         if (!SingleValue(c, credentialserver))
+          return false;
+        if (!URL(credentialserver))
           return false;
         j.Application.CredentialService.push_back(credentialserver);
         return true;
