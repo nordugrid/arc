@@ -72,9 +72,13 @@ The following options are supported for location URLs:\index{URL:options}
    \verb#threads=<number># & specifies number of parallel
    streams to be used by GridFTP or HTTP(s,g); default value is 1,
    maximal value is 10\\
-   \verb#cache=yes|no|renew# & indicates whether the GM should
-   cache the file; default for input files is \verb#yes#. \verb#renew# forces a download of the file, even if the cached copy is still valid. (NB: cached files can not be modified by jobs)\\
-   \verb#readonly=yes|no# & for transfers to \verb#file://# destinations, specifies whether the file should be
+   \verb#cache=yes|no|renew|copy# & indicates whether the GM should
+   cache the file; default for input files is \verb#yes#. \verb#renew#
+   forces a download of the file, even if the cached copy is still valid.
+   \verb#copy# forces the cached file to be copied (rather than linked) to
+   the session dir, this is useful if for example the file is to be modified.\\
+   \verb#readonly=yes|no# & for transfers to \verb#file://# destinations,
+   specifies whether the file should be
    read-only (unmodifiable) or not; default is \verb#yes# \\
    \verb#secure=yes|no# & indicates whether the GridFTP data
    channel should be encrypted; default is \verb#no#\\
