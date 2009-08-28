@@ -210,21 +210,13 @@ namespace Arc {
     std::list<DataTargetType> Target;
   };
 
-class FileType : public DataType {};
-class DirectoryType : public DataType {};
-
-  class DataStagingDefaultsType {
-  public:
-    URL DataIndexingService;
-    URL StagingInBaseURI;
-    URL StagingOutBaseURI;
-  };
+  class FileType : public DataType {};
+  class DirectoryType : public DataType {};
 
   class DataStagingType {
   public:
     std::list<FileType> File;
     std::list<DirectoryType> Directory;
-    DataStagingDefaultsType Defaults;
   };
 
   class JobMetaType {
