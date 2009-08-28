@@ -36,7 +36,15 @@ class JobDescriptionTest
   CPPUNIT_TEST_SUITE(JobDescriptionTest);
   CPPUNIT_TEST(TestExecutable);
   CPPUNIT_TEST(TestInputOutputError);
-  CPPUNIT_TEST(TestDataStaging);
+  CPPUNIT_TEST(TestDataStagingCreateDelete);
+  CPPUNIT_TEST(TestDataStagingDownloadDelete);
+  CPPUNIT_TEST(TestDataStagingUploadDelete);
+  CPPUNIT_TEST(TestDataStagingCreateDownload);
+  CPPUNIT_TEST(TestDataStagingDownloadDownload);
+  CPPUNIT_TEST(TestDataStagingUploadDownload);
+  CPPUNIT_TEST(TestDataStagingCreateUpload);
+  CPPUNIT_TEST(TestDataStagingDownloadUpload);
+  CPPUNIT_TEST(TestDataStagingUploadUpload);
   CPPUNIT_TEST(TestPOSIXCompliance);
   CPPUNIT_TEST(TestHPCCompliance);
   CPPUNIT_TEST_SUITE_END();
@@ -50,7 +58,15 @@ public:
   void tearDown();
   void TestExecutable();
   void TestInputOutputError();
-  void TestDataStaging();
+  void TestDataStagingCreateDelete();
+  void TestDataStagingDownloadDelete();
+  void TestDataStagingUploadDelete();
+  void TestDataStagingCreateDownload();
+  void TestDataStagingDownloadDownload();
+  void TestDataStagingUploadDownload();
+  void TestDataStagingCreateUpload();
+  void TestDataStagingDownloadUpload();
+  void TestDataStagingUploadUpload();
   void TestPOSIXCompliance();
   void TestHPCCompliance();
 
@@ -97,374 +113,376 @@ void JobDescriptionTest::TestInputOutputError() {
   PARSE_ASSERT(Application.Error, job, arcJob, xrslJob, jdlJob);
 }
 
-void JobDescriptionTest::TestDataStaging() {
-  { /** 1-Create-Delete:
-     * - XRSL and JDL does not support this type of specifying data staging elements.
-     */
-    Arc::FileType file;
-    file.Name = "1-Create-Delete";
-    file.KeepData = false;
-    file.IsExecutable = false;
-    file.DownloadToCache = false;
-    job.DataStaging.File.push_back(file);
-
-    arcJob.Parse(job.UnParse("ARCJSDL"));
-    ARC_ASSERT(arcJob);
-    ARC_ASSERT(job.DataStaging.File.size() == 1 && arcJob.DataStaging.File.size() == 1);
-    ARC_ASSERT_EQUAL(job.DataStaging.File.front().Name, arcJob.DataStaging.File.front().Name);
-
-    ARC_ASSERT(job.DataStaging.File.front().IsExecutable == arcJob.DataStaging.File.front().IsExecutable);
-    job.DataStaging.File.pop_back(); file.IsExecutable = true; job.DataStaging.File.push_back(file); arcJob.Parse(job.UnParse("ARCJSDL"));
-    ARC_ASSERT(job.DataStaging.File.front().IsExecutable == arcJob.DataStaging.File.front().IsExecutable);
-
-    ARC_ASSERT(job.DataStaging.File.front().DownloadToCache == arcJob.DataStaging.File.front().DownloadToCache);
-    job.DataStaging.File.pop_back(); file.DownloadToCache = true; job.DataStaging.File.push_back(file); arcJob.Parse(job.UnParse("ARCJSDL"));
-    ARC_ASSERT(job.DataStaging.File.front().DownloadToCache == arcJob.DataStaging.File.front().DownloadToCache);
-  }
-
-  { /** 2-Download-Delete */
-    job.DataStaging.File.clear();
-
-    Arc::FileType file;
-    file.Name = "2-Download-Delete";
-    Arc::DataSourceType source;
-    source.URI = "http://example.com/" + file.Name;
-    source.Threads = -1;
-    file.Source.push_back(source);
-    file.KeepData = false;
-    file.IsExecutable = false;
-    file.DownloadToCache = false;
-    job.DataStaging.File.push_back(file);
-
-    CPPUNIT_ASSERT(job.DataStaging.File.size() == 1);
-    CPPUNIT_ASSERT(job.DataStaging.File.front().Source.size() == 1 && job.DataStaging.File.front().Source.front().URI);
-
-    arcJob.Parse(job.UnParse("ARCJSDL"));
-    ARC_ASSERT(arcJob);
-    ARC_ASSERT(arcJob.DataStaging.File.size() == 1);
-    ARC_ASSERT_EQUAL(job.DataStaging.File.front().Name, arcJob.DataStaging.File.front().Name);
-    ARC_ASSERT(arcJob.DataStaging.File.front().Source.size() == 1 && arcJob.DataStaging.File.front().Source.front().URI);
-    ARC_ASSERT(job.DataStaging.File.front().Source.front().URI == arcJob.DataStaging.File.front().Source.front().URI);
-
-    xrslJob.Parse(job.UnParse("XRSL"));
-    XRSL_ASSERT(xrslJob);
-    XRSL_ASSERT(!xrslJob.DataStaging.File.empty());
-    XRSL_ASSERT_EQUAL(job.DataStaging.File.front().Name, xrslJob.DataStaging.File.front().Name);
-    XRSL_ASSERT(xrslJob.DataStaging.File.front().Source.size() == 1 && xrslJob.DataStaging.File.front().Source.front().URI);
-    XRSL_ASSERT(job.DataStaging.File.front().Source.front().URI == xrslJob.DataStaging.File.front().Source.front().URI);
-
-    std::cout << job.UnParse("JDL") << std::endl;
-
-    jdlJob.Parse(job.UnParse("JDL"));
-    jdlJob.Print(true);
-    JDL_ASSERT(jdlJob);
-    JDL_ASSERT(!jdlJob.DataStaging.File.empty());
-    JDL_ASSERT_EQUAL(job.DataStaging.File.front().Name, jdlJob.DataStaging.File.front().Name);
-    JDL_ASSERT(jdlJob.DataStaging.File.front().Source.size() == 1 && jdlJob.DataStaging.File.front().Source.front().URI);
-    JDL_ASSERT(job.DataStaging.File.front().Source.front().URI == jdlJob.DataStaging.File.front().Source.front().URI);
-  }
-
-  { /** 3-Upload-Delete */
-    job.DataStaging.File.clear();
-
-    Arc::FileType file;
-    file.Name = "3-Upload-Delete";
-    Arc::DataSourceType source;
-    source.URI = file.Name;
-    source.Threads = -1;
-    file.Source.push_back(source);
-    file.KeepData = false;
-    job.DataStaging.File.push_back(file);
-
-    // Needed by the XRSLParser.
-    std::ofstream f("3-Upload-Delete", std::ifstream::trunc);
-    f << "3-Upload-Delete";
-    f.close();
-
-    arcJob.Parse(job.UnParse("ARCJSDL"));
-    ARC_ASSERT(arcJob);
-    ARC_ASSERT(arcJob.DataStaging.File.size() == 1);
-    ARC_ASSERT_EQUAL(job.DataStaging.File.front().Name, arcJob.DataStaging.File.front().Name);
-    ARC_ASSERT(arcJob.DataStaging.File.front().Source.size() == 1 && arcJob.DataStaging.File.front().Source.front().URI);
-    ARC_ASSERT(job.DataStaging.File.front().Source.front().URI == arcJob.DataStaging.File.front().Source.front().URI);
-
-    std::cout << job.UnParse("XRSL") << std::endl;
-
-    xrslJob.Parse(job.UnParse("XRSL"));
-    XRSL_ASSERT(xrslJob);
-    XRSL_ASSERT(!xrslJob.DataStaging.File.empty());
-    XRSL_ASSERT_EQUAL(job.DataStaging.File.front().Name, xrslJob.DataStaging.File.front().Name);
-    XRSL_ASSERT(xrslJob.DataStaging.File.front().Source.size() == 1 && xrslJob.DataStaging.File.front().Source.front().URI);
-    XRSL_ASSERT(job.DataStaging.File.front().Source.front().URI == xrslJob.DataStaging.File.front().Source.front().URI);
-
-    std::cout << job.UnParse("JDL") << std::endl;
-
-    jdlJob.Parse(job.UnParse("JDL"));
-    jdlJob.Print(true);
-    JDL_ASSERT(jdlJob);
-    JDL_ASSERT(!jdlJob.DataStaging.File.empty());
-    JDL_ASSERT_EQUAL(job.DataStaging.File.front().Name, jdlJob.DataStaging.File.front().Name);
-    JDL_ASSERT(jdlJob.DataStaging.File.front().Source.size() == 1 && jdlJob.DataStaging.File.front().Source.front().URI);
-    JDL_ASSERT(job.DataStaging.File.front().Source.front().URI == jdlJob.DataStaging.File.front().Source.front().URI);
-  }
-
-  { /** 4-Create-Download */
-    job.DataStaging.File.clear();
-
-    Arc::FileType file;
-    file.Name = "4-Create-Download";
-    file.KeepData = true;
-    job.DataStaging.File.push_back(file);
-
-    arcJob.Parse(job.UnParse("ARCJSDL"));
-    ARC_ASSERT(arcJob);
-    ARC_ASSERT(arcJob.DataStaging.File.size() == 1);
-    ARC_ASSERT_EQUAL(job.DataStaging.File.front().Name, arcJob.DataStaging.File.front().Name);
-    ARC_ASSERT(arcJob.DataStaging.File.front().KeepData);
-
-    xrslJob.Parse(job.UnParse("XRSL"));
-    XRSL_ASSERT(xrslJob);
-    XRSL_ASSERT(!xrslJob.DataStaging.File.empty());
-    XRSL_ASSERT_EQUAL(job.DataStaging.File.front().Name, xrslJob.DataStaging.File.front().Name);
-    XRSL_ASSERT(xrslJob.DataStaging.File.front().KeepData);
-
-    jdlJob.Parse(job.UnParse("JDL"));
-    JDL_ASSERT(jdlJob);
-    JDL_ASSERT(!jdlJob.DataStaging.File.empty());
-    JDL_ASSERT_EQUAL(job.DataStaging.File.front().Name, jdlJob.DataStaging.File.back().Name);
-    JDL_ASSERT(jdlJob.DataStaging.File.back().KeepData);
-  }
-
-  { /** 5-Download-Download */
-    job.DataStaging.File.clear();
-
-    Arc::FileType file;
-    file.Name = "5-Download-Download";
-    Arc::DataSourceType source;
-    source.URI = "http://example.com/" + file.Name;
-    source.Threads = -1;
-    file.Source.push_back(source);
-    file.KeepData = true;
-    job.DataStaging.File.push_back(file);
-
-    arcJob.Parse(job.UnParse("ARCJSDL"));
-    ARC_ASSERT(arcJob);
-    ARC_ASSERT(arcJob.DataStaging.File.size() == 1);
-    ARC_ASSERT_EQUAL(job.DataStaging.File.front().Name, arcJob.DataStaging.File.front().Name);
-    ARC_ASSERT(arcJob.DataStaging.File.front().Source.size() == 1 && arcJob.DataStaging.File.front().Source.front().URI);
-    ARC_ASSERT(job.DataStaging.File.front().Source.front().URI == arcJob.DataStaging.File.front().Source.front().URI);
-    ARC_ASSERT(arcJob.DataStaging.File.front().KeepData);
-
-    xrslJob.Parse(job.UnParse("XRSL"));
-    XRSL_ASSERT(xrslJob);
-    XRSL_ASSERT(!xrslJob.DataStaging.File.empty());
-    XRSL_ASSERT_EQUAL(job.DataStaging.File.front().Name, xrslJob.DataStaging.File.front().Name);
-    XRSL_ASSERT_EQUAL(job.DataStaging.File.front().Name, xrslJob.DataStaging.File.back().Name);
-    XRSL_ASSERT(xrslJob.DataStaging.File.front().Source.size() == 1 && xrslJob.DataStaging.File.front().Source.front().URI);
-    XRSL_ASSERT(job.DataStaging.File.front().Source.front().URI == xrslJob.DataStaging.File.front().Source.front().URI);
-    XRSL_ASSERT(!xrslJob.DataStaging.File.front().KeepData);
-    XRSL_ASSERT(xrslJob.DataStaging.File.back().KeepData);
-
-    jdlJob.Parse(job.UnParse("JDL"));
-    JDL_ASSERT(jdlJob);
-    JDL_ASSERT(!jdlJob.DataStaging.File.empty());
-    JDL_ASSERT_EQUAL(job.DataStaging.File.front().Name, jdlJob.DataStaging.File.front().Name);
-    JDL_ASSERT_EQUAL(job.DataStaging.File.front().Name, jdlJob.DataStaging.File.back().Name);
-    JDL_ASSERT(jdlJob.DataStaging.File.front().Source.size() == 1 && jdlJob.DataStaging.File.front().Source.front().URI);
-    JDL_ASSERT(job.DataStaging.File.front().Source.front().URI == jdlJob.DataStaging.File.front().Source.front().URI);
-    JDL_ASSERT(!jdlJob.DataStaging.File.front().KeepData);
-    JDL_ASSERT(jdlJob.DataStaging.File.back().KeepData);
-  }
-
-  { /** 6-Upload-Download */
-    job.DataStaging.File.clear();
-
-    Arc::FileType file;
-    file.Name = "6-Upload-Download";
-    Arc::DataSourceType source;
-    source.URI = file.Name;
-    source.Threads = -1;
-    file.Source.push_back(source);
-    file.KeepData = true;
-    job.DataStaging.File.push_back(file);
-
-    // Needed by the XRSLParser.
-    std::ofstream f(file.Name.c_str(), std::ifstream::trunc);
-    f << "6-Upload-Download";
-    f.close();
+ /** 1-Create-Delete:
+ * - XRSL and JDL does not support this type of specifying data staging elements.
+ */
+void JobDescriptionTest::TestDataStagingCreateDelete() {
+      job.DataStaging.File.clear();
     
-    arcJob.Parse(job.UnParse("ARCJSDL"));
-    ARC_ASSERT(arcJob);
-    ARC_ASSERT(arcJob.DataStaging.File.size() == 1);
-    ARC_ASSERT_EQUAL(job.DataStaging.File.front().Name, arcJob.DataStaging.File.front().Name);
-    ARC_ASSERT(arcJob.DataStaging.File.front().Source.size() == 1 && arcJob.DataStaging.File.front().Source.front().URI);
-    ARC_ASSERT(job.DataStaging.File.front().Source.front().URI == arcJob.DataStaging.File.front().Source.front().URI);
-    ARC_ASSERT(arcJob.DataStaging.File.front().KeepData);
+  Arc::FileType file;
+  file.Name = "1-Create-Delete";
+  file.KeepData = false;
+  file.IsExecutable = false;
+  file.DownloadToCache = false;
+  job.DataStaging.File.push_back(file);
 
-    xrslJob.Parse(job.UnParse("XRSL"));
-    XRSL_ASSERT(xrslJob);
-    XRSL_ASSERT(!xrslJob.DataStaging.File.empty());
-    XRSL_ASSERT_EQUAL(job.DataStaging.File.front().Name, xrslJob.DataStaging.File.front().Name);
-    XRSL_ASSERT_EQUAL(job.DataStaging.File.front().Name, xrslJob.DataStaging.File.back().Name);
-    XRSL_ASSERT(xrslJob.DataStaging.File.front().Source.size() == 1 && xrslJob.DataStaging.File.front().Source.front().URI);
-    XRSL_ASSERT(job.DataStaging.File.front().Source.front().URI == xrslJob.DataStaging.File.front().Source.front().URI);
-    XRSL_ASSERT(!xrslJob.DataStaging.File.front().KeepData);
-    XRSL_ASSERT(xrslJob.DataStaging.File.back().KeepData);
+  arcJob.Parse(job.UnParse("ARCJSDL"));
+  ARC_ASSERT(arcJob);
+  ARC_ASSERT(job.DataStaging.File.size() == 1 && arcJob.DataStaging.File.size() == 1);
+  ARC_ASSERT_EQUAL(job.DataStaging.File.front().Name, arcJob.DataStaging.File.front().Name);
 
-    jdlJob.Parse(job.UnParse("JDL"));
-    JDL_ASSERT(jdlJob);
-    JDL_ASSERT(!jdlJob.DataStaging.File.empty());
-    JDL_ASSERT_EQUAL(job.DataStaging.File.front().Name, jdlJob.DataStaging.File.front().Name);
-    JDL_ASSERT_EQUAL(job.DataStaging.File.front().Name, jdlJob.DataStaging.File.back().Name);
-    JDL_ASSERT(jdlJob.DataStaging.File.front().Source.size() == 1 && jdlJob.DataStaging.File.front().Source.front().URI);
-    JDL_ASSERT(job.DataStaging.File.front().Source.front().URI == jdlJob.DataStaging.File.front().Source.front().URI);
-    JDL_ASSERT(!jdlJob.DataStaging.File.front().KeepData);
-    JDL_ASSERT(jdlJob.DataStaging.File.back().KeepData);
-  }
+  ARC_ASSERT(job.DataStaging.File.front().IsExecutable == arcJob.DataStaging.File.front().IsExecutable);
+  job.DataStaging.File.pop_back(); file.IsExecutable = true; job.DataStaging.File.push_back(file); arcJob.Parse(job.UnParse("ARCJSDL"));
+  ARC_ASSERT(job.DataStaging.File.front().IsExecutable == arcJob.DataStaging.File.front().IsExecutable);
 
-  { /** 7-Create-Upload */
-    job.DataStaging.File.clear();
+  ARC_ASSERT(job.DataStaging.File.front().DownloadToCache == arcJob.DataStaging.File.front().DownloadToCache);
+  job.DataStaging.File.pop_back(); file.DownloadToCache = true; job.DataStaging.File.push_back(file); arcJob.Parse(job.UnParse("ARCJSDL"));
+  ARC_ASSERT(job.DataStaging.File.front().DownloadToCache == arcJob.DataStaging.File.front().DownloadToCache);
+}
 
-    Arc::FileType file;
-    file.Name = "7-Create-Upload";
-    Arc::DataTargetType target;
-    target.URI = "http://example.com/" + file.Name;
-    target.Threads = -1;
-    file.Target.push_back(target);
-    file.KeepData = false;
-    job.DataStaging.File.push_back(file);
+/** 2-Download-Delete */
+void JobDescriptionTest::TestDataStagingDownloadDelete() {
+  job.DataStaging.File.clear();
 
-    arcJob.Parse(job.UnParse("ARCJSDL"));
-    ARC_ASSERT(arcJob);
-    ARC_ASSERT(arcJob.DataStaging.File.size() == 1);
-    ARC_ASSERT_EQUAL(job.DataStaging.File.front().Name, arcJob.DataStaging.File.front().Name);
-    ARC_ASSERT(arcJob.DataStaging.File.front().Target.size() == 1 && arcJob.DataStaging.File.front().Target.front().URI);
-    ARC_ASSERT(job.DataStaging.File.front().Target.front().URI == arcJob.DataStaging.File.front().Target.front().URI);
-    ARC_ASSERT(!arcJob.DataStaging.File.front().KeepData);
+  Arc::FileType file;
+  file.Name = "2-Download-Delete";
+  Arc::DataSourceType source;
+  source.URI = "http://example.com/" + file.Name;
+  CPPUNIT_ASSERT(source.URI);
+  source.Threads = -1;
+  file.Source.push_back(source);
+  file.KeepData = false;
+  file.IsExecutable = false;
+  file.DownloadToCache = false;
+  job.DataStaging.File.push_back(file);
 
-    xrslJob.Parse(job.UnParse("XRSL"));
-    XRSL_ASSERT(xrslJob);
-    XRSL_ASSERT(!xrslJob.DataStaging.File.empty());
-    XRSL_ASSERT_EQUAL(job.DataStaging.File.front().Name, xrslJob.DataStaging.File.front().Name);
-    XRSL_ASSERT(xrslJob.DataStaging.File.front().Target.size() == 1 && xrslJob.DataStaging.File.front().Target.front().URI);
-    XRSL_ASSERT(job.DataStaging.File.front().Target.front().URI == xrslJob.DataStaging.File.front().Target.front().URI);
-    XRSL_ASSERT(!xrslJob.DataStaging.File.front().KeepData);
+  CPPUNIT_ASSERT(job.DataStaging.File.size() == 1);
+  CPPUNIT_ASSERT(job.DataStaging.File.front().Source.size() == 1 && job.DataStaging.File.front().Source.front().URI);
 
-    jdlJob.Parse(job.UnParse("JDL"));
-    JDL_ASSERT(jdlJob);
-    JDL_ASSERT(!jdlJob.DataStaging.File.empty());
-    JDL_ASSERT_EQUAL(job.DataStaging.File.front().Name, jdlJob.DataStaging.File.back().Name);
-    JDL_ASSERT(jdlJob.DataStaging.File.back().Target.size() == 1 && jdlJob.DataStaging.File.back().Target.front().URI);
-    JDL_ASSERT(job.DataStaging.File.front().Target.front().URI == jdlJob.DataStaging.File.back().Target.front().URI);
-    JDL_ASSERT(!jdlJob.DataStaging.File.back().KeepData);
-  }
+  arcJob.Parse(job.UnParse("ARCJSDL"));
+  ARC_ASSERT(arcJob);
+  ARC_ASSERT(arcJob.DataStaging.File.size() == 1);
+  ARC_ASSERT_EQUAL(job.DataStaging.File.front().Name, arcJob.DataStaging.File.front().Name);
+  ARC_ASSERT(arcJob.DataStaging.File.front().Source.size() == 1 && arcJob.DataStaging.File.front().Source.front().URI);
+  ARC_ASSERT(job.DataStaging.File.front().Source.front().URI == arcJob.DataStaging.File.front().Source.front().URI);
 
-  { /** 8-Download-Upload */
-    job.DataStaging.File.clear();
+  xrslJob.Parse(job.UnParse("XRSL"));
+  XRSL_ASSERT(xrslJob);
+  XRSL_ASSERT(!xrslJob.DataStaging.File.empty());
+  XRSL_ASSERT_EQUAL(job.DataStaging.File.front().Name, xrslJob.DataStaging.File.front().Name);
+  XRSL_ASSERT(xrslJob.DataStaging.File.front().Source.size() == 1 && xrslJob.DataStaging.File.front().Source.front().URI);
+  XRSL_ASSERT(job.DataStaging.File.front().Source.front().URI == xrslJob.DataStaging.File.front().Source.front().URI);
 
-    Arc::FileType file;
-    file.Name = "8-Download-Upload";
-    Arc::DataSourceType source;
-    source.URI = "http://example.com/" + file.Name;
-    source.Threads = -1;
-    file.Source.push_back(source);
-    Arc::DataTargetType target;
-    target.URI = "http://example.com/" + file.Name;
-    target.Threads = -1;
-    file.Target.push_back(target);
-    file.KeepData = false;
-    job.DataStaging.File.push_back(file);
+  jdlJob.Parse(job.UnParse("JDL"));
+  JDL_ASSERT(jdlJob);
+  JDL_ASSERT(!jdlJob.DataStaging.File.empty());
+  JDL_ASSERT_EQUAL(job.DataStaging.File.front().Name, jdlJob.DataStaging.File.front().Name);
+  JDL_ASSERT(jdlJob.DataStaging.File.front().Source.size() == 1 && jdlJob.DataStaging.File.front().Source.front().URI);
+  JDL_ASSERT(job.DataStaging.File.front().Source.front().URI == jdlJob.DataStaging.File.front().Source.front().URI);
+}
 
-    arcJob.Parse(job.UnParse("ARCJSDL"));
-    ARC_ASSERT(arcJob);
-    ARC_ASSERT(arcJob.DataStaging.File.size() == 1);
-    ARC_ASSERT_EQUAL(job.DataStaging.File.front().Name, arcJob.DataStaging.File.front().Name);
-    ARC_ASSERT(arcJob.DataStaging.File.front().Source.size() == 1 && arcJob.DataStaging.File.front().Source.front().URI);
-    ARC_ASSERT(job.DataStaging.File.front().Source.front().URI == arcJob.DataStaging.File.front().Source.front().URI);
-    ARC_ASSERT(arcJob.DataStaging.File.front().Target.size() == 1 && arcJob.DataStaging.File.front().Target.front().URI);
-    ARC_ASSERT(job.DataStaging.File.front().Target.front().URI == arcJob.DataStaging.File.front().Target.front().URI);
-    ARC_ASSERT(!arcJob.DataStaging.File.front().KeepData);
+/** 3-Upload-Delete */
+void JobDescriptionTest::TestDataStagingUploadDelete() {
+  job.DataStaging.File.clear();
 
-    xrslJob.Parse(job.UnParse("XRSL"));
-    XRSL_ASSERT(xrslJob);
-    XRSL_ASSERT(!xrslJob.DataStaging.File.empty());
-    XRSL_ASSERT_EQUAL(job.DataStaging.File.front().Name, xrslJob.DataStaging.File.front().Name);
-    XRSL_ASSERT(xrslJob.DataStaging.File.front().Source.size() == 1 && xrslJob.DataStaging.File.front().Source.front().URI);
-    XRSL_ASSERT(job.DataStaging.File.front().Source.front().URI == xrslJob.DataStaging.File.front().Source.front().URI);
-    XRSL_ASSERT_EQUAL(job.DataStaging.File.front().Name, xrslJob.DataStaging.File.back().Name);
-    XRSL_ASSERT(xrslJob.DataStaging.File.back().Target.size() == 1 && xrslJob.DataStaging.File.back().Target.front().URI);
-    XRSL_ASSERT(job.DataStaging.File.back().Target.front().URI == xrslJob.DataStaging.File.back().Target.front().URI);
-    XRSL_ASSERT(!xrslJob.DataStaging.File.front().KeepData);
-    XRSL_ASSERT(!xrslJob.DataStaging.File.back().KeepData);
+  Arc::FileType file;
+  file.Name = "3-Upload-Delete";
+  Arc::DataSourceType source;
+  source.URI = file.Name;
+  source.Threads = -1;
+  file.Source.push_back(source);
+  file.KeepData = false;
+  job.DataStaging.File.push_back(file);
 
-    jdlJob.Parse(job.UnParse("JDL"));
-    JDL_ASSERT(jdlJob);
-    JDL_ASSERT(!jdlJob.DataStaging.File.empty());
-    JDL_ASSERT_EQUAL(job.DataStaging.File.front().Name, jdlJob.DataStaging.File.front().Name);
-    JDL_ASSERT(jdlJob.DataStaging.File.front().Source.size() == 1 && jdlJob.DataStaging.File.front().Source.front().URI);
-    JDL_ASSERT(job.DataStaging.File.front().Source.front().URI == jdlJob.DataStaging.File.front().Source.front().URI);
-    JDL_ASSERT_EQUAL(job.DataStaging.File.front().Name, jdlJob.DataStaging.File.back().Name);
-    JDL_ASSERT(jdlJob.DataStaging.File.back().Target.size() == 1 && jdlJob.DataStaging.File.back().Target.front().URI);
-    JDL_ASSERT(job.DataStaging.File.front().Target.front().URI == jdlJob.DataStaging.File.back().Target.front().URI);
-    JDL_ASSERT(!jdlJob.DataStaging.File.front().KeepData);
-    JDL_ASSERT(!jdlJob.DataStaging.File.back().KeepData);
-  }
+  // Needed by the XRSLParser.
+  std::ofstream f("3-Upload-Delete", std::ifstream::trunc);
+  f << "3-Upload-Delete";
+  f.close();
 
-  { /** 9-Upload-Upload */
-    job.DataStaging.File.clear();
+  arcJob.Parse(job.UnParse("ARCJSDL"));
+  ARC_ASSERT(arcJob);
+  ARC_ASSERT(arcJob.DataStaging.File.size() == 1);
+  ARC_ASSERT_EQUAL(job.DataStaging.File.front().Name, arcJob.DataStaging.File.front().Name);
+  ARC_ASSERT(arcJob.DataStaging.File.front().Source.size() == 1 && arcJob.DataStaging.File.front().Source.front().URI);
+  ARC_ASSERT(job.DataStaging.File.front().Source.front().URI == arcJob.DataStaging.File.front().Source.front().URI);
 
-    Arc::FileType file;
-    file.Name = "9-Upload-Upload";
-     Arc::DataSourceType source;
-    source.URI = file.Name;
-    source.Threads = -1;
-    file.Source.push_back(source);
-    Arc::DataTargetType target;
-    target.URI = "http://example.com/" + file.Name;
-    target.Threads = -1;
-    file.Target.push_back(target);
-    file.KeepData = false;
-    job.DataStaging.File.push_back(file);
+  xrslJob.Parse(job.UnParse("XRSL"));
+  XRSL_ASSERT(xrslJob);
+  XRSL_ASSERT(!xrslJob.DataStaging.File.empty());
+  XRSL_ASSERT_EQUAL(job.DataStaging.File.front().Name, xrslJob.DataStaging.File.front().Name);
+  XRSL_ASSERT(xrslJob.DataStaging.File.front().Source.size() == 1 && xrslJob.DataStaging.File.front().Source.front().URI);
+  XRSL_ASSERT(job.DataStaging.File.front().Source.front().URI == xrslJob.DataStaging.File.front().Source.front().URI);
 
-    // Needed by the XRSLParser.
-    std::ofstream f(file.Name.c_str(), std::ifstream::trunc);
-    f << "9-Upload-Upload";
-    f.close();
-    
-    arcJob.Parse(job.UnParse("ARCJSDL"));
-    ARC_ASSERT(arcJob);
-    ARC_ASSERT(arcJob.DataStaging.File.size() == 1);
-    ARC_ASSERT_EQUAL(job.DataStaging.File.front().Name, arcJob.DataStaging.File.front().Name);
-    ARC_ASSERT(arcJob.DataStaging.File.front().Source.size() == 1 && arcJob.DataStaging.File.front().Source.front().URI);
-    ARC_ASSERT(job.DataStaging.File.front().Source.front().URI == arcJob.DataStaging.File.front().Source.front().URI);
-    ARC_ASSERT(arcJob.DataStaging.File.front().Target.size() == 1 && arcJob.DataStaging.File.front().Target.front().URI);
-    ARC_ASSERT(job.DataStaging.File.front().Target.front().URI == arcJob.DataStaging.File.front().Target.front().URI);
-    ARC_ASSERT(!arcJob.DataStaging.File.front().KeepData);
+  jdlJob.Parse(job.UnParse("JDL"));
+  JDL_ASSERT(jdlJob);
+  JDL_ASSERT(!jdlJob.DataStaging.File.empty());
+  JDL_ASSERT_EQUAL(job.DataStaging.File.front().Name, jdlJob.DataStaging.File.front().Name);
+  JDL_ASSERT(jdlJob.DataStaging.File.front().Source.size() == 1 && jdlJob.DataStaging.File.front().Source.front().URI);
+  JDL_ASSERT(job.DataStaging.File.front().Source.front().URI == jdlJob.DataStaging.File.front().Source.front().URI);
+}
 
-    xrslJob.Parse(job.UnParse("XRSL"));
-    XRSL_ASSERT(xrslJob);
-    XRSL_ASSERT(!xrslJob.DataStaging.File.empty());
-    XRSL_ASSERT_EQUAL(job.DataStaging.File.front().Name, xrslJob.DataStaging.File.front().Name);
-    XRSL_ASSERT(xrslJob.DataStaging.File.front().Source.size() == 1 && xrslJob.DataStaging.File.front().Source.front().URI);
-    XRSL_ASSERT(job.DataStaging.File.front().Source.front().URI == xrslJob.DataStaging.File.front().Source.front().URI);
-    XRSL_ASSERT_EQUAL(job.DataStaging.File.front().Name, xrslJob.DataStaging.File.back().Name);
-    XRSL_ASSERT(xrslJob.DataStaging.File.back().Target.size() == 1 && xrslJob.DataStaging.File.back().Target.front().URI);
-    XRSL_ASSERT(job.DataStaging.File.back().Target.front().URI == xrslJob.DataStaging.File.back().Target.front().URI);
-    XRSL_ASSERT(!xrslJob.DataStaging.File.front().KeepData);
-    XRSL_ASSERT(!xrslJob.DataStaging.File.back().KeepData);
+/** 4-Create-Download */
+void JobDescriptionTest::TestDataStagingCreateDownload() {
+  job.DataStaging.File.clear();
 
-    jdlJob.Parse(job.UnParse("JDL"));
-    JDL_ASSERT(jdlJob);
-    JDL_ASSERT(!jdlJob.DataStaging.File.empty());
-    JDL_ASSERT_EQUAL(job.DataStaging.File.front().Name, jdlJob.DataStaging.File.front().Name);
-    JDL_ASSERT(jdlJob.DataStaging.File.front().Source.size() == 1 && jdlJob.DataStaging.File.front().Source.front().URI);
-    JDL_ASSERT(job.DataStaging.File.front().Source.front().URI == jdlJob.DataStaging.File.front().Source.front().URI);
-    JDL_ASSERT_EQUAL(job.DataStaging.File.front().Name, jdlJob.DataStaging.File.back().Name);
-    JDL_ASSERT(jdlJob.DataStaging.File.back().Target.size() == 1 && jdlJob.DataStaging.File.back().Target.front().URI);
-    JDL_ASSERT(job.DataStaging.File.front().Target.front().URI == jdlJob.DataStaging.File.back().Target.front().URI);
-    JDL_ASSERT(!jdlJob.DataStaging.File.front().KeepData);
-    JDL_ASSERT(!jdlJob.DataStaging.File.back().KeepData);
-  }
+  Arc::FileType file;
+  file.Name = "4-Create-Download";
+  file.KeepData = true;
+  job.DataStaging.File.push_back(file);
+
+  arcJob.Parse(job.UnParse("ARCJSDL"));
+  ARC_ASSERT(arcJob);
+  ARC_ASSERT(arcJob.DataStaging.File.size() == 1);
+  ARC_ASSERT_EQUAL(job.DataStaging.File.front().Name, arcJob.DataStaging.File.front().Name);
+  ARC_ASSERT(arcJob.DataStaging.File.front().KeepData);
+
+  xrslJob.Parse(job.UnParse("XRSL"));
+  XRSL_ASSERT(xrslJob);
+  XRSL_ASSERT(!xrslJob.DataStaging.File.empty());
+  XRSL_ASSERT_EQUAL(job.DataStaging.File.front().Name, xrslJob.DataStaging.File.front().Name);
+  XRSL_ASSERT(xrslJob.DataStaging.File.front().KeepData);
+
+  jdlJob.Parse(job.UnParse("JDL"));
+  JDL_ASSERT(jdlJob);
+  JDL_ASSERT(!jdlJob.DataStaging.File.empty());
+  JDL_ASSERT_EQUAL(job.DataStaging.File.front().Name, jdlJob.DataStaging.File.back().Name);
+  JDL_ASSERT(jdlJob.DataStaging.File.back().KeepData);
+}
+
+/** 5-Download-Download */
+void JobDescriptionTest::TestDataStagingDownloadDownload() {
+  job.DataStaging.File.clear();
+
+  Arc::FileType file;
+  file.Name = "5-Download-Download";
+  Arc::DataSourceType source;
+  source.URI = "http://example.com/" + file.Name;
+  source.Threads = -1;
+  file.Source.push_back(source);
+  file.KeepData = true;
+  job.DataStaging.File.push_back(file);
+
+  arcJob.Parse(job.UnParse("ARCJSDL"));
+  ARC_ASSERT(arcJob);
+  ARC_ASSERT(arcJob.DataStaging.File.size() == 1);
+  ARC_ASSERT_EQUAL(job.DataStaging.File.front().Name, arcJob.DataStaging.File.front().Name);
+  ARC_ASSERT(arcJob.DataStaging.File.front().Source.size() == 1 && arcJob.DataStaging.File.front().Source.front().URI);
+  ARC_ASSERT(job.DataStaging.File.front().Source.front().URI == arcJob.DataStaging.File.front().Source.front().URI);
+  ARC_ASSERT(arcJob.DataStaging.File.front().KeepData);
+
+  xrslJob.Parse(job.UnParse("XRSL"));
+  XRSL_ASSERT(xrslJob);
+  XRSL_ASSERT(!xrslJob.DataStaging.File.empty());
+  XRSL_ASSERT_EQUAL(job.DataStaging.File.front().Name, xrslJob.DataStaging.File.front().Name);
+  XRSL_ASSERT_EQUAL(job.DataStaging.File.front().Name, xrslJob.DataStaging.File.back().Name);
+  XRSL_ASSERT(xrslJob.DataStaging.File.front().Source.size() == 1 && xrslJob.DataStaging.File.front().Source.front().URI);
+  XRSL_ASSERT(job.DataStaging.File.front().Source.front().URI == xrslJob.DataStaging.File.front().Source.front().URI);
+  XRSL_ASSERT(!xrslJob.DataStaging.File.front().KeepData);
+  XRSL_ASSERT(xrslJob.DataStaging.File.back().KeepData);
+
+  jdlJob.Parse(job.UnParse("JDL"));
+  JDL_ASSERT(jdlJob);
+  JDL_ASSERT(!jdlJob.DataStaging.File.empty());
+  JDL_ASSERT_EQUAL(job.DataStaging.File.front().Name, jdlJob.DataStaging.File.front().Name);
+  JDL_ASSERT_EQUAL(job.DataStaging.File.front().Name, jdlJob.DataStaging.File.back().Name);
+  JDL_ASSERT(jdlJob.DataStaging.File.front().Source.size() == 1 && jdlJob.DataStaging.File.front().Source.front().URI);
+  JDL_ASSERT(job.DataStaging.File.front().Source.front().URI == jdlJob.DataStaging.File.front().Source.front().URI);
+  JDL_ASSERT(!jdlJob.DataStaging.File.front().KeepData);
+  JDL_ASSERT(jdlJob.DataStaging.File.back().KeepData);
+}
+
+/** 6-Upload-Download */
+void JobDescriptionTest::TestDataStagingUploadDownload() {
+  job.DataStaging.File.clear();
+
+  Arc::FileType file;
+  file.Name = "6-Upload-Download";
+  Arc::DataSourceType source;
+  source.URI = file.Name;
+  source.Threads = -1;
+  file.Source.push_back(source);
+  file.KeepData = true;
+  job.DataStaging.File.push_back(file);
+
+  // Needed by the XRSLParser.
+  std::ofstream f(file.Name.c_str(), std::ifstream::trunc);
+  f << "6-Upload-Download";
+  f.close();
+  
+  arcJob.Parse(job.UnParse("ARCJSDL"));
+  ARC_ASSERT(arcJob);
+  ARC_ASSERT(arcJob.DataStaging.File.size() == 1);
+  ARC_ASSERT_EQUAL(job.DataStaging.File.front().Name, arcJob.DataStaging.File.front().Name);
+  ARC_ASSERT(arcJob.DataStaging.File.front().Source.size() == 1 && arcJob.DataStaging.File.front().Source.front().URI);
+  ARC_ASSERT(job.DataStaging.File.front().Source.front().URI == arcJob.DataStaging.File.front().Source.front().URI);
+  ARC_ASSERT(arcJob.DataStaging.File.front().KeepData);
+
+  xrslJob.Parse(job.UnParse("XRSL"));
+  XRSL_ASSERT(xrslJob);
+  XRSL_ASSERT(!xrslJob.DataStaging.File.empty());
+  XRSL_ASSERT_EQUAL(job.DataStaging.File.front().Name, xrslJob.DataStaging.File.front().Name);
+  XRSL_ASSERT_EQUAL(job.DataStaging.File.front().Name, xrslJob.DataStaging.File.back().Name);
+  XRSL_ASSERT(xrslJob.DataStaging.File.front().Source.size() == 1 && xrslJob.DataStaging.File.front().Source.front().URI);
+  XRSL_ASSERT(job.DataStaging.File.front().Source.front().URI == xrslJob.DataStaging.File.front().Source.front().URI);
+  XRSL_ASSERT(!xrslJob.DataStaging.File.front().KeepData);
+  XRSL_ASSERT(xrslJob.DataStaging.File.back().KeepData);
+
+  jdlJob.Parse(job.UnParse("JDL"));
+  JDL_ASSERT(jdlJob);
+  JDL_ASSERT(!jdlJob.DataStaging.File.empty());
+  JDL_ASSERT_EQUAL(job.DataStaging.File.front().Name, jdlJob.DataStaging.File.front().Name);
+  JDL_ASSERT_EQUAL(job.DataStaging.File.front().Name, jdlJob.DataStaging.File.back().Name);
+  JDL_ASSERT(jdlJob.DataStaging.File.front().Source.size() == 1 && jdlJob.DataStaging.File.front().Source.front().URI);
+  JDL_ASSERT(job.DataStaging.File.front().Source.front().URI == jdlJob.DataStaging.File.front().Source.front().URI);
+  JDL_ASSERT(!jdlJob.DataStaging.File.front().KeepData);
+  JDL_ASSERT(jdlJob.DataStaging.File.back().KeepData);
+}
+
+/** 7-Create-Upload */
+void JobDescriptionTest::TestDataStagingCreateUpload() {
+  job.DataStaging.File.clear();
+
+  Arc::FileType file;
+  file.Name = "7-Create-Upload";
+  Arc::DataTargetType target;
+  target.URI = "http://example.com/" + file.Name;
+  target.Threads = -1;
+  file.Target.push_back(target);
+  file.KeepData = false;
+  job.DataStaging.File.push_back(file);
+
+  arcJob.Parse(job.UnParse("ARCJSDL"));
+  ARC_ASSERT(arcJob);
+  ARC_ASSERT(arcJob.DataStaging.File.size() == 1);
+  ARC_ASSERT_EQUAL(job.DataStaging.File.front().Name, arcJob.DataStaging.File.front().Name);
+  ARC_ASSERT(arcJob.DataStaging.File.front().Target.size() == 1 && arcJob.DataStaging.File.front().Target.front().URI);
+  ARC_ASSERT(job.DataStaging.File.front().Target.front().URI == arcJob.DataStaging.File.front().Target.front().URI);
+  ARC_ASSERT(!arcJob.DataStaging.File.front().KeepData);
+
+  xrslJob.Parse(job.UnParse("XRSL"));
+  XRSL_ASSERT(xrslJob);
+  XRSL_ASSERT(!xrslJob.DataStaging.File.empty());
+  XRSL_ASSERT_EQUAL(job.DataStaging.File.front().Name, xrslJob.DataStaging.File.front().Name);
+  XRSL_ASSERT(xrslJob.DataStaging.File.front().Target.size() == 1 && xrslJob.DataStaging.File.front().Target.front().URI);
+  XRSL_ASSERT(job.DataStaging.File.front().Target.front().URI == xrslJob.DataStaging.File.front().Target.front().URI);
+  XRSL_ASSERT(!xrslJob.DataStaging.File.front().KeepData);
+
+  jdlJob.Parse(job.UnParse("JDL"));
+  JDL_ASSERT(jdlJob);
+  JDL_ASSERT(!jdlJob.DataStaging.File.empty());
+  JDL_ASSERT_EQUAL(job.DataStaging.File.front().Name, jdlJob.DataStaging.File.back().Name);
+  JDL_ASSERT(jdlJob.DataStaging.File.back().Target.size() == 1 && jdlJob.DataStaging.File.back().Target.front().URI);
+  JDL_ASSERT(job.DataStaging.File.front().Target.front().URI == jdlJob.DataStaging.File.back().Target.front().URI);
+  JDL_ASSERT(!jdlJob.DataStaging.File.back().KeepData);
+}
+
+/** 8-Download-Upload */
+void JobDescriptionTest::TestDataStagingDownloadUpload() {
+  job.DataStaging.File.clear();
+
+  Arc::FileType file;
+  file.Name = "8-Download-Upload";
+  Arc::DataSourceType source;
+  source.URI = "http://example.com/" + file.Name;
+  source.Threads = -1;
+  file.Source.push_back(source);
+  Arc::DataTargetType target;
+  target.URI = "http://example.com/" + file.Name;
+  target.Threads = -1;
+  file.Target.push_back(target);
+  file.KeepData = false;
+  job.DataStaging.File.push_back(file);
+
+  arcJob.Parse(job.UnParse("ARCJSDL"));
+  ARC_ASSERT(arcJob);
+  ARC_ASSERT(arcJob.DataStaging.File.size() == 1);
+  ARC_ASSERT_EQUAL(job.DataStaging.File.front().Name, arcJob.DataStaging.File.front().Name);
+  ARC_ASSERT(arcJob.DataStaging.File.front().Source.size() == 1 && arcJob.DataStaging.File.front().Source.front().URI);
+  ARC_ASSERT(job.DataStaging.File.front().Source.front().URI == arcJob.DataStaging.File.front().Source.front().URI);
+  ARC_ASSERT(arcJob.DataStaging.File.front().Target.size() == 1 && arcJob.DataStaging.File.front().Target.front().URI);
+  ARC_ASSERT(job.DataStaging.File.front().Target.front().URI == arcJob.DataStaging.File.front().Target.front().URI);
+  ARC_ASSERT(!arcJob.DataStaging.File.front().KeepData);
+
+  xrslJob.Parse(job.UnParse("XRSL"));
+  XRSL_ASSERT(xrslJob);
+  XRSL_ASSERT(!xrslJob.DataStaging.File.empty());
+  XRSL_ASSERT_EQUAL(job.DataStaging.File.front().Name, xrslJob.DataStaging.File.front().Name);
+  XRSL_ASSERT(xrslJob.DataStaging.File.front().Source.size() == 1 && xrslJob.DataStaging.File.front().Source.front().URI);
+  XRSL_ASSERT(job.DataStaging.File.front().Source.front().URI == xrslJob.DataStaging.File.front().Source.front().URI);
+  XRSL_ASSERT_EQUAL(job.DataStaging.File.front().Name, xrslJob.DataStaging.File.back().Name);
+  XRSL_ASSERT(xrslJob.DataStaging.File.back().Target.size() == 1 && xrslJob.DataStaging.File.back().Target.front().URI);
+  XRSL_ASSERT(job.DataStaging.File.back().Target.front().URI == xrslJob.DataStaging.File.back().Target.front().URI);
+  XRSL_ASSERT(!xrslJob.DataStaging.File.front().KeepData);
+  XRSL_ASSERT(!xrslJob.DataStaging.File.back().KeepData);
+
+  jdlJob.Parse(job.UnParse("JDL"));
+  JDL_ASSERT(jdlJob);
+  JDL_ASSERT(!jdlJob.DataStaging.File.empty());
+  JDL_ASSERT_EQUAL(job.DataStaging.File.front().Name, jdlJob.DataStaging.File.front().Name);
+  JDL_ASSERT(jdlJob.DataStaging.File.front().Source.size() == 1 && jdlJob.DataStaging.File.front().Source.front().URI);
+  JDL_ASSERT(job.DataStaging.File.front().Source.front().URI == jdlJob.DataStaging.File.front().Source.front().URI);
+  JDL_ASSERT_EQUAL(job.DataStaging.File.front().Name, jdlJob.DataStaging.File.back().Name);
+  JDL_ASSERT(jdlJob.DataStaging.File.back().Target.size() == 1 && jdlJob.DataStaging.File.back().Target.front().URI);
+  JDL_ASSERT(job.DataStaging.File.front().Target.front().URI == jdlJob.DataStaging.File.back().Target.front().URI);
+  JDL_ASSERT(!jdlJob.DataStaging.File.front().KeepData);
+  JDL_ASSERT(!jdlJob.DataStaging.File.back().KeepData);
+}
+
+/** 9-Upload-Upload */
+void JobDescriptionTest::TestDataStagingUploadUpload() {
+  job.DataStaging.File.clear();
+
+  Arc::FileType file;
+  file.Name = "9-Upload-Upload";
+   Arc::DataSourceType source;
+  source.URI = file.Name;
+  source.Threads = -1;
+  file.Source.push_back(source);
+  Arc::DataTargetType target;
+  target.URI = "http://example.com/" + file.Name;
+  target.Threads = -1;
+  file.Target.push_back(target);
+  file.KeepData = false;
+  job.DataStaging.File.push_back(file);
+
+  // Needed by the XRSLParser.
+  std::ofstream f(file.Name.c_str(), std::ifstream::trunc);
+  f << "9-Upload-Upload";
+  f.close();
+  
+  arcJob.Parse(job.UnParse("ARCJSDL"));
+  ARC_ASSERT(arcJob);
+  ARC_ASSERT(arcJob.DataStaging.File.size() == 1);
+  ARC_ASSERT_EQUAL(job.DataStaging.File.front().Name, arcJob.DataStaging.File.front().Name);
+  ARC_ASSERT(arcJob.DataStaging.File.front().Source.size() == 1 && arcJob.DataStaging.File.front().Source.front().URI);
+  ARC_ASSERT(job.DataStaging.File.front().Source.front().URI == arcJob.DataStaging.File.front().Source.front().URI);
+  ARC_ASSERT(arcJob.DataStaging.File.front().Target.size() == 1 && arcJob.DataStaging.File.front().Target.front().URI);
+  ARC_ASSERT(job.DataStaging.File.front().Target.front().URI == arcJob.DataStaging.File.front().Target.front().URI);
+  ARC_ASSERT(!arcJob.DataStaging.File.front().KeepData);
+
+  xrslJob.Parse(job.UnParse("XRSL"));
+  XRSL_ASSERT(xrslJob);
+  XRSL_ASSERT(!xrslJob.DataStaging.File.empty());
+  XRSL_ASSERT_EQUAL(job.DataStaging.File.front().Name, xrslJob.DataStaging.File.front().Name);
+  XRSL_ASSERT(xrslJob.DataStaging.File.front().Source.size() == 1 && xrslJob.DataStaging.File.front().Source.front().URI);
+  XRSL_ASSERT(job.DataStaging.File.front().Source.front().URI == xrslJob.DataStaging.File.front().Source.front().URI);
+  XRSL_ASSERT_EQUAL(job.DataStaging.File.front().Name, xrslJob.DataStaging.File.back().Name);
+  XRSL_ASSERT(xrslJob.DataStaging.File.back().Target.size() == 1 && xrslJob.DataStaging.File.back().Target.front().URI);
+  XRSL_ASSERT(job.DataStaging.File.back().Target.front().URI == xrslJob.DataStaging.File.back().Target.front().URI);
+  XRSL_ASSERT(!xrslJob.DataStaging.File.front().KeepData);
+  XRSL_ASSERT(!xrslJob.DataStaging.File.back().KeepData);
+
+  jdlJob.Parse(job.UnParse("JDL"));
+  JDL_ASSERT(jdlJob);
+  JDL_ASSERT(!jdlJob.DataStaging.File.empty());
+  JDL_ASSERT_EQUAL(job.DataStaging.File.front().Name, jdlJob.DataStaging.File.front().Name);
+  JDL_ASSERT(jdlJob.DataStaging.File.front().Source.size() == 1 && jdlJob.DataStaging.File.front().Source.front().URI);
+  JDL_ASSERT(job.DataStaging.File.front().Source.front().URI == jdlJob.DataStaging.File.front().Source.front().URI);
+  JDL_ASSERT_EQUAL(job.DataStaging.File.front().Name, jdlJob.DataStaging.File.back().Name);
+  JDL_ASSERT(jdlJob.DataStaging.File.back().Target.size() == 1 && jdlJob.DataStaging.File.back().Target.front().URI);
+  JDL_ASSERT(job.DataStaging.File.front().Target.front().URI == jdlJob.DataStaging.File.back().Target.front().URI);
+  JDL_ASSERT(!jdlJob.DataStaging.File.front().KeepData);
+  JDL_ASSERT(!jdlJob.DataStaging.File.back().KeepData);
 }
 
 void JobDescriptionTest::TestPOSIXCompliance() {
