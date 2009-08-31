@@ -68,8 +68,8 @@ namespace Arc {
       : state(state), type((*map)(state)) {};
 
   private:
-    StateType type;
     std::string state;
+    StateType type;
   };
 
   typedef JobState::StateType (*JobStateMap)(const std::string&);

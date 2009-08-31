@@ -159,7 +159,6 @@ namespace Arc {
     SoftwareRequirement OperatingSystem;
     std::string Platform;
     std::string NetworkInfo;
-    NodeAccessType NodeAccess;
     Range<int64_t> IndividualPhysicalMemory;
     Range<int64_t> IndividualVirtualMemory;
     DiskSpaceRequirementType DiskSpaceRequirement;
@@ -169,6 +168,7 @@ namespace Arc {
     ScalableTime<int> TotalCPUTime;
     ScalableTime<int> IndividualWallTime;
     ScalableTime<int> TotalWallTime;
+    NodeAccessType NodeAccess;
     SoftwareRequirement CEType;
     ResourceSlotType SlotRequirement;
     std::list<ResourceTargetType> CandidateTarget;

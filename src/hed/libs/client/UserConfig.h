@@ -32,7 +32,7 @@ namespace Arc {
     const std::string& JobListFile() const { return joblistfile; }
     const XMLNode& ConfTree() const { return cfg; }
 
-    bool CredentialsFound() const { return !(proxyPath.empty() && (certificatePath.empty() || keyPath.empty()) || caCertificatesDir.empty()); }
+    bool CredentialsFound() const { return !(proxyPath.empty() && (certificatePath.empty() || keyPath.empty() || caCertificatesDir.empty())); }
     bool CheckProxy() const;
     void InitializeCredentials();
     
@@ -72,8 +72,8 @@ namespace Arc {
   
     User user;
     std::string conffile;
-    bool userSpecifiedJobList;
     std::string joblistfile;
+    bool userSpecifiedJobList;
     Config cfg;
     bool ok;
 
