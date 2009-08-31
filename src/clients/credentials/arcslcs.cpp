@@ -32,16 +32,6 @@
 #include <arc/client/UserConfig.h>
 #include <arc/xmlsec/XmlSecUtils.h>
 
-// Confusa stuff
-#include "../../hed/libs/client/confusa/ConfusaCertHandler.h"
-#include "../../hed/libs/client/confusa/SAML2LoginClient.h"
-#include "../../hed/libs/client/confusa/idp/HakaClient.h"
-#include "../../hed/libs/client/confusa/idp/OpenIdpClient.h"
-
-#ifdef HAVE_OAUTH
-#include "../../hed/libs/client/confusa/OAuthConsumer.h"
-#endif
-
 static Arc::Logger& logger = Arc::Logger::rootLogger;
 
 static void tls_process_error(void) {
@@ -74,152 +64,6 @@ std::string cert_req_path;
 std::string trusted_ca_path, trusted_ca_dir;
 Arc::MCCConfig mcc_cfg;
 
-void handleConfusaSLCS(bool use_oauth) {
-
-	// Confusa demands a keysize of at least 2048 bits
-	if (keysize < 2048) {
-		logger.msg(Arc::ERROR, "Your keylength is too small for Confusa! Please specify a keylength >= 2048 bits!");
-		return;
-	}
-
-	Arc::SAML2LoginClient *httpSAMLClient;
-	std::list<std::string> idp_stack;
-	idp_stack.push_back(idp_name);
-
-	if(use_oauth) {
-#ifdef HAVE_OAUTH
-		httpSAMLClient = new Arc::OAuthConsumer(mcc_cfg,Arc::URL(slcs_url), idp_stack);
-#else
-		std::string msg = "You need to compile ARC with enabled OAuth library to use the OAuth consumer!";
-		logger.msg(Arc::ERROR, msg);
-		throw std::runtime_error(msg);
-#endif
-	} else {
-		if (idp_name == "https://openidp.feide.no") {
-			httpSAMLClient = new Arc::OpenIdpClient(mcc_cfg,Arc::URL(slcs_url), idp_stack);
-		} else if (idp_name == "https://aitta2.funet.fi/idp/shibboleth") {
-			httpSAMLClient = new Arc::HakaClient(mcc_cfg,Arc::URL(slcs_url), idp_stack);
-		} else if (idp_name == "https://orphanage.wayf.dk") {
-			// orphanage is handled by betawayf
-			idp_stack.push_front("https://betawayf.wayf.dk");
-			httpSAMLClient = new Arc::OpenIdpClient(mcc_cfg, Arc::URL(slcs_url), idp_stack);
-		} else {
-			httpSAMLClient = NULL;
-			std::string msg = "The specified identity provider is unknown!";
-			throw std::runtime_error(msg);
-		}
-	}
-
-	if (!httpSAMLClient) {
-		std::string msg = "No adequate SAML Client could be constructed.";
-		logger.msg(Arc::ERROR, msg);
-		throw std::runtime_error(msg);
-	}
-
-	Arc::MCC_Status status = httpSAMLClient->processLogin(username, password);
-
-	if (status.getKind() != Arc::STATUS_OK) {
-		std::string msg = "Could not process the login with the selected confusa client, " + status.getExplanation();
-
-		if (httpSAMLClient) {
-			delete httpSAMLClient;
-		}
-
-		httpSAMLClient = NULL;
-
-		throw std::runtime_error(msg);
-	}
-
-	std::string dn;
-	status = httpSAMLClient->parseDN(&dn);
-
-	if (status.getKind() != Arc::STATUS_OK) {
-		std::string msg = "Could not parse the DN from the service provider! " + status.getExplanation();
-
-		if (httpSAMLClient) {
-			delete httpSAMLClient;
-		}
-
-		throw std::runtime_error(msg);
-	}
-
-	std::cout << "Your DN (by Confusa): " << dn << std::endl << std::endl;
-	// workaround until the Confusa thingie with /O and /OU has been fixed!;
-
-	Arc::ConfusaCertHandler handler(keysize,dn);
-	std::cout << "Writing a certificate and a private key. Please provide a password when asked." << std::endl;
-	if (!handler.createCertRequest(keypass, storedir)) {
-		std::string msg = "Could not create certificate request!";
-
-		if (httpSAMLClient) {
-			delete httpSAMLClient;
-		}
-
-		throw std::runtime_error(msg);
-	}
-	logger.msg(Arc::VERBOSE, "Transforming cert request to base-64 string!");
-	std::string b64pubkey = handler.getCertRequestB64();
-	logger.msg(Arc::VERBOSE, "Received string " + b64pubkey);
-	std::string authurl = handler.createAuthURL();
-	logger.msg(Arc::VERBOSE, "Received AuthURL " + authurl);
-
-	std::string auth_token = authurl.substr(0,16);
-
-	std::string approve_page;
-	std::string cert_location = "/home/tzangerl/cert.pem";
-
-	status = httpSAMLClient->pushCSR(b64pubkey, auth_token, &approve_page);
-
-	if (status.getKind() != Arc::STATUS_OK) {
-		std::string msg = "Could not push the CSR to Confusa! " + status.getExplanation();
-
-		if (httpSAMLClient) {
-			delete httpSAMLClient;
-		}
-
-		throw std::runtime_error(msg);
-	}
-
-	status = httpSAMLClient->approveCSR(approve_page);
-
-	if (status.getKind() != Arc::STATUS_OK) {
-		std::string msg = "Could not approve the CSR on Confusa! " + status.getExplanation();;
-
-		if (httpSAMLClient) {
-			delete httpSAMLClient;
-		}
-
-		throw std::runtime_error(msg);
-	}
-
-	int cn_len = handler.getCN().size();
-	int enc_len = (int)(cn_len*1.5+1);
-	char b64cn_char[enc_len];
-	Arc::Base64::encode(b64cn_char, handler.getCN().c_str(), cn_len);
-	std::string b64cn = b64cn_char;
-
-	status = httpSAMLClient->storeCert(cert_location, auth_token, b64cn);
-	//logger.msg(Arc::INFO, "The base 64 enced string is %s", b64dn);
-	if (status != Arc::STATUS_OK) {
-		std::string msg = "Could not store the certificate in the given directory! " + status.getExplanation();
-
-		if (httpSAMLClient) {
-			delete httpSAMLClient;
-		}
-
-		throw std::runtime_error(msg);
-	}
-
-	std::cout << "Your certificate has been stored at " << cert_location << std::endl;
-	std::cout << "Your private key has been stored at " << handler.getKeyLocation() << std::endl;
-	std::cout << "Thank you for using the SLCS command line client" << std::endl;
-
-	if (httpSAMLClient) {
-		delete httpSAMLClient;
-	}
-
-	logger.msg(Arc::INFO, "Received status " + status.getKind());
-}
 
 void handleSLCS() {
     //Generate certificate request
@@ -340,7 +184,7 @@ int main(int argc, char *argv[]) {
                     istring("directory"), storedir);
 
   std::string conffile;
-  options.AddOption('z', "conffile",
+  options.AddOption('c', "conffile",
                     istring("configuration file (default ~/.arc/client.xml)"),
                     istring("filename"), conffile);
 
@@ -352,15 +196,6 @@ int main(int argc, char *argv[]) {
   bool version = false;
   options.AddOption('v', "version", istring("print version information"),
                     version);
-
-  bool confusa_login = false;
-  options.AddOption('c', "confusa", istring("use the Confusa SLCS service"),
-				   confusa_login);
-
-  std::string module;
-  options.AddOption('m', "module", istring("Confusa Auth module"),
-					  istring("string"),
-					  module);
 
   std::list<std::string> params = options.Parse(argc, argv);
 
@@ -417,19 +252,6 @@ int main(int argc, char *argv[]) {
     return 0;
   }
 
-  if (confusa_login == false && usercfg.ConfTree()["LoginType"]) {
-	  std::string login_type = (std::string) usercfg.ConfTree()["LoginType"];
-	  confusa_login = (login_type == "confusa");
-  }
-
-  bool use_oauth = false;
-  if (module.empty() && confusa_login && usercfg.ConfTree()["ConfusaAuthModule"]) {
-	  module = (std::string) usercfg.ConfTree()["ConfusaAuthModule"];
-  }
-
-
-  use_oauth = (module == "oauth");
-
   try {
     if (params.size() != 0)
       throw std::invalid_argument("Wrong number of arguments!");
@@ -463,12 +285,7 @@ int main(int argc, char *argv[]) {
 	if (!trusted_ca_dir.empty())
 	   mcc_cfg.AddCADir(trusted_ca_dir);
 
-
-    if (confusa_login) {
-  	  handleConfusaSLCS(use_oauth);
-    } else {
-  	  handleSLCS();
-    }
+	handleSLCS();
 
     return EXIT_SUCCESS;
   } catch (std::exception& err) {
