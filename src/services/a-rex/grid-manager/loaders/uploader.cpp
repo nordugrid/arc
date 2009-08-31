@@ -33,6 +33,7 @@
 #include "../misc/proxy.h"
 #include "../conf/conf_map.h"
 #include "../conf/conf_cache.h"
+#include "janitor.h"
 
 //@
 #define olog std::cerr
@@ -315,7 +316,7 @@ int main(int argc,char** argv) {
     }
     if(pw->pw_name) file_owner_username=pw->pw_name;
   }
-  
+
   if(use_conf_cache) {
     // use cache dir(s) from conf file
     try {
@@ -366,6 +367,8 @@ int main(int argc,char** argv) {
     cache = new Arc::FileCache();
   }
 
+  Janitor janitor(desc.get_id(),user.ControlDir());
+  
   Arc::DataMover mover;
   mover.retry(false);
   mover.secure(secure);
@@ -411,9 +414,20 @@ int main(int argc,char** argv) {
   for(std::list<FileData>::iterator i = job_files_.begin();i!=job_files_.end();++i) {
     job_files.push_back(*i);
   };
+
+  if(!desc.GetLocalDescription(user)) {
+    olog << "Can't read job local description" << std::endl; res=1; goto exit;
+  };
+
+  // Start janitor in parallel
+  if(janitor) {
+    if(!janitor.remove()) {
+      olog<<"Failed to deploy Janitor"<<std::endl; res=1; goto exit;
+    };
+  };
+
   // initialize structures to handle upload
   /* TODO: add threads=# to all urls if n_threads!=1 */
-  desc.GetLocalDescription(user);
   // Main upload cycle
   if(!userfiles_only) for(;;) {
     // Initiate transfers
@@ -512,6 +526,16 @@ exit:
   for(FileDataEx::iterator i = job_files.begin();i!=job_files.end();++i) job_files_.push_back(*i);
   clean_files(job_files_,session_dir);
   remove_proxy();
+  // We are not extremely interested if janitor finished successfuly
+  // but it should be at least reported.
+  if(janitor) {
+    if(!janitor.wait(5*60)) {
+      olog<<"Janitor timeout while removing Dynamic RTE(s) associations"<<std::endl;
+    };
+    if(!janitor.result()) {
+      olog<<"Janitor failed to remove Dynamic RTE(s) associations"<<std::endl;
+    };
+  };
   if(res != 0) {
     job_failed_mark_add(desc,user,failure_reason);
   };

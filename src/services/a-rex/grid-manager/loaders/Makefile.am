@@ -1,10 +1,10 @@
 pkglibexec_PROGRAMS=downloader uploader
 
-downloader_SOURCES=downloader.cpp
+downloader_SOURCES=downloader.cpp janitor.cpp
 downloader_CXXFLAGS=$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
 downloader_LDADD=$(top_srcdir)/src/hed/libs/data/libarcdata2.la $(top_srcdir)/src/hed/libs/client/libarcclient.la ../jobs/libjobs.la ../files/libfiles.la ../run/librun.la ../conf/libconf.la ../misc/libmisc.la
 
-uploader_SOURCES=uploader.cpp
+uploader_SOURCES=uploader.cpp janitor.cpp
 uploader_CXXFLAGS=$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
 uploader_LDADD=$(top_srcdir)/src/hed/libs/data/libarcdata2.la ../jobs/libjobs.la ../files/libfiles.la ../run/librun.la ../conf/libconf.la ../misc/libmisc.la
 

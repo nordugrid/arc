@@ -38,6 +38,7 @@
 #include "../misc/proxy.h"
 #include "../conf/conf_map.h"
 #include "../conf/conf_cache.h"
+#include "janitor.h"
 
 #define olog std::cerr
 #define odlog(LEVEL) std::cerr
@@ -411,7 +412,7 @@ int main(int argc,char** argv) {
     }
     if(pw->pw_name) file_owner_username=pw->pw_name;
   }
-  
+
   if(use_conf_cache) {
     // use cache dir(s) from conf file
     try {
@@ -452,7 +453,7 @@ int main(int argc,char** argv) {
   UrlMapConfig url_map;
   olog<<"Downloader started"<<std::endl;
 
-  Arc::FileCache * cache;
+  Arc::FileCache * cache = NULL;
   if(!caches.empty()) {
     cache = new Arc::FileCache(caches,std::string(id),uid,gid);
     if (!(*cache)) {
@@ -464,6 +465,9 @@ int main(int argc,char** argv) {
     // if no cache defined, use null cache
     cache = new Arc::FileCache();
   }
+
+  Janitor janitor(desc.get_id(),user.ControlDir());
+  
   Arc::DataMover mover;
   mover.retry(false);
   mover.secure(secure);
@@ -515,6 +519,23 @@ int main(int argc,char** argv) {
   for(std::list<FileData>::iterator i = job_files_.begin();i!=job_files_.end();++i) {
     job_files.push_back(*i);
   };
+
+  if(!desc.GetLocalDescription(user)) {
+    olog<<"Can't read job local description"<<std::endl; res=1; goto exit;
+  };
+
+  // Start janitor in parallel
+  if(!janitor) {
+    if(desc.get_local()->rtes > 0) {
+      olog<<"Janitor is missing and job contains non-deployed RTEs"<<std::endl;
+      res=1; goto exit;
+    };
+  } else {
+    if(!janitor.deploy()) {
+      olog<<"Failed to deploy Janitor"<<std::endl; res=1; goto exit;
+    };
+  };
+
   // initialize structures to handle download
   /* TODO: add threads=# to all urls if n_threads!=1 */
   // Compute wait time for user files
@@ -657,10 +678,25 @@ int main(int argc,char** argv) {
     olog << "WARNING: Failed writing changed input file." << std::endl;
   };
 
+  // Check for janitor result
+  if(janitor) {
+    unsigned int time_passed = time(NULL) - start_time;
+    // Hardcoding max 30 minutes per RTE + 5 minutes just in case
+    unsigned int time_left = 30*60*desc.get_local()->rtes + 5*60;
+    time_left-=(time_left > time_passed)?time_passed:time_left;
+    if(!janitor.wait(time_left)) {
+      olog<<"Janitor timeout while deploying Dynamic RTE(s)"<<std::endl;
+      res=1; goto exit;
+    };
+    if(!janitor.result()) {
+      olog<<"Janitor failed to deploy Dynamic RTE(s)"<<std::endl;
+      res=1; goto exit;
+    };
+  };
+
   // Job migration functionality
   if (res == 0) {
-    if(desc.GetLocalDescription(user) &&
-       (desc.get_local()->migrateactivityid != "")) {
+    if(desc.get_local()->migrateactivityid != "") {
       // Complete the migration.
       const size_t found = desc.get_local()->migrateactivityid.rfind("/");
 
