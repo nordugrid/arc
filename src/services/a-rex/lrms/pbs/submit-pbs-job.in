@@ -55,10 +55,9 @@ parse_arg_file $1
 # Read queue_node_string from ARC config file
 ##############################################################
 
-ARC_CONFIG=${ARC_CONFIG:-/etc/arc.conf}
 . $pkglibdir/config_parser.sh || exit $?
 
-config_parse_file $ARC_CONFIG 1>&2 || exit $?
+config_parse_default 1>&2 || exit $?
 config_import_section "common"
 config_import_section "cluster"
 

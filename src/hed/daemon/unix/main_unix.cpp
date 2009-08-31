@@ -153,6 +153,9 @@ int main(int argc, char **argv)
                 exit(1);
             }
 
+            /* Clue for external programs */
+            setenv("ARC_XML_CONFIG",options.config_file.c_str(),1);
+
             if(!MatchXMLName(config,"ArcConfig")) {
                 logger.msg(Arc::ERROR, "Configuration root element is not <ArcConfig>");
                 exit(1);

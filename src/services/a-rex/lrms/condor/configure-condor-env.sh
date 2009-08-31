@@ -3,8 +3,7 @@ if [ -z "$pkglibdir" ]; then echo 'pkglibdir must be set' 1>&2; exit 1; fi
 
 . "$pkglibdir/config_parser.sh" || exit $?
 
-ARC_CONFIG=${ARC_CONFIG:-/etc/arc.conf}
-config_parse_file $ARC_CONFIG || return 1
+config_parse_default return 1
 
 config_import_section "common"
 config_import_section "infosys"
