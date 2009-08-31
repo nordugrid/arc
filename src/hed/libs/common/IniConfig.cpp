@@ -15,7 +15,7 @@ namespace Arc {
     : XMLNode(NS(), "IniConfig") {
     std::ifstream is(filename.c_str());
     std::string line;
-    XMLNode section = NewChild("common");
+    XMLNode section;
     while (getline(is, line)) {
       line = trim(line, " \t");
       if (line[0] == '#')
@@ -31,6 +31,8 @@ namespace Arc {
       }
       std::string attr = trim(line.substr(0, sep), " \t");
       std::string value = trim(line.substr(sep + 1), " \t");
+      if (!section)
+        section = NewChild("common");
       section.NewChild(attr) = value;
     }
   }
