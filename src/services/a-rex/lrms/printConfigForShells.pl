@@ -117,7 +117,7 @@ sub get_controldir {
         my $username = $c->{username}[0];
         next unless not defined $username or $username eq ".";
         return $c->{controlDir}[0] || undef;
-    
+    }
     return undef;
 }
 
