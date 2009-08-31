@@ -65,19 +65,22 @@ void ARexService::InformationCollector(void) {
     {
       std::string cmd;
       cmd=nordugrid_libexec_loc+"/CEinfo.pl --config "+nordugrid_config_loc;
-      Arc::Run run(cmd);
       std::string stdin_str;
       std::string stderr_str;
+      Arc::Run run(cmd);
       run.AssignStdin(stdin_str);
       run.AssignStdout(xml_str);
       run.AssignStderr(stderr_str);
       logger_.msg(Arc::DEBUG,"Cluster information provider: %s",cmd);
       if(!run.Start()) {
       };
+      int r = -1;
       if(!run.Wait(infoprovider_wakeup_period_)) {
+        logger_.msg(Arc::DEBUG,"Cluster information provider timeout: %u seconds",infoprovider_wakeup_period_);
+      } else {
+        r = run.Result();
+        logger_.msg(Arc::DEBUG,"Cluster information provider result: %i",r);
       };
-      int r = run.Result();
-      logger_.msg(Arc::DEBUG,"Cluster information provider result: %i",r);
       logger_.msg(Arc::DEBUG,"Cluster information provider error: %s",stderr_str);
     };
     logger_.msg(Arc::VERBOSE,"Obtained XML: %s",xml_str);
