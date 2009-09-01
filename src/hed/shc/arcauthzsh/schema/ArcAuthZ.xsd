@@ -1,14 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xsd:schema
-   xmlns:authz="http://www.nordugrid.org/schemas/SimpleListAuthZ"
+   xmlns:authz="http://www.nordugrid.org/schemas/ArcAuthZ"
    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-   targetNamespace="http://www.nordugrid.org/schemas/SimpleListAuthZ"
+   targetNamespace="http://www.nordugrid.org/schemas/ArcAuthZ"
+   xmlns:ini="http://www.nordugrid.org/schemas/ini/2009/08"
    elementFormDefault="qualified"
    attributeFormDefault="unqualified">
 
- <!-- This schema defines elements which are accepted by SimpleListAuthZ
+ <!-- Imports -->
+ <xsd:import namespace="http://www.nordugrid.org/schemas/ini/2009/08" schemaLocation="../../../daemon/schema/ini.xsd"/>
+
+ <!-- This schema defines elements which are accepted by ArcAuthZ
       SecHandler. See mcc.xsd for general information about SecHandler
-      elements. SimpleListAuthZ plugin is expected to be used to evaluate
+      elements. ArcAuthZ plugin is expected to be used to evaluate
       authorization decision by combaining multiple PDP plugins.
       Then called it delegates all security processing to specified PDPs.
       Those are called sequentially till positive answer obtained or list
@@ -60,4 +64,5 @@
   <xsd:anyAttribute namespace="##other" processContents="lax"/>
  </xsd:complexType> 
  <xsd:element name="PDP" type="authz:PDPType"/>
+
 </xsd:schema>

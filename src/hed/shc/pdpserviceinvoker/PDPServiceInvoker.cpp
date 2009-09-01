@@ -63,8 +63,8 @@ PDPServiceInvoker::PDPServiceInvoker(Config* cfg):PDP(cfg), client(NULL),
   mcc_cfg.AddPrivateKey(key_path);
   mcc_cfg.AddCertificate(cert_path);
   mcc_cfg.AddProxy(proxy_path);
-  mcc_cfg.AddCAFile(ca_dir);
-  mcc_cfg.AddCADir(ca_file);
+  mcc_cfg.AddCAFile(ca_file);
+  mcc_cfg.AddCADir(ca_dir);
 
   std::string format = (std::string)((*cfg)["RequestFormat"]);
   if(format=="XACML" || format=="xacml") is_xacml = true;
