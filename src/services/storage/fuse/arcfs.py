@@ -30,6 +30,11 @@ from arcom.service import false, true
 from storage.common import upload_to_turl, download_from_turl
 import arc
 
+logfile = open("messagesfromarc",'w')
+root_logger = arc.Logger_getRootLogger()
+root_logger.addDestination(arc.LogStream(logfile))
+root_logger.setThreshold(arc.DEBUG)
+
 import time
 
 try:
@@ -90,7 +95,6 @@ if BartenderURL.startswith('https') and not user_config:
         ssl_config = {}
         raise RuntimeError, '- ARC_KEY_FILE, ARC_CERT_FILE , ARC_CA_FILE or ARC_CA_DIR environment variable not found, SSL disabled'
     
-
 bartender = BartenderClient(BartenderURL, False, ssl_config)
 
 PROTOCOL = 'http'
