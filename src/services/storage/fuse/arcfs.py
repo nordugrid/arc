@@ -387,6 +387,43 @@ class ARCFS(Fuse):
         except:
             return None
 
+    def statfs(self):
+        """
+        Cut'n'paste from fuse python example xmp.py:
+
+        Should return an object with statvfs attributes (f_bsize, f_frsize...).
+        Eg., the return value of os.statvfs() is such a thing (since py 2.2).
+        If you are not reusing an existing statvfs object, start with
+        fuse.StatVFS(), and define the attributes.
+
+        To provide usable information (ie., you want sensible df(1)
+        output, you are suggested to specify the following attributes:
+
+            - f_bsize - preferred size of file blocks, in bytes
+            - f_frsize - fundamental size of file blcoks, in bytes
+                [if you have no idea, use the same as blocksize]
+            - f_blocks - total number of blocks in the filesystem
+            - f_bfree - number of free blocks
+            - f_files - total number of file inodes
+            - f_ffree - nunber of free file inodes
+        """
+
+        res = fuse.StatVfs()
+        loc = os.statvfs(".")
+        # currently we have no data of available disk space, so pretending 1TB
+        available = 1024**4/loc.f_bsize
+        res.f_bsize = loc.f_bsize
+        res.f_frsize = res.f_bsize
+        res.f_blocks = available
+        res.f_bfree = available
+        res.f_bavail = available
+        # cannot have more inodes than the local system permits
+        res.f_files = loc.f_files
+        res.f_ffree = loc.f_ffree
+        res.f_favail = loc.f_favail
+        res.f_namemax = loc.f_namemax
+        return res
+
 
     def fsinit(self):
         """
