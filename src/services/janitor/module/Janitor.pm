@@ -350,7 +350,7 @@ $rteExpiryTime = 3*24*60*60 unless defined $rteExpiryTime;	# default is 3d
 
 $INITSTATE = 0;
 
-
+return 1;
 
 
 
