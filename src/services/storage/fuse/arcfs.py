@@ -233,6 +233,11 @@ class ARCFS(Fuse):
         debug_msg('fuse initiated')
         self.bartender = bartender 
         debug_msg('left ARCFS.__init__')
+        if sys.platform == 'darwin':
+            #self.fuse_args.add("noappledouble", True)
+            #self.fuse_args.add("noapplexattr", True)
+            self.fuse_args.add("volname", "Chelonia")
+            self.fuse_args.add("fsname", "ARCFS")
 
 
     def getattr(self, path):
