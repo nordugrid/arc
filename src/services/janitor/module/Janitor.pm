@@ -152,7 +152,7 @@ use warnings;
 
 require Exporter;
 our @ISA = qw(Exporter);
-our @EXPORT_OK = ('register_job', 'deploy_for_job', 'remove_job', 'sweep', 'list_job_info', 'list_info', 'setstate', 'search');
+our @EXPORT_OK = ('initstate', 'register_job', 'deploy_for_job', 'remove_job', 'sweep', 'list_job_info', 'list_info', 'setstate', 'search');
 our @EXPORT = ('process');
 our $VERSION = '1.00';
 
@@ -180,6 +180,8 @@ use Janitor::Response;
 # Log4perl
 my $DEBUG = 0;
 
+my $INITSTATE = 4;
+
 ######################################################################
 # Read the config file
 ######################################################################
@@ -195,6 +197,7 @@ if(! -e $conffile){
 my $config = Janitor::ArcConfig->parse($conffile);
 if ( !defined $config->{'janitor'} ) {
 	printf STDERR "There is no valid [janitor]-section in \"%s\"\n", $conffile;
+	$INITSTATE = 3;
 	return 3;
 }
 
@@ -345,11 +348,23 @@ $jobExpiryTime = 7*24*60*60 unless defined $jobExpiryTime;	# default is 7d
 my $rteExpiryTime = $config->{'janitor'}{'rteexpirytime'};
 $rteExpiryTime = 3*24*60*60 unless defined $rteExpiryTime;	# default is 3d
 
+$INITSTATE = 0;
 
 
 
 
-sub process{
+
+
+sub initstate {
+
+        return $INITSTATE;
+}
+
+
+
+
+
+sub process {
 
 	my ($request) =  @_;
 	# TODO: NEEDED: check_rte_exist
