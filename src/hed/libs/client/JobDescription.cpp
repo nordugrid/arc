@@ -208,7 +208,7 @@ namespace Arc {
           std::cout << IString(" File element:") << std::endl;
           std::cout << IString("     Name: %s", iter->Name) << std::endl;
 
-          std::vector<DataSourceType>::const_iterator itSource = iter->Source.begin();
+          std::list<DataSourceType>::const_iterator itSource = iter->Source.begin();
           for (; itSource != iter->Source.end(); itSource++) {
             std::cout << IString("     Source.URI: %s", itSource->URI.fullstr()) << std::endl;
             INTPRINT(itSource->Threads, Source.Threads)
@@ -242,7 +242,7 @@ namespace Arc {
           std::cout << IString(" Directory element:") << std::endl;
           std::cout << IString("     Name: %s", iter->Name) << std::endl;
 
-          std::vector<DataSourceType>::const_iterator itSource = iter->Source.begin();
+          std::list<DataSourceType>::const_iterator itSource = iter->Source.begin();
           for (; itSource != iter->Source.end(); itSource++) {
             std::cout << IString("     Source.URI: %s", itSource->URI.fullstr()) << std::endl;
             INTPRINT(itSource->Threads, Source.Threads)
@@ -375,23 +375,4 @@ namespace Arc {
     }
   }
 
-  bool JobDescription::getUploadableFiles(std::list<std::pair<std::string,
-                                                              std::string> >& sourceFiles) const {
-    if (!*this) {
-      logger.msg(DEBUG, "There is no input defined yet or it's format can be determinized.");
-      return false;
-    }
-    // Get the URI's from the DataStaging/File/Source files
-    for (std::list<FileType>::const_iterator it = DataStaging.File.begin();
-         it != DataStaging.File.end(); it++)
-      if (!it->Source.empty()) {
-        const URL& uri = it->Source.begin()->URI;
-        const std::string& filename = it->Name;
-        if (uri.Protocol() == "file") {
-          std::pair<std::string, std::string> item(filename, uri.Path());
-          sourceFiles.push_back(item);
-        }
-      }
-    return true;
-  }
 } // namespace Arc

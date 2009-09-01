@@ -6,9 +6,7 @@
 
 #include <string>
 
-#include <arc/FileLock.h>
 #include <arc/client/JobDescription.h>
-#include <arc/client/Sandbox.h>
 #include <arc/message/MCC.h>
 #include <arc/ws-addressing/WSA.h>
 
@@ -117,23 +115,8 @@ namespace Arc {
     std::string jobid;
     id.GetDoc(jobid);
 
-    NS ns1;
-    XMLNode info(ns1, "Job");
-    info.NewChild("JobID") = (std::string)id["Address"];
-    if (!jobdesc.Identification.JobName.empty())
-      info.NewChild("Name") = jobdesc.Identification.JobName;
-    info.NewChild("Flavour") = flavour;
-    info.NewChild("Cluster") = cluster.str();
-    info.NewChild("AuxInfo") = jobid;
-    info.NewChild("InfoEndpoint") = submissionEndpoint.str();
-    info.NewChild("LocalSubmissionTime") = (std::string)Arc::Time();
-    Sandbox::Add(jobdesc, info);
-
-    FileLock lock(joblistfile);
-    Config jobs;
-    jobs.ReadFromFile(joblistfile);
-    jobs.NewChild(info);
-    jobs.SaveToFile(joblistfile);
+    AddJob(jobdesc, (std::string)id["Address"],
+           submissionEndpoint, joblistfile);
 
     return (std::string)id["Address"];
   }

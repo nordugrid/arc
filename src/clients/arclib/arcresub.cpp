@@ -24,7 +24,6 @@
 #include <arc/URL.h>
 #include <arc/XMLNode.h>
 #include <arc/client/Submitter.h>
-#include <arc/client/Sandbox.h>
 #include <arc/client/JobDescription.h>
 #include <arc/client/JobController.h>
 #include <arc/client/JobSupervisor.h>

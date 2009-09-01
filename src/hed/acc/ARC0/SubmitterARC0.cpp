@@ -4,10 +4,8 @@
 #include <config.h>
 #endif
 
-#include <arc/FileLock.h>
 #include <arc/Logger.h>
 #include <arc/client/JobDescription.h>
-#include <arc/client/Sandbox.h>
 
 #include "SubmitterARC0.h"
 #include "FTPControl.h"
@@ -82,7 +80,7 @@ namespace Arc {
     URL jobid(submissionEndpoint);
     jobid.ChangePath(jobid.Path() + '/' + jobnumber);
 
-    if (!PutFiles(jobdesc, jobid)) {
+    if (!PutFiles(job, jobid)) {
       logger.msg(ERROR, "Submit: Failed uploading local input files");
       return URL();
     }
@@ -93,22 +91,7 @@ namespace Arc {
                                   jobid.str() + ")");
     infoEndpoint.ChangeLDAPScope(URL::subtree);
 
-    Arc::NS ns;
-    Arc::XMLNode info(ns, "Job");
-    info.NewChild("JobID") = jobid.str();
-    if (!jobdesc.Identification.JobName.empty())
-      info.NewChild("Name") = jobdesc.Identification.JobName;
-    info.NewChild("Flavour") = flavour;
-    info.NewChild("Cluster") = cluster.str();
-    info.NewChild("InfoEndpoint") = infoEndpoint.str();
-    info.NewChild("LocalSubmissionTime") = (std::string)Arc::Time();
-    Sandbox::Add(jobdesc, info);
-
-    FileLock lock(joblistfile);
-    Config jobs;
-    jobs.ReadFromFile(joblistfile);
-    jobs.NewChild(info);
-    jobs.SaveToFile(joblistfile);
+    AddJob(job, jobid, infoEndpoint, joblistfile);
 
     return jobid;
   }

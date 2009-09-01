@@ -7,9 +7,7 @@
 #include <string>
 #include <sstream>
 
-#include <arc/FileLock.h>
 #include <arc/client/JobDescription.h>
-#include <arc/client/Sandbox.h>
 #include <arc/message/MCC.h>
 
 #include "SubmitterARC1.h"
@@ -51,27 +49,14 @@ namespace Arc {
     XMLNode jobidx(jobid);
     URL session_url((std::string)(jobidx["ReferenceParameters"]["JobSessionDir"]));
 
-    if (!PutFiles(jobdesc, session_url)) {
+    JobDescription job(jobdesc);
+
+    if (!PutFiles(job, session_url)) {
       logger.msg(ERROR, "Failed uploading local input files");
       return URL();
     }
 
-    Arc::NS ns;
-    Arc::XMLNode info(ns, "Job");
-    info.NewChild("JobID") = session_url.str();
-    if (!jobdesc.Identification.JobName.empty())
-      info.NewChild("Name") = jobdesc.Identification.JobName;
-    info.NewChild("Flavour") = flavour;
-    info.NewChild("Cluster") = cluster.str();
-    info.NewChild("InfoEndpoint") = session_url.str();
-    info.NewChild("LocalSubmissionTime") = (std::string)Arc::Time();
-    Sandbox::Add(jobdesc, info);
-
-    FileLock lock(joblistfile);
-    Config jobs;
-    jobs.ReadFromFile(joblistfile);
-    jobs.NewChild(info);
-    jobs.SaveToFile(joblistfile);
+    AddJob(job, session_url, session_url, joblistfile);
 
     return session_url;
   }
@@ -138,27 +123,12 @@ namespace Arc {
     XMLNode newjobidx(newjobid);
     URL session_url((std::string)(newjobidx["ReferenceParameters"]["JobSessionDir"]));
 
-    if (!PutFiles(jobdesc, session_url)) {
+    if (!PutFiles(job, session_url)) {
       logger.msg(ERROR, "Failed uploading local input files");
       return URL();
     }
 
-    Arc::NS ns;
-    Arc::XMLNode info(ns, "Job");
-    info.NewChild("JobID") = session_url.str();
-    if (!jobdesc.Identification.JobName.empty())
-      info.NewChild("Name") = jobdesc.Identification.JobName;
-    info.NewChild("Flavour") = flavour;
-    info.NewChild("Cluster") = cluster.str();
-    info.NewChild("InfoEndpoint") = session_url.str();
-    info.NewChild("LocalSubmissionTime") = (std::string)Arc::Time();
-    Sandbox::Add(jobdesc, info);
-
-    FileLock lock(joblistfile);
-    Config jobs;
-    jobs.ReadFromFile(joblistfile);
-    jobs.NewChild(info);
-    jobs.SaveToFile(joblistfile);
+    AddJob(job, session_url, session_url, joblistfile);
 
     return session_url;
   }

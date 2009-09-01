@@ -4,11 +4,9 @@
 #include <config.h>
 #endif
 
-#include <arc/FileLock.h>
 #include <arc/GUID.h>
 #include <arc/message/MCC.h>
 #include <arc/client/JobDescription.h>
-#include <arc/client/Sandbox.h>
 
 #include "CREAMClient.h"
 #include "SubmitterCREAM.h"
@@ -67,7 +65,7 @@ namespace Arc {
       logger.msg(ERROR, "Job registration failed");
       return URL();
     }
-    if (!PutFiles(jobdesc, jobInfo.ISB_URI)) {
+    if (!PutFiles(job, jobInfo.ISB_URI)) {
       logger.msg(ERROR, "Failed uploading local input files");
       return URL();
     }
@@ -76,24 +74,8 @@ namespace Arc {
       return URL();
     }
 
-    Arc::NS ns;
-    Arc::XMLNode info(ns, "Job");
-    info.NewChild("JobID") = submissionurl.str() + '/' + jobInfo.jobId;
-    if (!jobdesc.Identification.JobName.empty())
-      info.NewChild("Name") = jobdesc.Identification.JobName;
-    info.NewChild("Flavour") = flavour;
-    info.NewChild("Cluster") = cluster.str();
-    info.NewChild("LocalSubmissionTime") = (std::string)Arc::Time();
-    info.NewChild("ISB") = jobInfo.ISB_URI;
-    info.NewChild("OSB") = jobInfo.OSB_URI;
-    info.NewChild("AuxURL") = delegationurl.str() + '/' + delegationid;
-    Sandbox::Add(jobdesc, info);
-
-    FileLock lock(joblistfile);
-    Config jobs;
-    jobs.ReadFromFile(joblistfile);
-    jobs.NewChild(info);
-    jobs.SaveToFile(joblistfile);
+    AddJob(job, submissionurl.str() + '/' + jobInfo.jobId,
+           delegationurl.str() + '/' + delegationid, joblistfile);
 
     return submissionurl.str() + '/' + jobInfo.jobId;
   }

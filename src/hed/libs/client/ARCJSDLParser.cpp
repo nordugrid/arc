@@ -904,8 +904,8 @@ namespace Arc {
         datastaging.NewChild("FileName") = (*it).Name;
       if ((*it).Source.size() != 0) {
         XMLNode source = datastaging.NewChild("Source");
-        if (trim((it->Source[0].URI).fullstr()) != "")
-          source.NewChild("URI") = (it->Source[0].URI).fullstr();
+        if (trim((it->Source.begin()->URI).fullstr()) != "")
+          source.NewChild("URI") = (it->Source.begin()->URI).fullstr();
       }
       if ((*it).Target.size() != 0) {
         std::list<DataTargetType>::const_iterator it3;

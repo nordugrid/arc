@@ -206,7 +206,7 @@ namespace Arc {
     bool IsExecutable;
     bool DownloadToCache;
     std::list<URL> DataIndexingService;
-    std::vector<DataSourceType> Source;
+    std::list<DataSourceType> Source;
     std::list<DataTargetType> Target;
   };
 
@@ -253,11 +253,6 @@ namespace Arc {
     // Returns with the original job descriptions format as a string. Right now, this value is one of the following:
     // "jsdl", "jdl", "xrsl". If there is an other parser written for another language, then this set can be extended.
     bool getSourceFormat(std::string& _sourceFormat) const;
-
-    // Returns with true and the uploadable local files list, if the source
-    // has been set up and is valid, else return with false.
-    bool getUploadableFiles(std::list<std::pair<std::string, std::string> >&
-                            sourceFiles) const;
 
     // Print all value to the standard output.
     void Print(bool longlist = false) const;
