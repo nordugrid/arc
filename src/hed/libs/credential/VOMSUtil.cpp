@@ -1063,7 +1063,21 @@ err:
       }
       fqan.insert(0,"/VO=");
 
-      attributes.push_back(fqan);
+      // if the attribute is like: /VO=knowarc.eu/Group=NULL/Role=NULL/Capability=NULL
+      // or /VO=knowarc.eu/Group=NULL/Role=tester/Capability=NULL
+      // then remove the element with "=NULL" to be:
+      // /VO=knowarc.eu
+      // /VO=knowarc.eu/Role=tester
+
+      std::string str = fqan;
+      std::size_t pos = str.find("/Role=NULL");
+      if(pos != std::string::npos) str.erase(pos, 10);
+      pos = str.find("/Group=NULL");
+      if(pos != std::string::npos) str.erase(pos, 11);
+      pos = str.find("/Capability=NULL");
+      if(pos != std::string::npos) str.erase(pos, 16);
+
+      attributes.push_back(str);
     }
 
     return true;
