@@ -195,7 +195,7 @@ if(! -e $conffile){
 my $config = Janitor::ArcConfig->parse($conffile);
 if ( !defined $config->{'janitor'} ) {
 	printf STDERR "There is no valid [janitor]-section in \"%s\"\n", $conffile;
-	return 4;
+	return 3;
 }
 
 ######################################################################

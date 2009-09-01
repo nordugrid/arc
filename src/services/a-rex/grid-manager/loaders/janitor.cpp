@@ -107,8 +107,13 @@ void Janitor::deploy_thread(void* arg) {
       it.result_=true; it.completed_.signal();
       return;
     };
+    if(run.Result() == 3) {
+      logger.msg(Arc::VERBOSE, "janitor register returned 3 - no Janitor enabled in configuration");
+      it.completed_.signal();
+      return;
+    };
     if(run.Result() != 1) {
-      logger.msg(Arc::VERBOSE, "janitor register failed with exit code %i",run.Result());
+      logger.msg(Arc::ERROR, "janitor register failed with exit code %i",run.Result());
       it.completed_.signal();
       return;
     };
