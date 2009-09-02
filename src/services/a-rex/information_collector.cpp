@@ -62,6 +62,7 @@ void ARexService::InformationCollector(void) {
     };
     // Run information provider
     std::string xml_str;
+    int r = -1;
     {
       std::string cmd;
       cmd=nordugrid_libexec_loc+"/CEinfo.pl --config "+nordugrid_config_loc;
@@ -74,26 +75,29 @@ void ARexService::InformationCollector(void) {
       logger_.msg(Arc::DEBUG,"Cluster information provider: %s",cmd);
       if(!run.Start()) {
       };
-      int r = -1;
       if(!run.Wait(infoprovider_wakeup_period_)) {
-        logger_.msg(Arc::DEBUG,"Cluster information provider timeout: %u seconds",infoprovider_wakeup_period_);
+        logger_.msg(Arc::WARNING,"Cluster information provider timeout: %u seconds",infoprovider_wakeup_period_);
       } else {
         r = run.Result();
-        logger_.msg(Arc::DEBUG,"Cluster information provider result: %i",r);
+        if (r!=0) logger_.msg(Arc::WARNING,"Cluster information provider failed with exit status: %i",r);
       };
       logger_.msg(Arc::DEBUG,"Cluster information provider error: %s",stderr_str);
     };
-    logger_.msg(Arc::VERBOSE,"Obtained XML: %s",xml_str);
-    Arc::XMLNode root(xml_str);
-    if(root) {
-      // Collect job states
-      GetGlueStates(root,glue_states_);
-      // Put result into container
-      infodoc_.Assign(root,true);
-      logger_.msg(Arc::DEBUG,"Assigned new informational document");
+    if (r!=0) {
+      logger_.msg(Arc::DEBUG,"No new informational document assigned");
     } else {
-      logger_.msg(Arc::ERROR,"Failed to create informational document");
-    };
+      logger_.msg(Arc::VERBOSE,"Obtained XML: %s",xml_str);
+      Arc::XMLNode root(xml_str);
+      if(root) {
+        // Collect job states
+        GetGlueStates(root,glue_states_);
+        // Put result into container
+        infodoc_.Assign(root,true);
+        logger_.msg(Arc::DEBUG,"Assigned new informational document");
+      } else {
+        logger_.msg(Arc::ERROR,"Failed to create informational document");
+      };
+    }
     sleep(infoprovider_wakeup_period_);
   };
 }
