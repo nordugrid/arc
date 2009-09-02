@@ -187,7 +187,7 @@ namespace Arc {
         break;
       }
 
-      INTPRINT(Resources.SlotRequirement.NumberOfProcesses.max, NumberOfProcesses)
+      INTPRINT(Resources.SlotRequirement.NumberOfSlots.max, NumberOfSlots)
       INTPRINT(Resources.SlotRequirement.ProcessPerHost.max, ProcessPerHost)
       INTPRINT(Resources.SlotRequirement.ThreadsPerProcesses.max, ThreadsPerProcesses)
       STRPRINT(Resources.SlotRequirement.SPMDVariation, SPMDVariation)

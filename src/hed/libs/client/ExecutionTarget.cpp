@@ -244,13 +244,13 @@ namespace Arc {
       std::map<Period, int>::iterator cpuit, cpuit2;
       cpuit = FreeSlotsWithDuration.lower_bound((unsigned int)jobdesc.Resources.TotalCPUTime.range);
       if (cpuit != FreeSlotsWithDuration.end()) {
-        if (jobdesc.Resources.SlotRequirement.NumberOfProcesses >= cpuit->second)
+        if (jobdesc.Resources.SlotRequirement.NumberOfSlots >= cpuit->second)
           cpuit->second = 0;
         else
           for (cpuit2 = FreeSlotsWithDuration.begin();
                cpuit2 != FreeSlotsWithDuration.end(); cpuit2++) {
             if (cpuit2->first <= cpuit->first)
-              cpuit2->second -= jobdesc.Resources.SlotRequirement.NumberOfProcesses;
+              cpuit2->second -= jobdesc.Resources.SlotRequirement.NumberOfSlots;
             else if (cpuit2->second >= cpuit->second) {
               cpuit2->second = cpuit->second;
               Period oldkey = cpuit->first;
@@ -272,13 +272,13 @@ namespace Arc {
     }
 
     //FreeSlots, UsedSlots, WaitingJobs
-    if (FreeSlots >= abs(jobdesc.Resources.SlotRequirement.NumberOfProcesses)) { //The job will start directly
-      FreeSlots -= abs(jobdesc.Resources.SlotRequirement.NumberOfProcesses);
+    if (FreeSlots >= abs(jobdesc.Resources.SlotRequirement.NumberOfSlots)) { //The job will start directly
+      FreeSlots -= abs(jobdesc.Resources.SlotRequirement.NumberOfSlots);
       if (UsedSlots != -1)
-        UsedSlots += abs(jobdesc.Resources.SlotRequirement.NumberOfProcesses);
+        UsedSlots += abs(jobdesc.Resources.SlotRequirement.NumberOfSlots);
     }
     else if (WaitingJobs != -1)    //The job will enter the queue (or the cluster doesn't report FreeSlots)
-      WaitingJobs += abs(jobdesc.Resources.SlotRequirement.NumberOfProcesses);
+      WaitingJobs += abs(jobdesc.Resources.SlotRequirement.NumberOfSlots);
 
     return;
 

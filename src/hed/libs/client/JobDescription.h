@@ -105,10 +105,10 @@ namespace Arc {
   class ResourceSlotType {
   public:
     ResourceSlotType() :
-      NumberOfProcesses(-1),
+      NumberOfSlots(-1),
       ProcessPerHost(-1),
       ThreadsPerProcesses(-1) {}
-    Range<int> NumberOfProcesses;
+    Range<int> NumberOfSlots;
     Range<int> ProcessPerHost;
     Range<int> ThreadsPerProcesses;
     std::string SPMDVariation;

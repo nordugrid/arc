@@ -214,6 +214,8 @@ namespace Arc {
 
     // Application
     XMLNode xmlApplication = node["JobDescription"]["Application"];
+
+    // Look for extended application element. First look for POSIX and then HPCProfile.
     XMLNode xmlXApplication = xmlApplication["POSIXApplication"];
     if (!xmlXApplication)
       xmlXApplication = xmlApplication["HPCProfileApplication"];
@@ -224,48 +226,69 @@ namespace Arc {
 
 
     // ExecutableType Executable;
-    if (bool(xmlXApplication["Executable"]))
+    if (bool(xmlApplication["Executable"]["Path"])) {
+      job.Application.Executable.Name = (std::string)xmlApplication["Executable"]["Path"];
+      for (int i = 0; (bool)(xmlApplication["Executable"]["Argument"][i]); i++)
+        job.Application.Executable.Argument.push_back((std::string)xmlApplication["Executable"]["Argument"]);
+    }
+    else if (bool(xmlXApplication["Executable"])) {
       job.Application.Executable.Name = (std::string)xmlXApplication["Executable"];
-    for (int i = 0; (bool)(xmlXApplication["Argument"][i]); i++)
-      job.Application.Executable.Argument.push_back((std::string)xmlXApplication["Argument"][i]);
+      for (int i = 0; (bool)(xmlXApplication["Argument"][i]); i++)
+        job.Application.Executable.Argument.push_back((std::string)xmlXApplication["Argument"][i]);
+    }
 
     // std::string Input;
-    if (bool(xmlXApplication["Input"]))
+    if (bool(xmlApplication["Input"]))
+      job.Application.Input = (std::string)xmlApplication["Input"];
+    else if (bool(xmlXApplication["Input"]))
       job.Application.Input = (std::string)xmlXApplication["Input"];
 
     // std::string Output;
-    if (bool(xmlXApplication["Output"]))
+    if (bool(xmlApplication["Output"]))
+      job.Application.Output = (std::string)xmlApplication["Output"];
+    else if (bool(xmlXApplication["Output"]))
       job.Application.Output = (std::string)xmlXApplication["Output"];
 
     // std::string Error;
-    if (bool(xmlXApplication["Error"]))
+    if (bool(xmlApplication["Error"]))
+      job.Application.Error = (std::string)xmlApplication["Error"];
+    else if (bool(xmlXApplication["Error"]))
       job.Application.Error = (std::string)xmlXApplication["Error"];
 
     // bool Join;
-    job.Application.Join = lower((std::string)xmlApplication["Join"]) == "true";
+    job.Application.Join = (lower((std::string)xmlApplication["Join"]) == "true");
 
     // std::list< std::pair<std::string, std::string> > Environment;
-    for (int i = 0; (bool)(xmlXApplication["Environment"][i]); i++) {
-      XMLNode env = xmlXApplication["Environment"][i];
-      XMLNode name = env.Attribute("name");
-      if (!name) {
-        logger.msg(DEBUG, "[ARCJSDLParser] Error during the parsing: missed the name attributes of the \"%s\" Environment", (std::string)env);
-        return JobDescription();
+    if (bool(xmlApplication["Environment"]["Name"])) {
+      for (int i = 0; (bool)(xmlApplication["Environment"][i]); i++) {
+        if (!((std::string)xmlApplication["Environment"][i]["Name"]).empty() && bool(xmlApplication["Environment"][i]["Value"]))
+          job.Application.Environment.push_back(std::pair<std::string, std::string>((std::string)xmlApplication["Environment"][i]["Name"],
+                                                                                    (std::string)xmlApplication["Environment"][i]["Value"]));
       }
-      job.Application.Environment.push_back(std::pair<std::string, std::string>(name, env));
+    }
+    else if (bool(xmlXApplication["Environment"])) {
+      for (int i = 0; (bool)(xmlXApplication["Environment"][i]); i++) {
+        XMLNode env = xmlXApplication["Environment"][i];
+        XMLNode name = env.Attribute("name");
+        if (!name || ((std::string)name).empty()) {
+          logger.msg(DEBUG, "[ARCJSDLParser] Error during the parsing: missed the name attributes of the \"%s\" Environment", (std::string)env);
+          return JobDescription();
+        }
+        job.Application.Environment.push_back(std::pair<std::string, std::string>(name, env));
+      }
     }
 
     // ExecutableType Prologue;
-    if (bool(xmlApplication["Prologue"]))
-      job.Application.Prologue.Name = (std::string)xmlApplication["Prologue"];
-    for (int i = 0; (bool)(xmlApplication["PrologueArgument"][i]); i++)
-      job.Application.Prologue.Argument.push_back((std::string)xmlApplication["PrologueArgument"][i]);
+    if (bool(xmlApplication["Prologue"]["Path"]))
+      job.Application.Prologue.Name = (std::string)xmlApplication["Prologue"]["Path"];
+    for (int i = 0; (bool)(xmlApplication["Prologue"]["Argument"][i]); i++)
+      job.Application.Prologue.Argument.push_back((std::string)xmlApplication["Prologue"]["Argument"][i]);
 
     // ExecutableType Epilogue;
-    if (bool(xmlApplication["Epilogue"]))
-      job.Application.Epilogue.Name = (std::string)xmlApplication["Epilogue"];
-    for (int i = 0; (bool)(xmlApplication["EpilogueArgument"][i]); i++)
-      job.Application.Epilogue.Argument.push_back((std::string)xmlApplication["EpilogueArgument"][i]);
+    if (bool(xmlApplication["Epilogue"]["Path"]))
+      job.Application.Epilogue.Name = (std::string)xmlApplication["Epilogue"]["Path"];
+    for (int i = 0; (bool)(xmlApplication["Epilogue"]["Argument"][i]); i++)
+      job.Application.Epilogue.Argument.push_back((std::string)xmlApplication["Epilogue"]["Argument"][i]);
 
     // std::string LogDir;
     if (bool(xmlApplication["LogDir"]))
@@ -397,7 +420,7 @@ namespace Arc {
     }
 
     // Range<int64_t> DiskSpace;
-    // If the consolidated element exist parse it, else try to parse the POSIX one.
+    // If the consolidated element exist parse it, else try to parse the JSDL one.
     if (bool(resource["DiskSpaceRequirement"]["DiskSpace"]))
       parseRange<int64_t>(resource["DiskSpaceRequirement"]["DiskSpace"], job.Resources.DiskSpaceRequirement.DiskSpace, -1);
     else if (bool(resource["FileSystem"]["DiskSpace"]))
@@ -433,11 +456,11 @@ namespace Arc {
       job.Resources.NodeAccess = NAT_INOUTBOUND;
 
     // ResourceSlotType Slots;
-    if (bool(resource["SlotRequirement"]["NumberOfProcesses"]))
-      parseRange<int>(resource["SlotRequirement"]["NumberOfProcesses"], job.Resources.SlotRequirement.NumberOfProcesses, -1);
+    if (bool(resource["SlotRequirement"]["NumberOfSlots"]))
+      parseRange<int>(resource["SlotRequirement"]["NumberOfSlots"], job.Resources.SlotRequirement.NumberOfSlots, -1);
     else if (bool(xmlXApplication["ProcessCountLimit"])) {
-      if (!stringto<int>((std::string)xmlXApplication["ProcessCountLimit"], job.Resources.SlotRequirement.NumberOfProcesses.max))
-        job.Resources.SlotRequirement.NumberOfProcesses = Range<int>(-1);
+      if (!stringto<int>((std::string)xmlXApplication["ProcessCountLimit"], job.Resources.SlotRequirement.NumberOfSlots.max))
+        job.Resources.SlotRequirement.NumberOfSlots = Range<int>(-1);
     }
     if (bool(resource["SlotRequirement"]["ThreadsPerProcesses"]))
       parseRange<int>(resource["SlotRequirement"]["ThreadsPerProcesses"], job.Resources.SlotRequirement.ThreadsPerProcesses, -1);
@@ -625,18 +648,20 @@ namespace Arc {
 
     // ExecutableType Prologue;
     if (!job.Application.Prologue.Name.empty()) {
-      xmlApplication.NewChild("Prologue") = job.Application.Prologue.Name;
+      xmlApplication.NewChild("Prologue");
+      xmlApplication["Prologue"].NewChild("Path") = job.Application.Prologue.Name;
       for (std::list<std::string>::const_iterator it = job.Application.Prologue.Argument.begin();
            it != job.Application.Prologue.Argument.end(); it++)
-        xmlApplication.NewChild("PrologueArgument") = *it;
+        xmlApplication["Prologue"].NewChild("Argument") = *it;
     }
 
     // ExecutableType Epilogue;
     if (!job.Application.Epilogue.Name.empty()) {
-      xmlApplication.NewChild("Epilogue") = job.Application.Epilogue.Name;
+      xmlApplication.NewChild("Epilogue");
+      xmlApplication["Epilogue"].NewChild("Path") = job.Application.Epilogue.Name;
       for (std::list<std::string>::const_iterator it = job.Application.Epilogue.Argument.begin();
            it != job.Application.Epilogue.Argument.end(); it++)
-        xmlApplication.NewChild("EpilogueArgument") = *it;
+        xmlApplication["Epilogue"].NewChild("Argument") = *it;
     }
 
     // std::string LogDir;
@@ -682,8 +707,8 @@ namespace Arc {
       xmlPApplication.NewChild("posix-jsdl:MemoryLimit") = tostring(job.Resources.IndividualPhysicalMemory.max);
     if (job.Resources.TotalCPUTime.range.max != -1)
       xmlPApplication.NewChild("posix-jsdl:CPUTimeLimit") = tostring(job.Resources.TotalCPUTime.range.max);
-    if (job.Resources.SlotRequirement.NumberOfProcesses.max != -1)
-      xmlPApplication.NewChild("posix-jsdl:ProcessCountLimit") = tostring(job.Resources.SlotRequirement.NumberOfProcesses.max);
+    if (job.Resources.SlotRequirement.NumberOfSlots.max != -1)
+      xmlPApplication.NewChild("posix-jsdl:ProcessCountLimit") = tostring(job.Resources.SlotRequirement.NumberOfSlots.max);
     if (job.Resources.IndividualVirtualMemory.max != -1)
       xmlPApplication.NewChild("posix-jsdl:VirtualMemoryLimit") = tostring(job.Resources.IndividualVirtualMemory.max);
     if (job.Resources.SlotRequirement.ThreadsPerProcesses.max != -1)
@@ -853,7 +878,7 @@ namespace Arc {
 
       // Range<int> NumberOfProcesses;
       XMLNode xmlNOP("<NumberOfProcesses/>");
-      outputARCJSDLRange(job.Resources.SlotRequirement.NumberOfProcesses, xmlNOP, -1);
+      outputARCJSDLRange(job.Resources.SlotRequirement.NumberOfSlots, xmlNOP, -1);
       if (xmlNOP.Size() > 0)
         xmlSlotRequirement.NewChild(xmlNOP);
       

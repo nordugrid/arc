@@ -230,7 +230,7 @@ namespace Arc {
       }
 
       if (!job->Resources.RunTimeEnvironment.empty()) {
-        if (!target->OperatingSystem.empty()) {
+        if (!target->ApplicationEnvironments.empty()) {
           if (!job->Resources.RunTimeEnvironment.isSatisfied(target->ApplicationEnvironments)) {
             logger.msg(DEBUG, "Matchmaking, ExecutionTarget:  %s, RunTimeEnvironment requirements not satisfied", target->url.str());
             continue;
@@ -324,16 +324,16 @@ namespace Arc {
         }
       }
 
-      if (job->Resources.SlotRequirement.NumberOfProcesses != -1) {
+      if (job->Resources.SlotRequirement.NumberOfSlots != -1) {
         if ((*target).TotalSlots != -1) {     // Example: 5656
-          if (!((*target).TotalSlots >= job->Resources.SlotRequirement.NumberOfProcesses)) {
-            logger.msg(DEBUG, "Matchmaking, TotalSlots problem, ExecutionTarget: %d (TotalSlots) JobDescription: %d (NumberOfProcesses)", (*target).TotalSlots, job->Resources.SlotRequirement.NumberOfProcesses.max);
+          if (!((*target).TotalSlots >= job->Resources.SlotRequirement.NumberOfSlots)) {
+            logger.msg(DEBUG, "Matchmaking, TotalSlots problem, ExecutionTarget: %d (TotalSlots) JobDescription: %d (NumberOfProcesses)", (*target).TotalSlots, job->Resources.SlotRequirement.NumberOfSlots.max);
             continue;
           }
         }
         else if ((*target).MaxSlotsPerJob != -1) {     // Example: 5656
-          if (!((*target).MaxSlotsPerJob >= job->Resources.SlotRequirement.NumberOfProcesses)) {
-            logger.msg(DEBUG, "Matchmaking, MaxSlotsPerJob problem, ExecutionTarget: %d (MaxSlotsPerJob) JobDescription: %d (NumberOfProcesses)", (*target).TotalSlots, job->Resources.SlotRequirement.NumberOfProcesses.max);
+          if (!((*target).MaxSlotsPerJob >= job->Resources.SlotRequirement.NumberOfSlots)) {
+            logger.msg(DEBUG, "Matchmaking, MaxSlotsPerJob problem, ExecutionTarget: %d (MaxSlotsPerJob) JobDescription: %d (NumberOfProcesses)", (*target).TotalSlots, job->Resources.SlotRequirement.NumberOfSlots.max);
             continue;
           }
         }
@@ -403,13 +403,13 @@ namespace Arc {
 
   void Broker::RegisterJobsubmission() {
     if (!job || current == PossibleTargets.end()) return;
-    if ((*current)->FreeSlots >= job->Resources.SlotRequirement.NumberOfProcesses) {   //The job will start directly
-      (*current)->FreeSlots -= job->Resources.SlotRequirement.NumberOfProcesses;
+    if ((*current)->FreeSlots >= job->Resources.SlotRequirement.NumberOfSlots) {   //The job will start directly
+      (*current)->FreeSlots -= job->Resources.SlotRequirement.NumberOfSlots;
       if ((*current)->UsedSlots != -1)
-        (*current)->UsedSlots += job->Resources.SlotRequirement.NumberOfProcesses;
+        (*current)->UsedSlots += job->Resources.SlotRequirement.NumberOfSlots;
     }
     else                                           //The job will be queued
       if ((*current)->WaitingJobs != -1)
-        (*current)->WaitingJobs += job->Resources.SlotRequirement.NumberOfProcesses;
+        (*current)->WaitingJobs += job->Resources.SlotRequirement.NumberOfSlots;
   }
 } // namespace Arc
