@@ -58,10 +58,11 @@ namespace Arc {
     else
       srm_request = new SRMClientRequest(url.Protocol() + "://" + url.Host() + "/" + url.HTTPOption("SFN"));
     
-    if (!srm_request)
+    if (!srm_request) {
       delete client;
       client = NULL;
       return DataStatus::CheckError;
+    }
 
     logger.msg(DEBUG, "Check: looking for metadata: %s", CurrentLocation().str());
     std::list<struct SRMFileMetaData> metadata;
