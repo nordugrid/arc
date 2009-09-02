@@ -210,10 +210,11 @@ namespace Arc {
           FileType file;
           file.Name = *it2++;
           DataSourceType source;
-          if (!it2->empty())
+          if (!it2->empty()) {
             source.URI = *it2;
-          if (!source.URI)
-            return false;
+            if (!source.URI)
+              return false;
+          }
           if (source.URI.Protocol() == "file")
             source.URI = file.Name;
           source.Threads = -1;
