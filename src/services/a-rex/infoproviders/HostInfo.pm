@@ -212,6 +212,42 @@ sub get_host_info {
          # $listentry="";
           $log->warning("Can't acess runtimedir: $options->{runtimedir}");
        }
+       # Try to fetch something from Janitor
+       # Integration with Janitor is done through calling 
+       # executable beacuse I'm nor skilled enough to isolate
+       # possible Janitor errors and in order not to redo 
+       # all Log4Perl tricks again. Please redo it later. A.K.
+       # Find Janitor first
+       my $janitor_path = $options->{ng_location};
+       if($janitor_path) {
+          if (-e "$janitor_path/libexec/janitor") {
+             $janitor_path = "$janitor_path/libexec/janitor";
+          } elsif (-e "$janitor_path/libexec/arc/janitor") {
+             $janitor_path = "$janitor_path/libexec/arc/janitor";
+          } else {
+            $log->debug("Janitor not found - not using");
+            $janitor_path = "";
+          }
+       }
+       if($janitor_path) {    
+          open (JPIPE, "$janitor_path list shortlist dynamic |");
+          while(<JPIPE>) {
+             my $listentry = $_;
+             chomp($listentry);
+             if($listentry) {
+                # Avoid duplicates
+                foreach(@runtimeenvironment) {
+                   if($listentry eq $_) {
+                     $listentry="";
+                     last;
+                   }
+                }
+                if($listentry) {
+                   push @runtimeenvironment, $listentry;
+                }
+             }
+          }
+       }
     }
     $host_info->{runtimeenvironments} = \@runtimeenvironment;
 
