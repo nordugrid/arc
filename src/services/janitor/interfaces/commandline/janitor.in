@@ -72,12 +72,62 @@ List all information of the current system
 		my $response = &process(new Janitor::Request(Janitor::Request::LIST));
 		my %result = $response->result();
 		if($result{errorcode} == 0){
+			my $show_jobs = 1;
+			my $show_manual = 1;
+			my $show_installed = 1;
+			my $show_installable = 1;
+			my $show_short = 0;
+			if(@ARGV > 1) {
+				$show_jobs = 0;
+				$show_manual = 0;
+				$show_installed = 0;
+				$show_installable = 0;
+				foreach my $show(@ARGV){
+					switch ($show) {
+						case "all" {
+							$show_jobs = 1;
+							$show_manual = 1;
+							$show_installed = 1;
+							$show_installable = 1;
+						}
+						case "jobs" {
+							$show_jobs = 1;
+					 	}
+						case "rtes" {
+							$show_manual = 1;
+							$show_installed = 1;
+							$show_installable = 1;
+						}
+						case "local" {
+							$show_manual = 1;
+						}
+						case "dynamic" {
+							$show_installed = 1;
+							$show_installable = 1;
+						}
+						case "installed" {
+							$show_installed = 1;
+						}
+						case "installable" {
+							$show_installable = 1;
+						}
+						case "shortlist" {
+							$show_short = 1;
+						}
+					}
+				}
+			}
 			# JOBS
-			print "Jobs:\n\n";
+			if($show_jobs) {
+			print "Jobs:\n\n" unless $show_short;
 			my @joblist = $response->runningJob();
 			if(defined $joblist[0]){
 				foreach my $job(@joblist){
 					my %hash = %{$job};
+					if($show_short) {
+						print "$hash{jobid}\n";
+						next;
+					}
 					printf $format, "jobid:", $hash{jobid};
 					printf $format, "created:", $hash{created};
 					printf $format, "age:", $hash{age};
@@ -94,22 +144,34 @@ List all information of the current system
 				}
 			}
 			print "\n";
+			}
 			# MANUAL RTEs
-			print "Locally installed runtime environments:\n\n";
+			if($show_manual) {
+			print "Locally installed runtime environments:\n\n" unless $show_short;
 			my @rtelist = $response->runtimeLocal();
 			if(defined $rtelist[0]){
 				foreach my $rte(@rtelist){
 					my %hash = %{$rte};
-					printf $format, "name:", $hash{name};
-					print "\n";
+					if($show_short) {
+						print "$hash{name}\n";
+					} else {
+						printf $format, "name:", $hash{name};
+						print "\n";
+					}
 				}
 			}
 			print "\n";
-			print "Dynamically installed runtime environments:\n\n";
-			@rtelist = $response->runtimeDynamic();
+			}
+			if($show_installed) {
+			print "Dynamically installed runtime environments:\n\n" unless $show_short;
+			my @rtelist = $response->runtimeDynamic();
 			if(defined $rtelist[0]){
 				foreach my $rte(@rtelist){
 					my %hash = %{$rte};
+					if($show_short) {
+						print "$hash{name}\n";
+						next;
+					}
 					printf $format, "name:",        $hash{name};
 					printf $format, "state:",       $hash{state};
 					printf $format, "lastused:",    $hash{lastused};
@@ -123,11 +185,17 @@ List all information of the current system
 				}
 			}
 			print "\n";
-			print "Installable runtime environments:\n\n";
-			@rtelist = $response->runtimeInstallable();
+			}
+			if($show_installable) {
+			print "Installable runtime environments:\n\n" unless $show_short;
+			my @rtelist = $response->runtimeInstallable();
 			if(defined $rtelist[0]){
 				foreach my $rte(@rtelist){
 					my %hash = %{$rte};
+					if($show_short) {
+						print "$hash{name}\n";
+						next;
+					}
 					printf $format, "name:",        $hash{name};
 					printf $format, "description:", $hash{description};
 					if ($hash{supported}){
@@ -139,7 +207,8 @@ List all information of the current system
 				}
 			}
 			print "\n";
-			print $result{errorcode}." ".$result{message}."\n";
+			}
+			print $result{errorcode}." ".$result{message}."\n" unless $show_short;
 		}else{ # if result is valid
 			print $result{errorcode}." ".$result{message}."\n";
 		}

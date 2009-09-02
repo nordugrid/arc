@@ -29,6 +29,31 @@ Performs a simple search in the catalog and the manually installed runtime envir
 .TP
 \fBlist\fR
 Lists all information about jobs, automatically installed runtime environments and manually installed runtime environments. No additional parameters have to be passed.
+The command may be followed by modifiers:
+
+\fBshortlist\fR
+for printing short machine-readable output.
+
+\fBjobs\fR
+only jobs are printed
+
+\fBlocal\fR
+local manually installed runtime environments are listed
+
+\fBinstalled\fR
+shows information about automatically installed runtime environments
+
+\fBinstallable\fR
+shows information about automatically installable runtime environments
+
+\fBdynamic\fR
+same as installed and installable
+
+\fBrtes\fR
+information about all kinds of runtime environments is printed
+
+\fBall\fR
+prints information about all components
 .TP
 \fBinfo\fR
 Renders information about a job. Requires the parameter [JOB-ID].
