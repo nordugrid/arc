@@ -19,7 +19,7 @@ $(STYLES):
 $(xrsl_PARTS):
 	$(LN_S) ../../tech_doc/xrsl/$@ $@
 
-EXTRA_DIST = $(doc_DATA) $(STYLES) $(docsource)
+EXTRA_DIST = $(doc_DATA) $(STYLES) $(xrsl_PARTS) $(docsource)
 
 CLEANFILES = *.blg *.bbl *.ind *.ilg *.out *.log *.idx *.aux *.toc
 

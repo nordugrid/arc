@@ -18,7 +18,7 @@ $(doc_DATA): $(docsource) $(docsources) $(STYLES)
 $(STYLES):
 	$(LN_S) ../../templates/tex/$@ .
 
-EXTRA_DIST = $(doc_DATA) $(STYLES) $(docsource)
+EXTRA_DIST = $(doc_DATA) $(STYLES) $(docsource) $(docsources)
 
 CLEANFILES = *.blg *.bbl *.ind *.ilg *.out *.log *.idx *.aux *.toc
 

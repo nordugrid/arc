@@ -59,7 +59,7 @@ manperl:
 		fi \
 	done
 
-EXTRA_DIST = $(doc_DATA) $(docsource) $(docsrcdeps)
+EXTRA_DIST = $(doc_DATA) $(STYLES) $(docsource) $(docsrcdeps)
 
 CLEANFILES = *.blg *.bbl *.ind *.ilg *.out *.log *.idx *.aux *.toc
 
