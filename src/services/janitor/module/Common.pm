@@ -103,7 +103,79 @@ sub get_catalog
 ###l4p			$logger->fatal("Catalog $catalog_name has no catalog property");
 			die "Catalog $catalog_name has no catalog property";
 		}
-		$catalog->add($catalog_file);
+		# Check if catalog is URL
+		if($catalog_file =~ /^[[:alpha:]]*:/) {
+			# Looks like URL.
+			# Check if we have cache
+			my $catalog_cache = $config->{"janitor/$catalog_name"}{"cache"};
+			my $catalog_refresh = $config->{"janitor/$catalog_name"}{"refresh"};
+			my $cachefile;
+			my $need_remove = 0;
+			unless($catalog_refresh =~ /^[0-9]+$/) {
+				$catalog_refresh = "24*60*60";
+			}
+			if($catalog_cache) {
+				# Find file in cache
+				$cachefile = $catalog_file;
+				$cachefile =~ s!/!*2F!g;
+				$cachefile = "$catalog_cache/$cachefile";
+				# Check if file exists and how old it is
+				my $need_download = 1;
+				my $cachefiletime = (stat($cachefile)) [9];
+				if($cachefiletime) {
+					my $current_time = time();
+					if(($current_time - $cachefiletime) < $catalog_refresh) {
+						# 24h refresh time
+						$need_download= 0;
+					}
+				}
+				if($need_download) {
+					# download to temp file
+					my $ff = new Janitor::Filefetcher($catalog_file,$catalog_cache);
+					if ($ff->fetch()) {
+						# Replace old one
+						utime time(), time(), $ff->getFile();
+						unless(rename $ff->getFile(), $cachefile) {
+							my $msg = "Failed to replace catalog $catalog_name from $catalog_file - using temporary new";
+###l4p							$logger->error($msg);
+							$cachefile = $ff->getFile();
+							$need_remove = 1;
+						}
+					} else {
+						if($cachefiletime) {
+							my $msg = "Failed to fetch catalog $catalog_name from $catalog_file - using old";
+###l4p							$logger->error($msg);
+						} else {
+							my $msg = "Failed to fetch catalog $catalog_name from $catalog_file to cache";
+###l4p							$logger->error($msg);
+							# die "$msg";
+							# there is still chance we will be able to dowmload catalog to another place
+							$cachefile = "";
+						}
+					}
+				}
+			}
+			if($cachefile) {
+				$catalog->add($cachefile);
+				if($need_remove) {
+					unlink($cachefile);
+				}
+			} else {
+				# Fetch URL to temporary file and then delete it
+				my $ff = new Janitor::Filefetcher($catalog_file,$config->{'janitor'}{'downloaddir'});
+				unless ($ff->fetch()) {
+					my $msg = "Failed to fetch catalog $catalog_name from $catalog_file";
+###l4p					$logger->fatal($msg);
+					die "$msg";
+				}
+				my $catalog_tmp_file = $ff->getFile();
+				$catalog->add($catalog_tmp_file);
+				unlink($catalog_tmp_file);
+			}
+		} else {
+			# Catalog is not URL
+			$catalog->add($catalog_file);
+		}
 	}
 
 	# get the allow and deny rules for basesystems 
