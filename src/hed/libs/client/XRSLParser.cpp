@@ -796,8 +796,8 @@ namespace Arc {
           l = new RSLList;
         l->Add(new RSLSequence(s));
 
-        executableIsAdded &= (it->Name == j.Application.Executable.Name);
-        inputIsAdded      &= (it->Name == j.Application.Input);
+        executableIsAdded |= (it->Name == j.Application.Executable.Name);
+        inputIsAdded      |= (it->Name == j.Application.Input);
       }
 
       if (!j.Application.Executable.Name.empty() &&
@@ -890,9 +890,9 @@ namespace Arc {
           l->Add(new RSLSequence(s));
         }
           
-        outputIsAdded &= (it->Name == j.Application.Output);
-        errorIsAdded  &= (it->Name == j.Application.Error);
-        gmlogIsAdded  &= (it->Name == j.Application.LogDir);
+        outputIsAdded |= (it->Name == j.Application.Output);
+        errorIsAdded  |= (it->Name == j.Application.Error);
+        gmlogIsAdded  |= (it->Name == j.Application.LogDir);
       }
       if (!j.Application.Output.empty() && !outputIsAdded) {
         RSLList *s = new RSLList;
