@@ -1,6 +1,4 @@
 %{
-#include <arc/client/ACC.h>
-#include <arc/client/ACCLoader.h>
 #include <arc/client/ClientInterface.h>
 #include <arc/client/ClientX509Delegation.h>
 #include <arc/client/Submitter.h>
@@ -57,17 +55,6 @@ the first member will be the '*response' and the second member is the original r
     PyTuple_SetItem(tuple,1,$result);
     $result = tuple;
 }
-
-%extend ACCLoader {
-/*
-  The 'this' keyword in SWIG is replaced by the 'self' keyword.
-  In versions >= 1.3.30 it is recommented to use '$self' instead of 'self', but 'self' will work in any 1.3.x version.
-*/
-  Arc::Broker * getBroker(const std::string& brokername) { return dynamic_cast<Arc::Broker*>( self->getACC(brokername) ); }
-  Arc::Broker * loadBroker(const std::string& brokername, const XMLNode * cfg) { return dynamic_cast<Arc::Broker*>( self->loadACC(brokername, cfg) ); }
-  Arc::JobController * getJobController(const std::string& jobcontrollername) { return dynamic_cast<Arc::JobController*>( self->getACC(jobcontrollername) ); }
-  Arc::JobController * loadJobController(const std::string& jobcontrollername, const XMLNode * cfg) { return dynamic_cast<Arc::JobController*>( self->loadACC(jobcontrollername, cfg) ); }
-}
 }
 #endif
 
@@ -84,8 +71,6 @@ std::ostream& getStdout() {
 #endif
 
 
-%include "../src/hed/libs/client/ACC.h"
-%include "../src/hed/libs/client/ACCLoader.h"
 %include "../src/hed/libs/client/ClientInterface.h"
 %apply std::string& INOUT { std::string& delegation_id };
 %include "../src/hed/libs/client/ClientX509Delegation.h"

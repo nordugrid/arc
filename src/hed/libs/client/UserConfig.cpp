@@ -28,13 +28,14 @@ namespace Arc {
   typedef std::vector<std::string> strv_t;
 
   std::list<std::string> UserConfig::resolvedAlias;
-  
-  const std::string UserConfig::DEFAULT_BROKER = "RandomBroker";
+
+  const std::string UserConfig::DEFAULT_BROKER = "Random";
 
   UserConfig::UserConfig(bool initializeCredentials) {
     if (initializeCredentials) {
       InitializeCredentials();
-      if (!CredentialsFound()) return;
+      if (!CredentialsFound())
+        return;
     }
 
     ok = true;
@@ -48,13 +49,16 @@ namespace Arc {
   }
 
   UserConfig::UserConfig(const std::string& file, bool initializeCredentials)
-    : conffile(file), userSpecifiedJobList(false), ok(false) {
+    : conffile(file),
+      userSpecifiedJobList(false),
+      ok(false) {
     if (!loadUserConfiguration(file))
       return;
 
     if (initializeCredentials) {
       InitializeCredentials();
-      if (!CredentialsFound()) return;
+      if (!CredentialsFound())
+        return;
     }
 
     ok = true;
@@ -63,8 +67,10 @@ namespace Arc {
   }
 
   UserConfig::UserConfig(const std::string& file, const std::string& jfile, bool initializeCredentials)
-    : conffile(file), joblistfile(jfile), userSpecifiedJobList(!jfile.empty()), ok(false)
-  {
+    : conffile(file),
+      joblistfile(jfile),
+      userSpecifiedJobList(!jfile.empty()),
+      ok(false) {
     if (!loadUserConfiguration(file))
       return;
 
@@ -99,13 +105,14 @@ namespace Arc {
     else if (!S_ISREG(st.st_mode)) {
       logger.msg(ERROR, "ARC job list file is not a regular file: %s",
                  joblistfile);
-        return;
+      return;
     }
 
 
     if (initializeCredentials) {
       InitializeCredentials();
-      if (!CredentialsFound()) return;
+      if (!CredentialsFound())
+        return;
     }
 
     ok = true;
@@ -150,8 +157,7 @@ namespace Arc {
     cfg["TimeOut"] = tostring(timeOut);
   }
 
-  void UserConfig::SetBroker(const std::string& broker)
-  {
+  void UserConfig::SetBroker(const std::string& broker) {
     if (!cfg["Broker"])
       cfg.NewChild("Broker");
     if (!cfg["Broker"]["Name"])
@@ -160,15 +166,14 @@ namespace Arc {
     const std::string::size_type pos = broker.find(":");
 
     cfg["Broker"]["Name"] = broker.substr(0, pos);
-    
-    if (pos != std::string::npos && pos != broker.size()-1) {
+
+    if (pos != std::string::npos && pos != broker.size() - 1) {
       if (!cfg["Broker"]["Arguments"])
         cfg["Broker"].NewChild("Arguments");
-      cfg["Broker"]["Arguments"] = broker.substr(pos+1);
+      cfg["Broker"]["Arguments"] = broker.substr(pos + 1);
     }
-    else if (cfg["Broker"]["Arguments"]) {
+    else if (cfg["Broker"]["Arguments"])
       cfg["Broker"]["Arguments"] = "";
-    }
   }
 
   bool UserConfig::DefaultServices(URLListMap& cluster,
@@ -241,20 +246,18 @@ namespace Arc {
     logger.msg(INFO, "Resolving alias: %s", alias);
 
     for (std::list<std::string>::iterator it = resolvedAlias.begin();
-         it != resolvedAlias.end(); it++) {
+         it != resolvedAlias.end(); it++)
       if (*it == alias) {
         std::string loopstr = "";
         for (std::list<std::string>::iterator itloop = resolvedAlias.begin();
-             itloop != resolvedAlias.end(); itloop++) {
+             itloop != resolvedAlias.end(); itloop++)
           loopstr += *itloop + " -> ";
-        }
         loopstr += alias;
         logger.msg(ERROR, "Cannot resolve alias \"%s\". Loop detected: %s", *resolvedAlias.begin(), alias);
-        
+
         resolvedAlias.clear();
         return false;
       }
-    }
 
     XMLNodeList aliaslist = cfg.XPathLookup("//AliasList/Alias[@name='" +
                                             alias + "']", NS());
@@ -459,7 +462,7 @@ namespace Arc {
       }
     }
     else if (!(certificatePath = GetEnv("X509_USER_CERT")).empty() &&
-             !(keyPath         = GetEnv("X509_USER_KEY" )).empty()) {
+             !(keyPath = GetEnv("X509_USER_KEY")).empty()) {
       if (stat(certificatePath.c_str(), &st) != 0) {
         logger.msg(ERROR, "Can not access certificate file: %s (%s)",
                    certificatePath, StrError());
@@ -492,7 +495,7 @@ namespace Arc {
       }
     }
     else if (!(certificatePath = (std::string)cfg["CertificatePath"]).empty() &&
-             !(keyPath         = (std::string)cfg["KeyPath"]        ).empty()) {
+             !(keyPath = (std::string)cfg["KeyPath"]).empty()) {
       if (stat(certificatePath.c_str(), &st) != 0) {
         logger.msg(ERROR, "Can not access certificate file: %s (%s)",
                    certificatePath, StrError());
@@ -513,7 +516,7 @@ namespace Arc {
         keyPath.clear();
       }
     }
-    else if (stat((proxyPath = Glib::build_filename(Glib::get_tmp_dir(), std::string("x509up_u") + tostring(user.get_uid()))).c_str(), &st) == 0) { 
+    else if (stat((proxyPath = Glib::build_filename(Glib::get_tmp_dir(), std::string("x509up_u") + tostring(user.get_uid()))).c_str(), &st) == 0) {
       if (!S_ISREG(st.st_mode)) {
         logger.msg(ERROR, "Proxy is not a file: %s", proxyPath);
         proxyPath.clear();
@@ -545,7 +548,7 @@ namespace Arc {
         logger.msg(ERROR, "Certificate is not a file: %s", certificatePath);
         certificatePath.clear();
       }
-            
+
       if (user.get_uid() == 0) {
         strv_t hostkey(3);
         hostkey[0] = "etc";
@@ -619,7 +622,7 @@ namespace Arc {
         caCertificatesDir.clear();
       }
     }
-    else if (stat((caCertificatesDir = Arc::ArcLocation::Get() + G_DIR_SEPARATOR_S + "share"  + G_DIR_SEPARATOR_S + "certificates").c_str(), &st) == 0) {
+    else if (stat((caCertificatesDir = Arc::ArcLocation::Get() + G_DIR_SEPARATOR_S + "share" + G_DIR_SEPARATOR_S + "certificates").c_str(), &st) == 0) {
       if (!S_ISDIR(st.st_mode)) {
         logger.msg(ERROR, "CA certificate directory is not a directory: %s", caCertificatesDir);
         caCertificatesDir.clear();
@@ -649,13 +652,12 @@ namespace Arc {
       logger.msg(INFO, "Using certificate file: %s", certificatePath);
       logger.msg(INFO, "Using key file: %s", keyPath);
 
-    if (!caCertificatesDir.empty())
-      logger.msg(INFO, "Using CA certificate directory: %s", caCertificatesDir);
+      if (!caCertificatesDir.empty())
+        logger.msg(INFO, "Using CA certificate directory: %s", caCertificatesDir);
     }
   }
 
-  bool UserConfig::loadUserConfiguration(const std::string& file)
-  {
+  bool UserConfig::loadUserConfiguration(const std::string& file) {
     struct stat st;
 
     strv_t confdirPath(2);
@@ -677,7 +679,8 @@ namespace Arc {
                    conffile, StrError());
         return false;
       }
-      else conffile.clear();
+      else
+        conffile.clear();
     }
     else if (!S_ISREG(st.st_mode)) {
       if (conffile == file) {
@@ -685,7 +688,8 @@ namespace Arc {
                    conffile);
         return false;
       }
-      else conffile.clear();
+      else
+        conffile.clear();
     }
 
     // First try to load system client configuration.
@@ -698,9 +702,8 @@ namespace Arc {
 
     if (!conffile.empty()) {
       Config ucfg;
-      if (!ucfg.ReadFromFile(conffile)) {
+      if (!ucfg.ReadFromFile(conffile))
         logger.msg(WARNING, "Could not load user client configuration");
-      }
       else {
         // Merge system and user configuration
         XMLNode child;
@@ -708,35 +711,32 @@ namespace Arc {
           if (child.Name() != "AliasList") {
             if (cfg[child.Name()])
               cfg[child.Name()].Replace(child);
-            else 
+            else
               cfg.NewChild(child);
           }
           else {
             if (!cfg["AliasList"])
               cfg.NewChild(child);
-            else 
+            else
               // Look for duplicates. If duplicates exist, keep those defined in
               // the user configuration file.
               for (XMLNode alias = child["Alias"]; alias; ++alias) { // Loop over Alias nodes in user configuration file.
                 XMLNodeList aliasList = cfg.XPathLookup("//AliasList/Alias[@name='" + (std::string)alias.Attribute("name") + "']", NS());
-                if (!aliasList.empty()) {
+                if (!aliasList.empty())
                   // Remove duplicates.
-                  for (XMLNodeList::iterator node = aliasList.begin(); node != aliasList.end(); node++) {
+                  for (XMLNodeList::iterator node = aliasList.begin(); node != aliasList.end(); node++)
                     node->Destroy();
-                  }
-                }
                 cfg["AliasList"].NewChild(alias);
               }
           }
         }
       }
     }
-    
+
     return true;
   }
 
-  void UserConfig::setDefaults()
-  {
+  void UserConfig::setDefaults() {
     if (!cfg["TimeOut"])
       cfg.NewChild("TimeOut") = tostring(DEFAULT_TIMEOUT);
     else if (((std::string)cfg["TimeOut"]).empty() || stringtoi((std::string)cfg["TimeOut"]) <= 0)

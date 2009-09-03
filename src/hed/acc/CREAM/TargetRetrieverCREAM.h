@@ -17,7 +17,7 @@ namespace Arc {
   class TargetRetrieverCREAM
     : public TargetRetriever {
   private:
-    TargetRetrieverCREAM(Config *cfg);
+    TargetRetrieverCREAM(const Config& cfg, const UserConfig& usercfg);
   public:
     ~TargetRetrieverCREAM();
     void GetTargets(TargetGenerator& mom, int targetType, int detailLevel);

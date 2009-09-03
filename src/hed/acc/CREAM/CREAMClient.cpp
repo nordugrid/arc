@@ -60,11 +60,11 @@ namespace Arc {
       results.push_back(str);
   }
 
-  std::string ExtendNumber(int i){
-     std::string tmp_input = tostring(i);
-     if (tmp_input.length() == 1)
-       tmp_input = "0" + tmp_input;
-     return tmp_input;
+  std::string ExtendNumber(int i) {
+    std::string tmp_input = tostring(i);
+    if (tmp_input.length() == 1)
+      tmp_input = "0" + tmp_input;
+    return tmp_input;
   }
 
   //This funtion is convert from the Proxy time to valid Time string.
@@ -142,7 +142,7 @@ namespace Arc {
     std::ostringstream oss;
     oss << year << "-" << ExtendNumber(month) << "-" << ExtendNumber(day) << "T" << ExtendNumber(hour) << ":" << ExtendNumber(min) << ":00.000Z";
     std::string result(oss.str());
- 
+
     return result;
   }
 
@@ -157,7 +157,9 @@ namespace Arc {
   }
 
   CREAMClient::CREAMClient(const URL& url, const MCCConfig& cfg)
-    : client(NULL), cafile(cfg.cafile), cadir(cfg.cadir) {
+    : client(NULL),
+      cafile(cfg.cafile),
+      cadir(cfg.cadir) {
     logger.msg(INFO, "Creating a CREAM client");
     client = new ClientSOAP(cfg, url);
     set_cream_namespaces(cream_ns);

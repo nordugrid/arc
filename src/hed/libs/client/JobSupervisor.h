@@ -7,11 +7,10 @@
 #include <string>
 
 #include <arc/URL.h>
+#include <arc/client/JobController.h>
 
 namespace Arc {
 
-  class JobController;
-  class ACCLoader;
   class Logger;
   class UserConfig;
 
@@ -25,13 +24,12 @@ namespace Arc {
     ~JobSupervisor();
 
     const std::list<JobController*>& GetJobControllers() {
-      return jobcontrollers;
+      return loader.GetJobControllers();
     }
 
   private:
     static Logger logger;
-    ACCLoader *loader;
-    std::list<JobController*> jobcontrollers;
+    JobControllerLoader loader;
   };
 
 } //namespace ARC

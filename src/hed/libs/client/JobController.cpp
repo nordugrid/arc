@@ -15,23 +15,30 @@
 #include <arc/ArcConfig.h>
 #include <arc/FileLock.h>
 #include <arc/IString.h>
+#include <arc/StringConv.h>
 #include <arc/XMLNode.h>
+#include <arc/client/Broker.h>
 #include <arc/client/ExecutionTarget.h>
 #include <arc/client/Submitter.h>
+#include <arc/client/TargetGenerator.h>
 #include <arc/client/UserConfig.h>
 #include <arc/data/DataMover.h>
 #include <arc/data/DataHandle.h>
 #include <arc/data/FileCache.h>
 #include <arc/data/URLMap.h>
+#include <arc/loader/FinderLoader.h>
 #include "JobController.h"
 
 namespace Arc {
 
   Logger JobController::logger(Logger::getRootLogger(), "JobController");
 
-  JobController::JobController(Config *cfg, const std::string& flavour)
-    : ACC(cfg, flavour),
-      joblist((*cfg)["JobList"]) {}
+  JobController::JobController(const Config& cfg,
+                               const UserConfig& usercfg,
+                               const std::string& flavour)
+    : flavour(flavour),
+      usercfg(usercfg),
+      joblist((cfg)["JobList"]) {}
 
   JobController::~JobController() {}
 
@@ -186,8 +193,8 @@ namespace Arc {
                flavour, jobstore.size());
   }
 
-  void JobController::FillJobStore(const Job& job)
-  {
+  void JobController::FillJobStore(const Job& job) {
+
     if (job.Flavour != flavour) {
       logger.msg(WARNING, "The middleware flavour of the job (%s) does not match that of the job controller (%s)", job.Flavour, flavour);
       return;
@@ -231,7 +238,7 @@ namespace Arc {
 
       if (it->State == JobState::DELETED) {
         logger.msg(WARNING, "Job has already been deleted: %s",
-         it->JobID.str());
+                   it->JobID.str());
         continue;
       }
       else if (!it->State.IsFinished()) {
@@ -264,7 +271,8 @@ namespace Arc {
       }
     }
 
-    if (toberemoved.size() > 0) RemoveJobs(toberemoved);
+    if (toberemoved.size() > 0)
+      RemoveJobs(toberemoved);
 
     return ok;
   }
@@ -325,7 +333,8 @@ namespace Arc {
       }
     }
 
-    if (toberemoved.size() > 0) RemoveJobs(toberemoved);
+    if (toberemoved.size() > 0)
+      RemoveJobs(toberemoved);
 
     return ok;
   }
@@ -382,7 +391,8 @@ namespace Arc {
       toberemoved.push_back((*it)->JobID);
     }
 
-    if (toberemoved.size() > 0) RemoveJobs(toberemoved);
+    if (toberemoved.size() > 0)
+      RemoveJobs(toberemoved);
 
     return ok;
   }
@@ -434,31 +444,31 @@ namespace Arc {
     bool ok = true;
     for (std::list<Job*>::iterator it = catable.begin();
          it != catable.end(); it++) {
-       std::string filename = Glib::build_filename(Glib::get_tmp_dir(), "arccat.XXXXXX");
-       int tmp_h = Glib::mkstemp(filename);
-       if (tmp_h == -1) {
-          logger.msg(ERROR, "Could not create temporary file \"%s\"", filename);
-          ok = false;
-          continue;
-       }
-       close(tmp_h);
+      std::string filename = Glib::build_filename(Glib::get_tmp_dir(), "arccat.XXXXXX");
+      int tmp_h = Glib::mkstemp(filename);
+      if (tmp_h == -1) {
+        logger.msg(ERROR, "Could not create temporary file \"%s\"", filename);
+        ok = false;
+        continue;
+      }
+      close(tmp_h);
 
-       URL src = GetFileUrlForJob((**it), whichfile);
-       URL dst(filename);
-       bool copied = ARCCopyFile(src, dst);
+      URL src = GetFileUrlForJob((**it), whichfile);
+      URL dst(filename);
+      bool copied = ARCCopyFile(src, dst);
 
-       if (copied) {
-          std::cout << IString("%s from job %s", whichfile,
+      if (copied) {
+        std::cout << IString("%s from job %s", whichfile,
                              (*it)->JobID.str()) << std::endl;
-          std::ifstream is(filename.c_str());
-          char c;
-          while (is.get(c))
-            std::cout.put(c);
-            is.close();
-            unlink(filename.c_str());
-       }
-       else
-          ok = false;
+        std::ifstream is(filename.c_str());
+        char c;
+        while (is.get(c))
+          std::cout.put(c);
+        is.close();
+        unlink(filename.c_str());
+      }
+      else
+        ok = false;
     }
 
     return ok;
@@ -510,7 +520,7 @@ namespace Arc {
       broker->PreFilterTargets(targetGen.ModifyFoundTargets(), jobDesc);
       // Try to submit modified JSDL. Only to ARC1 clusters.
       while (true) {
-        const ExecutionTarget* currentTarget = broker->GetBestTarget();
+        const ExecutionTarget *currentTarget = broker->GetBestTarget();
         if (!currentTarget) {
           logger.msg(ERROR, "Job migration failed, for job %s, no more possible targets", itJob->JobID.str());
           retVal = false;
@@ -536,7 +546,8 @@ namespace Arc {
       } // Loop over all possible targets
     } // Loop over jobs
 
-    if (toberemoved.size() > 0) RemoveJobs(toberemoved);   // Saves file aswell.
+    if (toberemoved.size() > 0)
+      RemoveJobs(toberemoved);                             // Saves file aswell.
 
     return retVal;
   }
@@ -624,9 +635,11 @@ namespace Arc {
     std::list<std::string> files;
     std::list<FileInfo> outputfiles;
 
+    NS ns;
+    XMLNode ccfg(ns, "UserCfg");
+    usercfg.ApplyToConfig(ccfg);
     DataHandle handle(dir);
-    handle->AssignCredentials(proxyPath, certificatePath,
-                              keyPath, caCertificatesDir);
+    handle->AssignCredentials(ccfg);
     handle->ListFiles(outputfiles, true, false, false);
 
     for (std::list<FileInfo>::iterator i = outputfiles.begin();
@@ -668,13 +681,16 @@ namespace Arc {
     logger.msg(DEBUG, "Now copying (from -> to)");
     logger.msg(DEBUG, " %s -> %s", src.str(), dst.str());
 
+    NS ns;
+    XMLNode ccfg(ns, "UserCfg");
+    usercfg.ApplyToConfig(ccfg);
+
     DataHandle source(src);
     if (!source) {
       logger.msg(ERROR, "Failed to get DataHandle on source: %s", src.str());
       return false;
     }
-    source->AssignCredentials(proxyPath, certificatePath,
-                              keyPath, caCertificatesDir);
+    source->AssignCredentials(ccfg);
 
     DataHandle destination(dst);
     if (!destination) {
@@ -682,12 +698,11 @@ namespace Arc {
                  dst.str());
       return false;
     }
-    destination->AssignCredentials(proxyPath, certificatePath,
-                                   keyPath, caCertificatesDir);
+    destination->AssignCredentials(ccfg);
 
     FileCache cache;
     DataStatus res = mover.Transfer(*source, *destination, cache, URLMap(),
-                                    0, 0, 0, timeout);
+                                    0, 0, 0, stringtoi(ccfg["TimeOut"]));
     if (!res.Passed()) {
       if (!res.GetDesc().empty())
         logger.msg(ERROR, "File download failed: %s - %s", std::string(res), res.GetDesc());
@@ -849,4 +864,37 @@ namespace Arc {
     } //end loop over jobs
     return;
   }
+
+  JobControllerLoader::JobControllerLoader()
+    : Loader(BaseConfig().MakeConfig(Config()).Parent()) {}
+
+  JobControllerLoader::~JobControllerLoader() {
+    for (std::list<JobController*>::iterator it = jobcontrollers.begin();
+         it != jobcontrollers.end(); it++)
+      delete *it;
+  }
+
+  JobController* JobControllerLoader::load(const std::string& name,
+                                           const Config& cfg,
+                                           const UserConfig& usercfg) {
+    if (name.empty())
+      return NULL;
+
+    PluginList list = FinderLoader::GetPluginList("HED:JobController");
+    factory_->load(list[name], "HED:JobController");
+
+    JobControllerPluginArgument arg(cfg, usercfg);
+    JobController *jobcontroller =
+      factory_->GetInstance<JobController>("HED:JobController", name, &arg);
+
+    if (!jobcontroller) {
+      logger.msg(ERROR, "JobController %s could not be created", name);
+      return NULL;
+    }
+
+    jobcontrollers.push_back(jobcontroller);
+    logger.msg(INFO, "Loaded JobController %s", name);
+    return jobcontroller;
+  }
+
 } // namespace Arc

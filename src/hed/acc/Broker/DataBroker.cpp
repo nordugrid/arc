@@ -4,12 +4,15 @@
 #include <config.h>
 #endif
 
-#include <arc/client/ClientInterface.h>
-#include <arc/URL.h>
-#include <arc/message/PayloadSOAP.h>
-#include <arc/message/MCC.h>
-#include <arc/StringConv.h>
 #include <algorithm>
+
+#include <arc/StringConv.h>
+#include <arc/URL.h>
+#include <arc/client/ClientInterface.h>
+#include <arc/client/ExecutionTarget.h>
+#include <arc/client/UserConfig.h>
+#include <arc/message/MCC.h>
+#include <arc/message/PayloadSOAP.h>
 
 #include "DataBroker.h"
 
@@ -20,10 +23,9 @@ namespace Arc {
   bool DataBroker::CacheCheck(void) {
 
     MCCConfig cfg;
-    NS ns;
+    usercfg.ApplyToConfig(cfg);
 
-    ApplySecurity(cfg);
-    
+    NS ns;
     PayloadSOAP request(ns);
     XMLNode req = request.NewChild("CacheCheck").NewChild("TheseFilesNeedToCheck");
 
@@ -67,21 +69,20 @@ namespace Arc {
     return true;
   }
 
-  bool DataCompare(const ExecutionTarget* T1, const ExecutionTarget* T2) {
+  bool DataCompare(const ExecutionTarget *T1, const ExecutionTarget *T2) {
     return CacheMappingTable[T1->url.fullstr()] > CacheMappingTable[T2->url.fullstr()];
   }
 
-  DataBroker::DataBroker(Config *cfg)
-    : Broker(cfg) {}
+  DataBroker::DataBroker(const Config& cfg, const UserConfig& usercfg)
+    : Broker(cfg, usercfg) {}
 
   DataBroker::~DataBroker() {}
 
   Plugin* DataBroker::Instance(PluginArgument *arg) {
-    ACCPluginArgument *accarg =
-      arg ? dynamic_cast<ACCPluginArgument*>(arg) : NULL;
-    if (!accarg)
+    BrokerPluginArgument *brokerarg = dynamic_cast<BrokerPluginArgument*>(arg);
+    if (!brokerarg)
       return NULL;
-    return new DataBroker((Config*)(*accarg));
+    return new DataBroker(*brokerarg, *brokerarg);
   }
 
   void DataBroker::SortTargets() {

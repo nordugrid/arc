@@ -12,7 +12,7 @@ namespace Arc {
     : public Broker {
 
   public:
-    PythonBroker(Config *cfg);
+    PythonBroker(const Config& cfg, const UserConfig& usercfg);
     virtual ~PythonBroker();
     static Plugin* Instance(PluginArgument *arg);
 

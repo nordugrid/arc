@@ -5,19 +5,20 @@
 #endif
 
 #include <algorithm>
-#include <list>
 
-#include <arc/client/Broker.h>
 #include <arc/StringConv.h>
+#include <arc/client/Broker.h>
+#include <arc/client/ExecutionTarget.h>
+#include <arc/loader/FinderLoader.h>
 
 namespace Arc {
 
-  Logger Broker::logger(Logger::getRootLogger(), "broker");
+  Logger Broker::logger(Logger::getRootLogger(), "Broker");
 
-  Broker::Broker(Config *cfg)
-    : ACC(cfg),
+  Broker::Broker(const Config& cfg, const UserConfig& usercfg)
+    : usercfg(usercfg),
       TargetSortingDone(false),
-      job(NULL) {}
+      job() {}
 
   Broker::~Broker() {}
 
@@ -37,7 +38,7 @@ namespace Arc {
           logger.msg(DEBUG, "Matchmaking, ExecutionTarget:  MappingQueue is not defined");
 
         bool dropTarget = true;
-        
+
         if (!target->url.Host().empty() || !target->MappingQueue.empty()) {
           for (std::list<ResourceTargetType>::const_iterator it = job->Resources.CandidateTarget.begin();
                it != job->Resources.CandidateTarget.end(); it++) {
@@ -53,7 +54,7 @@ namespace Arc {
               logger.msg(DEBUG, "Matchmaking problem, MappingQueue of ExecutionTarget is not advertised, and a queue (%s) have been requested.", it->QueueName);
               break;
             }
-            
+
             if (!it->EndPointURL.Host().empty() &&
                 target->url.Host() == it->EndPointURL.Host()) { // Example: knowarc1.grid.niif.hu
               dropTarget = false;
@@ -66,7 +67,7 @@ namespace Arc {
               break;
             }
           }
-          
+
           if (dropTarget) {
             logger.msg(DEBUG, "Matchmaking problem, ExecutionTarget does not satisfy any of the CandidateTargets.");
             continue;
@@ -387,22 +388,23 @@ namespace Arc {
   }
 
   const ExecutionTarget* Broker::GetBestTarget() {
-    if (PossibleTargets.size() <= 0 || current == PossibleTargets.end()) {
+    if (PossibleTargets.size() <= 0 || current == PossibleTargets.end())
       return NULL;
-    }
 
     if (!TargetSortingDone) {
       logger.msg(VERBOSE, "Target sorting not done, sorting them now");
       SortTargets();
       current = PossibleTargets.begin();
     }
-    else current++;
+    else
+      current++;
 
     return (current != PossibleTargets.end() ? *current : NULL);
   }
 
   void Broker::RegisterJobsubmission() {
-    if (!job || current == PossibleTargets.end()) return;
+    if (!job || current == PossibleTargets.end())
+      return;
     if ((*current)->FreeSlots >= job->Resources.SlotRequirement.NumberOfSlots) {   //The job will start directly
       (*current)->FreeSlots -= job->Resources.SlotRequirement.NumberOfSlots;
       if ((*current)->UsedSlots != -1)
@@ -412,4 +414,36 @@ namespace Arc {
       if ((*current)->WaitingJobs != -1)
         (*current)->WaitingJobs += job->Resources.SlotRequirement.NumberOfSlots;
   }
+
+  BrokerLoader::BrokerLoader()
+    : Loader(BaseConfig().MakeConfig(Config()).Parent()) {}
+
+  BrokerLoader::~BrokerLoader() {
+    for (std::list<Broker*>::iterator it = brokers.begin();
+         it != brokers.end(); it++)
+      delete *it;
+  }
+
+  Broker* BrokerLoader::load(const std::string& name,
+                             const Config& cfg,
+                             const UserConfig& usercfg) {
+    if (name.empty())
+      return NULL;
+
+    PluginList list = FinderLoader::GetPluginList("HED:Broker");
+    factory_->load(list[name], "HED:Broker");
+
+    BrokerPluginArgument arg(cfg, usercfg);
+    Broker *broker = factory_->GetInstance<Broker>("HED:Broker", name, &arg);
+
+    if (!broker) {
+      logger.msg(ERROR, "Broker %s could not be created", name);
+      return NULL;
+    }
+
+    brokers.push_back(broker);
+    logger.msg(INFO, "Loaded Broker %s", name);
+    return broker;
+  }
+
 } // namespace Arc

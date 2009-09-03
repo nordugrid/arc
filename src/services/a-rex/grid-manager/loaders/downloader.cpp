@@ -15,9 +15,9 @@
 #include <errno.h>
 
 #include <arc/XMLNode.h>
-#include <arc/client/ACCLoader.h>
 #include <arc/client/Job.h>
 #include <arc/client/JobController.h>
+#include <arc/client/UserConfig.h>
 #include <arc/data/DMC.h>
 #include <arc/data/CheckSum.h>
 #include <arc/data/FileCache.h>
@@ -706,10 +706,11 @@ int main(int argc,char** argv) {
         job.JobID = Arc::URL(desc.get_local()->migrateactivityid);
         job.Cluster = Arc::URL(desc.get_local()->migrateactivityid.substr(0, found));
 
-        Arc::UserConfig cfg(true);
+        Arc::Config cfg;
+        Arc::UserConfig usercfg(true);
 
-        Arc::ACCLoader loader;
-        Arc::JobController *jobctrl = dynamic_cast<Arc::JobController*>(loader.loadACC("JobControllerARC1", &cfg.ConfTree()));
+        Arc::JobControllerLoader loader;
+        Arc::JobController *jobctrl = loader.load("ARC1", cfg, usercfg);
         if (jobctrl) {
           jobctrl->FillJobStore(job);
 

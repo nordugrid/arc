@@ -11,14 +11,13 @@ namespace Arc {
     : public Broker {
 
   public:
-    BenchmarkBroker(Config *cfg);
+    BenchmarkBroker(const Config& cfg, const UserConfig& usercfg);
     ~BenchmarkBroker();
     static Plugin* Instance(PluginArgument *arg);
 
   protected:
     void SortTargets();
     std::string benchmark;
-
   };
 
 } // namespace Arc

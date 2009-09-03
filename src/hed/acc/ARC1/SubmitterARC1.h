@@ -19,7 +19,7 @@ namespace Arc {
   private:
     static Logger logger;
 
-    SubmitterARC1(Config *cfg);
+    SubmitterARC1(const Config& cfg, const UserConfig& usercfg);
     ~SubmitterARC1();
 
   public:

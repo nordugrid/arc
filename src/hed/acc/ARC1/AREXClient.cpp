@@ -80,9 +80,9 @@ namespace Arc {
       delete client;
   }
 
-  bool AREXClient::process(PayloadSOAP& req, PayloadSOAP** resp, bool delegate) {
+  bool AREXClient::process(PayloadSOAP& req, PayloadSOAP **resp, bool delegate) {
     logger.msg(DEBUG, "Processing a %s request", req.Child(0).FullName());
-    if (WSAHeader(req).Action() != "") 
+    if (WSAHeader(req).Action() != "")
       logger.msg(DEBUG, "Action: %s", WSAHeader(req).Action());
 
     // Try to figure out which credentials are used
@@ -197,7 +197,7 @@ namespace Arc {
          bes-factory:ActivityDocument
            jsdl:JobDefinition
      */
-    
+
     PayloadSOAP req(arex_ns);
     XMLNode op = req.NewChild("bes-factory:CreateActivity");
     XMLNode act_doc = op.NewChild("bes-factory:ActivityDocument");
@@ -209,7 +209,7 @@ namespace Arc {
     logger.msg(VERBOSE, "Job description to be sent: %s", jobdesc);
 
     PayloadSOAP *resp = NULL;
-    
+
     if (!process(req, &resp, delegate))
       return false;
 
@@ -244,7 +244,7 @@ namespace Arc {
     jobref.NewAttribute("Dialect") = "http://www.w3.org/TR/1999/REC-xpath-19991116";
 
     std::string jobidnumber = (std::string)(XMLNode(jobid)["ReferenceParameters"]["JobID"]);
-    jobref = "//glue:Services/glue:ComputingService/glue:ComputingActivities/glue:ComputingActivity/glue:ID[contains(.,'"+jobidnumber+"')]/..";
+    jobref = "//glue:Services/glue:ComputingService/glue:ComputingActivities/glue:ComputingActivity/glue:ID[contains(.,'" + jobidnumber + "')]/..";
 
     WSAHeader(req).To(rurl.str());
     WSAHeader(req).Action("http://docs.oasis-open.org/wsrf/rpw-2"
@@ -284,8 +284,9 @@ namespace Arc {
           continue;
         }
         const std::string model = rawState.substr(0, pos);
-        const std::string state = rawState.substr(pos+1);
-        if (model == mainStateModel) job.State = JobStateARC1(state);
+        const std::string state = rawState.substr(pos + 1);
+        if (model == mainStateModel)
+          job.State = JobStateARC1(state);
         job.AuxStates[model] = state;
       }
 
@@ -296,68 +297,50 @@ namespace Arc {
 
       //The job is found and data about it can be collected
 
-      if (jobNode["ComputingManagerEndTime"]){
-        job.ComputingManagerEndTime=Time((std::string)jobNode["ComputingManagerEndTime"]);
-      }
-      else {
+      if (jobNode["ComputingManagerEndTime"])
+        job.ComputingManagerEndTime = Time((std::string)jobNode["ComputingManagerEndTime"]);
+      else
         logger.msg(INFO, "The job doesn't advertise a computing manager end time");
-      }
 
-      if (jobNode["ComputingManagerSubmissionTime"]){
-        job.ComputingManagerSubmissionTime=Time((std::string)jobNode["ComputingManagerSubmissionTime"]);
-      }
-      else {
+      if (jobNode["ComputingManagerSubmissionTime"])
+        job.ComputingManagerSubmissionTime = Time((std::string)jobNode["ComputingManagerSubmissionTime"]);
+      else
         logger.msg(INFO, "The job doesn't advertise a computing manager submission time");
-      }
 
-      if (jobNode["CreationTime"]){
-        job.CreationTime=Time((std::string)jobNode["CreationTime"]);
-      }
-      else {
+      if (jobNode["CreationTime"])
+        job.CreationTime = Time((std::string)jobNode["CreationTime"]);
+      else
         logger.msg(INFO, "The job doesn't advertise a creation time");
-      }
 
-      if (jobNode["EndTime"]){
-        job.EndTime=Time((std::string)jobNode["EndTime"]);
-      }
-      else {
+      if (jobNode["EndTime"])
+        job.EndTime = Time((std::string)jobNode["EndTime"]);
+      else
         logger.msg(INFO, "The job doesn't advertise an end time");
-      }
 
-      if (jobNode["LocalSubmissionTime"]){
-        job.LocalSubmissionTime=Time((std::string)jobNode["LocalSubmissionTime"]);
-      }
-      else {
+      if (jobNode["LocalSubmissionTime"])
+        job.LocalSubmissionTime = Time((std::string)jobNode["LocalSubmissionTime"]);
+      else
         logger.msg(INFO, "The job doesn't advertise a local submission time");
-      }
 
-      if (jobNode["ProxyExpirationTime"]){
-        job.ProxyExpirationTime=Time((std::string)jobNode["ProxyExpirationTime"]);
-      }
-      else {
+      if (jobNode["ProxyExpirationTime"])
+        job.ProxyExpirationTime = Time((std::string)jobNode["ProxyExpirationTime"]);
+      else
         logger.msg(INFO, "The job doesn't advertise a proxy expiration time");
-      }
 
-      if (jobNode["StartTime"]){
-        job.StartTime=Time((std::string)jobNode["StartTime"]);
-      }
-      else {
+      if (jobNode["StartTime"])
+        job.StartTime = Time((std::string)jobNode["StartTime"]);
+      else
         logger.msg(INFO, "The job doesn't advertise a start time");
-      }
 
-      if (jobNode["SubmissionTime"]){
-        job.SubmissionTime=Time((std::string)jobNode["SubmissionTime"]);
-      }
-      else {
+      if (jobNode["SubmissionTime"])
+        job.SubmissionTime = Time((std::string)jobNode["SubmissionTime"]);
+      else
         logger.msg(INFO, "The job doesn't advertise a submission time");
-      }
 
-      if (jobNode["WorkingAreaEraseTime"]){
-        job.WorkingAreaEraseTime=Time((std::string)jobNode["WorkingAreaEraseTime"]);
-      }
-      else {
+      if (jobNode["WorkingAreaEraseTime"])
+        job.WorkingAreaEraseTime = Time((std::string)jobNode["WorkingAreaEraseTime"]);
+      else
         logger.msg(INFO, "The job doesn't advertise a working area erase time");
-      }
 
       return true;
     }
@@ -424,8 +407,8 @@ namespace Arc {
       return false;
     }
 
-    SOAPFault* fault = resp->Fault();
-    if(fault) {
+    SOAPFault *fault = resp->Fault();
+    if (fault) {
       logger.msg(ERROR, "The response to a service status request "
                  "is Fault message: " + fault->Reason());
       return false;
@@ -444,7 +427,7 @@ namespace Arc {
     logger.msg(INFO, "Creating and sending an index service query");
 
     NS isis_ns;
-    isis_ns["isis"]="http://www.nordugrid.org/schemas/isis/2007/06";
+    isis_ns["isis"] = "http://www.nordugrid.org/schemas/isis/2007/06";
     PayloadSOAP req(isis_ns);
     XMLNode query = req.NewChild("isis:Query").NewChild("isis:QueryString");
     query = "/RegEntry/SrcAdv[Type=\"org.nordugrid.execution.arex\"]";
@@ -507,27 +490,25 @@ namespace Arc {
 
 
     if (XMLNode n = resp->Body()["QueryResponse"]["RegEntry"])
-        for (; n; ++n) {
-          //std::string nodeString;
-          //n.GetXML(nodeString,true);
-          //std::cout << "\n##begin service##\n" << nodeString << "\n##end service###\n";
-          if ((std::string)n["SrcAdv"]["Type"] == "org.nordugrid.execution.arex"){
-            //This check is right now superfluos but in the future a wider query might be used
-            NS ns;
-            Config cfg(ns);
-            XMLNode URLXML = cfg.NewChild("URL") = (std::string)n["SrcAdv"]["EPR"]["Address"];
-            URLXML.NewAttribute("ServiceType") = "computing";
-            services.push_back(cfg);
-          }
-          else {
-            logger.msg(INFO,
-                   "Service %s of type %s ignored", (std::string)n["MetaSrcAdv"]["ServiceID"], (std::string)n["SrcAdv"]["Type"]);
-          }
+      for (; n; ++n) {
+        //std::string nodeString;
+        //n.GetXML(nodeString,true);
+        //std::cout << "\n##begin service##\n" << nodeString << "\n##end service###\n";
+        if ((std::string)n["SrcAdv"]["Type"] == "org.nordugrid.execution.arex") {
+          //This check is right now superfluos but in the future a wider query might be used
+          NS ns;
+          Config cfg(ns);
+          XMLNode URLXML = cfg.NewChild("URL") = (std::string)n["SrcAdv"]["EPR"]["Address"];
+          URLXML.NewAttribute("ServiceType") = "computing";
+          services.push_back(cfg);
         }
-    else {
+        else
+          logger.msg(INFO,
+                     "Service %s of type %s ignored", (std::string)n["MetaSrcAdv"]["ServiceID"], (std::string)n["SrcAdv"]["Type"]);
+      }
+    else
       logger.msg(INFO,
-                   "No execution services registered in the index service");
-    }
+                 "No execution services registered in the index service");
     return true;
   }
 
@@ -554,7 +535,8 @@ namespace Arc {
     SOAPFault fs(*resp);
     if (fs) {
       faultstring = fs.Reason();
-      if(faultstring.empty()) faultstring="unknown reason";
+      if (faultstring.empty())
+        faultstring = "unknown reason";
       std::string s;
       resp->GetXML(s);
       logger.msg(VERBOSE, "Request returned failure: %s", s);
@@ -596,7 +578,8 @@ namespace Arc {
       SOAPFault fs(*resp);
       if (fs) {
         faultstring = fs.Reason();
-        if(faultstring.empty()) faultstring="unknown reason";
+        if (faultstring.empty())
+          faultstring = "unknown reason";
         std::string s;
         resp->GetXML(s);
         logger.msg(VERBOSE, "Request returned failure: %s", s);
@@ -640,7 +623,8 @@ namespace Arc {
     // delete resp;
     if (fs) {
       faultstring = fs.Reason();
-      if(faultstring.empty()) faultstring="unknown reason";
+      if (faultstring.empty())
+        faultstring = "unknown reason";
       std::string s;
       resp->GetXML(s);
       logger.msg(VERBOSE, "Request returned failure: %s", s);
@@ -666,7 +650,7 @@ namespace Arc {
         bes-factory:ActivityDocument
           jsdl:JobDefinition
      */
-    
+
     PayloadSOAP req(arex_ns);
     XMLNode op = req.NewChild("a-rex:MigrateActivity");
     XMLNode act_doc = op.NewChild("bes-factory:ActivityDocument");
@@ -707,7 +691,7 @@ namespace Arc {
     std::string result, faultstring;
     logger.msg(INFO, "Creating and sending request to resume a job");
 
-    bool delegate=true;
+    bool delegate = true;
     PayloadSOAP req(arex_ns);
     XMLNode op = req.NewChild("a-rex:ChangeActivityStatus");
     XMLNode jobref = op.NewChild(XMLNode(jobid));
@@ -736,9 +720,10 @@ namespace Arc {
         delete resp;
         return false;
       }
-    } else {
-      std::string new_state=(std::string)(*resp)["ChangeActivityStatusResponse"]["NewStatus"]["state"];
-      logger.msg(WARNING,"Job resumed at state: %s", new_state);
+    }
+    else {
+      std::string new_state = (std::string)(*resp)["ChangeActivityStatusResponse"]["NewStatus"]["state"];
+      logger.msg(WARNING, "Job resumed at state: %s", new_state);
     }
     delete resp;
     return true;
@@ -763,4 +748,3 @@ namespace Arc {
   }
 
 }
-

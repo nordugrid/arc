@@ -6,6 +6,7 @@
 
 #include <arc/Logger.h>
 #include <arc/client/JobDescription.h>
+#include <arc/client/UserConfig.h>
 
 #include "SubmitterARC0.h"
 #include "FTPControl.h"
@@ -14,18 +15,17 @@ namespace Arc {
 
   Logger SubmitterARC0::logger(Submitter::logger, "ARC0");
 
-  SubmitterARC0::SubmitterARC0(Config *cfg)
-    : Submitter(cfg, "ARC0") {
-    queue = (std::string)(*cfg)["Queue"];
-  }
+  SubmitterARC0::SubmitterARC0(const Config& cfg, const UserConfig& usercfg)
+    : Submitter(cfg, usercfg, "ARC0") {}
 
   SubmitterARC0::~SubmitterARC0() {}
 
   Plugin* SubmitterARC0::Instance(PluginArgument *arg) {
-    ACCPluginArgument *accarg = dynamic_cast<ACCPluginArgument*>(arg);
-    if (!accarg)
+    SubmitterPluginArgument *subarg =
+      dynamic_cast<SubmitterPluginArgument*>(arg);
+    if (!subarg)
       return NULL;
-    return new SubmitterARC0((Config*)(*accarg));
+    return new SubmitterARC0(*subarg, *subarg);
   }
 
   URL SubmitterARC0::Submit(const JobDescription& jobdesc,
@@ -33,8 +33,12 @@ namespace Arc {
 
     FTPControl ctrl;
 
+    Config cfg;
+    usercfg.ApplyToConfig(cfg);
+
     if (!ctrl.Connect(submissionEndpoint,
-                      proxyPath, certificatePath, keyPath, 500)) {
+                      cfg["ProxyPath"], cfg["CertificatePath"],
+                      cfg["KeyPath"], 500)) {
       logger.msg(ERROR, "Submit: Failed to connect");
       return URL();
     }

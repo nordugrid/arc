@@ -17,7 +17,7 @@ namespace Arc {
   class TargetRetrieverUNICORE
     : public TargetRetriever {
   private:
-    TargetRetrieverUNICORE(Config *cfg);
+    TargetRetrieverUNICORE(const Config& cfg, const UserConfig& usercfg);
   public:
     ~TargetRetrieverUNICORE();
     void GetTargets(TargetGenerator& mom, int targetType, int detailLevel);

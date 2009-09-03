@@ -7,9 +7,10 @@ namespace Arc {
 
   class JobStateUNICORE
     : public JobState {
-    public:
-      JobStateUNICORE(const std::string& state) : JobState(state, &StateMap) {}
-      static JobState::StateType StateMap(const std::string& state);
+  public:
+    JobStateUNICORE(const std::string& state)
+      : JobState(state, &StateMap) {}
+    static JobState::StateType StateMap(const std::string& state);
   };
 
 }

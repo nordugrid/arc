@@ -18,11 +18,9 @@ namespace Arc {
     : public Submitter {
 
   private:
-    SubmitterARC0(Config *cfg);
+    SubmitterARC0(const Config& cfg, const UserConfig& usercfg);
     ~SubmitterARC0();
 
-    std::string queue;
-    
     static Logger logger;
 
   public:

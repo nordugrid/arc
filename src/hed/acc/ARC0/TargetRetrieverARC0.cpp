@@ -22,10 +22,7 @@ namespace Arc {
 
   struct ThreadArg {
     TargetGenerator *mom;
-    std::string proxyPath;
-    std::string certificatePath;
-    std::string keyPath;
-    std::string caCertificatesDir;
+    const UserConfig *usercfg;
     URL url;
     int targetType;
     int detailLevel;
@@ -36,10 +33,7 @@ namespace Arc {
                                                   int detailLevel) {
     ThreadArg *arg = new ThreadArg;
     arg->mom = &mom;
-    arg->proxyPath = proxyPath;
-    arg->certificatePath = certificatePath;
-    arg->keyPath = keyPath;
-    arg->caCertificatesDir = caCertificatesDir;
+    arg->usercfg = &usercfg;
     arg->url = url;
     arg->targetType = targetType;
     arg->detailLevel = detailLevel;
@@ -48,16 +42,18 @@ namespace Arc {
 
   Logger TargetRetrieverARC0::logger(TargetRetriever::logger, "ARC0");
 
-  TargetRetrieverARC0::TargetRetrieverARC0(Config *cfg)
-    : TargetRetriever(cfg, "ARC0") {}
+  TargetRetrieverARC0::TargetRetrieverARC0(const Config& cfg,
+                                           const UserConfig& usercfg)
+    : TargetRetriever(cfg, usercfg, "ARC0") {}
 
   TargetRetrieverARC0::~TargetRetrieverARC0() {}
 
   Plugin* TargetRetrieverARC0::Instance(PluginArgument *arg) {
-    ACCPluginArgument *accarg = dynamic_cast<ACCPluginArgument*>(arg);
-    if (!accarg)
+    TargetRetrieverPluginArgument *trarg =
+      dynamic_cast<TargetRetrieverPluginArgument*>(arg);
+    if (!trarg)
       return NULL;
-    return new TargetRetrieverARC0((Config*)(*accarg));
+    return new TargetRetrieverARC0(*trarg, *trarg);
   }
 
   void TargetRetrieverARC0::GetTargets(TargetGenerator& mom, int targetType,
@@ -95,10 +91,7 @@ namespace Arc {
   void TargetRetrieverARC0::QueryIndex(void *arg) {
     ThreadArg *thrarg = (ThreadArg*)arg;
     TargetGenerator& mom = *thrarg->mom;
-    std::string& proxyPath = thrarg->proxyPath;
-    std::string& certificatePath = thrarg->certificatePath;
-    std::string& keyPath = thrarg->keyPath;
-    std::string& caCertificatesDir = thrarg->caCertificatesDir;
+    const UserConfig& usercfg = *thrarg->usercfg;
 
     URL url = thrarg->url;
     url.ChangeLDAPScope(URL::base);
@@ -148,16 +141,14 @@ namespace Arc {
       if ((std::string)(*it)["Mds-Reg-status"] == "PURGED")
         continue;
 
-      TargetRetrieverARC0 retriever;
-      retriever.proxyPath = proxyPath;
-      retriever.certificatePath = certificatePath;
-      retriever.keyPath = keyPath;
-      retriever.caCertificatesDir = caCertificatesDir;
-      retriever.url = URL((std::string)(*it)["Mds-Service-type"] + "://" +
-                          (std::string)(*it)["Mds-Service-hn"] + ":" +
-                          (std::string)(*it)["Mds-Service-port"] + "/" +
-                          (std::string)(*it)["Mds-Service-Ldap-suffix"]);
-      retriever.serviceType = "index";
+      Config cfg;
+      XMLNode url = cfg.NewChild("URL");
+      url = (std::string)(*it)["Mds-Service-type"] + "://" +
+            (std::string)(*it)["Mds-Service-hn"] + ":" +
+            (std::string)(*it)["Mds-Service-port"] + "/" +
+            (std::string)(*it)["Mds-Service-Ldap-suffix"];
+      url.NewAttribute("ServiceType") = "index";
+      TargetRetrieverARC0 retriever(cfg, usercfg);
       retriever.GetTargets(mom, thrarg->targetType, thrarg->detailLevel);
     }
 
@@ -171,16 +162,14 @@ namespace Arc {
       if ((std::string)(*it)["Mds-Reg-status"] == "PURGED")
         continue;
 
-      TargetRetrieverARC0 retriever;
-      retriever.proxyPath = proxyPath;
-      retriever.certificatePath = certificatePath;
-      retriever.keyPath = keyPath;
-      retriever.caCertificatesDir = caCertificatesDir;
-      retriever.url = URL((std::string)(*it)["Mds-Service-type"] + "://" +
-                          (std::string)(*it)["Mds-Service-hn"] + ":" +
-                          (std::string)(*it)["Mds-Service-port"] + "/" +
-                          (std::string)(*it)["Mds-Service-Ldap-suffix"]);
-      retriever.serviceType = "computing";
+      Config cfg;
+      XMLNode url = cfg.NewChild("URL");
+      url = (std::string)(*it)["Mds-Service-type"] + "://" +
+            (std::string)(*it)["Mds-Service-hn"] + ":" +
+            (std::string)(*it)["Mds-Service-port"] + "/" +
+            (std::string)(*it)["Mds-Service-Ldap-suffix"];
+      url.NewAttribute("ServiceType") = "computing";
+      TargetRetrieverARC0 retriever(cfg, usercfg);
       retriever.GetTargets(mom, thrarg->targetType, thrarg->detailLevel);
     }
 
@@ -191,16 +180,17 @@ namespace Arc {
   void TargetRetrieverARC0::InterrogateTarget(void *arg) {
     ThreadArg *thrarg = (ThreadArg*)arg;
     TargetGenerator& mom = *thrarg->mom;
-    std::string& proxyPath = thrarg->proxyPath;
-    std::string& certificatePath = thrarg->certificatePath;
-    std::string& keyPath = thrarg->keyPath;
-    std::string& caCertificatesDir = thrarg->caCertificatesDir;
+    const UserConfig& usercfg = *thrarg->usercfg;
     int targetType = thrarg->targetType;
 
     //Create credential object in order to get the user DN
-    Credential credential(!proxyPath.empty() ? proxyPath : certificatePath,
-                          !proxyPath.empty() ? proxyPath : keyPath,
-                          caCertificatesDir, "");
+    Config cfg;
+    usercfg.ApplyToConfig(cfg);
+    Credential credential(cfg["ProxyPath"] ? cfg["ProxyPath"] :
+                          cfg["CertificatePath"],
+                          cfg["ProxyPath"] ? cfg["ProxyPath"] :
+                          cfg["KeyPath"],
+                          cfg["CACertificatesDir"], "");
 
     //Query GRIS for all relevant information
     URL url = thrarg->url;
@@ -363,7 +353,7 @@ namespace Arc {
             stringtoi((std::string)cluster["nordugrid-cluster-nodememory"]);
         if (authuser["nordugrid-authuser-diskspace"])
           target.MaxDiskSpace =
-            stringtoi((std::string)authuser["nordugrid-authuser-diskspace"])/1000;
+            stringtoi((std::string)authuser["nordugrid-authuser-diskspace"]) / 1000;
         if (cluster["nordugrid-cluster-localse"])
           target.DefaultStorageService =
             (std::string)cluster["nordugrid-cluster-localse"];
@@ -453,20 +443,20 @@ namespace Arc {
         if (cluster["nordugrid-cluster-sessiondir-total"])
           target.WorkingAreaTotal =
             stringtoi((std::string)
-                       cluster["nordugrid-cluster-sessiondir-total"])/1000;
+                      cluster["nordugrid-cluster-sessiondir-total"]) / 1000;
         if (cluster["nordugrid-cluster-sessiondir-free"])
           target.WorkingAreaFree =
             stringtoi((std::string)
-                        cluster["nordugrid-cluster-sessiondir-free"])/1000;
+                      cluster["nordugrid-cluster-sessiondir-free"]) / 1000;
         if (cluster["nordugrid-cluster-sessiondir-lifetime"])
           target.WorkingAreaLifeTime =
             (std::string)cluster["nordugrid-cluster-sessiondir-lifetime"];
         if (cluster["nordugrid-cluster-cache-total"])
           target.CacheTotal =
-            stringtoi((std::string)cluster["nordugrid-cluster-cache-total"])/1000;
+            stringtoi((std::string)cluster["nordugrid-cluster-cache-total"]) / 1000;
         if (cluster["nordugrid-cluster-cache-free"])
           target.CacheFree =
-            stringtoi((std::string)cluster["nordugrid-cluster-cache-free"])/1000;
+            stringtoi((std::string)cluster["nordugrid-cluster-cache-free"]) / 1000;
 
         // Benchmarks
         if (queue["nordugrid-queue-benchmark"])

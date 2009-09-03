@@ -14,7 +14,6 @@
 #include <arc/client/TargetGenerator.h>
 #include <arc/data/DataBuffer.h>
 #include <arc/data/DataHandle.h>
-#include <arc/client/ACCLoader.h>
 
 #include "TargetRetrieverCREAM.h"
 
@@ -22,10 +21,7 @@ namespace Arc {
 
   struct ThreadArg {
     TargetGenerator *mom;
-    std::string proxyPath;
-    std::string certificatePath;
-    std::string keyPath;
-    std::string caCertificatesDir;
+    const UserConfig *usercfg;
     URL url;
     int targetType;
     int detailLevel;
@@ -36,10 +32,7 @@ namespace Arc {
                                                    int detailLevel) {
     ThreadArg *arg = new ThreadArg;
     arg->mom = &mom;
-    arg->proxyPath = proxyPath;
-    arg->certificatePath = certificatePath;
-    arg->keyPath = keyPath;
-    arg->caCertificatesDir = caCertificatesDir;
+    arg->usercfg = &usercfg;
     arg->url = url;
     arg->targetType = targetType;
     arg->detailLevel = detailLevel;
@@ -48,17 +41,18 @@ namespace Arc {
 
   Logger TargetRetrieverCREAM::logger(TargetRetriever::logger, "CREAM");
 
-  TargetRetrieverCREAM::TargetRetrieverCREAM(Config *cfg)
-    : TargetRetriever(cfg, "CREAM") {}
+  TargetRetrieverCREAM::TargetRetrieverCREAM(const Config& cfg,
+                                             const UserConfig& usercfg)
+    : TargetRetriever(cfg, usercfg, "CREAM") {}
 
   TargetRetrieverCREAM::~TargetRetrieverCREAM() {}
 
   Plugin* TargetRetrieverCREAM::Instance(PluginArgument *arg) {
-    ACCPluginArgument *accarg =
-      arg ? dynamic_cast<ACCPluginArgument*>(arg) : NULL;
-    if (!accarg)
+    TargetRetrieverPluginArgument *trarg =
+      dynamic_cast<TargetRetrieverPluginArgument*>(arg);
+    if (!trarg)
       return NULL;
-    return new TargetRetrieverCREAM((Config*)(*accarg));
+    return new TargetRetrieverCREAM(*trarg, *trarg);
   }
 
   void TargetRetrieverCREAM::GetTargets(TargetGenerator& mom, int targetType,
@@ -96,6 +90,7 @@ namespace Arc {
   void TargetRetrieverCREAM::QueryIndex(void *arg) {
     ThreadArg *thrarg = (ThreadArg*)arg;
     TargetGenerator& mom = *thrarg->mom;
+    const UserConfig& usercfg = *thrarg->usercfg;
 
     URL& url = thrarg->url;
     url.ChangeLDAPScope(URL::subtree);
@@ -153,7 +148,7 @@ namespace Arc {
       XMLNode URLXML = cfg.NewChild("URL") = url.str();
       URLXML.NewAttribute("ServiceType") = "index";
 
-      TargetRetrieverCREAM retriever(&cfg);
+      TargetRetrieverCREAM retriever(cfg, usercfg);
       retriever.GetTargets(mom, thrarg->targetType, thrarg->detailLevel);
     }
 
@@ -175,7 +170,7 @@ namespace Arc {
       XMLNode URLXML = cfg.NewChild("URL") = url.str();
       URLXML.NewAttribute("ServiceType") = "computing";
 
-      TargetRetrieverCREAM retriever(&cfg);
+      TargetRetrieverCREAM retriever(cfg, usercfg);
       retriever.GetTargets(mom, thrarg->targetType, thrarg->detailLevel);
     }
 
@@ -402,7 +397,7 @@ namespace Arc {
 
       if (CE["GlueCEName"])
         target.MappingQueue = (std::string)CE["GlueCEName"];
-        
+
       if (CE["GlueCEInfoLRMSType"])
         target.ManagerProductName = (std::string)CE["GlueCEInfoLRMSType"];
 
@@ -428,8 +423,8 @@ namespace Arc {
         if (CE["GlueCEImplementationVersion"])
           target.Implementation =
             Software((std::string)CE["GlueCEImplementationName"],
-                            (std::string)CE["GlueCEImplementationVersion"]);
-        else 
+                     (std::string)CE["GlueCEImplementationVersion"]);
+        else
           target.Implementation =
             (std::string)CE["GlueCEImplementationName"];
       }
@@ -564,12 +559,12 @@ namespace Arc {
              SubCluster["GlueHostApplicationSoftwareRunTimeEnvironment"];
            node; ++node) {
         ApplicationEnvironment ae((std::string)node);
-        ae.State = "UNDEFINEDVALUE"; 
+        ae.State = "UNDEFINEDVALUE";
         ae.FreeSlots = -1;
         ae.FreeUserSeats = -1;
         ae.FreeJobs = -1;
         target.ApplicationEnvironments.push_back(ae);
-      } 
+      }
       //Register target in TargetGenerator list
       mom.AddTarget(target);
     }

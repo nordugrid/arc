@@ -21,12 +21,8 @@
 #include <arc/StringConv.h>
 #include <arc/Utils.h>
 #include <arc/XMLNode.h>
-#include <arc/client/Submitter.h>
 #include <arc/client/TargetGenerator.h>
-#include <arc/client/JobDescription.h>
 #include <arc/client/UserConfig.h>
-#include <arc/client/ACC.h>
-#include <arc/client/Broker.h>
 
 int main(int argc, char **argv) {
 

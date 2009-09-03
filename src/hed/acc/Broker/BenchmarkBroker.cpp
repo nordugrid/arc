@@ -8,26 +8,28 @@
 #include <algorithm>
 
 #include <arc/StringConv.h>
+#include <arc/client/ExecutionTarget.h>
 
 #include "BenchmarkBroker.h"
 
 namespace Arc {
 
-  class cmp{
-
+  class cmp {
   public:
-    cmp(const std::string benchmark) : benchmark(benchmark){}
-    bool ComparePerformance(const ExecutionTarget* T1, const ExecutionTarget* T2);
+    cmp(const std::string benchmark)
+      : benchmark(benchmark) {}
+    bool ComparePerformance(const ExecutionTarget *T1,
+                            const ExecutionTarget *T2);
   private:
     std::string benchmark;
-
   };
-  
-  bool cmp::ComparePerformance(const ExecutionTarget* T1, const ExecutionTarget* T2) {
+
+  bool cmp::ComparePerformance(const ExecutionTarget *T1,
+                               const ExecutionTarget *T2) {
     double T1performance = 0;
     double T2performance = 0;
     std::map<std::string, double>::const_iterator iter;
-    
+
     for (iter = T1->Benchmarks.begin(); iter != T1->Benchmarks.end(); iter++)
       if (lower(iter->first) == benchmark) {
         T1performance = iter->second;
@@ -41,27 +43,23 @@ namespace Arc {
       }
 
     return T1performance > T2performance;
-
   }
 
-  BenchmarkBroker::BenchmarkBroker(Config *cfg)
-    : Broker(cfg) {
-    
-    benchmark = (std::string)(*cfg)["Arguments"];
-    
-    if(benchmark.empty())
+  BenchmarkBroker::BenchmarkBroker(const Config& cfg,
+                                   const UserConfig& usercfg)
+    : Broker(cfg, usercfg) {
+    benchmark = (std::string)cfg["Arguments"];
+    if (benchmark.empty())
       benchmark = "specint2000";
-
   }
 
   BenchmarkBroker::~BenchmarkBroker() {}
 
   Plugin* BenchmarkBroker::Instance(PluginArgument *arg) {
-    ACCPluginArgument *accarg =
-      arg ? dynamic_cast<ACCPluginArgument*>(arg) : NULL;
-    if (!accarg)
+    BrokerPluginArgument *brokerarg = dynamic_cast<BrokerPluginArgument*>(arg);
+    if (!brokerarg)
       return NULL;
-    return new BenchmarkBroker((Config*)(*accarg));
+    return new BenchmarkBroker(*brokerarg, *brokerarg);
   }
 
   void BenchmarkBroker::SortTargets() {

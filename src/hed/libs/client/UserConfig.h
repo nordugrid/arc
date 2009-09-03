@@ -26,16 +26,24 @@ namespace Arc {
     UserConfig(const XMLNode& cfg);
     UserConfig(const std::string& conffile, bool initializeCredentials = true);
     UserConfig(const std::string& conffile, const std::string& joblistfile, bool initializeCredentials = true);
-    ~UserConfig() {};
+    ~UserConfig() {}
 
-    const std::string& ConfFile() const { return conffile; }
-    const std::string& JobListFile() const { return joblistfile; }
-    const XMLNode& ConfTree() const { return cfg; }
+    const std::string& ConfFile() const {
+      return conffile;
+    }
+    const std::string& JobListFile() const {
+      return joblistfile;
+    }
+    const XMLNode& ConfTree() const {
+      return cfg;
+    }
 
-    bool CredentialsFound() const { return !(proxyPath.empty() && (certificatePath.empty() || keyPath.empty() || caCertificatesDir.empty())); }
+    bool CredentialsFound() const {
+      return !(proxyPath.empty() && (certificatePath.empty() || keyPath.empty() || caCertificatesDir.empty()));
+    }
     bool CheckProxy() const;
     void InitializeCredentials();
-    
+
     void SetTimeOut(unsigned int timeout);
     void SetBroker(const std::string& broker);
 
@@ -60,8 +68,12 @@ namespace Arc {
                       URLListMap& clusterselect,
                       URLListMap& clusterreject) const;
 
-    operator bool() const { return ok; }
-    bool operator!() const { return !ok; }
+    operator bool() const {
+      return ok;
+    }
+    bool operator!() const {
+      return !ok;
+    }
 
     static const int DEFAULT_TIMEOUT = 20;
     static const std::string DEFAULT_BROKER;
@@ -69,7 +81,7 @@ namespace Arc {
   private:
     bool loadUserConfiguration(const std::string& file);
     void setDefaults();
-  
+
     User user;
     std::string conffile;
     std::string joblistfile;

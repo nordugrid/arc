@@ -6,26 +6,33 @@
 
 #include <arc/ArcConfig.h>
 #include <arc/FileLock.h>
+#include <arc/StringConv.h>
 #include <arc/Thread.h>
 #include <arc/client/JobDescription.h>
 #include <arc/client/Submitter.h>
+#include <arc/client/UserConfig.h>
 #include <arc/data/FileCache.h>
 #include <arc/data/CheckSum.h>
 #include <arc/data/DataBuffer.h>
 #include <arc/data/DataMover.h>
 #include <arc/data/DataHandle.h>
 #include <arc/data/URLMap.h>
+#include <arc/loader/FinderLoader.h>
 
 
 namespace Arc {
 
   Logger Submitter::logger(Logger::getRootLogger(), "Submitter");
 
-  Submitter::Submitter(Config *cfg, const std::string& flavour)
-    : ACC(cfg, flavour) {
-    submissionEndpoint = (std::string)(*cfg)["SubmissionEndpoint"];
-    cluster = (std::string)(*cfg)["Cluster"];
-  }
+  Submitter::Submitter(const Config& cfg,
+                       const UserConfig& usercfg,
+                       const std::string& flavour)
+    : flavour(flavour),
+      usercfg(usercfg),
+      submissionEndpoint((std::string)(cfg)["SubmissionEndpoint"]),
+      cluster((std::string)(cfg)["Cluster"]),
+      queue((std::string)(cfg)["Queue"]),
+      lrmsType((std::string)cfg["LRMSType"]) {}
 
   Submitter::~Submitter() {}
 
@@ -44,15 +51,16 @@ namespace Arc {
         const URL& src = it->Source.begin()->URI;
         if (src.Protocol() == "file") {
           std::string dst = url.str() + '/' + it->Name;
+          Config cfg;
+          usercfg.ApplyToConfig(cfg);
           DataHandle source(src);
-          source->AssignCredentials(proxyPath, certificatePath,
-                                    keyPath, caCertificatesDir);
+          source->AssignCredentials(cfg);
           DataHandle destination(dst);
-          destination->AssignCredentials(proxyPath, certificatePath,
-                                         keyPath, caCertificatesDir);
+          destination->AssignCredentials(cfg);
 
           DataStatus res = mover.Transfer(*source, *destination, cache,
-                                          URLMap(), 0, 0, 0, timeout);
+                                          URLMap(), 0, 0, 0,
+                                          stringtoi(cfg["TimeOut"]));
           if (!res.Passed()) {
             if (!res.GetDesc().empty())
               logger.msg(ERROR, "Failed uploading file: %s - %s",
@@ -134,6 +142,38 @@ namespace Arc {
     char buf[100];
     md5sum.print(buf, 100);
     return buf;
+  }
+
+  SubmitterLoader::SubmitterLoader()
+    : Loader(BaseConfig().MakeConfig(Config()).Parent()) {}
+
+  SubmitterLoader::~SubmitterLoader() {
+    for (std::list<Submitter*>::iterator it = submitters.begin();
+         it != submitters.end(); it++)
+      delete *it;
+  }
+
+  Submitter* SubmitterLoader::load(const std::string& name,
+                                   const Config& cfg,
+                                   const UserConfig& usercfg) {
+    if (name.empty())
+      return NULL;
+
+    PluginList list = FinderLoader::GetPluginList("HED:Submitter");
+    factory_->load(list[name], "HED:Submitter");
+
+    SubmitterPluginArgument arg(cfg, usercfg);
+    Submitter *submitter =
+      factory_->GetInstance<Submitter>("HED:Submitter", name, &arg);
+
+    if (!submitter) {
+      logger.msg(ERROR, "Submitter %s could not be created", name);
+      return NULL;
+    }
+
+    submitters.push_back(submitter);
+    logger.msg(INFO, "Loaded Submitter %s", name);
+    return submitter;
   }
 
 } // namespace Arc

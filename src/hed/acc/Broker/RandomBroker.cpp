@@ -7,21 +7,22 @@
 #include <cstdlib>
 #include <algorithm>
 
+#include <arc/client/ExecutionTarget.h>
+
 #include "RandomBroker.h"
 
 namespace Arc {
 
-  RandomBroker::RandomBroker(Config *cfg)
-    : Broker(cfg) {}
+  RandomBroker::RandomBroker(const Config& cfg, const UserConfig& usercfg)
+    : Broker(cfg, usercfg) {}
 
   RandomBroker::~RandomBroker() {}
 
   Plugin* RandomBroker::Instance(PluginArgument *arg) {
-    ACCPluginArgument *accarg =
-      arg ? dynamic_cast<ACCPluginArgument*>(arg) : NULL;
-    if (!accarg)
+    BrokerPluginArgument *brokerarg = dynamic_cast<BrokerPluginArgument*>(arg);
+    if (!brokerarg)
       return NULL;
-    return new RandomBroker((Config*)(*accarg));
+    return new RandomBroker(*brokerarg, *brokerarg);
   }
 
   void RandomBroker::SortTargets() {
@@ -39,8 +40,10 @@ namespace Arc {
     for (unsigned int k = 1; k < 2 * (std::rand() % PossibleTargets.size()) + 1; k++) {
       std::list<ExecutionTarget*>::iterator itI = PossibleTargets.begin();
       std::list<ExecutionTarget*>::iterator itJ = PossibleTargets.begin();
-      for (int i = rand() % PossibleTargets.size(); i > 0; i--) itI++;
-      for (int i = rand() % PossibleTargets.size(); i > 0; i--) itJ++;
+      for (int i = rand() % PossibleTargets.size(); i > 0; i--)
+        itI++;
+      for (int i = rand() % PossibleTargets.size(); i > 0; i--)
+        itJ++;
       std::iter_swap(itI, itJ);
     }
 

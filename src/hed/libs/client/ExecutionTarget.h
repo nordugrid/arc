@@ -9,9 +9,9 @@
 
 #include <arc/DateTime.h>
 #include <arc/URL.h>
-#include <arc/client/ACCLoader.h>
 #include <arc/client/JobDescription.h>
 #include <arc/client/Software.h>
+#include <arc/client/Submitter.h>
 
 namespace Arc {
 
@@ -24,7 +24,7 @@ namespace Arc {
    * GLUE2. By extending the Software class the two GLUE2 attributes AppName and
    * AppVersion are mapped to two private members. However these can be obtained
    * through the inheriated member methods getName and getVersion.
-   * 
+   *
    * GLUE2 description:
    * A description of installed application software or software environment
    * characteristics available within one or more Execution Environments.
@@ -32,10 +32,15 @@ namespace Arc {
   class ApplicationEnvironment
     : public Software {
   public:
-    ApplicationEnvironment() {};
-    ApplicationEnvironment(const std::string& Name) : Software(Name) {};
-    ApplicationEnvironment(const std::string& Name, const std::string& Version) : Software(Name, Version) {};
-    ApplicationEnvironment& operator=(const Software& sv) { Software::operator=(sv); return *this; }
+    ApplicationEnvironment() {}
+    ApplicationEnvironment(const std::string& Name)
+      : Software(Name) {}
+    ApplicationEnvironment(const std::string& Name, const std::string& Version)
+      : Software(Name, Version) {}
+    ApplicationEnvironment& operator=(const Software& sv) {
+      Software::operator=(sv);
+      return *this;
+    }
     std::string State;
     int FreeSlots;
     int FreeJobs;
@@ -129,7 +134,7 @@ namespace Arc {
     int MaxStageInStreams;
     int MaxStageOutStreams;
     std::string SchedulingPolicy;
-    
+
     /// MaxMainMemory UInt64 0..1 MB
     /**
      * The maximum physical RAM that a job is allowed to use; if the limit is
@@ -145,7 +150,7 @@ namespace Arc {
      * A negative value specifies that this member is undefined.
      */
     int64_t MaxVirtualMemory;
-    
+
     /// MaxDiskSpace UInt64 0..1 GB
     /**
      * The maximum disk space that a job is allowed use in the working; if the
@@ -153,7 +158,7 @@ namespace Arc {
      * A negative value specifies that this member is undefined.
      */
     int64_t MaxDiskSpace;
-    
+
     URL DefaultStorageService;
     bool Preemption;
     int TotalJobs;
@@ -204,7 +209,7 @@ namespace Arc {
     std::string CPUVersion;
     int CPUClockSpeed;
     int MainMemorySize;
-    
+
     /// OperatingSystem
     /**
      * The OperatingSystem member is not present in GLUE2 but contains the three
@@ -218,7 +223,7 @@ namespace Arc {
      *   * The version of the operating system, as defined by the vendor.
      */
     Software OperatingSystem;
-    
+
     bool ConnectivityIn;
     bool ConnectivityOut;
 
@@ -235,7 +240,7 @@ namespace Arc {
     URL Cluster; // contains the URL of the infosys that provided the info
 
   private:
-    ACCLoader loader;
+    SubmitterLoader loader;
   };
 
 } // namespace Arc

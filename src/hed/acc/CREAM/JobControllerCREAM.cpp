@@ -8,6 +8,7 @@
 
 #include <arc/Logger.h>
 #include <arc/URL.h>
+#include <arc/client/UserConfig.h>
 #include <arc/message/MCC.h>
 
 #include "CREAMClient.h"
@@ -17,22 +18,24 @@ namespace Arc {
 
   Logger JobControllerCREAM::logger(JobController::logger, "CREAM");
 
-  JobControllerCREAM::JobControllerCREAM(Config *cfg)
-    : JobController(cfg, "CREAM") {}
+  JobControllerCREAM::JobControllerCREAM(const Config& cfg,
+                                         const UserConfig& usercfg)
+    : JobController(cfg, usercfg, "CREAM") {}
 
   JobControllerCREAM::~JobControllerCREAM() {}
 
   Plugin* JobControllerCREAM::Instance(PluginArgument *arg) {
-    ACCPluginArgument *accarg =
-      arg ? dynamic_cast<ACCPluginArgument*>(arg) : NULL;
-    if (!accarg)
+    JobControllerPluginArgument *jcarg =
+      dynamic_cast<JobControllerPluginArgument*>(arg);
+    if (!jcarg)
       return NULL;
-    return new JobControllerCREAM((Config*)(*accarg));
+    return new JobControllerCREAM(*jcarg, *jcarg);
   }
 
   void JobControllerCREAM::GetJobInformation() {
+
     MCCConfig cfg;
-    ApplySecurity(cfg);
+    usercfg.ApplyToConfig(cfg);
     for (std::list<Job>::iterator iter = jobstore.begin();
          iter != jobstore.end(); iter++) {
       PathIterator pi(iter->JobID.Path(), true);
@@ -84,7 +87,7 @@ namespace Arc {
   bool JobControllerCREAM::CleanJob(const Job& job, bool force) {
 
     MCCConfig cfg;
-    ApplySecurity(cfg);
+    usercfg.ApplyToConfig(cfg);
     PathIterator pi(job.JobID.Path(), true);
     URL url(job.JobID);
     url.ChangePath(*pi);
@@ -107,7 +110,7 @@ namespace Arc {
   bool JobControllerCREAM::CancelJob(const Job& job) {
 
     MCCConfig cfg;
-    ApplySecurity(cfg);
+    usercfg.ApplyToConfig(cfg);
     PathIterator pi(job.JobID.Path(), true);
     URL url(job.JobID);
     url.ChangePath(*pi);
@@ -119,12 +122,12 @@ namespace Arc {
     return true;
   }
 
-  bool JobControllerCREAM::RenewJob(const Job& job){
+  bool JobControllerCREAM::RenewJob(const Job& job) {
     logger.msg(ERROR, "Renewal of CREAM jobs is not supported");
     return false;
   }
 
-  bool JobControllerCREAM::ResumeJob(const Job& job){
+  bool JobControllerCREAM::ResumeJob(const Job& job) {
     logger.msg(ERROR, "Resumation of CREAM jobs is not supported");
     return false;
   }

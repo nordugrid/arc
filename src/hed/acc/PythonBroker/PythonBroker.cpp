@@ -56,8 +56,8 @@ namespace Arc {
 
   Plugin* PythonBroker::Instance(PluginArgument *arg) {
 
-    ACCPluginArgument *accarg = dynamic_cast<ACCPluginArgument*>(arg);
-    if (!accarg)
+    BrokerPluginArgument *brokerarg = dynamic_cast<BrokerPluginArgument*>(arg);
+    if (!brokerarg)
       return NULL;
 
     lock.lock();
@@ -88,15 +88,15 @@ namespace Arc {
 
     logger.msg(VERBOSE, "Loading python broker (%i)", refcount);
 
-    ACC *broker = new PythonBroker((Config*)(*accarg));
+    Broker *broker = new PythonBroker(*brokerarg, *brokerarg);
 
     PyEval_ReleaseThread(tstate); // Release current thread
 
     return broker;
   }
 
-  PythonBroker::PythonBroker(Config *cfg)
-    : Broker(cfg),
+  PythonBroker::PythonBroker(const Config& cfg, const UserConfig& usercfg)
+    : Broker(cfg, usercfg),
       arc_module(NULL),
       arc_config_klass(NULL),
       arc_jobrepr_klass(NULL),
@@ -112,7 +112,7 @@ namespace Arc {
 
     logger.msg(DEBUG, "PythonBroker init");
 
-    std::string args = (std::string)(*cfg)["Broker"]["Arguments"];
+    std::string args = (std::string)cfg["Arguments"];
     std::string::size_type pos = args.find(':');
     if (pos != std::string::npos)
       args.resize(pos);
@@ -382,6 +382,6 @@ namespace Arc {
 } // namespace Arc
 
 Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
-  { "PythonBroker", "HED:ACC", 0, &Arc::PythonBroker::Instance },
+  { "PythonBroker", "HED:Broker", 0, &Arc::PythonBroker::Instance },
   { NULL, NULL, 0, NULL }
 };

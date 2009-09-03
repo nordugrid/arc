@@ -6,36 +6,38 @@
 
 #include <cstdlib>
 #include <algorithm>
+
+#include <arc/client/ExecutionTarget.h>
+
 #include "FastestQueueBroker.h"
 
 namespace Arc {
 
-  bool CompareExecutionTarget(const ExecutionTarget* T1, const ExecutionTarget* T2) {
-
+  bool CompareExecutionTarget(const ExecutionTarget *T1,
+                              const ExecutionTarget *T2) {
     //Scale queue to become cluster size independent
     float T1queue = (float)T1->WaitingJobs / T1->TotalSlots;
     float T2queue = (float)T2->WaitingJobs / T2->TotalSlots;
-
     return T1queue < T2queue;
-
   }
 
-  FastestQueueBroker::FastestQueueBroker(Config *cfg)
-    : Broker(cfg) {}
+  FastestQueueBroker::FastestQueueBroker(const Config& cfg,
+                                         const UserConfig& usercfg)
+    : Broker(cfg, usercfg) {}
 
   FastestQueueBroker::~FastestQueueBroker() {}
 
   Plugin* FastestQueueBroker::Instance(PluginArgument *arg) {
-    ACCPluginArgument *accarg =
-      arg ? dynamic_cast<ACCPluginArgument*>(arg) : NULL;
-    if (!accarg)
+    BrokerPluginArgument *brokerarg = dynamic_cast<BrokerPluginArgument*>(arg);
+    if (!brokerarg)
       return NULL;
-    return new FastestQueueBroker((Config*)(*accarg));
+    return new FastestQueueBroker(*brokerarg, *brokerarg);
   }
 
   void FastestQueueBroker::SortTargets() {
 
-    logger.msg(DEBUG, "FastestQueueBroker is filtering %d targets", PossibleTargets.size());
+    logger.msg(DEBUG, "FastestQueueBroker is filtering %d targets",
+               PossibleTargets.size());
 
     //Remove clusters with incomplete information for target sorting
     std::list<ExecutionTarget*>::iterator iter = PossibleTargets.begin();

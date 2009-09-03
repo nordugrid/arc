@@ -14,7 +14,7 @@ namespace Arc {
     : public JobController {
 
   private:
-    JobControllerUNICORE(Config *cfg);
+    JobControllerUNICORE(const Config& cfg, const UserConfig& usercfg);
   public:
     ~JobControllerUNICORE();
 

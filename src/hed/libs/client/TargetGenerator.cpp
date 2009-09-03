@@ -13,10 +13,8 @@
 #include <arc/StringConv.h>
 #include <arc/XMLNode.h>
 #include <arc/client/TargetGenerator.h>
-#include <arc/client/TargetRetriever.h>
 #include <arc/client/ClientInterface.h>
 #include <arc/client/UserConfig.h>
-#include <arc/client/ACCLoader.h>
 
 namespace Arc {
 
@@ -25,8 +23,7 @@ namespace Arc {
   TargetGenerator::TargetGenerator(const UserConfig& usercfg,
                                    const std::list<std::string>& clusters,
                                    const std::list<std::string>& indexurls)
-    : loader(NULL),
-      threadCounter(0) {
+    : threadCounter(0) {
 
     if (!usercfg.ResolveAlias(clusters, indexurls, clusterselect,
                               clusterreject, indexselect, indexreject))
@@ -36,67 +33,44 @@ namespace Arc {
       if (!usercfg.DefaultServices(clusterselect, indexselect))
         return;
 
-    Config cfg;
-    int targetcnt = 0;
-
     for (URLListMap::iterator it = clusterselect.begin();
          it != clusterselect.end(); it++)
       for (std::list<URL>::iterator it2 = it->second.begin();
            it2 != it->second.end(); it2++) {
-
-        XMLNode retriever = cfg.NewChild("ArcClientComponent");
-        retriever.NewAttribute("name") = "TargetRetriever" + it->first;
-        retriever.NewAttribute("id") = "retriever" + tostring(targetcnt);
-        usercfg.ApplyToConfig(retriever);
-        XMLNode url = retriever.NewChild("URL") = it2->str();
+        Config cfg;
+        XMLNode url = cfg.NewChild("URL") = it2->str();
         url.NewAttribute("ServiceType") = "computing";
-        targetcnt++;
+        loader.load(it->first, cfg, usercfg);
       }
 
     for (URLListMap::iterator it = indexselect.begin();
          it != indexselect.end(); it++)
       for (std::list<URL>::iterator it2 = it->second.begin();
            it2 != it->second.end(); it2++) {
-
-        XMLNode retriever = cfg.NewChild("ArcClientComponent");
-        retriever.NewAttribute("name") = "TargetRetriever" + it->first;
-        retriever.NewAttribute("id") = "retriever" + tostring(targetcnt);
-        usercfg.ApplyToConfig(retriever);
-        XMLNode url = retriever.NewChild("URL") = it2->str();
+        Config cfg;
+        XMLNode url = cfg.NewChild("URL") = it2->str();
         url.NewAttribute("ServiceType") = "index";
-        targetcnt++;
+        loader.load(it->first, cfg, usercfg);
       }
-
-    loader = new ACCLoader(cfg);
   }
 
   TargetGenerator::~TargetGenerator() {
 
-    if (loader) {
-      delete loader;
-    }
-
-    if (foundJobs.size() > 0) {
+    if (foundJobs.size() > 0)
       for (std::list<XMLNode*>::iterator it = foundJobs.begin();
-           it != foundJobs.end(); it++) {
+           it != foundJobs.end(); it++)
         delete *it;
-      }
-    }
   }
 
   void TargetGenerator::GetTargets(int targetType, int detailLevel) {
 
-    if (!loader)
-      return;
-
     logger.msg(DEBUG, "Running resource (target) discovery");
 
-    TargetRetriever *TR;
-    for (int i = 0;
-         (TR = dynamic_cast<TargetRetriever*>(loader->getACC("retriever" +
-                                                             tostring(i))));
-         i++)
-      TR->GetTargets(*this, targetType, detailLevel);
+    for (std::list<TargetRetriever*>::const_iterator it =
+           loader.GetTargetRetrievers().begin();
+         it != loader.GetTargetRetrievers().end(); it++)
+      (*it)->GetTargets(*this, targetType, detailLevel);
+
     {
       Glib::Mutex::Lock threadLock(threadMutex);
       while (threadCounter > 0)

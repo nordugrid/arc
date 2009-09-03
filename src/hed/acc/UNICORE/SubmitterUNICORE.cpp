@@ -7,6 +7,7 @@
 #include <string>
 
 #include <arc/client/JobDescription.h>
+#include <arc/client/UserConfig.h>
 #include <arc/message/MCC.h>
 #include <arc/ws-addressing/WSA.h>
 
@@ -17,23 +18,24 @@ namespace Arc {
 
   Logger SubmitterUNICORE::logger(Submitter::logger, "UNICORE");
 
-  SubmitterUNICORE::SubmitterUNICORE(Config *cfg)
-    : Submitter(cfg, "UNICORE") {}
+  SubmitterUNICORE::SubmitterUNICORE(const Config& cfg,
+                                     const UserConfig& usercfg)
+    : Submitter(cfg, usercfg, "UNICORE") {}
 
   SubmitterUNICORE::~SubmitterUNICORE() {}
 
   Plugin* SubmitterUNICORE::Instance(PluginArgument *arg) {
-    ACCPluginArgument *accarg =
-      arg ? dynamic_cast<ACCPluginArgument*>(arg) : NULL;
-    if (!accarg)
+    SubmitterPluginArgument *subarg =
+      dynamic_cast<SubmitterPluginArgument*>(arg);
+    if (!subarg)
       return NULL;
-    return new SubmitterUNICORE((Config*)(*accarg));
+    return new SubmitterUNICORE(*subarg, *subarg);
   }
 
   URL SubmitterUNICORE::Submit(const JobDescription& jobdesc,
                                const std::string& joblistfile) const {
     MCCConfig cfg;
-    ApplySecurity(cfg);
+    usercfg.ApplyToConfig(cfg);
 
     //new code to use the UNICOREClient
     UNICOREClient uc(submissionEndpoint, cfg);

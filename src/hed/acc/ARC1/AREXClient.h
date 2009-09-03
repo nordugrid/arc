@@ -133,7 +133,7 @@ namespace Arc {
     static const std::string mainStateModel;
 
   private:
-    bool process(PayloadSOAP& req, PayloadSOAP** resp, bool delegate);
+    bool process(PayloadSOAP& req, PayloadSOAP **resp, bool delegate);
 
     //! The configuration.
     /*! A configuration object containing information about how to set

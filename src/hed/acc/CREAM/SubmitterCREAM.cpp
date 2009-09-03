@@ -7,38 +7,37 @@
 #include <arc/GUID.h>
 #include <arc/message/MCC.h>
 #include <arc/client/JobDescription.h>
+#include <arc/client/UserConfig.h>
 
 #include "CREAMClient.h"
 #include "SubmitterCREAM.h"
 
 namespace Arc {
 
-  SubmitterCREAM::SubmitterCREAM(Config *cfg)
-    : Submitter(cfg, "CREAM") {
-    queue = (std::string)(*cfg)["Queue"];
-    if ((*cfg)["LRMSType"])
-      lrmsType = (std::string)(*cfg)["LRMSType"];
-  }
+  SubmitterCREAM::SubmitterCREAM(const Config& cfg, const UserConfig& usercfg)
+    : Submitter(cfg, usercfg, "CREAM") {}
 
   SubmitterCREAM::~SubmitterCREAM() {}
 
   Plugin* SubmitterCREAM::Instance(PluginArgument *arg) {
-    ACCPluginArgument *accarg =
-      arg ? dynamic_cast<ACCPluginArgument*>(arg) : NULL;
-    if (!accarg)
+    SubmitterPluginArgument *subarg =
+      dynamic_cast<SubmitterPluginArgument*>(arg);
+    if (!subarg)
       return NULL;
-    return new SubmitterCREAM((Config*)(*accarg));
+    return new SubmitterCREAM(*subarg, *subarg);
   }
 
   URL SubmitterCREAM::Submit(const JobDescription& jobdesc,
                              const std::string& joblistfile) const {
     MCCConfig cfg;
-    ApplySecurity(cfg);
+    usercfg.ApplyToConfig(cfg);
     std::string delegationid = UUID();
     URL delegationurl(submissionEndpoint);
     delegationurl.ChangePath(delegationurl.Path() + "/gridsite-delegation");
     CREAMClient gLiteClientDelegation(delegationurl, cfg);
-    if (!gLiteClientDelegation.createDelegation(delegationid, proxyPath)) {
+    Config xcfg;
+    usercfg.ApplyToConfig(xcfg);
+    if (!gLiteClientDelegation.createDelegation(delegationid, xcfg["ProxyPath"])) {
       logger.msg(ERROR, "Creating delegation failed");
       return URL();
     }

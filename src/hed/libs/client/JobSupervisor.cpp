@@ -12,7 +12,6 @@
 #include <arc/Logger.h>
 #include <arc/StringConv.h>
 #include <arc/XMLNode.h>
-#include <arc/client/ACCLoader.h>
 #include <arc/client/JobController.h>
 #include <arc/client/JobSupervisor.h>
 #include <arc/client/ClientInterface.h>
@@ -25,9 +24,7 @@ namespace Arc {
   JobSupervisor::JobSupervisor(const UserConfig& usercfg,
                                const std::list<std::string>& jobs,
                                const std::list<std::string>& clusters,
-                               const std::string& joblist)
-    : loader(NULL) {
-
+                               const std::string& joblist) {
     URLListMap jobids;
     URLListMap clusterselect;
     URLListMap clusterreject;
@@ -58,8 +55,7 @@ namespace Arc {
                                  "Name='" + *it + "']", NS());
 
         if (xmljobs.empty()) {
-          //logger.msg(WARNING, "Job not found in job list: %s", *it);
-          std::cout << "Job not found in job list: " << *it << std::endl;
+          logger.msg(WARNING, "Job not found in job list: %s", *it);
           continue;
         }
 
@@ -119,38 +115,16 @@ namespace Arc {
         }
     }
 
-    Config cfg;
-    int ctrlnum = 0;
-
     for (std::list<std::string>::iterator it = controllers.begin();
          it != controllers.end(); it++) {
-
-      XMLNode jobctrl = cfg.NewChild("ArcClientComponent");
-      jobctrl.NewAttribute("name") = "JobController" + (*it);
-      jobctrl.NewAttribute("id") = "controller" + tostring(ctrlnum);
-      usercfg.ApplyToConfig(jobctrl);
-      jobctrl.NewChild("JobList") = joblist;
-      ctrlnum++;
-    }
-
-    loader = new ACCLoader(cfg);
-
-    for (int i = 0; i < ctrlnum; i++) {
-      JobController *jobctrl =
-        dynamic_cast<JobController*>(loader->getACC("controller" +
-                                                    tostring(i)));
-      if (jobctrl) {
-        jobctrl->FillJobStore(jobids[jobctrl->Flavour()],
-                              clusterselect[jobctrl->Flavour()],
-                              clusterreject[jobctrl->Flavour()]);
-        jobcontrollers.push_back(jobctrl);
-      }
+      Config cfg;
+      cfg.NewChild("JobList") = joblist;
+      JobController *JC = loader.load(*it, cfg, usercfg);
+      if (JC)
+        JC->FillJobStore(jobids[*it], clusterselect[*it], clusterreject[*it]);
     }
   }
 
-  JobSupervisor::~JobSupervisor() {
-    if (loader)
-      delete loader;
-  }
+  JobSupervisor::~JobSupervisor() {}
 
 } // namespace Arc

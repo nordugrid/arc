@@ -23,10 +23,7 @@ namespace Arc {
 
   struct ThreadArg {
     TargetGenerator *mom;
-    std::string proxyPath;
-    std::string certificatePath;
-    std::string keyPath;
-    std::string caCertificatesDir;
+    const UserConfig *usercfg;
     URL url;
     int targetType;
     int detailLevel;
@@ -37,10 +34,7 @@ namespace Arc {
                                                      int detailLevel) {
     ThreadArg *arg = new ThreadArg;
     arg->mom = &mom;
-    arg->proxyPath = proxyPath;
-    arg->certificatePath = certificatePath;
-    arg->keyPath = keyPath;
-    arg->caCertificatesDir = caCertificatesDir;
+    arg->usercfg = &usercfg;
     arg->url = url;
     arg->targetType = targetType;
     arg->detailLevel = detailLevel;
@@ -49,17 +43,18 @@ namespace Arc {
 
   Logger TargetRetrieverUNICORE::logger(TargetRetriever::logger, "UNICORE");
 
-  TargetRetrieverUNICORE::TargetRetrieverUNICORE(Config *cfg)
-    : TargetRetriever(cfg, "UNICORE") {}
+  TargetRetrieverUNICORE::TargetRetrieverUNICORE(const Config& cfg,
+                                                 const UserConfig& usercfg)
+    : TargetRetriever(cfg, usercfg, "UNICORE") {}
 
   TargetRetrieverUNICORE::~TargetRetrieverUNICORE() {}
 
   Plugin* TargetRetrieverUNICORE::Instance(PluginArgument *arg) {
-    ACCPluginArgument *accarg =
-      arg ? dynamic_cast<ACCPluginArgument*>(arg) : NULL;
-    if (!accarg)
+    TargetRetrieverPluginArgument *trarg =
+      dynamic_cast<TargetRetrieverPluginArgument*>(arg);
+    if (!trarg)
       return NULL;
-    return new TargetRetrieverUNICORE((Config*)(*accarg));
+    return new TargetRetrieverUNICORE(*trarg, *trarg);
   }
 
   void TargetRetrieverUNICORE::GetTargets(TargetGenerator& mom, int targetType,
@@ -97,19 +92,11 @@ namespace Arc {
   void TargetRetrieverUNICORE::QueryIndex(void *arg) {
     ThreadArg *thrarg = (ThreadArg*)arg;
     TargetGenerator& mom = *thrarg->mom;
+    const UserConfig& usercfg = *thrarg->usercfg;
 
     URL& url = thrarg->url;
     MCCConfig cfg;
-    if (!thrarg->proxyPath.empty())
-          cfg.AddProxy(thrarg->proxyPath);                                           //Normally proxies should not be used, possibly some provisions should be made if the user insists.
-    if (!thrarg->certificatePath.empty())
-      cfg.AddCertificate(thrarg->certificatePath);
-    if (!thrarg->keyPath.empty())
-      cfg.AddPrivateKey(thrarg->keyPath);
-    if (!thrarg->caCertificatesDir.empty())
-      cfg.AddCADir(thrarg->caCertificatesDir);
-    //std::cout << "Cert: " << thrarg->certificatePath << "  Key: " << thrarg->keyPath << std::endl;
-
+    usercfg.ApplyToConfig(cfg);
     UNICOREClient uc(url, cfg);
     std::string thePayload;
     std::list<Config> beses;
@@ -118,15 +105,7 @@ namespace Arc {
     //std::cout << thePayload << std::endl; //debug remove!
     //The following loop should work even for mixed lists of index and computing services
     for (std::list<Config>::iterator it = beses.begin(); it != beses.end(); it++) {
-      if (!thrarg->certificatePath.empty())
-        (*it).NewChild("CertificatePath") = thrarg->certificatePath;
-      if (!thrarg->keyPath.empty())
-        (*it).NewChild("KeyPath") = thrarg->keyPath;
-      if (!thrarg->caCertificatesDir.empty())
-        (*it).NewChild("CACertificatesDir") = thrarg->caCertificatesDir;
-      if (!thrarg->proxyPath.empty())
-        (*it).NewChild("ProxyPath") = thrarg->proxyPath;
-      TargetRetrieverUNICORE r(&(*it));
+      TargetRetrieverUNICORE r(*it, usercfg);
       r.GetTargets(mom, thrarg->targetType, thrarg->detailLevel);
     }
 
@@ -137,17 +116,11 @@ namespace Arc {
   void TargetRetrieverUNICORE::InterrogateTarget(void *arg) {
     ThreadArg *thrarg = (ThreadArg*)arg;
     TargetGenerator& mom = *thrarg->mom;
+    const UserConfig& usercfg = *thrarg->usercfg;
 
     URL& url = thrarg->url;
     MCCConfig cfg;
-    if (!thrarg->proxyPath.empty())
-               cfg.AddProxy(thrarg->proxyPath);                                           //Normally proxies should not be used, possibly some provisions should be made if the user insists.
-    if (!thrarg->certificatePath.empty())
-      cfg.AddCertificate(thrarg->certificatePath);
-    if (!thrarg->keyPath.empty())
-      cfg.AddPrivateKey(thrarg->keyPath);
-    if (!thrarg->caCertificatesDir.empty())
-      cfg.AddCADir(thrarg->caCertificatesDir);
+    usercfg.ApplyToConfig(cfg);
     UNICOREClient uc(url, cfg);
     std::string status;
     if (!uc.sstat(status)) {

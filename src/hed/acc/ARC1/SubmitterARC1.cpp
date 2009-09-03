@@ -8,6 +8,7 @@
 #include <sstream>
 
 #include <arc/client/JobDescription.h>
+#include <arc/client/UserConfig.h>
 #include <arc/message/MCC.h>
 
 #include "SubmitterARC1.h"
@@ -17,23 +18,23 @@ namespace Arc {
 
   Logger SubmitterARC1::logger(Submitter::logger, "ARC1");
 
-  SubmitterARC1::SubmitterARC1(Config *cfg)
-    : Submitter(cfg, "ARC1") {}
+  SubmitterARC1::SubmitterARC1(const Config& cfg, const UserConfig& usercfg)
+    : Submitter(cfg, usercfg, "ARC1") {}
 
   SubmitterARC1::~SubmitterARC1() {}
 
   Plugin* SubmitterARC1::Instance(PluginArgument *arg) {
-    ACCPluginArgument *accarg =
-      arg ? dynamic_cast<ACCPluginArgument*>(arg) : NULL;
-    if (!accarg)
+    SubmitterPluginArgument *subarg =
+      dynamic_cast<SubmitterPluginArgument*>(arg);
+    if (!subarg)
       return NULL;
-    return new SubmitterARC1((Config*)(*accarg));
+    return new SubmitterARC1(*subarg, *subarg);
   }
 
   URL SubmitterARC1::Submit(const JobDescription& jobdesc,
                             const std::string& joblistfile) const {
     MCCConfig cfg;
-    ApplySecurity(cfg);
+    usercfg.ApplyToConfig(cfg);
     AREXClient ac(submissionEndpoint, cfg);
 
     std::string jobid;
@@ -65,7 +66,7 @@ namespace Arc {
                              bool forcemigration,
                              const std::string& joblistfile) const {
     MCCConfig cfg;
-    ApplySecurity(cfg);
+    usercfg.ApplyToConfig(cfg);
     AREXClient ac(submissionEndpoint, cfg);
 
     std::string idstr;
@@ -92,17 +93,16 @@ namespace Arc {
         const size_t foundRSlash = it->Source.front().URI.str().rfind('/');
         if (foundRSlash == std::string::npos)
           continue;
-        
+
         const std::string uriPath = it->Source.front().URI.str().substr(0, foundRSlash);
         // Check if the input file URI is pointing to a old job session directory.
         for (std::list<std::string>::const_iterator itAOID = job.Identification.ActivityOldId.begin();
-             itAOID != job.Identification.ActivityOldId.end(); itAOID++) {
+             itAOID != job.Identification.ActivityOldId.end(); itAOID++)
           if (uriPath == *itAOID) {
             it->Source.front().URI = URL(jobid.str() + "/" + it->Name);
             it->DownloadToCache = false;
             break;
           }
-        }
       }
     }
 

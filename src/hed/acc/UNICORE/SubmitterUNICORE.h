@@ -18,7 +18,7 @@ namespace Arc {
   private:
     static Logger logger;
 
-    SubmitterUNICORE(Config *cfg);
+    SubmitterUNICORE(const Config& cfg, const UserConfig& usercfg);
     ~SubmitterUNICORE();
 
   public:

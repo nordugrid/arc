@@ -29,9 +29,7 @@
 #include <arc/client/JobSupervisor.h>
 #include <arc/client/TargetGenerator.h>
 #include <arc/client/UserConfig.h>
-#include <arc/client/ACC.h>
 #include <arc/client/Broker.h>
-#include <arc/client/ACCLoader.h>
 
 int main(int argc, char **argv) {
 
@@ -209,10 +207,13 @@ int main(int argc, char **argv) {
   }
 
   Arc::Config cfg;
-  usercfg.ApplyToConfig(cfg);
-  Arc::ACCLoader loader;
-  Arc::Broker *ChosenBroker = dynamic_cast<Arc::Broker*>(loader.loadACC(usercfg.ConfTree()["Broker"]["Name"], &cfg));
-  logger.msg(Arc::INFO, "Broker %s loaded", (std::string)usercfg.ConfTree()["Broker"]["Name"]);
+  cfg.NewChild("Arguments") =
+    (std::string)usercfg.ConfTree()["Broker"]["Arguments"];
+  Arc::BrokerLoader loader;
+  Arc::Broker *ChosenBroker = loader.load(usercfg.ConfTree()["Broker"]["Name"],
+                                          cfg, usercfg);
+  logger.msg(Arc::INFO, "Broker %s loaded",
+             (std::string)usercfg.ConfTree()["Broker"]["Name"]);
 
   // Loop over jobs
   for (std::list<Arc::Job>::iterator it = toberesubmitted.begin();

@@ -8,25 +8,27 @@
 
 #include <arc/ArcConfig.h>
 #include <arc/URL.h>
-#include <arc/client/ACC.h>
-#include <arc/client/Broker.h>
 #include <arc/client/Job.h>
-#include <arc/client/JobDescription.h>
-#include <arc/client/TargetGenerator.h>
+#include <arc/loader/Plugin.h>
+#include <arc/loader/Loader.h>
 
 namespace Arc {
 
+  class Broker;
   class Logger;
+  class TargetGenerator;
   class UserConfig;
 
+  //! Base class for the JobControllers
+  /// Must be specialiced for each supported middleware flavour.
   class JobController
-    : public ACC {
+    : public Plugin {
   protected:
-    JobController(Config *cfg, const std::string& flavour);
+    JobController(const Config& cfg, const UserConfig& usercfg,
+                  const std::string& flavour);
   public:
     virtual ~JobController();
 
-    // Base class implementation
     void FillJobStore(const std::list<URL>& jobids,
                       const std::list<URL>& clusterselect,
                       const std::list<URL>& cluterreject);
@@ -69,7 +71,9 @@ namespace Arc {
 
     void CheckLocalDescription(std::list<Job>& jobs);
 
-    const std::list<Job>& GetJobs() const { return jobstore; }
+    const std::list<Job>& GetJobs() const {
+      return jobstore;
+    }
 
     // Implemented by specialized classes
     virtual void GetJobInformation() = 0;
@@ -83,12 +87,66 @@ namespace Arc {
     virtual bool GetJobDescription(const Job& job, std::string& desc_str) = 0;
 
   protected:
+    const std::string flavour;
+    const UserConfig& usercfg;
+    const std::string joblist;
     std::list<Job> jobstore;
     Config jobstorage;
-    std::string joblist;
     static Logger logger;
+  };
+
+  //! Class responsible for loading JobController plugins
+  /// The JobController objects returned by a JobControllerLoader
+  /// must not be used after the JobControllerLoader goes out of scope.
+  class JobControllerLoader
+    : public Loader {
+
+  public:
+    //! Constructor
+    /// Creates a new JobControllerLoader.
+    JobControllerLoader();
+
+    //! Destructor
+    /// Calling the destructor destroys all JobControllers loaded
+    /// by the JobControllerLoader instance.
+    ~JobControllerLoader();
+
+    //! Load a new JobController
+    /// \param name    The name of the JobController to load.
+    /// \param cfg     The Config object for the new JobController.
+    /// \param usercfg The UserConfig object for the new JobController.
+    /// \returns       A pointer to the new JobController (NULL on error).
+    JobController* load(const std::string& name,
+                        const Config& cfg, const UserConfig& usercfg);
+
+    //! Retrieve the list of loaded JobControllers.
+    /// \returns A reference to the list of JobControllers.
+    const std::list<JobController*>& GetJobControllers() const {
+      return jobcontrollers;
+    }
+
+  private:
+    std::list<JobController*> jobcontrollers;
+  };
+
+  class JobControllerPluginArgument
+    : public PluginArgument {
+  public:
+    JobControllerPluginArgument(const Config& cfg, const UserConfig& usercfg)
+      : cfg(cfg),
+        usercfg(usercfg) {}
+    ~JobControllerPluginArgument() {}
+    operator const Config&() {
+      return cfg;
+    }
+    operator const UserConfig&() {
+      return usercfg;
+    }
+  private:
+    const Config& cfg;
+    const UserConfig& usercfg;
   };
 
 } // namespace Arc
 
-#endif
+#endif // __ARC_JOBCONTROLLER_H__

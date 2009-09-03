@@ -103,7 +103,7 @@ namespace Arc {
     set_bes_factory_action(req, "CreateActivity");
     WSAHeader(req).To(rurl.str());
     //XMLNode proxyHeader = req.Header().NewChild("u6:Proxy");
-    if (true){
+    if (true) {
       std::string pem_str;
       std::ifstream proxy_file(proxyPath.c_str()/*, ifstream::in*/);
       std::getline<char>(proxy_file, pem_str, 0);

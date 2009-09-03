@@ -8,6 +8,8 @@
 #include <map>
 #include <glibmm.h>
 
+#include <arc/client/JobDescription.h>
+#include <arc/client/UserConfig.h>
 #include <arc/data/DataBuffer.h>
 #include <arc/data/DataHandle.h>
 #include <arc/data/DataMover.h>
@@ -30,16 +32,18 @@ namespace Arc {
 
   Logger JobControllerARC0::logger(JobController::logger, "ARC0");
 
-  JobControllerARC0::JobControllerARC0(Config *cfg)
-    : JobController(cfg, "ARC0") {}
+  JobControllerARC0::JobControllerARC0(const Config& cfg,
+                                       const UserConfig& usercfg)
+    : JobController(cfg, usercfg, "ARC0") {}
 
   JobControllerARC0::~JobControllerARC0() {}
 
   Plugin* JobControllerARC0::Instance(PluginArgument *arg) {
-    ACCPluginArgument *accarg = dynamic_cast<ACCPluginArgument*>(arg);
-    if (!accarg)
+    JobControllerPluginArgument *jcarg =
+      dynamic_cast<JobControllerPluginArgument*>(arg);
+    if (!jcarg)
       return NULL;
-    return new JobControllerARC0((Config*)(*accarg));
+    return new JobControllerARC0(*jcarg, *jcarg);
   }
 
   void JobControllerARC0::GetJobInformation() {
@@ -231,8 +235,12 @@ namespace Arc {
 
     logger.msg(DEBUG, "Cleaning job: %s", job.JobID.str());
 
+    Config cfg;
+    usercfg.ApplyToConfig(cfg);
+
     FTPControl ctrl;
-    if (!ctrl.Connect(job.JobID, proxyPath, certificatePath, keyPath, timeout)) {
+    if (!ctrl.Connect(job.JobID, cfg["ProxyPath"], cfg["CertificatePath"],
+                      cfg["KeyPath"], stringtoi(cfg["TimeOut"]))) {
       logger.msg(ERROR, "Failed to connect for job cleaning");
       return false;
     }
@@ -242,17 +250,17 @@ namespace Arc {
     std::string jobpath = path.substr(0, pos);
     std::string jobidnum = path.substr(pos + 1);
 
-    if (!ctrl.SendCommand("CWD " + jobpath, timeout)) {
+    if (!ctrl.SendCommand("CWD " + jobpath, stringtoi(cfg["TimeOut"]))) {
       logger.msg(ERROR, "Failed sending CWD command for job cleaning");
       return false;
     }
 
-    if (!ctrl.SendCommand("RMD " + jobidnum, timeout)) {
+    if (!ctrl.SendCommand("RMD " + jobidnum, stringtoi(cfg["TimeOut"]))) {
       logger.msg(ERROR, "Failed sending RMD command for job cleaning");
       return false;
     }
 
-    if (!ctrl.Disconnect(timeout)) {
+    if (!ctrl.Disconnect(stringtoi(cfg["TimeOut"]))) {
       logger.msg(ERROR, "Failed to disconnect after job cleaning");
       return false;
     }
@@ -267,8 +275,12 @@ namespace Arc {
 
     logger.msg(DEBUG, "Cleaning job: %s", job.JobID.str());
 
+    Config cfg;
+    usercfg.ApplyToConfig(cfg);
+
     FTPControl ctrl;
-    if (!ctrl.Connect(job.JobID, proxyPath, certificatePath, keyPath, timeout)) {
+    if (!ctrl.Connect(job.JobID, cfg["ProxyPath"], cfg["CertificatePath"],
+                      cfg["KeyPath"], stringtoi(cfg["TimeOut"]))) {
       logger.msg(ERROR, "Failed to connect for job cleaning");
       return false;
     }
@@ -278,17 +290,17 @@ namespace Arc {
     std::string jobpath = path.substr(0, pos);
     std::string jobidnum = path.substr(pos + 1);
 
-    if (!ctrl.SendCommand("CWD " + jobpath, timeout)) {
+    if (!ctrl.SendCommand("CWD " + jobpath, stringtoi(cfg["TimeOut"]))) {
       logger.msg(ERROR, "Failed sending CWD command for job cancelling");
       return false;
     }
 
-    if (!ctrl.SendCommand("DELE " + jobidnum, timeout)) {
+    if (!ctrl.SendCommand("DELE " + jobidnum, stringtoi(cfg["TimeOut"]))) {
       logger.msg(ERROR, "Failed sending DELE command for job cancelling");
       return false;
     }
 
-    if (!ctrl.Disconnect(timeout)) {
+    if (!ctrl.Disconnect(stringtoi(cfg["TimeOut"]))) {
       logger.msg(ERROR, "Failed to disconnect after job cancelling");
       return false;
     }
@@ -298,12 +310,16 @@ namespace Arc {
     return true;
   }
 
-  bool JobControllerARC0::RenewJob(const Job& job){
-    
+  bool JobControllerARC0::RenewJob(const Job& job) {
+
     logger.msg(DEBUG, "Renewing credentials for job: %s", job.JobID.str());
 
+    Config cfg;
+    usercfg.ApplyToConfig(cfg);
+
     FTPControl ctrl;
-    if (!ctrl.Connect(job.JobID, proxyPath, certificatePath, keyPath, timeout)) {
+    if (!ctrl.Connect(job.JobID, cfg["ProxyPath"], cfg["CertificatePath"],
+                      cfg["KeyPath"], stringtoi(cfg["TimeOut"]))) {
       logger.msg(ERROR, "Failed to connect for credential renewal");
       return false;
     }
@@ -313,62 +329,64 @@ namespace Arc {
     std::string jobpath = path.substr(0, pos);
     std::string jobidnum = path.substr(pos + 1);
 
-    if (!ctrl.SendCommand("CWD " + jobpath, timeout)) {
+    if (!ctrl.SendCommand("CWD " + jobpath, stringtoi(cfg["TimeOut"]))) {
       logger.msg(ERROR, "Failed sending CWD command for credentials renewal");
       return false;
     }
 
-    if (!ctrl.SendCommand("CWD " + jobidnum, timeout)) {
+    if (!ctrl.SendCommand("CWD " + jobidnum, stringtoi(cfg["TimeOut"]))) {
       logger.msg(ERROR, "Failed sending CWD command for credentials renewal");
       return false;
     }
 
-    if (!ctrl.Disconnect(timeout)) {
+    if (!ctrl.Disconnect(stringtoi(cfg["TimeOut"]))) {
       logger.msg(ERROR, "Failed to disconnect after credentials renewal");
       return false;
     }
 
     logger.msg(DEBUG, "Renewal of credentials was successful");
-    
 
     return true;
   }
 
-  bool JobControllerARC0::ResumeJob(const Job& job){
+  bool JobControllerARC0::ResumeJob(const Job& job) {
 
-    std::cout << "Resuming job "<<job.JobID.str()<<" at state "<< job.RestartState << std::endl;
-    if (job.RestartState.empty()){
-      logger.msg(ERROR, "Job %s does not report a resumable state",job.JobID.str());
+    std::cout << "Resuming job " << job.JobID.str() << " at state " << job.RestartState << std::endl;
+    if (job.RestartState.empty()) {
+      logger.msg(ERROR, "Job %s does not report a resumable state", job.JobID.str());
       return false;
     }
-     
+
     RenewJob(job);
 
     // dump rsl into temporary file
     std::string urlstr = job.JobID.str();
     std::string::size_type pos = urlstr.rfind('/');
-    if (pos==std::string::npos || pos==0)
-      logger.msg(ERROR,"Illegal jobid specified");
-    std::string jobnr = urlstr.substr(pos+1);
+    if (pos == std::string::npos || pos == 0)
+      logger.msg(ERROR, "Illegal jobid specified");
+    std::string jobnr = urlstr.substr(pos + 1);
     urlstr = urlstr.substr(0, pos) + "/new/action";
-    logger.msg(DEBUG, "HER: %s",urlstr);
-    
+    logger.msg(DEBUG, "HER: %s", urlstr);
+
     std::string rsl("&(action=restart)(jobid=" + jobnr + ")");
 
     std::string filename = Glib::build_filename(Glib::get_tmp_dir(), "arcresume.XXXXXX");
     int tmp_h = Glib::mkstemp(filename);
     if (tmp_h == -1) {
-      logger.msg(ERROR,"Could not create temporary file: %s", filename);
+      logger.msg(ERROR, "Could not create temporary file: %s", filename);
       return false;
-    }   
+    }
     std::ofstream outfile(filename.c_str(), std::ofstream::binary);
     outfile.write(rsl.c_str(), rsl.size());
     if (outfile.fail()) {
-      logger.msg(ERROR,"Could not write temporary file: %s", filename);
+      logger.msg(ERROR, "Could not write temporary file: %s", filename);
       return false;
-    }   
+    }
     outfile.close();
-    
+
+    Config cfg;
+    usercfg.ApplyToConfig(cfg);
+
     // Send temporary file to cluster
     DataMover mover;
     FileCache cache;
@@ -376,12 +394,12 @@ namespace Arc {
     URL dest_url(urlstr);
     DataHandle source(source_url);
     DataHandle destination(dest_url);
-    source->AssignCredentials(proxyPath, certificatePath, keyPath, caCertificatesDir);
+    source->AssignCredentials(cfg);
     source->SetTries(1);
-    destination->AssignCredentials(proxyPath, certificatePath, keyPath, caCertificatesDir);
+    destination->AssignCredentials(cfg);
     destination->SetTries(1);
     DataStatus res = mover.Transfer(*source, *destination, cache, URLMap(),
-                                    0, 0, 0, timeout);
+                                    0, 0, 0, stringtoi(cfg["TimeOut"]));
     if (!res.Passed()) {
       if (!res.GetDesc().empty())
         logger.msg(INFO, "Current transfer FAILED: %s - %s", std::string(res), res.GetDesc());
@@ -433,6 +451,9 @@ namespace Arc {
     std::string cluster = jobid.substr(0, pos);
     std::string shortid = jobid.substr(pos + 1);
 
+    Config cfg;
+    usercfg.ApplyToConfig(cfg);
+
     // Transfer job description
     DataMover mover;
     mover.secure(false);
@@ -447,12 +468,12 @@ namespace Arc {
     URL dest_url(localfile);
     DataHandle source(source_url);
     DataHandle destination(dest_url);
-    source->AssignCredentials(proxyPath, certificatePath, keyPath, caCertificatesDir);
+    source->AssignCredentials(cfg);
     source->SetTries(1);
-    destination->AssignCredentials(proxyPath, certificatePath, keyPath, caCertificatesDir);
+    destination->AssignCredentials(cfg);
     destination->SetTries(1);
     DataStatus res = mover.Transfer(*source, *destination, cache, URLMap(),
-                                    0, 0, 0, timeout);
+                                    0, 0, 0, stringtoi(cfg["TimeOut"]));
     if (!res.Passed()) {
       if (!res.GetDesc().empty())
         logger.msg(INFO, "Current transfer FAILED: %s - %s", std::string(res), res.GetDesc());

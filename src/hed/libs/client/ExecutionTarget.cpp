@@ -7,7 +7,6 @@
 #include <arc/ArcConfig.h>
 #include <arc/Logger.h>
 #include <arc/XMLNode.h>
-#include <arc/client/ACCLoader.h>
 #include <arc/client/ClientInterface.h>
 #include <arc/client/ExecutionTarget.h>
 #include <arc/client/Submitter.h>
@@ -70,8 +69,7 @@ namespace Arc {
       CPUClockSpeed(-1),
       MainMemorySize(-1),
       ConnectivityIn(false),
-      ConnectivityOut(false)
-      {}
+      ConnectivityOut(false) {}
 
   ExecutionTarget::ExecutionTarget(const ExecutionTarget& target) {
     Copy(target);
@@ -86,8 +84,7 @@ namespace Arc {
     return *this;
   }
 
-  ExecutionTarget::~ExecutionTarget() {
-  }
+  ExecutionTarget::~ExecutionTarget() {}
 
   void ExecutionTarget::Copy(const ExecutionTarget& target) {
 
@@ -220,14 +217,14 @@ namespace Arc {
   }
 
   Submitter* ExecutionTarget::GetSubmitter(const UserConfig& ucfg) const {
-    Config SubmitterComp;
-    SubmitterComp.NewChild("Cluster") = Cluster.str();
-    SubmitterComp.NewChild("Queue") = MappingQueue;
-    SubmitterComp.NewChild("LRMSType") = ManagerProductName;
-    SubmitterComp.NewChild("SubmissionEndpoint") = url.str();
-    ucfg.ApplyToConfig(SubmitterComp);
+    Config cfg;
+    cfg.NewChild("Cluster") = Cluster.str();
+    cfg.NewChild("Queue") = MappingQueue;
+    cfg.NewChild("LRMSType") = ManagerProductName;
+    cfg.NewChild("SubmissionEndpoint") = url.str();
 
-    return dynamic_cast<Submitter*>(const_cast<ExecutionTarget*>(this)->loader.loadACC("Submitter" + GridFlavour, &SubmitterComp));
+    return (const_cast<ExecutionTarget*>(this))->loader.load(GridFlavour,
+                                                             cfg, ucfg);
   }
 
   void ExecutionTarget::Update(const JobDescription& jobdesc) {

@@ -7,6 +7,7 @@
 #include <arc/XMLNode.h>
 #include <arc/message/MCC.h>
 #include <arc/client/ClientInterface.h>
+#include <arc/client/UserConfig.h>
 #include <arc/ws-addressing/WSA.h>
 
 #include "UNICOREClient.h"
@@ -17,23 +18,24 @@ namespace Arc {
 
   Logger JobControllerUNICORE::logger(JobController::logger, "UNICORE");
 
-  JobControllerUNICORE::JobControllerUNICORE(Config *cfg)
-    : JobController(cfg, "UNICORE") {}
+  JobControllerUNICORE::JobControllerUNICORE(const Config& cfg,
+                                             const UserConfig& usercfg)
+    : JobController(cfg, usercfg, "UNICORE") {}
 
   JobControllerUNICORE::~JobControllerUNICORE() {}
 
   Plugin* JobControllerUNICORE::Instance(PluginArgument *arg) {
-    ACCPluginArgument *accarg =
-      arg ? dynamic_cast<ACCPluginArgument*>(arg) : NULL;
-    if (!accarg)
+    JobControllerPluginArgument *jcarg =
+      dynamic_cast<JobControllerPluginArgument*>(arg);
+    if (!jcarg)
       return NULL;
-    return new JobControllerUNICORE((Config*)(*accarg));
+    return new JobControllerUNICORE(*jcarg, *jcarg);
   }
 
   void JobControllerUNICORE::GetJobInformation() {
     MCCConfig cfg;
-    ApplySecurity(cfg);
-    
+    usercfg.ApplyToConfig(cfg);
+
     for (std::list<Job>::iterator iter = jobstore.begin();
          iter != jobstore.end(); iter++) {
       URL url(iter->Cluster);
@@ -120,7 +122,7 @@ namespace Arc {
 
   bool JobControllerUNICORE::CleanJob(const Job& job, bool force) {
     //     MCCConfig cfg;
-    //     ApplySecurity(cfg);
+    //     usercfg.ApplyToConfig(cfg);
     //     PathIterator pi(job.JobID.Path(), true);
     //     URL url(job.JobID);
     //     url.ChangePath(*pi);
@@ -143,7 +145,7 @@ namespace Arc {
 
   bool JobControllerUNICORE::CancelJob(const Job& job) {
     //     MCCConfig cfg;
-    //     ApplySecurity(cfg);
+    //     usercfg.ApplyToConfig(cfg);
     //     PathIterator pi(job.JobID.Path(), true);
     //     URL url(job.JobID);
     //     url.ChangePath(*pi);
@@ -164,12 +166,12 @@ namespace Arc {
     //     return ac.kill(idstr);
   }
 
-  bool JobControllerUNICORE::RenewJob(const Job& job){
+  bool JobControllerUNICORE::RenewJob(const Job& job) {
     logger.msg(ERROR, "Renewal of UNICORE jobs is not supported");
     return false;
   }
 
-  bool JobControllerUNICORE::ResumeJob(const Job& job){
+  bool JobControllerUNICORE::ResumeJob(const Job& job) {
     logger.msg(ERROR, "Resumation of UNICORE jobs is not supported");
     return false;
   }

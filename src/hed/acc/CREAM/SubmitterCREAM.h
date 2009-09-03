@@ -13,11 +13,8 @@ namespace Arc {
     : public Submitter {
 
   private:
-    SubmitterCREAM(Config *cfg);
+    SubmitterCREAM(const Config& cfg, const UserConfig& usercfg);
     ~SubmitterCREAM();
-
-    std::string queue;
-    std::string lrmsType;
 
   public:
     static Plugin* Instance(PluginArgument *arg);

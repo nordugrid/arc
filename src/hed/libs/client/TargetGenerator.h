@@ -10,12 +10,12 @@
 #include <arc/Thread.h>
 #include <arc/client/ExecutionTarget.h>
 #include <arc/client/Job.h>
+#include <arc/client/TargetRetriever.h>
 #include <arc/client/UserConfig.h>
 
 namespace Arc {
 
   class Config;
-  class ACCLoader;
   class Logger;
   class URL;
   class UserConfig;
@@ -41,7 +41,7 @@ namespace Arc {
     void PrintTargetInfo(bool longlist) const;
 
   private:
-    ACCLoader *loader;
+    TargetRetrieverLoader loader;
 
     URLListMap clusterselect;
     URLListMap clusterreject;

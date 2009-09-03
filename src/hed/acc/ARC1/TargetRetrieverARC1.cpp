@@ -28,10 +28,7 @@ namespace Arc {
 
   struct ThreadArg {
     TargetGenerator *mom;
-    std::string proxyPath;
-    std::string certificatePath;
-    std::string keyPath;
-    std::string caCertificatesDir;
+    const UserConfig *usercfg;
     URL url;
     int targetType;
     int detailLevel;
@@ -44,10 +41,7 @@ namespace Arc {
                                                   int detailLevel) {
     ThreadArg *arg = new ThreadArg;
     arg->mom = &mom;
-    arg->proxyPath = proxyPath;
-    arg->certificatePath = certificatePath;
-    arg->keyPath = keyPath;
-    arg->caCertificatesDir = caCertificatesDir;
+    arg->usercfg = &usercfg;
     arg->url = url;
     arg->targetType = targetType;
     arg->detailLevel = detailLevel;
@@ -56,17 +50,18 @@ namespace Arc {
 
   Logger TargetRetrieverARC1::logger(TargetRetriever::logger, "ARC1");
 
-  TargetRetrieverARC1::TargetRetrieverARC1(Config *cfg)
-    : TargetRetriever(cfg, "ARC1") {}
+  TargetRetrieverARC1::TargetRetrieverARC1(const Config& cfg,
+                                           const UserConfig& usercfg)
+    : TargetRetriever(cfg, usercfg, "ARC1") {}
 
   TargetRetrieverARC1::~TargetRetrieverARC1() {}
 
   Plugin* TargetRetrieverARC1::Instance(PluginArgument *arg) {
-    ACCPluginArgument *accarg =
-      arg ? dynamic_cast<ACCPluginArgument*>(arg) : NULL;
-    if (!accarg)
+    TargetRetrieverPluginArgument *trarg =
+      dynamic_cast<TargetRetrieverPluginArgument*>(arg);
+    if (!trarg)
       return NULL;
-    return new TargetRetrieverARC1((Config*)(*accarg));
+    return new TargetRetrieverARC1(*trarg, *trarg);
   }
 
   void TargetRetrieverARC1::GetTargets(TargetGenerator& mom, int targetType,
@@ -104,20 +99,14 @@ namespace Arc {
   void TargetRetrieverARC1::QueryIndex(void *arg) {
     ThreadArg *thrarg = (ThreadArg*)arg;
     TargetGenerator& mom = *thrarg->mom;
+    const UserConfig& usercfg = *thrarg->usercfg;
     URL& url = thrarg->url;
     MCCConfig cfg;
-    if (!thrarg->proxyPath.empty())
-      cfg.AddProxy(thrarg->proxyPath);
-    if (!thrarg->certificatePath.empty())
-      cfg.AddCertificate(thrarg->certificatePath);
-    if (!thrarg->keyPath.empty())
-      cfg.AddPrivateKey(thrarg->keyPath);
-    if (!thrarg->caCertificatesDir.empty())
-      cfg.AddCADir(thrarg->caCertificatesDir);
+    usercfg.ApplyToConfig(cfg);
     AREXClient ac(url, cfg);
     std::list<Arc::Config> services;
     std::string status;
-    if(!ac.listServicesFromISIS(services,status)){
+    if (!ac.listServicesFromISIS(services, status)) {
       delete thrarg;
       mom.RetrieverDone();
       return;
@@ -125,15 +114,7 @@ namespace Arc {
     logger.msg(INFO, "Found %u execution services from the index service at %s", services.size(), url.str());
 
     for (std::list<Config>::iterator it = services.begin(); it != services.end(); it++) {
-      if (!thrarg->certificatePath.empty())
-        (*it).NewChild("CertificatePath") = thrarg->certificatePath;
-      if (!thrarg->keyPath.empty())
-        (*it).NewChild("KeyPath") = thrarg->keyPath;
-      if (!thrarg->caCertificatesDir.empty())
-        (*it).NewChild("CACertificatesDir") = thrarg->caCertificatesDir;
-      if (!thrarg->proxyPath.empty())
-        (*it).NewChild("ProxyPath") = thrarg->proxyPath;
-      TargetRetrieverARC1 r(&(*it));
+      TargetRetrieverARC1 r(*it, usercfg);
       r.GetTargets(mom, thrarg->targetType, thrarg->detailLevel);
     }
 
@@ -144,17 +125,11 @@ namespace Arc {
   void TargetRetrieverARC1::InterrogateTarget(void *arg) {
     ThreadArg *thrarg = (ThreadArg*)arg;
     TargetGenerator& mom = *thrarg->mom;
+    const UserConfig& usercfg = *thrarg->usercfg;
     int targetType = thrarg->targetType;
     URL& url = thrarg->url;
     MCCConfig cfg;
-    if (!thrarg->proxyPath.empty())
-      cfg.AddProxy(thrarg->proxyPath);
-    if (!thrarg->certificatePath.empty())
-      cfg.AddCertificate(thrarg->certificatePath);
-    if (!thrarg->keyPath.empty())
-      cfg.AddPrivateKey(thrarg->keyPath);
-    if (!thrarg->caCertificatesDir.empty())
-      cfg.AddCADir(thrarg->caCertificatesDir);
+    usercfg.ApplyToConfig(cfg);
     AREXClient ac(url, cfg);
     XMLNode ServerStatus;
     if (!ac.sstat(ServerStatus)) {
@@ -273,7 +248,7 @@ namespace Arc {
         if (GLUEService["ComputingEndpoint"]["ImplementationVersion"])
           target.Implementation =
             Software((std::string)GLUEService["ComputingEndpoint"]["ImplementationName"],
-                            (std::string)GLUEService["ComputingEndpoint"]["ImplementationVersion"]);
+                     (std::string)GLUEService["ComputingEndpoint"]["ImplementationVersion"]);
         else {
           target.Implementation = Software((std::string)GLUEService["ComputingEndpoint"]["ImplementationName"]);
           logger.msg(INFO, "The Service doesn't advertise an Implementation Version.");
@@ -682,22 +657,27 @@ namespace Arc {
         }
       else
         logger.msg(INFO, "The Service doesn't advertise any Benchmarks.");
- 
+
       if (GLUEService["ComputingManager"]["ApplicationEnvironments"]["ApplicationEnvironment"])
         for (XMLNode n = GLUEService["ComputingManager"]["ApplicationEnvironments"]["ApplicationEnvironment"]; n; ++n) {
           ApplicationEnvironment ae((std::string)n["AppName"], (std::string)n["AppVersion"]);
           ae.State = (std::string)n["State"];
-          if (n["FreeSlots"]) ae.FreeSlots = stringtoi((std::string)n["FreeSlots"]);
-          else ae.FreeSlots = target.FreeSlots;
-          if (n["FreeJobs"]) ae.FreeJobs = stringtoi((std::string)n["FreeJobs"]);
-          else ae.FreeJobs = -1;
-          if (n["FreeUserSeats"]) ae.FreeUserSeats = stringtoi((std::string)n["FreeUserSeats"]);
-          else ae.FreeUserSeats = -1;
+          if (n["FreeSlots"])
+            ae.FreeSlots = stringtoi((std::string)n["FreeSlots"]);
+          else
+            ae.FreeSlots = target.FreeSlots;
+          if (n["FreeJobs"])
+            ae.FreeJobs = stringtoi((std::string)n["FreeJobs"]);
+          else
+            ae.FreeJobs = -1;
+          if (n["FreeUserSeats"])
+            ae.FreeUserSeats = stringtoi((std::string)n["FreeUserSeats"]);
+          else
+            ae.FreeUserSeats = -1;
           target.ApplicationEnvironments.push_back(ae);
         }
-      else {
+      else
         logger.msg(INFO, "The Service doesn't advertise any Application Environments.");
-      }
       mom.AddTarget(target);
     }
     else if (targetType == 1) {
@@ -708,7 +688,10 @@ namespace Arc {
         return;
       }
 
-      dir_url->AssignCredentials(thrarg->proxyPath, thrarg->certificatePath, thrarg->keyPath, thrarg->caCertificatesDir);
+      Config cfg;
+      usercfg.ApplyToConfig(cfg);
+      dir_url->AssignCredentials(cfg["ProxyPath"], cfg["CertificatePath"],
+                                 cfg["KeyPath"], cfg["CACertificatesDir"]);
       dir_url->SetSecure(false);
       std::list<FileInfo> files;
       if (!dir_url->ListFiles(files, false, false, false)) {
@@ -720,9 +703,9 @@ namespace Arc {
                    "Failed listing metafiles but some information is obtained");
       }
 
-      NS ns;
       for (std::list<FileInfo>::iterator file = files.begin();
            file != files.end(); file++) {
+        NS ns;
         XMLNode info(ns, "Job");
         info.NewChild("JobID") =
           (std::string)url.str() + "/" + file->GetName();

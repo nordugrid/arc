@@ -8,6 +8,8 @@
 
 #include <arc/XMLNode.h>
 #include <arc/message/MCC.h>
+#include <arc/client/JobDescription.h>
+#include <arc/client/UserConfig.h>
 #include <arc/data/DataMover.h>
 #include <arc/data/DataHandle.h>
 #include <arc/data/URLMap.h>
@@ -19,21 +21,23 @@ namespace Arc {
 
   Logger JobControllerARC1::logger(JobController::logger, "ARC1");
 
-  JobControllerARC1::JobControllerARC1(Config *cfg)
-    : JobController(cfg, "ARC1") {}
+  JobControllerARC1::JobControllerARC1(const Config& cfg,
+                                       const UserConfig& usercfg)
+    : JobController(cfg, usercfg, "ARC1") {}
 
   JobControllerARC1::~JobControllerARC1() {}
 
   Plugin* JobControllerARC1::Instance(PluginArgument *arg) {
-    ACCPluginArgument *accarg = dynamic_cast<ACCPluginArgument*>(arg);
-    if (!accarg)
+    JobControllerPluginArgument *jcarg =
+      dynamic_cast<JobControllerPluginArgument*>(arg);
+    if (!jcarg)
       return NULL;
-    return new JobControllerARC1((Config*)(*accarg));
+    return new JobControllerARC1(*jcarg, *jcarg);
   }
 
   void JobControllerARC1::GetJobInformation() {
     MCCConfig cfg;
-    ApplySecurity(cfg);
+    usercfg.ApplyToConfig(cfg);
 
     for (std::list<Job>::iterator iter = jobstore.begin();
          iter != jobstore.end(); iter++) {
@@ -84,7 +88,7 @@ namespace Arc {
 
   bool JobControllerARC1::CleanJob(const Job& job, bool force) {
     MCCConfig cfg;
-    ApplySecurity(cfg);
+    usercfg.ApplyToConfig(cfg);
     AREXClient ac(job.Cluster, cfg);
     std::string idstr;
     AREXClient::createActivityIdentifier(job.JobID, idstr);
@@ -93,29 +97,28 @@ namespace Arc {
 
   bool JobControllerARC1::CancelJob(const Job& job) {
     MCCConfig cfg;
-    ApplySecurity(cfg);
+    usercfg.ApplyToConfig(cfg);
     AREXClient ac(job.Cluster, cfg);
     std::string idstr;
     AREXClient::createActivityIdentifier(job.JobID, idstr);
     return ac.kill(idstr);
   }
 
-  bool JobControllerARC1::RenewJob(const Job& job){
+  bool JobControllerARC1::RenewJob(const Job& job) {
     logger.msg(ERROR, "Renewal of ARC1 jobs is not supported");
     return false;
   }
 
-  bool JobControllerARC1::ResumeJob(const Job& job){
+  bool JobControllerARC1::ResumeJob(const Job& job) {
 
-    if (job.RestartState.empty()){
-      logger.msg(ERROR, "Job %s does not report a resumable state",job.JobID.str());
+    if (job.RestartState.empty())
+      logger.msg(ERROR, "Job %s does not report a resumable state", job.JobID.str());
       //return false;
-    }
-     
-    logger.msg(DEBUG, "Resuming job: %s at state: %s",job.JobID.str(),job.RestartState);
+
+    logger.msg(DEBUG, "Resuming job: %s at state: %s", job.JobID.str(), job.RestartState);
 
     MCCConfig cfg;
-    ApplySecurity(cfg);
+    usercfg.ApplyToConfig(cfg);
     AREXClient ac(job.Cluster, cfg);
     std::string idstr;
     AREXClient::createActivityIdentifier(job.JobID, idstr);
@@ -130,7 +133,7 @@ namespace Arc {
 
   bool JobControllerARC1::GetJobDescription(const Job& job, std::string& desc_str) {
     MCCConfig cfg;
-    ApplySecurity(cfg);
+    usercfg.ApplyToConfig(cfg);
     AREXClient ac(job.Cluster, cfg);
     std::string idstr;
     AREXClient::createActivityIdentifier(job.JobID, idstr);
