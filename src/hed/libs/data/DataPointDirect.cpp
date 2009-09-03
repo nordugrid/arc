@@ -14,7 +14,6 @@ namespace Arc {
       buffer(NULL),
       bufsize(-1),
       bufnum(1),
-      cache(true),
       local(false),
       readonly(true),
       linkable(false),
@@ -41,7 +40,6 @@ namespace Arc {
     if (bufsize > MAX_BLOCK_SIZE)
       bufsize = MAX_BLOCK_SIZE;
 
-    cache = (url.Option("cache") != "no");
     readonly = (url.Option("readonly", "yes") == "yes");
   }
 
@@ -57,10 +55,6 @@ namespace Arc {
 
   int DataPointDirect::BufNum() const {
     return bufnum;
-  }
-
-  bool DataPointDirect::Cache() const {
-    return cache;
   }
 
   bool DataPointDirect::Local() const {

@@ -35,7 +35,6 @@ namespace Arc {
     virtual long long int BufSize() const;
     virtual int BufNum() const;
 
-    virtual bool Cache() const;
     virtual bool Local() const;
     virtual bool ReadOnly() const;
 
@@ -75,7 +74,6 @@ namespace Arc {
     DataBuffer *buffer;
     long long int bufsize;
     int bufnum;
-    bool cache;
     bool local;
     bool readonly;
     bool linkable;

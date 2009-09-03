@@ -184,12 +184,6 @@ namespace Arc {
     return h->BufNum();
   }
 
-  bool DataPointIndex::Cache() const {
-    if (!h)
-      return false;
-    return h->Cache();
-  }
-
   bool DataPointIndex::Local() const {
     if (!h)
       return false;

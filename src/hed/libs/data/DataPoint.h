@@ -228,7 +228,7 @@ namespace Arc {
     virtual int BufNum() const = 0;
 
     /// Returns true if file is cacheable.
-    virtual bool Cache() const = 0;
+    virtual bool Cache() const;
 
     /// Returns true if file is local, e.g. file:// urls.
     virtual bool Local() const = 0;
@@ -329,6 +329,7 @@ namespace Arc {
     Time valid;
     int triesleft;
     DataStatus failure_code; /* filled by callback methods */
+    bool cache;
 
     // authentication
     std::string proxyPath;

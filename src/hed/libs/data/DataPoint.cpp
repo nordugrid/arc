@@ -20,7 +20,8 @@ namespace Arc {
       created(-1),
       valid(-1),
       triesleft(5),
-      failure_code(DataStatus::UnknownError) {}
+      failure_code(DataStatus::UnknownError),
+      cache(url.Option("cache") != "no") {}
 
   DataPoint::~DataPoint() {}
 
@@ -42,6 +43,10 @@ namespace Arc {
 
   DataStatus DataPoint::GetFailureReason() const {
     return failure_code;
+  }
+  
+  bool DataPoint::Cache() const {
+    return cache;
   }
   
   bool DataPoint::CheckSize() const {
