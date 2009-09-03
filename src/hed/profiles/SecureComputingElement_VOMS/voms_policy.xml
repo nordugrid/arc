@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Policy xmlns="http://www.nordugrid.org/schemas/policy-arc" PolicyId="sm-example:policy1" CombiningAlg="Deny-Overrides">
+   <Rule Effect="Permit">
+     <Description>
+       example policy for KnowARC.eu VOMS authorisation
+     </Description>
+     <Subjects>
+      <Subject AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/tls/vomsattribute">/VO=knowarc.eu/Group=NULL/Role=NULL/Capability=NULL</Subject>
+     </Subjects>
+   </Rule>
+</Policy>
+

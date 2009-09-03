@@ -1,0 +1,52 @@
+<?xml version="1.0"?>
+<ArcConfig 
+  xmlns="http://www.nordugrid.org/schemas/ArcConfig/2007"
+  xmlns:tcp="http://www.nordugrid.org/schemas/ArcMCCTCP/2007"
+  xmlns:pdp="http://www.nordugrid.org/schemas/pdp/Config"
+  xmlns:charon="http://www.nordugrid.org/schemas/ArcConfig/2007/charon">
+	<Server>
+		<PidFile>/tmp/charon.pid</PidFile>
+		<Logger level="VERBOSE">/tmp/charon.log</Logger>
+	</Server>
+	<ModuleManager>
+		<Path>/usr/lib/arc</Path>
+	</ModuleManager>
+	<Plugins><Name>mcctcp</Name></Plugins>
+	<Plugins><Name>mcctls</Name></Plugins>
+	<Plugins><Name>mcchttp</Name></Plugins>
+	<Plugins><Name>mccsoap</Name></Plugins>
+	<Plugins><Name>arcpdc</Name></Plugins>
+	<Plugins><Name>arcshc</Name></Plugins>
+	<Plugins><Name>charon</Name></Plugins>
+	<Chain>
+		<Component name="tcp.service" id="tcp">
+			<next id="tls"/>
+			<tcp:Listen><tcp:Port>60000</tcp:Port></tcp:Listen>
+		</Component>
+	<Component name="tls.service" id="tls">
+		<next id="http"/>
+		<KeyPath>/etc/grid-security/hostkey.pem</KeyPath>
+		<CertificatePath>/etc/grid-security/hostcert.pem</CertificatePath>
+		<CACertificatesDir>/etc/grid-security/certificates</CACertificatesDir>
+	</Component>
+		<Component name="http.service" id="http">
+			<next id="soap">POST</next>
+		</Component>
+		<Component name="soap.service" id="soap">
+			<next id="plexer"/>
+		</Component>
+		<Plexer name="plexer.service" id="plexer">
+			<next id="charon_service">^/Charon$</next>
+		</Plexer>
+		<Service name="charon" id="charon_service">
+			<charon:PDPConfig>
+				<charon:PolicyStore>
+				<charon:Location Type="file">charon_policy.xml</charon:Location>
+				</charon:PolicyStore>
+				<charon:Evaluator name="arc.evaluator" />
+				<charon:Policy name="arc.policy" />
+				<charon:Request name="arc.request" />
+			</charon:PDPConfig>
+		</Service>
+	</Chain>
+</ArcConfig>

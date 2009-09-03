@@ -1,0 +1,58 @@
+<?xml version="1.0"?>
+<ArcConfig
+ xmlns="http://www.nordugrid.org/schemas/ArcConfig/2007"
+ xmlns:tcp="http://www.nordugrid.org/schemas/ArcMCCTCP/2007"
+ xmlns:pdp="http://www.nordugrid.org/schemas/pdp/Config"
+ xmlns:echo="urn:echo_config">
+	<Server>
+		<Pidfile>/tmp/arched.pid</Pidfile>
+		<Logger level="VERBOSE">/tmp/arched.log</Logger>
+	</Server>
+	<ModuleManager>
+		<Path>/usr/lib/arc</Path>
+	</ModuleManager>
+	<Plugins><Name>mcctcp</Name></Plugins>
+	<Plugins><Name>mcchttp</Name></Plugins>
+	<Plugins><Name>mccsoap</Name></Plugins>
+	<Plugins><Name>javaservice</Name></Plugins>
+	<Plugins><Name>pythonservice</Name></Plugins>
+	<Plugins><Name>echo</Name></Plugins>
+	<Chain>
+		<Component name="tcp.service" id="tcp">
+			<next id="http"/>
+			<tcp:Listen>
+				<tcp:Port>50000</tcp:Port>
+				<tcp:Version>4</tcp:Version>
+			</tcp:Listen>
+		</Component>
+		<Component name="http.service" id="http">
+			<next id="soap">POST</next>
+			<next id="plexer">GET</next>
+			<next id="plexer">PUT</next>
+		</Component>
+		<Component name="soap.service" id="soap">
+			<next id="plexer"/>
+		</Component>
+		<Plexer name="plexer.service" id="plexer">
+			<next id="httpd">^/httpd/</next>
+			<next id="echo_python">^/echo_python$</next>
+			<next id="echo_java">^/echo_java$</next>
+			<next id="echo">^/echo$</next>
+		</Plexer>
+		<Service name="arcservice_javawrapper" id="echo_java">
+			<ClassName>EchoService</ClassName>
+			<echo:prefix>{java[ </echo:prefix>
+			<echo:suffix> ]java}</echo:suffix>
+        	</Service>
+		<Service name="pythonservice" id="echo_python">
+			<ClassName>echo_python.EchoService.EchoService</ClassName>
+			<echo:prefix>{python[ </echo:prefix>
+			<echo:suffix> ]python}</echo:suffix>
+		</Service>
+		<Service name="echo" id="echo">
+			<echo:prefix>{cpp[ </echo:prefix>
+			<echo:suffix> ]cpp}</echo:suffix>
+		</Service>
+	</Chain>
+</ArcConfig>
+

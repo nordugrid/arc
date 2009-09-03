@@ -1,0 +1,3 @@
+/DC=eu/DC=KnowARC/O=ARC1-testing/CN=demo1
+/DC=eu/DC=KnowARC/O=testbed/CN=host/testbed1.grid.upjs.sk
+/C=SK/O=SlovakGrid/O=UPJS/CN=Marek Kocan

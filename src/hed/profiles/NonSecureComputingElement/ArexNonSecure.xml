@@ -1,0 +1,59 @@
+<?xml version="1.0"?>
+<ArcConfig
+  xmlns="http://www.nordugrid.org/schemas/ArcConfig/2007"
+  xmlns:tcp="http://www.nordugrid.org/schemas/ArcMCCTCP/2007"
+  xmlns:infosys="http://www.nordugrid.org/schemas/InfoRegisterConfig/2008"
+  xmlns:arex="http://www.nordugrid.org/schemas/a-rex/Config">
+	<Server>
+		<Pidfile>/tmp/arex_arched.pid</Pidfile>
+		<Logger level="VERBOSE">/var/log/arex_arched.log</Logger>
+	</Server>
+	<ModuleManager>
+		<Path>/usr/lib/arc</Path>
+	</ModuleManager>
+	<InfoRegistrar id="NorduGridInfosys">
+		<URL>http://example.isis.org:50000/isis</URL>
+		<Retry>4</Retry>
+	</InfoRegistrar>
+	<Plugins><Name>mcctcp</Name></Plugins>
+	<Plugins><Name>mcctls</Name></Plugins>
+	<Plugins><Name>mcchttp</Name></Plugins>
+	<Plugins><Name>mccsoap</Name></Plugins>
+	<Plugins><Name>arcshc</Name></Plugins>
+	<Plugins><Name>identitymap</Name></Plugins>
+	<Plugins><Name>arex</Name></Plugins>
+	<Chain>
+		<Component name="tcp.service" id="tcp">
+			<next id="http"/>
+			<tcp:Listen>
+				<tcp:Port>50000</tcp:Port>
+				<tcp:Version>4</tcp:Version>
+			</tcp:Listen>
+		</Component>
+		<Component name="http.service" id="http">
+			<next id="soap">POST</next>
+			<next id="plexer">GET</next>
+			<next id="plexer">PUT</next>
+		</Component>
+		<Component name="soap.service" id="soap">
+			<next id="plexer"/>
+		</Component>
+		<Plexer name="plexer.service" id="plexer">
+			<next id="a-rex">^/arex</next>
+		</Plexer>
+		<Service name="a-rex" id="a-rex">
+			<arex:endpoint>http://localhost:50000/arex</arex:endpoint>
+			<arex:usermap>
+				<arex:defaultLocalName>gridtest</arex:defaultLocalName>
+			</arex:usermap>
+			<arex:gmconfig>/etc/arc.conf</arex:gmconfig>
+			<infosys:InfoRegister>
+				<infosys:Period>PT75S</infosys:Period>
+				<infosys:Endpoint>http://localhost:50000/arex</infosys:Endpoint>
+				<infosys:Expiration>PT1M</infosys:Expiration>
+				<infosys:Registrar id="NorduGridInfosys"></infosys:Registrar>
+			</infosys:InfoRegister>
+		</Service>
+	</Chain>
+</ArcConfig>
+
