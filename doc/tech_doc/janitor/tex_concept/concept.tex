@@ -14,7 +14,8 @@
 \begin{figure}[!h]
 \vspace{4cm}
  \begin{center} 
-    % \resizebox{24cm}{!}{\input{images/dependencies}}
+    %\resizebox{24cm}{!}{\input{images/dependencies}}
+    \includegraphics[width=24cm]{images/dependencies.pdf}
     \mycaption{Modules of the Janitor and their dependencies}{}
  \end{center} 
 \vfill
@@ -56,7 +57,7 @@ be in during its life time at a particular CE. \task{?at a particular CE?}
  State&Description\\
  \hline
  UNAVAILABLE&
-	The RE is not available for the BaseSystem (see \ref{sec:rdfschema}) the site uses. \\
+	The RE is not available for the BaseSystem (see \ref{sec:catalog}) the site uses. \\
  INSTALLABLE&
 	The RE is available for the BaseSystem the site uses and it
 	will be automatically installed once a job requests it. \\
@@ -157,7 +158,7 @@ Thus, there will be bigger changes here in this section\dots
   \begin{center}
     \includegraphics[width=5cm]{images/arex-stages.pdf}
     \mycaption{}{}
-    \label{fig:RE_states}
+    \label{fig:arex_states}
   \end{center}
 \end{figure}
 
@@ -165,7 +166,7 @@ Thus, there will be bigger changes here in this section\dots
   \begin{center}
     \includegraphics[width=12cm]{images/janitor_integration_2nd_edition.pdf}
     \mycaption{}{}
-    \label{fig:RE_states}
+    \label{fig:janitor_integration_2}
   \end{center}
 \end{figure}
 
@@ -179,7 +180,7 @@ Client command equal, except assignment of HED.xml\\
   \begin{center}
     \includegraphics[width=12cm]{images/WS_structure.pdf}
     \mycaption{}{\task{To be translated and beautificated. SVG file is missing!}}
-    \label{fig:RE_states}
+    \label{fig:WS_structure}
   \end{center}
 \end{figure}
 
@@ -189,7 +190,7 @@ Proposal for SOAP messages:\\
 \task{Permission concepts: Depending on certificates. Certain certificates may \texttt{sweep}. Defined in service\_HED.xml. Evaluated in:?? }
 \lstsetJUSTXML
 \begin{lstlisting}[
-        label=lst:SOAPrequest,
+        label=lst:arc_conf2,
         caption={ [Example \textit{arc.conf} settings for janitor.]
                   \textbf{Example \textit{arc.conf} settings for janitor.}}
         ]
@@ -211,7 +212,7 @@ Proposal for SOAP messages:\\
 
 \lstsetJUSTXML
 \begin{lstlisting}[
-        label=lst:SOAPrequest,
+        label=lst:arc_conf3,
         caption={ [Example \textit{arc.conf} settings for janitor.]
                   \textbf{Example \textit{arc.conf} settings for janitor.}}
         ]

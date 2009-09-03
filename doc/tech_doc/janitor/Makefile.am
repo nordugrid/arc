@@ -4,13 +4,16 @@ docdir = @docdir@
 
 docsource = Janitor.tex
 
+docsources = literature.bib
+
 doc_DATA = Janitor.pdf
 
 STYLES = IEEEtran.bst ng-logo.png
 
-$(doc_DATA): $(docsource) $(STYLES)
-	pdflatex $(docsource) ; bibtex $(docsource) ; makeindex -s gind.ist $(docsource) ; pdflatex $(docsource) ; \
-	pdflatex $(docsource)
+$(doc_DATA): $(docsource) $(docsources) $(STYLES)
+	pdflatex $(docsource) ; bibtex $(docsource:.tex=) ; \
+	makeindex -s gind.ist $(docsource) ; \
+	pdflatex $(docsource) ; pdflatex $(docsource)
 
 $(STYLES):
 	$(LN_S) ../../templates/tex/$@ .
