@@ -976,6 +976,21 @@ class Client:
 
 # This part is copied from client.py
 
+class ISISClient(Client):
+	
+    def __init__(self, url, print_xml = False, ssl_config = {}):
+        ns = self.NS_class({'isis':'http://www.nordugrid.org/schemas/isis/2007/06'})
+        Client.__init__(self, url, ns, print_xml, ssl_config = ssl_config)
+
+    def getServiceURLs(self, service_type):
+        query = XMLTree(from_tree =
+            ('Query', [
+                ('QueryString', "/RegEntry/SrcAdv[Type = '%s']" % service_type)
+            ])
+        )
+        QueryResponse = self.call(query, True)
+        return QueryResponse.get_values('/QueryResponse/RegEntry/SrcAdv/EPR/Address')
+
 class BartenderClient(Client):
     """ Client for the Bartender service. """
     
@@ -1495,6 +1510,7 @@ else:
         ca_file = str(config_xml.Get('CACertificatePath'))
         ca_dir = str(config_xml.Get('CACertificatesDir'))
         bartender_urls = get_child_values_by_name(config_xml,'BartenderURL')
+        isis_urls = get_child_values_by_name(config_xml,'ISISURL')
     except Exception, e:
         problem_with_userconfig = e
         key_file = None
@@ -1510,7 +1526,14 @@ else:
         if verbose:
             print '- The URL of the Bartender(s):', ', '.join(bartender_urls)
     else:
-        bartender_urls = ['http://localhost:60000/Bartender']
+        isis_env_url = os.environ.get('ARC_ISIS_URL', '')
+        if isis_env_url:
+            isis_urls = [isis_env_url]
+        if isis_urls:
+            isis = ISISClient(isis_urls[0], print_xml = False)
+            bartender_urls = isis.getServiceURLs('org.nordugrid.storage.bartender')
+        if not bartender_urls:
+            bartender_urls = ['http://localhost:60000/Bartender']
         if problem_with_userconfig:
             print '- There was a problem reading the user\'s config. Reason:', str(problem_with_userconfig)
         print '- The URL of the Bartender is not given, using', bartender_urls[0]
