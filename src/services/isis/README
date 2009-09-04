@@ -7,15 +7,15 @@ regarding the next generation ARC information system.
 I. Installation
 
 In order to install ISIS please download and compile the full ARC HED:
-	http://svn.nordugrid.org
+    http://svn.nordugrid.org
 
 Please read installation notes available there.
 
 
 II. ISIS dependencies
 
-a) Berkeley XML
-Since the service uses Berkley XML database for storing the information 
+a) Berkeley database
+Since the service uses Berkley database for storing the information 
 received from the services or other ISIS nodes this package is a necessary 
 dependency. 
 
