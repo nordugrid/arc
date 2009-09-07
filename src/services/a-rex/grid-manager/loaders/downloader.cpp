@@ -688,7 +688,13 @@ int main(int argc,char** argv) {
       olog<<"Janitor timeout while deploying Dynamic RTE(s)"<<std::endl;
       res=1; goto exit;
     };
-    if(!janitor.result()) {
+    if(janitor.result() == Janitor::DEPLOYED) {
+    } else if(janitor.result() == Janitor::NOTENABLED) {
+      if(desc.get_local()->rtes > 0) {
+        olog<<"Janitor not enabled and there are missing RTE(s)"<<std::endl;
+        res=1; goto exit;
+      }
+    } else {
       olog<<"Janitor failed to deploy Dynamic RTE(s)"<<std::endl;
       res=1; goto exit;
     };

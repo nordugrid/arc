@@ -4,12 +4,19 @@
 
 /// Class to communicate with Janitor - Dynmaic Runtime Environment handler
 class Janitor {
+ public:
+  typedef enum {
+    DEPLOYED,
+    REMOVED,
+    NOTENABLED,
+    FAILED
+  } Result;
  private:
   std::string path_;
   std::string id_;
   std::string cdir_;
   bool running_;
-  bool result_;
+  Result result_;
   Arc::SimpleCondition completed_;
   Arc::SimpleCondition cancel_;
   static void deploy_thread(void* arg);
@@ -48,6 +55,6 @@ class Janitor {
   bool wait(int timeout);
   /// Returns true if operation initiated by deploy() or remove() succeeded.
   /** It should be called after wait() returned true. */
-  bool result(void);
+  Result result(void);
 };
 

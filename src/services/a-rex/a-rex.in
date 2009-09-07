@@ -172,6 +172,7 @@ fi
 
 LOGFILE=`readconfigvar "$ARC_CONFIG" grid-manager logfile`
 LOGLEVEL=`readconfigvar "$ARC_CONFIG" grid-manager debug`
+LOGSIZE=`readconfigvar "$ARC_CONFIG" grid-manager logsize`
 USERNAME=`readconfigvar "$ARC_CONFIG" grid-manager user`
 X509_USER_CERT=`readconfigvar "$ARC_CONFIG" grid-manager x509_user_cert`
 X509_USER_KEY=`readconfigvar "$ARC_CONFIG" grid-manager x509_user_key`
@@ -272,6 +273,9 @@ if [ "$USERNAME" = "root" ] ; then
 fi
 
 LOGFILE=${LOGFILE:-/var/log/grid-manager.log}
+LOGSIZE=${LOGSIZE:--1 -1}
+LOGNUM=`echo "$LOGSIZE" | sed 's/^ *[-+0-9]* *//'`
+LOGSIZE=`echo "$LOGSIZE" | sed 's/^ *\([-+0-9]*\).*/\1/'`
 
 if [ ! -z "$USERNAME" ] ; then
   CMD="su '$USERNAME' $CMD"
@@ -285,7 +289,7 @@ AREXCFG="\
   xmlns:arex=\"http://www.nordugrid.org/schemas/a-rex/Config\">\
   <Server>\
     <PidFile>$PID_FILE</PidFile>\
-    <Logger level=\"$LOGLEVEL\">$LOGFILE</Logger>\
+    <Logger level=\"$LOGLEVEL\" maxsize=\"$LOGSIZE\" backups=\"$LOGNUM\">$LOGFILE</Logger>\
   </Server>\
   <ModuleManager>\
     <Path>$ARC_LOCATION/@pkglibsubdir@/</Path>\

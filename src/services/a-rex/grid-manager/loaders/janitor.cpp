@@ -34,7 +34,7 @@
 static Arc::Logger logger(Arc::Logger::rootLogger, "Janitor Control");
 
 Janitor::Janitor(const std::string& id,const std::string& cdir):
-         id_(id),cdir_(cdir),running_(false),result_(false) {
+         id_(id),cdir_(cdir),running_(false),result_(FAILED) {
   if(id_.empty()) return;
   if(cdir_.empty()) return;
   // create path to janitor utility
@@ -64,14 +64,14 @@ void Janitor::cancel(void) {
 
 void Janitor::deploy_thread(void* arg) {
   Janitor& it = *((Janitor*)arg);
-  it.result_=false;
+  it.result_=FAILED;
     // Fetch list of REs
   JobUser user;
   user.SetControlDir(it.cdir_);
   std::list<std::string> rtes;
   if(!job_rte_read_file(it.id_,user,rtes)) { it.completed_.signal(); return; };
   if(rtes.size() == 0) {
-    it.result_=true;
+    it.result_=DEPLOYED;
     it.completed_.signal();
     return;
   };
@@ -104,12 +104,12 @@ void Janitor::deploy_thread(void* arg) {
     };
     if(run.Result() == 0) {
       logger.msg(Arc::VERBOSE, "janitor register returned 0 - no RTE needs to be deployed");
-      it.result_=true; it.completed_.signal();
+      it.result_=DEPLOYED; it.completed_.signal();
       return;
     };
     if(run.Result() == 3) {
       logger.msg(Arc::VERBOSE, "janitor register returned 3 - no Janitor enabled in configuration");
-      it.completed_.signal();
+      it.result_=NOTENABLED; it.completed_.signal();
       return;
     };
     if(run.Result() != 1) {
@@ -147,14 +147,14 @@ void Janitor::deploy_thread(void* arg) {
       return;
     };
   };
-  it.result_=true;
+  it.result_=DEPLOYED;
   it.completed_.signal();
   return;
 }
 
 void Janitor::remove_thread(void* arg) {
   Janitor& it = *((Janitor*)arg);
-  it.result_=false;
+  it.result_=FAILED;
   std::string cmd;
   // Make command line
   cmd = it.path_ + " remove " + it.id_;
@@ -184,7 +184,7 @@ void Janitor::remove_thread(void* arg) {
       return;
     };
   }
-  it.result_=true;
+  it.result_=REMOVED;
   it.completed_.signal();
   return;
 }
@@ -212,7 +212,7 @@ bool Janitor::wait(int timeout) {
   return true;
 }
 
-bool Janitor::result(void) {
+Janitor::Result Janitor::result(void) {
   return result_;
 }
 

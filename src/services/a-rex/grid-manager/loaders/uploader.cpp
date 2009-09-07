@@ -530,10 +530,10 @@ exit:
   // but it should be at least reported.
   if(janitor) {
     if(!janitor.wait(5*60)) {
-      olog<<"Janitor timeout while removing Dynamic RTE(s) associations"<<std::endl;
+      olog<<"Janitor timeout while removing Dynamic RTE(s) associations (ignoring)"<<std::endl;
     };
-    if(!janitor.result()) {
-      olog<<"Janitor failed to remove Dynamic RTE(s) associations"<<std::endl;
+    if(janitor.result() != Janitor::REMOVED) {
+      olog<<"Janitor failed to remove Dynamic RTE(s) associations (ignoring)"<<std::endl;
     };
   };
   if(res != 0) {
