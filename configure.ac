@@ -927,7 +927,6 @@ AM_CONDITIONAL([GLOBUSUTILS_ENABLED], test -n "$GLOBUS_COMMON_VERSION")
 AM_CONDITIONAL([RLS_ENABLED], test -n "$GLOBUS_RLS_CLIENT_VERSION")
 AM_CONDITIONAL([GRIDFTP_ENABLED], test -n "$GLOBUS_FTP_CLIENT_VERSION")
 AM_CONDITIONAL([LFC_ENABLED], test x$LFC = xyes)
-AM_CONDITIONAL([RSL_ENABLED], test -n "$GLOBUS_RSL_VERSION")
 AM_CONDITIONAL([OPENSSL_PROXY_ENABLED], test x$OPENSSL_PROXY = xyes)
 AM_CONDITIONAL([OPENSSL_X509_VERIFY_PARAM_ENABLED], test x$OPENSSL_X509_VERIFY_PARAM = xyes)
 AM_CONDITIONAL([XMLSEC_ENABLED], test x$XMLSEC_INSTALLED = xyes)
@@ -945,11 +944,8 @@ fi
 AM_CONDITIONAL([GSI_MCC_ENABLED],[test "x$enable_gsi_mcc" = "xyes"])
 
 # Setup defines
-if test -n "$GLOBUS_RSL_VERSION"; then
-    AC_DEFINE(HAVE_GLOBUS_RSL,,[define if GLOBUS RSL package is available])
-fi
 if test -n "$GLOBUS_RLS_CLIENT_VERSION"; then
-    AC_DEFINE(HAVE_GLOBUS_RLS_CLIENT,,[define if GLOBUS RSL package is available])
+    AC_DEFINE(HAVE_GLOBUS_RLS_CLIENT,,[define if GLOBUS RLS client package is available])
 fi
 if test x"$OPENSSL_PROXY" = xyes; then
     AC_DEFINE(HAVE_OPENSSL_PROXY,,[define if OPENSSL has PROXY capabilities])
@@ -971,8 +967,6 @@ enable_gridftp=no
 if test -n "$GLOBUS_FTP_CLIENT_VERSION" ; then enable_gridftp=yes; fi
 enable_lfc=no
 if test x$LFC = xyes ; then enable_lfc=yes; fi
-enable_rsl=no
-if test -n "$GLOBUS_RSL_VERSION" ; then enable_rsl=yes; fi
 enable_saml=no
 if test x$XMLSEC_INSTALLED = xyes ; then enable_saml=yes; fi
 
@@ -1553,7 +1547,6 @@ Available third-party features:
 RLS:                ${enable_rls}
 GridFTP:            ${enable_gridftp}
 LFC:                ${enable_lfc}
-RSL:                ${enable_rsl}
 SAML:               ${enable_saml}
 MYSQL CLIENT LIB:   ${enable_mysql}
 gSOAP:              ${enable_gsoap}
