@@ -9,7 +9,8 @@
   <xsd:element name="scriptfile_url" type="xsd:anyURI">
       <xsd:annotation>
           <xsd:documentation xml:lang="en">
-              The URL where the service can be download the compiler script file from outside.
+              The URL where the service can download external script file.
+              This script file is run by service to perform compilation process.
           </xsd:documentation>
       </xsd:annotation>
   </xsd:element>
