@@ -919,6 +919,10 @@ namespace Arc {
       XMLNode xmlRTE = xmlResources.NewChild("RunTimeEnvironment");
       outputSoftware(job.Resources.RunTimeEnvironment, xmlRTE);
     }
+
+    if (xmlResources.Size() > 0)
+      jobdescription.NewChild(xmlResources);
+
     // end of Resources
 
     // DataStaging
