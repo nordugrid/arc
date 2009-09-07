@@ -5,9 +5,13 @@
 #endif
 
 #include <sstream>
+#include <fstream>
+
+#include <unistd.h>
 
 #include "Logger.h"
 #include "DateTime.h"
+#include "StringConv.h"
 
 #include <unistd.h>
 #ifdef WIN32
@@ -145,6 +149,112 @@ namespace Arc {
   void LogStream::operator=(const LogStream&) {
     // Executing this code should be impossible!
     exit(EXIT_FAILURE);
+  }
+
+  LogFile::LogFile(const std::string& path)
+    : LogDestination(),
+      path(path),
+      destination(),
+      maxsize(-1),
+      backups(-1) {
+    if(path.empty()) {
+      //logger.msg(Arc::ERROR,"Log file path is not specified");
+      return;
+    }
+    destination.open(path.c_str(), std::fstream::out | std::fstream::app);
+    if(!destination.is_open()) {
+      //logger.msg(Arc::ERROR,"Failed to open log file: %s",path);
+      return;
+    }
+  }
+
+  LogFile::LogFile(const std::string& path, const std::string& locale)
+    : LogDestination(locale),
+      path(path),
+      destination(),
+      maxsize(-1),
+      backups(-1) {
+    if(path.empty()) {
+      //logger.msg(Arc::ERROR,"Log file path is not specified");
+      return;
+    }
+    destination.open(path.c_str(), std::fstream::out | std::fstream::app);
+    if(!destination.is_open()) {
+      //logger.msg(Arc::ERROR,"Failed to open log file: %s",path);
+      return;
+    }
+  }
+
+  void LogFile::setMaxSize(int newsize) {
+    maxsize = newsize;
+  }
+
+  void LogFile::setBackups(int newbackups) {
+    backups = newbackups;
+  }
+
+  LogFile::LogFile(void)
+    : LogDestination(), maxsize(-1), backups(-1) {
+    // Executing this code should be impossible!
+    exit(EXIT_FAILURE);
+  }
+
+  LogFile::LogFile(const LogFile&)
+    : LogDestination(), maxsize(-1), backups(-1) {
+    // Executing this code should be impossible!
+    exit(EXIT_FAILURE);
+  }
+
+  void LogFile::operator=(const LogFile&) {
+    // Executing this code should be impossible!
+    exit(EXIT_FAILURE);
+  }
+  LogFile::operator bool(void) {
+    Glib::Mutex::Lock lock(mutex);
+    return destination.is_open();
+  }
+
+  bool LogFile::operator!(void) {
+    Glib::Mutex::Lock lock(mutex);
+    return !destination.is_open();
+  }
+
+  void LogFile::log(const LogMessage& message) {
+    Glib::Mutex::Lock lock(mutex);
+    if(!destination.is_open()) return;
+    const char *loc = NULL;
+    if (!locale.empty()) {
+      loc = setlocale(LC_ALL, NULL);
+      setlocale(LC_ALL, locale.c_str());
+    }
+    destination << message << std::endl;
+    if (!locale.empty()) setlocale(LC_ALL, loc);
+    backup();
+  }
+
+  void LogFile::backup(void) {
+    if(maxsize <= 0) return;
+    if(destination.tellp() < maxsize) return;
+    bool backup_done = true;
+    // Not sure if this will work on windows, but glibmm
+    // has no functions for removing and renaming files
+    if(backups > 0) {
+      std::string backup_path = path+"."+tostring(backups);
+      ::unlink(backup_path.c_str());
+      for(int n = backups;n>0;--n) {
+        std::string old_backup_path = (n>1)?(path+"."+tostring(n-1)):path;
+        if(::rename(old_backup_path.c_str(),backup_path.c_str()) != 0) {
+          if(n == 1) backup_done=false;
+        }
+        backup_path = old_backup_path;
+      }
+    } else {
+      if(::unlink(path.c_str()) != 0) backup_done=false;
+    }
+    if(backup_done) {
+      destination.close();
+      destination.open(path.c_str(), std::fstream::out | std::fstream::app);
+    }
   }
 
   Logger*Logger::rootLogger = NULL;

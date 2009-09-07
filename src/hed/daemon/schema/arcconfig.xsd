@@ -116,6 +116,8 @@
         <xsd:simpleContent>
             <xsd:extension base="xsd:string">
                 <xsd:attribute name="level" type="LoggerLevel_Type" use="optional" default="INFO"/>
+                <xsd:attribute name="maxsize" type="xsd:nonNegativeInteger" use="optional"/>
+                <xsd:attribute name="backups" type="xsd:nonNegativeInteger" use="optional"/>
             </xsd:extension>
         </xsd:simpleContent>
     </xsd:complexType>

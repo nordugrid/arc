@@ -17,6 +17,7 @@
 #include <arc/ArcLocation.h>
 #include <arc/Logger.h>
 #include <arc/XMLNode.h>
+#include <arc/StringConv.h>
 #include <arc/message/MCCLoader.h>
 
 #include "daemon.h"
@@ -79,7 +80,7 @@ static std::string init_logger(Arc::Config& cfg)
 {   
     /* setup root logger */
     Arc::XMLNode log = cfg["Server"]["Logger"];
-    Arc::LogStream* sd = NULL; 
+    Arc::LogFile* sd = NULL; 
     std::string log_file = (std::string)log;
     std::string str = (std::string)log.Attribute("level");
     if(!str.empty()) {
@@ -87,12 +88,23 @@ static std::string init_logger(Arc::Config& cfg)
       Arc::Logger::rootLogger.setThreshold(level); 
     }
     if(!log_file.empty()) {
-      std::fstream *dest = new std::fstream(log_file.c_str(), std::fstream::out | std::fstream::app);
-      if(!(*dest)) {
+      sd = new Arc::LogFile(log_file);
+      if((!sd) || (!(*sd))) {
         logger.msg(Arc::ERROR,"Failed to open log file: %s",log_file);
         _exit(1);
       }
-      sd = new Arc::LogStream(*dest); 
+      if(log.Attribute("backups")) {
+        int backups;
+        if(Arc::stringto((std::string)log.Attribute("backups"),backups)) {
+          sd->setBackups(backups);
+        }
+      }
+      if(log.Attribute("maxsize")) {
+        int maxsize;
+        if(Arc::stringto((std::string)log.Attribute("maxsize"),maxsize)) {
+          sd->setMaxSize(maxsize);
+        }
+      }
     }
     Arc::Logger::rootLogger.removeDestinations();
     if(sd) Arc::Logger::rootLogger.addDestination(*sd);
