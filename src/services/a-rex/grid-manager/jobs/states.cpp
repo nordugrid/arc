@@ -404,6 +404,8 @@ bool JobsList::state_loading(const JobsList::iterator &i,bool &state_changed,boo
       NULL, // (-a)
       NULL, // -i
       NULL, // (-i)
+      NULL, // -d
+      NULL, // (-d)
       NULL, // id
       NULL, // control
       NULL, // session
@@ -442,6 +444,11 @@ bool JobsList::state_loading(const JobsList::iterator &i,bool &state_changed,boo
       args[argn]="-i"; argn++; 
       args[argn]=(char*)(max_inactivity_time_s.c_str()); argn++;
     };
+    std::string debug_level = Arc::level_to_string(Arc::Logger::getRootLogger().getThreshold());
+    if (!debug_level.empty()) {
+      args[argn]="-d"; argn++;
+      args[argn]=(char*)(debug_level.c_str()); argn++;
+    }
     args[argn]=(char*)(i->job_id.c_str()); argn++;
     args[argn]=(char*)(user->ControlDir().c_str()); argn++;
     args[argn]=(char*)(i->SessionDir().c_str()); argn++;

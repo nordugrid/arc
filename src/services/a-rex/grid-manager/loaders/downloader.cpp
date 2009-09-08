@@ -40,10 +40,7 @@
 #include "../conf/conf_cache.h"
 #include "janitor.h"
 
-#define olog std::cerr
-#define odlog(LEVEL) std::cerr
-
-static Arc::Logger& logger = Arc::Logger::getRootLogger();
+static Arc::Logger logger(Arc::Logger::getRootLogger(), "Downloader");
 
 /* check for user uploaded files every 60 seconds */
 #define CHECK_PERIOD 60
@@ -137,7 +134,7 @@ int user_file_exists(FileData &dt,char* session_dir,std::string* error = NULL) {
     str=str_+1;
     fsum = strtoull(str,&str_,10);
     if((*str_) != 0) {
-      olog << "Invalid checksum in " << dt.lfn << " for " << dt.pfn << std::endl;
+      logger.msg(Arc::ERROR, "Invalid checksum in %s for %s", dt.lfn, dt.pfn);
       if(error) (*error)="Bad information about file: checksum can't be parsed.";
       return 1;
     };
@@ -146,7 +143,7 @@ int user_file_exists(FileData &dt,char* session_dir,std::string* error = NULL) {
   else {
     if(str_ != str) have_size=true;
     if((*str_) != 0) {
-      olog << "Invalid file size in " << dt.lfn << " for " << dt.pfn << std::endl;
+      logger.msg(Arc::ERROR, "Invalid file size in %s for %s ", dt.lfn, dt.pfn);
       if(error) (*error)="Bad information about file: size can't be parsed.";
       return 1;
     };
@@ -166,7 +163,7 @@ int user_file_exists(FileData &dt,char* session_dir,std::string* error = NULL) {
   if(have_size) {
     if(st.st_size < fsize) return 2;
     if(st.st_size > fsize) {
-      olog << "Invalid file " << dt.pfn << " is too big." << std::endl;
+      logger.msg(Arc::ERROR, "Invalid file: %s is too big.", dt.pfn);
       if(error) (*error)="Delivered file is bigger than specified.";
       return 1; /* too big file */
     };
@@ -174,7 +171,7 @@ int user_file_exists(FileData &dt,char* session_dir,std::string* error = NULL) {
   if(have_checksum) {
     int h=open(fname.c_str(),O_RDONLY);
     if(h==-1) { /* if we can't read that file job won't too */
-      olog << "Error accessing file " << dt.pfn << std::endl;
+      logger.msg(Arc::ERROR, "Error accessing file %s", dt.pfn);
       if(error) (*error)="Delivered file is unreadable.";
       return 1;
     };
@@ -184,8 +181,9 @@ int user_file_exists(FileData &dt,char* session_dir,std::string* error = NULL) {
     size_t ll = 0;
     for(;;) {
       if((l=read(h,buffer,1024)) == -1) {
-        olog << "Error reading file " << dt.pfn << std::endl; return 1;
+        logger.msg(Arc::ERROR, "Error reading file %s", dt.pfn);
         if(error) (*error)="Could not read file to compute checksum.";
+        return 1;
       };
       if(l==0) break; ll+=l;
       crc.add(buffer,l);
@@ -194,7 +192,7 @@ int user_file_exists(FileData &dt,char* session_dir,std::string* error = NULL) {
     crc.end();
     if(fsum != crc.crc()) {
       if(have_size) { /* size was checked - it is an error to have wrong crc */ 
-        olog << "File " << dt.pfn << " has wrong CRC." << std::endl;
+        logger.msg(Arc::ERROR, "File %s has wrong CRC.", dt.pfn);
         if(error) (*error)="Delivered file has wrong checksum.";
         return 1;
       };
@@ -217,16 +215,16 @@ class PointPair {
     pair_condition.lock();
     if(!res.Passed()) {
       it->res=res;
-      olog<<"Failed downloading file "<<it->lfn<<" - "<<std::string(res)<<std::endl;
+      logger.msg(Arc::ERROR, "Failed downloading file %s - %s", it->lfn, std::string(res));
       if((it->pair->source->GetTries() <= 0) || (it->pair->destination->GetTries() <= 0)) {
         delete it->pair; it->pair=NULL;
         failed_files.push_back(*it);
       } else {
         job_files.push_back(*it);
-        olog<<"Retrying"<<std::endl;
+        logger.msg(Arc::ERROR, "Retrying");
       };
     } else {
-      olog<<"Downloaded file "<<it->lfn<<std::endl;
+      logger.msg(Arc::INFO, "Downloaded file %s", it->lfn);
       delete it->pair; it->pair=NULL;
       processed_files.push_back(*it);
     };
@@ -241,6 +239,7 @@ class PointPair {
 int main(int argc,char** argv) {
   Arc::LogStream logcerr(std::cerr);
   Arc::Logger::getRootLogger().addDestination(logcerr);
+  Arc::Logger::getRootLogger().setThreshold(Arc::DEBUG);
   int res=0;
   bool not_uploaded;
   time_t start_time=time(NULL);
@@ -270,11 +269,11 @@ int main(int argc,char** argv) {
     if(optc == -1) break;
     switch(optc) {
       case 'h': {
-        olog<<"Usage: downloader [-hclpf] [-n files] [-t threads] [-U uid]"<<std::endl;
-        olog<<"          [-u username] [-s min_speed] [-S min_speed_time]"<<std::endl;
-        olog<<"          [-a min_average_speed] [-i min_activity_time]"<<std::endl;
-        olog<<"          [-d debug_level] job_id control_directory"<<std::endl;
-        olog<<"          session_directory [cache options]"<<std::endl; 
+        std::cerr<<"Usage: downloader [-hclpf] [-n files] [-t threads] [-U uid]"<<std::endl;
+        std::cerr<<"                  [-u username] [-s min_speed] [-S min_speed_time]"<<std::endl;
+        std::cerr<<"                  [-a min_average_speed] [-i min_activity_time]"<<std::endl;
+        std::cerr<<"                  [-d debug_level] job_id control_directory"<<std::endl;
+        std::cerr<<"                  session_directory [cache options]"<<std::endl;
         exit(1);
       }; break;
       case 'c': {
@@ -290,37 +289,37 @@ int main(int argc,char** argv) {
         use_conf_cache=true;
       }; break;
       case 'd': {
-//@        LogTime::Level(NotifyLevel(atoi(optarg)));
+        Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(optarg));
       }; break;
       case 't': {
         n_threads=atoi(optarg);
         if(n_threads < 1) {
-          olog<<"Wrong number of threads"<<std::endl; exit(1);
+          logger.msg(Arc::ERROR, "Wrong number of threads: %s", optarg); exit(1);
         };
       }; break;
       case 'n': {
         n_files=atoi(optarg);
         if(n_files < 1) {
-          olog<<"Wrong number of files"<<std::endl; exit(1);
+          logger.msg(Arc::ERROR, "Wrong number of files: %s", optarg); exit(1);
         };
       }; break;
       case 'U': {
         unsigned int tuid;
         if(!Arc::stringto(std::string(optarg),tuid)) {
-          olog<<"Bad number "<<optarg<<std::endl; exit(1);
+          logger.msg(Arc::ERROR, "Bad number: %s", optarg); exit(1);
         };
         struct passwd pw_;
         struct passwd *pw;
         char buf[BUFSIZ];
         getpwuid_r(tuid,&pw_,buf,BUFSIZ,&pw);
         if(pw == NULL) {
-          olog<<"Wrong user name"<<std::endl; exit(1);
+          logger.msg(Arc::ERROR, "Wrong user name"); exit(1);
         };
         file_owner=pw->pw_uid;
         file_group=pw->pw_gid;
         if(pw->pw_name) file_owner_username=pw->pw_name;
         if((getuid() != 0) && (getuid() != file_owner)) {
-          olog<<"Specified user can't be handled"<<std::endl; exit(1);
+          logger.msg(Arc::ERROR, "Specified user can't be handled"); exit(1);
         };
       }; break;
       case 'u': {
@@ -329,64 +328,64 @@ int main(int argc,char** argv) {
         char buf[BUFSIZ];
         getpwnam_r(optarg,&pw_,buf,BUFSIZ,&pw);
         if(pw == NULL) {
-          olog<<"Wrong user name"<<std::endl; exit(1);
+          logger.msg(Arc::ERROR, "Wrong user name"); exit(1);
         };
         file_owner=pw->pw_uid;
         file_group=pw->pw_gid;
         if(pw->pw_name) file_owner_username=pw->pw_name;
         if((getuid() != 0) && (getuid() != file_owner)) {
-          olog<<"Specified user can't be handled"<<std::endl; exit(1);
+          logger.msg(Arc::ERROR, "Specified user can't be handled"); exit(1);
         };
       }; break;
       case 's': {
         unsigned int tmpi;
         if(!Arc::stringto(std::string(optarg),tmpi)) {
-          olog<<"Bad number "<<optarg<<std::endl; exit(1);
+          logger.msg(Arc::ERROR, "Bad number: %s", optarg); exit(1);
         };
         min_speed=tmpi;
       }; break;
       case 'S': {
         unsigned int tmpi;
         if(!Arc::stringto(std::string(optarg),tmpi)) {
-          olog<<"Bad number "<<optarg<<std::endl; exit(1);
+          logger.msg(Arc::ERROR, "Bad number: %s", optarg); exit(1);
         };
         min_speed_time=tmpi;
       }; break;
       case 'a': {
         unsigned int tmpi;
         if(!Arc::stringto(std::string(optarg),tmpi)) {
-          olog<<"Bad number "<<optarg<<std::endl; exit(1);
+          logger.msg(Arc::ERROR, "Bad number: %s", optarg); exit(1);
         };
         min_average_speed=tmpi;
       }; break;
       case 'i': {
         unsigned int tmpi;
         if(!Arc::stringto(std::string(optarg),tmpi)) {
-          olog<<"Bad number "<<optarg<<std::endl; exit(1);
+          logger.msg(Arc::ERROR, "Bad number: %s", optarg); exit(1);
         };
         max_inactivity_time=tmpi;
       }; break;
       case '?': {
-        olog<<"Unsupported option '"<<(char)optopt<<"'"<<std::endl;
+        logger.msg(Arc::ERROR, "Unsupported option: %c", (char)optopt);
         exit(1);
       }; break;
       case ':': {
-        olog<<"Missing parameter for option '"<<(char)optopt<<"'"<<std::endl;
+        logger.msg(Arc::ERROR, "Missing parameter for option %c", (char)optopt);
         exit(1);
       }; break;
       default: {
-        olog<<"Undefined processing error"<<std::endl;
+        logger.msg(Arc::ERROR, "Undefined processing error");
         exit(1);
       };
     };
   };
   // process required arguments
   char * id = argv[optind+0];
-  if(!id) { olog << "Missing job id" << std::endl; return 1; };
+  if(!id) { logger.msg(Arc::ERROR, "Missing job id"); return 1; };
   char* control_dir = argv[optind+1];
-  if(!control_dir) { olog << "Missing control directory" << std::endl; return 1; };
+  if(!control_dir) { logger.msg(Arc::ERROR, "Missing control directory"); return 1; };
   char* session_dir = argv[optind+2];
-  if(!session_dir) { olog << "Missing session directory" << std::endl; return 1; };
+  if(!session_dir) { logger.msg(Arc::ERROR, "Missing session directory"); return 1; };
 
   // prepare Job and User descriptions (needed for substitutions in cache dirs)
   JobDescription desc(id,session_dir);
@@ -408,7 +407,7 @@ int main(int argc,char** argv) {
     char buf[BUFSIZ];
     getpwuid_r(getuid(),&pw_,buf,BUFSIZ,&pw);
     if(pw == NULL) {
-      olog<<"Wrong user name"<<std::endl; exit(1);
+      logger.msg(Arc::ERROR, "Wrong user name"); exit(1);
     }
     if(pw->pw_name) file_owner_username=pw->pw_name;
   }
@@ -425,8 +424,8 @@ int main(int argc,char** argv) {
       }
     }
     catch (CacheConfigException e) {
-      olog<<"Error with cache configuration: "<<e.what()<<std::endl;
-      olog<<"Will not use caching"<<std::endl;
+      logger.msg(Arc::ERROR, "Error with cache configuration: %s");
+      logger.msg(Arc::ERROR, "Will not use caching");
     }
   }
   else {
@@ -436,28 +435,31 @@ int main(int argc,char** argv) {
       caches.push_back(cache_path);
     }
   }
-  if(min_speed != 0) { olog<<"Minimal speed: "<<min_speed<<" B/s during "<<min_speed_time<<" s"<<std::endl; };
-  if(min_average_speed != 0) { olog<<"Minimal average speed: "<<min_average_speed<<" B/s"<<std::endl; };
-  if(max_inactivity_time != 0) { olog<<"Maximal inactivity time: "<<max_inactivity_time<<" s"<<std::endl; };
+  if(min_speed != 0)
+    logger.msg(Arc::DEBUG, "Minimal speed: %llu B/s during %i s", min_speed, min_speed_time);
+  if(min_average_speed != 0)
+    logger.msg(Arc::DEBUG, "Minimal average speed: %llu B/s", min_average_speed);
+  if(max_inactivity_time != 0)
+    logger.msg(Arc::DEBUG, "Maximal inactivity time: %i s", max_inactivity_time);
 
   CollectCredentials(x509_proxy,x509_cert,x509_key,x509_cadir);
   prepare_proxy();
 
   if(n_threads > 10) {
-    olog<<"Won't use more than 10 threads"<<std::endl;
+    logger.msg(Arc::WARNING, "Won't use more than 10 threads");
     n_threads=10;
   };
 /*
  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  Add this to DataMove !!!!!!!!!!!!
 */
   UrlMapConfig url_map;
-  olog<<"Downloader started"<<std::endl;
+  logger.msg(Arc::INFO, "Downloader started");
 
   Arc::FileCache * cache = NULL;
   if(!caches.empty()) {
     cache = new Arc::FileCache(caches,std::string(id),uid,gid);
     if (!(*cache)) {
-      olog << "Error creating cache" << std::endl;
+      logger.msg(Arc::ERROR, "Error creating cache");
       exit(1);
     }
   }
@@ -484,12 +486,12 @@ int main(int argc,char** argv) {
 
   if(!job_input_read_file(desc.get_id(),user,job_files_)) {
     failure_reason+="Internal error in downloader\n";
-    olog << "Can't read list of input files" << std::endl; res=1; goto exit;
+    logger.msg(Arc::ERROR, "Can't read list of input files"); res=1; goto exit;
   };
   // check for duplicates (see bug 1285)
   for (std::list<FileData>::iterator i = job_files_.begin(); i != job_files_.end(); i++) {
     for (std::list<FileData>::iterator j = job_files_.begin(); j != job_files_.end(); j++) {
-      if (i != j && j->pfn == i->pfn) { olog << "Error: duplicate file in list of input files: " << i->pfn << std::endl; res=1; goto exit; }
+      if (i != j && j->pfn == i->pfn) { logger.msg(Arc::ERROR, "Error: duplicate file in list of input files: %s", i->pfn); res=1; goto exit; }
     }
   }
   // check if any input files are also output files downloadable by user (bug 1387)
@@ -509,30 +511,30 @@ int main(int argc,char** argv) {
     }
   }
   else
-    olog << "WARNING: Can't read list of output files" << std::endl;
+    logger.msg(Arc::WARNING, "Can't read list of output files");
       
   // remove bad files
   if(clean_files(job_files_,session_dir) != 0) { 
     failure_reason+="Internal error in downloader\n";
-    olog << "Can't remove junk files" << std::endl; res=1; goto exit;
+    logger.msg(Arc::ERROR, "Can't remove junk files"); res=1; goto exit;
   };
   for(std::list<FileData>::iterator i = job_files_.begin();i!=job_files_.end();++i) {
     job_files.push_back(*i);
   };
 
   if(!desc.GetLocalDescription(user)) {
-    olog<<"Can't read job local description"<<std::endl; res=1; goto exit;
+    logger.msg(Arc::ERROR, "Can't read job local description"); res=1; goto exit;
   };
 
   // Start janitor in parallel
   if(!janitor) {
     if(desc.get_local()->rtes > 0) {
-      olog<<"Janitor is missing and job contains non-deployed RTEs"<<std::endl;
+      logger.msg(Arc::ERROR, "Janitor is missing and job contains non-deployed RTEs");
       res=1; goto exit;
     };
   } else {
     if(!janitor.deploy()) {
-      olog<<"Failed to deploy Janitor"<<std::endl; res=1; goto exit;
+      logger.msg(Arc::ERROR, "Failed to deploy Janitor"); res=1; goto exit;
     };
   };
 
@@ -561,18 +563,18 @@ int main(int argc,char** argv) {
         std::string source = i->lfn;
         if(i->pair == NULL) {
           /* define place to store */
-          if(strncasecmp(source.c_str(),"file://",7) == 0) {
+          if(strncasecmp(source.c_str(),"file:/",6) == 0) {
             failure_reason+=std::string("User requested local input file ")+source.c_str()+"\n";
-            olog<<"FATAL ERROR: local source for download: "<<source<<std::endl; res=1; goto exit;
+            logger.msg(Arc::ERROR, "Local source for download: %s", source); res=1; goto exit;
           };
           PointPair* pair = new PointPair(source,destination);
           if(!(pair->source)) {
             failure_reason+=std::string("Can't accept URL ")+source.c_str()+"\n";
-            olog<<"FATAL ERROR: can't accept URL: "<<source<<std::endl; res=1; goto exit;
+            logger.msg(Arc::ERROR, "Can't accept URL: %s", source); res=1; goto exit;
           };
           if(!(pair->destination)) {
             failure_reason+=std::string("Can't accept URL ")+destination.c_str()+"\n";
-            olog<<"FATAL ERROR: can't accept URL: "<<destination<<std::endl; res=1; goto exit;
+            logger.msg(Arc::ERROR, "Can't accept URL: %s", destination); res=1; goto exit;
           };
           pair->source->AssignCredentials(x509_proxy,x509_cert,x509_key,x509_cadir);
           i->pair=pair;
@@ -585,7 +587,7 @@ int main(int argc,char** argv) {
                                               i->pfn.c_str());
         if (!dres.Passed()) {
           failure_reason+=std::string("Failed to initiate file transfer: ")+source.c_str()+" - "+std::string(dres)+"\n";
-          olog<<"FATAL ERROR: Failed to initiate file transfer: "<<source<<" - "<<std::string(dres)<<std::endl;
+          logger.msg(Arc::ERROR, "Failed to initiate file transfer: %s - %s", source, std::string(dres));
           delete it; res=1; goto exit;
         };
         ++pairs_initiated;
@@ -598,19 +600,19 @@ int main(int argc,char** argv) {
   };
   // Print download summary
   for(FileDataEx::iterator i=processed_files.begin();i!=processed_files.end();++i) {
-    odlog(INFO)<<"Downloaded "<<i->lfn<<std::endl;
+    logger.msg(Arc::INFO, "Downloaded %s", i->lfn);
     if(Arc::URL(i->lfn).Option("exec") == "yes") {
       fix_file_permissions(session_dir+i->pfn,true);
     };
   };
   for(FileDataEx::iterator i=failed_files.begin();i!=failed_files.end();++i) {
     if (i->res == Arc::DataStatus::CacheErrorRetryable) {
-      odlog(ERROR)<<"Failed to download (but may be retried) "<<i->lfn<<std::endl;
+      logger.msg(Arc::ERROR, "Failed to download (but may be retried) %s",i->lfn);
       job_files.push_back(*i);
       res = 4;
       continue;
     }
-    odlog(ERROR)<<"Failed to download "<<i->lfn<<std::endl;
+    logger.msg(Arc::ERROR, "Failed to download %s", i->lfn);
     failure_reason+="Input file: "+i->lfn+" - "+(std::string)(i->res)+"\n";
     if(i->res == Arc::DataStatus::CredentialsExpiredError)
       credentials_expired=true;
@@ -618,15 +620,15 @@ int main(int argc,char** argv) {
   };
   // Check if all files have been properly downloaded
   if(!transfered) {
-    odlog(INFO)<<"Some downloads failed"<<std::endl; res=2;
+    logger.msg(Arc::INFO, "Some downloads failed"); res=2;
     if(credentials_expired) res=3;
     goto exit;
   };
-  if(res == 4) odlog(INFO)<<"Some downloads failed, but may be retried"<<std::endl;
+  if(res == 4) logger.msg(Arc::INFO, "Some downloads failed, but may be retried");
   job_files_.clear();
   for(FileDataEx::iterator i = job_files.begin();i!=job_files.end();++i) job_files_.push_back(*i);
   if(!job_input_write_file(desc,user,job_files_)) {
-    olog << "WARNING: Failed writing changed input file." << std::endl;
+    logger.msg(Arc::WARNING, "Failed writing changed input file");
   };
   // check for user uploadable files
   // run cycle waiting for uploaded files
@@ -635,20 +637,20 @@ int main(int argc,char** argv) {
     for(FileDataEx::iterator i=job_files.begin();i!=job_files.end();) {
       if(i->lfn.find(":") == std::string::npos) { /* is it lfn ? */
         /* process user uploadable file */
-        olog<<"Check user uploadable file: "<<i->pfn<<std::endl;
+        logger.msg(Arc::INFO, "Check user uploadable file: %s", i->pfn);
         std::string error;
         int err=user_file_exists(*i,session_dir,&error);
         if(err == 0) { /* file is uploaded */
-          olog<<"User has uploaded file"<<std::endl;
+          logger.msg(Arc::INFO, "User has uploaded file %s", i->pfn);
           i=job_files.erase(i);
           job_files_.clear();
           for(FileDataEx::iterator i = job_files.begin();i!=job_files.end();++i) job_files_.push_back(*i);
           if(!job_input_write_file(desc,user,job_files_)) {
-            olog << "WARNING: Failed writing changed input file." << std::endl;
+            logger.msg(Arc::WARNING, "Failed writing changed input file.");
           };
         }
         else if(err == 1) { /* critical failure */
-          olog<<"Critical error for uploadable file"<<std::endl;
+          logger.msg(Arc::ERROR, "Critical error for uploadable file %s", i->pfn);
           failure_reason+="User file: "+i->pfn+" - "+error+"\n";
           res=1; goto exit;
         }
@@ -668,14 +670,14 @@ int main(int argc,char** argv) {
           failure_reason+="User file: "+i->pfn+" - Timeout waiting\n";
         };
       };
-      olog<<"Uploadable files timed out"<<std::endl; res=2; break;
+      logger.msg(Arc::ERROR, "Uploadable files timed out"); res=2; break;
     };
     sleep(CHECK_PERIOD);
   };
   job_files_.clear();
   for(FileDataEx::iterator i = job_files.begin();i!=job_files.end();++i) job_files_.push_back(*i);
   if(!job_input_write_file(desc,user,job_files_)) {
-    olog << "WARNING: Failed writing changed input file." << std::endl;
+    logger.msg(Arc::WARNING, "Failed writing changed input file.");
   };
 
   // Check for janitor result
@@ -685,17 +687,17 @@ int main(int argc,char** argv) {
     unsigned int time_left = 30*60*desc.get_local()->rtes + 5*60;
     time_left-=(time_left > time_passed)?time_passed:time_left;
     if(!janitor.wait(time_left)) {
-      olog<<"Janitor timeout while deploying Dynamic RTE(s)"<<std::endl;
+      logger.msg(Arc::ERROR, "Janitor timeout while deploying Dynamic RTE(s)");
       res=1; goto exit;
     };
     if(janitor.result() == Janitor::DEPLOYED) {
     } else if(janitor.result() == Janitor::NOTENABLED) {
       if(desc.get_local()->rtes > 0) {
-        olog<<"Janitor not enabled and there are missing RTE(s)"<<std::endl;
+        logger.msg(Arc::ERROR, "Janitor not enabled and there are missing RTE(s)");
         res=1; goto exit;
       }
     } else {
-      olog<<"Janitor failed to deploy Dynamic RTE(s)"<<std::endl;
+      logger.msg(Arc::ERROR, "Janitor failed to deploy Dynamic RTE(s)");
       res=1; goto exit;
     };
   };
@@ -737,7 +739,7 @@ int main(int argc,char** argv) {
   }
 
 exit:
-  olog << "Leaving downloader ("<<res<<")"<<std::endl;
+  logger.msg(Arc::INFO, "Leaving downloader (%i)");
   // clean unfinished files here 
   job_files_.clear();
   for(FileDataEx::iterator i = job_files.begin();i!=job_files.end();++i) job_files_.push_back(*i);
