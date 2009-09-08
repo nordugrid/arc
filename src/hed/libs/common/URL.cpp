@@ -27,7 +27,7 @@ namespace Arc {
   * The definitive list is defined in "Protocols, Uniform Resource
   * Locators (URL) and Extensions Supported in ARC" [NORDUGRID-TECH-7]
   */
-  const int urloptionlistsize = 16;
+  const int urloptionlistsize = 17;
   const std::string urloptionlist[urloptionlistsize] = {
     "threads",
     "cache",
@@ -44,7 +44,8 @@ namespace Arc {
     "spacetoken",
     "autodir",
     "checksumtype",
-    "checksumvalue"
+    "checksumvalue",
+    "tcpnodelay"
   };
 
   static Logger URLLogger(Logger::getRootLogger(), "URL");

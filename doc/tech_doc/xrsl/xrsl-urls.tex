@@ -87,9 +87,7 @@ The following options are supported for location URLs:\index{URL:options}
    default is protocol dependent\\ 
    \verb#checksum=cksum|md5|adler32# & specifies the algorithm for checksum to be
    computed (ev. provided to the indexing server). This is overridden
-   by any metadata options specified (see below). If this option is
-   not provided, the default for the protocol is used. \verb#checksum=no#
-   in a source URL will disable checksum verification.\\ 
+   by any metadata options specified (see below).\\ 
    \verb#exec=yes|no# & means the file should be treated as executable\\
    \verb#preserve=yes|no# & specify if file must be uploaded to this
    destination even if job processing failed (default is \verb#no#)\\
@@ -111,6 +109,9 @@ The following options are supported for location URLs:\index{URL:options}
    software should try to create all directories mentioned in specified
    URL. Currently this applies to FTP and GridFTP only. Default for those
    protocols is \verb#yes#\\
+   \verb#tcpnodelay=yes|no# & controls the use of the TCP\_NODELAY
+   socket option (which disables the Nagle algorithm). Applies to
+   http(s) only. Default is \verb#no#\\ 
 \end{tabular}
 
 Local files are referred to by specifying either a location relative
@@ -126,7 +127,7 @@ attributes are supported:
 \begin{tabular}{lp{10cm}}
    \verb#guid# & GUID of the file in the metadata service \\
    \verb#checksumtype# & Type of checksum. Supported values are cksum
-   (default), md5 and ad (adler32 checksum) \\
+   (default), md5 and adler32 \\
    \verb#checksumvalue# & The checksum of the file \\
 \end{tabular}
 
@@ -143,7 +144,7 @@ Currently these metadata options are only supported for lfc:// URLs.
    \verb#fireman://fireman_host:8443/glite-data-catalog-interface/FiremanCatalog?data.root#\\
    \verb#file:///home/auser/griddir/steer.cra#\\
    \verb#lfc://srm://srm.domain.org/griddir@lfc.domain.org//user/file1:guid=\# \\
-   \verb#    bc68cdd0-bf94-41ce-ab5a-06a1512764dc:checksumtype=ad:checksumvalue=12345678#$^2$\\
+   \verb#    bc68cdd0-bf94-41ce-ab5a-06a1512764dc:checksumtype=adler32:checksumvalue=12345678#$^2$\\
    \verb#lfc://;cache=no@lfc.domain.org/:guid=bc68cdd0-bf94-41ce-ab5a-06a1512764d#$^3$\\
 \end{framed}
 
