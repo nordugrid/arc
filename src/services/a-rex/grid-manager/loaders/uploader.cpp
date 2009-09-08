@@ -454,7 +454,7 @@ int main(int argc,char** argv) {
           } else {
             source=std::string("file://")+session_dir+i->pfn;
           };
-          if(strncasecmp(destination.c_str(),"file://",7) == 0) {
+          if(strncasecmp(destination.c_str(),"file:/",6) == 0) {
             failure_reason+=std::string("User requested to store output locally ")+destination.c_str()+"\n";
             olog<<"FATAL ERROR: local destination for uploader"<<destination<<std::endl; res=1; goto exit;
           };
