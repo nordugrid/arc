@@ -56,6 +56,25 @@ namespace Arc {
       return FATAL;
   }
 
+  std::string level_to_string(const LogLevel& level) {
+    switch (level) {
+      case VERBOSE:
+        return "VERBOSE";
+      case DEBUG:
+        return "DEBUG";
+      case INFO:
+        return "INFO";
+      case WARNING:
+        return "WARNING";
+      case ERROR:
+        return "ERROR";
+      case FATAL:
+        return "FATAL";
+      default:  // should not happen...
+        return "";
+    }
+  }
+
   LogMessage::LogMessage(LogLevel level,
                          const IString& message)
     : time(TimeStamp()),

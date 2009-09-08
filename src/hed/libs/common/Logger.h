@@ -40,7 +40,10 @@ namespace Arc {
      nicer way.
    */
   std::ostream& operator<<(std::ostream& os, LogLevel level);
+  //! Convert string to a LogLevel
   LogLevel string_to_level(const std::string& str);
+  //! Convert LogLevel to a string
+  std::string level_to_string(const LogLevel& level);
 
 
 
