@@ -316,6 +316,15 @@ Service_PythonWrapper::Service_PythonWrapper(Arc::Config *cfg):RegisteredService
 
 Service_PythonWrapper::~Service_PythonWrapper(void)
 {
+    // Release python objects - it is needed for Python
+    // destructors to be called
+    if(arc_module) Py_DECREF(arc_module);
+    if(arc_msg_klass) Py_DECREF(arc_msg_klass);
+    if(arc_xmlnode_klass) Py_DECREF(arc_xmlnode_klass);
+    if(module) Py_DECREF(module);
+    if(klass) Py_DECREF(klass);
+    if(object) Py_DECREF(object);
+
     // Finish the Python Interpreter
     python_service_counter--;
     if (python_service_counter == 0) {
