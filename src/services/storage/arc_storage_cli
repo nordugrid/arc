@@ -1519,6 +1519,7 @@ else:
         ca_file = None
         ca_dir = None
         bartender_url = None
+        isis_urls = []
     bartender_env_url = os.environ.get('ARC_BARTENDER_URL', '')
     if bartender_env_url:
         bartender_urls = [bartender_env_url]
