@@ -425,15 +425,15 @@ void MCC_TCP_Service::executer(void* arg) {
     // Creating stream payload
     PayloadTCPSocket stream(s, timeout, logger);
     stream.NoDelay(no_delay);
-    MessageAttributes attributes_in;
-    MessageAttributes attributes_out;
-    MessageAuth auth_in;
-    MessageAuth auth_out;
     MessageContext context;
     MessageAuthContext auth_context;
     for(;;) {
         // TODO: Check state of socket here and leave immediately if not connected anymore.
         // Preparing Message objects for chain
+        MessageAttributes attributes_in;
+        MessageAttributes attributes_out;
+        MessageAuth auth_in;
+        MessageAuth auth_out;
         Message nextinmsg;
         Message nextoutmsg;
         nextinmsg.Payload(&stream);
