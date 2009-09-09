@@ -193,7 +193,6 @@ sub cluster_info () {
     my $lrms_cluster = {};
     $lrms_info->{cluster} = $lrms_cluster;
 
-    $lrms_cluster->{lrms_glue_type} = "fork";
     $lrms_cluster->{lrms_type} = "fork";
     $lrms_cluster->{lrms_version} = "0.9";
 

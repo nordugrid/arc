@@ -393,7 +393,6 @@ sub cluster_info ($) {
     my (%lrms_cluster);
 
     # lrms_type
-    $lrms_cluster{lrms_glue_type} = "loadleveler";
     $lrms_cluster{lrms_type} = "LoadLeveler";
 
     # lrms_version

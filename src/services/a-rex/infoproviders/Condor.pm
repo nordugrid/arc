@@ -417,7 +417,6 @@ sub cluster_info ($) {
     collect_node_data();
     collect_job_data();
 
-    $lrms_cluster{lrms_glue_type} = "condor";
     ( $lrms_cluster{lrms_type}, $lrms_cluster{lrms_version} ) = type_and_version();
 
     # Count used/free CPUs and queued jobs in the cluster
@@ -451,7 +450,7 @@ sub queue_info ($$) {
     my $config = shift;
     my $qname = shift;
 
-    $qdef = join "", split /\[separator\]/, ($$config{condor_requirements} || '');
+    $qdef = join "", split /\[separator\]/, $$config{condor_requirements};
     warning("Option 'condor_requirements' is not defined for queue $qname") unless $qdef;
     debug("===Requirements for queue $qname: $qdef");
     
@@ -467,14 +466,14 @@ sub queue_info ($$) {
     my $usedcpus = condor_queue_get_running();
     my $queuedcpus = condor_queue_get_queued();
 
-    $lrms_queue{status} = $totalcpus - $usedcpus;
+    $lrms_queue{freecpus} = $totalcpus - $usedcpus;
     $lrms_queue{running} = $usedcpus;
     $lrms_queue{totalcpus} = $totalcpus;
     $lrms_queue{queued} = $queuedcpus;
 
     # reserve negative numbers for error states 
-    if ($lrms_queue{status}<0) {
-        warning("lrms_queue{status} = $lrms_queue{status}")
+    if ($lrms_queue{freecpus}<0) {
+        warning("lrms_queue{freecpus} = $lrms_queue{freecpus}")
     }
 
     # nordugrid-queue-maxrunning
@@ -520,8 +519,7 @@ sub jobs_info ($$@) {
             $lrms_jobs{$id}{mem} = $job{lc 'ImageSize'};
             $lrms_jobs{$id}{walltime} = floor($job{lc 'RemoteWallClockTime'} / 60);
             $lrms_jobs{$id}{cputime} = floor(($job{lc 'RemoteUserCpu'} + $job{lc 'RemoteSysCpu'}) / 60);
-            $lrms_jobs{$id}{nodes} = [];
-            $lrms_jobs{$id}{nodes} = [$job{lc 'LastRemoteHost'}] if $job{lc 'LastRemoteHost'};
+            $lrms_jobs{$id}{nodes} = [$job{lc 'LastRemoteHost'}];
             $lrms_jobs{$id}{nodes} = [$job{lc 'RemoteHost'}] if $job{lc 'RemoteHost'};
             $lrms_jobs{$id}{reqwalltime} = floor($job{lc 'JobTimeLimit'} / 60); # caller knows these better
             $lrms_jobs{$id}{reqcputime} = floor($job{lc 'JobCpuLimit'} / 60); # caller knows these better
@@ -566,7 +564,7 @@ sub users_info($$@) {
     foreach my $u ( @{$accts} ) {
         # all users are treated as equals
         # there is no maximum walltime/cputime limit in Condor
-	$lrms_users{$u}{freecpus} = $lrms_queue{status};
+	$lrms_users{$u}{freecpus} = $lrms_queue{freecpus};
 	$lrms_users{$u}{queuelength} = "$lrms_queue{queued}";
     }
     return %lrms_users;

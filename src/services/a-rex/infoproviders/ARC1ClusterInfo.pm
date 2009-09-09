@@ -677,7 +677,7 @@ sub _collect($$) {
 
     # Name not needed
 
-    $cmgr->{ProductName} = [ $cluster_info->{lrms_glue_type} ];
+    $cmgr->{ProductName} = [ $cluster_info->{lrms_glue_type} || lc $cluster_info->{lrms_type} ];
     $cmgr->{ProductVersion} = [ $cluster_info->{lrms_version} ];
     # $cmgr->{Reservation} = [ "undefined" ];
     $cmgr->{BulkSubmission} = [ "false" ];

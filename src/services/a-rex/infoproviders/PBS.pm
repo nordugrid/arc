@@ -308,6 +308,9 @@ sub queue_info ($$) {
     # cpus. Negative number signals some error state of PBS
     # (reserved for future use).
 
+    # processing the pbsnodes output by using a hash of hashes %hoh_pbsnodes
+    my ( %hoh_pbsnodes ) = read_pbsnodes( $path );
+
     $lrms_queue{status} = -1;
     $lrms_queue{running} = 0;
     $lrms_queue{queued} = 0;
@@ -329,18 +332,23 @@ sub queue_info ($$) {
 	}
 	close QSTATOUTPUT;
 
-
-	my (%keywords) = ('max_running' => 'totalcpus',
-			  'total_jobs' => 'total',
-			  'resources_assigned.nodect' => 'running');
-	
-	foreach my $k (keys %keywords) {
-	    if (defined $qstat{$k} ) {
-		$lrms_queue{$keywords{$k}} = $qstat{$k};
-	    } else {
-		$lrms_queue{$keywords{$k}} = "";
+	# qstat does not return number of cpus, use pbsnodes instead.
+	my ($torque_freecpus,$torque_totalcpus)=(0,0);
+	foreach my $node (keys %hoh_pbsnodes){
+	    if ( ! defined $hoh_pbsnodes{$node}{'properties'} || $hoh_pbsnodes{$node}{'properties'} =~ m/$qname/){
+		my $cpus;
+		if ($hoh_pbsnodes{$node}{'np'}) {
+		    $cpus = $hoh_pbsnodes{$node}{'np'};
+		} elsif ($hoh_pbsnodes{$node}{'resources_available.ncpus'}) {
+		    $cpus = $hoh_pbsnodes{$node}{'resources_available.ncpus'};
+		}
+		$torque_totalcpus+=$cpus;
+		if ($hoh_pbsnodes{$node}{'state'} =~ m/free/){
+		    $torque_freecpus+=$cpus;
+		}
 	    }
 	}
+	$lrms_queue{totalcpus} = $torque_totalcpus;
 
 	if(defined $$config{totalcpus}){
 	    if ($lrms_queue{totalcpus} eq "" or $$config{totalcpus} < $lrms_queue{totalcpus}) {
@@ -348,12 +356,13 @@ sub queue_info ($$) {
 	    }
 	}
 
-	if ($lrms_queue{totalcpus} ne "" and $lrms_queue{running} ne "") {
-	    $lrms_queue{status}=$lrms_queue{totalcpus}-$lrms_queue{running};
-	    $lrms_queue{status}=0 if $lrms_queue{status} < 0;
-	} else {
-	    warning("Can't determine number of free cpus for queue $qname");
-	    $lrms_queue{status}=-1;
+	$lrms_queue{status} = $torque_freecpus;
+	$lrms_queue{status}=0 if $lrms_queue{status} < 0;
+
+	$lrms_queue{running} = $lrms_queue{totalcpus} - $lrms_queue{status};
+
+	if ($lrms_queue{totalcpus} eq 0) {
+	    warning("Can't determine number of cpus for queue $qname");
 	}
 
 	if ( $qstat{state_count} =~ m/.*Queued:([0-9]*).*/ ){
@@ -551,11 +560,11 @@ sub users_info($$@) {
 
     my (%lrms_users);
 
-
     # Check that users have access to the queue
     unless (open QSTATOUTPUT,   "$path/qstat -f -Q $qname 2>/dev/null |") {
 	error("Error in executing qstat: $path/qstat -f -Q $qname");
     }
+
     my $acl_user_enable = 0;
     my @acl_users;
     my $more_acls = 0;
@@ -643,7 +652,6 @@ sub users_info($$@) {
 		    last; 
 		}
 	    }
-	    #TODO free cpus are actually free jobs
 	    $lrms_users{$u}{freecpus} = $maui_freecpus;
 	    $lrms_users{$u}{queuelength} = $user_jobs_queued{$u} || 0;
 	}
@@ -653,11 +661,9 @@ sub users_info($$@) {
 		$lrms_users{$u}{freecpus} = $lrms_queue{maxuserrun} - $user_jobs_running{$u};
 	    }
 	    else {
-		#TODO free cpus are actually free jobs
 		$lrms_users{$u}{freecpus} = $lrms_queue{status};
 	    }
 	    $lrms_users{$u}{queuelength} = "$lrms_queue{queued}";
-	    #TODO free cpus are actually free jobs
 	    if ($lrms_users{$u}{freecpus} < 0) {
 		$lrms_users{$u}{freecpus} = 0;
 	    }
