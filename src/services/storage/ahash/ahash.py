@@ -334,12 +334,9 @@ class AHashService(Service):
         return out
 
     def RegistrationCollector(self, doc):
-        print doc.GetXML();
         regentry = arc.XMLNode('<RegEntry />')
         regentry.NewChild('SrcAdv').NewChild('Type').Set('org.nordugrid.storage.ahash')
-        print regentry.GetXML();
         #Place the document into the doc attribute
         doc.Replace(regentry)
-        print doc.GetXML();
         return True
 
