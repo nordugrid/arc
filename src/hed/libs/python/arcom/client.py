@@ -102,15 +102,15 @@ class Client:
         outpayload is an XMLNode with the SOAP message
         """
         tid = thread.get_ident()
-        s = self.connection_cache.get(tid, None)
-        if s:
-            try:
-                resp, status = s.process(outpayload)
-                if not self._fawlty(resp, status):
-                    return resp.GetXML()
-            except:
-                pass
-            self.connection_cache[tid] = None
+        # s = self.connection_cache.get(tid, None)
+        # if s:
+        #     try:
+        #         resp, status = s.process(outpayload)
+        #         if not self._fawlty(resp, status):
+        #             return resp.GetXML()
+        #     except:
+        #         pass
+        #     self.connection_cache[tid] = None
         random.shuffle(self.urls)
         #print "available URLs", [url.fullstr() for url in self.urls]
         for url in self.urls:
@@ -128,7 +128,7 @@ class Client:
                 if fawlty:
                     raise Exception, fawlty
                 resp = resp.GetXML()
-                self.connection_cache[tid] = s
+                # self.connection_cache[tid] = s
                 return resp
             except:
                 log.msg(arc.WARNING, "ERROR connecting to", url.fullstr())
