@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+  xmlns="http://www.nordugrid.org/schemas/ArcConfig/2009/arex/LRMS"
+  xmlns:arc="http://www.nordugrid.org/schemas/ArcConfig/2009/arex"
+  targetNamespace="http://www.nordugrid.org/schemas/ArcConfig/2009/arex/LRMS"
+  elementFormDefault="qualified">
+
+    <xsd:element name="pbs_bin_path" type=string>
+        <xsd:annotation>
+            <xsd:documentation xml:lang="en">
+				The path to qstat, pbsnodes, qmgr etc PBS binaries. No need to
+                set unless PBS is used.
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="pbs_log_path" type=string>
+        <xsd:annotation>
+            <xsd:documentation xml:lang="en">
+                The path of the PBS server logfiles which are used by the GM to determine
+                whether a PBS job is completed. If not specified, GM will use qstat for that.
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="maui_bin_path" type=string>
+        <xsd:annotation>
+            <xsd:documentation xml:lang="en">
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="dedicated_node_string" type=string>
+        <xsd:annotation>
+            <xsd:documentation xml:lang="en">
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="queue_node_string" type=string>
+        <xsd:annotation>
+            <xsd:documentation xml:lang="en">
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="fork_job_limit" type=string>
+        <xsd:annotation>
+            <xsd:documentation xml:lang="en">
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="condor_location" type=string>
+        <xsd:annotation>
+            <xsd:documentation xml:lang="en">
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="condor_config" type=string>
+        <xsd:annotation>
+            <xsd:documentation xml:lang="en">
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="condor_rank" type=string>
+        <xsd:annotation>
+            <xsd:documentation xml:lang="en">
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="condor_requirements" type=string>
+        <xsd:annotation>
+            <xsd:documentation xml:lang="en">
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="sge_bin_path" type=string>
+        <xsd:annotation>
+            <xsd:documentation xml:lang="en">
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="sge_root" type=string>
+        <xsd:annotation>
+            <xsd:documentation xml:lang="en">
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="sge_cell" type=string>
+        <xsd:annotation>
+            <xsd:documentation xml:lang="en">
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="sge_qmaster_port" type=string>
+        <xsd:annotation>
+            <xsd:documentation xml:lang="en">
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="sge_execd_port" type=string>
+        <xsd:annotation>
+            <xsd:documentation xml:lang="en">
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="sge_jobopts" type=string>
+        <xsd:annotation>
+            <xsd:documentation xml:lang="en">
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="lsf_bin_path" type=string>
+        <xsd:annotation>
+            <xsd:documentation xml:lang="en">
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="lsf_profile_path" type=string>
+        <xsd:annotation>
+            <xsd:documentation xml:lang="en">
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="lsf_architecture" type=string>
+        <xsd:annotation>
+            <xsd:documentation xml:lang="en">
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="ll_bin_path" type=string>
+        <xsd:annotation>
+            <xsd:documentation xml:lang="en">
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="ll_consumable_resources" type=string>
+        <xsd:annotation>
+            <xsd:documentation xml:lang="en">
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="ll_class" type=string>
+        <xsd:annotation>
+            <xsd:documentation xml:lang="en">
+                LL job class associated to a clusterShare
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="slurm_bin_path" type=string>
+        <xsd:annotation>
+            <xsd:documentation xml:lang="en">
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="slurm_partition" type=string>
+        <xsd:annotation>
+            <xsd:documentation xml:lang="en">
+                SLURM partition associated to a clusterShare
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="slurm_project" type=string>
+        <xsd:annotation>
+            <xsd:documentation xml:lang="en">
+                SLURM project associated to a clusterShare
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="queueName" type=string>
+        <xsd:annotation>
+            <xsd:documentation xml:lang="en">
+                Queue associated to a clusterShare (applicable for PBS flavors, SGE, LSF)
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+</xsd:schema>

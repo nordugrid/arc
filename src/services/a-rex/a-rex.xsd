@@ -6,6 +6,9 @@
   targetNamespace="http://www.nordugrid.org/schemas/ArcConfig/2009/arex"
   elementFormDefault="qualified">
 
+<!-- Imports -->
+<xsd:import namespace="http://www.nordugrid.org/schemas/ArcConfig/2009/arex/InfoProvider" schemaLocation="./a-rex_infoprovider.xsd"/>
+
     <xsd:complexType name="endpoint_Type">
         <xsd:annotation>
             <xsd:documentation xml:lang="en">
@@ -110,11 +113,8 @@
             <xsd:element name="type" type="xsd:string"/>
             <xsd:element name="defaultQueue" type="xsd:string"
                          minOccurs="0"/>
-            <xsd:element name="sharedFilesystem" type="xsd:boolean"
-                         minOccurs="0"/>
-            <xsd:element name="GNUTimeUtility" type="xsd:string"
-                         minOccurs="0"/>
-            <xsd:any minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:any namespace="http://www.nordugrid.org/schemas/ArcConfig/2009/arex/LRMS"
+                         minOccurs="1" maxOccurs="unbounded"/>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -254,7 +254,6 @@
                          maxOccurs="unbounded"/>
             <xsd:element name="cache" type="cache_Type"
                          minOccurs="0" maxOccurs="unbounded"/>
-            <xsd:element name="LRMS" type="LRMS_Type"/>
             <xsd:element name="defaultTTL" type="xsd:nonNegativeInteger"
                          minOccurs="0"/>
             <xsd:element name="defaultTTR" type="xsd:nonNegativeInteger"
@@ -330,6 +329,8 @@
          The values are based on the OSType field of the
          CIM_OperatingSystem model:
          http://www.dmtf.org/standards/cim/cim_schema_v29
+
+         Some examples of valid choices: LINUX, MACOS, Solaris, Windows 2000
         </xsd:documentation>
       </xsd:annotation>
     </xsd:element>
@@ -396,6 +397,14 @@
         </xsd:complexType>
     </xsd:element>
     
+    <xsd:element name="sharedFilesystem" type="xsd:boolean"/>
+
+    <xsd:element name="GNUTimeUtility" type="xsd:string"/>
+
+    <xsd:element name="LRMS" type="LRMS_Type"/>
+
+    <xsd:any namespace="http://www.nordugrid.org/schemas/ArcConfig/2009/arex/InfoProvider"/>
+
     <!-- Not ported elements
     #logsize="100000 2"
     #logfile="/var/log/grid-manager.log"
