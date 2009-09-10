@@ -17,7 +17,7 @@ namespace Arc {
   class DataPointIndex
     : public DataPoint {
   public:
-    DataPointIndex(const URL& url);
+    DataPointIndex(const URL& url, const UserConfig& usercfg);
     virtual ~DataPointIndex();
 
     virtual const URL& CurrentLocation() const;
@@ -69,7 +69,7 @@ namespace Arc {
   protected:
     bool resolved;
     bool registered;
-    void ClearLocations(void) {
+    void ClearLocations() {
       locations.clear();
       location = locations.end();
       SetHandle();
@@ -79,8 +79,8 @@ namespace Arc {
     /// List of locations at which file can be probably found.
     std::list<URLLocation> locations;
     std::list<URLLocation>::iterator location;
-    DataHandle h;
-    bool SetHandle(void);
+    DataHandle *h;
+    bool SetHandle();
   };
 
 } // namespace Arc

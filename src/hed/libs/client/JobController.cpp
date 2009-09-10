@@ -21,7 +21,7 @@
 #include <arc/client/ExecutionTarget.h>
 #include <arc/client/Submitter.h>
 #include <arc/client/TargetGenerator.h>
-#include <arc/client/UserConfig.h>
+#include <arc/UserConfig.h>
 #include <arc/data/DataMover.h>
 #include <arc/data/DataHandle.h>
 #include <arc/data/FileCache.h>
@@ -635,11 +635,7 @@ namespace Arc {
     std::list<std::string> files;
     std::list<FileInfo> outputfiles;
 
-    NS ns;
-    XMLNode ccfg(ns, "UserCfg");
-    usercfg.ApplyToConfig(ccfg);
-    DataHandle handle(dir);
-    handle->AssignCredentials(ccfg);
+    DataHandle handle(dir, usercfg);
     handle->ListFiles(outputfiles, true, false, false);
 
     for (std::list<FileInfo>::iterator i = outputfiles.begin();
@@ -681,28 +677,23 @@ namespace Arc {
     logger.msg(DEBUG, "Now copying (from -> to)");
     logger.msg(DEBUG, " %s -> %s", src.str(), dst.str());
 
-    NS ns;
-    XMLNode ccfg(ns, "UserCfg");
-    usercfg.ApplyToConfig(ccfg);
-
-    DataHandle source(src);
+    DataHandle source(src, usercfg);
     if (!source) {
       logger.msg(ERROR, "Failed to get DataHandle on source: %s", src.str());
       return false;
     }
-    source->AssignCredentials(ccfg);
 
-    DataHandle destination(dst);
+    DataHandle destination(dst, usercfg);
     if (!destination) {
       logger.msg(ERROR, "Failed to get DataHandle on destination: %s",
                  dst.str());
       return false;
     }
-    destination->AssignCredentials(ccfg);
 
     FileCache cache;
-    DataStatus res = mover.Transfer(*source, *destination, cache, URLMap(),
-                                    0, 0, 0, stringtoi(ccfg["TimeOut"]));
+    DataStatus res =
+      mover.Transfer(*source, *destination, cache, URLMap(), 0, 0, 0,
+                     stringtoi(usercfg.ConfTree()["TimeOut"]));
     if (!res.Passed()) {
       if (!res.GetDesc().empty())
         logger.msg(ERROR, "File download failed: %s - %s", std::string(res), res.GetDesc());
@@ -838,7 +829,7 @@ namespace Arc {
         for (int i = 0; i < size; i++) {
           const std::string file = (std::string)xmljob["LocalInputFiles"]["File"][i]["Source"];
           const std::string cksum_old = (std::string)xmljob["LocalInputFiles"]["File"][i]["CheckSum"];
-          const std::string cksum_new = Submitter::GetCksum(file);
+          const std::string cksum_new; // = Submitter::GetCksum(file);
           if (cksum_old != cksum_new) {
             logger.msg(WARNING, "Checksum of input file %s has changed.", file);
             CKSUM = false;

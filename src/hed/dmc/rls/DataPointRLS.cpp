@@ -13,6 +13,7 @@
 #include <arc/GUID.h>
 #include <arc/Logger.h>
 #include <arc/StringConv.h>
+#include <arc/globusutils/GlobusWorkarounds.h>
 
 #include "DataPointRLS.h"
 #include "RLS.h"
@@ -22,17 +23,43 @@
 
 namespace Arc {
 
+  static bool proxy_initialized = false;
+
   Logger DataPointRLS::logger(DataPoint::logger, "RLS");
 
-  DataPointRLS::DataPointRLS(const URL& url)
-    : DataPointIndex(url),
+  DataPointRLS::DataPointRLS(const URL& url, const UserConfig& usercfg)
+    : DataPointIndex(url, usercfg),
       guid_enabled(false) {
+    globus_module_activate(GLOBUS_COMMON_MODULE);
+    globus_module_activate(GLOBUS_IO_MODULE);
+    globus_module_activate(GLOBUS_RLS_CLIENT_MODULE);
+    if (!proxy_initialized)
+      proxy_initialized = GlobusRecoverProxyOpenSSL();
     std::string guidopt = url.Option("guid", "no");
     if ((guidopt == "yes") || (guidopt == ""))
       guid_enabled = true;
   }
 
-  DataPointRLS::~DataPointRLS() {}
+  DataPointRLS::~DataPointRLS() {
+    globus_module_deactivate(GLOBUS_RLS_CLIENT_MODULE);
+    globus_module_deactivate(GLOBUS_IO_MODULE);
+    globus_module_deactivate(GLOBUS_COMMON_MODULE);
+  }
+
+  Plugin* DataPointRLS::Instance(PluginArgument *arg) {
+    DataPointPluginArgument *dmcarg =
+      dynamic_cast<DataPointPluginArgument*>(arg);
+    if (!dmcarg)
+      return NULL;
+    if (((const URL&)(*dmcarg)).Protocol() != "rls")
+      return NULL;
+    // Make this code non-unloadable because Globus
+    // may have problems with unloading
+    Glib::Module* module = dmcarg->get_module();
+    PluginsFactory* factory = dmcarg->get_factory();
+    if(factory && module) factory->makePersistent(module);
+    return new DataPointRLS(*dmcarg, *dmcarg);
+  }
 
   static const char* get_path_str(const URL& url) {
     const std::string& path = url.Path();
@@ -1149,3 +1176,8 @@ namespace Arc {
   }
 
 } // namespace Arc
+
+Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
+  { "rls", "HED:DMC", 0, &Arc::DataPointRLS::Instance },
+  { NULL, NULL, 0, NULL }
+};

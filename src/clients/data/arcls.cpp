@@ -12,15 +12,15 @@
 #include <arc/Logger.h>
 #include <arc/StringConv.h>
 #include <arc/URL.h>
+#include <arc/UserConfig.h>
 #include <arc/XMLNode.h>
-#include <arc/client/UserConfig.h>
 #include <arc/data/DataHandle.h>
 #include <arc/OptionParser.h>
 
 static Arc::Logger logger(Arc::Logger::getRootLogger(), "arcls");
 
 bool arcls(const Arc::URL& dir_url,
-           Arc::XMLNode credentials,
+           const Arc::UserConfig& usercfg,
            bool show_details,
            bool show_urls,
            bool show_meta,
@@ -40,17 +40,16 @@ bool arcls(const Arc::URL& dir_url,
     bool r = true;
     for (std::list<Arc::URL>::iterator dir = dirs.begin();
          dir != dirs.end(); dir++)
-      if(!arcls(*dir, credentials, show_details, show_urls, show_meta,
+      if(!arcls(*dir, usercfg, show_details, show_urls, show_meta,
                recursion, timeout)) r = false;
     return r;
   }
 
-  Arc::DataHandle url(dir_url);
+  Arc::DataHandle url(dir_url, usercfg);
   if (!url) {
     logger.msg(Arc::ERROR, "Unsupported url given");
     return false;
   }
-  url->AssignCredentials(credentials);
   std::list<Arc::FileInfo> files;
   url->SetSecure(false);
   if (!url->ListFiles(files, (show_details || recursion > 0), show_urls, show_meta)) {
@@ -116,7 +115,7 @@ bool arcls(const Arc::URL& dir_url,
         else
           suburl.ChangePath(suburl.Path() + i->GetName());
         std::cout << suburl.str() << ":" << std::endl;
-        arcls(suburl, credentials, show_details, show_urls, show_meta, recursion - 1, timeout);
+        arcls(suburl, usercfg, show_details, show_urls, show_meta, recursion - 1, timeout);
         std::cout << std::endl;
       }
   }

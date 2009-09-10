@@ -12,7 +12,6 @@
 #include <arc/client/JobDescription.h>
 #include <arc/client/JobSupervisor.h>
 #include <arc/client/TargetRetriever.h>
-#include <arc/client/UserConfig.h>
 %}
 
 %template(ExecutionTargetList) std::list<Arc::ExecutionTarget>;
@@ -86,4 +85,3 @@ std::ostream& getStdout() {
 %include "../src/hed/libs/client/JobDescription.h"
 %include "../src/hed/libs/client/JobSupervisor.h"
 %include "../src/hed/libs/client/TargetRetriever.h"
-%include "../src/hed/libs/client/UserConfig.h"

@@ -10,7 +10,7 @@
 #include <arc/Thread.h>
 #include <arc/client/JobDescription.h>
 #include <arc/client/Submitter.h>
-#include <arc/client/UserConfig.h>
+#include <arc/UserConfig.h>
 #include <arc/data/FileCache.h>
 #include <arc/data/CheckSum.h>
 #include <arc/data/DataBuffer.h>
@@ -51,16 +51,11 @@ namespace Arc {
         const URL& src = it->Source.begin()->URI;
         if (src.Protocol() == "file") {
           std::string dst = url.str() + '/' + it->Name;
-          Config cfg;
-          usercfg.ApplyToConfig(cfg);
-          DataHandle source(src);
-          source->AssignCredentials(cfg);
-          DataHandle destination(dst);
-          destination->AssignCredentials(cfg);
-
-          DataStatus res = mover.Transfer(*source, *destination, cache,
-                                          URLMap(), 0, 0, 0,
-                                          stringtoi(cfg["TimeOut"]));
+          DataHandle source(src, usercfg);
+          DataHandle destination(dst, usercfg);
+          DataStatus res =
+            mover.Transfer(*source, *destination, cache, URLMap(), 0, 0, 0,
+                           stringtoi(usercfg.ConfTree()["TimeOut"]));
           if (!res.Passed()) {
             if (!res.GetDesc().empty())
               logger.msg(ERROR, "Failed uploading file: %s - %s",
@@ -114,9 +109,8 @@ namespace Arc {
     jobstorage.SaveToFile(joblistfile);
   }
 
-  std::string Submitter::GetCksum(const std::string& file) {
-
-    DataHandle source(file);
+  std::string Submitter::GetCksum(const std::string& file) const {
+    DataHandle source(file, usercfg);
     DataBuffer buffer;
 
     MD5Sum md5sum;

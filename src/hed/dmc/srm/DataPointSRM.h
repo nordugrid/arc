@@ -16,8 +16,9 @@ namespace Arc {
   class DataPointSRM
     : public DataPointDirect {
   public:
-    DataPointSRM(const URL& url);
+    DataPointSRM(const URL& url, const UserConfig& usercfg);
     virtual ~DataPointSRM();
+    static Plugin* Instance(PluginArgument *arg);
     virtual DataStatus StartReading(DataBuffer& buffer);
     virtual DataStatus StartWriting(DataBuffer& buffer,
                                     DataCallback *space_cb = NULL);

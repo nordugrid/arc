@@ -8,10 +8,10 @@
 #include <sys/types.h>
 #include <pwd.h>
 #include <sys/stat.h> 
-#include <arc/data/DataPoint.h>
+#include <arc/data/DataHandle.h>
 #include <arc/URL.h>
-#include <arc/data/DMC.h>
 #include <arc/StringConv.h>
+#include <arc/UserConfig.h>
 
 #include "arex.h"
 #include "grid-manager/conf/conf_cache.h"
@@ -109,7 +109,8 @@ Arc::MCC_Status ARexService::CacheCheck(ARexGMConfig& config,Arc::XMLNode in,Arc
  
       std::string file_lfn;
 
-      Arc::DataPoint* d = Arc::DMC::GetDataPoint(fileurl);
+      Arc::UserConfig usercfg(true);
+      Arc::DataHandle d(fileurl, usercfg);
 
       file_lfn = (*cache).File(d->str());
 

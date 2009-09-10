@@ -8,17 +8,16 @@
 
 
 #include <arc/Thread.h>
+#include <arc/UserConfig.h>
 #include <arc/client/ExecutionTarget.h>
 #include <arc/client/Job.h>
 #include <arc/client/TargetRetriever.h>
-#include <arc/client/UserConfig.h>
 
 namespace Arc {
 
   class Config;
   class Logger;
   class URL;
-  class UserConfig;
 
   class TargetGenerator {
   public:

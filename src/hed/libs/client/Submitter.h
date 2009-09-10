@@ -31,7 +31,7 @@ namespace Arc {
     virtual URL Migrate(const URL& jobid, const JobDescription& jobdesc,
                         bool forcemigration,
                         const std::string& joblistfile) const = 0;
-    static std::string GetCksum(const std::string& file);
+    std::string GetCksum(const std::string& file) const;
   protected:
     bool PutFiles(const JobDescription& jobdesc, const URL& url) const;
     void AddJob(const JobDescription& job, const URL& jobid,

@@ -14,8 +14,9 @@ namespace Arc {
   class DataPointLFC
     : public DataPointIndex {
   public:
-    DataPointLFC(const URL& url);
+    DataPointLFC(const URL& url, const UserConfig& usercfg);
     ~DataPointLFC();
+    static Plugin* Instance(PluginArgument *arg);
     virtual DataStatus Resolve(bool source);
     virtual DataStatus PreRegister(bool replication, bool force = false);
     virtual DataStatus PostRegister(bool replication);

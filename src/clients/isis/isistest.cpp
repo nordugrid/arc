@@ -10,7 +10,7 @@
 #include <arc/IString.h>
 #include <arc/Logger.h>
 #include <arc/client/ClientInterface.h>
-#include <arc/client/UserConfig.h>
+#include <arc/UserConfig.h>
 #include <arc/message/MCCLoader.h>
 #include <arc/message/PayloadSOAP.h>
 #include <arc/XMLNode.h>

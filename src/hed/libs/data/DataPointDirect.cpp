@@ -9,8 +9,8 @@
 
 namespace Arc {
 
-  DataPointDirect::DataPointDirect(const URL& url)
-    : DataPoint(url),
+  DataPointDirect::DataPointDirect(const URL& url, const UserConfig& usercfg)
+    : DataPoint(url, usercfg),
       buffer(NULL),
       bufsize(-1),
       bufnum(1),

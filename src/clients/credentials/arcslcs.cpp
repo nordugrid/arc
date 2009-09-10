@@ -29,7 +29,7 @@
 #include <arc/User.h>
 #include <arc/Utils.h>
 #include <arc/URL.h>
-#include <arc/client/UserConfig.h>
+#include <arc/UserConfig.h>
 #include <arc/xmlsec/XmlSecUtils.h>
 
 static Arc::Logger& logger = Arc::Logger::rootLogger;

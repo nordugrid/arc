@@ -12,6 +12,7 @@
 #include <sstream>
 
 #include <arc/Logger.h>
+#include <arc/UserConfig.h>
 #include <arc/data/DataBuffer.h>
 #include <arc/message/MCC.h>
 #include <arc/message/PayloadRaw.h>
@@ -35,8 +36,8 @@ namespace Arc {
   } ARCInfo_t;
 
 
-  DataPointARC::DataPointARC(const URL& url)
-    : DataPointDirect(url),
+  DataPointARC::DataPointARC(const URL& url, const UserConfig& usercfg)
+    : DataPointDirect(url, usercfg),
       transfer(NULL),
       reading(false),
       writing(false),
@@ -65,9 +66,18 @@ namespace Arc {
     StopWriting();
   }
 
+  Plugin* DataPointARC::Instance(PluginArgument *arg) {
+    DataPointPluginArgument *dmcarg = dynamic_cast<DataPointPluginArgument*>(arg);
+    if (!dmcarg)
+      return NULL;
+    if (((const URL&)(*dmcarg)).Protocol() != "arc")
+      return NULL;
+    return new DataPointARC(*dmcarg, *dmcarg);
+  }
+
   DataStatus DataPointARC::ListFiles(std::list<FileInfo>& files, bool, bool, bool) {
     MCCConfig cfg;
-    ApplySecurity(cfg);
+    usercfg.ApplyToConfig(cfg);
 
     ClientSOAP client(cfg, bartender_url);
     std::string xml;
@@ -158,7 +168,7 @@ namespace Arc {
     reading = true;
     buffer = &buf;
     MCCConfig cfg;
-    ApplySecurity(cfg);
+    usercfg.ApplyToConfig(cfg);
 
     // get TURL from bartender
     ClientSOAP client(cfg, bartender_url);
@@ -204,11 +214,7 @@ namespace Arc {
 
     URL turl(nd["TURL"]);
     // redirect actual reading to http dmc
-    transfer = new DataHandle(turl);
-    (*transfer)->AssignCredentials(proxyPath,
-                                   certificatePath,
-                                   keyPath,
-                                   caCertificatesDir);
+    transfer = new DataHandle(turl, usercfg);
     if (!(*transfer)->StartReading(buf)) {
       if (transfer) {
         delete transfer;
@@ -245,7 +251,7 @@ namespace Arc {
     buffer = &buf;
     chksum_index = buffer->add(md5sum);
     MCCConfig cfg;
-    ApplySecurity(cfg);
+    usercfg.ApplyToConfig(cfg);
 
     // get TURL from bartender
     ClientSOAP client(cfg, bartender_url);
@@ -305,11 +311,7 @@ namespace Arc {
 
     URL turl(nd["TURL"]);
     // redirect actual writing to http dmc
-    transfer = new DataHandle(turl);
-    (*transfer)->AssignCredentials(proxyPath,
-                                   certificatePath,
-                                   keyPath,
-                                   caCertificatesDir);
+    transfer = new DataHandle(turl, usercfg);
     if (!(*transfer)->StartWriting(buf, callback)) {
       if (transfer) {
         delete transfer;
@@ -346,7 +348,7 @@ namespace Arc {
     logger.msg(DEBUG, "Calculated checksum: %s", md5str);
 
     MCCConfig cfg;
-    ApplySecurity(cfg);
+    usercfg.ApplyToConfig(cfg);
 
     // get TURL from bartender
     ClientSOAP client(cfg, bartender_url);
@@ -403,7 +405,7 @@ namespace Arc {
 
   DataStatus DataPointARC::Remove() {
     MCCConfig cfg;
-    ApplySecurity(cfg);
+    usercfg.ApplyToConfig(cfg);
 
     ClientSOAP client(cfg, bartender_url);
     std::string xml;
@@ -443,3 +445,8 @@ namespace Arc {
   }
 
 } // namespace Arc
+
+Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
+  { "arc", "HED:DMC", 0, &Arc::DataPointARC::Instance },
+  { NULL, NULL, 0, NULL }
+};

@@ -22,7 +22,7 @@
 #include <arc/Utils.h>
 #include <arc/XMLNode.h>
 #include <arc/client/TargetGenerator.h>
-#include <arc/client/UserConfig.h>
+#include <arc/UserConfig.h>
 
 int main(int argc, char **argv) {
 
@@ -118,10 +118,6 @@ int main(int argc, char **argv) {
               << std::endl;
     return 0;
   }
-
-  // Proxy check
-  if (!usercfg.CheckProxy())
-    return 1;
 
   //sanity check
   if (!force) {

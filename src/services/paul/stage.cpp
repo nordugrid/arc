@@ -5,12 +5,12 @@
 #include <arc/XMLNode.h>
 #include <arc/GUID.h>
 #include <arc/User.h>
+#include <arc/UserConfig.h>
 #include <arc/URL.h>
 #include <arc/Logger.h>
 
-#include <arc/data/DMC.h>
 #include <arc/data/FileCache.h>
-#include <arc/data/DataPoint.h>
+#include <arc/data/DataHandle.h>
 #include <arc/data/DataMover.h>
 #include <arc/data/URLMap.h>
 
@@ -21,14 +21,20 @@ namespace Paul
 
 class PointPair 
 {
+    private:
+        Arc::URL source_url;
+        Arc::URL destination_url;
     public:
-        Arc::DataPoint* source;
-        Arc::DataPoint* destination;
-        PointPair(const std::string& source_url, const std::string& destination_url):source(Arc::DMC::GetDataPoint(source_url)), destination(Arc::DMC::GetDataPoint(destination_url)) {};
-        ~PointPair(void) { 
-            if(source) delete source; 
-            if(destination) delete destination;
-        };
+        Arc::DataHandle source;
+        Arc::DataHandle destination;
+        PointPair(const std::string& source_str,
+                  const std::string& destination_str,
+                  const Arc::UserConfig& usercfg)
+          : source_url(source_str),
+            destination_url(destination_str),
+            source(source_url, usercfg),
+            destination(destination_url, usercfg) {};
+        ~PointPair(void) {};
 };
 
 class FileTransfer
@@ -64,7 +70,7 @@ class FileTransfer
             std::string job_id = j.getID();
             std::string cache_dir = cache_path;
 #ifndef WIN32
-			cache = new Arc::FileCache (cache_dir, job_id, 
+            cache = new Arc::FileCache (cache_dir, job_id, 
 #else
             std::string cache_data_dir = cache_dir; 
             std::string cache_link_dir;
@@ -114,7 +120,8 @@ class FileTransfer
                 logger_.msg(Arc::DEBUG, "%s -> %s", src, dest);
     
                 std::string failure;
-                PointPair *pair = new PointPair(src, dest);
+                Arc::UserConfig usercfg(true);
+                PointPair *pair = new PointPair(src, dest, usercfg);
                 if (pair->source == NULL) {
                     logger_.msg(Arc::ERROR, "Cannot accept source as URL");
                     delete pair;
@@ -173,7 +180,8 @@ class FileTransfer
                 logger_.msg(Arc::DEBUG, "%s -> %s", src, dest);
     
                 std::string failure;
-                PointPair *pair = new PointPair(src, dest);
+                Arc::UserConfig usercfg(true);
+                PointPair *pair = new PointPair(src, dest, usercfg);
                 if (pair->source == NULL) {
                     logger_.msg(Arc::ERROR, "Cannot accept source as URL");
                     delete pair;

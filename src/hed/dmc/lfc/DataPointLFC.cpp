@@ -43,8 +43,8 @@ namespace Arc {
 
   Logger DataPointLFC::logger(DataPoint::logger, "LFC");
 
-  DataPointLFC::DataPointLFC(const URL& url)
-    : DataPointIndex(url),
+  DataPointLFC::DataPointLFC(const URL& url, const UserConfig& usercfg)
+    : DataPointIndex(url, usercfg),
       guid("") {
     // set retry env variables (don't overwrite if set already)
     // connection timeout
@@ -59,6 +59,21 @@ namespace Arc {
   }
 
   DataPointLFC::~DataPointLFC() {}
+
+  Plugin* DataPointLFC::Instance(PluginArgument *arg) {
+    DataPointPluginArgument *dmcarg =
+      dynamic_cast<DataPointPluginArgument*>(arg);
+    if (!dmcarg)
+      return NULL;
+    if (((const URL&)(*dmcarg)).Protocol() != "lfc")
+      return NULL;
+    // Make this code non-unloadable because Globus
+    // may have problems with unloading
+    Glib::Module* module = dmcarg->get_module();
+    PluginsFactory* factory = dmcarg->get_factory();
+    if(factory && module) factory->makePersistent(module);
+    return new DataPointLFC(*dmcarg, *dmcarg);
+  }
 
   /* perform resolve operation, which can take long time */
   DataStatus DataPointLFC::Resolve(bool source) {
@@ -632,10 +647,16 @@ namespace Arc {
       logger.msg(ERROR, "Error finding LFN from guid %s: %s", guid, sstrerror(serrno));
       return false;
     }
-    url = URL(url.Protocol() + "://" + url.Host() + "/" + std::string(info[0].path));
+    // Need to fix this - url is const now...
+    // url = URL(url.Protocol() + "://" + url.Host() + "/" + std::string(info[0].path));
     logger.msg(DEBUG, "guid %s resolved to LFN %s", guid, url.Path());
     lfc_listlinks(NULL, (char*)guid.c_str(), CNS_LIST_END, &listp);
     return true;
   }
 
 } // namespace Arc
+
+Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
+  { "lfc", "HED:DMC", 0, &Arc::DataPointLFC::Instance },
+  { NULL, NULL, 0, NULL }
+};

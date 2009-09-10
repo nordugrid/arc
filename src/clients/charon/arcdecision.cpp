@@ -17,7 +17,7 @@
 #include <arc/URL.h>
 #include <arc/User.h>
 #include <arc/Utils.h>
-#include <arc/client/UserConfig.h>
+#include <arc/UserConfig.h>
 #include <arc/message/MCC.h>
 #include <arc/client/ClientInterface.h>
 #include <arc/ArcLocation.h>

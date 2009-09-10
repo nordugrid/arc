@@ -96,7 +96,7 @@ namespace Arc {
     url.ChangeLDAPScope(URL::subtree);
     url.ChangeLDAPFilter("(|(GlueServiceType=bdii_site)"
                          "(GlueServiceType=bdii_top))");
-    DataHandle handler(url);
+    DataHandle handler(url, usercfg);
     DataBuffer buffer;
 
     if (!handler) {
@@ -181,10 +181,11 @@ namespace Arc {
   void TargetRetrieverCREAM::InterrogateTarget(void *arg) {
     ThreadArg *thrarg = (ThreadArg*)arg;
     TargetGenerator& mom = *thrarg->mom;
+    const UserConfig& usercfg = *thrarg->usercfg;
 
     URL url = thrarg->url;
     url.ChangeLDAPScope(URL::subtree);
-    DataHandle handler(url);
+    DataHandle handler(url, usercfg);
     DataBuffer buffer;
 
     if (!handler) {

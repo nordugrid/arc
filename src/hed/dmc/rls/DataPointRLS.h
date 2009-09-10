@@ -19,14 +19,17 @@ namespace Arc {
   class DataPointRLS
     : public DataPointIndex {
   public:
-    DataPointRLS(const URL& url);
+    DataPointRLS(const URL& url, const UserConfig& usercfg);
     ~DataPointRLS();
+    static Plugin* Instance(PluginArgument *arg);
     virtual DataStatus Resolve(bool source);
     virtual DataStatus PreRegister(bool replication, bool force = false);
     virtual DataStatus PostRegister(bool replication);
     virtual DataStatus PreUnregister(bool replication);
     virtual DataStatus Unregister(bool all);
-    virtual DataStatus ListFiles(std::list<FileInfo>& files, bool long_list = false, bool resolve = false, bool metadata = false);
+    virtual DataStatus ListFiles(std::list<FileInfo>& files,
+                                 bool long_list = false, bool resolve = false,
+                                 bool metadata = false);
     bool ResolveCallback(globus_rls_handle_t *h, const URL& url, void *arg);
     bool ListFilesCallback(globus_rls_handle_t *h, const URL& url, void *arg);
     bool UnregisterCallback(globus_rls_handle_t *h, const URL& url, void *arg);
@@ -34,7 +37,7 @@ namespace Arc {
     static Logger logger;
     bool guid_enabled;
     std::string pfn_path;
-    URL AddPFN(const URL& url,bool source);
+    URL AddPFN(const URL& url, bool source);
   };
 
 } // namespace Arc

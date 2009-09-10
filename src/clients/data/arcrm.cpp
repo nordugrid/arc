@@ -11,7 +11,7 @@
 #include <arc/Logger.h>
 #include <arc/StringConv.h>
 #include <arc/URL.h>
-#include <arc/client/UserConfig.h>
+#include <arc/UserConfig.h>
 #include <arc/data/DataHandle.h>
 #include <arc/data/DataMover.h>
 #include <arc/OptionParser.h>
@@ -19,7 +19,7 @@
 static Arc::Logger logger(Arc::Logger::getRootLogger(), "arcrm");
 
 void arcrm(const Arc::URL& file_url,
-           Arc::XMLNode credentials,
+           const Arc::UserConfig& usercfg,
            bool errcont,
            int timeout) {
   if (!file_url) {
@@ -35,16 +35,15 @@ void arcrm(const Arc::URL& file_url,
     }
     for (std::list<Arc::URL>::iterator file = files.begin();
          file != files.end(); file++)
-      arcrm(*file, credentials, errcont, timeout);
+      arcrm(*file, usercfg, errcont, timeout);
     return;
   }
 
-  Arc::DataHandle url(file_url);
+  Arc::DataHandle url(file_url, usercfg);
   if (!url) {
     logger.msg(Arc::ERROR, "Unsupported url given");
     return;
   }
-  url->AssignCredentials(credentials);
   Arc::DataMover mover;
   mover.Delete(*url,errcont);
   return;
@@ -117,12 +116,8 @@ int main(int argc, char **argv) {
     return 1;
   }
 
-  Arc::NS ns;
-  Arc::XMLNode cred(ns, "cred");
-  usercfg.ApplyToConfig(cred);
-
   std::list<std::string>::iterator it = params.begin();
-  arcrm(*it, cred, force, timeout);
+  arcrm(*it, usercfg, force, timeout);
 
   return 0;
 }

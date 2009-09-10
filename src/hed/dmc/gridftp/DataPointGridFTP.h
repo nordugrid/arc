@@ -70,8 +70,9 @@ namespace Arc {
     bool check_credentials();
     void set_attributes();
   public:
-    DataPointGridFTP(const URL& url);
+    DataPointGridFTP(const URL& url, const UserConfig& usercfg);
     virtual ~DataPointGridFTP();
+    static Plugin* Instance(PluginArgument *arg);
     virtual DataStatus StartReading(DataBuffer& buf);
     virtual DataStatus StartWriting(DataBuffer& buf,
                                     DataCallback *space_cb = NULL);

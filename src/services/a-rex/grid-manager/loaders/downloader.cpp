@@ -17,11 +17,10 @@
 #include <arc/XMLNode.h>
 #include <arc/client/Job.h>
 #include <arc/client/JobController.h>
-#include <arc/client/UserConfig.h>
-#include <arc/data/DMC.h>
+#include <arc/UserConfig.h>
 #include <arc/data/CheckSum.h>
 #include <arc/data/FileCache.h>
-#include <arc/data/DataPoint.h>
+#include <arc/data/DataHandle.h>
 #include <arc/data/DataMover.h>
 #include <arc/message/MCC.h>
 #include <arc/StringConv.h>
@@ -203,13 +202,19 @@ int user_file_exists(FileData &dt,char* session_dir,std::string* error = NULL) {
 }
 
 class PointPair {
+ private:
+  Arc::URL source_url;
+  Arc::URL destination_url;
  public:
-  Arc::DataPoint* source;
-  Arc::DataPoint* destination;
-  PointPair(const std::string& source_url,const std::string& destination_url):
-                                                      source(Arc::DMC::GetDataPoint(source_url)),
-                                                      destination(Arc::DMC::GetDataPoint(destination_url)) {};
-  ~PointPair(void) { if(source) delete source; if(destination) delete destination; };
+  Arc::DataHandle source;
+  Arc::DataHandle destination;
+  PointPair(const std::string& source_str, const std::string& destination_str,
+	    const Arc::UserConfig usercfg)
+    : source_url(source_str),
+      destination_url(destination_str),
+      source(source_url, usercfg),
+      destination(destination_url, usercfg) {};
+  ~PointPair(void) {};
   static void callback(Arc::DataMover*,Arc::DataStatus res,void* arg) {
     FileDataEx::iterator &it = *((FileDataEx::iterator*)arg);
     pair_condition.lock();
@@ -484,6 +489,8 @@ int main(int argc,char** argv) {
   bool credentials_expired = false;
   std::list<FileData> output_files;
 
+  Arc::UserConfig usercfg(true);
+
   if(!job_input_read_file(desc.get_id(),user,job_files_)) {
     failure_reason+="Internal error in downloader\n";
     logger.msg(Arc::ERROR, "Can't read list of input files"); res=1; goto exit;
@@ -567,7 +574,7 @@ int main(int argc,char** argv) {
             failure_reason+=std::string("User requested local input file ")+source.c_str()+"\n";
             logger.msg(Arc::ERROR, "Local source for download: %s", source); res=1; goto exit;
           };
-          PointPair* pair = new PointPair(source,destination);
+          PointPair* pair = new PointPair(source,destination,usercfg);
           if(!(pair->source)) {
             failure_reason+=std::string("Can't accept URL ")+source.c_str()+"\n";
             logger.msg(Arc::ERROR, "Can't accept URL: %s", source); res=1; goto exit;
@@ -576,7 +583,6 @@ int main(int argc,char** argv) {
             failure_reason+=std::string("Can't accept URL ")+destination.c_str()+"\n";
             logger.msg(Arc::ERROR, "Can't accept URL: %s", destination); res=1; goto exit;
           };
-          pair->source->AssignCredentials(x509_proxy,x509_cert,x509_key,x509_cadir);
           i->pair=pair;
         };
         FileDataEx::iterator* it = new FileDataEx::iterator(i);

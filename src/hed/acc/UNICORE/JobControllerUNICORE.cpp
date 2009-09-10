@@ -7,7 +7,7 @@
 #include <arc/XMLNode.h>
 #include <arc/message/MCC.h>
 #include <arc/client/ClientInterface.h>
-#include <arc/client/UserConfig.h>
+#include <arc/UserConfig.h>
 #include <arc/ws-addressing/WSA.h>
 
 #include "UNICOREClient.h"

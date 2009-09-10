@@ -8,7 +8,7 @@
 
 #include <arc/Logger.h>
 #include <arc/URL.h>
-#include <arc/client/UserConfig.h>
+#include <arc/UserConfig.h>
 #include <arc/message/MCC.h>
 
 #include "CREAMClient.h"

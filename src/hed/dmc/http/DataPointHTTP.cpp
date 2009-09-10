@@ -10,8 +10,9 @@
 #endif
 #include <unistd.h>
 
-#include <arc/StringConv.h>
 #include <arc/Logger.h>
+#include <arc/StringConv.h>
+#include <arc/UserConfig.h>
 #include <arc/data/DataBuffer.h>
 #include <arc/message/MCC.h>
 #include <arc/message/PayloadRaw.h>
@@ -42,7 +43,7 @@ namespace Arc {
     Glib::Mutex lock_;
   public:
     ChunkControl(uint64_t size = UINT64_MAX);
-    ~ChunkControl(void);
+    ~ChunkControl();
     // Get chunk to be transfered. On input 'length'
     // contains maximal acceptable chunk size.
     bool Get(uint64_t& start, uint64_t& length);
@@ -96,7 +97,8 @@ namespace Arc {
     virtual char* Insert(Size_t /* pos */ = 0, Size_t /* size */ = 0) {
       return NULL;
     }
-    virtual char* Insert(const char* /* s */, Size_t /* pos */ = 0, Size_t /* size */ = 0) {
+    virtual char* Insert(const char* /* s */,
+                         Size_t /* pos */ = 0, Size_t /* size */ = 0) {
       return NULL;
     }
     virtual char* Buffer(unsigned int num) {
@@ -131,7 +133,7 @@ namespace Arc {
     chunks_.push_back(chunk);
   }
 
-  ChunkControl::~ChunkControl(void) {}
+  ChunkControl::~ChunkControl() {}
 
   bool ChunkControl::Get(uint64_t& start, uint64_t& length) {
     if (length == 0)
@@ -262,8 +264,8 @@ namespace Arc {
     lock_.unlock();
   }
 
-  DataPointHTTP::DataPointHTTP(const URL& url)
-    : DataPointDirect(url),
+  DataPointHTTP::DataPointHTTP(const URL& url, const UserConfig& usercfg)
+    : DataPointDirect(url, usercfg),
       chunks(NULL),
       transfers_started(0),
       transfers_finished(0) {}
@@ -273,6 +275,17 @@ namespace Arc {
     StopWriting();
     if (chunks)
       delete chunks;
+  }
+
+  Plugin* DataPointHTTP::Instance(PluginArgument *arg) {
+    DataPointPluginArgument *dmcarg = dynamic_cast<DataPointPluginArgument*>(arg);
+    if (!dmcarg)
+      return NULL;
+    if (((const URL &)(*dmcarg)).Protocol() != "http" &&
+        ((const URL &)(*dmcarg)).Protocol() != "https" &&
+        ((const URL &)(*dmcarg)).Protocol() != "httpg")
+      return NULL;
+    return new DataPointHTTP(*dmcarg, *dmcarg);
   }
 
   static bool html2list(const char *html, const URL& base,
@@ -339,10 +352,11 @@ namespace Arc {
     return true;
   }
 
-  DataStatus DataPointHTTP::ListFiles(std::list<FileInfo>& files, bool long_list, bool resolve, bool metadata) {
-
+  DataStatus DataPointHTTP::ListFiles(std::list<FileInfo>& files,
+                                      bool long_list, bool resolve,
+                                      bool metadata) {
     MCCConfig cfg;
-    ApplySecurity(cfg);
+    usercfg.ApplyToConfig(cfg);
     ClientHTTP client(cfg, url);
 
     PayloadRaw request;
@@ -400,7 +414,8 @@ namespace Arc {
           titleend = tagstart - 1;
         else if (strcasecmp(tag.c_str(), "html") == 0)
           is_html = true;
-      } while (titlestart == std::string::npos || titleend == std::string::npos);
+      } while (titlestart == std::string::npos ||
+               titleend == std::string::npos);
 
       std::string title;
       if (titlestart != std::string::npos && titleend != std::string::npos)
@@ -410,9 +425,10 @@ namespace Arc {
       //if (title.substr(0, 10) == "Index of /" ||
       //    title.substr(0, 5) == "ARex:") {
       // Treat every html as potential directory/set of links
-      if(is_html) {
+      if (is_html) {
         if (metadata) {
-          std::list<FileInfo>::iterator f = files.insert(files.end(), url.FullPath());
+          std::list<FileInfo>::iterator f = files.insert(files.end(),
+                                                         url.FullPath());
           f->SetMetaData("path", url.FullPath());
           f->SetType(FileInfo::file_type_dir);
           f->SetMetaData("type", "dir");
@@ -422,10 +438,11 @@ namespace Arc {
           f->SetMetaData("mtime", info.lastModified.str());
         }
         else
-          html2list (result.c_str(), url, files);
+          html2list(result.c_str(), url, files);
       }
       else {
-        std::list<FileInfo>::iterator f = files.insert(files.end(), url.FullPath());
+        std::list<FileInfo>::iterator f = files.insert(files.end(),
+                                                       url.FullPath());
         f->SetMetaData("path", url.FullPath());
         f->SetType(FileInfo::file_type_file);
         f->SetMetaData("type", "file");
@@ -436,7 +453,8 @@ namespace Arc {
       }
     }
     else {
-      std::list<FileInfo>::iterator f = files.insert(files.end(), url.FullPath());
+      std::list<FileInfo>::iterator f = files.insert(files.end(),
+                                                     url.FullPath());
       f->SetMetaData("path", url.FullPath());
       f->SetType(FileInfo::file_type_file);
       f->SetMetaData("type", "file");
@@ -459,7 +477,7 @@ namespace Arc {
       delete chunks;
     chunks = new ChunkControl;
     MCCConfig cfg;
-    ApplySecurity(cfg);
+    usercfg.ApplyToConfig(cfg);
     for (int n = 0; n < transfer_streams; ++n) {
       HTTPInfo_t *info = new HTTPInfo_t;
       info->point = this;
@@ -520,7 +538,7 @@ namespace Arc {
       delete chunks;
     chunks = new ChunkControl;
     MCCConfig cfg;
-    ApplySecurity(cfg);
+    usercfg.ApplyToConfig(cfg);
     for (int n = 0; n < transfer_streams; ++n) {
       HTTPInfo_t *info = new HTTPInfo_t;
       info->point = this;
@@ -572,17 +590,19 @@ namespace Arc {
 
   DataStatus DataPointHTTP::Check() {
     MCCConfig cfg;
-    ApplySecurity(cfg);
+    usercfg.ApplyToConfig(cfg);
     ClientHTTP client(cfg, url);
     PayloadRaw request;
     PayloadRawInterface *inbuf;
     HTTPClientInfo transfer_info;
     // Do HEAD to obtain some metadata
     MCC_Status r = client.process("HEAD", &request, &transfer_info, &inbuf);
-    if (inbuf) delete inbuf;
+    if (inbuf)
+      delete inbuf;
     // Fail only if protocol involves authentication
     if (((!r) || (transfer_info.code != 200)) &&
-        (url.Protocol() != "http")) return DataStatus::CheckError;
+        (url.Protocol() != "http"))
+      return DataStatus::CheckError;
     created = transfer_info.lastModified;
     return DataStatus::Success;
   }
@@ -618,7 +638,9 @@ namespace Arc {
       PayloadRaw request;
       PayloadRawInterface *inbuf;
       std::string path = point.CurrentLocation().FullPath();
-      MCC_Status r = client->process("GET", path, transfer_offset, transfer_end, &request, &transfer_info, &inbuf);
+      MCC_Status r = client->process("GET", path, transfer_offset,
+                                     transfer_end, &request, &transfer_info,
+                                     &inbuf);
       if (!r) {
         // Failed to transfer chunk - retry.
         // 10 times in a row seems to be reasonable number
@@ -637,14 +659,7 @@ namespace Arc {
         delete client;
         client = NULL;
         MCCConfig cfg;
-        if (!point.proxyPath.empty())
-          cfg.AddProxy(point.proxyPath);
-        if (!point.certificatePath.empty())
-          cfg.AddCertificate(point.certificatePath);
-        if (!point.keyPath.empty())
-          cfg.AddPrivateKey(point.keyPath);
-        if (!point.caCertificatesDir.empty())
-          cfg.AddCADir(point.caCertificatesDir);
+        point.usercfg.ApplyToConfig(cfg);
         client = new ClientHTTP(cfg, point.url);
         continue;
       }
@@ -673,10 +688,9 @@ namespace Arc {
       // pick up usefull information from HTTP header
       point.created = transfer_info.lastModified;
       retries = 0;
-      bool whole = (inbuf &&
-                    ((transfer_info.size == inbuf->Size()) && (inbuf->BufferPos(0) == 0)) ||
-                    (inbuf->Size() == -1)
-                    );
+      bool whole = (inbuf && ((transfer_info.size == inbuf->Size()) &&
+                              (inbuf->BufferPos(0) == 0)) ||
+                    (inbuf->Size() == -1));
       // Temporary solution - copy data between buffers
       point.transfer_lock.lock();
       point.chunks->Unclaim(transfer_offset, chunk_length);
@@ -690,14 +704,17 @@ namespace Arc {
         uint64_t pos = inbuf->BufferPos(n);
         unsigned int length = inbuf->BufferSize(n);
         transfer_pos = inbuf->BufferPos(n) + inbuf->BufferSize(n);
-        // In general case returned chunk may be of different size than requested
+        // In general case returned chunk may be of different size than
+        // requested
         for (; length;) {
           if (transfer_handle == -1) {
             // Get transfer buffer if needed
             transfer_size = 0;
             point.transfer_lock.unlock();
-            if (!point.buffer->for_read(transfer_handle, transfer_size, true)) {
-              // No transfer buffer - must be failure or close initiated externally
+            if (!point.buffer->for_read(transfer_handle, transfer_size,
+                                        true)) {
+              // No transfer buffer - must be failure or close initiated
+              // externally
               point.transfer_lock.lock();
               break;
             }
@@ -720,7 +737,7 @@ namespace Arc {
         point.buffer->is_read(transfer_handle, 0, 0);
       if (inbuf)
         delete inbuf;
-      //  If server returned chunk which is not overlaping requested one - seems
+      // If server returned chunk which is not overlaping requested one - seems
       // like server has nothing to say any more.
       if (transfer_pos <= transfer_offset)
         whole = true;
@@ -755,18 +772,21 @@ namespace Arc {
       int transfer_handle = -1;
       unsigned long long int transfer_offset = 0;
       // get first buffer
-      if (!point.buffer->for_write(transfer_handle, transfer_size, transfer_offset, true))
+      if (!point.buffer->for_write(transfer_handle, transfer_size,
+                                   transfer_offset, true))
         // No transfer buffer - must be failure or close initiated externally
         break;
       //uint64_t transfer_offset = 0;
       //uint64_t transfer_end = transfer_offset+transfer_size;
       // Write chunk
       HTTPClientInfo transfer_info;
-      PayloadMemConst request((*point.buffer)[transfer_handle], transfer_offset, transfer_size,
+      PayloadMemConst request((*point.buffer)[transfer_handle],
+                              transfer_offset, transfer_size,
                               point.CheckSize() ? point.GetSize() : 0);
       PayloadRawInterface *response;
       std::string path = point.CurrentLocation().FullPath();
-      MCC_Status r = client->process("PUT", path, &request, &transfer_info, &response);
+      MCC_Status r = client->process("PUT", path, &request, &transfer_info,
+                                     &response);
       if (response)
         delete response;
       if (!r) {
@@ -784,14 +804,7 @@ namespace Arc {
         delete client;
         client = NULL;
         MCCConfig cfg;
-        if (!point.proxyPath.empty())
-          cfg.AddProxy(point.proxyPath);
-        if (!point.certificatePath.empty())
-          cfg.AddCertificate(point.certificatePath);
-        if (!point.keyPath.empty())
-          cfg.AddPrivateKey(point.keyPath);
-        if (!point.caCertificatesDir.empty())
-          cfg.AddCADir(point.caCertificatesDir);
+        point.usercfg.ApplyToConfig(cfg);
         client = new ClientHTTP(cfg, point.url);
         continue;
       }
@@ -817,15 +830,17 @@ namespace Arc {
     if (point.transfers_finished == point.transfers_started) {
       // TODO: process/report failure?
       point.buffer->eof_write(true);
-      if((!(point.buffer->error())) && (point.buffer->eof_position() == 0)) {
+      if ((!(point.buffer->error())) && (point.buffer->eof_position() == 0))
         // Zero size data was trasfered - must send at least one empty packet
-        for(;;) {
+        for (;;) {
           HTTPClientInfo transfer_info;
-          PayloadMemConst request(NULL,0,0,0);
+          PayloadMemConst request(NULL, 0, 0, 0);
           PayloadRawInterface *response;
           std::string path = point.CurrentLocation().FullPath();
-          MCC_Status r = client->process("PUT", path, &request, &transfer_info, &response);
-          if (response) delete response;
+          MCC_Status r = client->process("PUT", path, &request, &transfer_info,
+                                         &response);
+          if (response)
+            delete response;
           if (!r) {
             if ((++retries) > 10) {
               point.buffer->error_write(true);
@@ -835,14 +850,7 @@ namespace Arc {
             delete client;
             client = NULL;
             MCCConfig cfg;
-            if (!point.proxyPath.empty())
-              cfg.AddProxy(point.proxyPath);
-            if (!point.certificatePath.empty())
-              cfg.AddCertificate(point.certificatePath);
-            if (!point.keyPath.empty())
-              cfg.AddPrivateKey(point.keyPath);
-            if (!point.caCertificatesDir.empty())
-              cfg.AddCADir(point.caCertificatesDir);
+            point.usercfg.ApplyToConfig(cfg);
             client = new ClientHTTP(cfg, point.url);
             continue;
           }
@@ -852,13 +860,13 @@ namespace Arc {
             if ((transfer_info.code == 500) ||
                 (transfer_info.code == 503) ||
                 (transfer_info.code == 504))
-              if ((++retries) <= 10) continue;
+              if ((++retries) <= 10)
+                continue;
             point.buffer->error_write(true);
             break;
           }
           break;
         }
-      }
     }
     if (client)
       delete client;
@@ -867,3 +875,8 @@ namespace Arc {
   }
 
 } // namespace Arc
+
+Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
+  { "http", "HED:DMC", 0, &Arc::DataPointHTTP::Instance },
+  { NULL, NULL, 0, NULL }
+};

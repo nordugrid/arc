@@ -682,16 +682,12 @@ namespace Arc {
     }
     else if (targetType == 1) {
 
-      DataHandle dir_url(url);
+      DataHandle dir_url(url, usercfg);
       if (!dir_url) {
         logger.msg(ERROR, "Unsupported url given");
         return;
       }
 
-      Config cfg;
-      usercfg.ApplyToConfig(cfg);
-      dir_url->AssignCredentials(cfg["ProxyPath"], cfg["CertificatePath"],
-                                 cfg["KeyPath"], cfg["CACertificatesDir"]);
       dir_url->SetSecure(false);
       std::list<FileInfo> files;
       if (!dir_url->ListFiles(files, false, false, false)) {

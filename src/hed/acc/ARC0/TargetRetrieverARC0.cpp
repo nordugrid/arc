@@ -96,7 +96,7 @@ namespace Arc {
     URL url = thrarg->url;
     url.ChangeLDAPScope(URL::base);
     url.AddLDAPAttribute("giisregistrationstatus");
-    DataHandle handler(url);
+    DataHandle handler(url, usercfg);
     DataBuffer buffer;
 
     if (!handler) {
@@ -205,7 +205,7 @@ namespace Arc {
       url.ChangeLDAPFilter("(|(nordugrid-job-globalowner=" +
                            credential.GetIdentityName() + "))");
 
-    DataHandle handler(url);
+    DataHandle handler(url, usercfg);
     DataBuffer buffer;
 
     if (!handler) {

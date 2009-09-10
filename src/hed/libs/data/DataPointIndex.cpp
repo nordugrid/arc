@@ -11,13 +11,17 @@
 
 namespace Arc {
 
-  DataPointIndex::DataPointIndex(const URL& url)
-    : DataPoint(url),
-      registered(false) {
+  DataPointIndex::DataPointIndex(const URL& url, const UserConfig& usercfg)
+    : DataPoint(url, usercfg),
+      registered(false),
+      h(NULL) {
     location = locations.end();
   }
 
-  DataPointIndex::~DataPointIndex() {}
+  DataPointIndex::~DataPointIndex() {
+    if (h)
+      delete h;
+  }
 
   const URL& DataPointIndex::CurrentLocation() const {
     static const URL empty;
@@ -47,10 +51,12 @@ namespace Arc {
 
   bool DataPointIndex::SetHandle(void) {
     // TODO: pass various options from old handler to new
+    if (h)
+      delete h;
     if (locations.end() != location)
-      h = *location;
+      h = new DataHandle(*location, usercfg);
     else
-      h.Clear();
+      h = NULL;
   }
 
   bool DataPointIndex::NextLocation() {
@@ -142,108 +148,108 @@ namespace Arc {
   }
 
   DataStatus DataPointIndex::StartReading(DataBuffer& buffer) {
-    if (!h)
+    if (!h || !*h)
       return DataStatus::NoLocationError;
-    return h->StartReading(buffer);
+    return (*h)->StartReading(buffer);
   }
 
   DataStatus DataPointIndex::StartWriting(DataBuffer& buffer,
                                           DataCallback *cb) {
-    if (!h)
+    if (!h || !*h)
       return DataStatus::NoLocationError;
-    return h->StartWriting(buffer, cb);
+    return (*h)->StartWriting(buffer, cb);
   }
 
   DataStatus DataPointIndex::StopReading() {
-    if (!h)
+    if (!h || !*h)
       return DataStatus::NoLocationError;
-    return h->StopReading();
+    return (*h)->StopReading();
   }
 
   DataStatus DataPointIndex::StopWriting() {
-    if (!h)
+    if (!h || !*h)
       return DataStatus::NoLocationError;
-    return h->StopWriting();
+    return (*h)->StopWriting();
   }
 
   DataStatus DataPointIndex::Check() {
-    if (!h)
+    if (!h || !*h)
       return DataStatus::NoLocationError;
-    return h->Check();
+    return (*h)->Check();
   }
 
   long long int DataPointIndex::BufSize() const {
-    if (!h)
+    if (!h || !*h)
       return -1;
-    return h->BufSize();
+    return (*h)->BufSize();
   }
 
   int DataPointIndex::BufNum() const {
-    if (!h)
+    if (!h || !*h)
       return 1;
-    return h->BufNum();
+    return (*h)->BufNum();
   }
 
   bool DataPointIndex::Local() const {
-    if (!h)
+    if (!h || !*h)
       return false;
-    return h->Local();
+    return (*h)->Local();
   }
 
   bool DataPointIndex::ReadOnly() const {
-    if (!h)
+    if (!h || !*h)
       return true;
-    return h->ReadOnly();
+    return (*h)->ReadOnly();
   }
 
   DataStatus DataPointIndex::Remove() {
-    if (!h)
+    if (!h || !*h)
       return DataStatus::NoLocationError;
-    return h->Remove();
+    return (*h)->Remove();
   }
 
   void DataPointIndex::ReadOutOfOrder(bool v) {
-    if (h)
-      h->ReadOutOfOrder(v);
+    if (h && *h)
+      (*h)->ReadOutOfOrder(v);
   }
 
   bool DataPointIndex::WriteOutOfOrder() {
-    if (!h)
+    if (!h || !*h)
       return false;
-    return h->WriteOutOfOrder();
+    return (*h)->WriteOutOfOrder();
   }
 
   void DataPointIndex::SetAdditionalChecks(bool v) {
-    if (h)
-      h->SetAdditionalChecks(v);
+    if (h && *h)
+      (*h)->SetAdditionalChecks(v);
   }
 
   bool DataPointIndex::GetAdditionalChecks() const {
-    if (!h)
+    if (!h || !*h)
       return false;
-    return h->GetAdditionalChecks();
+    return (*h)->GetAdditionalChecks();
   }
 
   void DataPointIndex::SetSecure(bool v) {
-    if (h)
-      h->SetSecure(v);
+    if (h && *h)
+      (*h)->SetSecure(v);
   }
 
   bool DataPointIndex::GetSecure() const {
-    if (!h)
+    if (!h || !*h)
       return false;
-    return h->GetSecure();
+    return (*h)->GetSecure();
   }
 
   void DataPointIndex::Passive(bool v) {
-    if (h)
-      h->Passive(v);
+    if (h && *h)
+      (*h)->Passive(v);
   }
 
   void DataPointIndex::Range(unsigned long long int start,
                              unsigned long long int end) {
-    if (h)
-      h->Range(start, end);
+    if (h && *h)
+      (*h)->Range(start, end);
   }
 
 } // namespace Arc

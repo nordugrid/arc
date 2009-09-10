@@ -10,7 +10,7 @@
 #include <arc/URL.h>
 #include <arc/client/ClientInterface.h>
 #include <arc/client/ExecutionTarget.h>
-#include <arc/client/UserConfig.h>
+#include <arc/UserConfig.h>
 #include <arc/message/MCC.h>
 #include <arc/message/PayloadSOAP.h>
 

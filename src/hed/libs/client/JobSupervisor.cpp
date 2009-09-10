@@ -15,7 +15,7 @@
 #include <arc/client/JobController.h>
 #include <arc/client/JobSupervisor.h>
 #include <arc/client/ClientInterface.h>
-#include <arc/client/UserConfig.h>
+#include <arc/UserConfig.h>
 
 namespace Arc {
 

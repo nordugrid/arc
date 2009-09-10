@@ -5,8 +5,8 @@
 #endif
 
 #include <arc/Logger.h>
+#include <arc/UserConfig.h>
 #include <arc/client/JobDescription.h>
-#include <arc/client/UserConfig.h>
 
 #include "SubmitterARC0.h"
 #include "FTPControl.h"

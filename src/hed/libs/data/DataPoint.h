@@ -4,20 +4,21 @@
 #define __ARC_DATAPOINT_H__
 
 #include <list>
-#include <map>
 #include <string>
 
 #include <arc/DateTime.h>
 #include <arc/URL.h>
 #include <arc/data/DataStatus.h>
 #include <arc/data/FileInfo.h>
-#include <arc/message/MCC.h>
+#include <arc/loader/Loader.h>
+#include <arc/loader/Plugin.h>
 
 namespace Arc {
 
   class Logger;
   class DataBuffer;
   class DataCallback;
+  class UserConfig;
   class XMLNode;
 
   /// This base class is an abstraction of URL.
@@ -27,10 +28,11 @@ namespace Arc {
       DataPoint provides means to resolve an indexing service URL into
       multiple URLs and to loop through them. */
 
-  class DataPoint {
+  class DataPoint
+    : public Plugin {
   public:
     /// Constructor requires URL to be provided.
-    DataPoint(const URL& url);
+    DataPoint(const URL& url, const UserConfig& usercfg);
 
     /// Destructor.
     virtual ~DataPoint();
@@ -296,31 +298,9 @@ namespace Arc {
     /// Remove locations present in another DataPoint object
     virtual DataStatus RemoveLocations(const DataPoint& p) = 0;
 
-    /// Assing credentials used for authentication
-    void AssignCredentials(const std::string& proxyPath,
-                           const std::string& certifcatePath,
-                           const std::string& keyPath,
-                           const std::string& caCertificatesDir);
-
-    /// Assing credentials used for authentication (using XML node)
-    void AssignCredentials(const XMLNode& node);
-
-    /// Apply authentication credentials
-    /*! This method applies the member credentials to the passed MCCConfig
-        object reference.
-     
-       @param cfg The member credentials are applied to this object reference.
-     */
-    void ApplySecurity(MCCConfig& cfg) const {
-      cfg.AddProxy(proxyPath);
-      cfg.AddCertificate(certificatePath);
-      cfg.AddPrivateKey(keyPath);
-      cfg.AddCADir(caCertificatesDir);
-    }
-
   protected:
-    URL url;
-    static Logger logger;
+    const URL& url;
+    const UserConfig& usercfg;
 
     // attributes
     unsigned long long int size;
@@ -331,11 +311,34 @@ namespace Arc {
     DataStatus failure_code; /* filled by callback methods */
     bool cache;
 
-    // authentication
-    std::string proxyPath;
-    std::string certificatePath;
-    std::string keyPath;
-    std::string caCertificatesDir;
+    static Logger logger;
+  };
+
+  class DataPointLoader
+    : public Loader {
+  private:
+    DataPointLoader();
+    ~DataPointLoader();
+    DataPoint* load(const URL& url, const UserConfig& usercfg);
+    friend class DataHandle;
+  };
+
+  class DataPointPluginArgument
+    : public PluginArgument {
+  public:
+    DataPointPluginArgument(const URL& url, const UserConfig& usercfg)
+      : url(url),
+	usercfg(usercfg) {}
+    ~DataPointPluginArgument() {}
+    operator const URL&() {
+      return url;
+    }
+    operator const UserConfig&() {
+      return usercfg;
+    }
+  private:
+    const URL& url;
+    const UserConfig& usercfg;
   };
 
 } // namespace Arc

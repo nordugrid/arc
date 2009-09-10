@@ -15,7 +15,7 @@
 #include <arc/StringConv.h>
 #include <arc/client/JobController.h>
 #include <arc/client/JobSupervisor.h>
-#include <arc/client/UserConfig.h>
+#include <arc/UserConfig.h>
 
 int main(int argc, char **argv) {
 
@@ -107,10 +107,6 @@ int main(int argc, char **argv) {
               << std::endl;
     return 0;
   }
-
-  // Proxy check
-  if (!usercfg.CheckProxy())
-    return 1;
 
   // If user specifies a joblist on the command line, he means to kill jobs
   // stored in this file. So we should check if joblist is set or not, and not

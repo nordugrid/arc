@@ -30,8 +30,8 @@ namespace Arc {
 
   static bool proxy_initialized = false;
 
-  DataPointSRM::DataPointSRM(const URL& url)
-    : DataPointDirect(url),
+  DataPointSRM::DataPointSRM(const URL& url, const UserConfig& usercfg)
+    : DataPointDirect(url, usercfg),
       srm_request(NULL),
       r_handle(NULL),
       reading(false),
@@ -45,6 +45,20 @@ namespace Arc {
   DataPointSRM::~DataPointSRM() {
     globus_module_deactivate(GLOBUS_GSI_GSSAPI_MODULE);
     globus_module_deactivate(GLOBUS_IO_MODULE);
+  }
+
+  Plugin* DataPointSRM::Instance(PluginArgument *arg) {
+    DataPointPluginArgument *dmcarg = dynamic_cast<DataPointPluginArgument*>(arg);
+    if (!dmcarg)
+      return NULL;
+    if (((const URL&)(*dmcarg)).Protocol() != "srm")
+      return NULL;
+    // Make this code non-unloadable because Globus
+    // may have problems with unloading
+    Glib::Module* module = dmcarg->get_module();
+    PluginsFactory* factory = dmcarg->get_factory();
+    if(factory && module) factory->makePersistent(module);
+    return new DataPointSRM(*dmcarg, *dmcarg);
   }
 
   DataStatus DataPointSRM::Check() {
@@ -217,7 +231,7 @@ namespace Arc {
           for (std::map<std::string, std::string>::iterator oi = options.begin(); oi != options.end(); oi++)
             u.AddOption((*oi).first, (*oi).second);
       }
-      r_handle = new DataHandle(u);
+      r_handle = new DataHandle(u, usercfg);
       // check if url can be handled
       if (!r_handle) {
         turls.erase(i);
@@ -387,7 +401,7 @@ namespace Arc {
           for (std::map<std::string, std::string>::iterator oi = options.begin(); oi != options.end(); oi++)
             u.AddOption((*oi).first, (*oi).second);
       }
-      r_handle = new DataHandle(u);
+      r_handle = new DataHandle(u, usercfg);
       // check if url can be handled
       if (!r_handle) {
         turls.erase(i);
@@ -585,3 +599,8 @@ namespace Arc {
   }
 
 } // namespace Arc
+
+Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
+  { "srm", "HED:DMC", 0, &Arc::DataPointSRM::Instance },
+  { NULL, NULL, 0, NULL }
+};

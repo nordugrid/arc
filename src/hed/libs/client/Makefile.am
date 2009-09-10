@@ -20,14 +20,14 @@ libarcclient_la_HEADERS = Broker.h ExecutionTarget.h \
 	JobState.h Job.h JobController.h JobSupervisor.h \
 	JobDescription.h JobDescriptionParser.h Software.h \
 	ARCJSDLParser.h JDLParser.h XRSLParser.h RSLParser.h \
-	ClientInterface.h UserConfig.h \
+	ClientInterface.h \
 	ClientX509Delegation.h $(HEADER_WITH_XMLSEC)
 libarcclient_la_SOURCES = Broker.cpp ExecutionTarget.cpp \
 	Submitter.cpp TargetRetriever.cpp TargetGenerator.cpp \
 	JobState.cpp Job.cpp JobController.cpp JobSupervisor.cpp \
 	JobDescription.cpp JobDescriptionParser.cpp Software.cpp \
 	ARCJSDLParser.cpp JDLParser.cpp XRSLParser.cpp RSLParser.cpp \
-	ClientInterface.cpp UserConfig.cpp \
+	ClientInterface.cpp \
 	ClientX509Delegation.cpp $(SOURCE_WITH_XMLSEC)
 libarcclient_la_CXXFLAGS = -I$(top_srcdir)/include \
 	$(CFLAGS_WITH_XMLSEC) $(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS)

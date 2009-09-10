@@ -29,7 +29,7 @@
 #include <arc/StringConv.h>
 #include <arc/User.h>
 #include <arc/Utils.h>
-#include <arc/client/UserConfig.h>
+#include <arc/UserConfig.h>
 #include <arc/client/ClientInterface.h>
 #include <arc/credential/Credential.h>
 #include <arc/credential/VOMSAttribute.h>

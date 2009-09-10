@@ -9,13 +9,13 @@
 #include <glibmm.h>
 
 #include <arc/client/JobDescription.h>
-#include <arc/client/UserConfig.h>
 #include <arc/data/DataBuffer.h>
 #include <arc/data/DataHandle.h>
 #include <arc/data/DataMover.h>
 #include <arc/data/URLMap.h>
 #include <arc/StringConv.h>
 #include <arc/XMLNode.h>
+#include <arc/UserConfig.h>
 #include <arc/Utils.h>
 
 #ifdef WIN32
@@ -68,7 +68,7 @@ namespace Arc {
 
       infourl.ChangeLDAPFilter(filter);
 
-      DataHandle handler(infourl);
+      DataHandle handler(infourl, usercfg);
       DataBuffer buffer;
 
       if (!handler) {
@@ -392,11 +392,9 @@ namespace Arc {
     FileCache cache;
     URL source_url(filename);
     URL dest_url(urlstr);
-    DataHandle source(source_url);
-    DataHandle destination(dest_url);
-    source->AssignCredentials(cfg);
+    DataHandle source(source_url, usercfg);
+    DataHandle destination(dest_url, usercfg);
     source->SetTries(1);
-    destination->AssignCredentials(cfg);
     destination->SetTries(1);
     DataStatus res = mover.Transfer(*source, *destination, cache, URLMap(),
                                     0, 0, 0, stringtoi(cfg["TimeOut"]));
@@ -466,11 +464,9 @@ namespace Arc {
     std::string tmpfile = shortid + G_DIR_SEPARATOR_S + "description";
     std::string localfile = Glib::build_filename(Glib::get_tmp_dir(), tmpfile);
     URL dest_url(localfile);
-    DataHandle source(source_url);
-    DataHandle destination(dest_url);
-    source->AssignCredentials(cfg);
+    DataHandle source(source_url, usercfg);
+    DataHandle destination(dest_url, usercfg);
     source->SetTries(1);
-    destination->AssignCredentials(cfg);
     destination->SetTries(1);
     DataStatus res = mover.Transfer(*source, *destination, cache, URLMap(),
                                     0, 0, 0, stringtoi(cfg["TimeOut"]));

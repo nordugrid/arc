@@ -41,7 +41,7 @@ namespace Arc {
     bool CredentialsFound() const {
       return !(proxyPath.empty() && (certificatePath.empty() || keyPath.empty() || caCertificatesDir.empty()));
     }
-    bool CheckProxy() const;
+
     void InitializeCredentials();
 
     void SetTimeOut(unsigned int timeout);

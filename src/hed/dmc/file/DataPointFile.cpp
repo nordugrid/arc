@@ -34,8 +34,8 @@ namespace Arc {
 
   Logger DataPointFile::logger(DataPoint::logger, "File");
 
-  DataPointFile::DataPointFile(const URL& url)
-    : DataPointDirect(url),
+  DataPointFile::DataPointFile(const URL& url, const UserConfig& usercfg)
+    : DataPointDirect(url, usercfg),
       reading(false),
       writing(false),
       is_channel(false) {
@@ -53,6 +53,15 @@ namespace Arc {
   DataPointFile::~DataPointFile() {
     StopReading();
     StopWriting();
+  }
+
+  Plugin* DataPointFile::Instance(PluginArgument *arg) {
+    DataPointPluginArgument *dmcarg = dynamic_cast<DataPointPluginArgument*>(arg);
+    if (!dmcarg)
+      return NULL;
+    if (((const URL &)(*dmcarg)).Protocol() != "file")
+      return NULL;
+    return new DataPointFile(*dmcarg, *dmcarg);
   }
 
   void DataPointFile::read_file_start(void* arg) {
@@ -509,3 +518,8 @@ namespace Arc {
   }
 
 } // namespace Arc
+
+Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
+  { "file", "HED:DMC", 0, &Arc::DataPointFile::Instance },
+  { NULL, NULL, 0, NULL }
+};

@@ -26,7 +26,7 @@
 #include <arc/client/Submitter.h>
 #include <arc/client/TargetGenerator.h>
 #include <arc/client/JobDescription.h>
-#include <arc/client/UserConfig.h>
+#include <arc/UserConfig.h>
 #include <arc/client/Broker.h>
 
 int main(int argc, char **argv) {
@@ -157,10 +157,6 @@ int main(int argc, char **argv) {
               << std::endl;
     return 0;
   }
-
-  // Proxy check
-  if (!usercfg.CheckProxy())
-    return 1;
 
   jobdescriptionfiles.insert(jobdescriptionfiles.end(),
                              params.begin(), params.end());

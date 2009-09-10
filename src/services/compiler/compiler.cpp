@@ -6,7 +6,6 @@
 
 #include <arc/ArcConfig.h>
 #include <arc/Logger.h>
-#include <arc/data/DMC.h>
 #include <arc/data/DataHandle.h>
 
 #include <arc/data/DataMover.h>

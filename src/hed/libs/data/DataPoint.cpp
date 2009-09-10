@@ -7,15 +7,19 @@
 #include <list>
 
 #include <arc/Logger.h>
+#include <arc/UserConfig.h>
 #include <arc/XMLNode.h>
 #include <arc/data/DataPoint.h>
+#include <arc/data/DataHandle.h>
+#include <arc/loader/FinderLoader.h>
 
 namespace Arc {
 
   Logger DataPoint::logger(Logger::rootLogger, "DataPoint");
 
-  DataPoint::DataPoint(const URL& url)
+  DataPoint::DataPoint(const URL& url, const UserConfig& usercfg)
     : url(url),
+      usercfg(usercfg),
       size((unsigned long long int)(-1)),
       created(-1),
       valid(-1),
@@ -137,21 +141,24 @@ namespace Arc {
     return true;
   }
 
-  void DataPoint::AssignCredentials(const std::string& proxyPath,
-                                    const std::string& certificatePath,
-                                    const std::string& keyPath,
-                                    const std::string& caCertificatesDir) {
-    this->proxyPath = proxyPath;
-    this->certificatePath = certificatePath;
-    this->keyPath = keyPath;
-    this->caCertificatesDir = caCertificatesDir;
+  DataPointLoader::DataPointLoader()
+    : Loader(BaseConfig().MakeConfig(Config()).Parent()) {}
+
+  DataPointLoader::~DataPointLoader() {}
+
+  DataPoint* DataPointLoader::load(const URL& url, const UserConfig& usercfg) {
+    PluginList list = FinderLoader::GetPluginList("HED:DMC");
+    DataPointPluginArgument arg(url, usercfg);
+    for (PluginList::iterator it = list.begin(); it != list.end(); it++) {
+      factory_->load(it->second, "HED:DMC");
+      DataPoint *datapoint =
+        factory_->GetInstance<DataPoint>("HED:DMC", it->first, &arg);
+      if (datapoint)
+        return datapoint;
+    }
+    return NULL;
   }
 
-  void DataPoint::AssignCredentials(const XMLNode& node) {
-    proxyPath = (std::string)node["ProxyPath"];
-    certificatePath = (std::string)node["CertificatePath"];
-    keyPath = (std::string)node["KeyPath"];
-    caCertificatesDir = (std::string)node["CACertificatesDir"];
-  }
+  DataPointLoader DataHandle::loader;
 
 } // namespace Arc

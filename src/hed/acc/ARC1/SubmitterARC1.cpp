@@ -8,7 +8,7 @@
 #include <sstream>
 
 #include <arc/client/JobDescription.h>
-#include <arc/client/UserConfig.h>
+#include <arc/UserConfig.h>
 #include <arc/message/MCC.h>
 
 #include "SubmitterARC1.h"

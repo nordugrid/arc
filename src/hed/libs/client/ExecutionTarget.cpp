@@ -10,7 +10,7 @@
 #include <arc/client/ClientInterface.h>
 #include <arc/client/ExecutionTarget.h>
 #include <arc/client/Submitter.h>
-#include <arc/client/UserConfig.h>
+#include <arc/UserConfig.h>
 
 namespace Arc {
 

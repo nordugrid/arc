@@ -17,6 +17,7 @@
 #include <arc/Logger.h>
 #include <arc/Thread.h>
 #include <arc/URL.h>
+#include <arc/UserConfig.h>
 #include <arc/Utils.h>
 #include <arc/credential/Credential.h>
 #include <arc/data/DataBuffer.h>
@@ -200,6 +201,9 @@ namespace Arc {
                                  min_average_speed, time_t max_inactivity_time,
                                  DataMover::callback cb, void *arg,
                                  const char *prefix) {
+
+    UserConfig usercfg(true); // need to get this from somewhere...
+
     if (cb != NULL) {
       logger.msg(DEBUG, "DataMover::Transfer : starting new thread");
       transfer_struct *param = (transfer_struct*)malloc(sizeof(transfer_struct));
@@ -302,7 +306,7 @@ namespace Arc {
                    "destination: %s", del_url.str());
         int try_num = destination.GetTries();
         for (;;) {
-          DataHandle del(del_url);
+          DataHandle del(del_url, usercfg);
           del->SetTries(1);
           DataStatus res = Delete(*del);
           if (res == DataStatus::Success)
@@ -461,7 +465,7 @@ namespace Arc {
       if (source.ReadOnly() && mapped)
         if (mapped_url.Protocol() == "link")
           mapped_url.ChangeProtocol("file");
-      DataHandle mapped_h(mapped_url);
+      DataHandle mapped_h(mapped_url, usercfg);
       DataPoint& mapped_p(*mapped_h);
       if (mapped_h) {
         mapped_p.SetSecure(force_secure);
@@ -660,7 +664,7 @@ namespace Arc {
         logger.msg(INFO, "cache file: %s", churl.Path());
       }
 #endif
-      DataHandle chdest_h(churl);
+      DataHandle chdest_h(churl, usercfg);
       DataPoint& chdest(*chdest_h);
       if (chdest_h) {
         chdest.SetSecure(force_secure);

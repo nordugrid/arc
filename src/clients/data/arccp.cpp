@@ -15,8 +15,8 @@
 #include <arc/StringConv.h>
 #include <arc/URL.h>
 #include <arc/User.h>
+#include <arc/UserConfig.h>
 #include <arc/XMLNode.h>
-#include <arc/client/UserConfig.h>
 #include <arc/data/FileCache.h>
 #include <arc/data/DataHandle.h>
 #include <arc/data/DataMover.h>
@@ -54,7 +54,7 @@ static void progress(FILE *o, const char*, unsigned int,
 
 bool arcregister(const Arc::URL& source_url,
                  const Arc::URL& destination_url,
-                 Arc::XMLNode credentials,
+                 const Arc::UserConfig& usercfg,
                  bool secure,
                  bool passive,
                  bool force_meta,
@@ -91,7 +91,7 @@ bool arcregister(const Arc::URL& source_url,
                                        destination = destinations.begin();
          (source != sources.end()) && (destination != destinations.end());
          source++, destination++)
-      if(!arcregister(*source, *destination, credentials, secure, passive,
+      if(!arcregister(*source, *destination, usercfg, secure, passive,
                       force_meta, timeout)) r = false;
     return r;
   }
@@ -105,7 +105,7 @@ bool arcregister(const Arc::URL& source_url,
     bool r = true;
     for (std::list<Arc::URL>::iterator source = sources.begin();
          source != sources.end(); source++)
-      if(!arcregister(*source, destination_url, credentials, secure, passive,
+      if(!arcregister(*source, destination_url, usercfg, secure, passive,
                       force_meta, timeout)) r = false;
     return r;
   }
@@ -119,7 +119,7 @@ bool arcregister(const Arc::URL& source_url,
     bool r = true;
     for (std::list<Arc::URL>::iterator destination = destinations.begin();
          destination != destinations.end(); destination++)
-      if(!arcregister(source_url, *destination, credentials, secure, passive,
+      if(!arcregister(source_url, *destination, usercfg, secure, passive,
                       force_meta, timeout)) r = false;
     return r;
   }
@@ -128,10 +128,8 @@ bool arcregister(const Arc::URL& source_url,
     logger.msg(Arc::ERROR, "Fileset registration is not supported yet");
     return false;
   }
-  Arc::DataHandle source(source_url);
-  source->AssignCredentials(credentials);
-  Arc::DataHandle destination(destination_url);
-  destination->AssignCredentials(credentials);
+  Arc::DataHandle source(source_url, usercfg);
+  Arc::DataHandle destination(destination_url, usercfg);
   if (!source) {
     logger.msg(Arc::ERROR, "Unsupported source url: %s", source_url.str());
     return false;
@@ -194,7 +192,7 @@ bool arcregister(const Arc::URL& source_url,
 bool arccp(const Arc::URL& source_url_,
            const Arc::URL& destination_url_,
            const std::string& cache_dir,
-           Arc::XMLNode credentials,
+           const Arc::UserConfig usercfg,
            bool secure,
            bool passive,
            bool force_meta,
@@ -243,7 +241,7 @@ bool arccp(const Arc::URL& source_url_,
                                        destination = destinations.begin();
          (source != sources.end()) && (destination != destinations.end());
          source++, destination++)
-      if(!arccp(*source, *destination, cache_dir, credentials, secure, passive,
+      if(!arccp(*source, *destination, cache_dir, usercfg, secure, passive,
                 force_meta, recursion, tries, verbose, timeout)) r = false;
     return r;
   }
@@ -257,7 +255,7 @@ bool arccp(const Arc::URL& source_url_,
     bool r = true;
     for (std::list<Arc::URL>::iterator source = sources.begin();
          source != sources.end(); source++)
-      if(!arccp(*source, destination_url, cache_dir, credentials, secure, 
+      if(!arccp(*source, destination_url, cache_dir, usercfg, secure, 
                 passive, force_meta, recursion, tries, verbose, timeout))
         r = false;
     return r;
@@ -272,7 +270,7 @@ bool arccp(const Arc::URL& source_url_,
     bool r = true;
     for (std::list<Arc::URL>::iterator destination = destinations.begin();
          destination != destinations.end(); destination++)
-      if(!arccp(source_url, *destination, cache_dir, credentials, secure,
+      if(!arccp(source_url, *destination, cache_dir, usercfg, secure,
                 passive, force_meta, recursion, tries, verbose, timeout))
         r = false;
     return r;
@@ -313,8 +311,7 @@ bool arccp(const Arc::URL& source_url_,
                    "Fileset copy for this kind of source is not supported");
         return false;
       }
-      Arc::DataHandle source(source_url);
-      source->AssignCredentials(credentials);
+      Arc::DataHandle source(source_url, usercfg);
       if (!source) {
         logger.msg(Arc::ERROR, "Unsupported source url: %s", source_url.str());
         return false;
@@ -345,10 +342,8 @@ bool arccp(const Arc::URL& source_url_,
         d_url += i->GetName();
         logger.msg(Arc::INFO, "Source: %s", s_url);
         logger.msg(Arc::INFO, "Destination: %s", d_url);
-        Arc::DataHandle source(s_url);
-        source->AssignCredentials(credentials);
-        Arc::DataHandle destination(d_url);
-        destination->AssignCredentials(credentials);
+        Arc::DataHandle source(s_url, usercfg);
+        Arc::DataHandle destination(d_url, usercfg);
         if (!source) {
           logger.msg(Arc::INFO, "Unsupported source url: %s", s_url);
           continue;
@@ -407,15 +402,15 @@ bool arccp(const Arc::URL& source_url_,
           d_url += i->GetName();
           s_url += "/";
           d_url += "/";
-          if(!arccp(s_url, d_url, cache_dir, credentials, secure, passive,
+          if(!arccp(s_url, d_url, cache_dir, usercfg, secure, passive,
                     force_meta, recursion - 1, tries, verbose, timeout))
             r = false;
         }
       return r;
     }
   }
-  Arc::DataHandle source(source_url);
-  Arc::DataHandle destination(destination_url);
+  Arc::DataHandle source(source_url, usercfg);
+  Arc::DataHandle destination(destination_url, usercfg);
   if (!source) {
     logger.msg(Arc::ERROR, "Unsupported source url: %s", source_url.str());
     return false;
@@ -425,8 +420,6 @@ bool arccp(const Arc::URL& source_url_,
                destination_url.str());
     return false;
   }
-  source->AssignCredentials(credentials);
-  destination->AssignCredentials(credentials);
   Arc::DataMover mover;
   mover.secure(secure);
   mover.passive(passive);

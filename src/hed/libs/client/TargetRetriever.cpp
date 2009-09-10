@@ -8,7 +8,7 @@
 #include <arc/Logger.h>
 #include <arc/StringConv.h>
 #include <arc/client/TargetRetriever.h>
-#include <arc/client/UserConfig.h>
+#include <arc/UserConfig.h>
 #include <arc/loader/FinderLoader.h>
 
 namespace Arc {

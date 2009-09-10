@@ -27,7 +27,7 @@ namespace Arc {
   class DataPointDirect
     : public DataPoint {
   public:
-    DataPointDirect(const URL& url);
+    DataPointDirect(const URL& url, const UserConfig& usercfg);
     virtual ~DataPointDirect();
 
     virtual bool IsIndex() const;

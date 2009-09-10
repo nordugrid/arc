@@ -4,11 +4,11 @@
 #define __ARC_DATAHANDLE_H__
 
 #include <arc/data/DataPoint.h>
-#include <arc/data/DMC.h>
 
 namespace Arc {
 
   class URL;
+  class UserConfig;
 
   /// This class is a wrapper around the DataPoint class.
   /** It simplifies the construction, use and destruction of
@@ -16,24 +16,11 @@ namespace Arc {
 
   class DataHandle {
   public:
-    DataHandle()
-      : p(NULL) {}
-    DataHandle(const URL& url)
-      : p(DMC::GetDataPoint(url)) {}
+    DataHandle(const URL& url, const UserConfig& usercfg)
+      : p(loader.load(url, usercfg)) {}
     ~DataHandle() {
       if (p)
         delete p;
-    }
-    DataHandle& operator=(const URL& url) {
-      if (p)
-        delete p;
-      p = DMC::GetDataPoint(url);
-      return *this;
-    }
-    void Clear() {
-      if (p)
-        delete p;
-      p = NULL;
     }
     DataPoint* operator->() {
       return p;
@@ -55,6 +42,7 @@ namespace Arc {
     }
   private:
     DataPoint *p;
+    static DataPointLoader loader;
   };
 
 } // namespace Arc

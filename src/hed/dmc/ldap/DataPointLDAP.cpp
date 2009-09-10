@@ -5,7 +5,6 @@
 #endif
 
 #include <arc/data/DataBuffer.h>
-#include <arc/URL.h>
 
 #include "DataPointLDAP.h"
 #include "LDAPQuery.h"
@@ -14,12 +13,22 @@ namespace Arc {
 
   Logger DataPointLDAP::logger(DataPoint::logger, "LDAP");
 
-  DataPointLDAP::DataPointLDAP(const URL& url)
-    : DataPointDirect(url) {}
+  DataPointLDAP::DataPointLDAP(const URL& url, const UserConfig& usercfg)
+    : DataPointDirect(url, usercfg) {}
 
   DataPointLDAP::~DataPointLDAP() {
     StopReading();
     StopWriting();
+  }
+
+  Plugin* DataPointLDAP::Instance(PluginArgument *arg) {
+    DataPointPluginArgument *dmcarg =
+      dynamic_cast<DataPointPluginArgument*>(arg);
+    if (!dmcarg)
+      return NULL;
+    if (((const URL&)(*dmcarg)).Protocol() != "ldap")
+      return NULL;
+    return new DataPointLDAP(*dmcarg, *dmcarg);
   }
 
   DataStatus DataPointLDAP::Check() {
@@ -135,3 +144,8 @@ namespace Arc {
   }
 
 } // namespace Arc
+
+Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
+  { "ldap", "HED:DMC", 0, &Arc::DataPointLDAP::Instance },
+  { NULL, NULL, 0, NULL }
+};

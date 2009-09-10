@@ -16,8 +16,9 @@ namespace Arc {
   class DataPointLDAP
     : public DataPointDirect {
   public:
-    DataPointLDAP(const URL& url);
+    DataPointLDAP(const URL& url, const UserConfig& usercfg);
     virtual ~DataPointLDAP();
+    static Plugin* Instance(PluginArgument *arg);
     virtual DataStatus StartReading(DataBuffer& buffer);
     virtual DataStatus StartWriting(DataBuffer& buffer,
                                     DataCallback *space_cb = NULL);
@@ -25,7 +26,9 @@ namespace Arc {
     virtual DataStatus StopWriting();
     virtual DataStatus Check();
     virtual DataStatus Remove();
-    virtual DataStatus ListFiles(std::list<FileInfo>& files, bool long_list = false, bool resolve = false, bool metadata = false);
+    virtual DataStatus ListFiles(std::list<FileInfo>& files,
+                                 bool long_list = false, bool resolve = false,
+                                 bool metadata = false);
   private:
     XMLNode node;
     XMLNode entry;

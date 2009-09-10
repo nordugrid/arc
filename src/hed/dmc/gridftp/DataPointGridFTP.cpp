@@ -4,16 +4,24 @@
 #include <config.h>
 #endif
 
+#include <openssl/ssl.h>
+
 #include <arc/Logger.h>
 #include <arc/StringConv.h>
+#include <arc/UserConfig.h>
 #include <arc/data/DataBuffer.h>
 #include <arc/globusutils/GlobusErrorUtils.h>
+#include <arc/globusutils/GlobusWorkarounds.h>
 #include <arc/globusutils/GSSCredential.h>
 
 #include "DataPointGridFTP.h"
 #include "Lister.h"
 
 namespace Arc {
+
+  static Glib::Mutex openssl_lock;
+  static bool openssl_initialized = false;
+  static bool proxy_initialized = false;
 
   Logger DataPointGridFTP::logger(DataPoint::logger, "GridFTP");
 
@@ -732,13 +740,16 @@ namespace Arc {
     return result;
   }
 
-  DataPointGridFTP::DataPointGridFTP(const URL& url)
-    : DataPointDirect(url),
+  DataPointGridFTP::DataPointGridFTP(const URL& url, const UserConfig& usercfg)
+    : DataPointDirect(url, usercfg),
       ftp_active(false),
       condstatus(DataStatus::Success),
       credential(NULL),
       reading(false),
       writing(false) {
+    globus_module_activate(GLOBUS_FTP_CLIENT_MODULE);
+    if (!proxy_initialized)
+      proxy_initialized = GlobusRecoverProxyOpenSSL();
     is_secure = false;
     if (url.Protocol() == "gsiftp")
       is_secure = true;
@@ -829,8 +840,11 @@ namespace Arc {
     }
     else { // gridftp protocol
 
+      Config cfg;
+      usercfg.ApplyToConfig(cfg);
       if (!credential)
-        credential = new GSSCredential(proxyPath, certificatePath, keyPath);
+        credential = new GSSCredential(cfg["ProxyPath"],
+                                       cfg["CertificatePath"], cfg["KeyPath"]);
 
       GlobusResult r = globus_ftp_client_operationattr_set_authorization(
                      &ftp_opattr,
@@ -877,6 +891,31 @@ namespace Arc {
     }
     if (credential)
       delete credential;
+    globus_module_deactivate(GLOBUS_FTP_CLIENT_MODULE);
+  }
+
+  Plugin* DataPointGridFTP::Instance(PluginArgument *arg) {
+    DataPointPluginArgument *dmcarg = dynamic_cast<DataPointPluginArgument*>(arg);
+    if (!dmcarg)
+      return NULL;
+    if (((const URL&)(*dmcarg)).Protocol() != "gsiftp" &&
+        ((const URL&)(*dmcarg)).Protocol() != "ftp")
+      return NULL;
+    // Make this code non-unloadable because both OpenSSL
+    // and Globus have problems with unloading
+    Glib::Module* module = dmcarg->get_module();
+    PluginsFactory* factory = dmcarg->get_factory();
+    if(factory && module) factory->makePersistent(module);
+    openssl_lock.lock();
+    if (!openssl_initialized) {
+      SSL_load_error_strings();
+      if (!SSL_library_init())
+        logger.msg(ERROR, "SSL_library_init failed");
+      else
+        openssl_initialized = true;
+    }
+    openssl_lock.unlock();
+    return new DataPointGridFTP(*dmcarg, *dmcarg);
   }
 
   bool DataPointGridFTP::WriteOutOfOrder() {
@@ -884,3 +923,8 @@ namespace Arc {
   }
 
 } // namespace Arc
+
+Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
+  { "gridftp", "HED:DMC", 0, &Arc::DataPointGridFTP::Instance },
+  { NULL, NULL, 0, NULL }
+};

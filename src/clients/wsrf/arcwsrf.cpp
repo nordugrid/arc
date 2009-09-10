@@ -13,7 +13,7 @@
 #include <arc/Logger.h>
 #include <arc/OptionParser.h>
 #include <arc/StringConv.h>
-#include <arc/client/UserConfig.h>
+#include <arc/UserConfig.h>
 #include <arc/infosys/InformationInterface.h>
 #include <arc/message/MCC.h>
 #include <arc/client/ClientInterface.h>

@@ -10,11 +10,8 @@
 #include <arc/data/DataPointDirect.h>
 #include <arc/data/DataHandle.h>
 #include <arc/data/CheckSum.h>
-#include <arc/client/UserConfig.h>
 
 namespace Arc {
-
-  class URL;
 
   class DataPointARC
     : public DataPointDirect {
@@ -26,13 +23,15 @@ namespace Arc {
     UserConfig usercfg;
     URL bartender_url;
     MD5Sum *md5sum;
-	int chksum_index;
+    int chksum_index;
   public:
-    DataPointARC(const URL& url);
+    DataPointARC(const URL& url, const UserConfig& usercfg);
     virtual ~DataPointARC();
+    static Plugin* Instance(PluginArgument *arg);
     DataStatus Check();
     DataStatus Remove();
-    DataStatus ListFiles(std::list<FileInfo>& files, bool long_list = false, bool resolve = false, bool metadata = false);
+    DataStatus ListFiles(std::list<FileInfo>& files, bool long_list = false,
+                         bool resolve = false, bool metadata = false);
     DataStatus StartReading(DataBuffer& buffer);
     DataStatus StartWriting(DataBuffer& buffer,
                             DataCallback *space_cb = NULL);

@@ -15,11 +15,8 @@
 #include <arc/StringConv.h>
 #include <arc/URL.h>
 #include <arc/User.h>
+#include <arc/UserConfig.h>
 #include <arc/Utils.h>
-#include <arc/client/JobSupervisor.h>
-#include <arc/client/JobController.h>
-#include <arc/client/UserConfig.h>
-#include <arc/credential/Credential.h>
 
 namespace Arc {
 
@@ -419,32 +416,6 @@ namespace Arc {
     URLListMap indexreject;
     return ResolveAlias(clusters, indices, clusterselect,
                         clusterreject, indexselect, indexreject);
-  }
-
-  bool UserConfig::CheckProxy() const {
-    if (!proxyPath.empty()) {
-      Credential holder(proxyPath, "",
-                        caCertificatesDir, "");
-      if (holder.GetEndTime() >= Time())
-        logger.msg(INFO, "Valid proxy found");
-      else {
-        logger.msg(ERROR, "Proxy expired");
-        return false;
-      }
-    }
-    else {
-      Credential holder(certificatePath,
-                        keyPath,
-                        caCertificatesDir, "");
-      if (holder.GetEndTime() >= Time())
-        logger.msg(INFO, "Valid certificate and key found");
-      else {
-        logger.msg(ERROR, "Certificate and key expired");
-        return false;
-      }
-    }
-
-    return true;
   }
 
   void UserConfig::InitializeCredentials() {

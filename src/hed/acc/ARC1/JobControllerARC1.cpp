@@ -9,7 +9,7 @@
 #include <arc/XMLNode.h>
 #include <arc/message/MCC.h>
 #include <arc/client/JobDescription.h>
-#include <arc/client/UserConfig.h>
+#include <arc/UserConfig.h>
 #include <arc/data/DataMover.h>
 #include <arc/data/DataHandle.h>
 #include <arc/data/URLMap.h>
