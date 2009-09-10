@@ -975,8 +975,6 @@ bool job_clean_finished(const JobId &id,JobUser &user) {
   std::string fname;
   fname = user.ControlDir()+"/job."+id+".proxy.tmp"; remove(fname.c_str());
   fname = user.ControlDir()+"/job."+id+".lrms_done"; remove(fname.c_str());
-  fname = user.ControlDir()+"/job."+id+".grami"; remove(fname.c_str());
-  fname = user.ControlDir()+"/job."+id+".grami_log"; remove(fname.c_str());
   return true;
 }
 
@@ -992,6 +990,8 @@ bool job_clean_deleted(const JobDescription &desc,JobUser &user) {
   fname = user.ControlDir()+"/job."+id+".output"; remove(fname.c_str());
   fname = user.ControlDir()+"/job."+id+".input"; remove(fname.c_str());
   fname = user.ControlDir()+"/job."+id+".rte"; remove(fname.c_str());
+  fname = user.ControlDir()+"/job."+id+".grami"; remove(fname.c_str());
+  fname = user.ControlDir()+"/job."+id+".grami_log"; remove(fname.c_str());
   fname = user.SessionRoot()+"/"+id+sfx_lrmsoutput; remove(fname.c_str());
   /* remove session directory */
   std::list<FileData> flist;
