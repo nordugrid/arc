@@ -357,10 +357,8 @@ sub get_gmjobs_info($) {
             my $job_desc = {};
             if ($desc_allines =~ /^<\?xml/) {
                 $job_desc = parse_jsdl($desc_allines, $job_log);
-                $job_log->warning("Failed to parse JSDL job description") unless %$job_desc;
             } else {
                 $job_desc = parse_xrsl($desc_allines);
-                $job_log->warning("Failed to parse xRSL job description") unless %$job_desc;
             }
             $job_desc->{count} = 1 unless defined $job_desc->{count};
             $job_desc->{runtimeenvironments} = [] unless $job_desc->{runtimeenvironments};
