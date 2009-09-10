@@ -199,6 +199,7 @@ sub _collect($$) {
         # count GM states by category
 
         my %states = ( 'UNDEFINED'        => [0, 'undefined'],
+                       'ACCEPTING'        => [1, 'accepted'],
                        'ACCEPTED'         => [1, 'accepted'],
                        'PENDING:ACCEPTED' => [1, 'accepted'],
                        'PREPARING'        => [2, 'preparing'],
