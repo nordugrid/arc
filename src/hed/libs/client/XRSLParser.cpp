@@ -264,19 +264,18 @@ namespace Arc {
           std::list<std::string>::iterator it2 = it->begin();
           FileType file;
           file.Name = *it2++;
-          DataTargetType target;
           long fileSize;
-          // The second string the list (it2) might be a URL or file size.
-          if (!it2->empty() && !stringto(*it2, fileSize)) {
-            target.URI = *it2;
-            if (!target.URI)
+          URL turl(*it2);
+          // The second string in the list (it2) might be a URL or file size.
+          if (!it2->empty() && !stringto(*it2, fileSize) && turl.Protocol() != "file") {
+            if (!turl)
               return false;
-          } else {
-            target.URI = file.Name;
+            DataTargetType target;
+            target.URI = turl;
+            target.Threads = -1;
+            file.Target.push_back(target);
+          } else
             file.KeepData = true;
-          }
-          target.Threads = -1;
-          file.Target.push_back(target);
           file.IsExecutable = false;
           file.DownloadToCache = false;
           j.DataStaging.File.push_back(file);
