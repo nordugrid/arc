@@ -12,7 +12,7 @@ And has the following files:
 client.py                       - collection of python classes which can be used to talk to the services
 common.py                       - collection of python methods and classes used by more than one storage service
 storage_service.xml.example     - an example service configuration for a centralized deployment with Hopi as the storage element service
-arc_storage_cli                 - standalone prototpye client for the storage system
+chelonia                 - standalone prototpye client for the storage system
 
 Detailed documentation and installation manual can be found here:
 http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk/doc/tech_doc/storage_system/arc-storage-documentation.pdf

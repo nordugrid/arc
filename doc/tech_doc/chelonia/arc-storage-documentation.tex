@@ -1062,7 +1062,7 @@ An example configuration:
 \subsection{Prototype CLI tool} % (fold)
 \label{sub:prototype_cli_tool}
 
-In the prototype release there is a command-line client tool called \verb!arc_storage_cli!, which is written in Python, and only need a basic Python installation to run. It is capable of communicating with a given Bartender service, and can upload and download files via HTTP. However, in order to use proxy certificates or to transfer files with the GridFTP protocol, the ARC client libraries must also be installed.
+In the prototype release there is a command-line client tool called \verb!chelonia!, which is written in Python, and only need a basic Python installation to run. It is capable of communicating with a given Bartender service, and can upload and download files via HTTP. However, in order to use proxy certificates or to transfer files with the GridFTP protocol, the ARC client libraries must also be installed.
 
 The credentials of the user and the URL of the Bartender must be configured either with an XML file located at \verb!~/.arc/client.xml! or with environment variables. (The environment variables overwrite the values from the XML file.)
 
@@ -1087,19 +1087,19 @@ An example of user credentials and Bartender configuration with environment vari
 
 The number of needed replicas for new files can be specified with the \verb!ARC_NEEDED_REPLICAS! environment variable. The default is one replica.
 
-The \verb!arc_storage_cli! has its built-in help. The methods can be listed by giving the command without arguments:
+The \verb!chelonia! has its built-in help. The methods can be listed by giving the command without arguments:
 
 \begin{verbatim}
-$ arc_storage_cli
+$ chelonia
 Usage:
-  arc_storage_cli <method> [<arguments>]
+  chelonia <method> [<arguments>]
   Supported methods: stat, make[Collection], unmake[Collection], list, move,
     put[File], get[File], del[File], pol[icy], unlink,
     credentialsDelegation, removeCredenstials
 \end{verbatim}
 Without arguments, each method prints its own help, e.g., for the move method:
 \begin{verbatim}
-$ arc_storage_cli move
+$ chelonia move
 Usage: move <sourceLN> <targetLN>
 \end{verbatim}
 
@@ -1108,7 +1108,7 @@ Here is an example of uploading, stating and downloading a file:
 \begin{verbatim}
 $ cat testfile 
 This is a testfile.
-$ arc_storage_cli put testfile /tmp/
+$ chelonia put testfile /tmp/
 - The size of the file is 20 bytes
 - The md5 checksum of the file is 9a9dffa22d227afe0f1959f936993a80
 - Calling the Bartender's putFile method...
@@ -1119,7 +1119,7 @@ $ arc_storage_cli put testfile /tmp/
 Uploading 20 bytes... data sent, waiting... done.
 - done in 0.0042 seconds.
 'testfile' (20 bytes) uploaded as '/tmp/testfile'.
-$ arc_storage_cli stat /tmp/testfile
+$ chelonia stat /tmp/testfile
 - Calling the Bartender's stat method...
 - done in 0.05 seconds.
 '/tmp/testfile': found
@@ -1136,7 +1136,7 @@ $ arc_storage_cli stat /tmp/testfile
     http://localhost:60000/Shepherd fc0d3d99-6406-4c43-b2eb-c7ec6d6ab7fe: alive
   entry
     type: file
-$ arc_storage_cli get /tmp/testfile newfile
+$ chelonia get /tmp/testfile newfile
 - Calling the Bartender's getFile method...
 - done in 0.05 seconds.
 - Got transfer URL: http://localhost:60000/hopi/dab911d0-110f-468e-b0c3-627af6e3af31
@@ -1154,9 +1154,9 @@ This is a testfile.
 \subsection{FUSE module} % (fold)
 \label{sub:fuse_module}
 
-\textbf{ARCFS}, a Filesystem in Userspace (FUSE) module, provides high-level access to the storage system. FUSE provides a simple library and a kernel-userspace interface. Using FUSE and the ARC Python interface, ARCFS allows users to mount the storage namespace into the local namespace, enabling the use of operating system commands and tools such as graphical file browsers. Delegation handling is not yet implemented in the fuse module, so that to change ownership, group access, etc., the \verb!arc_storage_cli! tool must be used.
+\textbf{ARCFS}, a Filesystem in Userspace (FUSE) module, provides high-level access to the storage system. FUSE provides a simple library and a kernel-userspace interface. Using FUSE and the ARC Python interface, ARCFS allows users to mount the storage namespace into the local namespace, enabling the use of operating system commands and tools such as graphical file browsers. Delegation handling is not yet implemented in the fuse module, so that to change ownership, group access, etc., the \verb!chelonia! tool must be used.
 
-As for the \verb!arc_storage_cli! the credentials of the user and the URL of the Bartender can be configured either with an XML file located at \verb!~/.arc/client.xml! or with environment variables. See Section \ref{sub:prototype_cli_tool} for more details.
+As for the \verb!chelonia! the credentials of the user and the URL of the Bartender can be configured either with an XML file located at \verb!~/.arc/client.xml! or with environment variables. See Section \ref{sub:prototype_cli_tool} for more details.
 
 ARCFS consists of a Python script, \verb!arcfs.py!. It requires the ARC Python interface, the FUSE library and pyFUSE, a Python wrapper to FUSE. \verb!arcfs.py! takes only one input argument which is the mount point where Chelonia should be mounted.
 
@@ -1176,7 +1176,7 @@ This is a test file
 $ cat mnt/tmp/testfile
 This is a test file
 $ fusermount -u ./mnt
-$ arc_storage_cli stat /tmp/testfile
+$ chelonia stat /tmp/testfile
 - Calling the Bartender's stat method...
 - done in 0.05 seconds.
 '/tmp/testfile': found
@@ -1204,7 +1204,7 @@ $ arc_storage_cli stat /tmp/testfile
 
 To access data through the ARC middleware client tools, one needs to go through Data Manager Components (DMC's). These are protocol specific plugins to the client tools. For example, to access data from a HTTPS service, the HTTP DMC will be used with a URL starting with \verb!https://!, to access data from an SRM service, the SRM DMC will be used with a URL starting with \verb!srm://!. Similarly, to access Chelonia, the ARC DMC will be used with a URL starting with \verb!arc://!. 
 
-As with the \verb!arc_storage_cli! command the credentials of the user and the URL of the Bartender can be configured with an XML file located at \verb!~/.arc/client.xml!. When the ARC DMC is initiated, it will create an instance of \verb!DataPointARC! which provides functionality for listing collections and file IO. When downloading/uploading files from/to the storage system, the data point will use the provided Bartender URL to acquire a TURL from a Bartender. This TURL will be given to a \verb!DataTransfer! handle. Calling the constructor of the DataHandle class with a URL will trigger the iGetDataPoint class of all registered DMC's to be called until a non-NULL pointer is returned. This means that as long as there exists a data point plugin for the protocol of the returned TURL, the transfer will proceed.
+As with the \verb!chelonia! command the credentials of the user and the URL of the Bartender can be configured with an XML file located at \verb!~/.arc/client.xml!. When the ARC DMC is initiated, it will create an instance of \verb!DataPointARC! which provides functionality for listing collections and file IO. When downloading/uploading files from/to the storage system, the data point will use the provided Bartender URL to acquire a TURL from a Bartender. This TURL will be given to a \verb!DataTransfer! handle. Calling the constructor of the DataHandle class with a URL will trigger the iGetDataPoint class of all registered DMC's to be called until a non-NULL pointer is returned. This means that as long as there exists a data point plugin for the protocol of the returned TURL, the transfer will proceed.
 
 An example of uploading, downloading and listing a file with the ARC client tools:
 

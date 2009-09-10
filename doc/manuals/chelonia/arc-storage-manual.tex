@@ -298,7 +298,7 @@ tcp        0      0 *:60000                 *:*                     LISTEN
 tcp        0      0 *:60001                 *:*                     LISTEN     
 \end{verbatim}
 
-Now it is time to set up the prototype client tool to access the system. It is currently called \verb!arc_storage_cli! and it is by default installed to \verb!/usr/local/bin!. The CLI tool needs to be told where it can find the user credentials, and a URL of a Bartender service. The Bartender service is the front-end of the storage system. This can be specified either by environment variables, or by a configuration file called \verb!~/.arc/client.xml!. Create the following \verb!client.xml! file:
+Now it is time to set up the prototype client tool to access the system. It is called \verb!chelonia! and it is by default installed to \verb!/usr/local/bin!. The CLI tool needs to be told where it can find the user credentials, and a URL of a Bartender service. The Bartender service is the front-end of the storage system. This can be specified either by environment variables, or by a configuration file called \verb!~/.arc/client.xml!. Create the following \verb!client.xml! file:
 
 \begin{verbatim}
 $ cat ~/.arc/client.xml 
@@ -310,12 +310,12 @@ $ cat ~/.arc/client.xml
 </ArcConfig>
 \end{verbatim}
 
-Now you can use the \verb!arc_storage_cli! to access your local deployment. Try to do a `list' on the root collection (`/'):
+Now you can use the tool \verb!chelonia! to access your local deployment. Try to do a `list' on the root collection (`/'):
 
 \begin{verbatim}
-$ arc_storage_cli
+$ chelonia
 Usage:
-  arc_storage_cli <method> [<arguments>]
+  chelonia <method> [<arguments>]
 Supported methods:
   stat - get detailed information about an entry
   makeCollection | make | mkdir - create a collection
@@ -332,10 +332,10 @@ Supported methods:
   removeCredentials | rem - remove previously delegated credentials
 Without arguments, each method prints its own help.
 
-$ arc_storage_cli list
+$ chelonia list
 Usage: list <LN> [<LN> ...]
 
-$ arc_storage_cli list /
+$ chelonia list /
 - Calling the Bartender's list method...
 [2009-03-19 18:37:12] [Arc.Loader] [ERROR] [12491/152991544]
     Component tcp.client(tcp) could not be created
@@ -355,12 +355,12 @@ If you get the error `Component [...] could not be created', try to specify to t
 $ export PYTHONPATH=/usr/local/lib/python2.5/site-packages/
 \end{verbatim}
 
-Without arguments, the \verb!arc_storage_cli! prints the list of available methods. Specifying only a method name prints the syntax of the given method. The \verb!list! method requires Logical Names (LN). In the storage system, every file and collection has a Logical Name, which is a path within the namespace.
+Without arguments, the \verb!chelonia! tool prints the list of available methods. Specifying only a method name prints the syntax of the given method. The \verb!list! method requires Logical Names (LN). In the storage system, every file and collection has a Logical Name, which is a path within the namespace.
 
 Now a (centralized) storage service is running, including a Hopi service, which is a basic HTTP server, for transferring files. The Bartender service is the front-end of the system to the users, so the clients always connect to the Bartender service. There are several directories configured in the config file where the services store their data. These directories can always be emptied, which resets the whole system to a clean state. If Chelonia is running with clean data directories, then it is completely empty, meaning that there is not even a root collection:
 
 \begin{verbatim}
-$ arc_storage_cli list /
+$ chelonia list /
 - Calling the Bartender's list method...
 - done in 0.34 seconds.
 '/': not found
@@ -369,12 +369,12 @@ $ arc_storage_cli list /
 The root collection has the Logical Name of `\verb!/!', and it's role to provide a starting point for all the other Logical Names. This root collection needs to be created first:
 
 \begin{verbatim}
-$ arc_storage_cli makeCollection /
+$ chelonia makeCollection /
 - Calling the Bartender's makeCollection method...
 - done in 0.81 seconds.
 Creating collection '/': done
 
-$ arc_storage_cli list /
+$ chelonia list /
 - Calling the Bartender's list method...
 - done in 0.55 seconds.
 '/': collection
@@ -385,10 +385,10 @@ Now there is an empty root collection.
 
 \section{Using the prototype client tool} % (fold)
 
-Assume that Chelonia is running and you want to access it with the \verb!arc_storage_cli! client. The \verb!~/.arc/client.xml! is set properly, the contents of the root collection can be listed:
+Assume that Chelonia is running and you want to access it with the \verb!chelonia! tool. The \verb!~/.arc/client.xml! is set properly, the contents of the root collection can be listed:
 
 \begin{verbatim}
-$ arc_storage_cli list /
+$ chelonia list /
 - Calling the Bartender's list method...
 - done in 0.55 seconds.
 '/': collection
@@ -403,7 +403,7 @@ orange
 $ cat orange 
 orange
 
-$ arc_storage_cli put orange /
+$ chelonia put orange /
 - The size of the file is 7 bytes
 - Calculating md5 checksum...
 - done in 0.0003 seconds, md5 checksum is 6aefd2842be62cd470709b27aedc7db7
@@ -416,7 +416,7 @@ $ arc_storage_cli put orange /
 - done in 0.0182 seconds.
 'orange' (7 bytes) uploaded as '/orange'.
 
-$ arc_storage_cli list /
+$ chelonia list /
 - Calling the Bartender's list method...
 - done in 0.51 seconds.
 '/': collection
@@ -427,7 +427,7 @@ $ arc_storage_cli list /
 Additional information about the file can be found with the stat method:
 
 \begin{verbatim}
-$ arc_storage_cli stat /orange
+$ chelonia stat /orange
 - Calling the Bartender's stat method...
 - done in 0.40 seconds.
 '/orange': found
@@ -453,7 +453,7 @@ Here, the owner of the file (Billy), the location of the replicas (currently onl
 This file can be downloaded:
 
 \begin{verbatim}
-$ arc_storage_cli get /orange /tmp
+$ chelonia get /orange /tmp
 - Calling the Bartender's getFile method...
 - done in 0.51 seconds.
 - Got transfer URL: http://localhost:60001/hopi/521c5869-4c93-8e28-aa3a-03f477f34f63
@@ -469,22 +469,22 @@ orange
 You can create collections which can contain files and other collections forming a tree-hierarchy. You can move files and collection around within this namespace.
 
 \begin{verbatim}
-$ arc_storage_cli makeCollection /fruits
+$ chelonia makeCollection /fruits
 - Calling the Bartender's makeCollection method...
 - done in 0.79 seconds.
 Creating collection '/fruits': done
 
-$ arc_storage_cli makeCollecion /fruits/apple
+$ chelonia makeCollecion /fruits/apple
 - Calling the Bartender's makeCollection method...
 - done in 0.91 seconds.
 Creating collection '/fruits/apple': done
 
-$ arc_storage_cli move /orange /fruits/
+$ chelonia move /orange /fruits/
 - Calling the Bartender's move method...
 - done in 0.99 seconds.
 Moving '/orange' to '/fruits/': moved
 
-$ arc_storage_cli list /fruits
+$ chelonia list /fruits
 - Calling the Bartender's list method...
 - done in 0.60 seconds.
 '/fruits': collection
@@ -495,38 +495,38 @@ $ arc_storage_cli list /fruits
 You can remove files, and remove collections (but only if the collection is empty):
 
 \begin{verbatim}
-$ arc_storage_cli rmdir /fruits
+$ chelonia rmdir /fruits
 - Calling the Bartender's unmakeCollection method...
 - done in 0.41 seconds.
 Removing collection '/fruits': collection is not empty
 
-$ arc_storage_cli rmdir /fruits/apple
+$ chelonia rmdir /fruits/apple
 - Calling the Bartender's unmakeCollection method...
 - done in 0.89 seconds.
 Removing collection '/fruits/apple': removed
 
-$ arc_storage_cli rm /fruits/orange
+$ chelonia rm /fruits/orange
 - Calling the Bartender's delFile method...
 - done in 0.89 seconds.
 /fruits/orange: deleted
 
-$ arc_storage_cli rmdir /fruits
+$ chelonia rmdir /fruits
 - Calling the Bartender's unmakeCollection method...
 - done in 0.79 seconds.
 Removing collection '/fruits': removed
 \end{verbatim}
 
-Now, introduce a new user, Penny, into the system. Again, \verb!arc_storage_cli! can be told to use user certificate and key files for this user with modifying the \verb!client.xml! or by specifying the \verb!ARC_CERT_FILE! and \verb!ARC_KEY_FILE! environment variables.
+Now, introduce a new user, Penny, into the system. Again, \verb!chelonia! can be told to use user certificate and key files for this user with modifying the \verb!client.xml! or by specifying the \verb!ARC_CERT_FILE! and \verb!ARC_KEY_FILE! environment variables.
 
 \begin{verbatim}
 $ ARC_CERT_FILE=usercert-penny.pem ARC_KEY_FILE=userkey-penny.pem \
-arc_storage_cli list /
+chelonia list /
 - Calling the Bartender's list method...
 - done in 0.31 seconds.
 '/': denied
 
 $ ARC_CERT_FILE=usercert-penny.pem ARC_KEY_FILE=userkey-penny.pem \
-arc_storage_cli put /tmp/orange /pennys-orange
+chelonia put /tmp/orange /pennys-orange
 - The size of the file is 7 bytes
 - Calculating md5 checksum...
 - done in 0.0001 seconds, md5 checksum is 6aefd2842be62cd470709b27aedc7db7
@@ -539,7 +539,7 @@ arc_storage_cli put /tmp/orange /pennys-orange
 Listing the root collection or uploading files into it for Penny is denied, because the root collection is owned by Billy, and nobody else has permissions to it. Now, Billy allows for everyone to access the root collection:
 
 \begin{verbatim}
-$ arc_storage_cli pol / change ALL +read +addEntry
+$ chelonia pol / change ALL +read +addEntry
 - Calling the Bartender's stat method...
 - done in 0.30 seconds.
 old action list for the user ALL was ''
@@ -552,7 +552,7 @@ set.
 The syntax of the \verb!policy! method is the following:
 
 \begin{verbatim}
-$ arc_storage_cli pol
+$ chelonia pol
 Usage: policy <LN> <changeType> <identity> <action list>
   <changeType> could be 'set', 'change' or 'clear'
     'set': sets the action list to the given user overwriting the old one
@@ -572,7 +572,7 @@ Now, Penny can upload a file:
 
 \begin{verbatim}
 $ ARC_CERT_FILE=usercert-penny.pem ARC_KEY_FILE=userkey-penny.pem \
-arc_storage_cli put /tmp/orange /pennys-orange
+chelonia put /tmp/orange /pennys-orange
 - The size of the file is 7 bytes
 - Calculating md5 checksum...
 - done in 0.0001 seconds, md5 checksum is 6aefd2842be62cd470709b27aedc7db7
@@ -590,7 +590,7 @@ This file now only can be downloaded by Penny, so she should allow for Billy to 
 
 \begin{verbatim}
 $ ARC_CERT_FILE=usercert-penny.pem ARC_KEY_FILE=userkey-penny.pem \
-arc_storage_cli pol /pennys-orange change /DC=eu/DC=KnowARC/O=knowarc/CN=billy +read
+chelonia pol /pennys-orange change /DC=eu/DC=KnowARC/O=knowarc/CN=billy +read
 - Calling the Bartender's stat method...
 - done in 0.41 seconds.
 old action list for the user /DC=eu/DC=KnowARC/O=knowarc/CN=billy was ''
@@ -600,7 +600,7 @@ the new action list of user /DC=eu/DC=KnowARC/O=knowarc/CN=billy for LN /pennys-
 - done in 0.59 seconds.
 set.
 
-$ arc_storage_cli stat /pennys-orange
+$ chelonia stat /pennys-orange
 - Calling the Bartender's stat method...
 - done in 0.43 seconds.
 '/pennys-orange': found
@@ -626,7 +626,7 @@ $ arc_storage_cli stat /pennys-orange
 The metadata of the file shows that Billy has `read' rights. Billy can now download this file:
 
 \begin{verbatim}
-$ arc_storage_cli get /pennys-orange /tmp
+$ chelonia get /pennys-orange /tmp
 - Calling the Bartender's getFile method...
 - done in 0.50 seconds.
 - Got transfer URL: http://localhost:60001/hopi/c16d7e12-42b0-7882-c09e-1cac31dbdbcd
@@ -642,7 +642,7 @@ orange
 The needed number of replicas for a new file can be specified with the \verb!ARC_NEEDED_REPLICAS! environment variable.
 
 \begin{verbatim}
-$ ARC_NEEDED_REPLICAS=2 arc_storage_cli put orange /new-orange
+$ ARC_NEEDED_REPLICAS=2 chelonia put orange /new-orange
 - The size of the file is 7 bytes
 - Calculating md5 checksum...
 - done in 0.0001 seconds, md5 checksum is 6aefd2842be62cd470709b27aedc7db7
@@ -655,7 +655,7 @@ $ ARC_NEEDED_REPLICAS=2 arc_storage_cli put orange /new-orange
 - done in 1.0057 seconds.
 'orange' (7 bytes) uploaded as '/new-orange'.
 
-$ arc_storage_cli stat /new-orange
+$ chelonia stat /new-orange
 - Calling the Bartender's stat method...
 - done in 0.40 seconds.
 '/new-orange': found
@@ -682,16 +682,16 @@ Here, the `neededReplica' metadata says 2, but the system is deployed in a centr
 The number of needed replicas of an existing file can be modified with the `modify' method:
 
 \begin{verbatim}
-$ arc_storage_cli modify /new-orange set states neededReplicas 1
+$ chelonia modify /new-orange set states neededReplicas 1
 - Calling the Bartender's modify method...
 - done in 0.63 seconds.
 set
 
-$ arc_storage_cli stat /new-orange | grep neededReplicas
+$ chelonia stat /new-orange | grep neededReplicas
     neededReplicas: 1
 \end{verbatim}
 
-It should be noted that the current version of the \verb!arc_storage_cli! tool does not support recursive methods or working with multiple files at once.
+It should be noted that the current version of the \verb!chelonia! tool does not support recursive methods or working with multiple files at once.
 
 
 \section{Adding more storage elements}
@@ -737,17 +737,17 @@ $ sudo /usr/local/sbin/arched -c /etc/arc/storage_service.xml -f
 See if the client is still usable:
 
 \begin{verbatim}
-$ arc_storage_cli list /
+$ chelonia list /
 - Calling the Bartender's list method...
 - done in 0.31 seconds.
 '/': not found
 
-$ arc_storage_cli makeCollection /
+$ chelonia makeCollection /
 - Calling the Bartender's makeCollection method...
 - done in 0.63 seconds.
 Creating collection '/': done
 
-$ arc_storage_cli list /
+$ chelonia list /
 - Calling the Bartender's list method...
 - done in 0.50 seconds.
 '/': collection
@@ -757,7 +757,7 @@ $ arc_storage_cli list /
 Now, upload a file and ask for two replicas:
 
 \begin{verbatim}
-$ ARC_NEEDED_REPLICAS=2 arc_storage_cli put orange /
+$ ARC_NEEDED_REPLICAS=2 chelonia put orange /
 - The size of the file is 7 bytes
 - Calculating md5 checksum...
 - done in 0.0005 seconds, md5 checksum is 6aefd2842be62cd470709b27aedc7db7
@@ -770,7 +770,7 @@ $ ARC_NEEDED_REPLICAS=2 arc_storage_cli put orange /
 - done in 1.0090 seconds.
 'orange' (7 bytes) uploaded as '/orange'.
 
-$ arc_storage_cli stat /orange
+$ chelonia stat /orange
 - Calling the Bartender's stat method...
 - done in 0.41 seconds.
 '/orange': found
@@ -875,7 +875,7 @@ $ sudo /usr/local/sbin/arched -c /etc/arc/storage_service_2.xml -f
 After a minute or two, check the file again:
 
 \begin{verbatim}
-$ arc_storage_cli stat /orange
+$ chelonia stat /orange
 - Calling the Bartender's stat method...
 - done in 0.41 seconds.
 '/orange': found
@@ -902,7 +902,7 @@ It indeed has two replicas now, one on each server.
 Now, try to download it multiple times:
 
 \begin{verbatim}
-$ arc_storage_cli get /orange /tmp/orange1
+$ chelonia get /orange /tmp/orange1
 - Calling the Bartender's getFile method...
 - done in 0.50 seconds.
 - Got transfer URL: http://storage:60001/hopi/de0d951f-7379-1ce4-0813-48a384c11982
@@ -912,7 +912,7 @@ $ arc_storage_cli get /orange /tmp/orange1
 - done in 1.0060 seconds.
 '/orange' (7 bytes) downloaded as '/tmp/orange1'.
     
-$ arc_storage_cli get /orange /tmp/orange2
+$ chelonia get /orange /tmp/orange2
 - Calling the Bartender's getFile method...
 - done in 0.51 seconds.
 - Got transfer URL: https://storage2:60006/byteio/52b6bffa-4812-03a5-93a1-834e38077ac5
@@ -1018,7 +1018,7 @@ $ sudo /usr/local/sbin/arched -c /etc/arc/storage_service_3.xml -f
 Now when checking the file again there should be no change at all:
 
 \begin{verbatim}
-$ arc_storage_cli stat /orange
+$ chelonia stat /orange
   locations
     https://storage:60000/Shepherd 315d59d3-50cd-1a10-02e6-8e6a528473c3: alive
     https://storage2:60006/Shepherd c1334c09-5d3d-983b-2081-87fe60d4764a: alive
@@ -1027,18 +1027,18 @@ $ arc_storage_cli stat /orange
 Stop the server on \verb!storage2!, and watch what happens with the file:
 
 \begin{verbatim}
-$ arc_storage_cli stat /orange
+$ chelonia stat /orange
   locations
     https://storage:60000/Shepherd 315d59d3-50cd-1a10-02e6-8e6a528473c3: alive
     https://storage2:60006/Shepherd c1334c09-5d3d-983b-2081-87fe60d4764a: offline
     
-$ arc_storage_cli stat /orange
+$ chelonia stat /orange
   locations
     https://storage:60000/Shepherd 315d59d3-50cd-1a10-02e6-8e6a528473c3: alive
     https://storage2:60006/Shepherd c1334c09-5d3d-983b-2081-87fe60d4764a: offline
     https://storage3:60010/Shepherd 421aa939-81fa-5cd9-7c2f-2d5f99a98be1: creating
 
-$ arc_storage_cli stat /orange
+$ chelonia stat /orange
   locations
     https://storage:60000/Shepherd 315d59d3-50cd-1a10-02e6-8e6a528473c3: alive
     https://storage2:60006/Shepherd c1334c09-5d3d-983b-2081-87fe60d4764a: offline
@@ -1050,19 +1050,19 @@ A new replica has been created on the third server to maintain the needed number
 Now, start the services on \verb!storage2! again, and see what is happening with the file:
 
 \begin{verbatim}
-$ arc_storage_cli stat /orange
+$ chelonia stat /orange
   locations
     https://storage:60000/Shepherd 315d59d3-50cd-1a10-02e6-8e6a528473c3: alive
     https://storage2:60006/Shepherd c1334c09-5d3d-983b-2081-87fe60d4764a: alive
     https://storage3:60010/Shepherd 421aa939-81fa-5cd9-7c2f-2d5f99a98be1: alive
 
-$ arc_storage_cli stat /orange
+$ chelonia stat /orange
   locations
     https://storage:60000/Shepherd 315d59d3-50cd-1a10-02e6-8e6a528473c3: alive
     https://storage2:60006/Shepherd c1334c09-5d3d-983b-2081-87fe60d4764a: thirdwheel
     https://storage3:60010/Shepherd 421aa939-81fa-5cd9-7c2f-2d5f99a98be1: alive
 
-$ arc_storage_cli stat /orange
+$ chelonia stat /orange
   locations
     https://storage:60000/Shepherd 315d59d3-50cd-1a10-02e6-8e6a528473c3: alive
     https://storage3:60010/Shepherd 421aa939-81fa-5cd9-7c2f-2d5f99a98be1: alive
@@ -1204,7 +1204,7 @@ ERROR connecting to https://storage2:60006/AHash
 
 With only one node of the replicated A-Hash the system is not ready to work, and trying to use it will result in an error message:
 \begin{verbatim}
-$ arc_storage_cli makeCollection /
+$ chelonia makeCollection /
 - Calling the Bartender's makeCollection method...
 - done in 0.55 seconds.
 Creating collection '/': failed to create new librarian entry
@@ -1213,11 +1213,11 @@ Creating collection '/': failed to create new librarian entry
 Start the second server. It may first print some error messages, but then both servers should be quiet, and the system is ready for use. Now, upload a file, and set the number of needed replicas to 3:
 
 \begin{verbatim}
-$ arc_storage_cli makeCollection /
+$ chelonia makeCollection /
 - Calling the Bartender's makeCollection method...
 - done in 1.16 seconds.
 Creating collection '/': done
-$ arc_storage_cli put orange /
+$ chelonia put orange /
 - The size of the file is 7 bytes
 - Calculating md5 checksum...
 - done in 0.0214 seconds, md5 checksum is 6aefd2842be62cd470709b27aedc7db7
@@ -1229,16 +1229,16 @@ $ arc_storage_cli put orange /
     1 s:        0.0 kB       0.0 kB/s       0.0 kB/s    . . .       
 - done in 1.0293 seconds.
 'orange' (7 bytes) uploaded as '/orange'.
-$ arc_storage_cli modify /orange set states neededReplicas 3
+$ chelonia modify /orange set states neededReplicas 3
 - Calling the Bartender's modify method...
 - done in 0.74 seconds.
 set
-$ arc_storage_cli stat /orange
+$ chelonia stat /orange
 [...]
   locations
     https://storage:60000/Shepherd f4ad8530-354d-5066-04ae-c54c94fd525b: alive
 [...]
-zsombor@storage:~$ arc_storage_cli stat /orange
+zsombor@storage:~$ chelonia stat /orange
 [...]
   locations
     https://storage:60000/Shepherd f4ad8530-354d-5066-04ae-c54c94fd525b: alive
@@ -1249,7 +1249,7 @@ zsombor@storage:~$ arc_storage_cli stat /orange
 It cannot create 3 replicas, because the third server is not running. Start it. After a minute or two, the file has three replicas:
 
 \begin{verbatim}
-$ arc_storage_cli stat /orange
+$ chelonia stat /orange
 [...]
   locations
     https://storage:60000/Shepherd f4ad8530-354d-5066-04ae-c54c94fd525b: alive
@@ -1338,10 +1338,10 @@ $ cat ~/.arc/client.xml
 </ArcConfig>
 \end{verbatim}
 
-Now, all three servers can be started. The replicated A-Hash sometimes prints great amount of error messages, but if it stops printing them, then everything is OK. Now the system can be used as intended. There is a flag for the \verb!arc_storage_cli! which makes it very verbose. You can check the used Bartender with it:
+Now, all three servers can be started. The replicated A-Hash sometimes prints great amount of error messages, but if it stops printing them, then everything is OK. Now the system can be used as intended. There is a flag for the \verb!chelonia! tool which makes it very verbose. You can check the used Bartender with it:
 
 \begin{verbatim}
-$ arc_storage_cli -v stat /orange
+$ chelonia -v stat /orange
 - The URL of the Bartender(s): https://storage:60000/Bartender,
     https://storage2:60006/Bartender, https://storage3:60010/Bartender
 - The key file: /home/zsombor/.arc/userkey.pem
@@ -1357,7 +1357,7 @@ $ arc_storage_cli -v stat /orange
 Now, stop the first server. The system will be unaccessible for a few seconds while the other two A-Hash figure out what is happening, but after that it will work again:
 
 \begin{verbatim}
-$ arc_storage_cli -v stat /orange
+$ chelonia -v stat /orange
 - The URL of the Bartender(s): https://storage:60000/Bartender,
     https://storage2:60006/Bartender, https://storage3:60010/Bartender
 - The key file: /home/zsombor/.arc/userkey.pem
@@ -1377,7 +1377,7 @@ $ arc_storage_cli -v stat /orange
 If the first server is started again, after a few seconds the system will work again with the three fully-functional node.
 
 \begin{verbatim}
-zsombor@storage:~$ arc_storage_cli -v stat /orange
+zsombor@storage:~$ chelonia -v stat /orange
 - The URL of the Bartender(s): https://storage:60000/Bartender,
     https://storage2:60006/Bartender, https://storage3:60010/Bartender
 - The key file: /home/zsombor/.arc/userkey.pem
@@ -1465,13 +1465,13 @@ Now, configure the Bartenders on all three machines to use the Gateway module:
 Next, start all three servers. Then create a mount point with the Logical Name \verb!/salmount! which points to this URL:
 
 \begin{verbatim}
-$ arc_storage_cli makemount /salmount \
+$ chelonia makemount /salmount \
     gsiftp://sal1.uppmax.uu.se:2811/pnfs/uppmax.uu.se/data
 - Calling the Bartender's makeMountpoint method...
 - done in 3.07 seconds.
 Creating mountpoint '/salmount': done
 
-$ arc_storage_cli stat /salmount
+$ chelonia stat /salmount
 - Calling the Bartender's stat method...
 - done in 0.47 seconds.
 '/salmount': found
@@ -1492,7 +1492,7 @@ $ arc_storage_cli stat /salmount
 List the content of this mountpoint:
 
 \begin{verbatim}
-$ arc_storage_cli list /salmount- Calling the Bartender's list method...
+$ chelonia list /salmount- Calling the Bartender's list method...
 - done in 0.49 seconds.
 '/salmount': Your proxy cannot be found. Please delegate your credentials!
 \end{verbatim}
@@ -1500,7 +1500,7 @@ $ arc_storage_cli list /salmount- Calling the Bartender's list method...
 OK, First you need to delegate your credentials with the \verb!credentialsDelegation! method.
 
 \begin{verbatim}
-$ arc_storage_cli cre
+$ chelonia cre
 - Calling the Bartender's credentialsDelegation method...
 [...]
 - done in 0.42 seconds.
@@ -1511,7 +1511,7 @@ Proxy ID: eNCMDmi8i6YnPSAtDmVmuSEmABFKDmABFKDm0zKKDmFBFKDmeOzdBo
 Then try to list the mount point again:
 
 \begin{verbatim}
-$ arc_storage_cli list /salmount
+$ chelonia list /salmount
 - Calling the Bartender's list method...
 - done in 3.19 seconds.
 '/salmount': collection
@@ -1523,7 +1523,7 @@ $ arc_storage_cli list /salmount
 Now, download a file:
 
 \begin{verbatim}
-$ arc_storage_cli get /salmount/data1 /tmp
+$ chelonia get /salmount/data1 /tmp
 - Calling the Bartender's getFile method...
 - done in 3.56 seconds.
 - Got transfer URL: gsiftp://sal1.uppmax.uu.se:2811/pnfs/uppmax.uu.se/data/data1
@@ -1547,12 +1547,12 @@ $ arcls arc:///
 orange
 $ arcls arc:///?BartenderURL=https://storage2:60006/Bartender
 orange
-$ arc_storage_cli list /
+$ chelonia list /
 - Calling the Bartender's list method...
 - done in 0.56 seconds.
 '/': collection
   orange <file>
-$ arc_storage_cli makeCollection /fruits
+$ chelonia makeCollection /fruits
 - Calling the Bartender's makeCollection method...
 - done in 2.38 seconds.
 Creating collection '/fruits': done
@@ -1573,7 +1573,7 @@ fruits
 \section{Using the FUSE module} % (fold)
 \label{sec:using_the_fuse_module}
 
-Besides the \verb!arc_storage_cli! tool you can access the storage system with the use of a FUSE module. The following steps installs the ARC storage FUSE module:
+Besides the \verb!chelonia! tool you can access the storage system with the use of a FUSE module. The following steps installs the ARC storage FUSE module:
 
 \begin{itemize}
 \item Install ARC1 storage system.

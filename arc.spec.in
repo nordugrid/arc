@@ -269,8 +269,8 @@ exit 0
 %doc %{_mandir}/man1/saml_assertion_init.1*
 %{_bindir}/perftest
 %doc %{_mandir}/man1/perftest.1.gz
-%{_bindir}/arc_storage_cli
-%doc %{_mandir}/man1/arc_storage_cli.1*
+%{_bindir}/chelonia
+%doc %{_mandir}/man1/chelonia.1*
 %{_sysconfdir}/arcclient.xml
 %doc %{_mandir}/man5/arcclient.xml.5*
 %{_bindir}/jura
