@@ -1505,7 +1505,6 @@ AC_CONFIG_FILES([Makefile
                  src/clients/jura/Makefile
                  src/clients/wsrf/Makefile
                  src/tests/Makefile
-                 src/tests/data/Makefile
                  src/tests/echo/Makefile
                  src/tests/echo/perftest.1
                  src/tests/policy-delegation/Makefile
