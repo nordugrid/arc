@@ -536,7 +536,7 @@ namespace Arc {
         if (!SingleValue(c, dryrun))
           return false;
         if (lower(dryrun) == "yes" || lower(dryrun) == "dryrun")
-          ; // j.DryRun = true;
+         j.XRSL_elements["dryrun"] = "yes";
         return true;
       }
 
