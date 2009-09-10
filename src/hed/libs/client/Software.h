@@ -135,10 +135,14 @@ namespace Arc {
     void setRequirement(bool all) { requiresAll = all; }
 
     /// Returns true if stored requirements are satisfied by
-    /// software specified in svList.   
-    bool isSatisfied(const Software& svList) const { return isSatisfied(std::list<Software>(1, svList)); }
-    bool isSatisfied(const std::list<Software>& svList) const;
-    bool isSatisfied(const std::list<ApplicationEnvironment>& svList) const;
+    /// software specified in swList.
+    bool isSatisfied(const Software& sw) const { return isSatisfied(std::list<Software>(1, sw)); }
+    bool isSatisfied(const std::list<Software>& swList) const;
+    bool isSatisfied(const std::list<ApplicationEnvironment>& swList) const;
+
+    bool selectSoftware(const Software& sw) { return selectSoftware(std::list<Software>(1, sw)); }
+    bool selectSoftware(const std::list<Software>& swList);
+    bool selectSoftware(const std::list<ApplicationEnvironment>& swList);
     
     bool empty() const { return softwareList.empty(); }
 

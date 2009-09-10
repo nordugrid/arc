@@ -224,11 +224,11 @@ SoftwareRequirement& SoftwareRequirement::operator=(const SoftwareRequirement& s
 }
 
 bool SoftwareRequirement::isSatisfied(const std::list<Software>& swList) const {
-  // Compare Software objects in the 'versions' list with those in 'svList'.
+  // Compare Software objects in the 'versions' list with those in 'swList'.
   std::list<Software>::const_iterator itSWSelf = softwareList.begin();
   std::list<SWComparisonOperator>::const_iterator itCO = comparisonOperatorList.begin();
   for (; itSWSelf != softwareList.end(); itSWSelf++, itCO++) {
-    // Loop over 'svList'.
+    // Loop over 'swList'.
     std::list<Software>::const_iterator itSWList = swList.begin();
     for (; itSWList != swList.end(); itSWList++) {
       if (((*itSWSelf).*(*itCO))(*itSWList)) { // One of the requirements satisfied.
@@ -256,6 +256,51 @@ bool SoftwareRequirement::isSatisfied(const std::list<Software>& swList) const {
 
 bool SoftwareRequirement::isSatisfied(const std::list<ApplicationEnvironment>& swList) const {
   return isSatisfied(reinterpret_cast< const std::list<Software>& >(swList));
+}
+
+bool SoftwareRequirement::selectSoftware(const std::list<Software>& swList) {
+  std::list<Software> selectedSoftware;
+  std::list<SWComparisonOperator> selectedSoftwareCO;
+  
+  std::list<Software>::iterator itSWSelf = softwareList.begin();
+  std::list<SWComparisonOperator>::iterator itCO = comparisonOperatorList.begin();
+  for (; itSWSelf != softwareList.end(); itSWSelf++, itCO++) {
+    Software * currentSelectedSoftware = NULL; // Pointer to the current selected software from the argument list.
+    
+    for (std::list<Software>::const_iterator itSWList = swList.begin();
+         itSWList != swList.end(); itSWList++) {
+      if (((*itSWSelf).*(*itCO))(*itSWList)) { // Requirement is satisfied.
+        if (currentSelectedSoftware == NULL) { // First software to satisfy requirement. Push it to the 
+          selectedSoftware.push_back(*itSWList);
+          selectedSoftwareCO.push_back(&Software::operator ==);
+          currentSelectedSoftware = &selectedSoftware.back();
+        }
+        else if (*currentSelectedSoftware < *itSWList) { // Select the software with the highest version still satisfying the requirement.
+          selectedSoftware.back() = *itSWList;
+        }
+      }
+    }
+
+    if (!requiresAll && selectedSoftware.size() == 1) { // Only one requirement need to be satisfied.
+      softwareList = selectedSoftware;
+      comparisonOperatorList = selectedSoftwareCO;
+      return true;
+    }
+    
+    if (requiresAll && currentSelectedSoftware == NULL)
+      return false;
+  }
+
+  if (requiresAll) {
+    softwareList = selectedSoftware;
+    comparisonOperatorList = selectedSoftwareCO;
+  }
+
+  return requiresAll;
+}
+
+bool SoftwareRequirement::selectSoftware(const std::list<ApplicationEnvironment>& swList) {
+  return selectSoftware(reinterpret_cast< const std::list<Software>& >(swList));
 }
 
 } // namespace Arc
