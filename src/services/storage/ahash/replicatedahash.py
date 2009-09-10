@@ -290,6 +290,7 @@ NEWSITE_MESSAGE = 1
 REP_MESSAGE = 2
 HEARTBEAT_MESSAGE = 3
 MASTER_MESSAGE = 4
+ELECTION_MESSAGE = 5
 
 class ReplicationManager:
     """
@@ -395,6 +396,8 @@ class ReplicationManager:
 #        while role == db.DB_EID_INVALID and not self.stop_electing:
         try:
             log.msg(arc.DEBUG, "entered election thread")
+            # send a message to discover if clients are offline
+            self.sendElectionMsg()
             self.locker.acquire_read()
             num_reps = len([id for id,rep in self.hostMap.items() if rep["status"] != "offline"])
             self.locker.release_read()
@@ -499,7 +502,7 @@ class ReplicationManager:
                     # timeout if I've heard nothing from the master
                     # or master doesn't reply
                     timeout = time.time() - self.master_timestamp > self.heartbeat_period*2\
-                            or time.time()-time_since_send < 55
+                              or time.time()-time_since_send < 55
                     if timeout:
                         log.msg(arc.INFO, "Master is offline, starting re-election")
                         # in case more threads misses the master
@@ -558,6 +561,13 @@ class ReplicationManager:
         """
         log.msg(arc.DEBUG, "entering sendHeartbeatMsg")
         return self.send(None, None, None, None, None, None, HEARTBEAT_MESSAGE)
+
+    def sendElectionMsg(self, eid=db.DB_EID_BROADCAST):
+        """
+        If elected, broadcast master id to all clients
+        """
+        log.msg(arc.DEBUG, "entering sendNewMasterMsg")
+        return self.send(None, None, None, None, eid, None, ELECTION_MESSAGE)
     
     def sendNewMasterMsg(self, eid=db.DB_EID_BROADCAST):
         """
@@ -603,6 +613,9 @@ class ReplicationManager:
             return "processed"
         if msgID == HEARTBEAT_MESSAGE:
             log.msg(arc.DEBUG, "received HEARTBEAT_MESSAGE")
+            return "processed"
+        if msgID == ELECTION_MESSAGE:
+            log.msg(arc.DEBUG, "received ELECTION_MESSAGE")
             return "processed"
         if msgID == NEWSITE_MESSAGE:
             # if unknown changes in record, update hostMap
