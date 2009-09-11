@@ -127,7 +127,13 @@ Service_PythonWrapper::Service_PythonWrapper(Arc::Config *cfg):RegisteredService
     PyObject *arc_cfg_klass = NULL;
     PyObject *arg = NULL;
     PyObject *py_cfg = NULL;
+    PyObject *klass = NULL;
+    PyObject *arc_msg_klass = NULL;
+    PyObject *arc_xmlnode_klass = NULL;
 
+    arc_module = NULL;
+    module = NULL;
+    object = NULL;
     initialized = false;
 
     if (tstate == NULL) {
@@ -151,18 +157,14 @@ Service_PythonWrapper::Service_PythonWrapper(Arc::Config *cfg):RegisteredService
     py_module_name = PyString_FromString(module_name.c_str());
     if (py_module_name == NULL) {
         logger.msg(Arc::ERROR, "Cannot convert module name to Python string");
-        if (PyErr_Occurred() != NULL) {
-            PyErr_Print();
-        }
+        if (PyErr_Occurred()) PyErr_Print();
         return;
     }
     // Load module
     module = PyImport_Import(py_module_name);
     if (module == NULL) {
         logger.msg(Arc::ERROR, "Cannot import module");
-        if (PyErr_Occurred() != NULL) {
-            PyErr_Print();
-        }
+        if (PyErr_Occurred()) PyErr_Print();
         Py_DECREF(py_module_name);
         return;
     }
@@ -172,9 +174,7 @@ Service_PythonWrapper::Service_PythonWrapper(Arc::Config *cfg):RegisteredService
     py_arc_module_name = PyString_FromString("arc");
     if (py_arc_module_name == NULL) {
         logger.msg(Arc::ERROR, "Cannot convert arc module name to Python string");
-        if (PyErr_Occurred() != NULL) {
-            PyErr_Print();
-        }
+        if (PyErr_Occurred()) PyErr_Print();
         return;
     }
 
@@ -182,30 +182,26 @@ Service_PythonWrapper::Service_PythonWrapper(Arc::Config *cfg):RegisteredService
     arc_module = PyImport_Import(py_arc_module_name);
     if (arc_module == NULL) {
         logger.msg(Arc::ERROR, "Cannot import arc module");
-        if (PyErr_Occurred() != NULL) {
-            PyErr_Print();
-        }
+        if (PyErr_Occurred()) PyErr_Print();
         Py_DECREF(py_arc_module_name);
         return;
     }
     Py_DECREF(py_arc_module_name);
 
+    // arc_dict is a borrowed reference
     arc_dict = PyModule_GetDict(arc_module);
     if (arc_dict == NULL) {
         logger.msg(Arc::ERROR, "Cannot get dictionary of arc module");
-        if (PyErr_Occurred() != NULL) {
-            PyErr_Print();
-        }
+        if (PyErr_Occurred()) PyErr_Print();
         return;
     }
 
     // Get the arc config class
+    // arc_cfg_klass is a borrowed reference
     arc_cfg_klass = PyDict_GetItemString(arc_dict, "Config");
     if (arc_cfg_klass == NULL) {
         logger.msg(Arc::ERROR, "Cannot find arc Config class");
-        if (PyErr_Occurred() != NULL) {
-            PyErr_Print();
-        }
+        if (PyErr_Occurred()) PyErr_Print();
         return;
     }
 
@@ -220,19 +216,16 @@ Service_PythonWrapper::Service_PythonWrapper(Arc::Config *cfg):RegisteredService
     dict = PyModule_GetDict(module);
     if (dict == NULL) {
         logger.msg(Arc::ERROR, "Cannot get dictionary of module");
-        if (PyErr_Occurred() != NULL) {
-            PyErr_Print();
-        }
+        if (PyErr_Occurred()) PyErr_Print();
         return;
     }
 
     // Get the class
+    // klass is a borrowed reference
     klass = PyDict_GetItemString(dict, (char*)class_name.c_str());
     if (klass == NULL) {
         logger.msg(Arc::ERROR, "Cannot find service class");
-        if (PyErr_Occurred() != NULL) {
-            PyErr_Print();
-        }
+        if (PyErr_Occurred()) PyErr_Print();
         return;
     }
 
@@ -241,18 +234,14 @@ Service_PythonWrapper::Service_PythonWrapper(Arc::Config *cfg):RegisteredService
         arg = Py_BuildValue("(l)", (long int)cfg);
         if (arg == NULL) {
             logger.msg(Arc::ERROR, "Cannot create config argument");
-            if (PyErr_Occurred() != NULL) {
-                PyErr_Print();
-            }
+            if (PyErr_Occurred()) PyErr_Print();
             return;
         }
 
         py_cfg = PyObject_CallObject(arc_cfg_klass, arg);
         if (py_cfg == NULL) {
             logger.msg(Arc::ERROR, "Cannot convert config to python object");
-            if (PyErr_Occurred() != NULL) {
-                PyErr_Print();
-            }
+            if (PyErr_Occurred()) PyErr_Print();
             Py_DECREF(arg);
             return;
         }
@@ -260,9 +249,7 @@ Service_PythonWrapper::Service_PythonWrapper(Arc::Config *cfg):RegisteredService
         arg = Py_BuildValue("(O)", py_cfg);
         if (arg == NULL) {
             logger.msg(Arc::ERROR, "Cannot create argument of the constructor");
-            if (PyErr_Occurred() != NULL) {
-                PyErr_Print();
-            }
+            if (PyErr_Occurred()) PyErr_Print();
             return;
         }
 
@@ -270,9 +257,7 @@ Service_PythonWrapper::Service_PythonWrapper(Arc::Config *cfg):RegisteredService
         object = PyObject_CallObject(klass, arg);
         if (object == NULL) {
             logger.msg(Arc::ERROR, "Cannot create instance of python class");
-            if (PyErr_Occurred() != NULL) {
-                PyErr_Print();
-            }
+            if (PyErr_Occurred()) PyErr_Print();
             return;
         }
         Py_DECREF(arg);
@@ -283,22 +268,20 @@ Service_PythonWrapper::Service_PythonWrapper(Arc::Config *cfg):RegisteredService
     }
 
     // Get the class
+    // arc_msg_klass is a borrowed reference
     arc_msg_klass = PyDict_GetItemString(arc_dict, "SOAPMessage");
     if (arc_msg_klass == NULL) {
         logger.msg(Arc::ERROR, "Cannot find arc Message class");
-        if (PyErr_Occurred() != NULL) {
-            PyErr_Print();
-        }
+        if (PyErr_Occurred()) PyErr_Print();
         return;
     }
 
     // Get XMLNode class
+    // arc_xmlnode_klass is a borrowed reference
     arc_xmlnode_klass = PyDict_GetItemString(arc_dict, "XMLNode");
     if (arc_xmlnode_klass == NULL) {
         logger.msg(Arc::ERROR, "Cannot find arc XMLNode class");
-        if (PyErr_Occurred() != NULL) {
-            PyErr_Print();
-        }
+        if (PyErr_Occurred()) PyErr_Print();
         return;
     }
 
@@ -319,12 +302,8 @@ Service_PythonWrapper::~Service_PythonWrapper(void)
     // Release python objects - it is needed for Python
     // destructors to be called
     if(arc_module) Py_DECREF(arc_module);
-    if(arc_msg_klass) Py_DECREF(arc_msg_klass);
-    if(arc_xmlnode_klass) Py_DECREF(arc_xmlnode_klass);
     if(module) Py_DECREF(module);
-    if(klass) Py_DECREF(klass);
     if(object) Py_DECREF(object);
-
     // Finish the Python Interpreter
     python_service_counter--;
     if (python_service_counter == 0) {
@@ -442,17 +421,27 @@ Arc::MCC_Status Service_PythonWrapper::process(Arc::Message& inmsg, Arc::Message
     arg = Py_BuildValue("(l)", (long int)inmsg_ptr);
     if (arg == NULL) {
         logger.msg(Arc::ERROR, "Cannot create inmsg argument");
-        if (PyErr_Occurred() != NULL) {
-            PyErr_Print();
-        }
+        if (PyErr_Occurred()) PyErr_Print();
+        return make_fault(outmsg);
+    }
+    // arc_dict is a borrowed reference
+    PyObject *arc_dict = PyModule_GetDict(arc_module);
+    if (arc_dict == NULL) {
+        logger.msg(Arc::ERROR, "Cannot get dictionary of arc module");
+        if (PyErr_Occurred()) PyErr_Print();
+        return make_fault(outmsg);
+    }
+    // arc_msg_klass is a borrowed reference
+    PyObject *arc_msg_klass = PyDict_GetItemString(arc_dict, "SOAPMessage");
+    if (arc_msg_klass == NULL) {
+        logger.msg(Arc::ERROR, "Cannot find arc Message class");
+        if (PyErr_Occurred()) PyErr_Print();
         return make_fault(outmsg);
     }
     PyObjectP py_inmsg(PyObject_CallObject(arc_msg_klass, arg));
     if (!py_inmsg) {
         logger.msg(Arc::ERROR, "Cannot convert inmsg to python object");
-        if (PyErr_Occurred() != NULL) {
-            PyErr_Print();
-        }
+        if (PyErr_Occurred()) PyErr_Print();
         Py_DECREF(arg);
         return make_fault(outmsg);
     }
@@ -467,17 +456,13 @@ Arc::MCC_Status Service_PythonWrapper::process(Arc::Message& inmsg, Arc::Message
     arg = Py_BuildValue("(l)", (long int)outmsg_ptr);
     if (arg == NULL) {
         logger.msg(Arc::ERROR, "Cannot create outmsg argument");
-        if (PyErr_Occurred() != NULL) {
-            PyErr_Print();
-        }
+        if (PyErr_Occurred()) PyErr_Print();
         return make_fault(outmsg);
     }
     PyObjectP py_outmsg = PyObject_CallObject(arc_msg_klass, arg);
     if (!py_outmsg) {
         logger.msg(Arc::ERROR, "Cannot convert outmsg to python object");
-        if (PyErr_Occurred() != NULL) {
-            PyErr_Print();
-        }
+        if (PyErr_Occurred()) PyErr_Print();
         Py_DECREF(arg);
         return make_fault(outmsg);
     }
@@ -487,9 +472,7 @@ Arc::MCC_Status Service_PythonWrapper::process(Arc::Message& inmsg, Arc::Message
     PyObjectP py_status(PyObject_CallMethod(object, (char*)"process", (char*)"(OO)",
                                     (PyObject*)py_inmsg, (PyObject*)py_outmsg));
     if (!py_status) {
-        if (PyErr_Occurred() != NULL) {
-                PyErr_Print();
-        }
+        if (PyErr_Occurred()) PyErr_Print();
         return make_fault(outmsg);
     }
 
@@ -540,21 +523,31 @@ bool Service_PythonWrapper::RegistrationCollector(Arc::XMLNode& doc) {
 
     // Convert doc to python object
     // logger.msg(Arc::DEBUG, "Convert doc to python object");
+    // logger.msg(Arc::DEBUG, "Create python XMLNode");
+    // arc_dict is a borrowed reference
+    PyObject *arc_dict = PyModule_GetDict(arc_module);
+    if (arc_dict == NULL) {
+        logger.msg(Arc::ERROR, "Cannot get dictionary of arc module");
+        if (PyErr_Occurred()) PyErr_Print();
+        return false;
+    }
+    // arc_xmlnode_klass is a borrowed reference
+    PyObject *arc_xmlnode_klass = PyDict_GetItemString(arc_dict, "XMLNode");
+    if (arc_xmlnode_klass == NULL) {
+        logger.msg(Arc::ERROR, "Cannot find arc XMLNode class");
+        if (PyErr_Occurred()) PyErr_Print();
+        return false;
+    }
     arg = Py_BuildValue("(l)", (long int)doc_ptr);
     if (arg == NULL) {
         logger.msg(Arc::ERROR, "Cannot create doc argument");
-        if (PyErr_Occurred() != NULL) {
-           PyErr_Print();
-        }
+        if (PyErr_Occurred()) PyErr_Print();
         return false;
     }
-    // logger.msg(Arc::DEBUG, "Create python XMLNode");
     PyObjectP py_doc(PyObject_CallObject(arc_xmlnode_klass, arg));
         if (!py_doc) {
         logger.msg(Arc::ERROR, "Cannot convert doc to python object");
-        if (PyErr_Occurred() != NULL) {
-            PyErr_Print();
-        }
+        if (PyErr_Occurred()) PyErr_Print();
         Py_DECREF(arg);
         return false;
     }
@@ -566,9 +559,7 @@ bool Service_PythonWrapper::RegistrationCollector(Arc::XMLNode& doc) {
                       (PyObject*)py_doc));
 
     if (!py_bool) {
-        if (PyErr_Occurred() != NULL) {
-            PyErr_Print();
-        }
+        if (PyErr_Occurred()) PyErr_Print();
         return false;
     }
 

@@ -11,10 +11,7 @@ class Service_PythonWrapper: public Arc::RegisteredService {
         Arc::MCC_Status make_fault(Arc::Message& outmsg);
         static Arc::Logger logger;
         PyObject *arc_module;
-        PyObject *arc_msg_klass;
-        PyObject *arc_xmlnode_klass;
         PyObject *module;
-        PyObject *klass;
         PyObject *object;
         bool initialized;
 
