@@ -41,6 +41,10 @@ int main(int argc, char **argv) {
                     istring("[-]name"),
                     paths);
 
+  int timeout = -1;
+  options.AddOption('t', "timeout", istring("timeout in seconds (default " + Arc::tostring(Arc::UserConfig::DEFAULT_TIMEOUT) + ")"),
+                    istring("seconds"), timeout);
+                    
   std::string conffile;
   options.AddOption('z', "conffile",
                     istring("configuration file (default ~/.arc/client.xml)"),
@@ -86,6 +90,10 @@ int main(int argc, char **argv) {
   if (!usercfg) {
     logger.msg(Arc::ERROR, "Failed configuration initialization");
     return 1;
+  }
+  
+  if (timeout > 0) {
+    usercfg.SetTimeOut((unsigned int)timeout);
   }
 
   if (!debug.empty())
@@ -135,7 +143,7 @@ int main(int argc, char **argv) {
 
   MCCConfig cfg;
   usercfg.ApplyToConfig(cfg);
-  ClientSOAP client(cfg,u);
+  ClientSOAP client(cfg,u, Arc::stringtoi(usercfg.ConfTree()["TimeOut"]));
   PayloadSOAP req(*(request->SOAP()));
   PayloadSOAP* resp = NULL;
   MCC_Status r = client.process(&req,&resp);

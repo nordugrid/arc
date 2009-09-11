@@ -8,9 +8,9 @@
 
 #include <arc/StringConv.h>
 #include <arc/URL.h>
+#include <arc/UserConfig.h>
 #include <arc/client/ClientInterface.h>
 #include <arc/client/ExecutionTarget.h>
-#include <arc/UserConfig.h>
 #include <arc/message/MCC.h>
 #include <arc/message/PayloadSOAP.h>
 
@@ -38,7 +38,7 @@ namespace Arc {
 
     for (std::list<ExecutionTarget*>::const_iterator target = PossibleTargets.begin();
          target != PossibleTargets.end(); target++) {
-      ClientSOAP client(cfg, (*target)->url);
+      ClientSOAP client(cfg, (*target)->url, stringtoi(usercfg.ConfTree()["TimeOut"]));
 
       long DataSize = 0;
       int j = 0;

@@ -63,7 +63,7 @@ void sendRequests(){
     
     // Create a Client.
     Arc::ClientSOAP *client = NULL;
-    client = new Arc::ClientSOAP(mcc_cfg,url);
+    client = new Arc::ClientSOAP(mcc_cfg,url,60);
 
     connected=true;
     while(run and connected){

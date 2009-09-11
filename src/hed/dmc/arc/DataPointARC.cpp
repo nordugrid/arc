@@ -8,17 +8,18 @@
 #ifdef HAVE_STDINT_H
 #include <stdint.h>
 #endif
+
 #include <unistd.h>
 #include <sstream>
+#include <glibmm.h>
 
 #include <arc/Logger.h>
+#include <arc/StringConv.h>
 #include <arc/UserConfig.h>
+#include <arc/client/ClientInterface.h>
 #include <arc/data/DataBuffer.h>
 #include <arc/message/MCC.h>
 #include <arc/message/PayloadRaw.h>
-#include <arc/client/ClientInterface.h>
-
-#include <glibmm.h>
 
 #ifdef WIN32
 #include <arc/win32.h>
@@ -79,7 +80,7 @@ namespace Arc {
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);
 
-    ClientSOAP client(cfg, bartender_url);
+    ClientSOAP client(cfg, bartender_url, stringtoi(usercfg.ConfTree()["TimeOut"]));
     std::string xml;
 
     NS ns("bar", "http://www.nordugrid.org/schemas/bartender");
@@ -171,7 +172,7 @@ namespace Arc {
     usercfg.ApplyToConfig(cfg);
 
     // get TURL from bartender
-    ClientSOAP client(cfg, bartender_url);
+    ClientSOAP client(cfg, bartender_url, stringtoi(usercfg.ConfTree()["TimeOut"]));
     std::string xml;
 
     NS ns("bar", "http://www.nordugrid.org/schemas/bartender");
@@ -254,7 +255,7 @@ namespace Arc {
     usercfg.ApplyToConfig(cfg);
 
     // get TURL from bartender
-    ClientSOAP client(cfg, bartender_url);
+    ClientSOAP client(cfg, bartender_url, stringtoi(usercfg.ConfTree()["TimeOut"]));
     std::string xml;
     std::stringstream out;
     out << this->GetSize();
@@ -351,7 +352,7 @@ namespace Arc {
     usercfg.ApplyToConfig(cfg);
 
     // get TURL from bartender
-    ClientSOAP client(cfg, bartender_url);
+    ClientSOAP client(cfg, bartender_url, stringtoi(usercfg.ConfTree()["TimeOut"]));
     std::string xml;
     std::stringstream out;
     out << this->GetSize();
@@ -407,7 +408,7 @@ namespace Arc {
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);
 
-    ClientSOAP client(cfg, bartender_url);
+    ClientSOAP client(cfg, bartender_url, stringtoi(usercfg.ConfTree()["TimeOut"]));
     std::string xml;
 
     NS ns("bar", "http://www.nordugrid.org/schemas/bartender");

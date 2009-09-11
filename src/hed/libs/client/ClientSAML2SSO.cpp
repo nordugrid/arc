@@ -28,7 +28,7 @@ namespace Arc {
     : http_client_(NULL),
       authn_(false) {
 
-    http_client_ = new ClientHTTP(cfg, url);
+    http_client_ = new ClientHTTP(cfg, url, 60);
     //Use the credential and trusted certificates from client's main chain to
     //contact IdP
     cert_file_ = cfg.cert;

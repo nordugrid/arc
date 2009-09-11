@@ -37,7 +37,7 @@ namespace Arc {
        @param url The URL of the A-REX service.
        @param cfg An MCC configuration object.
      */
-    AREXClient(const URL& url, const MCCConfig& cfg);
+    AREXClient(const URL& url, const MCCConfig& cfg, int timeout);
 
     //! The destructor.
     /*! This is the destructor. It does what destructors usually do,

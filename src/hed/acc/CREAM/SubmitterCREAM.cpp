@@ -5,9 +5,10 @@
 #endif
 
 #include <arc/GUID.h>
-#include <arc/message/MCC.h>
-#include <arc/client/JobDescription.h>
+#include <arc/StringConv.h>
 #include <arc/UserConfig.h>
+#include <arc/client/JobDescription.h>
+#include <arc/message/MCC.h>
 
 #include "CREAMClient.h"
 #include "SubmitterCREAM.h"
@@ -34,7 +35,7 @@ namespace Arc {
     std::string delegationid = UUID();
     URL delegationurl(submissionEndpoint);
     delegationurl.ChangePath(delegationurl.Path() + "/gridsite-delegation");
-    CREAMClient gLiteClientDelegation(delegationurl, cfg);
+    CREAMClient gLiteClientDelegation(delegationurl, cfg, stringtoi(usercfg.ConfTree()["TimeOut"]));
     Config xcfg;
     usercfg.ApplyToConfig(xcfg);
     if (!gLiteClientDelegation.createDelegation(delegationid, xcfg["ProxyPath"])) {
@@ -43,7 +44,7 @@ namespace Arc {
     }
     URL submissionurl(submissionEndpoint);
     submissionurl.ChangePath(submissionurl.Path() + "/CREAM2");
-    CREAMClient gLiteClientSubmission(submissionurl, cfg);
+    CREAMClient gLiteClientSubmission(submissionurl, cfg, stringtoi(usercfg.ConfTree()["TimeOut"]));
     gLiteClientSubmission.setDelegationId(delegationid);
 
     JobDescription job(jobdesc);

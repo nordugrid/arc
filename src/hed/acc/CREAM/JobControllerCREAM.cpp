@@ -7,6 +7,7 @@
 #include <glib.h>
 
 #include <arc/Logger.h>
+#include <arc/StringConv.h>
 #include <arc/URL.h>
 #include <arc/UserConfig.h>
 #include <arc/message/MCC.h>
@@ -41,7 +42,7 @@ namespace Arc {
       PathIterator pi(iter->JobID.Path(), true);
       URL url(iter->JobID);
       url.ChangePath(*pi);
-      CREAMClient gLiteClient(url, cfg);
+      CREAMClient gLiteClient(url, cfg, stringtoi(usercfg.ConfTree()["TimeOut"]));
       if (!gLiteClient.stat(pi.Rest(), (*iter)))
         logger.msg(ERROR, "Could not retrieve job information");
     }
@@ -91,7 +92,7 @@ namespace Arc {
     PathIterator pi(job.JobID.Path(), true);
     URL url(job.JobID);
     url.ChangePath(*pi);
-    CREAMClient gLiteClient(url, cfg);
+    CREAMClient gLiteClient(url, cfg, stringtoi(usercfg.ConfTree()["TimeOut"]));
     if (!gLiteClient.purge(pi.Rest())) {
       logger.msg(ERROR, "Failed to clean job");
       return false;
@@ -99,7 +100,7 @@ namespace Arc {
     PathIterator pi2(job.AuxURL.Path(), true);
     URL url2(job.AuxURL);
     url2.ChangePath(*pi2);
-    CREAMClient gLiteClient2(url2, cfg);
+    CREAMClient gLiteClient2(url2, cfg, stringtoi(usercfg.ConfTree()["TimeOut"]));
     if (!gLiteClient2.destroyDelegation(pi2.Rest())) {
       logger.msg(ERROR, "Destroying delegation failed");
       return false;
@@ -114,7 +115,7 @@ namespace Arc {
     PathIterator pi(job.JobID.Path(), true);
     URL url(job.JobID);
     url.ChangePath(*pi);
-    CREAMClient gLiteClient(url, cfg);
+    CREAMClient gLiteClient(url, cfg, stringtoi(usercfg.ConfTree()["TimeOut"]));
     if (!gLiteClient.cancel(pi.Rest())) {
       logger.msg(ERROR, "Failed to cancel job");
       return false;

@@ -65,6 +65,10 @@ int main(int argc, char* argv[]){
                       istring("path to config file"),
                       istring("path"), config_path);
 
+    int timeout = -1;
+    options.AddOption('t', "timeout", istring("timeout in seconds (default " + Arc::tostring(Arc::UserConfig::DEFAULT_TIMEOUT) + ")"),
+                      istring("seconds"), timeout);
+                      
     std::string debug;
     options.AddOption('d', "debug",
                       istring("FATAL, ERROR, WARNING, INFO, DEBUG or VERBOSE"),
@@ -81,7 +85,11 @@ int main(int argc, char* argv[]){
       std::cerr<<"Failed configuration initialization"<<std::endl;
       return EXIT_FAILURE;
     }
-
+  
+    if (timeout > 0) {
+      usercfg.SetTimeOut((unsigned int)timeout);
+    }
+  
     if (!debug.empty())
       Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(debug));
     else if (debug.empty() && usercfg.ConfTree()["Debug"]) {
@@ -111,7 +119,7 @@ int main(int argc, char* argv[]){
       if(!ca_dir.empty()) cfg.AddCADir(ca_dir);
       if(!ca_file.empty()) cfg.AddCAFile(ca_file);
 
-      Arc::ClientSOAP client(cfg,url);
+      Arc::ClientSOAP client(cfg,url,Arc::stringtoi(usercfg.ConfTree()["TimeOut"]));
 
       // Read the request from file to string
       std::ifstream requestfile(request_path.c_str());

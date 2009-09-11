@@ -78,7 +78,7 @@ void sendRequests(){
       if(!connected){
         if(client) delete client;
         client = NULL;
-        client = new Arc::ClientSOAP(mcc_cfg,url);
+        client = new Arc::ClientSOAP(mcc_cfg,url,60);
         connected = true;
       }
       

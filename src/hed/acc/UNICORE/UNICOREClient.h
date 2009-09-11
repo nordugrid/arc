@@ -37,7 +37,7 @@ namespace Arc {
        @param url The URL of the UNICORE service.
        @param cfg An MCC configuration object.
      */
-    UNICOREClient(const URL& url, const MCCConfig& cfg);
+    UNICOREClient(const URL& url, const MCCConfig& cfg, int timeout);
 
     //! The destructor.
     ~UNICOREClient();

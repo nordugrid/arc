@@ -6,8 +6,9 @@
 
 #include <string>
 
-#include <arc/client/JobDescription.h>
+#include <arc/StringConv.h>
 #include <arc/UserConfig.h>
+#include <arc/client/JobDescription.h>
 #include <arc/message/MCC.h>
 #include <arc/ws-addressing/WSA.h>
 
@@ -38,7 +39,7 @@ namespace Arc {
     usercfg.ApplyToConfig(cfg);
 
     //new code to use the UNICOREClient
-    UNICOREClient uc(submissionEndpoint, cfg);
+    UNICOREClient uc(submissionEndpoint, cfg, stringtoi(usercfg.ConfTree()["TimeOut"]));
 
     XMLNode id;
 

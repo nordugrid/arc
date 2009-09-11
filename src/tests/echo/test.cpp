@@ -47,7 +47,7 @@ int main(void) {
   client_cfg.AddCertificate("./testcert.pem");
   client_cfg.AddCAFile("./testcacert.pem");
   // Create client instance for contacting echo service
-  Arc::ClientSOAP client(client_cfg,Arc::URL("https://127.0.0.1:60000/echo"));
+  Arc::ClientSOAP client(client_cfg,Arc::URL("https://127.0.0.1:60000/echo"),60);
   // Add SecHandler to chain at TLS location to accept only
   // connection to server with specified DN
   std::list<std::string> dns;

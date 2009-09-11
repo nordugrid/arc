@@ -7,8 +7,9 @@
 #include <string>
 #include <sstream>
 
-#include <arc/client/JobDescription.h>
+#include <arc/StringConv.h>
 #include <arc/UserConfig.h>
+#include <arc/client/JobDescription.h>
 #include <arc/message/MCC.h>
 
 #include "SubmitterARC1.h"
@@ -35,7 +36,7 @@ namespace Arc {
                             const std::string& joblistfile) const {
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);
-    AREXClient ac(submissionEndpoint, cfg);
+    AREXClient ac(submissionEndpoint, cfg, stringtoi(usercfg.ConfTree()["TimeOut"]));
 
     std::string jobid;
     if (!ac.submit(jobdesc.UnParse("ARCJSDL"), jobid, submissionEndpoint.Protocol() == "https")) {
@@ -67,7 +68,7 @@ namespace Arc {
                              const std::string& joblistfile) const {
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);
-    AREXClient ac(submissionEndpoint, cfg);
+    AREXClient ac(submissionEndpoint, cfg, stringtoi(usercfg.ConfTree()["TimeOut"]));
 
     std::string idstr;
     AREXClient::createActivityIdentifier(jobid, idstr);

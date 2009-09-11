@@ -156,12 +156,12 @@ namespace Arc {
     ns["ns3"] = "http://glite.org/2007/11/ce/cream";
   }
 
-  CREAMClient::CREAMClient(const URL& url, const MCCConfig& cfg)
+  CREAMClient::CREAMClient(const URL& url, const MCCConfig& cfg, int timeout)
     : client(NULL),
       cafile(cfg.cafile),
       cadir(cfg.cadir) {
     logger.msg(INFO, "Creating a CREAM client");
-    client = new ClientSOAP(cfg, url);
+    client = new ClientSOAP(cfg, url, timeout);
     set_cream_namespaces(cream_ns);
   }
 

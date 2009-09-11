@@ -97,7 +97,7 @@ struct Registrar_data {
         int retry_ = retry;
         int reconnection = 0;
         while ( retry_ >= 1 ) {
-            ClientSOAP cli(mcc_cfg,isis.url);
+            ClientSOAP cli(mcc_cfg,isis.url,60);
             MCC_Status status = cli.process(&request, &response);
             retry_--;
             reconnection++;

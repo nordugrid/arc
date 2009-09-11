@@ -24,7 +24,7 @@ namespace Arc {
 
   class CREAMClient {
   public:
-    CREAMClient(const URL& url, const MCCConfig& cfg);
+    CREAMClient(const URL& url, const MCCConfig& cfg, int timeout);
     ~CREAMClient();
     void setDelegationId(const std::string& delegId) {
       this->delegationId = delegId;

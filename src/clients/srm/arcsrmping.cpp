@@ -12,6 +12,7 @@
 #include <arc/IString.h>
 #include <arc/Logger.h>
 #include <arc/OptionParser.h>
+#include <arc/StringConv.h>
 #include <arc/message/MCC.h>
 #include <arc/client/ClientInterface.h>
 #include <arc/UserConfig.h>
@@ -32,6 +33,10 @@ int main(int argc, char **argv) {
                                     "for the SRM service."),
                             istring("The service argument is a URL to an SRM "
                                     "service."));
+
+  int timeout = -1;
+  options.AddOption('t', "timeout", istring("timeout in seconds (default " + Arc::tostring(Arc::UserConfig::DEFAULT_TIMEOUT) + ")"),
+                    istring("seconds"), timeout);
 
   std::string conffile;
   options.AddOption('z', "conffile",
@@ -54,7 +59,11 @@ int main(int argc, char **argv) {
     logger.msg(Arc::ERROR, "Failed configuration initialization");
     return 1;
   }
-
+  
+  if (timeout > 0) {
+    usercfg.SetTimeOut((unsigned int)timeout);
+  }
+  
   if (!debug.empty())
     Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(debug));
   else if (debug.empty() && usercfg.ConfTree()["Debug"]) {
@@ -83,7 +92,7 @@ int main(int argc, char **argv) {
   Arc::MCCConfig cfg;
   usercfg.ApplyToConfig(cfg);
 
-  Arc::ClientSOAP client(cfg, service);
+  Arc::ClientSOAP client(cfg, service, Arc::stringtoi(usercfg.ConfTree()["TimeOut"]));
 
   std::string xml;
 

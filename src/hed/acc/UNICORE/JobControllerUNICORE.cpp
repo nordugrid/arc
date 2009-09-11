@@ -4,10 +4,11 @@
 #include <config.h>
 #endif
 
-#include <arc/XMLNode.h>
-#include <arc/message/MCC.h>
-#include <arc/client/ClientInterface.h>
+#include <arc/StringConv.h>
 #include <arc/UserConfig.h>
+#include <arc/XMLNode.h>
+#include <arc/client/ClientInterface.h>
+#include <arc/message/MCC.h>
 #include <arc/ws-addressing/WSA.h>
 
 #include "UNICOREClient.h"
@@ -40,7 +41,7 @@ namespace Arc {
          iter != jobstore.end(); iter++) {
       URL url(iter->Cluster);
       XMLNode id(iter->AuxInfo);
-      ClientSOAP client(cfg, url);
+      ClientSOAP client(cfg, url, stringtoi(usercfg.ConfTree()["TimeOut"]));
       logger.msg(INFO, "Creating and sending a status request");
       NS ns;
       ns["bes-factory"] = "http://schemas.ggf.org/bes/2006/08/bes-factory";

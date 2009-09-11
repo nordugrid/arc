@@ -186,6 +186,10 @@ int main(int argc, char *argv[]) {
   options.AddOption('c', "constraint", istring("proxy constraints"),
                     istring("string"), constraintlist);
 
+  int timeout = -1;
+  options.AddOption('t', "timeout", istring("timeout in seconds (default " + Arc::tostring(Arc::UserConfig::DEFAULT_TIMEOUT) + ")"),
+                    istring("seconds"), timeout);
+                    
   std::string conffile;
   options.AddOption('z', "conffile",
                     istring("configuration file (default ~/.arc/client.xml)"),
@@ -207,7 +211,11 @@ int main(int argc, char *argv[]) {
     logger.msg(Arc::ERROR, "Failed configuration initialization");
     return EXIT_FAILURE;
   }
-
+  
+  if (timeout > 0) {
+    usercfg.SetTimeOut((unsigned int)timeout);
+  }
+  
   if (!debug.empty())
     Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(debug));
   else if (debug.empty() && usercfg.ConfTree()["Debug"]) {
@@ -453,7 +461,7 @@ int main(int argc, char *argv[]) {
       //  cfg.AddProxy(proxy_path);
       cfg.AddCADir(ca_dir);
       //TODO: for "GET" command, client authentication is optional
-      Arc::ClientTCP client(cfg, host, port, Arc::GSISec);
+      Arc::ClientTCP client(cfg, host, port, Arc::GSISec, Arc::stringtoi(usercfg.ConfTree()["TimeOut"]));
 
       //Send the message to myproxy server
       Arc::PayloadRaw request;
@@ -766,7 +774,7 @@ int main(int argc, char *argv[]) {
             command_2server.append("B").append(command.substr(0, pos)).append(":").append(command.substr(pos + 6));
         }
         send_msg.append(command_2server).append("</command><lifetime>").append(voms_period).append("</lifetime></voms>");
-        Arc::ClientTCP client(cfg, address, atoi(port.c_str()), use_gsi_comm?Arc::GSISec:Arc::SSL3Sec);
+        Arc::ClientTCP client(cfg, address, atoi(port.c_str()), use_gsi_comm?Arc::GSISec:Arc::SSL3Sec, Arc::stringtoi(usercfg.ConfTree()["TimeOut"]));
         Arc::PayloadRaw request;
         request.Insert(send_msg.c_str(), 0, send_msg.length());
         Arc::PayloadStreamInterface *response = NULL;
@@ -909,7 +917,7 @@ int main(int argc, char *argv[]) {
       Arc::MCCConfig cfg;
       cfg.AddProxy(proxy_path);
       cfg.AddCADir(ca_dir);
-      Arc::ClientTCP client(cfg, host, port, Arc::GSISec);
+      Arc::ClientTCP client(cfg, host, port, Arc::GSISec, Arc::stringtoi(usercfg.ConfTree()["TimeOut"]));
 
       //Send the message to myproxy server
       Arc::PayloadRaw request;

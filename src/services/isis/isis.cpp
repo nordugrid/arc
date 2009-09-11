@@ -92,7 +92,7 @@ static void message_send_thread(void *arg) {
         mcc_cfg.AddCADir(((ISIS::Thread_data *)data)->isis_list[i].cadir);
         mcc_cfg.AddCAFile(((ISIS::Thread_data *)data)->isis_list[i].cafile);
 
-        Arc::ClientSOAP client_entry(mcc_cfg, url);
+        Arc::ClientSOAP client_entry(mcc_cfg, url, 60);
 
         // Create and send "Register/RemoveRegistrations" request
         Arc::NS message_ns;
@@ -1095,7 +1095,7 @@ static void soft_state_thread(void *data) {
             temporary_provider = infoproviders_;
             bool isavailable = false;
             while ( !isavailable && retry_.size() > 0 ) {
-                Arc::ClientSOAP client_entry(mcc_cfg, rndProvider.url);
+                Arc::ClientSOAP client_entry(mcc_cfg, rndProvider.url, 60);
                 logger_.msg(Arc::DEBUG, "Sending Query message to the InfoProvider (%s) and waiting for the response.", rndProvider.url );
                 status= client_entry.process(&req,&response);
 
@@ -1182,7 +1182,7 @@ static void soft_state_thread(void *data) {
                    int retry_connect = retry;
                    // Try to connect one ISIS of the neighbors list
                    while ( !isavailable_connect && retry_connect>0) {
-                       Arc::ClientSOAP connectclient_entry(mcc_cfg, neighbors_[current].url);
+                       Arc::ClientSOAP connectclient_entry(mcc_cfg, neighbors_[current].url, 60);
                        logger_.msg(Arc::DEBUG, "Sending Connect request to the ISIS(%s) and waiting for the response.", neighbors_[current].url );
 
                        status= connectclient_entry.process(&connect_req,&response_c);

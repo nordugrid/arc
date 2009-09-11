@@ -125,7 +125,7 @@ namespace Arc {
   }
 
   ClientTCP::ClientTCP(const BaseConfig& cfg, const std::string& host,
-                       int port, SecurityLayer sec, bool no_delay)
+                       int port, SecurityLayer sec, int timeout, bool no_delay)
     : ClientInterface(cfg),
       tcp_entry(NULL),
       tls_entry(NULL) {
@@ -134,6 +134,7 @@ namespace Arc {
     comp = comp.NewChild("Connect");
     comp.NewChild("Host") = host;
     comp.NewChild("Port") = tostring(port);
+    comp.NewChild("Timeout") = tostring(timeout);
     if(no_delay) comp.NewChild("NoDelay") = "true";
 
     if ((sec == TLSSec) || (sec == SSL3Sec)) {
@@ -267,13 +268,14 @@ namespace Arc {
     return port;
   }
 
-  ClientHTTP::ClientHTTP(const BaseConfig& cfg, const URL& url, const std::string& proxy_host, int proxy_port)
+  ClientHTTP::ClientHTTP(const BaseConfig& cfg, const URL& url, int timeout, const std::string& proxy_host, int proxy_port)
     : ClientTCP(cfg,
                 get_http_proxy_host(url,proxy_host,proxy_port),
                 get_http_proxy_port(url,proxy_host,proxy_port),
                 url.Protocol() == "https" ? TLSSec
                   : url.Protocol() == "httpg" ? GSISec
                     : NoSec,
+                timeout,
                 url.Option("tcpnodelay") == "yes"),
       http_entry(NULL),
       default_url(url),
@@ -428,8 +430,8 @@ namespace Arc {
     AddPlugin(xmlcfg, libname, libpath);
   }
 
-  ClientSOAP::ClientSOAP(const BaseConfig& cfg, const URL& url)
-    : ClientHTTP(cfg, url),
+  ClientSOAP::ClientSOAP(const BaseConfig& cfg, const URL& url, int timeout)
+    : ClientHTTP(cfg, url, timeout),
       soap_entry(NULL) {
     XMLNode comp =
       ConfigMakeComponent(xmlcfg["Chain"], "soap.client", "soap", "http");

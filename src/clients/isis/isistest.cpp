@@ -6,15 +6,16 @@
 #include <algorithm>
 #include <vector>
 
-#include <arc/OptionParser.h>
 #include <arc/IString.h>
 #include <arc/Logger.h>
-#include <arc/client/ClientInterface.h>
+#include <arc/OptionParser.h>
+#include <arc/StringConv.h>
 #include <arc/UserConfig.h>
+#include <arc/URL.h>
+#include <arc/XMLNode.h>
+#include <arc/client/ClientInterface.h>
 #include <arc/message/MCCLoader.h>
 #include <arc/message/PayloadSOAP.h>
-#include <arc/XMLNode.h>
-#include <arc/URL.h>
 
 Arc::Logger logger(Arc::Logger::rootLogger, "ISISTest");
 
@@ -34,7 +35,7 @@ std::string Query( Arc::URL url, std::string query, Arc::UserConfig usercfg ){
         mcc_cfg.AddPrivateKey((std::string)ucfg["KeyPath"]);
     if (ucfg["CACertificatesDir"])
         mcc_cfg.AddCADir((std::string)ucfg["CACertificatesDir"]);
-    Arc::ClientSOAP client_entry(mcc_cfg, url);
+    Arc::ClientSOAP client_entry(mcc_cfg, url, Arc::stringtoi(usercfg.ConfTree()["TimeOut"]));
 
     // Create and send Query request
     logger.msg(Arc::INFO, "Creating and sending request");
@@ -90,7 +91,7 @@ std::string Register( Arc::URL url, std::vector<std::string> &serviceID, std::ve
         mcc_cfg.AddPrivateKey((std::string)ucfg["KeyPath"]);
     if (ucfg["CACertificatesDir"])
         mcc_cfg.AddCADir((std::string)ucfg["CACertificatesDir"]);
-    Arc::ClientSOAP client_entry(mcc_cfg, url);
+    Arc::ClientSOAP client_entry(mcc_cfg, url, Arc::stringtoi(usercfg.ConfTree()["TimeOut"]));
 
     // Create and send Register request
     logger.msg(Arc::INFO, "Creating and sending request");
@@ -170,7 +171,7 @@ std::string RemoveRegistrations( Arc::URL url, std::vector<std::string> &service
         mcc_cfg.AddPrivateKey((std::string)ucfg["KeyPath"]);
     if (ucfg["CACertificatesDir"])
         mcc_cfg.AddCADir((std::string)ucfg["CACertificatesDir"]);
-    Arc::ClientSOAP client_entry(mcc_cfg, url);
+    Arc::ClientSOAP client_entry(mcc_cfg, url, Arc::stringtoi(usercfg.ConfTree()["TimeOut"]));
 
     // Create and send RemoveRegistrations request
     logger.msg(Arc::INFO, "Creating and sending request");
@@ -238,7 +239,7 @@ std::vector<std::string> GetISISList( Arc::URL url, Arc::UserConfig usercfg ){
         mcc_cfg.AddPrivateKey((std::string)ucfg["KeyPath"]);
     if (ucfg["CACertificatesDir"])
         mcc_cfg.AddCADir((std::string)ucfg["CACertificatesDir"]);
-    Arc::ClientSOAP client_entry(mcc_cfg, url);
+    Arc::ClientSOAP client_entry(mcc_cfg, url, Arc::stringtoi(usercfg.ConfTree()["TimeOut"]));
 
     // Create and send GetISISList request
     logger.msg(Arc::INFO, "Creating and sending request");

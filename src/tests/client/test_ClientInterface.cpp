@@ -66,7 +66,7 @@ int main(void) {
         </SecHandler>");
 
   Arc::ClientSOAP *client;
-  client = new Arc::ClientSOAP(mcc_cfg,url);
+  client = new Arc::ClientSOAP(mcc_cfg,url,60);
 
   //client->AddSecHandler(sechanlder_nd_ut, "arcshc");
   //client->AddSecHandler(sechanlder_nd_xt, "arcshc");

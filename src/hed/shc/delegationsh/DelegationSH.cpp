@@ -310,7 +310,7 @@ bool DelegationSH::Handle(Arc::Message* msg){
         if(!ca_dir_.empty()) peers_client_cfg.AddCADir(ca_dir_);
         if(!ca_file_.empty())peers_client_cfg.AddCAFile(ca_file_);
         Arc::URL peers_url(peers_endpoint_);
-        Arc::ClientSOAP client_peer(peers_client_cfg,peers_url);
+        Arc::ClientSOAP client_peer(peers_client_cfg,peers_url,60);
         Arc::NS delegation_ns; delegation_ns["deleg"]="urn:delegation"; //
 
         //Treat the delegation information as 'out-of-bound' information

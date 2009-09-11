@@ -83,9 +83,9 @@ int main(void) {
   //cfg.AddPrivateKey("/home/wzqiang/arc-0.9/src/tests/echo/userkey-nopass.pem");
   cfg.AddCADir("../../tests/echo/certificates/");
 
-  //Arc::ClientTCP client(cfg, "arthur.hep.lu.se", 15001, Arc::GSISec);
-  Arc::ClientTCP client(cfg, "arthur.hep.lu.se", 15001, Arc::SSL3Sec);
-  //Arc::ClientTCP client(cfg, "squark.uio.no", 15011, Arc::GSISec);
+  //Arc::ClientTCP client(cfg, "arthur.hep.lu.se", 15001, Arc::GSISec, 60);
+  Arc::ClientTCP client(cfg, "arthur.hep.lu.se", 15001, Arc::SSL3Sec, 60);
+  //Arc::ClientTCP client(cfg, "squark.uio.no", 15011, Arc::GSISec, 60);
 
   Arc::PayloadRaw request;
   request.Insert(send_msg.c_str(), 0, send_msg.length());

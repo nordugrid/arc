@@ -72,7 +72,7 @@ PDPServiceInvoker::PDPServiceInvoker(Config* cfg):PDP(cfg), client(NULL),
   std::string protocol = (std::string)((*cfg)["TransferProtocol"]);
   if(protocol=="SAML" || protocol=="saml") is_saml = true;
 
-  client = new Arc::ClientSOAP(mcc_cfg,url);
+  client = new Arc::ClientSOAP(mcc_cfg,url,60);
 }
 
 bool PDPServiceInvoker::isPermitted(Message *msg){

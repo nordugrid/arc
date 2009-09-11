@@ -62,7 +62,7 @@ void PaulService::GetActivities(const std::string &url_str, std::vector<std::str
         cfg.AddCAFile(configurator.getPki()["CACertificatePath"]);
         cfg.AddCADir(configurator.getPki()["CACertificatesDir"]);
     }
-    client = new Arc::ClientSOAP(cfg, url);
+    client = new Arc::ClientSOAP(cfg, url, 60);
     // invoke GetActivity SOAP call
     Arc::PayloadSOAP request(ns_);
     request.NewChild("ibes:GetActivities").NewChild(glue2);
@@ -258,7 +258,7 @@ void PaulService::do_report(void)
             cfg.AddCAFile(configurator.getPki()["CACertificatePath"]);
             cfg.AddCADir(configurator.getPki()["CACertificatesDir"]);
         }
-        client = new Arc::ClientSOAP(cfg, url);
+        client = new Arc::ClientSOAP(cfg, url, 60);
 
         Arc::PayloadSOAP *response;
         Arc::MCC_Status status = client->process(request, &response);
@@ -357,7 +357,7 @@ void PaulService::do_action(void)
             cfg.AddCAFile(configurator.getPki()["CACertificatePath"]);
             cfg.AddCADir(configurator.getPki()["CACertificatesDir"]);
         }
-        client = new Arc::ClientSOAP(cfg, url);
+        client = new Arc::ClientSOAP(cfg, url, 60);
         Arc::PayloadSOAP *response;
         Arc::MCC_Status status = client->process(request, &response);
         if (!status) {

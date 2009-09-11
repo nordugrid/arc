@@ -30,7 +30,7 @@ int main(void) {
   cfg.AddProxy("/home/roczei/.globus/proxy.pem");
   //cfg.AddCADir("/Users/roczei/arc1/etc/certificates");
 
-  Arc::ClientSOAP client(cfg, url);
+  Arc::ClientSOAP client(cfg, url, 60);
 
 
     std::string faultstring;

@@ -26,7 +26,7 @@ namespace Arc {
                                              const URL& url)
     : soap_client_(NULL),
       signer_(NULL) {
-    soap_client_ = new ClientSOAP(cfg, url);
+    soap_client_ = new ClientSOAP(cfg, url, 60);
 
     //Use the certificate and key in the main chain to delegate
     cert_file_ = cfg.cert;

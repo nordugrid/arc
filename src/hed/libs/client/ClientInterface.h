@@ -59,7 +59,7 @@ namespace Arc {
       : tcp_entry(NULL),
         tls_entry(NULL) {}
     ClientTCP(const BaseConfig& cfg, const std::string& host, int port,
-              SecurityLayer sec, bool no_delay = false);
+              SecurityLayer sec, int timeout, bool no_delay = false);
     virtual ~ClientTCP();
     MCC_Status process(PayloadRawInterface *request,
                        PayloadStreamInterface **response, bool tls);
@@ -88,7 +88,7 @@ namespace Arc {
   public:
     ClientHTTP()
       : http_entry(NULL) {}
-    ClientHTTP(const BaseConfig& cfg, const URL& url, const std::string& proxy_host = "", int proxy_port = 0);
+    ClientHTTP(const BaseConfig& cfg, const URL& url, int timeout, const std::string& proxy_host = "", int proxy_port = 0);
     virtual ~ClientHTTP();
     MCC_Status process(const std::string& method, PayloadRawInterface *request,
                        HTTPClientInfo *info, PayloadRawInterface **response);
@@ -134,7 +134,7 @@ namespace Arc {
     /** Constructor creates MCC chain and connects to server. */
     ClientSOAP()
       : soap_entry(NULL) {}
-    ClientSOAP(const BaseConfig& cfg, const URL& url);
+    ClientSOAP(const BaseConfig& cfg, const URL& url, int timeout);
     virtual ~ClientSOAP();
     /** Send SOAP request and receive response. */
     MCC_Status process(PayloadSOAP *request, PayloadSOAP **response);

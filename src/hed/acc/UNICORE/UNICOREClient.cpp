@@ -58,7 +58,8 @@ namespace Arc {
   // }
 
   UNICOREClient::UNICOREClient(const URL& url,
-                               const MCCConfig& cfg)
+                               const MCCConfig& cfg,
+                               int timeout)
     : client_config(NULL),
       client_loader(NULL),
       client(NULL),
@@ -70,7 +71,7 @@ namespace Arc {
     if (false) { //future test if proxy should be used or not
       client_cfg.AddProxy("");
     }
-    client = new ClientSOAP(client_cfg, url);
+    client = new ClientSOAP(client_cfg, url, timeout);
     rurl = url;
     set_UNICORE_namespaces(unicore_ns);
   }

@@ -12,9 +12,10 @@
 #include <arc/IString.h>
 #include <arc/Logger.h>
 #include <arc/OptionParser.h>
-#include <arc/message/MCC.h>
-#include <arc/client/ClientInterface.h>
+#include <arc/StringConv.h>
 #include <arc/UserConfig.h>
+#include <arc/client/ClientInterface.h>
+#include <arc/message/MCC.h>
 
 int main(int argc, char **argv) {
 
@@ -83,7 +84,7 @@ int main(int argc, char **argv) {
   Arc::MCCConfig cfg;
   usercfg.ApplyToConfig(cfg);
 
-  Arc::ClientSOAP client(cfg, service);
+  Arc::ClientSOAP client(cfg, service, Arc::stringtoi(usercfg.ConfTree()["TimeOut"]));
 
   std::string xml;
 

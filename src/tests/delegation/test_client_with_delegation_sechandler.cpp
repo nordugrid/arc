@@ -72,7 +72,7 @@ int main(void) {
   logger.msg(Arc::INFO, "Creating a soap client");
 
   Arc::ClientSOAP *client;
-  client = new Arc::ClientSOAP(mcc_cfg,url);
+  client = new Arc::ClientSOAP(mcc_cfg,url,60);
   client->AddSecHandler(sechanlder_nd, "arcshc");
 
   //Create and send echo request

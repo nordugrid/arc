@@ -103,7 +103,7 @@ namespace Arc {
     URL& url = thrarg->url;
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);
-    AREXClient ac(url, cfg);
+    AREXClient ac(url, cfg, stringtoi(usercfg.ConfTree()["TimeOut"]));
     std::list<Arc::Config> services;
     std::string status;
     if (!ac.listServicesFromISIS(services, status)) {
@@ -130,7 +130,7 @@ namespace Arc {
     URL& url = thrarg->url;
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);
-    AREXClient ac(url, cfg);
+    AREXClient ac(url, cfg, stringtoi(usercfg.ConfTree()["TimeOut"]));
     XMLNode ServerStatus;
     if (!ac.sstat(ServerStatus)) {
       delete thrarg;

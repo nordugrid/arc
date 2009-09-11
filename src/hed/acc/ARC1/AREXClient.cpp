@@ -58,7 +58,8 @@ namespace Arc {
   }
 
   AREXClient::AREXClient(const URL& url,
-                         const MCCConfig& cfg)
+                         const MCCConfig& cfg,
+                         int timeout)
     : client_config(NULL),
       client_loader(NULL),
       client(NULL),
@@ -66,7 +67,7 @@ namespace Arc {
       rurl(url) {
 
     logger.msg(INFO, "Creating an A-REX client");
-    client = new ClientSOAP(cfg, url);
+    client = new ClientSOAP(cfg, url, timeout);
     set_arex_namespaces(arex_ns);
     //rurl = url;
   }

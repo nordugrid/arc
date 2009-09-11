@@ -58,7 +58,7 @@ bool LoggerClient::NewURL(const char* url_) {
   if(client == NULL) {
 //    std::string soap_url = url->Protocol()+"://"+url->Host()+":"+tostring(url->Port());
     Arc::MCCConfig cfg;
-    client = new Arc::ClientSOAP(cfg,*url);
+    client = new Arc::ClientSOAP(cfg,*url,60);
   };
   return true;
 }
