@@ -134,7 +134,7 @@ namespace Arc {
     comp = comp.NewChild("Connect");
     comp.NewChild("Host") = host;
     comp.NewChild("Port") = tostring(port);
-    comp.NewChild("Timeout") = tostring(timeout);
+    if(timeout >=  0) comp.NewChild("Timeout") = tostring(timeout);
     if(no_delay) comp.NewChild("NoDelay") = "true";
 
     if ((sec == TLSSec) || (sec == SSL3Sec)) {
