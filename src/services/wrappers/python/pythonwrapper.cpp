@@ -128,8 +128,6 @@ Service_PythonWrapper::Service_PythonWrapper(Arc::Config *cfg):RegisteredService
     PyObject *arg = NULL;
     PyObject *py_cfg = NULL;
     PyObject *klass = NULL;
-    PyObject *arc_msg_klass = NULL;
-    PyObject *arc_xmlnode_klass = NULL;
 
     arc_module = NULL;
     module = NULL;
@@ -267,24 +265,6 @@ Service_PythonWrapper::Service_PythonWrapper(Arc::Config *cfg):RegisteredService
         return;
     }
 
-    // Get the class
-    // arc_msg_klass is a borrowed reference
-    arc_msg_klass = PyDict_GetItemString(arc_dict, "SOAPMessage");
-    if (arc_msg_klass == NULL) {
-        logger.msg(Arc::ERROR, "Cannot find arc Message class");
-        if (PyErr_Occurred()) PyErr_Print();
-        return;
-    }
-
-    // Get XMLNode class
-    // arc_xmlnode_klass is a borrowed reference
-    arc_xmlnode_klass = PyDict_GetItemString(arc_dict, "XMLNode");
-    if (arc_xmlnode_klass == NULL) {
-        logger.msg(Arc::ERROR, "Cannot find arc XMLNode class");
-        if (PyErr_Occurred()) PyErr_Print();
-        return;
-    }
-
     // check is it really a class
     if (!PyCallable_Check(klass)) {
         logger.msg(Arc::ERROR, "Message klass is not an object");
@@ -299,6 +279,8 @@ Service_PythonWrapper::Service_PythonWrapper(Arc::Config *cfg):RegisteredService
 
 Service_PythonWrapper::~Service_PythonWrapper(void)
 {
+    service_lock.lock();
+    PyEval_AcquireThread(tstate);
     // Release python objects - it is needed for Python
     // destructors to be called
     if(arc_module) Py_DECREF(arc_module);
@@ -306,11 +288,13 @@ Service_PythonWrapper::~Service_PythonWrapper(void)
     if(object) Py_DECREF(object);
     // Finish the Python Interpreter
     python_service_counter--;
+    logger.msg(Arc::DEBUG, "Python Wrapper destructor (%d)", python_service_counter);
     if (python_service_counter == 0) {
-        PyEval_AcquireThread(tstate);
         Py_Finalize();
+    } else {
+        PyEval_ReleaseThread(tstate);
     }
-    logger.msg(Arc::DEBUG, "Python Wrapper destructor called (%d)", python_service_counter);
+    service_lock.unlock();
 }
 
 Arc::MCC_Status Service_PythonWrapper::make_fault(Arc::Message& outmsg)
