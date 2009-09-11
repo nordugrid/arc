@@ -271,6 +271,7 @@
                             <Associations>
                                <UserDomainID>urn:ogf:UserDomain:atlas</UserDomainID>
                                <ComputingEndpointID>urn:ogf:ComputingEndpoint:ce01.niif.hu:60000/arex</ComputingEndpointID>
+                               <ComputingShareID>urn:ogf:ComputingShare:HU/NIIF/PGS-CE/atlas</ComputingShareID>
                                <ExecutionEnvironmentID>urn:ogf:ExecutionEnvironment:HU/NIIF/PGS-CE/torque/dualcore</ExecutionEnvironmentID>
                                <ActivityID>urn:ogf:ComputingEndpoint:ce01.niif.hu:60000/delegation/1212121</ActivityID>
                                <ActivityID>urn:ogf:ComputingEndpoint:ce01.niif.hu:60000/delegation/1214545</ActivityID>
@@ -309,6 +310,7 @@
                             <Associations>
                                <UserDomainID>urn:ogf:UserDomain:atlas</UserDomainID>
                                <ComputingEndpointID>urn:ogf:ComputingEndpoint:ce01.niif.hu:60000/arex</ComputingEndpointID>
+                               <ComputingShareID>urn:ogf:ComputingShare:HU/NIIF/PGS-CE/atlas</ComputingShareID>
                                <ExecutionEnvironmentID>urn:ogf:ExecutionEnvironment:HU/NIIF/PGS-CE/torque/dualcore</ExecutionEnvironmentID>
                                <ActivityID>urn:ogf:ComputingEndpoint:ce01.niif.hu:60000/delegation/1212322</ActivityID>
                                <ActivityID>urn:ogf:ComputingEndpoint:ce01.niif.hu:60000/delegation/1213433</ActivityID>

@@ -709,6 +709,7 @@
                             <sequence>
                                 <element name="UserDomainID" type="anyURI" minOccurs="0" maxOccurs="1"/>
                                 <element name="ComputingEndpointID" type="anyURI" minOccurs="0" maxOccurs="1"/>
+                                <element name="ComputingShareID" type="anyURI" minOccurs="0" maxOccurs="1"/>
                                 <element name="ExecutionEnvironmentID" type="anyURI" minOccurs="0" maxOccurs="1"/>
                                 <element name="ActivityID" type="anyURI" minOccurs="0" maxOccurs="unbounded"/>
                             </sequence>
