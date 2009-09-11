@@ -205,6 +205,7 @@ sub _collect($$) {
                        'PREPARING'        => [2, 'preparing'],
                        'PENDING:PREPARING'=> [2, 'preparing'],
                        'SUBMIT'           => [2, 'preparing'],
+                       'SUBMITTING'       => [2, 'preparing'],
                        'INLRMS'           => [3, 'inlrms'],
                        'PENDING:INLRMS'   => [4, 'finishing'],
                        'FINISHING'        => [4, 'finishing'],
