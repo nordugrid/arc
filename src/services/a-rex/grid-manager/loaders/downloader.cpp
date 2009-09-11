@@ -87,6 +87,18 @@ static std::list<FileDataEx> failed_files;
 static Arc::SimpleCondition pair_condition;
 static int pairs_initiated = 0;
 
+class SimpleConditionLock {
+ private:
+  Arc::SimpleCondition& cond_;
+ public:
+  SimpleConditionLock(Arc::SimpleCondition& cond):cond_(cond) {
+    cond_.lock();
+  };
+  ~SimpleConditionLock(void) {
+    cond_.unlock();
+  };
+};
+
 bool is_checksum(std::string str) {
   /* check if have : */
   std::string::size_type n;
@@ -559,7 +571,7 @@ int main(int argc,char** argv) {
   if(!userfiles_only) for(;;) {
     // Initiate transfers
     int n = 0;
-    pair_condition.lock();
+    SimpleConditionLock local_lock(pair_condition);
     for(FileDataEx::iterator i=job_files.begin();i!=job_files.end();++i) {
       if(i->lfn.find(":") != std::string::npos) { /* is it lfn ? */
         ++n;
@@ -599,10 +611,9 @@ int main(int argc,char** argv) {
         ++pairs_initiated;
       };
     };
-    if(pairs_initiated <= 0) { pair_condition.unlock(); break; }; // Looks like no more files to process
+    if(pairs_initiated <= 0) break; // Looks like no more files to process
     // Processing initiated - now wait for event
     pair_condition.wait_nonblock();
-    pair_condition.unlock();
   };
   // Print download summary
   for(FileDataEx::iterator i=processed_files.begin();i!=processed_files.end();++i) {
