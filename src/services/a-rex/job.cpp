@@ -388,6 +388,15 @@ ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& crede
     failure_type_=ARexJobInternalError;
     return;
   };
+  // Write grami file
+  Arc::JobDescription desc;
+  desc.Parse(job_desc_str);
+  if(!write_grami(desc,job,*config_.User(),NULL)) {
+    delete_job_id();
+    failure_="Failed to create grami file";
+    failure_type_=ARexJobInternalError;
+    return;
+  };
   // Write ACL file
   if(!acl.empty()) {
     if(!job_acl_write_file(id_,*config.User(),acl)) {
