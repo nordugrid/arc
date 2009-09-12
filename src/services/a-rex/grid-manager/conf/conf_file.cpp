@@ -7,6 +7,7 @@
 
 #include <arc/StringConv.h>
 #include <arc/Utils.h>
+#include <arc/XMLNode.h>
 #include "../jobs/users.h"
 #include "../jobs/states.h"
 #include "../jobs/plugins.h"
@@ -23,6 +24,22 @@ static Arc::Logger& logger = Arc::Logger::getRootLogger();
 JobLog job_log;
 ContinuationPlugins plugins;
 RunPlugin cred_plugin;
+
+static void check_lrms_backends(const std::string& default_lrms) {
+  std::string tool_path;
+  tool_path=nordugrid_libexec_loc+"/cancel-"+default_lrms+"-job";
+  if(!Glib::file_test(tool_path,Glib::FILE_TEST_IS_REGULAR)) {
+    logger.msg(Arc::WARNING,"Missing cancel-%s-job - job cancelation may not work",default_lrms);
+  };
+  tool_path=nordugrid_libexec_loc+"/submit-"+default_lrms+"-job";
+  if(!Glib::file_test(tool_path,Glib::FILE_TEST_IS_REGULAR)) {
+    logger.msg(Arc::WARNING,"Missing submit-%s-job - job submission to LRMS may not work",default_lrms);
+  };
+  tool_path=nordugrid_libexec_loc+"/scan-"+default_lrms+"-job";
+  if(!Glib::file_test(tool_path,Glib::FILE_TEST_IS_REGULAR)) {
+    logger.msg(Arc::WARNING,"Missing scan-%s-job - may miss when job finished executing",default_lrms);
+  };
+}
 
 bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my_username,JobUser &my_user,Daemon* daemon) {
   std::ifstream cfile;
@@ -336,19 +353,7 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
       if(!rest.empty()) {
         logger.msg(Arc::ERROR,"junk in defaultlrms command"); goto exit;
       };
-      std::string tool_path;
-      tool_path=nordugrid_libexec_loc+"/cancel-"+default_lrms+"-job";
-      if(!Glib::file_test(tool_path,Glib::FILE_TEST_IS_REGULAR)) {
-        logger.msg(Arc::WARNING,"Missing cancel-%s-job - job cancelation may not work",default_lrms);
-      };
-      tool_path=nordugrid_libexec_loc+"/submit-"+default_lrms+"-job";
-      if(!Glib::file_test(tool_path,Glib::FILE_TEST_IS_REGULAR)) {
-        logger.msg(Arc::WARNING,"Missing submit-%s-job - job submission to LRMS may not work",default_lrms);
-      };
-      tool_path=nordugrid_libexec_loc+"/scan-"+default_lrms+"-job";
-      if(!Glib::file_test(tool_path,Glib::FILE_TEST_IS_REGULAR)) {
-        logger.msg(Arc::WARNING,"Missing scan-%s-job - may miss when job finished executing",default_lrms);
-      };
+      check_lrms_backends(default_lrms);
     }
     else if(command == "authplugin") { /* set plugin to be called on 
                                           state changes */
@@ -542,6 +547,454 @@ exit:
   delete cf;
   config_close(cfile);
   return false;
+}
+
+static bool elementtobool(Arc::XMLNode pnode,const char* ename,bool& val) {
+  std::string v = pnode[ename];
+  if(v.empty()) return true; // default
+  if((v == "true") || (v == "1")) {
+    val=true;
+    return true;
+  };
+  if((v == "false") || (v == "0")) {
+    val=false;
+    return true;
+  };
+  logger.msg(Arc::ERROR,"wrong boolean in %s: %s",ename,v);
+  return false;
+}
+
+static bool elementtoint(Arc::XMLNode pnode,const char* ename,unsigned int& val) {
+  std::string v = pnode[ename];
+  if(v.empty()) return true; // default
+  if(Arc::stringto(v,val)) return true;
+  logger.msg(Arc::ERROR,"wrong number in %s: %s",ename,v);
+  return false;
+}
+
+static bool elementtoint(Arc::XMLNode pnode,const char* ename,int& val) {
+  std::string v = pnode[ename];
+  if(v.empty()) return true; // default
+  if(Arc::stringto(v,val)) return true;
+  logger.msg(Arc::ERROR,"wrong number in %s: %s",ename,v);
+  return false;
+}
+
+bool configure_serviced_users(Arc::XMLNode cfg,JobUsers &users,uid_t my_uid,const std::string &my_username,JobUser &my_user,Daemon* daemon) {
+  Arc::XMLNode tmp_node;
+/*
+
+http://www.nordugrid.org/schemas/ArcConfig/2009/arex
+
+  gmconfig (type=INI,XML)
+
+  endpoint
+
+  gmrun = internal,external,none
+
+  usermap
+
+
+  runtimeDir
+
+
+  helperUtility
+    username
+    path
+
+  sharedFilesystem = true,false
+
+  GNUTimeUtility
+
+  LRMS
+
+
+
+*/
+/*
+  std::ifstream cfile;
+  std::string default_lrms("");
+  std::string default_queue("");
+  std::string last_control_dir("");
+  int default_diskspace = DEFAULT_DISKSPACE;
+  bool superuser = (my_uid == 0);
+  std::string central_control_dir("");
+  std::string infosys_user("");
+  std::string jobreport_key("");
+  std::string jobreport_cert("");
+  std::string jobreport_cadir("");
+*/
+/*
+    if(command == "pbs_bin_path") {
+      Arc::SetEnv("PBS_BIN_PATH",rest);
+    } else if(command == "pbs_log_path") {
+      Arc::SetEnv("PBS_LOG_PATH",rest);
+    } else if(command == "gnu_time") {
+      Arc::SetEnv("GNU_TIME",rest);
+    } else if(command == "tmpdir") {
+      Arc::SetEnv("TMP_DIR",rest);
+    } else if(command == "runtimedir") {
+      Arc::SetEnv("RUNTIME_CONFIG_DIR",rest);
+    } else if(command == "shared_filesystem") {
+      if(rest == "NO") rest="no";
+      Arc::SetEnv("RUNTIME_NODE_SEES_FRONTEND",rest);
+    } else if(command == "scratchdir") {
+      Arc::SetEnv("RUNTIME_LOCAL_SCRATCH_DIR",rest);
+    } else if(command == "shared_scratch") {
+      Arc::SetEnv("RUNTIME_FRONTEND_SEES_NODE",rest);
+    } else if(command == "nodename") {
+      Arc::SetEnv("NODENAME",rest);
+    }
+*/
+  /*
+  jobLogPath
+
+  jobReport
+    destination
+    expiration
+    type
+    parameters
+  */
+  tmp_node = cfg["jobLogPath"];
+  if(tmp_node) {
+    std::string fname = tmp_node;
+    job_log.SetOutput(fname.c_str());
+  };
+  tmp_node = cfg["jobReport"];
+  if(tmp_node) {
+    std::string url = tmp_node["destination"];
+    if(!url.empty()) {
+      // destination is required
+      job_log.SetReporter(url.c_str());
+      unsigned int i;
+      if(Arc::stringto(tmp_node["expiration"],i)) job_log.SetExpiration(i);
+      std::string parameters = tmp_node["parameters"];
+      if(!parameters.empty()) job_log.set_options(parameters);
+    };
+  };
+  /*
+    else if(command == "jobreport_credentials") {
+      jobreport_key = config_next_arg(rest);
+      jobreport_cert = config_next_arg(rest);
+      jobreport_cadir = config_next_arg(rest);
+    }
+  */
+
+  /*
+  loadLimits
+    maxJobsTracked
+    maxJobsRun
+    maxJobsTransfered
+    maxJobsTransferedAdditional
+    maxFilesTransfered
+    wakeupPeriod
+  */
+  tmp_node = cfg["loadLimits"];
+  if(tmp_node) {
+    int max_jobs, max_jobs_running = -1;
+    int max_jobs_processing, max_jobs_processing_emergency, max_downloads = -1;
+    unsigned int wakeup_period;
+    elementtoint(tmp_node,"maxJobsTracked",max_jobs);
+    elementtoint(tmp_node,"maxJobsRun",max_jobs_running);
+    JobsList::SetMaxJobs(max_jobs,max_jobs_running);
+    elementtoint(tmp_node,"maxJobsTransfered",max_jobs_processing);
+    elementtoint(tmp_node,"maxJobsTransferedAdditional",max_jobs_processing_emergency);
+    elementtoint(tmp_node,"maxFilesTransfered",max_downloads);
+    JobsList::SetMaxJobsLoad(max_jobs_processing,
+                             max_jobs_processing_emergency,
+                             max_downloads);
+    if(elementtoint(tmp_node,"wakeupPeriod",wakeup_period)) {
+      JobsList::SetWakeupPeriod(wakeup_period);
+    };
+  }
+
+/*
+  dataTransfer
+    secureTransfer
+    passiveTransfer
+    localTransfer
+    timeouts
+      minSpeed
+      minSpeedTime
+      minAverageSpeed
+      maxInactivityTime
+    maxRetries
+    mapURL (link)
+      from
+      to
+    Globus
+      gridmapfile
+      cadir
+      certpath
+      keypath
+      TCPPortRange
+      UDPPortRange
+    httpProxy
+  */
+  tmp_node = cfg["dataTransfer"];
+  if(tmp_node) {
+    int min_speed=0;
+    int min_speed_time=300;
+    int min_average_speed=0;
+    int max_inactivity_time=300;
+    bool use_secure_transfer = false;
+    bool use_passive_transfer = true;
+    bool use_local_transfer = false;
+    Arc::XMLNode to_node = tmp_node["timeouts"];
+    if(to_node) {
+      elementtoint(tmp_node,"minSpeed",min_speed);
+      elementtoint(tmp_node,"minSpeedTime",min_speed_time);
+      elementtoint(tmp_node,"minAverageSpeed",min_average_speed);
+      elementtoint(tmp_node,"maxInactivityTime",max_inactivity_time);
+      JobsList::SetSpeedControl(min_speed,min_speed_time,
+                                min_average_speed,max_inactivity_time);
+    };
+    elementtobool(tmp_node,"passiveTransfer",use_passive_transfer);
+    JobsList::SetPassiveTransfer(use_passive_transfer);
+    elementtobool(tmp_node,"secureTransfer",use_secure_transfer);
+    JobsList::SetSecureTransfer(use_secure_transfer);
+    elementtobool(tmp_node,"localTransfer",use_local_transfer);
+    JobsList::SetLocalTransfer(use_local_transfer);
+
+
+  };
+  /*
+  serviceMail
+  */
+  tmp_node = cfg["serviceMail"];
+  if(tmp_node) {
+    support_mail_address = (std::string)tmp_node;
+    if(support_mail_address.empty()) {
+      logger.msg(Arc::ERROR,"serviceMail is empty");
+      return false;
+    };
+  }
+
+/*
+    else if(command == "diskspace") {
+      std::string default_diskspace_s = config_next_arg(rest);
+      if(default_diskspace_s.length() == 0) {
+        logger.msg(Arc::ERROR,"diskspace is empty"); goto exit;
+      };
+      if(rest.length() != 0) {
+        logger.msg(Arc::ERROR,"junk in diskspace command"); goto exit;
+      };
+      char *ep;
+      default_diskspace=strtoull(default_diskspace_s.c_str(),&ep,10);
+      if(*ep != 0) {
+        logger.msg(Arc::ERROR,"wrong number in diskspace command"); goto exit;
+      };
+    }
+*/
+/*
+    else if(command == "lrms") {
+      * set default lrms type and queue
+         (optionally). Applied to all following
+         'control' commands. MUST BE thing *
+      default_lrms = config_next_arg(rest);
+      default_queue = config_next_arg(rest);
+      if(default_lrms.empty()) {
+        logger.msg(Arc::ERROR,"defaultlrms is empty"); goto exit;
+      };
+      if(!rest.empty()) {
+        logger.msg(Arc::ERROR,"junk in defaultlrms command"); goto exit;
+      };
+      check_lrms_backends(default_lrms);
+    }
+*/
+  /*
+  authPlugin (timeout,onSuccess=PASS,FAIL,LOG,onFailure=FAIL,PASS,LOG,onTimeout=FAIL,PASS,LOG)
+    state
+    command
+  */
+  tmp_node = cfg["authPlugin"];
+  if(tmp_node) {
+    std::string state_name = tmp_node["state"];
+    if(state_name.empty()) {
+      logger.msg(Arc::ERROR,"state name for authPlugin is missing");
+      return false;
+    };
+    std::string command = tmp_node["command"];
+    if(state_name.empty()) {
+      logger.msg(Arc::ERROR,"command for authPlugin is missing");
+      return false;
+    };
+    std::string options;
+    Arc::XMLNode onode;
+    onode = tmp_node.Attribute("timeout");
+    if(onode) options+="timeout="+(std::string)onode;
+    onode = tmp_node.Attribute("onSuccess");
+    if(onode) options+="onsuccess="+Arc::lower((std::string)onode);
+    onode = tmp_node.Attribute("onFailure");
+    if(onode) options+="onfailure="+Arc::lower((std::string)onode);
+    onode = tmp_node.Attribute("onTimeout");
+    if(onode) options+="ontimeout="+Arc::lower((std::string)onode);
+    if(!plugins.add(state_name.c_str(),options.c_str(),command.c_str())) {
+      logger.msg(Arc::ERROR,"Failed to register plugin for state %s",state_name);
+      return false;
+    };
+  };
+/*
+    else if(command == "localcred") {
+      std::string timeout_s = config_next_arg(rest);
+      if(timeout_s.length() == 0) {
+        logger.msg(Arc::ERROR,"timeout for plugin is missing"); goto exit;
+      };
+      char *ep;
+      int to = strtoul(timeout_s.c_str(),&ep,10);
+      if((*ep != 0) || (to<0)) {
+        logger.msg(Arc::ERROR,"wrong number for timeout in plugin command");
+        goto exit;
+      };
+      cred_plugin = rest;
+      cred_plugin.timeout(to);
+    }
+*/
+  /*
+  control
+    username
+    controlDir
+    sessionRootDir
+    cache
+      location
+      link
+      highWatermark
+      lowWatermark
+    defaultTTL
+    defaultTTR
+    maxReruns
+    noRootPower
+  */
+  tmp_node = cfg["control"];
+  if(tmp_node) {
+    std::string control_dir = tmp_node["controlDir"];
+    if(control_dir.empty()) {
+      logger.msg(Arc::ERROR,"controlDir is missing"); return false;
+    };
+    if(control_dir == "*") control_dir="";
+    std::string session_root = tmp_node["sessionRootDir"];
+    if(session_root.empty()) {
+      logger.msg(Arc::ERROR,"sessionRootDir is missing"); return false;
+    };
+    Arc::XMLNode unode = tmp_node["username"];
+    for(;unode;++unode) {
+      std::string username = unode;
+      if(username.empty()) {
+        logger.msg(Arc::ERROR,"username in control is empty"); return false;
+      };
+      if(username == "*") {  /* add all gridmap users */
+/*
+        if(!gridmap_user_list(rest)) {
+          logger.msg(Arc::ERROR,"Can't read users in gridmap file %s",globus_gridmap);
+          return false;
+        };
+*/
+        continue;
+      };
+      if(username == ".") {  /* accept all users in this control directory */
+         /* !!!!!!! substitutions involving user names won't work !!!!!!!  */
+/*
+         if(superuser) { username=""; }
+         else { username=my_username; };
+*/
+      };
+
+    };
+    bool strict_session = false;
+    if(!elementtobool(tmp_node,"noRootPower",strict_session)) return false;
+    unsigned int default_reruns = DEFAULT_JOB_RERUNS;
+    if(!elementtoint(tmp_node,"maxReruns",default_reruns)) return false;
+    unsigned int default_ttl = DEFAULT_KEEP_FINISHED;
+    if(!elementtoint(tmp_node,"defaultTTL",default_ttl)) return false;
+    unsigned int default_ttr = DEFAULT_KEEP_DELETED;
+    if(!elementtoint(tmp_node,"defaultTTR",default_ttr)) return false;
+/*
+    } else if(command == "control") {
+
+
+      if(command == "controldir") rest=".";
+      for(;;) {
+        std::string username = config_next_arg(rest);
+        if(username.length() == 0) break;
+        if(username == "*") {  * add all gridmap users *
+          if(!gridmap_user_list(rest)) {
+            logger.msg(Arc::ERROR,"Can't read users in gridmap file %s",globus_gridmap); goto exit;
+          };
+          continue;
+        };
+        if(username == ".") {  * accept all users in this control directory *
+           * !!!!!!! substitutions involving user names won't work !!!!!!!  *
+           if(superuser) { username=""; }
+           else { username=my_username; };
+        };
+        * add new user to list *
+        if(superuser || (my_username == username)) {
+          if(users.HasUser(username)) { * first is best *
+            continue;
+          };
+          JobUsers::iterator user=users.AddUser(username,&cred_plugin,
+                                       control_dir,session_root);
+          if(user == users.end()) { * bad bad user *
+            logger.msg(Arc::WARNING,"Warning: creation of user \"%s\" failed",username);
+          }
+          else {
+            // get cache parameters for this user
+            try {
+              CacheConfig * cache_config = new CacheConfig(user->UnixName());
+              std::list<std::string> cache_info = cache_config->getCacheDirs();
+              for (std::list<std::string>::iterator i = cache_info.begin(); i != cache_info.end(); i++) {
+                user->substitute(*i);
+              }
+              cache_config->setCacheDirs(cache_info);
+              user->SetCacheParams(cache_config);
+            }
+            catch (CacheConfigException e) {
+              logger.msg(Arc::ERROR, "Error with cache configuration: %s", e.what());
+              logger.msg(Arc::ERROR, "Caching is disabled");
+            }
+            std::string control_dir_ = control_dir;
+            std::string session_root_ = session_root;
+            user->SetLRMS(default_lrms,default_queue);
+            user->SetKeepFinished(default_ttl);
+            user->SetKeepDeleted(default_ttr);
+            user->SetReruns(default_reruns);
+            user->SetDiskSpace(default_diskspace);
+            user->substitute(control_dir_);
+            user->substitute(session_root_);
+            user->SetControlDir(control_dir_);
+            user->SetSessionRoot(session_root_);
+            user->SetStrictSession(strict_session);
+            * add helper to poll for finished jobs *
+            std::string cmd_ = nordugrid_libexec_loc;
+            make_escaped_string(control_dir_);
+            cmd_+="/scan-"+default_lrms+"-job";
+            make_escaped_string(cmd_);
+            cmd_+=" ";
+            cmd_+=control_dir_;
+            user->add_helper(cmd_);
+            * creating empty list of jobs *
+            JobsList *jobs = new JobsList(*user,plugins);
+            (*user)=jobs; * back-associate jobs with user :) *
+          };
+        };
+      };
+      last_control_dir = control_dir;
+*/
+
+
+  
+ 
+  };
+/*
+    } else if(command == "controldir") {
+      central_control_dir=rest;
+*/
+ 
+
+
+
+
+  return true;
 }
 
 bool print_serviced_users(const JobUsers &users) {
