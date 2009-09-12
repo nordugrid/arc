@@ -2,13 +2,14 @@
 <xsd:schema
   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
   xmlns="http://www.nordugrid.org/schemas/ArcConfig/2009/arex/InfoProvider"
+  xmlns:ip="http://www.nordugrid.org/schemas/ArcConfig/2009/arex/InfoProvider"
   targetNamespace="http://www.nordugrid.org/schemas/ArcConfig/2009/arex/InfoProvider"
   elementFormDefault="qualified">
 
 <!-- Imports -->
 <xsd:import namespace="http://www.nordugrid.org/schemas/ArcConfig/2009/arex/LRMS" schemaLocation="./a-rex_lrms.xsd"/>
 
-<xsd:complexType name="benchmark_Type">
+<xsd:simpleType name="benchmark_Type">
     <xsd:annotation>
         <xsd:documentation xml:lang="en">
             This element can be used to specify benchmark results on the nodeGroup level.
@@ -23,28 +24,49 @@
                specint2000 - SPECint2000 integer benchmark
         </xsd:documentation>
     </xsd:annotation>
-    <xsd:simpleContent>
-        <xsd:restriction base="xsd:string">
-            <xs:pattern value="\w+\s[\d.]+"/>
-        </xsd:restriction>
-    </xsd:simpleContent>
-</xsd:complexType>
+    <xsd:restriction base="xsd:string">
+        <xsd:pattern value="\w+\s[\d.]+"/>
+    </xsd:restriction>
+</xsd:simpleType>
+
+<xsd:simpleType name="connectivityIn_Type">
+  <xsd:restriction base="xsd:string">
+     <xsd:pattern value="true|false"/>
+  </xsd:restriction>
+</xsd:simpleType>
+
+<xsd:simpleType name="connectivityOut_Type">
+  <xsd:restriction base="xsd:string">
+     <xsd:pattern value="true|false"/>
+  </xsd:restriction>
+</xsd:simpleType>
+
+<xsd:simpleType name="schedulingPolicy_Type">
+  <xsd:restriction base="xsd:string">
+     <xsd:pattern value="([a-zA-Z0-9])*"/>
+  </xsd:restriction>
+</xsd:simpleType>
+
+<xsd:simpleType name="networkInfo_Type">
+  <xsd:restriction base="xsd:string">
+     <xsd:pattern value="([a-zA-Z0-9])*"/>
+  </xsd:restriction>
+</xsd:simpleType>
 
 <xsd:complexType name="infoProvider_Type">
     <xsd:annotation>
         <xsd:documentation xml:lang="en">
         </xsd:documentation>
-    </xsd:annotation>
-    <xsd:complexContent>
+    </xsd:annotation>   
         <xsd:sequence>
-            <xsd:element name="clusterName" type="xsd:string">
+            <xsd:element name="clusterName" type="xsd:string"/>
             <xsd:element name="clusterDetails" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
-            <xsd:element name="lrmsDetails" type="xsd:string"/ minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="lrmsDetails" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="statusInfoPage" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
-            <xsd:element name="connectivityIn" type="connectivityIn_Type"/>
-            <xsd:element name="connectivityOut" type="connectivityOut_Type"/>
-            <xsd:element name="networkInfo" type="networkInfo_Type" minOccurs="0"/>
-            <xsd:element name="schedulingPolicy" type="schedulingPolicy_Type" minOccurs="0"/>
+            <xsd:element name="connectivityIn" type="ip:connectivityIn_Type"/>
+            <xsd:element name="connectivityOut" type="ip:connectivityOut_Type"/>
+            <xsd:element name="networkInfo" type="ip:networkInfo_Type" minOccurs="0"/>
+            <xsd:element name="schedulingPolicy" type="ip:schedulingPolicy_Type" minOccurs="0"/>
             <xsd:element name="clusterOwner" type="xsd:string" minOccurs="0"/>
             <xsd:element name="clusterLocation" type="xsd:string" minOccurs="0"/>
             <xsd:element name="clusterSupport" type="xsd:string" minOccurs="0"/>
@@ -55,7 +77,6 @@
             <xsd:element name="nodeGroup" type="nodeGroup_Type" maxOccurs="unbounded"/>
             <xsd:element name="clusterShare" type="clusterShare_Type" maxOccurs="unbounded"/>
         </xsd:sequence>
-    </xsd:complexContent>
 </xsd:complexType>
 
 <xsd:complexType name="nodeGroup_Type">
@@ -64,13 +85,12 @@
             This element represents a group of identical compute nodes in the cluster.
         </xsd:documentation>
     </xsd:annotation>
-    <xsd:complexContent>
         <xsd:sequence>
-            <xsd:element name="description" type="xsd:string" minOccurs="0">
-            <xsd:element name="nodeSelection" type="nodeSelection_Type" minOccurs="0">
-            <xsd:element name="totalInstances" type="xsd:positiveInteger" minOccurs="0">
+            <xsd:element name="description" type="xsd:string" minOccurs="0"/>
+            <xsd:element name="nodeSelection" type="nodeSelection_Type" minOccurs="0"/>
+            <xsd:element name="totalInstances" type="xsd:positiveInteger" minOccurs="0"/>
             <xsd:element name="virtualMachine" type="xsd:boolean" minOccurs="0"/>
-            <xsd:element name="architecture" type="xsd:string">
+            <xsd:element name="architecture" type="xsd:string"/>
             <xsd:element name="OSFamily" type="xsd:string"/>
             <xsd:element name="OSName" type="xsd:string"/>
             <xsd:element name="OSVersion" type="xsd:string"/>
@@ -87,7 +107,6 @@
             <xsd:element name="networkInfo" type="xsd:string" minOccurs="0"/>
             <xsd:element name="benchmark" type="benchmark_Type" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
-    </xsd:complexContent>
 </xsd:complexType>
 
 <xsd:complexType name="nodeSelection_Type">
@@ -96,13 +115,11 @@
             This element is used by the infoprovider to determine which nodes are included in a nodeGroup.
         </xsd:documentation>
     </xsd:annotation>
-    <xsd:complexContent>
-        <xsd:choice>
-            <xsd:element name="regex" type="xsd:string" maxOccurs="unbounded"/>
-            <xsd:element name="command" type="xsd:string"/>
-            <xsd:element name="LRMSToken" type="xsd:string"/>
-        </xsd:choice>
-    </xsd:complexContent>
+    <xsd:choice>
+       <xsd:element name="regex" type="xsd:string" maxOccurs="unbounded"/>
+       <xsd:element name="command" type="xsd:string"/>
+       <xsd:element name="LRMSToken" type="xsd:string"/>
+    </xsd:choice>
 </xsd:complexType>
 
 <xsd:complexType name="clusterShare_Type">
@@ -111,18 +128,16 @@
             
         </xsd:documentation>
     </xsd:annotation>
-    <xsd:complexContent>
-        <xsd:sequence>
-            <xsd:element name="description" type="xsd:string" minOccurs="0"/>
-            <xsd:element name="queueName" type="xsd:string" minOccurs="0"/>
-            <xsd:element name="nodeGroupName" type="xsd:string" maxOccurs="unbounded"/>
-            <xsd:element name="authorizedVO" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
-            <xsd:element name="maxSlotsPerJob" type="xsd:positiveInteger" minOccurs="0"/>
-            <xsd:element name="maxVirtualMemory" type="xsd:positiveInteger" minOccurs="0"/>
-            <xsd:element name="preemption" type="xsd:boolean" minOccurs="0"/>
-            <xsd:any namespace="http://www.nordugrid.org/schemas/ArcConfig/2009/arex/LRMS" minOccurs="0" maxOccurs="unbounded"/>
-        </xsd:sequence>
-    </xsd:complexContent>
+    <xsd:sequence>
+       <xsd:element name="description" type="xsd:string" minOccurs="0"/>
+       <xsd:element name="queueName" type="xsd:string" minOccurs="0"/>
+       <xsd:element name="nodeGroupName" type="xsd:string" maxOccurs="unbounded"/>
+       <xsd:element name="authorizedVO" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+       <xsd:element name="maxSlotsPerJob" type="xsd:positiveInteger" minOccurs="0"/>
+       <xsd:element name="maxVirtualMemory" type="xsd:positiveInteger" minOccurs="0"/>
+       <xsd:element name="preemption" type="xsd:boolean" minOccurs="0"/>
+       <xsd:any namespace="http://www.nordugrid.org/schemas/ArcConfig/2009/arex/LRMS" minOccurs="0" maxOccurs="unbounded"/>
+    </xsd:sequence>
 </xsd:complexType>
 
 <xsd:element name="infoProvider" type="infoProvider_Type"/>

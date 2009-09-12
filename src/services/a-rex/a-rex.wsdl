@@ -155,11 +155,25 @@
         <xsd:anyAttribute namespace="##other" processContents="lax"/>
       </xsd:complexType>
 
-      <xsd:element name="MigrateActivity"
-        type="a-rex:MigrateActivityType"/>
-      <xsd:element name="MigrateActivityResponse"
-        type="a-rex:MigrateActivityResponseType"/>
+      <xsd:element name="MigrateActivity" type="a-rex:MigrateActivityType"/>
+      <xsd:element name="MigrateActivityResponse" type="a-rex:MigrateActivityResponseType"/>
+ 
+      <xsd:complexType name="CacheConfigurationFaultType">
+        <xsd:sequence>
+           <xsd:element name="Description" type="xsd:string" minOccurs="0"/>
+        </xsd:sequence>
+      </xsd:complexType>
+        
+ 
+      <xsd:complexType name="CacheDisabledFaultType">
+        <xsd:sequence>
+            <xsd:element name="Description" type="xsd:string" minOccurs="0"/>
+         </xsd:sequence>
+      </xsd:complexType>
       
+      <xsd:element name="CacheDisabledFault" type="a-rex:CacheDisabledFaultType"/>     
+      <xsd:element name="CacheConfigurationFault" type="a-rex:CacheConfigurationFaultType"/>  
+
     </xsd:schema>
   </wsdl:types>
 
@@ -177,6 +191,14 @@
 
   <wsdl:message name="CacheCheckResponse">
     <wsdl:part name="CacheCheckResponse" element="a-rex:CacheCheckResponse"/>
+  </wsdl:message>
+
+  <wsdl:message name="CacheConfigurationFault">
+    <wsdl:part name="CacheConfigurationFault" element="a-rex:CacheConfigurationFault"/>
+  </wsdl:message>
+  
+    <wsdl:message name="CacheDisabledFault">
+    <wsdl:part name="CacheDisabledFault" element="a-rex:CacheDisabledFault"/>
   </wsdl:message>
 
   <wsdl:message name="MigrateActivityRequest">
@@ -293,12 +315,6 @@
       <wsdl:fault name="QueryEvaluationErrorFault" 
         message="wsrf-rpw:QueryEvaluationErrorFault"
         wsa:Action="http://docs.oasis-open.org/wsrf/fault"/>
-      <wsdl:fault name="ResourceUnknownFault"
-        message="wsrf-rw:ResourceUnknownFault"
-        wsa:Action="http://docs.oasis-open.org/wsrf/fault"/>
-      <wsdl:fault name="ResourceUnknownFault"
-        message="wsrf-rw:ResourceUnknownFault"
-        wsa:Action="http://docs.oasis-open.org/wsrf/fault"/>
     </wsdl:operation>
     <wsdl:operation name="CacheCheck">
       <wsdl:documentation>
@@ -317,12 +333,8 @@
         wsa:Action="http://www.nordugrid.org/schemas/a-rex/fault"/>
     </wsdl:operation>
     <wsdl:operation name="MigrateActivity">
-      <wsdl:input 
-         name="MigrateActivity"
-         message="a-rex:MigrateActivityRequest"  
-      <wsdl:output
-         name="MigrateActivityResponse"
-         message="a-rex:MigrateActivityResponse"
+      <wsdl:input name="MigrateActivity" message="a-rex:MigrateActivityRequest"/>  
+      <wsdl:output name="MigrateActivityResponse" message="a-rex:MigrateActivityResponse"/>
       <wsdl:fault name="NotAuthorizedFault" 
          message="bes-factory:NotAuthorizedFault"
         wsa:Action="http://schemas.ggf.org/bes/2006/08/bes-factory/BESFactoryPortType/Fault"/>
@@ -479,16 +491,16 @@
 
   <wsdl:service name="a-rex">
     <wsdl:port name="delegation" binding="deleg:DelegationBinding">
-      <soap:address location="http://localhost:80"/>
+      <soap:address location="http://knowarc1.grid.niif.hu:50000/arex"/>
     </wsdl:port>
     <wsdl:port name="bes-factory" binding="bes-factory:BESFactoryBinding">
-      <soap:address location="http://localhost:80"/>
+      <soap:address location="http://knowarc1.grid.niif.hu:50000/arex"/>
     </wsdl:port>
     <wsdl:port name="bes-mgmt" binding="bes-mgmt:BESManagementBinding">
-      <soap:address location="http://localhost:80"/>
+      <soap:address location="http://knowarc1.grid.niif.hu:50000/arex"/>
     </wsdl:port>
     <wsdl:port name="a-rex" binding="a-rex:a-rex">
-      <soap:address location="http://localhost:80"/>
+      <soap:address location="http://knowarc1.grid.niif.hu:50000/arex"/>
     </wsdl:port>
   </wsdl:service>
 </wsdl:definitions>

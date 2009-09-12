@@ -52,7 +52,7 @@
     <xsd:simpleType name="gmrun_Type">
         <xsd:annotation>
             <xsd:documentation xml:lang="en">
-                 This element defines how grid-manager part of A-Rex is run.
+                 This element defines how grid-manager part of A-REX is run.
                  * internal - as a thread inside service container.
                  * none - no grid-manager is run.
                  * external - as a separate executable (not supported anymore).
@@ -85,14 +85,14 @@
     <xsd:complexType name="LRMS_Type">
         <xsd:annotation>
             <xsd:documentation xml:lang="en">
-                Defines parameters for controling LRMS specific 
+                Defines parameters for controlling LRMS specific 
                 and LRMS related functionality.
                 * type - name of LRMS/batch system
                 * defaultQueue - optional name of default queue
                 * sharedFilesystem - either session directory is shared
                   with computing node
                 * GNUTimeUtility - location and name of GNU time executable
-                * any accomodates numerous LRMS configuration parameters
+                * any accommodates numerous LRMS configuration parameters
                   * pbs_bin_path="/usr/bin"
                   * pbs_log_path="/var/spool/pbs/server_logs"
                   * condor_location="/opt/condor"
@@ -164,7 +164,7 @@
                 disabled.
                 * location - path to a directory to store cached data. 
                   Multiple cache directories may be specified by specifying
-                  multiple location elememts. Cached data will be distributed
+                  multiple location elements. Cached data will be distributed
                   evenly over the caches.
                 * link - optional path at which the location is accessible on
                   computing nodes, if it is different from the path on the
@@ -189,41 +189,8 @@
         </xsd:sequence>
     </xsd:complexType>
 
-    <xsd:complexType name="dataTransfer_Type">
-        <xsd:annotation>
-            <xsd:documentation xml:lang="en">
-            </xsd:documentation>
-        </xsd:annotation>
-        <xsd:sequence>
-            <xsd:element name="secureTransfer" type="xsd::boolean"
-                         minOccurs="0"/>
-            <xsd:element name="passiveTransfer" type="xsd::boolean"
-                         minOccurs="0"/>
-            <xsd:element name="localTransfer" type="xsd::boolean"
-                         minOccurs="0"/>
-            <xsd:element name="timeouts" minOccurs="0">
-                <xsd:element name="minSpeed"
-                             type="xsd:nonNegativeInteger" minOccurs="0"/>
-                <xsd:element name="minSpeedTime"
-                             type="xsd:nonNegativeInteger" minOccurs="0"/>
-                <xsd:element name="minAverageSpeed"
-                             type="xsd:nonNegativeInteger" minOccurs="0"/>
-                <xsd:element name="maxInactivityTime"
-                             type="xsd:nonNegativeInteger" minOccurs="0"/>
-            </xsd:element>
-            <xsd:element name="maxRetries" type="xsd::nonNegativeInteger"
-                         minOccurs="0"/>
-            <xsd:element name="mapURL" minOccurs="0" maxOccurs="unbounded">
-                <xsd:complexType>
-                    <xsd:sequence>
-                        <xsd:element name="from" type="xsd:anyURI"/>
-                        <xsd:element name="to" type="xsd:anyURI"/>
-                    </xsd:sequence>
-                    <xsd:attribute name="link" type="xsd:boolean"
-                                   use="optional"/>
-                </xsd:complexType>
-            </xsd:element>
-            <xsd:element name="Globus" minOccurs="0">
+    <xsd:complexType name="Globus_Type">
+        <xsd:sequence>                    
                 <xsd:element name="gridmapfile" type="xsd:string"
                          minOccurs="0"/>
                 <xsd:element name="cadir" type="xsd:string"
@@ -236,7 +203,50 @@
                          minOccurs="0"/>
                 <xsd:element name="UDPPortRange" type="xsd:string"
                          minOccurs="0"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="timeouts_Type">
+        <xsd:sequence>                    
+               <xsd:element name="minSpeed"
+                             type="xsd:nonNegativeInteger" minOccurs="0"/>
+                <xsd:element name="minSpeedTime"
+                             type="xsd:nonNegativeInteger" minOccurs="0"/>
+                <xsd:element name="minAverageSpeed"
+                             type="xsd:nonNegativeInteger" minOccurs="0"/>
+                <xsd:element name="maxInactivityTime"
+                             type="xsd:nonNegativeInteger" minOccurs="0"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="dataTransfer_Type">
+        <xsd:annotation>
+            <xsd:documentation xml:lang="en">
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="secureTransfer" type="xsd:boolean"
+                         minOccurs="0"/>
+            <xsd:element name="passiveTransfer" type="xsd:boolean"
+                         minOccurs="0"/>
+            <xsd:element name="localTransfer" type="xsd:boolean"
+                         minOccurs="0"/>
+            <xsd:element name="timeouts" minOccurs="0" type="arc:timeouts_Type"/>
+
+            <xsd:element name="maxRetries" type="xsd:nonNegativeInteger"
+                         minOccurs="0"/>
+            <xsd:element name="mapURL" minOccurs="0" maxOccurs="unbounded">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="from" type="xsd:anyURI"/>
+                        <xsd:element name="to" type="xsd:anyURI"/>
+                    </xsd:sequence>
+                    <xsd:attribute name="link" type="xsd:boolean"
+                                   use="optional"/>
+                </xsd:complexType>
             </xsd:element>
+            
+            <xsd:element name="Globus" minOccurs="0" type="arc:Globus_Type"/>            
             <xsd:element name="httpProxy" type="xsd:anyURI"
                          minOccurs="0"/>
         </xsd:sequence>
@@ -248,9 +258,9 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="username" type="xsd::string" minOccurs="0"/>
-            <xsd:element name="controlDir" type="xsd::string"/>
-            <xsd:element name="sessionRootDir" type="xsd::string"
+            <xsd:element name="username" type="xsd:string" minOccurs="0"/>
+            <xsd:element name="controlDir" type="xsd:string"/>
+            <xsd:element name="sessionRootDir" type="xsd:string"
                          maxOccurs="unbounded"/>
             <xsd:element name="cache" type="cache_Type"
                          minOccurs="0" maxOccurs="unbounded"/>
@@ -275,10 +285,10 @@
 
     <xsd:complexType name="authPlugin_Type">
         <xsd:sequence>
-            <xsd:element name="state" type="xsd::string"/>
-            <xsd:element name="command" type="xsd::string"/>
+            <xsd:element name="state" type="xsd:string"/>
+            <xsd:element name="command" type="xsd:string"/>
         </xsd:sequence>
-        <xsd:attribute name="timeout" type="xsd::nonNegativeInteger"
+        <xsd:attribute name="timeout" type="xsd:nonNegativeInteger"
                        use="optional"/>
         <xsd:attribute name="onSuccess" type="authPluginAction_Type"
                        use="optional" default="PASS"/>
@@ -321,7 +331,10 @@
       <xsd:annotation>
         <xsd:documentation xml:lang="en">
           Name of Local Resource Management System.
-
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:element>
+         
     <xsd:element name="OperatingSystem" type="xsd:string">
       <xsd:annotation>
         <xsd:documentation xml:lang="en">
@@ -343,59 +356,63 @@
       </xsd:annotation>
     </xsd:element>
 
-    <xsd:element name="debugLevel" minOccurs="0">
-        <xsd:simpleType>
+  <xsd:complexType name="debugLevel">
+    <xsd:simpleContent>
+      <xsd:extension base="xsd:string">
+        <xsd:attribute name="level" default="INFO">
+          <xsd:simpleType>
             <xsd:restriction base="xsd:string">
-                <xsd:enumeration value="FATAL"/>
-                <xsd:enumeration value="ERROR"/>
-                <xsd:enumeration value="WARNING"/>
-                <xsd:enumeration value="INFO"/>
-                <xsd:enumeration value="DEBUG"/>
-                <xsd:enumeration value="VERBOSE"/>
+              <xsd:enumeration value="VERBOSE"/>          
+              <xsd:enumeration value="DEBUG"/>
+              <xsd:enumeration value="INFO"/>
+              <xsd:enumeration value="WARNING"/>
+              <xsd:enumeration value="ERROR"/>
+              <xsd:enumeration value="FATAL"/>
             </xsd:restriction>
-        </xsd:simpleType>
-    </xsd:element>
+          </xsd:simpleType>
+        </xsd:attribute>
+      </xsd:extension>
+    </xsd:simpleContent>
+  </xsd:complexType>
 
-    <xsd:element name="loadLimits" type="loadLimits_Type" minOccurs="0"/>
+    <xsd:element name="loadLimits" type="loadLimits_Type"/>
 
-    <xsd:element name="dataTransfer" type="dataTransfer_Type" minOccurs="0"/>
+    <xsd:element name="dataTransfer" type="dataTransfer_Type"/>
 
-    <xsd:element name="serviceMail" type="xsd:string" minOccurs="0"/>
+    <xsd:element name="serviceMail" type="xsd:string"/>
 
-    <xsd:element name="runtimeDir" type="xsd:string" minOccurs="0"/>
+    <xsd:element name="runtimeDir" type="xsd:string"/>
 
-    <xsd:element name="jobLogPath" type="xsd:string" minOccurs="0"/>
+    <xsd:element name="jobLogPath" type="xsd:string"/>
 
-    <xsd:element name="jobReport" minOccurs="0" macOccurs="unbounded">
-        <xsd:complexType>
-            <xsd:sequence>
-                <xsd:element name="destination" type="xsd::anyURI"/>
-                <xsd:element name="expiration" type="xsd::nonNegativeInteger"
+    <xsd:element name="jobReport" type="arc:jobReportType"/>
+    
+    <xsd:complexType name="jobReportType">
+       <xsd:sequence>
+           <xsd:element name="destination" type="xsd:anyURI"/>
+           <xsd:element name="expiration" type="xsd:nonNegativeInteger"
+                            minOccurs="0"/>
+           <xsd:element name="type" type="xsd:nonNegativeInteger"
+                            minOccurs="0"/>
+           <xsd:element name="parameters" type="xsd:nonNegativeInteger"
                              minOccurs="0"/>
-                <xsd:element name="type" type="xsd::nonNegativeInteger"
-                             minOccurs="0"/>
-                <xsd:element name="parameters" type="xsd::nonNegativeInteger"
-                             minOccurs="0"/>
-            </xsd:sequence>
-        </xsd:complexType>
-    </xsd:element>
+      </xsd:sequence>
+    </xsd:complexType>
 
-    <xsd:element name="authPlugin" type="authPlugin_Type"
-                 minOccurs="0" maxOccurs="unbounded"/>
+    <xsd:element name="authPlugin" type="authPlugin_Type"/>
  
     <!-- There should be minOccurs="1" here. But to allow this element to
          be defined in separate file we keep minOccurs="0" for all elements -->
-    <xsd:element name="control" type="control_Type"
-                 minOccurs="0" maxOccurs="unbounded"/>
+    <xsd:element name="control" type="control_Type"/>
 
-    <xsd:element name="helperUtility" minOccurs="0" maxOccurs="unbounded">
-        <xsd:complexType>
-            <xsd:sequence>
-                <xsd:element name="username" type="xsd::string" minOccurs="0"/>
-                <xsd:element name="path" type="xsd::string"/>
-            </xsd:sequence>
-        </xsd:complexType>
-    </xsd:element>
+    <xsd:element name="helperUtility" type="arc:helperUtilityType"/>
+
+    <xsd:complexType name="helperUtilityType">
+       <xsd:sequence>
+          <xsd:element name="username" type="xsd:string"/>
+          <xsd:element name="path" type="xsd:string"/>
+       </xsd:sequence>
+    </xsd:complexType>
     
     <xsd:element name="sharedFilesystem" type="xsd:boolean"/>
 
@@ -403,7 +420,10 @@
 
     <xsd:element name="LRMS" type="LRMS_Type"/>
 
-    <xsd:any namespace="http://www.nordugrid.org/schemas/ArcConfig/2009/arex/InfoProvider"/>
+    <!-- 
+        TODO: need to fix this any thing. The current implementation is wrong.
+    
+     xsd:any namespace="http://www.nordugrid.org/schemas/ArcConfig/2009/arex/InfoProvider"/-->
 
     <!-- Not ported elements
     #logsize="100000 2"
