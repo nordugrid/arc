@@ -190,33 +190,33 @@
     </xsd:complexType>
 
     <xsd:complexType name="Globus_Type">
-        <xsd:sequence>                    
-                <xsd:element name="gridmapfile" type="xsd:string"
-                         minOccurs="0"/>
-                <xsd:element name="cadir" type="xsd:string"
-                         minOccurs="0"/>
-                <xsd:element name="certpath" type="xsd:string"
-                         minOccurs="0"/>
-                <xsd:element name="keypath" type="xsd:string"
-                         minOccurs="0"/>
-                <xsd:element name="TCPPortRange" type="xsd:string"
-                         minOccurs="0"/>
-                <xsd:element name="UDPPortRange" type="xsd:string"
-                         minOccurs="0"/>
-        </xsd:sequence>
+       <xsd:sequence>                    
+          <xsd:element name="gridmapfile" type="xsd:string"
+                       minOccurs="0"/>
+          <xsd:element name="cadir" type="xsd:string"
+                       minOccurs="0"/>
+          <xsd:element name="certpath" type="xsd:string"
+                       minOccurs="0"/>
+          <xsd:element name="keypath" type="xsd:string"
+                       minOccurs="0"/>
+          <xsd:element name="TCPPortRange" type="xsd:string"
+                       minOccurs="0"/>
+          <xsd:element name="UDPPortRange" type="xsd:string"
+                       minOccurs="0"/>
+       </xsd:sequence>
     </xsd:complexType>
 
     <xsd:complexType name="timeouts_Type">
-        <xsd:sequence>                    
-               <xsd:element name="minSpeed"
-                             type="xsd:nonNegativeInteger" minOccurs="0"/>
-                <xsd:element name="minSpeedTime"
-                             type="xsd:nonNegativeInteger" minOccurs="0"/>
-                <xsd:element name="minAverageSpeed"
-                             type="xsd:nonNegativeInteger" minOccurs="0"/>
-                <xsd:element name="maxInactivityTime"
-                             type="xsd:nonNegativeInteger" minOccurs="0"/>
-        </xsd:sequence>
+       <xsd:sequence>                    
+          <xsd:element name="minSpeed"
+                       type="xsd:nonNegativeInteger" minOccurs="0"/>
+          <xsd:element name="minSpeedTime"
+                       type="xsd:nonNegativeInteger" minOccurs="0"/>
+          <xsd:element name="minAverageSpeed"
+                       type="xsd:nonNegativeInteger" minOccurs="0"/>
+          <xsd:element name="maxInactivityTime"
+                       type="xsd:nonNegativeInteger" minOccurs="0"/>
+       </xsd:sequence>
     </xsd:complexType>
 
     <xsd:complexType name="dataTransfer_Type">
@@ -356,24 +356,26 @@
       </xsd:annotation>
     </xsd:element>
 
-  <xsd:complexType name="debugLevel">
-    <xsd:simpleContent>
-      <xsd:extension base="xsd:string">
-        <xsd:attribute name="level" default="INFO">
-          <xsd:simpleType>
-            <xsd:restriction base="xsd:string">
-              <xsd:enumeration value="VERBOSE"/>          
-              <xsd:enumeration value="DEBUG"/>
-              <xsd:enumeration value="INFO"/>
-              <xsd:enumeration value="WARNING"/>
-              <xsd:enumeration value="ERROR"/>
-              <xsd:enumeration value="FATAL"/>
-            </xsd:restriction>
-          </xsd:simpleType>
-        </xsd:attribute>
-      </xsd:extension>
-    </xsd:simpleContent>
-  </xsd:complexType>
+    <xsd:complexType name="debugLevel_Type">
+       <xsd:simpleContent>
+          <xsd:extension base="xsd:string">
+             <xsd:attribute name="level" default="INFO">
+                <xsd:simpleType>
+                   <xsd:restriction base="xsd:string">
+                      <xsd:enumeration value="VERBOSE"/>          
+                      <xsd:enumeration value="DEBUG"/>
+                      <xsd:enumeration value="INFO"/>
+                      <xsd:enumeration value="WARNING"/>
+                       <xsd:enumeration value="ERROR"/>
+                       <xsd:enumeration value="FATAL"/>
+                   </xsd:restriction>
+                 </xsd:simpleType>
+             </xsd:attribute>
+          </xsd:extension>
+       </xsd:simpleContent>
+    </xsd:complexType>
+
+    <xsd:element name="debugLevel" type="debugLevel_Type">
 
     <xsd:element name="loadLimits" type="loadLimits_Type"/>
 
@@ -385,18 +387,18 @@
 
     <xsd:element name="jobLogPath" type="xsd:string"/>
 
-    <xsd:element name="jobReport" type="arc:jobReportType"/>
+    <xsd:element name="jobReport" type="arc:jobReport_Type"/>
     
-    <xsd:complexType name="jobReportType">
+    <xsd:complexType name="jobReport_Type">
        <xsd:sequence>
            <xsd:element name="destination" type="xsd:anyURI"/>
            <xsd:element name="expiration" type="xsd:nonNegativeInteger"
                             minOccurs="0"/>
-           <xsd:element name="type" type="xsd:nonNegativeInteger"
+           <xsd:element name="type" type="xsd:string"
                             minOccurs="0"/>
-           <xsd:element name="parameters" type="xsd:nonNegativeInteger"
+           <xsd:element name="parameters" type="xsd:string"
                              minOccurs="0"/>
-      </xsd:sequence>
+        </xsd:sequence>
     </xsd:complexType>
 
     <xsd:element name="authPlugin" type="authPlugin_Type"/>
@@ -405,9 +407,9 @@
          be defined in separate file we keep minOccurs="0" for all elements -->
     <xsd:element name="control" type="control_Type"/>
 
-    <xsd:element name="helperUtility" type="arc:helperUtilityType"/>
+    <xsd:element name="helperUtility" type="arc:helperUtility_Type"/>
 
-    <xsd:complexType name="helperUtilityType">
+    <xsd:complexType name="helperUtility_Type">
        <xsd:sequence>
           <xsd:element name="username" type="xsd:string"/>
           <xsd:element name="path" type="xsd:string"/>

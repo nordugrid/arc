@@ -491,16 +491,16 @@
 
   <wsdl:service name="a-rex">
     <wsdl:port name="delegation" binding="deleg:DelegationBinding">
-      <soap:address location="http://knowarc1.grid.niif.hu:50000/arex"/>
+      <soap:address location="http://localhost:80"/>
     </wsdl:port>
     <wsdl:port name="bes-factory" binding="bes-factory:BESFactoryBinding">
-      <soap:address location="http://knowarc1.grid.niif.hu:50000/arex"/>
+      <soap:address location="http://localhost:80"/>
     </wsdl:port>
     <wsdl:port name="bes-mgmt" binding="bes-mgmt:BESManagementBinding">
-      <soap:address location="http://knowarc1.grid.niif.hu:50000/arex"/>
+      <soap:address location="http://localhost:80"/>
     </wsdl:port>
     <wsdl:port name="a-rex" binding="a-rex:a-rex">
-      <soap:address location="http://knowarc1.grid.niif.hu:50000/arex"/>
+      <soap:address location="http://localhost:80"/>
     </wsdl:port>
   </wsdl:service>
 </wsdl:definitions>
