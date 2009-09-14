@@ -91,7 +91,7 @@ namespace Arc {
       logger.msg(DEBUG, "check_ftp: globus_ftp_client_size failed");
       logger.msg(INFO, "Globus error: %s", res.str());
     }
-    else if (!cond.wait(300000)) { /* 5 minutes timeout */
+    else if (!cond.wait(1000*stringtoi(usercfg.ConfTree()["TimeOut"]))) { 
       logger.msg(INFO, "check_ftp: timeout waiting for size");
       globus_ftp_client_abort(&ftp_handle);
       cond.wait();
@@ -108,7 +108,7 @@ namespace Arc {
                  "check_ftp: globus_ftp_client_modification_time failed");
       logger.msg(INFO, "Globus error: %s", res.str());
     }
-    else if (!cond.wait(300000)) { /* 5 minutes timeout */
+    else if (!cond.wait(1000*stringtoi(usercfg.ConfTree()["TimeOut"]))) {
       logger.msg(INFO, "check_ftp: timeout waiting for modification_time");
       globus_ftp_client_abort(&ftp_handle);
       cond.wait();
@@ -142,7 +142,7 @@ namespace Arc {
         cond.wait();
         return DataStatus::CheckError;
       }
-      if (!cond.wait(300000)) { /* 5 minutes timeout */
+      if (!cond.wait(1000*stringtoi(usercfg.ConfTree()["TimeOut"]))) {
         logger.msg(INFO, "check_ftp: timeout waiting for partial get");
         globus_ftp_client_abort(&ftp_handle);
         cond.wait();
@@ -175,7 +175,7 @@ namespace Arc {
       logger.msg(INFO, "Globus error: %s", res.str());
       return DataStatus::DeleteError;
     }
-    if (!cond.wait(300000)) { /* 5 minutes timeout */
+    if (!cond.wait(1000*stringtoi(usercfg.ConfTree()["TimeOut"]))) {
       logger.msg(INFO, "delete_ftp: globus_ftp_client_delete timeout");
       globus_ftp_client_abort(&ftp_handle);
       cond.wait();
@@ -229,7 +229,7 @@ namespace Arc {
         logger.msg(INFO, "Globus error: %s", res.str());
         return false;
       }
-      if (!cond.wait(300000)) {
+      if (!cond.wait(1000*stringtoi(usercfg.ConfTree()["TimeOut"]))) {
         logger.msg(INFO, "mkdir_ftp: timeout waiting for mkdir");
         /* timeout - have to cancel operation here */
         globus_ftp_client_abort(&ftp_handle);
@@ -277,7 +277,7 @@ namespace Arc {
         // reading = false;
         // return DataStatus::ReadStartError;
       }
-      else if (!cond.wait(300000)) {
+      else if (!cond.wait(1000*stringtoi(usercfg.ConfTree()["TimeOut"]))) {
         logger.msg(ERROR, "start_reading_ftp: timeout waiting for file size");
         /* timeout - have to cancel operation here */
         logger.msg(INFO,
@@ -315,7 +315,7 @@ namespace Arc {
         // reading = false;
         // return DataStatus::ReadStartError;
       }
-      else if (!cond.wait(300000)) { /* 5 minutes timeout */
+      else if (!cond.wait(1000*stringtoi(usercfg.ConfTree()["TimeOut"]))) {
         logger.msg(INFO, "start_reading_ftp: "
                    "timeout waiting for modification_time");
         globus_ftp_client_abort(&ftp_handle);
@@ -685,7 +685,7 @@ namespace Arc {
             logger.msg(INFO, "Globus error: %s", res.str());
             result = DataStatus::ListError;
           }
-          else if (!cond.wait(300000)) { /* 5 minutes timeout */
+          else if (!cond.wait(1000*stringtoi(usercfg.ConfTree()["TimeOut"]))) {
             logger.msg(INFO, "list_files_ftp: timeout waiting for size");
             globus_ftp_client_abort(&ftp_handle);
             cond.wait();
@@ -718,7 +718,7 @@ namespace Arc {
             logger.msg(INFO, "Globus error: %s", res.str());
             result = DataStatus::ListError;
           }
-          else if (!cond.wait(300000)) { /* 5 minutes timeout */
+          else if (!cond.wait(1000*stringtoi(usercfg.ConfTree()["TimeOut"]))) {
             logger.msg(INFO, "list_files_ftp: "
                        "timeout waiting for modification_time");
             globus_ftp_client_abort(&ftp_handle);

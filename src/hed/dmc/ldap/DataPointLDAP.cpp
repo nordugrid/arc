@@ -4,6 +4,8 @@
 #include <config.h>
 #endif
 
+#include <arc/StringConv.h>
+#include <arc/UserConfig.h>
 #include <arc/data/DataBuffer.h>
 
 #include "DataPointLDAP.h"
@@ -92,7 +94,7 @@ namespace Arc {
 
   DataStatus DataPointLDAP::StartReading(DataBuffer& buf) {
     buffer = &buf;
-    LDAPQuery q(url.Host(), url.Port());
+    LDAPQuery q(url.Host(), url.Port(), stringtoi(usercfg.ConfTree()["TimeOut"]));
     if (!q.Query(url.Path(), url.LDAPFilter(), url.LDAPAttributes(),
                  url.LDAPScope()))
       return DataStatus::ReadStartError;

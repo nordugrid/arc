@@ -271,9 +271,9 @@ namespace Arc {
 
   LDAPQuery::LDAPQuery(const std::string& ldaphost,
                        int ldapport,
+                       int timeout,
                        bool anonymous,
-                       const std::string& usersn,
-                       int timeout)
+                       const std::string& usersn)
     : host(ldaphost),
       port(ldapport),
       anonymous(anonymous),

@@ -20,7 +20,6 @@
 #include <arc/URL.h>
 
 #define SASLMECH "GSI-GSSAPI"
-#define TIMEOUT 10
 
 /**
  * LDAP callback type. Your ldap callbacks should be of same structure.
@@ -43,9 +42,9 @@ namespace Arc {
      */
     LDAPQuery(const std::string& ldaphost,
               int ldapport,
+              int timeout,
               bool anonymous = true,
-              const std::string& usersn = "",
-              int timeout = TIMEOUT);
+              const std::string& usersn = "");
 
     /**
      * Destructor. Will disconnect from the ldapserver if still connected.
