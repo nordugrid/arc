@@ -391,6 +391,7 @@ ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& crede
   // Write grami file
   Arc::JobDescription desc;
   desc.Parse(job_desc_str);
+  job.SetLocalDescription(job_);
   if(!write_grami(desc,job,*config_.User(),NULL)) {
     delete_job_id();
     failure_="Failed to create grami file";

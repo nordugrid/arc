@@ -111,3 +111,9 @@ bool JobDescription::GetLocalDescription(const JobUser &user) {
   return true;
 }
 
+bool JobDescription::SetLocalDescription(const JobLocalDescription &job_desc) {
+    if(local) return false;
+    local=new JobLocalDescription;
+    *local=job_desc;
+    return true;
+}

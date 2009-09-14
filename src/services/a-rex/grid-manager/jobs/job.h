@@ -130,5 +130,6 @@ class JobDescription {
   gid_t get_gid(void) const { return job_gid; };
   /* force 'local' to be created and read from file if not already available */
   bool GetLocalDescription(const JobUser &user);
+  bool SetLocalDescription(const JobLocalDescription &job_desc);
 };
 #endif
