@@ -5,6 +5,7 @@
 
 #include <string>
 
+#include <arc/ArcConfig.h>
 #include <arc/XMLNode.h>
 
 namespace Arc {
@@ -14,6 +15,7 @@ namespace Arc {
   public:
     IniConfig(const std::string& filename);
     ~IniConfig();
+    Config Evaluate();
   };
 
 } // namespace Arc

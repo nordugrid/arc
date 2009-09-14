@@ -7,6 +7,7 @@
 #include <fstream>
 
 #include <arc/IniConfig.h>
+#include <arc/Profile.h>
 #include <arc/StringConv.h>
 
 namespace Arc {
@@ -38,5 +39,14 @@ namespace Arc {
   }
 
   IniConfig::~IniConfig() {}
+
+  Config IniConfig::Evaluate() {
+    std::string profilename = (*this)["common"]["profile"];
+    if (profilename.empty())
+      return Config();
+    Profile profile(profilename);
+    Config cfg = profile.Evaluate(*this);
+    return cfg;
+  }
 
 } // namespace Arc
