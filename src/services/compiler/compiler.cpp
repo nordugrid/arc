@@ -269,7 +269,7 @@ std::string job_submit(const std::string job_name, const std::string site_url, c
         if(!tool.cert_path.empty()) cfg.AddCertificate(tool.cert_path);
         if(!tool.ca_dir.empty()) cfg.AddCADir(tool.ca_dir);
         cfg.GetOverlay(tool.config_path);*/
-	Arc::AREXClient ac(url,cfg);
+	Arc::Compiler_AREXClient ac(url,cfg);
     
 	std::string jsdl_file;
 	jsdl_file = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"; 
@@ -425,7 +425,7 @@ std::string job_submit(const std::string job_name, const std::string site_url, c
 	    throw std::invalid_argument(std::string("Could not open ")+
 				             std::string(jsdl_file_name));
 	
-	Arc::AREXFileList files;
+	Arc::Compiler_AREXFileList files;
     
 	// Submit job description
 	bool delegate = false;
@@ -539,7 +539,7 @@ bool Job_Status_Finished(std::string jobid){
       //    if(!cert_path.empty()) cfg.AddCertificate(cert_path);
       //    if(!ca_dir.empty()) cfg.AddCADir(ca_dir);
       //    cfg.GetOverlay(config_path);
-      Arc::AREXClient ac(url,cfg);
+      Arc::Compiler_AREXClient ac(url,cfg);
       std::string status= ac.stat(jobid);
       local_logger.msg(Arc::INFO, "STATUS: " + status);
  
@@ -696,7 +696,7 @@ Arc::MCC_Status Service_Compiler::process(Arc::Message& inmsg,Arc::Message& outm
                  //    if(!tool.cert_path.empty()) download_cfg.AddCertificate(tool.cert_path);
                  //    if(!tool.ca_dir.empty()) download_cfg.AddCADir(tool.ca_dir);
                  //    download_cfg.GetOverlay(tool.config_path);
-	     Arc::AREXClient download_ac(download_url,download_cfg);
+	     Arc::Compiler_AREXClient download_ac(download_url,download_cfg);
 	     bool r = get_file(*(download_ac.SOAP()),download_url, local_dir);
 	     if(!r) throw std::invalid_argument("Failed to download files!");
 	     logger.msg(Arc::DEBUG, "Download cycle: end");

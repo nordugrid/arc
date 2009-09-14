@@ -25,12 +25,12 @@ namespace Arc {
     return XMLNode();
   }
 
-  AREXClientError::AREXClientError(const std::string& what) :
+  Compiler_AREXClientError::Compiler_AREXClientError(const std::string& what) :
     std::runtime_error(what)
   {
   }
 
-  Arc::Logger AREXClient::logger(Arc::Logger::rootLogger, "A-REX-Client");
+  Arc::Logger Compiler_AREXClient::logger(Arc::Logger::rootLogger, "A-REX-Client");
 
   static void set_arex_namespaces(Arc::NS& ns) {
     ns["a-rex"]="http://www.nordugrid.org/schemas/a-rex";
@@ -42,20 +42,20 @@ namespace Arc {
     ns["jsdl-hpcpa"]="http://schemas.ggf.org/jsdl/2006/07/jsdl-hpcpa";
   }
 
-  AREXClient::AREXClient(std::string configFile) throw(AREXClientError)
+  Compiler_AREXClient::Compiler_AREXClient(std::string configFile) throw(Compiler_AREXClientError)
     :client_config(NULL),client_loader(NULL),client(NULL),client_entry(NULL)
   {
     logger.msg(Arc::INFO, "Creating an A-REX client");
 
-    if (configFile=="" && getenv("ARC_AREX_CONFIG"))
-      configFile = getenv("ARC_AREX_CONFIG");
+    if (configFile=="" && getenv("ARC_Compiler_AREX_CONFIG"))
+      configFile = getenv("ARC_Compiler_AREX_CONFIG");
     if (configFile=="")
       configFile = "./arex_client.xml";
 
     client_config = new Arc::Config(configFile.c_str());
     if(!*client_config) {
       logger.msg(Arc::ERROR, "Failed to load client configuration");
-      throw AREXClientError("Failed to load client configuration");
+      throw Compiler_AREXClientError("Failed to load client configuration");
     }
 
     client_loader = new Arc::MCCLoader(*client_config);
@@ -63,14 +63,14 @@ namespace Arc {
     client_entry = (*client_loader)["soap"];
     if(!client_entry) {
       logger.msg(Arc::ERROR, "Client chain does not have entry point");
-      throw AREXClientError("Client chain does not have entry point");
+      throw Compiler_AREXClientError("Client chain does not have entry point");
     }
 
     set_arex_namespaces(arex_ns);
   }
   
-  AREXClient::AREXClient(const Arc::URL& url,
-                         const Arc::MCCConfig& cfg) throw(AREXClientError)
+  Compiler_AREXClient::Compiler_AREXClient(const Arc::URL& url,
+                         const Arc::MCCConfig& cfg) throw(Compiler_AREXClientError)
     :client_config(NULL),client_loader(NULL),client(NULL),client_entry(NULL) {
 
     logger.msg(Arc::INFO, "Creating an A-REX client");
@@ -78,15 +78,15 @@ namespace Arc {
     set_arex_namespaces(arex_ns);
   }
   
-  AREXClient::~AREXClient()
+  Compiler_AREXClient::~Compiler_AREXClient()
   {
     if(client_loader) delete client_loader;
     if(client_config) delete client_config;
     if(client) delete client;
   }
   
-  std::string AREXClient::submit(std::istream& jsdl_file,AREXFileList& file_list,bool delegate)
-    throw(AREXClientError)
+  std::string Compiler_AREXClient::submit(std::istream& jsdl_file,Compiler_AREXFileList& file_list,bool delegate)
+    throw(Compiler_AREXClientError)
   {
     std::string jobid, faultstring;
     file_list.resize(0);
@@ -137,7 +137,7 @@ namespace Arc {
           };
           if(!s_url.empty()) {
             x_url.Destroy();
-            AREXFile file(s_name,s_url);
+            Compiler_AREXFile file(s_name,s_url);
             file_list.push_back(file);
           };
         };
@@ -169,7 +169,7 @@ std::string s;
 client->GetConfig().GetXML(s);
 std::cerr<<s<<std::endl;
         logger.msg(Arc::ERROR,"Failed to find delegation credentials in client configuration");
-        throw AREXClientError("Failed to find delegation credentials in client configuration");
+        throw Compiler_AREXClientError("Failed to find delegation credentials in client configuration");
       };
     };
     // Send job request + delegation
@@ -180,7 +180,7 @@ std::cerr<<s<<std::endl;
           logger.msg(Arc::INFO, "Initiating delegation procedure");
           if(!deleg.DelegateCredentialsInit(*(client->GetEntry()),&(client->GetContext()))) {
             logger.msg(Arc::ERROR,"Failed to initiate delegation");
-            throw AREXClientError("Failed to initiate delegation");
+            throw Compiler_AREXClientError("Failed to initiate delegation");
           };
           deleg.DelegatedToken(op);
         };
@@ -190,11 +190,11 @@ std::cerr<<s<<std::endl;
          &req,&resp);
       if(!status) {
         logger.msg(Arc::ERROR, "Submission request failed");
-        throw AREXClientError("Submission request failed");
+        throw Compiler_AREXClientError("Submission request failed");
       }
       if(resp == NULL) {
         logger.msg(Arc::ERROR,"There was no SOAP response");
-        throw AREXClientError("There was no SOAP response");
+        throw Compiler_AREXClientError("There was no SOAP response");
       };
     } else if (client_entry) {
       Arc::Message reqmsg;
@@ -209,7 +209,7 @@ std::cerr<<s<<std::endl;
           logger.msg(Arc::INFO, "Initiating delegation procedure");
           if(!deleg.DelegateCredentialsInit(*client_entry,&context)) {
             logger.msg(Arc::ERROR,"Failed to initiate delegation");
-            throw AREXClientError("Failed to initiate delegation");
+            throw Compiler_AREXClientError("Failed to initiate delegation");
           };
           deleg.DelegatedToken(op);
         };
@@ -222,12 +222,12 @@ std::cerr<<s<<std::endl;
       Arc::MCC_Status status = client_entry->process(reqmsg,repmsg);
       if(!status) {
         logger.msg(Arc::ERROR, "Submission request failed");
-        throw AREXClientError("Submission request failed");
+        throw Compiler_AREXClientError("Submission request failed");
       }
       logger.msg(Arc::INFO, "Submission request succeed");
       if(repmsg.Payload() == NULL) {
         logger.msg(Arc::ERROR, "There was no response to a submission request");
-        throw AREXClientError("There was no response to the submission request");
+        throw Compiler_AREXClientError("There was no response to the submission request");
       }
       try {
         resp = dynamic_cast<Arc::PayloadSOAP*>(repmsg.Payload());
@@ -235,10 +235,10 @@ std::cerr<<s<<std::endl;
       if(resp == NULL) {
         logger.msg(Arc::ERROR,"A response to a submission request was not a SOAP message");
         delete repmsg.Payload();
-        throw AREXClientError("The response to the submission request was not a SOAP message");
+        throw Compiler_AREXClientError("The response to the submission request was not a SOAP message");
       };
     } else {
-      throw AREXClientError("There is no connection chain configured");
+      throw Compiler_AREXClientError("There is no connection chain configured");
     };
     Arc::XMLNode id, fs;
     (*resp)["CreateActivityResponse"]["ActivityIdentifier"].New(id);
@@ -249,11 +249,11 @@ std::cerr<<s<<std::endl;
     if (faultstring=="")
       return jobid;
     else
-      throw AREXClientError(faultstring);
+      throw Compiler_AREXClientError(faultstring);
   }
   
-  std::string AREXClient::stat(const std::string& jobid)
-    throw(AREXClientError)
+  std::string Compiler_AREXClient::stat(const std::string& jobid)
+    throw(Compiler_AREXClientError)
   {
     std::string state, substate, faultstring;
     logger.msg(Arc::INFO, "Creating and sending a status request");
@@ -272,7 +272,7 @@ std::cerr<<s<<std::endl;
           &req,&resp);
       if(resp == NULL) {
         logger.msg(Arc::ERROR,"There was no SOAP response");
-        throw AREXClientError("There was no SOAP response");
+        throw Compiler_AREXClientError("There was no SOAP response");
       }
     } else if(client_entry) {
       Arc::Message reqmsg;
@@ -289,12 +289,12 @@ std::cerr<<s<<std::endl;
       Arc::MCC_Status status = client_entry->process(reqmsg,repmsg);
       if(!status) {
         logger.msg(Arc::ERROR, "Status request failed");
-        throw AREXClientError("Status request failed");
+        throw Compiler_AREXClientError("Status request failed");
       }
       logger.msg(Arc::INFO, "Status request succeed");
       if(repmsg.Payload() == NULL) {
         logger.msg(Arc::ERROR, "There was no response to a status request");
-        throw AREXClientError("There was no response");
+        throw Compiler_AREXClientError("There was no response");
       }
       try {
         resp = dynamic_cast<Arc::PayloadSOAP*>(repmsg.Payload());
@@ -303,10 +303,10 @@ std::cerr<<s<<std::endl;
         logger.msg(Arc::ERROR,
 		 "The response to a status request was not a SOAP message");
         delete repmsg.Payload();
-        throw AREXClientError("The response is not a SOAP message");
+        throw Compiler_AREXClientError("The response is not a SOAP message");
       }
     } else {
-      throw AREXClientError("There is no connection chain configured");
+      throw Compiler_AREXClientError("There is no connection chain configured");
     };
     Arc::XMLNode st, fs;
     (*resp)["GetActivityStatusesResponse"]["Response"]
@@ -320,15 +320,15 @@ std::cerr<<s<<std::endl;
     faultstring=(std::string)fs;
     delete resp;
     if (faultstring!="")
-      throw AREXClientError(faultstring);
+      throw Compiler_AREXClientError(faultstring);
     else if (state=="")
-      throw AREXClientError("The job status could not be retrieved");
+      throw Compiler_AREXClientError("The job status could not be retrieved");
     else
       return state+"/"+substate;
   }
   
-  std::string AREXClient::sstat(void)
-    throw(AREXClientError)
+  std::string Compiler_AREXClient::sstat(void)
+    throw(Compiler_AREXClientError)
   {
     std::string state, faultstring;
     logger.msg(Arc::INFO, "Creating and sending a service status request");
@@ -345,7 +345,7 @@ std::cerr<<s<<std::endl;
          &req,&resp);
       if(resp == NULL) {
         logger.msg(Arc::ERROR,"There was no SOAP response");
-        throw AREXClientError("There was no SOAP response");
+        throw Compiler_AREXClientError("There was no SOAP response");
       }
     } else if(client_entry) {
       Arc::Message reqmsg;
@@ -362,12 +362,12 @@ std::cerr<<s<<std::endl;
       Arc::MCC_Status status = client_entry->process(reqmsg,repmsg);
       if(!status) {
         logger.msg(Arc::ERROR, "Service status request failed");
-        throw AREXClientError("Service status request failed");
+        throw Compiler_AREXClientError("Service status request failed");
       }
       logger.msg(Arc::INFO, "Service status request succeed");
       if(repmsg.Payload() == NULL) {
         logger.msg(Arc::ERROR, "There was no response to a service status request");
-        throw AREXClientError("There was no response");
+        throw Compiler_AREXClientError("There was no response");
       }
       try {
         resp = dynamic_cast<Arc::PayloadSOAP*>(repmsg.Payload());
@@ -376,10 +376,10 @@ std::cerr<<s<<std::endl;
         logger.msg(Arc::ERROR,
 		 "The response of a service status request was not a SOAP message");
         delete repmsg.Payload();
-        throw AREXClientError("The response is not a SOAP message");
+        throw Compiler_AREXClientError("The response is not a SOAP message");
       }
     } else {
-      throw AREXClientError("There is no connection chain configured");
+      throw Compiler_AREXClientError("There is no connection chain configured");
     };
     Arc::XMLNode st;
     (*resp)["GetFactoryAttributesDocumentResponse"]
@@ -387,13 +387,13 @@ std::cerr<<s<<std::endl;
     st.GetDoc(state);
     delete resp;
     if (state=="")
-      throw AREXClientError("The service status could not be retrieved");
+      throw Compiler_AREXClientError("The service status could not be retrieved");
     else
       return state;
   }
 
-  void AREXClient::kill(const std::string& jobid)
-    throw(AREXClientError)
+  void Compiler_AREXClient::kill(const std::string& jobid)
+    throw(Compiler_AREXClientError)
   {
     std::string result, faultstring;
     logger.msg(Arc::INFO, "Creating and sending request to terminate a job");
@@ -411,7 +411,7 @@ std::cerr<<s<<std::endl;
          &req,&resp);
       if(resp == NULL) {
         logger.msg(Arc::ERROR,"There was no SOAP response");
-        throw AREXClientError("There was no SOAP response");
+        throw Compiler_AREXClientError("There was no SOAP response");
       }
     } else if(client_entry) {
       Arc::Message reqmsg;
@@ -428,13 +428,13 @@ std::cerr<<s<<std::endl;
       Arc::MCC_Status status = client_entry->process(reqmsg,repmsg);
       if(!status) {
         logger.msg(Arc::ERROR, "Job termination request failed");
-        throw AREXClientError("Job termination request failed");
+        throw Compiler_AREXClientError("Job termination request failed");
       }
       logger.msg(Arc::INFO, "Job termination request succeed");
       if(repmsg.Payload() == NULL) {
         logger.msg(Arc::ERROR,
 		 "There was no response to a job termination request");
-        throw AREXClientError
+        throw Compiler_AREXClientError
 	("There was no response to the job termination request");
       }
       try {
@@ -444,10 +444,10 @@ std::cerr<<s<<std::endl;
         logger.msg(Arc::ERROR,
 	"The response of a job termination request was not a SOAP message");
         delete repmsg.Payload();
-        throw AREXClientError("The response is not a SOAP message");
+        throw Compiler_AREXClientError("The response is not a SOAP message");
       }
     } else {
-      throw AREXClientError("There is no connection chain configured");
+      throw Compiler_AREXClientError("There is no connection chain configured");
     };
 
     Arc::XMLNode cancelled, fs;
@@ -458,13 +458,13 @@ std::cerr<<s<<std::endl;
     faultstring=(std::string)fs;
     delete resp;
     if (faultstring!="")
-      throw AREXClientError(faultstring);
+      throw Compiler_AREXClientError(faultstring);
     if (result!="true")
-      throw AREXClientError("Job termination failed");
+      throw Compiler_AREXClientError("Job termination failed");
   }
   
-  void AREXClient::clean(const std::string& jobid)
-    throw(AREXClientError)
+  void Compiler_AREXClient::clean(const std::string& jobid)
+    throw(Compiler_AREXClientError)
   {
     std::string result, faultstring;
     logger.msg(Arc::INFO, "Creating and sending request to terminate a job");
@@ -481,7 +481,7 @@ std::cerr<<s<<std::endl;
       Arc::MCC_Status status = client->process("",&req,&resp);
       if(resp == NULL) {
         logger.msg(Arc::ERROR,"There was no SOAP response");
-        throw AREXClientError("There was no SOAP response");
+        throw Compiler_AREXClientError("There was no SOAP response");
       }
     } else if(client_entry) {
       Arc::Message reqmsg;
@@ -497,13 +497,13 @@ std::cerr<<s<<std::endl;
       Arc::MCC_Status status = client_entry->process(reqmsg,repmsg);
       if(!status) {
         logger.msg(Arc::ERROR, "Job cleaning request failed");
-        throw AREXClientError("Job cleaning request failed");
+        throw Compiler_AREXClientError("Job cleaning request failed");
       }
       logger.msg(Arc::INFO, "Job cleaning request succeed");
       if(repmsg.Payload() == NULL) {
         logger.msg(Arc::ERROR,
 		 "There was no response to a job cleaning request");
-        throw AREXClientError
+        throw Compiler_AREXClientError
 	("There was no response to the job cleaning request");
       }
       try {
@@ -513,10 +513,10 @@ std::cerr<<s<<std::endl;
         logger.msg(Arc::ERROR,
         "The response of a job cleaning request was not a SOAP message");
         delete repmsg.Payload();
-        throw AREXClientError("The response is not a SOAP message");
+        throw Compiler_AREXClientError("The response is not a SOAP message");
       }
     } else {
-      throw AREXClientError("There is no connection chain configured");
+      throw Compiler_AREXClientError("There is no connection chain configured");
     };
 
     if(!((*resp)["ChangeActivityStatusResponse"])) {
@@ -525,9 +525,9 @@ std::cerr<<s<<std::endl;
       (*resp)["Fault"]["faultstring"].New(fs);
       faultstring=(std::string)fs;
       if (faultstring!="")
-        throw AREXClientError(faultstring);
+        throw Compiler_AREXClientError(faultstring);
       if (result!="true")
-        throw AREXClientError("Job termination failed");
+        throw Compiler_AREXClientError("Job termination failed");
     };
     delete resp;
   }
