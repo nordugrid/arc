@@ -13,41 +13,31 @@ security, encryption, etc. developed by The Globus Alliance \cite{globus}\\
    \texttt{https} & HTTP with SSL v3\\
    \texttt{httpg} & HTTP with \globus\  GSI\\
    \texttt{ldap} & ordinary \textit{Lightweight Data Access Protocol (LDAP)}~\cite{ldap}\\
-   \texttt{rc} & \globus\  \textit{Replica Catalog (RC)}~\cite{rc}\\
    \texttt{rls} & \globus\  \textit{Replica Location Service (RLS)}~\cite{rls}\\
-   \texttt{fireman} & Fireman indexing service of EGEE gLite~\cite{glite}\\
    \texttt{lfc} & LFC catalog and indexing service of EGEE gLite~\cite{glite}\\
-   \texttt{se} & ARC Smart Storage Element service~\cite{se}\\
    \texttt{srm} & Storage Resource Manager (SRM) service~\cite{srm}\\
    \texttt{file} & local to the host file name with a full path\\
 \end{tabular}
 
 An URL can be used in a standard form, i.e.
 \begin{shaded}
-   \verb#<protocol>://host[:port]/<file>#
+   \verb#protocol://[host[:port]]/file#
 \end{shaded}
 
 Or, to enhance the performance, it can have additional options:
 \begin{shaded}
-   \verb#<protocol>://host[:port][;option[;option[...]]]/<file>#
+   \verb#protocol://[host[:port]][;option[;option[...]]]/file#
 \end{shaded}
 
 For a metadata service URL, construction is the following:
 \begin{shaded}
-   \verb#rc://rc://[location[|location[...]]@]<host>[:port]/<DN>/<lfn>#\\
-   \verb#rls://[url[|url[...]]@]<host>[:port]/<lfn>#\\
-   \verb#fireman://[url[|url[...]]@]<host>[:port]/<service_path>?<lfn>#\\
-   \verb#lfc://[url[|url[...]]@]<host>[:port]/<lfn>#
-\end{shaded}
-
-For the Smart Storage Element service, the syntax is
-\begin{shaded}
-   \verb#se://host[:port][;options]/path[?file_id]#
+   \verb#protocol://[url[|url[...]]@]host[:port][;option[;option[...]]/#\\
+   \verb#     lfn[:metadataoption[:metadataoption[...]]#
 \end{shaded}
 
 For the SRM service, the syntax is
 \begin{shaded}
-   \verb#srm://<host>[:port][;options]/[service_path?SFN=]<file_id>#
+   \verb#srm://host[:port][;options]/[service_path?SFN=]file#
 \end{shaded}
 
 Versions 1.1 and 2.2 of the SRM protocol are supported. The
@@ -57,13 +47,13 @@ v2.2, srm/managerv1 otherwise.
 The URL components are:
 
 \begin{tabular}{lp{10cm}}
-   \verb#location#&\verb#<location_name_in_RC>[;option[;option[...]]]#\\
-   \verb#host[:port]#&IP address of a server\\
-   \verb#DN#&Distinguished Name (as in LDAP) of an RC collection\\
-   \verb#lfn#&Logical File Name\\
-   \verb#url#&URL of the file as registered in RLS/Fireman\\
-   \verb#service_path#&End-point path of the Web service\\
-   \verb#file#&local to the host file name with a full path\\
+   \verb#host[:port]# & Hostname or IP address [and port] of a server\\
+   \verb#lfn# & Logical File Name\\
+   \verb#url# & URL of the file as registered in indexing service\\
+   \verb#service_path# & End-point path of the web service\\
+   \verb#file# & File name with full path\\
+   \verb#option# & URL option\\
+   \verb#metadataoption# & Metadata option for indexing service\\
 \end{tabular}
 
 The following options are supported for location URLs:\index{URL:options}
@@ -91,8 +81,6 @@ The following options are supported for location URLs:\index{URL:options}
    \verb#exec=yes|no# & means the file should be treated as executable\\
    \verb#preserve=yes|no# & specify if file must be uploaded to this
    destination even if job processing failed (default is \verb#no#)\\
-   \verb#pattern=<pattern># & defines file matching pattern; currently
-   works for file listing requests sent to an \verb#se://# endpoint\\
    \verb#guid=yes|no# & make software use GUIDs instead of LFNs while
    communicating to indexing services; meaningful for \verb#rls://#
    only\\
@@ -139,13 +127,11 @@ Currently these metadata options are only supported for lfc:// URLs.
    \verb#http://grid.domain.org/dir/script.sh#\\
    \verb#gsiftp://grid.domain.org:2811;threads=10;secure=yes/dir/input_12378.dat#\\
    \verb#ldap://grid.domain.org:389/lc=collection1,rc=Nordugrid,dc=nordugrid,dc=org#\\
-   \verb#rc://grid.domain.org/lc=collection1,rc=Nordugrid,dc=nordugrid,dc=org/zebra/f1.zebra#\\
    \verb#rls://gsiftp://se.domain.org/datapath/file25.dat@grid.domain.org:61238/myfile02.dat#$^1$\\
-   \verb#fireman://fireman_host:8443/glite-data-catalog-interface/FiremanCatalog?data.root#\\
    \verb#file:///home/auser/griddir/steer.cra#\\
-   \verb#lfc://srm://srm.domain.org/griddir@lfc.domain.org//user/file1:guid=\# \\
+   \verb#lfc://srm://srm.domain.org/griddir@lfc.domain.org/user/file1:guid=\# \\
    \verb#    bc68cdd0-bf94-41ce-ab5a-06a1512764dc:checksumtype=adler32:checksumvalue=12345678#$^2$\\
-   \verb#lfc://;cache=no@lfc.domain.org/:guid=bc68cdd0-bf94-41ce-ab5a-06a1512764d#$^3$\\
+   \verb#lfc://lfc.domain.org;cache=no/:guid=bc68cdd0-bf94-41ce-ab5a-06a1512764d#$^3$\\
 \end{framed}
 
 $^1$This is a destination URL. The file will be copied to the GridFTP
@@ -160,6 +146,4 @@ and checksum attributes will be registered.
 
 $^3$This is a source URL. The file is registered in the LFC service at
 lfc.domain.org with the given GUID and can be copied or queried by
-this URL. Note that as URL options are part of the location (physical)
-URL, in meta service URLs the options must be part of the location
-URL, even if the location URL is empty.
+this URL.
