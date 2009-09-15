@@ -11,10 +11,12 @@ namespace Arc {
         
     /* Command line options values */
     bool foreground;
-    std::string config_file;
+    std::string xml_config_file;
+    std::string ini_config_file;
     std::string pid_file;
     std::string user;
     std::string group;
+    bool config_dump;
 #ifdef WIN32
     bool install;
     bool uninstall;

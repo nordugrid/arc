@@ -12,8 +12,11 @@
 #include <pwd.h>
 #include <grp.h>
 #include <signal.h>
+#include <glibmm/fileutils.h>
+#include <glibmm/miscutils.h>
 
 #include <arc/ArcConfig.h>
+#include <arc/IniConfig.h>
 #include <arc/ArcLocation.h>
 #include <arc/Logger.h>
 #include <arc/XMLNode.h>
@@ -81,8 +84,8 @@ static std::string init_logger(Arc::Config& cfg)
     /* setup root logger */
     Arc::XMLNode log = cfg["Server"]["Logger"];
     Arc::LogFile* sd = NULL; 
-    std::string log_file = (std::string)log;
-    std::string str = (std::string)log.Attribute("level");
+    std::string log_file = (std::string)log["File"];
+    std::string str = (std::string)log["Level"];
     if(!str.empty()) {
       Arc::LogLevel level = Arc::string_to_level(str);
       Arc::Logger::rootLogger.setThreshold(level); 
@@ -90,18 +93,18 @@ static std::string init_logger(Arc::Config& cfg)
     if(!log_file.empty()) {
       sd = new Arc::LogFile(log_file);
       if((!sd) || (!(*sd))) {
-        logger.msg(Arc::ERROR,"Failed to open log file: %s",log_file);
+        logger.msg(Arc::ERROR, "Failed to open log file: %s", log_file);
         _exit(1);
       }
-      if(log.Attribute("backups")) {
+      if(log["Backups"]) {
         int backups;
-        if(Arc::stringto((std::string)log.Attribute("backups"),backups)) {
+        if(Arc::stringto((std::string)log["Backups"], backups)) {
           sd->setBackups(backups);
         }
       }
-      if(log.Attribute("maxsize")) {
+      if(log["Maxsize"]) {
         int maxsize;
-        if(Arc::stringto((std::string)log.Attribute("maxsize"),maxsize)) {
+        if(Arc::stringto((std::string)log["Maxsize"], maxsize)) {
           sd->setMaxSize(maxsize);
         }
       }
@@ -142,6 +145,61 @@ static gid_t get_gid(const std::string &name)
     return (ent->gr_gid);
 }
 
+static void init_config(const Arc::ServerOptions &options)
+{
+    if (!options.xml_config_file.empty()) {
+        if (Glib::file_test(options.xml_config_file, 
+            Glib::FILE_TEST_EXISTS) == false) {
+            logger.msg(Arc::ERROR, "XML config file %s does not exits", options.xml_config_file);
+            exit(1);
+        }
+        config.parse(options.xml_config_file.c_str());
+        if (!config) {
+            logger.msg(Arc::ERROR, "Failed to load service configuration from file %s", options.xml_config_file);
+            exit(1);
+        }
+
+        /* Clue for external programs */
+        setenv("ARC_XML_CONFIG", options.xml_config_file.c_str(), 1);
+    } else if (!options.ini_config_file.empty()) {
+        if (Glib::file_test(options.ini_config_file, 
+            Glib::FILE_TEST_EXISTS) == false) {
+            logger.msg(Arc::ERROR, "INI config file %s does not exits", options.xml_config_file);
+            exit(1);
+        }
+        Arc::IniConfig ini_parser(options.ini_config_file);
+        if (ini_parser.Evaluate(config) == false) {
+            logger.msg(Arc::ERROR, "Error evaulate profile");
+            exit(1);
+        }
+        if (!config) {
+            logger.msg(Arc::ERROR, "Failed to load service configuration from file %s", options.ini_config_file);
+            exit(1);
+        }
+    } else {
+        std::string ini_config_file = "/etc/arc/service.ini";
+        if (Glib::file_test(ini_config_file, 
+            Glib::FILE_TEST_EXISTS) == false) {
+                std::string xml_config_file = "/etc/arc/service.xml";
+                if (Glib::file_test(xml_config_file, 
+                    Glib::FILE_TEST_EXISTS) == false) {
+                }
+                config.parse(xml_config_file.c_str());
+        } else {
+            Arc::IniConfig ini_parser(ini_config_file);
+            ini_parser.Evaluate(config);
+            if (ini_parser.Evaluate(config) == false) {
+                logger.msg(Arc::ERROR, "Error evaulate profile");
+                exit(1);
+            }
+        }
+        if (!config) {
+            logger.msg(Arc::ERROR, "Failed to load service configuration from any default config file");
+            exit(1);
+        }
+    }
+}
+
 int main(int argc, char **argv)
 {
     // Ignore some signals
@@ -159,15 +217,15 @@ int main(int argc, char **argv)
         std::list<std::string> params = options.Parse(argc, argv);
         if (params.size() == 0) {
             /* Load and parse config file */
-            config.parse(options.config_file.c_str());
-            if(!config) {
-                logger.msg(Arc::ERROR, "Failed to load service configuration from file %s", options.config_file);
-                exit(1);
-            }
-
-            /* Clue for external programs */
-            setenv("ARC_XML_CONFIG",options.config_file.c_str(),1);
-
+            init_config(options);
+            // dump config if it was requested
+            if (options.config_dump == true) {
+                std::string str;
+                config.GetXML(str);
+                std::cout << str << std::endl;
+                exit(0);
+            }   
+            
             if(!MatchXMLName(config,"ArcConfig")) {
                 logger.msg(Arc::ERROR, "Configuration root element is not <ArcConfig>");
                 exit(1);
@@ -203,7 +261,7 @@ int main(int argc, char **argv)
                 }
             }
             // demonize if the foreground options was not set
-            if (!(bool)config["Server"]["Foreground"]) {
+            if (!(bool)(config)["Server"]["Foreground"]) {
                 main_daemon = new Arc::Daemon(pid_file, root_log_file);
             } else {
                 signal(SIGINT, shutdown);
