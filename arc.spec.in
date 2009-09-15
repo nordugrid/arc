@@ -350,7 +350,6 @@ exit 0
 %{_libdir}/%{pkgdir}/submit_common.sh
 %{_libdir}/%{pkgdir}/cancel_common.sh
 %{_libdir}/%{pkgdir}/config_parser.sh
-%{_libexecdir}/%{pkgdir}/printConfigForShells.pl
 #
 %{_libdir}/%{pkgdir}/condor_env.pm
 %{_libdir}/%{pkgdir}/change-lsf-mode.sh
