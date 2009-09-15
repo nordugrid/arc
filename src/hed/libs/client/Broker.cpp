@@ -112,7 +112,7 @@ namespace Arc {
 
       if (!job->Resources.CEType.empty()) {
         if (!(*target).Implementation().empty()) {
-          if (job->Resources.CEType.isSatisfied((*target).Implementation)) {
+          if (!job->Resources.CEType.isSatisfied((*target).Implementation)) {
             logger.msg(DEBUG, "Matchmaking, Computing endpoint requirement not satisfied. ExecutionTarget: %s", (std::string)target->Implementation);
             continue;
           }
