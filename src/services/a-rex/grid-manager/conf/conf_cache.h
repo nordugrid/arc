@@ -5,6 +5,7 @@
 #include <fstream>
 
 #include <arc/StringConv.h>
+#include <arc/XMLNode.h>
 
 #include "conf.h"
 #include "environment.h"
@@ -50,6 +51,7 @@ class CacheConfig {
     * defined in the conf file, use the cache parameters for the given username.
     */
   CacheConfig(std::string username = "");
+  CacheConfig(Arc::XMLNode cfg);
   ~CacheConfig(void) {};
   std::list<std::string> getCacheDirs() { return _cache_dirs; };
   /**

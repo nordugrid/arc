@@ -1,3 +1,5 @@
+#include <arc/XMLNode.h>
+
 #include "conf_cache.h"
 
 CacheConfig::CacheConfig(std::string username): _cache_max(80),
@@ -103,4 +105,46 @@ CacheConfig::CacheConfig(std::string username): _cache_max(80),
   if(cf) delete cf;
 }
 
+CacheConfig::CacheConfig(Arc::XMLNode cfg):_cache_max(80),
+                                           _cache_min(70),
+                                           _clean_cache(true),
+                                           _old_conf(false) {
+  /*
+  control
+    username
+    controlDir
+    sessionRootDir
+    cache
+      location
+      link
+      highWatermark
+      lowWatermark
+    defaultTTL
+    defaultTTR
+    maxReruns
+    noRootPower
+  */
+
+  Arc::XMLNode cache_node = cfg["cache"];
+  if(cache_node) {
+    std::string cache_dir = cache_node["location"];
+    std::string cache_link_dir = cache_node["link"];
+    // take off trailing slashes
+    if (cache_dir.rfind("/") == cache_dir.length()-1)
+      cache_dir = cache_dir.substr(0, cache_dir.length()-1);
+    if (cache_dir.empty())
+      throw CacheConfigException("Missing location in cache element");
+    // add this cache to our list
+    std::string cache = cache_dir;
+    if (!cache_link_dir.empty()) cache += " "+cache_link_dir;
+    // TODO: handle patchs with spaces
+    _cache_dirs.push_back(cache);
+  } else {
+    // cache is disabled
+  }
+
+
+
+
+}
 

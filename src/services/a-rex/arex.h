@@ -24,6 +24,7 @@ class ARexService: public Arc::RegisteredService {
   std::string endpoint_;
   std::string uname_;
   std::string gmconfig_;
+  bool gmconfig_temporary_;
   std::string common_name_;
   std::string long_description_;
   std::string lrms_name_;

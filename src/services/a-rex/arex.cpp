@@ -370,7 +370,7 @@ static void thread_starter(void* arg) {
   ((ARexService*)arg)->InformationCollector();
 }
  
-ARexService::ARexService(Arc::Config *cfg):RegisteredService(cfg),logger_(Arc::Logger::rootLogger, "A-REX"),inforeg_(*cfg,this),gm_(NULL) {
+ARexService::ARexService(Arc::Config *cfg):RegisteredService(cfg),logger_(Arc::Logger::rootLogger, "A-REX"),inforeg_(*cfg,this),gm_(NULL),gmconfig_temporary_(false) {
   // logger_.addDestination(logcerr);
   // Define supported namespaces
   ns_[BES_ARC_NPREFIX]=BES_ARC_NAMESPACE;
@@ -388,6 +388,38 @@ ARexService::ARexService(Arc::Config *cfg):RegisteredService(cfg),logger_(Arc::L
   endpoint_=(std::string)((*cfg)["endpoint"]);
   uname_=(std::string)((*cfg)["usermap"]["defaultLocalName"]);
   gmconfig_=(std::string)((*cfg)["gmconfig"]);
+  if(gmconfig_.empty()) {
+    // No external configuration file means configuration is
+    // directly embedded into this configuration node.
+    // TODO: merge external and internal configuration elements
+    // Currenntly we store configuration into temporary file
+    // and delete it in destructor. That may cause problems
+    // on systems which periodically clean /tmp. Also destructor
+    // may be not called. So code must be changed to use 
+    // some better approach - like creating file with service
+    // id in its name residing in control directory.
+    try {
+      int h = Glib::file_open_tmp(gmconfig_,"arex");
+      logger_.msg(Arc::VERBOSE, "Storing connfiguration into temporary file - %s",gmconfig_);
+      Arc::XMLNode gmxml;
+      cfg->New(gmxml);
+      // Storing configuration into temporary file
+      // Maybe XMLNode needs method SaveToHandle ?
+      std::string gmstr;
+      gmxml.GetDoc(gmstr);
+      // Candidate for common function ?
+      for(int p = 0;p<gmstr.length();) {
+        int l = write(h,gmstr.c_str()+p,gmstr.length()-p);
+        if(l == -1) throw Glib::FileError(Glib::FileError::IO_ERROR,""); // TODO: process error
+        p+=l;
+      };
+      close(h);
+      gmconfig_temporary_=true;
+    } catch(Glib::FileError& e) {
+      logger_.msg(Arc::ERROR, "Failed to store configuration into temporary file");
+      if(!gmconfig_.empty()) unlink(gmconfig_.c_str());
+    };
+  };
   std::string gmrun_ = (std::string)((*cfg)["gmrun"]);
   common_name_ = (std::string)((*cfg)["commonName"]);
   long_description_ = (std::string)((*cfg)["longDescription"]);
@@ -399,17 +431,6 @@ ARexService::ARexService(Arc::Config *cfg):RegisteredService(cfg),logger_(Arc::L
       infoprovider_wakeup_period_ = 60;
   CreateThreadFunction(&thread_starter,this);
   // Run grid-manager in thread
-  /*
-  Arc::NS ns;
-  Arc::XMLNode gmargv(ns,"argv");
-  for(Arc::XMLNode n = (*cfg)["gmarg"];(bool)n;n=n[1]) {
-    gmargv.NewChild("arg")=(std::string)n;
-  };
-  if(!gmconfig_.empty()) {
-    gmargv.NewChild("arg")="-c";
-    gmargv.NewChild("arg")=gmconfig_;
-  };
-  */
   if((gmrun_.empty()) || (gmrun_ == "internal")) {
     //gm_=new GridManager(gmargv);
     gm_=new GridManager(gmconfig_.empty()?NULL:gmconfig_.c_str());
@@ -420,6 +441,9 @@ ARexService::ARexService(Arc::Config *cfg):RegisteredService(cfg),logger_(Arc::L
 
 ARexService::~ARexService(void) {
   if(gm_) delete gm_;
+  if(gmconfig_temporary_) {
+    if(!gmconfig_.empty()) unlink(gmconfig_.c_str());
+  };
 }
 
 } // namespace ARex

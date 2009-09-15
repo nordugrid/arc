@@ -52,3 +52,27 @@ bool gridmap_user_list(std::string &ulist) {
   f.close();
   return true;
 }
+
+bool gridmap_user_list(std::list<std::string> &ulist) {
+  std::ifstream f(globus_gridmap.c_str()); 
+  if(! f.is_open() ) return false;
+  for(;!f.eof();) {
+    char buf[512];
+    istream_readline(f,buf,sizeof(buf));
+    std::string rest = buf;
+    std::string name = "";
+    for(;rest.length() != 0;) {
+      name=config_next_arg(rest);
+    };
+    if(name.length() == 0) continue;
+    std::string::size_type pos;
+    for(std::list<std::string>::iterator u = ulist.begin();
+                          u != ulist.end(); ++u) {
+      if(name == *u) { name.resize(0); break; };
+    };
+    if(name.length() == 0) continue;
+    ulist.push_back(name);
+  };
+  f.close();
+  return true;
+}

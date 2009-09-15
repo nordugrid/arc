@@ -2,6 +2,7 @@
 #define __GM_GRIDMAP_H__
 
 #include <string>
+#include <list>
 
 /*
   Read gridmap file (specified by globus_gridmap global variable).
@@ -12,5 +13,6 @@
     blank spaces.
 */
 bool gridmap_user_list(std::string &ulist);
+bool gridmap_user_list(std::list<std::string> &ulist);
 
 #endif // __GM_GRIDMAP_H__

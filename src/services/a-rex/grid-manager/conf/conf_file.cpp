@@ -582,6 +582,10 @@ static bool elementtoint(Arc::XMLNode pnode,const char* ename,int& val) {
 
 bool configure_serviced_users(Arc::XMLNode cfg,JobUsers &users,uid_t my_uid,const std::string &my_username,JobUser &my_user,Daemon* daemon) {
   Arc::XMLNode tmp_node;
+  bool superuser = (my_uid == 0);
+  std::string default_lrms;
+  std::string default_queue;
+  int default_diskspace = DEFAULT_DISKSPACE;
 /*
 
 http://www.nordugrid.org/schemas/ArcConfig/2009/arex
@@ -606,18 +610,14 @@ http://www.nordugrid.org/schemas/ArcConfig/2009/arex
 
   GNUTimeUtility
 
-  LRMS
+
 
 
 
 */
 /*
   std::ifstream cfile;
-  std::string default_lrms("");
-  std::string default_queue("");
   std::string last_control_dir("");
-  int default_diskspace = DEFAULT_DISKSPACE;
-  bool superuser = (my_uid == 0);
   std::string central_control_dir("");
   std::string infosys_user("");
   std::string jobreport_key("");
@@ -786,22 +786,22 @@ http://www.nordugrid.org/schemas/ArcConfig/2009/arex
       };
     }
 */
-/*
-    else if(command == "lrms") {
-      * set default lrms type and queue
-         (optionally). Applied to all following
-         'control' commands. MUST BE thing *
-      default_lrms = config_next_arg(rest);
-      default_queue = config_next_arg(rest);
-      if(default_lrms.empty()) {
-        logger.msg(Arc::ERROR,"defaultlrms is empty"); goto exit;
-      };
-      if(!rest.empty()) {
-        logger.msg(Arc::ERROR,"junk in defaultlrms command"); goto exit;
-      };
-      check_lrms_backends(default_lrms);
-    }
-*/
+  /*
+  LRMS
+    type
+    defaultQueue
+  */
+  tmp_node = cfg["LRMS"];
+  if(tmp_node) {
+    default_lrms = (std::string)(tmp_node["type"]);
+    if(default_lrms.empty()) {
+      logger.msg(Arc::ERROR,"type in LRMS is missing"); return false;
+    };
+    default_queue = (std::string)(tmp_node["defaultQueue"]);
+    check_lrms_backends(default_lrms);
+  } else {
+    logger.msg(Arc::ERROR,"LRMS is missing"); return false;
+  }
   /*
   authPlugin (timeout,onSuccess=PASS,FAIL,LOG,onFailure=FAIL,PASS,LOG,onTimeout=FAIL,PASS,LOG)
     state
@@ -876,30 +876,6 @@ http://www.nordugrid.org/schemas/ArcConfig/2009/arex
     if(session_root.empty()) {
       logger.msg(Arc::ERROR,"sessionRootDir is missing"); return false;
     };
-    Arc::XMLNode unode = tmp_node["username"];
-    for(;unode;++unode) {
-      std::string username = unode;
-      if(username.empty()) {
-        logger.msg(Arc::ERROR,"username in control is empty"); return false;
-      };
-      if(username == "*") {  /* add all gridmap users */
-/*
-        if(!gridmap_user_list(rest)) {
-          logger.msg(Arc::ERROR,"Can't read users in gridmap file %s",globus_gridmap);
-          return false;
-        };
-*/
-        continue;
-      };
-      if(username == ".") {  /* accept all users in this control directory */
-         /* !!!!!!! substitutions involving user names won't work !!!!!!!  */
-/*
-         if(superuser) { username=""; }
-         else { username=my_username; };
-*/
-      };
-
-    };
     bool strict_session = false;
     if(!elementtobool(tmp_node,"noRootPower",strict_session)) return false;
     unsigned int default_reruns = DEFAULT_JOB_RERUNS;
@@ -908,6 +884,90 @@ http://www.nordugrid.org/schemas/ArcConfig/2009/arex
     if(!elementtoint(tmp_node,"defaultTTL",default_ttl)) return false;
     unsigned int default_ttr = DEFAULT_KEEP_DELETED;
     if(!elementtoint(tmp_node,"defaultTTR",default_ttr)) return false;
+    Arc::XMLNode unode = tmp_node["username"];
+    std::list<std::string> userlist;
+    for(;unode;++unode) {
+      std::string username = unode;
+      if(username.empty()) {
+        logger.msg(Arc::ERROR,"username in control is empty"); return false;
+      };
+      if(username == "*") {  /* add all gridmap users */
+        if(!gridmap_user_list(userlist)) {
+          logger.msg(Arc::ERROR,"Can't read users in gridmap file %s",globus_gridmap);
+          return false;
+        };
+        continue;
+      };
+      if(username == ".") {  /* accept all users in this control directory */
+         /* !!!!!!! substitutions involving user names won't work !!!!!!!  */
+         if(superuser) { username=""; }
+         else { username=my_username; };
+      };
+      userlist.push_back(username);
+    };
+    for(std::list<std::string>::iterator username = userlist.begin();
+                   username != userlist.end();++username) {
+      /* add new user to list */
+      if(superuser || (my_username == *username)) {
+        if(users.HasUser(*username)) { /* first is best */
+          continue;
+        };
+        JobUsers::iterator user=users.AddUser(*username,&cred_plugin,
+                                     control_dir,session_root);
+        if(user == users.end()) { /* bad bad user */
+          logger.msg(Arc::WARNING,"Warning: creation of user \"%s\" failed",username);
+        }
+        else {
+
+
+
+
+
+
+
+          // get cache parameters for this user
+          try {
+            CacheConfig * cache_config = new CacheConfig(user->UnixName());
+            std::list<std::string> cache_info = cache_config->getCacheDirs();
+            for (std::list<std::string>::iterator i = cache_info.begin(); i != cache_info.end(); i++) {
+              user->substitute(*i);
+            }
+            cache_config->setCacheDirs(cache_info);
+            user->SetCacheParams(cache_config);
+          }
+          catch (CacheConfigException e) {
+            logger.msg(Arc::ERROR, "Error with cache configuration: %s", e.what());
+            logger.msg(Arc::ERROR, "Caching is disabled");
+          }
+
+
+
+          std::string control_dir_ = control_dir;
+          std::string session_root_ = session_root;
+          user->SetLRMS(default_lrms,default_queue);
+          user->SetKeepFinished(default_ttl);
+          user->SetKeepDeleted(default_ttr);
+          user->SetReruns(default_reruns);
+          user->SetDiskSpace(default_diskspace);
+          user->substitute(control_dir_);
+          user->substitute(session_root_);
+          user->SetControlDir(control_dir_);
+          user->SetSessionRoot(session_root_);
+          user->SetStrictSession(strict_session);
+          /* add helper to poll for finished jobs */
+          std::string cmd_ = nordugrid_libexec_loc;
+          make_escaped_string(control_dir_);
+          cmd_+="/scan-"+default_lrms+"-job";
+          make_escaped_string(cmd_);
+          cmd_+=" ";
+          cmd_+=control_dir_;
+          user->add_helper(cmd_);
+          /* creating empty list of jobs */
+          JobsList *jobs = new JobsList(*user,plugins);
+          (*user)=jobs; /* back-associate jobs with user :) */
+        };
+      };
+    };
 /*
     } else if(command == "control") {
 
