@@ -28,9 +28,9 @@ feel to join with your own cluster, then please join in.
 Comments on the packaging
 -------------------------
 
-ARC-1 was developed with Debian in mind. No special adaptations were required.
-For PDF generation, doxygen needs the texlive-extra-utils package, which might
-come as a surprise to some.
+ARC-1 was developed with Debian in mind. No special adaptations were
+required.  For PDF generation, doxygen needs the texlive-extra-utils
+package, which might come as a surprise to some.
 
 --
   Mattias Ellert, Steffen Möller, Balazs Konya, Farid Ould-Saada, Anders Wäänänen, Aleksander Konstantinov,
