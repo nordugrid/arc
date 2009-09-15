@@ -10,7 +10,7 @@
 namespace Arc {
 
   Profile::Profile(const std::string& filename)
-    : XMLNode(NS(), "Profile") {
+    : XMLNode(NS(), "ArcConfig") {
     ReadFromFile(filename);
   }
 
@@ -36,11 +36,10 @@ namespace Arc {
       EvaluateNode(n.Child(i), ini);
   }
 
-  Config Profile::Evaluate(const IniConfig& ini) {
-    Config cfg(*this);
+  void Profile::Evaluate(Config &cfg, const IniConfig& ini) {
+    cfg.Replace(*this);
     for (int i = 0; cfg.Child(i); i++)
       EvaluateNode(cfg.Child(i), ini);
-    return cfg;
   }
 
 } // namespace Arc

@@ -5,7 +5,8 @@
 #endif
 
 #include <fstream>
-
+#include <glibmm/fileutils.h>
+#include <glibmm/miscutils.h>
 #include <arc/IniConfig.h>
 #include <arc/Profile.h>
 #include <arc/StringConv.h>
@@ -40,13 +41,17 @@ namespace Arc {
 
   IniConfig::~IniConfig() {}
 
-  Config IniConfig::Evaluate() {
+  bool IniConfig::Evaluate(Config &cfg) {
     std::string profilename = (*this)["common"]["profile"];
     if (profilename.empty())
-      return Config();
+      return false;
+    if (Glib::file_test(profilename, Glib::FILE_TEST_EXISTS) == false) {
+        std::cerr << profilename << " does not exits" << std::endl;
+        return false;
+    }
     Profile profile(profilename);
-    Config cfg = profile.Evaluate(*this);
-    return cfg;
+    profile.Evaluate(cfg, *this);
+    return true;
   }
 
 } // namespace Arc

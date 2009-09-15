@@ -15,7 +15,7 @@ namespace Arc {
   public:
     IniConfig(const std::string& filename);
     ~IniConfig();
-    Config Evaluate();
+    bool Evaluate(Config &cfg);
   };
 
 } // namespace Arc
