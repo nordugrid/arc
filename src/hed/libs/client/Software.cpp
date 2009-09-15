@@ -16,7 +16,7 @@ namespace Arc {
 
   const std::string Software::VERSIONTOKENS = "-.";
 
-Software::Software(const std::string& name_version) {
+Software::Software(const std::string& name_version) : version(""), family("") {
   std::size_t pos = 0;
   
   while (pos != std::string::npos) {
@@ -41,7 +41,7 @@ Software::Software(const std::string& name_version) {
 }
 
 Software::Software(const std::string& name, const std::string& version)
-  : name(name), version(version) {
+  : name(name), version(version), family("") {
   tokenize(version, tokenizedVersion, VERSIONTOKENS);
 }
 
@@ -56,6 +56,14 @@ Software& Software::operator=(const Software& sv) {
   version = sv.version;
   tokenizedVersion = sv.tokenizedVersion;
   return *this;
+}
+
+std::string Software::operator()() const {
+  if (empty()) return "";
+  if (family.empty() && version.empty()) return name;
+  if (family.empty()) return name + "-" + version;
+  if (version.empty()) return family + "-" + name;
+  return family + "-" + name + "-" + version;
 }
 
 // Does not support extra 0.0.0...
@@ -231,7 +239,7 @@ bool SoftwareRequirement::isSatisfied(const std::list<Software>& swList) const {
     // Loop over 'swList'.
     std::list<Software>::const_iterator itSWList = swList.begin();
     for (; itSWList != swList.end(); itSWList++) {
-      if (((*itSWSelf).*(*itCO))(*itSWList)) { // One of the requirements satisfied.
+      if (((*itSWList).*(*itCO))(*itSWSelf)) { // One of the requirements satisfied.
         logger.msg(DEBUG, "Requirement satisfied. %s %s.", (std::string)*itSWSelf, (std::string)*itSWList);
         if (!requiresAll) // Only one satisfied requirement is needed.
           return true;
@@ -269,7 +277,7 @@ bool SoftwareRequirement::selectSoftware(const std::list<Software>& swList) {
     
     for (std::list<Software>::const_iterator itSWList = swList.begin();
          itSWList != swList.end(); itSWList++) {
-      if (((*itSWSelf).*(*itCO))(*itSWList)) { // Requirement is satisfied.
+      if (((*itSWList).*(*itCO))(*itSWSelf)) { // Requirement is satisfied.
         if (currentSelectedSoftware == NULL) { // First software to satisfy requirement. Push it to the 
           selectedSoftware.push_back(*itSWList);
           selectedSoftwareCO.push_back(&Software::operator ==);

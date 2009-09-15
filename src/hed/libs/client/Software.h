@@ -22,7 +22,7 @@ namespace Arc {
   class Software {
   public:
     /// Dummy constructor. The created object will be empty.
-    Software() {};
+    Software() : family(""), name(""), version("") {};
 
     /**
      * Create a Software object from a single string composed of a name and a
@@ -79,9 +79,7 @@ namespace Arc {
     }
 
     /// Returns the string representation of this object, which is 'family'-'name'-'version'.
-    std::string operator()() const {
-      return (empty() ? "" : (family.empty() ? "" : family + "-") + name + (version.empty() ? "" : "-" + version));
-    }
+    std::string operator()() const;
     operator std::string(void) const { return operator()(); }
 
     std::string getFamily() const { return family; }
