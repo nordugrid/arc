@@ -30,6 +30,7 @@ namespace Arc {
   DataPointRLS::DataPointRLS(const URL& url, const UserConfig& usercfg)
     : DataPointIndex(url, usercfg),
       guid_enabled(false) {
+    valid_url_options.push_back("guid");
     globus_module_activate(GLOBUS_COMMON_MODULE);
     globus_module_activate(GLOBUS_IO_MODULE);
     globus_module_activate(GLOBUS_RLS_CLIENT_MODULE);

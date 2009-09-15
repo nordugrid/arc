@@ -310,6 +310,8 @@ namespace Arc {
     int triesleft;
     DataStatus failure_code; /* filled by callback methods */
     bool cache;
+    /** Subclasses should add their own specific options to this list */
+    std::list<std::string> valid_url_options;
 
     static Logger logger;
   };

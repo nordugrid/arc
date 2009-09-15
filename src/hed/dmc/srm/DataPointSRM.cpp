@@ -36,6 +36,8 @@ namespace Arc {
       r_handle(NULL),
       reading(false),
       writing(false) {
+    valid_url_options.push_back("protocol");
+    valid_url_options.push_back("spacetoken");
     globus_module_activate(GLOBUS_GSI_GSSAPI_MODULE);
     globus_module_activate(GLOBUS_IO_MODULE);
     if (!proxy_initialized)

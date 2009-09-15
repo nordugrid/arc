@@ -25,7 +25,20 @@ namespace Arc {
       valid(-1),
       triesleft(5),
       failure_code(DataStatus::UnknownError),
-      cache(url.Option("cache") != "no") {}
+      cache(url.Option("cache") != "no") {
+    // add standard options applicable to all protocols
+    valid_url_options.clear();
+    valid_url_options.push_back("cache");
+    valid_url_options.push_back("readonly");
+    valid_url_options.push_back("blocksize");
+    valid_url_options.push_back("checksum");
+    valid_url_options.push_back("exec");
+    valid_url_options.push_back("preserve");
+    valid_url_options.push_back("overwrite");
+    valid_url_options.push_back("threads");
+    valid_url_options.push_back("secure");
+    valid_url_options.push_back("autodir");
+  }
 
   DataPoint::~DataPoint() {}
 
@@ -38,11 +51,28 @@ namespace Arc {
   }
 
   DataPoint::operator bool() const {
-    return (bool)url;
+
+    if (!url)
+      return false;
+      
+    // URL option validation. Subclasses which do not want to validate
+    // URL options should override this method.
+    std::map<std::string, std::string> options = url.Options();
+    for (std::map<std::string, std::string>::iterator i = options.begin(); i != options.end(); i++) {
+      bool valid = false; 
+      for (std::list<std::string>::const_iterator j = valid_url_options.begin(); j != valid_url_options.end(); j++) {
+        if (i->first == *j) valid = true;
+      }
+      if (!valid) {
+        logger.msg(ERROR, "Invalid URL option: %s", i->first);
+        return false;
+      }
+    }
+    return true;
   }
 
   bool DataPoint::operator!() const {
-    return !url;
+    return !((bool)*this);
   }
 
   DataStatus DataPoint::GetFailureReason() const {

@@ -268,7 +268,9 @@ namespace Arc {
     : DataPointDirect(url, usercfg),
       chunks(NULL),
       transfers_started(0),
-      transfers_finished(0) {}
+      transfers_finished(0) {
+    valid_url_options.push_back("tcpnodelay");
+  }
 
   DataPointHTTP::~DataPointHTTP() {
     StopReading();

@@ -21,33 +21,6 @@
 
 namespace Arc {
 
-  /*
-  * This list is used for validation of URL options.
-  * All valid options must be in this list.
-  * The definitive list is defined in "Protocols, Uniform Resource
-  * Locators (URL) and Extensions Supported in ARC" [NORDUGRID-TECH-7]
-  */
-  const int urloptionlistsize = 17;
-  const std::string urloptionlist[urloptionlistsize] = {
-    "threads",
-    "cache",
-    "readonly",
-    "secure",
-    "blocksize",
-    "checksum",
-    "exec",
-    "preserve",
-    "pattern",
-    "guid",
-    "overwrite",
-    "protocol",  
-    "spacetoken",
-    "autodir",
-    "checksumtype",
-    "checksumvalue",
-    "tcpnodelay"
-  };
-
   static Logger URLLogger(Logger::getRootLogger(), "URL");
 
   std::map<std::string, std::string> URL::ParseOptions(const std::string& optstring, char separator) {
@@ -78,21 +51,6 @@ namespace Arc {
         option_name = opt.substr(0, pos2);
         option_value = opt.substr(pos2 + 1);
       }
-      // option validation for URL options
-      if (separator == ';') {
-        bool passed = false;
-        for (int i = 0; i < urloptionlistsize; i++) {
-          if ( option_name == urloptionlist[i] ) {
-            passed = true;
-            break;
-          }
-        }
-        if (!passed) {
-          URLLogger.msg(ERROR, "Invalid URL option: %s", option_name); 
-          valid = false;
-          break;
-        }
-      }   
       options[option_name] = option_value;
     }
     return options;
