@@ -116,7 +116,8 @@ CacheConfig::CacheConfig(Arc::XMLNode cfg):_cache_max(80),
     sessionRootDir
     cache
       location
-      link
+        path
+        link
       highWatermark
       lowWatermark
     defaultTTL
@@ -127,18 +128,47 @@ CacheConfig::CacheConfig(Arc::XMLNode cfg):_cache_max(80),
 
   Arc::XMLNode cache_node = cfg["cache"];
   if(cache_node) {
-    std::string cache_dir = cache_node["location"];
-    std::string cache_link_dir = cache_node["link"];
-    // take off trailing slashes
-    if (cache_dir.rfind("/") == cache_dir.length()-1)
-      cache_dir = cache_dir.substr(0, cache_dir.length()-1);
-    if (cache_dir.empty())
-      throw CacheConfigException("Missing location in cache element");
-    // add this cache to our list
-    std::string cache = cache_dir;
-    if (!cache_link_dir.empty()) cache += " "+cache_link_dir;
-    // TODO: handle patchs with spaces
-    _cache_dirs.push_back(cache);
+    Arc::XMLNode location_node = cache_node["location"];
+    for(;location_node;++location_node) {
+      std::string cache_dir = location_node["path"];
+      std::string cache_link_dir = location_node["link"];
+      // take off trailing slashes
+      if (cache_dir.rfind("/") == cache_dir.length()-1)
+        cache_dir = cache_dir.substr(0, cache_dir.length()-1);
+      if (cache_dir.empty())
+        throw CacheConfigException("Missing path in cache location element");
+      // add this cache to our list
+      std::string cache = cache_dir;
+      if (!cache_link_dir.empty()) cache += " "+cache_link_dir;
+      // TODO: handle paths with spaces
+      _cache_dirs.push_back(cache);
+    }
+    Arc::XMLNode high_node = cache_node["highWatermark"];
+    Arc::XMLNode low_node = cache_node["lowWatermark"];
+    if (high_node && !low_node) {
+      throw CacheConfigException("missing lowWatermark parameter");
+    } else if (low_node && !high_node) {
+      throw CacheConfigException("missing highWatermark parameter");
+    } else if (low_node && high_node) {
+      off_t max_i;
+      if(!Arc::stringto((std::string)high_node,max_i)) {
+        throw CacheConfigException("bad number in highWatermark parameter");
+      }
+      if (max_i > 100) {
+        throw CacheConfigException("number is to high in highWatermark parameter");
+      }
+      _cache_max = max_i;
+      off_t min_i;
+      if(!Arc::stringto((std::string)low_node,min_i)) {
+        throw CacheConfigException("bad number in lowWatermark parameter");
+      }
+      if (min_i > 100) {
+        throw CacheConfigException("number is to high in lowWatermark parameter");
+      }
+      _cache_min = min_i;
+    }
+    // We accept only new cache configuration in new configuration files
+    _old_conf = false;
   } else {
     // cache is disabled
   }

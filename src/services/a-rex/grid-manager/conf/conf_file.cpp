@@ -147,14 +147,16 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
       int max_jobs, max_jobs_running = -1;
       if(max_jobs_s.length() != 0) {
         if(!Arc::stringto(max_jobs_s,i)) {
-          logger.msg(Arc::ERROR,"wrong number in maxjobs"); goto exit;
+          logger.msg(Arc::ERROR,"wrong number in maxjobs: %s",max_jobs_s);
+          goto exit;
         };
         if(i<0) i=-1; max_jobs=i;
       };
       max_jobs_s = config_next_arg(rest);
       if(max_jobs_s.length() != 0) {
         if(!Arc::stringto(max_jobs_s,i)) {
-          logger.msg(Arc::ERROR,"wrong number in maxjobs"); goto exit;
+          logger.msg(Arc::ERROR,"wrong number in maxjobs: %s",max_jobs_s);
+          goto exit;
         };
         if(i<0) i=-1; max_jobs_running=i;
       };
@@ -167,21 +169,24 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
       int max_jobs_processing, max_jobs_processing_emergency, max_downloads = -1;
       if(max_jobs_s.length() != 0) {
         if(!Arc::stringto(max_jobs_s,i)) {
-          logger.msg(Arc::ERROR,"wrong number in maxload"); goto exit;
+          logger.msg(Arc::ERROR,"wrong number in maxload: %s",max_jobs_s);
+          goto exit;
         };
         if(i<0) i=-1; max_jobs_processing=i;
       };
       max_jobs_s = config_next_arg(rest);
       if(max_jobs_s.length() != 0) {
         if(!Arc::stringto(max_jobs_s,i)) {
-          logger.msg(Arc::ERROR,"wrong number in maxload"); goto exit;
+          logger.msg(Arc::ERROR,"wrong number in maxload: %s",max_jobs_s);
+          goto exit;
         };
         if(i<0) i=-1; max_jobs_processing_emergency=i;
       };
       max_jobs_s = config_next_arg(rest);
       if(max_jobs_s.length() != 0) {
         if(!Arc::stringto(max_jobs_s,i)) {
-          logger.msg(Arc::ERROR,"wrong number in maxload"); goto exit;
+          logger.msg(Arc::ERROR,"wrong number in maxload: %s",max_jobs_s);
+          goto exit;
         };
         if(i<0) i=-1; max_downloads=i;
       };
@@ -196,25 +201,29 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
       int max_inactivity_time=300;
       if(speed_s.length() != 0) {
         if(!Arc::stringto(speed_s,min_speed)) {
-          logger.msg(Arc::ERROR,"wrong number in speedcontrol"); goto exit;
+          logger.msg(Arc::ERROR,"wrong number in speedcontrol: %s",speed_s);
+          goto exit;
         };
       };
       speed_s = config_next_arg(rest);
       if(speed_s.length() != 0) {
         if(!Arc::stringto(speed_s,min_speed_time)) {
-          logger.msg(Arc::ERROR,"wrong number in speedcontrol"); goto exit;
+          logger.msg(Arc::ERROR,"wrong number in speedcontrol: ",speed_s);
+          goto exit;
         };
       };
       speed_s = config_next_arg(rest);
       if(speed_s.length() != 0) {
         if(!Arc::stringto(speed_s,min_average_speed)) {
-          logger.msg(Arc::ERROR,"wrong number in speedcontrol"); goto exit;
+          logger.msg(Arc::ERROR,"wrong number in speedcontrol: %s",speed_s);
+          goto exit;
         };
       };
       speed_s = config_next_arg(rest);
       if(speed_s.length() != 0) {
         if(!Arc::stringto(speed_s,max_inactivity_time)) {
-          logger.msg(Arc::ERROR,"wrong number in speedcontrol"); goto exit;
+          logger.msg(Arc::ERROR,"wrong number in speedcontrol: %s",speed_s);
+          goto exit;
         };
       };
       JobsList::SetSpeedControl(
@@ -225,7 +234,8 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
       unsigned int wakeup_period;
       if(wakeup_s.length() != 0) {
         if(!Arc::stringto(wakeup_s,wakeup_period)) {
-          logger.msg(Arc::ERROR,"wrong number in wakeupperiod"); goto exit;
+          logger.msg(Arc::ERROR,"wrong number in wakeupperiod: %s",wakeup_s);
+          goto exit;
         };
         JobsList::SetWakeupPeriod(wakeup_period);
       };
@@ -560,7 +570,7 @@ static bool elementtobool(Arc::XMLNode pnode,const char* ename,bool& val) {
     val=false;
     return true;
   };
-  logger.msg(Arc::ERROR,"wrong boolean in %s: %s",ename,v);
+  logger.msg(Arc::ERROR,"wrong boolean in %s: %s",ename,v.c_str());
   return false;
 }
 
@@ -568,7 +578,7 @@ static bool elementtoint(Arc::XMLNode pnode,const char* ename,unsigned int& val)
   std::string v = pnode[ename];
   if(v.empty()) return true; // default
   if(Arc::stringto(v,val)) return true;
-  logger.msg(Arc::ERROR,"wrong number in %s: %s",ename,v);
+  logger.msg(Arc::ERROR,"wrong number in %s: %s",ename,v.c_str());
   return false;
 }
 
@@ -576,7 +586,7 @@ static bool elementtoint(Arc::XMLNode pnode,const char* ename,int& val) {
   std::string v = pnode[ename];
   if(v.empty()) return true; // default
   if(Arc::stringto(v,val)) return true;
-  logger.msg(Arc::ERROR,"wrong number in %s: %s",ename,v);
+  logger.msg(Arc::ERROR,"wrong number in %s: %s",ename,v.c_str());
   return false;
 }
 
@@ -857,7 +867,8 @@ http://www.nordugrid.org/schemas/ArcConfig/2009/arex
     sessionRootDir
     cache
       location
-      link
+        path
+        link
       highWatermark
       lowWatermark
     defaultTTL
@@ -915,21 +926,15 @@ http://www.nordugrid.org/schemas/ArcConfig/2009/arex
         JobUsers::iterator user=users.AddUser(*username,&cred_plugin,
                                      control_dir,session_root);
         if(user == users.end()) { /* bad bad user */
-          logger.msg(Arc::WARNING,"Warning: creation of user \"%s\" failed",username);
+          logger.msg(Arc::WARNING,"Warning: creation of user \"%s\" failed",*username);
         }
         else {
-
-
-
-
-
-
-
           // get cache parameters for this user
           try {
-            CacheConfig * cache_config = new CacheConfig(user->UnixName());
+            CacheConfig * cache_config = new CacheConfig(tmp_node);
             std::list<std::string> cache_info = cache_config->getCacheDirs();
-            for (std::list<std::string>::iterator i = cache_info.begin(); i != cache_info.end(); i++) {
+            for (std::list<std::string>::iterator i = cache_info.begin();
+                 i != cache_info.end(); i++) {
               user->substitute(*i);
             }
             cache_config->setCacheDirs(cache_info);
@@ -939,9 +944,6 @@ http://www.nordugrid.org/schemas/ArcConfig/2009/arex
             logger.msg(Arc::ERROR, "Error with cache configuration: %s", e.what());
             logger.msg(Arc::ERROR, "Caching is disabled");
           }
-
-
-
           std::string control_dir_ = control_dir;
           std::string session_root_ = session_root;
           user->SetLRMS(default_lrms,default_queue);
@@ -968,92 +970,7 @@ http://www.nordugrid.org/schemas/ArcConfig/2009/arex
         };
       };
     };
-/*
-    } else if(command == "control") {
-
-
-      if(command == "controldir") rest=".";
-      for(;;) {
-        std::string username = config_next_arg(rest);
-        if(username.length() == 0) break;
-        if(username == "*") {  * add all gridmap users *
-          if(!gridmap_user_list(rest)) {
-            logger.msg(Arc::ERROR,"Can't read users in gridmap file %s",globus_gridmap); goto exit;
-          };
-          continue;
-        };
-        if(username == ".") {  * accept all users in this control directory *
-           * !!!!!!! substitutions involving user names won't work !!!!!!!  *
-           if(superuser) { username=""; }
-           else { username=my_username; };
-        };
-        * add new user to list *
-        if(superuser || (my_username == username)) {
-          if(users.HasUser(username)) { * first is best *
-            continue;
-          };
-          JobUsers::iterator user=users.AddUser(username,&cred_plugin,
-                                       control_dir,session_root);
-          if(user == users.end()) { * bad bad user *
-            logger.msg(Arc::WARNING,"Warning: creation of user \"%s\" failed",username);
-          }
-          else {
-            // get cache parameters for this user
-            try {
-              CacheConfig * cache_config = new CacheConfig(user->UnixName());
-              std::list<std::string> cache_info = cache_config->getCacheDirs();
-              for (std::list<std::string>::iterator i = cache_info.begin(); i != cache_info.end(); i++) {
-                user->substitute(*i);
-              }
-              cache_config->setCacheDirs(cache_info);
-              user->SetCacheParams(cache_config);
-            }
-            catch (CacheConfigException e) {
-              logger.msg(Arc::ERROR, "Error with cache configuration: %s", e.what());
-              logger.msg(Arc::ERROR, "Caching is disabled");
-            }
-            std::string control_dir_ = control_dir;
-            std::string session_root_ = session_root;
-            user->SetLRMS(default_lrms,default_queue);
-            user->SetKeepFinished(default_ttl);
-            user->SetKeepDeleted(default_ttr);
-            user->SetReruns(default_reruns);
-            user->SetDiskSpace(default_diskspace);
-            user->substitute(control_dir_);
-            user->substitute(session_root_);
-            user->SetControlDir(control_dir_);
-            user->SetSessionRoot(session_root_);
-            user->SetStrictSession(strict_session);
-            * add helper to poll for finished jobs *
-            std::string cmd_ = nordugrid_libexec_loc;
-            make_escaped_string(control_dir_);
-            cmd_+="/scan-"+default_lrms+"-job";
-            make_escaped_string(cmd_);
-            cmd_+=" ";
-            cmd_+=control_dir_;
-            user->add_helper(cmd_);
-            * creating empty list of jobs *
-            JobsList *jobs = new JobsList(*user,plugins);
-            (*user)=jobs; * back-associate jobs with user :) *
-          };
-        };
-      };
-      last_control_dir = control_dir;
-*/
-
-
-  
- 
   };
-/*
-    } else if(command == "controldir") {
-      central_control_dir=rest;
-*/
- 
-
-
-
-
   return true;
 }
 
