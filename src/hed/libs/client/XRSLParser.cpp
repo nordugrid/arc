@@ -958,7 +958,7 @@ namespace Arc {
     if (!j.Resources.CEType.empty()) {
       std::list<Software>::const_iterator itSW = j.Resources.CEType.getSoftwareList().begin();
       std::list<SWComparisonOperator>::const_iterator itCO = j.Resources.CEType.getComparisonOperatorList().begin();
-      for (; itSW != j.Resources.RunTimeEnvironment.getSoftwareList().end(); itSW++, itCO++) {
+      for (; itSW != j.Resources.CEType.getSoftwareList().end(); itSW++, itCO++) {
         RSLList *l = new RSLList;
         l->Add(new RSLLiteral(*itSW));
         r.Add(new RSLCondition("middleware", convertOperator(*itCO), l));
