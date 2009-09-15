@@ -103,23 +103,6 @@ bool FileData::has_lfn(void) {
   return (lfn.find(':') != std::string::npos);
 }
 
-/** Skou: Currently not used, due to transition in job description parsing.
-static bool insert_RC_to_url(std::string& url,const std::string& rc_url) {
-  Arc::URL url_(url);
-  if(!url_) return false;
-  if(url_.Protocol() != "rc") return false;
-  if(!url_.Host().empty()) return false;
-  Arc::URL rc_url_(rc_url);
-  if(!rc_url_) return false;
-  if(rc_url_.Protocol() != "ldap") return false;
-  url_.ChangePort(rc_url_.Port());
-  url_.ChangeHost(rc_url_.Host());
-  url_.ChangePath(rc_url_.Path()+url_.Path());
-  url=url_.str();
-  return true;
-}
-*/
-
 JobLocalDescription& JobLocalDescription::operator=(const Arc::JobDescription& arc_job_desc)
 {
   action = "request";
@@ -188,19 +171,6 @@ JobLocalDescription& JobLocalDescription::operator=(const Arc::JobDescription& a
     }
   }
   
-/** Skou: Currently not supported, due to transition in job description parsing.
-  if(job_desc.rc.length() != 0) {
-    for(FileData::iterator i=job_desc.outputdata.begin();
-                         i!=job_desc.outputdata.end();++i) {
-      insert_RC_to_url(i->lfn,job_desc.rc);
-    };
-    for(FileData::iterator i=job_desc.inputdata.begin();
-                         i!=job_desc.inputdata.end();++i) {
-      insert_RC_to_url(i->lfn,job_desc.rc);
-    };
-  };
-*/
-
   // Order of the following calls matters!
   arguments.clear();
   arguments = arc_job_desc.Application.Executable.Argument;
