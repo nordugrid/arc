@@ -36,7 +36,7 @@ BuildRequires: globus-ftp-client-devel
 BuildRequires: globus-ftp-control-devel
 BuildRequires: globus-rls-client-devel
 #
-BuildRequires: LFC-client-devel
+#BuildRequires: LFC-client-devel
 #
 %if %{_vendor} == "redhat"
 BuildRequires: db4-devel
@@ -106,7 +106,7 @@ Requires: globus-common
 Requires: globus-ftp-client
 Requires: globus-ftp-control
 Requires: globus-rls-client
-Requires: LFC-client
+#Requires: LFC-client
 
 %description plugins-globus
 ARC Globus plugins. This includes the Globus dependent Data Manager
