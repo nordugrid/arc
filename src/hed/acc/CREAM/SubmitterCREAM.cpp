@@ -7,6 +7,7 @@
 #include <arc/GUID.h>
 #include <arc/StringConv.h>
 #include <arc/UserConfig.h>
+#include <arc/client/ExecutionTarget.h>
 #include <arc/client/JobDescription.h>
 #include <arc/message/MCC.h>
 
@@ -15,8 +16,8 @@
 
 namespace Arc {
 
-  SubmitterCREAM::SubmitterCREAM(const Config& cfg, const UserConfig& usercfg)
-    : Submitter(cfg, usercfg, "CREAM") {}
+  SubmitterCREAM::SubmitterCREAM(const UserConfig& usercfg)
+    : Submitter(usercfg, "CREAM") {}
 
   SubmitterCREAM::~SubmitterCREAM() {}
 
@@ -25,15 +26,15 @@ namespace Arc {
       dynamic_cast<SubmitterPluginArgument*>(arg);
     if (!subarg)
       return NULL;
-    return new SubmitterCREAM(*subarg, *subarg);
+    return new SubmitterCREAM(*subarg);
   }
 
   URL SubmitterCREAM::Submit(const JobDescription& jobdesc,
-                             const std::string& joblistfile) const {
+                             const ExecutionTarget& et) const {
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);
     std::string delegationid = UUID();
-    URL delegationurl(submissionEndpoint);
+    URL delegationurl(et.url);
     delegationurl.ChangePath(delegationurl.Path() + "/gridsite-delegation");
     CREAMClient gLiteClientDelegation(delegationurl, cfg, stringtoi(usercfg.ConfTree()["TimeOut"]));
     Config xcfg;
@@ -42,22 +43,13 @@ namespace Arc {
       logger.msg(ERROR, "Creating delegation failed");
       return URL();
     }
-    URL submissionurl(submissionEndpoint);
+    URL submissionurl(et.url);
     submissionurl.ChangePath(submissionurl.Path() + "/CREAM2");
     CREAMClient gLiteClientSubmission(submissionurl, cfg, stringtoi(usercfg.ConfTree()["TimeOut"]));
     gLiteClientSubmission.setDelegationId(delegationid);
 
     JobDescription job(jobdesc);
-    if (job.JDL_elements.find("BatchSystem") == job.JDL_elements.end() &&
-        !lrmsType.empty())
-      job.JDL_elements["BatchSystem"] = lrmsType;
-
-    if (job.Resources.CandidateTarget.empty()) {
-      ResourceTargetType candidateTarget;
-      candidateTarget.EndPointURL = URL();
-      candidateTarget.QueueName = queue;
-      job.Resources.CandidateTarget.push_back(candidateTarget);
-    }
+    ModifyJobDescription(job, et);
 
     std::string jobdescstring = job.UnParse("JDL");
     creamJobInfo jobInfo;
@@ -74,17 +66,31 @@ namespace Arc {
       return URL();
     }
 
-    AddJob(job, submissionurl.str() + '/' + jobInfo.jobId,
-           delegationurl.str() + '/' + delegationid, joblistfile);
+    AddJob(job, submissionurl.str() + '/' + jobInfo.jobId, et.Cluster,
+           delegationurl.str() + '/' + delegationid);
 
     return submissionurl.str() + '/' + jobInfo.jobId;
   }
 
   URL SubmitterCREAM::Migrate(const URL& jobid, const JobDescription& jobdesc,
-                              bool forcemigration,
-                              const std::string& joblistfile) const {
+                              const ExecutionTarget& et,
+                              bool forcemigration) const {
     logger.msg(ERROR, "Migration to a CREAM cluster is not supported.");
     return URL();
   }
+  
+  bool SubmitterCREAM::ModifyJobDescription(JobDescription& jobdesc, const ExecutionTarget& et) const {
+    if (jobdesc.JDL_elements.find("BatchSystem") == jobdesc.JDL_elements.end() &&
+        !et.ManagerProductName.empty())
+      jobdesc.JDL_elements["BatchSystem"] = et.ManagerProductName;
 
+    if (jobdesc.Resources.CandidateTarget.empty()) {
+      ResourceTargetType candidateTarget;
+      candidateTarget.EndPointURL = URL();
+      candidateTarget.QueueName = et.MappingQueue;
+      jobdesc.Resources.CandidateTarget.push_back(candidateTarget);
+    }
+    
+    return true;
+  }
 } // namespace Arc

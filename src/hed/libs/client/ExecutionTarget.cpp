@@ -217,14 +217,7 @@ namespace Arc {
   }
 
   Submitter* ExecutionTarget::GetSubmitter(const UserConfig& ucfg) const {
-    Config cfg;
-    cfg.NewChild("Cluster") = Cluster.str();
-    cfg.NewChild("Queue") = MappingQueue;
-    cfg.NewChild("LRMSType") = ManagerProductName;
-    cfg.NewChild("SubmissionEndpoint") = url.str();
-
-    return (const_cast<ExecutionTarget*>(this))->loader.load(GridFlavour,
-                                                             cfg, ucfg);
+    return (const_cast<ExecutionTarget*>(this))->loader.load(GridFlavour, ucfg);
   }
 
   void ExecutionTarget::Update(const JobDescription& jobdesc) {

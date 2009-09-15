@@ -18,15 +18,17 @@ namespace Arc {
   private:
     static Logger logger;
 
-    SubmitterUNICORE(const Config& cfg, const UserConfig& usercfg);
+    SubmitterUNICORE(const UserConfig& usercfg);
     ~SubmitterUNICORE();
 
   public:
     static Plugin* Instance(PluginArgument *arg);
     URL Submit(const JobDescription& jobdesc,
-               const std::string& joblistfile) const;
+               const ExecutionTarget& et) const;
     URL Migrate(const URL& jobid, const JobDescription& jobdesc,
-                bool forcemigration, const std::string& joblistfile) const;
+                const ExecutionTarget& et,
+                bool forcemigration) const;
+    bool ModifyJobDescription(JobDescription& jobdesc, const ExecutionTarget& et) const;
   };
 
 } // namespace Arc

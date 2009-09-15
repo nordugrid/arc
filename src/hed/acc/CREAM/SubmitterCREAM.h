@@ -13,15 +13,17 @@ namespace Arc {
     : public Submitter {
 
   private:
-    SubmitterCREAM(const Config& cfg, const UserConfig& usercfg);
+    SubmitterCREAM(const UserConfig& usercfg);
     ~SubmitterCREAM();
 
   public:
     static Plugin* Instance(PluginArgument *arg);
     URL Submit(const JobDescription& jobdesc,
-               const std::string& joblistfile) const;
+               const ExecutionTarget& et) const;
     URL Migrate(const URL& jobid, const JobDescription& jobdesc,
-                bool forcemigration, const std::string& joblistfile) const;
+                const ExecutionTarget& et,
+                bool forcemigration) const;
+    bool ModifyJobDescription(JobDescription& jobdesc, const ExecutionTarget& et) const;
   };
 
 } // namespace Arc

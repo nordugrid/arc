@@ -8,6 +8,7 @@
 
 #include <arc/StringConv.h>
 #include <arc/UserConfig.h>
+#include <arc/client/ExecutionTarget.h>
 #include <arc/client/JobDescription.h>
 #include <arc/message/MCC.h>
 #include <arc/ws-addressing/WSA.h>
@@ -19,9 +20,8 @@ namespace Arc {
 
   Logger SubmitterUNICORE::logger(Submitter::logger, "UNICORE");
 
-  SubmitterUNICORE::SubmitterUNICORE(const Config& cfg,
-                                     const UserConfig& usercfg)
-    : Submitter(cfg, usercfg, "UNICORE") {}
+  SubmitterUNICORE::SubmitterUNICORE(const UserConfig& usercfg)
+    : Submitter(usercfg, "UNICORE") {}
 
   SubmitterUNICORE::~SubmitterUNICORE() {}
 
@@ -30,16 +30,16 @@ namespace Arc {
       dynamic_cast<SubmitterPluginArgument*>(arg);
     if (!subarg)
       return NULL;
-    return new SubmitterUNICORE(*subarg, *subarg);
+    return new SubmitterUNICORE(*subarg);
   }
 
   URL SubmitterUNICORE::Submit(const JobDescription& jobdesc,
-                               const std::string& joblistfile) const {
+                               const ExecutionTarget& et) const {
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);
 
     //new code to use the UNICOREClient
-    UNICOREClient uc(submissionEndpoint, cfg, stringtoi(usercfg.ConfTree()["TimeOut"]));
+    UNICOREClient uc(et.url, cfg, stringtoi(usercfg.ConfTree()["TimeOut"]));
 
     XMLNode id;
 
@@ -118,18 +118,20 @@ namespace Arc {
     std::string jobid;
     id.GetDoc(jobid);
 
-    AddJob(jobdesc, (std::string)id["Address"],
-           submissionEndpoint, joblistfile);
+    AddJob(jobdesc, (std::string)id["Address"], et.Cluster, et.url);
 
     return (std::string)id["Address"];
   }
 
   URL SubmitterUNICORE::Migrate(const URL& jobid,
                                 const JobDescription& jobdesc,
-                                bool forcemigration,
-                                const std::string& joblistfile) const {
+                                const ExecutionTarget& et,
+                                bool forcemigration) const {
     logger.msg(ERROR, "Migration to a UNICORE cluster is not supported.");
     return URL();
   }
-
+  
+  bool SubmitterUNICORE::ModifyJobDescription(JobDescription& jobdesc, const ExecutionTarget& et) const {
+    return true;
+  }
 } // namespace Arc

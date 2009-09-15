@@ -533,7 +533,7 @@ namespace Arc {
           continue;
         }
 
-        URL jobid = currentTarget->GetSubmitter(usercfg)->Migrate(itJob->JobID, jobDesc, forcemigration, joblist);
+        URL jobid = currentTarget->GetSubmitter(usercfg)->Migrate(itJob->JobID, jobDesc, *currentTarget, forcemigration);
         if (!jobid) {
           logger.msg(WARNING, "Migration to %s failed, trying next target", currentTarget->url.str());
           continue;

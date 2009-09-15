@@ -9,6 +9,7 @@
 
 #include <arc/StringConv.h>
 #include <arc/UserConfig.h>
+#include <arc/client/ExecutionTarget.h>
 #include <arc/client/JobDescription.h>
 #include <arc/message/MCC.h>
 
@@ -19,8 +20,8 @@ namespace Arc {
 
   Logger SubmitterARC1::logger(Submitter::logger, "ARC1");
 
-  SubmitterARC1::SubmitterARC1(const Config& cfg, const UserConfig& usercfg)
-    : Submitter(cfg, usercfg, "ARC1") {}
+  SubmitterARC1::SubmitterARC1(const UserConfig& usercfg)
+    : Submitter(usercfg, "ARC1") {}
 
   SubmitterARC1::~SubmitterARC1() {}
 
@@ -29,17 +30,17 @@ namespace Arc {
       dynamic_cast<SubmitterPluginArgument*>(arg);
     if (!subarg)
       return NULL;
-    return new SubmitterARC1(*subarg, *subarg);
+    return new SubmitterARC1(*subarg);
   }
 
   URL SubmitterARC1::Submit(const JobDescription& jobdesc,
-                            const std::string& joblistfile) const {
+                            const ExecutionTarget& et) const {
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);
-    AREXClient ac(submissionEndpoint, cfg, stringtoi(usercfg.ConfTree()["TimeOut"]));
+    AREXClient ac(et.url, cfg, stringtoi(usercfg.ConfTree()["TimeOut"]));
 
     std::string jobid;
-    if (!ac.submit(jobdesc.UnParse("ARCJSDL"), jobid, submissionEndpoint.Protocol() == "https")) {
+    if (!ac.submit(jobdesc.UnParse("ARCJSDL"), jobid, et.url.Protocol() == "https")) {
       logger.msg(ERROR, "Failed submitting job");
       return URL();
     }
@@ -53,22 +54,28 @@ namespace Arc {
 
     JobDescription job(jobdesc);
 
+    if (!ModifyJobDescription(job, et)) {
+      logger.msg(ERROR, "Submit: Failed to modify job description "
+                        "to be sent to target.");
+      return URL();
+    }
+
     if (!PutFiles(job, session_url)) {
       logger.msg(ERROR, "Failed uploading local input files");
       return URL();
     }
 
-    AddJob(job, session_url, session_url, joblistfile);
+    AddJob(job, session_url, et.Cluster, session_url);
 
     return session_url;
   }
 
   URL SubmitterARC1::Migrate(const URL& jobid, const JobDescription& jobdesc,
-                             bool forcemigration,
-                             const std::string& joblistfile) const {
+                             const ExecutionTarget& et,
+                             bool forcemigration) const {
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);
-    AREXClient ac(submissionEndpoint, cfg, stringtoi(usercfg.ConfTree()["TimeOut"]));
+    AREXClient ac(et.url, cfg, stringtoi(usercfg.ConfTree()["TimeOut"]));
 
     std::string idstr;
     AREXClient::createActivityIdentifier(jobid, idstr);
@@ -107,12 +114,18 @@ namespace Arc {
       }
     }
 
+    if (!ModifyJobDescription(job, et)) {
+      logger.msg(ERROR, "Submit: Failed to modify job description "
+                        "to be sent to target.");
+      return URL();
+    }
+
     // Add ActivityOldId.
     job.Identification.ActivityOldId.push_back(jobid.str());
 
     std::string newjobid;
     if (!ac.migrate(idstr, job.UnParse("ARCJSDL"), forcemigration, newjobid,
-                    submissionEndpoint.Protocol() == "https")) {
+                    et.url.Protocol() == "https")) {
       logger.msg(ERROR, "Failed migrating job");
       return URL();
     }
@@ -129,9 +142,49 @@ namespace Arc {
       return URL();
     }
 
-    AddJob(job, session_url, session_url, joblistfile);
+    AddJob(job, session_url, et.Cluster, session_url);
 
     return session_url;
+  }
+
+  bool SubmitterARC1::ModifyJobDescription(JobDescription& jobdesc, const ExecutionTarget& et) const {
+    // Check for identical file names.
+    for (std::list<FileType>::const_iterator it1 = jobdesc.DataStaging.File.begin();
+         it1 != jobdesc.DataStaging.File.end(); it1++) {
+      for (std::list<FileType>::const_iterator it2 = it1;
+           it2 != jobdesc.DataStaging.File.end(); it2++) {
+        if (it1 == it2) continue;
+
+        if (it1->Name == it2->Name && (!it1->Source.empty() && !it2->Source.empty() ||
+                                       !it1->Target.empty() && !it2->Target.empty())) {
+          logger.msg(DEBUG, "Two files have identical file name '%s'.", it1->Name);
+          return false;
+        }
+      }
+    }
+
+    if (!jobdesc.Resources.RunTimeEnvironment.empty() &&
+        !jobdesc.Resources.RunTimeEnvironment.selectSoftware(et.ApplicationEnvironments)) {
+      // This error should never happen since RTE is checked in the Broker.
+      logger.msg(DEBUG, "Unable to select run time environment");
+      return false;
+    }
+
+    if (!jobdesc.Resources.CEType.empty() &&
+        !jobdesc.Resources.CEType.selectSoftware(et.Implementation)) {
+      // This error should never happen since Middleware is checked in the Broker.
+      logger.msg(DEBUG, "Unable to select middleware");
+      return false;
+    }
+    
+    if (!jobdesc.Resources.OperatingSystem.empty() &&
+        !jobdesc.Resources.OperatingSystem.selectSoftware(et.Implementation)) {
+      // This error should never happen since OS is checked in the Broker.
+      logger.msg(DEBUG, "Unable to select operating system.");
+      return false;
+    }
+
+    return true;
   }
 
 } // namespace Arc

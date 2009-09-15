@@ -13,6 +13,7 @@
 namespace Arc {
 
   class Config;
+  class ExecutionTarget;
   class JobDescription;
   class Logger;
   class UserConfig;
@@ -22,28 +23,49 @@ namespace Arc {
   class Submitter
     : public Plugin {
   protected:
-    Submitter(const Config& cfg, const UserConfig& usercfg,
+    Submitter(const UserConfig& usercfg,
               const std::string& flavour);
   public:
     virtual ~Submitter();
+    
+    /**
+     * This virtual method should be overridden by plugins which should
+     * be capable of submitting jobs, defined in the JobDescription
+     * jobdesc, to the ExecutionTarget et. The protected convenience
+     * method AddJob can be used to save job information.
+     * This method should return the URL of the submitted job. In case
+     * submission fails an empty URL should be returned.
+     */
     virtual URL Submit(const JobDescription& jobdesc,
-                       const std::string& joblistfile) const = 0;
+                       const ExecutionTarget& et) const = 0;
+
+    /**
+     * This virtual method should be overridden by plugins which should
+     * be capable of migrating jobs. The active job which should be
+     * migrated is pointed to by the URL jobid, and is represented by
+     * the JobDescription jobdesc. The forcemigration boolean specifies
+     * if the migration should succeed if the active job cannot be
+     * terminated. The protected method AddJob can be used to save job
+     * information.
+     * This method should return the URL of the migrated job. In case
+     * migration fails an empty URL should be returned.
+     */
     virtual URL Migrate(const URL& jobid, const JobDescription& jobdesc,
-                        bool forcemigration,
-                        const std::string& joblistfile) const = 0;
+                        const ExecutionTarget& et,
+                        bool forcemigration) const = 0;
+
+    virtual bool ModifyJobDescription(JobDescription& jobdesc,
+                                      const ExecutionTarget& et) const = 0;
     std::string GetCksum(const std::string& file) const;
   protected:
     bool PutFiles(const JobDescription& jobdesc, const URL& url) const;
-    void AddJob(const JobDescription& job, const URL& jobid,
-                const URL& infoendpoint,
-                const std::string& joblistfile) const;
+    void AddJob(const JobDescription& job,
+                const URL& jobid,
+                const URL& cluster,
+                const URL& infoendpoint) const;
 
     const std::string flavour;
     const UserConfig& usercfg;
-    const URL submissionEndpoint;
-    const URL cluster;
-    const std::string queue;
-    const std::string lrmsType;
     static Logger logger;
   };
 
@@ -65,11 +87,9 @@ namespace Arc {
 
     //! Load a new Submitter
     /// \param name    The name of the Submitter to load.
-    /// \param cfg     The Config object for the new Submitter.
     /// \param usercfg The UserConfig object for the new Submitter.
     /// \returns       A pointer to the new Submitter (NULL on error).
-    Submitter* load(const std::string& name,
-                    const Config& cfg, const UserConfig& usercfg);
+    Submitter* load(const std::string& name, const UserConfig& usercfg);
 
     //! Retrieve the list of loaded Submitters.
     /// \returns A reference to the list of Submitters.
@@ -84,18 +104,13 @@ namespace Arc {
   class SubmitterPluginArgument
     : public PluginArgument {
   public:
-    SubmitterPluginArgument(const Config& cfg, const UserConfig& usercfg)
-      : cfg(cfg),
-        usercfg(usercfg) {}
+    SubmitterPluginArgument(const UserConfig& usercfg)
+      : usercfg(usercfg) {}
     ~SubmitterPluginArgument() {}
-    operator const Config&() {
-      return cfg;
-    }
     operator const UserConfig&() {
       return usercfg;
     }
   private:
-    const Config& cfg;
     const UserConfig& usercfg;
   };
 

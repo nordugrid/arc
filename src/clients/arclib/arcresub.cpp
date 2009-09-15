@@ -230,7 +230,7 @@ int main(int argc, char **argv) {
       Arc::Submitter *submitter = target->GetSubmitter(usercfg);
 
       //submit the job
-      Arc::URL jobid = submitter->Submit(jobdesc, usercfg.JobListFile());
+      Arc::URL jobid = submitter->Submit(jobdesc, *target);
       if (!jobid) {
         std::cout << Arc::IString("Submission to %s failed, trying next target", target->url.str()) << std::endl;
         continue;

@@ -8,6 +8,7 @@
 #include <arc/FileLock.h>
 #include <arc/StringConv.h>
 #include <arc/Thread.h>
+#include <arc/client/ExecutionTarget.h>
 #include <arc/client/JobDescription.h>
 #include <arc/client/Submitter.h>
 #include <arc/UserConfig.h>
@@ -24,15 +25,10 @@ namespace Arc {
 
   Logger Submitter::logger(Logger::getRootLogger(), "Submitter");
 
-  Submitter::Submitter(const Config& cfg,
-                       const UserConfig& usercfg,
+  Submitter::Submitter(const UserConfig& usercfg,
                        const std::string& flavour)
     : flavour(flavour),
-      usercfg(usercfg),
-      submissionEndpoint((std::string)(cfg)["SubmissionEndpoint"]),
-      cluster((std::string)(cfg)["Cluster"]),
-      queue((std::string)(cfg)["Queue"]),
-      lrmsType((std::string)cfg["LRMSType"]) {}
+      usercfg(usercfg) {}
 
   Submitter::~Submitter() {}
 
@@ -71,8 +67,8 @@ namespace Arc {
   }
 
   void Submitter::AddJob(const JobDescription& job, const URL& jobid,
-                         const URL& infoendpoint,
-                         const std::string& joblistfile) const {
+                         const URL& cluster,
+                         const URL& infoendpoint) const {
     NS ns;
     XMLNode info(ns, "Job");
     info.NewChild("JobID") = jobid.str();
@@ -102,11 +98,11 @@ namespace Arc {
           File.NewChild("CheckSum") = GetCksum(it->Source.begin()->URI.Path());
         }
 
-    FileLock lock(joblistfile);
+    FileLock lock(usercfg.JobListFile());
     Config jobstorage;
-    jobstorage.ReadFromFile(joblistfile);
+    jobstorage.ReadFromFile(usercfg.JobListFile());
     jobstorage.NewChild(info);
-    jobstorage.SaveToFile(joblistfile);
+    jobstorage.SaveToFile(usercfg.JobListFile());
   }
 
   std::string Submitter::GetCksum(const std::string& file) const {
@@ -148,7 +144,6 @@ namespace Arc {
   }
 
   Submitter* SubmitterLoader::load(const std::string& name,
-                                   const Config& cfg,
                                    const UserConfig& usercfg) {
     if (name.empty())
       return NULL;
@@ -156,7 +151,7 @@ namespace Arc {
     PluginList list = FinderLoader::GetPluginList("HED:Submitter");
     factory_->load(list[name], "HED:Submitter");
 
-    SubmitterPluginArgument arg(cfg, usercfg);
+    SubmitterPluginArgument arg(usercfg);
     Submitter *submitter =
       factory_->GetInstance<Submitter>("HED:Submitter", name, &arg);
 
