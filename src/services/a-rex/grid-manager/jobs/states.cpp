@@ -406,6 +406,8 @@ bool JobsList::state_loading(const JobsList::iterator &i,bool &state_changed,boo
       NULL, // (-i)
       NULL, // -d
       NULL, // (-d)
+      NULL, // -C
+      NULL, // (-C)
       NULL, // id
       NULL, // control
       NULL, // session
@@ -448,6 +450,10 @@ bool JobsList::state_loading(const JobsList::iterator &i,bool &state_changed,boo
     if (!debug_level.empty()) {
       args[argn]="-d"; argn++;
       args[argn]=(char*)(debug_level.c_str()); argn++;
+    }
+    if (!nordugrid_config_loc.empty()) {
+      args[argn]="-C"; argn++;
+      args[argn]=(char*)(nordugrid_config_loc.c_str()); argn++;
     }
     args[argn]=(char*)(i->job_id.c_str()); argn++;
     args[argn]=(char*)(user->ControlDir().c_str()); argn++;
