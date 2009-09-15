@@ -95,11 +95,10 @@ int main(int argc, char **argv) {
                     dryrun);
 
    */
-  std::string dumpdescription;
+  bool dumpdescription = false;
   options.AddOption('x', "dumpdescription",
                     istring("do not submit - dump job description "
-                            "in the specified language (xrsl, posixjsdl, jsdl, ...). "),
-                    istring("job description language"),
+                            "in the language accepted by the target"),
                     dumpdescription);
 
   int timeout = -1;
@@ -249,7 +248,15 @@ int main(int argc, char **argv) {
 
     while (true) {
       const Arc::ExecutionTarget* target = ChosenBroker->GetBestTarget();
-      if (!dumpdescription.empty()) {
+
+      if (!target) {
+        std::cout << Arc::IString("Job submission failed, no more possible targets") << std::endl;
+        break;
+      }
+
+      Arc::Submitter *submitter = target->GetSubmitter(usercfg);
+
+      if (dumpdescription) {
         std::string flavour;
         if (!target)
           flavour = target->GridFlavour;
@@ -264,28 +271,28 @@ int main(int argc, char **argv) {
           flavour = it->first;
         }
 
-        const std::string jobdesc = it->UnParse(dumpdescription);
-        if (jobdesc.empty()) {
-          std::cout << "Specified language (" << dumpdescription << ") unknown." << std::endl;
+        Arc::JobDescription jobdescdump(*it);
+        if (!submitter->ModifyJobDescription(jobdescdump, *target)) {
+          std::cout << "Unable to modify job description according to needs for target cluster." << std::endl;
           return 1;
         }
 
-        if (!target)
-          std::cout << "Job description to be send to " << target->Cluster.str() << ":" << std::endl;
-        else if (!clusters.empty())
-          std::cout << "Job description to be send to " << clusters.front() << ":" << std::endl;
-        else
-          std::cout << "Job description could not be send to any cluster:" << std::endl;
+        std::string jobdesclang = "ARCJSDL";
+        if (target->GridFlavour == "ARC0")
+          jobdesclang = "XRSL";
+        else if (target->GridFlavour == "CREAM")
+          jobdesclang = "JDL";
+        const std::string jobdesc = jobdescdump.UnParse(jobdesclang);
+        if (jobdesc.empty()) {
+          std::cout << "An error occurred during the generation of the job description output." << std::endl;
+          return 1;
+        }
+
+        std::cout << "Job description to be send to " << target->Cluster.str() << ":" << std::endl;
         std::cout << jobdesc << std::endl;
         return 0;
       }
 
-      if (!target) {
-        std::cout << Arc::IString("Job submission failed, no more possible targets") << std::endl;
-        break;
-      }
-
-      Arc::Submitter *submitter = target->GetSubmitter(usercfg);
 
       //submit the job
       Arc::URL jobid = submitter->Submit(*it, *target);
