@@ -282,11 +282,11 @@ int main(int argc,char** argv) {
   // process optional arguments
   for(;;) {
     opterr=0;
-    int optc=getopt(argc,argv,"+hclpfn:t:n:u:U:s:S:a:i:d:");
+    int optc=getopt(argc,argv,"+hclpfC:n:t:n:u:U:s:S:a:i:d:");
     if(optc == -1) break;
     switch(optc) {
       case 'h': {
-        std::cerr<<"Usage: downloader [-hclpf] [-n files] [-t threads] [-U uid]"<<std::endl;
+        std::cerr<<"Usage: downloader [-hclpf] [-C conf_file] [-n files] [-t threads] [-U uid]"<<std::endl;
         std::cerr<<"                  [-u username] [-s min_speed] [-S min_speed_time]"<<std::endl;
         std::cerr<<"                  [-a min_average_speed] [-i min_activity_time]"<<std::endl;
         std::cerr<<"                  [-d debug_level] job_id control_directory"<<std::endl;
@@ -295,6 +295,9 @@ int main(int argc,char** argv) {
       }; break;
       case 'c': {
         secure=false;
+      }; break;
+      case 'C': {
+        nordugrid_config_loc = optarg;
       }; break;
       case 'l': {
         userfiles_only=true;
@@ -441,7 +444,7 @@ int main(int argc,char** argv) {
       }
     }
     catch (CacheConfigException e) {
-      logger.msg(Arc::ERROR, "Error with cache configuration: %s");
+      logger.msg(Arc::ERROR, "Error with cache configuration: %s", e.what());
       logger.msg(Arc::ERROR, "Will not use caching");
     }
   }
