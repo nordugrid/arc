@@ -27,13 +27,11 @@ namespace Arc {
       }
 
       if(MatchXMLName(cn, "Plugins")) {
-        std::string name = cn["Name"];
-        if(name.empty()) {
-          logger.msg(ERROR, "Plugins element has no Name defined");
-          continue;
+        XMLNode n;
+        for (int i = 0; (n = cn["Name"][i]) != false; i++) { 
+            std::string name = (std::string)n;
+            factory_->load(name);
         }
-        factory_->load(name);
-        continue;
       }
 
       // Configuration processing is split to multiple functions - hence
