@@ -66,7 +66,7 @@ InfoRegister::InfoRegister(XMLNode &cfg, Service *service):reg_period_(0),servic
     // registration through specific registrants.
     std::list<std::string> ids;
     for(XMLNode r = cfg["InfoRegister"]["Registrar"];(bool)r;++r) {
-      std::string id = (std::string) r.Attribute("id");
+      std::string id = (std::string) r["URL"];
       if(!id.empty()) ids.push_back(id);
       else logger_.msg(ERROR, "Configuration error: \"id\" attribute is mandatory at the Registrar elements");
     };
@@ -89,7 +89,7 @@ InfoRegisterContainer& InfoRegisterContainer::Instance(void) {
   return *instance_;
 }
 
-InfoRegisterContainer::InfoRegisterContainer(void):regr_done_(false) {
+InfoRegisterContainer::InfoRegisterContainer(void) {
 }
 
 InfoRegisterContainer::~InfoRegisterContainer(void) {
@@ -100,52 +100,38 @@ InfoRegisterContainer::~InfoRegisterContainer(void) {
     };
 }
 
-void InfoRegisterContainer::addRegistrars(XMLNode doc) {
-    Glib::Mutex::Lock lock(lock_);
-    for(XMLNode node = doc["InfoRegistrar"];(bool)node;++node) {
-        InfoRegistrar* r = new InfoRegistrar(node);
-        if(!r) continue;
-        if(!(*r)) { delete r; continue; };
-        regr_.push_back(r);
-    };
-    // Start registration threads
-    for(std::list<InfoRegistrar*>::iterator r = regr_.begin();
-                              r != regr_.end();++r) {
-       CreateThreadFunction(&reg_thread,*r);
-    };
-    regr_done_=true;
+InfoRegistrar *InfoRegisterContainer::addRegistrar(XMLNode node) {
+    //Glib::Mutex::Lock lock(lock_);
+    InfoRegistrar* r = new InfoRegistrar(node);
+    if(!(*r)) {
+         delete r; 
+    }
+    regr_.push_back(r);
+    CreateThreadFunction(&reg_thread, r);
+    return r;
 }
 
 void InfoRegisterContainer::addService(InfoRegister* reg,const std::list<std::string>& ids,XMLNode cfg) {
-    // Add element to list
-    //regs_.push_back(reg);
-    // If not yet done create registrars
-    if(!regr_done_) {
-        if((bool)cfg) {
-            addRegistrars(cfg.GetRoot());
-        } else {
-            // Bad situation
-        };
-    };
-
     // Add to registrars
     Glib::Mutex::Lock lock(lock_);
-    if(ids.size() <= 0) {
+    for(std::list<std::string>::const_iterator i = ids.begin(); i != ids.end();++i) {
+        bool id_found = false;
         for(std::list<InfoRegistrar*>::iterator r = regr_.begin(); r != regr_.end();++r) {
-            (*r)->addService(reg, cfg);
-            logger_.msg(DEBUG, "Registering to every InfoRegistrar.");
+            if((*i) == (*r)->id()) {
+                logger_.msg(DEBUG, "InfoRegistrar id \"%s\" has been found.", (*i));
+                (*r)->addService(reg, cfg);
+                id_found = true;
+            }
         }
-    } else {
-        for(std::list<std::string>::const_iterator i = ids.begin(); i != ids.end();++i) {
-            bool id_found = false;
-            for(std::list<InfoRegistrar*>::iterator r = regr_.begin(); r != regr_.end();++r) {
-                if((*i) == (*r)->id()) {
-                    (*r)->addService(reg, cfg);
-                    id_found = true;
+        if (!id_found) {
+            // id appears at first time Info registrat need to created
+            logger_.msg(DEBUG, "InfoRegistrar id \"%s\" cannot be found. New registrat created", (*i));
+            for(XMLNode node = cfg["InfoRegister"]["Registrar"];(bool)node;++node) {
+                if ((*i) == (std::string)node["URL"]) {
+                    InfoRegistrar *r = addRegistrar(node);
+                    r->addService(reg, cfg);
                 }
             }
-            if (!id_found) logger_.msg(ERROR, "Configuration error: InfoRegistrar id \"%s\" cannot be found.", (*i));
-            else logger_.msg(DEBUG, "InfoRegistrar id \"%s\" has been found.", (*i));
         }
     }
 }
@@ -163,7 +149,7 @@ void InfoRegisterContainer::removeService(InfoRegister* reg) {
 // -------------------------------------------------------------------
 
 InfoRegistrar::InfoRegistrar(XMLNode cfg):stretch_window("PT20S") {
-    id_=(std::string)cfg.Attribute("id");
+    id_=(std::string)cfg["URL"];
 
     if ((bool)cfg["Retry"]) {
         if (!((std::string)cfg["Retry"]).empty()) {
@@ -231,7 +217,7 @@ bool InfoRegistrar::addService(InfoRegister* reg, XMLNode& cfg) {
     std::string current_endpoint = reg->getEndpoint();
     Period period(reg->getPeriod());
     for(XMLNode node = cfg["InfoRegister"]["Registrar"];(bool)node;++node) {
-        if ( (std::string)node.Attribute("id") == id_ ) {
+        if ( (std::string)node["URL"] == id_ ) {
             if (! ((std::string)node["Period"]).empty() ) {
                 Period current_period((std::string)node["Period"]);
                 period = current_period;

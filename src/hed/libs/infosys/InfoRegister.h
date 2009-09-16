@@ -160,7 +160,6 @@ class InfoRegisterContainer {
         static InfoRegisterContainer* instance_;
         //std::list<InfoRegister*> regs_;
         std::list<InfoRegistrar*> regr_;
-        bool regr_done_;
         // Mutex protecting regr_ list
         Glib::Mutex lock_;
         InfoRegisterContainer(void);
@@ -172,7 +171,7 @@ class InfoRegisterContainer {
         /** Supplied configuration document is scanned for InfoRegistrar 
            elements and those are turned into InfoRegistrar classes for 
            handling connection to ISIS service each. */
-        void addRegistrars(XMLNode doc);
+        InfoRegistrar *addRegistrar(XMLNode doc);
         /// Adds service to list of handled
         /** This method must be called first time after last addRegistrar 
            was called - services will be only associated with ISISes 
