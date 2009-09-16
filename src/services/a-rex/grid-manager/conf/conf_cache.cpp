@@ -155,7 +155,7 @@ CacheConfig::CacheConfig(Arc::XMLNode cfg):_cache_max(80),
         throw CacheConfigException("bad number in highWatermark parameter");
       }
       if (max_i > 100) {
-        throw CacheConfigException("number is to high in highWatermark parameter");
+        throw CacheConfigException("number is too high in highWatermark parameter");
       }
       _cache_max = max_i;
       off_t min_i;
@@ -163,7 +163,7 @@ CacheConfig::CacheConfig(Arc::XMLNode cfg):_cache_max(80),
         throw CacheConfigException("bad number in lowWatermark parameter");
       }
       if (min_i > 100) {
-        throw CacheConfigException("number is to high in lowWatermark parameter");
+        throw CacheConfigException("number is too high in lowWatermark parameter");
       }
       _cache_min = min_i;
     }
@@ -172,9 +172,5 @@ CacheConfig::CacheConfig(Arc::XMLNode cfg):_cache_max(80),
   } else {
     // cache is disabled
   }
-
-
-
-
 }
 

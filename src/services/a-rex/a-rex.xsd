@@ -155,6 +155,13 @@
         </xsd:sequence>
     </xsd:complexType>
 
+    <xsd:complexType name="cachelocation_Type">
+        <xsd:sequence>
+            <xsd:element name="path" type="xsd:string"/>
+            <xsd:element name="link" type="xsd:string" minOccurs="0"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
     <xsd:complexType name="cache_Type">
         <xsd:annotation>
             <xsd:documentation xml:lang="en">
@@ -179,9 +186,8 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="location" type="xsd:string"/>
-            <xsd:element name="link" type="xsd:string"
-                         minOccurs="0"/>
+            <xsd:element name="location" type="cachelocation_Type"
+                         maxOccurs="unbounded"/>
             <xsd:element name="highWatermark" type="xsd:nonNegativeInteger"
                          minOccurs="0"/>
             <xsd:element name="lowWatermark" type="xsd:nonNegativeInteger"
@@ -249,6 +255,13 @@
             <xsd:element name="Globus" minOccurs="0" type="arc:Globus_Type"/>            
             <xsd:element name="httpProxy" type="xsd:anyURI"
                          minOccurs="0"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="cachelocation_Type">
+        <xsd:sequence>
+            <xsd:element name="path" type="xsd:string"/>
+            <xsd:element name="link" type="xsd:string" minOccurs="0"/>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -398,6 +411,12 @@
                             minOccurs="0"/>
            <xsd:element name="parameters" type="xsd:string"
                              minOccurs="0"/>
+           <xsd:element name="keyPath" type="xsd:string"
+                             minOccurs="0"/>
+           <xsd:element name="certificatePath" type="xsd:string"
+                             minOccurs="0"/>
+           <xsd:element name="CACertificatesDir" type="xsd:string"
+                             minOccurs="0"/>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -412,7 +431,7 @@
     <xsd:complexType name="helperUtility_Type">
        <xsd:sequence>
           <xsd:element name="username" type="xsd:string"/>
-          <xsd:element name="path" type="xsd:string"/>
+          <xsd:element name="command" type="xsd:string"/>
        </xsd:sequence>
     </xsd:complexType>
     

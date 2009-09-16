@@ -41,6 +41,32 @@ static void check_lrms_backends(const std::string& default_lrms) {
   };
 }
 
+typedef enum {
+  config_file_XML,
+  config_file_INI,
+  config_file_unknown
+} config_file_type;
+
+static config_file_type config_detect(std::istream& in) {
+  char inchar;
+  while(in.good()) {
+    inchar = (char)(in.get());
+    if(isspace(inchar)) continue;
+    if(inchar == '<') {
+      // XML starts from < even if it is comment
+      in.putback(inchar);
+      return config_file_XML;
+    };
+    if((inchar == '#') || (inchar = '[')) {
+      // INI file starts from comment or section
+      in.putback(inchar);
+      return config_file_INI;
+    };
+  };
+  in.putback(inchar);
+  return config_file_unknown;
+}
+
 bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my_username,JobUser &my_user,Daemon* daemon) {
   std::ifstream cfile;
   std::string session_root("");
@@ -62,6 +88,25 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
   /* read configuration and add users and other things */
   if(!config_open(cfile)) {
     logger.msg(Arc::ERROR,"Can't read configuration file"); return false;
+  };
+  /* detect type of file */
+  switch(config_detect(cfile)) {
+    case config_file_XML: {
+      Arc::XMLNode cfg;
+      if(!cfg.ReadFromStream(cfile)) {
+        config_close(cfile);
+        logger.msg(Arc::ERROR,"Can't interpret configuration file ass XML");
+        return false;
+      }; 
+      config_close(cfile);
+      return configure_serviced_users(cfg,users,my_uid,my_username,my_user);
+    }; break;
+    case config_file_INI: {
+      // Fall through. TODO: make INI processing a separate function.
+    }; break;
+    default: {
+      logger.msg(Arc::ERROR,"Can't recognize type of configuration file"); return false;
+    }; break;
   };
   ConfigSections* cf = new ConfigSections(cfile);
   cf->AddSection("common");
@@ -590,49 +635,26 @@ static bool elementtoint(Arc::XMLNode pnode,const char* ename,int& val) {
   return false;
 }
 
-bool configure_serviced_users(Arc::XMLNode cfg,JobUsers &users,uid_t my_uid,const std::string &my_username,JobUser &my_user,Daemon* daemon) {
+bool configure_serviced_users(Arc::XMLNode cfg,JobUsers &users,uid_t my_uid,const std::string &my_username,JobUser &my_user) {
   Arc::XMLNode tmp_node;
   bool superuser = (my_uid == 0);
   std::string default_lrms;
   std::string default_queue;
+  unsigned int default_ttl = DEFAULT_KEEP_FINISHED;
+  unsigned int default_ttr = DEFAULT_KEEP_DELETED;
   int default_diskspace = DEFAULT_DISKSPACE;
+  std::string last_control_dir;
+  std::string last_session_root;
 /*
-
-http://www.nordugrid.org/schemas/ArcConfig/2009/arex
-
-  gmconfig (type=INI,XML)
-
-  endpoint
-
-  gmrun = internal,external,none
-
-  usermap
-
+  http://www.nordugrid.org/schemas/ArcConfig/2009/arex
 
   runtimeDir
-
-
-  helperUtility
-    username
-    path
-
   sharedFilesystem = true,false
-
   GNUTimeUtility
-
-
-
-
-
 */
 /*
-  std::ifstream cfile;
-  std::string last_control_dir("");
   std::string central_control_dir("");
   std::string infosys_user("");
-  std::string jobreport_key("");
-  std::string jobreport_cert("");
-  std::string jobreport_cadir("");
 */
 /*
     if(command == "pbs_bin_path") {
@@ -664,6 +686,9 @@ http://www.nordugrid.org/schemas/ArcConfig/2009/arex
     expiration
     type
     parameters
+    keyPath
+    certificatePath
+    CACertificatesDir
   */
   tmp_node = cfg["jobLogPath"];
   if(tmp_node) {
@@ -680,6 +705,10 @@ http://www.nordugrid.org/schemas/ArcConfig/2009/arex
       if(Arc::stringto(tmp_node["expiration"],i)) job_log.SetExpiration(i);
       std::string parameters = tmp_node["parameters"];
       if(!parameters.empty()) job_log.set_options(parameters);
+      std::string jobreport_key = tmp_node["keyPath"];
+      std::string jobreport_cert = tmp_node["certificatePath"];
+      std::string jobreport_cadir = tmp_node["CACertificatesDir"];
+      job_log.set_credentials(jobreport_key,jobreport_cert,jobreport_cadir);
     };
   };
   /*
@@ -877,7 +906,11 @@ http://www.nordugrid.org/schemas/ArcConfig/2009/arex
     noRootPower
   */
   tmp_node = cfg["control"];
-  if(tmp_node) {
+  if(!tmp_node) {
+    logger.msg(Arc::ERROR,"At least one control element must be present");
+    return false;
+  };
+  for(;tmp_node;++tmp_node) {
     std::string control_dir = tmp_node["controlDir"];
     if(control_dir.empty()) {
       logger.msg(Arc::ERROR,"controlDir is missing"); return false;
@@ -887,13 +920,13 @@ http://www.nordugrid.org/schemas/ArcConfig/2009/arex
     if(session_root.empty()) {
       logger.msg(Arc::ERROR,"sessionRootDir is missing"); return false;
     };
+    last_control_dir = control_dir;
+    last_session_root = session_root;
     bool strict_session = false;
     if(!elementtobool(tmp_node,"noRootPower",strict_session)) return false;
     unsigned int default_reruns = DEFAULT_JOB_RERUNS;
     if(!elementtoint(tmp_node,"maxReruns",default_reruns)) return false;
-    unsigned int default_ttl = DEFAULT_KEEP_FINISHED;
     if(!elementtoint(tmp_node,"defaultTTL",default_ttl)) return false;
-    unsigned int default_ttr = DEFAULT_KEEP_DELETED;
     if(!elementtoint(tmp_node,"defaultTTR",default_ttr)) return false;
     Arc::XMLNode unode = tmp_node["username"];
     std::list<std::string> userlist;
@@ -915,6 +948,9 @@ http://www.nordugrid.org/schemas/ArcConfig/2009/arex
          else { username=my_username; };
       };
       userlist.push_back(username);
+    };
+    if(userlist.size() == 0) {
+      logger.msg(Arc::ERROR,"No username entries in control"); return false;
     };
     for(std::list<std::string>::iterator username = userlist.begin();
                    username != userlist.end();++username) {
@@ -968,6 +1004,64 @@ http://www.nordugrid.org/schemas/ArcConfig/2009/arex
           JobsList *jobs = new JobsList(*user,plugins);
           (*user)=jobs; /* back-associate jobs with user :) */
         };
+      };
+    };
+  };
+  /*
+  helperUtility
+    username
+    command
+  */
+  tmp_node = cfg["helperUtility"];
+  for(;tmp_node;++tmp_node) {
+    std::string command = tmp_node["command"];
+    if(command.empty()) {
+      logger.msg(Arc::ERROR,"command in helperUtility is missing");
+      return false;
+    };
+    Arc::XMLNode unode = tmp_node["username"];
+    for(;unode;++unode) {
+      std::string username = unode;
+      if(username.empty()) {
+        logger.msg(Arc::ERROR,"username in helperUtility is empty");
+        return false;
+      };
+      if(username == "*") {  /* go through all configured users */
+        for(JobUsers::iterator user=users.begin();user!=users.end();++user) {
+          if(!(user->has_helpers())) {
+            std::string command_=command;
+            user->substitute(command_);
+            user->add_helper(command_);
+          };
+        };
+      }
+      else if(username == ".") { /* special helper */
+        // Take parameters of last control
+        std::string session_root_ = last_session_root;
+        std::string control_dir_ = last_control_dir;
+        my_user.SetLRMS(default_lrms,default_queue);
+        my_user.SetKeepFinished(default_ttl);
+        my_user.SetKeepDeleted(default_ttr);
+        my_user.substitute(session_root_);
+        my_user.substitute(control_dir_);
+        my_user.SetSessionRoot(session_root_);
+        my_user.SetControlDir(control_dir_);
+        std::string command_=command;
+        users.substitute(command_);
+        my_user.substitute(command_);
+        my_user.add_helper(command_);
+      }
+      else {
+        /* look for that user */
+        JobUsers::iterator user=users.find(username);
+        if(user == users.end()) {
+          logger.msg(Arc::ERROR,"User %s for helperUtility is not configured",
+                     username);
+          return false;
+        };
+        std::string command_=command;
+        user->substitute(command_);
+        user->add_helper(command_);
       };
     };
   };

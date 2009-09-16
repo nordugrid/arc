@@ -3,6 +3,8 @@
 
 #include <string>
 
+#include <arc/XMLNode.h>
+
 #include "../jobs/users.h"
 #include "../jobs/states.h"
 #include "../log/job_log.h"
@@ -25,6 +27,7 @@ extern JobLog job_log;
       configuration template).
 */
 bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my_username,JobUser &my_user,Daemon* daemon = NULL);
+bool configure_serviced_users(Arc::XMLNode cfg,JobUsers &users,uid_t my_uid,const std::string &my_username,JobUser &my_user);
 bool print_serviced_users(const JobUsers &users);
  
 #endif // __GM_CONFIG_FILE_H__
