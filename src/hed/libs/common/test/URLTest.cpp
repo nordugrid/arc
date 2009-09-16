@@ -301,8 +301,6 @@ void URLTest::TestBadUrl() {
   CPPUNIT_ASSERT(!(*url));
   url = new Arc::URL("http:/file1");
   CPPUNIT_ASSERT(!(*url));
-  url = new Arc::URL("gsiftp://my.host;badoption=true/file1");
-  CPPUNIT_ASSERT(!(*url));   
   delete url;    
 }
 
