@@ -129,7 +129,7 @@ std::string ARexService::getID() {
 }
 
 static void GetGlueStates(Arc::XMLNode infodoc,std::map<std::string,std::string>& states) {
-  std::string path = "Domains/AdminDomain/Services/ComputingService/ComputingActivities/ComputingActivity";
+  std::string path = "Domains/AdminDomain/Services/ComputingService/ComputingEndpoint/ComputingActivities/ComputingActivity";
   // Obtaining all job descriptions
   Arc::XMLNodeList nodes = infodoc.Path(path);
   // Pulling ids and states

@@ -22,8 +22,6 @@ void GridSchedulerService::InformationCollector(void) {
           <Associations></Associations>\
           <Capability>executionmanagement.jobexecution</Capability>\
           <Complexity>endpoint=1,share=1,resource=1</Complexity>\
-          <ComputingActivities>\
-          </ComputingActivities>\
           <ComputingEndpoint BaseType=\"Endpoint\" CreationTime=\"2009-07-16T07:55:47Z\" Validity=\"600\">\
             <Associations>\
               <ComputingShareID>urn:ogsa:ComputingShare:knowarc1:2811:knowarc</ComputingShareID>\
@@ -47,6 +45,8 @@ void GridSchedulerService::InformationCollector(void) {
             <SuspendedJobs>0</SuspendedJobs>\
             <Technology>webservice</Technology>\
             <TotalJobs>0</TotalJobs>\
+            <ComputingActivities>\
+            </ComputingActivities>\
           </ComputingEndpoint>\
           <ComputingShares>\
             <ComputingShare BaseType=\"Share\" CreationTime=\"2009-07-16T08:46:43Z\" Validity=\"600\">\
@@ -107,7 +107,7 @@ void GridSchedulerService::InformationCollector(void) {
 
     for (Arc::JobQueueIterator jobs = jobq.getAll(); jobs.hasMore(); jobs++) {
        Arc::Job *j = *jobs;
-       Arc::XMLNode jobs = root["Domains"]["AdminDomain"]["Services"]["ComputingService"]["ComputingActivities"];
+       Arc::XMLNode jobs = root["Domains"]["AdminDomain"]["Services"]["ComputingService"]["ComputingEndpoint"]["ComputingActivities"];
        Arc::XMLNode job = jobs.NewChild("glue:ComputingActivity");
        job.NewChild("glue:ID") =  "urn:ogsa:ComputingActivity:sched:" + j->getID();
        switch (j->getStatus()) {
