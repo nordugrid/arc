@@ -35,9 +35,9 @@ def get_child_values_by_name(node, name):
 def datapoint_from_url(url_string, ssl_config = None):
     import arc
     try:
-        xml = arc.XMLNode('<ARCConfig/>')
+        xml = arc.XMLNode('<ArcConfig/>')
         if ssl_config.has_key('key_file'):
-            xml.NewChild('KeyPath').Set(ssl_config['key_path'])
+            xml.NewChild('KeyPath').Set(ssl_config['key_file'])
         if ssl_config.has_key('cert_file'):
             xml.NewChild('CertificatePath').Set(ssl_config['cert_file'])
         if ssl_config.has_key('proxy_file'):
@@ -49,10 +49,14 @@ def datapoint_from_url(url_string, ssl_config = None):
         user_config = arc.UserConfig(xml)
     except:
         user_config = arc.UserConfig('')
-    handle = arc.DataHandle(arc.URL(url_string), user_config)
-    handle.thisown = False
-
+    # print ' --- ' , ssl_config, ' === ', user_config.ConfTree().GetXML()
+    url = arc.URL(url_string)
+    handle = arc.DataHandle(url, user_config)
     point = handle.__ref__()
+    # possible memory leaks - TODO: investigate
+    url.thisown = False
+    user_config.thisown = False
+    handle.thisown = False
     return point
 
 # for the URL class
