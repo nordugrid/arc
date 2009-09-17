@@ -36,6 +36,7 @@ log = Logger(arc.Logger(arc.Logger_getRootLogger(), 'Storage.Service'))
 class Service:
     
     def __init__(self, request_config, cfg = None):
+        self.service_is_running = False
         self._trust_manager = []
         self.ssl_config = {}
         self._force_trust = False
@@ -79,10 +80,13 @@ class Service:
             self.service_name = 'Python Service With No Name'
         #if self._trust_manager:
         #    print self.service_name, "TrustManager:", self._force_trust and 'force' or 'don\'t force', self._trust_manager
-        log.msg(arc.DEBUG, self.service_name, "constructor called")
+        log.msg(arc.INFO, "Starting:", self.service_name)
         self.request_config = request_config
         self.ns = arc.NS(dict([(request_type['namespace_prefix'], request_type['namespace_uri'])
             for request_type in self.request_config]))
+        
+    def __del__(self):
+        log.msg(arc.INFO, "Stopping:", self.service_name)
         
     def _get_dns_from_ahash(self, data):
         try:
