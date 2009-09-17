@@ -8,7 +8,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-#include <glibmm/miscutils.h>
+#include <glibmm.h>
 
 #include <arc/ArcLocation.h>
 #include <arc/Logger.h>
@@ -17,6 +17,10 @@
 #include <arc/User.h>
 #include <arc/UserConfig.h>
 #include <arc/Utils.h>
+
+#ifdef WIN32 
+#include <arc/win32.h>
+#endif
 
 namespace Arc {
 
@@ -77,6 +81,14 @@ namespace Arc {
     confdirPath[0] = user.Home();
     confdirPath[1] = ".arc";
     const std::string confdir = Glib::build_path(G_DIR_SEPARATOR_S, confdirPath);
+
+    if (!Glib::file_test(confdir, (Glib::FILE_TEST_EXISTS | Glib::FILE_TEST_IS_DIR ))) {
+      if (-1 == mkdir(confdir.c_str(), 0755)){
+        logger.msg(ERROR, "Directory creation error: %s", confdir);
+        return;
+      } 
+   }
+     
 
     // First check if job list file was given as an argument, then look for it
     // in the user configuration, and last set job list file to default.
@@ -635,6 +647,12 @@ namespace Arc {
     confdirPath[0] = user.Home();
     confdirPath[1] = ".arc";
     const std::string confdir = Glib::build_path(G_DIR_SEPARATOR_S, confdirPath);
+    if (!Glib::file_test(confdir, (Glib::FILE_TEST_EXISTS | Glib::FILE_TEST_IS_DIR ))) {
+      if (-1 == mkdir(confdir.c_str(), 0755)){
+        logger.msg(ERROR, "Directory creation error: %s", confdir);
+        return false;
+      } 
+   }
 
     // Check if user configuration file exist. If file name was given as
     // argument to the constructor and file does not exist report error and exit.
