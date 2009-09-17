@@ -271,7 +271,7 @@ exit 0
 %doc %{_mandir}/man1/perftest.1.gz
 %{_bindir}/chelonia
 %doc %{_mandir}/man1/chelonia.1*
-%{_sysconfdir}/arcclient.xml
+%{_sysconfdir}/arc/client.xml
 %doc %{_mandir}/man5/arcclient.xml.5*
 %{_bindir}/jura
 %{_bindir}/isistest
