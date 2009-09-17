@@ -4,6 +4,8 @@
 #  Cancel job running in FORK.
 # 
 
+set -e
+
 echo "----- starting cancel_fork_job -----" 1>&2
 
 joboption_lrms=fork
@@ -30,8 +32,18 @@ fi
 
 echo "Deleting job $joboption_gridid, local id $joboption_jobid" 1>&2
 
+if [ ! -r "$job_control_dir/job.${joboption_gridid}.local" ]; then
+  echo "Local description of job ${joboption_gridid} not found at '$job_control_dir/job.${joboption_gridid}.local'. Job was not killed, if running at all." 1>&2
+  exit 1
+fi
+
 if [ -z "$joboption_jobid" ] ; then
   joboption_jobid=`cat "$job_control_dir/job.${joboption_gridid}.local" | grep '^localid=' | sed 's/^localid=//'`
+fi
+
+if [ ! -r "$job_control_dir/job.${joboption_gridid}.status" ]; then
+  echo "Status file of job ${joboption_gridid} not found at '$job_control_dir/job.${joboption_gridid}.status'. Job was not killed, if running at all." 1>&2
+  exit 1
 fi
 
 case X`cat "$job_control_dir/job.${joboption_gridid}.status"` in
