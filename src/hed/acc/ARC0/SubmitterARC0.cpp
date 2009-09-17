@@ -162,9 +162,11 @@ namespace Arc {
     jobdesc.XRSL_elements["action"] = "request";
     jobdesc.XRSL_elements["savestate"] = "yes";
     jobdesc.XRSL_elements["clientsoftware"] = "arclibclient-" VERSION;
+#ifdef HAVE_GETHOSTNAME
     char hostname[1024];
     gethostname(hostname, 1024);
     jobdesc.XRSL_elements["hostname"] = hostname;
+#endif
 
     return true;
   }
