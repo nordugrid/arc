@@ -16,12 +16,13 @@ class Logger:
         # initializing logging facility
         args = list(args)
         if not args:
-            severity = arc.ERROR
-            args = ['Python exception:\n', traceback.format_exc()]
+            severity = arc.DEBUG
         elif args[0] in log_levels:
             severity = args.pop(0)
         else:
             severity = arc.DEBUG
+        if not args:
+            args = ['Python exception:\n', traceback.format_exc()]
         mesg = ' '.join([str(arg) for arg in args])
         self.logger.msg(severity, mesg)
         return mesg
