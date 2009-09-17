@@ -31,9 +31,7 @@ def upload_to_turl(turl, protocol, fobj, size = None, ssl_config = {}):
         import arc
         from arcom import datapoint_from_url
         src = datapoint_from_url(fobj.name)
-        dst = datapoint_from_url(turl)
-        dst.AssignCredentials(ssl_config.get('proxy_file',''), ssl_config.get('cert_file', ''),
-            ssl_config.get('key_file', ''), ssl_config.get('ca_dir', '')) 
+        dst = datapoint_from_url(turl, ssl_config)
         mover = arc.DataMover()
         mover.verbose(True)
         status = mover.Transfer(src, dst, arc.FileCache(), arc.URLMap())
@@ -49,10 +47,8 @@ def download_from_turl(turl, protocol, fobj, ssl_config = {}):
     elif protocol == 'http':
         import arc
         from arcom import datapoint_from_url
-        src = datapoint_from_url(turl)
+        src = datapoint_from_url(turl, ssl_config)
         dst = datapoint_from_url(fobj.name)
-        src.AssignCredentials(ssl_config.get('proxy_file',''), ssl_config.get('cert_file', ''),
-            ssl_config.get('key_file', ''), ssl_config.get('ca_dir', '')) 
         mover = arc.DataMover()
         mover.verbose(True)
         status = mover.Transfer(src, dst, arc.FileCache(), arc.URLMap())
