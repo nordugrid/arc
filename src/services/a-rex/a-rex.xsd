@@ -88,7 +88,7 @@
                 Defines parameters for controlling LRMS specific 
                 and LRMS related functionality.
                 * type - name of LRMS/batch system
-                * defaultQueue - optional name of default queue
+                * defaultShare - optional name of default ComputingShare
                 * sharedFilesystem - either session directory is shared
                   with computing node
                 * GNUTimeUtility - location and name of GNU time executable
@@ -111,8 +111,13 @@
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="type" type="xsd:string"/>
-            <xsd:element name="defaultQueue" type="xsd:string"
+            <xsd:element name="defaultShare" type="xsd:string"
                          minOccurs="0"/>
+            <xsd:element name="sharedFilesystem" type="xsd:boolean" minOccurs="0"/>
+            <xsd:element name="sharedScratchDir" type="xsd:boolean" minOccurs="0"/>
+            <xsd:element name="scratchDir" type="xsd:string" minOccurs="0"/>
+            <xsd:element name="runtimeDir" type="xsd:string" minOccurs="0"/>
+            <xsd:element name="GNUTimeUtility" type="xsd:string" minOccurs="0"/>
             <xsd:any namespace="http://www.nordugrid.org/schemas/ArcConfig/2009/arex/LRMS"
                          minOccurs="1" maxOccurs="unbounded"/>
         </xsd:sequence>
@@ -258,13 +263,6 @@
         </xsd:sequence>
     </xsd:complexType>
 
-    <xsd:complexType name="cachelocation_Type">
-        <xsd:sequence>
-            <xsd:element name="path" type="xsd:string"/>
-            <xsd:element name="link" type="xsd:string" minOccurs="0"/>
-        </xsd:sequence>
-    </xsd:complexType>
-
     <xsd:complexType name="control_Type">
         <xsd:annotation>
             <xsd:documentation xml:lang="en">
@@ -388,15 +386,13 @@
        </xsd:simpleContent>
     </xsd:complexType>
 
-    <xsd:element name="debugLevel" type="debugLevel_Type">
+    <xsd:element name="debugLevel" type="debugLevel_Type"/>
 
     <xsd:element name="loadLimits" type="loadLimits_Type"/>
 
     <xsd:element name="dataTransfer" type="dataTransfer_Type"/>
 
     <xsd:element name="serviceMail" type="xsd:string"/>
-
-    <xsd:element name="runtimeDir" type="xsd:string"/>
 
     <xsd:element name="jobLogPath" type="xsd:string"/>
 
@@ -435,10 +431,6 @@
        </xsd:sequence>
     </xsd:complexType>
     
-    <xsd:element name="sharedFilesystem" type="xsd:boolean"/>
-
-    <xsd:element name="GNUTimeUtility" type="xsd:string"/>
-
     <xsd:element name="LRMS" type="LRMS_Type"/>
 
     <!-- 
