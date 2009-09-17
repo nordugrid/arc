@@ -9,7 +9,7 @@ import threading
 class EchoService:
 
     def __init__(self, cfg):
-        log.msg("EchoService (python) constructor called")
+        log.msg(arc.INFO, "EchoService (python) constructor called")
         # get the response-prefix from the config XML
         self.prefix = str(cfg.Get('prefix'))
         # get the response-suffix from the config XML
@@ -21,8 +21,7 @@ class EchoService:
             threading.Thread(target = self.infinite, args=[thread_test]).start()
         
     def __del__(self):
-        print "__del__"
-        log.msg(arc.ERROR, "__del__")
+        log.msg(arc.INFO, "EchoService (python) destructor called")
         
     def infinite(self, url):
         log.msg(arc.INFO, "EchoService (python) thread test starting")
