@@ -21,6 +21,7 @@ log = Logger(arc.Logger(arc.Logger_getRootLogger(), 'Storage.Librarian'))
 
 class Librarian:
     def __init__(self, cfg, ssl_config):
+        self.service_is_running = True
         # URL of the A-Hash
         ahash_urls =  get_child_values_by_name(cfg, 'AHashURL')
         isis_url =  get_child_values_by_name(cfg, 'ISISURL')
@@ -48,6 +49,9 @@ class Librarian:
             log.msg(arc.DEBUG, 'Cannot find CheckPeriod, HeartbeatTimeout in the config')
             raise
         threading.Thread(target = self.checkingThread, args = [period]).start()
+
+    def __del__(self):
+        self.service_is_running = False
 
     def _update_ahash_urls(self):
         try:
@@ -123,7 +127,7 @@ class Librarian:
     
     def checkingThread(self, period):
         time.sleep(10)
-        while True:
+        while self.service_is_running:
             try:
                 SEs = self.ahash_get([sestore_guid])[sestore_guid]
                 #print 'registered shepherds:', SEs

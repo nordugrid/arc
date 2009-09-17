@@ -23,6 +23,7 @@ from storage.common import ALIVE, CREATING, STALLED, INVALID, DELETED, THIRDWHEE
 class Shepherd:
 
     def __init__(self, cfg):
+        self.service_is_running = True
         try:
             ssl_config = parse_ssl_config(cfg)
         except:
@@ -84,10 +85,14 @@ class Shepherd:
         self.doReporting = True
         threading.Thread(target = self.reportingThread, args = []).start()
 
+    def __del__(self):
+        self.service_is_running = False
+
+
     def reportingThread(self):
         # at the first start just wait for a few seconds
         time.sleep(5)
-        while True:
+        while self.service_is_running:
             # do this forever
             try:
                 # if reporting is on
@@ -223,7 +228,7 @@ class Shepherd:
     def checkingThread(self, period):
         # first just wait a few seconds
         time.sleep(10)
-        while True:
+        while self.service_is_running:
             # do this forever
             try:
                 # get the referenceIDs of all the stored files
