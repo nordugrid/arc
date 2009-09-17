@@ -4,7 +4,7 @@ use Sys::Hostname;
 
 use Exporter;
 @ISA = ('Exporter');     # Inherit from Exporter
-@EXPORT_OK = qw(cpuinfo processid diskinfo diskspaces);
+@EXPORT_OK = qw(cpuinfo meminfo osfamily processid diskinfo diskspaces);
 
 use LogUtils;
 
@@ -42,19 +42,52 @@ sub cpuinfo {
 
     my $info = {};
 
+    my $nsockets; # total number of physical cpu sockets
+    my $ncores;   # total number of cpu cores
+    my $nthreads; # total number of hardware execution threads
+
     if (-f "/proc/cpuinfo") {
         # Linux variant
+
+        my %sockets; # cpu socket IDs
+        my %cores;   # cpu core IDs
 
         open (CPUINFO, "</proc/cpuinfo")
             or $log->warning("Failed opening /proc/cpuinfo: $!");
         while ( my $line = <CPUINFO> ) {
             if ($line=~/^model name\s*:\s+(.*)$/) {
                 $info->{cpumodel} = $1;
+            } elsif ($line=~/^vendor_id\s+:\s+(.*)$/) {
+                $info->{cpuvendor} = $1;
             } elsif ($line=~/^cpu MHz\s+:\s+(.*)$/) {
                 $info->{cpufreq} = int $1;
+            } elsif ($line=~/^stepping\s+:\s+(.*)$/) {
+                $info->{cpustepping} = int $1;
+            } elsif ($line=~/^processor\s*:\s+(\d+)$/) {
+                ++$nthreads;
+            } elsif ($line=~/^physical id\s*:\s+(\d+)$/) {
+                ++$sockets{$1};
+            } elsif ($line=~/^core id\s*:\s+(\d+)$/) {
+                ++$cores{$1};
             }
         }
         close CPUINFO;
+
+        if ($info->{cpumodel} =~ m/^(.*) @ ([.\d]+)GHz$/) {
+            $info->{cpumodel} = $1;
+            $info->{cpufreq} = $2;
+        }
+
+        # count total cpu cores and sockets
+        $ncores = scalar keys %cores;
+        $nsockets = scalar keys %sockets;
+
+        if ($nthreads) {
+            # if /proc/cpuinfo does not provide socket and core IDs,
+            # assume every thread represents a separate cpu
+            $ncores = $nthreads unless $ncores;
+            $nsockets = $nthreads unless $nsockets;
+        }
 
     } elsif (-x "/usr/sbin/system_profiler") {
         # OS X
@@ -70,6 +103,11 @@ sub cpuinfo {
                 } elsif ($2 eq "GHz") {
                     $info->{cpufreq} = int 1000*$1;
                 }
+            } elsif ($line =~ /Number Of Processors:\s*(.+)/) {
+                $nsockets = $1;
+            } elsif ($line =~ /Total Number Of Cores:\s*(.+)/) {
+                $ncores = $1;
+                $nthreads = $1; # Assume 1 execution thread per core (Ouch!)
             }
         }
 
@@ -81,9 +119,15 @@ sub cpuinfo {
             require Sun::Solaris::Kstat;
             my $ks = Sun::Solaris::Kstat->new();
             my $cpuinfo = $ks->{cpu_info};
-            die "key not found: cpu_info" unless defined $cpuinfo;
+            $log->error("kstat: key not found: cpu_info") unless defined $cpuinfo;
+            for my $id (keys %$cpuinfo) {
+               my $info = $cpuinfo->{$id}{"cpu_info$id"};
+               $log->error("kstat: key not found: cpu_info$id") unless defined $info;
+               $chips{$info->{chip_id}}++;
+               $nthreads++;
+            }
             my $info = $cpuinfo->{0}{"cpu_info0"};
-            die "key not found: cpu_info0" unless defined $info;
+            $log->error("kstat: key not found: cpu_info0") unless defined $info;
             # $info->{cpumodel} = $info->{cpu_type}; # like sparcv9
             $info->{cpumodel} = $info->{implementation}; # like UltraSPARC-III+
             $info->{cpufreq} = int $info->{clock_MHz};
@@ -91,13 +135,50 @@ sub cpuinfo {
         if ($@) {
             $log->error("Failed running module Sun::Solaris::Kstat: $@");
         }
+        $nsockets = $ncores = scalar keys %chips;
 
     } else {
         $log->warning("Unsupported operating system");
     }
 
+    $info->{cputhreadcount} = $nthreads if $nthreads;
+    $info->{cpucorecount} = $ncores if $ncores;
+    $info->{cpusocketcount} = $nsockets if $nsockets;
+
     return $info;
 
+}
+
+sub meminfo {
+    my $info = {};
+
+    if (-f "/proc/cpuinfo") {
+        # Linux variant
+        open (MEMINFO, "</proc/meminfo")
+            or $log->warning("Failed opening /proc/meminfo: $!");
+        while ( my $line = <MEMINFO> ) {
+            if ($line=~/^MemTotal:\s+(.*) kB$/) {
+                $info->{memtotal} = int ($1/1024);
+            }
+        }
+    }
+    return $info;
+}
+
+
+sub osfamily {
+    my $osfamily = undef;
+    my $kernel = `uname -s`;
+    if ($?) {
+        $log->warning("Failed to run uname -s: $!") if $?; 
+    } else {
+        chomp $kernel;
+        $osfamily = $kernel;
+        $osfamily = 'linux' if $kernel =~ /^Linux/;
+        $osfamily = 'macosx' if $kernel =~ /^Darwin/;
+        $osfamily = 'solaris' if $kernel =~ /^SunOS/;
+    }
+    return $osfamily
 }
 
 
@@ -138,7 +219,7 @@ sub diskinfo ($) {
             }
         }
     } else {
-        $log->warning("Not a directory: $path");
+        $log->warning("Not such directory: $path");
     }
 
     return undef if not defined $disktotal;

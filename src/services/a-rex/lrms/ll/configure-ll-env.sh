@@ -18,6 +18,10 @@ config_import_section "common"
 config_import_section "infosys"
 config_import_section "grid-manager"
 
+# Also read queue section
+if [ ! -z "$joboption_queue" ]; then
+  config_import_section "queue/$joboption_queue"
+fi
 
 # Path to ll commands
 LL_BIN_PATH=${LL_BIN_PATH:-$CONFIG_ll_bin_path}
@@ -27,6 +31,6 @@ if [ ! -d ${LL_BIN_PATH} ] ; then
 fi
 
 # Local scratch disk
-RUNTIME_LOCAL_SCRATCH_DIR=${RUNTIME_LOCAL_SCRATCH_DIR:-$CONFIG_scratchdir}
+RUNTIME_LOCAL_SCRATCH_DIR=${RUNTIME_LOCAL_SCRATCH_DIR:-$CONFIG_scratchDir}
 export RUNTIME_LOCAL_SCRATCH_DIR
 

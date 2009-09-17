@@ -158,9 +158,6 @@ static void init_config(const Arc::ServerOptions &options)
             logger.msg(Arc::ERROR, "Failed to load service configuration from file %s", options.xml_config_file);
             exit(1);
         }
-
-        /* Clue for external programs */
-        setenv("ARC_XML_CONFIG", options.xml_config_file.c_str(), 1);
     } else if (!options.ini_config_file.empty()) {
         if (Glib::file_test(options.ini_config_file, 
             Glib::FILE_TEST_EXISTS) == false) {

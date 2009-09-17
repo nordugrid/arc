@@ -18,6 +18,8 @@ There are two modes of operation - printing statistics and deleting files.
 If
 .B -s
 is used, then statistics are printed on each cache. If
+.B -c
+path to an A-REX config file, xml or ini format
 .B -m
 and
 .B -M

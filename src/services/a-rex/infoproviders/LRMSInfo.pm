@@ -1,11 +1,11 @@
 package LRMSInfo;
 
-use base InfoCollector;
-use InfoChecker;
-
 use Storable;
 
 use strict;
+
+use LogUtils;
+use InfoChecker;
 
 ##############################################################################
 # To include a new LRMS:
@@ -80,7 +80,8 @@ my $lrms_info_schema = {
             'maxrunning'   => '',  # the max number of jobs allowed to run in this queue
             'maxqueuable'  => '*', # the max number of jobs allowed to be queued
             'maxuserrun'   => '*', # the max number of jobs that a singele user can run
-            'maxcputime'   => '*', # units: seconds
+            'maxcputime'   => '*', # units: seconds (per-slot)
+            'maxtotalcputime' => '*', # units: seconds
             'mincputime'   => '*', # units: seconds
             'defaultcput'  => '*', # units: seconds
             'maxwalltime'  => '*', # units: seconds
@@ -88,6 +89,7 @@ my $lrms_info_schema = {
             'defaultwallt' => '*', # units: seconds
             'running'      => '',  # the number of cpus being occupied by running jobs
             'queued'       => '',  # the number of queued jobs
+            'suspended'    => '*', # the number of suspended jobs
             'total'        => '*', # the total number of jobs in this queue
             'totalcpus'    => '',  # the number of cpus dedicated to this queue
             'preemption' => '*',
@@ -121,6 +123,33 @@ my $lrms_info_schema = {
 our $log = LogUtils->getLogger("LRMSInfo");
 
 
+sub collect($) {
+    my ($options) = @_;
+    my ($checker, @messages);
+
+    my $lrms_name = $options->{lrms};
+    $log->error('lrms option is missing') unless $lrms_name;
+    load_lrms($options->{lrms});
+
+    # merge schema exported by the LRMS plugin
+    my $schema = { %$lrms_options_schema, %{get_lrms_options_schema()} };
+
+    $checker = InfoChecker->new($schema);
+    @messages = $checker->verify($options);
+    $log->warning("config key options->$_") foreach @messages;
+    $log->fatal("Some required options are missing") if @messages;
+
+    my $result = get_lrms_info($options);
+
+    use Data::Dumper('Dumper');
+    my $custom_lrms_schema = customize_info_schema($lrms_info_schema, $options);
+    $checker = InfoChecker->new($custom_lrms_schema);
+    @messages = $checker->verify($result);
+    $log->warning("result key lrmsinfo->$_") foreach @messages;
+
+    return $result;
+}
+
 # Loads the needed LRMS plugin at runtime
 # First try to load XYZmod.pm (implementing the native ARC1 interface)
 # otherwise try to load XYZ.pm (ARC0.6 plugin)
@@ -132,7 +161,6 @@ sub load_lrms($) {
     eval { require "$module.pm" };
 
     if ($@) {
-        $log->debug("Native ARC1 LRMS module $module not found");
         $log->debug("Falling back to ARC0.6 compatible module $lrms_name");
 
         require ARC0mod;
@@ -141,56 +169,6 @@ sub load_lrms($) {
     }
     import $module qw(get_lrms_info get_lrms_options_schema);
 }
-
-
-# override InfoCollector base class methods 
-
-sub _initialize($) {
-    my ($self) = @_;
-    $self->SUPER::_initialize();
-    $self->{resname} = "lrms";
-}
-
-sub _check_options($$) {
-    my ($self,$options) = @_;
-
-    # store this for later use
-    $self->{options} = $options;
-
-    my $lrms_name = $options->{lrms};
-    $log->error('lrms option is missing') unless $lrms_name;
-
-    load_lrms($options->{lrms});
-
-    # merge schema exported by the LRMS plugin
-    my %schema = (%$lrms_options_schema, %{get_lrms_options_schema()});
-    $self->{options_schema} = \%schema;
-
-    return $self->SUPER::_check_options($options);
-}
-
-# will be used by InfoCollector::_check_options
-
-sub _get_options_schema($) {
-    my ($self) = @_;
-    return $self->{options_schema} || $lrms_options_schema;
-}
-
-# will be used by InfoCollector::_check_results
-
-sub _get_results_schema($) {
-    my ($self,$results) = @_;
-    my $options = $self->{options};
-    return customize_info_schema($lrms_info_schema,$options);
-}
-
-sub _collect($$) {
-    my ($self,$options) = @_;
-
-    # exported by the LRMS plugin
-    return get_lrms_info($options);
-}
-
 
 # prepares a custom schema that has individual keys for each queue and each job
 # which is named in $options
@@ -231,8 +209,8 @@ my $opt1 = {lrms => 'fork',
 my $opt2 = {lrms => 'sge',
             sge_root => '/opt/n1ge6',
             sge_cell => 'cello',
-            sge_bin_path => '/opt/n1ge6/bin/lx24-x86',
-            queues => {'shar' => {users => []}, 'loca' => {users => ['joe','pete']}},
+            sge_bin_path => '/opt/n1ge6/bin/lx24-amd64',
+            queues => {'shar' => {users => []}, 'all.q' => {users => ['joe','pete']}},
             jobs => [63, 36006]
            };
 
@@ -245,10 +223,10 @@ my $opt3 = {lrms => 'pbs',
 
 sub test {
     my $options = shift;
-    LogUtils->getLogger()->level($LogUtils::DEBUG);
+    LogUtils::setLevel('DEBUG');
     require Data::Dumper; import Data::Dumper qw(Dumper);
     $log->debug("Options: " . Dumper($options));
-    my $results = LRMSInfo->new()->get_info($options);
+    my $results = LRMSInfo::collect($options);
     $log->debug("Results: " . Dumper($results));
 }
 

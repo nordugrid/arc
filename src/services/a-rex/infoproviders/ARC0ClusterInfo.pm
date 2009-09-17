@@ -1,16 +1,17 @@
 package ARC0ClusterInfo;
 
-# This InfoCollector combines the output of the other information collectors
+# This information collector combines the output of the other information collectors
 # and prepares info modelled on the classic Nordugrid information schema
 # (arc0).  Returned structure is meant to be converted to XML with XML::Simple.
 
-use base InfoCollector;
-use ARC0ClusterSchema;
-
 use Storable;
-use LogUtils;
 
 use strict;
+
+use LogUtils;
+use InfoChecker;
+
+use ARC0ClusterSchema;
 
 my $arc0_info_schema = ARC0ClusterSchema::arc0_info_schema();
 
@@ -32,25 +33,21 @@ sub mds_valid($){
 # Combine info from all sources to prepare the final representation
 ############################################################################
 
-# override InfoCollector base class methods
+sub collect($) {
+    my ($options) = @_;
+    my ($checker, @messages);
 
-sub _initialize($) {
-    my ($self) = @_;
-    $self->SUPER::_initialize();
-    $self->{loglevel} = $LogUtils::DEBUG;
-    $self->{optname} = "input";
-    $self->{resname} = "nordugrid";
+    my $result = get_cluster_info($options);
+
+    $checker = InfoChecker->new($arc0_info_schema);
+    @messages = $checker->verify($result,1);
+    $log->debug("SelfCheck: result key nordugrid->$_") foreach @messages;
+
+    return $result;
 }
 
-sub _get_options_schema {
-    return {}; # too many inputs to name all
-}
-sub _get_results_schema {
-    return $arc0_info_schema;
-}
-
-sub _collect($$) {
-    my ($self,$options) = @_; 
+sub get_cluster_info($) {
+    my ($options) = @_; 
     my $config = $options->{config};
     my $usermap = $options->{usermap};
     my $host_info = $options->{host_info};
@@ -59,11 +56,16 @@ sub _collect($$) {
 
     my ($valid_from, $valid_to) = $config->{ttl} ? mds_valid($config->{ttl}) : ();
 
-    # adotf means autodetect on the frontend
-    $config->{architecture} = $host_info->{architecture}
-        if defined($config->{architecture}) and $config->{architecture} eq 'adotf';
-    $config->{nodecpu} = $host_info->{nodecpu}
-        if defined($config->{nodecpu}) and $config->{nodecpu} eq 'adotf';
+    my @allxenvs = keys %{$config->{xenvs}};
+    my @allshares = keys %{$config->{shares}};
+
+    my $homogeneous = 1; 
+    $homogeneous = 0 if @allxenvs > 1;
+    $homogeneous = 0 if @allshares > 1 and @allxenvs == 0;
+    for my $xeconfig (values %{$config->{xenvs}}) {
+        $homogeneous = 0 if defined $xeconfig->{Homogeneous}
+                            and not $xeconfig->{Homogeneous};
+    }
 
     # config overrides
     $host_info->{hostname} = $config->{hostname} if $config->{hostname};
@@ -94,23 +96,8 @@ sub _collect($$) {
     my %gridqueued;
     for my $jobid (keys %{$gmjobs_info}) {
         my $job = $gmjobs_info->{$jobid};
-        my $qname = $job->{queue};
+        my $share = $job->{share};
 
-        unless ($qname) {
-            my $msg = "Queue not defined for job $jobid";
-            if ($config->{defaultqueue}) {
-                $log->info($msg.". Assuming default: ".$config->{defaultqueue});
-                $qname = $job->{queue} = $config->{defaultqueue};
-            } else {
-                my @qnames = keys %{$config->{queues}};
-                if (@qnames == 1) {
-                    $log->info($msg.". Assuming: ".$qnames[0]);
-                } else {
-                    $log->warning($msg." and no default queue is defined. Picked random queue: ".$qnames[0]);
-                }
-                $qname = $job->{queue} = $qnames[0];
-            }
-        }
         if ($job->{status} eq 'INLRMS') {
             my $lrmsid = $job->{localid};
             unless (defined $lrmsid) {
@@ -124,9 +111,9 @@ sub _collect($$) {
             }
             if ((defined $lrmsjob) and $lrmsjob->{status} ne 'EXECUTED') {
                 if ($lrmsjob->{status} eq 'R' or $lrmsjob->{status} eq 'S') {
-                    $gridrunning{$qname}++;
+                    $gridrunning{$share}++;
                 } else {
-                    $gridqueued{$qname}++;
+                    $gridqueued{$share}++;
                 }
             }
         }
@@ -144,7 +131,7 @@ sub _collect($$) {
 
     for my $ID (keys %{$gmjobs_info}) {
 
-        my $qname = $gmjobs_info->{$ID}{queue};
+        my $share = $gmjobs_info->{$ID}{share};
 
         # set the job_gridowner of the job (read from the job.id.local)
         # which is used as the key of the %gm_queued
@@ -153,11 +140,11 @@ sub _collect($$) {
         # count the gm_queued jobs per grid users (SNs) and the total
         if ( grep /^$gmjobs_info->{$ID}{status}$/, @gmqueued_states ) {
             $gm_queued{$job_gridowner}++;
-            $prelrmsqueued{$qname}++;
+            $prelrmsqueued{$share}++;
         }
         # count the GM PRE-LRMS pending jobs
         if ( grep /^$gmjobs_info->{$ID}{status}$/, @gmpendingprelrms_states ) {
-           $pendingprelrms{$qname}++;
+           $pendingprelrms{$share}++;
         }
     }
 
@@ -193,6 +180,17 @@ sub _collect($$) {
         }
     }
 
+    my @supportmails;
+    if ($config->{Contact}) {
+        for (@{$config->{Contact}}) {
+            push @supportmails, $1 if $_->{Detail}  =~ m/^mailto:(.*)/;
+        }
+    }
+    my %authorizedvos;
+    for my $sconfig (values %{$config->{shares}}) {
+        next unless $sconfig->{AuthorizedVO};
+        $authorizedvos{"VO:$_"} = 1 for @{$sconfig->{AuthorizedVO}};
+    }
 
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     # # # # # # # # # # build information tree  # # # # # # # # # #
@@ -205,29 +203,32 @@ sub _collect($$) {
     $c->{'xmlns:nc0'} = "urn:nordugrid-cluster";
 
     $c->{'nc0:name'} = [ $host_info->{hostname} ];
-    $c->{'nc0:aliasname'} = [ $config->{cluster_alias} ] if $config->{cluster_alias};
-    $c->{'nc0:comment'} = [ $config->{comment} ] if $config->{comment};
-    $c->{'nc0:owner'} = [ split /\[separator\]/, $config->{cluster_owner} ] if $config->{cluster_owner};
-    $c->{'nc0:acl'} = [ map "VO:$_", split /\[separator\]/, $config->{authorizedvo} ] if $config->{authorizedvo};
-    $c->{'nc0:location'} = [ $config->{cluster_location} ] if $config->{cluster_location};
+    $c->{'nc0:aliasname'} = [ $config->{service}{Name} ] if $config->{service}{Name};
+    $c->{'nc0:comment'} = $config->{service}{OtherInfo} if $config->{service}{OtherInfo};
+    $c->{'nc0:owner'} = $config->{service}{ClusterOwner} if $config->{service}{ClusterOwner};
+    $c->{'nc0:acl'} = [ keys %authorizedvos ] if %authorizedvos;
+    $c->{'nc0:location'} = [ $config->{Location}{PostCode} ] if $config->{Location}{PostCode};
     $c->{'nc0:issuerca'} = [ $host_info->{issuerca} ] if $host_info->{issuerca};
     $c->{'nc0:issuerca-hash'} = [ $host_info->{issuerca_hash} ] if $host_info->{issuerca_hash};
     $c->{'nc0:trustedca'} = $host_info->{trustedcas} if $host_info->{trustedcas};
     $c->{'nc0:contactstring'} = [ "gsiftp://$host_info->{hostname}:$config->{gm_port}$config->{gm_mount_point}" ];
-    $c->{'nc0:interactive-contactstring'} = [ split /\[separator\]/, $config->{interactive_contactstring} ]
-        if $config->{interactive_contactstring};
-    $c->{'nc0:support'} = [ split /\[separator\]/, $config->{clustersupport} ] if $config->{clustersupport};
+    $c->{'nc0:interactive-contactstring'} = [ $config->{InteractiveContactstring} ]
+        if $config->{InteractiveContactstring};
+    $c->{'nc0:support'} = [ $supportmails[0] ] if @supportmails;
     $c->{'nc0:lrms-type'} = [ $lrms_info->{cluster}{lrms_type} ];
     $c->{'nc0:lrms-version'} = [ $lrms_info->{cluster}{lrms_version} ] if $lrms_info->{cluster}{lrms_version};
-    $c->{'nc0:lrms-config'} = [ $config->{lrmsconfig} ] if $config->{lrmsconfig};
-    $c->{'nc0:architecture'} = [ $config->{architecture} ] if $config->{architecture};
-    $c->{'nc0:opsys'} = [ split /\[separator\]/, $config->{opsys} ] if $config->{opsys};
-    $c->{'nc0:benchmark'} = [ map {join ' @ ', split /\s+/,$_,2 } split /\[separator\]/, $config->{benchmark} ]
-        if $config->{benchmark};
-    $c->{'nc0:homogeneity'} = [ uc $config->{homogeneity} ] if $config->{homogeneity};
-    $c->{'nc0:nodecpu'} = [ $config->{nodecpu} ] if $config->{nodecpu};
-    $c->{'nc0:nodememory'} = [ $config->{nodememory} ] if $config->{nodememory};
-    $c->{'nc0:nodeaccess'} = [ split /\[separator\]/, $config->{nodeaccess} ] if $config->{nodeaccess};
+    $c->{'nc0:lrms-config'} = [ $config->{lrmsconfig} ] if $config->{lrmsconfig}; # orphan
+    $c->{'nc0:architecture'} = [ $config->{Platform} ] if $homogeneous and $config->{Platform};
+    push @{$c->{'nc0:opsys'}}, $config->{OSName}.'-'.$config->{OSVersion}
+        if $config->{OSName} and $config->{OSVersion};
+    push @{$c->{'nc0:opsys'}}, @{$config->{OpSys}} if $config->{OpSys};
+    $c->{'nc0:benchmark'} = [ map {join ' @ ', split /\s+/,$_,2 } @{$config->{Benchmark}} ]
+        if $config->{Benchmark};
+    $c->{'nc0:nodecpu'} = [ $config->{CPUModel}." @ ".$config->{CPUClockSpeed}." MHz" ]
+        if $config->{CPUModel} and $config->{CPUClockSpeed};
+    $c->{'nc0:homogeneity'} = [ $homogeneous ? 'False' : 'True' ];
+    $c->{'nc0:nodeaccess'} = [ 'inbound' ] if lc $config->{ConnectivityIn} eq 'true';
+    $c->{'nc0:nodeaccess'} = [ 'outbound' ] if lc $config->{ConnectivityOut} eq 'true';
     $c->{'nc0:totalcpus'} = [ $lrms_info->{cluster}{totalcpus} ];
     $c->{'nc0:usedcpus'} = [ $lrms_info->{cluster}{usedcpus} ];
     $c->{'nc0:cpudistribution'} = [ $lrms_info->{cluster}{cpudistribution} ];
@@ -235,19 +236,19 @@ sub _collect($$) {
     $c->{'nc0:totaljobs'} =
         [ ($gmjobcount{totaljobs} - $gmjobcount{finishing} - $gmjobcount{finished} - $gmjobcount{deleted}
         + $lrms_info->{cluster}{queuedcpus} + $lrms_info->{cluster}{usedcpus} - $gmjobcount{inlrms}) ];
-    $c->{'nc0:localse'} = [ split /\[separator\]/, $config->{localse} ] if $config->{localse};
+    $c->{'nc0:localse'} = $config->{LocalSE} if $config->{LocalSE};
     $c->{'nc0:sessiondir-free'} = [ $host_info->{session_free} ];
     $c->{'nc0:sessiondir-total'} = [ $host_info->{session_total} ];
     if ($config->{defaultttl}) {
         my ($sessionlifetime) = split ' ', $config->{defaultttl};
-        $c->{'nc0:sessiondir-lifetime'} = [ int $sessionlifetime/60 ];
+        $c->{'nc0:sessiondir-lifetime'} = [ int $sessionlifetime/60 ] if $sessionlifetime;
     }
     $c->{'nc0:cache-free'} = [ $host_info->{cache_free} ];
     $c->{'nc0:cache-total'} = [ $host_info->{cache_total} ];
     $c->{'nc0:runtimeenvironment'} = $host_info->{runtimeenvironments};
-    push @{$c->{'nc0:middleware'}}, "globus-$host_info->{globusversion}" if $host_info->{globusversion};
-    push @{$c->{'nc0:middleware'}}, split /\[separator\]/, $config->{middleware} if $config->{middleware};
     push @{$c->{'nc0:middleware'}}, "ARC-".$config->{arcversion};
+    push @{$c->{'nc0:middleware'}}, "globus-$host_info->{globusversion}" if $host_info->{globusversion};
+    push @{$c->{'nc0:middleware'}}, @{$config->{Middleware}} if $config->{Middleware};
     $c->{'M0:validfrom'} = [ $valid_from ] if $valid_from;
     $c->{'M0:validto'} = [ $valid_to ] if $valid_to;
 
@@ -255,27 +256,31 @@ sub _collect($$) {
 
     $c->{'nq0:name'} = [];
 
-    for my $qname ( keys %{$lrms_info->{queues}} ) {
+    for my $share ( keys %{$config->{shares}} ) {
 
         my $q = {};
         push @{$c->{'nq0:name'}}, $q;
 
+        my $qinfo = $lrms_info->{queues}{$share};
+
         # merge cluster wide and queue-specific options
-        my $qconfig = { %$config, %{$config->{queues}{$qname}} };
+        my $sconfig = { %$config, %{$config->{shares}{$share}} };
 
-        my $qinfo = $lrms_info->{queues}{$qname};
+        $sconfig->{ExecEnvName} ||= [];
+        my @nxenvs = @{$sconfig->{ExecEnvName}};
 
-        # adotf means autodetect on the frontend
-        $qconfig->{architecture} = $host_info->{architecture}
-            if defined($qconfig->{architecture}) and $qconfig->{architecture} eq 'adotf';
-        $qconfig->{nodecpu} = $host_info->{nodecpu}
-            if defined($qconfig->{nodecpu}) and $qconfig->{nodecpu} eq 'adotf';
+        if (@nxenvs) {
+            my $xeconfig = $config->{xenvs}{$nxenvs[0]};
+            $log->warning("Only taking into account first ExecutionEnvironment ($nxenvs[0]) for share '$share'") if @nxenvs > 1;
+
+            $sconfig = { %$sconfig, %$xeconfig };
+        }
 
         $q->{'xmlns:nq0'} = "urn:nordugrid-queue";
-        $q->{'name'} = $qname;
-        $q->{'nq0:name'} = [ $qname ];
+        $q->{'name'} = $share;
+        $q->{'nq0:name'} = [ $share ];
         
-        if ( defined($qconfig->{allownew}) and $qconfig->{allownew} eq "no" ) {
+        if ( defined($sconfig->{allownew}) and $sconfig->{allownew} eq "no" ) {
             $q->{'nq0:status'} = [ 'inactive, grid-manager does not accept new jobs' ];
         } elsif (not $host_info->{processes}{'grid-manager'}) {
             $q->{'nq0:status'} = [ 'inactive, grid-manager is down' ];   
@@ -286,15 +291,20 @@ sub _collect($$) {
         } else {
             $q->{'nq0:status'} = [ 'active' ];
         }
-        $q->{'nq0:comment'} = [ $qconfig->{comment} ] if $qconfig->{comment};
-        $q->{'nq0:schedulingpolicy'} = [ $qconfig->{scheduling_policy} ] if $qconfig->{scheduling_policy};
-        $q->{'nq0:homogeneity'} = [ uc $qconfig->{homogeneity} ] if $qconfig->{homogeneity};
-        $q->{'nq0:nodecpu'} = [ $qconfig->{nodecpu} ] if $qconfig->{nodecpu};
-        $q->{'nq0:nodememory'} = [ $qconfig->{nodememory} ] if $qconfig->{nodememory};
-        $q->{'nq0:architecture'} = [ $qconfig->{architecture} ] if $qconfig->{architecture};
-        $q->{'nq0:opsys'} = [ split /\[separator\]/, $qconfig->{opsys} ] if $qconfig->{opsys};
-        $q->{'nq0:benchmark'} = [ map {join ' @ ', split /\s+/,$_,2 } split /\[separator\]/, $qconfig->{benchmark} ]
-            if $qconfig->{benchmark};
+        $q->{'nq0:comment'} = [ $sconfig->{Description} ] if $sconfig->{Description};
+        $q->{'nq0:comment'} = $sconfig->{OtherInfo} if $sconfig->{OtherInfo};
+        $q->{'nq0:schedulingpolicy'} = [ $sconfig->{SchedulingPolicy} ] if $sconfig->{SchedulingPolicy};
+        $q->{'nq0:homogeneity'} = [ @nxenvs > 1 ? 'False' : 'True' ];
+        $q->{'nq0:nodecpu'} = [ $sconfig->{CPUModel}." @ ".$sconfig->{CPUClockSpeed}." MHz" ]
+            if $sconfig->{CPUModel} and $sconfig->{CPUClockSpeed};
+        $q->{'nq0:nodememory'} = [ $sconfig->{MaxVirtualMemory} ] if $sconfig->{MaxVirtualMemory};
+        $q->{'nq0:architecture'} = [ $sconfig->{Platform} ]
+            if $sconfig->{Platform};
+        push @{$q->{'nq0:opsys'}}, $sconfig->{OSName}.'-'.$sconfig->{OSVersion}
+            if $sconfig->{OSName} and $sconfig->{OSVersion};
+        push @{$q->{'nq0:opsys'}}, @{$sconfig->{OpSys}} if $sconfig->{OpSys};
+        $q->{'nq0:benchmark'} = [ map {join ' @ ', split /\s+/,$_,2 } @{$sconfig->{Benchmark}} ]
+            if $sconfig->{Benchmark};
         $q->{'nq0:maxrunning'} = [ $qinfo->{maxrunning} ] if defined $qinfo->{maxrunning};
         $q->{'nq0:maxqueuable'}= [ $qinfo->{maxqueuable}] if defined $qinfo->{maxqueuable};
         $q->{'nq0:maxuserrun'} = [ $qinfo->{maxuserrun} ] if defined $qinfo->{maxuserrun};
@@ -305,14 +315,12 @@ sub _collect($$) {
         $q->{'nq0:minwalltime'} =  [ int $qinfo->{minwalltime}/60 ] if defined $qinfo->{minwalltime};
         $q->{'nq0:defaultwalltime'} = [ int $qinfo->{defaultwallt}/60 ] if defined $qinfo->{defaultwallt};
         $q->{'nq0:running'} = [ $qinfo->{running} ] if defined $qinfo->{running};
-        $q->{'nq0:gridrunning'} = [ $gridrunning{$qname} || 0 ];   
-        $q->{'nq0:gridqueued'} = [ $gridqueued{$qname} || 0 ];    
-        $q->{'nq0:localqueued'} = [ ($qinfo->{queued} - ( $gridqueued{$qname} || 0 )) ];   
-        $q->{'nq0:prelrmsqueued'} = [ $prelrmsqueued{$qname} || 0 ];
-        if ($qconfig->{queue_node_string}) {
-            $q->{'nq0:totalcpus'} = [ $qinfo->{totalcpus} ];
-        } elsif ( $qconfig->{totalcpus} ) {
-            $q->{'nq0:totalcpus'} = [ $qconfig->{totalcpus} ];
+        $q->{'nq0:gridrunning'} = [ $gridrunning{$share} || 0 ];   
+        $q->{'nq0:gridqueued'} = [ $gridqueued{$share} || 0 ];    
+        $q->{'nq0:localqueued'} = [ ($qinfo->{queued} - ( $gridqueued{$share} || 0 )) ];   
+        $q->{'nq0:prelrmsqueued'} = [ $prelrmsqueued{$share} || 0 ];
+        if ( $sconfig->{totalcpus} ) {
+            $q->{'nq0:totalcpus'} = [ $sconfig->{totalcpus} ]; # orphan
         } elsif ( $qinfo->{totalcpus} ) {
             $q->{'nq0:totalcpus'} = [ $qinfo->{totalcpus} ];      
         }	
@@ -339,7 +347,7 @@ sub _collect($$) {
             my $gmjob = $gmjobs_info->{$jobid};
 
             # only handle jobs in this queue
-            next unless $gmjob->{queue} eq $qname;
+            next unless $gmjob->{share} eq $share;
 
             my $j = {};
             push @{$jg->{'nuj0:name'}}, $j;
@@ -352,7 +360,7 @@ sub _collect($$) {
             $j->{'nuj0:jobname'} = [ $gmjob->{jobname} ] if $gmjob->{jobname};
             $j->{'nuj0:submissiontime'} = [ $gmjob->{starttime} ] if $gmjob->{starttime};
             $j->{'nuj0:execcluster'} = [ $host_info->{hostname} ] if $host_info->{hostname};
-            $j->{'nuj0:execqueue'} = [ $qname ] if $qname;
+            $j->{'nuj0:execqueue'} = [ $share ] if $share;
             $j->{'nuj0:cpucount'} = [ $gmjob->{count} || 1 ];
             $j->{'nuj0:sessiondirerasetime'} = [ $gmjob->{cleanuptime} ] if $gmjob->{cleanuptime};
             $j->{'nuj0:stdin'}  = [ $gmjob->{stdin} ]  if $gmjob->{stdin};

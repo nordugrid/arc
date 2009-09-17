@@ -2,19 +2,19 @@ package HostInfo;
 
 use Sys::Hostname;
 
-use base InfoCollector;
-use Sysinfo qw(cpuinfo processid diskinfo diskspaces);
+use Sysinfo qw(cpuinfo meminfo osfamily processid diskinfo diskspaces);
 use LogUtils;
+use InfoChecker;
 
 use strict;
 
 our $host_options_schema = {
         x509_user_cert => '',
         x509_cert_dir  => '',
-        sessiondir     => '',
-        cachedir       => '*',
-        ng_location    => '',
-        runtimedir     => '*',
+        sessiondir     => [ '' ],
+        cachedir       => [ '*' ],
+        libexecdir     => '',
+        runtimeDir     => '*',
         processes      => [ '' ],
         localusers     => [ '' ]
 };
@@ -22,9 +22,15 @@ our $host_options_schema = {
 our $host_info_schema = {
         hostname      => '',
         architecture  => '',
-        cpumodel      => '',
-        cpufreq       => '', # unit: MHz
-        nodecpu       => '',
+        cpumodel      => '*',
+        cpufreq       => '*', # unit: MHz
+        cpustepping   => '*',
+        cpuvendor     => '*',
+        memtotal      => '*', # unit: MB
+        osfamily      => '*',
+        cputhreadcount=> '*',
+        cpucorecount  => '*',
+        cpusocketcount=> '*',
         issuerca      => '',
         issuerca_hash => '',
         trustedcas    => [ '' ],
@@ -45,24 +51,22 @@ our $host_info_schema = {
 
 our $log = LogUtils->getLogger(__PACKAGE__);
 
+sub collect($) {
+    my ($options) = @_;
+    my ($checker, @messages);
 
-# override InfoCollector base class methods 
+    $checker = InfoChecker->new($host_options_schema);
+    @messages = $checker->verify($options);
+    $log->warning("config key options->$_") foreach @messages;
+    $log->fatal("Some required options are missing") if @messages;
 
-sub _initialize($) {
-    my ($self) = @_;
-    $self->SUPER::_initialize();
-    $self->{resname} = "host";
-}
+    my $result = get_host_info($options);
 
-sub _get_options_schema {
-    return $host_options_schema;
-}
-sub _get_results_schema {
-    return $host_info_schema;
-}
-sub _collect($$) {
-    my ($self,$options) = @_;
-    return get_host_info($options);
+    $checker = InfoChecker->new($host_info_schema);
+    @messages = $checker->verify($result);
+    $log->warning("SelfCheck: result key hostinfo->$_") foreach @messages;
+
+    return $result;
 }
 
 
@@ -96,7 +100,7 @@ sub grid_diskspace ($$) {
 }
 
 
-sub get_host_info {
+sub get_host_info($) {
     my $options = shift;
 
     my $host_info = {};
@@ -112,16 +116,14 @@ sub get_host_info {
 
     my $cpuinfo = cpuinfo();
     if ($cpuinfo) {
-        $host_info->{cpumodel} = $cpuinfo->{cpumodel};
-        $host_info->{cpufreq} = $cpuinfo->{cpufreq};
+        $host_info = {%$host_info, %$cpuinfo};
     } else {
         $log->error("Failed querying CPU info");
     }
-
-
-    if ($host_info->{cpufreq} and $host_info->{cpumodel}) {
-        $host_info->{nodecpu} = "$host_info->{cpumodel} @ $host_info->{cpufreq} Mhz";
-    }
+    my $meminfo = meminfo();
+    $host_info->{memtotal} = $meminfo->{memtotal} if $meminfo->{memtotal};
+    my $osfamily = osfamily();
+    $host_info->{osfamily} = $osfamily if $osfamily;
     
     # Globus location
     my $globus_location ||= $ENV{GLOBUS_LOCATION} ||= "/opt/globus/";
@@ -144,7 +146,8 @@ sub get_host_info {
     }
     $host_info->{issuerca} = $issuerca;
 
-    my @certfiles = `ls $options->{x509_cert_dir}/*.0 2>/dev/null`;
+    my @certfiles = `ls $options->{x509_cert_dir}/*.0`;
+    $log->error("No cerificates found in ".$options->{x509_cert_dir}) unless @certfiles;
     my $issuerca_hash;
     my @trustedca;
     foreach my $cert ( @certfiles ) {
@@ -164,26 +167,29 @@ sub get_host_info {
     }
     $host_info->{trustedcas} = \@trustedca;
     
-    #nordugrid-cluster-sessiondirusage
-    my $sessionspace = diskinfo($options->{sessiondir});
-    $log->warning("Failed checking disk space in sessiondir $options->{sessiondir}")
-        unless $sessionspace;
-    $host_info->{session_free} = $sessionspace->{megsfree} || 0;
-    $host_info->{session_total} = $sessionspace->{megstotal} || 0;
+    #TODO: multiple session dirs
+    my @sessiondirs = @{$options->{sessiondir}};
+    if (@sessiondirs) {
+        my $sessionspace = diskinfo($sessiondirs[0]);
+        $log->warning("Failed checking disk space in sessiondir ".$sessiondirs[0])
+            unless $sessionspace;
+        $host_info->{session_free} = $sessionspace->{megsfree} || 0;
+        $host_info->{session_total} = $sessionspace->{megstotal} || 0;
 
-    #nordugrid-cluster-cacheusage
+        # users and diskspace
+        $host_info->{localusers} = grid_diskspace($sessiondirs[0], $options->{localusers});
+    }
+
     #OBS: only accurate if cache is on a filesystem of it's own 
-    my @paths = split /\[separator\]/, ($options->{cachedir} || '');
+    my @paths = ();
+    @paths = @{$options->{cachedir}} if $options->{cachedir};
     @paths = map { my @pair = split " ", $_; $pair[0] } @paths;
     my %cacheinfo = diskspaces(@paths);
-    $log->warning("Failed checking disk space in cache directory $options->{cachedir}")
+    $log->warning("Failed checking disk space in cache directories: @paths")
         unless %cacheinfo;
     $host_info->{cache_total} = $cacheinfo{totalsum} || 0;
     $host_info->{cache_free} = ($cacheinfo{freemin} || 0) * $cacheinfo{ndisks};
 
-    #NorduGrid middleware version
-    #Skipped...
-    
     #Globus Toolkit version
     #globuslocation/share/doc/VERSION
     my $globusversion;
@@ -198,61 +204,42 @@ sub get_host_info {
     }
     $host_info->{globusversion} = $globusversion;
     
-    #nordugrid-cluster-runtimeenvironment
     my @runtimeenvironment;
-    if ($options->{runtimedir}){
-       if (opendir DIR, $options->{runtimedir}) {
-          @runtimeenvironment = `find $options->{runtimedir} -type f ! -name ".*" ! -name "*~"` ;
+    my $runtimedir = $options->{runtimeDir};
+    if ($runtimedir){
+       if (opendir DIR, $runtimedir) {
+          @runtimeenvironment = `find $runtimedir -type f ! -name ".*" ! -name "*~"` ;
           closedir DIR;
           foreach my $listentry (@runtimeenvironment) {
              chomp($listentry);
-             $listentry=~s/$options->{runtimedir}\/*//;
+             $listentry=~s/$runtimedir\/*//;
           }
        } else {
          # $listentry="";
-          $log->warning("Can't acess runtimedir: $options->{runtimedir}");
+          $log->warning("Can't acess runtimedir: $runtimedir");
        }
        # Try to fetch something from Janitor
        # Integration with Janitor is done through calling 
        # executable beacuse I'm nor skilled enough to isolate
        # possible Janitor errors and in order not to redo 
        # all Log4Perl tricks again. Please redo it later. A.K.
-       # Find Janitor first
-       my $janitor_path = $options->{ng_location};
-       if($janitor_path) {
-          if (-e "$janitor_path/libexec/janitor") {
-             $janitor_path = "$janitor_path/libexec/janitor";
-          } elsif (-e "$janitor_path/libexec/arc/janitor") {
-             $janitor_path = "$janitor_path/libexec/arc/janitor";
+       my $janitor = $options->{libexecdir}.'/janitor';
+       if (! -e $janitor) {
+          $log->debug("Janitor not found at '$janitor' - not using");
+       } else {
+          if (! open (JPIPE, "$janitor list shortlist dynamic |")) {
+              $log->warning("$janitor: $!");
           } else {
-            $log->debug("Janitor not found - not using");
-            $janitor_path = "";
-          }
-       }
-       if($janitor_path) {    
-          open (JPIPE, "$janitor_path list shortlist dynamic |");
-          while(<JPIPE>) {
-             my $listentry = $_;
-             chomp($listentry);
-             if($listentry) {
-                # Avoid duplicates
-                foreach(@runtimeenvironment) {
-                   if($listentry eq $_) {
-                     $listentry="";
-                     last;
-                   }
-                }
-                if($listentry) {
-                   push @runtimeenvironment, $listentry;
-                }
-             }
+              while(<JPIPE>) {
+                  chomp(my $listentry = $_);
+                  push @runtimeenvironment, $listentry
+                      unless grep {$listentry eq $_} @runtimeenvironment;
+              }
           }
        }
     }
     $host_info->{runtimeenvironments} = \@runtimeenvironment;
 
-    # users and diskspace
-    $host_info->{localusers} = grid_diskspace($options->{sessiondir}, $options->{localusers});
     $host_info->{processes} = processid(@{$options->{processes}});
 
     return $host_info;
@@ -264,16 +251,16 @@ sub get_host_info {
 sub test {
     my $options = { x509_user_cert => '/etc/grid-security/hostcert.pem',
                     x509_cert_dir => '/etc/grid-security/certificates',
-                    sessiondir => '/home/grid/session/',
-                    cachedir => '/home/grid/cache',
-                    ng_location => '/opt/nordugrid',
-                    runtimedir => '/home/grid/runtime',
+                    sessiondir => [ '/home/grid/session/' ],
+                    cachedir => [ '/home/grid/cache' ],
+                    libexecdir => '/opt/nordugrid/libexec/arc',
+                    runtimeDir => '/home/grid/runtime',
                     processes => [ qw(bash ps init grid-manager bogous) ],
                     localusers => [ qw(root adrianta) ] };
     require Data::Dumper; import Data::Dumper qw(Dumper);
-    LogUtils->getLogger()->level($LogUtils::DEBUG);
+    LogUtils::setLevel('DEBUG');
     $log->debug("Options:\n" . Dumper($options));
-    my $results = HostInfo->new()->get_info($options);
+    my $results = HostInfo::collect($options);
     $log->debug("Results:\n" . Dumper($results));
 } 
 

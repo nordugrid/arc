@@ -4,7 +4,7 @@ pkglib_DATA = ARC0mod.pm SGEmod.pm FORKmod.pm PBS.pm \
 		  LL.pm LSF.pm Condor.pm condor_env.pm SLURM.pm \
 		  LogUtils.pm Sysinfo.pm \
 		  LRMSInfo.pm GMJobsInfo.pm HostInfo.pm \
-		  InfoChecker.pm InfoCollector.pm \
+		  InfoChecker.pm ConfigCentral.pm \
 		  ARC0ClusterSchema.pm ARC0ClusterInfo.pm \
 		  ARC1ClusterSchema.pm ARC1ClusterInfo.pm
 

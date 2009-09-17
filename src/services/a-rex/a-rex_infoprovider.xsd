@@ -104,7 +104,7 @@
         <xsd:sequence>
             <xsd:element name="Name" type="xsd:string"/>
             <xsd:element name="OtherInfo" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
-            <xsd:element name="AdminDomain" type="xsd:string" minOccurs="0"/>
+            <xsd:element name="AdminDomain" type="xsd:string"/>
             <xsd:element name="StatusInfo" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="ConnectivityIn" type="ip:connectivityIn_Type"/>
             <xsd:element name="ConnectivityOut" type="ip:connectivityOut_Type"/>
@@ -113,10 +113,10 @@
             <xsd:element name="Benchmark" type="benchmark_Type" minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="Downtime" type="xsd:string" minOccurs="0"/>
 
-            <xsd:element name="ClusterOwner" type="xsd:string" minOccurs="0"/>
+            <xsd:element name="ClusterOwner" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="OpSys" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="Middleware" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
-            <xsd:element name="LocalSE" type="xsd:string" minOccurs="0"/>
+            <xsd:element name="LocalSE" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="InteractiveContactstring" type="xsd:string" minOccurs="0"/>
 
             <xsd:element name="ExecutionEnvironment" type="executionEnvironment_Type" maxOccurs="unbounded"/>

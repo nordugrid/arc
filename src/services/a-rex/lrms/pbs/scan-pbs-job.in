@@ -7,6 +7,9 @@
 #
 # usage: scan_pbs_job control_dir ...
 
+# ARC1 passes first the config file.
+if [ "$1" = "--config" ]; then shift; ARC_CONFIG=$1; shift; fi
+
 if [ -z "$1" ] ; then exit 1 ; fi
 
 basedir=`dirname $0`

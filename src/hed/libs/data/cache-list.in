@@ -1,0 +1,65 @@
+#!/usr/bin/perl -w
+
+# Make a list of URLs in the cache and their corresponding
+# cache filenames
+
+use File::Find ();
+use File::Basename;
+
+BEGIN {
+    unshift @INC, dirname($0).'/@pkglibdir_rel_to_pkglibexecdir@';
+}
+
+use ConfigCentral;
+
+
+# for the convenience of &wanted calls, including -eval statements:
+use vars qw/*name *dir *prune/;
+*name   = *File::Find::name;
+*dir    = *File::Find::dir;
+*prune  = *File::Find::prune;
+
+sub wanted;
+
+my $conffile;
+
+if (@ARGV == 2 && $ARGV[0] eq '-c') {
+    $conffile = $ARGV[1];
+}
+
+sub usage {
+    print <<EOH;
+   usage: $0 -c <arex_config_file>
+EOH
+    exit 1;
+}
+
+usage() unless $conffile;
+
+# parse to find cache dirs
+my @caches;
+
+my $config = ConfigCentral::parseConfig($conffile);
+die "Failed parsing A-REX config file '$conffile'" unless $config;
+die "No cahes set up in '$conffile'" unless $config->{cachedir};
+for (@{$config->{cachedir}}) {
+    print "\n Warning: cache-clean cannot deal with substitutions - $_\n" and next if /%/;
+    print "\n Warning: ignoring malformed cahe location - $_\n" and next unless m{^(/\S+)};
+    push @caches, $1;
+}
+die "No caches found in config file '$conffile'" unless @caches;
+
+foreach $cache (@caches) {
+	print "Cache: $cache\n";
+    if (! -d $cache) { print " Cache is empty\n"; }
+	else { File::Find::find({wanted => \&wanted}, $cache); }
+}
+
+sub wanted {
+    return if $name !~ m|\.meta$|;
+    open FILE, $name or die "$name $!";
+    my $line = <FILE>;
+    my @data = split(/\s+/, $line);
+    my $fname = substr($name, 0, rindex($name, ".meta"));
+    print " $data[0] $fname\n";
+}

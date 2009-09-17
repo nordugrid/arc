@@ -565,6 +565,13 @@
                             <ConnectivityIn>false</ConnectivityIn>
                             <ConnectivityOut>true</ConnectivityOut>
                             <NetworkInfo>gigabitethernet</NetworkInfo>
+                            <Benchmark CreationTime="2008-04-21T10:05:12Z" Validity="500">
+                                <ID>urn:ogf:Benchmark:HU/NIIF/PGS-CE/torque/dualcore/jbench</ID>
+                                <Name>jbench</Name>
+                                <OtherInfo>JVM options: -d64 -server</OtherInfo>
+                                <Type>jbench</Type>
+                                <Value>3299.0</Value>
+                            </Benchmark>
                             <Associations>
                                 <ComputingShareID>urn:ogf:ComputingShare:HU/NIIF/PGS-CE/niif</ComputingShareID>
                                 <ComputingActivityID>urn:ogf:ComputingActivity:ce01.niif.hu:60000/arex/123343</ComputingActivityID>

@@ -1,7 +1,7 @@
 #
 # set environment variables:
 #   LSF_BIN_PATH
-#   CONFIG_architecture
+#   CONFIG_lsf_architecture
 #
 
 ##############################################################

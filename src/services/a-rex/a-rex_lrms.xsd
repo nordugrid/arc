@@ -157,25 +157,9 @@
         </xsd:annotation>
     </xsd:element>
 
-    <xsd:element name="ll_class" type="xsd:string">
-        <xsd:annotation>
-            <xsd:documentation xml:lang="en">
-                LL job class associated to a clusterShare
-            </xsd:documentation>
-        </xsd:annotation>
-    </xsd:element>
-
     <xsd:element name="slurm_bin_path" type="xsd:string">
         <xsd:annotation>
             <xsd:documentation xml:lang="en">
-            </xsd:documentation>
-        </xsd:annotation>
-    </xsd:element>
-
-    <xsd:element name="slurm_partition" type="xsd:string">
-        <xsd:annotation>
-            <xsd:documentation xml:lang="en">
-                SLURM partition associated to a clusterShare
             </xsd:documentation>
         </xsd:annotation>
     </xsd:element>
@@ -184,14 +168,6 @@
         <xsd:annotation>
             <xsd:documentation xml:lang="en">
                 SLURM project associated to a clusterShare
-            </xsd:documentation>
-        </xsd:annotation>
-    </xsd:element>
-
-    <xsd:element name="queueName" type="xsd:string">
-        <xsd:annotation>
-            <xsd:documentation xml:lang="en">
-                Queue associated to a clusterShare (applicable for PBS flavors, SGE, LSF)
             </xsd:documentation>
         </xsd:annotation>
     </xsd:element>

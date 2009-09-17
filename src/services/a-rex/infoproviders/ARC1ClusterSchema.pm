@@ -24,9 +24,10 @@ sub arc1_info_schema {
 
     my $contact_t = {
             'ID'        => [ '' ],
-            'Type'      => [ '' ],
-            'URL'       => [ '' ],
+            'Name'      => [ '*' ],
             'OtherInfo' => [ '*' ],
+            'Type'      => [ '' ],
+            'Detail'    => [ '' ],
     };
 
     my $access_pol_t = {
@@ -41,13 +42,64 @@ sub arc1_info_schema {
             'Rule'    => [ '' ],
     };
 
+    my $comp_activity_t = {
+            'BaseType'     => '',
+            'CreationTime' => '*',
+            'Validity'     => '*',
+            'ID'                      => [ '' ],
+            'Name'                    => [ '*' ],
+            'Type'                    => [ '' ],
+            'IDFromEndpoint'          => [ '*' ],
+            'LocalIDFromManager'      => [ '*' ],
+            'JobDescription'          => [ '' ],
+            'State'                   => [ '' ],
+            'RestartState'            => [ '*' ],
+            'ExitCode'                => [ '*' ],
+            'ComputingManagerExitCode'=> [ '*' ],
+            'Error'                   => [ '*' ],
+            'WaitingPosition'         => [ '*' ],
+            'UserDomain'              => [ '*' ],
+            'Owner'                   => [ '' ],
+            'LocalOwner'              => [ '' ],
+            'RequestedTotalWallTime'  => [ '*' ],
+            'RequestedTotalCPUTime'   => [ '*' ],
+            'RequestedSlots'          => [ '*' ],
+            'RequestedApplicationEnvironment' => [ '*' ],
+            'StdIn'                   => [ '*' ],
+            'StdOut'                  => [ '*' ],
+            'StdErr'                  => [ '*' ],
+            'LogDir'                  => [ '*' ],
+            'ExecutionNode'           => [ '*' ],
+            'Queue'                   => [ '*' ],
+            'UsedTotalWallTime'       => [ '*' ],
+            'UsedTotalCPUTime'        => [ '*' ],
+            'UsedMainMemory'          => [ '*' ],
+            'SubmissionTime'          => [ '' ],
+            'ComputingManagerSubmissionTime' => [ '*' ],
+            'StartTime'               => [ '*' ],
+            'ComputingManagerEndTime' => [ '*' ],
+            'EndTime'                 => [ '*' ],
+            'WorkingAreaEraseTime'    => [ '*' ],
+            'ProxyExpirationTime'     => [ '*' ],
+            'SubmissionHost'          => [ '' ],
+            'SubmissionClientName'    => [ '*' ],
+            'OtherMessages'           => [ '*' ],
+            'Associations' => {
+                'ComputingShareID'       => [ '' ],
+                'ExecutionEnvironmentID' => [ '' ],
+                'ActivityID'             => [ '' ],
+             }
+    };
+
     my $comp_endp_t = {
             'BaseType'     => '',
-            'CreationTime' => '',
-            'Validity'     => '',
+            'CreationTime' => '*',
+            'Validity'     => '*',
             'ID'                 => [ '' ],
             'Name'               => [ '*' ],
+            'OtherInfo'          => [ '*' ],
             'URL'                => [ '' ],
+            'Capability'         => [ '' ],
             'Technology'         => [ '*' ],
             'InterfaceName'      => [ '' ],
             'InterfaceVersion'   => [ '' ],
@@ -80,23 +132,27 @@ sub arc1_info_schema {
             'AccessPolicy'       => [ $access_pol_t ],
              'Associations' => {
                 'ComputingShareID'      =>  [ '' ],
-                'ComputingActivityID'   =>  [ '' ],
-            }
+            },
+            'ComputingActivities' => {
+                'ComputingActivity' => [ $comp_activity_t ]
+            },
     };
 
     my $comp_share_t = {
             'BaseType'     => '',
-            'CreationTime' => '',
-            'Validity'     => '',
+            'CreationTime' => '*',
+            'Validity'     => '*',
             'ID'                    => [ '' ],
             'Name'                  => [ '*' ],
             'Description'           => [ '*' ],
+            'OtherInfo'             => [ '*' ],
             'MappingQueue'          => [ '' ],
             'MaxWallTime'           => [ '*' ], # units: seconds
             'MaxMultiSlotWallTime'  => [ '*' ], # units: seconds
             'MinWallTime'           => [ '*' ], # units: seconds
             'DefaultWallTime'       => [ '*' ], # units: seconds
-            'MaxCPUTime'            => [ '*' ], # units: seconds
+            'MaxCPUTime'            => [ '*' ], # units: seconds (per-slot)
+            'MaxTotalCPUTime'       => [ '*' ], # units: seconds
             'MinCPUTime'            => [ '*' ], # units: seconds
             'DefaultCPUTime'        => [ '*' ], # units: seconds
             'MaxTotalJobs'          => [ '*' ],
@@ -108,7 +164,8 @@ sub arc1_info_schema {
             'MaxStageInStreams'     => [ '*' ],
             'MaxStageOutStreams'    => [ '*' ],
             'SchedulingPolicy'      => [ '*' ],
-            'GuaranteedVirtualMemory' => [ '' ],  # units: MB
+            'GuaranteedVirtualMemory'=>[ '*' ],  # units: MB
+            'MaxVirtualMemory'      => [ '*' ],  # units: MB
             'MaxDiskSpace'          => [ '*' ], # units: GB
             'DefaultStorageService' => [ '*' ],
             'Preemption'            => [ '*' ],
@@ -130,7 +187,7 @@ sub arc1_info_schema {
             'RequestedSlots'        => [ '' ],
             'ReservationPolicy'     => [ '*' ],
             'Tag'                   => [ '*' ],
-            #'MappingPolicy' => [ $mapping_pol_t ],
+            'MappingPolicy' => [ $mapping_pol_t ],
             'Associations' => {
                 'ComputingEndpointID'         => [ '' ],
                 'ExecutionEnvironmentID'      => [ '' ],
@@ -139,33 +196,38 @@ sub arc1_info_schema {
     };
 
     my $exec_env_t = {
+            'BaseType'     => '',
+            'CreationTime' => '*',
+            'Validity'     => '*',
             'ID'                   => [ '' ],
-            'PlatformType'         => [ '' ],
-            'VirtualMachine'       => [ '' ],
-            'TotalInstances'       => [ '' ],
-            'UsedInstances'        => [ '' ],
-            'UnavailableInstances' => [ '' ],
+            'Name'                 => [ '*' ],
+            'OtherInfo'            => [ '*' ],
+            'Platform'             => [ '' ],
+            'VirtualMachine'       => [ '*' ],
+            'TotalInstances'       => [ '*' ],
+            'UsedInstances'        => [ '*' ],
+            'UnavailableInstances' => [ '*' ],
             'PhysicalCPUs'         => [ '' ],
             'LogicalCPUs'          => [ '' ],
-            'CPUMultiplicity'      => [ '' ],
-            'CPUVendor'            => [ '' ],
+            'CPUMultiplicity'      => [ '*' ],
+            'CPUVendor'            => [ '*' ],
             'CPUModel'             => [ '' ],
-            'CPUVersion'           => [ '' ],
+            'CPUVersion'           => [ '*' ],
             'CPUClockSpeed'        => [ '' ],
-            'CPUTimeScalingFactor' => [ '' ],
-            'WallTimeScalingFactor'=> [ '' ],
+            'CPUTimeScalingFactor' => [ '*' ],
+            'WallTimeScalingFactor'=> [ '*' ],
             'MainMemorySize'       => [ '' ],
-            'VirtualMemorySize'    => [ '' ],
+            'VirtualMemorySize'    => [ '*' ],
             'OSFamily'             => [ '' ],
             'OSName'               => [ '' ],
             'OSVersion'            => [ '' ],
-            'ConnectivityIn'       => [ '' ],
-            'ConnectivityOut'      => [ '' ],
-            'NetworkInfo'          => [ '' ],
+            'ConnectivityIn'       => [ '*' ],
+            'ConnectivityOut'      => [ '*' ],
+            'NetworkInfo'          => [ '*' ],
+            'Benchmark'            => [ $benchmark_t ],
             'Associations' => {
-                'ComputingShareID'         => [ '' ],
-                'ApplicationEnvironmentID' => [ '' ],
-                'BenchmarkID'              => [ '*' ],
+                'ComputingShareID'         => [ '*' ],
+                'ApplicationEnvironmentID' => [ '*' ],
                 'ComputingActivityID'      => [ '*' ],
              },
     };
@@ -196,12 +258,13 @@ sub arc1_info_schema {
 
     my $comp_manager_t = {
             'BaseType'     => '',
-            'CreationTime' => '',
-            'Validity'     => '',
+            'CreationTime' => '*',
+            'Validity'     => '*',
             'ID'                    => [ '' ],
+            'OtherInfo'             => [ '*' ],
             'Name'                  => [ '*' ],
-            'Type'                  => [ '' ],
-            'Version'               => [ '' ],
+            'ProductName'           => [ '' ],
+            'ProductVersion'        => [ '' ],
             'Reservation'           => [ '*' ],
             'BulkSubmission'        => [ '' ],
             'TotalPhysicalCPUs'     => [ '' ],
@@ -213,102 +276,51 @@ sub arc1_info_schema {
             'NetworkInfo'           => [ '*' ],
             'LogicalCPUDistribution'=> [ '' ],
             'WorkingAreaShared'     => [ '' ],
+            'WorkingAreaGuaranteed' => [ '' ],
             'WorkingAreaTotal'      => [ '' ],
             'WorkingAreaFree'       => [ '' ],
             'WorkingAreaLifeTime'   => [ '' ],
-            'WorkingAreaMPIShared'  => [ '*' ],
-            'WorkingAreaMPITotal'   => [ '*' ],
-            'WorkingAreaMPIFree'    => [ '*' ],
-            'WorkingAreaMPILifeTime'=> [ '*' ],
-            'CacheTotal'            => [ '' ],
-            'CacheFree'             => [ '' ],
-            'TmpDir'                => [ '*' ],
-            'ScratchDir'            => [ '*' ],
-            'ApplicationDir'        => [ '*' ],
-            'OtherInfo'             => [ '*' ],
-            #'Benchmark' => [ $benchmark_t ],
+            #'WorkingAreaMultiSlotTotal'   => [ '*' ],
+            #'WorkingAreaMultiSlotFree'    => [ '*' ],
+            #'WorkingAreaMultiSlotLifeTime'=> [ '*' ],
+            'CacheTotal'            => [ '*' ],
+            'CacheFree'             => [ '*' ],
+            #'TmpDir'                => [ '*' ],
+            #'ScratchDir'            => [ '*' ],
+            #'ApplicationDir'        => [ '*' ],
+            'Benchmark' => [ $benchmark_t ],
             'ApplicationEnvironments' => {
                 'ApplicationEnvironment' => [ $app_env_t ]
             },
-            #'ExecutionEnvironment' => [ $exec_env_t ],
-    };
-
-my $comp_activity_t = {
-            'BaseType'     => '',
-            'CreationTime' => '',
-            'Validity'     => '',
-            'ID'                      => [ '' ],
-            'Name'                    => [ '' ],
-            'Type'                    => [ '' ],
-            'IDFromEndpoint'          => [ '' ],
-            'LocalIDFromManager'      => [ '*' ],
-            'JobDescription'          => [ '' ],
-            'State'                   => [ '' ],
-            'RestartState'            => [ '*' ],
-            'ExitCode'                => [ '*' ],
-            'ComputingManagerExitCode'=> [ '*' ],
-            'Error'                   => [ '*' ],
-            'WaitingPosition'         => [ '*' ],
-            'UserDomain'              => [ '*' ],
-            'Owner'                   => [ '' ],
-            'LocalOwner'              => [ '' ],
-            'RequestedTotalWallTime'  => [ '*' ],
-            'RequestedTotalCPUTime'   => [ '*' ],
-            'RequestedSlots'          => [ '*' ],
-            'RequestedApplicationEnvironment' => [ '*' ],
-            'StdIn'                   => [ '*' ],
-            'StdOut'                  => [ '*' ],
-            'StdErr'                  => [ '*' ],
-            'LogDir'                  => [ '*' ],
-            'ExecutionNode'           => [ '*' ],
-            'Queue'                   => [ '' ],
-            'UsedTotalWallTime'       => [ '*' ],
-            'UsedTotalCPUTime'        => [ '*' ],
-            'UsedMainMemory'          => [ '*' ],
-            'SubmissionTime'          => [ '' ],
-            'ComputingManagerSubmissionTime' => [ '*' ],
-            'StartTime'               => [ '*' ],
-            'ComputingManagerEndTime' => [ '*' ],
-            'EndTime'                 => [ '*' ],
-            'WorkingAreaEraseTime'    => [ '*' ],
-            'ProxyExpirationTime'     => [ '' ],
-            'SubmissionHost'          => [ '' ],
-            'SubmissionClientName'    => [ '' ],
-            'OtherMessages'           => [ '*' ],
-            'Associations' => {
-                'ComputingShareID'       => [ '' ],
-                'ComputingEndpointID'    => [ '' ],
-                'ExecutionEnvironmentID' => [ '' ],
-                'ActivityID'             => [ '' ],
-             }
+            'ExecutionEnvironments' => {
+                'ExecutionEnvironment' => [ $exec_env_t ],
+            },
     };
 
     my $comp_serv_t = {
             'BaseType'     => '',
-            'CreationTime' => '',
-            'Validity'     => '',
+            'CreationTime' => '*',
+            'Validity'     => '*',
             'ID'                 => [ '' ],
-            'Name'               => [ '' ],
+            'Name'               => [ '*' ],
+            'OtherInfo'          => [ '*' ],
             'Capability'         => [ '' ],
             'Type'               => [ '' ],
             'QualityLevel'       => [ '' ],
-            'StatusPage'         => [ '*' ],
+            'StatusInfo'         => [ '*' ],
             'Complexity'         => [ '' ],
             'Otherinfo'          => [ '*' ],
-            #'Location'           => $location_t,
-            #'Contact'            => $contact_t,
             'TotalJobs'          => [ '' ],
             'RunningJobs'        => [ '' ],
             'WaitingJobs'        => [ '' ],
             'StagingJobs'        => [ '' ],
             'SuspendedJobs'      => [ '' ],
             'PreLRMSWaitingJobs' => [ '' ],
+            'Location'           => $location_t,
+            'Contact'            => [ $contact_t ],
             'ComputingEndpoint'  => [ $comp_endp_t ],
             'ComputingShares' => {
                 'ComputingShare' => [ $comp_share_t ]
-            },
-            'ComputingActivities' => {
-                'ComputingActivity' => [ $comp_activity_t ]
             },
             'ComputingManager' => [ $comp_manager_t ],
             'Associations' => {

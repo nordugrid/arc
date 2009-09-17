@@ -81,7 +81,7 @@ void ARexService::InformationCollector(void) {
         r = run.Result();
         if (r!=0) logger_.msg(Arc::WARNING,"Cluster information provider failed with exit status: %i",r);
       };
-      logger_.msg(Arc::DEBUG,"Cluster information provider error: %s",stderr_str);
+      logger_.msg(Arc::DEBUG,"Cluster information provider log:\n%s",stderr_str);
     };
     if (r!=0) {
       logger_.msg(Arc::DEBUG,"No new informational document assigned");

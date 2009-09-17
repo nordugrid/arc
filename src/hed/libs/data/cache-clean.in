@@ -29,9 +29,17 @@ use File::Path;
 use Getopt::Std;
 use Fcntl ':mode';
 use DirHandle;
+use File::Basename;
 
 use strict;
 use warnings;
+
+BEGIN {
+    unshift @INC, dirname($0).'/@pkglibdir_rel_to_pkglibexecdir@';
+}
+
+use ConfigCentral;
+
 
 # Set the variable $File::Find::dont_use_nlink if you're using AFS,
 # since AFS cheats.
@@ -49,6 +57,8 @@ sub diskspace;
 
 my(%opts);
 
+my $configfile;
+
 # Min free percentage
 my $defminfree = 20;
 my $minfree = $defminfree;
@@ -59,7 +69,10 @@ my $totsize = 0;
 my $totlocksize = 0;
 my $totlockfiles = 0;
 
-getopts('hsdm:M:i:e:D', \%opts);
+getopts('hsdc:m:M:i:e:D', \%opts);
+if(defined($opts{c})) {
+    $configfile = $opts{c};
+}
 if(defined($opts{m})) {
     $minfree = $opts{m};
 }
@@ -77,11 +90,12 @@ if($mincleanfree < $minfree) {
     die "-M can't be smaller than -m (now $mincleanfree/$minfree)\n";
 }
 
-if(defined($opts{'h'}) || ((!defined($opts{'M'}) || !defined($opts{'m'})) && !defined($opts{s}))) {
+sub usage {
     print <<EOH;
-   usage: $0 -h | -s | -m NN -M NN [-D] [dir1 [dir2 [...]]]
+   usage: $0 -h | -s | -m <NN> -M <NN> [-D] { -c <arex_config_file> | <dir1> [<dir2> [...]] }
         -h      - This help
         -s      - Statistics mode, show cache usage stats, dont delete anything
+        -c      - path to an A-REX config file, xml or ini format
         -m NN   - Min free space to start cleaning (percent)
         -M NN   - Free space to stop cleaning (percent)
         -D      - Debug output
@@ -92,31 +106,23 @@ EOH
     exit 1;
 }
 
+usage() if(defined($opts{'h'}) || ((!defined($opts{'M'}) || !defined($opts{'m'})) && !defined($opts{'s'})));
+
 debug "cache cleaning started";
 
 my @caches = @ARGV;
 
 if (!@caches) {
-    # find conf file and get cache dir
-    my $conffile = $ENV{"ARC_CONFIG"};
-    if (!$conffile || ! -e $conffile) {
-        $conffile = '/etc/arc.conf';    
+    usage() unless $configfile;
+    my $config = ConfigCentral::parseConfig($configfile);
+    die "Failed parsing A-REX config file '$configfile'" unless $config;
+    die "No cahes set up in config file '$configfile'" unless $config->{cachedir};
+    for (@{$config->{cachedir}}) {
+        print "\n Warning: cache-clean cannot deal with substitutions - $_\n" and next if /%/;
+        print "\n Warning: ignoring malformed cahe location - $_\n" and next unless m{^(/\S+)};
+        push @caches, $1;
     }
-
-    die "Conf file not found. Use ARC_CONFIG to give non-standard location" if ! -e $conffile;
-
-    # parse to find cache dirs
-    open FILE, $conffile or die $!;
-    while (<FILE>) {
-        if (/^cachedir=/) {
-            if (/%/) {print "\n Warning: cache-clean cannot deal with substitutions - $_\n";}
-            elsif (m!^cachedir="(/\S+)\s(/\S+)"! || m!^cachedir="(/\S+)"! || m!^cachedir=(/\S+)!) {push(@caches, $1);}
-        }
-    }
-
-    close FILE;
-
-    die "No caches found in config file $conffile" if @caches==0;
+    die "No caches found in config file '$configfile'" unless @caches;
 }
 
 foreach my $filesystem (@caches) {

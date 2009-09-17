@@ -289,7 +289,7 @@ bool JobsList::state_submitting(const JobsList::iterator &i,bool &state_changed,
       logger.msg(Arc::INFO,"%s: state CANCELING: starting child: %s",i->job_id,cmd);
     };
     std::string grami = user->ControlDir()+"/job."+(*i).job_id+".grami";
-    char* args[3] ={ (char*)cmd.c_str(), (char*)grami.c_str(), NULL };
+    char* args[5] ={ (char*)cmd.c_str(), "--config", (char*)nordugrid_config_loc.c_str(), (char*)grami.c_str(), NULL };
     job_errors_mark_put(*i,*user);
     if(!RunParallel::run(*user,*i,args,&(i->child))) {
       if(!cancel) {

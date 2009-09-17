@@ -12,6 +12,9 @@ echo "----- starting submit_sge_job -----" 1>&2
 
 joboption_lrms=SGE
 
+# ARC1 passes first the config file.
+if [ "$1" = "--config" ]; then shift; ARC_CONFIG=$1; shift; fi
+
 basedir=`dirname $0`
 basedir=`cd $basedir > /dev/null && pwd` || exit $?
 
@@ -85,7 +88,8 @@ echo "#$ -j y" >> $LRMS_JOB_SCRIPT
 echo "#$ -o ${joboption_directory}.comment" >> $LRMS_JOB_SCRIPT
 
 # Choose queue.
-echo "#$ -q $joboption_queue" >> $LRMS_JOB_SCRIPT
+queue=${CONFIG_MappingQueue:-$joboption_queue}
+echo "#$ -q $queue" >> $LRMS_JOB_SCRIPT
 
 # job name for convenience
 if [ ! -z "${joboption_jobname}" ] ; then

@@ -1,19 +1,19 @@
 package ARC1ClusterInfo;
 
-# This InfoCollector combines the output of the other information collectors
+# This information collector combines the output of the other information collectors
 # and prepares the GLUE2 information model of A-REX. The returned structure is
 # meant to be converted to XML with XML::Simple.
-
-use base InfoCollector;
-use ARC1ClusterSchema;
 
 use Storable;
 use POSIX qw(ceil);
 
+use strict;
+
 use Sysinfo qw(cpuinfo processid diskinfo diskspaces);
 use LogUtils;
+use InfoChecker;
 
-use strict;
+use ARC1ClusterSchema;
 
 my $arc1_info_schema = ARC1ClusterSchema::arc1_info_schema();
 
@@ -86,25 +86,21 @@ sub glueState {
 # Combine info from all sources to prepare the final representation
 ############################################################################
 
-# override InfoCollector base class methods
+sub collect($) {
+    my ($options) = @_;
+    my ($checker, @messages);
+    
+    my $result = get_cluster_info($options);
 
-sub _initialize($) {
-    my ($self) = @_;
-    $self->SUPER::_initialize();
-    $self->{loglevel} = $LogUtils::DEBUG;
-    $self->{optname} = "input";
-    $self->{resname} = "ComputingService";
+    $checker = InfoChecker->new($arc1_info_schema);
+    @messages = $checker->verify($result,1);
+    $log->debug("SelfCheck: result key ComputingService->$_") foreach @messages;
+
+    return $result;
 }
 
-sub _get_options_schema {
-    return {}; # too many inputs to name all
-}
-sub _get_results_schema {
-    return $arc1_info_schema;
-}
-
-sub _collect($$) {
-    my ($self,$options) = @_;
+sub get_cluster_info($) {
+    my ($options) = @_;
     my $config = $options->{config};
     my $usermap = $options->{usermap};
     my $host_info = $options->{host_info};
@@ -114,14 +110,16 @@ sub _collect($$) {
     my $creation_time = timenow();
     my $validity_ttl = $config->{ttl};
 
-    # adotf means autodetect on the frontend
-    $config->{architecture} = $host_info->{architecture}
-        if defined($config->{architecture}) and $config->{architecture} eq 'adotf';
-    $config->{nodecpu} = $host_info->{nodecpu}
-        if defined($config->{nodecpu}) and $config->{nodecpu} eq 'adotf';
+    my @allxenvs = keys %{$config->{xenvs}};
+    my @allshares = keys %{$config->{shares}};
 
-    # config overrides
-    $host_info->{hostname} = $config->{hostname} if $config->{hostname};
+    my $homogeneous = 1;
+    $homogeneous = 0 if @allxenvs > 1;
+    $homogeneous = 0 if @allshares > 1 and @allxenvs == 0;
+    for my $xeconfig (values %{$config->{xenvs}}) {
+        $homogeneous = 0 if defined $xeconfig->{homogeneous}
+                            and not $xeconfig->{homogeneous};
+    }
 
     # # # # # # # # # # # # # # # # # # #
     # # # # # Job statistics  # # # # # #
@@ -162,34 +160,7 @@ sub _collect($$) {
 
         my $job = $gmjobs_info->{$jobid};
         my $gridowner = $gmjobs_info->{$jobid}{subject};
-        my $qname = $job->{queue};
-
-        # Temporary hack: If A-REX has not choosen a queue for the job, default to one.
-        unless ($qname) {
-            my $msg = "Queue not defined for job $jobid";
-            if ($config->{defaultqueue}) {
-                $log->info($msg.". Assuming default: ".$config->{defaultqueue});
-                $qname = $job->{queue} = $config->{defaultqueue};
-            } else {
-                my @qnames = keys %{$config->{queues}};
-                if (@qnames == 1) {
-                    $log->info($msg.". Assuming: ".$qnames[0]);
-                } else {
-                    $log->error($msg." and no default queue is defined.");
-                }
-                $qname = $job->{queue} = $qnames[0];
-            }
-            $job->{share} = $job->{queue};
-        }
-
-        my $share = $job->{share} ||= '';
-
-        # Group jobs not belonging to any known share
-        # into a catch-all share named ''
-        unless (exists $config->{shares}{$share}) {
-            $log->warning("Job $jobid belongs to an invalid share");
-            $share = $job->{share} = '';
-        }
+        my $share = $job->{share};
 
         my $gmstatus = $job->{status};
 
@@ -283,19 +254,28 @@ sub _collect($$) {
     # # # # # # # # # # build information tree  # # # # # # # # # #
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
-    my $arexhostport = "$host_info->{hostname}:$config->{gm_port}";
+    # config overrides
+    my $hostname = $config->{hostname} || $host_info->{hostname};
+    my $arexhostport = $hostname.":".$config->{arexport};
+
+    my $admindomain = $config->{service}{AdminDomain};
+    my $servicename = $admindomain.":".$config->{service}{Name};
 
     # Global IDs
-    my $csvID = "urn:ogf:ComputingService:$arexhostport"; # ComputingService ID
+    my $adID = "urn:ogf:AdminDomain:$admindomain"; # AdminDomain ID
+    my $csvID = "urn:ogf:ComputingService:$servicename"; # ComputingService ID
+    my $cmgrID = "urn:ogf:ComputingManager:$servicename"; # ComputingManager ID
     my $cepID = "urn:ogf:ComputingEndpoint:$arexhostport"; # ComputingEndpoint ID
-    my $cmgrID = "urn:ogf:ComputingManager:$arexhostport"; # ComputingManager ID
     my $cactIDp = "urn:ogf:ComputingActivity:$arexhostport"; # ComputingActivity ID prefix
-    my $cshaIDp = "urn:ogf:ComputingShare:$arexhostport"; # ComputingShare ID prefix
-    my $xenvIDp = "urn:ogf:ExecutionEnvironment:$arexhostport"; # ExecutionEnvironment ID prefix
-    my $aenvIDp = "urn:ogf:ApplicationEnvironment:$arexhostport"; # ApplicationEnvironment ID prefix
+    my $cshaIDp = "urn:ogf:ComputingShare:$servicename"; # ComputingShare ID prefix
+    my $xenvIDp = "urn:ogf:ExecutionEnvironment:$servicename"; # ExecutionEnvironment ID prefix
+    my $aenvIDp = "urn:ogf:ApplicationEnvironment:$servicename"; # ApplicationEnvironment ID prefix
+    my $apolID = "urn:ogf:AccessPolicy:$servicename"; # AccessPolicy ID prefix
+    my $mpolIDp = "urn:ogf:MappingPolicy:$servicename"; # MappingPolicy ID prefix
     my %cactIDs; # ComputingActivity IDs
     my %cshaIDs; # ComputingShare IDs
     my %aenvIDs; # ApplicationEnvironment IDs
+    my %xenvIDs; # ExecutionEnvironment IDs
 
     # Generate ComputingShare IDs
     for my $share (keys %{$config->{shares}}) {
@@ -306,6 +286,9 @@ sub _collect($$) {
     for my $rte (@{$host_info->{runtimeenvironments}}) {
         $aenvIDs{$rte} = "$aenvIDp:$rte";
     }
+
+    # Generate ExecutionEnvironment IDs
+    $xenvIDs{$_} = "$xenvIDp:$_" for @allxenvs;
 
     # generate ComputingActivity IDs
     for my $jobid (keys %$gmjobs_info) {
@@ -324,7 +307,8 @@ sub _collect($$) {
 
     $csv->{ID} = [ $csvID ];
 
-    $csv->{Name} = [ $config->{cluster_alias} ] if $config->{cluster_alias};
+    $csv->{Name} = [ $config->{Name} ] if $config->{Name};
+    $csv->{OtherInfo} = $config->{service}{OtherInfo} if $config->{service}{OtherInfo};
     $csv->{Capability} = [ 'executionmanagement.jobexecution' ];
     $csv->{Type} = [ 'org.nordugrid.arex' ];
 
@@ -332,7 +316,7 @@ sub _collect($$) {
     # One of: development, testing, pre-production, production
     $csv->{QualityLevel} = [ 'development' ];
 
-    # StatusPage: new config option ?
+    $csv->{StatusInfo} =  $config->{service}{StatusInfo} if $config->{service}{StatusInfo};
 
     my $nshares = keys %{$config->{shares}};
     $csv->{Complexity} = [ "endpoint=1,share=$nshares,resource=1" ];
@@ -348,6 +332,25 @@ sub _collect($$) {
                          + ( $gmtotalcount{finishing} || 0 ) ];
 
     $csv->{PreLRMSWaitingJobs} = [ $pendingtotal || 0 ];
+
+    if (my $lconfig = $config->{Location}) {
+        my $loc = $csv->{Location} = {};
+        $loc->{ID} = [ "urn:ogf:Location:$servicename" ];
+        for (qw(Name Address Place PostCode Country Latitude Longitude)) {
+            $loc->{$_} = [ $lconfig->{$_} ] if $lconfig->{$_};
+        }
+    }
+    if ($config->{Contact}) {
+        for my $cconfig (@{$config->{Contact}}) {
+            my $cont = {};
+            push @{$csv->{Contact}}, $cont;
+            my $detail = $cconfig->{Detail};
+            $cont->{ID} = [ "urn:ogf:Contact:$servicename:$detail" ];
+            for (qw(Name Detail Type)) {
+                $cont->{$_} = [ $cconfig->{$_} ] if $cconfig->{$_};
+            }
+        }
+    }
 
     $csv->{ComputingShares} = { ComputingShare => [] };
 
@@ -383,7 +386,6 @@ sub _collect($$) {
     $cep->{ImplementationName} = [ "ARC" ];
     $cep->{ImplementationVersion} = [ $config->{arcversion} ];
 
-    # TODO: add config option
     $cep->{QualityLevel} = [ "development" ];
 
     # TODO: a way to detect if LRMS is up
@@ -407,9 +409,6 @@ sub _collect($$) {
     $cep->{Staging} =  [ 'staginginout' ];
     $cep->{JobDescription} = [ 'ogf:jsdl:1.0', "nordugrid:xrsl" ];
 
-    # TODO: AccessPolicy, needs studying the security configuration
-    $cep->{AccessPolicy} = [];
-
     $cep->{TotalJobs} = [ $gmtotalcount{notfinished} || 0 ];
 
     $cep->{RunningJobs} = [ $inlrmsjobstotal{running} || 0 ];
@@ -422,25 +421,44 @@ sub _collect($$) {
     $cep->{PreLRMSWaitingJobs} = [ $pendingtotal || 0 ];
 
     $cep->{Associations}{ComputingShareID} = [ values %cshaIDs ];
-    $cep->{Associations}{ComputingActivityID} = [ map { values %{$_} } values %cactIDs ];
 
+
+    # AccessPolicy: all unique VOs mapped to shares.
+
+    my %allvos = ();
+    for my $sconfig (values %{$config->{shares}} ) {
+        next unless $sconfig->{AuthorizedVO};
+        $allvos{$_} = 1 for @{$sconfig->{AuthorizedVO}};
+    }
+    if (%allvos) {
+        my $apol = $cep->{AccessPolicy}[0] = {};
+        $apol->{ID} = [ $apolID ];
+        $apol->{Scheme} = [ "basic" ];
+        $apol->{Rule} = [ map {"vo:$_"} keys %allvos ];
+    }
 
     # ComputingShares: multiple shares can share the same LRMS queue
 
     for my $share (keys %{$config->{shares}}) {
 
-        my $qname = $config->{shares}{$share}{qname};
+        my $qinfo = $lrms_info->{queues}{$share};
 
-        my $qinfo = $lrms_info->{queues}{$qname};
-
-        # Prepare flattened config hash for this share. Share options override queue options
-        my $sconfig = { %$config, %{$config->{queues}{$qname}}, %{$config->{shares}{$share}} };
+        # Prepare flattened config hash for this share.
+        my $sconfig = { %$config, %{$config->{shares}{$share}} };
+        delete $sconfig->{control};
+        delete $sconfig->{xenvs};
         delete $sconfig->{shares};
-        delete $sconfig->{queues};
 
         # List of all shares submitting to the current queue, including the current share.
-        my @siblingshares = grep { $qname if $qname eq $_->{qname} } values %{$config->{shares}};
-        $sconfig->{siblingshares} = \@siblingshares;
+        my $qname = $config->{shares}{$share}{MappingQueue} || $share;
+
+        if ($qname) {
+            my $siblings = $sconfig->{siblingshares} = [];
+            for (values %{$config->{shares}}) {
+                my $q = $_->{MappingQueue};
+                push @$siblings, $q if $q and $q eq $qname;
+            }
+        }
 
         my $csha = {};
 
@@ -453,11 +471,13 @@ sub _collect($$) {
         $csha->{ID} = [ $cshaIDs{$share} ];
 
         $csha->{Name} = [ $share ];
-        $csha->{Description} = [ $sconfig->{comment} ] if $sconfig->{comment};
-        $csha->{MappingQueue} = [ $qname ];
+        $csha->{Description} = [ $sconfig->{Description} ] if $sconfig->{Description};
+        $csha->{MappingQueue} = [ $qname ] if $qname;
 
         # use limits from LRMS
         $csha->{MaxCPUTime} = [ $qinfo->{maxcputime} ] if defined $qinfo->{maxcputime};
+        # TODO: implement in backends
+        $csha->{MaxTotalCPUTime} = [ $qinfo->{maxtotalcputime} ] if defined $qinfo->{maxtotalcputime};
         $csha->{MinCPUTime} = [ $qinfo->{mincputime} ] if defined $qinfo->{mincputime};
         $csha->{DefaultCPUTime} = [ $qinfo->{defaultcput} ] if defined $qinfo->{defaultcput};
         $csha->{MaxWallTime} =  [ $qinfo->{maxwalltime} ] if defined $qinfo->{maxwalltime};
@@ -505,10 +525,9 @@ sub _collect($$) {
         $csha->{MaxUserRunningJobs} = [ $qinfo->{maxuserrun} ]
             if defined $qinfo->{maxuserrun};
 
-        # OBS: new config option. Default value is 1
         # TODO: new return value from LRMS infocollector
         # TODO: see how LRMSs can detect the correct value
-        $csha->{MaxSlotsPerJob} = [ $sconfig->{maxslotsperjob} || $qinfo->{maxslotsperjob}  || 1 ];
+        $csha->{MaxSlotsPerJob} = [ $sconfig->{MaxSlotsPerJob} || $qinfo->{MaxSlotsPerJob}  || 1 ];
 
         # MaxStageInStreams, MaxStageOutStreams
         # OBS: A-REX does not have separate limits for up and downloads.
@@ -523,33 +542,33 @@ sub _collect($$) {
 
         # TODO: new return value schedpolicy from LRMS infocollector.
         my $schedpolicy = $lrms_info->{schedpolicy} || undef;
-        if ($sconfig->{scheduling_policy} and not $schedpolicy) {
-            $schedpolicy = 'fifo' if lc($sconfig->{scheduling_policy}) eq 'fifo';
-            $schedpolicy = 'fairshare' if lc($sconfig->{scheduling_policy}) eq 'maui';
+        if ($sconfig->{SchedulingPolicy} and not $schedpolicy) {
+            $schedpolicy = 'fifo' if lc($sconfig->{SchedulingPolicy}) eq 'fifo';
+            $schedpolicy = 'fairshare' if lc($sconfig->{SchedulingPolicy}) eq 'maui';
         }
-        $csha->{SchedulingPolicy} = [ $schedpolicy ];
+        $csha->{SchedulingPolicy} = [ $schedpolicy ] if $schedpolicy;
 
 
-        # TODO: get it from ExecutionEnviromnets mapped to this share instead
-	# GuaranteedVirtualMemory -- all nodes must be able to provide this
-	# much memory per job. Some nodes might be able to afford more per job
-	# (MaxVirtualMemory)
-        $csha->{MaxVirtualMemory} = [ $sconfig->{nodememory} ] if $sconfig->{nodememory};
+        # GuaranteedVirtualMemory -- all nodes must be able to provide this
+        # much memory per job. Some nodes might be able to afford more per job
+        # (MaxVirtualMemory)
+        # TODO: implement check at job accept time in a-rex
+        # TODO: implement in LRMS plugin maxvmem and maxrss.
+        $csha->{MaxVirtualMemory} = [ $sconfig->{MaxVirtualMemory} ] if $sconfig->{MaxVirtualMemory};
         # MaxMainMemory -- usage not being tracked by most LRMSs
 
         # OBS: new config option (space measured in GB !?)
-        # OBS: Disk usage of jobs is not being enforced,
-	# This limit should correspond with the max local-scratch disk space on
-	# clusters using local disks to run jobs.
+        # OBS: Disk usage of jobs is not being enforced.
+        # This limit should correspond with the max local-scratch disk space on
+        # clusters using local disks to run jobs.
         # TODO: implement check at job accept time in a-rex
-        # TODO: implement check in job wrapper
-        $csha->{MaxDiskSpace} = [ $sconfig->{maxdiskperjob} ] if $sconfig->{maxdiskperjob};
+        # TODO: see if any lrms can support this. Implement check in job wrapper
+        $csha->{MaxDiskSpace} = [ $sconfig->{DiskSpace} ] if $sconfig->{DiskSpace};
 
-        # DefaultStorageService: Has no meaning for ARC
+        # DefaultStorageService:
 
-        # TODO: new return value from LRMS infocollector.
         # OBS: Should be ExtendedBoolean_t (one of 'true', 'false', 'undefined')
-        $csha->{Preemption} = [ $qinfo->{preemption} ] if $qinfo->{preemption};
+        $csha->{Preemption} = [ $qinfo->{Preemption} ] if $qinfo->{Preemption};
 
         # ServingState: closed and queuing are not yet supported
         if (defined $sconfig->{allownew} and lc($sconfig->{allownew}) eq 'no') {
@@ -561,7 +580,7 @@ sub _collect($$) {
         # Count local jobs
         my $localrunning = $qinfo->{running};
         my $localqueued = $qinfo->{queued};
-        my $localsuspended = $qinfo->{suspended};
+        my $localsuspended = $qinfo->{suspended} || 0;
 
         # Substract grid jobs submitted belonging to shares that submit to the same lrms queue
         $localrunning -= $inlrmsjobs{$_}{running} || 0 for @{$sconfig->{siblingshares}};
@@ -650,7 +669,7 @@ sub _collect($$) {
 
         $csha->{UsedSlots} = [ $qinfo->{running} ];
 
-        $csha->{RequestedSlots} = [ $requestedslots{$qname} || 0 ];
+        $csha->{RequestedSlots} = [ $requestedslots{$share} || 0 ];
 
         # TODO: detect reservationpolicy in the lrms
         $csha->{ReservationPolicy} = [ $qinfo->{reservationpolicy} ]
@@ -658,9 +677,21 @@ sub _collect($$) {
 
         # Tag: skip it for now
 
-        $csha->{Associations}{ExecutionEnvironmentID} = [];
+        my $xenvs = $sconfig->{ExecEnvName} || [];
+        push @{$csha->{Associations}{ExecutionEnvironmentID}}, $xenvIDs{$_} for @$xenvs;
+
         $csha->{Associations}{ComputingEndpointID} = [ $cepID ];
         $csha->{Associations}{ComputingActivityID} = [ values %{$cactIDs{$share}} ];
+
+        # MappingPolicy: VOs mapped to this share.
+    
+        my $vos = $sconfig->{AuthorizedVO};
+        if ($vos) {
+            my $mpol = $csha->{MappingPolicy}[0] = {};
+            $mpol->{ID} = [ "$mpolIDp:$share" ];
+            $mpol->{Scheme} = [ "basic" ];
+            $mpol->{Rule} = [ map {"vo:$_"} @$vos ];
+        }
 
     }
 
@@ -683,12 +714,24 @@ sub _collect($$) {
     $cmgr->{ProductVersion} = [ $cluster_info->{lrms_version} ];
     # $cmgr->{Reservation} = [ "undefined" ];
     $cmgr->{BulkSubmission} = [ "false" ];
+    # Sum up all cpus from all ExecutionEnvironments
+    my ($totalphys, $totallogc) = (0,0);
+    for my $xenv (keys %{$config->{xenvs}}) {
+        my $xeconfig = $config->{xenvs}{$xenv};
+        my $count = 0;
+        $count = keys %{$lrms_info->{nodes}{$xenv}} if $lrms_info->{nodes}{$xenv};
+        $count = $xeconfig->{TotalInstances} if $xeconfig->{TotalInstances};
+        next unless $count;
+        $totalphys += $count * $xeconfig->{PhysicalCPUs} if $xeconfig->{PhysicalCPUs};
+        $totallogc += $count * $xeconfig->{LogicalCPUs} if $xeconfig->{LogicalCPUs};
+    }
     # OBS: most LRMSes don't differentiate between Physical and Logical CPUs.
-    # Make it possible to override these values from the config.
-    $cmgr->{TotalPhysicalCPUs} = [ $config->{totalcpusockets} || $cluster_info->{totalcpus} ];
-    $cmgr->{TotalLogicalCPUs} = [ $config->{totalcputhreads} || $cluster_info->{totalcpus} ];
+    $totalphys ||= $cluster_info->{totalcpus};
+    $totallogc ||= $cluster_info->{totalcpus};
+    $cmgr->{TotalPhysicalCPUs} = [ $totalphys ] if $totalphys;
+    $cmgr->{TotalLogicalCPUs} = [ $totallogc ] if $totallogc;
 
-    # OBS: What's a slot? 
+    # OBS: Assuming 1 slot per CPU
     $cmgr->{TotalSlots} = [ $cluster_info->{totalcpus} ];
 
     my $gridrunningslots = 0; $gridrunningslots += $_->{running} for values %inlrmsslots;
@@ -696,12 +739,14 @@ sub _collect($$) {
     $cmgr->{SlotsUsedByLocalJobs} = [ $localrunningslots ];
     $cmgr->{SlotsUsedByGridJobs} = [ $gridrunningslots ];
 
-    my $homogeneity = "true";
-    $homogeneity = "false" if lc($config->{homogeneity}) eq "no";
-    $cmgr->{Homogeneous} = [ $homogeneity ];
+    $cmgr->{Homogeneous} = [ $homogeneous ? "true" : "false" ];
 
-    # OBS: Can be 100megabitethernet, gigabitethernet, infiniband, myrinet or something else.
-    $cmgr->{NetworkInfo} = [ $config->{networkinfo} ] if $config->{networkinfo};
+    # NetworkInfo of all ExecutionEnvironments
+    my %netinfo = ();
+    for my $xeconfig (values %{$config->{xenvs}}) {
+        $netinfo{$xeconfig->{NetworkInfo}} = 1 if $xeconfig->{NetworkInfo};
+    }
+    $cmgr->{NetworkInfo} = [ keys %netinfo ] if %netinfo;
 
     my $cpuistribution = $cluster_info->{cpudistribution};
     $cpuistribution =~ s/cpu:/:/g;
@@ -709,7 +754,7 @@ sub _collect($$) {
 
     {
         my $sharedsession = "true";
-        $sharedsession = "false" if lc($config->{shared_filesystem}) eq "no";
+        $sharedsession = "false" if lc($config->{SharedFilesystem}) eq "no";
         $cmgr->{WorkingAreaShared} = [ $sharedsession ];
         $cmgr->{WorkingAreaGuaranteed} = [ "false" ];
 
@@ -735,14 +780,107 @@ sub _collect($$) {
         $cmgr->{CacheFree} = [ $gigsfree ];
     }
 
+    $cmgr->{Benchmark} = [];
+    if ($config->{service}{Benchmark}) {
+        for my $benchmark (@{$config->{service}{Benchmark}}) {
+            my ($type, $value) = split " ", $benchmark;
+            my $bench = {};
+            $bench->{Type} = [ $type ];
+            $bench->{Value} = [ $value ];
+            $bench->{ID} = [ "urn:ogf:Benchmark:$servicename:$type" ];
+            push @{$cmgr->{Benchmark}}, $bench;
+        }
+    }
+
     # Not publishing absolute paths
     #$cmgr->{TmpDir};
     #$cmgr->{ScratchDir};
     #$cmgr->{ApplicationDir};
 
+    # ExecutionEnvironments
+
+    for my $xenv (keys %{$config->{xenvs}}) {
+
+        my $xeinfo = $lrms_info->{nodes}{$xenv};
+
+        # Prepare flattened config hash for this xenv.
+        my $xeconfig = { %$config, %{$config->{xenvs}{$xenv}} };
+
+        delete $xeconfig->{control};
+        delete $xeconfig->{shares};
+        delete $xeconfig->{xenvs};
+
+        my $execenv = {};
+        push @{$cmgr->{ExecutionEnvironments}{ExecutionEnvironment}}, $execenv;
+
+        $execenv->{Name} = [ $xenv ];
+        $execenv->{CreationTime} = $creation_time;
+        $execenv->{Validity} = $validity_ttl;
+        $execenv->{BaseType} = 'Resource';
+
+        $execenv->{ID} = [ $xenvIDs{$xenv} ];
+
+        my $platform = $xeconfig->{Platform};
+        if ($platform) {
+            $platform =~ s/x86_64/amd64/;
+            $execenv->{Platform} = [ $platform ];
+        }
+
+        my $count = $xeconfig->{TotalInstances};
+        $count = $xeinfo->{total} if $xeinfo and defined $xeinfo->{total};
+        $execenv->{TotalInstances} = [ $count ] if defined $count;
+        $execenv->{UsedInstances} = [ $xeinfo->{used} ] if $xeinfo and defined $xeinfo->{used};
+        $execenv->{VirtualMachine} = [ $xeconfig->{VirtualMachine} ] if defined $xeconfig->{VirtualMachine};
+        $execenv->{UnavailableInstances} = [ $xeinfo->{offline} ] if $xeinfo and defined $xeinfo->{offline};
+
+        $execenv->{PhysicalCPUs} = [ $xeconfig->{PhysicalCPUs} ] if defined $xeconfig->{PhysicalCPUs};
+        $execenv->{LogicalCPUs} = [ $xeconfig->{LogicalCPUs} ] if defined $xeconfig->{LogicalCPUs};
+        if ($xeconfig->{PhysicalCPUs} and $xeconfig->{LogicalCPUs}) {
+            my $cpum = ($xeconfig->{PhysicalCPUs} > 1) ? 'multicpu' : 'singlecpu';
+            my $corem = ($xeconfig->{LogicalCPUs} > $xeconfig->{PhysicalCPUs}) ? 'multicore' : 'singlecore';
+            $execenv->{CPUMultiplicity} = [ "$cpum-$corem" ];
+        }
+        $execenv->{CPUVendor} = [ $xeconfig->{CPUVendor} ] if $xeconfig->{CPUVendor};
+        $execenv->{CPUModel} = [ $xeconfig->{CPUModel} ] if $xeconfig->{CPUModel};
+        $execenv->{CPUVersion} = [ $xeconfig->{CPUVersion} ] if $xeconfig->{CPUVersion};
+        $execenv->{CPUClockSpeed} = [ $xeconfig->{CPUClockSpeed} ] if $xeconfig->{CPUClockSpeed};
+        $execenv->{CPUTimeScalingFactor} = [ $xeconfig->{CPUTimeScalingFactor} ] if $xeconfig->{CPUTimeScalingFactor};
+        $execenv->{WallTimeScalingFactor} = [ $xeconfig->{WallTimeScalingFactor} ] if $xeconfig->{WallTimeScalingFactor};
+        $execenv->{MainMemorySize} = [ $xeconfig->{MainMemorySize} ] if $xeconfig->{MainMemorySize};
+        $execenv->{VirtualMemorySize} = [ $xeconfig->{VirtualMemorySize} ] if $xeconfig->{VirtualMemorySize};
+        $execenv->{OSFamily} = [ $xeconfig->{OSFamily} ] if $xeconfig->{OSFamily};
+        $execenv->{OSName} = [ $xeconfig->{OSName} ] if $xeconfig->{OSName};
+        $execenv->{OSVersion} = [ $xeconfig->{OSVersion} ] if $xeconfig->{OSVersion};
+        $execenv->{ConnectivityIn} = [ $xeconfig->{ConnectivityIn} ? 'true' : 'false' ] if $xeconfig->{ConnectivityIn};
+        $execenv->{ConnectivityOut} = [ $xeconfig->{ConnectivityOut} ? 'true' : 'false' ] if $xeconfig->{ConnectivityOut};
+        $execenv->{NetworkInfo} = [ $xeconfig->{NetworkInfo} ] if $xeconfig->{NetworkInfo};
+
+        $execenv->{Benchmark} = [];
+        if ($xeconfig->{Benchmark}) {
+            for my $benchmark (@{$xeconfig->{Benchmark}}) {
+                my ($type, $value) = split " ", $benchmark;
+                my $bench = {};
+                $bench->{Type} = [ $type ];
+                $bench->{Value} = [ $value ];
+                $bench->{ID} = [ "urn:ogf:Benchmark:$servicename:$xenv:$type" ];
+                push @{$execenv->{Benchmark}}, $bench;
+            }
+        }
+
+        $execenv->{Associations} = {};
+        for my $share (keys %{$config->{shares}}) {
+            my $sconfig = $config->{shares}{$share};
+            next unless $sconfig->{ExecEnvName};
+            next unless grep { $xenv eq $_ } @{$sconfig->{ExecEnvName}};
+            push @{$execenv->{Associations}{ComputingShareID}}, $cshaIDs{$share};
+        }
+
+    }
+
+
     # ApplicationEnvironments
 
-    $cmgr->{ApplicationEnvironments} = {};
+    $cmgr->{ApplicationEnvironments}{ApplicationEnvironment} = [];
 
     for my $rte (@{$host_info->{runtimeenvironments}}) {
 
@@ -757,10 +895,10 @@ sub _collect($$) {
         $appenv->{AppVersion} = [ $version ];
         $appenv->{ID} = [ $aenvIDs{$rte} ];
         #TODO: mechanism for getting metadata about RTEs, even for manually installed ones
-	# Could use tags inside the RTE script inspired by as doxygen or init scripts
-        $appenv->{State} = [ 'installednotverified' ];
+        # Could use tags inside the RTE script inspired by as doxygen or init scripts
+        #$appenv->{State} = [ 'installednotverified' ];
         #$appenv->{Description} = [ 'NotImplemented' ];
-        $appenv->{ParallelSupport} = [ 'none' ];
+        #$appenv->{ParallelSupport} = [ 'none' ];
     }
 
     # Computing Activities
@@ -772,7 +910,7 @@ sub _collect($$) {
         my $exited= undef; # whether the job has already run; 
 
         my $cact = {};
-        push @{$csv->{ComputingActivities}{ComputingActivity}}, $cact;
+        push @{$cep->{ComputingActivities}{ComputingActivity}}, $cact;
 
         $cact->{CreationTime} = $creation_time;
         $cact->{Validity} = $validity_ttl;
@@ -783,10 +921,10 @@ sub _collect($$) {
 
         $cact->{Type} = [ 'single' ];
         $cact->{ID} = [ $cactIDs{$share}{$jobid} ];
-        $cact->{IDFromEndpoint} = [ $gridid ];
+        $cact->{IDFromEndpoint} = [ $gmjob->{globalid} ] if $gmjob->{globalid};
         $cact->{Name} = [ $gmjob->{jobname} ] if $gmjob->{jobname};
         # TODO: properly set either ogf:jsdl:1.0 or nordugrid:xrsl
-        $cact->{JobDescription} = [ "ogf:jsdl:1.0" ];
+        $cact->{JobDescription} = [ $gmjob->{description} eq 'xml' ? "ogf:jsdl:1.0" : "nordugrid:xrsl" ] if $gmjob->{description};
         $cact->{RestartState} = glueState($gmjob->{failedstate}) if $gmjob->{failedstate};
         $cact->{ExitCode} = [ $gmjob->{exitcode} ] if defined $gmjob->{exitcode};
         # TODO: modify scan-jobs to write it separately to .diag. All backends should do this.
@@ -835,7 +973,6 @@ sub _collect($$) {
 
         # TODO: add link
         $cact->{Associations}{ExecutionEnvironmentID} = [];
-        $cact->{Associations}{ComputingEndpointID} = [ $cepID ];
         $cact->{Associations}{ActivityID} = $gmjob->{activityid} if $gmjob->{activityid};
         $cact->{Associations}{ComputingShareID} = [ $cshaIDs{$share} || 'UNDEFINEDVALUE' ];
 

@@ -13,6 +13,9 @@ echo "----- starting submit_pbs_job -----" 1>&2
 
 joboption_lrms=PBS
 
+# ARC1 passes first the config file.
+if [ "$1" = "--config" ]; then shift; ARC_CONFIG=$1; shift; fi
+
 basedir=`dirname $0`
 basedir=`cd $basedir > /dev/null && pwd` || exit $?
 
@@ -54,20 +57,8 @@ parse_arg_file $1
 ##############################################################
 # Read queue_node_string from ARC config file
 ##############################################################
+. ${pkglibdir}/configure-pbs-env.sh || exit $?
 
-ARC_CONFIG=${ARC_CONFIG:-/etc/arc.conf}
-. $pkglibdir/config_parser.sh || exit $?
-
-config_parse_file $ARC_CONFIG 1>&2 || exit $?
-config_import_section "common"
-config_import_section "cluster"
-
-# Also read queue section
-if [ ! -z "$joboption_queue" ]; then
-  config_import_section "queue/$joboption_queue"
-fi
-
-queue_node_string=$CONFIG_queue_node_string
 
 ##############################################################
 
@@ -109,7 +100,8 @@ echo "#PBS -j eo">> $LRMS_JOB_SCRIPT
 echo "" >> $LRMS_JOB_SCRIPT
 # choose queue
 if [ ! -z "${joboption_queue}" ] ; then
-  echo "#PBS -q $joboption_queue" >> $LRMS_JOB_SCRIPT
+  queue=${CONFIG_MappingQueue:-$joboption_queue}
+  echo "#PBS -q $queue" >> $LRMS_JOB_SCRIPT
 fi
 # project name for accounting
 if [ ! -z "${joboption_rsl_project}" ] ; then
@@ -136,8 +128,8 @@ fi
 
 nodes_string="#PBS -l nodes=${joboption_count}"
 
-if [ ! -z "$queue_node_string" ] ; then
-  nodes_string="${nodes_string}:${queue_node_string}"
+if [ ! -z "$CONFIG_queue_node_string" ] ; then
+  nodes_string="${nodes_string}:${CONFIG_queue_node_string}"
 fi
 
 i=0

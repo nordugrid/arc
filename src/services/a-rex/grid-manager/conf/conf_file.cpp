@@ -515,6 +515,8 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
             make_escaped_string(control_dir_);
             cmd_+="/scan-"+default_lrms+"-job";
             make_escaped_string(cmd_);
+            cmd_+=" --config ";
+            cmd_+=nordugrid_config_loc;
             cmd_+=" ";
             cmd_+=control_dir_;
             user->add_helper(cmd_);
@@ -828,7 +830,7 @@ bool configure_serviced_users(Arc::XMLNode cfg,JobUsers &users,uid_t my_uid,cons
   /*
   LRMS
     type
-    defaultQueue
+    defaultShare
   */
   tmp_node = cfg["LRMS"];
   if(tmp_node) {
@@ -836,7 +838,7 @@ bool configure_serviced_users(Arc::XMLNode cfg,JobUsers &users,uid_t my_uid,cons
     if(default_lrms.empty()) {
       logger.msg(Arc::ERROR,"type in LRMS is missing"); return false;
     };
-    default_queue = (std::string)(tmp_node["defaultQueue"]);
+    default_queue = (std::string)(tmp_node["defaultShare"]);
     check_lrms_backends(default_lrms);
   } else {
     logger.msg(Arc::ERROR,"LRMS is missing"); return false;

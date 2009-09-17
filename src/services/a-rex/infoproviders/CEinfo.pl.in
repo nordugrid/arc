@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-package ClusterInfo;
+package CEInfo;
 
 use File::Basename;
 use Getopt::Long;
@@ -8,19 +8,10 @@ use XML::Simple;
 use Data::Dumper;
 use Cwd;
 
+use strict;
+
 BEGIN {
-    my $oldcwd = getcwd();
-
-    my $basedir = dirname($0);
-    chdir $basedir or die "$basedir: $!";
-    $basedir = getcwd();
-
-    my $pkglibdir = $basedir.'/@pkglibdir_rel_to_pkglibexecdir@';
-    chdir $pkglibdir or die "$pkglibdir: $!";
-    $pkglibdir = getcwd();
-
-    chdir $oldcwd or die "$oldcwd: $!";
-
+    my $pkglibdir = dirname($0).'/@pkglibdir_rel_to_pkglibexecdir@';
     unshift @INC, $pkglibdir;
 }
 
@@ -29,7 +20,8 @@ BEGIN {
 # Reads old style arc.config and prints out XML
 ########################################################
 
-use base "InfoCollector";
+use ConfigCentral;
+use LogUtils; 
 
 use HostInfo;
 use GMJobsInfo;
@@ -38,33 +30,30 @@ use LRMSInfo;
 use ARC0ClusterInfo;
 use ARC1ClusterInfo;
 
-use ConfigParser;
-use LogUtils; 
-
-use strict;
+use InfoChecker;
 
 our $log = LogUtils->getLogger(__PACKAGE__);
 
 
 sub main {
 
-    LogUtils->getLogger()->level($LogUtils::INFO);
+    LogUtils::setLevel('INFO');
 
     ########################################################
     # Config defaults
     ########################################################
     
-    my %config = (
+    my %config_defaults = (
                    ttl            =>  600,
                    arcversion     => '@VERSION@',
                    gm_mount_point => "/jobs",
                    gm_port        => 2811,
-                   homogeneity    => "TRUE",
                    defaultttl     => "604800",
                    x509_user_cert => "/etc/grid-security/hostcert.pem",
                    x509_cert_dir  => "/etc/grid-security/certificates/",
-                   ng_location    => $ENV{ARC_LOCATION} ||= "/usr/local",
                    gridmap        => "/etc/grid-security/grid-mapfile",
+                   connectivityIn => "false",
+                   connectivityOut=> "false",
                    processes      => [qw(arched)]
     
     );
@@ -94,67 +83,44 @@ sub main {
     # Read ARC configuration
     ##################################################
     
-    my $parser = ConfigParser->new($configfile)
-        or $log->error("Cannot open $configfile");
-    %config = (%config, $parser->get_section('common'));
-    %config = (%config, $parser->get_section('cluster'));
-    %config = (%config, $parser->get_section('grid-manager'));
-    %config = (%config, $parser->get_section('infosys'));
-    # Change level for root logger (affects all loggers)
-    LogUtils->getLogger()->level($config{provider_loglevel}) if defined $config{provider_loglevel};
+    my $config = ConfigCentral::parseConfig($configfile);
+    $config = { %config_defaults, %$config};
 
-    my @snames = $parser->list_subsections('share');
+    $config->{control} = {} unless $config->{control};
+    $config->{xenvs} = {} unless $config->{xenvs};
+    $config->{shares} = {} unless $config->{shares};
+    $config->{queues} = {} unless $config->{queues};
 
-    $config{shares} = {};
-    for my $sname (@snames) {
-        my %share_config = $parser->get_section("share/$sname");
-        $config{shares}{$sname} = \%share_config;
-    }
-    
-    my @qnames = $parser->list_subsections('queue');
-    $log->error("No queues defined") unless @qnames;
 
-    $config{queues} = {};
-    for my $qname (@qnames) {
-        my %queue_config = $parser->get_section("queue/$qname");
-        $config{queues}{$qname} = \%queue_config;
+    # Change level for root logger (affects all loggers from now on)
+    LogUtils::setLevel($config->{debugLevel}) if defined $config->{debugLevel};
 
-	# There must be at least one share section that references this queue.
-	# If there isn't one, create a new share section.
-        unless (grep { $qname eq $_->{qname} } values %{$config{shares}}) {
-            $log->info("Adding implicit share for queue '$qname'");
-            my $sname = $qname;
-            $config{shares}{$sname} = { qname => $qname };
-        }
-    
-        # put this option in the proper place
-        if ($queue_config{maui_bin_path}) {
-            $config{maui_bin_path} = $queue_config{maui_bin_path};
-            delete $queue_config{maui_bin_path};
-        }
-        # maui should not be a per-queue option
-        if (lc($queue_config{scheduling_policy}) eq 'maui') {
-            $config{pbs_scheduler} = 'maui';
-            delete $queue_config{scheduling_policy};
+    # Cross-check ExecutionEnvironment references
+    for my $s (values %{$config->{shares}}) {
+        next unless $s->{ExecEnvName};
+        for my $group (@{$s->{ExecEnvName}}) {
+            $log->error("No such ExecutionEnvironment: $group")
+                unless $config->{xenvs}{$group};
         }
     }
 
-    # Check that each share references a defined queue
-    for my $sname (keys %{$config{shares}}) {
-        my $qname = $config{shares}{$sname}{qname};
-        unless ($config{queues}{$qname}) {
-            $log->warning("Share $sname references undefined queue $qname");
-        }
-    }
+    my $defaultshare = $config->{defaultShare};
+    $log->error("defaultShare set to nonexistent ComputingShare")
+        if $defaultshare and not $config->{shares}{$defaultshare};
 
-    ($config{lrms}, $config{defaultqueue}) = split " ", $config{lrms};
+    if ($config->{endpoint} =~ m{^\w+://([^:]+):(\d+)}) {
+        $config->{hostname} = $1;
+        $config->{arexport} = $2;
+    } else {
+        $log->error("missing config option: endpoint");
+    }
 
     ##################################################
     # Collect information & print XML
     ##################################################
 
-    my $cluster_info = ClusterInfo->new()->get_info(\%config);
-    my $xml = new XML::Simple(NoAttr => 0, ForceArray => 1, RootName => 'arc:InfoRoot', KeyAttr => ['name']);
+    my $xml = new XML::Simple(NoAttr => 0, ForceArray => 1, RootName => 'InfoRoot', KeyAttr => ['name']);
+    my $cluster_info = CEInfo::collect($config);
     print $xml->XMLout($cluster_info);
 }
     
@@ -168,35 +134,38 @@ my $config_schema = {
     gridmap => '',
     x509_user_cert => '',
     x509_cert_dir => '',
-    sessiondir => '',
-    cachedir => '*',
-    ng_location => '',
-    runtimedir => '*',
+    controldir => '',
+    sessiondir => [ '' ],
+    cachedir => [ '*' ],
+    runtimeDir => '*',
     processes => [ '' ],
-    queues => {              # queue names are keys in this hash
+    service => {
+        Name => '',
+        AdminDomain => '',
+    },
+    xenvs => {              # node group names are keys in this hash
         '*' => {
-            name => '*'
         }
     },
     shares => {              # share names are keys in this hash
         '*' => {
-            qname => ''      # reference to a queue section
         }
     }
 };
 
-# override InfoCollector base class methods
+sub collect($) {
+    my ($config) = @_;
+    my ($checker, @messages);
 
-# only inputs will be validated
-sub _get_options_schema {
-    return $config_schema;
-}
-# results are not validated
-sub _check_results($) {
-}
+    $log->error("missing config option: endpoint") unless $config->{endpoint};
+    $log->error("missing config option: ComputingService: AdminDomain") unless $config->{service}{AdminDomain};
+    $log->error("missing config option: ComputingService: Name") unless $config->{service}{Name};
 
-sub _collect($$) {
-    my ($self,$config) = @_;
+    $checker = InfoChecker->new($config_schema);
+    @messages = $checker->verify($config);
+    $log->warning("config key config->$_") foreach @messages;
+    $log->fatal("Some required config options are missing") if @messages;
+
 
     # get all local users from grid-map. Sort unique
     my %saw = ();
@@ -207,35 +176,38 @@ sub _collect($$) {
 
     my @jobids;
     for my $job (values %$gmjobs_info) {
-        # TODO: Uncomment later! Query all jobs for now
-        #next unless $job->{status} eq 'INLRMS';
+        next unless $job->{status} eq 'INLRMS';
         next unless $job->{localid};
         push @jobids, $job->{localid};
     }
 
-    my $rawdata = {};
-    $rawdata->{config} = $config;
-    $rawdata->{usermap} = $usermap;
-    $rawdata->{host_info} = get_host_info($config,\@localusers);
-    $rawdata->{gmjobs_info} = $gmjobs_info;
-    $rawdata->{lrms_info} = get_lrms_info($config,\@localusers,\@jobids);
+    my $input = {};
+    $input->{config} = $config;
+    $input->{usermap} = $usermap;
+    $input->{host_info} = get_host_info($config,\@localusers);
+    $input->{gmjobs_info} = $gmjobs_info;
+    $input->{lrms_info} = get_lrms_info($config,\@localusers,\@jobids);
+
+    fix_adotf($config, $input->{host_info});
+    fix_adotf($_, $input->{host_info}) for values %{$config->{xenvs}};
 
     my $cluster_info;
-    $cluster_info->{'xmlns:arc'} = "urn:knowarc";
-    $cluster_info->{'n:nordugrid'} = ARC0ClusterInfo->new()->get_info($rawdata);
+    $cluster_info->{'n:nordugrid'} = ARC0ClusterInfo::collect($input);
+    $cluster_info->{'n:nordugrid'}{'xmlns:n'} = "urn:nordugrid-cluster";
+
     $cluster_info->{'Domains'}->{'xmlns'} = "http://schemas.ogf.org/glue/2008/05/spec_2.0_d41_r01";
     $cluster_info->{'Domains'}->{'xmlns:xsi'} = "http://www.w3.org/2001/XMLSchema-instance";
     $cluster_info->{'Domains'}->{'xsi:schemaLocation'} = "http://schemas.ogf.org/glue/2008/05/spec_2.0_d41_r01 pathto/GLUE2.xsd";
     $cluster_info->{'Domains'}->{'AdminDomain'}->{'xmlns'} = "http://schemas.ogf.org/glue/2008/05/spec_2.0_d41_r01";
     $cluster_info->{'Domains'}->{'AdminDomain'}->{'Services'}->{'xmlns'} = "http://schemas.ogf.org/glue/2008/05/spec_2.0_d41_r01";
-    $cluster_info->{'Domains'}->{'AdminDomain'}->{'Services'}->{'ComputingService'} = ARC1ClusterInfo->new()->get_info($rawdata);
+    $cluster_info->{'Domains'}->{'AdminDomain'}->{'Services'}->{'ComputingService'} = ARC1ClusterInfo::collect($input);
 
     return $cluster_info;
 }
 
 
 ##################################################
-# Calling other InfoCollectors
+# Calling other information collectors
 ##################################################
 
 sub get_host_info($$) {
@@ -243,14 +215,9 @@ sub get_host_info($$) {
 
     my $host_opts = Storable::dclone($config);
     $host_opts->{localusers} = $localusers;
+    $host_opts->{libexecdir} = dirname($0);
 
-    return HostInfo->new()->get_info($host_opts);
-}
-
-sub get_gmjobs_info($) {
-    my $config = shift;
-    my $gmjobs_opts = { controldir => $config->{controldir} };
-    return GMJobsInfo->new()->get_info($gmjobs_opts);
+    return HostInfo::collect($host_opts);
 }
 
 sub get_lrms_info($$$) {
@@ -258,12 +225,57 @@ sub get_lrms_info($$$) {
 
     # possibly any options from config are needed, so just clone it all
     my $lrms_opts = Storable::dclone($config);
+    delete $lrms_opts->{$_} for qw(control xenvs shares);
     $lrms_opts->{jobs} = $jobids;
-    for my $queue ( keys %{$lrms_opts->{queues}} ) {
-        $lrms_opts->{queues}{$queue}{users} = $localusers;
+    for my $share ( keys %{$config->{shares}} ) {
+        $lrms_opts->{queues}{$share} = $config->{shares}{$share};
+        $lrms_opts->{queues}{$share}{users} = $localusers;
     }
-    delete $lrms_opts->{shares};
-    return LRMSInfo->new()->get_info($lrms_opts);
+
+    return LRMSInfo::collect($lrms_opts);
+}
+
+sub get_gmjobs_info($) {
+    my $config = shift;
+    $log->error("controldir option missing") unless $config->{controldir};
+    my $gmjobs_info = GMJobsInfo::collect($config->{controldir});
+
+    for my $jobid (keys %$gmjobs_info) {
+        my $job = $gmjobs_info->{$jobid};
+        my $share = $job->{share};
+
+        # If A-REX has not choosen a share for the job, default to one.
+        if (not $share) {
+            my $msg = "Share not choosen for job $jobid";
+            if ($config->{defaultShare}) {
+                $log->info($msg.". Assuming default: ".$config->{defaultShare});
+                $share = $config->{defaultShare};
+            } else {
+                my @shares = keys %{$config->{shares}};
+                if (@shares == 1) {
+                    $log->info($msg.". Assuming: ".$shares[0]);
+                    $share = $shares[0];
+                } else {
+                    $log->warning($msg." and no default share is defined.");
+                }
+            }
+        }
+
+        # Set correct queue
+        if ($share) {
+            my $sconfig = $config->{shares}{$share};
+            if ($sconfig) {
+                $job->{queue} = $sconfig->{MappingQueue} if $sconfig->{MappingQueue}
+            } else {
+                $log->warning("Job $jobid belongs to an unconfigured share '$share'");
+                $share = undef;
+            }
+        }
+
+		# Group jobs not belonging to any known share into a catch-all share named ''
+        $job->{share} = $share || '';
+    }
+    return $gmjobs_info;
 }
 
 #### reading grid-mapfile #####
@@ -288,86 +300,25 @@ sub read_grid_mapfile($) {
 }
 
 
-#### TEST ##### TEST ##### TEST ##### TEST ##### TEST ##### TEST ##### TEST ####
+sub fix_adotf {
+    my ($config, $hostinfo) = @_;
+    my %hostkey = (Platform => 'architecture',
+                   PhysicalCPUs => 'cpusocketcount',
+                   LogicalCPUs => 'cputhreadcount',
+                   CPUVendor => 'cpuvendor',
+                   CPUModel => 'cpumodel',
+                   CPUClockSpeed => 'cpufreq',
+                   MainMemorySize => 'memtotal',
+                   OSFamily => 'osfamily'
+    );
+    for my $key (keys %hostkey) {
+        if (exists $config->{$key} and $config->{$key} eq 'adotf') {
+            $log->error("Failed to autodetect value for '$key'. Enter correct value in config file")
+                unless defined $hostinfo->{$hostkey{$key}};
+            $config->{$key} = $hostinfo->{$hostkey{$key}};
+        }
+    }
+    
+};
 
-sub test {
-
-    my $config = {
-          #'lrms' => 'sge',
-          'lrms' => 'fork',
-          'pbs_log_path' => '/var/spool/pbs/server_logs',
-          'pbs_bin_path' => '/opt/pbs',
-          'sge_cell' => 'cello',
-          'sge_root' => '/opt/n1ge6',
-          'sge_bin_path' => '/opt/n1ge6/bin/lx24-x86',
-          'll_bin_path' => '/opt/ibmll/LoadL/full/bin',
-          'lsf_profile_path' => '/usr/share/lsf/conf',
-
-          'hostname' => 'squark.uio.no',
-          'opsys' => 'Linux-2.4.21-mypatch[separator]glibc-2.3.1[separator]Redhat-7.2',
-          'architecture' => 'adotf',
-          'nodememory' => '512',
-          'middleware' => 'Cheese and Salad[separator]nordugrid-old-and-busted',
-
-          'ng_location' => '/opt/nordugrid',
-          'gridmap' => '/etc/grid-security/grid-mapfile',
-          'controldir' => '/tmp/arc1/control',
-          'sessiondir' => '/tmp/arc1/session',
-          'runtimedir' => '/home/grid/runtime',
-          'cachedir' => '/home/grid/cache',
-          'cachesize' => '10000000000 8000000000',
-          'authorizedvo' => 'developer.nordugrid.org',
-          'x509_user_cert' => '/etc/grid-security/hostcert.pem',
-          'x509_user_key' => '/etc/grid-security/hostkey.pem',
-          'x509_cert_dir' => '/scratch/adrianta/arc1/etc/grid-security/certificates',
-
-          'processes' => [ 'gridftpd', 'arched' ],
-          'nodeaccess' => 'inbound[separator]outbound',
-          'homogeneity' => 'TRUE',
-          'gm_mount_point' => '/jobs',
-          'gm_port' => '2811',
-          'defaultttl' => '259200',
-          'ttl' => '600',
-
-          'mail' => 'v.a.taga@fys.uio.no',
-          'cluster_alias' => 'Big Blue Cluster in Nowhere',
-          'clustersupport' => 'v.a.taga@fys.uio.no',
-          'cluster_owner' => 'University of Oslo',
-          'cluster_location' => 'NO-xxxx',
-          'comment' => 'test bed cluster',
-          'benchmark' => 'SPECFP2000 333[separator]BOGOMIPS 1000',
-
-          'queues' => {
-                        'all.q' => {
-                                     'name' => 'all.q',
-                                     'sge_jobopts' => '-r yes',
-                                     'nodecpu' => 'adotf',
-                                     'opsys' => 'Mandrake 7.0',
-                                     'architecture' => 'adotf',
-                                     'nodememory' => '512',
-                                     'comment' => 'Dedicated queue for ATLAS users'
-                                   }
-                      },
-          'shares' => {
-                        'testing' => {
-                                       'qname' => 'all.q'
-                                     },
-                        'other' => {
-                                       'qname' => 'all.q'
-                                   }
-                      },
-        };
-
-    LogUtils->getLogger()->level($LogUtils::DEBUG);
-    #$log->debug("From config file:\n". Dumper $config);
-    my $cluster_info = ClusterInfo->new()->get_info($config);
-    my $xml = new XML::Simple(NoAttr => 0, ForceArray => 1, RootName => 'arc:InfoRoot', KeyAttr => ['name']);
-    print $xml->XMLout($cluster_info);
-    #$log->debug("Cluster Info:\n". Dumper $cluster_info);
-}
-
-
-#test;
-main;
-
-1;
+main();

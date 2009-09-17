@@ -87,7 +87,6 @@
           <arex:maxJobsTransfered>20</arex:maxJobsTransfered>
           <arex:maxJobsTransferedAdditional>2</arex:maxJobsTransferedAdditional>
           <arex:maxFilesTransfered>4</arex:maxFilesTransfered>
-          <arex:maxJobsPerShare shareType="dn">4</arex:maxJobsPerShare>
       </arex:loadLimits>
       <arex:dataTransfer>
           <arex:Globus>

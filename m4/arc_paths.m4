@@ -10,6 +10,8 @@ AC_DEFUN([ARC_RELATIVE_PATHS],
   AC_LIB_WITH_FINAL_PREFIX([
       eval instprefix="\"${exec_prefix}\""
       eval arc_libdir="\"${libdir}\""
+      eval arc_bindir="\"${bindir}\""
+      eval arc_sbindir="\"${sbindir}\""
       eval arc_pkglibdir="\"${libdir}/${PACKAGE}\""
       eval arc_pkglibexecdir="\"${libexecdir}/${PACKAGE}\""
   ])
@@ -18,6 +20,8 @@ AC_DEFUN([ARC_RELATIVE_PATHS],
   pkglibsubdir=`get_relative_path "$instprefix" "$arc_pkglibdir"`
   pkglibexecsubdir=`get_relative_path "$instprefix" "$arc_pkglibexecdir"`
   pkglibdir_rel_to_pkglibexecdir=`get_relative_path "$arc_pkglibexecdir" "$arc_pkglibdir"`
+  sbindir_rel_to_pkglibexecdir=`get_relative_path "$arc_pkglibexecdir" "$arc_sbindir"`
+  bindir_rel_to_pkglibexecdir=`get_relative_path "$arc_pkglibexecdir" "$arc_bindir"`
 
   AC_MSG_NOTICE([pkglib subdirectory is: $pkglibsubdir])
   AC_MSG_NOTICE([pkglibexec subdirectory is: $pkglibexecsubdir])
@@ -27,6 +31,8 @@ AC_DEFUN([ARC_RELATIVE_PATHS],
   AC_SUBST([pkglibsubdir])
   AC_SUBST([pkglibexecsubdir])
   AC_SUBST([pkglibdir_rel_to_pkglibexecdir])
+  AC_SUBST([sbindir_rel_to_pkglibexecdir])
+  AC_SUBST([bindir_rel_to_pkglibexecdir])
 
   AC_DEFINE_UNQUOTED([INSTPREFIX], ["${instprefix}"], [installation prefix])
   AC_DEFINE_UNQUOTED([LIBSUBDIR], ["${libsubdir}"], [library installation subdirectory])

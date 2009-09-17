@@ -9,11 +9,11 @@
 #
 #   . config_parser.sh
 #
-#   config_parse_file /etc/arc.conf || exit 1
+#   config_parse_file /etc/arc/arex.xml || exit 1
 #   config_import_section common
 #   config_import_section grid-manager
 #   config_import_section infosys
-#   
+#
 #   set | grep CONFIG_
 #
 #   config_match_section queue/short || echo No such queue
@@ -28,41 +28,16 @@
 # Parse the config file given as an argument
 #
 config_parse_file() {
-    arc_conf=$1
-    if [ -z "$arc_conf" ]; then
+    arex_conf=$1
+    if [ -z "$arex_conf" ]; then
         echo 'config_parser: No config file given!' 1>&2
         return 1
-    elif [ ! -r "$arc_conf" ]; then
-        echo "config_parser: Cannot read config file: $arc_conf" 1>&2
+    elif [ ! -r "$arex_conf" ]; then
+        echo "config_parser: Cannot read config file: $arex_conf" 1>&2
         return 1
     fi
-    script='my ($nb,$bn)=(0,0,""); my %opts=(); while(<>) { chomp;
-              if (/^\s*\[([\w\-\.\/]+)\]\s*$/) {
-                print_section() if $nb; $nb++; $bn=$1;
-              } elsif (/^(\w+)\s*=\s*([\"'\'']?)(.*)(\2)\s*$/) {
-                my ($opt,$val)=($1,$3); $val=~s/'\''/'\''\\'\'''\''/g;
-                $bn .= "/$val" if $bn eq "group" && $opt eq "name";
-                $bn .= "/$val" if $bn eq "vo"    && $opt eq "id";
-                unshift @{$opts{$opt}}, $val;
-              } elsif (/^\s*#/) { # skip comment line
-              } elsif (/^\s*$/) { # skip empty line
-              } elsif (/^\s*all\s*$/) { # make an exception for "all" command
-              } else { print "echo config_parser: Skipping malformed line in section \\\[$bn\\\] at line number $. 1>&2\n";
-            } }
-            print_section(); print "_CONFIG_NUM_BLOCKS='\''$nb'\'';\n";
-            sub print_section { my $no=0; while (my ($opt,$val)=each %opts) { $no++;
-                print "_CONFIG_BLOCK${nb}_OPT${no}_NAME='\''$opt'\'';\n";
-                print "_CONFIG_BLOCK${nb}_OPT${no}_VALUE='\''$val->[@$val-1]'\'';\n";
-                if (@$val > 1) { for $i (1 .. @$val) { $no++; # multi-valued option
-                    print "_CONFIG_BLOCK${nb}_OPT${no}_NAME='\''${opt}_$i'\'';\n";
-                    print "_CONFIG_BLOCK${nb}_OPT${no}_VALUE='\''$val->[$i-1]'\'';\n";
-              } } }; %opts=();
-              print "_CONFIG_BLOCK${nb}_NAME='\''$bn'\'';\n";
-              print "_CONFIG_BLOCK${nb}_NUM='\''$no'\'';\n";
-            }
-           '
-    config=`cat $arc_conf | perl -w -e "$script"` || return $?
-    unset script
+    if [ -z "$pkglibdir" ]; then echo "pkglibdir must be set" 1>&2; return 1; fi
+    config=`/usr/bin/perl -I$pkglibdir -MConfigCentral -we 'ConfigCentral::printConfigForShell($ARGV[0])' "$arex_conf"` || return $?
     eval "$config" || return $?
     unset config
     return 0

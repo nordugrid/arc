@@ -5,7 +5,7 @@ cache-list \- List contents of the Grid Manager cache.
 
 .SH SYNOPSIS
 
-cache-list
+cache-list -c config_file
 
 .SH DESCRIPTION
 

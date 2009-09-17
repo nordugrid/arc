@@ -11,9 +11,8 @@ GLUE 2 support is incomplete.
 CEinfo.pl      - driver for information collection. It calls all other infomation
                  collectors and prints results in XML.
 
-InfoCollector.pm  - base class for all information collectors (all files *Info.pm)
-InfoChecker.pm  - used by InfoCollector to validate options and results against
-                  a simple 'schema' (not XML Schema)
+InfoChecker.pm  - used to validate options and results against a simple
+                 'schema' (not XML Schema)
 GMJobsInfo.pm - collects information about jobs from grid manager status files
 HostInfo.pm - collects other information that can be collected on the front end
 	      (hostname, software version, disk space for users, installed

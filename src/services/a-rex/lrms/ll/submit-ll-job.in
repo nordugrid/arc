@@ -11,6 +11,9 @@ echo "----- starting submit_ll_job -----" 1>&2
 
 joboption_lrms=LL
 
+# ARC1 passes first the config file.
+if [ "$1" = "--config" ]; then shift; ARC_CONFIG=$1; shift; fi
+
 basedir=`dirname $0`
 basedir=`cd $basedir > /dev/null && pwd` || exit $?
 
@@ -171,7 +174,7 @@ fi
 #Read queue from config or figure out which queue to use
 ##################################################################
 if [ ! -z "${joboption_queue}" ] ; then
-  class=$joboption_queue
+  class=${CONFIG_MappingQueue:-$joboption_queue}
 else
   #if queue is not set we must choose one
   LL_CLASS='llclass -l'

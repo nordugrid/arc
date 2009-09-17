@@ -9,6 +9,9 @@
 
 echo "----- starting submit_lsf_job -----" 1>&2
 
+# ARC1 passes first the config file.
+if [ "$1" = "--config" ]; then shift; ARC_CONFIG=$1; shift; fi
+
 basedir=`dirname $0`
 basedir=`cd $basedir > /dev/null && pwd` || exit $?
 
@@ -144,17 +147,16 @@ echo "" >> $LRMS_JOB_SCRIPT
 
 # Choose queue(s).
 if [ ! -z "${joboption_queue}" ] ; then
-  echo "#BSUB -q $joboption_queue" >> $LRMS_JOB_SCRIPT
+  queue=${CONFIG_MappingQueue:-$joboption_queue}
+  echo "#BSUB -q $queue" >> $LRMS_JOB_SCRIPT
 fi
 
 if [ ! -z "${joboption_rsl_architecture}" ] ; then
      queuearch=`echo ${joboption_rsl_architecture}|sed 's/\"//g'`
      echo "#BSUB -R type=${queuearch}" >> $LRMS_JOB_SCRIPT
 else
-   if [ ! -z $CONFIG_architecture ] ; then
-      if [ $CONFIG_architecture != adotf ] ; then
-         echo "#BSUB -R type=$CONFIG_architecture" >> $LRMS_JOB_SCRIPT
-      fi
+   if [ ! -z $CONFIG_lsf_architecture ] ; then
+     echo "#BSUB -R type=$CONFIG_lsf_architecture" >> $LRMS_JOB_SCRIPT
    fi
 fi
 

@@ -18,6 +18,10 @@ config_import_section "infosys"
 config_import_section "grid-manager"
 config_import_section "cluster"
 
+if [ ! -z "$joboption_queue" ]; then
+  config_import_section "queue/$joboption_queue"
+fi
+
 # Path to slurm commands
 #SLURM_BIN_PATH=${SLURM_BIN_PATH:-$CONFIG_SLURM_bin_path}
 SLURM_BIN_PATH=${CONFIG_SLURM_bin_path:-/usr/bin}
@@ -28,7 +32,7 @@ fi
 
 # Local scratch disk
 # TODO : why? is this correct? read from arc.conf first?
-RUNTIME_LOCAL_SCRATCH_DIR=${RUNTIME_LOCAL_SCRATCH_DIR:-$CONFIG_scratchdir}
+RUNTIME_LOCAL_SCRATCH_DIR=${RUNTIME_LOCAL_SCRATCH_DIR:-$CONFIG_scratchDir}
 export RUNTIME_LOCAL_SCRATCH_DIR
 
 # Paths to SLURM commands

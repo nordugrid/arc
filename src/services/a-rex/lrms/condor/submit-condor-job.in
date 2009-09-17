@@ -46,12 +46,17 @@ my %grami;
 
 $0 =~ s#.*/##;
 warn "----- starting $0 -----\n";
-die "Usage: $0 [-d] GRAMI_FILE\n" unless @ARGV;
 
-if (@ARGV == 2 && $ARGV[0] eq '-d') {
+if (@ARGV > 1 && $ARGV[0] eq '--config') {
+    $ENV{ARC_CONFIG} = $ARGV[1];
+    shift;
+    shift;
+}
+if (@ARGV > 0 && $ARGV[0] eq '-d') {
     $debug = 1;
     shift;
 }
+die "Usage: $0 [--config CONFIG_FILE] [-d] GRAMI_FILE\n" unless @ARGV;
 
 parse_grami(my $gramifile = $ARGV[0]);
 

@@ -2,14 +2,14 @@ package LogUtils;
 
 # Object-oriented usage example:
 # 
+#    LogUtils::setLevel("DEBUG");
 #    $log = LogUtils->getLogger("MyProg.MyClass");
-#    $log->level($LogUtils::INFO);
 #    $log->warning("Oops!");
 #    $log->error("Can't go on!");
 
 # Procedural usage example:
 #
-#    start_logging($LogUtils::INFO);
+#    start_logging('INFO');
 #    warning("Oops!");
 #    error("Can't go on!");
 
@@ -23,14 +23,25 @@ use Exporter;
 
 use strict;
 
-our ($ERROR, $WARNING, $INFO, $DEBUG) = (0, 1, 2, 3);
-our @lnames = qw(ERROR WARNING INFO DEBUG);
+our %names = (ERROR => 1, WARNING => 2, INFO => 3, DEBUG => 4, VERBOSE => 5);
 
-our $levels = { '' => $WARNING };  # default level is WARNING
+our $loglevel = 1; # default level is WARNING
 
 our $default_logger = LogUtils->getLogger(basename($0));
 
-my $linecount = 0;
+# For backwards compatibility
+
+sub start_logging($) {
+    setLevel(shift);
+}
+
+# set loglevel for all loggers
+sub setLevel {
+    my $level = shift;
+    $loglevel = $names{$level};
+    fatal("No such loglevel '$level'") unless $loglevel;
+    return $loglevel;
+}
 
 # constructor
 
@@ -41,88 +52,57 @@ sub getLogger {
     return $self;
 }
 
-# getters and setters
-
-sub level {
-    unshift(@_, $default_logger) unless ref($_[0]) eq __PACKAGE__;
-    my ($self,$level) = @_;
-    $level = @lnames - 1 if $level > @lnames - 1;
-    return $self->_searchopt($levels) unless defined $level;
-    return $levels->{$self->{name}} = $level;
-}
-
-# convenience functions
-
-sub start_logging($) {
-    $default_logger->level(shift);
-}
-
-sub error {
+sub debug {
+    return unless $loglevel > 3;
     unshift(@_, $default_logger) unless ref($_[0]) eq __PACKAGE__;
     my ($self, $msg) = @_;
-    $self->log($ERROR,$msg);
-    die;
-}
-
-sub warning {
-    unshift(@_, $default_logger) unless ref($_[0]) eq __PACKAGE__;
-    my ($self, $msg) = @_;
-    $self->log($WARNING,$msg);
+    $self->_log('DEBUG',$msg);
 }
 
 sub info {
+    return unless $loglevel > 2;
     unshift(@_, $default_logger) unless ref($_[0]) eq __PACKAGE__;
     my ($self, $msg) = @_;
-    $self->log($INFO,$msg);
+    $self->_log('INFO',$msg);
 }
 
-sub debug {
+sub warning {
+    return unless $loglevel > 1;
     unshift(@_, $default_logger) unless ref($_[0]) eq __PACKAGE__;
     my ($self, $msg) = @_;
-    $self->log($DEBUG,$msg);
+    $self->_log('WARNING',$msg);
 }
 
-# real work is done here
-
-sub log($$$) {
-    my ($self, $level, $msg) = @_;
-    return if $level > $self->_searchopt($levels);
-
-    # Start log with an empty line
-    print STDERR "\n" if $linecount++ == 0;
-    print STDERR $self->_format($level,$msg);
+# Causes program termination
+sub error {
+    unshift(@_, $default_logger) unless ref($_[0]) eq __PACKAGE__;
+    my ($self, $msg) = @_;
+    $self->_log('ERROR',$msg);
+    exit 1;
 }
 
-sub _format {
-    my ($self,$level,$msg) = @_;
+# Causes program termination
+sub fatal {
+    unshift(@_, $default_logger) unless ref($_[0]) eq __PACKAGE__;
+    my ($self, $msg) = @_;
+    $self->_log('FATAL',$msg);
+    exit 2;
+}
+
+sub _log {
+    my ($self,$severity,$msg) = @_;
     my $name = $self->{name};
-    my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime (time);
-    my $timestamp = POSIX::strftime("%Y-%m-%d %H:%M:%S", $sec,$min,$hour,$mday,
-                                    $mon,$year,$wday,$yday,$isdst);
     $name = $name ? "$name: " : "";
-    return "$timestamp $name$lnames[$level]: $msg\n";
+    print STDERR "$name$severity: $msg\n";
 }
-
-# find settings which apply to this log object
-
-sub _searchopt {
-    my ($self, $opt) = @_;
-    my $name = $self->{name};
-    while (1) {
-        return $opt->{$name} if exists $opt->{$name};
-        $name =~ s/\.[^.]*$// or $name = '';
-    }
-}
-
 
 sub test {
+    LogUtils::setLevel('INFO');
     my $log = LogUtils->getLogger();
     $log->warning("Hi");
     $log = LogUtils->getLogger("main");
     $log->warning("Hi");
     $log = LogUtils->getLogger("main.sub");
-    print "LEvEl "  . $log->level()."\n";
-    print "LEvEl "  . $log->level($LogUtils::INFO)."\n";
     $log->warning("Hi");
     $log = LogUtils->getLogger("main.sub.one");
     $log->warning("Hi");
@@ -131,7 +111,7 @@ sub test {
 }
 
 sub test2 {
-    start_logging(2);
+    start_logging('DEBUG');
     debug('geee');
     info('beee');
     warning('meee');

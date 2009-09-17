@@ -88,9 +88,6 @@
           <arex:maxJobsTransfered>20</arex:maxJobsTransfered>
           <arex:maxJobsTransferedAdditional>2</arex:maxJobsTransferedAdditional>
           <arex:maxFilesTransfered>4</arex:maxFilesTransfered>
-          <arex:maxJobsPerShare shareType="voms:vo">50</arex:maxJobsPerShare>
-          <arex:maxJobsPerShare shareType="voms:role">10</arex:maxJobsPerShare>
-          <arex:maxJobsPerShare shareType="dn">4</arex:maxJobsPerShare>
           <arex:wakeupPeriod>30</arex:wakeupPeriod>
       </arex:loadLimits>
       <arex:dataTransfer>
@@ -152,7 +149,7 @@
               <arex:highWatermark>90</arex:highWatermark>
               <arex:lowWatermark>70</arex:lowWatermark>
           </arex:cache>
-          <arex:cache type="REMOTE" replicate="true">
+          <arex:cache>
               <arex:location>
                   <arex:path>/data/cache</arex:path>
               </arex:location>
@@ -215,7 +212,7 @@
 
           <!-- only for publication in legacy infosys -->
           <ip:ClusterOwner>University of NeverLand</ip:ClusterOwner>
-          <ip:ClusterLocation>DK-2100</ip:ClusterLocation>
+          <ip:ClusterOwner>King of the Jungle</ip:ClusterOwner>
           <ip:OpSys>Linux-2.6.9-34.EL</ip:OpSys>
           <ip:OpSys>glibc-2.3.4</ip:OpSys>
           <ip:Middleware>acme-1.0</ip:Middleware>
