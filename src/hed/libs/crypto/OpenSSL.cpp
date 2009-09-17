@@ -74,9 +74,6 @@ namespace Arc {
     Glib::Mutex::Lock flock(lock);
     if(!initialized) {
       if(!PersistentLibraryInit("arccrypto")) {
-        // TODO: need to fix
-        // Here will search it:  c:\arc1\lib\libarccrypto.dll and not here:
-        // c:\arc1\bin\libarccrypto-0.dll when I create a Windows  NSIS package
         logger.msg(WARNING, "Failed to lock arccrypto library in memory");
       };  
       SSL_load_error_strings();
