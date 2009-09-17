@@ -17,7 +17,7 @@ if [ -z "$arg_file" ] ; then
    exit 1
 fi
 if [ ! -f $arg_file ] ; then
-   echo "Missing arguments file" 1>&2
+   echo "Missing arguments file expected at '$arg_file'." 1>&2
    exit 1
 fi
 
