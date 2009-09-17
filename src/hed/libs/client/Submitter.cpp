@@ -46,7 +46,7 @@ namespace Arc {
       if (!it->Source.empty()) {
         const URL& src = it->Source.begin()->URI;
         if (src.Protocol() == "file") {
-          std::string dst = url.str() + '/' + it->Name;
+          URL dst(std::string(url.str() + '/' + it->Name));
           DataHandle source(src, usercfg);
           DataHandle destination(dst, usercfg);
           DataStatus res =
