@@ -1,0 +1,24 @@
+\section{Examples of \ref{idata}}
+\subsection{DataMover - Transfer}
+(Example \ref{dmex})
+\label{cdmex}
+\begin{verbatim}
+import arc
+# create DataMover
+mover = arc.DataMover()
+# import datapoint_from_url from arcom package
+# DataPoints are required to use DataMover
+from arcom import datapoint_from_url
+# create source DataPoint
+src = datapoint_from_url('file://./file1')
+# create destination DataPoint
+dst = datapoint_from_url('file://./file2')
+# do the transfer
+status, failure = mover.Transfer(src, dst, arc.FileCache(), arc.URLMap())
+# check status
+str(status)
+'Operation completed successfully'
+# check for failure message
+failure
+\end{verbatim}
+

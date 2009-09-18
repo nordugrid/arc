@@ -1,0 +1,393 @@
+\section{Examples of \ref{axtree}}
+\subsection{Creating an XMLTree}
+(Example \ref{crxt})
+\label{ccrxt}
+\begin{verbatim}
+from arc import XMLNode
+from arcom.xmltree import XMLTree
+
+# create XMLTree sources
+# xmlstr - will be used to create an XMLTree from string
+# xmlnodestr - will be used to create 'node' (an XMLNode)
+# node - will be used to create an XMLTree from XMLNode
+# treestruct - for creating XMLTree from tree structure
+xmlstr = '<echo><say>Hello!</say></echo>'
+xmlnodestr = '<node><subnode>Subnode</subnode></node>'
+node = XMLNode(xmlnodestr)
+treestruct = ('root', [('leaf','Leaf')])
+
+# from_tree has the highest priority
+t1 = XMLTree(from_node = node, from_string = xmlstr, from_tree = treestruct) 
+t1.get()
+
+# no from_tree supplied; from_node will be used
+t2 = XMLTree(from_node = node, from_string = xmlstr)
+t2.get()
+
+# from_string only
+t3 = XMLTree(from_string = xmlstr)
+t3.get()
+\end{verbatim}
+
+\subsection{XMLTree - forget namespace}
+(Example \ref{xtfn})
+\label{cxtfn}
+\begin{verbatim}
+from arc import XMLNode
+from arcom.xmltree import XMLTree
+
+# Create XMLTree objects to demonstrate
+# the use of forget namespace feature
+# node - is an XMLNode
+# tree - is an XMLTree that is created from 'node'
+node = XMLNode('<soap-env:Envelope xmlns:hash="urn:hash" \
+xmlns:soap-enc="http://schemas.xmlsoap.org/soap/encoding/" \
+xmlns:soap-env="http://schemas.xmlsoap.org/soap/envelope/" \
+xmlns:xsd="http://www.w3.org/2001/XMLSchema" \
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">\
+<soap-env:Body>\
+<hash:get>\
+<hash:IDs>\
+<hash:ID>0</hash:ID>\
+<hash:ID>1</hash:ID>\
+<hash:ID>2</hash:ID>\
+</hash:IDs>\
+</hash:get>\
+</soap-env:Body>\
+</soap-env:Envelope>')
+
+tree = XMLTree(node)
+# show tree structure
+print tree
+
+# forget_namespace is ignored when from_tree is used
+tree2 = XMLTree(from_tree = tree, forget_namespace = True)
+print tree2
+
+# forget_namespace with from_node
+tree3 = XMLTree(from_node = node, forget_namespace = True)
+# it works as expected
+print tree3
+
+# forget_namespace with from_string
+strnode = '<myns:foo xmlns:myns="urn:foo"><myns:dummy>Hello, World!</myns:dummy>\
+</myns:foo>'
+tree4 = XMLTree(from_string = strnode, forget_namespace = True)
+# it also works
+print tree4
+\end{verbatim}
+
+\subsection{XMLTree - rewrite}
+(Example \ref{xtrew})
+\label{cxtrew}
+\begin{verbatim}
+from arc import XMLNode
+from arcom.xmltree import XMLTree
+
+# Create XMLTree objects to demonstrate
+# the use of rewrite feature
+strnode = '<myns:foo xmlns:myns="urn:foo"><myns:dummy>Hello, World!</myns:dummy>\
+</myns:foo>'
+tree = XMLTree(from_string = strnode,\
+               rewrite = {'myns:foo':'myns:boo'},\
+               forget_namespace = False)
+
+# 'myns:foo' is turned into 'myns:boo'
+print tree
+
+# combine with forget_namespace
+tree2 = XMLTree(from_string = strnode,\
+                rewrite = {'foo':'boo'},\
+                forget_namespace = True)
+# 'forget_namespace' is True so namespace prefix 'myns' is being stripped off
+# ('myns:foo' -> 'foo'; 'myns:dummy' -> 'dummy')
+# then 'foo' is turned into 'boo' 
+print tree2
+\end{verbatim}
+
+\subsection{XMLTree - add\_to\_node}
+(Example \ref{xtadd2n})
+\label{cxtadd2n}
+\begin{verbatim}
+from arc import XMLNode
+from arcom.xmltree import XMLTree
+
+node = XMLNode('<node/>')
+
+# create XMLTree
+tree = XMLTree(from_string = '<root><dummy/><hello>World</hello></root>')
+
+# from 'tree' add 'dummy' to 'node'
+tree.add_to_node(node, '/root/dummy')
+
+# show result
+print node.GetXML(True)
+
+# from 'tree' add 'hello' to 'dummy' in 'node'
+dummy = node.Get('dummy')
+tree.add_to_node(dummy, '/root/hello')
+
+# show result
+print node.GetXML(True)
+\end{verbatim}
+
+\subsection{XMLTree - pretty\_xml}
+(Example \ref{xtpretty})
+\label{cxtpretty}
+\begin{verbatim}
+from arcom.xmltree import XMLTree
+
+# create XMLTree
+tree = XMLTree(from_string = '<root><Hello>World</Hello></root>')
+
+# select entire tree
+# indent children with space character
+# apply prefix for every new line
+print tree.pretty_xml(indent=' ', path='', prefix='# ')
+
+# note that it is possible to select multiple parts
+# create an example XMLTree to demonstrate that
+tree2 = XMLTree(from_string = '<root><sub><Hello>World</Hello></sub>\
+<sub><dummy>foo</dummy></sub></root>')
+
+# show '/root/sub'
+print tree2.pretty_xml(indent=' ', path='/root/sub', prefix='# ')
+\end{verbatim}
+
+\subsection{XMLTree - \_\_str\_\_}
+(Example \ref{xtstr})
+\label{cxtstr}
+\begin{verbatim}
+from arcom.xmltree import XMLTree
+
+# create XMLTree
+tree = XMLTree(from_string = '<root><dummy>foo</dummy></root>')
+
+# show tree
+# print will result in __str__ being called
+# when trying to convert XMLTree to string
+print tree
+\end{verbatim}
+
+\subsection{XMLTree - get}
+(Example \ref{xtget})
+\label{cxtget}
+\begin{verbatim}
+from arcom.xmltree import XMLTree
+
+# create tree structure
+tree = \
+('root',\
+  [('trunk',\
+    [('leaf','1'),\
+     ('leaf','2')]\
+  )]\
+)
+
+# create XMLTree from tree structure
+xt = XMLTree(from_tree = tree)
+
+# if called with path being None
+# get() selects the root node
+xt.get()
+
+# Path is just a plain path.
+# Empty tag name matches everything, so - in this particular case -
+# all expressions below will produce the same result.
+xt.get('/root/trunk/leaf')
+xt.get('//trunk/leaf')
+xt.get('/root//leaf')
+xt.get('/root/trunk/')
+xt.get('///leaf')
+xt.get('///')
+\end{verbatim}
+
+\subsection{XMLTree - get\_trees}
+(Example \ref{xtgettrees})
+\label{cxtgettrees}
+\begin{verbatim}
+from arcom.xmltree import XMLTree
+
+# create tree structure
+tree = \
+('trunk',\
+  [( 'branch',\
+     [('leaf','1'),\
+      ('leaf','2')]\
+   ),\
+   ( 'branch',\
+     [('leaf','3')]\
+   )]\
+)
+
+# create XMLTree from tree structure
+xt = XMLTree(from_tree = tree)
+
+# get branches ('/trunk/branch') in a list
+blist = xt.get_trees('/trunk/branch')
+
+# show branches in blist
+for b in blist:
+    print b
+
+# get leaves ('/trunk/branch/leaf') in a list
+llist = xt.get_trees('/trunk/branch/leaf')
+
+# show leaves in llist
+for l in llist:
+    print l
+
+\end{verbatim}
+
+\subsection{XMLTree - get\_value}
+(Example \ref{xtgetval})
+\label{cxtgetval}
+\begin{verbatim}
+from arcom.xmltree import XMLTree
+
+# create tree structure
+ts = ('branch',[('leaf','1')])
+
+# create XMLTree from tree structure
+tree = XMLTree(from_tree = ts)
+
+# get_value for '/branch/leaf'
+# will return the value from 'leaf'
+tree.get_value('/branch/leaf')
+
+# get_value for '/branch'
+# will return the value from 'branch'
+# ie the list of its children
+tree.get_value('/branch')
+
+# get_value for a path that does not match
+# provide a default value of 'N/A'
+tree.get_value('/dummy','N/A')
+\end{verbatim}
+
+\subsection{XMLTree - add\_tree}
+(Example \ref{xtaddtree})
+\label{cxtaddtree}
+\begin{verbatim}
+from arcom.xmltree import XMLTree
+
+# create tree structure
+ts = \
+('root',\
+  [ ('branch',\
+      [ ('leaf','1'),\
+        ('leaf','2')\
+      ]\
+    ),\
+    ('branch',\
+      [ ('leaf','3'),\
+        ('leaf','4')\
+      ]\
+    )\
+  ]\
+)
+
+# create XMLTree from tree structure
+tree = XMLTree(from_tree = ts)
+
+# add a new leaf ('leaf','5') to '/root/branch'
+# the new leaf will be added to the first node 
+# matched by path ('/root/branch') 
+tree.add_tree(('leaf','5'), '/root/branch')
+
+# show tree
+print tree
+\end{verbatim}
+
+\subsection{XMLTree - get\_values}
+(Example \ref{xtgetvals})
+\label{cxtgetvals}
+\begin{verbatim}
+from arcom.xmltree import XMLTree
+
+# create tree structure
+ts = \
+('root',\
+  [ ('branch',\
+      [ ('leaf','1'),\
+        ('leaf','2')\
+      ]\
+    ),\
+    ('branch',\
+      [ ('leaf','3'),\
+        ('leaf','4')\
+      ]\
+    )\
+  ]\
+)
+
+# create XMLTree from tree structure
+tree = XMLTree(from_tree = ts)
+
+# get values of branches ('/root/branch') in a list
+# this will return the lists of children of the branches
+tree.get_values('/root/branch')
+
+# get values of leaves ('/root/branch/leaf') in a list
+# this will return the values of leaves
+tree.get_values('/root/branch/leaf')
+
+# try a path that does not match
+# this will return an empty list
+tree.get_values('/dummy')
+\end{verbatim}
+
+\subsection{XMLTree - get\_dict}
+(Example \ref{xtgetdict})
+\label{cxtgetdict}
+\begin{verbatim}
+from arcom.xmltree import XMLTree
+
+# create tree structure
+ts =\
+('person',\
+  [ ('name', 'Alice'),\
+    ('id', '11'),\
+    ('job', 'Librarian')\
+  ]
+)
+
+# create XMLTree from tree structure
+tree = XMLTree(from_tree = ts)
+
+# get dictionary from '/person'
+# only name and job is to be returned
+tree.get_dict('/person',{'name':'name','job':'job'})
+\end{verbatim}
+
+\subsection{XMLTree - get\_dicts}
+(Example \ref{xtgetdicts})
+\label{cxtgetdicts}
+\begin{verbatim}
+from arcom.xmltree import XMLTree
+
+# create tree structure
+ts =\
+('persons',\
+  [ ('person',\
+      [ ('name', 'Alice'),\
+        ('id', '11'),\
+        ('job', 'Librarian')\
+      ]\
+    ),\
+    ('person',\
+      [ ('name', 'Bob'),\
+        ('id', '12'),\
+        ('job', 'Bartender')\
+      ]\
+    )\
+  ]\
+)
+
+# create XMLTree from tree structure
+tree = XMLTree(from_tree = ts)
+
+# get dictionaries for '/persons/person'
+tree.get_dicts('/persons/person')
+\end{verbatim}
+

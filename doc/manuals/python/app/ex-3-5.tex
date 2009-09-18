@@ -1,0 +1,209 @@
+\section{Examples of \ref{aservice}}
+\subsection{Using DummyService - an example service based on arcom.service.Service}
+(Example \ref{srvex})
+\label{csrvex}
+\begin{verbatim}
+# Reminder:
+# import arc
+#
+# class Dummy:
+#   def foo(self, foomsg = ''):
+#     return ''.join(['Foo message is: ',str(foomsg)])
+# 
+# from arcom.service import Service
+# 
+# class DummyService(Service):
+#   """ DummyService class based on Service class in arcom.service """
+#   ...
+
+# Create instance of DummyService
+ds = DummyService(None)
+# Create namespace - it will be used for the message sent
+ns = arc.NS({'dmmy':'urn:foo'})
+# Create SOAP Envelope
+se = arc.SOAPEnvelope(ns)
+# Create content
+se.NewChild('dmmy:foo').Set('Foo!')
+# Create SOAP Message
+msg = arc.SOAPMessage()
+# Payload
+pls = arc.PayloadSOAP(se)
+# Set Message Payload
+msg.Payload(pls)
+# create outgoing message that will hold response
+outse = arc.SOAPEnvelope(ns)
+outmsg = arc.SOAPMessage()
+outpls = arc.PayloadSOAP(outse)
+outmsg.Payload(pls)
+# call service
+ds.process(msg, outmsg)
+# show result
+print outmsg.Payload().GetXML()
+\end{verbatim}
+
+\subsection{parse\_node}
+(Example \ref{pnex})
+\label{cpnex}
+\begin{verbatim}
+from arc import XMLNode
+from arcom.service import parse_node
+
+# create xml node
+xml = XMLNode('''
+<myList>
+  <myElement>
+    <myID>0</myID>
+    <LN>/</LN>
+  </myElement>
+  <myElement>
+    <myID>1</myID>
+    <LN>/testfile</LN>
+  </myElement>
+</myList>''')
+
+# default: single = False and string = True
+parse_node(xml, ['myID','LN'])
+# single = True
+parse_node(xml, ['myID','LN'], single = True)
+parse_node(xml, ['myID','LN'], True)
+# string = False
+parse_node(xml, ['myID','LN'], string = False)
+\end{verbatim}
+
+\subsection{parse\_to\_dict}
+(Example \ref{p2dex})
+\label{cp2dex}
+\begin{verbatim}
+from arc import XMLNode
+from arcom.service import parse_to_dict
+
+# create xml node
+xml = XMLNode('''
+<myList>
+  <myElement>
+    <myID>123</myID>
+    <refID>abc</refID>
+    <state>alive</state>
+    <size>123456</size>
+  </myElement>
+  <myElement>
+    <myID>456</myID>
+    <refID>fed</refID>
+    <state>alive</state>
+    <size>987</size>
+  </myElement>
+</myList>''')
+
+# example 1 - 'myID' as key
+# 'state' and 'size' goes to the inner dictionary
+parse_to_dict(xml, ['myID','state','size'])
+
+# example 2 - 'myID' as key
+# 'myID' also goes to the inner dictionary
+parse_to_dict(xml, ['myID','myID','state','size'])
+\end{verbatim}
+
+\subsection{create\_response}
+(Example \ref{crespex})
+\label{ccrespex}
+\begin{verbatim}
+import arc
+from arcom.service import create_response
+
+method_name = 'dummy'
+# create tag_names; 'myID' will be the key
+tag_names = ['myID', 'state', 'size']
+# create elements
+# elements of the lists in this dictionary are values and will be tagged 
+# according to names found in tag_names except for the first element
+# e.g.: 'alive' will be tagged with 'state'
+elements = {'123': ['alive', '123456'], '456': ['alive', '987']}
+# create empty payload
+payload = arc.PayloadSOAP(arc.NS())
+
+# create response
+response = create_response(method_name, tag_names, elements, payload)
+
+# show it
+print response.GetXML(True)
+\end{verbatim}
+
+\subsection{node\_to\_data - 1}
+(Example \ref{n2dex1})
+\label{cn2dex1}
+\begin{verbatim}
+from arc import XMLNode
+from arcom.service import node_to_data
+
+# create node
+xml = XMLNode('''
+<myElement>
+  <myID>0</myID>
+  <refID>abc</refID>
+  <section>states</section>
+  <property>spares</property>
+  <value>2</value>
+  <dummy>foo</dummy>
+  <changeType>set</changeType>
+</myElement>
+''')
+
+# create names
+# 'myID' will be the key
+# all the other names will be in a list in the specified order
+# 'dummy' will be left out
+names = ['myID', 'refID', 'changeType', 'section', 'property', 'value']
+
+# call node_to_data
+node_to_data(xml,names)
+\end{verbatim}
+
+\subsection{node\_to\_data - 2}
+(Example \ref{n2dex2})
+\label{cn2dex2}
+\begin{verbatim}
+from arc import XMLNode
+from arcom.service import node_to_data
+
+# create node
+xml = XMLNode('''
+<getRequest>
+  <GUID>11</GUID>
+  <myID>99</myID>
+</getRequest>
+''')
+
+# create names
+# 'myID' will be the key
+names = ['myID', 'GUID']
+
+# call node_to_data
+# GUID is the single value so do not put it in a list
+node_to_data(xml,names, True)
+\end{verbatim}
+
+\subsection{get\_data\_node}
+(Example \ref{gdnex})
+\label{cgdnex}
+\begin{verbatim}
+from arc import XMLNode
+from arcom.service import get_data_node
+
+# create node
+xml = XMLNode('''
+<Envelope>
+  <Body>
+    <method>
+      <data>Value</data>
+    </method>
+  </Body>
+</Envelope>
+''')
+
+# call get_data_node
+dn = get_data_node(xml)
+
+# show result
+dn.GetXML()
+\end{verbatim}
+

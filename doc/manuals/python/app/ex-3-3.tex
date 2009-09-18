@@ -1,0 +1,21 @@
+\section{Examples of \ref{alogger}}
+\subsection{Using the Logger}
+(Example \ref{loggerex})
+\label{cloggerex}
+\begin{verbatim}
+import arc
+import arcom
+import sys
+# Import get_logger function
+from arcom.logger import get_logger
+# Create logger
+rl = get_logger()
+rl.logger
+arclogger = rl.logger
+# Add new destination
+arclogger.addDestination(arc.LogStream(sys.stdout))
+# Log a message
+# Note that the message is also returned as an output
+rl.msg(arc.INFO, 'Hello, World!')
+\end{verbatim}
+
