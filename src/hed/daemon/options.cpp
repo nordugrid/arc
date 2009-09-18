@@ -18,6 +18,7 @@ namespace Arc {
     AddOption('p', "pid-file", "full path of pid file", "path", pid_file);
     AddOption('u', "user", "user name", "user", user);
     AddOption('g', "group", "group name", "group", group);
+    AddOption('s', "schema", "full path of XML schema file", "path", schema_file);
 #ifdef WIN32
     install = false;
     AddOption('a', "install", "install windows service", install);

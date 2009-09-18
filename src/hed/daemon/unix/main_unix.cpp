@@ -215,6 +215,18 @@ int main(int argc, char **argv)
         if (params.size() == 0) {
             /* Load and parse config file */
             init_config(options);
+            
+            // schema validation
+            if (!options.schema_file.empty()) {
+                std::string err_msg;
+                bool ret = config.Validate(options.schema_file, err_msg);
+                if (ret == false) {
+                    logger.msg(Arc::ERROR, "Schema validation error");
+                    logger.msg(Arc::ERROR, err_msg);
+                    exit(1);
+                }
+            }
+            
             // dump config if it was requested
             if (options.config_dump == true) {
                 std::string str;
@@ -222,7 +234,7 @@ int main(int argc, char **argv)
                 std::cout << str << std::endl;
                 exit(0);
             }   
-            
+
             if(!MatchXMLName(config,"ArcConfig")) {
                 logger.msg(Arc::ERROR, "Configuration root element is not <ArcConfig>");
                 exit(1);

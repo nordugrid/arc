@@ -17,6 +17,7 @@ namespace Arc {
     std::string user;
     std::string group;
     bool config_dump;
+    std::string schema_file;
 #ifdef WIN32
     bool install;
     bool uninstall;
