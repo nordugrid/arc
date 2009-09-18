@@ -200,7 +200,7 @@ namespace Arc {
         return false;
       }
       std::string serviceType = (std::string)node.Attribute("ServiceType");
-      if (flavour.empty()) {
+      if (serviceType.empty()) {
         logger.msg(ERROR, "URL entry in default services has no "
                    "\"ServiceType\" attribute");
         return false;
