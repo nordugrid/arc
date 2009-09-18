@@ -75,13 +75,17 @@ namespace Arc {
       return !ok;
     }
 
+    static const std::string ARCUSERDIR;
+
     static const int DEFAULT_TIMEOUT = 20;
     static const std::string DEFAULT_BROKER;
-
+    
   private:
-    bool loadUserConfiguration(const std::string& file);
+    bool loadUserConfiguration();
     void setDefaults();
-
+    static bool makeDir(const std::string& path);
+    static bool copyFile(const std::string& source, const std::string& destination);
+    
     User user;
     std::string conffile;
     std::string joblistfile;

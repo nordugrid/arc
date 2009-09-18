@@ -9,6 +9,9 @@
 #include <unistd.h>
 
 #include <glibmm.h>
+#ifdef HAVE_GIOMM
+#include <giomm/file.h>
+#endif
 
 #include <arc/ArcLocation.h>
 #include <arc/IniConfig.h>
@@ -32,7 +35,9 @@ namespace Arc {
   std::list<std::string> UserConfig::resolvedAlias;
 
   const std::string UserConfig::DEFAULT_BROKER = "Random";
-
+  
+  const std::string UserConfig::ARCUSERDIR = Glib::build_filename(User().Home(), ".arc");
+  
   UserConfig::UserConfig(bool initializeCredentials) {
     if (initializeCredentials) {
       InitializeCredentials();
@@ -54,7 +59,7 @@ namespace Arc {
     : conffile(file),
       userSpecifiedJobList(false),
       ok(false) {
-    if (!loadUserConfiguration(file))
+    if (!loadUserConfiguration())
       return;
 
     if (initializeCredentials) {
@@ -73,48 +78,40 @@ namespace Arc {
       joblistfile(jfile),
       userSpecifiedJobList(!jfile.empty()),
       ok(false) {
-    if (!loadUserConfiguration(file))
+    if (!loadUserConfiguration())
       return;
 
-    struct stat st;
-
-    strv_t confdirPath(2);
-    confdirPath[0] = user.Home();
-    confdirPath[1] = ".arc";
-    const std::string confdir = Glib::build_path(G_DIR_SEPARATOR_S, confdirPath);
-
-    if (!Glib::file_test(confdir, (Glib::FILE_TEST_EXISTS | Glib::FILE_TEST_IS_DIR ))) {
-      if (-1 == mkdir(confdir.c_str(), 0755)){
-        logger.msg(ERROR, "Directory creation error: %s", confdir);
-        return;
-      } 
-   }
-     
-
-    // First check if job list file was given as an argument, then look for it
+    // First check if job list file was given as an argument, next look for it
     // in the user configuration, and last set job list file to default.
     if (joblistfile.empty() &&
         (joblistfile = (std::string)cfg["JobListFile"]).empty())
-      joblistfile = Glib::build_filename(confdir, "jobs.xml");
+      joblistfile = Glib::build_filename(ARCUSERDIR, "jobs.xml");
 
-    // Check if joblistfile exist. If not try to create a empty version, and if
-    // this fails report error an exit.
-    if (stat(joblistfile.c_str(), &st) != 0) {
-      if (errno == ENOENT) {
-        NS ns;
-        Config(ns).SaveToFile(joblistfile);
-        logger.msg(INFO, "Created empty ARC job list file: %s", joblistfile);
-        stat(joblistfile.c_str(), &st);
+    // Check if joblistfile exist.
+    if (!Glib::file_test(joblistfile.c_str(), Glib::FILE_TEST_EXISTS)) {
+      // The joblistfile does not exist. Create a empty version, and if
+      // this fails report an error and exit.
+      const std::string joblistdir = Glib::path_get_dirname(joblistfile);
+
+      // Check if the parent directory exist.
+      if (!Glib::file_test(joblistdir, Glib::FILE_TEST_EXISTS)) {
+        // Create directory.
+        if (!makeDir(joblistdir)) {
+          logger.msg(ERROR, "Unable to create %s directory", joblistdir);
+          return;
+        }
       }
-      else {
-        logger.msg(ERROR, "Can not access ARC job list file: %s (%s)",
-                   joblistfile, StrError());
+      else if (!Glib::file_test(joblistdir, Glib::FILE_TEST_IS_DIR)) {
+        logger.msg(ERROR, "%s is not a directory, it is needed for the client to function correctly", joblistdir);
         return;
       }
+
+      NS ns;
+      Config(ns).SaveToFile(joblistfile);
+      logger.msg(INFO, "Created empty ARC job list file: %s", joblistfile);
     }
-    else if (!S_ISREG(st.st_mode)) {
-      logger.msg(ERROR, "ARC job list file is not a regular file: %s",
-                 joblistfile);
+    else if (!Glib::file_test(joblistfile.c_str(), Glib::FILE_TEST_IS_REGULAR)) {
+      logger.msg(ERROR, "ARC job list file is not a regular file: %s", joblistfile);
       return;
     }
 
@@ -600,7 +597,7 @@ namespace Arc {
         caCertificatesDir.clear();
       }
     }
-    else if (stat((caCertificatesDir = Arc::ArcLocation::Get() + G_DIR_SEPARATOR_S + "etc" + G_DIR_SEPARATOR_S + G_DIR_SEPARATOR_S + "grid-security" + "certificates").c_str(), &st) == 0) {
+    else if (stat((caCertificatesDir = Arc::ArcLocation::Get() + G_DIR_SEPARATOR_S + "etc" + G_DIR_SEPARATOR_S + "grid-security" + G_DIR_SEPARATOR_S + "certificates").c_str(), &st) == 0) {
       if (!S_ISDIR(st.st_mode)) {
         logger.msg(ERROR, "CA certificate directory is not a directory: %s", caCertificatesDir);
         caCertificatesDir.clear();
@@ -641,54 +638,59 @@ namespace Arc {
     }
   }
 
-  bool UserConfig::loadUserConfiguration(const std::string& file) {
-    struct stat st;
+  bool UserConfig::loadUserConfiguration() {
+    const bool isConfigSpecified = !conffile.empty();
+    
+    // If no user configuration file was specified use the default.
+    if (!isConfigSpecified) {
+      conffile = Glib::build_filename(ARCUSERDIR, "client.xml");
 
-    strv_t confdirPath(2);
-    confdirPath[0] = user.Home();
-    confdirPath[1] = ".arc";
-    const std::string confdir = Glib::build_path(G_DIR_SEPARATOR_S, confdirPath);
-    if (!Glib::file_test(confdir, (Glib::FILE_TEST_EXISTS | Glib::FILE_TEST_IS_DIR ))) {
-      if (-1 == mkdir(confdir.c_str(), 0755)){
-        logger.msg(ERROR, "Directory creation error: %s", confdir);
-        return false;
-      } 
-    }
+      // If the default configuration file does not exist, copy an example file.
+      if (!Glib::file_test(conffile, Glib::FILE_TEST_EXISTS)) {
 
-    // Check if user configuration file exist. If file name was given as
-    // argument to the constructor and file does not exist report error and exit.
-    // If the constructor received an empty file name look for the default
-    // configuration file, if it does not exist continue without loading any
-    // user configuration file.
-    if (conffile.empty())
-      conffile = Glib::build_filename(confdir, "client.xml");
+        // Check if the parent directory exist.
+        if (!Glib::file_test(ARCUSERDIR, Glib::FILE_TEST_EXISTS)) {
+          // Create directory.
+          if (!makeDir(ARCUSERDIR)) {
+            logger.msg(WARNING, "Unable to create %s directory.", ARCUSERDIR);
+          }
+        }
 
-    if (stat(conffile.c_str(), &st) != 0) {
-      if (conffile == file) {
-        logger.msg(ERROR, "Cannot access ARC user config file: %s (%s)",
-                   conffile, StrError());
-        return false;
+        if (Glib::file_test(ARCUSERDIR, Glib::FILE_TEST_IS_DIR)) {
+          const std::string confexample = Glib::build_filename(PKGDOCDIR, "client.xml.example");
+          if (Glib::file_test(confexample, Glib::FILE_TEST_IS_REGULAR)) {
+            // Destination: Get basename, remove example prefix and add .arc directory.
+            if (copyFile(confexample, conffile))
+              logger.msg(INFO, "Configuration example file created (%s)", conffile);
+            else
+              logger.msg(WARNING, "Unable to copy example configuration from existing configuration (%s)", confexample);
+          }
+          else {
+            logger.msg(WARNING, "Cannot copy example configuration (%s), it is not a regular file", confexample);
+          }
+        }
+        else {
+          logger.msg(WARNING, "Example configuration (%s) not created.", conffile);
+        }
       }
-      else
-        conffile.clear();
-    }
-    else if (!S_ISREG(st.st_mode)) {
-      if (conffile == file) {
-        logger.msg(ERROR, "ARC user config file is not a regular file: %s",
-                   conffile);
-        return false;
+      else if (!Glib::file_test(conffile, Glib::FILE_TEST_IS_REGULAR)) {
+        logger.msg(WARNING, "The default configuration file (%s) is not a regular file.", conffile);
+        conffile = "";
       }
-      else
-        conffile.clear();
+    }
+    else if (!Glib::file_test(conffile, Glib::FILE_TEST_IS_REGULAR)) {
+      logger.msg(ERROR, "The specified configuration file (%s) is not a regular file", conffile);
+      return false;
     }
 
     // First try to load system client configuration.
-    const std::string arcclientconf = G_DIR_SEPARATOR_S + Glib::build_filename("etc", "arcclient.xml");
-
-    if (!cfg.ReadFromFile(ArcLocation::Get() + arcclientconf) &&
-        !cfg.ReadFromFile(arcclientconf))
-      logger.msg(WARNING, "Could not load system client configuration");
-
+    const std::string sysconf = Glib::build_filename(PKGSYSCONFDIR, "client.xml");
+    if (Glib::file_test(sysconf, Glib::FILE_TEST_IS_REGULAR)) {
+      if (cfg.ReadFromFile(sysconf))
+        logger.msg(INFO, "System configuration (%s) loaded", sysconf);
+      else
+        logger.msg(WARNING, "Unable to load system configuration (%s)", sysconf);
+    }
 
     if (!conffile.empty()) {
       Config ucfg;
@@ -718,6 +720,8 @@ namespace Arc {
               }
           }
         }
+
+        logger.msg(INFO, "XML user configuration (%s) loaded", conffile);
       }
       else {
         IniConfig ini(conffile);
@@ -729,6 +733,8 @@ namespace Arc {
             else
               cfg.NewChild(child);
           }
+
+          logger.msg(INFO, "INI user configuration (%s) loaded", conffile);
         }
         else
           logger.msg(WARNING, "Could not load user client configuration");
@@ -752,4 +758,52 @@ namespace Arc {
         cfg["Broker"]["Arguments"] = "";
     }
   }
+
+  bool UserConfig::makeDir(const std::string& path) {
+    bool dirCreated = false;
+#ifdef HAVE_GIOMM
+    try {
+      dirCreated = Gio::File::create_for_path(path)->make_directory();
+    } catch (Gio::Error e) {
+      logger.msg(WARNING, "%s", (std::string)e.what());
+    }
+#else
+    dirCreated = (mkdir(path.c_str(), 0755) == 0);
+#endif
+
+    if (dirCreated)
+      logger.msg(INFO, "%s directory created", path);
+
+    return dirCreated;
+  }
+
+  bool UserConfig::copyFile(const std::string& source, const std::string& destination) {
+#ifdef HAVE_GIOMM
+    try {
+      return Gio::File::create_for_path(source)->copy(Gio::File::create_for_path(destination), Gio::FILE_COPY_NONE);
+    } catch (Gio::Error e) {
+      logger.msg(WARNING, "%s", (std::string)e.what());
+      return false;
+    }
+#else
+    std::ifstream ifsSource(source->c_str(), std::ios::in | std::ios::binary);
+    if (!ifsSource)
+      return false;
+      
+    std::ofstream ofsDestination(destination->c_str(), std::ios::out | std::ios::binary);
+    if (!ofsDestination)
+      return false;
+
+    int bytesRead = -1;
+    char buff[1024];
+    while (bytesRead != 0) {
+      ifsSource.read((char*)buff, 1024);
+      bytesRead = ifsSource.gcount();
+      ofsDestination.write((char*)buff, bytesRead);
+    }
+    
+    return true;
+#endif
+  }
+
 } // namespace Arc
