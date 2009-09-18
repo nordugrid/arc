@@ -786,11 +786,11 @@ namespace Arc {
       return false;
     }
 #else
-    std::ifstream ifsSource(source->c_str(), std::ios::in | std::ios::binary);
+    std::ifstream ifsSource(source.c_str(), std::ios::in | std::ios::binary);
     if (!ifsSource)
       return false;
       
-    std::ofstream ofsDestination(destination->c_str(), std::ios::out | std::ios::binary);
+    std::ofstream ofsDestination(destination.c_str(), std::ios::out | std::ios::binary);
     if (!ofsDestination)
       return false;
 
