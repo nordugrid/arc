@@ -11,6 +11,7 @@
 #include <glibmm.h>
 
 #include <arc/ArcLocation.h>
+#include <arc/IniConfig.h>
 #include <arc/Logger.h>
 #include <arc/StringConv.h>
 #include <arc/URL.h>
@@ -652,7 +653,7 @@ namespace Arc {
         logger.msg(ERROR, "Directory creation error: %s", confdir);
         return false;
       } 
-   }
+    }
 
     // Check if user configuration file exist. If file name was given as
     // argument to the constructor and file does not exist report error and exit.
@@ -691,9 +692,7 @@ namespace Arc {
 
     if (!conffile.empty()) {
       Config ucfg;
-      if (!ucfg.ReadFromFile(conffile))
-        logger.msg(WARNING, "Could not load user client configuration");
-      else {
+      if (ucfg.ReadFromFile(conffile)) {
         // Merge system and user configuration
         XMLNode child;
         for (int i = 0; (child = ucfg.Child(i)); i++) {
@@ -719,6 +718,23 @@ namespace Arc {
               }
           }
         }
+      }
+      else {
+        IniConfig ini(conffile);
+        if (ini) {
+          ini.SaveToStream(std::cout); std::cout << std::endl;
+          XMLNode child;
+          cfg.SaveToStream(std::cout); std::cout << std::endl;
+          for (int i = 0; (child = ini["common"].Child(i)); i++) {
+            if (cfg[child.Name()])
+              cfg[child.Name()].Replace(child);
+            else
+              cfg.NewChild(child);
+          }
+          cfg.SaveToStream(std::cout); std::cout << std::endl;
+        }
+        else
+          logger.msg(WARNING, "Could not load user client configuration");
       }
     }
 
