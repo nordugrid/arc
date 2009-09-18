@@ -6,6 +6,14 @@
 
 namespace Arc {
   Logger ModuleManager::logger(Logger::rootLogger, "ModuleManager");
+
+static std::string strip_newline(const std::string& str) {
+  std::string s(str);
+  std::string::size_type p = 0;
+  while((p=s.find('\r',p)) != std::string::npos) s[p]=' ';
+  p=0;
+  while((p=s.find('\n',p)) != std::string::npos) s[p]=' ';
+}
   
 ModuleManager::ModuleManager(const Config *cfg)
 { 
@@ -100,7 +108,7 @@ Glib::Module *ModuleManager::load(const std::string& name,bool probe /*,bool rel
   if(probe) flags|=Glib::MODULE_BIND_LAZY;
   Glib::Module *module = new Glib::Module(path,flags);
   if ((!module) || (!(*module))) {
-    ModuleManager::logger.msg(ERROR, Glib::Module::get_last_error());
+    ModuleManager::logger.msg(ERROR, strip_newline(Glib::Module::get_last_error()));
     if(module) delete module;
     return NULL;
   }
@@ -120,7 +128,7 @@ Glib::Module* ModuleManager::reload(Glib::Module* omodule)
   //flags|=Glib::MODULE_BIND_LOCAL;
   Glib::Module *module = new Glib::Module(omodule->get_name(),flags);
   if ((!module) || (!(*module))) {
-    ModuleManager::logger.msg(ERROR, Glib::Module::get_last_error());
+    ModuleManager::logger.msg(ERROR, strip_newline(Glib::Module::get_last_error()));
     if(module) delete module;
     return NULL;
   }

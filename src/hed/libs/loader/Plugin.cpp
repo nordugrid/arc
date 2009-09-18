@@ -9,6 +9,14 @@
 
 namespace Arc {
 
+  static std::string strip_newline(const std::string& str) {
+    std::string s(str);
+    std::string::size_type p = 0;
+    while((p=s.find('\r',p)) != std::string::npos) s[p]=' ';
+    p=0;
+    while((p=s.find('\n',p)) != std::string::npos) s[p]=' ';
+  }
+
   static PluginDescriptor* find_constructor(PluginDescriptor* desc,const std::string& kind,int min_version,int max_version) {
     if(!desc) return NULL;
     for(;(desc->kind) && (desc->name);++desc) {
@@ -96,13 +104,13 @@ namespace Arc {
     std::string mname = kind;
     Glib::Module* module = probe_module(kind,*this);
     if (module == NULL) {
-      logger.msg(ERROR, "Could not find loadable module by name %s (%s)",kind,Glib::Module::get_last_error());
+      logger.msg(ERROR, "Could not find loadable module by name %s (%s)",kind,strip_newline(Glib::Module::get_last_error()));
       return NULL;
     };
     // Identify table of descriptors
     void *ptr = NULL;
     if(!module->get_symbol(plugins_table_name,ptr)) {
-      logger.msg(DEBUG, "Module %s is not an ARC plugin (%s)",kind,Glib::Module::get_last_error());
+      logger.msg(DEBUG, "Module %s is not an ARC plugin (%s)",kind,strip_newline(Glib::Module::get_last_error()));
       unload_module(module,*this);
       return NULL;
     };
@@ -117,7 +125,7 @@ namespace Arc {
         // Keep plugin loaded and registered
         Glib::Module* nmodule = reload_module(module,*this);
         if(!nmodule) {
-          logger.msg(DEBUG, "Module %s failed to reload (%s)",mname,Glib::Module::get_last_error());
+          logger.msg(DEBUG, "Module %s failed to reload (%s)",mname,strip_newline(Glib::Module::get_last_error()));
           unload_module(module,*this);
           return false;
         };
@@ -163,13 +171,13 @@ namespace Arc {
       // Then by kind of plugin
       mname=kind;
       module=probe_module(kind,*this);
-      logger.msg(ERROR, "Could not find loadable module by name %s and %s (%s)",name,kind,Glib::Module::get_last_error());
+      logger.msg(ERROR, "Could not find loadable module by name %s and %s (%s)",name,kind,strip_newline(Glib::Module::get_last_error()));
       return NULL;
     };
     // Identify table of descriptors
     void *ptr = NULL;
     if(!module->get_symbol(plugins_table_name,ptr)) {
-      logger.msg(DEBUG, "Module %s is not an ARC plugin (%s)",mname,Glib::Module::get_last_error());
+      logger.msg(DEBUG, "Module %s is not an ARC plugin (%s)",mname,strip_newline(Glib::Module::get_last_error()));
       unload_module(module,*this);
       return NULL;
     };
@@ -179,7 +187,7 @@ namespace Arc {
       // Keep plugin loaded and registered
       Glib::Module* nmodule = reload_module(module,*this);
       if(!nmodule) {
-        logger.msg(DEBUG, "Module %s failed to reload (%s)",mname,Glib::Module::get_last_error());
+        logger.msg(DEBUG, "Module %s failed to reload (%s)",mname,strip_newline(Glib::Module::get_last_error()));
         unload_module(module,*this);
         return false;
       };
@@ -219,12 +227,12 @@ namespace Arc {
       mname = name;
       module = probe_module(name,*this);
       if (module == NULL) {
-        logger.msg(ERROR, "Could not find loadable module by name %s (%s)",name,Glib::Module::get_last_error());
+        logger.msg(ERROR, "Could not find loadable module by name %s (%s)",name,strip_newline(Glib::Module::get_last_error()));
         return false;
       };
       // Identify table of descriptors
       if(!module->get_symbol(plugins_table_name,ptr)) {
-        logger.msg(DEBUG, "Module %s is not an ARC plugin (%s)",mname,Glib::Module::get_last_error());
+        logger.msg(DEBUG, "Module %s is not an ARC plugin (%s)",mname,strip_newline(Glib::Module::get_last_error()));
         unload_module(module,*this);
         return false;
       };
@@ -245,7 +253,7 @@ namespace Arc {
     if(!mname.empty()) {
       Glib::Module* nmodule=reload_module(module,*this);
       if(!nmodule) {
-        logger.msg(DEBUG, "Module %s failed to reload (%s)",mname,Glib::Module::get_last_error());
+        logger.msg(DEBUG, "Module %s failed to reload (%s)",mname,strip_newline(Glib::Module::get_last_error()));
         unload_module(module,*this);
         return false;
       };
