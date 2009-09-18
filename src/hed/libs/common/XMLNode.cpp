@@ -9,6 +9,7 @@
 #include <cstring>
 
 #include "XMLNode.h"
+#include <libxml/xmlschemas.h>
 
 namespace Arc {
 
@@ -904,6 +905,55 @@ namespace Arc {
   std::istream& operator>>(std::istream& in, XMLNode& node) {
     node.ReadFromStream(in);
     return in;
+  }
+
+  static void error_collector(void *ctx, const char *fmt, ...) {
+    char *str = (char *)ctx;
+    
+    str = (char *)realloc(str, strlen(str) + strlen(fmt) + 1);
+    if (str == NULL) {
+        return;
+    }
+    strcpy(str, fmt);
+  }
+
+  bool XMLNode::Validate(const std::string &schema_file_name, std::string &err_msg) {
+    // create parser ctxt for schema accessible on schemaPath
+    xmlSchemaParserCtxtPtr schemaParser = xmlSchemaNewParserCtxt(schema_file_name.c_str());
+    if (!schemaParser) {
+        err_msg = "Cannot load schema";
+        return false;
+    }
+    // parse schema
+    xmlSchemaPtr schema = xmlSchemaParse(schemaParser);
+    if (!schema) {
+        xmlSchemaFreeParserCtxt(schemaParser);
+        err_msg = "Cannot parse schmea";
+        return false;
+    }
+    xmlSchemaFreeParserCtxt(schemaParser);
+    
+    // create schema validation context
+    xmlSchemaValidCtxtPtr validityCtx = xmlSchemaNewValidCtxt(schema);
+    if (!validityCtx) {
+        xmlSchemaFree(schema);
+        err_msg = "Cannot create validation context";
+        return false;
+    }
+    
+    // Set contect collectoors    
+    xmlSchemaSetValidErrors(validityCtx,
+                            (xmlSchemaValidityErrorFunc) fprintf,
+                            (xmlSchemaValidityWarningFunc) fprintf,
+                            stderr);
+    // validate against schema
+    bool result = (xmlSchemaValidateDoc(validityCtx, node_->doc) == 0);
+    
+    // free resources and return result
+    xmlSchemaFreeValidCtxt(validityCtx);
+    xmlSchemaFree(schema);
+    
+    return result;
   }
 
   XMLNodeContainer::XMLNodeContainer(void) {}

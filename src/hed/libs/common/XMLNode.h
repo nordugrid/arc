@@ -309,6 +309,8 @@ namespace Arc {
     bool ReadFromStream(std::istream& in);
     /** Remove all eye-candy information leaving only informational parts *
        void Purify(void); */
+    /** XML schema validation against the schema file defined as argument */
+    bool Validate(const std::string &schema_file, std::string &err_msg);
   };
 
   std::ostream& operator<<(std::ostream& out, const XMLNode& node);
