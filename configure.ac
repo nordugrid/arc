@@ -286,7 +286,14 @@ AC_SUBST(GTHREAD_CFLAGS)
 AC_SUBST(GTHREAD_LIBS)
 
 # check glibmm
-PKG_CHECK_MODULES(GLIBMM, [glibmm-2.4 >= 2.4.7])
+# check for giomm which became a part of glibmm as of version 2.16
+"$PKG_CONFIG" giomm-2.4
+if test "$?" = '1'; then
+  PKG_CHECK_MODULES(GLIBMM, [glibmm-2.4 >= 2.4.7])
+else
+  PKG_CHECK_MODULES(GLIBMM, [giomm-2.4])
+  AC_DEFINE(HAVE_GIOMM,, [define if giomm is supported in glibmm])
+fi
 AC_SUBST(GLIBMM_CFLAGS)
 AC_SUBST(GLIBMM_LIBS)
 SAVE_CPPFLAGS=$CPPFLAGS
