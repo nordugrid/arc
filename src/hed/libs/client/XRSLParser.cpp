@@ -768,7 +768,7 @@ namespace Arc {
       r.Add(new RSLCondition("environment", RSLEqual, l));
     }
 
-    if (!j.DataStaging.File.empty()) {
+    if (!j.DataStaging.File.empty() || !j.Application.Executable.Name.empty() || !j.Application.Input.empty()) {
       bool inputIsAdded(false), executableIsAdded(false);
       struct stat fileStat;
       RSLList *l = NULL;

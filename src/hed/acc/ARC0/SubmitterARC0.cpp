@@ -115,6 +115,8 @@ namespace Arc {
     jobdesc.XRSL_elements["clientxrsl"] = jobdesc.UnParse("XRSL");
 
     // Check for identical file names.
+    // Check if executable and input is contained in the file list.
+    bool inputIsAdded(false), executableIsAdded(false);
     for (std::list<FileType>::const_iterator it1 = jobdesc.DataStaging.File.begin();
          it1 != jobdesc.DataStaging.File.end(); it1++) {
       for (std::list<FileType>::const_iterator it2 = it1;
@@ -127,6 +129,37 @@ namespace Arc {
           return false;
         }
       }
+
+      if (it1->Source.empty()) continue;
+      
+      executableIsAdded |= (it1->Name == jobdesc.Application.Executable.Name);
+      inputIsAdded      |= (it1->Name == jobdesc.Application.Input);
+    }
+
+    if (!jobdesc.Application.Executable.Name.empty() && !executableIsAdded) {
+      FileType executable;
+      executable.Name = jobdesc.Application.Executable.Name;
+      DataSourceType source;
+      source.URI = executable.Name;
+      source.Threads = -1;
+      executable.Source.push_back(source);
+      executable.KeepData = false;
+      executable.IsExecutable = true;
+      executable.DownloadToCache = false;
+      jobdesc.DataStaging.File.push_back(executable);
+    }
+
+    if (!jobdesc.Application.Input.empty() && !inputIsAdded) {
+      FileType input;
+      input.Name = jobdesc.Application.Input;
+      DataSourceType source;
+      source.URI = input.Name;
+      source.Threads = -1;
+      input.Source.push_back(source);
+      input.KeepData = false;
+      input.IsExecutable = false;
+      input.DownloadToCache = false;
+      jobdesc.DataStaging.File.push_back(input);
     }
 
     if (!jobdesc.Resources.RunTimeEnvironment.empty() &&
