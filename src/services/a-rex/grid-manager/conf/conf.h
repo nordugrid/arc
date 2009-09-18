@@ -6,6 +6,9 @@
 #include <fstream>
 #include <string>
 
+#include <arc/XMLNode.h>
+#include <arc/Logger.h>
+
 extern char* config_file;
 
 /*
@@ -46,5 +49,16 @@ std::string config_read_line(std::istream &cfile,std::string &rest,char separato
    rest - rest of the string.
 */
 std::string config_next_arg(std::string &rest,char separator = ' ');
+
+typedef enum {
+  config_file_XML,
+  config_file_INI,
+  config_file_unknown
+} config_file_type;
+
+config_file_type config_detect(std::istream& in);
+bool elementtobool(Arc::XMLNode pnode,const char* ename,bool& val,Arc::Logger* logger = NULL);
+bool elementtoint(Arc::XMLNode pnode,const char* ename,int& val,Arc::Logger* logger = NULL);
+bool elementtoint(Arc::XMLNode pnode,const char* ename,unsigned int& val,Arc::Logger* logger = NULL);
 
 #endif // __GM_CONF_H__

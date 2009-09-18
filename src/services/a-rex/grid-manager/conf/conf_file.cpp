@@ -41,32 +41,6 @@ static void check_lrms_backends(const std::string& default_lrms) {
   };
 }
 
-typedef enum {
-  config_file_XML,
-  config_file_INI,
-  config_file_unknown
-} config_file_type;
-
-static config_file_type config_detect(std::istream& in) {
-  char inchar;
-  while(in.good()) {
-    inchar = (char)(in.get());
-    if(isspace(inchar)) continue;
-    if(inchar == '<') {
-      // XML starts from < even if it is comment
-      in.putback(inchar);
-      return config_file_XML;
-    };
-    if((inchar == '#') || (inchar = '[')) {
-      // INI file starts from comment or section
-      in.putback(inchar);
-      return config_file_INI;
-    };
-  };
-  in.putback(inchar);
-  return config_file_unknown;
-}
-
 bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my_username,JobUser &my_user,Daemon* daemon) {
   std::ifstream cfile;
   std::string session_root("");
@@ -95,7 +69,7 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
       Arc::XMLNode cfg;
       if(!cfg.ReadFromStream(cfile)) {
         config_close(cfile);
-        logger.msg(Arc::ERROR,"Can't interpret configuration file ass XML");
+        logger.msg(Arc::ERROR,"Can't interpret configuration file as XML");
         return false;
       }; 
       config_close(cfile);
@@ -606,37 +580,6 @@ exit:
   return false;
 }
 
-static bool elementtobool(Arc::XMLNode pnode,const char* ename,bool& val) {
-  std::string v = pnode[ename];
-  if(v.empty()) return true; // default
-  if((v == "true") || (v == "1")) {
-    val=true;
-    return true;
-  };
-  if((v == "false") || (v == "0")) {
-    val=false;
-    return true;
-  };
-  logger.msg(Arc::ERROR,"wrong boolean in %s: %s",ename,v.c_str());
-  return false;
-}
-
-static bool elementtoint(Arc::XMLNode pnode,const char* ename,unsigned int& val) {
-  std::string v = pnode[ename];
-  if(v.empty()) return true; // default
-  if(Arc::stringto(v,val)) return true;
-  logger.msg(Arc::ERROR,"wrong number in %s: %s",ename,v.c_str());
-  return false;
-}
-
-static bool elementtoint(Arc::XMLNode pnode,const char* ename,int& val) {
-  std::string v = pnode[ename];
-  if(v.empty()) return true; // default
-  if(Arc::stringto(v,val)) return true;
-  logger.msg(Arc::ERROR,"wrong number in %s: %s",ename,v.c_str());
-  return false;
-}
-
 bool configure_serviced_users(Arc::XMLNode cfg,JobUsers &users,uid_t my_uid,const std::string &my_username,JobUser &my_user) {
   Arc::XMLNode tmp_node;
   bool superuser = (my_uid == 0);
@@ -735,16 +678,16 @@ bool configure_serviced_users(Arc::XMLNode cfg,JobUsers &users,uid_t my_uid,cons
     int max_jobs, max_jobs_running = -1;
     int max_jobs_processing, max_jobs_processing_emergency, max_downloads = -1;
     unsigned int wakeup_period;
-    elementtoint(tmp_node,"maxJobsTracked",max_jobs);
-    elementtoint(tmp_node,"maxJobsRun",max_jobs_running);
+    elementtoint(tmp_node,"maxJobsTracked",max_jobs,&logger);
+    elementtoint(tmp_node,"maxJobsRun",max_jobs_running,&logger);
     JobsList::SetMaxJobs(max_jobs,max_jobs_running);
-    elementtoint(tmp_node,"maxJobsTransfered",max_jobs_processing);
-    elementtoint(tmp_node,"maxJobsTransferedAdditional",max_jobs_processing_emergency);
-    elementtoint(tmp_node,"maxFilesTransfered",max_downloads);
+    elementtoint(tmp_node,"maxJobsTransfered",max_jobs_processing,&logger);
+    elementtoint(tmp_node,"maxJobsTransferedAdditional",max_jobs_processing_emergency,&logger);
+    elementtoint(tmp_node,"maxFilesTransfered",max_downloads,&logger);
     JobsList::SetMaxJobsLoad(max_jobs_processing,
                              max_jobs_processing_emergency,
                              max_downloads);
-    if(elementtoint(tmp_node,"wakeupPeriod",wakeup_period)) {
+    if(elementtoint(tmp_node,"wakeupPeriod",wakeup_period,&logger)) {
       JobsList::SetWakeupPeriod(wakeup_period);
     };
   }
@@ -783,18 +726,18 @@ bool configure_serviced_users(Arc::XMLNode cfg,JobUsers &users,uid_t my_uid,cons
     bool use_local_transfer = false;
     Arc::XMLNode to_node = tmp_node["timeouts"];
     if(to_node) {
-      elementtoint(tmp_node,"minSpeed",min_speed);
-      elementtoint(tmp_node,"minSpeedTime",min_speed_time);
-      elementtoint(tmp_node,"minAverageSpeed",min_average_speed);
-      elementtoint(tmp_node,"maxInactivityTime",max_inactivity_time);
+      elementtoint(tmp_node,"minSpeed",min_speed,&logger);
+      elementtoint(tmp_node,"minSpeedTime",min_speed_time,&logger);
+      elementtoint(tmp_node,"minAverageSpeed",min_average_speed,&logger);
+      elementtoint(tmp_node,"maxInactivityTime",max_inactivity_time,&logger);
       JobsList::SetSpeedControl(min_speed,min_speed_time,
                                 min_average_speed,max_inactivity_time);
     };
-    elementtobool(tmp_node,"passiveTransfer",use_passive_transfer);
+    elementtobool(tmp_node,"passiveTransfer",use_passive_transfer,&logger);
     JobsList::SetPassiveTransfer(use_passive_transfer);
-    elementtobool(tmp_node,"secureTransfer",use_secure_transfer);
+    elementtobool(tmp_node,"secureTransfer",use_secure_transfer,&logger);
     JobsList::SetSecureTransfer(use_secure_transfer);
-    elementtobool(tmp_node,"localTransfer",use_local_transfer);
+    elementtobool(tmp_node,"localTransfer",use_local_transfer,&logger);
     JobsList::SetLocalTransfer(use_local_transfer);
 
 
@@ -849,7 +792,7 @@ bool configure_serviced_users(Arc::XMLNode cfg,JobUsers &users,uid_t my_uid,cons
     command
   */
   tmp_node = cfg["authPlugin"];
-  if(tmp_node) {
+  for(;tmp_node;++tmp_node) {
     std::string state_name = tmp_node["state"];
     if(state_name.empty()) {
       logger.msg(Arc::ERROR,"state name for authPlugin is missing");
@@ -925,11 +868,11 @@ bool configure_serviced_users(Arc::XMLNode cfg,JobUsers &users,uid_t my_uid,cons
     last_control_dir = control_dir;
     last_session_root = session_root;
     bool strict_session = false;
-    if(!elementtobool(tmp_node,"noRootPower",strict_session)) return false;
+    if(!elementtobool(tmp_node,"noRootPower",strict_session,&logger)) return false;
     unsigned int default_reruns = DEFAULT_JOB_RERUNS;
-    if(!elementtoint(tmp_node,"maxReruns",default_reruns)) return false;
-    if(!elementtoint(tmp_node,"defaultTTL",default_ttl)) return false;
-    if(!elementtoint(tmp_node,"defaultTTR",default_ttr)) return false;
+    if(!elementtoint(tmp_node,"maxReruns",default_reruns,&logger)) return false;
+    if(!elementtoint(tmp_node,"defaultTTL",default_ttl,&logger)) return false;
+    if(!elementtoint(tmp_node,"defaultTTR",default_ttr,&logger)) return false;
     Arc::XMLNode unode = tmp_node["username"];
     std::list<std::string> userlist;
     for(;unode;++unode) {
