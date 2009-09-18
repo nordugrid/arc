@@ -80,23 +80,25 @@ int main(int argc, char* argv[]){
 
     std::list<std::string> params = options.Parse(argc, argv);
 
+    // If debug is specified as argument, it should be set before loading the configuration.
+    if (!debug.empty())
+      Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(debug));
+
     Arc::UserConfig usercfg(config_path, true);
     if (!usercfg) {
       std::cerr<<"Failed configuration initialization"<<std::endl;
       return EXIT_FAILURE;
     }
   
-    if (timeout > 0) {
-      usercfg.SetTimeOut((unsigned int)timeout);
-    }
-  
-    if (!debug.empty())
-      Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(debug));
-    else if (debug.empty() && usercfg.ConfTree()["Debug"]) {
+    if (debug.empty() && usercfg.ConfTree()["Debug"]) {
       debug = (std::string)usercfg.ConfTree()["Debug"];
       Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(debug));
     }
 
+    if (timeout > 0) {
+      usercfg.SetTimeOut((unsigned int)timeout);
+    }
+  
     if (version) {
         std::cout << Arc::IString("%s version %s", "arcdecision", VERSION)
                   << std::endl;

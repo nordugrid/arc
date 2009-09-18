@@ -199,10 +199,19 @@ int main(int argc, char *argv[]) {
 
   std::list<std::string> params = options.Parse(argc, argv);
 
+  // If debug is specified as argument, it should be set before loading the configuration.
+  if (!debug.empty())
+    Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(debug));
+
   Arc::UserConfig usercfg(conffile, false);
   if (!usercfg) {
     logger.msg(Arc::ERROR, "Failed configuration initialization");
     return 1;
+  }
+
+  if (debug.empty() && usercfg.ConfTree()["Debug"]) {
+    debug = (std::string)usercfg.ConfTree()["Debug"];
+    Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(debug));
   }
 
   if (slcs_url.empty() && usercfg.ConfTree()["SLCSURL"])
@@ -239,13 +248,6 @@ int main(int argc, char *argv[]) {
 
   trusted_ca_path = (std::string)usercfg.ConfTree()["CACertificatePath"];
   trusted_ca_dir = (std::string)usercfg.ConfTree()["CACertificatesDir"];
-
-  if (!debug.empty())
-    Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(debug));
-  else if (debug.empty() && usercfg.ConfTree()["Debug"]) {
-    debug = (std::string)usercfg.ConfTree()["Debug"];
-    Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(debug));
-  }
 
   if (version) {
     std::cout << Arc::IString("%s version %s", "arcslcs", VERSION) << std::endl;
