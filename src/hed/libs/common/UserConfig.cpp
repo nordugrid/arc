@@ -722,16 +722,13 @@ namespace Arc {
       else {
         IniConfig ini(conffile);
         if (ini) {
-          ini.SaveToStream(std::cout); std::cout << std::endl;
           XMLNode child;
-          cfg.SaveToStream(std::cout); std::cout << std::endl;
           for (int i = 0; (child = ini["common"].Child(i)); i++) {
             if (cfg[child.Name()])
               cfg[child.Name()].Replace(child);
             else
               cfg.NewChild(child);
           }
-          cfg.SaveToStream(std::cout); std::cout << std::endl;
         }
         else
           logger.msg(WARNING, "Could not load user client configuration");
