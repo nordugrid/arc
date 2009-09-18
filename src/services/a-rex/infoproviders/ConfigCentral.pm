@@ -57,7 +57,7 @@ sub hash_collapse_arrays {
         next unless ref($v) eq 'ARRAY';
         next if grep {$k eq $_} @preserve;
         $v = pop @$v;
-		# XMLSimple converts empty elements into an empty hash.
+        # XMLSimple converts empty elements into an empty hash.
         # Replace these with the empty string.
         $v = '' if ref $v eq 'HASH' and not scalar %$v;
         $h->{$k} = $v;
@@ -132,9 +132,9 @@ sub build_config_from_inifile {
     my $config = {};
     %$config = (%$config, $iniparser->get_section("common"));
     %$config = (%$config, $iniparser->get_section("grid-manager"));
+    fixbools $config, ['sharedFilesystem', 'sharedScratchDir'];
 
     $config->{service} = {$iniparser->get_section("ComputingService")};
-    fixbools $config->{service}, ['sharedFilesystem', 'sharedScratchDir'];
 
     $config->{control} = {};
     $config->{xenvs} = {};
@@ -154,7 +154,7 @@ sub build_config_from_inifile {
         my $sconf = $config->{shares}{$name} = {$iniparser->get_section("ComputingShare/$name")};
         fixbools $sconf, ['Preemption'];
     }
-	my @multival = qw(cachedir remotecachedir sessiondir maxloadshare condor_requirements
+    my @multival = qw(cachedir remotecachedir sessiondir maxloadshare condor_requirements
                       OpSys Middleware LocalSE ClusterOwner Benchmark OtherInfo
                       StatusInfo NodeSelectionRegex ExecEnvName AuthorizedVO);
     hash_tree_apply $config, sub { section_expand_multivalued shift, @multival };
@@ -166,20 +166,13 @@ sub build_config_from_parsed_xml {
     my ($arex) = @_;
     my $config = {};
 
-	my @multival = qw(cache location control sessionRootDir maxJobsPerShare
+    my @multival = qw(cache location control sessionRootDir maxJobsPerShare
                       OpSys Middleware LocalSE ClusterOwner Benchmark OtherInfo
                       StatusInfo Regex ExecEnvName AuthorizedVO
                       Contact ExecutionEnvironment ComputingShare);
     hash_tree_apply $arex, sub { hash_collapse_arrays shift, @multival };
 
-    $config->{endpoint} = $arex->{endpoint} if $arex->{endpoint};
-    $config->{ttl} = $arex->{InfoproviderWakeupPeriod} if $arex->{InfoproviderWakeupPeriod};
-    $config->{runtimedir} = $arex->{runtimeDir} if $arex->{runtimeDir};
-    $config->{scratchdir} = $arex->{scratchDir} if $arex->{scratchDir};
-    $config->{sharedScratchDir} = $arex->{sharedScratchDir} if $arex->{sharedScratchDir};
-    $config->{sharedFilesystem} = $arex->{sharedFilesystem} if $arex->{sharedFilesystem};
-    $config->{gnu_time} = $arex->{GNUTimeUtility} if $arex->{GNUTimeUtility};
-    $config->{tmpdir} = $arex->{tmpDir} if $arex->{tmpDir};
+    $config = { %$config, %{hash_extract_onelevel $arex} };
 
     $config->{control}{'.'} = {};
     $config->{xenvs} = {};
@@ -239,7 +232,7 @@ sub build_config_from_parsed_xml {
 
     my $csrv = $arex->{ComputingService} || {};
 
-    $config->{service} = { %$config, %{hash_extract_onelevel $csrv} };
+    $config->{service} = hash_extract_onelevel $csrv;
     fixbools $config->{service}, ['sharedFilesystem', 'sharedScratchDir'];
 
     $config->{Location} = $csrv->{Location} if $csrv->{Location};
@@ -251,8 +244,7 @@ sub build_config_from_parsed_xml {
         my $name = $xe->{name};
         $log->error("ExecutionEnvironment witout name") unless $name;
         delete $xe->{name};
-        my $xeconf = $config->{xenvs}{$name} = {};
-        %$xeconf = %{hash_extract_onelevel $xe};
+        my $xeconf = $config->{xenvs}{$name} = hash_extract_onelevel $xe;
 
         fixbools $xeconf, ['Homogeneous', 'VirtualMachine', 'ConnectivityIn', 'ConnectivityOut'];
     }
@@ -263,8 +255,7 @@ sub build_config_from_parsed_xml {
         my $name = $s->{name};
         $log->error("ComputingShare without name") unless $name;
         delete $s->{name};
-        my $sconf = $config->{shares}{$name} = {};
-        %$sconf = %{hash_extract_onelevel $s};
+        my $sconf = $config->{shares}{$name} = hash_extract_onelevel $s;
 
         fixbools $sconf, ['Preemption'];
     }
@@ -278,7 +269,7 @@ sub build_config_from_parsed_xml {
 sub merge_configs {
     my ($conf1, $conf2) = @_;
     $conf1 = { %$conf1, %{hash_extract_onelevel $conf2} };
-    my @branches = qw(control xenvs shares);
+    my @branches = qw(control service xenvs shares);
     $conf2->{$_} or $conf2->{$_} = {} for @branches;
     for my $type (@branches) {
         for my $name (keys %{$conf2->{$type}}) {
@@ -361,7 +352,8 @@ sub parseConfig {
     #}
     $log->error("A-REX service configuration format has changed. See 'install_prefix/share/doc/arc/arex_service-secure-xml.xml.example'")
         unless %{$config->{service}} and %{$config->{xenvs}} and %{$config->{shares}};
-    #print(Dumper $config);
+#    print(Dumper $config);
+#exit;
     return $config;
 }
 

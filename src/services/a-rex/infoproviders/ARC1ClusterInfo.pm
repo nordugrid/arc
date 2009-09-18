@@ -108,7 +108,7 @@ sub get_cluster_info($) {
     my $lrms_info = $options->{lrms_info};
 
     my $creation_time = timenow();
-    my $validity_ttl = $config->{ttl};
+    my $validity_ttl = $config->{InfoproviderWakeupPeriod};
 
     my @allxenvs = keys %{$config->{xenvs}};
     my @allshares = keys %{$config->{shares}};

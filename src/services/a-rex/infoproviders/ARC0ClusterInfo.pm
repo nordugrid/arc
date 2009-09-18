@@ -54,7 +54,8 @@ sub get_cluster_info($) {
     my $gmjobs_info = $options->{gmjobs_info};
     my $lrms_info = $options->{lrms_info};
 
-    my ($valid_from, $valid_to) = $config->{ttl} ? mds_valid($config->{ttl}) : ();
+    my $ttl = $config->{InfoproviderWakeupPeriod};
+    my ($valid_from, $valid_to) = $ttl ? mds_valid($ttl) : ();
 
     my @allxenvs = keys %{$config->{xenvs}};
     my @allshares = keys %{$config->{shares}};
@@ -192,6 +193,14 @@ sub get_cluster_info($) {
         $authorizedvos{"VO:$_"} = 1 for @{$sconfig->{AuthorizedVO}};
     }
 
+	# Assume no connectivity unles explicitly configured otherwise on each
+	# ExecutionEnvironment
+    my ($inbound, $outbound) = (1,1);
+    for my $xeconfig (values %{$config->{xenvs}}) {
+        $inbound = 0 unless ($xeconfig->{connectivityIn} || 'false') eq 'true';
+        $outbound = 0 unless ($xeconfig->{connectivityOut} || 'false') eq 'true';
+    }
+
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     # # # # # # # # # # build information tree  # # # # # # # # # #
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -227,8 +236,8 @@ sub get_cluster_info($) {
     $c->{'nc0:nodecpu'} = [ $config->{CPUModel}." @ ".$config->{CPUClockSpeed}." MHz" ]
         if $config->{CPUModel} and $config->{CPUClockSpeed};
     $c->{'nc0:homogeneity'} = [ $homogeneous ? 'False' : 'True' ];
-    $c->{'nc0:nodeaccess'} = [ 'inbound' ] if lc $config->{ConnectivityIn} eq 'true';
-    $c->{'nc0:nodeaccess'} = [ 'outbound' ] if lc $config->{ConnectivityOut} eq 'true';
+    $c->{'nc0:nodeaccess'} = [ 'inbound' ] if $inbound;
+    $c->{'nc0:nodeaccess'} = [ 'outbound' ] if $outbound;
     $c->{'nc0:totalcpus'} = [ $lrms_info->{cluster}{totalcpus} ];
     $c->{'nc0:usedcpus'} = [ $lrms_info->{cluster}{usedcpus} ];
     $c->{'nc0:cpudistribution'} = [ $lrms_info->{cluster}{cpudistribution} ];

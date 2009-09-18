@@ -133,7 +133,7 @@ sub arc0_info_schema {
             'nc0:homogeneity' => [ '' ],
             'nc0:nodecpu' => [ '*' ],
             'nc0:nodememory' => [ '*' ],
-            'nc0:nodeaccess' => [ '' ],
+            'nc0:nodeaccess' => [ '*' ],
             'nc0:totalcpus' => [ '' ],
             'nc0:usedcpus' => [ '' ],
             'nc0:cpudistribution' => [ '' ],

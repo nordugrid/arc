@@ -129,7 +129,7 @@
           </ip:Location>
           <ip:Contact>
               <ip:Name>NIIF User Support</ip:Name>
-              <ip:Detail>support@cluster.org</ip:Detail>
+              <ip:Detail>mailto:support@cluster.org</ip:Detail>
               <ip:Type>usersupport</ip:Type>
           </ip:Contact>
 

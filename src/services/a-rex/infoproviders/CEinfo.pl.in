@@ -44,7 +44,7 @@ sub main {
     ########################################################
     
     my %config_defaults = (
-                   ttl            =>  600,
+                   InfoproviderWakeupPeriod  =>  600,
                    arcversion     => '@VERSION@',
                    gm_mount_point => "/jobs",
                    gm_port        => 2811,
@@ -113,6 +113,12 @@ sub main {
         $config->{arexport} = $2;
     } else {
         $log->error("missing config option: endpoint");
+    }
+
+    if ($config->{Contact}) {
+        for (@{$config->{Contact}}) {
+            $log->warning("URI expected in Contact Detal: ".$_->{Detail}) unless $_->{Detail} =~ m/^\w+:/;
+        }
     }
 
     ##################################################
