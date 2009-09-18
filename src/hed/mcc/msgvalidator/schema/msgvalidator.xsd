@@ -22,7 +22,7 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="ServicePath" type="PathType" minOccurs="1" maxOccurs="1">
+            <xsd:element name="ServicePath" type="xsd:string" minOccurs="1" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation xml:lang="en">
                     Relative path of the service to be validated
@@ -41,11 +41,5 @@
         </xsd:sequence>
     </xsd:complexType>
 </xsd:element>
-
-<xsd:simpleType name="PathType">
-   <xsd:restriction base="xsd:string">
-     <xsd:pattern value="/*"/>
-   </xsd:restriction>
-</xsd:simpleType>
 
 </xsd:schema>
