@@ -13,6 +13,7 @@ static std::string strip_newline(const std::string& str) {
   while((p=s.find('\r',p)) != std::string::npos) s[p]=' ';
   p=0;
   while((p=s.find('\n',p)) != std::string::npos) s[p]=' ';
+  return s;
 }
   
 ModuleManager::ModuleManager(const Config *cfg)

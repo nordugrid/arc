@@ -15,6 +15,7 @@ namespace Arc {
     while((p=s.find('\r',p)) != std::string::npos) s[p]=' ';
     p=0;
     while((p=s.find('\n',p)) != std::string::npos) s[p]=' ';
+    return s;
   }
 
   static PluginDescriptor* find_constructor(PluginDescriptor* desc,const std::string& kind,int min_version,int max_version) {
