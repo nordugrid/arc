@@ -120,8 +120,8 @@ sub run_callback {
     close QQ;
     my $status = $? >> 8;
     $log->warning("Failed running command (exit status $status returned): $command")
-        if $status;
-    return ! $status;
+        if $?;
+    return ! $?;
 }
 
 #
@@ -879,8 +879,21 @@ sub users_info($$) {
 }
 
 
+sub nodes_info {
+    my $arch; # as reported by qstat
+    my $nodes;
+    my $node;
+    my %system = qw(lx24 Linux sol SunOS darwin Darwin);
+    my %machine = qw(amd64 x86_64 x86 i686 ia64 ia64 ppc ppc sparc sparc sparc64 sparc64);
+    if ($arch =~ /^(lx24|sol|darwin)-(amd64|x86|ia64|ppc|sparc|sparc64)$/) {
+        $nodes->{$node}{system} = $system{$1};
+        $nodes->{$node}{machine} = $machine{$2};
+    }
+}
+
+
 sub test {
-    $log->level($LogUtils::DEBUG);
+    LogUtils::setLevel("DEBUG");
     require Data::Dumper; import Data::Dumper qw(Dumper);
 
     $path = shift;

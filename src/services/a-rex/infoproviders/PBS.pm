@@ -7,7 +7,8 @@ package PBS;
 @EXPORT_OK = ('cluster_info',
 	      'queue_info',
 	      'jobs_info',
-	      'users_info');
+	      'users_info',
+	      'nodes_info');
 
 use LogUtils ( 'start_logging', 'error', 'warning', 'debug' ); 
 use strict;
@@ -21,6 +22,9 @@ my (%user_jobs_running, %user_jobs_queued);
 
 # the queue passed in the latest call to queue_info, jobs_info or users_info
 my $currentqueue = undef;
+
+# cache info about nodes
+my $pbsnodes;
 
 # Resets queue-specific global variables if
 # the queue has changed since the last call
@@ -39,6 +43,8 @@ sub init_globals($) {
 ##########################################
 
 sub read_pbsnodes ($) { 
+
+    return %$pbsnodes if $pbsnodes;
 
     #processing the pbsnodes output by using a hash of hashes
     # %hoh_pbsnodes (referrenced by $hashref)
@@ -64,6 +70,8 @@ sub read_pbsnodes ($) {
 	$hoh_pbsnodes{$nodeid}{$node_var} = $node_value;     
     } 
     close PBSNODESOUT;
+    $pbsnodes = \%hoh_pbsnodes;
+
     return %hoh_pbsnodes;
 }
 
@@ -674,7 +682,46 @@ sub users_info($$@) {
     }
     return %lrms_users;
 }
-	      
+
+
+sub nodes_info($) {
+
+    my $config = shift;
+    my $path = $config->{pbs_bin_path};
+
+    my %hoh_pbsnodes = read_pbsnodes($path);
+
+    my %nodes;
+    for my $host (keys %hoh_pbsnodes) {
+        my ($isfree, $isavailable) = (0,0);
+        $isfree = 1 if $hoh_pbsnodes{$host}{state} =~ /free/;
+        $isavailable = 1 unless $hoh_pbsnodes{$host}{state} =~ /down|offline|unknown/;
+        $nodes{$host} = {isfree => $isfree, isavailable => $isavailable};
+        my $props = $hoh_pbsnodes{$host}{properties};
+        $nodes{$host}{tags} = [ split /,\s*/, $props ] if $props;
+        my $np = $hoh_pbsnodes{$host}{np};
+        $nodes{$host}{slots} = int $np if $np;
+        my $status = $hoh_pbsnodes{$host}{status};
+        if ($status) {
+            for my $token (split ',', $status) {
+                my ($opt, $val) = split '=', $token, 2;
+                next unless defined $val;
+                if ($opt eq 'totmem') { 
+                    $nodes{$host}{vmem} = $1 if $val =~ m/^(\d+)kb/;
+                } elsif ($opt eq 'physmem') {
+                    $nodes{$host}{pmem} = $1 if $val =~ m/^(\d+)kb/;
+                } elsif ($opt eq 'ncpus') {
+                    $nodes{$host}{lcpus} = int $val;
+                } elsif ($opt eq 'uname') {
+                    my @uname = split ' ', $val;
+                    $nodes{$host}{system} = $uname[0];
+                    $nodes{$host}{machine} = $uname[-1] if $uname[-1];
+                }
+            }
+        }
+    }
+    return %nodes;
+}
 
 
 1;

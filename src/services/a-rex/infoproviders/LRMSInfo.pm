@@ -117,6 +117,20 @@ my $lrms_info_schema = {
             'nodes'     => [ '*' ], # names of nodes where the job runs
             'comment'   => [ '*' ]
         }
+    },
+    'nodes' => {
+        '*' => {                 # key: hostname of the node (as known to the LRMS)
+            'isavailable' => '',      # is available for running jobs
+            'isfree'      => '',      # is available and not yet fully used, can accept more jobs
+            'tags'        => [ '*' ], # tags associated to nodes, i.e. node properties in PBS
+            'vmem'        =>   '*',   # virtual memory, units: kb
+            'pmem'        =>   '*',   # physical memory, units: kb
+            'slots'       =>   '*',   # job slots or virtual processors
+            'lcpus'       =>   '*',   # cpus visible to the os
+            'pcpus'       =>   '*',   # number of sockets
+            'system'      =>   '*',   # what would uname -s print on the node
+            'machine'     =>   '*',   # what would uname -m print (if the node would run linux)
+        }
     }
 };
 
@@ -161,7 +175,7 @@ sub load_lrms($) {
     eval { require "$module.pm" };
 
     if ($@) {
-        $log->debug("Falling back to ARC0.6 compatible module $lrms_name");
+        $log->debug("Using ARC0.6 compatible module $lrms_name");
 
         require ARC0mod;
         ARC0mod::load_lrms($lrms_name);

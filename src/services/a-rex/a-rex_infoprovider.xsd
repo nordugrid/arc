@@ -113,6 +113,7 @@
             <xsd:element name="Benchmark" type="benchmark_Type" minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="Downtime" type="xsd:string" minOccurs="0"/>
 
+            <xsd:element name="PublishNordugrid" type="xsd:boolean" minOccurs="0"/>
             <xsd:element name="ClusterOwner" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="OpSys" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="Middleware" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
@@ -161,11 +162,11 @@
             This element is used by the infoprovider to determine which nodes are included in an ExecutionEnvironment.
         </xsd:documentation>
     </xsd:annotation>
-    <xsd:choice>
+    <xsd:sequence>
        <xsd:element name="Regex" type="xsd:string" maxOccurs="unbounded"/>
-       <xsd:element name="Command" type="xsd:string"/>
-       <xsd:element name="Token" type="xsd:string"/>
-    </xsd:choice>
+       <xsd:element name="Tag" type="xsd:string" maxOccurs="unbounded"/>
+       <xsd:element name="Command" type="xsd:string" maxOccurs="unbounded"/>
+    </xsd:sequence>
 </xsd:complexType>
 
 <xsd:complexType name="computingShare_Type">

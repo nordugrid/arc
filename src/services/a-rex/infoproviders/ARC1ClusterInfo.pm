@@ -82,6 +82,87 @@ sub glueState {
     return $status;
 }
 
+# Intersection of two arrays with O(1) scaling.  The input arrays are the keys
+# of the two hashes passed as reference.  The intersection array consists of
+# the keys of the returned hash reference.
+sub intersection {
+    my ($a, $b) = @_;
+    my %union;
+    $union{$_} = 1 for keys %$a;
+    $union{$_} = 1 for keys %$b;
+    my %xor;
+    for (keys %$a) { $xor{$_} = 1 if exists $b->{$_} }
+    for (keys %$b) { $xor{$_} = 1 if exists $a->{$_} }
+    my %isec; 
+    for (keys %union) { $isec{$_} = 1 if exists $xor{$_} }
+    return \%isec;
+}
+
+# Sums up ExecutionEnvironments attributes from the LRMS plugin
+# TODO: Also agregate values across nodes, check consistency
+sub xecounts {
+    my ($nodes, %nscfg) = @_;
+    return undef unless %$nodes and %nscfg;
+
+    my @allnodes = keys %$nodes;
+
+    my %selected;
+    if ($nscfg{Regex}) {
+        for my $re (@{$nscfg{Regex}}) {
+            map { $selected{$_} = 1 if /$re/ } @allnodes;
+        }
+    }
+    if ($nscfg{Tag}) {
+        for my $tag (@{$nscfg{Tag}}) {
+            for my $node (@allnodes) {
+                my $tags = $nodes->{$node}{tags};
+                next unless $tags;
+                map { $selected{$node} = 1 if $tag eq $_ } @$tags; 
+            }
+        }
+    }
+    if ($nscfg{Command}) {
+        $log->error("Not implemented: NodeSelection: Command");
+    }
+
+    delete $nscfg{Regex};
+    delete $nscfg{Tag};
+    delete $nscfg{Command};
+    $log->warning("Unknown NodeSelection option: @{[keys %nscfg]}") if %nscfg;
+
+    my ($total, $free, $available) = (0,0,0);
+    for my $node (keys %selected) {
+        $total++;
+        $free++ if $nodes->{$node}{isfree};
+        $available++ if $nodes->{$node}{isavailable};
+    }
+    return {total => $total, free => $free, available => $available, nodes => \%selected};
+}
+
+# Combine info about ExecutionEnvironments from config and the LRMS plugin
+# TODO: check for overlap between xenvs
+sub xeinfos {
+    my ($config,$nodes) = @_;
+    my $infos = {};
+    for my $xenv (keys %{$config->{xenvs}}) {
+        my $xecfg = $config->{xenvs}{$xenv};
+        my $info = $infos->{$xenv} = {};
+        $info->{pcpus} = $xecfg->{PhysicalCPUs} if $xecfg->{PhysicalCPUs};
+        $info->{lcpus} = $xecfg->{LogicalCPUs} if $xecfg->{LogicalCPUs};
+        $info->{pmem} = $xecfg->{MainMemorySize} if $xecfg->{MainMemorySize};
+        $info->{vmem} = $xecfg->{VirtualMemorySize} if $xecfg->{VirtualMemorySize};
+        my $nscfg = $xecfg->{NodeSelection};
+        my $counts = $nscfg ? xecounts($nodes, %$nscfg) : undef;
+        if ($counts) {
+            $info->{ntotal} = $counts->{total};
+            $info->{nbusy} = $counts->{available} - $counts->{free};
+            $info->{nunavailable} = $counts->{total} - $counts->{available};
+        }
+    }
+    return $infos;
+}
+
+
 ############################################################################
 # Combine info from all sources to prepare the final representation
 ############################################################################
@@ -108,7 +189,7 @@ sub get_cluster_info($) {
     my $lrms_info = $options->{lrms_info};
 
     my $creation_time = timenow();
-    my $validity_ttl = $config->{InfoproviderWakeupPeriod};
+    my $validity_ttl = 2 * $config->{InfoproviderWakeupPeriod};
 
     my @allxenvs = keys %{$config->{xenvs}};
     my @allshares = keys %{$config->{shares}};
@@ -117,9 +198,32 @@ sub get_cluster_info($) {
     $homogeneous = 0 if @allxenvs > 1;
     $homogeneous = 0 if @allshares > 1 and @allxenvs == 0;
     for my $xeconfig (values %{$config->{xenvs}}) {
-        $homogeneous = 0 if defined $xeconfig->{homogeneous}
-                            and not $xeconfig->{homogeneous};
+        $homogeneous = 0 if defined $xeconfig->{Homogeneous}
+                            and not $xeconfig->{Homogeneous};
     }
+
+    my $xeinfos = xeinfos($config, $lrms_info->{nodes});
+
+    # Figure out total number of CPUs
+    my ($totalpcpus, $totallcpus) = (0,0);
+
+    # First, try to sum up cpus from all ExecutionEnvironments
+    for my $xeinfo (values %$xeinfos) {
+        unless (exists $xeinfo->{ntotal} and $xeinfo->{pcpus}) { $totalpcpus = 0; last }
+        $totalpcpus += $xeinfo->{ntotal}  *  $xeinfo->{pcpus};
+    }
+    for my $xeinfo (values %$xeinfos) {
+        unless (exists $xeinfo->{ntotal} and $xeinfo->{lcpus}) { $totallcpus = 0; last }
+        $totallcpus += $xeinfo->{ntotal}  *  $xeinfo->{lcpus};
+    }
+    # Next, use value returned by LRMS in case the the first try failed.
+    # OBS: most LRMSes don't differentiate between Physical and Logical CPUs.
+    $log->info("Not enough information about ExecutionEnvironments to determine the number of total physical CPUs") unless $totalpcpus;
+    $log->info("Not enough information about ExecutionEnvironments to determine the number of total logical CPUs") unless $totallcpus;
+    $totalpcpus ||= $lrms_info->{cluster}{totalcpus};
+    $totallcpus ||= $lrms_info->{cluster}{totalcpus};
+
+
 
     # # # # # # # # # # # # # # # # # # #
     # # # # # Job statistics  # # # # # #
@@ -714,22 +818,9 @@ sub get_cluster_info($) {
     $cmgr->{ProductVersion} = [ $cluster_info->{lrms_version} ];
     # $cmgr->{Reservation} = [ "undefined" ];
     $cmgr->{BulkSubmission} = [ "false" ];
-    # Sum up all cpus from all ExecutionEnvironments
-    my ($totalphys, $totallogc) = (0,0);
-    for my $xenv (keys %{$config->{xenvs}}) {
-        my $xeconfig = $config->{xenvs}{$xenv};
-        my $count = 0;
-        $count = keys %{$lrms_info->{nodes}{$xenv}} if $lrms_info->{nodes}{$xenv};
-        $count = $xeconfig->{TotalInstances} if $xeconfig->{TotalInstances};
-        next unless $count;
-        $totalphys += $count * $xeconfig->{PhysicalCPUs} if $xeconfig->{PhysicalCPUs};
-        $totallogc += $count * $xeconfig->{LogicalCPUs} if $xeconfig->{LogicalCPUs};
-    }
-    # OBS: most LRMSes don't differentiate between Physical and Logical CPUs.
-    $totalphys ||= $cluster_info->{totalcpus};
-    $totallogc ||= $cluster_info->{totalcpus};
-    $cmgr->{TotalPhysicalCPUs} = [ $totalphys ] if $totalphys;
-    $cmgr->{TotalLogicalCPUs} = [ $totallogc ] if $totallogc;
+
+    $cmgr->{TotalPhysicalCPUs} = [ $totalpcpus ] if $totalpcpus;
+    $cmgr->{TotalLogicalCPUs} = [ $totallcpus ] if $totallcpus;
 
     # OBS: Assuming 1 slot per CPU
     $cmgr->{TotalSlots} = [ $cluster_info->{totalcpus} ];
@@ -801,7 +892,7 @@ sub get_cluster_info($) {
 
     for my $xenv (keys %{$config->{xenvs}}) {
 
-        my $xeinfo = $lrms_info->{nodes}{$xenv};
+        my $xeinfo = $xeinfos->{$xenv};
 
         # Prepare flattened config hash for this xenv.
         my $xeconfig = { %$config, %{$config->{xenvs}{$xenv}} };
@@ -823,21 +914,21 @@ sub get_cluster_info($) {
         my $platform = $xeconfig->{Platform};
         if ($platform) {
             $platform =~ s/x86_64/amd64/;
+            $platform =~ s/ia64/itanium/;
+            $platform =~ s/ppc/powerpc/;
             $execenv->{Platform} = [ $platform ];
         }
 
-        my $count = $xeconfig->{TotalInstances};
-        $count = $xeinfo->{total} if $xeinfo and defined $xeinfo->{total};
-        $execenv->{TotalInstances} = [ $count ] if defined $count;
-        $execenv->{UsedInstances} = [ $xeinfo->{used} ] if $xeinfo and defined $xeinfo->{used};
+        $execenv->{TotalInstances} = [ $xeinfo->{ntotal} ] if defined $xeinfo->{ntotal};
+        $execenv->{UsedInstances} = [ $xeinfo->{nbusy} ] if defined $xeinfo->{nbusy};
+        $execenv->{UnavailableInstances} = [ $xeinfo->{nunavailable} ] if defined $xeinfo->{nunavailable};
         $execenv->{VirtualMachine} = [ $xeconfig->{VirtualMachine} ] if defined $xeconfig->{VirtualMachine};
-        $execenv->{UnavailableInstances} = [ $xeinfo->{offline} ] if $xeinfo and defined $xeinfo->{offline};
 
-        $execenv->{PhysicalCPUs} = [ $xeconfig->{PhysicalCPUs} ] if defined $xeconfig->{PhysicalCPUs};
-        $execenv->{LogicalCPUs} = [ $xeconfig->{LogicalCPUs} ] if defined $xeconfig->{LogicalCPUs};
-        if ($xeconfig->{PhysicalCPUs} and $xeconfig->{LogicalCPUs}) {
-            my $cpum = ($xeconfig->{PhysicalCPUs} > 1) ? 'multicpu' : 'singlecpu';
-            my $corem = ($xeconfig->{LogicalCPUs} > $xeconfig->{PhysicalCPUs}) ? 'multicore' : 'singlecore';
+        $execenv->{PhysicalCPUs} = [ $xeinfo->{pcpus} ] if $xeinfo->{pcpus};
+        $execenv->{LogicalCPUs} = [ $xeinfo->{lcpus} ] if $xeinfo->{lcpus};
+        if ($xeinfo->{pcpus} and $xeinfo->{lcpus}) {
+            my $cpum = ($xeinfo->{pcpus} > 1) ? 'multicpu' : 'singlecpu';
+            my $corem = ($xeinfo->{lcpus} > $xeinfo->{pcpus}) ? 'multicore' : 'singlecore';
             $execenv->{CPUMultiplicity} = [ "$cpum-$corem" ];
         }
         $execenv->{CPUVendor} = [ $xeconfig->{CPUVendor} ] if $xeconfig->{CPUVendor};

@@ -134,6 +134,9 @@
           </ip:Contact>
 
           <ip:ExecutionEnvironment name="localhost">
+              <ip:NodeSelection>
+                  <ip:Regex>.</ip:Regex> <!-- Fork has only one node, and this will surely match it -->
+              </ip:NodeSelection>
               <ip:Platform>adotf</ip:Platform>
               <ip:PhysicalCPUs>adotf</ip:PhysicalCPUs>
               <ip:LogicalCPUs>adotf</ip:LogicalCPUs>

@@ -210,6 +210,8 @@
           <ip:Benchmark>specfp2000 333</ip:Benchmark> <!-- ComputingManager.Benchmark -->
           <ip:Downtime>/var/run/arc/nextdowntime.ini</ip:Downtime> <!-- ComputingEndpoint.Downtime* -->
 
+          <ip:PublishNordugrid>true</ip:PublishNordugrid> <!-- publish XML rendering of Nordugrid Info System -->
+
           <!-- only for publication in legacy infosys -->
           <ip:ClusterOwner>University of NeverLand</ip:ClusterOwner>
           <ip:ClusterOwner>King of the Jungle</ip:ClusterOwner>
@@ -246,12 +248,12 @@
           <ip:ExecutionEnvironment name="dualcore">
 
               <!-- options for selecting the nodes that belong into this nodeGroup -->
-              <!-- needs backend suppot (none yet) -->
+              <!-- needs backend suppot. Only inplemented for Fork and PBS -->
               <ip:NodeSelection>
                   <ip:Regex>^compute-2-[0-9]*</ip:Regex> <!-- INI tag: NodeSelectionRegex-->
                   <ip:Regex>^node-2-[0-9]*</ip:Regex>
                   <ip:Command>/local/scripts/listnodes.sh quad</ip:Command> <!-- INI tag: NodeSelectionCommand-->
-                  <ip:Token>rack2</ip:Token> <!-- INI tag: NodeSelectionToken-->
+                  <ip:Tag>bigmem</ip:Tag> <!-- INI tag: NodeSelectionTag-->
               </ip:NodeSelection>
 
               <ip:OtherInfo>shared area on GPFS</ip:OtherInfo>

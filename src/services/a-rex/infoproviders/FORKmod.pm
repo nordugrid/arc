@@ -17,6 +17,7 @@ our $lrms_info;
 our $options;
 
 our $running = 0;
+our $hostname = hostname();
 
 our $log = LogUtils->getLogger("LRMSInfo.fork");
 
@@ -48,15 +49,20 @@ sub get_lrms_info(\%) {
 
     $lrms_info->{queues} = {};
 
+    my $isfree;
     my %queues = %{$options->{queues}};
     for my $qname ( keys %queues ) {
         queue_info($qname);
+        $isfree = $lrms_info->{queues}{$qname}{status} ? 1 : 0;
     }
 
     for my $qname ( keys %queues ) {
         my $users = $queues{$qname}{users};
         users_info($qname,$users);
     }
+
+    $lrms_info->{nodes}{$hostname}{isavailable} = 1;
+    $lrms_info->{nodes}{$hostname}{isfree} = $isfree;
 
     return $lrms_info
 }
@@ -272,7 +278,7 @@ sub jobs_info ($) {
 
     foreach my $id (@$jids){
 
-        $lrms_jobs->{$id}{nodes} = [ hostname ];
+        $lrms_jobs->{$id}{nodes} = [ $hostname ];
 
         my ($proc) = grep { $id eq $_->{pid} } @procinfo;
         if ($proc) {

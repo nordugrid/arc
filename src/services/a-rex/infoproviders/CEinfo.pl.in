@@ -45,6 +45,7 @@ sub main {
     
     my %config_defaults = (
                    InfoproviderWakeupPeriod  =>  600,
+                   PublishNordugrid  =>  'false',
                    arcversion     => '@VERSION@',
                    gm_mount_point => "/jobs",
                    gm_port        => 2811,
@@ -198,9 +199,11 @@ sub collect($) {
     fix_adotf($_, $input->{host_info}) for values %{$config->{xenvs}};
 
     my $cluster_info;
-    $cluster_info->{'n:nordugrid'} = ARC0ClusterInfo::collect($input);
-    $cluster_info->{'n:nordugrid'}{'xmlns:n'} = "urn:nordugrid-cluster";
-
+    my $png = $config->{service}{PublishNordugrid};
+    if (defined $png and $png eq 'true') {
+        $cluster_info->{'n:nordugrid'} = ARC0ClusterInfo::collect($input);
+        $cluster_info->{'n:nordugrid'}{'xmlns:n'} = "urn:nordugrid-cluster";
+    }
     $cluster_info->{'Domains'}->{'xmlns'} = "http://schemas.ogf.org/glue/2008/05/spec_2.0_d41_r01";
     $cluster_info->{'Domains'}->{'xmlns:xsi'} = "http://www.w3.org/2001/XMLSchema-instance";
     $cluster_info->{'Domains'}->{'xsi:schemaLocation'} = "http://schemas.ogf.org/glue/2008/05/spec_2.0_d41_r01 pathto/GLUE2.xsd";
@@ -252,7 +255,7 @@ sub get_gmjobs_info($) {
 
         # If A-REX has not choosen a share for the job, default to one.
         if (not $share) {
-            my $msg = "Share not choosen for job $jobid";
+            my $msg = "A-REX has not choosen a share for job $jobid";
             if ($config->{defaultShare}) {
                 $log->info($msg.". Assuming default: ".$config->{defaultShare});
                 $share = $config->{defaultShare};

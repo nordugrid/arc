@@ -35,13 +35,21 @@ our %modnames = ( PBS    => "PBS",
                   FORK   => "Fork"
                 );
 
+# Whether the module implements support for listing nodes.
+our $has_nodes = 1;
+
 sub load_lrms($) {
     my $lrms_name = uc(shift);
     my $module = $modnames{$lrms_name};
     $log->error("No ARC0 module for $lrms_name") unless $module;
     eval { require "$module.pm" };
-    $log->error("LRMS module $module not found") if $@;
+    $log->error("Failed to load LRMS module $module: $@") if $@;
     import $module qw(cluster_info queue_info jobs_info users_info);
+    eval { import $module qw(nodes_info) };
+    if ($@) {
+        $log->debug("LRMS module $module does not export 'nodes_info'");
+        $has_nodes=0;
+    }
     $LogUtils::default_logger = LogUtils->getLogger($module);
 }
 
@@ -67,11 +75,13 @@ sub get_lrms_info($) {
     delete $cluster_config{queues};
     delete $cluster_config{jobs};
 
-    my $lrms_info = {cluster => {}, queues => {}, jobs => {}};
+    my $lrms_info = {cluster => {}, queues => {}, jobs => {}, nodes => {}};
 
     my $cluster_info = { cluster_info(\%cluster_config) };
     delete $cluster_info->{queue};
     $lrms_info->{cluster} = delete_empty($cluster_info);
+
+    $lrms_info->{nodes} = { nodes_info(\%cluster_config) } if $has_nodes;
 
     for my $qname ( keys %{$options->{queues}} ) {
 

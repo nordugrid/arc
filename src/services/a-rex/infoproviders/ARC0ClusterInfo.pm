@@ -280,7 +280,7 @@ sub get_cluster_info($) {
 
         if (@nxenvs) {
             my $xeconfig = $config->{xenvs}{$nxenvs[0]};
-            $log->warning("Only taking into account first ExecutionEnvironment ($nxenvs[0]) for share '$share'") if @nxenvs > 1;
+            $log->info("The Nordugrid InfoSchema is not compatible with multiple ExecutionEnvironments per share") if @nxenvs > 1;
 
             $sconfig = { %$sconfig, %$xeconfig };
         }
