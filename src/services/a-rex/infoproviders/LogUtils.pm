@@ -2,7 +2,7 @@ package LogUtils;
 
 # Object-oriented usage example:
 # 
-#    LogUtils::setLevel("DEBUG");
+#    LogUtils::level("DEBUG");
 #    $log = LogUtils->getLogger("MyProg.MyClass");
 #    $log->warning("Oops!");
 #    $log->error("Can't go on!");
@@ -23,7 +23,7 @@ use Exporter;
 
 use strict;
 
-our %names = (ERROR => 1, WARNING => 2, INFO => 3, DEBUG => 4, VERBOSE => 5);
+our %names = (FATAL => 0, ERROR => 1, WARNING => 2, INFO => 3, DEBUG => 4, VERBOSE => 5);
 
 our $loglevel = 1; # default level is WARNING
 
@@ -32,11 +32,12 @@ our $default_logger = LogUtils->getLogger(basename($0));
 # For backwards compatibility
 
 sub start_logging($) {
-    setLevel(shift);
+    level(shift);
 }
 
 # set loglevel for all loggers
-sub setLevel {
+sub level {
+    return $loglevel unless  @_;
     my $level = shift;
     $loglevel = $names{$level};
     fatal("No such loglevel '$level'") unless $loglevel;
@@ -50,6 +51,13 @@ sub getLogger {
     my $self = {name => (shift || '')};
     bless $self, $class;
     return $self;
+}
+
+sub verbose {
+    return unless $loglevel > 4;
+    unshift(@_, $default_logger) unless ref($_[0]) eq __PACKAGE__;
+    my ($self, $msg) = @_;
+    $self->_log('VERBOSE',$msg);
 }
 
 sub debug {
@@ -97,7 +105,7 @@ sub _log {
 }
 
 sub test {
-    LogUtils::setLevel('INFO');
+    LogUtils::level('INFO');
     my $log = LogUtils->getLogger();
     $log->warning("Hi");
     $log = LogUtils->getLogger("main");

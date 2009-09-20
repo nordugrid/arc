@@ -1,8 +1,9 @@
 package HostInfo;
 
+use POSIX;
 use Sys::Hostname;
 
-use Sysinfo qw(cpuinfo meminfo osfamily processid diskinfo diskspaces);
+use Sysinfo qw(cpuinfo meminfo processid diskinfo diskspaces);
 use LogUtils;
 use InfoChecker;
 
@@ -21,13 +22,14 @@ our $host_options_schema = {
 
 our $host_info_schema = {
         hostname      => '',
-        architecture  => '',
+        sysname       => '',
+        machine       => '',
         cpumodel      => '*',
         cpufreq       => '*', # unit: MHz
         cpustepping   => '*',
         cpuvendor     => '*',
-        memtotal      => '*', # unit: MB
-        osfamily      => '*',
+        pmem          => '*', # unit: MB
+        vmem          => '*', # unit: MB
         cputhreadcount=> '*',
         cpucorecount  => '*',
         cpusocketcount=> '*',
@@ -110,9 +112,10 @@ sub get_host_info($) {
     # Scripting, scripting, scripting, oh hay, oh hay...
     ############################################################
 
-    chomp( $host_info->{hostname} = hostname());
-    chomp( $host_info->{architecture} = `uname -m`);
-    $log->warning("Failed running uname") if $?;
+    $host_info->{hostname} = hostname();
+    my ($sysname, $nodename, $release, $version, $machine) = POSIX::uname();
+    $host_info->{machine} = $machine;
+    $host_info->{sysname} = $sysname;
 
     my $cpuinfo = cpuinfo();
     if ($cpuinfo) {
@@ -121,9 +124,8 @@ sub get_host_info($) {
         $log->error("Failed querying CPU info");
     }
     my $meminfo = meminfo();
-    $host_info->{memtotal} = $meminfo->{memtotal} if $meminfo->{memtotal};
-    my $osfamily = osfamily();
-    $host_info->{osfamily} = $osfamily if $osfamily;
+    $host_info->{pmem} = $meminfo->{pmem} if $meminfo->{pmem};
+    $host_info->{vmem} = $meminfo->{vmem} if $meminfo->{vmem};
     
     # Globus location
     my $globus_location ||= $ENV{GLOBUS_LOCATION} ||= "/opt/globus/";
@@ -258,7 +260,7 @@ sub test {
                     processes => [ qw(bash ps init grid-manager bogous) ],
                     localusers => [ qw(root adrianta) ] };
     require Data::Dumper; import Data::Dumper qw(Dumper);
-    LogUtils::setLevel('DEBUG');
+    LogUtils::level('DEBUG');
     $log->debug("Options:\n" . Dumper($options));
     my $results = HostInfo::collect($options);
     $log->debug("Results:\n" . Dumper($results));

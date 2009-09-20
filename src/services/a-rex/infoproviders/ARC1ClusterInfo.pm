@@ -82,31 +82,27 @@ sub glueState {
     return $status;
 }
 
-# Intersection of two arrays with O(1) scaling.  The input arrays are the keys
-# of the two hashes passed as reference.  The intersection array consists of
-# the keys of the returned hash reference.
+# Intersection of two arrays that completes in linear time.  The input arrays
+# are the keys of the two hashes passed as reference.  The intersection array
+# consists of the keys of the returned hash reference.
 sub intersection {
     my ($a, $b) = @_;
-    my %union;
-    $union{$_} = 1 for keys %$a;
-    $union{$_} = 1 for keys %$b;
-    my %xor;
-    for (keys %$a) { $xor{$_} = 1 if exists $b->{$_} }
-    for (keys %$b) { $xor{$_} = 1 if exists $a->{$_} }
-    my %isec; 
+    my (%union, %xor, %isec);
+    for (keys %$a) { $union{$_} = 1; $xor{$_} = 1 if exists $b->{$_} }
+    for (keys %$b) { $union{$_} = 1; $xor{$_} = 1 if exists $a->{$_} }
     for (keys %union) { $isec{$_} = 1 if exists $xor{$_} }
     return \%isec;
 }
 
-# Sums up ExecutionEnvironments attributes from the LRMS plugin
-# TODO: Also agregate values across nodes, check consistency
-sub xecounts {
+
+# processes NodeSelection options and returns the matching nodes.
+sub selectnodes {
     my ($nodes, %nscfg) = @_;
     return undef unless %$nodes and %nscfg;
 
     my @allnodes = keys %$nodes;
 
-    my %selected;
+    my %selected = ();
     if ($nscfg{Regex}) {
         for my $re (@{$nscfg{Regex}}) {
             map { $selected{$_} = 1 if /$re/ } @allnodes;
@@ -122,7 +118,7 @@ sub xecounts {
         }
     }
     if ($nscfg{Command}) {
-        $log->error("Not implemented: NodeSelection: Command");
+        $log->warning("Not implemented: NodeSelection: Command");
     }
 
     delete $nscfg{Regex};
@@ -130,33 +126,153 @@ sub xecounts {
     delete $nscfg{Command};
     $log->warning("Unknown NodeSelection option: @{[keys %nscfg]}") if %nscfg;
 
-    my ($total, $free, $available) = (0,0,0);
-    for my $node (keys %selected) {
-        $total++;
-        $free++ if $nodes->{$node}{isfree};
-        $available++ if $nodes->{$node}{isavailable};
-    }
-    return {total => $total, free => $free, available => $available, nodes => \%selected};
+    $selected{$_} = $nodes->{$_} for keys %selected;
+
+    return \%selected;
 }
 
-# Combine info about ExecutionEnvironments from config and the LRMS plugin
-# TODO: check for overlap between xenvs
+# Sums up ExecutionEnvironments attributes from the LRMS plugin
+sub xestats {
+    my ($xenv, $nodes) = @_;
+    return undef unless %$nodes;
+
+    my %continuous = (vmem => 'VirtualMemorySize', pmem => 'MainMemorySize');
+    my %discrete = (lcpus => 'LogicalCPUs', pcpus => 'PhysicalCPUs', sysname => 'OSFamily', machine => 'Platform');
+
+    my (%minval, %maxval);
+    my (%minnod, %maxnod);
+    my %distrib;
+
+    my %stats = (total => 0, free => 0, available => 0);
+
+    for my $host (keys %$nodes) {
+        my %node = %{$nodes->{$host}};
+        $stats{total}++;
+        $stats{free}++ if $node{isfree};
+        $stats{available}++ if $node{isavailable};
+
+        # Also agregate values across nodes, check consistency
+        for my $prop (%discrete) {
+            my $val = $node{$prop};
+            next unless defined $val;
+            push @{$distrib{$prop}{$val}}, $host;
+        }
+        for my $prop (keys %continuous) {
+            my $val = $node{$prop};
+            next unless defined $val;
+            if (not defined $minval{$prop} or (defined $minval{$prop} and $minval{$prop} > $val)) {
+                $minval{$prop} = $val;
+                $minnod{$prop} = $host;
+            }
+            if (not defined $maxval{$prop} or (defined $maxval{$prop} and $maxval{$prop} < $val)) {
+                $maxval{$prop} = $val;
+                $maxnod{$prop} = $host;
+            }
+        }
+    }
+
+   my $homogeneous = 1;
+    while (my ($prop, $opt) = each %discrete) {
+        my $values = $distrib{$prop};
+        next unless $values;
+        if (scalar keys %$values > 1) {
+            my $msg = "ExecutionEnvironment $xenv is inhomogeneous regarding $opt:";
+            while (my ($val, $hosts) = each %$values) {
+                my $first = pop @$hosts;
+                my $remaining = @$hosts;
+                $val = defined $val ? $val : 'undef';
+                $msg .= " $val($first";
+                $msg .= "+$remaining more" if $remaining;
+                $msg .= ")";
+            }
+            $log->info($msg);
+            $homogeneous = 0;
+        } else {
+            my ($val) = keys %$values;
+            $stats{$prop} = $val;
+        }
+    }
+    if ($maxval{pmem}) {
+        my $rdev = 2 * ($maxval{pmem} - $minval{pmem}) / ($maxval{pmem} + $minval{pmem});
+        if ($rdev > 0.1) {
+            my $msg = "ExecutionEnvironment $xenv has variability larger than 10% regarding MainMemorySize:";
+            $msg .= " Min=$minval{pmem}($minnod{pmem}),";
+            $msg .= " Max=$maxval{pmem}($maxnod{pmem})";
+            $log->info($msg);
+            $homogeneous = 0;
+        }
+        $stats{pmem} = $minval{pmem};
+    }
+    if ($maxval{vmem}) {
+        my $rdev = 2 * ($maxval{vmem} - $minval{vmem}) / ($maxval{vmem} + $minval{vmem});
+        if ($rdev > 0.5) {
+            my $msg = "ExecutionEnvironment $xenv has variability larger than 50% regarding VirtualMemorySize:";
+            $msg .= " Min=$minval{vmem}($minnod{vmem}),";
+            $msg .= " Max=$maxval{vmem}($maxnod{vmem})";
+            $log->debug($msg);
+        }
+        $stats{vmem} = $minval{vmem};
+    }
+    $stats{homogeneous} = $homogeneous;
+
+    return \%stats;
+}
+
+# Combine info about ExecutionEnvironments from config options and the LRMS plugin
 sub xeinfos {
-    my ($config,$nodes) = @_;
+    my ($config, $nodes) = @_;
     my $infos = {};
-    for my $xenv (keys %{$config->{xenvs}}) {
+    my %nodemap = ();
+    my @xenvs = keys %{$config->{xenvs}};
+    for my $xenv (@xenvs) {
         my $xecfg = $config->{xenvs}{$xenv};
         my $info = $infos->{$xenv} = {};
-        $info->{pcpus} = $xecfg->{PhysicalCPUs} if $xecfg->{PhysicalCPUs};
-        $info->{lcpus} = $xecfg->{LogicalCPUs} if $xecfg->{LogicalCPUs};
+        my $nscfg = $xecfg->{NodeSelection};
+        if (not %$nodes) {
+            $log->info("NodeSelection configuration will be ignored as the currently used LRMS plugin has not support for it") if $nscfg;
+        } else {
+            my $selected;
+            if (not $nscfg) {
+                $log->info("NodeSelection configuration missing for ExecutionEnvironment $xenv, implicitly assigning all nodes into it")
+                    unless keys %$nodes == 1 and @xenvs == 1;
+                $selected = $nodes;
+            } else {
+                $selected = selectnodes($nodes, %$nscfg);
+            }
+            $nodemap{$xenv} = $selected;
+            $log->info("No nodes matching NodeSelection for ExecutionEnvironment $xenv") unless %$selected;
+            my $stats = xestats($xenv, $selected);
+            if ($stats) {
+                $info->{ntotal} = $stats->{total};
+                $info->{nbusy} = $stats->{available} - $stats->{free};
+                $info->{nunavailable} = $stats->{total} - $stats->{available};
+                $info->{pmem} = $stats->{pmem} if $stats->{pmem};
+                $info->{vmem} = $stats->{vmem} if $stats->{vmem};
+                $info->{pcpus} = $stats->{pcpus} if $stats->{pcpus};
+                $info->{lcpus} = $stats->{lcpus} if $stats->{lcpus};
+                $info->{slots} = $stats->{slots} if $stats->{slots};
+                $info->{sysname} = $stats->{sysname} if $stats->{sysname};
+                $info->{machine} = $stats->{machine} if $stats->{machine};
+            }
+        }
         $info->{pmem} = $xecfg->{MainMemorySize} if $xecfg->{MainMemorySize};
         $info->{vmem} = $xecfg->{VirtualMemorySize} if $xecfg->{VirtualMemorySize};
-        my $nscfg = $xecfg->{NodeSelection};
-        my $counts = $nscfg ? xecounts($nodes, %$nscfg) : undef;
-        if ($counts) {
-            $info->{ntotal} = $counts->{total};
-            $info->{nbusy} = $counts->{available} - $counts->{free};
-            $info->{nunavailable} = $counts->{total} - $counts->{available};
+        $info->{pcpus} = $xecfg->{PhysicalCPUs} if $xecfg->{PhysicalCPUs};
+        $info->{lcpus} = $xecfg->{LogicalCPUs} if $xecfg->{LogicalCPUs};
+        $info->{sysname} = $xecfg->{OSFamily} if $xecfg->{OSFamily};
+        $info->{machine} = $xecfg->{Platform} if $xecfg->{Platform};
+    }
+    # Check for overlap of nodes
+    if (%$nodes) {
+        for (my $i=0; $i<@xenvs; $i++) {
+            my $nodes1 = $nodemap{$xenvs[$i]};
+            next unless $nodes1;
+            for (my $j=0; $j<$i; $j++) {
+                my $nodes2 = $nodemap{$xenvs[$j]};
+                next unless $nodes2;
+                my $overlap = intersection($nodes1, $nodes2);
+                $log->warning("Overlap detected between ExecutionEnvironments $xenvs[$i] and $xenvs[$j]. Adjust NodeSelection to correct") if %$overlap;
+            }
         }
     }
     return $infos;
@@ -911,14 +1027,20 @@ sub get_cluster_info($) {
 
         $execenv->{ID} = [ $xenvIDs{$xenv} ];
 
-        my $platform = $xeconfig->{Platform};
-        if ($platform) {
-            $platform =~ s/x86_64/amd64/;
-            $platform =~ s/ia64/itanium/;
-            $platform =~ s/ppc/powerpc/;
-            $execenv->{Platform} = [ $platform ];
+        my $machine = $xeinfo->{machine};
+        if ($machine) {
+            $machine =~ s/^x86_64/amd64/;
+            $machine =~ s/^ia64/itanium/;
+            $machine =~ s/^ppc/powerpc/;
+        }
+        my $sysname = $xeinfo->{sysname};
+        if ($sysname) {
+            $sysname =~ s/^Linux/linux/;
+            $sysname =~ s/^Darwin/macosx/;
+            $sysname =~ s/^SunOS/solaris/;
         }
 
+        $execenv->{Platform} = [ $machine ] if $machine;
         $execenv->{TotalInstances} = [ $xeinfo->{ntotal} ] if defined $xeinfo->{ntotal};
         $execenv->{UsedInstances} = [ $xeinfo->{nbusy} ] if defined $xeinfo->{nbusy};
         $execenv->{UnavailableInstances} = [ $xeinfo->{nunavailable} ] if defined $xeinfo->{nunavailable};
@@ -937,9 +1059,9 @@ sub get_cluster_info($) {
         $execenv->{CPUClockSpeed} = [ $xeconfig->{CPUClockSpeed} ] if $xeconfig->{CPUClockSpeed};
         $execenv->{CPUTimeScalingFactor} = [ $xeconfig->{CPUTimeScalingFactor} ] if $xeconfig->{CPUTimeScalingFactor};
         $execenv->{WallTimeScalingFactor} = [ $xeconfig->{WallTimeScalingFactor} ] if $xeconfig->{WallTimeScalingFactor};
-        $execenv->{MainMemorySize} = [ $xeconfig->{MainMemorySize} ] if $xeconfig->{MainMemorySize};
-        $execenv->{VirtualMemorySize} = [ $xeconfig->{VirtualMemorySize} ] if $xeconfig->{VirtualMemorySize};
-        $execenv->{OSFamily} = [ $xeconfig->{OSFamily} ] if $xeconfig->{OSFamily};
+        $execenv->{MainMemorySize} = [ $xeinfo->{pmem} ] if $xeinfo->{pmem};
+        $execenv->{VirtualMemorySize} = [ $xeinfo->{vmem} ] if $xeinfo->{vmem};
+        $execenv->{OSFamily} = [ $sysname ] if $sysname;
         $execenv->{OSName} = [ $xeconfig->{OSName} ] if $xeconfig->{OSName};
         $execenv->{OSVersion} = [ $xeconfig->{OSVersion} ] if $xeconfig->{OSVersion};
         $execenv->{ConnectivityIn} = [ $xeconfig->{ConnectivityIn} ? 'true' : 'false' ] if $xeconfig->{ConnectivityIn};

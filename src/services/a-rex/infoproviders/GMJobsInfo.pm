@@ -275,7 +275,7 @@ sub collect($) {
 
 sub test() {
     require Data::Dumper;
-    LogUtils::setLevel('DEBUG');
+    LogUtils::level('DEBUG');
     my $results = GMJobsInfo::collect('/data/jobstatus');
     print Data::Dumper::Dumper($results);
 }

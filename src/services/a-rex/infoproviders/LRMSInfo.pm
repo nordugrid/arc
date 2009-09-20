@@ -128,7 +128,7 @@ my $lrms_info_schema = {
             'slots'       =>   '*',   # job slots or virtual processors
             'lcpus'       =>   '*',   # cpus visible to the os
             'pcpus'       =>   '*',   # number of sockets
-            'system'      =>   '*',   # what would uname -s print on the node
+            'sysname'     =>   '*',   # what would uname -s print on the node
             'machine'     =>   '*',   # what would uname -m print (if the node would run linux)
         }
     }
@@ -237,7 +237,7 @@ my $opt3 = {lrms => 'pbs',
 
 sub test {
     my $options = shift;
-    LogUtils::setLevel('DEBUG');
+    LogUtils::level('DEBUG');
     require Data::Dumper; import Data::Dumper qw(Dumper);
     $log->debug("Options: " . Dumper($options));
     my $results = LRMSInfo::collect($options);

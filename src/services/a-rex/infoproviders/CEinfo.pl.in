@@ -37,7 +37,7 @@ our $log = LogUtils->getLogger(__PACKAGE__);
 
 sub main {
 
-    LogUtils::setLevel('INFO');
+    LogUtils::level('INFO');
 
     ########################################################
     # Config defaults
@@ -45,7 +45,6 @@ sub main {
     
     my %config_defaults = (
                    InfoproviderWakeupPeriod  =>  600,
-                   PublishNordugrid  =>  'false',
                    arcversion     => '@VERSION@',
                    gm_mount_point => "/jobs",
                    gm_port        => 2811,
@@ -94,7 +93,7 @@ sub main {
 
 
     # Change level for root logger (affects all loggers from now on)
-    LogUtils::setLevel($config->{debugLevel}) if defined $config->{debugLevel};
+    LogUtils::level($config->{debugLevel}) if defined $config->{debugLevel};
 
     # Cross-check ExecutionEnvironment references
     for my $s (values %{$config->{shares}}) {
@@ -311,14 +310,15 @@ sub read_grid_mapfile($) {
 
 sub fix_adotf {
     my ($config, $hostinfo) = @_;
-    my %hostkey = (Platform => 'architecture',
+    my %hostkey = (Platform => 'machine',
                    PhysicalCPUs => 'cpusocketcount',
                    LogicalCPUs => 'cputhreadcount',
                    CPUVendor => 'cpuvendor',
                    CPUModel => 'cpumodel',
                    CPUClockSpeed => 'cpufreq',
-                   MainMemorySize => 'memtotal',
-                   OSFamily => 'osfamily'
+                   MainMemorySize => 'pmem',
+                   VirtualMemorySize => 'vmem',
+                   OSFamily => 'sysname'
     );
     for my $key (keys %hostkey) {
         if (exists $config->{$key} and $config->{$key} eq 'adotf') {

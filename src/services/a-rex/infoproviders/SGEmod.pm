@@ -893,7 +893,7 @@ sub nodes_info {
 
 
 sub test {
-    LogUtils::setLevel("DEBUG");
+    LogUtils::level("DEBUG");
     require Data::Dumper; import Data::Dumper qw(Dumper);
 
     $path = shift;

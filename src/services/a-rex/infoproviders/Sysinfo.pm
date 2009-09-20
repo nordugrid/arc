@@ -4,7 +4,7 @@ use Sys::Hostname;
 
 use Exporter;
 @ISA = ('Exporter');     # Inherit from Exporter
-@EXPORT_OK = qw(cpuinfo meminfo osfamily processid diskinfo diskspaces);
+@EXPORT_OK = qw(cpuinfo meminfo processid diskinfo diskspaces);
 
 use LogUtils;
 
@@ -150,35 +150,23 @@ sub cpuinfo {
 }
 
 sub meminfo {
-    my $info = {};
-
+    my ($memtotal, $swaptotal);
     if (-f "/proc/cpuinfo") {
         # Linux variant
         open (MEMINFO, "</proc/meminfo")
             or $log->warning("Failed opening /proc/meminfo: $!");
         while ( my $line = <MEMINFO> ) {
-            if ($line=~/^MemTotal:\s+(.*) kB$/) {
-                $info->{memtotal} = int ($1/1024);
+            if ($line =~ /^MemTotal:\s+(.*) kB$/) {
+                $memtotal = int ($1/1024);
+            } elsif ($line =~ /^SwapTotal:\s+(.*) kB$/) {
+                $swaptotal = int ($1/1024);
             }
         }
     }
+    my $info = {};
+    $info->{pmem} = $memtotal if $memtotal;
+    $info->{vmem} = $memtotal + $swaptotal if $memtotal and $swaptotal;
     return $info;
-}
-
-
-sub osfamily {
-    my $osfamily = undef;
-    my $kernel = `uname -s`;
-    if ($?) {
-        $log->warning("Failed to run uname -s: $!") if $?; 
-    } else {
-        chomp $kernel;
-        $osfamily = $kernel;
-        $osfamily = 'linux' if $kernel =~ /^Linux/;
-        $osfamily = 'macosx' if $kernel =~ /^Darwin/;
-        $osfamily = 'solaris' if $kernel =~ /^SunOS/;
-    }
-    return $osfamily
 }
 
 

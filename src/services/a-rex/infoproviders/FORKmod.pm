@@ -6,6 +6,7 @@ our @EXPORT_OK = qw(get_lrms_info get_lrms_options_schema);
 use POSIX qw(ceil floor);
 use Sys::Hostname;
 use LogUtils;
+use Sysinfo;
 
 use strict;
 
@@ -18,6 +19,7 @@ our $options;
 
 our $running = 0;
 our $hostname = hostname();
+our $cputhreadcount;
 
 our $log = LogUtils->getLogger("LRMSInfo.fork");
 
@@ -42,6 +44,11 @@ sub get_lrms_info(\%) {
 
     $options = shift;
 
+    my ($sysname, $nodename, $release, $version, $machine) = POSIX::uname();
+    my $meminfo = Sysinfo::meminfo();
+    my $cpuinfo = Sysinfo::cpuinfo();
+    $cputhreadcount = $cpuinfo->{cputhreadcount};
+
     cluster_info();
 
     my $jids = $options->{jobs};
@@ -61,8 +68,16 @@ sub get_lrms_info(\%) {
         users_info($qname,$users);
     }
 
-    $lrms_info->{nodes}{$hostname}{isavailable} = 1;
-    $lrms_info->{nodes}{$hostname}{isfree} = $isfree;
+    my $node = $lrms_info->{nodes}{$hostname} = {};
+
+    $node->{isavailable} = 1;
+    $node->{isfree} = $isfree;
+    $node->{machine} = $machine;
+    $node->{sysname} = $sysname;
+    $node->{lcpus} = $cpuinfo->{cputhreadcount} if $cpuinfo->{cputhreadcount};
+    $node->{pcpus} = $cpuinfo->{cpusocketcount} if $cpuinfo->{cpusocketcount};
+    $node->{pmem} = $meminfo->{pmem} if $meminfo->{pmem};
+    $node->{vmem} = $meminfo->{vmem} if $meminfo->{vmem};
 
     return $lrms_info
 }
@@ -71,89 +86,6 @@ sub get_lrms_info(\%) {
 ##########################################
 # Private subs
 ##########################################
-
-sub cpu_threads_cores_sockets {
-
-    my $nsockets; # total number of physical cpu sockets
-    my $ncores;   # total number of cpu cores
-    my $nthreads; # total number of hardware execution threads
-
-    if (-f "/proc/cpuinfo") {
-        # Linux variant
-
-        my %sockets; # cpu socket IDs
-        my %cores;   # cpu core IDs
-
-        open (CPUINFO, "</proc/cpuinfo")
-            or $log->warning("Failed opening /proc/cpuinfo: $!");
-        while ( my $line = <CPUINFO> ) {
-            if ($line=~/^processor\s*:\s+(\d+)$/) {
-                ++$nthreads;
-            } elsif ($line=~/^physical id\s*:\s+(\d+)$/) {
-                ++$sockets{$1};
-            } elsif ($line=~/^core id\s*:\s+(\d+)$/) {
-                ++$cores{$1};
-            }
-        }
-        close CPUINFO;
-
-        # count total cpu cores and sockets
-        $ncores = scalar keys %cores;
-        $nsockets = scalar keys %sockets;
-
-        if ($nthreads) {
-            # if /proc/cpuinfo does not provide socket and core IDs,
-            # assume every thread represents a separate cpu
-            $ncores = $nthreads unless $ncores;
-            $nsockets = $nthreads unless $nsockets;
-        } else {
-            $log->warning("Failed parsing /proc/cpuinfo");
-        }
-
-    } elsif (-x "/usr/sbin/system_profiler") {
-        # OS X
-
-        my @lines = `system_profiler SPHardwareDataType`;
-        $log->warning("Failed running system_profiler: $!") if $?;
-        for my $line ( @lines ) {
-            if ($line =~ /Number Of Processors:\s*(.+)/) {
-                $nsockets = $1;
-            } elsif ($line =~ /Total Number Of Cores:\s*(.+)/) {
-                $ncores = $1;
-                $nthreads = $1; # Assume 1 execution thread per core
-            }
-        }
-        unless ($nsockets and $ncores) {
-            $log->warning("Failed parsing output of system_profiler");
-        }
-
-    } elsif (-x "/usr/bin/kstat" ) {
-        # Solaris
-
-        my %chips;
-        eval {
-            require Sun::Solaris::Kstat;
-            my $ks = Sun::Solaris::Kstat->new();
-            my $cpuinfo = $ks->{cpu_info};
-            die "key not found: cpu_info" unless defined $cpuinfo;
-            for my $id (keys %$cpuinfo) {
-               my $info = $cpuinfo->{$id}{"cpu_info$id"};
-               die "key not found: cpu_info$id" unless defined $info;
-               $chips{$info->{chip_id}}++;
-               $nthreads++;
-            }
-        };
-        if ($@) {
-            $log->error("Failed running module Sun::Solaris::Kstat: $@");
-        }
-        $nsockets = $ncores = scalar keys %chips;
-
-    } else {
-        $log->warning("Cannot query CPU info: unsupported operating system");
-    }
-
-    return ($nthreads,$ncores,$nsockets);
-}
 
 # Produces stats for all processes on the system
 
@@ -202,8 +134,8 @@ sub cluster_info () {
     $lrms_cluster->{lrms_type} = "fork";
     $lrms_cluster->{lrms_version} = "0.9";
 
-    my ($cputhreads) = cpu_threads_cores_sockets();
-    $lrms_cluster->{totalcpus} = $cputhreads;
+    my $cpuinfo = Sysinfo::cpuinfo();
+    $lrms_cluster->{totalcpus} = $cputhreadcount;
 
     # Since fork is a single machine backend all there will only be one machine available
     $lrms_cluster->{cpudistribution} = $lrms_cluster->{totalcpus}."cpu:1";
@@ -233,8 +165,8 @@ sub queue_info ($) {
     my $lrms_queue = {};
     $lrms_info->{queues}{$qname} = $lrms_queue;
 
-    my ($cputhreads) = cpu_threads_cores_sockets();
-    $lrms_queue->{totalcpus} = $cputhreads;
+    my $cpuinfo = Sysinfo::cpuinfo();
+    $lrms_queue->{totalcpus} = $cputhreadcount;
 
     $lrms_queue->{running} = $running;
     $lrms_queue->{status} = $lrms_queue->{totalcpus} - $running;

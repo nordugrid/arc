@@ -707,14 +707,14 @@ sub nodes_info($) {
                 my ($opt, $val) = split '=', $token, 2;
                 next unless defined $val;
                 if ($opt eq 'totmem') { 
-                    $nodes{$host}{vmem} = $1 if $val =~ m/^(\d+)kb/;
+                    $nodes{$host}{vmem} = int($1/1024) if $val =~ m/^(\d+)kb/;
                 } elsif ($opt eq 'physmem') {
-                    $nodes{$host}{pmem} = $1 if $val =~ m/^(\d+)kb/;
+                    $nodes{$host}{pmem} = int($1/1024) if $val =~ m/^(\d+)kb/;
                 } elsif ($opt eq 'ncpus') {
                     $nodes{$host}{lcpus} = int $val;
                 } elsif ($opt eq 'uname') {
                     my @uname = split ' ', $val;
-                    $nodes{$host}{system} = $uname[0];
+                    $nodes{$host}{sysname} = $uname[0];
                     $nodes{$host}{machine} = $uname[-1] if $uname[-1];
                 }
             }
