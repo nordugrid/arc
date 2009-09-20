@@ -23,7 +23,10 @@ else
 	CFLAGS += -O2
 endif
 
-configure: autogen.sh configure.ac
+ltmain.sh:
+	ln -s /usr/share/libtool/config/ltmain.sh .
+
+configure: autogen.sh configure.ac ltmain.sh
 	./autogen.sh
 
 config.status: configure
@@ -55,7 +58,7 @@ build-indep-stamp:  config.status
 clean::
 	dh_testdir
 	dh_testroot
-	rm -f build-arch-stamp build-indep-stamp #CONFIGURE-STAMP#
+	rm -f build-arch-stamp build-indep-stamp #CONFIGURE-STAMP# config.status
 
 	# Add here commands to clean up after the build process.
 	if [ -r Makefile ]; then $(MAKE) distclean; fi
