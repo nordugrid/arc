@@ -103,6 +103,6 @@ Description: ARC Java wrapper
 
 Package: nordugrid-arc1-doc
 Architecture: all
-Suggests: kpdf|pdf-viewer
+Suggests: xpdf|pdf-viewer
 Description: ARC API documentation
  ARC API docmentation.
