@@ -7,7 +7,6 @@
 #include <iostream>
 #include <signal.h>
 #include <fstream>
-#include <openssl/ssl.h>
 
 #include <arc/ArcConfig.h>
 #include <arc/Logger.h>
@@ -17,6 +16,7 @@
 #include <arc/message/MCC.h>
 #include <arc/message/MCCLoader.h>
 #include <arc/client/ClientInterface.h>
+#include <arc/crypto/OpenSSL.h>
 #include <arc/credential/Credential.h>
 #include <arc/credential/VOMSAttribute.h>
 #include <arc/credential/VOMSUtil.h>
@@ -27,8 +27,7 @@
 int main(void) {
   setlocale(LC_ALL, "");
 
-  SSL_load_error_strings();
-  SSL_library_init();
+  Arc::OpenSSLInit();
 
   Arc::Logger logger(Arc::Logger::getRootLogger(), "Test2VOMSServer");
   Arc::LogStream logcerr(std::cerr);

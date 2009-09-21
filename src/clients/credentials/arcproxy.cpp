@@ -17,8 +17,6 @@
 #include <glibmm/fileutils.h>
 #include <glibmm.h>
 #include <unistd.h>
-#include <openssl/ssl.h>
-#include <openssl/err.h>
 #include <openssl/ui.h>
 
 #include <arc/ArcLocation.h>
@@ -34,6 +32,7 @@
 #include <arc/credential/Credential.h>
 #include <arc/credential/VOMSAttribute.h>
 #include <arc/credential/VOMSUtil.h>
+#include <arc/crypto/OpenSSL.h>
 
 
 static Arc::Logger& logger = Arc::Logger::rootLogger;
@@ -418,8 +417,7 @@ int main(int argc, char *argv[]) {
 
   std::string voms_period = Arc::tostring(Arc::Period(constraints["vomsACvalidityPeriod"]).GetPeriod());
 
-  SSL_load_error_strings();
-  SSL_library_init();
+  Arc::OpenSSLInit();
 
   //If the "GET" myproxy command is given, try to get a delegated
   //certificate from the myproxy server.

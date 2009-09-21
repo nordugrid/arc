@@ -12,6 +12,7 @@ arcproxy_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS) -I$(top
 arcproxy_LDFLAGS  = $(GLIBMM_LIBS) $(LIBXML2_LIBS)
 arcproxy_LDADD    = $(top_srcdir)/src/hed/libs/common/libarccommon.la \
                   $(top_srcdir)/src/hed/libs/client/libarcclient.la \
+                  $(top_srcdir)/src/hed/libs/crypto/libarccrypto.la \
                   $(top_srcdir)/src/hed/libs/delegation/libarcdelegation.la \
                   $(top_srcdir)/src/hed/libs/credential/libarccredential.la
 
@@ -32,6 +33,7 @@ test2vomsserver_LDADD    = $(top_srcdir)/src/hed/libs/common/libarccommon.la \
                            $(top_srcdir)/src/hed/libs/loader/libarcloader.la \
                            $(top_srcdir)/src/hed/libs/client/libarcclient.la \
                            $(top_srcdir)/src/hed/libs/message/libarcmessage.la \
+                           $(top_srcdir)/src/hed/libs/crypto/libarccrypto.la \
                            $(top_srcdir)/src/hed/libs/credential/libarccredential.la
 
 test2myproxyserver_put_SOURCES  = test2myproxyserver_put.cpp
