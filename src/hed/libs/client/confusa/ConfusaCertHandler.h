@@ -1,19 +1,7 @@
 #ifndef __ARC_CONFUSACERTHANDLER_H__
 #define __ARC_CONFUSACERTHANDLER_H__
 
-#include <openssl/ssl.h>
-#include <openssl/x509.h>
-#include <openssl/x509v3.h>
-#include <openssl/pem.h>
-// hashing, digests
-#include <openssl/evp.h>
-// i2d, d2i
-#include <openssl/asn1t.h>
-#include <openssl/bio.h>
-#include <iostream>
 #include <arc/credential/Credential.h>
-#include <arc/Base64.h>
-#include <fstream>
 
 
 namespace Arc {

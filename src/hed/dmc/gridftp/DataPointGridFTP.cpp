@@ -13,14 +13,13 @@
 #include <arc/globusutils/GlobusErrorUtils.h>
 #include <arc/globusutils/GlobusWorkarounds.h>
 #include <arc/globusutils/GSSCredential.h>
+#include <arc/crypto/OpenSSL.h>
 
 #include "DataPointGridFTP.h"
 #include "Lister.h"
 
 namespace Arc {
 
-  static Glib::Mutex openssl_lock;
-  static bool openssl_initialized = false;
   static bool proxy_initialized = false;
 
   Logger DataPointGridFTP::logger(DataPoint::logger, "GridFTP");
@@ -906,15 +905,7 @@ namespace Arc {
     Glib::Module* module = dmcarg->get_module();
     PluginsFactory* factory = dmcarg->get_factory();
     if(factory && module) factory->makePersistent(module);
-    openssl_lock.lock();
-    if (!openssl_initialized) {
-      SSL_load_error_strings();
-      if (!SSL_library_init())
-        logger.msg(ERROR, "SSL_library_init failed");
-      else
-        openssl_initialized = true;
-    }
-    openssl_lock.unlock();
+    OpenSSLInit();
     return new DataPointGridFTP(*dmcarg, *dmcarg);
   }
 

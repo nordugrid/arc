@@ -10,7 +10,7 @@ namespace Arc {
 
   /// This function initializes OpenSSL library.
   /** It may be called multiple times and makes sure everything is 
-     done proprly and OpenSSL may be used in multi-threaded environment.
+     done properly and OpenSSL may be used in multi-threaded environment.
      Because this function makes use of ArcLocation it is advisable
      to call it after ArcLocation::Init(). */
   bool OpenSSLInit(void);

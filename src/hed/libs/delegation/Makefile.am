@@ -8,7 +8,9 @@ libarcdelegation_ladir = $(pkgincludedir)/delegation
 libarcdelegation_la_HEADERS  = DelegationInterface.h
 libarcdelegation_la_SOURCES  = DelegationInterface.cpp
 libarcdelegation_la_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS) -I$(top_srcdir)/include
-libarcdelegation_la_LIBADD   = $(top_srcdir)/src/hed/libs/message/libarcmessage.la $(OPENSSL_LIBS)
+libarcdelegation_la_LIBADD   = $(top_srcdir)/src/hed/libs/message/libarcmessage.la \
+                               $(top_srcdir)/src/hed/libs/crypto/libarccrypto.la \
+                               $(OPENSSL_LIBS)
 
 #test_SOURCES  = test.cpp
 #test_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include

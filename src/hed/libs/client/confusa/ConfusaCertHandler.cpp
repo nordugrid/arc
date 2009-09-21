@@ -2,6 +2,22 @@
 #include <config.h>
 #endif
 
+#include <iostream>
+#include <fstream>
+
+#include <openssl/ssl.h>
+#include <openssl/x509.h>
+#include <openssl/x509v3.h>
+#include <openssl/pem.h>
+// hashing, digests
+#include <openssl/evp.h>
+// i2d, d2i
+#include <openssl/asn1t.h>
+#include <openssl/bio.h>
+
+#include <arc/crypto/OpenSSL.h>
+#include <arc/Base64.h>
+
 #include "ConfusaCertHandler.h"
 
 namespace Arc {
@@ -9,8 +25,7 @@ namespace Arc {
 	Logger ConfusaCertHandler::logger(Logger::getRootLogger(), "ConfusaCertHandler");
 
 	ConfusaCertHandler::ConfusaCertHandler(int keysize, const std::string dn) {
-		SSL_load_error_strings();
-		SSL_library_init();
+		Arc::OpenSSLInit();
 
 		cred_  = new Credential(keysize);
 		setDN(dn);

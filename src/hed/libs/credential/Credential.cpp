@@ -9,6 +9,8 @@
 
 #include <glibmm/fileutils.h>
 
+#include <arc/crypto/OpenSSL.h>
+
 #include "Credential.h"
 
 using namespace ArcCredential;
@@ -566,7 +568,7 @@ namespace Arc {
         req_(NULL), rsa_key_(NULL), signing_alg_((EVP_MD*)EVP_sha1()), keybits_(1024),
         extensions_(NULL) {
 
-    OpenSSL_add_all_algorithms();
+    OpenSSLInit();
     //EVP_add_digest(EVP_sha1());
 
     InitVerification();
@@ -582,7 +584,7 @@ namespace Arc {
 	  req_(NULL), rsa_key_(NULL), signing_alg_((EVP_MD*)EVP_sha1()), keybits_(keybits),
 	  extensions_(NULL) {
 
-    OpenSSL_add_all_algorithms();
+    OpenSSLInit();
     //EVP_add_digest(EVP_sha1());
 
     InitVerification();
@@ -599,7 +601,7 @@ namespace Arc {
         start_(start), lifetime_(lifetime), req_(NULL), rsa_key_(NULL),
         signing_alg_((EVP_MD*)EVP_sha1()), keybits_(keybits), extensions_(NULL) {
 
-    OpenSSL_add_all_algorithms();
+    OpenSSLInit();
     //EVP_add_digest(EVP_sha1());
 
     InitVerification();
@@ -803,7 +805,7 @@ namespace Arc {
         req_(NULL), rsa_key_(NULL), signing_alg_((EVP_MD*)EVP_sha1()),
         keybits_(1024), extensions_(NULL) {
 
-    OpenSSL_add_all_algorithms();
+    OpenSSLInit();
     //EVP_add_digest(EVP_sha1());
 
     InitVerification();
@@ -2102,7 +2104,7 @@ err:
        CAserial_(CAserial), CAcreateserial_(CAcreateserial), extfile_(extfile), extsect_(extsect),
        cert_(NULL), pkey_(NULL), cert_chain_(NULL), proxy_cert_info_(NULL),
        req_(NULL), rsa_key_(NULL), signing_alg_((EVP_MD*)EVP_sha1()), keybits_(1024), extensions_(NULL) {
-    OpenSSL_add_all_algorithms();
+    OpenSSLInit();
 
     InitVerification();
 

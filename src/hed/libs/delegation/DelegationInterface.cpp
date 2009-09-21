@@ -17,6 +17,7 @@
 #include <arc/StringConv.h>
 #include <arc/DateTime.h>
 #include <arc/message/PayloadSOAP.h>
+#include <arc/crypto/OpenSSL.h>
 
 #include "DelegationInterface.h"
 
@@ -454,7 +455,7 @@ DelegationProvider::DelegationProvider(const std::string& credentials):key_(NULL
   STACK_OF(X509) *cert_sk = NULL;
   bool res = false;
 
-  //OpenSSL_add_all_algorithms();
+  OpenSSLInit();
   EVP_add_digest(EVP_sha1());
 
   if(!string_to_x509(credentials,cert,pkey,cert_sk)) goto err;
@@ -481,7 +482,8 @@ DelegationProvider::DelegationProvider(const std::string& cert_file,const std::s
   STACK_OF(X509) *cert_sk = NULL;
   bool res = false;
 
-  //OpenSSL_add_all_algorithms();
+  
+  OpenSSLInit();
   EVP_add_digest(EVP_sha1());
 
   if(!string_to_x509(cert_file,key_file,inpwd,cert,pkey,cert_sk)) goto err;
@@ -529,6 +531,7 @@ std::string DelegationProvider::Delegate(const std::string& request,const Delega
   PROXY_POLICY proxy_policy;
   const EVP_MD *digest = EVP_sha1();
   X509_NAME *subject = NULL;
+  const char* need_ext = "critical,digitalSignature,keyEncipherment";
   std::string proxy_cn;
   std::string res;
   time_t validity_start = time(NULL);
@@ -583,7 +586,7 @@ std::string DelegationProvider::Delegate(const std::string& request,const Delega
    Digital Signature bit MUST be asserted.
   */
 
-  X509_add_ext_by_nid(cert,NID_key_usage,"critical,digitalSignature,keyEncipherment",-1);
+  X509_add_ext_by_nid(cert,NID_key_usage,(char*)need_ext,-1);
 
   /*
    From RFC3820:
