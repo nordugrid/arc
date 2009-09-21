@@ -33,12 +33,10 @@ namespace Arc {
 
   Logger JobController::logger(Logger::getRootLogger(), "JobController");
 
-  JobController::JobController(const Config& cfg,
-                               const UserConfig& usercfg,
+  JobController::JobController(const UserConfig& usercfg,
                                const std::string& flavour)
     : flavour(flavour),
-      usercfg(usercfg),
-      joblist((cfg)["JobList"]) {}
+      usercfg(usercfg) {}
 
   JobController::~JobController() {}
 
@@ -46,10 +44,10 @@ namespace Arc {
                                    const std::list<URL>& clusterselect,
                                    const std::list<URL>& clusterreject) {
 
-    if (!joblist.empty()) {
-      logger.msg(DEBUG, "Using job list file %s", joblist);
-      FileLock lock(joblist);
-      jobstorage.ReadFromFile(joblist);
+    if (!usercfg.JobListFile().empty()) {
+      logger.msg(DEBUG, "Using job list file %s", usercfg.JobListFile());
+      FileLock lock(usercfg.JobListFile());
+      jobstorage.ReadFromFile(usercfg.JobListFile());
     }
     else {
       logger.msg(ERROR, "Job controller has no job list configuration");
@@ -710,8 +708,8 @@ namespace Arc {
 
     logger.msg(DEBUG, "Removing jobs from job list and job store");
 
-    FileLock lock(joblist);
-    jobstorage.ReadFromFile(joblist);
+    FileLock lock(usercfg.JobListFile());
+    jobstorage.ReadFromFile(usercfg.JobListFile());
 
     for (std::list<URL>::const_iterator it = jobids.begin();
          it != jobids.end(); it++) {
@@ -739,7 +737,7 @@ namespace Arc {
       }
     }
 
-    jobstorage.SaveToFile(joblist);
+    jobstorage.SaveToFile(usercfg.JobListFile());
 
     logger.msg(DEBUG, "Job store for %s now contains %d jobs", flavour, jobstore.size());
     logger.msg(DEBUG, "Finished removing jobs from job list and job store");
@@ -866,7 +864,6 @@ namespace Arc {
   }
 
   JobController* JobControllerLoader::load(const std::string& name,
-                                           const Config& cfg,
                                            const UserConfig& usercfg) {
     if (name.empty())
       return NULL;
@@ -874,7 +871,7 @@ namespace Arc {
     PluginList list = FinderLoader::GetPluginList("HED:JobController");
     factory_->load(list[name], "HED:JobController");
 
-    JobControllerPluginArgument arg(cfg, usercfg);
+    JobControllerPluginArgument arg(usercfg);
     JobController *jobcontroller =
       factory_->GetInstance<JobController>("HED:JobController", name, &arg);
 

@@ -18,8 +18,7 @@ namespace Arc {
   public:
     JobSupervisor(const UserConfig& usercfg,
                   const std::list<std::string>& jobs,
-                  const std::list<std::string>& clusters,
-                  const std::string& joblist);
+                  const std::list<std::string>& clusters);
 
     ~JobSupervisor();
 

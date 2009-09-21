@@ -13,7 +13,7 @@ namespace Arc {
     : public JobController {
 
   private:
-    JobControllerARC0(const Config& cfg, const UserConfig& usercfg);
+    JobControllerARC0(const UserConfig& usercfg);
   public:
     ~JobControllerARC0();
 

@@ -22,9 +22,8 @@ namespace Arc {
 
   Logger JobControllerARC1::logger(JobController::logger, "ARC1");
 
-  JobControllerARC1::JobControllerARC1(const Config& cfg,
-                                       const UserConfig& usercfg)
-    : JobController(cfg, usercfg, "ARC1") {}
+  JobControllerARC1::JobControllerARC1(const UserConfig& usercfg)
+    : JobController(usercfg, "ARC1") {}
 
   JobControllerARC1::~JobControllerARC1() {}
 
@@ -33,7 +32,7 @@ namespace Arc {
       dynamic_cast<JobControllerPluginArgument*>(arg);
     if (!jcarg)
       return NULL;
-    return new JobControllerARC1(*jcarg, *jcarg);
+    return new JobControllerARC1(*jcarg);
   }
 
   void JobControllerARC1::GetJobInformation() {

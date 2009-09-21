@@ -24,7 +24,7 @@ namespace Arc {
   class JobController
     : public Plugin {
   protected:
-    JobController(const Config& cfg, const UserConfig& usercfg,
+    JobController(const UserConfig& usercfg,
                   const std::string& flavour);
   public:
     virtual ~JobController();
@@ -89,7 +89,6 @@ namespace Arc {
   protected:
     const std::string flavour;
     const UserConfig& usercfg;
-    const std::string joblist;
     std::list<Job> jobstore;
     Config jobstorage;
     static Logger logger;
@@ -113,11 +112,9 @@ namespace Arc {
 
     //! Load a new JobController
     /// \param name    The name of the JobController to load.
-    /// \param cfg     The Config object for the new JobController.
     /// \param usercfg The UserConfig object for the new JobController.
     /// \returns       A pointer to the new JobController (NULL on error).
-    JobController* load(const std::string& name,
-                        const Config& cfg, const UserConfig& usercfg);
+    JobController* load(const std::string& name, const UserConfig& usercfg);
 
     //! Retrieve the list of loaded JobControllers.
     /// \returns A reference to the list of JobControllers.
@@ -132,18 +129,13 @@ namespace Arc {
   class JobControllerPluginArgument
     : public PluginArgument {
   public:
-    JobControllerPluginArgument(const Config& cfg, const UserConfig& usercfg)
-      : cfg(cfg),
-        usercfg(usercfg) {}
+    JobControllerPluginArgument(const UserConfig& usercfg)
+      : usercfg(usercfg) {}
     ~JobControllerPluginArgument() {}
-    operator const Config&() {
-      return cfg;
-    }
     operator const UserConfig&() {
       return usercfg;
     }
   private:
-    const Config& cfg;
     const UserConfig& usercfg;
   };
 

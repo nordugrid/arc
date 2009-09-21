@@ -15,7 +15,7 @@ namespace Arc {
 
   public:
 
-    JobControllerCREAM(const Config& cfg, const UserConfig& usercfg);
+    JobControllerCREAM(const UserConfig& usercfg);
     ~JobControllerCREAM();
 
     void GetJobInformation();

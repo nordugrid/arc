@@ -19,9 +19,8 @@ namespace Arc {
 
   Logger JobControllerCREAM::logger(JobController::logger, "CREAM");
 
-  JobControllerCREAM::JobControllerCREAM(const Config& cfg,
-                                         const UserConfig& usercfg)
-    : JobController(cfg, usercfg, "CREAM") {}
+  JobControllerCREAM::JobControllerCREAM(const UserConfig& usercfg)
+    : JobController(usercfg, "CREAM") {}
 
   JobControllerCREAM::~JobControllerCREAM() {}
 
@@ -30,7 +29,7 @@ namespace Arc {
       dynamic_cast<JobControllerPluginArgument*>(arg);
     if (!jcarg)
       return NULL;
-    return new JobControllerCREAM(*jcarg, *jcarg);
+    return new JobControllerCREAM(*jcarg);
   }
 
   void JobControllerCREAM::GetJobInformation() {

@@ -734,11 +734,10 @@ int main(int argc,char** argv) {
         job.JobID = Arc::URL(desc.get_local()->migrateactivityid);
         job.Cluster = Arc::URL(desc.get_local()->migrateactivityid.substr(0, found));
 
-        Arc::Config cfg;
         Arc::UserConfig usercfg(true);
 
         Arc::JobControllerLoader loader;
-        Arc::JobController *jobctrl = loader.load("ARC1", cfg, usercfg);
+        Arc::JobController *jobctrl = loader.load("ARC1", usercfg);
         if (jobctrl) {
           jobctrl->FillJobStore(job);
 

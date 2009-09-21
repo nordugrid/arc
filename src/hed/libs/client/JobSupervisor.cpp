@@ -23,8 +23,7 @@ namespace Arc {
 
   JobSupervisor::JobSupervisor(const UserConfig& usercfg,
                                const std::list<std::string>& jobs,
-                               const std::list<std::string>& clusters,
-                               const std::string& joblist) {
+                               const std::list<std::string>& clusters) {
     URLListMap jobids;
     URLListMap clusterselect;
     URLListMap clusterreject;
@@ -35,9 +34,9 @@ namespace Arc {
     }
 
     Config jobstorage;
-    if (!joblist.empty()) {
-      FileLock lock(joblist);
-      jobstorage.ReadFromFile(joblist);
+    if (!usercfg.JobListFile().empty()) {
+      FileLock lock(usercfg.JobListFile());
+      jobstorage.ReadFromFile(usercfg.JobListFile());
     }
 
     std::list<std::string> controllers;
@@ -117,9 +116,7 @@ namespace Arc {
 
     for (std::list<std::string>::iterator it = controllers.begin();
          it != controllers.end(); it++) {
-      Config cfg;
-      cfg.NewChild("JobList") = joblist;
-      JobController *JC = loader.load(*it, cfg, usercfg);
+      JobController *JC = loader.load(*it, usercfg);
       if (JC)
         JC->FillJobStore(jobids[*it], clusterselect[*it], clusterreject[*it]);
     }

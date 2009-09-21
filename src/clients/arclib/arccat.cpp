@@ -129,7 +129,7 @@ int main(int argc, char **argv) {
     return 1;
   }
   
-  Arc::JobSupervisor jobmaster(usercfg, jobs, clusters, usercfg.JobListFile());
+  Arc::JobSupervisor jobmaster(usercfg, jobs, clusters);
   std::list<Arc::JobController*> jobcont = jobmaster.GetJobControllers();
 
   // If the user specified a joblist on the command line joblist equals
