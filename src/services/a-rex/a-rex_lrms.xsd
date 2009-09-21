@@ -9,7 +9,7 @@
     <xsd:element name="pbs_bin_path" type="xsd:string">
         <xsd:annotation>
             <xsd:documentation xml:lang="en">
-				The path to qstat, pbsnodes, qmgr etc PBS binaries. No need to
+                The path to qstat, pbsnodes, qmgr etc PBS binaries. No need to
                 set unless PBS is used.
             </xsd:documentation>
         </xsd:annotation>

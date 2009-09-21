@@ -250,7 +250,8 @@
                 <xsd:complexType>
                     <xsd:sequence>
                         <xsd:element name="from" type="xsd:anyURI"/>
-                        <xsd:element name="to" type="xsd:anyURI"/>
+                        <xsd:element name="to" type="xsd:string"/>
+                        <xsd:element name="at" type="xsd:string"/>
                     </xsd:sequence>
                     <xsd:attribute name="link" type="xsd:boolean"
                                    use="optional"/>
