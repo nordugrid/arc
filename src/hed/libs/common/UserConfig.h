@@ -26,6 +26,7 @@ namespace Arc {
     UserConfig(const XMLNode& cfg);
     UserConfig(const std::string& conffile, bool initializeCredentials = true);
     UserConfig(const std::string& conffile, const std::string& joblistfile, bool initializeCredentials = true);
+    UserConfig(const long int& ptraddr);
     ~UserConfig() {}
 
     const std::string& ConfFile() const {

@@ -98,7 +98,7 @@ namespace Arc {
   PythonBroker::PythonBroker(const UserConfig& usercfg)
     : Broker(usercfg),
       arc_module(NULL),
-      arc_config_klass(NULL),
+      arc_userconfig_klass(NULL),
       arc_jobrepr_klass(NULL),
       arc_xtarget_klass(NULL),
       module(NULL),

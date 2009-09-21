@@ -4,6 +4,7 @@
 #define __ARC_PYTHON_BROKER_H__
 
 #include <Python.h>
+#include <arc/UserConfig.h>
 #include <arc/client/Broker.h>
 
 namespace Arc {
@@ -21,7 +22,7 @@ namespace Arc {
 
   private:
     PyObject *arc_module;
-    PyObject *arc_config_klass;
+    PyObject *arc_userconfig_klass;
     PyObject *arc_jobrepr_klass;
     PyObject *arc_xtarget_klass;
     PyObject *module;

@@ -127,6 +127,8 @@ namespace Arc {
     setDefaults();
   }
 
+  UserConfig::UserConfig(const long int& ptraddr) { *this = *((UserConfig*)ptraddr); }
+
   void UserConfig::ApplyToConfig(XMLNode& ccfg) const {
     if (!proxyPath.empty())
       ccfg.NewChild("ProxyPath") = proxyPath;
