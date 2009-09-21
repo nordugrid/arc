@@ -1,9 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xsd:schema
   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-  xmlns="http://www.nordugrid.org/schemas/ArcConfig/2009/arex/LRMS"
-  xmlns:arc="http://www.nordugrid.org/schemas/ArcConfig/2009/arex"
-  targetNamespace="http://www.nordugrid.org/schemas/ArcConfig/2009/arex/LRMS"
+  xmlns="http://www.nordugrid.org/schemas/a-rex/LRMS/2009/08"
+  targetNamespace="http://www.nordugrid.org/schemas/a-rex/LRMS/2009/08"
   elementFormDefault="qualified">
 
     <xsd:element name="pbs_bin_path" type="xsd:string">

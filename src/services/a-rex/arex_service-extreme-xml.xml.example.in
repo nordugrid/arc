@@ -1,10 +1,10 @@
 <?xml version="1.0"?>
 <ArcConfig
-  xmlns="http://www.nordugrid.org/schemas/ArcConfig/2007"
-  xmlns:tcp="http://www.nordugrid.org/schemas/ArcMCCTCP/2007"
-  xmlns:arex="http://www.nordugrid.org/schemas/ArcConfig/2009/arex"
-  xmlns:ip="http://www.nordugrid.org/schemas/ArcConfig/2009/arex/InfoProvider"
-  xmlns:lrms="http://www.nordugrid.org/schemas/ArcConfig/2009/arex/LRMS"
+  xmlns="http://www.nordugrid.org/schemas/arcconfig/2009/08"
+  xmlns:tcp="http://www.nordugrid.org/schemas/tcp/2009/08"
+  xmlns:arex="http://www.nordugrid.org/schemas/a-rex/LRMS/2009/08"
+  xmlns:ip="http://www.nordugrid.org/schemas/a-rex/InfoProvider/2009/08"
+  xmlns:lrms="http://www.nordugrid.org/schemas/a-rex/LRMS/2009/08"
 >
   <!-- Common configuration of the daemon -->
   <Server>

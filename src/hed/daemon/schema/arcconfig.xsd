@@ -41,6 +41,7 @@
 <xsd:import namespace="http://www.nordugrid.org/schemas/sched/2009/08" schemaLocation="sched.xsd"/> 
 <xsd:import namespace="http://www.nordugrid.org/schemas/paul/2009/08" schemaLocation="paul.xsd"/> 
 <xsd:import namespace="http://www.nordugrid.org/schemas/echo/2009/08" schemaLocation="echo.xsd"/> 
+<xsd:import namespace="http://www.nordugrid.org/schemas/a-rex/2009/08" schemaLocation="a-rex.xsd"/> 
 
 <!-- Language wrapper services -->
 <xsd:import namespace="http://www.nordugrid.org/schemas/pythonwrapper/2009/08" schemaLocation="pythonwrapper.xsd"/> 

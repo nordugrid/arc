@@ -1,9 +1,8 @@
 <?xml version="1.0"?>
 <ArcConfig
-  xmlns="http://www.nordugrid.org/schemas/ArcConfig/2007"
-  xmlns:tcp="http://www.nordugrid.org/schemas/ArcMCCTCP/2007"
-  xmlns:arex="http://www.nordugrid.org/schemas/a-rex/Config"
-  xmlns:pdp="http://www.nordugrid.org/schemas/pdp/Config"
+  xmlns="http://www.nordugrid.org/schemas/arcconfig/2009/08"
+  xmlns:tcp="http://www.nordugrid.org/schemas/tcp/2009/08"
+  xmlns:arex="http://www.nordugrid.org/schemas/a-rex/LRMS/2009/08"
 >
   <Server>
     <PidFile>/var/run/arched.pid</PidFile>

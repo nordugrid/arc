@@ -1,4 +1,4 @@
-SUBDIRS = grid-manager ldif config infoproviders lrms logger
+SUBDIRS = grid-manager ldif config infoproviders lrms logger schema
 DIST_SUBDIRS = grid-manager ldif config infoproviders lrms logger
 pkglib_LTLIBRARIES = libarex.la
 noinst_PROGRAMS=test test_cache_check

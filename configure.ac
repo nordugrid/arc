@@ -1463,6 +1463,7 @@ AC_CONFIG_FILES([Makefile
                  src/services/a-rex/lrms/slurm/scan-SLURM-job
                  src/services/a-rex/lrms/slurm/cancel-SLURM-job
                  src/services/a-rex/logger/Makefile
+                 src/services/a-rex/schema/Makefile
                  src/services/charon/Makefile
                  src/services/charon/schema/Makefile
                  src/services/charon/charon_service.xml.example

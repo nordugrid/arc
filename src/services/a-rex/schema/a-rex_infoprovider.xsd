@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xsd:schema
   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-  xmlns="http://www.nordugrid.org/schemas/ArcConfig/2009/arex/InfoProvider"
-  xmlns:ip="http://www.nordugrid.org/schemas/ArcConfig/2009/arex/InfoProvider"
-  targetNamespace="http://www.nordugrid.org/schemas/ArcConfig/2009/arex/InfoProvider"
+  xmlns="http://www.nordugrid.org/schemas/a-rex/InfoProvider/2009/08"
+  xmlns:ip="http://www.nordugrid.org/schemas/a-rex/InfoProvider/2009/08"
+  targetNamespace="http://www.nordugrid.org/schemas/a-rex/InfoProvider/2009/08"
   elementFormDefault="qualified">
 
 <!-- Imports -->
-<xsd:import namespace="http://www.nordugrid.org/schemas/ArcConfig/2009/arex/LRMS" schemaLocation="./a-rex_lrms.xsd"/>
+<xsd:import namespace="http://www.nordugrid.org/schemas/a-rex/LRMS/2009/08" schemaLocation="a-rex_lrms.xsd"/>
 
 <xsd:simpleType name="benchmark_Type">
     <xsd:annotation>
@@ -106,10 +106,10 @@
             <xsd:element name="OtherInfo" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="AdminDomain" type="xsd:string"/>
             <xsd:element name="StatusInfo" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
-            <xsd:element name="ConnectivityIn" type="ip:connectivityIn_Type"/>
-            <xsd:element name="ConnectivityOut" type="ip:connectivityOut_Type"/>
-            <xsd:element name="Location" type="ip:location_Type"/>
-            <xsd:element name="Contact" type="ip:contact_Type"/>
+            <xsd:element name="ConnectivityIn" type="connectivityIn_Type"/>
+            <xsd:element name="ConnectivityOut" type="connectivityOut_Type"/>
+            <xsd:element name="Location" type="location_Type"/>
+            <xsd:element name="Contact" type="contact_Type"/>
             <xsd:element name="Benchmark" type="benchmark_Type" minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="Downtime" type="xsd:string" minOccurs="0"/>
 
@@ -183,7 +183,7 @@
        <xsd:element name="AuthorizedVO" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
        <xsd:element name="MaxSlotsPerJob" type="xsd:positiveInteger" minOccurs="0"/>
        <xsd:element name="MaxVirtualMemory" type="xsd:positiveInteger" minOccurs="0"/>
-       <xsd:element name="SchedulingPolicy" type="ip:schedulingPolicy_Type" minOccurs="0"/>
+       <xsd:element name="SchedulingPolicy" type="schedulingPolicy_Type" minOccurs="0"/>
        <xsd:element name="Preemption" type="xsd:boolean" minOccurs="0"/>
        <xsd:any namespace="http://www.nordugrid.org/schemas/ArcConfig/2009/arex/LRMS" minOccurs="0" maxOccurs="unbounded"/>
     </xsd:sequence>

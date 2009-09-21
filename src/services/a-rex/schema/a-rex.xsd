@@ -1,13 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xsd:schema
   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-  xmlns="http://www.nordugrid.org/schemas/ArcConfig/2009/arex"
-  xmlns:arc="http://www.nordugrid.org/schemas/ArcConfig/2009/arex"
-  targetNamespace="http://www.nordugrid.org/schemas/ArcConfig/2009/arex"
+  xmlns="http://www.nordugrid.org/schemas/a-rex/2009/08"
+  xmlns:ip="http://www.nordugrid.org/schemas/a-rex/InfoProvider/2009/08"
+  targetNamespace="http://www.nordugrid.org/schemas/a-rex/2009/08"
   elementFormDefault="qualified">
 
 <!-- Imports -->
-<xsd:import namespace="http://www.nordugrid.org/schemas/ArcConfig/2009/arex/InfoProvider" schemaLocation="./a-rex_infoprovider.xsd"/>
+<xsd:import namespace="http://www.nordugrid.org/schemas/a-rex/InfoProvider/2009/08" schemaLocation="a-rex_infoprovider.xsd"/>
+<xsd:import namespace="http://www.nordugrid.org/schemas/a-rex/LRMS/2009/08" schemaLocation="a-rex_lrms.xsd"/>
 
     <xsd:complexType name="endpoint_Type">
         <xsd:annotation>
@@ -118,7 +119,7 @@
             <xsd:element name="scratchDir" type="xsd:string" minOccurs="0"/>
             <xsd:element name="runtimeDir" type="xsd:string" minOccurs="0"/>
             <xsd:element name="GNUTimeUtility" type="xsd:string" minOccurs="0"/>
-            <xsd:any namespace="http://www.nordugrid.org/schemas/ArcConfig/2009/arex/LRMS"
+            <xsd:any namespace="http://www.nordugrid.org/schemas/a-rex/LRMS/2009/08"
                          minOccurs="1" maxOccurs="unbounded"/>
         </xsd:sequence>
     </xsd:complexType>
@@ -242,7 +243,7 @@
                          minOccurs="0"/>
             <xsd:element name="localTransfer" type="xsd:boolean"
                          minOccurs="0"/>
-            <xsd:element name="timeouts" minOccurs="0" type="arc:timeouts_Type"/>
+            <xsd:element name="timeouts" minOccurs="0" type="timeouts_Type"/>
 
             <xsd:element name="maxRetries" type="xsd:nonNegativeInteger"
                          minOccurs="0"/>
@@ -258,7 +259,7 @@
                 </xsd:complexType>
             </xsd:element>
             
-            <xsd:element name="Globus" minOccurs="0" type="arc:Globus_Type"/>            
+            <xsd:element name="Globus" minOccurs="0" type="Globus_Type"/>            
             <xsd:element name="httpProxy" type="xsd:anyURI"
                          minOccurs="0"/>
         </xsd:sequence>
@@ -443,10 +444,7 @@
     
     <xsd:element name="LRMS" type="LRMS_Type"/>
 
-    <!-- 
-        TODO: need to fix this any thing. The current implementation is wrong.
-    
-     xsd:any namespace="http://www.nordugrid.org/schemas/ArcConfig/2009/arex/InfoProvider"/-->
+    <xsd:element ref="ip:ComputingService"/>
 
     <!-- Not ported elements
     #logsize="100000 2"
