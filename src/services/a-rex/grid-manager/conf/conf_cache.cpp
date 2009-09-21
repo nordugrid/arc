@@ -166,6 +166,9 @@ CacheConfig::CacheConfig(Arc::XMLNode cfg):_cache_max(80),
         throw CacheConfigException("number is too high in lowWatermark parameter");
       }
       _cache_min = min_i;
+    } else {
+      // cleaning disabled
+      _clean_cache = false;
     }
     // We accept only new cache configuration in new configuration files
     _old_conf = false;
