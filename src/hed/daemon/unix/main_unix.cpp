@@ -249,6 +249,7 @@ int main(int argc, char **argv)
             std::string group = (std::string)config["Server"]["Group"];
             // set signal handlers 
             signal(SIGTERM, shutdown);
+            signal(SIGINT, shutdown);
             
             // switch user
             if (getuid() == 0) { // are we root?
@@ -272,8 +273,6 @@ int main(int argc, char **argv)
             // demonize if the foreground options was not set
             if (!(bool)(config)["Server"]["Foreground"]) {
                 main_daemon = new Arc::Daemon(pid_file, root_log_file);
-            } else {
-                signal(SIGINT, shutdown);
             }
 
             // bootstrap
