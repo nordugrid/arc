@@ -1,13 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xsd:schema
   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-  xmlns="http://www.nordugrid.org/schemas/ArcConfig/2007/aa"
-  targetNamespace="http://www.nordugrid.org/schemas/ArcConfig/2007/aa"
-  xmlns:ini="http://www.nordugrid.org/schemas/ini/2009/08"
+  xmlns="http://www.nordugrid.org/schemas/aaservice/2009/08"
+  targetNamespace="http://www.nordugrid.org/schemas/aaservice/2009/08"
   elementFormDefault="qualified">
-
-    <!-- Imports -->
-    <xsd:import namespace="http://www.nordugrid.org/schemas/ini/2009/08" schemaLocation="../../../daemon/schema/ini.xsd"/>
 
     <xsd:element name="CertificatePath" type="xsd:string">
         <xsd:annotation>
@@ -16,9 +12,6 @@
               to be used for signing the SAML assertion.
               Default is none.
             </xsd:documentation>
-            <xsd:appinfo>
-                <ini:tag>certificatepath</ini:tag>
-            </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>
 
@@ -27,9 +20,6 @@
             <xsd:documentation xml:lang="en">
               Default is none.
             </xsd:documentation>
-            <xsd:appinfo>
-                <ini:tag>keypath</ini:tag>
-            </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>
 
@@ -40,9 +30,6 @@
                to be used for verifying the signature in SAML attribute query.
                Default is none.
             </xsd:documentation>
-            <xsd:appinfo>
-                <ini:tag>cafile</ini:tag>
-            </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>
 
@@ -53,9 +40,6 @@
                to be used for verifying the signature in SAML attribute query.
                Default is /etc/grid-security/certificates
             </xsd:documentation>
-            <xsd:appinfo>
-                <ini:tag>cadir</ini:tag>
-            </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>
 

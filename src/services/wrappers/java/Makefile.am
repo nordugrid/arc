@@ -1,3 +1,4 @@
+SUBDIRS=schema
 pkglib_LTLIBRARIES = libjavaservice.la
 
 libjavaservice_la_SOURCES  = javawrapper.cpp javawrapper.h

@@ -1328,6 +1328,7 @@ AC_CONFIG_FILES([Makefile
                  src/hed/libs/data/test/Makefile
                  src/hed/libs/Makefile
                  src/hed/libs/loader/Makefile
+                 src/hed/libs/loader/schema/Makefile
                  src/hed/libs/message/Makefile
                  src/hed/libs/security/Makefile
                  src/hed/libs/security/ArcPDP/Makefile
@@ -1339,6 +1340,7 @@ AC_CONFIG_FILES([Makefile
                  src/hed/libs/ws-addressing/Makefile
                  src/hed/libs/ws-security/Makefile
                  src/hed/libs/infosys/Makefile
+                 src/hed/libs/infosys/schema/Makefile
                  src/hed/libs/infosys/test/Makefile
                  src/hed/libs/delegation/Makefile
                  src/hed/libs/delegation/test/Makefile
@@ -1351,15 +1353,20 @@ AC_CONFIG_FILES([Makefile
                  src/hed/libs/python/arcom/store/Makefile
                  src/hed/daemon/Makefile
                  src/hed/daemon/scripts/Makefile
+                 src/hed/daemon/schema/Makefile
                  src/hed/daemon/unix/Makefile
                  src/hed/daemon/win32/Makefile
                  src/hed/mcc/Makefile
                  src/hed/mcc/soap/Makefile
                  src/hed/mcc/tcp/Makefile
+                 src/hed/mcc/tcp/schema/Makefile
                  src/hed/mcc/http/Makefile
+                 src/hed/mcc/http/schema/Makefile
                  src/hed/mcc/tls/Makefile
+                 src/hed/mcc/tls/schema/Makefile
                  src/hed/mcc/gsi/Makefile
                  src/hed/mcc/msgvalidator/Makefile
+                 src/hed/mcc/msgvalidator/schema/Makefile
                  src/hed/acc/Makefile
                  src/hed/acc/ARC0/Makefile
                  src/hed/acc/ARC1/Makefile
@@ -1380,19 +1387,29 @@ AC_CONFIG_FILES([Makefile
                  src/hed/dmc/rls/Makefile
                  src/hed/shc/Makefile
                  src/hed/shc/arcpdp/Makefile
+                 src/hed/shc/arcpdp/schema/Makefile
                  src/hed/shc/xacmlpdp/Makefile
+                 src/hed/shc/xacmlpdp/schema/Makefile
                  src/hed/shc/delegationpdp/Makefile
+                 src/hed/shc/delegationpdp/schema/Makefile
                  src/hed/shc/gaclpdp/Makefile
                  src/hed/shc/pdpserviceinvoker/Makefile
+                 src/hed/shc/pdpserviceinvoker/schema/Makefile
                  src/hed/shc/allowpdp/Makefile
                  src/hed/shc/denypdp/Makefile
                  src/hed/shc/simplelistpdp/Makefile
+                 src/hed/shc/simplelistpdp/schema/Makefile
                  src/hed/shc/arcauthzsh/Makefile
+                 src/hed/shc/arcauthzsh/schema/Makefile
                  src/hed/shc/usernametokensh/Makefile
+                 src/hed/shc/usernametokensh/schema/Makefile
                  src/hed/shc/x509tokensh/Makefile
+                 src/hed/shc/x509tokensh/schema/Makefile
                  src/hed/shc/samltokensh/Makefile
+                 src/hed/shc/samltokensh/schema/Makefile
                  src/hed/shc/saml2sso_assertionconsumersh/Makefile
                  src/hed/shc/delegationsh/Makefile
+                 src/hed/shc/delegationsh/schema/Makefile
                  src/hed/identitymap/Makefile
                  src/services/Makefile
                  src/services/a-rex/Makefile
@@ -1447,26 +1464,37 @@ AC_CONFIG_FILES([Makefile
                  src/services/a-rex/lrms/slurm/cancel-SLURM-job
                  src/services/a-rex/logger/Makefile
                  src/services/charon/Makefile
+                 src/services/charon/schema/Makefile
                  src/services/charon/charon_service.xml.example
                  src/services/compiler/Makefile
+                 src/services/compiler/schema/Makefile
                  src/services/hopi/Makefile
                  src/services/hopi/hopi_service.xml.example
                  src/services/arex2/Makefile
                  src/services/isis/Makefile
+                 src/services/isis/schema/Makefile
                  src/services/saml/Makefile
+                 src/services/saml/schema/Makefile
                  src/services/slcs/Makefile
+                 src/services/slcs/schema/Makefile
                  src/services/delegation/Makefile
                  src/services/sched/Makefile
+                 src/services/sched/schema/Makefile
                  src/services/sched/manage_jobq.8
                  src/services/paul/Makefile
+                 src/services/paul/schema/Makefile
                  src/services/storage/Makefile 
                  src/services/storage/storage_service.xml.example
                  src/services/storage/chelonia.1
                  src/services/storage/librarian/Makefile 
+                 src/services/storage/librarian/schema/Makefile 
                  src/services/storage/cli/Makefile 
                  src/services/storage/shepherd/Makefile 
+                 src/services/storage/shepherd/schema/Makefile 
                  src/services/storage/ahash/Makefile 
+                 src/services/storage/ahash/schema/Makefile 
                  src/services/storage/bartender/Makefile
+                 src/services/storage/bartender/schema/Makefile
                  src/services/storage/bartender/gateway/Makefile 
                  src/services/janitor/interfaces/commandline/Makefile
                  src/services/janitor/interfaces/commandline/janitor
@@ -1478,10 +1506,11 @@ AC_CONFIG_FILES([Makefile
                  src/services/janitor/Makefile
                  src/services/echo_java/Makefile
                  src/services/echo_python/Makefile
-                 src/tests/echo/echo_service.xml.example
                  src/services/wrappers/Makefile
                  src/services/wrappers/java/Makefile
+                 src/services/wrappers/java/schema/Makefile
                  src/services/wrappers/python/Makefile
+                 src/services/wrappers/python/schema/Makefile
                  src/clients/Makefile
                  src/clients/data/Makefile
                  src/clients/data/arccp.1
@@ -1518,6 +1547,8 @@ AC_CONFIG_FILES([Makefile
                  src/tests/Makefile
                  src/tests/echo/Makefile
                  src/tests/echo/perftest.1
+                 src/tests/echo/echo_service.xml.example
+                 src/tests/echo/schema/Makefile
                  src/tests/policy-delegation/Makefile
                  src/tests/delegation/Makefile
                  src/tests/translator/Makefile

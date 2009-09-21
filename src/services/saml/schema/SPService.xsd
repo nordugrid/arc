@@ -1,13 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xsd:schema
   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-  xmlns="http://www.nordugrid.org/schemas/ArcConfig/2007/SP"
-  targetNamespace="http://www.nordugrid.org/schemas/ArcConfig/2007/SP"
-  xmlns:ini="http://www.nordugrid.org/schemas/ini/2009/08"
+  xmlns="http://www.nordugrid.org/schemas/spservice/2009/08"
+  targetNamespace="http://www.nordugrid.org/schemas/spservice/2009/08"
   elementFormDefault="qualified">
-
-    <!-- Imports -->
-    <xsd:import namespace="http://www.nordugrid.org/schemas/ini/2009/08" schemaLocation="../../../daemon/schema/ini.xsd"/>
 
     <!-- Location of SAML metadata. Default is none. 
     The metadata should be compliant to the standard:
@@ -28,9 +24,6 @@
               See ../slcs/test_metadata.xml as an example.
               Default is none.
             </xsd:documentation>
-            <xsd:appinfo>
-                <ini:tag>metadata</ini:tag>
-            </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>
 
@@ -43,9 +36,6 @@
               which is inside the metadata file.
               Default is none.
             </xsd:documentation>
-            <xsd:appinfo>
-                <ini:tag>spname</ini:tag>
-            </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>
 

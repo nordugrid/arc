@@ -1,4 +1,4 @@
-
+SUBDIRS=schema
 noinst_LTLIBRARIES = libarcpdpserviceinvoker.la
 libarcpdpserviceinvoker_la_SOURCES  = PDPServiceInvoker.cpp PDPServiceInvoker.h
 libarcpdpserviceinvoker_la_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include

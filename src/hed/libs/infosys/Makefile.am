@@ -1,6 +1,6 @@
 TEST_DIR = test
 DIST_SUBDIRS = test
-SUBDIRS = $(TEST_DIR)
+SUBDIRS = schema $(TEST_DIR)
 
 noinst_LTLIBRARIES=libinfosys.la
 #noinst_PROGRAMS=test test_cache # test_register

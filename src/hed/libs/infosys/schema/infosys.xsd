@@ -1,21 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xsd:schema
   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-  xmlns:iregc="http://www.nordugrid.org/schemas/InfoRegisterConfig/2008"
-  xmlns:ini="http://www.nordugrid.org/schemas/ini/2009/08"
-  targetNamespace="http://www.nordugrid.org/schemas/InfoRegisterConfig/2008"
+  xmlns:iregc="http://www.nordugrid.org/schemas/infosys/2009/08"
+  targetNamespace="http://www.nordugrid.org/schemas/infosys/2009/08"
   elementFormDefault="qualified">
 
-<!-- Imports -->
-<xsd:import namespace="http://www.nordugrid.org/schemas/ini/2009/08" schemaLocation="../../../daemon/schema/ini.xsd"/>
-
-    <xsd:complexType name="InfoRegistrar_Type">
+    <xsd:complexType name="Registrar_Type">
         <xsd:annotation>
             <xsd:documentation xml:lang="en">
              This element defines configuration of Information Registration 
-             active element. This element is located at top level configuration
-             document. Each instance if such element instantiates  one instance
-             of Information Registrant active element.
+             active element.
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
@@ -29,7 +23,6 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-  
   
             <xsd:element name="KeyPath" type="xsd:string"  minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
@@ -62,7 +55,6 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            
   
             <xsd:element name="Retry" type="xsd:string" minOccurs="0" maxOccurs="1" default="5">
                 <xsd:annotation>
@@ -73,62 +65,6 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
-
-        <xsd:attribute name="id" type="xsd:string" use="optional">
-            <xsd:annotation>
-                <xsd:documentation xml:lang="en">
-                 Attribute id may be used to refer to this element 
-                </xsd:documentation>
-            </xsd:annotation>
-        </xsd:attribute>
-        
-    </xsd:complexType>
-    <xsd:element name="InfoRegistrar" type="iregc:InfoRegistrar_Type"/>
-
-    <xsd:complexType name="Registrar_Type">
-        <xsd:sequence>
-            <xsd:annotation>
-                <xsd:documentation xml:lang="en">
-                 Missing elements means that the default values will be used.
-
-                 Period specifies how often registration to be done in minutes.
-                 The 0 value means single registration.
-                </xsd:documentation>
-            </xsd:annotation>
-            <xsd:element name="Period" type="xsd:nonNegativeInteger" minOccurs="0" maxOccurs="1" default="120"/>
-
-            <xsd:element name="ServiceID" type="xsd:string" minOccurs="0" maxOccurs="1">
-                <xsd:annotation>
-                    <xsd:documentation xml:lang="en">
-                     Element defines the unique id of the service propagated outside.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-
-            <xsd:element name="Endpoint" type="xsd:string" minOccurs="0" maxOccurs="1">
-                <xsd:annotation>
-                    <xsd:documentation xml:lang="en">
-                     This element defines URL of the service as seen from outside.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
- 
-            <xsd:element name="Expiration" type="xsd:string" minOccurs="0" maxOccurs="1" default="PT10M">
-                <xsd:annotation>
-                    <xsd:documentation xml:lang="en">
-                     This element defines the expiration time of the information provided by the service.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-        </xsd:sequence>
- 
-         <xsd:attribute name="id" type="xsd:string" use="required">
-             <xsd:annotation>
-                 <xsd:documentation xml:lang="en">
-                  Attribute id is to define the previously configured InfoRegistrar to be preferred
-                 </xsd:documentation>
-             </xsd:annotation>
-         </xsd:attribute>
     </xsd:complexType>
 
     <xsd:complexType name="InfoRegister_Type">
@@ -148,7 +84,7 @@
                  then registration is done using all registrars.
                 </xsd:documentation>
             </xsd:annotation>
-            <xsd:element name="Registrar" type="iregc:Registrar_Type" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="Registrar" type="Registrar_Type" minOccurs="0" maxOccurs="unbounded"/>
             <!-- Default values for every InfoRegistrar -->
 
             <xsd:element name="Period" type="xsd:nonNegativeInteger" minOccurs="1" maxOccurs="1" default="120">

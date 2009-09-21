@@ -1,4 +1,4 @@
-
+SUBDIRS=schema
 noinst_LTLIBRARIES = libdelegationsh.la
 libdelegationsh_la_SOURCES  = DelegationSH.cpp DelegationSH.h
 libdelegationsh_la_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS) -I$(top_srcdir)/include

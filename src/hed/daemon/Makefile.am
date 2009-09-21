@@ -4,7 +4,7 @@ else
 PLATFORM_DIR=unix
 endif
 
-SUBDIRS = scripts $(PLATFORM_DIR)
+SUBDIRS = scripts $(PLATFORM_DIR) schema
 
 sbin_PROGRAMS = arched
 SRC_UNIX = options.cpp options.h 

@@ -1,3 +1,4 @@
+SUBDIRS=schema
 lib_LTLIBRARIES = libarcloader.la
 
 libarcloader_ladir=$(pkgincludedir)/loader

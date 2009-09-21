@@ -1,3 +1,4 @@
+SUBDIRS=schema
 if MYSQL_LIBRARY_ENABLED
 pkglib_LTLIBRARIES = libaa.la libsaml2sp.la
 libaa_la_SOURCES  = aaservice.cpp aaservice.h

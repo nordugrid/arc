@@ -3,12 +3,8 @@
     xmlns:xsd="http://www.w3.org/2001/XMLSchema"
     targetNamespace="http://www.nordugrid.org/schemas/bartender/2009/08"
     xmlns="http://www.nordugrid.org/schemas/bartender/2009/08"
-    xmlns:ini="http://www.nordugrid.org/schemas/ini/2009/08"
     elementFormDefault="qualified"
     attributeFormDefault="unqualified">
-
-<!-- Imports -->
-<xsd:import namespace="http://www.nordugrid.org/schemas/ini/2009/08" schemaLocation="../../../daemon/schema/ini.xsd"/>
 
 <!-- ClassName -->
 <xsd:element name="ClassName" default="storage.bartender.bartender.BartenderService">
@@ -16,9 +12,6 @@
         <xsd:documentation xml:lang="en">
         Name of Bartender class
         </xsd:documentation>
-        <xsd:appinfo>
-            <ini:tag>classname</ini:tag>
-        </xsd:appinfo>
     </xsd:annotation>
 </xsd:element>
 
@@ -29,9 +22,6 @@
         <xsd:documentation xml:lang="en">
 	  The URL of an ISIS which the Bartender should use. Multiple ISISs may be specified
         </xsd:documentation>
-        <xsd:appinfo>
-            <ini:tag>isisurl</ini:tag>
-        </xsd:appinfo>
     </xsd:annotation>
 </xsd:element>
 
@@ -42,9 +32,6 @@
         <xsd:documentation xml:lang="en">
 	  The URL of a Librarian which the Bartender should use. Multiple Librarians may be specified
         </xsd:documentation>
-        <xsd:appinfo>
-            <ini:tag>librarianurl</ini:tag>
-        </xsd:appinfo>
     </xsd:annotation>
 </xsd:element>
 
@@ -54,9 +41,6 @@
         <xsd:documentation xml:lang="en">
 	  Local directory where the Bartender will store the delegated proxies
         </xsd:documentation>
-        <xsd:appinfo>
-            <ini:tag>proxystore</ini:tag>
-        </xsd:appinfo>
     </xsd:annotation>
 </xsd:element>
 
@@ -68,9 +52,6 @@
         <xsd:documentation xml:lang="en">
         Name of Gateway class
         </xsd:documentation>
-        <xsd:appinfo>
-            <ini:tag>gatewayclass</ini:tag>
-        </xsd:appinfo>
     </xsd:annotation>
 </xsd:element>
 
@@ -89,9 +70,6 @@ k    <!-- todo: why do both bartender and gateway need proxystore parameter?
         <xsd:documentation xml:lang="en">
           Local directory where the Bartender will store the delegated proxies
         </xsd:documentation>
-        <xsd:appinfo>
-          <ini:tag>proxystore</ini:tag>
-        </xsd:appinfo>
       </xsd:annotation>    
     </xsd:element>
     <xsd:element name="CACertificatesDir" default="/etc/grid-security/certificates/">
@@ -99,9 +77,6 @@ k    <!-- todo: why do both bartender and gateway need proxystore parameter?
         <xsd:documentation xml:lang="en">
           Specifies path to CA dir
         </xsd:documentation>
-        <xsd:appinfo>
-          <ini:tag>cacertificatesdir</ini:tag>
-        </xsd:appinfo>
       </xsd:annotation>    
     </xsd:element>
 </xsd:element>
@@ -121,9 +96,6 @@ k    <!-- todo: why do both bartender and gateway need proxystore parameter?
         <xsd:documentation xml:lang="en">
           Specifies path to hostkey.pem
         </xsd:documentation>
-        <xsd:appinfo>
-          <ini:tag>keypath</ini:tag>
-        </xsd:appinfo>
       </xsd:annotation>    
     </xsd:element>
     <xsd:element name="CertificatePath" default="/etc/grid-security/hostcert.pem">
@@ -131,9 +103,6 @@ k    <!-- todo: why do both bartender and gateway need proxystore parameter?
         <xsd:documentation xml:lang="en">
           Specifies path to hostcert.pem
         </xsd:documentation>
-        <xsd:appinfo>
-          <ini:tag>certificatepath</ini:tag>
-        </xsd:appinfo>
       </xsd:annotation>    
     </xsd:element>
     <xsd:element name="CACertificatesDir" default="/etc/grid-security/certificates/">
@@ -141,10 +110,8 @@ k    <!-- todo: why do both bartender and gateway need proxystore parameter?
         <xsd:documentation xml:lang="en">
           Specifies path to CA dir
         </xsd:documentation>
-        <xsd:appinfo>
-          <ini:tag>cacertificatesdir</ini:tag>
-        </xsd:appinfo>
       </xsd:annotation>    
     </xsd:element>
 </xsd:element>
 
+</xsd:schema>

@@ -1,3 +1,4 @@
+SUBDIRS=schema
 pkglib_LTLIBRARIES = libgrid_sched.la
 sbin_PROGRAMS=manage_jobq
 noinst_PROGRAMS=test

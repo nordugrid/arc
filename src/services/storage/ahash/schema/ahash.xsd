@@ -3,12 +3,8 @@
     xmlns:xsd="http://www.w3.org/2001/XMLSchema"
     targetNamespace="http://www.nordugrid.org/schemas/ahash/2009/08"
     xmlns="http://www.nordugrid.org/schemas/ahash/2009/08"
-    xmlns:ini="http://www.nordugrid.org/schemas/ini/2009/08"
     elementFormDefault="qualified"
     attributeFormDefault="unqualified">
-
-<!-- Imports -->
-<xsd:import namespace="http://www.nordugrid.org/schemas/ini/2009/08" schemaLocation="../../../daemon/schema/ini.xsd"/>
 
 <!-- ClassName -->
 <xsd:element name="ClassName" default="storage.ahash.ahash.AHashService">
@@ -16,9 +12,6 @@
         <xsd:documentation xml:lang="en">
         Name of A-Hash class
         </xsd:documentation>
-        <xsd:appinfo>
-            <ini:tag>classname</ini:tag>
-        </xsd:appinfo>
     </xsd:annotation>
 </xsd:element>
 
@@ -28,9 +21,6 @@
         <xsd:documentation xml:lang="en">
         Which type of A-Hash to be used (CentralAHash or ReplicatedAHash)
         </xsd:documentation>
-        <xsd:appinfo>
-            <ini:tag>ahashclass</ini:tag>
-        </xsd:appinfo>
     </xsd:annotation>
 </xsd:element>
 
@@ -40,9 +30,6 @@
         <xsd:documentation xml:lang="en">
           Specifies the name of the store class, used to store the data on disk
         </xsd:documentation>
-        <xsd:appinfo>
-            <ini:tag>storeclass</ini:tag>
-        </xsd:appinfo>
     </xsd:annotation>
 </xsd:element>
 
@@ -58,9 +45,6 @@
         <xsd:documentation xml:lang="en">
           Specifies local dir to store data in
         </xsd:documentation>
-        <xsd:appinfo>
-          <ini:tag>datadir</ini:tag>
-        </xsd:appinfo>
       </xsd:annotation>    
     </xsd:element>
 </xsd:element>
@@ -73,9 +57,6 @@
 	  Specifies a directory on the local filesystem where this
 	  A-Hash replica should be stored
         </xsd:documentation>
-        <xsd:appinfo>
-            <ini:tag>localdir</ini:tag>
-        </xsd:appinfo>
     </xsd:annotation>
 </xsd:element>
 
@@ -86,9 +67,6 @@
 	  URL to this A-Hash service and is used as an ID for this
 	  service in the replication group
         </xsd:documentation>
-        <xsd:appinfo>
-            <ini:tag>myurl</ini:tag>
-        </xsd:appinfo>
     </xsd:annotation>
 </xsd:element>
 
@@ -100,9 +78,6 @@
 	  URL of another A-Hash in the replication group. More than
 	  one URL can be specified here.
         </xsd:documentation>
-        <xsd:appinfo>
-            <ini:tag>other</ini:tag>
-        </xsd:appinfo>
     </xsd:annotation>
 </xsd:element>
 
@@ -114,9 +89,6 @@
 	  electable, higher priority increases probability of being
 	  elected as master.
         </xsd:documentation>
-        <xsd:appinfo>
-            <ini:tag>priority</ini:tag>
-        </xsd:appinfo>
     </xsd:annotation>
 </xsd:element>
 
@@ -126,9 +98,6 @@
         <xsd:documentation xml:lang="en">
 	  Period between updates to replication list (in seconds)
         </xsd:documentation>
-        <xsd:appinfo>
-            <ini:tag>checkperiod</ini:tag>
-        </xsd:appinfo>
     </xsd:annotation>
 </xsd:element>
 
@@ -138,9 +107,6 @@
         <xsd:documentation xml:lang="en">
 	  Amount of local storage to be cached in memory
         </xsd:documentation>
-        <xsd:appinfo>
-            <ini:tag>cachesize</ini:tag>
-        </xsd:appinfo>
     </xsd:annotation>
 </xsd:element>
 
@@ -158,9 +124,6 @@
         <xsd:documentation xml:lang="en">
           Specifies path to hostkey.pem
         </xsd:documentation>
-        <xsd:appinfo>
-          <ini:tag>keypath</ini:tag>
-        </xsd:appinfo>
       </xsd:annotation>    
     </xsd:element>
     <xsd:element name="CertificatePath" default="/etc/grid-security/hostcert.pem">
@@ -168,9 +131,6 @@
         <xsd:documentation xml:lang="en">
           Specifies path to hostcert.pem
         </xsd:documentation>
-        <xsd:appinfo>
-          <ini:tag>certificatepath</ini:tag>
-        </xsd:appinfo>
       </xsd:annotation>    
     </xsd:element>
     <xsd:element name="CACertificatesDir" default="/etc/grid-security/certificates/">
@@ -178,9 +138,6 @@
         <xsd:documentation xml:lang="en">
           Specifies path to CA dir
         </xsd:documentation>
-        <xsd:appinfo>
-          <ini:tag>cacertificatesdir</ini:tag>
-        </xsd:appinfo>
       </xsd:annotation>    
     </xsd:element>
 </xsd:element>

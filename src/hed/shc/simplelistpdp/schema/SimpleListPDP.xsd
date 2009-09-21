@@ -1,15 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xsd:schema
-   xmlns:spdp="http://www.nordugrid.org/schemas/SimpleListPDP"
+   xmlns:spdp="http://www.nordugrid.org/schemas/simplelistpdp/2009/08"
    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-   xmlns:ini="http://www.nordugrid.org/schemas/ini/2009/08"
-   targetNamespace="http://www.nordugrid.org/schemas/SimpleListPDP"
+   targetNamespace="http://www.nordugrid.org/schemas/simplelistpdp/2009/08"
    elementFormDefault="qualified"
    attributeFormDefault="unqualified">
-
- <!-- Imports -->
- <xsd:import namespace="http://www.nordugrid.org/schemas/ini/2009/08" schemaLocation="../../../daemon/schema/ini.xsd"/>
-
 
  <!-- This schema defines configuration elements supported by
       SimpleListPDP PDP plugin. This plugin compares identifier 
@@ -45,9 +40,6 @@
          this pdp.
          Default is none.
         </xsd:documentation>
-        <xsd:appinfo>
-          <ini:tag>dn</ini:tag>
-        </xsd:appinfo>
     </xsd:annotation>
   </xsd:element>
 

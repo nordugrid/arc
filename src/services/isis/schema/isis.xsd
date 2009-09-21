@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xsd:schema
   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-  xmlns="http://www.nordugrid.org/schemas/ArcConfig/2009/isis"
-  xmlns:icfg="http://www.nordugrid.org/schemas/ArcConfig/2009/isis"
-  targetNamespace="http://www.nordugrid.org/schemas/ArcConfig/2009/isis"
+  xmlns="http://www.nordugrid.org/schemas/isis/2009/08"
+  xmlns:icfg="http://www.nordugrid.org/schemas/isis/2009/08"
+  targetNamespace="http://www.nordugrid.org/schemas/isis/2009/08"
   elementFormDefault="qualified" attributeFormDefault="unqualified"
 >
 
-  <xsd:element name="keypath" type="xsd:string">
+  <xsd:element name="KeyPath" type="xsd:string">
       <xsd:annotation>
           <xsd:documentation xml:lang="en">
               Optional KeyPath for SSL connection
@@ -15,7 +15,7 @@
       </xsd:annotation>
   </xsd:element>
 
-  <xsd:element name="certpath" type="xsd:string">
+  <xsd:element name="CertificatePath" type="xsd:string">
       <xsd:annotation>
           <xsd:documentation xml:lang="en">
               Optional CertificatePath for SSL connection
@@ -23,7 +23,7 @@
       </xsd:annotation>
   </xsd:element>
 
-  <xsd:element name="proxypath" type="xsd:string">
+  <xsd:element name="ProxyPath" type="xsd:string">
       <xsd:annotation>
           <xsd:documentation xml:lang="en">
               Optional ProxyPath for SSL connection
@@ -31,7 +31,7 @@
       </xsd:annotation>
   </xsd:element>
 
-  <xsd:element name="cadirpath" type="xsd:string">
+  <xsd:element name="CertificateDir" type="xsd:string">
       <xsd:annotation>
           <xsd:documentation xml:lang="en">
               Optional CACertificatesDir for SSL connection

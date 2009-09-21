@@ -3,13 +3,9 @@
     xmlns:xsd="http://www.w3.org/2001/XMLSchema"
     targetNamespace="http://www.nordugrid.org/schemas/tcp/2009/08"
     xmlns="http://www.nordugrid.org/schemas/tcp/2009/08"
-    xmlns:ini="http://www.nordugrid.org/schemas/ini/2009/08"
     elementFormDefault="qualified"
     attributeFormDefault="unqualified">
 
-<!-- Imports -->
-<xsd:import namespace="http://www.nordugrid.org/schemas/ini/2009/08" schemaLocation="../../../daemon/schema/ini.xsd"/>
- 
 <!-- Listen --> 
 <xsd:element name="Listen">
     <xsd:complexType>
@@ -24,9 +20,6 @@
                     <xsd:documentation xml:lang="en">
                     Listen network interface.
                     </xsd:documentation>
-                    <xsd:appinfo>
-                        <ini:tag>listen</ini:tag>
-                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="Port" type="xsd:int" minOccurs="0" maxOccurs="1" default="60000">
@@ -34,9 +27,6 @@
                     <xsd:documentation xml:lang="en">
                     Listen network port.
                     </xsd:documentation>
-                    <xsd:appinfo>
-                        <ini:tag>port</ini:tag>
-                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="Version" minOccurs="0" maxOccurs="1" default="4">
@@ -45,9 +35,6 @@
                         <xsd:documentation xml:lang="en">
                         This element defines TCP/IP protocol version.
                         </xsd:documentation>
-                        <xsd:appinfo>
-                            <ini:tag>tcpversion</ini:tag>
-                        </xsd:appinfo>
                     </xsd:annotation>
                     <xsd:restriction base="xsd:string">
                         <xsd:enumeration value="4"/>
@@ -60,9 +47,6 @@
                     <xsd:documentation xml:lang="en">
                     Allow no delay socket option.
                     </xsd:documentation>
-                    <xsd:appinfo>
-                        <ini:tag>nodelay</ini:tag>
-                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="Timeout" type="xsd:int" minOccurs="0" maxOccurs="1" default="60">
@@ -70,9 +54,6 @@
                     <xsd:documentation xml:lang="en">
                     Socket level timeout in seconds
                     </xsd:documentation>
-                    <xsd:appinfo>
-                        <ini:tag>timeout</ini:tag>
-                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>

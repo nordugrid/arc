@@ -1,126 +1,49 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xsd:schema
     xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-    targetNamespace="http://www.nordugrid.org/schemas/arcconfig/2009/08"
-    xmlns="http://www.nordugrid.org/schemas/arcconfig/2009/08"
-    xmlns:ini="http://www.nordugrid.org/schemas/ini/2009/08"
-    xmlns:loader="http://www.nordugrid.org/schemas/loader/2009/08"
     elementFormDefault="qualified"
     attributeFormDefault="unqualified">
-<!-- Imports -->
-<xsd:import namespace="http://www.nordugrid.org/schemas/ini/2009/08" schemaLocation="./ini.xsd"/>
-<xsd:import namespace="http://www.nordugrid.org/schemas/loader/2009/08" schemaLocation="../../libs/loader/schema/loader.xsd"/> 
-<!-- Root element -->
-<xsd:element name="ArcConfig">
-    <xsd:complexType>
-        <xsd:annotation>
-            <xsd:documentation>
-            This is a top level element of ARC configuration document.
-            </xsd:documentation>
-        </xsd:annotation>
-        <xsd:sequence>
-            <xsd:element ref="Server" minOccurs="0" maxOccurs="1"/>
-            <xsd:element ref="loader:ModuleManager" minOccurs="0" maxOccurs="1"/>
-            <xsd:element ref="loader:Plugins" minOccurs="0" maxOccurs="1"/>
-            <xsd:element ref="loader:Component" minOccurs="0" maxOccurs="unbounded"/>
-            <xsd:element ref="loader:Chain" minOccurs="0" maxOccurs="unbounded"/>
-            <xsd:element ref="loader:Plexer" minOccurs="0" maxOccurs="unbounded"/>
-            <xsd:element ref="loader:Service" minOccurs="0" maxOccurs="unbounded"/>
-            <xsd:element ref="loader:SecHandler" minOccurs="0" maxOccurs="unbounded"/>
-        </xsd:sequence>
-    </xsd:complexType>
-</xsd:element>
 
-<!-- Server -->
-<xsd:element name="Server">
-    <xsd:complexType>
-        <xsd:annotation>
-            <xsd:documentation xml:lang="en">
-            Server specific configuration options.
-            </xsd:documentation>
-        </xsd:annotation>
-        <xsd:all>
-            <xsd:element name="PidFile" type="xsd:string" minOccurs="0" maxOccurs="1" default="">
-                <xsd:annotation>
-                    <xsd:documentation xml:lang="en">
-                    Path of pid file.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <ini:tag>pidfile</ini:tag>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="Foreground" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false">
-                <xsd:annotation>
-                    <xsd:documentation xml:lang="en">
-                    Indicate wether the server runs in foreground or in daemon mode. It it runs in foreground the log will goes to standard error as well.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <ini:tag>pidfile</ini:tag>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="User" type="xsd:string" minOccurs="0" maxOccurs="1">
-                <xsd:annotation>
-                    <xsd:documentation xml:lang="en">
-                    The daemon will switch to this specified user using the start time. If it is not specified the effective user won't be changed.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <ini:tag>user</ini:tag>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="Gser" type="xsd:string" minOccurs="0" maxOccurs="1">
-                <xsd:annotation>
-                    <xsd:documentation xml:lang="en">
-                    The daemon will switch to this specified group using the start time. If it is not specified the effective group won't be changed.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <ini:tag>group</ini:tag>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element ref="Logger" minOccurs="0" maxOccurs="1"/>
-        </xsd:all>
-    </xsd:complexType>
-</xsd:element>
+<!-- Base -->
+<xsd:import namespace="http://www.nordugrid.org/schemas/arcconfig/2009/08" schemaLocation="base.xsd"/>
+<xsd:import namespace="http://www.nordugrid.org/schemas/loader/2009/08" schemaLocation="loader.xsd"/> 
+<xsd:import namespace="http://www.nordugrid.org/schemas/infosys/2009/08" schemaLocation="infosys.xsd"/> 
 
-<!-- Logger -->
-<xsd:simpleType name="LoggerLevel_Type">
-    <xsd:annotation>
-        <xsd:documentation xml:lang="en">
-        Define log level.
-        </xsd:documentation>
-        <xsd:appinfo>
-            <ini:tag>loglevel</ini:tag>
-        </xsd:appinfo>
-    </xsd:annotation>
-    <xsd:restriction base="xsd:string">
-        <xsd:enumeration value="DEBUG"/>
-        <xsd:enumeration value="INFO"/>
-        <xsd:enumeration value="ERROR"/>
-        <xsd:enumeration value="WARNING"/>
-        <xsd:enumeration value="VERBOSE"/>
-    </xsd:restriction>
-</xsd:simpleType>
-<xsd:element name="Logger" default="/var/log/arched.log">
-    <xsd:annotation>
-        <xsd:documentation xml:lang="en">
-        Define the full path of log file.
-        </xsd:documentation>
-        <xsd:appinfo>
-            <ini:tag>logfile</ini:tag>
-        </xsd:appinfo>
-    </xsd:annotation>
-    <xsd:complexType>
-        <xsd:simpleContent>
-            <xsd:extension base="xsd:string">
-                <xsd:attribute name="level" type="LoggerLevel_Type" use="optional" default="INFO"/>
-                <xsd:attribute name="maxsize" type="xsd:nonNegativeInteger" use="optional"/>
-                <xsd:attribute name="backups" type="xsd:nonNegativeInteger" use="optional"/>
-            </xsd:extension>
-        </xsd:simpleContent>
-    </xsd:complexType>
-</xsd:element>
+<!-- MCCs -->
+<xsd:import namespace="http://www.nordugrid.org/schemas/msgvalidator/2009/08" schemaLocation="msgvalidator.xsd"/> 
+<xsd:import namespace="http://www.nordugrid.org/schemas/tls/2009/08" schemaLocation="tls.xsd"/> 
+<xsd:import namespace="http://www.nordugrid.org/schemas/tcp/2009/08" schemaLocation="tcp.xsd"/> 
+<!-- <xsd:import namespace="http://www.nordugrid.org/schemas/http/2009/08" schemaLocation="http.xsd"/>  -->
+
+<!-- SHC -->
+<xsd:import namespace="http://www.nordugrid.org/schemas/simplelistpdp/2009/08" schemaLocation="SimpleListPDP.xsd"/> 
+<xsd:import namespace="http://www.nordugrid.org/schemas/delegationpdp/2009/08" schemaLocation="DelegationPDP.xsd"/> 
+<xsd:import namespace="http://www.nordugrid.org/schemas/usernametokensh/2009/08" schemaLocation="UsernameTokenSH.xsd"/> 
+<xsd:import namespace="http://www.nordugrid.org/schemas/delegationsh/2009/08" schemaLocation="DelegationSH.xsd"/> 
+<xsd:import namespace="http://www.nordugrid.org/schemas/arcauthz/2009/08" schemaLocation="ArcAuthZ.xsd"/> 
+<xsd:import namespace="http://www.nordugrid.org/schemas/xacmlpdp/2009/08" schemaLocation="XACMLPDP.xsd"/> 
+<xsd:import namespace="http://www.nordugrid.org/schemas/pdpserviceinvoker/2009/08" schemaLocation="PDPServiceInvoker.xsd"/> 
+<xsd:import namespace="http://www.nordugrid.org/schemas/samltokensh/2009/08" schemaLocation="SAMLTokenSH.xsd"/> 
+<xsd:import namespace="http://www.nordugrid.org/schemas/x509tokensh/2009/08" schemaLocation="X509TokenSH.xsd"/> 
+<xsd:import namespace="http://www.nordugrid.org/schemas/arcpdp/2009/08" schemaLocation="ArcPDP.xsd"/> 
+
+<!-- Services -->
+<xsd:import namespace="http://www.nordugrid.org/schemas/slcs/2009/08" schemaLocation="slcs.xsd"/> 
+<xsd:import namespace="http://www.nordugrid.org/schemas/spservice/2009/08" schemaLocation="SPService.xsd"/> 
+<xsd:import namespace="http://www.nordugrid.org/schemas/aaservice/2009/08" schemaLocation="aaservice.xsd"/> 
+<xsd:import namespace="http://www.nordugrid.org/schemas/compiler/2009/08" schemaLocation="compiler.xsd"/> 
+<xsd:import namespace="http://www.nordugrid.org/schemas/charon/2009/08" schemaLocation="charon.xsd"/> 
+<xsd:import namespace="http://www.nordugrid.org/schemas/isis/2009/08" schemaLocation="isis.xsd"/> 
+<xsd:import namespace="http://www.nordugrid.org/schemas/ahash/2009/08" schemaLocation="ahash.xsd"/> 
+<xsd:import namespace="http://www.nordugrid.org/schemas/bartender/2009/08" schemaLocation="bartender.xsd"/> 
+<xsd:import namespace="http://www.nordugrid.org/schemas/shepherd/2009/08" schemaLocation="shepherd.xsd"/> 
+<xsd:import namespace="http://www.nordugrid.org/schemas/librarian/2009/08" schemaLocation="librarian.xsd"/> 
+<xsd:import namespace="http://www.nordugrid.org/schemas/sched/2009/08" schemaLocation="sched.xsd"/> 
+<xsd:import namespace="http://www.nordugrid.org/schemas/paul/2009/08" schemaLocation="paul.xsd"/> 
+<xsd:import namespace="http://www.nordugrid.org/schemas/echo/2009/08" schemaLocation="echo.xsd"/> 
+
+<!-- Language wrapper services -->
+<xsd:import namespace="http://www.nordugrid.org/schemas/pythonwrapper/2009/08" schemaLocation="pythonwrapper.xsd"/> 
+<xsd:import namespace="http://www.nordugrid.org/schemas/javawrapper/2009/08" schemaLocation="javawrapper.xsd"/> 
+
 </xsd:schema>
-

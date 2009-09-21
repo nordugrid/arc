@@ -1,15 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xsd:schema
-   xmlns:xt="http://www.nordugrid.org/schemas/X509TokenSH"
+   xmlns:xt="http://www.nordugrid.org/schemas/x509tokensh/2009/08"
    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-   targetNamespace="http://www.nordugrid.org/schemas/X509TokenSH"
-   xmlns:ini="http://www.nordugrid.org/schemas/ini/2009/08"
+   targetNamespace="http://www.nordugrid.org/schemas/x509tokensh/2009/08"
    elementFormDefault="qualified"
    attributeFormDefault="unqualified">
-
-  <!-- Imports -->
-  <xsd:import namespace="http://www.nordugrid.org/schemas/ini/2009/08" schemaLocation="../../../daemon/schema/ini.xsd"/>
-
 
   <!-- This schema defines elements which are accepted by X509Token
        SecHandler. See mcc.xsd for general information about SecHandler
@@ -27,9 +22,6 @@
           SOAP message: extract or generate .
           Default is none.
         </xsd:documentation>
-        <xsd:appinfo>
-          <ini:tag>processtype</ini:tag>
-        </xsd:appinfo>
     </xsd:annotation>
     <xsd:restriction base="xsd:string">
       <xsd:enumeration value="extract"/>
@@ -44,9 +36,6 @@
           The usage of the X509 Token: signature or encryption.
           Default is signature.
         </xsd:documentation>
-        <xsd:appinfo>
-          <ini:tag>tokenusage</ini:tag>
-        </xsd:appinfo>
     </xsd:annotation>
     <xsd:restriction base="xsd:string">
       <xsd:enumeration value="signature"/>
@@ -61,9 +50,6 @@
           SOAP message, only needed by the client side.
           Default is none.
         </xsd:documentation>
-        <xsd:appinfo>
-          <ini:tag>keypath</ini:tag>
-        </xsd:appinfo>
     </xsd:annotation>
   </xsd:element>
 
@@ -74,9 +60,6 @@
           one part of X509 Token, only needed by the client side.
           Default is none.
         </xsd:documentation>
-        <xsd:appinfo>
-          <ini:tag>keypath</ini:tag>
-        </xsd:appinfo>
     </xsd:annotation>
   </xsd:element>
 
@@ -88,9 +71,6 @@
           Only needed by the service side.
           Default is none. 
         </xsd:documentation>
-        <xsd:appinfo>
-          <ini:tag>cafile</ini:tag>
-        </xsd:appinfo>
     </xsd:annotation>
   </xsd:element>
 
@@ -102,9 +82,6 @@
           Only needed by the service side.
           Default is "/etc/grid-security/certificates". 
         </xsd:documentation>
-        <xsd:appinfo>
-          <ini:tag>cadir</ini:tag>
-        </xsd:appinfo>
     </xsd:annotation>
   </xsd:element>
 

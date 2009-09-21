@@ -3,12 +3,8 @@
     xmlns:xsd="http://www.w3.org/2001/XMLSchema"
     targetNamespace="http://www.nordugrid.org/schemas/librarian/2009/08"
     xmlns="http://www.nordugrid.org/schemas/librarian/2009/08"
-    xmlns:ini="http://www.nordugrid.org/schemas/ini/2009/08"
     elementFormDefault="qualified"
     attributeFormDefault="unqualified">
-
-<!-- Imports -->
-<xsd:import namespace="http://www.nordugrid.org/schemas/ini/2009/08" schemaLocation="../../../daemon/schema/ini.xsd"/>
 
 <!-- ClassName -->
 <xsd:element name="ClassName" default="storage.librarian.librarian.LibrarianService">
@@ -16,9 +12,6 @@
         <xsd:documentation xml:lang="en">
         Name of Librarian class
         </xsd:documentation>
-        <xsd:appinfo>
-            <ini:tag>classname</ini:tag>
-        </xsd:appinfo>
     </xsd:annotation>
 </xsd:element>
 
@@ -29,9 +22,6 @@
         <xsd:documentation xml:lang="en">
 	  The URL of an ISIS which the Librarian should use. Multiple ISISs may be specified
         </xsd:documentation>
-        <xsd:appinfo>
-            <ini:tag>isisurl</ini:tag>
-        </xsd:appinfo>
     </xsd:annotation>
 </xsd:element>
 
@@ -42,9 +32,6 @@
         <xsd:documentation xml:lang="en">
 	  The URL of an A-Hash which the Librarian should use. Multiple A-Hashes may be specified
         </xsd:documentation>
-        <xsd:appinfo>
-            <ini:tag>ahashurl</ini:tag>
-        </xsd:appinfo>
     </xsd:annotation>
 </xsd:element>
 
@@ -54,9 +41,6 @@
         <xsd:documentation xml:lang="en">
 	  Specifies in seconds how frequently the Librarian should check for late heartbeats
         </xsd:documentation>
-        <xsd:appinfo>
-            <ini:tag>checkperiod</ini:tag>
-        </xsd:appinfo>
     </xsd:annotation>
 </xsd:element>
 
@@ -66,9 +50,6 @@
         <xsd:documentation xml:lang="en">
 	  Specifies in seconds how frequently the Sheperds should send reports to the Librarian
         </xsd:documentation>
-        <xsd:appinfo>
-            <ini:tag>heartbeattimeout</ini:tag>
-        </xsd:appinfo>
     </xsd:annotation>
 </xsd:element>
 
@@ -86,9 +67,6 @@
         <xsd:documentation xml:lang="en">
           Specifies path to hostkey.pem
         </xsd:documentation>
-        <xsd:appinfo>
-          <ini:tag>keypath</ini:tag>
-        </xsd:appinfo>
       </xsd:annotation>    
     </xsd:element>
     <xsd:element name="CertificatePath" default="/etc/grid-security/hostcert.pem">
@@ -96,9 +74,6 @@
         <xsd:documentation xml:lang="en">
           Specifies path to hostcert.pem
         </xsd:documentation>
-        <xsd:appinfo>
-          <ini:tag>certificatepath</ini:tag>
-        </xsd:appinfo>
       </xsd:annotation>    
     </xsd:element>
     <xsd:element name="CACertificatesDir" default="/etc/grid-security/certificates/">
@@ -106,10 +81,8 @@
         <xsd:documentation xml:lang="en">
           Specifies path to CA dir
         </xsd:documentation>
-        <xsd:appinfo>
-          <ini:tag>cacertificatesdir</ini:tag>
-        </xsd:appinfo>
       </xsd:annotation>    
     </xsd:element>
 </xsd:element>
 
+</xsd:schema>

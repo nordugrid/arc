@@ -1,4 +1,4 @@
-
+SUBDIRS=schema
 noinst_LTLIBRARIES = libx509tokensh.la
 libx509tokensh_la_SOURCES  = X509TokenSH.cpp X509TokenSH.h
 libx509tokensh_la_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(XMLSEC_OPENSSL_CFLAGS) $(XMLSEC_CFLAGS) -I$(top_srcdir)/include

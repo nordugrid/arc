@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xsd:schema
   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-  xmlns="http://www.nordugrid.org/schemas/DelegationPDP"
-  targetNamespace="http://www.nordugrid.org/schemas/DelegationPDP"
+  xmlns="http://www.nordugrid.org/schemas/delegationpdp/2009/08"
+  targetNamespace="http://www.nordugrid.org/schemas/delegationpdp/2009/08"
   elementFormDefault="qualified">
   
     <xsd:complexType name="FilterType">

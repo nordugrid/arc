@@ -1,3 +1,4 @@
+SUBDIRS=schema
 pkglib_LTLIBRARIES = libcompiler.la
 noinst_PROGRAMS=test_client
 

@@ -1,19 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xsd:schema
     xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-    targetNamespace="http://www.nordugrid.org/schemas/ArcMCCMSGVALIDATOR/2008"
-    xmlns="http://www.nordugrid.org/schemas/ArcMCCMSGVALIDATOR/2008"
-    xmlns:ini="http://www.nordugrid.org/schemas/ini/2009/08"
+    targetNamespace="http://www.nordugrid.org/schemas/msgvalidator/2009/08"
+    xmlns="http://www.nordugrid.org/schemas/msgvalidator/2009/08"
     elementFormDefault="qualified"
     attributeFormDefault="unqualified">
 
 <!--  The MCCMsgValidator MCC should be placed between the MCCSOAP and Plexer. -->
 
-<!-- Imports -->
-<xsd:import namespace="http://www.nordugrid.org/schemas/ini/2009/08" schemaLocation="../../../daemon/schema/ini.xsd"/>
-
 <!-- ValidatedService -->
-
 <xsd:element name="ValidatedService">
     <xsd:complexType>
         <xsd:annotation>

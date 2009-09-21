@@ -1,14 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xsd:schema
   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-  xmlns="http://www.nordugrid.org/schemas/ArcPDP"
-  xmlns:ini="http://www.nordugrid.org/schemas/ini/2009/08"
-  targetNamespace="http://www.nordugrid.org/schemas/ArcPDP"
+  xmlns="http://www.nordugrid.org/schemas/arcpdp/2009/08"
+  targetNamespace="http://www.nordugrid.org/schemas/arcpdp/2009/08"
   elementFormDefault="qualified">
  
-
-    <!-- Imports -->
-    <xsd:import namespace="http://www.nordugrid.org/schemas/ini/2009/08" schemaLocation="../../../daemon/schema/ini.xsd"/>
 
     <xsd:element name="Filter" type="FilterType"/> 
     <xsd:complexType name="FilterType">
@@ -18,9 +14,6 @@
               If there are no Select elements all Attributes are used except
               those listed in Reject elements. 
             </xsd:documentation>
-            <xsd:appinfo>
-                <ini:tag>filtertype</ini:tag>
-            </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="Select" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
@@ -34,9 +27,6 @@
               This element specifies file containing policy document.
               There could be multiple sub elements <Location/>.
             </xsd:documentation>
-            <xsd:appinfo>
-                <ini:tag>policystore</ini:tag> 
-            </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>
     <xsd:complexType name="PolicyStoreType">

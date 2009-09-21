@@ -1,4 +1,4 @@
-
+SUBDIRS=schema
 noinst_LTLIBRARIES = libsimplelistpdp.la
 libsimplelistpdp_la_SOURCES  = SimpleListPDP.cpp SimpleListPDP.h
 libsimplelistpdp_la_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include

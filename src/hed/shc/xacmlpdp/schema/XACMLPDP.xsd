@@ -1,24 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xsd:schema
   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-  xmlns="http://www.nordugrid.org/schemas/XACMLPDP"
-  xmlns:ini="http://www.nordugrid.org/schemas/ini/2009/08"
-  targetNamespace="http://www.nordugrid.org/schemas/XACMLPDP"
+  xmlns="http://www.nordugrid.org/schemas/xacmlpdp/2009/08"
+  targetNamespace="http://www.nordugrid.org/schemas/xacmlpdp/2009/08"
   elementFormDefault="qualified">
  
-
-    <!-- Imports -->
-    <xsd:import namespace="http://www.nordugrid.org/schemas/ini/2009/08" schemaLocation="../../../daemon/schema/ini.xsd"/>
-
     <xsd:element name="PolicyStore" type="PolicyStoreType">
         <xsd:annotation>
             <xsd:documentation xml:lang="en">
               This element specifies file containing policy document.
               There could be multiple sub elements <Location/>.
             </xsd:documentation>
-            <xsd:appinfo>
-                <ini:tag>policystore</ini:tag> 
-            </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>
     <xsd:complexType name="PolicyStoreType">

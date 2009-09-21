@@ -3,12 +3,8 @@
     xmlns:xsd="http://www.w3.org/2001/XMLSchema"
     targetNamespace="http://www.nordugrid.org/schemas/http/2009/08"
     xmlns="http://www.nordugrid.org/schemas/http/2009/08"
-    xmlns:ini="http://www.nordugrid.org/schemas/ini/2009/08"
     elementFormDefault="qualified"
     attributeFormDefault="unqualified">
-
-<!-- Imports -->
-<xsd:import namespace="http://www.nordugrid.org/schemas/ini/2009/08" schemaLocation="../../../daemon/schema/ini.xsd"/>
 
 <!--
     These elements define configuration parameters for client

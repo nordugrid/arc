@@ -1,14 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xsd:schema
-   xmlns:xt="http://www.nordugrid.org/schemas/SAMLTokenSH"
+   xmlns:xt="http://www.nordugrid.org/schemas/samltokensh/2009/08"
    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-   targetNamespace="http://www.nordugrid.org/schemas/SAMLTokenSH"
-   xmlns:ini="http://www.nordugrid.org/schemas/ini/2009/08"
+   targetNamespace="http://www.nordugrid.org/schemas/samltokensh/2009/08"
    elementFormDefault="qualified"
    attributeFormDefault="unqualified">
-
-  <!-- Imports -->
-  <xsd:import namespace="http://www.nordugrid.org/schemas/ini/2009/08" schemaLocation="../../../daemon/schema/ini.xsd"/>
 
   <!-- This schema defines elements which are accepted by SAMLToken
        SecHandler. See mcc.xsd for general information about SecHandler
@@ -32,9 +28,6 @@
           It is needed for both client and service side.
           Default is none.
         </xsd:documentation>
-        <xsd:appinfo>
-          <ini:tag>processtype</ini:tag>
-        </xsd:appinfo>
     </xsd:annotation>
     <xsd:restriction base="xsd:string">
       <xsd:enumeration value="extract"/>
@@ -49,9 +42,6 @@
           SOAP message, only needed by the client side.
           Default is none.
         </xsd:documentation>
-        <xsd:appinfo>
-          <ini:tag>keypath</ini:tag>
-        </xsd:appinfo>
     </xsd:annotation>
   </xsd:element>
 
@@ -66,9 +56,6 @@
           Only needed by the client side.
           Default is none.
         </xsd:documentation>
-        <xsd:appinfo>
-          <ini:tag>certpath</ini:tag>
-        </xsd:appinfo>
     </xsd:annotation>
   </xsd:element>
 
@@ -80,9 +67,6 @@
           Needed by client and service side.
           Default is none.
         </xsd:documentation>
-        <xsd:appinfo>
-          <ini:tag>cafile</ini:tag>
-        </xsd:appinfo>
     </xsd:annotation>
   </xsd:element>
 
@@ -94,9 +78,6 @@
           Needed by client and service side.
           Default is "/etc/grid-security/certificates".
         </xsd:documentation>
-        <xsd:appinfo>
-          <ini:tag>cadir</ini:tag>
-        </xsd:appinfo>
     </xsd:annotation>
   </xsd:element>
 
@@ -110,9 +91,6 @@
           Needed by client side.
           Default is none.
         </xsd:documentation>
-        <xsd:appinfo>
-          <ini:tag>aaservice</ini:tag>
-        </xsd:appinfo>
     </xsd:annotation>
   </xsd:element>
 

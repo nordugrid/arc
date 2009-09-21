@@ -1,3 +1,4 @@
+SUBDIRS=schema
 pkglib_LTLIBRARIES = libecho.la
 noinst_PROGRAMS=test test_client test_clientinterface test_service
 bin_PROGRAMS=perftest

@@ -1,14 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xsd:schema
-   xmlns:authz="http://www.nordugrid.org/schemas/ArcAuthZ"
+   xmlns:authz="http://www.nordugrid.org/schemas/arcauthz/2009/08"
    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-   targetNamespace="http://www.nordugrid.org/schemas/ArcAuthZ"
-   xmlns:ini="http://www.nordugrid.org/schemas/ini/2009/08"
+   targetNamespace="http://www.nordugrid.org/schemas/arcauthz/2009/08"
    elementFormDefault="qualified"
    attributeFormDefault="unqualified">
-
- <!-- Imports -->
- <xsd:import namespace="http://www.nordugrid.org/schemas/ini/2009/08" schemaLocation="../../../daemon/schema/ini.xsd"/>
 
  <!-- This schema defines elements which are accepted by ArcAuthZ
       SecHandler. See mcc.xsd for general information about SecHandler
@@ -34,7 +30,7 @@
        plugin as defined in one of loaded libraries. This element will be
        passed to PDP plugin during initialization. -->
   <xsd:sequence> 
-   <xsd:any namespace="##other" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
+   <xsd:any namespace="##other" processContents="strict" minOccurs="0" maxOccurs="unbounded"/>
   </xsd:sequence>
   <xsd:attribute name="name" type="xsd:string" use="required"/>
   <!-- Attribute 'action' defines behavior after obtaining results from
@@ -61,7 +57,7 @@
       </xsd:restriction>
     </xsd:simpleType>
   </xsd:attribute>
-  <xsd:anyAttribute namespace="##other" processContents="lax"/>
+  <xsd:anyAttribute namespace="##other" processContents="strict"/>
  </xsd:complexType> 
  <xsd:element name="PDP" type="authz:PDPType"/>
 

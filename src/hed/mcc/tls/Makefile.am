@@ -1,3 +1,4 @@
+SUBDIRS=schema
 pkglib_LTLIBRARIES = libmcctls.la
 
 libmcctls_la_SOURCES = PayloadTLSStream.cpp MCCTLS.cpp BIOMCC.cpp PayloadTLSMCC.cpp \

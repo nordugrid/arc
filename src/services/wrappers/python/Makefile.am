@@ -1,3 +1,4 @@
+SUBDIRS=schema
 pkglib_LTLIBRARIES = libpythonservice.la
 
 libpythonservice_la_SOURCES  = pythonwrapper.cpp pythonwrapper.h

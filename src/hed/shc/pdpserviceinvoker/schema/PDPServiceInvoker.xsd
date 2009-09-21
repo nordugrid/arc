@@ -1,14 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xsd:schema
   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-  xmlns="http://www.nordugrid.org/schemas/PDPServiceInvoker"
-  xmlns:ini="http://www.nordugrid.org/schemas/ini/2009/08"
-  targetNamespace="http://www.nordugrid.org/schemas/PDPServiceInvoker"
+  xmlns="http://www.nordugrid.org/schemas/pdpserviceinvoker/2009/08"
+  targetNamespace="http://www.nordugrid.org/schemas/pdperviceinvoker/2009/08"
   elementFormDefault="qualified">
  
-    <!-- Imports -->
-    <xsd:import namespace="http://www.nordugrid.org/schemas/ini/2009/08" schemaLocation="../../../daemon/schema/ini.xsd"/>
-
     <xsd:element name="Filter" type="FilterType"/>
     <xsd:complexType name="FilterType">
         <xsd:annotation>
@@ -17,9 +13,6 @@
               If there are no Select elements all Attributes are used except
               those listed in Reject elements.
             </xsd:documentation>
-            <xsd:appinfo>
-                <ini:tag>filtertype</ini:tag>
-            </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="Select" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
@@ -33,9 +26,6 @@
               This element is to specify endpoint about remote pdpservice.
               It will be configured under the <PDP name="pdpservice.invoker"/>
             </xsd:documentation>
-            <xsd:appinfo>
-                <ini:tag>serviceendpoint</ini:tag>
-            </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>
 
@@ -46,9 +36,6 @@
              are recognized: xacml, arc.
              Default is "arc".
             </xsd:documentation>
-            <xsd:appinfo>
-                <ini:tag>requestformat</ini:tag>
-            </xsd:appinfo>
         </xsd:annotation> 
     </xsd:element>
 
@@ -65,9 +52,6 @@
               Two options are recognized: saml, arc.
              Default is "arc".
             </xsd:documentation>
-            <xsd:appinfo>
-                <ini:tag>transferprotocol</ini:tag>
-            </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>
 
@@ -88,9 +72,6 @@
                Location of private key.
                Default is $HOME/.globus/userkey.pem.
             </xsd:documentation>
-            <xsd:appinfo>
-                <ini:tag>keypath</ini:tag>
-            </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>
 
@@ -100,9 +81,6 @@
              Location of public certificate.
              Default is $HOME/.globus/usercert.pem.
             </xsd:documentation>
-            <xsd:appinfo>
-                <ini:tag>certificatepath</ini:tag>
-            </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>
 
@@ -113,9 +91,6 @@
              key and chain of involved certificates. Overwrites
              elements KeyPath and CertificatePath. Default is /tmp/hash{userid}.0
             </xsd:documentation>
-            <xsd:appinfo>
-                <ini:tag>proxypath</ini:tag>
-            </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>
 
@@ -124,9 +99,6 @@
             <xsd:documentation xml:lang="en">
              Location of certificate of CA. Default is none.
             </xsd:documentation>
-            <xsd:appinfo>
-                <ini:tag>cafile</ini:tag>
-            </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>
 
@@ -137,9 +109,6 @@
                  Directory containing certificates of accepted CAs.
                  Default is /etc/grid-security/certificates
                 </xsd:documentation>
-                <xsd:appinfo>
-                    <ini:tag>cadir</ini:tag>
-                </xsd:appinfo>
             </xsd:annotation>
         </xsd:complexType>
     </xsd:element>

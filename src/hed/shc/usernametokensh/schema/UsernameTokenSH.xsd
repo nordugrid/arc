@@ -1,14 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xsd:schema
-   xmlns:ut="http://www.nordugrid.org/schemas/UsernameTokenSH"
+   xmlns:ut="http://www.nordugrid.org/schemas/usernametokensh/2009/08"
    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-   targetNamespace="http://www.nordugrid.org/schemas/UsernameTokenSH"
-   xmlns:ini="http://www.nordugrid.org/schemas/ini/2009/08"
+   targetNamespace="http://www.nordugrid.org/schemas/usernametokensh/2009/08"
    elementFormDefault="qualified"
    attributeFormDefault="unqualified">
-
-  <!-- Imports -->
-  <xsd:import namespace="http://www.nordugrid.org/schemas/ini/2009/08" schemaLocation="../../../daemon/schema/ini.xsd"/>
 
   <!-- This schema defines elements which are accepted by UsernameToken
        SecHandler. See mcc.xsd for general information about SecHandler
@@ -27,9 +23,6 @@
           It is needed for both client and service side.
           Default is none.
         </xsd:documentation>
-        <xsd:appinfo>
-          <ini:tag>processtype</ini:tag>
-        </xsd:appinfo>
     </xsd:annotation>
     <xsd:restriction base="xsd:string">
       <xsd:enumeration value="extract"/>
@@ -46,9 +39,6 @@
           only needed for client side.
           Default is none.
         </xsd:documentation>
-        <xsd:appinfo>
-          <ini:tag>passwordencodingtype</ini:tag>
-        </xsd:appinfo>
     </xsd:annotation>
     <xsd:restriction base="xsd:string">
       <xsd:enumeration value="text"/>
@@ -63,9 +53,6 @@
           only needed for client side.
           Default is none.
         </xsd:documentation>
-        <xsd:appinfo>
-          <ini:tag>username</ini:tag>
-        </xsd:appinfo>
     </xsd:annotation>
   </xsd:element>
   
@@ -76,9 +63,6 @@
           only needed for client side.
           Default is none.
         </xsd:documentation>
-        <xsd:appinfo>
-          <ini:tag>password</ini:tag>
-        </xsd:appinfo>
     </xsd:annotation>
   </xsd:element>
 
@@ -93,9 +77,6 @@
           only needed for service side.
           Default is none.
         </xsd:documentation>
-        <xsd:appinfo>
-          <ini:tag>passwordsource</ini:tag>
-        </xsd:appinfo>
     </xsd:annotation>
   </xsd:element>
 

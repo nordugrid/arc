@@ -1,3 +1,4 @@
+SUBDIRS=schema
 pkglib_LTLIBRARIES = libmccmsgvalidator.la
 
 libmccmsgvalidator_la_SOURCES  = MCCMsgValidator.cpp MCCMsgValidator.h

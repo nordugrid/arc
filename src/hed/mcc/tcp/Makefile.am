@@ -1,3 +1,4 @@
+SUBDIRS=schema
 pkglib_LTLIBRARIES = libmcctcp.la
 
 libmcctcp_la_SOURCES = MCCTCP.cpp PayloadTCPSocket.cpp \

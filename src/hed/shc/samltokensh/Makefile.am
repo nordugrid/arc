@@ -1,4 +1,4 @@
-
+SUBDIRS=schema
 noinst_LTLIBRARIES = libsamltokensh.la
 libsamltokensh_la_SOURCES  = SAMLTokenSH.cpp SAMLTokenSH.h
 libsamltokensh_la_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(XMLSEC_OPENSSL_CFLAGS) $(XMLSEC_CFLAGS) -I$(top_srcdir)/include

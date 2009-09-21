@@ -1,4 +1,4 @@
-
+SUBDIRS=schema
 noinst_LTLIBRARIES = libusernametokensh.la
 libusernametokensh_la_SOURCES  = UsernameTokenSH.cpp UsernameTokenSH.h
 libusernametokensh_la_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include

@@ -3,13 +3,9 @@
     xmlns:xsd="http://www.w3.org/2001/XMLSchema"
     targetNamespace="http://www.nordugrid.org/schemas/paul/2009/08"
     xmlns="http://www.nordugrid.org/schemas/paul/2009/08"
-    xmlns:ini="http://www.nordugrid.org/schemas/ini/2009/08"
     elementFormDefault="qualified"
     attributeFormDefault="unqualified">
 
-<!-- Imports -->
-<xsd:import namespace="http://www.nordugrid.org/schemas/ini/2009/08" schemaLocation="../../../daemon/schema/ini.xsd"/>
- 
 <xsd:element name="SchedulerEndpoint" type="xsd:anyURI">
     <xsd:annotation>
         <xsd:documentation xml:lang="en">

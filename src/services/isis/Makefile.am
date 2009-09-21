@@ -1,3 +1,4 @@
+SUBDIRS=schema
 pkglib_LTLIBRARIES = libisis.la 
 
 AM_CPPFLAGS=@DBCXX_CPPFLAGS@

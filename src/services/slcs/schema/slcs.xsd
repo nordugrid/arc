@@ -1,14 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xsd:schema
   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-  xmlns="http://www.nordugrid.org/schemas/ArcConfig/2007/charon"
-  targetNamespace="http://www.nordugrid.org/schemas/ArcConfig/2007/slcs"
-  xmlns:ini="http://www.nordugrid.org/schemas/ini/2009/08"
+  xmlns="http://www.nordugrid.org/schemas/slcs/2009/08"
+  targetNamespace="http://www.nordugrid.org/schemas/slcs/2009/08"
   elementFormDefault="qualified">
-
-
-    <!-- Imports -->
-    <xsd:import namespace="http://www.nordugrid.org/schemas/ini/2009/08" schemaLocation="../../../daemon/schema/ini.xsd"/>
 
     <xsd:element name="CACertificate" type="CACertificateType"/>
     <xsd:complexType name="CACertificateType">
@@ -17,16 +12,12 @@
                CACertificate, this element defines the location of CA certificate, which
                together with CAKey will be used for signing the SLCS certificate. No default.
             </xsd:documentation>
-            <xsd:appinfo>
-                <ini:tag>cacertificate</ini:tag>
-            </xsd:appinfo>
         </xsd:annotation>
         <xsd:simpleContent>
             <xsd:extension base="xsd:string">
             </xsd:extension>
         </xsd:simpleContent>
     </xsd:complexType>
-
 
     <xsd:element name="CAKey" type="CAKeyType"/>
     <xsd:complexType name="CAKeyType">
@@ -34,17 +25,13 @@
             <xsd:documentation xml:lang="en">
                CAKey, this element defines the location of CA key. No default.
             </xsd:documentation>
-            <xsd:appinfo>
-                <ini:tag>cakey</ini:tag>
-            </xsd:appinfo>
         </xsd:annotation>
         <xsd:simpleContent>
             <xsd:extension base="xsd:string">
             </xsd:extension>
         </xsd:simpleContent>
     </xsd:complexType>
-
-
+    
     <xsd:element name="CASerial" type="CASerialType"/>
     <xsd:complexType name="CASerialType">
         <xsd:annotation>
@@ -53,9 +40,6 @@
                certificate, which will be used for accounting the certificates that has
                already be signed. No default.
             </xsd:documentation>
-            <xsd:appinfo>
-                <ini:tag>caserial</ini:tag>
-            </xsd:appinfo>
         </xsd:annotation>
         <xsd:simpleContent>
             <xsd:extension base="xsd:string">

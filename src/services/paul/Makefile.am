@@ -1,3 +1,4 @@
+SUBDIRS=schema
 pkglib_LTLIBRARIES = libpaul.la
 noinst_PROGRAMS=test_sysinfo # test_r
 noinst_LTLIBRARIES = libsysinfo.la

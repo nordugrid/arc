@@ -1,3 +1,4 @@
+SUBDIRS=schema
 pkglib_LTLIBRARIES = libmcchttp.la
 noinst_PROGRAMS = http_test http_test_withtls
 

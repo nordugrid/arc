@@ -4,5 +4,5 @@ python_DATA = __init__.py bartender.py
 
 EXTRA_DIST = $(python_DATA)
 
-SUBDIRS = gateway
+SUBDIRS = gateway schema
 DIST_SUBDIRS = gateway

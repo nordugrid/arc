@@ -3,14 +3,10 @@
     xmlns:xsd="http://www.w3.org/2001/XMLSchema"
     targetNamespace="http://www.nordugrid.org/schemas/tls/2009/08"
     xmlns="http://www.nordugrid.org/schemas/tls/2009/08"
-    xmlns:ini="http://www.nordugrid.org/schemas/ini/2009/08"
     elementFormDefault="qualified"
     attributeFormDefault="unqualified">
 
 <!--This schema covers the configuration requirement for TLS MCC and GSI MCC. -->
-
-<!-- Imports -->
-<xsd:import namespace="http://www.nordugrid.org/schemas/ini/2009/08" schemaLocation="../../../daemon/schema/ini.xsd"/>
 
 <xsd:element name="KeyPath" type="xsd:string" default="/etc/grid-security/hostkey.pem">
     <xsd:annotation>
@@ -19,9 +15,6 @@
         Default is /etc/grid-security/hostkey.pem for service 
         and $HOME/.globus/userkey.pem for client.
         </xsd:documentation>
-        <xsd:appinfo>
-          <ini:tag>keypath</ini:tag>
-        </xsd:appinfo>
     </xsd:annotation>
 </xsd:element>
 
@@ -32,9 +25,6 @@
         Default is /etc/grid-security/hostcert.pem for service and
         $HOME/.globus/usercert.pem for client.
         </xsd:documentation>
-        <xsd:appinfo>
-          <ini:tag>certificatepath</ini:tag>
-        </xsd:appinfo>
     </xsd:annotation>
 </xsd:element>
 
@@ -46,9 +36,6 @@
         elements KeyPath and CertificatePath. Default is /tmp/hash{userid}.0 for client, 
         and none for service.
         </xsd:documentation>
-        <xsd:appinfo>
-          <ini:tag>proxypath</ini:tag>
-        </xsd:appinfo>
     </xsd:annotation>
 </xsd:element>
 
@@ -57,9 +44,6 @@
         <xsd:documentation xml:lang="en">
         Location of certificate of CA. Default is none.
         </xsd:documentation>
-        <xsd:appinfo>
-          <ini:tag>cafile</ini:tag>
-        </xsd:appinfo>
     </xsd:annotation>
 </xsd:element>
 
@@ -70,9 +54,6 @@
             Directory containing certificates of accepted CAs.
             Default is /etc/grid-security/certificates
             </xsd:documentation>
-           <xsd:appinfo>
-             <ini:tag>cadir</ini:tag>
-          </xsd:appinfo>
         </xsd:annotation>
         <xsd:simpleContent>
             <xsd:extension base="xsd:string">
@@ -88,9 +69,6 @@
          Whether checking client certificate. Only needed for service side.
         Default is "true" 
         </xsd:documentation>
-        <xsd:appinfo>
-          <ini:tag>clientauthn</ini:tag>
-        </xsd:appinfo>
     </xsd:annotation>
 </xsd:element>
 
@@ -130,9 +108,6 @@
             <xsd:documentation xml:lang="en">
             Type of handshake applied. Default is TLS.
             </xsd:documentation>
-            <xsd:appinfo>
-               <ini:tag>handshake</ini:tag>
-            </xsd:appinfo>
         </xsd:annotation>
         <xsd:restriction base="xsd:string">
             <xsd:enumeration value="TLS"/>
