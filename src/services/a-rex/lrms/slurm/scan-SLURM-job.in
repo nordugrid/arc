@@ -21,7 +21,7 @@ pkglibdir=`cd $pkglibdir > /dev/null && pwd` || exit $?
 
 
 # Prevent multiple instances of scan-slurm-job to run concurrently
-lockfile="${TMPDIR:-/tmp}/scan-slurm-job.lock"
+lockfile="${TMPDIR:-@tmp_dir@}/scan-slurm-job.lock"
 #Check if lockfile exist, if not, create it.
 (set -C; : > "$lockfile") 2> /dev/null
 if [ "$?" != "0" ]; then
@@ -47,12 +47,12 @@ echo "$$" > "$lockfile"
 #If killed, remove lockfile
 trap 'rm $lockfile' EXIT KILL TERM
 #Default sleep-time is 30 seconds
-sleep ${CONFIG_SLURM_wakeupperiod:-30}
+sleep ${CONFIG_wakeupperiod:-30}
 
 
 
 ### If GM sees the session dirs... copied from scan-pbs-jobs
-RUNTIME_NODE_SEES_FRONTEND=${RUNTIME_NODE_SEES_FRONTEND:-@runtime_node_sees_frontend@}
+RUNTIME_NODE_SEES_FRONTEND=$CONFIG_shared_filesystem
 #default is NFS
 if [ -z "${RUNTIME_NODE_SEES_FRONTEND}" ] ; then
   RUNTIME_NODE_SEES_FRONTEND=yes

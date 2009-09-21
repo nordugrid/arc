@@ -11,7 +11,7 @@
 
 echo "----- starting submit_pbs_job -----" 1>&2
 
-joboption_lrms=PBS
+joboption_lrms=pbs
 
 # ARC1 passes first the config file.
 if [ "$1" = "--config" ]; then shift; ARC_CONFIG=$1; shift; fi
@@ -24,43 +24,11 @@ pkglibdir=`cd $pkglibdir > /dev/null && pwd` || exit $?
 
 . ${pkglibdir}/submit_common.sh || exit $?
 
-init
-
 ##############################################################
-# These should be set automatically
-##############################################################
-# Path to pbs commands
-PBS_BIN_PATH=${PBS_BIN_PATH:-@pbs_bin_path@}
-# Where runtime scripts can be found on computing nodes (empty if does not exist)
-RUNTIME_CONFIG_DIR=${RUNTIME_CONFIG_DIR:-}
-export RUNTIME_CONFIG_DIR
-# Description of (cross-)mounted disc space on cluster
-RUNTIME_FRONTEND_SEES_NODE=${RUNTIME_FRONTEND_SEES_NODE:-}
-RUNTIME_NODE_SEES_FRONTEND=${RUNTIME_NODE_SEES_FRONTEND:-}
-
-#default is NFS
-if [ -z "${RUNTIME_NODE_SEES_FRONTEND}" ] ; then
-  RUNTIME_NODE_SEES_FRONTEND=yes
-fi
-# locally empty means no
-if [ "${RUNTIME_NODE_SEES_FRONTEND}" = 'no' ] ; then
-  RUNTIME_NODE_SEES_FRONTEND=
-fi
-
-##############################################################
-# Parse argument file
+# Parse grami file, read arc config
 ##############################################################
 
-parse_arg_file $1
-
-
-##############################################################
-# Read queue_node_string from ARC config file
-##############################################################
-. ${pkglibdir}/configure-pbs-env.sh || exit $?
-
-
-##############################################################
+init $1
 
 failures_file="$joboption_controldir/job.$joboption_gridid.failed"
 

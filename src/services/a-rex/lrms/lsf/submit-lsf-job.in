@@ -44,22 +44,23 @@ fi
 # configuration options
 
 # Where to store temporary files on gatekeeper
-TMP_DIR=${TMP_DIR:-@tmp_dir@}
+TMP_DIR=${TMPDIR:-@tmp_dir@}
 # Where runtime scripts can be found on computing nodes (empty if does not exist)
-RUNTIME_CONFIG_DIR=${RUNTIME_CONFIG_DIR:-@runtime_config_dir@}
+RUNTIME_CONFIG_DIR=$CONFIG_runtimedir
 # Where GNU time utility is located on computing nodes (empty if does not exist)
-GNU_TIME=${GNU_TIME:-@gnu_time@}
+GNU_TIME=${CONFIG_gnu_time:-@gnu_time@}
 # Command to get name of executing node
-NODENAME=${NODENAME:-@nodename@}
+NODENAME=${CONFIG_nodename:-@nodename@}
 # Description of (cross-)mounted disc space on cluster
-RUNTIME_LOCAL_SCRATCH_DIR=${RUNTIME_LOCAL_SCRATCH_DIR:-}
-RUNTIME_FRONTEND_SEES_NODE=${RUNTIME_FRONTEND_SEES_NODE:-}
+RUNTIME_LOCAL_SCRATCH_DIR=$CONFIG_scratchdir
+RUNTIME_FRONTEND_SEES_NODE=$CONFIG_shared_scratch
+RUNTIME_NODE_SEES_FRONTEND=$CONFIG_shared_filesystem
 # enforce this 
 RUNTIME_FRONTEND_SEES_NODE='yes'
 RUNTIME_NODE_SEES_FRONTEND='yes'
 
 
-joboption_lrms=LSF
+joboption_lrms=lsf
 joboption_localtransfer='no'
 
 if [ -z "$joboption_controldir" ] ; then

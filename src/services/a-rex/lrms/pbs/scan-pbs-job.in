@@ -18,19 +18,19 @@ basedir=`cd $basedir > /dev/null && pwd` || exit $?
 pkglibdir="$basedir/@pkglibdir_rel_to_pkglibexecdir@"
 pkglibdir=`cd $pkglibdir > /dev/null && pwd` || exit $?
 
+. ${pkglibdir}/configure-pbs-env.sh || exit $?
+
 # Assume that gm-kick is installed in the same directory
 GMKICK=${basedir}/gm-kick
 
-# These should be set automatically
-# Paths to pbs commands and logs
-PBS_BIN_PATH=${PBS_BIN_PATH:-@pbs_bin_path@}
-PBS_LOG_PATH=${PBS_LOG_PATH:-@pbs_log_path@}
 # Where to store temporary files
-TMP_DIR=${TMP_DIR:-@tmp_dir@}
+TMP_DIR=${TMPDIR:-@tmp_dir@}
 
-pbs_log_dir=$PBS_LOG_PATH
+# directory containing PBS server logs
+pbs_log_dir=${CONFIG_pbs_log_path:-@pbs_log_path@}
 
-RUNTIME_NODE_SEES_FRONTEND=${RUNTIME_NODE_SEES_FRONTEND:-@runtime_node_sees_frontend@}
+RUNTIME_NODE_SEES_FRONTEND=$CONFIG_shared_filesystem
+
 #default is NFS
 if [ -z "${RUNTIME_NODE_SEES_FRONTEND}" ] ; then
   RUNTIME_NODE_SEES_FRONTEND=yes

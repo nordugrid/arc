@@ -10,7 +10,7 @@
 
 echo "----- starting submit_sge_job -----" 1>&2
 
-joboption_lrms=SGE
+joboption_lrms=sge
 
 # ARC1 passes first the config file.
 if [ "$1" = "--config" ]; then shift; ARC_CONFIG=$1; shift; fi
@@ -25,38 +25,12 @@ pkglibdir=`cd $pkglibdir > /dev/null && pwd` || exit $?
 
 joboption_localtransfer='no'
 
-init
 ##############################################################
-# Configuration options,  
-##############################################################
-
-# Where runtime scripts can be found on computing nodes (empty if does not exist)
-RUNTIME_CONFIG_DIR=${RUNTIME_CONFIG_DIR:-@runtime_config_dir@}
-export RUNTIME_CONFIG_DIR
-# Description of (cross-)mounted disc space on cluster
-RUNTIME_FRONTEND_SEES_NODE=${RUNTIME_FRONTEND_SEES_NODE:-}
-
-#default is NFS
-if [ -z "${RUNTIME_NODE_SEES_FRONTEND}" ] ; then
-  RUNTIME_NODE_SEES_FRONTEND=yes
-fi
-# locally empty means no
-if [ "${RUNTIME_NODE_SEES_FRONTEND}" = 'no' ] ; then
-  RUNTIME_NODE_SEES_FRONTEND=
-fi
-
-##############################################################
-# Parse argument file
+# Parse grami file, read arc config
 ##############################################################
 
-parse_arg_file $1
+init $1
 cat $1 1>&2
-
-#################################################################
-# Set SGE specific environment # needs to know $joboption_queue #
-#################################################################
-
-. ${pkglibdir}/configure-sge-env.sh 1>&2 || exit $?
 
 ##############################################################
 # Zero stage of runtime environments

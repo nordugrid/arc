@@ -9,7 +9,7 @@
 
 echo "----- starting submit_ll_job -----" 1>&2
 
-joboption_lrms=LL
+joboption_lrms=ll
 
 # ARC1 passes first the config file.
 if [ "$1" = "--config" ]; then shift; ARC_CONFIG=$1; shift; fi
@@ -25,26 +25,15 @@ pkglibdir=`cd $pkglibdir > /dev/null && pwd` || exit $?
 
 joboption_localtransfer='no'
 
-init
 ##############################################################
-# Configuration options,  
+# Parse grami file, read arc config
 ##############################################################
- 
-# Where runtime scripts can be found on computing nodes (empty if does not exist)
-RUNTIME_CONFIG_DIR=${RUNTIME_CONFIG_DIR:-@runtime_config_dir@}
-export RUNTIME_CONFIG_DIR
-# Description of (cross-)mounted disc space on cluster
-RUNTIME_FRONTEND_SEES_NODE=${RUNTIME_FRONTEND_SEES_NODE:-}
+
+init $1
+
 # GD enforce this for the moment
 RUNTIME_FRONTEND_SEES_NODE=''
 RUNTIME_NODE_SEES_FRONTEND='yes'
-
-
-##############################################################
-# Parse argument file
-##############################################################
-
-parse_arg_file $1
 
 ##############################################################
 # Zero stage of runtime environments

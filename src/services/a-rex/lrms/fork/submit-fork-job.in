@@ -18,24 +18,12 @@ pkglibdir=`cd $pkglibdir > /dev/null && pwd` || exit $?
 
 . ${pkglibdir}/submit_common.sh || exit $?
 
-init
-
 ##############################################################
-# These should be set automatically
+# Parse grami file, read arc config
 ##############################################################
-# Where runtime scripts can be found on computing nodes (empty if does not exist)
-RUNTIME_CONFIG_DIR=${RUNTIME_CONFIG_DIR:-}
-export RUNTIME_CONFIG_DIR
-# For fork job only directory we need is local scratch
-RUNTIME_FRONTEND_SEES_NODE=${RUNTIME_FRONTEND_SEES_NODE:-@runtime_frontend_sees_node@}
-RUNTIME_NODE_SEES_FRONTEND=${RUNTIME_NODE_SEES_FRONTEND:-yes}
+init $1
 
-
-##############################################################
-# Parse argument file
-##############################################################
-parse_arg_file $1
-
+RUNTIME_NODE_SEES_FRONTEND=yes
 
 ##############################################################
 # Zero stage of runtime environments

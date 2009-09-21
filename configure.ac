@@ -1264,10 +1264,6 @@ pbs_bin_path=/usr/bin
 pbs_log_path=/var/spool/pbs/server_logs
 tmp_dir=/tmp
 gnu_time=/usr/bin/time
-runtime_config_dir=
-runtime_local_scratch_dir=
-runtime_frontend_sees_node=
-runtime_node_sees_frontend=
 
 case "${host}" in
     *linux*)
@@ -1285,10 +1281,6 @@ AC_SUBST(pbs_log_path)
 AC_SUBST(tmp_dir)
 AC_SUBST(gnu_time)
 AC_SUBST(nodename)
-AC_SUBST(runtime_config_dir)
-AC_SUBST(runtime_local_scratch_dir)
-AC_SUBST(runtime_frontend_sees_node)
-AC_SUBST(runtime_node_sees_frontend)
 
 # Shell for the job control scripts
 
@@ -1454,6 +1446,7 @@ AC_CONFIG_FILES([Makefile
                  src/services/a-rex/lrms/pbs/submit-pbs-job
                  src/services/a-rex/lrms/pbs/cancel-pbs-job
                  src/services/a-rex/lrms/pbs/scan-pbs-job
+                 src/services/a-rex/lrms/pbs/configure-pbs-env.sh
                  src/services/a-rex/lrms/sge/Makefile
                  src/services/a-rex/lrms/sge/submit-sge-job
                  src/services/a-rex/lrms/sge/scan-sge-job

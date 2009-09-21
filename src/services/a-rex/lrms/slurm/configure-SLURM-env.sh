@@ -24,16 +24,11 @@ fi
 
 # Path to slurm commands
 #SLURM_BIN_PATH=${SLURM_BIN_PATH:-$CONFIG_SLURM_bin_path}
-SLURM_BIN_PATH=${CONFIG_SLURM_bin_path:-/usr/bin}
+SLURM_BIN_PATH=${CONFIG_slurm_bin_path:-/usr/bin}
 if [ ! -d ${SLURM_BIN_PATH} ] ; then
     echo "Could not set SLURM_BIN_PATH." 1>&2
     exit 1
 fi
-
-# Local scratch disk
-# TODO : why? is this correct? read from arc.conf first?
-RUNTIME_LOCAL_SCRATCH_DIR=${RUNTIME_LOCAL_SCRATCH_DIR:-$CONFIG_scratchDir}
-export RUNTIME_LOCAL_SCRATCH_DIR
 
 # Paths to SLURM commands
 squeue="$SLURM_BIN_PATH/squeue"

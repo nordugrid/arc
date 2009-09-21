@@ -23,38 +23,11 @@ pkglibdir=`cd $pkglibdir > /dev/null && pwd` || exit $?
 
 . ${pkglibdir}/submit_common.sh || exit $?
 
-init
-
-# Where runtime scripts can be found on computing nodes (empty if does not exist)
-RUNTIME_CONFIG_DIR=${RUNTIME_CONFIG_DIR:-}
-export RUNTIME_CONFIG_DIR
-
-# Description of (cross-)mounted disc space on cluster
-RUNTIME_FRONTEND_SEES_NODE=${RUNTIME_FRONTEND_SEES_NODE:-}
-RUNTIME_NODE_SEES_FRONTEND=${RUNTIME_NODE_SEES_FRONTEND:-}
-
-#default is NFS
-if [ -z "${RUNTIME_NODE_SEES_FRONTEND}" ] ; then
-  RUNTIME_NODE_SEES_FRONTEND=yes
-fi
-# locally empty means no
-if [ "${RUNTIME_NODE_SEES_FRONTEND}" = 'no' ] ; then
-  RUNTIME_NODE_SEES_FRONTEND=
-fi
-
 ##############################################################
-# Parse argument file
+# Parse grami file, read arc config
 ##############################################################
-parse_arg_file $1
 
-
-##############################################################
-# Set SLURM specific environment. Uses $joboption_queue      #
-##############################################################
-. ${pkglibdir}/configure-SLURM-env.sh || exit $?
-
-
-##############################################################
+init $1
 
 failures_file="$joboption_controldir/job.$joboption_gridid.failed"
 

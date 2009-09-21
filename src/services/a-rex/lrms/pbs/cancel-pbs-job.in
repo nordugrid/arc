@@ -22,9 +22,6 @@ pkglibdir=`cd $pkglibdir > /dev/null && pwd` || exit $?
 ##############################################################
 # These should be set automatically
 ##############################################################
-# Path to pbs commands
-PBS_BIN_PATH=${PBS_BIN_PATH:-@pbs_bin_path@}
-
 
 PBS_QDEL='qdel'
 if [ ! -z "$PBS_BIN_PATH" ] ; then

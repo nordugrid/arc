@@ -78,7 +78,7 @@ if [ -z ${LSF_BIN_PATH} ]; then
     exit 1
 fi
 
-pidslist=`mktemp "$TMP_DIR/lsfstat.XXXXXX"` || 
+pidslist=`mktemp "${TMPDIR:-@tmp_dir@}/lsfstat.XXXXXX"` || 
 if [ ! "$?" = '0' ] ; then 
   rm -f "$pidslist"
   # PBS server down ?

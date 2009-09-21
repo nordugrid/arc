@@ -24,13 +24,9 @@ if [ ! -z "$joboption_queue" ]; then
 fi
 
 # Path to ll commands
-LL_BIN_PATH=${LL_BIN_PATH:-$CONFIG_ll_bin_path}
+LL_BIN_PATH=$CONFIG_ll_bin_path
 if [ ! -d ${LL_BIN_PATH} ] ; then
     echo "Could not set LL_BIN_PATH." 1>&2
     exit 1
 fi
-
-# Local scratch disk
-RUNTIME_LOCAL_SCRATCH_DIR=${RUNTIME_LOCAL_SCRATCH_DIR:-$CONFIG_scratchDir}
-export RUNTIME_LOCAL_SCRATCH_DIR
 

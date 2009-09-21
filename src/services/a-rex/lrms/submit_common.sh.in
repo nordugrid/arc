@@ -23,6 +23,32 @@
 
 
 init () {
+
+   parse_arg_file $1
+
+   if [ -z "$pkglibdir" ]; then echo 'pkglibdir must be set' 1>&2; exit 1; fi
+   if [ -z "$joboption_lrms" ]; then echo 'joboption_lrms must be set' 1>&2; exit 1; fi
+
+   # May use joboption_queue (set by parse_arg_file)
+   . ${pkglibdir}/configure-${joboption_lrms}-env.sh || exit $?
+
+   # Where runtime scripts can be found on computing nodes (empty if does not exist)
+   RUNTIME_CONFIG_DIR=$CONFIG_runtimedir
+   export RUNTIME_CONFIG_DIR
+   # Description of (cross-)mounted disc space on cluster
+   RUNTIME_FRONTEND_SEES_NODE=$CONFIG_shared_scratch
+   RUNTIME_NODE_SEES_FRONTEND=$CONFIG_shared_filesystem
+   RUNTIME_LOCAL_SCRATCH_DIR=$CONFIG_scratchdir
+   
+   #default is NFS
+   if [ -z "${RUNTIME_NODE_SEES_FRONTEND}" ] ; then
+     RUNTIME_NODE_SEES_FRONTEND=yes
+   fi
+   # locally empty means no
+   if [ "${RUNTIME_NODE_SEES_FRONTEND}" = 'no' ] ; then
+     RUNTIME_NODE_SEES_FRONTEND=
+   fi
+
    # Only CPU time specified in job limits, rough limit for wall time
    walltime_ratio='1'
    # Use specified CPU time as soft limit, allow to run a bit longer before hard limit
@@ -30,13 +56,11 @@ init () {
    # Use specified memory requirement as soft limit, allow a bit more before hard limit
    memory_hardlimit_ratio='1/1'
    # Where to store temporary files on gatekeeper
-   TMP_DIR=${TMP_DIR:-@tmp_dir@}
+   TMP_DIR=${TMPDIR:-@tmp_dir@}
    # Where GNU time utility is located on computing nodes (empty if does not exist)
-   GNU_TIME=${GNU_TIME:-@gnu_time@}
+   GNU_TIME=${CONFIG_gnu_time:-@gnu_time@}
    # Command to get name of executing node
-   NODENAME=${NODENAME:-"@nodename@"}
-
-   RUNTIME_LOCAL_SCRATCH_DIR=${RUNTIME_LOCAL_SCRATCH_DIR:-}
+   NODENAME=${CONFIG_nodename:-"@nodename@"}
 } 
 
 usage="usage: `basename $0` (<arguments file>|-h|--help)"

@@ -26,7 +26,7 @@ if [ ! -z "$joboption_queue" ]; then
 fi
 
 # Path to LSF commands
-LSF_BIN_PATH=${LSF_BIN_PATH:-$CONFIG_lsf_bin_path}
+LSF_BIN_PATH=$CONFIG_lsf_bin_path
 if [ ! -d ${LSF_BIN_PATH} ] ; then
     echo "Could not set LSF_BIN_PATH." 1>&2
     exit 1

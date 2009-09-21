@@ -76,6 +76,7 @@ my %config = ();
 configure_condor_env(%config) or die "Condor executables not found\n";
 
 my $condor_bin_path = $ENV{CONDOR_BIN_PATH};
+$ENV{RUNTIME_CONFIG_DIR} = $config{runtimedir} || '.'; # avoid undefined warning 
 
 if ($debug) {
     # Use a bogus name for the logfile if debugging -- it doesn't matter.
@@ -147,7 +148,6 @@ sub create_shell_wrapper {
     # Create the shell commands to run runtime environment files (stages 0-2).
     my ($setrte0, $setrte1, $setrte2) = ('true', '', '');
     if (notnull($grami{joboption_runtime_0})) {
-        $ENV{RUNTIME_CONFIG_DIR} ||= '.';  # avoid undefined warning
         for (my $i = 0; notnull(my $r = $grami{"joboption_runtime_$i"}); $i++) {
             $setrte0 .= "; . \Q$ENV{RUNTIME_CONFIG_DIR}/$r\E 0";
             $setrte1 .= qq{. "\$RUNTIME_CONFIG_DIR/$r" 1\n};

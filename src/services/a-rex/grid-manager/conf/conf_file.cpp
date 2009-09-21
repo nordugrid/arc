@@ -114,28 +114,7 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
         break;
       };
     };
-    // pbs,gnu_time,etc. it is ugly hack here
-    if(command == "pbs_bin_path") {
-      Arc::SetEnv("PBS_BIN_PATH",rest);
-    } else if(command == "pbs_log_path") {
-      Arc::SetEnv("PBS_LOG_PATH",rest);
-    } else if(command == "gnu_time") {
-      Arc::SetEnv("GNU_TIME",rest);
-    } else if(command == "tmpdir") {
-      Arc::SetEnv("TMP_DIR",rest);
-    } else if(command == "runtimedir") {
-      Arc::SetEnv("RUNTIME_CONFIG_DIR",rest);
-    } else if(command == "shared_filesystem") {
-      if(rest == "NO") rest="no";
-      Arc::SetEnv("RUNTIME_NODE_SEES_FRONTEND",rest);
-    } else if(command == "scratchdir") {
-      Arc::SetEnv("RUNTIME_LOCAL_SCRATCH_DIR",rest);
-    } else if(command == "shared_scratch") {
-      Arc::SetEnv("RUNTIME_FRONTEND_SEES_NODE",rest);
-    } else if(command == "nodename") {
-      Arc::SetEnv("NODENAME",rest);
-    }
-    else if(command == "joblog") { /* where to write job inforamtion */ 
+    if(command == "joblog") { /* where to write job inforamtion */ 
       std::string fname = config_next_arg(rest);  /* empty is allowed too */
       job_log.SetOutput(fname.c_str());
     }
