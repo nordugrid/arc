@@ -93,7 +93,7 @@ config_file_type config_detect(std::istream& in) {
 
 
 bool elementtobool(Arc::XMLNode pnode,const char* ename,bool& val,Arc::Logger* logger) {
-  std::string v = pnode[ename];
+  std::string v = ename?pnode[ename]:pnode;
   if(v.empty()) return true; // default
   if((v == "true") || (v == "1")) {
     val=true;
@@ -103,23 +103,23 @@ bool elementtobool(Arc::XMLNode pnode,const char* ename,bool& val,Arc::Logger* l
     val=false;
     return true;
   };
-  if(logger) logger->msg(Arc::ERROR,"wrong boolean in %s: %s",ename,v.c_str());
+  if(logger && ename) logger->msg(Arc::ERROR,"wrong boolean in %s: %s",ename,v.c_str());
   return false;
 }
 
 bool elementtoint(Arc::XMLNode pnode,const char* ename,unsigned int& val,Arc::Logger* logger) {
-  std::string v = pnode[ename];
+  std::string v = ename?pnode[ename]:pnode;
   if(v.empty()) return true; // default
   if(Arc::stringto(v,val)) return true;
-  if(logger) logger->msg(Arc::ERROR,"wrong number in %s: %s",ename,v.c_str());
+  if(logger && ename) logger->msg(Arc::ERROR,"wrong number in %s: %s",ename,v.c_str());
   return false;
 }
 
 bool elementtoint(Arc::XMLNode pnode,const char* ename,int& val,Arc::Logger* logger) {
-  std::string v = pnode[ename];
+  std::string v = ename?pnode[ename]:pnode;
   if(v.empty()) return true; // default
   if(Arc::stringto(v,val)) return true;
-  if(logger) logger->msg(Arc::ERROR,"wrong number in %s: %s",ename,v.c_str());
+  if(logger && ename) logger->msg(Arc::ERROR,"wrong number in %s: %s",ename,v.c_str());
   return false;
 }
 

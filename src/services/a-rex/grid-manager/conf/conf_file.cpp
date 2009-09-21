@@ -585,23 +585,21 @@ bool configure_serviced_users(Arc::XMLNode cfg,JobUsers &users,uid_t my_uid,cons
   bool superuser = (my_uid == 0);
   std::string default_lrms;
   std::string default_queue;
-  unsigned int default_ttl = DEFAULT_KEEP_FINISHED;
-  unsigned int default_ttr = DEFAULT_KEEP_DELETED;
-  int default_diskspace = DEFAULT_DISKSPACE;
   std::string last_control_dir;
   std::string last_session_root;
-/*
-  http://www.nordugrid.org/schemas/ArcConfig/2009/arex
+  /*
+   Currently we have everything running inside same arched.
+   So we do not need any special treatment for infosys.
+    std::string infosys_user("");
+  */
+  /*
+   These soon won't be needed anyway because they will be parsed directly
 
-  runtimeDir
-  sharedFilesystem = true,false
-  GNUTimeUtility
-*/
-/*
-  std::string central_control_dir("");
-  std::string infosys_user("");
-*/
-/*
+    runtimeDir - this element is parsed directly by interested modules
+    sharedFilesystem = true,false
+    GNUTimeUtility
+
+
     if(command == "pbs_bin_path") {
       Arc::SetEnv("PBS_BIN_PATH",rest);
     } else if(command == "pbs_log_path") {
@@ -622,7 +620,7 @@ bool configure_serviced_users(Arc::XMLNode cfg,JobUsers &users,uid_t my_uid,cons
     } else if(command == "nodename") {
       Arc::SetEnv("NODENAME",rest);
     }
-*/
+  */
   /*
   jobLogPath
 
@@ -656,13 +654,6 @@ bool configure_serviced_users(Arc::XMLNode cfg,JobUsers &users,uid_t my_uid,cons
       job_log.set_credentials(jobreport_key,jobreport_cert,jobreport_cadir);
     };
   };
-  /*
-    else if(command == "jobreport_credentials") {
-      jobreport_key = config_next_arg(rest);
-      jobreport_cert = config_next_arg(rest);
-      jobreport_cadir = config_next_arg(rest);
-    }
-  */
 
   /*
   loadLimits
@@ -692,7 +683,7 @@ bool configure_serviced_users(Arc::XMLNode cfg,JobUsers &users,uid_t my_uid,cons
     };
   }
 
-/*
+  /*
   dataTransfer
     secureTransfer
     passiveTransfer
@@ -754,22 +745,6 @@ bool configure_serviced_users(Arc::XMLNode cfg,JobUsers &users,uid_t my_uid,cons
     };
   }
 
-/*
-    else if(command == "diskspace") {
-      std::string default_diskspace_s = config_next_arg(rest);
-      if(default_diskspace_s.length() == 0) {
-        logger.msg(Arc::ERROR,"diskspace is empty"); goto exit;
-      };
-      if(rest.length() != 0) {
-        logger.msg(Arc::ERROR,"junk in diskspace command"); goto exit;
-      };
-      char *ep;
-      default_diskspace=strtoull(default_diskspace_s.c_str(),&ep,10);
-      if(*ep != 0) {
-        logger.msg(Arc::ERROR,"wrong number in diskspace command"); goto exit;
-      };
-    }
-*/
   /*
   LRMS
     type
@@ -786,6 +761,7 @@ bool configure_serviced_users(Arc::XMLNode cfg,JobUsers &users,uid_t my_uid,cons
   } else {
     logger.msg(Arc::ERROR,"LRMS is missing"); return false;
   }
+
   /*
   authPlugin (timeout,onSuccess=PASS,FAIL,LOG,onFailure=FAIL,PASS,LOG,onTimeout=FAIL,PASS,LOG)
     state
@@ -818,22 +794,34 @@ bool configure_serviced_users(Arc::XMLNode cfg,JobUsers &users,uid_t my_uid,cons
       return false;
     };
   };
-/*
-    else if(command == "localcred") {
-      std::string timeout_s = config_next_arg(rest);
-      if(timeout_s.length() == 0) {
-        logger.msg(Arc::ERROR,"timeout for plugin is missing"); goto exit;
-      };
-      char *ep;
-      int to = strtoul(timeout_s.c_str(),&ep,10);
-      if((*ep != 0) || (to<0)) {
-        logger.msg(Arc::ERROR,"wrong number for timeout in plugin command");
-        goto exit;
-      };
-      cred_plugin = rest;
-      cred_plugin.timeout(to);
-    }
-*/
+
+  /*
+  localCred (timeout)
+    command
+  */
+  tmp_node = cfg["localCred"];
+  for(;tmp_node;++tmp_node) {
+    std::string command = tmp_node["command"];
+    if(command.empty()) {
+      logger.msg(Arc::ERROR,"command for localCred is missing");
+      return false;
+    };
+    std::string options;
+    Arc::XMLNode onode;
+    onode = tmp_node.Attribute("timeout");
+    if(!onode) {
+      logger.msg(Arc::ERROR,"timeout for localCred is missing");
+      return false;
+    };
+    int to;
+    if(!elementtoint(onode,NULL,to,&logger)) {
+      logger.msg(Arc::ERROR,"timeout for localCred is incorrect number");
+      return false;
+    };
+    cred_plugin = command;
+    cred_plugin.timeout(to);
+  }
+
   /*
   control
     username
@@ -849,7 +837,9 @@ bool configure_serviced_users(Arc::XMLNode cfg,JobUsers &users,uid_t my_uid,cons
     defaultTTR
     maxReruns
     noRootPower
+    diskSpace
   */
+
   tmp_node = cfg["control"];
   if(!tmp_node) {
     logger.msg(Arc::ERROR,"At least one control element must be present");
@@ -870,9 +860,13 @@ bool configure_serviced_users(Arc::XMLNode cfg,JobUsers &users,uid_t my_uid,cons
     bool strict_session = false;
     if(!elementtobool(tmp_node,"noRootPower",strict_session,&logger)) return false;
     unsigned int default_reruns = DEFAULT_JOB_RERUNS;
+    unsigned int default_ttl = DEFAULT_KEEP_FINISHED;
+    unsigned int default_ttr = DEFAULT_KEEP_DELETED;
+    int default_diskspace = DEFAULT_DISKSPACE;
     if(!elementtoint(tmp_node,"maxReruns",default_reruns,&logger)) return false;
     if(!elementtoint(tmp_node,"defaultTTL",default_ttl,&logger)) return false;
     if(!elementtoint(tmp_node,"defaultTTR",default_ttr,&logger)) return false;
+    if(!elementtoint(tmp_node,"defaultDiskSpace",default_diskspace,&logger)) return false;
     Arc::XMLNode unode = tmp_node["username"];
     std::list<std::string> userlist;
     for(;unode;++unode) {
@@ -985,8 +979,6 @@ bool configure_serviced_users(Arc::XMLNode cfg,JobUsers &users,uid_t my_uid,cons
         std::string session_root_ = last_session_root;
         std::string control_dir_ = last_control_dir;
         my_user.SetLRMS(default_lrms,default_queue);
-        my_user.SetKeepFinished(default_ttl);
-        my_user.SetKeepDeleted(default_ttr);
         my_user.substitute(session_root_);
         my_user.substitute(control_dir_);
         my_user.SetSessionRoot(session_root_);

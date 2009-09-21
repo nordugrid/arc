@@ -310,6 +310,13 @@
                        use="optional" default="FAIL"/>
     </xsd:complexType>
 
+    <xsd:complexType name="localCred_Type">
+        <xsd:sequence>
+            <xsd:element name="command" type="xsd:string"/>
+        </xsd:sequence>
+        <xsd:attribute name="timeout" type="xsd:nonNegativeInteger"
+                       use="required"/>
+    </xsd:complexType>
 
     <!-- Top level elements -->
 
@@ -418,7 +425,9 @@
     </xsd:complexType>
 
     <xsd:element name="authPlugin" type="authPlugin_Type"/>
- 
+
+    <xsd:element name="localCred" type="localCred_Type"/>
+
     <!-- There should be minOccurs="1" here. But to allow this element to
          be defined in separate file we keep minOccurs="0" for all elements -->
     <xsd:element name="control" type="control_Type"/>
