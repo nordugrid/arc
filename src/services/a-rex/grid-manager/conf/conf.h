@@ -21,7 +21,7 @@ bool config_open(std::ifstream &cfile);
 /*
   Same as previous, but filename is given by 'name'.
 */
-bool config_open(std::ifstream &cfile,std::string &name);
+bool config_open(std::ifstream &cfile,const std::string &name);
 /*
   Closes configuration file. Equal to cfile.close().
   These finctions are provided only for unified interface 

@@ -28,9 +28,9 @@ void ARexService::InformationCollector(void) {
       logger_.msg(Arc::ERROR,"Failed to initialize GM environment");
       sleep(infoprovider_wakeup_period_); continue;
     };
-    std::ifstream f(nordugrid_config_loc.c_str());
+    std::ifstream f(nordugrid_config_loc.str().c_str());
     if(!f) {
-      logger_.msg(Arc::ERROR,"Failed to read GM configuation file at %s",nordugrid_config_loc);
+      logger_.msg(Arc::ERROR,"Failed to read GM configuation file at %s",nordugrid_config_loc.str());
       sleep(infoprovider_wakeup_period_); continue;
     };
     try {

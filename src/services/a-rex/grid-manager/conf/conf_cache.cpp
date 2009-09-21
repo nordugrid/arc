@@ -10,7 +10,7 @@ CacheConfig::CacheConfig(std::string username): _cache_max(80),
   std::ifstream cfile;
   ConfigSections* cf = NULL;
 
-  if(nordugrid_config_loc.length() == 0) read_env_vars(true);
+  if(nordugrid_config_loc.empty()) read_env_vars(true);
   if(!config_open(cfile)) throw CacheConfigException("Can't open configuration file");
   
   cf=new ConfigSections(cfile);

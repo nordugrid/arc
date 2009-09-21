@@ -289,7 +289,8 @@ bool JobsList::state_submitting(const JobsList::iterator &i,bool &state_changed,
       logger.msg(Arc::INFO,"%s: state CANCELING: starting child: %s",i->job_id,cmd);
     };
     std::string grami = user->ControlDir()+"/job."+(*i).job_id+".grami";
-    char* args[5] ={ (char*)cmd.c_str(), "--config", (char*)nordugrid_config_loc.c_str(), (char*)grami.c_str(), NULL };
+    std::string cfg_path = nordugrid_config_loc;
+    char* args[5] ={ (char*)cmd.c_str(), (char*)"--config", (char*)cfg_path.c_str(), (char*)grami.c_str(), NULL };
     job_errors_mark_put(*i,*user);
     if(!RunParallel::run(*user,*i,args,&(i->child))) {
       if(!cancel) {
@@ -447,13 +448,14 @@ bool JobsList::state_loading(const JobsList::iterator &i,bool &state_changed,boo
       args[argn]=(char*)(max_inactivity_time_s.c_str()); argn++;
     };
     std::string debug_level = Arc::level_to_string(Arc::Logger::getRootLogger().getThreshold());
+    std::string cfg_path = nordugrid_config_loc;
     if (!debug_level.empty()) {
       args[argn]="-d"; argn++;
       args[argn]=(char*)(debug_level.c_str()); argn++;
     }
     if (!nordugrid_config_loc.empty()) {
       args[argn]="-C"; argn++;
-      args[argn]=(char*)(nordugrid_config_loc.c_str()); argn++;
+      args[argn]=(char*)(cfg_path.c_str()); argn++;
     }
     args[argn]=(char*)(i->job_id.c_str()); argn++;
     args[argn]=(char*)(user->ControlDir().c_str()); argn++;

@@ -28,7 +28,8 @@
 #endif
 
 bool gridmap_user_list(std::string &ulist) {
-  std::ifstream f(globus_gridmap.c_str()); 
+  std::string path = globus_gridmap;
+  std::ifstream f(path.c_str()); 
   if(! f.is_open() ) return false;
   for(;!f.eof();) {
     char buf[512];
@@ -54,7 +55,8 @@ bool gridmap_user_list(std::string &ulist) {
 }
 
 bool gridmap_user_list(std::list<std::string> &ulist) {
-  std::ifstream f(globus_gridmap.c_str()); 
+  std::string path = globus_gridmap;
+  std::ifstream f(path.c_str()); 
   if(! f.is_open() ) return false;
   for(;!f.eof();) {
     char buf[512];

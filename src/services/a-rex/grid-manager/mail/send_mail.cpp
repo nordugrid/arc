@@ -45,12 +45,13 @@ bool send_mail(const JobDescription &desc,JobUser &user) {
     failure_reason[n]='.';
   };
   std::string cmd(nordugrid_libexec_loc+"/smtp-send.sh");
+  std::string from_addr = support_mail_address;
   char* args[11] ={ /* max 3 mail addresses */
        (char*)cmd.c_str(),
        (char*)states_all[desc.get_state()].name,
        (char*)desc.get_id().c_str(),
        (char*)user.ControlDir().c_str(),
-       (char*)support_mail_address.c_str(),
+       (char*)from_addr.c_str(),
        (char*)jobname.c_str(),
        (char*)failure_reason.c_str(),
        NULL,

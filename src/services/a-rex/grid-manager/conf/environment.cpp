@@ -11,24 +11,99 @@
 #define olog std::cerr
 #include "environment.h"
 
+prstring::prstring(void) {
+}
+
+prstring::prstring(const char* val):val_(val) {
+}
+
+prstring::prstring(const prstring& val):val_(val.str()) {
+}
+
+void prstring::operator=(const char* val) {
+  Glib::Mutex::Lock lock(lock_);
+  val_=val;
+}
+
+void prstring::operator=(const std::string& val) {
+  Glib::Mutex::Lock lock(lock_);
+  val_=val;
+}
+
+void prstring::operator=(const prstring& val) {
+  if(&val == this) return;
+  Glib::Mutex::Lock lock(lock_);
+  val_=val.str();
+}
+
+void prstring::operator+=(const char* val) {
+  Glib::Mutex::Lock lock(lock_);
+  val_+=val;
+}
+
+void prstring::operator+=(const std::string& val) {
+  Glib::Mutex::Lock lock(lock_);
+  val_+=val;
+}
+
+std::string prstring::operator+(const char* val) const {
+  const_cast<Glib::Mutex&>(lock_).lock();
+  std::string r = val_ + val;
+  const_cast<Glib::Mutex&>(lock_).unlock();
+  return r;
+}
+
+std::string prstring::operator+(const std::string& val) const {
+  const_cast<Glib::Mutex&>(lock_).lock();
+  std::string r = val_ + val;
+  const_cast<Glib::Mutex&>(lock_).unlock();
+  return r;
+}
+
+prstring::operator std::string(void) const {
+  const_cast<Glib::Mutex&>(lock_).lock();
+  std::string r = val_;
+  const_cast<Glib::Mutex&>(lock_).unlock();
+  return r;
+}
+
+bool prstring::empty() const {
+  const_cast<Glib::Mutex&>(lock_).lock();
+  bool r = val_.empty();
+  const_cast<Glib::Mutex&>(lock_).unlock();
+  return r;
+}
+
+std::string prstring::str(void) const {
+  return operator std::string();
+}
+
+std::string operator+(const char* val1,const prstring& val2) {
+  return (val1 + val2.str());
+}
+
+std::string operator+(const std::string& val1,const prstring& val2) {
+  return (val1 + val2.str());
+}
+
 // Globus installation path - $GLOBUS_LOCATION
-std::string globus_loc(""); 
+prstring globus_loc(""); 
 // Various Globus scripts - $GLOBUS_LOCATION/libexec
-std::string globus_scripts_loc;
+prstring globus_scripts_loc;
 // ARC installation path - $ARC_LOCATION, executable path
-std::string nordugrid_loc("");
+prstring nordugrid_loc("");
 // ARC system tools
-std::string nordugrid_libexec_loc;
+prstring nordugrid_libexec_loc;
 // ARC libraries and plugins
-std::string nordugrid_lib_loc;
+prstring nordugrid_lib_loc;
 // ARC administrator tools
-std::string nordugrid_sbin_loc;
+prstring nordugrid_sbin_loc;
 // ARC configuration file
-std::string nordugrid_config_loc("");
+prstring nordugrid_config_loc("");
 // Email address of person responsible for this ARC installation
-std::string support_mail_address;
+prstring support_mail_address;
 // Global gridmap files with welcomed users' DNs and UNIX names
-std::string globus_gridmap;
+prstring globus_gridmap;
 
 static bool file_exists(const char* name) {
   struct stat st;
@@ -45,7 +120,7 @@ static bool dir_exists(const char* name) {
 }
 
 bool read_env_vars(bool guess) {
-  if(globus_loc.length() == 0) {
+  if(globus_loc.empty()) {
     globus_loc=Arc::GetEnv("GLOBUS_LOCATION");
     if(globus_loc.empty()) {
       if(!guess) {
@@ -74,8 +149,9 @@ bool read_env_vars(bool guess) {
     if(tmp.empty()) {
       tmp=Arc::GetEnv("NORDUGRID_CONFIG");
       if(tmp.empty()) {
-        nordugrid_config_loc="/etc/arc.conf";
-        if(!file_exists(nordugrid_config_loc.c_str())) {
+        tmp="/etc/arc.conf";
+        nordugrid_config_loc=tmp;
+        if(!file_exists(tmp.c_str())) {
           olog<<"Central configuration file is missing at guessed location:\n"
               <<"  /etc/arc.conf\n"
               <<"Use ARC_CONFIG variable for non-standard location"
@@ -88,7 +164,7 @@ bool read_env_vars(bool guess) {
   };
   // Set all environement variables for other tools
   Arc::SetEnv("ARC_CONFIG",nordugrid_config_loc);
-  if(support_mail_address.length() == 0) {
+  if(support_mail_address.empty()) {
     char hn[100];
     support_mail_address="grid.manager@";
     if(gethostname(hn,99) == 0) {

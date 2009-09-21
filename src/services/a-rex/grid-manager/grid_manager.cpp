@@ -195,7 +195,7 @@ static void grid_manager(void* arg) {
   };
   my_user = new JobUser(my_username);
   if(!configure_serviced_users(users,my_uid,my_username,*my_user,&daemon)) {
-    logger.msg(Arc::INFO,"Used configuration file %s",nordugrid_config_loc);
+    logger.msg(Arc::INFO,"Used configuration file %s",nordugrid_config_loc.str());
     logger.msg(Arc::FATAL,"Error processing configuration - EXITING"); return;
   };
   if(users.size() == 0) {
@@ -208,7 +208,7 @@ static void grid_manager(void* arg) {
   //  perror("Error - daemonization failed");
   //  exit(1);
   //}; 
-  logger.msg(Arc::INFO,"Used configuration file %s",nordugrid_config_loc);
+  logger.msg(Arc::INFO,"Used configuration file %s",nordugrid_config_loc.str());
   print_serviced_users(users);
 
   //unsigned int wakeup_period = JobsList::WakeupPeriod();

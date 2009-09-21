@@ -28,10 +28,10 @@
 #endif
 
 bool config_open(std::ifstream &cfile) {
-  return config_open(cfile,nordugrid_config_loc);
+  return config_open(cfile,nordugrid_config_loc.str());
 }
 
-bool config_open(std::ifstream &cfile,std::string &name) {
+bool config_open(std::ifstream &cfile,const std::string &name) {
   cfile.open(name.c_str(),std::ifstream::in);
   return cfile.is_open();
 }
