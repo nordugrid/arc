@@ -53,7 +53,7 @@ bool configure_user_dirs(const std::string &my_username,
       tmp_node = cfg["LRMS"];
       if(tmp_node) {
         default_lrms = (std::string)(tmp_node["type"]);
-        default_queue = (std::string)(tmp_node["defaultQueue"]);
+        default_queue = (std::string)(tmp_node["defaultShare"]);
       };
       tmp_node = cfg["authPlugin"];
       for(;tmp_node;++tmp_node) {
@@ -112,18 +112,18 @@ bool configure_user_dirs(const std::string &my_username,
           };
         };
         if(user_match) {
-          std::string control_dir = tmp_node["controlDir"];
-          std::string session_root = tmp_node["sessionRootDir"];
+          std::string control_dir_ = tmp_node["controlDir"];
+          std::string session_root_ = tmp_node["sessionRootDir"];
           if(username == ".") username = "";
           JobUser user(username);
           if(!user.is_valid()) { config_close(cfile); return false; };
           strict_session = false;
           elementtobool(tmp_node,"noRootPower",strict_session,&logger);
           user.SetLRMS(default_lrms,default_queue);
-          user.substitute(control_dir);
-          user.substitute(session_root);
-          user.SetSessionRoot(session_root);
-          user.SetControlDir(control_dir);
+          user.substitute(control_dir_);
+          user.substitute(session_root_);
+          user.SetSessionRoot(session_root_);
+          user.SetControlDir(control_dir_);
           session_root=user.SessionRoot();
           control_dir=user.ControlDir();
           configured=true;
