@@ -7,6 +7,7 @@
 #include <string.h>
 #include <algorithm>
 
+#include <arc/UserConfig.h>
 #include <arc/StringConv.h>
 #include <arc/client/ExecutionTarget.h>
 
@@ -45,10 +46,9 @@ namespace Arc {
     return T1performance > T2performance;
   }
 
-  BenchmarkBroker::BenchmarkBroker(const Config& cfg,
-                                   const UserConfig& usercfg)
-    : Broker(cfg, usercfg) {
-    benchmark = (std::string)cfg["Arguments"];
+  BenchmarkBroker::BenchmarkBroker(const UserConfig& usercfg)
+    : Broker(usercfg) {
+    benchmark = (std::string)usercfg.ConfTree()["Broker"]["Arguments"];
     if (benchmark.empty())
       benchmark = "specint2000";
   }
@@ -59,7 +59,7 @@ namespace Arc {
     BrokerPluginArgument *brokerarg = dynamic_cast<BrokerPluginArgument*>(arg);
     if (!brokerarg)
       return NULL;
-    return new BenchmarkBroker(*brokerarg, *brokerarg);
+    return new BenchmarkBroker(*brokerarg);
   }
 
   void BenchmarkBroker::SortTargets() {

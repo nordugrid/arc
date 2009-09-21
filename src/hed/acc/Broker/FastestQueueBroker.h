@@ -11,7 +11,7 @@ namespace Arc {
     : public Broker {
 
   public:
-    FastestQueueBroker(const Config& cfg, const UserConfig& usercfg);
+    FastestQueueBroker(const UserConfig& usercfg);
     ~FastestQueueBroker();
     static Plugin* Instance(PluginArgument *arg);
 

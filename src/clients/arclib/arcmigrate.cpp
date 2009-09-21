@@ -159,12 +159,8 @@ int main(int argc, char **argv) {
     return 1;
   }
 
-  Arc::Config cfg;
-  cfg.NewChild("Arguments") =
-    (std::string)usercfg.ConfTree()["Broker"]["Arguments"];
   Arc::BrokerLoader loader;
-  Arc::Broker *chosenBroker = loader.load(usercfg.ConfTree()["Broker"]["Name"],
-                                          cfg, usercfg);
+  Arc::Broker *chosenBroker = loader.load(usercfg.ConfTree()["Broker"]["Name"], usercfg);
   logger.msg(Arc::INFO, "Broker %s loaded",
              (std::string)usercfg.ConfTree()["Broker"]["Name"]);
 

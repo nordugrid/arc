@@ -21,9 +21,8 @@ namespace Arc {
     return T1queue < T2queue;
   }
 
-  FastestQueueBroker::FastestQueueBroker(const Config& cfg,
-                                         const UserConfig& usercfg)
-    : Broker(cfg, usercfg) {}
+  FastestQueueBroker::FastestQueueBroker(const UserConfig& usercfg)
+    : Broker(usercfg) {}
 
   FastestQueueBroker::~FastestQueueBroker() {}
 
@@ -31,7 +30,7 @@ namespace Arc {
     BrokerPluginArgument *brokerarg = dynamic_cast<BrokerPluginArgument*>(arg);
     if (!brokerarg)
       return NULL;
-    return new FastestQueueBroker(*brokerarg, *brokerarg);
+    return new FastestQueueBroker(*brokerarg);
   }
 
   void FastestQueueBroker::SortTargets() {

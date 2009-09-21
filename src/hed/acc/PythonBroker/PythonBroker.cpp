@@ -88,15 +88,15 @@ namespace Arc {
 
     logger.msg(VERBOSE, "Loading python broker (%i)", refcount);
 
-    Broker *broker = new PythonBroker(*brokerarg, *brokerarg);
+    Broker *broker = new PythonBroker(*brokerarg);
 
     PyEval_ReleaseThread(tstate); // Release current thread
 
     return broker;
   }
 
-  PythonBroker::PythonBroker(const Config& cfg, const UserConfig& usercfg)
-    : Broker(cfg, usercfg),
+  PythonBroker::PythonBroker(const UserConfig& usercfg)
+    : Broker(usercfg),
       arc_module(NULL),
       arc_config_klass(NULL),
       arc_jobrepr_klass(NULL),
@@ -112,7 +112,7 @@ namespace Arc {
 
     logger.msg(DEBUG, "PythonBroker init");
 
-    std::string args = (std::string)cfg["Arguments"];
+    std::string args = (std::string)usercfg.ConfTree()["Broker"]["Arguments"];
     std::string::size_type pos = args.find(':');
     if (pos != std::string::npos)
       args.resize(pos);
@@ -153,17 +153,17 @@ namespace Arc {
     }
 
     // Get the Config class (borrowed reference)
-    arc_config_klass = PyDict_GetItemString(arc_dict, "Config");
-    if (!arc_config_klass) {
-      logger.msg(ERROR, "Cannot find arc Config class");
+    arc_userconfig_klass = PyDict_GetItemString(arc_dict, "UserConfig");
+    if (!arc_userconfig_klass) {
+      logger.msg(ERROR, "Cannot find arc UserConfig class");
       if (PyErr_Occurred())
         PyErr_Print();
       return;
     }
 
     // check is it really a class
-    if (!PyCallable_Check(arc_config_klass)) {
-      logger.msg(ERROR, "Config class is not an object");
+    if (!PyCallable_Check(arc_userconfig_klass)) {
+      logger.msg(ERROR, "UserConfig class is not an object");
       return;
     }
 
@@ -238,23 +238,23 @@ namespace Arc {
       return;
     }
 
-    PyObjectP carg = Py_BuildValue("(l)", (long int)cfg);
-    if (!carg) {
-      logger.msg(ERROR, "Cannot create config argument");
+    PyObjectP usercfgarg = Py_BuildValue("(l)", (long int)usercfg);
+    if (!usercfgarg) {
+      logger.msg(ERROR, "Cannot create UserConfig argument");
       if (PyErr_Occurred())
         PyErr_Print();
       return;
     }
 
-    PyObject *py_cfg = PyObject_CallObject(arc_config_klass, carg);
-    if (!py_cfg) {
-      logger.msg(ERROR, "Cannot convert config to python object");
+    PyObject *py_usercfg = PyObject_CallObject(arc_userconfig_klass, usercfgarg);
+    if (!py_usercfg) {
+      logger.msg(ERROR, "Cannot convert UserConfig to python object");
       if (PyErr_Occurred())
         PyErr_Print();
       return;
     }
 
-    PyObjectP arg = Py_BuildValue("(O)", py_cfg);
+    PyObjectP arg = Py_BuildValue("(O)", py_usercfg);
     if (!arg) {
       logger.msg(ERROR, "Cannot create argument of the constructor");
       if (PyErr_Occurred())

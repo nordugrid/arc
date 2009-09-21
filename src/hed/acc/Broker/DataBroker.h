@@ -12,7 +12,7 @@ namespace Arc {
     : public Broker {
 
   public:
-    DataBroker(const Config& cfg, const UserConfig& usercfg);
+    DataBroker(const UserConfig& usercfg);
     ~DataBroker();
     static Plugin* Instance(PluginArgument *arg);
     bool CacheCheck(void);

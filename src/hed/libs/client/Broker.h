@@ -11,7 +11,6 @@
 
 namespace Arc {
 
-  class Config;
   class ExecutionTarget;
   class JobDescription;
   class Logger;
@@ -49,7 +48,7 @@ namespace Arc {
     void RegisterJobsubmission();
 
   protected:
-    Broker(const Config& cfg, const UserConfig& usercfg);
+    Broker(const UserConfig& usercfg);
   public:
     virtual ~Broker();
   protected:
@@ -97,11 +96,10 @@ namespace Arc {
 
     //! Load a new Broker
     /// \param name    The name of the Broker to load.
-    /// \param cfg     The Config object for the new Broker.
     /// \param usercfg The UserConfig object for the new Broker.
     /// \returns       A pointer to the new Broker (NULL on error).
     Broker* load(const std::string& name,
-                 const Config& cfg, const UserConfig& usercfg);
+                 const UserConfig& usercfg);
 
     //! Retrieve the list of loaded Brokers.
     /// \returns A reference to the list of Brokers.
@@ -116,18 +114,13 @@ namespace Arc {
   class BrokerPluginArgument
     : public PluginArgument {
   public:
-    BrokerPluginArgument(const Config& cfg, const UserConfig& usercfg)
-      : cfg(cfg),
-        usercfg(usercfg) {}
+    BrokerPluginArgument(const UserConfig& usercfg)
+      : usercfg(usercfg) {}
     ~BrokerPluginArgument() {}
-    operator const Config&() {
-      return cfg;
-    }
     operator const UserConfig&() {
       return usercfg;
     }
   private:
-    const Config& cfg;
     const UserConfig& usercfg;
   };
 

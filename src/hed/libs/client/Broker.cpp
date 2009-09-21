@@ -15,7 +15,7 @@ namespace Arc {
 
   Logger Broker::logger(Logger::getRootLogger(), "Broker");
 
-  Broker::Broker(const Config& cfg, const UserConfig& usercfg)
+  Broker::Broker(const UserConfig& usercfg)
     : usercfg(usercfg),
       TargetSortingDone(false),
       job() {}
@@ -425,7 +425,6 @@ namespace Arc {
   }
 
   Broker* BrokerLoader::load(const std::string& name,
-                             const Config& cfg,
                              const UserConfig& usercfg) {
     if (name.empty())
       return NULL;
@@ -433,7 +432,7 @@ namespace Arc {
     PluginList list = FinderLoader::GetPluginList("HED:Broker");
     factory_->load(list[name], "HED:Broker");
 
-    BrokerPluginArgument arg(cfg, usercfg);
+    BrokerPluginArgument arg(usercfg);
     Broker *broker = factory_->GetInstance<Broker>("HED:Broker", name, &arg);
 
     if (!broker) {

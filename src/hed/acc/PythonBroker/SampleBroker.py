@@ -10,17 +10,17 @@ import random
 
 class MyBroker:
 
-    def __init__(self, cfg):
+    def __init__(self, usercfg):
 
         # Extract some useful information from the broker configuration
 
-        self.proxypath = cfg.Get('ProxyPath')
-        self.certificatepath = cfg.Get('CertificatePath')
-        self.keypath = cfg.Get('KeyPath')
-        self.cacertificatesdir = cfg.Get('CACertificatesDir')
-        pos = str(cfg.Get('Broker').Get('Arguments')).find(':')
+        self.proxypath = usercfg.ConfTree().Get('ProxyPath')
+        self.certificatepath = usercfg.ConfTree().Get('CertificatePath')
+        self.keypath = usercfg.ConfTree().Get('KeyPath')
+        self.cacertificatesdir = usercfg.ConfTree().Get('CACertificatesDir')
+        pos = str(usercfg.ConfTree().Get('Broker').Get('Arguments')).find(':')
         if pos > 0:
-            self.args = str(cfg.Get('Broker').Get('Arguments'))[pos + 1:]
+            self.args = str(usercfg.ConfTree().Get('Broker').Get('Arguments'))[pos + 1:]
         else:
             self.args = ""
 
