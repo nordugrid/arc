@@ -146,10 +146,6 @@
                   <arex:path>/export/cache</arex:path>
                   <arex:link>/mnt/cache</arex:link>
               </arex:location>
-              <arex:highWatermark>90</arex:highWatermark>
-              <arex:lowWatermark>70</arex:lowWatermark>
-          </arex:cache>
-          <arex:cache>
               <arex:location>
                   <arex:path>/data/cache</arex:path>
               </arex:location>
