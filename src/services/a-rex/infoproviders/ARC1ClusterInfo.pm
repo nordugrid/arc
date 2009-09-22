@@ -530,7 +530,7 @@ sub get_cluster_info($) {
     $csv->{Name} = [ $config->{Name} ] if $config->{Name};
     $csv->{OtherInfo} = $config->{service}{OtherInfo} if $config->{service}{OtherInfo};
     $csv->{Capability} = [ 'executionmanagement.jobexecution' ];
-    $csv->{Type} = [ 'org.nordugrid.arex' ];
+    $csv->{Type} = [ 'org.nordugrid.execution.arex' ];
 
     # OBS: QualityLevel reflects the quality of the sotware
     # One of: development, testing, pre-production, production
