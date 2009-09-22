@@ -404,7 +404,7 @@ Domain information:
 
 Service information:
  Service Name: MINIMAL Computing Element
- Service Type: org.nordugrid.arex
+ Service Type: org.nordugrid.execution.arex
 
 Endpoint information:
  URL: https://localhost:60000/arex
