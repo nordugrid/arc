@@ -43,7 +43,7 @@ bool ARexGMConfig::InitEnvironment(const std::string& configfile) {
   if(env_initialized) return true;
   env_lock.lock();
   if(!env_initialized) {
-    if(!configfile.empty()) nordugrid_config_loc=configfile;
+    if(!configfile.empty()) nordugrid_config_loc(configfile);
     env_initialized=read_env_vars();
   };
   env_lock.unlock();
@@ -60,7 +60,7 @@ ARexGMConfig::ARexGMConfig(const std::string& configfile,const std::string& unam
   //if((bool)job_map) uname=job_map.unix_name();
   user_=new JobUser(uname);
   if(!user_->is_valid()) { delete user_; user_=NULL; return; };
-  if(nordugrid_loc.empty() != 0) { delete user_; user_=NULL; return; };
+  if(nordugrid_loc().empty() != 0) { delete user_; user_=NULL; return; };
   /* read configuration */
   std::string session_root;
   std::string control_dir;

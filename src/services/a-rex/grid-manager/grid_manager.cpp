@@ -76,7 +76,7 @@ static void* cache_func(void* arg) {
         char* args[6+cache_info_dirs.size()+1];
         
         // do cache-clean -h for explanation of options
-        std::string cmd = nordugrid_libexec_loc + "/cache-clean";
+        std::string cmd = nordugrid_libexec_loc() + "/cache-clean";
         args[argc++]=(char*)cmd.c_str();
         args[argc++]=(char*)"-m";
         args[argc++]=(char*)minfreespace.c_str();
@@ -140,7 +140,7 @@ static void grid_manager(void* arg) {
   // char** argv = ((args_st*)arg)->argv;
   setpgid(0,0);
   opterr=0;
-  nordugrid_config_loc="";
+  nordugrid_config_loc("");
 
   logger.msg(Arc::INFO,"Starting grid-manager thread");
   Daemon daemon;
@@ -172,7 +172,7 @@ static void grid_manager(void* arg) {
     };
   };
   */
-  if(config_filename) nordugrid_config_loc=config_filename;
+  if(config_filename) nordugrid_config_loc(config_filename);
 
   JobUsers users;
   std::string my_username("");
@@ -195,7 +195,7 @@ static void grid_manager(void* arg) {
   };
   my_user = new JobUser(my_username);
   if(!configure_serviced_users(users,my_uid,my_username,*my_user,&daemon)) {
-    logger.msg(Arc::INFO,"Used configuration file %s",nordugrid_config_loc.str());
+    logger.msg(Arc::INFO,"Used configuration file %s",nordugrid_config_loc());
     logger.msg(Arc::FATAL,"Error processing configuration - EXITING"); return;
   };
   if(users.size() == 0) {
@@ -208,7 +208,7 @@ static void grid_manager(void* arg) {
   //  perror("Error - daemonization failed");
   //  exit(1);
   //}; 
-  logger.msg(Arc::INFO,"Used configuration file %s",nordugrid_config_loc.str());
+  logger.msg(Arc::INFO,"Used configuration file %s",nordugrid_config_loc());
   print_serviced_users(users);
 
   //unsigned int wakeup_period = JobsList::WakeupPeriod();

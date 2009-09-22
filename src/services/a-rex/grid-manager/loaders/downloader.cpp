@@ -297,7 +297,7 @@ int main(int argc,char** argv) {
         secure=false;
       }; break;
       case 'C': {
-        nordugrid_config_loc = optarg;
+        nordugrid_config_loc(optarg);
       }; break;
       case 'l': {
         userfiles_only=true;

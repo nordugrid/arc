@@ -38,9 +38,9 @@ Janitor::Janitor(const std::string& id,const std::string& cdir):
   if(id_.empty()) return;
   if(cdir_.empty()) return;
   // create path to janitor utility
-  path_ = Glib::build_filename(nordugrid_libexec_loc,"janitor");
+  path_ = Glib::build_filename(nordugrid_libexec_loc(),"janitor");
   if(path_.empty()) {
-    logger.msg(Arc::DEBUG, "Failed to create path to janitor at %s",nordugrid_libexec_loc.str());
+    logger.msg(Arc::DEBUG, "Failed to create path to janitor at %s",nordugrid_libexec_loc());
     return;
   };
   // check if utility exists

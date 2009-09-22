@@ -124,8 +124,8 @@ bool JobUser::substitute(std::string& param) const {
       case 'L': to_put=DefaultLRMS(); break;
       case 'u': to_put=Arc::tostring(get_uid()); break;
       case 'g': to_put=Arc::tostring(get_gid()); break;
-      case 'W': to_put=nordugrid_loc; break;
-      case 'G': to_put=globus_loc; break;
+      case 'W': to_put=nordugrid_loc(); break;
+      case 'G': to_put=globus_loc(); break;
       default: to_put=param.substr(pos-1,2);
     };
     curpos=pos+1+(to_put.length() - 2);

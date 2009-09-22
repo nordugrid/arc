@@ -3,6 +3,7 @@
 
 #include <string>
 
+/*
 #include <arc/Thread.h>
 
 class prstring {
@@ -27,31 +28,35 @@ class prstring {
 
 std::string operator+(const char*,const prstring&);
 std::string operator+(const std::string&,const prstring&);
+*/
 
 /// Globus installation path - $GLOBUS_LOCATION, /opt/globus
-extern prstring globus_loc;
+std::string globus_loc(void);
 // Various Globus scripts - $GLOBUS_LOCATION/libexec
-extern prstring globus_scripts_loc;
+std::string globus_scripts_loc(void);
 /// ARC installation path - $ARC_LOCATION, executable path
-extern prstring nordugrid_loc;
+std::string nordugrid_loc(void);
 /// ARC system tools - $ARC_LOCATION/libexec/arc, $ARC_LOCATION/libexec
-extern prstring nordugrid_libexec_loc;
+std::string nordugrid_libexec_loc(void);
 // ARC libraries and plugins - $ARC_LOCATION/lib/arc, $ARC_LOCATION/lib
-extern prstring nordugrid_lib_loc;
+std::string nordugrid_lib_loc(void);
 // ARC adminstrator tools - $ARC_LOCATION/sbin
-extern prstring nordugrid_sbin_loc;
+std::string nordugrid_sbin_loc(void);
 /// ARC configuration file 
 ///   /etc/arc.conf
 ///   $ARC_LOCATION/etc/arc.conf
-extern prstring nordugrid_config_loc;
+std::string nordugrid_config_loc(void);
+void nordugrid_config_loc(const std::string&);
 // RTE setup scripts
-extern prstring runtime_config_dir;
+std::string runtime_config_dir(void);
+void runtime_config_dir(const std::string&);
 /// Email address of person responsible for this ARC installation
 /// grid.manager@hostname, it can also be set from configuration file 
-extern prstring support_mail_address;
+std::string support_mail_address(void);
+void support_mail_address(const std::string&);
 /// Global gridmap files with welcomed users' DNs and UNIX names
 /// $GRIDMAP, default /etc/grid-security/grid-mapfile
-extern prstring globus_gridmap;
+std::string globus_gridmap(void);
 
 ///  Read environment, check files and set variables
 ///  Accepts:

@@ -27,15 +27,15 @@ RunPlugin cred_plugin;
 
 static void check_lrms_backends(const std::string& default_lrms) {
   std::string tool_path;
-  tool_path=nordugrid_libexec_loc+"/cancel-"+default_lrms+"-job";
+  tool_path=nordugrid_libexec_loc()+"/cancel-"+default_lrms+"-job";
   if(!Glib::file_test(tool_path,Glib::FILE_TEST_IS_REGULAR)) {
     logger.msg(Arc::WARNING,"Missing cancel-%s-job - job cancelation may not work",default_lrms);
   };
-  tool_path=nordugrid_libexec_loc+"/submit-"+default_lrms+"-job";
+  tool_path=nordugrid_libexec_loc()+"/submit-"+default_lrms+"-job";
   if(!Glib::file_test(tool_path,Glib::FILE_TEST_IS_REGULAR)) {
     logger.msg(Arc::WARNING,"Missing submit-%s-job - job submission to LRMS may not work",default_lrms);
   };
-  tool_path=nordugrid_libexec_loc+"/scan-"+default_lrms+"-job";
+  tool_path=nordugrid_libexec_loc()+"/scan-"+default_lrms+"-job";
   if(!Glib::file_test(tool_path,Glib::FILE_TEST_IS_REGULAR)) {
     logger.msg(Arc::WARNING,"Missing scan-%s-job - may miss when job finished executing",default_lrms);
   };
@@ -115,7 +115,7 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
       };
     };
     if(command == "runtimedir") { 
-      runtime_config_dir = rest;
+      runtime_config_dir(rest);
     } else if(command == "joblog") { /* where to write job inforamtion */ 
       std::string fname = config_next_arg(rest);  /* empty is allowed too */
       job_log.SetOutput(fname.c_str());
@@ -295,8 +295,8 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
       JobsList::SetLocalTransfer(use_local_transfer);
     }
     else if(command == "mail") { /* internal address from which to send mail */ 
-      support_mail_address = config_next_arg(rest);
-      if(support_mail_address.empty()) {
+      support_mail_address(config_next_arg(rest));
+      if(support_mail_address().empty()) {
         logger.msg(Arc::ERROR,"mail is empty"); goto exit;
       };
     }
@@ -419,7 +419,7 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
         if(username.length() == 0) break;
         if(username == "*") {  /* add all gridmap users */
           if(!gridmap_user_list(rest)) {
-            logger.msg(Arc::ERROR,"Can't read users in gridmap file %s",globus_gridmap.str()); goto exit;
+            logger.msg(Arc::ERROR,"Can't read users in gridmap file %s",globus_gridmap()); goto exit;
           };
           continue;
         };
@@ -466,12 +466,12 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
             user->SetSessionRoot(session_root_);
             user->SetStrictSession(strict_session);
             /* add helper to poll for finished jobs */
-            std::string cmd_ = nordugrid_libexec_loc;
+            std::string cmd_ = nordugrid_libexec_loc();
             make_escaped_string(control_dir_);
             cmd_+="/scan-"+default_lrms+"-job";
             make_escaped_string(cmd_);
             cmd_+=" --config ";
-            cmd_+=nordugrid_config_loc;
+            cmd_+=nordugrid_config_loc();
             cmd_+=" ";
             cmd_+=control_dir_;
             user->add_helper(cmd_);
@@ -572,35 +572,6 @@ bool configure_serviced_users(Arc::XMLNode cfg,JobUsers &users,uid_t my_uid,cons
    Currently we have everything running inside same arched.
    So we do not need any special treatment for infosys.
     std::string infosys_user("");
-  */
-  /*
-   These soon won't be needed anyway because they will be parsed directly
-
-    runtimeDir - this element is parsed directly by interested modules
-    sharedFilesystem = true,false
-    GNUTimeUtility
-
-
-    if(command == "pbs_bin_path") {
-      Arc::SetEnv("PBS_BIN_PATH",rest);
-    } else if(command == "pbs_log_path") {
-      Arc::SetEnv("PBS_LOG_PATH",rest);
-    } else if(command == "gnu_time") {
-      Arc::SetEnv("GNU_TIME",rest);
-    } else if(command == "tmpdir") {
-      Arc::SetEnv("TMP_DIR",rest);
-    } else if(command == "runtimedir") {
-      Arc::SetEnv("RUNTIME_CONFIG_DIR",rest);
-    } else if(command == "shared_filesystem") {
-      if(rest == "NO") rest="no";
-      Arc::SetEnv("RUNTIME_NODE_SEES_FRONTEND",rest);
-    } else if(command == "scratchdir") {
-      Arc::SetEnv("RUNTIME_LOCAL_SCRATCH_DIR",rest);
-    } else if(command == "shared_scratch") {
-      Arc::SetEnv("RUNTIME_FRONTEND_SEES_NODE",rest);
-    } else if(command == "nodename") {
-      Arc::SetEnv("NODENAME",rest);
-    }
   */
   /*
   jobLogPath
@@ -719,8 +690,8 @@ bool configure_serviced_users(Arc::XMLNode cfg,JobUsers &users,uid_t my_uid,cons
   */
   tmp_node = cfg["serviceMail"];
   if(tmp_node) {
-    support_mail_address = (std::string)tmp_node;
-    if(support_mail_address.empty()) {
+    support_mail_address((std::string)tmp_node);
+    if(support_mail_address().empty()) {
       logger.msg(Arc::ERROR,"serviceMail is empty");
       return false;
     };
@@ -739,7 +710,7 @@ bool configure_serviced_users(Arc::XMLNode cfg,JobUsers &users,uid_t my_uid,cons
     };
     default_queue = (std::string)(tmp_node["defaultShare"]);
     check_lrms_backends(default_lrms);
-    runtime_config_dir = (std::string)(tmp_node["runtimeDir"]);
+    runtime_config_dir((std::string)(tmp_node["runtimeDir"]));
   } else {
     logger.msg(Arc::ERROR,"LRMS is missing"); return false;
   }
@@ -858,7 +829,7 @@ bool configure_serviced_users(Arc::XMLNode cfg,JobUsers &users,uid_t my_uid,cons
       };
       if(username == "*") {  /* add all gridmap users */
         if(!gridmap_user_list(userlist)) {
-          logger.msg(Arc::ERROR,"Can't read users in gridmap file %s",globus_gridmap.str());
+          logger.msg(Arc::ERROR,"Can't read users in gridmap file %s",globus_gridmap());
           return false;
         };
         continue;
@@ -914,7 +885,7 @@ bool configure_serviced_users(Arc::XMLNode cfg,JobUsers &users,uid_t my_uid,cons
           user->SetSessionRoot(session_root_);
           user->SetStrictSession(strict_session);
           /* add helper to poll for finished jobs */
-          std::string cmd_ = nordugrid_libexec_loc;
+          std::string cmd_ = nordugrid_libexec_loc();
           make_escaped_string(control_dir_);
           cmd_+="/scan-"+default_lrms+"-job";
           make_escaped_string(cmd_);

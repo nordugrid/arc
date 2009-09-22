@@ -28,7 +28,7 @@
 #endif
 
 bool config_open(std::ifstream &cfile) {
-  return config_open(cfile,nordugrid_config_loc.str());
+  return config_open(cfile,nordugrid_config_loc());
 }
 
 bool config_open(std::ifstream &cfile,const std::string &name) {

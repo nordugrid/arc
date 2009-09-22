@@ -201,7 +201,7 @@ int main(int argc,char** argv) {
         secure=false;
       }; break;
       case 'C': {
-        nordugrid_config_loc = optarg;
+        nordugrid_config_loc(optarg);
       }; break;
       case 'f': {
         use_conf_cache=true;
@@ -391,6 +391,8 @@ int main(int argc,char** argv) {
 
   Janitor janitor(desc.get_id(),user.ControlDir());
   
+  Arc::UserConfig usercfg(true);
+
   Arc::DataMover mover;
   mover.retry(false);
   mover.secure(secure);
@@ -404,8 +406,6 @@ int main(int argc,char** argv) {
   bool transfered = true;
   bool credentials_expired = false;
   std::list<FileData>::iterator it = job_files_.begin();
-
-  Arc::UserConfig usercfg(true);
 
   // get the list of output files
   if(!job_output_read_file(desc.get_id(),user,job_files_)) {

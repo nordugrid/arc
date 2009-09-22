@@ -109,7 +109,7 @@ bool configure_user_dirs(const std::string &my_username,
           if(username == "*") {  /* add all gridmap users */
             std::list<std::string> userlist;
             if(!gridmap_user_list(userlist)) {
-              logger.msg(Arc::ERROR,"Can't read users in gridmap file %s",globus_gridmap.str());
+              logger.msg(Arc::ERROR,"Can't read users in gridmap file %s",globus_gridmap());
               config_close(cfile);
               return false;
             };

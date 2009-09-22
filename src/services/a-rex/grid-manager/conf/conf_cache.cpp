@@ -10,7 +10,7 @@ CacheConfig::CacheConfig(std::string username): _cache_max(80),
   std::ifstream cfile;
   ConfigSections* cf = NULL;
 
-  if(nordugrid_config_loc.empty()) read_env_vars(true);
+  if(nordugrid_config_loc().empty()) read_env_vars(true);
   if(!config_open(cfile)) throw CacheConfigException("Can't open configuration file");
   
   cf=new ConfigSections(cfile);
@@ -78,7 +78,7 @@ CacheConfig::CacheConfig(std::string username): _cache_max(80),
       std::string user = config_next_arg(rest);
       while (user != "") {
         if(user == "*") {  /* add all gridmap users */
-           if(!gridmap_user_list(rest)) throw CacheConfigException("Can't read users in gridmap file " + globus_gridmap);
+           if(!gridmap_user_list(rest)) throw CacheConfigException("Can't read users in gridmap file " + globus_gridmap());
         }
         else if (user == username || user == ".") {
           usermatch = true;

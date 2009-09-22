@@ -281,15 +281,15 @@ bool JobsList::state_submitting(const JobsList::iterator &i,bool &state_changed,
     };
     /* submit/cancel job to LRMS using submit/cancel-X-job */
     std::string cmd;
-    if(cancel) { cmd=nordugrid_libexec_loc+"/cancel-"+job_desc->lrms+"-job"; }
-    else { cmd=nordugrid_libexec_loc+"/submit-"+job_desc->lrms+"-job"; };
+    if(cancel) { cmd=nordugrid_libexec_loc()+"/cancel-"+job_desc->lrms+"-job"; }
+    else { cmd=nordugrid_libexec_loc()+"/submit-"+job_desc->lrms+"-job"; };
     if(!cancel) {
       logger.msg(Arc::INFO,"%s: state SUBMITTING: starting child: %s",i->job_id,cmd);
     } else {
       logger.msg(Arc::INFO,"%s: state CANCELING: starting child: %s",i->job_id,cmd);
     };
     std::string grami = user->ControlDir()+"/job."+(*i).job_id+".grami";
-    std::string cfg_path = nordugrid_config_loc;
+    std::string cfg_path = nordugrid_config_loc();
     char* args[5] ={ (char*)cmd.c_str(), (char*)"--config", (char*)cfg_path.c_str(), (char*)grami.c_str(), NULL };
     job_errors_mark_put(*i,*user);
     if(!RunParallel::run(*user,*i,args,&(i->child))) {
@@ -376,8 +376,8 @@ bool JobsList::state_loading(const JobsList::iterator &i,bool &state_changed,boo
     /* run it anyway and exit code will give more inforamtion */
     bool switch_user = (user->CachePrivate() || user->StrictSession());
     std::string cmd; 
-    if(up) { cmd=nordugrid_libexec_loc+"/uploader"; }
-    else { cmd=nordugrid_libexec_loc+"/downloader"; };
+    if(up) { cmd=nordugrid_libexec_loc()+"/uploader"; }
+    else { cmd=nordugrid_libexec_loc()+"/downloader"; };
     uid_t user_id = user->get_uid();
     if(user_id == 0) user_id=i->get_uid();
     std::string user_id_s = Arc::tostring(user_id);
@@ -448,12 +448,12 @@ bool JobsList::state_loading(const JobsList::iterator &i,bool &state_changed,boo
       args[argn]=(char*)(max_inactivity_time_s.c_str()); argn++;
     };
     std::string debug_level = Arc::level_to_string(Arc::Logger::getRootLogger().getThreshold());
-    std::string cfg_path = nordugrid_config_loc;
+    std::string cfg_path = nordugrid_config_loc();
     if (!debug_level.empty()) {
       args[argn]="-d"; argn++;
       args[argn]=(char*)(debug_level.c_str()); argn++;
     }
-    if (!nordugrid_config_loc.empty()) {
+    if (!nordugrid_config_loc().empty()) {
       args[argn]="-C"; argn++;
       args[argn]=(char*)(cfg_path.c_str()); argn++;
     }
@@ -762,7 +762,7 @@ void JobsList::ActJobAccepted(JobsList::iterator &i,bool /*hard_job*/,
           if(state_changed) {
             /* gather some frontend specific information for user,
                do it only once */
-            std::string cmd = nordugrid_libexec_loc+"/frontend-info-collector";
+            std::string cmd = nordugrid_libexec_loc()+"/frontend-info-collector";
             char const * const args[2] = { cmd.c_str(), NULL };
             job_controldiag_mark_put(*i,*user,args);
           };

@@ -8,8 +8,32 @@
 #include <unistd.h>
 #include <arc/ArcLocation.h>
 #include <arc/Utils.h>
+#include <arc/Thread.h>
 #define olog std::cerr
 #include "environment.h"
+
+class prstring {
+ private:
+  Glib::Mutex lock_;
+  std::string val_;
+ public:
+  prstring(void);
+  prstring(const char*);
+  prstring(const prstring&);
+  void operator=(const char*);
+  void operator=(const std::string&);
+  void operator=(const prstring&);
+  void operator+=(const char*);
+  void operator+=(const std::string&);
+  std::string operator+(const char*) const;
+  std::string operator+(const std::string&) const;
+  operator std::string(void) const;
+  std::string str(void) const;
+  bool empty() const;
+};
+
+std::string operator+(const char*,const prstring&);
+std::string operator+(const std::string&,const prstring&);
 
 prstring::prstring(void) {
 }
@@ -87,25 +111,78 @@ std::string operator+(const std::string& val1,const prstring& val2) {
 }
 
 // Globus installation path - $GLOBUS_LOCATION
-prstring globus_loc(""); 
+static prstring globus_loc_; 
 // Various Globus scripts - $GLOBUS_LOCATION/libexec
-prstring globus_scripts_loc;
+static prstring globus_scripts_loc_;
 // ARC installation path - $ARC_LOCATION, executable path
-prstring nordugrid_loc("");
+static prstring nordugrid_loc_;
 // ARC system tools
-prstring nordugrid_libexec_loc;
+static prstring nordugrid_libexec_loc_;
 // ARC libraries and plugins
-prstring nordugrid_lib_loc;
+static prstring nordugrid_lib_loc_;
 // ARC administrator tools
-prstring nordugrid_sbin_loc;
+static prstring nordugrid_sbin_loc_;
 // ARC configuration file
-prstring nordugrid_config_loc("");
+static prstring nordugrid_config_loc_;
 // RTE setup scripts
-prstring runtime_config_dir("");
+static prstring runtime_config_dir_;
 // Email address of person responsible for this ARC installation
-prstring support_mail_address;
+static prstring support_mail_address_;
 // Global gridmap files with welcomed users' DNs and UNIX names
-prstring globus_gridmap;
+static prstring globus_gridmap_;
+
+std::string globus_loc(void) {
+  return globus_loc_.str();
+}
+
+std::string globus_scripts_loc(void) {
+  return globus_scripts_loc_.str();
+}
+
+std::string nordugrid_loc(void) {
+  return nordugrid_loc_.str();
+}
+
+std::string nordugrid_libexec_loc(void) {
+  return nordugrid_libexec_loc_.str();
+}
+
+std::string nordugrid_lib_loc(void) {
+  return nordugrid_lib_loc_.str();
+}
+
+std::string nordugrid_sbin_loc(void) {
+  return nordugrid_sbin_loc_.str();
+}
+
+std::string nordugrid_config_loc(void) {
+  return nordugrid_config_loc_.str();
+}
+
+void nordugrid_config_loc(const std::string& val) {
+  nordugrid_config_loc_=val;
+}
+
+std::string runtime_config_dir(void) {
+  return runtime_config_dir_.str();
+}
+
+void runtime_config_dir(const std::string& val) {
+  runtime_config_dir_=val;
+}
+
+std::string support_mail_address(void) {
+  return support_mail_address_.str();
+}
+
+void support_mail_address(const std::string& val) {
+  support_mail_address_=val;
+}
+
+std::string globus_gridmap(void) {
+  return globus_gridmap_.str();
+}
+
 
 static bool file_exists(const char* name) {
   struct stat st;
@@ -122,37 +199,37 @@ static bool dir_exists(const char* name) {
 }
 
 bool read_env_vars(bool guess) {
-  if(globus_loc.empty()) {
-    globus_loc=Arc::GetEnv("GLOBUS_LOCATION");
-    if(globus_loc.empty()) {
+  if(globus_loc_.empty()) {
+    globus_loc_=Arc::GetEnv("GLOBUS_LOCATION");
+    if(globus_loc_.empty()) {
       if(!guess) {
         olog<<"Warning: GLOBUS_LOCATION environment variable not defined"<<std::endl;
         //return false;
       }
       else {
-        globus_loc="/opt/globus";
+        globus_loc_="/opt/globus";
       };
     };
-    Arc::SetEnv("GLOBUS_LOCATION",globus_loc);
+    Arc::SetEnv("GLOBUS_LOCATION",globus_loc_.str());
   };
-  globus_scripts_loc=globus_loc+"/libexec";
+  globus_scripts_loc_=globus_loc_+"/libexec";
 
-  if(nordugrid_loc.empty()) {
-    nordugrid_loc=Arc::GetEnv("ARC_LOCATION");
-    if(nordugrid_loc.empty()) {
-      nordugrid_loc=Arc::ArcLocation::Get();
+  if(nordugrid_loc_.empty()) {
+    nordugrid_loc_=Arc::GetEnv("ARC_LOCATION");
+    if(nordugrid_loc_.empty()) {
+      nordugrid_loc_=Arc::ArcLocation::Get();
     };
-    nordugrid_lib_loc=nordugrid_loc+"/"+PKGLIBSUBDIR;
-    nordugrid_libexec_loc=nordugrid_loc+"/"+PKGLIBEXECSUBDIR;
+    nordugrid_lib_loc_=nordugrid_loc_+"/"+PKGLIBSUBDIR;
+    nordugrid_libexec_loc_=nordugrid_loc_+"/"+PKGLIBEXECSUBDIR;
   };
 
-  if(nordugrid_config_loc.empty()) {
+  if(nordugrid_config_loc_.empty()) {
     std::string tmp = Arc::GetEnv("ARC_CONFIG");
     if(tmp.empty()) {
       tmp=Arc::GetEnv("NORDUGRID_CONFIG");
       if(tmp.empty()) {
         tmp="/etc/arc.conf";
-        nordugrid_config_loc=tmp;
+        nordugrid_config_loc_=tmp;
         if(!file_exists(tmp.c_str())) {
           olog<<"Central configuration file is missing at guessed location:\n"
               <<"  /etc/arc.conf\n"
@@ -162,23 +239,23 @@ bool read_env_vars(bool guess) {
         };
       };
     };
-    if(!tmp.empty()) nordugrid_config_loc=tmp;
+    if(!tmp.empty()) nordugrid_config_loc_=tmp;
   };
   // Set all environement variables for other tools
-  Arc::SetEnv("ARC_CONFIG",nordugrid_config_loc);
-  if(support_mail_address.empty()) {
+  Arc::SetEnv("ARC_CONFIG",nordugrid_config_loc_);
+  if(support_mail_address_.empty()) {
     char hn[100];
-    support_mail_address="grid.manager@";
+    support_mail_address_="grid.manager@";
     if(gethostname(hn,99) == 0) {
-      support_mail_address+=hn;
+      support_mail_address_+=hn;
     }
     else {
-      support_mail_address+="localhost";
+      support_mail_address_+="localhost";
     };
   };
   std::string tmp=Arc::GetEnv("GRIDMAP");
-  if(tmp.empty()) { globus_gridmap="/etc/grid-security/grid-mapfile"; }
-  else { globus_gridmap=tmp; };
+  if(tmp.empty()) { globus_gridmap_="/etc/grid-security/grid-mapfile"; }
+  else { globus_gridmap_=tmp; };
   return true;
 }
 

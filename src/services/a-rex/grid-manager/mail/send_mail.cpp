@@ -44,8 +44,8 @@ bool send_mail(const JobDescription &desc,JobUser &user) {
     if(n == std::string::npos) break;
     failure_reason[n]='.';
   };
-  std::string cmd(nordugrid_libexec_loc+"/smtp-send.sh");
-  std::string from_addr = support_mail_address;
+  std::string cmd(nordugrid_libexec_loc()+"/smtp-send.sh");
+  std::string from_addr = support_mail_address();
   char* args[11] ={ /* max 3 mail addresses */
        (char*)cmd.c_str(),
        (char*)states_all[desc.get_state()].name,
