@@ -57,6 +57,10 @@ namespace Arc {
       LESSTHANOREQUAL = 5
     };
 
+#ifndef SWIG
+    static bool (Software::* convert(const ComparisonOperator& co))(const Software&) const;
+#endif
+
     /// Returns true if the name part is empty, otherwise false.
     bool empty() const { return name.empty(); }
 
@@ -123,8 +127,9 @@ namespace Arc {
 #ifndef SWIG
     /// Adds software name and version to list of requirements and
     /// associates comparison operator with it (equality by default)
-    void add(const Software& sw, SWComparisonOperator swComOp = &Software::operator==) { if (!sw.empty()) { softwareList.push_back(sw); comparisonOperatorList.push_back(swComOp); } }
+    void add(const Software& sw, SWComparisonOperator swComOp = &Software::operator==);
 #endif
+    void add(const Software& sw, Software::ComparisonOperator co);
 
     bool isRequiringAll() const { return requiresAll; }
 

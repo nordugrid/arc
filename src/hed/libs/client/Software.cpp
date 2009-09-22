@@ -196,31 +196,24 @@ SoftwareRequirement::SoftwareRequirement(const Software& sw,
                                          Software::ComparisonOperator co,
                                          bool requiresAll)
   : requiresAll(requiresAll) {
+    softwareList.push_back(sw);
+    comparisonOperatorList.push_back(Software::convert(co));
+}
+
+SWComparisonOperator Software::convert(const Software::ComparisonOperator& co) {
   switch (co) {
   case Software::EQUAL:
-    softwareList.push_back(sw);
-    comparisonOperatorList.push_back(&Software::operator==);
-    break;
+    return &Software::operator==;
   case Software::NOTEQUAL:
-    softwareList.push_back(sw);
-    comparisonOperatorList.push_back(&Software::operator!=);
-    break;
+    return &Software::operator!=;
   case Software::GREATERTHAN:
-    softwareList.push_back(sw);
-    comparisonOperatorList.push_back(&Software::operator>);
-    break;
+    return &Software::operator>;
   case Software::LESSTHAN:
-    softwareList.push_back(sw);
-    comparisonOperatorList.push_back(&Software::operator<);
-    break;
+    return &Software::operator<;
   case Software::GREATERTHANOREQUAL:
-    softwareList.push_back(sw);
-    comparisonOperatorList.push_back(&Software::operator>=);
-    break;
+    return &Software::operator>=;
   case Software::LESSTHANOREQUAL:
-    softwareList.push_back(sw);
-    comparisonOperatorList.push_back(&Software::operator<=);
-    break;
+    return &Software::operator<=;
   };
 }
 
@@ -229,6 +222,20 @@ SoftwareRequirement& SoftwareRequirement::operator=(const SoftwareRequirement& s
   softwareList = sr.softwareList;
   comparisonOperatorList = sr.comparisonOperatorList;
   return *this;
+}
+
+void SoftwareRequirement::add(const Software& sw, SWComparisonOperator swComOp) {
+  if (!sw.empty()) {
+    softwareList.push_back(sw);
+    comparisonOperatorList.push_back(swComOp);
+  }
+}
+
+void SoftwareRequirement::add(const Software& sw, Software::ComparisonOperator co) {
+  if (!sw.empty()) {
+    softwareList.push_back(sw);
+    comparisonOperatorList.push_back(Software::convert(co));
+  }
 }
 
 bool SoftwareRequirement::isSatisfied(const std::list<Software>& swList) const {
