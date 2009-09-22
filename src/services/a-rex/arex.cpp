@@ -2,6 +2,9 @@
 #include <config.h>
 #endif
 
+#include <glib.h>
+#include <glib/gstdio.h>
+
 #include <iostream>
 
 #include <sys/types.h>
@@ -414,6 +417,7 @@ ARexService::ARexService(Arc::Config *cfg):RegisteredService(cfg),logger_(Arc::L
         p+=l;
       };
       close(h);
+      g_chmod(gmconfig_.c_str(), 0744);
       gmconfig_temporary_=true;
     } catch(Glib::FileError& e) {
       logger_.msg(Arc::ERROR, "Failed to store configuration into temporary file");
