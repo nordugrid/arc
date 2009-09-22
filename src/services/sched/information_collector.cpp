@@ -88,7 +88,7 @@ void GridSchedulerService::InformationCollector(void) {
           <StagingJobs>0</StagingJobs>\
           <SuspendedJobs>0</SuspendedJobs>\
           <TotalJobs>0</TotalJobs>\
-          <Type>org.nordugrid.sched</Type>\
+          <Type>org.nordugrid.execution.sched</Type>\
           <WaitingJobs>0</WaitingJobs>\
         </ComputingService>\
       </Services>\
