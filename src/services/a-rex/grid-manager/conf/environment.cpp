@@ -100,6 +100,8 @@ prstring nordugrid_lib_loc;
 prstring nordugrid_sbin_loc;
 // ARC configuration file
 prstring nordugrid_config_loc("");
+// RTE setup scripts
+prstring runtime_config_dir("");
 // Email address of person responsible for this ARC installation
 prstring support_mail_address;
 // Global gridmap files with welcomed users' DNs and UNIX names

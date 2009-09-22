@@ -44,6 +44,8 @@ extern prstring nordugrid_sbin_loc;
 ///   /etc/arc.conf
 ///   $ARC_LOCATION/etc/arc.conf
 extern prstring nordugrid_config_loc;
+// RTE setup scripts
+extern prstring runtime_config_dir;
 /// Email address of person responsible for this ARC installation
 /// grid.manager@hostname, it can also be set from configuration file 
 extern prstring support_mail_address;

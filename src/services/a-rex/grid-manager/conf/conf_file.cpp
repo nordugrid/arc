@@ -114,7 +114,9 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
         break;
       };
     };
-    if(command == "joblog") { /* where to write job inforamtion */ 
+    if(command == "runtimedir") { 
+      runtime_config_dir = rest;
+    } else if(command == "joblog") { /* where to write job inforamtion */ 
       std::string fname = config_next_arg(rest);  /* empty is allowed too */
       job_log.SetOutput(fname.c_str());
     }
@@ -737,6 +739,7 @@ bool configure_serviced_users(Arc::XMLNode cfg,JobUsers &users,uid_t my_uid,cons
     };
     default_queue = (std::string)(tmp_node["defaultShare"]);
     check_lrms_backends(default_lrms);
+    runtime_config_dir = (std::string)(tmp_node["runtimeDir"]);
   } else {
     logger.msg(Arc::ERROR,"LRMS is missing"); return false;
   }
