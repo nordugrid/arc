@@ -46,9 +46,9 @@ bool configure_user_dirs(const std::string &my_username,
         config_close(cfile);
         return false;
       };
-      // std::string& allow_submit
-      // std::list<std::string>& queues
-      // RunPlugin &cred_plugin,
+      // Unsupported elements:
+      //   std::string& allow_submit
+      allow_submit=true;
       Arc::XMLNode tmp_node;
       tmp_node = cfg["LRMS"];
       if(tmp_node) {
@@ -76,6 +76,28 @@ bool configure_user_dirs(const std::string &my_username,
           return false;
         };
       };
+      tmp_node = cfg["localCred"];
+      if(tmp_node) {
+        std::string command = tmp_node["command"];
+        if(command.empty()) return false;
+        std::string options;
+        Arc::XMLNode onode;
+        onode = tmp_node.Attribute("timeout");
+        if(!onode) return false;
+        int to;
+        if(!elementtoint(onode,NULL,to,&logger)) return false;
+        cred_plugin = command;
+        cred_plugin.timeout(to);
+      };
+      tmp_node = cfg["ComputingService"];
+      if(tmp_node) {
+        Arc::XMLNode shnode = tmp_node["ComputingShare"];
+        for(;shnode;++shnode) {
+          std::string qname = shnode["MappingQueue"];
+          if(qname.empty()) qname=(std::string)(shnode.Attribute("name"));
+          if(!qname.empty()) queues.insert(queues.end(),qname);
+        };
+      }
       tmp_node = cfg["control"];
       for(;tmp_node;++tmp_node) {
         Arc::XMLNode unode = tmp_node["username"];

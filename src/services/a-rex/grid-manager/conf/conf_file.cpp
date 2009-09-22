@@ -779,7 +779,7 @@ bool configure_serviced_users(Arc::XMLNode cfg,JobUsers &users,uid_t my_uid,cons
     command
   */
   tmp_node = cfg["localCred"];
-  for(;tmp_node;++tmp_node) {
+  if(tmp_node) {
     std::string command = tmp_node["command"];
     if(command.empty()) {
       logger.msg(Arc::ERROR,"command for localCred is missing");
