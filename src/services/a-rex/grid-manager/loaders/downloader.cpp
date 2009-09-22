@@ -221,7 +221,7 @@ class PointPair {
   Arc::DataHandle source;
   Arc::DataHandle destination;
   PointPair(const std::string& source_str, const std::string& destination_str,
-	    const Arc::UserConfig usercfg)
+	    const Arc::UserConfig& usercfg)
     : source_url(source_str),
       destination_url(destination_str),
       source(source_url, usercfg),
@@ -490,6 +490,8 @@ int main(int argc,char** argv) {
 
   Janitor janitor(desc.get_id(),user.ControlDir());
   
+  Arc::UserConfig usercfg(true);
+
   Arc::DataMover mover;
   mover.retry(false);
   mover.secure(secure);
@@ -504,8 +506,6 @@ int main(int argc,char** argv) {
   bool credentials_expired = false;
   std::list<FileData> output_files;
 
-  Arc::UserConfig usercfg(true);
-
   if(!job_input_read_file(desc.get_id(),user,job_files_)) {
     failure_reason+="Internal error in downloader\n";
     logger.msg(Arc::ERROR, "Can't read list of input files"); res=1; goto exit;
@@ -513,7 +513,12 @@ int main(int argc,char** argv) {
   // check for duplicates (see bug 1285)
   for (std::list<FileData>::iterator i = job_files_.begin(); i != job_files_.end(); i++) {
     for (std::list<FileData>::iterator j = job_files_.begin(); j != job_files_.end(); j++) {
-      if (i != j && j->pfn == i->pfn) { logger.msg(Arc::ERROR, "Error: duplicate file in list of input files: %s", i->pfn); res=1; goto exit; }
+      if (i != j && j->pfn == i->pfn) {
+        failure_reason+="Duplicate input files\n";
+        logger.msg(Arc::ERROR, "Error: duplicate file in list of input files: %s", i->pfn);
+        res=1;
+        goto exit;
+      }
     }
   }
   // check if any input files are also output files downloadable by user (bug 1387)
@@ -545,17 +550,20 @@ int main(int argc,char** argv) {
   };
 
   if(!desc.GetLocalDescription(user)) {
+    failure_reason+="Internal error in downloader\n";
     logger.msg(Arc::ERROR, "Can't read job local description"); res=1; goto exit;
   };
 
   // Start janitor in parallel
   if(!janitor) {
     if(desc.get_local()->rtes > 0) {
+      failure_reason+="Non-existing RTE(s) requested\n";
       logger.msg(Arc::ERROR, "Janitor is missing and job contains non-deployed RTEs");
       res=1; goto exit;
     };
   } else {
     if(!janitor.deploy()) {
+      failure_reason+="The Janitor failed\n";
       logger.msg(Arc::ERROR, "Failed to deploy Janitor"); res=1; goto exit;
     };
   };
@@ -707,16 +715,19 @@ int main(int argc,char** argv) {
     unsigned int time_left = 30*60*desc.get_local()->rtes + 5*60;
     time_left-=(time_left > time_passed)?time_passed:time_left;
     if(!janitor.wait(time_left)) {
+      failure_reason+="The Janitor failed\n";
       logger.msg(Arc::ERROR, "Janitor timeout while deploying Dynamic RTE(s)");
       res=1; goto exit;
     };
     if(janitor.result() == Janitor::DEPLOYED) {
     } else if(janitor.result() == Janitor::NOTENABLED) {
       if(desc.get_local()->rtes > 0) {
+        failure_reason+="The Janitor failed\n";
         logger.msg(Arc::ERROR, "Janitor not enabled and there are missing RTE(s)");
         res=1; goto exit;
       }
     } else {
+      failure_reason+="The Janitor failed\n";
       logger.msg(Arc::ERROR, "Janitor failed to deploy Dynamic RTE(s)");
       res=1; goto exit;
     };
@@ -758,7 +769,7 @@ int main(int argc,char** argv) {
   }
 
 exit:
-  logger.msg(Arc::INFO, "Leaving downloader (%i)");
+  logger.msg(Arc::INFO, "Leaving downloader (%i)", res);
   // clean unfinished files here 
   job_files_.clear();
   for(FileDataEx::iterator i = job_files.begin();i!=job_files.end();++i) job_files_.push_back(*i);

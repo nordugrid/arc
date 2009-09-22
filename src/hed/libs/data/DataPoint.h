@@ -32,6 +32,9 @@ namespace Arc {
     : public Plugin {
   public:
     /// Constructor requires URL to be provided.
+    /** References to url and usercfg arguments are stored 
+       internally and hence corresponding objects must stay
+       available during whole lifetime of this instance. */
     DataPoint(const URL& url, const UserConfig& usercfg);
 
     /// Destructor.
