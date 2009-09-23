@@ -16,7 +16,6 @@
 #include <arc/URL.h>
 #include <arc/User.h>
 #include <arc/UserConfig.h>
-#include <arc/XMLNode.h>
 #include <arc/data/FileCache.h>
 #include <arc/data/DataHandle.h>
 #include <arc/data/DataMover.h>
@@ -586,15 +585,11 @@ int main(int argc, char **argv) {
   ++it;
   std::string destination = *it;
 
-  Arc::NS ns;
-  Arc::XMLNode cred(ns, "cred");
-  usercfg.ApplyToConfig(cred);
-
   if (nocopy) {
-    if(!arcregister(source, destination, cred, secure, passive, force, timeout))
+    if(!arcregister(source, destination, usercfg, secure, passive, force, timeout))
       return 1;
   } else {
-    if(!arccp(source, destination, cache_path, cred, secure, passive, force,
+    if(!arccp(source, destination, cache_path, usercfg, secure, passive, force,
           recursion, retries + 1, verbose, timeout))
       return 1;
   }
