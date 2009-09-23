@@ -199,7 +199,7 @@ sub collect($) {
 
     my $cluster_info;
     my $png = $config->{service}{PublishNordugrid};
-    if (defined $png and $png eq 'true') {
+    if (defined $png and not $png eq 'false') {
         $cluster_info->{'n:nordugrid'} = ARC0ClusterInfo::collect($input);
         $cluster_info->{'n:nordugrid'}{'xmlns:n'} = "urn:nordugrid-cluster";
     }
