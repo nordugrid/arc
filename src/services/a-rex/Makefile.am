@@ -7,8 +7,8 @@ initddir=@initddir@
 initd_SCRIPTS=a-rex
 
 docdir = @docdir@
-doc_DATA = arex_service.xml.example arc_arex.conf arex_service-secure.xml.example arex_minimalistic.xml.example \
-           arex_service-secure-xml.xml.example arex_service-extreme-xml.xml.example
+doc_DATA = arex.xml.example arc_arex.conf arex_secure.xml.example arex_minimalistic.xml.example \
+           arex_xmlonly.xml.example arex_showcase.xml.example
 
 #GRIDMANAGER_LIBS = grid-manager/conf/libconf.la grid-manager/jobs/libjobs.la grid-manager/files/libfiles.la grid-manager/run/librun.la \
 #                   grid-manager/jobdesc/libjobdesc.la grid-manager/misc/libmisc.la grid-manager/log/liblog.la \

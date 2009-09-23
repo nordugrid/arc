@@ -1406,11 +1406,11 @@ AC_CONFIG_FILES([Makefile
                  src/services/Makefile
                  src/services/a-rex/Makefile
                  src/services/a-rex/a-rex
-                 src/services/a-rex/arex_service.xml.example
+                 src/services/a-rex/arex.xml.example
                  src/services/a-rex/arex_minimalistic.xml.example
-                 src/services/a-rex/arex_service-secure.xml.example		 
-                 src/services/a-rex/arex_service-secure-xml.xml.example
-                 src/services/a-rex/arex_service-extreme-xml.xml.example
+                 src/services/a-rex/arex_secure.xml.example		 
+                 src/services/a-rex/arex_xmlonly.xml.example
+                 src/services/a-rex/arex_showcase.xml.example
                  src/services/a-rex/config/Makefile
                  src/services/a-rex/grid-manager/Makefile
                  src/services/a-rex/grid-manager/conf/Makefile
