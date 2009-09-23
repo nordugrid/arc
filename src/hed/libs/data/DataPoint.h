@@ -43,6 +43,9 @@ namespace Arc {
     /// Returns the URL that was passed to the constructor.
     virtual const URL& GetURL() const;
 
+    /// Returns the UserConfig that was passed to the constructor.
+    virtual const UserConfig& GetUserConfig() const;
+
     /// Returns a string representation of the DataPoint.
     virtual std::string str() const;
 

@@ -46,6 +46,10 @@ namespace Arc {
     return url;
   }
 
+  const UserConfig& DataPoint::GetUserConfig() const {
+    return usercfg;
+  }
+
   std::string DataPoint::str() const {
     return url.str();
   }

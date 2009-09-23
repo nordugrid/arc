@@ -202,8 +202,6 @@ namespace Arc {
                                  DataMover::callback cb, void *arg,
                                  const char *prefix) {
 
-    UserConfig usercfg(true); // need to get this from somewhere...
-
     if (cb != NULL) {
       logger.msg(DEBUG, "DataMover::Transfer : starting new thread");
       transfer_struct *param = (transfer_struct*)malloc(sizeof(transfer_struct));
@@ -306,7 +304,7 @@ namespace Arc {
                    "destination: %s", del_url.str());
         int try_num = destination.GetTries();
         for (;;) {
-          DataHandle del(del_url, usercfg);
+          DataHandle del(del_url, destination.GetUserConfig());
           del->SetTries(1);
           DataStatus res = Delete(*del);
           if (res == DataStatus::Success)
@@ -465,7 +463,7 @@ namespace Arc {
       if (source.ReadOnly() && mapped)
         if (mapped_url.Protocol() == "link")
           mapped_url.ChangeProtocol("file");
-      DataHandle mapped_h(mapped_url, usercfg);
+      DataHandle mapped_h(mapped_url, source.GetUserConfig());
       DataPoint& mapped_p(*mapped_h);
       if (mapped_h) {
         mapped_p.SetSecure(force_secure);
@@ -664,7 +662,7 @@ namespace Arc {
         logger.msg(INFO, "cache file: %s", churl.Path());
       }
 #endif
-      DataHandle chdest_h(churl, usercfg);
+      DataHandle chdest_h(churl, destination.GetUserConfig());
       DataPoint& chdest(*chdest_h);
       if (chdest_h) {
         chdest.SetSecure(force_secure);
