@@ -13,7 +13,6 @@
 #include <arc/StringConv.h>
 #include <arc/URL.h>
 #include <arc/UserConfig.h>
-#include <arc/XMLNode.h>
 #include <arc/data/DataHandle.h>
 #include <arc/OptionParser.h>
 
@@ -205,11 +204,7 @@ int main(int argc, char **argv) {
 
   std::list<std::string>::iterator it = params.begin();
 
-  Arc::NS ns;
-  Arc::XMLNode cred(ns, "cred");
-  usercfg.ApplyToConfig(cred);
-
-  if(!arcls(*it, cred, longlist, locations, metadata, recursion, timeout))
+  if(!arcls(*it, usercfg, longlist, locations, metadata, recursion, timeout))
     return 1;
 
   return 0;
