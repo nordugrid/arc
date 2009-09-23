@@ -2,12 +2,10 @@
 #include <config.h>
 #endif
 
-#include <glib.h>
-#include <glib/gstdio.h>
-
 #include <iostream>
 
 #include <sys/types.h>
+#include <sys/stat.h>
 #include <pwd.h>
 #include <unistd.h>
 
@@ -403,7 +401,8 @@ ARexService::ARexService(Arc::Config *cfg):RegisteredService(cfg),logger_(Arc::L
     // id in its name residing in control directory.
     try {
       int h = Glib::file_open_tmp(gmconfig_,"arex");
-      logger_.msg(Arc::VERBOSE, "Storing connfiguration into temporary file - %s",gmconfig_);
+      ::chmod(gmconfig_.c_str(), S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+      logger_.msg(Arc::VERBOSE, "Storing configuration into temporary file - %s",gmconfig_);
       Arc::XMLNode gmxml;
       cfg->New(gmxml);
       // Storing configuration into temporary file
@@ -417,7 +416,6 @@ ARexService::ARexService(Arc::Config *cfg):RegisteredService(cfg),logger_(Arc::L
         p+=l;
       };
       close(h);
-      g_chmod(gmconfig_.c_str(), 0744);
       gmconfig_temporary_=true;
     } catch(Glib::FileError& e) {
       logger_.msg(Arc::ERROR, "Failed to store configuration into temporary file");
