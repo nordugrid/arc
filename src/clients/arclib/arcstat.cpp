@@ -15,7 +15,6 @@
 #include <arc/StringConv.h>
 #include <arc/client/JobController.h>
 #include <arc/client/JobSupervisor.h>
-#include <arc/client/TargetGenerator.h>
 #include <arc/UserConfig.h>
 
 int main(int argc, char **argv) {
