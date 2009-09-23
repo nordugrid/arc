@@ -232,6 +232,10 @@ namespace Arc {
     Glib::OptionGroup grp("main", "Main Group");
     grp.set_translation_domain(PACKAGE);
 
+    bool h_value = false;
+    BoolOption h_entry('h',"help","","",h_value);
+    h_entry.AddEntry(grp);
+
     for (std::list<OptionBase*>::iterator it = options.begin();
          it != options.end(); it++)
       (*it)->AddEntry(grp);
@@ -243,6 +247,10 @@ namespace Arc {
     } catch (Glib::OptionError err) {
       std::cout << err.what() << std::endl;
       exit(1);
+    }
+    if(h_value) {
+      std::cout << ctx.get_help() << std::endl;
+      exit(0);
     }
 
     for (std::list<OptionBase*>::iterator it = options.begin();
@@ -280,7 +288,9 @@ namespace Arc {
       if (!(*it)->argDesc.empty())
         optstring += ':';
     }
-    setopt(longoptions[i++], "help", no_argument, NULL, '?');
+    setopt(longoptions[i++], "help", no_argument, NULL, 'h');
+    optstring += 'h';
+    setopt(longoptions[i++], NULL, no_argument, NULL, '?');
     optstring += '?';
     setopt(longoptions[i++], NULL, no_argument, NULL, '\0');
 
@@ -301,7 +311,7 @@ namespace Arc {
 
       if (opt == -1)
         continue;
-      if (opt == '?') {
+      if ((opt == '?') || (opt = 'h')) {
         if (optopt) {
           delete longoptions;
           exit(1);
@@ -316,7 +326,7 @@ namespace Arc {
         if (!summary.empty())
           std::cout << IString(summary) << std::endl << std::endl;
         std::cout << IString("Help Options:") << std::endl;
-        std::cout << "  -?, --help    " << IString("Show help options")
+        std::cout << "  -h, -?, --help    " << IString("Show help options")
                   << std::endl << std::endl;
         std::cout << IString("Application Options:") << std::endl;
         for (std::list<OptionBase*>::iterator it = options.begin();
