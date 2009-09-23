@@ -256,20 +256,6 @@ int main(int argc, char **argv) {
       Arc::Submitter *submitter = target->GetSubmitter(usercfg);
 
       if (dumpdescription) {
-        std::string flavour;
-        if (!target)
-          flavour = target->GridFlavour;
-        else if (!clusters.empty()) {
-          Arc::URLListMap clusterselect;
-          Arc::URLListMap clusterreject;
-          if (!usercfg.ResolveAlias(clusters, clusterselect, clusterreject)) {
-            logger.msg(Arc::ERROR, "Failed resolving aliases");
-            return 1;
-          }
-          Arc::URLListMap::iterator it = clusterselect.begin();
-          flavour = it->first;
-        }
-
         Arc::JobDescription jobdescdump(*it);
         if (!submitter->ModifyJobDescription(jobdescdump, *target)) {
           std::cout << "Unable to modify job description according to needs for target cluster." << std::endl;
