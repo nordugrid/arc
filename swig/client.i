@@ -25,7 +25,7 @@
 %template(ApplicationEnvironmentList) std::list<Arc::ApplicationEnvironment>;
 %template(SoftwareList) std::list<Arc::Software>;
 %template(SoftwareRequirementList) std::list<Arc::SoftwareRequirement>;
-
+%template(ResourceTargetTypeList) std::list<Arc::ResourceTargetType>;
 
 #ifdef SWIGJAVA
 %template(ExecutionTargetListIteratorHandler) listiteratorhandler<Arc::ExecutionTarget>;
@@ -85,3 +85,11 @@ std::ostream& getStdout() {
 %include "../src/hed/libs/client/JobDescription.h"
 %include "../src/hed/libs/client/JobSupervisor.h"
 %include "../src/hed/libs/client/TargetRetriever.h"
+
+/* These template instantiations must be created after the respective
+   template classes have been defined, which is done in the
+   JobDescription class
+ */
+%template(ScalableTimeInt) Arc::ScalableTime<int>;
+%template(RangeInt) Arc::Range<int>;
+%template(RangeInt64) Arc::Range<int64_t>;
