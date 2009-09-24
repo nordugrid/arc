@@ -42,21 +42,13 @@ namespace Arc {
       transfer(NULL),
       reading(false),
       writing(false),
-      usercfg((std::string)""),
-      bartender_url((std::string)"") {
-
-    std::string bartender_str = url.HTTPOption("BartenderURL");
-    if(bartender_str != ""){
-      bartender_url = URL(bartender_str);
-    }
-    else{
+      bartender_url(url.HTTPOption("BartenderURL")) {
+    if (!bartender_url) {
       //BartenderURL taken from ~/.arc/client.xml
-      bartender_str = (std::string)usercfg.ConfTree()["BartenderURL"];
+      bartender_url = URL((std::string)usercfg.ConfTree()["BartenderURL"]);
       //todo: improve default bartender url (maybe try to get ARC_BARTENDER_URL from environment?)
-      if (bartender_str.empty())
-        bartender_str = "http://localhost:60000/Bartender";
-      //URL bartender_url(url.ConnectionURL()+"/Bartender");
-      bartender_url = URL(bartender_str);
+      if (!bartender_url)
+        bartender_url = URL("http://localhost:60000/Bartender");
     }
 
     md5sum = new MD5Sum();

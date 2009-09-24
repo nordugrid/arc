@@ -20,7 +20,6 @@ namespace Arc {
     DataHandle *transfer;
     bool reading;
     bool writing;
-    UserConfig usercfg;
     URL bartender_url;
     MD5Sum *md5sum;
     int chksum_index;
