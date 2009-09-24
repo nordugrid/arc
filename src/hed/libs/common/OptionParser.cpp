@@ -276,7 +276,7 @@ namespace Arc {
 
   std::list<std::string> OptionParser::Parse(int argc, char **argv) {
 
-    struct option *longoptions = new struct option[options.size() + 2];
+    struct option *longoptions = new struct option[options.size() + 3];
     int i = 0;
     std::string optstring;
     for (std::list<OptionBase*>::iterator it = options.begin();
