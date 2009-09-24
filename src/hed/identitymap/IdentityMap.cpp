@@ -176,6 +176,7 @@ IdentityMap::IdentityMap(Arc::Config *cfg,Arc::ChainContext* ctx):ArcSec::SecHan
       PDPPluginArgument arg(&cfg_);
       ArcSec::PDP* pdp = pdp_factory->GetInstance<PDP>(PDPPluginKind,name,&arg);
       if(!pdp) {
+        delete local_id;
         logger.msg(Arc::ERROR, "PDP: %s can not be loaded", name);
         continue;
       };
