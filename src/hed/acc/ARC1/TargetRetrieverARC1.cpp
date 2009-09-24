@@ -175,10 +175,7 @@ namespace Arc {
           std::string path = ".";
           for (std::list<std::string>::iterator si2 = tmpsk.begin(); si2 != si; si2++)
             path += "/" + *si2;
-          logger.msg(ERROR, "The node %s has no %s element.", path, *si);
-          delete thrarg;
-          mom.RetrieverDone();
-          return;
+          logger.msg(INFO, "The node %s has no %s element. Service does not publish deprecated NorduGrid schema.", path, *si);
         }
       }
 
