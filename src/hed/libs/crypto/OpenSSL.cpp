@@ -114,7 +114,9 @@ namespace Arc {
       CRYPTO_set_id_callback(&ssl_id_cb);
       //CRYPTO_set_idptr_callback(&ssl_idptr_cb);
     }
-    OpenSSL_add_all_algorithms();
+    if(!initialized) {
+      OpenSSL_add_all_algorithms();
+    }
     initialized=true;
   }
 
