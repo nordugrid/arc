@@ -999,17 +999,20 @@ it uses the less reliable \emph{qstat} command for that. Other backends
 use different techniques.
 \end{itemize}
 
-\begin{comment}In addition, there is also an administration utility:
+In addition, there is also an administration utility:
 
 \begin{itemize}
 \item \textit{gm-jobs} -- prints a list of jobs available on the cluster
 and the number of jobs in each state.\\
-\hspace*{0.5cm}gm-jobs {[}-h] {[}-l] {[}-u uid] {[}-U name]\\
+\hspace*{0.5cm}gm-jobs {[}-h] {[}-l] {[}-u uid] {[}-U name] {[}-c conf\_file] {[}-d control\_dir]\\
+\hspace*{0.5cm}-h -- print short help,\\
 \hspace*{0.5cm}-l -- print more information about each job,\\
 \hspace*{0.5cm}-u -- pretend utility is run by user with id \emph{uid},\\
-\hspace*{0.5cm}-U -- pretend utility is run by user with name \emph{name}.
+\hspace*{0.5cm}-U -- pretend utility is run by user with name \emph{name},\\
+\hspace*{0.5cm}-c -- use specified configuration file,\\
+\hspace*{0.5cm}-d -- read information from specified control dir.
 \end{itemize}
-\end{comment}
+
 
 \subsection{Directories}
 

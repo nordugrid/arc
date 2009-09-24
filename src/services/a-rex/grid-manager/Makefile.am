@@ -1,7 +1,7 @@
 SUBDIRS = jobs run conf misc log mail files loaders
 
 noinst_LTLIBRARIES = libgridmanager.la
-pkglibexec_PROGRAMS = gm-kick
+pkglibexec_PROGRAMS = gm-kick gm-jobs
 
 libgridmanager_la_SOURCES  = grid_manager.cpp grid_manager.h
 libgridmanager_la_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
@@ -12,3 +12,7 @@ libgridmanager_la_LIBADD   = jobs/libjobs.la conf/libconf.la log/liblog.la files
 gm_kick_SOURCES = gm_kick.cpp jobs/users.cpp
 gm_kick_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
 gm_kick_LDADD   = libgridmanager.la
+
+gm_jobs_SOURCES = gm_jobs.cpp
+gm_jobs_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
+gm_jobs_LDADD   = libgridmanager.la
