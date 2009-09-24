@@ -290,7 +290,7 @@ namespace Arc {
     }
     setopt(longoptions[i++], "help", no_argument, NULL, 'h');
     optstring += 'h';
-    setopt(longoptions[i++], NULL, no_argument, NULL, '?');
+    setopt(longoptions[i++], "help", no_argument, NULL, '?');
     optstring += '?';
     setopt(longoptions[i++], NULL, no_argument, NULL, '\0');
 
@@ -311,7 +311,7 @@ namespace Arc {
 
       if (opt == -1)
         continue;
-      if ((opt == '?') || (opt = 'h')) {
+      if ((opt == '?') || (opt == ':') || (opt == 'h')) {
         if (optopt) {
           delete longoptions;
           exit(1);
