@@ -68,12 +68,6 @@ int main(int argc, char **argv) {
                     istring("statusstr"),
                     status);
 
-  std::list<std::string> indexurls;
-  options.AddOption('i', "index",
-                    istring("explicity select or reject an index server"),
-                    istring("[-]name"),
-                    indexurls);
-
   bool longlist = false;
   options.AddOption('l', "long",
                     istring("long format (more information)"),
@@ -132,7 +126,7 @@ int main(int argc, char **argv) {
     logger.msg(Arc::ERROR, "No jobs given");
     return 1;
   }
-  
+
   Arc::JobSupervisor jobmaster(usercfg, jobs, clusters);
   std::list<Arc::JobController*> jobcont = jobmaster.GetJobControllers();
 
@@ -142,7 +136,7 @@ int main(int argc, char **argv) {
     logger.msg(Arc::ERROR, "No job controllers loaded");
     return 1;
   }
-    
+
   int retval = 0;
   for (std::list<Arc::JobController*>::iterator it = jobcont.begin();
        it != jobcont.end(); it++) {
