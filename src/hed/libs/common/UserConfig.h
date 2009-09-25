@@ -40,7 +40,7 @@ namespace Arc {
     }
 
     bool CredentialsFound() const {
-      return !(proxyPath.empty() && (certificatePath.empty() || keyPath.empty() || caCertificatesDir.empty()));
+      return !(proxyPath.empty() && (certificatePath.empty() || keyPath.empty()) || caCertificatesDir.empty());
     }
 
     void InitializeCredentials();
@@ -80,13 +80,13 @@ namespace Arc {
 
     static const int DEFAULT_TIMEOUT = 20;
     static const std::string DEFAULT_BROKER;
-    
+
   private:
     bool loadUserConfiguration();
     void setDefaults();
     static bool makeDir(const std::string& path);
     static bool copyFile(const std::string& source, const std::string& destination);
-    
+
     User user;
     std::string conffile;
     std::string joblistfile;
