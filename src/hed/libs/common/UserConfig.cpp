@@ -51,6 +51,8 @@ namespace Arc {
   }
 
   UserConfig::UserConfig(const XMLNode& ccfg) {
+    // TODO: Probably internal variables should be initilized here.
+
     ccfg.New(cfg);
     ok = true;
   }
