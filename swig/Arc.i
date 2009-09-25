@@ -71,12 +71,40 @@ class listiteratorhandler
 %template(StringList) std::list<std::string>;
 %template(StringStringMap) std::map<std::string, std::string>;
 
+#ifdef SWIGPYTHON
+namespace Arc {
+
+/**
+ * Python cannot deal with string references since strings in Python
+ * are immutable. Therefore ignore the string reference argument and
+ * store a reference in a temporary variable. Here it is assumed that
+ * the string reference does not contain any input to the function being
+ * called.
+ **/
+%typemap(in, numinputs=0) std::string& content (std::string str) {
+  $1 = &str;
+}
+
+/**
+ * Return the original return value and the temporary string reference
+ * combined in a Python tuple.
+ **/
+%typemap(argout) std::string& content {
+  PyObject *tuple;
+  tuple = PyTuple_New(2);
+  PyTuple_SetItem(tuple,0,$result);
+  PyTuple_SetItem(tuple,1,Py_BuildValue("s",$1->c_str()));
+  $result = tuple;
+}
+}
+#endif
+
 #ifdef SWIGJAVA
 %template(StringListIteratorHandler) listiteratorhandler<std::string>;
 #endif
 
 
-%include "common.i" 
+%include "common.i"
 %include "message.i"
 %include "client.i"
 %include "credential.i"
