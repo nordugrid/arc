@@ -40,7 +40,7 @@ namespace Arc {
     }
 
     bool CredentialsFound() const {
-      return !(proxyPath.empty() && (certificatePath.empty() || keyPath.empty()) || caCertificatesDir.empty());
+      return !(proxyPath.empty() && (certificatePath.empty() || keyPath.empty() || caCertificatesDir.empty()));
     }
 
     void InitializeCredentials();
