@@ -106,7 +106,7 @@ int main(int argc, char **argv) {
 
   std::string broker;
   options.AddOption('b', "broker",
-                    istring("select broker method (Random (default), QueueBalance, or custom)"),
+                    istring("select broker method (Random (default), FastestQueue, or custom)"),
                     istring("broker"), broker);
 
   bool version = false;
@@ -151,7 +151,7 @@ int main(int argc, char **argv) {
     logger.msg(Arc::ERROR, "No jobs given");
     return 1;
   }
-  
+
   Arc::JobSupervisor jobmaster(usercfg, jobs, clusters);
   std::list<Arc::JobController*> jobcont = jobmaster.GetJobControllers();
 
@@ -161,7 +161,7 @@ int main(int argc, char **argv) {
     logger.msg(Arc::ERROR, "No job controllers loaded");
     return 1;
   }
-  
+
   // Clearing jobs and cluster
   jobs.clear();
   clusters.clear();

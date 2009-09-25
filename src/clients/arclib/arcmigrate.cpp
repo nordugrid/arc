@@ -100,7 +100,7 @@ int main(int argc, char **argv) {
 
   std::string broker;
   options.AddOption('b', "broker",
-                    istring("select broker method (RandomBroker (default), FastestQueueBroker, or custom)"),
+                    istring("select broker method (Random (default), FastestQueue, or custom)"),
                     istring("broker"), broker);
 
   std::list<std::string> jobs = options.Parse(argc, argv);
