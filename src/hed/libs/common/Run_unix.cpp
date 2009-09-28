@@ -34,6 +34,7 @@ namespace Arc {
   class RunPump {
     friend class Run;
   private:
+    static Glib::Mutex instance_lock_;
     static RunPump *instance_;
     static unsigned int mark_;
 #define RunPumpMagic (0xA73E771F)
@@ -56,7 +57,8 @@ namespace Arc {
     void Remove(Run *r);
   };
 
-  RunPump*RunPump::instance_ = NULL;
+  Glib::Mutex RunPump::instance_lock_;
+  RunPump* RunPump::instance_ = NULL;
   unsigned int RunPump::mark_ = ~RunPumpMagic;
 
   class Pid {
@@ -113,10 +115,12 @@ namespace Arc {
   }
 
   RunPump& RunPump::Instance(void) {
+    instance_lock_.lock();
     if ((instance_ == NULL) || (mark_ != RunPumpMagic)) {
       instance_ = new RunPump();
       mark_ = RunPumpMagic;
     }
+    instance_lock_.unlock();
     return *instance_;
   }
 
