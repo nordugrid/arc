@@ -66,6 +66,9 @@ namespace Arc {
     return true;
   }
 
+  // TODO: This method is not scaling well in case of many submitted jobs.
+  // For few thousands it may take tens of second to finish. Taking into
+  // accoutn it is called after every job submission it needs rewriting.
   void Submitter::AddJob(const JobDescription& job, const URL& jobid,
                          const URL& cluster,
                          const URL& infoendpoint) const {
