@@ -62,7 +62,6 @@ AC_ARG_WITH(jdk, AC_HELP_STRING([--with-jdk=(JDK)], [path SUN JDK. If unset the 
 
 JAVAC_FLAGS=
 JDK_CFLAGS=
-JDK_LIBS=
 
 if test "X$with_jdk" != "X"; then
 
@@ -95,71 +94,12 @@ if test "X$with_jdk" != "X"; then
     AC_CHECK_HEADERS(jni.h)
     CPPFLAGS=$SAVE_CPPFLAGS
 
-    for jvm in $with_jdk/jre/lib/i386/server \
-               $with_jdk/jre/lib/x86_64/server ; do
-	if test -e $jvm/libjvm.so ; then
-	    SAVE_LDFLAGS=$LDFLAGS
-	    LDFLAGS="-L$jvm $LDFLAGS"
-	    # delete cached test result...
-	    unset ac_cv_lib_jvm_JNI_CreateJavaVM
-	    AC_MSG_NOTICE([Checking for JVM in $jvm/libjvm.so])
-	    AC_CHECK_LIB([jvm], [JNI_CreateJavaVM],
-	                 [JDK_LIBS="-L$jvm -ljvm"], [])
-	    LDFLAGS=$SAVE_LDFLAGS
-	    test -n "$JDK_LIBS" && break
-	fi
-    done
-
-    # WIN32 SUN JDK testing
-
-    if test -e $with_jdk/jre/bin/server/jvm.dll ; then
-        SAVE_LDFLAGS=$LDFLAGS
-        LDFLAGS="-L$with_jdk/jre/bin/server $LDFLAGS"
-        # delete cached test result...
-        unset ac_cv_lib_jvm_JNI_CreateJavaVM
-        AC_MSG_NOTICE([Checking for JVM in $with_jdk/jre/bin/server/jvm.dll])
-        AC_CHECK_LIB([jvm], [JNI_CreateJavaVM],
-                     [JDK_LIBS="-L$with_jdk/jre/bin/server -ljvm"], [])
-        LDFLAGS=$SAVE_LDFLAGS
-        test -n "$JDK_LIBS" && break
-    fi  
-
 else
 
     # System JDK
 
     AC_CHECK_HEADERS(jni.h JavaVM/jni.h)
 
-    if test "X$ac_cv_header_JavaVM_jni_h" == "Xyes" ; then
-	# MacOS X
-	JDK_LIBS="-Wl,-framework -Wl,JavaVM"
-    elif test "X$ac_cv_header_jni_h" == "Xyes" ; then
-	# Linux
-	# gcc 4.x
-	for jvm in /usr/lib/gcj-`gcc -dumpversion` \
-	           /usr/lib/gcj-`gcc -dumpversion|sed 's/\.[[0-9]]*$//'` \
-	           /usr/lib64/gcj-`gcc -dumpversion` \
-	           /usr/lib64/gcj-`gcc -dumpversion|sed 's/\.[[0-9]]*$//'` ; do
-	    if test -e $jvm/libjvm.so ; then
-		SAVE_LDFLAGS=$LDFLAGS
-		LDFLAGS="-L$jvm $LDFLAGS"
-		# delete cached test result...
-		unset ac_cv_lib_jvm_JNI_CreateJavaVM
-		AC_MSG_NOTICE([Checking for JVM in $jvm/libjvm.so])
-		AC_CHECK_LIB([jvm], [JNI_CreateJavaVM],
-		             [JDK_LIBS="-L$jvm -ljvm"], [])
-		LDFLAGS=$SAVE_LDFLAGS
-	    fi
-	    test -n "$JDK_LIBS" && break
-	done
-	# gcc 3.x
-	if test -z "$JDK_LIBS" ; then
-	    AC_CHECK_LIB([gcj], [JNI_CreateJavaVM], [JDK_LIBS=-lgcj], [])
-	fi
-        
-        # TODO: MinGW gcj
-
-   fi
 fi
 
 AC_CHECK_PROGS(JAVA, java gij)
@@ -184,8 +124,7 @@ else
 fi
 
 if test "X$jni_h" = "Xyes" && test "X$JAVAWRAP" = "Xyes" &&
-   test "X$JAVAC" != "X" && test "X$JAR" != "X" &&
-   test "X$JDK_LIBS" != "X" ; then
+   test "X$JAVAC" != "X" && test "X$JAR" != "X" ; then
     AC_MSG_NOTICE([Java available: $JAVAC])
 else
     enable_java=no
@@ -197,7 +136,6 @@ AM_CONDITIONAL([JAVA_ENABLED],[test "x$enable_java" = "xyes"])
 
 AC_SUBST(JAVAC_FLAGS)
 AC_SUBST(JDK_CFLAGS)
-AC_SUBST(JDK_LIBS)
 
 # Python
 AC_ARG_ENABLE(python, AC_HELP_STRING([--disable-python], [disable the Python binding]),[],enable_python="yes")

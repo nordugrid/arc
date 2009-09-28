@@ -23,8 +23,10 @@ namespace Arc {
 
 Arc::Logger Service_JavaWrapper::logger(Service::logger, "JavaWrapper");
 
-Service_JavaWrapper::Service_JavaWrapper(Arc::Config *cfg):Service(cfg) 
-{
+Service_JavaWrapper::Service_JavaWrapper(Arc::Config *cfg)
+  : Service(cfg),
+    libjvm(NULL),
+    jvm(NULL) {
     std::string path = "-Djava.class.path=" + (std::string)((*cfg)["ClassPath"]);
     std::string class_name = (std::string)(*cfg)["ClassName"];
     logger.msg(Arc::DEBUG, "config: %s, class name: %s", path, class_name);
@@ -32,15 +34,32 @@ Service_JavaWrapper::Service_JavaWrapper(Arc::Config *cfg):Service(cfg)
     JavaVMInitArgs jvm_args;
     JavaVMOption options[1];
     /* Initiliaze java engine */
-    JNI_GetDefaultJavaVMInitArgs(&jvm_args);
+    Glib::ModuleFlags flags = Glib::ModuleFlags(0);
+    libjvm = new Glib::Module("libjvm.so", flags);
+    if (!*libjvm) {
+        logger.msg(Arc::ERROR,
+		   "libjvm.so not loadable - check your LD_LIBRARY_PATH");
+	return;
+    }
+    void* myJNI_GetDefaultJavaVMInitArgs;
+    libjvm->get_symbol("JNI_GetDefaultJavaVMInitArgs",
+		       myJNI_GetDefaultJavaVMInitArgs);
+    void* myJNI_CreateJavaVM;
+    libjvm->get_symbol("JNI_CreateJavaVM", myJNI_CreateJavaVM);
+    if (myJNI_GetDefaultJavaVMInitArgs == NULL || myJNI_CreateJavaVM == NULL) {
+        logger.msg(Arc::ERROR,
+		   "libjvm.so does not contain the expected symbols");
+	return;
+    }
+    ((jint(*)(void*))myJNI_GetDefaultJavaVMInitArgs)(&jvm_args);
     jvm_args.version = JNI_VERSION_1_2;
     jvm_args.nOptions = 1;
     options[0].optionString = strdup(path.c_str());
     // "-Djava.class.path=.:/home/szferi/arc1/src/services/echo_java/:/home/szferi/arc1/java/arc.jar";
     jvm_args.options = options;
     jvm_args.ignoreUnrecognized = JNI_FALSE;
-    JNI_CreateJavaVM(&jvm, (void **)&jenv, &jvm_args);
-    
+    ((jint(*)(JavaVM**, void**, void*))myJNI_CreateJavaVM)(&jvm, (void **)&jenv,
+							   &jvm_args);
     logger.msg(Arc::DEBUG, "JVM started");
     
     /* Find and construct class */
@@ -66,7 +85,10 @@ Service_JavaWrapper::Service_JavaWrapper(Arc::Config *cfg):Service(cfg)
 
 Service_JavaWrapper::~Service_JavaWrapper(void) {
     logger.msg(Arc::DEBUG, "Destroy jvm"); 
-    jvm->DestroyJavaVM();
+    if (jvm)
+        jvm->DestroyJavaVM();
+    if (libjvm)
+        delete libjvm;
 }
 
 Arc::MCC_Status Service_JavaWrapper::make_fault(Arc::Message& outmsg) 

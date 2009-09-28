@@ -6,4 +6,4 @@ libjavaservice_la_CXXFLAGS = -fno-strict-aliasing $(GLIBMM_CFLAGS) $(LIBXML2_CFL
 libjavaservice_la_LDFLAGS  = -no-undefined -avoid-version -module
 libjavaservice_la_LIBADD   = $(top_srcdir)/src/hed/libs/common/libarccommon.la \
                              $(top_srcdir)/src/hed/libs/loader/libarcloader.la \
-                             $(top_srcdir)/src/hed/libs/message/libarcmessage.la $(LIBXML2_LIBS) $(JDK_LIBS)
+                             $(top_srcdir)/src/hed/libs/message/libarcmessage.la $(LIBXML2_LIBS)
