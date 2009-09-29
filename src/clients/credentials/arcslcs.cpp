@@ -215,8 +215,8 @@ int main(int argc, char *argv[]) {
   if (slcs_url.empty() && usercfg.SLCS())
     slcs_url = usercfg.SLCS();
 
-  if (idp_name.empty() && usercfg.IdPname())
-    idp_name = usercfg.IdPname();
+  if (idp_name.empty() && usercfg.IdPName())
+    idp_name = usercfg.IdPName();
 
   if (username.empty() && !usercfg.UserName().empty())
     username = usercfg.UserName();
