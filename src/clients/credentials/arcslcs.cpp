@@ -213,12 +213,12 @@ int main(int argc, char *argv[]) {
     Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(usercfg.Verbosity()));
 
   if (slcs_url.empty() && usercfg.SLCS())
-    slcs_url = usercfg.SLCSURL();
+    slcs_url = usercfg.SLCS();
 
   if (idp_name.empty() && usercfg.IdPname())
     idp_name = usercfg.IdPname();
 
-  if (username.empty() && !usercfg.Username().empty())
+  if (username.empty() && !usercfg.UserName().empty())
     username = usercfg.UserName();
 
   if (password.empty() && !usercfg.Password().empty())
@@ -273,16 +273,16 @@ int main(int argc, char *argv[]) {
       cert_req_path = cert_path.substr(0, (cert_path.size() - 13)) + "/usercert_request.pem";
     }
 
-	if (!trusted_ca_path.empty())
-	   mcc_cfg.AddCAFile(trusted_ca_path);
+  if (!trusted_ca_path.empty())
+     mcc_cfg.AddCAFile(trusted_ca_path);
 
-	if (trusted_ca_dir.empty())
-	   trusted_ca_dir = user.get_uid() == 0 ? "/etc/grid-security/certificates" :
-						user.Home() + "/.globus/certificates";
-	if (!trusted_ca_dir.empty())
-	   mcc_cfg.AddCADir(trusted_ca_dir);
+  if (trusted_ca_dir.empty())
+     trusted_ca_dir = user.get_uid() == 0 ? "/etc/grid-security/certificates" :
+            user.Home() + "/.globus/certificates";
+  if (!trusted_ca_dir.empty())
+     mcc_cfg.AddCADir(trusted_ca_dir);
 
-	handleSLCS();
+  handleSLCS();
 
     return EXIT_SUCCESS;
   } catch (std::exception& err) {
