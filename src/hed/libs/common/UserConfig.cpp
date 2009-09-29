@@ -449,6 +449,7 @@ namespace Arc {
             }
           }
           HANDLESTRATT("storedirectory", StoreDirectory)
+          HANDLESTRATT("idpname", IdPName)
           if (common["defaultservices"]) {
             if (!selectedServices.first.empty() || !selectedServices.second.empty())
               ClearSelectedServices();

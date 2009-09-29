@@ -54,6 +54,7 @@ namespace Arc {
    * - certificatelifetime / CertificateLifeTime(const Period&)
    * - slcs / SLCS(const URL&)
    * - storedirectory / StoreDirectory(const std::string&)
+   * - idpname / IdPName(const std::string&)
    *
    * where the first term is the name of the attribute used in the
    * configuration file, and the second term is the associated setter
@@ -283,6 +284,7 @@ namespace Arc {
      * - certificatelifetime (CertificateLifeTime(const Period&))
      * - slcs (SLCS(const URL&))
      * - storedirectory (StoreDirectory(const std::string&))
+     * - idpname (IdPName(const std::string&))
      *
      * where the method in parentheses is the associated setter method.
      * If other attributes exist in the common section a ::WARNING will
@@ -934,7 +936,7 @@ namespace Arc {
     /**
      * ???
      *
-     * The attribute associated with this setter method is '';
+     * The attribute associated with this setter method is 'slcs'.
      *
      * @param newSLCS is the URL to the SLCS
      * @return This method always returns \c true.
@@ -954,7 +956,8 @@ namespace Arc {
     /**
      * ???
      *
-     * The attribute associated with this setter method is '';
+     * The attribute associated with this setter method is
+     * 'storedirectory'.
      * @param newStoreDirectory is the path to the store directory.
      * @return This method always returns \c true.
      * @see
@@ -968,6 +971,25 @@ namespace Arc {
      * @see StoreDirectory(const std::string&)
      **/
     const std::string& StoreDirectory() const { return storeDirectory; }
+
+    /// Set IdP name
+    /**
+     * ???
+     *
+     * The attribute associated with this setter method is 'idpname'.
+     * @param name is the new IdP name.
+     * @return This method always returns \c true.
+     * @see
+     **/
+    bool IdPName(const std::string& name) { idPName = name; return true; }
+    /// Get IdP name
+    /**
+     * ???
+     *
+     * @return The IdP name
+     * @see IdPName(const std::string&)
+     **/
+    const std::string& IdPName() const { return idPName; }
 
     /// Path to ARC user home directory
     /**
@@ -1058,6 +1080,8 @@ namespace Arc {
     std::string vomsServerPath;
 
     std::string storeDirectory;
+
+    std::string idPName;
 
     std::string username;
     std::string password;
