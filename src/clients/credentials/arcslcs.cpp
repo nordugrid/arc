@@ -213,9 +213,9 @@ int main(int argc, char *argv[]) {
     Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(usercfg.Verbosity()));
 
   if (slcs_url.empty() && usercfg.SLCS())
-    slcs_url = usercfg.SLCS();
+    slcs_url = usercfg.SLCS().str();
 
-  if (idp_name.empty() && usercfg.IdPName())
+  if (idp_name.empty() && usercfg.IdPName().empty())
     idp_name = usercfg.IdPName();
 
   if (username.empty() && !usercfg.UserName().empty())
@@ -233,7 +233,7 @@ int main(int argc, char *argv[]) {
     keypass = usercfg.KeyPassword();
 
   if (lifetime == 0 && usercfg.CertificateLifeTime() > 0) {
-    lifetime = usercfg.CertificateLifeTime();
+    lifetime = usercfg.CertificateLifeTime().GetPeriod();
   }
   if (lifetime == 0)
     lifetime = 12;
