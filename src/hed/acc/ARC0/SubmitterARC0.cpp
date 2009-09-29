@@ -36,27 +36,24 @@ namespace Arc {
 
     FTPControl ctrl;
 
-    Config cfg;
-    usercfg.ApplyToConfig(cfg);
-
     if (!ctrl.Connect(et.url,
-                      cfg["ProxyPath"], cfg["CertificatePath"],
-                      cfg["KeyPath"], 500)) {
+                      usercfg.ProxyPath(), usercfg.CertificatePath(),
+                      usercfg.KeyPath(), usercfg.Timeout())) {
       logger.msg(ERROR, "Submit: Failed to connect");
       return URL();
     }
 
-    if (!ctrl.SendCommand("CWD " + et.url.Path(), 500)) {
+    if (!ctrl.SendCommand("CWD " + et.url.Path(), usercfg.Timeout())) {
       logger.msg(ERROR, "Submit: Failed sending CWD command");
-      ctrl.Disconnect(500);
+      ctrl.Disconnect(usercfg.Timeout());
       return URL();
     }
 
     std::string response;
 
-    if (!ctrl.SendCommand("CWD new", response, 500)) {
+    if (!ctrl.SendCommand("CWD new", response, usercfg.Timeout())) {
       logger.msg(ERROR, "Submit: Failed sending CWD new command");
-      ctrl.Disconnect(500);
+      ctrl.Disconnect(usercfg.Timeout());
       return URL();
     }
 
@@ -69,19 +66,19 @@ namespace Arc {
     if (!ModifyJobDescription(job, et)) {
       logger.msg(ERROR, "Submit: Failed to modify job description "
                         "to be sent to target.");
-      ctrl.Disconnect(500);
+      ctrl.Disconnect(usercfg.Timeout());
       return URL();
     }
 
     std::string jobdescstring = job.UnParse("XRSL");
 
-    if (!ctrl.SendData(jobdescstring, "job", 500)) {
+    if (!ctrl.SendData(jobdescstring, "job", usercfg.Timeout())) {
       logger.msg(ERROR, "Submit: Failed sending job description");
-      ctrl.Disconnect(500);
+      ctrl.Disconnect(usercfg.Timeout());
       return URL();
     }
 
-    if (!ctrl.Disconnect(500)) {
+    if (!ctrl.Disconnect(usercfg.Timeout())) {
       logger.msg(ERROR, "Submit: Failed to disconnect after submission");
       return URL();
     }
@@ -110,7 +107,7 @@ namespace Arc {
     logger.msg(ERROR, "Migration to a ARC0 cluster is not supported.");
     return URL();
   }
-  
+
   bool SubmitterARC0::ModifyJobDescription(JobDescription& jobdesc, const ExecutionTarget& et) const {
     jobdesc.XRSL_elements["clientxrsl"] = jobdesc.UnParse("XRSL");
 
@@ -131,7 +128,7 @@ namespace Arc {
       }
 
       if (it1->Source.empty()) continue;
-      
+
       executableIsAdded |= (it1->Name == jobdesc.Application.Executable.Name);
       inputIsAdded      |= (it1->Name == jobdesc.Application.Input);
     }

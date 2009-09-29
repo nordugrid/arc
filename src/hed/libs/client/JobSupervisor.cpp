@@ -22,16 +22,8 @@ namespace Arc {
   Logger JobSupervisor::logger(Logger::getRootLogger(), "JobSupervisor");
 
   JobSupervisor::JobSupervisor(const UserConfig& usercfg,
-                               const std::list<std::string>& jobs,
-                               const std::list<std::string>& clusters) {
+                               const std::list<std::string>& jobs) {
     URLListMap jobids;
-    URLListMap clusterselect;
-    URLListMap clusterreject;
-
-    if (!usercfg.ResolveAlias(clusters, clusterselect, clusterreject)) {
-      logger.msg(ERROR, "Failed resolving aliases");
-      return;
-    }
 
     Config jobstorage;
     if (!usercfg.JobListFile().empty()) {
@@ -76,13 +68,13 @@ namespace Arc {
       }
     }
 
-    if (!clusterselect.empty()) {
+    if (!usercfg.GetSelectedServices(COMPUTING).empty()) {
 
       logger.msg(DEBUG, "Identifying needed job controllers according to "
                  "specified clusters");
 
-      for (URLListMap::iterator it = clusterselect.begin();
-           it != clusterselect.end(); it++)
+      for (URLListMap::const_iterator it = usercfg.GetSelectedServices(COMPUTING).begin();
+           it != usercfg.GetSelectedServices(COMPUTING).end(); it++)
         if (std::find(controllers.begin(), controllers.end(),
                       it->first) == controllers.end()) {
           logger.msg(DEBUG, "Need job controller for grid flavour %s",
@@ -91,7 +83,7 @@ namespace Arc {
         }
     }
 
-    if (jobs.empty() && clusterselect.empty()) {
+    if (jobs.empty() && usercfg.GetSelectedServices(COMPUTING).empty()) {
 
       logger.msg(DEBUG, "Identifying needed job controllers according to "
                  "all jobs present in job list");
@@ -118,7 +110,7 @@ namespace Arc {
          it != controllers.end(); it++) {
       JobController *JC = loader.load(*it, usercfg);
       if (JC)
-        JC->FillJobStore(jobids[*it], clusterselect[*it], clusterreject[*it]);
+        JC->FillJobStore(jobids[*it]);
     }
   }
 

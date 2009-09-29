@@ -48,23 +48,22 @@ ssl_config = {}
 BartenderURL = ''
 try:
     user_config = arc.UserConfig('')
-    config_xml = user_config.ConfTree()
-    key_file = str(config_xml.Get('KeyPath'))
+    key_file = user_config.KeyPath()
     if key_file:
         ssl_config['key_file'] = key_file
-    cert_file = str(config_xml.Get('CertificatePath'))
+    cert_file = user_config.CertificatePath()
     if cert_file:
         ssl_config['cert_file'] = cert_file
-    proxy_file = str(config_xml.Get('ProxyPath'))
+    proxy_file = user_config.ProxyPath()
     if proxy_file:
         ssl_config['proxy_file'] = proxy_file
-    ca_file = str(config_xml.Get('CACertificatePath'))
+    ca_file = user_config.CACertificatePath()
     if ca_file:
         ssl_config['ca_file'] = ca_file
-    ca_dir = str(config_xml.Get('CACertificatesDir'))
+    ca_dir = user_config.CACertificatesDirectory()
     if ca_dir:
         ssl_config['ca_dir'] = ca_dir
-    BartenderURL = str(config_xml.Get('BartenderURL'))
+    BartenderURL = user_config.Bartender()[0]
 except:
     pass
 if not BartenderURL:
@@ -94,7 +93,7 @@ if BartenderURL.startswith('https') and not user_config:
     except:
         ssl_config = {}
         raise RuntimeError, '- ARC_KEY_FILE, ARC_CERT_FILE , ARC_CA_FILE or ARC_CA_DIR environment variable not found, SSL disabled'
-    
+
 bartender = BartenderClient(BartenderURL, False, ssl_config)
 
 PROTOCOL = 'http'
@@ -105,7 +104,7 @@ if not os.path.isdir(FUSETRANSFER):
 
 DEBUG = 1
 
-debugfile = open('arcfsmessages','a') 
+debugfile = open('arcfsmessages','a')
 
 
 def debug_msg(msg, msg2=''):
@@ -115,7 +114,7 @@ def debug_msg(msg, msg2=''):
     if DEBUG:
         print >> debugfile, BartenderURL+":", msg, msg2
         debugfile.flush()
-    
+
 debug_msg(sys.argv)
 
 def flag2mode(flags):
@@ -145,18 +144,18 @@ def sym2oct(symmode, symlink=False):
     grp=symmode[4:7]
     all=symmode[7:10]
     o=g=a=s=0
-    if 'r' in owner: o+=4 
-    if 'w' in owner: o+=2 
+    if 'r' in owner: o+=4
+    if 'w' in owner: o+=2
     if 'x' in owner: o+=1
     if 'S' in owner: s+=4
     if 's' in owner: s+=4;o+=1
-    if 'r' in grp: g+=4 
-    if 'w' in grp: g+=2 
+    if 'r' in grp: g+=4
+    if 'w' in grp: g+=2
     if 'x' in grp: g+=1
     if 'S' in grp: s+=4
     if 's' in grp: s+=4;g+=1
-    if 'r' in all: a+=4 
-    if 'w' in all: a+=2 
+    if 'r' in all: a+=4
+    if 'w' in all: a+=2
     if 'x' in all: a+=1
     if 'T' in all: s+=4
     if 't' in all: s+=4;a+=1
@@ -192,8 +191,8 @@ class ARCInode:
     """
     Class used to store ARCFS inode
     """
-    
-    def __init__(self, mode, nlink, uid, gid, size, mtime, 
+
+    def __init__(self, mode, nlink, uid, gid, size, mtime,
                  metadata, atime=0, ctime=0, closed=0, entries=[]):
         debug_msg("called ARCInode.__init__")
         self.st = GenStat()
@@ -209,20 +208,20 @@ class ARCInode:
         self.entries     = entries
         self.metadata    = metadata
         debug_msg("left ARCInode.__init__")
-    
+
 
 class ARCFS(Fuse):
     """
-    Class for ARC FUSE file system. Interface to FUSE and ARC Storage System 
+    Class for ARC FUSE file system. Interface to FUSE and ARC Storage System
     Usage:
-    
+
     - instantiate
 
     - add options to `parser` attribute (an instance of `FuseOptParse`)
-    
+
     - call `parse`
-    
-    - call `main`    
+
+    - call `main`
     """
 
     def __init__(self, *args, **kw):
@@ -231,7 +230,7 @@ class ARCFS(Fuse):
         """
         Fuse.__init__(self, *args, **kw)
         debug_msg('fuse initiated')
-        self.bartender = bartender 
+        self.bartender = bartender
         debug_msg('left ARCFS.__init__')
         if sys.platform == 'darwin':
             #self.fuse_args.add("noappledouble", True)
@@ -251,7 +250,7 @@ class ARCFS(Fuse):
             return inod.st
         else: return -ENOENT
 
-        
+
     def mkinod(self, path):
         """
         Function to get metadata of path from Bartender and parse it to ARCInode
@@ -269,8 +268,8 @@ class ARCFS(Fuse):
         if is_file:
             nlink = 1
             size = long(metadata[('states','size')])
-            if len([status for (section, location), status in 
-                    metadata.items() if 
+            if len([status for (section, location), status in
+                    metadata.items() if
                     section == 'locations' and status == 'alive']) == \
                     int(metadata[('states', 'neededReplicas')]):
                 status = 'alive'
@@ -282,8 +281,8 @@ class ARCFS(Fuse):
             entries = []
         elif is_dir:
             # + 2 for . and ..
-            nlink = len([guid for (section, file), guid in 
-                         metadata.items() if section == 'entries'])+2 
+            nlink = len([guid for (section, file), guid in
+                         metadata.items() if section == 'entries'])+2
             closed = int(metadata[('states', 'closed')])
             mode = sym2oct('drwxr-xr-x',False)
             size = 0
@@ -307,7 +306,7 @@ class ARCFS(Fuse):
         gid = os.getgid()
         debug_msg('mkinod left:', (path))
 
-        return ARCInode(mode, nlink, uid, gid, size, mtime, 
+        return ARCInode(mode, nlink, uid, gid, size, mtime,
                         metadata, atime, ctime, closed, entries)
 
 
@@ -440,7 +439,7 @@ class ARCFS(Fuse):
         Class taking care of file spesific stuff like write and read,
         lock and unlock (or rather __init__ and release)
         """
-        
+
         def __init__(self, path, flags, *mode):
             """
             Initiate file type object
@@ -486,17 +485,17 @@ class ARCFS(Fuse):
             gets file from bartender. If file has no valid replica,
             we'll ask bartender again till replica is ready
             read will read entire file on first block,
-            then write to local file, which is used for the rest of the 
+            then write to local file, which is used for the rest of the
             life of this ARCFSFile object
             """
             debug_msg('read called:', (size, offset))
-            
+
             if self.file.tell() > 0:
                 # file is already downloaded
                 self.file.seek(offset)
                 debug_msg('read left fancy:', (size, offset))
                 return self.file.read(size)
-                
+
             success = self.success
             turl = self.turl
             request = {'0' : (self.path, [PROTOCOL])}
@@ -596,13 +595,13 @@ class ARCFS(Fuse):
             mode = sym2oct('-rw-r--r--')
             nlink = 1
             uid = os.getuid()
-            gid = os.getgid() 
+            gid = os.getgid()
             size = 0
             mtime = atime = ctime = time.time()
             metadata = {}
-            
+
             debug_msg('leaving fakeinod')
-            return ARCInode(mode, nlink, uid, gid, size, mtime,   
+            return ARCInode(mode, nlink, uid, gid, size, mtime,
                             metadata, atime=atime, ctime=ctime)
 
         def mkfinod(self):
@@ -638,7 +637,7 @@ class ARCFS(Fuse):
             gid = os.getgid()
 
             debug_msg('mkfinod left')
-            return ARCInode(mode, nlink, uid, gid, size, mtime, metadata, 
+            return ARCInode(mode, nlink, uid, gid, size, mtime, metadata,
                             atime, ctime)
 
         def fgetinode(self):
@@ -654,7 +653,7 @@ class ARCFS(Fuse):
                 return self.mkfinod()
             except:
                 return None
-            
+
 
         def fgetattr(self):
             """
@@ -664,7 +663,7 @@ class ARCFS(Fuse):
             inod = self.fgetinode()
             if inod:
                 return inod.st
-            else: 
+            else:
                 return -ENOENT
 
 
@@ -678,7 +677,7 @@ class ARCFS(Fuse):
 def main():
     usage = """
     Userspace mount of ARC Storage.
-    
+
     """ + Fuse.fusage
 
     server = ARCFS(version="%prog " + fuse.__version__,

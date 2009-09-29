@@ -48,7 +48,7 @@ namespace Arc {
 
   BenchmarkBroker::BenchmarkBroker(const UserConfig& usercfg)
     : Broker(usercfg) {
-    benchmark = (std::string)usercfg.ConfTree()["Broker"]["Arguments"];
+    benchmark = usercfg.Broker().second;
     if (benchmark.empty())
       benchmark = "specint2000";
   }

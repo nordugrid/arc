@@ -42,6 +42,22 @@ namespace Arc {
   std::ostream& operator<<(std::ostream& os, LogLevel level);
   //! Convert string to a LogLevel
   LogLevel string_to_level(const std::string& str);
+  //! Case-insensitive parsing of a string to a LogLevel with error response.
+  /*!
+   * The method will try to parse (case-insensitive) the argument string
+   * to a corresponding LogLevel. If the method suceeds, true will
+   * be returned and the argument \a ll will be set to
+   * the parsed LogLevel. If the parsing fails \c false will be
+   * returned. The parsing succeeds if \a llStr match
+   * (case-insensitively) one of the names of the LogLevel members.
+   *
+   * @param llStr a string which should be parsed to a Arc::LogLevel.
+   * @param ll a Arc::LogLevel reference which will be set to the
+   *        matching Arc::LogLevel upon successful parsing.
+   * @return \c true in case of successful parsing, otherwise \c false.
+   * @see LogLevel
+   */
+  bool istring_to_level(const std::string& llStr, LogLevel& ll);
   //! Convert LogLevel to a string
   std::string level_to_string(const LogLevel& level);
 
@@ -261,8 +277,8 @@ namespace Arc {
      LogMessages to appear mixed with each other in the stream.
      It is possible to limit size of created file. Whenever
      specified size is exceeded fiel is deleted and new one is
-     created. Old files may be moved into backup files instead of 
-     being deleted. Those files have names same as initial file with 
+     created. Old files may be moved into backup files instead of
+     being deleted. Those files have names same as initial file with
      additional number suffix - similar to those found in /var/log
      of many Unix-like systems.
    */
@@ -271,23 +287,23 @@ namespace Arc {
   public:
 
     //! Creates a LogFile connected to a file.
-    /*! Creates a LogFile connected to the file located at 
-       specified path. In order not to break synchronization, 
-       it is important not to connect more than one LogFile object 
+    /*! Creates a LogFile connected to the file located at
+       specified path. In order not to break synchronization,
+       it is important not to connect more than one LogFile object
        to a certain file. If file does not exist it will be created.
        @param path The path to file to which to write LogMessages.
      */
     LogFile(const std::string& path);
 
     //! Creates a LogFile connected to a file.
-    /*! Creates a LogFile connected to the file located at 
+    /*! Creates a LogFile connected to the file located at
        specified path.
        The output will be localised to the specified locale.
      */
     LogFile(const std::string& path, const std::string& locale);
 
     //! Set maximal allowed size of file.
-    /*! Set maximal allowed size of file. This value is not 
+    /*! Set maximal allowed size of file. This value is not
        obeyed exactly. Spesified size may be exceeded by amount
        of one LogMessage. To disable limit specify -1.
        @param newsize Max size of log file.
@@ -295,7 +311,7 @@ namespace Arc {
     void setMaxSize(int newsize);
 
     //! Set number of backups to store.
-    /*! Set number of backups to store. When file size exceeds one 
+    /*! Set number of backups to store. When file size exceeds one
        specified with setMaxSize() file is closed and moved to one
        named path.1. If path.1 exists it is moved to path.2 and so
        on. Number of path.# files is one set in newbackup.
@@ -311,7 +327,7 @@ namespace Arc {
 
     //! Writes a LogMessage to the file.
     /*! This method writes a LogMessage to the file that is
-       connected to this LogFile object. If after writitng 
+       connected to this LogFile object. If after writitng
        size of file exceeds one set by setMaxSize() file is moved
        to backup and new one is created.
        @param message The LogMessage to write.

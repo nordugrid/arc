@@ -58,8 +58,3 @@ arcrenew_LDADD    = $(CLILIBS)
 arcresume_SOURCES  = arcresume.cpp
 arcresume_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
 arcresume_LDADD    = $(CLILIBS)
-
-arcsysconfdir = $(sysconfdir)/arc
-arcsysconf_DATA = client.xml
-doc_DATA = client.xml.example
-EXTRA_DIST = $(doc_DATA) $(arcsysconf_DATA)

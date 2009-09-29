@@ -21,9 +21,7 @@ namespace Arc {
 
   class TargetGenerator {
   public:
-    TargetGenerator(const UserConfig& usercfg,
-                    const std::list<std::string>& clusters,
-                    const std::list<std::string>& indexurls);
+    TargetGenerator(const UserConfig& usercfg);
     ~TargetGenerator();
 
     void GetTargets(int targetType, int detailLevel);
@@ -42,10 +40,7 @@ namespace Arc {
   private:
     TargetRetrieverLoader loader;
 
-    URLListMap clusterselect;
-    URLListMap clusterreject;
-    URLListMap indexselect;
-    URLListMap indexreject;
+    const UserConfig& usercfg;
 
     std::list<URL> foundServices;
     std::list<URL> foundIndexServers;

@@ -51,7 +51,7 @@ namespace Arc {
           DataHandle destination(dst, usercfg);
           DataStatus res =
             mover.Transfer(*source, *destination, cache, URLMap(), 0, 0, 0,
-                           stringtoi(usercfg.ConfTree()["TimeOut"]));
+                           usercfg.Timeout());
           if (!res.Passed()) {
             if (!res.GetDesc().empty())
               logger.msg(ERROR, "Failed uploading file: %s - %s",

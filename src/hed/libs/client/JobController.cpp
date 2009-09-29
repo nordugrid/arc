@@ -40,9 +40,7 @@ namespace Arc {
 
   JobController::~JobController() {}
 
-  void JobController::FillJobStore(const std::list<URL>& jobids,
-                                   const std::list<URL>& clusterselect,
-                                   const std::list<URL>& clusterreject) {
+  void JobController::FillJobStore(const std::list<URL>& jobids) {
 
     if (!usercfg.JobListFile().empty()) {
       logger.msg(DEBUG, "Using job list file %s", usercfg.JobListFile());
@@ -95,7 +93,10 @@ namespace Arc {
       }
     }
 
-    if (!clusterselect.empty()) {
+    URLListMap::const_iterator itSelectedClusters = usercfg.GetSelectedServices(COMPUTING).find(flavour);
+    if (itSelectedClusters != usercfg.GetSelectedServices(COMPUTING).end() &&
+        !itSelectedClusters->second.empty()) {
+      const std::list<URL>& selectedClusters = itSelectedClusters->second;
       logger.msg(DEBUG, "Filling job store with jobs according to list of "
                  "selected clusters");
 
@@ -107,8 +108,8 @@ namespace Arc {
 
         URL cluster = (std::string)(*it)["Cluster"];
 
-        if (std::find(clusterselect.begin(), clusterselect.end(),
-                      cluster) != clusterselect.end()) {
+        if (std::find(selectedClusters.begin(), selectedClusters.end(),
+                      cluster) != selectedClusters.end()) {
           Job job;
           job.JobID = (std::string)(*it)["JobID"];
           job.Flavour = (std::string)(*it)["Flavour"];
@@ -132,15 +133,19 @@ namespace Arc {
       }
     }
 
-    if (!clusterreject.empty())
+    URLListMap::const_iterator itRejectedClusters = usercfg.GetRejectedServices(COMPUTING).find(flavour);
+    if (itRejectedClusters != usercfg.GetRejectedServices(COMPUTING).end() &&
+        !itRejectedClusters->second.empty())
       if (!jobstore.empty()) {
+        const std::list<URL>& rejectedClusters = itRejectedClusters->second;
+
         logger.msg(DEBUG, "Removing jobs from job store according to list of "
                    "rejected clusters");
 
         std::list<Job>::iterator it = jobstore.begin();
         while (it != jobstore.end())
-          if (std::find(clusterreject.begin(), clusterreject.end(),
-                        it->Cluster) != clusterreject.end()) {
+          if (std::find(rejectedClusters.begin(), rejectedClusters.end(),
+                        it->Cluster) != rejectedClusters.end()) {
             logger.msg(DEBUG, "Removing job %s from job store since it runs "
                        "on a rejected cluster", it->JobID.str());
             it = jobstore.erase(it);
@@ -149,7 +154,8 @@ namespace Arc {
             it++;
       }
 
-    if (jobids.empty() && clusterselect.empty()) {
+    if (jobids.empty() && usercfg.GetSelectedServices(COMPUTING).empty()) {
+      const std::list<URL>& rejectedClusters = itRejectedClusters->second;
       logger.msg(DEBUG, "Filling job store with all jobs, except those "
                  "running on rejected clusters");
 
@@ -161,8 +167,8 @@ namespace Arc {
 
         URL cluster = (std::string)(*it)["Cluster"];
 
-        if (std::find(clusterreject.begin(), clusterreject.end(),
-                      cluster) == clusterreject.end()) {
+        if (std::find(rejectedClusters.begin(), rejectedClusters.end(),
+                      cluster) == rejectedClusters.end()) {
           Job job;
           job.JobID = (std::string)(*it)["JobID"];
           job.Flavour = (std::string)(*it)["Flavour"];
@@ -691,7 +697,7 @@ namespace Arc {
     FileCache cache;
     DataStatus res =
       mover.Transfer(*source, *destination, cache, URLMap(), 0, 0, 0,
-                     stringtoi(usercfg.ConfTree()["TimeOut"]));
+                     usercfg.Timeout());
     if (!res.Passed()) {
       if (!res.GetDesc().empty())
         logger.msg(ERROR, "File download failed: %s - %s", std::string(res), res.GetDesc());

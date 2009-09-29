@@ -359,7 +359,7 @@ namespace Arc {
                                       bool metadata) {
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);
-    ClientHTTP client(cfg, url, stringtoi(usercfg.ConfTree()["TimeOut"]));
+    ClientHTTP client(cfg, url, usercfg.Timeout());
 
     PayloadRaw request;
     PayloadRawInterface *response = NULL;
@@ -483,7 +483,7 @@ namespace Arc {
     for (int n = 0; n < transfer_streams; ++n) {
       HTTPInfo_t *info = new HTTPInfo_t;
       info->point = this;
-      info->client = new ClientHTTP(cfg, url, stringtoi(usercfg.ConfTree()["TimeOut"]));
+      info->client = new ClientHTTP(cfg, url, usercfg.Timeout());
       if (!CreateThreadFunction(&read_thread, info))
         delete info;
       else
@@ -544,7 +544,7 @@ namespace Arc {
     for (int n = 0; n < transfer_streams; ++n) {
       HTTPInfo_t *info = new HTTPInfo_t;
       info->point = this;
-      info->client = new ClientHTTP(cfg, url, stringtoi(usercfg.ConfTree()["TimeOut"]));
+      info->client = new ClientHTTP(cfg, url, usercfg.Timeout());
       if (!CreateThreadFunction(&write_thread, info))
         delete info;
       else
@@ -593,7 +593,7 @@ namespace Arc {
   DataStatus DataPointHTTP::Check() {
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);
-    ClientHTTP client(cfg, url, stringtoi(usercfg.ConfTree()["TimeOut"]));
+    ClientHTTP client(cfg, url, usercfg.Timeout());
     PayloadRaw request;
     PayloadRawInterface *inbuf;
     HTTPClientInfo transfer_info;
@@ -662,7 +662,7 @@ namespace Arc {
         client = NULL;
         MCCConfig cfg;
         point.usercfg.ApplyToConfig(cfg);
-        client = new ClientHTTP(cfg, point.url, stringtoi(point.usercfg.ConfTree()["TimeOut"]));
+        client = new ClientHTTP(cfg, point.url, point.usercfg.Timeout());
         continue;
       }
       if (transfer_info.code == 416) { // EOF
@@ -807,7 +807,7 @@ namespace Arc {
         client = NULL;
         MCCConfig cfg;
         point.usercfg.ApplyToConfig(cfg);
-        client = new ClientHTTP(cfg, point.url, stringtoi(point.usercfg.ConfTree()["TimeOut"]));
+        client = new ClientHTTP(cfg, point.url, point.usercfg.Timeout());
         continue;
       }
       if ((transfer_info.code != 201) &&
@@ -853,7 +853,7 @@ namespace Arc {
             client = NULL;
             MCCConfig cfg;
             point.usercfg.ApplyToConfig(cfg);
-            client = new ClientHTTP(cfg, point.url, stringtoi(point.usercfg.ConfTree()["TimeOut"]));
+            client = new ClientHTTP(cfg, point.url, point.usercfg.Timeout());
             continue;
           }
           if ((transfer_info.code != 201) &&

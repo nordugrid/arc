@@ -41,7 +41,7 @@ namespace Arc {
 
     for (std::list<Job>::iterator iter = jobstore.begin();
          iter != jobstore.end(); iter++) {
-      AREXClient ac(iter->Cluster, cfg, stringtoi(usercfg.ConfTree()["TimeOut"]));
+      AREXClient ac(iter->Cluster, cfg, usercfg.Timeout());
       std::string idstr;
       AREXClient::createActivityIdentifier(iter->JobID, idstr);
       if (!ac.stat(idstr, *iter))
@@ -89,7 +89,7 @@ namespace Arc {
   bool JobControllerARC1::CleanJob(const Job& job, bool force) {
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);
-    AREXClient ac(job.Cluster, cfg, stringtoi(usercfg.ConfTree()["TimeOut"]));
+    AREXClient ac(job.Cluster, cfg, usercfg.Timeout());
     std::string idstr;
     AREXClient::createActivityIdentifier(job.JobID, idstr);
     return ac.clean(idstr);
@@ -98,7 +98,7 @@ namespace Arc {
   bool JobControllerARC1::CancelJob(const Job& job) {
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);
-    AREXClient ac(job.Cluster, cfg, stringtoi(usercfg.ConfTree()["TimeOut"]));
+    AREXClient ac(job.Cluster, cfg, usercfg.Timeout());
     std::string idstr;
     AREXClient::createActivityIdentifier(job.JobID, idstr);
     return ac.kill(idstr);
@@ -119,7 +119,7 @@ namespace Arc {
 
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);
-    AREXClient ac(job.Cluster, cfg, stringtoi(usercfg.ConfTree()["TimeOut"]));
+    AREXClient ac(job.Cluster, cfg, usercfg.Timeout());
     std::string idstr;
     AREXClient::createActivityIdentifier(job.JobID, idstr);
     bool ok = ac.resume(idstr);
@@ -134,7 +134,7 @@ namespace Arc {
   bool JobControllerARC1::GetJobDescription(const Job& job, std::string& desc_str) {
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);
-    AREXClient ac(job.Cluster, cfg, stringtoi(usercfg.ConfTree()["TimeOut"]));
+    AREXClient ac(job.Cluster, cfg, usercfg.Timeout());
     std::string idstr;
     AREXClient::createActivityIdentifier(job.JobID, idstr);
     if (ac.getdesc(idstr, desc_str)) {

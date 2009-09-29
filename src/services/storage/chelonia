@@ -31,21 +31,21 @@ def upload_to_turl(turl, protocol, fobj, size = None, ssl_config = {}):
         from storage.client import ByteIOClient
         return ByteIOClient(turl, ssl_config = ssl_config).write(fobj)
     elif protocol == 'gridftp':
-        try:            
-            import arc            
-            from arcom import datapoint_from_url            
+        try:
+            import arc
+            from arcom import datapoint_from_url
             use_hed = True
-        except:            
+        except:
             use_hed = False
         if use_hed:
             src = datapoint_from_url(fobj.name)
-            dst = datapoint_from_url(turl, ssl_config)            
+            dst = datapoint_from_url(turl, ssl_config)
             mover = arc.DataMover()
             mover.verbose(True)
-            status = mover.Transfer(src, dst, arc.FileCache(), arc.URLMap())            
+            status = mover.Transfer(src, dst, arc.FileCache(), arc.URLMap())
             return str(status)
         else:
-            return 'cannot upload file, import arc failed' 
+            return 'cannot upload file, import arc failed'
     elif protocol == 'http':
         try:
             import arc
@@ -79,7 +79,7 @@ def upload_to_turl(turl, protocol, fobj, size = None, ssl_config = {}):
             print '00%',
             t = time.time()
             while chunk:
-                sys.stdout.flush()    
+                sys.stdout.flush()
                 h.send(chunk)
                 uploaded = uploaded + len(chunk)
                 if time.time() - t > 2:
@@ -87,7 +87,7 @@ def upload_to_turl(turl, protocol, fobj, size = None, ssl_config = {}):
                     print '\b\b\b\b%02d%%' % (uploaded*100/size),
                 chunk = fobj.read(CHUNKSIZE)
             print '\b\b\b\bdata sent, waiting...',
-            sys.stdout.flush()    
+            sys.stdout.flush()
             r = h.getresponse()
             print 'done.'
             #resp = r.read()
@@ -130,7 +130,7 @@ def download_from_turl(turl, protocol, fobj,  ssl_config = {}):
             src = datapoint_from_url(turl)
             dst = datapoint_from_url(fobj.name)
             src.AssignCredentials(ssl_config.get('proxy_file',''), ssl_config.get('cert_file', ''),
-                ssl_config.get('key_file', ''), ssl_config.get('ca_dir', '')) 
+                ssl_config.get('key_file', ''), ssl_config.get('ca_dir', ''))
             mover = arc.DataMover()
             mover.verbose(True)
             status = mover.Transfer(src, dst, arc.FileCache(), arc.URLMap())
@@ -151,7 +151,7 @@ def download_from_turl(turl, protocol, fobj,  ssl_config = {}):
             print '00%',
             t = time.time()
             while chunk:
-                sys.stdout.flush()    
+                sys.stdout.flush()
                 fobj.write(chunk)
                 downloaded = downloaded + len(chunk)
                 if time.time() - t > 2:
@@ -163,13 +163,13 @@ def download_from_turl(turl, protocol, fobj,  ssl_config = {}):
 
 def splitLN(LN):
     """  Split a Logical Name to a 3-tuple: GUID, dirname, basename.
-    
+
     splitLN(LN)
-    
+
     The part before the first slash is the GUID, even if it is empty.
     The part after the last slash is the basename, could be empty.
     Between them is the dirname, could be empty or could contain several more slashes.
-    
+
     Examples
 
         splitLN('/dir') returns ('', '', 'dir')
@@ -180,7 +180,7 @@ def splitLN(LN):
 
     Trailing slash:
         splitLN('guid/dir/dir2/') returns ('guid', 'dir/dir2', '')
-    
+
         splitLN('') returns ('', '', '')
         splitLN('/') returns ('', '', '')
         splitLN('//') returns ('', '', '')
@@ -190,7 +190,7 @@ def splitLN(LN):
         splitLN('0') returns ('0', '', '')
         splitLN('0/') returns ('0', '', '')
         splitLN('something') returns ('something', '', '')
-        splitLN('something/') returns ('something', '', '')    
+        splitLN('something/') returns ('something', '', '')
     """
     # split it along the slashes
     parts = LN.split('/')
@@ -208,12 +208,12 @@ def splitLN(LN):
 
 def create_checksum(file, type):
     """ Create checksum of a file.
-    
+
     create_checksum(file, type)
-    
+
     file is an object with a 'read' method
     type is a string indicating the type of the checksum, currently only md5 is supported
-    
+
     Returns the checksum as a string.
     """
     if type == 'md5':
@@ -225,11 +225,11 @@ import md5
 
 def _md5sum(file):
     """ Create md5 checksum of a file.
-    
+
     _md5sum(file)
-    
+
     file is an object with a 'read' method
-    
+
     Returns the checksum as a string.
     """
     m = md5.new()
@@ -245,25 +245,25 @@ def _md5sum(file):
 
 def create_metadata(metadata, prefix = ''):
     """ Create an XMLTree structure from a dictionary with metadata.
-    
+
     create_metadata(metadata, prefix = '')
-    
+
     metadata is a dictionary with ('section','property') as keys and 'value' as values
     prefix is a string for the namespace prefix of the XML tag, empty by default.
-    
+
     Example:
-    
+
     input:
-    
+
         {('entry','type') : 'file', ('states', 'size') : '812314'}
-    
+
     output:
-    
+
         [('metadata', [('section', 'entry'), ('property', 'type'), ('value', 'file')]),
          ('metadata', [('section', 'states'), ('property', 'size'), ('value', '812314')])]
-         
+
     this output can be used as an XMLTree object, and can be put into an XMLNode, which will look like this:
-    
+
             <metadata>
                 <section>entry</section>
                 <property>type</property>
@@ -283,7 +283,7 @@ def create_metadata(metadata, prefix = ''):
         # for each item in the metadata list get the section, property and value and put it into XMLTree form
         # the 'metadata', 'section', 'property' and 'value' strings are prefixed with the given prefix and a ':'
         return [
-            (prefix + ':metadata', [ 
+            (prefix + ':metadata', [
                 (prefix + ':section', section),
                 (prefix + ':property', property),
                 (prefix + ':value', value)
@@ -292,7 +292,7 @@ def create_metadata(metadata, prefix = ''):
     else:
         # if no prefix is specified do not put a colon before the names
         return [
-            ('metadata', [ 
+            ('metadata', [
                 ('section', section),
                 ('property', property),
                 ('value', value)
@@ -302,16 +302,16 @@ def create_metadata(metadata, prefix = ''):
 
 def parse_node(node, names, single = False, string = True):
     """ Call node_to_data() for each child of the given node.
-    
+
     parse_node(node, names, single = False, string = True)
-    
+
     node is the XMLNode whose children we want to convert
     names is a list of tag names which will be returned in the specified order
     single indicates that we need only one value beside the key, do not put it into a list
     string indicates that we need the string data of the nodes, not the nodes itself.
-    
+
     Example:
-    
+
         xml = XMLNode('''
             <statRequestList>
                 <statRequestElement>
@@ -324,24 +324,24 @@ def parse_node(node, names, single = False, string = True):
                 </statRequestElement>
             </statRequestList>
         ''')
-      
+
     parse_node(xml, ['requestID','LN']) returns:
-        
+
         {'0': ['/'], '1': ['/testfile']}
 
 
     parse_node(xml, ['requestID','LN'], single = True) returns:
-        
+
         {'0': '/', '1': '/testfile'}
 
 
     parse_node(xml, ['LN','requestID'], True) returns:
-        
+
         {'/': '0', '/testfile': '1'}
 
 
     parse_node(xml, ['requestID','LN','LN']) returns:
-        
+
         {'0': ['/', '/'], '1': ['/testfile', '/testfile']}
 
 
@@ -358,35 +358,35 @@ def get_data_node(node):
         try:
             fault = str(node.Get('Body').Get('Fault'))
         except:
-            raise Exception, 'Not valid SOAP message (%s)' % node.GetXML() 
+            raise Exception, 'Not valid SOAP message (%s)' % node.GetXML()
         raise Exception, 'Fault in SOAP message (%s)' % fault
 
 def get_child_nodes(node):
     """ Get all the children nodes of an XMLNode
-    
+
     get_child_nodes(node)
-    
+
     node is the XMLNode whose children we need
     """
     # the node.Size() method returns the number of children
     return [node.Child(i) for i in range(node.Size())]
 
 def get_child_values_by_name(node, name):
-    return [str(child) for child in get_child_nodes(node) if child.Name() == name]  
+    return [str(child) for child in get_child_nodes(node) if child.Name() == name]
 
 
 def node_to_data(node, names, single = False, string = True):
     """ Get some children of an XMLNode and return them in a list in the specified order using the first one as a key.
-    
+
     node_to_data(node, names, single = False, string = True)
-    
+
     node is an XMLNode which has some children
     names is a list of strings, the names of the children we want to extract, the first name always will be a key
     single is a boolean indicating if we want only a single value thus do not put it in a list
     string is a boolean indicating if we want the string values of the nodes or the nodes itself
-    
+
     Example:
-    
+
         node:
             <changeRequest>
                 <changeID>0</changeID>
@@ -397,30 +397,30 @@ def node_to_data(node, names, single = False, string = True):
                 <somethingElse>not interesting</somethingElse>
                 <changeType>set</changeType>
             </changeRequest>
-            
+
         names: ['changeID', 'ID', 'changeType', 'section', 'property', 'value']
-        
+
         here changeID will be the key, and all the other names will be in a list in the specified order
-        
+
         so it returns ('0', ['123', 'set', 'states', 'neededReplicas', '3'])
-        
+
             ('somethingElse' is not returned)
-    
+
     Example:
-    
+
         node:
             <getRequest>
                 <GUID>11</GUID>
                 <requestID>99</requestID>
             </getRequest>
-            
+
         names: ['requestID', 'GUID']
         single: True
-        
+
         here requestID will be the key, and GUID is the single value which won't be in a list
-        
+
         so it returns ('99', '11')
-        
+
             (instead of '99', ['11'])
     """
     if string:
@@ -439,20 +439,20 @@ def node_to_data(node, names, single = False, string = True):
 
 def parse_metadata(metadatalist_node):
     """ Return the metadata which was put into an XML representation.
-    
+
     parse_metadata(metadatalist_node)
-    
+
     metadatalist_node is an XMLNode which has zero or more children,
         and each child should have three children called 'section', 'property', 'value')
-    
+
     The method get the string value from each tuple of section-property-value,
     then creates a dictionary where the (section, property) pairs are the keys,
     and the (value) is the value.
-    
+
     Example:
-    
+
     input:
-    
+
         <metadataList>
             <metadata>
                 <section>entry</section>
@@ -465,9 +465,9 @@ def parse_metadata(metadatalist_node):
                 <value>812314</value>
             </metadata>
         </metadataList>
-    
+
     output:
-    
+
         {('entry','type') : 'file', ('states', 'size') : '812314'}
     """
     # get the number of children
@@ -498,28 +498,28 @@ class FakeXMLNode(object):
         else:
             self.doc = xml.dom.minidom.parseString(from_string)
             self.node = self.doc.childNodes[0]
-            
+
     def __str__(self):
         """docstring for __str__"""
         text = ''.join([child.nodeValue for child in self.node.childNodes if child.nodeType == child.TEXT_NODE])
         return text
-    
+
     def _get_real_children(self):
         """docstring for _get_real_children"""
         return [child for child in self.node.childNodes if child.nodeType != child.TEXT_NODE]
-    
+
     def Size(self):
         """docstring for Size"""
         return len(self._get_real_children())
-    
+
     def Child(self, no = 0):
         """docstring for Child"""
         return FakeXMLNode(from_node = self._get_real_children()[no], doc_node = self.doc)
-    
+
     def FullName(self):
         """docstring for FullName"""
         return self.node.nodeName
-        
+
     def Name(self):
         """docstring for Name"""
         return self.node.localName
@@ -527,25 +527,25 @@ class FakeXMLNode(object):
     def Prefix(self):
         """docstring for Prefix"""
         return self.node.prefix
-        
+
     def GetXML(self):
         """docstring for GetXML"""
         return self.node.toxml()
-        
+
     def Get(self, tagname):
         """docstring for Get"""
         return [FakeXMLNode(from_node = child, doc_node = self.doc) for child in self.node.childNodes if child.nodeName == tagname or child.localName == tagname][0]
-        
+
     def NewChild(self, tagname):
         """docstring for NewChild"""
         return FakeXMLNode(from_node = self.node.appendChild(self.doc.createElement(tagname)), doc_node = self.doc)
-    
+
     def Set(self, text_data):
         """docstring for Set"""
-        self.node.appendChild(self.doc.createTextNode(text_data))            
-    
+        self.node.appendChild(self.doc.createTextNode(text_data))
+
 storage_actions = ['read', 'addEntry', 'removeEntry', 'delete', 'modifyPolicy', 'modifyStates', 'modifyMetadata']
-    
+
 # This part is copied form xmltree.py and the 'xmlnode_class = arc.XMLNode' is changed
 
 class XMLTree:
@@ -573,7 +573,7 @@ class XMLTree:
             # if this is an XMLTree object, get just the data from it
             if isinstance(from_tree,XMLTree):
                 self._data = from_tree._data
-            else: 
+            else:
                 self._data = from_tree
         else:
             if from_node:
@@ -611,7 +611,7 @@ class XMLTree:
         """ Adding a tree structure to an XMLNode.
 
         add_to_node(node, path = None)
-        
+
         'node' is the XMLNode we want to add to
         'path' selects the part of the XMLTree we want to add
         """
@@ -650,7 +650,7 @@ class XMLTree:
                 else:
                     out.append(prefix + indent * level + '<%s>%s</%s>' % (element[0], element[1], element[0]))
         return '\n'.join(out)
-            
+
 
     def __str__(self):
         return str(self._data)
@@ -741,7 +741,7 @@ class XMLTree:
             tree = tree._data
         # get the first node selected by the path and append the new subtree to it
         self.get(path)[0][1].append(tree)
-    
+
     def get_values(self, path = None):
         """ Get all the values selected by a path.
 
@@ -764,7 +764,7 @@ class XMLTree:
             return dict([(keys[k],v) for (k,v) in value if k in keys.keys()])
         else: # if keys is empty, use all the data
             return dict(value)
-    
+
     def get_dict(self, path = None, keys = {}):
         """ Returns a dictionary from the first node the path matches.
 
@@ -795,10 +795,10 @@ class FakeNS(object):
     """docstring for FakeNS"""
     def __init__(self, NS):
         self.NS = NS
-        
+
     def getNamespaces(self):
         """docstring for getNamespaces"""
-        return ''.join(['xmlns:%s="%s"' % (prefix, urn) for prefix, urn in self.NS.items()])         
+        return ''.join(['xmlns:%s="%s"' % (prefix, urn) for prefix, urn in self.NS.items()])
 
 # This part is from the client.py file, but is changed
 
@@ -809,9 +809,9 @@ class Client:
 
     def __init__(self, url, ns, print_xml = False, ssl_config = {}):
         """ The constructor of the Client class.
-        
+
         Client(url, ns, print_xml = false)
-        
+
         url is the URL of the service
         ns contains the namespaces we want to use with each message
         print_xml is for debugging, prints all the SOAP messages to the screen
@@ -880,9 +880,9 @@ class Client:
 
     def call(self, tree, return_tree_only = False):
         """ Create a SOAP message from an XMLTree and send it to the service.
-        
+
         call(tree, return_tree_only = False)
-        
+
         tree is an XMLTree object containing the content of the request
         return_tree_only indicates that we only need to put the response into an XMLTree
         """
@@ -912,9 +912,9 @@ class Client:
 
     def call_raw_standalone(self, outpayload):
         """ Send a POST request with the SOAP XML message.
-        
+
         call_raw(outpayload)
-        
+
         outpayload is an XMLNode with the SOAP message
         """
         import httplib
@@ -930,7 +930,7 @@ class Client:
             r = h.getresponse()
         except httplib.BadStatusLine:
             raise socket.error, (-1, 'Bad status line from the server.\nMaybe wrong URL: "%s%s:%s%s"?' %
-                (self.https and 'https://' or 'http://', self.host, self.port, self.path))            
+                (self.https and 'https://' or 'http://', self.host, self.port, self.path))
         # read the response data
         resp = r.read()
         if not resp:
@@ -945,9 +945,9 @@ class Client:
 
     def call_raw_hed(self, outpayload):
         """ Send a POST request with the SOAP XML message.
-        
+
         call_raw(outpayload)
-        
+
         outpayload is an XMLNode with the SOAP message
         """
         try:
@@ -955,26 +955,26 @@ class Client:
             #x = arc.XMLNode('<dummy/>')
             #self.cfg.MakeConfig(x)
             #print x.GetXML()
-            s = arc.ClientSOAP(self.cfg, self.url)          
+            s = arc.ClientSOAP(self.cfg, self.url)
             resp, status = s.process(outpayload)
             if not status.isOk():
                 raise Exception, status
             if resp.IsFault():
                 raise Exception, resp.GetXML()
             resp = resp.GetXML()
-             
+
             return resp
         except:
             raise socket.error, (-1, "Wrong status from server.\nMaybe wrong URL: '%s%s:%s%s'" %
                 (self.https and 'https://' or 'http://', self.host, self.port, self.path))
-            
+
 
 
 
 # This part is copied from client.py
 
 class ISISClient(Client):
-	
+
     def __init__(self, url, print_xml = False, ssl_config = {}):
         ns = self.NS_class({'isis':'http://www.nordugrid.org/schemas/isis/2007/06'})
         Client.__init__(self, url, ns, print_xml, ssl_config = ssl_config)
@@ -990,12 +990,12 @@ class ISISClient(Client):
 
 class BartenderClient(Client):
     """ Client for the Bartender service. """
-    
+
     def __init__(self, url, print_xml = False, ssl_config = {}):
         """ Constructior of the client.
-        
+
         BartenderClient(url, print_xml = False)
-        
+
         url is the URL of the Bartender service
         if print_xml is true this will print the SOAP messages
         """
@@ -1006,16 +1006,16 @@ class BartenderClient(Client):
 
     def stat(self, requests):
         """ Get metadata of a file or collection
-        
+
         stat(requests)
-        
+
         requests is a dictionary where requestIDs are the keys, and Logical Names are the values.
         this method returns a dictionary for each requestID which contains all the metadata with (section, dictionary) as the key
-        
+
         e.g.
-        
+
         In: {'frodo':'/', 'sam':'/testfile'}
-        Out: 
+        Out:
             {'frodo': {('entry', 'type'): 'collection',
                        ('entries', 'testdir'): '4cabc8cb-599d-488c-a253-165f71d4e180',
                        ('entries', 'testfile'): 'cf05727b-73f3-4318-8454-16eaf10f302c',
@@ -1033,7 +1033,7 @@ class BartenderClient(Client):
                 ('bar:statRequestList', [
                     ('bar:statRequestElement', [
                         ('bar:requestID', requestID),
-                        ('bar:LN', LN) 
+                        ('bar:LN', LN)
                     ]) for requestID, LN in requests.items()
                 ])
             ])
@@ -1047,9 +1047,9 @@ class BartenderClient(Client):
 
     def getFile(self, requests):
         """ Initiate download of a file.
-        
+
         getFile(requests)
-        
+
         requests is a dicitonary with requestID as key and (LN, protocols) as value,
             where LN is the Logical Name
             protocols is a list of strings: the supported transfer protocols by the client
@@ -1057,10 +1057,10 @@ class BartenderClient(Client):
             success is the status of the request
             TURL is the Transfer URL
             protocol is the name of the choosen protocol
-            
+
         Example:
         In: {'1':['/', ['byteio']], 'a':['/testfile', ['ftp', 'byteio']]}
-        Out: 
+        Out:
             {'1': ['is not a file', '', ''],
              'a': ['done',
                    'http://localhost:60000/byteio/29563f36-e9cb-47eb-8186-0d720adcbfca',
@@ -1081,12 +1081,12 @@ class BartenderClient(Client):
         msg = self.call(tree)
         xml = self.xmlnode_class(msg)
         return parse_node(get_data_node(xml), ['requestID', 'success', 'TURL', 'protocol'])
-    
+
     def putFile(self, requests):
         """ Initiate uploading a file.
-        
+
         putFile(requests)
-        
+
         requests is a dictionary with requestID as key, and (LN, metadata, protocols) as value, where
             LN is the Logical Name
             metadata is a dictionary with (section,property) as key, it contains the metadata of the new file
@@ -1095,12 +1095,12 @@ class BartenderClient(Client):
             success is the state of the request
             TURL is the transfer URL
             protocol is the name of the choosen protocol
-            
+
         Example:
         In: {'qwe': ['/newfile',
                     {('states', 'size') : 1055, ('states', 'checksum') : 'none', ('states', 'checksumType') : 'none'},
                     ['byteio']]}
-        Out: 
+        Out:
             {'qwe': ['done',
                      'http://localhost:60000/byteio/d42f0993-79a8-4bba-bd86-84324367c65f',
                      'byteio']}
@@ -1124,14 +1124,14 @@ class BartenderClient(Client):
 
     def delFile(self, requests):
         """ Initiate deleting a file.
-        
+
         delFile(requests)
-        
+
         requests is a dictionary with requestID as key, and (LN) as value, where
         LN is the Logical Name of the file to be deleted
-        
+
         returns a dictionary with requestID as key, and (success) as value,
-        where success is the state of the request 
+        where success is the state of the request
         (one of 'deleted', 'noSuchLN', 'denied)
 
         Example:
@@ -1143,7 +1143,7 @@ class BartenderClient(Client):
                 ('bar:delFileRequestList', [
                     ('bar:delFileRequestElement', [
                         ('bar:requestID', requestID),
-                        ('bar:LN', LN) 
+                        ('bar:LN', LN)
                     ]) for requestID, LN in requests.items()
                 ])
             ])
@@ -1155,19 +1155,19 @@ class BartenderClient(Client):
 
     def addReplica(self, requests, protocols):
         """ Add a new replica to an existing file.
-        
+
         addReplica(requests, protocols)
-        
+
         requests is a dictionary with requestID as key and GUID as value.
         protocols is a list of protocols supported by the client
-        
+
         returns a dictionary with requestID as key and (success, TURL, protocol) as value, where
             success is the status of the request,
             TURL is the transfer URL
             protocol is the choosen protocol
-            
+
         Example:
-        
+
         In: requests = {'001':'c9c82371-4773-41e4-aef3-caf7c7eaf6f8'}, protocols = ['http','byteio']
         Out:
             {'001': ['done',
@@ -1224,14 +1224,14 @@ class BartenderClient(Client):
 
     def makeCollection(self, requests):
         """ Create a new collection.
-        
+
         makeCollection(requests)
 
         requests is a dictionary with requestID as key and (LN, metadata) as value, where
             LN is the Logical Name
             metadata is the metadata of the new collection, a dictionary with (section, property) as key
         returns a dictionary with requestID as key and the state of the request as value
-        
+
         In: {'b5':['/coloredcollection', {('metadata','color') : 'light blue'}]}
         Out: {'b5': 'done'}
         """
@@ -1253,14 +1253,14 @@ class BartenderClient(Client):
         ### Created by Salman Toor ###
     def makeMountpoint(self, requests):
         """ Create a new Mountpoint.
-        
+
         makeMountpoint(requests)
 
         requests is a dictionary with requestID as key and (LN, metadata) as value, where
             LN is the Logical Name
             metadata is the metadata of the new collection, a dictionary with (section, property) as key
         returns a dictionary with requestID as key and the state of the request as value
-        
+
         In: {'b5':['/coloredcollection', {('metadata','color') : 'light blue'}]}
         Out: {'b5': 'done'}
         """
@@ -1300,9 +1300,9 @@ class BartenderClient(Client):
 
     def list(self, requests, neededMetadata = []):
         """ List the contents of a collection.
-        
+
         list(requests, neededMetadata = [])
-        
+
         requests is a dictionary with requestID as key and Logical Name as value
         neededMetadata is a list of (section, property) pairs
             if neededMetadata is empty, list will return all metadata for each collection-entry
@@ -1311,10 +1311,10 @@ class BartenderClient(Client):
         returns a dictionary with requestID as key and (entries, status) as value, where
             entries is a dictionary with the entry name as key and (GUID, metadata) as value
             status is the status of the request
-        
+
         Example:
         In: requests = {'jim': '/', 'kirk' : '/testfile'}, neededMetadata = [('states','size'),('entry','type')]
-        Out: 
+        Out:
             {'jim': ({'coloredcollection': ('cab8d235-4afa-4e33-a85f-fde47b0240d1', {('entry', 'type'): 'collection'}),
                       'newdir': ('3b200a34-0d63-4d15-9b01-3693685928bc', {('entry', 'type'): 'collection'}),
                       'newfile': ('c9c82371-4773-41e4-aef3-caf7c7eaf6f8', {('entry', 'type'): 'file', ('states', 'size'): '1055'}),
@@ -1345,7 +1345,7 @@ class BartenderClient(Client):
         elements = parse_node(get_data_node(xml),
             ['requestID', 'entries', 'status'], string = False)
         return dict([
-            (   str(requestID), 
+            (   str(requestID),
                 (dict([(str(name), (str(GUID), parse_metadata(metadataList))) for name, (GUID, metadataList) in
                     parse_node(entries, ['name', 'GUID', 'metadataList'], string = False).items()]),
                 str(status))
@@ -1354,9 +1354,9 @@ class BartenderClient(Client):
 
     def move(self, requests):
         """ Move a file or collection within the global namespace.
-        
+
         move(requests)
-        
+
         requests is a dictionary with requestID as key, and (sourceLN, targetLN, preserveOriginal) as value, where
             sourceLN is the source Logical Name
             targetLN is the target Logical Name
@@ -1414,15 +1414,15 @@ class BartenderClient(Client):
             return statusAndID[1]
         else:
             return 0
-            
+
     def removeCredentials(self, request):
-        #print "will removed the delegated Credentials -- "      
+        #print "will removed the delegated Credentials -- "
         tree = XMLTree(from_tree = ('bar:removeCredentials', 'removeCredentials'))
         #print tree
         msg = self.call(tree)
         xml = self.xmlnode_class(msg)
-        return parse_node(get_data_node(xml), ['message', 'status'], single = True) 
-        
+        return parse_node(get_data_node(xml), ['message', 'status'], single = True)
+
 # This part is copied from bartender_client.py but then changed
 
 args = sys.argv[1:]
@@ -1457,7 +1457,7 @@ def call_it(method_name, *args):
         if verbose:
             print '- Trying', bartender_url + '...'
         try:
-            bartender = BartenderClient(bartender_url, verbose, ssl_config = ssl_config)    
+            bartender = BartenderClient(bartender_url, verbose, ssl_config = ssl_config)
             response = getattr(bartender, method_name)(*args)
             print '- done in %0.2f seconds.' % (time.time()-start)
             return response
@@ -1472,7 +1472,7 @@ def call_it(method_name, *args):
         except:
             print e
     if not verbose:
-        print "(try to put the '-v' flag before the method name for more details)" 
+        print "(try to put the '-v' flag before the method name for more details)"
     sys.exit(-1)
 
 if len(args) == 0 or args[0][0:3] not in ['sta', 'mak', 'mkd', 'unm', 'rmd', 'lis', 'ls', 'mov', 'mv', 'put', 'get', 'del', 'rm', 'mod', 'pol', 'unl', 'cre', 'rem']:
@@ -1500,14 +1500,13 @@ else:
     try:
         import arc
         user_config = arc.UserConfig(configfilename)
-        config_xml = user_config.ConfTree()
-        key_file = str(config_xml.Get('KeyPath'))
-        cert_file = str(config_xml.Get('CertificatePath'))
-        proxy_file = str(config_xml.Get('ProxyPath'))
-        ca_file = str(config_xml.Get('CACertificatePath'))
-        ca_dir = str(config_xml.Get('CACertificatesDir'))
-        bartender_urls = get_child_values_by_name(config_xml,'BartenderURL')
-        isis_urls = get_child_values_by_name(config_xml,'ISISURL')
+        key_file = user_config.KeyPath()
+        cert_file = user_config.CertificatePath()
+        proxy_file = user_config.ProxyPath()
+        ca_file = user_config.CACertificatePath()
+        ca_dir = user_config.CACertificatesDirectory()
+        bartender_urls = user_config.Bartender()
+#        isis_urls = get_child_values_by_name(user_config.ConfTree(),'ISISURL')
     except Exception, e:
         problem_with_userconfig = e
         key_file = None
@@ -1540,7 +1539,7 @@ else:
     except:
         needed_replicas = 1
     ssl_config = {}
-    
+
     if len([bartender_url for bartender_url in bartender_urls if bartender_url.startswith('https')]) > 0:
         key_file = os.environ.get('ARC_KEY_FILE', key_file)
         cert_file = os.environ.get('ARC_CERT_FILE', cert_file)
@@ -1552,7 +1551,7 @@ else:
             if verbose:
                 print '- The proxy certificate file:', ssl_config['proxy_file']
         else:
-            if key_file and cert_file:                
+            if key_file and cert_file:
                 ssl_config['key_file'] = key_file
                 ssl_config['cert_file'] = cert_file
                 if verbose:
@@ -1591,7 +1590,7 @@ else:
                             print ' ', '  %s: %s' % (p, v)
                 else:
                     print 'not found'
-    # For Credential Delegation. 
+    # For Credential Delegation.
     elif command in ['cre']:
         #print command
         request = {}
@@ -1599,7 +1598,7 @@ else:
         if response:
             print 'Successful delegation. Proxy ID:', response
         else:
-            print 'ERROR: failed to delegate credentials.'            
+            print 'ERROR: failed to delegate credentials.'
     elif command in ['rem']:
         #print command
         request = {}
@@ -1675,7 +1674,7 @@ else:
             response = call_it('putFile', request)
             #print response
             success, turl, protocol = response['0']
-            
+
             if success == 'done':
                 print '- Got transfer URL:', turl
                 f = file(filename,'rb')
@@ -1694,14 +1693,14 @@ else:
             response = call_it('unlink', request)
             print "Unlinking '%s': %s" % (args[0], response['0'])
     elif command in ['unm', 'rmd']:
-        if 'mount' in command_long:  
+        if 'mount' in command_long:
             if len(args) < 1:
                 print 'Usage: unmakeMountpoint <LN>'
             else:
                 request = {'0': (args[0])}
                 response = call_it('unmakeMountpoint', request)
                 print "Removing mountpoint '%s': %s" % (args[0], response['0'])
-        else:    
+        else:
             if len(args) < 1:
                 print 'Usage: unmakeCollection <LN>'
             else:
@@ -1717,12 +1716,12 @@ else:
             else:
                 request = {'0': (args[0], {('states', 'closed') : false}, args[1])}
                 response = call_it('makeMountpoint', request)
-                print "Creating mountpoint '%s': %s" % (args[0], response['0']) 
+                print "Creating mountpoint '%s': %s" % (args[0], response['0'])
         else:
             if len(args) < 1:
                 print 'Usage: makeCollection <LN>'
             else:
-                request = {'0': (args[0], {('states', 'closed') : false})}	
+                request = {'0': (args[0], {('states', 'closed') : false})}
                 #print 'Make collection:',request
                 response = call_it('makeCollection', request)
                 #print response
@@ -1735,7 +1734,7 @@ else:
             #print 'list', request
             response = call_it('list', request, [('entry','')])
             #print response
-                       
+
             for rID, (entries, status) in response.items():
                 if status == 'found':
                     print "'%s':" % request[rID], 'collection'
@@ -1746,7 +1745,7 @@ else:
                                 longest = len(name)
                         for name, (GUID, metadata) in entries.items():
                             print '  %s%s<%s>' % (name, ' ' + ' '*(longest-len(name)), metadata.get(('entry', 'type'),'unknown'))
-                    else: 
+                    else:
                         print '    empty.'
                 else:
                     print "'%s': %s" % (request[rID], status)
@@ -1827,8 +1826,8 @@ else:
                             action_dict[paction[1:]] = (paction[0] == '+')
                         action_list = ' '.join([(permit and '+' or '-') + action for action, permit in action_dict.items()])
                     elif changeType == 'clear':
-                        action_list = ''                
+                        action_list = ''
                     print "the new action list of user %s for LN %s will be '%s'" % (identity, LN, action_list)
                     mod_response = call_it('modify', {'policy' : (LN, 'set', 'policy', identity, action_list)})
                     print mod_response['policy'] + '.'
-            
+

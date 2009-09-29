@@ -141,24 +141,29 @@ int main(int argc, char **argv) {
     return 1;
   }
 
-  if (debug.empty() && usercfg.ConfTree()["Debug"]) {
-    debug = (std::string)usercfg.ConfTree()["Debug"];
-    Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(debug));
-  }
+  if (debug.empty() && !usercfg.Verbosity().empty())
+    Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(usercfg.Verbosity()));
 
-
-  if (timeout > 0) {
-    usercfg.SetTimeOut((unsigned int)timeout);
-  }
+  if (timeout > 0)
+    usercfg.Timeout(timeout);
 
   if (!broker.empty())
-    usercfg.SetBroker(broker);
+    usercfg.Broker(broker);
 
   if (version) {
     std::cout << Arc::IString("%s version %s", "arcsub", VERSION)
               << std::endl;
     return 0;
   }
+
+  if (!clusters.empty() || !indexurls.empty())
+    usercfg.ClearSelectedServices();
+
+  if (!clusters.empty())
+    usercfg.AddServices(clusters, Arc::COMPUTING);
+
+  if (!indexurls.empty())
+    usercfg.AddServices(indexurls, Arc::INDEX);
 
   jobdescriptionfiles.insert(jobdescriptionfiles.end(),
                              params.begin(), params.end());
@@ -221,7 +226,7 @@ int main(int argc, char **argv) {
     }
   }
 
-  Arc::TargetGenerator targen(usercfg, clusters, indexurls);
+  Arc::TargetGenerator targen(usercfg);
   targen.GetTargets(0, 1);
 
   if (targen.FoundTargets().empty()) {
@@ -235,9 +240,8 @@ int main(int argc, char **argv) {
   std::list<std::string> jobids;
 
   Arc::BrokerLoader loader;
-  Arc::Broker *ChosenBroker = loader.load(usercfg.ConfTree()["Broker"]["Name"], usercfg);
-  logger.msg(Arc::INFO, "Broker %s loaded",
-             (std::string)usercfg.ConfTree()["Broker"]["Name"]);
+  Arc::Broker *ChosenBroker = loader.load(usercfg.Broker().first, usercfg);
+  logger.msg(Arc::INFO, "Broker %s loaded", usercfg.Broker().first);
 
   for (std::list<Arc::JobDescription>::iterator it =
          jobdescriptionlist.begin(); it != jobdescriptionlist.end();

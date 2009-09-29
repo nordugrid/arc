@@ -37,7 +37,7 @@ namespace Arc {
                             const ExecutionTarget& et) const {
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);
-    AREXClient ac(et.url, cfg, stringtoi(usercfg.ConfTree()["TimeOut"]));
+    AREXClient ac(et.url, cfg, usercfg.Timeout());
 
     std::string jobid;
     if (!ac.submit(jobdesc.UnParse("ARCJSDL"), jobid, et.url.Protocol() == "https")) {
@@ -75,7 +75,7 @@ namespace Arc {
                              bool forcemigration) const {
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);
-    AREXClient ac(et.url, cfg, stringtoi(usercfg.ConfTree()["TimeOut"]));
+    AREXClient ac(et.url, cfg, usercfg.Timeout());
 
     std::string idstr;
     AREXClient::createActivityIdentifier(jobid, idstr);

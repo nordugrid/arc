@@ -45,7 +45,8 @@ namespace Arc {
       bartender_url(url.HTTPOption("BartenderURL")) {
     if (!bartender_url) {
       //BartenderURL taken from ~/.arc/client.xml
-      bartender_url = URL((std::string)usercfg.ConfTree()["BartenderURL"]);
+      if (!usercfg.Bartender().empty())
+        bartender_url = usercfg.Bartender().front();
       //todo: improve default bartender url (maybe try to get ARC_BARTENDER_URL from environment?)
       if (!bartender_url)
         bartender_url = URL("http://localhost:60000/Bartender");
@@ -72,7 +73,7 @@ namespace Arc {
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);
 
-    ClientSOAP client(cfg, bartender_url, stringtoi(usercfg.ConfTree()["TimeOut"]));
+    ClientSOAP client(cfg, bartender_url, usercfg.Timeout());
     std::string xml;
 
     NS ns("bar", "http://www.nordugrid.org/schemas/bartender");
@@ -164,7 +165,7 @@ namespace Arc {
     usercfg.ApplyToConfig(cfg);
 
     // get TURL from bartender
-    ClientSOAP client(cfg, bartender_url, stringtoi(usercfg.ConfTree()["TimeOut"]));
+    ClientSOAP client(cfg, bartender_url, usercfg.Timeout());
     std::string xml;
 
     NS ns("bar", "http://www.nordugrid.org/schemas/bartender");
@@ -247,7 +248,7 @@ namespace Arc {
     usercfg.ApplyToConfig(cfg);
 
     // get TURL from bartender
-    ClientSOAP client(cfg, bartender_url, stringtoi(usercfg.ConfTree()["TimeOut"]));
+    ClientSOAP client(cfg, bartender_url, usercfg.Timeout());
     std::string xml;
     std::stringstream out;
     out << this->GetSize();
@@ -344,7 +345,7 @@ namespace Arc {
     usercfg.ApplyToConfig(cfg);
 
     // get TURL from bartender
-    ClientSOAP client(cfg, bartender_url, stringtoi(usercfg.ConfTree()["TimeOut"]));
+    ClientSOAP client(cfg, bartender_url, usercfg.Timeout());
     std::string xml;
     std::stringstream out;
     out << this->GetSize();
@@ -400,7 +401,7 @@ namespace Arc {
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);
 
-    ClientSOAP client(cfg, bartender_url, stringtoi(usercfg.ConfTree()["TimeOut"]));
+    ClientSOAP client(cfg, bartender_url, usercfg.Timeout());
     std::string xml;
 
     NS ns("bar", "http://www.nordugrid.org/schemas/bartender");

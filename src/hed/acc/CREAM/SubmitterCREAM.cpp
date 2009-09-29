@@ -36,16 +36,14 @@ namespace Arc {
     std::string delegationid = UUID();
     URL delegationurl(et.url);
     delegationurl.ChangePath(delegationurl.Path() + "/gridsite-delegation");
-    CREAMClient gLiteClientDelegation(delegationurl, cfg, stringtoi(usercfg.ConfTree()["TimeOut"]));
-    Config xcfg;
-    usercfg.ApplyToConfig(xcfg);
-    if (!gLiteClientDelegation.createDelegation(delegationid, xcfg["ProxyPath"])) {
+    CREAMClient gLiteClientDelegation(delegationurl, cfg, usercfg.Timeout());
+    if (!gLiteClientDelegation.createDelegation(delegationid, usercfg.ProxyPath())) {
       logger.msg(ERROR, "Creating delegation failed");
       return URL();
     }
     URL submissionurl(et.url);
     submissionurl.ChangePath(submissionurl.Path() + "/CREAM2");
-    CREAMClient gLiteClientSubmission(submissionurl, cfg, stringtoi(usercfg.ConfTree()["TimeOut"]));
+    CREAMClient gLiteClientSubmission(submissionurl, cfg, usercfg.Timeout());
     gLiteClientSubmission.setDelegationId(delegationid);
 
     JobDescription job(jobdesc);
@@ -78,7 +76,7 @@ namespace Arc {
     logger.msg(ERROR, "Migration to a CREAM cluster is not supported.");
     return URL();
   }
-  
+
   bool SubmitterCREAM::ModifyJobDescription(JobDescription& jobdesc, const ExecutionTarget& et) const {
     if (jobdesc.JDL_elements.find("BatchSystem") == jobdesc.JDL_elements.end() &&
         !et.ManagerProductName.empty())
@@ -90,7 +88,7 @@ namespace Arc {
       candidateTarget.QueueName = et.MappingQueue;
       jobdesc.Resources.CandidateTarget.push_back(candidateTarget);
     }
-    
+
     return true;
   }
 } // namespace Arc

@@ -10,20 +10,20 @@ import socket
 
 """ HOW TO RUN
 python multiclient.py <start Collection> <stop Collection> <number of Clients> <subCollection Name> <client Directory number>
- The script required a directory structure, starting from the current working directory. 
+ The script required a directory structure, starting from the current working directory.
 Example:
- 
+
  multiClient/client-1/
  multiClient/client-2/
  multiClient/client-3/
   ....
   ....
  multiClient/client-10/
- 
-So this way each multiple client will have a separate directory and all the clients will create an individual file in that directory. 
-The last argument in the scrip pointing towards the directory's last number. I mean in the case of  multiClient/client-3/ the last argument points to 3.    
 
-Run this program and then copy all the files into one directory and run the parsr.py script. 
+So this way each multiple client will have a separate directory and all the clients will create an individual file in that directory.
+The last argument in the scrip pointing towards the directory's last number. I mean in the case of  multiClient/client-3/ the last argument points to 3.
+
+Run this program and then copy all the files into one directory and run the parsr.py script.
 """
 def myfunc(thread, start, stop, subcoll, clientnum):
 
@@ -32,12 +32,12 @@ def myfunc(thread, start, stop, subcoll, clientnum):
     i_path = '/'+subcoll+str(thread)
     request[i_path] = (i_path,{})
     while True:
-        try:		
+        try:
             res = bartender.makeCollection(request)
             print 'successfully Created'
             break
-            
-        except:       
+
+        except:
             print 'Faile: try retry ... '
 
     #res = bartender.stat(request)
@@ -49,23 +49,23 @@ def myfunc(thread, start, stop, subcoll, clientnum):
         request[i_path] = (i_path,{})
         start_create = time.time()
         while True:
-	    try:
+      try:
                 res = bartender.makeCollection(request)
                 print 'successfully Created:'
                 break
             except:
                 print 'Failed: retry .... '
-        print res 
+        print res
         stop_create = time.time()
-        f.write(str(i)+"\t"+str(stop_create-start_create)+"\n") 
+        f.write(str(i)+"\t"+str(stop_create-start_create)+"\n")
         #res = bartender.stat(request)
         #while res[i_path] != 'done':
-	#	time.sleep(random.random()*1.5)
-	#	print 'retry ...'
-        #        res = bartender.makeCollection(request) 
+  # time.sleep(random.random()*1.5)
+  # print 'retry ...'
+        #        res = bartender.makeCollection(request)
         #res = bartender.stat({'0':('/c'+str(thread)+"/w"+str(i))})
         #stop_create = time.time()
-	#f.write(str(i)+"\t"+str(stop_create-start_create)+"\n")
+  #f.write(str(i)+"\t"+str(stop_create-start_create)+"\n")
         #time.sleep(random.random()*0.1)
     f.close()
 
@@ -74,23 +74,22 @@ BartenderURL = ''
 
 try:
     user_config = arc.UserConfig('')
-    config_xml = user_config.ConfTree()
-    key_file = str(config_xml.Get('KeyPath'))
+    key_file = user_config.KeyPath()
     if key_file:
         ssl_config['key_file'] = key_file
-    cert_file = str(config_xml.Get('CertificatePath'))
+    cert_file = user_config.CertificatePath()
     if cert_file:
         ssl_config['cert_file'] = cert_file
-    proxy_file = str(config_xml.Get('ProxyPath'))
+    proxy_file = user_config.ProxyPath()
     if proxy_file:
         ssl_config['proxy_file'] = proxy_file
-    ca_file = str(config_xml.Get('CACertificatePath'))
+    ca_file = user_config.CACertificatePath()
     if ca_file:
         ssl_config['ca_file'] = ca_file
-    ca_dir = str(config_xml.Get('CACertificatesDir'))
+    ca_dir = user_config.CACertificatesDirectory()
     if ca_dir:
         ssl_config['ca_dir'] = ca_dir
-    BartenderURL = str(config_xml.Get('BartenderURL'))
+    BartenderURL = user_config.Bartender()[0]
 except:
     pass
 if not BartenderURL:
@@ -159,25 +158,25 @@ while threading.activeCount()> 1 :
 #        ind = ind + 1
 #    file.close()
 #    sum.append(tmp)
-#    print 'total values', ind 
+#    print 'total values', ind
 #ss = 0
 #for val in sum:
 #    ss = ss + val
 #print sum
 
-#print 'No. of clients :\t Mim-time :\t Max-Time :\t Avg-Time :\t PerCall-Time  \n' 
+#print 'No. of clients :\t Mim-time :\t Max-Time :\t Avg-Time :\t PerCall-Time  \n'
 #print  '\t', numthread, ':\t\t', min(sum), ':\t', max(sum), ':\t', ss/len(sum), ':\t',max(sum)/(numthread*(stop-start))
 
 #exist  = os.path.exists('multiClient/multiClient.txt')
 #if exit == 'True':
-#    f = open('multiClient/multiClient.txt', 'a')     
+#    f = open('multiClient/multiClient.txt', 'a')
 #    f.write('\t', numthread, ':\t\t', min(sum), ':\t', max(sum), ':\t', ss/len(sum), ':\t',max(sum)/(numthread*(stop-start)))
 #    f.close()
 #    print 'results are appended to the file: multiClient/multiClient.txt'
 #else:
 #    f = open('multiClient/multiClient.txt', 'w')
 #    f.write('No. of clients :\t Mim-time :\t Max-Time :\t Avg-Time :\t PerCall-Time  \n')
-#    f.write('\t', numthread, ':\t\t', min(sum), ':\t', max(sum), ':\t', ss/len(sum), ':\t',max(sum)/(numthread*(stop-start))) 	
+#    f.write('\t', numthread, ':\t\t', min(sum), ':\t', max(sum), ':\t', ss/len(sum), ':\t',max(sum)/(numthread*(stop-start)))
 #    f.close()
 #    print 'results are written to the file: multiClient/multiClient.txt'
 

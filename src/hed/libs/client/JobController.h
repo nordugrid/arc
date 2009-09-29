@@ -29,10 +29,7 @@ namespace Arc {
   public:
     virtual ~JobController();
 
-    void FillJobStore(const std::list<URL>& jobids,
-                      const std::list<URL>& clusterselect,
-                      const std::list<URL>& cluterreject);
-
+    void FillJobStore(const std::list<URL>& jobids);
     void FillJobStore(const Job& job);
 
     bool Get(const std::list<std::string>& status,

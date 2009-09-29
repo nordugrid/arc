@@ -11,26 +11,25 @@ AHashURL = ''
 root_logger = arc.Logger_getRootLogger()
 root_logger.addDestination(arc.LogStream(sys.stdout))
 root_logger.setThreshold(arc.ERROR)
-                                                
+
 try:
     user_config = arc.UserConfig('')
-    config_xml = user_config.ConfTree()
-    key_file = str(config_xml.Get('KeyPath'))
+    key_file = user_config.KeyPath()
     if key_file:
         ssl_config['key_file'] = key_file
-    cert_file = str(config_xml.Get('CertificatePath'))
+    cert_file = user_config.CertificatePath()
     if cert_file:
         ssl_config['cert_file'] = cert_file
-    proxy_file = str(config_xml.Get('ProxyPath'))
+    proxy_file = user_config.ProxyPath()
     if proxy_file:
         ssl_config['proxy_file'] = proxy_file
-    ca_file = str(config_xml.Get('CACertificatePath'))
+    ca_file = user_config.CACertificatePath()
     if ca_file:
         ssl_config['ca_file'] = ca_file
-    ca_dir = str(config_xml.Get('CACertificatesDir'))
+    ca_dir = user_config.CACertificatesDirectory()
     if ca_dir:
         ssl_config['ca_dir'] = ca_dir
-    AHashURL = str(config_xml.Get('AHashURL'))
+    AHashURL = '' #str(user_config.ConfTree().Get('AHashURL'))
 except:
     pass
 if not AHashURL:

@@ -3,10 +3,10 @@ Name: nordugrid-arc1
 Version: @VERSION@
 Release: 1%{?dist}
 Summary: ARC
-Group: System Environment/Daemons 
+Group: System Environment/Daemons
 License: ASL 2.0
 URL: http://www.nordugrid.org/
-Source:	%{name}-%{version}.tar.gz
+Source: %{name}-%{version}.tar.gz
 BuildRoot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 #
 BuildRequires: cppunit-devel
@@ -221,7 +221,7 @@ exit 0
 
 %files client
 %defattr(-,root,root,-)
-%doc src/clients/arclib/client.xml.example
+%doc src/hed/libs/common/client.conf.example
 %doc src/clients/charon/charon_client.xml.example
 %doc src/clients/charon/charon_request.xml.example
 %doc src/tests/echo/echo.wsdl
@@ -271,7 +271,7 @@ exit 0
 %doc %{_mandir}/man1/perftest.1.gz
 %{_bindir}/chelonia
 %doc %{_mandir}/man1/chelonia.1*
-%{_sysconfdir}/arc/client.xml
+%{_sysconfdir}/arc/client.conf
 %doc %{_mandir}/man5/arcclient.xml.5*
 %{_bindir}/jura
 %{_bindir}/isistest

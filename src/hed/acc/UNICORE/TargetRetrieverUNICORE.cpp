@@ -97,7 +97,7 @@ namespace Arc {
     URL& url = thrarg->url;
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);
-    UNICOREClient uc(url, cfg, stringtoi(usercfg.ConfTree()["TimeOut"]));
+    UNICOREClient uc(url, cfg, usercfg.Timeout());
     std::string thePayload;
     std::list<Config> beses;
     //beses should hold a list of trees each suitable to configure a new TargetRetriever
@@ -121,7 +121,7 @@ namespace Arc {
     URL& url = thrarg->url;
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);
-    UNICOREClient uc(url, cfg, stringtoi(usercfg.ConfTree()["TimeOut"]));
+    UNICOREClient uc(url, cfg, usercfg.Timeout());
     std::string status;
     if (!uc.sstat(status)) {
       delete thrarg;

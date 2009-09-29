@@ -90,14 +90,11 @@ int main(int argc, char* argv[]){
       return EXIT_FAILURE;
     }
   
-    if (debug.empty() && usercfg.ConfTree()["Debug"]) {
-      debug = (std::string)usercfg.ConfTree()["Debug"];
-      Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(debug));
-    }
+    if (debug.empty() && !usercfg.Verbosity().empty())
+      Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(usercfg.Verbosity()));
 
-    if (timeout > 0) {
-      usercfg.SetTimeOut((unsigned int)timeout);
-    }
+    if (timeout > 0)
+      usercfg.Timeout(timeout);
   
     if (version) {
         std::cout << Arc::IString("%s version %s", "arcdecision", VERSION)
@@ -106,11 +103,11 @@ int main(int argc, char* argv[]){
     }
 
     try{
-      std::string key_path = (std::string)usercfg.ConfTree()["KeyPath"];
-      std::string cert_path = (std::string)usercfg.ConfTree()["CertificatePath"];
-      std::string proxy_path = (std::string)usercfg.ConfTree()["ProxyPath"];
-      std::string ca_dir = (std::string)usercfg.ConfTree()["CACertificatesDir"];
-      std::string ca_file = (std::string)usercfg.ConfTree()["CACertificatePath"];
+      const std::string& key_path = usercfg.KeyPath();
+      const std::string& cert_path = usercfg.CertificatePath();
+      const std::string& proxy_path = usercfg.ProxyPath();
+      const std::string& ca_dir = usercfg.CACertificatesDirectory();
+      const std::string& ca_file = usercfg.CACertificatePath();
       //Create a SOAP client
       Arc::URL url(service_url);
       if(!url) throw std::invalid_argument("Can't parse specified URL");
@@ -121,7 +118,7 @@ int main(int argc, char* argv[]){
       if(!ca_dir.empty()) cfg.AddCADir(ca_dir);
       if(!ca_file.empty()) cfg.AddCAFile(ca_file);
 
-      Arc::ClientSOAP client(cfg,url,Arc::stringtoi(usercfg.ConfTree()["TimeOut"]));
+      Arc::ClientSOAP client(cfg,url,usercfg.Timeout());
 
       // Read the request from file to string
       std::ifstream requestfile(request_path.c_str());

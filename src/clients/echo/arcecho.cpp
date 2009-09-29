@@ -62,10 +62,8 @@ int main(int argc, char **argv) {
     return 1;
   }
 
-  if (debug.empty() && usercfg.ConfTree()["Debug"]) {
-    debug = (std::string)usercfg.ConfTree()["Debug"];
-    Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(debug));
-  }
+  if (debug.empty() && !usercfg.Verbosity().empty())
+    Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(usercfg.Verbosity()));
 
   if (version) {
     std::cout << Arc::IString("%s version %s", "arcecho", VERSION)
@@ -86,7 +84,7 @@ int main(int argc, char **argv) {
   Arc::MCCConfig cfg;
   usercfg.ApplyToConfig(cfg);
 
-  Arc::ClientSOAP client(cfg, service, Arc::stringtoi(usercfg.ConfTree()["TimeOut"]));
+  Arc::ClientSOAP client(cfg, service, usercfg.Timeout());
 
   std::string xml;
 

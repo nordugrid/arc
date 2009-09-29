@@ -86,22 +86,21 @@ int main(int argc, char **argv) {
     if(arg != args.end()) query = *arg;
   }
 
+  // If debug is specified as argument, it should be set before loading the configuration.
+  if (!debug.empty())
+    Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(debug));
+
   Arc::UserConfig usercfg(conffile);
   if (!usercfg) {
     logger.msg(Arc::ERROR, "Failed configuration initialization");
     return 1;
   }
   
-  if (timeout > 0) {
-    usercfg.SetTimeOut((unsigned int)timeout);
-  }
+  if (timeout > 0)
+    usercfg.Timeout(timeout);
 
-  if (!debug.empty())
-    Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(debug));
-  else if (debug.empty() && usercfg.ConfTree()["Debug"]) {
-    debug = (std::string)usercfg.ConfTree()["Debug"];
-    Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(debug));
-  }
+  if (debug.empty() && !usercfg.Verbosity().empty())
+    Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(usercfg.Verbosity()));
 
   //if (timeout > 0) {
   //  usercfg.SetTimeout(timeout);
@@ -143,7 +142,7 @@ int main(int argc, char **argv) {
 
   MCCConfig cfg;
   usercfg.ApplyToConfig(cfg);
-  ClientSOAP client(cfg,u, Arc::stringtoi(usercfg.ConfTree()["TimeOut"]));
+  ClientSOAP client(cfg,u, usercfg.Timeout());
   PayloadSOAP req(*(request->SOAP()));
   PayloadSOAP* resp = NULL;
   MCC_Status r = client.process(&req,&resp);

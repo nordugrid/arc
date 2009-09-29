@@ -184,13 +184,11 @@ namespace Arc {
     int targetType = thrarg->targetType;
 
     //Create credential object in order to get the user DN
-    Config cfg;
-    usercfg.ApplyToConfig(cfg);
-    Credential credential(cfg["ProxyPath"] ? cfg["ProxyPath"] :
-                          cfg["CertificatePath"],
-                          cfg["ProxyPath"] ? cfg["ProxyPath"] :
-                          cfg["KeyPath"],
-                          cfg["CACertificatesDir"], "");
+    Credential credential(!usercfg.ProxyPath().empty() ? usercfg.ProxyPath() :
+                          usercfg.CertificatePath(),
+                          !usercfg.ProxyPath().empty() ? usercfg.ProxyPath() :
+                          usercfg.KeyPath(),
+                          usercfg.CACertificatesDirectory(), "");
 
     //Query GRIS for all relevant information
     URL url = thrarg->url;

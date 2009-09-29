@@ -10,23 +10,22 @@ BartenderURL = ''
 
 try:
     user_config = arc.UserConfig('')
-    config_xml = user_config.ConfTree()
-    key_file = str(config_xml.Get('KeyPath'))
+    key_file = user_config.KeyPath()
     if key_file:
         ssl_config['key_file'] = key_file
-    cert_file = str(config_xml.Get('CertificatePath'))
+    cert_file = user_config.CertificatePath()
     if cert_file:
         ssl_config['cert_file'] = cert_file
-    proxy_file = str(config_xml.Get('ProxyPath'))
+    proxy_file = user_config.ProxyPath()
     if proxy_file:
         ssl_config['proxy_file'] = proxy_file
-    ca_file = str(config_xml.Get('CACertificatePath'))
+    ca_file = user_config.CACertificatePath()
     if ca_file:
         ssl_config['ca_file'] = ca_file
-    ca_dir = str(config_xml.Get('CACertificatesDir'))
+    ca_dir = user_config.CACertificatesDirectory()
     if ca_dir:
         ssl_config['ca_dir'] = ca_dir
-    BartenderURL = str(config_xml.Get('BartenderURL'))
+    BartenderURL = user_config.Bartender()[0]
 except:
     pass
 if not BartenderURL:
@@ -55,7 +54,7 @@ if BartenderURL.startswith('https') and not user_config:
     except:
         ssl_config = {}
         raise RuntimeError, '- ARC_KEY_FILE, ARC_CERT_FILE , ARC_CA_FILE or ARC_CA_DIR environment variable not found, SSL disabled'
-    
+
 
 bartender = BartenderClient(BartenderURL, False, ssl_config)
 
@@ -93,7 +92,7 @@ for i in range(depth):
         j_path = "/folder"+str(i)+str(j)
         request[i_path+j_path] = (i_path+j_path,{})
         start_mkdir = time.time()
-    	res = bartender.makeCollection(request)
+      res = bartender.makeCollection(request)
         time_mkdir = time.time()-start_mkdir
         aver_mkdir += time_mkdir
         f.write("\t%g"%time_mkdir)

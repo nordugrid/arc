@@ -38,7 +38,7 @@ namespace Arc {
 
     for (std::list<ExecutionTarget*>::const_iterator target = PossibleTargets.begin();
          target != PossibleTargets.end(); target++) {
-      ClientSOAP client(cfg, (*target)->url, stringtoi(usercfg.ConfTree()["TimeOut"]));
+      ClientSOAP client(cfg, (*target)->url, usercfg.Timeout());
 
       long DataSize = 0;
       int j = 0;

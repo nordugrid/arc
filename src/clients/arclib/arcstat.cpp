@@ -103,14 +103,11 @@ int main(int argc, char **argv) {
     return 1;
   }
 
-  if (debug.empty() && usercfg.ConfTree()["Debug"]) {
-    debug = (std::string)usercfg.ConfTree()["Debug"];
-    Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(debug));
-  }
+  if (debug.empty() && !usercfg.Verbosity().empty())
+    Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(usercfg.Verbosity()));
 
-  if (timeout > 0) {
-    usercfg.SetTimeOut(timeout);
-  }
+  if (timeout > 0)
+    usercfg.Timeout(timeout);
 
 
   if (version) {
@@ -127,11 +124,14 @@ int main(int argc, char **argv) {
     return 1;
   }
 
-  Arc::JobSupervisor jobmaster(usercfg, jobs, clusters);
+  if (!clusters.empty()) {
+    usercfg.ClearSelectedServices();
+    usercfg.AddServices(clusters, Arc::COMPUTING);
+  }
+
+  Arc::JobSupervisor jobmaster(usercfg, jobs);
   std::list<Arc::JobController*> jobcont = jobmaster.GetJobControllers();
 
-  // If the user specified a joblist on the command line joblist equals
-  // usercfg.JobListFile(). If not use the default, ie. usercfg.JobListFile().
   if (jobcont.empty()) {
     logger.msg(Arc::ERROR, "No job controllers loaded");
     return 1;

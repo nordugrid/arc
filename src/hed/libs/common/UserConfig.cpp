@@ -4,13 +4,11 @@
 #include <config.h>
 #endif
 
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <unistd.h>
-
 #include <glibmm.h>
 #ifdef HAVE_GIOMM
 #include <giomm/file.h>
+#else
+#include <sys/stat.h>
 #endif
 
 #include <arc/ArcLocation.h>
@@ -22,22 +20,33 @@
 #include <arc/UserConfig.h>
 #include <arc/Utils.h>
 
-#ifdef WIN32 
+#ifdef WIN32
+// Since we are purely using glibmm and giomm it should not be nessary to include this header. Someone please test.
 #include <arc/win32.h>
 #endif
+
+#define HANDLESTRATT(ATT, SETTER) \
+  if (common[ATT]) {\
+    SETTER((std::string)common[ATT]);\
+    common[ATT].Destroy();\
+    if (common[ATT]) {\
+      logger.msg(WARNING, "Multiple " ATT " attributes found in configuration file (%s)", conffile);\
+      while (common[ATT]) common[ATT].Destroy();\
+    }\
+  }
+
 
 namespace Arc {
 
   Logger UserConfig::logger(Logger::getRootLogger(), "UserConfig");
 
-  typedef std::vector<std::string> strv_t;
-
-  std::list<std::string> UserConfig::resolvedAlias;
-
   const std::string UserConfig::DEFAULT_BROKER = "Random";
-  
-  const std::string UserConfig::ARCUSERDIR = Glib::build_filename(User().Home(), ".arc");
-  
+
+  const std::string UserConfig::ARCUSERDIRECTORY = Glib::build_filename(User().Home(), ".arc");
+  const std::string UserConfig::SYSCONFIG = Glib::build_filename(PKGSYSCONFDIR, "client.conf");
+  const std::string UserConfig::DEFAULTCONFIG = Glib::build_filename(ARCUSERDIRECTORY, "client.conf");
+  const std::string UserConfig::EXAMPLECONFIG = Glib::build_filename(PKGDOCDIR, "client.conf.example");
+
   UserConfig::UserConfig(bool initializeCredentials) {
     if (initializeCredentials) {
       InitializeCredentials();
@@ -50,19 +59,35 @@ namespace Arc {
     setDefaults();
   }
 
-  UserConfig::UserConfig(const XMLNode& ccfg) {
-    // TODO: Probably internal variables should be initilized here.
+  UserConfig::UserConfig(const std::string& conffile,
+                         bool initializeCredentials,
+                         bool loadSysConfig)
+    : ok(false) {
+    if (loadSysConfig) {
+      if (!Glib::file_test(SYSCONFIG, Glib::FILE_TEST_IS_REGULAR))
+        logger.msg(WARNING, "System configuration file (%s) does not exists.", SYSCONFIG);
+      else if (!LoadConfigurationFile(SYSCONFIG, true))
+        logger.msg(WARNING, "System configuration file (%s) contains errors.", SYSCONFIG);
+    }
 
-    ccfg.New(cfg);
-    ok = true;
-  }
-
-  UserConfig::UserConfig(const std::string& file, bool initializeCredentials)
-    : conffile(file),
-      userSpecifiedJobList(false),
-      ok(false) {
-    if (!loadUserConfiguration())
+    if (conffile.empty()) {
+      if (CreateDefaultConfigurationFile()) {
+        if (!LoadConfigurationFile(DEFAULTCONFIG, false)) {
+          logger.msg(ERROR, "User configuration file (%s) contains errors.", DEFAULTCONFIG);
+          return;
+        }
+      }
+      else
+        logger.msg(WARNING, "No configuration file could be loaded.");
+    }
+    else if (!Glib::file_test(conffile, Glib::FILE_TEST_IS_REGULAR)) {
+      logger.msg(ERROR, "User configuration file (%s) does not exists or cannot be loaded.", conffile);
       return;
+    }
+    else if (!LoadConfigurationFile(conffile)) {
+      logger.msg(ERROR, "User configuration file (%s) contains errors.", conffile);
+      return;
+    }
 
     if (initializeCredentials) {
       InitializeCredentials();
@@ -75,48 +100,44 @@ namespace Arc {
     setDefaults();
   }
 
-  UserConfig::UserConfig(const std::string& file, const std::string& jfile, bool initializeCredentials)
-    : conffile(file),
-      joblistfile(jfile),
-      userSpecifiedJobList(!jfile.empty()),
-      ok(false) {
-    if (!loadUserConfiguration())
+  UserConfig::UserConfig(const std::string& conffile, const std::string& jfile,
+                         bool initializeCredentials, bool loadSysConfig)
+    : ok(false) {
+    // If job list file have been specified, try to initialize it, and
+    // if it fails then this object is non-valid (ok = false).
+    if (!jfile.empty() && !JobListFile(jfile))
       return;
 
-    // First check if job list file was given as an argument, next look for it
-    // in the user configuration, and last set job list file to default.
-    if (joblistfile.empty() &&
-        (joblistfile = (std::string)cfg["JobListFile"]).empty())
-      joblistfile = Glib::build_filename(ARCUSERDIR, "jobs.xml");
+    if (loadSysConfig) {
+      if (!Glib::file_test(SYSCONFIG, Glib::FILE_TEST_IS_REGULAR))
+        logger.msg(WARNING, "System configuration file (%s) does not exists.", SYSCONFIG);
+      else if (!LoadConfigurationFile(SYSCONFIG, true))
+        logger.msg(WARNING, "System configuration file (%s) contains errors.", SYSCONFIG);
+    }
 
-    // Check if joblistfile exist.
-    if (!Glib::file_test(joblistfile.c_str(), Glib::FILE_TEST_EXISTS)) {
-      // The joblistfile does not exist. Create a empty version, and if
-      // this fails report an error and exit.
-      const std::string joblistdir = Glib::path_get_dirname(joblistfile);
-
-      // Check if the parent directory exist.
-      if (!Glib::file_test(joblistdir, Glib::FILE_TEST_EXISTS)) {
-        // Create directory.
-        if (!makeDir(joblistdir)) {
-          logger.msg(ERROR, "Unable to create %s directory", joblistdir);
+    if (conffile.empty()) {
+      if (CreateDefaultConfigurationFile()) {
+        if (!LoadConfigurationFile(DEFAULTCONFIG, !jfile.empty())) {
+          logger.msg(ERROR, "User configuration file (%s) contains errors.", DEFAULTCONFIG);
           return;
         }
       }
-      else if (!Glib::file_test(joblistdir, Glib::FILE_TEST_IS_DIR)) {
-        logger.msg(ERROR, "%s is not a directory, it is needed for the client to function correctly", joblistdir);
-        return;
-      }
-
-      NS ns;
-      Config(ns).SaveToFile(joblistfile);
-      logger.msg(INFO, "Created empty ARC job list file: %s", joblistfile);
+      else
+        logger.msg(WARNING, "No configuration file could be loaded.");
     }
-    else if (!Glib::file_test(joblistfile.c_str(), Glib::FILE_TEST_IS_REGULAR)) {
-      logger.msg(ERROR, "ARC job list file is not a regular file: %s", joblistfile);
+    else if (!Glib::file_test(conffile, Glib::FILE_TEST_IS_REGULAR)) {
+      logger.msg(ERROR, "User configuration file (%s) does not exists or cannot be loaded.", conffile);
+      return;
+    }
+    else if (!LoadConfigurationFile(conffile)) {
+      logger.msg(ERROR, "User configuration file (%s) contains errors.", conffile);
       return;
     }
 
+    // If no job list file have been initialized use the default. If the
+    // job list file cannot be initialized this object is non-valid.
+    if (joblistfile.empty() && !JobListFile(Glib::build_filename(ARCUSERDIRECTORY, "jobs.xml")))
+      return;
 
     if (initializeCredentials) {
       InitializeCredentials();
@@ -131,25 +152,6 @@ namespace Arc {
 
   UserConfig::UserConfig(const long int& ptraddr) { *this = *((UserConfig*)ptraddr); }
 
-  void UserConfig::ApplyToConfig(XMLNode& ccfg) const {
-    if (!proxyPath.empty())
-      ccfg.NewChild("ProxyPath") = proxyPath;
-    else {
-      ccfg.NewChild("CertificatePath") = certificatePath;
-      ccfg.NewChild("KeyPath") = keyPath;
-    }
-
-    ccfg.NewChild("CACertificatesDir") = caCertificatesDir;
-
-    ccfg.NewChild("TimeOut") = (std::string)cfg["TimeOut"];
-
-    if (cfg["Broker"]["Name"]) {
-      ccfg.NewChild("Broker").NewChild("Name") = (std::string)cfg["Broker"]["Name"];
-      if (cfg["Broker"]["Arguments"])
-        ccfg["Broker"].NewChild("Arguments") = (std::string)cfg["Broker"]["Arguments"];
-    }
-  }
-
   void UserConfig::ApplyToConfig(BaseConfig& ccfg) const {
     if (!proxyPath.empty())
       ccfg.AddProxy(proxyPath);
@@ -158,590 +160,690 @@ namespace Arc {
       ccfg.AddPrivateKey(keyPath);
     }
 
-    ccfg.AddCADir(caCertificatesDir);
+    ccfg.AddCADir(caCertificatesDirectory);
   }
 
-  void UserConfig::SetTimeOut(unsigned int timeOut) {
-    if (!cfg["TimeOut"])
-      cfg.NewChild("TimeOut");
-
-    cfg["TimeOut"] = tostring(timeOut);
-  }
-
-  void UserConfig::SetBroker(const std::string& broker) {
-    if (!cfg["Broker"])
-      cfg.NewChild("Broker");
-    if (!cfg["Broker"]["Name"])
-      cfg["Broker"].NewChild("Name");
-
-    const std::string::size_type pos = broker.find(":");
-
-    cfg["Broker"]["Name"] = broker.substr(0, pos);
-
-    if (pos != std::string::npos && pos != broker.size() - 1) {
-      if (!cfg["Broker"]["Arguments"])
-        cfg["Broker"].NewChild("Arguments");
-      cfg["Broker"]["Arguments"] = broker.substr(pos + 1);
-    }
-    else if (cfg["Broker"]["Arguments"])
-      cfg["Broker"]["Arguments"] = "";
-  }
-
-  bool UserConfig::DefaultServices(URLListMap& cluster,
-                                   URLListMap& index) const {
-
-    logger.msg(INFO, "Finding default services");
-
-    XMLNode defservice = cfg["DefaultServices"];
-
-    for (XMLNode node = defservice["URL"]; node; ++node) {
-      std::string flavour = (std::string)node.Attribute("Flavour");
-      if (flavour.empty()) {
-        logger.msg(ERROR, "URL entry in default services has no "
-                   "\"Flavour\" attribute");
-        return false;
-      }
-      std::string serviceType = (std::string)node.Attribute("ServiceType");
-      if (serviceType.empty()) {
-        logger.msg(ERROR, "URL entry in default services has no "
-                   "\"ServiceType\" attribute");
-        return false;
-      }
-      std::string urlstr = (std::string)node;
-      if (urlstr.empty()) {
-        logger.msg(ERROR, "URL entry in default services is empty");
-        return false;
-      }
-      URL url(urlstr);
-      if (!url) {
-        logger.msg(ERROR, "URL entry in default services is not a "
-                   "valid URL: %s", urlstr);
-        return false;
-      }
-      if (serviceType == "computing") {
-        logger.msg(INFO, "Default services contain a computing service of "
-                   "flavour %s: %s", flavour, url.str());
-        cluster[flavour].push_back(url);
-      }
-      else if (serviceType == "index") {
-        logger.msg(INFO, "Default services contain an index service of "
-                   "flavour %s: %s", flavour, url.str());
-        index[flavour].push_back(url);
-      }
-      else {
-        logger.msg(ERROR, "URL entry in default services contains "
-                   "unknown ServiceType: %s", serviceType);
-        return false;
-      }
+  bool UserConfig::Timeout(int newTimeout) {
+    if (timeout > 0) {
+      timeout = newTimeout;
+      return true;
     }
 
-    for (XMLNode node = defservice["Alias"]; node; ++node) {
-      std::string aliasstr = (std::string)node;
-      if (aliasstr.empty()) {
-        logger.msg(ERROR, "Alias entry in default services is empty");
-        return false;
-      }
-      if (!ResolveAlias(aliasstr, cluster, index))
-        return false;
-    }
-
-    logger.msg(INFO, "Done finding default services");
-
-    return true;
+    return false;
   }
 
-  bool UserConfig::ResolveAlias(const std::string alias,
-                                URLListMap& cluster,
-                                URLListMap& index) const {
+  bool UserConfig::Verbosity(const std::string& newVerbosity) {
+    LogLevel ll;
+    if (istring_to_level(newVerbosity, ll)) {
+      verbosity = newVerbosity;
+      return true;
+    }
+    else {
+      logger.msg(WARNING, "Unable to parse the specified verbosity (%s) to one of the allowed levels", newVerbosity);
+      return false;
+    }
+  }
 
-    logger.msg(INFO, "Resolving alias: %s", alias);
+  bool UserConfig::JobListFile(const std::string& path) {
+    // Check if joblistfile exist.
+    if (!Glib::file_test(path, Glib::FILE_TEST_EXISTS)) {
+      // The joblistfile does not exist. Create a empty version, and if
+      // this fails report an error and exit.
+      const std::string joblistdir = Glib::path_get_dirname(path);
 
-    for (std::list<std::string>::iterator it = resolvedAlias.begin();
-         it != resolvedAlias.end(); it++)
-      if (*it == alias) {
-        std::string loopstr = "";
-        for (std::list<std::string>::iterator itloop = resolvedAlias.begin();
-             itloop != resolvedAlias.end(); itloop++)
-          loopstr += *itloop + " -> ";
-        loopstr += alias;
-        logger.msg(ERROR, "Cannot resolve alias \"%s\". Loop detected: %s", *resolvedAlias.begin(), alias);
-
-        resolvedAlias.clear();
+      // Check if the parent directory exist.
+      if (!Glib::file_test(path, Glib::FILE_TEST_EXISTS)) {
+        // Create directory.
+        if (!makeDir(joblistdir)) {
+          logger.msg(ERROR, "Unable to create %s directory", joblistdir);
+          return false;
+        }
+      }
+      else if (!Glib::file_test(joblistdir, Glib::FILE_TEST_IS_DIR)) {
+        logger.msg(ERROR, "%s is not a directory, it is needed for the client to function correctly", joblistdir);
         return false;
       }
 
-    XMLNodeList aliaslist = cfg.XPathLookup("//AliasList/Alias[@name='" +
-                                            alias + "']", NS());
-
-    if (aliaslist.empty()) {
-      logger.msg(ERROR, "Alias \"%s\" requested but not defined", alias);
-      resolvedAlias.clear();
+      NS ns;
+      Config(ns).SaveToFile(path);
+      logger.msg(INFO, "Created empty ARC job list file: %s", path);
+    }
+    else if (!Glib::file_test(path, Glib::FILE_TEST_IS_REGULAR)) {
+      logger.msg(ERROR, "ARC job list file is not a regular file: %s", path);
       return false;
     }
 
-    XMLNode& aliasnode = *aliaslist.begin();
-
-    for (XMLNode node = aliasnode["URL"]; node; ++node) {
-      std::string flavour = (std::string)node.Attribute("Flavour");
-      if (flavour.empty()) {
-        logger.msg(ERROR, "URL entry in alias definition \"%s\" has no "
-                   "\"Flavour\" attribute", alias);
-        resolvedAlias.clear();
-        return false;
-      }
-      std::string serviceType = (std::string)node.Attribute("ServiceType");
-      if (flavour.empty()) {
-        logger.msg(ERROR, "URL entry in alias definition \"%s\" has no "
-                   "\"ServiceType\" attribute", alias);
-        resolvedAlias.clear();
-        return false;
-      }
-      std::string urlstr = (std::string)node;
-      if (urlstr.empty()) {
-        logger.msg(ERROR, "URL entry in alias definition \"%s\" is empty", alias);
-        resolvedAlias.clear();
-        return false;
-      }
-      URL url(urlstr);
-      if (!url) {
-        logger.msg(ERROR, "URL entry in alias definition \"%s\" is not a "
-                   "valid URL: %s", alias, urlstr);
-        resolvedAlias.clear();
-        return false;
-      }
-      if (serviceType == "computing") {
-        logger.msg(INFO, "Alias %s contains a computing service of "
-                   "flavour %s: %s", alias, flavour, url.str());
-        cluster[flavour].push_back(url);
-      }
-      else if (serviceType == "index") {
-        logger.msg(INFO, "Alias %s contains an index service of "
-                   "flavour %s: %s", alias, flavour, url.str());
-        index[flavour].push_back(url);
-      }
-      else {
-        logger.msg(ERROR, "URL entry in alias definition \"%s\" contains "
-                   "unknown ServiceType: %s", alias, serviceType);
-        resolvedAlias.clear();
-        return false;
-      }
-    }
-
-    resolvedAlias.push_back(alias);
-
-    for (XMLNode node = aliasnode["AliasRef"]; node; ++node) {
-      std::string aliasstr = (std::string)node;
-      if (aliasstr.empty()) {
-        logger.msg(ERROR, "Alias entry in alias definition \"%s\" is empty", alias);
-        resolvedAlias.clear();
-        return false;
-      }
-      if (!ResolveAlias(aliasstr, cluster, index))
-        return false;
-    }
-    logger.msg(INFO, "Done resolving alias: %s", alias);
-    resolvedAlias.clear();
+    joblistfile = path;
     return true;
   }
 
-  bool UserConfig::ResolveAlias(const std::list<std::string>& clusters,
-                                const std::list<std::string>& indices,
-                                URLListMap& clusterselect,
-                                URLListMap& clusterreject,
-                                URLListMap& indexselect,
-                                URLListMap& indexreject) const {
-
-    for (std::list<std::string>::const_iterator it = clusters.begin();
-         it != clusters.end(); it++) {
-      bool select = true;
-      std::string cluster = *it;
-      if (cluster[0] == '-')
-        select = false;
-      if ((cluster[0] == '-') || (cluster[0] == '+'))
-        cluster = cluster.substr(1);
-
-      std::string::size_type colon = cluster.find(':');
-      if (colon == std::string::npos) {
-        if (select) {
-          if (!ResolveAlias(cluster, clusterselect, indexselect))
-            return false;
-        }
-        else
-          if (!ResolveAlias(cluster, clusterreject, indexreject))
-            return false;
-      }
-      else {
-        std::string flavour = cluster.substr(0, colon);
-        std::string urlstr = cluster.substr(colon + 1);
-        URL url(urlstr);
-        if (!url) {
-          logger.msg(ERROR, "%s is not a valid URL", urlstr);
-          return false;
-        }
-        if (select)
-          clusterselect[flavour].push_back(url);
-        else
-          clusterreject[flavour].push_back(url);
-      }
-    }
-
-    for (std::list<std::string>::const_iterator it = indices.begin();
-         it != indices.end(); it++) {
-      bool select = true;
-      std::string index = *it;
-      if (index[0] == '-')
-        select = false;
-      if ((index[0] == '-') || (index[0] == '+'))
-        index = index.substr(1);
-
-      std::string::size_type colon = index.find(':');
-      if (colon == std::string::npos) {
-        if (select) {
-          if (!ResolveAlias(index, clusterselect, indexselect))
-            return false;
-        }
-        else
-          if (!ResolveAlias(index, clusterreject, indexreject))
-            return false;
-      }
-      else {
-        std::string flavour = index.substr(0, colon);
-        std::string urlstr = index.substr(colon + 1);
-        URL url(urlstr);
-        if (!url) {
-          logger.msg(ERROR, "%s is not a valid URL", urlstr);
-          return false;
-        }
-        if (select)
-          indexselect[flavour].push_back(url);
-        else
-          indexreject[flavour].push_back(url);
-      }
-    }
-    return true;
-  }
-
-  bool UserConfig::ResolveAlias(const std::list<std::string>& clusters,
-                                URLListMap& clusterselect,
-                                URLListMap& clusterreject) const {
-
-    std::list<std::string> indices;
-    URLListMap indexselect;
-    URLListMap indexreject;
-    return ResolveAlias(clusters, indices, clusterselect,
-                        clusterreject, indexselect, indexreject);
+  bool UserConfig::Broker(const std::string& nameandarguments) {
+    const std::size_t pos = nameandarguments.find(":");
+    if (pos != std::string::npos) // Arguments given in 'nameandarguments'
+      broker = std::make_pair<std::string, std::string>(nameandarguments.substr(0, pos),
+                                                        nameandarguments.substr(pos+1));
+    else
+      broker = std::make_pair<std::string, std::string>(nameandarguments, "");
   }
 
   void UserConfig::InitializeCredentials() {
-    struct stat st;
+    const User user;
     // Look for credentials.
-    if (!(proxyPath = GetEnv("X509_USER_PROXY")).empty()) {
-      if (stat(proxyPath.c_str(), &st) != 0) {
-        logger.msg(ERROR, "Can not access proxy file: %s (%s)",
-                   proxyPath, StrError());
-        proxyPath.clear();
-      }
-      else if (!S_ISREG(st.st_mode)) {
-        logger.msg(ERROR, "Proxy is not a file: %s", proxyPath);
+    if (!GetEnv("X509_USER_PROXY").empty()) {
+      if (!Glib::file_test(proxyPath = GetEnv("X509_USER_PROXY"), Glib::FILE_TEST_IS_REGULAR)) {
+        logger.msg(ERROR, "Can not access proxy file: %s", proxyPath);
         proxyPath.clear();
       }
     }
-    else if (!(certificatePath = GetEnv("X509_USER_CERT")).empty() &&
-             !(keyPath = GetEnv("X509_USER_KEY")).empty()) {
-      if (stat(certificatePath.c_str(), &st) != 0) {
-        logger.msg(ERROR, "Can not access certificate file: %s (%s)",
-                   certificatePath, StrError());
+    else if (!GetEnv("X509_USER_CERT").empty() &&
+             !GetEnv("X509_USER_KEY").empty()) {
+      if (!Glib::file_test(certificatePath = GetEnv("X509_USER_CERT"), Glib::FILE_TEST_IS_REGULAR)) {
+        logger.msg(ERROR, "Can not access certificate file: %s", certificatePath);
         certificatePath.clear();
       }
-      else if (!S_ISREG(st.st_mode)) {
-        logger.msg(ERROR, "Certificate is not a file: %s", certificatePath);
-        certificatePath.clear();
-      }
-
-      if (stat(keyPath.c_str(), &st) != 0) {
-        logger.msg(ERROR, "Can not access key file: %s (%s)",
-                   keyPath, StrError());
-        keyPath.clear();
-      }
-      else if (!S_ISREG(st.st_mode)) {
-        logger.msg(ERROR, "Key is not a file: %s", keyPath);
+      if (!Glib::file_test(keyPath = GetEnv("X509_USER_KEY"), Glib::FILE_TEST_IS_REGULAR)) {
+        logger.msg(ERROR, "Can not access key file: %s", keyPath);
         keyPath.clear();
       }
     }
-    else if (!(proxyPath = (std::string)cfg["ProxyPath"]).empty()) {
-      if (stat(proxyPath.c_str(), &st) != 0) {
-        logger.msg(ERROR, "Can not access proxy file: %s (%s)",
-                   proxyPath, StrError());
-        proxyPath.clear();
-      }
-      else if (!S_ISREG(st.st_mode)) {
-        logger.msg(ERROR, "Proxy is not a file: %s", proxyPath);
+    else if (!proxyPath.empty()) {
+      if (!Glib::file_test(proxyPath, Glib::FILE_TEST_IS_REGULAR)) {
+        logger.msg(ERROR, "Can not access proxy file: %s", proxyPath);
         proxyPath.clear();
       }
     }
-    else if (!(certificatePath = (std::string)cfg["CertificatePath"]).empty() &&
-             !(keyPath = (std::string)cfg["KeyPath"]).empty()) {
-      if (stat(certificatePath.c_str(), &st) != 0) {
-        logger.msg(ERROR, "Can not access certificate file: %s (%s)",
-                   certificatePath, StrError());
+    else if (!certificatePath.empty() && !keyPath.empty()) {
+      if (!Glib::file_test(certificatePath.c_str(), Glib::FILE_TEST_IS_REGULAR)) {
+        logger.msg(ERROR, "Can not access certificate file: %s", certificatePath);
         certificatePath.clear();
       }
-      else if (!S_ISREG(st.st_mode)) {
-        logger.msg(ERROR, "Certificate is not a file: %s", certificatePath);
-        certificatePath.clear();
-      }
-
-      if (stat(keyPath.c_str(), &st) != 0) {
-        logger.msg(ERROR, "Can not access key file: %s (%s)",
-                   keyPath, StrError());
-        keyPath.clear();
-      }
-      else if (!S_ISREG(st.st_mode)) {
-        logger.msg(ERROR, "Key is not a file: %s", keyPath);
+      if (!Glib::file_test(keyPath.c_str(), Glib::FILE_TEST_IS_REGULAR)) {
+        logger.msg(ERROR, "Can not access key file: %s", keyPath);
         keyPath.clear();
       }
     }
-    else if (stat((proxyPath = Glib::build_filename(Glib::get_tmp_dir(), std::string("x509up_u") + tostring(user.get_uid()))).c_str(), &st) == 0) {
-      if (!S_ISREG(st.st_mode)) {
-        logger.msg(ERROR, "Proxy is not a file: %s", proxyPath);
-        proxyPath.clear();
-      }
-    }
-    else {
+    else if (!Glib::file_test(proxyPath = Glib::build_filename(Glib::get_tmp_dir(), std::string("x509up_u") + tostring(user.get_uid())), Glib::FILE_TEST_IS_REGULAR)) {
       logger.msg(WARNING, "Default proxy file does not exist: %s "
-                 "trying default certificate and key", proxyPath);
+                          "trying default certificate and key", proxyPath);
       if (user.get_uid() == 0) {
-        strv_t hostcert(3);
-        hostcert[0] = "etc";
-        hostcert[1] = "grid-security";
-        hostcert[2] = "hostcert.pem";
-        certificatePath = G_DIR_SEPARATOR_S + Glib::build_filename(hostcert);
+        certificatePath = Glib::build_filename(G_DIR_SEPARATOR_S + std::string("etc"), std::string("grid-security") + G_DIR_SEPARATOR_S + std::string("hostcert.pem"));
+        keyPath = Glib::build_filename(G_DIR_SEPARATOR_S + std::string("etc"), std::string("grid-security") + G_DIR_SEPARATOR_S + std::string("hostkey.pem"));
       }
       else {
-        strv_t usercert(3);
-        usercert[0] = user.Home();
-        usercert[1] = ".globus";
-        usercert[2] = "usercert.pem";
-        certificatePath = Glib::build_filename(usercert);
+        certificatePath = Glib::build_filename(user.Home(), std::string(".globus") + G_DIR_SEPARATOR_S +  std::string("usercert.pem"));
+        keyPath = Glib::build_filename(user.Home(), std::string(".globus") + G_DIR_SEPARATOR_S + std::string("userkey.pem"));
       }
 
-      if (stat(certificatePath.c_str(), &st) != 0) {
-        logger.msg(ERROR, "Can not access certificate file: %s (%s)", certificatePath, StrError());
+      if (!Glib::file_test(certificatePath, Glib::FILE_TEST_IS_REGULAR)) {
+        logger.msg(ERROR, "Can not access certificate file: %s", certificatePath);
         certificatePath.clear();
       }
-      else if (!S_ISREG(st.st_mode)) {
-        logger.msg(ERROR, "Certificate is not a file: %s", certificatePath);
-        certificatePath.clear();
-      }
-
-      if (user.get_uid() == 0) {
-        strv_t hostkey(3);
-        hostkey[0] = "etc";
-        hostkey[1] = "grid-security";
-        hostkey[2] = "hostkey.pem";
-        keyPath = G_DIR_SEPARATOR_S + Glib::build_filename(hostkey);
-      }
-      else {
-        strv_t userkey(3);
-        userkey[0] = user.Home();
-        userkey[1] = ".globus";
-        userkey[2] = "userkey.pem";
-        keyPath = Glib::build_filename(userkey);
-      }
-
-      if (stat(keyPath.c_str(), &st) != 0) {
-        logger.msg(ERROR, "Can not access key file: %s (%s)",
-                   keyPath, StrError());
-        keyPath.clear();
-      }
-      else if (!S_ISREG(st.st_mode)) {
-        logger.msg(ERROR, "Key is not a file: %s", keyPath);
+      if (!Glib::file_test(keyPath, Glib::FILE_TEST_IS_REGULAR)) {
+        logger.msg(ERROR, "Can not access key file: %s", keyPath);
         keyPath.clear();
       }
     }
 
-    if (!(caCertificatesDir = GetEnv("X509_CERT_DIR")).empty()) {
-      if (stat(caCertificatesDir.c_str(), &st) != 0) {
-        logger.msg(ERROR, "Can not access CA certificate directory: %s (%s)",
-                   caCertificatesDir, StrError());
-        caCertificatesDir.clear();
-      }
-      else if (!S_ISDIR(st.st_mode)) {
-        logger.msg(ERROR, "CA certificate directory is not a directory: %s", caCertificatesDir);
-        caCertificatesDir.clear();
+    if (!GetEnv("X509_CERT_DIR").empty()) {
+      if (!Glib::file_test(caCertificatesDirectory = GetEnv("X509_CERT_DIR"), Glib::FILE_TEST_IS_DIR)) {
+        logger.msg(ERROR, "Can not access CA certificate directory: %s", caCertificatesDirectory);
+        caCertificatesDirectory.clear();
       }
     }
-    else if (!(caCertificatesDir = (std::string)cfg["CACertificatesDir"]).empty()) {
-      if (stat(caCertificatesDir.c_str(), &st) != 0) {
-        logger.msg(ERROR, "Can not access CA certificate directory: %s (%s)",
-                   caCertificatesDir, StrError());
-        caCertificatesDir.clear();
-      }
-      else if (!S_ISDIR(st.st_mode)) {
-        logger.msg(ERROR, "CA certificate directory is not a directory: %s", caCertificatesDir);
-        caCertificatesDir.clear();
+    else if (!caCertificatesDirectory.empty()) {
+      if (!Glib::file_test(caCertificatesDirectory, Glib::FILE_TEST_IS_DIR)) {
+        logger.msg(ERROR, "Can not access CA certificate directory: %s", caCertificatesDirectory);
+        caCertificatesDirectory.clear();
       }
     }
-    else if (user.get_uid() != 0 &&
-             stat((caCertificatesDir = user.Home() + G_DIR_SEPARATOR_S + ".globus" + G_DIR_SEPARATOR_S + "certificates").c_str(), &st) == 0) {
-      if (!S_ISDIR(st.st_mode)) {
-        logger.msg(ERROR, "CA certificate directory is not a directory: %s", caCertificatesDir);
-        caCertificatesDir.clear();
+    else if ((user.get_uid() == 0 || !Glib::file_test(caCertificatesDirectory = user.Home() + G_DIR_SEPARATOR_S + ".globus" + G_DIR_SEPARATOR_S + "certificates", Glib::FILE_TEST_IS_DIR)) &&
+             !Glib::file_test(caCertificatesDirectory = std::string(Glib::get_home_dir()) + G_DIR_SEPARATOR_S + ".globus" + G_DIR_SEPARATOR_S + "certificates", Glib::FILE_TEST_IS_DIR) &&
+             !Glib::file_test(caCertificatesDirectory = ArcLocation::Get() + G_DIR_SEPARATOR_S + "etc" + G_DIR_SEPARATOR_S + "certificates", Glib::FILE_TEST_IS_DIR) &&
+             !Glib::file_test(caCertificatesDirectory = ArcLocation::Get() + G_DIR_SEPARATOR_S + "etc" + G_DIR_SEPARATOR_S + "grid-security" + G_DIR_SEPARATOR_S + "certificates", Glib::FILE_TEST_IS_DIR) &&
+             !Glib::file_test(caCertificatesDirectory = ArcLocation::Get() + G_DIR_SEPARATOR_S + "share" + G_DIR_SEPARATOR_S + "certificates", Glib::FILE_TEST_IS_DIR)) {
+      caCertificatesDirectory = Glib::build_filename(G_DIR_SEPARATOR_S + std::string("etc"), std::string("grid-security") + G_DIR_SEPARATOR_S + std::string("certificates"));
+      if (!Glib::file_test(caCertificatesDirectory.c_str(), Glib::FILE_TEST_IS_DIR)) {
+        logger.msg(ERROR, "Can not locate CA certificate directory.");
+        caCertificatesDirectory.clear();
       }
     }
-    else if (stat((caCertificatesDir = std::string(g_get_home_dir()) + G_DIR_SEPARATOR_S + ".globus" + G_DIR_SEPARATOR_S + "certificates").c_str(), &st) == 0) {
-      if (!S_ISDIR(st.st_mode)) {
-        logger.msg(ERROR, "CA certificate directory is not a directory: %s", caCertificatesDir);
-        caCertificatesDir.clear();
-      }
-    }
-    else if (stat((caCertificatesDir = Arc::ArcLocation::Get() + G_DIR_SEPARATOR_S + "etc" + G_DIR_SEPARATOR_S + "certificates").c_str(), &st) == 0) {
-      if (!S_ISDIR(st.st_mode)) {
-        logger.msg(ERROR, "CA certificate directory is not a directory: %s", caCertificatesDir);
-        caCertificatesDir.clear();
-      }
-    }
-    else if (stat((caCertificatesDir = Arc::ArcLocation::Get() + G_DIR_SEPARATOR_S + "etc" + G_DIR_SEPARATOR_S + "grid-security" + G_DIR_SEPARATOR_S + "certificates").c_str(), &st) == 0) {
-      if (!S_ISDIR(st.st_mode)) {
-        logger.msg(ERROR, "CA certificate directory is not a directory: %s", caCertificatesDir);
-        caCertificatesDir.clear();
-      }
-    }
-    else if (stat((caCertificatesDir = Arc::ArcLocation::Get() + G_DIR_SEPARATOR_S + "share" + G_DIR_SEPARATOR_S + "certificates").c_str(), &st) == 0) {
-      if (!S_ISDIR(st.st_mode)) {
-        logger.msg(ERROR, "CA certificate directory is not a directory: %s", caCertificatesDir);
-        caCertificatesDir.clear();
-      }
-    }
-    else {
-      strv_t caCertificatesPath(3);
-      caCertificatesPath[0] = "etc";
-      caCertificatesPath[1] = "grid-security";
-      caCertificatesPath[2] = "certificates";
-      caCertificatesDir = G_DIR_SEPARATOR_S + Glib::build_filename(caCertificatesPath);
-      if (stat(caCertificatesDir.c_str(), &st) != 0) {
-        logger.msg(ERROR, "Can not access CA certificate directory: %s (%s)",
-                   caCertificatesDir, StrError());
-        caCertificatesDir.clear();
-      }
-      else if (!S_ISDIR(st.st_mode)) {
-        logger.msg(ERROR, "CA certificate directory is not a directory: %s", caCertificatesDir);
-        caCertificatesDir.clear();
-      }
-    }
-
 
     if (!proxyPath.empty())
       logger.msg(INFO, "Using proxy file: %s", proxyPath);
     else if (!certificatePath.empty() && !keyPath.empty()) {
       logger.msg(INFO, "Using certificate file: %s", certificatePath);
       logger.msg(INFO, "Using key file: %s", keyPath);
-
-      if (!caCertificatesDir.empty())
-        logger.msg(INFO, "Using CA certificate directory: %s", caCertificatesDir);
     }
+
+    if (!caCertificatesDirectory.empty())
+      logger.msg(INFO, "Using CA certificate directory: %s", caCertificatesDirectory);
   }
 
-  bool UserConfig::loadUserConfiguration() {
-    const bool isConfigSpecified = !conffile.empty();
-    
-    // If no user configuration file was specified use the default.
-    if (!isConfigSpecified) {
-      conffile = Glib::build_filename(ARCUSERDIR, "client.xml");
+  bool UserConfig::LoadConfigurationFile(const std::string& conffile, bool ignoreJobListFile) {
+    if (!conffile.empty()) {
+      IniConfig ini(conffile);
+      if (ini) {
+        if (ini["alias"]) {
+          XMLNode aliasXML = ini["alias"];
+          if (aliasMap) { // Merge aliases. Overwrite existing aliases
+            while (aliasXML.Child()) {
+              if (aliasMap[aliasXML.Child().Name()]) {
+                aliasMap[aliasXML.Child().Name()].Replace(aliasXML.Child());
+                logger.msg(INFO, "Overwriting already defined alias \"%s\"",  aliasXML.Child().Name());
+              }
+              else
+                aliasMap.NewChild(aliasXML.Child());
 
-      // If the default configuration file does not exist, copy an example file.
-      if (!Glib::file_test(conffile, Glib::FILE_TEST_EXISTS)) {
-
-        // Check if the parent directory exist.
-        if (!Glib::file_test(ARCUSERDIR, Glib::FILE_TEST_EXISTS)) {
-          // Create directory.
-          if (!makeDir(ARCUSERDIR)) {
-            logger.msg(WARNING, "Unable to create %s directory.", ARCUSERDIR);
+              aliasXML.Child().Destroy();
+            }
           }
+          else
+            aliasXML.New(aliasMap);
+          aliasXML.Destroy();
         }
 
-        if (Glib::file_test(ARCUSERDIR, Glib::FILE_TEST_IS_DIR)) {
-          const std::string confexample = Glib::build_filename(PKGDOCDIR, "client.xml.example");
-          if (Glib::file_test(confexample, Glib::FILE_TEST_IS_REGULAR)) {
-            // Destination: Get basename, remove example prefix and add .arc directory.
-            if (copyFile(confexample, conffile))
-              logger.msg(INFO, "Configuration example file created (%s)", conffile);
-            else
-              logger.msg(WARNING, "Unable to copy example configuration from existing configuration (%s)", confexample);
+        if (ini["common"]) {
+          XMLNode common = ini["common"];
+          HANDLESTRATT("verbosity", Verbosity)
+          HANDLESTRATT("joblist", JobListFile)
+          if (common["timeout"]) {
+            if (!stringto(common["timeout"], timeout))
+              logger.msg(WARNING, "The value of the timeout attribute in the configuration file (%s) was only partially parsed", conffile);
+            common["timeout"].Destroy();
+            if (common["timeout"]) {
+              logger.msg(WARNING, "Multiple timeout attributes in configuration file (%s)", conffile);
+              while (common["timeout"]) common["timeout"].Destroy();
+            }
           }
-          else {
-            logger.msg(WARNING, "Cannot copy example configuration (%s), it is not a regular file", confexample);
+          if (common["brokername"]) {
+            broker = std::make_pair<std::string, std::string>(ini["common"]["brokername"],
+                                                              ini["common"]["brokerarguments"] ? ini["common"]["brokerarguments"] : "");
+            common["brokername"].Destroy();
+            if (common["brokername"]) {
+              logger.msg(WARNING, "Multiple brokername attributes in configuration file (%s)", conffile);
+              while (common["brokername"]) common["brokername"].Destroy();
+            }
+            if (common["brokerarguments"]) {
+              common["brokerarguments"].Destroy();
+              if (common["brokerarguments"]) {
+                logger.msg(WARNING, "Multiple brokerarguments attributes in configuration file (%s)", conffile);
+                while (common["brokerarguments"]) common["brokerarguments"].Destroy();
+              }
+            }
           }
+          // This block must be executed after the 'brokername' block.
+          if (common["brokerarguments"]) {
+            logger.msg(WARNING, "The brokerarguments attribute can only be used in conjunction with the brokername attribute");
+            while (common["brokerarguments"]) common["brokerarguments"].Destroy();
+          }
+          if (common["bartender"]) {
+            std::list<std::string> bartendersStr;
+            tokenize(common["bartender"], bartendersStr, " \t");
+            for (std::list<std::string>::const_iterator it = bartendersStr.begin();
+                 it != bartendersStr.end(); it++) {
+              URL bartenderURL(*it);
+              if (!bartenderURL)
+                logger.msg(WARNING, "Could not convert the bartender attribute value (%s) to an URL instance in configuration file (%s)", *it, conffile);
+              else
+                bartenders.push_back(bartenderURL);
+            }
+            common["bartender"].Destroy();
+            if (common["bartender"]) {
+              logger.msg(WARNING, "Multiple bartender attributes in configuration file (%s)", conffile);
+              while (common["bartender"]) common["bartender"].Destroy();
+            }
+          }
+          if (common["isis"]) {
+            std::list<std::string> isisesStr;
+            tokenize(common["isis"], isisesStr, " \t");
+            for (std::list<std::string>::const_iterator it = isisesStr.begin();
+                 it != isisesStr.end(); it++) {
+              URL isisURL(*it);
+              if (!isisURL)
+                logger.msg(WARNING, "Could not convert the isis attribute value (%s) to an URL instance in configuration file (%s)", *it, conffile);
+              else
+                isises.push_back(isisURL);
+            }
+            common["isis"].Destroy();
+            if (common["isis"]) {
+              logger.msg(WARNING, "Multiple isis attributes in configuration file (%s)", conffile);
+              while (common["isis"]) common["isis"].Destroy();
+            }
+          }
+          HANDLESTRATT("vomsserverpath", VOMSServerPath)
+          HANDLESTRATT("username", UserName)
+          HANDLESTRATT("password", Password)
+          HANDLESTRATT("proxypath", ProxyPath)
+          HANDLESTRATT("certificatepath", CertificatePath)
+          HANDLESTRATT("keypath", KeyPath)
+          HANDLESTRATT("keypassword", KeyPassword)
+          if (common["keysize"]) {
+            if (!stringto(ini["common"]["keysize"], keySize))
+              logger.msg(WARNING, "The value of the keysize attribute in the configuration file (%s) was only partially parsed", conffile);
+            common["keysize"].Destroy();
+            if (common["keysize"]) {
+              logger.msg(WARNING, "Multiple keysize attributes in configuration file (%s)", conffile);
+              while (common["keysize"]) common["keysize"].Destroy();
+            }
+          }
+          HANDLESTRATT("cacertificatepath", CACertificatePath)
+          HANDLESTRATT("cacertificatesdirectory", CACertificatesDirectory)
+          if (common["certificatelifetime"]) {
+            certificateLifeTime = Period((std::string)common["certificatelifetime"]);
+            common["certificatelifetime"].Destroy();
+            if (common["certificatelifetime"]) {
+              logger.msg(WARNING, "Multiple certificatelifetime attributes in configuration file (%s)", conffile);
+              while (common["certificatelifetime"]) common["certificatelifetime"].Destroy();
+            }
+          }
+          if (common["slcs"]) {
+            slcs = URL((std::string)common["slcs"]);
+            if (!slcs) {
+              logger.msg(WARNING, "Could not convert the slcs attribute value (%s) to an URL instance in configuration file (%s)", (std::string)common["slcs"], conffile);
+              slcs = URL();
+            }
+            common["slcs"].Destroy();
+            if (common["slcs"]) {
+              logger.msg(WARNING, "Multiple slcs attributes in configuration file (%s)", conffile);
+              while (common["slcs"]) common["slcs"].Destroy();
+            }
+          }
+          HANDLESTRATT("storedirectory", StoreDirectory)
+          if (common["defaultservices"]) {
+            if (!selectedServices.first.empty() || !selectedServices.second.empty())
+              ClearSelectedServices();
+            std::list<std::string> defaultServicesStr;
+            tokenize(common["defaultservices"], defaultServicesStr, " \t");
+            for (std::list<std::string>::const_iterator it = defaultServicesStr.begin();
+                 it != defaultServicesStr.end(); it++) {
+              // Aliases cannot contain '.' or ':'.
+
+              if (it->find_first_of(":.") == std::string::npos) { // Alias
+                if (!aliasMap[*it]) {
+                  logger.msg(ERROR, "Could not resolve alias \"%s\" it is not defined.", *it);
+                  return false;
+                }
+
+                std::list<std::string> resolvedAliases(1, *it);
+                if (!ResolveAlias(selectedServices, resolvedAliases))
+                  return false;
+              }
+              else {
+                const std::size_t pos1 = it->find(":");
+                const std::size_t pos2 = it->find(":", pos1+1);
+                if (pos2 == std::string::npos) {
+                  logger.msg(WARNING, "The defaultservices attribute value contains a wrongly formated element (%s) in configuration file (%s)", *it, conffile);
+                  continue;
+                }
+                const std::string serviceType = it->substr(0, pos1);
+                if (serviceType != "computing" && serviceType != "index") {
+                  logger.msg(WARNING, "The defaultservices attribute value contains a unknown servicetype %s at %s in configuration file (%s)", serviceType, *it, conffile);
+                  continue;
+                }
+                const URL url(it->substr(pos2+1));
+                if (!url) {
+                  logger.msg(WARNING, "The defaultservices attribute value contains a wrongly formated URL (%s) in configuration file (%s)", it->substr(pos2+1), conffile);
+                  continue;
+                }
+                const std::string flavour = it->substr(pos1+1,pos2-pos1-1);
+                logger.msg(DEBUG, "Adding selected service %s:%s:%s", serviceType, flavour, url.str());
+                if (serviceType == "computing")
+                  selectedServices.first[flavour].push_back(url);
+                else
+                  selectedServices.second[flavour].push_back(url);
+              }
+            }
+            common["defaultservices"].Destroy();
+            if (common["defaultservices"]) {
+              logger.msg(WARNING, "Multiple defaultservices attributes in configuration file (%s)", conffile);
+              while (common["defaultservices"]) common["defaultservices"].Destroy();
+            }
+          }
+          if (common["rejectservices"]) {
+            std::list<std::string> rejectServicesStr;
+            tokenize(common["rejectservices"], rejectServicesStr, " \t");
+            for (std::list<std::string>::const_iterator it = rejectServicesStr.begin();
+                 it != rejectServicesStr.end(); it++) {
+              // Aliases cannot contain '.' or ':'.
+              if (it->find_first_of(":.") == std::string::npos) { // Alias
+                if (!aliasMap[*it]) {
+                  logger.msg(ERROR, "Could not resolve alias \"%s\" it is not defined.", *it);
+                  return false;
+                }
+
+                std::list<std::string> resolvedAliases(1, *it);
+                if (!ResolveAlias(selectedServices, resolvedAliases))
+                  return false;
+              }
+              else {
+                const std::size_t pos1 = it->find(":");
+                const std::size_t pos2 = it->find(":", pos1+1);
+                if (pos2 == std::string::npos) {
+                  logger.msg(WARNING, "The rejectservices attribute value contains a wrongly formated element (%s) in configuration file (%s)", *it, conffile);
+                  continue;
+                }
+                const std::string serviceType = it->substr(0, pos1);
+                if (serviceType != "computing" && serviceType != "index") {
+                  logger.msg(WARNING, "The rejectservices attribute value contains a unknown servicetype %s at %s in configuration file (%s)", serviceType, *it, conffile);
+                  continue;
+                }
+                const URL url(it->substr(pos2+1));
+                if (!url) {
+                  logger.msg(WARNING, "The rejectservices attribute value contains a wrongly formated URL (%s) in configuration file (%s)", it->substr(pos2+1), conffile);
+                  continue;
+                }
+                const std::string flavour = it->substr(pos1+1,pos2-pos1-1);
+                logger.msg(DEBUG, "Adding rejected service %s:%s:%s", serviceType, flavour, url.str());
+                if (serviceType == "computing")
+                  rejectedServices.first[flavour].push_back(url);
+                else
+                  rejectedServices.second[flavour].push_back(url);
+              }
+            }
+            common["rejectservices"].Destroy();
+            if (common["rejectservices"]) {
+              logger.msg(WARNING, "Multiple rejectservices attributes in configuration file (%s)", conffile);
+              while (common["rejectservices"]) common["rejectservices"].Destroy();
+            }
+          }
+
+          while (common.Child()) {
+            logger.msg(WARNING, "Unknown attribute %s in common section, ignoring it", common.Child().Name());
+            common.Child().Destroy();
+          }
+
+          common.Destroy();
+        }
+
+        while (ini.Child()) {
+          logger.msg(WARNING, "Unknown section %s, ignoring it", ini.Child().Name());
+          ini.Child().Destroy();
+        }
+
+        logger.msg(INFO, "INI configuration (%s) loaded", conffile);
+      }
+      else
+        logger.msg(WARNING, "Could not load configuration (%s)", conffile);
+    }
+
+    return true;
+  }
+
+  bool UserConfig::CreateDefaultConfigurationFile() const {
+    // If the default configuration file does not exist, copy an example file.
+    if (!Glib::file_test(DEFAULTCONFIG, Glib::FILE_TEST_EXISTS)) {
+
+      // Check if the parent directory exist.
+      if (!Glib::file_test(ARCUSERDIRECTORY, Glib::FILE_TEST_EXISTS)) {
+        // Create directory.
+        if (!makeDir(ARCUSERDIRECTORY)) {
+          logger.msg(WARNING, "Unable to create %s directory.", ARCUSERDIRECTORY);
+          return false;
+        }
+      }
+
+      if (Glib::file_test(ARCUSERDIRECTORY, Glib::FILE_TEST_IS_DIR)) {
+        if (Glib::file_test(EXAMPLECONFIG, Glib::FILE_TEST_IS_REGULAR)) {
+          // Destination: Get basename, remove example prefix and add .arc directory.
+          if (copyFile(EXAMPLECONFIG, DEFAULTCONFIG))
+            logger.msg(INFO, "Configuration example file created (%s)", DEFAULTCONFIG);
+          else
+            logger.msg(WARNING, "Unable to copy example configuration from existing configuration (%s)", EXAMPLECONFIG);
+            return false;
         }
         else {
-          logger.msg(WARNING, "Example configuration (%s) not created.", conffile);
+          logger.msg(WARNING, "Cannot copy example configuration (%s), it is not a regular file", EXAMPLECONFIG);
+          return false;
         }
       }
-      else if (!Glib::file_test(conffile, Glib::FILE_TEST_IS_REGULAR)) {
-        logger.msg(WARNING, "The default configuration file (%s) is not a regular file.", conffile);
-        conffile = "";
+      else {
+        logger.msg(WARNING, "Example configuration (%s) not created.", DEFAULTCONFIG);
+        return false;
       }
     }
-    else if (!Glib::file_test(conffile, Glib::FILE_TEST_IS_REGULAR)) {
-      logger.msg(ERROR, "The specified configuration file (%s) is not a regular file", conffile);
+    else if (!Glib::file_test(DEFAULTCONFIG, Glib::FILE_TEST_IS_REGULAR)) {
+      logger.msg(WARNING, "The default configuration file (%s) is not a regular file.", DEFAULTCONFIG);
       return false;
     }
 
-    // First try to load system client configuration.
-    const std::string sysconf = Glib::build_filename(PKGSYSCONFDIR, "client.xml");
-    if (Glib::file_test(sysconf, Glib::FILE_TEST_IS_REGULAR)) {
-      if (cfg.ReadFromFile(sysconf))
-        logger.msg(INFO, "System configuration (%s) loaded", sysconf);
-      else
-        logger.msg(WARNING, "Unable to load system configuration (%s)", sysconf);
+    return true;
+  }
+
+  bool UserConfig::AddServices(const std::list<std::string>& services, ServiceType st) {
+    const std::string serviceType = (st == COMPUTING ? "computing" : "index");
+    for (std::list<std::string>::const_iterator it = services.begin();
+         it != services.end(); it++) {
+      URLListMap& servicesRef = ((*it)[0] != '-' ? (st == COMPUTING ? selectedServices.first : selectedServices.second)
+                                                 : (st == COMPUTING ? rejectedServices.first : rejectedServices.second));
+
+      const std::string service = ((*it)[0] != '-' ? *it : it->substr(1));
+
+      // Alias cannot contain '.', ':', ' ' or '\t' and a URL must contain atleast one of ':' or '.'.
+      if (service.find_first_of(":. \t") == std::string::npos) { // Alias.
+        if (!aliasMap[service]) {
+          logger.msg(ERROR, "Could not resolve alias \"%s\" it is not defined.", service);
+          return false;
+        }
+
+        std::list<std::string> resolvedAliases(1, service);
+        if (!ResolveAlias(servicesRef, st, resolvedAliases))
+          return false;
+      }
+      else { // URL
+        const std::size_t pos = service.find(":");
+        if (pos == std::string::npos) {
+          logger.msg(WARNING, "Cannot parse the specified %s service (%s)", serviceType, service);
+          continue;
+        }
+
+        const URL url(service.substr(pos+1));
+        if (!url) {
+          logger.msg(WARNING, "The specified %s service (%s) is not a valid URL", serviceType, service.substr(pos+1));
+          continue;
+        }
+        const std::string flavour = service.substr(0, pos);
+        logger.msg(DEBUG, "Adding %s service %s:%s ", (*it)[0] != '-' ? "selected" : "rejected", flavour, url.str());
+        servicesRef[flavour].push_back(url);
+      }
     }
 
-    if (!conffile.empty()) {
-      Config ucfg;
-      if (ucfg.ReadFromFile(conffile)) {
-        // Merge system and user configuration
-        XMLNode child;
-        for (int i = 0; (child = ucfg.Child(i)); i++) {
-          if (child.Name() != "AliasList") {
-            if (cfg[child.Name()])
-              cfg[child.Name()].Replace(child);
-            else
-              cfg.NewChild(child);
-          }
-          else {
-            if (!cfg["AliasList"])
-              cfg.NewChild(child);
-            else
-              // Look for duplicates. If duplicates exist, keep those defined in
-              // the user configuration file.
-              for (XMLNode alias = child["Alias"]; alias; ++alias) { // Loop over Alias nodes in user configuration file.
-                XMLNodeList aliasList = cfg.XPathLookup("//AliasList/Alias[@name='" + (std::string)alias.Attribute("name") + "']", NS());
-                if (!aliasList.empty())
-                  // Remove duplicates.
-                  for (XMLNodeList::iterator node = aliasList.begin(); node != aliasList.end(); node++)
-                    node->Destroy();
-                cfg["AliasList"].NewChild(alias);
-              }
-          }
+    return true;
+  }
+
+  bool UserConfig::AddServices(const std::list<std::string>& selected,
+                               const std::list<std::string>& rejected,
+                               ServiceType st) {
+    bool isSelectedNotRejected = true;
+    const std::string serviceType = (st == COMPUTING ? "computing" : "index");
+    for (std::list<std::string>::const_iterator it = selected.begin();
+         it != selected.end(); it++) {
+      if (it == selected.end()) {
+        if (selected.empty())
+          break;
+        it = selected.begin();
+        isSelectedNotRejected = false;
+      }
+
+      URLListMap& servicesRef = (isSelectedNotRejected ? (st == COMPUTING ? selectedServices.first : selectedServices.second)
+                                                       : (st == COMPUTING ? rejectedServices.first : rejectedServices.second));
+      const std::string& service = *it;
+
+      // Alias cannot contain '.', ':', ' ' or '\t' and a URL must contain atleast one of ':' or '.'.
+      if (service.find_first_of(":. \t") == std::string::npos) { // Alias.
+        if (!aliasMap[service]) {
+          logger.msg(ERROR, "Could not resolve alias \"%s\" it is not defined.", service);
+          return false;
         }
 
-        logger.msg(INFO, "XML user configuration (%s) loaded", conffile);
+        std::list<std::string> resolvedAliases(1, service);
+        if (!ResolveAlias(servicesRef, st, resolvedAliases))
+          return false;
+      }
+      else { // URL
+        const std::size_t pos = service.find(":");
+        if (pos == std::string::npos) {
+          logger.msg(WARNING, "Cannot parse the specified %s service (%s)", serviceType, service);
+          continue;
+        }
+
+        const URL url(service.substr(pos+1));
+        if (!url) {
+          logger.msg(WARNING, "The specified %s service (%s) is not a valid URL", serviceType, service.substr(pos+1));
+          continue;
+        }
+        const std::string flavour = service.substr(0, pos);
+        logger.msg(DEBUG, "Adding %s service %s:%s ", isSelectedNotRejected ? "selected" : "rejected", flavour, url.str());
+        servicesRef[flavour].push_back(url);
+      }
+    }
+
+  }
+
+  const URLListMap& UserConfig::GetSelectedServices(ServiceType st) const {
+    return st == COMPUTING ? selectedServices.first : selectedServices.second;
+  }
+
+  const URLListMap& UserConfig::GetRejectedServices(ServiceType st) const {
+    return st == COMPUTING ? rejectedServices.first : rejectedServices.second;
+  }
+
+  void UserConfig::ClearSelectedServices(ServiceType st) {
+    if (st == COMPUTING)
+      selectedServices.first.clear();
+    else
+      selectedServices.second.clear();
+  }
+
+  void UserConfig::ClearSelectedServices() {
+    selectedServices.first.clear();
+    selectedServices.second.clear();
+  }
+
+  void UserConfig::ClearRejectedServices(ServiceType st) {
+    if (st == COMPUTING)
+      rejectedServices.first.clear();
+    else
+      rejectedServices.second.clear();
+  }
+
+  void UserConfig::ClearRejectedServices() {
+    rejectedServices.first.clear();
+    rejectedServices.second.clear();
+  }
+
+  bool UserConfig::ResolveAlias(URLListMap& services, ServiceType st,
+                                std::list<std::string>& resolvedAliases) {
+    std::list<std::string> valueList;
+    tokenize(aliasMap[resolvedAliases.back()], valueList, " \t");
+
+    for (std::list<std::string>::const_iterator it = valueList.begin();
+         it != valueList.end(); it++) {
+      const std::size_t pos1 = it->find(":");
+      const std::size_t pos2 = it->find(":", pos1+1);
+
+      if (pos1 == std::string::npos) { // Alias.
+        const std::string& referedAlias = *it;
+        if (std::find(resolvedAliases.begin(), resolvedAliases.end(), referedAlias) != resolvedAliases.end()) { // Loop detected.
+          std::string loopstr = "";
+          for (std::list<std::string>::const_iterator itloop = resolvedAliases.begin();
+               itloop != resolvedAliases.end(); itloop++)
+            loopstr += *itloop + " -> ";
+          loopstr += referedAlias;
+          logger.msg(ERROR, "Cannot resolve alias \"%s\". Loop detected: %s", resolvedAliases.front(), loopstr);
+          return false;
+        }
+
+        if (!aliasMap[referedAlias]) {
+          logger.msg(ERROR, "Cannot resolve alias %s, it is not defined", referedAlias);
+          return false;
+        }
+
+        resolvedAliases.push_back(referedAlias);
+        if (!ResolveAlias(services, st, resolvedAliases))
+          return false;
+
+        resolvedAliases.pop_back();
+      }
+      else if (pos2 != std::string::npos) { // serviceType:flavour:URL
+        const std::string serviceType = it->substr(0, pos1);
+        if (serviceType != "computing" && serviceType != "index") {
+          logger.msg(WARNING, "Alias name (%s) contains a unknown servicetype %s at %s", resolvedAliases.front(), serviceType, *it);
+          continue;
+        }
+        else if (st == COMPUTING && serviceType != "computing" ||
+                 st == INDEX && serviceType != "index")
+          continue;
+
+        const URL url(it->substr(pos2+1));
+        if (!url) {
+          logger.msg(WARNING, "Alias name (%s) contains a wrongly formated URL (%s)", resolvedAliases.front(), it->substr(pos2+1));
+          continue;
+        }
+        const std::string flavour = it->substr(pos1+1, pos2-pos1-1);
+        logger.msg(DEBUG, "Adding service %s:%s:%s from resolved alias %s", serviceType, flavour, url.str(), resolvedAliases.back());
+        services[flavour].push_back(url);
       }
       else {
-        IniConfig ini(conffile);
-        if (ini) {
-          XMLNode child;
-          for (int i = 0; (child = ini["common"].Child(i)); i++) {
-            if (cfg[child.Name()])
-              cfg[child.Name()].Replace(child);
-            else
-              cfg.NewChild(child);
-          }
+        logger.msg(WARNING, "Alias (%s) contains a wrongly formated element (%s)", resolvedAliases.front(), *it);
+      }
+    }
 
-          logger.msg(INFO, "INI user configuration (%s) loaded", conffile);
+    return true;
+  }
+
+  bool UserConfig::ResolveAlias(std::pair<URLListMap, URLListMap>& services,
+                                std::list<std::string>& resolvedAliases) {
+    std::list<std::string> valueList;
+    tokenize(aliasMap[resolvedAliases.back()], valueList, " \t");
+
+    for (std::list<std::string>::const_iterator it = valueList.begin();
+         it != valueList.end(); it++) {
+      const std::size_t pos1 = it->find(":");
+      const std::size_t pos2 = it->find(":", pos1+1);
+
+      if (pos1 == std::string::npos) { // Alias.
+        const std::string& referedAlias = *it;
+        if (std::find(resolvedAliases.begin(), resolvedAliases.end(), referedAlias) != resolvedAliases.end()) { // Loop detected.
+          std::string loopstr = "";
+          for (std::list<std::string>::const_iterator itloop = resolvedAliases.begin();
+               itloop != resolvedAliases.end(); itloop++)
+            loopstr += *itloop + " -> ";
+          loopstr += referedAlias;
+          logger.msg(ERROR, "Cannot resolve alias \"%s\". Loop detected: %s", resolvedAliases.front(), loopstr);
+          return false;
         }
+
+        if (!aliasMap[referedAlias]) {
+          logger.msg(ERROR, "Cannot resolve alias %s, it is not defined", referedAlias);
+          return false;
+        }
+
+        resolvedAliases.push_back(referedAlias);
+        if (!ResolveAlias(services, resolvedAliases))
+          return false;
+
+        resolvedAliases.pop_back();
+      }
+      else if (pos2 != std::string::npos) { // serviceType:flavour:URL
+        const std::string serviceType = it->substr(0, pos1);
+        if (serviceType != "computing" && serviceType != "index") {
+          logger.msg(WARNING, "Alias name (%s) contains a unknown servicetype %s at %s", resolvedAliases.front(), serviceType, *it);
+          continue;
+        }
+        const URL url(it->substr(pos2+1));
+        if (!url) {
+          logger.msg(WARNING, "Alias name (%s) contains a wrongly formated URL (%s)", resolvedAliases.front(), it->substr(pos2+1));
+          continue;
+        }
+        const std::string flavour = it->substr(pos1+1, pos2-pos1-1);
+        logger.msg(DEBUG, "Adding service %s:%s:%s from resolved alias %s", serviceType, flavour, url.str(), resolvedAliases.back());
+        if (serviceType == "computing")
+          services.first[flavour].push_back(url);
         else
-          logger.msg(WARNING, "Could not load user client configuration");
+          services.second[flavour].push_back(url);
+      }
+      else {
+        logger.msg(WARNING, "Alias (%s) contains a wrongly formated element (%s)", resolvedAliases.front(), *it);
       }
     }
 
@@ -749,18 +851,9 @@ namespace Arc {
   }
 
   void UserConfig::setDefaults() {
-    if (!cfg["TimeOut"])
-      cfg.NewChild("TimeOut") = tostring(DEFAULT_TIMEOUT);
-    else if (((std::string)cfg["TimeOut"]).empty() || stringtoi((std::string)cfg["TimeOut"]) <= 0)
-      cfg["TimeOut"] = tostring(DEFAULT_TIMEOUT);
-
-    if (!cfg["Broker"]["Name"]) {
-      if (!cfg["Broker"])
-        cfg.NewChild("Broker");
-      cfg["Broker"].NewChild("Name") = DEFAULT_BROKER;
-      if (cfg["Broker"]["Arguments"])
-        cfg["Broker"]["Arguments"] = "";
-    }
+    timeout = DEFAULT_TIMEOUT;
+    broker.first = DEFAULT_BROKER;
+    broker.second = "";
   }
 
   bool UserConfig::makeDir(const std::string& path) {
@@ -793,7 +886,7 @@ namespace Arc {
     std::ifstream ifsSource(source.c_str(), std::ios::in | std::ios::binary);
     if (!ifsSource)
       return false;
-      
+
     std::ofstream ofsDestination(destination.c_str(), std::ios::out | std::ios::binary);
     if (!ofsDestination)
       return false;
@@ -805,7 +898,7 @@ namespace Arc {
       bytesRead = ifsSource.gcount();
       ofsDestination.write((char*)buff, bytesRead);
     }
-    
+
     return true;
 #endif
   }

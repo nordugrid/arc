@@ -115,17 +115,14 @@ int main(int argc, char **argv) {
     return 1;
   }
 
-  if (debug.empty() && usercfg.ConfTree()["Debug"]) {
-    debug = (std::string)usercfg.ConfTree()["Debug"];
-    Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(debug));
-  }
+  if (debug.empty() && !usercfg.Verbosity().empty())
+    Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(usercfg.Verbosity()));
 
-  if (timeout > 0) {
-    usercfg.SetTimeOut(timeout);
-  }
+  if (timeout > 0)
+    usercfg.Timeout(timeout);
 
   if (!broker.empty())
-    usercfg.SetBroker(broker);
+    usercfg.Broker(broker);
 
   if (version) {
     std::cout << Arc::IString("%s version %s", "arcmigrate", VERSION)
@@ -141,9 +138,28 @@ int main(int argc, char **argv) {
     return 1;
   }
 
+  // Different selected services are needed in two different context,
+  // so the two copies of UserConfig objects will contain different
+  // selected services.
+  Arc::UserConfig usercfg2 = usercfg;
+
+  if (!clusters.empty()) {
+    usercfg.ClearSelectedServices();
+    usercfg.AddServices(clusters, Arc::COMPUTING);
+  }
+
+  if (!qlusters.empty() && !indexurls.empty())
+    usercfg2.ClearSelectedServices();
+
+  if (!qlusters.empty())
+    usercfg2.AddServices(qlusters, Arc::COMPUTING);
+
+  if (!indexurls.empty())
+    usercfg2.AddServices(indexurls, Arc::INDEX);
+
   // If the user specified a joblist on the command line joblist equals
   // usercfg.JobListFile(). If not use the default, ie. usercfg.JobListFile().
-  Arc::JobSupervisor jobmaster(usercfg, jobs, clusters);
+  Arc::JobSupervisor jobmaster(usercfg, jobs);
   std::list<Arc::JobController*> jobcont = jobmaster.GetJobControllers();
 
   if (jobcont.empty()) {
@@ -151,7 +167,7 @@ int main(int argc, char **argv) {
     return 1;
   }
 
-  Arc::TargetGenerator targetGen(usercfg, qlusters, indexurls);
+  Arc::TargetGenerator targetGen(usercfg2);
   targetGen.GetTargets(0, 1);
 
   if (targetGen.FoundTargets().empty()) {
@@ -160,9 +176,8 @@ int main(int argc, char **argv) {
   }
 
   Arc::BrokerLoader loader;
-  Arc::Broker *chosenBroker = loader.load(usercfg.ConfTree()["Broker"]["Name"], usercfg);
-  logger.msg(Arc::INFO, "Broker %s loaded",
-             (std::string)usercfg.ConfTree()["Broker"]["Name"]);
+  Arc::Broker *chosenBroker = loader.load(usercfg.Broker().first, usercfg);
+  logger.msg(Arc::INFO, "Broker %s loaded", usercfg.Broker().first);
 
   std::list<Arc::URL> migratedJobIDs;
 

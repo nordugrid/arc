@@ -20,22 +20,16 @@ namespace Arc {
 
   Logger TargetGenerator::logger(Logger::getRootLogger(), "TargetGenerator");
 
-  TargetGenerator::TargetGenerator(const UserConfig& usercfg,
-                                   const std::list<std::string>& clusters,
-                                   const std::list<std::string>& indexurls)
-    : threadCounter(0) {
+  TargetGenerator::TargetGenerator(const UserConfig& usercfg)
+    : threadCounter(0), usercfg(usercfg) {
 
-    if (!usercfg.ResolveAlias(clusters, indexurls, clusterselect,
-                              clusterreject, indexselect, indexreject))
+    if (usercfg.GetSelectedServices(COMPUTING).empty() &&
+        usercfg.GetSelectedServices(INDEX).empty())
       return;
 
-    if (clusterselect.empty() && indexselect.empty())
-      if (!usercfg.DefaultServices(clusterselect, indexselect))
-        return;
-
-    for (URLListMap::iterator it = clusterselect.begin();
-         it != clusterselect.end(); it++)
-      for (std::list<URL>::iterator it2 = it->second.begin();
+    for (URLListMap::const_iterator it = usercfg.GetSelectedServices(COMPUTING).begin();
+         it != usercfg.GetSelectedServices(COMPUTING).end(); it++)
+      for (std::list<URL>::const_iterator it2 = it->second.begin();
            it2 != it->second.end(); it2++) {
         Config cfg;
         XMLNode url = cfg.NewChild("URL") = it2->str();
@@ -43,9 +37,9 @@ namespace Arc {
         loader.load(it->first, cfg, usercfg);
       }
 
-    for (URLListMap::iterator it = indexselect.begin();
-         it != indexselect.end(); it++)
-      for (std::list<URL>::iterator it2 = it->second.begin();
+    for (URLListMap::const_iterator it = usercfg.GetSelectedServices(INDEX).begin();
+         it != usercfg.GetSelectedServices(INDEX).end(); it++)
+      for (std::list<URL>::const_iterator it2 = it->second.begin();
            it2 != it->second.end(); it2++) {
         Config cfg;
         XMLNode url = cfg.NewChild("URL") = it2->str();
@@ -101,8 +95,8 @@ namespace Arc {
 
   bool TargetGenerator::AddService(const URL& url) {
 
-    for (URLListMap::iterator it = clusterreject.begin();
-         it != clusterreject.end(); it++)
+    for (URLListMap::const_iterator it = usercfg.GetRejectedServices(COMPUTING).begin();
+         it != usercfg.GetRejectedServices(COMPUTING).end(); it++)
       if (std::find(it->second.begin(), it->second.end(), url) !=
           it->second.end()) {
         logger.msg(INFO, "Rejecting service: %s", url.str());
@@ -123,8 +117,8 @@ namespace Arc {
 
   bool TargetGenerator::AddIndexServer(const URL& url) {
 
-    for (URLListMap::iterator it = indexreject.begin();
-         it != indexreject.end(); it++)
+    for (URLListMap::const_iterator it = usercfg.GetRejectedServices(INDEX).begin();
+         it != usercfg.GetRejectedServices(INDEX).end(); it++)
       if (std::find(it->second.begin(), it->second.end(), url) !=
           it->second.end()) {
         logger.msg(INFO, "Rejecting service: %s", url.str());

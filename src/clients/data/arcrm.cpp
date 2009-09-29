@@ -99,10 +99,8 @@ int main(int argc, char **argv) {
     return 1;
   }
 
-  if (debug.empty() && usercfg.ConfTree()["Debug"]) {
-    debug = (std::string)usercfg.ConfTree()["Debug"];
-    Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(debug));
-  }
+  if (debug.empty() && !usercfg.Verbosity().empty())
+    Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(usercfg.Verbosity()));
 
   if (version) {
     std::cout << Arc::IString("%s version %s", "arcrm", VERSION) << std::endl;

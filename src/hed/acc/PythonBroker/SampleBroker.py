@@ -14,13 +14,13 @@ class MyBroker:
 
         # Extract some useful information from the broker configuration
 
-        self.proxypath = usercfg.ConfTree().Get('ProxyPath')
-        self.certificatepath = usercfg.ConfTree().Get('CertificatePath')
-        self.keypath = usercfg.ConfTree().Get('KeyPath')
-        self.cacertificatesdir = usercfg.ConfTree().Get('CACertificatesDir')
-        pos = str(usercfg.ConfTree().Get('Broker').Get('Arguments')).find(':')
+        self.proxypath = usercfg.ProxyPath()
+        self.certificatepath = usercfg.CertificatePath()
+        self.keypath = usercfg.KeyPath()
+        self.cacertificatesdir = usercfg.CACertificatesDirectory()
+        pos = usercfg.Broker().second.find(':')
         if pos > 0:
-            self.args = str(usercfg.ConfTree().Get('Broker').Get('Arguments'))[pos + 1:]
+            self.args = usercfg.Broker.second[pos + 1:]
         else:
             self.args = ""
 

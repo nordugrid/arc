@@ -126,17 +126,14 @@ int main(int argc, char **argv) {
     return 1;
   }
 
-  if (debug.empty() && usercfg.ConfTree()["Debug"]) {
-    debug = (std::string)usercfg.ConfTree()["Debug"];
-    Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(debug));
-  }
+  if (debug.empty() && !usercfg.Verbosity().empty())
+    Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(usercfg.Verbosity()));
 
-  if (timeout > 0) {
-    usercfg.SetTimeOut(timeout);
-  }
+  if (timeout > 0)
+    usercfg.Timeout(timeout);
 
   if (!broker.empty())
-    usercfg.SetBroker(broker);
+    usercfg.Broker(broker);
 
   if (version) {
     std::cout << Arc::IString("%s version %s", "arcresub", VERSION)
@@ -152,7 +149,17 @@ int main(int argc, char **argv) {
     return 1;
   }
 
-  Arc::JobSupervisor jobmaster(usercfg, jobs, clusters);
+  // Different selected services are needed in two different context,
+  // so the two copies of UserConfig objects will contain different
+  // selected services.
+  Arc::UserConfig usercfg2 = usercfg;
+
+  if (!clusters.empty()) {
+    usercfg.ClearSelectedServices();
+    usercfg.AddServices(clusters, Arc::COMPUTING);
+  }
+
+  Arc::JobSupervisor jobmaster(usercfg, jobs);
   std::list<Arc::JobController*> jobcont = jobmaster.GetJobControllers();
 
   // If the user specified a joblist on the command line joblist equals
@@ -162,9 +169,8 @@ int main(int argc, char **argv) {
     return 1;
   }
 
-  // Clearing jobs and cluster
+  // Clearing jobs.
   jobs.clear();
-  clusters.clear();
 
   std::list<Arc::Job> toberesubmitted;
   for (std::list<Arc::JobController*>::iterator it = jobcont.begin();
@@ -196,7 +202,7 @@ int main(int argc, char **argv) {
   qlusters.unique();
 
   // Resubmitting jobs
-  Arc::TargetGenerator targen(usercfg, qlusters, indexurls);
+  Arc::TargetGenerator targen(usercfg);
   targen.GetTargets(0, 1);
 
   if (targen.FoundTargets().empty()) {
@@ -205,9 +211,8 @@ int main(int argc, char **argv) {
   }
 
   Arc::BrokerLoader loader;
-  Arc::Broker *ChosenBroker = loader.load(usercfg.ConfTree()["Broker"]["Name"], usercfg);
-  logger.msg(Arc::INFO, "Broker %s loaded",
-             (std::string)usercfg.ConfTree()["Broker"]["Name"]);
+  Arc::Broker *ChosenBroker = loader.load(usercfg.Broker().first, usercfg);
+  logger.msg(Arc::INFO, "Broker %s loaded", usercfg.Broker().first);
 
   // Loop over jobs
   for (std::list<Arc::Job>::iterator it = toberesubmitted.begin();
@@ -246,8 +251,10 @@ int main(int argc, char **argv) {
   if (jobs.empty())
     return 0;
 
+  usercfg.ClearSelectedServices();
+
   // Only kill and clean jobs that have been resubmitted
-  Arc::JobSupervisor killmaster(usercfg, jobs, clusters);
+  Arc::JobSupervisor killmaster(usercfg, jobs);
   std::list<Arc::JobController*> killcont = killmaster.GetJobControllers();
   if (killcont.empty()) {
     logger.msg(Arc::ERROR, "No job controllers loaded");

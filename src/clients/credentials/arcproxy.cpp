@@ -50,7 +50,7 @@ static void tls_process_error(void) {
 }
 
 #define PASS_MIN_LENGTH 6
-static int input_password(char* password, int passwdsz, bool verify, 
+static int input_password(char* password, int passwdsz, bool verify,
     const std::string prompt_info, const std::string prompt_verify_info) {
   UI *ui = NULL;
   int res = 0;
@@ -188,7 +188,7 @@ int main(int argc, char *argv[]) {
   int timeout = -1;
   options.AddOption('t', "timeout", istring("timeout in seconds (default " + Arc::tostring(Arc::UserConfig::DEFAULT_TIMEOUT) + ")"),
                     istring("seconds"), timeout);
-                    
+
   std::string conffile;
   options.AddOption('z', "conffile",
                     istring("configuration file (default ~/.arc/client.xml)"),
@@ -214,16 +214,13 @@ int main(int argc, char *argv[]) {
     logger.msg(Arc::ERROR, "Failed configuration initialization");
     return EXIT_FAILURE;
   }
-  
-  if (debug.empty() && usercfg.ConfTree()["Debug"]) {
-    debug = (std::string)usercfg.ConfTree()["Debug"];
-    Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(debug));
-  }
 
-  if (timeout > 0) {
-    usercfg.SetTimeOut((unsigned int)timeout);
-  }
-  
+  if (debug.empty() && !usercfg.Verbosity().empty())
+    Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(usercfg.Verbosity()));
+
+  if (timeout > 0)
+    usercfg.Timeout(timeout);
+
   if (version) {
     std::cout << Arc::IString("%s version %s", "arcproxy", VERSION) << std::endl;
     return EXIT_SUCCESS;
@@ -236,35 +233,35 @@ int main(int argc, char *argv[]) {
       throw std::invalid_argument("Wrong number of arguments!");
 
     // TODO: Conver to UserConfig. But only after UserConfig is extended.
-    if (key_path.empty()) 
+    if (key_path.empty())
       key_path = Arc::GetEnv("X509_USER_KEY");
     if (key_path.empty())
-      key_path = (std::string)usercfg.ConfTree()["KeyPath"];
+      key_path = usercfg.KeyPath();
     if (key_path.empty())
       key_path = user.Home() + G_DIR_SEPARATOR_S + ".globus" + G_DIR_SEPARATOR_S + "userkey.pem";
-    if (!Glib::file_test(key_path, Glib::FILE_TEST_IS_REGULAR)) 
+    if (!Glib::file_test(key_path, Glib::FILE_TEST_IS_REGULAR))
       key_path = "";
 
     if (cert_path.empty())
       cert_path = Arc::GetEnv("X509_USER_CERT");
     if (cert_path.empty())
-      cert_path = (std::string)usercfg.ConfTree()["CertificatePath"];
+      cert_path = usercfg.CertificatePath();
     if (cert_path.empty())
       cert_path = user.Home() + G_DIR_SEPARATOR_S + ".globus" + G_DIR_SEPARATOR_S + "usercert.pem";
-    if (!Glib::file_test(cert_path, Glib::FILE_TEST_IS_REGULAR)) 
+    if (!Glib::file_test(cert_path, Glib::FILE_TEST_IS_REGULAR))
            cert_path = "";
 
     if (proxy_path.empty())
       proxy_path = Arc::GetEnv("X509_USER_PROXY");
     if (proxy_path.empty())
-      proxy_path = (std::string)usercfg.ConfTree()["ProxyPath"];
-    if (proxy_path.empty()) 
-      proxy_path  = Glib::build_filename(Glib::get_tmp_dir(),"x509up_u" + Arc::tostring(user.get_uid())); 
+      proxy_path = usercfg.ProxyPath();
+    if (proxy_path.empty())
+      proxy_path  = Glib::build_filename(Glib::get_tmp_dir(),"x509up_u" + Arc::tostring(user.get_uid()));
 
     if (ca_dir.empty())
       ca_dir = Arc::GetEnv("X509_CERT_DIR");
     if (ca_dir.empty())
-      ca_dir = (std::string)usercfg.ConfTree()["CACertificatesDir"];
+      ca_dir = usercfg.CACertificatesDirectory();
     if (ca_dir.empty()) {
       ca_dir = std::string(g_get_home_dir()) + G_DIR_SEPARATOR_S + ".globus" + G_DIR_SEPARATOR_S + "certificates";
       if (!Glib::file_test(ca_dir, Glib::FILE_TEST_IS_DIR))
@@ -291,8 +288,8 @@ int main(int argc, char *argv[]) {
         ca_dir = "";
     }
     if (ca_dir.empty()) {
-      ca_dir = "/etc/grid-security/certificates"; 
-      if (!Glib::file_test(ca_dir, Glib::FILE_TEST_IS_DIR)) 
+      ca_dir = "/etc/grid-security/certificates";
+      if (!Glib::file_test(ca_dir, Glib::FILE_TEST_IS_DIR))
         ca_dir = "";
     }
 
@@ -310,7 +307,7 @@ int main(int argc, char *argv[]) {
   if(ca_dir.empty()) {
       std::cerr<<"Cannot find the CA Certificate Directory path, please setup environment X509_CERT_DIR, or CACertificatesDir in configuration file"<<std::endl;
       return EXIT_FAILURE;
-  } 
+  }
 
   if (info) {
     std::vector<std::string> voms_attributes;
@@ -342,12 +339,12 @@ int main(int argc, char *argv[]) {
   }
 
   if(cert_path.empty() || key_path.empty()) {
-      if(cert_path.empty()) 
+      if(cert_path.empty())
          std::cerr<<"Cannot find the user certificate path, please setup environment X509_USER_CERT, or CertificatePath in configuration file"<<std::endl;
-      if(key_path.empty()) 
+      if(key_path.empty())
          std::cerr<<"Cannot find the user private key path, please setup environment X509_USER_KEY, or KeyPath in configuration file"<<std::endl;
       return EXIT_FAILURE;
-  } 
+  }
 
   std::map<std::string, std::string> constraints;
   for (std::list<std::string>::iterator it = constraintlist.begin();
@@ -365,9 +362,9 @@ int main(int argc, char *argv[]) {
       (constraints["validityPeriod"].empty()))
     constraints["validityPeriod"] = "43200";
 
-  //If the period is formated with hours, e.g., 12h, then change 
+  //If the period is formated with hours, e.g., 12h, then change
   //it into seconds
-  if(!(constraints["validityPeriod"].empty()) && 
+  if(!(constraints["validityPeriod"].empty()) &&
     ((constraints["validityPeriod"].rfind("h") != std::string::npos) ||
     (constraints["validityPeriod"].rfind("H") != std::string::npos))) {
     unsigned long tmp;
@@ -421,7 +418,7 @@ int main(int argc, char *argv[]) {
       std::string prompt1 = "MyProxy server";
       char password[256];
       int res = input_password(password, 256, false, prompt1, "");
-      if(!res) throw std::invalid_argument("Error entering passphrase"); 
+      if(!res) throw std::invalid_argument("Error entering passphrase");
 
       passphrase = password;
 
@@ -446,7 +443,7 @@ int main(int argc, char *argv[]) {
       //  cfg.AddProxy(proxy_path);
       cfg.AddCADir(ca_dir);
       //TODO: for "GET" command, client authentication is optional
-      Arc::ClientTCP client(cfg, host, port, Arc::GSISec, Arc::stringtoi(usercfg.ConfTree()["TimeOut"]));
+      Arc::ClientTCP client(cfg, host, port, Arc::GSISec, usercfg.Timeout());
 
       //Send the message to myproxy server
       Arc::PayloadRaw request;
@@ -581,7 +578,7 @@ int main(int argc, char *argv[]) {
       //return EXIT_SUCCESS;
       //Assign proxy_path to cert_path and key_path,
       //so the later voms functionality can use the proxy_path
-      //to create proxy with voms AC extension. In this 
+      //to create proxy with voms AC extension. In this
       //case, "--cert" and "--key" is not needed.
       cert_path = proxy_path;
       key_path = proxy_path;
@@ -645,7 +642,7 @@ int main(int argc, char *argv[]) {
       if (vomses_path.empty())
         vomses_path = Arc::GetEnv("X509_VOMS_DIR");
       if (vomses_path.empty())
-        vomses_path = (std::string)usercfg.ConfTree()["VOMSServerPath"];
+        vomses_path = usercfg.VOMSServerPath();
 
       if (vomses_path.empty()) {
           vomses_path = "/etc/grid-security/.vomses";
@@ -661,7 +658,7 @@ int main(int argc, char *argv[]) {
                 std::string tmp1 = user.Home() + "/.vomses";
                 std::string tmp2 = user.Home() + "/.voms/vomses";
                 std::string tmp3 = Arc::ArcLocation::Get() + G_DIR_SEPARATOR_S +"etc" + G_DIR_SEPARATOR_S + "grid-security" + G_DIR_SEPARATOR_S + ".vomses";
-                logger.msg(Arc::ERROR, "Cannot find vomses at %s, %s, %s and /etc/grid-security/.vomses", 
+                logger.msg(Arc::ERROR, "Cannot find vomses at %s, %s, %s and /etc/grid-security/.vomses",
                   tmp1.c_str(), tmp2.c_str(), tmp3.c_str());
                 return EXIT_FAILURE;
               }
@@ -759,7 +756,7 @@ int main(int argc, char *argv[]) {
             command_2server.append("B").append(command.substr(0, pos)).append(":").append(command.substr(pos + 6));
         }
         send_msg.append(command_2server).append("</command><lifetime>").append(voms_period).append("</lifetime></voms>");
-        Arc::ClientTCP client(cfg, address, atoi(port.c_str()), use_gsi_comm?Arc::GSISec:Arc::SSL3Sec, Arc::stringtoi(usercfg.ConfTree()["TimeOut"]));
+        Arc::ClientTCP client(cfg, address, atoi(port.c_str()), use_gsi_comm?Arc::GSISec:Arc::SSL3Sec, usercfg.Timeout());
         Arc::PayloadRaw request;
         request.Insert(send_msg.c_str(), 0, send_msg.length());
         Arc::PayloadStreamInterface *response = NULL;
@@ -774,7 +771,7 @@ int main(int argc, char *argv[]) {
           logger.msg(Arc::ERROR, "No stream response from voms server");
           return EXIT_FAILURE;
         }
-        std::string ret_str;    
+        std::string ret_str;
         char ret_buf[1024];
         memset(ret_buf, 0, 1024);
         int len;
@@ -833,7 +830,7 @@ int main(int argc, char *argv[]) {
 
     if(!use_gsi_proxy)
       cred_request.SetProxyPolicy("rfc", policy.empty() ? "inheritAll" : "anylanguage", policy, -1);
-    else 
+    else
       cred_request.SetProxyPolicy("gsi2", "", "", -1);
 
     std::string proxy_cert;
@@ -855,7 +852,7 @@ int main(int argc, char *argv[]) {
     //std::cout<<"Your proxy is valid until: "<<(std::string)left<<std::endl;
     std::cout<<"Your proxy is valid until: "<<left.str(Arc::RFC1123Time)<<std::endl;
 
-    //return EXIT_SUCCESS;  
+    //return EXIT_SUCCESS;
   } catch (std::exception& err) {
     std::cerr << "ERROR: " << err.what() << std::endl;
     tls_process_error();
@@ -902,7 +899,7 @@ int main(int argc, char *argv[]) {
       Arc::MCCConfig cfg;
       cfg.AddProxy(proxy_path);
       cfg.AddCADir(ca_dir);
-      Arc::ClientTCP client(cfg, host, port, Arc::GSISec, Arc::stringtoi(usercfg.ConfTree()["TimeOut"]));
+      Arc::ClientTCP client(cfg, host, port, Arc::GSISec, usercfg.Timeout());
 
       //Send the message to myproxy server
       Arc::PayloadRaw request;
@@ -964,7 +961,7 @@ int main(int argc, char *argv[]) {
       Arc::Credential proxy;
       std::string signedcert, signing_cert, signing_cert_chain;
       proxy.InquireRequest(x509ret_str, false, true);
-      proxy.SetProxyPolicy("rfc","inheritAll","",-1); 
+      proxy.SetProxyPolicy("rfc","inheritAll","",-1);
       if (!(signer.SignRequest(&proxy, signedcert,true))) {
         logger.msg(Arc::ERROR, "Delegate proxy to myproxy server failed");
         return EXIT_FAILURE;

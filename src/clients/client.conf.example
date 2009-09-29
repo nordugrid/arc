@@ -1,0 +1,44 @@
+[common]
+# Default services.
+# Services to be used if none is given on the commandline can be
+# specified using the 'defaultservices' attribute. Setting this here
+# will override the default services set in the system configuration.
+# The value of this attribute should follow the format:
+# <service_type>:<flavour>:<service_url>
+# where <service_type> is type of service (e.g. computing or index),
+# <flavour> specifies type of middleware plugin to use when contacting
+# the service (e.g. ARC0, ARC1, CREAM, UNICORE, etc.) and <service_url>
+# is the URL used to contact the service.
+#defaultservices=index:ARC0:ldap://grid.tsl.uu.se:2135/Mds-Vo-name=Sweden,o=grid computing:ARC1:https://knowarc1.grid.niif.hu:60000/arex
+
+# Rejected services.
+# The attribute 'rejectservices' can be used to indicate that a certain
+# service should be rejected.
+#rejectservices=computing:ARC1:https://bad.service.org/arex
+
+# Specify the broker used in resource discovery. The default broker is
+# the 'Random' broker.
+#brokername=FastestQueue
+# Some brokers takes arguments and these can be specified by using the
+# 'brokerarguments' attribute.
+#brokerarguments=
+
+# The location of credentials can be specified by using the 'proxypath',
+# 'keypath' or 'certificatepath' attribute, in case they are located
+# in a non-standard location.
+#proxypath=/tmp/my-proxy
+#keypath=/home/username/key.pem
+#certificatepath=/home/username/cert.pem
+
+# The location of the directory containing CA-certificates can also be
+# specified.
+#cacertificatesdirectory=/home/user/cacertificates
+
+# Alias definition. Instead of typing the whole URL on the commandline use a alias instead.
+#[alias]
+#arc0=computing:ARC0:ldap://grid.tsl.uu.se:2135/nordugrid-cluster-name=grid.tsl.uu.se,Mds-Vo-name=local,o=grid
+#arc1=computing:ARC1:https://knowarc1.grid.niif.hu:60000/arex
+#cream=computing:CREAM:ldap://cream.grid.upjs.sk:2170/o=grid
+#unicore=computing:UNICORE:https://testbed5.grid.upjs.sk:8080/KnowARC-testbed/services/BESFactory?res=default_bes_factory
+# An alias can also be defined from other aliases.
+#crossbrokering=arc0 arc1 cream unicore

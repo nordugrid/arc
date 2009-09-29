@@ -15,12 +15,11 @@ except:
 
 ssl_config = {}
 user_config = arc.UserConfig("")
-config_xml = user_config.ConfTree()
-key_file = str(config_xml.Get('KeyPath'))
-cert_file = str(config_xml.Get('CertificatePath'))
-proxy_file = str(config_xml.Get('ProxyPath'))
-ca_file = str(config_xml.Get('CACertificatePath'))
-ca_dir = str(config_xml.Get('CACertificatesDir'))
+key_file = user_config.KeyPath()
+cert_file = user_config.CertificatePath()
+proxy_file = user_config.ProxyPath()
+ca_file = user_config.CACertificatePath()
+ca_dir = user_config.CACertificatesDirectory()
 key_file = os.environ.get('ARC_KEY_FILE', key_file)
 cert_file = os.environ.get('ARC_CERT_FILE', cert_file)
 proxy_file = os.environ.get('ARC_PROXY_FILE', proxy_file)

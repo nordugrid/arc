@@ -234,12 +234,9 @@ namespace Arc {
 
     logger.msg(DEBUG, "Cleaning job: %s", job.JobID.str());
 
-    Config cfg;
-    usercfg.ApplyToConfig(cfg);
-
     FTPControl ctrl;
-    if (!ctrl.Connect(job.JobID, cfg["ProxyPath"], cfg["CertificatePath"],
-                      cfg["KeyPath"], stringtoi(cfg["TimeOut"]))) {
+    if (!ctrl.Connect(job.JobID, usercfg.ProxyPath(), usercfg.CertificatePath(),
+                      usercfg.KeyPath(), usercfg.Timeout())) {
       logger.msg(ERROR, "Failed to connect for job cleaning");
       return false;
     }
@@ -249,17 +246,17 @@ namespace Arc {
     std::string jobpath = path.substr(0, pos);
     std::string jobidnum = path.substr(pos + 1);
 
-    if (!ctrl.SendCommand("CWD " + jobpath, stringtoi(cfg["TimeOut"]))) {
+    if (!ctrl.SendCommand("CWD " + jobpath, usercfg.Timeout())) {
       logger.msg(ERROR, "Failed sending CWD command for job cleaning");
       return false;
     }
 
-    if (!ctrl.SendCommand("RMD " + jobidnum, stringtoi(cfg["TimeOut"]))) {
+    if (!ctrl.SendCommand("RMD " + jobidnum, usercfg.Timeout())) {
       logger.msg(ERROR, "Failed sending RMD command for job cleaning");
       return false;
     }
 
-    if (!ctrl.Disconnect(stringtoi(cfg["TimeOut"]))) {
+    if (!ctrl.Disconnect(usercfg.Timeout())) {
       logger.msg(ERROR, "Failed to disconnect after job cleaning");
       return false;
     }
@@ -274,12 +271,9 @@ namespace Arc {
 
     logger.msg(DEBUG, "Cleaning job: %s", job.JobID.str());
 
-    Config cfg;
-    usercfg.ApplyToConfig(cfg);
-
     FTPControl ctrl;
-    if (!ctrl.Connect(job.JobID, cfg["ProxyPath"], cfg["CertificatePath"],
-                      cfg["KeyPath"], stringtoi(cfg["TimeOut"]))) {
+    if (!ctrl.Connect(job.JobID, usercfg.ProxyPath(), usercfg.CertificatePath(),
+                      usercfg.KeyPath(), usercfg.Timeout())) {
       logger.msg(ERROR, "Failed to connect for job cleaning");
       return false;
     }
@@ -289,17 +283,17 @@ namespace Arc {
     std::string jobpath = path.substr(0, pos);
     std::string jobidnum = path.substr(pos + 1);
 
-    if (!ctrl.SendCommand("CWD " + jobpath, stringtoi(cfg["TimeOut"]))) {
+    if (!ctrl.SendCommand("CWD " + jobpath, usercfg.Timeout())) {
       logger.msg(ERROR, "Failed sending CWD command for job cancelling");
       return false;
     }
 
-    if (!ctrl.SendCommand("DELE " + jobidnum, stringtoi(cfg["TimeOut"]))) {
+    if (!ctrl.SendCommand("DELE " + jobidnum, usercfg.Timeout())) {
       logger.msg(ERROR, "Failed sending DELE command for job cancelling");
       return false;
     }
 
-    if (!ctrl.Disconnect(stringtoi(cfg["TimeOut"]))) {
+    if (!ctrl.Disconnect(usercfg.Timeout())) {
       logger.msg(ERROR, "Failed to disconnect after job cancelling");
       return false;
     }
@@ -313,12 +307,9 @@ namespace Arc {
 
     logger.msg(DEBUG, "Renewing credentials for job: %s", job.JobID.str());
 
-    Config cfg;
-    usercfg.ApplyToConfig(cfg);
-
     FTPControl ctrl;
-    if (!ctrl.Connect(job.JobID, cfg["ProxyPath"], cfg["CertificatePath"],
-                      cfg["KeyPath"], stringtoi(cfg["TimeOut"]))) {
+    if (!ctrl.Connect(job.JobID, usercfg.ProxyPath(), usercfg.CertificatePath(),
+                      usercfg.KeyPath(), usercfg.Timeout())) {
       logger.msg(ERROR, "Failed to connect for credential renewal");
       return false;
     }
@@ -328,17 +319,17 @@ namespace Arc {
     std::string jobpath = path.substr(0, pos);
     std::string jobidnum = path.substr(pos + 1);
 
-    if (!ctrl.SendCommand("CWD " + jobpath, stringtoi(cfg["TimeOut"]))) {
+    if (!ctrl.SendCommand("CWD " + jobpath, usercfg.Timeout())) {
       logger.msg(ERROR, "Failed sending CWD command for credentials renewal");
       return false;
     }
 
-    if (!ctrl.SendCommand("CWD " + jobidnum, stringtoi(cfg["TimeOut"]))) {
+    if (!ctrl.SendCommand("CWD " + jobidnum, usercfg.Timeout())) {
       logger.msg(ERROR, "Failed sending CWD command for credentials renewal");
       return false;
     }
 
-    if (!ctrl.Disconnect(stringtoi(cfg["TimeOut"]))) {
+    if (!ctrl.Disconnect(usercfg.Timeout())) {
       logger.msg(ERROR, "Failed to disconnect after credentials renewal");
       return false;
     }
@@ -383,9 +374,6 @@ namespace Arc {
     }
     outfile.close();
 
-    Config cfg;
-    usercfg.ApplyToConfig(cfg);
-
     // Send temporary file to cluster
     DataMover mover;
     FileCache cache;
@@ -396,7 +384,7 @@ namespace Arc {
     source->SetTries(1);
     destination->SetTries(1);
     DataStatus res = mover.Transfer(*source, *destination, cache, URLMap(),
-                                    0, 0, 0, stringtoi(cfg["TimeOut"]));
+                                    0, 0, 0, usercfg.Timeout());
     if (!res.Passed()) {
       if (!res.GetDesc().empty())
         logger.msg(INFO, "Current transfer FAILED: %s - %s", std::string(res), res.GetDesc());
@@ -448,9 +436,6 @@ namespace Arc {
     std::string cluster = jobid.substr(0, pos);
     std::string shortid = jobid.substr(pos + 1);
 
-    Config cfg;
-    usercfg.ApplyToConfig(cfg);
-
     // Transfer job description
     DataMover mover;
     mover.secure(false);
@@ -468,7 +453,7 @@ namespace Arc {
     source->SetTries(1);
     destination->SetTries(1);
     DataStatus res = mover.Transfer(*source, *destination, cache, URLMap(),
-                                    0, 0, 0, stringtoi(cfg["TimeOut"]));
+                                    0, 0, 0, usercfg.Timeout());
     if (!res.Passed()) {
       if (!res.GetDesc().empty())
         logger.msg(INFO, "Current transfer FAILED: %s - %s", std::string(res), res.GetDesc());

@@ -56,6 +56,26 @@ namespace Arc {
       return FATAL;
   }
 
+  bool istring_to_level(const std::string& llStr, LogLevel& ll) {
+    const std::string str = upper(llStr);
+    if (str == "VERBOSE")
+      ll = VERBOSE;
+    else if (str == "DEBUG")
+      ll = DEBUG;
+    else if (str == "INFO")
+      ll = INFO;
+    else if (str == "WARNING")
+      ll = WARNING;
+    else if (str == "ERROR")
+      ll = ERROR;
+    else if (str == "FATAL")
+      ll = FATAL;
+    else
+      return false;
+
+    return true;
+  }
+
   std::string level_to_string(const LogLevel& level) {
     switch (level) {
       case VERBOSE:

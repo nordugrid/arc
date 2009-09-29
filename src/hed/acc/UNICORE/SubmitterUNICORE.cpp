@@ -39,7 +39,7 @@ namespace Arc {
     usercfg.ApplyToConfig(cfg);
 
     //new code to use the UNICOREClient
-    UNICOREClient uc(et.url, cfg, stringtoi(usercfg.ConfTree()["TimeOut"]));
+    UNICOREClient uc(et.url, cfg, usercfg.Timeout());
 
     XMLNode id;
 

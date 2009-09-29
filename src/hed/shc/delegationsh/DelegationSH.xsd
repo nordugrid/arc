@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema
+   xmlns:deleg="http://www.nordugrid.org/schemas/DelegationSH"
+   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+   targetNamespace="http://www.nordugrid.org/schemas/DelegationSH"
+   elementFormDefault="qualified"
+   attributeFormDefault="unqualified">
+
+  <!-- This schema defines elements which are accepted by Delegation
+       SecHandler. See mcc.xsd for general information about SecHandler
+       elements. DelegationSH plugin is expected to be used to 
+       create delegation credential to delegation service, and acquire 
+       delegation credential from delegation service. Delegation handler 
+       acts as two different roles: client and service. 
+       'client' delegation handler is supposed to be embeded into client's
+       configuration, and it is used to create delegation credential;
+       'service' delegation handler is supposed to be embeded into service's
+       configuration, and it is used to acquire delegation credential.
+  -->       
+
+  <xsd:simpleType name="TypeType">
+    <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="x509"/>
+      <xsd:enumeration value="saml"/>
+    </xsd:restriction>
+  </xsd:simpleType>
+
+  <xsd:simpleType name="RoleType">
+    <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="client"/>
+      <xsd:enumeration value="service"/>
+    </xsd:restriction>
+  </xsd:simpleType>
+
+  <!-- This element defines the type of delegation credential which
+  this sec hanlder will process. -->
+  <xsd:element name="Type" type="deleg:TypeType"/>
+
+  <!-- This element defines the 'role' which this sec handler 
+   will act as.-->
+  <xsd:element name="Role" type="deleg:RoleType"/>
+
+
+  <!--The following is the credential with which this sec handler will use 
+  to contact delegation service, either for aquiring a delegation credential,
+  or for creating a delegation credential (in this case, the created delegation
+  credential will be based on this configured credential)-->
+  <!-- Location of Proxy certificate -->
+  <xsd:element name="ProxyPath" type="xsd:string"/>
+
+  <!-- Location of private key -->
+  <xsd:element name="KeyPath" type="xsd:string"/>
+
+  <!-- Location of public certificate. -->
+  <xsd:element name="CertificatePath" type="xsd:string"/>
+
+  <!-- Location of trusted CA certificate  -->
+  <xsd:element name="CACertificatePath" type="xsd:string"/>
+
+  <!-- Directory of trusted CA certificates  -->
+  <xsd:element name="CACertificatesDir" type="xsd:string"/>
+
+  <!-- The endpoint of delegation service to which this sec handler
+  will contact. -->
+  <xsd:element name="DelegationServiceEndpoint" type="xsd:string"/>
+
+  <!-- The endpoint of peer functional service to which the client (which
+  hosts this sec handler) will contact. This value is only meaningful
+  for 'client' role, and it should be the same as the endpoint in the main
+  chain.-->
+  <xsd:element name="DelegationServiceEndpoint" type="xsd:string"/>
+
+  <!-- The 'Identity' of the delegation credential. This value is an alternative
+  of the above credential. The 'service' role delegation handler (embeded in a
+  functional service, which in its implementation will also call another client
+  to invole another service, together, we can see a service invocation chain) is 
+  supposed to acquire delegation credential from a delegation service based on the 
+  'DelegationID' and 'DelegationService' values which are sent by the client.
+  Once it gets the specified delegation credential, it is supposed to store it 
+  into '/tmp/' directory with the name like '5612d050.pem' (5612d050 is the hash
+  value of the 'Identity' of this delegation credential).
+  Afterwards, the 'client' role delegation handler (embeded in the client
+  configuration, and this client is called inside this service implementation)
+  will use this stored delegation credential to create one more level delegation.
+  So the 'DelegationCredIdentity' value is used for finding this delegation 
+  credential in the '/tmp' directory.
+  This value is only meaningful for 'client' role.-->
+  <xsd:element name="DelegationCredIdentity" type="xsd:string"/>
+
+</xsd:schema>
+

@@ -110,10 +110,8 @@ int main(int argc, char **argv) {
     return 1;
   }
 
-  if (debug.empty() && usercfg.ConfTree()["Debug"]) {
-    debug = (std::string)usercfg.ConfTree()["Debug"];
-    Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(debug));
-  }
+  if (debug.empty() && !usercfg.Verbosity().empty())
+    Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(usercfg.Verbosity()));
 
   if (version) {
     std::cout << Arc::IString("%s version %s", "arcsync", VERSION)
@@ -140,8 +138,17 @@ int main(int argc, char **argv) {
      */
   }
 
+  if (!clusters.empty() || !indexurls.empty())
+    usercfg.ClearSelectedServices();
+
+  if (!clusters.empty())
+    usercfg.AddServices(clusters, Arc::COMPUTING);
+
+  if (!indexurls.empty())
+    usercfg.AddServices(indexurls, Arc::INDEX);
+
   //Find all jobs
-  Arc::TargetGenerator targen(usercfg, clusters, indexurls);
+  Arc::TargetGenerator targen(usercfg);
   targen.GetTargets(1, 1);
 
   //Some dummy output

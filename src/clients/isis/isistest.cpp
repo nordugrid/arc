@@ -21,21 +21,9 @@ Arc::Logger logger(Arc::Logger::rootLogger, "ISISTest");
 
 // Query function
 std::string Query( Arc::URL url, std::string query, Arc::UserConfig usercfg ){
-
-    Arc::NS uns;
-    Arc::Config ucfg(uns);
-    usercfg.ApplyToConfig(ucfg);
-
     Arc::MCCConfig mcc_cfg;
-    if (ucfg["ProxyPath"])
-        mcc_cfg.AddProxy((std::string)ucfg["ProxyPath"]);
-    if (ucfg["CertificatePath"])
-        mcc_cfg.AddCertificate((std::string)ucfg["CertificatePath"]);
-    if (ucfg["KeyPath"])
-        mcc_cfg.AddPrivateKey((std::string)ucfg["KeyPath"]);
-    if (ucfg["CACertificatesDir"])
-        mcc_cfg.AddCADir((std::string)ucfg["CACertificatesDir"]);
-    Arc::ClientSOAP client_entry(mcc_cfg, url, Arc::stringtoi(usercfg.ConfTree()["TimeOut"]));
+    usercfg.ApplyToConfig(mcc_cfg);
+    Arc::ClientSOAP client_entry(mcc_cfg, url, usercfg.Timeout());
 
     // Create and send Query request
     logger.msg(Arc::INFO, "Creating and sending request");
@@ -78,20 +66,9 @@ std::string Register( Arc::URL url, std::vector<std::string> &serviceID, std::ve
        return "-1";
     }
 
-    Arc::NS uns;
-    Arc::Config ucfg(uns);
-    usercfg.ApplyToConfig(ucfg);
-
     Arc::MCCConfig mcc_cfg;
-    if (ucfg["ProxyPath"])
-        mcc_cfg.AddProxy((std::string)ucfg["ProxyPath"]);
-    if (ucfg["CertificatePath"])
-        mcc_cfg.AddCertificate((std::string)ucfg["CertificatePath"]);
-    if (ucfg["KeyPath"])
-        mcc_cfg.AddPrivateKey((std::string)ucfg["KeyPath"]);
-    if (ucfg["CACertificatesDir"])
-        mcc_cfg.AddCADir((std::string)ucfg["CACertificatesDir"]);
-    Arc::ClientSOAP client_entry(mcc_cfg, url, Arc::stringtoi(usercfg.ConfTree()["TimeOut"]));
+    usercfg.ApplyToConfig(mcc_cfg);
+    Arc::ClientSOAP client_entry(mcc_cfg, url, usercfg.Timeout());
 
     // Create and send Register request
     logger.msg(Arc::INFO, "Creating and sending request");
@@ -105,7 +82,7 @@ std::string Register( Arc::URL url, std::vector<std::string> &serviceID, std::ve
     //request["Header"].NewChild("RequesterID");
 
     time_t rawtime;
-    time ( &rawtime );	//current time
+    time ( &rawtime );  //current time
     tm * ptm;
     ptm = gmtime ( &rawtime );
 
@@ -157,21 +134,9 @@ std::string Register( Arc::URL url, std::vector<std::string> &serviceID, std::ve
 
 // RemoveRegistrations function
 std::string RemoveRegistrations( Arc::URL url, std::vector<std::string> &serviceID, Arc::UserConfig usercfg ){
-
-    Arc::NS uns;
-    Arc::Config ucfg(uns);
-    usercfg.ApplyToConfig(ucfg);
-
     Arc::MCCConfig mcc_cfg;
-    if (ucfg["ProxyPath"])
-        mcc_cfg.AddProxy((std::string)ucfg["ProxyPath"]);
-    if (ucfg["CertificatePath"])
-        mcc_cfg.AddCertificate((std::string)ucfg["CertificatePath"]);
-    if (ucfg["KeyPath"])
-        mcc_cfg.AddPrivateKey((std::string)ucfg["KeyPath"]);
-    if (ucfg["CACertificatesDir"])
-        mcc_cfg.AddCADir((std::string)ucfg["CACertificatesDir"]);
-    Arc::ClientSOAP client_entry(mcc_cfg, url, Arc::stringtoi(usercfg.ConfTree()["TimeOut"]));
+    usercfg.ApplyToConfig(mcc_cfg);
+    Arc::ClientSOAP client_entry(mcc_cfg, url, usercfg.Timeout());
 
     // Create and send RemoveRegistrations request
     logger.msg(Arc::INFO, "Creating and sending request");
@@ -184,7 +149,7 @@ std::string RemoveRegistrations( Arc::URL url, std::vector<std::string> &service
         request.NewChild("ServiceID") = *it;
     }
     time_t rawtime;
-    time ( &rawtime );	//current time
+    time ( &rawtime );  //current time
     tm * ptm;
     ptm = gmtime ( &rawtime );
 
@@ -226,20 +191,9 @@ std::vector<std::string> GetISISList( Arc::URL url, Arc::UserConfig usercfg ){
     //The response vector
     std::vector<std::string> response;
 
-    Arc::NS uns;
-    Arc::Config ucfg(uns);
-    usercfg.ApplyToConfig(ucfg);
-
     Arc::MCCConfig mcc_cfg;
-    if (ucfg["ProxyPath"])
-        mcc_cfg.AddProxy((std::string)ucfg["ProxyPath"]);
-    if (ucfg["CertificatePath"])
-        mcc_cfg.AddCertificate((std::string)ucfg["CertificatePath"]);
-    if (ucfg["KeyPath"])
-        mcc_cfg.AddPrivateKey((std::string)ucfg["KeyPath"]);
-    if (ucfg["CACertificatesDir"])
-        mcc_cfg.AddCADir((std::string)ucfg["CACertificatesDir"]);
-    Arc::ClientSOAP client_entry(mcc_cfg, url, Arc::stringtoi(usercfg.ConfTree()["TimeOut"]));
+    usercfg.ApplyToConfig(mcc_cfg);
+    Arc::ClientSOAP client_entry(mcc_cfg, url, usercfg.Timeout());
 
     // Create and send GetISISList request
     logger.msg(Arc::INFO, "Creating and sending request");
@@ -417,7 +371,7 @@ int main(int argc, char** argv) {
        response = Register( ContactISIS, serviceID, epr, type, expiration, usercfg );
        if ( response != "-1" ){
           Arc::XMLNode resp(response);
-          if ( bool(resp["Body"]["Fault"]) ){ 
+          if ( bool(resp["Body"]["Fault"]) ){
              std::cout << " The Registeration failed!" << std::endl;
              std::cout << " The fault's name: " << (std::string)resp["Body"]["Fault"]["Name"] << std::endl;
              std::cout << " The fault's type: " << (std::string)resp["Body"]["Fault"]["Type"] << std::endl;

@@ -209,45 +209,40 @@ int main(int argc, char *argv[]) {
     return 1;
   }
 
-  if (debug.empty() && usercfg.ConfTree()["Debug"]) {
-    debug = (std::string)usercfg.ConfTree()["Debug"];
-    Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(debug));
-  }
+  if (debug.empty() && !usercfg.Verbosity().empty())
+    Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(usercfg.Verbosity()));
 
-  if (slcs_url.empty() && usercfg.ConfTree()["SLCSURL"])
-    slcs_url = (std::string)usercfg.ConfTree()["SLCSURL"];
+  if (slcs_url.empty() && usercfg.SLCS())
+    slcs_url = usercfg.SLCSURL();
 
-  if (idp_name.empty() && usercfg.ConfTree()["IdPname"])
-    idp_name = (std::string)usercfg.ConfTree()["IdPname"];
+  if (idp_name.empty() && usercfg.IdPname())
+    idp_name = usercfg.IdPname();
 
-  if (username.empty() && usercfg.ConfTree()["Username"])
-    username = (std::string)usercfg.ConfTree()["Username"];
+  if (username.empty() && !usercfg.Username().empty())
+    username = usercfg.UserName();
 
-  if (password.empty() && usercfg.ConfTree()["Password"])
-    password = (std::string)usercfg.ConfTree()["Password"];
+  if (password.empty() && !usercfg.Password().empty())
+    password = usercfg.Password();
 
-  if (keysize == 0 && usercfg.ConfTree()["Keysize"]) {
-    std::string keysize_str = (std::string)usercfg.ConfTree()["Keysize"];
-    keysize = strtol(keysize_str.c_str(), NULL, 0);
-  }
-  if (keysize == 0)
+  if (keysize == 0 && usercfg.KeySize() > 0)
+    keysize = usercfg.KeySize();
+  else if (keysize == 0)
     keysize = 1024;
 
-  if (keypass.empty() && usercfg.ConfTree()["Keypass"])
-    keypass = (std::string)usercfg.ConfTree()["Keypass"];
+  if (keypass.empty() && !usercfg.KeyPassword().empty())
+    keypass = usercfg.KeyPassword();
 
-  if (lifetime == 0 && usercfg.ConfTree()["CertLifetime"]) {
-    std::string lifetime_str = (std::string)usercfg.ConfTree()["CertLifetime"];
-    lifetime = strtol(lifetime_str.c_str(), NULL, 0);
+  if (lifetime == 0 && usercfg.CertificateLifeTime() > 0) {
+    lifetime = usercfg.CertificateLifeTime();
   }
   if (lifetime == 0)
     lifetime = 12;
 
-  if (storedir.empty() && usercfg.ConfTree()["StoreDir"])
-    storedir = (std::string)usercfg.ConfTree()["StoreDir"];
+  if (storedir.empty() && !usercfg.StoreDirectory().empty())
+    storedir = usercfg.StoreDirectory();
 
-  trusted_ca_path = (std::string)usercfg.ConfTree()["CACertificatePath"];
-  trusted_ca_dir = (std::string)usercfg.ConfTree()["CACertificatesDir"];
+  trusted_ca_path = usercfg.CACertificatePath();
+  trusted_ca_dir = usercfg.CACertificatesDirectory();
 
   if (version) {
     std::cout << Arc::IString("%s version %s", "arcslcs", VERSION) << std::endl;

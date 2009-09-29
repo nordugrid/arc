@@ -112,7 +112,7 @@ namespace Arc {
 
     logger.msg(DEBUG, "PythonBroker init");
 
-    std::string args = (std::string)usercfg.ConfTree()["Broker"]["Arguments"];
+    std::string args = usercfg.Broker().second;
     std::string::size_type pos = args.find(':');
     if (pos != std::string::npos)
       args.resize(pos);

@@ -40,7 +40,7 @@ namespace Arc {
          iter != jobstore.end(); iter++) {
       URL url(iter->Cluster);
       XMLNode id(iter->AuxInfo);
-      ClientSOAP client(cfg, url, stringtoi(usercfg.ConfTree()["TimeOut"]));
+      ClientSOAP client(cfg, url, usercfg.Timeout());
       logger.msg(INFO, "Creating and sending a status request");
       NS ns;
       ns["bes-factory"] = "http://schemas.ggf.org/bes/2006/08/bes-factory";
