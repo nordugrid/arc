@@ -30,7 +30,7 @@
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="Version" minOccurs="0" maxOccurs="1" default="4">
-                <xsd:simpleType name="Version_Type">
+                <xsd:simpleType>
                     <xsd:annotation>
                         <xsd:documentation xml:lang="en">
                         This element defines TCP/IP protocol version.

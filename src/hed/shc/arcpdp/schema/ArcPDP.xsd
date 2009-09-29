@@ -2,6 +2,7 @@
 <xsd:schema
   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
   xmlns="http://www.nordugrid.org/schemas/arcpdp/2009/08"
+  xmlns:pdp="http://www.nordugrid.org/schemas/arcpdp/2009/08"
   targetNamespace="http://www.nordugrid.org/schemas/arcpdp/2009/08"
   elementFormDefault="qualified">
  
@@ -21,32 +22,21 @@
         </xsd:sequence>
     </xsd:complexType>
 
-    <xsd:element name="PolicyStore" type="PolicyStoreType">
+    <xsd:element name="PolicyStore">
+        <xsd:complexType>
         <xsd:annotation>
             <xsd:documentation xml:lang="en">
               This element specifies file containing policy document.
               There could be multiple sub elements <Location/>.
             </xsd:documentation>
         </xsd:annotation>
-    </xsd:element>
-    <xsd:complexType name="PolicyStoreType">
         <xsd:sequence>
-            <xsd:element name="Location" type="LocationType" minOccurs="1" maxOccurs="unbounded"/>
+            <xsd:element name="Type" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="Location" type="xsd:string" minOccurs="1" maxOccurs="1"/>
         </xsd:sequence>
     </xsd:complexType>
-    <xsd:complexType name="LocationType">
-        <xsd:attribute name="type">
-            <xsd:documentation xml:lang="en">
-              This attribute is to specify the type of policy soure which
-              will be used when parsing policy.
-            </xsd:documentation>
-            <xsd:simpleType>
-                <xsd:restriction base="xsd:string"/>
-            </xsd:simpleType>
-        </xsd:attribute>
-        <xsd:restriction base="xsd:string"/>
-    </xsd:complexType>
-
+    </xsd:element>
+    
     <xsd:element name="PolicyCombiningAlg" type="xsd:string">
         <xsd:annotation>
             <xsd:documentation xml:lang="en">

@@ -30,7 +30,7 @@
   </xsd:simpleType>
 
   <xsd:element name="TokenUsage" type="xt:TokenUsageType"/>
-  <xsd:simpleType name="TokenUsageType" default="signature">
+  <xsd:simpleType name="TokenUsageType">
     <xsd:annotation>
         <xsd:documentation xml:lang="en">
           The usage of the X509 Token: signature or encryption.

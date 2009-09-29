@@ -31,7 +31,7 @@
       </xsd:annotation>
   </xsd:element>
 
-  <xsd:element name="CertificateDir" type="xsd:string">
+  <xsd:element name="CACertificatesDir" type="xsd:string">
       <xsd:annotation>
           <xsd:documentation xml:lang="en">
               Optional CACertificatesDir for SSL connection

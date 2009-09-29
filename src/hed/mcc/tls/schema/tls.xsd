@@ -39,7 +39,7 @@
     </xsd:annotation>
 </xsd:element>
 
-<xsd:element name="CACertificatePath" type="xsd:string"/>
+<xsd:element name="CACertificatePath" type="xsd:string">
     <xsd:annotation>
         <xsd:documentation xml:lang="en">
         Location of certificate of CA. Default is none.
@@ -103,7 +103,7 @@
 </xsd:element>
 
 <xsd:element name="Handshake" default="TLS">
-    <xsd:simpleType name="Handshake_Type">
+    <xsd:simpleType>
         <xsd:annotation>
             <xsd:documentation xml:lang="en">
             Type of handshake applied. Default is TLS.

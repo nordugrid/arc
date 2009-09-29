@@ -3,9 +3,9 @@
   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
   xmlns="http://www.nordugrid.org/schemas/pdpserviceinvoker/2009/08"
   targetNamespace="http://www.nordugrid.org/schemas/pdperviceinvoker/2009/08"
+  xmlns:pdp="http://www.nordugrid.org/schemas/pdperviceinvoker/2009/08"
   elementFormDefault="qualified">
  
-    <xsd:element name="Filter" type="FilterType"/>
     <xsd:complexType name="FilterType">
         <xsd:annotation>
             <xsd:documentation xml:lang="en">
@@ -19,6 +19,7 @@
             <xsd:element name="Reject" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
     </xsd:complexType>
+    <xsd:element name="Filter" type="pdp:FilterType"/>
 
     <xsd:element name="ServiceEndpoint" type="xsd:string">
         <xsd:annotation>
@@ -29,7 +30,7 @@
         </xsd:annotation>
     </xsd:element>
 
-    <xsd:element name="RequestFormat" type="xsd:string", default="arc">
+    <xsd:element name="RequestFormat" type="xsd:string" default="arc">
         <xsd:annotation>
             <xsd:documentation xml:lang="en">
              This element is to specified the format of request. Two options
@@ -94,7 +95,7 @@
         </xsd:annotation>
     </xsd:element>
 
-    <xsd:element name="CACertificatePath" type="xsd:string"/>
+    <xsd:element name="CACertificatePath" type="xsd:string">
         <xsd:annotation>
             <xsd:documentation xml:lang="en">
              Location of certificate of CA. Default is none.
@@ -103,14 +104,12 @@
     </xsd:element>
 
     <xsd:element name="CACertificatesDir" default="/etc/grid-security/certificates">
-        <xsd:complexType>
             <xsd:annotation>
                 <xsd:documentation xml:lang="en">
                  Directory containing certificates of accepted CAs.
                  Default is /etc/grid-security/certificates
                 </xsd:documentation>
             </xsd:annotation>
-        </xsd:complexType>
     </xsd:element>
 
 </xsd:schema>

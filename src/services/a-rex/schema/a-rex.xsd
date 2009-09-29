@@ -2,6 +2,7 @@
 <xsd:schema
   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
   xmlns="http://www.nordugrid.org/schemas/a-rex/2009/08"
+  xmlns:arex="http://www.nordugrid.org/schemas/a-rex/2009/08"
   xmlns:ip="http://www.nordugrid.org/schemas/a-rex/InfoProvider/2009/08"
   targetNamespace="http://www.nordugrid.org/schemas/a-rex/2009/08"
   elementFormDefault="qualified">
@@ -405,7 +406,6 @@
 
     <xsd:element name="jobLogPath" type="xsd:string"/>
 
-    <xsd:element name="jobReport" type="arc:jobReport_Type"/>
     
     <xsd:complexType name="jobReport_Type">
        <xsd:sequence>
@@ -424,6 +424,7 @@
                              minOccurs="0"/>
         </xsd:sequence>
     </xsd:complexType>
+    <xsd:element name="jobReport" type="arex:jobReport_Type"/>
 
     <xsd:element name="authPlugin" type="authPlugin_Type"/>
 
@@ -433,7 +434,7 @@
          be defined in separate file we keep minOccurs="0" for all elements -->
     <xsd:element name="control" type="control_Type"/>
 
-    <xsd:element name="helperUtility" type="arc:helperUtility_Type"/>
+    <xsd:element name="helperUtility" type="arex:helperUtility_Type"/>
 
     <xsd:complexType name="helperUtility_Type">
        <xsd:sequence>
@@ -444,7 +445,7 @@
     
     <xsd:element name="LRMS" type="LRMS_Type"/>
 
-    <xsd:element ref="ip:ComputingService"/>
+    <xsd:element name="ComputingService" type="ip:computingService_Type"/>
 
     <!-- Not ported elements
     #logsize="100000 2"

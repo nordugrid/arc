@@ -57,11 +57,13 @@
 <!-- Todo: should this be in some more common file? -->
 <!-- Todo2: how about proxy path? would break key/cert part... -->
 <xsd:element name="ClientSSLConfig">
+    <xsd:complexType>
     <xsd:annotation>
         <xsd:documentation xml:lang="en">
         Configuration parameters for SSL
         </xsd:documentation>
     </xsd:annotation>
+    <xsd:sequence>
     <xsd:element name="KeyPath" default="/etc/grid-security/hostkey.pem">
       <xsd:annotation>
         <xsd:documentation xml:lang="en">
@@ -83,6 +85,8 @@
         </xsd:documentation>
       </xsd:annotation>    
     </xsd:element>
+    </xsd:sequence>
+    </xsd:complexType>
 </xsd:element>
 
 </xsd:schema>

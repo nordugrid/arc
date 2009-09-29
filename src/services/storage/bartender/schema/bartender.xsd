@@ -45,8 +45,8 @@
 </xsd:element>
 
 <!-- GatewayClass -->
-<!-- todo: not sure if this one should have a default value; depends --
-  -- on third party libraries (globus) so shouldn't be enabled by default-->
+<!-- todo: not sure if this one should have a default value; depends -->
+<!-- on third party libraries (globus) so shouldn't be enabled by default-->
 <xsd:element name="GatewayClass">
     <xsd:annotation>
         <xsd:documentation xml:lang="en">
@@ -57,14 +57,16 @@
 
 <!-- GatewayCfg -->
 <xsd:element name="GatewayCfg">
+    <xsd:complexType>
     <xsd:annotation>
         <xsd:documentation xml:lang="en">
         Configuration parameters for the gateway class
         </xsd:documentation>
     </xsd:annotation>
-k    <!-- todo: why do both bartender and gateway need proxystore parameter?
+    <!-- todo: why do both bartender and gateway need proxystore parameter?
     shouldn't this parameter be identical for bartender and
     gateway anyway? -->
+    <xsd:sequence>
     <xsd:element name="ProxyStore" default="/var/spool/arc/proxy_store">
       <xsd:annotation>
         <xsd:documentation xml:lang="en">
@@ -79,6 +81,8 @@ k    <!-- todo: why do both bartender and gateway need proxystore parameter?
         </xsd:documentation>
       </xsd:annotation>    
     </xsd:element>
+    </xsd:sequence>
+    </xsd:complexType>
 </xsd:element>
 
 
@@ -86,11 +90,13 @@ k    <!-- todo: why do both bartender and gateway need proxystore parameter?
 <!-- Todo: should this be in some more common file? -->
 <!-- Todo2: how about proxy path? would break key/cert part... -->
 <xsd:element name="ClientSSLConfig">
+    <xsd:complexType>
     <xsd:annotation>
         <xsd:documentation xml:lang="en">
         Configuration parameters for SSL
         </xsd:documentation>
     </xsd:annotation>
+    <xsd:sequence>
     <xsd:element name="KeyPath" default="/etc/grid-security/hostkey.pem">
       <xsd:annotation>
         <xsd:documentation xml:lang="en">
@@ -112,6 +118,8 @@ k    <!-- todo: why do both bartender and gateway need proxystore parameter?
         </xsd:documentation>
       </xsd:annotation>    
     </xsd:element>
+    </xsd:sequence>
+    </xsd:complexType>
 </xsd:element>
 
 </xsd:schema>

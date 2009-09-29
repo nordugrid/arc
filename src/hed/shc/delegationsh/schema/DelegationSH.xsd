@@ -60,10 +60,6 @@
   <!-- Directory of trusted CA certificates  -->
   <xsd:element name="CACertificatesDir" type="xsd:string"/>
 
-  <!-- The endpoint of delegation service to which this sec handler
-  will contact. -->
-  <xsd:element name="DelegationServiceEndpoint" type="xsd:string"/>
-
   <!-- The endpoint of peer functional service to which the client (which
   hosts this sec handler) will contact. This value is only meaningful
   for 'client' role, and it should be the same as the endpoint in the main

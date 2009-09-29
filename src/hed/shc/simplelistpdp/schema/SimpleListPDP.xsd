@@ -24,9 +24,6 @@
          of identities to be matched.
          Default is none.
         </xsd:documentation>
-        <xsd:appinfo>
-          <ini:tag>location</ini:tag>
-        </xsd:appinfo>
     </xsd:annotation>
     <xsd:simpleType>
       <xsd:restriction base="xsd:string"/>

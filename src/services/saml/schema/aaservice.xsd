@@ -2,6 +2,7 @@
 <xsd:schema
   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
   xmlns="http://www.nordugrid.org/schemas/aaservice/2009/08"
+  xmlns:aa="http://www.nordugrid.org/schemas/aaservice/2009/08"
   targetNamespace="http://www.nordugrid.org/schemas/aaservice/2009/08"
   elementFormDefault="qualified">
 
@@ -23,7 +24,7 @@
         </xsd:annotation>
     </xsd:element>
 
-    <xsd:element name="CertificatePath" type="xsd:string">
+    <xsd:element name="CACertificatePath" type="xsd:string">
         <xsd:annotation>
             <xsd:documentation xml:lang="en">
                The location of the CA file path, which is supposed

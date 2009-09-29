@@ -1,95 +1,93 @@
-<ArcConfig
-  xmlns="http://www.nordugrid.org/schemas/ArcConfig/2007"
-  xmlns:tcp="http://www.nordugrid.org/schemas/ArcMCCTCP/2007"
-  xmlns:isis="http://www.nordugrid.org/schemas/isis/2008/08"
-  xmlns:pdp="http://www.nordugrid.org/schemas/pdp/Config"
-  xmlns:infosys="http://www.nordugrid.org/schemas/InfoRegisterConfig/2008"
+<?xml version="1.0"?>
+<cfg:ArcConfig
+  xmlns="http://www.nordugrid.org/schemas/loader/2009/08"
+  xmlns:cfg="http://www.nordugrid.org/schemas/arcconfig/2009/08"
+  xmlns:tcp="http://www.nordugrid.org/schemas/tcp/2009/08"
+  xmlns:tls="http://www.nordugrid.org/schemas/tls/2009/08"
+  xmlns:isis="http://www.nordugrid.org/schemas/isis/2009/08"
+  xmlns:infosys="http://www.nordugrid.org/schemas/infosys/2009/08"
+  xmlns:authz="http://www.nordugrid.org/schemas/arcauthz/2009/08"
+  xmlns:pdp="http://www.nordugrid.org/schemas/arcpdp/2009/08"
 >
-    <Server>
-        <Pidfile>/var/run/isis_arched.pid</Pidfile>
-        <Logger level="VERBOSE">/tmp/isis.log</Logger>
-    </Server>
+    <cfg:Server>
+        <cfg:PidFile>/var/run/isis_arched.pid</cfg:PidFile>
+        <cfg:Logger>
+            <cfg:File>/tmp/isis.log</cfg:File>
+            <cfg:Level>VERBOSE</cfg:Level>
+        </cfg:Logger>
+    </cfg:Server>
     <ModuleManager>
         <Path>/usr/local/lib/arc/</Path>
     </ModuleManager>
-    <InfoRegistrar id="ExampleCloud1">
-    <!-- Contact and behavior details of the InfoRegsitrar element-->
-        <URL>https://localhost:50000/isis1</URL>
-        <Retry>4</Retry>
-	<KeyPath>/etc/grid-security/hostkey.pem</KeyPath>
-	<CertificatePath>/etc/grid-security/hostcert.pem</CertificatePath>
-	<CACertificatesDir>/etc/grid-security/certificates</CACertificatesDir>
-    </InfoRegistrar>
-  <Plugins><Name>mcctcp</Name></Plugins>
-  <Plugins><Name>isis</Name></Plugins>
-  <Plugins><Name>mcctls</Name></Plugins>
-  <Plugins><Name>mcchttp</Name></Plugins>
-  <Plugins><Name>mccsoap</Name></Plugins>
-  <Plugins><Name>arcshc</Name></Plugins>
-   <Chain>
-    <Component name="tcp.service" id="tcp">
-      <next id="tls"/>
-      <tcp:Listen>
-        <tcp:Port>50000</tcp:Port>
-        <tcp:Version>4</tcp:Version>
-      </tcp:Listen>
-    </Component>
-    <Component name="tls.service" id="tls">
-      <next id="http"/>
-      <KeyPath>/etc/grid-security/hostkey.pem</KeyPath>
-      <CertificatePath>/etc/grid-security/hostcert.pem</CertificatePath>
-      <CACertificatesDir>/etc/grid-security/certificates</CACertificatesDir>
-    </Component>
-    <Component name="http.service" id="http">
-      <next id="soap">POST</next>
-      <next id="plexer">GET</next>
-      <next id="plexer">PUT</next>
-    </Component>
-    <Component name="soap.service" id="soap">
-        <next id="plexer"/>
-    </Component>
-    <Plexer name="plexer.service" id="plexer">
-      <next id="isis1">^/isis1$</next>
-    </Plexer>
-    <Service name="isis" id="isis1">
-        <DBPath>/tmp/isis1</DBPath>
-	<KeyPath>/etc/grid-security/hostkey.pem</KeyPath>
-	<CertificatePath>/etc/grid-security/hostcert.pem</CertificatePath>
-	<CACertificatesDir>/etc/grid-security/certificates</CACertificatesDir>
-        <infosys:serviceid>https://localhost:50000/isis1</infosys:serviceid>
-        <infosys:endpoint>https://localhost:50000/isis1</infosys:endpoint>
-        <infosys:expiration>PT3M</infosys:expiration>
-        <InfoProvider>
-           <URL>https://localhost:50000/isis1</URL>
-        </InfoProvider>
-        <InfoProvider>
-           <URL>https://example1.isis.org:50000/isis1</URL>
-        </InfoProvider>
-        <InfoProvider>
-           <URL>https://example1.isis.org:50000/isis1</URL>
-        </InfoProvider>
-        <SecHandler name="arc.authz" id="authz" event="incoming">
-          <PDP name="arc.pdp">
-            <pdp:PolicyStore>
-              <pdp:Location type="file">p2p_isis_policy.xml</pdp:Location>
-            </pdp:PolicyStore>
-          </PDP>
-        </SecHandler>
-	<infosys:InfoRegister>
+    <Plugins>
+        <Name>isis</Name>
+        <Name>mcctls</Name>
+        <Name>mcchttp</Name>
+        <Name>mccsoap</Name>
+        <Name>arcshc</Name>
+        <Name>mcctcp</Name>
+    </Plugins>
+    <Chain>
+        <Component name="tcp.service" id="tcp">
+            <next id="tls"/>
+            <tcp:Listen>
+                <tcp:Interface>0.0.0.0</tcp:Interface>
+                <tcp:Port>50000</tcp:Port>
+                <tcp:Version>4</tcp:Version>
+            </tcp:Listen>
+        </Component>
+        <Component name="tls.service" id="tls">
+            <next id="http"/>
+            <tls:KeyPath>/etc/grid-security/hostkey.pem</tls:KeyPath>
+            <tls:CertificatePath>/etc/grid-security/hostcert.pem</tls:CertificatePath>
+            <tls:CACertificatesDir>/etc/grid-security/certificates</tls:CACertificatesDir>
+        </Component>
+        <Component name="http.service" id="http">
+            <next id="soap">POST</next>
+            <next id="plexer">GET</next>
+            <next id="plexer">PUT</next>
+        </Component>
+        <Component name="soap.service" id="soap">
+            <next id="plexer"/>
+        </Component>
+        <Plexer name="plexer.service" id="plexer">
+            <next id="isis1">^/isis1$</next>
+        </Plexer>
+        <Service name="isis" id="isis1">
+            <isis:DBPath>/tmp/isis1</isis:DBPath>
+	        <isis:KeyPath>/etc/grid-security/hostkey.pem</isis:KeyPath>
+	        <isis:CertificatePath>/etc/grid-security/hostcert.pem</isis:CertificatePath>
+	        <isis:CACertificatesDir>/etc/grid-security/certificates</isis:CACertificatesDir>
+            <isis:InfoProvider>
+                <isis:URL>https://localhost:50000/isis1</isis:URL>
+            </isis:InfoProvider>
+            <isis:InfoProvider>
+                <isis:URL>https://example1.isis.org:50000/isis1</isis:URL>
+            </isis:InfoProvider>
+            <isis:InfoProvider>
+                <isis:URL>https://example1.isis.org:50000/isis1</isis:URL>
+            </isis:InfoProvider>
+            <SecHandler name="arc.authz" id="authz" event="incoming">
+                <authz:PDP name="arc.pdp">
+                    <pdp:PolicyStore>
+                        <pdp:Type>file</pdp:Type>
+                        <pdp:Location>p2p_isis_policy.xml</pdp:Location>
+                    </pdp:PolicyStore>
+                </authz:PDP>
+            </SecHandler>
+	        <infosys:InfoRegister>
                 <infosys:Period>PT75S</infosys:Period>
                 <infosys:Endpoint>https://localhost:50000/isis1</infosys:Endpoint>
                 <infosys:Expiration>PT1M</infosys:Expiration>
-                <infosys:Registrar id="ExampleCloud1"></infosys:Registrar>
-        </infosys:InfoRegister>
-
-    </Service>
-  </Chain>
-</ArcConfig>
-
-
-
-
-
-
-
-
+                <infosys:Registrar>
+                    <infosys:URL>https://localhost:50000/isis1</infosys:URL>
+                    <infosys:ServiceID>https://localhost:50000/isis1</infosys:ServiceID>
+	                <infosys:KeyPath>/etc/grid-security/hostkey.pem</infosys:KeyPath>
+	                <infosys:CertificatePath>/etc/grid-security/hostcert.pem</infosys:CertificatePath>
+	                <infosys:CACertificatesDir>/etc/grid-security/certificates</infosys:CACertificatesDir>
+                    <infosys:Retry>4</infosys:Retry>
+                </infosys:Registrar> 
+            </infosys:InfoRegister>
+        </Service>
+    </Chain>
+</cfg:ArcConfig>

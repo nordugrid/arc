@@ -23,6 +23,14 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            
+            <xsd:element name="ServiceID" type="xsd:string" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation xml:lang="en">
+                     Element defines the unique id of the service propagated outside.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
   
             <xsd:element name="KeyPath" type="xsd:string"  minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
@@ -84,10 +92,8 @@
                  then registration is done using all registrars.
                 </xsd:documentation>
             </xsd:annotation>
-            <xsd:element name="Registrar" type="Registrar_Type" minOccurs="0" maxOccurs="unbounded"/>
-            <!-- Default values for every InfoRegistrar -->
 
-            <xsd:element name="Period" type="xsd:nonNegativeInteger" minOccurs="1" maxOccurs="1" default="120">
+            <xsd:element name="Period" type="xsd:duration" minOccurs="1" maxOccurs="1" default="PT3M">
                 <xsd:annotation>
                     <xsd:documentation xml:lang="en">
                      Period specifies how often registration to be done in minutes.
@@ -96,13 +102,6 @@
                 </xsd:annotation>
             </xsd:element>
 
-            <xsd:element name="ServiceID" type="xsd:string" minOccurs="0" maxOccurs="1">
-                <xsd:annotation>
-                    <xsd:documentation xml:lang="en">
-                     Element defines the unique id of the service propagated outside.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
 
             <xsd:element name="Endpoint" type="xsd:string" minOccurs="1" maxOccurs="1">
                 <xsd:annotation>
@@ -119,6 +118,8 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="Registrar" type="iregc:Registrar_Type" minOccurs="0" maxOccurs="unbounded"/>
+            <!-- Default values for every InfoRegistrar -->
         </xsd:sequence>
     </xsd:complexType>
     <xsd:element name="InfoRegister" type="iregc:InfoRegister_Type"/>
