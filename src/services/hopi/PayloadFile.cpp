@@ -17,27 +17,26 @@ namespace Hopi {
 PayloadBigFile::Size_t PayloadBigFile::threshold_ = 1024*1024*10; // 10MB by default
 
 PayloadFile::PayloadFile(const char* filename,Size_t start,Size_t end):handle_(-1),addr_(NULL),size_(0) {
+  start_=start;
+  end_=end;
   handle_=open(filename,O_RDONLY);
   if(handle_ == -1) return;
   struct stat st;
   if(fstat(handle_,&st) != 0) goto error;
   size_=st.st_size;
-  start_=start;
+  if(end_ > size_) {
+    end_=size_;
+  }
   if(start_ >= size_) {
+    start_=size_;
     end_=start_;
     return;
   }
-
 #ifndef WIN32 
-  if(end == (Size_t)(-1)) {
-    addr_=(char*)mmap(NULL,size_-start_,PROT_READ,MAP_SHARED,handle_,start_);
-    end_=size_;
-  } else {
-    if(end <= start) goto error;
-    addr_=(char*)mmap(NULL,end-start_,PROT_READ,MAP_SHARED,handle_,start_);
-    end_=end;
+  if(size_ > 0) {
+    addr_=(char*)mmap(NULL,size_,PROT_READ,MAP_SHARED,handle_,0);
+    if(addr_ == MAP_FAILED) goto error;
   }
-  if(addr_ == MAP_FAILED) goto error;
 #else 
   goto error;
 #endif
@@ -65,14 +64,14 @@ char* PayloadFile::Content(Size_t pos) {
   if(handle_ == -1) return NULL;
   if(pos >= end_) return NULL;
   if(pos < start_) return NULL;
-  return (addr_+(pos-start_));
+  return (addr_+pos);
 }
 
 char PayloadFile::operator[](Size_t pos) const {
   if(handle_ == -1) return 0;
   if(pos >= end_) return 0;
   if(pos < start_) return 0;
-  return addr_[pos-start_];
+  return addr_[pos];
 }
 
 PayloadFile::Size_t PayloadFile::Size(void) const {
@@ -92,7 +91,8 @@ char* PayloadFile::Insert(const char*,Size_t /*pos*/,Size_t /*size*/) {
 char* PayloadFile::Buffer(unsigned int num) {
   if(handle_ == -1) return NULL;
   if(num>0) return NULL;
-  return addr_;
+  if(addr_ == NULL) return NULL;
+  return addr_+start_;
 }
 
 PayloadFile::Size_t PayloadFile::BufferSize(unsigned int num) const {
