@@ -116,7 +116,7 @@ Arc::Logger::rootLogger.msg(Arc::DEBUG, "http_get: start=%u, end=%u, burl=%s, hp
       } else {
         int file = job.OpenLogFile(hpath);
         if(file != -1) {
-          PayloadFile* h = new PayloadFile(file,start,end);
+          Arc::MessagePayload* h = newFileRead(file,start,end);
           outmsg.Payload(h);
           outmsg.Attributes()->set("HTTP:content-type","application/octet-stream");
           return Arc::MCC_Status(Arc::STATUS_OK);
@@ -185,7 +185,7 @@ Arc::Logger::rootLogger.msg(Arc::DEBUG, "http_get: start=%u, end=%u, burl=%s, hp
   int file = job.OpenFile(hpath,true,false);
   if(file != -1) {
     // File 
-    PayloadFile* h = new PayloadFile(file,start,end);
+    Arc::MessagePayload* h = newFileRead(file,start,end);
     outmsg.Payload(h);
     outmsg.Attributes()->set("HTTP:content-type","application/octet-stream");
     return Arc::MCC_Status(Arc::STATUS_OK);
