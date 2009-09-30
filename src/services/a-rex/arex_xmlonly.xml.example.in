@@ -9,7 +9,10 @@
   <!-- Common configuration of the daemon -->
   <Server>
     <PidFile>/var/run/arched.pid</PidFile>
-    <Logger level="VERBOSE">/var/log/arched.log</Logger>
+    <Logger>
+      <File>/var/log/arched.log</File>
+      <Level>VERBOSE</Level>
+    </Logger>
   </Server>
   <!-- Where to find plugins -->
   <ModuleManager>
@@ -39,9 +42,9 @@
       <CACertificatesDir>/etc/grid-security/certificates</CACertificatesDir>
       <!-- SecHandler below calls specified Policy Decision Point components.
            In this example only one PDP is defined - simplelist.pdp. This
-	   PDP compares Distinguished Name of connecting client against
-	   list of allowed DNs. DNs are stored in external file one per line.
-	   They may be enclosed in '"'. -->
+           PDP compares Distinguished Name of connecting client against
+           list of allowed DNs. DNs are stored in external file one per line.
+           They may be enclosed in '"'. -->
       <SecHandler name="arc.authz" id="pdps" event="incoming">
         <PDP name="simplelist.pdp" location="/etc/grid-security/grid-mapfile"/>
       </SecHandler>
