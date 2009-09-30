@@ -320,13 +320,13 @@ Hopi::~Hopi(void)
     logger.msg(Arc::INFO, "Hopi shutdown");
 }
 
-Arc::MessagePayload *Hopi::Get(const std::string &path, const std::string &base_url)
+Arc::MessagePayload *Hopi::Get(const std::string &path, const std::string &base_url, unsigned long long int range_start, unsigned long long int range_end)
 {
-    // XXX eliminate relativ paths first
+    // XXX eliminate relative paths first
     std::string full_path = Glib::build_filename(doc_root, path);
     if (Glib::file_test(full_path, Glib::FILE_TEST_EXISTS) == true) {
         if (Glib::file_test(full_path, Glib::FILE_TEST_IS_REGULAR) == true) {
-            Arc::MessagePayload * pf = newFileRead(full_path.c_str());
+            Arc::MessagePayload * pf = newFileRead(full_path.c_str(),range_start,range_end);
             if (slave_mode) unlink(full_path.c_str());
             return pf;
         } else if (Glib::file_test(full_path, Glib::FILE_TEST_IS_DIR) && !slave_mode) {
@@ -442,7 +442,27 @@ Arc::MCC_Status Hopi::process(Arc::Message &inmsg, Arc::Message &outmsg)
 
     logger.msg(Arc::DEBUG, "method=%s, path=%s, url=%s, base=%s", method, path, inmsg.Attributes()->get("HTTP:ENDPOINT"), base_url);
     if (method == "GET") {
-        Arc::MessagePayload *buf = Get(path, base_url);
+        size_t range_start = 0;
+        size_t range_end = (size_t)(-1);
+        {
+          std::string val;
+          val=inmsg.Attributes()->get("HTTP:RANGESTART");
+          if(!val.empty()) { // Negative ranges not supported
+            if(!Arc::stringto<size_t>(val,range_start)) {
+              range_start=0;
+            } else {
+              val=inmsg.Attributes()->get("HTTP:RANGEEND");
+              if(!val.empty()) {
+                if(!Arc::stringto<size_t>(val,range_end)) {
+                  range_end=(size_t)(-1);
+                } else {
+                  range_end+=1;
+                };
+              };
+            };
+          };
+        };
+        Arc::MessagePayload *buf = Get(path, base_url, range_start, range_end);
         if (!buf) {
             // XXX: HTTP error
             return Arc::MCC_Status();

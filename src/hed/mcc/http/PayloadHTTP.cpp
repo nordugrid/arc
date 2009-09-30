@@ -282,6 +282,53 @@ PayloadHTTP::~PayloadHTTP(void) {
 bool PayloadHTTP::Flush(void) {
   std::string header;
   bool to_stream = (stream_ != NULL);
+  if(method_.empty() && (code_ == 0)) return false;
+  // Computing length of Body part
+  length_=0;
+  std::string range_header;
+  if((method_ != "GET") && (method_ != "HEAD")) {
+    int64_t start = 0;
+    if(sbody_) {
+      if(sbody_->Limit() > sbody_->Pos()) {
+        length_ = sbody_->Limit() - sbody_->Pos();
+      };
+      start=sbody_->Pos();
+    } else {
+      for(int n=0;;++n) {
+        if(Buffer(n) == NULL) break;
+        length_+=BufferSize(n);
+      };
+      start=BufferPos(0);
+    };
+    if(length_ != Size()) {
+      // Add range definition if Body represents part of logical buffer size
+      // and adjust HTTP code accordingly
+      int64_t end = start+length_;
+      std::string length_str;
+      std::string range_str;
+      if(end <= Size()) {
+        length_str=tostring(Size());
+      } else {
+        length_str="*";
+      }; 
+      if(end > start) {
+        range_str=tostring(start)+"-"+tostring(end-1);
+        if(code_ == HTTP_OK) {
+          code_=HTTP_PARTIAL;
+          reason_="Partial content";
+        };
+      } else {
+        range_str="*";
+        if(code_ == HTTP_OK) {
+          code_=HTTP_RANGE_NOT_SATISFIABLE;
+          reason_="Range not satisfiable";
+        };
+      };
+      range_header="Content-Range: bytes "+range_str+"/"+length_str+"\r\n";
+    };
+    range_header+="Content-Length: "+tostring(length_)+"\r\n";
+  };
+  // Starting header
   if(!method_.empty()) {
     header=method_+" "+uri_+
            " HTTP/"+tostring(version_major_)+"."+tostring(version_minor_)+"\r\n";
@@ -290,8 +337,6 @@ bool PayloadHTTP::Flush(void) {
     snprintf(tbuf,255,"HTTP/%i.%i %i",version_major_,version_minor_,code_);
     header="HTTP/"+tostring(version_major_)+"."+tostring(version_minor_)+" "+
            tostring(code_)+" "+reason_+"\r\n";
-  } else {
-    return false;
   };
   if((version_major_ == 1) && (version_minor_ == 1) && (!method_.empty())) {
     std::map<std::string,std::string>::iterator it = attributes_.find("host");
@@ -309,31 +354,8 @@ bool PayloadHTTP::Flush(void) {
       header+="Host: "+host+"\r\n";
     };
   };
-  // Computing length of Body part
-  length_=0;
-  if((method_ != "GET") && (method_ != "HEAD")) {
-    if(sbody_) {
-      if(sbody_->Size() > sbody_->Pos()) {
-        length_ = sbody_->Size() - sbody_->Pos();
-      };
-    } else {
-      for(int n=0;;++n) {
-        if(Buffer(n) == NULL) break;
-        length_+=BufferSize(n);
-      };
-    };
-    if(length_ != Size()) {
-      // Add range definition if Body represents part of logical buffer size
-      int64_t start = BufferPos(0);
-      int64_t end = start+length_;
-      if(end <= Size()) {
-        header+="Content-Range: bytes "+tostring(start)+"-"+tostring(end-1)+"/"+tostring(Size())+"\r\n";
-      } else {
-        header+="Content-Range: bytes "+tostring(start)+"-"+tostring(end-1)+"/*\r\n";
-      };
-    };
-    header+="Content-Length: "+tostring(length_)+"\r\n";
-  };
+  // Adding previously generated range specifier
+  header+=range_header;
   bool keep_alive = false;
   if((version_major_ == 1) && (version_minor_ == 1)) keep_alive=keep_alive_;
   if(keep_alive) {
@@ -351,7 +373,7 @@ bool PayloadHTTP::Flush(void) {
       if(sbody_) {
         // stream to stream transfer
         // TODO: choose optimal buffer size
-        const int tbufsize = 1024*1024;
+        int tbufsize = (length_>1024*1024)?(1024*1024):length_;
         char* tbuf = new char[tbufsize];
         for(;;) {
           int lbuf = tbufsize;
@@ -638,6 +660,9 @@ PayloadStreamInterface::Size_t PayloadHTTP::Pos(void) const {
   return offset_+stream_offset_;
 }
 
+PayloadStreamInterface::Size_t PayloadHTTP::Limit(void) const {
+  return Size();
+}
 
 } // namespace Arc
 

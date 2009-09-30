@@ -15,6 +15,7 @@
 #define HTTP_BAD_REQUEST  (400)
 #define HTTP_NOT_FOUND    (404)
 #define HTTP_PARTIAL      (206)
+#define HTTP_RANGE_NOT_SATISFIABLE (416)
 #define HTTP_INTERNAL_ERR (500)
 
 namespace Arc {
@@ -132,6 +133,7 @@ class PayloadHTTP: virtual public PayloadRaw, virtual public PayloadStreamInterf
   virtual int Timeout(void) const;
   virtual void Timeout(int to);
   virtual PayloadStreamInterface::Size_t Pos(void) const;
+  virtual PayloadStreamInterface::Size_t Limit(void) const;
 
 };
 

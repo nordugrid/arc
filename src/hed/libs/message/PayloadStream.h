@@ -47,6 +47,10 @@ class PayloadStreamInterface: virtual public MessagePayload {
   virtual Size_t Pos(void) const = 0;
   /** Returns size of underlying object if supported. */
   virtual Size_t Size(void) const = 0;
+  /** Returns position at which stream reading will stop if supported.
+     That may be not same as Size() if instance is meant to 
+     provide access to only part of underlying obejct. */
+  virtual Size_t Limit(void) const = 0;
 };
 
 /// POSIX handle as Payload
@@ -74,6 +78,7 @@ class PayloadStream: virtual public PayloadStreamInterface {
   virtual void Timeout(int to) { timeout_=to; };
   virtual Size_t Pos(void) const { return 0; };
   virtual Size_t Size(void) const { return 0; };
+  virtual Size_t Limit(void) const { return 0; };
 };
 }
 #endif /* __ARC_PAYLOADSTREAM_H__ */

@@ -13,7 +13,7 @@ class Hopi: public Arc::RegisteredService {
     protected:
         std::string doc_root;
         bool slave_mode;
-        Arc::MessagePayload* Get(const std::string &path, const std::string &base_url);
+        Arc::MessagePayload* Get(const std::string &path, const std::string &base_url, unsigned long long int range_start, unsigned long long int range_end);
         Arc::MCC_Status Put(const std::string &path, Arc::MessagePayload &buf);
     public:
         static Arc::Logger logger;

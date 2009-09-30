@@ -16,12 +16,15 @@ class PayloadFile: public Arc::PayloadRawInterface {
   int handle_;
   char* addr_;
   size_t size_; 
+  size_t start_; 
+  size_t end_; 
  public:
-  /** Creates object associated with file for reading from it */
-  PayloadFile(const char* filename);
+  /** Creates object associated with file for reading from it.
+    Use end=-1 for full size. */
+  PayloadFile(const char* filename,Size_t start,Size_t end);
   /** Creates object associated with file for writing into it.
     Use size=-1 for undefined size. */
-  PayloadFile(const char* filename,Size_t size);
+  //PayloadFile(const char* filename,Size_t size);
   virtual ~PayloadFile(void);
   virtual char operator[](Size_t pos) const;
   virtual char* Content(Size_t pos = -1);
@@ -40,15 +43,18 @@ class PayloadFile: public Arc::PayloadRawInterface {
 class PayloadBigFile: public Arc::PayloadStream {
  private:
   static Size_t threshold_;
+  size_t limit_; 
  public:
   /** Creates object associated with file for reading from it */
-  PayloadBigFile(const char* filename);
+  PayloadBigFile(const char* filename,Size_t start,Size_t end);
   /** Creates object associated with file for writing into it.
     Use size=-1 for undefined size. */
-  PayloadBigFile(const char* filename,Size_t size);
+  //PayloadBigFile(const char* filename,Size_t size);
   virtual ~PayloadBigFile(void);
   virtual Size_t Pos(void) const;
   virtual Size_t Size(void) const;
+  virtual Size_t Limit(void) const;
+  virtual bool Get(char* buf,int& size);
 
   operator bool(void) { return (handle_ != -1); };
   bool operator!(void) { return (handle_ == -1); };
@@ -56,7 +62,7 @@ class PayloadBigFile: public Arc::PayloadStream {
   static void Threshold(Size_t t) { if(t > 0) threshold_=t; };
 };
 
-Arc::MessagePayload* newFileRead(const char* filename);
+Arc::MessagePayload* newFileRead(const char* filename,Arc::PayloadRawInterface::Size_t start = 0,Arc::PayloadRawInterface::Size_t end = (Arc::PayloadRawInterface::Size_t)(-1));
 
 } // namespace Hopi
 

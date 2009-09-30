@@ -16,15 +16,27 @@ namespace Hopi {
 
 PayloadBigFile::Size_t PayloadBigFile::threshold_ = 1024*1024*10; // 10MB by default
 
-PayloadFile::PayloadFile(const char* filename):handle_(-1),addr_(NULL),size_(0) {
+PayloadFile::PayloadFile(const char* filename,Size_t start,Size_t end):handle_(-1),addr_(NULL),size_(0) {
   handle_=open(filename,O_RDONLY);
   if(handle_ == -1) return;
   struct stat st;
   if(fstat(handle_,&st) != 0) goto error;
   size_=st.st_size;
+  start_=start;
+  if(start_ >= size_) {
+    end_=start_;
+    return;
+  }
 
 #ifndef WIN32 
-  addr_=(char*)mmap(NULL,size_,PROT_READ,MAP_SHARED,handle_,0);
+  if(end == (Size_t)(-1)) {
+    addr_=(char*)mmap(NULL,size_-start_,PROT_READ,MAP_SHARED,handle_,start_);
+    end_=size_;
+  } else {
+    if(end <= start) goto error;
+    addr_=(char*)mmap(NULL,end-start_,PROT_READ,MAP_SHARED,handle_,start_);
+    end_=end;
+  }
   if(addr_ == MAP_FAILED) goto error;
 #else 
   goto error;
@@ -51,14 +63,16 @@ PayloadFile::~PayloadFile(void) {
 
 char* PayloadFile::Content(Size_t pos) {
   if(handle_ == -1) return NULL;
-  if(pos >= size_) return NULL;
-  return (addr_+pos);
+  if(pos >= end_) return NULL;
+  if(pos < start_) return NULL;
+  return (addr_+(pos-start_));
 }
 
 char PayloadFile::operator[](Size_t pos) const {
   if(handle_ == -1) return 0;
-  if(pos >= size_) return 0;
-  return addr_[pos];
+  if(pos >= end_) return 0;
+  if(pos < start_) return 0;
+  return addr_[pos-start_];
 }
 
 PayloadFile::Size_t PayloadFile::Size(void) const {
@@ -84,15 +98,16 @@ char* PayloadFile::Buffer(unsigned int num) {
 PayloadFile::Size_t PayloadFile::BufferSize(unsigned int num) const {
   if(handle_ == -1) return 0;
   if(num>0) return 0;
-  return size_;
+  return (end_-start_);
 }
 
 PayloadFile::Size_t PayloadFile::BufferPos(unsigned int num) const {
-  if(num == 0) return 0;
-  return size_;
+  if(num == 0) return start_;
+  return end_;
 }
 
 bool PayloadFile::Truncate(Size_t /*size*/) {
+  // Not supported
   return false;
 }
 
@@ -104,15 +119,18 @@ static int open_file_write(const char* filename) {
   return ::open(filename,O_WRONLY | O_CREAT,S_IRUSR | S_IWUSR);
 }
 
-PayloadBigFile::PayloadBigFile(const char* filename):
+PayloadBigFile::PayloadBigFile(const char* filename,Size_t start,Size_t end):
                        PayloadStream(open_file_read(filename)) {
   seekable_ = false;
+  if(handle_ == -1) return;
+  ::lseek(handle_,start,SEEK_SET);
+  limit_ = end;
 }
 
-PayloadBigFile::PayloadBigFile(const char* filename,Size_t size):
-                       PayloadStream(open_file_write(filename)){
-  seekable_ = false;
-}
+//PayloadBigFile::PayloadBigFile(const char* filename,Size_t size):
+//                       PayloadStream(open_file_write(filename)){
+//  seekable_ = false;
+//}
 
 PayloadBigFile::~PayloadBigFile(void) {
   if(handle_ != -1) ::close(handle_);
@@ -120,7 +138,7 @@ PayloadBigFile::~PayloadBigFile(void) {
 
 Arc::PayloadStream::Size_t PayloadBigFile::Pos(void) const {
   if(handle_ == -1) return 0;
-  return lseek(handle_,0,SEEK_CUR);
+  return ::lseek(handle_,0,SEEK_CUR);
 }
 
 Arc::PayloadStream::Size_t PayloadBigFile::Size(void) const {
@@ -130,12 +148,29 @@ Arc::PayloadStream::Size_t PayloadBigFile::Size(void) const {
   return st.st_size;
 }
 
-Arc::MessagePayload* newFileRead(const char* filename) {
-  PayloadBigFile* file1 = new PayloadBigFile(filename);
+Arc::PayloadStream::Size_t PayloadBigFile::Limit(void) const {
+  Size_t s = Size();
+  if((limit_ == (size_t)(-1)) || (limit_ > s)) return s;
+  return limit_;
+}
+
+bool PayloadBigFile::Get(char* buf,int& size) {
+  if(handle_ == -1) return false;
+  if(limit_ == (size_t)(-1)) return PayloadStream::Get(buf,size);
+  Size_t cpos = Pos();
+  if(cpos >= limit_) {
+    size=0; return false;
+  }
+  if((cpos+size) > limit_) size=limit_-cpos;
+  return PayloadStream::Get(buf,size);
+}
+
+Arc::MessagePayload* newFileRead(const char* filename,Arc::PayloadRawInterface::Size_t start,Arc::PayloadRawInterface::Size_t end) {
+  PayloadBigFile* file1 = new PayloadBigFile(filename,start,end);
   if(!*file1) { delete file1; return NULL; };
 #ifndef WIN32 
   if(file1->Size() > PayloadBigFile::Threshold()) return file1;
-  PayloadFile* file2 = new PayloadFile(filename);
+  PayloadFile* file2 = new PayloadFile(filename,start,end);
   if(!*file2) { delete file2; return file1; };
   delete file1;
   return file2;

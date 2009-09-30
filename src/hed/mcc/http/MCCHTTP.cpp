@@ -275,6 +275,7 @@ MCC_Status MCC_HTTP_Service::process(Message& inmsg,Message& outmsg) {
   int http_code = HTTP_OK;
   const char* http_resp = "OK";
   int l = 0;
+/*
   if(retpayload) {
     if(retpayload->BufferPos(0) != 0) {
       http_code=HTTP_PARTIAL;
@@ -290,11 +291,12 @@ MCC_Status MCC_HTTP_Service::process(Message& inmsg,Message& outmsg) {
       };
     };
   } else {
-    if(strpayload->Pos() != 0) {
+    if((strpayload->Pos() != 0) || (strpayload->Limit() != strpayload->Size())) {
       http_code=HTTP_PARTIAL;
       http_resp="Partial content";
     };
   };
+*/
   PayloadHTTP* outpayload = new PayloadHTTP(http_code,http_resp,*inpayload);
   // Use attributes which higher level MCC may have produced for HTTP
   for(AttributeIterator i = nextoutmsg.Attributes()->getAll();i.hasMore();++i) {

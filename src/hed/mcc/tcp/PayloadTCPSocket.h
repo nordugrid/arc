@@ -46,6 +46,7 @@ class PayloadTCPSocket: public PayloadStreamInterface {
   virtual void Timeout(int to) { timeout_=to; };
   virtual Size_t Pos(void) const { return 0; };
   virtual Size_t Size(void) const { return 0; };
+  virtual Size_t Limit(void) const { return 0; };
   int GetHandle() { return handle_; };
   void NoDelay(bool val);
 };
