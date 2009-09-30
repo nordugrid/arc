@@ -47,7 +47,7 @@ namespace Arc {
           return false;
         }
       }
-      
+
       sr.add(Software(trim((std::string)xmlSoftware["Software"][i]["Name"]),
                       trim((std::string)xmlSoftware["Software"][i]["Version"])),
              comOp);
@@ -80,7 +80,7 @@ namespace Arc {
   template<typename T>
   void ARCJSDLParser::parseRange(const XMLNode& xmlRange, Range<T>& range, const T& undefValue) const {
     if (!xmlRange) return;
-    
+
     if (bool(xmlRange["Min"])) {
       if (!stringto<T>((std::string)xmlRange["Min"], range.min))
         range.min = undefValue;
@@ -89,7 +89,7 @@ namespace Arc {
       if (!stringto<T>((std::string)xmlRange["LowerBoundedRange"], range.min))
         range.min = undefValue;
     }
-    
+
     if (bool(xmlRange["Max"])) {
       if (!stringto<T>((std::string)xmlRange["Max"], range.max))
         range.max = undefValue;
@@ -201,7 +201,7 @@ namespace Arc {
       job.Identification.JobType = PARALLELELEMENT;
     else if (lower((std::string)jobidentification["JobType"]) == "workflownode")
       job.Identification.JobType = WORKFLOWNODE;
-    
+
     // std::list<std::string> UserTag;
     for (int i = 0; (bool)(jobidentification["UserTag"][i]); i++)
       job.Identification.UserTag.push_back((std::string)jobidentification["UserTag"][i]);
@@ -431,7 +431,7 @@ namespace Arc {
       if (!stringto<int64_t>((std::string)resource["DiskSpaceRequirement"]["CacheDiskSpace"], job.Resources.DiskSpaceRequirement.CacheDiskSpace))
          job.Resources.DiskSpaceRequirement.CacheDiskSpace = -1;
     }
-    
+
     // int64_t SessionDiskSpace;
     if (bool(resource["DiskSpaceRequirement"]["SessionDiskSpace"])) {
       if (!stringto<int64_t>((std::string)resource["DiskSpaceRequirement"]["SessionDiskSpace"], job.Resources.DiskSpaceRequirement.SessionDiskSpace))
@@ -476,7 +476,7 @@ namespace Arc {
     // std::string SPMDVariation;
     if (bool(resource["SlotRequirement"]["SPMDVariation"]))
       job.Resources.SlotRequirement.SPMDVariation = (std::string)resource["Slots"]["SPMDVariation"];
-    
+
 
     // std::list<ResourceTargetType> CandidateTarget;
     if (bool(resource["CandidateTarget"])) {
@@ -582,7 +582,7 @@ namespace Arc {
       xmlIdentification.NewChild("JobType") = "single";
       break;
     }
-      
+
     // std::list<std::string> UserTag;
     for (std::list<std::string>::const_iterator it = job.Identification.UserTag.begin();
          it != job.Identification.UserTag.end(); it++)
@@ -728,7 +728,7 @@ namespace Arc {
     // SoftwareRequirement OperatingSystem
     if (!job.Resources.OperatingSystem.empty()) {
       XMLNode xmlOS = xmlResources.NewChild("OperatingSystem");
-      
+
       outputSoftware(job.Resources.OperatingSystem, xmlOS);
 
       // JSDL compliance. Only the first element in the OperatingSystem object is printed.
@@ -801,7 +801,7 @@ namespace Arc {
 
       if (xmlDiskSpace.Size() > 0) {
         xmlResources.NewChild("DiskSpaceRequirement").NewChild(xmlDiskSpace);
-          
+
         // int64_t CacheDiskSpace;
         if (job.Resources.DiskSpaceRequirement.CacheDiskSpace != -1)
           xmlResources["DiskSpaceRequirement"].NewChild("CacheDiskSpace") = tostring(job.Resources.DiskSpaceRequirement.CacheDiskSpace);
@@ -881,7 +881,7 @@ namespace Arc {
       outputARCJSDLRange(job.Resources.SlotRequirement.NumberOfSlots, xmlNOP, -1);
       if (xmlNOP.Size() > 0)
         xmlSlotRequirement.NewChild(xmlNOP);
-      
+
       // Range<int> ProcessPerHost;
       XMLNode xmlPPH("<ProcessPerHost/>");
       outputARCJSDLRange(job.Resources.SlotRequirement.ProcessPerHost, xmlPPH, -1);
@@ -897,7 +897,7 @@ namespace Arc {
       // std::string SPMDVariation;
       if (!job.Resources.SlotRequirement.SPMDVariation.empty())
         xmlSlotRequirement.NewChild("SPMDVariation") = job.Resources.SlotRequirement.SPMDVariation;
-      
+
       if (xmlSlotRequirement.Size() > 0)
         xmlResources.NewChild(xmlSlotRequirement);
     }
@@ -926,6 +926,7 @@ namespace Arc {
     // end of Resources
 
     // DataStaging
+    bool outputIsAdded(false), errorIsAdded(false), gmlogIsAdded(false);
     for (std::list<FileType>::const_iterator it = job.DataStaging.File.begin();
          it != job.DataStaging.File.end(); it++) {
       XMLNode datastaging = jobdescription.NewChild("DataStaging");
@@ -948,6 +949,26 @@ namespace Arc {
       datastaging.NewChild("DeleteOnTermination") = (it->KeepData ? "false" : "true");
       if (it->DownloadToCache)
         datastaging.NewChild("DownloadToCache") = "true";
+
+      outputIsAdded |= (it->Name == job.Application.Output);
+      errorIsAdded  |= (it->Name == job.Application.Error);
+      gmlogIsAdded  |= (it->Name == job.Application.LogDir);
+    }
+
+    if (!job.Application.Output.empty() && !outputIsAdded) {
+      XMLNode datastaging = jobdescription.NewChild("DataStaging");
+      datastaging.NewChild("FileName") = job.Application.Output;
+      datastaging.NewChild("DeleteOnTermination") = "false";
+    }
+    if (!job.Application.Error.empty() && !errorIsAdded) {
+      XMLNode datastaging = jobdescription.NewChild("DataStaging");
+      datastaging.NewChild("FileName") = job.Application.Error;
+      datastaging.NewChild("DeleteOnTermination") = "false";
+    }
+    if (!job.Application.LogDir.empty() && !gmlogIsAdded) {
+      XMLNode datastaging = jobdescription.NewChild("DataStaging");
+      datastaging.NewChild("FileName") = job.Application.LogDir;
+      datastaging.NewChild("DeleteOnTermination") = "false";
     }
     // End of DataStaging
 
