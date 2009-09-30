@@ -122,6 +122,9 @@ int main(int argc, char **argv) {
     return 1;
   }
 
+  if (!jobs.empty())
+    usercfg.ClearSelectedServices();
+
   if (!clusters.empty()) {
     usercfg.ClearSelectedServices();
     usercfg.AddServices(clusters, Arc::COMPUTING);
