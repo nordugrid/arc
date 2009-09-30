@@ -1,5 +1,5 @@
 TEST_DIR = test
-DIST_SUBDIRS = test
+DIST_SUBDIRS = test schema
 SUBDIRS = schema $(TEST_DIR)
 
 noinst_LTLIBRARIES=libinfosys.la
