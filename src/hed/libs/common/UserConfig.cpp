@@ -192,7 +192,7 @@ namespace Arc {
       const std::string joblistdir = Glib::path_get_dirname(path);
 
       // Check if the parent directory exist.
-      if (!Glib::file_test(path, Glib::FILE_TEST_EXISTS)) {
+      if (!Glib::file_test(joblistdir, Glib::FILE_TEST_EXISTS)) {
         // Create directory.
         if (!makeDir(joblistdir)) {
           logger.msg(ERROR, "Unable to create %s directory", joblistdir);
