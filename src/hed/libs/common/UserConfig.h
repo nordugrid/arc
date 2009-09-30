@@ -39,7 +39,7 @@ namespace Arc {
    * - cacertificatesdirectory / CACertificatesDirectory(const std::string&)
    * - cacertificatepath / CACertificatePath(const std::string&)
    * - timeout / Timeout(int)
-   * - joblistfile / JobListFile(const std::string&)
+   * - joblist / JobListFile(const std::string&)
    * - defaultservices / AddServices(const std::list<std::string>&, const std::list<std::string>&, ServiceType)
    * - rejectservices / AddServices(const std::list<std::string>&, const std::list<std::string>&, ServiceType)
    * - verbosity / Verbosity(const std::string&)
@@ -269,7 +269,7 @@ namespace Arc {
      * - cacertificatesdirectory (CACertificatesDirectory(const std::string&))
      * - cacertificatepath (CACertificatePath(const std::string&))
      * - timeout (Timeout(int))
-     * - joblistfile (JobListFile(const std::string&))
+     * - joblist (JobListFile(const std::string&))
      * - defaultservices (AddServices(const std::list<std::string>&, const std::list<std::string>&, ServiceType))
      * - rejectservices (AddServices(const std::list<std::string>&, const std::list<std::string>&, ServiceType))
      * - verbosity (Verbosity(const std::string&))
@@ -354,8 +354,7 @@ namespace Arc {
      * file does not exist, it will be tried created. The method will
      * also return \a false if the file is not a regular file.
      *
-     * The attribute associated with this setter method is
-     * 'joblistfile'.
+     * The attribute associated with this setter method is 'joblist'.
      *
      * @param path the path to the job list file.
      * @return If the job list file is a regular file or if it can be
