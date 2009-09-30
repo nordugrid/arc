@@ -1,0 +1,52 @@
+Name:			nordugrid-arc-chelonia
+Version:		@VERSION@
+Release:		1%{?dist}
+Summary:		ARC storage system
+
+Group:			System Environment/Daemons
+License:		ASL 2.0
+URL:			http://www.nordugrid.org/
+Source0:		%{name}-%{version}.tar.gz
+BuildRoot:		%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
+BuildArch:		noarch
+Requires:		python >= 2.4
+
+
+%{!?python_sitelib: %global python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib()")}
+
+%description
+ARC storage system
+
+%prep
+%setup -q
+
+
+%build
+%configure
+make %{?_smp_mflags}
+
+
+%install
+rm -rf $RPM_BUILD_ROOT
+make install DESTDIR=$RPM_BUILD_ROOT
+
+
+%clean
+rm -rf $RPM_BUILD_ROOT
+
+
+%files
+%defattr(-,root,root,-)
+%doc README
+%{_bindir}/chelonia
+%{python_sitelib}/storage/
+%{_mandir}/man1/chelonia.1.gz
+%{_datadir}/%{name}/schema/ahash.xsd
+%{_datadir}/%{name}/schema/bartender.xsd
+%{_datadir}/%{name}/schema/librarian.xsd
+%{_datadir}/%{name}/schema/shepherd.xsd
+%{_datadir}/%{name}/examples/storage_service.xml.example
+
+%changelog
+* Wed Sep 30 2009 Anders Waananen <waananen@nbi.dk> - 0.1-1
+- Initial release
