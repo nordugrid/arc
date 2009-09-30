@@ -36,10 +36,8 @@
 #joblistfile=C:\\run\jobs.xml
 
 # Default bartender services can be specified by the bartender
-# attribute.
+# attribute. Multiple bartender urls should be separated with a space.
 #bartender=http://my.bar.com/tender
-
-
 
 # The location of credentials can be specified by using the 'proxypath',
 # 'keypath' or 'certificatepath' attribute, in case they are located
