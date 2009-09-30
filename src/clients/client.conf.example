@@ -23,6 +23,24 @@
 # 'brokerarguments' attribute.
 #brokerarguments=
 
+# Set the period of time the client should wait for a service to respond
+# when communicating with it. The period should be given in seconds.
+#timeout=50
+
+# Path to the job list file can be specified with the joblistfile
+# attribute. This file will be used by commands such as arcsub, arcstat,
+# arcsync etc. to read and write information about jobs. The default
+# location of the file is in home directory in the .arc directory with
+# name jobs.xml
+#joblistfile=/home/user/run/jobs.xml
+#joblistfile=C:\\run\jobs.xml
+
+# Default bartender services can be specified by the bartender
+# attribute.
+#bartender=http://my.bar.com/tender
+
+
+
 # The location of credentials can be specified by using the 'proxypath',
 # 'keypath' or 'certificatepath' attribute, in case they are located
 # in a non-standard location.
