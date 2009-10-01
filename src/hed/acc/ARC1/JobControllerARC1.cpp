@@ -136,10 +136,8 @@ namespace Arc {
       url.ChangePath(url.Path() + '/' + job.StdOut);
     else if (whichfile == "stderr")
       url.ChangePath(url.Path() + '/' + job.StdErr);
-    else if (whichfile == "gmlog") {
-      // Not implemented at A-REX yet...
-      url = URL();
-    }
+    else if (whichfile == "gmlog")
+      url.ChangePath(url.Path() + "/" + job.LogDir + "/errors");
 
     return url;
   }
