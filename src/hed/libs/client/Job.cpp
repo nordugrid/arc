@@ -48,12 +48,14 @@ namespace Arc {
       for (iter = Error.begin(); iter != Error.end(); iter++)
         std::cout << IString(" Error: %s", *iter) << std::endl;
     }
-/*    if (longlist) {
+    if (longlist) {
       if (!Owner.empty())
         std::cout << IString(" Owner: %s", Owner) << std::endl;
       if (!OtherMessages.empty())
-        std::cout << IString(" Other Messages: %s", OtherMessages)
-                  << std::endl;
+        for (std::list<std::string>::const_iterator iter = OtherMessages.begin();
+             iter != OtherMessages.end(); iter++)
+          std::cout << IString(" Other Messages: %s", *iter)
+                    << std::endl;
       if (!ExecutionCE.empty())
         std::cout << IString(" ExecutionCE: %s", ExecutionCE)
                   << std::endl;
@@ -92,9 +94,9 @@ namespace Arc {
       if (UsedTotalCPUTime != -1)
         std::cout << IString(" Used CPU Time: %s",
                                   (std::string)UsedTotalCPUTime) << std::endl;
-      if (UsedWallTime != -1)
+      if (UsedTotalWallTime != -1)
         std::cout << IString(" Used Wall Time: %s",
-                                  (std::string)UsedWallTime) << std::endl;
+                                  (std::string)UsedTotalWallTime) << std::endl;
       if (UsedMainMemory != -1)
         std::cout << IString(" Used Memory: %d", UsedMainMemory)
                   << std::endl;
@@ -115,7 +117,7 @@ namespace Arc {
         std::cout << IString(" Entry valid for: %s",
                                   (std::string)Validity) << std::endl;
     }
-*/
+
     std::cout << std::endl;
 
   } // end Print
