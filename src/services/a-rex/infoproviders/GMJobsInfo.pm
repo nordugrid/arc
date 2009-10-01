@@ -123,7 +123,7 @@ sub collect($) {
         if ($job->{globalid}) {
             $job->{globalid} =~ s/.*JobSessionDir>([^<]+)<.*/$1/;
         } else {
-            $job_log->warning("'globalid' missing from .local file");
+            $job_log->debug("'globalid' missing from .local file");
         }
         # Rename queue -> share
         if (exists $job->{queue}) {
@@ -199,6 +199,7 @@ sub collect($) {
         unless ( open (GMJOB_GRAMI, "<$gmjob_grami") ) {
             $job_log->warning("Can't open $gmjob_grami");
         } else {
+            my $sessiondir = $job->{sessiondir};
             while (my $line = <GMJOB_GRAMI>) {
                 if ($line =~ m/^joboption_count=(\d+)$/) {
                     $job->{count} = $1;
@@ -206,12 +207,15 @@ sub collect($) {
                     $job->{reqwalltime} = $1;
                 } elsif ($line =~ m/^joboption_cputime=(\d+)$/) {
                     $job->{reqcputime} = $1;
-                } elsif ($line =~ m/^joboption_stdin=(\d+)$/) {
+                } elsif ($line =~ m/^joboption_stdin='(.+)'$/) {
                     $job->{stdin} = $1;
-                } elsif ($line =~ m/^joboption_stdout=(\d+)$/) {
+                    $job->{stdin} =~ s|^$sessiondir|| if $sessiondir;
+                } elsif ($line =~ m/^joboption_stdout='(.+)'$/) {
                     $job->{stdout} = $1;
-                } elsif ($line =~ m/^joboption_stderr=(\d+)$/) {
+                    $job->{stdout} =~ s|^$sessiondir|| if $sessiondir;
+                } elsif ($line =~ m/^joboption_stderr='(.+)'$/) {
                     $job->{stderr} = $1;
+                    $job->{stderr} =~ s|^$sessiondir|| if $sessiondir;
                 } elsif ($line =~ m/^joboption_runtime_\d+='(.+)'$/) {
                     my $rte = $1;
                     $rte =~ s/'\\''/'/g; # unescacpe escaped single quotes
