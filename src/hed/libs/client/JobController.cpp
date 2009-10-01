@@ -406,6 +406,11 @@ namespace Arc {
 
     logger.msg(DEBUG, "Performing the 'cat' command on %s jobs", flavour);
 
+    if (whichfile != "stdout" && whichfile != "stderr" && whichfile != "gmlog") {
+      logger.msg(ERROR, "Unknown output %s", whichfile);
+      return false;
+    }
+
     GetJobInformation();
 
     std::list<Job*> catable;
@@ -418,7 +423,7 @@ namespace Arc {
         continue;
       }
 
-      if (whichfile == "stdout" || whichfile == "stderr") {
+      if (whichfile == "stdout" || whichfile == "stderr" || whichfile == "gmlog") {
         if (it->State == JobState::DELETED) {
           logger.msg(WARNING, "Job has already been deleted: %s", it->JobID.str());
           continue;
@@ -431,14 +436,11 @@ namespace Arc {
         }
       }
 
-      if (whichfile == "stdout" && it->StdOut.empty()) {
-        logger.msg(ERROR, "Can not determine the stdout location: %s",
-                   it->JobID.str());
-        continue;
-      }
-      if (whichfile == "stderr" && it->StdErr.empty()) {
-        logger.msg(ERROR, "Can not determine the stderr location: %s",
-                   it->JobID.str());
+      if (whichfile == "stdout" && it->StdOut.empty() ||
+          whichfile == "stderr" && it->StdErr.empty() ||
+          whichfile == "gmlog" && it->LogDir.empty()) {
+        logger.msg(ERROR, "Can not determine the %s location: %s",
+                   whichfile, it->JobID.str());
         continue;
       }
 
@@ -457,8 +459,20 @@ namespace Arc {
       }
       close(tmp_h);
 
+      logger.msg(DEBUG, "Catting %s for job %s", whichfile, (*it)->JobID.str());
+
       URL src = GetFileUrlForJob((**it), whichfile);
+      if (!src) {
+        logger.msg(ERROR, "Cannot output %s for job (%s), non-valid source URL (%s)", whichfile, (*it)->JobID.str(), src.str());
+        continue;
+      }
+
       URL dst(filename);
+      if (!dst) {
+        logger.msg(ERROR, "Cannot output %s for job (%s), non-valid destination URL (%s)", whichfile, (*it)->JobID.str(), dst.str());
+        continue;
+      }
+
       bool copied = ARCCopyFile(src, dst);
 
       if (copied) {

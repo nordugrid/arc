@@ -133,7 +133,7 @@ namespace Arc {
   }
 
   URL JobControllerCREAM::GetFileUrlForJob(const Job& job,
-                                           const std::string& whichfile) {}
+                                           const std::string& whichfile) { return URL(); }
   bool JobControllerCREAM::GetJobDescription(const Job& job, std::string& desc_str) {}
 
 } // namespace Arc

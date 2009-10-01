@@ -262,6 +262,8 @@ namespace Arc {
     XMLNode jobNode;
     (*resp)["QueryResourcePropertiesResponse"]["ComputingActivity"].New(jobNode);
 
+    (*resp)["QueryResourcePropertiesResponse"].SaveToStream(std::cout); std::cout << std::endl;
+
     delete resp;
 
     if (fs) {
@@ -301,47 +303,67 @@ namespace Arc {
       if (jobNode["ComputingManagerEndTime"])
         job.ComputingManagerEndTime = Time((std::string)jobNode["ComputingManagerEndTime"]);
       else
-        logger.msg(INFO, "The job doesn't advertise a computing manager end time");
+        logger.msg(DEBUG, "The job doesn't advertise a computing manager end time");
 
       if (jobNode["ComputingManagerSubmissionTime"])
         job.ComputingManagerSubmissionTime = Time((std::string)jobNode["ComputingManagerSubmissionTime"]);
       else
-        logger.msg(INFO, "The job doesn't advertise a computing manager submission time");
+        logger.msg(DEBUG, "The job doesn't advertise a computing manager submission time");
 
       if (jobNode["CreationTime"])
         job.CreationTime = Time((std::string)jobNode["CreationTime"]);
       else
-        logger.msg(INFO, "The job doesn't advertise a creation time");
+        logger.msg(DEBUG, "The job doesn't advertise a creation time");
 
       if (jobNode["EndTime"])
         job.EndTime = Time((std::string)jobNode["EndTime"]);
       else
-        logger.msg(INFO, "The job doesn't advertise an end time");
+        logger.msg(DEBUG, "The job doesn't advertise an end time");
 
       if (jobNode["LocalSubmissionTime"])
         job.LocalSubmissionTime = Time((std::string)jobNode["LocalSubmissionTime"]);
       else
-        logger.msg(INFO, "The job doesn't advertise a local submission time");
+        logger.msg(DEBUG, "The job doesn't advertise a local submission time");
 
       if (jobNode["ProxyExpirationTime"])
         job.ProxyExpirationTime = Time((std::string)jobNode["ProxyExpirationTime"]);
       else
-        logger.msg(INFO, "The job doesn't advertise a proxy expiration time");
+        logger.msg(DEBUG, "The job doesn't advertise a proxy expiration time");
 
       if (jobNode["StartTime"])
         job.StartTime = Time((std::string)jobNode["StartTime"]);
       else
-        logger.msg(INFO, "The job doesn't advertise a start time");
+        logger.msg(DEBUG, "The job doesn't advertise a start time");
 
       if (jobNode["SubmissionTime"])
         job.SubmissionTime = Time((std::string)jobNode["SubmissionTime"]);
       else
-        logger.msg(INFO, "The job doesn't advertise a submission time");
+        logger.msg(DEBUG, "The job doesn't advertise a submission time");
 
       if (jobNode["WorkingAreaEraseTime"])
         job.WorkingAreaEraseTime = Time((std::string)jobNode["WorkingAreaEraseTime"]);
       else
-        logger.msg(INFO, "The job doesn't advertise a working area erase time");
+        logger.msg(DEBUG, "The job doesn't advertise a working area erase time");
+
+      if (jobNode["LogDir"])
+        job.LogDir = (std::string)jobNode["LogDir"];
+      else
+        logger.msg(DEBUG, "The job doesn't advertise a logging directory");
+
+      if (jobNode["StdIn"])
+        job.StdIn = (std::string)jobNode["StdIn"];
+      else
+        logger.msg(DEBUG, "The job doesn't advertise a standard input");
+
+      if (jobNode["StdOut"])
+        job.StdOut = (std::string)jobNode["StdOut"];
+      else
+        logger.msg(DEBUG, "The job doesn't advertise a standard output");
+
+      if (jobNode["StdErr"])
+        job.StdErr = (std::string)jobNode["StdErr"];
+      else
+        logger.msg(DEBUG, "The job doesn't advertise a standard error");
 
       return true;
     }

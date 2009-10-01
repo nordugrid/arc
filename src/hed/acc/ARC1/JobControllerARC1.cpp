@@ -129,7 +129,20 @@ namespace Arc {
   }
 
   URL JobControllerARC1::GetFileUrlForJob(const Job& job,
-                                          const std::string& whichfile) {}
+                                          const std::string& whichfile) {
+    URL url(job.JobID);
+
+    if (whichfile == "stdout")
+      url.ChangePath(url.Path() + '/' + job.StdOut);
+    else if (whichfile == "stderr")
+      url.ChangePath(url.Path() + '/' + job.StdErr);
+    else if (whichfile == "gmlog") {
+      // Not implemented at A-REX yet...
+      url = URL();
+    }
+
+    return url;
+  }
 
   bool JobControllerARC1::GetJobDescription(const Job& job, std::string& desc_str) {
     MCCConfig cfg;
