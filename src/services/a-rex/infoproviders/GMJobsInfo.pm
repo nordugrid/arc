@@ -209,13 +209,13 @@ sub collect($) {
                     $job->{reqcputime} = $1;
                 } elsif ($line =~ m/^joboption_stdin='(.+)'$/) {
                     $job->{stdin} = $1;
-                    $job->{stdin} =~ s|^$sessiondir|| if $sessiondir;
+                    $job->{stdin} =~ s/^\Q$sessiondir\E// if $sessiondir;
                 } elsif ($line =~ m/^joboption_stdout='(.+)'$/) {
                     $job->{stdout} = $1;
-                    $job->{stdout} =~ s|^$sessiondir|| if $sessiondir;
+                    $job->{stdout} =~ s/^\Q$sessiondir\E// if $sessiondir;
                 } elsif ($line =~ m/^joboption_stderr='(.+)'$/) {
                     $job->{stderr} = $1;
-                    $job->{stderr} =~ s|^$sessiondir|| if $sessiondir;
+                    $job->{stderr} =~ s/^\Q$sessiondir\E// if $sessiondir;
                 } elsif ($line =~ m/^joboption_runtime_\d+='(.+)'$/) {
                     my $rte = $1;
                     $rte =~ s/'\\''/'/g; # unescacpe escaped single quotes
