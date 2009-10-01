@@ -262,8 +262,6 @@ namespace Arc {
     XMLNode jobNode;
     (*resp)["QueryResourcePropertiesResponse"]["ComputingActivity"].New(jobNode);
 
-    (*resp)["QueryResourcePropertiesResponse"].SaveToStream(std::cout); std::cout << std::endl;
-
     delete resp;
 
     if (fs) {
