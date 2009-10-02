@@ -498,8 +498,8 @@ namespace Arc {
     return ok;
   }
 
-  bool JobController::Stat(const std::list<std::string>& status,
-                           const bool longlist) {
+  bool JobController::PrintJobStatus(const std::list<std::string>& status,
+                                     const bool longlist) {
 
     GetJobInformation();
 

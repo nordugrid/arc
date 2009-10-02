@@ -143,7 +143,7 @@ int main(int argc, char **argv) {
   int retval = 0;
   for (std::list<Arc::JobController*>::iterator it = jobcont.begin();
        it != jobcont.end(); it++) {
-    if (!(*it)->Stat(status, longlist))
+    if (!(*it)->PrintJobStatus(status, longlist))
       retval = 1;
   }
 

@@ -45,8 +45,32 @@ namespace Arc {
     bool Cat(const std::list<std::string>& status,
              const std::string& whichfile);
 
-    bool Stat(const std::list<std::string>& status,
-              const bool longlist);
+    /// Print job status to stdout
+    /**
+     * The job status is printed to stdout when calling this method.
+     * More specifically the Job::Print method is called on each of the
+     * Job objects stored in this object, and the boolean argument
+     * \a longlist is passed directly to the method indicating whether
+     * verbose job status should be printed. The \a status argument is
+     * a list of strings each representing a job state (JobState) which
+     * is used to indicate that only jobs with a job state in the list
+     * should be considered. If the list \a status is empty all jobs
+     * will be considered.
+     *
+     * This method is not supposed to be overloaded by extending
+     * classes.
+     *
+     * @param status a list of strings representing states to be
+     *        considered.
+     * @param longlist a boolean indicating whether verbose job
+     *        information should be printed.
+     * @return This method always returns true.
+     * @see GetJobInformation
+     * @see Job::Print
+     * @see JobState
+     **/
+    bool PrintJobStatus(const std::list<std::string>& status,
+                        const bool longlist);
 
     bool Migrate(TargetGenerator& targetGen,
                  Broker *broker,
