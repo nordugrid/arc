@@ -69,7 +69,7 @@
     return new Arc::UserConfig(false);
   }
 }
-%ignore Arc::UserConfig(bool)
+%ignore Arc::UserConfig(bool);
 #endif
 
 %rename(_print) Arc::Config::print;
