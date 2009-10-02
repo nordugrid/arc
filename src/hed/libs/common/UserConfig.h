@@ -736,7 +736,7 @@ namespace Arc {
      * @see CredentialsFound()
      * @see ProxyPath() const
      **/
-    bool ProxyPath(const std::string& newProxyPath) { proxyPath = newProxyPath; }
+    bool ProxyPath(const std::string& newProxyPath) { proxyPath = newProxyPath; return true;}
     /// Get path to user proxy.
     /**
      * Retrieve path to user proxy.
