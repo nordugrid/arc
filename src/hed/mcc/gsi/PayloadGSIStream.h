@@ -64,6 +64,9 @@ namespace Arc {
     virtual Size_t Size(void) const { 
       return 0; 
     }
+    virtual Size_t Limit(void) const {
+      return 0;
+   };
 
   protected:
     int timeout;
