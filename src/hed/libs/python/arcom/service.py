@@ -36,7 +36,6 @@ log = Logger(arc.Logger(arc.Logger_getRootLogger(), 'Storage.Service'))
 class Service:
     
     def __init__(self, request_config, cfg = None):
-        self.service_is_running = False
         self._trust_manager = []
         self.ssl_config = {}
         self._force_trust = False

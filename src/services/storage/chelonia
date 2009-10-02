@@ -118,7 +118,6 @@ def download_from_turl(turl, protocol, fobj,  ssl_config = {}):
             return str(status)
         else:
             return 'cannot download file, import arc filed'
-
     elif protocol == 'http':
         try:
             import arc
@@ -127,12 +126,11 @@ def download_from_turl(turl, protocol, fobj,  ssl_config = {}):
         except:
             use_hed = False
         if use_hed:
-            src = datapoint_from_url(turl)
+            src = datapoint_from_url(turl, ssl_config)
             dst = datapoint_from_url(fobj.name)
-            src.AssignCredentials(ssl_config.get('proxy_file',''), ssl_config.get('cert_file', ''),
-                ssl_config.get('key_file', ''), ssl_config.get('ca_dir', ''))
             mover = arc.DataMover()
             mover.verbose(True)
+            mover.retry(False)
             status = mover.Transfer(src, dst, arc.FileCache(), arc.URLMap())
             return str(status)
         else:
@@ -1505,7 +1503,7 @@ else:
         proxy_file = user_config.ProxyPath()
         ca_file = user_config.CACertificatePath()
         ca_dir = user_config.CACertificatesDirectory()
-        bartender_urls = user_config.Bartender()
+        bartender_urls = [url.fullstr() for url in user_config.Bartender()]
 #        isis_urls = get_child_values_by_name(user_config.ConfTree(),'ISISURL')
     except Exception, e:
         problem_with_userconfig = e

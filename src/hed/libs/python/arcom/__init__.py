@@ -34,22 +34,13 @@ def get_child_values_by_name(node, name):
 
 def datapoint_from_url(url_string, ssl_config = None):
     import arc
-    try:
-        xml = arc.XMLNode('<ArcConfig/>')
-        if ssl_config.has_key('key_file'):
-            xml.NewChild('KeyPath').Set(ssl_config['key_file'])
-        if ssl_config.has_key('cert_file'):
-            xml.NewChild('CertificatePath').Set(ssl_config['cert_file'])
-        if ssl_config.has_key('proxy_file'):
-            xml.NewChild('ProxyPath').Set(ssl_config['proxy_file'])
-        if ssl_config.has_key('ca_file'):
-            xml.NewChild('CACertificatePath').Set(ssl_config['ca_file'])
-        if ssl_config.has_key('ca_dir'):
-            xml.NewChild('CACertificatesDir').Set(ssl_config['ca_dir'])
-        user_config = arc.UserConfig(xml)
-    except:
-        user_config = arc.UserConfig('')
-    # print ' --- ' , ssl_config, ' === ', user_config.ConfTree().GetXML()
+    user_config = arc.UserConfig.CreateEmpty()
+    if ssl_config:
+        if ssl_config.has_key('key_file'): user_config.KeyPath(ssl_config['key_file'])
+        if ssl_config.has_key('cert_file'): user_config.CertificatePath(ssl_config['cert_file'])
+        if ssl_config.has_key('proxy_file'): user_config.ProxyPath(ssl_config['proxy_file'])
+        if ssl_config.has_key('ca_file'): user_config.CACertificatePath(ssl_config['ca_file'])
+        if ssl_config.has_key('ca_dir'): user_config.CACertificatesDirectory(ssl_config['ca_dir'])
     url = arc.URL(url_string)
     handle = arc.DataHandle(url, user_config)
     point = handle.__ref__()
