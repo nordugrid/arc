@@ -32,8 +32,8 @@
 # arcsync etc. to read and write information about jobs. The default
 # location of the file is in home directory in the .arc directory with
 # name jobs.xml
-#joblistfile=/home/user/run/jobs.xml
-#joblistfile=C:\\run\jobs.xml
+#joblist=/home/user/run/jobs.xml
+#joblist=C:\\run\jobs.xml
 
 # Default bartender services can be specified by the bartender
 # attribute. Multiple bartender urls should be separated with a space.
