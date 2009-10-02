@@ -124,7 +124,7 @@ int main(int argc, char **argv) {
     return 1;
   }
 
-  if (!jobs.empty())
+  if (!jobs.empty() || all)
     usercfg.ClearSelectedServices();
 
   if (!clusters.empty()) {
