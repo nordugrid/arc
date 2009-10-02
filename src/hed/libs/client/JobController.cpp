@@ -424,6 +424,11 @@ namespace Arc {
         continue;
       }
 
+      if (!status.empty() &&
+          std::find(status.begin(), status.end(), it->State()) == status.end() &&
+          std::find(status.begin(), status.end(), it->State.GetGeneralState()) == status.end())
+        continue;
+
       if (whichfile == "stdout" || whichfile == "stderr" || whichfile == "gmlog") {
         if (it->State == JobState::DELETED) {
           logger.msg(WARNING, "Job has already been deleted: %s", it->JobID.str());
@@ -509,6 +514,12 @@ namespace Arc {
                      "have reached the information-system");
         continue;
       }
+
+      if (!status.empty() &&
+          std::find(status.begin(), status.end(), it->State()) == status.end() &&
+          std::find(status.begin(), status.end(), it->State.GetGeneralState()) == status.end())
+        continue;
+
       it->Print(longlist);
     }
     return true;
