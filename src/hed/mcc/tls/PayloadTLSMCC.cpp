@@ -34,6 +34,7 @@ static void set_flag_STORE_CTX(X509_STORE_CTX* container,unsigned long flags) {
 
 Time asn1_to_utctime(const ASN1_UTCTIME *s) {
   std::string t_str;
+  if(!s) return Time();
   if(s->type == V_ASN1_UTCTIME) {
     t_str.append("20");
     t_str.append((char*)(s->data));
@@ -120,13 +121,14 @@ static int verify_callback(int ok,X509_STORE_CTX *sctx) {
   if(ok == 1) {
     // Do additional verification here.
     PayloadTLSMCC* it = PayloadTLSMCC::RetrieveInstance(sctx);
+    X509* cert = X509_STORE_CTX_get_current_cert(sctx);
+    char* subject_name = X509_NAME_oneline(X509_get_subject_name(cert),NULL,0);
     if(it == NULL) {
       Logger::getRootLogger().msg(WARNING,"Failed to retrieve link to TLS stream. Additional policy matching is skipped.");
     } else {
       // Globus signing policy
       // Do not apply to proxies and self-signed CAs.
       if((it->Config().GlobusPolicy()) && (!(it->Config().CADir().empty()))) {
-        X509* cert = X509_STORE_CTX_get_current_cert(sctx);
 #ifdef HAVE_OPENSSL_PROXY
         int pos = X509_get_ext_by_NID(cert,NID_proxyCertInfo,-1);
         if(pos < 0) {
@@ -136,9 +138,7 @@ static int verify_callback(int ok,X509_STORE_CTX *sctx) {
           std::istream* in = open_globus_policy(X509_get_issuer_name(cert),it->Config().CADir());
           if(in) {
             if(!match_globus_policy(*in,X509_get_issuer_name(cert),X509_get_subject_name(cert))) {
-              char* s = X509_NAME_oneline(X509_get_subject_name(cert),NULL,0);
-              Logger::getRootLogger().msg(ERROR,"Certificate %s failed Globus signing policy",s);
-              OPENSSL_free(s);
+              Logger::getRootLogger().msg(ERROR,"Certificate %s failed Globus signing policy",subject_name);
               ok=0;
               X509_STORE_CTX_set_error(sctx,X509_V_ERR_SUBJECT_ISSUER_MISMATCH);            };
             delete in;
@@ -149,19 +149,23 @@ static int verify_callback(int ok,X509_STORE_CTX *sctx) {
     //Check the left validity time of the peer certificate;
     //Give warning if the certificate is going to be expired 
     //in a while of time
-    char * subject_name = X509_NAME_oneline(X509_get_subject_name(sctx->current_cert), 0, 0);
-    Arc::Period timeleft;
-    timeleft = asn1_to_utctime(X509_get_notAfter(sctx->current_cert)) - Time();
+    Time exptime = asn1_to_utctime(X509_get_notAfter(cert));
+    if(exptime <= Time()) {
+      Logger::getRootLogger().msg(WARNING,"Certificate %s already expired",subject_name);
+    } else {
+      Arc::Period timeleft = asn1_to_utctime(X509_get_notAfter(cert)) - Time();
 #ifdef HAVE_OPENSSL_PROXY
-    int pos = X509_get_ext_by_NID(sctx->current_cert, NID_proxyCertInfo,-1);
-    if(pos >= 0) {           //for proxy certificate, give warning 1 hour in advance
-      if(timeleft <= 3600)
-        Logger::getRootLogger().msg(WARNING,"Certificate %s will be expired in %s", subject_name, timeleft.istr());
-    }
+      int pos = X509_get_ext_by_NID(cert,NID_proxyCertInfo,-1);
 #else
-    if(timeleft <= 5*24*3600) //for EEC certificate, give warning 5 days in advance
-      Logger::getRootLogger().msg(WARNING,"Certificate %s will be expired in %s", subject_name, timeleft.istr());
+      int pos = -1;
 #endif
+      //for proxy certificate, give warning 1 hour in advance
+      //for EEC certificate, give warning 5 days in advance
+      if(((pos >= 0) && (timeleft <= 3600)) ||
+         (timeleft <= 5*24*3600)) {
+        Logger::getRootLogger().msg(WARNING,"Certificate %s will expire in %s", subject_name, timeleft.istr());
+      }
+    }
     OPENSSL_free(subject_name);
   };
   return ok;
