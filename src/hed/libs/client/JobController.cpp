@@ -155,9 +155,10 @@ namespace Arc {
       }
 
     if (jobids.empty() && usercfg.GetSelectedServices(COMPUTING).empty()) {
-      const std::list<URL>& rejectedClusters = itRejectedClusters->second;
       logger.msg(DEBUG, "Filling job store with all jobs, except those "
                  "running on rejected clusters");
+
+      const std::list<URL>* rejectedClusters = (itRejectedClusters == usercfg.GetRejectedServices(COMPUTING).end() ? NULL : &itRejectedClusters->second);
 
       XMLNodeList xmljobs =
         jobstorage.XPathLookup("//Job[Flavour='" + flavour + "']", NS());
@@ -167,8 +168,8 @@ namespace Arc {
 
         URL cluster = (std::string)(*it)["Cluster"];
 
-        if (std::find(rejectedClusters.begin(), rejectedClusters.end(),
-                      cluster) == rejectedClusters.end()) {
+        if (!rejectedClusters ||
+            std::find(rejectedClusters->begin(), rejectedClusters->end(), cluster) == rejectedClusters->end()) {
           Job job;
           job.JobID = (std::string)(*it)["JobID"];
           job.Flavour = (std::string)(*it)["Flavour"];
