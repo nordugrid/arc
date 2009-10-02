@@ -241,6 +241,10 @@ int main(int argc, char **argv) {
 
   Arc::BrokerLoader loader;
   Arc::Broker *ChosenBroker = loader.load(usercfg.Broker().first, usercfg);
+  if (!ChosenBroker) {
+    logger.msg(Arc::ERROR, "Unable to load broker %s", usercfg.Broker().first);
+    return 1;
+  }
   logger.msg(Arc::INFO, "Broker %s loaded", usercfg.Broker().first);
 
   for (std::list<Arc::JobDescription>::iterator it =

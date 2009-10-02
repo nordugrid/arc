@@ -180,6 +180,10 @@ int main(int argc, char **argv) {
 
   Arc::BrokerLoader loader;
   Arc::Broker *chosenBroker = loader.load(usercfg.Broker().first, usercfg);
+  if (!chosenBroker) {
+    logger.msg(Arc::ERROR, "Unable to load broker %s", usercfg.Broker().first);
+    return 1;
+  }
   logger.msg(Arc::INFO, "Broker %s loaded", usercfg.Broker().first);
 
   std::list<Arc::URL> migratedJobIDs;
