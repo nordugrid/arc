@@ -64,6 +64,12 @@
 %rename(toBool) operator bool;
 %rename(__str__) operator std::string;
 
+%extend Arc::UserConfig {
+  static Arc::UserConfig* CreateEmpty() {
+    return new Arc::UserConfig(false);
+  }
+}
+%ignore Arc::UserConfig(bool)
 #endif
 
 %rename(_print) Arc::Config::print;
