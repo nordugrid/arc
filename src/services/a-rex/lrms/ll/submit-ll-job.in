@@ -163,7 +163,7 @@ fi
 #Read queue from config or figure out which queue to use
 ##################################################################
 if [ ! -z "${joboption_queue}" ] ; then
-  class=${CONFIG_MappingQueue:-$joboption_queue}
+  class=$joboption_queue
 else
   #if queue is not set we must choose one
   LL_CLASS='llclass -l'

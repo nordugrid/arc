@@ -148,8 +148,7 @@ echo "" >> $LRMS_JOB_SCRIPT
 
 # Choose queue(s).
 if [ ! -z "${joboption_queue}" ] ; then
-  queue=${CONFIG_MappingQueue:-$joboption_queue}
-  echo "#BSUB -q $queue" >> $LRMS_JOB_SCRIPT
+  echo "#BSUB -q $joboption_queue" >> $LRMS_JOB_SCRIPT
 fi
 
 if [ ! -z "${joboption_rsl_architecture}" ] ; then

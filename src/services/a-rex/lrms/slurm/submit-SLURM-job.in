@@ -65,8 +65,7 @@ echo "#SBATCH -o '${joboption_directory}.comment'">> $LRMS_JOB_SCRIPT
 echo "" >> $LRMS_JOB_SCRIPT
 # choose queue
 if [ ! -z "${joboption_queue}" ] ; then
-  partition=${CONFIG_MappingQueue:-$joboption_queue}
-  echo "#SBATCH -p $partition" >> $LRMS_JOB_SCRIPT
+  echo "#SBATCH -p $joboption_queue" >> $LRMS_JOB_SCRIPT
 fi
 # project name for accounting
 if [ ! -z "${joboption_rsl_project}" ] ; then

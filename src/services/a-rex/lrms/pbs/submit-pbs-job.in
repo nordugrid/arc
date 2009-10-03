@@ -68,8 +68,7 @@ echo "#PBS -j eo">> $LRMS_JOB_SCRIPT
 echo "" >> $LRMS_JOB_SCRIPT
 # choose queue
 if [ ! -z "${joboption_queue}" ] ; then
-  queue=${CONFIG_MappingQueue:-$joboption_queue}
-  echo "#PBS -q $queue" >> $LRMS_JOB_SCRIPT
+  echo "#PBS -q $joboption_queue" >> $LRMS_JOB_SCRIPT
 fi
 # project name for accounting
 if [ ! -z "${joboption_rsl_project}" ] ; then

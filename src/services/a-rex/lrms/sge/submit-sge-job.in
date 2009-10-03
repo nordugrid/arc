@@ -62,8 +62,7 @@ echo "#$ -j y" >> $LRMS_JOB_SCRIPT
 echo "#$ -o ${joboption_directory}.comment" >> $LRMS_JOB_SCRIPT
 
 # Choose queue.
-queue=${CONFIG_MappingQueue:-$joboption_queue}
-echo "#$ -q $queue" >> $LRMS_JOB_SCRIPT
+echo "#$ -q $joboption_queue" >> $LRMS_JOB_SCRIPT
 
 # job name for convenience
 if [ ! -z "${joboption_jobname}" ] ; then
