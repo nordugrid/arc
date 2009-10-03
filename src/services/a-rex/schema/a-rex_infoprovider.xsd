@@ -58,6 +58,7 @@
 <xsd:complexType name="contact_Type">
    <xsd:sequence>
        <xsd:element name="Name" type="xsd:string" minOccurs="1"/>
+       <xsd:element name="OtherInfo" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
        <xsd:element name="Detail" type="xsd:anyURI" minOccurs="1"/>
        <xsd:element name="Type" type="xsd:string" minOccurs="1">
            <xsd:annotation>
@@ -72,89 +73,64 @@
    </xsd:sequence>
 </xsd:complexType>
 
-<xsd:simpleType name="connectivityIn_Type">
+<xsd:simpleType name="adotf_Type">
   <xsd:restriction base="xsd:string">
-     <xsd:pattern value="true|false"/>
+      <xsd:enumeration value="adotf"/>
   </xsd:restriction>
 </xsd:simpleType>
 
-<xsd:simpleType name="connectivityOut_Type">
-  <xsd:restriction base="xsd:string">
-     <xsd:pattern value="true|false"/>
-  </xsd:restriction>
+<xsd:simpleType name="integerOrAdotf_Type">
+  <xsd:union memberTypes="xsd:positiveInteger adotf_Type"/>
 </xsd:simpleType>
 
-<xsd:simpleType name="schedulingPolicy_Type">
-  <xsd:restriction base="xsd:string">
-     <xsd:pattern value="([a-zA-Z0-9])*"/>
-  </xsd:restriction>
+<xsd:simpleType name="stringOrAdotf_Type">
+  <xsd:union memberTypes="xsd:string adotf_Type"/>
 </xsd:simpleType>
 
-<xsd:simpleType name="networkInfo_Type">
-  <xsd:restriction base="xsd:string">
-     <xsd:pattern value="([a-zA-Z0-9])*"/>
-  </xsd:restriction>
-</xsd:simpleType>
+<xsd:element name="PublishNordugrid" type="xsd:boolean"/>
+<xsd:element name="AdminDomain" type="xsd:string"/>
+<xsd:element name="Location" type="location_Type"/>
+<xsd:element name="Contact" type="contact_Type"/>
+<xsd:element name="ClusterName" type="xsd:string"/>
+<xsd:element name="OtherInfo" type="xsd:string"/>
+<xsd:element name="StatusInfo" type="xsd:string"/>
+<xsd:element name="Downtime" type="xsd:string"/>
 
-<xsd:complexType name="computingService_Type">
-    <xsd:annotation>
-        <xsd:documentation xml:lang="en">
-        </xsd:documentation>
-    </xsd:annotation>   
-        <xsd:sequence>
-            <xsd:element name="Name" type="xsd:string"/>
-            <xsd:element name="OtherInfo" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
-            <xsd:element name="AdminDomain" type="xsd:string"/>
-            <xsd:element name="StatusInfo" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
-            <xsd:element name="ConnectivityIn" type="connectivityIn_Type"/>
-            <xsd:element name="ConnectivityOut" type="connectivityOut_Type"/>
-            <xsd:element name="Location" type="location_Type"/>
-            <xsd:element name="Contact" type="contact_Type"/>
-            <xsd:element name="Benchmark" type="benchmark_Type" minOccurs="0" maxOccurs="unbounded"/>
-            <xsd:element name="Downtime" type="xsd:string" minOccurs="0"/>
+<!-- Options used only for generating legacy Nordugrid info schema -->
+<xsd:element name="ClusterOwner" type="xsd:string"/>
+<xsd:element name="Middleware" type="xsd:string"/>
+<xsd:element name="LocalSE" type="xsd:string"/>
+<xsd:element name="InteractiveContactstring" type="xsd:string"/>
 
-            <xsd:element name="PublishNordugrid" type="xsd:boolean" minOccurs="0"/>
-            <xsd:element name="ClusterOwner" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
-            <xsd:element name="OpSys" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
-            <xsd:element name="Middleware" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
-            <xsd:element name="LocalSE" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
-            <xsd:element name="InteractiveContactstring" type="xsd:string" minOccurs="0"/>
+<!-- ExecutionEnvironment options -->
+<xsd:element name="Homogeneous" type="xsd:boolean"/>
+<xsd:element name="PhysicalCPUs" type="integerOrAdotf_Type"/>
+<xsd:element name="LogicalCPUs" type="integerOrAdotf_Type"/>
+<xsd:element name="VirtualMachine" type="xsd:boolean"/>
+<xsd:element name="Platform" type="stringOrAdotf_Type"/>
+<xsd:element name="OSFamily" type="stringOrAdotf_Type"/>
+<xsd:element name="OSName" type="stringOrAdotf_Type"/>
+<xsd:element name="OSVersion" type="stringOrAdotf_Type"/>
+<xsd:element name="CPUVendor" type="stringOrAdotf_Type"/>
+<xsd:element name="CPUModel" type="stringOrAdotf_Type"/>
+<xsd:element name="CPUVersion" type="integerOrAdotf_Type"/>
+<xsd:element name="CPUClockSpeed" type="integerOrAdotf_Type"/>
+<xsd:element name="CPUTimeScalingFactor" type="xsd:decimal"/>
+<xsd:element name="WallTimeScalingFactor" type="xsd:decimal"/>
+<xsd:element name="MainMemorySize" type="integerOrAdotf_Type"/>
+<xsd:element name="VirtualMemorySize" type="integerOrAdotf_Type"/>
+<xsd:element name="NetworkInfo" type="xsd:string"/>
+<xsd:element name="ConnectivityIn" type="xsd:boolean"/>
+<xsd:element name="ConnectivityOut" type="xsd:boolean"/>
+<xsd:element name="Benchmark" type="benchmark_Type"/>
+<xsd:element name="OpSys" type="stringOrAdotf_Type"/> <!-- Only for Nordugrid info schema -->
 
-            <xsd:element name="ExecutionEnvironment" type="executionEnvironment_Type" maxOccurs="unbounded"/>
-            <xsd:element name="ComputingShare" type="computingShare_Type" maxOccurs="unbounded"/>
-        </xsd:sequence>
-</xsd:complexType>
-
-<xsd:complexType name="executionEnvironment_Type">
-    <xsd:annotation>
-        <xsd:documentation xml:lang="en">
-            This element represents a group of identical compute nodes in the cluster.
-        </xsd:documentation>
-    </xsd:annotation>
-        <xsd:sequence>
-            <xsd:element name="OtherInfo" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
-            <xsd:element name="NodeSelection" type="nodeSelection_Type" minOccurs="0"/>
-            <xsd:element name="Homogeneous" type="xsd:boolean" minOccurs="0"/>
-            <xsd:element name="PhysicalCPUs" type="xsd:positiveInteger" minOccurs="0"/>
-            <xsd:element name="LogicalCPUs" type="xsd:positiveInteger" minOccurs="0"/>
-            <xsd:element name="VirtualMachine" type="xsd:boolean" minOccurs="0"/>
-            <xsd:element name="Platform" type="xsd:string"/>
-            <xsd:element name="OSFamily" type="xsd:string"/>
-            <xsd:element name="OSName" type="xsd:string"/>
-            <xsd:element name="OSVersion" type="xsd:string"/>
-            <xsd:element name="CPUVendor" type="xsd:string"/>
-            <xsd:element name="CPUModel" type="xsd:string"/>
-            <xsd:element name="CPUVersion" type="xsd:positiveInteger" minOccurs="0"/>
-            <xsd:element name="CPUClockSpeed" type="xsd:positiveInteger" minOccurs="1"/>
-            <xsd:element name="CPUTimeScalingFactor" type="xsd:decimal" minOccurs="0"/>
-            <xsd:element name="WallTimeScalingFactor" type="xsd:decimal" minOccurs="0"/>
-            <xsd:element name="MainMemorySize" type="xsd:positiveInteger" minOccurs="0"/>
-            <xsd:element name="VirtualMemorySize" type="xsd:positiveInteger" minOccurs="0"/>
-            <xsd:element name="NetworkInfo" type="xsd:string" minOccurs="0"/>
-            <xsd:element name="Benchmark" type="benchmark_Type" minOccurs="0" maxOccurs="unbounded"/>
-        </xsd:sequence>
-    <xsd:attribute name="name" use="required"/>
-</xsd:complexType>
+<!-- ComputingShare options -->
+<xsd:element name="AuthorizedVO" type="xsd:string"/>
+<xsd:element name="MaxSlotsPerJob" type="xsd:positiveInteger"/>
+<xsd:element name="MaxVirtualMemory" type="xsd:positiveInteger"/>
+<xsd:element name="SchedulingPolicy" type="xsd:string"/>
+<xsd:element name="Preemption" type="xsd:boolean"/>
 
 <xsd:complexType name="nodeSelection_Type">
     <xsd:annotation>
@@ -169,6 +145,40 @@
     </xsd:sequence>
 </xsd:complexType>
 
+<xsd:complexType name="executionEnvironment_Type">
+    <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+            This element represents a group of identical compute nodes in the cluster.
+        </xsd:documentation>
+    </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="NodeSelection" type="nodeSelection_Type" minOccurs="0"/>
+            <xsd:element name="OtherInfo" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element ref="Homogeneous" minOccurs="0"/>
+            <xsd:element ref="PhysicalCPUs" minOccurs="0"/>
+            <xsd:element ref="LogicalCPUs" minOccurs="0"/>
+            <xsd:element ref="VirtualMachine" minOccurs="0"/>
+            <xsd:element ref="Platform" minOccurs="0"/>
+            <xsd:element ref="OSFamily" minOccurs="0"/>
+            <xsd:element ref="OSName" minOccurs="0"/>
+            <xsd:element ref="OSVersion" minOccurs="0"/>
+            <xsd:element ref="CPUVendor" minOccurs="0"/>
+            <xsd:element ref="CPUModel" minOccurs="0"/>
+            <xsd:element ref="CPUVersion" minOccurs="0"/>
+            <xsd:element ref="CPUClockSpeed" minOccurs="0"/>
+            <xsd:element ref="CPUTimeScalingFactor" minOccurs="0"/>
+            <xsd:element ref="WallTimeScalingFactor" minOccurs="0"/>
+            <xsd:element ref="MainMemorySize" minOccurs="0"/>
+            <xsd:element ref="VirtualMemorySize" minOccurs="0"/>
+            <xsd:element ref="NetworkInfo" minOccurs="0"/>
+            <xsd:element name="ConnectivityIn" type="xsd:boolean" minOccurs="0"/>
+            <xsd:element name="ConnectivityOut" type="xsd:boolean" minOccurs="0"/>
+            <xsd:element ref="Benchmark" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element ref="OpSys" minOccurs="0"/>
+        </xsd:sequence>
+    <xsd:attribute name="name" use="required"/>
+</xsd:complexType>
+
 <xsd:complexType name="computingShare_Type">
     <xsd:annotation>
         <xsd:documentation xml:lang="en">
@@ -180,16 +190,17 @@
        <xsd:element name="OtherInfo" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
        <xsd:element name="MappingQueue" type="xsd:string" minOccurs="0"/>
        <xsd:element name="ExecEnvName" type="xsd:string" maxOccurs="unbounded"/>
-       <xsd:element name="AuthorizedVO" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
-       <xsd:element name="MaxSlotsPerJob" type="xsd:positiveInteger" minOccurs="0"/>
-       <xsd:element name="MaxVirtualMemory" type="xsd:positiveInteger" minOccurs="0"/>
-       <xsd:element name="SchedulingPolicy" type="schedulingPolicy_Type" minOccurs="0"/>
-       <xsd:element name="Preemption" type="xsd:boolean" minOccurs="0"/>
-       <xsd:any namespace="http://www.nordugrid.org/schemas/ArcConfig/2009/arex/LRMS" minOccurs="0" maxOccurs="unbounded"/>
+       <xsd:element ref="AuthorizedVO" minOccurs="0" maxOccurs="unbounded"/>
+       <xsd:element ref="MaxVirtualMemory" minOccurs="0"/>
+       <xsd:element ref="MaxSlotsPerJob" minOccurs="0"/>
+       <xsd:element ref="SchedulingPolicy" minOccurs="0"/>
+       <xsd:element ref="Preemption" minOccurs="0"/>
+       <xsd:any namespace="http://www.nordugrid.org/schemas/a-rex/LRMS/2009/08" minOccurs="0" maxOccurs="unbounded"/>
     </xsd:sequence>
     <xsd:attribute name="name" use="required"/>
 </xsd:complexType>
 
-<xsd:element name="ComputingService" type="computingService_Type"/>
+<xsd:element name="ExecutionEnvironment" type="executionEnvironment_Type"/>
+<xsd:element name="ComputingShare" type="computingShare_Type"/>
 
 </xsd:schema>

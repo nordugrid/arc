@@ -1,8 +1,12 @@
 <?xml version="1.0"?>
 <ArcConfig
   xmlns="http://www.nordugrid.org/schemas/arcconfig/2009/08"
+  xmlns:loader="http://www.nordugrid.org/schemas/loader/2009/08"
   xmlns:tcp="http://www.nordugrid.org/schemas/tcp/2009/08"
-  xmlns:arex="http://www.nordugrid.org/schemas/a-rex/LRMS/2009/08"
+  xmlns:tls="http://www.nordugrid.org/schemas/tls/2009/08"
+  xmlns:authz="http://www.nordugrid.org/schemas/arcauthz/2009/08"
+  xmlns:spdp="http://www.nordugrid.org/schemas/simplelistpdp/2009/08"
+  xmlns:arex="http://www.nordugrid.org/schemas/a-rex/2009/08"
   xmlns:ip="http://www.nordugrid.org/schemas/a-rex/InfoProvider/2009/08"
   xmlns:lrms="http://www.nordugrid.org/schemas/a-rex/LRMS/2009/08"
 >
@@ -15,62 +19,64 @@
     </Logger>
   </Server>
   <!-- Where to find plugins -->
-  <ModuleManager>
-    <Path>@prefix@/lib/arc/</Path>
-  </ModuleManager>
+  <loader:ModuleManager>
+    <loader:Path>@prefix@/lib/arc/</loader:Path>
+  </loader:ModuleManager>
   <!-- Simply load all needed plugins -->
-  <Plugins><Name>mcctcp</Name></Plugins>
-  <Plugins><Name>mcctls</Name></Plugins>
-  <Plugins><Name>mcchttp</Name></Plugins>
-  <Plugins><Name>mccsoap</Name></Plugins>
-  <Plugins><Name>arcpdc</Name></Plugins>
-  <Plugins><Name>identitymap</Name></Plugins>
-  <Plugins><Name>arex</Name></Plugins>
+  <loader:Plugins>
+    <loader:Name>mcctcp</loader:Name>
+    <loader:Name>mcctls</loader:Name>
+    <loader:Name>mcchttp</loader:Name>
+    <loader:Name>mccsoap</loader:Name>
+    <loader:Name>arcpdc</loader:Name>
+    <loader:Name>identitymap</loader:Name>
+    <loader:Name>arex</loader:Name>
+  </loader:Plugins>
   <!-- Create a chain -->
-  <Chain>
+  <loader:Chain>
     <!-- TCP listening socket -->
-    <Component name="tcp.service" id="tcp">
-      <next id="tls"/>
+    <loader:Component name="tcp.service" id="tcp">
+      <loader:next id="tls"/>
       <tcp:Listen><tcp:Port>60000</tcp:Port></tcp:Listen>
-    </Component>
+    </loader:Component>
     <!-- Transport-level security -->
-    <Component name="tls.service" id="tls">
-      <next id="http"/>
+    <loader:Component name="tls.service" id="tls">
+      <loader:next id="http"/>
       <!-- Location of server's security keys -->
-      <KeyPath>/etc/grid-security/hostkey.pem</KeyPath>
-      <CertificatePath>/etc/grid-security/hostcert.pem</CertificatePath>
-      <CACertificatesDir>/etc/grid-security/certificates</CACertificatesDir>
+      <tls:KeyPath>/etc/grid-security/hostkey.pem</tls:KeyPath>
+      <tls:CertificatePath>/etc/grid-security/hostcert.pem</tls:CertificatePath>
+      <tls:CACertificatesDir>/etc/grid-security/certificates</tls:CACertificatesDir>
       <!-- SecHandler below calls specified Policy Decision Point components.
            In this example only one PDP is defined - simplelist.pdp. This
            PDP compares Distinguished Name of connecting client against
            list of allowed DNs. DNs are stored in external file one per line.
            They may be enclosed in '"'. -->
-      <SecHandler name="arc.authz" id="pdps" event="incoming">
-        <PDP name="simplelist.pdp" location="/etc/grid-security/grid-mapfile"/>
-      </SecHandler>
+      <loader:SecHandler name="arc.authz" id="pdps" event="incoming">
+        <authz:PDP name="simplelist.pdp" spdp:location="/etc/grid-security/grid-mapfile"/>
+      </loader:SecHandler>
       <!-- Evaluate requestor's identity into local identity.
            Comment it if no user mapping is needed. -->
-      <SecHandler name="identity.map" id="map" event="incoming">
+      <loader:SecHandler name="identity.map" id="map" event="incoming">
         <!-- Safe choice if all other rules failed -->
-        <PDP name="allow.pdp"><LocalName>nobody</LocalName></PDP>
-      </SecHandler>
-    </Component>
+        <authz:PDP name="allow.pdp"><LocalName>nobody</LocalName></authz:PDP>
+      </loader:SecHandler>
+    </loader:Component>
     <!-- HTTP processing is done here -->
-    <Component name="http.service" id="http">
-      <next id="soap">POST</next>
-      <next id="plexer">GET</next>
-      <next id="plexer">PUT</next>
-    </Component>
+    <loader:Component name="http.service" id="http">
+      <loader:next id="soap">POST</loader:next>
+      <loader:next id="plexer">GET</loader:next>
+      <loader:next id="plexer">PUT</loader:next>
+    </loader:Component>
     <!-- This one parses content into XML tree -->
-    <Component name="soap.service" id="soap">
-      <next id="plexer"/>
-    </Component>
+    <loader:Component name="soap.service" id="soap">
+      <loader:next id="plexer"/>
+    </loader:Component>
     <!-- Directing messages to proper service -->
-    <Plexer name="plexer.service" id="plexer">
-      <next id="a-rex">^/arex</next>
-    </Plexer>
+    <loader:Plexer name="plexer.service" id="plexer">
+      <loader:next id="a-rex">^/arex</loader:next>
+    </loader:Plexer>
     <!-- A-Rex service -->
-    <Service name="a-rex" id="a-rex">
+    <loader:Service name="a-rex" id="a-rex">
       <!-- Optional endpoint element is advised in case of multiple IP adresses -->
       <arex:endpoint>https://localhost:60000/arex</arex:endpoint>
       <!-- Use information generated by identity.map plugin or default provided below -->
@@ -104,15 +110,15 @@
               <arex:maxInactivityTime>300</arex:maxInactivityTime>
           </arex:timeouts>
           <arex:maxRetries>4</arex:maxRetries>
-          <arex:mapURL>
+          <arex:mapURL link="true">
               <arex:from>gsiftp://example.org:2811/data/</arex:from>
               <arex:to>/local/data/</arex:to>
-              <arex:link>true</arex:link>
+              <arex:at>/local/data/</arex:at>
           </arex:mapURL>
-          <arex:mapURL>
+          <arex:mapURL link="false">
               <arex:from>gsiftp://other.org/path/</arex:from>
               <arex:to>/local/path/</arex:to>
-              <arex:link>false</arex:link>
+              <arex:at>/local/data/</arex:at>
           </arex:mapURL>
           <arex:Globus>
               <arex:gridmapfile>/etc/grid-security/grid-mapfile</arex:gridmapfile>
@@ -121,8 +127,8 @@
               <arex:keypath>/etc/grid-security/hostkey.pem</arex:keypath>
               <arex:TCPPortRange>80000-90000</arex:TCPPortRange>
               <arex:UDPPortRange>80000-90000</arex:UDPPortRange>
-              <arex:httpProxy>http://proxy.org:8080</arex:httpProxy>
           </arex:Globus>
+          <arex:httpProxy>http://proxy.org:8080</arex:httpProxy>
       </arex:dataTransfer>
       <arex:jobLogPath>/var/log/arex-jobs.log</arex:jobLogPath>
       <arex:jobReport>
@@ -131,13 +137,9 @@
           <arex:type>SGAS</arex:type>
           <arex:parameters>ddd</arex:parameters>
       </arex:jobReport>
-      <arex:authPlugin>
+      <arex:authPlugin timeout="20" onSuccess="PASS" onFailure="FAIL" onTimeout="FAIL">
           <arex:state>ACCEPTED</arex:state>
           <arex:command>/opt/nordugrid/libexec/bank %C/job.%I.local %S</arex:command>
-          <arex:timeout>20</arex:timeout>
-          <arex:onSuccess>PASS</arex:onSuccess>
-          <arex:onFailure>FAIL</arex:onFailure>
-          <arex:onTimeout>FAIL</arex:onTimeout>
       </arex:authPlugin>
       <arex:control>
           <arex:username>.</arex:username>
@@ -163,21 +165,21 @@
 
       <arex:helperUtility>
           <arex:username>grid01</arex:username>
-          <arex:path>/usr/local/bin/myutility</arex:path>
+          <arex:command>/usr/local/bin/myutility</arex:command>
       </arex:helperUtility>
       <arex:helperUtility>
           <arex:username>root</arex:username>
-          <arex:path>/opt/ng/bin/cache-clean</arex:path>
+          <arex:command>/opt/ng/bin/cache-clean</arex:command>
       </arex:helperUtility>
 
       <arex:LRMS>
           <arex:type>pbs</arex:type>
           <arex:defaultShare>knowarc</arex:defaultShare>
 
-          <arex:runtimeDir>/export/SOFTWARE</arex:runtimeDir>
-          <arex:scratchDir>/scratch</arex:scratchDir>
-          <arex:tmpDir>/tmp</arex:tmpDir>
           <arex:sharedFilesystem>true</arex:sharedFilesystem>
+          <arex:sharedScratch>false</arex:sharedScratch>
+          <arex:scratchDir>/scratch</arex:scratchDir>
+          <arex:runtimeDir>/export/SOFTWARE</arex:runtimeDir>
           <arex:GNUTimeUtility>/usr/bin/time</arex:GNUTimeUtility>
 
           <lrms:pbs_bin_path>/opt/torque/bin</lrms:pbs_bin_path>
@@ -200,8 +202,10 @@
           <lrms:slurm_bin_path>/usr/bin</lrms:slurm_bin_path>
       </arex:LRMS>
 
-      <ip:ComputingService>
-          <ip:Name>Titan</ip:Name>
+      <arex:InfoProvider>
+          <arex:debugLevel>INFO</arex:debugLevel>
+
+          <ip:ClusterName>Titan</ip:ClusterName>
           <ip:OtherInfo>This cluster is specially designed for XYZ applications: www.xyz.org</ip:OtherInfo>
           <ip:AdminDomain>HU/NIIF-TOP</ip:AdminDomain>
           <ip:StatusInfo>http://mycluster.org/grid/monitor</ip:StatusInfo>
@@ -251,14 +255,18 @@
               <ip:NodeSelection>
                   <ip:Regex>^compute-2-[0-9]*</ip:Regex> <!-- INI tag: NodeSelectionRegex-->
                   <ip:Regex>^node-2-[0-9]*</ip:Regex>
-                  <ip:Command>/local/scripts/listnodes.sh quad</ip:Command> <!-- INI tag: NodeSelectionCommand-->
                   <ip:Tag>bigmem</ip:Tag> <!-- INI tag: NodeSelectionTag-->
+                  <ip:Command>/local/scripts/listnodes.sh quad</ip:Command> <!-- INI tag: NodeSelectionCommand-->
               </ip:NodeSelection>
 
               <ip:OtherInfo>shared area on GPFS</ip:OtherInfo>
-              <ip:Platform>amd64</ip:Platform>
               <ip:PhysicalCPUs>1</ip:PhysicalCPUs>
               <ip:LogicalCPUs>2</ip:LogicalCPUs>
+              <ip:VirtualMachine>false</ip:VirtualMachine>
+              <ip:Platform>amd64</ip:Platform>
+              <ip:OSFamily>linux</ip:OSFamily>
+              <ip:OSName>centos</ip:OSName>
+              <ip:OSVersion>5.1</ip:OSVersion>
               <ip:CPUVendor>AuthenticAMD</ip:CPUVendor>
               <ip:CPUModel>Athlon 64 Dual Core 5000+</ip:CPUModel>
               <ip:CPUVersion>2</ip:CPUVersion>
@@ -267,10 +275,6 @@
               <ip:WallTimeScalingFactor>1.4</ip:WallTimeScalingFactor>
               <ip:MainMemorySize>2048</ip:MainMemorySize>
               <ip:VirtualMemorySize>40000</ip:VirtualMemorySize>
-              <ip:OSFamily>linux</ip:OSFamily>
-              <ip:OSName>centos</ip:OSName>
-              <ip:OSVersion>5.1</ip:OSVersion>
-              <ip:VirtualMachine>false</ip:VirtualMachine>
               <ip:NetworkInfo>100mbitethernet</ip:NetworkInfo>
               <ip:ConnectivityIn>false</ip:ConnectivityIn>
               <ip:ConnectivityOut>true</ip:ConnectivityOut>
@@ -280,9 +284,9 @@
 
           <ip:ExecutionEnvironment name="doublequadcore">
               <ip:Homogeneous>false</ip:Homogeneous>
-              <ip:Platform>adotf</ip:Platform>
               <ip:PhysicalCPUs>2</ip:PhysicalCPUs>
               <ip:LogicalCPUs>8</ip:LogicalCPUs>
+              <ip:Platform>adotf</ip:Platform>
               <ip:CPUVendor>adotf</ip:CPUVendor>
               <ip:CPUModel>adotf</ip:CPUModel>
               <ip:CPUClockSpeed>2400</ip:CPUClockSpeed>
@@ -323,8 +327,8 @@
               <ip:MaxSlotsPerJob>1</ip:MaxSlotsPerJob>
               <ip:Preemption>true</ip:Preemption>
           </ip:ComputingShare>
-      </ip:ComputingService>
-    </Service>
-  </Chain>
+      </arex:InfoProvider>
+    </loader:Service>
+  </loader:Chain>
 </ArcConfig>
 

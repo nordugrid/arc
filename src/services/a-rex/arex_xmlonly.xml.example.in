@@ -1,8 +1,12 @@
 <?xml version="1.0"?>
 <ArcConfig
   xmlns="http://www.nordugrid.org/schemas/arcconfig/2009/08"
+  xmlns:loader="http://www.nordugrid.org/schemas/loader/2009/08"
   xmlns:tcp="http://www.nordugrid.org/schemas/tcp/2009/08"
-  xmlns:arex="http://www.nordugrid.org/schemas/a-rex/LRMS/2009/08"
+  xmlns:tls="http://www.nordugrid.org/schemas/tls/2009/08"
+  xmlns:authz="http://www.nordugrid.org/schemas/arcauthz/2009/08"
+  xmlns:spdp="http://www.nordugrid.org/schemas/simplelistpdp/2009/08"
+  xmlns:arex="http://www.nordugrid.org/schemas/a-rex/2009/08"
   xmlns:ip="http://www.nordugrid.org/schemas/a-rex/InfoProvider/2009/08"
   xmlns:lrms="http://www.nordugrid.org/schemas/a-rex/LRMS/2009/08"
 >
@@ -15,62 +19,64 @@
     </Logger>
   </Server>
   <!-- Where to find plugins -->
-  <ModuleManager>
-    <Path>@prefix@/lib/arc/</Path>
-  </ModuleManager>
+  <loader:ModuleManager>
+    <loader:Path>@prefix@/lib/arc/</loader:Path>
+  </loader:ModuleManager>
   <!-- Simply load all needed plugins -->
-  <Plugins><Name>mcctcp</Name></Plugins>
-  <Plugins><Name>mcctls</Name></Plugins>
-  <Plugins><Name>mcchttp</Name></Plugins>
-  <Plugins><Name>mccsoap</Name></Plugins>
-  <Plugins><Name>arcpdc</Name></Plugins>
-  <Plugins><Name>identitymap</Name></Plugins>
-  <Plugins><Name>arex</Name></Plugins>
+  <loader:Plugins>
+    <loader:Name>mcctcp</loader:Name>
+    <loader:Name>mcctls</loader:Name>
+    <loader:Name>mcchttp</loader:Name>
+    <loader:Name>mccsoap</loader:Name>
+    <loader:Name>arcpdc</loader:Name>
+    <loader:Name>identitymap</loader:Name>
+    <loader:Name>arex</loader:Name>
+  </loader:Plugins>
   <!-- Create a chain -->
-  <Chain>
+  <loader:Chain>
     <!-- TCP listening socket -->
-    <Component name="tcp.service" id="tcp">
-      <next id="tls"/>
+    <loader:Component name="tcp.service" id="tcp">
+      <loader:next id="tls"/>
       <tcp:Listen><tcp:Port>60000</tcp:Port></tcp:Listen>
-    </Component>
+    </loader:Component>
     <!-- Transport-level security -->
-    <Component name="tls.service" id="tls">
-      <next id="http"/>
+    <loader:Component name="tls.service" id="tls">
+      <loader:next id="http"/>
       <!-- Location of server's security keys -->
-      <KeyPath>/etc/grid-security/hostkey.pem</KeyPath>
-      <CertificatePath>/etc/grid-security/hostcert.pem</CertificatePath>
-      <CACertificatesDir>/etc/grid-security/certificates</CACertificatesDir>
+      <tls:KeyPath>/etc/grid-security/hostkey.pem</tls:KeyPath>
+      <tls:CertificatePath>/etc/grid-security/hostcert.pem</tls:CertificatePath>
+      <tls:CACertificatesDir>/etc/grid-security/certificates</tls:CACertificatesDir>
       <!-- SecHandler below calls specified Policy Decision Point components.
            In this example only one PDP is defined - simplelist.pdp. This
-           PDP compares Distinguished Name of connecting client against
-           list of allowed DNs. DNs are stored in external file one per line.
-           They may be enclosed in '"'. -->
-      <SecHandler name="arc.authz" id="pdps" event="incoming">
-        <PDP name="simplelist.pdp" location="/etc/grid-security/grid-mapfile"/>
-      </SecHandler>
+	   PDP compares Distinguished Name of connecting client against
+	   list of allowed DNs. DNs are stored in external file one per line.
+	   They may be enclosed in '"'. -->
+      <loader:SecHandler name="arc.authz" id="pdps" event="incoming">
+        <authz:PDP name="simplelist.pdp" spdp:location="/etc/grid-security/grid-mapfile"/>
+      </loader:SecHandler>
       <!-- Evaluate requestor's identity into local identity.
            Comment it if no user mapping is needed. -->
-      <SecHandler name="identity.map" id="map" event="incoming">
+      <loader:SecHandler name="identity.map" id="map" event="incoming">
         <!-- Safe choice if all other rules failed -->
-        <PDP name="allow.pdp"><LocalName>nobody</LocalName></PDP>
-      </SecHandler>
-    </Component>
+        <authz:PDP name="allow.pdp"><LocalName>nobody</LocalName></authz:PDP>
+      </loader:SecHandler>
+    </loader:Component>
     <!-- HTTP processing is done here -->
-    <Component name="http.service" id="http">
-      <next id="soap">POST</next>
-      <next id="plexer">GET</next>
-      <next id="plexer">PUT</next>
-    </Component>
+    <loader:Component name="http.service" id="http">
+      <loader:next id="soap">POST</loader:next>
+      <loader:next id="plexer">GET</loader:next>
+      <loader:next id="plexer">PUT</loader:next>
+    </loader:Component>
     <!-- This one parses content into XML tree -->
-    <Component name="soap.service" id="soap">
-      <next id="plexer"/>
-    </Component>
+    <loader:Component name="soap.service" id="soap">
+      <loader:next id="plexer"/>
+    </loader:Component>
     <!-- Directing messages to proper service -->
-    <Plexer name="plexer.service" id="plexer">
-      <next id="a-rex">^/arex</next>
-    </Plexer>
+    <loader:Plexer name="plexer.service" id="plexer">
+      <loader:next id="a-rex">^/arex</loader:next>
+    </loader:Plexer>
     <!-- A-Rex service -->
-    <Service name="a-rex" id="a-rex">
+    <loader:Service name="a-rex" id="a-rex">
       <!-- Optional endpoint element is advised in case of multiple IP adresses -->
       <arex:endpoint>https://localhost:60000/arex</arex:endpoint>
       <!-- Use information generated by identity.map plugin or default provided below -->
@@ -116,10 +122,12 @@
           <arex:defaultShare>fork</arex:defaultShare>
       </arex:LRMS>
 
-      <ip:ComputingService>
-          <ip:Name>Titan</ip:Name>
-          <ip:OtherInfo>This cluster is specially designed for XYZ applications: www.xyz.org</ip:OtherInfo>
+      <arex:InfoProvider>
+          <arex:debugLevel>INFO</arex:debugLevel>
+
           <ip:AdminDomain>HU/NIIF-TOP</ip:AdminDomain>
+          <ip:ClusterName>Titan</ip:ClusterName>
+          <ip:OtherInfo>This cluster is specially designed for XYZ applications: www.xyz.org</ip:OtherInfo>
 
           <ip:Location>
               <ip:Name>Budapest, Hungary</ip:Name>
@@ -137,11 +145,11 @@
           </ip:Contact>
 
           <ip:ExecutionEnvironment name="localhost">
+              <ip:OSName>centos</ip:OSName>
+              <ip:OSVersion>5.1</ip:OSVersion>
               <ip:CPUVendor>adotf</ip:CPUVendor>
               <ip:CPUModel>adotf</ip:CPUModel>
               <ip:CPUClockSpeed>adotf</ip:CPUClockSpeed>
-              <ip:OSName>centos</ip:OSName>
-              <ip:OSVersion>5.1</ip:OSVersion>
               <ip:ConnectivityIn>false</ip:ConnectivityIn>
               <ip:ConnectivityOut>true</ip:ConnectivityOut>
           </ip:ExecutionEnvironment>
@@ -155,8 +163,8 @@
               <ip:SchedulingPolicy>fifo</ip:SchedulingPolicy>
               <lrms:fork_job_limit>cpunumber</lrms:fork_job_limit>
           </ip:ComputingShare>
-      </ip:ComputingService>
-    </Service>
-  </Chain>
+      </arex:InfoProvider>
+    </loader:Service>
+  </loader:Chain>
 </ArcConfig>
 

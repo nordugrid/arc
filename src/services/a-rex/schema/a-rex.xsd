@@ -116,12 +116,12 @@
             <xsd:element name="defaultShare" type="xsd:string"
                          minOccurs="0"/>
             <xsd:element name="sharedFilesystem" type="xsd:boolean" minOccurs="0"/>
-            <xsd:element name="sharedScratchDir" type="xsd:boolean" minOccurs="0"/>
+            <xsd:element name="sharedScratch" type="xsd:boolean" minOccurs="0"/>
             <xsd:element name="scratchDir" type="xsd:string" minOccurs="0"/>
             <xsd:element name="runtimeDir" type="xsd:string" minOccurs="0"/>
             <xsd:element name="GNUTimeUtility" type="xsd:string" minOccurs="0"/>
             <xsd:any namespace="http://www.nordugrid.org/schemas/a-rex/LRMS/2009/08"
-                         minOccurs="1" maxOccurs="unbounded"/>
+                         minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -426,6 +426,19 @@
     </xsd:complexType>
     <xsd:element name="jobReport" type="arex:jobReport_Type"/>
 
+    <xsd:complexType name="InfoProvider_Type">
+        <xsd:annotation>
+            <xsd:documentation xml:lang="en">
+                Options for the A-REX information provider
+            </xsd:documentation>
+        </xsd:annotation>
+         <xsd:sequence>
+             <xsd:element name="debugLevel" type="debugLevel_Type" minOccurs="0"/>
+             <xsd:any namespace="http://www.nordugrid.org/schemas/a-rex/InfoProvider/2009/08"
+                      maxOccurs="unbounded"/>
+         </xsd:sequence>
+    </xsd:complexType>
+
     <xsd:element name="authPlugin" type="authPlugin_Type"/>
 
     <xsd:element name="localCred" type="localCred_Type"/>
@@ -445,7 +458,7 @@
     
     <xsd:element name="LRMS" type="LRMS_Type"/>
 
-    <xsd:element name="ComputingService" type="ip:computingService_Type"/>
+    <xsd:element name="InfoProvider" type="InfoProvider_Type"/>
 
     <!-- Not ported elements
     #logsize="100000 2"

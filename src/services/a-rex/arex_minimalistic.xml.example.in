@@ -1,26 +1,26 @@
 <?xml version="1.0"?>
 <ArcConfig
   xmlns="http://www.nordugrid.org/schemas/arcconfig/2009/08"
-  xmlns:tcp="http://www.nordugrid.org/schemas/tcp/2009/08"
-  xmlns:arex="http://www.nordugrid.org/schemas/a-rex/LRMS/2009/08"
+  xmlns:loader="http://www.nordugrid.org/schemas/loader/2009/08"
+  xmlns:arex="http://www.nordugrid.org/schemas/a-rex/2009/08"
 >
   <Server>
     <PidFile>/var/run/arched.pid</PidFile>
     <Logger>
-      <Level>VERBOSE</Level>
       <File>/var/log/arched.log</File>
+      <Level>VERBOSE</Level>
     </Logger>
   </Server>
-  <ModuleManager>
-    <Path>@prefix@/lib/arc/</Path>
-    <Path>@prefix@/lib64/arc/</Path>
-  </ModuleManager>
-  <Plugins><Name>arex</Name></Plugins>
-  <Chain>
-    <Service name="a-rex" id="a-rex">
+  <loader:ModuleManager>
+    <loader:Path>@prefix@/lib/arc/</loader:Path>
+    <loader:Path>@prefix@/lib64/arc/</loader:Path>
+  </loader:ModuleManager>
+  <loader:Plugins><loader:Name>arex</loader:Name></loader:Plugins>
+  <loader:Chain>
+    <loader:Service name="a-rex" id="a-rex">
       <arex:gmconfig>/etc/arc.conf</arex:gmconfig>
-    </Service>
-  </Chain>
+    </loader:Service>
+  </loader:Chain>
 </ArcConfig>
 
 
