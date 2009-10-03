@@ -36,7 +36,9 @@
 #joblist=C:\\run\jobs.xml
 
 # Default bartender services can be specified by the bartender
-# attribute. Multiple bartender urls should be separated with a space.
+# attribute. Multiple Bartender URLs should be separated with a space.
+# These URLs are used by the 'chelonia' command line tool, the Chelonia
+# FUSE plugin and by the arc data tool commands arccp, arcls, arcrm, etc.
 #bartender=http://my.bar.com/tender
 
 # The location of credentials can be specified by using the 'proxypath',
