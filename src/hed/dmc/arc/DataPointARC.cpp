@@ -12,6 +12,8 @@
 #include <unistd.h>
 #include <sstream>
 #include <glibmm.h>
+#include <algorithm> // random_shuffle
+#include <vector> // needed for random_shuffle
 
 #include <arc/Logger.h>
 #include <arc/StringConv.h>
@@ -36,6 +38,45 @@ namespace Arc {
     ClientSOAP *client;
   } ARCInfo_t;
 
+  bool DataPointARC::checkBartenderURL(const URL& bartender_url, const UserConfig& usercfg){
+    MCCConfig cfg;
+    usercfg.ApplyToConfig(cfg);
+
+    ClientSOAP client(cfg, bartender_url, usercfg.Timeout());
+    std::string xml;
+
+    NS ns("bar", "http://www.nordugrid.org/schemas/bartender");
+    PayloadSOAP request(ns);
+    request.NewChild("bar:list").NewChild("bar:listRequestList").NewChild("bar:listRequestElement").NewChild("bar:requestID") = "0";
+    request["bar:list"]["bar:listRequestList"]["bar:listRequestElement"].NewChild("bar:LN") = bartender_url.Path();
+    request["bar:list"].NewChild("bar:neededMetadataList").NewChild("bar:neededMetadataElement").NewChild("bar:section") = "entry";
+    request["bar:list"]["bar:neededMetadatList"]["bar:neededMetadataElement"].NewChild("bar:property") = "";
+    request.GetXML(xml, true);
+
+    PayloadSOAP *response = NULL;
+
+    MCC_Status status;
+    try{
+      status = client.process(&request, &response);
+    }
+    catch(std::exception e){
+      logger.msg(WARNING, bartender_url.Path(), "did not work");
+    }
+
+    bool ret = true;
+    if(!response)
+      ret = false;
+    else{
+      response->Child().GetXML(xml, true);
+      logger.msg(DEBUG, "checingBartenderURL: Response:\n%s", xml);
+      if(xml.find("Failed to send SOAP message") != std::string::npos)
+        ret = false;
+    }
+    if(!status)
+      ret = false;
+    delete response;
+    return ret;
+  }
 
   DataPointARC::DataPointARC(const URL& url, const UserConfig& usercfg)
     : DataPointDirect(url, usercfg),
@@ -45,8 +86,24 @@ namespace Arc {
       bartender_url(url.HTTPOption("BartenderURL")) {
     if (!bartender_url) {
       //BartenderURL taken from ~/.arc/client.xml
-      if (!usercfg.Bartender().empty())
-        bartender_url = usercfg.Bartender().front();
+      if (!usercfg.Bartender().empty()){
+        // pick random bartender url:
+        std::vector<URL> bartender_urls;
+        std::copy(usercfg.Bartender().begin(), usercfg.Bartender().end(),
+                  std::back_inserter(bartender_urls));
+        while(bartender_urls.size()){
+          // seed to get real random shuffling
+          std::srand(std::time(NULL));
+          std::random_shuffle(bartender_urls.begin(),
+                              bartender_urls.end());
+          if(checkBartenderURL(bartender_urls.back(), usercfg)){
+            bartender_url = bartender_urls.back();
+            break;
+          }
+          else
+            bartender_urls.pop_back();
+        }
+      }
       //todo: improve default bartender url (maybe try to get ARC_BARTENDER_URL from environment?)
       if (!bartender_url)
         bartender_url = URL("http://localhost:60000/Bartender");
