@@ -630,9 +630,9 @@ namespace Arc {
      **/
     const std::pair<std::string, std::string>& Broker() const { return broker; }
 
-    /// Set bartenders
+    /// Set bartenders, used to contact Chelonia
     /**
-     * ???
+     * Takes as input a list of Bartender URLs.
      *
      * The attribute associated with this setter method is 'bartender'.
      *
@@ -642,9 +642,10 @@ namespace Arc {
      * @see Bartender() const
      **/
     bool Bartender(const std::list<URL>& urls) { bartenders = urls; return true; }
-    /// Set bartenders
+    /// Set bartenders, used to contact Chelonia
     /**
-     * ???
+     * Takes as input a Bartender URL and adds this to the list of 
+     * bartenders.
      *
      * @param url is a URL to be added to the list of bartenders.
      * @see Bartender(const std::list<URL>&)
@@ -653,7 +654,7 @@ namespace Arc {
     void AddBartender(const URL& url) { bartenders.push_back(url); }
     /// Get bartenders
     /**
-     * ???
+     * Returns a list of Bartender URLs
      *
      * @return The list of bartender URL objects is returned.
      * @see Bartender(const std::list<URL>&)
