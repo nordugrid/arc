@@ -116,7 +116,7 @@ sub _verify_part($$$$) {
             for my $datakey ( sort keys %$data) {
                 my $subj = $subject."{$datakey}";
                 unless (exists $schema->{$datakey}) {
-                    push @{$self->{errors}}, "$subj is not part of schema";
+                    push @{$self->{errors}}, "$subj is not recognized";
                     push @{$self->{errors}}, "$subj deleting it";
                     delete $data->{$datakey};
                 }

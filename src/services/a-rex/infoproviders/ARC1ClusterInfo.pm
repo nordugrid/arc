@@ -240,6 +240,7 @@ sub xeinfos {
                 $selected = selectnodes($nodes, %$nscfg);
             }
             $nodemap{$xenv} = $selected;
+            $log->debug("Nodes in ExecutionEnvironment $xenv: ".join ' ', keys %$selected);
             $log->info("No nodes matching NodeSelection for ExecutionEnvironment $xenv") unless %$selected;
             my $stats = xestats($xenv, $selected);
             if ($stats) {
@@ -271,7 +272,8 @@ sub xeinfos {
                 my $nodes2 = $nodemap{$xenvs[$j]};
                 next unless $nodes2;
                 my $overlap = intersection($nodes1, $nodes2);
-                $log->warning("Overlap detected between ExecutionEnvironments $xenvs[$i] and $xenvs[$j]. Adjust NodeSelection to correct") if %$overlap;
+                $log->warning("Overlap detected between ExecutionEnvironments $xenvs[$i] and $xenvs[$j]. "
+                             ."Use NodeSelection options to select correct nodes") if %$overlap;
             }
         }
     }
@@ -291,7 +293,7 @@ sub collect($) {
 
     $checker = InfoChecker->new($arc1_info_schema);
     @messages = $checker->verify($result,1);
-    $log->debug("SelfCheck: result key ComputingService->$_") foreach @messages;
+    $log->debug("SelfCheck: return value ComputingService->$_") foreach @messages;
 
     return $result;
 }
@@ -305,7 +307,7 @@ sub get_cluster_info($) {
     my $lrms_info = $options->{lrms_info};
 
     my $creation_time = timenow();
-    my $validity_ttl = 2 * $config->{InfoproviderWakeupPeriod};
+    my $validity_ttl = $config->{ttl};
 
     my @allxenvs = keys %{$config->{xenvs}};
     my @allshares = keys %{$config->{shares}};
@@ -334,8 +336,8 @@ sub get_cluster_info($) {
     }
     # Next, use value returned by LRMS in case the the first try failed.
     # OBS: most LRMSes don't differentiate between Physical and Logical CPUs.
-    $log->info("Not enough information about ExecutionEnvironments to determine the number of total physical CPUs") unless $totalpcpus;
-    $log->info("Not enough information about ExecutionEnvironments to determine the number of total logical CPUs") unless $totallcpus;
+    #$log->debug("Cannot determine total number of physical CPUs in all ExecutionEnvironments") unless $totalpcpus;
+    $log->debug("Cannot determine total number of logical CPUs in all ExecutionEnvironments") unless $totallcpus;
     $totalpcpus ||= $lrms_info->{cluster}{totalcpus};
     $totallcpus ||= $lrms_info->{cluster}{totalcpus};
 
@@ -382,7 +384,7 @@ sub get_cluster_info($) {
         my $gridowner = $gmjobs_info->{$jobid}{subject};
         my $share = $job->{share};
 
-        my $gmstatus = $job->{status};
+        my $gmstatus = $job->{status} || '';
 
         $gmtotalcount{totaljobs}++;
         $gmsharecount{$share}{totaljobs}++;
@@ -408,7 +410,7 @@ sub get_cluster_info($) {
 
         unless ($states{$gmstatus}) {
             $log->warning("Unexpected job status for job $jobid: $gmstatus");
-            #$gmstatus = $job->{status} = 'UNDEFINED';
+            $gmstatus = $job->{status} = 'UNDEFINED';
         }
         my ($age, $category) = @{$states{$gmstatus}};
 
@@ -466,20 +468,14 @@ sub get_cluster_info($) {
 
     }
 
-    # Infosys is run by A-REX: Always assume GM is up
-    $host_info->{processes}{'grid-manager'} = 1;
-
-
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     # # # # # # # # # # build information tree  # # # # # # # # # #
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
-    # config overrides
-    my $hostname = $config->{hostname} || $host_info->{hostname};
-    my $arexhostport = $hostname.":".$config->{arexport};
+    my $admindomain = $config->{AdminDomain};
+    my $servicename = $admindomain.":".$config->{service}{ClusterName};
 
-    my $admindomain = $config->{service}{AdminDomain};
-    my $servicename = $admindomain.":".$config->{service}{Name};
+    my $arexhostport = $config->{arexhostport};
 
     # Global IDs
     my $adID = "urn:ogf:AdminDomain:$admindomain"; # AdminDomain ID
@@ -527,7 +523,7 @@ sub get_cluster_info($) {
 
     $csv->{ID} = [ $csvID ];
 
-    $csv->{Name} = [ $config->{Name} ] if $config->{Name};
+    $csv->{Name} = [ $config->{service}{ClusterName} ] if $config->{service}{ClusterName};
     $csv->{OtherInfo} = $config->{service}{OtherInfo} if $config->{service}{OtherInfo};
     $csv->{Capability} = [ 'executionmanagement.jobexecution' ];
     $csv->{Type} = [ 'org.nordugrid.execution.arex' ];
@@ -553,15 +549,15 @@ sub get_cluster_info($) {
 
     $csv->{PreLRMSWaitingJobs} = [ $pendingtotal || 0 ];
 
-    if (my $lconfig = $config->{Location}) {
+    if (my $lconfig = $config->{location}) {
         my $loc = $csv->{Location} = {};
         $loc->{ID} = [ "urn:ogf:Location:$servicename" ];
         for (qw(Name Address Place PostCode Country Latitude Longitude)) {
             $loc->{$_} = [ $lconfig->{$_} ] if $lconfig->{$_};
         }
     }
-    if ($config->{Contact}) {
-        for my $cconfig (@{$config->{Contact}}) {
+    if ($config->{contacts}) {
+        for my $cconfig (@{$config->{contacts}}) {
             my $cont = {};
             push @{$csv->{Contact}}, $cont;
             my $detail = $cconfig->{Detail};
@@ -573,8 +569,6 @@ sub get_cluster_info($) {
     }
 
     $csv->{ComputingShares} = { ComputingShare => [] };
-
-    $csv->{Associations} = {};
 
 
     # ComputingEndpoint
@@ -591,7 +585,7 @@ sub get_cluster_info($) {
     # Name not necessary
 
     # OBS: ideally HED should be asked for the URL
-    $cep->{URL} = [ "https://$arexhostport/arex" ];
+    $cep->{URL} = [ $config->{endpoint} ];
     $cep->{Capability} = [ 'executionmanagement.jobexecution' ];
     $cep->{Technology} = [ 'webservice' ];
     $cep->{InterfaceName} = [ 'ogf.bes' ];
@@ -612,7 +606,8 @@ sub get_cluster_info($) {
     $cep->{HealthState} = [ "ok" ];
     #$cep->{HealthStateInfo} = [ "" ];
 
-    # TODO: when is it 'queueing' and 'closed'?
+    # OBS: when is it 'queueing' and 'closed'?
+    # OBS: allownew no longer supported by arex?
     if ( defined($config->{allownew}) and $config->{allownew} eq "no" ) {
         $cep->{ServingState} = [ 'draining' ];
     } else {
@@ -642,19 +637,25 @@ sub get_cluster_info($) {
 
     $cep->{Associations}{ComputingShareID} = [ values %cshaIDs ];
 
+    $cep->{ComputingActivities}{ComputingActivity} ||= [];
+
 
     # AccessPolicy: all unique VOs mapped to shares.
 
     my %allvos = ();
+    $allvos{$_} = 1 for @{$config->{service}{AuthorizedVO}};
     for my $sconfig (values %{$config->{shares}} ) {
         next unless $sconfig->{AuthorizedVO};
         $allvos{$_} = 1 for @{$sconfig->{AuthorizedVO}};
     }
+    $cep->{AccessPolicy} = [];
     if (%allvos) {
         my $apol = $cep->{AccessPolicy}[0] = {};
         $apol->{ID} = [ $apolID ];
         $apol->{Scheme} = [ "basic" ];
         $apol->{Rule} = [ map {"vo:$_"} keys %allvos ];
+    } else {
+        $log->info("No AuthorizedVO configured. No access policy will be published");
     }
 
     # ComputingShares: multiple shares can share the same LRMS queue
@@ -664,13 +665,10 @@ sub get_cluster_info($) {
         my $qinfo = $lrms_info->{queues}{$share};
 
         # Prepare flattened config hash for this share.
-        my $sconfig = { %$config, %{$config->{shares}{$share}} };
-        delete $sconfig->{control};
-        delete $sconfig->{xenvs};
-        delete $sconfig->{shares};
+        my $sconfig = { %{$config->{service}}, %{$config->{shares}{$share}} };
 
         # List of all shares submitting to the current queue, including the current share.
-        my $qname = $config->{shares}{$share}{MappingQueue} || $share;
+        my $qname = $sconfig->{MappingQueue} || $share;
 
         if ($qname) {
             my $siblings = $sconfig->{siblingshares} = [];
@@ -706,7 +704,7 @@ sub get_cluster_info($) {
         $csha->{MinWallTime} =  [ $qinfo->{minwalltime} ] if defined $qinfo->{minwalltime};
         $csha->{DefaultWallTime} = [ $qinfo->{defaultwallt} ] if defined $qinfo->{defaultwallt};
 
-        my ($maxtotal, $maxlrms) = split ' ', ($sconfig->{maxjobs} || '');
+        my ($maxtotal, $maxlrms) = split ' ', ($config->{maxjobs} || '');
 
         # MaxWaitingJobs: use the maxjobs config option
         # OBS: An upper limit is not really enforced by A-REX.
@@ -752,7 +750,7 @@ sub get_cluster_info($) {
         # MaxStageInStreams, MaxStageOutStreams
         # OBS: A-REX does not have separate limits for up and downloads.
         # OBS: A-REX only cares about totals, not per share limits!
-        my ($maxloaders, $dummy, $maxthreads) = split ' ', ($sconfig->{maxload} || '');
+        my ($maxloaders, $dummy, $maxthreads) = split ' ', ($config->{maxload} || '');
         if ($maxloaders) {
             # default is 5 (see MAX_DOWNLOADS defined in a-rex/grid-manager/loaders/downloader.cpp)
             $maxthreads = 5 unless defined $maxthreads and $maxthreads > 0;
@@ -791,7 +789,7 @@ sub get_cluster_info($) {
         $csha->{Preemption} = [ $qinfo->{Preemption} ] if $qinfo->{Preemption};
 
         # ServingState: closed and queuing are not yet supported
-        if (defined $sconfig->{allownew} and lc($sconfig->{allownew}) eq 'no') {
+        if (defined $config->{allownew} and lc($config->{allownew}) eq 'no') {
             $csha->{ServingState} = [ 'production' ];
         } else {
             $csha->{ServingState} = [ 'draining' ];
@@ -935,7 +933,7 @@ sub get_cluster_info($) {
     # $cmgr->{Reservation} = [ "undefined" ];
     $cmgr->{BulkSubmission} = [ "false" ];
 
-    $cmgr->{TotalPhysicalCPUs} = [ $totalpcpus ] if $totalpcpus;
+    #$cmgr->{TotalPhysicalCPUs} = [ $totalpcpus ] if $totalpcpus;
     $cmgr->{TotalLogicalCPUs} = [ $totallcpus ] if $totallcpus;
 
     # OBS: Assuming 1 slot per CPU
@@ -955,13 +953,13 @@ sub get_cluster_info($) {
     }
     $cmgr->{NetworkInfo} = [ keys %netinfo ] if %netinfo;
 
-    my $cpuistribution = $cluster_info->{cpudistribution};
+    my $cpuistribution = $cluster_info->{cpudistribution} || '';
     $cpuistribution =~ s/cpu:/:/g;
-    $cmgr->{LogicalCPUDistribution} = [ $cpuistribution ];
+    $cmgr->{LogicalCPUDistribution} = [ $cpuistribution ] if $cpuistribution;
 
     {
         my $sharedsession = "true";
-        $sharedsession = "false" if lc($config->{SharedFilesystem}) eq "no";
+        $sharedsession = "false" if lc($config->{shared_filesystem}) eq "no";
         $cmgr->{WorkingAreaShared} = [ $sharedsession ];
         $cmgr->{WorkingAreaGuaranteed} = [ "false" ];
 
@@ -1011,11 +1009,7 @@ sub get_cluster_info($) {
         my $xeinfo = $xeinfos->{$xenv};
 
         # Prepare flattened config hash for this xenv.
-        my $xeconfig = { %$config, %{$config->{xenvs}{$xenv}} };
-
-        delete $xeconfig->{control};
-        delete $xeconfig->{shares};
-        delete $xeconfig->{xenvs};
+        my $xeconfig = { %{$config->{service}}, %{$config->{xenvs}{$xenv}} };
 
         my $execenv = {};
         push @{$cmgr->{ExecutionEnvironments}{ExecutionEnvironment}}, $execenv;
@@ -1038,6 +1032,8 @@ sub get_cluster_info($) {
             $sysname =~ s/^Linux/linux/;
             $sysname =~ s/^Darwin/macosx/;
             $sysname =~ s/^SunOS/solaris/;
+        } elsif ($xeconfig->{OpSys}) {
+            $sysname = 'linux' if grep /linux/i, @{$xeconfig->{OpSys}};
         }
 
         $execenv->{Platform} = [ $machine ] if $machine;
@@ -1067,6 +1063,10 @@ sub get_cluster_info($) {
         $execenv->{ConnectivityIn} = [ $xeconfig->{ConnectivityIn} ? 'true' : 'false' ] if $xeconfig->{ConnectivityIn};
         $execenv->{ConnectivityOut} = [ $xeconfig->{ConnectivityOut} ? 'true' : 'false' ] if $xeconfig->{ConnectivityOut};
         $execenv->{NetworkInfo} = [ $xeconfig->{NetworkInfo} ] if $xeconfig->{NetworkInfo};
+
+        my @missing;
+        for (qw(Platform CPUVendor CPUModel CPUClockSpeed OSFamily OSName OSVersion)) {push @missing, $_ unless defined $execenv->{$_}}
+        $log->info("Missing attributes for ExecutionEnvironment $xenv: ".join ", ", @missing) if @missing;
 
         $execenv->{Benchmark} = [];
         if ($xeconfig->{Benchmark}) {

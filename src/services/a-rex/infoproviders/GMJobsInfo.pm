@@ -56,7 +56,6 @@ our $j = { 'jobID' => {
 
 our $log = LogUtils->getLogger(__PACKAGE__);
 
-
 # extract the lower limit of a RangeValue_Type expression
 sub get_range_minimum($$) {
     my ($range_str, $jsdl_ns_re) = @_;
@@ -89,8 +88,6 @@ sub collect($) {
 
         my $job = $gmjobs{$ID} = {};
 
-        my $job_log = LogUtils->getLogger(__PACKAGE__.".Job:$ID");
-
         my $gmjob_local       = $controldir."/job.".$ID.".local";
         my $gmjob_status      = $controldir."/job.".$ID.".status";
         my $gmjob_failed      = $controldir."/job.".$ID.".failed";
@@ -99,7 +96,7 @@ sub collect($) {
         my $gmjob_diag        = $controldir."/job.".$ID.".diag";
 
         unless ( open (GMJOB_LOCAL, "<$gmjob_local") ) {
-            $job_log->warning( "Can't read jobfile $gmjob_local, skipping..." );
+            $log->warning( "Job $ID: Can't read jobfile $gmjob_local, skipping..." );
             next;
         }
         my @local_allines = <GMJOB_LOCAL>;
@@ -123,26 +120,26 @@ sub collect($) {
         if ($job->{globalid}) {
             $job->{globalid} =~ s/.*JobSessionDir>([^<]+)<.*/$1/;
         } else {
-            $job_log->debug("'globalid' missing from .local file");
+            $log->debug("Job $ID: 'globalid' missing from .local file");
         }
         # Rename queue -> share
         if (exists $job->{queue}) {
             $job->{share} = $job->{queue};
             delete $job->{queue};
         } else {
-            $job_log->warning("'queue' missing from .local file");
+            $log->warning("Job $ID: 'queue' missing from .local file");
         }
 
         # read the job.ID.status into "status"
         unless (open (GMJOB_STATUS, "<$gmjob_status")) {
-            $job_log->warning("Can't open $gmjob_status");
+            $log->warning("Job $ID: Can't open $gmjob_status");
             $job->{status} = undef;
         } else {
             my @file_stat = stat GMJOB_STATUS;
             chomp (my ($first_line) = <GMJOB_STATUS>);
             close GMJOB_STATUS;
 
-            $job_log->warning("Failed to read status") unless $first_line;
+            $log->warning("Job $ID: Failed to read status") unless $first_line;
             $job->{status} = $first_line;
 
             if (@file_stat) {
@@ -153,7 +150,7 @@ sub collect($) {
                 if ($user) {
                     $job->{localowner} = $user;
                 } else {
-                    $job_log->warning("Cannot determine user name for owner (uid $uid)");
+                    $log->warning("Job $ID: Cannot determine user name for owner (uid $uid)");
                 }
 
                 # completiontime
@@ -164,7 +161,7 @@ sub collect($) {
                 }
 
             } else {
-                $job_log->warning("Cannot stat status file: $!");
+                $log->warning("Job $ID: Cannot stat status file: $!");
             }
         }
 
@@ -173,7 +170,7 @@ sub collect($) {
 
         if (-e $gmjob_failed) {
             unless (open (GMJOB_FAILED, "<$gmjob_failed")) {
-                $job_log->warning("Can't open $gmjob_failed");
+                $log->warning("Job $ID: Can't open $gmjob_failed");
             } else {
                 chomp (my @allines = <GMJOB_FAILED>);
                 close GMJOB_FAILED;
@@ -197,7 +194,7 @@ sub collect($) {
         # read the job.ID.grami file
 
         unless ( open (GMJOB_GRAMI, "<$gmjob_grami") ) {
-            $job_log->warning("Can't open $gmjob_grami");
+            $log->warning("Job $ID: Can't open $gmjob_grami");
         } else {
             my $sessiondir = $job->{sessiondir};
             while (my $line = <GMJOB_GRAMI>) {
@@ -228,7 +225,7 @@ sub collect($) {
         #read the job.ID.description file
 
         unless ( open (GMJOB_DESCRIPTION, "<$gmjob_description") ) {
-            $job_log->warning("Can't open $gmjob_description");
+            $log->warning("Job $ID: Can't open $gmjob_description");
         } else {
             while (my $line = <GMJOB_DESCRIPTION>) {
                 chomp $line;
@@ -236,7 +233,7 @@ sub collect($) {
                 if ($line =~ m/^\s*<\?xml/) { $job->{description} = 'xml'; last }
                 if ($line =~ m/^\s*<!--/)   { $job->{description} = 'xml'; last }
                 if ($line =~ m/^\s*[&+|(]/) { $job->{description} = 'rsl'; last }
-                $job_log->warning("Can't identify job description language");
+                $log->warning("Job $ID: Can't identify job description language");
                 last;
             }
             close GMJOB_DESCRIPTION;
@@ -246,7 +243,7 @@ sub collect($) {
 
         if (-s $gmjob_diag) {
             unless ( open (GMJOB_DIAG, "<$gmjob_diag") ) {
-                $job_log->warning("Can't open $gmjob_diag");
+                $log->warning("Job $ID: Can't open $gmjob_diag");
             } else {
                 my ($kerneltime, $usertime);
                 while (my $line = <GMJOB_DIAG>) {

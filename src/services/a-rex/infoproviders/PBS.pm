@@ -715,6 +715,7 @@ sub nodes_info($) {
                 } elsif ($opt eq 'uname') {
                     my @uname = split ' ', $val;
                     $nodes{$host}{sysname} = $uname[0];
+                    $nodes{$host}{release} = $uname[2] if @uname > 2;
                     $nodes{$host}{machine} = $uname[-1] if $uname[-1];
                 }
             }

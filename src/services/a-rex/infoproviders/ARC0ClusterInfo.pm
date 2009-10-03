@@ -41,7 +41,7 @@ sub collect($) {
 
     $checker = InfoChecker->new($arc0_info_schema);
     @messages = $checker->verify($result,1);
-    $log->debug("SelfCheck: result key nordugrid->$_") foreach @messages;
+    $log->debug("SelfCheck: return value nordugrid->$_") foreach @messages;
 
     return $result;
 }
@@ -54,7 +54,7 @@ sub get_cluster_info($) {
     my $gmjobs_info = $options->{gmjobs_info};
     my $lrms_info = $options->{lrms_info};
 
-    my $ttl = $config->{InfoproviderWakeupPeriod};
+    my $ttl = $config->{ttl};
     my ($valid_from, $valid_to) = $ttl ? mds_valid($ttl) : ();
 
     my @allxenvs = keys %{$config->{xenvs}};
@@ -182,12 +182,13 @@ sub get_cluster_info($) {
     }
 
     my @supportmails;
-    if ($config->{Contact}) {
-        for (@{$config->{Contact}}) {
+    if ($config->{contacts}) {
+        for (@{$config->{contacts}}) {
             push @supportmails, $1 if $_->{Detail}  =~ m/^mailto:(.*)/;
         }
     }
     my %authorizedvos;
+    $authorizedvos{"VO:$_"} = 1 for @{$config->{service}{AuthorizedVO}};
     for my $sconfig (values %{$config->{shares}}) {
         next unless $sconfig->{AuthorizedVO};
         $authorizedvos{"VO:$_"} = 1 for @{$sconfig->{AuthorizedVO}};
@@ -200,6 +201,8 @@ sub get_cluster_info($) {
         $inbound = 0 unless ($xeconfig->{connectivityIn} || 'false') eq 'true';
         $outbound = 0 unless ($xeconfig->{connectivityOut} || 'false') eq 'true';
     }
+    $inbound = 1 if ($config->{service}{connectivityIn} || 'false') eq 'true';
+    $outbound = 1 if ($config->{service}{connectivityOut} || 'false') eq 'true';
 
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     # # # # # # # # # # build information tree  # # # # # # # # # #
@@ -216,25 +219,26 @@ sub get_cluster_info($) {
     $c->{'nc0:comment'} = $config->{service}{OtherInfo} if $config->{service}{OtherInfo};
     $c->{'nc0:owner'} = $config->{service}{ClusterOwner} if $config->{service}{ClusterOwner};
     $c->{'nc0:acl'} = [ keys %authorizedvos ] if %authorizedvos;
-    $c->{'nc0:location'} = [ $config->{Location}{PostCode} ] if $config->{Location}{PostCode};
+    $c->{'nc0:location'} = [ $config->{location}{PostCode} ] if $config->{location}{PostCode};
     $c->{'nc0:issuerca'} = [ $host_info->{issuerca} ] if $host_info->{issuerca};
     $c->{'nc0:issuerca-hash'} = [ $host_info->{issuerca_hash} ] if $host_info->{issuerca_hash};
     $c->{'nc0:trustedca'} = $host_info->{trustedcas} if $host_info->{trustedcas};
-    $c->{'nc0:contactstring'} = [ "gsiftp://$host_info->{hostname}:$config->{gm_port}$config->{gm_mount_point}" ];
-    $c->{'nc0:interactive-contactstring'} = [ $config->{InteractiveContactstring} ]
-        if $config->{InteractiveContactstring};
+    $c->{'nc0:contactstring'} = [ "gsiftp://$host_info->{hostname}:$config->{gm_port}$config->{gm_mount_point}" ]
+        if $config->{gm_port} and $config->{gm_mount_point};
+    $c->{'nc0:interactive-contactstring'} = [ $config->{service}{InteractiveContactstring} ]
+        if $config->{service}{InteractiveContactstring};
     $c->{'nc0:support'} = [ $supportmails[0] ] if @supportmails;
     $c->{'nc0:lrms-type'} = [ $lrms_info->{cluster}{lrms_type} ];
     $c->{'nc0:lrms-version'} = [ $lrms_info->{cluster}{lrms_version} ] if $lrms_info->{cluster}{lrms_version};
-    $c->{'nc0:lrms-config'} = [ $config->{lrmsconfig} ] if $config->{lrmsconfig}; # orphan
-    $c->{'nc0:architecture'} = [ $config->{Platform} ] if $homogeneous and $config->{Platform};
-    push @{$c->{'nc0:opsys'}}, $config->{OSName}.'-'.$config->{OSVersion}
-        if $config->{OSName} and $config->{OSVersion};
-    push @{$c->{'nc0:opsys'}}, @{$config->{OpSys}} if $config->{OpSys};
-    $c->{'nc0:benchmark'} = [ map {join ' @ ', split /\s+/,$_,2 } @{$config->{Benchmark}} ]
-        if $config->{Benchmark};
-    $c->{'nc0:nodecpu'} = [ $config->{CPUModel}." @ ".$config->{CPUClockSpeed}." MHz" ]
-        if $config->{CPUModel} and $config->{CPUClockSpeed};
+    $c->{'nc0:lrms-config'} = [ $config->{service}{lrmsconfig} ] if $config->{service}{lrmsconfig}; # orphan
+    $c->{'nc0:architecture'} = [ $config->{service}{Platform} ] if $homogeneous and $config->{service}{Platform};
+    push @{$c->{'nc0:opsys'}}, $config->{service}{OSName}.'-'.$config->{service}{OSVersion}
+        if $config->{service}{OSName} and $config->{service}{OSVersion};
+    push @{$c->{'nc0:opsys'}}, @{$config->{service}{OpSys}} if $config->{service}{OpSys};
+    $c->{'nc0:benchmark'} = [ map {join ' @ ', split /\s+/,$_,2 } @{$config->{service}{Benchmark}} ]
+        if $config->{service}{Benchmark};
+    $c->{'nc0:nodecpu'} = [ $config->{service}{CPUModel}." @ ".$config->{service}{CPUClockSpeed}." MHz" ]
+        if $config->{service}{CPUModel} and $config->{service}{CPUClockSpeed};
     $c->{'nc0:homogeneity'} = [ $homogeneous ? 'False' : 'True' ];
     $c->{'nc0:nodeaccess'} = [ 'inbound' ] if $inbound;
     $c->{'nc0:nodeaccess'} = [ 'outbound' ] if $outbound;
@@ -245,7 +249,7 @@ sub get_cluster_info($) {
     $c->{'nc0:totaljobs'} =
         [ ($gmjobcount{totaljobs} - $gmjobcount{finishing} - $gmjobcount{finished} - $gmjobcount{deleted}
         + $lrms_info->{cluster}{queuedcpus} + $lrms_info->{cluster}{usedcpus} - $gmjobcount{inlrms}) ];
-    $c->{'nc0:localse'} = $config->{LocalSE} if $config->{LocalSE};
+    $c->{'nc0:localse'} = $config->{service}{LocalSE} if $config->{service}{LocalSE};
     $c->{'nc0:sessiondir-free'} = [ $host_info->{session_free} ];
     $c->{'nc0:sessiondir-total'} = [ $host_info->{session_total} ];
     if ($config->{defaultttl}) {
@@ -257,7 +261,7 @@ sub get_cluster_info($) {
     $c->{'nc0:runtimeenvironment'} = $host_info->{runtimeenvironments};
     push @{$c->{'nc0:middleware'}}, "ARC-".$config->{arcversion};
     push @{$c->{'nc0:middleware'}}, "globus-$host_info->{globusversion}" if $host_info->{globusversion};
-    push @{$c->{'nc0:middleware'}}, @{$config->{Middleware}} if $config->{Middleware};
+    push @{$c->{'nc0:middleware'}}, @{$config->{service}{Middleware}} if $config->{service}{Middleware};
     $c->{'M0:validfrom'} = [ $valid_from ] if $valid_from;
     $c->{'M0:validto'} = [ $valid_to ] if $valid_to;
 
@@ -273,7 +277,7 @@ sub get_cluster_info($) {
         my $qinfo = $lrms_info->{queues}{$share};
 
         # merge cluster wide and queue-specific options
-        my $sconfig = { %$config, %{$config->{shares}{$share}} };
+        my $sconfig = { %{$config->{service}}, %{$config->{shares}{$share}} };
 
         $sconfig->{ExecEnvName} ||= [];
         my @nxenvs = @{$sconfig->{ExecEnvName}};
@@ -289,7 +293,7 @@ sub get_cluster_info($) {
         $q->{'name'} = $share;
         $q->{'nq0:name'} = [ $share ];
         
-        if ( defined($sconfig->{allownew}) and $sconfig->{allownew} eq "no" ) {
+        if ( defined($config->{allownew}) and $config->{allownew} eq "no" ) {
             $q->{'nq0:status'} = [ 'inactive, grid-manager does not accept new jobs' ];
         } elsif (not $host_info->{processes}{'grid-manager'}) {
             $q->{'nq0:status'} = [ 'inactive, grid-manager is down' ];   

@@ -3,7 +3,9 @@ package HostInfo;
 use POSIX;
 use Sys::Hostname;
 
-use Sysinfo qw(cpuinfo meminfo processid diskinfo diskspaces);
+eval {use Time::HiRes "time"};
+
+use Sysinfo;
 use LogUtils;
 use InfoChecker;
 
@@ -15,19 +17,22 @@ our $host_options_schema = {
         sessiondir     => [ '' ],
         cachedir       => [ '*' ],
         libexecdir     => '',
-        runtimeDir     => '*',
+        runtimedir     => '*',
         processes      => [ '' ],
         localusers     => [ '' ]
 };
 
 our $host_info_schema = {
         hostname      => '',
-        sysname       => '',
-        machine       => '',
+        osname        => '*', # see OSName_t, GFD.147
+        osversion     => '*', # see OSName_t, GFD.147
+        sysname       => '',  # uname -s
+        release       => '',  # uname -r
+        machine       => '',  # uname -m (what would it be on a linux machine)
+        cpuvendor     => '*',
         cpumodel      => '*',
         cpufreq       => '*', # unit: MHz
         cpustepping   => '*',
-        cpuvendor     => '*',
         pmem          => '*', # unit: MB
         vmem          => '*', # unit: MB
         cputhreadcount=> '*',
@@ -53,6 +58,14 @@ our $host_info_schema = {
 
 our $log = LogUtils->getLogger(__PACKAGE__);
 
+{   my ($t0, $descr);
+    sub timer_start($) { $descr = shift; $t0 = time(); }
+    sub timer_stop() {
+        my $dt = sprintf("%.3f", time() - $t0);
+        $log->debug("Time spent $descr: ${dt}s");
+}   }
+
+
 sub collect($) {
     my ($options) = @_;
     my ($checker, @messages);
@@ -76,7 +89,7 @@ sub collect($) {
 
 sub grid_diskspace ($$) {
     my ($sessiondir, $localids) = @_;
-    my $commonspace = diskinfo($sessiondir);
+    my $commonspace = Sysinfo::diskinfo($sessiondir);
     $log->warning("Failed checking disk space in sessiondir $sessiondir")
          unless $commonspace;
 
@@ -89,7 +102,7 @@ sub grid_diskspace ($$) {
 
         if ($sessiondir =~ /^\s*\*\s*$/) {
             $users->{$u}{gridarea} = $home."/.jobs";
-            my $gridspace = diskinfo($users->{$u}{gridarea}); 
+            my $gridspace = Sysinfo::diskinfo($users->{$u}{gridarea}); 
             $log->warning("Failed checking disk space in personal gridarea $users->{$u}{gridarea}")
                 unless $gridspace;
             $users->{$u}{diskfree} = $gridspace->{megsfree} || 0;
@@ -107,31 +120,23 @@ sub get_host_info($) {
 
     my $host_info = {};
 
-    ############################################################
-    # Lot's of stuff that just need to be figured out
-    # Scripting, scripting, scripting, oh hay, oh hay...
-    ############################################################
-
     $host_info->{hostname} = hostname();
-    my ($sysname, $nodename, $release, $version, $machine) = POSIX::uname();
-    $host_info->{machine} = $machine;
-    $host_info->{sysname} = $sysname;
 
-    my $cpuinfo = cpuinfo();
-    if ($cpuinfo) {
-        $host_info = {%$host_info, %$cpuinfo};
-    } else {
-        $log->error("Failed querying CPU info");
-    }
-    my $meminfo = meminfo();
-    $host_info->{pmem} = $meminfo->{pmem} if $meminfo->{pmem};
-    $host_info->{vmem} = $meminfo->{vmem} if $meminfo->{vmem};
-    
+    my $osinfo = Sysinfo::osinfo() || {};
+    my $cpuinfo = Sysinfo::cpuinfo() || {};
+    my $meminfo = Sysinfo::meminfo() || {};
+    $log->error("Failed querying CPU info") unless %$cpuinfo;
+    $log->error("Failed querying OS info") unless %$osinfo;
+
+    $host_info = {%$host_info, %$osinfo, %$cpuinfo, %$meminfo};
+
     # Globus location
     my $globus_location ||= $ENV{GLOBUS_LOCATION} ||= "/opt/globus/";
     $ENV{"LD_LIBRARY_PATH"}="$globus_location/lib";
     
     # Hostcert issuer CA, trustedca, issuercahash
+    timer_start("collecting certificates info");
+
     # find an openssl							          
     my $openssl_command = '';
     for my $path (split ':', "$ENV{PATH}:$globus_location/bin") {
@@ -168,11 +173,13 @@ sub get_host_info($) {
        push @trustedca, $ca_sn;
     }
     $host_info->{trustedcas} = \@trustedca;
+
+    timer_stop();
     
     #TODO: multiple session dirs
     my @sessiondirs = @{$options->{sessiondir}};
     if (@sessiondirs) {
-        my $sessionspace = diskinfo($sessiondirs[0]);
+        my $sessionspace = Sysinfo::diskinfo($sessiondirs[0]);
         $log->warning("Failed checking disk space in sessiondir ".$sessiondirs[0])
             unless $sessionspace;
         $host_info->{session_free} = $sessionspace->{megsfree} || 0;
@@ -186,7 +193,7 @@ sub get_host_info($) {
     my @paths = ();
     @paths = @{$options->{cachedir}} if $options->{cachedir};
     @paths = map { my @pair = split " ", $_; $pair[0] } @paths;
-    my %cacheinfo = diskspaces(@paths);
+    my %cacheinfo = Sysinfo::diskspaces(@paths);
     $log->warning("Failed checking disk space in cache directories: @paths")
         unless %cacheinfo;
     $host_info->{cache_total} = $cacheinfo{totalsum} || 0;
@@ -205,9 +212,11 @@ sub get_host_info($) {
        if ($?) { $log->warning("Failed running $globus_location/bin/globus-version command")}
     }
     $host_info->{globusversion} = $globusversion;
+
+    timer_start("collecting RTE info");
     
     my @runtimeenvironment;
-    my $runtimedir = $options->{runtimeDir};
+    my $runtimedir = $options->{runtimedir};
     if ($runtimedir){
        if (opendir DIR, $runtimedir) {
           @runtimeenvironment = `find $runtimedir -type f ! -name ".*" ! -name "*~"` ;
@@ -242,7 +251,9 @@ sub get_host_info($) {
     }
     $host_info->{runtimeenvironments} = \@runtimeenvironment;
 
-    $host_info->{processes} = processid(@{$options->{processes}});
+    timer_stop();
+
+    $host_info->{processes} = Sysinfo::processid(@{$options->{processes}});
 
     return $host_info;
 }

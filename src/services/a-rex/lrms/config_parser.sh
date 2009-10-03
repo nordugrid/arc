@@ -37,7 +37,7 @@ config_parse_file() {
         return 1
     fi
     if [ -z "$pkglibdir" ]; then echo "pkglibdir must be set" 1>&2; return 1; fi
-    config=`/usr/bin/perl -I$pkglibdir -MConfigCentral -we 'ConfigCentral::printConfigForShell($ARGV[0])' "$arex_conf"` || return $?
+    config=`/usr/bin/perl -I$pkglibdir -MConfigCentral -we 'ConfigCentral::printLRMSConfigScript($ARGV[0])' "$arex_conf"` || return $?
     eval "$config" || return $?
     unset config
     return 0

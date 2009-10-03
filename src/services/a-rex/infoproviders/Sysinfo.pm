@@ -1,10 +1,11 @@
 package Sysinfo;
 
+use POSIX;
 use Sys::Hostname;
 
 use Exporter;
 @ISA = ('Exporter');     # Inherit from Exporter
-@EXPORT_OK = qw(cpuinfo meminfo processid diskinfo diskspaces);
+@EXPORT_OK = qw(cpuinfo meminfo osinfo processid diskinfo diskspaces);
 
 use LogUtils;
 
@@ -169,6 +170,80 @@ sub meminfo {
     return $info;
 }
 
+
+sub osinfo {
+    my $info = {};
+    my ($sysname, $nodename, $release, $version, $machine) = POSIX::uname();
+    $info->{machine} = $machine;
+    $info->{sysname} = $sysname;
+    $info->{release} = $release;
+
+    if ($sysname =~ /linux/i) {
+        my ($id, $descr, $version);
+        if (open RELEASE, '< /etc/lsb-release') {
+            while (<RELEASE>) {
+                $id = lc $1 if m/^DISTRIB_ID=(.*)/;
+                $descr = $1 if m/^DISTRIB_DESCRIPTION=(.*)/;
+                $version = $1 if m/^DISTRIB_RELEASE=([.\d]+)/;
+            }
+            close RELEASE;
+        } elsif (-x '/usr/bin/lsb_release' or -x '/bin/lsb_release') {
+            if (open RELEASE, 'lsb_release -a |') {
+                while (<RELEASE>) {
+                    $id = lc $1 if m/^Distributor ID:\s+(.*)/;
+                    $descr = $1 if m/^Description:\s+(.*)/;
+                    $version = $1 if m/^Release:\s+([.\d]+)/;
+                }
+            }
+            close RELEASE;
+        } elsif (open RELEASE, '< /etc/redhat-release') {
+            ($descr, $version) = ($1,$2) if <RELEASE> =~ m/(.*) release ([.\d]+)/;
+            close RELEASE;
+        } elsif (open RELEASE, '< /etc/debian_version') {
+            $version = $1 if <RELEASE> =~ m/^([.\d]+)$/;
+            $id = 'debian';
+            close RELEASE;
+        } elsif (open RELEASE, '< /etc/SuSE-release') {
+            while (<RELEASE>) {
+                $version = $1 if m/^VERSION\s*=\s*([.\d]+)/;
+            }
+            $id = 'suse';
+            close RELEASE;
+        } elsif (open RELEASE, '< /etc/gentoo-release') {
+            $version = $1 if <RELEASE> =~ m/.* version ([.\d]+)/;
+            $id = 'gentoo';
+            close RELEASE;
+        }
+        # Try to stay within the predefined values for OSName_t from GLUE2 spec (GFD.147).
+        if ($descr) {
+            $id = 'centos' if $descr =~ m/^CentOS/i;
+            $id = 'fedoracore' if $descr =~ m/^Fedora/i;
+            $id = 'scientificlinux' if $descr =~ m/^Scientific Linux/i;
+            $id = 'scientificlinuxcern' if $descr =~ m/^Scientific Linux CERN/i;
+            $id = 'redhatenterpriseas' if $descr =~ m/^Red Hat Enterprise/i and not $id;
+        }
+        $info->{osname} = $id if $id;
+        $info->{osversion} = $version if $version;
+
+    } elsif ($sysname eq 'Darwin') {
+        my $version = `sw_vers -productVersion`;
+        chomp $version;
+        if ($version =~ m/10\.[\d.]+/) {
+            my $name;
+            $info->{osname} = 'panther' if $version =~ m/^10\.3/;
+            $info->{osname} = 'tiger' if $version =~ m/^10\.4/;
+            $info->{osname} = 'leopard' if $version =~ m/^10\.5/;
+            $info->{osname} = 'snowleopard' if $version =~ m/^10\.6/;
+            $info->{osversion} = $version;
+        }
+
+    } elsif ($sysname eq 'SunOS') {
+        $release =~ s/^5\.//; # SunOS 5.10 == solaris 10
+        $info->{osname} = 'solaris';
+        $info->{osversion} = $release;
+    }
+    return $info;
+}
 
 #
 # Returns disk space (total and free) in MB on a filesystem

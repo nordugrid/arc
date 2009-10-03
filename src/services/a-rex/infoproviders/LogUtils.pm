@@ -39,8 +39,13 @@ sub start_logging($) {
 sub level {
     return $loglevel unless  @_;
     my $level = shift;
-    $loglevel = $names{$level};
-    fatal("No such loglevel '$level'") unless $loglevel;
+    if ($names{$level}) {
+        $loglevel = $names{$level};
+    } elsif ($level =~ m/^\d+$/ and $level < keys %names)  {
+        $loglevel = $level;
+    } else {
+        fatal("No such loglevel '$level'");
+    }
     return $loglevel;
 }
 

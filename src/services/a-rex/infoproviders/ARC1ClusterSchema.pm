@@ -207,7 +207,7 @@ sub arc1_info_schema {
             'TotalInstances'       => [ '*' ],
             'UsedInstances'        => [ '*' ],
             'UnavailableInstances' => [ '*' ],
-            'PhysicalCPUs'         => [ '' ],
+            'PhysicalCPUs'         => [ '*' ],
             'LogicalCPUs'          => [ '' ],
             'CPUMultiplicity'      => [ '*' ],
             'CPUVendor'            => [ '*' ],
@@ -218,9 +218,9 @@ sub arc1_info_schema {
             'WallTimeScalingFactor'=> [ '*' ],
             'MainMemorySize'       => [ '' ],
             'VirtualMemorySize'    => [ '*' ],
-            'OSFamily'             => [ '' ],
-            'OSName'               => [ '' ],
-            'OSVersion'            => [ '' ],
+            'OSFamily'             => [ '*' ],
+            'OSName'               => [ '*' ],
+            'OSVersion'            => [ '*' ],
             'ConnectivityIn'       => [ '*' ],
             'ConnectivityOut'      => [ '*' ],
             'NetworkInfo'          => [ '*' ],
@@ -267,7 +267,7 @@ sub arc1_info_schema {
             'ProductVersion'        => [ '' ],
             'Reservation'           => [ '*' ],
             'BulkSubmission'        => [ '' ],
-            'TotalPhysicalCPUs'     => [ '' ],
+            'TotalPhysicalCPUs'     => [ '*' ],
             'TotalLogicalCPUs'      => [ '' ],
             'TotalSlots'            => [ '' ],
             'SlotsUsedByLocalJobs'  => [ '' ],
@@ -323,9 +323,9 @@ sub arc1_info_schema {
                 'ComputingShare' => [ $comp_share_t ]
             },
             'ComputingManager' => [ $comp_manager_t ],
-            'Associations' => {
-                'ServiceID' => [ '*' ],
-            }
+            #'Associations' => {
+            #    'ServiceID' => [ '*' ],
+            #}
     };
 
 

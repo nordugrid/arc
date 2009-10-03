@@ -129,6 +129,7 @@ my $lrms_info_schema = {
             'lcpus'       =>   '*',   # cpus visible to the os
             'pcpus'       =>   '*',   # number of sockets
             'sysname'     =>   '*',   # what would uname -s print on the node
+            'release'     =>   '*',   # what would uname -r print on the node
             'machine'     =>   '*',   # what would uname -m print (if the node would run linux)
         }
     }
@@ -141,9 +142,10 @@ sub collect($) {
     my ($options) = @_;
     my ($checker, @messages);
 
-    my $lrms_name = $options->{lrms};
+    my ($lrms_name, $share) = split / /, $options->{lrms};
+    $options->{scheduling_policy} = $options->{SchedulingPolicy} if $options->{SchedulingPolicy};
     $log->error('lrms option is missing') unless $lrms_name;
-    load_lrms($options->{lrms});
+    load_lrms($lrms_name);
 
     # merge schema exported by the LRMS plugin
     my $schema = { %$lrms_options_schema, %{get_lrms_options_schema()} };
@@ -159,7 +161,7 @@ sub collect($) {
     my $custom_lrms_schema = customize_info_schema($lrms_info_schema, $options);
     $checker = InfoChecker->new($custom_lrms_schema);
     @messages = $checker->verify($result);
-    $log->warning("result key lrmsinfo->$_") foreach @messages;
+    $log->warning("return value lrmsinfo->$_") foreach @messages;
 
     return $result;
 }
@@ -175,7 +177,7 @@ sub load_lrms($) {
     eval { require "$module.pm" };
 
     if ($@) {
-        $log->debug("Using ARC0.6 compatible module $lrms_name");
+        $log->debug("Using ARC0.6 compatible $lrms_name module");
 
         require ARC0mod;
         ARC0mod::load_lrms($lrms_name);

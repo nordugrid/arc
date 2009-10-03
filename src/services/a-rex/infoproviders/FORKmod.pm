@@ -72,8 +72,9 @@ sub get_lrms_info(\%) {
 
     $node->{isavailable} = 1;
     $node->{isfree} = $isfree;
-    $node->{machine} = $machine;
     $node->{sysname} = $sysname;
+    $node->{release} = $release;
+    $node->{machine} = $machine;
     $node->{lcpus} = $cpuinfo->{cputhreadcount} if $cpuinfo->{cputhreadcount};
     $node->{pcpus} = $cpuinfo->{cpusocketcount} if $cpuinfo->{cpusocketcount};
     $node->{pmem} = $meminfo->{pmem} if $meminfo->{pmem};

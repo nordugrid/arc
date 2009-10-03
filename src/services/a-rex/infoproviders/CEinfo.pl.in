@@ -5,8 +5,11 @@ package CEInfo;
 use File::Basename;
 use Getopt::Long;
 use XML::Simple;
+use Sys::Hostname;
 use Data::Dumper;
 use Cwd;
+
+eval {use Time::HiRes "time"};
 
 use strict;
 
@@ -34,34 +37,37 @@ use InfoChecker;
 
 our $log = LogUtils->getLogger(__PACKAGE__);
 
+sub timed {
+    my ($fname, $func, @args) = @_;
+    my $t0 = time();
+    my $result = &$func(@args);
+    my $dt = sprintf('%.3f', time() - $t0);
+    $log->debug("Time spent in $fname: ${dt}s");
+    return $result;
+}
+
 
 sub main {
 
     LogUtils::level('INFO');
 
-    ########################################################
     # Config defaults
-    ########################################################
     
     my %config_defaults = (
-                   InfoproviderWakeupPeriod  =>  600,
                    arcversion     => '@VERSION@',
                    gm_mount_point => "/jobs",
                    gm_port        => 2811,
+                   ttl            =>  60,
                    defaultttl     => "604800",
                    x509_user_cert => "/etc/grid-security/hostcert.pem",
                    x509_cert_dir  => "/etc/grid-security/certificates/",
                    gridmap        => "/etc/grid-security/grid-mapfile",
-                   connectivityIn => "false",
-                   connectivityOut=> "false",
                    processes      => [qw(arched)]
     
     );
 
 
-    ########################################################
     # Parse command line options
-    ########################################################
     
     my $configfile;
     my $print_help;
@@ -79,55 +85,22 @@ sub main {
         $log->error("a command line argument is missing, see --help ");
     }
     
-    ##################################################
     # Read ARC configuration
-    ##################################################
-    
-    my $config = ConfigCentral::parseConfig($configfile);
+
+    my $config = timed 'ConfigCentral', \&ConfigCentral::parseConfig, $configfile;
     $config = { %config_defaults, %$config};
-
-    $config->{control} = {} unless $config->{control};
-    $config->{xenvs} = {} unless $config->{xenvs};
-    $config->{shares} = {} unless $config->{shares};
-    $config->{queues} = {} unless $config->{queues};
-
 
     # Change level for root logger (affects all loggers from now on)
     LogUtils::level($config->{debugLevel}) if defined $config->{debugLevel};
 
-    # Cross-check ExecutionEnvironment references
-    for my $s (values %{$config->{shares}}) {
-        next unless $s->{ExecEnvName};
-        for my $group (@{$s->{ExecEnvName}}) {
-            $log->error("No such ExecutionEnvironment: $group")
-                unless $config->{xenvs}{$group};
-        }
-    }
+    check_config($config);
 
-    my $defaultshare = $config->{defaultShare};
-    $log->error("defaultShare set to nonexistent ComputingShare")
-        if $defaultshare and not $config->{shares}{$defaultshare};
-
-    if ($config->{endpoint} =~ m{^\w+://([^:]+):(\d+)}) {
-        $config->{hostname} = $1;
-        $config->{arexport} = $2;
-    } else {
-        $log->error("missing config option: endpoint");
-    }
-
-    if ($config->{Contact}) {
-        for (@{$config->{Contact}}) {
-            $log->warning("URI expected in Contact Detal: ".$_->{Detail}) unless $_->{Detail} =~ m/^\w+:/;
-        }
-    }
-
-    ##################################################
     # Collect information & print XML
-    ##################################################
+
+    my $ceinfo = timed 'all info collectors', \&CEInfo::collect, $config;
 
     my $xml = new XML::Simple(NoAttr => 0, ForceArray => 1, RootName => 'InfoRoot', KeyAttr => ['name']);
-    my $cluster_info = CEInfo::collect($config);
-    print $xml->XMLout($cluster_info);
+    print timed('printing XML', \&XML::Simple::XMLout, $xml, $ceinfo);
 }
     
 
@@ -135,48 +108,14 @@ sub main {
 # Unified information collector for NG and GLUE2
 ##################################################
 
-my $config_schema = {
-    lrms => '',              # name of the LRMS module
-    gridmap => '',
-    x509_user_cert => '',
-    x509_cert_dir => '',
-    controldir => '',
-    sessiondir => [ '' ],
-    cachedir => [ '*' ],
-    runtimeDir => '*',
-    processes => [ '' ],
-    service => {
-        Name => '',
-        AdminDomain => '',
-    },
-    xenvs => {              # node group names are keys in this hash
-        '*' => {
-        }
-    },
-    shares => {              # share names are keys in this hash
-        '*' => {
-        }
-    }
-};
-
 sub collect($) {
     my ($config) = @_;
-    my ($checker, @messages);
-
-    $log->error("missing config option: endpoint") unless $config->{endpoint};
-    $log->error("missing config option: ComputingService: AdminDomain") unless $config->{service}{AdminDomain};
-    $log->error("missing config option: ComputingService: Name") unless $config->{service}{Name};
-
-    $checker = InfoChecker->new($config_schema);
-    @messages = $checker->verify($config);
-    $log->warning("config key config->$_") foreach @messages;
-    $log->fatal("Some required config options are missing") if @messages;
-
 
     # get all local users from grid-map. Sort unique
     my %saw = ();
     my $usermap = read_grid_mapfile($config->{gridmap});
     my @localusers = grep !$saw{$_}++, values %$usermap;
+
 
     my $gmjobs_info = get_gmjobs_info($config);
 
@@ -187,30 +126,32 @@ sub collect($) {
         push @jobids, $job->{localid};
     }
 
-    my $input = {};
-    $input->{config} = $config;
-    $input->{usermap} = $usermap;
-    $input->{host_info} = get_host_info($config,\@localusers);
-    $input->{gmjobs_info} = $gmjobs_info;
-    $input->{lrms_info} = get_lrms_info($config,\@localusers,\@jobids);
+    my $data = {};
+    $data->{config} = $config;
+    $data->{usermap} = $usermap;
+    $data->{host_info} = get_host_info($config,\@localusers);
+    $data->{gmjobs_info} = $gmjobs_info;
+    $data->{lrms_info} = get_lrms_info($config,\@localusers,\@jobids);
 
-    fix_adotf($config, $input->{host_info});
-    fix_adotf($_, $input->{host_info}) for values %{$config->{xenvs}};
+    fix_adotf($config, $data->{host_info});
+    fix_adotf($_, $data->{host_info}) for values %{$config->{xenvs}};
 
-    my $cluster_info;
-    my $png = $config->{service}{PublishNordugrid};
+    my $ceinfo;
+
+    $ceinfo->{'Domains'}->{'xmlns'} = "http://schemas.ogf.org/glue/2008/05/spec_2.0_d41_r01";
+    $ceinfo->{'Domains'}->{'xmlns:xsi'} = "http://www.w3.org/2001/XMLSchema-instance";
+    $ceinfo->{'Domains'}->{'xsi:schemaLocation'} = "http://schemas.ogf.org/glue/2008/05/spec_2.0_d41_r01 pathto/GLUE2.xsd";
+    $ceinfo->{'Domains'}->{'AdminDomain'}->{'xmlns'} = "http://schemas.ogf.org/glue/2008/05/spec_2.0_d41_r01";
+    $ceinfo->{'Domains'}->{'AdminDomain'}->{'Services'}->{'xmlns'} = "http://schemas.ogf.org/glue/2008/05/spec_2.0_d41_r01";
+    $ceinfo->{'Domains'}->{'AdminDomain'}->{'Services'}->{'ComputingService'} = timed 'ARC1ClusterInfo', \&ARC1ClusterInfo::collect, $data;
+
+    my $png = $config->{PublishNordugrid};
     unless (defined $png and $png eq 'false') {
-        $cluster_info->{'n:nordugrid'} = ARC0ClusterInfo::collect($input);
-        $cluster_info->{'n:nordugrid'}{'xmlns:n'} = "urn:nordugrid-cluster";
+        $ceinfo->{'n:nordugrid'} = timed 'ARC0ClusterInfo', \&ARC0ClusterInfo::collect, $data;
+        $ceinfo->{'n:nordugrid'}{'xmlns:n'} = "urn:nordugrid-cluster";
     }
-    $cluster_info->{'Domains'}->{'xmlns'} = "http://schemas.ogf.org/glue/2008/05/spec_2.0_d41_r01";
-    $cluster_info->{'Domains'}->{'xmlns:xsi'} = "http://www.w3.org/2001/XMLSchema-instance";
-    $cluster_info->{'Domains'}->{'xsi:schemaLocation'} = "http://schemas.ogf.org/glue/2008/05/spec_2.0_d41_r01 pathto/GLUE2.xsd";
-    $cluster_info->{'Domains'}->{'AdminDomain'}->{'xmlns'} = "http://schemas.ogf.org/glue/2008/05/spec_2.0_d41_r01";
-    $cluster_info->{'Domains'}->{'AdminDomain'}->{'Services'}->{'xmlns'} = "http://schemas.ogf.org/glue/2008/05/spec_2.0_d41_r01";
-    $cluster_info->{'Domains'}->{'AdminDomain'}->{'Services'}->{'ComputingService'} = ARC1ClusterInfo::collect($input);
 
-    return $cluster_info;
+    return $ceinfo;
 }
 
 
@@ -225,7 +166,7 @@ sub get_host_info($$) {
     $host_opts->{localusers} = $localusers;
     $host_opts->{libexecdir} = dirname($0);
 
-    return HostInfo::collect($host_opts);
+    return timed 'HostInfo', \&HostInfo::collect, $host_opts;
 }
 
 sub get_lrms_info($$$) {
@@ -240,14 +181,15 @@ sub get_lrms_info($$$) {
         $lrms_opts->{queues}{$share}{users} = $localusers;
     }
 
-    return LRMSInfo::collect($lrms_opts);
+    return timed 'LRMSInfo', \&LRMSInfo::collect, $lrms_opts;
 }
 
 sub get_gmjobs_info($) {
     my $config = shift;
     $log->error("controldir option missing") unless $config->{controldir};
-    my $gmjobs_info = GMJobsInfo::collect($config->{controldir});
+    my $gmjobs_info = timed 'GMJobsInfo', \&GMJobsInfo::collect, $config->{controldir};
 
+    my ($lrms, $defaultshare) = split /\s+/, $config->{lrms} || '';
     for my $jobid (keys %$gmjobs_info) {
         my $job = $gmjobs_info->{$jobid};
         my $share = $job->{share};
@@ -255,9 +197,9 @@ sub get_gmjobs_info($) {
         # If A-REX has not choosen a share for the job, default to one.
         if (not $share) {
             my $msg = "A-REX has not choosen a share for job $jobid";
-            if ($config->{defaultShare}) {
-                $log->info($msg.". Assuming default: ".$config->{defaultShare});
-                $share = $config->{defaultShare};
+            if ($defaultshare) {
+                $log->info($msg.". Assuming default: ".$defaultshare);
+                $share = $defaultshare;
             } else {
                 my @shares = keys %{$config->{shares}};
                 if (@shares == 1) {
@@ -275,7 +217,7 @@ sub get_gmjobs_info($) {
             if ($sconfig) {
                 $job->{queue} = $sconfig->{MappingQueue} if $sconfig->{MappingQueue}
             } else {
-                $log->warning("Job $jobid belongs to an unconfigured share '$share'");
+                $log->warning("Job $jobid belongs to an invalid share '$share'");
                 $share = undef;
             }
         }
@@ -307,9 +249,86 @@ sub read_grid_mapfile($) {
     return $usermap;
 }
 
+sub check_config {
+    my ($config) = @_;
+
+    $config->{control} ||= {};
+    $config->{service} ||= {};
+    $config->{shares} ||= {};
+    $config->{xenvs} ||= {};
+
+    delete $config->{location} unless $config->{location} and %{$config->{location}};
+    delete $config->{contacts} unless $config->{contacts} and @{$config->{contacts}};
+
+    my $hostname = $config->{hostname} || hostname();
+    {  
+        my @dns = split /\./, $hostname;
+        my $shorthost = shift @dns;
+        my $dnsdomain = join ".", @dns;
+
+        $log->info("AdminDomain config option is missing. Defaulting to: $dnsdomain") unless $config->{AdminDomain};
+        $log->info("ClusterName config option is missing. Defaulting to: $shorthost") unless $config->{service}{ClusterName};
+
+        chomp ($config->{AdminDomain} ||= $dnsdomain);
+        chomp ($config->{service}{ClusterName} ||= $shorthost);
+    }
+
+    if ($config->{endpoint} and $config->{endpoint} =~ m{^\w+://([^:]+):(\d+)}) {
+        $config->{arexhostport} = "$1:$2";
+    } else {
+        $config->{endpoint} = "https://$hostname:60000/arex";
+        $config->{arexhostport} = "$hostname:60000";
+        $log->warning("Config option endpoint or arex_mount_point is missing or not an URL. Assuming: ".$config->{endpoint});
+    }
+
+    # Cross-check ExecutionEnvironment references
+    for my $s (values %{$config->{shares}}) {
+        next unless $s->{ExecEnvName};
+        for my $group (@{$s->{ExecEnvName}}) {
+            $log->error("No such ExecutionEnvironment: $group")
+                unless $config->{xenvs}{$group};
+        }
+    }
+    for my $s (values %{$config->{xenvs}}) {
+        delete $s->{NodeSelection} unless %{$s->{NodeSelection}};
+    }
+
+    my ($lrms, $defaultshare) = split /\s+/, $config->{lrms} || '';
+    $log->error("defaultShare set to nonexistent ComputingShare")
+        if $defaultshare and not $config->{shares}{$defaultshare};
+
+    if ($config->{contacts}) {
+        for (@{$config->{contacts}}) {
+            $log->warning("URI expected in Contact Detal: ".$_->{Detail}) unless $_->{Detail} =~ m/^\w+:/;
+        }
+    }
+}
+
 
 sub fix_adotf {
-    my ($config, $hostinfo) = @_;
+    my ($h, $hostinfo) = @_;
+    if ($h->{nodecpu}) {
+        if ($h->{nodecpu} =~ m/(.*?)(?:\s+stepping\s+(\d+))?\s+@\s+([.\d]+)\s*(M|G)Hz$/i) {
+            $h->{CPUModel} ||= $1;
+            $h->{CPUVersion} ||= $2;
+            $h->{CPUClockSpeed} ||= ($4 eq 'G') ? int($3 * 1000) : int($3);
+        } elsif ($h->{nodecpu} eq 'adotf') {
+            $h->{CPUVendor} ||= 'adotf';
+            $h->{CPUModel} ||= 'adotf';
+            $h->{CPUClockSpeed} ||= 'adotf';
+        } else {
+            $log->warning("Invalid value for nodecpu option: ".$h->{nodecpu});
+        }
+        delete $h->{nodecpu};
+    }
+    if ($h->{OpSys} and grep {$_ eq 'adotf'} @{$h->{OpSys}}) {
+        $h->{OpSys} = [ grep {$_ ne 'adotf'} @{$h->{OpSys}} ];
+        $log->error("Failed to autodetect value for 'OSName'. Enter correct value in config file")
+            unless defined $hostinfo->{osname};
+        $h->{OSName} ||= 'adotf';
+        $h->{OSVersion} ||= 'adotf';
+        $h->{OSFamily} ||= 'adotf';
+    }
     my %hostkey = (Platform => 'machine',
                    PhysicalCPUs => 'cpusocketcount',
                    LogicalCPUs => 'cputhreadcount',
@@ -318,16 +337,17 @@ sub fix_adotf {
                    CPUClockSpeed => 'cpufreq',
                    MainMemorySize => 'pmem',
                    VirtualMemorySize => 'vmem',
-                   OSFamily => 'sysname'
+                   OSFamily => 'sysname',
+                   OSName => 'osname',
+                   OSVersion => 'osversion'
     );
     for my $key (keys %hostkey) {
-        if (exists $config->{$key} and $config->{$key} eq 'adotf') {
+        if (exists $h->{$key} and $h->{$key} eq 'adotf') {
             $log->error("Failed to autodetect value for '$key'. Enter correct value in config file")
                 unless defined $hostinfo->{$hostkey{$key}};
-            $config->{$key} = $hostinfo->{$hostkey{$key}};
+            $h->{$key} = $hostinfo->{$hostkey{$key}};
         }
     }
-    
 };
 
 main();
