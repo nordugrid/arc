@@ -53,8 +53,8 @@ sub _parse($$) {
     return undef unless open(CONFIGFILE, $arcconf);
 
     # current section name and options
-    my $sname;
-    my $sopts;
+    my $sname = 'common';
+    my $sopts = {};
 
     # per-user opitions of the [grid-manager] section.
     # Contains the options applying to the most recent user
@@ -74,7 +74,7 @@ sub _parse($$) {
             my $newsname = $1;
 
             # Finish processing [grid-manager] section
-            if (defined $sname and $sname eq 'grid-manager') {
+            if ($sname eq 'grid-manager') {
                 # forget the controldir set with 'control' option
                 delete $useropts->{controldir};
                 $useropts->{controldir} = $controldir if $controldir;
@@ -85,7 +85,8 @@ sub _parse($$) {
             }
 
             # store completed section
-            $config{$sname} = $sopts if $sname;
+            $config{$sname} ||= {};
+            $config{$sname} = { %{$config{$sname}}, %$sopts };
 
             # start fresh section
             $sname = $newsname;
@@ -133,7 +134,7 @@ sub _parse($$) {
     close CONFIGFILE;
 
     # In case [grid-manager] was the last section...
-    if (defined $sname and $sname eq 'grid-manager') {
+    if ($sname eq 'grid-manager') {
         # forget the controldir set with 'control' option
         delete $useropts->{controldir};
         $useropts->{controldir} = $controldir if $controldir;
@@ -141,7 +142,8 @@ sub _parse($$) {
     }
 
     # store last section
-    $config{$sname} = $sopts if $sname;
+    $config{$sname} ||= {};
+    $config{$sname} = { %{$config{$sname}}, %$sopts };
 
     $self->{config} = \%config;
     return $self;
