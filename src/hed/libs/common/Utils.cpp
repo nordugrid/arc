@@ -114,7 +114,12 @@ namespace Arc {
     };
     persistent_libraries_lock.unlock();
     Glib::Module *module = new Glib::Module(libpath);
-    if(module && (*module)) return true;
+    if(module && (*module)) {
+      persistent_libraries_lock.lock();
+      persistent_libraries_list.push_back(libpath);
+      persistent_libraries_lock.unlock();
+      return true;
+    };
     if(module) delete module;
     return false;
   }
