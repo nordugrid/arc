@@ -18,7 +18,7 @@ MessageContext::~MessageContext(void) {
 }
 
 void MessageContext::Add(const std::string& name,MessageContextElement* element) {
-  MessageContextElement* old = elements_[name];
+  MessageContextElement* old = operator[](name);
   elements_[name]=element;
   if(old) delete old;
 }
