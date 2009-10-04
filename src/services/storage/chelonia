@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import sys, time, os, socket
+import sys, time, os, socket, traceback
 import xml.dom.minidom
 
 # This part is copied from common.py
@@ -1445,7 +1445,6 @@ if verbose:
         print '- Using default user config.'
 
 
-bartender_urls = []
 
 def call_it(method_name, *args):
     print '- Calling the Bartender\'s %s method...' % method_name
@@ -1470,7 +1469,7 @@ def call_it(method_name, *args):
         except:
             print e
     if not verbose:
-        print "(try to put the '-v' flag before the method name for more details)"
+        print "(try to put the '-v' flag before the method name for more details, e.g. 'chelonia -v list /')"
     sys.exit(-1)
 
 if len(args) == 0 or args[0][0:3] not in ['sta', 'mak', 'mkd', 'unm', 'rmd', 'lis', 'ls', 'mov', 'mv', 'put', 'get', 'del', 'rm', 'mod', 'pol', 'unl', 'cre', 'rem']:
@@ -1504,65 +1503,97 @@ else:
         ca_file = user_config.CACertificatePath()
         ca_dir = user_config.CACertificatesDirectory()
         bartender_urls = [url.fullstr() for url in user_config.Bartender()]
-#        isis_urls = get_child_values_by_name(user_config.ConfTree(),'ISISURL')
-    except Exception, e:
-        problem_with_userconfig = e
+        index_services = user_config.GetSelectedServices(arc.INDEX)
+        if index_services.has_key('ARC1'):
+            isis_urls = [url.fullstr() for url in index_services['ARC1']]
+        else:
+            isis_urls = []
+    except:
+        problem_with_userconfig = traceback.format_exc()
         key_file = None
         cert_file = None
         proxy_file = None
         ca_file = None
         ca_dir = None
-        bartender_url = None
+        bartender_urls = []
         isis_urls = []
+
+    ssl_config = {}
+    key_file = os.environ.get('ARC_KEY_FILE', key_file)
+    cert_file = os.environ.get('ARC_CERT_FILE', cert_file)
+    proxy_file = os.environ.get('ARC_PROXY_FILE', proxy_file)
+    ca_file = os.environ.get('ARC_CA_FILE', ca_file)
+    ca_dir = os.environ.get('ARC_CA_DIR', ca_dir)
+    if proxy_file:
+        ssl_config['proxy_file'] = proxy_file
+        if verbose:
+            print '- The proxy certificate file:', ssl_config['proxy_file']
+    else:
+        if key_file and cert_file:
+            ssl_config['key_file'] = key_file
+            ssl_config['cert_file'] = cert_file
+            if verbose:
+                print '- The key file:', ssl_config['key_file']
+                print '- The cert file:', ssl_config['cert_file']
+    if ca_file:
+        ssl_config['ca_file'] = ca_file
+        if verbose:
+            print '- The CA file:', ssl_config['ca_file']
+    elif ca_dir:
+        ssl_config['ca_dir'] = ca_dir
+        if verbose:
+            print '- The CA dir:', ssl_config['ca_dir']
+
     bartender_env_url = os.environ.get('ARC_BARTENDER_URL', '')
     if bartender_env_url:
         bartender_urls = [bartender_env_url]
-    if bartender_urls:
         if verbose:
-            print '- The URL of the Bartender(s):', ', '.join(bartender_urls)
-    else:
+            print '- Bartender URL found in the ARC_BARTENDER_URL environment variable, will use only this:', bartender_urls[0]
+    if not bartender_urls:
+        if verbose:
+            print '- No Bartender URL found in the config or in the environment, try to get one from ISIS:'
         isis_env_url = os.environ.get('ARC_ISIS_URL', '')
         if isis_env_url:
             isis_urls = [isis_env_url]
-        if isis_urls:
-            isis = ISISClient(isis_urls[0], print_xml = False)
-            bartender_urls = isis.getServiceURLs('org.nordugrid.storage.bartender')
-        if not bartender_urls:
-            bartender_urls = ['http://localhost:60000/Bartender']
+            if verbose:
+                print '  - ISIS URL found in the ARC_ISIS_URL environment variable:', isis_urls[0]
+        if not isis_urls:
+            if verbose:
+                print '  - No ISIS URL found in the config or in the environment, giving up.'
+        else:
+            bartender_found = False
+            while not bartender_found and len(isis_urls) > 0:
+                isis_url = isis_urls.pop()
+                isis = ISISClient(isis_url, ssl_config = ssl_config)
+                try:
+                    bartender_urls = isis.getServiceURLs('org.nordugrid.storage.bartender')
+                    if not bartender_urls:
+                        if verbose:
+                            print '  -', isis_url, '- This ISIS did not return any Bartender URL.'
+                    else:
+                        bartender_found = True
+                        if verbose:
+                            print '  -', isis_url, '- Got Bartender URL from ISIS:', ', '.join(bartender_urls)
+                except:
+                    if verbose:
+                        print '  -', isis_url, '- Failed to connect to ISIS.'
+    if bartender_urls:
+        if verbose:
+            print '- The URL of the Bartender(s):', ', '.join(bartender_urls)        
+    else:
         if problem_with_userconfig:
             print '- There was a problem reading the user\'s config. Reason:', str(problem_with_userconfig)
-        print '- The URL of the Bartender is not given, using', bartender_urls[0]
+        # bartender_urls = ['http://localhost:60000/Bartender']
+        # print '- The URL of the Bartender is not given, using', bartender_urls[0]
+        print 'ERROR: No Bartender URL found.'
+        if not verbose:
+            print "(try to put the '-v' flag before the method name for more details, e.g. 'chelonia -v list /')"
+        sys.exit(-1)
     try:
         needed_replicas = os.environ['ARC_NEEDED_REPLICAS']
     except:
-        needed_replicas = 1
-    ssl_config = {}
+        needed_replicas = 3
 
-    if len([bartender_url for bartender_url in bartender_urls if bartender_url.startswith('https')]) > 0:
-        key_file = os.environ.get('ARC_KEY_FILE', key_file)
-        cert_file = os.environ.get('ARC_CERT_FILE', cert_file)
-        proxy_file = os.environ.get('ARC_PROXY_FILE', proxy_file)
-        ca_file = os.environ.get('ARC_CA_FILE', ca_file)
-        ca_dir = os.environ.get('ARC_CA_DIR', ca_dir)
-        if proxy_file:
-            ssl_config['proxy_file'] = proxy_file
-            if verbose:
-                print '- The proxy certificate file:', ssl_config['proxy_file']
-        else:
-            if key_file and cert_file:
-                ssl_config['key_file'] = key_file
-                ssl_config['cert_file'] = cert_file
-                if verbose:
-                    print '- The key file:', ssl_config['key_file']
-                    print '- The cert file:', ssl_config['cert_file']
-        if ca_file:
-            ssl_config['ca_file'] = ca_file
-            if verbose:
-                print '- The CA file:', ssl_config['ca_file']
-        elif ca_dir:
-            ssl_config['ca_dir'] = ca_dir
-            if verbose:
-                print '- The CA dir:', ssl_config['ca_dir']
     command_long = args.pop(0).lower()
     command = command_long[0:3]
     if command in ['sta']:
