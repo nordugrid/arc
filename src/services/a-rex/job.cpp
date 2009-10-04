@@ -382,6 +382,7 @@ ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& crede
   };
   // Write local file
   JobDescription job(id_,config_.User()->SessionRoot()+"/"+id_,JOB_STATE_ACCEPTED);
+  job.set_local(&job_); // need this for write_grami
   if(!job_local_write_file(job,*config_.User(),job_)) {
     delete_job_id();
     failure_="Failed to create job description";
@@ -391,7 +392,6 @@ ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& crede
   // Write grami file
   Arc::JobDescription desc;
   desc.Parse(job_desc_str);
-  job.SetLocalDescription(job_);
   if(!write_grami(desc,job,*config_.User(),NULL)) {
     delete_job_id();
     failure_="Failed to create grami file";

@@ -119,6 +119,7 @@ class JobDescription {
   };
   const std::string& GetFailure(void) const { return failure_reason; };
   JobLocalDescription* get_local(void) const { return local; };
+  void set_local(JobLocalDescription* desc) { local=desc; };
 //  void set_state(job_state_t state) { job_state=state; };
   bool operator==(const JobId &id) { return (job_id == id); };
   bool operator!=(const JobId &id) { return (job_id != id); };
@@ -130,6 +131,5 @@ class JobDescription {
   gid_t get_gid(void) const { return job_gid; };
   /* force 'local' to be created and read from file if not already available */
   bool GetLocalDescription(const JobUser &user);
-  bool SetLocalDescription(const JobLocalDescription &job_desc);
 };
 #endif
