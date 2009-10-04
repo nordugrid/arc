@@ -1,7 +1,6 @@
 #include <arc/ArcConfig.h>
 #include <arc/ArcLocation.h>
 #include <arc/client/ClientInterface.h>
-#include <arc/client/UserConfig.h>
 #include <arc/message/MCCLoader.h>
 #include <arc/message/MCC.h>
 
