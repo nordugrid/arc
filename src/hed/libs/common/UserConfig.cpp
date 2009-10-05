@@ -393,23 +393,6 @@ namespace Arc {
               while (common["bartender"]) common["bartender"].Destroy();
             }
           }
-          if (common["isis"]) {
-            std::list<std::string> isisesStr;
-            tokenize(common["isis"], isisesStr, " \t");
-            for (std::list<std::string>::const_iterator it = isisesStr.begin();
-                 it != isisesStr.end(); it++) {
-              URL isisURL(*it);
-              if (!isisURL)
-                logger.msg(WARNING, "Could not convert the isis attribute value (%s) to an URL instance in configuration file (%s)", *it, conffile);
-              else
-                isises.push_back(isisURL);
-            }
-            common["isis"].Destroy();
-            if (common["isis"]) {
-              logger.msg(WARNING, "Multiple isis attributes in configuration file (%s)", conffile);
-              while (common["isis"]) common["isis"].Destroy();
-            }
-          }
           HANDLESTRATT("vomsserverpath", VOMSServerPath)
           HANDLESTRATT("username", UserName)
           HANDLESTRATT("password", Password)

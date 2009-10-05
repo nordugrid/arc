@@ -1064,7 +1064,6 @@ namespace Arc {
     std::pair<URLListMap, URLListMap> rejectedServices;
 
     std::list<URL> bartenders;
-    std::list<URL> isises;
 
     std::string proxyPath;
     std::string certificatePath;
