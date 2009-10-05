@@ -38,6 +38,7 @@ config.status: configure
                     --libexecdir=\$${prefix}/lib \
                     --sysconfdir=/etc \
 		    --enable-python \
+		    --disable-lfc \
 		    --enable-storage-service \
                     CFLAGS="$(CFLAGS)" LDFLAGS="-Wl,-z,defs"
 
