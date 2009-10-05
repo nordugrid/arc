@@ -366,12 +366,16 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
   return Arc::MCC_Status();
 }
 
-static void thread_starter(void* arg) {
+static void information_collector_starter(void* arg) {
   if(!arg) return;
   ((ARexService*)arg)->InformationCollector();
 }
  
-ARexService::ARexService(Arc::Config *cfg):RegisteredService(cfg),logger_(Arc::Logger::rootLogger, "A-REX"),inforeg_(*cfg,this),gm_(NULL),gmconfig_temporary_(false) {
+ARexService::ARexService(Arc::Config *cfg):RegisteredService(cfg),
+              logger_(Arc::Logger::rootLogger, "A-REX"),
+              inforeg_(*cfg,this),
+              gm_(NULL),
+              gmconfig_temporary_(false) {
   // logger_.addDestination(logcerr);
   // Define supported namespaces
   ns_[BES_ARC_NPREFIX]=BES_ARC_NAMESPACE;
@@ -431,7 +435,7 @@ ARexService::ARexService(Arc::Config *cfg):RegisteredService(cfg),logger_(Arc::L
       infoprovider_wakeup_period_ = Arc::stringtoi((std::string)((*cfg)["InfoproviderWakeupPeriod"]));
   else
       infoprovider_wakeup_period_ = 60;
-  CreateThreadFunction(&thread_starter,this);
+  CreateThreadFunction(&information_collector_starter,this);
   // Run grid-manager in thread
   if((gmrun_.empty()) || (gmrun_ == "internal")) {
     //gm_=new GridManager(gmargv);
@@ -442,10 +446,12 @@ ARexService::ARexService(Arc::Config *cfg):RegisteredService(cfg),logger_(Arc::L
 }
 
 ARexService::~ARexService(void) {
+  thread_count_.RequestCancel();
   if(gm_) delete gm_;
   if(gmconfig_temporary_) {
     if(!gmconfig_.empty()) unlink(gmconfig_.c_str());
   };
+  thread_count_.WaitForExit();
 }
 
 } // namespace ARex

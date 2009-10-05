@@ -19,47 +19,8 @@ namespace ARex {
 static void GetGlueStates(Arc::XMLNode infodoc,std::map<std::string,std::string>& states);
 
 void ARexService::InformationCollector(void) {
+  thread_count_.RegisterThread();
   for(;;) {
-    std::string lrms;
-    std::list<std::string> queues;
-
-    // Parse configuration to construct command lines for information providers
-    if(!ARexGMConfig::InitEnvironment(gmconfig_)) {
-      logger_.msg(Arc::ERROR,"Failed to initialize GM environment");
-      sleep(infoprovider_wakeup_period_); continue;
-    };
-    std::ifstream f(nordugrid_config_loc().c_str());
-    if(!f) {
-      logger_.msg(Arc::ERROR,"Failed to read GM configuation file at %s",nordugrid_config_loc());
-      sleep(infoprovider_wakeup_period_); continue;
-    };
-    try {
-      Config cfg = NGConfig().Read(f);
-      const std::list<ConfGrp>& groups = cfg.GetConfigs();
-      for(std::list<ConfGrp>::const_iterator g = groups.begin();g!=groups.end();++g) {
-        std::string section = g->GetSection();
-        std::string subsection;
-        std::string::size_type p = section.find('/');
-        if(p != std::string::npos) {
-          subsection=section.substr(p+1);
-          section.resize(p);
-        };
-        logger_.msg(Arc::DEBUG,"Configuration: Section: %s, Subsection: %s",section,subsection);
-        if((section == "common") || (section == "grid-manager")) {
-          std::list<std::string> values = g->FindOptionValue("lrms");
-          if(values.size() > 0) lrms=*(values.begin());
-          std::string::size_type p = lrms.find(' ');
-          if(p != std::string::npos) lrms.resize(p);
-          logger_.msg(Arc::DEBUG,"Configuration: LRMS: %s",lrms);
-        } else if(section == "queue") {
-          std::string queue = g->GetID();
-          if(queue.empty()) queue=subsection;
-          logger_.msg(Arc::DEBUG,"Configuration: Queue: %s",queue);
-          if(!queue.empty()) queues.push_back(queue);
-        };
-      };
-    } catch(ConfigError& e) {
-    };
     // Run information provider
     std::string xml_str;
     int r = -1;
@@ -98,8 +59,9 @@ void ARexService::InformationCollector(void) {
         logger_.msg(Arc::ERROR,"Failed to create informational document");
       };
     }
-    sleep(infoprovider_wakeup_period_);
+    if(thread_count_.WaitOrCancel(infoprovider_wakeup_period_*1000)) break;
   };
+  thread_count_.UnregisterThread();
 }
 
 bool ARexService::RegistrationCollector(Arc::XMLNode &doc) {

@@ -6,6 +6,7 @@
 #include <arc/delegation/DelegationInterface.h>
 #include <arc/infosys/InformationInterface.h>
 #include <arc/infosys/InfoRegister.h>
+#include <arc/Thread.h>
 
 #include "grid-manager/grid_manager.h"
 
@@ -16,6 +17,7 @@ class ARexConfigContext;
 
 class ARexService: public Arc::RegisteredService {
  protected:
+  Arc::ThreadRegistry thread_count_;
   Arc::NS ns_;
   Arc::Logger logger_;
   Arc::DelegationContainerSOAP delegations_;
@@ -71,6 +73,7 @@ class ARexService: public Arc::RegisteredService {
   void InformationCollector(void);
   virtual bool RegistrationCollector(Arc::XMLNode &doc);
   virtual std::string getID();
+  void StopChildThreads(void);
 };
 
 } // namespace ARex
