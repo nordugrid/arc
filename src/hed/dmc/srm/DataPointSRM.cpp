@@ -226,14 +226,14 @@ namespace Arc {
         continue;
       }
       // Try to use this TURL + old options
-      URL u(*i);
+      r_url = *i;
       {
         std::map<std::string, std::string> options = url.Options();
         if (!options.empty())
           for (std::map<std::string, std::string>::iterator oi = options.begin(); oi != options.end(); oi++)
-            u.AddOption((*oi).first, (*oi).second);
+            r_url.AddOption((*oi).first, (*oi).second);
       }
-      r_handle = new DataHandle(u, usercfg);
+      r_handle = new DataHandle(r_url, usercfg);
       // check if url can be handled
       if (!r_handle) {
         turls.erase(i);
@@ -396,14 +396,14 @@ namespace Arc {
         continue;
       }
       // Try to use this TURL + old options
-      URL u(*i);
+      r_url = *i;
       {
         std::map<std::string, std::string> options = url.Options();
         if (!options.empty())
           for (std::map<std::string, std::string>::iterator oi = options.begin(); oi != options.end(); oi++)
-            u.AddOption((*oi).first, (*oi).second);
+            r_url.AddOption((*oi).first, (*oi).second);
       }
-      r_handle = new DataHandle(u, usercfg);
+      r_handle = new DataHandle(r_url, usercfg);
       // check if url can be handled
       if (!r_handle) {
         turls.erase(i);

@@ -33,6 +33,7 @@ namespace Arc {
   private:
     SRMClientRequest *srm_request;
     static Logger logger;
+    URL r_url;
     DataHandle *r_handle;  /* handle used for redirected operations */
     bool reading;
     bool writing;
