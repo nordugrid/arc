@@ -533,9 +533,11 @@ int main(int argc, char *argv[]) {
       BIO_free_all(bio);
 
       //Output the PEM formated proxy certificate
-      std::string tmpcert_file("tmpcert.pem");
+      std::string tmpcert_file;
+      tmpcert_file =  Glib::build_filename(Glib::get_tmp_dir(),"tmpcert.pem");
       std::ofstream tmpcert_f(tmpcert_file.c_str(), std::ofstream::binary);
-      std::string tmpkey_file("tmpkey.pem");
+      std::string tmpkey_file;
+      tmpkey_file =  Glib::build_filename(Glib::get_tmp_dir(),"tmpkey.pem");
       std::ofstream tmpkey_f(tmpkey_file.c_str(), std::ofstream::binary);
       tmpcert_f.write(proxy_cert_str.c_str(), proxy_cert_str.size());
       tmpkey_f.write(proxy_key_str.c_str(), proxy_key_str.size());
