@@ -348,7 +348,7 @@ void HopiFileTimeout::DestroyOld(void) {
   lock.lock();
   std::map<std::string,time_t>::iterator f = files.begin();
   for(;f != files.end();) {
-    unsigned int delta = (unsigned int)(f->second - time(NULL));
+    int delta = (unsigned int)(time(NULL) - f->second);
     if(delta >= timeout) {
       ::unlink(f->first.c_str());
       std::map<std::string,time_t>::iterator f_ = f;
