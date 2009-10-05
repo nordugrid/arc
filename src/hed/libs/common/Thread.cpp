@@ -214,4 +214,64 @@ namespace Arc {
     }
   }
 
+  ThreadRegistry::ThreadRegistry(void):counter_(0),cancel_(false) {
+  }
+
+  ThreadRegistry::~ThreadRegistry(void) {
+  }
+
+  void ThreadRegistry::RegisterThread(void) {
+    lock_.lock();
+    ++counter_;
+    lock_.unlock();
+  }
+
+  void ThreadRegistry::UnregisterThread(void) {
+    lock_.lock();
+    ++counter_;
+    cond_.broadcast();
+    lock_.unlock();
+  }
+
+  bool ThreadRegistry::WaitOrCancel(int timeout) {
+    bool v = false;
+    lock_.lock();
+    Glib::TimeVal etime;
+    etime.assign_current_time();
+    etime.add_milliseconds(timeout);
+    while (!cancel_) {
+      if(!cond_.timed_wait(lock_, etime)) break;
+    }
+    v = cancel_;
+    lock_.unlock();
+    return v;
+  }
+
+  bool ThreadRegistry::WaitForExit(int timeout) {
+    int n = 0;
+    lock_.lock();
+    if(timeout >= 0) {
+      Glib::TimeVal etime;
+      etime.assign_current_time();
+      etime.add_milliseconds(timeout);
+      while (counter_ > 0) {
+        if(!cond_.timed_wait(lock_, etime)) break;
+      }
+    } else {
+      while (counter_ > 0) {
+        cond_.wait(lock_);
+      }
+    }
+    n = counter_;
+    lock_.unlock();
+    return (n <= 0);
+  }
+
+  void ThreadRegistry::RequestCancel(void) {
+    lock_.lock();
+    cancel_=true;
+    cond_.broadcast();
+    lock_.unlock();
+  }
+
 } // namespace Arc

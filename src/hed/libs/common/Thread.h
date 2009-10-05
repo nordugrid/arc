@@ -137,6 +137,34 @@ namespace Arc {
     }
   };
 
+  /// This class is a set of conditions, mutexes, etc. conveniently
+  /// exposed to moitor running child threads and to wait till
+  /// they exit. There are no protections against race conditions.
+  /// So use it carefully.
+  class ThreadRegistry {
+  private:
+    int counter_;
+    bool cancel_;
+    Glib::Cond cond_;
+    Glib::Mutex lock_;
+  public:
+    ThreadRegistry(void);
+    ~ThreadRegistry(void);
+    /// Register thread as started/starting into this instance
+    void RegisterThread(void);
+    /// Report thread as exited
+    void UnregisterThread(void);
+    /// Wait for timeout milliseconds or cancel request.
+    /// Returns true if cancel request received.
+    bool WaitOrCancel(int timeout);
+    /// Wait for registered threads to exit.
+    /// Leave after timeout miliseconds if failed. Returns true if
+    /// all registered threads reported their exit.
+    bool WaitForExit(int timeout = -1);
+    // Send cancel request to registered threads
+    void RequestCancel(void);
+  };
+
   void GlibThreadInitialize(void);
 
   // This class initializes glibmm thread system
