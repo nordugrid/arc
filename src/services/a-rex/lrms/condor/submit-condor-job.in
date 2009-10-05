@@ -2,6 +2,7 @@
 
 use File::Temp 'tempfile';
 use File::Basename;
+use Sys::Hostname;
 use Cwd;
 
 BEGIN {
@@ -363,6 +364,16 @@ sub create_condor_job_description {
         }
         $output .= "\n";
     }
+
+    # guess globalid in case not already provided and export it to the job
+    if (not $grami{joboption_gridglobalid}) {
+       my $hostname = $config{hostname} || hostname();
+       my $gm_port = $config{gm_port} || 2811;
+       my $gm_mount_point = $config{gm_mount_point} || "/jobs";
+       $grami{joboption_gridglobalid}="gsiftp://$hostname:$gm_port$gm_mount_point/$grami{joboption_gridid}";
+    }
+    $output .= "Environment = GRID_GLOBAL_JOBID=$grami{joboption_gridglobalid}\n"
+        if $grami{joboption_gridglobalid};
 
     my $remove="FALSE";
     if (notnull($grami{joboption_cputime})) {

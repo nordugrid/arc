@@ -112,7 +112,6 @@ EOHELP
       i=$(( $i + 1 ))
       eval "var_is_set=\${joboption_arg_$i+yes}"
    done
-   joboption_globalgridid="gsiftp://${joboption_rsl_hostname}:2811/jobs/${joboption_gridid}"
 }
 
 ##############################################################
@@ -182,8 +181,21 @@ add_user_env () {
       i=$(( $i + 1 ))
       eval "var_is_set=\${joboption_env_$i+yes}"
    done
-   #set gridid
-   #echo "export joboption_globalgridid=${joboption_globalgridid}" >> $LRMS_JOB_SCRIPT
+
+   # guess globalid in case not already provided
+   if [ -z "$joboption_gridglobalid" ]; then
+      hostname=`perl -MSys::Hostname -we 'print hostname'`
+      hostname=${CONFIG_hostname:-$hostname}
+      gm_port=${CONFIG_gm_port:-2811}
+      gm_mount_point=${CONFIG_gm_mount_point:-/jobs}
+      joboption_gridglobalid="gsiftp://$hostname:$gm_port$gm_mount_point/$joboption_gridid"
+   fi
+
+   # export globalid to the job
+   if [ "$joboption_gridglobalid" ]; then
+      echo "export GRID_GLOBAL_JOBID=${joboption_gridglobalid}" >> $LRMS_JOB_SCRIPT
+   fi
+
    echo "" >> $LRMS_JOB_SCRIPT
 }
 
