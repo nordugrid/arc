@@ -192,6 +192,8 @@ class HopiFile {
   ~HopiFile(void);
   int Write(void* buf,off_t offset,int size);
   int Read(void* buf,off_t offset,int size);
+  int Write(off_t offset,int size);
+  int Read(off_t offset,int size);
   void Size(off_t size) { chunks.Size(size); };
   off_t Size(void) { return chunks.Size(); };
   operator bool(void) { return (handle != -1); };
@@ -230,7 +232,7 @@ HopiFile::~HopiFile(void) {
       if(chunks.Complete()) {
         if(slave) {
           Hopi::logger.msg(Arc::DEBUG, "Removing complete file in slave mode");
-          unlink(path.c_str());
+          ::unlink(path.c_str());
         }
         chunks.Remove();
         return;
@@ -243,7 +245,7 @@ HopiFile::~HopiFile(void) {
 void HopiFile::Destroy(void) {
   if(handle != -1) close(handle);
   handle=-1;
-  unlink(path.c_str());
+  ::unlink(path.c_str());
   chunks.Remove();
 }
 
@@ -279,6 +281,14 @@ int HopiFile::Write(void* buf,off_t offset,int size) {
   return size;
 }
 
+int HopiFile::Write(off_t offset,int size) {
+  if(handle == -1) return -1;
+  if(for_read) return -1;
+  chunks.Add(offset,offset+size);
+  chunks.Print();
+  return size;
+}
+
 int HopiFile::Read(void* buf,off_t offset,int size) {
   if(handle == -1) return -1;
   if(!for_read) return -1;
@@ -286,6 +296,70 @@ int HopiFile::Read(void* buf,off_t offset,int size) {
   return read(handle,buf,size);
 }
 
+int HopiFile::Read(off_t offset,int size) {
+  if(handle == -1) return -1;
+  if(!for_read) return -1;
+  return size;
+}
+
+class HopiFileTimeout {
+ private:
+  static std::map<std::string,time_t> files;
+  static Glib::Mutex lock;
+  static int timeout;
+  std::string path;
+ public:
+  HopiFileTimeout(const std::string& p);
+  ~HopiFileTimeout(void);
+  static void Timeout(int t) { timeout=t; };
+  void Destroy(void);
+  static void Add(const std::string& p);
+  static void DestroyOld(void);
+};
+
+std::map<std::string,time_t> HopiFileTimeout::files;
+Glib::Mutex HopiFileTimeout::lock;
+int HopiFileTimeout::timeout = 10;
+
+HopiFileTimeout::HopiFileTimeout(const std::string& p):path(p) {
+  lock.lock();
+  files[path]=time(NULL);
+  lock.unlock();
+}
+
+HopiFileTimeout::~HopiFileTimeout(void) {
+}
+
+void HopiFileTimeout::Destroy(void) {
+  lock.lock();
+  std::map<std::string,time_t>::iterator f = files.find(path);
+  if(f != files.end()) files.erase(f);
+  lock.unlock();
+  ::unlink(path.c_str());
+}
+
+void HopiFileTimeout::Add(const std::string& p) {
+  lock.lock();
+  files[p]=time(NULL);
+  lock.unlock();
+}
+
+void HopiFileTimeout::DestroyOld(void) {
+  lock.lock();
+  std::map<std::string,time_t>::iterator f = files.begin();
+  for(;f != files.end();) {
+    unsigned int delta = (unsigned int)(f->second - time(NULL));
+    if(delta >= timeout) {
+      ::unlink(f->first.c_str());
+      std::map<std::string,time_t>::iterator f_ = f;
+      ++f;
+      files.erase(f_);
+      continue;
+    };
+    ++f;
+  }
+  lock.unlock();
+}
 
 Hopi::Hopi(Arc::Config *cfg):RegisteredService(cfg),slave_mode(false)
 {
@@ -300,6 +374,9 @@ Hopi::Hopi(Arc::Config *cfg):RegisteredService(cfg),slave_mode(false)
     int timeout;
     if(Arc::stringto((std::string)((*cfg)["UploadTimeout"]),timeout)) {
         if(timeout > 0) HopiFileChunks::Timeout(timeout);
+    }
+    if(Arc::stringto((std::string)((*cfg)["DownloadTimeout"]),timeout)) {
+        if(timeout > 0) HopiFileTimeout::Timeout(timeout);
     }
     uint64_t threshold;
     if(Arc::stringto((std::string)((*cfg)["MemoryMapThreshold"]),threshold)) {
@@ -326,8 +403,9 @@ Arc::MessagePayload *Hopi::Get(const std::string &path, const std::string &base_
     std::string full_path = Glib::build_filename(doc_root, path);
     if (Glib::file_test(full_path, Glib::FILE_TEST_EXISTS) == true) {
         if (Glib::file_test(full_path, Glib::FILE_TEST_IS_REGULAR) == true) {
+            // register file for removal after timeout
             Arc::MessagePayload * pf = newFileRead(full_path.c_str(),range_start,range_end);
-            if (slave_mode) unlink(full_path.c_str());
+            if(pf && slave_mode) HopiFileTimeout::Add(full_path);
             return pf;
         } else if (Glib::file_test(full_path, Glib::FILE_TEST_IS_DIR) && !slave_mode) {
             std::string html = "<HTML>\r\n<HEAD>Directory list of '" + path + "'</HEAD>\r\n<BODY><UL>\r\n";
@@ -369,8 +447,6 @@ Arc::MCC_Status Hopi::Put(const std::string &path, Arc::MessagePayload &payload)
         logger.msg(Arc::ERROR, "Hopi SlaveMode is active, PUT is only allowed to existing files");        
         return Arc::MCC_Status();
     }
-    // Do file cleaning here to avoid running dedicated thread
-    HopiFile::DestroyStuck();
     HopiFile fd(full_path.c_str(),false,slave_mode);
     if (!fd) {
         return Arc::MCC_Status();
@@ -441,6 +517,9 @@ Arc::MCC_Status Hopi::process(Arc::Message &inmsg, Arc::Message &outmsg)
     std::string path = GetPath(inmsg,base_url);
 
     logger.msg(Arc::DEBUG, "method=%s, path=%s, url=%s, base=%s", method, path, inmsg.Attributes()->get("HTTP:ENDPOINT"), base_url);
+    // Do file cleaning here to avoid running dedicated thread
+    HopiFile::DestroyStuck();
+    HopiFileTimeout::DestroyOld();
     if (method == "GET") {
         size_t range_start = 0;
         size_t range_end = (size_t)(-1);

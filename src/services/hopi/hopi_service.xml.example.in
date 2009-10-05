@@ -24,7 +24,9 @@
         </Component>
         <Service name="hopi" id="httpd">
             <DocumentRoot>/tmp/</DocumentRoot>
-            <PathPrefix></PathPrefix>
+            <SlaveMode>0<SlaveMode>
+            <UploadTimeout>600</UploadTimeout>
+            <DownloadTimeout>10</DownloadTimeout>
         </Service>
     </Chain>
 </ArcConfig>
