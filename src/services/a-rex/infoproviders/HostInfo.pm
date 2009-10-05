@@ -131,7 +131,7 @@ sub get_host_info($) {
     $host_info = {%$host_info, %$osinfo, %$cpuinfo, %$meminfo};
 
     # Globus location
-    my $globus_location ||= $ENV{GLOBUS_LOCATION} ||= "/opt/globus/";
+    my $globus_location ||= $ENV{GLOBUS_LOCATION} ||= "/usr";
     $ENV{"LD_LIBRARY_PATH"}="$globus_location/lib";
     
     # Hostcert issuer CA, trustedca, issuercahash
