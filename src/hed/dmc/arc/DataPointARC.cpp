@@ -12,8 +12,7 @@
 #include <unistd.h>
 #include <sstream>
 #include <glibmm.h>
-#include <algorithm> // random_shuffle
-#include <vector> // needed for random_shuffle
+#include <algorithm>
 
 #include <arc/Logger.h>
 #include <arc/StringConv.h>
@@ -38,7 +37,7 @@ namespace Arc {
     ClientSOAP *client;
   } ARCInfo_t;
 
-  bool DataPointARC::checkBartenderURL(const URL& bartender_url, const UserConfig& usercfg){
+  bool DataPointARC::checkBartenderURL(const URL& bartender_url){
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);
 
@@ -87,21 +86,17 @@ namespace Arc {
     if (!bartender_url) {
       //BartenderURL taken from ~/.arc/client.xml
       if (!usercfg.Bartender().empty()){
+        std::vector<int> shuffledKeys;
+        for (int i = 0; i < usercfg.Bartender().size(); i++)
+          shuffledKeys.push_back(i);
+        std::random_shuffle(shuffledKeys.begin(), shuffledKeys.end());
+
         // pick random bartender url:
-        std::vector<URL> bartender_urls;
-        std::copy(usercfg.Bartender().begin(), usercfg.Bartender().end(),
-                  std::back_inserter(bartender_urls));
-        while(bartender_urls.size()){
-          // seed to get real random shuffling
-          std::srand(std::time(NULL));
-          std::random_shuffle(bartender_urls.begin(),
-                              bartender_urls.end());
-          if(checkBartenderURL(bartender_urls.back(), usercfg)){
-            bartender_url = bartender_urls.back();
+        for (int i = 0; i < shuffledKeys.size(); i++) {
+          if (checkBartenderURL(usercfg.Bartender()[shuffledKeys[i]])) {
+            bartender_url = usercfg.Bartender()[shuffledKeys[i]];
             break;
           }
-          else
-            bartender_urls.pop_back();
         }
       }
       //todo: improve default bartender url (maybe try to get ARC_BARTENDER_URL from environment?)

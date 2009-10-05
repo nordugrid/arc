@@ -23,7 +23,7 @@ namespace Arc {
     URL bartender_url;
     MD5Sum *md5sum;
     int chksum_index;
-    bool checkBartenderURL(const URL& bartender_url, const UserConfig& usercfg);
+    bool checkBartenderURL(const URL& bartender_url);
   public:
     DataPointARC(const URL& url, const UserConfig& usercfg);
     virtual ~DataPointARC();

@@ -10,7 +10,7 @@
 #include <arc/GUID.h>
 %}
 %include <typemaps.i>
-
+%include <std_vector.i>
 
 %ignore operator !;
 %ignore operator [];
@@ -28,6 +28,7 @@
 
 %template(XMLNodeList) std::list<Arc::XMLNode>;
 %template(URLList) std::list<Arc::URL>;
+%template(URLVector) std::vector<Arc::URL>;
 %template(URLListMap) std::map< std::string, std::list<Arc::URL> >;
 
 

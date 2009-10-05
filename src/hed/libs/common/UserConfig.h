@@ -4,6 +4,7 @@
 #define __ARC_USERCONFIG_H__
 
 #include <list>
+#include <vector>
 #include <map>
 #include <string>
 
@@ -632,7 +633,7 @@ namespace Arc {
 
     /// Set bartenders, used to contact Chelonia
     /**
-     * Takes as input a list of Bartender URLs.
+     * Takes as input a vector of Bartender URLs.
      *
      * The attribute associated with this setter method is 'bartender'.
      *
@@ -641,10 +642,10 @@ namespace Arc {
      * @see AddBartender(const URL&)
      * @see Bartender() const
      **/
-    bool Bartender(const std::list<URL>& urls) { bartenders = urls; return true; }
+    bool Bartender(const std::vector<URL>& urls) { bartenders = urls; return true; }
     /// Set bartenders, used to contact Chelonia
     /**
-     * Takes as input a Bartender URL and adds this to the list of 
+     * Takes as input a Bartender URL and adds this to the list of
      * bartenders.
      *
      * @param url is a URL to be added to the list of bartenders.
@@ -660,7 +661,7 @@ namespace Arc {
      * @see Bartender(const std::list<URL>&)
      * @see AddBartender(const URL&)
      **/
-    const std::list<URL>& Bartender() const { return bartenders; }
+    const std::vector<URL>& Bartender() const { return bartenders; }
 
     /// Set path to ???
     /**
@@ -1063,7 +1064,8 @@ namespace Arc {
     std::pair<URLListMap, URLListMap> selectedServices;
     std::pair<URLListMap, URLListMap> rejectedServices;
 
-    std::list<URL> bartenders;
+    // Vector needed for random access.
+    std::vector<URL> bartenders;
 
     std::string proxyPath;
     std::string certificatePath;
