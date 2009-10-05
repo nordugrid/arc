@@ -221,7 +221,7 @@ exit 0
 
 %files client
 %defattr(-,root,root,-)
-%doc src/hed/libs/common/client.conf.example
+%doc src/clients/client.conf.example
 %doc src/clients/charon/charon_client.xml.example
 %doc src/clients/charon/charon_request.xml.example
 %doc src/tests/echo/echo.wsdl
@@ -303,9 +303,9 @@ exit 0
 %files arex
 %defattr(-,root,root,-)
 /etc/init.d/a-rex
-%doc src/services/a-rex/arex_service.xml.example
+%doc src/services/a-rex/arex.xml.example
 %doc src/services/a-rex/arex_minimalistic.xml.example
-%doc src/services/a-rex/arex_service-secure.xml.example
+%doc src/services/a-rex/arex_secure.xml.example
 %doc src/services/a-rex/arc_arex.conf
 %doc %{_mandir}/man1/cache-clean.1*
 %doc %{_mandir}/man1/cache-list.1*
@@ -336,7 +336,7 @@ exit 0
 %{_libdir}/%{pkgdir}/GMJobsInfo.pm
 %{_libdir}/%{pkgdir}/HostInfo.pm
 %{_libdir}/%{pkgdir}/InfoChecker.pm
-%{_libdir}/%{pkgdir}/InfoCollector.pm
+%{_libdir}/%{pkgdir}/ConfigCentral.pm
 %{_libdir}/%{pkgdir}/LRMSInfo.pm
 #
 %{_libdir}/%{pkgdir}/LogUtils.pm
