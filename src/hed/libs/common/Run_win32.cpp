@@ -49,6 +49,7 @@ namespace Arc {
       stdout_keep_(false),
       stderr_keep_(false),
       stdin_keep_(false),
+      pid_(NULL),
       argv_(Glib::shell_parse_argv(cmdline)),
       initializer_func_(NULL),
       kicker_func_(NULL),
@@ -66,6 +67,7 @@ namespace Arc {
       stdout_str_(NULL),
       stderr_str_(NULL),
       stdin_str_(NULL),
+      pid_(NULL),
       argv_(argv),
       initializer_func_(NULL),
       kicker_func_(NULL),
@@ -76,13 +78,13 @@ namespace Arc {
   }
 
   Run::~Run(void) {
-    if (!(*this))
-      return;
-    Kill(0);
-    CloseStdout();
-    CloseStderr();
-    CloseStdin();
-    delete pid_;
+    if(*this) {
+      Kill(0);
+      CloseStdout();
+      CloseStderr();
+      CloseStdin();
+    };
+    if(pid_) delete pid_;
   }
 
   bool Run::Start(void) {
