@@ -108,19 +108,19 @@ namespace Arc {
     registered = false;
     if (source) {
       if (url.Path().empty()) {
-        logger.msg(INFO, "Source must contain LFN");
+        logger.msg(ERROR, "Source must contain LFN");
         lfc_endsess();
         return DataStatus::ReadResolveError;
       }
     }
     else {
       if (url.Path().empty()) {
-        logger.msg(INFO, "Destination must contain LFN");
+        logger.msg(ERROR, "Destination must contain LFN");
         lfc_endsess();
         return DataStatus::WriteResolveError;
       }
       if (url.Locations().size() == 0) {
-        logger.msg(INFO, "Locations are missing in destination LFC URL");
+        logger.msg(ERROR, "Locations are missing in destination LFC URL");
         lfc_endsess();
         return DataStatus::WriteResolveError;
       }
@@ -200,11 +200,9 @@ namespace Arc {
       guid = st.guid;
     }
     lfc_endsess();
-    if (!source) {
-      if (!HaveLocations()) {
-        logger.msg(INFO, "No locations found for destination");
-        return DataStatus::WriteResolveError;
-      }
+    if (!HaveLocations()) {
+      logger.msg(ERROR, "No locations found for %s", url.str());
+      return source ? DataStatus::ReadResolveError : DataStatus::WriteResolveError;
     }
     if (CheckCheckSum()) logger.msg(DEBUG, "meta_get_data: checksum: %s", GetCheckSum());
     if (CheckSize()) logger.msg(DEBUG, "meta_get_data: size: %llu", GetSize());
