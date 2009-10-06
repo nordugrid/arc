@@ -102,18 +102,21 @@ int main(int argc, char** argv) {
 				rtes.push_back(std::string(argv[i]));
 			}
 		}else{
-			printf("Jobid is missing.\n\n");
+			printf("Jobid was not specified, missing argument.\n\n");
 			return(printhelp());	
 		}
 		break;
 	case 1: // DEPLOY
 	case 2: // REMOVE
-	case 3: // INFO	- they all expect a job id
-		if(argc > 3){
-			jobid.assign(argv[3]);
-		}else{
-			printf("Jobid is missing.\n\n");
+	case 3: // INFO	- they all expect a single job id
+		if(argc < 4){
+			printf("Jobid was not specified, missing argument.\n\n");
 			return(printhelp());	
+		}else if (argc > 4) {
+			printf("Too many jobids specified, no more than one accepted.\n\n");
+			return(printhelp());	
+		}else{
+			jobid.assign(argv[3]);
 		}
 		break;
 	case 4: // LIST - takes no arguments
@@ -125,7 +128,7 @@ int main(int argc, char** argv) {
 				rtes.push_back(std::string(argv[i]));
 			}
 		}else{
-			printf("New state not specified .\n\n");
+			printf("New state not specified, missing argument.\n\n");
 			return(printhelp());	
 		}
 		break;
@@ -150,8 +153,7 @@ int main(int argc, char** argv) {
 		printf("RTE:      %s\n",rtes.at(i).c_str());
 	}
 
-
-
+        return 0; // program terminates successfully
 
 	// Initiate the Logger and set it to the standard error stream
 /*	Arc::Logger logger(Arc::Logger::getRootLogger(), "arcecho");
