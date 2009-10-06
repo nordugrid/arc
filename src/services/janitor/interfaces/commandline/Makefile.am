@@ -23,22 +23,16 @@ install-data-hook:
 #	The suid bit will set the permissions to “-rwsr-xr-x”, or similar 
 #	(note the “s” replacing the usual “x”). That means that you can run 
 #	certain commands with the permissions of a different user (typically root).
-	chmod 744 $(data_janitorcommandlinedir)/janitor
-	chmod u+s $(data_janitorcommandlinedir)/rjanitor
-	if [ -f $(sbindir)/janitor ] ; then \
-	echo "Softlink for janitor already exists. Skipping..."; \
-	else \
-	$(LN_S) $(data_janitorcommandlinedir)/rjanitor $(sbindir)/janitor; \
-	fi
-	if [ -f $(pkglibexecdir)/janitor ] ; then \
-	echo "Softlink for janitor already exists. Skipping..."; \
-	else \
-	$(LN_S) $(data_janitorcommandlinedir)/rjanitor $(pkglibexecdir)/janitor; \
-	fi
+	chmod 744 $(DESTDIR)/$(data_janitorcommandlinedir)/janitor
+	chmod u+s $(DESTDIR)/$(data_janitorcommandlinedir)/rjanitor
+	[ -d $(DESTDIR)/$(sbindir) ] || mkdir -p $(DESTDIR)/$(sbindir)
+	ln -sf $(data_janitorcommandlinedir)/rjanitor $(DESTDIR)/$(sbindir)/janitor
+	[ -d $(DESTDIR)/$(pkglibexecdir) ] || mkdir -p $(DESTDIR)/$(pkglibexecdir)
+	ln -sf $(data_janitorcommandlinedir)/rjanitor $(DESTDIR)/$(pkglibexecdir)/janitor
 
 uninstall-local: 
-	if [ -f $(data_janitorcommandlinedir)/rjanitor ] ; then \
-	rm -rf $(sbindir)/janitor; \
+	if [ -f $(DESTDIR)/$(data_janitorcommandlinedir)/rjanitor ] ; then \
+	rm -rf $(DESTDIR)/$(sbindir)/janitor; \
 	fi
 
 
