@@ -1191,7 +1191,7 @@ fi
 AM_CONDITIONAL([STORAGE_SERVICE_ENABLED],[test "x$enable_storage_service" = "xyes"])
 
 # Janitor service
-AC_ARG_ENABLE(janitor_service, AC_HELP_STRING([--disable-janitor-service], [disable building JANITOR Service]),[],enable_janitor_service="no")
+AC_ARG_ENABLE(janitor_service, AC_HELP_STRING([--disable-janitor-service], [disable building JANITOR Service]),[],enable_janitor_service="yes")
 AC_MSG_NOTICE([JANITOR Service enabled: $enable_janitor_service])
 AM_CONDITIONAL([JANITOR_SERVICE_ENABLED],[test "x$enable_janitor_service" = "xyes"])
 AM_CONDITIONAL([JANITOR_WEBSERVICE_ENABLED],[test "x$enable_janitor_service" = "xyes"])
