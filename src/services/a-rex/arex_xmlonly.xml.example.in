@@ -28,7 +28,7 @@
     <loader:Name>mcctls</loader:Name>
     <loader:Name>mcchttp</loader:Name>
     <loader:Name>mccsoap</loader:Name>
-    <loader:Name>arcpdc</loader:Name>
+    <loader:Name>arcshc</loader:Name>
     <loader:Name>identitymap</loader:Name>
     <loader:Name>arex</loader:Name>
   </loader:Plugins>

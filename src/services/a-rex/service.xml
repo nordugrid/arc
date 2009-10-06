@@ -8,7 +8,10 @@
   <Server>
     <Foreground/>
     <Pidfile>./arcserver.pid</Pidfile>
-    <Logger level="VERBOSE">./logfile</Logger>
+    <Logger>
+      <File>/var/log/arched.log</File>
+      <Level>VERBOSE</Level>
+    </Logger>
   </Server>
   <ModuleManager>
     <Path>/usr/local/lib/arc/</Path>
@@ -17,7 +20,7 @@
   <Plugins><Name>mcctls</Name></Plugins>
   <Plugins><Name>mcchttp</Name></Plugins>
   <Plugins><Name>mccsoap</Name></Plugins>
-  <Plugins><Name>arcpdc</Name></Plugins>
+  <Plugins><Name>arcshc</Name></Plugins>
   <Plugins><Name>identitymap</Name></Plugins>
   <Plugins><Name>arex</Name></Plugins>
   <Plugins><Name>echo</Name></Plugins>

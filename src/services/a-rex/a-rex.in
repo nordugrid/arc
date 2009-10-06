@@ -289,7 +289,10 @@ AREXCFG="\
   xmlns:arex=\"http://www.nordugrid.org/schemas/a-rex/Config\">\
   <Server>\
     <PidFile>$PID_FILE</PidFile>\
-    <Logger level=\"$LOGLEVEL\" maxsize=\"$LOGSIZE\" backups=\"$LOGNUM\">$LOGFILE</Logger>\
+    <Logger>\
+      <File>$LOGFILE</File>\
+      <Level>$LOGLEVEL</Level>\
+    </Logger>\
   </Server>\
   <ModuleManager>\
     <Path>$ARC_LOCATION/@pkglibsubdir@/</Path>\
@@ -312,7 +315,10 @@ AREXCFGWSS="\
   xmlns:arex=\"http://www.nordugrid.org/schemas/a-rex/Config\">\
   <Server>\
     <PidFile>$PID_FILE</PidFile>\
-    <Logger level=\"$LOGLEVEL\">$LOGFILE</Logger>\
+    <Logger>\
+      <File>$LOGFILE</File>\
+      <Level>$LOGLEVEL</Level>\
+    </Logger>\
   </Server>\
   <ModuleManager>\
     <Path>$ARC_LOCATION/@pkglibsubdir@/</Path>\
