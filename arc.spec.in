@@ -113,7 +113,6 @@ ARC Globus plugins. This includes the Globus dependent Data Manager
 Components (DMCs):
 
   libdmcgridftp.so
-  libdmclfc.so
   libdmcrls.so
 
 %package devel
@@ -390,7 +389,7 @@ exit 0
 %defattr(-,root,root,-)
 %{_libdir}/%{pkgdir}/libmccgsi.so
 %{_libdir}/%{pkgdir}/libdmcgridftp.so
-%{_libdir}/%{pkgdir}/libdmclfc.so
+#%{_libdir}/%{pkgdir}/libdmclfc.so
 %{_libdir}/%{pkgdir}/libdmcrls.so
 %{_libdir}/%{pkgdir}/libdmcsrm.so
 %{_libdir}/%{pkgdir}/libaccARC0.so
