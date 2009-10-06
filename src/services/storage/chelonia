@@ -23,7 +23,7 @@ def parse_url(url):
 supported_protocols = ['http', 'byteio', 'gridftp', 'srm']
 CHUNKSIZE = 2**20
 
-def upload_to_turl(turl, protocol, fobj, size = None, ssl_config = {}):
+def upload_to_turl(turl, protocol, fobj, size = None, ssl_config = {}, verbose = False):
     """docstring for upload_to_turl"""
     if protocol not in supported_protocols:
         raise Exception, 'Unsupported protocol'
@@ -41,7 +41,7 @@ def upload_to_turl(turl, protocol, fobj, size = None, ssl_config = {}):
             src = datapoint_from_url(fobj.name)
             dst = datapoint_from_url(turl, ssl_config)
             mover = arc.DataMover()
-            mover.verbose(True)
+            mover.verbose(verbose)
             status = mover.Transfer(src, dst, arc.FileCache(), arc.URLMap())
             return str(status)
         else:
@@ -57,7 +57,7 @@ def upload_to_turl(turl, protocol, fobj, size = None, ssl_config = {}):
             src = datapoint_from_url(fobj.name)
             dst = datapoint_from_url(turl, ssl_config)
             mover = arc.DataMover()
-            mover.verbose(True)
+            mover.verbose(verbose)
             mover.retry(False)
             status = mover.Transfer(src, dst, arc.FileCache(), arc.URLMap())
             return str(status)
@@ -70,13 +70,15 @@ def upload_to_turl(turl, protocol, fobj, size = None, ssl_config = {}):
                 h = httplib.HTTPConnection(host, port)
             if not size:
                 size = os.path.getsize(fobj.name)
-            print 'Uploading %s bytes...' % size,
+            if verbose:
+                print 'Uploading %s bytes...' % size,
             h.putrequest('PUT', path)
             h.putheader('Content-Length', size)
             h.endheaders()
             chunk = fobj.read(CHUNKSIZE)
             uploaded = 0
-            print '00%',
+            if verbose:
+                print '00%',
             t = time.time()
             while chunk:
                 sys.stdout.flush()
@@ -84,16 +86,19 @@ def upload_to_turl(turl, protocol, fobj, size = None, ssl_config = {}):
                 uploaded = uploaded + len(chunk)
                 if time.time() - t > 2:
                     t = time.time()
-                    print '\b\b\b\b%02d%%' % (uploaded*100/size),
+                    if verbose:
+                        print '\b\b\b\b%02d%%' % (uploaded*100/size),
                 chunk = fobj.read(CHUNKSIZE)
-            print '\b\b\b\bdata sent, waiting...',
+            if verbose:
+                print '\b\b\b\bdata sent, waiting...',
             sys.stdout.flush()
             r = h.getresponse()
-            print 'done.'
+            if verbose:
+                print 'done.'
             #resp = r.read()
             return r.status
 
-def download_from_turl(turl, protocol, fobj,  ssl_config = {}):
+def download_from_turl(turl, protocol, fobj, ssl_config = {}, verbose = False):
     """docstring for download_from_turl"""
     if protocol not in supported_protocols:
         raise Exception, 'Unsupported protocol'
@@ -111,7 +116,7 @@ def download_from_turl(turl, protocol, fobj,  ssl_config = {}):
             src = datapoint_from_url(turl, ssl_config)
             dst = datapoint_from_url(fobj.name)
             mover = arc.DataMover()
-            mover.verbose(True)
+            mover.verbose(verbose)
             mover.retry(False)
             #mover.passive(True)
             status = mover.Transfer(src, dst, arc.FileCache(), arc.URLMap())
@@ -129,7 +134,7 @@ def download_from_turl(turl, protocol, fobj,  ssl_config = {}):
             src = datapoint_from_url(turl, ssl_config)
             dst = datapoint_from_url(fobj.name)
             mover = arc.DataMover()
-            mover.verbose(True)
+            mover.verbose(verbose)
             mover.retry(False)
             status = mover.Transfer(src, dst, arc.FileCache(), arc.URLMap())
             return str(status)
@@ -143,10 +148,12 @@ def download_from_turl(turl, protocol, fobj,  ssl_config = {}):
             h.request('GET', path)
             r = h.getresponse()
             size = int(r.getheader('Content-Length', CHUNKSIZE))
-            print 'Downloading %s bytes...' % size,
+            if verbose:
+                print 'Downloading %s bytes...' % size,
             chunk = r.read(CHUNKSIZE)
             downloaded = 0
-            print '00%',
+            if verbose:
+                print '00%',
             t = time.time()
             while chunk:
                 sys.stdout.flush()
@@ -154,9 +161,11 @@ def download_from_turl(turl, protocol, fobj,  ssl_config = {}):
                 downloaded = downloaded + len(chunk)
                 if time.time() - t > 2:
                     t = time.time()
-                    print '\b\b\b\b%02d%%' % (downloaded*100/size),
+                    if verbose: 
+                        print '\b\b\b\b%02d%%' % (downloaded*100/size),
                 chunk = r.read(CHUNKSIZE)
-            print '\b\b\b\bdone.'
+            if verbose:
+                print '\b\b\b\bdone.'
             return r.status
 
 def splitLN(LN):
@@ -923,15 +932,15 @@ class Client:
         try:
             r = h.getresponse()
         except httplib.BadStatusLine:
-            raise socket.error, (-1, 'Bad status line from the server.\nMaybe wrong URL: "%s%s:%s%s"?' %
+            raise socket.error, (-1, 'Bad status line from the server. (Maybe wrong URL: "%s%s:%s%s"?)' %
                 (self.https and 'https://' or 'http://', self.host, self.port, self.path))
         # read the response data
         resp = r.read()
         if not resp:
-            raise socket.error, (-1, 'Server returned empty answer.\nMaybe wrong URL: "%s%s:%s%s"?' %
+            raise socket.error, (-1, 'Server returned empty answer. (Maybe wrong URL: "%s%s:%s%s"?)' %
                 (self.https and 'https://' or 'http://',self.host, self.port, self.path))
         if 'text/xml' not in r.getheader('content-type'):
-            raise socket.error, (-1, 'Server did not return SOAP answer.\nMaybe wrong URL: "%s%s:%s%s"?' %
+            raise socket.error, (-1, 'Server did not return SOAP answer. (Maybe wrong URL: "%s%s:%s%s"?)' %
                 (self.https and 'https://' or 'http://',self.host, self.port, self.path))
         # return the data and the status
         return resp
@@ -959,7 +968,7 @@ class Client:
 
             return resp
         except:
-            raise socket.error, (-1, "Wrong status from server.\nMaybe wrong URL: '%s%s:%s%s'" %
+            raise socket.error, (-1, "Wrong status from server. (Maybe wrong URL: '%s%s:%s%s'?)" %
                 (self.https and 'https://' or 'http://', self.host, self.port, self.path))
 
 
@@ -1422,17 +1431,24 @@ class BartenderClient(Client):
 args = sys.argv[1:]
 
 verbose = False
+print_xml = False
 configfilename = ''
+bartender_url_from_argument = ''
 
 while (len(args) > 0) and (args[0].startswith('-')):
     flag = args.pop(0)[1:]
-    if flag in ['x', 'v']:
+    if flag in ['x']:
+        print_xml = True
+    if flag in ['v']:
        verbose = True
     if flag in ['z']:
         configfilename = args.pop(0)
         if not os.path.exists(configfilename):
-            print '- Config file does not exist:', configfilename, '- using default.'
+            if verbose:
+                print '- Config file does not exist:', configfilename, '- using default.'
             configfilename = ''
+    if flag in ['b']:
+        bartender_url_from_argument = args.pop(0)
 
 if verbose:
     try:
@@ -1452,34 +1468,41 @@ if verbose:
 
 
 def call_it(method_name, *args):
-    print '- Calling the Bartender\'s %s method...' % method_name
+    if verbose:
+        print '- Calling the Bartender\'s %s method...' % method_name
     start = time.time()
     exceptions = []
     for bartender_url in bartender_urls:
         if verbose:
             print '- Trying', bartender_url + '...'
         try:
-            bartender = BartenderClient(bartender_url, verbose, ssl_config = ssl_config)
+            bartender = BartenderClient(bartender_url, print_xml, ssl_config = ssl_config)
             response = getattr(bartender, method_name)(*args)
-            print '- done in %0.2f seconds.' % (time.time()-start)
+            if verbose:
+                print '- done in %0.2f seconds.' % (time.time()-start)
             return response
         except Exception, e:
             exceptions.append(e)
-            if verbose:
-                print '-', e
     for e in exceptions:
-        print 'ERROR:',
         try:
-            print e.args[1]
+            error = str(e.args[1])
         except:
-            print e
+            error = str(e)
+        print 'ERROR: Cannot get an answer from the Bartender, reason:'
+        if verbose:
+            print '|', error.replace('\n', '\n| ')
+        else:
+            spl = error.split('\n')
+            first_line = spl.pop(0)
+            print '   ', first_line, spl and '[...]' or ''
     if not verbose:
-        print "(try to put the '-v' flag before the method name for more details, e.g. 'chelonia -v list /')"
+        print "(use the '-v' flag for more details, e.g. 'chelonia -v list /')"
     sys.exit(-1)
 
 if len(args) == 0 or args[0][0:3] not in ['sta', 'mak', 'mkd', 'unm', 'rmd', 'lis', 'ls', 'mov', 'mv', 'put', 'get', 'del', 'rm', 'mod', 'pol', 'unl', 'cre', 'rem']:
     print 'Usage:'
-    print '  chelonia [-v] [-z <configfile>] <method> [<arguments>]'
+    print '  chelonia [-v] [-x] [-z <path>] [-b <URL>] <method> [<arguments>]'
+    print ''
     print 'Supported methods:'
     print '  stat - get detailed information about an entry'
     print '  makeCollection | make | mkdir - create a collection'
@@ -1496,7 +1519,14 @@ if len(args) == 0 or args[0][0:3] not in ['sta', 'mak', 'mkd', 'unm', 'rmd', 'li
     print '  removeCredentials | rem - remove previously delegated credentials'
     print '  makeMountPoint | makemount - create a mount point'
     print '  unmakeMountPoint | unmount - remove a mount point'
+    print ''
     print 'Without arguments, each method prints its own help.'
+    print ''
+    print 'Options:'
+    print '  -v    verbose mode'
+    print '  -x    print the SOAP XML messages'
+    print '  -z    path to the user config'
+    print '  -b    URL of the Bartender to connect'
 else:
     problem_with_userconfig = None
     try:
@@ -1550,7 +1580,11 @@ else:
             print '- The CA dir:', ssl_config['ca_dir']
 
     bartender_env_url = os.environ.get('ARC_BARTENDER_URL', '')
-    if bartender_env_url:
+    if bartender_url_from_argument:
+        bartender_urls = [bartender_url_from_argument]
+        if verbose:
+            print '- Bartender URL specified as an argument, will use only this:', bartender_urls[0]
+    elif bartender_env_url:
         bartender_urls = [bartender_env_url]
         if verbose:
             print '- Bartender URL found in the ARC_BARTENDER_URL environment variable, will use only this:', bartender_urls[0]
@@ -1569,7 +1603,7 @@ else:
             bartender_found = False
             while not bartender_found and len(isis_urls) > 0:
                 isis_url = isis_urls.pop()
-                isis = ISISClient(isis_url, ssl_config = ssl_config)
+                isis = ISISClient(isis_url, print_xml, ssl_config = ssl_config)
                 try:
                     bartender_urls = isis.getServiceURLs('org.nordugrid.storage.bartender')
                     if not bartender_urls:
@@ -1586,13 +1620,13 @@ else:
         if verbose:
             print '- The URL of the Bartender(s):', ', '.join(bartender_urls)        
     else:
-        if problem_with_userconfig:
+        if problem_with_userconfig and verbose:
             print '- There was a problem reading the user\'s config. Reason:', str(problem_with_userconfig)
         # bartender_urls = ['http://localhost:60000/Bartender']
         # print '- The URL of the Bartender is not given, using', bartender_urls[0]
         print 'ERROR: No Bartender URL found.'
         if not verbose:
-            print "(try to put the '-v' flag before the method name for more details, e.g. 'chelonia -v list /')"
+            print "(use the '-v' flag for more details, e.g. 'chelonia -v list /')"
         sys.exit(-1)
     try:
         needed_replicas = os.environ['ARC_NEEDED_REPLICAS']
@@ -1672,13 +1706,15 @@ else:
                 success, turl, protocol = response['0']
                 if success == 'done':
                     f = file(filename, 'wb')
-                    print '- Got transfer URL:', turl
-                    print "- Downloading from '%s' to '%s' with %s..." % (turl, filename, protocol)
+                    if verbose:
+                        print '- Got transfer URL:', turl
+                        print "- Downloading from '%s' to '%s' with %s..." % (turl, filename, protocol)
                     start = time.time()
-                    download_from_turl(turl, protocol, f, ssl_config = ssl_config)
+                    download_from_turl(turl, protocol, f, ssl_config = ssl_config, verbose = verbose)
                     f.close()
                     size = os.path.getsize(filename)
-                    print '- done in %.4f seconds.' % (time.time()-start)
+                    if verbose:
+                        print '- done in %.4f seconds.' % (time.time()-start)
                     print "'%s' (%s bytes) downloaded as '%s'." % (LN, size, filename)
                 else:
                     print '%s: %s' % (LN, success)
@@ -1692,12 +1728,15 @@ else:
             except:
                 print 'ERROR: local file', "'%s'" % filename, 'does not exist!'
                 sys.exit(-1)
-            print '- The size of the file is', size, 'bytes'
+            if verbose:
+                print '- The size of the file is', size, 'bytes'
             f = file(filename,'rb')
-            print '- Calculating md5 checksum...'
+            if verbose:
+                print '- Calculating md5 checksum...'
             start = time.time()
             checksum = create_checksum(f, 'md5')
-            print '- done in %.4f seconds, md5 checksum is %s' % ((time.time()-start), checksum)
+            if verbose:
+                print '- done in %.4f seconds, md5 checksum is %s' % ((time.time()-start), checksum)
             LN = args[1]
             if LN.endswith('/'):
                 LN = LN + filename.split('/')[-1]
@@ -1710,12 +1749,15 @@ else:
             success, turl, protocol = response['0']
 
             if success == 'done':
-                print '- Got transfer URL:', turl
+                if verbose:
+                    print '- Got transfer URL:', turl
                 f = file(filename,'rb')
-                print "- Uploading from '%s' to '%s' with %s..." % (filename, turl, protocol)
+                if verbose:
+                    print "- Uploading from '%s' to '%s' with %s..." % (filename, turl, protocol)
                 start = time.time()
-                upload_to_turl(turl, protocol, f, ssl_config = ssl_config)
-                print '- done in %.4f seconds.' % (time.time()-start)
+                upload_to_turl(turl, protocol, f, ssl_config = ssl_config, verbose = verbose)
+                if verbose:
+                    print '- done in %.4f seconds.' % (time.time()-start)
                 print "'%s' (%s bytes) uploaded as '%s'." % (filename, size, LN)
             else:
                 print '%s: %s' % (LN, success)
