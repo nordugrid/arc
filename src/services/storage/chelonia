@@ -832,10 +832,6 @@ class Client:
         self.xmlnode_class = FakeXMLNode
         try:
             import arc
-            if print_xml: # meaning: verbose
-                root_logger = arc.Logger_getRootLogger()
-                root_logger.addDestination(arc.LogStream(sys.stdout))
-                root_logger.setThreshold(arc.ERROR)
             self.call_raw = self.call_raw_hed
             self.cfg = arc.MCCConfig()
             if self.https:
@@ -1437,6 +1433,15 @@ while (len(args) > 0) and (args[0].startswith('-')):
         if not os.path.exists(configfilename):
             print '- Config file does not exist:', configfilename, '- using default.'
             configfilename = ''
+
+if verbose:
+    try:
+        import arc
+        root_logger = arc.Logger_getRootLogger()
+        root_logger.addDestination(arc.LogStream(sys.stdout))
+        root_logger.setThreshold(arc.ERROR)
+    except:
+        pass
 
 if verbose:
     if configfilename:
