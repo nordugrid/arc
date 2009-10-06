@@ -2,6 +2,11 @@
 #include <unistd.h>
 #include <sys/types.h>
 
+/**
+ * A perl script cannot gain root proviledges via the UNIX sticky bits,
+ * while this C code can.
+ */
+
 int main(int argc, char **argv)
 {
 	setuid(0);

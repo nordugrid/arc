@@ -26,6 +26,11 @@ BEGIN {
 	}
 }
 
+=head1 NAME
+
+janitor - command line access to the Janitor service
+
+=cut
 
 use warnings;
 use strict;

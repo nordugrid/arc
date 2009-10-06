@@ -1,2 +1,5 @@
-The perl library which can be found in this folder provides a basic command line access to janitor.
+This folder provides a basic command line access to janitor.
 
+  janitor.8.in  - man page, no compilation required
+  janitor.in    - perl executable, no compilation required
+  rjanitor.c.in - wrapper to grant the perl script root privileges
