@@ -91,7 +91,7 @@ class Client:
         if not status.isOk():
             return 'ERROR: %s' % status
         if message.IsFault():
-            return 'ERROR: %s' % message.GetXML()
+            return 'ERROR: %s' % message.Fault().Reason()
         return False
 
     def call_raw(self, outpayload):
@@ -111,6 +111,9 @@ class Client:
         #     except:
         #         pass
         #     self.connection_cache[tid] = None
+        if len(self.urls) == 0:
+            log.msg(arc.WARNING, 'No URLs to connect to (in %s)' % str(self.__class__.__name__))
+            raise Exception, 'No URLs to connect'
         random.shuffle(self.urls)
         #print "available URLs", [url.fullstr() for url in self.urls]
         for url in self.urls:

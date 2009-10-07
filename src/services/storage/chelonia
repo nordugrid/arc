@@ -960,16 +960,13 @@ class Client:
             #print x.GetXML()
             s = arc.ClientSOAP(self.cfg, self.url)
             resp, status = s.process(outpayload)
-            if not status.isOk():
-                raise Exception, status
-            if resp.IsFault():
-                raise Exception, resp.GetXML()
-            resp = resp.GetXML()
-
-            return resp
         except:
-            raise socket.error, (-1, "Wrong status from server. (Maybe wrong URL: '%s%s:%s%s'?)" %
-                (self.https and 'https://' or 'http://', self.host, self.port, self.path))
+            raise socket.error, (-1, "Wrong status from server")
+        if not status.isOk():
+            raise Exception, status
+        if resp.IsFault():
+            raise Exception, resp.Fault().Reason()
+        return resp.GetXML()
 
 
 
