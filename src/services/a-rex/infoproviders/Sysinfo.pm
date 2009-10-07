@@ -74,9 +74,13 @@ sub cpuinfo {
         }
         close CPUINFO;
 
-        if ($info->{cpumodel} =~ m/^(.*) @ ([.\d]+)GHz$/) {
+        if ($info->{cpumodel} =~ m/^(.*?)\s+@\s+([.\d]+)GHz$/) {
             $info->{cpumodel} = $1;
-            $info->{cpufreq} = $2;
+            $info->{cpufreq} = int($2*1000);
+        } elsif ($info->{cpumodel} =~ m/\s+([.\d]+)GHz$/) { 
+            $info->{cpufreq} = int($1*1000);
+        } elsif ($info->{cpumodel} =~ m/\s+([.\d]+)MHz$/) { 
+            $info->{cpufreq} = int($1);
         }
 
         # count total cpu cores and sockets
