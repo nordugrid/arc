@@ -4,21 +4,6 @@
   xmlns:isis="http://www.nordugrid.org/schemas/isis/2008/08"
   xmlns:infosys="http://www.nordugrid.org/schemas/InfoRegisterConfig/2008"
 >
-  <!-- Various server settings -->
-  <infosys:InfoRegistrar id="NorduGridInfosys">
-    <!-- Contact and behavior details of the InfoRegsitrar element-->
-    <infosys:URL>http://knowarc2.grid.niif.hu:50000/isis1</infosys:URL>
-    <infosys:Retry>4</infosys:Retry>
-  </infosys:InfoRegistrar>
-  <infosys:InfoRegistrar id="NorduGridInfosys2">
-    <!-- Contact and behavior details of the InfoRegsitrar element-->
-    <infosys:URL>http://knowarc3.grid.niif.hu:50000/isis1</infosys:URL>
-    <!-- Retry node is missing - default value: 5 will be used -->
-    <!-- Security elements -->
-    <CertificatePath>/home/user/cert.pem</CertificatePath>
-    <CACertificatesDir>/etc/grid-security/certificates</CACertificatesDir>
-  </infosys:InfoRegistrar>
-
   <!--Other plugins-->
   <Plugins><Name>isis</Name></Plugins>
   <Plugins><Name>some_service</Name></Plugins>
@@ -55,23 +40,29 @@
         <!-- InfoRegister: This element indicates the self-registration mechanism with the given
              period as default. If there is no Registrar element in the InfoRegister then the
              service will be registered to every InfoRegistrar. -->
-        <register:InfoRegister>
+        <infosys:InfoRegister>
             <!-- These attributes are necessery for the self-registration -->
             <!-- Period: How often should the service be registered -->
-            <register:Period>PT75S</register:Period>
+            <infosys:Period>PT75S</infosys:Period>
             <!-- Endpoint: The URL where the service can be accessed from outside -->
-            <register:Endpoint>http://your.domain.com:10000/path<register:Endpoint>
+            <infosys:Endpoint>http://your.domain.com:10000/path<infosys:Endpoint>
             <!-- expiration: The lifetime of the RegEntry provided by the service 
                  about itself -->
-            <register:Expiration>PT5H</register:Expiration>
+            <infosys:Expiration>PT5H</infosys:Expiration>
             <!-- If there is no specific Registrar defined then every InfoRegistrar
              will be use used during the registration. The period of the repeating registration will
              be the value given here in every ISIS cloud. -->
              <!-- Any previously defined attribute can be overwritten per Registrar -->
-            <register:Registrar id="NorduGridInfosys2">
-                <register:Expiration>PT6H</register:Expiration>
-            </register:Registrar>
-        </register:InfoRegister>
+            <infosys:Registrar>
+                <!-- Contact and behavior details of the InfoRegsitrar element-->
+                <infosys:URL>http://knowarc3.grid.niif.hu:50000/isis1</infosys:URL>
+                <!-- Retry node is missing - default value: 5 will be used -->
+                <!-- Security elements -->
+                <infosys:CertificatePath>/home/user/cert.pem</infosys:CertificatePath>
+                <infosys:CACertificatesDir>/etc/grid-security/certificates</infosys:CACertificatesDir>
+                <infosys:Retry>4</infosys:Retry>
+            </infosys:Registrar>
+        </infosys:InfoRegister>
     </Service>
 
 

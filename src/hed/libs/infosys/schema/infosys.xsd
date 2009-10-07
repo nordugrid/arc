@@ -23,7 +23,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            
+
             <xsd:element name="ServiceID" type="xsd:string" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation xml:lang="en">
@@ -31,7 +31,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-  
+
             <xsd:element name="KeyPath" type="xsd:string"  minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation xml:lang="en">
@@ -63,7 +63,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-  
+
             <xsd:element name="Retry" type="xsd:string" minOccurs="0" maxOccurs="1" default="5">
                 <xsd:annotation>
                     <xsd:documentation xml:lang="en">
