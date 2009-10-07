@@ -789,6 +789,10 @@ static void soft_state_thread(void *data) {
     }
 
     Arc::MCC_Status ISIService::process(Arc::Message &inmsg, Arc::Message &outmsg) {
+
+        // Return with fault if the service wasn't initialized and configured properly.
+        if ( db_ == NULL ) return make_soap_fault(outmsg);
+
         if ( neighbors_count == 0 || !available_provider) {
             BootStrap(1);
             neighbors_update_needed = false;
