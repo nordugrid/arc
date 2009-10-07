@@ -1,16 +1,8 @@
-# Make file for all interfaces (./interfaces)
-
-STANDARD = commandline
-
-
-# Compile and install interfaces/webservice
-#                 and interfaces/client
 if JANITOR_WEBSERVICE_ENABLED
-# PERL_CFLAGS, PERL_LDFLAGS, ENABLE_COMPILE
-EXTRA = webservice client
+JANITOR_WEBSERVICE = webservice client
 else
-EXTRA =
+JANITOR_WEBSERVICE =
 endif
 
-
-SUBDIRS = $(STANDARD) $(EXTRA)
+SUBDIRS = commandline $(JANITOR_WEBSERVICE)
+DIST_SUBDIRS = commandline webservice client
