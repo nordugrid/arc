@@ -1143,36 +1143,132 @@ Interface of Information Indexing Service
 <?xml version="1.0" encoding="UTF-8"?>
 <xsd:schema
   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-  xmlns="http://www.nordugrid.org/schemas/ArcConfig/2009/isis"
-  xmlns:icfg="http://www.nordugrid.org/schemas/ArcConfig/2009/isis"
-  targetNamespace="http://www.nordugrid.org/schemas/ArcConfig/2009/isis"
+  xmlns="http://www.nordugrid.org/schemas/isis/2009/08"
+  xmlns:icfg="http://www.nordugrid.org/schemas/isis/2009/08"
+  targetNamespace="http://www.nordugrid.org/schemas/isis/2009/08"
   elementFormDefault="qualified" attributeFormDefault="unqualified"
 >
 
-  <xsd:element name="endpoint" type="xsd:anyURI"/>
+  <xsd:element name="KeyPath" type="xsd:string">
+      <xsd:annotation>
+          <xsd:documentation xml:lang="en">
+              Optional KeyPath for SSL connection
+          </xsd:documentation>
+      </xsd:annotation>
+  </xsd:element>
 
-  <xsd:element name="retry" type="xsd:nonNegativeInteger" minOccurs="0"/>
+  <xsd:element name="CertificatePath" type="xsd:string">
+      <xsd:annotation>
+          <xsd:documentation xml:lang="en">
+              Optional CertificatePath for SSL connection
+          </xsd:documentation>
+      </xsd:annotation>
+  </xsd:element>
 
-  <xsd:element name="sparsity" type="xsd:nonNegativeInteger" minOccurs="0"/>
+  <xsd:element name="ProxyPath" type="xsd:string">
+      <xsd:annotation>
+          <xsd:documentation xml:lang="en">
+              Optional ProxyPath for SSL connection
+          </xsd:documentation>
+      </xsd:annotation>
+  </xsd:element>
 
-  <xsd:simpleType name="Logger_Type">
-    <xsd:restriction base="xsd:string"/>
-    <xsd:attribute name="level" type="xsd:string" use="optional"/>
-  </xsd:simpleType>
-  <xsd:element name="Logger" type="icfg:Logger_Type" minOccurs="0"/>
+  <xsd:element name="CACertificatesDir" type="xsd:string">
+      <xsd:annotation>
+          <xsd:documentation xml:lang="en">
+              Optional CACertificatesDir for SSL connection
+          </xsd:documentation>
+      </xsd:annotation>
+  </xsd:element>
 
-  <xsd:element name="ETValid" type="xsd:nonNegativeInteger" minOccurs="0"/>
+  <xsd:element name="endpoint" type="xsd:anyURI">
+      <xsd:annotation>
+          <xsd:documentation xml:lang="en">
+              The URL where the service can be accessed from outside.
+          </xsd:documentation>
+      </xsd:annotation>
+  </xsd:element>
 
-  <xsd:element name="ETRemove" type="xsd:nonNegativeInteger" minOccurs="0"/>
+  <xsd:element name="retry" type="xsd:nonNegativeInteger" default="5">
+      <xsd:annotation>
+          <xsd:documentation xml:lang="en">
+              Retry specifies how many times communication to ISIS have to fail/timeout to start treating it as unavailable.
+          </xsd:documentation>
+      </xsd:annotation>
+  </xsd:element>
 
-  <xsd:element name="DBPath" type="xsd:string"/>
+  <xsd:element name="sparsity" type="xsd:nonNegativeInteger" default="2">
+      <xsd:annotation>
+          <xsd:documentation xml:lang="en">
+              It determines the number of neighbors as a function of the actual number of member nodes of the network.
+          </xsd:documentation>
+      </xsd:annotation>
+  </xsd:element>
+
+  <xsd:complexType name="Logger_Type">
+    <xsd:simpleContent>
+      <xsd:extension base="xsd:string">
+        <xsd:attribute name="level" default="INFO">
+          <xsd:simpleType>
+            <xsd:restriction base="xsd:string">
+              <xsd:enumeration value="VERBOSE"/>
+              <xsd:enumeration value="DEBUG"/>
+              <xsd:enumeration value="INFO"/>
+              <xsd:enumeration value="WARNING"/>
+              <xsd:enumeration value="ERROR"/>
+              <xsd:enumeration value="FATAL"/>
+            </xsd:restriction>
+          </xsd:simpleType>
+        </xsd:attribute>
+      </xsd:extension>
+    </xsd:simpleContent>
+  </xsd:complexType>
+
+  <xsd:element name="Logger" type="icfg:Logger_Type">
+      <xsd:annotation>
+          <xsd:documentation xml:lang="en">
+              File location where the log message is locally stored.
+          </xsd:documentation>
+      </xsd:annotation>
+  </xsd:element>
+
+  <xsd:element name="ETValid" type="xsd:nonNegativeInteger" default="43200">
+      <xsd:annotation>
+          <xsd:documentation xml:lang="en">
+              Soft state database parameter. Time of the valid messages checking period.
+          </xsd:documentation>
+      </xsd:annotation>
+  </xsd:element>
+
+  <xsd:element name="ETRemove" type="xsd:nonNegativeInteger" default="43200">
+      <xsd:annotation>
+          <xsd:documentation xml:lang="en">
+              Soft state database parameter. Time of the expired messages checking period.
+          </xsd:documentation>
+      </xsd:annotation>
+  </xsd:element>
+
+  <xsd:element name="DBPath" type="xsd:string">
+      <xsd:annotation>
+          <xsd:documentation xml:lang="en">
+              File location where the database is locally stored.
+          </xsd:documentation>
+      </xsd:annotation>
+  </xsd:element>
 
   <xsd:complexType name="InfoProvider_Type">
     <xsd:sequence>
-      <xsd:element name="URL" type="xsd:anyURI"/>
+      <xsd:element name="URL" type="xsd:anyURI">
+          <xsd:annotation>
+              <xsd:documentation xml:lang="en">
+                  The URL of one or more ISIS where the other ISIS's can be queried.
+              </xsd:documentation>
+          </xsd:annotation>
+      </xsd:element>
     </xsd:sequence>
   </xsd:complexType>
-  <xsd:element name="InfoProvider" type="icfg:InfoProvider_Type" minOccurs="0" maxOccurs="unbounded"/>
+
+  <xsd:element name="InfoProvider" type="icfg:InfoProvider_Type"/>
 
 </xsd:schema>
 
@@ -1187,84 +1283,140 @@ Interface of Information Indexing Service
 <?xml version="1.0" encoding="UTF-8"?>
 <xsd:schema
   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-  xmlns:iregc="http://www.nordugrid.org/schemas/InfoRegisterConfig/2008"
-  targetNamespace="http://www.nordugrid.org/schemas/InfoRegisterConfig/2008"
+  xmlns:iregc="http://www.nordugrid.org/schemas/infosys/2009/08"
+  targetNamespace="http://www.nordugrid.org/schemas/infosys/2009/08"
   elementFormDefault="qualified">
 
-    <xsd:complexType name="InfoRegistrar_Type">
-        <!-- This element defines configuration of Information Registration
-             active element. This element is located at top level configuration
-             document. Each instance if such element instatiates one instance
-             of Information \hl{Registrant} active element. -->
-        <xsd:sequence>
-            <!-- URL specifies contact endpoint of a bootstrap Information
-                 Registration service. Further ISIS adresses will be queried
-                 from this service. -->
-            <xsd:element name="URL" type="xsd:string"/> <!-- maxOccurs="unbounded" -->
-            <!-- Optional KeyPath, CertificatePath, ProxyPath and CACertificatesDir are
-                 paths to files storing X509 credentials used for establishing connections. -->
-            <xsd:element name="KeyPath" type="xsd:string" minOccurs="0"/>
-            <xsd:element name="CertificatePath" type="xsd:string" minOccurs="0"/>
-            <xsd:element name="ProxyPath" type="xsd:string" minOccurs="0"/>
-            <xsd:element name="CACertificatesDir" type="xsd:string" minOccurs="0"/>
-            <!-- Retry count. Specifie how many times have an ISIS to timeout to handle it as
-                 unavailable. If there is no value specified the default value: 5 will be used. -->
-            <xsd:element name="Retry" type="xsd:string" minOccurs="0" maxOccurs="1"/>
-        </xsd:sequence>
-        <!-- Attribute id may be used to refer to this element -->
-        <xsd:attribute name="id" type="xsd:string" use="optional"/>
-    </xsd:complexType>
-    <xsd:element name="InfoRegistrar" type="iregc:InfoRegistrar_Type"/>
-
     <xsd:complexType name="Registrar_Type">
+        <xsd:annotation>
+            <xsd:documentation xml:lang="en">
+             This element defines configuration of Information Registration.
+             active element.
+            </xsd:documentation>
+        </xsd:annotation>
         <xsd:sequence>
-            <!-- Missing elements means that the default values will be used. -->
 
-            <!-- Period specifies how often registration to be done in minutes.
-                 The 0 value means single registration. -->
-            <xsd:element name="Period" type="xsd:nonNegativeInteger" minOccurs="0" maxOccurs="1"/>
-            <!-- Element defines the unique id of the service propagated outside. -->
-            <xsd:element name="ServiceID" type="xsd:string" minOccurs="0" maxOccurs="1"/>
-            <!-- This element defines URL of the service as seen from outside. -->
-            <xsd:element name="endpoint" type="xsd:string" minOccurs="0" maxOccurs="1"/>
-            <!-- This element defines the expiration time of the information provided by the service. -->
-            <xsd:element name="expiration" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="URL" type="xsd:string" minOccurs="1" maxOccurs="unbounded">.
+                <xsd:annotation>
+                    <xsd:documentation xml:lang="en">
+                     URL specifies contact endpoint of a bootstrap Information.
+                     Registration service. Further ISIS addresses will be queried.
+                     from this service.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+
+            <xsd:element name="ServiceID" type="xsd:string" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation xml:lang="en">
+                     Element defines the unique id of the service propagated outside.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+
+            <xsd:element name="KeyPath" type="xsd:string"  minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation xml:lang="en">
+                     Optional KeyPath for SSL connection
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+
+            <xsd:element name="CertificatePath" type="xsd:string"  minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation xml:lang="en">
+                     Optional CertificatePath for SSL connection
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+             <xsd:element name="ProxyPath" type="xsd:string"  minOccurs="0" maxOccurs="1">
+                 <xsd:annotation>
+                     <xsd:documentation xml:lang="en">
+                      Optional ProxyPath for SSL connection
+                     </xsd:documentation>
+                 </xsd:annotation>
+             </xsd:element>
+
+            <xsd:element name="CACertificatesDir" type="xsd:string"  minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation xml:lang="en">
+                     Optional CACertificatesDir for SSL connection
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+
+            <xsd:element name="Retry" type="xsd:string" minOccurs="0" maxOccurs="1" default="5">
+                <xsd:annotation>
+                    <xsd:documentation xml:lang="en">
+                     Retry count. Specified how many times have an ISIS to timeout to handle it as.
+                     unavailable. If there is no value specified the default value: 5 will be used..
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
-        <!-- Attribute id is to define the previously configured InfoRegistrar to be refered -->
-        <xsd:attribute name="id" type="xsd:string" use="required"/>
     </xsd:complexType>
 
     <xsd:complexType name="InfoRegister_Type">
-    <!-- Element for Service element to link it to InfoRegistrar
-         elements. It may also override some configuration parameters.
-         Presence of this element means that service will be registered
-         to ISISes. -->
+        <xsd:annotation>
+            <xsd:documentation xml:lang="en">
+             Element for Service element to link it to Registrar.
+             elements. It may also override some configuration parameters.
+             Presence of this element means that service will be registered
+             to ISISes.
+            </xsd:documentation>
+        </xsd:annotation>
         <xsd:sequence>
-            <!-- This elements specify which registrars must be used
+            <xsd:annotation>
+                <xsd:documentation xml:lang="en">
+                 This elements specify which registrars must be used
                  for registering services. If there is no such element
-                 then registration is done using all registrars. -->
-            <xsd:element name="Registrar" type="iregc:Registrar_Type" minOccurs="0" maxOccurs="unbounded"/>
-            <!-- Default values for every InfoRegistrar -->
+                 then registration is done using all registrars.
+                </xsd:documentation>
+            </xsd:annotation>
 
-            <!-- Period specifies how often registration to be done in minutes.
-                 The 0 value means single registration. -->
-            <xsd:element name="Period" type="xsd:nonNegativeInteger" minOccurs="1" maxOccurs="1"/>
-            <!-- Element defines the unique id of the service propagated outside. -->
-            <xsd:element name="ServiceID" type="xsd:string" minOccurs="0" maxOccurs="1"/>
-            <!-- This element defines URL of the service as seen from outside. -->
-            <xsd:element name="endpoint" type="xsd:string" minOccurs="1" maxOccurs="1"/>
-            <!-- This element defines the expiration time of the information provided by the service. -->
-            <xsd:element name="expiration" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="Period" type="xsd:duration" minOccurs="1" maxOccurs="1" default="PT3M">
+                <xsd:annotation>
+                    <xsd:documentation xml:lang="en">
+                     Period specifies how often registration to be done in minutes.
+                     The 0 value means single registration.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+
+
+            <xsd:element name="Endpoint" type="xsd:string" minOccurs="1" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation xml:lang="en">
+                     This element defines URL of the service as seen from outside.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+
+            <xsd:element name="Expiration" type="xsd:string" minOccurs="1" maxOccurs="1" default="PT10M">
+                <xsd:annotation>
+                    <xsd:documentation xml:lang="en">
+                     This element defines the expiration time of the information provided by the service.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="Registrar" type="iregc:Registrar_Type" minOccurs="0" maxOccurs="unbounded"/>
+            <!-- Default values for every Registrar -->
         </xsd:sequence>
     </xsd:complexType>
     <xsd:element name="InfoRegister" type="iregc:InfoRegister_Type"/>
 
-    <!-- Configuration element force skipping the Self-Registration -->
     <xsd:element name="NoRegister">
+        <xsd:annotation>
+            <xsd:documentation xml:lang="en">
+             Configuration element force skipping the Self-Registration
+            </xsd:documentation>
+        </xsd:annotation>
         <xsd:complexType />
     </xsd:element>
 
 </xsd:schema>
+
+
 
 \end{verbatim}
 
@@ -1319,11 +1471,6 @@ Interface of Information Indexing Service
   xmlns:infosys="http://www.nordugrid.org/schemas/InfoRegisterConfig/2008"
 >
   <!-- Various server settings -->
-  <infosys:InfoRegistrar id="NorduGridInfosys">
-    <!-- Contact and behavior details of the InfoRegsitrar element-->
-    <infosys:URL><!-- Available endpoint URL of an ISIS representing the cloud --></infosys:URL>
-    <infosys:Retry>4</infosys:Retry>
-  </infosys:InfoRegistrar>
 
   <Plugins><Name>isis</Name></Plugins>
 
@@ -1358,9 +1505,13 @@ Interface of Information Indexing Service
                 <!-- The lifetime of the RegEntry provided by the service about itself.
                 For example: PT5H for 5 hours -->
             </infosys:Expiration>
-            <!-- If there is no specific Registrar defined then every InfoRegistrar
-             will be use used during the registration. The period of the repeating 
+            <!-- The period of the repeating 
              registration will be the value given here in every ISIS cloud. -->
+            <infosys:Registrar>
+                <!-- Contact and behavior details of the Registrar element-->
+                <infosys:URL><!-- Available endpoint URL of an ISIS representing the cloud --></infosys:URL>
+                <infosys:Retry>4</infosys:Retry>        
+            </infosys:Registrar>
         </infosys:InfoRegister>
     </Service>
   </Chain>
