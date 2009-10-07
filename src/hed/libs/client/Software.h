@@ -2,6 +2,7 @@
 #define __ARC_SOFTWAREVERSION_H__
 
 #include <list>
+#include <utility>
 #include <string>
 #include <ostream>
 
@@ -11,93 +12,286 @@ namespace Arc {
 
   class ApplicationEnvironment;
 
+  /// Used to represent software (names and version) and comparison.
   /**
-   * The Software class is used to represent the name of a piece of software
-   * internally. Generally software are identified by a name and possibly a
-   * version number. Some software can also be categorized by type or family
-   * (compilers, operating system, etc.). The basic usage of this class is to
-   * test if some specified software requirement are fulfilled, by using the
+   * The Software class is used to represent the name of a piece of
+   * software internally. Generally software are identified by a name
+   * and possibly a version number. Some software can also be
+   * categorized by type or family (compilers, operating system, etc.).
+   * A software object can be compared to other software objects using
+   * the comparison operators contained in this class.
+   * The basic usage of this class is to test if some specified software
+   * requirement (SoftwareRequirement) are fulfilled, by using the
    * comparability of the class.
+   *
+   * Internally the Software object is represented by a family and name
+   * identifier, and the software version is tokenized at the characters
+   * defined in VERSIONTOKENS, and stored as a list of tokens.
    */
   class Software {
   public:
-    /// Dummy constructor. The created object will be empty.
+    /// Definition of a comparison operator method pointer.
+    /**
+     * This \c typedef defines a comparison operator method pointer.
+     *
+     * @see #operator==,
+     * @see #operator!=,
+     * @see #operator>,
+     * @see #operator<,
+     * @see #operator>=,
+     * @see #operator<=,
+     * @see ComparisonOperatorEnum.
+     **/
+    typedef bool (Software::*ComparisonOperator)(const Software&) const;
+
+    /// Dummy constructor.
+    /**
+     * This constructor creates a empty object.
+     **/
     Software() : family(""), name(""), version("") {};
 
+    /// Create a Software object.
     /**
-     * Create a Software object from a single string composed of a name and a
-     * version part. The object will contain a empty family part.
-     * The name and version part of the string will be split at the first
-     * occurence of a dash (-) which is followed by a digit (0-9). If the string
-     * does not contain such a pattern, the passed string will be taken to be
-     * the name and version will be empty.
+     * Create a Software object from a single string composed of a name
+     * and a version part. The created object will contain a empty
+     * family part. The name and version part of the string will be
+     * split at the first occurence of a dash (-) which is followed by a
+     * digit (0-9). If the string does not contain such a pattern, the
+     * passed string will be taken to be the name and version will be
+     * empty.
+     *
+     * @param name_version should be a string composed of the name and
+     *        version of the software to represent.
      */
     Software(const std::string& name_version);
 
-    /// Create a Software object with the specified name and version. The family part will be left empty.
+    /// Create a Software object.
+    /**
+     * Create a Software object with the specified name and version.
+     * The family part will be left empty.
+     *
+     * @param name the software name to represent.
+     * @param version the software version to represent.
+     **/
     Software(const std::string& name, const std::string& version);
 
-    /// Create a Software object with the specified family, name and version.
+    /// Create a Software object.
+    /**
+     * Create a Software object with the specified family, name and
+     * version.
+     *
+     * @param family the software family to represent.
+     * @param name the software name to represent.
+     * @param version the software version to represent.
+     */
     Software(const std::string& family, const std::string& name, const std::string& version);
 
-    /// Copy constructor.
-    Software(const Software& sv) : family(sv.family), name(sv.name), version(sv.version), tokenizedVersion(sv.tokenizedVersion) {};
-
-    Software& operator=(const Software& sv);
-
-    /// The ComparisonOperator enumeration has a 1-1 correspondance between the
-    /// defined comparison method operators, and can be used in situations where
-    /// member function pointers are not supported.
-    enum ComparisonOperator {
-      NOTEQUAL = 0,
-      EQUAL = 1,
-      GREATERTHAN = 2,
-      LESSTHAN = 3,
-      GREATERTHANOREQUAL = 4,
-      LESSTHANOREQUAL = 5
+    /// Comparison operator enum
+    /**
+     * The #ComparisonOperatorEnum enumeration is a 1-1 correspondance
+     * between the defined comparison method operators
+     * (Software::ComparisonOperator), and can be used in circumstances
+     * where method pointers are not supported.
+     **/
+    enum ComparisonOperatorEnum {
+      NOTEQUAL = 0, /**< see #operator!= */
+      EQUAL = 1, /**< see #operator== */
+      GREATERTHAN = 2, /**< see #operator> */
+      LESSTHAN = 3, /**< see #operator< */
+      GREATERTHANOREQUAL = 4, /**< see #operator>= */
+      LESSTHANOREQUAL = 5 /**< see #operator<= */
     };
 
 #ifndef SWIG
-    static bool (Software::* convert(const ComparisonOperator& co))(const Software&) const;
+    /// Convert a #ComparisonOperatorEnum value to a comparison method pointer.
+    /**
+     * The passed #ComparisonOperatorEnum will be converted to a
+     * comparison method pointer defined by the
+     * Software::ComparisonOperator typedef.
+     *
+     * This static method is not defined in language bindings created
+     * with Swig, since method pointers are not supported by Swig.
+     *
+     * @param co a #ComparisonOperatorEnum value.
+     * @return A method pointer to a comparison method is returned.
+     **/
+    static ComparisonOperator convert(const ComparisonOperatorEnum& co);
 #endif
 
-    /// Returns true if the name part is empty, otherwise false.
+    /// Indicates whether the object is empty.
+    /**
+     * @return \c true if the name of this object is empty, otherwise
+     *         \c false.
+     **/
     bool empty() const { return name.empty(); }
 
-    /// Two Software objects are equal (returns true) if they are of the same family, and if they
-    /// have the same name. If BOTH objects specifies a version they must also equal, for the objects to be equal.
-    /// Otherwise the two objects does not equal (returns false).
-    bool operator==(const Software& sv) const { return family  == sv.family &&
-                                                       name    == sv.name &&
-                                                       (version.empty() || sv.version.empty() || version == sv.version); }
-    /// Returns the negation of the == operator.
-    bool operator!=(const Software& sv) const { return !(sv == *this); }
-    bool operator> (const Software& sv) const;
-    bool operator< (const Software& sv) const;
-    bool operator<=(const Software& sv) const { return (*this == sv ? true : *this < sv); }
-    bool operator>=(const Software& sv) const { return (*this == sv ? true : *this > sv); }
+    /// Equality operator.
+    /**
+     * Two Software objects are equal if they are of the same family,
+     * and if they have the same name. If BOTH objects specifies a
+     * version they must also equal, for the objects to be equal.
+     * Otherwise the two objects does not equal. This operator can also
+     * be represented by the Software::EQUAL #ComparisonOperatorEnum
+     * value.
+     *
+     * @param sw is the RHS Software object.
+     * @return \c true when the two objects equals, otherwise \c false.
+     **/
+    bool operator==(const Software& sw) const { return family  == sw.family &&
+                                                       name    == sw.name &&
+                                                       (version.empty() || sw.version.empty() || version == sw.version); }
+    /// Inequality operator (non-trivial behaviour).
+    /**
+     * The inequality operator should be used to test if two Software
+     * objects are of different versions but share the same name and
+     * family. So it should not be used to test if two Software objects
+     * differ in either name, version or family. Two Software objects
+     * are inequal if they share the same name and family but have
+     * different versions and the versions are non-empty.
+     *
+     * @param sw is the RHS Software object.
+     * @return \c true when the two objects are inequal, otherwise
+     *         \c false.
+     **/
+    bool operator!=(const Software& sw) const { return family == sw.family &&
+                                                       name   == sw.name &&
+                                                       !(version == sw.version || version.empty() || sw.version.empty()); }
+    /// Greater-than operator.
+    /**
+     * For the LHS object to be greater than the RHS object they must
+     * first share the same family and name and have non-empty versions.
+     * Then, the first version token of each object is compared and if
+     * they are identical, the two next version tokens will be compared.
+     * If not identical, the two tokens will be parsed as integers, and
+     * if parsing fails the LHS is not greater than the RHS. If parsing
+     * succeeds and the integers equals, the two next tokens will be
+     * compared, otherwise the comparison is resolved by the integer
+     * comparison.
+     *
+     * If the LHS contains more version tokens than the RHS, and the
+     * comparison have not been resolved at the point of equal number of
+     * tokens, then if the additional tokens contains a token which
+     * cannot be parsed to a integer the LHS is not greater than the
+     * RHS. If the parsed integer is not 0 then the LHS is greater than
+     * the RHS. If the rest of the additional tokens are 0, the LHS is
+     * not greater than the RHS.
+     *
+     * If the RHS contains more version tokens than the LHS and comparison
+     * have not been resolved at the point of equal number of tokens, or
+     * simply if comparison have not been resolved at the point of equal
+     * number of tokens, then the LHS is not greater than the RHS.
+     *
+     * @param sw is the RHS object.
+     * @return \c true if the LHS is greater than the RHS, otherwise
+     *         \c false.
+     **/
+    bool operator> (const Software& sw) const;
+    /// Less-than operator.
+    /**
+     * The behaviour of this less-than operator is equivalent to the
+     * greater-than operator (operator>()) with the LHS and RHS swapped.
+     *
+     * @param sw is the RHS object.
+     * @return \c true if the LHS is less than the RHS, otherwise
+     *         \c false.
+     * @see operator>().
+     **/
+    bool operator< (const Software& sw) const { return sw.operator>(*this); }
+    /// Greater-than or equal operator.
+    /**
+     * The LHS object is greater than or equal to the RHS object if
+     * the LHS equal the RHS (operator==()) or if the LHS is greater
+     * than the RHS (operator>()).
+     *
+     * @param sw is the RHS object.
+     * @return \c true if the LHS is greated than or equal the RHS,
+     *         otherwise \c false.
+     * @see operator==(),
+     * @see operator>().
+     **/
+    bool operator>=(const Software& sw) const { return (*this == sw ? true : *this > sw); }
+    /// Less-than or equal operator.
+    /**
+     * The LHS object is greater than or equal to the RHS object if
+     * the LHS equal the RHS (operator==()) or if the LHS is greater
+     * than the RHS (operator>()).
+     *
+     * @param sw is the RHS object.
+     * @return \c true if the LHS is less than or equal the RHS,
+     *         otherwise \c false.
+     * @see operator==(),
+     * @see operator<().
+     **/
+    bool operator<=(const Software& sw) const { return (*this == sw ? true : *this < sw); }
 
-    friend std::ostream& operator<<(std::ostream& out, const Software& sv) {
-      out << sv();
-      return out;
-    }
+    /// Write Software string representation to a std::ostream.
+    /**
+     * Write the string representation of a Software object to a
+     * std::ostream.
+     *
+     * @param out is a std::ostream to write the string representation
+     *        of the Software object to.
+     * @param sw is the Software object to write to the std::ostream.
+     * @return The passed std::ostream \a out is returned.
+     **/
+    friend std::ostream& operator<<(std::ostream& out, const Software& sw) { out << sw(); return out; }
 
-    /// Returns the string representation of this object, which is 'family'-'name'-'version'.
+    /// Get string representation.
+    /**
+     * Returns the string representation of this object, which is
+     * 'family'-'name'-'version'.
+     *
+     * @return The string representation of this object is returned.
+     * @see operator std::string().
+     **/
     std::string operator()() const;
+    /// Cast to string
+    /**
+     * This casting operator behaves exactly as #operator()() does. The
+     * cast is used like (std::string) <software-object>.
+     *
+     * @see #operator()().
+     **/
     operator std::string(void) const { return operator()(); }
 
-    std::string getFamily() const { return family; }
-    std::string getName() const { return name; }
-    std::string getVersion() const { return version; }
+    /// Get family.
+    /**
+     * @return The family the represented software belongs to is
+     *         returned.
+     **/
+    const std::string& getFamily() const { return family; }
+    /// Get name.
+    /**
+     * @return The name of the represented software is returned.
+     **/
+    const std::string& getName() const { return name; }
+    /// Get version.
+    /**
+     * @return The version of the represented software is returned.
+     **/
+    const std::string& getVersion() const { return version; }
 
 #ifndef SWIG
-    static std::string toString(bool (Software::*co)(const Software&) const);
+    /// Convert Software::ComparisonOperator to a string.
+    /**
+     * This method is not available in language bindings created by
+     * Swig, since method pointers are not supported by Swig.
+     *
+     * @param co is a Software::ComparisonOperator.
+     * @return The string representation of the passed
+     *         Software::ComparisonOperator is returned.
+     **/
+    static std::string toString(ComparisonOperator co);
 #endif
 
-    /// This string constant specifies which tokens will be used to split the version string.
+    /// Tokens used to split version string.
+    /**
+     * This string constant specifies which tokens will be used to split
+     * the version string.
+     * **/
     static const std::string VERSIONTOKENS;
 
-  protected:
+  private:
     std::string family;
     std::string name;
     std::string version;
@@ -106,57 +300,303 @@ namespace Arc {
     static Logger logger;
   };
 
-  typedef bool (Software::*SWComparisonOperator)(const Software&) const;
 
-  
-
+  /// Class used to express and resolve version requirements on software.
+  /**
+   * A requirement in this class is defined as a pair composed of a
+   * Software object and either a Software::ComparisonOperator method
+   * pointer or equally a Software::ComparisonOperatorEnum enum value.
+   * A SoftwareRequirement object can contain multiple of such
+   * requirements, and then it can specified if all these requirements
+   * should be satisfied, or if it is enough to satisfy only one of
+   * them. The requirements can be satisfied by a single Software object
+   * or a list of either Software or ApplicationEnvironment objects, by
+   * using the method isSatisfied(). This class also contain a number of
+   * methods (selectSoftware()) to select Software objects which are
+   * satisfying the requirements, and in this way resolving
+   * requirements.
+   **/
   class SoftwareRequirement {
   public:
+    /// Create a empty SoftwareRequirement object.
+    /**
+     * The created SoftwareRequirement object will contain no
+     * requirements.
+     *
+     * @param requiresAll indicates whether the all requirements have to
+     *        be satisfied (\c true) or if only a single one (\c false),
+     *        the default is that only a single requirement need to be
+     *        satisfied.
+     **/
     SoftwareRequirement(bool requiresAll = false) : requiresAll(requiresAll) {}
 #ifndef SWIG
+    /// Create a SoftwareRequirement object.
+    /**
+     * The created SoftwareRequirement object will contain one
+     * requirement specified by the Software object \a sw, and the
+     * Software::ComparisonOperator \a swComOp.
+     *
+     * This constructor is not available in language bindings created by
+     * Swig, since method pointers are not supported by Swig, see
+     * SoftwareRequirement(const Software&, Software::ComparisonOperatorEnum, bool)
+     * instead.
+     *
+     * @param sw is the Software object of the requirement to add.
+     * @param swComOp is the Software::ComparisonOperator of the
+     *        requirement to add.
+     * @param requiresAll indicates whether the all requirements have to
+     *        be satisfied (\c true) or if only a single one (\c false),
+     *        the default is that only a single requirement need to be
+     *        satisfied.
+     **/
     SoftwareRequirement(const Software& sw,
-                        SWComparisonOperator swComOp = &Software::operator==,
-                        bool requiresAll = false)
-      : softwareList(1, sw), comparisonOperatorList(1, swComOp), requiresAll(requiresAll) {}
-#endif
-    SoftwareRequirement(const Software& sw,
-                        Software::ComparisonOperator co,
+                        Software::ComparisonOperator swComOp = &Software::operator==,
                         bool requiresAll = false);
+#endif
+
+    /// Create a SoftwareRequirement object.
+    /**
+     * The created SoftwareRequirement object will contain one
+     * requirement specified by the Software object \a sw, and the
+     * Software::ComparisonOperatorEnum \a co.
+     *
+     * @param sw is the Software object of the requirement to add.
+     * @param co is the Software::ComparisonOperatorEnum of the
+     *        requirement to add.
+     * @param requiresAll indicates whether the all requirements have to
+     *        be satisfied (\c true) or if only a single one (\c false),
+     *        the default is that only a single requirement need to be
+     *        satisfied.
+     **/
+    SoftwareRequirement(const Software& sw,
+                        Software::ComparisonOperatorEnum co,
+                        bool requiresAll = false);
+
+    /// Assignment operator.
+    /**
+     * Set this object equal to that of the passed SoftwareRequirement
+     * object \a sr.
+     *
+     * @param sr is the SoftwareRequirement object to set object equal
+     *        to.
+     **/
     SoftwareRequirement& operator=(const SoftwareRequirement& sr);
 
 #ifndef SWIG
-    /// Adds software name and version to list of requirements and
-    /// associates comparison operator with it (equality by default)
-    void add(const Software& sw, SWComparisonOperator swComOp = &Software::operator==);
+    /// Add a Software object a corresponding comparion operator to this object.
+    /**
+     * Adds software name and version to list of requirements and
+     * associates the comparison operator with it (equality by default).
+     *
+     * This method is not available in language bindings created by
+     * Swig, since method pointers are not supported by Swig, see
+     * add(const Software&, Software::ComparisonOperatorEnum) instead.
+     *
+     * @param sw is the Software object to add as part of a requirement.
+     * @param swComOp is the Software::ComparisonOperator method pointer
+     *        to add as part of a requirement, the default operator
+     *        will be Software::operator==().
+     **/
+    void add(const Software& sw, Software::ComparisonOperator swComOp = &Software::operator==);
 #endif
-    void add(const Software& sw, Software::ComparisonOperator co);
+    /// Add a Software object a corresponding comparion operator to this object.
+    /**
+     * Adds software name and version to list of requirements and
+     * associates the comparison operator with it (equality by default).
+     *
+     * @param sw is the Software object to add as part of a requirement.
+     * @param co is the Software::ComparisonOperatorEnum value
+     *        to add as part of a requirement, the default enum will be
+     *        Software::EQUAL.
+     **/
+    void add(const Software& sw, Software::ComparisonOperatorEnum co);
 
+    /// Indicates whether all requirments has to be satisfied.
+    /**
+     * This method returns \c true if all requirements has to be
+     * satisfied. If only one requirement has to be satisfied, \c false
+     * is returned.
+     *
+     * @return \c true if all requirements has to be satisfied,
+     *         otherwise \c false.
+     * @see setRequirement.
+     **/
     bool isRequiringAll() const { return requiresAll; }
-
-    /// Specifies if all requirements stored need to be satisfied
-    /// or if it is enough to satisfy only one.
+    /// Set relation between requirements.
+    /**
+     * Specifies if all requirements stored need to be satisfied
+     * or if it is enough to satisfy only one of them.
+     *
+     * @param all is a boolean specifying if all requirements has to be
+     *        satified.
+     * @see isRequiringAll().
+     **/
     void setRequirement(bool all) { requiresAll = all; }
 
-    /// Returns true if stored requirements are satisfied by
-    /// software specified in swList.
+    /// Test if requirements are satisfied.
+    /**
+     * Returns \c true if the requirements are satisfied by the
+     * specified Software \a sw, otherwise \c false is returned.
+     *
+     * @param sw is the Software which should satisfy the requirements.
+     * @return \c true if requirements are satisfied, otherwise
+     *         \c false.
+     * @see isSatisfied(const std::list<Software>&) const,
+     * @see isSatisfied(const std::list<ApplicationEnvironment>&) const,
+     * @see selectSoftware(const Software&),
+     * @see isResolved() const.
+     **/
     bool isSatisfied(const Software& sw) const { return isSatisfied(std::list<Software>(1, sw)); }
+    /// Test if requirements are satisfied.
+    /**
+     * Returns \c true if stored requirements are satisfied by
+     * software specified in \a swList, otherwise \c false is returned.
+     *
+     * Note that if all requirements must be satisfied and multiple
+     * requirements exist having identical name and family all these
+     * requirements should be satisfied by a single Software object.
+     *
+     * @param swList is the list of Software objects which should be
+     *        used to try satisfy the requirements.
+     * @return \c true if requirements are satisfied, otherwise
+     *         \c false.
+     * @see isSatisfied(const Software&) const,
+     * @see isSatisfied(const std::list<ApplicationEnvironment>&) const,
+     * @see selectSoftware(const std::list<Software>&),
+     * @see isResolved() const.
+     **/
     bool isSatisfied(const std::list<Software>& swList) const;
+    /// Test if requirements are satisfied.
+    /**
+     * This method behaves in exactly the same way as the
+     * isSatisfied(const Software&) const method does.
+     *
+     * @param swList is the list of ApplicationEnvironment objects which
+     *        should be used to try satisfy the requirements.
+     * @return \c true if requirements are satisfied, otherwise
+     *         \c false.
+     * @see isSatisfied(const Software&) const,
+     * @see isSatisfied(const std::list<Software>&) const,
+     * @see selectSoftware(const std::list<ApplicationEnvironment>&),
+     * @see isResolved() const.
+     **/
     bool isSatisfied(const std::list<ApplicationEnvironment>& swList) const;
 
+    /// Select software.
+    /**
+     * If the passed Software \a sw do not satisfy the requirements
+     * \c false is returned and this object is not modified. If however
+     * the Software object \a sw do satisfy the requirements \c true is
+     * returned and the requirements are set to equal the \a sw Software
+     * object.
+     *
+     * @param sw is the Software object used to satisfy requirements.
+     * @return \c true if requirements are satisfied, otherwise
+     *         \c false.
+     * @see selectSoftware(const std::list<Software>&),
+     * @see selectSoftware(const std::list<ApplicationEnvironment>&),
+     * @see isSatisfied(const Software&) const,
+     * @see isResolved() const.
+     **/
     bool selectSoftware(const Software& sw) { return selectSoftware(std::list<Software>(1, sw)); }
+    /// Select software.
+    /**
+     * If the passed list of Software objects \a swList do not satisfy
+     * the requirements \c false is returned and this object is not
+     * modified. If however the list of Software objects \a swList do
+     * satisfy the requirements \c true is returned and the Software
+     * objects satisfying the requirements will replace these with the
+     * equality operator (Software::operator==) used as the comparator
+     * for the new requirements.
+     *
+     * Note that if all requirements must be satisfied and multiple
+     * requirements exist having identical name and family all these
+     * requirements should be satisfied by a single Software object and
+     * it will replace all these requirements.
+     *
+     * @param swList is a list of Software objects used to satisfy
+     *        requirements.
+     * @return \c true if requirements are satisfied, otherwise
+     *         \c false.
+     * @see selectSoftware(const Software&),
+     * @see selectSoftware(const std::list<ApplicationEnvironment>&),
+     * @see isSatisfied(const std::list<Software>&) const,
+     * @see isResolved() const.
+     **/
     bool selectSoftware(const std::list<Software>& swList);
+    /// Select software.
+    /**
+     * This method behaves exactly as the
+     * selectSoftware(const std::list<Software>&) method does.
+     *
+     * @param swList is a list of ApplicationEnvironment objects used to
+     *        satisfy requirements.
+     * @return \c true if requirements are satisfied, otherwise
+     *         \c false.
+     * @see selectSoftware(const Software&),
+     * @see selectSoftware(const std::list<Software>&),
+     * @see isSatisfied(const std::list<ApplicationEnvironment>&) const,
+     * @see isResolved() const.
+     **/
     bool selectSoftware(const std::list<ApplicationEnvironment>& swList);
-    
-    bool empty() const { return softwareList.empty(); }
 
-    /// Returns list of the contained software.
+    /// Indicates whether requirements have been resolved or not.
+    /**
+     * If specified that only one requirement has to be satisfied, then
+     * for this object to be resolved it can only contain one
+     * requirement and it has use the equal operator
+     * (Software::operator==).
+     *
+     * If specified that all requirements has to be satisfied, then for
+     * this object to be resolved each requirement must have a Software
+     * object with a unique family/name composition, i.e. no other
+     * requirements have a Software object with the same family/name
+     * composition, and each requirement must use the equal operator
+     * (Software::operator==).
+     *
+     * If this object has been resolved then \c true is returned when
+     * invoking this method, otherwise \c false is returned.
+     *
+     * @return \c true if this object have been resolved, otherwise
+     *         \c false.
+     **/
+    bool isResolved() const;
+
+    /// Test if the object is empty.
+    /**
+     * @return \c true if this object do no contain any requirements,
+     *         otherwise \c false.
+     **/
+    bool empty() const { return softwareList.empty(); }
+    /// Clear the object.
+    /**
+     * The requirements in this object will be cleared when invoking
+     * this method.
+     **/
+    void clear() { softwareList.clear(); comparisonOperatorList.clear(); orderedSoftwareList.clear(); }
+
+    /// Get list of Software objects.
+    /**
+     * @return The list of internally stored Software objects is
+     *         returned.
+     * @see Software,
+     * @see getComparisonOperatorList.
+     **/
     const std::list<Software>& getSoftwareList() const { return softwareList; }
-    /// Returns list of comparison operators.
-    const std::list<SWComparisonOperator>& getComparisonOperatorList() const { return comparisonOperatorList; }
+    /// Get list of comparison operators.
+    /**
+     * @return The list of internally stored comparison operators is
+     *         returned.
+     * @see Software::ComparisonOperator,
+     * @see getSoftwareList.
+     **/
+    const std::list<Software::ComparisonOperator>& getComparisonOperatorList() const { return comparisonOperatorList; }
 
   private:
     std::list<Software> softwareList;
-    std::list<SWComparisonOperator> comparisonOperatorList; 
+    std::list<Software::ComparisonOperator> comparisonOperatorList;
+    typedef std::pair<Software&, Software::ComparisonOperator&> SWRelPair;
+    std::list< std::list<SWRelPair> > orderedSoftwareList;
     bool requiresAll;
 
     static Logger logger;

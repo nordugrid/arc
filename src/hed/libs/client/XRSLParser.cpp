@@ -25,7 +25,7 @@ namespace Arc {
 
   XRSLParser::~XRSLParser() {}
 
-  static SWComparisonOperator convertOperator(const RSLRelOp& op) {
+  static Software::ComparisonOperator convertOperator(const RSLRelOp& op) {
     if (op == RSLNotEqual) return &Software::operator!=;
     if (op == RSLLess) return &Software::operator<;
     if (op == RSLGreater) return &Software::operator>;
@@ -34,7 +34,7 @@ namespace Arc {
     return &Software::operator==;
   }
 
-  static RSLRelOp convertOperator(const SWComparisonOperator& op) {
+  static RSLRelOp convertOperator(const Software::ComparisonOperator& op) {
     if (op == &Software::operator==) return RSLEqual;
     if (op == &Software::operator<)  return RSLLess;
     if (op == &Software::operator>)  return RSLGreater;
@@ -472,7 +472,7 @@ namespace Arc {
           logger.msg(DEBUG, "Syntax error in notify attribute. It must end with an email address.");
           return false;
         }
-        
+
         for (std::list<std::string>::iterator it = l.begin();
              it != l.end(); it++) {
           if (it->find('@') != std::string::npos) { // Not an email address.
@@ -540,7 +540,7 @@ namespace Arc {
         return true;
       }
 
-      // Underscore, in 'rsl_substitution', is removed by normalization. 
+      // Underscore, in 'rsl_substitution', is removed by normalization.
       if (c->Attr() == "rslsubstitution")
         // Handled internally by the RSL parser
         return true;
@@ -671,7 +671,7 @@ namespace Arc {
       logger.msg(ERROR, "Unexpected RSL type");
       return false;
     }
-  
+
     // This part will run only when the parsing is at the end of the xrsl file
 
     // Value defined in "cache" element is applicable to all input files
@@ -835,7 +835,7 @@ namespace Arc {
           l = new RSLList;
         l->Add(new RSLSequence(s));
       }
-      
+
       if (l)
         r.Add(new RSLCondition("inputfiles", RSLEqual, l));
 
@@ -888,7 +888,7 @@ namespace Arc {
             l = new RSLList;
           l->Add(new RSLSequence(s));
         }
-          
+
         outputIsAdded |= (it->Name == j.Application.Output);
         errorIsAdded  |= (it->Name == j.Application.Error);
         gmlogIsAdded  |= (it->Name == j.Application.LogDir);
@@ -947,7 +947,7 @@ namespace Arc {
 
     if (!j.Resources.RunTimeEnvironment.empty()) {
       std::list<Software>::const_iterator itSW = j.Resources.RunTimeEnvironment.getSoftwareList().begin();
-      std::list<SWComparisonOperator>::const_iterator itCO = j.Resources.RunTimeEnvironment.getComparisonOperatorList().begin();
+      std::list<Software::ComparisonOperator>::const_iterator itCO = j.Resources.RunTimeEnvironment.getComparisonOperatorList().begin();
       for (; itSW != j.Resources.RunTimeEnvironment.getSoftwareList().end(); itSW++, itCO++) {
         RSLList *l = new RSLList;
         l->Add(new RSLLiteral(*itSW));
@@ -957,7 +957,7 @@ namespace Arc {
 
     if (!j.Resources.CEType.empty()) {
       std::list<Software>::const_iterator itSW = j.Resources.CEType.getSoftwareList().begin();
-      std::list<SWComparisonOperator>::const_iterator itCO = j.Resources.CEType.getComparisonOperatorList().begin();
+      std::list<Software::ComparisonOperator>::const_iterator itCO = j.Resources.CEType.getComparisonOperatorList().begin();
       for (; itSW != j.Resources.CEType.getSoftwareList().end(); itSW++, itCO++) {
         RSLList *l = new RSLList;
         l->Add(new RSLLiteral(*itSW));
@@ -967,7 +967,7 @@ namespace Arc {
 
     if (!j.Resources.OperatingSystem.empty()) {
       std::list<Software>::const_iterator itSW = j.Resources.OperatingSystem.getSoftwareList().begin();
-      std::list<SWComparisonOperator>::const_iterator itCO = j.Resources.OperatingSystem.getComparisonOperatorList().begin();
+      std::list<Software::ComparisonOperator>::const_iterator itCO = j.Resources.OperatingSystem.getComparisonOperatorList().begin();
       for (; itSW != j.Resources.OperatingSystem.getSoftwareList().end(); itSW++, itCO++) {
         RSLList *l = new RSLList;
         l->Add(new RSLLiteral((std::string)*itSW));

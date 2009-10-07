@@ -139,17 +139,17 @@ namespace Arc {
       INTPRINT(Resources.IndividualWallTime.range.max, IndividualWallTime)
 
       STRPRINT(Resources.NetworkInfo, NetworkInfo)
- 
+
       if (!Resources.OperatingSystem.empty()) {
         std::cout << IString(" Operating system requirements:") << std::endl;
         std::list<Software>::const_iterator itOS = Resources.OperatingSystem.getSoftwareList().begin();
-        std::list<SWComparisonOperator>::const_iterator itCO = Resources.OperatingSystem.getComparisonOperatorList().begin();
+        std::list<Software::ComparisonOperator>::const_iterator itCO = Resources.OperatingSystem.getComparisonOperatorList().begin();
         for (; itOS != Resources.OperatingSystem.getSoftwareList().end(); itOS++, itCO++) {
           if (*itCO != &Software::operator==) std::cout << Software::toString(*itCO) << " ";
           std::cout << *itOS << std::endl;
         }
       }
-      
+
       STRPRINT(Resources.Platform, Platform)
       INTPRINT(Resources.IndividualPhysicalMemory.max, IndividualPhysicalMemory)
       INTPRINT(Resources.IndividualVirtualMemory.max, IndividualVirtualMemory)
@@ -168,7 +168,7 @@ namespace Arc {
       if (!Resources.CEType.empty()) {
         std::cout << IString(" Computing endpoint requirements:") << std::endl;
         std::list<Software>::const_iterator itCE = Resources.CEType.getSoftwareList().begin();
-        std::list<SWComparisonOperator>::const_iterator itCO = Resources.CEType.getComparisonOperatorList().begin();
+        std::list<Software::ComparisonOperator>::const_iterator itCO = Resources.CEType.getComparisonOperatorList().begin();
         for (; itCE != Resources.CEType.getSoftwareList().end(); itCE++, itCO++) {
           if (*itCO != &Software::operator==) std::cout << Software::toString(*itCO) << " ";
           std::cout << *itCE << std::endl;
@@ -195,7 +195,7 @@ namespace Arc {
       if (!Resources.RunTimeEnvironment.empty()) {
         std::cout << IString(" Run time environment requirements:") << std::endl;
         std::list<Software>::const_iterator itSW = Resources.RunTimeEnvironment.getSoftwareList().begin();
-        std::list<SWComparisonOperator>::const_iterator itCO = Resources.RunTimeEnvironment.getComparisonOperatorList().begin();
+        std::list<Software::ComparisonOperator>::const_iterator itCO = Resources.RunTimeEnvironment.getComparisonOperatorList().begin();
         for (; itSW != Resources.RunTimeEnvironment.getSoftwareList().end(); itSW++, itCO++) {
           if (*itCO != &Software::operator==) std::cout << Software::toString(*itCO) << " ";
           std::cout << *itSW << std::endl;

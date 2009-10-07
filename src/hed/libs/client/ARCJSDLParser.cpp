@@ -29,7 +29,7 @@ namespace Arc {
 
   bool ARCJSDLParser::parseSoftware(const XMLNode& xmlSoftware, SoftwareRequirement& sr) const {
     for (int i = 0; (bool)(xmlSoftware["Software"][i]); i++) {
-      SWComparisonOperator comOp = &Software::operator==;
+      Software::ComparisonOperator comOp = &Software::operator==;
       if (bool(xmlSoftware["Software"][i]["Version"].Attribute("require"))) {
         const std::string comOpStr = (std::string)xmlSoftware["Software"][i]["Version"].Attribute("require");
         if (comOpStr == "!=" || lower(comOpStr) == "ne")
@@ -58,7 +58,7 @@ namespace Arc {
 
   void ARCJSDLParser::outputSoftware(const SoftwareRequirement& sr, XMLNode& arcJSDL) const {
     std::list<Software>::const_iterator itSW = sr.getSoftwareList().begin();
-    std::list<SWComparisonOperator>::const_iterator itCO = sr.getComparisonOperatorList().begin();
+    std::list<Software::ComparisonOperator>::const_iterator itCO = sr.getComparisonOperatorList().begin();
     for (; itSW != sr.getSoftwareList().end(); itSW++, itCO++) {
       if (itSW->empty()) continue;
 

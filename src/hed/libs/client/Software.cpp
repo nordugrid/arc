@@ -18,7 +18,7 @@ namespace Arc {
 
 Software::Software(const std::string& name_version) : version(""), family("") {
   std::size_t pos = 0;
-  
+
   while (pos != std::string::npos) {
     // Look for dashes in the input string.
     pos = name_version.find_first_of("-", pos);
@@ -50,14 +50,6 @@ Software::Software(const std::string& family, const std::string& name, const std
   tokenize(version, tokenizedVersion, VERSIONTOKENS);
 }
 
-Software& Software::operator=(const Software& sv) {
-  family = sv.family;
-  name = sv.name;
-  version = sv.version;
-  tokenizedVersion = sv.tokenizedVersion;
-  return *this;
-}
-
 std::string Software::operator()() const {
   if (empty()) return "";
   if (family.empty() && version.empty()) return name;
@@ -66,124 +58,56 @@ std::string Software::operator()() const {
   return family + "-" + name + "-" + version;
 }
 
-// Does not support extra 0.0.0...
 bool Software::operator>(const Software& sv) const {
   if (family != sv.family || name != sv.name ||
-      version.empty() || sv.version.empty()) return false;
-  
-  int thisInt, svInt;
-  bool res = false;
+      version.empty() || sv.version.empty() ||
+      version == sv.version) return false;
 
-  std::list<std::string>::const_iterator thisIt, svIt;
-  for (thisIt  = tokenizedVersion.begin(), svIt  = sv.tokenizedVersion.begin();
-       thisIt != tokenizedVersion.end() && svIt != sv.tokenizedVersion.end();
-       thisIt++, svIt++) {
-    if (*thisIt == *svIt)
+  int lhsInt, rhsInt;
+  std::list<std::string>::const_iterator lhsIt, rhsIt;
+  for (lhsIt  = tokenizedVersion.begin(), rhsIt  = sv.tokenizedVersion.begin();
+       lhsIt != tokenizedVersion.end() && rhsIt != sv.tokenizedVersion.end();
+       lhsIt++, rhsIt++) {
+    if (*lhsIt == *rhsIt)
       continue;
-    if (stringto(*thisIt, thisInt) && stringto(*svIt, svInt)) {
-      if (thisInt > svInt) {
-        res = true;
-        continue;
+    if (stringto(*lhsIt, lhsInt) && stringto(*rhsIt, rhsInt)) {
+      if (lhsInt > rhsInt) {
+        logger.msg(DEBUG, "% > % => true", (std::string)*this, (std::string)sv);
+        return true;
       }
-      if (thisInt == svInt)
-        continue;
-      if (res) // Less than. But a higher parent version number already detected.
+      if (lhsInt == rhsInt)
         continue;
     }
+    else {
+      logger.msg(DEBUG, "%s > %s => false: \%s contains non numbers in the version part.", (std::string)*this, (std::string)sv, (!stringto(*lhsIt, lhsInt) ? (std::string)*this : (std::string)sv));
+      return false;
+    }
 
-    logger.msg(DEBUG, "String parts are not equal, and are not a number.");
-    
+    logger.msg(DEBUG, "% > % => false", (std::string)*this, (std::string)sv);
     return false;
   }
 
-  // No more elements to parse, return res.
-  if (sv.tokenizedVersion.size() == tokenizedVersion.size()) {
-    logger.msg(DEBUG, "The versions consist of the same number of parts. Returning %d.", res);
-    return res;
-  }
-
-  // Left side contains extra elements. These must not be strings.
-  for (; thisIt != tokenizedVersion.end(); thisIt++) {
-    if (!stringto(*thisIt, thisInt)) {
-      logger.msg(DEBUG, "Left side contains extra element which are not numbers.");
-      return false;
-    }
-    
-    res = true;
-  }
-
-  // Right side contains extra elements. These must not be strings.
-  for (; svIt != sv.tokenizedVersion.end(); svIt++) {
-    if (!stringto(*svIt, svInt)) {
-      logger.msg(DEBUG, "Right side contains extra element which are not numbers.");
-      return false;
-    }
-  }
-
-  logger.msg(DEBUG, "lhs > rhs TRUE");
-
-  return res;
-}
-
-bool Software::operator<(const Software& sv) const {
-  if (family != sv.family || name != sv.name ||
-      version.empty() || sv.version.empty()) return false;
-  
-  int thisInt, svInt;
-  bool res = false;
-
-  std::list<std::string>::const_iterator thisIt, svIt;
-  for (thisIt =  tokenizedVersion.begin(), svIt  = sv.tokenizedVersion.begin();
-       thisIt != tokenizedVersion.end() && svIt != sv.tokenizedVersion.end();
-       thisIt++, svIt++) {
-    if (*thisIt == *svIt)
-      continue;
-    if (stringto(*thisIt, thisInt) && stringto(*svIt, svInt)) {
-      if (thisInt < svInt) {
-        res = true;
-        continue;
+  if (sv.tokenizedVersion.size() != tokenizedVersion.size()) {
+    // Left side contains extra tokens. These must only contain numbers.
+    for (; lhsIt != tokenizedVersion.end(); lhsIt++) {
+      if (!stringto(*lhsIt, lhsInt)) { // Try to convert ot an integer.
+        logger.msg(DEBUG, "%s > %s => false: %s contains non numbers in the version part.", (std::string)*this, (std::string)sv, (std::string)*this);
+        return false;
       }
-      if (thisInt == svInt)
-        continue;
-      if (res) // Less than. But a higher parent version number already detected.
-        continue;
-    }
 
-    logger.msg(DEBUG, "String parts are not equal, and are not a number.");
-    
-    return false;
-  }
-
-  // No more elements to parse, return res.
-  if (sv.tokenizedVersion.size() == tokenizedVersion.size()) {
-    logger.msg(DEBUG, "The versions consist of the same number of parts. Returning %d.", res);
-    return res;
-  }
-
-  // Left side contains extra elements. These must not be strings.
-  for (; thisIt != tokenizedVersion.end(); thisIt++) {
-    if (!stringto(*thisIt, thisInt)) {
-      logger.msg(DEBUG, "Left side contains extra element which are not numbers.");
-      return false;
+      if (lhsInt != 0) {
+        logger.msg(DEBUG, "% > % => true", (std::string)*this, (std::string)sv);
+        return true;
+      }
     }
   }
 
-  // Right side contains extra elements. These must not be strings.
-  for (; svIt != sv.tokenizedVersion.end(); svIt++) {
-    if (!stringto(*svIt, svInt)) {
-      logger.msg(DEBUG, "Right side contains extra element which are not numbers.");
-      return false;
-    }
+  logger.msg(DEBUG, "% > % => false", (std::string)*this, (std::string)sv);
 
-    res = true;
-  }
-  
-  logger.msg(DEBUG, "lhs < rhs TRUE");
-  
-  return res;
+  return false;
 }
 
-std::string Software::toString(SWComparisonOperator co) {
+std::string Software::toString(ComparisonOperator co) {
   if (co == &Software::operator==) return "==";
   if (co == &Software::operator<)  return "<";
   if (co == &Software::operator>)  return ">";
@@ -192,15 +116,7 @@ std::string Software::toString(SWComparisonOperator co) {
   return "!=";
 }
 
-SoftwareRequirement::SoftwareRequirement(const Software& sw,
-                                         Software::ComparisonOperator co,
-                                         bool requiresAll)
-  : requiresAll(requiresAll) {
-    softwareList.push_back(sw);
-    comparisonOperatorList.push_back(Software::convert(co));
-}
-
-SWComparisonOperator Software::convert(const Software::ComparisonOperator& co) {
+Software::ComparisonOperator Software::convert(const Software::ComparisonOperatorEnum& co) {
   switch (co) {
   case Software::EQUAL:
     return &Software::operator==;
@@ -217,41 +133,90 @@ SWComparisonOperator Software::convert(const Software::ComparisonOperator& co) {
   };
 }
 
+SoftwareRequirement::SoftwareRequirement(const Software& sw,
+                                         Software::ComparisonOperatorEnum co,
+                                         bool requiresAll)
+  : requiresAll(requiresAll), softwareList(1, sw), comparisonOperatorList(1, Software::convert(co)),
+    orderedSoftwareList(1, std::list<SWRelPair>(1, SWRelPair(softwareList.front(), comparisonOperatorList.front())))
+{}
+
+SoftwareRequirement::SoftwareRequirement(const Software& sw,
+                                         Software::ComparisonOperator swComOp,
+                                         bool requiresAll)
+  : softwareList(1, sw), comparisonOperatorList(1, swComOp), requiresAll(requiresAll),
+    orderedSoftwareList(1, std::list<SWRelPair>(1, SWRelPair(softwareList.front(), comparisonOperatorList.front())))
+{}
+
 SoftwareRequirement& SoftwareRequirement::operator=(const SoftwareRequirement& sr) {
   requiresAll = sr.requiresAll;
   softwareList = sr.softwareList;
   comparisonOperatorList = sr.comparisonOperatorList;
+
+  orderedSoftwareList.clear();
+  std::list<Software>::iterator itSW = softwareList.begin();
+  std::list<Software::ComparisonOperator>::iterator itCO = comparisonOperatorList.begin();
+  for (; itSW != softwareList.end(); itSW++, itCO++) {
+    std::list< std::list<SWRelPair> >::iterator itRel = orderedSoftwareList.begin();
+    for (; itRel != orderedSoftwareList.end(); itRel++) {
+      if (itRel->front().first.getName() == itSW->getName() &&
+          itRel->front().first.getFamily() == itSW->getFamily()) {
+        itRel->push_back(SWRelPair(*itSW, *itCO));
+        break;
+      }
+    }
+
+    if (itRel == orderedSoftwareList.end())
+      orderedSoftwareList.push_back(std::list<SWRelPair>(1, SWRelPair(*itSW, *itCO)));
+  }
+
   return *this;
 }
 
-void SoftwareRequirement::add(const Software& sw, SWComparisonOperator swComOp) {
+
+void SoftwareRequirement::add(const Software& sw, Software::ComparisonOperator swComOp) {
   if (!sw.empty()) {
     softwareList.push_back(sw);
     comparisonOperatorList.push_back(swComOp);
+    for (std::list< std::list<SWRelPair> >::iterator it = orderedSoftwareList.begin();
+         it != orderedSoftwareList.end(); it++) {
+      if (it->front().first.getName() == sw.getName() &&
+          it->front().first.getFamily() == sw.getFamily()) {
+        it->push_back(SWRelPair(softwareList.back(), comparisonOperatorList.back()));
+        return;
+      }
+    }
+
+    orderedSoftwareList.push_back(std::list<SWRelPair>(1, SWRelPair(softwareList.back(), comparisonOperatorList.back())));
   }
 }
 
-void SoftwareRequirement::add(const Software& sw, Software::ComparisonOperator co) {
-  if (!sw.empty()) {
-    softwareList.push_back(sw);
-    comparisonOperatorList.push_back(Software::convert(co));
-  }
+void SoftwareRequirement::add(const Software& sw, Software::ComparisonOperatorEnum co) {
+  add(sw, Software::convert(co));
 }
 
 bool SoftwareRequirement::isSatisfied(const std::list<Software>& swList) const {
   // Compare Software objects in the 'versions' list with those in 'swList'.
-  std::list<Software>::const_iterator itSWSelf = softwareList.begin();
-  std::list<SWComparisonOperator>::const_iterator itCO = comparisonOperatorList.begin();
-  for (; itSWSelf != softwareList.end(); itSWSelf++, itCO++) {
+  std::list< std::list<SWRelPair> >::const_iterator itOSL = orderedSoftwareList.begin();
+  for (; itOSL != orderedSoftwareList.end(); itOSL++) {
     // Loop over 'swList'.
     std::list<Software>::const_iterator itSWList = swList.begin();
     for (; itSWList != swList.end(); itSWList++) {
-      if (((*itSWList).*(*itCO))(*itSWSelf)) { // One of the requirements satisfied.
-        logger.msg(DEBUG, "Requirement satisfied. %s %s.", (std::string)*itSWSelf, (std::string)*itSWList);
-        if (!requiresAll) // Only one satisfied requirement is needed.
-          return true;
-        break;
+      std::list<SWRelPair>::const_iterator itSRL = itOSL->begin();
+      for (; itSRL != itOSL->end(); itSRL++) {
+        if (((*itSWList).*itSRL->second)(itSRL->first)) { // One of the requirements satisfied.
+          logger.msg(DEBUG, "Requirement satisfied. %s %s %s.", (std::string)*itSWList, Software::toString(itSRL->second), (std::string)itSRL->first);
+          if (!requiresAll) // Only one satisfied requirement is needed.
+            return true;
+        }
+        else {
+          logger.msg(DEBUG, "Requirement NOT satisfied. %s %s %s.", (std::string)*itSWList, Software::toString(itSRL->second), (std::string)itSRL->first);
+          if (requiresAll) // If requiresAll == true, then a element from the swList have to satisfy all requirements for a unique software (family + name).
+            break;
+        }
       }
+
+      if (requiresAll && itSRL == itOSL->end()) // All requirements in the group have been satisfied by a single software.
+        break;
     }
 
     if (requiresAll && // All requirements have to be satisfied.
@@ -261,7 +226,7 @@ bool SoftwareRequirement::isSatisfied(const std::list<Software>& swList) const {
     }
   }
 
-  if (requiresAll) 
+  if (requiresAll)
     logger.msg(DEBUG, "Requirements satisfied.");
   else
     logger.msg(DEBUG, "Requirements not satisfied.");
@@ -274,48 +239,68 @@ bool SoftwareRequirement::isSatisfied(const std::list<ApplicationEnvironment>& s
 }
 
 bool SoftwareRequirement::selectSoftware(const std::list<Software>& swList) {
-  std::list<Software> selectedSoftware;
-  std::list<SWComparisonOperator> selectedSoftwareCO;
-  
-  std::list<Software>::iterator itSWSelf = softwareList.begin();
-  std::list<SWComparisonOperator>::iterator itCO = comparisonOperatorList.begin();
-  for (; itSWSelf != softwareList.end(); itSWSelf++, itCO++) {
+  SoftwareRequirement sr(requiresAll);
+
+  std::list< std::list<SWRelPair> >::const_iterator itOSL = orderedSoftwareList.begin();
+  for (; itOSL != orderedSoftwareList.end(); itOSL++) {
     Software * currentSelectedSoftware = NULL; // Pointer to the current selected software from the argument list.
-    
     for (std::list<Software>::const_iterator itSWList = swList.begin();
          itSWList != swList.end(); itSWList++) {
-      if (((*itSWList).*(*itCO))(*itSWSelf)) { // Requirement is satisfied.
-        if (currentSelectedSoftware == NULL) { // First software to satisfy requirement. Push it to the 
-          selectedSoftware.push_back(*itSWList);
-          selectedSoftwareCO.push_back(&Software::operator ==);
-          currentSelectedSoftware = &selectedSoftware.back();
+      std::list<SWRelPair>::const_iterator itSRP = itOSL->begin();
+      for (; itSRP != itOSL->end(); itSRP++) {
+        if (((*itSWList).*itSRP->second)(itSRP->first)) { // Requirement is satisfied.
+          if (!requiresAll)
+            break;
+        }
+        else if (requiresAll)
+          break;
+      }
+
+      if (requiresAll && itSRP == itOSL->end() || // All requirements satisfied by this software.
+          !requiresAll && itSRP != itOSL->end()) { // One requirement satisfied by this software.
+        if (currentSelectedSoftware == NULL) { // First software to satisfy requirement. Push it to the selected software.
+          sr.softwareList.push_back(*itSWList);
+          sr.comparisonOperatorList.push_back(&Software::operator ==);
         }
         else if (*currentSelectedSoftware < *itSWList) { // Select the software with the highest version still satisfying the requirement.
-          selectedSoftware.back() = *itSWList;
+          sr.softwareList.back() = *itSWList;
         }
+
+        currentSelectedSoftware = &sr.softwareList.back();
       }
     }
 
-    if (!requiresAll && selectedSoftware.size() == 1) { // Only one requirement need to be satisfied.
-      softwareList = selectedSoftware;
-      comparisonOperatorList = selectedSoftwareCO;
+    if (!requiresAll && sr.softwareList.size() == 1) { // Only one requirement need to be satisfied.
+      *this = sr;
       return true;
     }
-    
+
     if (requiresAll && currentSelectedSoftware == NULL)
       return false;
   }
 
-  if (requiresAll) {
-    softwareList = selectedSoftware;
-    comparisonOperatorList = selectedSoftwareCO;
-  }
+  if (requiresAll)
+    *this = sr;
 
   return requiresAll;
 }
 
 bool SoftwareRequirement::selectSoftware(const std::list<ApplicationEnvironment>& swList) {
   return selectSoftware(reinterpret_cast< const std::list<Software>& >(swList));
+}
+
+bool SoftwareRequirement::isResolved() const {
+  if (!requiresAll)
+    return softwareList.size() <= 1 && (softwareList.size() == 0 || comparisonOperatorList.front() == &Software::operator==);
+  else {
+    for (std::list< std::list<SWRelPair> >::const_iterator it = orderedSoftwareList.begin();
+         it != orderedSoftwareList.end(); it++) {
+      if (it->size() > 1 || it->front().second != &Software::operator==)
+        return false;
+    }
+
+    return true;
+  }
 }
 
 } // namespace Arc
