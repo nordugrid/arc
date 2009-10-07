@@ -1,4 +1,5 @@
-src/clients/arclib/client.xml.example
+src/clients/saml/voms_assertion_init_client.xml.example
+src/clients/client.conf.example
 src/tests/echo/echo.wsdl
 src/clients/charon/charon_client.xml.example
 src/clients/charon/charon_request.xml.example

@@ -20,7 +20,6 @@ usr/bin/arcresub
 usr/bin/arcmigrate
 usr/bin/arcresume
 usr/bin/arcrenew
-usr/bin/voms_assertion_init
 usr/bin/jura
 usr/share/man/man1/arcecho.1
 usr/share/man/man1/arcinfo.1
@@ -38,7 +37,6 @@ usr/share/man/man1/arcls.1
 usr/share/man/man1/arcrm.1
 usr/share/man/man1/arcdecision.1
 usr/share/man/man1/arcsrmping.1
-usr/share/man/man1/voms_assertion_init.1
 @STORAGE_SERVICE_ENABLED_TRUE@usr/share/man/man1/chelonia.1
 usr/share/man/man1/arcresub.1
 usr/share/man/man1/arcmigrate.1

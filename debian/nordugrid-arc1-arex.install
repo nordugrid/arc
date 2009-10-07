@@ -28,7 +28,6 @@ usr/lib/arc/ConfigParser.pm
 usr/lib/arc/GMJobsInfo.pm
 usr/lib/arc/HostInfo.pm
 usr/lib/arc/InfoChecker.pm
-usr/lib/arc/InfoCollector.pm
 usr/lib/arc/LRMSInfo.pm
 
 usr/lib/arc/LogUtils.pm
