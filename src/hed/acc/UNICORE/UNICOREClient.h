@@ -36,8 +36,9 @@ namespace Arc {
        an UNICORE client that corresponds to a specific UNICORE service.
        @param url The URL of the UNICORE service.
        @param cfg An MCC configuration object.
+       @param timeout Timeout of the connection to the client. The default value is 20000 milliseconds based on this document: http://www.unicore.eu/documentation/manuals/unicore6/files/RichClient.pdf
      */
-    UNICOREClient(const URL& url, const MCCConfig& cfg, int timeout);
+    UNICOREClient(const URL& url, const MCCConfig& cfg, int timeout=20);
 
     //! The destructor.
     ~UNICOREClient();
