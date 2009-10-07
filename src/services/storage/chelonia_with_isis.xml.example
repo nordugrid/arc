@@ -1,0 +1,175 @@
+<?xml version="1.0"?>
+<ArcConfig xmlns="http://www.nordugrid.org/schemas/ArcConfig/2007" xmlns:tcp="http://www.nordugrid.org/schemas/ArcMCCTCP/2007">
+    <Server>
+        <Foreground/>
+        <Pidfile>/var/run/arched.pid</Pidfile>
+        <Logger>
+	 		<Level>ERROR</Level>
+			<File>/var/log/arched.log</File>
+		</Logger>
+    </Server>
+    <ModuleManager>
+        <Path>/usr/local/lib/arc</Path>
+    </ModuleManager>
+    <Plugins><Name>mcctcp</Name></Plugins>
+    <Plugins><Name>mcctls</Name></Plugins>
+    <Plugins><Name>mcchttp</Name></Plugins>
+    <Plugins><Name>mccsoap</Name></Plugins>
+    <Plugins><Name>isis</Name></Plugins>
+    <Chain>
+        <Component name="tcp.service" id="tcp">
+            <next id="tls"/>
+            <tcp:Listen>
+                <tcp:Port>60000</tcp:Port>
+                <tcp:Version>4</tcp:Version>
+            </tcp:Listen>
+        </Component>
+        <Component name="tls.service" id="tls">
+            <next id="http"/>
+            <KeyPath>/etc/grid-security/hostkey.pem</KeyPath>
+            <CertificatePath>/etc/grid-security/hostcert.pem</CertificatePath>
+            <CACertificatesDir>/etc/grid-security/certificates</CACertificatesDir>
+        </Component>
+        <Component name="http.service" id="http">
+            <next id="soap">POST</next>
+            <next id="plexer">GET</next>
+            <next id="plexer">PUT</next>
+        </Component>
+        <Component name="soap.service" id="soap">
+            <next id="plexer"/>
+        </Component>
+        <Plexer name="plexer.service" id="plexer">
+            <next id="ahash">^/AHash$</next>
+            <next id="librarian">^/Librarian$</next>
+            <next id="bartender">^/Bartender$</next>
+            <next id="shepherd1">^/Shepherd1$</next>
+            <next id="hopi1">^/hopi1/</next>
+            <next id="shepherd2">^/Shepherd2$</next>
+            <next id="hopi2">^/hopi2/</next>
+            <next id="isis">^/isis$</next>
+        </Plexer>
+        <Service name="pythonservice" id="bartender">
+            <ClassName>storage.bartender.bartender.BartenderService</ClassName>
+			<ISISURL>https://localhost:60000/isis</ISISURL>
+            <ClientSSLConfig>
+	            <KeyPath>/etc/grid-security/hostkey.pem</KeyPath>
+	            <CertificatePath>/etc/grid-security/hostcert.pem</CertificatePath>
+	            <CACertificatesDir>/etc/grid-security/certificates</CACertificatesDir>
+			</ClientSSLConfig>
+            <InfoRegister>
+                <Period>PT5S</Period>
+                <Endpoint>https://localhost:60000/Bartender</Endpoint>
+                <Expiration>PT10S</Expiration>
+			    <Registrar>
+			        <URL>https://localhost:60000/isis</URL>
+			        <Retry>1</Retry>
+		            <KeyPath>/etc/grid-security/hostkey.pem</KeyPath>
+		            <CertificatePath>/etc/grid-security/hostcert.pem</CertificatePath>
+		            <CACertificatesDir>/etc/grid-security/certificates</CACertificatesDir>
+			    </Registrar>
+            </InfoRegister>
+        </Service>
+        <Service name="pythonservice" id="librarian">
+            <ClassName>storage.librarian.librarian.LibrarianService</ClassName>
+			<ISISURL>https://localhost:60000/isis</ISISURL>
+            <HeartbeatTimeout>30</HeartbeatTimeout>
+            <CheckPeriod>20</CheckPeriod>
+            <ClientSSLConfig>
+	            <KeyPath>/etc/grid-security/hostkey.pem</KeyPath>
+	            <CertificatePath>/etc/grid-security/hostcert.pem</CertificatePath>
+	            <CACertificatesDir>/etc/grid-security/certificates</CACertificatesDir>
+			</ClientSSLConfig>
+			<InfoRegister>
+                <Period>PT5S</Period>
+                <Endpoint>https://localhost:60000/Librarian</Endpoint>
+                <Expiration>PT10S</Expiration>
+			    <Registrar>
+			        <URL>https://localhost:60000/isis</URL>
+			        <Retry>1</Retry>
+		            <KeyPath>/etc/grid-security/hostkey.pem</KeyPath>
+		            <CertificatePath>/etc/grid-security/hostcert.pem</CertificatePath>
+		            <CACertificatesDir>/etc/grid-security/certificates</CACertificatesDir>
+			    </Registrar>
+            </InfoRegister>
+        </Service>
+        <Service name="pythonservice" id="ahash">
+            <ClassName>storage.ahash.ahash.AHashService</ClassName>
+            <AHashClass>storage.ahash.ahash.CentralAHash</AHashClass>
+            <StoreClass>arcom.store.cachedpicklestore.CachedPickleStore</StoreClass>
+            <StoreCfg>
+                <DataDir>/var/spool/arc/ahash_data</DataDir>
+            </StoreCfg>
+            <InfoRegister>
+                <Period>PT5S</Period>
+                <Endpoint>https://localhost:60000/AHash</Endpoint>
+                <Expiration>PT10S</Expiration>
+			    <Registrar>
+			        <URL>https://localhost:60000/isis</URL>
+			        <Retry>1</Retry>
+		            <KeyPath>/etc/grid-security/hostkey.pem</KeyPath>
+		            <CertificatePath>/etc/grid-security/hostcert.pem</CertificatePath>
+		            <CACertificatesDir>/etc/grid-security/certificates</CACertificatesDir>
+			    </Registrar>
+            </InfoRegister>
+        </Service>
+        <Service name="pythonservice" id="shepherd1">
+            <ClassName>storage.shepherd.shepherd.ShepherdService</ClassName>
+            <ServiceID>https://localhost:60000/Shepherd1</ServiceID>
+            <CheckPeriod>20</CheckPeriod>
+            <MinCheckInterval>0.1</MinCheckInterval>
+            <StoreClass>arcom.store.cachedpicklestore.CachedPickleStore</StoreClass>
+            <StoreCfg>
+                <DataDir>/var/spool/arc/shepherd_data1</DataDir>
+            </StoreCfg>
+            <BackendClass>storage.shepherd.hardlinkingbackend.HopiBackend</BackendClass>
+            <BackendCfg>
+                <DataDir>/var/spool/arc/shepherd_store1</DataDir>
+                <TransferDir>/var/spool/arc/shepherd_transfer1</TransferDir>
+                <TURLPrefix>https://localhost:60000/hopi1/</TURLPrefix>
+            </BackendCfg>
+			<ISISURL>https://localhost:60000/isis</ISISURL>
+            <ClientSSLConfig>
+	            <KeyPath>/etc/grid-security/hostkey.pem</KeyPath>
+	            <CertificatePath>/etc/grid-security/hostcert.pem</CertificatePath>
+	            <CACertificatesDir>/etc/grid-security/certificates</CACertificatesDir>
+			</ClientSSLConfig>
+        </Service>
+        <Service name="hopi" id="hopi1">
+            <DocumentRoot>/var/spool/arc/shepherd_transfer1</DocumentRoot>
+            <SlaveMode>1</SlaveMode>
+        </Service>
+        <Service name="pythonservice" id="shepherd2">
+            <ClassName>storage.shepherd.shepherd.ShepherdService</ClassName>
+            <ServiceID>https://localhost:60000/Shepherd2</ServiceID>
+            <CheckPeriod>20</CheckPeriod>
+            <MinCheckInterval>0.1</MinCheckInterval>
+            <StoreClass>arcom.store.cachedpicklestore.CachedPickleStore</StoreClass>
+            <StoreCfg>
+                <DataDir>/var/spool/arc/shepherd_data2</DataDir>
+            </StoreCfg>
+            <BackendClass>storage.shepherd.hardlinkingbackend.HopiBackend</BackendClass>
+            <BackendCfg>
+                <DataDir>/var/spool/arc/shepherd_store2</DataDir>
+                <TransferDir>/var/spool/arc/shepherd_transfer2</TransferDir>
+                <TURLPrefix>https://localhost:60000/hopi2/</TURLPrefix>
+            </BackendCfg>
+			<ISISURL>https://localhost:60000/isis</ISISURL>
+            <ClientSSLConfig>
+	            <KeyPath>/etc/grid-security/hostkey.pem</KeyPath>
+	            <CertificatePath>/etc/grid-security/hostcert.pem</CertificatePath>
+	            <CACertificatesDir>/etc/grid-security/certificates</CACertificatesDir>
+			</ClientSSLConfig>
+        </Service>
+        <Service name="hopi" id="hopi2">
+            <DocumentRoot>/var/spool/arc/shepherd_transfer2</DocumentRoot>
+            <SlaveMode>1</SlaveMode>
+        </Service>
+        <Service name='isis' id='isis'>
+            <DBPath>/var/spool/arc/isis_data</DBPath>
+            <KeyPath>/etc/grid-security/hostkey.pem</KeyPath>
+            <CertificatePath>/etc/grid-security/hostcert.pem</CertificatePath>
+            <CACertificatesDir>/etc/grid-security/certificates</CACertificatesDir>
+            <endpoint>https://localhost:60000/isis</endpoint>
+        </Service>
+    </Chain>
+</ArcConfig>

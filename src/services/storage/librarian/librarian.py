@@ -20,38 +20,65 @@ from arcom.logger import Logger
 log = Logger(arc.Logger(arc.Logger_getRootLogger(), 'Storage.Librarian'))
 
 class Librarian:
-    def __init__(self, cfg, ssl_config):
-        self.service_is_running = True
-        # URL of the A-Hash
-        ahash_urls =  get_child_values_by_name(cfg, 'AHashURL')
-        isis_url =  get_child_values_by_name(cfg, 'ISISURL')
-
-        if ahash_urls:
-	    log.msg(arc.DEBUG, "AHash URL found in the configuration.")
-        elif not isis_url:
-	    log.msg(arc.DEBUG, "AHash URL and ISIS URL not found in the configuration.")            
-        else:
-             isis = ISISClient(isis_url, print_xml = False)
-             ahash_urls = isis.getServiceURLs(ahash_servicetype)
-
+    
+    def __init__(self, cfg, ssl_config, service_state):
+        self.service_state = service_state
+        self.ssl_config = ssl_config
         try:
-            self.master_ahash = arc.URL(ahash_urls[0])
-            self.ahash_reader = AHashClient(ahash_urls, ssl_config = ssl_config)
-            self.ahash_writer = AHashClient(ahash_urls, ssl_config = ssl_config)
-        except:
-            log.msg(arc.DEBUG, 'Cannot find AHash url in the config or in the ISIS')
-            raise
-
-        try:
-            period = float(str(cfg.Get('CheckPeriod')))
+            self.period = float(str(cfg.Get('CheckPeriod')))
             self.hbtimeout = float(str(cfg.Get('HeartbeatTimeout')))
         except:
-            log.msg(arc.DEBUG, 'Cannot find CheckPeriod, HeartbeatTimeout in the config')
-            raise
-        threading.Thread(target = self.checkingThread, args = [period]).start()
-
-    def __del__(self):
-        self.service_is_running = False
+            log.msg(arc.ERROR, 'Cannot find CheckPeriod, HeartbeatTimeout in the config')
+            raise Exception, 'Librarian cannot run without CheckPeriod and HeartbeatTimeout'
+        log.msg(arc.INFO,'Getting AHash URL from the config')
+        ahash_urls =  get_child_values_by_name(cfg, 'AHashURL')
+        if ahash_urls:
+            log.msg(arc.INFO,'Got AHash URLs:', ahash_urls)
+            log.msg(arc.DEBUG, 'AHash URL found in the configuration.')
+            self.master_ahash = arc.URL(ahash_urls[0])
+            self.ahash_reader = AHashClient(ahash_urls, ssl_config = self.ssl_config)
+            self.ahash_writer = AHashClient(ahash_urls, ssl_config = self.ssl_config)
+            self.thread_is_running = True
+            log.msg(arc.INFO,'Starting checking thread')
+            threading.Thread(target = self.checkingThread).start()
+            log.msg(arc.INFO,'Setting running state to True')
+            self.service_state.running = True
+        else:
+            log.msg(arc.INFO,'No AHash from the config')
+            isis_urls =  get_child_values_by_name(cfg, 'ISISURL')
+            if not isis_urls:
+	            log.msg(arc.ERROR, "AHash URL and ISIS URL not found in the configuration.")
+	            raise Exception, 'Librarian cannot run with no A-Hash'
+            log.msg(arc.INFO,'Got ISIS URL, starting initThread')
+            self.thread_is_running = True
+            threading.Thread(target = self.initThread, args = [isis_urls]).start()
+        
+    def initThread(self, isis_urls):
+        found_ahash = False
+        while not found_ahash:
+            try:
+                time.sleep(3)
+                log.msg(arc.INFO,'Trying to get A-Hash from ISISes')
+                for isis_url in isis_urls:
+                    if not self.thread_is_running:
+                        return
+                    log.msg(arc.INFO,'Trying to get A-Hash from', isis_url)
+                    isis = ISISClient(isis_url, ssl_config = self.ssl_config)
+                    try:
+                        ahash_urls = isis.getServiceURLs(ahash_servicetype)
+                        log.msg(arc.INFO,'Got A-Hash from ISIS:', ahash_urls)
+                        if ahash_urls:
+                            self.master_ahash = arc.URL(ahash_urls[0])
+                            self.ahash_reader = AHashClient(ahash_urls, ssl_config = self.ssl_config)
+                            self.ahash_writer = AHashClient(ahash_urls, ssl_config = self.ssl_config)
+                            found_ahash = True
+                    except:
+                        log.msg()
+            except Exception, e:
+                log.msg(arc.WARNING, 'Error in initThread: %s' % e)
+        log.msg(arc.INFO,'initThread finishes, starting checkingThread')
+        threading.Thread(target = self.checkingThread).start()
+        self.service_state.running = True
 
     def _update_ahash_urls(self):
         try:
@@ -125,9 +152,9 @@ class Librarian:
                 self.ahash_writer.reset()
                 raise
     
-    def checkingThread(self, period):
+    def checkingThread(self):
         time.sleep(10)
-        while self.service_is_running:
+        while self.thread_is_running:
             try:
                 SEs = self.ahash_get([sestore_guid])[sestore_guid]
                 #print 'registered shepherds:', SEs
@@ -149,11 +176,11 @@ class Librarian:
                         self._set_next_heartbeat(serviceID, -1)
                 # update list of ahashes
                 self._update_ahash_urls()
-                time.sleep(period)
+                time.sleep(self.period)
             except Exception, e:
                 log.msg(arc.ERROR, "Error in Librarian's checking thread: %s" % e)
                 #log.msg()
-                time.sleep(period)
+                time.sleep(self.period)
 
     def _change_states(self, changes):
         # we got a list of (GUID, serviceID, referenceID, state) - where GUID is of the file,
@@ -402,10 +429,14 @@ class LibrarianService(Service):
         # names of provided methods
         request_names = ['new','get','traverseLN', 'modifyMetadata', 'remove', 'report']
         # call the Service's constructor
-        Service.__init__(self, [{'request_names' : request_names, 'namespace_prefix': 'lbr', 'namespace_uri': librarian_uri}], cfg)
-        ssl_config = parse_ssl_config(cfg)
-        ssl_config['get_trusted_dns_method'] = self._get_trusted_dns
-        self.librarian = Librarian(cfg, ssl_config)
+        Service.__init__(self, [{'request_names' : request_names, 'namespace_prefix': 'lbr', 'namespace_uri': librarian_uri}], cfg, start_service = False)
+        # this causes trouble on shutdown (the Librarian class would have a reference to the LibrarianService class, so the destructor would not be called)
+        #ssl_config['get_trusted_dns_method'] = self._get_trusted_dns
+        self.librarian = Librarian(cfg, self.ssl_config, self.state)
+    
+    def __del__(self):
+        self.librarian.thread_is_running = False
+        Service.__del__(self)
     
     def new(self, inpayload):
         requests0 = parse_node(inpayload.Child().Child(),

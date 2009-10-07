@@ -6,6 +6,7 @@ import time
 import traceback
 import os
 import base64
+import threading
 from arcom import import_class_from_string, get_child_nodes, get_child_values_by_name
 from arcom.service import librarian_uri, bartender_uri, librarian_servicetype, gateway_uri, true, parse_node, create_response, node_to_data
 from arcom.xmltree import XMLTree
@@ -21,14 +22,11 @@ log = Logger(arc.Logger(arc.Logger_getRootLogger(), 'Storage.Bartender'))
 
 class Bartender:
 
-    def __init__(self, librarian, ssl_config, cfg):
+    def __init__(self, cfg, ssl_config, service_state):
         """ Constructor of the Bartender business-logic class.
         
-        Bartender(librarian)
-        
-        librarian is LibrarianClient object which can be used to access a Librarian service
         """
-        self.librarian = librarian
+        self.service_state = service_state
         gatewayclass = str(cfg.Get('GatewayClass'))
         self.gateway = None
         if gatewayclass :
@@ -40,7 +38,61 @@ class Bartender:
             log.msg(arc.INFO, 'This bartender does not support gateway') 
             log.msg(arc.INFO, 'cannot connect to gateway. Access of third party store required gateway.')
         self.ssl_config = ssl_config
-        self.cfg = cfg
+        
+        # get the URLs of the Librarians from the config file
+        librarian_urls =  get_child_values_by_name(cfg, 'LibrarianURL')
+        if librarian_urls:
+            log.msg(arc.INFO,'Got Librarian URLs from the config:', librarian_urls)
+            self.librarian = LibrarianClient(librarian_urls, ssl_config = self.ssl_config)
+            self.service_state.running = True
+        else:
+            isis_urls = get_child_values_by_name(cfg, 'ISISURL')
+            if not isis_urls:
+                log.msg(arc.ERROR, "Librarian URL or ISIS URL not found in the configuration.")
+                raise Exception, 'Bartender cannot run with no Librarian'
+            log.msg(arc.INFO,'Got ISIS URL, starting initThread')
+            threading.Thread(target = self.initThread, args = [isis_urls]).start()
+
+    def initThread(self, isis_urls):
+        librarian_found = False
+        while not librarian_found:
+            try:
+                log.msg(arc.INFO,'Getting Librarians from ISISes')
+                for isis_url in isis_urls:
+                    log.msg(arc.INFO,'Trying to get Librarian from', isis_url)
+                    isis = ISISClient(isis_url, ssl_config = self.ssl_config)
+                    try:
+                        librarian_urls = isis.getServiceURLs(librarian_servicetype)
+                        log.msg(arc.INFO,'Got Librarian from ISIS:', librarian_urls)
+                        if librarian_urls:
+                            self.librarian = LibrarianClient(librarian_urls, ssl_config = self.ssl_config)
+                            librarian_found = True
+                    except:
+                        log.msg()
+                time.sleep(3)
+            except Exception, e:
+                log.msg(arc.WARNING, 'Error in initThread: %s' % e)                
+        log.msg(arc.INFO,'initThread finished, starting isisThread')
+        self.service_state.running = True
+        threading.Thread(target = self.isisThread, args = [isis_urls]).start()
+            
+    def isisThread(self, isis_urls):
+        while self.service_state.running:
+            try:
+                time.sleep(30)
+                log.msg(arc.INFO,'Getting Librarians from ISISes')
+                for isis_url in isis_urls:
+                    if not self.service_state.running:
+                        return
+                    log.msg(arc.INFO,'Trying to get Librarian from', isis_url)
+                    isis = ISISClient(isis_url, ssl_config = self.ssl_config)        
+                    librarian_urls = isis.getServiceURLs(librarian_servicetype)
+                    log.msg(arc.INFO, 'Got Librarian from ISIS:', librarian_urls)
+                    if librarian_urls:
+                        self.librarian = LibrarianClient(librarian_urls, ssl_config = self.ssl_config)
+                        break
+            except Exception, e:
+                log.msg(arc.WARNING, 'Error in isisThread: %s' % e)                
 
     def stat(self, auth, requests):
         """ Returns stat information about entries.
@@ -375,6 +427,7 @@ class Bartender:
             [('protocol', protocol) for protocol in protocols]
         # find an alive Shepherd
         shepherds = self._find_alive_ses(exceptedSEs)
+        random.shuffle(shepherds)
         while len(shepherds) > 0:
             shepherd = shepherds.pop()
             # call the SE's put method with the prepared request
@@ -857,7 +910,7 @@ class BartenderService(Service):
             'namespace_prefix': 'deleg', 'namespace_uri': 'http://www.nordugrid.org/schemas/delegation'}
         request_config = [deleg_request_type, bar_request_type]
         # call the Service's constructor
-        Service.__init__(self, request_config, cfg)
+        Service.__init__(self, request_config, cfg, start_service = False)
         # get the path to proxy store
         self.proxy_store = str(cfg.Get('ProxyStore'))
         try:
@@ -868,26 +921,7 @@ class BartenderService(Service):
             self.proxy_store = ''
         if not self.proxy_store:
             log.msg(arc.ERROR, 'The directory for storing proxies is not available. Proxy delegation disabled.')
-        # get the URLs of the Librarians from the config file
-        librarian_urls =  get_child_values_by_name(cfg, 'LibrarianURL')
-
-        isis_url =  get_child_values_by_name(cfg, 'ISISURL')
-
-        if librarian_urls:
-            log.msg(arc.DEBUG, "Librarian URL found in the configuration.")
-        elif not isis_url:
-            log.msg(arc.DEBUG, "Librarian URL and ISIS URL not found in the configuration.")            
-        else:
-            isis = ISISClient(isis_url, print_xml = False)
-            librarian_urls = isis.getServiceURLs(librarian_servicetype)
-
-        # create a LibrarianClient from the URL
-        try:
-            librarian = LibrarianClient(librarian_urls, ssl_config = self.ssl_config)
-        except:
-            log.msg(arc.DEBUG, 'Cannot find Librarian url in the config or in the ISIS')
-            raise
-        self.bartender = Bartender(librarian, self.ssl_config, cfg)
+        self.bartender = Bartender(cfg, self.ssl_config, self.state)
         
     def stat(self, inpayload):
         # incoming SOAP message example:

@@ -33,12 +33,17 @@ from arcom.security import AuthRequest, parse_ssl_config
 from arcom.logger import Logger
 log = Logger(arc.Logger(arc.Logger_getRootLogger(), 'Storage.Service'))
 
+class ServiceState:
+    def __init__(self, running = True):
+        self.running = running
+
 class Service:
     
-    def __init__(self, request_config, cfg = None):
+    def __init__(self, request_config, cfg = None, start_service = True):
         self._trust_manager = []
         self.ssl_config = {}
         self._force_trust = False
+        self.state = ServiceState(start_service)
         if cfg:
             self.ssl_config = parse_ssl_config(cfg)
             trust_manager_node = cfg.Get('TrustManager')
@@ -85,8 +90,9 @@ class Service:
             for request_type in self.request_config]))
         
     def __del__(self):
+        self.state.running = False
         log.msg(arc.INFO, "Stopping:", self.service_name)
-        
+    
     def _get_dns_from_ahash(self, data):
         try:
             from storage.client import AHashClient
@@ -151,7 +157,12 @@ class Service:
         """ Method to process incoming message and create outgoing one. """
         # gets the payload from the incoming message
         inpayload = inmsg.Payload()
-        
+        if not self.state.running:
+            outpayload = arc.PayloadSOAP(self.ns, True)
+            fault = outpayload.Fault()
+            fault.Reason('%s Service is inactive (not initialized yet or shutting down)' % self.service_name) 
+            outmsg.Payload(outpayload)
+            return arc.MCC_Status(arc.STATUS_OK)
         try:
             # the first child of the payload should be the name of the request
             request_node = inpayload.Child()
@@ -185,7 +196,6 @@ class Service:
             outpayload = arc.PayloadSOAP(self.ns)
             outpayload.NewChild('Fault').Set(msg)
             outmsg.Payload(outpayload)
-            # TODO: return with the status GENERIC_ERROR
             return arc.MCC_Status(arc.STATUS_OK)
 
 def parse_node(node, names, single = False, string = True):

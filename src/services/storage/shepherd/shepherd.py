@@ -24,17 +24,16 @@ class Shepherd:
 
     def __init__(self, cfg):
         self.service_is_running = True
-        try:
-            ssl_config = parse_ssl_config(cfg)
-        except:
-            log.msg(arc.ERROR, 'Error parsing client SSL config')
+        self.ssl_config = parse_ssl_config(cfg)
+        
         try:
             backendclass = str(cfg.Get('BackendClass'))
             backendcfg = cfg.Get('BackendCfg')
-            self.backend = import_class_from_string(backendclass)(backendcfg, shepherd_uri, self._file_arrived, ssl_config)
+            self.backend = import_class_from_string(backendclass)(backendcfg, shepherd_uri, self._file_arrived, self.ssl_config)
         except:
             log.msg(arc.DEBUG, 'Cannot import backend class', backendclass)
             raise
+        
         try:
             storeclass = str(cfg.Get('StoreClass'))
             storecfg = cfg.Get('StoreCfg')
@@ -42,52 +41,101 @@ class Shepherd:
         except:
             log.msg(arc.DEBUG, 'Cannot import store class', storeclass)
             raise
+            
         try:
-            librarian_urls =  get_child_values_by_name(cfg, 'LibrarianURL')
-            isis_url =  get_child_values_by_name(cfg, 'ISISURL')
-
-            if librarian_urls:
-                log.msg(arc.DEBUG, "Librarian URL found in the configuration.")
-            elif not isis_url:
-                log.msg(arc.DEBUG, "Librarian URL and ISIS URL not found in the configuration.")            
-            else:
-                isis = ISISClient(isis_url, print_xml = False)
-                librarian_urls =  isis.getServiceURLs(librarian_servicetype)
-
-            self.librarian = LibrarianClient(librarian_urls, ssl_config = ssl_config)
-            bartender_urls =  get_child_values_by_name(cfg, 'BartenderURL')
-
-            if bartender_urls:
-                log.msg(arc.DEBUG, "Bartender URL found in the configuration.")
-            elif not isis_url:
-                log.msg(arc.DEBUG, " Bartender URL and ISIS URL not found in the configuration.")            
-            else:
-                isis = ISISClient(isis_url, print_xml = False)
-                bartender_urls =  isis.getServiceURLs(bartender_servicetype)
-
-            self.bartender = BartenderClient(bartender_urls, ssl_config = ssl_config)
             self.serviceID = str(cfg.Get('ServiceID'))
         except:
-            log.msg(arc.DEBUG, 'Cannot get LibrarianURL, BartenderURL or serviceID')
+            log.msg(arc.DEBUG, 'Cannot get serviceID')
             raise
+            
         try:
             self.period = float(str(cfg.Get('CheckPeriod')))
             self.min_interval = float(str(cfg.Get('MinCheckInterval')))
         except:
             log.msg(arc.DEBUG, 'Cannot set CheckPeriod, MinCheckInterval')
             raise
+                    
         try:
             self.creating_timeout = float(str(cfg.Get('CreatingTimeout')))
         except:
             self.creating_timeout = 0
+
+        librarian_urls =  get_child_values_by_name(cfg, 'LibrarianURL')
+        self.librarian = LibrarianClient(librarian_urls, ssl_config = self.ssl_config)
+        if librarian_urls:
+            log.msg(arc.INFO,'Got Librarian URLs from the config:', librarian_urls)
+        else:
+            isis_urls = get_child_values_by_name(cfg, 'ISISURL')
+            if not isis_urls:
+                log.msg(arc.ERROR, "No Librarian URLs and no ISIS URLs found in the configuration: no self-healing!")
+            else:
+                log.msg(arc.INFO,'Got ISIS URL, starting isisLibrarianThread')
+                threading.Thread(target = self.isisLibrarianThread, args = [isis_urls]).start()
+
+        bartender_urls =  get_child_values_by_name(cfg, 'BartenderURL')
+        self.bartender = BartenderClient(bartender_urls, ssl_config = self.ssl_config)
+        if bartender_urls:
+            log.msg(arc.INFO,'Got Bartender URLs from the config:', bartender_urls)
+        else:
+            isis_urls = get_child_values_by_name(cfg, 'ISISURL')
+            if not isis_urls:
+                log.msg(arc.ERROR, "No Bartender URLs and no ISIS URLs found in the configuration: no self-healing!")
+            else:
+                log.msg(arc.INFO,'Got ISIS URL, starting isisBartenderThread')
+                threading.Thread(target = self.isisBartenderThread, args = [isis_urls]).start()
+
         self.changed_states = self.store.list()
         threading.Thread(target = self.checkingThread, args = [self.period]).start()
         self.doReporting = True
         threading.Thread(target = self.reportingThread, args = []).start()
 
     def __del__(self):
+        print "Shepherd's destructor called"
         self.service_is_running = False
-
+        
+    def isisLibrarianThread(self, isis_urls):
+        while self.service_is_running:
+            try:
+                if self.librarian.urls:
+                    time.sleep(30)
+                else:
+                    time.sleep(3)
+                log.msg(arc.INFO,'Getting Librarians from ISISes')
+                for isis_url in isis_urls:
+                    if not self.service_is_running:
+                        return
+                    log.msg(arc.INFO,'Trying to get Librarian from', isis_url)
+                    isis = ISISClient(isis_url, ssl_config = self.ssl_config)        
+                    librarian_urls = isis.getServiceURLs(librarian_servicetype)
+                    log.msg(arc.INFO, 'Got Librarian from ISIS:', librarian_urls)
+                    if librarian_urls:
+                        self.librarian = LibrarianClient(librarian_urls, ssl_config = self.ssl_config)
+                        break
+            except Exception, e:
+                log.msg(arc.WARNING, 'Error in isisLibrarianThread: %s' % e)
+                
+    
+    def isisBartenderThread(self, isis_urls):
+        while self.service_is_running:
+            try:
+                if self.bartender.urls:
+                    time.sleep(30)
+                else:
+                    time.sleep(3)
+                log.msg(arc.INFO,'Getting Bartenders from ISISes')
+                for isis_url in isis_urls:
+                    if not self.service_is_running:
+                        return
+                    log.msg(arc.INFO,'Trying to get Bartender from', isis_url)
+                    isis = ISISClient(isis_url, ssl_config = self.ssl_config)        
+                    bartender_urls = isis.getServiceURLs(bartender_servicetype)
+                    log.msg(arc.INFO, 'Got Bartender from ISIS:', bartender_urls)
+                    if bartender_urls:
+                        self.bartender = BartenderClient(bartender_urls, ssl_config = self.ssl_config)
+                        break
+            except Exception, e:
+                log.msg(arc.WARNING, 'Error in isisBartenderThread: %s' % e)
+                
 
     def reportingThread(self):
         # at the first start just wait for a few seconds
@@ -130,9 +178,9 @@ class Shepherd:
                         # add the full list of stored files to the changed_state list - all the files will be reported next time (which is immediately, see below)
                         self.changed_states.extend(self.store.list())
                     # let's wait until there is any changed file or the reporting time is up - we need to do report even if no file changed (as a heartbeat)
-                    time.sleep(1)
+                    time.sleep(10)
                     while len(self.changed_states) == 0 and last_report + next_report * 0.5 > time.time():
-                        time.sleep(1)
+                        time.sleep(10)
                 else:
                     time.sleep(10)
             except:
@@ -297,8 +345,8 @@ class Shepherd:
                                             # if the file has fewer replicas than needed
                                             log.msg(arc.DEBUG, '\n\nFile', GUID, 'has fewer replicas than needed.')
                                             # we offer our copy to replication
-                                            response = self.bartender.addReplica({'checkingThread' : GUID}, common_supported_protocols)
                                             try:
+                                                response = self.bartender.addReplica({'checkingThread' : GUID}, common_supported_protocols)
                                                 success, turl, protocol = response['checkingThread']
                                             except:
                                                 success = ''
@@ -352,9 +400,9 @@ class Shepherd:
                                                    and property.startswith(self.serviceID)])
                                 # we try to get a valid one by simply downloading this file if we have no alive or 
                                 # creating replica
-                                if my_replicas == 0:
-                                    response = self.bartender.getFile({'checkingThread' : (GUID, common_supported_protocols)})
                                 try:
+                                    if my_replicas == 0:
+                                        response = self.bartender.getFile({'checkingThread' : (GUID, common_supported_protocols)})
                                     success, turl, protocol = response['checkingThread']
                                 except:
                                     success = ''
