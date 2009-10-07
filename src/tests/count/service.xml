@@ -17,9 +17,9 @@
     <Plugins><Name>mcctls</Name></Plugins>
     <Plugins><Name>mcchttp</Name></Plugins>
     <Plugins><Name>mccsoap</Name></Plugins>
-    <Plugins><Name>arcpdc</Name></Plugins>
+    <Plugins><Name>arcshc</Name></Plugins>
 
-    <Plugins Name="arcpdc">
+    <Plugins Name="arcshc">
           <Plugin Name="__arc_attrfactory_modules__">attrfactory</Plugin>
           <Plugin Name="__arc_fnfactory_modules__">fnfactory</Plugin>
           <Plugin Name="__arc_algfactory_modules__">algfactory</Plugin>

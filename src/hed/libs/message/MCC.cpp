@@ -97,12 +97,12 @@ namespace Arc {
 	    }
 	  }
           //Since the security handler could also be used by mcc like 
-          // tls and soap, putting the libarcpdc here. Here we suppose 
-          // all of the sec handlers are put in libarcpdp
+          // tls and soap, putting the libarcshc here. Here we suppose 
+          // all of the sec handlers are put in libarcshc
           // TODO: Rewrite it to behave in generic way.
-          if ((*file).substr(0, 9) == "libarcpdc") {
-            cfg.NewChild("Plugins").NewChild("Name") = "arcpdc";
-          }
+          //if ((*file).substr(0, 9) == "libarcshc") {
+          //  cfg.NewChild("Plugins").NewChild("Name") = "arcshc";
+          //}
         }
       }
       catch (Glib::FileError) {}

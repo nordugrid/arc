@@ -62,7 +62,7 @@ Section "Plugins"
 	File /oname=plugins\mcc\libmcchttp.dll "src\hed\mcc\http\.libs\libmcchttp.dll"
 	File /oname=plugins\mcc\libmccsoap.dll "src\hed\mcc\soap\.libs\libmccsoap.dll"
 	; CreateDirectory $INSTDIR\plugins\pdc
-	; File /oname=plugins\pdc\libarcpdc.dll "src\hed\pdc\.libs\libarcpdc.dll"
+	; File /oname=plugins\pdc\libarcshc.dll "src\hed\pdc\.libs\libshcpdc.dll"
 
 	CreateDirectory $INSTDIR\plugins\dmc
 	File /oname=plugins\dmc\libdmcfile.dll "src\hed\dmc\file\.libs\libdmcfile.dll"

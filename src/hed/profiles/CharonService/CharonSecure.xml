@@ -15,7 +15,6 @@
 	<Plugins><Name>mcctls</Name></Plugins>
 	<Plugins><Name>mcchttp</Name></Plugins>
 	<Plugins><Name>mccsoap</Name></Plugins>
-	<Plugins><Name>arcpdc</Name></Plugins>
 	<Plugins><Name>arcshc</Name></Plugins>
 	<Plugins><Name>charon</Name></Plugins>
 	<Chain>
