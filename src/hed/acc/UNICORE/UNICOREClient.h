@@ -100,12 +100,12 @@ namespace Arc {
     }
 
   private:
-
+    bool uasStartJob();
     //! The configuration.
     /*! A configuration object containing information about how to set
        up this UNICORE client.
      */
-    Config *client_config;
+    MCCConfig client_config;
 
     //! The loader.
     /*! A loader object that loads and connects the appropriate

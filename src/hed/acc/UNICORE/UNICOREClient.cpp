@@ -47,6 +47,7 @@ namespace Arc {
     ns["ns0"] = "urn:oasis:names:tc:SAML:2.0:assertion";
     ns["rp"] = "http://docs.oasis-open.org/wsrf/rp-2";
     ns["u6"] = "http://www.unicore.eu/unicore6";
+    ns["jms"] = "http://unigrids.org/2006/04/services/jms";
   }
 
   static void set_bes_factory_action(SOAPEnvelope& soap, const char *op) {
@@ -60,7 +61,7 @@ namespace Arc {
   UNICOREClient::UNICOREClient(const URL& url,
                                const MCCConfig& cfg,
                                int timeout)
-    : client_config(NULL),
+    : client_config(cfg),
       client_loader(NULL),
       client(NULL),
       client_entry(NULL) {
@@ -79,8 +80,6 @@ namespace Arc {
   UNICOREClient::~UNICOREClient() {
     if (client_loader)
       delete client_loader;
-    if (client_config)
-      delete client_config;
     if (client)
       delete client;
   }
@@ -109,14 +108,14 @@ namespace Arc {
       std::ifstream proxy_file(proxyPath.c_str()/*, ifstream::in*/);
       std::getline<char>(proxy_file, pem_str, 0);
       req.Header().NewChild("u6:Proxy") = pem_str;
-      std::cout << "\n----\n" << "pem_str = " << pem_str << "\n----\n";
+      //std::cout << "\n----\n" << "pem_str = " << pem_str << "\n----\n"; //debug code, remove!
     }
     //std::string jsdl_str;
     //std::getline<char>(jsdl_file, jsdl_str, 0);
-    std::string jsdl_str = jobdesc.UnParse("POSIXJSDL");
-    act_doc.NewChild(XMLNode(jsdl_str));
-    std::cout << "\n----\n" << (std::string)act_doc << "\n----\n";
-    act_doc.Child(0).Namespaces(unicore_ns); // Unify namespaces
+    std::string jsdl_str = jobdesc.UnParse("ARCJSDL");
+    XMLNode jsdl_doc = act_doc.NewChild(XMLNode(jsdl_str));
+    //std::cout << "\n----\n" << jsdl_str << "\n----\n"; //Debug line to verify the activity document
+    jsdl_doc.Namespaces(unicore_ns); // Unify namespaces
     PayloadSOAP *resp = NULL;
 
     XMLNode ds =
@@ -259,7 +258,85 @@ namespace Arc {
     if (!fs) {
       (*resp)["CreateActivityResponse"]["ActivityIdentifier"].New(id);
       //id.GetDoc(jobid);
+      //std::cout << "\n---\nActivityIdentifier:\n" << (std::string)((*resp)["CreateActivityResponse"]["ActivityIdentifier"]) << "\n---\n";//debug code
       delete resp;
+
+      UNICOREClient luc((std::string)id["Address"], client_config); //local unicore client
+      //std::cout << "\n---\nid element containing (?) Job Address:\n" << (std::string)id << "\n---\n";//debug code
+      return luc.uasStartJob();
+      //return true;
+    }
+    else {
+      faultstring = fs.Reason();
+      std::string s;
+      resp->GetXML(s);
+      delete resp;
+      logger.msg(VERBOSE, "Submission returned failure: %s", s);
+      logger.msg(ERROR, "Submission failed, service returned: %s", faultstring);
+      return false;
+    }
+  }
+
+  bool UNICOREClient::uasStartJob(){
+        std::string state, faultstring;
+    logger.msg(INFO, "Creating and sending a start job request");
+
+    PayloadSOAP req(unicore_ns);
+    XMLNode SOAPMethod =
+      req.NewChild("jms:Start");
+    WSAHeader(req).To(rurl.str());
+    WSAHeader(req).Action("http://schemas.ggf.org/bes/2006/08/bes-activity/BESActivityPortType/StartRequest");
+
+    // Send status request
+    PayloadSOAP *resp = NULL;
+    if (client) {
+      MCC_Status status =
+        client->process("http://schemas.ggf.org/bes/2006/08/bes-activity/BESActivityPortType/StartRequest",
+                        &req, &resp);
+      if (resp == NULL) {
+        logger.msg(ERROR, "There was no SOAP response");
+        return false;
+      }
+    }
+    else if (client_entry) {
+      Message reqmsg;
+      Message repmsg;
+      MessageAttributes attributes_req;
+      attributes_req.set("SOAP:ACTION", "http://schemas.ggf.org/bes/2006/08/bes-activity/BESActivityPortType/StartRequest");
+      MessageAttributes attributes_rep;
+      MessageContext context;
+      reqmsg.Payload(&req);
+      reqmsg.Attributes(&attributes_req);
+      reqmsg.Context(&context);
+      repmsg.Attributes(&attributes_rep);
+      repmsg.Context(&context);
+      MCC_Status status = client_entry->process(reqmsg, repmsg);
+      if (!status) {
+        logger.msg(ERROR, "A start job request failed");
+        return false;
+      }
+      logger.msg(INFO, "A start job request succeeded");
+      if (repmsg.Payload() == NULL) {
+        logger.msg(ERROR,
+                   "There was no response to a start job request");
+        return false;
+      }
+      try {
+        resp = dynamic_cast<PayloadSOAP*>(repmsg.Payload());
+      } catch (std::exception&) {}
+      if (resp == NULL) {
+        logger.msg(ERROR, "The response of a start job request was "
+                   "not a SOAP message");
+        delete repmsg.Payload();
+        return false;
+      }
+    }
+    else {
+      logger.msg(ERROR, "There is no connection chain configured");
+      return false;
+    }
+    SOAPFault fs(*resp);
+    if (!fs) {
       return true;
     }
     else {
@@ -271,6 +348,8 @@ namespace Arc {
       logger.msg(ERROR, "Submission failed, service returned: %s", faultstring);
       return false;
     }
+
+
   }
 
   bool UNICOREClient::stat(const std::string& jobid, std::string& status) {
