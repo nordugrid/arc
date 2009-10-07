@@ -228,9 +228,7 @@ sub xeinfos {
         my $xecfg = $config->{xenvs}{$xenv};
         my $info = $infos->{$xenv} = {};
         my $nscfg = $xecfg->{NodeSelection};
-        if (not %$nodes) {
-            $log->info("NodeSelection configuration will be ignored as the currently used LRMS plugin has not support for it") if $nscfg;
-        } else {
+        if (ref $nodes eq 'HASH') {
             my $selected;
             if (not $nscfg) {
                 $log->info("NodeSelection configuration missing for ExecutionEnvironment $xenv, implicitly assigning all nodes into it")
@@ -255,6 +253,8 @@ sub xeinfos {
                 $info->{sysname} = $stats->{sysname} if $stats->{sysname};
                 $info->{machine} = $stats->{machine} if $stats->{machine};
             }
+        } else {
+            $log->info("The currently used LRMS plugin has not support for NodeSelection opions, ignoring them") if $nscfg;
         }
         $info->{pmem} = $xecfg->{MainMemorySize} if $xecfg->{MainMemorySize};
         $info->{vmem} = $xecfg->{VirtualMemorySize} if $xecfg->{VirtualMemorySize};
@@ -264,7 +264,7 @@ sub xeinfos {
         $info->{machine} = $xecfg->{Platform} if $xecfg->{Platform};
     }
     # Check for overlap of nodes
-    if (%$nodes) {
+    if (ref $nodes eq 'HASH') {
         for (my $i=0; $i<@xenvs; $i++) {
             my $nodes1 = $nodemap{$xenvs[$i]};
             next unless $nodes1;
@@ -953,6 +953,7 @@ sub get_cluster_info($) {
     }
     $cmgr->{NetworkInfo} = [ keys %netinfo ] if %netinfo;
 
+    # TODO: this could also be cross-checked with info from ExecEnvs
     my $cpuistribution = $cluster_info->{cpudistribution} || '';
     $cpuistribution =~ s/cpu:/:/g;
     $cmgr->{LogicalCPUDistribution} = [ $cpuistribution ] if $cpuistribution;
