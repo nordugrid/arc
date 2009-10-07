@@ -1152,7 +1152,7 @@ sub get_cluster_info($) {
         $cact->{RequestedTotalCPUTime} = [ $gmjob->{reqcputime} ] if defined $gmjob->{reqcputime};
         # OBS: Should include name and version. Exact format not specified
         $cact->{RequestedApplicationEnvironment} = $gmjob->{runtimeenvironments} if $gmjob->{runtimeenvironments};
-        $cact->{RequestedSlots} = [ $gmjob->{count} ] if defined $gmjob->{count};
+        $cact->{RequestedSlots} = [ $gmjob->{count} || 1 ];
         $cact->{StdIn} = [ $gmjob->{stdin} ] if $gmjob->{stdin};
         $cact->{StdOut} = [ $gmjob->{stdout} ] if $gmjob->{stdout};
         $cact->{StdErr} = [ $gmjob->{stderr} ] if $gmjob->{stderr};
@@ -1160,7 +1160,7 @@ sub get_cluster_info($) {
         $cact->{ExecutionNode} = $gmjob->{nodenames} if $gmjob->{nodenames};
         $cact->{Queue} = [ $gmjob->{queue} ] if $gmjob->{queue};
         # Times for finished jobs
-        $cact->{UsedTotalWallTime} = [ $gmjob->{WallTime} * $gmjob->{count} ] if defined $gmjob->{WallTime};
+        $cact->{UsedTotalWallTime} = [ $gmjob->{WallTime} * ($gmjob->{count} || 1) ] if defined $gmjob->{WallTime};
         $cact->{UsedTotalCPUTime} = [ $gmjob->{CpuTime} ] if defined $gmjob->{CpuTime};
         $cact->{UsedMainMemory} = [ ceil($gmjob->{UsedMem}/1024) ] if defined $gmjob->{UsedMem};
         my $usbmissiontime = mdstoiso($gmjob->{starttime} || '');
@@ -1204,7 +1204,7 @@ sub get_cluster_info($) {
             unshift @{$cact->{OtherMessages}}, $_ for @{$lrmsjob->{comment}};
 
             # Times for running jobs
-            $cact->{UsedTotalWallTime} = [ $lrmsjob->{walltime} * $gmjob->{count} ] if defined $lrmsjob->{walltime};
+            $cact->{UsedTotalWallTime} = [ $lrmsjob->{walltime} * ($gmjob->{count} || 1) ] if defined $lrmsjob->{walltime};
             $cact->{UsedTotalCPUTime} = [ $lrmsjob->{cputime} ] if defined $lrmsjob->{cputime};
             $cact->{UsedMainMemory} = [ ceil($lrmsjob->{mem}/1024) ] if defined $lrmsjob->{mem};
         } else {

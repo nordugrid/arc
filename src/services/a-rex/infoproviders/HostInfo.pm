@@ -79,7 +79,7 @@ sub collect($) {
 
     $checker = InfoChecker->new($host_info_schema);
     @messages = $checker->verify($result);
-    $log->warning("SelfCheck: result key hostinfo->$_") foreach @messages;
+    $log->debug("SelfCheck: result key hostinfo->$_") foreach @messages;
 
     return $result;
 }
@@ -211,7 +211,7 @@ sub get_host_info($) {
        chomp ( $globusversion =  `$globus_location/bin/globus-version 2>/dev/null`);
        if ($?) { $log->warning("Failed running $globus_location/bin/globus-version command")}
     }
-    $host_info->{globusversion} = $globusversion;
+    $host_info->{globusversion} = $globusversion if $globusversion;
 
     timer_start("collecting RTE info");
     
