@@ -1,0 +1,7 @@
+@JANITOR_SERVICE_ENABLED_TRUE@/usr/bin/janitorClient
+@JANITOR_SERVICE_ENABLED_TRUE@/usr/libexec/arc/janitor
+@JANITOR_SERVICE_ENABLED_TRUE@/usr/sbin/janitor
+@JANITOR_SERVICE_ENABLED_TRUE@/usr/share/arc/perl/Janitor/
+@JANITOR_SERVICE_ENABLED_TRUE@/usr/share/man/man8/janitor.8.gz
+
+
