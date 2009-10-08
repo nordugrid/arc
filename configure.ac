@@ -1504,8 +1504,11 @@ AC_CONFIG_FILES([Makefile
                  include/Makefile
                  debian/Makefile
                  debian/nordugrid-arc1-client.install
+                 debian/nordugrid-arc1-client.manpages
                  debian/nordugrid-arc1-server.install
                  debian/nordugrid-arc1-java.install
+                 debian/nordugrid-arc1-janitor.install
+                 debian/nordugrid-arc1-janitor.manpages
                  debian/nordugrid-arc1-lib.install
                  debian/nordugrid-arc1-python.install
                  debian/nordugrid-arc1-plugins-base.install
