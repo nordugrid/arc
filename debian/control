@@ -18,7 +18,7 @@ Depends: librdf-perl
 Description: ARC dynamic installation of runtime environments
  For grid computing, a major challenge is to keep the working environments
  homogeneous between the sites.  To help this situation, runtime
- environments have been developed. Those can be added or a removed to
+ environments have been developed. Those can be added to or removed from
  a site, and this Janitor service helps automating this process.
  .
  The Janitor is a recent development and the community to prepare
