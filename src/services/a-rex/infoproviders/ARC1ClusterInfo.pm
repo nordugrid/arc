@@ -705,6 +705,8 @@ sub get_cluster_info($) {
         $csha->{DefaultWallTime} = [ $qinfo->{defaultwallt} ] if defined $qinfo->{defaultwallt};
 
         my ($maxtotal, $maxlrms) = split ' ', ($config->{maxjobs} || '');
+        $maxtotal = undef if defined $maxtotal and $maxtotal eq '-1';
+        $maxlrms = undef if defined $maxlrms and $maxlrms eq '-1';
 
         # MaxWaitingJobs: use the maxjobs config option
         # OBS: An upper limit is not really enforced by A-REX.
@@ -751,9 +753,11 @@ sub get_cluster_info($) {
         # OBS: A-REX does not have separate limits for up and downloads.
         # OBS: A-REX only cares about totals, not per share limits!
         my ($maxloaders, $dummy, $maxthreads) = split ' ', ($config->{maxload} || '');
+        $maxloaders = undef if defined $maxloaders and $maxloaders eq '-1';
+        $maxthreads = undef if defined $maxthreads and $maxthreads eq '-1';
         if ($maxloaders) {
             # default is 5 (see MAX_DOWNLOADS defined in a-rex/grid-manager/loaders/downloader.cpp)
-            $maxthreads = 5 unless defined $maxthreads and $maxthreads > 0;
+            $maxthreads = 5 unless defined $maxthreads;
             $csha->{MaxStageInStreams}  = [ $maxloaders * $maxthreads ];
             $csha->{MaxStageOutStreams} = [ $maxloaders * $maxthreads ];
         }

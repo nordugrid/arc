@@ -9,7 +9,7 @@ use warnings;
 use XML::Simple;
 use Data::Dumper qw(Dumper);
 
-use ConfigParser;
+use IniParser;
 use InfoChecker;
 use LogUtils;
 
@@ -83,9 +83,6 @@ my $gmuser_options = {
     sessiondir => [ '' ],
     cachedir => [ '*' ],
     remotecachedir => [ '*' ],
-    maxjobs => '*',
-    maxload => '*',
-    maxloadshare => [ '*' ],
     defaultttl => '*',
 };
 my $gmcommon_options = {
@@ -93,6 +90,9 @@ my $gmcommon_options = {
     gmconfig => '*',
     endpoint => '*',
     hostname => '*',
+    maxjobs => '*',
+    maxload => '*',
+    maxloadshare => [ '*' ],
     gridmap => '*',
     x509_user_key => '*',
     x509_user_cert => '*',
@@ -112,7 +112,6 @@ my $config_schema = {
     AdminDomain => '*',
     ttl => '*',
     %$gmcommon_options,
-    %$gmuser_options,
     %$lrms_options,
     %$lrms_share_options,
     control => {
@@ -206,6 +205,22 @@ sub hash_strip_prefixes {
     return;
 }
 
+# Verifies that a key is an HASH reference and returns that reference
+sub hash_get_hashref {
+    my ($h, $key) = @_;
+    my $r = ($h->{$key} ||= {});
+    $log->fatal("badly formed '$key' element in XML config") unless ref $r eq 'HASH';
+    return $r;
+}
+
+# Verifies that a key is an ARRAY reference and returns that reference
+sub hash_get_arrayref {
+    my ($h, $key) = @_;
+    my $r = ($h->{$key} ||= []);
+    $log->fatal("badly formed '$key' element in XML config") unless ref $r eq 'ARRAY';
+    return $r;
+}
+
 # Set selected keys to either 'true' or 'false'
 sub fixbools {
     my ($h,$bools) = @_;
@@ -246,15 +261,29 @@ sub rename_keys {
 
 sub read_arex_config {
     my ($file) = @_;
-    my $nameAttr = {Service => 'name'};
-    my %xmlopts = (NSexpand => 0, ForceArray => 1, KeepRoot => 1, KeyAttr => $nameAttr);
+    my %xmlopts = (NSexpand => 0, ForceArray => 1, KeepRoot => 1, KeyAttr => {});
     my $xml = XML::Simple->new(%xmlopts);
     my $data;
     eval { $data = $xml->XMLin($file) };
     hash_tree_apply $data, \&hash_strip_prefixes;
-    return $data->{Service}{'a-rex'}
-        || $data->{ArcConfig}[0]{Chain}[0]{Service}{'a-rex'}
-        || undef;
+    my $services;
+    $services = $data->{Service}
+        if  ref $data eq 'HASH'
+        and ref $data->{Service} eq 'ARRAY';
+    $services = $data->{ArcConfig}[0]{Chain}[0]{Service}
+        if  not $services
+        and ref $data eq 'HASH'
+        and ref $data->{ArcConfig} eq 'ARRAY'
+        and ref $data->{ArcConfig}[0] eq 'HASH'
+        and ref $data->{ArcConfig}[0]{Chain} eq 'ARRAY'
+        and ref $data->{ArcConfig}[0]{Chain}[0] eq 'HASH'
+        and ref $data->{ArcConfig}[0]{Chain}[0]{Service} eq 'ARRAY';
+    return undef unless $services;
+    for my $srv (@$services) {
+        next unless ref $srv eq 'HASH';
+        return $srv if $srv->{name} eq 'a-rex';
+    }
+    return undef;
 }
 
 
@@ -266,6 +295,7 @@ sub build_config_from_xmlfile {
     my ($file) = @_;
 
     my $arex = read_arex_config($file);
+    $log->fatal("A-REX config not found in $file") unless ref $arex eq 'HASH';
 
     my $config = {};
     $config->{control} = {};
@@ -316,15 +346,16 @@ sub build_config_from_xmlfile {
     if ($gmconfig) {
         if (not ref $gmconfig) {
             $config->{gmconfig} = $gmconfig;
-        } elsif (exists $gmconfig->{type} and $gmconfig->{type} eq 'INI') {
-            $config->{gmconfig} = $gmconfig->{content};
+        } elsif (ref $gmconfig eq 'HASH') {
+            $config->{gmconfig} = $gmconfig->{content}
+                if $gmconfig->{content} and $gmconfig->{type}
+                                        and $gmconfig->{type} eq 'INI';
         }
     }
 
-    $config->{control}{'.'} = {};
-
-    $log->error("No control element in config") unless $arex->{control};
-    for my $control (@{$arex->{control}}) {
+    my $controls = hash_get_arrayref($arex, 'control');
+    for my $control (@$controls) {
+        $log->fatal("badly formed 'control' element in XML config") unless ref $control eq 'HASH';
         my $user = $control->{username} || '.';
         my $cconf = {};
 
@@ -337,71 +368,77 @@ sub build_config_from_xmlfile {
         my $ttr = $control->{defaultTTR} || '';
         $cconf->{defaultttl} = "$ttl $ttr" if $ttl;
 
-        for my $cache (@{$control->{cache}}) {
+        my $caches = hash_get_arrayref($control, 'cache');
+        for my $cache (@$caches) {
+            $log->fatal("badly formed 'cache' element in XML config") unless ref $cache eq 'HASH';
             my $type = $cache->{type} || '';
-            for (@{$cache->{location}}) {
-                my $loc = $_->{path};
-                next unless $loc;
-                push @{$cconf->{cachedir}}, $loc if $type ne 'REMOTE';
-                push @{$cconf->{remotecachedir}}, $loc if $type eq 'REMOTE';
+            my $locations = hash_get_arrayref($cache, 'location');
+            for my $location (@$locations) {
+                $log->fatal("badly formed 'location' element in XML config") unless ref $location eq 'HASH';
+                my $path = $location->{path};
+                next unless $path;
+                push @{$cconf->{cachedir}}, $path if $type ne 'REMOTE';
+                push @{$cconf->{remotecachedir}}, $path if $type eq 'REMOTE';
             }
         }
         $config->{control}{$user} = $cconf;
     }
-    # Merge control options for default user
-    $config = { %$config, %{$config->{control}{'.'}} };
-    delete $config->{control}{'.'};
-    delete $config->{control} unless keys %{$config->{control}};
 
-    my $globus = $arex->{dataTransfer}{Globus} || {};
-    $log->warning("No Globus element in config") unless %$globus;
+    my $globus = hash_get_hashref(hash_get_hashref($arex, 'dataTransfer'), 'Globus');
     rename_keys $globus, $config, {certpath => 'x509_user_cert', keypath => 'x509_user_key',
                                    cadir => 'x509_cert_dir', gridmapfile => 'gridmap'};
-    my $load = $arex->{loadLimits};
-    $log->warning("No loadLimits element in config") unless $load;
-    my $maxjobs = $load->{maxJobsTracked} || '';
-    my $maxjobsrun = $load->{maxJobsRun} || '';
-    $config->{maxjobs} = "$maxjobs $maxjobsrun";
 
-    for my $ts (@{$load->{maxJobsPerShare}}) {
+    my $load = hash_get_hashref($arex, 'loadLimits');
+    my $mj = $load->{maxJobsTracked} || '-1';
+    my $mjr = $load->{maxJobsRun} || '-1';
+    my $mjt = $load->{maxJobsTransfered} || '-1';
+    my $mjta = $load->{maxJobsTransferedAdditional} || '-1';
+    my $mft = $load->{maxFilesTransfered} || '-1';
+    $config->{maxjobs} = "$mj $mjr";
+    $config->{maxload} = "$mjt $mjta $mft";
+
+    my $loadshare = hash_get_arrayref($load, 'maxJobsPerShare');
+    for my $ts (@$loadshare) {
+        $log->fatal("badly formed 'maxJobsPerShare' element in XML config") unless ref $ts eq 'HASH';
         push @{$config->{maxloadshare}}, $ts->{content}." ".$ts->{shareType};
     }
 
-    if (my $lrms = $arex->{LRMS}) {
-        $config->{lrms} = $lrms->{type} if $lrms->{type};
-        $config->{lrms} .= " ".$lrms->{defaultShare} if $lrms->{defaultShare};
-        
-        move_keys $lrms, $config, [keys %$lrms_options, keys %$lrms_share_options];
-        rename_keys $lrms, $config, {runtimeDir => 'runtimedir', scratchDir => 'scratchdir',
-                 sharedScratch => 'shared_scratch', sharedFilesystem => 'shared_filesystem',
-                 GNUTimeUtility => 'gnu_time'};
-    }
+    my $lrms = hash_get_hashref($arex, 'LRMS');
+    $config->{lrms} = $lrms->{type} if $lrms->{type};
+    $config->{lrms} .= " ".$lrms->{defaultShare} if $lrms->{defaultShare};
+    
+    move_keys $lrms, $config, [keys %$lrms_options, keys %$lrms_share_options];
+    rename_keys $lrms, $config, {runtimeDir => 'runtimedir', scratchDir => 'scratchdir',
+             sharedScratch => 'shared_scratch', sharedFilesystem => 'shared_filesystem',
+             GNUTimeUtility => 'gnu_time'};
 
-    my $ipcfg = $arex->{InfoProvider} || {};
+    my $ipcfg = hash_get_hashref($arex, 'InfoProvider');
 
-    # OBS: just a temporary hack
-    $ipcfg = $arex->{ComputingService} if $arex->{ComputingService};
-    rename_keys $ipcfg,$ipcfg, {Name => 'ClusterName'};
+    # OBS: temporary hack, accept config that worked with 0.8rc1
+    $ipcfg = hash_get_hashref($arex,  'ComputingService') if $arex->{ComputingService};
+    rename_keys $ipcfg, $ipcfg, {Name => 'ClusterName'};
 
     move_keys $ipcfg, $config->{service}, [keys %{$config_schema->{service}}];
     move_keys $ipcfg, $config, ['debugLevel', 'PublishNordugrid', 'AdminDomain'];
     rename_keys $ipcfg, $config, {Location => 'location', Contact => 'contacts'};
 
-    my $xenvs = $ipcfg->{ExecutionEnvironment};
+    my $xenvs = hash_get_arrayref($ipcfg, 'ExecutionEnvironment');
     for my $xe (@$xenvs) {
+        $log->fatal("badly formed 'ExecutionEnvironment' element in XML config") unless ref $xe eq 'HASH';
         my $name = $xe->{name};
-        $log->error("ExecutionEnvironment witout name") unless $name;
-        delete $xe->{name};
-        my $xeconf = $config->{xenvs}{$name} = $xe;
-        $xeconf->{NodeSelection} ||= {};
+        $log->fatal("ExecutionEnvironment witout name attribute") unless $name;
+        my $xeconf = $config->{xenvs}{$name} = {};
+        $xeconf->{NodeSelection} = hash_get_hashref($xe, 'NodeSelection');
+        move_keys $xe, $xeconf, [keys %{$config_schema->{xenvs}{'*'}}];
     }
 
-    my $shares = $ipcfg->{ComputingShare};
+    my $shares = hash_get_arrayref($ipcfg, 'ComputingShare');
     for my $s (@{$shares}) {
+        $log->fatal("badly formed 'ComputingShare' element in XML config") unless ref $s eq 'HASH';
         my $name = $s->{name};
-        $log->error("ComputingShare without name") unless $name;
-        delete $s->{name};
-        my $sconf = $config->{shares}{$name} = $s;
+        $log->error("ComputingShare without name attribute") unless $name;
+        my $sconf = $config->{shares}{$name} = {};
+        move_keys $s, $sconf, [keys %{$config_schema->{shares}{'*'}}];
     }
 
     hash_tree_apply $config, sub { fixbools shift, $allbools };
@@ -419,7 +456,7 @@ sub build_config_from_xmlfile {
 sub build_config_from_inifile {
     my ($inifile, $config) = @_;
 
-    my $iniparser = ConfigParser->new($inifile);
+    my $iniparser = IniParser->new($inifile);
     if (not $iniparser) {
         $log->error("Cannot open $inifile\n");
         return $config;
@@ -432,18 +469,21 @@ sub build_config_from_inifile {
     $config->{contacts} ||= [];
     $config->{xenvs} ||= {};
     $config->{shares} ||= {};
+    $config->{control}{'.'} ||= {};
 
     my $common = { $iniparser->get_section("common") };
     my $gm = { $iniparser->get_section("grid-manager") };
     move_keys $common, $config, [keys %$gmcommon_options];
     move_keys $common, $config, [keys %$lrms_options, keys %$lrms_share_options];
-    move_keys $gm, $config, [keys %$gmcommon_options, keys %$gmuser_options];
+    move_keys $gm, $config, [keys %$gmcommon_options];
+    move_keys $gm, $config->{control}{'.'}, [keys %$gmuser_options];
 
     $config->{debugLevel} = $common->{debug} if $common->{debug};
 
     my @cnames = $iniparser->list_subsections('grid-manager');
     for my $name (@cnames) {
         my $section = { $iniparser->get_section("grid-manager/$name") };
+        $config->{control}{$name} ||= {};
         move_keys $section, $config->{control}{$name}, [keys %$gmuser_options];
     }
 
@@ -501,6 +541,7 @@ sub build_config_from_inifile {
         rename_keys $queue, $xeconf, {homogeneity => 'Homogeneous', architecture => 'Platform',
                                       opsys => 'OpSys', benchmark => 'Benchmark'};
         move_keys $queue, $xeconf, [keys %$xenv_options];
+        $xeconf->{NodeSelection} = {};
     }
 
     ################################# new config file structure ##################################
@@ -593,6 +634,7 @@ sub parseConfig {
     } else {
         $config = build_config_from_inifile($file);
     }
+    print(Dumper $config);
 
     LogUtils::level($config->{debugLevel}) if $config->{debugLevel};
 
@@ -604,7 +646,6 @@ sub parseConfig {
     $log->info("config key config->$_") foreach @messages;
     $log->info("Some required config options are missing") if @messages;
 
-    #print(Dumper $config);
     return $config;
 }
 
@@ -659,8 +700,16 @@ sub printLRMSConfigScript {
     _print_shell_start();
 
     my $common = {};
-    # controldir is a hack needed for finish-condor-job
-    move_keys $config, $common, [keys %$lrms_options, keys %$lrms_share_options, 'controldir'];
+    move_keys $config, $common, [keys %$lrms_options, keys %$lrms_share_options];
+
+    # OBS: controldir is a hack needed for finish-condor-job. To be removed later.
+    my @gmusers = keys %{$config->{control}};
+    my $controldir = $config->{control}{'.'}{controldir};
+    $controldir = $config->{control}{$gmusers[0]}{controldir}
+        if @gmusers > 0 and not $controldir;
+    $config->{controldir} = $controldir if $controldir;
+    $log->warning("No controldir configured in $file") unless $controldir;
+
     _print_shell_section('common', $common);
     
     for my $sname (keys %{$config->{shares}}) {

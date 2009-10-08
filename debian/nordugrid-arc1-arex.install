@@ -24,7 +24,7 @@ usr/lib/arc/ARC0ClusterInfo.pm
 usr/lib/arc/ARC0ClusterSchema.pm
 usr/lib/arc/ARC1ClusterInfo.pm
 usr/lib/arc/ARC1ClusterSchema.pm
-usr/lib/arc/ConfigParser.pm
+usr/lib/arc/IniParser.pm
 usr/lib/arc/GMJobsInfo.pm
 usr/lib/arc/HostInfo.pm
 usr/lib/arc/InfoChecker.pm

@@ -333,7 +333,7 @@ exit 0
 %{_libdir}/%{pkgdir}/ARC0ClusterSchema.pm
 %{_libdir}/%{pkgdir}/ARC1ClusterInfo.pm
 %{_libdir}/%{pkgdir}/ARC1ClusterSchema.pm
-%{_libdir}/%{pkgdir}/ConfigParser.pm
+%{_libdir}/%{pkgdir}/IniParser.pm
 %{_libdir}/%{pkgdir}/GMJobsInfo.pm
 %{_libdir}/%{pkgdir}/HostInfo.pm
 %{_libdir}/%{pkgdir}/InfoChecker.pm

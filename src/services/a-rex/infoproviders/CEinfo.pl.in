@@ -93,6 +93,7 @@ sub main {
     # Change level for root logger (affects all loggers from now on)
     LogUtils::level($config->{debugLevel}) if defined $config->{debugLevel};
 
+    fix_config($config);
     check_config($config);
 
     # Collect information & print XML
@@ -249,7 +250,8 @@ sub read_grid_mapfile($) {
     return $usermap;
 }
 
-sub check_config {
+
+sub fix_config {
     my ($config) = @_;
 
     $config->{control} ||= {};
@@ -280,6 +282,20 @@ sub check_config {
         $config->{arexhostport} = "$hostname:60000";
         $log->warning("Config option endpoint or arex_mount_point is missing or not an URL. Assuming: ".$config->{endpoint});
     }
+
+    # deal with GM per-user options: select one user, ignore others
+    my @gmusers = keys %{$config->{control}};
+    $log->fatal("No control directory configured") unless @gmusers;
+    my $control = $config->{control}{'.'}
+               || $config->{control}{$gmusers[0]};
+    $log->fatal("No control directory configured") unless $control->{controldir};
+    $log->fatal("No session directory configured") unless $control->{sessiondir};
+    %$config = (%$config, %$control);
+}
+
+
+sub check_config {
+    my ($config) = @_;
 
     # Cross-check ExecutionEnvironment references
     for my $s (values %{$config->{shares}}) {
@@ -348,6 +364,6 @@ sub fix_adotf {
             $h->{$key} = $hostinfo->{$hostkey{$key}};
         }
     }
-};
+}
 
 main();
