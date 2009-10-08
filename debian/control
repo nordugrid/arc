@@ -15,6 +15,7 @@ Homepage: http://www.nordugrid.org
 Package: nordugrid-arc1-janitor
 Architecture: any
 Depends: librdf-perl
+Recommends: liblog-log4perl-perl
 Description: ARC dynamic installation of runtime environments
  For grid computing, a major challenge is to keep the working environments
  homogeneous between the sites.  To help this situation, runtime
