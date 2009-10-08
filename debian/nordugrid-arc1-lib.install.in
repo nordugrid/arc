@@ -1,5 +1,7 @@
-usr/lib/arc/
+usr/lib/lib*so*
+usr/lib/arc/lib*so*
 usr/share/locale/*/LC_MESSAGES/arc.mo
+usr/lib/pkgconfig/arcbase.pc
 #redundant#usr/lib/arc/libdmcarc.so
 #redundant#usr/lib/arc/libdmcsrm.so
 #redundant#usr/lib/arc/libaccUNICORE.so

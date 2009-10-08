@@ -66,7 +66,7 @@ endif
 ifneq "$(wildcard /usr/share/misc/config.guess)" ""
 	-cp -f /usr/share/misc/config.guess config.guess
 endif
-	rm -f build-arch-stamp build-indep-stamp #CONFIGURE-STAMP# config.status configure Makefile.in ltmain.sh missing depcomp install-sh
+	rm -f build-arch-stamp build-indep-stamp #CONFIGURE-STAMP# config.status configure Makefile.in ltmain.sh missing depcomp install-sh debian/tmp
 	dh_clean 
 
 install: install-indep install-arch
@@ -91,7 +91,8 @@ install-arch: build-arch-stamp
 	rm -f $(CURDIR)/debian/tmp/usr/lib/arc/lib*.a
 
 	dh_installdocs -s --sourcedir=debian/tmp
-	dh_install -s --sourcedir=debian/tmp --list-missing
+	# list missing, but don't fail
+	-dh_install -s --sourcedir=debian/tmp --list-missing
 
 # Must not depend on anything. This is to be called by
 # binary-arch/binary-indep
