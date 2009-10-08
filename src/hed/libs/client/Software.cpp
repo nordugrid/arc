@@ -137,14 +137,14 @@ SoftwareRequirement::SoftwareRequirement(const Software& sw,
                                          Software::ComparisonOperatorEnum co,
                                          bool requiresAll)
   : requiresAll(requiresAll), softwareList(1, sw), comparisonOperatorList(1, Software::convert(co)),
-    orderedSoftwareList(1, std::list<SWRelPair>(1, SWRelPair(softwareList.front(), comparisonOperatorList.front())))
+    orderedSoftwareList(1, std::list<SWRelPair>(1, SWRelPair(&softwareList.front(), comparisonOperatorList.front())))
 {}
 
 SoftwareRequirement::SoftwareRequirement(const Software& sw,
                                          Software::ComparisonOperator swComOp,
                                          bool requiresAll)
   : softwareList(1, sw), comparisonOperatorList(1, swComOp), requiresAll(requiresAll),
-    orderedSoftwareList(1, std::list<SWRelPair>(1, SWRelPair(softwareList.front(), comparisonOperatorList.front())))
+    orderedSoftwareList(1, std::list<SWRelPair>(1, SWRelPair(&softwareList.front(), comparisonOperatorList.front())))
 {}
 
 SoftwareRequirement& SoftwareRequirement::operator=(const SoftwareRequirement& sr) {
@@ -158,15 +158,15 @@ SoftwareRequirement& SoftwareRequirement::operator=(const SoftwareRequirement& s
   for (; itSW != softwareList.end(); itSW++, itCO++) {
     std::list< std::list<SWRelPair> >::iterator itRel = orderedSoftwareList.begin();
     for (; itRel != orderedSoftwareList.end(); itRel++) {
-      if (itRel->front().first.getName() == itSW->getName() &&
-          itRel->front().first.getFamily() == itSW->getFamily()) {
-        itRel->push_back(SWRelPair(*itSW, *itCO));
+      if (itRel->front().first->getName() == itSW->getName() &&
+          itRel->front().first->getFamily() == itSW->getFamily()) {
+        itRel->push_back(SWRelPair(&*itSW, *itCO));
         break;
       }
     }
 
     if (itRel == orderedSoftwareList.end())
-      orderedSoftwareList.push_back(std::list<SWRelPair>(1, SWRelPair(*itSW, *itCO)));
+      orderedSoftwareList.push_back(std::list<SWRelPair>(1, SWRelPair(&*itSW, *itCO)));
   }
 
   return *this;
@@ -179,14 +179,14 @@ void SoftwareRequirement::add(const Software& sw, Software::ComparisonOperator s
     comparisonOperatorList.push_back(swComOp);
     for (std::list< std::list<SWRelPair> >::iterator it = orderedSoftwareList.begin();
          it != orderedSoftwareList.end(); it++) {
-      if (it->front().first.getName() == sw.getName() &&
-          it->front().first.getFamily() == sw.getFamily()) {
-        it->push_back(SWRelPair(softwareList.back(), comparisonOperatorList.back()));
+      if (it->front().first->getName() == sw.getName() &&
+          it->front().first->getFamily() == sw.getFamily()) {
+        it->push_back(SWRelPair(&softwareList.back(), comparisonOperatorList.back()));
         return;
       }
     }
 
-    orderedSoftwareList.push_back(std::list<SWRelPair>(1, SWRelPair(softwareList.back(), comparisonOperatorList.back())));
+    orderedSoftwareList.push_back(std::list<SWRelPair>(1, SWRelPair(&softwareList.back(), comparisonOperatorList.back())));
   }
 }
 
@@ -203,13 +203,13 @@ bool SoftwareRequirement::isSatisfied(const std::list<Software>& swList) const {
     for (; itSWList != swList.end(); itSWList++) {
       std::list<SWRelPair>::const_iterator itSRL = itOSL->begin();
       for (; itSRL != itOSL->end(); itSRL++) {
-        if (((*itSWList).*itSRL->second)(itSRL->first)) { // One of the requirements satisfied.
-          logger.msg(DEBUG, "Requirement satisfied. %s %s %s.", (std::string)*itSWList, Software::toString(itSRL->second), (std::string)itSRL->first);
+        if (((*itSWList).*itSRL->second)(*itSRL->first)) { // One of the requirements satisfied.
+          logger.msg(DEBUG, "Requirement satisfied. %s %s %s.", (std::string)*itSWList, Software::toString(itSRL->second), (std::string)*itSRL->first);
           if (!requiresAll) // Only one satisfied requirement is needed.
             return true;
         }
         else {
-          logger.msg(DEBUG, "Requirement NOT satisfied. %s %s %s.", (std::string)*itSWList, Software::toString(itSRL->second), (std::string)itSRL->first);
+          logger.msg(DEBUG, "Requirement NOT satisfied. %s %s %s.", (std::string)*itSWList, Software::toString(itSRL->second), (std::string)*itSRL->first);
           if (requiresAll) // If requiresAll == true, then a element from the swList have to satisfy all requirements for a unique software (family + name).
             break;
         }
@@ -248,7 +248,7 @@ bool SoftwareRequirement::selectSoftware(const std::list<Software>& swList) {
          itSWList != swList.end(); itSWList++) {
       std::list<SWRelPair>::const_iterator itSRP = itOSL->begin();
       for (; itSRP != itOSL->end(); itSRP++) {
-        if (((*itSWList).*itSRP->second)(itSRP->first)) { // Requirement is satisfied.
+        if (((*itSWList).*itSRP->second)(*itSRP->first)) { // Requirement is satisfied.
           if (!requiresAll)
             break;
         }

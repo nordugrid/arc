@@ -595,7 +595,7 @@ namespace Arc {
   private:
     std::list<Software> softwareList;
     std::list<Software::ComparisonOperator> comparisonOperatorList;
-    typedef std::pair<Software&, Software::ComparisonOperator&> SWRelPair;
+    typedef std::pair<Software*, Software::ComparisonOperator> SWRelPair;
     std::list< std::list<SWRelPair> > orderedSoftwareList;
     bool requiresAll;
 
