@@ -107,15 +107,20 @@ bool process_job_req(JobUser &user,const JobDescription &desc,JobLocalDescriptio
   if(!job_input_write_file(desc,user,job_desc.inputdata)) return false;
   if(!job_output_write_file(desc,user,job_desc.outputdata)) return false;
   if(!job_rte_write_file(desc,user,job_desc.rte)) return false;
-  return true;  
+  return true;
 }
 
 /* parse job request, fill job description (local) */
 JobReqResult parse_job_req(const std::string &fname,JobLocalDescription &job_desc,std::string* acl, std::string* failure) {
-  // TODO: Set failure string.
   Arc::JobDescription arc_job_desc;
   if (!get_arc_job_description(fname, arc_job_desc)) {
     if (failure) *failure = "Unable to read or parse job description.";
+    return JobReqInternalFailure;
+  }
+
+  if (!arc_job_desc.Resources.RunTimeEnvironment.isResolved()) {
+    if (failure)
+      *failure = "Runtime environments have not been resolved.";
     return JobReqInternalFailure;
   }
 
@@ -151,7 +156,7 @@ bool set_execs(const JobDescription &desc,const JobUser &user,const std::string 
   return set_execs(arc_job_desc, session_dir);
 }
 
-bool write_grami(const JobDescription &desc,const JobUser &user,const char *opt_add) { 
+bool write_grami(const JobDescription &desc,const JobUser &user,const char *opt_add) {
   const std::string fname = user.ControlDir() + "/job." + desc.get_id() + ".description";
 
   Arc::JobDescription arc_job_desc;
