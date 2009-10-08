@@ -224,6 +224,8 @@ namespace Arc {
                                                         nameandarguments.substr(pos+1));
     else
       broker = std::make_pair<std::string, std::string>(nameandarguments, "");
+
+    return true;
   }
 
   void UserConfig::InitializeCredentials() {
