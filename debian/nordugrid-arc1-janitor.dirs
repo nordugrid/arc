@@ -1,0 +1,7 @@
+/var/spool/nordugrid/janitor/catalog
+/var/spool/nordugrid/janitor/download
+/var/spool/nordugrid/janitor/jobs
+/var/spool/nordugrid/janitor/log
+/var/spool/nordugrid/janitor/packages
+/var/spool/nordugrid/janitor/rtes
+/var/spool/nordugrid/janitor/runtime
