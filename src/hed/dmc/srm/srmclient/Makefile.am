@@ -1,14 +1,11 @@
 noinst_LTLIBRARIES = libsrmclientsoap.la libsrmclient.la 
 
-SRM1Client.h: srm1_soapH.h
-SRM22Client.h: srm2_2_soapH.h
-
-
 nodist_libsrmclientsoap_la_SOURCES = srm1_soapClientLib.cpp srm2_2_soapClientLib.cpp
 libsrmclientsoap_la_CXXFLAGS = -fno-strict-aliasing $(GSOAP_CFLAGS) $(GLOBUS_IO_CFLAGS)
 libsrmclientsoap_la_LIBADD = $(GSOAP_LIBS)
 
 libsrmclient_la_SOURCES = SRMClient.h SRMClient.cpp SRM1Client.cpp SRM1Client.h SRM22Client.cpp SRM22Client.h SRMURL.cpp SRMURL.h
+nodist_libsrmclient_la_SOURCES = srm1_soapH.h srm2_2_soapH.h
 libsrmclient_la_CXXFLAGS = $(GLIBMM_CFLAGS) $(GLOBUS_IO_CFLAGS) $(GSOAP_CFLAGS) $(CC_MISC_FLAGS) -I$(top_srcdir)/include
 libsrmclient_la_LIBADD = libsrmclientsoap.la ../https/libhttpsclient.la
 
