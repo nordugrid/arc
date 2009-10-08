@@ -48,7 +48,7 @@ TestDB::~TestDB(void)
 
 int TestDB::put(void)
 {
-    char *foo = "foo";
+    char foo[] = "foo";
     Dbt key(&counter_, sizeof(counter_));
     Dbt data(foo, sizeof(foo));
     DbTxn *txn = NULL;
