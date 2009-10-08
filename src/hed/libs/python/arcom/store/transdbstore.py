@@ -1,7 +1,7 @@
 import arc
 
 import sys, exceptions, errno, copy, time
-import threading
+import thread
 import cPickle
 from arcom.store.basestore import BaseStore
 
@@ -35,8 +35,8 @@ class TransDBStore(BaseStore):
         log.msg(arc.DEBUG, "datadir:", self.datadir)
 
         # db and transaction pointers
-        self.dbp = None
-        self.txn = None
+        self.dbp  = None
+        self.txn_cache = {}
         
         self.database  = "store.db"
         self.dbenv = db.DBEnv(0)
@@ -179,41 +179,42 @@ class TransDBStore(BaseStore):
                 
         return dbp
 
-#    def lock(self, blocking = True):
-#        """ Starts transaction.
-#
-#        lock(blocking = True)
-#
-#        'blocking': if blocking is True, then this only returns when the lock is acquired.
-#        If it is False, then it returns immediately with False if the lock is not available,
-#        or with True if it could be acquired.
-#        """
-#
-#        try:
-#            txn_flag = (blocking and 0 or db.DB_TXN_NOWAIT)
-#            self.txn = self.dbenv.txn_begin(flags = txn_flag)
-#            return True
-#        except db.DBLockDeadlockError:
-#            log.msg(arc.DEBUG, "Couldn't acquire transaction lock")
-#            return False
-#        except:
-#            log.msg()
-#            return False
-#    
-#    def unlock(self):
-#        """ Ends transaction.
-#
-#        unlock()
-#        """
-#        try:
-#            if self.txn:
-#                self.txn.commit()
-#            self.txn = None
-#        except:
-#            log.msg(arc.ERROR, "Error on txn.commit()")
-#            log.msg()
-#            self.txn = None
-#        return
+    def lock(self, blocking = True):
+        """ Starts transaction.
+
+        lock(blocking = True)
+
+        'blocking': if blocking is True, then this only returns when the lock is acquired.
+        If it is False, then it returns immediately with False if the lock is not available,
+        or with True if it could be acquired.
+        """
+
+        try:
+            txn_flag = (blocking and 0 or db.DB_TXN_NOWAIT)
+            self.txn_cache[thread.get_ident()] = self.dbenv.txn_begin(flags = txn_flag)
+            return True
+        except db.DBLockDeadlockError:
+            log.msg(arc.DEBUG, "Couldn't acquire transaction lock")
+            return False
+        except:
+            log.msg()
+            return False
+    
+    def unlock(self):
+        """ Ends transaction.
+
+        unlock()
+        """
+        try:
+            tid = thread.get_ident()
+            if self.txn_cache[tid]:
+                self.txn_cache[tid].commit()
+            del(self.txn_cache[tid])
+        except:
+            log.msg(arc.ERROR, "Error on txn.commit()")
+            log.msg()
+            del(self.txn_cache[tid])
+        return
  
     
     def list(self):
@@ -256,7 +257,7 @@ class TransDBStore(BaseStore):
         self.dbp = self.__opendb(self.dbp)
 
         try:
-            object = self.dbp.get(ID, txn=self.txn)
+            object = self.dbp.get(ID, None)
             try:
                 # using cPickle.loads for loading
                 object = cPickle.loads(object)
@@ -309,18 +310,18 @@ class TransDBStore(BaseStore):
         while retry:
             try:
                 if object == None:
-                    self.dbp.delete(ID, txn=self.txn)
+                    self.dbp.delete(ID, txn=self.txn_cache[thread.get_ident()])
                 else:
                     # note that object needs to be converted to string
                     # using cPickle.dumps for converting
-                    self.dbp.put(ID, cPickle.dumps(object, cPickle.HIGHEST_PROTOCOL), txn=self.txn)
+                    self.dbp.put(ID, cPickle.dumps(object, cPickle.HIGHEST_PROTOCOL), txn=self.txn_cache[thread.get_ident()])
                 retry = False
             except db.DBLockDeadlockError:
                 log.msg(arc.INFO, "Got deadlock error")
                 # need to close transaction handle as well
-                if self.txn:
-                    self.txn.abort()
-                    self.txn = None
+                if self.txn_cache[thread.get_ident()]:
+                    self.txn_cache[thread.get_ident()].abort()
+                    del(self.txn_cache[thread.get_ident()])
                 time.sleep(0.2)
                 if retry_count < self.deadlock_retries:
                     log.msg(arc.DEBUG, "got DBLockDeadlockError")
@@ -329,7 +330,7 @@ class TransDBStore(BaseStore):
                     retry = True
                     # making new txn handle with blocking=True since
                     # lock has previously been granted
-                    self.txn = self.dbenv.txn_begin()
+                    self.txn_cache[thread.get_ident()] = self.dbenv.txn_begin()
                 else:
                     log.msg(arc.DEBUG, "Deadlock exception, giving up...")
                     retry = False
@@ -341,20 +342,20 @@ class TransDBStore(BaseStore):
                 raise
             except db.DBAccessError:
                 log.msg(arc.WARNING,"Read-only db. I'm not a master.")
-                if self.txn:
-                    self.txn.abort()
-                    self.txn = None
+                if self.txn_cache[thread.get_ident()]:
+                    self.txn_cache[thread.get_ident()].abort()
+                    del(self.txn_cache[thread.get_ident()])
                 raise
             except db.DBNotFoundError:
                 log.msg(arc.WARNING, "cannot delete non-existing entries")
-                if self.txn:
-                    self.txn.abort()
-                    self.txn = None
+                if self.txn_cache[thread.get_ident()]:
+                    self.txn_cache[thread.get_ident()].abort()
+                    del(self.txn_cache[thread.get_ident()])
                 retry = False
             except:
-                if self.txn:
-                    self.txn.abort()
-                    self.txn = None
+                if self.txn_cache[thread.get_ident()]:
+                    self.txn_cache[thread.get_ident()].abort()
+                    del(self.txn_cache[thread.get_ident()])
                 self.__del__()
                 #log.msg()
                 log.msg(arc.ERROR, "Error setting %s"%ID)

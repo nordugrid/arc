@@ -264,7 +264,10 @@ class ReplicationStore(TransDBStore):
                     for (url, status) in client_list:
                         new_obj[('client', "%s:%s"%(url, status))] = url
                     # store the site list
+                    while not self.lock(False):
+                        time.sleep(0.1)
                     self.set(ahash_list_guid, new_obj)
+                    self.unlock()
                     log.msg(arc.DEBUG, "wrote ahash list %s"%str(new_obj))
                     if not self.dbenv_ready:
                         log.msg(arc.DEBUG, "but dbenv wasn't ready.")
