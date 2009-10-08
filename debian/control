@@ -12,29 +12,6 @@ Vcs-Browser: http://svn.nordugrid.org/trac/nordugrid/browser/arc1
 Vcs-Svn: http://svn.nordugrid.org/repos/nordugrid/arc1/trunk
 Homepage: http://www.nordugrid.org
 
-Package: nordugrid-arc1
-Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, nordugrid-arc1-server, nordugrid-arc1-client
-Description: ARC grid middleware
- The Advanced Resource Connector (ARC) brings computing resources together
- across institutional boundaries. This concept is commonly referred to as 
- a "computational grid". Historically, grids address the organisation of
- distributed storage of data and parallel computation, but arbitrary services
- are thinkable.
- .
- Just like the web, ARC has its roots in the IT infrastructure that was
- erected to analyse the experiments for high energy physics at CERN. The
- first release, ARC-0.x, was dependent on Globus, the current release keeps
- that compatibility but can also be used independently.
- .
- With ARC-1, the user gains flexibility with additional services and
- more supported platforms. The service developer notices that even for
- persistent functionality across the two major versions, what has been
- a script on the server side once, that was repeatedly started and ran
- through, this has now become a service. Those are only started once and
- can then be queried, which is far more efficient, far more responsive,
- and is no longer stateless but can observe changes of values over time.
-
 
 Package: nordugrid-arc1-lib
 Architecture: any
@@ -106,3 +83,27 @@ Architecture: all
 Suggests: xpdf|pdf-viewer
 Description: ARC API documentation
  ARC API docmentation.
+
+Package: nordugrid-arc1
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, nordugrid-arc1-server, nordugrid-arc1-client
+Description: ARC grid middleware
+ The Advanced Resource Connector (ARC) brings computing resources together
+ across institutional boundaries. This concept is commonly referred to as 
+ a "computational grid". Historically, grids address the organisation of
+ distributed storage of data and parallel computation, but arbitrary services
+ are thinkable.
+ .
+ Just like the web, ARC has its roots in the IT infrastructure that was
+ erected to analyse the experiments for high energy physics at CERN. The
+ first release, ARC-0.x, was dependent on Globus, the current release keeps
+ that compatibility but can also be used independently.
+ .
+ With ARC-1, the user gains flexibility with additional services and
+ more supported platforms. The service developer notices that even for
+ persistent functionality across the two major versions, what has been
+ a script on the server side once, that was repeatedly started and ran
+ through, this has now become a service. Those are only started once and
+ can then be queried, which is far more efficient, far more responsive,
+ and is no longer stateless but can observe changes of values over time.
+
