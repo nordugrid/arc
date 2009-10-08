@@ -683,6 +683,7 @@ namespace Arc {
       }
     }
 
+    return true;
   }
 
   const URLListMap& UserConfig::GetSelectedServices(ServiceType st) const {
@@ -756,8 +757,8 @@ namespace Arc {
           logger.msg(WARNING, "Alias name (%s) contains a unknown servicetype %s at %s", resolvedAliases.front(), serviceType, *it);
           continue;
         }
-        else if (st == COMPUTING && serviceType != "computing" ||
-                 st == INDEX && serviceType != "index")
+        else if ((st == COMPUTING && serviceType != "computing") ||
+                 (st == INDEX && serviceType != "index"))
           continue;
 
         const URL url(it->substr(pos2+1));
