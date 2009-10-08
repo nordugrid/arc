@@ -30,10 +30,10 @@
         </Component>
 	<Component name="tls.service" id="tls">
             <next id="http"/>
-	    <tls:KeyPath>testkey-nopass.pem</tls:KeyPath>
-	    <tls:CertificatePath>testcert.pem</tls:CertificatePath>
-            <tls:CACertificatesDir>certificates</tls:CACertificatesDir>
-	    <!--tls:CACertificatePath>./testcacert.pem</tls:CACertificatePath-->
+	    <tls:KeyPath>../../tests/echo/testkey-nopass.pem</tls:KeyPath>
+	    <tls:CertificatePath>../../tests/echo/testcert.pem</tls:CertificatePath>
+            <tls:CACertificatesDir>../../tests/echo/certificates</tls:CACertificatesDir>
+	    <!--tls:CACertificatePath>../../tests/echo/testcacert.pem</tls:CACertificatePath-->
 	</Component>
         <Component name="http.service" id="http">
             <next id="soap">POST</next>
@@ -43,8 +43,8 @@
         </Component>
         <Service name="delegation.service" id="delegation">
             <next id="delegation"/>
-            <deleg:CACertificatesDir>certificates</deleg:CACertificatesDir>
-            <!--deleg:CACertificatePath>./testcacert.pem</deleg:CACertificatePath-->
+            <deleg:CACertificatesDir>../../tests/echo/certificates</deleg:CACertificatesDir>
+            <!--deleg:CACertificatePath>../../tests/echo/testcacert.pem</deleg:CACertificatePath-->
 
             <register:InfoRegister>
               <register:Period>PT75S</register:Period>
