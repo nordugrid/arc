@@ -60,8 +60,8 @@ echo "# SLURM batch job script built by grid-manager" >> $LRMS_JOB_SCRIPT
 echo "#SBATCH --no-requeue" >> $LRMS_JOB_SCRIPT
 
 # write SLURM output to 'comment' file
-echo "#SBATCH -e '${joboption_directory}.comment'">> $LRMS_JOB_SCRIPT
-echo "#SBATCH -o '${joboption_directory}.comment'">> $LRMS_JOB_SCRIPT
+echo "#SBATCH -e ${joboption_directory}.comment">> $LRMS_JOB_SCRIPT
+echo "#SBATCH -o ${joboption_directory}.comment">> $LRMS_JOB_SCRIPT
 echo "" >> $LRMS_JOB_SCRIPT
 # choose queue
 if [ ! -z "${joboption_queue}" ] ; then
