@@ -12,6 +12,18 @@ Vcs-Browser: http://svn.nordugrid.org/trac/nordugrid/browser/arc1
 Vcs-Svn: http://svn.nordugrid.org/repos/nordugrid/arc1/trunk
 Homepage: http://www.nordugrid.org
 
+Package: nordugrid-arc1-janitor
+Architecture: any
+Depends: librdf-perl
+Description: ARC dynamic installation of runtime environments
+ For grid computing, a major challenge is to keep the working environments
+ homogeneous between the sites.  To help this situation, runtime
+ environments have been developed. Those can be added or a removed to
+ a site, and this Janitor service helps automating this process.
+ .
+ The Janitor is a recent development and the community to prepare
+ catalogues of dynamically installable packages still needs to
+ evolve.
 
 Package: nordugrid-arc1-lib
 Architecture: any
