@@ -140,7 +140,7 @@ static void grid_manager(void* arg) {
   // char** argv = ((args_st*)arg)->argv;
   setpgid(0,0);
   opterr=0;
-  nordugrid_config_loc("");
+  if(config_filename) nordugrid_config_loc(config_filename);
 
   logger.msg(Arc::INFO,"Starting grid-manager thread");
   Daemon daemon;
@@ -172,7 +172,6 @@ static void grid_manager(void* arg) {
     };
   };
   */
-  if(config_filename) nordugrid_config_loc(config_filename);
 
   JobUsers users;
   std::string my_username("");

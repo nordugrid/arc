@@ -426,6 +426,7 @@ ARexService::ARexService(Arc::Config *cfg):RegisteredService(cfg),
       if(!gmconfig_.empty()) unlink(gmconfig_.c_str());
     };
   };
+  if(!gmconfig_.empty()) nordugrid_config_loc(gmconfig_);
   std::string gmrun_ = (std::string)((*cfg)["gmrun"]);
   common_name_ = (std::string)((*cfg)["commonName"]);
   long_description_ = (std::string)((*cfg)["longDescription"]);
@@ -435,7 +436,6 @@ ARexService::ARexService(Arc::Config *cfg):RegisteredService(cfg),
       infoprovider_wakeup_period_ = Arc::stringtoi((std::string)((*cfg)["InfoproviderWakeupPeriod"]));
   else
       infoprovider_wakeup_period_ = 60;
-  CreateThreadFunction(&information_collector_starter,this);
   // Run grid-manager in thread
   if((gmrun_.empty()) || (gmrun_ == "internal")) {
     //gm_=new GridManager(gmargv);
@@ -443,6 +443,7 @@ ARexService::ARexService(Arc::Config *cfg):RegisteredService(cfg),
     if(!gm_) return;
     if(!(*gm_)) { delete gm_; gm_=NULL; return; };
   };
+  CreateThreadFunction(&information_collector_starter,this);
 }
 
 ARexService::~ARexService(void) {
