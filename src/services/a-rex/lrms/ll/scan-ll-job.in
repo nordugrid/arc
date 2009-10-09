@@ -65,8 +65,9 @@ do
   # Continue if the job is already flagged as done?
   test -f "$donefile" && continue
 
+  if [ ! -f "$statusfile" ] ; then continue ; fi
   gmstatus=`cat "$statusfile"`
-  if [ ! "$gmstatus" = "INLRMS" ] ; then continue ; fi
+  if [ "$gmstatus" != "INLRMS" ] && [ "$gmstatus" != "CANCELING" ] ; then continue ; fi
  
   # Get local LRMS id of job by evaluating the line with localid
   localid=`grep ^localid= $i|head -1`

@@ -286,7 +286,13 @@ bool JobsList::state_submitting(const JobsList::iterator &i,bool &state_changed,
     if(!cancel) {
       logger.msg(Arc::INFO,"%s: state SUBMITTING: starting child: %s",i->job_id,cmd);
     } else {
-      logger.msg(Arc::INFO,"%s: state CANCELING: starting child: %s",i->job_id,cmd);
+      if(!job_lrms_mark_check(i->job_id,*user)) {
+        logger.msg(Arc::INFO,"%s: state CANCELING: starting child: %s",i->job_id,cmd);
+      } else {
+        logger.msg(Arc::INFO,"%s: Job has completed already. No action taken to cancel",i->job_id);
+        state_changed=true;
+        return true;
+      }
     };
     std::string grami = user->ControlDir()+"/job."+(*i).job_id+".grami";
     std::string cfg_path = nordugrid_config_loc();
@@ -314,7 +320,6 @@ bool JobsList::state_submitting(const JobsList::iterator &i,bool &state_changed,
     } else {
       logger.msg(Arc::INFO,"%s: state CANCELING: child exited with code %i",i->job_id,i->child->Result());
     };
-    if(cancel) job_diagnostics_mark_move(*i,*user);
     if(i->child->Result() != 0) { 
       if(!cancel) {
         logger.msg(Arc::ERROR,"%s: Job submission to LRMS failed",i->job_id);
@@ -326,8 +331,8 @@ bool JobsList::state_submitting(const JobsList::iterator &i,bool &state_changed,
       if(!cancel) i->AddFailure("Job submission to LRMS failed");
       return false;
     };
-    delete i->child; i->child=NULL;
     if(!cancel) {
+      delete i->child; i->child=NULL;
       /* success code - get LRMS job id */
       std::string local_id=read_grami(i->job_id,*user);
       if(local_id.length() == 0) {
@@ -359,6 +364,16 @@ bool JobsList::state_submitting(const JobsList::iterator &i,bool &state_changed,
         i->AddFailure("Internal error");
         logger.msg(Arc::ERROR,"%s: Failed writing local information",i->job_id);
         return false;
+      };
+    } else {
+      /* job diagnostics collection done in backgroud (scan-*-job script) */
+      if(!job_lrms_mark_check(i->job_id,*user)) {
+        /* job diag not yet collected - come later */
+        return true;
+      } else {
+        logger.msg(Arc::INFO,"%s: state CANCELING: job diagnostics collected",i->job_id);
+        delete i->child; i->child=NULL;
+        job_diagnostics_mark_move(*i,*user);
       };
     };
     /* move to next state */

@@ -113,7 +113,7 @@ declare -a kicklist
 # Find list of grid jobs with status INLRMS, store localid and
 # basename for those jobs
 for basename in $(find "$@" -name 'job.*.status' -print0 \
-    | xargs -0 grep -F -l "INLRMS" \
+    | xargs -0 egrep -l "INLRMS|CANCELING" \
     | sed 's/.status$//')
   do
   localid=$(grep ^localid= "${basename}.local" | cut -d= -f2)

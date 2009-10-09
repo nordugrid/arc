@@ -136,7 +136,7 @@ for ctr_dir in $control_dir ; do
 	if [ ! -f "$statusfile" ] ; then continue ; fi
 
 	status=`cat "$statusfile"`
-	if [ ! "$status" = "INLRMS" ] ; then continue ; fi
+	if [ "$status" != "INLRMS" ] && [ "$status" != "CANCELING" ] ; then continue ; fi
 
 	if [ "$my_id" = '0' ] ; then
 	    username=`printowner "${jobfile}"`
