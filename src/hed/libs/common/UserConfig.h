@@ -24,6 +24,21 @@ namespace Arc {
     INDEX
   };
 
+  class initializeCredentialsType {
+   public:
+    typedef enum {
+      SkipCredentials,
+      TryCredentials,
+      RequireCredentials
+    } initializeType;
+    initializeCredentialsType(void):val(RequireCredentials) { };
+    initializeCredentialsType(initializeType v):val(v) { };
+    initializeCredentialsType(bool v):val(v?RequireCredentials:SkipCredentials) { };
+    bool operator==(initializeType v) { return (val == v); }; 
+    bool operator!=(initializeType v) { return (val != v); }; 
+    private:
+     initializeType val;
+  };
 
   /// %User configuration class
   /**
@@ -94,7 +109,7 @@ namespace Arc {
      * @see InitializeCredentials()
      * @see #operator bool()
      **/
-    UserConfig(bool initializeCredentials = true);
+    UserConfig(initializeCredentialsType initializeCredentials = true);
     /// Create a UserConfig object
     /**
      * The UserConfig object created by this constructor will, if
@@ -126,7 +141,7 @@ namespace Arc {
      * @see EXAMPLECONFIG
      **/
     UserConfig(const std::string& conffile,
-               bool initializeCredentials = true,
+               initializeCredentialsType initializeCredentials = true,
                bool loadSysConfig = true);
     /// Create a UserConfig object
     /**
@@ -156,7 +171,7 @@ namespace Arc {
      **/
     UserConfig(const std::string& conffile,
                const std::string& jfile,
-               bool initializeCredentials = true,
+               initializeCredentialsType initializeCredentials = true,
                bool loadSysConfig = true);
     /// Language binding constructor
     /**

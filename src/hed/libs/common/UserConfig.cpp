@@ -47,10 +47,10 @@ namespace Arc {
   const std::string UserConfig::DEFAULTCONFIG = Glib::build_filename(ARCUSERDIRECTORY, "client.conf");
   const std::string UserConfig::EXAMPLECONFIG = Glib::build_filename(PKGDOCDIR, "client.conf.example");
 
-  UserConfig::UserConfig(bool initializeCredentials) {
-    if (initializeCredentials) {
+  UserConfig::UserConfig(initializeCredentialsType initializeCredentials) {
+    if (initializeCredentials != initializeCredentialsType::SkipCredentials) {
       InitializeCredentials();
-      if (!CredentialsFound())
+      if ((!CredentialsFound()) && (initializeCredentials == initializeCredentialsType::RequireCredentials))
         return;
     }
 
@@ -60,7 +60,7 @@ namespace Arc {
   }
 
   UserConfig::UserConfig(const std::string& conffile,
-                         bool initializeCredentials,
+                         initializeCredentialsType initializeCredentials,
                          bool loadSysConfig)
     : ok(false) {
     if (loadSysConfig) {
@@ -89,9 +89,9 @@ namespace Arc {
       return;
     }
 
-    if (initializeCredentials) {
+    if (initializeCredentials != initializeCredentialsType::SkipCredentials) {
       InitializeCredentials();
-      if (!CredentialsFound())
+      if ((!CredentialsFound()) && (initializeCredentials == initializeCredentialsType::RequireCredentials))
         return;
     }
 
@@ -101,7 +101,7 @@ namespace Arc {
   }
 
   UserConfig::UserConfig(const std::string& conffile, const std::string& jfile,
-                         bool initializeCredentials, bool loadSysConfig)
+                         initializeCredentialsType initializeCredentials, bool loadSysConfig)
     : ok(false) {
     // If job list file have been specified, try to initialize it, and
     // if it fails then this object is non-valid (ok = false).
@@ -139,9 +139,9 @@ namespace Arc {
     if (joblistfile.empty() && !JobListFile(Glib::build_filename(ARCUSERDIRECTORY, "jobs.xml")))
       return;
 
-    if (initializeCredentials) {
+    if (initializeCredentials != initializeCredentialsType::SkipCredentials) {
       InitializeCredentials();
-      if (!CredentialsFound())
+      if ((!CredentialsFound()) && (initializeCredentials == initializeCredentialsType::RequireCredentials))
         return;
     }
 
