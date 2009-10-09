@@ -8,9 +8,6 @@
 namespace Arc {
 
   class Logger;
-  class TargetGenerator;
-  class URL;
-  class XMLNode;
 
   struct ThreadArg;
 
@@ -20,7 +17,7 @@ namespace Arc {
     TargetRetrieverARC1(const Config& cfg, const UserConfig& usercfg);
   public:
     ~TargetRetrieverARC1();
-    void GetTargets(TargetGenerator& mom, int targetType, int detailLevel);
+    virtual void GetTargets(TargetGenerator& mom, int targetType, int detailLevel);
     static Plugin* Instance(PluginArgument *arg);
 
   private:

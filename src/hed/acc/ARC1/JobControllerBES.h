@@ -1,7 +1,7 @@
 // -*- indent-tabs-mode: nil -*-
 
-#ifndef __ARC_JOBCONTROLLERARC1_H__
-#define __ARC_JOBCONTROLLERARC1_H__
+#ifndef __ARC_JOBCONTROLLERBES_H__
+#define __ARC_JOBCONTROLLERBES_H__
 
 #include <arc/client/JobController.h>
 
@@ -10,18 +10,17 @@ namespace Arc {
   class Config;
   class URL;
 
-  class JobControllerARC1
+  class JobControllerBES
     : public JobController {
 
   private:
-    JobControllerARC1(const UserConfig& usercfg);
+    JobControllerBES(const UserConfig& usercfg);
   public:
-    ~JobControllerARC1();
+    ~JobControllerBES();
 
-    virtual void GetJobInformation();
     static Plugin* Instance(PluginArgument *arg);
 
-  private:
+    virtual void GetJobInformation();
     virtual bool GetJob(const Job& job, const std::string& downloaddir);
     virtual bool CleanJob(const Job& job, bool force);
     virtual bool CancelJob(const Job& job);
@@ -30,9 +29,10 @@ namespace Arc {
     virtual URL GetFileUrlForJob(const Job& job, const std::string& whichfile);
     virtual bool GetJobDescription(const Job& job, std::string& desc_str);
 
+  private:
     static Logger logger;
   };
 
 } // namespace Arc
 
-#endif // __ARC_JOBCONTROLLERARC1_H__
+#endif // __ARC_JOBCONTROLLERBES_H__

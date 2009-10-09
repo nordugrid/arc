@@ -12,6 +12,7 @@
 #include <arc/StringConv.h>
 
 #include "JobStateARC1.h"
+#include "JobStateBES.h"
 #include "AREXClient.h"
 
 namespace Arc {
@@ -41,17 +42,22 @@ namespace Arc {
 
   Logger AREXClient::logger(Logger::rootLogger, "A-REX-Client");
 
-  static void set_arex_namespaces(NS& ns) {
-    ns["a-rex"] = "http://www.nordugrid.org/schemas/a-rex";
-    ns["glue"] = "http://schemas.ogf.org/glue/2008/05/spec_2.0_d41_r01";
+  static void set_bes_namespaces(NS& ns) {
     ns["bes-factory"] = "http://schemas.ggf.org/bes/2006/08/bes-factory";
     ns["wsa"] = "http://www.w3.org/2005/08/addressing";
     ns["jsdl"] = "http://schemas.ggf.org/jsdl/2005/11/jsdl";
     ns["jsdl-posix"] = "http://schemas.ggf.org/jsdl/2005/11/jsdl-posix";
-    ns["jsdl-arc"] = "http://www.nordugrid.org/ws/schemas/jsdl-arc";
     ns["jsdl-hpcpa"] = "http://schemas.ggf.org/jsdl/2006/07/jsdl-hpcpa";
-    ns["rp"] = "http://docs.oasis-open.org/wsrf/rp-2";
   }
+
+  static void set_arex_namespaces(NS& ns) {
+    ns["a-rex"] = "http://www.nordugrid.org/schemas/a-rex";
+    ns["glue"] = "http://schemas.ogf.org/glue/2008/05/spec_2.0_d41_r01";
+    ns["jsdl-arc"] = "http://www.nordugrid.org/ws/schemas/jsdl-arc";
+    ns["rp"] = "http://docs.oasis-open.org/wsrf/rp-2";
+    set_bes_namespaces(ns);
+  }
+
 
   static void set_bes_factory_action(SOAPEnvelope& soap, const char *op) {
     WSAHeader(soap).Action(BES_FACTORY_ACTIONS_BASE_URL + op);
@@ -59,17 +65,22 @@ namespace Arc {
 
   AREXClient::AREXClient(const URL& url,
                          const MCCConfig& cfg,
-                         int timeout)
+                         int timeout,
+                         bool arex_extensions)
     : client_config(NULL),
       client_loader(NULL),
       client(NULL),
       client_entry(NULL),
-      rurl(url) {
+      rurl(url),
+      arex_enabled(arex_extensions) {
 
     logger.msg(INFO, "Creating an A-REX client");
     client = new ClientSOAP(cfg, url, timeout);
-    set_arex_namespaces(arex_ns);
-    //rurl = url;
+    if(arex_enabled) {
+      set_arex_namespaces(arex_ns);
+    } else {
+      set_bes_namespaces(arex_ns);
+    }
   }
 
   AREXClient::~AREXClient() {
@@ -92,6 +103,7 @@ namespace Arc {
     // special methods of ClientTCP class introduced.
     std::string deleg_cert;
     std::string deleg_key;
+    if (!arex_enabled) delegate = false;
     if (delegate) {
       client->Load(); // Make sure chain is ready
       XMLNode tls_cfg = find_xml_node((client->GetConfig())["Chain"],
@@ -239,28 +251,44 @@ namespace Arc {
     logger.msg(INFO, "Creating and sending a status request");
 
     PayloadSOAP req(arex_ns);
-    XMLNode jobref =
-      req.NewChild("rp:QueryResourceProperties").
-      NewChild("rp:QueryExpression");
-    jobref.NewAttribute("Dialect") = "http://www.w3.org/TR/1999/REC-xpath-19991116";
+    if(arex_enabled) {
+      // AREX service
+      XMLNode jobref =
+        req.NewChild("rp:QueryResourceProperties").
+        NewChild("rp:QueryExpression");
+      jobref.NewAttribute("Dialect") = "http://www.w3.org/TR/1999/REC-xpath-19991116";
 
-    std::string jobidnumber = (std::string)(XMLNode(jobid)["ReferenceParameters"]["JobID"]);
-    jobref = "//glue:Services/glue:ComputingService/glue:ComputingEndpoint/glue:ComputingActivities/glue:ComputingActivity/glue:ID[contains(.,'" + jobidnumber + "')]/..";
+      std::string jobidnumber = (std::string)(XMLNode(jobid)["ReferenceParameters"]["JobID"]);
+      jobref = "//glue:Services/glue:ComputingService/glue:ComputingEndpoint/glue:ComputingActivities/glue:ComputingActivity/glue:ID[contains(.,'" + jobidnumber + "')]/..";
 
-    WSAHeader(req).To(rurl.str());
-    WSAHeader(req).Action("http://docs.oasis-open.org/wsrf/rpw-2"
+      WSAHeader(req).To(rurl.str());
+      WSAHeader(req).Action("http://docs.oasis-open.org/wsrf/rpw-2"
                           "/QueryResourceProperties/QueryResourcePropertiesRequest");
+    } else {
+      // Simple BES service
+      // GetActivityStatuses
+      //  ActivityIdentifier 
+      XMLNode jobref =
+        req.NewChild("bes-factory:GetActivityStatuses").
+        NewChild(XMLNode(jobid));
+      set_bes_factory_action(req, "GetActivityStatuses");
+      WSAHeader(req).To(rurl.str());
+      jobref.Child(0).Namespaces(arex_ns); // Unify namespaces
+    }
 
-    // Send status request
+      // Send status request
     PayloadSOAP *resp = NULL;
     if (!process(req, &resp, false))
       return false;
 
     SOAPFault *fs = (*resp).Fault();
     (*resp).Namespaces(arex_ns);
-    //XMLNode jobNode = (*resp)["QueryResourcePropertiesResponse"]["ComputingActivity"];
     XMLNode jobNode;
-    (*resp)["QueryResourcePropertiesResponse"]["ComputingActivity"].New(jobNode);
+    if(arex_enabled) {
+      (*resp)["QueryResourcePropertiesResponse"]["ComputingActivity"].New(jobNode);
+    } else {
+      (*resp)["GetActivityStatusesResponse"]["Response"].New(jobNode);
+    }
 
     delete resp;
 
@@ -275,26 +303,32 @@ namespace Arc {
     }
     else {
       logger.msg(DEBUG, "Fetching job state");
-      logger.msg(DEBUG, "%s", (std::string)jobNode["State"]);
-      // Fetch the proper state.
-      for (int i = 0; jobNode["State"][i]; i++) {
-        const std::string rawState = (std::string)jobNode["State"][i];
-        const std::size_t pos = rawState.find_first_of(':');
-        if (pos == std::string::npos) {
-          logger.msg(WARNING, "Found malformed job state string: %s", rawState);
-          continue;
+      if(arex_enabled) {
+        logger.msg(DEBUG, "%s", (std::string)jobNode["State"]);
+        // Fetch the proper state.
+        for (int i = 0; jobNode["State"][i]; i++) {
+          const std::string rawState = (std::string)jobNode["State"][i];
+          const std::size_t pos = rawState.find_first_of(':');
+          if (pos == std::string::npos) {
+            logger.msg(WARNING, "Found malformed job state string: %s", rawState);
+            continue;
+          }
+          const std::string model = rawState.substr(0, pos);
+          const std::string state = rawState.substr(pos + 1);
+          if (model == mainStateModel)
+            job.State = JobStateARC1(state);
+          job.AuxStates[model] = state;
         }
-        const std::string model = rawState.substr(0, pos);
-        const std::string state = rawState.substr(pos + 1);
-        if (model == mainStateModel)
-          job.State = JobStateARC1(state);
-        job.AuxStates[model] = state;
+      } else {
+        std::string state = jobNode["ActivityStatus"].Attribute("state");
+        job.State = JobStateBES(state);
       }
 
       if (!job.State) {
         logger.msg(ERROR, "The status of the job (%s) could not be retrieved.", job.JobID.str());
         return false;
       }
+      if(!arex_enabled) return true;
 
       //The job is found and data about it can be collected
 
@@ -368,6 +402,8 @@ namespace Arc {
   }
 
   bool AREXClient::sstat(XMLNode& status) {
+
+    if(!arex_enabled) return false;
 
     logger.msg(INFO, "Creating and sending a service status request");
 
@@ -445,6 +481,9 @@ namespace Arc {
   }
 
   bool AREXClient::listServicesFromISIS(std::list<Arc::Config>& services, std::string& statusString) {
+
+    if(!arex_enabled) return false;
+
     logger.msg(INFO, "Creating and sending an index service query");
 
     NS isis_ns;
@@ -577,6 +616,8 @@ namespace Arc {
 
   bool AREXClient::clean(const std::string& jobid) {
 
+    if(!arex_enabled) return false;
+
     std::string result, faultstring;
     logger.msg(INFO, "Creating and sending request to terminate a job");
 
@@ -660,8 +701,10 @@ namespace Arc {
   }
 
   bool AREXClient::migrate(const std::string& jobid, const std::string& jobdesc, bool forcemigration, std::string& newjobid, bool delegate) {
-    std::string faultstring;
 
+    if(!arex_enabled) return false;
+
+    std::string faultstring;
     logger.msg(INFO, "Creating and sending request");
 
     // Create migrate request
@@ -708,6 +751,8 @@ namespace Arc {
   }
 
   bool AREXClient::resume(const std::string& jobid) {
+
+    if(!arex_enabled) return false;
 
     std::string result, faultstring;
     logger.msg(INFO, "Creating and sending request to resume a job");

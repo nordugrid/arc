@@ -1,7 +1,7 @@
 // -*- indent-tabs-mode: nil -*-
 
-#ifndef __ARC_SUBMITTERARC1_H__
-#define __ARC_SUBMITTERARC1_H__
+#ifndef __ARC_SUBMITTERBES_H__
+#define __ARC_SUBMITTERBES_H__
 
 #include <arc/client/Submitter.h>
 #include <arc/XMLNode.h>
@@ -13,14 +13,14 @@ namespace Arc {
 
   class Config;
 
-  class SubmitterARC1
+  class SubmitterBES
     : public Submitter {
 
   private:
     static Logger logger;
 
-    SubmitterARC1(const UserConfig& usercfg);
-    ~SubmitterARC1();
+    SubmitterBES(const UserConfig& usercfg);
+    ~SubmitterBES();
 
   public:
     static Plugin* Instance(PluginArgument *arg);
@@ -34,4 +34,4 @@ namespace Arc {
 
 } // namespace Arc
 
-#endif // __ARC_SUBMITTERARC1_H__
+#endif // __ARC_SUBMITTERBES_H__

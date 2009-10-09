@@ -1,0 +1,88 @@
+// -*- indent-tabs-mode: nil -*-
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
+#include <string>
+#include <sstream>
+
+#include <arc/StringConv.h>
+#include <arc/UserConfig.h>
+#include <arc/client/ExecutionTarget.h>
+#include <arc/client/JobDescription.h>
+#include <arc/message/MCC.h>
+
+#include "SubmitterBES.h"
+#include "AREXClient.h"
+
+namespace Arc {
+
+  Logger SubmitterBES::logger(Submitter::logger, "BES");
+
+  SubmitterBES::SubmitterBES(const UserConfig& usercfg)
+    : Submitter(usercfg, "BES") {}
+
+  SubmitterBES::~SubmitterBES() {}
+
+  Plugin* SubmitterBES::Instance(PluginArgument *arg) {
+    SubmitterPluginArgument *subarg =
+      dynamic_cast<SubmitterPluginArgument*>(arg);
+    if (!subarg)
+      return NULL;
+    return new SubmitterBES(*subarg);
+  }
+
+  URL SubmitterBES::Submit(const JobDescription& jobdesc,
+                            const ExecutionTarget& et) const {
+    MCCConfig cfg;
+    usercfg.ApplyToConfig(cfg);
+    AREXClient ac(et.url, cfg, usercfg.Timeout(), false);
+
+    std::string jobid;
+    // !! TODO: ordinary JSDL is needed - keeping ARCJSDL so far
+    if (!ac.submit(jobdesc.UnParse("ARCJSDL"), jobid, et.url.Protocol() == "https")) {
+      logger.msg(ERROR, "Failed submitting job");
+      return URL();
+    }
+    if (jobid.empty()) {
+      logger.msg(ERROR, "Service returned no job identifier");
+      return URL();
+    }
+
+    XMLNode jobidx(jobid);
+
+    JobDescription job(jobdesc);
+
+    // ???????????????
+    if (!ModifyJobDescription(job, et)) {
+      logger.msg(ERROR, "Submit: Failed to modify job description "
+                        "to be sent to target.");
+      return URL();
+    }
+
+    // Unfortunately Job handling framework somewhy want to have job
+    // URL instead of identifier we have to invent one. So we disguise
+    // XML blob inside URL path.
+    std::string::size_type p = 0;
+    for(;;) {
+      p = jobid.find_first_of("\r\n",p);
+      if(p == std::string::npos) break; 
+      jobid.erase(p,1);
+    };
+    URL jobid_url(et.url.str()+"#"+jobid);
+    AddJob(job, jobid_url, et.Cluster, et.url);
+    return et.url;
+  }
+
+  URL SubmitterBES::Migrate(const URL& jobid, const JobDescription& jobdesc,
+                             const ExecutionTarget& et,
+                             bool forcemigration) const {
+    return URL();
+  }
+
+  bool SubmitterBES::ModifyJobDescription(JobDescription& jobdesc, const ExecutionTarget& et) const {
+    return true;
+  }
+
+} // namespace Arc
