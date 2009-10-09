@@ -330,37 +330,37 @@ namespace Arc {
         return true;
       }
 
-/** Skou: Currently not supported...
       if (c->Attr() == "gridtime") {
         std::string time;
-        if (!SingleValue(c, time))
+        int intTime;
+        if (!SingleValue(c, time) ||
+            !stringto(time, intTime)) // Unable to parse as integer.
           return false;
-        ReferenceTimeType rtime;
-        rtime.benchmark = "gridtime";
-        rtime.value = 2800;
-        rtime.time = Period(time, PeriodMinutes);
-        j.ReferenceTime.push_back(rtime);
+        j.Resources.TotalCPUTime.range = intTime;
+        j.Resources.TotalCPUTime.benchmark = std::pair<std::string, double>("ARC-clockrate", 2800);
         return true;
       }
-*/
 
-/** Skou: Currently not supported...
       if (c->Attr() == "benchmarks") {
         std::list<std::list<std::string> > bm;
         if (!SeqListValue(c, bm, 3))
           return false;
-        for (std::list<std::list<std::string> >::iterator it = bm.begin();
+        double bValue;
+        int bTime;
+        // Only the first parsable benchmark is currently supported.
+        for (std::list< std::list<std::string> >::const_iterator it = bm.begin();
              it != bm.end(); it++) {
-          std::list<std::string>::iterator it2 = it->begin();
-          ReferenceTimeType rtime;
-          rtime.benchmark = *it2++;
-          rtime.value = stringtod(*it2++);
-          rtime.time = Period(*it2, PeriodMinutes);
-          j.ReferenceTime.push_back(rtime);
+          std::list<std::string>::const_iterator itB = it->begin();
+          if (!stringto(*++itB, bValue) || !stringto(*++itB, bTime))
+            continue;
+
+          j.Resources.TotalCPUTime.benchmark = std::pair<std::string, double>(it->front(), bValue);
+          j.Resources.TotalCPUTime.range = bTime;
+          return true;
         }
-        return true;
+        return false;
       }
-*/
+
       if (c->Attr() == "memory") {
         std::string mem;
         if (!SingleValue(c, mem))

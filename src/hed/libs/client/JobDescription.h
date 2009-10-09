@@ -45,11 +45,24 @@ namespace Arc {
   template<class T>
   class ScalableTime {
   public:
-    ScalableTime<T>() : benchmark("", -1) {}
+    ScalableTime<T>() : benchmark("", -1.) {}
     ScalableTime<T>(const T& t) : range(t) {}
 
-    std::pair<std::string, int> benchmark;
+    std::pair<std::string, double> benchmark;
     Range<T> range;
+  };
+
+  template<>
+  class ScalableTime<int> {
+  public:
+    ScalableTime<int>() : benchmark("", -1.) {}
+    ScalableTime<int>(const int& t) : range(t) {}
+
+    std::pair<std::string, double> benchmark;
+    Range<int> range;
+
+    int scaleMin(double s) const { return (int)(range.min*benchmark.second/s); }
+    int scaleMax(double s) const { return (int)(range.max*benchmark.second/s); }
   };
 
   enum ComputingActivityType {

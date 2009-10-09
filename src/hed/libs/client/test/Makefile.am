@@ -1,4 +1,4 @@
-TESTS = SoftwareTest JobDescriptionTest
+TESTS = SoftwareTest JobDescriptionTest BrokerTest
 check_PROGRAMS = $(TESTS)
 
 SoftwareTest_SOURCES = $(top_srcdir)/src/Test.cpp SoftwareTest.cpp
@@ -8,3 +8,7 @@ SoftwareTest_LDADD = $(CPPUNIT_LIBS) $(GLIBMM_LIBS) $(LIBXML2_LIBS) $(top_srcdir
 JobDescriptionTest_SOURCES = $(top_srcdir)/src/Test.cpp JobDescriptionTest.cpp
 JobDescriptionTest_CXXFLAGS = $(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
 JobDescriptionTest_LDADD = $(CPPUNIT_LIBS) $(GLIBMM_LIBS) $(LIBXML2_LIBS) $(top_srcdir)/src/hed/libs/common/libarccommon.la ../libarcclient.la
+
+BrokerTest_SOURCES = $(top_srcdir)/src/Test.cpp BrokerTest.cpp
+BrokerTest_CXXFLAGS = $(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
+BrokerTest_LDADD = $(CPPUNIT_LIBS) $(GLIBMM_LIBS) $(LIBXML2_LIBS) $(top_srcdir)/src/hed/libs/common/libarccommon.la ../libarcclient.la

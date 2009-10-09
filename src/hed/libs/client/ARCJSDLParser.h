@@ -44,9 +44,9 @@ namespace Arc {
     template<typename T>
     void outputJSDLRange(const Range<T>& range, XMLNode& jsdl, const T& undefValue) const;
 
-    
-    void parseBenchmark(const XMLNode& xmlBenchmark, std::pair<std::string, int>& benchmark) const;
-    void outputBenchmark(const std::pair<std::string, int>& benchmark, XMLNode& xmlBenchmark) const;
+
+    void parseBenchmark(const XMLNode& xmlBenchmark, std::pair<std::string, double>& benchmark) const;
+    void outputBenchmark(const std::pair<std::string, double>& benchmark, XMLNode& xmlBenchmark) const;
   };
 
 } // namespace Arc

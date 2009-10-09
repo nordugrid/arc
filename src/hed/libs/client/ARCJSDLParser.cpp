@@ -133,7 +133,7 @@ namespace Arc {
     }
   }
 
-  void ARCJSDLParser::parseBenchmark(const XMLNode& xmlBenchmark, std::pair<std::string, int>& benchmark) const {
+  void ARCJSDLParser::parseBenchmark(const XMLNode& xmlBenchmark, std::pair<std::string, double>& benchmark) const {
     int value;
     if (bool(xmlBenchmark["BenchmarkType"]) &&
         bool(xmlBenchmark["BenchmarkValue"]) &&
@@ -141,7 +141,7 @@ namespace Arc {
       benchmark = std::make_pair<std::string, int>((std::string)xmlBenchmark["BenchmarkType"], value);
   }
 
-  void ARCJSDLParser::outputBenchmark(const std::pair<std::string, int>& benchmark, XMLNode& arcJSDL) const {
+  void ARCJSDLParser::outputBenchmark(const std::pair<std::string, double>& benchmark, XMLNode& arcJSDL) const {
     if (!benchmark.first.empty()) {
       arcJSDL.NewChild("BenchmarkType") = benchmark.first;
       arcJSDL.NewChild("BenchmarkValue") = tostring(benchmark.second);
