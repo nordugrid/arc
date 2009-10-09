@@ -145,8 +145,8 @@
           </ip:Contact>
 
           <ip:ExecutionEnvironment name="localhost">
-              <ip:OSName>centos</ip:OSName>
-              <ip:OSVersion>5.1</ip:OSVersion>
+              <ip:OSName>adotf</ip:OSName>
+              <ip:OSVersion>adotf</ip:OSVersion>
               <ip:CPUVendor>adotf</ip:CPUVendor>
               <ip:CPUModel>adotf</ip:CPUModel>
               <ip:CPUClockSpeed>adotf</ip:CPUClockSpeed>
@@ -158,6 +158,8 @@
               <ip:Description>just a fork queue</ip:Description>
               <ip:MappingQueue>fork</ip:MappingQueue>
               <ip:ExecEnvName>localhost</ip:ExecEnvName>
+              <ip:OSName>centos</ip:OSName>
+              <ip:OSVersion>5.1</ip:OSVersion>
               <ip:AuthorizedVO>nordugrid.org</ip:AuthorizedVO>
               <ip:MaxVirtualMemory>2000</ip:MaxVirtualMemory>
               <ip:SchedulingPolicy>fifo</ip:SchedulingPolicy>

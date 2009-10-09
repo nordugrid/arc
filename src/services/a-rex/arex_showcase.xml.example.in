@@ -1,4 +1,18 @@
 <?xml version="1.0"?>
+<!--
+
+
+
+*************************************************************************
+This file shows all the possible options that are recognized by A-REX and
+related components. Do not use this as basis for creating your own config.
+Rather start from a simpler template, and add to it options that you deem
+appropiate.
+*************************************************************************
+
+
+
+-->
 <ArcConfig
   xmlns="http://www.nordugrid.org/schemas/arcconfig/2009/08"
   xmlns:loader="http://www.nordugrid.org/schemas/loader/2009/08"
@@ -102,7 +116,7 @@
       <arex:dataTransfer>
           <arex:secureTransfer>true</arex:secureTransfer>
           <arex:passiveTransfer>true</arex:passiveTransfer>
-          <arex:localTransfer>true</arex:localTransfer>
+          <arex:localTransfer>false</arex:localTransfer>
           <arex:timeouts>
               <arex:minSpeed>50</arex:minSpeed>
               <arex:minSpeedTime>300</arex:minSpeedTime>
