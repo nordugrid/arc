@@ -1,4 +1,2 @@
-@JANITOR_SERVICE_ENABLED_TRUE@/usr/bin/janitorClient
 @JANITOR_SERVICE_ENABLED_TRUE@/usr/lib/arc/janitor
-@JANITOR_SERVICE_ENABLED_TRUE@/usr/sbin/janitor
 @JANITOR_SERVICE_ENABLED_TRUE@/usr/share/arc/perl/Janitor/

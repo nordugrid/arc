@@ -146,6 +146,26 @@ Requires: %{name} = %{version}
 Java wrapper for ARC
 %endif
 
+%package janitor
+Summary: ARC dynamic installation of runtime environments
+Group: Applications/Internet
+Requires: perl-redland
+
+%description janitor
+The NorduGrid is a collaboration aiming at development, maintenance
+and support of the free Grid middleware, known as the Advanced
+Resource Connector (ARC).
+
+For grid computing, a major challenge is to keep the working environments
+homogeneous between the sites.  To help this situation, runtime
+environments have been developed. Those can be added to or removed from
+a site, and this Janitor service helps automating this process.
+
+The Janitor is a recent development and the community to prepare
+catalogues of dynamically installable packages still needs to
+evolve.
+
+
 %package doc
 Summary: ARC API documentation
 Group: Documentation
@@ -410,6 +430,12 @@ exit 0
 %{_datadir}/java/arc.jar
 %{_libdir}/%{pkgdir}/libjavaservice.so
 %endif
+
+%files janitor
+%defattr(-,root,root,-)
+%{_libexecdir}/%{pkgdir}/janitor
+%doc %{_mandir}/man8/janitor.8*
+%{_datadir}/%{pkgdir}/perl/Janitor/
 
 %files doc
 %defattr(-,root,root,-)
