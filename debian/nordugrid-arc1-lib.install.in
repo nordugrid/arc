@@ -1,10 +1,10 @@
-usr/lib/lib*so*
-usr/lib/arc/lib*so*
-usr/share/locale/*/LC_MESSAGES/arc.mo
-usr/lib/pkgconfig/arcbase.pc
-#redundant#usr/lib/arc/libdmcarc.so
-#redundant#usr/lib/arc/libdmcsrm.so
-#redundant#usr/lib/arc/libaccUNICORE.so
-#redundant#@RLS_ENABLED_TRUE@usr/lib/arc/libdmcrls.so
-#redundant#@GRIDFTP_ENABLED_TRUE@usr/lib/arc/libdmcgridftp.so
+debian/tmp/usr/lib/lib*so*
+debian/tmp/usr/lib/arc/lib*so*
+debian/tmp/usr/share/locale/*/LC_MESSAGES/arc.mo
+debian/tmp/usr/lib/pkgconfig/arcbase.pc
+#redundant#debian/tmp/usr/lib/arc/libdmcarc.so
+#redundant#debian/tmp/usr/lib/arc/libdmcsrm.so
+#redundant#debian/tmp/usr/lib/arc/libaccUNICORE.so
+#redundant#@RLS_ENABLED_TRUE@debian/tmp/usr/lib/arc/libdmcrls.so
+#redundant#@GRIDFTP_ENABLED_TRUE@debian/tmp/usr/lib/arc/libdmcgridftp.so
 

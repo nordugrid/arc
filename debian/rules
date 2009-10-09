@@ -80,6 +80,7 @@ install-indep: build-indep-stamp
 	dh_installexamples -i
 	dh_installman -i
 	dh_installdocs -i
+	-dh_install -i --list-missing
 
 install-arch: build-arch-stamp
 	dh_testdir
@@ -97,7 +98,7 @@ install-arch: build-arch-stamp
 	-dh_installdocs -s 
 	-dh_installexamples -s
 	-dh_installman -s
-	-dh_install -s --sourcedir=debian/tmp --list-missing
+	-dh_install -s --list-missing
 
 # Must not depend on anything. This is to be called by
 # binary-arch/binary-indep

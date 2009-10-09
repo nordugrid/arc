@@ -1,2 +1,2 @@
-@JANITOR_SERVICE_ENABLED_TRUE@/usr/lib/arc/janitor
-@JANITOR_SERVICE_ENABLED_TRUE@/usr/share/arc/perl/Janitor/
+@JANITOR_SERVICE_ENABLED_TRUE@debian/tmp/usr/lib/arc/janitor
+@JANITOR_SERVICE_ENABLED_TRUE@debian/tmp/usr/share/arc/perl/Janitor/
