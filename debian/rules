@@ -76,9 +76,10 @@ install-indep: build-indep-stamp
 	dh_clean -k -i 
 	dh_installdirs -i
 	$(MAKE) DESTDIR=$(CURDIR)/debian/tmp install-doc
+	# Complain but don't fail...
 	dh_installexamples -i
 	dh_installman -i
-	dh_installdocs -i --sourcedir=debian/tmp
+	dh_installdocs -i
 
 install-arch: build-arch-stamp
 	dh_testdir
@@ -92,10 +93,10 @@ install-arch: build-arch-stamp
 	rm -f $(CURDIR)/debian/tmp/usr/lib/arc/lib*.la
 	rm -f $(CURDIR)/debian/tmp/usr/lib/arc/lib*.a
 
-	dh_installdocs -s --sourcedir=debian/tmp
-	dh_installexamples -s
-	dh_installman -s
-	# list missing, but don't fail
+	# Complain but don't fail...
+	-dh_installdocs -s 
+	-dh_installexamples -s
+	-dh_installman -s
 	-dh_install -s --sourcedir=debian/tmp --list-missing
 
 # Must not depend on anything. This is to be called by
