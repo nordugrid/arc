@@ -209,7 +209,7 @@ int main(int argc, char *argv[]) {
   if (!debug.empty())
     Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(debug));
 
-  Arc::UserConfig usercfg(conffile, false);
+  Arc::UserConfig usercfg(conffile, Arc::initializeCredentialsType::SkipCredentials);
   if (!usercfg) {
     logger.msg(Arc::ERROR, "Failed configuration initialization");
     return EXIT_FAILURE;
