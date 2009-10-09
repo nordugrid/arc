@@ -812,7 +812,6 @@ GLOBUS_FTP_CLIENT_VERSION=
 GLOBUS_FTP_CONTROL_VERSION=
 GLOBUS_IO_VERSION=
 GLOBUS_GSSAPI_GSI_VERSION=
-# LFC ??
 fi
 
 if test "x$GLOBUS_IO_VERSION" = "x"; then
@@ -832,21 +831,28 @@ AC_MSG_RESULT($DEFAULT_GLOBUS_LOCATION)
 AC_SUBST(DEFAULT_GLOBUS_LOCATION)
 
 # Check for LFC
-LFC_LOCATION=/usr
-LFC_CFLAGS="-I$LFC_LOCATION/include/lfc"
-LFC_LIBS="-llfc"
 AC_ARG_ENABLE(lfc, AC_HELP_STRING([--enable-lfc], [enable the LFC support, default is disable]),[enable_lfc="yes"],[enable_lfc="no"])
 if test "x$enable_lfc" = "xyes"; then
+  LFC_CFLAGS="-I/usr/include/lfc"
+  LFC_LDFLAGS=""
   AC_ARG_WITH(lfc, [  --with-lfc=(PATH)  LFC location])
   if test ! "x$with_lfc" = "x" ; then
     LFC_LOCATION="$with_lfc"
     LFC_CFLAGS="-I$LFC_LOCATION/include/lfc"
-    LFC_LIBS="-L$LFC_LOCATION/lib -llfc"
+    LFC_LDFLAGS="-L$LFC_LOCATION/lib"
   fi
   SAVE_CPPFLAGS=$CPPFLAGS
   CPPFLAGS="$CPPFLAGS $LFC_CFLAGS"
-  AC_CHECK_HEADER(lfc_api.h,[LFC=yes],[LFC=no])
+  AC_CHECK_HEADER(lfc_api.h, [], [enable_lfc="no"])
   CPPFLAGS=$SAVE_CPPFLAGS
+  SAVE_LDFLAGS=$LDFLAGS
+  LDFLAGS="$LDFLAGS $LFC_LDFLAGS"
+  AC_CHECK_LIB([lfc], [lfc_apiinit],
+               [LFC_LIBS="$LFC_LDFLAGS -llfc"], [enable_lfc="no"])
+  # Check if lcgdm is a separate library
+  AC_CHECK_LIB([lcgdm], [C__serrno], [LFC_LIBS="$LFC_LIBS -llcgdm"],
+  AC_CHECK_LIB([lfc], [C__serrno], [], [enable_lfc="no"]))
+  LDFLAGS=$SAVE_LDFLAGS
 fi
 AC_SUBST(LFC_CFLAGS)
 AC_SUBST(LFC_LIBS)
@@ -871,7 +877,7 @@ AM_CONDITIONAL([DOC_ENABLED],[test "x$enable_doc" = "xyes"])
 AM_CONDITIONAL([GLOBUSUTILS_ENABLED], test -n "$GLOBUS_COMMON_VERSION")
 AM_CONDITIONAL([RLS_ENABLED], test -n "$GLOBUS_RLS_CLIENT_VERSION")
 AM_CONDITIONAL([GRIDFTP_ENABLED], test -n "$GLOBUS_FTP_CLIENT_VERSION")
-AM_CONDITIONAL([LFC_ENABLED], test x$LFC = xyes)
+AM_CONDITIONAL([LFC_ENABLED], test x$enable_lfc = xyes)
 AM_CONDITIONAL([OPENSSL_PROXY_ENABLED], test x$OPENSSL_PROXY = xyes)
 AM_CONDITIONAL([OPENSSL_X509_VERIFY_PARAM_ENABLED], test x$OPENSSL_X509_VERIFY_PARAM = xyes)
 AM_CONDITIONAL([XMLSEC_ENABLED], test x$XMLSEC_INSTALLED = xyes)
@@ -910,8 +916,6 @@ enable_rls=no
 if test -n "$GLOBUS_RLS_CLIENT_VERSION" ; then enable_rls=yes; fi
 enable_gridftp=no
 if test -n "$GLOBUS_FTP_CLIENT_VERSION" ; then enable_gridftp=yes; fi
-enable_lfc=no
-if test x$LFC = xyes ; then enable_lfc=yes; fi
 enable_saml=no
 if test x$XMLSEC_INSTALLED = xyes ; then enable_saml=yes; fi
 
