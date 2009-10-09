@@ -319,7 +319,8 @@ namespace Arc {
     /// Apply credentials to BaseConfig
     /**
      * This methods sets the BaseConfig credentials to the credentials
-     * contained in this object.
+     * contained in this object. It also passes user defined configuration
+     * overlay if any.
      *
      * @see InitializeCredentials()
      * @see CredentialsFound()
@@ -992,6 +993,29 @@ namespace Arc {
      **/
     const std::string& IdPName() const { return idPName; }
 
+    /// Set path to configuration overlay file
+    /**
+     * Content of specified file is a backdoor to configuration XML
+     * generated from information stored in this class. The content
+     * of file is passed to BaseConfig class in ApplyToConfig(BaseConfig&)
+     * then merged with internal configuration XML representation.
+     * This feature is meant for quick prototyping/testing/tuning of 
+     * functionality without rewriting code. It is meant for developers and
+     * most users won't need it.
+     *
+     * The attribute associated with this setter method is 'overlayfile'.
+     * @param path is the new overlay file path.
+     * @return This method always returns \c true.
+     * @see
+     **/
+    bool OverlayFile(const std::string& path) { overlayfile = path; return true; }
+    /// Get path to configuration overlay file
+    /**
+     * @return The overlay file path
+     * @see OverlayFile(const std::string&)
+     **/
+    const std::string& OverlayFile() const { return overlayfile; }
+
     /// Path to ARC user home directory
     /**
      * The \a ARCUSERDIRECTORY variable is the path to the ARC home
@@ -1086,6 +1110,8 @@ namespace Arc {
 
     std::string username;
     std::string password;
+
+    std::string overlayfile;
 
     // Private members not refered to outside this class:
     // Alias map.

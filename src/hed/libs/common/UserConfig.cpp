@@ -161,6 +161,9 @@ namespace Arc {
     }
 
     ccfg.AddCADir(caCertificatesDirectory);
+
+    if(!overlayfile.empty())
+      ccfg.GetOverlay(overlayfile);
   }
 
   bool UserConfig::Timeout(int newTimeout) {
@@ -532,7 +535,10 @@ namespace Arc {
               while (common["rejectservices"]) common["rejectservices"].Destroy();
             }
           }
-
+          HANDLESTRATT("overlayfile", OverlayFile)
+          if(!overlayfile.empty())
+            if (!Glib::file_test(overlayfile, Glib::FILE_TEST_IS_REGULAR))
+              logger.msg(WARNING, "Specified overlay file (%s) does not exists.", overlayfile);
           while (common.Child()) {
             logger.msg(WARNING, "Unknown attribute %s in common section, ignoring it", common.Child().Name());
             common.Child().Destroy();
