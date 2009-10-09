@@ -1,4 +1,25 @@
 #!/usr/bin/perl -w
+
+=head1 NAME
+
+update_catalog.pl - retrieve catalogue files stored remotely
+
+=head1 SYNOPSIS
+
+update_catalog.pl pathToArc.conf
+
+=head1 DESCRIPTION
+
+The script performs the automated download of catalog files from external source,
+according to the paths identified in the Janitor blocks of an arc.conf-formatted
+file.
+
+=head1 AUTHOR
+
+Daniel Bayer, LE<uuml>beck, 2007
+
+=cut
+
 use strict;
 use File::Basename;
 
@@ -6,7 +27,7 @@ my $lastBlock=undef;
 my $catalog=undef;
 
 my %usedFilenames;
-my $catalogdir="/opt/janitor/catalog";
+my $catalogdir="/var/spool/nordugrid/janitor/catalog";
 
 while(<>) {
 	next if /^\s*#/;
