@@ -1,0 +1,18 @@
+<!-- Example overlay XML file which can be used to add usernametoken
+    elements to SOAP messages sent by ARC client tools. -->
+<ArcConfig>
+  <Plugins overlay="add">
+    <Name>arcshc</Name>
+  </Plugins>
+  <Chain>
+    <Component name="soap.client">
+      <SecHandler name="usernametoken.handler" id="usernametoken" event="outgoing" overlay="add">
+        <Process>generate</Process>
+        <PasswordEncoding>digest</PasswordEncoding>
+        <Username>user</Username>
+        <Password>password</Password>
+      </SecHandler>
+    </Component>
+  </Chain>
+</ArcConfig>
+
