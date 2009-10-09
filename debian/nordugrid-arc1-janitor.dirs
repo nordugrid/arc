@@ -1,3 +1,4 @@
+/etc/janitor
 /var/spool/nordugrid/janitor/catalog
 /var/spool/nordugrid/janitor/download
 /var/spool/nordugrid/janitor/jobs
