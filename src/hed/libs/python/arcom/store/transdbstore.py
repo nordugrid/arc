@@ -207,9 +207,9 @@ class TransDBStore(BaseStore):
         """
         try:
             tid = thread.get_ident()
-            if self.txn_cache[tid]:
+            if self.txn_cache.get(tid, None):
                 self.txn_cache[tid].commit()
-            del(self.txn_cache[tid])
+                del(self.txn_cache[tid])
         except:
             log.msg(arc.ERROR, "Error on txn.commit()")
             log.msg()
@@ -257,7 +257,7 @@ class TransDBStore(BaseStore):
         self.dbp = self.__opendb(self.dbp)
 
         try:
-            object = self.dbp.get(ID, None)
+            object = self.dbp.get(ID)
             try:
                 # using cPickle.loads for loading
                 object = cPickle.loads(object)
@@ -319,18 +319,19 @@ class TransDBStore(BaseStore):
             except db.DBLockDeadlockError:
                 log.msg(arc.INFO, "Got deadlock error")
                 # need to close transaction handle as well
-                if self.txn_cache[thread.get_ident()]:
+                if self.txn_cache.get(thread.get_ident(), None):
                     self.txn_cache[thread.get_ident()].abort()
                     del(self.txn_cache[thread.get_ident()])
                 time.sleep(0.2)
                 if retry_count < self.deadlock_retries:
                     log.msg(arc.DEBUG, "got DBLockDeadlockError")
-                    log.msg(arc.DEBUG, "retrying transaction")
                     retry_count += 1
+                    log.msg(arc.DEBUG, "retrying transaction", retry_count)
                     retry = True
-                    # making new txn handle with blocking=True since
-                    # lock has previously been granted
-                    self.txn_cache[thread.get_ident()] = self.dbenv.txn_begin()
+                    # making new txn handle if it is gone
+                    while not self.txn_cache.get(thread.get_ident(), None):
+                        self.txn_cache[thread.get_ident()] = self.dbenv.txn_begin(flags = db.DB_TXN_NOWAIT)
+                        time.sleep(0.2)
                 else:
                     log.msg(arc.DEBUG, "Deadlock exception, giving up...")
                     retry = False
@@ -342,26 +343,25 @@ class TransDBStore(BaseStore):
                 raise
             except db.DBAccessError:
                 log.msg(arc.WARNING,"Read-only db. I'm not a master.")
-                if self.txn_cache[thread.get_ident()]:
+                if self.txn_cache.get(thread.get_ident(), None):
                     self.txn_cache[thread.get_ident()].abort()
                     del(self.txn_cache[thread.get_ident()])
                 raise
             except db.DBNotFoundError:
                 log.msg(arc.WARNING, "cannot delete non-existing entries")
-                if self.txn_cache[thread.get_ident()]:
+                if self.txn_cache.get(thread.get_ident(), None):
                     self.txn_cache[thread.get_ident()].abort()
                     del(self.txn_cache[thread.get_ident()])
                 retry = False
             except:
-                if self.txn_cache[thread.get_ident()]:
+                if self.txn_cache.get(thread.get_ident(), None):
                     self.txn_cache[thread.get_ident()].abort()
                     del(self.txn_cache[thread.get_ident()])
                 self.__del__()
-                #log.msg()
+                log.msg()
                 log.msg(arc.ERROR, "Error setting %s"%ID)
                 retry = False
                 sys.exit(1)
-                #raise db.DBError, msg
 
     def restart(self):
         try:
