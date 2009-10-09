@@ -14,7 +14,7 @@ Homepage: http://www.nordugrid.org
 
 Package: nordugrid-arc1-janitor
 Architecture: any
-Depends: librdf-perl
+Depends: librdf-perl, perl (>= 5.10)
 Recommends: liblog-log4perl-perl
 Suggests: nordugrid-arc1
 Description: ARC dynamic installation of runtime environments

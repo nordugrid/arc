@@ -1,7 +1,11 @@
 Main folder for the janitor service.
 
-The functionality is stored in the folder "module". The data contained in this folder is installed into the perl library.
-The access to Janitor (i.e. commandline or webservice) is stored in the folder interfaces.
+The functionality is stored in the folder "module". The data contained
+in this folder is installed into the perl library.  The access to the
+Janitor (i.e. commandline or webservice) is stored in the folder interfaces.
+
+The documentation to the Janitor is (relative to the root of the ARC source
+tree) in 'doc/tech_doc/janitor/'.
 
 
 CURRENT CHECKLIST TO INSTALL JANITOR

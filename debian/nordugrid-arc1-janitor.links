@@ -1,1 +1,1 @@
-/usr/lib/arc/janitor /usr/sbin/janitor
+/var/log/janitor /var/spool/nordugrid/janitor/log
