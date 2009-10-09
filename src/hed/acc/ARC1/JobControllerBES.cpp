@@ -22,12 +22,30 @@ namespace Arc {
 
   Logger JobControllerBES::logger(JobController::logger, "BES");
 
+  static char hex_to_char(const char* v) {
+    char r = 0;
+    if((*v >= '0') && (*v <= '9')) { r |= *v  - '0'; }
+    else if((*v >= 'a') && (*v <= 'f')) { r |= *v  - 'a' + 10; }
+    else if((*v >= 'A') && (*v <= 'F')) { r |= *v  - 'A' + 10; }
+    r <<= 4; ++v;
+    if((*v >= '0') && (*v <= '9')) { r |= *v  - '0'; }
+    else if((*v >= 'a') && (*v <= 'f')) { r |= *v  - 'a' + 10; }
+    else if((*v >= 'A') && (*v <= 'F')) { r |= *v  - 'A' + 10; }
+    return r;
+  }
+
   static std::string extract_job_id(const URL& u) {
-    std::string jobid = u.FullPath();
+    std::string jobid = u.Path();
     if(jobid.empty()) return jobid;
     std::string::size_type p = jobid.find('#');
-    if(p == std::string::npos) p=0;
-    return jobid.substr(p+1);
+    if(p == std::string::npos) { p=0; } else { ++p; }
+    std::string s;
+    for(;p < jobid.length();p+=2) {
+      char r = hex_to_char(jobid.c_str() + p);
+      if(r == 0) { s.resize(0); break; }
+      s += r;
+    }
+    return s;
   }
 
   JobControllerBES::JobControllerBES(const UserConfig& usercfg)

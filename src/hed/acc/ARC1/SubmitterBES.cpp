@@ -20,6 +20,25 @@ namespace Arc {
 
   Logger SubmitterBES::logger(Submitter::logger, "BES");
 
+  static std::string char_to_hex(char v) {
+    std::string s;
+    unsigned int n;
+    n = (unsigned int)((v & 0xf0) >> 4);
+    if(n < 10) { s+=(char)('0'+n); } else { s+=(char)('a'+n-10); }
+    n = (unsigned int)(v & 0x0f);
+    if(n < 10) { s+=(char)('0'+n); } else { s+=(char)('a'+n-10); }
+    return s;
+  }
+
+  static std::string disguise_id_into_url(const URL& u,const std::string& id) {
+    std::string jobid = u.str();
+    jobid+="#";
+    for(std::string::size_type p = 0;p < id.length();++p) {
+      jobid+=char_to_hex(id[p]);
+    }
+    return jobid;
+  }
+
   SubmitterBES::SubmitterBES(const UserConfig& usercfg)
     : Submitter(usercfg, "BES") {}
 
@@ -64,13 +83,7 @@ namespace Arc {
     // Unfortunately Job handling framework somewhy want to have job
     // URL instead of identifier we have to invent one. So we disguise
     // XML blob inside URL path.
-    std::string::size_type p = 0;
-    for(;;) {
-      p = jobid.find_first_of("\r\n",p);
-      if(p == std::string::npos) break; 
-      jobid.erase(p,1);
-    };
-    URL jobid_url(et.url.str()+"#"+jobid);
+    URL jobid_url(disguise_id_into_url(et.url,jobid));
     AddJob(job, jobid_url, et.Cluster, et.url);
     return et.url;
   }
