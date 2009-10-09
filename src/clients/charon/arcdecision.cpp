@@ -84,7 +84,7 @@ int main(int argc, char* argv[]){
     if (!debug.empty())
       Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(debug));
 
-    Arc::UserConfig usercfg(config_path, true);
+    Arc::UserConfig usercfg(config_path, Arc::initializeCredentialsType(Arc::initializeCredentialsType::RequireCredentials));
     if (!usercfg) {
       std::cerr<<"Failed configuration initialization"<<std::endl;
       return EXIT_FAILURE;

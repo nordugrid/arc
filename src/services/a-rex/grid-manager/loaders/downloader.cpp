@@ -490,7 +490,7 @@ int main(int argc,char** argv) {
 
   Janitor janitor(desc.get_id(),user.ControlDir());
   
-  Arc::UserConfig usercfg(Arc::initializeCredentialsType::TryCredentials);
+  Arc::UserConfig usercfg(Arc::initializeCredentialsType(Arc::initializeCredentialsType::TryCredentials));
 
   Arc::DataMover mover;
   mover.retry(false);
