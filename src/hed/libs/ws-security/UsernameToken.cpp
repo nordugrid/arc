@@ -340,7 +340,7 @@ bool UsernameToken::Authenticate(const std::string& password,std::string& derive
     }
     else {
       if(password != password_) {
-        std::cerr<<"provide Password does not match that in wsse:Password"<<std::endl;
+        std::cerr<<"provide Password does not match that in wsse:Password: "<<password<<" != "<<password_<<std::endl;
         return false;
       }
     }
