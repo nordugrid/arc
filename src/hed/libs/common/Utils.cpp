@@ -104,6 +104,15 @@ namespace Arc {
     std::string libpath = Glib::build_filename(arc_lib_path,"lib"+name+"-0."+G_MODULE_SUFFIX);
 #endif
 
+    // MacOSX suffix is "dylib" and not "so" (G_MODULE_SUFFIX macro content "so" under MacOSX, maybe this is a glib bug)
+
+    if (!Glib::file_test(libpath, Glib::FILE_TEST_EXISTS)) {
+       // this should happen only if G_MODULE_SUFFIX is not "dll" or not "so" 
+       libpath = Glib::build_filename(arc_lib_path,"lib"+name+".dylib");
+    }   
+
+    // std::cout << "PersistentLibraryInit libpath: " << libpath << std::endl;
+
     persistent_libraries_lock.lock();
     for(std::list<std::string>::iterator l = persistent_libraries_list.begin();
             l != persistent_libraries_list.end();++l) {
