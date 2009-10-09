@@ -634,7 +634,6 @@ sub parseConfig {
     } else {
         $config = build_config_from_inifile($file);
     }
-    print(Dumper $config);
 
     LogUtils::level($config->{debugLevel}) if $config->{debugLevel};
 
