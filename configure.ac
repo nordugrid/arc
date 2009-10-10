@@ -248,6 +248,13 @@ AC_CHECK_HEADER([glibmm/optioncontext.h], [
       AC_MSG_NOTICE([using getopt_long command line parsing])
     ]
   )
+  AC_TRY_COMPILE([#include <glibmm/optioncontext.h>],
+    [Glib::OptionContext ctx; ctx.get_help();],[
+      AC_DEFINE(HAVE_GLIBMM_OPTIONCONTEXT_GET_HELP,,
+        [define if glibmm has Glib::OptionContext::get_help()])
+    ], [
+    ]
+  )
 ])
 AC_TRY_COMPILE([#include <glibmm.h>],[Glib::SignalChildWatch watch = Glib::signal_child_watch();],[glibmm_childwatch=yes],[glibmm_childwatch=no])
 if test "$glibmm_childwatch" = yes; then

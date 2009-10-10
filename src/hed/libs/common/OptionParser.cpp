@@ -249,7 +249,11 @@ namespace Arc {
       exit(1);
     }
     if(h_value) {
+#ifdef HAVE_GLIBMM_OPTIONCONTEXT_GET_HELP
       std::cout << ctx.get_help() << std::endl;
+#else
+      std::cout << "Use -? to get usage description" << std::endl;
+#endif
       exit(0);
     }
 
