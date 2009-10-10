@@ -292,7 +292,6 @@ exit 0
 %{_bindir}/chelonia
 %doc %{_mandir}/man1/chelonia.1*
 %{_sysconfdir}/arc/client.conf
-%doc %{_mandir}/man5/arcclient.xml.5*
 %{_bindir}/jura
 %{_bindir}/isistest
 
