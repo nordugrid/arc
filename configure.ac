@@ -1513,7 +1513,6 @@ AC_CONFIG_FILES([Makefile
                  debian/nordugrid-arc1-java.install
                  debian/nordugrid-arc1-janitor.install
                  debian/nordugrid-arc1-janitor.manpages
-                 debian/nordugrid-arc1-janitor.examples
                  debian/nordugrid-arc1-lib.install
                  debian/nordugrid-arc1-python.install
                  debian/nordugrid-arc1-plugins-base.install
