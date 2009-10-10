@@ -129,18 +129,6 @@ namespace Arc {
 
   void BaseConfig::GetOverlay(std::string fname) {
     overlay.Destroy();
-    if (fname.empty()) {
-      const char *fname_str = getenv("ARC_CLIENT_CONFIG");
-      if (fname_str)
-        fname = fname_str;
-      else {
-        std::vector<std::string> clientPath(3);
-        clientPath[0] = User().Home();
-        clientPath[1] = ".arc";
-        clientPath[2] = "client.conf";
-        fname = Glib::build_filename(clientPath);
-      }
-    }
     if (fname.empty())
       return;
     overlay.ReadFromFile(fname);
