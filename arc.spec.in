@@ -242,6 +242,7 @@ exit 0
 %files client
 %defattr(-,root,root,-)
 %doc src/clients/client.conf.example
+%doc %{_mandir}/man5/arcclient.xml.5*
 %doc src/clients/charon/charon_client.xml.example
 %doc src/clients/charon/charon_request.xml.example
 %doc src/tests/echo/echo.wsdl

@@ -1,3 +1,4 @@
+debian/tmp/usr/share/man/man5/arcclient.xml.5
 debian/tmp/usr/share/man/man1/arcecho.1
 debian/tmp/usr/share/man/man1/arcinfo.1
 debian/tmp/usr/share/man/man1/arcproxy.1

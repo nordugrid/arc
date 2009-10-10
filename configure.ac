@@ -1482,6 +1482,7 @@ AC_CONFIG_FILES([Makefile
                  src/clients/arclib/arcsync.1
                  src/clients/arclib/arcrenew.1
                  src/clients/arclib/arcresume.1
+                 src/clients/arclib/arcclient.xml.5
                  src/clients/srm/Makefile
                  src/clients/srm/arcsrmping.1
                  src/clients/jura/Makefile
@@ -1512,6 +1513,7 @@ AC_CONFIG_FILES([Makefile
                  debian/nordugrid-arc1-java.install
                  debian/nordugrid-arc1-janitor.install
                  debian/nordugrid-arc1-janitor.manpages
+                 debian/nordugrid-arc1-janitor.examples
                  debian/nordugrid-arc1-lib.install
                  debian/nordugrid-arc1-python.install
                  debian/nordugrid-arc1-plugins-base.install

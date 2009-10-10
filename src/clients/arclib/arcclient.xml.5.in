@@ -1,0 +1,146 @@
+.\" -*- nroff -*-
+.TH ARCCLIENT.XML 5 "@DATE@" "NorduGrid ARC @VERSION@" "NorduGrid Users Manual"
+
+.SH NAME
+
+arcclient.xml \- ARC user configuration
+
+.SH DESCRIPTION
+
+User configuration for NorduGrid ARC.
+
+.SH SYNOPSIS
+
+.B ${ARC_LOCATION}/etc/arcclient.xml
+
+.B /etc/arcclient.xml
+
+.B ~/.arc/client.xml
+
+.SH EXTENDED DESCRIPTION
+
+The ARC user configuration consists of two files. One system wide
+configuration in
+.B ${ARC_LOCATION}/etc/arcclient.xml
+or
+.BR /etc/arcclient.xml ,
+and one per-user configuration file in
+.BR ~/.arc/client.xml .
+Most commands take a
+.B --conffile
+option to use a custom location for the per-user configuration file.
+
+The configuration files are written in XML. Any XML tag present in the
+per-user configuration file overrides all tags with the same name in
+the system wide configuration file.
+
+The following things can be configured in the user configuration file:
+
+.B DefaultServices
+
+This tag identifies the default starting points if no
+.B --index
+or
+.B --cluster
+options are give on the command line for
+.B arcsub
+and
+.BR arcstat .
+
+.IR Example :
+
+.ft CR
+.nf
+<ArcConfig>
+  <DefaultServices>
+    <URL Flavour="ARC0" ServiceType="index">ldap://index1.nordugrid.org:2135/Mds-Vo-name=NorduGrid,o=grid</URL>
+    <URL Flavour="ARC0" ServiceType="index">ldap://index2.nordugrid.org:2135/Mds-Vo-name=NorduGrid,o=grid</URL>
+    <URL Flavour="ARC0" ServiceType="index">ldap://index3.nordugrid.org:2135/Mds-Vo-name=NorduGrid,o=grid</URL>
+    <URL Flavour="ARC0" ServiceType="index">ldap://index4.nordugrid.org:2135/Mds-Vo-name=NorduGrid,o=grid</URL>
+    <URL Flavour="ARC1" ServiceType="computing">https://knowarc1.grid.niif.hu:60000/arex</URL>
+    <URL Flavour="CREAM" ServiceType="index">ldap://cream.grid.upjs.sk:2170/o=Grid</URL>
+  </DefaultServices>
+</ArcConfig>
+.fi
+.ft R
+
+
+.B Alias
+
+This tag can be used to create a shorthand notation for the arguents to the
+.B --cluster
+and
+.B --index
+options to the ARC command line tools. The definitions can be used recursively
+as in the last example.
+
+.IR Example :
+
+.ft CR
+.nf
+<ArcConfig>
+  <Alias name="myfavorite1">
+    <URL Flavour="ARC0" ServiceType="computing">ldap://grid.tsl.uu.se:2135/nordugrid-cluster-name=grid.tsl.uu.se,Mds-Vo-name=local,o=grid</URL>
+  </Alias>
+  <Alias name="myfavorite2">
+    <URL Flavour="ARC1" ServiceType="computing">https://knowarc1.grid.niif.hu:60000/arex</URL>
+  </Alias>
+  <Alias name="myfavorite3">
+    <URL Flavour="CREAM" ServiceType="computing">ldap://cream.grid.upjs.sk:2170/Mds-Vo-name=knowarc-cream,o=grid</URL>
+  </Alias>
+  <Alias name="myfavorites">
+    <Alias>myfavorite1</Alias>
+    <Alias>myfavorite2</Alias>
+    <Alias>myfavorite3</Alias>
+  </Alias>
+</ArcConfig>
+.fi
+.ft R
+
+.B Debug
+
+This tag defines the default debug level.
+
+.IR Example :
+
+.ft CR
+.nf
+<ArcConfig>
+  <Debug>INFO</Debug>
+</ArcConfig>
+.fi
+.ft R
+
+.B ProxyPath, CertificatePath, KeyPath, CACertificatesDir
+
+These tags can be used to override the location of certificates if the
+default locations are not used.
+
+.IR Example :
+
+.ft CR
+.nf
+<ArcConfig>
+  <ProxyPath>/tmp/my-proxy</ProxyPath>
+  <CertificatePath>/home/username/cert.pem</CertificatePath>
+  <KeyPath>/home/username/key.pem</KeyPath>
+  <CACertificatesDir>/home/username/certificates</CACertificatesDir>
+</ArcConfig>
+.fi
+.ft R
+
+.SH AUTHOR
+
+Mattias Ellert <mattias.ellert@fysast.uu.se>
+
+.SH SEE ALSO
+
+.BR arccat (1),
+.BR arcclean (1),
+.BR arcget (1),
+.BR arckill (1),
+.BR arcstat (1),
+.BR arcsub (1),
+.BR arccp (1),
+.BR arcls (1),
+.BR arcrm (1),
