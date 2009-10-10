@@ -137,7 +137,7 @@ namespace Arc {
         std::vector<std::string> clientPath(3);
         clientPath[0] = User().Home();
         clientPath[1] = ".arc";
-        clientPath[2] = "client.xml";
+        clientPath[2] = "client.conf";
         fname = Glib::build_filename(clientPath);
       }
     }
