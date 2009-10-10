@@ -1,0 +1,4 @@
+@JANITOR_SERVICE_ENABLED_TRUE@src/services/janitor/resources/conf/arc.conf
+@JANITOR_SERVICE_ENABLED_TRUE@src/services/janitor/resources/catalog/*.rdf
+@JANITOR_SERVICE_ENABLED_TRUE@src/services/janitor/resources/catalog/*.pprj
+@JANITOR_SERVICE_ENABLED_TRUE@src/services/janitor/resources/catalog/*.rdfs
