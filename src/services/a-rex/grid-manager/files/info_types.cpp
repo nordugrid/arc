@@ -36,7 +36,7 @@ void output_escaped_string(std::ostream &o,const std::string &str) {
   for(nn=0;;) {
 //    if((n=str.find(' ',nn)) == std::string::npos) break;
     if((n=str.find_first_of(" \\",nn)) == std::string::npos) break;
-    o.write(str.data()+nn,n-nn); 
+    o.write(str.data()+nn,n-nn);
     o.put('\\');
     o.put(*(str.data()+n));
     nn=n+1;
@@ -77,7 +77,7 @@ FileData& FileData::operator= (const char *str) {
   pfn.resize(0); lfn.resize(0);
   int n=input_escaped_string(str,pfn);
   input_escaped_string(str+n,lfn);
-  return *this; 
+  return *this;
 }
 
 bool FileData::operator== (const FileData& data) {
@@ -140,7 +140,7 @@ JobLocalDescription& JobLocalDescription::operator=(const Arc::JobDescription& a
 
       if (inputdata.back().has_lfn()) {
         Arc::URL u(inputdata.back().lfn);
-        
+
         if (file->IsExecutable ||
             file->Name == arc_job_desc.Application.Executable.Name) {
           u.AddOption("exec", "yes");
@@ -162,15 +162,15 @@ JobLocalDescription& JobLocalDescription::operator=(const Arc::JobDescription& a
         if (u.Option("threads").empty() && file->Target.front().Threads > 1)
           u.AddOption("threads", Arc::tostring(file->Source.front().Threads));
         outputdata.back().lfn = u.fullstr();
-      }      
+      }
     }
-    if (file->Source.empty() && file->Target.empty() && file->KeepData) {
+    if (file->KeepData) {
       // user downloadable file
       FileData fdata(fname.c_str(), NULL);
       outputdata.push_back(fdata);
     }
   }
-  
+
   // Order of the following calls matters!
   arguments.clear();
   arguments = arc_job_desc.Application.Executable.Argument;
@@ -184,7 +184,7 @@ JobLocalDescription& JobLocalDescription::operator=(const Arc::JobDescription& a
     diskspace = (unsigned long long int)arc_job_desc.Resources.DiskSpaceRequirement.DiskSpace;
 
   processtime = arc_job_desc.Application.ProcessingStartTime;
-  
+
   const int lifetimeTemp = (int)arc_job_desc.Resources.SessionLifeTime.GetPeriod();
   if (lifetimeTemp > 0) lifetime = lifetimeTemp;
 
@@ -197,7 +197,7 @@ JobLocalDescription& JobLocalDescription::operator=(const Arc::JobDescription& a
        it != arc_job_desc.Application.RemoteLogging.end(); it++) {
     jobreport.push_back(it->str());
   }
-  
+
   {
     int n = 0;
     for (std::list<std::string>::const_iterator it = arc_job_desc.Application.Notification.begin();
@@ -218,7 +218,7 @@ JobLocalDescription& JobLocalDescription::operator=(const Arc::JobDescription& a
 
   if (arc_job_desc.Application.Rerun > -1)
     reruns = arc_job_desc.Application.Rerun;
-  
+
   return *this;
 };
 
@@ -230,7 +230,7 @@ bool LRMSResult::set(const char* s) {
   // Try to read first word as number
   char* e;
   code_=strtol(s,&e,0);
-  if((!*e) || (isspace(*e))) { 
+  if((!*e) || (isspace(*e))) {
     for(;*e;++e) { if(!isspace(*e)) break; };
     description_=e;
     return true;
@@ -245,7 +245,7 @@ std::istream& operator>>(std::istream& i,LRMSResult &r) {
   char buf[1025]; // description must have reasonable size
   if(i.eof()) { buf[0]=0; } else { istream_readline(i,buf,sizeof(buf)); };
   r=buf;
-  return i;  
+  return i;
 }
 
 std::ostream& operator<<(std::ostream& o,const LRMSResult &r) {
