@@ -48,10 +48,10 @@ private:
 };
 
 BrokerTest::BrokerTest()
-  : usercfg(false),
+  : usercfg(Arc::initializeCredentialsType(Arc::initializeCredentialsType::SkipCredentials)),
     tb(usercfg),
     etl(1, Arc::ExecutionTarget()),
-    logger(Arc::Logger::getRootLogger(), "SoftwareTest"),
+    logger(Arc::Logger::getRootLogger(), "BrokerTest"),
     logcerr(std::cerr) {}
 
 void BrokerTest::setUp() {
