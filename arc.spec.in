@@ -234,7 +234,7 @@ exit 0
 
 %files
 %defattr(-,root,root,-)
-%doc ChangeLog README INSTALL AUTHORS LICENSE
+%doc ChangeLog README AUTHORS LICENSE
 %{_libdir}/lib*.so.*
 %{_datadir}/locale/*/LC_MESSAGES/arc.mo
 %{_datadir}/%{pkgdir}/schema/

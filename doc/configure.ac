@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 AC_INIT([arc-doc], [0.9.0], [http://bugzilla.nordugrid.org/])
 AC_CONFIG_SRCDIR([Makefile.am])
-AM_INIT_AUTOMAKE
+AM_INIT_AUTOMAKE([foreign])
 
 # Checks for programs.
 #AC_PROG_INSTALL
