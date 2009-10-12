@@ -28,13 +28,13 @@ namespace Arc {
 
     for (std::list<ExecutionTarget>::iterator target = targets.begin();
          target != targets.end(); target++) {
-      logger.msg(DEBUG, "Matchmaking, ExecutionTarget URL:  %s ", target->url.str());
+      logger.msg(DEBUG, "Performing matchmaking against target (%s).", target->url.str());
 
       if (!job->Resources.CandidateTarget.empty()) {
         if (target->url.Host().empty())
-          logger.msg(DEBUG, "Matchmaking, ExecutionTarget: URL is not properly defined");
+          logger.msg(DEBUG, "URL of ExecutionTarget is not properly defined");
         if (target->MappingQueue.empty())
-          logger.msg(DEBUG, "Matchmaking, ExecutionTarget:  MappingQueue is not defined");
+          logger.msg(DEBUG, "MappingQueue of ExecutionTarget (%s) is not defined", target->url.str());
 
         bool dropTarget = true;
 
@@ -44,13 +44,13 @@ namespace Arc {
 
             if (!it->EndPointURL.Host().empty() &&
                 target->url.Host().empty()) { // Drop target since URL is not defined.
-              logger.msg(DEBUG, "Matchmaking problem, URL of ExecutionTarget is not properly defined: %s.", target->url.str());
+              logger.msg(DEBUG, "URL of ExecutionTarget is not properly defined: %s.", target->url.str());
               break;
             }
 
             if (!it->QueueName.empty() &&
-                target->MappingQueue.empty()) { // Drop target since MappingQueue is not advertised.
-              logger.msg(DEBUG, "Matchmaking problem, MappingQueue of ExecutionTarget is not advertised, and a queue (%s) have been requested.", it->QueueName);
+                target->MappingQueue.empty()) { // Drop target since MappingQueue is not published.
+              logger.msg(DEBUG, "MappingQueue of ExecutionTarget is not published, and a queue (%s) have been requested.", it->QueueName);
               break;
             }
 
@@ -68,7 +68,7 @@ namespace Arc {
           }
 
           if (dropTarget) {
-            logger.msg(DEBUG, "Matchmaking problem, ExecutionTarget does not satisfy any of the CandidateTargets.");
+            logger.msg(DEBUG, "ExecutionTarget does not satisfy any of the CandidateTargets.");
             continue;
           }
         }
@@ -80,14 +80,13 @@ namespace Arc {
 
       if ((int)job->Application.ProcessingStartTime.GetTime() != -1) {
         if ((int)target->DowntimeStarts.GetTime() != -1 && (int)target->DowntimeEnds.GetTime() != -1) {
-          if ((int)target->DowntimeStarts.GetTime() > (int)job->Application.ProcessingStartTime.GetTime() ||
-              (int)target->DowntimeEnds.GetTime() < (int)job->Application.ProcessingStartTime.GetTime()) {  // 3423434
-            logger.msg(DEBUG, "Matchmaking, ProcessingStartTime problem, JobDescription: %s (ProcessingStartTime) / ExecutionTarget: %s (DowntimeStarts) - %s (DowntimeEnds)", (std::string)job->Application.ProcessingStartTime, (std::string)target->DowntimeStarts, (std::string)target->DowntimeEnds);
+          if (target->DowntimeStarts <= job->Application.ProcessingStartTime && job->Application.ProcessingStartTime <= target->DowntimeEnds) {
+            logger.msg(DEBUG, "ProcessingStartTime (%s) specified in job description is inside the targets downtime period [ %s - %s ].", (std::string)job->Application.ProcessingStartTime, (std::string)target->DowntimeStarts, (std::string)target->DowntimeEnds);
             continue;
           }
         }
         else
-          logger.msg(DEBUG, "Matchmaking, ExecutionTarget: %s, Downtime is not defined", target->url.str());
+          logger.msg(WARNING, "The downtime of the target (%s) is not published. Keeping target.", target->url.str());
       }
 
       if (target->FreeSlots == 0) {
@@ -98,7 +97,7 @@ namespace Arc {
       if (!target->HealthState.empty()) {
 
         if (target->HealthState != "ok") { // Enumeration for healthstate: ok, critical, other, unknown, warning
-          logger.msg(DEBUG, "Matchmaking, HealthState problem, ExecutionTarget: %s (HealthState) != ok %s", target->url.str(), target->HealthState);
+          logger.msg(DEBUG, "HealthState of ExecutionTarget (%s) is not OK (%s)", target->url.str(), target->HealthState);
           continue;
         }
       }
@@ -348,13 +347,14 @@ namespace Arc {
             continue;
           }
         }
-        else if (target->MaxSlotsPerJob != -1) {     // Example: 5656
+        if (target->MaxSlotsPerJob != -1) {     // Example: 5656
           if (target->MaxSlotsPerJob < job->Resources.SlotRequirement.NumberOfSlots) {
             logger.msg(DEBUG, "Matchmaking, MaxSlotsPerJob problem, ExecutionTarget: %d (MaxSlotsPerJob) JobDescription: %d (NumberOfProcesses)", target->TotalSlots, job->Resources.SlotRequirement.NumberOfSlots.max);
             continue;
           }
         }
-        else {
+
+        if (target->TotalSlots == -1 && target->MaxSlotsPerJob == -1) {
           logger.msg(DEBUG, "Matchmaking, ExecutionTarget:  %s, TotalSlots and MaxSlotsPerJob are not defined", target->url.str());
           continue;
         }
@@ -362,7 +362,7 @@ namespace Arc {
 
       if ((int)job->Resources.SessionLifeTime.GetPeriod() != -1) {
         if ((int)target->WorkingAreaLifeTime.GetPeriod() != -1) {     // Example: 123
-          if ((int)target->WorkingAreaLifeTime.GetPeriod() < (int)job->Resources.SessionLifeTime.GetPeriod()) {
+          if (target->WorkingAreaLifeTime < job->Resources.SessionLifeTime) {
             logger.msg(DEBUG, "Matchmaking, WorkingAreaLifeTime problem, ExecutionTarget: %s (WorkingAreaLifeTime) JobDescription: %s (SessionLifeTime)", (std::string)target->WorkingAreaLifeTime, (std::string)job->Resources.SessionLifeTime);
             continue;
           }
