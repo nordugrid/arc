@@ -75,6 +75,8 @@ bool write_grami(const Arc::JobDescription& arc_job_desc, const JobDescription& 
          it != arc_job_desc.Application.Environment.end(); it++, i++) {
         f<<"joboption_env_"<<i<<"="<<value_for_shell(it->first+"="+it->second,true)<<std::endl;
     }
+    value_for_shell globalid=value_for_shell(job_local_desc.globalid,true);
+    f<<"joboption_env_"<<i<<"=GRID_GLOBAL_JOBID="<<globalid<<std::endl;
   }
 
   
@@ -101,7 +103,6 @@ bool write_grami(const Arc::JobDescription& arc_job_desc, const JobDescription& 
   f<<"joboption_queue="<<value_for_shell(job_local_desc.queue,true)<<std::endl;
   f<<"joboption_starttime="<<(job_local_desc.exectime != -1?job_local_desc.exectime.str(Arc::MDSTime):"")<<std::endl;
   f<<"joboption_gridid="<<value_for_shell(job_desc.get_id(),true)<<std::endl;
-  f<<"joboption_gridglobalid="<<value_for_shell(job_local_desc.globalid,true)<<std::endl;
 
   if(opt_add) f<<opt_add<<std::endl;
 

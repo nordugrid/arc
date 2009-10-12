@@ -173,27 +173,27 @@ mktempscript () {
 
 add_user_env () {
    echo "# Setting environment variables as specified by user" >> $LRMS_JOB_SCRIPT
+   has_gridglobalid=''
    i=0
    eval "var_is_set=\${joboption_env_$i+yes}"
    while [ ! -z "${var_is_set}" ] ; do
       eval "var_value=\${joboption_env_$i}"
-      echo "export ${var_value}" >> $LRMS_JOB_SCRIPT
+      if [ "$var_value" ] && [ -z "${var_value##GRID_GLOBAL_JOBID=*}" ]; then
+          has_gridglobalid=yes
+      fi
+      var_escaped=`echo "$var_value" | sed "s/'/'\\\\\''/g"`
+      echo "export '${var_escaped}'" >> $LRMS_JOB_SCRIPT
       i=$(( $i + 1 ))
       eval "var_is_set=\${joboption_env_$i+yes}"
    done
 
    # guess globalid in case not already provided
-   if [ -z "$joboption_gridglobalid" ]; then
+   if [ -z "$has_gridglobalid" ]; then
       hostname=`perl -MSys::Hostname -we 'print hostname'`
       hostname=${CONFIG_hostname:-$hostname}
       gm_port=${CONFIG_gm_port:-2811}
       gm_mount_point=${CONFIG_gm_mount_point:-/jobs}
-      joboption_gridglobalid="gsiftp://$hostname:$gm_port$gm_mount_point/$joboption_gridid"
-   fi
-
-   # export globalid to the job
-   if [ "$joboption_gridglobalid" ]; then
-      echo "export GRID_GLOBAL_JOBID=${joboption_gridglobalid}" >> $LRMS_JOB_SCRIPT
+      echo "export GRID_GLOBAL_JOBID='gsiftp://$hostname:$gm_port$gm_mount_point/$joboption_gridid'" >> $LRMS_JOB_SCRIPT
    fi
 
    echo "" >> $LRMS_JOB_SCRIPT

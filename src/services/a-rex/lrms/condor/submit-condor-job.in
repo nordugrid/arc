@@ -77,7 +77,7 @@ my %config = ();
 configure_condor_env(%config) or die "Condor executables not found\n";
 
 my $condor_bin_path = $ENV{CONDOR_BIN_PATH};
-$ENV{RUNTIME_CONFIG_DIR} = $config{runtimedir} || '.'; # avoid undefined warning 
+$ENV{RUNTIME_CONFIG_DIR} = $config{runtimedir} || '.'; # avoid undefined warning
 
 if ($debug) {
     # Use a bogus name for the logfile if debugging -- it doesn't matter.
@@ -357,23 +357,23 @@ sub create_condor_job_description {
 
     if (notnull($grami{joboption_env_0})) {
         $output .= "Environment = ";
-        my $first = 1;
-        for (my $i = 0; notnull($grami{"joboption_env_$i"}); $i++) {
+        my $has_globalid = '';
+        my $i;
+        for ($i = 0; notnull($grami{"joboption_env_$i"}); $i++) {
             $output .= ";" if $i > 0;
             $output .= $grami{"joboption_env_$i"};
+            $has_globalid = 1 if $grami{"joboption_env_$i"} =~ m/^GRID_GLOBAL_JOBID=/;
+        }
+        # guess globalid in case not already provided and export it to the job
+        if (not $has_globalid) {
+            my $hostname = $config{hostname} || hostname();
+            my $gm_port = $config{gm_port} || 2811;
+            my $gm_mount_point = $config{gm_mount_point} || "/jobs";
+            $output .= ";" if $i > 0;
+            $output .= "GRID_GLOBAL_JOBID=gsiftp://$hostname:$gm_port$gm_mount_point/$grami{joboption_gridid}";
         }
         $output .= "\n";
     }
-
-    # guess globalid in case not already provided and export it to the job
-    if (not $grami{joboption_gridglobalid}) {
-       my $hostname = $config{hostname} || hostname();
-       my $gm_port = $config{gm_port} || 2811;
-       my $gm_mount_point = $config{gm_mount_point} || "/jobs";
-       $grami{joboption_gridglobalid}="gsiftp://$hostname:$gm_port$gm_mount_point/$grami{joboption_gridid}";
-    }
-    $output .= "Environment = GRID_GLOBAL_JOBID=$grami{joboption_gridglobalid}\n"
-        if $grami{joboption_gridglobalid};
 
     my $remove="FALSE";
     if (notnull($grami{joboption_cputime})) {
