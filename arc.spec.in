@@ -1,3 +1,5 @@
+%global with_lfc %{!?_without_lfc:1}%{?_without_lfc:0}
+
 %define pkgdir arc
 Name: nordugrid-arc1
 Version: @VERSION@
@@ -35,9 +37,9 @@ BuildRequires: globus-common-devel
 BuildRequires: globus-ftp-client-devel
 BuildRequires: globus-ftp-control-devel
 BuildRequires: globus-rls-client-devel
-#
-#BuildRequires: LFC-client-devel
-#
+%if %with_lfc
+BuildRequires: LFC-client-devel
+%endif
 %if %{_vendor} == "redhat"
 BuildRequires: db4-devel
 %endif
@@ -83,7 +85,6 @@ Summary: ARC Remote EXecution service
 Group: System Environment/Libraries
 Requires: %{name} = %{version}
 Requires: %{name}-server = %{version}
-Requires: globus-common
 Requires: perl-XML-Simple
 
 %description arex
@@ -102,11 +103,6 @@ Data Manager Components (DMCs).
 Summary: ARC Globus plugins
 Group: System Environment/Libraries
 Requires: %{name} = %{version}
-Requires: globus-common
-Requires: globus-ftp-client
-Requires: globus-ftp-control
-Requires: globus-rls-client
-#Requires: LFC-client
 
 %description plugins-globus
 ARC Globus plugins. This includes the Globus dependent Data Manager
@@ -177,7 +173,7 @@ ARC API docmentation
 %setup -q
 
 %build
-%configure --disable-static %{?disable_java:--disable-java}
+%configure --disable-static %{?disable_java:--disable-java} %{?with_lfc:--enable-lfc}
 make all doc %{?_smp_mflags}
 
 %check
@@ -411,7 +407,9 @@ exit 0
 %defattr(-,root,root,-)
 %{_libdir}/%{pkgdir}/libmccgsi.so
 %{_libdir}/%{pkgdir}/libdmcgridftp.so
-#%{_libdir}/%{pkgdir}/libdmclfc.so
+%if %with_lfc
+%{_libdir}/%{pkgdir}/libdmclfc.so
+%endif
 %{_libdir}/%{pkgdir}/libdmcrls.so
 %{_libdir}/%{pkgdir}/libdmcsrm.so
 %{_libdir}/%{pkgdir}/libaccARC0.so
