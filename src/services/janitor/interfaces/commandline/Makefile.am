@@ -1,4 +1,4 @@
-dist_bin_SCRIPTS = janitor
+pkglibexec_SCRIPTS = janitor
 
 # Do we really need this setuid wrapper?
 rjanitor_SOURCES  = rjanitor.c
