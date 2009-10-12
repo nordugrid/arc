@@ -343,7 +343,11 @@ sub queue_info ($$) {
 	# qstat does not return number of cpus, use pbsnodes instead.
 	my ($torque_freecpus,$torque_totalcpus)=(0,0);
 	foreach my $node (keys %hoh_pbsnodes){
-	    if ( ! defined $hoh_pbsnodes{$node}{'properties'} || $hoh_pbsnodes{$node}{'properties'} =~ m/$qname/){
+	    # If pbsnodes have properties assigned to them
+	    # check if queuename or dedicated_node_string matches.
+	    if ( ! defined $hoh_pbsnodes{$node}{'properties'} || 
+		 ($hoh_pbsnodes{$node}{'properties'} =~ m/$qname/ ||
+		  $hoh_pbsnodes{$node}{"properties"} =~ m/$$config{dedicated_node_string}/) ){
 		my $cpus;
 		if ($hoh_pbsnodes{$node}{'np'}) {
 		    $cpus = $hoh_pbsnodes{$node}{'np'};
