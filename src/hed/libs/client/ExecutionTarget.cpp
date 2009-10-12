@@ -357,6 +357,28 @@ namespace Arc {
                   << std::endl;
       if (!ServingState.empty())
         std::cout << IString(" Serving State: %s", ServingState) << std::endl;
+
+      if (ApplicationEnvironments.size() > 0) {
+        std::cout << IString(" Installed application environments:") << std::endl;
+        for (std::list<ApplicationEnvironment>::const_iterator it = ApplicationEnvironments.begin();
+             it != ApplicationEnvironments.end(); it++) {
+          std::cout << "  " << *it << std::endl;
+        }
+      }
+
+      if (ConnectivityIn)
+        std::cout << IString(" Execution environment"
+                             " supports inbound connections") << std::endl;
+      else
+        std::cout << IString(" Execution environment does not"
+                             " support inbound connections") << std::endl;
+      if (ConnectivityOut)
+        std::cout << IString(" Execution environment"
+                             " supports outbound connections") << std::endl;
+      else
+        std::cout << IString(" Execution environment does not"
+                             " support outbound connections") << std::endl;
+
       if (!IssuerCA.empty())
         std::cout << IString(" Issuer CA: %s", IssuerCA) << std::endl;
       if (!TrustedCA.empty()) {
@@ -533,7 +555,7 @@ namespace Arc {
         std::cout << IString(" Working area is shared among jobs")
                   << std::endl;
       else
-        std::cout << IString(" Working area is nor shared among jobs")
+        std::cout << IString(" Working area is not shared among jobs")
                   << std::endl;
       if (WorkingAreaTotal != -1)
         std::cout << IString(" Working Area Total Size: %i", WorkingAreaTotal)
@@ -590,26 +612,6 @@ namespace Arc {
         std::cout << IString(" OS Name: %s", OperatingSystem.getName()) << std::endl;
       if (!OperatingSystem.getVersion().empty())
         std::cout << IString(" OS Version: %s", OperatingSystem.getVersion()) << std::endl;
-
-      if (ConnectivityIn)
-        std::cout << IString(" Execution environment"
-                             " supports inbound connections") << std::endl;
-      else
-        std::cout << IString(" Execution environment does not"
-                             " support inbound connections") << std::endl;
-      if (ConnectivityOut)
-        std::cout << IString(" Execution environment"
-                             " supports outbound connections") << std::endl;
-      else
-        std::cout << IString(" Execution environment does not"
-                             " support outbound connections") << std::endl;
-
-      for (std::list<ApplicationEnvironment>::const_iterator it = ApplicationEnvironments.begin();
-           it != ApplicationEnvironments.end(); it++) {
-        
-      }
-
-
     } // end if long
 
     std::cout << std::endl;
