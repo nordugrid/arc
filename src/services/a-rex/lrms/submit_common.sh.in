@@ -204,7 +204,7 @@ add_user_env () {
 ##############################################################
 RTE_stage1 () {
    echo "# Running runtime scripts" >> $LRMS_JOB_SCRIPT
-   echo "RUNTIME_CONFIG_DIR=\${RUNTIME_CONFIG_DIR:-$RUNTIME_CONFIG_DIR}" >> $LRMS_JOB_SCRIPT
+   echo "export RUNTIME_CONFIG_DIR=\${RUNTIME_CONFIG_DIR:-$RUNTIME_CONFIG_DIR}" >> $LRMS_JOB_SCRIPT
    i=0
    eval "var_is_set=\${joboption_runtime_$i+yes}"
    echo "runtimeenvironments=" >> $LRMS_JOB_SCRIPT
