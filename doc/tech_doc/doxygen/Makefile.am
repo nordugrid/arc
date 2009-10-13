@@ -17,6 +17,6 @@ ARC1-ChainComponents.pdf: Doxyfile.chain
 
 EXTRA_DIST = Doxyfile.api Doxyfile.services Doxyfile.chain $(doc_DATA)
 
-CLEANFILES = latex *.pdf
+CLEANFILES = latex
 
 MAINTAINERCLEANFILES = $(doc_DATA)
