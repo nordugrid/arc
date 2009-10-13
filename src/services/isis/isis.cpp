@@ -335,8 +335,7 @@ static void soft_state_thread(void *data) {
 
         // Assigning service description - Glue2 document should go here.
         infodoc_.Assign(Arc::XMLNode(
-        "<?xml version=\"1.0\"?>"
-        "<Domains><AdminDomain><Services><Service>ISIS</Service></Services></AdminDomain></Domains>"
+        "<?xml version=\"1.0\"?><Domains xmlns=\"http://schemas.ogf.org/glue/2008/05/spec_2.0_d41_r01\"><AdminDomain Distributed=\"\"><Services><Service Name=\"\" ID=\"\" Validity=\"\" OtherInfo=\"\"><Associations /><Capability>information.provenance</Capability></Service></Services></AdminDomain></Domains>"
         ),true);
 
 
@@ -870,6 +869,20 @@ static void soft_state_thread(void *data) {
 
         else if(MatchXMLNamespace((*inpayload).Child(0),"http://docs.oasis-open.org/wsrf/rp-2")) {
             if(CheckAuth("client", inmsg, outmsg)) {
+                // Update infodoc_
+                Arc::XMLNode workingcopy;
+                infodoc_.Acquire().New(workingcopy);
+                workingcopy["AdminDomain"].Attribute("Distributed") = "True";
+                workingcopy["AdminDomain"]["Services"]["Service"].Attribute("Name") = "ISIS";
+                workingcopy["AdminDomain"]["Services"]["Service"].Attribute("ID") = endpoint_;
+                workingcopy["AdminDomain"]["Services"]["Service"].Attribute("CreationTime") = Current_Time();
+                workingcopy["AdminDomain"]["Services"]["Service"].Attribute("Validity") = "600";
+                char * otherInfo;
+                sprintf(otherInfo, "isis_sparsity=%d", sparsity);
+                workingcopy["AdminDomain"]["Services"]["Service"].Attribute("OtherInfo") = (std::string) otherInfo;
+                // TODO: Update infodoc_
+                infodoc_.Release();
+                infodoc_.Assign(workingcopy, true);
                 // TODO: do not copy out_ to outpayload.
                 Arc::SOAPEnvelope* out_ = infodoc_.Process(*inpayload);
                 if(out_) {
