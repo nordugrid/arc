@@ -83,6 +83,11 @@ Summary: ARC Hosting Environment Daemon
 Group: System Environment/Libraries
 Requires: %{name} = %{version}
 
+Requires(post): chkconfig
+Requires(preun): chkconfig
+Requires(preun): initscripts
+Requires(postun): initscripts
+
 %description server
 ARC Hosting Environment Daemon (HED).
 
@@ -92,6 +97,11 @@ Group: System Environment/Libraries
 Requires: %{name} = %{version}
 Requires: %{name}-server = %{version}
 Requires: perl-XML-Simple
+
+Requires(post): chkconfig
+Requires(preun): chkconfig
+Requires(preun): initscripts
+Requires(postun): initscripts
 
 %description arex
 ARC Remote EXecution service (AREX)
