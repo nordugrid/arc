@@ -72,7 +72,7 @@ bool Software::operator>(const Software& sv) const {
       continue;
     if (stringto(*lhsIt, lhsInt) && stringto(*rhsIt, rhsInt)) {
       if (lhsInt > rhsInt) {
-        logger.msg(DEBUG, "% > % => true", (std::string)*this, (std::string)sv);
+        logger.msg(DEBUG, "%s > %s => true", (std::string)*this, (std::string)sv);
         return true;
       }
       if (lhsInt == rhsInt)
@@ -83,7 +83,7 @@ bool Software::operator>(const Software& sv) const {
       return false;
     }
 
-    logger.msg(DEBUG, "% > % => false", (std::string)*this, (std::string)sv);
+    logger.msg(DEBUG, "%s > %s => false", (std::string)*this, (std::string)sv);
     return false;
   }
 
@@ -96,13 +96,13 @@ bool Software::operator>(const Software& sv) const {
       }
 
       if (lhsInt != 0) {
-        logger.msg(DEBUG, "% > % => true", (std::string)*this, (std::string)sv);
+        logger.msg(DEBUG, "%s > %s => true", (std::string)*this, (std::string)sv);
         return true;
       }
     }
   }
 
-  logger.msg(DEBUG, "% > % => false", (std::string)*this, (std::string)sv);
+  logger.msg(DEBUG, "%s > %s => false", (std::string)*this, (std::string)sv);
 
   return false;
 }

@@ -382,6 +382,15 @@ namespace Arc {
      **/
     SoftwareRequirement& operator=(const SoftwareRequirement& sr);
 
+    /// Copy constructor
+    /**
+     * Create a SoftwareRequirement object from another
+     * SoftwareRequirement object.
+     *
+     * @param sr is the SoftwareRequirement object to make a copy of.
+     **/
+    SoftwareRequirement(const SoftwareRequirement& sr) { *this = sr; }
+
 #ifndef SWIG
     /// Add a Software object a corresponding comparion operator to this object.
     /**

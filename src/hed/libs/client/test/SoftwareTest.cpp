@@ -1,7 +1,10 @@
 #include <cppunit/extensions/HelperMacros.h>
 
+#include <list>
+
 #include <arc/Logger.h>
 #include <arc/client/Software.h>
+#include <arc/client/ExecutionTarget.h>
 
 #define SV Arc::Software
 #define SR Arc::SoftwareRequirement
@@ -21,6 +24,7 @@ class SoftwareTest
   CPPUNIT_TEST(RequirementsRangeTest);
   CPPUNIT_TEST(RequirementsGreaterThanAndTest);
   CPPUNIT_TEST(RequirementsLessThanAndTest);
+  CPPUNIT_TEST(ApplicationEnvironmentCastTest);
   CPPUNIT_TEST_SUITE_END();
 
 public:
@@ -40,6 +44,7 @@ public:
   void RequirementsRangeTest();
   void RequirementsGreaterThanAndTest();
   void RequirementsLessThanAndTest();
+  void ApplicationEnvironmentCastTest();
 
 private:
   Arc::LogStream logcerr;
@@ -444,6 +449,12 @@ void SoftwareTest::RequirementsLessThanAndTest() {
   CPPUNIT_ASSERT(sr.isResolved());
   versions.clear();
   sr.clear();
+}
+
+void SoftwareTest::ApplicationEnvironmentCastTest() {
+  std::list<Arc::ApplicationEnvironment> appEnvs(1, Arc::ApplicationEnvironment("TEST", "1.0"));
+  const std::list<Arc::Software>& sw = reinterpret_cast< const std::list<SV>& >(appEnvs);
+  CPPUNIT_ASSERT_EQUAL(static_cast<SV>(appEnvs.front()), sw.front());
 }
 
 CPPUNIT_TEST_SUITE_REGISTRATION(SoftwareTest);
