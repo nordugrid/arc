@@ -165,7 +165,7 @@ sub get_host_info($$) {
 
     my $host_opts = Storable::dclone($config);
     $host_opts->{localusers} = $localusers;
-    $host_opts->{libexecdir} = dirname($0);
+    $host_opts->{bindir} = dirname($0)."/@bindir_rel_to_pkglibexecdir@";
 
     return timed 'HostInfo', \&HostInfo::collect, $host_opts;
 }

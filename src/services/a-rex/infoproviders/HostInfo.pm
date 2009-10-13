@@ -16,10 +16,11 @@ our $host_options_schema = {
         x509_cert_dir  => '',
         sessiondir     => [ '' ],
         cachedir       => [ '*' ],
-        libexecdir     => '',
+        bindir         => '',
         runtimedir     => '*',
         processes      => [ '' ],
-        localusers     => [ '' ]
+        localusers     => [ '' ],
+        gmconfig       => '*',
 };
 
 our $host_info_schema = {
@@ -132,7 +133,8 @@ sub get_host_info($) {
 
     # Globus location
     my $globus_location ||= $ENV{GLOBUS_LOCATION} ||= "/usr";
-    $ENV{"LD_LIBRARY_PATH"}="$globus_location/lib";
+    $ENV{"LD_LIBRARY_PATH"} = $ENV{"LD_LIBRARY_PATH"} ?
+                              $ENV{"LD_LIBRARY_PATH"}.":$globus_location/lib" : "$globus_location/lib";
     
     # Hostcert issuer CA, trustedca, issuercahash
     timer_start("collecting certificates info");
@@ -234,11 +236,14 @@ sub get_host_info($) {
        # executable beacuse I'm nor skilled enough to isolate
        # possible Janitor errors and in order not to redo 
        # all Log4Perl tricks again. Please redo it later. A.K.
-       my $janitor = $options->{libexecdir}.'/janitor';
+       my $janitor = $options->{bindir}.'/janitor';
        if (! -e $janitor) {
           $log->debug("Janitor not found at '$janitor' - not using");
+       } elsif (not $options->{gmconfig}) {
+          $log->warning("No config file for janitor -- INI-style config file required");
        } else {
-          if (! open (JPIPE, "$janitor list shortlist dynamic |")) {
+          my $iniconfig = $options->{gmconfig};
+          if (! open (JPIPE, "$janitor --config $iniconfig list shortlist dynamic |")) {
               $log->warning("$janitor: $!");
           } else {
               while(<JPIPE>) {
@@ -266,7 +271,7 @@ sub test {
                     x509_cert_dir => '/etc/grid-security/certificates',
                     sessiondir => [ '/home/grid/session/' ],
                     cachedir => [ '/home/grid/cache' ],
-                    libexecdir => '/opt/nordugrid/libexec/arc',
+                    bindir => '/opt/nordugrid/bin',
                     runtimeDir => '/home/grid/runtime',
                     processes => [ qw(bash ps init grid-manager bogous) ],
                     localusers => [ qw(root adrianta) ] };
