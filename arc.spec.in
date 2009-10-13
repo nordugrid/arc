@@ -1,4 +1,4 @@
-%global with_lfc %{!?_without_lfc:1}%{?_without_lfc:0}
+%global with_lfc %{?_with_lfc:1}%{!?_with_lfc:0}
 %global with_java %{!?_without_java:1}%{?_without_java:0}
 
 %define pkgdir arc
