@@ -1,4 +1,5 @@
 %global with_lfc %{!?_without_lfc:1}%{?_without_lfc:0}
+%global with_java %{!?_without_java:1}%{?_without_java:0}
 
 %define pkgdir arc
 Name: nordugrid-arc1
@@ -132,7 +133,7 @@ Requires: python
 %description python
 Python wrapper for ARC
 
-%if "%{!?disable_java:java}"
+%if %with_java
 %package java
 Summary: ARC Java wrapper
 Group: Development/Libraries
@@ -173,7 +174,15 @@ ARC API docmentation
 %setup -q
 
 %build
-%configure --disable-static %{?disable_java:--disable-java} %{?with_lfc:--enable-lfc}
+%configure --disable-static \
+%if ! %with_java
+	   --disable-java \
+%endif
+%if %with_lfc
+	   --enable-lfc \
+%endif
+	   --enable-docs
+
 make all doc %{?_smp_mflags}
 
 %check
@@ -421,7 +430,7 @@ exit 0
 %doc src/hed/acc/PythonBroker/SampleBroker.py
 %{ifpy}%{_libdir}/%{pkgdir}/libpythonservice.so
 
-%if "%{!?disable_java:java}"
+%if %with_java
 %files java
 %defattr(-,root,root,-)
 %{_libdir}/java/libjarc.so
