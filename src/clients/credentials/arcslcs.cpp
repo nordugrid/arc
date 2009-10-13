@@ -256,7 +256,7 @@ int main(int argc, char *argv[]) {
     if (storedir.empty()) {
       key_path = Arc::GetEnv("X509_USER_KEY");
       if (key_path.empty())
-        key_path = user.get_uid() == 0 ? "/etc/grid-security/hostkey.pem" :
+        key_path = /*user.get_uid() == 0 ? "/etc/grid-security/hostkey.pem" :*/
                    user.Home() + "/.globus/userkey.pem";
     }
     else
@@ -265,7 +265,7 @@ int main(int argc, char *argv[]) {
     if (storedir.empty()) {
       cert_path = Arc::GetEnv("X509_USER_CERT");
       if (cert_path.empty())
-        cert_path = user.get_uid() == 0 ? "/etc/grid-security/hostcert.pem" :
+        cert_path = /*user.get_uid() == 0 ? "/etc/grid-security/hostcert.pem" :*/
                     user.Home() + "/.globus/usercert.pem";
     }
     else {
