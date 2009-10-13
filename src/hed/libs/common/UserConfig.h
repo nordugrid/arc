@@ -678,30 +678,34 @@ namespace Arc {
      **/
     const std::vector<URL>& Bartender() const { return bartenders; }
 
-    /// Set path to ???
+    /// Set path to file containing VOMS configuration
     /**
-     * ???
+     * Set path to file which contians list of VOMS services and 
+     * associated configuration parameters needed to contact those
+     * services. It is used by arcproxy.
      *
      * The attribute associated with this setter method is
      * 'vomsserverpath'.
      *
-     * @param path the path to ???
+     * @param path the path to VOMS configuration file
      * @return This method always return true.
      * @see VOMSServerPath() const
      **/
     bool VOMSServerPath(const std::string& path) { vomsServerPath = path; return true; }
-    /// Get path to ???
+    /// Get path to file containing VOMS configuration
     /**
-     * ???
+     * Get path to file which contians list of VOMS services and 
+     * associated configuration parameters.
      *
-     * @return The path to ??? is returned.
+     * @return The path to VOMS configuration file is returned.
      * @see VOMSServerPath(const std::string&)
      **/
     const std::string& VOMSServerPath() const { return vomsServerPath; }
 
-    /// Set user-name
+    /// Set user-name for SLCS
     /**
-     * ???
+     * Set username which is used for requesting credentials from 
+     * Short Lived Credentials Service.
      *
      * The attribute associated with this setter method is 'username'.
      *
@@ -712,7 +716,8 @@ namespace Arc {
     bool UserName(const std::string& name) { username = name; return true; }
     /// Get user-name
     /**
-     * ???
+     * Get username which is used for requesting credentials from 
+     * Short Lived Credentials Service.
      *
      * @return The username is returned.
      * @see UserName(const std::string&)
@@ -721,7 +726,8 @@ namespace Arc {
 
     /// Set password
     /**
-     * ???
+     * Set password which is used for requesting credentials from 
+     * Short Lived Credentials Service.
      *
      * The attribute associated with this setter method is 'password'.
      *
@@ -732,7 +738,8 @@ namespace Arc {
     bool Password(const std::string& newPassword) { password = newPassword; return true; }
     /// Get password
     /**
-     * ???
+     * Get password which is used for requesting credentials from 
+     * Short Lived Credentials Service.
      *
      * @return The password is returned.
      * @see Password(const std::string&)
@@ -827,9 +834,10 @@ namespace Arc {
      **/
     const std::string& KeyPath() const { return keyPath; }
 
-    /// Set password for key
+    /// Set password for generated key
     /**
-     * ???
+     * Set password to be used to encode private key of credentials 
+     * obtained from Short Lived Credentials Service.
      *
      * The attribute associated with this setter method is
      * 'keypassword'.
@@ -841,9 +849,10 @@ namespace Arc {
      * @see KeySize(int)
      **/
     bool KeyPassword(const std::string& newKeyPassword) { keyPassword = newKeyPassword; return true; }
-    /// Get password for key
+    /// Get password for generated key
     /**
-     * ???
+     * Get password to be used to encode private key of credentials 
+     * obtained from Short Lived Credentials Service.
      *
      * @return The key password is returned.
      * @see KeyPassword(const std::string&)
@@ -854,7 +863,8 @@ namespace Arc {
 
     /// Set key size
     /**
-     * ???
+     * Set size/strengt of private key of credentials obtained from
+     * Short Lived Credentials Service.
      *
      * The attribute associated with this setter method is 'keysize'.
      *
@@ -867,7 +877,8 @@ namespace Arc {
     bool KeySize(int newKeySize) { keySize = newKeySize; return true;}
     /// Get key size
     /**
-     * ???
+     * Get size/strengt of private key of credentials obtained from
+     * Short Lived Credentials Service.
      *
      * @return The key size, as an integer, is returned.
      * @see KeySize(int)
@@ -878,7 +889,10 @@ namespace Arc {
 
     /// Set CA-certificate path
     /**
-     * ???
+     * The path to the file containing CA-certificate will be set
+     * when calling this method. This configuration parameter is
+     * deprecated - use CACertificatesDirectory instead. Only arcslcs
+     * uses it.
      *
      * The attribute associated with this setter method is
      * 'cacertificatepath'.
@@ -890,7 +904,8 @@ namespace Arc {
     bool CACertificatePath(const std::string& newCACertificatePath) { caCertificatePath = newCACertificatePath; return true; }
     /// Get path to CA-certificate
     /**
-     * ???
+     * Retrieve the path to the file containing CA-certificate.
+     * This configuration parameter is deprecated.
      *
      * @return The path to the CA-certificate is returned.
      * @see CACertificatePath(const std::string&)
@@ -928,7 +943,8 @@ namespace Arc {
 
     /// Set certificate life time
     /**
-     * ???
+     * Sets lifetime of user certificate which will be obtained from
+     * Short Lived Credentials Service.
      *
      * The attribute associated with this setter method is
      * 'certificatelifetime'.
@@ -941,7 +957,8 @@ namespace Arc {
     bool CertificateLifeTime(const Period& newCertificateLifeTime) { certificateLifeTime = newCertificateLifeTime; return true; }
     /// Get certificate life time
     /**
-     * ???
+     * Gets lifetime of user certificate which will be obtained from
+     * Short Lived Credentials Service.
      *
      * @return The certificate life time is returned as a Period object.
      * @see CertificateLifeTime(const Period&)
@@ -950,7 +967,6 @@ namespace Arc {
 
     /// Set the URL to the Short Lived Certificate Service (SLCS).
     /**
-     * ???
      *
      * The attribute associated with this setter method is 'slcs'.
      *
@@ -961,7 +977,6 @@ namespace Arc {
     bool SLCS(const URL& newSLCS) { slcs = newSLCS; return true; }
     /// Get the URL to the Short Lived Certificate Service (SLCS).
     /**
-     * ???
      *
      * @return The SLCS is returned.
      * @see SLCS(const URL&)
@@ -970,7 +985,8 @@ namespace Arc {
 
     /// Set store directory
     /**
-     * ???
+     * Sets directory which will be used to store credentials obtained
+     * from Short Lived Credential Servide.
      *
      * The attribute associated with this setter method is
      * 'storedirectory'.
@@ -981,7 +997,8 @@ namespace Arc {
     bool StoreDirectory(const std::string& newStoreDirectory) { storeDirectory = newStoreDirectory; return true; }
     /// Get store diretory
     /**
-     * ???
+     * Sets directory which is used to store credentials obtained
+     * from Short Lived Credential Servide.
      *
      * @return The path to the store directory is returned.
      * @see StoreDirectory(const std::string&)
@@ -990,7 +1007,8 @@ namespace Arc {
 
     /// Set IdP name
     /**
-     * ???
+     * Sets Identity Provider name (Shibboleth) to which user belongs.
+     * It is used for contacting Short Lived Certificate Service.
      *
      * The attribute associated with this setter method is 'idpname'.
      * @param name is the new IdP name.
@@ -1000,7 +1018,7 @@ namespace Arc {
     bool IdPName(const std::string& name) { idPName = name; return true; }
     /// Get IdP name
     /**
-     * ???
+     * Gets Identity Provider name (Shibboleth) to which user belongs.
      *
      * @return The IdP name
      * @see IdPName(const std::string&)
