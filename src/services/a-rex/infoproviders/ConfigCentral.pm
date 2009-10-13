@@ -701,15 +701,15 @@ sub printLRMSConfigScript {
     my $common = {};
     move_keys $config, $common, [keys %$lrms_options, keys %$lrms_share_options];
 
+    _print_shell_section('common', $common);
+
     # OBS: controldir is a hack needed for finish-condor-job. To be removed later.
     my @gmusers = keys %{$config->{control}};
     my $controldir = $config->{control}{'.'}{controldir};
     $controldir = $config->{control}{$gmusers[0]}{controldir}
         if @gmusers > 0 and not $controldir;
-    $config->{controldir} = $controldir if $controldir;
     $log->warning("No controldir configured in $file") unless $controldir;
-
-    _print_shell_section('common', $common);
+    _print_shell_section('grid-manager', {controldir => $controldir}) if $controldir;
     
     for my $sname (keys %{$config->{shares}}) {
         my $queue = {};
