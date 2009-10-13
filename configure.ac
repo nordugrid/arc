@@ -38,7 +38,18 @@ ARC_RELATIVE_PATHS
 AC_ARG_WITH(sysv-scripts-location,
   AC_HELP_STRING([--with-sysv-scripts-location=<PATH>], [Location of the SYSV init scripts. [[autodetect]]]),
   [ initddir="$withval" ],
-  [ initddir="$sysconfdir/init.d" ]
+  [
+    initddir=
+    for i in init.d rc.d/init.d; do
+      if test -d "/etc/$i" -a ! -h "/etc/$i" ; then
+	initddir="$sysconfdir/$i"
+	break
+      fi
+    done
+    if test -z "$initddir"; then
+      AC_MSG_ERROR(could not find a suitable location for the SYSV init scripts)
+    fi
+  ]
 )
 AC_MSG_RESULT($initddir)
 AC_SUBST(initddir)
@@ -1254,6 +1265,8 @@ AC_SUBST(posix_shell)
 
 DATE=`date +%Y-%m-%d`
 AC_SUBST(DATE)
+SPECDATE=`LANG=C date +"%a %b %d %Y"`
+AC_SUBST(SPECDATE)
 
 if test "x$enable_doc" = "xyes"; then
   AC_CONFIG_SUBDIRS([doc])
