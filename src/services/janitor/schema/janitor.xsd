@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+  xmlns="http://www.nordugrid.org/schemas/Janitor/2009/08"
+  targetNamespace="http://www.nordugrid.org/schemas/Janitor/2009/08"
+  elementFormDefault="qualified">
+
+<xsd:element name="enabled" type="xsd:string" minOccurs="0"/>
+<xsd:element name="logconf" type="xsd:string" minOccurs="0"/>
+<xsd:element name="uid" type="xsd:string" minOccurs="0"/>
+<xsd:element name="gid" type="xsd:string" minOccurs="0"/>
+<xsd:element name="registrationdir" type="xsd:string" minOccurs="0"/>
+<xsd:element name="installationdir" type="xsd:string" minOccurs="0"/>
+<xsd:element name="downloaddir" type="xsd:string" minOccurs="0"/>
+<xsd:element name="jobexpirytime" type="xsd:nonNegativeInteger" minOccurs="0"/>
+<xsd:element name="rteexpirytime" type="xsd:nonNegativeInteger" minOccurs="0"/>
+<xsd:element name="allow_base" type="xsd:string" minOccurs="0"/>
+<xsd:element name="deny_base" type="xsd:string" minOccurs="0"/>
+<xsd:element name="allow_rte" type="xsd:string" minOccurs="0"/>
+<xsd:element name="deny_rte" type="xsd:string" minOccurs="0"/>
+
+<xsd:complexType name="catalog_Type">
+    <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+            Options for specific catalogs
+        </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+        <xsd:element name="location" type="xsd:string"/>
+        <xsd:element name="refresh" type="xsd:string" minOccurs="0"/>
+        <xsd:element name="cache" type="xsd:string" minOccurs="0"/>
+    </xsd:sequence>
+    <xsd:attribute name="name" type="xsd:boolean" use="required"/>
+</xsd:complexType>
+
+<xsd:element name="catalog" type="catalog_Type"/>
+
+</xsd:schema>
