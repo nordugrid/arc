@@ -30,7 +30,7 @@ init () {
    if [ -z "$joboption_lrms" ]; then echo 'joboption_lrms must be set' 1>&2; exit 1; fi
 
    # May use joboption_queue (set by parse_arg_file)
-   . ${pkglibdir}/configure-${joboption_lrms}-env.sh || exit $?
+   . ${pkglibdir}/configure-${joboption_lrms}-env.sh
 
    # Where runtime scripts can be found on computing nodes (empty if does not exist)
    RUNTIME_CONFIG_DIR=$CONFIG_runtimedir
