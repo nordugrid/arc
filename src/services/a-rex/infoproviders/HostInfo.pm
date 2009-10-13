@@ -17,6 +17,7 @@ our $host_options_schema = {
         sessiondir     => [ '' ],
         cachedir       => [ '*' ],
         bindir         => '',
+        configfile     => '',
         runtimedir     => '*',
         processes      => [ '' ],
         localusers     => [ '' ],
@@ -239,11 +240,9 @@ sub get_host_info($) {
        my $janitor = $options->{bindir}.'/janitor';
        if (! -e $janitor) {
           $log->debug("Janitor not found at '$janitor' - not using");
-       } elsif (not $options->{gmconfig}) {
-          $log->warning("No config file for janitor -- INI-style config file required");
        } else {
-          my $iniconfig = $options->{gmconfig};
-          if (! open (JPIPE, "$janitor --config $iniconfig list shortlist dynamic |")) {
+          my $config = $options->{configfile};
+          if (! open (JPIPE, "$janitor --config $config list shortlist dynamic |")) {
               $log->warning("$janitor: $!");
           } else {
               while(<JPIPE>) {

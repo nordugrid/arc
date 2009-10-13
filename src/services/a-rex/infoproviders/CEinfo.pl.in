@@ -36,6 +36,7 @@ use ARC1ClusterInfo;
 use InfoChecker;
 
 our $log = LogUtils->getLogger(__PACKAGE__);
+our $configfile;
 
 sub timed {
     my ($fname, $func, @args) = @_;
@@ -69,7 +70,6 @@ sub main {
 
     # Parse command line options
     
-    my $configfile;
     my $print_help;
     GetOptions("config:s" => \$configfile,
                "help|h"   => \$print_help ); 
@@ -165,6 +165,7 @@ sub get_host_info($$) {
 
     my $host_opts = Storable::dclone($config);
     $host_opts->{localusers} = $localusers;
+    $host_opts->{configfile} = $configfile;
     $host_opts->{bindir} = dirname($0)."/@bindir_rel_to_pkglibexecdir@";
 
     return timed 'HostInfo', \&HostInfo::collect, $host_opts;
