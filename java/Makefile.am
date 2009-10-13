@@ -1,7 +1,7 @@
 JAVA_PATH = nordugrid/arc
 
 javalibdir = $(libdir)/java
-javasharedir = $(prefix)/share/java
+javasharedir = $(libdir)/java
 
 javalib_LTLIBRARIES = libjarc.la
 javashare_DATA = arc.jar

@@ -1514,6 +1514,7 @@ AC_CONFIG_FILES([Makefile
                  po/Makefile.in
                  include/Makefile
                  debian/Makefile
+                 debian/changelog
                  debian/nordugrid-arc1-client.install
                  debian/nordugrid-arc1-client.manpages
                  debian/nordugrid-arc1-server.install

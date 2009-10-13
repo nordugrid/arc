@@ -1,5 +1,6 @@
 %global with_lfc %{?_with_lfc:1}%{!?_with_lfc:0}
 %global with_java %{!?_without_java:1}%{?_without_java:0}
+%global with_gcj %{!?_without_gcj:1}%{?_without_gcj:0}
 
 %define pkgdir arc
 Name: nordugrid-arc1
@@ -15,9 +16,7 @@ BuildRoot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildRequires: cppunit-devel
 BuildRequires: pkgconfig
 BuildRequires: e2fsprogs-devel
-BuildRequires: gcc-java
 BuildRequires: gettext
-BuildRequires: python
 BuildRequires: python-devel
 BuildRequires: glibmm24-devel
 BuildRequires: glib2-devel
@@ -33,12 +32,11 @@ BuildRequires: gettext-devel
 %if %{_vendor} != "suse"
 BuildRequires: openldap-devel
 %endif
-#
 BuildRequires: globus-common-devel
 BuildRequires: globus-ftp-client-devel
 BuildRequires: globus-ftp-control-devel
 BuildRequires: globus-rls-client-devel
-%if %with_lfc
+%if %{with_lfc}
 BuildRequires: LFC-client-devel
 %endif
 %if %{_vendor} == "redhat"
@@ -52,6 +50,13 @@ BuildRequires: db4-devel
 #%endif
 %if %{_vendor} == "suse"
 BuildRequires: db-devel
+%endif
+%if %{with_java}
+BuildRequires: java-devel
+BuildRequires: jpackage-utils
+%if %{with_gcj}
+BuildRequires: java-gcj-compat-devel
+%endif
 %endif
 
 %define pyver %(python -c 'import sys; print sys.version[:3]')
@@ -133,11 +138,17 @@ Requires: python
 %description python
 Python wrapper for ARC
 
-%if %with_java
+%if %{with_java}
 %package java
 Summary: ARC Java wrapper
 Group: Development/Libraries
 Requires: %{name} = %{version}
+Requires: java
+Requires: jpackage-utils
+%if %{with_gcj}
+Requires(post): java-gcj-compat
+Requires(postun): java-gcj-compat
+%endif
 
 %description java
 Java wrapper for ARC
@@ -175,10 +186,10 @@ ARC API docmentation
 
 %build
 %configure --disable-static \
-%if ! %with_java
+%if ! %{with_java}
 	   --disable-java \
 %endif
-%if %with_lfc
+%if %{with_lfc}
 	   --enable-lfc \
 %endif
 	   --enable-docs
@@ -198,6 +209,10 @@ chmod +x $RPM_BUILD_ROOT/etc/init.d/arched
 
 # RPM does it's own doc handling
 rm -fr $RPM_BUILD_ROOT%{_datadir}/doc/%{pkgdir}/
+
+%if %{with_gcj}
+%{_bindir}/aot-compile-rpm
+%endif
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -236,6 +251,15 @@ if [ "$1" -ge "1" ]; then
 fi
 exit 0
 
+%post java
+%if %{with_gcj}
+[ -x %{_bindir}/rebuild-gcj-db ] && %{_bindir}/rebuild-gcj-db
+%endif
+
+%postun java
+%if %{with_gcj}
+[ -x %{_bindir}/rebuild-gcj-db ] && %{_bindir}/rebuild-gcj-db
+%endif
 
 %files
 %defattr(-,root,root,-)
@@ -416,7 +440,7 @@ exit 0
 %defattr(-,root,root,-)
 %{_libdir}/%{pkgdir}/libmccgsi.so
 %{_libdir}/%{pkgdir}/libdmcgridftp.so
-%if %with_lfc
+%if %{with_lfc}
 %{_libdir}/%{pkgdir}/libdmclfc.so
 %endif
 %{_libdir}/%{pkgdir}/libdmcrls.so
@@ -425,17 +449,20 @@ exit 0
 
 %files python
 %defattr(-,root,root,-)
-%{_libdir}/python?.?/site-packages/
+%{python_sitearch}/*
 %{_libdir}/%{pkgdir}/libaccPythonBroker.so
 %doc src/hed/acc/PythonBroker/SampleBroker.py
 %{ifpy}%{_libdir}/%{pkgdir}/libpythonservice.so
 
-%if %with_java
+%if %{with_java}
 %files java
 %defattr(-,root,root,-)
 %{_libdir}/java/libjarc.so
-%{_datadir}/java/arc.jar
+%{_libdir}/java/arc.jar
 %{_libdir}/%{pkgdir}/libjavaservice.so
+%if %{with_gcj}
+%{_libdir}/gcj/%{name}
+%endif
 %endif
 
 %files janitor
@@ -466,6 +493,6 @@ exit 0
 
 %changelog
 
-* Fri Jul 27 2007 Anders Waananen <waananen@nbi.dk> - 1.0-1
+* Fri Jul 27 2007 Anders Waananen <waananen@nbi.dk> - @VERSION@-1
 - Initial release
 
