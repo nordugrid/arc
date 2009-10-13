@@ -1466,6 +1466,7 @@ AC_CONFIG_FILES([Makefile
                  src/services/janitor/interfaces/client/Makefile
                  src/services/janitor/module/Catalog/Makefile
                  src/services/janitor/module/Makefile
+                 src/services/janitor/schema/Makefile
                  src/services/janitor/Makefile
                  src/services/echo_java/Makefile
                  src/services/echo_python/Makefile

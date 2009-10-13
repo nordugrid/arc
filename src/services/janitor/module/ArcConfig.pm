@@ -224,27 +224,6 @@ sub hash_strip_prefixes {
     return;
 }
 
-# Coerce the value is a HASH reference and return it
-sub hash_get_hashref {
-    my ($h, $key) = @_;
-    delete $h->{$key} unless ref $h->{$key} eq 'HASH';
-    return $h->{$key} ||= {};
-}
-
-# Coerce the value is a ARRAY reference and return it
-sub hash_get_arrayref {
-    my ($h, $key) = @_;
-    delete $h->{$key} unless ref $h->{$key} eq 'ARRAY';
-    return $h->{$key} ||= [];
-}
-
-# Coerce the value is a scalar and return it
-sub hash_get_scalar {
-    my ($h, $key) = @_;
-    delete $h->{$key} if ref $h->{$key};
-    return $h->{$key} ||= undef;
-}
-
 ######################################################################
 
 # Parse the a-rex part of the XML config file into a hash
@@ -292,22 +271,9 @@ sub _parse_xml {
     my ($self,$file) = @_;
     my $arex = read_arex_xml($file);
 
-    # Collapse unnnecessary arrays created by XMLSimple. All hash keys are
-	# array valued now due to using ForceArray => 1. Replace arrays with only
-	# their last element.
-    my @preserve = qw(catalog);
-    hash_tree_apply $arex, sub { my $h = shift;
-                                 while (my ($k,$v) = each %$h) {
-                                     next unless ref($v) eq 'ARRAY';
-                                     next if grep {$k eq $_} @preserve;
-                                     $v = pop @$v;
-                                     $h->{$k} = $v;
-                                 }
-                           };
-
     # Check for the reference to the INI file
-    my $gmconfig = $arex->{'gmconfig'};
-    if ($gmconfig) {
+    if (ref $arex->{'gmconfig'} eq 'ARRAY') {
+        my $gmconfig = $arex->{'gmconfig'}[0];
         if (not ref $gmconfig) {
             $self->{'gmconfig'} = $gmconfig;
         } elsif (ref $gmconfig eq 'HASH') {
@@ -317,24 +283,37 @@ sub _parse_xml {
         }
     }
 
-    $self->{'janitor'} = {};
+    sub get_scalar {
+        my ($h, $key) = @_;
+        return '' unless ref $h->{$key} eq 'ARRAY';
+        return join '[separator]', grep {not ref $_} @{$h->{$key}};
+    }
 
-    $self->{'grid-manager'} = hash_get_hashref($arex, 'LRMS');
+    my $lrms = $arex->{'LRMS'};
+    if (ref $lrms eq 'ARRAY' and @$lrms and ref $lrms->[0] eq 'HASH') {
+        my $dir = get_scalar($lrms->[0], 'runtimeDir');
+        $self->{'grid-manager'}{'runtimedir'} = $dir if $dir;
+    }
 
-    my $janitor = hash_get_hashref($arex, 'janitor');
-    $self->{'janitor'}{$_} = hash_get_scalar($janitor, $_)
-        for grep {$_ ne 'catalog'} keys %$janitor;
-    delete $self->{'janitor'}{'catalog'};
+    my $jani = $arex->{'janitor'};
+    if (ref $jani eq 'ARRAY' and @$jani and ref $jani->[0] eq 'HASH') {
+        $self->{'janitor'}{$_} = get_scalar($jani->[0], $_)
+            for grep {$_ ne 'catalog'} keys %{$jani->[0]};
 
-    my $catalogs = hash_get_arrayref($janitor, 'catalog');
-    for my $cat (@$catalogs) {
-        print STDERR "FATAL: bad catalog in $file\n" unless ref $cat eq 'HASH';
-        my $name = hash_get_scalar($cat, 'name');
-        print STDERR "FATAL: catalog without name attribute in $file\n" and exit 1 unless $name;
-        $cat->{'catalog'} = $cat->{'location'};
-        delete $cat->{'location'};
-        delete $cat->{'name'};
-        $self->{"janitor/$name"}{$_} = hash_get_scalar($cat, $_) for keys %$cat;
+        my $catalogs = $jani->[0]{'catalog'};
+        if (ref $catalogs eq 'ARRAY') {
+            for my $cat (@$catalogs) {
+                next unless ref $cat eq 'HASH';
+                my $name = $cat->{'name'};
+                my $loc = $cat->{'location'};
+                delete $cat->{'name'};
+                delete $cat->{'location'};
+                next unless $name and not ref $name;
+                next unless ref $loc eq 'ARRAY' and @$loc and not ref $loc->[-1];
+                $self->{"janitor/$name"}{'catalog'} = $loc->[-1];
+                $self->{"janitor/$name"}{$_} = get_scalar($cat, $_) for keys %$cat;
+            }
+        }
     }
 }
 

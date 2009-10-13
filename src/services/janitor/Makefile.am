@@ -1,7 +1,7 @@
 # Makefile for the whole janitor service (.)
 
 # install perl module
-SUBDIRS = module interfaces
+SUBDIRS = module interfaces schema
 
 
 #

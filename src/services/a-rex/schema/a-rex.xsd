@@ -4,12 +4,14 @@
   xmlns="http://www.nordugrid.org/schemas/a-rex/2009/08"
   xmlns:arex="http://www.nordugrid.org/schemas/a-rex/2009/08"
   xmlns:ip="http://www.nordugrid.org/schemas/a-rex/InfoProvider/2009/08"
+  xmlns:janitor="http://www.nordugrid.org/schemas/Janitor/2009/08"
   targetNamespace="http://www.nordugrid.org/schemas/a-rex/2009/08"
   elementFormDefault="qualified">
 
 <!-- Imports -->
 <xsd:import namespace="http://www.nordugrid.org/schemas/a-rex/InfoProvider/2009/08" schemaLocation="a-rex_infoprovider.xsd"/>
 <xsd:import namespace="http://www.nordugrid.org/schemas/a-rex/LRMS/2009/08" schemaLocation="a-rex_lrms.xsd"/>
+<xsd:import namespace="http://www.nordugrid.org/schemas/Janitor/2009/08" schemaLocation="janitor.xsd"/>
 
     <xsd:complexType name="endpoint_Type">
         <xsd:annotation>
@@ -439,6 +441,18 @@
          </xsd:sequence>
     </xsd:complexType>
 
+    <xsd:complexType name="janitor_Type">
+        <xsd:annotation>
+            <xsd:documentation xml:lang="en">
+                Options for Janitor
+            </xsd:documentation>
+        </xsd:annotation>
+         <xsd:sequence>
+             <xsd:any namespace="http://www.nordugrid.org/schemas/Janitor/2009/08"
+                      maxOccurs="unbounded"/>
+         </xsd:sequence>
+    </xsd:complexType>
+
     <xsd:element name="authPlugin" type="authPlugin_Type"/>
 
     <xsd:element name="localCred" type="localCred_Type"/>
@@ -459,6 +473,8 @@
     <xsd:element name="LRMS" type="LRMS_Type"/>
 
     <xsd:element name="InfoProvider" type="InfoProvider_Type"/>
+
+    <xsd:element name="janitor" type="janitor_Type"/>
 
     <!-- Not ported elements
     #logsize="100000 2"
