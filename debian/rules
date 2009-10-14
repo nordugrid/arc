@@ -1,19 +1,7 @@
 #!/usr/bin/make -f
 
-# Uncomment this to turn on verbose mode.
-# export DH_VERBOSE=1
-
-# This has to be exported to make some magic below work.
-export DH_OPTIONS
-
-# These are used for cross-compiling and for saving the configure script
-# from having to guess our platform (since we know it already)
 DEB_HOST_GNU_TYPE   ?= $(shell dpkg-architecture -qDEB_HOST_GNU_TYPE)
 DEB_BUILD_GNU_TYPE  ?= $(shell dpkg-architecture -qDEB_BUILD_GNU_TYPE)
-DEB_PYTHON_SYSTEM    = pycentral
-
-#include /usr/share/cdbs/1/class/python-distutils.mk
-
 
 CFLAGS = -Wall -g
 
@@ -28,107 +16,105 @@ configure: configure.ac
 
 config.status: configure
 	dh_testdir
-	# Add here commands to configure the package.
-	./configure --host=$(DEB_HOST_GNU_TYPE) --build=$(DEB_BUILD_GNU_TYPE) \
-                    --prefix=/usr --mandir=\$${prefix}/share/man \
-		    --infodir=\$${prefix}/share/info \
-                    --libexecdir=\$${prefix}/lib \
-                    --sysconfdir=/etc \
-		    --enable-python \
-		    --disable-lfc \
-		    --enable-storage-service \
-		    --enable-janitor-service \
-                    CFLAGS="$(CFLAGS)" LDFLAGS="-Wl,-z,defs"
+	CFLAGS="$(CFLAGS)" LDFLAGS="-Wl,-z,defs" \
+	./configure --host=$(DEB_HOST_GNU_TYPE) \
+		    --build=$(DEB_BUILD_GNU_TYPE) \
+		    --prefix=/usr \
+		    --libexecdir='$${prefix}/lib' \
+		    --sysconfdir=/etc \
+		    --localstatedir=/var
 
-#Architecture 
 build: build-arch build-indep
+	:
 
 build-arch: build-arch-stamp
-build-arch-stamp:  config.status
-	$(MAKE) 
+	:
+
+build-arch-stamp: config.status
+	$(MAKE)
 	$(MAKE) check
 	touch $@
 
 build-indep: build-indep-stamp
-build-indep-stamp:  config.status
+	:
+
+build-indep-stamp: config.status
 	$(MAKE) doc
 	touch $@
 
-clean::
+clean:
 	dh_testdir
 	dh_testroot
 
-	# Add here commands to clean up after the build process.
-	if [ -r Makefile ]; then $(MAKE) distclean; fi
-ifneq "$(wildcard /usr/share/misc/config.sub)" ""
-	-cp -f /usr/share/misc/config.sub config.sub
-endif
-ifneq "$(wildcard /usr/share/misc/config.guess)" ""
-	-cp -f /usr/share/misc/config.guess config.guess
-endif
-	rm -f build-arch-stamp build-indep-stamp #CONFIGURE-STAMP# config.status configure Makefile.in ltmain.sh missing depcomp install-sh debian/tmp
-	dh_clean 
+	if [ -r Makefile ] ; then $(MAKE) distclean ; fi
+
+	rm -f debian/nordugrid-arc1-arex.a-rex.init
+	rm -f debian/nordugrid-arc1-server.arched.init
+
+	dh_clean build-arch-stamp build-indep-stamp 
 
 install: install-indep install-arch
+	:
+
 install-indep: build-indep-stamp
 	dh_testdir
 	dh_testroot
-	dh_clean -k -i 
-	dh_installdirs -i
-	$(MAKE) DESTDIR=$(CURDIR)/debian/tmp install-doc
-	# Complain but don't fail...
-	dh_installexamples -i
-	dh_installman -i
-	dh_installdocs -i
-	-dh_install -i --list-missing
+	dh_clean -k -i
 
 install-arch: build-arch-stamp
 	dh_testdir
 	dh_testroot
-	dh_clean -k -s 
-	dh_installdirs -s
-
-	# Add here commands to install the arch part of the package into 
-	# debian/tmp.
+	dh_clean -k -a
 	$(MAKE) DESTDIR=$(CURDIR)/debian/tmp install
+
 	rm -f $(CURDIR)/debian/tmp/usr/lib/arc/lib*.la
 	rm -f $(CURDIR)/debian/tmp/usr/lib/arc/lib*.a
+	rm -rf $(CURDIR)/debian/tmp/usr/share/doc/arc
 
-	# Complain but don't fail...
-	-dh_installdocs -s 
-	-dh_installexamples -s
-	-dh_installman -s
-	-dh_install -s --list-missing
+	mv debian/tmp/etc/init.d/a-rex debian/nordugrid-arc1-arex.a-rex.init
 
-# Must not depend on anything. This is to be called by
-# binary-arch/binary-indep
-# in another 'make' thread.
-binary-common:
+	cp -p src/hed/daemon/scripts/arched.debian \
+		debian/nordugrid-arc1-server.arched.init
+
+binary-indep: install-indep
 	dh_testdir
 	dh_testroot
-	dh_installchangelogs ChangeLog
-#	dh_installdebconf	
-#	dh_installlogrotate	
-#	dh_python
-#	dh_installinit
-	dh_link
-	dh_strip
-	dh_compress -X.pdf
-	dh_fixperms
-	dh_makeshlibs
-	dh_installdeb
-	dh_shlibdeps
-	dh_gencontrol
-	dh_md5sums
-	dh_builddeb
+	dh_installdirs -i
+	dh_installexamples -i
+	dh_installman -i
+	dh_installdocs -i
+	dh_installchangelogs -i ChangeLog
+	dh_compress -i -X .pdf
+	dh_fixperms -i
+	dh_installdeb -i
+	dh_gencontrol -i
+	dh_md5sums -i
+	dh_builddeb -i
 
-# Build architecture independant packages using the common target.
-binary-indep: build-indep install-indep
-	$(MAKE) -f debian/rules DH_OPTIONS=-i binary-common
-
-# Build architecture dependant packages using the common target.
-binary-arch: build-arch install-arch
-	$(MAKE) -f debian/rules DH_OPTIONS=-s binary-common
+binary-arch: install-arch
+	dh_testdir
+	dh_testroot
+	dh_installdirs -a
+	dh_installdocs -a
+	dh_installexamples -a
+	dh_installman -a
+	dh_install -a --fail-missing
+	dh_installchangelogs -a ChangeLog
+	dh_installinit --name arched
+	dh_installinit --name a-rex
+	dh_pysupport -a
+	dh_link -a
+	dh_strip -a
+	dh_compress -a -X .pdf
+	dh_fixperms -a
+	dh_makeshlibs -a
+	dh_installdeb -a
+	dh_shlibdeps -a
+	dh_gencontrol -a
+	dh_md5sums -a
+	dh_builddeb -a
 
 binary: binary-arch binary-indep
-.PHONY: build clean binary-indep binary-arch binary install install-indep install-arch 
+	:
+
+.PHONY: build clean binary-indep binary-arch binary install install-indep install-arch

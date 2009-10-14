@@ -1,1 +1,1 @@
-EXTRA_DIST = arched.redhat
+EXTRA_DIST = arched.redhat arched.debian

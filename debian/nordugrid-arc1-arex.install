@@ -1,16 +1,19 @@
-debian/tmp/usr/lib/arc/libarex.so
-
-debian/tmp/usr/lib/arc/gm-kick
-debian/tmp/usr/lib/arc/gm-jobs
-debian/tmp/usr/lib/arc/downloader
-debian/tmp/usr/lib/arc/uploader
-debian/tmp/usr/lib/arc/smtp-send
-debian/tmp/usr/lib/arc/smtp-send.sh
-
 debian/tmp/usr/lib/arc/cache-clean
 debian/tmp/usr/lib/arc/cache-list
-debian/tmp/usr/share/man/man1/cache-clean.1
-debian/tmp/usr/share/man/man1/cache-list.1
+debian/tmp/usr/lib/arc/downloader
+debian/tmp/usr/lib/arc/gm-jobs
+debian/tmp/usr/lib/arc/gm-kick
+debian/tmp/usr/lib/arc/smtp-send
+debian/tmp/usr/lib/arc/smtp-send.sh
+debian/tmp/usr/lib/arc/uploader
+
+debian/tmp/usr/lib/arc/cancel-*-job
+debian/tmp/usr/lib/arc/scan-*-job
+debian/tmp/usr/lib/arc/submit-*-job
+debian/tmp/usr/lib/arc/finish-condor-job
+debian/tmp/usr/lib/arc/CEinfo.pl
+
+debian/tmp/usr/lib/arc/libarex.so
 
 debian/tmp/usr/lib/arc/ARC0mod.pm
 debian/tmp/usr/lib/arc/FORKmod.pm
@@ -25,32 +28,25 @@ debian/tmp/usr/lib/arc/ARC0ClusterInfo.pm
 debian/tmp/usr/lib/arc/ARC0ClusterSchema.pm
 debian/tmp/usr/lib/arc/ARC1ClusterInfo.pm
 debian/tmp/usr/lib/arc/ARC1ClusterSchema.pm
-debian/tmp/usr/lib/arc/IniParser.pm
 debian/tmp/usr/lib/arc/ConfigCentral.pm
 debian/tmp/usr/lib/arc/GMJobsInfo.pm
 debian/tmp/usr/lib/arc/HostInfo.pm
 debian/tmp/usr/lib/arc/InfoChecker.pm
-debian/tmp/usr/lib/arc/LRMSInfo.pm
-
+debian/tmp/usr/lib/arc/IniParser.pm
 debian/tmp/usr/lib/arc/LogUtils.pm
+debian/tmp/usr/lib/arc/LRMSInfo.pm
 debian/tmp/usr/lib/arc/Sysinfo.pm
 
-debian/tmp/usr/lib/arc/submit-*-job
-debian/tmp/usr/lib/arc/cancel-*-job
-debian/tmp/usr/lib/arc/scan-*-job
-debian/tmp/usr/lib/arc/configure-*-env.sh
-
-debian/tmp/usr/lib/arc/submit_common.sh
 debian/tmp/usr/lib/arc/cancel_common.sh
-debian/tmp/usr/lib/arc/config_parser.sh
-
-debian/tmp/usr/lib/arc/condor_env.pm
 debian/tmp/usr/lib/arc/change-lsf-mode.sh
-debian/tmp/usr/lib/arc/finish-condor-job
+debian/tmp/usr/lib/arc/condor_env.pm
+debian/tmp/usr/lib/arc/config_parser.sh
+debian/tmp/usr/lib/arc/configure-*-env.sh
+debian/tmp/usr/lib/arc/submit_common.sh
 
-debian/tmp/usr/lib/arc/CEinfo.pl
 debian/tmp/usr/share/arc/nordugrid.schema
 
 debian/tmp/etc/arc_arex.conf
 
-debian/tmp/etc/init.d/a-rex
+debian/tmp/usr/share/man/man1/cache-clean.1
+debian/tmp/usr/share/man/man1/cache-list.1

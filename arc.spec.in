@@ -220,7 +220,7 @@ cp -p src/hed/daemon/scripts/arched.redhat $RPM_BUILD_ROOT%{_initrddir}/arched
 chmod +x $RPM_BUILD_ROOT%{_initrddir}/arched
 
 # RPM does it's own doc handling
-rm -fr $RPM_BUILD_ROOT%{_datadir}/doc/%{pkgdir}/
+rm -fr $RPM_BUILD_ROOT%{_datadir}/doc/%{pkgdir}
 
 %find_lang arc
 
@@ -277,111 +277,108 @@ exit 0
 
 %files -f arc.lang
 %defattr(-,root,root,-)
-%doc ChangeLog README AUTHORS LICENSE
 %{_libdir}/lib*.so.*
-%{_datadir}/%{pkgdir}/schema/
+%{_datadir}/%{pkgdir}/schema
+%doc ChangeLog README AUTHORS LICENSE
 
 %files client
 %defattr(-,root,root,-)
-%doc src/clients/client.conf.example
+%{_bindir}/arccat
+%{_bindir}/arcclean
+%{_bindir}/arccp
+%{_bindir}/arcdecision
+%{_bindir}/arcecho
+%{_bindir}/arcget
+%{_bindir}/arcinfo
+%{_bindir}/arckill
+%{_bindir}/arcls
+%{_bindir}/arcmigrate
+%{_bindir}/arcproxy
+%{_bindir}/arcrenew
+%{_bindir}/arcresub
+%{_bindir}/arcresume
+%{_bindir}/arcrm
+%{_bindir}/arcslcs
+%{_bindir}/arcsrmping
+%{_bindir}/arcstat
+%{_bindir}/arcsub
+%{_bindir}/arcsync
+%{_bindir}/chelonia
+%{_bindir}/isistest
+%{_bindir}/jura
+%{_bindir}/perftest
+%{_bindir}/saml_assertion_init
+%config(noreplace) %{_sysconfdir}/arc/client.conf
+%doc %{_mandir}/man1/arccat.1*
+%doc %{_mandir}/man1/arcclean.1*
+%doc %{_mandir}/man1/arccp.1*
+%doc %{_mandir}/man1/arcdecision.1*
+%doc %{_mandir}/man1/arcecho.1*
+%doc %{_mandir}/man1/arcget.1*
+%doc %{_mandir}/man1/arcinfo.1*
+%doc %{_mandir}/man1/arckill.1*
+%doc %{_mandir}/man1/arcls.1*
+%doc %{_mandir}/man1/arcmigrate.1*
+%doc %{_mandir}/man1/arcproxy.1*
+%doc %{_mandir}/man1/arcrenew.1*
+%doc %{_mandir}/man1/arcresub.1*
+%doc %{_mandir}/man1/arcresume.1*
+%doc %{_mandir}/man1/arcrm.1*
+%doc %{_mandir}/man1/arcslcs.1*
+%doc %{_mandir}/man1/arcstat.1*
+%doc %{_mandir}/man1/arcsrmping.1*
+%doc %{_mandir}/man1/arcsub.1*
+%doc %{_mandir}/man1/arcsync.1*
+%doc %{_mandir}/man1/chelonia.1*
+%doc %{_mandir}/man1/perftest.1.gz
+%doc %{_mandir}/man1/saml_assertion_init.1*
 %doc %{_mandir}/man5/arcclient.xml.5*
 %doc src/clients/charon/charon_client.xml.example
 %doc src/clients/charon/charon_request.xml.example
+%doc src/clients/client.conf.example
 %doc src/tests/echo/echo.wsdl
-%{_bindir}/arcecho
-%doc %{_mandir}/man1/arcecho.1*
-%{_bindir}/arcsrmping
-%doc %{_mandir}/man1/arcsrmping.1*
-%{_bindir}/arcproxy
-%doc %{_mandir}/man1/arcproxy.1*
-%{_bindir}/arcslcs
-%doc %{_mandir}/man1/arcslcs.1*
-%{_bindir}/arccat
-%doc %{_mandir}/man1/arccat.1*
-%{_bindir}/arccp
-%doc %{_mandir}/man1/arccp.1*
-%{_bindir}/arcls
-%doc %{_mandir}/man1/arcls.1*
-%{_bindir}/arcrm
-%doc %{_mandir}/man1/arcrm.1*
-%{_bindir}/arcstat
-%doc %{_mandir}/man1/arcstat.1*
-%{_bindir}/arcinfo
-%doc %{_mandir}/man1/arcinfo.1*
-%{_bindir}/arcsub
-%doc %{_mandir}/man1/arcsub.1*
-%{_bindir}/arcsync
-%doc %{_mandir}/man1/arcsync.1*
-%{_bindir}/arcresub
-%doc %{_mandir}/man1/arcresub.1*
-%{_bindir}/arcget
-%doc %{_mandir}/man1/arcget.1*
-%{_bindir}/arcclean
-%doc %{_mandir}/man1/arcclean.1*
-%{_bindir}/arckill
-%doc %{_mandir}/man1/arckill.1*
-%{_bindir}/arcdecision
-%doc %{_mandir}/man1/arcdecision.1*
-%{_bindir}/arcmigrate
-%doc %{_mandir}/man1/arcmigrate.1*
-%{_bindir}/arcrenew
-%doc %{_mandir}/man1/arcrenew.1*
-%{_bindir}/arcresume
-%doc %{_mandir}/man1/arcresume.1*
-%{_bindir}/saml_assertion_init
-%doc %{_mandir}/man1/saml_assertion_init.1*
-%{_bindir}/perftest
-%doc %{_mandir}/man1/perftest.1.gz
-%{_bindir}/chelonia
-%doc %{_mandir}/man1/chelonia.1*
-%{_sysconfdir}/arc/client.conf
-%{_bindir}/jura
-%{_bindir}/isistest
 
 %files server
 %defattr(-,root,root,-)
 %{_initrddir}/arched
 %{_sbindir}/arched
-%doc %{_mandir}/man8/arched.8*
 %{_sbindir}/manage_jobq
+%{_libdir}/%{pkgdir}/libcharon.so
+%{_libdir}/%{pkgdir}/libcompiler.so
+%{_libdir}/%{pkgdir}/libdelegation.so
+%{_libdir}/%{pkgdir}/libecho.so
+%{_libdir}/%{pkgdir}/libgrid_sched.so
+%{_libdir}/%{pkgdir}/libhopi.so
+%{_libdir}/%{pkgdir}/libisis.so
+%{_libdir}/%{pkgdir}/libpaul.so
+%{_libdir}/%{pkgdir}/libsaml2sp.so
+%{_libdir}/%{pkgdir}/libslcs.so
+%{_datadir}/%{pkgdir}/examples/storage_service.xml.example
+%doc %{_mandir}/man8/arched.8*
 %doc %{_mandir}/man8/manage_jobq.8*
 %doc src/services/charon/charon_policy_arc.xml.example
 %doc src/services/charon/charon_policy_xacml.xml.example
 %doc src/services/charon/charon_service.xml.example
 %doc src/services/hopi/hopi_service.xml.example
 %doc src/tests/echo/echo_service.xml.example
-%{_datadir}/%{pkgdir}/examples/storage_service.xml.example
-%{_libdir}/%{pkgdir}/libecho.so
-%{_libdir}/%{pkgdir}/libcharon.so
-%{_libdir}/%{pkgdir}/libhopi.so
-%{_libdir}/%{pkgdir}/libisis.so
-%{_libdir}/%{pkgdir}/libgrid_sched.so
-%{_libdir}/%{pkgdir}/libpaul.so
-%{_libdir}/%{pkgdir}/libslcs.so
-%{_libdir}/%{pkgdir}/libcompiler.so
-%{_libdir}/%{pkgdir}/libsaml2sp.so
-%{_libdir}/%{pkgdir}/libdelegation.so
 
 %files arex
 %defattr(-,root,root,-)
 %{_initrddir}/a-rex
-%doc src/services/a-rex/arex.xml.example
-%doc src/services/a-rex/arex_minimalistic.xml.example
-%doc src/services/a-rex/arex_secure.xml.example
-%doc src/services/a-rex/arc_arex.conf
-%doc %{_mandir}/man1/cache-clean.1*
-%doc %{_mandir}/man1/cache-list.1*
-%config(noreplace) %{_sysconfdir}/arc_arex.conf
-%{_libdir}/%{pkgdir}/libarex.so
-%{_libexecdir}/%{pkgdir}/downloader
-%{_libexecdir}/%{pkgdir}/uploader
-%{_libexecdir}/%{pkgdir}/smtp-send
-%{_libexecdir}/%{pkgdir}/smtp-send.sh
-%{_libexecdir}/%{pkgdir}/gm-kick
-%{_libexecdir}/%{pkgdir}/gm-jobs
 %{_libexecdir}/%{pkgdir}/cache-clean
 %{_libexecdir}/%{pkgdir}/cache-list
-#
+%{_libexecdir}/%{pkgdir}/downloader
+%{_libexecdir}/%{pkgdir}/gm-jobs
+%{_libexecdir}/%{pkgdir}/gm-kick
+%{_libexecdir}/%{pkgdir}/smtp-send
+%{_libexecdir}/%{pkgdir}/smtp-send.sh
+%{_libexecdir}/%{pkgdir}/uploader
+%{_libexecdir}/%{pkgdir}/cancel-*-job
+%{_libexecdir}/%{pkgdir}/scan-*-job
+%{_libexecdir}/%{pkgdir}/submit-*-job
+%{_libexecdir}/%{pkgdir}/finish-condor-job
+%{_libexecdir}/%{pkgdir}/CEinfo.pl
+%{_libdir}/%{pkgdir}/libarex.so
 %{_libdir}/%{pkgdir}/ARC0mod.pm
 %{_libdir}/%{pkgdir}/FORKmod.pm
 %{_libdir}/%{pkgdir}/SGEmod.pm
@@ -390,36 +387,32 @@ exit 0
 %{_libdir}/%{pkgdir}/PBS.pm
 %{_libdir}/%{pkgdir}/Condor.pm
 %{_libdir}/%{pkgdir}/SLURM.pm
-#
 %{_libdir}/%{pkgdir}/ARC0ClusterInfo.pm
 %{_libdir}/%{pkgdir}/ARC0ClusterSchema.pm
 %{_libdir}/%{pkgdir}/ARC1ClusterInfo.pm
 %{_libdir}/%{pkgdir}/ARC1ClusterSchema.pm
-%{_libdir}/%{pkgdir}/IniParser.pm
+%{_libdir}/%{pkgdir}/ConfigCentral.pm
 %{_libdir}/%{pkgdir}/GMJobsInfo.pm
 %{_libdir}/%{pkgdir}/HostInfo.pm
 %{_libdir}/%{pkgdir}/InfoChecker.pm
-%{_libdir}/%{pkgdir}/ConfigCentral.pm
-%{_libdir}/%{pkgdir}/LRMSInfo.pm
-#
+%{_libdir}/%{pkgdir}/IniParser.pm
 %{_libdir}/%{pkgdir}/LogUtils.pm
+%{_libdir}/%{pkgdir}/LRMSInfo.pm
 %{_libdir}/%{pkgdir}/Sysinfo.pm
-#
-%{_libexecdir}/%{pkgdir}/submit-*-job
-%{_libexecdir}/%{pkgdir}/cancel-*-job
-%{_libexecdir}/%{pkgdir}/scan-*-job
-%{_libdir}/%{pkgdir}/configure-*-env.sh
-#
-%{_libdir}/%{pkgdir}/submit_common.sh
 %{_libdir}/%{pkgdir}/cancel_common.sh
-%{_libdir}/%{pkgdir}/config_parser.sh
-#
-%{_libdir}/%{pkgdir}/condor_env.pm
 %{_libdir}/%{pkgdir}/change-lsf-mode.sh
-%{_libexecdir}/%{pkgdir}/finish-condor-job
-#
-%{_libexecdir}/%{pkgdir}/CEinfo.pl
+%{_libdir}/%{pkgdir}/condor_env.pm
+%{_libdir}/%{pkgdir}/config_parser.sh
+%{_libdir}/%{pkgdir}/configure-*-env.sh
+%{_libdir}/%{pkgdir}/submit_common.sh
 %{_datadir}/%{pkgdir}/nordugrid.schema
+%config(noreplace) %{_sysconfdir}/arc_arex.conf
+%doc %{_mandir}/man1/cache-clean.1*
+%doc %{_mandir}/man1/cache-list.1*
+%doc src/services/a-rex/arex.xml.example
+%doc src/services/a-rex/arex_minimalistic.xml.example
+%doc src/services/a-rex/arex_secure.xml.example
+%doc src/services/a-rex/arc_arex.conf
 
 %files devel
 %defattr(-,root,root,-)
@@ -431,39 +424,39 @@ exit 0
 
 %files plugins-base
 %defattr(-,root,root,-)
+%{_libdir}/%{pkgdir}/libaccARC1.so
+%{_libdir}/%{pkgdir}/libaccCREAM.so
+%{_libdir}/%{pkgdir}/libaccBroker.so
+%{_libdir}/%{pkgdir}/libaccUNICORE.so
+%{_libdir}/%{pkgdir}/libarcshc.so
+%{_libdir}/%{pkgdir}/libdmcarc.so
+%{_libdir}/%{pkgdir}/libdmcfile.so
+%{_libdir}/%{pkgdir}/libdmchttp.so
+%{_libdir}/%{pkgdir}/libdmcldap.so
+%{_libdir}/%{pkgdir}/libidentitymap.so
 %{_libdir}/%{pkgdir}/libmcchttp.so
 %{_libdir}/%{pkgdir}/libmccmsgvalidator.so
 %{_libdir}/%{pkgdir}/libmccsoap.so
 %{_libdir}/%{pkgdir}/libmcctcp.so
 %{_libdir}/%{pkgdir}/libmcctls.so
-%{_libdir}/%{pkgdir}/libdmcfile.so
-%{_libdir}/%{pkgdir}/libdmchttp.so
-%{_libdir}/%{pkgdir}/libdmcarc.so
-%{_libdir}/%{pkgdir}/libdmcldap.so
-%{_libdir}/%{pkgdir}/libarcshc.so
-%{_libdir}/%{pkgdir}/libidentitymap.so
-%{_libdir}/%{pkgdir}/libaccARC1.so
-%{_libdir}/%{pkgdir}/libaccCREAM.so
-%{_libdir}/%{pkgdir}/libaccBroker.so
-%{_libdir}/%{pkgdir}/libaccUNICORE.so
 
 %files plugins-globus
 %defattr(-,root,root,-)
-%{_libdir}/%{pkgdir}/libmccgsi.so
+%{_libdir}/%{pkgdir}/libaccARC0.so
 %{_libdir}/%{pkgdir}/libdmcgridftp.so
 %if %{with_lfc}
 %{_libdir}/%{pkgdir}/libdmclfc.so
 %endif
 %{_libdir}/%{pkgdir}/libdmcrls.so
 %{_libdir}/%{pkgdir}/libdmcsrm.so
-%{_libdir}/%{pkgdir}/libaccARC0.so
+%{_libdir}/%{pkgdir}/libmccgsi.so
 
 %files python
 %defattr(-,root,root,-)
 %{python_sitearch}/*
 %{_libdir}/%{pkgdir}/libaccPythonBroker.so
-%doc src/hed/acc/PythonBroker/SampleBroker.py
 %{ifpy}%{_libdir}/%{pkgdir}/libpythonservice.so
+%doc src/hed/acc/PythonBroker/SampleBroker.py
 
 %if %{with_java}
 %files java
@@ -479,8 +472,8 @@ exit 0
 %files janitor
 %defattr(-,root,root,-)
 %{_libexecdir}/%{pkgdir}/janitor
-%doc %{_mandir}/man8/janitor.8*
 %{_datadir}/%{pkgdir}/perl
+%doc %{_mandir}/man8/janitor.8*
 
 %files doc
 %defattr(-,root,root,-)

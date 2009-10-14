@@ -2,5 +2,4 @@ nordugrid-arc1 (@VERSION@-1) unstable; urgency=low
 
   * Initial release
 
- -- Anders Waananen <waananen@nbi.dk>  Mon,  5 Nov 2007 10:12:49 -0400
-
+ -- Anders Waananen <waananen@nbi.dk>  @DATER@

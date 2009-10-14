@@ -3,3 +3,4 @@ debian/tmp/usr/lib/lib*.so
 debian/tmp/usr/lib/lib*.la
 debian/tmp/usr/bin/wsdl2hed
 debian/tmp/usr/share/man/man1/wsdl2hed.1
+debian/tmp/usr/lib/pkgconfig/arcbase.pc

@@ -1,2 +1,4 @@
-debian/tmp/usr/share/doc/arc/arex*.example
-debian/tmp/usr/share/doc/arc/arc_arex.conf
+src/services/a-rex/arex.xml.example
+src/services/a-rex/arex_minimalistic.xml.example
+src/services/a-rex/arex_secure.xml.example
+src/services/a-rex/arc_arex.conf

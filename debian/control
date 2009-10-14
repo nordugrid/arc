@@ -4,10 +4,8 @@ Priority: optional
 Maintainer: Anders Waananen <waananen@nbi.dk>
 Uploaders: Steffen Moeller <moeller@debian.org>
 DM-Upload-Allowed: yes
-Build-Depends: debhelper (>= 5), autotools-dev, libxml2-dev (>=2.4.0), libssl-dev, libglibmm-2.4-dev, fastjar, python-all-dev (>= 2.4), libltdl-dev|libltdl7-dev|libltdl3-dev, gcj, libgcj6-dev|libgcj7-dev|libgcj8-dev|libgcj9-dev|libgcj-dev, libldap2-dev, libtool, uuid-dev, libcppunit-dev, pkg-config, libdb4.2++-dev|libdb4.3++-dev|libdb4.4++-dev|libdb4.5++-dev|libdb4.6++-dev|libdb++-dev, swig, automake, autoconf, libxmlsec1-dev (>=1.2.4), gsoap, libglobus-common-dev, libglobus-gssapi-gsi-dev, libglobus-rls-client-dev, libglobus-ftp-client-dev, libglobus-ftp-control-dev, libglobus-rsl-dev, libglobus-io-dev, libglobus-openssl-dev, python-central (>= 0.5.6), cdbs (>= 0.4)
-Build-Depends-Indep: texlive-extra-utils, texlive-latex-extra, texlive, doxygen 
+Build-Depends: debhelper (>= 5), autotools-dev, libxml2-dev (>=2.4.0), libssl-dev, libglibmm-2.4-dev, python-dev, libltdl-dev | libltdl7-dev | libltdl3-dev, libldap2-dev, uuid-dev, libcppunit-dev, pkg-config, libdb4.6++-dev | libdb4.5++-dev | libdb4.4++-dev | libdb4.3++-dev | libdb4.2++-dev | libdb++-dev, libxmlsec1-dev (>=1.2.4), gsoap, libglobus-common-dev, libglobus-gssapi-gsi-dev, libglobus-rls-client-dev, libglobus-ftp-client-dev, libglobus-ftp-control-dev, python-support, default-jdk | java-gcj-compat-dev
 Standards-Version: 3.8.3
-XS-Python-Version: >= 2.4
 Vcs-Browser: http://svn.nordugrid.org/trac/nordugrid/browser/arc1
 Vcs-Svn: http://svn.nordugrid.org/repos/nordugrid/arc1/trunk
 Homepage: http://www.nordugrid.org
@@ -105,15 +103,11 @@ Description: ARC base plugins
  ARC base plugins. This includes the Message Chain Components (MCCs)
  and Data Manager Components (DMCs).
 
-#Package: nordugrid-arc1-plugins-globus
-#Architecture: any
-#Description: ARC Globus plugins
-#
-# ARC Globus plugins. This includes the Globus dependent Data Manager
-# Components (DMCs):
-# . 
-#   libdmcgridftp.so
-#   libdmcrls.so
+Package: nordugrid-arc1-plugins-globus
+Architecture: any
+Description: ARC Globus plugins
+ ARC Globus plugins. This includes the Globus dependent Data Manager
+ Components (DMCs).
 
 Package: nordugrid-arc1-dev
 Architecture: any
@@ -129,7 +123,6 @@ Description: ARC development files
  represent such modules. 
 
 Package: nordugrid-arc1-python
-XB-Python-Version: ${python:Versions}
 Architecture: any
 Depends: nordugrid-arc1-lib, ${python:Depends}
 Description: ARC Python wrapper
@@ -170,7 +163,7 @@ Description: ARC API documentation
 
 Package: nordugrid-arc1
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, nordugrid-arc1-server, nordugrid-arc1-client
+Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: ARC grid middleware
  The NorduGrid is a collaboration aiming at development, maintenance
  and support of the free Grid middleware, known as the Advanced

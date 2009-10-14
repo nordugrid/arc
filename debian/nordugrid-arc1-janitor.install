@@ -1,0 +1,3 @@
+debian/tmp/usr/lib/arc/janitor
+debian/tmp/usr/share/arc/perl/Janitor
+debian/tmp/usr/share/man/man8/janitor.8

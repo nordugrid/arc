@@ -1,5 +1,5 @@
-debian/tmp/usr/share/doc/arc/charon_service.xml.example
-debian/tmp/usr/share/doc/arc/hopi_service.xml.example
-debian/tmp/usr/share/arc/examples/storage_service.xml.example
-debian/tmp/usr/share/doc/arc/charon_client.xml.example
-debian/tmp/usr/share/doc/arc/charon_request.xml.example
+src/services/charon/charon_policy_arc.xml.example
+src/services/charon/charon_policy_xacml.xml.example
+src/services/charon/charon_service.xml.example
+src/services/hopi/hopi_service.xml.example
+src/tests/echo/echo_service.xml.example

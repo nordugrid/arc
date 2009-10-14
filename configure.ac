@@ -1265,6 +1265,8 @@ AC_SUBST(posix_shell)
 
 DATE=`date +%Y-%m-%d`
 AC_SUBST(DATE)
+DATER=`date -R`
+AC_SUBST(DATER)
 SPECDATE=`LANG=C date +"%a %b %d %Y"`
 AC_SUBST(SPECDATE)
 
@@ -1528,17 +1530,7 @@ AC_CONFIG_FILES([Makefile
                  po/Makefile.in
                  include/Makefile
                  debian/Makefile
-                 debian/changelog
-                 debian/nordugrid-arc1-client.install
-                 debian/nordugrid-arc1-client.manpages
-                 debian/nordugrid-arc1-server.install
-                 debian/nordugrid-arc1-java.install
-                 debian/nordugrid-arc1-janitor.install
-                 debian/nordugrid-arc1-janitor.manpages
-                 debian/nordugrid-arc1-janitor.examples
-                 debian/nordugrid-arc1-lib.install
-                 debian/nordugrid-arc1-python.install
-                 debian/nordugrid-arc1-plugins-base.install
+                 debian/changelog.deb
                  arc.spec
                  src/hed/daemon/arched.8
                  src/services/janitor/interfaces/commandline/janitor.8
