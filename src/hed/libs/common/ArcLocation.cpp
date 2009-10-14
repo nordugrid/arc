@@ -63,7 +63,7 @@ namespace Arc {
     if (!arcpluginpath.empty()) {
       std::string::size_type pos = 0;
       while (pos != std::string::npos) {
-        std::string::size_type pos2 = arcpluginpath.find(':', pos);
+        std::string::size_type pos2 = arcpluginpath.find(G_SEARCHPATH_SEPARATOR, pos);
         plist.push_back(pos2 == std::string::npos ?
                         arcpluginpath.substr(pos) :
                         arcpluginpath.substr(pos, pos2 - pos));

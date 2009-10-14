@@ -68,16 +68,11 @@ namespace Arc {
   }
 
   BaseConfig::BaseConfig() {
-#ifdef WIN32
-    char separator = ';';
-#else
-    char separator = ':';
-#endif
     if (getenv("ARC_PLUGIN_PATH")) {
       std::string arcpluginpath = getenv("ARC_PLUGIN_PATH");
       std::string::size_type pos = 0;
       while (pos != std::string::npos) {
-        std::string::size_type pos2 = arcpluginpath.find(separator, pos);
+        std::string::size_type pos2 = arcpluginpath.find(G_SEARCHPATH_SEPARATOR, pos);
         AddPluginsPath(pos2 == std::string::npos ?
                        arcpluginpath.substr(pos) :
                        arcpluginpath.substr(pos, pos2 - pos));
