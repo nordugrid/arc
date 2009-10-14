@@ -297,8 +297,6 @@ sub get_cluster_info($) {
             $q->{'nq0:status'} = [ 'inactive, grid-manager does not accept new jobs' ];
         } elsif (not $host_info->{processes}{'grid-manager'}) {
             $q->{'nq0:status'} = [ 'inactive, grid-manager is down' ];   
-        } elsif (not $host_info->{processes}{'gridftpd'})  {
-            $q->{'nq0:status'} = [ 'inactive, gridftpd is down' ];  
         } elsif ( $qinfo->{status} < 0 ) {
             $q->{'nq0:status'} = [ 'inactive, LRMS interface returns negative status' ];
         } else {
