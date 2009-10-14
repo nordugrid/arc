@@ -322,7 +322,7 @@ appropiate.
               <ip:AuthorizedVO>nordugrid.org</ip:AuthorizedVO>
               <ip:MaxVirtualMemory>2000</ip:MaxVirtualMemory>
               <ip:MaxSlotsPerJob>8</ip:MaxSlotsPerJob>
-              <ip:SchedulingPolicy>failrshare</ip:SchedulingPolicy>
+              <ip:SchedulingPolicy>fairshare</ip:SchedulingPolicy>
               <ip:Preemption>false</ip:Preemption>
               <lrms:slurm_project>knowarc</lrms:slurm_project>
               <lrms:fork_job_limit>cpunumber</lrms:fork_job_limit>
