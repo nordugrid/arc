@@ -50,16 +50,13 @@
               <register:Period>PT75S</register:Period>
               <register:Endpoint>https://127.0.0.1:60000/delegation</register:Endpoint>
               <register:Expiration>PT1M</register:Expiration>
-              <register:Registrar id="NorduGridInfosys"></register:Registrar>
+              <register:Registrar>
+                <URL>http://knowarc3.grid.niif.hu:50000/isis1</URL>
+                <Retry>4</Retry>
+              </register:Registrar>
            </register:InfoRegister>
 
         </Service>
     </Chain>
-
-    <InfoRegistrar id="NorduGridInfosys">
-        <!-- Contact and behavior details of the InfoRegsitrar element-->
-        <URL>http://knowarc3.grid.niif.hu:50000/isis1</URL>
-        <Retry>4</Retry>
-    </InfoRegistrar>
 
 </ArcConfig>
