@@ -221,37 +221,39 @@ sub get_host_info($) {
     my @runtimeenvironment;
     my $runtimedir = $options->{runtimedir};
     if ($runtimedir){
-       if (opendir DIR, $runtimedir) {
-          @runtimeenvironment = `find $runtimedir -type f ! -name ".*" ! -name "*~"` ;
-          closedir DIR;
-          foreach my $listentry (@runtimeenvironment) {
-             chomp($listentry);
-             $listentry=~s/$runtimedir\/*//;
-          }
-       } else {
-         # $listentry="";
-          $log->warning("Can't acess runtimedir: $runtimedir");
-       }
-       # Try to fetch something from Janitor
-       # Integration with Janitor is done through calling 
-       # executable beacuse I'm nor skilled enough to isolate
-       # possible Janitor errors and in order not to redo 
-       # all Log4Perl tricks again. Please redo it later. A.K.
-       my $janitor = $options->{bindir}.'/janitor';
-       if (! -e $janitor) {
-          $log->debug("Janitor not found at '$janitor' - not using");
-       } else {
-          my $config = $options->{configfile};
-          if (! open (JPIPE, "$janitor --config $config list shortlist dynamic |")) {
-              $log->warning("$janitor: $!");
-          } else {
-              while(<JPIPE>) {
-                  chomp(my $listentry = $_);
-                  push @runtimeenvironment, $listentry
-                      unless grep {$listentry eq $_} @runtimeenvironment;
-              }
-          }
-       }
+        if (opendir DIR, $runtimedir) {
+            @runtimeenvironment = `find $runtimedir -type f ! -name ".*" ! -name "*~"` ;
+            closedir DIR;
+            foreach my $listentry (@runtimeenvironment) {
+               chomp($listentry);
+               $listentry=~s/$runtimedir\/*//;
+            }
+        } else {
+          # $listentry="";
+           $log->warning("Can't acess runtimedir: $runtimedir");
+        }
+        # Try to fetch something from Janitor
+        # Integration with Janitor is done through calling 
+        # executable beacuse I'm nor skilled enough to isolate
+        # possible Janitor errors and in order not to redo 
+        # all Log4Perl tricks again. Please redo it later. A.K.
+        if ($options->{JanitorConfigured}) {
+            my $janitor = $options->{bindir}.'/janitor';
+            if (! -e $janitor) {
+               $log->debug("Janitor not found at '$janitor' - not using");
+            } else {
+                my $config = $options->{configfile};
+                if (! open (JPIPE, "$janitor --config $config list shortlist dynamic |")) {
+                    $log->warning("$janitor: $!");
+                } else {
+                    while(<JPIPE>) {
+                        chomp(my $listentry = $_);
+                        push @runtimeenvironment, $listentry
+                            unless grep {$listentry eq $_} @runtimeenvironment;
+                    }
+                }
+            }
+        }
     }
     $host_info->{runtimeenvironments} = \@runtimeenvironment;
 
