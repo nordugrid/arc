@@ -217,11 +217,14 @@ namespace Arc {
     xmlDocPtr doc = xmlParseMemory((char*)(xml.c_str()), xml.length());
     if (!doc)
       return;
-    if (!doc->children) {
+    xmlNodePtr p = doc->children;
+    for (; p; p = p->next)
+      if (p->type == XML_ELEMENT_NODE) break;
+    if (!p) {
       xmlFreeDoc(doc);
       return;
     }
-    node_ = doc->children;
+    node_ = p;
     is_owner_ = true;
   }
 
@@ -236,11 +239,14 @@ namespace Arc {
     xmlDocPtr doc = xmlParseMemory((char*)xml, len);
     if (!doc)
       return;
-    if (!doc->children) {
+    xmlNodePtr p = doc->children;
+    for (; p; p = p->next)
+      if (p->type == XML_ELEMENT_NODE) break;
+    if (!p) {
       xmlFreeDoc(doc);
       return;
     }
-    node_ = doc->children;
+    node_ = p;
     is_owner_ = true;
   }
 
@@ -881,13 +887,20 @@ namespace Arc {
     xmlDocPtr doc = xmlParseMemory((char*)(s.c_str()), s.length());
     if (doc == NULL)
       return false;
+    xmlNodePtr p = doc->children;
+    for (; p; p = p->next)
+      if (p->type == XML_ELEMENT_NODE) break;
+    if (!p) {
+      xmlFreeDoc(doc);
+      return false;
+    }
     if (node_ != NULL)
       if (is_owner_) {
         xmlFreeDoc(node_->doc);
         node_ = NULL;
         is_owner_ = false;
       }
-    node_ = doc->children;
+    node_ = p;
     if (node_)
       is_owner_ = true;
     return true;
