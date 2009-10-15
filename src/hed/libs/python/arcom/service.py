@@ -90,7 +90,10 @@ class Service:
             for request_type in self.request_config]))
         
     def __del__(self):
-        self.state.running = False
+        try:
+            self.state.running = False
+        except:
+            pass
         log.msg(arc.INFO, "Stopping:", self.service_name)
     
     def _get_dns_from_ahash(self, data):
