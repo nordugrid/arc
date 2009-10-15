@@ -1431,6 +1431,7 @@ verbose = False
 print_xml = False
 configfilename = ''
 bartender_url_from_argument = ''
+allowed_to_run_without_arc = False
 
 while (len(args) > 0) and (args[0].startswith('-')):
     flag = args.pop(0)[1:]
@@ -1446,6 +1447,8 @@ while (len(args) > 0) and (args[0].startswith('-')):
             configfilename = ''
     if flag in ['b']:
         bartender_url_from_argument = args.pop(0)
+    if flag in ['w']:
+        allowed_to_run_without_arc = True
 
 if verbose:
     try:
@@ -1461,7 +1464,6 @@ if verbose:
         print '- Config file specified:', configfilename
     else:
         print '- Using default user config.'
-
 
 
 def call_it(method_name, *args):
@@ -1498,7 +1500,7 @@ def call_it(method_name, *args):
 
 if len(args) == 0 or args[0][0:3] not in ['sta', 'mak', 'mkd', 'unm', 'rmd', 'lis', 'ls', 'mov', 'mv', 'put', 'get', 'del', 'rm', 'mod', 'pol', 'unl', 'cre', 'rem']:
     print 'Usage:'
-    print '  chelonia [-v] [-x] [-z <path>] [-b <URL>] <method> [<arguments>]'
+    print '  chelonia [-v] [-x] [-z <path>] [-b <URL>] [-w] <method> [<arguments>]'
     print ''
     print 'Supported methods:'
     print '  stat - get detailed information about an entry'
@@ -1524,7 +1526,16 @@ if len(args) == 0 or args[0][0:3] not in ['sta', 'mak', 'mkd', 'unm', 'rmd', 'li
     print '  -x    print the SOAP XML messages'
     print '  -z    path to the user config'
     print '  -b    URL of the Bartender to connect'
+    print '  -w    allow to run without the ARC python client libraries (with limited functionality)'
 else:
+    if not allowed_to_run_without_arc:
+        try:
+            import arc
+        except:
+            print 'ERROR: ARC python client library not found (maybe PYTHONPATH is not set properly?)'
+            print '       If you want to run without the ARC client libraries, use the \'-w\' flag'
+            sys.exit(-1)
+    
     problem_with_userconfig = None
     try:
         import arc
