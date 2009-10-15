@@ -27,8 +27,11 @@ class HardlinkingBackend:
         if not self.datadir:
             raise Exception, 'No StoreDir given in the Shepherd backend config!'
         self.transferdir = str(backendcfg.Get('TransferDir'))
-        # TODO: add '/' at the end of TURLPrefix if needed
         self.turlprefix = str(backendcfg.Get('TURLPrefix'))
+        if not self.turlprefix:
+            raise Exception, 'No TURLPrefix is given in the Shepherd backend config!'
+        if not self.turlprefix[-1] == '/':
+            self.turlprefix = self.turlprefix + '/'
         if not os.path.exists(self.datadir):
             os.mkdir(self.datadir)
         if not os.path.exists(self.transferdir):

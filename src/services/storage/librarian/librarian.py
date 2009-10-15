@@ -435,7 +435,10 @@ class LibrarianService(Service):
         self.librarian = Librarian(cfg, self.ssl_config, self.state)
     
     def __del__(self):
-        self.librarian.thread_is_running = False
+        try:
+            self.librarian.thread_is_running = False
+        except:
+            pass
         Service.__del__(self)
     
     def new(self, inpayload):

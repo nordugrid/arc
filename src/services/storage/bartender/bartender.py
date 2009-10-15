@@ -338,9 +338,11 @@ class Bartender:
                                     # split it to serviceID, referenceID - serviceID currently is just a plain URL of the service
                                     url, referenceID, _ = location
                                     # create an ShepherdClient with this URL, then send a get request with the referenceID
-                                    #   we only support byteio protocol currently. 'getFile' is the requestID of this request
-                                    get_response = dict(ShepherdClient(url, ssl_config = self.ssl_config).get({'getFile' :
-                                        [('referenceID', referenceID)] + [('protocol', proto) for proto in protocols]})['getFile'])
+                                    try:
+                                        get_response = dict(ShepherdClient(url, ssl_config = self.ssl_config).get({'getFile' :
+                                            [('referenceID', referenceID)] + [('protocol', proto) for proto in protocols]})['getFile'])
+                                    except:
+                                        get_response = {'error' : traceback.format_exc()}
                                     # get_response is a dictionary with keys such as 'TURL', 'protocol' or 'error'
                                     if get_response.has_key('error'):
                                         # if there was an error
@@ -431,7 +433,10 @@ class Bartender:
         while len(shepherds) > 0:
             shepherd = shepherds.pop()
             # call the SE's put method with the prepared request
-            put_response = dict(shepherd.put({'putFile': put_request})['putFile'])
+            try:
+                put_response = dict(shepherd.put({'putFile': put_request})['putFile'])
+            except:
+                put_response = {'error' : traceback.format_exc()}
             if put_response.has_key('error'):
                 log.msg(arc.ERROR, 'ERROR', put_response['error'])
             else:

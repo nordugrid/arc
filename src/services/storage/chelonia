@@ -43,6 +43,8 @@ def upload_to_turl(turl, protocol, fobj, size = None, ssl_config = {}, verbose =
             mover = arc.DataMover()
             mover.verbose(verbose)
             status = mover.Transfer(src, dst, arc.FileCache(), arc.URLMap())
+            if status != status.Success:
+                raise Exception, "Failed to upload file. Try again!"
             return str(status)
         else:
             return 'cannot upload file, import arc failed'
@@ -60,6 +62,8 @@ def upload_to_turl(turl, protocol, fobj, size = None, ssl_config = {}, verbose =
             mover.verbose(verbose)
             mover.retry(False)
             status = mover.Transfer(src, dst, arc.FileCache(), arc.URLMap())
+            if status != status.Success:
+                raise Exception, "Failed to upload file. Try again!"
             return str(status)
         else:
             proto, host, port, path = parse_url(turl)
@@ -120,6 +124,8 @@ def download_from_turl(turl, protocol, fobj, ssl_config = {}, verbose = False):
             mover.retry(False)
             #mover.passive(True)
             status = mover.Transfer(src, dst, arc.FileCache(), arc.URLMap())
+            if status != status.Success:
+                raise Exception, "Failed to download file. Try again!"
             return str(status)
         else:
             return 'cannot download file, import arc filed'
@@ -137,6 +143,8 @@ def download_from_turl(turl, protocol, fobj, ssl_config = {}, verbose = False):
             mover.verbose(verbose)
             mover.retry(False)
             status = mover.Transfer(src, dst, arc.FileCache(), arc.URLMap())
+            if status != status.Success:
+                raise Exception, "Failed to download file. Try again!"
             return str(status)
         else:
             proto, host, port, path = parse_url(turl)
@@ -1718,12 +1726,16 @@ else:
                         print '- Got transfer URL:', turl
                         print "- Downloading from '%s' to '%s' with %s..." % (turl, filename, protocol)
                     start = time.time()
-                    download_from_turl(turl, protocol, f, ssl_config = ssl_config, verbose = verbose)
-                    f.close()
-                    size = os.path.getsize(filename)
-                    if verbose:
-                        print '- done in %.4f seconds.' % (time.time()-start)
-                    print "'%s' (%s bytes) downloaded as '%s'." % (LN, size, filename)
+                    try:
+                        download_from_turl(turl, protocol, f, ssl_config = ssl_config, verbose = verbose)
+                        f.close()
+                        size = os.path.getsize(filename)
+                        if verbose:
+                            print '- done in %.4f seconds.' % (time.time()-start)
+                        print "'%s' (%s bytes) downloaded as '%s'." % (LN, size, filename)
+                    except Exception, e:
+                        print "ERROR:", str(e)
+                        sys.exit(-1)
                 else:
                     print '%s: %s' % (LN, success)
     elif command in ['put']:
@@ -1763,10 +1775,14 @@ else:
                 if verbose:
                     print "- Uploading from '%s' to '%s' with %s..." % (filename, turl, protocol)
                 start = time.time()
-                upload_to_turl(turl, protocol, f, ssl_config = ssl_config, verbose = verbose)
-                if verbose:
-                    print '- done in %.4f seconds.' % (time.time()-start)
-                print "'%s' (%s bytes) uploaded as '%s'." % (filename, size, LN)
+                try:
+                    upload_to_turl(turl, protocol, f, ssl_config = ssl_config, verbose = verbose)
+                    if verbose:
+                        print '- done in %.4f seconds.' % (time.time()-start)
+                    print "'%s' (%s bytes) uploaded as '%s'." % (filename, size, LN)
+                except Exception, e:
+                    print "ERROR:", str(e)
+                    sys.exit(-1)
             else:
                 print '%s: %s' % (LN, success)
     elif command in ['unl']:
