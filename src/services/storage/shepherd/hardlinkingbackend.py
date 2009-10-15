@@ -23,7 +23,9 @@ class HardlinkingBackend:
         self.ssl_config = ssl_config
         self.file_arrived = file_arrived
         #self.ns = arc.NS('she', ns_uri)
-        self.datadir = str(backendcfg.Get('DataDir'))
+        self.datadir = str(backendcfg.Get('StoreDir'))
+        if not self.datadir:
+            raise Exception, 'No StoreDir given in the Shepherd backend config!'
         self.transferdir = str(backendcfg.Get('TransferDir'))
         # TODO: add '/' at the end of TURLPrefix if needed
         self.turlprefix = str(backendcfg.Get('TURLPrefix'))

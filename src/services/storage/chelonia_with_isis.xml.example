@@ -123,7 +123,7 @@
             </StoreCfg>
             <BackendClass>storage.shepherd.hardlinkingbackend.HopiBackend</BackendClass>
             <BackendCfg>
-                <DataDir>/var/spool/arc/shepherd_store1</DataDir>
+                <StoreDir>/var/spool/arc/shepherd_store1</StoreDir>
                 <TransferDir>/var/spool/arc/shepherd_transfer1</TransferDir>
                 <TURLPrefix>https://localhost:60000/hopi1/</TURLPrefix>
             </BackendCfg>
@@ -149,7 +149,7 @@
             </StoreCfg>
             <BackendClass>storage.shepherd.hardlinkingbackend.HopiBackend</BackendClass>
             <BackendCfg>
-                <DataDir>/var/spool/arc/shepherd_store2</DataDir>
+                <StoreDir>/var/spool/arc/shepherd_store2</StoreDir>
                 <TransferDir>/var/spool/arc/shepherd_transfer2</TransferDir>
                 <TURLPrefix>https://localhost:60000/hopi2/</TURLPrefix>
             </BackendCfg>

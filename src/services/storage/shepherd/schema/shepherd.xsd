@@ -102,7 +102,7 @@
         </xsd:documentation>
     </xsd:annotation>
     <xsd:sequence>
-    <xsd:element name="DataDir" default="/var/spool/arc/shepherd_store">
+    <xsd:element name="StoreDir" default="/var/spool/arc/shepherd_store">
       <xsd:annotation>
         <xsd:documentation xml:lang="en">
           Specifies local dir to store data in

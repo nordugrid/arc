@@ -19,7 +19,7 @@ class ByteIOBackend:
         self.file_arrived = file_arrived
         self.ns = arc.NS('she', ns_uri)
         self.ssl_config = ssl_config
-        self.datadir = str(backendcfg.Get('DataDir'))
+        self.datadir = str(backendcfg.Get('StoreDir'))
         self.transferdir = str(backendcfg.Get('TransferDir'))
         self.turlprefix = str(backendcfg.Get('TURLPrefix'))
         if not os.path.exists(self.datadir):

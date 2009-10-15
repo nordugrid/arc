@@ -69,7 +69,7 @@
             <StoreCfg><DataDir>/var/spool/arc/shepherd_data</DataDir></StoreCfg>
             <BackendClass>storage.shepherd.hardlinkingbackend.HopiBackend</BackendClass>
             <BackendCfg>
-                <DataDir>/var/spool/arc/shepherd_store</DataDir>
+                <StoreDir>/var/spool/arc/shepherd_store</StoreDir>
                 <TransferDir>/var/spool/arc/shepherd_transfer</TransferDir>
                 <!-- Change this prefix to the external URL of the Hopi service, ending with a '/'! -->
                 <TURLPrefix>http://localhost:60001/hopi/</TURLPrefix>

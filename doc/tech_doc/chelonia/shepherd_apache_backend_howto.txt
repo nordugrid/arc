@@ -39,7 +39,7 @@ BackendClass and BackendCFG in the shepher service configuration:
 
     <BackendClass>storage.shepherd.hardlinkingbackend.ApacheBackend</BackendClass>
     <BackendCfg>
-        <DataDir>/var/spool/arc/shepherd_store</DataDir>
+        <StoreDir>/var/spool/arc/shepherd_store</StoreDir>
         <TransferDir>/var/www/html/arc/shepherd/transfer</TransferDir>
         <!-- Change this prefix to the external interface of your machine -->
         <TURLPrefix>http://localhost:60080/arc/shepherd/transfer/</TURLPrefix>

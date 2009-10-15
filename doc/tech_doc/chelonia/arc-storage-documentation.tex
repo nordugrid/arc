@@ -881,7 +881,7 @@ The Shepherd has the following configuration variables:
     \item[StoreClass] specifies which type of store the Shepherd should use for storing its metadata on disk (see Section \ref{sub:a_hash_configuration} for a list of choises).
     \item[StoreCfg] specifies configuration parameters for the store class. These parameters depends on the StoreClass, but will in most cases include \emph{DataDir}, i.e., the local directory to be used.
     \item[BackendClass] specifes which backend the Shepherd should use to communicate with the storage element service.
-    \item[BackendCfg] specifies configuration parameters for the backend class: \textbf{DataDir} and \textbf{TransferDir} are the directories the backend will use (see Section~\ref{sub:shepherd_implementation}), \textbf{TURLPrefix} is the URL of the storage element service ending with a `/'.
+    \item[BackendCfg] specifies configuration parameters for the backend class: \textbf{StoreDir} and \textbf{TransferDir} are the directories the backend will use (see Section~\ref{sub:shepherd_implementation}), \textbf{TURLPrefix} is the URL of the storage element service ending with a `/'.
     \item[LibrarianURL] is the URL of a Librarian where the Shepherd should send the reports about the health of the stored files.
     \item[BartenderURL] is the URL of a Bartender to which the Shepherd should connect if it wants to offer a replica for replication or recover a corrupted replica.
 \end{description}
@@ -901,7 +901,7 @@ An example configuration:
         </StoreCfg>
         <BackendClass>storage.shepherd.hardlinkingbackend.HopiBackend</BackendClass>
         <BackendCfg>
-            <DataDir>./shepherd_store</DataDir>
+            <StoreDir>./shepherd_store</StoreDir>
             <TransferDir>./shepherd_transfer</TransferDir>
             <TURLPrefix>https://localhost:60000/hopi/</TURLPrefix>
         </BackendCfg>

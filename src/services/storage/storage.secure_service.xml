@@ -111,7 +111,7 @@
             </StoreCfg>
             <BackendClass>storage.shepherd.hardlinkingbackend.HopiBackend</BackendClass>
             <BackendCfg>
-                <DataDir>/home/sztoor/arc/spool/shepherd_store</DataDir>
+                <StoreDir>/home/sztoor/arc/spool/shepherd_store</StoreDir>
                 <TransferDir>/home/sztoor/arc/spool/shepherd_transfer</TransferDir>
                 <!-- Change this prefix to the external interface of your machine -->
                 <TURLPrefix>https://localhost:60000/hopi/</TURLPrefix>
