@@ -28,7 +28,35 @@ def get_child_nodes(node):
     return [node.Child(i) for i in range(node.Size())]
 
 def get_child_values_by_name(node, name):
-    return [str(child) for child in get_child_nodes(node) if child.Name() == name]  
+    """ Get the non-empty children nodes with a given name.
+    
+    get_child_values_by_name(node, name):
+    
+    node is the XMLNode whose children we need
+    name is the name of the children we need
+    
+    e.g.
+    In [23]: print x.GetXML()
+    <Service name="pythonservice" id="librarian">
+        <ClassName>storage.librarian.librarian.LibrarianService</ClassName>
+        <ISISURL>https://localhost:60000/ISIS1</ISISURL>
+        <ISISURL>https://localhost:60000/ISIS2</ISISURL>
+        <ISISURL/>
+        <ISISURL/>
+        <ISISURL/>
+        <HeartbeatTimeout>60</HeartbeatTimeout>
+        <CheckPeriod>20</CheckPeriod>
+        <ClientSSLConfig>
+            <KeyPath>/etc/arc-security/hostkey.pem</KeyPath>
+            <CertificatePath>/etc/arc-security/hostcert.pem</CertificatePath>
+            <CACertificatesDir>/etc/arc-security/certificates</CACertificatesDir>
+        </ClientSSLConfig>
+    </Service>
+
+    In [24]: get_child_values_by_name(x,'ISISURL')
+    Out[24]: ['https://localhost:60000/ISIS1', 'https://localhost:60000/ISIS2']    
+    """
+    return [str(child) for child in get_child_nodes(node) if child.Name() == name and len(str(child)) > 0]  
 
 # for DataHandle and DataPoint
 
