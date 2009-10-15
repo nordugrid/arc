@@ -1,0 +1,838 @@
+\documentclass{article}
+\usepackage{graphicx}                              %for PNG images (pdflatex)
+%\usepackage{graphics}                              %for EPS images (latex)
+\usepackage[linkbordercolor={1.0 1.0 0.0}]{hyperref} %for \url tag
+\usepackage{color}                                 %for defining custom colors
+\usepackage{framed}                                %for shaded and framed paragraphs
+\usepackage{textcomp}                              %for various symbols, e.g. Registered Mark
+\usepackage{geometry}                              %for defining page size
+\usepackage{longtable}                             %for breaking tables
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage[english]{babel}
+\usepackage{multirow}
+
+\geometry{verbose,a4paper,tmargin=2.5cm,bmargin=2.5cm,lmargin=2.5cm,rmargin=2cm}
+
+\hypersetup{
+  pdfauthor = {Author Name},
+  pdftitle = {Paper title},
+  pdfsubject = {Paper subject},
+  pdfkeywords = {Paper,keyword,comma-separated},
+  pdfcreator = {PDFLaTeX with hyperref package},
+  pdfproducer = {PDFLaTeX}
+}
+%
+\bibliographystyle{IEEEtran}                       %a nice bibliography style
+%
+\def\efill{\hfill\nopagebreak}%
+\hyphenation{Nordu-Grid}
+\setlength{\parindent}{0cm}
+\setlength{\FrameRule}{1pt}
+\setlength{\FrameSep}{8pt}
+\addtolength{\parskip}{5pt}
+\renewcommand{\thefootnote}{\fnsymbol{footnote}}
+\renewcommand{\arraystretch}{1.3}
+\newcommand{\dothis}{\colorbox{shadecolor}}
+\newcommand{\globus}{Globus Toolkit\textsuperscript{\textregistered}~2~}
+\newcommand{\GT}{Globus Toolkit\textsuperscript{\textregistered}}
+\newcommand{\ngdl}{\url{http://ftp.nordugrid.org/download}~}
+\definecolor{shadecolor}{rgb}{1,1,0.6}
+\definecolor{salmon}{rgb}{1,0.9,1}
+\definecolor{bordeaux}{rgb}{0.75,0.,0.}
+\definecolor{cyan}{rgb}{0,1,1}
+
+\newcommand{\todo}{TODO}
+
+\newcommand{\same}{{\textquotesingle}{\textquotesingle}}
+\newcommand{\subsubsubsection}[1]{\paragraph{#1}}
+\newcommand{\subsubsubsubsection}[1]{\subparagraph{#1}}
+
+\newenvironment{inouttabular}%
+{\begin{center}\begin{tabular}{l>{\ttfamily\footnotesize}c>{\ttfamily\footnotesize}c}%
+\toprule
+& \textnormal{\normalsize{In}} & \textnormal{\normalsize{Out}}\\ \cmidrule{2-3}}
+{\bottomrule\end{tabular}\end{center}}
+
+\makeatletter
+\newcommand\arraybslash{\let\\\@arraycr}
+\makeatother
+
+%
+%----- DON'T CHANGE HEADER MATTER
+\begin{document}
+\def\today{\number\day/\number\month/\number\year}
+
+\begin{titlepage}
+
+\begin{tabular}{rl}
+\resizebox*{3cm}{!}{\includegraphics{ng-logo.png}}
+&\parbox[b]{2cm}{\textbf \it {\hspace*{-1.5cm}NORDUGRID\vspace*{0.5cm}}}
+\end{tabular}
+
+\hrulefill
+
+%-------- Change this to NORDUGRID-XXXXXXX-NN
+
+\raggedleft {NORDUGRID-XXXXXXX-NN\par}
+
+{\raggedleft \today\par}
+
+\vspace*{2cm}
+
+%%%%---- The title ----
+{\centering \textsc{\Large The ARC Job Description}\Large \par}
+\vspace*{0.5cm}
+
+%%%%---- A subtitle, if necessary ----
+{\centering \textit{\large Internal Representation Mapping}\large \par}
+
+\vspace*{1.5cm}
+%%%%---- A list of authors ----
+    {\centering \large M. S. Andersen\footnote{skou@nbi.dk} \large \par}
+
+%%%%---- An abstract - if style is article ----
+%\begin{abstract}
+%The abstract
+%\end{abstract}
+\end{titlepage}
+
+\tableofcontents                          %Comment if use article style
+\newpage
+
+\section{Introduction}
+This document contains information about how XRSL, JDL and the various
+supported JSDL flavours are mapped to and from the job description
+internal representation in ARC{}-lib.
+
+\section{Data Structure}
+The internal representation of the job description is contained in the
+JobDescription class, which consist of the following objects:
+JobIdentification, Application, Resources, DataStaging and JobMetaData.
+JobIdentification contains data used to identify the job description
+through various types, tags and names. The Application object is used
+to describe explicitly the executable which should be executed at the
+Computing Endpoint (CE), environment variables, logging, standard in
+and out, credential service, etc. The Resources class contains
+information about requirements and the type of execution node preferred
+by the user. The DataStaging class contains information about input
+files and output files/directories created by the job. Finally the job
+description may contain meta data, describing the context in which the
+description was generated, and it is stored in the JobMetaData class.
+
+\subsection{JobIdentification}
+\subsubsection{JobName}
+\begin{table}[h]
+\begin{inouttabular}
+XRSL & jobname & jobname\\
+JDL & No matching attribute & Not mapped\\
+JSDL & JobIdentification/JobName & JobIdentification/JobName\\
+ARC-JSDL &  & \\
+\end{inouttabular}
+\end{table}
+
+\subsubsection{Description}
+\begin{table}[h]
+\begin{inouttabular}
+ARC-JSDL & JobIdentification/Description & JobIdentification/Description\\
+\end{inouttabular}
+\end{table}
+
+\subsubsection{JobType}
+\begin{inouttabular}
+ARC-JSDL & JobIdentification/JobType & JobIdentification/JobType\\
+\end{inouttabular}
+JDL has a jobtype and a type attribute, however a mapping has not been
+made.
+
+\subsubsection{UserTag}
+\begin{inouttabular}
+JDL & usertags & usertags\\
+ARC-JSDL & JobIdentification/UserTag & JobIdentification/UserTag\\
+\end{inouttabular}
+
+\subsection{JobVOName}
+\begin{inouttabular}
+XRSL & jobname & jobname\\
+ARC-JSDL & JobIdentification/JobVOName & JobIdentification/JobVOName\\
+\end{inouttabular}
+
+\subsection{Application}
+\subsubsection{Executable}
+\begin{inouttabular}
+XRSL & executable, arguments & executable, arguments\\
+JDL & Executable, Arguments & Executable, Arguments\\
+\multirow{2}{*}{Posix-JSDL} & Application/POSIXApplication/Executable, & Application/POSIXApplication/Executable,\\
+&  Application/POSIXApplication/Arguments & Application/POSIXApplication/Arguments\\
+\multirow{2}{*}{HPCP-JSDL} & Application/HPCProfileApplication/Executable, & Application/HPCProfileApplication/Executable,\\
+&  Application/HPCProfileApplication/Arguments & Application/HPCProfileApplication/Arguments\\
+\multirow{2}{*}{ARC-JSDL} & Application/Executable/Path, & Application/Executable/Path,\\
+ & Application/Executable/Argument & Application/Executable/Argument\\
+\end{inouttabular}
+The Executable data member is a composite structure of a string and a
+list of strings, where the string holds the executable and the list
+holding the arguments.
+
+\subsubsection{Input}
+\begin{inouttabular}
+XRSL & stdin & stdin, inputFiles\\
+JDL & StdInput & StdInput, InputSandbox\\
+Posix-JSDL & Application/POSIXApplication/Input & Application/POSIXApplication/Input\\
+HPCP-JSDL & Application/HPCProfileApplication/Input & Application/HPCProfileApplication/Input\\
+ARC-JSDL & Application/Input & \\
+\end{inouttabular}
+If the Input data member does not exist in the file list, it will be
+added to it.
+
+\subsubsection{Output}
+\begin{inouttabular}
+XRSL & stdout & stdout, outputFiles\\
+JDL & StdOutput & StdOutput, OutputSandbox, OutputSandboxDestURI\\
+Posix-JSDL & Application/POSIXApplication/Output & \\
+HPCP-JSDL & Application/HPCProfileApplication/Output & \\
+ARC-JSDL & Application/Output & \\
+\end{inouttabular}
+If the Output data member does not exist in the File
+list, it will be added to it.
+
+\subsubsection{Error}
+\begin{inouttabular}
+XRSL & stderr & stderr, outputFiles\\
+JDL & StdError & StdError, OutputSandbox, OutputSandboxDestURI\\
+Posix-JSDL & Application/POSIXApplication/Error &\\
+HPCP-JSDL & Application/HPCProfileApplication/Error &\\
+ARC-JSDL & Application/Error & \\
+\end{inouttabular}
+If the Error data member does not exist in the File list, it will be
+added to it.
+
+\subsubsection{Join}
+\begin{inouttabular}
+XRSL & join & Not mapped\todo{}\\
+ARC-JSDL & Application/Join & Application/Join\\
+\end{inouttabular}
+
+
+\subsubsection{Environment}
+\subsubsubsection{Name}
+\begin{inouttabular}
+XRSL & environment* & environment*\\
+JDL & Environment** & Environment**\\
+Posix-JSDL & Application/POSIXApplication/Environment.name & Application/POSIXApplication/Environment.name\\
+HPCP-JSDL & Application/HPCProfileApplication/Environment.name & Application/HPCProfileApplication/Environment.name\\
+ARC-JSDL & Application/Environment/Name & ~\\
+\end{inouttabular}
+The XRSL attribute environment is a list of
+pairs. The first element of each pair is mapped to the Name data member.
+The JDL attribute Environment is a list of equalities.
+
+\subsubsubsection{Value}
+\begin{inouttabular}
+XRSL & environment* & environment*\\
+JDL & Environment** & Environment**\\
+JSDL & No matching attribute & Not mapped\\
+Posix-JSDL & Application/POSIXApplication/Environment & Application/POSIXApplication/Environment\\
+HPCP-JSDL & Application/HPCProfileApplication/Environment & Applicaion/HPCProfileApplication/Environment\\
+ARC-JSDL & Application/Environment/Value & ~\\
+\end{inouttabular}
+
+\subsubsection{Prologue}
+\begin{inouttabular}
+JDL & Prologue, PrologueArgument & Prologue, PrologueArgument\\
+\multirow{2}{*}{ARC-JSDL} & Application/Prologue/Path, & Application/Prologue/Path,\\
+& Application/Prologue/Argument & Application/Prologue/Argument\\
+\end{inouttabular}
+
+\subsubsection{Epilogue}
+\begin{inouttabular}
+JDL & Epilogue, EpilogueArgument & Epilogue, EpilogueArgument\\
+\multirow{2}{*}{ARC-JSDL} & Application/Epilogue/Path, & Application/Epilogue/Path,\\
+& Application/Epilogue/Argument & Application/Epilogue/Argument\\
+\end{inouttabular}
+
+\subsubsection{LogDir}
+\begin{inouttabular}
+XRSL & gmlog & gmlog outputFiles\\
+ARC-JSDL & Application/LogDir & Application/LogDir\\
+\end{inouttabular}
+
+\subsection{RemoteLogging}
+\begin{inouttabular}
+XRSL & jobreport & jobreport\\
+ARC-JSDL & Application/RemoteLogging & Application/RemoteLogging\\
+\end{inouttabular}
+
+\subsubsection{Rerun}
+\begin{inouttabular}
+XRSL & rerun & rerun\\
+JDL & RetryCount ShallowRetryCount* & RetryCount ShallowRetryCount**\\
+ARC-JSDL & Application/Rerun & Application/Rerun\\
+\end{inouttabular}
+* Only the maximum value between RetryCount
+and ShallowRetryCount is stored.
+
+** Both RetryCount and ShallowRetryCount will be set if
+Rerun is set, and they will both have the value of Rerun.
+
+\subsubsection{ExpiryTime}
+\begin{inouttabular}
+JDL & ExpiryTime & ExpiryTime\\
+ARC-JSDL & Application/ExpiryTime & Application/ExpiryTime\\
+\end{inouttabular}
+
+\subsubsection{StartOnHold}
+\begin{inouttabular}
+\end{inouttabular}
+
+\subsubsection{ProcessingStartTime}
+\begin{inouttabular}
+ARC-JSDL & Application/ProcessingStartTime & Application/ProcessingStartTime\\
+\end{inouttabular}
+
+\subsubsection{Notification}
+\begin{inouttabular}
+XRSL & notify & notify\\
+ARC-JSDL & Application/Notification & Application/Notification\\
+\end{inouttabular}
+
+\subsubsection{CredentialService}
+\begin{inouttabular}
+XRSL & credentialserver & credentialserver\\
+JDL & MyProxyServer & MyProxyServer\\
+ARC-JSDL & Application/CredentialService & Application/CredentialService\\
+\end{inouttabular}
+
+\subsubsection{AccessControl}
+\begin{inouttabular}
+XRSL & acl & acl\\
+ARC-JSDL & Application/AccessControl & Application/AccessControl\\
+\end{inouttabular}
+
+\subsection{Resources}
+\subsubsection{OperatingSystem}
+\begin{inouttabular}
+XRSL & opsys & opsys\\
+ARC-JSDL & Resources/OperatingSystem & Resources/OperatingSystem\\
+\end{inouttabular}
+
+\subsubsection{Platform}
+\begin{inouttabular}
+XRSL & architecture & architecture\\
+JSDL & Resources/CPUAchitecture/CPUArchitectureName & ~\\
+ARC-JSDL & Resources/Platform &~\\
+\end{inouttabular}
+
+\subsubsection{NetworkInfo}
+\begin{inouttabular}
+JSDL & Resources/IndividualNetworkBandwidth &\\
+ARC-JSDL & Resources/NetworkInfo &\\
+\end{inouttabular}
+
+\subsubsection{NodeAccess}
+\begin{inouttabular}
+XRSL & nodeAccess & nodeAccess\\
+ARC-JSDL & Resources/NodeAccess & ~\\
+\end{inouttabular}
+
+\subsubsection{IndividualPhysicalMemory}
+\begin{inouttabular}
+XRSL & memory & memory\\
+Posix-JSDL & Application/POSIXApplication/MemoryLimit &\\
+ARC-JSDL & Resources/IndividualPhysicalMemory &\\
+\end{inouttabular}
+
+\subsubsection{IndividualVirtualMemory}
+\begin{inouttabular}
+Posix-JSDL & Application/POSIXApplication/VirtualMemoryLimit &\\
+ARC-JSDL & Resources/IndividualVirtualMemory &\\
+\end{inouttabular}
+
+\subsubsection{DiskSpaceRequirement}
+\subsubsubsection{DiskSpace}
+\begin{inouttabular}
+XRSL & disk & disk\\
+JSDL & Application/FileSystem/DiskSpace &\\
+ARC-JSDL & Resources/DiskSpaceRequirement/DiskSpace &\\
+\end{inouttabular}
+
+\subsubsubsection{CacheDiskSpace}
+\begin{inouttabular}
+ARC-JSDL & Resources/CacheDiskSpace & Resources/CacheDiskSpace\\
+\end{inouttabular}
+
+\subsubsubsection{SessionDiskSpace}
+\begin{inouttabular}
+ARC-JSDL & Resources/SessionDiskSpace & Resources/SessionDiskSpace\\
+\end{inouttabular}
+
+\subsubsection{SessionLifetime}
+\begin{inouttabular}
+XRSL & lifeTime & lifeTime\\
+ARC-JSDL & Resources/SessionLifeTime & Resources/SessionLifeTime\\
+\end{inouttabular}
+
+\subsubsection{SessionAccessMode}
+\begin{inouttabular}
+\end{inouttabular}
+
+\subsubsection{IndividualCPUTime}
+\begin{inouttabular}
+JSDL & Resources/IndividualCPUTime* &\\
+ARC-JSDL & Resources/IndividualCPUTime &\\
+\end{inouttabular}
+* The JSDL element is mapped to the Range part of
+IndividualCPUTime.
+
+\subsubsection{TotalCPUTime}
+\begin{inouttabular}
+XRSL & cpuTime & cpuTime\\
+JSDL & Resources/TotalCPUTime* &\\
+Posix-JSDL & Application/POSIXApplication/CPUTimeLimit* &\\
+ARC-JSDL & Resources/TotalCPUTime &\\
+\end{inouttabular}
+* The JSDL and POSIX-JSDL elements is mapped to the
+Range part of TotalCPUTime.
+
+\subsubsection{IndividualWallTime}
+\begin{inouttabular}
+ARC-JSDL & Resources/IndividualWallTime &\\
+\end{inouttabular}
+
+\subsubsection{TotalWallTime}
+\begin{inouttabular}
+XRSL & wallTime & wallTime\\
+Posix-JSDL & Application/POSIXApplication/WallTimeLimit &\\
+ARC-JSDL & Resources/TotalWallTime &\\
+\end{inouttabular}
+
+\subsubsection{Homogeneous}
+\begin{inouttabular}
+\end{inouttabular}
+
+\subsubsection{Benchmark}
+\subsubsubsection{Type}
+\begin{inouttabular}
+\end{inouttabular}
+
+\subsubsubsection{Value}
+\begin{inouttabular}
+\end{inouttabular}
+
+\subsubsection{CEType}
+\begin{inouttabular}
+XRSL & middleware & middleware\\
+ARC-JSDL & Application/CEType & Application/CEType\\
+\end{inouttabular}
+
+\subsubsection{SlotRequirement}
+\subsubsubsection{NumberOfSlots}
+\begin{inouttabular}
+Posix-JSDL & Application/POSIXApplication/ProcessCountLimit &\\
+ARC-JSDL & Resources/SlotRequirement/NumberOfSlots &\\
+\end{inouttabular}
+
+\subsubsubsection{ProcessPerHost}
+\begin{inouttabular}
+XRSL & count & count\\
+JSDL & Resources/TotalCPUCount & \\
+ARC-JSDL & Resources/SlotRequirement/ProcessPerHost &\\
+\end{inouttabular}
+
+\subsubsubsection{ThreadsPerProcesses}
+\begin{inouttabular}
+Posix-JSDL & Application/POSIXApplication/ThreadCountLimit &\\
+ARC-JSDL & Resources/SlotRequirement/ThreadsPerProcesses &\\
+\end{inouttabular}
+
+\subsubsubsection{SPMDVariation}
+\begin{inouttabular}
+ARC-JSDL & Resources/SlotRequirement/SPMDVariation &\\
+\end{inouttabular}
+
+\subsubsection{CandidateTarget}
+\subsubsubsection{EndPointURL}
+\begin{inouttabular}
+XRSL & cluster & Not mapped\\
+JSDL & Resources/CandidateHosts/HostName &\\
+ARC-JSDL & Resources/CandidateTarget/EndPointURL & Resources/CandidateTarget/EndPointURL\\
+\end{inouttabular}
+
+\subsubsubsection{QueueName}
+\begin{inouttabular}
+XRSL & queue & queue\\
+JDL & QueueName & QueueName\\
+ARC-JSDL & Resources/CandidateTarget/QueueName & Resources/CandidateTarget/QueueName\\
+\end{inouttabular}
+
+\subsubsection{RunTimeEnvironment}
+\begin{inouttabular}
+XRSL & runTimeEnvironment & runTimeEnvironment\\
+ARC-JSDL & Application/RunTimeEnvironment & Application/RunTimeEnvironment\\
+\end{inouttabular}
+
+\subsection{DataStaging}
+\subsubsection{File}
+\subsubsubsection{Name}
+\begin{inouttabular}
+XRSL & &\\
+JDL & &\\
+JSDL & &\\
+Posix-JSDL & &\\
+HPCP-JSDL & &\\
+ARC-JSDL & &\\
+\end{inouttabular}
+
+\subsubsubsection{Source}
+\subsubsubsubsection{URL}
+\begin{inouttabular}
+XRSL & &\\
+JDL & &\\
+JSDL & &\\
+Posix-JSDL & &\\
+HPCP-JSDL & &\\
+ARC-JSDL & &\\
+\end{inouttabular}
+
+\subsubsubsubsection{Threads}
+\begin{inouttabular}
+XRSL & &\\
+JDL & &\\
+JSDL & &\\
+Posix-JSDL & &\\
+HPCP-JSDL & &\\
+ARC-JSDL & &\\
+\end{inouttabular}
+
+\subsubsubsubsection{DataIndexingService}
+\begin{inouttabular}
+XRSL & &\\
+JDL & &\\
+JSDL & &\\
+Posix-JSDL & &\\
+HPCP-JSDL & &\\
+ARC-JSDL & &\\
+\end{inouttabular}
+
+\subsubsubsection{Target}
+\subsubsubsubsection{URL}
+\begin{inouttabular}
+XRSL & &\\
+JDL & &\\
+JSDL & &\\
+Posix-JSDL & &\\
+HPCP-JSDL & &\\
+ARC-JSDL & &\\
+\end{inouttabular}
+
+\subsubsubsubsection{Threads}
+\begin{inouttabular}
+XRSL & &\\
+JDL & &\\
+JSDL & &\\
+Posix-JSDL & &\\
+HPCP-JSDL & &\\
+ARC-JSDL & &\\
+\end{inouttabular}
+
+\subsubsubsubsection{Mandatory}
+\begin{inouttabular}
+XRSL & &\\
+JDL & &\\
+JSDL & &\\
+Posix-JSDL & &\\
+HPCP-JSDL & &\\
+ARC-JSDL & &\\
+\end{inouttabular}
+
+\subsubsubsubsection{DataIndexingService}
+\begin{inouttabular}
+XRSL & &\\
+JDL & &\\
+JSDL & &\\
+Posix-JSDL & &\\
+HPCP-JSDL & &\\
+ARC-JSDL & &\\
+\end{inouttabular}
+
+\subsubsubsubsection{NeededReplica}
+\begin{inouttabular}
+XRSL & &\\
+JDL & &\\
+JSDL & &\\
+Posix-JSDL & &\\
+HPCP-JSDL & &\\
+ARC-JSDL & &\\
+\end{inouttabular}
+
+\subsubsubsection{KeepData}
+\begin{inouttabular}
+XRSL & &\\
+JDL & &\\
+JSDL & &\\
+Posix-JSDL & &\\
+HPCP-JSDL & &\\
+ARC-JSDL & &\\
+\end{inouttabular}
+
+\subsubsubsection{IsExecutable}
+\begin{inouttabular}
+XRSL & &\\
+JDL & &\\
+JSDL & &\\
+Posix-JSDL & &\\
+HPCP-JSDL & &\\
+ARC-JSDL & &\\
+\end{inouttabular}
+
+\subsubsubsection{DownloadToCache}
+\begin{inouttabular}
+XRSL & &\\
+JDL & &\\
+JSDL & &\\
+Posix-JSDL & &\\
+HPCP-JSDL & &\\
+ARC-JSDL & &\\
+\end{inouttabular}
+
+\subsubsection{Directory}
+
+\subsection{JobMetaData}
+\subsubsection{Author}
+\begin{inouttabular}
+XRSL & &\\
+JDL & &\\
+JSDL & &\\
+Posix-JSDL & &\\
+HPCP-JSDL & &\\
+ARC-JSDL & &\\
+\end{inouttabular}
+
+\subsubsection{DocumentExpiration}
+\begin{inouttabular}
+XRSL & &\\
+JDL & &\\
+JSDL & &\\
+Posix-JSDL & &\\
+HPCP-JSDL & &\\
+ARC-JSDL & &\\
+\end{inouttabular}
+
+\subsubsection{Rank}
+\begin{inouttabular}
+XRSL & &\\
+JDL & &\\
+JSDL & &\\
+Posix-JSDL & &\\
+HPCP-JSDL & &\\
+ARC-JSDL & &\\
+\end{inouttabular}
+
+\subsubsection{FuzzyRank}
+\begin{inouttabular}
+XRSL & ~ & ~\\
+JDL & ~ & ~\\
+JSDL & ~ & ~\\
+Posix-JSDL & ~ & ~\\
+HPCP-JSDL & ~ & ~\\
+ARC-JSDL & ~ & ~\\
+\end{inouttabular}
+
+\section{XRSL mapping}
+\begin{table}
+\begin{center}
+\begin{tabular}{l|c|c}
+XRSL input  & Internal representaion & XRSL output\\\hline
+executable & Application.Executable.Name & executable\\
+arguments & Application.Executable.Arguments & arguments\\
+inputFiles & DataStaging.File.Name DataStaging.File.Source & inputFiles\\
+executables & DataStaging.File.IsExecutable & executables\\
+cache & TODO & TODO\\
+outputFiles & DataStaging.File.Name DataStaging.File.Target & outputFiles\\
+cpuTime & Resources.TotalCPUTime & cpuTime\\
+wallTime & Resources.TotalWallTime & wallTime\\
+gridTime & Not mapped & Not mapped\\
+benchmarks & Not mapped & Not mapped\\
+memory & Resources.IndividualPhysicalMemory & memory\\
+disk & Resources.DiskSpaceRequirement.DiskSpace & disk\\
+runTimeEnvironment & Resources.RunTimeEnvironment & runTimeEnvironment\\
+middleware & Resources.CEType & middleware\\
+opsys & Resources.OperatingSystem & opsys\\
+stdin & Application.Input & stdin\\
+stdout & Application.Output & stdout outputFiles\\
+stderr & Application.Error & stderr outputFiles\\
+join & Application.Join & Not mapped\\
+gmlog & Application.LogDir & gmlog\\
+jobName & Identification.JobName & jobName\\
+ftpThreads & DataStaging.File.Source.Threads DataStaging.File.Target.Threads & Not mapped\\
+acl & Application.AccessControl & acl\\
+cluster & Resources.CandidateTarget.EndPointURL & Not mapped\\
+queue & Resources.CandidateTarget.QueueName & queue\\
+startTime & Application.ProcessingStartTime & Not mapped\\
+lifeTime & Resources.SessionLifeTime & lifeTime\\
+notify & Application.Notification & notify\\
+replicaCollection & DataStaging.File.DataIndexingService & Not mapped\\
+rerun & Application.Rerun & rerun\\
+architecture & Resources.Platform & architecture\\
+nodeAccess & Resources.NodeAccess & Not mapped\\
+dryRun & Not mapped & Not mapped\\
+rsl\_substitution & Processed internally by the parser & Not mapped\\
+environment & Application.Environment & environment\\
+count & Resources.SlotRequirement.ProcessPerHost & count\\
+jobreport & Application.RemoteLogging & jobreport\\
+credentialserver & Application.CredentialService & credentialserver\\
+\end{tabular}
+\end{center}
+\end{table}
+
+\section{JDL mapping}
+\begin{table}
+\begin{center}
+\begin{tabular}{l|c|c}
+JDL input  & Internal representaion & JDL output\\\hline
+JobType & Not mapped & Not mapped\\
+Executable & Application.Executable.Name & Executable InputSandbox\\
+Arguments & Application.Executable.Arguments & Arguments\\
+StdInput & Application.Input & StdInput InputSandbox\\
+StdOutput & Application.Output & StdOutput OutputSandbox OutputSandboxDestURI\\
+StdError & Application.Error & StdError OutputSandbox OutputSandboxDestURI\\
+InputSandbox & DataStaging.File.Name DataStaging.File.Source & InputSandbox\\
+InputSandboxBaseURI & DataStaging.File.Source.URI & InputSandbox\\
+OutputSandbox & DataStaging.File.Name DataStaging.File.Target.URI & OutputSandbox OutputSandboxDestURI\\
+OutputSandboxDestURI & DataStaging.File.Target DataStaging.File.KeepData & OutputSandbox OutputSandboxDestURI\\
+OutputSandboxBaseDestURI & DataStaging.File.Target.URI & OutputSandbox OutputSandboxDestURI\\
+Prologue & Application.Prologue.Name & Prologue\\
+PrologueArguments & Application.Prologue.Arguments & PrologueArguments\\
+Epilogue & Application.Epilogue.Name & Epilogue\\
+EpilogueArguments & Application.Epilogue.Arguments & EpilogueArguments\\
+AllowZippedISB & Stored internally, not processed & AllowZippedISB\\
+ZippedISB & Stored internally, not processed & ZippedISB\\
+ExpiryTime & Application.ExpiryTime & ExpiryTime\\
+Environment & Application.Environment & Environment\\
+PerusalFileEnable & Stored internally, not processed & PerusalFileEnable\\
+PerusalTimeInterval & Stored internally, not processed & PerusalTimeInterval\\
+PerusalFilesDestURI & Stored internally, not processed & PerusalFilesDestURI\\
+InputData (Deprecated) & Not mapped & Not mapped\\
+OutputData (Deprecated) & Not mapped & Not mapped\\
+StorageIndex (Deprecated) & Not mapped & Not mapped\\
+DataCatalog (Deprecated) & Not mapped & Not mapped\\
+DataRequirements & Stored internally, not processed & DataRequirements\\
+DataAccessProtocol & Stored internally, not processed & DataAccessProtocol\\
+OutputSE & Stored internally, not processed & OutputSE\\
+VirtualOrganisation & Identification.JobVOName & VirtualOrganisation\\
+RetryCount & Application.Rerun & RetryCount ShallowRetryCount\\
+ShallowRetryCount & Application.Rerun & RetryCount ShallowRetryCount\\
+LBAddress & Stored internally, not processed & LBAddress\\
+MyProxyServer & Application.CredentialService & MyProxyServer\\
+HLRLocation & Stored internally, not processed & HLRLocation\\
+JobProvenance & Stored internally, not processed & JobProvenance\\
+NodeNumber & Stored internally, not processed & NodeNumber\\
+JobSteps (Deprecated) & Not mapped & Not mapped\\
+CurrentStep (Deprecated) & Not mapped & Not mapped\\
+JobState (Deprecated) & Not mapped & Not mapped\\
+ListenerPort & Stored internally, not processed & ListenerPort\\
+ListenerHost & Stored internally, not processed & ListenerHost\\
+ListenerPipeName & Stored internally, not processed & ListenerPipeName\\
+Requirements & Stored internally, not processed & Requirements\\
+Rank & JobMeta.Rank & Rank\\
+FuzzyRank & JobMeta.FuzzyRank & FuzzyRank\\
+UserTags & Identification.UserTag & UserTags\\
+BatchSystem & Stored internally, not processed & BatchSystem\\
+QueueName & Resources.CandidateTarget.QueueName & QueueName\\
+\end{tabular}
+\end{center}
+\end{table}
+
+\section{JSDL mapping}
+\begin{table}
+\begin{center}
+\begin{tabular}{l|c|c}
+JSDL input  & Internal representaion & JSDL output\\\hline
+\bfseries JobIdentification & &\\
+JobName & &\\
+JobAnnotation & &\\
+JobProject & &\\
+\bfseries Application & &\\
+ApplicationName & &\\
+ApplicationVersion & &\\
+\bfseries Resources & &\\
+CandidateHosts/HostName & &\\
+FileSystem/FileSystemType & &\\
+FileSystem/Description & &\\
+FileSystem/MountPoint & &\\
+FileSystem/DiskSpace & &\\
+ExclusiveExecution & &\\
+OperatingSystem/OperatingSystemType/OperatingSystemName & &\\
+OperatingSystem/OperatingSystemVersion & &\\
+CPUArchitecture/CPUArchitectureName & &\\
+IndividualCPUSpeed & &\\
+IndividualCPUTime & &\\
+IndividualCPUCount & &\\
+IndividualNetworkBandwidth & &\\
+IndividualPhysicalMemory & &\\
+IndividualVirtualMemory & &\\
+IndividualDiskSpace & &\\
+TotalCPUTime & &\\
+TotalCPUCount & &\\
+TotalPhysicalMemory & &\\
+TotalVirtualMemory & &\\
+TotalDiskSpace & &\\
+TotalResourceCount & &\\
+\bfseries DataStaging & {}-{}- & {}-{}-\\
+FileName & &\\
+FileSystemName & &\\
+CreationFlag & &\\
+DeleteOnTermination & &\\
+Source/URI & &\\
+Target/URI & &\\
+\end{tabular}
+\end{center}
+\end{table}
+
+\section{POSIX-JSDL mapping}
+\begin{table}
+\begin{center}
+\begin{tabular}{l|c|c}
+POSIX-JSDL input  & Internal representation & POSIX-JSDL output\\\hline
+Executable & &\\
+Argument & &\\
+Input & &\\
+Output & &\\
+Error & &\\
+WorkingDirectory & &\\
+Environment & &\\
+WallTimeLimit & &\\
+FileSizeLimit & &\\
+CoreDumpLimit & &\\
+DataSegmentLimit & &\\
+LockedMemoryLimit & &\\
+OpenDescriptorsLimit & &\\
+PipeSizeLimit & &\\
+StackSizeLimit & &\\
+CPUTimeLimit & &\\
+ProcessCountLimit & &\\
+VirtualMemoryLimit & &\\
+ThreadCountLimit & &\\
+UserName & &\\
+GroupName & &\\
+\end{tabular}
+\end{center}
+\end{table}
+
+\section{HPCProfile-JSDL mapping}
+\begin{table}
+\begin{center}
+\begin{tabular}{l|c|c}
+HPCProfile-JSDL input  & Internal representaion & HPCProfile-JSDL output\\\hline
+Executable & & \\
+Argument & & \\
+Input & & \\
+Output & & \\
+Error & & \\
+WorkingDirectory & &\\
+Environment & &\\
+UserName & &\\
+\end{tabular}
+\end{center}
+\end{table}
+\end{document}
