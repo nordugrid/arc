@@ -6,6 +6,10 @@
 #include <signal.h>
 #include <stdexcept>
 
+#include <glibmm.h>
+
+#include <arc/User.h>
+#include <arc/StringConv.h>
 #include <arc/GUID.h>
 #include <arc/ArcConfig.h>
 #include <arc/Logger.h>
@@ -18,6 +22,9 @@
 #include <arc/win32.h>
 #endif
 
+//The following is for showing how to use the specific client API
+// (ClientX509Delegation) to delegate a proxy to ARC delegation 
+//service, and gLite (gridsite) delegation service individually.
 int main(void) {
   signal(SIGTTOU,SIG_IGN);
   signal(SIGTTIN,SIG_IGN);
@@ -26,13 +33,13 @@ int main(void) {
   Arc::Logger::rootLogger.addDestination(logcerr);
 
   /******** Test to ARC delegation service **********/
-//  std::string arc_deleg_url_str("https://127.0.0.1:60000/delegation");
-  std::string arc_deleg_url_str("https://selectron.uio.no:60000/delegation");
+  std::string arc_deleg_url_str("https://127.0.0.1:60000/delegation");
+//  std::string arc_deleg_url_str("https://glueball.uio.no:60000/delegation");
   Arc::URL arc_deleg_url(arc_deleg_url_str);
   Arc::MCCConfig arc_deleg_mcc_cfg;
-  arc_deleg_mcc_cfg.AddPrivateKey("../echo/userkey-nopass.pem");
-  arc_deleg_mcc_cfg.AddCertificate("../echo/usercert.pem");
-  //arc_deleg_mcc_cfg.AddCAFile("../echo/cacert.pem");
+  arc_deleg_mcc_cfg.AddPrivateKey("../echo/testkey-nopass.pem");
+  arc_deleg_mcc_cfg.AddCertificate("../echo/testcert.pem");
+  arc_deleg_mcc_cfg.AddCAFile("../echo/testcacert.pem");
   arc_deleg_mcc_cfg.AddCADir("../echo/certificates");
   //Create a delegation SOAP client 
   logger.msg(Arc::INFO, "Creating a delegation soap client");
@@ -53,9 +60,17 @@ int main(void) {
   std::string gs_deleg_url_str("https://cream.grid.upjs.sk:8443/ce-cream/services/gridsite-delegation");
   Arc::URL gs_deleg_url(gs_deleg_url_str);
   Arc::MCCConfig gs_deleg_mcc_cfg;
-  gs_deleg_mcc_cfg.AddProxy("/tmp/x509up_u1001");
-  //gs_deleg_mcc_cfg.AddPrivateKey("../echo/userkey-nopass.pem");
-  //gs_deleg_mcc_cfg.AddCertificate("../echo/usercert.pem");
+  //Somehow gridsite delegation service only accepts proxy certificate,
+  //not the EEC certificate, so we need to generate the proxy certificate
+  //firstly.
+  //Note the proxy needs to be generated before running this test.
+  //And the proxy should be created by using a credential signed by officially
+  //certified CAs, if the peer gridside delegation service only trusts
+  //official CAs, not testing CA such as the InstantCA. It also applies to
+  //the delegation to ARC delegation service.
+  Arc::User user;
+  std::string proxy_path  = Glib::build_filename(Glib::get_tmp_dir(),"x509up_u" + Arc::tostring(user.get_uid()));
+  gs_deleg_mcc_cfg.AddProxy(proxy_path);
   gs_deleg_mcc_cfg.AddCADir("../echo/certificates");
   //Create a delegation SOAP client
   logger.msg(Arc::INFO, "Creating a delegation soap client");
