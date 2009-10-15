@@ -62,7 +62,7 @@ def get_child_values_by_name(node, name):
 
 def datapoint_from_url(url_string, ssl_config = None):
     import arc
-    user_config = arc.UserConfig.CreateEmpty()
+    user_config = arc.UserConfig(arc.initializeCredentialsType(arc.initializeCredentialsType.SkipCredentials))
     if ssl_config:
         if ssl_config.has_key('key_file'): user_config.KeyPath(ssl_config['key_file'])
         if ssl_config.has_key('cert_file'): user_config.CertificatePath(ssl_config['cert_file'])
