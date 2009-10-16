@@ -34,13 +34,12 @@ AC_SUBST(pkglibexecdir)
 ARC_API
 ARC_RELATIVE_PATHS
 
-# TODO: where to put init scripts on OS X?
 AC_ARG_WITH(sysv-scripts-location,
   AC_HELP_STRING([--with-sysv-scripts-location=<PATH>], [Location of the SYSV init scripts. [[autodetect]]]),
   [ initddir="$withval" ],
   [
     initddir=
-    for i in init.d rc.d/init.d rc.d; do
+    for i in init.d rc.d/init.d rc.d /Library/LaunchDaemons; do
       if test -d "/etc/$i" -a ! -h "/etc/$i" ; then
         initddir="$sysconfdir/$i"
         break
