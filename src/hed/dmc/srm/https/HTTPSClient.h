@@ -82,6 +82,8 @@ namespace Arc {
    friend class HTTPSClient;
    friend class HTTPSClientSOAP;
    protected:
+    /// Lock for mutex on connection (bug 1613)
+    static SimpleCondition * connect_lock;
     /// Establish connection and context (if needed)
     virtual bool connect(void);
     /// Close connection to remote host

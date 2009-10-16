@@ -214,10 +214,12 @@ namespace Arc {
     read_registered=false; write_registered=false;
     read_done=-1; write_done=-1;
     cond.reset();
+    connect_lock->lock();
     if((res=globus_io_tcp_register_connect(
                       (char*)(base_url.Host().c_str()),base_url.Port(),
                       &attr,&general_callback,this,&s)) != GLOBUS_SUCCESS) {
       logger.msg(ERROR, "Connect to %s failed: %s", base_url.str(), GlobusResult(res).str());
+      connect_lock->unlock();
       return false;
     };
     globus_thread_blocking_will_block(); // ????
@@ -225,8 +227,10 @@ namespace Arc {
       logger.msg(ERROR, "Connection to %s timed out after %i seconds", base_url.str(), timeout/1000);
       globus_io_cancel(&s,GLOBUS_FALSE);
       globus_io_close(&s);
+      connect_lock->unlock();
       return false;
     };
+    connect_lock->unlock();
     connected=true;
     return true;
   }
@@ -466,6 +470,7 @@ namespace Arc {
   
     recv_tok.length=0; recv_tok.value=NULL;
     send_tok.length=0; send_tok.value=NULL;
+    connect_lock->lock();
     for(;;) {
       major_status = gss_init_sec_context(&init_sec_min_stat,
                                           cred,
@@ -505,10 +510,12 @@ namespace Arc {
           gss_delete_sec_context(&minor_status,&context,GSS_C_NO_BUFFER);
         context=GSS_C_NO_CONTEXT;
         ::close(s); s=-1;
+        connect_lock->unlock();
         return false;
       };
       recv_tok.length=l;
     };
+    connect_lock->unlock();
     if(s == -1) {
       if(context != GSS_C_NO_CONTEXT) {
         gss_delete_sec_context(&minor_status,&context,GSS_C_NO_BUFFER);
