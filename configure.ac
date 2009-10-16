@@ -40,10 +40,10 @@ AC_ARG_WITH(sysv-scripts-location,
   [ initddir="$withval" ],
   [
     initddir=
-    for i in init.d rc.d/init.d; do
+    for i in init.d rc.d/init.d rc.d; do
       if test -d "/etc/$i" -a ! -h "/etc/$i" ; then
-	initddir="$sysconfdir/$i"
-	break
+        initddir="$sysconfdir/$i"
+        break
       fi
     done
     if test -z "$initddir"; then
@@ -85,18 +85,18 @@ if test "X$with_jdk" != "X"; then
     JDK_CFLAGS=-I$with_jdk/include
     SUN_EXTRA_INCLUDE=
     case "${host}" in
-	*-pc-mingw32)
-	    SUN_EXTRA_INCLUDE="win32"
-	    ;;
-	*-pc-cygwin)
-	    SUN_EXTRA_INCLUDE="win32"
-	    ;;
-	*linux*)
-	    SUN_EXTRA_INCLUDE="linux"
-	    ;;
-	*solaris*)
-	    SUN_EXTRA_INCLUDE="solaris"
-	    ;;
+  *-pc-mingw32)
+      SUN_EXTRA_INCLUDE="win32"
+      ;;
+  *-pc-cygwin)
+      SUN_EXTRA_INCLUDE="win32"
+      ;;
+  *linux*)
+      SUN_EXTRA_INCLUDE="linux"
+      ;;
+  *solaris*)
+      SUN_EXTRA_INCLUDE="solaris"
+      ;;
     esac
     JDK_CFLAGS="$JDK_CFLAGS $JDK_CFLAGS/$SUN_EXTRA_INCLUDE"
 
@@ -163,7 +163,7 @@ if test "X$PYTHON" != "X" && test "X$enable_python" = "Xyes"; then
        *-*-mingw*)
           SAVE_PYTHON_VERSION=$PYTHON_VERSION
           PYTHON_VERSION=`echo $PYTHON_VERSION | sed 's/\.//g'`
-       ;;        
+       ;;
     esac
 
     PYTHON_CFLAGS=-I`$PYTHON -c 'from distutils import sysconfig; print sysconfig.get_python_inc()'`
@@ -206,7 +206,7 @@ fi
 case $host in
    *-*-mingw*)
      PYTHON_VERSION=$SAVE_PYTHON_VERSION
-   ;;        
+   ;;
 esac
 
 if test "X$PYTHONWRAP" = "Xyes" && test "X$PYTHON" != "X" && test "X$enable_python" = "Xyes"; then
@@ -380,7 +380,7 @@ if test "$gsoap" = 'yes'; then
     gsoap=no
     AC_MSG_WARN([Missing wsdl2h utility - maybe You have to add it's location to PATH])
   else
-    # gSOAP package does not report third number of version. Hence we 
+    # gSOAP package does not report third number of version. Hence we
     # have to extract it
     AC_MSG_CHECKING(for gSOAP version)
     gsoap_version=`${SOAPCPP2} -v 2>&1 | sed -e 's/.*version \([[^ ]]*\).*/\1/' -e 't new' -e 's/^.*Compiler for C and C++ *\([[^ ]]*\).*/\1/' -e 't matched' -e 's/.*//' -e ':matched' -e ':new' | grep '.'`
@@ -417,12 +417,12 @@ if test "$gsoap" = 'yes'; then
 cat > gsoaptest.xsd <<EOF
 <?xml version="1.0" encoding="UTF-8"?>
 <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-	<xsd:complexType name="X">
-		<xsd:sequence>
-			<xsd:element ref="Y"/>
-		</xsd:sequence>
-	</xsd:complexType>
-	<xsd:element name="Y" type="xsd:string"/>
+  <xsd:complexType name="X">
+    <xsd:sequence>
+      <xsd:element ref="Y"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:element name="Y" type="xsd:string"/>
 </xsd:schema>
 EOF
 
@@ -496,8 +496,8 @@ AC_SUBST(TEST_DIR)
 
 #check lasso
 #LASSO_INSTALLED=no
-#PKG_CHECK_MODULES(LASSO, [lasso >= 2.1.1], 
-#[AC_SUBST(LASSO_CFLAGS) 
+#PKG_CHECK_MODULES(LASSO, [lasso >= 2.1.1],
+#[AC_SUBST(LASSO_CFLAGS)
 # AC_SUBST(LASSO_LIBS)
 # LASSO_INSTALLED=yes],
 #[])
@@ -535,12 +535,12 @@ if test "x$disable_xmlsec1" = "xno"; then
   fi
 
   if test "x$XMLSEC_INSTALLED" = "xno" -a "x$MACOS" != "xyes"; then
-      AC_MSG_CHECKING(for xmlsec1 libraries >= $XMLSEC_MIN_VERSION) 
-      if test "x$with_xmlsec1" != "x" ; then 
-   	  XMLSEC_CONFIG=$with_xmlsec1/bin/$XMLSEC_CONFIG
+      AC_MSG_CHECKING(for xmlsec1 libraries >= $XMLSEC_MIN_VERSION)
+      if test "x$with_xmlsec1" != "x" ; then
+      XMLSEC_CONFIG=$with_xmlsec1/bin/$XMLSEC_CONFIG
       fi
       if ! $XMLSEC_CONFIG --version > /dev/null 2>&1 ; then
-	  AC_MSG_WARN(Could not find xmlsec1 anywhere; The xml security related functionality will not be compiled)
+        AC_MSG_WARN(Could not find xmlsec1 anywhere; The xml security related functionality will not be compiled)
       fi
       vers=`$XMLSEC_CONFIG --version | awk -F. '{ printf "%d", ($1 * 1000 + $2) * 1000 + $3;}'`
       minvers=`echo $XMLSEC_MIN_VERSION | awk -F. '{ printf "%d", ($1 * 1000 + $2) * 1000 + $3;}'`
@@ -549,7 +549,7 @@ if test "x$disable_xmlsec1" = "xno"; then
           XMLSEC_CFLAGS="`$XMLSEC_CONFIG --cflags`"
           #check the xmlsec1-openssl here
           PKG_CONFIG_PATH="$with_xmlsec1/lib/pkgconfig/:$PKG_CONFIG_PATH"
-          PKG_CHECK_MODULES(XMLSEC_OPENSSL, [xmlsec1-openssl >= $XMLSEC_OPENSSL_MIN_VERSION],      
+          PKG_CHECK_MODULES(XMLSEC_OPENSSL, [xmlsec1-openssl >= $XMLSEC_OPENSSL_MIN_VERSION],
               [XMLSEC_INSTALLED=yes],[XMLSEC_INSTALLED=no])
       else
           AC_MSG_WARN(You need at least xmlsec1 $XMLSEC_MIN_VERSION for this version of arc1)
@@ -562,7 +562,7 @@ if test "x$disable_xmlsec1" = "xno"; then
     if test "x$XMLSEC_INSTALLED" = "xyes" ; then
       PKG_CHECK_MODULES(XMLSEC_OPENSSL, [xmlsec1-openssl >= $XMLSEC_OPENSSL_MIN_VERSION],
           [XMLSEC_INSTALLED=yes],[XMLSEC_INSTALLED=no])
-    fi 
+    fi
   fi
 
   AC_SUBST(XMLSEC_CFLAGS)
@@ -608,12 +608,12 @@ AC_MSG_NOTICE([MySQL client library enabled: $MYSQL_INSTALLED])
 AM_CONDITIONAL([MYSQL_LIBRARY_ENABLED],[test "x$MYSQL_INSTALLED" = "xyes"])
 
 
-# check zlib 
+# check zlib
 AC_ARG_WITH(zlib,
   AC_HELP_STRING([--with-zlib=PATH], [where zlib is installed]),
-    [ if test -d "$withval"; then 
-         CPPFLAGS="${CPPFLAGS} -I$withval/include"
-	 LDFLAGS="${LDFLAGS} -L$withval/lib"
+    [ if test -d "$withval"; then
+        CPPFLAGS="${CPPFLAGS} -I$withval/include"
+        LDFLAGS="${LDFLAGS} -L$withval/lib"
       fi
     ]
 )
@@ -637,12 +637,12 @@ dbcxx_include_paths=
 AC_ARG_WITH(dbcxx-include,
    [  --with-dbcxx-include=PATH   Specify path to db_cxx.h],
    [
-	if test "x$withval" = "xyes" ; then
-		AC_MSG_ERROR([--with-dbcxx-include requires PATH argument])
-	fi
-	if test "x$withval" != "xno" ; then
-		dbcxx_include_paths=$withval
-	fi
+  if test "x$withval" = "xyes" ; then
+    AC_MSG_ERROR([--with-dbcxx-include requires PATH argument])
+  fi
+  if test "x$withval" != "xno" ; then
+    dbcxx_include_paths=$withval
+  fi
    ]
 )
 
@@ -655,12 +655,12 @@ AC_LANG_CPLUSPLUS
 
 if test x$dbcxx_include_paths = x
 then
-	AC_MSG_NOTICE([Looking for db_cxx.h in standard locations]) 
-	AC_CHECK_HEADERS(db_cxx.h,HAVE_DBCXX=yes,HAVE_DBCXX=no)
-	# If the user did not provide a location we have some good suggestions
-	dbcxx_include_paths="/usr/include/db4 /usr/include/db44"
+  AC_MSG_NOTICE([Looking for db_cxx.h in standard locations])
+  AC_CHECK_HEADERS(db_cxx.h,HAVE_DBCXX=yes,HAVE_DBCXX=no)
+  # If the user did not provide a location we have some good suggestions
+  dbcxx_include_paths="/usr/include/db4 /usr/include/db44"
 else
-	HAVE_DBCXX=no
+  HAVE_DBCXX=no
 fi
 
 #
@@ -676,13 +676,13 @@ then
     CPPFLAGS="$CPPFLAGS $DBCXX_CPPFLAGS"
     # Disable Autoconf caching
     unset ac_cv_header_db_cxx_h
-    AC_MSG_NOTICE([Looking for db_cxx.h in $dbcxx_dir]) 
+    AC_MSG_NOTICE([Looking for db_cxx.h in $dbcxx_dir])
     AC_CHECK_HEADERS(db_cxx.h,HAVE_DBCXX=yes,HAVE_DBCXX=no)
     CPPFLAGS=$SAVE_CPPFLAGS
     # If a db_cxx.h was found we break and keep the current value of DBCXX_CPPFLAGS
     if test "$HAVE_DBCXX" = yes
     then
-      break   
+      break
     fi
     DBCXX_CPPFLAGS=
   done
@@ -699,19 +699,19 @@ else
   case $host in
     *-*-mingw*)
       CXXFLAGS="-I$dbcxx_dir $CXXFLAGS"
-      ;;        
+      ;;
     *)
       # pthread needed for RH9
       LDFLAGS="$LDFLAGS -lpthread"
-      ;;        
+      ;;
   esac
 
-  AC_CHECK_LIB(db_cxx,main,DBCXX_LIBS="-ldb_cxx",DBCXX_LIBS="") 
+  AC_CHECK_LIB(db_cxx,main,DBCXX_LIBS="-ldb_cxx",DBCXX_LIBS="")
 
   if test "$DBCXX_LIBS" = ""
   then
     AC_MSG_WARN([BerkeleyDB library libdb_cxx was not found!])
-    AC_CHECK_LIB(db_cxx-4.2,main,DBCXX_LIBS="-ldb_cxx-4.2",DBCXX_LIBS="") 
+    AC_CHECK_LIB(db_cxx-4.2,main,DBCXX_LIBS="-ldb_cxx-4.2",DBCXX_LIBS="")
   fi
 
   if test "$DBCXX_LIBS" = ""
@@ -722,7 +722,7 @@ else
   if test "$DBCXX_LIBS" = ""
   then
     AC_MSG_WARN([BerkeleyDB library libdb_cxx was not found!])
-    AC_CHECK_LIB(db_cxx-4.7,main,DBCXX_LIBS="-ldb_cxx-4.7",DBCXX_LIBS="") 
+    AC_CHECK_LIB(db_cxx-4.7,main,DBCXX_LIBS="-ldb_cxx-4.7",DBCXX_LIBS="")
   fi
 
   if test "$DBCXX_LIBS" = ""
@@ -743,7 +743,7 @@ AM_CONDITIONAL([DBXML_ENABLED],[test ! "x$DBCXX_LIBS" = "x"])
 AC_SUBST(DBCXX_LIBS)
 if test ! "x$DBCXX_LIBS" = "x"
 then
-  # Mingw need -I$dbcxx_dir 
+  # Mingw need -I$dbcxx_dir
 
   SAVE_CXXFLAGS=$CXXFLAGS
   CXXFLAGS="-I$dbcxx_dir $CXXFLAGS"
@@ -951,16 +951,16 @@ case "${host}" in
         LDFLAGS=-lpthread
   ;;
 esac
-AC_CHECK_LIB([ldap_r], [ldap_first_message], [ 
-    AC_CHECK_LIB([ldap_r], [ldap_initialize], [ AC_DEFINE(HAVE_LDAP_INITIALIZE,[],[Define if you have ldap_initialize function]) ])  
+    AC_CHECK_LIB([ldap_r], [ldap_first_message], [
+    AC_CHECK_LIB([ldap_r], [ldap_initialize], [ AC_DEFINE(HAVE_LDAP_INITIALIZE,[],[Define if you have ldap_initialize function]) ])
     LDAP_LIBS=-lldap_r ], [
-  AC_CHECK_LIB([ldap], [ldap_first_message], [ 
-    AC_CHECK_LIB([ldap], [ldap_initialize], [ AC_DEFINE(HAVE_LDAP_INITIALIZE,[],[Define if you have ldap_initialize function]) ])  
+    AC_CHECK_LIB([ldap], [ldap_first_message], [
+    AC_CHECK_LIB([ldap], [ldap_initialize], [ AC_DEFINE(HAVE_LDAP_INITIALIZE,[],[Define if you have ldap_initialize function]) ])
     LDAP_LIBS=-lldap ], [
     LDAP=no
   ])
 ])
-AC_CHECK_LIB([lber], [ber_init], [LDAP_LIBS="$LDAP_LIBS -llber"], []) 
+AC_CHECK_LIB([lber], [ber_init], [LDAP_LIBS="$LDAP_LIBS -llber"], [])
 AC_SUBST(LDAP_LIBS)
 LDFLAGS=$SAVE_LDFLAGS
 ],
@@ -979,7 +979,7 @@ LDFLAGS=$SAVE_LDFLAGS
       LDAP_LIBS="-lwldap32"
       AC_DEFINE(USE_WIN32_LDAP_API,,[Define if using WIN32 LDAP API])
     ])
-  ], [], [[#include <windows.h>]]) ;; 
+  ], [], [[#include <windows.h>]]) ;;
   esac
 
 ])
@@ -1172,7 +1172,7 @@ AC_ARG_ENABLE(hopi_service, AC_HELP_STRING([--disable-hopi-service], [disable bu
 AC_MSG_NOTICE([Hopi Service enabled: $enable_hopi_service])
 AM_CONDITIONAL([HOPI_SERVICE_ENABLED],[test "x$enable_hopi_service" = "xyes"])
 
-# Paul service 
+# Paul service
 AC_ARG_ENABLE(paul_service, AC_HELP_STRING([--disable-paul-service], [disable building PAUL Service]),[],[
   if test ! "x$WIN32" = "xyes" ; then
     enable_paul_service="yes"
@@ -1345,7 +1345,7 @@ AC_CONFIG_FILES([Makefile
                  src/hed/dmc/ldap/Makefile
                  src/hed/dmc/srm/Makefile
                  src/hed/dmc/srm/https/Makefile
-                 src/hed/dmc/srm/srmclient/Makefile                 
+                 src/hed/dmc/srm/srmclient/Makefile
                  src/hed/dmc/lfc/Makefile
                  src/hed/dmc/rls/Makefile
                  src/hed/shc/Makefile
@@ -1379,7 +1379,7 @@ AC_CONFIG_FILES([Makefile
                  src/services/a-rex/a-rex
                  src/services/a-rex/arex.xml.example
                  src/services/a-rex/arex_minimalistic.xml.example
-                 src/services/a-rex/arex_secure.xml.example		 
+                 src/services/a-rex/arex_secure.xml.example
                  src/services/a-rex/arex_xmlonly.xml.example
                  src/services/a-rex/arex_showcase.xml.example
                  src/services/a-rex/config/Makefile
@@ -1448,19 +1448,19 @@ AC_CONFIG_FILES([Makefile
                  src/services/sched/manage_jobq.8
                  src/services/paul/Makefile
                  src/services/paul/schema/Makefile
-                 src/services/storage/Makefile 
+                 src/services/storage/Makefile
                  src/services/storage/storage_service.xml.example
                  src/services/storage/chelonia.1
-                 src/services/storage/librarian/Makefile 
-                 src/services/storage/librarian/schema/Makefile 
-                 src/services/storage/cli/Makefile 
-                 src/services/storage/shepherd/Makefile 
-                 src/services/storage/shepherd/schema/Makefile 
-                 src/services/storage/ahash/Makefile 
-                 src/services/storage/ahash/schema/Makefile 
+                 src/services/storage/librarian/Makefile
+                 src/services/storage/librarian/schema/Makefile
+                 src/services/storage/cli/Makefile
+                 src/services/storage/shepherd/Makefile
+                 src/services/storage/shepherd/schema/Makefile
+                 src/services/storage/ahash/Makefile
+                 src/services/storage/ahash/schema/Makefile
                  src/services/storage/bartender/Makefile
                  src/services/storage/bartender/schema/Makefile
-                 src/services/storage/bartender/gateway/Makefile 
+                 src/services/storage/bartender/gateway/Makefile
                  src/services/janitor/interfaces/commandline/Makefile
                  src/services/janitor/interfaces/commandline/janitor
                  src/services/janitor/interfaces/webservice/Makefile
