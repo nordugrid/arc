@@ -328,6 +328,8 @@ namespace Arc {
     if (!conffile.empty()) {
       IniConfig ini(conffile);
       if (ini) {
+        logger.msg(INFO, "Loading configuration (%s)", conffile);
+
         if (ini["alias"]) {
           XMLNode aliasXML = ini["alias"];
           if (aliasMap) { // Merge aliases. Overwrite existing aliases
@@ -548,11 +550,11 @@ namespace Arc {
         }
 
         while (ini.Child()) {
-          logger.msg(WARNING, "Unknown section %s, ignoring it", ini.Child().Name());
+          logger.msg(INFO, "Unknown section %s, ignoring it", ini.Child().Name());
           ini.Child().Destroy();
         }
 
-        logger.msg(INFO, "INI configuration (%s) loaded", conffile);
+        logger.msg(INFO, "Configuration (%s) loaded", conffile);
       }
       else
         logger.msg(WARNING, "Could not load configuration (%s)", conffile);
