@@ -230,7 +230,7 @@ sub fixbools {
         my $val = $h->{$key};
         if ($val eq '0' or lc $val eq 'false' or lc $val eq 'no') {
             $h->{$key} = 'false';
-        } elsif ($val eq '0' or lc $val eq 'true' or lc $val eq 'yes') {
+        } elsif ($val eq '1' or lc $val eq 'true' or lc $val eq 'yes') {
             $h->{$key} = 'true';
         } else {
             $log->error("Invalid value for $key");
@@ -710,13 +710,16 @@ sub printLRMSConfigScript {
 
     _print_shell_section('common', $common);
 
-    # OBS: controldir is a hack needed for finish-condor-job. To be removed later.
-    my @gmusers = keys %{$config->{control}};
-    my $controldir = $config->{control}{'.'}{controldir};
-    $controldir = $config->{control}{$gmusers[0]}{controldir}
-        if @gmusers > 0 and not $controldir;
-    $log->warning("No controldir configured in $file") unless $controldir;
-    _print_shell_section('grid-manager', {controldir => $controldir}) if $controldir;
+    my $gmopts = {};
+    $gmopts->{runtimedir} = $config->{runtimedir} if $config->{runtimedir};
+    $gmopts->{gnu_time} = $config->{gnu_time} if $config->{gnu_time};
+    $gmopts->{scratchdir} = $config->{scratchdir} if $config->{scratchdir};
+    $gmopts->{shared_filesystem} = 'no' if defined $config->{shared_filesystem}
+                                               and $config->{shared_filesystem} eq 'false';
+    $gmopts->{shared_scratch} = 'no' if defined $config->{shared_scratch}
+                                            and $config->{shared_scratch} eq 'false';
+
+    _print_shell_section('grid-manager', $gmopts);
     
     for my $sname (keys %{$config->{shares}}) {
         my $queue = {};
