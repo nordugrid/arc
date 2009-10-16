@@ -174,13 +174,13 @@ class Librarian:
                     change_response = self._change_states(changes)
                     for _, serviceID in serviceGUIDs.items():
                         self._set_next_heartbeat(serviceID, -1)
-                # update list of ahashes
-                self._update_ahash_urls()
                 time.sleep(self.period)
             except Exception, e:
                 log.msg(arc.ERROR, "Error in Librarian's checking thread: %s" % e)
                 #log.msg()
-                time.sleep(self.period)
+            # update list of ahashes
+            self._update_ahash_urls()
+            time.sleep(self.period)
 
     def _change_states(self, changes):
         # we got a list of (GUID, serviceID, referenceID, state) - where GUID is of the file,
