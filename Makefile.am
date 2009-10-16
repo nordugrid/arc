@@ -17,7 +17,7 @@ if DOC_ENABLED
 DOC_SD = doc
 endif
 
-SUBDIRS = src include $(SWIG_SD) $(JAVA_SD) $(PYTHON_SD) $(POSUB) 
+SUBDIRS = src include $(SWIG_SD) $(JAVA_SD) $(PYTHON_SD) $(POSUB) debian
 
 DOCDIRS = $(DOC_SD)
 
