@@ -1,31 +1,20 @@
-# ARC client user configuration file.
-# Together with the system configuration file, this file configures the
-# behaviour of the ARC clients, through
-#
 [common]
-# The 'defaultservices' attribute defines a list of services to use if
-# none is given on the commandline.
+# Default services.
+# Services to be used if none is given on the commandline can be
+# specified using the 'defaultservices' attribute. Setting this here
+# will override the default services set in the system configuration.
 # The value of this attribute should follow the format:
 # <service_type>:<flavour>:<service_url>
 # where <service_type> is type of service (e.g. computing or index),
 # <flavour> specifies type of middleware plugin to use when contacting
 # the service (e.g. ARC0, ARC1, CREAM, UNICORE, etc.) and <service_url>
-# is the URL used to contact the service. If the system configuration
-# defines a list of default services, those will be over written by
-# services defined here.
+# is the URL used to contact the service.
 #defaultservices=index:ARC0:ldap://grid.tsl.uu.se:2135/Mds-Vo-name=Sweden,o=grid computing:ARC1:https://knowarc1.grid.niif.hu:60000/arex
 
-# The 'rejectservices' attribute defines a list of services which will
-# be rejected for submission. A use-case for this attribute is a
-# situation where a specfic service, pulled in by a index server, is not
-# usable for submission, not filtered by the broker and gets a high
-# ranking, then by specifying it in the 'rejectservices' attribute it
-# will be removed from the list of possible targets. This attribute is
-# not limited to submission, but also applies to job management in
-# general. Note that this attribute will not over written by the system
-# configuration, but services defined here are, if defined there,
-# appended to the list of services to reject.
-#rejectservices=computing:ARC1:https://bad-service.org:60000/arex computing:ARC0:ldap://another-bad-service:2135/o=grid
+# Rejected services.
+# The attribute 'rejectservices' can be used to indicate that a certain
+# service should be rejected.
+#rejectservices=computing:ARC1:https://bad.service.org/arex
 
 # Specify the broker used in resource discovery. The default broker is
 # the 'Random' broker.
@@ -63,17 +52,11 @@
 # specified.
 #cacertificatesdirectory=/home/user/cacertificates
 
-# The alias section can be used to define aliases of services. An alias
-# defined in the system configuration will be overrided by an alias, in
-# the client configuration, with the same name.
+# Alias definition. Instead of typing the whole URL on the commandline use a alias instead.
 #[alias]
-# The format of an alias follows the format of the 'defaultservices'. So
-# an alias can be defined as:
-#myalias=computing:ARC1:https://my-favorite-cluster.org:60000/arex
-# and can thus be used as:
-# $ arcsub -c myalias myjob.jsdl
-# An alias definition is not limited to a single alias and can also
-# contain references to other aliases.
-#my-arc0=computing:ARC0:ldap://my-favorite-arc0-cluster.org:2135/ computing:ARC0:ldap://another-favorite-cluster.org:2135/
-#my-arc1=myalias computing:ARC1://another-favorite-arc1-cluster.org:60000/arex
-#my-arc-clusters=my-arc0 my-arc1
+#arc0=computing:ARC0:ldap://grid.tsl.uu.se:2135/nordugrid-cluster-name=grid.tsl.uu.se,Mds-Vo-name=local,o=grid
+#arc1=computing:ARC1:https://knowarc1.grid.niif.hu:60000/arex
+#cream=computing:CREAM:ldap://cream.grid.upjs.sk:2170/o=grid
+#unicore=computing:UNICORE:https://testbed5.grid.upjs.sk:8080/KnowARC-testbed/services/BESFactory?res=default_bes_factory
+# An alias can also be defined from other aliases.
+#crossbrokering=arc0 arc1 cream unicore

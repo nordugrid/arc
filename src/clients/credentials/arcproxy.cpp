@@ -104,7 +104,7 @@ int main(int argc, char *argv[]) {
 
   Arc::ArcLocation::Init(argv[0]);
 
-  Arc::OptionParser options(istring("..."), istring("..."),
+  Arc::OptionParser options("", "",
                             istring("Supported constraints are:\n"
                                     "  validityStart=time (e.g. 2008-05-29T10:20:30Z; if not specified, start from now)\n"
                                     "  validityEnd=time\n"
