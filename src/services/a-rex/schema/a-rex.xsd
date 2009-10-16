@@ -95,6 +95,8 @@
                 * defaultShare - optional name of default ComputingShare
                 * sharedFilesystem - either session directory is shared
                   with computing node
+				* sharedScratch - the path where the frontend can access
+				  cross-mounted scratch directories of nodes, if applicable
                 * GNUTimeUtility - location and name of GNU time executable
                 * any accommodates numerous LRMS configuration parameters
                   * pbs_bin_path="/usr/bin"
@@ -118,7 +120,7 @@
             <xsd:element name="defaultShare" type="xsd:string"
                          minOccurs="0"/>
             <xsd:element name="sharedFilesystem" type="xsd:boolean" minOccurs="0"/>
-            <xsd:element name="sharedScratch" type="xsd:boolean" minOccurs="0"/>
+            <xsd:element name="sharedScratch" type="xsd:string" minOccurs="0"/>
             <xsd:element name="scratchDir" type="xsd:string" minOccurs="0"/>
             <xsd:element name="runtimeDir" type="xsd:string" minOccurs="0"/>
             <xsd:element name="GNUTimeUtility" type="xsd:string" minOccurs="0"/>

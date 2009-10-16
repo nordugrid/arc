@@ -191,7 +191,7 @@ appropiate.
           <arex:defaultShare>knowarc</arex:defaultShare>
 
           <arex:sharedFilesystem>true</arex:sharedFilesystem>
-          <arex:sharedScratch>false</arex:sharedScratch>
+          <arex:sharedScratch>/mnt/scratch</arex:sharedScratch>
           <arex:scratchDir>/scratch</arex:scratchDir>
           <arex:runtimeDir>/export/SOFTWARE</arex:runtimeDir>
           <arex:GNUTimeUtility>/usr/bin/time</arex:GNUTimeUtility>
