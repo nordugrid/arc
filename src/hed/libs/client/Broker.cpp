@@ -89,11 +89,6 @@ namespace Arc {
           logger.msg(WARNING, "The downtime of the target (%s) is not published. Keeping target.", target->url.str());
       }
 
-      if (target->FreeSlots == 0) {
-        logger.msg(DEBUG, "Dropping ExecutionTarget %s: No free slots", target->url.str());
-        continue;
-      }
-
       if (!target->HealthState.empty()) {
 
         if (target->HealthState != "ok") { // Enumeration for healthstate: ok, critical, other, unknown, warning
