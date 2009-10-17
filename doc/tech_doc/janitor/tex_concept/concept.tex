@@ -1,27 +1,27 @@
 \chapter{Programming concept}
 
- The main language for the implementation of the functionality of the
- dynamic runtime environment functionality is Perl. And it is solely required (exceptions are the
- integration with the Grid Manager and the Web server) for the Janitor. In
- the pre-web-service implementation the Catalog remains a static web page.
- The Perl code is split into multiple modules as depicted in Figure~\ref{fig:janitorDependencies}. 
- The modules can be separated into two
- functional groups. One addresses the retrieval of information from
- the Catalog RDF file in the left major branch of the figure. The other
- addresses the process of fetching and installing the packages.
+The main language for the implementation of the functionality of the
+dynamic runtime environment functionality is Perl. And it is solely required (exceptions are the
+integration with the Grid Manager and the Web service) for the Janitor. In
+the pre-web-service implementation the Catalog remains a static web page.
+The Perl code is split into multiple modules as depicted in Figure~\ref{fig:janitorDependencies}. 
+The modules can be separated into two
+functional groups. One addresses the retrieval of information from
+the Catalog RDF file in the left major branch of the figure. The other
+addresses the process of fetching and installing the packages.
 
- \begin{landscape}
-\begin{figure}[!h]
-\vspace{4cm}
+\begin{landscape}
+ \begin{figure}[!h]
+ \vspace{4cm}
  \begin{center} 
-    %\resizebox{24cm}{!}{\input{images/dependencies}}
-    \includegraphics[width=24cm]{images/dependencies.pdf}
-    \mycaption{Modules of the Janitor and their dependencies}{}
+ %\resizebox{24cm}{!}{\input{images/dependencies}}
+ \includegraphics[width=24cm]{images/dependencies.pdf}
+ \mycaption{Modules of the Janitor and their dependencies}{}
  \end{center} 
-\vfill
+ \vfill
  \label{fig:janitorDependencies} 
-\end{figure}
- \end{landscape}
+ \end{figure}
+\end{landscape}
 
 In order to get a more detailed view on the full functionality of the envisioned system it is suggested to consult the 
 Design Document\footnote{\href{http://www.knowarc.eu/documents/Knowarc_D1.1-1_07.pdf}
@@ -29,11 +29,12 @@ Design Document\footnote{\href{http://www.knowarc.eu/documents/Knowarc_D1.1-1_07
 
 
 
-
 \section{Runtime environments states}
+
 A main motivation for the managed, manual initiation of dynamic RE
 installation is the subsequent manual verification of the installed
 packages -- prior to their use in production.
+
 With an automation of the installation, the verification of
 that process shall be performed externally to that process.  At this
 time, only the automation of the installation has been implemented.
@@ -44,12 +45,10 @@ in order to stimulate grid clients to submit packages. The here described
 states will be represented to the clients in upcoming developments.
 
 These states are specific for every CE and communicated
-between the Janitor and the Execution Service. Table~\ref{tab:states} shows all
+between the Janitor and the execution service \AREX. Table~\ref{tab:states} shows all
 possible states, while Figure~\ref{fig:RE_states}
 displays the transitions between the states that a Runtime Environment may
-be in during its life time at a particular CE. \task{?at a particular CE?}  
-
-
+be in during its life time.
 
 \begin{table}[!h]
  \begin{center}
@@ -95,7 +94,17 @@ be in during its life time at a particular CE. \task{?at a particular CE?}
  \end{center}
  \mycaption{States a Runtime Environment can possibly be in.}{}
  \label{tab:states}
- \end{table}
+\end{table}
+
+The concept of ARC prevails to have a single directory into which to
+install software to be execute on all compute elements of the site.
+Otherwise, the installation of a runtime environment would be
+required to be performed just when the jobs initiates its computation.
+
+In principle this would be doable, particularly for those runtime 
+environments that are part of a trusted Linux distribution already.
+But this would also mean that the compute nodes become inhomogeneous,
+and at the time of writing this was considered undesireable.
 
 \begin{figure}[!h]
   \begin{center}
@@ -109,10 +118,10 @@ be in during its life time at a particular CE. \task{?at a particular CE?}
 \end{figure}
  
 The manually induced transitions are marked in red, he automated transitions in black.
-A transition between states can be induced automatically (i.\,e.\ by the
+A transition between states can be induced automatically (\ie by the
 advent of a job requesting a particular dynamic RE) or manually by the
-site's supervisor or an individual with respective rights to use the
-Janitor's web service.
+site's administrator or an individual with respective rights to use the
+Janitor's command line.
 
 Upon presentation of a package to a Catalog, a CE may
 classify a package to be \texttt{INSTALLABLE} if all the dependencies
@@ -129,16 +138,29 @@ can only be removed upon manual induction.  The \ldots/{\bf s} states
 represent those Runtime Environments that are installed in the original
 manual way of RE installation in ARC 0.6.
 
-% Runtime Environment are installed for job idenitified by a certain id.
+\subsection{Dependencies on Job IDs}
 
+The Janitor was designed with the job execution in mind. As such, all
+actions it performs are driven by the need of a job. And those jobs
+should then be specified, to learn when the demand for a particular
+runtime environment has ended.
+
+This concept partially conflicts with the idea to use the Janitor
+as an aid for the manual invocation of an installation -- there is no
+job ID that could be assigned for that process. Today, the administrator
+is suggested to use a special number, \eg 0, to indicate such manual
+installs. This will change in near future.
 
 \section{Job states}
 
-Janitor has two states for jobs: \texttt{PREPARED} and \texttt{INITIALIZED}. After a job has been succesfully registered 
-in Janitor, its state will be set to \texttt{PREPARED}. Invalid jobs are not cached in Janitor. 
-After Janitor is requested to deploy the runtime environment, the state of the job will change to \texttt{INITIALIZED}. If 
-an unforeseen exception occures during that process, Janitor will drop the job from its database and set the affected runtime
-environments to the state \texttt{FAILED}.
+The Janitor has two states for jobs: \texttt{PREPARED} and \texttt{INITIALIZED}.
+After a job has been succesfully registered with the Janitor, its state
+will be set to \texttt{PREPARED}. Invalid jobs are not cached by the Janitor. 
+After the Janitor is requested to deploy the runtime environment, the
+state of the job will change to \texttt{INITIALIZED}. If an unforeseen
+exception occures during that process, Janitor will drop the job from
+its database and set the affected runtime environments to the state
+\texttt{FAILED}.
 
 \section{Integration into AREX}
 
@@ -146,13 +168,6 @@ environments to the state \texttt{FAILED}.
 \newenvironment{note}
 {\rule{1ex}{1ex}\hspace{\stretch{1}}}
 {\hspace{\stretch{1}}\rule{1ex}{1ex}\\}
-\begin{note}
-The integration into AREX is not completed yet!
-\end{note}
-\begin{note}
-Thus, there will be bigger changes here in this section\dots
-\end{note}
-
 
 \begin{figure}[!h]
   \begin{center}
@@ -273,48 +288,14 @@ Proposal for SOAP messages:\\
 \end{lstlisting}
 
 
-
-
 \section{Janitor file system permissions}
 
-Currently the Janitor perl scripts must be executed as root. In order to execute Janitor with the required permissions,
-a setuid wrapper has been written. During the installation \task{not done yet} the mode of rjanitor will be set to \texttt{u+s}
-to make the binary suid root. \task{According to Daniel: ``A future version of the Janitor will get rid of the suid root helper.''}\\
-
-Thus, Janitor is not executed directly. Instead a dynamic link will be created in \task{libexec or sbin} which is pointing to
-the wrapper.\\
-
-It is suggested to create a user and a group "janitor" for the Janitor.\\
-
-% Currently the Janitor must be executed as root. For this a suid root helper
-% is needed. It is provided in /opt/janitor/rjanitor.c. If you installed
-% the Janitor in another directory then /opt/janitor change the parameter
-% of the execv command in rjanitor.c. Then compile the file with\\
-% \texttt{\textdollar gcc -o rjanitor rjanitor.c}\\
-% and run as root\\
-% \texttt{\textdollar chown root:root rjanitor}\\
-% \texttt{\textdollar chmod u+s rjanitor}\\
-% to make the binary suid root. A future version of the Janitor will get rid
-% of the suid root helper.\\
-% 
-% The Grid Manager does not call the Janitor directly in /opt/janitor but
-% calls /opt/nordugrid/libexec/janitor. So a link is needed (as root):\\
-% \texttt{\textdollar ln -s /opt/janitor/rjanitor /opt/nordugrid/libexec/janitor}\\
-% \\
-% It is suggested to create a user and a group "janitor" for the Janitor.\\
-% \\
-% The Janitor needs a directory for storing information on installed REs:\\
-% \texttt{\textdollar mkdir -p /var/lib/nordugrid/janitor}\\
-% \texttt{\textdollar chown janitor:janitor /var/lib/nordugrid/janitor}\\
-% \\
-% It also needs a directory on the shared volume for installing the REs:\\
-% % \texttt{\textdollar mkdir -p $<$shared_volume$>$/janitor}\\
-% % \texttt{\textdollar chown janitor:janitor $<$shared_volume$>$/janitor}
-
+At the time of writing, the Janitor needs to be executed as root. 
+This may change over time, but as long as all other components
+of ARC also demand superuser privileges, one can expect the
+demand for the Janitor to be non-problematic.
 
 \subsection{Security Consideration}
-
-
 
 Security is a major concern for the grid systems. An automatic software
 installation inheritently introduces security threats. This section
@@ -346,14 +327,15 @@ to gain root access are likely to find security holes by regularly
 submitted scripts.  The authentication and authentification of users,
 together with respective logging, is the major defense against such
 attacks. What is consequently left to be protected against are unwanted
-sideeffects by the installation of software.
+side-effects by the installation of software.
 
 The worst case scenario would be the installation of a RE
 that overwrites system files. With the current implementation, which is
 based solely on tar files, this is barely possible, unless such is
-performed by the install scripts that accompany the tar files. However,
-hereto the installation would have to be performed by a user with system
-priviledges, for which there is no technical requirement.
+performed by the install scripts that accompany the tar files.
+%However,
+%hereto the installation would have to be performed by a user with system
+%priviledges, for which there is no technical requirement.
 
 The installation of packages from the Debian distribution (or other
 packages of mainstream Linux distributions) is seeked to reduce the
@@ -366,15 +348,14 @@ of packages that passed many eyeballs - as it is the case with packages
 from major Linux distribution - security is further increased or becomes
 as high as with the operating system underneath virtual clients.
 
-Summarising, there is general concern about the security of grid
-computing.  Dynamic REs introduce new dangers since a
-manual control at the grid site is substituted by a remote process that
+As a conclusion, there is general concern about the security of grid
+computing.  Dynamic REs introduce new dangers since a manual control
+at the grid site is substituted by a remote process that
 is out the direct supervision of a local site administrator. The signing
 of packages by known and directly or indirectly trusted developers is
 a good indicator that no malevolent individuals have tampered with the
 binary. The site administrators can limit the sources of packages and
 specify packages that are eligible or excluded from installations.
-
 
 
 % * Programming concept

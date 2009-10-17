@@ -7,11 +7,11 @@
 % *** Protege: For maintaining the knowledge base
 
 
-In order to use Janitor, the two perl packages listed in table~\ref{tab:install_dependencies} are required. To have the WebService interface for Janitor, the packages listed in the table~\ref{tab:install_dependencies_optional} 
-have to be installed before the build process is.
+The Janitor depends on two perl packages listed in table~\ref{tab:install_dependencies}. To have the WebService interface for Janitor,
+the packages listed in the table~\ref{tab:install_dependencies_optional} as build requirements.
 \begin{table}[!h]
    \begin{center}
-        \mycaption{Required perl packages for Janitor.}{Log4perl is used for the internal logging of Janitor, while the 
+        \mycaption{Required perl packages for the Janitor.}{Log4perl is used for the internal logging of Janitor, while the 
                    Redland RDF libraray is used for accessing the knowledge base of RTEs.}
         \label{tab:install_dependencies}
 	\begin{tabular}{|p{3cm}|p{7cm}|}
@@ -37,9 +37,19 @@ have to be installed before the build process is.
 \end{table}
 \forcelinebreak
 
-Janitor will be installed by default along with ARC1. If desired it is possible to disable the shipping of Janitor 
-using the \textit{configure} flags \textit{--disable-janitor-service} for the complete janitor or 
-\textit{--disable-janitor-webservice} for only the Web Service support.
+
+If you are using regular Debian or Ubuntu packages, then the Janitor
+can be installed as root by "apt-get install nordugrid-arc1-janitor".
+Installing it will not drag other components of ARC with it since the
+Janitor can be used in its own right or in conjunction with another
+grid system, possibly. Packages for Redhat/Fedora and SuSE/OpenSuSE are
+also provided, the redland library however may not yet be available for
+those systems.  If you are compiling the sources yourself, the Janitor
+will be enabled by default. If desired, it is possible to disable it
+with the \textit{configure} flags \textit{--disable-janitor-service}
+for the complete janitor or \textit{--disable-janitor-webservice} for
+only the Web Service support.
+
 Furthermore it is recommended to install the ontology editor 
 Prot\`eg\`e\footnote{\href{http://protege.stanford.edu}{http://protege.stanford.edu}} in order to be to easily maintain the 
 knowledge database of installable packages.
@@ -86,26 +96,55 @@ for janitor configuration.
 \end{table}
 \end{landscape}
 
-The parameter \texttt{enable} defines whether Janitor shall be used within A-REX or not. Use the value \texttt{"0"} to disable Janitor. The
-\texttt{uid} and the \texttt{gid} are defining which effective the user and group id shall be used for Janitor. 
-The \texttt{registrationdir} describes the directory in which the subdirectories \texttt{jobs} and \texttt{rtes} will be created.
-In these directories the states of the jobs and the runtime environments will be stored. 
-The knowledge base of installable packages is specified by the parmeter \texttt{catalog}. 
-Its value can be any kind of URL pointing to an file written in the Resource Description Framework (RDF) format.
-The specification of the RDF file will be explained in detail in section~\ref{sec:catalog}.
-The parameter \texttt{downloaddir} assignes the directory in which the installation files will be saved after they have been 
-downloaded or copied from the repository which was specified by the catalog. The \texttt{installationdir} finally specifies the
-directory into which all packages will be installed. Instead of the other directories the \texttt{installationdir} should be 
-available for all computing elements i.e. by using a shared volume.
-If the configuration file furthermore contains the \texttt{runtimedir} tag within the section \texttt{grid-manager}, Janitor will also
-create a symbolic link in the \texttt{runtimedir} pointing to the configuration script of the installation done by Janitor.
-The tags \texttt{jobexpirytime} and \texttt{rteexpirytime} are used for automated cleanup and is defined in seconds.
-The default value for the \texttt{jobexpirytime} is seven days and for the \texttt{rteexpirytime} three days. 
-The additional tags \texttt{allow\_base} \texttt{deny\_base} \texttt{allow\_rte} and \texttt{deny\_rte} are used to include
-or exclude certain base packages or runtime environments of the catalog. This feature is useful, if the catalog is maintain by
-a higher organization.
-The path to the log4perl configuration file is defined by the tag \texttt{logconf}.
-An examples how to configure arc and log4perl is provided in the Listings~\ref{lst:arc_conf} and ~\ref{lst:log_conf} and.
+The parameter \texttt{enable} defines whether the Janitor shall be
+used within \AREX or not. Use the value \texttt{"0"} to disable the
+Janitor. The \texttt{uid} and the \texttt{gid} are defining which
+effective user and group id shall be used for Janitor. Setting these to
+values different from root will increase security.
+
+The \texttt{registrationdir} describes the directory in which
+the subdirectories \texttt{jobs} and \texttt{rtes} will be created.
+In these directories the states of the jobs and the runtime environments
+are stored. Please recall that the Janitor does not use a database as
+a backend, but all communication between invocations are performed via
+files in those folders.
+
+The knowledge base of installable packages is specified by the parmeter
+\texttt{catalog}.  Its value can be any kind of URL pointing to a file
+written in the Resource Description Framework (RDF) format. One should
+not light-heartedly use a remote address for this purpose. Such a remote
+source needs to be trusted.
+
+The specification of the RDF file will be explained in detail in
+section~\ref{sec:catalog}.  The parameter \texttt{downloaddir} assignes
+the directory in which the installation files will be saved after they
+have been downloaded or copied from the repository which was specified by
+the catalog. Please remember: the URL in arc.conf indicates the location
+of the catalog. And the URLs somehow specified in the catalog specify
+the location from where to download the runtime environment.
+
+The \texttt{installationdir} finally specifies the directory into which
+all packages will be installed. This \texttt{installationdir} directory
+needs to be available for all computing nodes for the execution of 
+arbitrary programs, mostl likely by using it as a shared NFS volume.
+
+If the configuration file furthermore contains the \texttt{runtimedir}
+tag within the section \texttt{grid-manager}, the Janitor will
+also create a symbolic link in the \texttt{runtimedir} pointing to
+the configuration script of the installation done by Janitor. The
+tags \texttt{jobexpirytime} and \texttt{rteexpirytime} are used
+for automated cleanup and are defined in seconds.  The default
+value for thew\texttt{jobexpirytime} is seven days and for
+the \texttt{rteexpirytime} three days.  The additional tags
+\texttt{allow\_base}, \texttt{deny\_base}, \texttt{allow\_rte} and
+\texttt{deny\_rte} are used to include or exclude certain base packages
+or runtime environments of the catalog. This feature is useful, if the
+catalog is maintain by a higher organization. But again: you need to
+trust it.
+
+The path to the log4perl configuration file is defined by the tag
+\texttt{logconf}.  Examples how to configure arc and log4perl are
+provided in the Listings~\ref{lst:arc_conf} and ~\ref{lst:log_conf}.
 
 \lstsetCONFIGURE
 \begin{lstlisting}[
@@ -167,6 +206,6 @@ log4perl.appender.ErrorLog.layout.ConversionPattern = %d %p> %m%n
 
 \section{Limitations}
 
-Janitor is designed for the usage on Linux distributions.
+The Janitor is only available for UNIX-based servers. While not tested,
+it should also be functional on MacOS X and Windows with Cygwin.
 
-% Is designed for linux distributions. Windows or Mac won't work (Reason wget! maybe also the Executer).

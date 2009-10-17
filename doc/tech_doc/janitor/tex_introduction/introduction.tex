@@ -1,21 +1,33 @@
 \chapter{Introduction}
 
-Janitor is a service for automated runtime environment installation for grid computing elements. It is integrated in the A-REX service used for job submission but also can be used as a standalone tool.
+The {\em Janitor} is a service for the automated installation of runtime environments for grid computing elements.
+Its command line interface allows for a direct interaction with site administrators. However, the main stimulus
+for its development was the idea integrate such a service with the regular handling of compute jobs. For ARC this
+is performed by the \AREX module.
+
+From the programmer's view, the Janitor is mostly a Perl script and the routines within \AREX to invoke it. The
+site administrator will also associate with it also the Catalog files, that describe the availability of runtime
+environments, and the repository of installable runtime envionments themselves, which are regular tar archives obeying
+to particular structure and reside in a separate folder. In order to minimise the latency for the invocation of
+the Perl script and the associated parsing of files, a Janitor web service was developed, which still is a Perl
+script.
 
 \section{Motivation}
 
 A major motivation for grid projects is to stimulate new communities to adopt computational grids for their
-causes. From the current grid user's viewpoint, the admission of users of a very different education will
-suddenly impose difficulties in the communication between site maintainers. One will not even understand
-the respective other side's research aims. Hence, the proper installation of non-standard software (Runtime
-Environments) is not guaranteed and the priorities of manual labour will be mostly disjunctive.
+causes. From the current grid user's viewpoint, the admission of users of a very different scientific disciplines
+or compute skills will impose difficulties in the communication between site maintainers. One will not even understand
+the respective other side's research aims. Hence, the proper installation of non-standard software (read Runtime
+Environments) is not guaranteed.
 
-A core problem remains to distribute a locally working solution, the Know-How, quickly across all contributing sites, i. e., without manual interference. Every scientific discipline has its respective own set of
-technologies for the distribution of work load. E. g. research in bioinformatics requires access to so many
+A core problem remains to distribute a locally working solution, the Know-How, quickly across all contributing
+sites, i. e., without manual interference. Every scientific discipline has its respective own set of
+technologies for the distribution of work load. For instance, research in bioinformatics requires access to so many
 different tools and databases, that few sites, if any, install them all. Instead, the use of web services became
 a commodity, with all the problems with respect to bottlenecks and restrictions of repeated access.
-The EU project KnowARC1\footnote{\href{http://www.knowarc.eu}{http://www.knowarc.eu}} amongst other challenges with the here presented work extends the NorduGrid?s
-Advanced Research Connector (ARC) grid middleware~\cite{ELLERT_2007} towards an infrastructure for the
+The EU project KnowARC\footnote{\href{http://www.knowarc.eu}{http://www.knowarc.eu}},  amongst other challenges,
+with the here presented work extends the NorduGrid?s
+Advanced Research Connector (ARC) grid middleware~\cite{ELLERT_2007} towards an the
 automated installation of software packages.
 
 An automation of the software installation, referred to as dynamic Runtime Environments, seems the only
@@ -28,9 +40,9 @@ the installation of software and databases without manual interference~\cite{BAY
 \section{Overview}
 
 This document will start with a chapter of how to set up janitor locally. The following chapter will give an instruction on how to 
-use Janitor with A-REX and/or without A-REX. Afterwards, in the third chapter, the maintenance of the program will be presented, 
-which is basically covering the method how to prepare new runtime environments. A deeper knowledge about the design of Janitor will 
-be given by the subsequent forth chapter. In the fifth chapter, an outlook to future developments will given.
+use Janitor with \AREX and/or without \AREX. Afterwards, in the third chapter, the maintenance of the program will be presented, 
+which is basically covering the preparation of runtime environments. Deeper knowledge about the design of the Janitor will 
+be given by the subsequent forth chapter. In the fifth chapter, an outlook on ongoing or future developments will presented.
 
 
 % BASIC CONCEPT

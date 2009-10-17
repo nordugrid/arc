@@ -1,6 +1,9 @@
 \chapter{Usage}
 
-Janitor can be used either with or without A-REX. In case A-REX is used, installations will be maintained automatically the runtime environments.
+The Janitor can be used either with or without an integration with \AREX. The Janitor's installation will not be affected
+by this decision pro or cons and integration with \AREX. Both can be installed in parallel. If \AREX is not allowed to
+install runtime environments upon demand, such automated installations can still be invoked manually via the Janitor's
+command line  interface.
 
 \section{Janitor with A-REX}
 
@@ -27,8 +30,8 @@ Listing~\ref{lst:xrsl_job} shows the xRSL example in which two runtime environme
 
 A comprehensive reference manual of the Extended Resource Specification Language (XRSL) can be
 found at \href{www.nordugrid.org/documents/xrsl.pdf}{www.nordugrid.org/documents/xrsl.pdf}~\cite{NORDUGRID_MANUAL_4}.
-Within Listing~\ref{lst:jsdl_job} an example using JSDL is provided. The specification of assigning runtime environments in JSDL is 
-currently only defined within the nordugrid jsdl-arc schema~
+Within Listing~\ref{lst:jsdl_job} an example using JSDL is provided. The specification of how
+to assign runtime environments in JSDL is currently only defined within the nordugrid jsdl-arc schema~
 \href{http://svn.nordugrid.org/repos/nordugrid/arc1/trunk/src/services/a-rex/grid-manager/jobdesc/jsdl/jsdl_arc.xsd}
      {http://svn.nordugrid.org/repos/nordugrid/arc1/trunk/src/services/a-rex/grid-manager/jobdesc/jsdl/jsdl\_arc.xsd}.
 \lstsetJUSTXML
@@ -78,18 +81,25 @@ currently only defined within the nordugrid jsdl-arc schema~
 
 \section{Janitor without A-REX}
 
-In addition of using Janitor together with A-REX, Janitor can also be used as a standalone commandline tool.
-The available commands are listed in the Table~\ref{tab:janitor_commandline_man}.
+On Linux systems, the Janitor's standalone commandline tool is available as /usr/lib/arc/janitor.
+Some Linux distributions may prefer /usr/libexec or similar paths.
+The script is only functional as root\footnote{Should you find that constraint unbearable for your purpose,
+please investigate the file rjanitor.cc in the ARC source tree. It wraps the janitor application
+and as a C binary can be configured to attract root privileges.}.
+To find that binary directly, you may decide to add that location to your \$PATH environment variable.
+
+The available commands to the Janitor, implemented as options to the janitor script, are listed
+in the Table~\ref{tab:janitor_commandline_man}.
 \begin{table}[!h]
    \begin{center}
-        \mycaption{Overview about the available commands in Janitor.}{}
+        \mycaption{Overview about the available commands to the Janitor.}{}
         \label{tab:janitor_commandline_man}
 	\begin{tabular}{p{0.5cm}p{2cm}p{11cm}}
 	\multicolumn{3}{l}{\textbf{janitor [COMMAND] [JOB-ID] [RTE] \dots}} \\
 	\multicolumn{3}{l}{\textbf{Command:}}\\
 	&	register			& Registers a job and a set of runtime environments in the Janitor database. Requires the parameters [JOB-ID] and a list of [RTE]s.\\
 	&	deploy				& Downloads and installs the desired runtime environments. Requires the name of an already registered [JOB-ID].\\
-	&	remove				& Removes the placeholder of the job on the runtime environments. If no more jobs are using the runtime environment and the lifespan of the runtime environment has be expired, the runtime environment can be removed using the \texttt{sweep} command. Requires the [JOB-ID] to be removed.\\
+	&	remove				& Removes the placeholder of the job on the runtime environments. If there is no longer any job using the runtime environment and the lifespan of the runtime environment has be expired, the runtime environment can be removed using the \texttt{sweep} command. To indicate that a job has terminated, send the Janitor the remove command on that job's ID.\\
 	&					&\\
 	&	sweep				& Removes unused runtime environments. No further arguements are required. Using the option \texttt{--force} enforces the removal of all unused runtime environments. Runtime environments having the state FAILED will not be removed.\\
 	&	setstate			& Changes the state of a dynamically installed runtime environment. This might be useful in case a runtime environment with a state FAILED shall be removed (new state might be REMOVAL\_PENDING). Requires the argument [STATE] followd by a list of [RTE]s.\\
@@ -98,33 +108,35 @@ The available commands are listed in the Table~\ref{tab:janitor_commandline_man}
 	&	list				& Lists all information about jobs, automatically installed runtime environments and manually installed runtime environments. No additional parameters have to be passed.\\
 	&	info				& Renders information about a job. Requires the parameter [JOB-ID].\\
 	\multicolumn{3}{l}{\textbf{Job id:}}\\
-	&					& A unique sequence of numbers. Once Janitor registered a job id it cannot register a second job having the same job id.\\
+	&					& A unique sequence of numbers. Once the Janitor registered a job ID, it cannot register a second job having the same job id.\\
 	\multicolumn{3}{l}{\textbf{Runtime environments:}}\\
 	&					& Runtime environments are defined by a continuous string. The name of valid runtime environment names can be investigated using the \texttt{list} or the \texttt{search} commands. They are defined in the catalog or by the directories and scripts of the \texttt{runtimedir} of the \texttt{grid-manager}.\\
 	\end{tabular} 
    \end{center}
 \end{table}
 The most important commands for Janitor are \texttt{register}, \texttt{deploy} and \texttt{remove}. In order to 
-register a job along with a set of runtime environments in Janitor, the first command \texttt{register} followed
+register a job along with a set of runtime environments in the Janitor, the first command \texttt{register} followed
 by a job identifier and a list of runtime environments has to be used.
 A job is identified by sequence of numbers. Runtime environments are specified by a string containing the name as it is defined 
 within the catalog (resp. the runtime directory of the grid-manager).
+
 The command \texttt{deploy} extracts the necessary dependcies of the desired runtime environments and then downloads and installs 
 the required packages. %How dependecies can are defined will be explained later in the section~\ref{sec:catalog}.
 
 % PROCEED HERE!!!!!!!! !! ! ! !
-In order to remove jobs registered in Janitor the command \texttt{remove} has to be used. 
+The disassociation of a job with a runtime environment is indicated as a "removal" of that job from the runtime environment.
+This is performed with the Janitor the command \texttt{remove}. 
 The command only removes the job entry and the lock on the runtime environment. If there are no more locks on the runtime environment
 it might be deleted for real.
 
-Easy commandline examples are provided in Listing~\ref{lst:janitor_example}.
+Easy commandline examples are provided in Listing~\ref{lst:janitor_example}. You may also want to inspect the janitor(8) man page.
 
-Each command has a certain behaviour for its exit status. The Table~\ref{tab:janitor_commandline_exit_status} lists the possible
-outcomes.
+Every command has a certain behaviour for its exit status. The Table~\ref{tab:janitor_commandline_exit_status} lists the possible
+outcomes. A value of 0 always indicates that no error occurred.
 
 \begin{table}[!h]
    \begin{center}
-        \mycaption{Possible exit states of Janitor}{}
+        \mycaption{Possible exit states of the janitor application}{}
         \label{tab:janitor_commandline_exit_status}
 	\begin{tabular}{p{0.5cm}p{2cm}p{0.5cm}p{11cm}}
 	\multicolumn{3}{l}{\textbf{Exit status:}} \\
@@ -174,6 +186,11 @@ outcomes.
 # janitor info 1999
 \end{lstlisting}
 
+Once a dynamic runtime environment is installed, it looks completely
+indistinguishable from traditionally installed runtime environments. This
+also means that the general concept to have one installation performed
+for all compute nodes in the network is kept.
+
 % 
 % * Usage
 % ** Without A-REX
@@ -189,7 +206,21 @@ outcomes.
 
 
 
-\section{Example}
+%\section{Example}
 % 
 % 
 
+\section{Janitor with \AREX}
+
+The motivation to have a runtime environment available comes from the submitters
+of the grid jobs that depends on that runtime environment for their execution.
+The site administrator's sole responsibility is to have the dynamic runtime
+environment at the site's disposal. No more. With \AREX allowed to initiated
+the commands to the Janitor, no further interaction from the site administrator
+is required. An exception may be to confirm the consistency of the system when
+the machine has crahsed and the Janitor may still find jobs assinged to runtime
+environments that are no longer running.
+
+Another exception for an active involvement of the site administrator is the
+initial configuration of the Janitor and the updating of runtime environments
+that are eligible to be installed.

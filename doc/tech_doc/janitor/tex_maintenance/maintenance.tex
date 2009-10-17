@@ -1,10 +1,10 @@
 \chapter{Maintenance}
 
-This chapter explains how to maintain the catalog and Janitor itself. 
-In order to administrate the catalog, it is absolutly recommened (but not required) to use the ontology editor Prot\`eg\`e. The first
+This chapter explains how to maintain the catalog and the Janitor itself. 
+In order to administrate the catalog, it is absolutly recommended (but not required) to use the ontology editor Prot\`eg\`e. The first
 section will explain how this is done.
-The second section a detailed explanation how to create new packages for Janitor will be given.
-In the last section typical use case in maintaining Janitor will be listed.
+The second section gives a detailed explanation how to create new packages for the Janitor.
+In the last section, a typical use case in maintaining Janitor will be demonstrated.
 
 % * Maintainance
 % ** Protege and RDF files
@@ -12,13 +12,12 @@ In the last section typical use case in maintaining Janitor will be listed.
 
 \section{Catalog}\label{sec:catalog}
 
-
-
-The Catalog describes runtime environments and is either served through a web server or distributed together with the Janitor. 
-It is specifed by a (Resource Description Framework) RDF file assigned to 
-Janitor using the tag \texttt{catlog} within the configuration file (see~\ref{sec:janitor_configuration}). 
-The format of the RDF file is defined by a RDF schema file \texttt{knowarc.rdfs}
-which can be found along with an RDF example file \texttt{knowarc.rdf} in the janitor source directory \href{http://svn.nordugrid.org/repos/nordugrid/arc1/trunk/src/services/janitor/resources/catalog/}
+The Catalog describes runtime environments and is either served through a web server or distributed
+together with the Janitor.  It is specifed by a (Resource Description Framework) RDF file assigned to 
+the Janitor using the tag \texttt{catlog} within the configuration file (see~\ref{sec:janitor_configuration}). 
+The format of the RDF file is defined by an RDF schema file \texttt{knowarc.rdfs}
+which can be found along with an RDF example file \texttt{knowarc.rdf} in the janitor source directory
+\href{http://svn.nordugrid.org/repos/nordugrid/arc1/trunk/src/services/janitor/resources/catalog/}
 {http://svn.nordugrid.org/repos/nordugrid/arc1/trunk/src/services/janitor/resources/catalog/}.\\
 
 
@@ -31,20 +30,32 @@ editor while the MetaPackage \texttt{APPS/BIO/JASPAR-CORE-1.0} of the example fi
     \label{fig:protege_example}
   \end{center}
 \end{figure}
-On the left side of the editor the class browser is placed. Three main classes are prepared: \texttt{MetaPackage}, \texttt{Note} and \texttt{Package}.
-The \texttt{Metapackage} is a general platform independent description of a \texttt{Package}. 
-It has one or more instances of the class \texttt{Package} and is
-described by the subclasses of \texttt{Note}. The class \texttt{Note} has two subclasses: \texttt{BaseSystem} 
-and \texttt{Tag} to describe the \texttt{MetaPackage}. The \texttt{BaseSystem} describes the Debian release a \texttt{Package} refers to
-(i.e. here etch or sid). The class \texttt{Tag} provides small keywords which can be assigned to \texttt{MetaPackages} such that
-they can be easier found.  \texttt{TarPackage} and \texttt{DebianPackage} or currently the only subclasses of \texttt{Package}.
-They are representing the necessary information (i.e. URL or Packagename) for the installation. In order to have an overview how the 
-classes are interacting with each other the Tables~\ref{tab:main_class_meta},\ref{tab:main_class_base}, \ref{tab:main_class_tag},
+On the left side of the editor the class browser is placed. Three
+main classes are prepared: \texttt{MetaPackage}, \texttt{Note} and
+\texttt{Package}.  The \texttt{Metapackage} is a general platform
+independent description of a \texttt{Package}. It can be understood as
+a reference to a functionality that should be implemented at the remote
+site. But the exact instruction on how to install it is not given.
+The "instruction-level" comes with instances of its subclass
+\texttt{Package}.
+
+The \texttt{MetaPackage} is described by the subclasses of \texttt{Note}.
+The class \texttt{Note} has two subclasses: \texttt{BaseSystem} 
+and \texttt{Tag} to describe the \texttt{MetaPackage}. The \texttt{BaseSystem}
+describes the Debian release a \texttt{Package} refers to
+(i.e. here etch or sid). The class \texttt{Tag} provides small keywords
+which can be assigned to \texttt{MetaPackages} such that
+they can be easier found.  \texttt{TarPackage} and \texttt{DebianPackage} or
+currently the only subclasses of \texttt{Package}.
+
+They are representing the necessary information (i.e. URL or Packagename)
+for the installation. To provide an overview on how the classes are
+interacting with each other the Tables~\ref{tab:main_class_meta},\ref{tab:main_class_base}, \ref{tab:main_class_tag},
 \ref{tab:main_class_debian} and \ref{tab:main_class_tar} are pictured.
 
 \begin{table}[!h]
    \begin{center}
-        \mycaption{Specification of the class Metapackage.}{}
+        \mycaption{Specification of class \texttt{Metapackage}.}{}
          \label{tab:main_class_meta}
 	\begin{tabular}{p{3cm}p{3cm}p{4cm}}
 	\textbf{Name}  & \textbf{Cardinality}  & \textbf{Type}\\
@@ -62,7 +73,7 @@ classes are interacting with each other the Tables~\ref{tab:main_class_meta},\re
 
 \begin{table}[!h]
    \begin{center}
-        \mycaption{Specification of the class Basesystem.}{}
+        \mycaption{Specification of class \texttt{BaseSystem}.}{}
          \label{tab:main_class_base}
 	\begin{tabular}{p{3cm}p{3cm}p{4cm}}
 	\textbf{Name}  & \textbf{Cardinality}  & \textbf{Type}\\
@@ -79,7 +90,7 @@ classes are interacting with each other the Tables~\ref{tab:main_class_meta},\re
 
 \begin{table}[!h]
    \begin{center}
-        \mycaption{Specification of the class Tag.}{}
+        \mycaption{Specification of class \texttt{Tag}.}{}
          \label{tab:main_class_tag}
 	\begin{tabular}{p{3cm}p{3cm}p{4cm}}
 	\textbf{Name}  & \textbf{Cardinality}  & \textbf{Type}\\
@@ -92,7 +103,7 @@ classes are interacting with each other the Tables~\ref{tab:main_class_meta},\re
 
 \begin{table}[!h]
    \begin{center}
-        \mycaption{Specification of the class DebianPackage.}{}
+        \mycaption{Specification of class \texttt{DebianPackage}.}{}
          \label{tab:main_class_debian}
 	\begin{tabular}{p{3cm}p{3cm}p{6cm}}
 	\textbf{Name}  & \textbf{Cardinality}  & \textbf{Type}\\
@@ -100,14 +111,14 @@ classes are interacting with each other the Tables~\ref{tab:main_class_meta},\re
 	basesystem     & required single       & Instance of BaseSystem       \\
 	debconf        & multiple              & String       \\
 	depends        & multiple              & Instance of MetaPackage  or Package      \\
-	package        & required multiple              & String      \\
+	package        & required multiple     & String      \\
 	\end{tabular} 
    \end{center}
 \end{table}
 
 \begin{table}[!h]
    \begin{center}
-        \mycaption{Specification of the class TarPackage.}{}
+        \mycaption{Specification of the class \texttt{TarPackage}.}{}
          \label{tab:main_class_tar}
 	\begin{tabular}{p{3cm}p{3cm}p{6cm}}
 	\textbf{Name}  & \textbf{Cardinality}  & \textbf{Type}\\
@@ -120,32 +131,64 @@ classes are interacting with each other the Tables~\ref{tab:main_class_meta},\re
    \end{center}
 \end{table}
 
+\subsection{Debian packages - dysfunctional in current implementation}
+
+The problem with Debian packages is that these are available only for the
+local machine and not immediately also for the whole network. This feature
+was meant for setups that use virtual machines for the execution of jobs.
+
+Those entries can also be used to help the specification of further
+dependencies of runtime environments. It would then be left to the
+responsibility of the system administrator to manually (or assisted with
+scripts) distribute a series of extra Debian packages throughout the
+compute nodes and use the catalog entry merely to indicate their presence.
+
+One can as such interpret the catalog to represent an interface between
+software distributed via Linux distributions and independently from these
+via grid communities. It should be noted that the Linux distributions
+have now all started to accept communities to maintain packages, which
+may bringt many scientific packages away from being traditional ARC 
+runtime environments towards becoming regular packages of some Linux
+distribution. For Debian, the Debian-Science and
+Debian-Med\footnote{\href{http://debian-med.alioth.debian.org}{http://debian-med.alioth.debian.org}}
+communities are known to be very open to grid and cloud computing.
+
 \section{HTML interface of the catalog}
 
-The dynamic Runtime Environments stored in the catalog are presented on the aforementioned dedicated web
-page\footnote{http://dre.knowarc.eu:8080/list.pl}. This site also links to both the formal Catalog in 
-RDF syntax and an automated transformation to
-HTML. The latter mimics the traditional site describing Runtime Environments in the Runtime Environment
-Registry\footnote{http://gridrer.csc.fi/} in order to minimise issues with an eventual transition to the new system. 
-That page collects descriptions for Runtime Environments to encourage human site administrators to install these.
-This html page listing the manually or automatically installable RTEs is prepared by the script web/list.pl.
-This script is meant to be run by a mod-perl enabled Apache. The script itself is only loosely integrated
-within the Janitor. In the first lines of the script some variables specific to the site are set. To configure the
-script these have to be changed~\cite[p. 9]{BAYER_2007}.
+The dynamic Runtime Environments stored in the
+catalog are presented on the aforementioned dedicated web
+page\footnote{http://dre.knowarc.eu:8080/list.pl}. This site also
+links to both the formal Catalog in RDF syntax and an automated
+transformation to HTML. The latter mimics the traditional
+site describing Runtime Environments in the Runtime Environment
+Registry\footnote{http://gridrer.csc.fi/} in order to minimise issues
+with an eventual transition to the new system.
+
+That traditional page collects descriptions for Runtime Environments to
+encourage human site administrators to install these.  This html page
+listing the manually or automatically installable RTEs is prepared by
+the script web/list.pl.  This script is meant to be run by a mod-perl
+enabled Apache web server. The script itself is only loosely integrated
+with the remaining functionality of the Janitor, used only for the
+presentation to users. In the first lines of the script some variables
+specific to the site are set. To configure the script these have to be
+changed~\cite[p. 9]{BAYER_2007}.
 
 
 
 \section{Introducing new packages}\label{sec:introducing_new_packages}
 
-This section describes how to add new packages to the catalog. Currently only tar based packages are processable by Janitor.
-Within the example they are assigned to be used together with Debian Etch. This limitation is only literal. 
-There should be no limitiation
-to newer Debian distributions.
+This section describes how to add new packages to the catalog. Currently
+only tar based packages are processable by the Janitor.  Within the here
+presented example the packages are assigned to be used together with
+Debian Etch. This limitation is only literal. 
+There should be no limitiation to newer Debian distributions.
 
 \subsection{Debian Etch (tar based)}
 
-At the time of writing, only the tape archive (tar) file format is accepted for dynamic runtime environment installation, 
-a well accepted file format throughout the UNIX community. This section explains the inner structure of the tar files. 
+At the time of writing, only the tape archive (tar) file format is accepted for dynamic runtime environment installation. 
+It is well accepted file format throughout the UNIX community. This section explains the inner structure of the tar files
+for the representation of dynamic runtime environments. 
 Subdirectories are visualised in Figure~\ref{fig:tar_folder}.
 
 \begin{figure}
@@ -156,27 +199,37 @@ Subdirectories are visualised in Figure~\ref{fig:tar_folder}.
   \end{center}
 \end{figure}
 
-The tar file contains two directories named control and data. Software is stored in the latter subdirectory,
-while the files formally specifying how to deal with such packages are stored in the prior. Upon installation,
-the content of the data directory is extracted to some directory \textdollar BAR. 
-After this unpacking of the tar file, the Janitor executes the install skript provided in the control directory. 
+The tar file contains two directories:
+\begin{description}
+\item [data/] contains all software that the grid-job may need
+\item [control/] contains files formally specifying how to deal with the information in the data/ directory.
+\end{description}
+
+While installing such tar-based runtime environments, the content of the data directory is extracted to some directory \textdollar BAR. 
+After this unpacking of the tar file, the Janitor executes the install script provided in the control directory. 
 It is executed within the working directory \textdollar BAR. The job of this skript is to perform any necessary post-processing.
-The Janitor stores the file \texttt{control/remove}. It will be executed in the same way as \texttt{control/install} just
-before the tar-package is removed. In most cases \texttt{control/remove} will be empty.
-Finally, the file \texttt{control/runtime} is sourced multiple times by the Grid Manager's job-submit script. After
-installing the package, the Janitor changes all occurences of \%BASEDIR\% in the runtime script to \textdollar BAR.
-To be offered to computing elements for an installation, the such prepared runtime environment must be
-announced to a Catalog to which the Janitor on the computing element subscribes~\cite[p. 10]{BAYER_2007}.
+But the working directory shall not be moved. All post-processing needs to be performed \textit{in situ}.
+
+The Janitor stores the file \texttt{control/remove}. It will be executed in the same way as \texttt{control/install}, just
+before the tar-package is removed. In most cases \texttt{control/remove} will be empty, implying that the working directory
+\textdollar BAR shall be remove and no other action is required.
+
+The remainder actions are regular actions performed upon execution of every grid-job. Upon submission,
+the file \texttt{control/runtime} is sourced multiple times by the Grid Manager's job-submit script. Every
+ARC runtime environment must specify such a runtime script, new is only its specific location as control/runtime.
+Since the directory \textdollar BAR is not known for the individual preparing the runtime environment, that
+file will instead use the placeholder \%BASEDIR\%.  After installing the package, the Janitor changes all
+occurences of \%BASEDIR\% in the runtime script to \textdollar BAR.  To be offered to computing elements
+for an installation, the such prepared runtime environment must be announced to a Catalog to which the
+Janitor on the computing element subscribes~\cite[p. 10]{BAYER_2007}.
 
 
+\subsection{Example: WEKA machine learning Java library}
 
-\subsection{Protoypes}
-
-In order to have an impression how the tar files are created, several prototypes are provided at \task{URL required!!}.:\\
-
+%For an impression how the tar files are created, several prototypes are provided at \task{URL required!!}.:\\
 
 The WEKA package for machine learning~\cite{FRANK_2004} and the Java Runtime Environment
-are available as dynamic Runtime Environments. Further packages for bioinformatics comprise dynamic
+are made available as dynamic Runtime Environments. Further packages for bioinformatics comprise dynamic
 variants of tools for the analysis of transcription factor binding sites. These are already offered for manual
 installation via the prior mentioned traditional page representing Runtime Environments for ARC. 
 The corresponding tar file is named \task{somewhat??}. The \texttt{data} directory simply contains a ZIP file
@@ -216,13 +269,19 @@ esac
 The remove script, which will be executed right before WEKA is deinstalled, is empty. Janitor will delete the directory, so there
 is nothing to be done.\\
 
+\subsection{Example: R packages in CRAN and BioConductor.org}
 
-
-\textbf{CRAN and BioConductor.org} To demonstrate the technical proximity to scientific communities that
+To demonstrate the technical proximity to scientific communities that
 provide packages for the Debian Linux distribution, a tool was prepared to transform Debian packages to
 dynamic runtime environments\cite{MOELLER_2007}. This effort comprising more than 1700 packages and
 thus also helps to analyse the scalability of the RDF-based tool for the analysis of dependencies between
-projects.  \task{Why is CRAN and BioConductor.org mentioned here??}\\
+projects.
+
+This effort has not found practical applications beyond this proof of concept. R packages are now
+frequently found in regular Linux distributions. And for most packages, it is reasonably well possible
+to install the packages at runtime.
+
+\subsection{Example: ATLAS for High Energy Physics}
 
 
 To address the concerns of the physicists using ARC, a dynamic runtime environment for the
@@ -241,7 +300,6 @@ of the DRE for ATLAS needs to wait for the planned web service extension of the 
 service, e.g. a software manager of a big experiment will be able to deploy software packages on production
 sites simply by creating a tarball and adding an entry to the Catalog.
 
-
 \subsection{Debian Etch}
 
 These kind of packages are not yet supported.
@@ -250,9 +308,6 @@ These kind of packages are not yet supported.
 
 These kind of packages are not yet supported.
 
-\subsection{Adminstrating the Catalog}
+\section{Adminstrating the Catalog}
 
-\section{Typical use cases}\label{sec:typical_use_cases}
 
-% ** setstate REMOVAL_PENDING
-% no warranty interferences in the file syste,
