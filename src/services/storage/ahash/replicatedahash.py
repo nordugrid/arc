@@ -23,8 +23,8 @@ Sample configuration:
 """
 import arc
 import traceback
-import time
-import threading
+import time, random
+import threading, thread
 import copy
 import base64
 import sys
@@ -79,6 +79,7 @@ class ReplicatedAHash(CentralAHash):
                            ]))
         log.msg(arc.DEBUG, "sending message of length %d to %s"%(len(repmsg),url))
         msg = ahash.call(tree)
+        ahash.reset()
         xml = ahash.xmlnode_class(msg)
         success = str(get_data_node(xml))
         log.msg(arc.DEBUG, "sendt message, success=%s"%success)
@@ -174,13 +175,9 @@ class ReplicationStore(TransDBStore):
         self.repmgr = ReplicationManager(ahash_send, self.dbenv, 
                                          self.my_replica, other_replicas, self.dbReady)
         try:
-            # start repmgr with 256 threads if 32 bits, 1024 if 64 bits 
+            # start repmgr with 256 threads 
             # always do election of master
-            import struct
-            if struct.calcsize('P') > 4:
-                threading.Thread(target = self.repmgr.start, args=[1024, db.DB_REP_ELECTION]).start()
-            else:
-                threading.Thread(target = self.repmgr.start, args=[256, db.DB_REP_ELECTION]).start()
+            threading.Thread(target = self.repmgr.start, args=[256, db.DB_REP_ELECTION]).start()
         except:
             log.msg(arc.ERROR, "Couldn't start replication manager.")
             log.msg()
@@ -193,6 +190,8 @@ class ReplicationStore(TransDBStore):
     def __configureReplication(self, cfg):
         self.my_url = str(cfg.Get('MyURL'))
         self.other_urls = get_child_values_by_name(cfg, 'OtherURL')
+        # make sure my_url is not in other_urls
+        self.other_urls = [url for url in self.other_urls if url != self.my_url]
         try:
             # Priority used in elections: Higher priority means
             # higher chance of winning the master election
@@ -233,6 +232,42 @@ class ReplicationStore(TransDBStore):
         self.dbenv.rep_set_priority(self.priority)
         self.dbenv.rep_set_config(db.DB_REP_CONF_BULK, True)
 
+
+    def lock(self, blocking = True):
+        """ Acquire the lock.
+
+        lock(blocking = True)
+
+        'blocking': if blocking is True, then this only returns when the lock is acquired.
+        If it is False, then it returns immediately with False if the lock is not available,
+        or with True if it could be acquired.
+        """
+        # sleep a little bit to avoid same thread getting lock all the time
+        time.sleep(random.random()*0.05)
+        if not self.getDBReady():
+            time.sleep(0.2)
+            return False
+        if self.repmgr.isMaster():
+            # only lock if master
+            locked = self.llock.acquire(blocking)
+            log.msg(arc.DEBUG, "master locking", locked)
+            return locked
+        else:
+            return True
+
+    def unlock(self):
+        """ Release the lock.
+
+        unlock()
+        """
+        log.msg(arc.DEBUG, "unlocking", self.repmgr.isMaster())
+        try:
+            self.llock.release()
+            log.msg(arc.DEBUG, "unlocked")
+        except:
+            log.msg(arc.DEBUG, "couldn't unlock")
+            pass
+
     def getDBFlags(self):
             # only master can create db
             # DB_AUTO_COMMIT ensures that all db modifications will
@@ -260,12 +295,13 @@ class ReplicationStore(TransDBStore):
                     # we are only interested in connected clients here
                     client_list = [(client['url'], client['status'])
                                    for id, client in site_list.items()
+                                   if client['url'] != self.my_replica['url']
                                    ]
                     for (url, status) in client_list:
                         new_obj[('client', "%s:%s"%(url, status))] = url
                     # store the site list
                     while not self.lock(False):
-                        time.sleep(0.1)
+                        time.sleep(0.2)
                     self.set(ahash_list_guid, new_obj)
                     self.unlock()
                     log.msg(arc.DEBUG, "wrote ahash list %s"%str(new_obj))
@@ -327,6 +363,7 @@ class ReplicationManager:
         # to handle various events
         self.dbenv.set_event_notify(self.event_callback)
         self.pool = None
+        self.semapool = threading.BoundedSemaphore(128)
         self.election_thread = threading.Thread(target=self.electionThread, args=[])
         self.comm_ready = False
         self.heartbeat_period = 10
@@ -336,9 +373,7 @@ class ReplicationManager:
         self.master_timestamp = 0
         
     def isMaster(self):
-        self.locker.acquire_read()
         is_master = self.role == db.DB_REP_MASTER
-        self.locker.release_read()
         return is_master
 
     def heartbeatThread(self, period):
@@ -364,15 +399,11 @@ class ReplicationManager:
             time.sleep(period)
 
     def getRole(self):
-        self.locker.acquire_read()
         role = self.role
-        self.locker.release_read()        
         return role
 
     def setRole(self, role):
-        self.locker.acquire_write()
         self.role = role
-        self.locker.release_write()
     
     def getSiteList(self):
         self.locker.acquire_read()
@@ -396,7 +427,6 @@ class ReplicationManager:
 
     def electionThread(self):
         role = db.DB_EID_INVALID
-#        while role == db.DB_EID_INVALID and not self.stop_electing:
         try:
             log.msg(arc.DEBUG, "entered election thread")
             # send a message to discover if clients are offline
@@ -498,7 +528,6 @@ class ReplicationManager:
             except:
                 # assume url is disconnected
                 log.msg(arc.WARNING, "failed to send to %d of %s"%(id,str(eids)))
-                #log.msg()
                 self.locker.acquire_write()
                 
                 if id == self.masterID:
@@ -533,7 +562,8 @@ class ReplicationManager:
         """
         log.msg(arc.DEBUG, "entering repSend")
         if flags & db.DB_REP_PERMANENT and lsn != None:
-            res = self.send(env, control, record, lsn, eid, flags, REP_MESSAGE)
+            with self.semapool:
+                res = self.send(env, control, record, lsn, eid, flags, REP_MESSAGE)
             return res
         else:
             #threading.Thread(target=self.send, args=[env, control, record, lsn, eid, flags, REP_MESSAGE]).start()
@@ -547,11 +577,12 @@ class ReplicationManager:
         """
         log.msg(arc.DEBUG, "entering sendNewSiteMsg")
         self.locker.acquire_read()
-        hostMap = copy.deepcopy(self.hostMap)
+        site_list = copy.deepcopy(self.hostMap)
         self.locker.release_read()
         ret = 1
         while ret:
-            ret = self.send(None, new_replica, hostMap, None, None, None, NEWSITE_MESSAGE)
+            with self.semapool:
+                ret = self.send(None, new_replica, site_list, None, None, None, NEWSITE_MESSAGE)
             if new_replica['status'] == 'offline':
                 break
             time.sleep(30)
@@ -563,32 +594,41 @@ class ReplicationManager:
         the hostMap to the new site
         """
         log.msg(arc.DEBUG, "entering sendHeartbeatMsg")
-        return self.send(None, None, None, None, None, None, HEARTBEAT_MESSAGE)
+        with self.semapool:
+            ret = self.send(None, None, None, None, None, None, HEARTBEAT_MESSAGE)
+        return ret
 
     def sendElectionMsg(self, eid=db.DB_EID_BROADCAST):
         """
         If elected, broadcast master id to all clients
         """
         log.msg(arc.DEBUG, "entering sendNewMasterMsg")
-        return self.send(None, None, None, None, eid, None, ELECTION_MESSAGE)
+        with self.semapool:
+            ret = self.send(None, None, None, None, eid, None, ELECTION_MESSAGE)
+        return ret
     
     def sendNewMasterMsg(self, eid=db.DB_EID_BROADCAST):
         """
         If elected, broadcast master id to all clients
         """
         log.msg(arc.DEBUG, "entering sendNewMasterMsg")
-        return self.send(None, None, None, None, eid, None, MASTER_MESSAGE)
+        with self.semapool:
+            ret = self.send(None, None, None, None, eid, None, MASTER_MESSAGE)
+        return ret
     
     def processMessage(self, control, record, eid, retlsn, sender, msgID):
         """
         Function to process incoming messages, forwarding 
         them to self.dbenv.rep_process_message()
         """
-        log.msg(arc.DEBUG, ("entering processMessage from ", sender))
+        log.msg(arc.DEBUG, "entering processMessage from ", sender)
 
         self.locker.acquire_read()
         urls = [rep['url'] for id,rep in self.hostMap.items() if rep['status']=='online']
         self.locker.release_read()
+        if sender['url'] == self.url:
+            log.msg(arc.ERROR, "received message from myself!")
+            return "failed" 
         if not sender['url'] in urls:
             log.msg(arc.DEBUG, "received from new sender or sender back online")
             really_new = False
