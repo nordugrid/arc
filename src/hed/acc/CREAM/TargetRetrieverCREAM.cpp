@@ -41,9 +41,9 @@ namespace Arc {
 
   Logger TargetRetrieverCREAM::logger(TargetRetriever::logger, "CREAM");
 
-  TargetRetrieverCREAM::TargetRetrieverCREAM(const Config& cfg,
-                                             const UserConfig& usercfg)
-    : TargetRetriever(cfg, usercfg, "CREAM") {}
+  TargetRetrieverCREAM::TargetRetrieverCREAM(const UserConfig& usercfg,
+                                             const URL& url, ServiceType st)
+    : TargetRetriever(usercfg, url, st, "CREAM") {}
 
   TargetRetrieverCREAM::~TargetRetrieverCREAM() {}
 
@@ -52,7 +52,7 @@ namespace Arc {
       dynamic_cast<TargetRetrieverPluginArgument*>(arg);
     if (!trarg)
       return NULL;
-    return new TargetRetrieverCREAM(*trarg, *trarg);
+    return new TargetRetrieverCREAM(*trarg, *trarg, *trarg);
   }
 
   void TargetRetrieverCREAM::GetTargets(TargetGenerator& mom, int targetType,
@@ -61,30 +61,26 @@ namespace Arc {
     logger.msg(INFO, "TargetRetriverCREAM initialized with %s service url: %s",
                serviceType, url.str());
 
-    if (serviceType == "computing") {
-      bool added = mom.AddService(url);
-      if (added) {
+    switch (serviceType) {
+    case COMPUTING:
+      if (mom.AddService(url)) {
         ThreadArg *arg = CreateThreadArg(mom, targetType, detailLevel);
         if (!CreateThreadFunction(&InterrogateTarget, arg)) {
           delete arg;
           mom.RetrieverDone();
         }
       }
-    }
-    else if (serviceType == "storage") {}
-    else if (serviceType == "index") {
-      bool added = mom.AddIndexServer(url);
-      if (added) {
+      break;
+    case INDEX:
+      if (mom.AddIndexServer(url)) {
         ThreadArg *arg = CreateThreadArg(mom, targetType, detailLevel);
         if (!CreateThreadFunction(&QueryIndex, arg)) {
           delete arg;
           mom.RetrieverDone();
         }
       }
+      break;
     }
-    else
-      logger.msg(ERROR,
-                 "TargetRetrieverCREAM initialized with unknown url type");
   }
 
   void TargetRetrieverCREAM::QueryIndex(void *arg) {
@@ -141,14 +137,7 @@ namespace Arc {
       if ((std::string)(*iter)["GlueServiceStatus"] != "OK")
         continue;
 
-      URL url = (std::string)(*iter)["GlueServiceEndpoint"];
-
-      NS ns;
-      Config cfg(ns);
-      XMLNode URLXML = cfg.NewChild("URL") = url.str();
-      URLXML.NewAttribute("ServiceType") = "index";
-
-      TargetRetrieverCREAM retriever(cfg, usercfg);
+      TargetRetrieverCREAM retriever(usercfg, URL((std::string)(*iter)["GlueServiceEndpoint"]), INDEX);
       retriever.GetTargets(mom, thrarg->targetType, thrarg->detailLevel);
     }
 
@@ -161,16 +150,9 @@ namespace Arc {
       if ((std::string)(*iter)["GlueServiceStatus"] != "OK")
         continue;
 
-      URL url = (std::string)(*iter)["GlueServiceEndpoint"];
-
       //Should filter here on allowed VOs, not yet implemented
 
-      NS ns;
-      Config cfg(ns);
-      XMLNode URLXML = cfg.NewChild("URL") = url.str();
-      URLXML.NewAttribute("ServiceType") = "computing";
-
-      TargetRetrieverCREAM retriever(cfg, usercfg);
+      TargetRetrieverCREAM retriever(usercfg, URL((std::string)(*iter)["GlueServiceEndpoint"]), COMPUTING);
       retriever.GetTargets(mom, thrarg->targetType, thrarg->detailLevel);
     }
 

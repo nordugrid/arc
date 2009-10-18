@@ -7,22 +7,22 @@
 #include <string>
 
 #include <arc/URL.h>
+#include <arc/UserConfig.h>
 #include <arc/loader/Loader.h>
 #include <arc/loader/Plugin.h>
 
 namespace Arc {
 
-  class Config;
   class Logger;
   class TargetGenerator;
-  class UserConfig;
 
   //! Base class for the TargetRetrievers
   /// Must be specialiced for each supported middleware flavour.
   class TargetRetriever
     : public Plugin {
   protected:
-    TargetRetriever(const Config& cfg, const UserConfig& usercfg,
+    TargetRetriever(const UserConfig& usercfg,
+                    const URL& url, ServiceType st,
                     const std::string& flavour);
   public:
     virtual ~TargetRetriever();
@@ -32,7 +32,8 @@ namespace Arc {
     const std::string flavour;
     const UserConfig& usercfg;
     const URL url;
-    const std::string serviceType;
+    const ServiceType serviceType;
+
     static Logger logger;
   };
 
@@ -54,11 +55,11 @@ namespace Arc {
 
     //! Load a new TargetRetriever
     /// \param name    The name of the TargetRetriever to load.
-    /// \param cfg     The Config object for the new TargetRetriever.
     /// \param usercfg The UserConfig object for the new TargetRetriever.
+    /// \param url     The URL used to contact the target.
+    /// \param st      specifies service type of the target.
     /// \returns       A pointer to the new TargetRetriever (NULL on error).
-    TargetRetriever* load(const std::string& name,
-                          const Config& cfg, const UserConfig& usercfg);
+    TargetRetriever* load(const std::string& name, const UserConfig& usercfg, const URL& url, const ServiceType& st);
 
     //! Retrieve the list of loaded TargetRetrievers.
     /// \returns A reference to the list of TargetRetrievers.
@@ -73,19 +74,22 @@ namespace Arc {
   class TargetRetrieverPluginArgument
     : public PluginArgument {
   public:
-    TargetRetrieverPluginArgument(const Config& cfg, const UserConfig& usercfg)
-      : cfg(cfg),
-        usercfg(usercfg) {}
+    TargetRetrieverPluginArgument(const UserConfig& usercfg, const URL& url, const ServiceType& st)
+      : usercfg(usercfg), url(url), st(st) {}
     ~TargetRetrieverPluginArgument() {}
-    operator const Config&() {
-      return cfg;
-    }
     operator const UserConfig&() {
       return usercfg;
     }
+    operator const URL&() {
+      return url;
+    }
+    operator const ServiceType&() {
+      return st;
+    }
   private:
-    const Config& cfg;
     const UserConfig& usercfg;
+    const URL& url;
+    const ServiceType& st;
   };
 
 } // namespace Arc

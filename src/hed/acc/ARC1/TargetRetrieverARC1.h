@@ -14,7 +14,8 @@ namespace Arc {
   class TargetRetrieverARC1
     : public TargetRetriever {
   private:
-    TargetRetrieverARC1(const Config& cfg, const UserConfig& usercfg);
+    TargetRetrieverARC1(const UserConfig& usercfg,
+                        const URL& url, ServiceType st);
   public:
     ~TargetRetrieverARC1();
     virtual void GetTargets(TargetGenerator& mom, int targetType, int detailLevel);

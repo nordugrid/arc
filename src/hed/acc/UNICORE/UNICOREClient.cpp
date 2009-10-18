@@ -4,14 +4,12 @@
 #include <config.h>
 #endif
 
+#include <arc/UserConfig.h>
 #include <arc/client/ClientInterface.h>
 #include <arc/delegation/DelegationInterface.h>
 #include <arc/loader/Loader.h>
 #include <arc/ws-addressing/WSA.h>
-#include <fstream>
-// headers for debugging
-#include <sstream>
-// end headers for debugging
+
 #include "UNICOREClient.h"
 
 namespace Arc {
@@ -438,9 +436,8 @@ namespace Arc {
     }
   }
 
-  bool UNICOREClient::listTargetSystemFactories(std::list<Config>& tsf, std::string& status) {
+  bool UNICOREClient::listTargetSystemFactories(std::list< std::pair<URL, ServiceType> >& tsf) {
 
-    std::string state, faultstring;
     logger.msg(INFO, "Creating and sending an index service query");
     PayloadSOAP req(unicore_ns);
     XMLNode query = req.NewChild("rp:QueryResourceProperties");
@@ -448,47 +445,18 @@ namespace Arc {
     exp.NewAttribute("Dialect") = "http://www.w3.org/TR/1999/REC-xpath-19991116";
     exp = "//*";
     PayloadSOAP *resp = NULL;
-    MCC_Status rrstatus = client->process("http://docs.oasis-open.org/wsrf/rpw-2"
-                                          "/QueryResourceProperties/QueryResourcePropertiesRequest",
-                                          &req, &resp);
-    //Check lots of different things that could have gone wrong
-    //Report these through logger with suitable loglevel
-    //React and recover from these problems in suitable ways
+    client->process("http://docs.oasis-open.org/wsrf/rpw-2"
+                    "/QueryResourceProperties/QueryResourcePropertiesRequest",
+                    &req, &resp);
     if (resp == NULL) {
       logger.msg(ERROR, "There was no SOAP response");
       return false;
     }
-    resp->GetDoc(status, true);
-    XMLNodeList memberServices = (resp->Body()).Path("QueryResourcePropertiesResponse"
-                                                     "/Entry/MemberServiceEPR");
 
-    //debugging
-    std::stringstream ss;
-    ss << "\nNumber of member services found: " << memberServices.size();
-    status += ss.str();
-    //end debugging
+    XMLNodeList memberServices = resp->Body().Path("QueryResourcePropertiesResponse/Entry/MemberServiceEPR");
     for (XMLNodeList::iterator it = memberServices.begin(); it != memberServices.end(); it++) {
-      std::string tmpStr;
-      it->GetXML(tmpStr);
-      status += "\nXMLnode:\n";
-      status += tmpStr;
-      status += "\niName:\n";
-      std::string iName = (*it)["Metadata"]["InterfaceName"];
-      status += iName;
-      if (iName.find("BESFactoryPortType") != std::string::npos) {
-        std::string urlstr = (*it)["Address"];
-        status += "\nFound a BESFactory at " + urlstr; //Temp debugging
-
-        //store in tsf in some form
-        //is anything apart from url needed?
-        NS ns;
-        Config cfg(ns);
-        XMLNode URLXML = cfg.NewChild("URL") = urlstr;
-        URLXML.NewAttribute("ServiceType") = "computing";
-        // Add other things that might need to be configured
-        tsf.push_back(cfg);
-
-
+      if (((std::string)(*it)["Metadata"]["InterfaceName"]).find("BESFactoryPortType") != std::string::npos) { // it.Metadata.InterfaceName should contain 'BESFactoryPortType'...
+        tsf.push_back(std::pair<URL, ServiceType>(URL((std::string)(*it)["Address"]), COMPUTING));
       }
     }
 

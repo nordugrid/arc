@@ -14,15 +14,9 @@
 #include <arc/client/TargetGenerator.h>
 #include <arc/message/MCC.h>
 #include <arc/data/DataHandle.h>
-#include <glibmm/stringutils.h>
 
 #include "AREXClient.h"
 #include "TargetRetrieverARC1.h"
-
-#include <stdexcept>
-//Remove these after debugging
-#include <iostream>
-//End of debugging headers
 
 namespace Arc {
 
@@ -33,8 +27,6 @@ namespace Arc {
     int targetType;
     int detailLevel;
   };
-
-  const std::string alphanum("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789");
 
   ThreadArg* TargetRetrieverARC1::CreateThreadArg(TargetGenerator& mom,
                                                   int targetType,
@@ -50,9 +42,9 @@ namespace Arc {
 
   Logger TargetRetrieverARC1::logger(TargetRetriever::logger, "ARC1");
 
-  TargetRetrieverARC1::TargetRetrieverARC1(const Config& cfg,
-                                           const UserConfig& usercfg)
-    : TargetRetriever(cfg, usercfg, "ARC1") {}
+  TargetRetrieverARC1::TargetRetrieverARC1(const UserConfig& usercfg,
+                                           const URL& url, ServiceType st)
+    : TargetRetriever(usercfg, url, st, "ARC1") {}
 
   TargetRetrieverARC1::~TargetRetrieverARC1() {}
 
@@ -61,7 +53,7 @@ namespace Arc {
       dynamic_cast<TargetRetrieverPluginArgument*>(arg);
     if (!trarg)
       return NULL;
-    return new TargetRetrieverARC1(*trarg, *trarg);
+    return new TargetRetrieverARC1(*trarg, *trarg, *trarg);
   }
 
   void TargetRetrieverARC1::GetTargets(TargetGenerator& mom, int targetType,
@@ -70,30 +62,26 @@ namespace Arc {
     logger.msg(INFO, "TargetRetriverARC1 initialized with %s service url: %s",
                serviceType, url.str());
 
-    if (serviceType == "computing") {
-      bool added = mom.AddService(url);
-      if (added) {
+    switch (serviceType) {
+    case COMPUTING:
+      if (mom.AddService(url)) {
         ThreadArg *arg = CreateThreadArg(mom, targetType, detailLevel);
         if (!CreateThreadFunction(&InterrogateTarget, arg)) {
           delete arg;
           mom.RetrieverDone();
         }
       }
-    }
-    else if (serviceType == "storage") {}
-    else if (serviceType == "index") {
-      bool added = mom.AddIndexServer(url);
-      if (added) {
+      break;
+    case INDEX:
+      if (mom.AddIndexServer(url)) {
         ThreadArg *arg = CreateThreadArg(mom, targetType, detailLevel);
         if (!CreateThreadFunction(&QueryIndex, arg)) {
           delete arg;
           mom.RetrieverDone();
         }
       }
+      break;
     }
-    else
-      logger.msg(ERROR,
-                 "TargetRetrieverARC1 initialized with unknown url type");
   }
 
   void TargetRetrieverARC1::QueryIndex(void *arg) {
@@ -104,17 +92,16 @@ namespace Arc {
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);
     AREXClient ac(url, cfg, usercfg.Timeout());
-    std::list<Arc::Config> services;
-    std::string status;
-    if (!ac.listServicesFromISIS(services, status)) {
+    std::list< std::pair<URL, ServiceType> > services;
+    if (!ac.listServicesFromISIS(services)) {
       delete thrarg;
       mom.RetrieverDone();
       return;
     }
     logger.msg(INFO, "Found %u execution services from the index service at %s", services.size(), url.str());
 
-    for (std::list<Config>::iterator it = services.begin(); it != services.end(); it++) {
-      TargetRetrieverARC1 r(*it, usercfg);
+    for (std::list< std::pair<URL, ServiceType> >::iterator it = services.begin(); it != services.end(); it++) {
+      TargetRetrieverARC1 r(usercfg, it->first, it->second);
       r.GetTargets(mom, thrarg->targetType, thrarg->detailLevel);
     }
 
@@ -615,42 +602,22 @@ namespace Arc {
 
       if (GLUEService["ComputingManager"]["Benchmark"])
         for (XMLNode n = GLUEService["ComputingManager"]["Benchmark"]; n; ++n) {
-          std::string left;
-          std::string right;
-          if (n["Type"] && n["Value"]) {
-            left = (std::string)n["Type"];
-            right = (std::string)n["Value"];
-          }
+          double value;
+          if (n["Type"] && n["Value"] &&
+              stringto((std::string)n["Value"], value))
+            target.Benchmarks[(std::string)n["Type"]] = value;
           else {
             logger.msg(WARNING, "Couldn't parse benchmark XML:\n%s", (std::string)n);
             continue;
           }
-          try {
-            target.Benchmarks[left] = Glib::Ascii::strtod(right);
-          } catch (std::runtime_error e) {
-            logger.msg(WARNING, "Couldn't parse value \"%s\" of benchmark %s. Parse error: \"%s\".", right, left, e.what());
-            //should the something be removed from Benchmarks. Probably it was never added...
-          }
         }
       else if (NUGCService["benchmark"])
         for (XMLNode n = NUGCService["benchmark"]; n; ++n) {
-          std::string tmp = (std::string)n;
-          std::string::size_type at = tmp.find('@');
-          if (at == std::string::npos) {
-            logger.msg(WARNING, "Couldn't parse benchmark string: \"%s\".", tmp);
-            continue;
-          }
-          std::string left = tmp.substr(0, at);
-          left.resize(left.find_last_of(alphanum) + 1);
-          std::string right = tmp.substr(at + 1, std::string::npos);
-          right.erase(0, right.find_first_of(alphanum));
-          try {
-            target.Benchmarks[left] = Glib::Ascii::strtod(right);
-          } catch (std::runtime_error e) {
-            logger.msg(WARNING, "Couldn't parse value \"%s\" of benchmark %s. Parse error: \"%s\".", right, left, e.what());
-            //should the something be removed from Benchmarks. Probably it was never added...
-          }
-          //std::cout << std::endl << "Found benchmark:" << std::endl << "  Type: `" << left << "´" << std::endl << "  Value: `" << right << "´" << std::endl << "  Interpreted as: `" << target.Benchmarks[left] << "´" << std::endl; //Debugging: remove!
+            std::string benchmark = (std::string)n;
+            std::string::size_type alpha = benchmark.find_first_of("@");
+            std::string benchmarkname = benchmark.substr(0, alpha);
+            double performance = stringtod(benchmark.substr(alpha + 1));
+            target.Benchmarks[benchmarkname] = performance;
         }
       else
         logger.msg(INFO, "The Service doesn't advertise any Benchmarks.");

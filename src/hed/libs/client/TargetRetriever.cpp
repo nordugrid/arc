@@ -6,22 +6,20 @@
 
 #include <arc/ArcConfig.h>
 #include <arc/Logger.h>
-#include <arc/StringConv.h>
 #include <arc/client/TargetRetriever.h>
-#include <arc/UserConfig.h>
 #include <arc/loader/FinderLoader.h>
 
 namespace Arc {
 
   Logger TargetRetriever::logger(Logger::getRootLogger(), "TargetRetriever");
 
-  TargetRetriever::TargetRetriever(const Config& cfg,
-                                   const UserConfig& usercfg,
+  TargetRetriever::TargetRetriever(const UserConfig& usercfg,
+                                   const URL& url, ServiceType st,
                                    const std::string& flavour)
-    : flavour(flavour),
-      usercfg(usercfg),
-      url((std::string)(cfg)["URL"]),
-      serviceType((std::string)(cfg)["URL"].Attribute("ServiceType")) {}
+    : usercfg(usercfg),
+      url(url),
+      serviceType(st),
+      flavour(flavour) {}
 
   TargetRetriever::~TargetRetriever() {}
 
@@ -35,15 +33,16 @@ namespace Arc {
   }
 
   TargetRetriever* TargetRetrieverLoader::load(const std::string& name,
-                                               const Config& cfg,
-                                               const UserConfig& usercfg) {
+                                               const UserConfig& usercfg,
+                                               const URL& url,
+                                               const ServiceType& st) {
     if (name.empty())
       return NULL;
 
     PluginList list = FinderLoader::GetPluginList("HED:TargetRetriever");
     factory_->load(list[name], "HED:TargetRetriever");
 
-    TargetRetrieverPluginArgument arg(cfg, usercfg);
+    TargetRetrieverPluginArgument arg(usercfg, url, st);
     TargetRetriever *targetretriever =
       factory_->GetInstance<TargetRetriever>("HED:TargetRetriever", name, &arg);
 

@@ -31,20 +31,14 @@ namespace Arc {
          it != usercfg.GetSelectedServices(COMPUTING).end(); it++)
       for (std::list<URL>::const_iterator it2 = it->second.begin();
            it2 != it->second.end(); it2++) {
-        Config cfg;
-        XMLNode url = cfg.NewChild("URL") = it2->str();
-        url.NewAttribute("ServiceType") = "computing";
-        loader.load(it->first, cfg, usercfg);
+        loader.load(it->first, usercfg, *it2, COMPUTING);
       }
 
     for (URLListMap::const_iterator it = usercfg.GetSelectedServices(INDEX).begin();
          it != usercfg.GetSelectedServices(INDEX).end(); it++)
       for (std::list<URL>::const_iterator it2 = it->second.begin();
            it2 != it->second.end(); it2++) {
-        Config cfg;
-        XMLNode url = cfg.NewChild("URL") = it2->str();
-        url.NewAttribute("ServiceType") = "index";
-        loader.load(it->first, cfg, usercfg);
+        loader.load(it->first, usercfg, *it2, INDEX);
       }
   }
 

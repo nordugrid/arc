@@ -4,7 +4,7 @@
 #define __AREX_CLIENT__
 
 #include <string>
-#include <iostream>
+#include <utility>
 
 #include <arc/URL.h>
 #include <arc/XMLNode.h>
@@ -19,6 +19,7 @@ namespace Arc {
   class MCC;
   class MCCConfig;
   class PayloadSOAP;
+  enum ServiceType;
 
   //! A client class for the A-REX service.
   /*! This class is a client for the A-REX service (Arc
@@ -111,7 +112,7 @@ namespace Arc {
     bool migrate(const std::string& jobid, const std::string& jobdesc, bool forcemigration, std::string& newjobid, bool delegate = false);
 
 
-    bool listServicesFromISIS(std::list<Arc::Config>& services, std::string& status);
+    bool listServicesFromISIS(std::list< std::pair<URL, ServiceType> >& services);
 
 
     bool resume(const std::string& jobid);

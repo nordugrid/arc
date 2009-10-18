@@ -12,7 +12,8 @@ namespace Arc {
   class TargetRetrieverBES
     : public TargetRetriever {
   private:
-    TargetRetrieverBES(const Config& cfg, const UserConfig& usercfg);
+    TargetRetrieverBES(const UserConfig& usercfg,
+                       const URL& url, ServiceType st);
   public:
     ~TargetRetrieverBES();
     void GetTargets(TargetGenerator& mom, int targetType, int detailLevel);

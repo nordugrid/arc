@@ -4,12 +4,13 @@
 #include <config.h>
 #endif
 
+#include <arc/StringConv.h>
+#include <arc/UserConfig.h>
 #include <arc/client/ClientInterface.h>
 #include <arc/delegation/DelegationInterface.h>
 #include <arc/loader/Loader.h>
 #include <arc/ws-addressing/WSA.h>
 #include <arc/wsrf/WSResourceProperties.h>
-#include <arc/StringConv.h>
 
 #include "JobStateARC1.h"
 #include "JobStateBES.h"
@@ -267,7 +268,7 @@ namespace Arc {
     } else {
       // Simple BES service
       // GetActivityStatuses
-      //  ActivityIdentifier 
+      //  ActivityIdentifier
       XMLNode jobref =
         req.NewChild("bes-factory:GetActivityStatuses").
         NewChild(XMLNode(jobid));
@@ -480,15 +481,13 @@ namespace Arc {
     }
   }
 
-  bool AREXClient::listServicesFromISIS(std::list<Arc::Config>& services, std::string& statusString) {
+  bool AREXClient::listServicesFromISIS(std::list< std::pair<URL, ServiceType> >& services) {
 
     if(!arex_enabled) return false;
 
     logger.msg(INFO, "Creating and sending an index service query");
 
-    NS isis_ns;
-    isis_ns["isis"] = "http://www.nordugrid.org/schemas/isis/2007/06";
-    PayloadSOAP req(isis_ns);
+    PayloadSOAP req(NS("isis", "http://www.nordugrid.org/schemas/isis/2007/06"));
     XMLNode query = req.NewChild("isis:Query").NewChild("isis:QueryString");
     query = "/RegEntry/SrcAdv[Type=\"org.nordugrid.execution.arex\"]";
 
@@ -496,8 +495,7 @@ namespace Arc {
     WSAHeader(req).To(rurl.str());
     WSAHeader(req).Action("http://www.nordugrid.org/schemas/isis/2007/06/Query/QueryRequest");
 
-    Arc::MCC_Status status;
-    Arc::PayloadSOAP *resp = NULL;
+    PayloadSOAP *resp = NULL;
 
     if (client) {
       MCC_Status status =
@@ -530,9 +528,7 @@ namespace Arc {
         logger.msg(ERROR, "There was an empty response to an index service query");
         return false;
       }
-      try {
-        resp = dynamic_cast<PayloadSOAP*>(repmsg.Payload());
-      } catch (std::exception&) {}
+      resp = dynamic_cast<PayloadSOAP*>(repmsg.Payload());
       if (resp == NULL) {
         logger.msg(ERROR,
                    "The response of a index service query was not a SOAP message");
@@ -545,22 +541,11 @@ namespace Arc {
       return false;
     }
 
-    //resp->Body().GetXML(statusString,true);
-    //std::cout << "\n#####\n" << statusString << "\n######\n";
-
-
     if (XMLNode n = resp->Body()["QueryResponse"]["RegEntry"])
       for (; n; ++n) {
-        //std::string nodeString;
-        //n.GetXML(nodeString,true);
-        //std::cout << "\n##begin service##\n" << nodeString << "\n##end service###\n";
         if ((std::string)n["SrcAdv"]["Type"] == "org.nordugrid.execution.arex") {
           //This check is right now superfluos but in the future a wider query might be used
-          NS ns;
-          Config cfg(ns);
-          XMLNode URLXML = cfg.NewChild("URL") = (std::string)n["SrcAdv"]["EPR"]["Address"];
-          URLXML.NewAttribute("ServiceType") = "computing";
-          services.push_back(cfg);
+          services.push_back(std::pair<URL, ServiceType>(URL((std::string)n["SrcAdv"]["EPR"]["Address"]), COMPUTING));
         }
         else
           logger.msg(INFO,

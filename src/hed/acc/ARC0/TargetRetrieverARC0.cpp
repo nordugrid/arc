@@ -9,10 +9,9 @@
 #include <arc/StringConv.h>
 #include <arc/Thread.h>
 #include <arc/URL.h>
-#include <arc/XMLNode.h>
-#include <arc/credential/Credential.h>
 #include <arc/client/ExecutionTarget.h>
 #include <arc/client/TargetGenerator.h>
+#include <arc/credential/Credential.h>
 #include <arc/data/DataBuffer.h>
 #include <arc/data/DataHandle.h>
 
@@ -42,9 +41,9 @@ namespace Arc {
 
   Logger TargetRetrieverARC0::logger(TargetRetriever::logger, "ARC0");
 
-  TargetRetrieverARC0::TargetRetrieverARC0(const Config& cfg,
-                                           const UserConfig& usercfg)
-    : TargetRetriever(cfg, usercfg, "ARC0") {}
+  TargetRetrieverARC0::TargetRetrieverARC0(const UserConfig& usercfg,
+                                           const URL& url, ServiceType st)
+    : TargetRetriever(usercfg, url, st, "ARC0") {}
 
   TargetRetrieverARC0::~TargetRetrieverARC0() {}
 
@@ -53,7 +52,7 @@ namespace Arc {
       dynamic_cast<TargetRetrieverPluginArgument*>(arg);
     if (!trarg)
       return NULL;
-    return new TargetRetrieverARC0(*trarg, *trarg);
+    return new TargetRetrieverARC0(*trarg, *trarg, *trarg);
   }
 
   void TargetRetrieverARC0::GetTargets(TargetGenerator& mom, int targetType,
@@ -62,30 +61,26 @@ namespace Arc {
     logger.msg(INFO, "TargetRetriverARC0 initialized with %s service url: %s",
                serviceType, url.str());
 
-    if (serviceType == "computing") {
-      bool added = mom.AddService(url);
-      if (added) {
+    switch (serviceType) {
+    case COMPUTING:
+      if (mom.AddService(url)) {
         ThreadArg *arg = CreateThreadArg(mom, targetType, detailLevel);
         if (!CreateThreadFunction(&InterrogateTarget, arg)) {
           delete arg;
           mom.RetrieverDone();
         }
       }
-    }
-    else if (serviceType == "storage") {}
-    else if (serviceType == "index") {
-      bool added = mom.AddIndexServer(url);
-      if (added) {
+      break;
+    case INDEX:
+      if (mom.AddIndexServer(url)) {
         ThreadArg *arg = CreateThreadArg(mom, targetType, detailLevel);
         if (!CreateThreadFunction(&QueryIndex, arg)) {
           delete arg;
           mom.RetrieverDone();
         }
       }
+      break;
     }
-    else
-      logger.msg(ERROR,
-                 "TargetRetrieverARC0 initialized with unknown url type");
   }
 
   void TargetRetrieverARC0::QueryIndex(void *arg) {
@@ -141,14 +136,12 @@ namespace Arc {
       if ((std::string)(*it)["Mds-Reg-status"] == "PURGED")
         continue;
 
-      Config cfg;
-      XMLNode url = cfg.NewChild("URL");
-      url = (std::string)(*it)["Mds-Service-type"] + "://" +
-            (std::string)(*it)["Mds-Service-hn"] + ":" +
-            (std::string)(*it)["Mds-Service-port"] + "/" +
-            (std::string)(*it)["Mds-Service-Ldap-suffix"];
-      url.NewAttribute("ServiceType") = "index";
-      TargetRetrieverARC0 retriever(cfg, usercfg);
+      TargetRetrieverARC0 retriever(usercfg,
+                                    URL((std::string)(*it)["Mds-Service-type"] + "://" +
+                                        (std::string)(*it)["Mds-Service-hn"] + ":" +
+                                        (std::string)(*it)["Mds-Service-port"] + "/" +
+                                        (std::string)(*it)["Mds-Service-Ldap-suffix"]),
+                                    INDEX);
       retriever.GetTargets(mom, thrarg->targetType, thrarg->detailLevel);
     }
 
@@ -162,14 +155,12 @@ namespace Arc {
       if ((std::string)(*it)["Mds-Reg-status"] == "PURGED")
         continue;
 
-      Config cfg;
-      XMLNode url = cfg.NewChild("URL");
-      url = (std::string)(*it)["Mds-Service-type"] + "://" +
-            (std::string)(*it)["Mds-Service-hn"] + ":" +
-            (std::string)(*it)["Mds-Service-port"] + "/" +
-            (std::string)(*it)["Mds-Service-Ldap-suffix"];
-      url.NewAttribute("ServiceType") = "computing";
-      TargetRetrieverARC0 retriever(cfg, usercfg);
+      TargetRetrieverARC0 retriever(usercfg,
+                                    URL((std::string)(*it)["Mds-Service-type"] + "://" +
+                                        (std::string)(*it)["Mds-Service-hn"] + ":" +
+                                        (std::string)(*it)["Mds-Service-port"] + "/" +
+                                        (std::string)(*it)["Mds-Service-Ldap-suffix"]),
+                                    COMPUTING);
       retriever.GetTargets(mom, thrarg->targetType, thrarg->detailLevel);
     }
 
@@ -185,9 +176,9 @@ namespace Arc {
 
     //Create credential object in order to get the user DN
     Credential credential(!usercfg.ProxyPath().empty() ? usercfg.ProxyPath() :
-                          usercfg.CertificatePath(),
+                                                         usercfg.CertificatePath(),
                           !usercfg.ProxyPath().empty() ? usercfg.ProxyPath() :
-                          usercfg.KeyPath(),
+                                                         usercfg.KeyPath(),
                           usercfg.CACertificatesDirectory(), "");
 
     //Query GRIS for all relevant information

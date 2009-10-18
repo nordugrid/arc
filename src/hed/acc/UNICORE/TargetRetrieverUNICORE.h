@@ -8,16 +8,14 @@
 namespace Arc {
 
   class Logger;
-  class TargetGenerator;
-  class URL;
-  class XMLNode;
 
   struct ThreadArg;
 
   class TargetRetrieverUNICORE
     : public TargetRetriever {
   private:
-    TargetRetrieverUNICORE(const Config& cfg, const UserConfig& usercfg);
+    TargetRetrieverUNICORE(const UserConfig& usercfg,
+                           const URL& url, ServiceType st);
   public:
     ~TargetRetrieverUNICORE();
     void GetTargets(TargetGenerator& mom, int targetType, int detailLevel);

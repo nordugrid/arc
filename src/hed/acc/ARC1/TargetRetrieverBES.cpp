@@ -28,9 +28,9 @@ namespace Arc {
 
   Logger TargetRetrieverBES::logger(TargetRetriever::logger, "BES");
 
-  TargetRetrieverBES::TargetRetrieverBES(const Config& cfg,
-                                         const UserConfig& usercfg)
-    : TargetRetriever(cfg, usercfg, "BES") {}
+  TargetRetrieverBES::TargetRetrieverBES(const UserConfig& usercfg,
+                                         const URL& url, ServiceType st)
+    : TargetRetriever(usercfg, url, st, "BES") {}
 
   TargetRetrieverBES::~TargetRetrieverBES() {}
 
@@ -39,7 +39,7 @@ namespace Arc {
       dynamic_cast<TargetRetrieverPluginArgument*>(arg);
     if (!trarg)
       return NULL;
-    return new TargetRetrieverBES(*trarg, *trarg);
+    return new TargetRetrieverBES(*trarg, *trarg, *trarg);
   }
 
   void TargetRetrieverBES::GetTargets(TargetGenerator& mom, int targetType,
@@ -48,26 +48,25 @@ namespace Arc {
     logger.msg(INFO, "TargetRetriverBES initialized with %s service url: %s",
                serviceType, url.str());
 
-    if (serviceType == "computing") {
-      bool added = mom.AddService(url);
-      ExecutionTarget target;
-      target.GridFlavour = "BES";
-      target.Cluster = url;
-      target.url = url;
-      target.InterfaceName = "BES";
-      target.Implementor = "NorduGrid";
-      target.DomainName = url.Host();
-      target.HealthState = "ok";
-      mom.AddTarget(target);
+    switch (serviceType) {
+    case COMPUTING:
+      if (mom.AddService(url)) {
+        ExecutionTarget target;
+        target.GridFlavour = flavour;
+        target.Cluster = url;
+        target.url = url;
+        target.InterfaceName = flavour;
+        target.Implementor = "NorduGrid";
+        target.DomainName = url.Host();
+        target.HealthState = "ok";
+        mom.AddTarget(target);
+        mom.RetrieverDone();
+      }
+      break;
+    case INDEX:
       mom.RetrieverDone();
+      break;
     }
-    else if (serviceType == "storage") {}
-    else if (serviceType == "index") {
-      mom.RetrieverDone();
-    }
-    else
-      logger.msg(ERROR,
-                 "TargetRetrieverBES initialized with unknown url type");
   }
 
 } // namespace Arc

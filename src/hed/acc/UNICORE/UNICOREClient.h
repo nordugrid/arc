@@ -90,12 +90,10 @@ namespace Arc {
        execution services.
        @param tsf A list of different execution services returned from the
        registry. This variable will be overwritten by the method.
-       @param status The XML document representing reply from the service.
-       This variable will be overwritten by the method. This parameter may
-       be removed at some point as it is mainly for debugging.
        @return true on success
      */
-    bool listTargetSystemFactories(std::list<Config>& tsf, std::string& status);
+    bool listTargetSystemFactories(std::list< std::pair<URL, ServiceType> >& tsf);
+
     ClientSOAP* SOAP(void) {
       return client;
     }

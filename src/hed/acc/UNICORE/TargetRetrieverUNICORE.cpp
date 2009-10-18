@@ -4,6 +4,8 @@
 #include <config.h>
 #endif
 
+#include <utility>
+
 #include <arc/ArcConfig.h>
 #include <arc/message/MCC.h>
 #include <arc/Logger.h>
@@ -13,8 +15,6 @@
 #include <arc/XMLNode.h>
 #include <arc/client/ExecutionTarget.h>
 #include <arc/client/TargetGenerator.h>
-
-#include <iostream>
 
 #include "UNICOREClient.h"
 #include "TargetRetrieverUNICORE.h"
@@ -43,9 +43,9 @@ namespace Arc {
 
   Logger TargetRetrieverUNICORE::logger(TargetRetriever::logger, "UNICORE");
 
-  TargetRetrieverUNICORE::TargetRetrieverUNICORE(const Config& cfg,
-                                                 const UserConfig& usercfg)
-    : TargetRetriever(cfg, usercfg, "UNICORE") {}
+  TargetRetrieverUNICORE::TargetRetrieverUNICORE(const UserConfig& usercfg,
+                                                 const URL& url, ServiceType st)
+    : TargetRetriever(usercfg, url, st, "UNICORE") {}
 
   TargetRetrieverUNICORE::~TargetRetrieverUNICORE() {}
 
@@ -54,7 +54,7 @@ namespace Arc {
       dynamic_cast<TargetRetrieverPluginArgument*>(arg);
     if (!trarg)
       return NULL;
-    return new TargetRetrieverUNICORE(*trarg, *trarg);
+    return new TargetRetrieverUNICORE(*trarg, *trarg, *trarg);
   }
 
   void TargetRetrieverUNICORE::GetTargets(TargetGenerator& mom, int targetType,
@@ -63,30 +63,26 @@ namespace Arc {
     logger.msg(INFO, "TargetRetriverUNICORE initialized with %s service url: %s",
                serviceType, url.str());
 
-    if (serviceType == "computing") {
-      bool added = mom.AddService(url);
-      if (added) {
+    switch (serviceType) {
+    case COMPUTING:
+      if (mom.AddService(url)) {
         ThreadArg *arg = CreateThreadArg(mom, targetType, detailLevel);
         if (!CreateThreadFunction(&InterrogateTarget, arg)) {
           delete arg;
           mom.RetrieverDone();
         }
       }
-    }
-    else if (serviceType == "storage") {}
-    else if (serviceType == "index") {
-      bool added = mom.AddIndexServer(url);
-      if (added) {
+      break;
+    case INDEX:
+      if (mom.AddIndexServer(url)) {
         ThreadArg *arg = CreateThreadArg(mom, targetType, detailLevel);
         if (!CreateThreadFunction(&QueryIndex, arg)) {
           delete arg;
           mom.RetrieverDone();
         }
       }
+      break;
     }
-    else
-      logger.msg(ERROR,
-                 "TargetRetrieverUNICORE initialized with unknown url type");
   }
 
   void TargetRetrieverUNICORE::QueryIndex(void *arg) {
@@ -98,14 +94,10 @@ namespace Arc {
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);
     UNICOREClient uc(url, cfg, usercfg.Timeout());
-    std::string thePayload;
-    std::list<Config> beses;
-    //beses should hold a list of trees each suitable to configure a new TargetRetriever
-    uc.listTargetSystemFactories(beses, thePayload);
-    //std::cout << thePayload << std::endl; //debug remove!
-    //The following loop should work even for mixed lists of index and computing services
-    for (std::list<Config>::iterator it = beses.begin(); it != beses.end(); it++) {
-      TargetRetrieverUNICORE r(*it, usercfg);
+    std::list< std::pair<URL, ServiceType> > beses;
+    uc.listTargetSystemFactories(beses);
+    for (std::list< std::pair<URL, ServiceType> >::iterator it = beses.begin(); it != beses.end(); it++) {
+      TargetRetrieverUNICORE r(usercfg, it->first, it->second);
       r.GetTargets(mom, thrarg->targetType, thrarg->detailLevel);
     }
 
@@ -128,20 +120,16 @@ namespace Arc {
       mom.RetrieverDone();
       return;
     }
-    //std::cout << status << std::endl; //debug remove!
 
 
     ExecutionTarget target;
-
     target.GridFlavour = "UNICORE";
     target.Cluster = url;
     target.url = url;
     target.InterfaceName = "BES";
     target.Implementor = "UNICORE";
-    //target.ImplementationName = "UNICORE";
     target.Implementation = Software("UNICORE");
     target.HealthState = "ok";
-
     target.DomainName = url.Host();
 
 
