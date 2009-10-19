@@ -39,12 +39,17 @@ AC_ARG_WITH(sysv-scripts-location,
   [ initddir="$withval" ],
   [
     initddir=
-    for i in init.d rc.d/init.d rc.d /Library/LaunchDaemons; do
+    for i in init.d rc.d/init.d rc.d; do
       if test -d "/etc/$i" -a ! -h "/etc/$i" ; then
         initddir="$sysconfdir/$i"
         break
       fi
     done
+
+    if test -z "$initddir" && test -d "/Library/LaunchDaemons" -a ! -h " /Library/LaunchDaemons"; then
+      initddir="/Library/LaunchDaemons"
+    fi
+
     if test -z "$initddir"; then
       AC_MSG_ERROR(could not find a suitable location for the SYSV init scripts)
     fi
