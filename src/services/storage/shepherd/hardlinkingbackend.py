@@ -119,7 +119,11 @@ class HardlinkingBackend:
         return os.listdir(os.datadir)
 
     def getAvailableSpace(self):
-        return None
+        try:
+            f = os.statvfs(os.datadir)
+            return f.f_frsize * f.f_bavail
+        except:
+            return None
 
     def generateLocalID(self):
         return arc.UUID()
