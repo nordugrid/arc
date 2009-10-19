@@ -33,7 +33,7 @@
 	    <tls:KeyPath>../../tests/echo/testkey-nopass.pem</tls:KeyPath>
 	    <tls:CertificatePath>../../tests/echo/testcert.pem</tls:CertificatePath>
             <tls:CACertificatesDir>../../tests/echo/certificates</tls:CACertificatesDir>
-	    <!--tls:CACertificatePath>../../tests/echo/testcacert.pem</tls:CACertificatePath-->
+	    <tls:CACertificatePath>../../tests/echo/testcacert.pem</tls:CACertificatePath>
 	</Component>
         <Component name="http.service" id="http">
             <next id="soap">POST</next>
