@@ -30,8 +30,8 @@ class Shepherd:
             backendclass = str(cfg.Get('BackendClass'))
             backendcfg = cfg.Get('BackendCfg')
             self.backend = import_class_from_string(backendclass)(backendcfg, shepherd_uri, self._file_arrived, self.ssl_config)
-        except:
-            log.msg(arc.DEBUG, 'Cannot import backend class', backendclass)
+        except Exception, e:
+            log.msg(arc.DEBUG, 'Cannot import backend class %s (reason: %s)' % (backendclass, e))
             raise
         
         try:
@@ -209,8 +209,8 @@ class Shepherd:
         #print '-=-', referenceID, state, checksum, current_checksum
         if checksum == current_checksum:
             # if the original and the current checksum is the same, then the replica is valid
-            if state == INVALID or state == CREATING:
-                # if it is currently INVALID or CREATING its state should be changed
+            if state in [INVALID, CREATING, STALLED]:
+                # if it is currently INVALID or CREATING or STALLED, its state should be changed
                 log.msg(arc.DEBUG, '\nCHECKSUM OK', referenceID)
                 self.changeState(referenceID, ALIVE)
                 state = ALIVE
@@ -324,9 +324,9 @@ class Shepherd:
                                     if GUID in alive_GUIDs:
                                         # this means that we already have an other alive replica of this file
                                         log.msg(arc.DEBUG, '\n\nFile', GUID, 'has more than one replicas on this storage element.')
-                                        self.changeState(referenceID, THIRDWHEEL)
+                                        self.changeState(referenceID, DELETED)
                                     else:    
-                                        # check the number of needed replicasa
+                                        # check the number of needed replicas
                                         needed_replicas = int(metadata.get(('states','neededReplicas'),1))
                                         #print metadata.items()
                                         # find myself among the locations
@@ -337,10 +337,10 @@ class Shepherd:
                                             # if the state of this replica is not proper in the Librarian, fix it
                                             metadata[('locations', mylocation)] = ALIVE
                                             self.changeState(referenceID, ALIVE)
-                                        # and the number of shepherds with alive (or creating) replicas
+                                        # get the number of shepherds with alive (or creating) replicas
                                         alive_replicas = len(dict([(property.split(' ')[0], value) 
                                                                    for (section, property), value in metadata.items()
-                                                                   if section == 'locations' and value in [ALIVE, CREATING,STALLED]]))
+                                                                   if section == 'locations' and value in [ALIVE, CREATING]]))
                                         if alive_replicas < needed_replicas:
                                             # if the file has fewer replicas than needed
                                             log.msg(arc.DEBUG, '\n\nFile', GUID, 'has fewer replicas than needed.')
@@ -363,7 +363,6 @@ class Shepherd:
                                             log.msg(arc.DEBUG, '\n\nFile', GUID, 'has %d more replicas than needed.' % (alive_replicas-needed_replicas))
                                             thirdwheels = len([property for (section, property), value in metadata.items()
                                                                if section == 'locations' and value == THIRDWHEEL])
-
                                             if thirdwheels == 0:
                                                 self.changeState(referenceID, THIRDWHEEL)
                                         else:
@@ -511,34 +510,50 @@ class Shepherd:
                 if availableSpace and availableSpace < size:
                     response[requestID] = [('error', 'not enough space')]
                 else:
-                    # create a new referenceID
-                    referenceID = arc.UUID()
-                    # ask the backend to create a local ID
-                    localID = self.backend.generateLocalID()
-                    # create the local data of the new file
-                    file_data = {'localID' : localID,
-                        'GUID' : requestData.get('GUID', None),
-                        'checksum' : requestData.get('checksum', None),
-                        'checksumType' : requestData.get('checksumType', None),
-                        'size' : size,
-                        'acl': acl,
-                        'created': str(time.time()),
-                        'state' : CREATING} # first it has the state: CREATING
-                    try:
-                        # ask the backend to initiate the transfer
-                        turl = self.backend.prepareToPut(referenceID, localID, protocol)
-                        if turl:
-                            # add the returnable data to the response dict
-                            response[requestID] = [('TURL', turl), ('protocol', protocol), ('referenceID', referenceID)]
-                            # store the local data
-                            self.store.set(referenceID, file_data)
-                            # indicate that this file is 'changed': it should be reported in the next reporting cycle (in reportingThread)
-                            self.changed_states.append(referenceID)
-                        else:
-                            response[requestID] = [('error', 'internal error (empty TURL)')]
-                    except:
-                        log.msg()
-                        response[requestID] = [('error', 'internal error (prepareToPut exception)')]
+                    GUID = requestData.get('GUID', None)
+                    already_have_this_file = False
+                    if GUID:
+                        referenceIDs = self.store.list()
+                        for referenceID in referenceIDs:
+                            try:
+                                localData = self.store.get(referenceID)
+                                if localData['GUID'] == GUID and localData['state'] == ALIVE:
+                                    already_have_this_file = True;
+                                    break
+                            except:
+                                log.msg()
+                                pass
+                    if already_have_this_file:
+                        response[requestID] = [('error', 'already have this file')]
+                    else:
+                        # create a new referenceIDs
+                        referenceID = arc.UUID()
+                        # ask the backend to create a local ID
+                        localID = self.backend.generateLocalID()
+                        # create the local data of the new file
+                        file_data = {'localID' : localID,
+                            'GUID' : requestData.get('GUID', None),
+                            'checksum' : requestData.get('checksum', None),
+                            'checksumType' : requestData.get('checksumType', None),
+                            'size' : size,
+                            'acl': acl,
+                            'created': str(time.time()),
+                            'state' : CREATING} # first it has the state: CREATING
+                        try:
+                            # ask the backend to initiate the transfer
+                            turl = self.backend.prepareToPut(referenceID, localID, protocol)
+                            if turl:
+                                # add the returnable data to the response dict
+                                response[requestID] = [('TURL', turl), ('protocol', protocol), ('referenceID', referenceID)]
+                                # store the local data
+                                self.store.set(referenceID, file_data)
+                                # indicate that this file is 'changed': it should be reported in the next reporting cycle (in reportingThread)
+                                self.changed_states.append(referenceID)
+                            else:
+                                response[requestID] = [('error', 'internal error (empty TURL)')]
+                        except Exception, e:
+                            log.msg()
+                            response[requestID] = [('error', 'internal error (prepareToPut exception: %s)' % e)]
             else:
                 response[requestID] = [('error', 'no supported protocol found')]
         return response

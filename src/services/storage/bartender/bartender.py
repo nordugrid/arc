@@ -346,7 +346,7 @@ class Bartender:
                                     # get_response is a dictionary with keys such as 'TURL', 'protocol' or 'error'
                                     if get_response.has_key('error'):
                                         # if there was an error
-                                        log.msg(arc.DEBUG, 'ERROR', get_response['error'])
+                                        log.msg(arc.DEBUG, 'ERROR from the chosen Shepherd', get_response['error'])
                                         success = 'error while getting TURL (%s)' % get_response['error']
                                     else:
                                         # get the TURL and the choosen protocol, these will be set as reply for this requestID
@@ -438,7 +438,7 @@ class Bartender:
             except:
                 put_response = {'error' : traceback.format_exc()}
             if put_response.has_key('error'):
-                log.msg(arc.ERROR, 'ERROR', put_response['error'])
+                log.msg(arc.DEBUG, 'ERROR from the chosen Shepherd', put_response['error'])
             else:
                 # if the put request was successful then we have a transfer URL, a choosen protocol and the referenceID of the file
                 turl = put_response['TURL']
