@@ -2,16 +2,41 @@
 \usepackage{graphicx}                              %for PNG images (pdflatex)
 %\usepackage{graphics}                              %for EPS images (latex)
 \usepackage[linkbordercolor={1.0 1.0 0.0}]{hyperref} %for \url tag
-\usepackage{color}                                 %for defining custom colors
+%~ \usepackage{color}                                 %for defining custom colors
 \usepackage{framed}                                %for shaded and framed paragraphs
 \usepackage{textcomp}                              %for various symbols, e.g. Registered Mark
 \usepackage{geometry}                              %for defining page size
-\usepackage{longtable}                             %for breaking tables
 \usepackage{array}
 \usepackage{booktabs}
-\usepackage{tabularx}
+\usepackage{ltablex}
 \usepackage[english]{babel}
 \usepackage{multirow}
+\usepackage[table]{xcolor} % Note: The rowcolors command does not work properly with the tabularx environment.
+
+
+\colorlet{tableheadcolor}{gray!25}
+\colorlet{tablerowcolor}{gray!12.5}
+
+\newcolumntype{C}{>{\ttfamily\footnotesize}c}
+\newcolumntype{T}{>{\ttfamily\footnotesize\centering\arraybackslash}X}
+
+\newcommand{\TODO}{\normalsize{\textnormal{TODO}}}
+\newcommand{\NM}{\normalsize{\textnormal{Not mapped}}}
+\newcommand{\NST}[1]{\normalsize{\textnormal{#1}}}
+\newcommand{\defineheadfoot}{\endfirsthead %
+\midrule %
+\multicolumn{3}{c}{Continued from previous page}\\%
+\midrule %
+\endhead %
+\midrule %
+\multicolumn{3}{c}{Continues at next page}\\%
+\midrule %
+\endfoot %
+\bottomrule %
+\endlastfoot}
+
+
+\renewcommand{\tabularxcolumn}[1]{m{#1}}
 
 \geometry{verbose,a4paper,tmargin=2.5cm,bmargin=2.5cm,lmargin=2.5cm,rmargin=2cm}
 
@@ -639,68 +664,74 @@ ARC-JSDL & ~ & ~\\
 \end{inouttabular}
 
 \section{XRSL mapping}
-\begin{table}
 \begin{center}
-\begin{tabular}{l|c|c}
-XRSL input  & Internal representaion & XRSL output\\\hline
+\rowcolors{3}{tablerowcolor}{}
+\begin{tabularx}{400pt}{CTC}
+\toprule
+\NST{XRSL input} & \NST{Internal representaion} & \NST{XRSL output}\\
+\midrule
+\defineheadfoot
 executable & Application.Executable.Name & executable\\
 arguments & Application.Executable.Arguments & arguments\\
-inputFiles & DataStaging.File.Name DataStaging.File.Source & inputFiles\\
+inputFiles& DataStaging.File.Name,\linebreak DataStaging.File.Source & inputFiles\\
 executables & DataStaging.File.IsExecutable & executables\\
-cache & TODO & TODO\\
-outputFiles & DataStaging.File.Name DataStaging.File.Target & outputFiles\\
+cache & \TODO & \TODO \\
+outputFiles & DataStaging.File.Name,\linebreak DataStaging.File.Target & outputFiles \\
 cpuTime & Resources.TotalCPUTime & cpuTime\\
 wallTime & Resources.TotalWallTime & wallTime\\
-gridTime & Not mapped & Not mapped\\
-benchmarks & Not mapped & Not mapped\\
+gridTime & Resources.TotalCPUTime & \NM \\
+benchmarks & Resources.TotalCPUTime & \NM \\
 memory & Resources.IndividualPhysicalMemory & memory\\
 disk & Resources.DiskSpaceRequirement.DiskSpace & disk\\
 runTimeEnvironment & Resources.RunTimeEnvironment & runTimeEnvironment\\
 middleware & Resources.CEType & middleware\\
 opsys & Resources.OperatingSystem & opsys\\
 stdin & Application.Input & stdin\\
-stdout & Application.Output & stdout outputFiles\\
-stderr & Application.Error & stderr outputFiles\\
-join & Application.Join & Not mapped\\
+stdout & Application.Output & stdout, outputFiles\\
+stderr & Application.Error & stderr, outputFiles\\
+join & Application.Join & \NM\\
 gmlog & Application.LogDir & gmlog\\
 jobName & Identification.JobName & jobName\\
-ftpThreads & DataStaging.File.Source.Threads DataStaging.File.Target.Threads & Not mapped\\
+ftpThreads & DataStaging.File.Source.Threads,\linebreak DataStaging.File.Target.Threads & \NM\\
 acl & Application.AccessControl & acl\\
-cluster & Resources.CandidateTarget.EndPointURL & Not mapped\\
+cluster & Resources.CandidateTarget.EndPointURL & \NM\\
 queue & Resources.CandidateTarget.QueueName & queue\\
-startTime & Application.ProcessingStartTime & Not mapped\\
+startTime & Application.ProcessingStartTime & \NM\\
 lifeTime & Resources.SessionLifeTime & lifeTime\\
 notify & Application.Notification & notify\\
-replicaCollection & DataStaging.File.DataIndexingService & Not mapped\\
+replicaCollection & DataStaging.File.DataIndexingService & \NM\\
 rerun & Application.Rerun & rerun\\
 architecture & Resources.Platform & architecture\\
-nodeAccess & Resources.NodeAccess & Not mapped\\
-dryRun & Not mapped & Not mapped\\
-rsl\_substitution & Processed internally by the parser & Not mapped\\
+nodeAccess & Resources.NodeAccess & \NM\\
+dryRun & \NM & \NM\\
+rsl\_substitution & \NST{Processed internally by the parser} & \NM\\
 environment & Application.Environment & environment\\
 count & Resources.SlotRequirement.ProcessPerHost & count\\
 jobreport & Application.RemoteLogging & jobreport\\
 credentialserver & Application.CredentialService & credentialserver\\
-\end{tabular}
+\end{tabularx}
 \end{center}
-\end{table}
 
 \section{JDL mapping}
-\begin{table}
 \begin{center}
-\begin{tabular}{l|c|c}
-JDL input  & Internal representaion & JDL output\\\hline
-JobType & Not mapped & Not mapped\\
-Executable & Application.Executable.Name & Executable InputSandbox\\
+\rowcolors{3}{}{tablerowcolor}
+\begin{tabularx}{\textwidth}{CTT}
+\toprule
+\rowcolor{white}
+\NST{JDL input} & \NST{Internal representaion} & \NST{JDL output}\\
+\midrule
+\defineheadfoot
+JobType & \NM & \NM\\
+Executable & Application.Executable.Name & Executable, InputSandbox\\
 Arguments & Application.Executable.Arguments & Arguments\\
-StdInput & Application.Input & StdInput InputSandbox\\
-StdOutput & Application.Output & StdOutput OutputSandbox OutputSandboxDestURI\\
-StdError & Application.Error & StdError OutputSandbox OutputSandboxDestURI\\
-InputSandbox & DataStaging.File.Name DataStaging.File.Source & InputSandbox\\
+StdInput & Application.Input & StdInput,\linebreak InputSandbox\\
+StdOutput & Application.Output & StdOutput,\linebreak OutputSandbox,\linebreak OutputSandboxDestURI\\
+StdError & Application.Error & StdError,\linebreak OutputSandbox,\linebreak OutputSandboxDestURI\\
+InputSandbox & DataStaging.File.Name,\linebreak DataStaging.File.Source & InputSandbox\\
 InputSandboxBaseURI & DataStaging.File.Source.URI & InputSandbox\\
-OutputSandbox & DataStaging.File.Name DataStaging.File.Target.URI & OutputSandbox OutputSandboxDestURI\\
-OutputSandboxDestURI & DataStaging.File.Target DataStaging.File.KeepData & OutputSandbox OutputSandboxDestURI\\
-OutputSandboxBaseDestURI & DataStaging.File.Target.URI & OutputSandbox OutputSandboxDestURI\\
+OutputSandbox & DataStaging.File.Name,\linebreak DataStaging.File.Target.URI & OutputSandbox,\linebreak OutputSandboxDestURI\\
+OutputSandboxDestURI & DataStaging.File.Target,\linebreak DataStaging.File.KeepData & OutputSandbox,\linebreak OutputSandboxDestURI\\
+OutputSandboxBaseDestURI & DataStaging.File.Target.URI & OutputSandbox,\linebreak OutputSandboxDestURI\\
 Prologue & Application.Prologue.Name & Prologue\\
 PrologueArguments & Application.Prologue.Arguments & PrologueArguments\\
 Epilogue & Application.Epilogue.Name & Epilogue\\
@@ -709,62 +740,69 @@ AllowZippedISB & Stored internally, not processed & AllowZippedISB\\
 ZippedISB & Stored internally, not processed & ZippedISB\\
 ExpiryTime & Application.ExpiryTime & ExpiryTime\\
 Environment & Application.Environment & Environment\\
-PerusalFileEnable & Stored internally, not processed & PerusalFileEnable\\
-PerusalTimeInterval & Stored internally, not processed & PerusalTimeInterval\\
-PerusalFilesDestURI & Stored internally, not processed & PerusalFilesDestURI\\
-InputData (Deprecated) & Not mapped & Not mapped\\
-OutputData (Deprecated) & Not mapped & Not mapped\\
-StorageIndex (Deprecated) & Not mapped & Not mapped\\
-DataCatalog (Deprecated) & Not mapped & Not mapped\\
-DataRequirements & Stored internally, not processed & DataRequirements\\
-DataAccessProtocol & Stored internally, not processed & DataAccessProtocol\\
-OutputSE & Stored internally, not processed & OutputSE\\
+PerusalFileEnable & \NST{Stored internally, not processed} & PerusalFileEnable\\
+PerusalTimeInterval & \NST{Stored internally, not processed} & PerusalTimeInterval\\
+PerusalFilesDestURI & \NST{Stored internally, not processed} & PerusalFilesDestURI\\
+InputData \NST{(Deprecated)} & \NM & \NM\\
+OutputData \NST{(Deprecated)} & \NM & \NM\\
+StorageIndex \NST{(Deprecated)} & \NM & \NM\\
+DataCatalog \NST{(Deprecated)} & \NM & \NM\\
+DataRequirements & \NST{Stored internally, not processed} & DataRequirements\\
+DataAccessProtocol & \NST{Stored internally, not processed} & DataAccessProtocol\\
+OutputSE & \NST{Stored internally, not processed} & OutputSE\\
 VirtualOrganisation & Identification.JobVOName & VirtualOrganisation\\
 RetryCount & Application.Rerun & RetryCount ShallowRetryCount\\
 ShallowRetryCount & Application.Rerun & RetryCount ShallowRetryCount\\
-LBAddress & Stored internally, not processed & LBAddress\\
+LBAddress & \NST{Stored internally, not processed} & LBAddress\\
 MyProxyServer & Application.CredentialService & MyProxyServer\\
-HLRLocation & Stored internally, not processed & HLRLocation\\
-JobProvenance & Stored internally, not processed & JobProvenance\\
-NodeNumber & Stored internally, not processed & NodeNumber\\
-JobSteps (Deprecated) & Not mapped & Not mapped\\
-CurrentStep (Deprecated) & Not mapped & Not mapped\\
-JobState (Deprecated) & Not mapped & Not mapped\\
-ListenerPort & Stored internally, not processed & ListenerPort\\
-ListenerHost & Stored internally, not processed & ListenerHost\\
-ListenerPipeName & Stored internally, not processed & ListenerPipeName\\
-Requirements & Stored internally, not processed & Requirements\\
+HLRLocation & \NST{Stored internally, not processed} & HLRLocation\\
+JobProvenance & \NST{Stored internally, not processed} & JobProvenance\\
+NodeNumber & \NST{Stored internally, not processed} & NodeNumber\\
+JobSteps \NST{(Deprecated)} & \NM & \NM\\
+CurrentStep \NST{(Deprecated)} & \NM & \NM\\
+JobState \NST{(Deprecated)} & \NM & \NM\\
+ListenerPort & \NST{Stored internally, not processed} & ListenerPort\\
+ListenerHost & \NST{Stored internally, not processed} & ListenerHost\\
+ListenerPipeName & \NST{Stored internally, not processed} & ListenerPipeName\\
+Requirements & \NST{Stored internally, not processed} & Requirements\\
 Rank & JobMeta.Rank & Rank\\
 FuzzyRank & JobMeta.FuzzyRank & FuzzyRank\\
 UserTags & Identification.UserTag & UserTags\\
-BatchSystem & Stored internally, not processed & BatchSystem\\
-QueueName & Resources.CandidateTarget.QueueName & QueueName\\
-\end{tabular}
+BatchSystem & \NST{Stored internally, not processed} & BatchSystem\\
+QueueName & Resources.CandidateTarget.QueueName & QueueName
+\end{tabularx}
 \end{center}
-\end{table}
 
 \section{JSDL mapping}
-\begin{table}
 \begin{center}
-\begin{tabular}{l|c|c}
-JSDL input  & Internal representaion & JSDL output\\\hline
-\bfseries JobIdentification & &\\
+\rowcolors{3}{}{tablerowcolor}
+\begin{tabularx}{400pt}{TCC}
+\toprule
+\NST{JSDL input} & \NST{Internal representaion} & \NST{JSDL output}\\
+\midrule
+\defineheadfoot
+\multicolumn{3}{c}{\bfseries JobIdentification}\\
+\midrule
 JobName & &\\
 JobAnnotation & &\\
 JobProject & &\\
-\bfseries Application & &\\
+\midrule
+\multicolumn{3}{c}{\bfseries Application}\\
+\midrule
 ApplicationName & &\\
 ApplicationVersion & &\\
-\bfseries Resources & &\\
+\midrule
+\multicolumn{3}{c}{\bfseries Resources}\\
+\midrule
 CandidateHosts/HostName & &\\
 FileSystem/FileSystemType & &\\
 FileSystem/Description & &\\
 FileSystem/MountPoint & &\\
 FileSystem/DiskSpace & &\\
 ExclusiveExecution & &\\
-OperatingSystem/OperatingSystemType/OperatingSystemName & &\\
-OperatingSystem/OperatingSystemVersion & &\\
-CPUArchitecture/CPUArchitectureName & &\\
+OperatingSystem/\linebreak OperatingSystemType/\linebreak OperatingSystemName & &\\
+OperatingSystem/\linebreak OperatingSystemVersion & &\\
+CPUArchitecture/\linebreak CPUArchitectureName & &\\
 IndividualCPUSpeed & &\\
 IndividualCPUTime & &\\
 IndividualCPUCount & &\\
@@ -778,22 +816,26 @@ TotalPhysicalMemory & &\\
 TotalVirtualMemory & &\\
 TotalDiskSpace & &\\
 TotalResourceCount & &\\
-\bfseries DataStaging & {}-{}- & {}-{}-\\
+\midrule
+\multicolumn{3}{c}{\bfseries DataStaging}\\
+\midrule
 FileName & &\\
 FileSystemName & &\\
 CreationFlag & &\\
 DeleteOnTermination & &\\
 Source/URI & &\\
 Target/URI & &\\
-\end{tabular}
+\end{tabularx}
 \end{center}
-\end{table}
 
 \section{POSIX-JSDL mapping}
-\begin{table}
 \begin{center}
-\begin{tabular}{l|c|c}
-POSIX-JSDL input  & Internal representation & POSIX-JSDL output\\\hline
+\rowcolors{3}{}{tablerowcolor}
+\begin{tabularx}{400pt}{CCC}
+\toprule
+\NST{POSIX-JSDL input} & \NST{Internal representation} & \NST{POSIX-JSDL output}\\
+\midrule
+\defineheadfoot
 Executable & &\\
 Argument & &\\
 Input & &\\
@@ -815,15 +857,17 @@ VirtualMemoryLimit & &\\
 ThreadCountLimit & &\\
 UserName & &\\
 GroupName & &\\
-\end{tabular}
+\end{tabularx}
 \end{center}
-\end{table}
 
 \section{HPCProfile-JSDL mapping}
-\begin{table}
 \begin{center}
-\begin{tabular}{l|c|c}
-HPCProfile-JSDL input  & Internal representaion & HPCProfile-JSDL output\\\hline
+\rowcolors{3}{tablerowcolor}{}
+\begin{tabularx}{400pt}{CCC}
+\toprule
+\NST{HPCProfile-JSDL input}  & \NST{Internal representaion} & \NST{HPCProfile-JSDL output}\\
+\midrule
+\defineheadfoot
 Executable & & \\
 Argument & & \\
 Input & & \\
@@ -832,7 +876,6 @@ Error & & \\
 WorkingDirectory & &\\
 Environment & &\\
 UserName & &\\
-\end{tabular}
+\end{tabularx}
 \end{center}
-\end{table}
 \end{document}
