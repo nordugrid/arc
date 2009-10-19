@@ -50,6 +50,12 @@ AC_ARG_WITH(sysv-scripts-location,
       initddir="/Library/LaunchDaemons"
     fi
 
+    # We need to find a solution for WIN32
+
+    if test -z "$initddir" && test -d "/c" -a ! -h " /c"; then
+	      initddir="/c"
+    fi
+
     if test -z "$initddir"; then
       AC_MSG_ERROR(could not find a suitable location for the SYSV init scripts)
     fi
