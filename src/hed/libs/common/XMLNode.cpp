@@ -803,6 +803,20 @@ namespace Arc {
     return *this;
   }
 
+  static int write_to_string(void* context,const char* buffer,int len) {
+    if(!context) return -1;
+    std::string* str = (std::string*)context;
+    if(len <= 0) return 0;
+    if(!buffer) return -1;
+    str->append(buffer,len);
+    return len;
+  }
+
+  static int close_string(void* context) {
+    if(!context) return -1;
+    return 0;
+  }
+
   void XMLNode::GetDoc(std::string& out_xml_str, bool user_friendly) const {
     out_xml_str.resize(0);
     if (!node_)
@@ -810,6 +824,11 @@ namespace Arc {
     xmlDocPtr doc = node_->doc;
     if (doc == NULL)
       return;
+    xmlOutputBufferPtr buf = 
+     xmlOutputBufferCreateIO(&write_to_string,&close_string,&out_xml_str,NULL);
+    if(buf == NULL)
+      return;
+/*
     xmlChar *buf = NULL;
     int bufsize = 0;
     if (user_friendly)
@@ -820,6 +839,12 @@ namespace Arc {
       out_xml_str = (char*)buf;
       xmlFree(buf);
     }
+*/
+    // Note xmlSaveFormatFileTo/xmlSaveFileTo call xmlOutputBufferClose
+    if (user_friendly)
+      xmlSaveFormatFileTo(buf, doc, "", 1);
+    else
+      xmlSaveFileTo(buf, doc, "");
   }
 
   void XMLNode::GetXML(std::string& out_xml_str, bool user_friendly) const {
@@ -831,10 +856,18 @@ namespace Arc {
     xmlDocPtr doc = node_->doc;
     if (doc == NULL)
       return;
+/*
     xmlBufferPtr buf = xmlBufferCreate();
     xmlNodeDump(buf, doc, node_, 0, user_friendly ? 1 : 0);
     out_xml_str = (char*)(buf->content);
     xmlBufferFree(buf);
+*/
+    xmlOutputBufferPtr buf = 
+     xmlOutputBufferCreateIO(&write_to_string,&close_string,&out_xml_str,NULL);
+    if(buf == NULL)
+      return;
+    xmlNodeDumpOutput(buf, doc, node_, 0, user_friendly ? 1 : 0, NULL);
+    xmlOutputBufferClose(buf);
   }
 
   void XMLNode::GetXML(std::string& out_xml_str, const std::string& encoding, bool user_friendly) const {
@@ -850,10 +883,14 @@ namespace Arc {
     handler = xmlFindCharEncodingHandler(encoding.c_str());
     if (handler == NULL)
       return;
-    xmlOutputBufferPtr buf = xmlAllocOutputBuffer(handler);
+    //xmlOutputBufferPtr buf = xmlAllocOutputBuffer(handler);
+    xmlOutputBufferPtr buf = 
+     xmlOutputBufferCreateIO(&write_to_string,&close_string,&out_xml_str,NULL);
+    if(buf == NULL)
+      return;
     xmlNodeDumpOutput(buf, doc, node_, 0, user_friendly ? 1 : 0, encoding.c_str());
     xmlOutputBufferFlush(buf);
-    out_xml_str = (char*)(buf->conv ? buf->conv->content : buf->buffer->content);
+    //out_xml_str = (char*)(buf->conv ? buf->conv->content : buf->buffer->content);
     xmlOutputBufferClose(buf);
   }
 
