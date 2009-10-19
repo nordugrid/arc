@@ -59,6 +59,7 @@ requirements is shown:
     o LHC File Catalog (LFC) (https://savannah.cern.ch/projects/jra1mdw/) (build, run)
     o CppUnit for unit testing (build)
     o Berkeley DB C++ interface (build, run)
+    o xmlsec1 1.2.4 or higher (build, run)
 
 Please note that depending on operating system distribution in order to 
 build ARC1 you may need to install development versions of mentioned 
