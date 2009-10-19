@@ -562,8 +562,9 @@ class ReplicationManager:
         """
         log.msg(arc.DEBUG, "entering repSend")
         if flags & db.DB_REP_PERMANENT and lsn != None:
-            with self.semapool:
-                res = self.send(env, control, record, lsn, eid, flags, REP_MESSAGE)
+            self.semapool.acquire()
+            res = self.send(env, control, record, lsn, eid, flags, REP_MESSAGE)
+            self.semapool.release()
             return res
         else:
             #threading.Thread(target=self.send, args=[env, control, record, lsn, eid, flags, REP_MESSAGE]).start()
@@ -581,8 +582,9 @@ class ReplicationManager:
         self.locker.release_read()
         ret = 1
         while ret:
-            with self.semapool:
-                ret = self.send(None, new_replica, site_list, None, None, None, NEWSITE_MESSAGE)
+            self.semapool.acquire()
+            ret = self.send(None, new_replica, site_list, None, None, None, NEWSITE_MESSAGE)
+            self.semapool.release()
             if new_replica['status'] == 'offline':
                 break
             time.sleep(30)
@@ -594,8 +596,9 @@ class ReplicationManager:
         the hostMap to the new site
         """
         log.msg(arc.DEBUG, "entering sendHeartbeatMsg")
-        with self.semapool:
-            ret = self.send(None, None, None, None, None, None, HEARTBEAT_MESSAGE)
+        self.semapool.acquire()
+        ret = self.send(None, None, None, None, None, None, HEARTBEAT_MESSAGE)
+        self.semapool.release()
         return ret
 
     def sendElectionMsg(self, eid=db.DB_EID_BROADCAST):
@@ -603,8 +606,9 @@ class ReplicationManager:
         If elected, broadcast master id to all clients
         """
         log.msg(arc.DEBUG, "entering sendNewMasterMsg")
-        with self.semapool:
-            ret = self.send(None, None, None, None, eid, None, ELECTION_MESSAGE)
+        self.semapool.acquire()
+        ret = self.send(None, None, None, None, eid, None, ELECTION_MESSAGE)
+        self.semapool.release()
         return ret
     
     def sendNewMasterMsg(self, eid=db.DB_EID_BROADCAST):
@@ -612,8 +616,9 @@ class ReplicationManager:
         If elected, broadcast master id to all clients
         """
         log.msg(arc.DEBUG, "entering sendNewMasterMsg")
-        with self.semapool:
-            ret = self.send(None, None, None, None, eid, None, MASTER_MESSAGE)
+        self.semapool.acquire()
+        ret = self.send(None, None, None, None, eid, None, MASTER_MESSAGE)
+        self.semapool.release()
         return ret
     
     def processMessage(self, control, record, eid, retlsn, sender, msgID):
