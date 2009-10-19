@@ -1,4 +1,4 @@
-#SUBDIRS = tex_appendix tex_concept tex_future tex_installation tex_introduction tex_layout tex_maintenance tex_titlepage tex_usage images
+SUBDIRS = tex_appendix tex_concept tex_future tex_installation tex_introduction tex_layout tex_maintenance tex_titlepage tex_usage images
 
 
 docdir = @docdir@
