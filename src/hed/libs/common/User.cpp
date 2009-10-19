@@ -42,7 +42,7 @@ static Glib::Mutex suid_lock;
     return getgid();
   }
 
-  void User::set(struct passwd *pwd_p) {
+  void User::set(const struct passwd *pwd_p) {
     if (pwd_p == NULL)
       return;
     home = GetEnv("HOME");
@@ -184,10 +184,10 @@ static Glib::Mutex suid_lock;
       name = "";
     std::string home = g_get_user_config_dir();
 
-    pwd_p.pw_name = strdup(name.c_str());
+    pwd_p.pw_name = const_cast<char*>(name.c_str());
     pwd_p.pw_uid = uid;
     pwd_p.pw_gid = gid;
-    pwd_p.pw_dir = strdup(home.c_str());
+    pwd_p.pw_dir = const_cast<char*>(home.c_str());
 
     set(&pwd_p);
   }
@@ -202,10 +202,10 @@ static Glib::Mutex suid_lock;
 
     std::string home = g_get_user_config_dir();
 
-    pwd_p.pw_name = strdup(name.c_str());
+    pwd_p.pw_name = const_cast<char*>(name.c_str());
     pwd_p.pw_uid = uid;
     pwd_p.pw_gid = gid;
-    pwd_p.pw_dir = strdup(home.c_str());
+    pwd_p.pw_dir = const_cast<char*>(home.c_str());
 
     set(&pwd_p);
   }
@@ -223,10 +223,10 @@ static Glib::Mutex suid_lock;
       name = "";
     std::string home = g_get_user_config_dir();
 
-    pwd_p.pw_name = strdup(name.c_str());
+    pwd_p.pw_name = const_cast<char*>(name.c_str());
     pwd_p.pw_uid = uid;
     pwd_p.pw_gid = gid;
-    pwd_p.pw_dir = strdup(home.c_str());
+    pwd_p.pw_dir = const_cast<char*>(home.c_str());
 
     set(&pwd_p);
   }

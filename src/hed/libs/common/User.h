@@ -16,7 +16,7 @@ namespace Arc {
     std::string home;
     int uid;
     int gid;
-    void set(struct passwd*);
+    void set(const struct passwd*);
 
   public:
     // get current user
