@@ -28,7 +28,9 @@ namespace Arc {
       logger(logger),
       client(client) {}
 
-  PayloadGSIStream::~PayloadGSIStream() {}
+  PayloadGSIStream::~PayloadGSIStream() {
+    if(buffer) delete[] buffer;
+  }
 
   bool PayloadGSIStream::Get(char *buf, int& size) {
 
@@ -77,6 +79,8 @@ namespace Arc {
         logger.msg(INFO, "GSS wrap: %i/%i", majstat, minstat);
       }
       if (GSS_ERROR(majstat)) {
+        majstat = gss_release_buffer(&minstat, &input_tok);
+        majstat = gss_release_buffer(&minstat, &output_tok);
         logger.msg(ERROR, "GSS wrap/unwrap failed: %i/%i%s", majstat, minstat, GSSCredential::ErrorStr(majstat, minstat));
         return false;
       }
