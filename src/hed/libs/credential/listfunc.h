@@ -18,8 +18,22 @@ extern "C" {
 
 typedef void (*freefn)(void *);
 
+/* Merges NULL-terminated array addon into NULL-terminated array base.
+  Returns pointer to new merged array. Old base array is destroyed.
+  In case of error returns NULL and nothing is destroyed.
+  size is the size of array elment and for safety should always
+  be sizeof(char*) */
 extern char **listjoin(char **base, char **addon, int size);
+
+/* Merges element data to NULL-terminated array vect. 
+  Returns pointer to new merged array. Old vect array is destroyed.
+  size is the size of array element and for safety should always
+  be sizeof(char*) */
 extern char **listadd(char **vect, char *data, int size);
+
+/* Frees memory associated with array vect all data which its 
+  elements are pointing to. For freeing pointed data supplied 
+  function f is used. On exit vect array is destroyed. */
 extern void   listfree(char **vect, freefn f);
 
 #ifdef __cplusplus
