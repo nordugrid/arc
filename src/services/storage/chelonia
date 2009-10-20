@@ -44,7 +44,7 @@ def upload_to_turl(turl, protocol, fobj, size = None, ssl_config = {}, verbose =
             mover.verbose(verbose)
             status = mover.Transfer(src, dst, arc.FileCache(), arc.URLMap())
             if status != status.Success:
-                raise Exception, "Failed to upload file. Try again!"
+                raise Exception, "Failed to upload file. Please delete the file and try again!"
             return str(status)
         else:
             return 'cannot upload file, import arc failed'
@@ -63,7 +63,7 @@ def upload_to_turl(turl, protocol, fobj, size = None, ssl_config = {}, verbose =
             mover.retry(False)
             status = mover.Transfer(src, dst, arc.FileCache(), arc.URLMap())
             if status != status.Success:
-                raise Exception, "Failed to upload file. Try again!"
+                raise Exception, "Failed to upload file. Please delete the file and try again!"
             return str(status)
         else:
             proto, host, port, path = parse_url(turl)
