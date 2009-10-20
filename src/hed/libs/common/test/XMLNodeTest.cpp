@@ -46,7 +46,7 @@ void XMLNodeTest::TestParsing() {
   xml.GetXML(s);
   CPPUNIT_ASSERT_EQUAL(std::string("<root>\n  <child1>value1</child1>\n  <child2>value2</child2>\n</root>"),s);
   xml.GetDoc(s);
-  CPPUNIT_ASSERT_EQUAL("<?xml version=\"1.0\" encoding=\"\"?>\n"+xml_str+"\n",s);
+  CPPUNIT_ASSERT_EQUAL("<?xml version=\"1.0\"?>\n"+xml_str+"\n",s);
 }
 
 CPPUNIT_TEST_SUITE_REGISTRATION(XMLNodeTest);

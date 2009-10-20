@@ -842,9 +842,9 @@ namespace Arc {
 */
     // Note xmlSaveFormatFileTo/xmlSaveFileTo call xmlOutputBufferClose
     if (user_friendly)
-      xmlSaveFormatFileTo(buf, doc, "", 1);
+      xmlSaveFormatFileTo(buf, doc, (const char*)(doc->encoding), 1);
     else
-      xmlSaveFileTo(buf, doc, "");
+      xmlSaveFileTo(buf, doc, (const char*)(doc->encoding));
   }
 
   void XMLNode::GetXML(std::string& out_xml_str, bool user_friendly) const {
@@ -866,7 +866,7 @@ namespace Arc {
      xmlOutputBufferCreateIO(&write_to_string,&close_string,&out_xml_str,NULL);
     if(buf == NULL)
       return;
-    xmlNodeDumpOutput(buf, doc, node_, 0, user_friendly ? 1 : 0, NULL);
+    xmlNodeDumpOutput(buf, doc, node_, 0, user_friendly ? 1 : 0, (const char*)(doc->encoding));
     xmlOutputBufferClose(buf);
   }
 
