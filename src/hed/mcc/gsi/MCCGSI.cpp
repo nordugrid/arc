@@ -152,6 +152,8 @@ namespace Arc {
 
     recv_tok.length = (unsigned char)readbuf[3] * 256 +
                       (unsigned char)readbuf[4] + 5;
+    // While allocating buffer with malloc it will be freed using
+    // gssapi's gss_release_buffer()
     recv_tok.value = malloc(recv_tok.length);
     memcpy(recv_tok.value, readbuf, 5);
 
@@ -180,6 +182,8 @@ namespace Arc {
                                        &delegated_cred);
       if (GSS_ERROR(majstat)) {
         logger.msg(ERROR, "GSS accept security context failed: %i/%i%s", majstat, minstat, GSSCredential::ErrorStr(majstat, minstat));
+        majstat = gss_release_buffer(&minstat, &send_tok);
+        majstat = gss_release_buffer(&minstat, &recv_tok);
         return MCC_Status();
       }
 
@@ -205,6 +209,8 @@ namespace Arc {
                            GSS_C_QOP_DEFAULT);
       if (GSS_ERROR(majstat)) {
         logger.msg(ERROR, "GSS unwrap failed: %i/%i%s", majstat, minstat, GSSCredential::ErrorStr(majstat, minstat));
+        majstat = gss_release_buffer(&minstat, &send_tok);
+        majstat = gss_release_buffer(&minstat, &recv_tok);
         return MCC_Status();
       }
 

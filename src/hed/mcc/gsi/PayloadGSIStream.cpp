@@ -81,9 +81,9 @@ namespace Arc {
         logger.msg(INFO, "GSS wrap: %i/%i", majstat, minstat);
       }
       if (GSS_ERROR(majstat)) {
+        logger.msg(ERROR, "GSS wrap/unwrap failed: %i/%i%s", majstat, minstat, GSSCredential::ErrorStr(majstat, minstat));
         majstat = gss_release_buffer(&minstat, &input_tok);
         majstat = gss_release_buffer(&minstat, &output_tok);
-        logger.msg(ERROR, "GSS wrap/unwrap failed: %i/%i%s", majstat, minstat, GSSCredential::ErrorStr(majstat, minstat));
         return false;
       }
 
