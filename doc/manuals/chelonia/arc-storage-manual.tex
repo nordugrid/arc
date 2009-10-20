@@ -82,85 +82,13 @@
 
 \section{Installing a centralized system} % (fold)
 
-This section shows how to install Chelonia on a freshly installed debian lenny machine.
-
-Get the latest ARC code from the subversion (\verb!http://svn.nordugrid.org/!):
+The Chelonia storage system can be installed from binary packages, or from compiling the source packages. Here we assume that it is installed on every machine we want to use. But we can do a quick check if the ARC client python libraries are installed properly. It is recommended to set the PYTHONPATH variable, e.g.:
 
 \begin{verbatim}
-$ svn co http://svn.nordugrid.org/repos/nordugrid/arc1/trunk arc1
+$ export PYTHONPATH=/usr/local/lib/python2.5/site-packages
 \end{verbatim}
 
-Check the README file for all the dependencies, and install them. Here `aptitude' is used, but of course on other Linux distribution different package management software may be used, and the name of the packages may differ as well.
-
-\begin{verbatim}
-$ sudo aptitude install build-essential
-$ sudo aptitude install autoconf
-$ sudo aptitude install gettext
-$ sudo aptitude install cvs
-$ sudo aptitude install libtool
-$ sudo aptitude install pkg-config
-$ sudo aptitude install libglibmm-2.4-dev
-$ sudo aptitude install python-dev
-$ sudo aptitude install swig
-$ sudo aptitude install libxml2-dev
-$ sudo aptitude install libssl-dev
-\end{verbatim}
-
-Now, run the \verb!autogen! and \verb!configure! scripts (target directories for the installation may be specified with the \verb!--prefix! option):
-
-\begin{verbatim}
-$ cd arc1
-$ ./autogen.sh
-$ ./configure --disable-java --disable-a-rex-service --disable-isi-service \
-    --disable-charon-service --disable-compiler-service \
-    --disable-paul-service --disable-sched-service
-
-Unit testing:       yes
-Java binding:       no
-Python binding:     yes (2.5)
-
-Available third-party features:
-
-RLS:                no
-GridFTP:            no
-LFC:                no
-RSL:                no
-SAML:               no
-MYSQL CLIENT LIB:   no
-gSOAP:              no
-
-Included components:
-A-Rex service:      no
-ISI service:        no
-CHARON service:     no
-HOPI service:       yes
-SCHED service:      no
-STORAGE service:    yes
-PAUL service:       no
-SRM client (DMC):   no
-GSI channel (MCC):  no
-
-\end{verbatim}
-
-Start with compiling it:
-
-\begin{verbatim}
-$ make
-\end{verbatim}
-
-And then install it (you need to be root if you want to install it to the default location):
-
-\begin{verbatim}
-$ sudo make install
-\end{verbatim}
-
-It may be a good idea to run \verb!ldconfig! to refresh the list of libraries:
-
-\begin{verbatim}
-$ ldconfig
-\end{verbatim}
-
-Check if the python packages are installed correctly:
+Then we can check if the packages can be imported:
 
 \begin{verbatim}
 $ python
@@ -173,11 +101,13 @@ Type "help", "copyright", "credits" or "license" for more information.
 >>> 
 \end{verbatim}
 
-If there is no error on importing any of the packages, everything is OK. If the packages cannot be imported, try to set the PYTHONPATH environment variable to point to location of the packages.
+If there is no error on importing any of the packages, everything is OK. 
 
-It is important to syncronize the time of the machine - the storage system will make decisions based on differences between timestamps. When deploying multiple machines, different times will cause problems.
+It is very important to syncronize the time of the machines (at least within a few seconds) - the storage system will make decisions based on differences between timestamps. When deploying multiple machines, different times will cause problems.
 
-Host (and user) certificates are required to run the system. For testing purposes the NorduGrid InstantCA solution can be used. The InstantCA is capable of creating a demo-CA with short lifetime. The URL of the InstantCA service is \verb!https://vls.grid.upjs.sk/CA/instantCA!. Now, create 3 user and 3 host certificates. (for this example, set the Organization Name to `knowarc', the Common name of the CA to `storage-test', the name of the users to `penny', `billy' and `hammer' and the name of the hosts to `upsilon', `omicron' and `theta'. A password for the CA and passwords for the user certificates are needed as well, these should be at least 4 characters long).
+In this document we will use a debian lenny system, and we will run multiple versions of the ARC HED hosting environment to simulate multiple machines. We will use three different hostnames , which will in this case point to the same machine, but in real deployment they would of course point to different machines (\verb!chelonia[123].knowarc.eu!).
+
+Host (and user) certificates are required to run the system. For testing purposes the NorduGrid InstantCA solution can be used. The InstantCA is capable of creating a demo-CA with short lifetime. The URL of the InstantCA service is \verb!https://vls.grid.upjs.sk/CA/instantCA!. Now, create 3 user and 3 host certificates. (for this example, we set the Organization Name to `knowarc', the Common name of the CA to `chelonia', the name of the users to `penny', `billy' and `hammer' and the name of the hosts to `chelonia1', `chelonia2' and `chelonia3'. A password for the CA and passwords for the user certificates are needed as well, these should be at least 4 characters long).
 
 Now, download the generated certificates and untar the archive file to see its contents:
 
@@ -185,212 +115,202 @@ Now, download the generated certificates and untar the archive file to see its c
 $ ls -lR
 .:
 total 28
-drwxr-xr-x 2 zsombor zsombor 4096 2009-03-19 12:11 CA
--rw-r--r-- 1 zsombor zsombor  963 2009-03-19 12:11 ca.key
--rw-r--r-- 1 zsombor zsombor  786 2009-03-19 12:11 ca.pem
-drwxr-xr-x 2 zsombor zsombor 4096 2009-03-19 12:11 hostCerts
--rw-r--r-- 1 zsombor zsombor 1044 2009-03-19 12:11 readme
--rw-r--r-- 1 zsombor zsombor    3 2009-03-19 12:11 serial.srl
-drwxr-xr-x 2 zsombor zsombor 4096 2009-03-19 12:11 userCerts
+drwxr-xr-x 2 zsombor zsombor 4096 2009-10-16 13:31 CA
+-rw-r--r-- 1 zsombor zsombor  951 2009-10-16 13:31 ca.key
+-rw-r--r-- 1 zsombor zsombor  778 2009-10-16 13:31 ca.pem
+drwxr-xr-x 2 zsombor zsombor 4096 2009-10-16 13:31 hostCerts
+-rw-r--r-- 1 zsombor zsombor 1044 2009-10-16 13:31 readme
+-rw-r--r-- 1 zsombor zsombor    3 2009-10-16 13:31 serial.srl
+drwxr-xr-x 2 zsombor zsombor 4096 2009-10-16 13:31 userCerts
 
 ./CA:
 total 8
--rw-r--r-- 1 zsombor zsombor 786 2009-03-19 12:11 66fe707c.0
--rw-r--r-- 1 zsombor zsombor 139 2009-03-19 12:11 66fe707c.signing_policy
+-rw-r--r-- 1 zsombor zsombor 778 2009-10-16 13:31 afc5f10f.0
+-rw-r--r-- 1 zsombor zsombor 135 2009-10-16 13:31 afc5f10f.signing_policy
 
 ./hostCerts:
 total 24
--rw-r--r-- 1 zsombor zsombor 786 2009-03-19 12:11 hostcert-omicron.pem
--rw-r--r-- 1 zsombor zsombor 782 2009-03-19 12:11 hostcert-theta.pem
--rw-r--r-- 1 zsombor zsombor 786 2009-03-19 12:11 hostcert-upsilon.pem
--rw-r--r-- 1 zsombor zsombor 887 2009-03-19 12:11 hostkey-omicron.pem
--rw-r--r-- 1 zsombor zsombor 891 2009-03-19 12:11 hostkey-theta.pem
--rw-r--r-- 1 zsombor zsombor 887 2009-03-19 12:11 hostkey-upsilon.pem
+-rw-r--r-- 1 zsombor zsombor 782 2009-10-16 13:31 hostcert-chelonia1.pem
+-rw-r--r-- 1 zsombor zsombor 782 2009-10-16 13:31 hostcert-chelonia2.pem
+-rw-r--r-- 1 zsombor zsombor 782 2009-10-16 13:31 hostcert-chelonia3.pem
+-rw-r--r-- 1 zsombor zsombor 887 2009-10-16 13:31 hostkey-chelonia1.pem
+-rw-r--r-- 1 zsombor zsombor 887 2009-10-16 13:31 hostkey-chelonia2.pem
+-rw-r--r-- 1 zsombor zsombor 887 2009-10-16 13:31 hostkey-chelonia3.pem
 
 ./userCerts:
 total 24
--rw-r--r-- 1 zsombor zsombor 778 2009-03-19 12:11 usercert-billy.pem
--rw-r--r-- 1 zsombor zsombor 778 2009-03-19 12:11 usercert-hammer.pem
--rw-r--r-- 1 zsombor zsombor 778 2009-03-19 12:11 usercert-penny.pem
--rw-r--r-- 1 zsombor zsombor 963 2009-03-19 12:11 userkey-billy.pem
--rw-r--r-- 1 zsombor zsombor 963 2009-03-19 12:11 userkey-hammer.pem
--rw-r--r-- 1 zsombor zsombor 951 2009-03-19 12:11 userkey-penny.pem
+-rw-r--r-- 1 zsombor zsombor 769 2009-10-16 13:31 usercert-billy.pem
+-rw-r--r-- 1 zsombor zsombor 774 2009-10-16 13:31 usercert-hammer.pem
+-rw-r--r-- 1 zsombor zsombor 769 2009-10-16 13:31 usercert-penny.pem
+-rw-r--r-- 1 zsombor zsombor 963 2009-10-16 13:31 userkey-billy.pem
+-rw-r--r-- 1 zsombor zsombor 963 2009-10-16 13:31 userkey-hammer.pem
+-rw-r--r-- 1 zsombor zsombor 963 2009-10-16 13:31 userkey-penny.pem
 \end{verbatim}
 
-You can see the certificate and key files for all the hosts and users, and the CA file with the proper hashed name.
-There is no rule about where to put these certificate, but it is common to put them in \verb!/etc/grid-security!. Now, create this directory, and a subdirectory called \verb!certificates!. To use the `theta' host certificates for this machine, copy the corresponding certificate and key there:
+Here can be seen the certificate and key files for all the hosts and users, and the CA file with the proper hashed name.
+There is no rule about where to put these certificate, but it is common to put them in \verb!/etc/grid-security!.
+
+In these examples we assume that the CA certificate is put into \verb!/etc/grid-security/certificates!,
+
+and the host's certificate and key is at \verb!/etc/grid-security/hostcert-chelonia[123].pem!
+
+and \verb!/etc/grid-security/hostkey-chelonia[123].pem!.
 
 \begin{verbatim}
-$ sudo cp hostCerts/hostcert-theta.pem /etc/grid-security/hostcert.pem
-$ sudo cp hostCerts/hostkey-theta.pem /etc/grid-security/hostkey.pem
-$ sudo cp CA/* /etc/grid-security/certificates/
-$ ls -lR /etc/grid-security/
-/etc/grid-security/:
-total 12
-drwxr-xr-x 2 root root 4096 2009-03-19 12:36 certificates
--rw-r--r-- 1 root root  782 2009-03-19 12:35 hostcert.pem
--rw-r--r-- 1 root root  891 2009-03-19 12:36 hostkey.pem
-
-/etc/grid-security/certificates:
+$ ls -l /etc/grid-security/certificates/
 total 8
--rw-r--r-- 1 root root 786 2009-03-19 12:36 66fe707c.0
--rw-r--r-- 1 root root 139 2009-03-19 12:36 66fe707c.signing_policy
+-rw-r--r-- 1 root root 778 2009-10-16 14:55 afc5f10f.0
+-rw-r--r-- 1 root root 135 2009-10-16 14:55 afc5f10f.signing_policy
 \end{verbatim}
 
 Choose a user certificate and put it into the \verb!~/.arc! directory, removing the password from the key file for convenience:
 
 \begin{verbatim}
 $ mkdir ~/.arc
-$ cp userCerts/usercert-billy.pem ~/.arc/usercert.pem
-$ openssl rsa -in userCerts/userkey-billy.pem -out ~/.arc/userkey.pem
-$ chmod 600 ~/.arc/userkey.pem
+$ cp userCerts/usercert-billy.pem ~/.arc
+$ openssl rsa -in userCerts/userkey-billy.pem -out ~/.arc/userkey-billy.pem
+$ chmod 600 ~/.arc/userkey-billy.pem
 $ ls -l ~/.arc
 total 8
--rw-r--r-- 1 zsombor zsombor 778 2009-03-19 13:06 usercert.pem
--rw------- 1 zsombor zsombor 891 2009-03-19 13:09 userkey.pem
+-rw-r--r-- 1 zsombor zsombor 778 2009-10-16 14:55 usercert-billy.pem
+-rw------- 1 zsombor zsombor 891 2009-10-16 14:55 userkey-billy.pem
 \end{verbatim}
 
-The storage system runs within the \verb!arched! hosting environment daemon, which needs a configuration file describing which services to be run, on which ports do to listen, etc.
-Copy the template configuration files to the \verb!/etc/arc! directory:
+The storage system runs within the \verb!arched! hosting environment daemon, which needs a configuration file describing which services to be run, on which ports do to listen, etc. There are several profiles for different deployment scenarios, these profiles are installed by default in the \verb!/usr/local/share/arc/profiles! directory\footnote{or they can be acquired from http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk/src/hed/profiles}. First we will use the profile called \verb!CheloniaAllServicesCentralizedAHashWithISIS!. After we have chosen a profile, we need to create a config file which contains the deployment-specific attributes. Let's create a file in \verb!/etc/arc! called \verb!chelonia1.ini!:
 
 \begin{verbatim}
-$ sudo mkdir /etc/arc
-$ sudo cp arc1/src/services/storage/storage_service.xml.example /etc/arc/storage_service.xml
-$ sudo cp arc1/src/services/storage/clientsslconfig.xml /etc/arc
-$ ls -l /etc/arc
-total 12
--rw-r--r-- 1 root root  259 2009-03-19 13:26 clientsslconfig.xml
--rw-r--r-- 1 root root 4606 2009-03-19 13:25 storage_service.xml
+profile=/usr/local/share/arc/profiles/CheloniaAllServicesCentralizedAHashWithISIS.xml
+
+pidfile=/tmp/chelonia1.pid
+logfile=/var/log/chelonia1.log
+debug=ERROR
+
+port=60001
+
+cacert=/etc/grid-security/certificates
+host_cert=/etc/grid-security/hostcert-chelonia1.pem
+host_key=/etc/grid-security/hostkey-chelonia1.pem
+client_cert=/etc/grid-security/hostcert-chelonia1.pem
+client_key=/etc/grid-security/hostkey-chelonia1.pem
+
+[register]
+index_server1=https://chelonia1.knowarc.eu:60001/ISIS
+
+[ahash]
+endpoint=https://chelonia1.knowarc.eu:60001/AHash
+datadir=/var/spool/arc/chelonia1_ahash_data
+
+[bartender]
+endpoint=https://chelonia1.knowarc.eu:60001/Bartender
+
+[librarian]
+endpoint=https://chelonia1.knowarc.eu:60001/Librarian
+
+[shepherd]
+endpoint=https://chelonia1.knowarc.eu:60001/Shepherd
+turlprefix=https://chelonia1.knowarc.eu:60001/Hopi
+datadir=/var/spool/arc/chelonia1_shepherd_data
+storedir=/var/spool/arc/chelonia1_shepherd_store
+transferdir=/var/spool/arc/chelonia1_shepherd_transfer
+
+[isis]
+endpoint=https://chelonia1.knowarc.eu:60001/ISIS
+dbpath=/var/spool/arc/chelonia1_isis_data
+peerurl1=https://chelonia1.knowarc.eu:60001/ISIS
 \end{verbatim}
 
-The template configuration file specifies several directories where the services can store their data. Create these directories at, e.g., \verb!/var/spool/arc!.
+In this config we configure several services, and we have some common parts as well. The first line points to the profile which we want to use (please make sure that it is there or specify the correct path). The common parts contains the logfile, the level of debugging, the port to listen, the path to the certificates to be used on the service side, and the certificates to be used when a service wants to connect to an other service (in current case they are the same). Then we have an ISIS service which stores information about the running services and it is needed for the services to find eachother. The register section tells all the other services where to find the ISIS service. And then we have all the storage services: the Bartender, the Librarian, the Shepherd and the A-Hash. The endpoints of the services should be specified for all services. There is one additional service which doesn't need extra configuration: the Hopi service is a lightweight HTTP server. The Shepherd service is connected to the Hopi service, that's why it is needed to specify the Hopi's URL in the Shepherd's section (\verb!turlprefix!). Some of these services need to have directories to store data. We will use subdirectories in \verb!/var/spool/arc!, so we have to create this directory first:
 
 \begin{verbatim}
-$ sudo mkdir /var/spool/arc/ahash_data
-$ sudo mkdir /var/spool/arc/shepherd_data
-$ sudo mkdir /var/spool/arc/shepherd_store
-$ sudo mkdir /var/spool/arc/shepherd_transfer
-$ ls -l /var/spool/arc
-total 16
-drwxr-xr-x 2 root root 4096 2009-03-19 13:42 ahash_data
-drwxr-xr-x 2 root root 4096 2009-03-19 13:42 shepherd_data
-drwxr-xr-x 2 root root 4096 2009-03-19 13:42 shepherd_store
-drwxr-xr-x 2 root root 4096 2009-03-19 13:42 shepherd_transfer
+$ sudo mkdir /var/spool/arc
 \end{verbatim}
 
-In this deployment the daemon will be run as root, so it is OK that the root owns these directories. 
-If creating these directories somewhere else, then modify the paths in the \verb!storage_service.xml! file.
-
-If putting the host certificates and the CA certificate somewhere else than \verb!/etc/grid-security! then modify the \verb!storage_service.xml! (look for \verb!KeyPath!, \verb!CertificatePath! and \verb!CACertificatesDir!). Also, modify \verb!/etc/arc/clientsslconfig.xml!. This file contains the credentials which are used by the services when they connect to an other service. If putting \verb!clientsslconfig.xml! somewhere else than \verb!/etc/arc!, you need to modify all the \verb!ClientSSLConfig! tags in the \verb!storage_service.xml!.
-
-Now, run the \verb!arched! daemon with this config (specified by the \verb!-c! option) first in the foreground (using the \verb!-f! option) to see immediately if everything is right:
+Now, run the \verb!arched! daemon with this INI config which is specified with the \verb!-i! option. (In this document we will run the ARC HED daemon as root.) We can first run it in the foreground (with the \verb!-f! flag), to see the possible initial misconfiguration errors immediately:
 
 \begin{verbatim}
 $ sudo /usr/local/sbin/arched -c /etc/arc/storage_service.xml -f
 \end{verbatim}
 
-The template configuration file specifies a loglevel which only prints error messages, so nothing should be written on the screen now.
-The \verb!arched! daemon should now listen on the ports: 60001 for the data transfer service called Hopi, and 60000 for all the other services:
+When we start the services, they are trying hard to find eachother, which means lots of connection related error messages in the beginning, but after a minute or so, the system should stabilize. (This is the case with shutdown as well, it is normal to get lots of connection related error messages). The \verb!arched! daemon should now listen no port 60001:
 
 \begin{verbatim}
-$ netstat -at | grep LISTEN
-tcp        0      0 *:60000                 *:*                     LISTEN     
+$ netstat -at | grep 60001
 tcp        0      0 *:60001                 *:*                     LISTEN     
 \end{verbatim}
 
-Now it is time to set up the prototype client tool to access the system. It is called \verb!chelonia! and it is by default installed to \verb!/usr/local/bin!. The CLI tool needs to be told where it can find the user credentials, and a URL of a Bartender service. The Bartender service is the front-end of the storage system. This can be specified either by environment variables, or by a configuration file called \verb!~/.arc/client.xml!. Create the following \verb!client.xml! file:
+Now it is time to set up the client tool to access the system. It is called \verb!chelonia! and it is by default installed to \verb!/usr/local/bin!. The CLI tool needs to be told where it can find the user credentials, and a URL of one or more Bartender services or preferably the URL of one or more ISIS services, where Bartender services are registered. The Bartender service is the front-end of the storage system. These can be specified with a config file, which is called \verb!~/.arc/client.conf! by default:
 
 \begin{verbatim}
-$ cat ~/.arc/client.xml 
-<ArcConfig>
-  <KeyPath>/home/<username>/.arc/userkey.pem</KeyPath>
-  <CertificatePath>/home/<username>/.arc/usercert.pem</CertificatePath>
-  <CACertificatesDir>/etc/grid-security/certificates</CACertificatesDir>
-  <BartenderURL>https://localhost:60000/Bartender</BartenderURL>
-</ArcConfig>
+defaultservices=index:ARC1:https://chelonia1.knowarc.eu:60001/ISIS
+keypath=/home/zsombor/.arc/userkey-billy.pem
+certificatepath=/home/zsombor/.arc/usercert-billy.pem
+cacertificatesdirectory=/etc/grid-security/certificates
 \end{verbatim}
 
-Now you can use the tool \verb!chelonia! to access your local deployment. Try to do a `list' on the root collection (`/'):
+Now we can use the tool \verb!chelonia! to access the local deployment. If our client.conf is not at the default directory, then we can specify the path with the \verb!-z! flag. First let's try to do a `list' on the root collection (`/'):
 
 \begin{verbatim}
-$ chelonia
-Usage:
-  chelonia <method> [<arguments>]
-Supported methods:
-  stat - get detailed information about an entry
-  makeCollection | make | mkdir - create a collection
-  unmakeCollection | unmake | rmdir - remove an empty collection
-  list | ls - list the content of a collection
-  move | mv - move entries within the namespace
-  putFile | put - upload a file
-  getFile | get - download a file
-  delFile | del | rm - remove a file
-  modify | mod - modify metadata
-  policy | pol - modify access policy rules
-  unlink - remove a link to an entry from a collection without removing the entry itself
-  credentialsDelegation | cre - delegate credentials for using gateway
-  removeCredentials | rem - remove previously delegated credentials
-Without arguments, each method prints its own help.
+zsombor@chelonia:~$ chelonia list /
+ERROR: No Bartender URL found.
+(use the '-v' flag for more details, e.g. 'chelonia -v list /')
+\end{verbatim}
 
-$ chelonia list
-Usage: list <LN> [<LN> ...]
-
-$ chelonia list /
-- Calling the Bartender's list method...
-[2009-03-19 18:37:12] [Arc.Loader] [ERROR] [12491/152991544]
+If we get this error message, we should call it again with the \verb!-v! verbose flag:
+\begin{verbatim}
+zsombor@chelonia:~$ chelonia -v list /
+- Using default user config.
+- The key file: /home/zsombor/.arc/userkey-billy.pem
+- The cert file: /home/zsombor/.arc/usercert-billy.pem
+- The CA dir: /etc/grid-security/certificates
+- No Bartender URL found in the config or in the environment, try to get one from ISIS:
+[2009-10-20 14:11:34] [Arc.Loader] [ERROR] [19139/149632560]
     Component tcp.client(tcp) could not be created
-[2009-03-19 18:37:12] [Arc.Loader] [ERROR] [12491/152991544]
+[2009-10-20 14:11:34] [Arc.Loader] [ERROR] [19139/149632560]
     Component tls.client(tls) could not be created
-[2009-03-19 18:37:12] [Arc.Loader] [ERROR] [12491/152991544]
+[2009-10-20 14:11:34] [Arc.Loader] [ERROR] [19139/149632560] 
     Component http.client(http) could not be created
-[2009-03-19 18:37:12] [Arc.Loader] [ERROR] [12491/152991544]
+[2009-10-20 14:11:34] [Arc.Loader] [ERROR] [19139/149632560] 
     Component soap.client(soap) could not be created
-ERROR: Wrong status from server.
-Maybe wrong URL: 'https://localhost:60000/Bartender'
+  - https://chelonia1.knowarc.eu:60001/ISIS - Failed to connect to ISIS.
+ERROR: No Bartender URL found.
 \end{verbatim}
 
-If you get the error `Component [...] could not be created', try to specify to the python environment the location of the python packages:
+If we get the error `Component [...] could not be created', it is usually because python somehow doesn't find the ARC clien libraries, so let's check if we have the PYTHONPATH  variable set properly, and set it, if not:
 
 \begin{verbatim}
+$ echo $PYTHONPATH
+
 $ export PYTHONPATH=/usr/local/lib/python2.5/site-packages/
 \end{verbatim}
 
 Without arguments, the \verb!chelonia! tool prints the list of available methods. Specifying only a method name prints the syntax of the given method. The \verb!list! method requires Logical Names (LN). In the storage system, every file and collection has a Logical Name, which is a path within the namespace.
 
-Now a (centralized) storage service is running, including a Hopi service, which is a basic HTTP server, for transferring files. The Bartender service is the front-end of the system to the users, so the clients always connect to the Bartender service. There are several directories configured in the config file where the services store their data. These directories can always be emptied, which resets the whole system to a clean state. If Chelonia is running with clean data directories, then it is completely empty, meaning that there is not even a root collection:
+Now a (centralized) Chelonia is running, including a Hopi service, which is a basic HTTP server, for transferring files. The Bartender service is the front-end of the system to the users, so the clients always connect to the Bartender service. There are several directories configured in the config file where the services store their data. These directories can always be emptied, which resets the whole system to a clean state. If Chelonia is running with clean data directories, then it is completely empty, meaning that there is not even a root collection:
 
 \begin{verbatim}
 $ chelonia list /
-- Calling the Bartender's list method...
-- done in 0.34 seconds.
 '/': not found
 \end{verbatim}
 
 The root collection has the Logical Name of `\verb!/!', and it's role to provide a starting point for all the other Logical Names. This root collection needs to be created first:
 
 \begin{verbatim}
-$ chelonia makeCollection /
-- Calling the Bartender's makeCollection method...
-- done in 0.81 seconds.
+$ chelonia mkdir /
 Creating collection '/': done
 
 $ chelonia list /
-- Calling the Bartender's list method...
-- done in 0.55 seconds.
 '/': collection
     empty.
 \end{verbatim}
 
 Now there is an empty root collection.
 
-\section{Using the prototype client tool} % (fold)
+\section{Using the chelonia client tool} % (fold)
 
-Assume that Chelonia is running and you want to access it with the \verb!chelonia! tool. The \verb!~/.arc/client.xml! is set properly, the contents of the root collection can be listed:
+We assume that Chelonia is running and can be accessed with the \verb!chelonia! tool. The \verb!~/.arc/client.conf! is set properly, the contents of the root collection can be listed:
 
 \begin{verbatim}
 $ chelonia list /
-- Calling the Bartender's list method...
-- done in 0.55 seconds.
 '/': collection
     empty.
 \end{verbatim}
@@ -398,161 +318,135 @@ $ chelonia list /
 Now, create a small file and upload it:
 
 \begin{verbatim}
-$ cat > orange
-orange
+$ echo ORANGE > orange
 $ cat orange 
-orange
+ORANGE
 
 $ chelonia put orange /
-- The size of the file is 7 bytes
-- Calculating md5 checksum...
-- done in 0.0003 seconds, md5 checksum is 6aefd2842be62cd470709b27aedc7db7
-- Calling the Bartender's putFile method...
-- done in 1.26 seconds.
-- Got transfer URL: http://localhost:60001/hopi/7fcef91e-ac9c-658d-4def-17d52ba33cfb
-- Uploading from 'orange'
-    to 'http://localhost:60001/hopi/7fcef91e-ac9c-658d-4def-17d52ba33cfb' with http...
-    0 s:        0.0 kB       0.0 kB/s       0.0 kB/s    . . .       
-- done in 0.0182 seconds.
 'orange' (7 bytes) uploaded as '/orange'.
 
 $ chelonia list /
-- Calling the Bartender's list method...
-- done in 0.51 seconds.
 '/': collection
-  orange              <file>
-
+  orange <file>
 \end{verbatim}
 
 Additional information about the file can be found with the stat method:
 
 \begin{verbatim}
 $ chelonia stat /orange
-- Calling the Bartender's stat method...
-- done in 0.40 seconds.
 '/orange': found
   states
     checksumType: md5
-    neededReplicas: 1
+    neededReplicas: 3
     size: 7
-    checksum: 6aefd2842be62cd470709b27aedc7db7
+    checksum: a7992bd22ce079983da12c0172983ff4
   entry
     owner: /DC=eu/DC=KnowARC/O=knowarc/CN=billy
-    GUID: 12ce831b-eab8-1f47-29f6-19fb85ebf46a
+    GUID: eb973cb4-7924-0663-2b3e-13c01203fcd1
     type: file
   parents
     0/orange: parent
   locations
-    https://localhost:60000/Shepherd 3e9ea612-87c0-1e81-58f3-cec6b0b125c1: alive
+    https://chelonia1.knowarc.eu:60001/Shepherd 630b9bf0-7b70-8e04-1098-01769af3f8ea: alive
   timestamps
-    created: 1237504821.91
+    created: 1256041232.28
 \end{verbatim}
 
-Here, the owner of the file (Billy), the location of the replicas (currently only one), the number of needed replicas (which is also only one), the checksum and size of the file, and the timestamp of the creation is shown.
+Here, the owner of the file (Billy), the location of the replicas (currently only one), the number of needed replicas (which is three), the checksum and size of the file, and the timestamp of the creation is shown.
 
 This file can be downloaded:
 
 \begin{verbatim}
 $ chelonia get /orange /tmp
-- Calling the Bartender's getFile method...
-- done in 0.51 seconds.
-- Got transfer URL: http://localhost:60001/hopi/521c5869-4c93-8e28-aa3a-03f477f34f63
-- Downloading from 'http://localhost:60001/hopi/521c5869-4c93-8e28-aa3a-03f477f34f63'
-    to '/tmp/orange' with http...
-    0 s:        0.0 kB       0.0 kB/s       0.0 kB/s    . . .       
-- done in 1.0071 seconds.
 '/orange' (7 bytes) downloaded as '/tmp/orange'.
+
 $ cat /tmp/orange 
-orange
+ORANGE
 \end{verbatim}
 
-You can create collections which can contain files and other collections forming a tree-hierarchy. You can move files and collection around within this namespace.
+We can create collections which can contain files and other collections forming a tree-hierarchy. We can move files and collection around within this namespace.
 
 \begin{verbatim}
-$ chelonia makeCollection /fruits
-- Calling the Bartender's makeCollection method...
-- done in 0.79 seconds.
+$ chelonia mkdir /fruits
 Creating collection '/fruits': done
 
-$ chelonia makeCollecion /fruits/apple
-- Calling the Bartender's makeCollection method...
-- done in 0.91 seconds.
+$ chelonia mkdir /fruits/apple
 Creating collection '/fruits/apple': done
 
-$ chelonia move /orange /fruits/
-- Calling the Bartender's move method...
-- done in 0.99 seconds.
-Moving '/orange' to '/fruits/': moved
-
-$ chelonia list /fruits
-- Calling the Bartender's list method...
-- done in 0.60 seconds.
-'/fruits': collection
-  orange              <file>
-  apple               <collection>
+$ chelonia mv /orange /fruits
+Moving '/orange' to '/fruits': targetexists
 \end{verbatim}
 
-You can remove files, and remove collections (but only if the collection is empty):
+Note that if we want to move something into a colleciton, we have to end the collection's logical name with a slash:
+
+\begin{verbatim}
+$ chelonia mv /orange /fruits/
+Moving '/orange' to '/fruits/': moved
+
+$ chelonia ls /fruits
+'/fruits': collection
+  orange <file>
+  apple  <collection>
+\end{verbatim}
+
+We can remove files, and remove collections (but only if the collection is empty):
 
 \begin{verbatim}
 $ chelonia rmdir /fruits
-- Calling the Bartender's unmakeCollection method...
-- done in 0.41 seconds.
 Removing collection '/fruits': collection is not empty
 
 $ chelonia rmdir /fruits/apple
-- Calling the Bartender's unmakeCollection method...
-- done in 0.89 seconds.
 Removing collection '/fruits/apple': removed
 
 $ chelonia rm /fruits/orange
-- Calling the Bartender's delFile method...
-- done in 0.89 seconds.
 /fruits/orange: deleted
 
 $ chelonia rmdir /fruits
-- Calling the Bartender's unmakeCollection method...
-- done in 0.79 seconds.
 Removing collection '/fruits': removed
 \end{verbatim}
 
-Now, introduce a new user, Penny, into the system. Again, \verb!chelonia! can be told to use user certificate and key files for this user with modifying the \verb!client.xml! or by specifying the \verb!ARC_CERT_FILE! and \verb!ARC_KEY_FILE! environment variables.
+Now, let's introduce a new user, Penny, into the system. The easiest would be to create a new client.conf for Penny:
 
 \begin{verbatim}
-$ ARC_CERT_FILE=usercert-penny.pem ARC_KEY_FILE=userkey-penny.pem \
-chelonia list /
+$ cat /home/zsombor/.arc/penny.conf 
+defaultservices=index:ARC1:https://chelonia1.knowarc.eu:60001/ISIS
+keypath=/home/zsombor/.arc/userkey-penny.pem
+certificatepath=/home/zsombor/.arc/usercert-penny.pem
+cacertificatesdirectory=/etc/grid-security/certificates    
+\end{verbatim}
+
+We should copy her certificate and key the same way as we did with Billy's certificate and key. Then we can specify Penny's config with the \verb!-z! flag (and we can use the \verb!-v! flag to see what is happening:
+
+\begin{verbatim}
+$ chelonia -v -z ~/.arc/penny.conf list /
+- Config file specified: /home/zsombor/.arc/penny.conf
+- The key file: /home/zsombor/.arc/userkey-penny.pem
+- The cert file: /home/zsombor/.arc/usercert-penny.pem
+- The CA dir: /etc/grid-security/certificates
+- No Bartender URL found in the config or in the environment, try to get one from ISIS:
+  - https://chelonia1.knowarc.eu:60001/ISIS - Got Bartender URL from ISIS: https://chelonia1.knowarc.eu:60001/Bartender
+- The URL of the Bartender(s): https://chelonia1.knowarc.eu:60001/Bartender
 - Calling the Bartender's list method...
-- done in 0.31 seconds.
+- Trying https://chelonia1.knowarc.eu:60001/Bartender...
+- done in 0.15 seconds.
 '/': denied
 
-$ ARC_CERT_FILE=usercert-penny.pem ARC_KEY_FILE=userkey-penny.pem \
-chelonia put /tmp/orange /pennys-orange
-- The size of the file is 7 bytes
-- Calculating md5 checksum...
-- done in 0.0001 seconds, md5 checksum is 6aefd2842be62cd470709b27aedc7db7
-- Calling the Bartender's putFile method...
-- done in 0.81 seconds.
-/pennys-orange: failed to add child to parent
-
+$ chelonia -z ~/.arc/penny.conf put orange /pennys-orange
+/pennysorange: failed to add child to parent
 \end{verbatim}
 
 Listing the root collection or uploading files into it for Penny is denied, because the root collection is owned by Billy, and nobody else has permissions to it. Now, Billy allows for everyone to access the root collection:
 
 \begin{verbatim}
-$ chelonia pol / change ALL +read +addEntry
-- Calling the Bartender's stat method...
-- done in 0.30 seconds.
-old action list for the user ALL was ''
-the new action list of user ALL for LN / will be '+read +addEntry'
-- Calling the Bartender's modify method...
-- done in 0.50 seconds.
-set.
+$ chelonia policy / change ALL +read +addEntry
+Setting action list of '/' for user ALL to +read +addEntry: set.
 \end{verbatim}
 
 The syntax of the \verb!policy! method is the following:
 
 \begin{verbatim}
 $ chelonia pol
+$ chelonia policy
 Usage: policy <LN> <changeType> <identity> <action list>
   <changeType> could be 'set', 'change' or 'clear'
     'set': sets the action list to the given user overwriting the old one
@@ -561,9 +455,8 @@ Usage: policy <LN> <changeType> <identity> <action list>
   <identity> could be a '<UserDN>' or a 'VOMS:<VO name>'
   <action list> is a list actions prefixed with '+' or '-'
     e.g. '+read +addEntry -delete'
-    possible actions:
-        read addEntry removeEntry delete
-        modifyPolicy modifyStates modifyMetadata
+    possible actions:  read addEntry removeEntry delete
+                       modifyPolicy modifyStates modifyMetadata
 \end{verbatim}
 
 So Billy has changed the action list for user `ALL' to `+read +addEntry', which means that everybody can list the contents of this collection, create subcollections in it, upload files into it, or move existing entries into it.
@@ -571,55 +464,39 @@ So Billy has changed the action list for user `ALL' to `+read +addEntry', which 
 Now, Penny can upload a file:
 
 \begin{verbatim}
-$ ARC_CERT_FILE=usercert-penny.pem ARC_KEY_FILE=userkey-penny.pem \
-chelonia put /tmp/orange /pennys-orange
-- The size of the file is 7 bytes
-- Calculating md5 checksum...
-- done in 0.0001 seconds, md5 checksum is 6aefd2842be62cd470709b27aedc7db7
-- Calling the Bartender's putFile method...
-- done in 1.18 seconds.
-- Got transfer URL: http://localhost:60001/hopi/4145891d-0e4c-b6bd-e4d6-dc80554b9d35
-- Uploading from '/tmp/orange'
-    to 'http://localhost:60001/hopi/4145891d-0e4c-b6bd-e4d6-dc80554b9d35' with http...
-    1 s:        0.0 kB       0.0 kB/s       0.0 kB/s    . . .       
-- done in 1.0071 seconds.
-'/tmp/orange' (7 bytes) uploaded as '/pennys-orange'.
+$ chelonia -z ~/.arc/penny.conf put orange /pennys-orange
+'orange' (7 bytes) uploaded as '/pennys-orange'.
 \end{verbatim}
 
 This file now only can be downloaded by Penny, so she should allow for Billy to download it as well:
 
 \begin{verbatim}
-$ ARC_CERT_FILE=usercert-penny.pem ARC_KEY_FILE=userkey-penny.pem \
-chelonia pol /pennys-orange change /DC=eu/DC=KnowARC/O=knowarc/CN=billy +read
-- Calling the Bartender's stat method...
-- done in 0.41 seconds.
-old action list for the user /DC=eu/DC=KnowARC/O=knowarc/CN=billy was ''
-the new action list of user /DC=eu/DC=KnowARC/O=knowarc/CN=billy for LN /pennys-orange
-    will be '+read'
-- Calling the Bartender's modify method...
-- done in 0.59 seconds.
-set.
+$ chelonia get /pennys-orange /tmp
+/pennys-orange: denied
+
+$ chelonia -z ~/.arc/penny.conf pol /pennys-orange
+    change /DC=eu/DC=KnowARC/O=knowarc/CN=billy +read
+Setting action list of '/pennys-orange' for user /DC=eu/DC=KnowARC/O=knowarc/CN=billy
+    to +read: set.
 
 $ chelonia stat /pennys-orange
-- Calling the Bartender's stat method...
-- done in 0.43 seconds.
 '/pennys-orange': found
   locations
-    https://localhost:60000/Shepherd 1cc3b115-2350-8334-d206-a7b891912c00: alive
+    https://chelonia1.knowarc.eu:60001/Shepherd 22be0347-ab35-42c8-12a0-07a50160399a: alive
   states
     checksumType: md5
-    neededReplicas: 1
+    neededReplicas: 3
     size: 7
-    checksum: 6aefd2842be62cd470709b27aedc7db7
+    checksum: a7992bd22ce079983da12c0172983ff4
   parents
     0/pennys-orange: parent
   timestamps
-    created: 1237509633.17
+    created: 1256044171.04
   policy
     /DC=eu/DC=KnowARC/O=knowarc/CN=billy: +read
   entry
     owner: /DC=eu/DC=KnowARC/O=knowarc/CN=penny
-    GUID: 0e6a4c9a-d4e7-e0dc-e083-16b83d460d82
+    GUID: ea4fdb99-6a13-e926-0ec5-093e9fac524e
     type: file
 \end{verbatim}
 
@@ -627,788 +504,434 @@ The metadata of the file shows that Billy has `read' rights. Billy can now downl
 
 \begin{verbatim}
 $ chelonia get /pennys-orange /tmp
-- Calling the Bartender's getFile method...
-- done in 0.50 seconds.
-- Got transfer URL: http://localhost:60001/hopi/c16d7e12-42b0-7882-c09e-1cac31dbdbcd
-- Downloading from 'http://localhost:60001/hopi/c16d7e12-42b0-7882-c09e-1cac31dbdbcd'
-    to '/tmp/pennys-orange' with http...
-    0 s:        0.0 kB       0.0 kB/s       0.0 kB/s    . . .       
-- done in 1.0065 seconds.
 '/pennys-orange' (7 bytes) downloaded as '/tmp/pennys-orange'.
+
 $ cat /tmp/pennys-orange 
-orange
+ORANGE
 \end{verbatim}
 
-The needed number of replicas for a new file can be specified with the \verb!ARC_NEEDED_REPLICAS! environment variable.
+Currently we only have one storage element (a Shepherd service and a Hopi service together), that's why the file has only one replica, even though it should have 3. However the number of needed replicas of an existing file can be modified with the `modify' method:
 
 \begin{verbatim}
-$ ARC_NEEDED_REPLICAS=2 chelonia put orange /new-orange
-- The size of the file is 7 bytes
-- Calculating md5 checksum...
-- done in 0.0001 seconds, md5 checksum is 6aefd2842be62cd470709b27aedc7db7
-- Calling the Bartender's putFile method...
-- done in 1.11 seconds.
-- Got transfer URL: http://localhost:60001/hopi/0ad54182-7618-a2af-c490-dea7c4d6fc31
-- Uploading from 'orange' to
-    'http://localhost:60001/hopi/0ad54182-7618-a2af-c490-dea7c4d6fc31' with http...
-    1 s:        0.0 kB       0.0 kB/s       0.0 kB/s    . . .       
-- done in 1.0057 seconds.
-'orange' (7 bytes) uploaded as '/new-orange'.
-
-$ chelonia stat /new-orange
-- Calling the Bartender's stat method...
-- done in 0.40 seconds.
-'/new-orange': found
-  states
-    checksumType: md5
-    neededReplicas: 2
-    size: 7
-    checksum: 6aefd2842be62cd470709b27aedc7db7
-  entry
-    owner: /DC=eu/DC=KnowARC/O=knowarc/CN=billy
-    GUID: 4e673e28-4769-50af-f02e-d7a67632f87a
-    type: file
-  parents
-    0/new-orange: parent
-  locations
-    https://localhost:60000/Shepherd 4aacd276-653c-3ca5-c1a2-78a876c129c9: alive
-  timestamps
-    created: 1237509989.43
-
-\end{verbatim}
-
-Here, the `neededReplica' metadata says 2, but the system is deployed in a centralized way for testing purposes, so there is only one storage element (which is a Shepherd service and a Hopi service together), so the file can only have one replica and there can only be one location.
-
-The number of needed replicas of an existing file can be modified with the `modify' method:
-
-\begin{verbatim}
-$ chelonia modify /new-orange set states neededReplicas 1
-- Calling the Bartender's modify method...
-- done in 0.63 seconds.
+$ chelonia stat /pennys-orange | grep neededReplicas
+    neededReplicas: 3
+    
+$ chelonia -z ~/.arc/penny.conf modify /pennys-orange set states neededReplicas 2
 set
 
-$ chelonia stat /new-orange | grep neededReplicas
-    neededReplicas: 1
+$ chelonia stat /pennys-orange | grep neededReplicas
+    neededReplicas: 2
 \end{verbatim}
 
 It should be noted that the current version of the \verb!chelonia! tool does not support recursive methods or working with multiple files at once.
 
-
 \section{Adding more storage elements}
 
-The following shows how to add a new storage element to the system. A new storage element should be on a different physical machine, preferably in a different building to minimize the possibility of both storage elements being offline at the same time. But for testing purposes it is of course possible to run it on the same machine using different ports. A storage element consists of a Shepherd service and a storage element service, which this time will be a `byteio' service. The `byteio' service implements a small part of the ByteIO interface, which means that it just put the entire file data into the SOAP message, so it is only suitable for small files.
+The following shows how to add a new storage element to the system. A new storage element should be on a different physical machine, preferably in a different building to minimize the possibility of both storage elements being offline at the same time. But for testing purposes it is of course possible to run it on the same machine using different ports. A storage element consists of a Shepherd service and a storage element service, which will be our lightweight HTTP server called Hopi. (But there is support for using apache as well.)
 
-Now, modify the configuration file of the original server. Currently all the transfer URLs which were generated when uploading and downloading files contained the hostname `localhost'. This is not OK if access from an other machine is needed. In this case, transfer URL's must contain the external hostname of the machine. To do this, change this line in \verb!/etc/arc/storage_service.xml!:
+For our second machine we will use the profile called \verb!CheloniaShepherdWithHopi!, which only contains the Shepherd service and the Hopi service. Here is the INI config for our chelonia2 server:
 
 \begin{verbatim}
-    <TURLPrefix>http://localhost:60001/hopi/</TURLPrefix>
+profile=/usr/local/share/arc/profiles/CheloniaShepherdWithHopi.xml
+
+pidfile=/tmp/chelonia2.pid
+logfile=/var/log/chelonia2.log
+debug=ERROR
+
+port=60002
+
+cacert=/etc/grid-security/certificates
+host_cert=/etc/grid-security/hostcert-chelonia2.pem
+host_key=/etc/grid-security/hostkey-chelonia2.pem
+client_cert=/etc/grid-security/hostcert-chelonia2.pem
+client_key=/etc/grid-security/hostkey-chelonia2.pem
+
+[register]
+index_server1=https://chelonia1.knowarc.eu:60001/ISIS
+
+[shepherd]
+endpoint=https://chelonia2.knowarc.eu:60002/Shepherd
+turlprefix=https://chelonia2.knowarc.eu:60002/Hopi
+datadir=/var/spool/arc/chelonia2_shepherd_data
+storedir=/var/spool/arc/chelonia2_shepherd_store
+transferdir=/var/spool/arc/chelonia2_shepherd_transfer
 \end{verbatim}
 
-to the real hostname of the machine. But this is not enough. Currently the Shepherd services uses their URLs as IDs, and the other services use these IDs to connect to a Shepherd service, so the ID of the Shepherd service needs to be changed to a real external URL as well. For the sake of clarity, change all `localhost' entries in the config file to the real hostname. In this example, the name of this machine is just `storage' so the Shepherd section should look like this:
+The Hopi service doesn't need additional configuration, it is tied to the Shepherd here. We have to specify the ISIS running on the \verb!chelonia1! server in order to the services in the two container could find eachother.
+
+While our first server (\verb!chelonia1!) is still running, start this new server:
 
 \begin{verbatim}
-<Service name="pythonservice" id="shepherd">
-    <ClassName>storage.shepherd.shepherd.ShepherdService</ClassName>
-    <ServiceID>https://storage:60000/Shepherd</ServiceID>
-    <CheckPeriod>20</CheckPeriod>
-    <MinCheckInterval>0.1</MinCheckInterval>
-    <CreatingTimeout>600</CreatingTimeout>
-    <StoreClass>arcom.store.cachedpicklestore.CachedPickleStore</StoreClass>
-    <StoreCfg><DataDir>/var/spool/arc/shepherd_data</DataDir></StoreCfg>
-    <BackendClass>storage.shepherd.hardlinkingbackend.HopiBackend</BackendClass>
-    <BackendCfg>
-        <DataDir>/var/spool/arc/shepherd_store</DataDir>
-        <TransferDir>/var/spool/arc/shepherd_transfer</TransferDir>
-        <TURLPrefix>http://storage:60001/hopi/</TURLPrefix>
-    </BackendCfg>
-    <LibrarianURL>https://storage:60000/Librarian</LibrarianURL>
-    <BartenderURL>https://storage:60000/Bartender</BartenderURL>
-    <ClientSSLConfig FromFile="/etc/arc/clientsslconfig.xml" />
-</Service>
+$ sudo arched -i /etc/arc/chelonia2.ini
+$ cat /tmp/chelonia2.pid
+21477
 \end{verbatim}
 
-Now, check if the centralized deployment is still working, stop the \verb!arched! daemon, remove the data directories to make it a clean start, and restart it with the modified config.
+Now in a few minutes the file should have a second replica:
 
 \begin{verbatim}
-$ sudo rm -r /var/spool/arc/*
-$ sudo /usr/local/sbin/arched -c /etc/arc/storage_service.xml -f    
-\end{verbatim}
-
-See if the client is still usable:
-
-\begin{verbatim}
-$ chelonia list /
-- Calling the Bartender's list method...
-- done in 0.31 seconds.
-'/': not found
-
-$ chelonia makeCollection /
-- Calling the Bartender's makeCollection method...
-- done in 0.63 seconds.
-Creating collection '/': done
-
-$ chelonia list /
-- Calling the Bartender's list method...
-- done in 0.50 seconds.
-'/': collection
-    empty.
-\end{verbatim}
-
-Now, upload a file and ask for two replicas:
-
-\begin{verbatim}
-$ ARC_NEEDED_REPLICAS=2 chelonia put orange /
-- The size of the file is 7 bytes
-- Calculating md5 checksum...
-- done in 0.0005 seconds, md5 checksum is 6aefd2842be62cd470709b27aedc7db7
-- Calling the Bartender's putFile method...
-- done in 1.10 seconds.
-- Got transfer URL: http://storage:60001/hopi/139dc57d-8c12-c188-a4a6-973449553811
-- Uploading from 'orange'
-    to 'http://storage:60001/hopi/139dc57d-8c12-c188-a4a6-973449553811' with http...
-    1 s:        0.0 kB       0.0 kB/s       0.0 kB/s    . . .       
-- done in 1.0090 seconds.
-'orange' (7 bytes) uploaded as '/orange'.
-
-$ chelonia stat /orange
-- Calling the Bartender's stat method...
-- done in 0.41 seconds.
-'/orange': found
-  states
-    checksumType: md5
-    neededReplicas: 2
-    size: 7
-    checksum: 6aefd2842be62cd470709b27aedc7db7
-  entry
-    owner: /DC=eu/DC=KnowARC/O=knowarc/CN=billy
-    GUID: 3fdad88a-944f-79c5-4f23-c5b3d3bc981e
-    type: file
-  parents
-    0/orange: parent
+$ chelonia stat /pennys-orange
+'/pennys-orange': found
   locations
-    https://storage:60000/Shepherd 0b46f53c-419d-ce4e-181a-ec95d16dcc95: alive
-  timestamps
-    created: 1237519441.96
+    https://chelonia1.knowarc.eu:60001/Shepherd 22be0347-ab35-42c8-12a0-07a50160399a: alive
+    https://chelonia2.knowarc.eu:60002/Shepherd 386aec8c-174c-c83c-e5ea-f0784f5ff79f: alive
+[...]
 \end{verbatim}
 
-Currently it has only one replica, because there is still only one storage element. Now, create a new config for the other machine, here called \verb!storage2!:
+Let's start a third server called \verb!chelonia3! with this config:
 
 \begin{verbatim}
-<?xml version="1.0"?>
-<ArcConfig 
-  xmlns="http://www.nordugrid.org/schemas/ArcConfig/2007"
-  xmlns:tcp="http://www.nordugrid.org/schemas/ArcMCCTCP/2007"
->
-    <Server>
-        <Pidfile>/var/run/arched2.pid</Pidfile>
-        <Logger level="ERROR">/var/log/arched2.log</Logger>
-    </Server>
-    <ModuleManager>
-        <Path>/usr/local/lib/arc/</Path>
-    </ModuleManager>
-    <Plugins><Name>mcctcp</Name></Plugins>
-    <Plugins><Name>mcctls</Name></Plugins>
-    <Plugins><Name>mcchttp</Name></Plugins>
-    <Plugins><Name>mccsoap</Name></Plugins>
-    <Chain>
-        <Component name="tcp.service" id="tcp">
-            <next id="tls"/> 
-            <tcp:Listen>
-                <tcp:Port>60006</tcp:Port>
-                <tcp:Version>4</tcp:Version>
-            </tcp:Listen>
-        </Component>
-        <Component name="tls.service" id="tls">
-            <next id="http"/>
-            <KeyPath>/etc/grid-security/hostkey.pem</KeyPath>
-            <CertificatePath>/etc/grid-security/hostcert.pem</CertificatePath>
-            <CACertificatesDir>/etc/grid-security/certificates</CACertificatesDir>
-        </Component>
-        <Component name="http.service" id="http">
-            <next id="soap">POST</next>
-        </Component>
-        <Component name="soap.service" id="soap">
-            <next id="plexer"/>
-        </Component>
-        <Plexer name="plexer.service" id="plexer">
-            <next id="shepherd">^/Shepherd$</next>
-            <next id="byteio">^/byteio/</next>
-        </Plexer>
-        <Service name="pythonservice" id="shepherd">
-            <ClassName>storage.shepherd.shepherd.ShepherdService</ClassName>
-            <ServiceID>https://storage2:60006/Shepherd</ServiceID>
-            <CheckPeriod>20</CheckPeriod>
-            <MinCheckInterval>0.1</MinCheckInterval>
-            <CreatingTimeout>600</CreatingTimeout>
-            <StoreClass>arcom.store.cachedpicklestore.CachedPickleStore</StoreClass>
-            <StoreCfg>
-                <DataDir>/var/spool/arc/shepherd_data2</DataDir>
-            </StoreCfg>
-            <BackendClass>storage.shepherd.byteio.ByteIOBackend</BackendClass>
-            <BackendCfg>
-                <DataDir>/var/spool/arc/shepherd_store2</DataDir>
-                <TransferDir>/var/spool/arc/shepherd_transfer2</TransferDir>
-                <TURLPrefix>https://storage2:60006/byteio/</TURLPrefix>
-            </BackendCfg>
-            <LibrarianURL>https://storage:60000/Librarian</LibrarianURL>
-            <BartenderURL>https://storage:60000/Bartender</BartenderURL>
-            <ClientSSLConfig FromFile="/etc/arc/clientsslconfig.xml"/>
-        </Service>
-        <Service name="pythonservice" id="byteio">
-            <ClassName>storage.shepherd.byteio.ByteIOService</ClassName>
-            <TransferDir>/var/spool/arc/shepherd_transfer2</TransferDir>
-            <NotifyURL>https://storage2:60006/Shepherd</NotifyURL>
-            <ClientSSLConfig FromFile="/etc/arc/clientsslconfig.xml"/>
-        </Service>
-    </Chain>
-</ArcConfig>    
+profile=/usr/local/share/arc/profiles/CheloniaShepherdWithHopi.xml
+
+pidfile=/tmp/chelonia3.pid
+logfile=/var/log/chelonia3.log
+debug=ERROR
+
+port=60003
+
+cacert=/etc/grid-security/certificates
+host_cert=/etc/grid-security/hostcert-chelonia3.pem
+host_key=/etc/grid-security/hostkey-chelonia3.pem
+client_cert=/etc/grid-security/hostcert-chelonia3.pem
+client_key=/etc/grid-security/hostkey-chelonia3.pem
+
+[register]
+index_server1=https://chelonia1.knowarc.eu:60001/ISIS
+
+[shepherd]
+endpoint=https://chelonia3.knowarc.eu:60003/Shepherd
+turlprefix=https://chelonia3.knowarc.eu:60003/Hopi
+datadir=/var/spool/arc/chelonia3_shepherd_data
+storedir=/var/spool/arc/chelonia3_shepherd_store
+transferdir=/var/spool/arc/chelonia3_shepherd_transfer
 \end{verbatim}
 
-This configuration contains only two services: a Shepherd, and byteio service. The byteio service is just a very simple storage element service which moves files within SOAP messages. The Shepherd service needs to have a backend for all supported storage element services, so it has a ByteIOBackend configured. This Shepherd connects to the first server's Bartender and Librarian services. (See the technical documentation for details about the services.)
-
-While the original (\verb!storage!) server still runs the services, start the new server:
+It again has the same ISIS configured. Let's start it:
 
 \begin{verbatim}
-$ sudo /usr/local/sbin/arched -c /etc/arc/storage_service_2.xml -f
-\end{verbatim}
-
-After a minute or two, check the file again:
-
-\begin{verbatim}
-$ chelonia stat /orange
-- Calling the Bartender's stat method...
-- done in 0.41 seconds.
-'/orange': found
-  states
-    checksumType: md5
-    neededReplicas: 2
-    size: 7
-    checksum: 6aefd2842be62cd470709b27aedc7db7
-  entry
-    owner: /DC=eu/DC=KnowARC/O=knowarc/CN=billy
-    GUID: 24b442eb-ab1a-680e-1f79-4c20479d3ea9
-    type: file
-  parents
-    0/orange: parent
-  locations
-    https://storage:60000/Shepherd 315d59d3-50cd-1a10-02e6-8e6a528473c3: alive
-    https://storage2:60006/Shepherd c1334c09-5d3d-983b-2081-87fe60d4764a: alive
-  timestamps
-    created: 1237519828.4
-\end{verbatim}
-
-It indeed has two replicas now, one on each server.
-
-Now, try to download it multiple times:
-
-\begin{verbatim}
-$ chelonia get /orange /tmp/orange1
-- Calling the Bartender's getFile method...
-- done in 0.50 seconds.
-- Got transfer URL: http://storage:60001/hopi/de0d951f-7379-1ce4-0813-48a384c11982
-- Downloading from 'http://storage:60001/hopi/de0d951f-7379-1ce4-0813-48a384c11982'
-    to '/tmp/orange1' with http...
-    0 s:        0.0 kB       0.0 kB/s       0.0 kB/s    . . .       
-- done in 1.0060 seconds.
-'/orange' (7 bytes) downloaded as '/tmp/orange1'.
-    
-$ chelonia get /orange /tmp/orange2
-- Calling the Bartender's getFile method...
-- done in 0.51 seconds.
-- Got transfer URL: https://storage2:60006/byteio/52b6bffa-4812-03a5-93a1-834e38077ac5
-- Downloading from 'https://storage2:60006/byteio/52b6bffa-4812-03a5-93a1-834e38077ac5'
-    to '/tmp/orange2' with byteio...
-- done in 0.2822 seconds.
-'/orange' (7 bytes) downloaded as '/tmp/orange2'.
-\end{verbatim}
-
-First it was downloaded from the \verb!storage! server via HTTP, second time it was downloaded from the \verb!storage2! server via ByteIO.
-
-Now, create a third storage element on a machine called \verb!storage3! this time using a Hopi service as storage element service like on the main \verb!storage! server:
-
-\begin{verbatim}
-zsombor@storage:~$ cat /etc/arc/storage_service_3.xml 
-<?xml version="1.0"?>
-<ArcConfig 
-  xmlns="http://www.nordugrid.org/schemas/ArcConfig/2007"
-  xmlns:tcp="http://www.nordugrid.org/schemas/ArcMCCTCP/2007"
->
-    <Server>
-        <Pidfile>/var/run/arched3.pid</Pidfile>
-        <Logger level="ERROR">/var/log/arched3.log</Logger>
-    </Server>
-    <ModuleManager>
-        <Path>/usr/local/lib/arc/</Path>
-    </ModuleManager>
-    <Plugins><Name>mcctcp</Name></Plugins>
-    <Plugins><Name>mcctls</Name></Plugins>
-    <Plugins><Name>mcchttp</Name></Plugins>
-    <Plugins><Name>mccsoap</Name></Plugins>
-    <Chain>
-        <Component name="tcp.service" id="tcp">
-            <next id="tls"/> 
-            <tcp:Listen>
-		<tcp:Port>60010</tcp:Port>
-		<tcp:Version>4</tcp:Version>
-	    </tcp:Listen>
-        </Component>
-        <Component name="tls.service" id="tls">
-            <next id="http"/>
-            <KeyPath>/etc/grid-security/hostkey.pem</KeyPath>
-            <CertificatePath>/etc/grid-security/hostcert.pem</CertificatePath>
-            <CACertificatesDir>/etc/grid-security/certificates</CACertificatesDir>
-        </Component>
-        <Component name="http.service" id="http">
-            <next id="soap">POST</next>
-        </Component>
-        <Component name="soap.service" id="soap">
-            <next id="plexer"/>
-        </Component>
-        <Plexer name="plexer.service" id="plexer">
-            <next id="shepherd">^/Shepherd$</next>
-        </Plexer>
-        <Service name="pythonservice" id="shepherd">
-            <ClassName>storage.shepherd.shepherd.ShepherdService</ClassName>
-            <ServiceID>https://storage3:60010/Shepherd</ServiceID>
-            <CheckPeriod>20</CheckPeriod>
-            <MinCheckInterval>0.1</MinCheckInterval>
-            <CreatingTimeout>600</CreatingTimeout>
-            <StoreClass>arcom.store.cachedpicklestore.CachedPickleStore</StoreClass>
-            <StoreCfg><DataDir>/var/spool/arc/shepherd_data3</DataDir></StoreCfg>
-            <BackendClass>storage.shepherd.hardlinkingbackend.HopiBackend</BackendClass>
-            <BackendCfg>
-                <DataDir>/var/spool/arc/shepherd_store3</DataDir>
-                <TransferDir>/var/spool/arc/shepherd_transfer3</TransferDir>
-                <TURLPrefix>http://storage3:60011/hopi/</TURLPrefix>
-            </BackendCfg>
-            <LibrarianURL>https://storage:60000/Librarian</LibrarianURL>
-            <BartenderURL>https://storage:60000/Bartender</BartenderURL>
-            <ClientSSLConfig FromFile="/etc/arc/clientsslconfig.xml" />
-        </Service>
-    </Chain>
-    <Chain>
-        <Component name="tcp.service" id="tcp2">
-            <next id="http2"/> 
-            <tcp:Listen>
-		<tcp:Port>60011</tcp:Port>
-		<tcp:Version>4</tcp:Version>
-	    </tcp:Listen>
-        </Component>
-        <Component name="http.service" id="http2">
-            <next id="plexer2">GET</next>
-            <next id="plexer2">PUT</next>
-        </Component>
-        <Plexer name="plexer.service" id="plexer2">
-            <next id="hopi">^/hopi/</next>
-        </Plexer>
-        <Service name="hopi" id="hopi">
-            <DocumentRoot>/var/spool/arc/shepherd_transfer3</DocumentRoot>
-            <SlaveMode>1</SlaveMode>
-        </Service>
-    </Chain>
-</ArcConfig>    
-\end{verbatim}
-
-This configuration has two separate ports, one with TLS security and a Shepherd service, and the other without TLS security and with the Hopi service. Run this server as well:
-
-\begin{verbatim}
-$ sudo /usr/local/sbin/arched -c /etc/arc/storage_service_3.xml -f
+$ sudo arched -i /etc/arc/chelonia3.ini
 \end{verbatim}
 
 Now when checking the file again there should be no change at all:
 
 \begin{verbatim}
-$ chelonia stat /orange
+$ chelonia stat /pennys-orange
+'/pennys-orange': found
   locations
-    https://storage:60000/Shepherd 315d59d3-50cd-1a10-02e6-8e6a528473c3: alive
-    https://storage2:60006/Shepherd c1334c09-5d3d-983b-2081-87fe60d4764a: alive
+    https://chelonia1.knowarc.eu:60001/Shepherd 22be0347-ab35-42c8-12a0-07a50160399a: alive
+    https://chelonia2.knowarc.eu:60002/Shepherd 386aec8c-174c-c83c-e5ea-f0784f5ff79f: alive
+[...]
 \end{verbatim}
 
-Stop the server on \verb!storage2!, and watch what happens with the file:
+Let's stop \verb!chelonia2! to see what is happening with the two replicas:
 
 \begin{verbatim}
-$ chelonia stat /orange
+$ chelonia stat /pennys-orange
+'/pennys-orange': found
   locations
-    https://storage:60000/Shepherd 315d59d3-50cd-1a10-02e6-8e6a528473c3: alive
-    https://storage2:60006/Shepherd c1334c09-5d3d-983b-2081-87fe60d4764a: offline
-    
-$ chelonia stat /orange
-  locations
-    https://storage:60000/Shepherd 315d59d3-50cd-1a10-02e6-8e6a528473c3: alive
-    https://storage2:60006/Shepherd c1334c09-5d3d-983b-2081-87fe60d4764a: offline
-    https://storage3:60010/Shepherd 421aa939-81fa-5cd9-7c2f-2d5f99a98be1: creating
+    https://chelonia1.knowarc.eu:60001/Shepherd 22be0347-ab35-42c8-12a0-07a50160399a: alive
+    https://chelonia2.knowarc.eu:60002/Shepherd 386aec8c-174c-c83c-e5ea-f0784f5ff79f: offline
+[...]
 
-$ chelonia stat /orange
+$ chelonia stat /pennys-orange
+'/pennys-orange': found
   locations
-    https://storage:60000/Shepherd 315d59d3-50cd-1a10-02e6-8e6a528473c3: alive
-    https://storage2:60006/Shepherd c1334c09-5d3d-983b-2081-87fe60d4764a: offline
-    https://storage3:60010/Shepherd 421aa939-81fa-5cd9-7c2f-2d5f99a98be1: alive
+    https://chelonia1.knowarc.eu:60001/Shepherd 22be0347-ab35-42c8-12a0-07a50160399a: alive
+    https://chelonia3.knowarc.eu:60003/Shepherd 4a5cb7d5-bcec-0c84-e37f-3d2658ed3d4c: alive
+    https://chelonia2.knowarc.eu:60002/Shepherd 386aec8c-174c-c83c-e5ea-f0784f5ff79f: offline
+[...]
+
 \end{verbatim}
 
 A new replica has been created on the third server to maintain the needed number of 2.
 
-Now, start the services on \verb!storage2! again, and see what is happening with the file:
+Let's start \verb!chelonia2! again, and check the state of the replicas:
 
 \begin{verbatim}
-$ chelonia stat /orange
+$ chelonia stat /pennys-orange
+'/pennys-orange': found
   locations
-    https://storage:60000/Shepherd 315d59d3-50cd-1a10-02e6-8e6a528473c3: alive
-    https://storage2:60006/Shepherd c1334c09-5d3d-983b-2081-87fe60d4764a: alive
-    https://storage3:60010/Shepherd 421aa939-81fa-5cd9-7c2f-2d5f99a98be1: alive
-
-$ chelonia stat /orange
+    https://chelonia1.knowarc.eu:60001/Shepherd 22be0347-ab35-42c8-12a0-07a50160399a: alive
+    https://chelonia3.knowarc.eu:60003/Shepherd 4a5cb7d5-bcec-0c84-e37f-3d2658ed3d4c: alive
+    https://chelonia2.knowarc.eu:60002/Shepherd 386aec8c-174c-c83c-e5ea-f0784f5ff79f: alive
+    
+$ chelonia stat /pennys-orange
+'/pennys-orange': found
   locations
-    https://storage:60000/Shepherd 315d59d3-50cd-1a10-02e6-8e6a528473c3: alive
-    https://storage2:60006/Shepherd c1334c09-5d3d-983b-2081-87fe60d4764a: thirdwheel
-    https://storage3:60010/Shepherd 421aa939-81fa-5cd9-7c2f-2d5f99a98be1: alive
-
-$ chelonia stat /orange
+    https://chelonia1.knowarc.eu:60001/Shepherd 22be0347-ab35-42c8-12a0-07a50160399a: alive
+    https://chelonia3.knowarc.eu:60003/Shepherd 4a5cb7d5-bcec-0c84-e37f-3d2658ed3d4c: alive
+    https://chelonia2.knowarc.eu:60002/Shepherd 386aec8c-174c-c83c-e5ea-f0784f5ff79f: thirdwheel
+    
+$ chelonia stat /pennys-orange
+'/pennys-orange': found
   locations
-    https://storage:60000/Shepherd 315d59d3-50cd-1a10-02e6-8e6a528473c3: alive
-    https://storage3:60010/Shepherd 421aa939-81fa-5cd9-7c2f-2d5f99a98be1: alive
+    https://chelonia1.knowarc.eu:60001/Shepherd 22be0347-ab35-42c8-12a0-07a50160399a: alive
+    https://chelonia3.knowarc.eu:60003/Shepherd 4a5cb7d5-bcec-0c84-e37f-3d2658ed3d4c: alive
 \end{verbatim}
 
-One of the replicas has been removed to maintain the needed number of 2.
+One of the replicas has been removed to maintain the needed number of 2. Sometimes it takes a while while the Shepherds figure out how should remove the replica to make sure we don't loose the file accidentaly.
 
-\section{Make the A-Hash service replicated} % (fold)
+\section{Make the full system replicated} % (fold)
 \label{sec:make_the_a_hash_service_replicated}
 
-Now the deployment is as following: One machine has the A-Hash, Librarian and Bartender services, and all three machines have a Shepherd and a storage element service. The A-Hash service stores all the metadata of all the files and collections, so it is critical. If the first machine goes offline then the whole system dies. However, it is possible to deploy the A-Hash service on all the machines and still have one consistent metadata database. The replicated version of the A-Hash uses the Berkeley DB to provide a distributed database.
+Now the deployment is as following: One machine has the A-Hash, Librarian and Bartender services, and all three machines have a Shepherd and a storage element service. The A-Hash service stores all the metadata of all the files and collections, so it is critical. If the first machine goes offline then the whole system dies. However, it is possible to deploy the A-Hash service on all the machines and still have one consistent metadata database. The replicated version of the A-Hash uses the Berkeley DB to provide a distributed database. But the A-Hash is just the database backend of the Librarian, so we need more than one Librarian as well. And the Bartender service is critical for the user to access the system, so we should have more than one Bartender services. And because of all the services are registered in the ISIS service, and they find eachother by querying the ISIS, that's why we need more than one ISIS as well. So let's deploy every service on each machine.
 
-In the following, Berkeley DB is installed as root (the \verb!--prefix! option of \verb!configure! can be used to install it somewhere else than the default location). This needs to be done on all the machines.
+While the Librarian, Bartender and ISIS services could be easily deployed on multiple sites (the ISIS services should have eachother URLs in the config), the A-Hash services should form a consistent replicated database together, and this is implemented in a different version of the A-Hash which has different configuration as well. So if we want to use the replicated A-Hash, we need a different configuration profile on each servers, called \verb!CheloniaAllServicesReplicatedAHashWithISIS!.
 
-Get the latest Berkeley DB and its patches:
+Let's stop all the arched daemons, and remove everything from the /var/spool/arc directory, which clears all the metadata and files stored in the system (because the replicated A-Hash and the centralized A-Hash cannot be mixed together, and currently cannot be converted).
+
+We need to install at least the 4.6 version of Berkeley DB, and the python bindings as well. Maybe the easiest way to install the python bindings is to use \verb!easy_install! which is part of \verb!python-setuptools!:
+
 \begin{verbatim}
-$ wget http://download.oracle.com/berkeley-db/db-4.7.25.tar.gz
-$ wget http://www.oracle.com/technology/products/berkeley-db/db/update/4.7.25/patch.4.7.25.1
-$ wget http://www.oracle.com/technology/products/berkeley-db/db/update/4.7.25/patch.4.7.25.2
-$ wget http://www.oracle.com/technology/products/berkeley-db/db/update/4.7.25/patch.4.7.25.3
+$ sudo easy_install bsddb3    
 \end{verbatim}
 
-Extract it and apply the patches:
+If we managed to install it, we should be able to run the unittests without a problem:
+
 \begin{verbatim}
-$ tar zxf db-4.7.25.tar.gz
-$ cd db-4.7.25
-$ patch -p 0 < ../patch.4.7.25.1
-$ patch -p 0 < ../patch.4.7.25.2
-$ patch -p 0 < ../patch.4.7.25.3
+$ sudo python /usr/lib/python2.5/site-packages/\
+    bsddb3-4.8.0-py2.5-linux-i686.egg/bsddb3/tests/test_all.py
 \end{verbatim}
 
-Configure, make and install it (and if needed, use the \verb!--prefix! option for \verb!configure!)
+Let's see the configuration of the first server:
+
 \begin{verbatim}
-$ cd build_unix/
-$ ../dist/configure
+profile=/usr/local/share/arc/profiles/CheloniaAllServicesReplicatedAHashWithISIS.xml
+
+pidfile=/tmp/chelonia1.pid
+logfile=/var/log/chelonia1.log
+debug=ERROR
+
+port=60001
+
+cacert=/etc/grid-security/certificates
+host_cert=/etc/grid-security/hostcert-chelonia1.pem
+host_key=/etc/grid-security/hostkey-chelonia1.pem
+client_cert=/etc/grid-security/hostcert-chelonia1.pem
+client_key=/etc/grid-security/hostkey-chelonia1.pem
+
+[register]
+index_server1=https://chelonia1.knowarc.eu:60001/ISIS
+
+[ahash]
+endpoint=https://chelonia1.knowarc.eu:60001/AHash
+datadir=/var/spool/arc/chelonia1_ahash_data
+peerurl1=https://chelonia1.knowarc.eu:60002/AHash
+
+[bartender]
+endpoint=https://chelonia1.knowarc.eu:60001/Bartender
+
+[librarian]
+endpoint=https://chelonia1.knowarc.eu:60001/Librarian
+
+[shepherd]
+endpoint=https://chelonia1.knowarc.eu:60001/Shepherd
+turlprefix=https://chelonia1.knowarc.eu:60001/Hopi
+datadir=/var/spool/arc/chelonia1_shepherd_data
+storedir=/var/spool/arc/chelonia1_shepherd_store
+transferdir=/var/spool/arc/chelonia1_shepherd_transfer
+
+[isis]
+endpoint=https://chelonia1.knowarc.eu:60001/ISIS
+dbpath=/var/spool/arc/chelonia1_isis_data
+peerurl1=https://chelonia1.knowarc.eu:60001/ISIS
+peerurl2=https://chelonia2.knowarc.eu:60002/ISIS
+peerurl3=https://chelonia3.knowarc.eu:60003/ISIS
 \end{verbatim}
 
-Now compile and install it:
+The main difference in the config is that there is a peer URL given for the A-Hash, and three peer URL is given for the ISIS. The A-Hash is replicated not because we set a peer URL here, but because of the different profile. This profile contains a replicated A-Hash, while the previous profile contained a centralized one.
+
+The config for \verb!chelonia2!:
+
 \begin{verbatim}
-$ make
-$ sudo make install
+profile=/usr/local/share/arc/profiles/CheloniaAllServicesReplicatedAHashWithISIS.xml
+
+pidfile=/tmp/chelonia2.pid
+logfile=/var/log/chelonia2.log
+debug=ERROR
+
+port=60002
+
+cacert=/etc/grid-security/certificates
+host_cert=/etc/grid-security/hostcert-chelonia2.pem
+host_key=/etc/grid-security/hostkey-chelonia2.pem
+client_cert=/etc/grid-security/hostcert-chelonia2.pem
+client_key=/etc/grid-security/hostkey-chelonia2.pem
+
+[register]
+index_server1=https://chelonia2.knowarc.eu:60002/ISIS
+
+[ahash]
+endpoint=https://chelonia2.knowarc.eu:60002/AHash
+datadir=/var/spool/arc/chelonia2_ahash_data
+peerurl1=https://chelonia1.knowarc.eu:60001/AHash
+
+[bartender]
+endpoint=https://chelonia2.knowarc.eu:60002/Bartender
+
+[librarian]
+endpoint=https://chelonia2.knowarc.eu:60002/Librarian
+
+[shepherd]
+endpoint=https://chelonia2.knowarc.eu:60002/Shepherd
+turlprefix=https://chelonia2.knowarc.eu:60002/Hopi
+datadir=/var/spool/arc/chelonia2_shepherd_data
+storedir=/var/spool/arc/chelonia2_shepherd_store
+transferdir=/var/spool/arc/chelonia2_shepherd_transfer
+
+[isis]
+endpoint=https://chelonia2.knowarc.eu:60002/ISIS
+dbpath=/var/spool/arc/chelonia2_isis_data
+peerurl1=https://chelonia1.knowarc.eu:60001/ISIS
+peerurl2=https://chelonia2.knowarc.eu:60002/ISIS
+peerurl3=https://chelonia3.knowarc.eu:60003/ISIS
 \end{verbatim}
 
-Next, get the python wrapper for the Berkeley DB:
+And for \verb!chelonia3!:
 
 \begin{verbatim}
-$ wget http://pypi.python.org/packages/source/b/bsddb3/bsddb3-4.7.5.tar.gz
+profile=/usr/local/share/arc/profiles/CheloniaAllServicesReplicatedAHashWithISIS.xml
+
+pidfile=/tmp/chelonia3.pid
+logfile=/var/log/chelonia3.log
+debug=ERROR
+
+port=60003
+
+cacert=/etc/grid-security/certificates
+host_cert=/etc/grid-security/hostcert-chelonia3.pem
+host_key=/etc/grid-security/hostkey-chelonia3.pem
+client_cert=/etc/grid-security/hostcert-chelonia3.pem
+client_key=/etc/grid-security/hostkey-chelonia3.pem
+
+[register]
+index_server1=https://chelonia3.knowarc.eu:60003/ISIS
+
+[ahash]
+endpoint=https://chelonia3.knowarc.eu:60003/AHash
+datadir=/var/spool/arc/chelonia3_ahash_data
+peerurl1=https://chelonia1.knowarc.eu:60001/AHash
+peerurl2=https://chelonia2.knowarc.eu:60002/AHash
+
+[bartender]
+endpoint=https://chelonia3.knowarc.eu:60003/Bartender
+
+[librarian]
+endpoint=https://chelonia3.knowarc.eu:60003/Librarian
+
+[shepherd]
+endpoint=https://chelonia3.knowarc.eu:60003/Shepherd
+turlprefix=https://chelonia3.knowarc.eu:60003/Hopi
+datadir=/var/spool/arc/chelonia3_shepherd_data
+storedir=/var/spool/arc/chelonia3_shepherd_store
+transferdir=/var/spool/arc/chelonia3_shepherd_transfer
+
+[isis]
+endpoint=https://chelonia3.knowarc.eu:60003/ISIS
+dbpath=/var/spool/arc/chelonia3_isis_data
+peerurl1=https://chelonia1.knowarc.eu:60001/ISIS
+peerurl2=https://chelonia2.knowarc.eu:60002/ISIS
+peerurl3=https://chelonia3.knowarc.eu:60003/ISIS
 \end{verbatim}
 
-Install it to the default location:
+Now we can start all three. It may take a while for the system to stabilize, but then we will see a clean system, with no root collection. We should create one, then upload a file:
 
 \begin{verbatim}
-$ tar zxf bsddb3-4.7.5.tar.gz
-$ cd bsddb3-4.7.5
-$ sudo python setup.py install
-\end{verbatim}
+$ chelonia list /
+'/': not found
 
-If Berkeley DB was installed in a non-default location, or to install the python wrapper to somewhere else than the default:
-
-\begin{verbatim}
-$ BERKELEYDB_DIR=/path/to/berkeleydb python setup.py install --prefix=/where/to/install
-\end{verbatim}
-
-Test the installation with the \verb!test.py! included in the directory of the python wrapper for the Berkeley DB:
-\begin{verbatim}
-$ sudo python test.py
-[...]
-Ran 383 tests in 29.858s
-
-OK
-\end{verbatim}
-
-Configure the first server (\verb!storage!). Here is the AHash part of the config:
-
-\begin{verbatim}
-<Service name="pythonservice" id="ahash">
-    <ClassName>storage.ahash.ahash.AHashService</ClassName>
-    <AHashClass>storage.ahash.replicatedahash.ReplicatedAHash</AHashClass>
-    <LocalDir>/var/spool/arc/ahash_data</LocalDir>
-    <MyURL>https://storage:60000/AHash</MyURL>
-    <OtherURL>https://storage2:60006/AHash</OtherURL>
-    <Priority>50</Priority>
-    <ClientSSLConfig FromFile='/etc/arc/clientsslconfig.xml'/>
-</Service>
-\end{verbatim}
-
-In this config the second server is specified as a peer. Configure the second server (\verb!storage2!) as well:
-
-\begin{verbatim}
-<Plexer name="plexer.service" id="plexer">
-    <next id="ahash">^/AHash$</next>
-    <next id="shepherd">^/Shepherd$</next>
-    <next id="byteio">^/byteio/</next>
-</Plexer>
-<Service name="pythonservice" id="ahash">
-    <ClassName>storage.ahash.ahash.AHashService</ClassName>
-    <AHashClass>storage.ahash.replicatedahash.ReplicatedAHash</AHashClass>
-    <LocalDir>/var/spool/arc/ahash_data2</LocalDir>
-    <MyURL>https://storage2:60006/AHash</MyURL>
-    <OtherURL>https://storage:60000/AHash</OtherURL>
-    <Priority>50</Priority>
-    <ClientSSLConfig FromFile='/etc/arc/clientsslconfig.xml'/>
-</Service>
-\end{verbatim}
-
-In this config the first server is configured as a peer. So the two together will be able to form a replicated network with two nodes. Then configure the third one (\verb!storage3!):
-
-\begin{verbatim}
-<Plexer name="plexer.service" id="plexer">
-    <next id="ahash">^/AHash$</next>
-    <next id="shepherd">^/Shepherd$</next>
-</Plexer>
-<Service name="pythonservice" id="ahash">
-    <ClassName>storage.ahash.ahash.AHashService</ClassName>
-    <AHashClass>storage.ahash.replicatedahash.ReplicatedAHash</AHashClass>
-    <LocalDir>/var/spool/arc/ahash_data3</LocalDir>
-    <MyURL>https://storage3:60010/AHash</MyURL>
-    <OtherURL>https://storage:60000/AHash</OtherURL>
-    <Priority>50</Priority>
-    <ClientSSLConfig FromFile='/etc/arc/clientsslconfig.xml'/>
-</Service>
-\end{verbatim}
-
-Here the first server is specified as the peer.
-
-It is important to make a fresh start on all the servers, and remove the existing database, which was created by a different store:
-\begin{verbatim}
-$ sudo rm -r /var/spool/arc/*
-\end{verbatim}
-
-Now, start the first server. It will complain that it cannot find its peer:
-\begin{verbatim}
-ERROR connecting to https://storage2:60006/AHash
-[2009-03-24 10:34:18] [Arc.Storage.ReplicatedAHash] [ERROR] [10827/156026112]
-    failed to send to 2 of [1, 2]
-[2009-03-24 10:34:20] [Arc.Storage.ReplicatedAHash] [ERROR] [10827/158713512]
-    Couldn't run election
-\end{verbatim}
-
-With only one node of the replicated A-Hash the system is not ready to work, and trying to use it will result in an error message:
-\begin{verbatim}
-$ chelonia makeCollection /
-- Calling the Bartender's makeCollection method...
-- done in 0.55 seconds.
-Creating collection '/': failed to create new librarian entry
-\end{verbatim}
-
-Start the second server. It may first print some error messages, but then both servers should be quiet, and the system is ready for use. Now, upload a file, and set the number of needed replicas to 3:
-
-\begin{verbatim}
-$ chelonia makeCollection /
-- Calling the Bartender's makeCollection method...
-- done in 1.16 seconds.
+$ chelonia mkdir /
 Creating collection '/': done
+
 $ chelonia put orange /
-- The size of the file is 7 bytes
-- Calculating md5 checksum...
-- done in 0.0214 seconds, md5 checksum is 6aefd2842be62cd470709b27aedc7db7
-- Calling the Bartender's putFile method...
-- done in 2.22 seconds.
-- Got transfer URL: http://storage:60001/hopi/3f903c50-0424-2891-5730-521cc00d96dc
-- Uploading from 'orange'
-    to 'http://storage:60001/hopi/3f903c50-0424-2891-5730-521cc00d96dc' with http...
-    1 s:        0.0 kB       0.0 kB/s       0.0 kB/s    . . .       
-- done in 1.0293 seconds.
 'orange' (7 bytes) uploaded as '/orange'.
-$ chelonia modify /orange set states neededReplicas 3
-- Calling the Bartender's modify method...
-- done in 0.74 seconds.
-set
-$ chelonia stat /orange
-[...]
-  locations
-    https://storage:60000/Shepherd f4ad8530-354d-5066-04ae-c54c94fd525b: alive
-[...]
-zsombor@storage:~$ chelonia stat /orange
-[...]
-  locations
-    https://storage:60000/Shepherd f4ad8530-354d-5066-04ae-c54c94fd525b: alive
-    https://storage2:60006/Shepherd 97edebb5-e72d-098a-55a7-14595f668770: alive
-[...]    
 \end{verbatim}
 
-It cannot create 3 replicas, because the third server is not running. Start it. After a minute or two, the file has three replicas:
+After a while the file would have 3 replicas:
 
 \begin{verbatim}
 $ chelonia stat /orange
-[...]
+'/orange': found
   locations
-    https://storage:60000/Shepherd f4ad8530-354d-5066-04ae-c54c94fd525b: alive
-    https://storage3:60010/Shepherd 3c55924b-73ad-c226-0f4a-4c056c967314: alive
-    https://storage2:60006/Shepherd 97edebb5-e72d-098a-55a7-14595f668770: alive
+    https://chelonia3.knowarc.eu:60003/Shepherd 46831763-8162-06c5-8c61-81ab8a910e28: alive
+    https://chelonia1.knowarc.eu:60001/Shepherd 69e08316-093a-a788-6aea-6592c769c1de: alive
+    https://chelonia2.knowarc.eu:60002/Shepherd 1332408b-55e9-54b9-f56f-0ea5d77a069b: alive
 [...]
 \end{verbatim}
 
-The fact that this file has three replicas is not at all related to the number of AHashes, but to the number of storage elements (Shepherds and storage element services), so this is no different then what was seen in the previous section. The benefit of having more then one AHashes in a replicated way is that if one of the machines goes offline, the AHash is still working. However, with the setup above, if the first server is shutdown, the AHash will still work but there is only one instance of the other two important service: the Librarian and the Bartender, so the whole system will still be unusable. Hence, more Librarians and Bartenders needs to be added to the system. The next section explains how.
-
-\section{Additional Bartenders and Librarians} % (fold)
-\label{sec:additional_bartenders_and_librarians}
-
-In this section, a Bartender and a Librarian is added to each server. The first server does not need modification now. For the other two, the \verb!Plexer! section needs to be altered, the twos services must be added, and the Shepherd must be modified to use the server's own Bartender and Librarian for replication and heartbeats. Modify the config of the second server as follows: (\verb![...]! indicates unchanged parts)
+Now we can stop \verb!chelonia1!, because all the services are replicated.
 
 \begin{verbatim}
-[...]
-<Plexer name="plexer.service" id="plexer">
-    <next id="ahash">^/AHash$</next>
-    <next id="shepherd">^/Shepherd$</next>
-    <next id="librarian">^/Librarian$</next>
-    <next id="bartender">^/Bartender$</next>
-    <next id="byteio">^/byteio/</next>
-</Plexer>
-<Service name="pythonservice" id="librarian">
-    <ClassName>storage.librarian.librarian.LibrarianService</ClassName>
-    <AHashURL>https://storage2:60006/AHash</AHashURL>
-    <HeartbeatTimeout>30</HeartbeatTimeout>
-    <CheckPeriod>20</CheckPeriod>
-    <ClientSSLConfig FromFile="/etc/arc/clientsslconfig.xml" />
-</Service>
-<Service name="pythonservice" id="bartender">
-    <ClassName>storage.bartender.bartender.BartenderService</ClassName>
-    <LibrarianURL>https://storage2:60006/Librarian</LibrarianURL>
-    <ClientSSLConfig FromFile="/etc/arc/clientsslconfig.xml" />
-</Service>
-[...]
-<Service name="pythonservice" id="shepherd">
-[...]
-    <LibrarianURL>https://storage2:60006/Librarian</LibrarianURL>
-    <BartenderURL>https://storage2:60006/Bartender</BartenderURL>
-[...]
+$ sudo kill `cat /tmp/chelonia1.pid`
 \end{verbatim}
 
-And the third server:
+Let's check the file's replicas again:
 
 \begin{verbatim}
-[...]
-<Plexer name="plexer.service" id="plexer">
-    <next id="ahash">^/AHash$</next>
-    <next id="shepherd">^/Shepherd$</next>
-    <next id="librarian">^/Librarian$</next>
-    <next id="bartender">^/Bartender$</next>
-</Plexer>
-<Service name="pythonservice" id="librarian">
-    <ClassName>storage.librarian.librarian.LibrarianService</ClassName>
-    <AHashURL>https://storage3:60010/AHash</AHashURL>
-    <HeartbeatTimeout>30</HeartbeatTimeout>
-    <CheckPeriod>20</CheckPeriod>
-    <ClientSSLConfig FromFile="/etc/arc/clientsslconfig.xml" />
-</Service>
-<Service name="pythonservice" id="bartender">
-    <ClassName>storage.bartender.bartender.BartenderService</ClassName>
-    <LibrarianURL>https://storage3:60010/Librarian</LibrarianURL>
-    <ClientSSLConfig FromFile="/etc/arc/clientsslconfig.xml" />
-</Service>
-[...]
-<Service name="pythonservice" id="shepherd">
-[...]
-    <LibrarianURL>https://storage3:60010/Librarian</LibrarianURL>
-    <BartenderURL>https://storage3:60010/Bartender</BartenderURL>
-[...]
+$ chelonia stat /orange
+ERROR: No Bartender URL found.
+(use the '-v' flag for more details, e.g. 'chelonia -v list /')
 \end{verbatim}
 
-\verb!client.xml! must be modified to add all the other Bartenders:
-
-\begin{verbatim}
-$ cat ~/.arc/client.xml 
-<ArcConfig>
-  <KeyPath>/home/zsombor/.arc/userkey.pem</KeyPath>
-  <CertificatePath>/home/zsombor/.arc/usercert.pem</CertificatePath>
-  <CACertificatesDir>/etc/grid-security/certificates</CACertificatesDir>
-  <BartenderURL>https://storage:60000/Bartender</BartenderURL>
-  <BartenderURL>https://storage2:60006/Bartender</BartenderURL>
-  <BartenderURL>https://storage3:60010/Bartender</BartenderURL>
-</ArcConfig>
-\end{verbatim}
-
-Now, all three servers can be started. The replicated A-Hash sometimes prints great amount of error messages, but if it stops printing them, then everything is OK. Now the system can be used as intended. There is a flag for the \verb!chelonia! tool which makes it very verbose. You can check the used Bartender with it:
+As always, let's use the \verb!-v! flag to get more details:
 
 \begin{verbatim}
 $ chelonia -v stat /orange
-- The URL of the Bartender(s): https://storage:60000/Bartender,
-    https://storage2:60006/Bartender, https://storage3:60010/Bartender
-- The key file: /home/zsombor/.arc/userkey.pem
-- The cert file: /home/zsombor/.arc/usercert.pem
+- Using default user config.
+- The key file: /home/zsombor/.arc/userkey-billy.pem
+- The cert file: /home/zsombor/.arc/usercert-billy.pem
 - The CA dir: /etc/grid-security/certificates
-- Calling the Bartender's stat method...
-- trying https://storage:60000/Bartender
-[...]
-- done in 1.27 seconds.
-'/orange': found
+- No Bartender URL found in the config or in the environment, try to get one from ISIS:
+[2009-10-20 16:23:44] [Arc.MCC.TLS] [ERROR] [25243/148071368] Failed to establish SSL connection
+[2009-10-20 16:23:44] [Arc.MCC.TLS] [ERROR] [25243/148071368] SSL error: -1 - (empty):(empty):(empty)
+[2009-10-20 16:23:44] [Arc.MCC.TLS] [ERROR] [25243/148071368] Failed to send content of buffer
+  - https://chelonia1.knowarc.eu:60001/ISIS - Failed to connect to ISIS.
+ERROR: No Bartender URL found.
 \end{verbatim}
 
-Now, stop the first server. The system will be unaccessible for a few seconds while the other two A-Hash figure out what is happening, but after that it will work again:
+It says failed to connect to ISIS on the first server, which is true, because we stopped it. But in the current client configuration there is only this one ISIS specified, so let's add the others (the first three line should be in one line, separated with space)
 
 \begin{verbatim}
-$ chelonia -v stat /orange
-- The URL of the Bartender(s): https://storage:60000/Bartender,
-    https://storage2:60006/Bartender, https://storage3:60010/Bartender
-- The key file: /home/zsombor/.arc/userkey.pem
-- The cert file: /home/zsombor/.arc/usercert.pem
-- The CA dir: /etc/grid-security/certificates
-- Calling the Bartender's stat method...
-- trying https://storage:60000/Bartender
-[...]
-- (-1, "Wrong status from server.\nMaybe wrong URL: 'https://storage:60000/Bartender'")
-- trying https://storage2:60006/Bartender
-[...]
-- done in 0.45 seconds.
-'/orange': found
-[...]
+defaultservices=index:ARC1:https://chelonia1.knowarc.eu:60001/ISIS
+    index:ARC1:https://chelonia2.knowarc.eu:60002/ISIS
+    index:ARC1:https://chelonia3.knowarc.eu:60003/ISIS
+keypath=/home/zsombor/.arc/userkey-billy.pem
+certificatepath=/home/zsombor/.arc/usercert-billy.pem
+cacertificatesdirectory=/etc/grid-security/certificates
 \end{verbatim}
 
-If the first server is started again, after a few seconds the system will work again with the three fully-functional node.
+And try again:
 
 \begin{verbatim}
-zsombor@storage:~$ chelonia -v stat /orange
-- The URL of the Bartender(s): https://storage:60000/Bartender,
-    https://storage2:60006/Bartender, https://storage3:60010/Bartender
-- The key file: /home/zsombor/.arc/userkey.pem
-- The cert file: /home/zsombor/.arc/usercert.pem
-- The CA dir: /etc/grid-security/certificates
-- Calling the Bartender's stat method...
-- trying https://storage:60000/Bartender
-[...]
-- done in 0.49 seconds.
+$ chelonia stat /orange
 '/orange': found
-  states
-    checksumType: md5
-    neededReplicas: 3
-    size: 7
-    checksum: 6aefd2842be62cd470709b27aedc7db7
-  entry
-    owner: /DC=eu/DC=KnowARC/O=knowarc/CN=billy
-    GUID: 0080d8be-1f6f-2fc7-ad71-732f899326c8
-    type: file
-  parents
-    0/orange: parent
   locations
-    https://storage3:60010/Shepherd 03312843-d3b3-2d15-4732-ad673df958ae: alive
-    https://storage2:60006/Shepherd b0057765-4532-d0b4-fded-182499a91450: alive
-    https://storage:60000/Shepherd 532ec0f8-dd83-297b-d7b6-dc5dacea34e0: alive
-  timestamps
-    created: 1237887474.95    
+    https://chelonia3.knowarc.eu:60003/Shepherd 46831763-8162-06c5-8c61-81ab8a910e28: alive
+    https://chelonia1.knowarc.eu:60001/Shepherd 69e08316-093a-a788-6aea-6592c769c1de: offline
+    https://chelonia2.knowarc.eu:60002/Shepherd 1332408b-55e9-54b9-f56f-0ea5d77a069b: alive
+[...]
+\end{verbatim}
+
+So it is working, we have two replicas and we can download the file:
+
+\begin{verbatim}
+$ chelonia get /orange /tmp
+'/orange' (7 bytes) downloaded as '/tmp/orange'.
+
+$ cat /tmp/orange 
+ORANGE
+\end{verbatim}
+
+And if we restart \verb!chelonia1! all three replicas should be online again.
+
+\begin{verbatim}
+    
 \end{verbatim}
 
 \section{Accessing external storage solutions} % (fold)
 \label{sec:using_the_gateway}
+
+\textbf{This section was not updated.}
 
 If you have permissions to access some third-party storage solutions (e.g. dCache via the GridFTP protocol), you can create a mount point within the namespace of the ARC storage system which points to a third-party URL, and then you can use the client interface of the ARC storage to access the third-party storage as well. This is achieved by a module of the Bartender, called the `Gateway'. Currently only GridFTP access is supported, and for that the Globus libraries needs to be installed. Next, ARC needs to be recompiled for GridFTP support. The output of the \verb!configure! script should look like this:
 
@@ -1538,6 +1061,8 @@ $ chelonia get /salmount/data1 /tmp
 \section{Using the ARC DMC} % (fold)
 \label{sec:using_the_arc_dmc}
 
+\textbf{This section was not updated.}
+
 ARC has its own multi-protocol storage client tools which provide a unified way to access different kind of storage. For all the supported types there is a DMC module. For Chelonia, the ARC DMC module is used. If it is compiled and installed, then you can use the \verb!arcls!, \verb!arccp!, \verb!arcrm!, etc. tools with the \verb!arc://! protocol to access the ARC storage system. You can specify the URL of the Bartender with the \verb!BartenderURL! URL option, or you can have a Bartender URL configured in the \verb!client.xml! user config.
 
 \begin{verbatim}
@@ -1572,6 +1097,8 @@ fruits
 
 \section{Using the FUSE module} % (fold)
 \label{sec:using_the_fuse_module}
+
+\textbf{This section was not updated.}
 
 Besides the \verb!chelonia! tool you can access the storage system with the use of a FUSE module. The following steps installs the ARC storage FUSE module:
 
