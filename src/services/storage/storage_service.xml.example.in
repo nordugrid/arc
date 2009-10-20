@@ -5,7 +5,8 @@
 >
     <Server>
         <Pidfile>/var/run/arched.pid</Pidfile>
-        <Logger level="ERROR">/var/log/arched.log</Logger>
+        <Level>ERROR</Level>
+        <File>/var/log/arched.log</File>
     </Server>
     <ModuleManager>
         <Path>@prefix@/lib/arc/</Path>
