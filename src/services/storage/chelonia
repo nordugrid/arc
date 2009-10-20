@@ -1920,14 +1920,14 @@ else:
                     elif changeType == 'change':
                         stat = call_it('stat', {'policy' : LN})
                         old_list = stat['policy'].get(('policy',identity),'')
-                        print "old action list for the user %s was '%s'" % (identity, old_list)
+                        #print "old action list for the user %s was '%s'" % (identity, old_list)
                         action_dict = dict([(paction[1:], (paction[0] == '+')) for paction in old_list.split()])
                         for paction in args:
                             action_dict[paction[1:]] = (paction[0] == '+')
                         action_list = ' '.join([(permit and '+' or '-') + action for action, permit in action_dict.items()])
                     elif changeType == 'clear':
                         action_list = ''
-                    print "the new action list of user %s for LN %s will be '%s'" % (identity, LN, action_list)
+                    print "Setting action list of '%s' for user %s to %s:" % (LN, identity, action_list),
                     mod_response = call_it('modify', {'policy' : (LN, 'set', 'policy', identity, action_list)})
                     print mod_response['policy'] + '.'
 
