@@ -44,6 +44,8 @@ namespace Arc {
 
       input_tok.length = (unsigned char)readbuf[3] * 256 +
                          (unsigned char)readbuf[4] + 5;
+      // While allocating buffer with malloc it will be freed using 
+      // gssapi's gss_release_buffer()
       input_tok.value = malloc(input_tok.length);
       memcpy(input_tok.value, readbuf, 5);
 
