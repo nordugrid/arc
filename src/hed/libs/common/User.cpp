@@ -163,7 +163,7 @@ static Glib::Mutex suid_lock;
     return 0; // TODO: The user id is not used on windows for file permissions etc.
   }
 
-  void User::set(struct passwd *pwd_p) {
+  void User::set(const struct passwd *pwd_p) {
     if (pwd_p == NULL)
       return;
     name = pwd_p->pw_name;
