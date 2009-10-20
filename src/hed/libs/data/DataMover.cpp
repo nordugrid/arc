@@ -180,9 +180,8 @@ namespace Arc {
                                          param->min_average_speed, param->max_inactivity_time,
                                          NULL, NULL, param->prefix);
     (*(param->cb))(param->it, res, param->arg);
-    if (param->prefix)
-      free((void*)(param->prefix));
-    delete param->cache;
+    if (param->prefix) free((void*)(param->prefix));
+    if (param->cache) delete param->cache;
     free(param);
   }
 
@@ -224,6 +223,8 @@ namespace Arc {
       if (param->prefix == NULL)
         param->prefix = strdup(verbose_prefix.c_str());
       if (!CreateThreadFunction(&transfer_func, param)) {
+        if(param->prefix) free((void*)(param->prefix));
+        if(param->cache) delete param->cache;
         free(param);
         return DataStatus::TransferError;
       }
