@@ -950,8 +950,8 @@ namespace Arc {
     }
 
     if(ext_oct) ASN1_OCTET_STRING_free(ext_oct);
+    if(ext_obj) ASN1_OBJECT_free(ext_obj);
 
-    ext_oct = NULL;
     return ext;
   }
 
@@ -1210,7 +1210,6 @@ namespace Arc {
                 // set the default PROXYCERTINFO extension
                 std::string certinfo_sn;
                 X509_EXTENSION* ext = NULL;
-                STACK_OF(X509_EXTENSION)* extensions;
                 if (CERT_IS_RFC_PROXY(cert_type_)) certinfo_sn = "PROXYCERTINFO_V4";
                 else certinfo_sn = "PROXYCERTINFO_V3";
                 //if(proxy_cert_info_->version == 3)
@@ -1229,15 +1228,17 @@ namespace Arc {
                     CredentialLogger.msg(ERROR, "Can not convert PROXYCERTINFO struct from internal to DER encoded format");
                     LogError();
                   }
-                  else { data = (unsigned char*) malloc(length); }
+                  else {
+                    data = (unsigned char*) malloc(length);
 
-                  unsigned char* derdata;
-                  derdata = data;
-                  length = ext_method->i2d(proxy_cert_info_,  &derdata);
+                    unsigned char* derdata;
+                    derdata = data;
+                    length = ext_method->i2d(proxy_cert_info_,  &derdata);
 
-                  if(length < 0) {
-                    CredentialLogger.msg(ERROR, "Can not convert PROXYCERTINFO struct from internal to DER encoded format");
-                    free(data); data = NULL; LogError();
+                    if(length < 0) {
+                      CredentialLogger.msg(ERROR, "Can not convert PROXYCERTINFO struct from internal to DER encoded format");
+                      free(data); data = NULL; LogError();
+                    }
                   }
                   if(data) {
                     std::string ext_data((char*)data, length); free(data);
@@ -1247,6 +1248,7 @@ namespace Arc {
                 }
 
                 if(ext) {
+                  STACK_OF(X509_EXTENSION)* extensions;
                   extensions = sk_X509_EXTENSION_new_null();
                   sk_X509_EXTENSION_push(extensions, ext);
                   X509_REQ_add_extensions(req, extensions);
@@ -2456,6 +2458,7 @@ end:
         goto error;
     }
 
+    OPENSSL_free(mval);
     OPENSSL_free(ne_values);
     OPENSSL_free(ne_types);
     OPENSSL_free(buf);
