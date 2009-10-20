@@ -92,6 +92,13 @@ char* PayloadRaw::Insert(Size_t pos,Size_t size) {
     buf.allocated=true;
     bufref->length=bufpos;
     bufref->data[bufref->length]=0;
+    if(bufref->allocated) {
+      char* b = (char*)realloc(bufref->data,bufref->length+1);
+      if(b) {
+        bufref->size=bufref->length;
+        bufref->data=b;
+      };
+    };
     ++bufref;
     bufref=buf_.insert(bufref,buf);
   };
