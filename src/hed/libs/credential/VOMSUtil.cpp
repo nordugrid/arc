@@ -559,14 +559,14 @@ err:
 
     unsigned int len = i2d_AC(ac, NULL);
     unsigned char *tmp = (unsigned char *)OPENSSL_malloc(len);
-    unsigned char *ttmp = tmp;
 
     if (tmp) {
-      i2d_AC(ac, &tmp);
-      //codedac = std::string((char *)ttmp, len);
-      codedac.append((const char*)ttmp, len);
+      unsigned char *ttmp = tmp;
+      i2d_AC(ac, &ttmp);
+      //codedac = std::string((char *)tmp, len);
+      codedac.append((const char*)tmp, len);
     }
-    free(ttmp);
+    free(tmp);
 
     AC_free(ac);
   
@@ -595,6 +595,7 @@ err:
 
     dataorder = BN_new();
     if (!dataorder) {
+      free(pp);
       CredentialLogger.msg(ERROR,"VOMS: Can not allocate memory for storing the order of AC");
       return false;
     }
