@@ -79,7 +79,7 @@ PROXYPOLICY * PROXYPOLICY_dup(PROXYPOLICY * policy);
 /* set policy language */
 int PROXYPOLICY_set_policy_language(PROXYPOLICY * policy, ASN1_OBJECT * policy_language);
 
-/* get policy language */
+/* Returns newly allocated policy language object copied from policy */
 ASN1_OBJECT * PROXYPOLICY_get_policy_language(PROXYPOLICY * policy);
 
 /* set policy contents */

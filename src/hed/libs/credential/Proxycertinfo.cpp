@@ -87,14 +87,11 @@ ASN1_OBJECT * PROXYPOLICY_get_policy_language(PROXYPOLICY * policy)
 /* set policy */
 int PROXYPOLICY_set_policy(PROXYPOLICY * proxypolicy, unsigned char * policy, int length) {
   if(policy != NULL) {
-    /* perchè questa copia? */
-    unsigned char* copy = (unsigned char*) malloc(length);
-    memcpy(copy, policy, length);
     /* if member policy of proxypolicy non set */
     if(!proxypolicy->policy)
       proxypolicy->policy = ASN1_OCTET_STRING_new();
     /* set member policy of proxypolicy */
-    ASN1_OCTET_STRING_set(proxypolicy->policy, copy, length);
+    ASN1_OCTET_STRING_set(proxypolicy->policy, policy, length);
   }
   else if(proxypolicy->policy) {
     ASN1_OCTET_STRING_free(proxypolicy->policy);
@@ -111,8 +108,10 @@ unsigned char * PROXYPOLICY_get_policy(PROXYPOLICY * proxypolicy, int * length) 
     /* assure ASN1_OCTET_STRING is full */
     if (*length>0 && proxypolicy->policy->data) {
       unsigned char * copy = (unsigned char*) malloc(*length);
-      memcpy(copy, proxypolicy->policy->data, *length);
-      return copy;
+      if(copy) {
+        memcpy(copy, proxypolicy->policy->data, *length);
+        return copy;
+      }
     }
   }
   /* else return NULL */
