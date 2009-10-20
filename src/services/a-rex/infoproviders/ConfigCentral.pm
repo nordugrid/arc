@@ -266,6 +266,7 @@ sub read_arex_config {
     my $xml = XML::Simple->new(%xmlopts);
     my $data;
     eval { $data = $xml->XMLin($file) };
+    $log->error("Failed to parse XML file $file: $@") if $@;
     hash_tree_apply $data, \&hash_strip_prefixes;
     my $services;
     $services = $data->{Service}
@@ -306,12 +307,12 @@ sub build_config_from_xmlfile {
     $config->{xenvs} = {};
     $config->{shares} = {};
 
-	# Special treatment for xml elements that have empty content. XMLSimple
-	# converts these into an empty hash. Since ForceArray => 1 was used, these
-	# hashes are placed inside an array. Replace these empty hashes with the
-	# empty string. Do not touch keys that normally contain deep structures.
-	my @deepstruct = qw(control dataTransfer Globus cache location loadLimits
-						LRMS InfoProvider Location Contact ExecutionEnvironment
+    # Special treatment for xml elements that have empty content. XMLSimple
+    # converts these into an empty hash. Since ForceArray => 1 was used, these
+    # hashes are placed inside an array. Replace these empty hashes with the
+    # empty string. Do not touch keys that normally contain deep structures.
+    my @deepstruct = qw(control dataTransfer Globus cache location loadLimits
+                        LRMS InfoProvider Location Contact ExecutionEnvironment
                         ComputingShare NodeSelection);
     hash_tree_apply $arex, sub { my $h = shift;
                                  while (my ($k,$v) = each %$h) {
@@ -322,11 +323,11 @@ sub build_config_from_xmlfile {
                                  }
                            };
 
-	# Collapse unnnecessary arrays created by XMLSimple.  All hash keys are
-	# array valued now due to using ForceArray => 1.  For keys that corresound
-	# to options which are not multivalued, the arrays should contain only one
-	# element. Replace these arrays with the value of the last element. Keys
-	# corresponding to multivalued options are left untouched.
+    # Collapse unnnecessary arrays created by XMLSimple.  All hash keys are
+    # array valued now due to using ForceArray => 1.  For keys that corresound
+    # to options which are not multivalued, the arrays should contain only one
+    # element. Replace these arrays with the value of the last element. Keys
+    # corresponding to multivalued options are left untouched.
     my @multival = qw(cache location control sessionRootDir maxJobsPerShare
                       OpSys Middleware LocalSE ClusterOwner Benchmark OtherInfo
                       StatusInfo Regex Command Tag ExecEnvName AuthorizedVO
@@ -465,6 +466,8 @@ sub build_config_from_inifile {
         $log->error("Cannot open $inifile\n");
         return $config;
     }
+    $log->error("Not a valid INI configuration file: $inifile") unless $iniparser->list_sections();
+
     # Will add to an already existing config.
     $config ||= {};
     $config->{service} ||= {};
@@ -644,8 +647,8 @@ sub parseConfig {
 
     LogUtils::level($config->{debugLevel}) if $config->{debugLevel};
 
+    $log->error("No queue or ComputingShare configured") unless %{$config->{shares}};
     $log->error("No ExecutionEnvironment configured") unless %{$config->{xenvs}};
-    $log->error("No ComputingShare configured") unless %{$config->{shares}};
 
     my $checker = InfoChecker->new($config_schema);
     my @messages = $checker->verify($config,1);

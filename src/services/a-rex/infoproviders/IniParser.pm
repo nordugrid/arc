@@ -79,6 +79,8 @@ sub _parse($) {
 
     $section->register($config);
 
+    delete $config->{common} unless %{$config->{common}};
+
     return $config;
 }
 
@@ -89,6 +91,13 @@ sub get_section($$) {
     my ($self,$sname) = @_;
     return $self->{config}{$sname} ? %{$self->{config}{$sname}} : ();
 } 
+
+# Returns the list of all sections
+
+sub list_sections($) {
+    my ($self) = @_;
+    return keys %{$self->{config}};
+}
 
 # list all subsections of a section, but not the section section itself
 
@@ -165,8 +174,8 @@ sub new($) {
     my ($this) = @_;
     my $self = $this->SUPER::new('grid-manager');
     # OBS sessiondir is not treated
-	$self->{muopts} = [qw(sessiondir cachedir remotecachedir helper)];
-	$self->{suopts} = [qw(cachesize maxrerun maxtransferfiles defaultttl mail)];
+    $self->{muopts} = [qw(sessiondir cachedir remotecachedir helper)];
+    $self->{suopts} = [qw(cachesize maxrerun maxtransferfiles defaultttl mail)];
     $self->{thisuser} = {};
     $self->{allusers} = {};
     $self->{controldir} = undef;
