@@ -504,7 +504,7 @@ class Shepherd:
                 acl = [value for property, value in putRequestData if property == 'acl']
                 # create a dictionary from the putRequestData which contains e.g. 'size', 'GUID', 'checksum', 'checksumType'
                 requestData = dict(putRequestData)
-                size = requestData.get('size')
+                size = int(requestData.get('size'))
                 # ask the backend if there is enough space 
                 availableSpace = self.backend.getAvailableSpace()
                 if availableSpace and availableSpace < size:

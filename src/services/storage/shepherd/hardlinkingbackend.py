@@ -120,7 +120,7 @@ class HardlinkingBackend:
 
     def getAvailableSpace(self):
         try:
-            f = os.statvfs(os.datadir)
+            f = os.statvfs(self.datadir)
             return f.f_frsize * f.f_bavail
         except:
             return None
