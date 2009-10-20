@@ -51,11 +51,18 @@
         </Plexer>
         <Service name="pythonservice" id="ahash">
             <ahash:ClassName>storage.ahash.ahash.AHashService</ahash:ClassName>
-            <ahash:AHashClass>storage.ahash.ahash.CentralAHash</ahash:AHashClass>
-            <ahash:StoreClass>arcom.store.cachedpicklestore.CachedPickleStore</ahash:StoreClass>
-            <ahash:StoreCfg>
-                <ahash:DataDir inisections="ahash" initag="datadir">/var/spool/arc/ahash_data</ahash:DataDir>
-            </ahash:StoreCfg>
+            <ahash:AHashClass>storage.ahash.replicatedahash.ReplicatedAHash</ahash:AHashClass>
+            <ahash:LocalDir inisections="ahash" initag="datadir">/var/spool/arc/ahash_data</ahash:LocalDir>
+            <ahash:MyURL inisections="ahash" initag="endpoint"/>
+            <ahash:OtherURL inisections="ahash" initag="peerurl1"/>
+            <ahash:OtherURL inisections="ahash" initag="peerurl2"/>
+            <ahash:OtherURL inisections="ahash" initag="peerurl3"/>
+            <ahash:Priority inisections="ahash" initag="priority">50</ahash:Priority>
+            <ahash:ClientSSLConfig>
+                <ahash:KeyPath inisections="common ahash" initag="client_key"/>
+                <ahash:CertificatePath inisections="common ahash" initag="client_cert"/>
+                <ahash:CACertificatesDir inisections="common ahash" initag="cacert"/>
+            </ahash:ClientSSLConfig>
             <infosys:InfoRegister>
                 <infosys:Period inisections="register ahash" initag="period">PT20S</infosys:Period>
                 <infosys:Endpoint inisections="ahash" initag="endpoint"/>

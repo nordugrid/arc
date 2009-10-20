@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<cfg:ArcConfig xmlns="http://www.nordugrid.org/schemas/loader/2009/08" xmlns:cfg="http://www.nordugrid.org/schemas/arcconfig/2009/08" xmlns:tcp="http://www.nordugrid.org/schemas/tcp/2009/08" xmlns:tls="http://www.nordugrid.org/schemas/tls/2009/08" xmlns:ahash="http://www.nordugrid.org/schemas/ahash/2009/08" xmlns:lib="http://www.nordugrid.org/schemas/librarian/2009/08" xmlns:bar="http://www.nordugrid.org/schemas/bartender/2009/08" xmlns:shep="http://www.nordugrid.org/schemas/shepherd/2009/08" xmlns:isis="http://www.nordugrid.org/schemas/isis/2009/08" xmlns:infosys="http://www.nordugrid.org/schemas/infosys/2009/08">
+<cfg:ArcConfig xmlns="http://www.nordugrid.org/schemas/loader/2009/08" xmlns:cfg="http://www.nordugrid.org/schemas/arcconfig/2009/08" xmlns:tcp="http://www.nordugrid.org/schemas/tcp/2009/08" xmlns:tls="http://www.nordugrid.org/schemas/tls/2009/08" xmlns:ahash="http://www.nordugrid.org/schemas/ahash/2009/08" xmlns:lib="http://www.nordugrid.org/schemas/librarian/2009/08" xmlns:bar="http://www.nordugrid.org/schemas/bartender/2009/08" xmlns:shep="http://www.nordugrid.org/schemas/shepherd/2009/08" xmlns:infosys="http://www.nordugrid.org/schemas/infosys/2009/08">
     <cfg:Server>
         <cfg:PidFile inisections="common" initag="pidfile">/tmp/arched.pid</cfg:PidFile>
         <cfg:Logger>
@@ -11,7 +11,6 @@
         <Path>/usr/local/lib/arc/</Path>
     </ModuleManager>
     <Plugins>
-        <Name>isis</Name>
         <Name>mcctls</Name>
         <Name>mcchttp</Name>
         <Name>mccsoap</Name>
@@ -47,7 +46,6 @@
             <next id="bartender" inisections="bartender" initag="urlpattern">^/Bartender$</next>
             <next id="shepherd" inisections="shepherd" initag="urlpattern">^/Shepherd$</next>
             <next id="hopi" inisections="hopi" initag="urlpattern">^/Hopi/</next>
-            <next id="isis" inisections="isis" initag="urlpattern">^/ISIS$</next>
         </Plexer>
         <Service name="pythonservice" id="ahash">
             <ahash:ClassName>storage.ahash.ahash.AHashService</ahash:ClassName>
@@ -201,18 +199,6 @@
         <Service name="hopi" id="hopi">
             <DocumentRoot inisections="shepherd" initag="transferdir">/var/spool/arc/shepherd_transfer</DocumentRoot>
             <SlaveMode>1</SlaveMode>
-        </Service>
-        <Service name="isis" id="isis">
-            <isis:endpoint inisections="isis" initag="endpoint"/>
-            <isis:DBPath inisections="isis" initag="dbpath">/var/spool/arc/isis_data</isis:DBPath>
-            <isis:InfoProvider>
-                <isis:URL inisections="isis" initag="peerurl1"/>
-                <isis:URL inisections="isis" initag="peerurl2"/>
-                <isis:URL inisections="isis" initag="peerurl3"/>
-            </isis:InfoProvider>
-            <isis:KeyPath inisections="common isis" initag="client_key"/>
-            <isis:CertificatePath inisections="common isis" initag="client_cert"/>
-            <isis:CACertificatesDir inisections="common isis" initag="cacert"/>
         </Service>
     </Chain>
 </cfg:ArcConfig>
