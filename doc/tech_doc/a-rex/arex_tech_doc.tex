@@ -120,18 +120,18 @@ On the computing element a job is described as a set of input files
 files. The process of gathering input files, executing a job, and
 transferring/storing output files is called a \emph{session}.
 
-Each job gets a directory on the CE called the \emph{session directory}
-(SD). Input files are gathered in the SD. The job is supposed to produce
-new data files in the SD as well. The A-REX does not guarantee the
-availability of any other places accessible by the job other than
+Each job gets a directory on the CE called the \emph{session
+  directory} (SD). Input files are gathered in the SD. The job may
+also produce new data files in the SD. The A-REX does not guarantee
+the availability of any other places accessible by the job other than
 SD (unless such a place is part of a requested Runtime Environment).
-The SD is also the only place which is controlled by the A-REX. It
-is accessible by the user from outside through the HTTP(S) protocol.
-Any file created outside the SD is not controlled by the A-REX. Any
+The SD is also the only place which is controlled by the A-REX. It is
+accessible by the user from outside through the HTTP(S) protocol.  Any
+file created outside the SD is not controlled by the A-REX. Any
 exchange of data between client and A-REX (including also program
 modules) is performed via HTTP(S). An URL for accessing input/output
-files is  obtained through the WS Local Information Description Interface
-(LIDI) of A-REX.
+files is obtained through the WS Local Information Description
+Interface (LIDI) of A-REX.
 
 Each job gets an identifier (\textit{jobid}). This is a handle -- WS-Addressing~\cite{ws-addr-soap} XML document -- which identifies the job in the
 A-REX and in the Information Interface.
@@ -273,7 +273,7 @@ the user}. No files will be moved to their destination SE.
 
 In full installation the A-REX and it's components support the following
 data transfer protocols and corresponding URLs: \emph{ftp, gsiftp,
-http, https, lfc} and \emph{rls.} For more information please see
+http, https, lfc, rls} and \emph{srm.} For more information please see
 {}``The Hosting Environment of the Advanced Resource Connector middleware''
 document~\cite{hed}.
 
@@ -286,8 +286,8 @@ a generic one which covers all local user identities -- a \textit{control
 directory} exists. In this directory the A-REX stores information
 about jobs belonging to that user. Multiple users can share the same
 \textit{control directory}. In most common configuration case A-REX
-serves all users defined by Operating System and stores their control
-file in same directory. To make it easier to recover in case of failure,
+serves all users defined by the Operating System and stores their control
+files in the same directory. To make it easier to recover in case of failure,
 the A-REX stores most information in files rather than in memory.
 All files belonging to the same job have names starting with \textbf{job.ID.,}
 where ID is the job identifier.
@@ -373,38 +373,37 @@ the default logger service configured in the configuration.
 resubmitted or migrated. This value can appear multiple times if a job has been 
 resubmitted or migrate more than once.
 \item \textit{forcemigration} -- This boolean is only used for migration of jobs.
-It determines whether the job should persists if the termination of the previous 
+It determines whether the job should persist if the termination of the previous 
 job fails.
-\end{itemize}
 \end{itemize}
 
 This file is filled partially during job submission and fully when
 the job moves from the \textbf{Accepted} to the \textbf{Preparing}
 state.
 
-\begin{itemize}
 \item \textit{job.ID.input} -- list of input files. Each line contains 2
 values separated by a space. First value contains name of the file
-relative to the SD. Second value is an URL or a file description.
+relative to the SD. Second value is a URL or a file description.
 Example:
 
 
 \hspace*{1cm}\textit{input.dat gsiftp://grid.domain.org/dir/input\_12378.dat}
 
-\emph{URL} represents location from which file can be downloaded.
+A URL represents a location from which a file can be downloaded.
 Each URL can contain additional options.
 
-\textit{file description} -- {[}size]{[}.checksum].
+A file description refers to a file uploaded from the UI and consists
+of {[}size]{[}.checksum] where
 
-\hspace*{1cm}\textit{size} -- size of the file in bytes.
+\hspace*{1cm}\textit{size} - size of the file in bytes.
 
-\hspace*{1cm}\textit{checksum} -- checksum of the file identical to
+\hspace*{1cm}\textit{checksum} - checksum of the file identical to
 the one produced by \textbf{\textit{cksum}} (1).
 
-Both size and checksum can be left out. Special kind of file description
-{*}.{*} is used to specify files which are \textbf{not} required to
-exist.
-\end{itemize}
+These values are used to verify the transfer of the uploaded
+file. Both size and checksum can be left out. A special kind of file
+description {*}.{*} is used to specify files which are \textbf{not}
+required to exist.
 
 This file is used by the '\textbf{\textit{downloader}}' utility. Files
 with \emph{URL} will be downloaded to the SD and files with 'file
@@ -413,12 +412,10 @@ file appears in the SD it is removed from the list and \textit{job.ID.input}
 is updated. Any external tool can thus track the process of collecting
 input files by checking \textit{job.ID.input.}
 
-\begin{itemize}
 \item \textit{job.ID.output} -- list of output files. Each line contains
 1 or 2 values separated by a space. First value is the name of the
 file relative to the SD. The second value, if present, is a URL. Supported
 URLs are the same as those supported by job.ID.input.
-\end{itemize}
 
 This file is used by the '\textbf{\textit{uploader}}' utility. Files
 with \textit{URL} will be uploaded to SE and remaining files will
@@ -427,7 +424,6 @@ the list and \textit{job.ID.output} is updated. Files not mentioned
 as output files are removed from the SD at the the beginning of the
 \textbf{Finishing} state.
 
-\begin{itemize}
 \item \textit{job.ID.failed} -- the existence of this file marks the failure
 of the job. It can also contain one or more lines of text describing
 the reason of failure. Failure includes the return code different
@@ -813,14 +809,14 @@ has been resubmitted or migrated.
 
 \section{Cache\label{sec:cache}}
 
-The A-REX can cache input files. Caching is enabled if one or more cache
-directories are specified in the configuration file. The A-REX does not
-cache files marked as executable in a job. Caching can also be explicitly
-turned off by the user for each file by using the\textit{ cache=no}
-option in the URL (for URL options read {}``Protocols, Uniform Resource
-Locators (URL) and extensions supported in ARC'' \cite{urls}). The
-disk space occupied by the cache is controlled by removing old files.
-For more information look in section \ref{SubSection:ConfigFile}.
+The A-REX can cache input files. Caching is enabled if one or more
+cache directories are specified in the configuration file. Caching can
+also be explicitly turned off by the user for each file by using
+the\textit{ cache=no} option in the URL (for URL options read
+{}``Protocols, Uniform Resource Locators (URL) and extensions
+supported in ARC'' \cite{urls}). The disk space occupied by the cache
+is controlled by removing old files.  For more information on
+configuration look in section \ref{SubSection:ConfigFile}.
 
 
 \subsection{Structure}
@@ -918,34 +914,53 @@ system containing the cache exceeds the high water-mark given in the
 configuration file it tries to remove the least-recently accessed
 files to reduce size to the low water-mark.
 
+\subsection{Cache Administration}
 
-\subsection{Administration tools}
+The cache is cleaned automatically periodically (every 2 minutes) by
+the A-REX to keep the size of each cache within the configured limits.
+Files are removed from the cache if the total size of the cache is
+greater than the configured limit. Files which are not locked are
+removed in order of access time, starting with the earliest, until the
+size is lower than the configured lower limit. If the lower limit
+cannot be reached (because too many files are locked, or other files
+outside the cache are taking up space on the file system), the
+cleaning will stop before the lower limit is reached.
+
+Since the limits on cache size are given as a percentage of space used
+on the filesystem on which the cache is located, it is recommended
+that each cache has its own dedicated file system. If the cache shares
+space with other data on a file system, changes in the amount of
+non-cache data will result in changes in the available cache space.
+
+With large caches mounted over NFS and an A-REX heavily loaded with
+data transfer processes, cache cleaning can become slow, leading to
+caches filling up beyond their configured limits. For performance
+reasons it may be advantageous to disable cache cleaning by the A-REX,
+and run the \emph{cache-clean} tool independently on the machine
+hosting the file system.
 
 The following tools (installed in \emph{\$ARC\_LOCATION/libexec})
 exist to help with administration of the cache:
 
 \begin{itemize}
-\item \emph{cache-clean} - This tool is used periodically (every 2 minutes)
-by the A-REX to keep the size of each cache within the configurated limits.
-It removes files from the cache if the total size of the cache is
-greater than the configured limit. It will attempt to remove files
-which are not locked in order of access time, starting with the earliest,
-until the size is lower than the configured lower limit. If the lower
-limit cannot be reached (because too many files are locked, or other
-files outside the cache are taking up space on the file system), the
-tool will exit before the lower limit is reached.\\
-\emph{cache-clean -h} gives a list of options. The most useful option
-for administrators is \emph{-s}, which does not delete anything, but
-gives summary information on the files in the cache, including information
-on the ages of the files in the cache.\\
-It is not recommended to run \emph{cache-clean }manually to clean
-up the cache, unless it is desired to temporarily clean up the cache
-with different size limits to those specified in the configuration.
-\item \emph{cache-list} - This tool is used to list all files present in
-each cache. It simply reads through all the \emph{.meta }files and
-prints to stdout a list of all URLs stored in each cache and their
-corresponding cache filename, one per line.
+\item \emph{cache-clean} - This tool is used periodically by the A-REX to
+  keep the size of each cache within the configured
+  limits.\\
+  \emph{cache-clean -h} gives a list of options. The most
+  useful option for administrators is \emph{-s}, which does not delete
+  anything, but gives summary information on the files in the cache,
+  including information on the ages of the files in the cache.\\
+  It is not recommended to run \emph{cache-clean} manually to clean up
+  the cache, unless it is desired to temporarily clean up the cache with
+  different size limits to those specified in the configuration, or to
+  improve performance by running it on the file system's local node as
+  mentioned above.
+\item \emph{cache-list} - This tool is used to list all files present
+  in each cache. It simply reads through all the \emph{.meta }files
+  and prints to stdout a list of all URLs stored in each cache and
+  their corresponding cache filename, one per line.
 \end{itemize}
+
 
 \section{Files and directories\label{sec:files and directories}}
 
@@ -1032,7 +1047,7 @@ The A-REX also uses following directories:
 \item \textit{session root directory} -- This is the directory in which a
 user's SDs are created. It's location is configurable per UNIX user.
 Several (or even all) users may share the same session root directory.\\
-The A-REX need to have permission to create new files and directories
+The A-REX needs to have permission to create new files and directories
 in the session root directory. If A-REX is run under a dedicated user
 account, that account needs full permissions in the \textit{session
 root directory}.\\
@@ -1094,7 +1109,7 @@ to reflect their internal modular structure. Commands in section \emph{{[}common
 apply to all services. Command lines have format 
 
 \begin{shaded}
-\verb|name=''arguments string''|
+\verb|name=``arguments string''|
 \end{shaded}
 Following commands are defined:
 
@@ -1218,7 +1233,7 @@ address \textbf{from} which the notification mails are sent.
 \item \textbf{\textit{defaultttl}}\textit{=ttl {[}ttr]} -- specifies the
 time in seconds for the SD to be available after job finished (\emph{ttl})
 and after job was deleted (\emph{ttr}) due to \emph{ttl}. Defaults
-are 7days for \emph{ttl} and 30 days for \emph{ttr}.
+are 7 days for \emph{ttl} and 30 days for \emph{ttr}.
 \item \textbf{\textit{lrms}}\textit{=default\_lrms\_name default\_queue\_name}
 - specifies names for the LRMS and queue. Queue name can also be specified
 in the JD (currently it is not allowed to override LRMS by usingon
@@ -1227,9 +1242,9 @@ the JD).
 in which the SD is created. If the path is {*} the default one is
 used -- \textit{\$HOME/.jobs}.
 \item \textbf{\textit{cachedir}}\textit{=path {[}link\_path]} - specifies
-a directory to store cached data (see \ref{sec:cache}).\emph{ }Multiple
+a directory to store cached data (see \ref{sec:cache}). Multiple
 cache directories may be specified by specifying multiple \emph{cachedir}
-commands. Cached data will be distributed evenly over the caches.
+commands. Cached files will be distributed evenly between the caches.
 Specifying no \emph{cachedir }command or commands with an empty path
 disables caching. Optional \textit{link\_path} specifies the path
 at which \emph{path} is accessible on computing nodes, if it is different
@@ -1550,20 +1565,89 @@ For compilation from source code please read included README files.
 
 \subsection{Setup of the A-REX}
 
-The A-REX service is a pluggable module of the HED. So first You need
-to setup your HED -- see HED documentation. 
+The A-REX service is a pluggable module of the HED, so it is first
+required to set up HED configuration, and add the A-REX elements. To
+add A-REX to an existing HED configuration, add a new \verb|<Name>|
+element inside \verb|<Plugins>| containing the string
+\emph{arex}. This will make HED load the libarex plugin library.
 
-Then You need to add A-REX to the HED configuration. Add new \verb|<Name>|
-element inside \verb|<Plugins>| containing string \emph{arex}. That will
-make HED load libarex plugin library. 
+Then add a new \verb|<Service>| element with attribute
+\verb|name="a-rex"|. That will instantiate the A-REX service. Now to
+make service accessible extend the \verb|<Plexer>| element with new
+\verb|<next>| referring to an id of the service. Take care to write
+the \verb|<Service>| element carefully.
 
-Then add new \verb|<Service>| element with attribute \verb|name=``a-rex''|. That
-will instantiate A-REX service. Now to make service accessible extend
-\verb|<Plexer>| element with new \verb|<next>| referring to an id of the service.
-Write \verb|<Service>| element carefully -- here is an example:
+Here is an example of the full HED configuration file including the
+A-REX service definition:
 
 \begin{shaded}
 \begin{verbatim}
+<?xml version="1.0"?>
+<ArcConfig
+  xmlns="http://www.nordugrid.org/schemas/ArcConfig/2007"
+  xmlns:tcp="http://www.nordugrid.org/schemas/ArcMCCTCP/2007"
+  xmlns:arex="http://www.nordugrid.org/schemas/a-rex/Config"
+>
+  <!-- Common configuration of the daemon -->
+  <Server>
+    <PidFile>/var/run/arched.pid</PidFile>
+    <Logger>
+      <Level>DEBUG</Level>
+      <File>/var/log/arched.log</File>
+      <Backups>10</Backups>
+      <Maxsize>100000000</Maxsize>
+    </Logger>
+  </Server>
+  <!-- Where to find plugins -->
+  <ModuleManager>
+    <Path>/usr/local/lib/arc/</Path>
+  </ModuleManager>
+  <!-- Simply load all needed plugins -->
+  <Plugins><Name>mcctcp</Name></Plugins>
+  <Plugins><Name>mcctls</Name></Plugins>
+  <Plugins><Name>mcchttp</Name></Plugins>
+  <Plugins><Name>mccsoap</Name></Plugins>
+  <Plugins><Name>arcpdc</Name></Plugins>
+  <Plugins><Name>identitymap</Name></Plugins>
+  <Plugins><Name>arex</Name></Plugins>
+  <!-- Create a chain -->
+  <Chain>
+    <!-- TCP listening socket -->
+    <Component name="tcp.service" id="tcp">
+      <next id="tls"/>
+      <tcp:Listen><tcp:Port>60000</tcp:Port></tcp:Listen>
+    </Component>
+    <!-- Transport-level security -->
+    <Component name="tls.service" id="tls">
+      <next id="http"/>
+      <!-- Location of server's security keys -->
+      <KeyPath>/etc/grid-security/hostkey.pem</KeyPath>
+      <CertificatePath>/etc/grid-security/hostcert.pem</CertificatePath>
+      <CACertificatesDir>/etc/grid-security/certificates</CACertificatesDir>
+      <!-- Evaluate requestor's identity into local identity.
+           Comment it if no user mapping is needed. -->
+      <SecHandler name="identity.map" id="map" event="incoming">
+        <!-- Safe choice if all other rules failed -->
+        <PDP name="allow.pdp"><LocalName>nobody</LocalName></PDP>
+      </SecHandler>
+    </Component>
+    <!-- HTTP processing is done here -->
+    <Component name="http.service" id="http">
+      <next id="soap">POST</next>
+      <next id="plexer">GET</next>
+      <next id="plexer">PUT</next>
+    </Component>
+    <!-- This one parses content into XML tree -->
+    <Component name="soap.service" id="soap">
+      <next id="plexer"/>
+    </Component>
+    <!-- Directing messages to proper service -->
+    <Plexer name="plexer.service" id="plexer">
+      <!-- RegExp pattern is matched to path part of endpoint.
+           Unmatched part of path is propagated to service in
+           PLEXER:EXTENSION attribute. -->
+      <next id="a-rex">^/arex</next>
+    </Plexer>
     <!-- A-Rex service -->
     <Service name="a-rex" id="a-rex">
       <!-- Optional endpoint element is advised in case of multiple IP adresses -->
@@ -1574,19 +1658,33 @@ Write \verb|<Service>| element carefully -- here is an example:
            Use arc.conf example or write own. -->
       <arex:gmconfig>/etc/arc.conf</arex:gmconfig>
     </Service>
+  </Chain>
+</ArcConfig>
 \end{verbatim}
 \end{shaded}
 
 For in-depth information about available elements see Appendix~\ref{annex:arex-conf}. 
 
-Use a template arc\_arex.conf or write own A-REX configuration file.
-For information about format and available configuration commands
-see Section~\ref{SubSection:ConfigFile}.
+For A-REX configuration, either use a template arc.conf or write a new
+A-REX configuration file.  For information about format and available
+configuration commands see Section~\ref{SubSection:ConfigFile}. It is
+also possible to specify the A-REX configuration in XML format in the
+HED configuration file, instead of a separate file. For more
+information on this see the examples included in the documentation
+bundled with the release.
 
 
 \subsection{Usage}
 
-Please read \emph{User Guide}~\cite{userguide1} for usage instructions.
+For a quick start, simply run
+
+\begin{shaded}
+\begin{verbatim}
+$ARC_LOCATION/sbin/arched -c <HED configuration file>
+\end{verbatim}
+\end{shaded}
+
+For more information please read the \emph{User Guide}~\cite{userguide1}.
 
 \subsection{Running as non-root}
 
