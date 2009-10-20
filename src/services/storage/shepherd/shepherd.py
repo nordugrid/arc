@@ -31,7 +31,7 @@ class Shepherd:
             backendcfg = cfg.Get('BackendCfg')
             self.backend = import_class_from_string(backendclass)(backendcfg, shepherd_uri, self._file_arrived, self.ssl_config)
         except Exception, e:
-            log.msg(arc.DEBUG, 'Cannot import backend class %s (reason: %s)' % (backendclass, e))
+            log.msg(arc.ERROR, 'Cannot import backend class %s (reason: %s)' % (backendclass, e))
             raise
         
         try:
@@ -39,20 +39,20 @@ class Shepherd:
             storecfg = cfg.Get('StoreCfg')
             self.store = import_class_from_string(storeclass)(storecfg)
         except:
-            log.msg(arc.DEBUG, 'Cannot import store class', storeclass)
+            log.msg(arc.ERROR, 'Cannot import store class', storeclass)
             raise
             
         try:
             self.serviceID = str(cfg.Get('ServiceID'))
         except:
-            log.msg(arc.DEBUG, 'Cannot get serviceID')
+            log.msg(arc.ERROR, 'Cannot get serviceID')
             raise
             
         try:
             self.period = float(str(cfg.Get('CheckPeriod')))
             self.min_interval = float(str(cfg.Get('MinCheckInterval')))
         except:
-            log.msg(arc.DEBUG, 'Cannot set CheckPeriod, MinCheckInterval')
+            log.msg(arc.ERROR, 'Cannot set CheckPeriod, MinCheckInterval')
             raise
                     
         try:
