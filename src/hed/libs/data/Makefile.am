@@ -3,7 +3,11 @@ lib_LTLIBRARIES = libarcdata2.la
 SUBDIRS = . $(TEST_DIR)
 DIST_SUBDIRS = test
 
+if WIN32
+dist_pkglibexec_SCRIPTS = 
+else
 dist_pkglibexec_SCRIPTS = cache-clean cache-list
+endif
 
 libarcdata2_ladir = $(pkgincludedir)/data
 libarcdata2_la_HEADERS  = DataPoint.h DataPointDirect.h \
@@ -23,4 +27,8 @@ libarcdata2_la_LIBADD   = $(top_srcdir)/src/hed/libs/common/libarccommon.la \
 	$(top_srcdir)/src/hed/libs/loader/libarcloader.la \
 	$(GLIBMM_LIBS) $(LIBXML2_LIBS) $(GTHREAD_LIBS) $(OPENSSL_LIBS)
 
+if WIN32
+man_MANS = 
+else
 man_MANS = cache-clean.1 cache-list.1
+endif
