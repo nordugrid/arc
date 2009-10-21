@@ -19,7 +19,7 @@ namespace ArcSec {
 
 #define ARC_DELEGATION_NAMESPACE "http://www.nordugrid.org/schemas/delegation"
 
-static Arc::LogStream logcerr(std::cerr);
+//static Arc::LogStream logcerr(std::cerr);
 
 static Arc::Plugin* get_service(Arc::PluginArgument* arg) {
     Arc::ServicePluginArgument* srvarg =
@@ -67,7 +67,7 @@ Arc::MCC_Status Service_Delegation::process(Arc::Message& inmsg,Arc::Message& ou
   // Identify which of served endpoints request is for.
   // Delegation can only accept POST method
   if(method == "POST") {
-    logger.msg(Arc::DEBUG, "process: POST");
+    logger_.msg(Arc::DEBUG, "process: POST");
     // Both input and output are supposed to be SOAP
     // Extracting payload
     Arc::PayloadSOAP* inpayload = NULL;
@@ -75,23 +75,23 @@ Arc::MCC_Status Service_Delegation::process(Arc::Message& inmsg,Arc::Message& ou
       inpayload = dynamic_cast<Arc::PayloadSOAP*>(inmsg.Payload());
     } catch(std::exception& e) { };
     if(!inpayload) {
-      logger.msg(Arc::ERROR, "input is not SOAP");
+      logger_.msg(Arc::ERROR, "input is not SOAP");
       return make_soap_fault(outmsg);
     };
     // Analyzing request
     if((*inpayload)["DelegateCredentialsInit"]) {
       if(!deleg_service_->DelegateCredentialsInit(*inpayload,*outpayload)) {
-        logger.msg(Arc::ERROR, "Can not generate X509 request");
+        logger_.msg(Arc::ERROR, "Can not generate X509 request");
         return make_soap_fault(outmsg);
       }
     } else if((*inpayload)["UpdateCredentials"]) {
       std::string cred;
       std::string identity;
       if(!deleg_service_->UpdateCredentials(cred,identity,*inpayload,*outpayload)) {
-        logger.msg(Arc::ERROR, "Can not store proxy certificate");
+        logger_.msg(Arc::ERROR, "Can not store proxy certificate");
         return make_soap_fault(outmsg);
       }
-      logger.msg(Arc::VERBOSE,"Delegated credentials:\n %s",cred.c_str());
+      logger_.msg(Arc::VERBOSE,"Delegated credentials:\n %s",cred.c_str());
 
       CredentialCache* cred_cache = NULL;
       std::string id = (std::string)((*inpayload)["UpdateCredentials"]["DelegatedToken"]["Id"]);
@@ -142,7 +142,7 @@ Arc::MCC_Status Service_Delegation::process(Arc::Message& inmsg,Arc::Message& ou
       std::string signedcert;
       proxy.InquireRequest(x509req_value);
       if(!(signer.SignRequest(&proxy, signedcert))) {
-        logger.msg(Arc::ERROR, "Signing proxy on delegation service failed");
+        logger_.msg(Arc::ERROR, "Signing proxy on delegation service failed");
         return Arc::MCC_Status();
       }
 
@@ -155,7 +155,7 @@ Arc::MCC_Status Service_Delegation::process(Arc::Message& inmsg,Arc::Message& ou
 
       token.NewChild("deleg:Value") = signedcert;
 
-      logger.msg(Arc::VERBOSE,"Delegated credentials:\n %s",signedcert.c_str());
+      logger_.msg(Arc::VERBOSE,"Delegated credentials:\n %s",signedcert.c_str());
     }
 
     //Compose response message
@@ -171,7 +171,7 @@ Arc::MCC_Status Service_Delegation::process(Arc::Message& inmsg,Arc::Message& ou
   }
   else {
     delete inmsg.Payload();
-    logger.msg(Arc::DEBUG, "process: %s: not supported",method);
+    logger_.msg(Arc::DEBUG, "process: %s: not supported",method);
     return Arc::MCC_Status();
   }
   return Arc::MCC_Status();
@@ -180,7 +180,7 @@ Arc::MCC_Status Service_Delegation::process(Arc::Message& inmsg,Arc::Message& ou
 Service_Delegation::Service_Delegation(Arc::Config *cfg):RegisteredService(cfg), 
     logger_(Arc::Logger::rootLogger, "Delegation_Service"), deleg_service_(NULL) {
 
-  logger_.addDestination(logcerr);
+  //logger_.addDestination(logcerr);
   ns_["delegation"]="http://www.nordugrid.org/schemas/delegation";
 
   deleg_service_ = new Arc::DelegationContainerSOAP;
