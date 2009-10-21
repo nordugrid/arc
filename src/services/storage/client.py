@@ -34,6 +34,8 @@ class AHashClient(Client):
     def __init__(self, url, print_xml = False, ssl_config = {}):
         ns = self.NS_class('ahash', ahash_uri)
         Client.__init__(self, url, ns, print_xml, ssl_config = ssl_config)
+         # semaphores to limit number of concurent writes
+        self.semapool = threading.BoundedSemaphore(128)
 
     def get_tree(self, IDs, neededMetadata = []):
         tree = XMLTree(from_tree =
@@ -122,7 +124,9 @@ class AHashClient(Client):
                 ])
             ])
         )
+        self.semapool.acquire()
         msg = self.call(tree)
+        self.semapool.release()
         xml = self.xmlnode_class(msg)
         return parse_node(get_data_node(xml), ['changeID', 'success', 'conditionID'])
 
