@@ -177,13 +177,19 @@ of the A-REX configuration file (see Section \ref{config}).
 
 The command line format of JURA is the following: %TODO make it so!
 
-\verb|jura [-E <expiration_time>] <control_dir> [<control_dir> [...]]|
+\verb|jura [-E <expiration_time>] [-u <url> [-u <url> [...]]] <control_dir> [<control_dir> [...]]|
 
 where \textit{expiration\_time} is the validity length of job log
 files in days, after which time they are considered invalid;
 \textit{control\_dir} is the A-REX control directory for a mapped
 local UNIX user. The ``\textit{logs}'' subdirectory of each control
 directory is traversed by JURA separately, in sequence.
+
+The ``\textit{-u}'' option can be used for interactive execution
+(e.g.~from a terminal). In this case, usage data generated for each
+job is reported once to each of the specified destination URLs
+regardless of the content of the job log files, and no job log files
+are deleted.
 
 \subsection{Processing job log files}
 \label{joblogs}
@@ -253,7 +259,9 @@ respective UR archive file already exists, then the UR is not
 generated again. Instead, the contents of the archive file are used
 without change (NB: the creation time stamp is also retained).
 
-After successful submission to a reporting destination, the job log
+If interactive mode is not activated by the ``\textit{-u}'' option
+(see Section \ref{exec}),
+after successful submission to a reporting destination, the job log
 file is deleted, preventing multiple insertion of usage records. If
 submission fails, the log files are kept, so another attempt is made
 upon a subsequent run of JURA. This can repeat until the expiration
@@ -269,10 +277,13 @@ file without processing.
 
 \subsection{Reporting to LUTS}
 \label{accessing}
-The generated URs are submitted to the accounting services specified
+In case of non-interactive invocation of JURA by A-REX, 
+the generated URs are submitted to the accounting services specified
 by the reporting destination configuration parameters and if present,
 to the destinations specified in the job description as
-well. Reporting URs to several destinations is possible, but currently
+well. Under interactive mode of operation, they are submitted to the
+services given via the ``\textit{-u}'' command line option. Reporting
+URs to several destinations is possible, but currently
 only SGAS LUTS destinations are supported.
 
 LUTS has a simple custom web service interface loosely based on
@@ -503,10 +514,8 @@ There is also plan to extend JURA with the following features:
 \item Support for other accounting systems besides LUTS, especially
   the EGEE Accounting Service. However, appropriate documentation on
   the service interfaces is missing as of now.
-\item Extend JURA to be able to read all necessary parameters
-  (credentials, reporting targets) from the command line so that it
-  can serve as a stand-alone reporting utility invoked independently
-  from A-REX.
+\item Extend JURA to be able to read credentials from the command line
+  in interactive mode.
 \item Enable generating coarser-grained ``\textit{Aggregate URs}''
   from multiple URs.
 \item Investigate the subject of project-related charging: who is
