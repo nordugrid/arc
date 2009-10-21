@@ -35,7 +35,7 @@ char** string_to_args(const std::string& command) {
         free_args(args);
         return NULL;
       };
-      args=args_; for(;i<n;i++) args_[i]=NULL;
+      args=args_; for(int i_ = i;i_<n;i_++) args_[i_]=NULL;
     };
     arg_s=config_next_arg(args_s);
     if(arg_s.length() == 0) break;
