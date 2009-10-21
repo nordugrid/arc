@@ -1,0 +1,5 @@
+debian/tmp/usr/lib/arc/libaccARC0.so
+debian/tmp/usr/lib/arc/libdmcgridftp.so
+debian/tmp/usr/lib/arc/libdmcrls.so
+debian/tmp/usr/lib/arc/libdmcsrm.so
+debian/tmp/usr/lib/arc/libmccgsi.so
