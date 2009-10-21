@@ -664,6 +664,7 @@ namespace Arc {
       cmd_resp = send_command("MLSD", path.c_str(), true, &sresp);
       if (cmd_resp == GLOBUS_FTP_PERMANENT_NEGATIVE_COMPLETION_REPLY) {
         logger.msg(INFO, "MLSD is not supported - trying NLST");
+        free(sresp);
         /* run NLST */
         facts = false;
         cmd_resp = send_command("NLST", path.c_str(), true, &sresp);
