@@ -8,7 +8,7 @@
         </cfg:Logger>
     </cfg:Server>
     <ModuleManager>
-        <Path>/usr/local/lib/arc/</Path>
+        <Path inisections="common" initag="libpath">/usr/local/lib/arc/</Path>
     </ModuleManager>
     <Plugins>
         <Name>isis</Name>
