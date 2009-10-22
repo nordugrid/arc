@@ -27,29 +27,34 @@ int main(void) {
   Arc::Logger::getRootLogger().addDestination(logcerr);
 //  Arc::Logger::getRootLogger().setThreshold(Arc::WARNING);
 
+  //This is an example that shows how the client or the client called 
+  //by a service, delegates a proxy to a delegation service.
+
+  //Note the "DelegationServiceEndpoint" should be changed according
+  //the actual delegation endpoint.
   Arc::XMLNode sechanlder_nd("\
         <SecHandler name='delegation.handler' id='delegation' event='outgoing'>\
           <Type>x509</Type>\
-          <Role>client</Role>\
+          <Role>delegator</Role>\
           <!--DelegationServiceEndpoint>https://127.0.0.1:60000/delegation</DelegationServiceEndpoint-->\
-          <DelegationServiceEndpoint>https://selectron.uio.no:60000/delegation</DelegationServiceEndpoint>\
+          <DelegationServiceEndpoint>https://glueball.uio.no:60000/delegation</DelegationServiceEndpoint>\
           <PeerServiceEndpoint>https://127.0.0.1:60000/echo</PeerServiceEndpoint>\
           <KeyPath>../echo/userkey-nopass.pem</KeyPath>\
           <CertificatePath>../echo/usercert.pem</CertificatePath>\
           <!--ProxyPath>/tmp/5612d050.pem</ProxyPath-->\
           <!--DelegationCredIdentity>/O=KnowARC/OU=UiO/CN=squark.uio.no</DelegationCredIdentity-->\
-          <!--CACertificatePath>../echo/cacert.pem</CACertificatePath-->\
+          <CACertificatePath>../echo/testcacert.pem</CACertificatePath>\
           <CACertificatesDir>../echo/certificates</CACertificatesDir>\
         </SecHandler>");
 
   /*For the firstly client in the service invocation chain, the credential path
-    should be configured for the 'client' role delegation handler.
+    should be configured for the 'delegator' role delegation handler.
      <KeyPath>../echo/testkey-nopass.pem</KeyPath>\
      <CertificatePath>../echo/testcert.pem</CertificatePath>\
      <!--ProxyPath>/tmp/5612d050.pem</ProxyPath-->\
     Alternatively, For the clients which are called in the intermediate 
     service inside the service invocation chain, the the 'Identity' should 
-    be configured for the 'client' role delegation handler. The 'Identity' 
+    be configured for the 'delegator' role delegation handler. The 'Identity' 
     can be parsed from the 'incoming' message context of the service itself 
     by service implementation: 
       std::string identity= msg->Attributes()->get("TLS:IDENTITYDN");
@@ -57,6 +62,10 @@ int main(void) {
     (the client that this service will call to contact the next intemediate service) 
     configuration to add 'DelegationCredIdentity' like the following.
     <DelegationCredIdentity>/O=KnowARC/OU=UiO/CN=squark.uio.no</DelegationCredIdentity>\
+
+    Filling "DelegationCredIdentity" element is the only code that is needed for 
+    the ARC services that need to utilize the delegation functionality (more 
+    specifically, to launch a more level of delegation).
   */
 
   std::string url_str("https://127.0.0.1:60000/echo");
@@ -66,7 +75,7 @@ int main(void) {
   mcc_cfg.AddPrivateKey("../echo/userkey-nopass.pem");
   mcc_cfg.AddCertificate("../echo/usercert.pem");
   mcc_cfg.AddCADir("../echo/certificates");
-
+  mcc_cfg.AddCAFile("../echo/testcacert.pem");
 
   //Create a SOAP client
   logger.msg(Arc::INFO, "Creating a soap client");

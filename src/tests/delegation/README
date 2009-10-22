@@ -1,0 +1,43 @@
+Some explaination about the source files and xml template under
+this directory.
+
+/*************/
+test_client_with_delegation_sechandler.cpp
+This file shows how to add a security handler into client 
+configuration so that a proxy can be delegated onto a 
+delegation service (ARC delegation service).
+The delegation process is completed together with the first
+soap operation. Once the delegation has been successful, the 
+successive soap operation will not need to do delegation.
+
+/*************/
+test_delegation_client.cpp
+This file shows how to call a specific client interface (ClientX509Delegation) for
+delegating a proxy onto delegation service (ARC delegation service
+or gridsite delegation service).
+
+In case of delegating a proxy onto gridsite service, since the CREAM service
+is designed to be physically hosted together with the gridsite delegation service, and 
+CREAM service (maybe) shares the same respository of proxies with gridsite delegation
+service; and CREAM service particularly has an interface to consume the DelegationID from
+client, therefore the ClientX509Delegation class can be explicitly called to interact
+with CREAM service and gridsite delegation service.
+
+In case of delegating a proxy onto ARC delegation service, the ARC delegation service
+is not designed as a service that is by default known by (and hosted together with) 
+the ARC services; also ARC services themselves have no interface to consume the DelegationID
+from client, the  ClientX509Delegation should not be explicitly called to interact with
+ARC services and ARC delegation service. Instead, it is called by the delegation security 
+handler ("delegator" and "delegatee" roles) to delegate (by "delegator") a proxy onto an ARC delegation
+service, and then acquire (by "delegatee") a proxy from the ARC delegation service.
+Since everything is done by the security handler, nothing (almost) is needed to change for
+the client/service code. So the delegation process generally applies to ARC services.
+ 
+/*************/
+delegation_service_template.xml
+The example service configuration for delegation service
+
+/*************/
+service_with_delegationsechandler_template.xml
+The example service configuration for an ARC service that needs to 
+utilize the delegation functionality.

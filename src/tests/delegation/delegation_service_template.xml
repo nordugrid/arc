@@ -1,0 +1,48 @@
+<?xml version="1.0"?>
+<ArcConfig 
+  xmlns="http://www.nordugrid.org/schemas/ArcConfig/2007"
+  xmlns:tcp="http://www.nordugrid.org/schemas/ArcMCCTCP/2007"
+  xmlns:tls="http://www.nordugrid.org/schemas/ArcMCCTLS/2007"
+  xmlns:delegserv="http://www.nordugrid.org/schemas/DelegationService"
+  xmlns:arcpdp="http://www.nordugrid.org/schemas/ArcPDP"
+>
+    <Server>
+      <Pidfile>/var/run/arched.pid</Pidfile>
+      <Logger level="ERROR">./arched.log</Logger>
+    </Server>
+
+    <ModuleManager>
+        <Path>/path/to/arc/installation/lib/arc/</Path>
+    </ModuleManager>
+    <Plugins><Name>mcctcp</Name></Plugins>
+    <Plugins><Name>mcctls</Name></Plugins>
+    <Plugins><Name>mcchttp</Name></Plugins>
+    <Plugins><Name>mccsoap</Name></Plugins>
+    <Plugins><Name>arcshc</Name></Plugins>
+    <Plugins><Name>delegation</Name></Plugins>
+
+    <Chain>
+        <Component name="tcp.service" id="tcp">
+            <next id="tls"/>
+            <tcp:Listen><tcp:Port>60000</tcp:Port></tcp:Listen>
+        </Component>
+	<Component name="tls.service" id="tls">
+            <next id="http"/>
+	    <tls:KeyPath>../echo/testkey-nopass.pem</tls:KeyPath>
+	    <tls:CertificatePath>../echo/testcert.pem</tls:CertificatePath>
+	    <tls:CACertificatesDir>../echo/certificates</tls:CACertificatesDir>
+            <tls:CACertificatePath>../echo/testcacert.pem</tls:CACertificatePath>
+	</Component>
+        <Component name="http.service" id="http">
+            <next id="soap">POST</next>
+        </Component>
+        <Component name="soap.service" id="soap">
+	    <next id="delegation"/>
+        </Component>
+        <Service name="delegation.service" id="delegation">
+            <next id="delegation"/>
+            <delegserv:CACertificatesDir>../echo/certificates</delegserv:CACertificatesDir>
+            <delegserv:CACertificatePath>../echo/testcacert.pem</delegserv:CACertificatePath>
+        </Service>
+    </Chain>
+</ArcConfig>

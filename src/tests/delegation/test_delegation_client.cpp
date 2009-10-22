@@ -33,8 +33,11 @@ int main(void) {
   Arc::Logger::rootLogger.addDestination(logcerr);
 
   /******** Test to ARC delegation service **********/
-  std::string arc_deleg_url_str("https://127.0.0.1:60000/delegation");
-//  std::string arc_deleg_url_str("https://glueball.uio.no:60000/delegation");
+  //Note the endpoint here should be changed 
+  //into the actual endpoint of delegation service.
+
+//  std::string arc_deleg_url_str("https://127.0.0.1:60000/delegation");
+  std::string arc_deleg_url_str("https://glueball.uio.no:60000/delegation");
   Arc::URL arc_deleg_url(arc_deleg_url_str);
   Arc::MCCConfig arc_deleg_mcc_cfg;
   arc_deleg_mcc_cfg.AddPrivateKey("../echo/testkey-nopass.pem");
