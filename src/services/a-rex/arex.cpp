@@ -87,7 +87,7 @@ void CountedResource::Acquire(void) {
 
 void CountedResource::Release(void) {
   lock_.lock();
-  ++count_;
+  --count_;
   cond_.signal();
   lock_.unlock();
 }
