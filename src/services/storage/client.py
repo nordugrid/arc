@@ -8,6 +8,7 @@ from storage.common import parse_metadata, create_metadata
 from arcom.xmltree import XMLTree
 from xml.dom.minidom import parseString
 
+import threading
 import arc
 import base64
 import time
