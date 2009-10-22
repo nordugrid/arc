@@ -68,7 +68,7 @@ void sendRequests(){
     while(run and connected){
       // Prepare the request.
       Arc::PayloadSOAP req(echo_ns);
-      req.NewChild("echo").NewChild("say")="HELLO";
+      req.NewChild("echo:echo").NewChild("echo:say")="HELLO";
 
       // Send the request and time it.
       tBefore.assign_current_time();
