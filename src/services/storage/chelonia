@@ -1595,6 +1595,8 @@ else:
         if verbose:
             print '- The CA dir:', ssl_config['ca_dir']
 
+    no_bartender_message = "No Bartender URL found."
+
     bartender_env_url = os.environ.get('ARC_BARTENDER_URL', '')
     if bartender_url_from_argument:
         bartender_urls = [bartender_url_from_argument]
@@ -1615,13 +1617,16 @@ else:
         if not isis_urls:
             if verbose:
                 print '  - No ISIS URL found in the config or in the environment, giving up.'
+            no_bartender_message = 'No Bartender URL and no ISIS URL found - cannot figure out where to connect.'
         else:
             bartender_found = False
+            isis_connected = False
             while not bartender_found and len(isis_urls) > 0:
                 isis_url = isis_urls.pop()
                 isis = ISISClient(isis_url, print_xml, ssl_config = ssl_config)
                 try:
                     bartender_urls = isis.getServiceURLs('org.nordugrid.storage.bartender')
+                    isis_connected = True
                     if not bartender_urls:
                         if verbose:
                             print '  -', isis_url, '- This ISIS did not return any Bartender URL.'
@@ -1632,6 +1637,11 @@ else:
                 except:
                     if verbose:
                         print '  -', isis_url, '- Failed to connect to ISIS.'
+            if not bartender_found:
+                if isis_connected:
+                    no_bartender_message = 'Cannot get Bartender URL from the ISIS. Try again later.'
+                else:
+                    no_bartender_message = 'Cannot connect to any ISIS to get Bartender URL.'
     if bartender_urls:
         if verbose:
             print '- The URL of the Bartender(s):', ', '.join(bartender_urls)        
@@ -1640,7 +1650,7 @@ else:
             print '- There was a problem reading the user\'s config. Reason:', str(problem_with_userconfig)
         # bartender_urls = ['http://localhost:60000/Bartender']
         # print '- The URL of the Bartender is not given, using', bartender_urls[0]
-        print 'ERROR: No Bartender URL found.'
+        print 'ERROR:', no_bartender_message
         if not verbose:
             print "(use the '-v' flag for more details, e.g. 'chelonia -v list /')"
         sys.exit(-1)
