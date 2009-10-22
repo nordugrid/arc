@@ -1027,7 +1027,7 @@ class BartenderClient(Client):
             {'frodo': {('entry', 'type'): 'collection',
                        ('entries', 'testdir'): '4cabc8cb-599d-488c-a253-165f71d4e180',
                        ('entries', 'testfile'): 'cf05727b-73f3-4318-8454-16eaf10f302c',
-                       ('states', 'closed'): '0'},
+                       ('states', 'closed'): 'no'},
              'sam': {('entry', 'type'): 'file',
                      ('locations', 'http://localhost:60000/Shepherd 00d6388c-42df-441c-8d9f-bd78c2c51667'): 'alive',
                      ('locations', 'http://localhost:60000/Shepherd 51c9b49a-1472-4389-90d2-0f18b960fe29'): 'alive',
@@ -1829,14 +1829,14 @@ else:
             if len(args) < 2:
                 print 'Usage: makeMountpoint <LN> <URL>'
             else:
-                request = {'0': (args[0], {('states', 'closed') : false}, args[1])}
+                request = {'0': (args[0], {('states', 'closed') : 'no'}, args[1])}
                 response = call_it('makeMountpoint', request)
                 print "Creating mountpoint '%s': %s" % (args[0], response['0'])
         else:
             if len(args) < 1:
                 print 'Usage: makeCollection <LN>'
             else:
-                request = {'0': (args[0], {('states', 'closed') : false})}
+                request = {'0': (args[0], {('states', 'closed') : 'no'})}
                 #print 'Make collection:',request
                 response = call_it('makeCollection', request)
                 #print response
@@ -1892,6 +1892,9 @@ else:
             print "  To change the number of needed replicas for a file:"
             print "    modify <LN> set states neededReplicas <number of needed replicas>"
             print ""
+            print "  To close a collection:"
+            print "    modify <LN> set states closed yes"
+            print ""
             print "  To change metadata key-value pairs:"
             print "    modify <LN> set|unset|add metadata <key> <value>"
         else:
@@ -1899,18 +1902,23 @@ else:
                 args.append('')
             LN, changeType, section, property, value = args
             if section == 'states':
-                if property != 'neededReplicas':
-                    print "ERROR: in the 'states' section only the 'neededReplicas' can be changed."
+                if property not in ['neededReplicas', 'closed']:
+                    print "ERROR: in the 'states' section only the 'neededReplicas' and 'closed' can be changed."
                     sys.exit(-1)
                 else:
-                    try:
-                        v = int(value)
-                        if v < 1:
-                            print "ERROR: the number of needed replicas should be at least 1"
+                    if property == 'neededReplicas':
+                        try:
+                            v = int(value)
+                            if v < 1:
+                                print "ERROR: the number of needed replicas should be at least 1"
+                                sys.exit(-1)
+                        except Exception:
+                            print "ERROR: the number of needed replicas should be an integer"
                             sys.exit(-1)
-                    except Exception:
-                        print "ERROR: the number of needed replicas should be an integer"
-                        sys.exit(-1)
+                    if property == 'closed':
+                        if value != 'yes':
+                            print "ERROR: you can set the 'closed' state only to 'yes'"
+                            sys.exit(-1)
             request = {'0' : args}
             #print 'modify', request
             mod_response = call_it('modify', request)['0']
