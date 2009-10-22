@@ -1885,6 +1885,8 @@ else:
             print "  To change metadata key-value pairs:"
             print "    modify <LN> set|unset|add metadata <key> <value>"
         else:
+            if len(args) == 4:
+                args.append('')
             LN, changeType, section, property, value = args
             if section == 'states':
                 if property != 'neededReplicas':
