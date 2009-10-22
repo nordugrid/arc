@@ -84,7 +84,6 @@ namespace Arc {
       writing(false),
       bartender_url(url.HTTPOption("BartenderURL")) {
     if (!bartender_url) {
-      //BartenderURL taken from ~/.arc/client.xml
       if (!usercfg.Bartender().empty()){
         std::vector<int> shuffledKeys;
         for (int i = 0; i < usercfg.Bartender().size(); i++)
@@ -99,7 +98,6 @@ namespace Arc {
           }
         }
       }
-      //todo: improve default bartender url (maybe try to get ARC_BARTENDER_URL from environment?)
       if (!bartender_url)
         bartender_url = URL("http://localhost:60000/Bartender");
     }
