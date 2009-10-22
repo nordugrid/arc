@@ -124,8 +124,8 @@ void InfoRegisterContainer::addService(InfoRegister* reg,const std::list<std::st
             }
         }
         if (!id_found) {
-            // id appears at first time Info registrat need to created
-            logger_.msg(DEBUG, "InfoRegistrar id \"%s\" cannot be found. New registrat created", (*i));
+            // id appears at first time - InfoRegistrar need to be created
+            logger_.msg(DEBUG, "InfoRegistrar id \"%s\" was not found. New registrar created", (*i));
             for(XMLNode node = cfg["InfoRegister"]["Registrar"];(bool)node;++node) {
                 if ((*i) == (std::string)node["URL"]) {
                     InfoRegistrar *r = addRegistrar(node);
@@ -354,6 +354,8 @@ void InfoRegistrar::registration(void) {
     CondExit cond(cond_exited_);
     ISIS_description usedISIS;
     std::string isis_name;
+    if(!myISISList_initialized) getISISList(myISIS);
+    myISISList_initialized = true;
     while(reg_.size() > 0) {
         usedISIS = getISIS();
         isis_name = usedISIS.url;

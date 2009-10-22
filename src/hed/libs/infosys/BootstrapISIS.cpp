@@ -45,7 +45,8 @@ struct Registrar_data {
         originalISISCount = 1;
         myISISList.push_back(myISIS);
 
-        getISISList(myISIS);
+        //getISISList(myISIS);
+        myISISList_initialized = false;
         logger_.msg(DEBUG, "Initialize ISIS handler successed");
     }
 

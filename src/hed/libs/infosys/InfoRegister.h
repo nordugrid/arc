@@ -124,6 +124,7 @@ class InfoRegistrar {
         // ISIS handle attributes & functions
         ISIS_description defaultBootstrapISIS;
         ISIS_description myISIS;
+        bool myISISList_initialized;
         int originalISISCount;
         std::vector<ISIS_description> myISISList;
 
