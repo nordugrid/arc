@@ -424,8 +424,7 @@ class Shepherd:
                                 bsuccess = self.backend.remove(localID)
                                 self.store.set(referenceID, None)
                         except:
-                            log.msg(arc.DEBUG, 'ERROR checking checksum of', referenceID)
-                            log.msg()
+                            log.msg(arc.DEBUG, 'ERROR checking checksum of %s, reason: %s' % (referenceID, traceback.format_exc()))
                         # sleep for interval +/- 0.5*interval seconds to avoid race condition
                         time.sleep(interval+((random.random()-0.5)*interval))
                 else:
