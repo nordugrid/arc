@@ -14,6 +14,22 @@ namespace ARex {
 
 class ARexGMConfig;
 class ARexConfigContext;
+class CountedResourceLock;
+
+class CountedResource {
+ friend class CountedResourceLock;
+ public:
+  CountedResource(int maxconsumers = -1);
+  ~CountedResource(void);
+  void MaxConsumers(int maxconsumers);
+ private:
+  Glib::Cond cond_;
+  Glib::Mutex lock_;
+  int limit_;
+  int count_;
+  void Acquire(void);
+  void Release(void);
+};
 
 class ARexService: public Arc::RegisteredService {
  protected:
@@ -23,6 +39,9 @@ class ARexService: public Arc::RegisteredService {
   Arc::DelegationContainerSOAP delegations_;
   Arc::InformationContainer infodoc_;
   Arc::InfoRegisters inforeg_;
+  CountedResource infolimit_;
+  CountedResource beslimit_;
+  CountedResource datalimit_;
   std::string endpoint_;
   std::string uname_;
   std::string gmconfig_;

@@ -381,6 +381,33 @@
       </xsd:annotation>
     </xsd:element>
 
+    <xsd:element name="InfosysInterfaceMaxClients" type="xsd:nonNegativeInteger">
+      <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+          The information interface (LIDI) max number of simultaneous
+          clients. Default is 10.
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="JobControlInterfaceMaxClients" type="xsd:nonNegativeInteger">
+      <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+          The max number of simultaneous clients performing job 
+          management operations (extended BES). Default is 100.
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="DataTransferInterfaceMaxClients" type="xsd:nonNegativeInteger">
+      <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+          The max number of simultaneous clients performing HTTP PUT
+          and GET operations. Default is 100.
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:element>
+
     <xsd:complexType name="debugLevel_Type">
        <xsd:simpleContent>
           <xsd:extension base="xsd:string">

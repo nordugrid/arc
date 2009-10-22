@@ -24,6 +24,11 @@
 
 namespace ARex {
 
+#define DEFAULT_INFOPROVIDER_WAKEUP_PERIOD (60)
+#define DEFAULT_INFOSYS_MAX_CLIENTS (10)
+#define DEFAULT_JOBCONTROL_MAX_CLIENTS (100)
+#define DEFAULT_DATATRANSFER_MAX_CLIENTS (100)
+ 
 static const std::string BES_FACTORY_ACTIONS_BASE_URL("http://schemas.ggf.org/bes/2006/08/bes-factory/BESFactoryPortType/");
 static const std::string BES_FACTORY_NPREFIX("bes-factory");
 static const std::string BES_FACTORY_NAMESPACE("http://schemas.ggf.org/bes/2006/08/bes-factory");
@@ -69,6 +74,45 @@ class ARexConfigContext:public Arc::MessageContextElement, public ARexGMConfig {
  public:
   ARexConfigContext(const std::string& config_file,const std::string& uname,const std::string& grid_name,const std::string& service_endpoint):ARexGMConfig(config_file,uname,grid_name,service_endpoint) { };
   virtual ~ARexConfigContext(void) { };
+};
+
+void CountedResource::Acquire(void) {
+  lock_.lock();
+  while((limit_ >= 0) && (count_ >= limit_)) {
+    cond_.wait(lock_);
+  };
+  ++count_;
+  lock_.unlock();
+}
+
+void CountedResource::Release(void) {
+  lock_.lock();
+  ++count_;
+  cond_.signal();
+  lock_.unlock();
+}
+
+void CountedResource::MaxConsumers(int maxconsumers) {
+  limit_ = maxconsumers;
+}
+
+CountedResource::CountedResource(int maxconsumers):
+                        limit_(maxconsumers),count_(0) {
+}
+
+CountedResource::~CountedResource(void) {
+}
+
+class CountedResourceLock {
+ private:
+  CountedResource& r_;
+ public:
+  CountedResourceLock(CountedResource& resource):r_(resource) {
+    r_.Acquire();
+  };
+  ~CountedResourceLock(void) {
+    r_.Release();
+  };
 };
 
 static std::string GetPath(std::string url){
@@ -268,32 +312,42 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
       // Preparing known namespaces
       outpayload->Namespaces(ns_);
       if(MatchXMLName(op,"CreateActivity")) {
-        logger_.msg(Arc::DEBUG, "process: CreateActivity");
+        CountedResourceLock cl_lock(beslimit_);
         CreateActivity(*config,op,BESFactoryResponse(res,"CreateActivity"),clientid);
       } else if(MatchXMLName(op,"GetActivityStatuses")) {
+        CountedResourceLock cl_lock(beslimit_);
         GetActivityStatuses(*config,op,BESFactoryResponse(res,"GetActivityStatuses"));
       } else if(MatchXMLName(op,"TerminateActivities")) {
+        CountedResourceLock cl_lock(beslimit_);
         TerminateActivities(*config,op,BESFactoryResponse(res,"TerminateActivities"));
       } else if(MatchXMLName(op,"GetActivityDocuments")) {
+        CountedResourceLock cl_lock(beslimit_);
         GetActivityDocuments(*config,op,BESFactoryResponse(res,"GetActivityDocuments"));
       } else if(MatchXMLName(op,"GetFactoryAttributesDocument")) {
+        CountedResourceLock cl_lock(beslimit_);
         GetFactoryAttributesDocument(*config,op,BESFactoryResponse(res,"GetFactoryAttributesDocument"));
       } else if(MatchXMLName(op,"StopAcceptingNewActivities")) {
+        CountedResourceLock cl_lock(beslimit_);
         StopAcceptingNewActivities(*config,op,BESManagementResponse(res,"StopAcceptingNewActivities"));
       } else if(MatchXMLName(op,"StartAcceptingNewActivities")) {
+        CountedResourceLock cl_lock(beslimit_);
         StartAcceptingNewActivities(*config,op,BESManagementResponse(res,"StartAcceptingNewActivities"));
       } else if(MatchXMLName(op,"ChangeActivityStatus")) {
+        CountedResourceLock cl_lock(beslimit_);
         ChangeActivityStatus(*config,op,BESARCResponse(res,"ChangeActivityStatus"));
       } else if(MatchXMLName(op,"MigrateActivity")) {
+        CountedResourceLock cl_lock(beslimit_);
         MigrateActivity(*config,op,BESFactoryResponse(res,"MigrateActivity"),clientid);
       } else if(MatchXMLName(op,"CacheCheck")) {
         CacheCheck(*config,*inpayload,*outpayload);
       } else if(MatchXMLName(op,"DelegateCredentialsInit")) {
+        CountedResourceLock cl_lock(beslimit_);
         if(!delegations_.DelegateCredentialsInit(*inpayload,*outpayload)) {
           delete outpayload;
           return make_soap_fault(outmsg);
         };
       } else if(MatchXMLName(op,"UpdateCredentials")) {
+        CountedResourceLock cl_lock(beslimit_);
         std::string credentials;
         if(!delegations_.UpdateCredentials(credentials,*inpayload,*outpayload)) {
           delete outpayload;
@@ -301,6 +355,7 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
         };
         UpdateCredentials(*config,op,outpayload->Child(),credentials);
       } else if(MatchXMLNamespace(op,"http://docs.oasis-open.org/wsrf/rp-2")) {
+        CountedResourceLock cl_lock(infolimit_);
         // TODO: do not copy out_ to outpayload.
         Arc::SOAPEnvelope* out_ = infodoc_.Process(*inpayload);
         if(out_) {
@@ -334,6 +389,7 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
   } else if(method == "GET") {
     // HTTP plugin either provides buffer or stream
     logger_.msg(Arc::DEBUG, "process: GET");
+    CountedResourceLock cl_lock(datalimit_);
     // TODO: in case of error generate some content
     Arc::MCC_Status ret = Get(inmsg,outmsg,*config,id,subpath);
     if(ret) {
@@ -346,6 +402,7 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
     return ret;
   } else if(method == "PUT") {
     logger_.msg(Arc::DEBUG, "process: PUT");
+    CountedResourceLock cl_lock(datalimit_);
     Arc::MCC_Status ret = Put(inmsg,outmsg,*config,id,subpath);
     if(!ret) return make_fault(outmsg);
     // Put() does not generate response yet
@@ -370,7 +427,7 @@ static void information_collector_starter(void* arg) {
   if(!arg) return;
   ((ARexService*)arg)->InformationCollector();
 }
- 
+
 ARexService::ARexService(Arc::Config *cfg):RegisteredService(cfg),
               logger_(Arc::Logger::rootLogger, "A-REX"),
               inforeg_(*cfg,this),
@@ -432,13 +489,29 @@ ARexService::ARexService(Arc::Config *cfg):RegisteredService(cfg),
   long_description_ = (std::string)((*cfg)["longDescription"]);
   lrms_name_ = (std::string)((*cfg)["LRMSName"]);
   os_name_ = (std::string)((*cfg)["OperatingSystem"]);
-  if ((*cfg)["InfoproviderWakeupPeriod"])
-      infoprovider_wakeup_period_ = Arc::stringtoi((std::string)((*cfg)["InfoproviderWakeupPeriod"]));
-  else
-      infoprovider_wakeup_period_ = 60;
+  int valuei;
+  if ((!(*cfg)["InfoproviderWakeupPeriod"]) ||
+      (!Arc::stringto((std::string)((*cfg)["InfoproviderWakeupPeriod"]),infoprovider_wakeup_period_))) {
+    infoprovider_wakeup_period_ = DEFAULT_INFOPROVIDER_WAKEUP_PERIOD;
+  };
+  if ((!(*cfg)["InfosysInterfaceMaxClients"]) ||
+      (!Arc::stringto((std::string)((*cfg)["InfosysInterfaceMaxClients"]),valuei))) {
+    valuei = DEFAULT_INFOSYS_MAX_CLIENTS;
+  };
+  infolimit_.MaxConsumers(valuei);
+  if ((!(*cfg)["JobControlInterfaceMaxClients"]) ||
+      (!Arc::stringto((std::string)((*cfg)["JobControlInterfaceMaxClients"]),valuei))) {
+    valuei = DEFAULT_JOBCONTROL_MAX_CLIENTS;
+  };
+  beslimit_.MaxConsumers(valuei);
+  if ((!(*cfg)["DataTransferInterfaceMaxClients"]) ||
+      (!Arc::stringto((std::string)((*cfg)["DataTransferInterfaceMaxClients"]),valuei))) {
+    valuei = DEFAULT_DATATRANSFER_MAX_CLIENTS;
+  };
+  datalimit_.MaxConsumers(valuei);
+
   // Run grid-manager in thread
   if((gmrun_.empty()) || (gmrun_ == "internal")) {
-    //gm_=new GridManager(gmargv);
     gm_=new GridManager(gmconfig_.empty()?NULL:gmconfig_.c_str());
     if(!gm_) return;
     if(!(*gm_)) { delete gm_; gm_=NULL; return; };
