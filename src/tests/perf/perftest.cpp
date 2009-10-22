@@ -13,6 +13,7 @@
 
 #include <arc/GUID.h>
 #include <arc/ArcConfig.h>
+#include <arc/UserConfig.h>
 #include <arc/Logger.h>
 #include <arc/URL.h>
 #include <arc/message/PayloadSOAP.h>
@@ -52,11 +53,9 @@ void sendRequests(){
   Arc::URL url(url_str);
 
   Arc::MCCConfig mcc_cfg;
-  mcc_cfg.AddPrivateKey("../echo/testuserkey-nopass.pem");
-  mcc_cfg.AddCertificate("../echo/testusercert.pem");
-  mcc_cfg.AddCAFile("../echo/testcacert.pem");
-  mcc_cfg.AddCADir("../echo/certificates");
-
+  Arc::UserConfig usercfg("");
+  usercfg.ApplyToConfig(mcc_cfg);
+  
   Arc::NS echo_ns; echo_ns["echo"]="urn:echo";
   
   while(run){
