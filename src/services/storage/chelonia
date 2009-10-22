@@ -1740,7 +1740,7 @@ else:
                     print '%s: %s' % (LN, success)
     elif command in ['put']:
         if len(args) < 2:
-            print 'Usage: putFile <source filename> <target LN>'
+            print 'Usage: putFile <source filename> <target LN> [<number of replicas needed>]'
         else:
             filename = args[0]
             try:
@@ -1760,14 +1760,19 @@ else:
             LN = args[1]
             if LN.endswith('/'):
                 LN = LN + filename.split('/')[-1]
+            needed_replicas_for_this = needed_replicas
+            if len(args) > 2:
+                try:
+                    needed_replicas_for_this = int(args[2])
+                except:
+                    needed_replicas_for_this = needed_replicas
             metadata = {('states', 'size') : size, ('states', 'checksum') : checksum,
-                    ('states', 'checksumType') : 'md5', ('states', 'neededReplicas') : needed_replicas}
+                    ('states', 'checksumType') : 'md5', ('states', 'neededReplicas') : needed_replicas_for_this}
             request = {'0': (LN, metadata, supported_protocols)}
             #print 'putFile', request
             response = call_it('putFile', request)
             #print response
             success, turl, protocol = response['0']
-
             if success == 'done':
                 if verbose:
                     print '- Got transfer URL:', turl
@@ -1865,7 +1870,7 @@ else:
             #print response
             print "Moving '%s' to '%s': %s" % (sourceLN, targetLN, response['0'][0])
     elif command == 'mod':
-        if len(args) < 4:
+        if len(args) < 4 or (args[1] not in ['set', 'unset', 'add']) or (args[1] in ['set', 'add'] and len(args) == 4):
             print 'Usage: modify <LN> <changeType> <section> <property> <value>'
             print "  <changeType> could be 'set', 'unset', 'add'"
             print "    'set' : sets the property to value within the given section"
@@ -1873,17 +1878,31 @@ else:
             print "              (the 'value' does not matter)"
             print "    'add' : sets the property to value within the given section"
             print "            only if it does not exists yet"
+            print ""
+            print "  To change the number of needed replicas for a file:"
+            print "    modify <LN> set states neededReplicas <number of needed replicas>"
+            print ""
+            print "  To change metadata key-value pairs:"
+            print "    modify <LN> set|unset|add metadata <key> <value>"
         else:
-            if len(args) == 4:
-                if args[1] in ['set', 'add']:
-                    print "no 'value' given!"
+            LN, changeType, section, property, value = args
+            if section == 'states':
+                if property != 'neededReplicas':
+                    print "ERROR: in the 'states' section only the 'neededReplicas' can be changed."
                     sys.exit(-1)
                 else:
-                    args.append('')
+                    try:
+                        v = int(value)
+                        if v < 1:
+                            print "ERROR: the number of needed replicas should be at least 1"
+                            sys.exit(-1)
+                    except Exception:
+                        print "ERROR: the number of needed replicas should be an integer"
+                        sys.exit(-1)
             request = {'0' : args}
             #print 'modify', request
             mod_response = call_it('modify', request)['0']
-            print mod_response
+            print "Modifying '%s', %s in section '%s' property '%s' value '%s': %s." % (LN, changeType, section, property, value, mod_response)
     elif command == 'pol':
         if len(args) < 3:
             print "Usage: policy <LN> <changeType> <identity> <action list>"
