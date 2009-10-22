@@ -29,27 +29,9 @@ Description: ARC dynamic installation of runtime environments
  catalogues of dynamically installable packages still needs to
  evolve.
 
-Package: nordugrid-arc1-lib
-Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, libglobus-common0, libglobus-gssapi-gsi4, libglobus-rls-client5, libglobus-ftp-client1, libglobus-ftp-control1, libglobus-rsl2, libglobus-io3, libglobus-openssl
-Description: ARC shared libraries
- The NorduGrid is a collaboration aiming at development, maintenance
- and support of the free Grid middleware, known as the Advanced
- Resource Connector (ARC).
- .
- The package keeps those ARC libraries that are shared between
- the client and the server's binaries. To share the code
- is essential for the modular nature of the server.
- .
- This package should be mistaken for those libraries that are
- bringing new functionality to the server, which are found in
- the plugin package.
-
 Package: nordugrid-arc1-client
 Architecture: any
-Recommends: libldap2
-Depends: nordugrid-arc1-lib, nordugrid-arc1-plugins-base
-Suggests: globus
+Depends: ${shlibs:Depends}, ${python:Depends}, nordugrid-arc1-plugins-base
 Description: ARC prototype clients
  The NorduGrid is a collaboration aiming at development, maintenance
  and support of the free Grid middleware, known as the Advanced
@@ -62,7 +44,7 @@ Description: ARC prototype clients
 
 Package: nordugrid-arc1-server
 Architecture: any
-Depends: nordugrid-arc1-arex, nordugrid-arc1-lib
+Depends: ${shlibs:Depends}, nordugrid-arc1-arex
 Recommends: nordugrid-arc1-python
 Description: ARC Hosting Environment Daemon
  The NorduGrid is a collaboration aiming at development, maintenance
@@ -82,7 +64,7 @@ Description: ARC Hosting Environment Daemon
 
 Package: nordugrid-arc1-arex
 Architecture: any
-Depends: nordugrid-arc1-plugins-base, nordugrid-arc1-lib, libxml-simple-perl
+Depends: ${shlibs:Depends}, nordugrid-arc1-plugins-base, libxml-simple-perl
 Description: ARC Remote EXecution service
  The NorduGrid is a collaboration aiming at development, maintenance
  and support of the free Grid middleware, known as the Advanced
@@ -94,7 +76,7 @@ Description: ARC Remote EXecution service
 
 Package: nordugrid-arc1-plugins-base
 Architecture: any
-Depends: nordugrid-arc1-lib
+Depends: ${shlibs:Depends}
 Description: ARC base plugins
  The NorduGrid is a collaboration aiming at development, maintenance
  and support of the free Grid middleware, known as the Advanced
@@ -105,13 +87,14 @@ Description: ARC base plugins
 
 Package: nordugrid-arc1-plugins-globus
 Architecture: any
+Depends: ${shlibs:Depends}
 Description: ARC Globus plugins
  ARC Globus plugins. This includes the Globus dependent Data Manager
  Components (DMCs).
 
 Package: nordugrid-arc1-dev
 Architecture: any
-Depends: libxml2-dev (>=2.4.0), libssl-dev, libglibmm-2.4-dev
+Depends: ${shlibs:Depends}, libxml2-dev (>=2.4.0), libssl-dev, libglibmm-2.4-dev
 Description: ARC development files
  The NorduGrid is a collaboration aiming at development, maintenance
  and support of the free Grid middleware, known as the Advanced
@@ -124,7 +107,7 @@ Description: ARC development files
 
 Package: nordugrid-arc1-python
 Architecture: any
-Depends: nordugrid-arc1-lib, ${python:Depends}
+Depends: ${shlibs:Depends}, ${python:Depends}
 Description: ARC Python wrapper
  The NorduGrid is a collaboration aiming at development, maintenance
  and support of the free Grid middleware, known as the Advanced
@@ -138,8 +121,8 @@ Description: ARC Python wrapper
 
 Package: nordugrid-arc1-java
 Architecture: any
-Depends: nordugrid-arc1-lib, java-virtual-machine
-Recommends: java6-runtime|java5-runtime|java2-runtime
+Depends: ${shlibs:Depends}, java-virtual-machine
+Recommends: java6-runtime | java5-runtime | java2-runtime
 Description: ARC Java wrapper
  The NorduGrid is a collaboration aiming at development, maintenance
  and support of the free Grid middleware, known as the Advanced
@@ -153,7 +136,7 @@ Description: ARC Java wrapper
 
 Package: nordugrid-arc1-doc
 Architecture: all
-Suggests: xpdf|pdf-viewer
+Suggests: xpdf | pdf-viewer
 Description: ARC API documentation
  The NorduGrid is a collaboration aiming at development, maintenance
  and support of the free Grid middleware, known as the Advanced
@@ -163,7 +146,7 @@ Description: ARC API documentation
 
 Package: nordugrid-arc1
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}
+Depends: ${shlibs:Depends}
 Description: ARC grid middleware
  The NorduGrid is a collaboration aiming at development, maintenance
  and support of the free Grid middleware, known as the Advanced
