@@ -163,7 +163,7 @@ class Service:
         if not self.state.running:
             outpayload = arc.PayloadSOAP(self.ns, True)
             fault = outpayload.Fault()
-            fault.Reason('%s Service is inactive (not initialized yet or shutting down)' % self.service_name) 
+            fault.Reason('%s service is inactive (not initialized yet or shutting down)' % self.service_name) 
             outmsg.Payload(outpayload)
             return arc.MCC_Status(arc.STATUS_OK)
         try:

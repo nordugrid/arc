@@ -164,7 +164,7 @@ class Shepherd:
                     try:
                         next_report = self.librarian.report(self.serviceID, filelist)
                     except:
-                        log.msg()
+                        log.msg(arc.DEBUG, 'Error sending report message to the Librarian, reason:', traceback.format_exc())
                         # if next_report is below zero, then we will send everything again
                         next_report = -1
                     # we should get the time of the next report
