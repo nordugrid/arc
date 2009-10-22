@@ -23,6 +23,7 @@ class Logger:
             severity = arc.DEBUG
         if not args:
             args = ['Python exception:\n', traceback.format_exc()]
+            severity = arc.ERROR
         mesg = ' '.join([str(arg) for arg in args])
         self.logger.msg(severity, mesg)
         return mesg
