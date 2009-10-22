@@ -4,7 +4,7 @@
 %global with_java %{!?_without_java:1}%{?_without_java:0}
 %global with_gcj %{!?_without_gcj:1}%{?_without_gcj:0}
 
-%global pkgdir arc
+%global pkgdir @PACKAGE@
 
 Name: nordugrid-arc1
 Version: @VERSION@
@@ -308,7 +308,7 @@ exit 0
 %{_bindir}/jura
 %{_bindir}/perftest
 %{_bindir}/saml_assertion_init
-%config(noreplace) %{_sysconfdir}/arc/client.conf
+%config(noreplace) %{_sysconfdir}/%{pkgdir}/client.conf
 %doc %{_mandir}/man1/arccat.1*
 %doc %{_mandir}/man1/arcclean.1*
 %doc %{_mandir}/man1/arccp.1*
