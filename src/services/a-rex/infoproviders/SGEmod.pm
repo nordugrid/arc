@@ -145,7 +145,7 @@ sub loop_callback {
 #
 
 sub type_and_version {
-    die unless run_callback("$path/qstat -help", sub {
+    run_callback("$path/qstat -help", sub {
         my $fh = shift;
         my ($firstline) = <$fh>;
         ($sge_type, $sge_version) = split " ", $firstline;
@@ -153,8 +153,8 @@ sub type_and_version {
    
     $compat_mode = 0; # version 6.x assumed
    
-    if ($sge_type !~ /GE/) {
-        $log->warning("Unsupported LRMS type: $sge_type");
+    if ($sge_type !~ /GE/ or not $sge_version) {
+        $log->error("Cannot indentify SGE version from output of '$path/qstat -help': $sge_type $sge_version");
     } elsif ($sge_version =~ /^5\./ or $sge_version =~ /^pre6.0/) {
         $compat_mode = 1;
         $log->info("Using SGE 5.x compatibility mode");
