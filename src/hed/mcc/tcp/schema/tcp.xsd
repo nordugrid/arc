@@ -76,4 +76,22 @@
     </xsd:complexType>
 </xsd:element>
 
+<xsd:element name="Limit">
+    <xsd:complexType>
+        <xsd:annotation>
+            <xsd:documentation xml:lang="en">
+            This element defines upper limit for number of simultaneous 
+            active TCP connections. Only positive numbers are meaningful.
+            If attribute "drop" is specified and is set to true then
+            connections over specified limit will be dropped. Otherwise
+            they will be put on hold.
+        </xsd:documentation>
+        <xsd:simpleContent>
+            <xsd:extension base="xsd:int">
+                <xsd:attribute name="drop" type="xsd:boolean" use="optional"/>
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+</xsd:element>
+
 </xsd:schema>

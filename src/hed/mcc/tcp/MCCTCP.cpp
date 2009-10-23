@@ -86,7 +86,7 @@ Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
 namespace Arc {
 
 
-MCC_TCP_Service::MCC_TCP_Service(Config *cfg):MCC_TCP(cfg) {
+MCC_TCP_Service::MCC_TCP_Service(Config *cfg):MCC_TCP(cfg),max_executers_(-1),max_executers_drop_(false) {
 #ifdef WIN32
     WSADATA wsadata;
     if (WSAStartup(MAKEWORD(2,2), &wsadata) != 0) {
@@ -153,7 +153,17 @@ MCC_TCP_Service::MCC_TCP_Service(Config *cfg):MCC_TCP(cfg) {
                 std::string v = l["Timeout"];
                 timeout = atoi(v.c_str());
             }
-            handles_.push_back(mcc_tcp_handle_t(s,timeout,no_delay));
+            int limit = -1;
+            bool limit_drop = false;
+            if (l["Limit"]) {
+                std::string v = l["Limit"];
+                limit = atoi(v.c_str());
+                v=(std::string)(l["Limit"].Attribute("drop"));
+                if((v == "yes") || (v == "true") || (v == "1")) {
+                  limit_drop=true;
+                };
+            }
+            handles_.push_back(mcc_tcp_handle_t(s,timeout,no_delay,limit));
             logger.msg(INFO, "Listening on TCP port %s(%s)", port_s, PROTO_NAME(info_));
         };
         freeaddrinfo(info);
@@ -161,6 +171,17 @@ MCC_TCP_Service::MCC_TCP_Service(Config *cfg):MCC_TCP(cfg) {
     if(handles_.size() == 0) {
         logger.msg(ERROR, "No listening ports initiated");
         return;
+    };
+    if((*cfg)["Limit"]) {
+      std::string v = (*cfg)["Limit"];
+      max_executers_ = atoi(v.c_str());
+      v=(std::string)((*cfg)["Limit"].Attribute("drop"));
+      if((v == "yes") || (v == "true") || (v == "1")) {
+        max_executers_drop_=true;
+      };
+      if(max_executers_ > 0) {
+        logger.msg(INFO, "Setting connections limit to %i, connections over limit will be %s",max_executers_,max_executers_drop_?"dropped":"put on hold");
+      };
     };
     if(!CreateThreadFunction(&listener,this)) {
         logger.msg(ERROR, "Failed to start thread for listening");
@@ -248,13 +269,33 @@ void MCC_TCP_Service::listener(void* arg) {
                 it.lock_.unlock();
                 struct sockaddr addr;
                 socklen_t addrlen = sizeof(addr);
-                int h = accept(s,&addr,&addrlen);
+                int h = ::accept(s,&addr,&addrlen);
                 if(h == -1) {
                     logger.msg(ERROR, "Failed to accept connection request");
                     it.lock_.lock();
                 } else {
                     it.lock_.lock();
-                    mcc_tcp_exec_t t(&it,h,i->timeout,i->no_delay);
+                    bool rejected = false;
+                    bool first_time = true;
+                    while((it.max_executers_ > 0) &&
+                          (it.executers_.size() >= it.max_executers_)) {
+                      if(it.max_executers_drop_) {
+                        logger.msg(WARNING, "Too many connections - dropping new one");
+                        ::shutdown(s,2);
+                        ::close(s);
+                        rejected = true;
+                        break;
+                      } else {
+                        if(first_time)
+                          logger.msg(WARNING, "Too many connections - waiting for old to close");
+                        it.lock_.unlock();
+                        sleep(5); // TODO: use signal, drop after timeout
+                        it.lock_.lock();
+                      };
+                    };
+                    if(!rejected) {
+                      mcc_tcp_exec_t t(&it,h,i->timeout,i->no_delay);
+                    };
                 };
             };
         };

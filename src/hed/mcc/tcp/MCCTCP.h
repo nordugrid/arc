@@ -57,11 +57,15 @@ class MCC_TCP_Service: public MCC_TCP
                 int handle;
                 bool no_delay;
                 int timeout;
-                mcc_tcp_handle_t(int h, int t, bool nd = false):handle(h),no_delay(nd),timeout(t) { };
+                int num;
+                int max;
+                mcc_tcp_handle_t(int h, int t, bool nd = false, int m = -1):handle(h),no_delay(nd),timeout(t),num(0),max(m) { };
                 operator int(void) { return handle; };
         };
         std::list<mcc_tcp_handle_t> handles_; /** listening sockets */
         std::list<mcc_tcp_exec_t> executers_; /** active connections and associated threads */
+        int max_executers_;
+        bool max_executers_drop_;
         /* pthread_t listen_th_; ** thread listening for incoming connections */
         Glib::Mutex lock_; /** lock for safe operations in internal lists */
         static void listener(void *); /** executing function for listening thread */
