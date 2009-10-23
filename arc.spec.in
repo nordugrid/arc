@@ -40,7 +40,7 @@ BuildRequires: globus-ftp-client-devel
 BuildRequires: globus-ftp-control-devel
 BuildRequires: globus-rls-client-devel
 %if %{with_lfc}
-BuildRequires: LFC-client-devel
+BuildRequires: LFC-devel
 %endif
 %if %{_vendor} == "redhat"
 BuildRequires: db4-devel
@@ -335,7 +335,6 @@ exit 0
 %doc %{_mandir}/man5/arcclient.xml.5*
 %doc src/clients/charon/charon_client.xml.example
 %doc src/clients/charon/charon_request.xml.example
-%doc src/clients/client.conf.example
 %doc src/tests/echo/echo.wsdl
 
 %files server
