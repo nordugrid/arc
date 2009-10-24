@@ -375,12 +375,13 @@ bool PayloadHTTP::Flush(void) {
         // TODO: choose optimal buffer size
         int tbufsize = (length_>1024*1024)?(1024*1024):length_;
         char* tbuf = new char[tbufsize];
+        if(!tbuf) return false;
         for(;;) {
           int lbuf = tbufsize;
           if(!sbody_->Get(tbuf,lbuf)) break;
-          if(!stream_->Put(tbuf,lbuf)) return false;
+          if(!stream_->Put(tbuf,lbuf)) { delete[] tbuf; return false; };
         };
-        delete tbuf;
+        delete[] tbuf;
       } else {
         for(int n=0;;++n) {
           char* tbuf = Buffer(n);
