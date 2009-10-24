@@ -236,7 +236,12 @@ def create_checksum(file, type):
     else:
         raise Exception, 'Unsupported checksum type'
 
-import md5
+try:
+    import hashlib as md5
+    md5.new_new = md5.new
+    md5.new = lambda: md5.new_new('md5')
+except:
+    import md5
 
 def _md5sum(file):
     """ Create md5 checksum of a file.
