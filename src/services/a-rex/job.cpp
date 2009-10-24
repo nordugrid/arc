@@ -719,7 +719,6 @@ Glib::Dir* ARexJob::OpenDir(const std::string& dirname) {
   dname = config_.User()->SessionRoot()+"/"+id_+"/"+dname;
   Glib::Dir* dir = Arc::DirOpen(dname.c_str(),config_.User()->get_uid(),config_.User()->get_gid());
   return dir;
-  return NULL;
 }
 
 int ARexJob::OpenLogFile(const std::string& name) {

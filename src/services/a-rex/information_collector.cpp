@@ -20,6 +20,7 @@ static void GetGlueStates(Arc::XMLNode infodoc,std::map<std::string,std::string>
 
 void ARexService::InformationCollector(void) {
   thread_count_.RegisterThread();
+/*
   for(;;) {
     // Run information provider
     std::string xml_str;
@@ -61,6 +62,7 @@ void ARexService::InformationCollector(void) {
     }
     if(thread_count_.WaitOrCancel(infoprovider_wakeup_period_*1000)) break;
   };
+*/
   thread_count_.UnregisterThread();
 }
 
