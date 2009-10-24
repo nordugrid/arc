@@ -1267,8 +1267,6 @@ class JobFDesc {
 
 /* find new jobs - sort by date to implement FIFO */
 bool JobsList::ScanNewJobs(bool /*hard_job*/) {
-  /* do not scan for new jobs if we can't accept them anyway */
-  if((JOB_NUM_ACCEPTED >= max_jobs) && (max_jobs != -1)) return true;
   std::string file;
   std::string cdir=user->ControlDir();
   std::list<JobFDesc> ids;
