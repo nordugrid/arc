@@ -1313,4 +1313,3 @@ bool JobsList::ScanNewJobs(bool /*hard_job*/) {
   };
   return true;
 }
-

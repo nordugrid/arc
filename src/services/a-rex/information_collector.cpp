@@ -121,4 +121,3 @@ static void GetGlueStates(Arc::XMLNode infodoc,std::map<std::string,std::string>
 }
 
 }
-
