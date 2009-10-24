@@ -228,7 +228,7 @@ $ sudo mkdir /var/spool/arc
 Now, run the \verb!arched! daemon with this INI config which is specified with the \verb!-i! option. (In this document we will run the ARC HED daemon as root.) We can first run it in the foreground (with the \verb!-f! flag), to see the possible initial misconfiguration errors immediately:
 
 \begin{verbatim}
-$ sudo /usr/local/sbin/arched -c /etc/arc/storage_service.xml -f
+$ sudo /usr/sbin/arched -i /etc/arc/chelonia1.ini -f
 \end{verbatim}
 
 When we start the services, they are trying hard to find eachother, which means lots of connection related error messages in the beginning, but after a minute or so, the system should stabilize. (This is the case with shutdown as well, it is normal to get lots of connection related error messages). The \verb!arched! daemon should now listen no port 60001:
