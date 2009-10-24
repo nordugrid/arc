@@ -7,7 +7,7 @@ initddir=@initddir@
 initd_SCRIPTS=a-rex
 
 docdir = @docdir@
-doc_DATA = arex.xml.example arc_arex.conf arex_secure.xml.example arex_minimalistic.xml.example \
+doc_DATA = arex.xml.example arex_secure.xml.example arex_minimalistic.xml.example \
            arex_xmlonly.xml.example arex_showcase.xml.example
 
 #GRIDMANAGER_LIBS = grid-manager/conf/libconf.la grid-manager/jobs/libjobs.la grid-manager/files/libfiles.la grid-manager/run/librun.la \
@@ -39,7 +39,5 @@ test_cache_check_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/i
 test_cache_check_LDFLAGS  = $(GLIBMM_LIBS) $(LIBXML2_LIBS)
 test_cache_check_LDADD    = $(top_srcdir)/src/hed/libs/common/libarccommon.la $(top_srcdir)/src/hed/libs/loader/libarcloader.la $(top_srcdir)/src/hed/libs/message/libarcmessage.la $(top_srcdir)/src/hed/libs/client/libarcclient.la
 
-
-sysconf_DATA = arc_arex.conf
 
 EXTRA_DIST = $(doc_DATA)
