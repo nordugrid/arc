@@ -1502,6 +1502,12 @@ def call_it(method_name, *args):
             spl = error.split('\n')
             first_line = spl.pop(0)
             print '   ', first_line, spl and '[...]' or ''
+    if "STATUS_UNDEFINED" in error:
+        if os.environ.get("PYTHONPATH", None):
+            print "Please check if PYTHONPATH is set properly."
+        else:
+            print "PYTHONPATH is not set. Please set it!"
+
     if not verbose:
         print "(use the '-v' flag for more details, e.g. 'chelonia -v list /')"
     sys.exit(-1)
