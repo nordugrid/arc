@@ -1,0 +1,153 @@
+<?xml version="1.0"?>
+<cfg:ArcConfig
+  xmlns="http://www.nordugrid.org/schemas/loader/2009/08"
+  xmlns:cfg="http://www.nordugrid.org/schemas/arcconfig/2009/08"
+  xmlns:tcp="http://www.nordugrid.org/schemas/tcp/2009/08"
+  xmlns:tls="http://www.nordugrid.org/schemas/tls/2009/08"
+  xmlns:imap="http://www.nordugrid.org/schemas/identitymap/2009/10"
+  xmlns:authz="http://www.nordugrid.org/schemas/arcauthz/2009/08"
+  xmlns:spdp="http://www.nordugrid.org/schemas/simplelistpdp/2009/08"
+  xmlns:arex="http://www.nordugrid.org/schemas/a-rex/2009/08"
+  xmlns:ip="http://www.nordugrid.org/schemas/a-rex/InfoProvider/2009/08"
+  xmlns:lrms="http://www.nordugrid.org/schemas/a-rex/LRMS/2009/08"
+>
+  <cfg:Server>
+    <cfg:PidFile inisections="common" initag="pidfile">/tmp/arched.pid</cfg:PidFile>
+    <cfg:Logger>
+      <cfg:File inisections="common" initag="logfile">/var/log/arched.log</cfg:File>
+      <cfg:Level inisections="common" initag="debug">ERROR</cfg:Level>
+    </cfg:Logger>
+  </cfg:Server>
+  <ModuleManager>
+    <Path inisections="common" initag="libpath">/opt/arc/lib/arc</Path>
+  </ModuleManager>
+  <Plugins>
+    <Name>mcctcp</Name>
+    <Name>mcctls</Name>
+    <Name>mcchttp</Name>
+    <Name>mccsoap</Name>
+    <Name>arcshc</Name>
+    <Name>identitymap</Name>
+    <Name>arex</Name>
+  </Plugins>
+  <loader:Chain>
+    <Component name="tcp.service" id="tcp">
+      <next id="tls"/>
+      <tcp:Listen><tcp:Port>60000</tcp:Port></tcp:Listen>
+      <tcp:Interface inisections="common" initag="interface">0.0.0.0</tcp:Interface>
+      <tcp:Port inisections="common" initag="port"/>
+      <tcp:Version inisections="common" initag="ipversion">4</tcp:Version>
+    </Component>
+    <Component name="tls.service" id="tls">
+      <next id="http"/>
+      <tls:KeyPath inisections="common" initag="host_key"/>
+      <tls:CertificatePath inisections="common" initag="host_cert"/>
+      <tls:CACertificatesDir inisections="common" initag="cacert"/>
+      <SecHandler name="identity.map" id="map" event="incoming">
+        <imap:PDP name="allow.pdp">
+          <imap:LocalList inisections="common" initag="mapfile">/etc/grid-security/grid-mapfile</imap:LocalName>
+        </imap:PDP>
+      </SecHandler>
+    </Component>
+    <Component name="http.service" id="http">
+      <next id="soap">POST</next>
+      <next id="plexer">GET</next>
+      <next id="plexer">PUT</next>
+    </Component>
+    <Component name="soap.service" id="soap">
+      <next id="plexer"/>
+    </Component>
+    <Plexer name="plexer.service" id="plexer">
+      <next id="a-rex" inisections="common" initag="urlpattern">^/arex</next>
+    </Plexer>
+    <Service name="a-rex" id="a-rex">
+      <!-- IMPORTANT: No idea how to put this into profile -->
+      <arex:endpoint>https://localhost:60000/arex</arex:endpoint>
+      <arex:usermap>
+        <arex:defaultLocalName inisections="common" initag="defaultaccount">nobody</arex:defaultLocalName>
+      </arex:usermap>
+      <arex:gmrun>internal</arex:gmrun>
+      <arex:commonName inisections="info" initag="shortservicename">A-REX</arex:commonName>
+      <arex:longDescription inisections="info" initag="servicedescription">ARC execution service</arex:longDescription>
+      <arex:LRMSName>pbs</arex:LRMSName>
+      <arex:OperatingSystem inisections="resource" initag="osname">LINUX</arex:OperatingSystem>
+      <arex:debugLevel inisections="common" initag="debug">ERROR</arex:debugLevel>
+      <arex:serviceMail inisections="support" initag="email"/>
+      <arex:loadLimits>
+        <arex:maxJobsTracked inisections="loadlimit" initag="maxjobs">1000</arex:maxJobsTracked>
+        <arex:maxJobsRun inisections="loadlimit" initag="maxrun">100</arex:maxJobsRun>
+        <arex:maxJobsTransfered inisections="loadlimit" initag="maxloaders">20</arex:maxJobsTransfered>
+        <arex:maxJobsTransferedAdditional inisections="loadlimit" initag="maxloadersadditional">2</arex:maxJobsTransferedAdditional>
+        <arex:maxFilesTransfered inisections="loadlimit" initag="maxfilesperloader">4</arex:maxFilesTransfered>
+      </arex:loadLimits>
+      <arex:dataTransfer>
+        <arex:Globus>
+          <arex:gridmapfile inisections="common" initag="mapfile">/etc/grid-security/grid-mapfile</arex:gridmapfile>
+          <arex:cadir inisections="common" initag="cacert">/etc/grid-security/certificates</arex:cadir>
+          <arex:certpath inisections="common" initag="host_cert">/etc/grid-security/hostcert.pem</arex:certpath>
+          <arex:keypath inisections="common" initag="host_key">/etc/grid-security/hostkey.pem</arex:keypath>
+        </arex:Globus>
+      </arex:dataTransfer>
+      <arex:jobLogPath inisections="common" initag="jobslog">/var/log/arex-jobs.log</arex:jobLogPath>
+      <arex:control>
+        <arex:username>.</arex:username>
+        <arex:controlDir inisections="common" initag="controldir">/var/spool/arc/jobstatus</arex:controlDir>
+        <arex:sessionRootDir inisections="common" initag="sessiondir">/export/sessions</arex:sessionRootDir>
+        <arex:cache>
+          <arex:location>
+            <!-- IMPORTANT: how to add multiple locations? -->
+            <arex:path inisections="cache" initag="location"/>
+          </arex:location>
+        </arex:cache>
+      </arex:control>
+      <arex:LRMS>
+        <arex:type>pbs</arex:type>
+        <arex:defaultShare inisections="resource" initag="defaultqueue"/>
+      </arex:LRMS>
+      <arex:InfoProvider>
+        <arex:debugLevel inisections="common" initag="debug">ERROR</arex:debugLevel>
+        <ip:AdminDomain inisections="info" initag="domainname">HU/NIIF-TOP</ip:AdminDomain>
+        <ip:ClusterName inisections="info" initag="shortservicename">A-REX</ip:ClusterName>
+        <ip:OtherInfo inisections="info" initag="servicedescription"/>
+        <ip:Location>
+          <ip:Name inisections="location" initag="name"/>
+          <ip:Address inisections="location" initag="address"/>
+          <ip:Place inisections="location" initag="place"/>
+          <ip:Country inisections="location" initag="country"/>
+          <ip:PostCode inisections="location" initag="postcode"/>
+          <ip:Latitude inisections="location" initag="latitude"/>
+          <ip:Longitude inisections="location" initag="longitude"/>
+        </ip:Location>
+        <ip:Contact>
+          <ip:Name inisections="support" initag="name"/>
+          <ip:Detail inisections="support" initag="url"/>
+          <ip:Type>usersupport</ip:Type>
+        </ip:Contact>
+        <!-- IMPORTANT: how to modify attribute? -->
+        <!-- IMPORTANT: how to make multiple elements? -->
+        <ip:ExecutionEnvironment name="thisservice">
+          <ip:OSName inisections="resource" initag="osname">adotf</ip:OSName>
+          <ip:OSVersion inisections="resource" initag="osversion">adotf</ip:OSVersion>
+          <ip:CPUVendor inisections="resource" initag="cpuvendor">adotf</ip:CPUVendor>
+          <ip:CPUModel inisections="resource" initag="cpumodel">adotf</ip:CPUModel>
+          <ip:CPUClockSpeed inisections="resource" initag="cpuspeed">adotf</ip:CPUClockSpeed>
+          <ip:ConnectivityIn inisections="resource" initag="inbound">false</ip:ConnectivityIn>
+          <ip:ConnectivityOut inisections="resource" initag="outbound">true</ip:ConnectivityOut>
+        </ip:ExecutionEnvironment>
+        <!-- IMPORTANT: how to modify attribute? -->
+        <!-- IMPORTANT: how to make multiple entries? -->
+        <ip:ComputingShare name="default">
+          <ip:Description inisections="resource" initag="queuedescription"/>
+          <ip:MappingQueue inisections="resource" initag="queuename"/>
+          <ip:ExecEnvName>thisservice</ip:ExecEnvName>
+          <ip:OSName inisections="resource" initag="osname">adotf</ip:OSName>
+          <ip:OSVersion inisections="resource" initag="osversion">adotf</ip:OSVersion>
+          <!-- IMPORTANT: how to make multiple entries? -->
+          <ip:AuthorizedVO inisections="resource" initag="voname"\>
+          <ip:MaxVirtualMemory inisections="resource" initag="maxmem"/>
+          <ip:SchedulingPolicy>fifo</ip:SchedulingPolicy>
+        </ip:ComputingShare>
+      </arex:InfoProvider>
+    </Service>
+  </Chain>
+</cfg:ArcConfig>
