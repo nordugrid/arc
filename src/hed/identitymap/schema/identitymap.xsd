@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    targetNamespace="http://www.nordugrid.org/schemas/identitymap/2009/10"
+    xmlns="http://www.nordugrid.org/schemas/identitymap/2009/10"
+    elementFormDefault="qualified"
+    attributeFormDefault="unqualified">
+
+<xsd:element name="Plugins">
+    <xsd:complexType>
+        <xsd:annotation>
+            <xsd:documentation xml:lang="en">
+             This element defines shared library which contains plugins to be used. It is supposed to be used if name of library is not same as name of plugin and hence can't be located automatically.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="Name" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+        </xsd:sequence>
+    </xsd:complexType>
+</xsd:element>
+
+<xsd:element name="PDP">
+    <xsd:complexType>
+        <xsd:annotation>
+            <xsd:documentation xml:lang="en">
+             This element contains configuration of PDP to be used and
+             associated mapping procedure. There may be multiple or none
+             such element. Attribute 'name' contains name of PDP plugin as 
+             defined in one of loaded libraries. Elements LocalName, 
+             LocalList or LocalSimplePool define mapping to be applied if
+             PDP gives positive response. All listed PDPs are tested 
+             sequentially and first with positive result is applied. 
+             The rest of this element defines configuration of PDP in
+             its specific way.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="LocalName" type="xsd:string" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation xml:lang="en">
+                     Local account name.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="LocalList" type="xsd:string" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation xml:lang="en">
+                     Path to file containing key value pairs separated 
+                     by blank space per each string. Keys are compared 
+                     to TLS:IDENTITYDN attribute of each message and 
+                     corresponding value of first matched key is used.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="LocalSimplePool" type="xsd:string" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation xml:lang="en">
+                     Path directory containing dynamic configuration for
+                     mapping TLS:IDENTITYDN attribute of each message to
+                     local account names.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+          <xsd:any namespace="##other" processContents="strict" minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+        <xsd:attribute name="name" type="xsd:string" use="required"/>
+    </xsd:complexType>
+</xsd:element>
+
+</xsd:schema>
