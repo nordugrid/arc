@@ -1,7 +1,51 @@
+\subsection{arcsync}
+\label{sec:arcsync}
+
+It is advised to start every grid session by running \texttt{arcsync},
+especially when changing workstations. The reason is that your job submission
+history is cached on your machine, and if you are using ARC client
+installations on different machines, your local lists of submitted jobs will be different. To synchronise
+these lists with the information in the Information System, use the
+\texttt{arcsync} \index{arcsync}\index{commands:arcsync} command.
+
+\hspace*{0.5cm}
+\begin{shaded}
+   \uicommand{arcsync [options]}
+\end{shaded}
+\versions{ARC 0.9}
+\begin{longtable}{llp{8cm}}
+   Options:&&\\
+   \texttt{-c, --cluster}&\verb#[-]#\textit{name}&explicitly select or reject a specific site\\
+   \texttt{-i, --index}&\textit{url}&explicitly select or reject (-) a specific index server\\
+   \texttt{-j, --joblist}&\textit{filename}&file where user's job information will be stored\\
+   \texttt{-f, --force}& &don't ask for confirmation\\
+%   \texttt{-m, --merge}& &merge the found jobs with the jobs already in the joblist\\
+   \texttt{-T, --truncate}& &truncate the job list before synchronising\\
+   \texttt{-t, --timeout}&\textit{seconds}&timeout in seconds (default 20)\\
+   \texttt{-d, --debug}&\textit{debuglevel}&debug level, FATAL, ERROR, WARNING, INFO, DEBUG or VERBOSE - default WARNING\\
+   \texttt{-z, --conffile}&\textit{filename}& configuration file (default {\$}HOME/.arc/client.xml)\\
+   \texttt{-v, --version}&&print version information\\
+   \texttt{-h, --help}&&print help page\\
+\end{longtable}
+
+The ARC client keeps a local list of jobs in the user's home
+directory. If this file is lost,
+corrupt, or the user wants to recreate the file on a different
+workstation, the \texttt{arcsync} command will recreate this file from
+the information available in the Information System.
+
+Since  the  information  about  a job retrieved from a clsuter can be slightly out of date if the user very recently
+submitted or removed a job, a warning is issued when this command is run. The \verb#--force# option disables this warning.
+
+%If a specific cluster is selected for the syncronisation while the job list contains jobs  on  a  different  cluster,
+%running  the arcsync command will remove the old jobs from the joblist, unless the \verb#--merge# option is given, in which
+%case the new found jobs are merged with the jobs already in the joblist.
+
+
 \subsection{arcsub}\label{sec:arcsub}
 The \texttt{arcsub}\index{arcsub}\index{commands:arcsub} command is the
 most essential one, as it is used for submitting jobs to the Grid
-resources. \index{submit job}. \texttt{arcsub} matches user's job
+resources. \index{submit job}\texttt{arcsub} matches user's job
 description to the information collected from the Grid, and the
 optimal site is being selected for job submission. The job description
 is then being forwarded to that site, in order to be submitted to the
@@ -10,42 +54,39 @@ Condor or SGE etc.
 
 \hspace*{0.5cm}
 \begin{shaded}
-   \uicommand{arcsub [options]}%$<$task ...$>$
+   \uicommand{arcsub [options] [filename]}
 \end{shaded}
 \versions{ARC 0.9}
 \begin{longtable}{llp{8cm}}
    Options:&&\\
-   \texttt{-c, --cluster}&\verb#[-]#\textit{url}&explicitly select or reject a specific site (cluster)\\
-   \texttt{-i, --indexurl}&\textit{url}&URL of an index server\\
+   \texttt{-c, --cluster}&\verb#[-]#\textit{url}&explicitly select or reject (-) a specific site\\
+   \texttt{-i, --index}&\textit{url}&explicitly select or reject (-) a specific index server\\
    \texttt{-e, --jobdescrstring}&\textit{filename}&string describing the job to be submitted\\
    \texttt{-f, --jobdescrfile}&\textit{filename}&file describing the job to be submitted\\
-   \texttt{-j, --joblist}&\textit{filename}&file where the job IDs will be stored\\
-   \texttt{-D, --dryrun}&&add dryrun option to the job description\\
+   \texttt{-j, --joblist}&\textit{filename}&file where user's job information will be stored\\
+%   \texttt{-D, --dryrun}&&add dryrun option to the job description\\
    \texttt{-x, --dumpdescription}&&do not submit -- dump transformed job description to stdout\\
-   \texttt{-U, --unknownattr}&&allow unknown attributes in the job description\\
-   \texttt{-t, --timeout}&\textit{time}&timeout for queries in seconds (default 20)\\
+%   \texttt{-U, --unknownattr}&&allow unknown attributes in the job description\\
+   \texttt{-t, --timeout}&\textit{seconds}&timeout in seconds (default 20)\\
    \texttt{-d, --debug}&\textit{debuglevel}&debug level, FATAL, ERROR, WARNING, INFO, DEBUG or VERBOSE - default WARNING\\
    \texttt{-z, --conffile}&\textit{filename}& configuration file (default {\$}HOME/.arc/client.xml)\\
+   \texttt{-b, --broker}&\textit{string}&select broker method (default is Random)\\
+   \texttt{-n, --dolocalsandbox}& &store job descriptions in local sandbox (useful for eventual resubmission/migration)\\
    \texttt{-v, --version}&&print version information\\
    \texttt{-h, --help}&&print help page\\
-%   Arguments:&&\\
-%   \texttt{ task ...}&&strings or files describing the jobs to be submitted\\
+   Arguments:&&\\
+   \texttt{filename}&&file describing the job(s) to be submitted\\
 \end{longtable}
 
-
-
 \begin{framed}
-The -c and -i arguments accept ``urls'' of the format GRID:URL,
-
-e.g. for index servers:
-
-ARC0:ldap://grid.tsl.uu.se:2135/mds-vo-name=sweden,O=grid
-
-CREAM:ldap://cream.grid.upjs.sk:2170/o=grid
-
+The \verb#-c# and \verb#-i# arguments accept meta-URLs of the format \texttt{GRID:URL}, where \texttt{GRID} indicates a Grid middleware flavour. Possible flavours are \texttt{ARC0}, \texttt{ARC1}, \texttt{CREAM} and \texttt{UNICORE}. For example, for index servers:
+\begin{verbatim}
+ ARC0:ldap://index.ng.org:2135/mds-vo-name=sweden,O=grid
+ CREAM:ldap://cream.glite.org:2170/o=grid
+\end{verbatim}
 or clusters:
 
-ARC0:ldap://grid.tsl.uu.se:2135/nordugrid-cluster-name=grid.tsl.uu.se,Mds-Vo-name=local,o=grid
+\verb# ARC0:ldap://ce.ng.eu:2135/nordugrid-cluster-name=ce.ng.eu,Mds-Vo-name=local,o=grid#
 \end{framed}
 
 As a shorthand \texttt{-f} can be omitted if the job description file is put last on the commandline.
@@ -53,10 +94,10 @@ As a shorthand \texttt{-f} can be omitted if the job description file is put las
 A simple \textit{"Hello World"} job could look like:
 
 \begin{shaded}
-\uicommand{arcsub -c ARC0:ldap://grid.tsl.uu.se:2135/nordugrid-cluster-name=grid.tsl.uu.se,Mds-Vo-name=local,o=grid -f job.jsdl}
+ arcsub -c ARC0:ldap://grid.ng.org:2135/nordugrid-cluster-name=grid.ng.org,Mds-Vo-name=local,o=grid -f job.jsdl
 \end{shaded}
 
-Assuming that the url represents an ARC0 cluster that the user is authorized to submit to and job.jsdl is the file below.
+A user has to have valid credentials (see Section~\ref{sec:proxy}) and be authorised at the specified site. The test file \texttt{job.jsdl} is shown below.
 
 \begin{framed}
 \begin{verbatim}
@@ -91,9 +132,94 @@ Assuming that the url represents an ARC0 cluster that the user is authorized to 
 \end{verbatim}
 \end{framed}
 
+\begin{framed}
+   If a job is successfully submitted, a \textbf{job identifier}
+   (\textit{job ID})\index{job ID} is printed to standard output.
+\end{framed}
+
+The job ID uniquely identifies the job while it is being executed. Job IDs
+differ strongly between Grid flavours, but basically they have a form of a URL.
+You should use Job ID as a handle to refer to the job when doing other
+job manipulations, such as querying job status (\verb#arcstat#),
+killing it (\verb#arckill#), re-submitting (\verb#arcresub#), or
+retrieving the result (\verb#arcget#).
+
+\begin{framed}
+   Every job ID is a valid URL for the job session directory. You can
+   always use it to access the files related to the job, by using data
+   management tools (see Chapter~\ref{sec:dm}).
+\end{framed}
+
+The job description in xRSL or JSDL format can be given either as an
+argument on the command line, or can be read from a file. Several jobs can be
+requested at the same time by giving more than one filename
+argument, or by repeating the \verb#-f# or \verb#-e# options. It is
+possible to mix \verb#-e# and \verb#-f# options in the same
+\texttt{arcsub} command.
+
+The \verb#-c# option can be used to \textbf{force} a job to be
+submitted to a particular site (cluster), or to reject submission to a
+site. The matching is done by string match to the site name (i.e.
+hostname) as defined in the Information System, or to an alias, as
+defined in user configuration file (see
+Section~\ref{sec:client.conf}).  The \verb#-c# option can be repeated
+several times, for example:
+\begin{verbatim}
+    arcsub -c alias1 -c alias2 myjob.xrsl
+\end{verbatim}
+This will submit a job to either \verb#alias1# or
+\verb#alias2#. To submit a job to any site except
+\verb#badsite#, use \verb#-# sign in front of the name:
+\begin{verbatim}
+    arcsub -c -badsite myjob.xrsl
+\end{verbatim}
+
+If option \verb#-c# is not given, the \verb#arcsub# command locates the available sites by querying the
+Information System. Default index services for the Information System are specified in the
+configuration template distributed with the middleware, and can be overwritten both in the user's
+configuration (see Section~\ref{sec:client.conf}) and from the command line using option
+\verb#-i#. Different Grids use different notation for such index services.
+
+If you would like to get diagnostics of the process of resource
+discovery and requirements matching, a very useful option is
+\verb#-d#. The following command:
+\begin{verbatim}
+    arcsub -d DEBUG myjob.xrsl
+\end{verbatim}
+
+will print out the steps taken by the ARC client to find the
+best cluster satisfying your job requirements. A default value for
+the debug level can be set in the user's configuration file.
+
+It often happens that some sites that \verb#arcsub# has to contact
+are slow to answer, or are down altogether. This will not prevent
+you from submitting a job, but will slow down the submission. To
+speed it up, you may want to specify a shorter timeout (default is
+20 seconds) with the \verb#-t# option:
+\begin{verbatim}
+    arcsub -t 5 myjob.xrsl
+\end{verbatim}
+
+A default value for the timeout can be set in the user's configuration file.
+
+The user interface transforms input job description into a format
+that can be understood by the Grid services to which it is being
+submitted. By specifying the \verb#-dumpdescription# option, such transformed
+description is written to stdout instead of being submitted to the remote site.
+
+Possible broker values for the option \verb#-b# are:
+\begin{itemize}
+ \item[\texttt{Random}] -- ranks targets randomly (default)
+ \item[\texttt{FastestQueue}] -- ranks targets according to their queue length
+% \item[\texttt{FastestCPU}] -- ranks targets according to CPU performance
+ \item[\texttt{Data}] -- ranks target according the amount of megabytes of the
+requested input files that are already in the computing resource’s cache.
+% \item[\texttt{SampleBroker}] -- Ranks targets randomly (written in Python)
+\end{itemize}
+
+
 \subsection{arcstat}
 \label{sec:arcstat}
-
 
 \begin{shaded}
    \uicommand{arcstat [options] [job ...]}
@@ -377,39 +503,6 @@ Only jobs that have finished can be cleaned.
 % Prior to using \texttt{arcrenew}, be sure to actually create the
 % new proxy!
 % 
-% \subsection{arcsync}
-% \label{sec:arcsync}
-% 
-% If you are using User Interface installations on different machines,
-% your local lists of submitted jobs will be different. To synchronise
-% these lists with the information in the Information System, use the
-% \texttt{arcsync} \index{arcsync}\index{commands:arcsync} command.
-% 
-% \hspace*{0.5cm}
-% \begin{shaded}
-%    \uicommand{arcsync [options]}
-% \end{shaded}
-% \versions{ARC 0.9}
-% \begin{longtable}{llp{8cm}}
-%    Options:&&\\
-%    \texttt{-c, -cluster}&\verb#[-]#textem{name}&explicitly select or reject a specific site (cluster)\\
-%    \texttt{-C, -clustlist}&\verb#[-]#textem{filename}&list of sites (clusters) to select or reject\\
-%    \texttt{-g, -giisurl}& \textit{url} &URL of a central Information System server\\
-%    \texttt{-G, -giislist}&\textit{filename}&list of GIIS URLs\\
-%    \texttt{-f, -force}&&don't ask for confirmation\\
-%    \texttt{-t, -timeout}& \textit{time} & timeout for queries (default 40 sec)\\
-%    \texttt{-d, -debug}& \textit{debuglevel} &debug level, from -3 (quiet) to 3 (verbose) - default 0\\
-%    \texttt{-x, -anonymous}& & use anonymous bind for queries (default)\\
-%    \texttt{-X, -gsi}& & use GSI-GSSAPI bind for queries\\
-%    \texttt{-v, -version}& & print version information\\
-%    \texttt{-h, -help}& & print help page\\
-% \end{longtable}
-% 
-% The ARC User Interface keeps a local list of jobs in the user's home
-% directory (see section~\ref{sec:joblists}). If this file is lost,
-% corrupt, or the user wants to recreate the file on a different
-% workstation, the \texttt{arcsync} command will recreate this file from
-% the information available in the Information System.
 
 % \subsection{Auxilliary files}\label{sec:joblists}
 % 
