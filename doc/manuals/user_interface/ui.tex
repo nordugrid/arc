@@ -14,10 +14,10 @@
 \usepackage{graphicx}
 \usepackage[linkbordercolor={0 0.8 0.8}]{hyperref}
 \hypersetup{
-  pdfauthor = {},
+  pdfauthor = {ARC developers},
   pdftitle = {ARC Clients},
   pdfsubject = {User's manual},
-  pdfkeywords = {Grid,KnowARC,ARC,client},
+  pdfkeywords = {Grid,KnowARC,ARC,NorduGrid,client},
   pdfcreator = {PDFLaTeX with hyperref package},
   pdfproducer = {PDFLaTeX}
 }
@@ -54,7 +54,7 @@
    
    \hrulefill
    
-   {\raggedleft NORDUGRID-MANUAL-?\par}
+   {\raggedleft NORDUGRID-MANUAL-1\par}
    
    {\raggedleft \today\par}
    
@@ -89,10 +89,18 @@
 \chapter{Introduction} \label{sec:intro} 
 
 The command line user interface of ARC consists of a set of commands
-necessary for job submission and manipulation and data management. A
-special utility also exists for test purposes. These commands replace
-the commands \texttt{ng*} (\texttt{ngsub,} \texttt{ngget} etc.) found
-in ARC versions previous to 0.9, and provide enhanced functionality.
+necessary for job submission and manipulation and data management.
+This manual replaces the older version of \texttt{NORDUGRID-MANUAL-1} and is
+valid for ARC versions 0.9 and above. Command line tools semantics is the same
+as in earlier versions of ARC, roughly following that of basic Linux commands
+and most common batch system commands. One obvious difference is change of
+the legacy prefix from ``ng'' to the more appropriate ``arc''. This is not only
+a cosmetic change: \textbf{behaviour of the commands also have changed}, as did
+their functionalities and options.
+\begin{framed}
+  Users are strongly discouraged from modifying their old scripts by
+  simply replacing ``ng'' with ``arc'' -- results may be unpredictable.
+\end{framed}
 
 \chapter{Commands} \label{sec:cli} 
 
@@ -100,7 +108,9 @@ in ARC versions previous to 0.9, and provide enhanced functionality.
 \index{job management}
 The following commands are used for job submission and management,
 such as status check, results retrieval, cancellation, re-submission
-and such. The jobs must be described using a job description language. ARC supports the languages JSDL, xRSL and JDL~\cite{xrsl}.
+and such. The jobs must be described using a job description language. ARC
+supports the following languages: JSDL~\cite{jsdl}, xRSL~\cite{xrsl} and
+JDL~\cite{jdl}.
 
 \input{ui-job}
 
@@ -111,10 +121,10 @@ of data indexing services.
 
 \input{ui-data}
 
-\section{Test suite} \label{sec:testsuite}
+%\section{Test suite} \label{sec:testsuite}
 %\input{arctest}
 
-\section{Third-party commands} \label{sec:ui-other}
+%\section{Third-party commands} \label{sec:ui-other}
 %\input{ui-other}
 
 
@@ -122,9 +132,8 @@ of data indexing services.
 \index{URLs}
 \input{xrsl-urls}
 
-\chapter{Configuration} \label{sec:client.conf} 
-\section{ARC Client Configuration}
-%\input{ui-conf}
+\chapter{ARC Client Configuration} \label{sec:client.conf} 
+\input{ui-conf}
 
 \bibliography{grid}
 \printindex

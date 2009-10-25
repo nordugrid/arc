@@ -58,7 +58,7 @@ The URL components are:
 
 The following options are supported for location URLs:\index{URL:options}
 
-\begin{tabular}{lp{10cm}}
+\begin{longtable}{lp{10cm}}
    \verb#threads=<number># & specifies number of parallel
    streams to be used by GridFTP or HTTP(s,g); default value is 1,
    maximal value is 10\\
@@ -74,10 +74,12 @@ The following options are supported for location URLs:\index{URL:options}
    channel should be encrypted; default is \verb#no#\\
    \verb#blocksize=<number># & specifies size of
    chunks/blocks/buffers used in GridFTP or HTTP(s,g) transactions;
-   default is protocol dependent\\ 
-   \verb#checksum=cksum|md5|adler32# & specifies the algorithm for checksum to be
-   computed (ev. provided to the indexing server). This is overridden
-   by any metadata options specified (see below).\\ 
+   default is protocol dependent\\
+   \verb#checksum=cksum|md5|adler32|no# & specifies the algorithm for checksum to be
+   computed (for transfer verification or provided to the indexing server). This is overridden
+   by any metadata options specified (see below). If this option is
+   not provided, the default for the protocol is used. \verb#checksum=no#
+   disables checksum calculation.\\
    \verb#exec=yes|no# & means the file should be treated as executable\\
    \verb#preserve=yes|no# & specify if file must be uploaded to this
    destination even if job processing failed (default is \verb#no#)\\
@@ -100,7 +102,7 @@ The following options are supported for location URLs:\index{URL:options}
    \verb#tcpnodelay=yes|no# & controls the use of the TCP\_NODELAY
    socket option (which disables the Nagle algorithm). Applies to
    http(s) only. Default is \verb#no#\\ 
-\end{tabular}
+\end{longtable}
 
 Local files are referred to by specifying either a location relative
 to the job submission working directory, or by an absolute path (the
@@ -135,15 +137,15 @@ Currently these metadata options are only supported for lfc:// URLs.
 \end{framed}
 
 $^1$This is a destination URL. The file will be copied to the GridFTP
-server at se.domain.org with the path datapath/file25.dat and
-registered in the RLS indexing service at grid.domain.org with the LFN
-myfile02.dat.
+server at \texttt{se.domain.org} with the path \texttt{datapath/file25.dat} and
+registered in the RLS indexing service at \texttt{grid.domain.org} with the LFN
+\texttt{myfile02.dat}.
 
 $^2$This is a destination URL. The file will be copied to
-srm.domain.org at the path griddir/file1 and registered to the LFC
-service at lfc.domain.org with the LFN /user/file1. The given GUID
+\texttt{srm.domain.org} at the path \texttt{griddir/file1} and registered to the LFC
+service at \texttt{lfc.domain.org} with the LFN \texttt{/user/file1}. The given GUID
 and checksum attributes will be registered.
 
 $^3$This is a source URL. The file is registered in the LFC service at
-lfc.domain.org with the given GUID and can be copied or queried by
+\texttt{lfc.domain.org} with the given GUID and can be copied or queried by
 this URL.

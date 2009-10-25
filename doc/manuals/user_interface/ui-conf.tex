@@ -1,0 +1,238 @@
+Default behaviour of an ARC client can be configured by specifying
+alternative values for some parameters in the client configuration
+file. The file is called \texttt{client.conf} and is located in
+directory \texttt{.arc} in user's home area:
+\begin{shaded}
+ {\$}HOME/.arc/client.conf
+\end{shaded}
+If this file is not present or does not contain the relevant
+configuration information, the global configuration files (if exist)
+or default values are used instead. Some client tools may be able to create
+the default \texttt{{\$}HOME/.arc/client.conf}, if it does not exist.
+
+The ARC configuration file consists of several configuration blocks.
+Each configuration block is identified by a keyword and contains
+configuration options for a specific part of the ARC middleware. 
+
+The configuration file is written in a plain text format known as INI.
+Configuration blocks start with identifying keywords inside square brackets.
+Typically, first comes a common block: \verb#[common]#. Thereafter follows one
+or more attribute-value pairs written one on each line in the following
+format:
+
+\begin{framed}
+\begin{verbatim}
+[common]
+attribute1=value1
+attribute2=value2
+attribute3=value3 value4
+# comment line 1
+# comment line 2
+attribute2=value5
+...
+\end{verbatim}
+\end{framed}
+
+%For multi-valued attributes, several elements or attribute-value pairs
+%have to be specified -- one per each value.
+
+The following blocks and respective attributes are recognized.
+
+\section{Block \texttt{common}}
+
+\phantomsection
+\index{configuration:defaultservices}\addcontentsline{toc}{subsection}{defaultservices}
+\hspace*{0.5cm}
+\begin{shaded}
+  \uicommand{defaultservices}
+\end{shaded}
+\textbf{This attribute is multi-valued.}
+
+This attribute is used to specify default services to be used. Defining such in
+the user configuration file will override the default services set in the system
+configuration.
+
+The value of this attribute should follow the format:
+\begin{verbatim}
+  service_type:flavour:service_url
+\end{verbatim}
+
+where \texttt{service\_type} is type of service (e.g. \texttt{computing} or
+\texttt{index}), \texttt{flavour} specifies type of middleware plugin to use
+when contacting the service (e.g. ARC0, ARC1, CREAM, UNICORE, etc.) and
+\texttt{service\_url} is the URL used to contact the service.
+
+Example:
+\begin{itemize}
+\item{plain text:}\\ 
+\verb#defaultservices=index:ARC0:ldap://index1.nordugrid.org:2135/Mds-Vo-name=NorduGrid,o=grid index:ARC1:https://knowarc2.grid.niif.hu:50000/isis computing:ARC1:https://knowar c1.grid.niif.hu:60000/arex computing:CREAM:ldap://cream.grid.upjs.sk:2170/o=grid computing:UNICORE:https://testbed5.grid.upjs.sk:8080/KnowARC-testbed/services/BESFactory?res=default_bes_factory#
+\end{itemize}
+
+% \phantomsection
+% \index{configuration:giis}\addcontentsline{toc}{subsection}{giis}
+% \hspace*{0.5cm}
+% \begin{shaded}
+%   \uicommand{giis}
+% \end{shaded}
+% \textbf{This attribute is multi-valued.}
+% 
+% Configures which GIISes (site indices) to use to discover computing
+% and storage resources. The default is to use the four top level
+% GIISes:
+% 
+% \begin{verbatim}
+%   ldap://index1.nordugrid.org:2135/O=Grid/Mds-Vo-name=NorduGrid
+%   ldap://index2.nordugrid.org:2135/O=Grid/Mds-Vo-name=NorduGrid
+%   ldap://index3.nordugrid.org:2135/O=Grid/Mds-Vo-name=NorduGrid
+%   ldap://index4.nordugrid.org:2135/O=Grid/Mds-Vo-name=NorduGrid
+% \end{verbatim}
+% 
+% Examples:
+% \begin{itemize}
+% \item{plain text:}\\ 
+% \verb#    giis="ldap://atlasgiis.nbi.dk:2135/O=Grid/Mds-Vo-name=Atlas"#\\
+% \verb#    giis="ldap://index1.nordugrid.org:2135/O=Grid/Mds-Vo-name=NorduGrid"#\\
+% \verb#    giis="ldap://grid.tsl.uu.se:2135/O=Grid/Mds-Vo-name=local"#
+% \item{XML:}\\ 
+% \verb#    <giis>ldap://odin.switch.ch:2135/O=Grid/Mds-Vo-name=Switzerland</giis>#\\
+% \verb#    <giis>ldap://index1.nordugrid.org:2135/O=Grid/Mds-Vo-name=NorduGrid</giis>#\\
+% \verb#    <giis>ldap://grid.tsl.uu.se:2135/O=Grid/Mds-Vo-name=local</giis>#
+% \end{itemize}
+% 
+% \begin{framed}
+% Note that LDAP URLs containing "Mds-Vo-name=local" refer not to
+% GIISes, but to individual sites. This feature can be used to add
+% "hidden" sites that do not register to any GIIS, or to list explicitly
+% preferred submission sites.
+% \end{framed}
+% 
+% \phantomsection
+% \index{configuration:debug}\addcontentsline{toc}{subsection}{debug}
+% \hspace*{0.5cm}
+% \begin{shaded}
+%   \uicommand{debug}
+% \end{shaded}
+% Default debug level to use for the ARC clients. Corresponds to the \verb#-d#
+% command line switch of the clients. Default value is 0, possible range
+% is from -3 to 3.
+% 
+% Examples:
+% \begin{itemize}
+% \item{plain text:}\\ \verb#    debug="2"#
+% \item{XML:}\\ \verb#    <debug>2</debug>#
+% \end{itemize}
+% 
+% 
+% \phantomsection
+% \index{configuration:timeout}\addcontentsline{toc}{subsection}{timeout}
+% \hspace*{0.5cm}
+% \begin{shaded}
+%   \uicommand{timeout}
+% \end{shaded}
+% Timeout to use for interaction with LDAP servers, gridftp servers,
+% etc. If a server, during e.g. job submission, does not answer in the
+% specified number of seconds, the connection is timed out and
+% closed. Default value is 20 seconds.
+% 
+% Examples:
+% \begin{itemize}
+% \item{plain text:}\\ \verb#    timeout="20"#
+% \item{XML:}\\ \verb#    <timeout>10</timeout>#
+% \end{itemize}
+% 
+% 
+% \phantomsection
+%
+\index{configuration:downloaddir}\addcontentsline{toc}{subsection}{downloaddir}
+% \hspace*{0.5cm}
+% \begin{shaded}
+%   \uicommand{downloaddir}
+% \end{shaded}
+% Default download directory to download files to when retrieving output
+% files from jobs using \texttt{ngget}.  Default is the current working
+% directory.
+% 
+% Examples:
+% \begin{itemize}
+% \item{plain text:}\\ \verb#    downloaddir="/home/johndoe/arc-downloads"#
+% \item{XML:}\\ \verb#    <downloaddir>/tmp/johndoe</downloaddir>#
+% \end{itemize}
+% 
+% 
+% \phantomsection
+% \index{configuration:alias}\addcontentsline{toc}{subsection}{alias}
+% \hspace*{0.5cm}
+% \begin{shaded}
+%   \uicommand{alias}
+% \end{shaded}
+% \textbf{This attribute is multi-valued.}
+% 
+% Alias substitutions to perform in connection with the \verb#-c# command line
+% switch of the ARC clients. Alias definitions are recursive. Any alias
+% defined in a block that is read before a given block can be used in
+% alias definitions in that block. An alias defined in a block can also
+% be used in alias definitions later in the same block.
+% 
+% Examples:
+% \begin{itemize}
+% \item{plain text:}\\ \verb#    alias="host1=somehost.nbi.dk"#\\
+% \verb#    alias="host2=otherhost.uu.se"#\\
+% \verb#    alias="myhosts=host1 host2"#
+% \item{XML:}\\ \verb#    <alias>host1=somehost.nbi.dk</alias>#\\
+% \verb#    <alias>host2=otherhost.uu.se</alias>#\\
+% \verb#    <alias>myhosts=host1 host2</alias>#
+% \end{itemize}
+% 
+% With the example above, \verb#ngsub -c myhosts# will resolve to \verb#ngsub -c somehost.nbi.dk -c otherhost.uu.se#.
+% 
+% \phantomsection
+% \index{configuration:broker}\addcontentsline{toc}{subsection}{broker}
+% \hspace*{0.5cm}
+% \begin{shaded}
+%   \uicommand{broker}
+% \end{shaded}
+% Configures which brokering algorithm to use during job submission. The
+% default one is the \texttt{FastestCpus} broker that chooses, among the
+% possible targets, the target with the fastest CPUs. Another
+% possibility is, for example, the
+% \texttt{RandomSort} broker that chooses the target randomly among the targets
+% surviving the job description matchmaking.
+% 
+% Examples:
+% \begin{itemize}
+% \item{plain text:}\\ \verb#    broker="RandomSort"#
+% \item{XML:}\\ \verb#    <broker>RandomSort</broker>#
+% \end{itemize}
+
+
+\index{configuration:deprecated files}\section{Deprecated configuration files}
+
+ARC configuration file in releases 0.6 and 0.8 has the same name and the same
+format; attributes unknown to newer ARC versions are ignored.
+
+In ARC $\leq$ 0.5.48, configuration was done via files {\$}\texttt{HOME/.ngrc},
+{\$}\texttt{HOME/.nggiislist} and {\$}\texttt{HOME/.ngalias}.
+
+The main configuration file \textbf{{\$}\texttt{HOME/.ngrc}} could contain
+user's default settings for the debug level, the information system
+query timeout and the download directory used by \texttt{ngget}. A
+sample file could be the following:
+\begin{verbatim}
+# Sample .ngrc file
+# Comments starts with #
+NGDEBUG=1
+NGTIMEOUT=60
+NGDOWNLOAD=/tmp
+\end{verbatim}
+
+If the environment variables NGDEBUG, NGTIMEOUT or NGDOWNLOAD were
+defined, these took precedence over the values defined in this
+configuration. Any command line options override the defaults.
+
+The file \textbf{{\$}\texttt{HOME/.nggiislist}} was used to keep the
+list of default GIIS server URLs, one line per GIIS (see \texttt{giis}
+attribute description above). 
+
+The file \textbf{{\$}\texttt{HOME/.ngalias}} was used to keep the
+list of site aliases, one line per alias (see \texttt{alias}
+attribute description above). 
