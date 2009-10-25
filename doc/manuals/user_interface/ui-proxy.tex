@@ -1,0 +1,96 @@
+\subsection{arcproxy}
+\label{sec:arcproxy}
+
+\index{arcproxy}\index{commands:arcproxy}In order to contact Grid services
+(submit jobs, copy data, check information etc),
+one has to present valid credentials. The are commonly formalized as so-called
+``proxy'' certificates. There are many different types of proxy certificates,
+with different Grids and different services having own preferences. \texttt{arcproxy}
+is a powerful tool that can be used to generate most commonly used proxies. It supports
+the following types:
+\begin{itemize}
+  \item pre-RFC GSI proxy
+  \item RFC-compliant proxy (default)
+  \item VOMS-extended proxy
+  \item MyProxy delegation
+\end{itemize}
+
+\texttt{arcproxy} requires presence of user's private key and public certificate,
+as well as the public certificate of their issuer CA.
+
+\hspace*{0.5cm}
+\begin{shaded}
+   \uicommand{arcproxy [options]}
+\end{shaded}
+\versions{ARC 0.9}
+\begin{longtable}{llp{8cm}}
+   Options:&&\\
+   \texttt{-P, --proxy}& \textit{path} & path to the proxy file\\
+   \texttt{-C, --cert}& \textit{path} & path to the certificate file\\
+   \texttt{-K, --key}& \textit{path} & path to the key file\\
+   \texttt{-T, --cadir}& \textit{path} & path to the trusted certificate directory, only needed for VOMS client functionality\\
+   \texttt{-V, --vomses}& \textit{path} & path to the VOMS server configuration file\\
+   \texttt{-S, --voms}& \textit{voms[:command]} & Specify VOMS server (more than one VOMS server can be specified like this:\\
+   & &--voms VOa:command1 --voms VOb:command2)\\
+   & &:command is optional, and is used to ask for specific attributes(e.g. roles). Command options are:\\
+   & &all -- put all of this DN's attributes into AC;\\
+   & &list -- list all of the DN's attribute,will not create AC extension;\\
+   & &/Role=yourRole -- specify the role, if this DN has such a role, the role will be put into AC\\
+   & &/voname/groupname/Role=yourRole -- specify the VO,group and role; if this DN has such a role, the role will be put into AC\\
+   \texttt{-G, --gsicom}& & use GSI communication protocol for contacting VOMS services\\
+   \texttt{-O, --old}& & use GSI proxy (default is RFC 3820 compliant proxy)\\
+   \texttt{-I, --info}& & print all information about this proxy. In order to show the Identity (DN without CN as suffix for proxy) of the certificate, the 'trusted certdir' is needed.\\
+   \texttt{-U, --user}& \textit{string} & username for MyProxy server\\
+   \texttt{-L, --myproxysrv}& \textit{URL} & URL of MyProxy server\\
+   \texttt{-M, --myproxycmd}& \textit{PUT|GET} & command to MyProxy server. The command can be PUT and GET.\\
+   & &PUT/put -- put a delegated credential to MyProxy server;\\
+   & &GET/get -- get a delegated credential from MyProxy server, credential (certificate and key) is not needed in this case.\\
+   \texttt{-c, --constraint}& \textit{string} & proxy constraints\\
+   \texttt{-t, --timeout}& \textit{seconds} & timeout in seconds (default 20 seconds)\\
+   \texttt{-d, --debug}& \textit{debuglevel}&debug level is one of  FATAL, ERROR, WARNING, INFO, DEBUG or VERBOSE\\
+   \texttt{-z, --conffile}&\textit{filename}& configuration file (default {\$}HOME/.arc/client.xml)\\
+   \texttt{-v, --version}& & print version information\\
+   \texttt{-h, --help}& & print help page\\
+\end{longtable}
+
+Supported constraints are:
+\begin{itemize}
+  \item \texttt{validityStart=time} -- e.g. 2008-05-29T10:20:30Z; time when certificate becomes valid. Default is now.
+  \item \texttt{validityEnd=time} -- time when certificate becomes invalid. Default is 43200 (12 hours) from start.
+  \item \texttt{validityPeriod=time} -- e.g. 43200 or 12h or 12H; for how long certificate is valid. If neither \texttt{validityPeriod} nor \texttt{validityEnd} are specified, default is 12 hours
+  \item \texttt{vomsACvalidityPeriod=time} -- e.g. 43200 or 12h or 12H; for how long the AC is valid. Default is the same as \texttt{validityPeriod}.
+  \item \texttt{proxyPolicy=policy content} -- assigns specified string to proxy prolicy to limit it's functionality.
+  \item \texttt{proxyPolicyFile=policy file}
+\end{itemize}
+
+MyProxy functionality can be used together with VOMS functionality.
+
+
+\subsection{arcslcs}
+\label{sec:arcslcs}
+
+\index{arcslcs}\index{commands:arcslcs}This utility generates  short-lived
+credential  based  on the credential to IdP in SAML2SSO profile (normally the
+username/password to Shibboleth IdP).
+
+\hspace*{0.5cm}
+\begin{shaded}
+   \uicommand{arcslcs [options]}
+\end{shaded}
+\versions{ARC 0.9}
+\begin{longtable}{llp{8cm}}
+   Options:&&\\
+   \texttt{-S, --ur;}& \textit{URL} & URL of SLCS Service (e.g. https://127.0.0.1:60000/slcs)\\
+   \texttt{-I, --idp}& \textit{URL} & the name of IdP (e.g. https://idp.testshib.org/idp/shibboleth)\\
+   \texttt{-U, --user}& \textit{string} & User account to IdP\\
+   \texttt{-P, --password}& \textit{string} & password for user accoutn to IdP\\
+   \texttt{-Z, --keysize}& \textit{integer} & size of the private key, default is 1024\\
+   \texttt{-K, --keypass}& \textit{} & passphrase for protecting the private key; if not set, the private key file will not be protected by the passphrase.\\
+   \texttt{-L, --lifetime}& \textit{hours} & life time of the credential (hours)), starting with current time\\
+   \texttt{-D, --storedir}& \textit{path} & store directory of the credential\\
+   \texttt{-t, --timeout}& \textit{seconds} & timeout in seconds (default 20 seconds)\\
+   \texttt{-d, --debug}& \textit{debuglevel}&debug level is one of  FATAL, ERROR, WARNING, INFO, DEBUG or VERBOSE\\
+   \texttt{-c, --conffile}&\textit{filename}& configuration file (default {\$}HOME/.arc/client.xml)\\
+   \texttt{-v, --version}& & print version information\\
+   \texttt{-h, --help}& & print help page\\
+\end{longtable}

@@ -15,18 +15,19 @@ Condor or SGE etc.
 \versions{ARC 0.9}
 \begin{longtable}{llp{8cm}}
    Options:&&\\
-   \texttt{ -c, --cluster}&\verb#[-]#\textit{url}&explicitly select or reject a specific site (cluster)\\
-   \texttt{ -i, --indexurl}&\textit{url}&URL of an index server\\
-   \texttt{ -e, --jobdescrstring}&\textit{filename}&string describing the job to be submitted\\
-   \texttt{ -f, --jobdescrfile}&\textit{filename}&file describing the job to be submitted\\
-   \texttt{ -j, --joblist}&\textit{filename}&file where the job IDs will be stored\\
-   \texttt{ -D, --dryrun}&&add dryrun option to the job description\\
-   \texttt{ -x, --dumpdescription}&&do not submit -- dump transformed job description to stdout\\
-   \texttt{ -t, --timeout}&\textit{time}&timeout for queries in seconds (default 20)\\
-   \texttt{ -d, --debug}&\textit{debuglevel}&debug level, FATAL, ERROR, WARNING, INFO, DEBUG or VERBOSE - default WARNING\\
-   \texttt{ -U, --unknownattr}&&allow unknown attributes in the job description\\
-   \texttt{ -v, --version}&&print version information\\
-   \texttt{ -?, --help}&&print help page\\
+   \texttt{-c, --cluster}&\verb#[-]#\textit{url}&explicitly select or reject a specific site (cluster)\\
+   \texttt{-i, --indexurl}&\textit{url}&URL of an index server\\
+   \texttt{-e, --jobdescrstring}&\textit{filename}&string describing the job to be submitted\\
+   \texttt{-f, --jobdescrfile}&\textit{filename}&file describing the job to be submitted\\
+   \texttt{-j, --joblist}&\textit{filename}&file where the job IDs will be stored\\
+   \texttt{-D, --dryrun}&&add dryrun option to the job description\\
+   \texttt{-x, --dumpdescription}&&do not submit -- dump transformed job description to stdout\\
+   \texttt{-U, --unknownattr}&&allow unknown attributes in the job description\\
+   \texttt{-t, --timeout}&\textit{time}&timeout for queries in seconds (default 20)\\
+   \texttt{-d, --debug}&\textit{debuglevel}&debug level, FATAL, ERROR, WARNING, INFO, DEBUG or VERBOSE - default WARNING\\
+   \texttt{-z, --conffile}&\textit{filename}& configuration file (default {\$}HOME/.arc/client.xml)\\
+   \texttt{-v, --version}&&print version information\\
+   \texttt{-h, --help}&&print help page\\
 %   Arguments:&&\\
 %   \texttt{ task ...}&&strings or files describing the jobs to be submitted\\
 \end{longtable}
@@ -109,6 +110,7 @@ Assuming that the url represents an ARC0 cluster that the user is authorized to 
    \texttt{-l, --long}& & long format (extended information)\\
    \texttt{-t, --timeout}& \textit{time}& timeout for queries (default 20 sec)\\
    \texttt{-d, --debug}& \textit{debuglevel}&debug level is one of  FATAL, ERROR, WARNING, INFO, DEBUG or VERBOSE\\
+   \texttt{-z, --conffile}&\textit{filename}& configuration file (default {\$}HOME/.arc/client.xml)\\
    \texttt{-v, --version}& & print version information\\
    \texttt{-h, --help}& & print help page\\
    Arguments:&&\\
@@ -171,6 +173,7 @@ finished task without actually retreiving it.
    \texttt{-l, --gmlog}& & show the grid manager's error log of the job\\
    \texttt{-t, --timeout}& \textit{time} & timeout for queries (default 20 sec)\\
    \texttt{-d, --debug}& \textit{debuglevel}&debug level is one of  FATAL, ERROR, WARNING, INFO, DEBUG or VERBOSE\\
+   \texttt{-z, --conffile}&\textit{filename}& configuration file (default {\$}HOME/.arc/client.xml)\\
    \texttt{-v, --version}& & print version information\\
    \texttt{-h, --help}& & print help page\\
    Arguments:&&\\
@@ -209,6 +212,7 @@ attribute of job description to the user's computer.
    \texttt{-k, --keep}& & keep files on gatekeeper (do not clean)\\
    \texttt{-t, --timeout}& \textit{time} & timeout for queries (default 20 sec)\\
    \texttt{-d, --debug}& \textit{debuglevel}&debug level is one of  FATAL, ERROR, WARNING, INFO, DEBUG or VERBOSE\\
+   \texttt{-z, --conffile}&\textit{filename}& configuration file (default {\$}HOME/.arc/client.xml)\\
    \texttt{-v, --version}& & print version information\\
    \texttt{-h, --help}& & print help page\\
    Arguments:&&\\
@@ -241,6 +245,7 @@ job can be killed amost on any stage of processing through the Grid.
    \texttt{-k, --keep}& & keep files on gatekeeper (do not clean)\\
    \texttt{-t, --timeout}& \textit{time} & timeout for queries (default 20 sec)\\
    \texttt{-d, --debug}& \textit{debuglevel}&debug level is one of  FATAL, ERROR, WARNING, INFO, DEBUG or VERBOSE\\
+   \texttt{-z, --conffile}&\textit{filename}& configuration file (default {\$}HOME/.arc/client.xml)\\
    \texttt{-v, --version}& & print version information\\
    \texttt{-h, --help}& & print help page\\
    Arguments:&&\\
@@ -322,10 +327,10 @@ the Information System.
    \texttt{-j, --joblist}& \textit{filename} & file containing a list of jobIDs\\
    \texttt{-c, --cluster}&\verb#[-]#textem{name}&explicitly select or reject a specific site (cluster)\\
    \texttt{-s, --status}& \textit{statusstr} &only select jobs whose status is \textit{statusstr}\\
-   \texttt{-f, --force} & & removes the job ID from the local list\\
-   & &~~~even if the job is not found on the Grid\\
+   \texttt{-f, --force} & & removes the job ID from the local list even if the job is not found on the Grid\\
    \texttt{-t, --timeout}& \textit{time} & timeout for queries (default 20 sec)\\
    \texttt{-d, --debug}& \textit{debuglevel}&debug level is one of  FATAL, ERROR, WARNING, INFO, DEBUG or VERBOSE\\
+   \texttt{-z, --conffile}&\textit{filename}& configuration file (default {\$}HOME/.arc/client.xml)\\
    \texttt{-v, --version}& & print version information\\
    \texttt{-h, --help}& & print help page\\
    Arguments:&&\\
