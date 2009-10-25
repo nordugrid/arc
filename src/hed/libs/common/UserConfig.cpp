@@ -45,7 +45,7 @@ namespace Arc {
   const std::string UserConfig::ARCUSERDIRECTORY = Glib::build_filename(User().Home(), ".arc");
   const std::string UserConfig::SYSCONFIG = Glib::build_filename(PKGSYSCONFDIR, "client.conf");
   const std::string UserConfig::DEFAULTCONFIG = Glib::build_filename(ARCUSERDIRECTORY, "client.conf");
-  const std::string UserConfig::EXAMPLECONFIG = Glib::build_filename(PKGDOCDIR, "client.conf.example");
+  const std::string UserConfig::EXAMPLECONFIG = Glib::build_filename(PKGDATADIR G_DIR_SEPARATOR_S "examples", "client.conf.example");
 
   UserConfig::UserConfig(initializeCredentialsType initializeCredentials) {
     if (initializeCredentials != initializeCredentialsType::SkipCredentials) {

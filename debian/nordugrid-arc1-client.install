@@ -24,6 +24,7 @@ debian/tmp/usr/bin/jura
 debian/tmp/usr/bin/perftest
 debian/tmp/usr/bin/saml_assertion_init
 debian/tmp/etc/arc/client.conf
+debian/tmp/usr/share/arc/examples/client.conf.example
 debian/tmp/usr/share/man/man1/arccat.1
 debian/tmp/usr/share/man/man1/arcclean.1
 debian/tmp/usr/share/man/man1/arccp.1

@@ -196,12 +196,12 @@ ARC API docmentation
 %build
 %configure --disable-static \
 %if ! %{with_java}
-	   --disable-java \
+     --disable-java \
 %endif
 %if %{with_lfc}
-	   --enable-lfc \
+     --enable-lfc \
 %endif
-	   --enable-docs
+     --enable-docs
 
 make all doc %{?_smp_mflags}
 
@@ -309,6 +309,7 @@ exit 0
 %{_bindir}/perftest
 %{_bindir}/saml_assertion_init
 %config(noreplace) %{_sysconfdir}/%{pkgdir}/client.conf
+%{_datadir}/%{pkgdir}/examples/client.conf.example
 %doc %{_mandir}/man1/arccat.1*
 %doc %{_mandir}/man1/arcclean.1*
 %doc %{_mandir}/man1/arccp.1*

@@ -14,9 +14,9 @@ AC_DEFUN([ARC_RELATIVE_PATHS],
       eval arc_sbindir="\"${sbindir}\""
       eval arc_pkglibdir="\"${libdir}/${PACKAGE}\""
       eval arc_pkglibexecdir="\"${libexecdir}/${PACKAGE}\""
-      # It seems arc_docdir should be evaluated twice to be expanded fully.
-      eval arc_docdir="\"${datadir}/doc/${PACKAGE}\""
-      eval arc_docdir="\"$arc_docdir\""
+      # It seems arc_datadir should be evaluated twice to be expanded fully.
+      eval arc_datadir="\"${datadir}/${PACKAGE}\""
+      eval arc_datadir="\"${arc_datadir}\""
       eval arc_sysconfdir="\"${sysconfdir}/${PACKAGE}\""
   ])
 
@@ -42,7 +42,7 @@ AC_DEFUN([ARC_RELATIVE_PATHS],
   AC_DEFINE_UNQUOTED([LIBSUBDIR], ["${libsubdir}"], [library installation subdirectory])
   AC_DEFINE_UNQUOTED([PKGLIBSUBDIR], ["${pkglibsubdir}"], [plugin installation subdirectory])
   AC_DEFINE_UNQUOTED([PKGLIBEXECSUBDIR], ["${pkglibexecsubdir}"], [helper programs installation subdirectory])
-  AC_DEFINE_UNQUOTED([PKGDOCDIR], ["${arc_docdir}"], [arc doc dir])
+  AC_DEFINE_UNQUOTED([PKGDATADIR], ["${arc_datadir}"], [arc data dir])
   AC_DEFINE_UNQUOTED([PKGSYSCONFDIR], ["${arc_sysconfdir}"], [arc system configuration directory])
 
 ])
@@ -52,7 +52,7 @@ AC_DEFUN([ARC_RELATIVE_PATHS_INIT],
   get_relative_path() {
     olddir=`echo $[]1 | sed -e 's|/+|/|g' -e 's|^/||' -e 's|/*$|/|'`
     newdir=`echo $[]2 | sed -e 's|/+|/|g' -e 's|^/||' -e 's|/*$|/|'`
-    
+
     O_IFS=$IFS
     IFS=/
     relative=""
