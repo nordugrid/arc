@@ -46,7 +46,5 @@ debian/tmp/usr/lib/arc/submit_common.sh
 
 debian/tmp/usr/share/arc/nordugrid.schema
 
-debian/tmp/etc/arc_arex.conf
-
 debian/tmp/usr/share/man/man1/cache-clean.1
 debian/tmp/usr/share/man/man1/cache-list.1

@@ -406,13 +406,11 @@ exit 0
 %{_libdir}/%{pkgdir}/configure-*-env.sh
 %{_libdir}/%{pkgdir}/submit_common.sh
 %{_datadir}/%{pkgdir}/nordugrid.schema
-%config(noreplace) %{_sysconfdir}/arc_arex.conf
 %doc %{_mandir}/man1/cache-clean.1*
 %doc %{_mandir}/man1/cache-list.1*
 %doc src/services/a-rex/arex.xml.example
 %doc src/services/a-rex/arex_minimalistic.xml.example
 %doc src/services/a-rex/arex_secure.xml.example
-%doc src/services/a-rex/arc_arex.conf
 
 %files devel
 %defattr(-,root,root,-)
