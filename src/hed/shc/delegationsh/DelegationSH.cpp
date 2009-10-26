@@ -68,7 +68,7 @@ DelegationSH::DelegationSH(Config *cfg,ChainContext*):SecHandler(cfg) {
     ca_file_=(std::string)((*cfg)["CACertificatePath"]);
     ca_dir_=(std::string)((*cfg)["CACertificatesDir"]);
     if(ca_file_.empty() && ca_dir_.empty()) {
-      logger.msg(INFO,"Missing or empty CertificatePath or CACertificatesDir element");
+      logger.msg(ERROR,"Missing or empty CertificatePath or CACertificatesDir element");
       return;
     }
     delegation_type_=delegation_x509;
@@ -92,6 +92,7 @@ DelegationSH::DelegationSH(Config *cfg,ChainContext*):SecHandler(cfg) {
 }
 
 DelegationSH::~DelegationSH() {
+  delete mcontext_;
 }
 
 DelegationContext* DelegationSH::get_delegcontext(Arc::Message& msg) {
