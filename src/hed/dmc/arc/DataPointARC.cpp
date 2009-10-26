@@ -80,6 +80,7 @@ namespace Arc {
   DataPointARC::DataPointARC(const URL& url, const UserConfig& usercfg)
     : DataPointDirect(url, usercfg),
       transfer(NULL),
+      md5sum(NULL),
       reading(false),
       writing(false),
       bartender_url(url.HTTPOption("BartenderURL")) {
@@ -108,6 +109,14 @@ namespace Arc {
   DataPointARC::~DataPointARC() {
     StopReading();
     StopWriting();
+    if (md5sum) {
+      delete md5sum;
+      md5sum = NULL;
+    }
+    if (transfer){
+      delete transfer;
+      transfer = NULL;
+    }
   }
 
   Plugin* DataPointARC::Instance(PluginArgument *arg) {
@@ -251,13 +260,20 @@ namespace Arc {
 
     logger.msg(INFO, "nd:\n%s", xml);
 
-    if (nd["success"] != "done" || !nd["TURL"])
+    if (nd["success"] != "done" || !nd["TURL"]) {
+      delete response;
       return DataStatus::ReadError;
+    }
 
     logger.msg(INFO, "Recieved transfer URL: %s", (std::string)nd["TURL"]);
 
     URL turl(nd["TURL"]);
+    delete response;
     // redirect actual reading to http dmc
+    if (transfer){ 
+      delete transfer;
+      transfer = NULL;
+    }
     transfer = new DataHandle(turl, usercfg);
     if (!(*transfer)->StartReading(buf)) {
       if (transfer) {
@@ -348,14 +364,21 @@ namespace Arc {
 
     logger.msg(INFO, "nd:\n%s", xml);
 
-    if (nd["success"] != "done" || !nd["TURL"])
+    if (nd["success"] != "done" || !nd["TURL"]) {
+      delete response;
       return DataStatus::WriteError;
+    }
 
     logger.msg(INFO, "Recieved transfer URL: %s", (std::string)nd["TURL"]);
 
     URL turl(nd["TURL"]);
     // redirect actual writing to http dmc
+    if (transfer){
+      delete transfer;
+      transfer = NULL;
+    }
     transfer = new DataHandle(turl, usercfg);
+    delete response;
     if (!(*transfer)->StartWriting(buf, callback)) {
       if (transfer) {
         delete transfer;
@@ -438,6 +461,8 @@ namespace Arc {
     if (nd["success"] != "set")
       return DataStatus::WriteError;
 
+    delete md5sum;
+    md5sum = NULL;
     delete transfer;
     transfer = NULL;
     return ret;
@@ -485,6 +510,7 @@ namespace Arc {
 
     if (nd["success"] == "deleted")
       logger.msg(INFO, "Deleted %s", url.Path());
+    delete response;
     return DataStatus::Success;
   }
 
