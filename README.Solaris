@@ -35,6 +35,7 @@ sources highlighted:
   XML-Simple: http://search.cpan.org/dist/XML-Simple/; built from source
   Storable-1.0.14: http://www.cpan.org/modules/by-module/Storable/; built from source
   gsoap-2.7.10: http://www.sunfreeware.com/; installed from package
+  Time::HiRes-1.9719: http://cpan.uwinnipeg.ca/module/Time::HiRes; built from source
 
 2. Installing Berkeley DB:
 
