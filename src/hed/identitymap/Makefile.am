@@ -1,3 +1,5 @@
+SUBDIRS = schema
+
 pkglib_LTLIBRARIES = libidentitymap.la
 
 libidentitymap_la_SOURCES = IdentityMap.cpp SimpleMap.cpp \
