@@ -524,7 +524,7 @@ namespace Arc {
   // -------------------------------------------------
 
   SimpleCondition * HTTPSClientConnector::connect_lock = new SimpleCondition();
-  
+
   bool HTTPSClientConnector::connect(void) { return false; }
   
   bool HTTPSClientConnector::disconnect(void)  { return false; }
@@ -543,7 +543,7 @@ namespace Arc {
   
   HTTPSClientConnector::HTTPSClientConnector(void) { }
   
-  HTTPSClientConnector::~HTTPSClientConnector(void) { if (connect_lock) delete connect_lock; }
+  HTTPSClientConnector::~HTTPSClientConnector(void) { }
   
   bool HTTPSClientConnector::credentials(gss_cred_id_t cred) { return false; }
   
