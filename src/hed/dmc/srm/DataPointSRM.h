@@ -31,7 +31,7 @@ namespace Arc {
                                  bool resolve = false,
                                  bool metadata = false);
   private:
-    SRMClientRequest *srm_request;
+    SRMClientRequest *srm_request; /* holds SRM request ID between Start* and Stop* */
     static Logger logger;
     URL r_url;
     DataHandle *r_handle;  /* handle used for redirected operations */

@@ -47,6 +47,8 @@ namespace Arc {
   DataPointSRM::~DataPointSRM() {
     globus_module_deactivate(GLOBUS_GSI_GSSAPI_MODULE);
     globus_module_deactivate(GLOBUS_IO_MODULE);
+    delete r_handle;
+    delete srm_request;
   }
 
   Plugin* DataPointSRM::Instance(PluginArgument *arg) {
@@ -84,6 +86,8 @@ namespace Arc {
     std::list<struct SRMFileMetaData> metadata;
 
     SRMReturnCode res = client->info(*srm_request, metadata);
+    delete srm_request;
+    srm_request = NULL;
     delete client;
     client = NULL;
 
@@ -136,6 +140,9 @@ namespace Arc {
     SRMReturnCode res = client->remove(*srm_request);
     delete client;
     client = NULL;
+    delete srm_request;
+    srm_request = NULL;
+
     if (res != SRM_OK) {
       if (res == SRM_ERROR_TEMPORARY) return DataStatus::DeleteErrorRetryable;              
       return DataStatus::DeleteError;
@@ -168,7 +175,10 @@ namespace Arc {
     else
       canonic_url = url.Protocol() + "://" + url.Host() + url.Path();
 
+    if (srm_request)
+      delete srm_request;
     srm_request = new SRMClientRequest(canonic_url);
+    
     if (!srm_request) {
       delete client;
       client = NULL;
@@ -181,6 +191,10 @@ namespace Arc {
       res = client->info(*srm_request, metadata);
       if (res != SRM_OK) {
         reading = false;
+        delete client;
+        client = NULL;
+        delete srm_request;
+        srm_request = NULL;
         if (res == SRM_ERROR_TEMPORARY) return DataStatus::ReadStartErrorRetryable;
         return DataStatus::ReadStartError;
       }
@@ -200,13 +214,16 @@ namespace Arc {
 
     std::list<std::string> turls;
     res = client->getTURLs(*srm_request, turls);
+    client->disconnect();
+    delete client;
+    client = NULL;
+    
     if (res != SRM_OK) {
-      delete client;
-      client = NULL;
+      delete srm_request;
+      srm_request = NULL;
       if (res == SRM_ERROR_TEMPORARY) return DataStatus::ReadStartErrorRetryable;
       return DataStatus::ReadStartError;
     }
-    client->disconnect();
 
     std::srand(time(NULL));
 
@@ -248,10 +265,10 @@ namespace Arc {
       break;
     }
 
-    if (r_handle == NULL) {
+    if (!r_handle) {
       logger.msg(INFO, "SRM returned no useful Transfer URLs: %s", url.str());
-      delete client;
-      client = NULL;
+      delete srm_request;
+      srm_request = NULL;
       return DataStatus::ReadStartError;
     }
 
@@ -261,46 +278,41 @@ namespace Arc {
 
     logger.msg(INFO, "Redirecting to new URL: %s", (*r_handle)->CurrentLocation().str());
     if (!(*r_handle)->StartReading(buf)) {
-      if (r_handle) {
-        delete r_handle;
-        r_handle = NULL;
-      }
-      if (srm_request) {
-        delete srm_request;
-        srm_request = NULL;
-      }
-      if (client) {
-        delete client;
-        client = NULL;
-      }
+      delete r_handle;
+      r_handle = NULL;
+      delete srm_request;
+      srm_request = NULL;
       reading = false;
       return DataStatus::ReadStartError;
     }
-    delete client;
-    client = NULL;
     return DataStatus::Success;
   }
 
   DataStatus DataPointSRM::StopReading() {
 
-    if (!reading)
+    if (!reading) {
+      delete srm_request;
+      srm_request = NULL;
       return DataStatus::ReadStopError;
+    }
     reading = false;
 
-    if (!r_handle)
+    if (!r_handle) {
+      delete srm_request;
+      srm_request = NULL;
       return DataStatus::Success;
-
+    }
+    
     DataStatus r = (*r_handle)->StopReading();
     delete r_handle;
     if (srm_request) {
       SRMClient *client = SRMClient::getInstance(url.fullstr());
-      if (client)
-        client->releaseGet(*srm_request);
-      delete srm_request;
       if (client) {
+        client->releaseGet(*srm_request);
         delete client;
         client = NULL;
       }
+      delete srm_request;
     }
     r_handle = NULL;
     srm_request = NULL;
@@ -332,6 +344,8 @@ namespace Arc {
     else
       canonic_url = url.Protocol() + "://" + url.Host() + url.Path();
 
+    if (srm_request)
+      delete srm_request;
     srm_request = new SRMClientRequest(canonic_url);
     if (!srm_request) {
       delete client;
@@ -370,14 +384,17 @@ namespace Arc {
 
     std::list<std::string> turls;
     SRMReturnCode res = client->putTURLs(*srm_request, turls);
+    client->disconnect();
+    delete client;
+    client = NULL;
+    
     if (res != SRM_OK) {
-      delete client;
-      client = NULL;
+      delete srm_request;
+      srm_request = NULL;
       if (res == SRM_ERROR_TEMPORARY) return DataStatus::WriteStartErrorRetryable;
       return DataStatus::WriteStartError;
     }
-    client->disconnect();
- 
+
     std::srand(time(NULL));
 
     // Choose handled URL randomly
@@ -418,43 +435,39 @@ namespace Arc {
       break;
     }
 
-    if (r_handle == NULL) {
+    if (!r_handle) {
       logger.msg(INFO, "SRM returned no useful Transfer URLs: %s", url.str());
-      delete client;
-      client = NULL;
+      delete srm_request;
+      srm_request = NULL;
       return DataStatus::WriteStartError;
     }
 
     logger.msg(INFO, "Redirecting to new URL: %s", (*r_handle)->CurrentLocation().str());
     if (!(*r_handle)->StartWriting(buf)) {
-      if (r_handle) {
-        delete r_handle;
-        r_handle = NULL;
-      }
-      if (srm_request) {
-        delete srm_request;
-        srm_request = NULL;
-      }
-      if (client) {
-        delete client;
-        client = NULL;
-      }
+      delete r_handle;
+      r_handle = NULL;
+      delete srm_request;
+      srm_request = NULL;
       reading = false;
       return DataStatus::WriteStartError;
     }
-    delete client;
-    client = NULL;
     return DataStatus::Success;
   }
 
   DataStatus DataPointSRM::StopWriting() {
 
-    if (!writing)
+    if (!writing) {
+      delete srm_request;
+      srm_request = NULL;
       return DataStatus::WriteStopError;
+    }
     writing = false;
 
-    if (!r_handle)
+    if (!r_handle) {
+      delete srm_request;
+      srm_request = NULL;
       return DataStatus::Success;
+    }
 
     DataStatus r = (*r_handle)->StopWriting();
     delete r_handle;
@@ -463,7 +476,10 @@ namespace Arc {
       if(client) {
         client->abort(*srm_request);
         delete client;
+        client = NULL;
       }
+      delete srm_request;
+      srm_request = NULL;
       return r;
     }
     if (srm_request) {
@@ -475,10 +491,8 @@ namespace Arc {
           client->releasePut(*srm_request);
       }
       delete srm_request;
-      if (client) {
-        delete client;
-        client = NULL;
-      }
+      delete client;
+      client = NULL;
     }
     r_handle = NULL;
     srm_request = NULL;
@@ -500,6 +514,8 @@ namespace Arc {
     else
       canonic_url = url.Protocol() + "://" + url.Host() + url.Path();
 
+    if (srm_request)
+      delete srm_request;
     srm_request = new SRMClientRequest(canonic_url);
     if (!srm_request) {
       delete client;
@@ -514,16 +530,17 @@ namespace Arc {
     int recursion = 0;
     if (metadata) recursion = -1; // get info on directory rather than contents
     SRMReturnCode res = client->info(*srm_request, srm_metadata, recursion);
+    delete client;
+    client = NULL;
+    delete srm_request;
+    srm_request = NULL;
+
     if (res != SRM_OK) {
-      delete client;
-      client = NULL;
       if (res == SRM_ERROR_TEMPORARY) return DataStatus::ListErrorRetryable;   
       return DataStatus::ListError;
     }
 
     if (srm_metadata.empty()) {
-      delete client;
-      client = NULL;
       return DataStatus::Success;
     }
     // set URL attributes for surl requested (file or dir)
@@ -595,8 +612,6 @@ namespace Arc {
       else if (i->fileStorageType == SRM_PERMANENT) f->SetMetaData("filestoragetype", "PERMANENT"); 
 
     }
-    delete client;
-    client = NULL;
     return DataStatus::Success;
   }
 
