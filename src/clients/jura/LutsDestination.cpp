@@ -110,7 +110,7 @@ namespace Arc
     component.NewAttribute("id")="http";
     component.NewChild("next").NewAttribute("id")="tls";
     component.NewChild("Method")="POST";
-    component.NewChild("Endpoint")=std::string("/")+endpoint;
+    component.NewChild("Endpoint")=endpoint;
   
     //  SOAP
     component=chain.NewChild("Component");
