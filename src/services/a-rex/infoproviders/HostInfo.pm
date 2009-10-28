@@ -3,13 +3,15 @@ package HostInfo;
 use POSIX;
 use Sys::Hostname;
 
-eval {use Time::HiRes "time"};
+use strict;
+
+BEGIN {
+    eval {require Time::HiRes; import Time::HiRes "time"};
+}
 
 use Sysinfo;
 use LogUtils;
 use InfoChecker;
-
-use strict;
 
 our $host_options_schema = {
         x509_user_cert => '',
