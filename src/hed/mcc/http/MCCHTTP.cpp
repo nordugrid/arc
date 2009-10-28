@@ -313,15 +313,19 @@ MCC_Status MCC_HTTP_Service::process(Message& inmsg,Message& outmsg) {
   } else {
     outpayload->Body(*strpayload);
   }
-  if(!outpayload->Flush()) {
-    logger.msg(WARNING, "Error to flush output payload");
-    return make_http_fault(logger,*inpayload,outmsg,HTTP_INTERNAL_ERR);
-  }
+  bool flush_r = outpayload->Flush();
   delete outpayload;
   outmsg = nextoutmsg;
   // Returning empty payload because response is already sent through Flush
   PayloadRaw* outpayload_e = new PayloadRaw;
   outmsg.Payload(outpayload_e);
+  if(!flush_r) {
+    // If flush failed then we can't know if anything HTTPish was 
+    // already sent. Hence we are just making lower level close
+    // connection.
+    logger.msg(WARNING, "Error to flush output payload");
+    return MCC_Status(SESSION_CLOSE);
+  };
   if(!keep_alive) return MCC_Status(SESSION_CLOSE);
   return MCC_Status(STATUS_OK);
 }
