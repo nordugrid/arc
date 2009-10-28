@@ -401,7 +401,7 @@ namespace Arc {
       if (jobNode["ExitCode"])
         job.ExitCode = stringtoi(jobNode["ExitCode"]);
 
-      for (XMLNode errorXML = jobNode["Error"]; errorXML; errorXML++)
+      for (XMLNode errorXML = jobNode["Error"]; errorXML; ++errorXML)
         job.Error.push_back((std::string)errorXML);
 
       return true;
