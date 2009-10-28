@@ -9,9 +9,11 @@ use Sys::Hostname;
 use Data::Dumper;
 use Cwd;
 
-eval {use Time::HiRes "time"};
-
 use strict;
+
+BEGIN {
+    eval {require Time::HiRes; import Time::HiRes "time"};
+}
 
 BEGIN {
     my $pkglibdir = dirname($0).'/@pkglibdir_rel_to_pkglibexecdir@';
