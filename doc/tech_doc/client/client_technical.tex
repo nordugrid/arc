@@ -38,11 +38,11 @@
 \newcommand{\ACCConfig}{\texttt{ACCConfig}}
 \newcommand{\Config}{\texttt{Config}}
 \newcommand{\Broker}{\texttt{Broker}}
-\newcommand{\RandomBroker}{\texttt{RandomBroker}}
-\newcommand{\FastestCPUBroker}{\texttt{FastestCPUBroker}}
+\newcommand{\Random}{\texttt{Random}}
+\newcommand{\Benchmark}{\texttt{Benchmark}}
 \newcommand{\FastestQueueBroker}{\texttt{FastestQueueBroker}}
 \newcommand{\PythonBroker}{\texttt{PythonBroker}}
-\newcommand{\DataBroker}{\texttt{DataBroker}}
+\newcommand{\Data}{\texttt{Data}}
 \newcommand{\ClientInterface}{\texttt{ClientInterface}}
 \newcommand{\ClientTCP}{\texttt{ClientTCP}}
 \newcommand{\ClientHTTP}{\texttt{ClientHTTP}}
@@ -1091,14 +1091,14 @@ gridftp protocol. The gridftp DMC is therefore required.
 \subsection{Broker plugins}
 \label{sec:brokerplugins}
 
-\subsubsection{\RandomBroker}
+\subsubsection{\Random}
 
-The {\RandomBroker} ranks the {\ExecutionTarget}s randomly. 
+The {\Random} ranks the {\ExecutionTarget}s randomly. 
 
-\subsubsection{\FastestCPUBroker}
+\subsubsection{\Benchmark}
 
-The {\FastestCPUBroker} ranks the {\ExecutionTarget}s according to their CPU performance. The most 
-reliable comparison is achieved through the usage of a benchmark scenario, and the {\FastestCPUBroker}
+The {\Benchmark} ranks the {\ExecutionTarget}s according to their CPU performance. The most 
+reliable comparison is achieved through the usage of a benchmark scenario, and the {\Benchmark}
 uses the CINT2000 (Integer Component of SPEC CPU2000)\footnote{http://www.spec.org/cpu2000/CINT2000/} 
 benchmark for this purpose. 
 
@@ -1130,9 +1130,9 @@ they have, e.g. if two {\ExecutionTarget}s have zero queue and they have 90 and 
 {\ExecutionTarget} has a 90\% probability of becoming the top ranked cluster.}
 \end{enumerate}
 
-\subsubsection{\DataBroker}
+\subsubsection{\Data}
 
-The {\DataBroker} ranks the {\ExecutionTarget}s according to how many megabytes of the requested input files that already 
+The {\Data} ranks the {\ExecutionTarget}s according to how many megabytes of the requested input files that already 
 stored in the cache of the computing resource the {\ExecutionTarget} represents. The broker is motivated by that jobs should 
 be submitted to {\ExecutionTarget}s where the data already is, thus reducing the network load on both the computing resource 
 and client side. The ranking method is based upon the A-REX\footnote{http://www.knowarc.eu/download/D1.2-3\_documentation.pdf} 

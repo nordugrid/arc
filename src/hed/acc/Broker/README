@@ -2,7 +2,7 @@ Broker plugins (ACC) for performing resource brokering
 
 Specialized brokers:
 
-o RandomBroker
+o Random
 
   The ExecutionTarget sorting is based on randomization, the PossibleTargets vector will be shuffled.
 
@@ -10,13 +10,13 @@ o FastestQueueBroker
   
   The sorting method is based on the shortest queue, where the number waiting jobs of is the lowest.
 
-o FastestCPUBroker
+o Benchmark
 
   The sorting method is based on the fastest CPU, we use the CINT2000 (Integer Component of SPEC
   CPU2000) benchmark for this purpose , here are more information about this benchmark type:
   http://www.spec.org/cpu2000/CINT2000/
 
-o DataBroker
+o Data
 
   The main idea was that the jobs should submit to that cluster where the data is. The sorting method is
   based on the A-REX file cache checking. There is a CacheCheck interface inside the A-REX which can be
