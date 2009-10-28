@@ -24,7 +24,7 @@ namespace Arc {
        otherwise path is derived from installation location. */
     static std::list<std::string> GetPlugins();
   private:
-    static std::string location;
+    static std::string& location(void);
   };
 
 } // namespace Arc
