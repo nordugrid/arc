@@ -39,8 +39,16 @@ namespace Arc {
     usercfg.ApplyToConfig(cfg);
     AREXClient ac(et.url, cfg, usercfg.Timeout());
 
+    JobDescription job(jobdesc);
+
+    if (!ModifyJobDescription(job, et)) {
+      logger.msg(ERROR, "Submit: Failed to modify job description "
+                        "to be sent to target.");
+      return URL();
+    }
+
     std::string jobid;
-    if (!ac.submit(jobdesc.UnParse("ARCJSDL"), jobid, et.url.Protocol() == "https")) {
+    if (!ac.submit(job.UnParse("ARCJSDL"), jobid, et.url.Protocol() == "https")) {
       logger.msg(ERROR, "Failed submitting job");
       return URL();
     }
@@ -51,14 +59,6 @@ namespace Arc {
 
     XMLNode jobidx(jobid);
     URL session_url((std::string)(jobidx["ReferenceParameters"]["JobSessionDir"]));
-
-    JobDescription job(jobdesc);
-
-    if (!ModifyJobDescription(job, et)) {
-      logger.msg(ERROR, "Submit: Failed to modify job description "
-                        "to be sent to target.");
-      return URL();
-    }
 
     if (!PutFiles(job, session_url)) {
       logger.msg(ERROR, "Failed uploading local input files");
@@ -176,7 +176,7 @@ namespace Arc {
       logger.msg(DEBUG, "Unable to select middleware");
       return false;
     }
-    
+
     if (!jobdesc.Resources.OperatingSystem.empty() &&
         !jobdesc.Resources.OperatingSystem.selectSoftware(et.Implementation)) {
       // This error should never happen since OS is checked in the Broker.
