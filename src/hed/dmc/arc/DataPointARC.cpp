@@ -267,7 +267,8 @@ namespace Arc {
 
     logger.msg(INFO, "Recieved transfer URL: %s", (std::string)nd["TURL"]);
 
-    URL turl(nd["TURL"]);
+    turl = (std::string) nd["TURL"];
+    delete response;
     delete response;
     // redirect actual reading to http dmc
     if (transfer){ 
@@ -371,7 +372,7 @@ namespace Arc {
 
     logger.msg(INFO, "Recieved transfer URL: %s", (std::string)nd["TURL"]);
 
-    URL turl(nd["TURL"]);
+    turl = (std::string) nd["TURL"];
     // redirect actual writing to http dmc
     if (transfer){
       delete transfer;

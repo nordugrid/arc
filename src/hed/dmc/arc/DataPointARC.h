@@ -21,6 +21,7 @@ namespace Arc {
     bool reading;
     bool writing;
     URL bartender_url;
+    URL turl;
     MD5Sum *md5sum;
     int chksum_index;
     bool checkBartenderURL(const URL& bartender_url);
