@@ -987,7 +987,6 @@ void DelegationContainerSOAP::AddConsumer(const std::string& id,DelegationConsum
   if(consumers_first_ != consumers_.end()) consumers_first_->second.previous=i;
   consumers_first_=i;
   if(consumers_last_ == consumers_.end()) consumers_last_=i;
-std::cerr<<"Consumer added: "<<consumers_.size()<<std::endl;
 }
 
 void DelegationContainerSOAP::TouchConsumer(ConsumerIterator i) {
@@ -1001,7 +1000,6 @@ void DelegationContainerSOAP::TouchConsumer(ConsumerIterator i) {
   i->second.next=consumers_first_;
   if(consumers_first_ != consumers_.end()) consumers_first_->second.previous=i;
   consumers_first_=i;
-std::cerr<<"Consumer touched: "<<consumers_.size()<<std::endl;
 }
 
 DelegationContainerSOAP::ConsumerIterator DelegationContainerSOAP::RemoveConsumer(ConsumerIterator i) {
@@ -1013,7 +1011,6 @@ DelegationContainerSOAP::ConsumerIterator DelegationContainerSOAP::RemoveConsume
   if(consumers_last_ == i) consumers_last_=previous; 
   if(i->second.deleg) delete i->second.deleg;
   consumers_.erase(i);
-std::cerr<<"Consumer removed: "<<consumers_.size()<<std::endl;
   return next;
 }
 
