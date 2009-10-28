@@ -4,9 +4,9 @@ SUBDIRS = . $(TEST_DIR)
 DIST_SUBDIRS = test
 
 if WIN32
-dist_pkglibexec_SCRIPTS = 
+pkglibexec_SCRIPTS = 
 else
-dist_pkglibexec_SCRIPTS = cache-clean cache-list
+pkglibexec_SCRIPTS = cache-clean cache-list
 endif
 
 libarcdata2_ladir = $(pkgincludedir)/data
@@ -32,3 +32,5 @@ man_MANS =
 else
 man_MANS = cache-clean.1 cache-list.1
 endif
+
+EXTRA_DIST = cache-clean cache-list
