@@ -492,17 +492,18 @@ sub build_config_from_inifile {
         my $section = { $iniparser->get_section("grid-manager/$name") };
         $config->{control}{$name} ||= {};
         move_keys $section, $config->{control}{$name}, [keys %$gmuser_options];
+        rename_keys $section, $config, {arex_mount_point => 'endpoint'};
     }
 
     ################################ deprecated config file structure #############################
 
-    rename_keys $common, $config, {arex_mount_point => 'endpoint'};
     move_keys $common, $config, ['AdminDomain'];
     move_keys $common, $config->{service}, [keys %{$config_schema->{service}}];
 
     my $cluster = { $iniparser->get_section('cluster') };
     if (%$cluster) {
         # Ignored: cluster_location, lrmsconfig
+        rename_keys $cluster, $config, {arex_mount_point => 'endpoint'};
         rename_keys $cluster, $config->{service}, {
                                  interactive_contactstring => 'InteractiveContactstring',
                                  cluster_owner => 'ClusterOwner', localse => 'LocalSE',

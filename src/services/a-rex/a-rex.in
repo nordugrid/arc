@@ -222,7 +222,8 @@ if [ -z "$X509_CERT_DIR" ] ; then
 fi
 
 # Web Service configuration
-arex_mount_point=`readconfigvar "$ARC_CONFIG" cluster arex_mount_point`
+arex_mount_point=`readconfigvar "$ARC_CONFIG" grid-manager arex_mount_point`
+arex_mount_point=${arex_mount_point:-`readconfigvar "$ARC_CONFIG" cluster arex_mount_point`}
 if [ ! -z "$arex_mount_point" ] ; then
   arex_proto=`echo "$arex_mount_point" | sed 's/^\([^:]*\):\/\/.*/\1/;t;s/.*//'`
   arex_host=`echo "$arex_mount_point" | sed 's/^[^:]*:\/\/\([^:\/]*\).*/\1/;t;s/.*//'`
