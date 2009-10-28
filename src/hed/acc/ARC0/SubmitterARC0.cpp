@@ -129,34 +129,72 @@ namespace Arc {
 
       if (it1->Source.empty()) continue;
 
-      executableIsAdded |= (it1->Name == jobdesc.Application.Executable.Name);
-      inputIsAdded      |= (it1->Name == jobdesc.Application.Input);
+      executableIsAdded  |= (it1->Name == jobdesc.Application.Executable.Name);
+      inputIsAdded       |= (it1->Name == jobdesc.Application.Input);
+      outputIsAdded      |= (it1->Name == jobdesc.Application.Output);
+      errorIsAdded       |= (it1->Name == jobdesc.Application.Error);
+      logDirIsAdded      |= (it1->Name == jobdesc.Application.LogDir);
     }
 
-    if (!jobdesc.Application.Executable.Name.empty() && !executableIsAdded) {
-      FileType executable;
-      executable.Name = jobdesc.Application.Executable.Name;
-      DataSourceType source;
-      source.URI = executable.Name;
-      source.Threads = -1;
-      executable.Source.push_back(source);
-      executable.KeepData = false;
-      executable.IsExecutable = true;
-      executable.DownloadToCache = false;
-      jobdesc.DataStaging.File.push_back(executable);
+    if (!executableIsAdded &&
+        !Glib::path_is_absolute(jobdesc.Application.Executable.Name)) {
+      FileType file;
+      file.Name = jobdesc.Application.Executable.Name;
+      DataSourceType s;
+      s.URI = file.Name;
+      file.KeepData = false;
+      file.IsExecutable = true;
+      file.DownloadToCache = false;
+      jobdesc.DataStaging.File.push_back(file);
     }
 
     if (!jobdesc.Application.Input.empty() && !inputIsAdded) {
-      FileType input;
-      input.Name = jobdesc.Application.Input;
-      DataSourceType source;
-      source.URI = input.Name;
-      source.Threads = -1;
-      input.Source.push_back(source);
-      input.KeepData = false;
-      input.IsExecutable = false;
-      input.DownloadToCache = false;
-      jobdesc.DataStaging.File.push_back(input);
+      FileType file;
+      file.Name = jobdesc.Application.Input;
+      DataSourceType s;
+      s.URI = file.Name;
+      file.Source.push_back(s);
+      file.Source.push_back(s);
+      file.KeepData = false;
+      file.IsExecutable = false;
+      file.DownloadToCache = false;
+      jobdesc.DataStaging.File.push_back(file);
+    }
+
+    if (!jobdesc.Application.Output.empty() && !outputIsAdded) {
+      FileType file;
+      file.Name = jobdesc.Application.Output;
+      DataSourceType s;
+      s.URI = file.Name;
+      file.Source.push_back(s);
+      file.KeepData = true;
+      file.IsExecutable = false;
+      file.DownloadToCache = false;
+      jobdesc.DataStaging.File.push_back(file);
+    }
+
+    if (!jobdesc.Application.Error.empty() && !errorIsAdded) {
+      FileType file;
+      file.Name = jobdesc.Application.Error;
+      DataSourceType s;
+      s.URI = file.Name;
+      file.Source.push_back(s);
+      file.KeepData = true;
+      file.IsExecutable = false;
+      file.DownloadToCache = false;
+      jobdesc.DataStaging.File.push_back(file);
+    }
+
+    if (!jobdesc.Application.LogDir.empty() && !logDirIsAdded) {
+      FileType file;
+      file.Name = jobdesc.Application.LogDir;
+      DataSourceType s;
+      s.URI = file.Name;
+      file.Source.push_back(s);
+      file.KeepData = true;
+      file.IsExecutable = false;
+      file.DownloadToCache = false;
+      jobdesc.DataStaging.File.push_back(file);
     }
 
     if (!jobdesc.Resources.RunTimeEnvironment.empty() &&

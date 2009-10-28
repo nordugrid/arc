@@ -7,6 +7,8 @@
 #include <string>
 #include <sstream>
 
+#include <glibmm.h>
+
 #include <arc/StringConv.h>
 #include <arc/UserConfig.h>
 #include <arc/client/ExecutionTarget.h>
@@ -149,6 +151,7 @@ namespace Arc {
 
   bool SubmitterARC1::ModifyJobDescription(JobDescription& jobdesc, const ExecutionTarget& et) const {
     // Check for identical file names.
+    bool executableIsAdded(false), inputIsAdded(false), outputIsAdded(false), errorIsAdded(false), logDirIsAdded(false);
     for (std::list<FileType>::const_iterator it1 = jobdesc.DataStaging.File.begin();
          it1 != jobdesc.DataStaging.File.end(); it1++) {
       for (std::list<FileType>::const_iterator it2 = it1;
@@ -160,7 +163,77 @@ namespace Arc {
           logger.msg(DEBUG, "Two files have identical file name '%s'.", it1->Name);
           return false;
         }
+
       }
+
+      if (it1->Source.empty()) continue;
+
+      executableIsAdded  |= (it1->Name == jobdesc.Application.Executable.Name);
+      inputIsAdded       |= (it1->Name == jobdesc.Application.Input);
+      outputIsAdded      |= (it1->Name == jobdesc.Application.Output);
+      errorIsAdded       |= (it1->Name == jobdesc.Application.Error);
+      logDirIsAdded      |= (it1->Name == jobdesc.Application.LogDir);
+    }
+
+    if (!executableIsAdded &&
+        !Glib::path_is_absolute(jobdesc.Application.Executable.Name)) {
+      FileType file;
+      file.Name = jobdesc.Application.Executable.Name;
+      DataSourceType s;
+      s.URI = file.Name;
+      file.Source.push_back(s);
+      file.KeepData = false;
+      file.IsExecutable = true;
+      file.DownloadToCache = false;
+      jobdesc.DataStaging.File.push_back(file);
+    }
+
+    if (!jobdesc.Application.Input.empty() && !inputIsAdded) {
+      FileType file;
+      file.Name = jobdesc.Application.Input;
+      DataSourceType s;
+      s.URI = file.Name;
+      file.Source.push_back(s);
+      file.KeepData = false;
+      file.IsExecutable = false;
+      file.DownloadToCache = false;
+      jobdesc.DataStaging.File.push_back(file);
+    }
+
+    if (!jobdesc.Application.Output.empty() && !outputIsAdded) {
+      FileType file;
+      file.Name = jobdesc.Application.Output;
+      DataSourceType s;
+      s.URI = file.Name;
+      file.Source.push_back(s);
+      file.KeepData = true;
+      file.IsExecutable = false;
+      file.DownloadToCache = false;
+      jobdesc.DataStaging.File.push_back(file);
+    }
+
+    if (!jobdesc.Application.Error.empty() && !errorIsAdded) {
+      FileType file;
+      file.Name = jobdesc.Application.Error;
+      DataSourceType s;
+      s.URI = file.Name;
+      file.Source.push_back(s);
+      file.KeepData = true;
+      file.IsExecutable = false;
+      file.DownloadToCache = false;
+      jobdesc.DataStaging.File.push_back(file);
+    }
+
+    if (!jobdesc.Application.LogDir.empty() && !logDirIsAdded) {
+      FileType file;
+      file.Name = jobdesc.Application.LogDir;
+      DataSourceType s;
+      s.URI = file.Name;
+      file.Source.push_back(s);
+      file.KeepData = true;
+      file.IsExecutable = false;
+      file.DownloadToCache = false;
+      jobdesc.DataStaging.File.push_back(file);
     }
 
     if (!jobdesc.Resources.RunTimeEnvironment.empty() &&

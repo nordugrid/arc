@@ -769,7 +769,6 @@ namespace Arc {
     }
 
     if (!j.DataStaging.File.empty() || !j.Application.Executable.Name.empty() || !j.Application.Input.empty()) {
-      bool inputIsAdded(false), executableIsAdded(false);
       struct stat fileStat;
       RSLList *l = NULL;
       for (std::list<FileType>::const_iterator it = j.DataStaging.File.begin();
@@ -794,53 +793,12 @@ namespace Arc {
         if (!l)
           l = new RSLList;
         l->Add(new RSLSequence(s));
-
-        executableIsAdded |= (it->Name == j.Application.Executable.Name);
-        inputIsAdded      |= (it->Name == j.Application.Input);
-      }
-
-      if (!j.Application.Executable.Name.empty() &&
-          j.Application.Executable.Name[0] != '/' && j.Application.Executable.Name[0] != '$' &&
-          !executableIsAdded) {
-        RSLList *s = new RSLList;
-        s->Add(new RSLLiteral(j.Application.Executable.Name));
-        if (stat(URL(j.Application.Executable.Name).Path().c_str(), &fileStat) == 0)
-          s->Add(new RSLLiteral(tostring(fileStat.st_size)));
-        else {
-          logger.msg(ERROR, "Can not stat local input file %s", j.Application.Executable.Name);
-          delete s;
-          if (l)
-            delete l;
-          return "";
-        }
-
-        if (!l)
-          l = new RSLList;
-        l->Add(new RSLSequence(s));
-      }
-      if (!j.Application.Input.empty() && !inputIsAdded) {
-        RSLList *s = new RSLList;
-        s->Add(new RSLLiteral(j.Application.Input));
-        if (stat(URL(j.Application.Input).Path().c_str(), &fileStat) == 0)
-          s->Add(new RSLLiteral(tostring(fileStat.st_size)));
-        else {
-          logger.msg(ERROR, "Can not stat local input file %s", j.Application.Input);
-          delete s;
-          if (l)
-            delete l;
-          return "";
-        }
-
-        if (!l)
-          l = new RSLList;
-        l->Add(new RSLSequence(s));
       }
 
       if (l)
         r.Add(new RSLCondition("inputfiles", RSLEqual, l));
 
       // Executables
-      executableIsAdded = false;
       l = NULL;
       for (std::list<FileType>::const_iterator it = j.DataStaging.File.begin();
            it != j.DataStaging.File.end(); it++)
@@ -848,24 +806,12 @@ namespace Arc {
           if (!l)
             l = new RSLList;
           l->Add(new RSLLiteral(it->Name));
-
-          executableIsAdded &= (it->Name == j.Application.Executable.Name);
         }
-      // Add executable to execuables if it is being uploaded.
-      if (!j.Application.Executable.Name.empty() &&
-          j.Application.Executable.Name[0] != '/' && j.Application.Executable.Name[0] != '$' &&
-          !executableIsAdded) {
-        if (!l)
-          l = new RSLList;
-        l->Add(new RSLLiteral(j.Application.Executable.Name));
-      }
       if (l)
         r.Add(new RSLCondition("executables", RSLEqual, l));
     }
 
     if (!j.DataStaging.File.empty() || !j.Application.Output.empty() || !j.Application.Error.empty()) {
-      // Add stdout, stderr and gmlog if they are not contained in the File list.
-      bool outputIsAdded(false), errorIsAdded(false), gmlogIsAdded(false);
       RSLList *l = NULL;
       for (std::list<FileType>::const_iterator it = j.DataStaging.File.begin();
            it != j.DataStaging.File.end(); it++) {
@@ -888,35 +834,8 @@ namespace Arc {
             l = new RSLList;
           l->Add(new RSLSequence(s));
         }
+      }
 
-        outputIsAdded |= (it->Name == j.Application.Output);
-        errorIsAdded  |= (it->Name == j.Application.Error);
-        gmlogIsAdded  |= (it->Name == j.Application.LogDir);
-      }
-      if (!j.Application.Output.empty() && !outputIsAdded) {
-        RSLList *s = new RSLList;
-        s->Add(new RSLLiteral(j.Application.Output));
-        s->Add(new RSLLiteral(""));
-        if (!l)
-          l = new RSLList;
-        l->Add(new RSLSequence(s));
-      }
-      if (!j.Application.Error.empty() && !errorIsAdded) {
-        RSLList *s = new RSLList;
-        s->Add(new RSLLiteral(j.Application.Error));
-        s->Add(new RSLLiteral(""));
-        if (!l)
-          l = new RSLList;
-        l->Add(new RSLSequence(s));
-      }
-      if (!j.Application.LogDir.empty() && !gmlogIsAdded) {
-        RSLList *s = new RSLList;
-        s->Add(new RSLLiteral(j.Application.LogDir));
-        s->Add(new RSLLiteral(""));
-        if (!l)
-          l = new RSLList;
-        l->Add(new RSLSequence(s));
-      }
       if (l)
         r.Add(new RSLCondition("outputfiles", RSLEqual, l));
     }
