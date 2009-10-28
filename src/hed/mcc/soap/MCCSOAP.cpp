@@ -245,7 +245,7 @@ MCC_Status MCC_SOAP_Service::process(Message& inmsg,Message& outmsg) {
   PayloadRaw* outpayload = new PayloadRaw;
   std::string xml; retpayload->GetXML(xml);
   outpayload->Insert(xml.c_str());
-  outmsg = nextoutmsg;
+  outmsg = nextoutmsg; outmsg.Payload(NULL);
   // Specifying attributes for binding to underlying protocols - HTTP so far
   std::string soap_action = nextoutmsg.Attributes()->get("SOAP:ACTION");
   if(soap_action.empty()) soap_action=WSAHeader(*retpayload).Action();
@@ -269,7 +269,8 @@ MCC_Status MCC_SOAP_Service::process(Message& inmsg,Message& outmsg) {
     // looks like in case of SOAP fault SOAP fault messages is not sent. That sounds 
     // stupid - not implementing.
   };
-  delete outmsg.Payload(outpayload);
+  delete retpayload;
+  outmsg.Payload(outpayload);
   return MCC_Status(STATUS_OK);
 }
 
@@ -311,7 +312,6 @@ MCC_Status MCC_SOAP_Client::process(Message& inmsg,Message& outmsg) {
   MCC_Status ret = next->process(nextinmsg,nextoutmsg); 
   // Do checks and create SOAP response
   if(!ret) {
-    if(nextoutmsg.Payload()) delete nextoutmsg.Payload();
     return make_soap_fault(outmsg,nextoutmsg,"Failed to send SOAP message");
   };
   if(!nextoutmsg.Payload()) return make_soap_fault(outmsg,nextoutmsg,"No response for SOAP message recieved");
@@ -324,7 +324,7 @@ MCC_Status MCC_SOAP_Client::process(Message& inmsg,Message& outmsg) {
   };
   outmsg = nextoutmsg;
   outmsg.Payload(outpayload);
-  delete retpayload;
+  delete nextoutmsg.Payload(); nextoutmsg.Payload(NULL);
   //Checking authentication and authorization; 
   if(!ProcessSecHandlers(outmsg,"incoming")) {
     logger.msg(ERROR, "Security check failed in SOAP MCC for incoming message");
