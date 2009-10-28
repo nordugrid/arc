@@ -395,12 +395,14 @@ placed into the \textit{bin} directory of the configured ARC
 install location. No other executables or wrapper scripts are
 installed.
 
-A-REX executes the reporting executable through the file ``logger'' in
-the \textit{libexec/arc} directory under the install location (this is
-an A-REX legacy kept for backwards compatibility with the old
-logger). Therefore, to enable automatic periodic reporting, a symbolic
-link called ``logger'' should be placed in \textit{libexec}, pointing
-to the JURA executable.
+A-REX executes the reporting executable through the file
+``\textit{logger}'' in the \textit{libexec/arc} directory under the
+install location (this is an A-REX legacy kept for backwards
+compatibility with the old logger). Therefore, to enable automatic
+periodic reporting, the ``\textit{jura}'' executable file should be
+copied into \textit{libexec/arc}, or if possible, a symbolic link
+called ``\textit{logger}'' should be created there, pointing to the
+``\textit{jura}'' executable.
 
 The usage reporting can also be performed manually provided that
 access to the credentials are granted, by executing JURA with the
