@@ -293,7 +293,7 @@ bool InfoRegistrar::removeService(InfoRegister* reg) {
 
             int retry_ = retry;
             while ( retry_ >= 1 ){
-                ClientSOAP cli(mcc_cfg,usedISIS.url,60);
+                ClientSOAP cli(mcc_cfg,Arc::URL(usedISIS.url),60);
                 MCC_Status status = cli.process(&request, &response);
 
                 std::string response_string;
@@ -530,7 +530,7 @@ void InfoRegistrar::registration(void) {
 
             int retry_ = retry;
             while ( retry_ >= 1 ) {
-                ClientSOAP cli(mcc_cfg,usedISIS.url,60);
+                ClientSOAP cli(mcc_cfg,Arc::URL(usedISIS.url),60);
                 MCC_Status status = cli.process(&request, &response);
 
                 // multiple tries
