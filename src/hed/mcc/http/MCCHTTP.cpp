@@ -145,11 +145,11 @@ static MCC_Status make_http_fault(Logger& logger,PayloadStreamInterface& stream,
   };
   logger.msg(WARNING, "HTTP Error: %d %s",code,desc);
   PayloadHTTP outpayload(code,desc,stream);
-  outpayload.Flush();
+  if(!outpayload.Flush()) return MCC_Status();
   // Returning empty payload because response is already sent
   PayloadRaw* outpayload_e = new PayloadRaw;
   outmsg.Payload(outpayload_e);
-  return MCC_Status();
+  return MCC_Status(STATUS_OK);
 }
 
 static MCC_Status make_raw_fault(Message& outmsg,const char* desc = NULL) {
