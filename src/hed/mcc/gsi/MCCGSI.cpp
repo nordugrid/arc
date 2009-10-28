@@ -227,6 +227,7 @@ namespace Arc {
       nextoutmsg.Payload(NULL);
 
       MCC_Status ret = next->process(nextinmsg, nextoutmsg);
+      // TODO: Handle error and incompatible payloads
 
       outmsg = nextoutmsg;
 
@@ -372,6 +373,7 @@ namespace Arc {
     if (!next)
       return MCC_Status();
     MCC_Status ret = next->process(nextinmsg, nextoutmsg);
+    // TODO: handle errors and incompatible payloads
 
     if (!ProcessSecHandlers(outmsg, "incoming")) {
       logger.msg(ERROR,

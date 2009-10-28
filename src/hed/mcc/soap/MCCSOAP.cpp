@@ -215,6 +215,7 @@ MCC_Status MCC_SOAP_Service::process(Message& inmsg,Message& outmsg) {
   MCC_Status ret = next->process(nextinmsg,nextoutmsg); 
   // Do checks and extract SOAP response
   if(!ret) {
+    if(nextoutmsg.Payload()) delete nextoutmsg.Payload();
     logger.msg(WARNING, "next element of the chain returned error status");
     return make_raw_fault(outmsg,"Internal error");
   }
@@ -309,7 +310,10 @@ MCC_Status MCC_SOAP_Client::process(Message& inmsg,Message& outmsg) {
   Message nextoutmsg = outmsg; nextoutmsg.Payload(NULL);
   MCC_Status ret = next->process(nextinmsg,nextoutmsg); 
   // Do checks and create SOAP response
-  if(!ret) return make_soap_fault(outmsg,nextoutmsg,"Failed to send SOAP message");
+  if(!ret) {
+    if(nextoutmsg.Payload()) delete nextoutmsg.Payload();
+    return make_soap_fault(outmsg,nextoutmsg,"Failed to send SOAP message");
+  };
   if(!nextoutmsg.Payload()) return make_soap_fault(outmsg,nextoutmsg,"No response for SOAP message recieved");
   MessagePayload* retpayload = nextoutmsg.Payload();
   if(!retpayload) return make_soap_fault(outmsg,nextoutmsg,"No valid response for SOAP message recieved");

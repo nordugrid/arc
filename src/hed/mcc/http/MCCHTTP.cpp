@@ -247,6 +247,7 @@ MCC_Status MCC_HTTP_Service::process(Message& inmsg,Message& outmsg) {
   MCC_Status ret = next->process(nextinmsg,nextoutmsg);
   // Do checks and extract raw response
   if(!ret) {
+    if(nextoutmsg.Payload()) delete nextoutmsg.Payload();
     logger.msg(WARNING, "next element of the chain returned error status");
     return make_http_fault(logger,*inpayload,outmsg,HTTP_INTERNAL_ERR);
   }
@@ -380,7 +381,10 @@ MCC_Status MCC_HTTP_Client::process(Message& inmsg,Message& outmsg) {
   MCC_Status ret = next->process(nextinmsg,nextoutmsg);
   // Do checks and process response - supported response so far is stream
   // Generated result is HTTP payload with Raw and Stream interfaces
-  if(!ret) return make_raw_fault(outmsg);
+  if(!ret) {
+    if(nextoutmsg.Payload()) delete nextoutmsg.Payload();
+    return make_raw_fault(outmsg);
+  };
   if(!nextoutmsg.Payload()) return make_raw_fault(outmsg);
   PayloadStreamInterface* retpayload = NULL;
   try {

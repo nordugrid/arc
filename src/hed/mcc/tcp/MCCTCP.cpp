@@ -499,7 +499,10 @@ void MCC_TCP_Service::executer(void* arg) {
         if(!next) break;
         logger.msg(DEBUG, "next chain element called");
         MCC_Status ret = next->process(nextinmsg,nextoutmsg);
-        if(!it.ProcessSecHandlers(nextoutmsg,"outgoing")) break;
+        if(!it.ProcessSecHandlers(nextoutmsg,"outgoing")) {
+          if(nextoutmsg.Payload()) delete nextoutmsg.Payload();
+          break;
+        };
         // If nextoutmsg contains some useful payload send it here.
         // So far only buffer payload is supported
         // Extracting payload

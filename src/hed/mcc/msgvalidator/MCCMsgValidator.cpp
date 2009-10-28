@@ -262,6 +262,7 @@ MCC_Status MCC_MsgValidator_Service::process(Message& inmsg,Message& outmsg) {
   MCC_Status ret = next->process(nextinmsg,nextoutmsg); 
   // Do checks and extract SOAP response
   if(!ret) {
+    if(nextoutmsg.Payload()) delete nextoutmsg.Payload();
     logger.msg(WARNING, "next element of the chain returned error status");
     return make_raw_fault(outmsg);
   }
