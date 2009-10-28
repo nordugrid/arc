@@ -398,6 +398,12 @@ namespace Arc {
       else
         logger.msg(DEBUG, "The job doesn't advertise a standard error");
 
+      if (jobNode["ExitCode"])
+        job.ExitCode = stringtoi(jobNode["ExitCode"]);
+
+      for (XMLNode errorXML = jobNode["Error"]; errorXML; errorXML++)
+        job.Error.push_back((std::string)errorXML);
+
       return true;
     }
   }
