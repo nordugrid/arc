@@ -104,7 +104,8 @@ InfoRegistrar *InfoRegisterContainer::addRegistrar(XMLNode node) {
     //Glib::Mutex::Lock lock(lock_);
     InfoRegistrar* r = new InfoRegistrar(node);
     if(!(*r)) {
-         delete r; 
+         delete r;
+         return NULL;
     }
     regr_.push_back(r);
     CreateThreadFunction(&reg_thread, r);
@@ -129,7 +130,7 @@ void InfoRegisterContainer::addService(InfoRegister* reg,const std::list<std::st
             for(XMLNode node = cfg["InfoRegister"]["Registrar"];(bool)node;++node) {
                 if ((*i) == (std::string)node["URL"]) {
                     InfoRegistrar *r = addRegistrar(node);
-                    r->addService(reg, cfg);
+                    if (r != NULL) r->addService(reg, cfg);
                 }
             }
         }
