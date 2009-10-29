@@ -128,8 +128,6 @@ namespace Arc {
         }
       }
 
-      if (it1->Source.empty()) continue;
-
       executableIsAdded  |= (it1->Name == jobdesc.Application.Executable.Name);
       inputIsAdded       |= (it1->Name == jobdesc.Application.Input);
       outputIsAdded      |= (it1->Name == jobdesc.Application.Output);
@@ -165,9 +163,6 @@ namespace Arc {
     if (!jobdesc.Application.Output.empty() && !outputIsAdded) {
       FileType file;
       file.Name = jobdesc.Application.Output;
-      DataSourceType s;
-      s.URI = file.Name;
-      file.Source.push_back(s);
       file.KeepData = true;
       file.IsExecutable = false;
       file.DownloadToCache = false;
@@ -177,9 +172,6 @@ namespace Arc {
     if (!jobdesc.Application.Error.empty() && !errorIsAdded) {
       FileType file;
       file.Name = jobdesc.Application.Error;
-      DataSourceType s;
-      s.URI = file.Name;
-      file.Source.push_back(s);
       file.KeepData = true;
       file.IsExecutable = false;
       file.DownloadToCache = false;
@@ -189,9 +181,6 @@ namespace Arc {
     if (!jobdesc.Application.LogDir.empty() && !logDirIsAdded) {
       FileType file;
       file.Name = jobdesc.Application.LogDir;
-      DataSourceType s;
-      s.URI = file.Name;
-      file.Source.push_back(s);
       file.KeepData = true;
       file.IsExecutable = false;
       file.DownloadToCache = false;
