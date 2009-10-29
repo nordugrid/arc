@@ -31,6 +31,7 @@ int main(void) {
 
   Arc::Logger logger(Arc::Logger::getRootLogger(), "Test2VOMSServer");
   Arc::LogStream logcerr(std::cerr);
+  logcerr.setFormat(Arc::ShortFormat);
   Arc::Logger::getRootLogger().addDestination(logcerr);
   Arc::Logger::getRootLogger().setThreshold(Arc::VERBOSE);
 

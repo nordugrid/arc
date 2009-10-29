@@ -37,6 +37,7 @@ int main(int argc, char **argv) {
 
   Arc::Logger logger(Arc::Logger::getRootLogger(), "arcresub");
   Arc::LogStream logcerr(std::cerr);
+  logcerr.setFormat(Arc::ShortFormat);
   Arc::Logger::getRootLogger().addDestination(logcerr);
   Arc::Logger::getRootLogger().setThreshold(Arc::WARNING);
 

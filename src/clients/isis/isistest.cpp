@@ -242,6 +242,7 @@ std::vector<std::string> split( const std::string original_string, const std::st
 int main(int argc, char** argv) {
 
     Arc::LogStream logcerr(std::cerr);
+    logcerr.setFormat(Arc::ShortFormat);
     Arc::Logger::getRootLogger().addDestination(logcerr);
     Arc::Logger::getRootLogger().setThreshold(Arc::WARNING);
 

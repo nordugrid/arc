@@ -54,6 +54,7 @@ int main(int argc, char **argv) {
   setlocale(LC_ALL, "");
 
   Arc::LogStream logcerr(std::cerr);
+  logcerr.setFormat(Arc::ShortFormat);
   Arc::Logger::getRootLogger().addDestination(logcerr);
   Arc::Logger::getRootLogger().setThreshold(Arc::WARNING);
 

@@ -135,19 +135,35 @@ namespace Arc {
     this->domain = domain;
   }
 
-  std::ostream& operator<<(std::ostream& os, const LogMessage& message) {
-    os << "[" << message.time << "] "
-                        << "[" << message.domain << "] "
-                        << "[" << message.level << "] "
-                        << "[" << message.identifier << "] "
-                        << message.message;
+  static const int formatindex = std::ios_base::xalloc();
+
+  std::ostream& operator<<(std::ostream& os, const LoggerFormat& format) {
+    os.iword(formatindex) = format.format;
     return os;
   }
 
-  LogDestination::LogDestination() {}
+  std::ostream& operator<<(std::ostream& os, const LogMessage& message) {
+    switch (os.iword(formatindex)) {
+    case LongFormat:
+      os << "[" << message.time << "] "
+         << "[" << message.domain << "] "
+         << "[" << message.level << "] "
+         << "[" << message.identifier << "] "
+         << message.message;
+      break;
+    case ShortFormat:
+      os << message.level << ": " << message.message;
+      break;
+    }
+    return os;
+  }
+
+  LogDestination::LogDestination()
+    : format(LongFormat) {}
 
   LogDestination::LogDestination(const std::string& locale)
-    : locale(locale) {}
+    : locale(locale),
+      format(LongFormat) {}
 
   LogDestination::LogDestination(const LogDestination&) {
     // Executing this code should be impossible!
@@ -157,6 +173,10 @@ namespace Arc {
   void LogDestination::operator=(const LogDestination&) {
     // Executing this code should be impossible!
     exit(EXIT_FAILURE);
+  }
+
+  void LogDestination::setFormat(const LogFormat& newformat) {
+    format = newformat;
   }
 
   LogStream::LogStream(std::ostream& destination)
@@ -174,7 +194,7 @@ namespace Arc {
       loc = setlocale(LC_ALL, NULL);
       setlocale(LC_ALL, locale.c_str());
     }
-    destination << message << std::endl;
+    destination << LoggerFormat(format) << message << std::endl;
     if (!locale.empty()) setlocale(LC_ALL, loc);
   }
 
@@ -266,7 +286,7 @@ namespace Arc {
       loc = setlocale(LC_ALL, NULL);
       setlocale(LC_ALL, locale.c_str());
     }
-    destination << message << std::endl;
+    destination << LoggerFormat(format) << message << std::endl;
     if (!locale.empty()) setlocale(LC_ALL, loc);
     backup();
   }

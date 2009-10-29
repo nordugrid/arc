@@ -35,6 +35,19 @@ namespace Arc {
     FATAL = 32
   };
 
+  enum LogFormat {
+    LongFormat,
+    ShortFormat
+  };
+
+  struct LoggerFormat {
+    LoggerFormat(LogFormat format)
+      : format(format) {};
+    LogFormat format;
+  };
+
+  std::ostream& operator<<(std::ostream& os, const LoggerFormat& format);
+
   //! Printing of LogLevel values to ostreams.
   /*! Output operator so that LogLevel values can be printed in a
      nicer way.
@@ -173,6 +186,8 @@ namespace Arc {
 
     virtual ~LogDestination() {}
 
+    void setFormat(const LogFormat& newformat);
+
   protected:
 
     //! Default constructor.
@@ -202,6 +217,7 @@ namespace Arc {
   protected:
 
     std::string locale;
+    LogFormat format;
   };
 
 

@@ -23,6 +23,7 @@ int main(int argc, char **argv) {
 
   Arc::Logger logger(Arc::Logger::getRootLogger(), "srmping");
   Arc::LogStream logcerr(std::cerr);
+  logcerr.setFormat(Arc::ShortFormat);
   Arc::Logger::getRootLogger().addDestination(logcerr);
   Arc::Logger::rootLogger.setThreshold(Arc::WARNING);
 
