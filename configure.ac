@@ -53,7 +53,7 @@ AC_ARG_WITH(sysv-scripts-location,
     # We need to find a solution for WIN32
 
     if test -z "$initddir" && test -d "/c" -a ! -h " /c"; then
-	      initddir="/c"
+        initddir="/c"
     fi
 
     if test -z "$initddir"; then
@@ -1518,7 +1518,6 @@ AC_CONFIG_FILES([Makefile
                  src/clients/arclib/arcsync.1
                  src/clients/arclib/arcrenew.1
                  src/clients/arclib/arcresume.1
-                 src/clients/arclib/arcclient.xml.5
                  src/clients/srm/Makefile
                  src/clients/srm/arcsrmping.1
                  src/clients/jura/Makefile
