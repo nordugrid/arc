@@ -2,8 +2,7 @@ bin_PROGRAMS = arcsub arcget arcstat arcinfo arckill arcclean arccat arcsync arc
 	arcmigrate arcresume arcrenew
 
 man_MANS = arcsub.1 arcget.1 arcstat.1 arcinfo.1 arckill.1 arcclean.1 arccat.1 \
-	arcresub.1 arcmigrate.1 arcsync.1 arcresume.1 arcrenew.1 \
-    arcclient.xml.5
+	arcresub.1 arcmigrate.1 arcsync.1 arcresume.1 arcrenew.1
 
 CLILIBS = ../../hed/libs/data/libarcdata2.la \
           ../../hed/libs/loader/libarcloader.la \

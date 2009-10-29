@@ -153,5 +153,4 @@ Mattias Ellert <mattias.ellert@fysast.uu.se>
 .BR arcstat (1),
 .BR arccp (1),
 .BR arcls (1),
-.BR arcrm (1),
-.BR arcclient.xml (5).
+.BR arcrm (1)

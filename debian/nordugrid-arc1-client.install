@@ -48,4 +48,3 @@ debian/tmp/usr/share/man/man1/arcsync.1
 debian/tmp/usr/share/man/man1/chelonia.1
 debian/tmp/usr/share/man/man1/perftest.1
 debian/tmp/usr/share/man/man1/saml_assertion_init.1
-debian/tmp/usr/share/man/man5/arcclient.xml.5

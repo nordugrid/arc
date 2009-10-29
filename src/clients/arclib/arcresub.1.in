@@ -58,7 +58,7 @@ jobid or job name of jobs to be resubmitted
 The
 .B arcresub
 command is used for resubmitting jobs on grid enabled computing
-resources to the same or new resources. The job can be referred to 
+resources to the same or new resources. The job can be referred to
 either by the jobid that was returned by
 .BR arcsub (1)
 at submission time or by its jobname if the job description that was
@@ -67,27 +67,27 @@ submitted contained a jobname attribute.
 More than one jobid and/or jobname can be given. If several jobs were
 submitted with the same jobname all those jobs will be resubmitted.
 
-Upon resubmission of a job the corresponding job description will be 
-fetched from the local joblist file along with the checksum of local 
-input files. If the checksums does not match the current ones the 
-job no longer remains the same job an will therefore not be 
+Upon resubmission of a job the corresponding job description will be
+fetched from the local joblist file along with the checksum of local
+input files. If the checksums does not match the current ones the
+job no longer remains the same job an will therefore not be
 resubmitted.
 
-In case the job description is not found in the joblist, it will 
-be retrieved from the cluster holding the job. This description 
-however might differ from the one originally used to submit the job, 
-since both the submission client and the cluster can have made 
+In case the job description is not found in the joblist, it will
+be retrieved from the cluster holding the job. This description
+however might differ from the one originally used to submit the job,
+since both the submission client and the cluster can have made
 modifications to the job description.
 
-Upon resubmision the job will receive a new jobid. Hence the old 
-jobid will also be stored in the local joblist file enabling 
+Upon resubmision the job will receive a new jobid. Hence the old
+jobid will also be stored in the local joblist file enabling
 future back tracing of the resubmitted job.
 
 The name of the local joblist file can used specified by the
 .B --joblist
 option. By specifying the
 .B --all
-option, all active jobs appearing the in joblist file will be 
+option, all active jobs appearing the in joblist file will be
 resubmitted.
 
 The
@@ -95,13 +95,13 @@ The
 option can be used to select or reject jobs at specific clusters to be
 resubmitted. See
 .BR arcsub (1)
-for a discussion of the format of arguments to this option. 
+for a discussion of the format of arguments to this option.
 The
 .B --qluster
 option can be used to force the jobs to be resubmitted to a particular
 cluster, or to reject resubmission to a particular cluster. Againg see
 .BR arcsub (1)
-for a discussion of the format of arguments to this option. 
+for a discussion of the format of arguments to this option.
 The
 .B --status
 option can be used to select jobs in a specific state. These options
@@ -114,7 +114,7 @@ for a discussion of the format of arguments to this option.
 
 The
 .B --same
-option can be used to force jobs to be resubmitted to the same cluster 
+option can be used to force jobs to be resubmitted to the same cluster
 as where they were initial run.
 If the old job was successfully killed the job will be removed from the
 remote cluster unless the
@@ -159,5 +159,4 @@ Mattias Ellert <mattias.ellert@fysast.uu.se>
 .BR arcmigrate (1),
 .BR arccp (1),
 .BR arcls (1),
-.BR arcrm (1),
-.BR arcclient.xml (5).
+.BR arcrm (1)

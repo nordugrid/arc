@@ -93,7 +93,7 @@ Also in this case the
 .B --long
 option can be used to obtain more detailed information.
 
-Previously the 
+Previously the
 .B arcstat
 command was also used to query information of clusters and/or index servers.
 This functionality have been moved to the new command
@@ -140,5 +140,4 @@ Mattias Ellert <mattias.ellert@fysast.uu.se>
 .BR arcsub (1),
 .BR arccp (1),
 .BR arcls (1),
-.BR arcrm (1),
-.BR arcclient.xml (5).
+.BR arcrm (1)

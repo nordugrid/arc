@@ -42,30 +42,30 @@ print help
 
 .SH EXTENDED DESCRIPTION
 
-The ARC user interface keeps a local list of active jobs in the users 
-home directory (see \fBarcsub\fR(1)). If this file is lost, or the user 
-wants to recreate the file on a different computer,the \fBarcsync\fR 
-command can be used to recreate the file from the information available 
+The ARC user interface keeps a local list of active jobs in the users
+home directory (see \fBarcsub\fR(1)). If this file is lost, or the user
+wants to recreate the file on a different computer,the \fBarcsync\fR
+command can be used to recreate the file from the information available
 the specified cluster or index server.
 
-Since the information about a job retrieved from a clsuter can be 
-slightly out of date if the user very recently submitted or removed a 
-job a warning is issued when this command is run. The \fB-force\fR 
+Since the information about a job retrieved from a clsuter can be
+slightly out of date if the user very recently submitted or removed a
+job a warning is issued when this command is run. The \fB-force\fR
 option disables this warning.
 
-The 
+The
 .B --cluster
-options can be used to select or reject clusters that should be 
-considered in the synchronization. This options can be repeated several 
+options can be used to select or reject clusters that should be
+considered in the synchronization. This options can be repeated several
 times.  See
 .BR arcsub (1)
 for a discussion of the format of arguments to this option.
 
-If a specific cluster is selected for the syncronisation while the joblist 
-contains jobs on a different cluster, running the arcsync command will 
+If a specific cluster is selected for the syncronisation while the joblist
+contains jobs on a different cluster, running the arcsync command will
 remove the old jobs from the joblist, unless the
 .B --merge
-option is given, in which case the new found jobs are merge with the 
+option is given, in which case the new found jobs are merge with the
 jobs already in the joblist.
 
 .SH FILES
@@ -111,5 +111,4 @@ Mattias Ellert <mattias.ellert@fysast.uu.se>
 .BR arcresub (1),
 .BR arccp (1),
 .BR arcls (1),
-.BR arcrm (1),
-.BR arcclient.xml (5).
+.BR arcrm (1)

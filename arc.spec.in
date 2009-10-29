@@ -333,7 +333,6 @@ exit 0
 %doc %{_mandir}/man1/chelonia.1*
 %doc %{_mandir}/man1/perftest.1.gz
 %doc %{_mandir}/man1/saml_assertion_init.1*
-%doc %{_mandir}/man5/arcclient.xml.5*
 %doc src/clients/charon/charon_client.xml.example
 %doc src/clients/charon/charon_request.xml.example
 %doc src/tests/echo/echo.wsdl

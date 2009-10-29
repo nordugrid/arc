@@ -9,8 +9,8 @@ arcresume \- ARC Resume
 
 The
 .B arcresume
-command is used for resuming a job that have been submitted 
-to grid enabled resources. The job will be resumed at the 
+command is used for resuming a job that have been submitted
+to grid enabled resources. The job will be resumed at the
 last ok state reported by the cluster.
 
 .SH SYNOPSIS
@@ -49,7 +49,7 @@ list of jobids and/or jobnames
 
 The
 .B arcresume
-command resumes a job submitted an ARC enabled resource. The job can 
+command resumes a job submitted an ARC enabled resource. The job can
 be referred to either by the jobid that was returned by
 .BR arcsub (1)
 at submission time or by its jobname if the job description that was
@@ -116,5 +116,4 @@ Mattias Ellert <mattias.ellert@fysast.uu.se>
 .BR arcstat (1),
 .BR arccp (1),
 .BR arcls (1),
-.BR arcrm (1),
-.BR arcclient.xml (5).
+.BR arcrm (1)

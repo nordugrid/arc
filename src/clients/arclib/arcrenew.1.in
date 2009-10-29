@@ -9,8 +9,8 @@ arcrenew \- ARC Proxy Renewal
 
 The
 .B arcrenew
-command is used for renewing the proxy of jobs that have 
-been submitted to grid enabled resources. 
+command is used for renewing the proxy of jobs that have
+been submitted to grid enabled resources.
 
 .SH SYNOPSIS
 
@@ -46,16 +46,16 @@ list of jobids and/or jobnames
 
 .SH EXTENDED DESCRIPTION
 
-The 
+The
 .B arcrenew
-command renews the proxy of a job submitted an ARC enabled resource. 
+command renews the proxy of a job submitted an ARC enabled resource.
 The job can be referred to either by the jobid that was returned by
 .BR arcsub (1)
 at submission time or by its jobname if the job description that was
 submitted contained a jobname attribute.
 
 More than one jobid and/or jobname can be given. If several jobs were
-submitted with the same jobname the proxies of all those jobs are 
+submitted with the same jobname the proxies of all those jobs are
 renewed. If the
 .B --joblist
 option is used the list of jobs is read from a file with the
@@ -116,5 +116,4 @@ Mattias Ellert <mattias.ellert@fysast.uu.se>
 .BR arcstat (1),
 .BR arccp (1),
 .BR arcls (1),
-.BR arcrm (1),
-.BR arcclient.xml (5).
+.BR arcrm (1)
