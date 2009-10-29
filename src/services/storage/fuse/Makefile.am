@@ -1,2 +1,2 @@
-bin_SCRIPTS = arcfs.py
+bin_SCRIPTS = arcfs
 

@@ -1,16 +1,22 @@
 #!/usr/bin/env python
 
-# fuse stuff
-from fuse import Fuse
 import stat, os, sys, pwd
+import traceback
 from errno import *
 from stat import *
+# fuse stuff
+try:
+    from fuse import Fuse
+except:
+    print "ERROR:", "cannot import fuse. Please make sure python-fuse is installed"
+    print "Chelonia is not mounted"
+    sys.exit(-1)
 import fuse
-
+import random
 
 if not hasattr(fuse, '__version__'):
     raise RuntimeError, \
-        "your fuse-py doesn't know of fuse.__version__, probably it's too old."
+        "your fuse-py does not know fuse.__version__, probably it's too old."
 
 fuse.fuse_python_api = (0,2)
 
@@ -24,16 +30,22 @@ if os.environ.has_key('LD_LIBRARY_PATH'):
 #fuse.feature_assert('stateful_files', 'has_init')
 
 # arc storage stuff
+try:
+    import arc
+except:
+    print "ERROR:", "Cannot import arc. Please make sure ARC python bindings are installed"
+    print "Chelonia is not mounted"
+    sys.exit(-1)
+
 from storage.client import BartenderClient
 from storage.common import create_checksum
 from arcom.service import false, true
 from storage.common import upload_to_turl, download_from_turl
-import arc
 
 logfile = open("messagesfromarc",'w')
 root_logger = arc.Logger_getRootLogger()
 root_logger.addDestination(arc.LogStream(logfile))
-root_logger.setThreshold(arc.DEBUG)
+root_logger.setThreshold(arc.ERROR)
 
 import time
 
@@ -43,58 +55,141 @@ try:
     MNT = sys.argv[1]
 except:
     raise RuntimeError, 'Usage: ./arcfs.py LOCAL_MOUNTPOINT'
+
+verbose = False
+print_xml = False
+configfilename = ''
+bartender_url_from_argument = ''
+allowed_to_run_without_arc = False
+
 user_config = None
 ssl_config = {}
 BartenderURL = ''
+problem_with_userconfig = None
 try:
-    user_config = arc.UserConfig('')
+    import arc
+    user_config = arc.UserConfig(configfilename)
     key_file = user_config.KeyPath()
-    if key_file:
-        ssl_config['key_file'] = key_file
     cert_file = user_config.CertificatePath()
-    if cert_file:
-        ssl_config['cert_file'] = cert_file
     proxy_file = user_config.ProxyPath()
-    if proxy_file:
-        ssl_config['proxy_file'] = proxy_file
     ca_file = user_config.CACertificatePath()
-    if ca_file:
-        ssl_config['ca_file'] = ca_file
     ca_dir = user_config.CACertificatesDirectory()
-    if ca_dir:
-        ssl_config['ca_dir'] = ca_dir
-    BartenderURL = user_config.Bartender()[0]
+    bartender_urls = [url.fullstr() for url in user_config.Bartender()]
+    index_services = user_config.GetSelectedServices(arc.INDEX)
+    if index_services.has_key('ARC1'):
+        isis_urls = [url.fullstr() for url in index_services['ARC1']]
+    else:
+        isis_urls = []
 except:
-    pass
-if not BartenderURL:
-    try:
-        BartenderURL = os.environ['ARC_BARTENDER_URL']
-        print '- The URL of the Bartender:', BartenderURL
-    except:
-        BartenderURL = 'http://localhost:60000/Bartender'
-        print '- ARC_BARTENDER_URL environment variable not found, using', BartenderURL
+    problem_with_userconfig = traceback.format_exc()
+    key_file = None
+    cert_file = None
+    proxy_file = None
+    ca_file = None
+    ca_dir = None
+    bartender_urls = []
+    isis_urls = []
+
+ssl_config = {}
+key_file = os.environ.get('ARC_KEY_FILE', key_file)
+cert_file = os.environ.get('ARC_CERT_FILE', cert_file)
+proxy_file = os.environ.get('ARC_PROXY_FILE', proxy_file)
+ca_file = os.environ.get('ARC_CA_FILE', ca_file)
+ca_dir = os.environ.get('ARC_CA_DIR', ca_dir)
+if proxy_file:
+    ssl_config['proxy_file'] = proxy_file
+    if verbose:
+        print '- The proxy certificate file:', ssl_config['proxy_file']
+else:
+    if key_file and cert_file:
+        ssl_config['key_file'] = key_file
+        ssl_config['cert_file'] = cert_file
+        if verbose:
+            print '- The key file:', ssl_config['key_file']
+            print '- The cert file:', ssl_config['cert_file']
+if ca_file:
+    ssl_config['ca_file'] = ca_file
+    if verbose:
+        print '- The CA file:', ssl_config['ca_file']
+elif ca_dir:
+    ssl_config['ca_dir'] = ca_dir
+    if verbose:
+        print '- The CA dir:', ssl_config['ca_dir']
+
+no_bartender_message = "No Bartender URL found."
+
+bartender_env_url = os.environ.get('ARC_BARTENDER_URL', '')
+if bartender_url_from_argument:
+    bartender_urls = [bartender_url_from_argument]
+    if verbose:
+        print '- Bartender URL specified as an argument, will use only this:', bartender_urls[0]
+elif bartender_env_url:
+    bartender_urls = [bartender_env_url]
+    if verbose:
+        print '- Bartender URL found in the ARC_BARTENDER_URL environment variable, will use only this:', bartender_urls[0]
+if not bartender_urls:
+    if verbose:
+        print '- No Bartender URL found in the config or in the environment, try to get one from ISIS:'
+    isis_env_url = os.environ.get('ARC_ISIS_URL', '')
+    if isis_env_url:
+        isis_urls = [isis_env_url]
+        if verbose:
+            print '  - ISIS URL found in the ARC_ISIS_URL environment variable:', isis_urls[0]
+    if not isis_urls:
+        if verbose:
+            print '  - No ISIS URL found in the config or in the environment, giving up.'
+        no_bartender_message = 'No Bartender URL and no ISIS URL found - cannot figure out where to connect.'
+    else:
+        bartender_found = False
+        isis_connected = False
+        while not bartender_found and len(isis_urls) > 0:
+            isis_url = isis_urls.pop()
+            isis = ISISClient(isis_url, print_xml, ssl_config = ssl_config)
+            try:
+                bartender_urls = isis.getServiceURLs('org.nordugrid.storage.bartender')
+                isis_connected = True
+                if not bartender_urls:
+                    if verbose:
+                        print '  -', isis_url, '- This ISIS did not return any Bartender URL.'
+                else:
+                    bartender_found = True
+                    if verbose:
+                        print '  -', isis_url, '- Got Bartender URL from ISIS:', ', '.join(bartender_urls)
+            except:
+                if verbose:
+                    print '  -', isis_url, '- Failed to connect to ISIS.'
+        if not bartender_found:
+            if isis_connected:
+                no_bartender_message = 'Cannot get Bartender URL from the ISIS. Try again later.'
+            else:
+                no_bartender_message = 'Cannot connect to any ISIS to get Bartender URL.'
+if bartender_urls:
+    if verbose:
+        print '- The URL of the Bartender(s):', ', '.join(bartender_urls)        
+else:
+    if problem_with_userconfig and verbose:
+        print '- There was a problem reading the user\'s config. Reason:', str(problem_with_userconfig)
+    # bartender_urls = ['http://localhost:60000/Bartender']
+    # print '- The URL of the Bartender is not given, using', bartender_urls[0]
+    print 'ERROR:', no_bartender_message
+    sys.exit(-1)
 try:
-    needed_replicas = int(os.environ['ARC_NEEDED_REPLICAS'])
+    needed_replicas = os.environ['ARC_NEEDED_REPLICAS']
 except:
-    needed_replicas = 1
+    needed_replicas = 3
 
-if BartenderURL.startswith('https') and not user_config:
+random.shuffle(bartender_urls)
+bartender = None
+for bartender_url in bartender_urls:
     try:
-        ssl_config['key_file'] = os.environ['ARC_KEY_FILE']
-        ssl_config['cert_file'] = os.environ['ARC_CERT_FILE']
-        print '- The key file:', ssl_config['key_file']
-        print '- The cert file:', ssl_config['cert_file']
-        if os.environ.has_key('ARC_CA_FILE'):
-            ssl_config['ca_file'] = os.environ['ARC_CA_FILE']
-            print '- The ca file:', ssl_config['ca_file']
-        else:
-            ssl_config['ca_dir'] = os.environ['ARC_CA_DIR']
-            print '- The ca dir:', ssl_config['ca_dir']
+        bartender = BartenderClient(bartender_urls, False, ssl_config)
+        break
     except:
-        ssl_config = {}
-        raise RuntimeError, '- ARC_KEY_FILE, ARC_CERT_FILE , ARC_CA_FILE or ARC_CA_DIR environment variable not found, SSL disabled'
+        pass
 
-bartender = BartenderClient(BartenderURL, False, ssl_config)
+if bartender == None:
+    print 'ERROR:', "No valid bartender found"
+    sys.exit(-1)
 
 PROTOCOL = 'http'
 
@@ -102,7 +197,7 @@ FUSETRANSFER = os.path.join(os.getcwd(),'fuse_transfer')
 if not os.path.isdir(FUSETRANSFER):
     os.mkdir(FUSETRANSFER)
 
-DEBUG = 1
+DEBUG = 0
 
 debugfile = open('arcfsmessages','a')
 
@@ -193,7 +288,7 @@ class ARCInode:
     """
 
     def __init__(self, mode, nlink, uid, gid, size, mtime,
-                 metadata, atime=0, ctime=0, closed=0, entries=[]):
+                 metadata, atime=0, ctime=0, closed='no', entries=[]):
         debug_msg("called ARCInode.__init__")
         self.st = GenStat()
         self.st.st_mode  = mode
@@ -277,14 +372,16 @@ class ARCFS(Fuse):
                 status = 'not ready'
             # we don't know the mode so we set something
             mode = sym2oct('-rw-r--r--')
-            closed = 0
+            closed = 'no'
             entries = []
         elif is_dir:
             # + 2 for . and ..
+
             nlink = len([guid for (section, file), guid in
                          metadata.items() if section == 'entries'])+2
-            closed = int(metadata[('states', 'closed')])
+            closed = metadata.get(('states', 'closed'),'no')
             mode = sym2oct('drwxr-xr-x',False)
+            debug_msg("here")
             size = 0
             entries = [fname for (section, fname), guid in metadata.items()
                        if section == 'entries']
@@ -364,7 +461,7 @@ class ARCFS(Fuse):
 
     def mkdir(self, path, mode):
         debug_msg('mkdir called:', path)
-        request = {'0': (path, {('states', 'closed') : false})}
+        request = {'0': (path, {('states', 'closed') : 'no'})}
         response = self.bartender.makeCollection(request)
         debug_msg('mkdir left:', path)
 
@@ -430,7 +527,7 @@ class ARCFS(Fuse):
         """
         debug_msg('fsinit called')
         # make sure we have root collection
-        self.bartender.makeCollection({'0':('/', {('states', 'closed'):false})})
+        self.bartender.makeCollection({'0':('/', {('states', 'closed'):'no'})})
         debug_msg('fsinit left')
 
 
@@ -621,7 +718,7 @@ class ARCFS(Fuse):
             nlink = 1
             size = long(metadata[('states','size')])
             mode = sym2oct('-rw-r--r--')
-            closed = 0
+            closed = 'no'
 
             if metadata.has_key(('timestamps', 'created')):
                 ctime = float(metadata[('timestamps', 'created')])
