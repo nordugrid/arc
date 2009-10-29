@@ -536,7 +536,8 @@ namespace Arc {
           file.Target.push_back(target);
         }
 
-        file.KeepData = !(ds["DeleteOnTermination"] && lower(((std::string)ds["DeleteOnTermination"])) == "true");
+        // If DeteleOnTermination is not set do not keep data. Only keep data if explicitly specified.
+        file.KeepData = ds["DeleteOnTermination"] && lower(((std::string)ds["DeleteOnTermination"])) == "false";
         file.IsExecutable = ds["IsExecutable"] && lower(((std::string)ds["IsExecutable"])) == "true";
         file.DownloadToCache = ds["DownloadToCache"] && lower(((std::string)ds["DownloadToCache"])) == "true";
         job.DataStaging.File.push_back(file);
