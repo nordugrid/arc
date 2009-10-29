@@ -1,0 +1,708 @@
+#!@posix_shell@
+
+progname=$(basename "$0")
+
+LRMS=Condor # for use in log messages
+
+# ARC1 passes first the config file.
+if [ "$1" = "--config" ]; then shift; ARC_CONFIG=$1; shift; fi
+
+basedir=`dirname $0`
+basedir=`cd $basedir > /dev/null && pwd` || exit $?
+
+pkglibdir="$basedir/@pkglibdir_rel_to_pkglibexecdir@"
+pkglibdir=`cd $pkglibdir > /dev/null && pwd` || exit $?
+
+. ${pkglibdir}/configure-condor-env.sh || exit $?
+
+#############################################################################
+########################## LRMS specific functions ##########################
+#############################################################################
+
+#
+# Should print the id's of all jobs in the LRMS, one per line. If left
+# unimplemented then lrms_job_finished must be implemented. If it's
+# implemented then implementing lrms_job_finished is optional. 
+#
+lrms_list_jobs() {
+    LIST_IMPLEMENTED=
+}
+
+#
+# Should return 0 only if the job is not in the LRMS. The job's LRMS id is
+# stored in the lrmsid variable. It's called for all grid jobs that are in
+# INLRMS and CANCELING states and whose LRMS id was not listed by
+# lrms_list_jobs. STDOUT and STDERR are redirected to job.$gridid.error.
+#
+lrms_job_finished() {
+    return 0
+}
+
+#
+# Should attempt to collect accounting info from LRMS for a job.  The job's
+# LRMS id is stored in the lrmsid variable. This function will be called after
+# the job has left the LRMS.  Diagnostics might not be available right after
+# the job has finished and therefore a retry mechanism is implemented. If more
+# time is needed, the function should signal this by returning without setting
+# the lrmsexitcode variable. In this case it will be called again on the next
+# run on scan-*-jobs, but not more than $maxwait times for any given job. If
+# it sets lrmsexitcode, or $maxwait retries have already been done, then 
+# lrms_last_call will be called shortly afterwards and the job declared done.
+# STDOUT and STDERR are redirected to job.$gridid.errors. The interval between
+# successive runs of scan-*-jobs is controlled by $wakeupperiod.
+# Input variables:
+#   * gridid
+#   * lrmsid
+#   * sessiondir
+#   * uid -- numerical unix ID of the user owning the job
+# The following variables are initialized with values read from
+# $sessiondir.diag. All except exitcode are expected to be updated by this
+# function:
+#   * exitcode -- It's the exitcode of the user's executable, as reported by
+#                 the job wrapper. Do not change.
+#   * nodename -- may contain multiple lines, one execution node per line
+#   * WallTime  -- in seconds
+#   * UserTime  -- in seconds
+#   * KernelTime  -- in seconds
+#   * TotalMemory  -- in kB
+#   * ResidentMemory -- in kB
+# Output variables:
+#   * lrmsexitcode -- as reported by the LRMS. It will be saved to the .diag file
+#   * lrmsmessage -- any clues obtained from the LRMS about job failure. It
+#                    content will be addedd to .lrms_done in case lrmsexitcode is not 0.
+#
+lrms_get_accounting() {
+    ACCT_IMPLEMENTED=
+    lrmsexitcode=${exitcode:--1}
+}
+
+#
+# Called just before uptading .diag and writing the .lrms_done file. STDOUT and
+# STDERR are redirected to job.$gridid.error. Can be left as is.
+# Input/Output variables:
+#   * the same as for lrms_get_accounting
+#   * any variables set in lrms_get_accounting are visible here
+#
+lrms_last_call() {
+    [ -n "$lrmsexitcode" ] \
+    || log "LRMS exit status not available for job $gridid ($LRMS id: $lrmsid)"
+
+    [ -n "$ACCT_IMPLEMENTED" ] || lrmsexitcode=
+
+    # Suspect killing due to resource limit exceeded only if exitcode is
+    # missing or is > 128 (as in the case of a shell killed by a signal)
+    if [ -z "$exitcode" ] || [ "$exitcode" -gt 128 ]; then
+        read_grami; autodetect_overlimit
+    fi
+}
+
+#############################################################################
+
+#
+# scan-*-jobs has STDOUT redirected to /dev/null and STDERR redirected to
+# job.helper..errors
+#
+log () { echo "[`date +%Y-%m-%d\ %T`] $progname: $*" 1>&2; }
+
+#
+# Attempts to switch to uid passed as the first argument and then runs the
+# commands passed as the second argument in a shell. The remaining arguments
+# are passed as arguments to the shell. No warning is given in case switching
+# uid is not possible.
+#
+do_as_uid () {
+    test $# -ge 2 || { log "do_as_uid requires 2 arguments"; return 1; }
+
+    script='use English;
+            my ($uid, @args) = @ARGV;
+            $UID = $uid if $UID == 0;
+            system("@posix_shell@","-c",@args);
+    '
+    perl -we "$script" "$@"
+}
+
+#
+# Reads a line from STDIN and prints integer part on STDOUT.
+# If not a valid number, prints nothing and returns 1
+#
+to_integer() {
+    perl -we 'chomp(my $line = <>);
+              exit 0 if $line eq "";
+              if ( $line =~ m/^(\d*)(?:\.\d+)?$/ ) {
+                  print $1 || 0;
+              } else {
+                  exit 1;
+              }'
+}
+
+#
+# Input variables:
+#   * sessiondir
+#   * uid
+# Output variables:
+#   * diagstring -- the whole contents of .diag
+#   * nodename
+#   * WallTime
+#   * UserTime
+#   * KernelTime
+#   * TotalMemory
+#   * ResidentMemory
+#   * exitcode
+#
+job_read_diag() {
+
+    [ -n "$uid" ] && [ -n "$sessiondir" ] \
+    || { log "job_read_diag requires the following to be set: uid sessiondir"; return 1; }
+
+    diagfile=$sessiondir.diag;
+    [ -f "$diagfile" ] || { log "diag file not found at: $sessiondir.diag"; return 1; }
+
+    diagstring=$(do_as_uid $uid "tail -n 1000 '$diagfile'")
+    [ $? = 0 ] || { log "cannot read diag file at: $PWD/$diagfile"; return 1; }
+
+    nodename=$(echo "$diagstring" | sed -n 's/^nodename=\(..*\)/\1/p')
+    WallTime=$(echo "$diagstring" | sed -n 's/^WallTime=\([0-9.]*\)s/\1/p' | tail -n 1)
+    UserTime=$(echo "$diagstring" | sed -n 's/^UserTime=\([0-9.]*\)s/\1/p' | tail -n 1)
+    KernelTime=$(echo "$diagstring" | sed -n 's/^KernelTime=\([0-9.]*\)s/\1/p' | tail -n 1)
+    TotalMemory=$(echo "$diagstring" | sed -n 's/^AverageTotalMemory=\([0-9.]*\)kB/\1/p' | tail -n 1)
+    ResidentMemory=$(echo "$diagstring" | sed -n 's/^AverageResidentMemory=\([0-9.]*\)kB/\1/p' | tail -n 1)
+    exitcode=$(echo "$diagstring" | sed -n 's/^exitcode=\([0-9]*\)/\1/p' | tail -n 1)
+
+    for key in lrmsexitcode lrmsmessage nodename WallTime UserTime KernelTime AverageTotalMemory AverageResidentMemory exitcode; do
+        diagstring=$(echo "$diagstring" | grep -v "^$key=")
+    done
+}
+
+#
+# Input variables:
+#   * sessiondir
+#   * uid
+#   * lrmsexitcode
+#   * lrmsmessage
+#   + all output variables from job_read_diag
+#
+job_write_diag() {
+
+    [ -n "$uid" ] && [ -n "$sessiondir" ] && [ -n "$diagstring" ] \
+    || { log "job_write_diag requires the following to be set: uid sessiondir diagstring"; return 1; }
+
+    diagfile=$sessiondir.diag;
+
+    { echo "$diagstring" && echo
+      [ -n "$nodename" ] && echo "$nodename" | sed -n 's/^\(..*\)/nodename=\1/p'
+      [ -n "$WallTime" ] && echo "WallTime=${WallTime}s"
+      [ -n "$UserTime" ] && echo "UserTime=${UserTime}s"
+      [ -n "$KernelTime" ] && echo "KernelTime=${KernelTime}s"
+      [ -n "$TotalMemory" ] && echo "AverageTotalMemory=${TotalMemory}kB"
+      [ -n "$ResidentMemory" ] && echo "AverageResidentMemory=${ResidentMemory}kB"
+      [ -n "$lrmsmessage" ] && echo "lrmsmessage=$lrmsmessage"
+      [ -n "$lrmsexitcode" ] && echo "lrmsexitcode=$lrmsexitcode"
+      [ -n "$exitcode" ] && echo "exitcode=$exitcode"
+    } | do_as_uid $uid "cat > '$diagfile'"
+    [ $? = 0 ] || { log "cannot write diag file at: $PWD/$diagfile"; return 1; }
+}
+
+# Input variables
+#   * gridid
+# Output variables:
+#   * ReqWallTime
+#   * ReqCPUTime
+#   * ReqTotalMemory
+read_grami() {
+
+    gramifile="job.$gridid.grami"
+
+    [ -f "$gramifile" ] || { log "grami file not found: $PWD/$gramifile"; return 1; }
+
+    ReqWallTime=$(sed -n "s/^joboption_walltime=//p" "$gramifile" | tail -n 1)
+    ReqCPUTime=$(sed -n "s/^joboption_cputime=//p" "$gramifile" | tail -n 1)
+    ReqTotalMemory=$(sed -n "s/^joboption_memory=//p" "$gramifile" | tail -n 1)
+
+    ReqWallTime=$(echo $ReqWallTime | to_integer) || log "joboption_walltime not a number"
+    ReqCPUTime=$(echo $ReqCPUTime | to_integer) || log "joboption_cputime not a number"
+    ReqTotalMemory=$(echo $ReqTotalMemory | to_integer) || log "joboption_memory not a number"
+
+    # convert MB to KB
+    [ -n "$ReqTotalMemory" ] && ReqTotalMemory=$(( $ReqTotalMemory * 1024 ))
+
+    log "---- Requested resources specified in grami file ----"
+    [ -n "$ReqWallTime" ] && log "Requested walltime: $ReqWallTime seconds"
+    [ -n "$ReqCPUTime" ] && log "Requested cputime: $ReqCPUTime seconds"
+    [ -n "$ReqTotalMemory" ] && log "Requested memory: $(( $ReqTotalMemory / 1024 )) MB"
+    log "-----------------------------------------------------"
+}
+
+#
+# Can be used from lrms_get_accounting() to guess whether the job was killed due to
+# an exceeded resource limit and set lrmsmessage accordingly.
+# Input variables
+#   * gridid
+#   * uid
+#   * ReqWallTime
+#   * ReqCPUTime
+#   * ReqTotalMemory
+#   * WallTime
+#   * UserTime
+#   * KernelTime
+#   * TotalMemory
+#   * ResidentMemory
+#   * exitcode
+#   * lrmsexitcode
+#   * lrmsmessage
+# Output variables:
+#   * overlimit (if set, then one of memory cputime walltime )
+#
+autodetect_overlimit() {
+
+    # round to integers
+    wallt=$(echo $WallTime | to_integer) || log "WallTime not a number"
+    usert=$(echo $UserTime | to_integer) || log "UserTime not a number"
+    kernelt=$(echo $KernelTime | to_integer) || log "KernelTime not a number"
+    totalmem=$(echo $TotalMemory | to_integer) || log "TotalMemory not a number"
+    residentmem=$(echo $ResidentMemory | to_integer) || log "ResidentMemory not a number"
+
+    cput=$(( ${usert:-0} + ${kernelt:-0} ))
+
+    if [ -n "$cput" ] && [ "$cput" -gt 0 ] \
+    && [ -n "$ReqCPUTime"  ] && [ "$ReqCPUTime" -gt 0 ] \
+    && [ $(( 100 * $cput / $ReqCPUTime )) -gt 95 ]; then
+      overlimit="cputime"
+    fi
+    if [ -n "$wallt" ] && [ "$wallt" -gt 0 ] \
+    && [ -n "$ReqWallTime" ] && [ "$ReqWallTime" -gt 0 ] \
+    && [ $(( 100 * $wallt / $ReqWallTime )) -gt 95 ]; then
+      overlimit="walltime"
+    fi
+    if [ -n "$totalmem" ] && [ "$totalmem" -gt 0 ] \
+    && [ -n "$ReqTotalMemory" ] && [ "$ReqTotalMemory" -gt 0 ] \
+    && [ $(( 100 * $totalmem / $ReqTotalMemory )) -gt 95 ]; then
+      overlimit="memory"
+    fi
+    if [ -n "$residentmem" ] && [ "$residentmem" -gt 0 ] \
+    && [ -n "$ReqTotalMemory" ] && [ "$ReqTotalMemory" -gt 0 ] \
+    && [ $(( 100 * $residentmem / $ReqTotalMemory )) -gt 95 ]; then
+      overlimit="memory"
+    fi
+
+    [ -n "$overlimit" ] && log "Job have likely hit $overlimit limit"
+}
+
+#
+# Returns 0 at most maxwait calls for any given gridid. Returns 1 on
+# further calls or if an error has occured.
+#
+job_canwait() {
+    [ -n "$gridid" ] && [ -n "$maxwait" ] \
+    || { log "job_canwait requires the following to be set: gridid, maxwait"; return 1; }
+
+    countfile=job.$gridid.lrms_job
+    if [ ! -f "$countfile" ]; then
+        echo "1" > "$countfile" || { log "cannot write count file: $PWD/$countfile"; return 1; }
+    else
+        count=$(head -n 1 "$countfile") || { log "cannot read count file: $PWD/$countfile"; return 1; }
+        [ -z "$count" ] && { log "empty count file: $PWD/$countfile"; return 1; }
+        dummy=$(echo "$count" | grep -v '[0-9]') && { log "not an integer in count file: $PWD/$countfile"; return 1; }
+        [ "$count" -lt "$maxwait" ] || { rm -f "$countfile"; return 1; }
+        echo "$(( $count + 1 ))" > "$countfile" || { log "cannot write count file: $PWD/$countfile"; return 1; }
+    fi
+    return 0
+}
+
+#
+# Append .comment (containing STDOUT & STDERR of the job wrapper) to .errors
+# Input variables:
+#   * uid
+#   * sessiondir
+
+job_print_comment() {
+    [ -n "$uid" ] && [ -n "$sessiondir" ] \
+    || { log "job_print_comment requires the following to be set: uid, sessiondir"; return 1; }
+
+    commentfile=$sessiondir.comment
+    [ -f "$commentfile" ] && do_as_uid "$uid" "
+        echo '--------- Contents of output stream forwarded by $LRMS ------------'
+        cat '$commentfile'
+        echo '------------------------- End of output -------------------------'
+    " || log "failed reading: $commentfile"
+}
+
+# In case overlimit is set, tweak what will go into .lrms_done
+set_overlimit_message() {
+
+    [ -n "$overlimit" ] || return
+
+    if [ $overlimit = "cputime" ]; then
+        lrmsmessage="job killed: cput"
+    elif [ $overlimit = "walltime" ]; then
+        lrmsmessage="job killed: wall"
+    elif [ $overlimit = "memory" ]; then
+        lrmsmessage="job killed: vmem"
+    else
+        log "invalid value overlimit=$overlimit";
+        return 1
+    fi
+
+    lrmsexitcode=271
+}
+
+#
+# Input variables:
+#   * gridid
+#   * basedir
+#   * exitcode
+#   * lrmsexitcode
+#   * lrmsmessage
+#   * overlimit
+#
+job_write_donefile() {
+    [ -n "$gridid" ] && [ -n "$basedir" ] && [ -n "$LRMS" ] \
+    || { log "job_write_donefile requires the following to be set: gridid, basedir, LRMS"; return 1; }
+
+    set_overlimit_message
+
+    if [ -n "$lrmsmessage" ] && [ "$lrmsexitcode" != 0 ]; then
+
+        msg="$lrmsmessage"
+
+    else
+        if [ "$exitcode" = 0 ]; then
+            if [ -z "$lrmsexitcode" ] || [ "$lrmsexitcode" = 0 ]; then
+                msg=
+            else
+                msg="Job finished properly but $LRMS reported failure"
+            fi
+        elif [ -z "$exitcode" ]; then
+            if [ "$lrmsexitcode" = 0 ]; then lrmsexitcode=-1; fi
+            msg="Job was killed by $LRMS"
+        else
+            if [ "$lrmsexitcode" = 0 ]; then lrmsexitcode=-1; fi
+            msg="Job failed with exit code $exitcode"
+        fi
+    fi
+
+    log "${msg:-$LRMS job $lrmsid finished normally}"
+
+    donefile=job.$gridid.lrms_done
+    echo "${lrmsexitcode:--1} $msg" > $donefile || log "failed writing file: $PWD/$donefile"
+
+    # wake up GM
+    statusfile=job.$gridid.status
+    "${basedir}"/gm-kick "$statusfile"
+}
+
+#
+# Should check that the job has exited lrms, and then do whatever post-processing is necesarry.
+# Called with STDOUT and STDERR redirected to the job.*.errors file.
+# Input variables:
+#   * gridid
+#   * lrmsid
+#   * uid
+#
+process_job() {
+
+    [ -n "$gridid" ] && [ -n "$lrmsid" ] && [ -n "$uid" ] && [ -n "$LRMS" ] \
+    || { log "process_job requires the following to be set: gridid, lrmsid, uid, LRMS"; return 1; }
+ 
+    lrms_job_finished || return
+
+    log "[$(date +%Y-%m-%d\ %T)] $LRMS job $lrmsid has exited"
+ 
+    localfile=job.$gridid.local
+    sessiondir=$(sed -n 's/^sessiondir=//p' "$localfile" | tail -n 1)
+    [ -n "$sessiondir" ] || { log "failed reading sessiondir from: $PWD/$localfile"; return 1; }
+ 
+    job_read_diag
+    lrms_get_accounting
+ 
+    if [ -z "$lrmsexitcode" ] && job_canwait; then
+        : # Come back again next time
+    else
+        rm -f "$countfile"
+        job_print_comment
+        lrms_last_call
+        job_write_diag
+        job_write_donefile
+    fi
+}
+
+
+scan_init () {
+
+    [ -n "$basedir" ] || { log "basedir must be set"; exit 1; }
+    [ -n "$LRMS" ] || { log "LRMS must be set"; exit 1; }
+
+    LIST_IMPLEMENTED=yes
+    ACCT_IMPLEMENTED=yes
+
+    maxwait=5
+    wakeupperiod=60
+
+    trap 'sleep $wakeupperiod' EXIT TERM
+
+    TMPDIR=${TMPDIR:-$CONFIG_tmpdir}
+    TMPDIR=${TMPDIR:-@tmp_dir@}
+    export TMPDIR
+
+    # default is shared sessiondirs
+    if [ -z "$CONFIG_shared_filesystem" ]; then
+      CONFIG_shared_filesystem=yes
+    elif [ "$CONFIG_shared_filesystem" = 'no' ]; then
+      CONFIG_shared_filesystem=
+    fi
+}
+
+
+scan_main() {
+
+    # Initial working directory
+    myworkdir=$(pwd) || { log "pwd failed"; exit 1; }
+
+    # Validate control directories supplied on command-line
+    test -n "$1" || { log "control_dir not specified"; exit 1; }
+
+    for ctr_dir in "$@"; do
+        cd "$myworkdir" || { log "cannot cd to $myworkdir"; exit 1; }
+        cd "$ctr_dir" || { log "erroneous control dir: $ctr_dir"; exit 1; }
+    done
+
+    for ctr_dir in "$@"; do
+        cd "$myworkdir" || { log "cannot cd to $myworkdir"; exit 1; }
+        cd "$ctr_dir" || { log "erroneous control dir: $ctr_dir"; exit 1; }
+
+        # This perl script scans the current directory for grid jobs in INLRMS
+        # and CANCELING states. If not running as the superuser, also filter
+        # out any jobs not belonging to the current user.  Finally, prints to
+        # STDOUT onle line for each job containing:
+        #   * grid ID, only the digits
+        #   * local ID, as in LRMS
+        #   * uid of owner of the job.*.local file
+        listscript='use English;
+                    exit 1 unless opendir(DIR,".");
+                    while (my $fname = readdir DIR) {
+                        my ($gridid, $lrmsid, $status);
+                        ($gridid) = ($fname =~ m/^job\.(\d+)\.status$/);
+                        next unless defined $gridid;
+                        next unless open(STATUS,"< $fname");
+                        $status = <STATUS>;
+                        close STATUS;
+                        next unless $status and $status =~ m/^INLRMS|CANCELING$/;
+                        next unless open(LOCAL,"< job.$gridid.local");
+                        my @stat = stat(LOCAL);
+                        { local $/=undef; ($lrmsid) = (<LOCAL> =~ m/^localid=(\d+)/m) };
+                        close LOCAL;
+                        next unless $lrmsid;
+                        next unless @stat;
+                        next unless $EUID == 0 or $EUID == $stat[4];
+                        print "$gridid $lrmsid $stat[4]\n";
+                    }
+                    closedir DIR;
+        '
+
+        # This perl script filters out from the output of the previous script
+        # jobs whose lrms id is among the arguments passed to the script.
+        filterscript='my $lrmsids = " @ARGV ";
+                      while(my $line = <STDIN>) {
+                          chomp $line;
+                          my ($gridid,$lrmsid,$uid) = split / /, $line;
+                          next if $lrmsids =~ m/\s$lrmsid\s/;
+                          print "$gridid $lrmsid $uid\n";
+                      }
+        '
+
+        lrmsids=$(lrms_list_jobs) || { log "lrms_list_jobs failed"; continue; }
+
+        if [ -n "$LIST_IMPLEMENTED" ]; then
+            filter_jobs() { perl -we "$filterscript" $lrmsids; }
+        else
+            filter_jobs() { cat; } # no filtering
+        fi
+
+        perl -we "$listscript" | filter_jobs | while read gridid lrmsid uid; do
+
+            log () { echo "$progname: $*" 1>&2; }
+
+            donefile=job.$gridid.lrms_done
+            [ -f "$donefile" ] && continue
+
+            errorsfile=job.$gridid.errors
+            [ -w "$errorsfile" ] || { log "cannot write to errors file at: $PWD/$errorsfile"; continue; }
+
+            # run in separate process to make sure shell vars of one job
+            # are not influencing other jobs
+            ( process_job; ) >> "$errorsfile" 2>&1
+        done
+    done
+}
+
+
+################################### Condor ####################################
+
+lrms_list_jobs() {
+    script='my $cmd="$ENV{CONDOR_BIN_PATH}/condor_q -global";
+            open Q, "$cmd|" or die "Failed running $cmd : $!\n";
+            my $out; { local $/; $out = <Q>; }; close Q;
+            exit 0 if $out =~ m/All queues are empty/;
+            die "Non-zero exit status returned by $cmd\n" if $?;
+            my @ids = ($out =~ m/^\s*(\d+)\.\d+\s+/mg);
+            print "$_\n" for @ids;
+    '
+    perl -we "$script"
+}
+
+
+condor_read_history() {
+
+    # added braces to force the redirection to apply to the whole command, not
+    # just to the sub-command. Seems like a bash bug.
+    { histstring=$( $CONDOR_BIN_PATH/condor_history -l "$lrmsid" ); } 2>&1
+
+    # the awk expression checks that the input is more than 1 line long
+    [ $? = 0 ] && echo "$histstring" | awk 'END{if(NR<2){exit 1}}' || return 1
+
+    # Extract information from condor_history output
+    __RemoteHost=$(echo "$histstring" | sed -n 's/^LastRemoteHost *= *"\(.*\)"[^"]*$/\1/p')
+    __WallTime=$(echo   "$histstring" | sed -n 's/^RemoteWallClockTime *= *\([0-9]*\).*/\1/p')
+    __KernelTime=$(echo "$histstring" | sed -n 's/^RemoteSysCpu *= *\([0-9]*\).*/\1/p')
+    __UserTime=$(echo   "$histstring" | sed -n 's/^RemoteUserCpu *= *\([0-9]*\).*/\1/p')
+    __ImageSize=$(echo  "$histstring" | sed -n 's/^ImageSize *= *//p')
+    __ExitCode=$(echo   "$histstring" | sed -n 's/^ExitCode *= *//p')
+    ExitStatus=$(echo   "$histstring" | sed -n 's/^ExitStatus *= *//p')
+    JobStatus=$(echo    "$histstring" | sed -n 's/^JobStatus *= *//p')
+    ExitSignal=$(echo   "$histstring" | sed -n 's/^ExitSignal *= *//p')
+    RemoveReason=$(echo "$histstring" | sed -n 's/^RemoveReason *= *"\(.*\)"[^"]*$/\1/p')
+    ExitReason=$(echo   "$histstring" | sed -n 's/^ExitReason *= *"\(.*\)"[^"]*$/\1/p')
+
+    echo "$RemoveReason" | grep -q 'PeriodicRemove .*evaluated to \(TRUE\)'
+    [ $? = 0 ] && PeriodicRemove=TRUE
+
+    return 0
+}
+
+
+seconds() {
+    perl -e 'my $str = "'"$1"'";
+        exit unless $str =~ /(\d+) (\d\d):(\d\d):(\d\d)/;
+        printf "%.0f", ( $1 * 24  + $2 ) * 3600 + $3 * 60 + $4;
+    '
+}
+find_in_file() { file=$1; regex=$2;
+    grep "$regex" "$file" | tail -n 1 | sed -n "s/\(.*\)$regex\(.*\)/\2/ip";
+}
+
+
+condor_read_log() {
+
+    # Find the Condor log.
+    gramifile=job.$gridid.grami
+    [ -f "$gramifile" ] || { log "grami file not found: $PWD/$gramifile"; return 1; }
+    condor_log=$(sed -n 's/^condor_log=//p' "$gramifile" | tail -n 1)
+    [ -n "$condor_log" ] || { log "condor_log not set in grami file: $PWD/$gramifile"; return 1; }
+    log "condor log is at: $condor_log"
+    [ -r "$condor_log" ] || { log "Condor log file not readable: $condor_log"; return 1; }
+
+    # Parse condor log. Look for lines like:
+    #    (return value 0)
+    #    Image size of job updated: 692632
+    #    Usr 0 00:37:09, Sys 0 00:00:04  -  Total Remote Usage
+    #    Job executing on host: <129.240.86.70:32769>
+
+    _RemoteHost=$(   find_in_file "$condor_log" 'Job executing on host: *<\([^:>]*\)' )
+    _UserTime=$(   find_in_file "$condor_log" 'Usr \([0-9][0-9]* [0-9][0-9]:[0-9][0-9]:[0-9][0-9]\).*Total Remote Usage' )
+    _KernelTime=$( find_in_file "$condor_log" 'Sys \([0-9][0-9]* [0-9][0-9]:[0-9][0-9]:[0-9][0-9]\).*Total Remote Usage' )
+    _ImageSize=$(find_in_file "$condor_log" 'Image size of job updated: \([0-9][0-9]*\)' )
+    _ExitCode=$(   find_in_file "$condor_log"   '(return value \([0-9][0-9]*\))' )
+
+    _UserTime=$(seconds "$_UserTime")
+    _KernelTime=$(seconds "$_KernelTime")
+}
+
+
+lrms_get_accounting() {
+
+    condor_read_history || { log "Job has exited but is not yet listed by condor_history"; return 1; }
+
+    # set lrmsexitcode to signal that no more tries are necessary
+    lrmsexitcode=-1
+}
+
+
+lrms_last_call() {
+
+    condor_read_log && {
+
+        # override values read from .diag
+        nodename=${_RemoteHost:-$nodename}
+        UserTime=${_UserTime:-$UserTime}
+        KernelTime=${_KernelTime:-$KernelTime}
+        TotalMemory=${_ImageSize:-$TotalMemory}
+
+        echo "$progname: ----- begin condor log ($condor_log) -----"
+        cat "$condor_log"
+        echo "$progname: ----- end condor log ($condor_log) -----"
+
+        echo "$progname: ----- Information extracted from Condor log -----"
+        [ -n "$_RemoteHost" ] && echo "$progname: RemoteHost=$_RemoteHost"
+        [ -n "$_UserTime" ] && echo "$progname: UserTime=$_UserTime"
+        [ -n "$_KernelTime" ] && echo "$progname: KernelTime=$_KernelTime"
+        [ -n "$_ImageSize" ] && echo "$progname: ImageSize=$_ImageSize"
+        [ -n "$_ExitCode" ] && echo "$progname: ExitCode=$_ExitCode"
+        echo "$progname: -------------------------------------------------"
+    }
+
+    if [ -z "$lrmsexitcode" ]; then
+        log "$progname: No condor_history for Condor ID $lrmsid"
+    else
+
+        # override values read from condor_log
+        nodename=${__RemoteHost:-$nodename}
+        WallTime=${__WallTime:-$WallTime}
+        UserTime=${__UserTime:-$UserTime}
+        KernelTime=${__KernelTime:-$KernelTime}
+        TotalMemory=${__ImageSize:-$TotalMemory}
+
+        echo "$progname: ----- begin condor history message -----"
+        echo "$histstring"
+        echo "$progname: ----- end condor history message -----"
+
+        echo "$progname: ----- Information extracted from condor_history -----"
+        [ -n "$__RemoteHost" ] && echo "$progname: LastRemoteHost=$__RemoteHost"
+        [ -n "$__WallTime" ] && echo "$progname: RemoteWallClockTime=$__WallTime"
+        [ -n "$__UserTime" ] && echo "$progname: RemoteUserCpu=$__UserTime"
+        [ -n "$__KernelTime" ] && echo "$progname: RemoteSysCpu=$__KernelTime"
+        [ -n "$__ImageSize" ] && echo "$progname: ImageSize=$__ImageSize"
+        [ -n "$__ExitCode" ] && echo "$progname: ExitCode=$__ExitCode"
+        [ -n "$ExitStatus" ] && echo "$progname: ExitStatus=$ExitStatus"
+        [ -n "$JobStatus" ] && echo "$progname: JobStatus=$JobStatus"
+        [ -n "$ExitSignal" ] && echo "$progname: ExitSignal=$ExitSignal"
+        [ -n "$RemoveReason" ] && echo "$progname: RemoveReason=$RemoveReason"
+        [ -n "$ExitReason" ] && echo "$progname: ExitReason=$ExitReason"
+        echo "$progname: -----------------------------------------------------"
+    fi
+
+    lrmsexitcode=${__ExitCode:-$_ExitCode}
+
+    # set lrmsexitcode to signal that no more tries are necessary
+    [ -n "$lrmsexitcode" ] || log "ExitCode not found in condor log and condor_history"
+
+    # set message in case condor killed the job. lrmsexitcode should not be 0.
+    if [ -n "$PeriodicRemove" ]; then
+        [ "$lrmsexitcode" = 0 ] && lrmsexitcode=
+        lrmsmessage="PeriodicRemove evaluated to TRUE"
+    elif [ -n "$RemoveReason" ] && [ "$RemoveReason" != "None" ]; then
+        [ "$lrmsexitcode" = 0 ] && lrmsexitcode=
+        lrmsmessage="RemoveReason: $RemoveReason"
+    elif [ -n "$ExitReason" ] && [ "$ExitReason" != "None" ]; then
+        [ "$lrmsexitcode" = 0 ] && lrmsexitcode=
+        lrmsmessage="ExitReason: $ExitReason"
+    fi
+
+    # Check whether the job was killed by Condor. If yes, check for exceeded resources limits
+    if ( [ -n "$RemoveReason" ] && [ "$RemoveReason" != "None" ] ) || [ -n "$PeriodicRemove" ]; then
+        read_grami; autodetect_overlimit
+    fi
+}
+
+scan_init
+scan_main "$@"
+
+exit 0

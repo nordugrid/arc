@@ -1411,7 +1411,7 @@ AC_CONFIG_FILES([Makefile
                  src/services/a-rex/lrms/Makefile
                  src/services/a-rex/lrms/submit_common.sh
                  src/services/a-rex/lrms/condor/Makefile
-                 src/services/a-rex/lrms/condor/finish-condor-job
+                 src/services/a-rex/lrms/condor/scan-condor-job
                  src/services/a-rex/lrms/condor/cancel-condor-job
                  src/services/a-rex/lrms/condor/submit-condor-job
                  src/services/a-rex/lrms/fork/Makefile
