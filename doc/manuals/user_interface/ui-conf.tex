@@ -130,16 +130,8 @@ Configures which brokering algorithm to use during job submission. This attribut
 corresponds to the \verb#-b# command line option. The
 default one is the \texttt{Random} broker that chooses targets randomly.
 Another possibility is, for example, the \texttt{FastestQueue} broker that
-chooses the target with the shortest estimated queue waiting time. Possible
-values are:
-\begin{itemize}
- \item[\texttt{Random}] -- ranks targets randomly (default)
- \item[\texttt{FastestQueue}] -- ranks targets according to their queue length
-% \item[\texttt{Benchmark}] -- ranks targets according to CPU performance
- \item[\texttt{Data}] -- ranks target according the amount of megabytes of the
-requested input files that are already in the computing resource’s cache.
-% \item[\texttt{SampleBroker}] -- Ranks targets randomly (written in Python)
-\end{itemize}
+chooses the target with the shortest estimated queue waiting time. For an 
+overview of brokers, please refer to Section~\ref{sec:arcsub}.
 
  Example:
 \verb#    brokername=Data#
@@ -151,7 +143,8 @@ requested input files that are already in the computing resource’s cache.
   \uicommand{brokerarguments}
 \end{shaded}
 
-This attribute is used in case a broker comes with arguments. 
+This attribute is used in case a broker comes with arguments. This corresponds to the
+parameter that follows column in the \verb#-b# command line option.
 
 Example:
 \verb#    brokerarguments=cow#

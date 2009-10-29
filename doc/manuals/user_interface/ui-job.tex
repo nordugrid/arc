@@ -207,15 +207,7 @@ that can be understood by the Grid services to which it is being
 submitted. By specifying the \verb#-dumpdescription# option, such transformed
 description is written to stdout instead of being submitted to the remote site.
 
-Possible broker values for the option \verb#-b# are:
-\begin{itemize}
- \item[\texttt{Random}] -- ranks targets randomly (default)
- \item[\texttt{FastestQueue}] -- ranks targets according to their queue length
-% \item[\texttt{Benchmark}] -- ranks targets according to CPU performance
- \item[\texttt{Data}] -- ranks target according the amount of megabytes of the
-requested input files that are already in the computing resource’s cache.
-% \item[\texttt{SampleBroker}] -- Ranks targets randomly (written in Python)
-\end{itemize}
+\input{ui-brokers}
 
 
 \subsection{arcstat}
