@@ -16,3 +16,5 @@ libhttpsclient_la_LIBADD = $(top_srcdir)/src/hed/libs/common/libarccommon.la \
 libhttpsclient_la_LDFLAGS  = -no-undefined -avoid-version -module
 
 EXTRA_DIST = dummy_soap.h
+
+MOSTLYCLEANFILES = dummy_soap*.cpp dummy_soapH.h dummy_soapStub.h
