@@ -364,7 +364,7 @@ namespace Arc {
     PayloadRaw request;
     PayloadRawInterface *response = NULL;
     HTTPClientInfo info;
-    MCC_Status status = client.process("GET", &request, &info, &response);
+    MCC_Status status = client.process("HEAD", &request, &info, &response);
     if (!response)
       return DataStatus::ListError;
     delete response;
@@ -398,6 +398,7 @@ namespace Arc {
         return DataStatus::ListError;
 
       bool is_html = false;
+      bool is_body = false;
       std::string::size_type tagstart = 0;
       std::string::size_type tagend = 0;
       std::string::size_type titlestart = std::string::npos;
@@ -416,8 +417,9 @@ namespace Arc {
           titleend = tagstart - 1;
         else if (strcasecmp(tag.c_str(), "html") == 0)
           is_html = true;
-      } while (titlestart == std::string::npos ||
-               titleend == std::string::npos);
+        else if (strcasecmp(tag.c_str(), "body") == 0)
+          is_body = is_html;
+      } while (!is_body);
 
       std::string title;
       if (titlestart != std::string::npos && titleend != std::string::npos)
@@ -427,7 +429,7 @@ namespace Arc {
       //if (title.substr(0, 10) == "Index of /" ||
       //    title.substr(0, 5) == "ARex:") {
       // Treat every html as potential directory/set of links
-      if (is_html) {
+      if (is_body) {
         if (metadata) {
           std::list<FileInfo>::iterator f = files.insert(files.end(),
                                                          url.FullPath());
