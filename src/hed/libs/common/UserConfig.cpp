@@ -7,6 +7,7 @@
 #include <glibmm.h>
 #ifdef HAVE_GIOMM
 #include <giomm/file.h>
+#include <giomm/error.h>
 #else
 #include <sys/stat.h>
 #endif
@@ -856,7 +857,7 @@ namespace Arc {
 #ifdef HAVE_GIOMM
     try {
       dirCreated = Gio::File::create_for_path(path)->make_directory();
-    } catch (Gio::Error e) {
+    } catch (Glib::Error e) {
       logger.msg(WARNING, "%s", (std::string)e.what());
     }
 #else
