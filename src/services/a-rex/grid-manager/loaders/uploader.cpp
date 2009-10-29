@@ -311,6 +311,7 @@ int main(int argc,char** argv) {
   char* session_dir = argv[optind+2];
   if(!session_dir) { logger.msg(Arc::ERROR, "Missing session directory"); return 1; };
 
+  read_env_vars();
   // prepare Job and User descriptions (needed for substitutions in cache dirs)
   JobDescription desc(id,session_dir);
   uid_t uid;
