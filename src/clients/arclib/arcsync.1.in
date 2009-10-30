@@ -48,7 +48,7 @@ wants to recreate the file on a different computer,the \fBarcsync\fR
 command can be used to recreate the file from the information available
 the specified cluster or index server.
 
-Since the information about a job retrieved from a clsuter can be
+Since the information about a job retrieved from a cluster can be
 slightly out of date if the user very recently submitted or removed a
 job a warning is issued when this command is run. The \fB-force\fR
 option disables this warning.
