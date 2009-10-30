@@ -16,6 +16,8 @@ namespace Hopi {
 
 PayloadBigFile::Size_t PayloadBigFile::threshold_ = 1024*1024*10; // 10MB by default
 
+#ifndef WIN32 
+
 PayloadFile::PayloadFile(const char* filename,Size_t start,Size_t end):handle_(-1),addr_(NULL),size_(0) {
   start_=start;
   end_=end;
@@ -32,14 +34,10 @@ PayloadFile::PayloadFile(const char* filename,Size_t start,Size_t end):handle_(-
     end_=start_;
     return;
   }
-#ifndef WIN32 
   if(size_ > 0) {
     addr_=(char*)mmap(NULL,size_,PROT_READ,MAP_SHARED,handle_,0);
     if(addr_ == MAP_FAILED) goto error;
   }
-#else 
-  goto error;
-#endif
 
   return;
 error:
@@ -50,11 +48,7 @@ error:
 }
 
 PayloadFile::~PayloadFile(void) {
-
-#ifndef WIN32 
   if(addr_ != NULL) munmap(addr_,size_);
-#endif
-
   close(handle_);
   handle_=-1; size_=0; addr_=NULL;
   return;
@@ -111,6 +105,8 @@ bool PayloadFile::Truncate(Size_t /*size*/) {
   return false;
 }
 
+#endif
+
 static int open_file_read(const char* filename) {
   return ::open(filename,O_RDONLY);
 }
@@ -166,15 +162,17 @@ bool PayloadBigFile::Get(char* buf,int& size) {
 }
 
 Arc::MessagePayload* newFileRead(const char* filename,Arc::PayloadRawInterface::Size_t start,Arc::PayloadRawInterface::Size_t end) {
+#ifndef WIN32 
   PayloadBigFile* file1 = new PayloadBigFile(filename,start,end);
   if(!*file1) { delete file1; return NULL; };
-#ifndef WIN32 
   if(file1->Size() > PayloadBigFile::Threshold()) return file1;
   PayloadFile* file2 = new PayloadFile(filename,start,end);
   if(!*file2) { delete file2; return file1; };
   delete file1;
   return file2;
 #else
+  PayloadBigFile* file1 = new PayloadBigFile(filename,start,end);
+  if(!*file1) { delete file1; return NULL; };
   return file1;
 #endif
 }

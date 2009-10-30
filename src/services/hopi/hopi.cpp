@@ -58,6 +58,7 @@ class HopiFileChunks {
   std::string Path(void) { return self->first; };
   static HopiFileChunks& Get(std::string path);
   static HopiFileChunks* GetStuck(void);
+  static HopiFileChunks* GetFirst(void);
   void Remove(void);
   void Release(void);
   bool Complete(void);
@@ -92,6 +93,18 @@ HopiFileChunks* HopiFileChunks::GetStuck(void) {
     }
   }
   last_timeout=time(NULL);
+  lock.unlock();
+  return NULL;
+}
+
+HopiFileChunks* HopiFileChunks::GetFirst(void) {
+  lock.lock();
+  std::map<std::string,HopiFileChunks>::iterator f = files.begin();
+  if(f != files.end()) {
+    ++(f->second.refcount);
+    lock.unlock();
+    return &(f->second);
+  };
   lock.unlock();
   return NULL;
 }
@@ -200,6 +213,7 @@ class HopiFile {
   bool operator!(void) { return (handle == -1); };
   void Destroy(void);
   static void DestroyStuck(void);
+  static void DestroyAll(void);
 };
 
 HopiFile::HopiFile(const std::string& path,bool for_read,bool slave):handle(-1),chunks(HopiFileChunks::Get(path)) {
@@ -260,9 +274,26 @@ void HopiFile::DestroyStuck(void) {
       stuck_chunks->Release();
       return;
     }
-    unlink(stuck_path.c_str());
+    ::unlink(stuck_path.c_str());
     stuck_chunks->Remove();
     prev_path=stuck_path;
+  }
+}
+
+void HopiFile::DestroyAll(void) {
+  std::string prev_path;
+  for(;;) {
+    HopiFileChunks* first_chunks = HopiFileChunks::GetFirst();
+    if(!first_chunks) return;
+    std::string first_path = first_chunks->Path();
+    if(first_path == prev_path) {
+      // This may happen if other thread just started accessing this file
+      first_chunks->Release();
+      return;
+    }
+    ::unlink(first_path.c_str());
+    first_chunks->Remove();
+    prev_path=first_path;
   }
 }
 
@@ -315,6 +346,7 @@ class HopiFileTimeout {
   void Destroy(void);
   static void Add(const std::string& p);
   static void DestroyOld(void);
+  static void DestroyAll(void);
 };
 
 std::map<std::string,time_t> HopiFileTimeout::files;
@@ -361,6 +393,19 @@ void HopiFileTimeout::DestroyOld(void) {
   lock.unlock();
 }
 
+void HopiFileTimeout::DestroyAll(void) {
+  lock.lock();
+  std::map<std::string,time_t>::iterator f = files.begin();
+  for(;f != files.end();) {
+    ::unlink(f->first.c_str());
+    std::map<std::string,time_t>::iterator f_ = f;
+    ++f;
+    files.erase(f_);
+  }
+  lock.unlock();
+}
+
+
 Hopi::Hopi(Arc::Config *cfg):RegisteredService(cfg),slave_mode(false)
 {
     logger.msg(Arc::INFO, "Hopi Initialized"); 
@@ -395,6 +440,8 @@ bool Hopi::RegistrationCollector(Arc::XMLNode &doc) {
 Hopi::~Hopi(void)
 {
     logger.msg(Arc::INFO, "Hopi shutdown");
+    HopiFile::DestroyAll();
+    HopiFileTimeout::DestroyAll();
 }
 
 Arc::MessagePayload *Hopi::Get(const std::string &path, const std::string &base_url, unsigned long long int range_start, unsigned long long int range_end)
