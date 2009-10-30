@@ -39,7 +39,7 @@ cat $1 1>&2
 RTE_stage0
 
 # Force shell /bin/sh, other qsub options have been moved to the job script
-SGE_QSUB='qsub -S /bin/sh'
+SGE_QSUB='qsub -S @posix_shell@'
 SGE_QCONF=qconf
 if [ "$SGE_BIN_PATH" ] ; then
   SGE_QSUB=${SGE_BIN_PATH}/${SGE_QSUB}
@@ -51,7 +51,8 @@ mktempscript
 ##############################################################
 # Start job script
 ##############################################################
-echo "# SGE batch job script built by grid-manager" > $LRMS_JOB_SCRIPT
+echo '#!@posix_shell@' > $LRMS_JOB_SCRIPT
+echo "# SGE batch job script built by grid-manager" >> $LRMS_JOB_SCRIPT
 # Job not rerunable:
 echo "#$ -r n" >> $LRMS_JOB_SCRIPT
 # Don't send mail when job finishes:
