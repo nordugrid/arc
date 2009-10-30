@@ -972,17 +972,9 @@ Since he can see some files in there, so he have permissions to list that direct
 Now, configure the Bartenders on all three machines to use the Gateway module:
 
 \begin{verbatim}
-<Service name="pythonservice" id="bartender">
-    <ClassName>storage.bartender.bartender.BartenderService</ClassName>
-    <LibrarianURL>[...]</LibrarianURL>
-    <ProxyStore>/var/spool/arc/proxy_store</ProxyStore>
-    <GatewayClass>storage.bartender.gateway.gateway.Gateway</GatewayClass>
-    <GatewayCfg>
-        <ProxyStore>/var/spool/arc/proxy_store</ProxyStore>
-        <CACertificatesDir>/etc/grid-security/certificates</CACertificatesDir>
-    </GatewayCfg>
-    <ClientSSLConfig FromFile="/etc/arc/clientsslconfig.xml" />
-</Service>
+[bartender]
+endpoint=https://chelonia3.knowarc.eu:60003/Bartender
+proxystore=/var/spool/arc/proxy_store
 \end{verbatim}
 
 Next, start all three servers. Then create a mount point with the Logical Name \verb!/salmount! which points to this URL:
@@ -1061,16 +1053,32 @@ $ chelonia get /salmount/data1 /tmp
 \section{Using the ARC DMC} % (fold)
 \label{sec:using_the_arc_dmc}
 
-\textbf{This section was not updated.}
+ARC has its own multi-protocol storage client tools which provide a
+unified way to access different kind of storage. For all the supported
+types there is a DMC module. For Chelonia, the ARC DMC module is
+used. If it is compiled and installed, then you can use the
+\verb!arcls!, \verb!arccp!, \verb!arcrm!, etc. tools with the
+\verb!arc://! protocol to access the ARC storage system. You can
+specify the URL of the Bartender with the \verb!BartenderURL! URL
+option, or you can have a Bartender URL configured in the
+\verb!client.ini! user config by adding an entry \verb!bartender!:
 
-ARC has its own multi-protocol storage client tools which provide a unified way to access different kind of storage. For all the supported types there is a DMC module. For Chelonia, the ARC DMC module is used. If it is compiled and installed, then you can use the \verb!arcls!, \verb!arccp!, \verb!arcrm!, etc. tools with the \verb!arc://! protocol to access the ARC storage system. You can specify the URL of the Bartender with the \verb!BartenderURL! URL option, or you can have a Bartender URL configured in the \verb!client.xml! user config.
+\begin{verbatim}
+bartender= https://chelonia1/Bar https://chelonia2/Bar https://chelonia3/Bar
+\end{verbatim}
+
+If the \verb!client.ini! is not in the default path (for Linux,
+\verb!$HOME/.arc/client.conf!), you need to specify the path to the
+configuration file with the \verb!-z! option.
+
+% todo: make arc dmc look up isis
 
 \begin{verbatim}
 $ arcls arc:///
 $ arccp orange arc:///orange
 $ arcls arc:///
 orange
-$ arcls arc:///?BartenderURL=https://storage2:60006/Bartender
+$ arcls arc:///?BartenderURL=https://chelonia1.knowarc.eu:60001/Bartender
 orange
 $ chelonia list /
 - Calling the Bartender's list method...
@@ -1098,8 +1106,6 @@ fruits
 \section{Using the FUSE module} % (fold)
 \label{sec:using_the_fuse_module}
 
-\textbf{This section was not updated.}
-
 Besides the \verb!chelonia! tool you can access the storage system with the use of a FUSE module. The following steps installs the ARC storage FUSE module:
 
 \begin{itemize}
@@ -1110,25 +1116,19 @@ Besides the \verb!chelonia! tool you can access the storage system with the use 
 $ sudo aptitude install fuse-python
 \end{verbatim}
 
-\item Set up \verb!~/.arc/client.xml!:
-
+\item Make sure \verb!bartender! is set in
+  \verb!$HOME/.arc/client.conf!:
 \begin{verbatim}
-$ cat ~/.arc/client.xml 
-<ArcConfig>
-  <KeyPath>/home/<username>/.arc/userkey.pem</KeyPath>
-  <CertificatePath>/home/<username>/.arc/usercert.pem</CertificatePath>
-  <CACertificatesDir>/etc/grid-security/certificates</CACertificatesDir>
-  <BartenderURL>https://localhost:60000/Bartender</BartenderURL>
-</ArcConfig>
+$ grep bartender ~/.arc/client.conf 
+bartender= https://chelonia1.knowarc.eu:60001/Bartender
 \end{verbatim}
 
-\item Create a mountpoint and mount arcfs.py:
+\item Create a mountpoint and mount arcfs:
 \begin{verbatim}
    $ pwd
    /home/me/arc
-   $ ln -s arc1/src/services/storage/fuse/arcfs.py arcfs.py
    $ mkdir mnt
-   $ python arcfs.py ./mnt 
+   $ arcfs ./mnt 
 \end{verbatim}
 This mounts ARCFS in \verb!/home/me/arc/mnt!, creates directory
 \verb!/home/me/arc/fuse_transfer! and a log file
@@ -1216,7 +1216,7 @@ or even
 
 Now, remounting the system, everything should still be there:
 \begin{verbatim}
-   $ python arcfs.py ./mnt
+   $ arcfs ./mnt
 
    $ find mnt/home/me/
    mnt/home/me/
