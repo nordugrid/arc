@@ -183,8 +183,8 @@ job_read_diag() {
 #
 job_write_diag() {
 
-    [ -n "$uid" ] && [ -n "$sessiondir" ] && [ -n "$diagstring" ] \
-    || { log "job_write_diag requires the following to be set: uid sessiondir diagstring"; return 1; }
+    [ -n "$uid" ] && [ -n "$sessiondir" ] \
+    || { log "job_write_diag requires the following to be set: uid sessiondir"; return 1; }
 
     diagfile=$sessiondir.diag;
 
@@ -700,6 +700,9 @@ lrms_last_call() {
     if ( [ -n "$RemoveReason" ] && [ "$RemoveReason" != "None" ] ) || [ -n "$PeriodicRemove" ]; then
         read_grami; autodetect_overlimit
     fi
+
+    # Condor does not write a .diag file.
+    exitcode=$lrmsexitcode
 }
 
 scan_init
