@@ -131,12 +131,10 @@ int main(int argc, char **argv) {
               << Arc::IString("y") << "/" << Arc::IString("n") << "] ";
     std::string response;
     std::cin >> response;
-    /*
-       if (response != Arc::IString("y")) {
-       std::cout << Arc::IString("Cancelling synchronization request") << std::endl;
-       return;
-       }
-     */
+    if (Arc::lower(response) != std::string(Arc::FindTrans("y"))) {
+      std::cout << Arc::IString("Cancelling synchronization request") << std::endl;
+      return 0;
+    }
   }
 
   if (!clusters.empty() || !indexurls.empty())
