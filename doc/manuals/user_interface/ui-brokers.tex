@@ -1,7 +1,7 @@
 % text about brokers; may need to be extended and possibly re-used in another
 % document, or moved as a separate subsection
 
-Possible broker values for the \texttt{arcsub} command line option \verb#-b# are:
+Possible \index{broker}broker values for the \texttt{arcsub} command line option \verb#-b# are:
 \begin{itemize}
  \item[--] \texttt{Random} -- ranks targets randomly (default)
  \item[--] \texttt{FastestQueue} -- ranks targets according to their queue length
@@ -14,11 +14,11 @@ requested input files that are already in the computing resource’s cache.
 
 To write a custom broker in C++ one has to write a new specialization of the \texttt{Broker} base class and implement the \texttt{SortTargets} method in the new class. The class should be compiled as a loadable
 module that has the proper ARC plugin descriptor for the new broker. For example, to build a broker plugin ``MyBroker'' one executes:
-\begin{lstlisting}
+\begin{lstlisting}[language=sh]
   g++ -I /arc-install/include \
       -L /arc-install/lib \
       `pkg-config --cflags glibmm-2.4 libxml-2.0` \
       -o libaccmybroker.so -shared MyBroker.cpp
 \end{lstlisting}
-For more details, refer to \textit{libarclib} documentation~\ref{cite:libarcclient}.
+For more details, refer to \textit{libarclib} documentation~\cite{libarcclient}.
 

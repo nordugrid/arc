@@ -7,7 +7,6 @@
 \usepackage{amssymb}
 \usepackage{color,framed}
 \usepackage{longtable}                             %for breaking tables
-\usepackage{listings}
 
 %%%%---- Use EPS figures and graphics with LaTeX ----
 %\usepackage{graphics}
@@ -22,6 +21,7 @@
   pdfcreator = {PDFLaTeX with hyperref package},
   pdfproducer = {PDFLaTeX}
 }
+
 
 \bibliographystyle{IEEEtran}
 
@@ -42,6 +42,48 @@
 \definecolor{shadecolor}{rgb}{1,1,0.6}
 \definecolor{salmon}{rgb}{1,0.9,1}
 \definecolor{cyan}{rgb}{0,1,1}
+\definecolor{grey}{rgb}{0.9,0.9,0.9}
+
+\usepackage{listings}
+ \lstset{
+         basicstyle=\small\ttfamily,
+         numbers=none,
+         numberstyle=\tiny,
+         stepnumber=1,
+         numbersep=5pt,
+         tabsize=2,
+         extendedchars=true,
+         breaklines=true,
+         keywordstyle=\color{red},
+                frame=b,         
+ %        keywordstyle=[1]\textbf,
+ %        keywordstyle=[2]\textbf,
+ %        keywordstyle=[3]\textbf,
+ %        keywordstyle=[4]\textbf,   \sqrt{\sqrt{}} %
+         stringstyle=\color{blue}\ttfamily,
+         showspaces=false,
+         showtabs=false,
+         xleftmargin=17pt,
+         frame=single,
+         framexleftmargin=17pt,
+         framexrightmargin=5pt,
+         framexbottommargin=4pt,
+         framextopmargin=4pt,
+         backgroundcolor=\color{grey},
+         showstringspaces=false     
+ }
+ \lstloadlanguages{
+         sh,
+         bash,
+         Python,
+         PHP,
+         Perl,
+         C,
+         C++,
+         XML,
+         HTML,
+         Java
+ }
 
 \begin{document}
 \def\today{\number\day/\number\month/\number\year}

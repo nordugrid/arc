@@ -34,13 +34,10 @@ corrupt, or the user wants to recreate the file on a different
 workstation, the \texttt{arcsync} command will recreate this file from
 the information available in the Information System.
 
-Since  the  information  about  a job retrieved from a clsuter can be slightly out of date if the user very recently
+Since  the  information  about  a job retrieved from a cluster can be slightly out of date if the user very recently
 submitted or removed a job, a warning is issued when this command is run. The \verb#--force# option disables this warning.
 
-%If a specific cluster is selected for the syncronisation while the job list contains jobs  on  a  different  cluster,
-%running  the arcsync command will remove the old jobs from the joblist, unless the \verb#--merge# option is given, in which
-%case the new found jobs are merged with the jobs already in the joblist.
-
+If the job list is not empty when invoking syncronisation, the old jobs will be merged with the new jobs, unless the \verb#--truncate# option is given, in which case the job list will first be truncated and then the new jobs will be added.
 
 \subsection{arcsub}\label{sec:arcsub}
 The \texttt{arcsub}\index{arcsub}\index{commands:arcsub} command is the
@@ -99,8 +96,7 @@ A simple \textit{"Hello World"} job could look like:
 
 A user has to have valid credentials (see Section~\ref{sec:proxy}) and be authorised at the specified site. The test file \texttt{job.jsdl} is shown below.
 
-\begin{framed}
-\begin{verbatim}
+\begin{lstlisting}[language=xml]
 <?xml version="1.0" encoding="UTF-8"?>
 <JobDefinition
  xmlns="http://schemas.ggf.org/jsdl/2005/11/jsdl"
@@ -129,8 +125,7 @@ A user has to have valid credentials (see Section~\ref{sec:proxy}) and be author
    </DataStaging>
  </JobDescription>
 </JobDefinition>
-\end{verbatim}
-\end{framed}
+\end{lstlisting}
 
 \begin{framed}
    If a job is successfully submitted, a \textbf{job identifier}
