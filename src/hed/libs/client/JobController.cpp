@@ -356,9 +356,8 @@ namespace Arc {
     for (std::list<Job>::iterator it = jobstore.begin();
          it != jobstore.end(); it++) {
 
-      if (!it->State && (status.empty() && force ||
-                         std::find(status.begin(), status.end(), it->State.GetGeneralState()) != status.end())) {
-        logger.msg(WARNING, "Job %s will only be deleted from local job list",
+      if (!it->State && force && status.empty()) {
+        logger.msg(WARNING, "Job information not found, job %s will only be deleted from local joblist",
                    it->JobID.str());
         toberemoved.push_back(it->JobID);
         continue;
@@ -369,13 +368,17 @@ namespace Arc {
         continue;
       }
 
+      // Job state is not among the specified states.
       if (!status.empty() &&
           std::find(status.begin(), status.end(), it->State()) == status.end() &&
           std::find(status.begin(), status.end(), it->State.GetGeneralState()) == status.end())
         continue;
 
       if (!it->State.IsFinished()) {
-        logger.msg(WARNING, "Job has not finished yet: %s", it->JobID.str());
+        if (force)
+          toberemoved.push_back(it->JobID);
+        else
+          logger.msg(WARNING, "Job has not finished yet: %s", it->JobID.str());
         continue;
       }
 
