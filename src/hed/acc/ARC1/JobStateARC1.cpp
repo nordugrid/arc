@@ -15,7 +15,10 @@ namespace Arc {
       return JobState::SUBMITTING;
     else if (state == "INLRMS:Q")
       return JobState::QUEUING;
-    else if (state == "INLRMS:R")
+    else if (state == "INLRMS:R" ||
+             state == "INLRMS:EXECUTED" ||
+             state == "INLRMS:S" ||
+             state == "INLRMS:E")
       return JobState::RUNNING;
     else if (state == "FINISHING")
       return JobState::FINISHING;
@@ -27,8 +30,10 @@ namespace Arc {
       return JobState::FAILED;
     else if (state == "DELETED")
       return JobState::DELETED;
-    else
+    else if (state == "")
       return JobState::UNDEFINED;
+    else
+      return JobState::OTHER;
   }
 
 }

@@ -17,8 +17,10 @@ namespace Arc {
       return JobState::FINISHED;
     else if (state == "FAILED")
       return JobState::FAILED;
-    else
+    else if (state == "")
       return JobState::UNDEFINED;
+    else
+      return JobState::OTHER;
   }
 
 }

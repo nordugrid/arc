@@ -41,7 +41,8 @@ namespace Arc {
     JOBSTATE_X(FINISHED, "Finished")\
     JOBSTATE_X(KILLED, "Killed")\
     JOBSTATE_X(FAILED, "Failed")\
-    JOBSTATE_X(DELETED, "Deleted")
+    JOBSTATE_X(DELETED, "Deleted")\
+    JOBSTATE_X(OTHER, "Other")
 
 #define JOBSTATE_X(a, b) a,
     enum StateType { JOBSTATE_TABLE };

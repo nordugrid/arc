@@ -27,8 +27,10 @@ namespace Arc {
       return JobState::KILLED;
     else if (state == "IDLE")
       return JobState::QUEUING;
-    else
+    else if (state == "")
       return JobState::UNDEFINED;
+    else
+      return JobState::OTHER;
   }
 
 }

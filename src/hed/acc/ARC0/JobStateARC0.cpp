@@ -27,8 +27,10 @@ namespace Arc {
       return JobState::FAILED;
     else if (state == "DELETED")
       return JobState::DELETED;
-    else
+    else if (state == "")
       return JobState::UNDEFINED;
+    else
+      return JobState::OTHER;
   }
 
 }
