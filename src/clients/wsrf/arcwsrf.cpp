@@ -48,7 +48,7 @@ int main(int argc, char **argv) {
                     
   std::string conffile;
   options.AddOption('z', "conffile",
-                    istring("configuration file (default ~/.arc/client.xml)"),
+                    istring("configuration file (default ~/.arc/client.conf)"),
                     istring("filename"), conffile);
 
   std::string debug;

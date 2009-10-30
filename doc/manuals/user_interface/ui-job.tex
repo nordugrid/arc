@@ -23,7 +23,7 @@ these lists with the information in the Information System, use the
    \texttt{-T, --truncate}& &truncate the job list before synchronising\\
    \texttt{-t, --timeout}&\textit{seconds}&timeout in seconds (default 20)\\
    \texttt{-d, --debug}&\textit{debuglevel}&debug level, FATAL, ERROR, WARNING, INFO, DEBUG or VERBOSE - default WARNING\\
-   \texttt{-z, --conffile}&\textit{filename}& configuration file (default {\$}HOME/.arc/client.xml)\\
+   \texttt{-z, --conffile}&\textit{filename}& configuration file (default {\$}HOME/.arc/client.conf)\\
    \texttt{-v, --version}&&print version information\\
    \texttt{-h, --help}&&print help page\\
 \end{longtable}
@@ -69,7 +69,7 @@ Condor or SGE etc.
 %   \texttt{-U, --unknownattr}&&allow unknown attributes in the job description\\
    \texttt{-t, --timeout}&\textit{seconds}&timeout in seconds (default 20)\\
    \texttt{-d, --debug}&\textit{debuglevel}&debug level, FATAL, ERROR, WARNING, INFO, DEBUG or VERBOSE - default WARNING\\
-   \texttt{-z, --conffile}&\textit{filename}& configuration file (default {\$}HOME/.arc/client.xml)\\
+   \texttt{-z, --conffile}&\textit{filename}& configuration file (default {\$}HOME/.arc/client.conf)\\
    \texttt{-b, --broker}&\textit{string}&select broker method (default is Random)\\
    \texttt{-n, --dolocalsandbox}& &store job descriptions in local sandbox (useful for eventual resubmission/migration)\\
    \texttt{-v, --version}&&print version information\\
@@ -228,7 +228,7 @@ description is written to stdout instead of being submitted to the remote site.
    \texttt{-l, --long}& & long format (extended information)\\
    \texttt{-t, --timeout}& \textit{time}& timeout for queries (default 20 sec)\\
    \texttt{-d, --debug}& \textit{debuglevel}&debug level is one of  FATAL, ERROR, WARNING, INFO, DEBUG or VERBOSE\\
-   \texttt{-z, --conffile}&\textit{filename}& configuration file (default {\$}HOME/.arc/client.xml)\\
+   \texttt{-z, --conffile}&\textit{filename}& configuration file (default {\$}HOME/.arc/client.conf)\\
    \texttt{-v, --version}& & print version information\\
    \texttt{-h, --help}& & print help page\\
    Arguments:&&\\
@@ -291,7 +291,7 @@ finished task without actually retreiving it.
    \texttt{-l, --gmlog}& & show the grid manager's error log of the job\\
    \texttt{-t, --timeout}& \textit{time} & timeout for queries (default 20 sec)\\
    \texttt{-d, --debug}& \textit{debuglevel}&debug level is one of  FATAL, ERROR, WARNING, INFO, DEBUG or VERBOSE\\
-   \texttt{-z, --conffile}&\textit{filename}& configuration file (default {\$}HOME/.arc/client.xml)\\
+   \texttt{-z, --conffile}&\textit{filename}& configuration file (default {\$}HOME/.arc/client.conf)\\
    \texttt{-v, --version}& & print version information\\
    \texttt{-h, --help}& & print help page\\
    Arguments:&&\\
@@ -330,7 +330,7 @@ attribute of job description to the user's computer.
    \texttt{-k, --keep}& & keep files on gatekeeper (do not clean)\\
    \texttt{-t, --timeout}& \textit{time} & timeout for queries (default 20 sec)\\
    \texttt{-d, --debug}& \textit{debuglevel}&debug level is one of  FATAL, ERROR, WARNING, INFO, DEBUG or VERBOSE\\
-   \texttt{-z, --conffile}&\textit{filename}& configuration file (default {\$}HOME/.arc/client.xml)\\
+   \texttt{-z, --conffile}&\textit{filename}& configuration file (default {\$}HOME/.arc/client.conf)\\
    \texttt{-v, --version}& & print version information\\
    \texttt{-h, --help}& & print help page\\
    Arguments:&&\\
@@ -363,7 +363,7 @@ job can be killed amost on any stage of processing through the Grid.
    \texttt{-k, --keep}& & keep files on gatekeeper (do not clean)\\
    \texttt{-t, --timeout}& \textit{time} & timeout for queries (default 20 sec)\\
    \texttt{-d, --debug}& \textit{debuglevel}&debug level is one of  FATAL, ERROR, WARNING, INFO, DEBUG or VERBOSE\\
-   \texttt{-z, --conffile}&\textit{filename}& configuration file (default {\$}HOME/.arc/client.xml)\\
+   \texttt{-z, --conffile}&\textit{filename}& configuration file (default {\$}HOME/.arc/client.conf)\\
    \texttt{-v, --version}& & print version information\\
    \texttt{-h, --help}& & print help page\\
    Arguments:&&\\
@@ -448,7 +448,7 @@ the Information System.
    \texttt{-f, --force} & & removes the job ID from the local list even if the job is not found on the Grid\\
    \texttt{-t, --timeout}& \textit{time} & timeout for queries (default 20 sec)\\
    \texttt{-d, --debug}& \textit{debuglevel}&debug level is one of  FATAL, ERROR, WARNING, INFO, DEBUG or VERBOSE\\
-   \texttt{-z, --conffile}&\textit{filename}& configuration file (default {\$}HOME/.arc/client.xml)\\
+   \texttt{-z, --conffile}&\textit{filename}& configuration file (default {\$}HOME/.arc/client.conf)\\
    \texttt{-v, --version}& & print version information\\
    \texttt{-h, --help}& & print help page\\
    Arguments:&&\\

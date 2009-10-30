@@ -32,7 +32,7 @@ force migration, ignore kill failure
 .IP "\fB-t\fR, \fB--timeout\fR=\fIseconds\fR"
 timeout in seconds (default 20)
 .IP "\fB-z\fR, \fB--conffile\fR=\fIfilename\fR"
-configuration file (default ~/.arc/client.xml)
+configuration file (default ~/.arc/client.conf)
 .IP "\fB-d\fR, \fB--debug\fR=\fIdebuglevel\fR"
 FATAL, ERROR, WARNING, INFO, DEBUG or VERBOSE
 .IP "\fB-b\fR, \fB--broker\fR"
@@ -120,7 +120,7 @@ do not use the Sweden index at grid.tsl.uu.se
 .SH FILES
 
 .TP
-.B ~/.arc/client.xml
+.B ~/.arc/client.conf
 Some options can be given default values by specifying them in the
 ARC client configuration file. By using the
 .B --conffile

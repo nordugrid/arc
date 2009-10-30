@@ -432,8 +432,8 @@ Because of that all user private keys will have to be kept unencrypted.
 
 To avoid providing credential information on command line it is possible to have
 user configuration file with predefined values. Default location for this file
-is \texttt{~/.arc/client.xml}. There is an example installed in
-\verb|$ARC_LOCATION/share/doc/arc/client.xml|. Please edit before copying it
+is \texttt{~/.arc/client.conf}. There is an example installed in
+\verb|$ARC_LOCATION/share/arc/examples/client.conf.example|. Please edit before copying it
 into your home directory.
 
 \subsection{Proxy Certificate Generation and Usage}
@@ -500,12 +500,13 @@ can be found in \texttt{/usr/share/doc/nordugrid-arc<version>/echo.xml}.
 \subsection{The Echo Client}
 \label{sec:echo-client}
 
-The configuration of the ARC Echo client is specified in an XML
-file. The location of the configuration file is specified by the
-environment variable \verb|$ARC_ECHO_CONFIG|. If there is no such
-environment
-variable, the configuration file is assumed to be \verb|echo_client.xml| in
-the current working directory.
+%%% This does not seem to be correct. The echo client seems to use a normal INI client configuration. Some one please verify this...
+%~ The configuration of the ARC Echo client is specified in an XML
+%~ file. The location of the configuration file is specified by the
+%~ environment variable \verb|$ARC_ECHO_CONFIG|. If there is no such
+%~ environment
+%~ variable, the configuration file is assumed to be \verb|echo_client.conf| in
+%~ the current working directory.
 
 To use the Echo client, type
 

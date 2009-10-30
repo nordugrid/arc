@@ -62,10 +62,10 @@
 %%%%---- The title ----
 {\centering \textsc{\ SECURITY FRAMEWORK OF ARC1}\Large \par}
 \vspace*{0.5cm}
-    
+
 %%%%---- A subtitle, if necessary ----
 {\centering \textit{\large Documentation and developer's guide}\large \par}
-    
+
 \vspace*{1.5cm}
 %%%%---- A list of authors ----
     {\centering \large Weizhong Qiang\footnote{weizhong.qiang@fys.uio.no} \large \par}
@@ -114,7 +114,7 @@ HED contains a framework for implementing and enforcing authentication and autho
 }} }
 \end{figure}
 
-Each SecHandler is configured inside same configuration file used for configuring whole chain of MCCs. Some of implemented SecHandler components also make use of pluggable and configurable sub-modules which specifically handle various security functionalities, such as authorization, authentication, etc. The currently implemented sub-modules used by some SecHandlers are Policy Decision Point (PDP) components such as Arc PDP which can process ARC specific Request and Policy documents. Figure \ref{fig:messageinMCC} gives the structure of a MCC/Service, and the message sequence inside it. 
+Each SecHandler is configured inside same configuration file used for configuring whole chain of MCCs. Some of implemented SecHandler components also make use of pluggable and configurable sub-modules which specifically handle various security functionalities, such as authorization, authentication, etc. The currently implemented sub-modules used by some SecHandlers are Policy Decision Point (PDP) components such as Arc PDP which can process ARC specific Request and Policy documents. Figure \ref{fig:messageinMCC} gives the structure of a MCC/Service, and the message sequence inside it.
 
 The configuration of SecHandler components for an example ``Echo'' service is shown as below. Example Echo service is configured to use two SecHandlers, both responsible for authorization. First SecHandler uses the identity of client extracted from the incoming message to map it into local identity like local Linux username. In this case all clients are mapped to local account “test”. The second one uses two PDPs: one will compose ARC specific authorization request based on the Security Attributes collected from “incoming” message and evaluate it against the ARC specific authorization policy which is defined in local file “policy.xml”; the other will compare the X509 identity of client extracted from the incoming message against list of identities stored locally.
 
@@ -139,7 +139,7 @@ The configuration of SecHandler components for an example ``Echo'' service is sh
 \subsection{Interface of SecHandler} % (fold)
 \label{subsec:interface_sechandler}
 
-When one component (MCC or service) is loaded according to the configuration information, the SecHandler under the component and the plug-ins like PDP which are attached to the SecHandler will be loaded as well. 
+When one component (MCC or service) is loaded according to the configuration information, the SecHandler under the component and the plug-ins like PDP which are attached to the SecHandler will be loaded as well.
 
 There is one simple interface (see below) defined in class SecHandler, which will be called by the containing MCC/Service once there is message (incoming or outgoing) need to be processed.
 
@@ -152,7 +152,7 @@ class SecHandler {
   };
 \end{verbatim}
 
-Class \textit{SecHandler} is an abstract class which includes a general interface called \textit{Handle} which uses Message object as argument. Any security handler implementation should inherit class \textit{SecHandler} and implement the interface according to the actual functionality. The interface only return simple \textit{Boolean} value, and any useful information generated during the calling of this interface should be put into the security attribute of the message, or put into the payload itself. 
+Class \textit{SecHandler} is an abstract class which includes a general interface called \textit{Handle} which uses Message object as argument. Any security handler implementation should inherit class \textit{SecHandler} and implement the interface according to the actual functionality. The interface only return simple \textit{Boolean} value, and any useful information generated during the calling of this interface should be put into the security attribute of the message, or put into the payload itself.
 
 Currently, the ARC1 comes with the following four security handler implemented:
 
@@ -195,7 +195,7 @@ Currently, the ARC1 comes with the following four policy decision point implemen
 The Arc PDP will organize the security attributes into the ARC specific authorization request, call the policy evaluator to evaluate the request against the policy (which is in ARC specific format) repository, and get back the evaluation result. See paragraph 3 for detail information about request schema and policy schema.
 
     \item xacml.pdp – XACML PDP
-The XACML PDP will organize the security attributes into the XACML authorization request (see: http://docs.oasis-open.org/xacml/2.0/access\_control-xacml-2.0-context-schema-os.xsd), call the policy evaluator to evaluate the request against the policy (which is in XACML format: http://docs.oasis-open.org/xacml/2.0/access\_control-xacml-2.0-policy-schema-os.xsd) repository, and get back the evaluation result. 
+The XACML PDP will organize the security attributes into the XACML authorization request (see: http://docs.oasis-open.org/xacml/2.0/access\_control-xacml-2.0-context-schema-os.xsd), call the policy evaluator to evaluate the request against the policy (which is in XACML format: http://docs.oasis-open.org/xacml/2.0/access\_control-xacml-2.0-policy-schema-os.xsd) repository, and get back the evaluation result.
 
     \item delegation.pdp – Delegation PDP
 The Delegation PDP is basically similar to Arc PDP, except it uses the delegation policy parsed from remote proxy credential by delegation.collector, and evaluates the request against delegation policy. See section 6for the design idea and use case of delegation policy in fine-grained identity delegation.
@@ -230,12 +230,12 @@ The ARC1 defines specific evaluation request and policy schema. Based on the sch
 \caption{\label{fig:policyengine_XACML}The UML class diagram of the classes inside policy evaluation engine that support XACML policy} }
 \end{figure}
 
-Figure \ref{fig:policyengine_ARC} and \ref{fig:policyengine_XACML} respectively show the UML class diagram about the policy evaluation engine for ARC policy and XACML policy. They show all classes and relations simultaneously for getting the overall picture. 
+Figure \ref{fig:policyengine_ARC} and \ref{fig:policyengine_XACML} respectively show the UML class diagram about the policy evaluation engine for ARC policy and XACML policy. They show all classes and relations simultaneously for getting the overall picture.
 
 
 The \textbf{Evaluator} class is the key class for policy evaluation. It accepts request evaluates it against loaded policy and returns evaluation response.
 
-Three abstract factories - \textit{FnFactory}, \textit{AlgFactory}, \textit{AttributeFactory} - are responsible for creating the \textit{Function}, \textit{CombiningAlg} and \textit{AttributeValue} objects correspondingly. The classes inherited from \textit{CombiningAlg} class take care of implementing various combining algorithms which define relations between \textit{$<$Rule/$>$} elements in policy. The \textit{AttributeValue} type of classes are used for processing different types of \textit{$<$Attribute/$>$} and similar elements. The \textit{Function} classes take care of comparing \textit{$<$Attribute/$>$} elements of request and policy. 
+Three abstract factories - \textit{FnFactory}, \textit{AlgFactory}, \textit{AttributeFactory} - are responsible for creating the \textit{Function}, \textit{CombiningAlg} and \textit{AttributeValue} objects correspondingly. The classes inherited from \textit{CombiningAlg} class take care of implementing various combining algorithms which define relations between \textit{$<$Rule/$>$} elements in policy. The \textit{AttributeValue} type of classes are used for processing different types of \textit{$<$Attribute/$>$} and similar elements. The \textit{Function} classes take care of comparing \textit{$<$Attribute/$>$} elements of request and policy.
 
 The \textit{Policy} class parses \textit{$<$Policy/$>$} or \textit{$<$Rule/$>$} elements and creates \textit{CombingAlg} objects according to the \textit{$<$RuleCombiningAlg/$>$} attribute of \textit{$<$Policy/$>$}, \textit{Function} objects according to the \textit{$<$Function/$>$} attribute of \textit{$<$Attribute/$>$} and \textit{AttributeValue} objects according to the \textit{$<$Type/$>$} attribute of \textit{$<$Attribute/$>$}. Those objects will be used when evaluating the request.
 
@@ -280,7 +280,7 @@ The hierarchy tree of ARC Request is show below (numbers show multiplicity of el
     Request (1)
         RequestItem (1-)
             Subject (1-)
-	        SubjectAttribute (1-)
+          SubjectAttribute (1-)
             Resource (0-)
             Action (0-)
             Context (0-)
@@ -292,7 +292,7 @@ The schema for ARC Response is available at
 
 http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk/src/hed/pdc/arcpdp/Response.xsd .
 
-The ARC Response is not used directly in code. It is in use by PDP Service which provides remote evaluation of policies. 
+The ARC Response is not used directly in code. It is in use by PDP Service which provides remote evaluation of policies.
 
 
 \subsubsection{Basic Elements of Policy} % (fold)
@@ -301,9 +301,9 @@ There are 2 basic objects - ``policy'' and ``request''. There is 1 main actor - 
 \textit{Evaluator} matches request to policy and produces one of 4 following results:
 
 \begin{itemize}
-    \item  \emph{PERMIT} - policy explicitely permits activity specified in request because request matches some part of policy and corresponding effect specified in policy is PERMIT. 
+    \item  \emph{PERMIT} - policy explicitely permits activity specified in request because request matches some part of policy and corresponding effect specified in policy is PERMIT.
 
-        \emph{Example}: 
+        \emph{Example}:
 
             \emph{Rule}: PERMIT person ALICE to PLAY in place called WONDERLAND
 
@@ -320,7 +320,7 @@ There are 2 basic objects - ``policy'' and ``request''. There is 1 main actor - 
     \item  \emph{INDETERMINATE} - request has some part which does not correspond to policy.
 
         \emph{Example}:
- 
+
             \emph{Rule}: DENY fruit APPLE to GROW on PEACH tree
 
             \emph{Request}: fruit APPLE to be GROWN on WHEAT ground
@@ -341,11 +341,11 @@ Any other situation which makes it impossibile to compare two attributes will al
 
             \emph{Rule}: DENY fruit APPLE to GROW on PEACH tree
 
-            \emph{Request}: fruit APPLE to be GROWN on APPLE tree 
+            \emph{Request}: fruit APPLE to be GROWN on APPLE tree
 
-            \emph{Request}: fruit ORANGE to be GROWN on PEACH tree 
+            \emph{Request}: fruit ORANGE to be GROWN on PEACH tree
 
-            \emph{Request}: fruit ORANGE to be GROWN on APPLE tree 
+            \emph{Request}: fruit ORANGE to be GROWN on APPLE tree
 
         \emph{Explanation}: for each part of the Request evaluator can find relevant part in the Policy - both Policy and Request are about fruit and tree. But the values do not match.
 
@@ -359,7 +359,7 @@ DENY fruit APPLE to GROW on PEACH tree otherwise PERMIT
 
 But one should be careful because example above would allow fruit PLUMS to grow on APPLE trees :)
 
-This kind of requirement can be supported by using the algorithm between policies.  For example, in case of above scenario, we can use some algorithm like "Permit-if-notapplicable". See below the "Policy matching" part for more explaination.  
+This kind of requirement can be supported by using the algorithm between policies.  For example, in case of above scenario, we can use some algorithm like "Permit-if-notapplicable". See below the "Policy matching" part for more explaination.
 
 
 \subsubsection{Policy Matching} % (fold)
@@ -402,14 +402,14 @@ These specify priorities for all four possible results. Their names look like Re
 
     There are 24 possible combinations of those algorithms.
 
-\emph{Note}: It would be useful to have more combining algorithms. For example 
+\emph{Note}: It would be useful to have more combining algorithms. For example
 
-    \item  \emph{Permit-if-notapplicable} - the use case could be ``DENY fruit APPLE to GROW on PEACH tree otherwise PERMIT''. In this case there is only one Rule under Policy, and this Rule is with ``Deny'' effect. 
+    \item  \emph{Permit-if-notapplicable} - the use case could be ``DENY fruit APPLE to GROW on PEACH tree otherwise PERMIT''. In this case there is only one Rule under Policy, and this Rule is with ``Deny'' effect.
 
     \begin{itemize}
         \item If this Rule gives DENY in results, final result is DENY.
         \item Otherwise if this Rule gives NOT\_APPLICABLE, final result is PERMIT.
-        \item Otherwise final result is INDETERMINATE. 
+        \item Otherwise final result is INDETERMINATE.
     \end{itemize}
 
     \item  \emph{Permit-if-allPermit} - Permit if all the Rules gives Permit, this algorithm is useful in case if we are collecting different policies from a few sources, and we want the request to satisfy all of them.
@@ -458,7 +458,7 @@ Additionally Subject could contain sub-elements SubjectAttribute. Those are mean
 
     \begin{itemize}
         \item Subject
-        \begin{itemize}     
+        \begin{itemize}
             \item SubjectAttribute: name is ALICE
             \item SubjectAttribute: age is YOUNG
             \item SubjectAttribute: gender is GIRL
@@ -545,7 +545,7 @@ Each RequestItem will be sequencialy and independently evaluated against policy/
 
 It is up to policy decision point to make final decision according to the evaluation results returned by evaluator, and the evaluator itself can not give this kind of final decision.
 
-Basically the policy decision point will feed policy engine with request, get back evaluation results, 
+Basically the policy decision point will feed policy engine with request, get back evaluation results,
 and make final decision.
 
 
@@ -557,15 +557,15 @@ Policy rule is made of 4 elements - Subjects, Resources, Actions, Conditions (Se
 There is no logical relationship between Subject, which means you can split one Rule into two Subject (under Subjects) into two Rule (each of which has one Subject (under Subjects)).From now only later ones (Subjects with only one Subject as sub-element, and the same for others) are described. Their meaning is same as in request with Condition corresponding to Context. Subject and Condition elements are also made of Attributes. All elements may be present more than one time. During procedure of matching each element in RequestItem is matched against all elements of same kind in Policy - Subject is matched to Subject, Resource to Resource, etc. For every combination 3 possible results are produced:
 
     \begin{itemize}
-        \item \emph{MATCHED} - element from RequestItem matched element in Policy Rule. 
+        \item \emph{MATCHED} - element from RequestItem matched element in Policy Rule.
             \emph{Example}:
             \emph{RequestItem Resource}: \textit{place called WONDERLAND}
             \emph{PolicyItem Resource}: \textit{place called WONDERLAND}
-        \item \emph{NOT MATCHED} - element from RequestItem did not match element in Policy Rule. 
+        \item \emph{NOT MATCHED} - element from RequestItem did not match element in Policy Rule.
             \emph{Example}:
             \emph{RequestItem Resource}: \textit{place called WONDERLAND}
             \emph{PolicyItem Resource}: \textit{place called PLAYGROUND}
-        \item \emph{INDETERMINATE} - element from RequestItem could not be compared to element in Policy  Rule because they are of incompatible ids/belong to different namespaces. 
+        \item \emph{INDETERMINATE} - element from RequestItem could not be compared to element in Policy  Rule because they are of incompatible ids/belong to different namespaces.
             \emph{Example}:
             \emph{RequestItem Resource}: \textit{place called WONDERLAND (with namespace ``place'')}
             \emph{PolicyItem Resource}: \textit{LEMON tree (with namespace ``tree'')}
@@ -599,7 +599,7 @@ The following is an example of the Policy:
         </Subjects>
         <Actions>
             <Action AttributeId="urn:knowarc:fileoperation">Read</Action>
-            <Action AttributeId="urn:knowarc:fileoperation">Delete</Action>   
+            <Action AttributeId="urn:knowarc:fileoperation">Delete</Action>
         </Actions>
         <Resources>
             <Resource AttributeId="urn:knowarc:fileidentity">file:///home/test</Resource>
@@ -754,32 +754,32 @@ For making usage of policy evaluation engine more convenient basic \textit{Evalu
 a)Create the policy evaluation object:
 
 \begin{verbatim}
-    // Create object which provides an interface 
+    // Create object which provides an interface
     // for loading other objects
-    ArcSec::EvaluatorLoader eval_loader; 
-    //Load the Evaluator 
+    ArcSec::EvaluatorLoader eval_loader;
+    //Load the Evaluator
     ArcSec::Evaluator* eval = NULL;
     // Define name of policy evaluator.
     // This one is for evaluation ARC policies
-    std::string evaluator = "arc.evaluator"; 
-    // If xacml evaluation engine is used, 
-    // std::string evaluator = "xacml.evaluator"; 
+    std::string evaluator = "arc.evaluator";
+    // If xacml evaluation engine is used,
+    // std::string evaluator = "xacml.evaluator";
 
     eval = eval_loader.getEvaluator(evaluator);
 \end{verbatim}
 b)Create the policy object:
 
 \begin{verbatim}
-    ArcSec::Policy* policy = NULL; 
+    ArcSec::Policy* policy = NULL;
     // Define type of policy – ARC policy in this case
-    std::string policyclassname = "arc.policy"; 
-    // If xacml policy is used, 
-    // std::string policyclassname = "xacml.policy"; 
+    std::string policyclassname = "arc.policy";
+    // If xacml policy is used,
+    // std::string policyclassname = "xacml.policy";
 
     // Define source from which policy to be taken
-    ArcSec::SourceFile policy_source("Policy_Example.xml"); 
+    ArcSec::SourceFile policy_source("Policy_Example.xml");
     // Load and parse policy
-    policy = eval_loader.getPolicy(policyclassname, policy_source); 
+    policy = eval_loader.getPolicy(policyclassname, policy_source);
 \end{verbatim}
 
 c)Create the request:
@@ -787,8 +787,8 @@ c)Create the request:
     ArcSec::Request* request = NULL;
     // Define type of request – ARC request in this case
     std::string requestclassname = "arc.request";
-    // If xacml request is used, 
-    // std::string requestclassname = "xacml.request"; 
+    // If xacml request is used,
+    // std::string requestclassname = "xacml.request";
 
     // Define source from which request to be taken
     ArcSec::SourceFile request_source("Request.xml");
@@ -830,7 +830,7 @@ The WSDL description of policy decision service is available at
 
  http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk/src/services/charon/charon.wsdl
 
-It's configuration is presented in Section \ref{subsec:pdpservice_conf}. 
+It's configuration is presented in Section \ref{subsec:pdpservice_conf}.
 
 %section policy_decision_service (end)
 
@@ -843,14 +843,14 @@ It's configuration is presented in Section \ref{subsec:pdpservice_conf}.
 
 Security Attributes represent security related information inside HED framework and store information representing various aspects needed to perform authorization decison - identity of client, requested action, targeted resource, constraint policies.
 
-Each kind of Security Attribute is represented by own class inherited from parent SecAttr class $<$arc/message/SecAttr.h$>$. 
+Each kind of Security Attribute is represented by own class inherited from parent SecAttr class $<$arc/message/SecAttr.h$>$.
 
 Each Security Attribute stores it's information in internal format and is capable to export it to one of predefined formats using \textit{Export()} method. Currently only supported format is ARC Policy/Request XML document described in Section 8.1and 8.2
-Collectors of Security Attributes instantiate corresponding classes and link them to Secuirity Attributes containers - MessageAuth $<$arc/message/MessageAuth.h$>$ and MessageAuthContext $<$arc/message/Message.h$>$ storing collected attributes per request and per session correspondingly. Each attribute is assigned a name. Current implementations of Security Attributes Collectors are either integrated into existing MCCs or implemented as separate SecHandler plugins. See Section 5.2for available Collectors and corresponding Security Attributes. 
+Collectors of Security Attributes instantiate corresponding classes and link them to Secuirity Attributes containers - MessageAuth $<$arc/message/MessageAuth.h$>$ and MessageAuthContext $<$arc/message/Message.h$>$ storing collected attributes per request and per session correspondingly. Each attribute is assigned a name. Current implementations of Security Attributes Collectors are either integrated into existing MCCs or implemented as separate SecHandler plugins. See Section 5.2for available Collectors and corresponding Security Attributes.
 
 Note for service developers: Services may implement own authorization algorithms. But they may use Security Atributes as well by providing instances of classes inherited from SecAttr and running them through either configured or hardcoded processors/PDPs.
 Processors of Security Attributes are implemented as Policy Decision Point components. Currently there are 2 PDP components available:
-Arc PDP makes use of Security Attributes containing identities of client, resource and requested action. It evaluates either all or selected set of attributes against specified Policy documents thus making it possible to enforce policies defined/selected by service providers. 
+Arc PDP makes use of Security Attributes containing identities of client, resource and requested action. It evaluates either all or selected set of attributes against specified Policy documents thus making it possible to enforce policies defined/selected by service providers.
 Delegation PDP is described below in Section 6.3.
 
 
@@ -999,16 +999,16 @@ Delegation interface in the ARC1 is implemented using Web Service approach. Each
                 \item Service responds with DelegateCredentialsInitResponse message with element TokenRequest. That element contains credentials request generated by service in Value. Type of request is defined by attribute Format. Currently only supported format is x509. Along with Value service provides identifier Id which is used in second step.
             \end{itemize}
         \item \emph{Step 2}
-            \begin{itemize}        
+            \begin{itemize}
                 \item Client requests UpdateCredentials operation with DelegatedToken argument. This element contains Value with serialized delegated credentials and Id which links it to first step. Delegated token element may also contain multiple Reference elements. Reference refers to the object which these credentials should be applied to in a way specific to the service. The DelegatedToken element may also be used for delegating credentials when Step 2 is combined with other operations on service in service specific way.
                 \item Service responds with empty UpdateCredentialsResponse message.
             \end{itemize}
     \end{itemize}
-Optionally step 2 can be skipped and the DelegatedToken element provided to Service as additional payload of other service specific message. 
+Optionally step 2 can be skipped and the DelegatedToken element provided to Service as additional payload of other service specific message.
 
 The Id element obtained in the step 1 can be reused multiple times with different content of the Value element.
 
-WSDL of portType implementing delegation functionality can be found at 
+WSDL of portType implementing delegation functionality can be found at
 
 http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk/src/hed/libs/delegation/delegation.wsdl .
 
@@ -1023,34 +1023,34 @@ The arcproxy my be used in following way:
 Here options -P, -C and -K specify path to files containing generated Proxy, user's credentials and user's private key respectively. By using argument ``-c'', some constraints can be specified for proxy certificate. Each constraint string is a key and value pair with key representing type of contraint. There may be multiple -c options specified.  Currently suported contraint types are:
 
     \begin{itemize}
-        \item validityStart, validityEnd and validityPeriod  specify when Proxy becomes valid, when it's validity finishes or for how long the Proxy is valid respectively. For example 
+        \item validityStart, validityEnd and validityPeriod  specify when Proxy becomes valid, when it's validity finishes or for how long the Proxy is valid respectively. For example
 
 -c validityStart=2008-05-29T10:20:30Z
 
 -c validityEnd=2008-06-29T10:20:30Z
 
-        \item proxyPolicy and proxyPolicyFile specify the Policy document to be embedded into the Proxy either directly or by pointing to the file which contains that document. Like 
+        \item proxyPolicy and proxyPolicyFile specify the Policy document to be embedded into the Proxy either directly or by pointing to the file which contains that document. Like
 
 -c proxyPolicyFile=delegation\_policy.xml
     \end{itemize}
 
 The Policy maybe any of any type supported by ARC1 middleware (or third-party plugins) installed on the services where that policy is processed. Currenlty supported Policies include ARC Policy (described in section 8) and GACL Policy [2].
 
-Simple example below renders delegated credentials usable only for contacting service attached to HTTP communication channel under path /arex (line 5)  and allows HTTP operation POST (line 8) on it. 
+Simple example below renders delegated credentials usable only for contacting service attached to HTTP communication channel under path /arex (line 5)  and allows HTTP operation POST (line 8) on it.
 
 \begin{verbatim}
 1.<?xml version="1.0" encoding="UTF-8"?>
-2.<Policy xmlns="http://www.nordugrid.org/schemas/policy-arc" PolicyId="sm-example:policy1" 
+2.<Policy xmlns="http://www.nordugrid.org/schemas/policy-arc" PolicyId="sm-example:policy1"
       CombiningAlg="Deny-Overrides">
 3.    <Rule RuleId="rule1" Effect="Permit">
 4.        <Resources>
-5.            <Resource Type="string" 
+5.            <Resource Type="string"
                   AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/http/path">
                  /arex
               </Resource>
 6.        </Resources>
 7.        <Actions>
-8.            <Action Type="string" 
+8.            <Action Type="string"
                   AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/http/method">
                   POST
               </Action>
@@ -1063,18 +1063,18 @@ Another example of the delegation policy is presented below. This policy restric
 
 \begin{verbatim}
 1.<?xml version="1.0" encoding="UTF-8"?>
-2.<Policy xmlns="http://www.nordugrid.org/schemas/policy-arc" PolicyId="sm-example:policy1" 
+2.<Policy xmlns="http://www.nordugrid.org/schemas/policy-arc" PolicyId="sm-example:policy1"
     CombiningAlg="Deny-Overrides">
 3.    <Rule RuleId="rule1" Effect="Permit">
 4.        <Actions>
-5.            <Action Type="string" 
+5.            <Action Type="string"
                 AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/soap/operation">
                 CreateActivity
               </Action>
 6.        </Actions>
 7.        <Conditions>
 8.            <Condition>
-9.                <Attribute Type="string" 
+9.                <Attribute Type="string"
                       AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/soap/namespace">
                       http://schemas.ggf.org/bes/2006/08/bes-factory
                   </Attribute>
@@ -1143,21 +1143,21 @@ http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk/src/hed/shc/arcpdp/Po
 
 \subsection{Authorization Request} % (fold)
 \label{subsec:authz_request}
-XML schema with comments available at 
+XML schema with comments available at
 
 http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk/src/hed/shc/arcpdp/Request.xsd
 
 
 \subsection{Authorization Response} % (fold)
 \label{subsec:authz_response}
-XML schema with comments available at 
+XML schema with comments available at
 
 http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk/src/hed/shc/arcpdp/Response.xsd
 
 
 \subsection{Interface of policy decision service (Charon service)} % (fold)
 \label{subsec:interface_pds}
-WSDL with comments available at 
+WSDL with comments available at
 
 http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk/src/services/charon/charon.wsdl
 
@@ -1182,11 +1182,11 @@ The following is the configuration about the Charon service, which is configured
 
 \subsection{TLS MCC configuration} % (fold)
 \label{subsec:tlsmcc_conf}
-For full description of TLS MCC configuration please read ``The Hosting Environment of the Advanced Resource Connector middleware''. Here only part related to VOMS attributes extraction is provided for convenience. Configuration schema can be found at 
+For full description of TLS MCC configuration please read ``The Hosting Environment of the Advanced Resource Connector middleware''. Here only part related to VOMS attributes extraction is provided for convenience. Configuration schema can be found at
 
 http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk/src/hed/mcc/tls/tls.xsd
 
-While processing VOMS extension of X.509 certificate only attributes which can be verified are extracted and collected in the list of Security Attributes. To ensure proper authentication trusted VOMS services must to be configured. The VOMS services are identified by certificates which they use to sign AC with VOMS related information. And also by whole certificates chain used to sign VOMS service certificate. 
+While processing VOMS extension of X.509 certificate only attributes which can be verified are extracted and collected in the list of Security Attributes. To ensure proper authentication trusted VOMS services must to be configured. The VOMS services are identified by certificates which they use to sign AC with VOMS related information. And also by whole certificates chain used to sign VOMS service certificate.
 
 The TLS MCC configuration makes it possible to specify DNs of all certificates in such chains. Each chain is stored in separate \textit{$<$VOMSCertTrustDNChain$>$} element. Each such element is composed either of multiple \textit{$<$VOMSCertTrustDN$>$} elements or single \textit{$<$VOMSCertTrustRegex$>$}
 
@@ -1201,7 +1201,7 @@ The \textit{$<$VOMSCertTrustDNChainsLocation$>$} specifies path to file containi
 Below is an example presenting all possible options.
 
 \begin{verbatim}
-<tls:VOMSCertTrustDNChain> 
+<tls:VOMSCertTrustDNChain>
   <tls:VOMSCertTrustDN>/O=Grid/O=NorduGrid/CN=host/arthur.hep.lu.se</tls:VOMSCertTrustDN>
   <tls:VOMSCertTrustDN>/O=Grid/O=NorduGrid/CN=NorduGrid CA</tls:VOMSCertTrustDN>
 </tls:VOMSCertTrustDNChain>
@@ -1218,7 +1218,7 @@ Below is an example presenting all possible options.
 
 \subsection{Configuration of PDP service} % (fold)
 \label{subsec:pdpservice_conf}
-XML schema with comments available at 
+XML schema with comments available at
 
 http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk/src/services/charon/charon.xsd
 
@@ -1246,7 +1246,7 @@ See Section 8.9for the explanation of ARC Policy.
 
 \subsection{Authorization SecHandler configuration} % (fold)
 \label{subsec:authzhandler_conf}
-XML schema with comments available at 
+XML schema with comments available at
 
 http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk/src/hed/shc/arcauthzsh/SimpleListAuthZ.xsd
 
@@ -1290,7 +1290,7 @@ delegation.pdp – for evaluating restrictions embedded into X.509 proxy certifi
 
 \subsection{SimpleList PDP configuration and Policy Example} % (fold)
 \label{subsec:simplepdp_conf}
-XML schema with comments is available at 
+XML schema with comments is available at
 
 http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk/src/hed/shc/simplelistpdp/SimpleListPDP.xsd
 
@@ -1319,7 +1319,7 @@ For example content of simplelist file may look like this:
 
 \subsection{Arc PDP configuration and Policy Example} % (fold)
 \label{subsec:arcpdp_conf}
-XML schema with comments available at 
+XML schema with comments available at
 
 http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk/src/hed/shc/arcpdp/ArcPDP.xsd
 
@@ -1343,7 +1343,7 @@ The name ``arc.pdp'' is for loading the ArcPDP object.
 
 There could be a few policy files under \textit{$<$PolicyStore/$>$}. The request will be checked against all of the policies.
 
-There is an example policy for echo service below. See Section 8.1for the policy schema. The example policy is  made of following elements: 
+There is an example policy for echo service below. See Section 8.1for the policy schema. The example policy is  made of following elements:
 
   \newcounter{policy_count}
   \begin{list}{\arabic{policy_count}.}
@@ -1357,11 +1357,11 @@ There is an example policy for echo service below. See Section 8.1for the policy
 
 The Secuirity Attributes used by Arc PDP are collected by different MCCs. It is possible for service to collect some application-specific attributes by implementing class inherited from SecAtt. And that should be the task of application developer.
 
-Administrator of service can configure Authorization SecHandler - arc.authz - for each MCC and Service and define reasonable and meaningful policy. While defining policy the administrator must take into account that the attributes defined in the policy should be already collected by previous components in a chain. For instance, policy with AttributeId ``http://www.nordugrid.org/schemas/policy-arc/types/http/path'' should not be configured inside SecHandler attached to MCCTLS. 
+Administrator of service can configure Authorization SecHandler - arc.authz - for each MCC and Service and define reasonable and meaningful policy. While defining policy the administrator must take into account that the attributes defined in the policy should be already collected by previous components in a chain. For instance, policy with AttributeId ``http://www.nordugrid.org/schemas/policy-arc/types/http/path'' should not be configured inside SecHandler attached to MCCTLS.
 
 \begin{verbatim}
 1.<?xml version="1.0" encoding="UTF-8"?>
-2.<Policy xmlns="http://www.nordugrid.org/schemas/policy-arc" PolicyId="sm-example:arcpdppolicy" 
+2.<Policy xmlns="http://www.nordugrid.org/schemas/policy-arc" PolicyId="sm-example:arcpdppolicy"
      CombiningAlg="Deny-Overrides">
 3.   <Rule Effect="Permit">
 4.     <Description>
@@ -1369,38 +1369,38 @@ Administrator of service can configure Authorization SecHandler - arc.authz - fo
 6.     </Description>
 7.      <Subjects>
 8.         <Subject>
-9.            <Attribute 
-               AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/tls/ca" 
+9.            <Attribute
+               AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/tls/ca"
                Type="string">
                /C=NO/ST=Oslo/O=UiO/CN=CA
               </Attribute>
-10.           <Attribute 
-               AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/tls/identity" 
+10.           <Attribute
+               AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/tls/identity"
                Type="string">
                /C=NO/ST=Oslo/O=UiO/CN=test
               </Attribute>
 11.         </Subject>
 12.      </Subjects>
 13.      <Resources>
-14.         <Resource 
-             AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/http/path" 
+14.         <Resource
+             AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/http/path"
              Type="string">
              /Echo
             </Resource>
 15.      </Resources>
 16.      <Actions>
-17.         <Action 
-             AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/http/method" 
+17.         <Action
+             AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/http/method"
              Type="string">
              POST
             </Action>
-18.         <Action 
-             AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/http/method" 
+18.         <Action
+             AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/http/method"
              Type="string">
              GET
             </Action>
-19.         <Action 
-             AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/soap/operation" 
+19.         <Action
+             AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/soap/operation"
              Type="string">
              echo
             </Action>
@@ -1413,7 +1413,7 @@ Administrator of service can configure Authorization SecHandler - arc.authz - fo
 
 \subsection{PDP Service Invoker configuration} % (fold)
 \label{subsec:pdpservice_invoker_conf}
-Configuration XML schema with comments is available at 
+Configuration XML schema with comments is available at
 
 http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk/src/hed/shc/pdpserviceinvoker/PDPServiceInvoker.xsd
 
@@ -1472,7 +1472,7 @@ http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk/src/hed/shc/arcpdp/Re
 
 http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk/src/hed/shc/arcpdp/Response.xsd
 
-\textbf{Note} that the format of ``Response'' is supposed to correspond with the format of ``Request''. 
+\textbf{Note} that the format of ``Response'' is supposed to correspond with the format of ``Request''.
 
 \textbf{XACML request/response}:
 
@@ -1483,7 +1483,7 @@ http://www.oasis-open.org/committees/download.php/11474/access\_control-xacml-2.
 
 \subsection{Delegation PDP configuration} % (fold)
 \label{subsec:delegpdp_conf}
-Configuration XML schema with comments available at 
+Configuration XML schema with comments available at
 
 http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk/src/hed/shc/delegationpdp/DelegationPDP.xsd
 
@@ -1514,17 +1514,17 @@ Below is an example of configuration of Delegation SecHandler inside TLS MCC com
             <tls:CertificatePath>./cert.pem</tls:CertificatePath>
             <tls:CACertificatePath>./ca.pem</tls:CACertificatePath>
             <!--delegation.collector must be inside tls MCC-->
-            <SecHandler name="delegation.collector" 
+            <SecHandler name="delegation.collector"
                 id="delegation" event="incoming"></SecHandler>
          </Component>
 \end{verbatim}
 
-Current implementation of Delegation SecHandler must be attached to TLS MCC. 
+Current implementation of Delegation SecHandler must be attached to TLS MCC.
 
 
 \subsection{UsernameToken SecHandler Configuration} % (fold)
 \label{subsec:ut_sechandler_conf}
-Configuration XML schema with comments is available at 
+Configuration XML schema with comments is available at
 
 http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk/src/hed/shc/usernametokensh/UsernameTokenSH.xsd
 
@@ -1545,21 +1545,21 @@ This example will add token with username ``user'' and password ``pass'' (using 
 For the client side, the developer should add the configuration information about X.509 security handler into client's configuration, in order to generate X509 Token into any SOAP message. Below is an example of how to use it:
 
 \begin{verbatim}
-    Arc::XMLNode sechanlder_nd_ut("\ 
-        <SecHandler name='usernametoken.handler' id='usernametoken' event='outgoing'>\ 
-            <Process>generate</Process>\ 
-            <PasswordEncoding>digest</PasswordEncoding>\ 
-            <Username>user</Username>\ 
-            <Password>passwd</Password>\ 
-        </SecHandler>"); 
-  Arc::ClientSOAP *client; 
-  client = new Arc::ClientSOAP(mcc_cfg,url); 
+    Arc::XMLNode sechanlder_nd_ut("\
+        <SecHandler name='usernametoken.handler' id='usernametoken' event='outgoing'>\
+            <Process>generate</Process>\
+            <PasswordEncoding>digest</PasswordEncoding>\
+            <Username>user</Username>\
+            <Password>passwd</Password>\
+        </SecHandler>");
+  Arc::ClientSOAP *client;
+  client = new Arc::ClientSOAP(mcc_cfg,url);
   client->AddSecHandler(sechanlder_nd_ut, "arcshc");
 \end{verbatim}
 
 \subsection{X509Token SecHandler configuration} % (fold)
 \label{subsec:xt_sechandler_conf}
-Configuration XML schema with comments is available at 
+Configuration XML schema with comments is available at
 
 http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk/src/hed/shc/x509tokensh/X509TokenSH.xsd
 
@@ -1578,21 +1578,21 @@ Below is an example of configuration of X509Token SecHandler inside MCCSOAP comp
 For the client side, the developer should add the configuration information about X.509 security handler into client's configuration, in order to generate X509 Token into any SOAP message. Below is an example of how to use it:
 
 \begin{verbatim}
-  Arc::XMLNode sechanlder_nd_xt("\ 
-        <SecHandler name='x509token.handler' id='x509token' event='outgoing'>\ 
-            <Process>generate</Process>\ 
-            <CertificatePath>./testcert.pem</CertificatePath>\ 
-            <KeyPath>./testkey-nopass.pem</KeyPath>\ 
-        </SecHandler>"); 
-  Arc::ClientSOAP *client; 
-  client = new Arc::ClientSOAP(mcc_cfg,url); 
+  Arc::XMLNode sechanlder_nd_xt("\
+        <SecHandler name='x509token.handler' id='x509token' event='outgoing'>\
+            <Process>generate</Process>\
+            <CertificatePath>./testcert.pem</CertificatePath>\
+            <KeyPath>./testkey-nopass.pem</KeyPath>\
+        </SecHandler>");
+  Arc::ClientSOAP *client;
+  client = new Arc::ClientSOAP(mcc_cfg,url);
   client->AddSecHandler(sechanlder_nd_xt, "arcshc");
 \end{verbatim}
 
 
 \subsection{SAMLToken SecHandler Configuration} % (fold)
 \label{subsec:st_sechandler_conf}
-Configuration XML schema with comments is available at 
+Configuration XML schema with comments is available at
 
 http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk/src/hed/shc/samltokensh/SAMLTokenSH.xsd
 
@@ -1648,64 +1648,64 @@ The steps shows in Figure 8 are described as follows:
 
 \begin{verbatim}
     <Chain>
-        <Component name="tcp.service" id="tcp"> 
-            <next id="tls"/> 
-            <tcp:Listen><tcp:Port>60000</tcp:Port></tcp:Listen> 
-        </Component> 
-        <Component name="tls.service" id="tls"> 
-            <next id="http"/> 
-            <tls:KeyPath>./testkey-nopass.pem</tls:KeyPath> 
+        <Component name="tcp.service" id="tcp">
+            <next id="tls"/>
+            <tcp:Listen><tcp:Port>60000</tcp:Port></tcp:Listen>
+        </Component>
+        <Component name="tls.service" id="tls">
+            <next id="http"/>
+            <tls:KeyPath>./testkey-nopass.pem</tls:KeyPath>
             <tls:CertificatePath>./testcert.pem</tls:CertificatePath>
-           <!--Since the client side's certificate is not required to exist, 
+           <!--Since the client side's certificate is not required to exist,
             the trusted CA certificates are not needed here-->
-            <!--tls:CACertificatePath>./cacert.pem</tls:CACertificatePath--> 
+            <!--tls:CACertificatePath>./cacert.pem</tls:CACertificatePath-->
            <!--Client side authentication is not required-->
-            <tls:ClientAuthn>false</tls:ClientAuthn> 
-        </Component> 
-        <Component name="http.service" id="http"> 
-            <next id="plexer">POST</next> 
-        </Component> 
-        <Plexer name="plexer.service" id="plexer"> 
-            <next id="samlsp">/saml2sp</next> 
+            <tls:ClientAuthn>false</tls:ClientAuthn>
+        </Component>
+        <Component name="http.service" id="http">
+            <next id="plexer">POST</next>
+        </Component>
+        <Plexer name="plexer.service" id="plexer">
+            <next id="samlsp">/saml2sp</next>
             <next id="soap">/echo</next>
             <!--Other services ID can be put here-->
             <!--next id="soap">/aotherservice</next-->
-        </Plexer> 
-        <Component name="soap.service" id="soap"> 
-            <next id="echo"/> 
-           <!--The security handler used for doing, e.g., access control based on 
-           the SAML assertion from the SAML2.0 SSO profile; currently it is just a 
+        </Plexer>
+        <Component name="soap.service" id="soap">
+            <next id="echo"/>
+           <!--The security handler used for doing, e.g., access control based on
+           the SAML assertion from the SAML2.0 SSO profile; currently it is just a
             prototype implementation-->
-            <SecHandler name="saml2ssoassertionconsumer.handler" id="saml2ssosp" event="incoming"/> 
-        </Component> 
+            <SecHandler name="saml2ssoassertionconsumer.handler" id="saml2ssosp" event="incoming"/>
+        </Component>
         <Service name='saml.sp' id='samlsp'>
-            <!--Metadata that is according to SAML metadata standard. 
+            <!--Metadata that is according to SAML metadata standard.
              urn:oasis:names:tc:SAML:2.0:metadata-->
-            <MetaDataLocation>./test_metadata.xml</MetaDataLocation> 
+            <MetaDataLocation>./test_metadata.xml</MetaDataLocation>
             <!--The entity ID of this Service Provider-->
             <ServiceProviderName>https://squark.uio.no/shibboleth-sp</ServiceProviderName>
-            <!--The certificate and key file which will be used by Service Provide 
+            <!--The certificate and key file which will be used by Service Provide
              to sign the AuthnRequest-->
-            <KeyPath>./testkey-nopass.pem</KeyPath> 
-            <CertificatePath>./testcert.pem</CertificatePath> 
-        </Service> 
-        <Service name="echo" id="echo"> 
-            <next id="echo"/> 
-            <echo:prefix>[ </echo:prefix> 
-            <echo:suffix> ]</echo:suffix> 
-        </Service> 
-    </Chain> 
+            <KeyPath>./testkey-nopass.pem</KeyPath>
+            <CertificatePath>./testcert.pem</CertificatePath>
+        </Service>
+        <Service name="echo" id="echo">
+            <next id="echo"/>
+            <echo:prefix>[ </echo:prefix>
+            <echo:suffix> ]</echo:suffix>
+        </Service>
+    </Chain>
 \end{verbatim}
- 
+
     The client developer should use the ClientSOAPwithSAML2SSO  or ClientHTTPwithSAML2SSO instead of ClientInterface for the integration of SAML2SSO profile. A typical usage of ClientSOAPwithSAML2SSO is shown as follows. Note the IdP name and the username/password should be feed as the input argument for ``process'' method.
 
 \begin{verbatim}
-   Arc::ClientSOAPwithSAML2SSO *client = NULL; 
-   client = new Arc::ClientSOAPwithSAML2SSO(mcc_cfg,url); 
-   Arc::MCC_Status status = client->process(&req,&resp, idp_name, username, password); 
+   Arc::ClientSOAPwithSAML2SSO *client = NULL;
+   client = new Arc::ClientSOAPwithSAML2SSO(mcc_cfg,url);
+   Arc::MCC_Status status = client->process(&req,&resp, idp_name, username, password);
 \end{verbatim}
 
-    The message flow of interaction between Client, ARC SP Service, ARC Service and Shibboleth IdP is also shown in Figure.9. 
+    The message flow of interaction between Client, ARC SP Service, ARC Service and Shibboleth IdP is also shown in Figure.9.
 
   One benefit of the SAML2.0 SSO profile that is worth mentioning is: the Identity Provider could cache the authentication result through session management once the user agent has succeeded to authenticate; then for a short period this authentication result is valid so that the user agent doesn’t need to feed IdP with user’s username and password the next time (if this point of time is not out of the scope of valid period) it authenticates against IdP. So user (or the client on behalf of this user) can access multiple security  domains with only providing his name and password once, which is the characteristic of single sign-on.
 
@@ -1717,7 +1717,7 @@ The steps shows in Figure 8 are described as follows:
 
 \section{Short-Lived Credential Service} % (fold)
 \label{sec:slcs}
-In order to create X.509 credential for inter-operating with Grid services that requires client side certificate authentication, based on the solution described in Section 9, a short lived credential service (SLCS) is implemented by which user can get a short-lived X.509 certificate without being bothered to contact any registration authority (RA) or certificate authority (CA). 
+In order to create X.509 credential for inter-operating with Grid services that requires client side certificate authentication, based on the solution described in Section 9, a short lived credential service (SLCS) is implemented by which user can get a short-lived X.509 certificate without being bothered to contact any registration authority (RA) or certificate authority (CA).
 
     SLCS service is for signing short-lived x509 credential based on user's username/password credential. Then the user can use this short-lived x509 credential to access grid services/resources where x509 credential is required by default. SLCS service should depend on the SP (Service provider) service which is one of the participants of SAML2 SSO profile (SAML2 SSO profile is used for authenticating based on username/password credential and getting SAML authentication assertion; and SAML authentication assertion is then used as basis for signing short-lived x509 credential).
 
@@ -1728,56 +1728,56 @@ In order to create X.509 credential for inter-operating with Grid services that 
 
 \begin{verbatim}
     <Chain>
-        <Component name="tcp.service" id="tcp"> 
-            <next id="tls"/> 
-            <tcp:Listen><tcp:Port>60000</tcp:Port></tcp:Listen> 
-        </Component> 
-        <Component name="tls.service" id="tls"> 
-            <next id="http"/> 
-            <tls:KeyPath>./testkey-nopass.pem</tls:KeyPath> 
-            <tls:CertificatePath>./testcert.pem</tls:CertificatePath> 
-            <!--tls:CACertificatePath>./cacert.pem</tls:CACertificatePath--> 
-            <tls:ClientAuthn>false</tls:ClientAuthn> 
-        </Component> 
-        <Component name="http.service" id="http"> 
-            <next id="plexer">POST</next> 
-        </Component> 
-        <Plexer name="plexer.service" id="plexer"> 
-            <next id="samlsp">/saml2sp</next> 
-            <next id="soap">/slcs</next> 
-        </Plexer> 
-        <Component name="soap.service" id="soap"> 
-            <next id="slcs"/> 
-            <SecHandler name="saml2ssoassertionconsumer.handler" id="saml2ssosp" event="incoming"/> 
-        </Component> 
-        <Service name='saml.sp' id='samlsp'> 
-            <MetaDataLocation>./test_metadata.xml</MetaDataLocation> 
-            <ServiceProviderName>https://squark.uio.no/shibboleth-sp</ServiceProviderName> 
-            <KeyPath>./testkey-nopass.pem</KeyPath> 
-            <CertificatePath>./testcert.pem</CertificatePath> 
-        </Service> 
-        <Service name="slcs.service" id="slcs"> 
-            <next id="slcs"/> 
-            <slcs:CACertificate>./CAcert.pem</slcs:CACertificate> 
-            <slcs:CAKey>./CAkey.pem</slcs:CAKey> 
-            <slcs:CASerial>./CAserial</slcs:CASerial> 
-        </Service> 
-    </Chain> 
+        <Component name="tcp.service" id="tcp">
+            <next id="tls"/>
+            <tcp:Listen><tcp:Port>60000</tcp:Port></tcp:Listen>
+        </Component>
+        <Component name="tls.service" id="tls">
+            <next id="http"/>
+            <tls:KeyPath>./testkey-nopass.pem</tls:KeyPath>
+            <tls:CertificatePath>./testcert.pem</tls:CertificatePath>
+            <!--tls:CACertificatePath>./cacert.pem</tls:CACertificatePath-->
+            <tls:ClientAuthn>false</tls:ClientAuthn>
+        </Component>
+        <Component name="http.service" id="http">
+            <next id="plexer">POST</next>
+        </Component>
+        <Plexer name="plexer.service" id="plexer">
+            <next id="samlsp">/saml2sp</next>
+            <next id="soap">/slcs</next>
+        </Plexer>
+        <Component name="soap.service" id="soap">
+            <next id="slcs"/>
+            <SecHandler name="saml2ssoassertionconsumer.handler" id="saml2ssosp" event="incoming"/>
+        </Component>
+        <Service name='saml.sp' id='samlsp'>
+            <MetaDataLocation>./test_metadata.xml</MetaDataLocation>
+            <ServiceProviderName>https://squark.uio.no/shibboleth-sp</ServiceProviderName>
+            <KeyPath>./testkey-nopass.pem</KeyPath>
+            <CertificatePath>./testcert.pem</CertificatePath>
+        </Service>
+        <Service name="slcs.service" id="slcs">
+            <next id="slcs"/>
+            <slcs:CACertificate>./CAcert.pem</slcs:CACertificate>
+            <slcs:CAKey>./CAkey.pem</slcs:CAKey>
+            <slcs:CASerial>./CAserial</slcs:CASerial>
+        </Service>
+    </Chain>
 \end{verbatim}
 
-    SLCS service and SP service should together be configured by using the Plexer. SP service is directly based on http and SLCS is directly based on soap. As shown in the above table, a plexer dispatches the message flow (outgoing from http.service) into two SP service (saml.sp) and SOAP service (soap.service). 
+    SLCS service and SP service should together be configured by using the Plexer. SP service is directly based on http and SLCS is directly based on soap. As shown in the above table, a plexer dispatches the message flow (outgoing from http.service) into two SP service (saml.sp) and SOAP service (soap.service).
 
     Since the client authentication is switched off, it is not necessary to configure $<$CACertificatePath$>$ or $<$CACertificateDir$>$ for TLS MCC.
 
-    SP service needs to be configured with $<$MetaDataLocation$>$ and $<$ServiceProviderName$>$. 
+    SP service needs to be configured with $<$MetaDataLocation$>$ and $<$ServiceProviderName$>$.
 
-    SLCS service should specifically include the CA credential (certificate and key file) and the serial number file (which includes the serial number of each signed certificate), so SLCS service needs to be configured with $<$CACertificate$>$ $<$CAKey$>$ and $<$CASerial$>$. Therefore, the service administrator should firstly create a CA credential (note for interoperability purpose in the production grid deployment, the CA credential should be trusted by others). 
+    SLCS service should specifically include the CA credential (certificate and key file) and the serial number file (which includes the serial number of each signed certificate), so SLCS service needs to be configured with $<$CACertificate$>$ $<$CAKey$>$ and $<$CASerial$>$. Therefore, the service administrator should firstly create a CA credential (note for interoperability purpose in the production grid deployment, the CA credential should be trusted by others).
 
 Note: When deploying the SLCS service, service administrator should deploy a dedicated IdP (Identity Provider) which can be assigned as authentication/attribute authority, or the users should have already had his own IdP. And the IdP information (authentication URL and attribute authority URL) should have already been included into the metadata of above configuration (e.g. test\_metadata.xml). On the other hand, the SP (SP service) information (assertion consuming URL) should also have been included into the metadata of the IdP.
 
     After the whole process, user only needs to authentication with his existing IdP and can get back the x509 credential.
 
-    Shibboleth IdP (http://shibboleth.internet2.edu) is used for the current solution of IdP, since it is widely deployed for other AAI (Authentication and Authority Infrastructure). There is a test IdP deployed in https://squark.uio.no:8443 (idpname: https://squark.uio.no/idp/shibboleth, username: staff, password: 123456), you can use the SP from https://sp.testshib.org/ to test the validity of the test IdP. And also you can installed your own IdP which is supposed to authenticates the users from your own organization. 
+    Shibboleth IdP (http://shibboleth.internet2.edu) is used for the current solution of IdP, since it is widely deployed for other AAI (Authentication and Authority Infrastructure). There is a test IdP deployed in https://squark.uio.no:8443 (idpname: https://squark.uio.no/idp/shibboleth, username: staff, password: 123456), you can use the SP from https://sp.testshib.org/ to test the validity of the test IdP. And also you can installed your own IdP which is supposed to authenticates the users from your own organization.
 
     SLCS client generates  a X.509 certificate  request, launches a Web Service request which includes the certificate request; SLCS service then gets the certificate request, composes a distinguished name (DN), issues a certificate (short lived, 12 hours by default) with the SAML attribute (from the SAML2.0 SSO profile) as the X.509 certificate extension, and puts the certificate in to the Web Service response; SLCS client get the response and stores the X.509 certificate into local repository.
 
@@ -1787,7 +1787,7 @@ The CLI for the SLCS client is like this:
 
     Since the lifetime of the short lived credential is normally short, it is not a must to protect the private key by a pass phrase. As illustrated in steps (a) and (b) in Figure 10, if the private key is not protected through the Web Service client, the user can use the X.509 certificate to access Grid Service or Web Service from any kind of middleware. If the private key is protected, she can use the X.509 certificate to generate a proxy certificate (by using a command-line interface utility such as grid-proxy-init , voms-proxy-init, or arcproxy ), and then use the proxy certificate to access a Grid/Web Service.
 
-    Composing the distinguished name (DN) for the certificate is a critical issue for the SLCS service. Since the Shibboleth Identity Provider uses the eduPerson schema for the definition of $<$saml:Attribute$>$ in $<$saml:AttributeStatement$>$, we pick the relatively distinguishable attribute \textit{``eduPersonPrincipalName''} for the DN. A typical eduPersonPrincipalName value could be \textit{alice@example.org}, then the DN is 
+    Composing the distinguished name (DN) for the certificate is a critical issue for the SLCS service. Since the Shibboleth Identity Provider uses the eduPerson schema for the definition of $<$saml:Attribute$>$ in $<$saml:AttributeStatement$>$, we pick the relatively distinguishable attribute \textit{``eduPersonPrincipalName''} for the DN. A typical eduPersonPrincipalName value could be \textit{alice@example.org}, then the DN is
 
 \textit{``/O=knowarc/OU=example.org/CN=alice''}.
 
@@ -1797,29 +1797,29 @@ The CLI for the SLCS client is like this:
 \label{subsec:slcs_client}
 
     On the SLCS client side, there is a client utility called ``arcslcs''.  The command option for arcslcs is as following:
-Application Options: 
+Application Options:
 
-  -S, --url=url                URL of SLCS service 
+  -S, --url=url                URL of SLCS service
 
-  -I, --idp=string             IdP name 
+  -I, --idp=string             IdP name
 
-  -U, --user=string            User account to IdP 
+  -U, --user=string            User account to IdP
 
-  -P, --password=string        Password for user account to IdP 
+  -P, --password=string        Password for user account to IdP
 
-  -Z, --keysize=number         Key size of the private key (512, 1024, 2048) 
+  -Z, --keysize=number         Key size of the private key (512, 1024, 2048)
 
-  -K, --keypass=passphrase     Private key passphrase 
+  -K, --keypass=passphrase     Private key passphrase
 
-  -L, --lifetime=period        Lifetime of the certificate, start with current time, hour as unit 
+  -L, --lifetime=period        Lifetime of the certificate, start with current time, hour as unit
 
   -D, --storedir=directory     Store directory for key and signed certificate
 
-  -c, --conffile=filename      configuration file (default ~/.arc/client.xml) 
+  -z, --conffile=filename      configuration file (default ~/.arc/client.conf)
 
 An example is:
 
-\textit{./arcslcs -S https://127.0.0.1:60000/slcs -I https://squark.uio.no/idp/shibboleth -U root -P aa1122 -D   ~/arc-0.9/src/clients/credentials -c client.xml}
+\textit{./arcslcs -S https://127.0.0.1:60000/slcs -I https://squark.uio.no/idp/shibboleth -U root -P aa1122 -D   ~/arc-0.9/src/clients/credentials -z client.confg}
 
     Note user should input the ``IdP name'' is the corresponding Identity Provider (one of the participants of SAML2 SSO profile) name to which the user would authenticate against by using its username/password credential. And the name is stored inside the metadata on both SP service and IdP provider, and it is used by SP service to get the authentication URL for username/password based authentication.
 
@@ -1827,31 +1827,24 @@ An example is:
 The ``conffile'' can be another option for all of the above options, see the following as an example:
 
 \begin{verbatim}
-<ArcConfig> 
-   <!-- change the paths below to the location of your user certs --> 
-   <!-- here only trusted certificates are set. Because this arcslcs is 
-   not supposed to have x509 credential before the samlsso profile has been 
-   (by using client's username/password credential) passed and the SLCS 
-   service succeeded to repond this client with the signed x509 credential. 
-   On the SLCS service's configuration: ClientAuthn should be off.--> 
-   <!--KeyPath>./testkey-nopass.pem</KeyPath--> 
-   <!--CertificatePath>./testcert.pem</CertificatePath--> 
-   <CACertificatesDir>./certificates</CACertificatesDir> 
-   <SLCSURL>https://127.0.0.1:60000/slcs</SLCSURL> 
-   <IdPname>https://squark.uio.no/idp/shibboleth</IdPname> 
-   <Username>root</Username> 
-   <Password>aa1122</Password> 
-   <Keysize>1024</Keysize> 
-   <Keypass>123456</Keypass> 
-   <CertLifetime>24</CertLifetime> 
-   <StoreDir>./</StoreDir> 
-   <Debug>INFO</Debug> 
-</ArcConfig> 
+[common]
+keypath=./testkey-nopass.pem
+certificatepath=./testcert.pem
+cacertificatesdirectory=./certificates
+slcsurl=https://127.0.0.1:60000/slcs
+idpname=https://squark.uio.no/idp/shibboleth
+username=root
+password=aa1122
+keysize=1024
+keypass=123456
+certlifetime=24
+storedir=./
+verbosity=INFO
 \end{verbatim}
 
     There is a temporary Identity Provider (IdP) deployed on squark.uio.no for test with the following test username and password: staff, researcher, librarian, binduser ; with the same password ``123456''
 
-\textit{./arcslcs -S https://127.0.0.1:60000/slcs -I https://squark.uio.no/idp/shibboleth -U staff -P 123456 -D /home/wzqiang/arc-0.9/src/clients/credentials -c client.xml}
+\textit{./arcslcs -S https://127.0.0.1:60000/slcs -I https://squark.uio.no/idp/shibboleth -U staff -P 123456 -D /home/wzqiang/arc-0.9/src/clients/credentials -z client.conf}
 
     The short-lived credential issued by SLCS service will include the SAML assertion as the extension of X.509 certificate as a proof of passing SAML2 SSO profile.
 
@@ -1876,71 +1869,71 @@ The configuration of the delegation service which is located at ``glueball.uio.n
 
 \begin{verbatim}
     <Chain>
-        <Component name="tcp.service" id="tcp"> 
-            <next id="tls"/> 
-            <tcp:Listen><tcp:Port>60005</tcp:Port></tcp:Listen> 
-        </Component> 
-        <Component name="tls.service" id="tls"> 
-            <next id="http"/> 
-            <tls:KeyPath>./testkey-nopass.pem</tls:KeyPath> 
-            <tls:CertificatePath>./testcert.pem</tls:CertificatePath> 
-            <tls:CACertificatePath>./cacert.pem</tls:CACertificatePath> 
-              <tls:CACertificatesDir>./certificates</tls:CACertificatesDir> 
-        </Component> 
-        <Component name="http.service" id="http"> 
-            <next id="soap">POST</next> 
-        </Component> 
-        <Component name="soap.service" id="soap"> 
-            <next id="delegation"/> 
-        </Component> 
-        <Service name="delegation.service" id="delegation"> 
-            <next id="delegation"/> 
-            <deleg:CACertificatesDir>./certificates</deleg:CACertificatesDir> 
-            <deleg:CACertificatePath>./testcacert.pem</deleg:CACertificatePath> 
-        </Service> 
-    </Chain> 
+        <Component name="tcp.service" id="tcp">
+            <next id="tls"/>
+            <tcp:Listen><tcp:Port>60005</tcp:Port></tcp:Listen>
+        </Component>
+        <Component name="tls.service" id="tls">
+            <next id="http"/>
+            <tls:KeyPath>./testkey-nopass.pem</tls:KeyPath>
+            <tls:CertificatePath>./testcert.pem</tls:CertificatePath>
+            <tls:CACertificatePath>./cacert.pem</tls:CACertificatePath>
+              <tls:CACertificatesDir>./certificates</tls:CACertificatesDir>
+        </Component>
+        <Component name="http.service" id="http">
+            <next id="soap">POST</next>
+        </Component>
+        <Component name="soap.service" id="soap">
+            <next id="delegation"/>
+        </Component>
+        <Service name="delegation.service" id="delegation">
+            <next id="delegation"/>
+            <deleg:CACertificatesDir>./certificates</deleg:CACertificatesDir>
+            <deleg:CACertificatePath>./testcacert.pem</deleg:CACertificatePath>
+        </Service>
+    </Chain>
 \end{verbatim}
 
-The configuration of the ``echo'' service (e.g., located at ``selectron.uio.no'') which contacts the delegation service that is located at ``glueball.uio.no''. 
+The configuration of the ``echo'' service (e.g., located at ``selectron.uio.no'') which contacts the delegation service that is located at ``glueball.uio.no''.
 
 \begin{verbatim}
     <Chain>
-        <Component name="tcp.service" id="tcp"> 
-            <next id="tls"/> 
-            <tcp:Listen><tcp:Port>60000</tcp:Port></tcp:Listen> 
-        </Component> 
-        <Component name="tls.service" id="tls"> 
-            <next id="http"/> 
-            <tls:KeyPath>./testkey-nopass.pem</tls:KeyPath> 
-            <tls:CertificatePath>./testcert.pem</tls:CertificatePath> 
-            <tls:CACertificatePath>./cacert.pem</tls:CACertificatePath> 
-              <tls:CACertificatesDir>./certificates</tls:CACertificatesDir> 
-        </Component> 
-        <Component name="http.service" id="http"> 
-            <next id="soap">POST</next> 
-        </Component> 
-        <Component name="soap.service" id="soap"> 
-            <next id="echo"/> 
-        </Component> 
-        <Service name="echo" id="echo"> 
-            <SecHandler name='delegation.handler' id='delegation' event='incoming'> 
-              <deleg:Type>x509</deleg:Type> 
-              <deleg:Role>delegatee</deleg:Role> 
+        <Component name="tcp.service" id="tcp">
+            <next id="tls"/>
+            <tcp:Listen><tcp:Port>60000</tcp:Port></tcp:Listen>
+        </Component>
+        <Component name="tls.service" id="tls">
+            <next id="http"/>
+            <tls:KeyPath>./testkey-nopass.pem</tls:KeyPath>
+            <tls:CertificatePath>./testcert.pem</tls:CertificatePath>
+            <tls:CACertificatePath>./cacert.pem</tls:CACertificatePath>
+              <tls:CACertificatesDir>./certificates</tls:CACertificatesDir>
+        </Component>
+        <Component name="http.service" id="http">
+            <next id="soap">POST</next>
+        </Component>
+        <Component name="soap.service" id="soap">
+            <next id="echo"/>
+        </Component>
+        <Service name="echo" id="echo">
+            <SecHandler name='delegation.handler' id='delegation' event='incoming'>
+              <deleg:Type>x509</deleg:Type>
+              <deleg:Role>delegatee</deleg:Role>
               <deleg:DelegationServiceEndpoint>
                 https://glueball.uio.no:60000/delegation
-              </deleg:DelegationServiceEndpoint> 
-              <!--The credential and trusted certificates which will be used by this 
+              </deleg:DelegationServiceEndpoint>
+              <!--The credential and trusted certificates which will be used by this
               security handler to contact with delegation service -->
-              <deleg:KeyPath>./testkey-nopass.pem</deleg:KeyPath> 
-              <deleg:CertificatePath>./testcert.pem</deleg:CertificatePath> 
-              <deleg:CACertificatesDir>./certificates</deleg:CACertificatesDir> 
-              <deleg:CACertificatePath>./testcacert.pem</deleg:CACertificatePath> 
-            </SecHandler> 
-            <next id="echo"/> 
-            <echo:prefix>[ </echo:prefix> 
-            <echo:suffix> ]</echo:suffix> 
-        </Service> 
-    </Chain> 
+              <deleg:KeyPath>./testkey-nopass.pem</deleg:KeyPath>
+              <deleg:CertificatePath>./testcert.pem</deleg:CertificatePath>
+              <deleg:CACertificatesDir>./certificates</deleg:CACertificatesDir>
+              <deleg:CACertificatePath>./testcacert.pem</deleg:CACertificatePath>
+            </SecHandler>
+            <next id="echo"/>
+            <echo:prefix>[ </echo:prefix>
+            <echo:suffix> ]</echo:suffix>
+        </Service>
+    </Chain>
 \end{verbatim}
 
 On the client side of ``echo'' service, the client developer is supposed to add the following piece of configuration into the client configuration information, by adding one line of code:
@@ -1952,34 +1945,34 @@ client->AddSecHandler(sechanlder_nd, "arcshc");
 Some explanation about the configuration is described.
 
 \begin{verbatim}
-     Arc::XMLNode sechanlder_nd("\ 
-        <SecHandler name='delegation.handler' id='delegation' event='outgoing'>\ 
-          <Type>x509</Type>\ 
-          <Role>delegator</Role>\ 
-          <!--The endpoint of delegation service, to which this security handler will 
+     Arc::XMLNode sechanlder_nd("\
+        <SecHandler name='delegation.handler' id='delegation' event='outgoing'>\
+          <Type>x509</Type>\
+          <Role>delegator</Role>\
+          <!--The endpoint of delegation service, to which this security handler will
           delegate the credential-->\
           <DelegationServiceEndpoint>\
             https://glueball.uio.no:60005/delegation
-          </DelegationServiceEndpoint>\ 
+          </DelegationServiceEndpoint>\
           <!--The endpoint of the peer service, to which this WS client will access-->\
-          <PeerServiceEndpoint>https://selectron.uio.no:60000/echo</PeerServiceEndpoint>\ 
-         <!--The key and certificate of the credential, which is be delegated to the 
+          <PeerServiceEndpoint>https://selectron.uio.no:60000/echo</PeerServiceEndpoint>\
+         <!--The key and certificate of the credential, which is be delegated to the
          delegation service-->\
-          <KeyPath>./testkey-nopass.pem</KeyPath>\ 
-          <CertificatePath>./testcert.pem</CertificatePath>\ 
+          <KeyPath>./testkey-nopass.pem</KeyPath>\
+          <CertificatePath>./testcert.pem</CertificatePath>\
          <!--Another option of defining the location of credential-->\
-          <!--ProxyPath>/tmp/5612d050.pem</ProxyPath-->\ 
-         <!--Yet another option of defining how to get the credential; this option is 
-         useful for the service which has already acquired the delegated credential 
-         (this delegated credential is stored under /tmp/hash_value.pem) from the 
-         delegation service, yet still needs to delegate this credential to another delegation 
-         service; the DelegationCredentialIdentity can be parsed from the tls connection from 
-         client side, and then used to calculate the hash value to get the delegated credential 
+          <!--ProxyPath>/tmp/5612d050.pem</ProxyPath-->\
+         <!--Yet another option of defining how to get the credential; this option is
+         useful for the service which has already acquired the delegated credential
+         (this delegated credential is stored under /tmp/hash_value.pem) from the
+         delegation service, yet still needs to delegate this credential to another delegation
+         service; the DelegationCredentialIdentity can be parsed from the tls connection from
+         client side, and then used to calculate the hash value to get the delegated credential
          from local repository-->\
-          <!--DelegationCredIdentity>/O=KnowARC/OU=UiO/CN=squark.uio.no</DelegationCredIdentity-->\ 
-          <CACertificatePath>./cacert.pem</CACertificatePath>\ 
-          <CACertificatesDir>./certificates</CACertificatesDir>\ 
-        </SecHandler>"); 
+          <!--DelegationCredIdentity>/O=KnowARC/OU=UiO/CN=squark.uio.no</DelegationCredIdentity-->\
+          <CACertificatePath>./cacert.pem</CACertificatePath>\
+          <CACertificatesDir>./certificates</CACertificatesDir>\
+        </SecHandler>");
 \end{verbatim}
 
 
@@ -2043,7 +2036,7 @@ The database query is distinguished by the ``\textit{name}'' attribute of $<$SQL
             <aa:CACertificatesDir>../../tests/echo/certificates</aa:CACertificatesDir>
             <aa:CACertificatePath>../../tests/echo/testcacert.pem</aa:CACertificatePath>
 
-            <aa:Database type="mysql" ip="localhost" port="3305" dbname="voms_knowarc" user="root" 
+            <aa:Database type="mysql" ip="localhost" port="3305" dbname="voms_knowarc" user="root"
               password="123456">
               <!--The sql following sentences and their combination are introduced
               according to the code of voms' mysql plugin.
@@ -2057,98 +2050,98 @@ The database query is distinguished by the ``\textit{name}'' attribute of $<$SQL
               </aa:SQLSet>
 
               <aa:SQLSet name="Role">
-                <aa:SQL name="GetRole">SELECT groups.dn, role FROM groups, 
-                  m LEFT JOIN roles ON roles.rid = m.rid WHERE groups.gid = m.gid 
+                <aa:SQL name="GetRole">SELECT groups.dn, role FROM groups,
+                  m LEFT JOIN roles ON roles.rid = m.rid WHERE groups.gid = m.gid
                   AND m.userid = ? AND roles.role = ?</aa:SQL>
-                <aa:SQL name="GetGroup">SELECT groups.dn, NULL FROM groups, m 
+                <aa:SQL name="GetGroup">SELECT groups.dn, NULL FROM groups, m
                   WHERE groups.gid = m.gid AND m.userid = ?</aa:SQL>
               </aa:SQLSet>
 
               <aa:SQLSet name="Group">
-                <aa:SQL name="GetGroup">SELECT groups.dn, NULL FROM groups, m 
+                <aa:SQL name="GetGroup">SELECT groups.dn, NULL FROM groups, m
                   WHERE groups.gid = m.gid AND m.userid = ?</aa:SQL>
               </aa:SQLSet>
 
               <aa:SQLSet name="GroupAndRole">
-                <aa:SQL name="GetGroup">SELECT groups.dn, NULL FROM groups, m 
+                <aa:SQL name="GetGroup">SELECT groups.dn, NULL FROM groups, m
                   WHERE groups.gid = m.gid AND m.userid = ?</aa:SQL>
-                <aa:SQL name="GetGroupAndRole">SELECT groups.dn, role FROM groups, 
-                  m LEFT JOIN roles ON roles.rid = m.rid WHERE groups.gid = m.gid 
+                <aa:SQL name="GetGroupAndRole">SELECT groups.dn, role FROM groups,
+                  m LEFT JOIN roles ON roles.rid = m.rid WHERE groups.gid = m.gid
                   AND m.userid = ? AND roles.role = ? AND groups.dn = ?</aa:SQL>
               </aa:SQLSet>
 
               <aa:SQLSet name="All">
-                <aa:SQL name="GetAll">SELECT groups.dn, role FROM groups, 
-                  m LEFT JOIN roles ON roles.rid = m.rid WHERE groups.gid = m.gid 
+                <aa:SQL name="GetAll">SELECT groups.dn, role FROM groups,
+                  m LEFT JOIN roles ON roles.rid = m.rid WHERE groups.gid = m.gid
                   AND m.userid = ?</aa:SQL>
               </aa:SQLSet>
 
               <aa:SQLSet name="GroupAndRoleAttribute">
-                <aa:SQL name="GetUserAttribute">SELECT attributes.a_name, 
-                  usr_attrs.a_value, NULL, NULL FROM attributes, usr_attrs 
+                <aa:SQL name="GetUserAttribute">SELECT attributes.a_name,
+                  usr_attrs.a_value, NULL, NULL FROM attributes, usr_attrs
                   WHERE attributes.a_id = usr_attrs.a_id AND usr_attrs.u_id = ?
                 </aa:SQL>
-                <aa:SQL name="GetGroupAttribute">SELECT attributes.a_name, 
-                  group_attrs.a_value, groups.dn, NULL FROM attributes, group_attrs, 
-                  groups, m WHERE attributes.a_id = group_attrs.a_id AND groups.gid = m.gid 
+                <aa:SQL name="GetGroupAttribute">SELECT attributes.a_name,
+                  group_attrs.a_value, groups.dn, NULL FROM attributes, group_attrs,
+                  groups, m WHERE attributes.a_id = group_attrs.a_id AND groups.gid = m.gid
                   AND m.userid = ? AND m.rid is NULL AND group_attrs.g_id = m.gid
                 </aa:SQL>
-                <aa:SQL name="GetGroupAndRoleAttribute">SELECT attributes.a_name, 
-                  role_attrs.a_value, groups.dn, roles.role FROM attributes, role_attrs, 
-                  groups, roles, m WHERE attributes.a_id = role_attrs.a_id 
-                  AND groups.gid = m.gid AND m.userid = ? AND m.rid = roles.rid 
-                  AND roles.role = ? AND groups.dn = ? AND role_attrs.g_id = m.gid 
+                <aa:SQL name="GetGroupAndRoleAttribute">SELECT attributes.a_name,
+                  role_attrs.a_value, groups.dn, roles.role FROM attributes, role_attrs,
+                  groups, roles, m WHERE attributes.a_id = role_attrs.a_id
+                  AND groups.gid = m.gid AND m.userid = ? AND m.rid = roles.rid
+                  AND roles.role = ? AND groups.dn = ? AND role_attrs.g_id = m.gid
                   AND role_attrs.r_id = m.rid
                 </aa:SQL>
               </aa:SQLSet>
 
               <aa:SQLSet name="GroupAttribute">
-                <aa:SQL name="GetUserAttribute">SELECT attributes.a_name, 
-                  usr_attrs.a_value, NULL, NULL FROM attributes, usr_attrs 
+                <aa:SQL name="GetUserAttribute">SELECT attributes.a_name,
+                  usr_attrs.a_value, NULL, NULL FROM attributes, usr_attrs
                   WHERE attributes.a_id = usr_attrs.a_id AND usr_attrs.u_id = ?
                 </aa:SQL>
-                <aa:SQL name="GetGroupAttribute">SELECT attributes.a_name, 
-                  group_attrs.a_value, groups.dn, NULL FROM attributes, group_attrs, 
-                  groups, m WHERE attributes.a_id = group_attrs.a_id AND groups.gid = m.gid 
+                <aa:SQL name="GetGroupAttribute">SELECT attributes.a_name,
+                  group_attrs.a_value, groups.dn, NULL FROM attributes, group_attrs,
+                  groups, m WHERE attributes.a_id = group_attrs.a_id AND groups.gid = m.gid
                   AND m.userid = ? AND m.rid is NULL AND group_attrs.g_id = m.gid
                 </aa:SQL>
               </aa:SQLSet>
 
               <aa:SQLSet name="RoleAttribute">
-                <aa:SQL name="GetUserAttribute">SELECT attributes.a_name, 
-                  usr_attrs.a_value, NULL, NULL FROM attributes, usr_attrs 
+                <aa:SQL name="GetUserAttribute">SELECT attributes.a_name,
+                  usr_attrs.a_value, NULL, NULL FROM attributes, usr_attrs
                   WHERE attributes.a_id = usr_attrs.a_id AND usr_attrs.u_id = ?
                 </aa:SQL>
-                <aa:SQL name="GetRoleAttribute">SELECT attributes.a_name, 
-                  role_attrs.a_value, groups.dn, roles.role FROM m 
-                  INNER JOIN groups ON m.gid = groups.gid LEFT JOIN roles 
-                  ON roles.rid = m.rid INNER JOIN role_attrs on groups.gid = role_attrs.g_id 
-                  INNER JOIN attributes on attributes.a_id = role_attrs.a_id 
+                <aa:SQL name="GetRoleAttribute">SELECT attributes.a_name,
+                  role_attrs.a_value, groups.dn, roles.role FROM m
+                  INNER JOIN groups ON m.gid = groups.gid LEFT JOIN roles
+                  ON roles.rid = m.rid INNER JOIN role_attrs on groups.gid = role_attrs.g_id
+                  INNER JOIN attributes on attributes.a_id = role_attrs.a_id
                   WHERE role_attrs.r_id = roles.rid AND m.userid = ? AND roles.role = ?
                 </aa:SQL>
               </aa:SQLSet>
 
               <aa:SQLSet name="AllAttribute">
-                <aa:SQL name="GetUserAttribute">SELECT attributes.a_name, 
-                  usr_attrs.a_value, NULL, NULL FROM attributes, usr_attrs 
+                <aa:SQL name="GetUserAttribute">SELECT attributes.a_name,
+                  usr_attrs.a_value, NULL, NULL FROM attributes, usr_attrs
                   WHERE attributes.a_id = usr_attrs.a_id AND usr_attrs.u_id = ?
                 </aa:SQL>
-                <aa:SQL name="GetGroupAttribute">SELECT attributes.a_name, 
-                  group_attrs.a_value, groups.dn, NULL FROM attributes, group_attrs, 
-                  groups, m WHERE attributes.a_id = group_attrs.a_id AND groups.gid = m.gid 
+                <aa:SQL name="GetGroupAttribute">SELECT attributes.a_name,
+                  group_attrs.a_value, groups.dn, NULL FROM attributes, group_attrs,
+                  groups, m WHERE attributes.a_id = group_attrs.a_id AND groups.gid = m.gid
                   AND m.userid = ? AND m.rid is NULL AND group_attrs.g_id = m.gid
                 </aa:SQL>
-                <aa:SQL name="GetGroupAndRoleAttributeAll">SELECT attributes.a_name, 
-                  role_attrs.a_value, groups.dn, roles.role FROM attributes, role_attrs, 
-                  groups, roles, m WHERE attributes.a_id = role_attrs.a_id 
-                  AND groups.gid = m.gid AND m.userid = ? AND m.rid = roles.rid 
+                <aa:SQL name="GetGroupAndRoleAttributeAll">SELECT attributes.a_name,
+                  role_attrs.a_value, groups.dn, roles.role FROM attributes, role_attrs,
+                  groups, roles, m WHERE attributes.a_id = role_attrs.a_id
+                  AND groups.gid = m.gid AND m.userid = ? AND m.rid = roles.rid
                   AND role_attrs.g_id = m.gid AND role_attrs.r_id = m.rid
                 </aa:SQL>
               </aa:SQLSet>
 
               <aa:SQLSet name="Default">
-                <aa:SQL name="GetDefault">SELECT groups.dn, role FROM groups, 
-                  m LEFT JOIN roles ON roles.rid = m.rid WHERE groups.gid = m.gid 
+                <aa:SQL name="GetDefault">SELECT groups.dn, role FROM groups,
+                  m LEFT JOIN roles ON roles.rid = m.rid WHERE groups.gid = m.gid
                   AND m.userid = ?</aa:SQL>
               </aa:SQLSet>
               <!--Other SQLSet-->

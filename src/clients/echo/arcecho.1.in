@@ -18,7 +18,7 @@ command is a client for the ARC echo service.
 .SH OPTIONS
 
 .IP "\fB-z\fR, \fB--conffile\fR=\fIfilename\fR"
-configuration file (default ~/.arc/client.xml)
+configuration file (default ~/.arc/client.conf)
 .IP "\fB-d\fR, \fB--debug\fR=\fIdebuglevel\fR"
 FATAL, ERROR, WARNING, INFO, DEBUG or VERBOSE
 .IP "\fB-v\fR, \fB--version\fR"
