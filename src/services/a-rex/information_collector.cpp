@@ -36,8 +36,9 @@ void ARexService::InformationCollector(void) {
       logger_.msg(Arc::DEBUG,"Cluster information provider: %s",cmd);
       if(!run.Start()) {
       };
-      if(!run.Wait(infoprovider_wakeup_period_)) {
-        logger_.msg(Arc::WARNING,"Cluster information provider timeout: %u seconds",infoprovider_wakeup_period_);
+      if(!run.Wait(infoprovider_wakeup_period_*10)) {
+        logger_.msg(Arc::WARNING,"Cluster information provider timeout: %u seconds",
+                    infoprovider_wakeup_period_*10);
       } else {
         r = run.Result();
         if (r!=0) logger_.msg(Arc::WARNING,"Cluster information provider failed with exit status: %i",r);
