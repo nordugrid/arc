@@ -185,7 +185,7 @@ int main(int argc, char *argv[]) {
                     istring("directory"), storedir);
 
   std::string conffile;
-  options.AddOption('c', "conffile",
+  options.AddOption('z', "conffile",
                     istring("configuration file (default ~/.arc/client.xml)"),
                     istring("filename"), conffile);
 
