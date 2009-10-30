@@ -6,15 +6,20 @@ DEB_BUILD_GNU_TYPE  ?= $(shell dpkg-architecture -qDEB_BUILD_GNU_TYPE)
 CFLAGS = -Wall -g
 
 ifneq (,$(findstring noopt,$(DEB_BUILD_OPTIONS)))
-	CFLAGS += -O0
+CFLAGS += -O0
 else
-	CFLAGS += -O2
+CFLAGS += -O2
 endif
 
-configure: configure.ac
-	autoreconf --verbose --force --install
+ifneq (,$(filter parallel=%,$(DEB_BUILD_OPTIONS)))
+NUMJOBS = $(patsubst parallel=%,%,$(filter parallel=%,$(DEB_BUILD_OPTIONS)))
+MAKEFLAGS += -j$(NUMJOBS)
+endif
 
-config.status: configure
+configure: configure-stamp
+	:
+
+configure-stamp:
 	dh_testdir
 	CFLAGS="$(CFLAGS)" LDFLAGS="-Wl,-z,defs" \
 	./configure --host=$(DEB_HOST_GNU_TYPE) \
@@ -22,7 +27,10 @@ config.status: configure
 		    --prefix=/usr \
 		    --libexecdir='$${prefix}/lib' \
 		    --sysconfdir=/etc \
-		    --localstatedir=/var
+		    --localstatedir=/var \
+		    --mandir='$${datadir}/man' \
+		    --infodir='$${datadir}/info'
+	touch $@
 
 build: build-arch build-indep
 	:
@@ -30,7 +38,7 @@ build: build-arch build-indep
 build-arch: build-arch-stamp
 	:
 
-build-arch-stamp: config.status
+build-arch-stamp: configure-stamp
 	$(MAKE)
 	$(MAKE) check
 	touch $@
@@ -38,7 +46,7 @@ build-arch-stamp: config.status
 build-indep: build-indep-stamp
 	:
 
-build-indep-stamp: config.status
+build-indep-stamp: configure-stamp
 	$(MAKE) doc
 	touch $@
 
@@ -51,7 +59,7 @@ clean:
 	rm -f debian/nordugrid-arc1-arex.a-rex.init
 	rm -f debian/nordugrid-arc1-server.arched.init
 
-	dh_clean build-arch-stamp build-indep-stamp 
+	dh_clean configure-stamp build-arch-stamp build-indep-stamp 
 
 install: install-indep install-arch
 	:
@@ -117,4 +125,4 @@ binary-arch: install-arch
 binary: binary-arch binary-indep
 	:
 
-.PHONY: build clean binary-indep binary-arch binary install install-indep install-arch
+.PHONY: build clean binary-indep binary-arch binary install install-indep install-arch configure
