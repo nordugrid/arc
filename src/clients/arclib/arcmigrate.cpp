@@ -131,10 +131,10 @@ int main(int argc, char **argv) {
     return 0;
   }
 
-  // If user specifies a joblist on the command line, he means to migrate jobs
-  // stored in this file. So we should check if joblist is set or not, and not
-  // if usercfg.JobListFile() is empty or not.
-  if (jobs.empty() && joblist.empty() && clusters.empty() && !all) {
+  if (!joblist.empty() && jobs.empty() && clusters.empty())
+    all = true;
+
+  if (jobs.empty() && clusters.empty() && !all) {
     logger.msg(Arc::ERROR, "No jobs given");
     return 1;
   }
@@ -144,7 +144,7 @@ int main(int argc, char **argv) {
   // selected services.
   Arc::UserConfig usercfg2 = usercfg;
 
-  if (!jobs.empty())
+  if (!jobs.empty() || all)
     usercfg.ClearSelectedServices();
 
   if (!clusters.empty()) {
