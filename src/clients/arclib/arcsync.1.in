@@ -24,7 +24,7 @@ explicitly select or reject an index server
 file containing a list of jobs
 .IP "\fB-f\fR, \fB--force\fR"
 don't ask for verification
-.IP "\fB-m\fR, \fB--merge\fR"
+.IP "\fB-T\fR, \fB--truncate\fR"
 merge the found jobs with the jobs already in the joblist
 .IP "\fB-t\fR, \fB--timeout\fR=\fIseconds\fR"
 timeout in seconds (default 20)
@@ -61,12 +61,11 @@ times.  See
 .BR arcsub (1)
 for a discussion of the format of arguments to this option.
 
-If a specific cluster is selected for the syncronisation while the joblist
-contains jobs on a different cluster, running the arcsync command will
-remove the old jobs from the joblist, unless the
-.B --merge
-option is given, in which case the new found jobs are merge with the
-jobs already in the joblist.
+If the joblist is not empty when invoking syncronisation the old jobs
+will be merged with the new jobs, unless the
+.B --truncate
+option is given, in which case the joblist will first be truncated and
+then the new jobs will be added.
 
 .SH FILES
 
