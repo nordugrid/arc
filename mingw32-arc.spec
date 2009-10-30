@@ -10,10 +10,10 @@ Name: mingw32-nordugrid-arc1
 Version: 0.9.0
 Release: 1%{?dist}
 Summary: ARC
-Group: System Environment/Daemons 
+Group: System Environment/Daemons
 License: ASL 2.0
 URL: http://www.nordugrid.org/
-Source:	nordugrid-arc1-%{version}.tar.gz
+Source: nordugrid-arc1-%{version}.tar.gz
 BuildRoot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 BuildArch: noarch
@@ -234,7 +234,6 @@ rm -rf $RPM_BUILD_ROOT
 #%{_mingw32_bindir}/arc_storage_cli
 #%doc %{_mingw32_mandir}/man1/arc_storage_cli.1*
 %{_mingw32_sysconfdir}/arc/client.conf
-#%doc %{_mingw32_mandir}/man5/arcclient.xml.5*
 #%{_mingw32_bindir}/arexlutsclient.exe
 #%{_mingw32_bindir}/arexlutsclient-wrapper.sh
 %{_mingw32_bindir}/jura.exe
