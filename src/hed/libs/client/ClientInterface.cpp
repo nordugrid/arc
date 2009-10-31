@@ -10,9 +10,10 @@
 #include <map>
 
 #include <arc/StringConv.h>
-#include <arc/client/ClientInterface.h>
 #include <arc/message/MCCLoader.h>
 #include <arc/Utils.h>
+
+#include "ClientInterface.h"
 
 namespace Arc {
 

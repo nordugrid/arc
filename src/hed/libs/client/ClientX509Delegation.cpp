@@ -290,7 +290,7 @@ namespace Arc {
           return false;
         }
 
-        Credential proxy_cred(delegation_cert, privkey_str, trusted_ca_dir_, trusted_ca_file_);
+        Credential proxy_cred(delegation_cert, privkey_str, trusted_ca_dir_, trusted_ca_file_, "", false);
         proxy_cred.OutputCertificate(delegation_cred);
         proxy_cred.OutputPrivatekey(delegation_cred);
         proxy_cred.OutputCertificateChain(delegation_cred);
