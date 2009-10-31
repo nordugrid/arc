@@ -32,8 +32,8 @@ int main(void) {
   //Request side
   BIO* req;
   req = BIO_new(BIO_s_mem());
-  //Arc::Credential request(t, Arc::Period(24*3600), keybits,  "rfc", "independent");
-  Arc::Credential request(t,0,keybits);
+  Arc::Credential request(t, Arc::Period(24*3600), keybits,  "rfc", "independent");
+  //Arc::Credential request(t,0,keybits);
   request.GenerateRequest(req);
 
   //Signing side
@@ -46,7 +46,7 @@ int main(void) {
   std::cout<<"DN:--"<<dn_name<<std::endl;
 
   proxy.InquireRequest(req);
-  proxy.SetProxyPolicy("rfc","independent","",-1);
+  //proxy.SetProxyPolicy("rfc","independent","",-1);
   proxy.SetLifeTime(Arc::Period(24*3600));
   signer.SignRequest(&proxy, out);
 
@@ -65,7 +65,7 @@ int main(void) {
   //Signing side
   Arc::Credential proxy1;
   proxy1.InquireRequest(req_string);
-  proxy1.SetProxyPolicy("rfc","independent","",-1);
+  //proxy1.SetProxyPolicy("rfc","independent","",-1);
   proxy1.SetLifeTime(Arc::Period(12*3600));
   signer.SignRequest(&proxy1, out_string);
   
@@ -85,7 +85,7 @@ int main(void) {
   //Request side
   std::string req_file("./request.pem");
   std::string out_file("./out.pem");
-  //Arc::Credential request2(t, Arc::Period(168*3600), keybits, "rfc", "inheritall", "policy.txt", proxydepth);
+  //Arc::Credential request2(t, Arc::Period(168*3600), keybits, "rfc", "inheritAll", "policy.txt", proxydepth);
   Arc::Credential request2(t,0, keybits);
   request2.GenerateRequest(req_file.c_str());
 
