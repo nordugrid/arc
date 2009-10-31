@@ -177,5 +177,5 @@ Arc::MessagePayload* newFileRead(const char* filename,Arc::PayloadRawInterface::
 #endif
 }
 
-} // namespace ARex
+} // namespace Hopi
 
