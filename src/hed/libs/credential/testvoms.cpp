@@ -95,12 +95,14 @@ int main(void) {
   //The voms server is not supposed to generate rfc proxy?
   //no, voms server can only generate proxy with "CN=proxy", AFAIK
   //The current voms code is not supposed to parsing proxy with "CN=336628850"?
-  Arc::Credential request(t, Arc::Period(12*3600), keybits, "gsi2", "limited", "", proxydepth);
+  //Arc::Credential request(t, Arc::Period(12*3600), keybits, "gsi2", "limited", "", proxydepth);
+  Arc::Credential request(t, Arc::Period(12*3600), keybits);
   request.GenerateRequest(req_file_ac.c_str());
 
   //Signing side
   Arc::Credential proxy;
   proxy.InquireRequest(req_file_ac.c_str());
+  proxy.SetProxyPolicy("gsi2", "limited", "", proxydepth);
   //Add AC extension to proxy certificat before signing it
   proxy.AddExtension("acseq", (char**) aclist);
 
