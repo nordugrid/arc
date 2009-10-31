@@ -15,9 +15,10 @@ int main(void) {
   Arc::Logger::getRootLogger().addDestination(cdest);
   Arc::Logger::getRootLogger().setThreshold(Arc::DEBUG);
 
-  std::string cert("./cert.pem"); 
-  std::string key("./key.pem");
-  std::string cafile("./ca.pem"); 
+  std::string cert("../../../tests/echo/testcert.pem"); 
+  std::string key("../../../tests/echo/testkey-nopass.pem");
+  std::string cafile("../../../tests/echo/testcacert.pem"); 
+  std::string cadir("../../../tests/echo/certificates");
 
   int keybits = 1024;
   int proxydepth = 10;
@@ -40,7 +41,7 @@ int main(void) {
   out = BIO_new(BIO_s_mem());
   Arc::Credential proxy;
 
-  Arc::Credential signer(cert, key, "", cafile); 
+  Arc::Credential signer(cert, key, cadir, cafile); 
   std::string dn_name = signer.GetDN();
   std::cout<<"DN:--"<<dn_name<<std::endl;
 

@@ -22,10 +22,10 @@ int main(void) {
   Arc::LogStream cdest(std::cerr);
   Arc::Logger::getRootLogger().addDestination(cdest);
   Arc::Logger::getRootLogger().setThreshold(Arc::DEBUG);
-
-  std::string cert("./usercert.pem"); 
-  std::string key("./userkey-nopass.pem");
-  std::string cadir("./testca"); 
+  std::string cert("../../../tests/echo/testcert.pem");
+  std::string key("../../../tests/echo/testkey-nopass.pem");
+  std::string cafile("../../../tests/echo/testcacert.pem");
+  std::string cadir("../../../tests/echo/certificates");
 
   int keybits = 1024;
   int proxydepth = 10;
@@ -35,13 +35,13 @@ int main(void) {
   /**1.Create VOMS AC (attribute certificate), and put it into extension part of proxy certificate*/
   //Get information from a credential which acts as AC issuer.
 
-  Arc::Credential issuer_cred(cert, key, cadir, "");
+  Arc::Credential issuer_cred(cert, key, cadir, cafile);
 
   //Get information from credential which acts as AC holder
   //Here we use the same credential for holder and issuer
   std::string cert1("./out.pem");
   std::string key1("./out.pem");
-  Arc::Credential holder_cred(cert1, "", cadir, "");
+  Arc::Credential holder_cred(cert1, "", cadir, cafile);
 
 
   /** a.Below is voms-specific processing*/
@@ -107,9 +107,10 @@ int main(void) {
   //X509_EXTENSION* ext = NULL;
   //ext = X509V3_EXT_conf_nid(NULL, NULL, OBJ_txt2nid("acseq"), (char*)aclist);
 
-  std::string cert2("./cert.pem");
-  std::string key2("./key.pem");
-  Arc::Credential signer(cert2, key2, cadir, "");
+  std::string cert2("../../../tests/echo/testcert.pem");
+  std::string key2("../../../tests/echo/testkey-nopass.pem");
+
+  Arc::Credential signer(cert2, key2, cadir, cafile);
   signer.SignRequest(&proxy, out_file_ac.c_str());
 
   //Back to request side, compose the signed proxy certificate, local private key,
@@ -132,17 +133,21 @@ int main(void) {
   std::string in_file_ac("./out_withac.pem");
   //std::string in_file_ac("./knowarc_voms.pem"); //Put here the proxy certificate generated from voms-proxy-init
   //std::string in_file_ac("./out.pem");
-  std::string ca_cert_dir("./testca");
-  std::string ca_cert_file("");
+  std::string ca_cert_dir("../../../tests/echo/certificates");
+  std::string ca_cert_file("../../../tests/echo/testcacert.pem");
   std::vector<std::string> vomscert_trust_dn;
 
   vomscert_trust_dn.push_back("^/O=Grid/O=NorduGrid");
   //vomscert_trust_dn.push_back("/O=Grid/O=NorduGrid/CN=NorduGrid ***");
   //vomscert_trust_dn.push_back("/O=Grid/O=NorduGrid/CN=NorduGrid abc");
+//  vomscert_trust_dn.push_back("NEXT CHAIN");
+//  vomscert_trust_dn.push_back("/O=Grid/O=NorduGrid/OU=fys.uio.no/CN=Weizhong Qiang");
+//  vomscert_trust_dn.push_back("/O=Grid/O=NorduGrid/CN=NorduGrid Certification Authority");
   vomscert_trust_dn.push_back("NEXT CHAIN");
-  vomscert_trust_dn.push_back("/O=Grid/O=NorduGrid/OU=fys.uio.no/CN=Weizhong Qiang");
-  vomscert_trust_dn.push_back("/O=Grid/O=NorduGrid/CN=NorduGrid Certification Authority");
-  Arc::Credential proxy2(in_file_ac, "", ca_cert_dir, "");
+  vomscert_trust_dn.push_back("/O=Grid/O=Test/CN=localhost");
+  vomscert_trust_dn.push_back("/O=Grid/O=Test/CN=CA");
+
+  Arc::Credential proxy2(in_file_ac, "", ca_cert_dir, ca_cert_file);
   std::vector<std::string> attributes;
   Arc::parseVOMSAC(proxy2, ca_cert_dir, ca_cert_file, vomscert_trust_dn, attributes); 
 

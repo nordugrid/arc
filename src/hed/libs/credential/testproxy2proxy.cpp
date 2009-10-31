@@ -15,7 +15,8 @@ int main(void) {
   Arc::Logger::getRootLogger().addDestination(cdest);
   Arc::Logger::getRootLogger().setThreshold(Arc::VERBOSE);
 
-  std::string cafile("./ca.pem");
+  std::string cafile("../../../tests/echo/testcacert.pem");
+  std::string cadir("../../../tests/echo/certificates");
 
   int keybits = 1024;
   int proxydepth = 10;
@@ -32,7 +33,7 @@ int main(void) {
   //Signing side
   Arc::Credential proxy1;
   std::string signer_cert1("./out.pem");
-  Arc::Credential signer1(signer_cert1, "", "", cafile);
+  Arc::Credential signer1(signer_cert1, "", cadir, cafile);
   proxy1.InquireRequest(req_file1.c_str());
   signer1.SignRequest(&proxy1, out_file1.c_str());
 
@@ -66,7 +67,7 @@ int main(void) {
   //Signing side
   Arc::Credential proxy2;
   std::string signer_cert2("./proxy1.pem");
-  Arc::Credential signer2(signer_cert2, "", "", cafile);
+  Arc::Credential signer2(signer_cert2, "", cadir, cafile);
   proxy2.InquireRequest(req_file2.c_str());
   signer2.SignRequest(&proxy2, out_file2.c_str());
 

@@ -119,14 +119,14 @@ class Credential {
     /**load key from argument keybio, and put key information into argument pkey */
     void loadKeyString(const std::string& key, EVP_PKEY* &pkey, const std::string& passphrase = "");
     void loadKeyFile(const std::string& keyfile, EVP_PKEY* &pkey, const std::string& passphrase = "");
-    void loadKey(BIO* bio, EVP_PKEY* &pkey, const std::string& passphrase = "", const std::string& prompt_info = "");
+    void loadKey(BIO* bio, EVP_PKEY* &pkey, const std::string& passphrase = "", const std::string& prompt_info = "", const bool is_file = true);
 
     /**load certificate from argument certbio, and put certificate information into
     * argument cert and certchain
     */
     void loadCertificateString(const std::string& cert, X509* &x509, STACK_OF(X509)** certchain);
     void loadCertificateFile(const std::string& certfile, X509* &x509, STACK_OF(X509)** certchain);
-    void loadCertificate(BIO* bio, X509* &x509, STACK_OF(X509)** certchain);
+    void loadCertificate(BIO* bio, X509* &x509, STACK_OF(X509)** certchain, const bool is_file=true);
 
     /**Initiate cert_verify_context which will be used for certificate verification*/
     void InitVerification(void);
@@ -185,8 +185,11 @@ class Credential {
      */
     int GetCertNumofChain(void);
 
-    /**Get the certificate format, PEM PKCS12 or DER */
-    Credformat getFormat(BIO * in);
+    /**Get the certificate format, PEM PKCS12 or DER 
+    * BIO could be memory or file, they should be processed
+    * differently.
+    */
+    Credformat getFormat(BIO * in, const bool is_file = true);
 
     /**Get the DN of the certificate attached to this object*/
     std::string GetDN(void);

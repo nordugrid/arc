@@ -186,32 +186,49 @@ namespace Arc {
   }
 
   //Parse the BIO for certificate and get the format of it
-  Credformat Credential::getFormat(BIO* bio) {
-    PKCS12* pkcs12 = NULL;
+  Credformat Credential::getFormat(BIO* bio, const bool is_file) {
     Credformat format = CRED_UNKNOWN;
-    char buf[1];
-    char firstbyte;
-    int position;
-    if((position = BIO_tell(bio))<0 || BIO_read(bio, buf, 1)<=0 || BIO_seek(bio, position)<0) {
-      LogError();
-      CredentialLogger.msg(ERROR,"Can't get the first byte of input BIO to get its format");
-      return format;
-    }
-    firstbyte = buf[0];
-    // DER-encoded structure (including PKCS12) will start with ASCII 048.
-    // Otherwise, it's PEM.
-    if(firstbyte==48) {
-      //DER-encoded, PKCS12 or DER? firstly parse it as PKCS12 ASN.1,
-      //if can not parse it, then it is DER format
-      if((pkcs12 = d2i_PKCS12_bio(bio,NULL)) == NULL){ format=CRED_DER; PKCS12_free(pkcs12); }
-      else { format = CRED_PKCS; }
-      if( BIO_seek(bio, position) < 0 ) {
+    if(is_file) {
+      char buf[1];
+      char firstbyte;
+      int position;
+      if((position = BIO_tell(bio))<0 || BIO_read(bio, buf, 1)<=0 || BIO_seek(bio, position)<0) {
         LogError();
-        CredentialLogger.msg(ERROR,"Can't reset the BIO");
+        CredentialLogger.msg(ERROR,"Can't get the first byte of input BIO to get its format");
+        return format;
+      }
+      firstbyte = buf[0];
+      // DER-encoded structure (including PKCS12) will start with ASCII 048.
+      // Otherwise, it's PEM.
+      if(firstbyte==48) {
+        //DER-encoded, PKCS12 or DER? firstly parse it as PKCS12 ASN.1,
+        //if can not parse it, then it is DER format
+        PKCS12* pkcs12 = NULL;
+        if((pkcs12 = d2i_PKCS12_bio(bio,NULL)) == NULL){ format=CRED_DER; PKCS12_free(pkcs12); }
+        else { format = CRED_PKCS; PKCS12_free(pkcs12); }
+        if( BIO_seek(bio, position) < 0 ) {
+          LogError();
+          CredentialLogger.msg(ERROR,"Can't reset the BIO");
+          return format;
+        }
+      }
+      else { format = CRED_PEM; }
+    }
+    else {
+      unsigned char* bio_str;
+      int len;
+      len = BIO_get_mem_data(bio, (unsigned char *) &bio_str);
+      char firstbyte;
+      if(len>0) {  
+        firstbyte = bio_str[0];
+        if(firstbyte==48)  {}
+        else { format = CRED_PEM; }
+      }
+      else {
+        CredentialLogger.msg(ERROR,"Can't get the first byte of input BIO to get its format");
         return format;
       }
     }
-    else { format = CRED_PEM; }
     return format;
   }
 
@@ -319,7 +336,7 @@ namespace Arc {
       LogError();
       throw CredentialError("Can not read certificate string");
     }
-    loadCertificate(certbio,x509,certchain);
+    loadCertificate(certbio,x509,certchain, false);
   }
 
   void Credential::loadCertificateFile(const std::string& certfile, X509* &x509, STACK_OF(X509) **certchain) {
@@ -333,16 +350,16 @@ namespace Arc {
       LogError();
       throw CredentialError("Can not read certificate file");
     }
-    loadCertificate(certbio,x509,certchain);
+    loadCertificate(certbio,x509,certchain, true);
   }
 
-  void Credential::loadCertificate(BIO* certbio, X509* &x509, STACK_OF(X509) **certchain) {
+  void Credential::loadCertificate(BIO* certbio, X509* &x509, STACK_OF(X509) **certchain, const bool is_file) {
     //Parse the certificate
     Credformat format = CRED_UNKNOWN;
     PKCS12* pkcs12 = NULL;
     STACK_OF(X509)* pkcs12_certs = NULL;
 
-    format = getFormat(certbio);
+    format = getFormat(certbio, is_file);
     int n;
     if(*certchain) {
       sk_X509_pop_free(*certchain, X509_free);
@@ -436,7 +453,7 @@ namespace Arc {
       LogError();
       throw CredentialError("Can not read key string");
     }
-    loadKey(keybio,pkey,passphrase, "Load key from a string");
+    loadKey(keybio,pkey,passphrase, "Load key from a string", false);
   }
 
   void Credential::loadKeyFile(const std::string& keyfile, EVP_PKEY* &pkey, const std::string& passphrase) {
@@ -450,15 +467,15 @@ namespace Arc {
       LogError();
       throw CredentialError("Can not read key file");
     }
-    loadKey(keybio,pkey,passphrase, keyfile);
+    loadKey(keybio,pkey,passphrase, keyfile, true);
   }
 
-  void Credential::loadKey(BIO* keybio, EVP_PKEY* &pkey, const std::string& passphrase, const std::string& prompt_info) {
+  void Credential::loadKey(BIO* keybio, EVP_PKEY* &pkey, const std::string& passphrase, const std::string& prompt_info, const bool is_file) {
     //Read key
     Credformat format;
     PKCS12* pkcs12 = NULL;
 
-    format = getFormat(keybio);
+    format = getFormat(keybio, is_file);
     std::string prompt;
     switch(format){
       case CRED_PEM:
