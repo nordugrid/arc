@@ -61,7 +61,7 @@ times.  See
 .BR arcsub (1)
 for a discussion of the format of arguments to this option.
 
-If the joblist is not empty when invoking syncronisation the old jobs
+If the joblist is not empty when invoking synchronization the old jobs
 will be merged with the new jobs, unless the
 .B --truncate
 option is given, in which case the joblist will first be truncated and
@@ -78,7 +78,7 @@ option a different configuration file can be used than the default.
 
 .TP
 .B ~/.arc/jobs.xml
-This a local list of the user's active jobs. When a job is
+This is a local list of the user's active jobs. When a job is
 successfully submitted it is added to this list and when it is removed
 from the remote cluster it is removed from this list. This list is
 used as the list of all active jobs when the user specifies the
