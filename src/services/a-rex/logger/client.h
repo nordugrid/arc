@@ -17,7 +17,7 @@ namespace ARex {
 
 class LoggerClient {
  private:
-  Arc::URL* url;
+  Arc::URL url;
   Arc::ClientSOAP* client;
   //struct soap soap;
   bool SameContact(const char* url);

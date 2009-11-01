@@ -12,7 +12,7 @@
  
 namespace ARex {
 
-LoggerClient::LoggerClient(void):url(NULL),client(NULL) {
+LoggerClient::LoggerClient(void):client(NULL) {
 }
 
 LoggerClient::~LoggerClient(void) {
@@ -27,9 +27,9 @@ bool LoggerClient::SameContact(const char* url_) {
   if(!url) return false;
   try {
     Arc::URL u(url_);
-    return((u.Protocol() == url->Protocol()) && 
-           (u.Host() == url->Host()) && 
-           (u.Port() == url->Port()));
+    return((u.Protocol() == url.Protocol()) && 
+           (u.Host() == url.Host()) && 
+           (u.Port() == url.Port()));
   } catch (std::exception e) {
     return false;
   };
@@ -40,25 +40,25 @@ bool LoggerClient::NewURL(const char* url_) {
   try {
     if(url) {
       Arc::URL u(url_);
-      if((u.Protocol() == url->Protocol()) &&
-         (u.Host() == url->Host()) &&
-         (u.Port() == url->Port()) &&
-         (u.Path() == url->Path())) {
-        *url=u;
+      if((u.Protocol() == url.Protocol()) &&
+         (u.Host() == url.Host()) &&
+         (u.Port() == url.Port()) &&
+         (u.Path() == url.Path())) {
+        url=u;
       } else { // reinitialize for different server
-        *url=u; if(client) delete client; client=NULL;
+        url=u; if(client) delete client; client=NULL;
       };
     } else { // initialize for first connection
-      url=new Arc::URL(url_); if(client) delete client; client=NULL;
+      url=Arc::URL(url_); if(client) delete client; client=NULL;
     };
   } catch (std::exception e) {
-    delete url; url=NULL; if(client) delete client; client=NULL;
+    if(client) delete client; client=NULL;
     return false;
   };
   if(client == NULL) {
 //    std::string soap_url = url->Protocol()+"://"+url->Host()+":"+tostring(url->Port());
     Arc::MCCConfig cfg;
-    client = new Arc::ClientSOAP(cfg,*url,60);
+    client = new Arc::ClientSOAP(cfg,url,60);
   };
   return true;
 }
