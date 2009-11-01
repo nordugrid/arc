@@ -21,11 +21,6 @@
 #include <arc/UserConfig.h>
 #include <arc/Utils.h>
 
-#ifdef WIN32
-// Since we are purely using glibmm and giomm it should not be nessary to include this header. Someone please test.
-#include <arc/win32.h>
-#endif
-
 #define HANDLESTRATT(ATT, SETTER) \
   if (common[ATT]) {\
     SETTER((std::string)common[ATT]);\
@@ -44,9 +39,16 @@ namespace Arc {
   const std::string UserConfig::DEFAULT_BROKER = "Random";
 
   const std::string UserConfig::ARCUSERDIRECTORY = Glib::build_filename(User().Home(), ".arc");
+
+#ifdef WIN32
+  const std::string UserConfig::SYSCONFIG =  ArcLocation::Get() + "\\etc\\arc\\client.conf";
+  const std::string UserConfig::EXAMPLECONFIG = ArcLocation::Get() + "\\share\\arc\\examples\\client.conf.example";
+#else
   const std::string UserConfig::SYSCONFIG = Glib::build_filename(PKGSYSCONFDIR, "client.conf");
-  const std::string UserConfig::DEFAULTCONFIG = Glib::build_filename(ARCUSERDIRECTORY, "client.conf");
   const std::string UserConfig::EXAMPLECONFIG = Glib::build_filename(PKGDATADIR G_DIR_SEPARATOR_S "examples", "client.conf.example");
+#endif
+
+  const std::string UserConfig::DEFAULTCONFIG = Glib::build_filename(ARCUSERDIRECTORY, "client.conf");
 
   UserConfig::UserConfig(initializeCredentialsType initializeCredentials) {
     if (initializeCredentials != initializeCredentialsType::SkipCredentials) {
