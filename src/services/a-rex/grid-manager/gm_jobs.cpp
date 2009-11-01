@@ -107,7 +107,7 @@ int main(int argc, char* argv[]) {
   JobUsers users;
   
   if (control_dir.empty()) {
-    JobUser *my_user = new JobUser(my_username);
+    JobUser my_user(my_username);
     std::ifstream cfile;
     if(!config_open(cfile)) {
       std::cout<<"Can't read configuration file"<<std::endl;
@@ -117,11 +117,11 @@ int main(int argc, char* argv[]) {
       // take out the element that can be passed to configure_serviced_users
       Arc::XMLNode arex;
       get_arex_xml(arex);
-      if (!arex || !configure_serviced_users(arex, users, my_uid, my_username, *my_user)) {
+      if (!arex || !configure_serviced_users(arex, users, my_uid, my_username, my_user)) {
         std::cout<<"Error processing configuration."<<std::endl;
         return 1;
       }
-    } else if(!configure_serviced_users(users,my_uid,my_username,*my_user)) {
+    } else if(!configure_serviced_users(users,my_uid,my_username,my_user)) {
       std::cout<<"Error processing configuration."<<std::endl;
       return 1;
     }
@@ -217,5 +217,10 @@ int main(int argc, char* argv[]) {
     counters[JOB_STATE_FINISHING]-counters_pending[JOB_STATE_FINISHING]<<"/"<<
     max_processing<<"+"<<max_processing_emergency<<std::endl;
   
+  for (JobUsers::iterator user = users.begin(); user != users.end(); ++user) {
+    JobsList* jobs = user->get_jobs();
+    if(jobs) delete jobs;
+  }
+
   return 0;
 }
