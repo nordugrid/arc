@@ -343,9 +343,9 @@ int main(int argc, char *argv[]) {
 
   if(cert_path.empty() || key_path.empty()) {
       if(cert_path.empty())
-         std::cerr<<"Cannot find the user certificate path, please setup environment X509_USER_CERT, or CertificatePath in configuration file"<<std::endl;
+         std::cerr<<"Cannot find the user certificate path, please setup environment X509_USER_CERT, or certificatepath in configuration file"<<std::endl;
       if(key_path.empty())
-         std::cerr<<"Cannot find the user private key path, please setup environment X509_USER_KEY, or KeyPath in configuration file"<<std::endl;
+         std::cerr<<"Cannot find the user private key path, please setup environment X509_USER_KEY, or keypath in configuration file"<<std::endl;
       return EXIT_FAILURE;
   }
 
