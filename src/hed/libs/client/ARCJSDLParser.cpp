@@ -927,7 +927,6 @@ namespace Arc {
     // end of Resources
 
     // DataStaging
-    bool outputIsAdded(false), errorIsAdded(false), gmlogIsAdded(false);
     for (std::list<FileType>::const_iterator it = job.DataStaging.File.begin();
          it != job.DataStaging.File.end(); it++) {
       XMLNode datastaging = jobdescription.NewChild("DataStaging");
@@ -950,26 +949,6 @@ namespace Arc {
       datastaging.NewChild("DeleteOnTermination") = (it->KeepData ? "false" : "true");
       if (it->DownloadToCache)
         datastaging.NewChild("DownloadToCache") = "true";
-
-      outputIsAdded |= (it->Name == job.Application.Output);
-      errorIsAdded  |= (it->Name == job.Application.Error);
-      gmlogIsAdded  |= (it->Name == job.Application.LogDir);
-    }
-
-    if (!job.Application.Output.empty() && !outputIsAdded) {
-      XMLNode datastaging = jobdescription.NewChild("DataStaging");
-      datastaging.NewChild("FileName") = job.Application.Output;
-      datastaging.NewChild("DeleteOnTermination") = "false";
-    }
-    if (!job.Application.Error.empty() && !errorIsAdded) {
-      XMLNode datastaging = jobdescription.NewChild("DataStaging");
-      datastaging.NewChild("FileName") = job.Application.Error;
-      datastaging.NewChild("DeleteOnTermination") = "false";
-    }
-    if (!job.Application.LogDir.empty() && !gmlogIsAdded) {
-      XMLNode datastaging = jobdescription.NewChild("DataStaging");
-      datastaging.NewChild("FileName") = job.Application.LogDir;
-      datastaging.NewChild("DeleteOnTermination") = "false";
     }
     // End of DataStaging
 
