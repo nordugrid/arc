@@ -152,7 +152,7 @@ Arc::MCC_Status ARex2Service::process(Arc::Message& inmsg,Arc::Message& outmsg) 
       // Delegation
     } else if(MatchXMLName(op, "DelegateCredentialsInit")) {
         if(!delegations_.DelegateCredentialsInit(*inpayload,*outpayload)) {
-          delete inpayload;
+          delete outpayload;
           return make_soap_fault(outmsg);
         };
       // WS-Property
@@ -162,11 +162,12 @@ Arc::MCC_Status ARex2Service::process(Arc::Message& inmsg,Arc::Message& outmsg) 
           *outpayload=*out_;
           delete out_;
         } else {
-          delete inpayload; delete outpayload;
+          delete outpayload;
           return make_soap_fault(outmsg);
         };
     } else {
         logger_.msg(Arc::ERROR, "SOAP operation is not supported: %s", op.Name());
+        delete outpayload;
         return make_soap_fault(outmsg);
     };
     {
