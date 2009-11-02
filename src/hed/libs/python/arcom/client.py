@@ -1,5 +1,5 @@
 import arc
-import thread
+import thread, threading
 from arcom.xmltree import XMLTree
 import random
 
@@ -34,6 +34,8 @@ class Client:
         self.cfg = arc.MCCConfig()
         self.get_trusted_dns_method = ssl_config.get('get_trusted_dns_method', None)
         self.connection_cache = {}
+        # semaphores to limit number of concurent writes
+        self.semapool = threading.BoundedSemaphore(128)
         if self.https:
             self.ssl_config = ssl_config
             if ssl_config.has_key('proxy_file'):

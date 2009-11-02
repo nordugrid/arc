@@ -35,8 +35,6 @@ class AHashClient(Client):
     def __init__(self, url, print_xml = False, ssl_config = {}):
         ns = self.NS_class('ahash', ahash_uri)
         Client.__init__(self, url, ns, print_xml, ssl_config = ssl_config)
-         # semaphores to limit number of concurent writes
-        self.semapool = threading.BoundedSemaphore(128)
 
     def get_tree(self, IDs, neededMetadata = []):
         tree = XMLTree(from_tree =
@@ -206,7 +204,9 @@ class LibrarianClient(Client):
                 ])
             ])
         )
+        self.semapool.acquire()
         response = self.call(tree)
+        self.semapool.release()
         node = self.xmlnode_class(response)
         return parse_node(get_data_node(node), ['requestID', 'GUID', 'success'])
 
@@ -225,7 +225,9 @@ class LibrarianClient(Client):
                 ])
             ])
         )
+        self.semapool.acquire()
         response = self.call(tree)
+        self.semapool.release()
         node = self.xmlnode_class(response)
         return parse_node(get_data_node(node), ['changeID', 'success'], True)
 
@@ -240,7 +242,9 @@ class LibrarianClient(Client):
                 ])
             ])
         )
+        self.semapool.acquire()
         response = self.call(tree)
+        self.semapool.release()
         node = self.xmlnode_class(response)
         return parse_node(get_data_node(node), ['requestID', 'success'], True)
 
@@ -395,7 +399,9 @@ class BartenderClient(Client):
                 ])
             ])
         )
+        self.semapool.acquire()
         msg = self.call(tree)
+        self.semapool.release()
         xml = self.xmlnode_class(msg)
         return parse_node(get_data_node(xml), ['requestID', 'success', 'TURL', 'protocol'])
 
@@ -425,7 +431,9 @@ class BartenderClient(Client):
                 ])
             ])
         )
+        self.semapool.acquire()
         msg = self.call(tree)
+        self.semapool.release()
         xml = self.xmlnode_class(msg)
         return parse_node(get_data_node(xml), ['requestID', 'success'], single = True)
 
@@ -463,7 +471,9 @@ class BartenderClient(Client):
                 ('bar:protocol', protocol) for protocol in protocols
             ])
         )
+        self.semapool.acquire()
         msg = self.call(tree)
+        self.semapool.release()
         xml = self.xmlnode_class(msg)
         return parse_node(get_data_node(xml), ['requestID', 'success', 'TURL', 'protocol'])
 
@@ -479,7 +489,9 @@ class BartenderClient(Client):
                 ])
             ])
         )
+        self.semapool.acquire()
         msg = self.call(tree)
+        self.semapool.release()
         xml = self.xmlnode_class(msg)
         return parse_node(get_data_node(xml), ['requestID', 'success'], single = True)
     
@@ -496,7 +508,9 @@ class BartenderClient(Client):
                 ])
             ])
         )
+        self.semapool.acquire()
         msg = self.call(tree)
+        self.semapool.release()
         xml = self.xmlnode_class(msg)
         return parse_node(get_data_node(xml), ['requestID', 'success'], single = True)
 
@@ -524,7 +538,9 @@ class BartenderClient(Client):
                 ])
             ])
         )
+        self.semapool.acquire()
         msg = self.call(tree)
+        self.semapool.release()
         xml = self.xmlnode_class(msg)
         return parse_node(get_data_node(xml), ['requestID', 'success'], single = True)
 
@@ -555,7 +571,9 @@ class BartenderClient(Client):
             ])
         )
 
+        self.semapool.acquire()
         msg = self.call(tree)
+        self.semapool.release()
         xml = self.xmlnode_class(msg)
         return parse_node(get_data_node(xml), ['requestID', 'success'], single = True)
         
@@ -571,7 +589,9 @@ class BartenderClient(Client):
                 ])
             ])
         )
+        self.semapool.acquire()
         msg = self.call(tree)
+        self.semapool.release()
         xml = self.xmlnode_class(msg)
         return parse_node(get_data_node(xml), ['requestID', 'success'], single = True)
         ###    ###
@@ -664,7 +684,9 @@ class BartenderClient(Client):
                 ])
             ])
         )
+        self.semapool.acquire()
         msg = self.call(tree)
+        self.semapool.release()
         xml = self.xmlnode_class(msg)
         return parse_node(get_data_node(xml), ['requestID', 'status'], single = False)
 
@@ -683,7 +705,9 @@ class BartenderClient(Client):
                 ])
             ])
         )
+        self.semapool.acquire()
         response = self.call(tree)
+        self.semapool.release()
         node = self.xmlnode_class(response)
         return parse_node(get_data_node(node), ['changeID', 'success'], True)
 
@@ -722,7 +746,10 @@ class ShepherdClient(Client):
             raise Exception, msg
 
     def put(self, requests):
-        return self._putget('put', requests)
+        self.semapool.acquire()
+        res = self._putget('put', requests)
+        self.semapool.release()
+        return res
 
     def get(self, requests):
         return self._putget('get', requests)
@@ -738,7 +765,9 @@ class ShepherdClient(Client):
                 ])
             ])
         )
+        self.semapool.acquire()
         msg = self.call(tree)
+        self.semapool.release()
         xml = self.xmlnode_class(msg)
         return parse_node(get_data_node(xml), ['requestID', 'status'])
         
