@@ -82,7 +82,11 @@ namespace Arc {
       }
     }
     else
+#ifdef WIN32
+      AddPluginsPath(ArcLocation::Get() + "\\lib\\arc");
+#else
       AddPluginsPath(ArcLocation::Get() + G_DIR_SEPARATOR_S + PKGLIBSUBDIR);
+#endif
   }
 
   void BaseConfig::AddPluginsPath(const std::string& path) {
