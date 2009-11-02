@@ -968,8 +968,8 @@ namespace Arc {
 
 #ifndef WIN32
 
-    #TODO: ASN1_OCTET_STRING_free is not working correctly
-    #      on Windows Vista, bugreport: 1587
+    // TODO: ASN1_OCTET_STRING_free is not working correctly
+    //      on Windows Vista, bugreport: 1587
 
     if(ext_oct) ASN1_OCTET_STRING_free(ext_oct);
 
