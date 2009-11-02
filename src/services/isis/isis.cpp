@@ -70,13 +70,18 @@ class Thread_data {
 
 static void message_send_thread(void *arg) {
     Arc::AutoPointer<ISIS::Thread_data> data((ISIS::Thread_data*)arg);
-    if(!data) return;
+    if(!data) {
+        delete (ISIS::Thread_data*)arg;
+        return;
+    }
     if ( data->isis_list.empty() ) {
        thread_logger.msg(Arc::ERROR, "Empty URL list add to the thread.");
+       delete (ISIS::Thread_data*)arg;
        return;
     }
     if ( !bool(((ISIS::Thread_data *)data)->node) ) {
        thread_logger.msg(Arc::ERROR, "Empty message add to the thread.");
+       delete (ISIS::Thread_data*)arg;
        return;
     }
     std::vector<std::string>* not_availables_neighbors  = data->not_av_neighbors;
@@ -123,7 +128,8 @@ static void message_send_thread(void *arg) {
         };
         if(response) delete response;
     }
-
+    delete (ISIS::Thread_data*)arg;
+    return;
 }
 
 void SendToNeighbors(Arc::XMLNode& node, std::vector<Arc::ISIS_description> neighbors_,
@@ -138,6 +144,8 @@ void SendToNeighbors(Arc::XMLNode& node, std::vector<Arc::ISIS_description> neig
         if ( isis_desc.url != (*it).url ) {
            //thread creation
            ISIS::Thread_data* data;
+           // This data will be freed in the message_send_thread function after successful or
+           // unsuccessful termination.
            data = new ISIS::Thread_data;
            std::string url = (*it).url;
            std::string next_url = endpoint;
@@ -213,6 +221,7 @@ static void soft_state_thread(void *data) {
             // Whether ISIS's destructor called or not
             if( *(self->kill_thread) ) {
                (*(self->threads_count))--;
+               delete (Soft_State *)data;
                thread_logger.msg(Arc::DEBUG, "%s: Soft-State thread is finished.", method);
                return;
             }
@@ -438,6 +447,8 @@ static void soft_state_thread(void *data) {
         // Create Soft-State database threads
         // Valid thread creation
         Soft_State* valid_data;
+        // This data will be freed in the soft_state_thread function that periodically checks whether the ISIS is stoped
+        // or not, and if yes, then destroy itself and free the relevant pointer.
         valid_data = new Soft_State();
         valid_data->function = "ETValid";
         valid_data->sleep = ((int)valid.GetPeriod())/2;
@@ -468,6 +479,8 @@ static void soft_state_thread(void *data) {
 
         // Remove thread creation
         Soft_State* remove_data;
+        // This data will be freed in the soft_state_thread function that periodically checks whether the ISIS is stoped
+        // or not, and if yes, then destroy itself and free the relevant pointer.
         remove_data = new Soft_State();
         remove_data->function = "ETRemove";
         remove_data->sleep = ((int)remove.GetPeriod())/2;
