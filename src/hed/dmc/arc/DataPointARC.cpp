@@ -401,7 +401,7 @@ namespace Arc {
     // update checksum and size
     DataStatus ret = (*transfer)->StopWriting();
     buffer->wait_read();
-    unsigned char *md5res_u = new unsigned char(16);
+    unsigned char *md5res_u;
     unsigned int length;
     md5sum->result(md5res_u, length);
     std::string md5str = "";
@@ -410,9 +410,6 @@ namespace Arc {
       sprintf(tmpChar, "%.2x", md5res_u[i]);
       md5str += tmpChar;
     }
-    // TODO: figure out how to delete md5res_u
-    // This causes segfaults:
-    // delete [] md5res_u;
     logger.msg(DEBUG, "Calculated checksum: %s", md5str);
 
     MCCConfig cfg;
