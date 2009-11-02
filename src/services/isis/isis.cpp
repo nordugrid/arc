@@ -1212,6 +1212,7 @@ static void soft_state_thread(void *data) {
                    int retry_connect = retry;
                    // Try to connect one ISIS of the neighbors list
                    while ( !isavailable_connect && retry_connect>0) {
+                       if (neighbors_[current].url == endpoint_) continue;
                        Arc::ClientSOAP connectclient_entry(mcc_cfg, neighbors_[current].url, 60);
                        logger_.msg(Arc::DEBUG, "Sending Connect request to the ISIS(%s) and waiting for the response.", neighbors_[current].url );
 
