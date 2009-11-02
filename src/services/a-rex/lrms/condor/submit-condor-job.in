@@ -21,7 +21,7 @@ BEGIN {
     unshift @INC, $pkglibdir;
 }
 
-use ConfigParser;
+use ConfigCentral;
 use condor_env;
 
 use strict;
@@ -62,16 +62,8 @@ die "Usage: $0 [--config CONFIG_FILE] [-d] GRAMI_FILE\n" unless @ARGV;
 parse_grami(my $gramifile = $ARGV[0]);
 
 my $configfile = $ENV{ARC_CONFIG} ? $ENV{ARC_CONFIG} : '/etc/arc.conf';
-my $parser = ConfigParser->new($configfile)
-    or die "Cannot parse configuration file: $configfile\n";
-
-# import some config sections
-my %config = ();
-%config = (%config, $parser->get_section("common"));
-%config = (%config, $parser->get_section("infosys"));
-%config = (%config, $parser->get_section("grid-manager"));
-%config = (%config, $parser->get_section("queue/$grami{joboption_queue}"))
-    if $grami{joboption_queue};
+my $fullconfig = ConfigCentral::parseConfig($configfile);
+my %config = ( %$fullconfig, %{$fullconfig->{shares}{$grami{joboption_queue}}} );
 
 # this finds location of condor executables, and sets up environment vars.
 configure_condor_env(%config) or die "Condor executables not found\n";
