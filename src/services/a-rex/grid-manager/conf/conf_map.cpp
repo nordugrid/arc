@@ -41,9 +41,9 @@ UrlMapConfig::UrlMapConfig(void) {
           Arc::XMLNode mapnode = datanode["mapURL"];
           for(;mapnode;++mapnode) {
             bool is_link = false;
-            if(!elementtobool(datanode,"link",is_link,&glogger)) continue;
-            std::string initial = datanode["from"];
-            std::string replacement = datanode["to"];
+            if(!elementtobool(mapnode,"link",is_link,&glogger)) continue;
+            std::string initial = mapnode["from"];
+            std::string replacement = mapnode["to"];
             if(initial.empty()) {
               glogger.msg(Arc::ERROR,"Missing 'from' element in mapURL");
               continue;
@@ -53,7 +53,7 @@ UrlMapConfig::UrlMapConfig(void) {
               continue;
             };
             if(is_link) {
-              std::string access = datanode["at"];
+              std::string access = mapnode["at"];
               if(access.empty()) access = replacement;
               add(initial,replacement,access);
             } else {
