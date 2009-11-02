@@ -401,6 +401,7 @@ namespace Arc {
     // update checksum and size
     DataStatus ret = (*transfer)->StopWriting();
     buffer->wait_read();
+    // md5res_u memory is handled by md5sum
     unsigned char *md5res_u;
     unsigned int length;
     md5sum->result(md5res_u, length);
