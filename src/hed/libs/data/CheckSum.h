@@ -128,7 +128,7 @@ namespace Arc {
           return 0;
         }
       }
-      return snprintf(buf,len,"adler32:%08x",adler);
+      return snprintf(buf,len,"adler32:%08lx",adler);
     };
     virtual void scan(const char* buf) { };
     virtual operator bool(void) const {
