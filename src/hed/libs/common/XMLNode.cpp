@@ -651,6 +651,95 @@ namespace Arc {
     new_node.is_owner_ = true;
     return;
   }
+ 
+  void XMLNode::Move(XMLNode& node) {
+    if (node.is_owner_ && node.node_)
+      xmlFreeDoc(node.node_->doc);
+    node.is_owner_ = false;
+    node.node_ = NULL;
+    if (node_ == NULL)
+      return;
+    // TODO: Copy attribute node too
+    if (node_->type != XML_ELEMENT_NODE) {
+      return;
+    }
+    if(is_owner_) {
+      // Owner also means top level. So just copy and clean.
+      node.node_=node_;
+      node.is_owner_=true;
+      node_=NULL; is_owner_=false;
+      return;
+    }
+    // Otherwise unlink this node and make a new document of it
+    // New(node); Destroy();
+    xmlDocPtr doc = xmlNewDoc((const xmlChar*)"1.0");
+    if (doc == NULL) return;
+    xmlUnlinkNode(node_);
+    node.node_ = node_; node_ = NULL;
+    xmlDocSetRootElement(doc, node.node_);
+    node.is_owner_ = true;
+    return;
+  }
+
+  void XMLNode::Swap(XMLNode& node) {
+    xmlNodePtr tmp_node_ = node.node_;
+    bool tmp_is_owner_ = node.is_owner_;
+    node.node_ = node_;
+    node.is_owner_ = is_owner_;
+    node_ = tmp_node_;
+    is_owner_ = tmp_is_owner_;
+  }
+
+  void XMLNode::Exchange(XMLNode& node) {
+    if(((node_ == NULL) || is_owner_) &&
+       ((node.node_ == NULL) || node.is_owner_)) {
+      Swap(node); // ?
+      return;
+    }
+    xmlNodePtr node1 = node_;
+    xmlNodePtr node2 = node.node_;
+    if(node1 && (node1->type != XML_ELEMENT_NODE)) return;
+    if(node2 && (node2->type != XML_ELEMENT_NODE)) return;
+    node_ = NULL; node.node_ = NULL;
+    xmlNodePtr neighb1 = node1?(node1->next):NULL;
+    xmlNodePtr neighb2 = node2?(node2->next):NULL;
+    xmlNodePtr parent1 = node1?(node1->parent):NULL;
+    xmlNodePtr parent2 = node2?(node2->parent):NULL;
+    xmlDocPtr doc1 = node1?(node1->doc):NULL;
+    xmlDocPtr doc2 = node2?(node2->doc):NULL;
+    // In current implementation it is dangerous to move 
+    // top level element if node is not owning document 
+    if((parent1 == NULL) && (!is_owner_)) return;
+    if((parent2 == NULL) && (!node.is_owner_)) return;
+    xmlUnlinkNode(node1);
+    xmlUnlinkNode(node2);
+    if(parent1) {
+      if(neighb1) {
+        xmlAddPrevSibling(neighb1,node2);
+      } else {
+        xmlAddChild(parent1,node2);
+      }
+    } else if(doc1) {
+      xmlDocSetRootElement(doc1,node2);
+    } else {
+      // Should not happen
+      xmlFreeNode(node2); node2 = NULL;
+    }
+    if(parent2) {
+      if(neighb2) {
+        xmlAddPrevSibling(neighb2,node1);
+      } else {
+        xmlAddChild(parent2,node1);
+      }
+    } else if(doc2) {
+      xmlDocSetRootElement(doc2,node1);
+    } else {
+      // Should not happen
+      xmlFreeNode(node1); node1 = NULL;
+    }
+    node_ = node2;
+    node.node_ = node1;
+  }
 
   void XMLNode::Namespaces(const NS& namespaces, bool keep, int recursion) {
     if (node_ == NULL)

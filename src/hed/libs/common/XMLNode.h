@@ -108,7 +108,35 @@ namespace Arc {
     /** Creates a copy of XML (sub)tree.
        If object does not represent whole document - top level document
        is created. 'new_node' becomes a pointer owning new XML document. */
-    void New(XMLNode& new_node) const;
+    void New(XMLNode& node) const;
+    /** Exchanges XML (sub)trees.
+     Following conbinations are possible 
+       * If either this ir node are refering owned XML tree (top level
+         node) then references are simply excanged. This opearationis fast.
+       * If both this and node are refering to XML (sub)tree of different
+         documents then (sub)trees are exchahed between documments.
+       * If both this and node are refering to XML (sub)tree of same 
+         document then (sub)trees are moved inside document.
+     The main reason for this method is to provide effective way to insert
+     one XML document inside another.
+     One should take into account that if any of exchanged nodes is top 
+     level it must be also owner of document. Otherwise method will fail.
+     If both nodes are top level owners and/or invlaid nodes then this
+     method is identical to Swap(). */
+    void Exchange(XMLNode& node);
+    /** Moves content of this XML (sub)tree to node
+      This opeartion is similar to New except that XML (sub)tree to 
+      refered by this is destroyed. This method is more effective than
+      combination of New() and Destroy() because internally it is optimized
+      not to copy data if not needed. The main purpose of this is to 
+      effectively extract part of XML document. */
+    void Move(XMLNode& node);
+    /** Swaps XML (sub)trees to this this and node refer.
+      For XML subtrees this method is not anyhow different then using
+      combinaiion XMLNode tmp=*this; *this=node; node=tmp;
+      But in case of either this or node owning XML document ownership
+      is swapped too. And this is a main purpose of Swap() method. */
+    void Swap(XMLNode& node);
     /** Returns true if instance points to XML element - valid instance */
     operator bool(void) const {
       return ((node_ != NULL) && (!is_temporary_));
