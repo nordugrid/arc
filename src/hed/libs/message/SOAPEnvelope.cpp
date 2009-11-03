@@ -147,6 +147,7 @@ void SOAPEnvelope::Swap(SOAPEnvelope& soap) {
   envelope.Swap(soap.envelope);
   header.Swap(soap.header);
   body.Swap(soap.body);
+  XMLNode::Swap(soap);
 }
 
 void SOAPEnvelope::Swap(Arc::XMLNode& soap) {
