@@ -139,6 +139,28 @@ SOAPEnvelope* SOAPEnvelope::New(void) {
   return new_soap;
 }
 
+void SOAPEnvelope::Swap(SOAPEnvelope& soap) {
+  bool ver12_tmp = ver12;
+  ver12=soap.ver12; soap.ver12=ver12_tmp;
+  SOAPFault* fault_tmp = fault;
+  fault=soap.fault; soap.fault=fault_tmp;
+  envelope.Swap(soap.envelope);
+  header.Swap(soap.header);
+  body.Swap(soap.body);
+}
+
+void SOAPEnvelope::Swap(Arc::XMLNode& soap) {
+  XMLNode& it = *this;
+  envelope.Swap(soap);
+  it.Swap(envelope);
+  envelope=XMLNode();
+  body=XMLNode();
+  header=XMLNode();
+  ver12=false;
+  fault=NULL;
+  set();
+}
+
 void SOAPEnvelope::Namespaces(const NS& namespaces) {
   envelope.Namespaces(namespaces);
 }

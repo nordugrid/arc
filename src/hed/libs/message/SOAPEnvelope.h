@@ -83,8 +83,10 @@ class SOAPFault {
 };
 
 /// Extends XMLNode class to support structures of SOAP message.
-/** All XMLNode methods are exposed by inheriting from XMLNode and node itself 
-  is translated into Envelope part of SOAP. */
+/** All XMLNode methods are exposed by inheriting from XMLNode and if 
+   used are applied to Body part of SOAP. Direct access to whole SOAP
+   message/Envelope is not provided in order to protect internal 
+   variables - although  full protection is not possible. */
 class SOAPEnvelope: public XMLNode {
  public:
   typedef enum {
@@ -109,8 +111,17 @@ class SOAPEnvelope: public XMLNode {
   SOAPEnvelope(const SOAPEnvelope& soap);
   ~SOAPEnvelope(void);
   /** Creates complete copy of SOAP.
-    Do not use New() method of XMLNode - use this one. */
+    Do not use New() method of XMLNode for copying whole SOAP - use this one. */
   SOAPEnvelope* New(void);
+  /** Swaps internals of two SOAPEnvelope instances.
+    This method is identical to XMLNode::Swap() but also takes into account
+    all internals of SOAPEnvelope class. */
+  void Swap(SOAPEnvelope& soap);
+  /** Swaps SOAP message and generic XML tree.
+    XMLNode variable gets whole SOAP message and this instance is filled
+    with content of analyzed XMLNode like in case of SOAPEnvelope(XMLNode)
+    constructor. Ownerships are swapped too. */
+  void Swap(Arc::XMLNode& soap);
   /** Modify assigned namespaces. 
     Default namespaces and prefixes are
      soap-enc http://schemas.xmlsoap.org/soap/encoding/
@@ -122,11 +133,13 @@ class SOAPEnvelope: public XMLNode {
   NS Namespaces(void);
   // Setialize SOAP message into XML document
   void GetXML(std::string& out_xml_str,bool user_friendly = false) const;
-  /** Get SOAP header as XML node */
+  /** Get SOAP header as XML node. */
   XMLNode Header(void) { return header; };
-  /** Get SOAP body as XML node */
+  /** Get SOAP body as XML node.
+     It is not necessary to use this method because instance of this class
+    itself represents SOAP Body. */
   XMLNode Body(void) { return body; };
-  /** Returns true if message is Fault */
+  /** Returns true if message is Fault. */
   bool IsFault(void) { return fault != NULL; };
   /** Get Fault part of message. Returns NULL if message is not Fault. */
   SOAPFault* Fault(void) { return fault; };
