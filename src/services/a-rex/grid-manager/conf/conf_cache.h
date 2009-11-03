@@ -51,8 +51,12 @@ class CacheConfig {
     * defined in the conf file, use the cache parameters for the given username.
     */
   CacheConfig(std::string username = "");
-  CacheConfig(Arc::XMLNode cfg);
   ~CacheConfig(void) {};
+  /**
+   * Parsers for the two different conf styles
+   */
+  void parseINIConf(std::string username, ConfigSections* cf);
+  void parseXMLConf(std::string username, Arc::XMLNode cfg);
   std::list<std::string> getCacheDirs() { return _cache_dirs; };
   /**
    * To allow for substitutions done during configuration
