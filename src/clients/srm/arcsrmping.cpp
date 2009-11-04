@@ -36,7 +36,7 @@ int main(int argc, char **argv) {
                                     "service."));
 
   int timeout = -1;
-  options.AddOption('t', "timeout", istring("timeout in seconds (default " + Arc::tostring(Arc::UserConfig::DEFAULT_TIMEOUT) + ")"),
+  options.AddOption('t', "timeout", istring("timeout in seconds (default 20)"),
                     istring("seconds"), timeout);
 
   std::string conffile;
