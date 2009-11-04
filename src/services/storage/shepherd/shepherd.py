@@ -59,6 +59,11 @@ class Shepherd:
             self.creating_timeout = float(str(cfg.Get('CreatingTimeout')))
         except:
             self.creating_timeout = 0
+            
+        try:
+            self.checksum_lifetime = float(str(cfg.Get('ChecksumLifetime')))
+        except:
+            self.checksum_lifetime = 3600
 
         librarian_urls =  get_child_values_by_name(cfg, 'LibrarianURL')
         self.librarian = LibrarianClient(librarian_urls, ssl_config = self.ssl_config)
@@ -192,20 +197,32 @@ class Shepherd:
         return str(self.doReporting)
     
     def _checking_checksum(self, referenceID, localData):
-        # ask the backend to create the checksum of the file 
-        try:
-            current_checksum = self.backend.checksum(localData['localID'], localData['checksumType'])
-        except:
-            current_checksum = None
-        # get the original checksum
-        # TODO: maybe we should use the checksum from the Librarian and not the locally stored one?
-        #     what if this shepherd was offline for a long time, and when it goes online again
-        #     the file with this GUID is changed somehow on the other Shepherds, so the checksum is different in the Librarian
-        #     but this still thinks that the file is OK according to the old checksum, and reports that
-        #     is it a scenario which could happen?
-        checksum = localData['checksum']
         # get the current state (which is stored locally) or an empty string if it somehow has no state
         state = localData.get('state','')
+        # hack: if the file's state is ALIVE then only check the checksum if the last check was a long time ago
+        current_time = time.time()
+        if state != ALIVE or current_time - localData.get('lastChecksumTime',-1) > self.checksum_lifetime:
+            # ask the backend to create the checksum of the file 
+            try:
+                current_checksum = self.backend.checksum(localData['localID'], localData['checksumType'])
+                print 'self.backend.checksum was called, returned:', current_checksum
+                self.store.lock()
+                try:
+                    current_local_data = self.store.get(referenceID)
+                    current_local_data['lastChecksumTime'] = current_time
+                    current_local_data['lastChecksum'] = current_checksum
+                    self.store.set(referenceID, current_local_data)
+                    self.store.unlock()
+                except:
+                    log.msg()
+                    self.store.unlock()
+                    current_checksum = None
+            except:
+                current_checksum = None
+        else:
+            current_checksum = localData.get('lastChecksum', None)
+        # get the original checksum
+        checksum = localData['checksum']
         #print '-=-', referenceID, state, checksum, current_checksum
         if checksum == current_checksum:
             # if the original and the current checksum is the same, then the replica is valid
@@ -214,7 +231,6 @@ class Shepherd:
                 log.msg(arc.DEBUG, '\nCHECKSUM OK', referenceID)
                 self.changeState(referenceID, ALIVE)
                 state = ALIVE
-            # now the state of the file is ALIVE, let's return it with the GUID and the localID (which will be needed later by checkingThread )
             return state
         else:
             # or if the checksum is not the same - we have a corrupt file, or a not-fully-uploaded one
@@ -231,7 +247,7 @@ class Shepherd:
                 # if the file is DELETED or STALLED we don't care if the checksum is wrong
                 return state
             if state != INVALID:
-                # but if it is not INVALID, not CREATING and not DELETED - so it's ALIVE: its state should be changed to INVALID
+                # but if it is not CREATING, not DELETED or STALLED and not INVALID - then it was ALIVE: now its state should be changed to INVALID
                 log.msg(arc.DEBUG, '\nCHECKSUM MISMATCH', referenceID, 'original:', checksum, 'current:', current_checksum)
                 self.changeState(referenceID, INVALID)
             return INVALID
@@ -260,14 +276,15 @@ class Shepherd:
         if checksum != librarian_checksum or checksumType != librarian_checksumType:
             # refresh the checksum
             self.store.lock()
+            current_local_data = self.store.get(referenceID)
             try:
-                if not localData: # what?
+                if not current_local_data: # what?
                     self.store.unlock()
                 else:
-                    localData['checksum'] = librarian_checksum
-                    localData['checksumType'] = librarian_checksumType
-                    log.msg(arc.DEBUG, 'checksum refreshed', localData)
-                    self.store.set(referenceID, localData)
+                    current_local_data['checksum'] = librarian_checksum
+                    current_local_data['checksumType'] = librarian_checksumType
+                    log.msg(arc.DEBUG, 'checksum refreshed', current_local_data)
+                    self.store.set(referenceID, current_local_data)
                     self.store.unlock()
             except:
                 log.msg()
@@ -534,6 +551,8 @@ class Shepherd:
                             'GUID' : requestData.get('GUID', None),
                             'checksum' : requestData.get('checksum', None),
                             'checksumType' : requestData.get('checksumType', None),
+                            'lastChecksumTime' : -1,
+                            'lastChecksum' : '',
                             'size' : size,
                             'acl': acl,
                             'created': str(time.time()),
