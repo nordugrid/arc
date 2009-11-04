@@ -66,7 +66,7 @@ AC_SUBST(initddir)
 
 # gettext
 AM_GNU_GETTEXT([external])
-AM_GNU_GETTEXT_VERSION([0.11.4])
+AM_GNU_GETTEXT_VERSION([0.12])
 [[ -e po/POTFILES.in ]] || touch po/POTFILES.in
 
 # Portable 64bit file offsets
