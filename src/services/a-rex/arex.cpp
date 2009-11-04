@@ -356,10 +356,9 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
         UpdateCredentials(*config,op,outpayload->Child(),credentials);
       } else if(MatchXMLNamespace(op,"http://docs.oasis-open.org/wsrf/rp-2")) {
         CountedResourceLock cl_lock(infolimit_);
-        // TODO: do not copy out_ to outpayload.
         Arc::SOAPEnvelope* out_ = infodoc_.Process(*inpayload);
         if(out_) {
-          *outpayload=*out_;
+          out_->Swap(*outpayload);
           delete out_;
         } else {
           delete outpayload;

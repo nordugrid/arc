@@ -50,11 +50,12 @@ SOAPEnvelope* InformationInterface::Process(SOAPEnvelope& in) {
     // Requesting whole document
     XMLNodeContainer presp; Get(std::list<std::string>(),presp);
     XMLNode xresp; if(presp.Size() > 0) xresp=presp[0];
-    WSRPGetResourcePropertyDocumentResponse* resp = 
-         new WSRPGetResourcePropertyDocumentResponse(xresp);
-    if((resp) && (!(*resp))) { delete resp; resp=NULL; };
-    SOAPEnvelope* out = (resp)?(resp->SOAP().New()):NULL;
-    if(resp) delete resp;
+    WSRPGetResourcePropertyDocumentResponse resp(xresp);
+    SOAPEnvelope* out = NULL;
+    if(resp) {
+      NS ns;
+      (out = new SOAPEnvelope(ns))->Swap(resp.SOAP());
+    };
     delete &wsrp;
     return out;
   } catch(std::exception& e) { };
@@ -65,17 +66,17 @@ SOAPEnvelope* InformationInterface::Process(SOAPEnvelope& in) {
     if(!(*req)) throw std::exception();
     std::list<std::string> name; name.push_back(req->Name());
     XMLNodeContainer presp; Get(name,presp); // Requesting sub-element
-    WSRPGetResourcePropertyResponse* resp = 
-         new WSRPGetResourcePropertyResponse();
-    if((resp) && (!(*resp))) { delete resp; resp=NULL; };
-    if(resp) {
-      for(int n = 0;n<presp.Size();++n) {
-        XMLNode xresp = presp[n];
-        resp->Property(xresp);
-      };
+    WSRPGetResourcePropertyResponse resp;
+    for(int n = 0;n<presp.Size();++n) {
+      XMLNode xresp = presp[n];
+      // TODO: avoid copy
+      resp.Property(xresp);
     };
-    SOAPEnvelope* out = (resp)?(resp->SOAP().New()):NULL;
-    if(resp) delete resp;
+    SOAPEnvelope* out = NULL;
+    if(resp) {
+      NS ns;
+      (out = new SOAPEnvelope(ns))->Swap(resp.SOAP());
+    };
     delete &wsrp;
     return out;
   } catch(std::exception& e) { };
@@ -84,23 +85,22 @@ SOAPEnvelope* InformationInterface::Process(SOAPEnvelope& in) {
          dynamic_cast<WSRPGetMultipleResourcePropertiesRequest*>(&wsrp);
     if(!req) throw std::exception();
     if(!(*req)) throw std::exception();
-    WSRPGetMultipleResourcePropertiesResponse* resp =
-         new WSRPGetMultipleResourcePropertiesResponse();
-    if((resp) && (!(*resp))) { delete resp; resp=NULL; };
-    if(resp) {
-      std::vector<std::string> names = req->Names();
-      for(std::vector<std::string>::iterator iname = names.begin();
-                                iname != names.end(); ++iname) {
-        std::list<std::string> name; name.push_back(*iname);
-        XMLNodeContainer presp; Get(name,presp); // Requesting sub-element
-        for(int n = 0;n<presp.Size();++n) {
-          XMLNode xresp = presp[n];
-          resp->Property(xresp);
-        };
+    WSRPGetMultipleResourcePropertiesResponse resp;
+    std::vector<std::string> names = req->Names();
+    for(std::vector<std::string>::iterator iname = names.begin();
+                              iname != names.end(); ++iname) {
+      std::list<std::string> name; name.push_back(*iname);
+      XMLNodeContainer presp; Get(name,presp); // Requesting sub-element
+      for(int n = 0;n<presp.Size();++n) {
+        XMLNode xresp = presp[n];
+        resp.Property(xresp);
       };
     };
-    SOAPEnvelope* out = (resp)?(resp->SOAP().New()):NULL;
-    if(resp) delete resp;
+    SOAPEnvelope* out = NULL;
+    if(resp) {
+      NS ns;
+      (out = new SOAPEnvelope(ns))->Swap(resp.SOAP());
+    };
     delete &wsrp;
     return out;
   } catch(std::exception& e) { };
@@ -115,17 +115,16 @@ SOAPEnvelope* InformationInterface::Process(SOAPEnvelope& in) {
       return SOAPFault::MakeSOAPFault(SOAPFault::Sender,"Query dialect not supported");
     }
     XMLNodeContainer presp; Get(req->Query(),presp);
-    WSRPQueryResourcePropertiesResponse* resp =
-         new WSRPQueryResourcePropertiesResponse();
-    if((resp) && (!(*resp))) { delete resp; resp=NULL; };
-    if(resp) {
-      for(int n = 0;n<presp.Size();++n) {
-        XMLNode xresp = presp[n];
-        resp->Properties().NewChild(xresp);
-      };
+    WSRPQueryResourcePropertiesResponse resp;
+    for(int n = 0;n<presp.Size();++n) {
+      XMLNode xresp = presp[n];
+      resp.Properties().NewChild(xresp);
     };
-    SOAPEnvelope* out = (resp)?(resp->SOAP().New()):NULL;
-    if(resp) delete resp;
+    SOAPEnvelope* out = NULL;
+    if(resp) {
+      NS ns;
+      (out = new SOAPEnvelope(ns))->Swap(resp.SOAP());
+    };
     delete &wsrp;
     return out;
   } catch(std::exception& e) { };
