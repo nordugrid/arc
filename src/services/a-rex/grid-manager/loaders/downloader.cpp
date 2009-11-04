@@ -435,8 +435,9 @@ int main(int argc,char** argv) {
 
   if(use_conf_cache) {
     // use cache dir(s) from conf file
+    CacheConfig * cache_config;
     try {
-      CacheConfig * cache_config = new CacheConfig(std::string(file_owner_username));
+      cache_config = new CacheConfig(std::string(file_owner_username));
       std::list<std::string> conf_caches = cache_config->getCacheDirs();
       // add each cache to our list
       for (std::list<std::string>::iterator i = conf_caches.begin(); i != conf_caches.end(); i++) {
@@ -448,6 +449,7 @@ int main(int argc,char** argv) {
       logger.msg(Arc::ERROR, "Error with cache configuration: %s", e.what());
       logger.msg(Arc::ERROR, "Will not use caching");
     }
+    delete cache_config;
   }
   else {
     if(argv[optind+3]) {
@@ -481,6 +483,7 @@ int main(int argc,char** argv) {
     cache = new Arc::FileCache(caches,std::string(id),uid,gid);
     if (!(*cache)) {
       logger.msg(Arc::ERROR, "Error creating cache");
+      delete cache;
       exit(1);
     }
   }
@@ -601,11 +604,11 @@ int main(int argc,char** argv) {
           PointPair* pair = new PointPair(source,destination,usercfg);
           if(!(pair->source)) {
             failure_reason+=std::string("Can't accept URL ")+source.c_str()+"\n";
-            logger.msg(Arc::ERROR, "Can't accept URL: %s", source); res=1; goto exit;
+            logger.msg(Arc::ERROR, "Can't accept URL: %s", source); delete pair; res=1; goto exit;
           };
           if(!(pair->destination)) {
             failure_reason+=std::string("Can't accept URL ")+destination.c_str()+"\n";
-            logger.msg(Arc::ERROR, "Can't accept URL: %s", destination); res=1; goto exit;
+            logger.msg(Arc::ERROR, "Can't accept URL: %s", destination); delete pair; res=1; goto exit;
           };
           i->pair=pair;
         };
@@ -779,6 +782,7 @@ exit:
   if(res != 0 && res != 4) {
     cache->Release();
   };
+  delete cache;
   remove_proxy();
   if(res != 0 && res != 4) {
     job_failed_mark_add(desc,user,failure_reason);
