@@ -4,6 +4,8 @@ from arcom.security import parse_ssl_config, AuthRequest
 from arcom.logger import Logger
 log = Logger(arc.Logger(arc.Logger_getRootLogger(), 'EchoService.py'))
 
+wsrf_rp_ns = "http://docs.oasis-open.org/wsrf/rp-2"
+echo_ns = "urn:echo"
 import threading
 
 class EchoService:
@@ -31,7 +33,7 @@ class EchoService:
                 i += 1
                 cfg = arc.MCCConfig()
                 s = arc.ClientSOAP(cfg, arc.URL(url))
-                ns = arc.NS('echo', 'urn:echo')
+                ns = arc.NS('echo', echo_ns)
                 outpayload = arc.PayloadSOAP(ns)
                 outpayload.NewChild('echo:echo').NewChild('echo:say').Set('hi!')
                 resp, status = s.process(outpayload)
@@ -49,6 +51,16 @@ class EchoService:
         doc.Replace(regentry)
         return True
 
+    def GetLocalInformation(self):
+        ns = arc.NS({'':'http://schemas.ogf.org/glue/2008/05/spec_2.0_d41_r01'})
+        info = arc.XMLNode(ns,'Domains')
+        service_node = info.NewChild('AdminDomain').NewChild('Services').NewChild('Service')
+        service_node.NewChild('Type').Set('org.nordugrid.tests.echo')
+        endpoint_node = service_node.NewChild('Endpoint')
+        endpoint_node.NewChild('HealthState').Set('ok')
+        endpoint_node.NewChild('ServingState').Set('production')    
+        return info
+
     def process(self, inmsg, outmsg):
         log.msg("EchoService (python) 'Process' called")
         # time.sleep(10)
@@ -59,20 +71,22 @@ class EchoService:
         log.msg(arc.INFO, "EchoService (python) got:", inpayload.GetXML())
         # the first child of the payload should be the name of the request
         request_node = inpayload.Child()
-        # we want to use members of the 'urn:echo' namespace
-        # so we need to know which namespace prefix was assigned to it
-        # we get the namespace prefix
-        echo_ns = request_node.NamespacePrefix('urn:echo')
-        # get the qualified name of the request
-        request_name = request_node.FullName()
-        log.msg("EchoService (python) request_name:",  request_name)
-        if not request_name.startswith(echo_ns + ':'):
-            raise Exception, 'wrong namespace. expected: %s' % ('urn:echo')
+        # get the namespace
+        request_namespace = request_node.Namespace()
+        log.msg("EchoService (python) request_namespace:",  request_namespace)
+        if request_namespace != echo_ns:
+            if request_namespace == wsrf_rp_ns:
+                outpayload = arc.PayloadSOAP(arc.NS({'wsrf-rp':wsrf_rp_ns}))
+                outpayload.NewChild('wsrf-rp:GetResourcePropertyDocumentResponse').NewChild(self.GetLocalInformation())
+                outmsg.Payload(outpayload)
+                log.msg("outpayload", outpayload.GetXML())
+                return arc.MCC_Status(arc.STATUS_OK)
+            raise Exception, 'wrong namespace. expected: %s' % echo_ns
         # get the name of the request without the namespace prefix
         # this is the name of the Body node's first child
         request_name = request_node.Name()
         # create an answer payload
-        ns = arc.NS({'echo': 'urn:echo'})
+        ns = arc.NS({'echo': echo_ns})
         outpayload = arc.PayloadSOAP(ns)
         # here we defined that 'echo' prefix will be the namespace prefix of 'urn:echo'
         # get the message
