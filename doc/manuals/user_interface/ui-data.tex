@@ -1,7 +1,7 @@
 \subsection{arcls}\label{sec:arcls}
-The \texttt{arcls} \index{arcls}\index{commands:arcls} is a simple
+\texttt{arcls}\index{arcls}\index{commands:arcls} is a simple
 utility that allows to list contents and view some attributes of
-objects of a specified (by an URL) remote directory.
+objects of a specified (by a URL) remote directory.
 
 \hspace*{0.5cm}
 \begin{shaded}
@@ -15,7 +15,7 @@ objects of a specified (by an URL) remote directory.
     \texttt{-d} & \textit{debuglevel} &debug level is one of  FATAL, ERROR, WARNING, INFO, DEBUG or VERBOSE\\
     \texttt{-l} &  & detailed listing\\
     \texttt{-L} &  & detailed listing including URLs from which file can 
-    be downloaded and\\ & & temporary cached locations\\
+    be downloaded\\
     \texttt{-m} && display all available metadata\\
     Arguments:&&\\
     \texttt{URL} && file or directory URL\\
@@ -29,9 +29,9 @@ which is explicitly given by job ID.
 Usage examples can be as follows:
 
 \begin{verbatim}
-    arcls rls://rc.host:38203/logical_file_name
+    arcls -L rls://rls.nordugrid.org:38203/logical_file_name
     arcls -l gsiftp://lscf.nbi.dk:2811/jobs/1323842831451666535
-    arcls -L srm://grid.uio.no:58000/srm/managerv1/johndoe/log2
+    arcls srm://grid.uio.no:8446/srm/managerv2?SFN=/johndoe/log2
 \end{verbatim}
 
 Examples of URLs accepted by this tool can be found in
@@ -41,7 +41,7 @@ listings.
 
 \subsection{arccp}\label{sec:arccp}
 
-The \texttt{arccp} \index{arccp}\index{commands:arccp} is a powerful
+\texttt{arccp}\index{arccp}\index{commands:arccp} is a powerful
 tool to copy files over the Grid. It is a part of the A-REX,
 but can be used by the User Interface as well.
 \hspace*{0.5cm}
@@ -88,13 +88,13 @@ Usage examples of \texttt{arccp} are:
     arccp gsiftp://lscf.nbi.dk:2811/jobs/1323842831451666535/job.out \
               file:///home/myname/job2.out
     arccp gsiftp://aftpexp.bnl.gov;threads=10/rep/my.file \
-              rc://;threads=4@grid.uio.no/lc=Collection,rc=Catalog/zebra4.f
+              rls://grid.uio.no/zebra4.f
     arccp http://www.nordugrid.org/data/somefile gsiftp://hathi.hep.lu.se/data/
 \end{verbatim}
 
 \subsection{arcrm}\label{sec:arcrm}
 
-The \texttt{arcrm} \index{arcrm}\index{commands:arcrm}
+The \texttt{arcrm}\index{arcrm}\index{commands:arcrm}
 command allows users to erase files at any location specified by a
 valid URL.
 \hspace*{0.5cm}
@@ -114,14 +114,14 @@ valid URL.
 
 \begin{framed}
    A convenient use for \texttt{arcrm} is to erase the files in a data
-   indexing catalog (RC, RLS or such), as it will not only remove the
+   indexing catalog (LFC, RLS or such), as it will not only remove the
    physical instance, but also will clean up the database record.
 \end{framed}
 
 Here is an \texttt{arcrm} example:
 
 \begin{verbatim}
-    arcrm rc://grid.uio.no/lc=Collection,rc=Catalog/badfile
+    arcrm lfc://grid.uio.no/grid/atlas/AOD_0947.pool.root
 \end{verbatim}
 
 \subsection{arcacl}\label{sec:arcacl}
@@ -145,16 +145,16 @@ supports GridSite GACL language~\cite{gacl} for access control.
     \texttt{URL} && object URL; curently only gsiftp and sse URLs are supported\\
 \end{longtable}
 
-ACL document (an XML file) is printed to standard output when
+The ACL document (an XML file) is printed to standard output when
 \texttt{get} is requested, and is acquired from standard input when
 \texttt{set} is specified\footnote{In ARC $\leq$ 0.5.28, \texttt{set}
-  shoud be used instead of \texttt{put}}. Usage examples are:
+  was used instead of \texttt{put}}. Usage examples are:
 \begin{verbatim}
     arcacl get gsiftp://se1.ndgf.csc.fi/ndgf/tutorial/dirname/filename
-    arcacl set gsiftp://se1.ndgf.csc.fi/ndgf/tutorial/dirname/filename $<$ myacl
+    arcacl set gsiftp://se1.ndgf.csc.fi/ndgf/tutorial/dirname/filename < myacl
 \end{verbatim}
 
 \subsection{arctransfer}\label{sec:arctransfer}
-\index{arctransfer}\index{commands:arctransfer}The \texttt{arctransfer}
-This command is not implemented.
+\index{arctransfer}\index{commands:arctransfer}
+The \texttt{arctransfer} command is not implemented.
 
