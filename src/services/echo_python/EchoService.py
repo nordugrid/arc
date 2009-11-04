@@ -55,7 +55,7 @@ class EchoService:
         ns = arc.NS({'':'http://schemas.ogf.org/glue/2008/05/spec_2.0_d41_r01'})
         info = arc.XMLNode(ns,'Domains')
         service_node = info.NewChild('AdminDomain').NewChild('Services').NewChild('Service')
-        service_node.NewChild('Type').Set('org.nordugrid.tests.echo')
+        service_node.NewChild('Type').Set('org.nordugrid.tests.echo_python')
         endpoint_node = service_node.NewChild('Endpoint')
         endpoint_node.NewChild('HealthState').Set('ok')
         endpoint_node.NewChild('ServingState').Set('production')    
