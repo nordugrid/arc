@@ -91,7 +91,7 @@ binary-indep: install-indep
 	dh_installexamples -i
 	dh_installman -i
 	dh_installdocs -i
-	dh_installchangelogs -i ChangeLog
+	dh_installchangelogs -i
 	dh_compress -i -X .pdf
 	dh_fixperms -i
 	dh_installdeb -i
@@ -107,7 +107,7 @@ binary-arch: install-arch
 	dh_installexamples -a
 	dh_installman -a
 	dh_install -a --fail-missing
-	dh_installchangelogs -a ChangeLog
+	dh_installchangelogs -a
 	dh_installinit --name arched
 	dh_installinit --name a-rex
 	dh_pysupport -a

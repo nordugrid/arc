@@ -279,7 +279,7 @@ exit 0
 %defattr(-,root,root,-)
 %{_libdir}/lib*.so.*
 %{_datadir}/%{pkgdir}/schema
-%doc ChangeLog README AUTHORS LICENSE
+%doc README AUTHORS LICENSE
 
 %files client
 %defattr(-,root,root,-)
