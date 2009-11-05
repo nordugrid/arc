@@ -970,14 +970,14 @@ bool print_serviced_users(const JobUsers &users) {
     CacheConfig * cache_config = user->CacheParams();
 
     if(!cache_config) {
-      logger.msg(Arc::INFO,"No cache directory found in configuration, caching is disabled");
+      logger.msg(Arc::INFO,"No valid caches found in configuration, caching is disabled");
       continue;
     }
 
     std::list<std::string> conf_caches = cache_config->getCacheDirs();
 
     if(conf_caches.empty()) {
-      logger.msg(Arc::INFO,"No cache directory found in configuration, caching is disabled");
+      logger.msg(Arc::INFO,"No valid caches found in configuration, caching is disabled");
       continue;
     }
     // list each cache
