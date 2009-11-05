@@ -180,17 +180,18 @@ int main(int argc,char** argv) {
   bool secure = true;
   bool userfiles_only = false;
   bool passive = false;
+  bool janitor_enabled = false;
   std::string failure_reason("");
   std::string x509_proxy, x509_cert, x509_key, x509_cadir;
 
   // process optional arguments
   for(;;) {
     opterr=0;
-    int optc=getopt(argc,argv,"+hclpfC:n:t:u:U:s:S:a:i:d:");
+    int optc=getopt(argc,argv,"+hclpfjC:n:t:u:U:s:S:a:i:d:");
     if(optc == -1) break;
     switch(optc) {
       case 'h': {
-        std::cerr<<"Usage: uploader [-hclpf] [-C conf_file] [-n files] [-t threads] [-U uid]"<<std::endl;
+        std::cerr<<"Usage: uploader [-hclpfj] [-C conf_file] [-n files] [-t threads] [-U uid]"<<std::endl;
         std::cerr<<"          [-u username] [-s min_speed] [-S min_speed_time]"<<std::endl;
         std::cerr<<"          [-a min_average_speed] [-i min_activity_time]"<<std::endl;
         std::cerr<<"          [-d debug_level] job_id control_directory"<<std::endl;
@@ -203,14 +204,17 @@ int main(int argc,char** argv) {
       case 'C': {
         nordugrid_config_loc(optarg);
       }; break;
-      case 'f': {
-        use_conf_cache=true;
-      }; break;
       case 'l': {
         userfiles_only=true;
       }; break;
       case 'p': {
         passive=true;
+      }; break;
+      case 'f': {
+        use_conf_cache=true;
+      }; break;
+      case 'j': {
+        janitor_enabled=true;
       }; break;
       case 'd': {
         Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(optarg));
@@ -447,10 +451,12 @@ int main(int argc,char** argv) {
     logger.msg(Arc::ERROR, "Can't read job local description"); res=1; goto exit;
   };
 
-  // Start janitor in parallel
-  if(janitor) {
-    if(!janitor.remove()) {
-      logger.msg(Arc::ERROR, "Failed to deploy Janitor"); res=1; goto exit;
+  if (janitor_enabled) {
+    // Start janitor in parallel
+    if(janitor) {
+      if(!janitor.remove()) {
+        logger.msg(Arc::ERROR, "Failed to deploy Janitor"); res=1; goto exit;
+      };
     };
   };
 
@@ -553,14 +559,16 @@ exit:
   for(FileDataEx::iterator i = job_files.begin();i!=job_files.end();++i) job_files_.push_back(*i);
   clean_files(job_files_,session_dir);
   remove_proxy();
-  // We are not extremely interested if janitor finished successfuly
-  // but it should be at least reported.
-  if(janitor) {
-    if(!janitor.wait(5*60)) {
-      logger.msg(Arc::WARNING, "Janitor timeout while removing Dynamic RTE(s) associations (ignoring)");
-    };
-    if(janitor.result() != Janitor::REMOVED) {
-      logger.msg(Arc::WARNING, "Janitor failed to remove Dynamic RTE(s) associations (ignoring)");
+  if (janitor_enabled) {
+    // We are not extremely interested if janitor finished successfuly
+    // but it should be at least reported.
+    if(janitor) {
+      if(!janitor.wait(5*60)) {
+        logger.msg(Arc::WARNING, "Janitor timeout while removing Dynamic RTE(s) associations (ignoring)");
+      };
+      if(janitor.result() != Janitor::REMOVED) {
+        logger.msg(Arc::WARNING, "Janitor failed to remove Dynamic RTE(s) associations (ignoring)");
+      };
     };
   };
   if(res != 0) {

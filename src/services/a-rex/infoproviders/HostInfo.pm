@@ -239,7 +239,7 @@ sub get_host_info($) {
         # executable beacuse I'm nor skilled enough to isolate
         # possible Janitor errors and in order not to redo 
         # all Log4Perl tricks again. Please redo it later. A.K.
-        if ($options->{JanitorConfigured}) {
+        if ($options->{JanitorEnabled}) {
             my $janitor = $options->{bindir}.'/janitor';
             if (! -e $janitor) {
                $log->debug("Janitor not found at '$janitor' - not using");

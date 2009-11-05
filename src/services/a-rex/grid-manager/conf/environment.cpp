@@ -130,6 +130,8 @@ static prstring runtime_config_dir_;
 static prstring support_mail_address_;
 // Global gridmap files with welcomed users' DNs and UNIX names
 static prstring globus_gridmap_;
+// Janitor is enabled if set to non-empty string
+static prstring janitor_enabled_;
 
 std::string globus_loc(void) {
   return globus_loc_.str();
@@ -183,6 +185,13 @@ std::string globus_gridmap(void) {
   return globus_gridmap_.str();
 }
 
+std::string janitor_enabled(void) {
+  return janitor_enabled_.str();
+}
+
+void janitor_enabled(const std::string& val) {
+  janitor_enabled_=val;
+}
 
 static bool file_exists(const char* name) {
   struct stat st;

@@ -110,7 +110,7 @@ my $config_schema = {
     debugLevel => '*',
     PublishNordugrid => '*',
     AdminDomain => '*',
-    JanitorConfigured => '*',
+    JanitorEnabled => '*',
     ttl => '*',
     %$gmcommon_options,
     %$lrms_options,
@@ -446,7 +446,7 @@ sub build_config_from_xmlfile {
     hash_tree_apply $config, sub { fixbools shift, $allbools };
 
     my $janitor = hash_get_hashref($arex,  'janitor');
-    $config->{JanitorConfigured} = 1 if %$janitor;
+    $config->{JanitorEnabled} = $janitor->{enabled} ? 1 : 0;
 
     #print(Dumper $config);
     return $config;
@@ -605,7 +605,7 @@ sub build_config_from_inifile {
     hash_tree_apply $config, sub { fixbools shift, $allbools };
 
     my $janitor = { $iniparser->get_section('janitor') };
-    $config->{JanitorConfigured} = 1 if %$janitor;
+    $config->{JanitorEnabled} = $janitor->{enabled} ? 1 : 0;
 
     #print(Dumper $config);
     return $config;

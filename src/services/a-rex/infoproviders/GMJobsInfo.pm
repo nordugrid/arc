@@ -194,7 +194,10 @@ sub collect($) {
         # read the job.ID.grami file
 
         unless ( open (GMJOB_GRAMI, "<$gmjob_grami") ) {
-            $log->warning("Job $ID: Can't open $gmjob_grami");
+            # this file is is kept by A-REX during the hole existence of the
+            # job. grid-manager from arc0, however, deletes it after the job
+            # has finished.
+            $log->debug("Job $ID: Can't open $gmjob_grami");
         } else {
             my $sessiondir = $job->{sessiondir};
             while (my $line = <GMJOB_GRAMI>) {
