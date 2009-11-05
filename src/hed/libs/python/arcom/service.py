@@ -7,6 +7,9 @@ gateway_uri = 'http://www.nordugrid.org/schemas/gateway'
 delegation_uri = 'http://www.nordugrid.org/schemas/delegation'
 rbyteio_uri = 'http://schemas.ggf.org/byteio/2005/10/random-access'
 
+wsrf_rp_uri = 'http://docs.oasis-open.org/wsrf/rp-2'
+
+
 # service type names
 ahash_servicetype = 'org.nordugrid.storage.ahash'
 librarian_servicetype = 'org.nordugrid.storage.librarian'
@@ -156,16 +159,27 @@ class Service:
             raise Exception, 'client is not trusted'
         return getattr(self,request_name)(inpayload)
     
+    def GetLocalInformation(self):
+        ns = arc.NS({'':'http://schemas.ogf.org/glue/2008/05/spec_2.0_d41_r01'})
+        info = arc.XMLNode(ns,'Domains')
+        service_node = info.NewChild('AdminDomain').NewChild('Services').NewChild('Service')
+        endpoint_node = service_node.NewChild('Endpoint')
+        endpoint_node.NewChild('HealthState').Set('ok')
+        if self.state.running:
+            serving_state = 'production'
+        else:
+            serving_state = 'closed'
+        endpoint_node.NewChild('ServingState').Set(serving_state)
+        try:
+            self.GetAdditionalLocalInformation(service_node)
+        except:
+            pass
+        return info
+    
     def process(self, inmsg, outmsg):
         """ Method to process incoming message and create outgoing one. """
         # gets the payload from the incoming message
         inpayload = inmsg.Payload()
-        if not self.state.running:
-            outpayload = arc.PayloadSOAP(self.ns, True)
-            fault = outpayload.Fault()
-            fault.Reason('%s service is inactive (not initialized yet or shutting down)' % self.service_name) 
-            outmsg.Payload(outpayload)
-            return arc.MCC_Status(arc.STATUS_OK)
         try:
             # the first child of the payload should be the name of the request
             request_node = inpayload.Child()
@@ -173,6 +187,12 @@ class Service:
             request_namespace = request_node.Namespace()
             matched_request_types = [request_type for request_type in self.request_config if request_type['namespace_uri'] == request_namespace]
             if len(matched_request_types) == 0:
+                # check if it is a LIDI request:
+                if request_namespace == wsrf_rp_uri:
+                    outpayload = arc.PayloadSOAP(arc.NS({'wsrf-rp':wsrf_rp_uri}))
+                    outpayload.NewChild('wsrf-rp:GetResourcePropertyDocumentResponse').NewChild(self.GetLocalInformation())
+                    outmsg.Payload(outpayload)
+                    return arc.MCC_Status(arc.STATUS_OK)
                 raise Exception, 'wrong namespace. expected: %s' % ', '.join([request_type['namespace_uri'] for request_type in self.request_config])
             current_request_type = matched_request_types[0]
             # get the name of the request without the namespace prefix
@@ -181,6 +201,12 @@ class Service:
                 # if the name of the request is not in the list of supported request names
                 raise Exception, 'wrong request (%s)' % request_name
             log.msg(arc.DEBUG,'%s.%s called' % (self.service_name, request_name))
+            if not self.state.running:
+                outpayload = arc.PayloadSOAP(self.ns, True)
+                fault = outpayload.Fault()
+                fault.Reason('%s service is inactive (not initialized yet or shutting down)' % self.service_name) 
+                outmsg.Payload(outpayload)
+                return arc.MCC_Status(arc.STATUS_OK)
             # if the request name is in the supported names,
             # then this class should have a method with this name
             # the 'getattr' method returns this method
@@ -195,9 +221,9 @@ class Service:
         except:
             # if there is any exception, print it
             msg = log.msg()
-            # TODO: need proper fault message
-            outpayload = arc.PayloadSOAP(self.ns)
-            outpayload.NewChild('Fault').Set(msg)
+            outpayload = arc.PayloadSOAP(self.ns, True)
+            fault = outpayload.Fault()
+            fault.Reason('%s service raised a %s' % (self.service_name, msg))
             outmsg.Payload(outpayload)
             return arc.MCC_Status(arc.STATUS_OK)
 
