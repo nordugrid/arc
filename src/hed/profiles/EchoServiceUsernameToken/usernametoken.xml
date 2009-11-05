@@ -1,0 +1,15 @@
+<ArcConfig>
+  <Plugins overlay="add">
+    <Name>arcshc</Name>
+  </Plugins>
+  <Chain>
+    <Component name="soap.client">
+      <SecHandler name="usernametoken.handler" id="usernametoken" event="outgoing" overlay="add">
+        <Process>generate</Process>
+        <PasswordEncoding>digest</PasswordEncoding>
+        <Username>oliver</Username>
+        <Password>I7MYfzc1</Password>
+      </SecHandler>
+    </Component>
+  </Chain>
+</ArcConfig>
