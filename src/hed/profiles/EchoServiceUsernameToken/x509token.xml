@@ -1,0 +1,14 @@
+<ArcConfig>
+  <Plugins overlay="add">
+    <Name>arcshc</Name>
+  </Plugins>
+  <Chain>
+    <Component name="soap.client">
+      <SecHandler name='x509token.handler' id='x509token' event='outgoing' overlay="add">
+            <Process>generate</Process>
+            <CertificatePath>./testcert.pem</CertificatePath>
+            <KeyPath>./testkey-nopass.pem</KeyPath>
+      </SecHandler>
+    </Component>
+  </Chain>
+</ArcConfig>
