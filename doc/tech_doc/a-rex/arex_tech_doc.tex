@@ -809,15 +809,16 @@ has been resubmitted or migrated.
 
 \section{Cache\label{sec:cache}}
 
-The A-REX can cache input files. Caching is enabled if one or more
-cache directories are specified in the configuration file. Caching can
-also be explicitly turned off by the user for each file by using
-the\textit{ cache=no} option in the URL (for URL options read
-{}``Protocols, Uniform Resource Locators (URL) and extensions
-supported in ARC'' \cite{urls}). The disk space occupied by the cache
-is controlled by removing old files.  For more information on
-configuration look in section \ref{SubSection:ConfigFile}.
-
+The A-REX can cache input files, so that subsequent jobs requiring the
+same files do not have to download them again. Caching is enabled if
+one or more cache directories are specified in the configuration
+file. All input files except files uploaded by the user during job
+submission are cached by default. This includes excutable files
+downloaded by the A-REX. Caching can be explicitly turned off by the
+user in the job description (see~\cite{userguide1}). The disk space
+occupied by the cache is controlled by removing files in the order of
+least recent access. For more information on configuration see
+Section~\ref{SubSection:ConfigFile}.
 
 \subsection{Structure}
 
