@@ -1,7 +1,7 @@
 \subsection{chelonia}\label{sec:chelonia}
 
 \index{chelonia}\index{commands:chelonia}\texttt{chelonia} is a client tool for
-accessing the Chelonia storage system. With it you can
+accessing the Chelonia storage system. With it it is possible to
 create, remove and list file collections, upload, download and remove files,
 and move and stat collections and files, using Logical Names (LN).
 \hspace*{0.5cm}
@@ -27,12 +27,12 @@ and move and stat collections and files, using Logical Names (LN).
    \texttt{delFile, del, rm} &\textit{LN [LN ...]}& remove file(s))\\
    \texttt{modify, mod} &\textit{string}& modify metadata\\
    \texttt{policy, pol} &\textit{string}& modify access policy rules. The string has a form $<$LN$>$ $<$changeType$>$ $<$identity$>$ $<$action list$>$.\\
-   & &$<$changeType$>$ could be 'set', 'change' or 'clear'\\
-   & & 'set': sets the action list to the given user overwriting the old one\\
-   & & 'change': modify the current action list with adding and removing actions\\
-   & & 'clear': clear the action list of the given user\\
-   & &$<$identity$>$ could be a '$<$UserDN$>$' or a 'VOMS:$<$VO name$>$'\\
-   & &$<$action list$>$ is a list actions prefixed with '+' or '-', e.g. '+read +addEntry -delete'; possible actions are: \texttt{read}, \texttt{addEntry}, \texttt{removeEntry}, \texttt{delete}, \texttt{modifyPolicy}, \texttt{modifyStates}, \texttt{modifyMetadata}\\
+   & &$<$changeType$>$ could be `set', `change' or `clear'\\
+   & & `set': sets the action list to the given user overwriting the old one\\
+   & & `change': modify the current action list with adding and removing actions\\
+   & & `clear': clear the action list of the given user\\
+   & &$<$identity$>$ could be a `$<$UserDN$>$' or a `VOMS:$<$VO name$>$'\\
+   & &$<$action list$>$ is a list actions prefixed with `+' or `-', e.g. `+read +addEntry -delete'; possible actions are: \texttt{read}, \texttt{addEntry}, \texttt{removeEntry}, \texttt{delete}, \texttt{modifyPolicy}, \texttt{modifyStates}, \texttt{modifyMetadata}\\
    \texttt{unlink} &\textit{string}& remove a link to an entry from a collection without removing the entry itself\\
    \texttt{credentialsDelegation, cre} &\textit{string}& delegate credentials for using gateway\\
    \texttt{removeCredentials, rem} &\textit{string}& remove previously delegated credentials\\
@@ -57,3 +57,197 @@ Examples:
     chelonia policy / change ALL +read +addEntry
     chelonia modify /pennys-orange set states neededReplicas 2
 \end{verbatim}
+
+\subsubsection{stat} % (fold)
+\label{ssub:stat}
+With the \texttt{stat} method it is possible to get all the metadata about one or more entry (file, collection, etc.). The entries are specified with their Logical Name (LN).
+\hspace*{0.5cm}
+\begin{shaded}
+   \uicommand{chelonia stat $<$LN$>$ [$<$LN$>$ ...]}
+\end{shaded}
+
+The output contains key-value pairs grouped in sections. The `states' section contains the size and the checksum of a file, the number of needed replicas, and whether a collection is closed or not; the `entry' section contains the DN of the owner, the globally unique ID (GUID) of the entry, and the type of the entry (file, collection, etc.); the `parents' section contains the GUID of the parent collection(s) of this entry, and the name of this entry in that collection separated with a `/'; the `locations' sections contains the location of the replicas of a file, which contains of the ID (the URL) of the storage element, the ID of the replica within the storage element, and the state of the replica; the `timestamps' section contains the creation time of the entry; the `entries' section contains the name and GUID of the entries of a collection.
+Example stat of a file:
+\begin{verbatim}
+$ chelonia stat /thing
+'/thing': found
+  states
+    checksumType: md5
+    neededReplicas: 3
+    size: 6
+    checksum: a0186a90393bd4a639a1ce35d8ef85f6
+  entry
+    owner: /C=HU/O=NIIF CA/OU=GRID/OU=NIIF/CN=Nagy Zsombor
+    GUID: 398CBDEA-E282-4735-8DF6-2464CD00BE2D
+    type: file
+  parents
+    0/thing: parent
+  locations
+    https://localhost:60000/Shepherd D519F687-EF65-4AEA-9766-E6E2D42166C4: alive
+  timestamps
+    created: 1257351119.3
+\end{verbatim}
+Example stat of a collection:
+\begin{verbatim}
+$ chelonia stat /
+'/': found
+  states
+    closed: no
+  entry
+    owner: /C=HU/O=NIIF CA/OU=GRID/OU=NIIF/CN=Nagy Zsombor
+    GUID: 0
+    type: collection
+  timestamps
+    created: 1257351114.37
+  entries
+    thing: 398CBDEA-E282-4735-8DF6-2464CD00BE2D    
+\end{verbatim}
+% subsubsection stat (end)
+
+\subsubsection{makeCollection} % (fold)
+\label{ssub:makecollection}
+With the \texttt{makeCollection} or \texttt{mkdir} method it is possible to create a new empty collection. The requested Logical Name (LN) should be specified.
+\hspace*{0.5cm}
+\begin{shaded}
+   \uicommand{chelonia makeCollection $<$LN$>$}
+\end{shaded}
+
+The parent collection of the requested Logical Name must exist.
+
+Example output of the method:
+\begin{verbatim}
+$ chelonia mkdir /newcoll
+Creating collection '/newcoll': done
+
+$ chelonia mkdir /nonexistent/newcoll
+Creating collection '/nonexistent/newcoll': parent does not exist
+\end{verbatim}
+% subsubsection makecollection (end)
+
+\subsubsection{unmakeCollection} % (fold)
+\label{ssub:unmakecollection}
+With the \texttt{unmakeCollection} or \texttt{rmdir} method it is possible to delete an empty collection which is specified by its Logical Name (LN).
+\hspace*{0.5cm}
+\begin{shaded}
+   \uicommand{chelonia unmakeCollection $<$LN$>$}
+\end{shaded}
+
+Example output of the method:
+\begin{verbatim}
+$ chelonia rmdir /newcoll
+Removing collection '/newcoll': removed
+
+$ chelonia rmdir /dir
+Removing collection '/dir': collection is not empty
+\end{verbatim}
+% subsubsection unmakecollection (end)
+
+\subsubsection{list} % (fold)
+\label{ssub:list}
+With the \texttt{list} or \texttt{ls} method it is possible to list the contents of one or more collections which are specified by their Logical Name (LN).
+\hspace*{0.5cm}
+\begin{shaded}
+   \uicommand{chelonia list $<$LN$>$ [$<$LN$>$ ...]}
+\end{shaded}
+
+Example output of the method:
+\begin{verbatim}
+$ chelonia list / /newcoll
+'/newcoll': collection
+    empty.
+'/': collection
+  thing   <file>
+  dir     <collection>
+  newcoll <collection>
+\end{verbatim}
+% subsubsection list (end)
+
+\subsubsection{move} % (fold)
+\label{ssub:move}
+With the \texttt{move} or \texttt{mv} method it is possible to move a file or collection within the namespace of chelonia (including renaming the entry). The source path and the target path should be specified as Logical Names
+\hspace*{0.5cm}
+\begin{shaded}
+   \uicommand{chelonia list $<$sourceLN$>$ $<$targetLN$>$}
+\end{shaded}
+
+Example output of the method:
+\begin{verbatim}
+$ chelonia mv /thing /newcoll/
+Moving '/thing' to '/newcoll/': moved 
+
+$ chelonia mv /newcoll/thing /newcoll/othername
+Moving '/newcoll/thing' to '/newcoll/othername': moved   
+\end{verbatim}
+% subsubsection move (end)
+
+\subsubsection{putFile} % (fold)
+\label{ssub:putfile}
+With the \texttt{putFile} or \texttt{put} method it is possible to upload a new file into the system creating a new Logical Name (LN). It is possible the specify the number of needed replicas.
+\hspace*{0.5cm}
+\begin{shaded}
+   \uicommand{chelonia putFile $<$source filename$>$ $<$target LN$>$ [$<$number of replicas needed$>$]}
+\end{shaded}
+
+Example output of the method:
+\begin{verbatim}
+$ chelonia put thing /newcoll/
+'thing' (6 bytes) uploaded as '/newcoll/thing'.    
+\end{verbatim}
+% subsubsection putfile (end)
+
+\subsubsection{getFile} % (fold)
+\label{ssub:getfile}
+With the \texttt{getFile} or \texttt{get} method it is possible to download a file specified with its Logical Name (LN). If the target local path is not given, then the file will be put into the local directory.
+\hspace*{0.5cm}
+\begin{shaded}
+   \uicommand{chelonia getFile $<$source LN$>$ [$<$target filename$>$]}
+\end{shaded}
+
+Example output of the method:
+\begin{verbatim}
+$ chelonia get /newcoll/thing newlocalname
+'/newcoll/thing' (6 bytes) downloaded as 'newlocalname'.
+\end{verbatim}
+% subsubsection getfile (end)
+
+\subsubsection{delFile} % (fold)
+\label{ssub:delfile}
+With the \texttt{delFile} or \texttt{rm} method it is possible to delete one or more files from the system.
+\hspace*{0.5cm}
+\begin{shaded}
+   \uicommand{chelonia delFile $<$LN$>$ [$<$LN$>$ ...]}
+\end{shaded}
+
+Example output of the method:
+\begin{verbatim}
+$ chelonia rm /newcoll/othername
+/newcoll/othername: deleted    
+\end{verbatim}
+% subsubsection delfile (end)
+
+\subsubsection{modify} % (fold)
+\label{ssub:modify}
+
+With the \texttt{modify} or \texttt{mod} method it is possible to modify some metadata of an entry.
+\hspace*{0.5cm}
+\begin{shaded}
+   \uicommand{chelonia modify $<$LN$>$ $<$changeType$>$ $<$section$>$ $<$property$>$ $<$value$>$}
+\end{shaded}
+
+The possible values of `changeType' are `set' (sets the property to value within the given section), `unset' (removes the property from the given section - the `value' does not matter) and `add' (sets the property to value within the given section only if it does not exist yet). 
+
+To change the number of needed replicas for a file:
+\begin{verbatim}
+chelonia modify <LN> set states neededReplicas <number of needed replicas>    
+\end{verbatim}
+
+To close a collection:
+\begin{verbatim}
+chelonia modify <LN> set states closed yes    
+\end{verbatim}
+
+To change metadata key-value pairs:
+\begin{verbatim}
+chelonia modify <LN> set|unset|add metadata <key> <value>    
+\end{verbatim}
+% subsubsection modify (end)
