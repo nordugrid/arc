@@ -23,7 +23,7 @@ import arc
 import traceback
 import time
 from arcom import import_class_from_string, get_child_nodes
-from arcom.service import ahash_uri, node_to_data
+from arcom.service import ahash_uri, node_to_data, ahash_servicetype
 from storage.common import create_metadata
 
 from arcom.logger import Logger
@@ -335,8 +335,12 @@ class AHashService(Service):
 
     def RegistrationCollector(self, doc):
         regentry = arc.XMLNode('<RegEntry />')
-        regentry.NewChild('SrcAdv').NewChild('Type').Set('org.nordugrid.storage.ahash')
+        regentry.NewChild('SrcAdv').NewChild('Type').Set(ahash_servicetype)
         #Place the document into the doc attribute
         doc.Replace(regentry)
         return True
+
+    def GetAdditionalLocalInformation(self, service_node):
+        service_node.NewChild('Type').Set(ahash_servicetype)
+
 

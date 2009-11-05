@@ -9,7 +9,7 @@ import arc
 from arcom import get_child_nodes, get_child_values_by_name
 from arcom import import_class_from_string
 from arcom.security import parse_ssl_config
-from arcom.service import shepherd_uri, librarian_servicetype, bartender_servicetype, true, parse_node, create_response
+from arcom.service import shepherd_uri, librarian_servicetype, bartender_servicetype, true, parse_node, create_response, shepherd_servicetype
 
 from arcom.xmltree import XMLTree
 from storage.common import common_supported_protocols, serialize_ids
@@ -697,8 +697,11 @@ class ShepherdService(Service):
 
     def RegistrationCollector(self, doc):
         regentry = arc.XMLNode('<RegEntry />')
-        regentry.NewChild('SrcAdv').NewChild('Type').Set('org.nordugrid.storage.shepherd')
+        regentry.NewChild('SrcAdv').NewChild('Type').Set(shepherd_servicetype)
         #Place the document into the doc attribute
         doc.Replace(regentry)
         return True
+
+    def GetAdditionalLocalInformation(self, service_node):
+        service_node.NewChild('Type').Set(shepherd_servicetype)
 

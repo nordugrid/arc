@@ -7,7 +7,7 @@ import time
 
 from arcom import get_child_nodes, get_child_values_by_name
 from arcom.security import parse_ssl_config
-from arcom.service import librarian_uri, ahash_servicetype, true, false, parse_node, create_response, node_to_data
+from arcom.service import librarian_uri, ahash_servicetype, true, false, parse_node, create_response, node_to_data, librarian_servicetype
 
 from arcom.xmltree import XMLTree
 from storage.client import AHashClient, ISISClient
@@ -508,8 +508,11 @@ class LibrarianService(Service):
 
     def RegistrationCollector(self, doc):
         regentry = arc.XMLNode('<RegEntry />')
-        regentry.NewChild('SrcAdv').NewChild('Type').Set('org.nordugrid.storage.librarian')
+        regentry.NewChild('SrcAdv').NewChild('Type').Set(librarian_servicetype)
         #Place the document into the doc attribute
         doc.Replace(regentry)
         return True
+
+    def GetAdditionalLocalInformation(self, service_node):
+        service_node.NewChild('Type').Set(librarian_servicetype)
 

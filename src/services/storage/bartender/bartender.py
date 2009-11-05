@@ -8,7 +8,7 @@ import os
 import base64
 import threading
 from arcom import import_class_from_string, get_child_nodes, get_child_values_by_name
-from arcom.service import librarian_uri, bartender_uri, librarian_servicetype, gateway_uri, true, parse_node, create_response, node_to_data
+from arcom.service import librarian_uri, bartender_uri, librarian_servicetype, gateway_uri, true, parse_node, create_response, node_to_data, bartender_servicetype
 from arcom.xmltree import XMLTree
 from storage.client import LibrarianClient, ShepherdClient, ISISClient
 from storage.common import parse_metadata, create_metadata, splitLN, remove_trailing_slash, global_root_guid, serialize_ids, deserialize_ids, sestore_guid, make_decision_metadata
@@ -1489,8 +1489,10 @@ class BartenderService(Service):
 
     def RegistrationCollector(self, doc):
         regentry = arc.XMLNode('<RegEntry />')
-        regentry.NewChild('SrcAdv').NewChild('Type').Set('org.nordugrid.storage.bartender')
+        regentry.NewChild('SrcAdv').NewChild('Type').Set(bartender_servicetype)
         #Place the document into the doc attribute
         doc.Replace(regentry)
         return True
 
+    def GetAdditionalLocalInformation(self, service_node):
+        service_node.NewChild('Type').Set(bartender_servicetype)
