@@ -239,7 +239,7 @@ for localid in ${localids[@]}; do
 	    handle_commentfile $localid
 	    echo "-1 Job was cancelled" > "${basenames[$localid]}.lrms_done"
 	    kicklist=(${kicklist[@]} $localid)
-	    # handle_exitcode $localid "-1" "Job was cancelled"
+	    handle_exitcode $localid "-1" "Job was cancelled"
 	    ;;
   	COMPLETED)
 	    handle_commentfile $localid
