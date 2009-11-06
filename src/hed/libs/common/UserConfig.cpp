@@ -26,7 +26,7 @@
     SETTER((std::string)common[ATT]);\
     common[ATT].Destroy();\
     if (common[ATT]) {\
-      logger.msg(WARNING, "Multiple " ATT " attributes found in configuration file (%s)", conffile);\
+      logger.msg(WARNING, "Multiple %s attributes in configuration file (%s)", ATT, conffile); \
       while (common[ATT]) common[ATT].Destroy();\
     }\
   }
@@ -77,7 +77,7 @@ namespace Arc {
     : ok(false) {
     if (loadSysConfig) {
       if (!Glib::file_test(SYSCONFIG, Glib::FILE_TEST_IS_REGULAR))
-        logger.msg(WARNING, "System configuration file (%s) does not exists.", SYSCONFIG);
+        logger.msg(WARNING, "System configuration file (%s) does not exist.", SYSCONFIG);
       else if (!LoadConfigurationFile(SYSCONFIG, true))
         logger.msg(WARNING, "System configuration file (%s) contains errors.", SYSCONFIG);
     }
@@ -93,7 +93,7 @@ namespace Arc {
         logger.msg(WARNING, "No configuration file could be loaded.");
     }
     else if (!Glib::file_test(conffile, Glib::FILE_TEST_IS_REGULAR)) {
-      logger.msg(ERROR, "User configuration file (%s) does not exists or cannot be loaded.", conffile);
+      logger.msg(ERROR, "User configuration file (%s) does not exist or cannot be loaded.", conffile);
       return;
     }
     else if (!LoadConfigurationFile(conffile)) {
@@ -122,7 +122,7 @@ namespace Arc {
 
     if (loadSysConfig) {
       if (!Glib::file_test(SYSCONFIG, Glib::FILE_TEST_IS_REGULAR))
-        logger.msg(WARNING, "System configuration file (%s) does not exists.", SYSCONFIG);
+        logger.msg(WARNING, "System configuration file (%s) does not exist.", SYSCONFIG);
       else if (!LoadConfigurationFile(SYSCONFIG, true))
         logger.msg(WARNING, "System configuration file (%s) contains errors.", SYSCONFIG);
     }
@@ -138,7 +138,7 @@ namespace Arc {
         logger.msg(WARNING, "No configuration file could be loaded.");
     }
     else if (!Glib::file_test(conffile, Glib::FILE_TEST_IS_REGULAR)) {
-      logger.msg(ERROR, "User configuration file (%s) does not exists or cannot be loaded.", conffile);
+      logger.msg(ERROR, "User configuration file (%s) does not exist or cannot be loaded.", conffile);
       return;
     }
     else if (!LoadConfigurationFile(conffile)) {
@@ -370,7 +370,7 @@ namespace Arc {
               logger.msg(WARNING, "The value of the timeout attribute in the configuration file (%s) was only partially parsed", conffile);
             common["timeout"].Destroy();
             if (common["timeout"]) {
-              logger.msg(WARNING, "Multiple timeout attributes in configuration file (%s)", conffile);
+              logger.msg(WARNING, "Multiple %s attributes in configuration file (%s)", "timeout", conffile);
               while (common["timeout"]) common["timeout"].Destroy();
             }
           }
@@ -379,13 +379,13 @@ namespace Arc {
                                                               ini["common"]["brokerarguments"] ? ini["common"]["brokerarguments"] : "");
             common["brokername"].Destroy();
             if (common["brokername"]) {
-              logger.msg(WARNING, "Multiple brokername attributes in configuration file (%s)", conffile);
+              logger.msg(WARNING, "Multiple %s attributes in configuration file (%s)", "brokername", conffile);
               while (common["brokername"]) common["brokername"].Destroy();
             }
             if (common["brokerarguments"]) {
               common["brokerarguments"].Destroy();
               if (common["brokerarguments"]) {
-                logger.msg(WARNING, "Multiple brokerarguments attributes in configuration file (%s)", conffile);
+                logger.msg(WARNING, "Multiple %s attributes in configuration file (%s)", "brokerarguments", conffile);
                 while (common["brokerarguments"]) common["brokerarguments"].Destroy();
               }
             }
@@ -408,7 +408,7 @@ namespace Arc {
             }
             common["bartender"].Destroy();
             if (common["bartender"]) {
-              logger.msg(WARNING, "Multiple bartender attributes in configuration file (%s)", conffile);
+              logger.msg(WARNING, "Multiple %s attributes in configuration file (%s)", "bartender", conffile);
               while (common["bartender"]) common["bartender"].Destroy();
             }
           }
@@ -424,7 +424,7 @@ namespace Arc {
               logger.msg(WARNING, "The value of the keysize attribute in the configuration file (%s) was only partially parsed", conffile);
             common["keysize"].Destroy();
             if (common["keysize"]) {
-              logger.msg(WARNING, "Multiple keysize attributes in configuration file (%s)", conffile);
+              logger.msg(WARNING, "Multiple %s attributes in configuration file (%s)", "keysize", conffile);
               while (common["keysize"]) common["keysize"].Destroy();
             }
           }
@@ -434,7 +434,7 @@ namespace Arc {
             certificateLifeTime = Period((std::string)common["certificatelifetime"]);
             common["certificatelifetime"].Destroy();
             if (common["certificatelifetime"]) {
-              logger.msg(WARNING, "Multiple certificatelifetime attributes in configuration file (%s)", conffile);
+              logger.msg(WARNING, "Multiple %s attributes in configuration file (%s)", "certificatelifetime", conffile);
               while (common["certificatelifetime"]) common["certificatelifetime"].Destroy();
             }
           }
@@ -446,7 +446,7 @@ namespace Arc {
             }
             common["slcs"].Destroy();
             if (common["slcs"]) {
-              logger.msg(WARNING, "Multiple slcs attributes in configuration file (%s)", conffile);
+              logger.msg(WARNING, "Multiple %s attributes in configuration file (%s)", "slcs", conffile);
               while (common["slcs"]) common["slcs"].Destroy();
             }
           }
@@ -498,7 +498,7 @@ namespace Arc {
             }
             common["defaultservices"].Destroy();
             if (common["defaultservices"]) {
-              logger.msg(WARNING, "Multiple defaultservices attributes in configuration file (%s)", conffile);
+              logger.msg(WARNING, "Multiple %s attributes in configuration file (%s)", "defaultservices", conffile);
               while (common["defaultservices"]) common["defaultservices"].Destroy();
             }
           }
@@ -545,14 +545,14 @@ namespace Arc {
             }
             common["rejectservices"].Destroy();
             if (common["rejectservices"]) {
-              logger.msg(WARNING, "Multiple rejectservices attributes in configuration file (%s)", conffile);
+              logger.msg(WARNING, "Multiple %s attributes in configuration file (%s)", "rejectservices", conffile);
               while (common["rejectservices"]) common["rejectservices"].Destroy();
             }
           }
           HANDLESTRATT("overlayfile", OverlayFile)
           if(!overlayfile.empty())
             if (!Glib::file_test(overlayfile, Glib::FILE_TEST_IS_REGULAR))
-              logger.msg(WARNING, "Specified overlay file (%s) does not exists.", overlayfile);
+              logger.msg(WARNING, "Specified overlay file (%s) does not exist.", overlayfile);
           while (common.Child()) {
             logger.msg(WARNING, "Unknown attribute %s in common section, ignoring it", common.Child().Name());
             common.Child().Destroy();
