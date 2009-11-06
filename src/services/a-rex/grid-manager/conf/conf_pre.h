@@ -4,6 +4,8 @@
 #include <string>
 #include <list>
 
+#include <arc/XMLNode.h>
+
 class ContinuationPlugins;
 class RunPlugin;
 
@@ -25,5 +27,15 @@ bool configure_user_dirs(const std::string &my_username,
                 std::list<std::string>& queues,
                 ContinuationPlugins &plugins,RunPlugin& cred,
                 std::string& allow_submit,bool& strict_session);
+
+/*
+  Reads configuration file to find all defined control directories.
+  Returns
+    true - success
+    false - failure
+    On success 'control_dirs' contains list of all control directories.
+*/
+bool configure_control_dirs(std::list<std::string>& control_dirs);
+bool configure_control_dirs(Arc::XMLNode cfg,std::list<std::string>& control_dirs);
 
 #endif // __GM_CONFIG_PRE_H__

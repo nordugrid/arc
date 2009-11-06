@@ -20,6 +20,7 @@
 #include <arc/StringConv.h>
 
 #include "job.h"
+#include "grid-manager/conf/conf_pre.h"
 #include "arex.h"
 
 namespace ARex {
@@ -453,15 +454,31 @@ ARexService::ARexService(Arc::Config *cfg):RegisteredService(cfg),
     // No external configuration file means configuration is
     // directly embedded into this configuration node.
     // TODO: merge external and internal configuration elements
-    // Currenntly we store configuration into temporary file
-    // and delete it in destructor. That may cause problems
-    // on systems which periodically clean /tmp. Also destructor
-    // may be not called. So code must be changed to use 
-    // some better approach - like creating file with service
-    // id in its name residing in control directory.
+    // Configuration is stored into temporary file and file is 
+    // deleted in destructor. File is created in one of configured
+    // control directories. There is still a problem if destructor
+    // is not called. So code must be changed to use 
+    // some better approach - maybe like creating file with service
+    // id in its name.
     try {
-      int h = Glib::file_open_tmp(gmconfig_,"arex");
-      ::chmod(gmconfig_.c_str(), S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+      std::list<std::string> tmp_dirs;
+      if((!configure_control_dirs(*cfg,tmp_dirs)) || (tmp_dirs.size() <= 0)) {
+        throw Glib::FileError(Glib::FileError::FAILED,"Failed to find control directory in configuration");
+      };
+      int h = -1;
+      for(std::list<std::string>::iterator t = tmp_dirs.begin();
+                                         t != tmp_dirs.end();++t) {
+        std::string tmp_path = Glib::build_filename(*t,"arexcfgXXXXXX");
+        h = Glib::mkstemp(tmp_path);
+        if(h != -1) {
+          gmconfig_ = tmp_path;
+          ::chmod(gmconfig_.c_str(), S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+          break;
+        };
+      };
+      if(h == -1) {
+        throw Glib::FileError(Glib::FileError::FAILED,"Failed to create temporary file in any of control directories");
+      };
       logger_.msg(Arc::VERBOSE, "Storing configuration into temporary file - %s",gmconfig_);
       Arc::XMLNode gmxml;
       cfg->New(gmxml);
@@ -479,7 +496,10 @@ ARexService::ARexService(Arc::Config *cfg):RegisteredService(cfg),
       gmconfig_temporary_=true;
     } catch(Glib::FileError& e) {
       logger_.msg(Arc::ERROR, "Failed to store configuration into temporary file");
-      if(!gmconfig_.empty()) unlink(gmconfig_.c_str());
+      if(!gmconfig_.empty()) {
+        ::unlink(gmconfig_.c_str());
+        gmconfig_.resize(0);
+      };
     };
   };
   if(!gmconfig_.empty()) nordugrid_config_loc(gmconfig_);

@@ -263,3 +263,137 @@ bool configure_user_dirs(const std::string &my_username,
   if(cf) delete cf;
   return configured;
 }
+
+bool configure_control_dirs(Arc::XMLNode cfg,std::list<std::string>& control_dirs) {
+  Arc::XMLNode tmp_node;
+  tmp_node = cfg["control"];
+  for(;tmp_node;++tmp_node) {
+    Arc::XMLNode unode = tmp_node["username"];
+    bool user_match = false;
+    std::list<std::string> usernames;
+    for(;unode;++unode) {
+      std::string username;
+      username = (std::string)unode;
+      if(username.empty()) continue;
+      if(username == "*") {  /* add all gridmap users */
+        std::list<std::string> userlist;
+        if(!gridmap_user_list(userlist)) {
+          logger.msg(Arc::ERROR,"Can't read users in gridmap file %s",globus_gridmap());
+          return false;
+        };
+        for(std::list<std::string>::iterator u = userlist.begin();
+                                 u != userlist.end();++u) {
+          usernames.push_back(*u);
+        };
+        continue;
+      };
+      if(username == ".") {
+        usernames.push_back("");
+        continue;
+      };
+      usernames.push_back(username);
+    };
+    for(std::list<std::string>::iterator u = usernames.begin();
+                             u != usernames.end();++u) {
+      std::string control_dir = tmp_node["controlDir"];
+      JobUser user(*u);
+      if(!user.is_valid()) {
+        logger.msg(Arc::ERROR,"Configured username is invalid %s",*u);
+        return false;
+      };
+      user.substitute(control_dir);
+      user.SetControlDir(control_dir);
+      control_dir=user.ControlDir();
+      std::list<std::string>::iterator c = control_dirs.begin();
+      for(;c != control_dirs.end();++c) {
+        if(*c == control_dir) break;
+      };
+      if(c == control_dirs.end()) {
+        control_dirs.push_back(user.ControlDir());
+      };
+    };
+  }; // for(control)
+  return true;
+}
+
+bool configure_control_dirs(std::list<std::string>& control_dirs) {
+  std::ifstream cfile;
+  read_env_vars(true);
+  std::string central_control_dir("");
+  ConfigSections* cf = NULL;
+
+  if(!config_open(cfile)) {
+    logger.msg(Arc::ERROR,"Can't open configuration file"); return false;
+  };
+  switch(config_detect(cfile)) {
+    case config_file_XML: {
+      Arc::XMLNode cfg;
+      if(!cfg.ReadFromStream(cfile)) {
+        logger.msg(Arc::ERROR,"Can't interpret configuration file as XML");
+        config_close(cfile);
+        return false;
+      };
+      if(!configure_control_dirs(cfg,control_dirs)) {
+        config_close(cfile);
+        return false;
+      };
+    }; break;
+    case config_file_INI: {
+      cf=new ConfigSections(cfile);
+      cf->AddSection("common");
+      cf->AddSection("grid-manager");
+      cf->AddSection("queue");
+      for(;;) {
+        std::string rest;
+        std::string command;
+        cf->ReadNext(command,rest);
+        if(command.length() == 0) {
+          if(central_control_dir.length() != 0) {
+            command="control"; rest=central_control_dir+" .";
+            central_control_dir="";
+          } else {
+            break;
+          };
+        };
+        if(cf->SectionNum() == 2) { // queue
+        }
+        else if(command == "controldir") {
+          central_control_dir=rest;
+        }
+        else if(command == "control") {
+          std::string control_dir = config_next_arg(rest);
+          if(control_dir.length() == 0) { config_close(cfile); if(cf) delete cf; return false; };
+          if(control_dir == "*") control_dir="";
+          for(;;) {
+            std::string username = config_next_arg(rest);
+            if(username.length() == 0) break;
+            if(username == "*") {  /* add all gridmap users */
+              if(!gridmap_user_list(rest)) { config_close(cfile); if(cf) delete cf; return false; };
+              continue;
+            };
+            if(username == ".") username = "";
+            JobUser user(username);
+            if(!user.is_valid()) { config_close(cfile); if(cf) delete cf; return false; };
+            user.substitute(control_dir);
+            user.SetControlDir(control_dir);
+            control_dir=user.ControlDir();
+            std::list<std::string>::iterator c = control_dirs.begin();
+            for(;c != control_dirs.end();++c) {
+              if(*c == control_dir) break;
+            };
+            if(c == control_dirs.end()) {
+              control_dirs.push_back(user.ControlDir());
+            };
+          };
+        };
+      };
+    }; break;
+
+    default: {
+    }; break;
+  };
+  config_close(cfile);
+  if(cf) delete cf;
+  return true;
+}
+
