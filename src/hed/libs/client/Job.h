@@ -50,7 +50,7 @@ namespace Arc {
     std::string LocalOwner;
     Period RequestedTotalWallTime;
     Period RequestedTotalCPUTime;
-    int RequestedMainMemory;//Deprecated??
+    int RequestedMainMemory; // Deprecated??
     int RequestedSlots;
     std::list<std::string> RequestedApplicationEnvironment;
     std::string StdIn;
@@ -58,7 +58,7 @@ namespace Arc {
     std::string StdErr;
     std::string LogDir;
     std::list<std::string> ExecutionNode;
-    std::string ExecutionCE;//Deprecated??
+    std::string ExecutionCE; // Deprecated??
     std::string Queue;
     Period UsedTotalWallTime;
     Period UsedTotalCPUTime;

@@ -40,7 +40,8 @@ namespace Arc {
     if (!Name.empty())
       std::cout << IString(" Name: %s", Name) << std::endl;
     if (!State().empty())
-      std::cout << IString(" State: %s (%s)", State.GetGeneralState(), State()) << std::endl;
+      std::cout << IString(" State: %s (%s)", State.GetGeneralState(), State())
+                << std::endl;
     if (ExitCode != -1)
       std::cout << IString(" Exit Code: %d", ExitCode) << std::endl;
     if (!Error.empty()) {
@@ -77,7 +78,7 @@ namespace Arc {
                   << std::endl;
       if (SubmissionTime != -1)
         std::cout << IString(" Submitted: %s",
-                                  (std::string)SubmissionTime) << std::endl;
+                             (std::string)SubmissionTime) << std::endl;
       if (EndTime != -1)
         std::cout << IString(" End Time: %s", (std::string)EndTime)
                   << std::endl;
@@ -86,36 +87,36 @@ namespace Arc {
                   << std::endl;
       if (!SubmissionClientName.empty())
         std::cout << IString(" Submitting client: %s",
-                                  SubmissionClientName) << std::endl;
+                             SubmissionClientName) << std::endl;
       if (RequestedTotalCPUTime != -1)
         std::cout << IString(" Requested CPU Time: %s",
-                                  (std::string)RequestedTotalCPUTime)
+                             RequestedTotalCPUTime.istr())
                   << std::endl;
       if (UsedTotalCPUTime != -1)
         std::cout << IString(" Used CPU Time: %s",
-                                  (std::string)UsedTotalCPUTime) << std::endl;
+                             UsedTotalCPUTime.istr()) << std::endl;
       if (UsedTotalWallTime != -1)
         std::cout << IString(" Used Wall Time: %s",
-                                  (std::string)UsedTotalWallTime) << std::endl;
+                             UsedTotalWallTime.istr()) << std::endl;
       if (UsedMainMemory != -1)
         std::cout << IString(" Used Memory: %d", UsedMainMemory)
                   << std::endl;
       if (WorkingAreaEraseTime != -1)
         std::cout << IString((State == JobState::DELETED) ?
-                                  " Results were deleted: %s" :
-                                  " Results must be retrieved before: %s",
-                                  (std::string)WorkingAreaEraseTime)
+                             istring(" Results were deleted: %s") :
+                             istring(" Results must be retrieved before: %s"),
+                             (std::string)WorkingAreaEraseTime)
                   << std::endl;
       if (ProxyExpirationTime != -1)
         std::cout << IString(" Proxy valid until: %s",
-                                  (std::string)ProxyExpirationTime)
+                             (std::string)ProxyExpirationTime)
                   << std::endl;
       if (CreationTime != -1)
         std::cout << IString(" Entry valid from: %s",
-                                  (std::string)CreationTime) << std::endl;
+                             (std::string)CreationTime) << std::endl;
       if (Validity != -1)
         std::cout << IString(" Entry valid for: %s",
-                                  (std::string)Validity) << std::endl;
+                             Validity.istr()) << std::endl;
     }
 
     std::cout << std::endl;

@@ -407,26 +407,26 @@ namespace Arc {
       if (!MappingQueue.empty())
         std::cout << IString(" Mapping Queue: %s", MappingQueue) << std::endl;
       if (MaxWallTime != -1)
-        std::cout << IString(" Max Wall Time: %s", (std::string)MaxWallTime)
+        std::cout << IString(" Max Wall Time: %s", MaxWallTime.istr())
                   << std::endl;
       if (MaxTotalWallTime != -1)
         std::cout << IString(" Max Total Wall Time: %s",
-                             (std::string)MaxTotalWallTime) << std::endl;
+                             MaxTotalWallTime.istr()) << std::endl;
       if (MinWallTime != -1)
-        std::cout << IString(" Min Wall Time: %s", (std::string)MinWallTime)
+        std::cout << IString(" Min Wall Time: %s", MinWallTime.istr())
                   << std::endl;
       if (DefaultWallTime != -1)
         std::cout << IString(" Default Wall Time: %s",
-                             (std::string)DefaultWallTime) << std::endl;
+                             DefaultWallTime.istr()) << std::endl;
       if (MaxCPUTime != -1)
-        std::cout << IString(" Max CPU Time: %s", (std::string)MaxCPUTime)
+        std::cout << IString(" Max CPU Time: %s", MaxCPUTime.istr())
                   << std::endl;
       if (MinCPUTime != -1)
-        std::cout << IString(" Min CPU Time: %s", (std::string)MinCPUTime)
+        std::cout << IString(" Min CPU Time: %s", MinCPUTime.istr())
                   << std::endl;
       if (DefaultCPUTime != -1)
         std::cout << IString(" Default CPU Time: %s",
-                             (std::string)DefaultCPUTime) << std::endl;
+                             DefaultCPUTime.istr()) << std::endl;
       if (MaxTotalJobs != -1)
         std::cout << IString(" Max Total Jobs: %i", MaxTotalJobs) << std::endl;
       if (MaxRunningJobs != -1)
@@ -492,11 +492,11 @@ namespace Arc {
                   << std::endl;
       if (EstimatedAverageWaitingTime != -1)
         std::cout << IString(" Estimated Average Waiting Time: %s",
-                             (std::string)EstimatedAverageWaitingTime)
+                             EstimatedAverageWaitingTime.istr())
                   << std::endl;
       if (EstimatedWorstWaitingTime != -1)
         std::cout << IString(" Estimated Worst Waiting Time: %s",
-                             (std::string)EstimatedWorstWaitingTime)
+                             EstimatedWorstWaitingTime.istr())
                   << std::endl;
       if (FreeSlots != -1)
         std::cout << IString(" Free Slots: %i", FreeSlots) << std::endl;
@@ -505,7 +505,8 @@ namespace Arc {
         for (std::map<Period, int>::const_iterator it =
                FreeSlotsWithDuration.begin();
              it != FreeSlotsWithDuration.end(); it++)
-          std::cout << "  " << it->first << ": " << it->second << std::endl;
+          std::cout << IString("  %s: %i", it->first.istr(), it->second)
+                    << std::endl;
       }
       if (UsedSlots != -1)
         std::cout << IString(" Used Slots: %i", UsedSlots) << std::endl;
@@ -565,7 +566,7 @@ namespace Arc {
                   << std::endl;
       if (WorkingAreaLifeTime != -1)
         std::cout << IString(" Working Area Life Time: %s",
-                             (std::string)WorkingAreaLifeTime) << std::endl;
+                             WorkingAreaLifeTime.istr()) << std::endl;
       if (CacheTotal != -1)
         std::cout << IString(" Cache Area Total Size: %i", CacheTotal)
                   << std::endl;
