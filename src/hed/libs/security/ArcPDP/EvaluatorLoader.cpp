@@ -112,7 +112,10 @@ Evaluator* EvaluatorLoader::getEvaluator(const std::string& classname) {
           if(name.substr(0, 3) != "lib") continue;
            // TODO: This won't work on windows and maybe even on some
            // unices which do have shared libraries ending with .so
-          if(name.substr(name.length()-3, 3) != ".so") continue;
+          std::size_t pos = name.rfind(".");
+          std::string subname;
+          if(pos!=std::string::npos) subname = name.substr(pos);
+          if((subname != ".so") && (subname != ".dll") && (subname != ".dylib")) continue;
           std::string fname = Glib::build_filename(*plugin,name);
           // Few tests just in case
           if(!file_test(fname,Glib::FILE_TEST_IS_EXECUTABLE)) continue;
