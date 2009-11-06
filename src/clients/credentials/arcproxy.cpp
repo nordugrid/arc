@@ -34,10 +34,7 @@
 #include <arc/credential/VOMSUtil.h>
 #include <arc/crypto/OpenSSL.h>
 
-
-static Arc::Logger& logger = Arc::Logger::rootLogger;
-
-static void tls_process_error(void) {
+static void tls_process_error(Arc::Logger& logger) {
   unsigned long err;
   err = ERR_get_error();
   if (err != 0) {
@@ -50,15 +47,17 @@ static void tls_process_error(void) {
 }
 
 #define PASS_MIN_LENGTH 6
-static int input_password(char* password, int passwdsz, bool verify,
-    const std::string prompt_info, const std::string prompt_verify_info) {
+static int input_password(char *password, int passwdsz, bool verify,
+                          const std::string prompt_info,
+                          const std::string prompt_verify_info,
+                          Arc::Logger& logger) {
   UI *ui = NULL;
   int res = 0;
   ui = UI_new();
   if (ui) {
     int ok = 0;
     char buf[256];
-    memset(buf,0,256);
+    memset(buf, 0, 256);
     int ui_flags = 0;
     char *prompt1 = NULL;
     char *prompt2 = NULL;
@@ -66,25 +65,27 @@ static int input_password(char* password, int passwdsz, bool verify,
     prompt2 = UI_construct_prompt(ui, "passphrase", prompt_verify_info.c_str());
     ui_flags |= UI_INPUT_FLAG_DEFAULT_PWD;
     UI_ctrl(ui, UI_CTRL_PRINT_ERRORS, 1, 0, 0);
-    ok = UI_add_input_string(ui,prompt1,ui_flags,password,PASS_MIN_LENGTH,BUFSIZ-1);
-    if (ok >= 0 && verify) {
-      ok = UI_add_verify_string(ui,prompt2,ui_flags,buf,PASS_MIN_LENGTH,BUFSIZ-1, password);
-    }
+    ok = UI_add_input_string(ui, prompt1, ui_flags, password,
+                             PASS_MIN_LENGTH, BUFSIZ - 1);
+    if (ok >= 0 && verify)
+      ok = UI_add_verify_string(ui, prompt2, ui_flags, buf,
+                                PASS_MIN_LENGTH, BUFSIZ - 1, password);
     if (ok >= 0)
-      do{
+      do
         ok = UI_process(ui);
-      }while (ok < 0 && UI_ctrl(ui, UI_CTRL_IS_REDOABLE, 0, 0, 0));
+      while (ok < 0 && UI_ctrl(ui, UI_CTRL_IS_REDOABLE, 0, 0, 0));
 
-    if (ok >= 0) res = strlen(password);
-    if (ok == -1){
-      std::cerr<<"User interface error\n"<<std::endl;
-      tls_process_error();
-      memset(password,0,(unsigned int)passwdsz);
+    if (ok >= 0)
+      res = strlen(password);
+    if (ok == -1) {
+      logger.msg(Arc::ERROR, "User interface error");
+      tls_process_error(logger);
+      memset(password, 0, (unsigned int)passwdsz);
       res = 0;
     }
     if (ok == -2) {
-      std::cerr<<"Aborted!\n"<<std::endl;
-      memset(password,0,(unsigned int)passwdsz);
+      logger.msg(Arc::ERROR, "Aborted!");
+      memset(password, 0, (unsigned int)passwdsz);
       res = 0;
     }
     UI_free(ui);
@@ -98,6 +99,7 @@ int main(int argc, char *argv[]) {
 
   setlocale(LC_ALL, "");
 
+  Arc::Logger logger(Arc::Logger::getRootLogger(), "arcproxy");
   Arc::LogStream logcerr(std::cerr);
   logcerr.setFormat(Arc::ShortFormat);
   Arc::Logger::getRootLogger().addDestination(logcerr);
@@ -106,8 +108,8 @@ int main(int argc, char *argv[]) {
   Arc::ArcLocation::Init(argv[0]);
 
   Arc::OptionParser options(" ",
-                            istring("The arcproxy command creates a proxy from a key/certificate pair for use in the ARC\n"
-                            "middleware"),
+                            istring("The arcproxy command creates a proxy from a key/certificate pair for use in\n"
+                                    "the ARC middleware"),
                             istring("Supported constraints are:\n"
                                     "  validityStart=time (e.g. 2008-05-29T10:20:30Z; if not specified, start from now)\n"
                                     "  validityEnd=time\n"
@@ -176,12 +178,12 @@ int main(int argc, char *argv[]) {
 
   std::string myproxy_command; //command to myproxy server
   options.AddOption('M', "myproxycmd", istring("command to myproxy server. The command can be PUT and GET.\n"
-                                         "              PUT/put -- put a delegated credential to myproxy server; \n"
-                                         "              GET/get -- get a delegated credential from myproxy server, \n"
-                                         "              credential (certificate and key) is not needed in this case. \n"
-                                         "              myproxy functionality can be used together with voms\n"
-                                         "              functionality.\n"
-                                         ),
+                                               "              PUT/put -- put a delegated credential to myproxy server; \n"
+                                               "              GET/get -- get a delegated credential from myproxy server, \n"
+                                               "              credential (certificate and key) is not needed in this case. \n"
+                                               "              myproxy functionality can be used together with voms\n"
+                                               "              functionality.\n"
+                                               ),
                     istring("string"), myproxy_command);
 
   std::list<std::string> constraintlist;
@@ -252,14 +254,14 @@ int main(int argc, char *argv[]) {
     if (cert_path.empty())
       cert_path = user.Home() + G_DIR_SEPARATOR_S + ".globus" + G_DIR_SEPARATOR_S + "usercert.pem";
     if (!Glib::file_test(cert_path, Glib::FILE_TEST_IS_REGULAR))
-           cert_path = "";
+      cert_path = "";
 
     if (proxy_path.empty())
       proxy_path = Arc::GetEnv("X509_USER_PROXY");
     if (proxy_path.empty())
       proxy_path = usercfg.ProxyPath();
     if (proxy_path.empty())
-      proxy_path  = Glib::build_filename(Glib::get_tmp_dir(),"x509up_u" + Arc::tostring(user.get_uid()));
+      proxy_path = Glib::build_filename(Glib::get_tmp_dir(), "x509up_u" + Arc::tostring(user.get_uid()));
 
     if (ca_dir.empty())
       ca_dir = Arc::GetEnv("X509_CERT_DIR");
@@ -276,7 +278,7 @@ int main(int argc, char *argv[]) {
         ca_dir = "";
     }
     if (ca_dir.empty()) {
-      ca_dir = Arc::ArcLocation::Get() + G_DIR_SEPARATOR_S + "etc" +  G_DIR_SEPARATOR_S + "certificates";
+      ca_dir = Arc::ArcLocation::Get() + G_DIR_SEPARATOR_S + "etc" + G_DIR_SEPARATOR_S + "certificates";
       if (!Glib::file_test(ca_dir, Glib::FILE_TEST_IS_DIR))
         ca_dir = "";
     }
@@ -286,7 +288,7 @@ int main(int argc, char *argv[]) {
         ca_dir = "";
     }
     if (ca_dir.empty()) {
-      ca_dir = Arc::ArcLocation::Get() + G_DIR_SEPARATOR_S + "share" +  G_DIR_SEPARATOR_S + "certificates";
+      ca_dir = Arc::ArcLocation::Get() + G_DIR_SEPARATOR_S + "share" + G_DIR_SEPARATOR_S + "certificates";
       if (!Glib::file_test(ca_dir, Glib::FILE_TEST_IS_DIR))
         ca_dir = "";
     }
@@ -296,42 +298,41 @@ int main(int argc, char *argv[]) {
         ca_dir = "";
     }
 
-   //std::cout << "key: " << key_path << std::endl;
-   //std::cout << "cert: " << cert_path << std::endl;
-   //std::cout << "proxy: " << proxy_path << std::endl;
-   //std::cout << "ca_dir: " << ca_dir << std::endl;
-
   } catch (std::exception& err) {
-    std::cerr << "ERROR: " << err.what() << std::endl;
-    tls_process_error();
+    logger.msg(Arc::ERROR, err.what());
+    tls_process_error(logger);
     return EXIT_FAILURE;
   }
 
-  if(ca_dir.empty()) {
-      std::cerr<<"Cannot find the CA Certificate Directory path, please setup environment X509_CERT_DIR, or CACertificatesDir in configuration file"<<std::endl;
-      return EXIT_FAILURE;
+  if (ca_dir.empty()) {
+    logger.msg(Arc::ERROR, "Cannot find the CA Certificate Directory path, "
+               "please setup environment X509_CERT_DIR, "
+               "or CACertificatesDir in configuration file");
+    return EXIT_FAILURE;
   }
 
   if (info) {
     std::vector<std::string> voms_attributes;
     bool res = false;
 
-    if(proxy_path.empty()) {
-      std::cerr<<"Cannot find the path of the proxy file, please setup environment X509_USER_PROXY, or ProxyPath in configuration file"<<std::endl;
+    if (proxy_path.empty()) {
+      logger.msg(Arc::ERROR, "Cannot find the path of the proxy file, "
+                 "please setup environment X509_USER_PROXY, "
+                 "or ProxyPath in configuration file");
       return EXIT_FAILURE;
-    } else {
-      if(!(Glib::file_test(proxy_path,Glib::FILE_TEST_EXISTS))) {
-        std::cerr<<"Cannot find file on: "<<proxy_path<<" for getting the proxy. Please make sure this file exists."<<std::endl;
-        return EXIT_FAILURE;
-      }
+    }
+    else if (!(Glib::file_test(proxy_path, Glib::FILE_TEST_EXISTS))) {
+      logger.msg(Arc::ERROR, "Cannot find file at %s for getting the proxy. "
+                 "Please make sure this file exists.", proxy_path);
+      return EXIT_FAILURE;
     }
 
     Arc::Credential holder(proxy_path, "", ca_dir, "");
-    std::cout << "Subject:  " << holder.GetDN() << std::endl;
-    std::cout << "Identity: " << holder.GetIdentityName() << std::endl;
+    std::cout << Arc::IString("Subject: %s", holder.GetDN()) << std::endl;
+    std::cout << Arc::IString("Identity: %s", holder.GetIdentityName()) << std::endl;
     std::cout << Arc::IString("Timeleft for proxy: %s", (holder.GetEndTime() - Arc::Time()).istr()) << std::endl;
-    std::cout << "Proxy path: " << proxy_path << std::endl;
-    std::cout << "Proxy type: " << certTypeToString(holder.GetType()) << std::endl;
+    std::cout << Arc::IString("Proxy path: %s", proxy_path) << std::endl;
+    std::cout << Arc::IString("Proxy type: %s", certTypeToString(holder.GetType())) << std::endl;
 
     std::vector<std::string> voms_trust_dn;
     res = parseVOMSAC(holder, "", "", voms_trust_dn, voms_attributes, false);
@@ -341,12 +342,16 @@ int main(int argc, char *argv[]) {
     return EXIT_SUCCESS;
   }
 
-  if(cert_path.empty() || key_path.empty()) {
-      if(cert_path.empty())
-         std::cerr<<"Cannot find the user certificate path, please setup environment X509_USER_CERT, or certificatepath in configuration file"<<std::endl;
-      if(key_path.empty())
-         std::cerr<<"Cannot find the user private key path, please setup environment X509_USER_KEY, or keypath in configuration file"<<std::endl;
-      return EXIT_FAILURE;
+  if (cert_path.empty() || key_path.empty()) {
+    if (cert_path.empty())
+      logger.msg(Arc::ERROR, "Cannot find the user certificate path, "
+                 "please setup environment X509_USER_CERT, "
+                 "or certificatepath in configuration file");
+    if (key_path.empty())
+      logger.msg(Arc::ERROR, "Cannot find the user private key path, "
+                 "please setup environment X509_USER_KEY, "
+                 "or keypath in configuration file");
+    return EXIT_FAILURE;
   }
 
   std::map<std::string, std::string> constraints;
@@ -367,9 +372,9 @@ int main(int argc, char *argv[]) {
 
   //If the period is formated with hours, e.g., 12h, then change
   //it into seconds
-  if(!(constraints["validityPeriod"].empty()) &&
-    ((constraints["validityPeriod"].rfind("h") != std::string::npos) ||
-    (constraints["validityPeriod"].rfind("H") != std::string::npos))) {
+  if (!(constraints["validityPeriod"].empty()) &&
+      ((constraints["validityPeriod"].rfind("h") != std::string::npos) ||
+       (constraints["validityPeriod"].rfind("H") != std::string::npos))) {
     unsigned long tmp;
     tmp = strtoll(constraints["validityPeriod"].c_str(), NULL, 0);
     tmp = tmp * 3600;
@@ -377,9 +382,9 @@ int main(int argc, char *argv[]) {
     constraints["validityPeriod"] = strtmp;
   }
 
-  if(!(constraints["vomsACvalidityPeriod"].empty()) &&
-    ((constraints["vomsACvalidityPeriod"].rfind("h") != std::string::npos) ||
-    (constraints["vomsACvalidityPeriod"].rfind("H") != std::string::npos))) {
+  if (!(constraints["vomsACvalidityPeriod"].empty()) &&
+      ((constraints["vomsACvalidityPeriod"].rfind("h") != std::string::npos) ||
+       (constraints["vomsACvalidityPeriod"].rfind("H") != std::string::npos))) {
     unsigned long tmp;
     tmp = strtoll(constraints["vomsACvalidityPeriod"].c_str(), NULL, 0);
     tmp = tmp * 3600;
@@ -420,8 +425,9 @@ int main(int argc, char *argv[]) {
 
       std::string prompt1 = "MyProxy server";
       char password[256];
-      int res = input_password(password, 256, false, prompt1, "");
-      if(!res) throw std::invalid_argument("Error entering passphrase");
+      int res = input_password(password, 256, false, prompt1, "", logger);
+      if (!res)
+        throw std::invalid_argument("Error entering passphrase");
 
       passphrase = password;
 
@@ -439,7 +445,7 @@ int main(int argc, char *argv[]) {
       }
       else {
         host = myproxy_server.substr(0, pos);
-        Arc::stringto(myproxy_server.substr(pos),port);
+        Arc::stringto(myproxy_server.substr(pos), port);
       }
       Arc::MCCConfig cfg;
       //if(!proxy_path.empty())
@@ -537,10 +543,10 @@ int main(int argc, char *argv[]) {
 
       //Output the PEM formated proxy certificate
       std::string tmpcert_file;
-      tmpcert_file =  Glib::build_filename(Glib::get_tmp_dir(),"tmpcert.pem");
+      tmpcert_file = Glib::build_filename(Glib::get_tmp_dir(), "tmpcert.pem");
       std::ofstream tmpcert_f(tmpcert_file.c_str(), std::ofstream::binary);
       std::string tmpkey_file;
-      tmpkey_file =  Glib::build_filename(Glib::get_tmp_dir(),"tmpkey.pem");
+      tmpkey_file = Glib::build_filename(Glib::get_tmp_dir(), "tmpkey.pem");
       std::ofstream tmpkey_f(tmpkey_file.c_str(), std::ofstream::binary);
       tmpcert_f.write(proxy_cert_str.c_str(), proxy_cert_str.size());
       tmpkey_f.write(proxy_key_str.c_str(), proxy_key_str.size());
@@ -590,15 +596,15 @@ int main(int argc, char *argv[]) {
     }
 
   } catch (std::exception& err) {
-    std::cerr << "ERROR: " << err.what() << std::endl;
-    tls_process_error();
+    logger.msg(Arc::ERROR, err.what());
+    tls_process_error(logger);
     return EXIT_FAILURE;
   }
 
   //Create proxy or voms proxy
   try {
     Arc::Credential signer_tmp(cert_path, "", "", "");
-    std::cout<<"Your identity: "<<signer_tmp.GetDN()<<std::endl;
+    std::cout << Arc::IString("Your identity: %s", signer_tmp.GetDN()) << std::endl;
 
     Arc::Credential signer(cert_path, key_path, ca_dir, "");
 
@@ -618,7 +624,7 @@ int main(int argc, char *argv[]) {
     signer.OutputCertificate(signing_cert);
     signer.OutputCertificateChain(signing_cert_chain);
 
-    if(!vomslist.empty()) { //If we need to generate voms proxy
+    if (!vomslist.empty()) { //If we need to generate voms proxy
 
       //Generate a temporary self-signed proxy certificate
       //to contact the voms server
@@ -650,27 +656,27 @@ int main(int argc, char *argv[]) {
         vomses_path = usercfg.VOMSServerPath();
 
       if (vomses_path.empty()) {
-          vomses_path = "/etc/grid-security/.vomses";
-          if (!Glib::file_test(vomses_path, Glib::FILE_TEST_IS_REGULAR)) {
+        vomses_path = "/etc/grid-security/.vomses";
+        if (!Glib::file_test(vomses_path, Glib::FILE_TEST_IS_REGULAR)) {
           vomses_path = Arc::ArcLocation::Get() + G_DIR_SEPARATOR_S + "etc" + G_DIR_SEPARATOR_S + "grid-security" + G_DIR_SEPARATOR_S + ".vomses";
           if (!Glib::file_test(vomses_path, Glib::FILE_TEST_IS_REGULAR)) {
-          vomses_path = user.Home() + "/.vomses";
-          if (!Glib::file_test(vomses_path, Glib::FILE_TEST_IS_REGULAR)) {
-            vomses_path = "/etc/grid-security/.vomses";
+            vomses_path = user.Home() + "/.vomses";
             if (!Glib::file_test(vomses_path, Glib::FILE_TEST_IS_REGULAR)) {
-              vomses_path = user.Home() + "/.voms/vomses";
+              vomses_path = "/etc/grid-security/.vomses";
               if (!Glib::file_test(vomses_path, Glib::FILE_TEST_IS_REGULAR)) {
-                std::string tmp1 = user.Home() + "/.vomses";
-                std::string tmp2 = user.Home() + "/.voms/vomses";
-                std::string tmp3 = Arc::ArcLocation::Get() + G_DIR_SEPARATOR_S +"etc" + G_DIR_SEPARATOR_S + "grid-security" + G_DIR_SEPARATOR_S + ".vomses";
-                logger.msg(Arc::ERROR, "Cannot find vomses at %s, %s, %s and /etc/grid-security/.vomses",
-                  tmp1.c_str(), tmp2.c_str(), tmp3.c_str());
-                return EXIT_FAILURE;
+                vomses_path = user.Home() + "/.voms/vomses";
+                if (!Glib::file_test(vomses_path, Glib::FILE_TEST_IS_REGULAR)) {
+                  std::string tmp1 = user.Home() + "/.vomses";
+                  std::string tmp2 = user.Home() + "/.voms/vomses";
+                  std::string tmp3 = Arc::ArcLocation::Get() + G_DIR_SEPARATOR_S + "etc" + G_DIR_SEPARATOR_S + "grid-security" + G_DIR_SEPARATOR_S + ".vomses";
+                  logger.msg(Arc::ERROR, "Cannot find vomses at %s, %s, %s and /etc/grid-security/.vomses",
+                             tmp1.c_str(), tmp2.c_str(), tmp3.c_str());
+                  return EXIT_FAILURE;
+                }
               }
             }
           }
-            }
-          }
+        }
       }
 
       std::ifstream in_f(vomses_path.c_str());
@@ -742,7 +748,7 @@ int main(int argc, char *argv[]) {
         std::string port = voms_line.substr(p + 1, p1 - p - 1);
         logger.msg(Arc::INFO, "Contacting VOMS server (named %s): %s on port: %s",
                    voms_server.c_str(), address.c_str(), port.c_str());
-        std::cout<<"Contacting VOMS server (named "<<voms_server<<" ): "<< address<<" on port: "<<port<<std::endl;
+        std::cout << Arc::IString("Contacting VOMS server (named %s): %s on port: %i", voms_server, address, port) << std::endl;
 
         std::string send_msg;
         send_msg.append("<?xml version=\"1.0\" encoding = \"US-ASCII\"?><voms><command>");
@@ -761,7 +767,7 @@ int main(int argc, char *argv[]) {
             command_2server.append("B").append(command.substr(0, pos)).append(":").append(command.substr(pos + 6));
         }
         send_msg.append(command_2server).append("</command><lifetime>").append(voms_period).append("</lifetime></voms>");
-        Arc::ClientTCP client(cfg, address, atoi(port.c_str()), use_gsi_comm?Arc::GSISec:Arc::SSL3Sec, usercfg.Timeout());
+        Arc::ClientTCP client(cfg, address, atoi(port.c_str()), use_gsi_comm ? Arc::GSISec : Arc::SSL3Sec, usercfg.Timeout());
         Arc::PayloadRaw request;
         request.Insert(send_msg.c_str(), 0, send_msg.length());
         Arc::PayloadStreamInterface *response = NULL;
@@ -787,9 +793,8 @@ int main(int argc, char *argv[]) {
           memset(ret_buf, 0, 1024);
         } while (len == 1024);
         logger.msg(Arc::DEBUG, "Returned msg from voms server: %s ", ret_str.c_str());
-        if(ret_str.find("error") != std::string::npos) {
+        if (ret_str.find("error") != std::string::npos)
           throw std::runtime_error("Cannot get any AC or attributes info from voms server: " + voms_server);
-        }
 
         //Put the return attribute certificate into proxy certificate as the extension part
         Arc::XMLNode node(ret_str);
@@ -798,7 +803,6 @@ int main(int argc, char *argv[]) {
           codedac = (std::string)(node["bitstr"]);
         else
           codedac = (std::string)(node["ac"]);
-        //std::cout<<"Coded AC: "<<codedac<<std::endl;
         std::string decodedac;
         int size;
         char *dec = NULL;
@@ -808,13 +812,11 @@ int main(int argc, char *argv[]) {
           free(dec);
           dec = NULL;
         }
-        //std::cout<<"Decoded AC: "<<decodedac<<std::endl;
 
         if (command == "list") {
           //logger.msg(Arc::INFO, "The attribute information from voms server: %s is list as following:\n%s",
           //           voms_server.c_str(), decodedac.c_str());
-          std::cout<<"The attribute information from voms server: "<<voms_server
-                   <<" is list as following \n"<<decodedac;
+          std::cout << Arc::IString("The attribute information from voms server: %s is list as following", voms_server) << std::endl << decodedac;
           if (response)
             delete response;
           return EXIT_SUCCESS;
@@ -829,17 +831,17 @@ int main(int argc, char *argv[]) {
       //Put the returned attribute certificate into proxy certificate
       if (aclist != NULL)
         cred_request.AddExtension("acseq", (char**)aclist);
-      if(!acorder.empty())
+      if (!acorder.empty())
         cred_request.AddExtension("order", acorder);
     }
 
-    if(!use_gsi_proxy)
+    if (!use_gsi_proxy)
       cred_request.SetProxyPolicy("rfc", policy.empty() ? "inheritAll" : "anylanguage", policy, -1);
     else
       cred_request.SetProxyPolicy("gsi2", "", "", -1);
 
     std::string proxy_cert;
-    if(!signer.SignRequest(&cred_request, proxy_cert))
+    if (!signer.SignRequest(&cred_request, proxy_cert))
       throw std::runtime_error("Failed to sign proxy");
 
     proxy_cert.append(private_key).append(signing_cert).append(signing_cert_chain);
@@ -853,14 +855,13 @@ int main(int argc, char *argv[]) {
 
     Arc::Credential proxy_cred(proxy_path, proxy_path, ca_dir, "");
     Arc::Time left = proxy_cred.GetEndTime();
-    std::cout<<"Proxy generation succeeded"<<std::endl;
-    //std::cout<<"Your proxy is valid until: "<<(std::string)left<<std::endl;
-    std::cout<<"Your proxy is valid until: "<<left.str(Arc::RFC1123Time)<<std::endl;
+    std::cout << Arc::IString("Proxy generation succeeded") << std::endl;
+    std::cout << Arc::IString("Your proxy is valid until: %s", (std::string)left) << std::endl;
 
     //return EXIT_SUCCESS;
   } catch (std::exception& err) {
-    std::cerr << "ERROR: " << err.what() << std::endl;
-    tls_process_error();
+    logger.msg(Arc::ERROR, err.what());
+    tls_process_error(logger);
     return EXIT_FAILURE;
   }
 
@@ -880,8 +881,9 @@ int main(int argc, char *argv[]) {
       std::string prompt1 = "MyProxy server";
       std::string prompt2 = "MyProxy server";
       char password[256];
-      int res = input_password(password, 256, true, prompt1, prompt2);
-      if(!res) throw std::invalid_argument("Error entering passphrase");
+      int res = input_password(password, 256, true, prompt1, prompt2, logger);
+      if (!res)
+        throw std::invalid_argument("Error entering passphrase");
 
       passphrase = password;
 
@@ -899,7 +901,7 @@ int main(int argc, char *argv[]) {
       }
       else {
         host = myproxy_server.substr(0, pos);
-        Arc::stringto(myproxy_server.substr(pos),port);
+        Arc::stringto(myproxy_server.substr(pos), port);
       }
       Arc::MCCConfig cfg;
       cfg.AddProxy(proxy_path);
@@ -966,8 +968,8 @@ int main(int argc, char *argv[]) {
       Arc::Credential proxy;
       std::string signedcert, signing_cert, signing_cert_chain;
       proxy.InquireRequest(x509ret_str, false, true);
-      proxy.SetProxyPolicy("rfc","inheritAll","",-1);
-      if (!(signer.SignRequest(&proxy, signedcert,true))) {
+      proxy.SetProxyPolicy("rfc", "inheritAll", "", -1);
+      if (!(signer.SignRequest(&proxy, signedcert, true))) {
         logger.msg(Arc::ERROR, "Delegate proxy to myproxy server failed");
         return EXIT_FAILURE;
       }
@@ -1028,8 +1030,8 @@ int main(int argc, char *argv[]) {
       return EXIT_SUCCESS;
     }
   } catch (std::exception& err) {
-    std::cerr << "ERROR: " << err.what() << std::endl;
-    tls_process_error();
+    logger.msg(Arc::ERROR, err.what());
+    tls_process_error(logger);
     return EXIT_FAILURE;
   }
 
