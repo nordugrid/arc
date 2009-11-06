@@ -1,9 +1,7 @@
 #include <cstdlib>
 #include <dlfcn.h>
 
-#include <iostream>
 #include <string>
-#include <list>
 
 #include <glibmm/module.h>
 #include <glibmm/miscutils.h>
@@ -27,23 +25,41 @@ Macintosh. The returned string points into static storage; the caller should
 not modify its value. The value is available to Python code as the list
 sys.path, which may be modified to change the future search path for loaded
 modules.
+Note: it seems like Python is hiding site-packages part of path. Maybe it 
+is hardcoded inside Python somewhere. But at least part till site-packages
+seems to be present.
 */
   std::string pythonpath = Py_GetPath();
   std::string::size_type start = 0;
   std::string::size_type end = pythonpath.find_first_of(";:\n");
   if(end == std::string::npos) end=pythonpath.length();
   for(;start<pythonpath.length();) {
-    std::string path = pythonpath.substr(start,end-start);
-    std::string modulepath = Glib::build_filename(path,std::string("_arc.")+G_MODULE_SUFFIX);
+    std::string path;
+    std::string modulepath;
+    Glib::Module *module = NULL;
+    path = pythonpath.substr(start,end-start);
+    modulepath = Glib::build_filename(path,std::string("_arc.")+G_MODULE_SUFFIX);
 #ifdef HAVE_GLIBMM_BIND_LOCAL
-    Glib::Module *module = new Glib::Module(modulepath,Glib::MODULE_BIND_GLOBAL);
+    module = new Glib::Module(modulepath,Glib::MODULE_BIND_GLOBAL);
 #else
-    Glib::Module *module = new Glib::Module(modulepath);
+    module = new Glib::Module(modulepath);
 #endif
     if(module != NULL) {
       if(*module) return;
       delete module;
     };
+    path = Glib::build_filename(path,"site-packages");
+    modulepath = Glib::build_filename(path,std::string("_arc.")+G_MODULE_SUFFIX);
+#ifdef HAVE_GLIBMM_BIND_LOCAL
+    module = new Glib::Module(modulepath,Glib::MODULE_BIND_GLOBAL);
+#else
+    module = new Glib::Module(modulepath);
+#endif
+    if(module != NULL) {
+      if(*module) return;
+      delete module;
+    };
+    path = Glib::build_filename(path,"site-packages");
     start=end+1;
     end=pythonpath.find_first_of(";:\n",start);
     if(end == std::string::npos) end=pythonpath.length();
