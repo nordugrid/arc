@@ -86,7 +86,7 @@ static void message_send_thread(void *arg) {
     }
     std::vector<std::string>* not_availables_neighbors  = data->not_av_neighbors;
 
-    for ( int i=0; i<data->isis_list.size(); i++ ){
+    for (unsigned int i=0; i<data->isis_list.size(); i++ ){
         std::string url = data->isis_list[i].url;
         //Send SOAP message to the neighbor.
         Arc::PayloadSOAP *response = NULL;
@@ -221,7 +221,7 @@ static void soft_state_thread(void *data) {
             // Whether ISIS's destructor called or not
             if( *(self->kill_thread) ) {
                (*(self->threads_count))--;
-               delete (Soft_State *)data;
+               if (data) delete (Soft_State *)data;
                thread_logger.msg(Arc::DEBUG, "%s: Soft-State thread is finished.", method);
                return;
             }
@@ -268,7 +268,7 @@ static void soft_state_thread(void *data) {
                     *(self->neighbors_update_needed_) = true;
                     std::string isis_url = (std::string)data["SrcAdv"]["EPR"]["Address"];
                     // the remove service is my provider or not
-                    for ( int j=0; j < providers_->size(); j++ ) {
+                    for (unsigned int j=0; j < providers_->size(); j++ ) {
                         if ( (*providers_)[j].url == isis_url ) {
                             *available_providers = false;
                             break;
@@ -290,7 +290,7 @@ static void soft_state_thread(void *data) {
     }
 }
 
-    ISIService::ISIService(Arc::Config *cfg):RegisteredService(cfg),logger_(Arc::Logger::rootLogger, "ISIS"),log_stream(NULL),db_(NULL),valid("PT1D"),remove("PT1D"),neighbors_lock(false),neighbors_count(0), available_provider(false), neighbors_update_needed(false) {
+    ISIService::ISIService(Arc::Config *cfg):RegisteredService(cfg),logger_(Arc::Logger::rootLogger, "ISIS"),log_stream(NULL),valid("PT1D"),remove("PT1D"),db_(NULL),neighbors_update_needed(false),available_provider(false),neighbors_count(0),neighbors_lock(false) {
 
         // Set up custom logger if there is any in the configuration
         Arc::XMLNode logger_node = (*cfg)["Logger"];
@@ -456,8 +456,6 @@ static void soft_state_thread(void *data) {
         time_t rawtime;
         time ( &rawtime );    //current time
 
-        time_t valid_time(rawtime - (int)valid.GetPeriod());
-
         // Current this is the Query
         //"//RegEntry/MetaSrcAdv[count(Expiration)=1 and number(translate(GenTime,'TZ:-','.')) < number('20090420.082903')]/ServiceID"
 
@@ -485,7 +483,6 @@ static void soft_state_thread(void *data) {
         remove_data->function = "ETRemove";
         remove_data->sleep = ((int)remove.GetPeriod())/2;
 
-        time_t remove_time(rawtime - (int)remove.GetPeriod());
         std::string remove_query("/RegEntry/MetaSrcAdv[count(Expiration)=0 and number(translate(GenTime,'TZ:-','.')) < number('");
         remove_query += Current_Time(rawtime);
         remove_query += "')]/ServiceID";
@@ -539,8 +536,8 @@ static void soft_state_thread(void *data) {
         KillThread = true;
         //Waiting until the all RemoveRegistration message send to neighbors.
         sleep(10);
-        for (int i=0; i< garbage_collector.size(); i++) {
-            delete garbage_collector[i];
+        for (unsigned int i=0; i< garbage_collector.size(); i++) {
+            if(garbage_collector[i]) delete garbage_collector[i];
         }
         while (ThreadsCount > 0){
             logger_.msg(Arc::DEBUG, "ISIS (%s) has %d more thread%s", endpoint_, ThreadsCount, ThreadsCount>1?"s.":".");
@@ -676,7 +673,7 @@ static void soft_state_thread(void *data) {
                if ( type == "org.nordugrid.infosys.isis") {
                   std::string url = (std::string)regentry["SrcAdv"]["EPR"]["Address"];
                   // the remove service is my provider or not
-                  for ( int j=0; j < infoproviders_.size(); j++ ) {
+                  for (unsigned int j=0; j < infoproviders_.size(); j++ ) {
                      if ( infoproviders_[j].url == url ) {
                         available_provider = false;
                         break;
@@ -902,7 +899,7 @@ static void soft_state_thread(void *data) {
                     *outpayload=*out_;
                     delete out_;
                 } else {
-                    delete outpayload;
+                    if (outpayload) delete outpayload;
                     return make_soap_fault(outmsg);
                 }
             }
@@ -1097,7 +1094,7 @@ static void soft_state_thread(void *data) {
             Arc::ISIS_description rndProvider = infoproviders_[std::rand() % infoproviders_.size()];
 
             std::map<std::string,int> retry_;
-            for( int i=0; i< infoproviders_.size(); i++ ) {
+            for( unsigned int i=0; i< infoproviders_.size(); i++ ) {
                retry_[ infoproviders_[i].url ] = retry_count;
             }
 
@@ -1134,7 +1131,7 @@ static void soft_state_thread(void *data) {
                    retry_[rndProvider.url]--;
                    if ( retry_[rndProvider.url] < 1 ) {
                       retry_.erase(rndProvider.url);
-                      for (int i=0; i<temporary_provider.size(); i++){
+                      for (unsigned int i=0; i<temporary_provider.size(); i++){
                           if (temporary_provider[i].url == rndProvider.url){
                              temporary_provider.erase(temporary_provider.begin()+i);
                              break;
@@ -1155,7 +1152,7 @@ static void soft_state_thread(void *data) {
 
             // 4. step: Hash table and neighbors filling
             std::vector<Service_data> find_servicedatas;
-            for ( int i=0; bool( (*response)["QueryResponse"]["RegEntry"][i]); i++ ) {
+            for (unsigned int i=0; bool( (*response)["QueryResponse"]["RegEntry"][i]); i++ ) {
                 std::string serviceid = (std::string)(*response)["QueryResponse"]["RegEntry"][i]["MetaSrcAdv"]["ServiceID"];
                 if ( serviceid.empty() )
                     continue;
@@ -1177,7 +1174,7 @@ static void soft_state_thread(void *data) {
 
             if ( available_provider )
                 hash_table.clear();
-            for (int i=0; i < find_servicedatas.size(); i++) {
+            for (unsigned int i=0; i < find_servicedatas.size(); i++) {
                 // add the hash and the service info into the hash table
                 hash_table.insert( std::pair<std::string,Arc::ISIS_description>( find_servicedatas[i].peerID, find_servicedatas[i].service) );
             }
@@ -1206,7 +1203,7 @@ static void soft_state_thread(void *data) {
 
                bool isavailable_connect = false;
                bool no_more_isis = false;
-               int current = 0;
+               unsigned int current = 0;
                Arc::PayloadSOAP *response_c = NULL;
                while ( !isavailable_connect && !no_more_isis) {
                    int retry_connect = retry;
@@ -1269,7 +1266,7 @@ static void soft_state_thread(void *data) {
 
                   header.NewChild("MessageGenerationTime") = Current_Time();
 
-                  for ( int i=0; bool((*response_c)["ConnectResponse"]["Database"]["RegEntry"][i]); i++ ){
+                  for (unsigned int i=0; bool((*response_c)["ConnectResponse"]["Database"]["RegEntry"][i]); i++ ){
                       Arc::XMLNode regentry_xml;
                       (*response_c)["ConnectResponse"]["Database"]["RegEntry"][i].New(regentry_xml);
                       std::string id = regentry_xml["MetaSrcAdv"]["ServiceID"];
@@ -1294,7 +1291,7 @@ static void soft_state_thread(void *data) {
                   // with almost one probability the neighbor update will necessary after connection
                   neighbors_update_needed = true;
 
-                  for (int i=0; i<ids.size(); i++){
+                  for (unsigned int i=0; i<ids.size(); i++){
                       Arc::XMLNode data_;
                       //The next function calling is db_->get(ServiceID, RegistrationEntry);
                       db_->get(ids[i], data_);
