@@ -233,7 +233,7 @@ namespace Arc {
     grp.set_translation_domain(PACKAGE);
 
     bool h_value = false;
-    BoolOption h_entry('h',"help","","",h_value);
+    BoolOption h_entry('h', "help", "Show help options", "", h_value);
     h_entry.AddEntry(grp);
 
     for (std::list<OptionBase*>::iterator it = options.begin();
