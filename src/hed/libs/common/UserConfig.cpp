@@ -34,6 +34,15 @@
 
 namespace Arc {
 
+  std::string tostring(const ServiceType st) {
+    switch (st) {
+    case COMPUTING:
+      return istring("computing");
+    case INDEX:
+      return istring("index");
+    }
+  }
+
   Logger UserConfig::logger(Logger::getRootLogger(), "UserConfig");
 
   const std::string UserConfig::DEFAULT_BROKER = "Random";

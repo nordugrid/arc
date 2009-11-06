@@ -24,6 +24,8 @@ namespace Arc {
     INDEX
   };
 
+  std::string tostring(const ServiceType st);
+
   class initializeCredentialsType {
    public:
     typedef enum {

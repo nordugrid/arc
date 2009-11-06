@@ -60,7 +60,7 @@ namespace Arc {
                                        int detailLevel) {
 
     logger.msg(INFO, "TargetRetriverARC1 initialized with %s service url: %s",
-               serviceType, url.str());
+               tostring(serviceType), url.str());
 
     switch (serviceType) {
     case COMPUTING:
