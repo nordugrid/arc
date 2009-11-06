@@ -288,9 +288,10 @@ void MCC_TCP_Service::listener(void* arg) {
                       } else {
                         if(first_time)
                           logger.msg(WARNING, "Too many connections - waiting for old to close");
-                        it.lock_.unlock();
-                        sleep(5); // TODO: use signal, drop after timeout
-                        it.lock_.lock();
+                        Glib::TimeVal etime;
+                        etime.assign_current_time();
+                        etime.add_milliseconds(10000); // 10 s
+                        it.cond_.timed_wait(it.lock_,etime);
                       };
                     };
                     if(!rejected) {
@@ -539,6 +540,7 @@ void MCC_TCP_Service::executer(void* arg) {
     };
     ::shutdown(s,2);
     ::close(s);
+    it.cond_.signal();
     it.lock_.unlock();
     return;
 }
