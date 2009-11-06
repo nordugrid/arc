@@ -412,7 +412,6 @@ bool JobsList::state_loading(const JobsList::iterator &i,bool &state_changed,boo
       NULL, // -c
       NULL, // -p
       NULL, // -l
-      NULL, // -j
       NULL, // -s
       NULL, // (-s)
       NULL, // -S
@@ -444,9 +443,6 @@ bool JobsList::state_loading(const JobsList::iterator &i,bool &state_changed,boo
     };
     if(use_local_transfer) { 
       args[argn]="-l"; argn++;
-    };
-    if(!janitor_enabled().empty()) { 
-      args[argn]="-j"; argn++;
     };
     if(JobsList::min_speed) {
       min_speed_s=Arc::tostring(JobsList::min_speed);

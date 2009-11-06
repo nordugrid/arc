@@ -86,7 +86,6 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
   cf->AddSection("common");
   cf->AddSection("grid-manager");
   cf->AddSection("infosys");
-  cf->AddSection("janitor");
   /* process configuration information here */
   for(;;) {
     std::string rest;
@@ -94,12 +93,6 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
     cf->ReadNext(command,rest);
     if(cf->SectionNum() == 2) { // infosys - looking for user name only
       if(command == "user") infosys_user=rest;
-      continue;
-    };
-    if(cf->SectionNum() == 3) { // janitor - just check if it's enabled
-      if(command == "enabled")
-        if (!rest.empty() && rest != "0")
-          janitor_enabled("1");
       continue;
     };
     if(cf->SectionNum() == 0) { // infosys user may be in common too
@@ -962,17 +955,6 @@ bool configure_serviced_users(Arc::XMLNode cfg,JobUsers &users,uid_t my_uid,cons
       };
     };
   };
-  /*
-  janitor
-    enabled
-  */
-  tmp_node = cfg["janitor"];
-  if(tmp_node) {
-    std::string enabled = tmp_node["enabled"];
-    if(!enabled.empty() && enabled != "0")
-      janitor_enabled("1");
-  };
-
   return true;
 }
 

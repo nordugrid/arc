@@ -57,9 +57,6 @@ void support_mail_address(const std::string&);
 /// Global gridmap files with welcomed users' DNs and UNIX names
 /// $GRIDMAP, default /etc/grid-security/grid-mapfile
 std::string globus_gridmap(void);
-/// Whether Janitor is enabled. Empty value means disabled (the default)
-std::string janitor_enabled(void);
-void janitor_enabled(const std::string&);
 
 ///  Read environment, check files and set variables
 ///  Accepts:
