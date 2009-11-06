@@ -660,7 +660,7 @@ static bool normalize_filename(std::string& filename) {
       ) {
       std::string::size_type pr = std::string::npos;
       if(p > 0) pr = filename.rfind(G_DIR_SEPARATOR,p-1);
-      if(p == std::string::npos) return false;
+      if(pr == std::string::npos) return false;
       filename.erase(pr,p-pr+3);
       p=pr;
     } else if((filename[p+1] == '.') && (filename[p+2] == G_DIR_SEPARATOR)) {
@@ -677,8 +677,11 @@ static bool normalize_filename(std::string& filename) {
 int ARexJob::CreateFile(const std::string& filename) {
   if(id_.empty()) return -1;
   std::string fname = filename;
-  if(!normalize_filename(fname)) return -1;
-  if(fname.empty()) return -1;
+  if((!normalize_filename(fname)) || (fname.empty())) {
+    failure_="File name is not acceptable";
+    failure_type_=ARexJobInternalError;
+    return -1;
+  };
   int lname = fname.length();
   fname = config_.User()->SessionRoot()+"/"+id_+"/"+fname;
   // First try to create/open file
@@ -701,8 +704,11 @@ int ARexJob::CreateFile(const std::string& filename) {
 int ARexJob::OpenFile(const std::string& filename,bool for_read,bool for_write) {
   if(id_.empty()) return -1;
   std::string fname = filename;
-  if(!normalize_filename(fname)) return -1;
-  if(fname.empty()) return -1;
+  if((!normalize_filename(fname)) || (fname.empty())) {
+    failure_="File name is not acceptable";
+    failure_type_=ARexJobInternalError;
+    return -1;
+  };
   fname = config_.User()->SessionRoot()+"/"+id_+"/"+fname;
   int flags = 0;
   if(for_read && for_write) { flags=O_RDWR; }
