@@ -277,7 +277,7 @@ $registrationDir .= "/" unless $registrationDir =~ m#/$#;		#
 
 my $msg = undef;
 if ( ! -d $registrationDir) {
-	$msg = "Directory $registrationDir does not exists\n";
+	$msg = "Directory $registrationDir does not exist\n";
 } elsif (! -r $registrationDir) {
 	$msg = "Can not read directory $registrationDir\n";
 } elsif (! -w $registrationDir) {
@@ -323,13 +323,43 @@ foreach my $dir ( ($regDirJob, $regDirRTE, $regDirPackages) ) {
 #directory for installation of packages
 ######################################################################
 my $instdir=$config->{'janitor'}{'installationdir'};
-$instdir .= "/" unless $instdir =~ m#/$#;		#
+if (defined $instdir) {
+    $instdir .= "/" unless $instdir =~ m#/$#;		#
+    my $msg;
+    if ( ! -d $instdir ) {
+        $msg = "Directory $instdir does not exist\n";
+    } elsif ( ! -r $instdir ) {
+        $msg = "$instdir is not readable\n";
+    } elsif ( ! -w $instdir ) {
+        $msg = "$instdir is not writable\n";
+    }
+    if (defined $msg) {
+###l4p        $logger->fatal($msg);
+        printf STDERR $msg;
+        return 4
+    }
+}
 
 ######################################################################
 #directory for downloads
 ######################################################################
 my $downloaddir = $config->{'janitor'}{'downloaddir'};
-$downloaddir .= "/" unless $downloaddir=~ m#/$#;		#
+if (defined $downloaddir) {
+    $downloaddir .= "/" unless $downloaddir=~ m#/$#;		#
+    my $msg;
+    if ( ! -d $downloaddir ) {
+        $msg = "Directory $downloaddir does not exist\n";
+    } elsif ( ! -r $downloaddir ) {
+        $msg = "$downloaddir is not readable\n";
+    } elsif ( ! -w $downloaddir ) {
+        $msg = "$downloaddir is not writable\n";
+    }
+    if (defined $msg) {
+###l4p        $logger->fatal($msg);
+        printf STDERR $msg;
+        return 4
+    }
+}
 
 ######################################################################
 #manual installation directory for the site admin (the old way)
@@ -337,6 +367,17 @@ $downloaddir .= "/" unless $downloaddir=~ m#/$#;		#
 my $manualRuntimeDir = $config->{"grid-manager"}{"runtimedir"};
 if (defined $manualRuntimeDir) {
 	$manualRuntimeDir .= "/" unless $manualRuntimeDir =~ m#/$#;	#
+    my $msg;
+    if ( ! -d $manualRuntimeDir ) {
+        $msg = "Directory $manualRuntimeDir does not exist\n";
+    } elsif ( ! -r $manualRuntimeDir ) {
+        $msg = "$manualRuntimeDir is not readable\n";
+    }
+    if (defined $msg) {
+###l4p        $logger->fatal($msg);
+        printf STDERR $msg;
+        return 4
+    }
 }
 
 #If a job is older than this, it is considered dead and will be removed by
