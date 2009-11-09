@@ -1,5 +1,3 @@
 src/services/charon/charon_policy_arc.xml.example
 src/services/charon/charon_policy_xacml.xml.example
 src/services/charon/charon_service.xml.example
-src/services/hopi/hopi_service.xml.example
-src/tests/echo/echo_service.xml.example

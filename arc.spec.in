@@ -6,7 +6,7 @@
 
 %global pkgdir @PACKAGE@
 
-Name: nordugrid-arc1
+Name: nordugrid-arc-nox
 Version: @VERSION@
 Release: 1%{?dist}
 Summary: ARC
@@ -16,6 +16,8 @@ URL: http://www.nordugrid.org/
 Source: %{name}-%{version}.tar.gz
 BuildRoot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
+Provides: nordugrid-arc1 = %{version}
+Obsoletes: nordugrid-arc1 < 1.0.0
 BuildRequires: cppunit-devel
 BuildRequires: pkgconfig
 BuildRequires: e2fsprogs-devel
@@ -77,29 +79,107 @@ Summary: ARC prototype clients
 Group: Applications/Internet
 Requires: %{name} = %{version}
 Requires: %{name}-plugins-base = %{version}
+Provides: nordugrid-arc1-client = %{version}
+Obsoletes: nordugrid-arc1-client < 1.0.0
 
 %description client
 ARC prototype clients.
 
-%package server
+%package hed
 Summary: ARC Hosting Environment Daemon
 Group: System Environment/Libraries
 Requires: %{name} = %{version}
+Provides: nordugrid-arc1-server = %{version}
+Obsoletes: nordugrid-arc1-server < 1.0.0
 
 Requires(post): chkconfig
 Requires(preun): chkconfig
 Requires(preun): initscripts
 Requires(postun): initscripts
 
-%description server
+%description hed
 ARC Hosting Environment Daemon (HED).
+
+%package charon
+Summary: ARC charon service
+Group: System Environment/Libraries
+Requires: %{name} = %{version}
+Requires: %{name}-hed = %{version}
+
+%description charon
+ARC Charon service.
+
+%package hopi
+Summary: ARC hopi service
+Group: System Environment/Libraries
+Requires: %{name} = %{version}
+Requires: %{name}-hed = %{version}
+
+%description hopi
+ARC hopi service.
+
+%package isis
+Summary: ARC isis service
+Group: System Environment/Libraries
+Requires: %{name} = %{version}
+Requires: %{name}-hed = %{version}
+
+%description isis
+ARC isis service.
+
+%package compiler
+Summary: ARC compiler service
+Group: System Environment/Libraries
+Requires: %{name} = %{version}
+Requires: %{name}-hed = %{version}
+
+%description compiler
+ARC compiler service.
+
+%package delegation
+Summary: ARC delegation service
+Group: System Environment/Libraries
+Requires: %{name} = %{version}
+Requires: %{name}-hed = %{version}
+
+%description delegation
+ARC delegation service.
+
+%package paul
+Summary: ARC paul service
+Group: System Environment/Libraries
+Requires: %{name} = %{version}
+Requires: %{name}-hed = %{version}
+
+%description paul
+ARC paul service.
+
+%package saml2sp
+Summary: ARC saml2sp service
+Group: System Environment/Libraries
+Requires: %{name} = %{version}
+Requires: %{name}-hed = %{version}
+
+%description saml2sp
+ARC saml2sp service.
+
+%package slcs
+Summary: ARC slcs service
+Group: System Environment/Libraries
+Requires: %{name} = %{version}
+Requires: %{name}-hed = %{version}
+
+%description slcs
+ARC slcs service.
 
 %package arex
 Summary: ARC Remote EXecution service
 Group: System Environment/Libraries
 Requires: %{name} = %{version}
-Requires: %{name}-server = %{version}
+Requires: %{name}-hed = %{version}
 Requires: perl-XML-Simple
+Provides: nordugrid-arc1-arex = %{version}
+Obsoletes: nordugrid-arc1-arex < 1.0.0
 
 Requires(post): chkconfig
 Requires(preun): chkconfig
@@ -113,6 +193,8 @@ ARC Remote EXecution service (AREX)
 Summary: ARC base plugins
 Group: System Environment/Libraries
 Requires: %{name} = %{version}
+Provides: nordugrid-arc1-plugins-base = %{version}
+Obsoletes: nordugrid-arc1-plugins-base < 1.0.0
 
 %description plugins-base
 ARC base plugins. This includes the Message Chain Components (MCCs) and
@@ -122,6 +204,8 @@ Data Manager Components (DMCs).
 Summary: ARC Globus plugins
 Group: System Environment/Libraries
 Requires: %{name} = %{version}
+Provides: nordugrid-arc1-plugins-globus = %{version}
+Obsoletes: nordugrid-arc1-plugins-globus < 1.0.0
 
 %description plugins-globus
 ARC Globus plugins. This includes the Globus dependent Data Manager
@@ -135,6 +219,8 @@ Requires: glibmm24-devel
 Requires: glib2-devel
 Requires: libxml2-devel
 Requires: openssl-devel
+Provides: nordugrid-arc1-devel = %{version}
+Obsoletes: nordugrid-arc1-devel < 1.0.0
 
 %description devel
 Development files for ARC
@@ -144,6 +230,8 @@ Summary: ARC Python wrapper
 Group: Development/Libraries
 Requires: %{name} = %{version}
 Requires: python
+Provides: nordugrid-arc1-python = %{version}
+Obsoletes: nordugrid-arc1-python < 1.0.0
 
 %description python
 Python wrapper for ARC
@@ -159,6 +247,8 @@ Requires: jpackage-utils
 Requires(post): java-gcj-compat
 Requires(postun): java-gcj-compat
 %endif
+Provides: nordugrid-arc1-java = %{version}
+Obsoletes: nordugrid-arc1-java < 1.0.0
 
 %description java
 Java wrapper for ARC
@@ -168,6 +258,8 @@ Java wrapper for ARC
 Summary: ARC dynamic installation of runtime environments
 Group: Applications/Internet
 Requires: perl-redland
+Provides: nordugrid-arc1-janitor = %{version}
+Obsoletes: nordugrid-arc1-janitor < 1.0.0
 
 %description janitor
 The NorduGrid is a collaboration aiming at development, maintenance
@@ -186,6 +278,11 @@ evolve.
 %package doc
 Summary: ARC API documentation
 Group: Documentation
+Provides: nordugrid-arc1-doc = %{version}
+Obsoletes: nordugrid-arc1-doc < 1.0.0
+%if %{?fedora}%{!?fedora:0} >= 10 || %{?rhel}%{!?rhel:0} >= 6
+BuildArch: noarch
+%endif
 
 %description doc
 ARC API docmentation
@@ -235,16 +332,16 @@ rm -rf $RPM_BUILD_ROOT
 
 %postun -p /sbin/ldconfig
 
-%post server
+%post hed
 /sbin/chkconfig --add arched
 
-%preun server
+%preun hed
 if [ $1 = 0 ]; then
   service arched stop > /dev/null 2>&1
   /sbin/chkconfig --del arched
 fi
 
-%postun server
+%postun hed
 if [ "$1" -ge "1" ]; then
   service arched condrestart > /dev/null 2>&1
 fi
@@ -337,29 +434,52 @@ exit 0
 %doc src/clients/charon/charon_request.xml.example
 %doc src/tests/echo/echo.wsdl
 
-%files server
+%files hed
 %defattr(-,root,root,-)
 %{_initrddir}/arched
 %{_sbindir}/arched
-%{_sbindir}/manage_jobq
-%{_libdir}/%{pkgdir}/libcharon.so
-%{_libdir}/%{pkgdir}/libcompiler.so
-%{_libdir}/%{pkgdir}/libdelegation.so
 %{_libdir}/%{pkgdir}/libecho.so
-%{_libdir}/%{pkgdir}/libgrid_sched.so
-%{_libdir}/%{pkgdir}/libhopi.so
-%{_libdir}/%{pkgdir}/libisis.so
-%{_libdir}/%{pkgdir}/libpaul.so
-%{_libdir}/%{pkgdir}/libsaml2sp.so
-%{_libdir}/%{pkgdir}/libslcs.so
-%{_datadir}/%{pkgdir}/examples/storage_service.xml.example
 %doc %{_mandir}/man8/arched.8*
-%doc %{_mandir}/man8/manage_jobq.8*
+
+%files charon
+%defattr(-,root,root,-)
+%{_libdir}/%{pkgdir}/libcharon.so
 %doc src/services/charon/charon_policy_arc.xml.example
 %doc src/services/charon/charon_policy_xacml.xml.example
 %doc src/services/charon/charon_service.xml.example
+
+%files hopi
+%defattr(-,root,root,-)
+%{_libdir}/%{pkgdir}/libhopi.so
 %doc src/services/hopi/hopi_service.xml.example
+
+%files isis
+%defattr(-,root,root,-)
+%{_libdir}/%{pkgdir}/libisis.so
 %doc src/tests/echo/echo_service.xml.example
+
+%files compiler
+%defattr(-,root,root,-)
+%{_libdir}/%{pkgdir}/libcompiler.so
+
+%files delegation
+%defattr(-,root,root,-)
+%{_libdir}/%{pkgdir}/libdelegation.so
+
+%files paul
+%defattr(-,root,root,-)
+%{_sbindir}/manage_jobq
+%{_libdir}/%{pkgdir}/libgrid_sched.so
+%{_libdir}/%{pkgdir}/libpaul.so
+%doc %{_mandir}/man8/manage_jobq.8*
+
+%files saml2sp
+%defattr(-,root,root,-)
+%{_libdir}/%{pkgdir}/libsaml2sp.so
+
+%files slcs
+%defattr(-,root,root,-)
+%{_libdir}/%{pkgdir}/libslcs.so
 
 %files arex
 %defattr(-,root,root,-)
@@ -453,6 +573,7 @@ exit 0
 %{python_sitearch}/*
 %{_libdir}/%{pkgdir}/libaccPythonBroker.so
 %{ifpy}%{_libdir}/%{pkgdir}/libpythonservice.so
+%{_datadir}/%{pkgdir}/examples/storage_service.xml.example
 %doc src/hed/acc/PythonBroker/SampleBroker.py
 
 %if %{with_java}

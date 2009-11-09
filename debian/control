@@ -1,150 +1,19 @@
-Source: nordugrid-arc1
+Source: nordugrid-arc-nox
 Section: net
 Priority: optional
 Maintainer: Anders Waananen <waananen@nbi.dk>
 Uploaders: Steffen Moeller <moeller@debian.org>
 DM-Upload-Allowed: yes
-Build-Depends: debhelper (>= 5), autotools-dev, libxml2-dev (>=2.4.0), libssl-dev, libglibmm-2.4-dev, python-dev, libltdl-dev | libltdl7-dev | libltdl3-dev, libldap2-dev, uuid-dev, libcppunit-dev, pkg-config, libdb4.6++-dev | libdb4.5++-dev | libdb4.4++-dev | libdb4.3++-dev | libdb4.2++-dev | libdb++-dev, libxmlsec1-dev (>=1.2.4), gsoap, libglobus-common-dev, libglobus-gssapi-gsi-dev, libglobus-rls-client-dev, libglobus-ftp-client-dev, libglobus-ftp-control-dev, python-support, default-jdk | java-gcj-compat-dev
+Build-Depends: debhelper (>= 5), autotools-dev, libxml2-dev (>=2.4.0), libssl-dev, libglibmm-2.4-dev, python-dev, libltdl-dev | libltdl7-dev | libltdl3-dev, libldap2-dev, uuid-dev, libcppunit-dev, pkg-config, libdb4.6++-dev | libdb4.5++-dev | libdb4.4++-dev | libdb4.3++-dev | libdb4.2++-dev | libdb++-dev, libxmlsec1-dev (>=1.2.4), gsoap, libglobus-common-dev, libglobus-gssapi-gsi-dev, libglobus-rls-client-dev, libglobus-ftp-client-dev, libglobus-ftp-control-dev, python-support, default-jdk-builddep | java-gcj-compat-dev
 Standards-Version: 3.8.3
 Vcs-Browser: http://svn.nordugrid.org/trac/nordugrid/browser/arc1
 Vcs-Svn: http://svn.nordugrid.org/repos/nordugrid/arc1/trunk
 Homepage: http://www.nordugrid.org
 
-Package: nordugrid-arc1-janitor
-Architecture: any
-Depends: librdf-perl, perl (>= 5.10)
-Recommends: liblog-log4perl-perl
-Suggests: nordugrid-arc1
-Description: ARC dynamic installation of runtime environments
- The NorduGrid is a collaboration aiming at development, maintenance
- and support of the free Grid middleware, known as the Advanced
- Resource Connector (ARC).
- .
- For grid computing, a major challenge is to keep the working environments
- homogeneous between the sites.  To help this situation, runtime
- environments have been developed. Those can be added to or removed from
- a site, and this Janitor service helps automating this process.
- .
- The Janitor is a recent development and the community to prepare
- catalogues of dynamically installable packages still needs to
- evolve.
-
-Package: nordugrid-arc1-client
-Architecture: any
-Depends: ${shlibs:Depends}, ${python:Depends}, nordugrid-arc1-plugins-base
-Description: ARC prototype clients
- The NorduGrid is a collaboration aiming at development, maintenance
- and support of the free Grid middleware, known as the Advanced
- Resource Connector (ARC).
- .
- For the regular user of any ARC-based computational grid,
- this client package contains (or depends on) all packages
- that are needed to submit jobs, query their status and
- retrieve results.
-
-Package: nordugrid-arc1-server
-Architecture: any
-Depends: ${shlibs:Depends}, nordugrid-arc1-arex
-Recommends: nordugrid-arc1-python
-Description: ARC Hosting Environment Daemon
- The NorduGrid is a collaboration aiming at development, maintenance
- and support of the free Grid middleware, known as the Advanced
- Resource Connector (ARC).
- .
- The ARC Hosting Environment Daemon (HED). This daemon presents a
- site to other participants on the grid.  An intrinsic component
- of any grid system is a mechanism allowing for the secure stateful
- communication with remote environments. HED prepares for such an
- environment and as such is the core of the ARC middleware. HED
- was however written in a way, that represents typical grid
- computing tasks (the sharing of CPU time or storage) to become
- just one possible service between a user and a remote machine.
- Many others are thinkable, and HED takes considerable effort
- away from the respective implementors.
-
-Package: nordugrid-arc1-arex
-Architecture: any
-Depends: ${shlibs:Depends}, nordugrid-arc1-plugins-base, libxml-simple-perl
-Description: ARC Remote EXecution service
- The NorduGrid is a collaboration aiming at development, maintenance
- and support of the free Grid middleware, known as the Advanced
- Resource Connector (ARC).
- .
- The ARC Remote EXecution service (AREX) represents those parts of
- the middleware that is responsible for the execution of compute
- jobs and the transfer of input or output data.
-
-Package: nordugrid-arc1-plugins-base
-Architecture: any
-Depends: ${shlibs:Depends}
-Description: ARC base plugins
- The NorduGrid is a collaboration aiming at development, maintenance
- and support of the free Grid middleware, known as the Advanced
- Resource Connector (ARC).
- .
- ARC base plugins. This includes the Message Chain Components (MCCs)
- and Data Manager Components (DMCs).
-
-Package: nordugrid-arc1-plugins-globus
-Architecture: any
-Depends: ${shlibs:Depends}
-Description: ARC Globus plugins
- ARC Globus plugins. This includes the Globus dependent Data Manager
- Components (DMCs).
-
-Package: nordugrid-arc1-dev
-Architecture: any
-Depends: ${shlibs:Depends}, libxml2-dev (>=2.4.0), libssl-dev, libglibmm-2.4-dev
-Description: ARC development files
- The NorduGrid is a collaboration aiming at development, maintenance
- and support of the free Grid middleware, known as the Advanced
- Resource Connector (ARC).
- .
- The ARC middleware's core functionality, the Hosting Environment
- Daemon (HED) can be extended for novel services. Considerable parts
- of a regular installation of a regular installation of the NorduGrid
- represent such modules. 
-
-Package: nordugrid-arc1-python
-Architecture: any
-Depends: ${shlibs:Depends}, ${python:Depends}
-Description: ARC Python wrapper
- The NorduGrid is a collaboration aiming at development, maintenance
- and support of the free Grid middleware, known as the Advanced
- Resource Connector (ARC).
- .
- Developers with an interest to integrate the some functionality on
- a remote site via an interface compatible with ARC, may find it
- preferable to perform that remote invocation from within Python.
- While today most services in ARC are associated with computation or
- storage, there is no constraint on these applications.
-
-Package: nordugrid-arc1-java
-Architecture: any
-Depends: ${shlibs:Depends}, java-virtual-machine
-Recommends: java6-runtime | java5-runtime | java2-runtime
-Description: ARC Java wrapper
- The NorduGrid is a collaboration aiming at development, maintenance
- and support of the free Grid middleware, known as the Advanced
- Resource Connector (ARC).
- .
- Developers with an interest to integrate the some functionality on
- a remote site via an interface compatible with ARC, may find it
- preferable to perform that remote invocation from within Java.
- While today most services in ARC are associated with computation or
- storage, there is no constraint on these applications.
-
-Package: nordugrid-arc1-doc
-Architecture: all
-Suggests: xpdf | pdf-viewer
-Description: ARC API documentation
- The NorduGrid is a collaboration aiming at development, maintenance
- and support of the free Grid middleware, known as the Advanced
- Resource Connector (ARC).
- .
- Reference to the ARC programming API. It is prepared with doxygen.
-
-Package: nordugrid-arc1
+Package: nordugrid-arc-nox
+Provides: nordugrid-arc1
+Replaces: nordugrid-arc1 (<< 1.0.0~)
+Conflicts: nordugrid-arc1 (<< 1.0.0~)
 Architecture: any
 Depends: ${shlibs:Depends}
 Description: ARC grid middleware
@@ -171,3 +40,214 @@ Description: ARC grid middleware
  can then be queried, which is far more efficient, far more responsive,
  and is no longer stateless but can observe changes of values over time.
 
+Package: nordugrid-arc-nox-client
+Provides: nordugrid-arc1-client
+Replaces: nordugrid-arc1-client (<< 1.0.0~)
+Conflicts: nordugrid-arc1-client (<< 1.0.0~)
+Architecture: any
+Depends: ${shlibs:Depends}, ${python:Depends}, nordugrid-arc-nox-plugins-base
+Description: ARC prototype clients
+ The NorduGrid is a collaboration aiming at development, maintenance
+ and support of the free Grid middleware, known as the Advanced
+ Resource Connector (ARC).
+ .
+ For the regular user of any ARC-based computational grid,
+ this client package contains (or depends on) all packages
+ that are needed to submit jobs, query their status and
+ retrieve results.
+
+Package: nordugrid-arc-nox-hed
+Provides: nordugrid-arc1-server
+Replaces: nordugrid-arc1-server (<< 1.0.0~)
+Conflicts: nordugrid-arc1-server (<< 1.0.0~)
+Architecture: any
+Depends: ${shlibs:Depends}, nordugrid-arc-nox-arex
+Recommends: nordugrid-arc-nox-python
+Description: ARC Hosting Environment Daemon
+ The NorduGrid is a collaboration aiming at development, maintenance
+ and support of the free Grid middleware, known as the Advanced
+ Resource Connector (ARC).
+ .
+ The ARC Hosting Environment Daemon (HED). This daemon presents a
+ site to other participants on the grid.  An intrinsic component
+ of any grid system is a mechanism allowing for the secure stateful
+ communication with remote environments. HED prepares for such an
+ environment and as such is the core of the ARC middleware. HED
+ was however written in a way, that represents typical grid
+ computing tasks (the sharing of CPU time or storage) to become
+ just one possible service between a user and a remote machine.
+ Many others are thinkable, and HED takes considerable effort
+ away from the respective implementors.
+
+Package: nordugrid-arc-nox-charon
+Architecture: any
+Depends: ${shlibs:Depends}, nordugrid-arc-nox-hed
+Description: ARC charon service
+ ARC charon service.
+
+Package: nordugrid-arc-nox-hopi
+Architecture: any
+Depends: ${shlibs:Depends}, nordugrid-arc-nox-hed
+Description: ARC hopi service
+ ARC hopi service.
+
+Package: nordugrid-arc-nox-isis
+Architecture: any
+Depends: ${shlibs:Depends}, nordugrid-arc-nox-hed
+Description: ARC isis service
+ ARC isis service.
+
+Package: nordugrid-arc-nox-compiler
+Architecture: any
+Depends: ${shlibs:Depends}, nordugrid-arc-nox-hed
+Description: ARC compiler service
+ ARC compiler service.
+
+Package: nordugrid-arc-nox-delegation
+Architecture: any
+Depends: ${shlibs:Depends}, nordugrid-arc-nox-hed
+Description: ARC delegation service
+ ARC delegation service.
+
+Package: nordugrid-arc-nox-paul
+Architecture: any
+Depends: ${shlibs:Depends}, nordugrid-arc-nox-hed
+Description: ARC paul service
+ ARC paul service.
+
+Package: nordugrid-arc-nox-saml2sp
+Architecture: any
+Depends: ${shlibs:Depends}, nordugrid-arc-nox-hed
+Description: ARC saml2sp service
+ ARC saml2sp service.
+
+Package: nordugrid-arc-nox-slcs
+Architecture: any
+Depends: ${shlibs:Depends}, nordugrid-arc-nox-hed
+Description: ARC slcs service
+ ARC slcs service.
+
+Package: nordugrid-arc-nox-arex
+Provides: nordugrid-arc1-arex
+Replaces: nordugrid-arc1-arex (<< 1.0.0~)
+Conflicts: nordugrid-arc1-arex (<< 1.0.0~)
+Architecture: any
+Depends: ${shlibs:Depends}, nordugrid-arc-nox-plugins-base, libxml-simple-perl
+Description: ARC Remote EXecution service
+ The NorduGrid is a collaboration aiming at development, maintenance
+ and support of the free Grid middleware, known as the Advanced
+ Resource Connector (ARC).
+ .
+ The ARC Remote EXecution service (AREX) represents those parts of
+ the middleware that is responsible for the execution of compute
+ jobs and the transfer of input or output data.
+
+Package: nordugrid-arc-nox-plugins-base
+Provides: nordugrid-arc1-plugins-base
+Replaces: nordugrid-arc1-plugins-base (<< 1.0.0~)
+Conflicts: nordugrid-arc1-plugins-base (<< 1.0.0~)
+Architecture: any
+Depends: ${shlibs:Depends}
+Description: ARC base plugins
+ The NorduGrid is a collaboration aiming at development, maintenance
+ and support of the free Grid middleware, known as the Advanced
+ Resource Connector (ARC).
+ .
+ ARC base plugins. This includes the Message Chain Components (MCCs)
+ and Data Manager Components (DMCs).
+
+Package: nordugrid-arc-nox-plugins-globus
+Provides: nordugrid-arc1-plugins-globus
+Replaces: nordugrid-arc1-plugins-globus (<< 1.0.0~)
+Conflicts: nordugrid-arc1-plugins-globus (<< 1.0.0~)
+Architecture: any
+Depends: ${shlibs:Depends}
+Description: ARC Globus plugins
+ ARC Globus plugins. This includes the Globus dependent Data Manager
+ Components (DMCs).
+
+Package: nordugrid-arc-nox-dev
+Provides: nordugrid-arc1-dev
+Replaces: nordugrid-arc1-dev (<< 1.0.0~)
+Conflicts: nordugrid-arc1-dev (<< 1.0.0~)
+Architecture: any
+Depends: ${shlibs:Depends}, libxml2-dev (>=2.4.0), libssl-dev, libglibmm-2.4-dev
+Description: ARC development files
+ The NorduGrid is a collaboration aiming at development, maintenance
+ and support of the free Grid middleware, known as the Advanced
+ Resource Connector (ARC).
+ .
+ The ARC middleware's core functionality, the Hosting Environment
+ Daemon (HED) can be extended for novel services. Considerable parts
+ of a regular installation of a regular installation of the NorduGrid
+ represent such modules. 
+
+Package: nordugrid-arc-nox-python
+Provides: nordugrid-arc1-python
+Replaces: nordugrid-arc1-python (<< 1.0.0~)
+Conflicts: nordugrid-arc1-python (<< 1.0.0~)
+Architecture: any
+Depends: ${shlibs:Depends}, ${python:Depends}
+Description: ARC Python wrapper
+ The NorduGrid is a collaboration aiming at development, maintenance
+ and support of the free Grid middleware, known as the Advanced
+ Resource Connector (ARC).
+ .
+ Developers with an interest to integrate the some functionality on
+ a remote site via an interface compatible with ARC, may find it
+ preferable to perform that remote invocation from within Python.
+ While today most services in ARC are associated with computation or
+ storage, there is no constraint on these applications.
+
+Package: nordugrid-arc-nox-java
+Provides: nordugrid-arc1-java
+Replaces: nordugrid-arc1-java (<< 1.0.0~)
+Conflicts: nordugrid-arc1-java (<< 1.0.0~)
+Architecture: any
+Depends: ${shlibs:Depends}, java-virtual-machine
+Recommends: java6-runtime | java5-runtime | java2-runtime
+Description: ARC Java wrapper
+ The NorduGrid is a collaboration aiming at development, maintenance
+ and support of the free Grid middleware, known as the Advanced
+ Resource Connector (ARC).
+ .
+ Developers with an interest to integrate the some functionality on
+ a remote site via an interface compatible with ARC, may find it
+ preferable to perform that remote invocation from within Java.
+ While today most services in ARC are associated with computation or
+ storage, there is no constraint on these applications.
+
+Package: nordugrid-arc-nox-doc
+Provides: nordugrid-arc1-doc
+Replaces: nordugrid-arc1-doc (<< 1.0.0~)
+Conflicts: nordugrid-arc1-doc (<< 1.0.0~)
+Architecture: all
+Suggests: xpdf | pdf-viewer
+Description: ARC API documentation
+ The NorduGrid is a collaboration aiming at development, maintenance
+ and support of the free Grid middleware, known as the Advanced
+ Resource Connector (ARC).
+ .
+ Reference to the ARC programming API. It is prepared with doxygen.
+
+Package: nordugrid-arc-nox-janitor
+Provides: nordugrid-arc1-client
+Replaces: nordugrid-arc1-client (<< 1.0.0~)
+Conflicts: nordugrid-arc1-client (<< 1.0.0~)
+Architecture: any
+Depends: librdf-perl, perl (>= 5.10)
+Recommends: liblog-log4perl-perl
+Suggests: nordugrid-arc-nox
+Description: ARC dynamic installation of runtime environments
+ The NorduGrid is a collaboration aiming at development, maintenance
+ and support of the free Grid middleware, known as the Advanced
+ Resource Connector (ARC).
+ .
+ For grid computing, a major challenge is to keep the working environments
+ homogeneous between the sites.  To help this situation, runtime
+ environments have been developed. Those can be added to or removed from
+ a site, and this Janitor service helps automating this process.
+ .
+ The Janitor is a recent development and the community to prepare
+ catalogues of dynamically installable packages still needs to
+ evolve.

@@ -2,7 +2,7 @@
 
 ACLOCAL_AMFLAGS = -I m4 `test -d /opt/local/share/aclocal && echo -I /opt/local/share/aclocal`
 
-distdir = nordugrid-arc1-@VERSION@
+distdir = nordugrid-arc-nox-@VERSION@
 
 if JAVA_ENABLED 
 JAVA_SD = java 
