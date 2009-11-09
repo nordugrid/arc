@@ -210,5 +210,19 @@ It is indeed an idea that you have some meaningful testjob.jsdl and client.conf 
 
     arcsub -d DEBUG -f C:\testjob.jsdl -z "C:\Users\<username>\AppData\Roaming\.arc\client.conf" -c  ARC1:https://knowarc1.grid.niif.hu:60000/arex
 
+----------
+IMPORTANT |
+----------
 
+    These are the .globus directory paths, usercert.pem and 
+    userkey.pem should be in this directory
 
+    (WIN32 cross compiled Globus Toolkit using also this)
+
+    On Windows XP:
+
+      C:\Documents and Settings\<username>\.globus  
+
+    On Windows Vista:
+
+      C:\Users\<username>\.globus

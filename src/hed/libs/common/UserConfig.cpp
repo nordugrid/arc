@@ -290,6 +290,10 @@ namespace Arc {
         certificatePath = Glib::build_filename(user.Home(), std::string(".globus") + G_DIR_SEPARATOR_S +  std::string("usercert.pem"));
         keyPath = Glib::build_filename(user.Home(), std::string(".globus") + G_DIR_SEPARATOR_S + std::string("userkey.pem"));
       }
+#ifdef WIN32
+        certificatePath = Glib::build_filename(std::string(g_get_home_dir()), std::string(".globus") + G_DIR_SEPARATOR_S +  std::string("usercert.pem"));
+        keyPath = Glib::build_filename(std::string(g_get_home_dir()), std::string(".globus") + G_DIR_SEPARATOR_S + std::string("userkey.pem"));
+#endif
 
       if (!Glib::file_test(certificatePath, Glib::FILE_TEST_IS_REGULAR)) {
         logger.msg(ERROR, "Can not access certificate file: %s", certificatePath);

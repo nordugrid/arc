@@ -243,7 +243,11 @@ int main(int argc, char *argv[]) {
     if (key_path.empty())
       key_path = usercfg.KeyPath();
     if (key_path.empty())
+#ifndef WIN32
       key_path = user.Home() + G_DIR_SEPARATOR_S + ".globus" + G_DIR_SEPARATOR_S + "userkey.pem";
+#else
+      key_path = std::string(g_get_home_dir()) + G_DIR_SEPARATOR_S + ".globus" + G_DIR_SEPARATOR_S + "userkey.pem";
+#endif
     if (!Glib::file_test(key_path, Glib::FILE_TEST_IS_REGULAR))
       key_path = "";
 
@@ -252,7 +256,11 @@ int main(int argc, char *argv[]) {
     if (cert_path.empty())
       cert_path = usercfg.CertificatePath();
     if (cert_path.empty())
+#ifndef WIN32
       cert_path = user.Home() + G_DIR_SEPARATOR_S + ".globus" + G_DIR_SEPARATOR_S + "usercert.pem";
+#else
+      cert_path = std::string(g_get_home_dir()) + G_DIR_SEPARATOR_S + ".globus" + G_DIR_SEPARATOR_S + "usercert.pem";
+#endif
     if (!Glib::file_test(cert_path, Glib::FILE_TEST_IS_REGULAR))
       cert_path = "";
 
@@ -292,12 +300,13 @@ int main(int argc, char *argv[]) {
       if (!Glib::file_test(ca_dir, Glib::FILE_TEST_IS_DIR))
         ca_dir = "";
     }
+#ifndef WIN32
     if (ca_dir.empty()) {
       ca_dir = "/etc/grid-security/certificates";
       if (!Glib::file_test(ca_dir, Glib::FILE_TEST_IS_DIR))
         ca_dir = "";
     }
-
+#endif
   } catch (std::exception& err) {
     logger.msg(Arc::ERROR, err.what());
     tls_process_error(logger);
