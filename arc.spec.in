@@ -439,6 +439,7 @@ exit 0
 %{_initrddir}/arched
 %{_sbindir}/arched
 %{_libdir}/%{pkgdir}/libecho.so
+%doc src/tests/echo/echo_service.xml.example
 %doc %{_mandir}/man8/arched.8*
 
 %files charon
@@ -456,7 +457,6 @@ exit 0
 %files isis
 %defattr(-,root,root,-)
 %{_libdir}/%{pkgdir}/libisis.so
-%doc src/tests/echo/echo_service.xml.example
 
 %files compiler
 %defattr(-,root,root,-)
