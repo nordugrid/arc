@@ -197,7 +197,10 @@ class Soft_State {
 
 static void soft_state_thread(void *data) {
     Arc::AutoPointer<Soft_State> self((Soft_State *)data);
-    if(!self) return;
+    if(!self) {
+        if (data) delete (Soft_State *)data;
+        return;
+    }
     std::string method = self->function;
     unsigned int sleep_time = self->sleep; //seconds
     std::string query_string = self->query;
@@ -218,7 +221,6 @@ static void soft_state_thread(void *data) {
             // Whether ISIS's destructor called or not
             if( *(self->kill_thread) ) {
                (*(self->threads_count))--;
-               if (data) delete (Soft_State *)data;
                thread_logger.msg(Arc::DEBUG, "%s: Soft-State thread is finished.", method);
                return;
             }
