@@ -90,7 +90,7 @@ void JobDescriptionTest::setUp() {
   std::ofstream f("executable", std::ifstream::trunc);
   f << "executable";
   f.close();
-  
+
   Arc::Logger::getRootLogger().addDestination(logcerr);
   Arc::Logger::getRootLogger().setThreshold(Arc::WARNING);
 }
@@ -131,7 +131,7 @@ void JobDescriptionTest::TestInputOutputError() {
  */
 void JobDescriptionTest::TestDataStagingCreateDelete() {
       job.DataStaging.File.clear();
-    
+
   Arc::FileType file;
   file.Name = "1-Create-Delete";
   file.KeepData = false;
@@ -147,10 +147,6 @@ void JobDescriptionTest::TestDataStagingCreateDelete() {
   ARC_ASSERT(job.DataStaging.File.front().IsExecutable == arcJob.DataStaging.File.front().IsExecutable);
   job.DataStaging.File.pop_back(); file.IsExecutable = true; job.DataStaging.File.push_back(file); arcJob.Parse(job.UnParse("ARCJSDL"));
   ARC_ASSERT(job.DataStaging.File.front().IsExecutable == arcJob.DataStaging.File.front().IsExecutable);
-
-  ARC_ASSERT(job.DataStaging.File.front().DownloadToCache == arcJob.DataStaging.File.front().DownloadToCache);
-  job.DataStaging.File.pop_back(); file.DownloadToCache = true; job.DataStaging.File.push_back(file); arcJob.Parse(job.UnParse("ARCJSDL"));
-  ARC_ASSERT(job.DataStaging.File.front().DownloadToCache == arcJob.DataStaging.File.front().DownloadToCache);
 }
 
 /** 2-Download-Delete */
@@ -321,7 +317,7 @@ void JobDescriptionTest::TestDataStagingUploadDownload() {
   std::ofstream f(file.Name.c_str(), std::ifstream::trunc);
   f << "6-Upload-Download";
   f.close();
-  
+
   arcJob.Parse(job.UnParse("ARCJSDL"));
   ARC_ASSERT(arcJob);
   ARC_ASSERT(arcJob.DataStaging.File.size() == 1);
@@ -462,7 +458,7 @@ void JobDescriptionTest::TestDataStagingUploadUpload() {
   std::ofstream f(file.Name.c_str(), std::ifstream::trunc);
   f << "9-Upload-Upload";
   f.close();
-  
+
   arcJob.Parse(job.UnParse("ARCJSDL"));
   ARC_ASSERT(arcJob);
   ARC_ASSERT(arcJob.DataStaging.File.size() == 1);
