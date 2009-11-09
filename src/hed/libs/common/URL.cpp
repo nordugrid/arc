@@ -464,10 +464,14 @@ namespace Arc {
       char cwd[PATH_MAX];
       if (getcwd(cwd, PATH_MAX))
         path = Glib::build_filename(cwd, path);
-    } else if ((path[0] != '/') && (!path.empty())) {
-      URLLogger.msg(WARNING, "Attempt to assign relative path to URL - making it absolute");
-      path = "/" + path;
     }
+#ifndef WIN32
+     else if ((path[0] != '/') && (!path.empty())) {
+        URLLogger.msg(WARNING, "Attempt to assign relative path to URL - making it absolute");
+        path = "/" + path;
+     }
+#endif
+
   }
 
   const std::map<std::string, std::string>& URL::HTTPOptions() const {
