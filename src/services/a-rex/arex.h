@@ -31,13 +31,28 @@ class CountedResource {
   void Release(void);
 };
 
+class OptimizedInformationContainer: public Arc::InformationContainer {
+ private:
+  std::string filename_;
+  int handle_;
+  Arc::XMLNode doc_;
+  Glib::Mutex olock_;
+ public:
+  OptimizedInformationContainer(void);
+  ~OptimizedInformationContainer(void);
+  int OpenDocument(void);
+  Arc::MessagePayload* Process(Arc::SOAPEnvelope& in);
+  void AssignFile(const std::string& filename);
+  void Assign(const std::string& xml);
+};
+
 class ARexService: public Arc::RegisteredService {
  protected:
   Arc::ThreadRegistry thread_count_;
   Arc::NS ns_;
   Arc::Logger logger_;
   Arc::DelegationContainerSOAP delegations_;
-  Arc::InformationContainer infodoc_;
+  OptimizedInformationContainer infodoc_;
   Arc::InfoRegisters inforeg_;
   CountedResource infolimit_;
   CountedResource beslimit_;
