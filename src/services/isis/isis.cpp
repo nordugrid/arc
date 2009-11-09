@@ -76,12 +76,10 @@ static void message_send_thread(void *arg) {
     }
     if ( data->isis_list.empty() ) {
        thread_logger.msg(Arc::ERROR, "Empty URL list add to the thread.");
-       if (arg) delete (ISIS::Thread_data*)arg;
        return;
     }
     if ( !bool(((ISIS::Thread_data *)data)->node) ) {
        thread_logger.msg(Arc::ERROR, "Empty message add to the thread.");
-       if (arg) delete (ISIS::Thread_data*)arg;
        return;
     }
     std::vector<std::string>* not_availables_neighbors  = data->not_av_neighbors;
@@ -128,7 +126,6 @@ static void message_send_thread(void *arg) {
         };
         if(response) delete response;
     }
-    if (arg) delete (ISIS::Thread_data*)arg;
     return;
 }
 
