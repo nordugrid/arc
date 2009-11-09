@@ -858,7 +858,7 @@ and the file \emph{/cache/data/78/f607405ab1df6b647fac7aa97dfb6089c19fb3.meta
 
 At the start of a file download, the cache file is locked, so that
 it cannot be deleted and so that another download process cannot write
-the same file simultaneously. This done by creating a file with the
+the same file simultaneously. This is done by creating a file with the
 same name as the cache filename but with a \emph{.lock} suffix. This
 file contains the process ID of the process and the hostname of the
 host holding the lock. If this file is present, another process cannot
@@ -884,10 +884,13 @@ from a large number of jobs reading files on it, or the file system
 containing the cache is not accessible from worker nodes. The latter
 option is the default option. The per-job directory is only readable
 by the local user running the job, and the cache directory is readable
-only by the A-REX user (usually root). This means that the local user
-cannot access any other users' cache files. It also means that cache
-files can be removed without needing to know whether they are in use
-by a currently running job.
+only by the A-REX user. This means that the local user cannot access
+any other users' cache files. It also means that cache files can be
+removed without needing to know whether they are in use by a currently
+running job. Note that when running A-REX under a non-privileged user
+account, all cache files will be owned and accessible by the same
+user, and therefore modifyable by running jobs. This is potentially
+dangerous and so cacheing should be used with caution in this case.
 
 If the file system containing the cache is full and it is impossible
 to free any space, the download fails and is retried without using
@@ -1252,14 +1255,15 @@ at which \emph{path} is accessible on computing nodes, if it is different
 from the path on the A-REX host. If \textit{link\_path} is set to '.'
 files are not soft-linked, nor are per-job links created, but files
 are copied to the session directory.
-\item \textbf{\textit{cachesize}}\textit{=high\_mark {[}low\_mark]} - specifies
-high and low watermarks for space used by each cache, as a percentage
-of the space on the file system on which the cache directory is located.
-When the max is exceeded, files will be deleted to bring the used
-space down to the min level. It is a good idea to have each cache
-on its own separate file system. To turn off this feature, \char`\"{}cachesize\char`\"{}
-without parameters can be specified. These cache settings apply to
-all caches specified by \emph{cachedir} commands.
+\item \textbf{\textit{cachesize}}\textit{=high\_mark {[}low\_mark]} -
+  specifies high and low watermarks for space used on the file system
+  on which the cache directory is located, as a percentage of total
+  file system capacity/ When the max is exceeded, files will be
+  deleted to bring the used space down to the min level. It is a good
+  idea to have each cache on its own separate file system. To turn off
+  this feature, \char`\"{}cachesize\char`\"{} without parameters can
+  be specified. These cache settings apply to all caches specified by
+  \emph{cachedir} commands.
 \item \textbf{\textit{maxrerun}}\textit{=number} -- specifies maximal number
 of times job will be allowed to rerun after it failed at any stage.
 Default value is \emph{5}. This only specifies a upper limit. Actual
