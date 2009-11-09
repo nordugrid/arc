@@ -539,7 +539,8 @@ namespace Arc {
         // If DeteleOnTermination is not set do not keep data. Only keep data if explicitly specified.
         file.KeepData = ds["DeleteOnTermination"] && lower(((std::string)ds["DeleteOnTermination"])) == "false";
         file.IsExecutable = ds["IsExecutable"] && lower(((std::string)ds["IsExecutable"])) == "true";
-        file.DownloadToCache = ds["DownloadToCache"] && lower(((std::string)ds["DownloadToCache"])) == "true";
+        // Default is to put file in cache. DownloadToCache does not make sense for output files.
+        file.DownloadToCache = !file.Source.empty() && (!ds["DownloadToCache"] || lower(((std::string)ds["DownloadToCache"])) != "false");
         job.DataStaging.File.push_back(file);
       }
     }
@@ -947,8 +948,8 @@ namespace Arc {
       if (it->IsExecutable || it->Name == job.Application.Executable.Name)
         datastaging.NewChild("IsExecutable") = "true";
       datastaging.NewChild("DeleteOnTermination") = (it->KeepData ? "false" : "true");
-      if (it->DownloadToCache)
-        datastaging.NewChild("DownloadToCache") = "true";
+      if (!it->DownloadToCache)
+        datastaging.NewChild("DownloadToCache") = "false";
     }
     // End of DataStaging
 
