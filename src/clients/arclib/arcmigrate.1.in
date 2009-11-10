@@ -9,7 +9,8 @@ arcmigrate \- ARC Migration
 
 The
 .B arcmigrate
-command is used for migrating queued jobs from one ARC1 cluster to another ARC1 cluster.
+command is used for migrating queued jobs from one cluster to another
+cluster. Currently migration only works between clusters running A-REX.
 
 .SH SYNOPSIS
 
@@ -54,9 +55,9 @@ id of a queued job which should be migrated
 The
 .B arcmigrate
 command is used for migrating jobs which are queuing in the batch
-system. Currently only jobs having the status Running/Executing/Queuing
+system. Currently only jobs having status Queuing
 can be migrated, and the command is only supported for migration
-between ARC1 clusters.
+between clusters running A-REX.
 
 The
 .B --qluster
