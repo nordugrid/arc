@@ -17,6 +17,7 @@ security, encryption, etc. developed by The Globus Alliance \cite{globus}\\
    \texttt{lfc} & LFC catalog and indexing service of EGEE gLite~\cite{glite}\\
    \texttt{srm} & Storage Resource Manager (SRM) service~\cite{srm}\\
    \texttt{file} & local to the host file name with a full path\\
+   \texttt{arc} & for the Chelonia storage service, communicates with Bartenders, the path should be a Logical Name (LN)\\
 \end{tabular}
 
 An URL can be used in a standard form, i.e.
@@ -34,6 +35,12 @@ For a metadata service URL, construction is the following:
    \verb#protocol://[url[|url[...]]@]host[:port][;option[;option[...]]/#\\
    \verb#     lfn[:metadataoption[:metadataoption[...]]#
 \end{shaded}
+
+For Chelonia, the syntax is
+\begin{shaded}
+    \verb#arc://<LogicalName>[?BartenderURL=<URL>]#
+\end{shaded}
+where the BartenderURL could come from the `bartender' parameter of the client configuration file.
 
 For the SRM service, the syntax is
 \begin{shaded}
