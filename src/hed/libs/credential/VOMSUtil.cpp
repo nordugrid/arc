@@ -1573,7 +1573,23 @@ err:
     X509* holder = holder_cred.GetCert();
     if(!holder) return false;
     bool res = parseVOMSAC(holder, ca_cert_dir, ca_cert_file, vomscert_trust_dn, output, verify);
+
+    //Also parse the voms attributes inside the certificates on 
+    //the upstream of the holder certificate; in this case,
+    //multiple level of delegation exists, and user(or intermediate 
+    //actor such as grid manager) could hold a voms proxy and use this 
+    //proxy to create a more level of proxy
+    STACK_OF(X509)* certchain = holder_cred.GetCertChain();
+    if(certchain != NULL) {
+      for(int idx = 0;;++idx) {
+        if(idx >= sk_X509_num(certchain)) break;
+        X509* cert = sk_X509_value(certchain,sk_X509_num(certchain)-idx-1);
+        bool res = parseVOMSAC(cert, ca_cert_dir, ca_cert_file, vomscert_trust_dn, output, verify);
+      };
+    }
+
     X509_free(holder);
+    sk_X509_pop_free(certchain, X509_free);
     return res;
   }
 
