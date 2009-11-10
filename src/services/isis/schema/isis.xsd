@@ -63,33 +63,6 @@
       </xsd:annotation>
   </xsd:element>
 
-  <xsd:complexType name="Logger_Type">
-    <xsd:simpleContent>
-      <xsd:extension base="xsd:string">
-        <xsd:attribute name="level" default="INFO">
-          <xsd:simpleType>
-            <xsd:restriction base="xsd:string">
-              <xsd:enumeration value="VERBOSE"/>
-              <xsd:enumeration value="DEBUG"/>
-              <xsd:enumeration value="INFO"/>
-              <xsd:enumeration value="WARNING"/>
-              <xsd:enumeration value="ERROR"/>
-              <xsd:enumeration value="FATAL"/>
-            </xsd:restriction>
-          </xsd:simpleType>
-        </xsd:attribute>
-      </xsd:extension>
-    </xsd:simpleContent>
-  </xsd:complexType>
-
-  <xsd:element name="Logger" type="icfg:Logger_Type">
-      <xsd:annotation>
-          <xsd:documentation xml:lang="en">
-              File location where the log message is locally stored.
-          </xsd:documentation>
-      </xsd:annotation>
-  </xsd:element>
-
   <xsd:element name="ETValid" type="xsd:nonNegativeInteger" default="43200">
       <xsd:annotation>
           <xsd:documentation xml:lang="en">

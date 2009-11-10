@@ -289,18 +289,7 @@ static void soft_state_thread(void *data) {
     }
 }
 
-    ISIService::ISIService(Arc::Config *cfg):RegisteredService(cfg),logger_(Arc::Logger::rootLogger, "ISIS"),log_stream(NULL),valid("PT1D"),remove("PT1D"),db_(NULL),neighbors_update_needed(false),available_provider(false),neighbors_count(0),neighbors_lock(false) {
-
-        // Set up custom logger if there is any in the configuration
-        Arc::XMLNode logger_node = (*cfg)["Logger"];
-        if ((bool) logger_node) {
-            Arc::LogLevel threshold = Arc::string_to_level((std::string)logger_node.Attribute("level"));
-            log_destination.open(((std::string)logger_node).c_str());
-            log_stream = new Arc::LogStream(log_destination);
-            thread_logger.addDestination(*log_stream);
-            logger_.addDestination(*log_stream);
-            logger_.setThreshold(threshold);
-        }
+    ISIService::ISIService(Arc::Config *cfg):RegisteredService(cfg),logger_(Arc::Logger::rootLogger, "ISIS"),valid("PT1D"),remove("PT1D"),db_(NULL),neighbors_update_needed(false),available_provider(false),neighbors_count(0),neighbors_lock(false) {
 
         logger_.msg(Arc::DEBUG, "Parsing configuration parameters");
         // Endpoint url from the configuration
@@ -543,10 +532,6 @@ static void soft_state_thread(void *data) {
             sleep(10);
         }
 
-        logger_.removeDestinations();
-        thread_logger.removeDestinations();
-        if (log_stream) delete log_stream;
-        log_destination.close();
         if (db_ != NULL) {
             delete db_;
         }

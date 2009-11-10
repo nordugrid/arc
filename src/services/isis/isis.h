@@ -16,8 +16,6 @@ namespace ISIS {
         private:
             // Configuration parameters
             Arc::Logger logger_;
-            std::ofstream log_destination;
-            Arc::LogStream *log_stream;
             std::string endpoint_;
             Arc::Period valid;
             Arc::Period remove;
