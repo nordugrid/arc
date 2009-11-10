@@ -29,15 +29,13 @@ some specific configuration information as follows:
             <!--The element <Evaluator/>, <Policy/> and <Request/> configuration
             are supposed to be used to load object; element <PolicyStore/> is
             supposed to be used to get the location of policy-->
-            <charon:PDPConfig>
-                <charon:PolicyStore>
-                  <charon:Location Type="file">Policy_Example.xml</charon:Location>
-                  <!-- other policy location-->
-                </charon:PolicyStore>
-                <charon:Evaluator name="arc.evaluator" />
-                <charon:Policy name="arc.policy" />
-                <charon:Request name="arc.request" />
-            </charon:PDPConfig>
+            <charon:PolicyStore>
+               <charon:Location Type="file">Policy_Example.xml</charon:Location>
+               <!-- other policy location-->
+            </charon:PolicyStore>
+            <charon:Evaluator name="arc.evaluator" />
+            <charon:Policy name="arc.policy" />
+            <charon:Request name="arc.request" />
         </Service>
 And you can also get the configuration schema from charon.xsd in the same directory.
 
