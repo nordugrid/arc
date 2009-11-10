@@ -1,0 +1,77 @@
+<?xml version="1.0"?>
+<ArcConfig
+  xmlns="http://www.nordugrid.org/schemas/arcconfig/2009/08"
+  xmlns:loader="http://www.nordugrid.org/schemas/loader/2009/08"
+  xmlns:tcp="http://www.nordugrid.org/schemas/tcp/2009/08"
+  xmlns:tls="http://www.nordugrid.org/schemas/tls/2009/08"
+  xmlns:imap="http://www.nordugrid.org/schemas/identitymap/2009/10"
+  xmlns:authz="http://www.nordugrid.org/schemas/arcauthz/2009/08"
+  xmlns:spdp="http://www.nordugrid.org/schemas/simplelistpdp/2009/08"
+  xmlns:arex="http://www.nordugrid.org/schemas/a-rex/2009/08"
+  xmlns:ip="http://www.nordugrid.org/schemas/a-rex/InfoProvider/2009/08"
+  xmlns:lrms="http://www.nordugrid.org/schemas/a-rex/LRMS/2009/08"
+>
+  <Server>
+    <PidFile inisections="common" initag="pidfile">/tmp/arched.pid</PidFile>
+    <Logger>
+      <File inisections="common" initag="logfile">/var/log/arched.log</File>
+      <Level inisections="common" initag="debugLevel">ERROR</Level>
+    </Logger>
+  </Server>
+  <ModuleManager>
+    <Path inisections="common" initag="libpath">/scratch/adrianta/arc1/lib/arc</Path>
+  </ModuleManager>
+  <Plugins>
+    <Name>mcctcp</Name>
+    <Name>mcctls</Name>
+    <Name>mcchttp</Name>
+    <Name>mccsoap</Name>
+    <Name>arcshc</Name>
+    <Name>identitymap</Name>
+    <Name>arex</Name>
+  </Plugins>
+  <Chain>
+    <Component name="tcp.service" id="tcp">
+      <next id="tls"/>
+      <tcp:Listen>
+        <tcp:Interface inisections="common" initag="interface">0.0.0.0</tcp:Interface>
+        <tcp:Port inisections="common" initag="port">60000</tcp:Port>
+        <tcp:Version inisections="common" initag="ipversion">4</tcp:Version>
+      </tcp:Listen>
+    </Component>
+    <Component name="tls.service" id="tls">
+      <next id="http"/>
+      <tls:KeyPath inisections="common" initag="host_key"/>
+      <tls:CertificatePath inisections="common" initag="host_cert"/>
+      <tls:CACertificatesDir inisections="common" initag="cacert"/>
+      <SecHandler name="identity.map" id="map" event="incoming">
+        <imap:PDP name="allow.pdp">
+          <imap:LocalList inisections="common" initag="gridmap">/etc/grid-security/grid-mapfile</imap:LocalList>
+        </imap:PDP>
+      </SecHandler>
+    </Component>
+    <Component name="http.service" id="http">
+      <next id="soap">POST</next>
+      <next id="plexer">GET</next>
+      <next id="plexer">PUT</next>
+    </Component>
+    <Component name="soap.service" id="soap">
+      <next id="plexer"/>
+    </Component>
+    <Plexer name="plexer.service" id="plexer">
+      <next id="a-rex" inisections="common" initag="urlpattern">^/arex</next>
+    </Plexer>
+    <Service name="a-rex" id="a-rex">
+      <arex:usermap>
+        <arex:defaultLocalName inisections="grid-manager" initag="defaultaccount">nobody</arex:defaultLocalName>
+      </arex:usermap>
+      <arex:endpoint inisections="grid-manager" initag="arex_mount_point">https://localhost:60000/arex</arex:endpoint>
+      <arex:gmrun>internal</arex:gmrun>
+      <arex:commonName inisections="info" initag="shortservicename">A-REX</arex:commonName>
+      <arex:longDescription inisections="info" initag="servicedescription">ARC execution service</arex:longDescription>
+      <arex:LRMSName inisections="common" initag="lrms">pbs</arex:LRMSName>
+      <arex:debugLevel inisections="common" initag="debugLevel">ERROR</arex:debugLevel>
+      <arex:gmconfig inisections="common" initag="gmconfig">/etc/arc.conf</arex:gmconfig>
+    </Service>
+  </Chain>
+</ArcConfig>
