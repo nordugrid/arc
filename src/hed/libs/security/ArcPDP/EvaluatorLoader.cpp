@@ -110,8 +110,6 @@ Evaluator* EvaluatorLoader::getEvaluator(const std::string& classname) {
         for(Glib::DirIterator file = dir.begin(); file != dir.end(); file++) {
           std::string name = *file;
           if(name.substr(0, 3) != "lib") continue;
-           // TODO: This won't work on windows and maybe even on some
-           // unices which do have shared libraries ending with .so
           std::size_t pos = name.rfind(".");
           std::string subname;
           if(pos!=std::string::npos) subname = name.substr(pos);
