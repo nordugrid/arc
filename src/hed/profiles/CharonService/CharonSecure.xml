@@ -43,14 +43,12 @@
             <next id="charon_service" inisections="charon" initag="urlpattern">^/Charon$</next>
 		</Plexer>
 		<Service name="charon" id="charon_service">
-			<charon:PDPConfig>
-				<charon:PolicyStore>
-				<charon:Location Type="file" inisections="charon" initag="policy_file">Arc_Policy_Example.xml</charon:Location>
-				</charon:PolicyStore>
-				<charon:Evaluator name="arc.evaluator" />
-				<charon:Policy name="arc.policy" />
-				<charon:Request name="arc.request" />
-			</charon:PDPConfig>
+	    	<charon:PolicyStore>
+		    	<charon:Location Type="file" inisections="charon" initag="policy_file">Arc_Policy_Example.xml</charon:Location>
+			</charon:PolicyStore>
+			<charon:Evaluator name="arc.evaluator" />
+			<charon:Policy name="arc.policy" />
+			<charon:Request name="arc.request" />
 		</Service>
 	</Chain>
 </cfg:ArcConfig>
