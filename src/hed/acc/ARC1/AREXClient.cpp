@@ -331,78 +331,81 @@ namespace Arc {
       }
       if(!arex_enabled) return true;
 
-      //The job is found and data about it can be collected
-
-      if (jobNode["ComputingManagerEndTime"])
-        job.ComputingManagerEndTime = Time((std::string)jobNode["ComputingManagerEndTime"]);
-      else
-        logger.msg(DEBUG, "The job doesn't advertise a computing manager end time");
-
-      if (jobNode["ComputingManagerSubmissionTime"])
-        job.ComputingManagerSubmissionTime = Time((std::string)jobNode["ComputingManagerSubmissionTime"]);
-      else
-        logger.msg(DEBUG, "The job doesn't advertise a computing manager submission time");
-
+      // The following elements (except the 'State' element) seem to be published by A-REX, for more info see the ARC1ClusterInfo.pm script.
       if (jobNode["CreationTime"])
         job.CreationTime = Time((std::string)jobNode["CreationTime"]);
-      else
-        logger.msg(DEBUG, "The job doesn't advertise a creation time");
-
-      if (jobNode["EndTime"])
-        job.EndTime = Time((std::string)jobNode["EndTime"]);
-      else
-        logger.msg(DEBUG, "The job doesn't advertise an end time");
-
-      if (jobNode["LocalSubmissionTime"])
-        job.LocalSubmissionTime = Time((std::string)jobNode["LocalSubmissionTime"]);
-      else
-        logger.msg(DEBUG, "The job doesn't advertise a local submission time");
-
-      if (jobNode["ProxyExpirationTime"])
-        job.ProxyExpirationTime = Time((std::string)jobNode["ProxyExpirationTime"]);
-      else
-        logger.msg(DEBUG, "The job doesn't advertise a proxy expiration time");
-
-      if (jobNode["StartTime"])
-        job.StartTime = Time((std::string)jobNode["StartTime"]);
-      else
-        logger.msg(DEBUG, "The job doesn't advertise a start time");
-
-      if (jobNode["SubmissionTime"])
-        job.SubmissionTime = Time((std::string)jobNode["SubmissionTime"]);
-      else
-        logger.msg(DEBUG, "The job doesn't advertise a submission time");
-
-      if (jobNode["WorkingAreaEraseTime"])
-        job.WorkingAreaEraseTime = Time((std::string)jobNode["WorkingAreaEraseTime"]);
-      else
-        logger.msg(DEBUG, "The job doesn't advertise a working area erase time");
-
-      if (jobNode["LogDir"])
-        job.LogDir = (std::string)jobNode["LogDir"];
-      else
-        logger.msg(DEBUG, "The job doesn't advertise a logging directory");
-
-      if (jobNode["StdIn"])
-        job.StdIn = (std::string)jobNode["StdIn"];
-      else
-        logger.msg(DEBUG, "The job doesn't advertise a standard input");
-
-      if (jobNode["StdOut"])
-        job.StdOut = (std::string)jobNode["StdOut"];
-      else
-        logger.msg(DEBUG, "The job doesn't advertise a standard output");
-
-      if (jobNode["StdErr"])
-        job.StdErr = (std::string)jobNode["StdErr"];
-      else
-        logger.msg(DEBUG, "The job doesn't advertise a standard error");
-
+      if (jobNode["Type"])
+        job.Type = (std::string)jobNode["Type"];
+      if (jobNode["IDFromEndpoint"])
+        job.IDFromEndpoint = URL((std::string)jobNode["IDFromEndpoint"]);
+      if (jobNode["LocalIDFromManager"])
+        job.LocalIDFromManager = (std::string)jobNode["LocalIDFromManager"];
+      if (jobNode["Name"])
+        job.Name = (std::string)jobNode["Name"];
+      if (jobNode["JobDescription"])
+        job.JobDescription = (std::string)jobNode["JobDescription"];
+      if (jobNode["RestartState"])
+        job.RestartState = (std::string)jobNode["RestartState"];
       if (jobNode["ExitCode"])
         job.ExitCode = stringtoi(jobNode["ExitCode"]);
-
+      if (jobNode["ComputingManagerExitCode"])
+        job.ComputingManagerExitCode = (std::string)jobNode["ComputingManagerExitCode"];
       for (XMLNode errorXML = jobNode["Error"]; errorXML; ++errorXML)
         job.Error.push_back((std::string)errorXML);
+      if (jobNode["WaitingPosition"])
+        job.WaitingPosition = stringtoi((std::string)jobNode["WaitingPosition"]);
+      if (jobNode["Owner"])
+        job.Owner = (std::string)jobNode["Owner"];
+      if (jobNode["LocalOwner"])
+        job.LocalOwner = (std::string)jobNode["LocalOwner"];
+      if (jobNode["RequestedTotalWallTime"])
+        job.RequestedTotalWallTime = Period((std::string)jobNode["RequestedTotalWallTime"]);
+      if (jobNode["RequestedTotalCPUTime"])
+        job.RequestedTotalCPUTime = Period((std::string)jobNode["RequestedTotalCPUTime"]);
+      for (XMLNode appEnvXML = jobNode["RequestedApplicationEnvironment"]; appEnvXML; ++appEnvXML)
+        job.RequestedApplicationEnvironment.push_back((std::string)appEnvXML);
+      if (jobNode["RequestedSlots"])
+        job.RequestedSlots = stringtoi((std::string)jobNode["RequestedSlots"]);
+      if (jobNode["LogDir"])
+        job.LogDir = (std::string)jobNode["LogDir"];
+      if (jobNode["StdIn"])
+        job.StdIn = (std::string)jobNode["StdIn"];
+      if (jobNode["StdOut"])
+        job.StdOut = (std::string)jobNode["StdOut"];
+      if (jobNode["StdErr"])
+        job.StdErr = (std::string)jobNode["StdErr"];
+      for (XMLNode exeNodeXML = jobNode["ExecutionNode"]; exeNodeXML; ++exeNodeXML)
+        job.ExecutionNode.push_back((std::string)exeNodeXML);
+      if (jobNode["Queue"])
+        job.Queue = (std::string)jobNode["Queue"];
+      if (jobNode["UsedTotalWallTime"])
+        job.UsedTotalWallTime = Period((std::string)jobNode["UsedTotalWallTime"]);
+      if (jobNode["UsedTotalCPUTime"])
+        job.UsedTotalCPUTime = Period((std::string)jobNode["UsedTotalCPUTime"]);
+      if (jobNode["UsedMainMemory"])
+        job.UsedMainMemory = stringtoi((std::string)jobNode["UsedMainMemory"]);
+      if (jobNode["SubmissionTime"])
+        job.SubmissionTime = Time((std::string)jobNode["SubmissionTime"]);
+      if (jobNode["EndTime"])
+        job.EndTime = (std::string)jobNode["EndTime"];
+      if (jobNode["WorkingAreaEraseTime"])
+        job.WorkingAreaEraseTime = Time((std::string)jobNode["WorkingAreaEraseTime"]);
+      if (jobNode["ProxyExpirationTime"])
+        job.ProxyExpirationTime = Time((std::string)jobNode["ProxyExpirationTime"]);
+      if (jobNode["SubmissionHost"])
+        job.SubmissionHost = (std::string)jobNode["SubmissionHost"];
+      if (jobNode["SubmissionClientName"])
+        job.SubmissionClientName = (std::string)jobNode["SubmissionClientName"];
+
+      // The following elements do not seem to be published by A-REX (they are not in ARC1ClusterInfo.om). They are kept here for consistency.
+      if (jobNode["ComputingManagerEndTime"])
+        job.ComputingManagerEndTime = Time((std::string)jobNode["ComputingManagerEndTime"]);
+      if (jobNode["ComputingManagerSubmissionTime"])
+        job.ComputingManagerSubmissionTime = Time((std::string)jobNode["ComputingManagerSubmissionTime"]);
+      if (jobNode["LocalSubmissionTime"])
+        job.LocalSubmissionTime = Time((std::string)jobNode["LocalSubmissionTime"]);
+      if (jobNode["StartTime"])
+        job.StartTime = Time((std::string)jobNode["StartTime"]);
 
       return true;
     }

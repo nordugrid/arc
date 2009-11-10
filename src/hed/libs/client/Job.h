@@ -31,11 +31,11 @@ namespace Arc {
     URL AuxURL;
     std::string AuxInfo;
 
-    // Information retrieved from the informtaion system
+    // Information retrieved from the information system
     std::string Name;
     std::string Type;
     URL IDFromEndpoint;
-    std::string LocalIdFromManager;
+    std::string LocalIDFromManager;
     std::string JobDescription;
     JobState State;
     std::string RestartState;
