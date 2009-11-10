@@ -44,7 +44,7 @@ namespace Arc {
      to avoid confusion are converted to lowercase in constructor.
      Note that 'path' is always converted to absolute path in constructor.
      Meaning of 'absolute' may depend upon URL type. For generic URL and 
-     local PSOIX file paths that means path starts from / like
+     local POSIX file paths that means path starts from / like
        /path/to/file
      For Windows paths absolute path may look like 
        C:\path\to\file

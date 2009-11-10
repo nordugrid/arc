@@ -11,7 +11,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#include <glibmm/random.h>
+#include <glibmm.h>
 
 #include <arc/DateTime.h>
 #include <arc/Logger.h>
@@ -608,14 +608,8 @@ namespace Arc {
             // create directory structure for link_name
             {
               User user;
-              std::string dirpath = link_name;
-              std::string::size_type n = dirpath.rfind('/');
-              if (n == std::string::npos)
-                n = 0;
-              if (n == 0)
-                dirpath = "/";
-              else
-                dirpath.resize(n);
+              std::string dirpath = Glib::path_get_basename(link_name);
+              if(dirpath == ".") dirpath = G_DIR_SEPARATOR_S;
               if (mkdir_recursive(NULL, dirpath.c_str(), S_IRWXU, user) != 0) {
                 if (errno != EEXIST) {
                   logger.msg(ERROR, "Failed to create/find directory %s : %s",

@@ -26,21 +26,18 @@
 
 static int mkdir_force(const char *path, mode_t mode);
 
+// TODO: proper solution for windows
 int mkdir_recursive(const std::string& base_path, const std::string& path,
                     mode_t mode, const Arc::User& user) {
-  std::string name = base_path;
-#ifndef WIN32
-  if (path[0] != '/')
-    name += '/';
-#else
-  /* Example: path == C:\ */
-  if (path.length() == 3 && path[1] == ':' && path[2] == '\\') {
-    return 0;
-  }
-#endif
-  name += path;
+  std::string name = Glib::build_filename(base_path,path);
   std::string::size_type name_start = base_path.length();
   std::string::size_type name_end = name.length();
+#ifdef WIN32
+  // Skip disk:/ part of path if exists
+  if(Glib::path_is_absolute(name)) {
+    name_start = name_end - Glib::path_skip_root(name).length();
+  }  
+#endif
   /* go down */
   for (;;) {
     if ((mkdir_force(name.substr(0, name_end).c_str(), mode) == 0) ||
