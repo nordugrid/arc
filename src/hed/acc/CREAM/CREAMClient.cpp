@@ -234,7 +234,7 @@ namespace Arc {
     }
 
     if (Setting_Checker((*resp)["JobInfoResponse"]["result"]["jobInfo"]["jobId"]["id"]))
-      job.LocalIdFromManager = (std::string)(*resp)["JobInfoResponse"]["result"]["jobInfo"]["jobId"]["id"];
+      job.LocalIDFromManager = (std::string)(*resp)["JobInfoResponse"]["result"]["jobInfo"]["jobId"]["id"];
 
     if (Setting_Checker((*resp)["JobInfoResponse"]["result"]["jobInfo"]["JDL"])) {
       job.JobDescription = (std::string)(*resp)["JobInfoResponse"]["result"]["jobInfo"]["JDL"];
