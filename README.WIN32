@@ -1,34 +1,33 @@
-I. 
-
-ARC WIN32 development environment (easy deploy solution)
---------------------------------------------------------
+I.   ARC WIN32 development environment (easy deploy solution)
+-------------------------------------------------------------
 
 http://wiki.nordugrid.org/index.php/MS_Windows#ARC1_win32_development_environment_install
 
-II.
-
-Building ARC on Windows system using MinGW (you need to download every dependencies, much more difficult to create the WIN32 development environment than the "easy deploy solution")
-------------------------------------------------
+II.  Building ARC on Windows system using MinGW (you need to download every
+     dependencies, much more difficult to create the WIN32 development
+     environment than the "easy deploy solution")
+---------------------------------------------------------------------------
 
 - Install Automated MingW Installer - http://www.mingw.org
-(http://sourceforge.net/project/showfiles.php?group_id=2435)
+  (http://sourceforge.net/project/showfiles.php?group_id=2435)
   - During installtion make sure You have "g++" and "mingw make" selected
   From MinGW also install
   - MSYS - http://www.mingw.org/wiki/msys
     From MSYS additionally install
     - msysDTK - MSYS Developer Tool Kit
-  MSYS will create You msys shell start icon on your desktop. All operations 
+  MSYS will create a msys shell start icon on your desktop. All operations 
   below should be done from that shell.
   - From contribution package mingwPORT - http://sourceforge.net/project/showfiles.php?group_id=2435&package_id=233332
     HINT: mingwPORT packages are installed in following way:
       * Note: If installing on Windows Vista, please download and install install.exe.manifest and
-        install-info.exe.manifest and patch.exe.manifest into c:\msys\1.0\bin (the last one can be obtained by copying one
+        install-info.exe.manifest and patch.exe.manifest into
+        c:\msys\1.0\bin (the last one can be obtained by copying one
         of the first ones and rename it to patch.exe.maifest). The files can be downloaded from
         http://sourceforge.net/tracker/index.php?func=detail&aid=1711379&group_id=2435&atid=102435
-        Otherwise Vista will think it needs administrative privileges to run these files and the installation of packages
-        will fail.
+        Otherwise Vista will think it needs administrative privileges
+        to run these files and the installation of the packages will fail.
       * Download corresponding package
-      * Unpack is (tar -zxvf package.tar.gz  or  bzip2 -cd package.tar.bz2 | tar -xvf -)
+      * Unpack is (tar -zxvf package.tar.gz  or  tar -xjvf package.tar.bz2 )
       * cd inside package - cd package/mingwPORT
       * Run installation script - ./mingwPORT.sh
       * Answer all question by pressing Enter/Return key of your keyboard. Trying to enter
@@ -46,7 +45,10 @@ Building ARC on Windows system using MinGW (you need to download every dependenc
   - Install package automake version 1.10 (http://sourceforge.net/project/showfiles.php?group_id=2435&package_id=67879)
   - Install libtool1.5-1.5.25a-1-src.tar.bz2
   
-- If you run into this errormessage: "Couldn't reserve space for cygwin's heap (0x715B0000 <0x2600000>) in child, Win32 error 0", you should either try to rebase msys-1.0.dll or download the rebased dll found here: http://www.madwizard.org/electronics/articles/winavrvista
+- If you run into this errormessage: "Couldn't reserve space for
+  cygwin's heap (0x715B0000 <0x2600000>) in child, Win32 error 0", you
+  should either try to rebase msys-1.0.dll or download the rebased dll
+  found here: http://www.madwizard.org/electronics/articles/winavrvista
 
 - Install gtkmm devel package. It includes glibmm. 
   (http://ftp.acc.umu.se/pub/gnome/binaries/win32/gtkmm/2.16/)
@@ -185,8 +187,13 @@ Performing configuration and installation:
 
 - Explain how to make it work.
   * After building ARC1, you might want to run it. 
-    - If you haven't build ARC1 yourself, but you have got the already builded files, you have to make sure to install the following in addition:
-      - The runtime environment of glibmm (http://ftp.acc.umu.se/pub/gnome/binaries/win32/gtkmm/2.16/), make sure the "Add the gtkmm runtime directory to the PATH variable" option is checked.
+    - If you haven't built ARC1 yourself, but you have got the already
+      built files, you have to make sure to install the following in
+      addition:
+      - The runtime environment of glibmm
+        (http://ftp.acc.umu.se/pub/gnome/binaries/win32/gtkmm/2.16/), make
+        sure the "Add the gtkmm runtime directory to the PATH variable"
+        option is checked.
         For additional information, please visit http://live.gnome.org/gtkmm/MSWindows
       - The Win32 OpenSSL vX.Y.Zn Light version (http://www.slproweb.com/products/Win32OpenSSL.html)
         - Copy ssleay32.dll and libeay32.dll to your ARC_INSTALL\bin directory
@@ -196,17 +203,15 @@ Performing configuration and installation:
    Testing  |
 -------------
 
-It is indeed an idea that you have some meaningful testjob.jsdl and client.conf files where the latter is pointing to your user key and user certificate and the CA certificates diretory)
+It is indeed an idea that you have some meaningful testjob.jsdl and
+client.conf files where the latter is pointing to your user key and user
+certificate and the CA certificates diretory)
     
-  a)
-
-    Example of command on Windows XP: 
+  a) Example of command on Windows XP: 
 
     arcsub -d DEBUG -f C:\testjob.jsdl -z "C:\Documents and Settings\<username>\Application Data\.arc\client.conf" -c ARC1:https://knowarc1.grid.niif.hu:60000/arex
 
-  b)
-
-    Example of command on Windows Vista:
+  b) Example of command on Windows Vista:
 
     arcsub -d DEBUG -f C:\testjob.jsdl -z "C:\Users\<username>\AppData\Roaming\.arc\client.conf" -c  ARC1:https://knowarc1.grid.niif.hu:60000/arex
 
