@@ -696,22 +696,43 @@ int main(int argc, char *argv[]) {
         std::getline<char>(in_f, voms_line, '\n');
         if (voms_line.empty())
           break;
+        if((voms_line.size() >= 1) && (voms_line[0] == '#')) continue;
+
         size_t pos = voms_line.rfind("\"");
+        std::string str;
         if (pos != std::string::npos) {
           voms_line.erase(pos);
           pos = voms_line.rfind("\"");
           if (pos != std::string::npos) {
-            std::string str = voms_line.substr(pos + 1);
+            str = voms_line.substr(pos + 1);
             for (std::map<std::string, std::string>::iterator it = server_command_map.begin();
                  it != server_command_map.end(); it++) {
               std::string voms_server = (*it).first;
               if (str == voms_server) {
                 matched_voms_line[voms_server] = voms_line;
                 break;
-              }
-            }
-          }
-        }
+              };
+            };
+          };
+        };
+
+        //you can also use the acronym name of the voms server
+        size_t pos1 = voms_line.find("\"");
+        if (pos1 != std::string::npos) {
+          size_t pos2 = voms_line.find("\"", pos1+1);
+          if (pos2 != std::string::npos) {
+            std::string str1 = voms_line.substr(pos1+1, pos2-pos1-1);
+            for (std::map<std::string, std::string>::iterator it = server_command_map.begin();
+                 it != server_command_map.end(); it++) {
+              std::string voms_server = (*it).first;
+              if (str1 == voms_server) {
+                matched_voms_line[str] = voms_line;
+                break;
+              };
+            };
+          };
+        };
+
       }
       //Judge if we can not find any of the voms server in the command line from 'vomses' file
       //if(matched_voms_line.empty()) {
@@ -757,7 +778,7 @@ int main(int argc, char *argv[]) {
         std::string port = voms_line.substr(p + 1, p1 - p - 1);
         logger.msg(Arc::INFO, "Contacting VOMS server (named %s): %s on port: %s",
                    voms_server.c_str(), address.c_str(), port.c_str());
-        std::cout << Arc::IString("Contacting VOMS server (named %s): %s on port: %i", voms_server, address, port) << std::endl;
+        std::cout << Arc::IString("Contacting VOMS server (named %s): %s on port: %s", voms_server, address, port) << std::endl;
 
         std::string send_msg;
         send_msg.append("<?xml version=\"1.0\" encoding = \"US-ASCII\"?><voms><command>");
