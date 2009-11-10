@@ -315,7 +315,7 @@ This operation allows the ISIS to get the already existing database from the ISI
 
 % TODO figure with mutiple service types
 
-\textit{This section extensively uses terms defined in "Security Framework of ARC1" document"~\cite{arcsec}.}
+\textit{This section extensively uses terms defined in "Security Framework of WS-ARC" document"~\cite{arcsec}.}
 
 To ensure that the information stored in the ISIS cloud can't be tampered with and only is available to proper clients the following authorization framework is implemented. All actions performed by ISIS clients are divided into the three following groups:
 
@@ -500,7 +500,7 @@ requesting client.
 \subsection{Configuration}
 \label{sub:isis_authorization_configuration}
 
-\textit{For information about sophisticated authorization policies and how to deploy various Policy Decision Point entities please see "Security Framework of ARC1" document"~\cite{arcsec}.}
+\textit{For information about sophisticated authorization policies and how to deploy various Policy Decision Point entities please see "Security Framework of WS-ARC" document"~\cite{arcsec}.}
 
 To restrict the set of clients allowed to perform operations on the ISIS service a proper authorization policy is needed. Let's assume ISIS is operating over a TLS connection and all participants possess X.509 certificates with the following subject names:
 \begin{itemize}
@@ -753,18 +753,20 @@ as unavailable. The default value is 5.
   elementFormDefault="qualified" attributeFormDefault="unqualified"
 >
 
-    <xsd:import namespace="http://www.w3.org/2005/08/addressing" schemaLocation="http://www.w3.org/2006/03/addressing/ws-addr.xsd"/>
+    <xsd:import namespace="http://www.w3.org/2005/08/addressing" 
+    schemaLocation="http://www.w3.org/2006/03/addressing/ws-addr.xsd"/>
 
 
-<!-- This is an initial and incomplete DRAFT which mainly concentrates on the structure but not on the actual names. Final version will use G
-LUE-2.0 ternminology. -->
+<!-- This is an initial and incomplete DRAFT which mainly concentrates on the structure
+ but not on the actual names. Final version will use GLUE-2.0 ternminology. -->
 
     <!-- ==== Input and output types for IIS operations ==== -->
     <!-- Input type for Register operation -->
     <xsd:complexType name="RegisterType">
         <xsd:sequence>
             <xsd:element name="Header" type="isis:HeaderType" minOccurs="0" maxOccurs="1"/>
-            <xsd:element name="RegEntry" type="isis:RegistrationEntryType" minOccurs="1" maxOccurs="unbounded"/>
+            <xsd:element name="RegEntry" type="isis:RegistrationEntryType" minOccurs="1"
+            maxOccurs="unbounded"/>
         </xsd:sequence>
     </xsd:complexType>
     <xsd:element name="Register" type="isis:RegisterType"/>
@@ -780,8 +782,10 @@ LUE-2.0 ternminology. -->
     <!-- Input type for RemoveRegistrations operation -->
     <xsd:complexType name="RemoveRegistrationsType">
         <xsd:sequence>
-            <xsd:element name="MessageGenerationTime" type="xsd:string" minOccurs="1" maxOccurs="1"/>
-            <xsd:element name="ServiceID" type="xsd:string" minOccurs="1" maxOccurs="unbounded"/>
+            <xsd:element name="MessageGenerationTime" type="xsd:string" minOccurs="1" 
+            maxOccurs="1"/>
+            <xsd:element name="ServiceID" type="xsd:string" minOccurs="1" 
+            maxOccurs="unbounded"/>
         </xsd:sequence>
     </xsd:complexType>
     <xsd:element name="RemoveRegistrations" type="isis:RemoveRegistrationsType"/>
@@ -796,11 +800,13 @@ LUE-2.0 ternminology. -->
 
     <xsd:complexType name="RemoveRegistrationsResponseType">
         <xsd:sequence>
-            <xsd:element name="RemoveRegistrationResponseElement" type="isis:RemoveRegistrationResponseElementType" minOccurs="0" maxOccurs="
+            <xsd:element name="RemoveRegistrationResponseElement" 
+            type="isis:RemoveRegistrationResponseElementType" minOccurs="0" maxOccurs="
 unbounded" />
         </xsd:sequence>
     </xsd:complexType>
-    <xsd:element name="RemoveRegistrationsResponse" type="isis:RemoveRegistrationsResponseType"/>
+    <xsd:element name="RemoveRegistrationsResponse" 
+    type="isis:RemoveRegistrationsResponseType"/>
 
     <!-- Input type for GetISISList operation -->
     <xsd:complexType name="GetISISListType">
@@ -812,7 +818,8 @@ unbounded" />
     <!-- Output type for GetISISList operation -->
     <xsd:complexType name="GetISISListResponseType">
         <xsd:sequence>
-            <xsd:element name="EPR" type="wsa:EndpointReferenceType" minOccurs="1" maxOccurs="unbounded"/>
+            <xsd:element name="EPR" type="wsa:EndpointReferenceType" minOccurs="1" 
+            maxOccurs="unbounded"/>
         </xsd:sequence>
     </xsd:complexType>
     <xsd:element name="GetISISListResponse" type="isis:GetISISListResponseType"/>
@@ -851,8 +858,10 @@ unbounded" />
 
     <xsd:complexType name="RegistrationEntryType">
         <xsd:sequence>
-            <xsd:element name="SrcAdv" type="isis:ServiceAdvertisementType" minOccurs="1" maxOccurs="1"/>
-            <xsd:element name="MetaSrcAdv" type="isis:ServiceAdvertisementMetadataType" minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="SrcAdv" type="isis:ServiceAdvertisementType" minOccurs="1" 
+            maxOccurs="1"/>
+            <xsd:element name="MetaSrcAdv" type="isis:ServiceAdvertisementMetadataType" 
+            minOccurs="1" maxOccurs="1"/>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -862,7 +871,8 @@ unbounded" />
             <xsd:element name="Type" type="isis:ServiceTypeType"/>
             <xsd:element name="EPR" type="wsa:EndpointReferenceType"/>
             <!-- Service specific part of the Service Advertisment -->
-            <xsd:element name="SSPair" type="isis:NameValuePairType" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="SSPair" type="isis:NameValuePairType" minOccurs="0" 
+            maxOccurs="unbounded"/>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -928,7 +938,8 @@ unbounded" />
 Interface of Information Indexing Service
 -->
 
-    <wsdl:import namespace="http://docs.oasis-open.org/wsrf/rpw-2" location="http://docs.oasis-open.org/wsrf/rpw-2.wsdl"/>
+    <wsdl:import namespace="http://docs.oasis-open.org/wsrf/rpw-2" 
+    location="http://docs.oasis-open.org/wsrf/rpw-2.wsdl"/>
 
 
     <!-- ======= Type definitions ====== -->
@@ -961,7 +972,8 @@ Interface of Information Indexing Service
 </wsdl:message>
 
 <wsdl:message name="RemoveRegistrationsResponse">
-    <wsdl:part name="RemoveRegistrationsResponse" element="isis:RemoveRegistrationsResponse"/>
+    <wsdl:part name="RemoveRegistrationsResponse" 
+    element="isis:RemoveRegistrationsResponse"/>
 </wsdl:message>
 
 <!-- ====== GetISISList ====== -->
@@ -989,8 +1001,10 @@ Interface of Information Indexing Service
         <wsdl:output name="RegisterResponse" message="isis:RegisterResponse"/>
     </wsdl:operation>
     <wsdl:operation name="RemoveRegistrations">
-        <wsdl:input name="RemoveRegistrationsRequest" message="isis:RemoveRegistrationsRequest"/>
-        <wsdl:output name="RemoveRegistrationsResponse" message="isis:RemoveRegistrationsResponse"/>
+        <wsdl:input name="RemoveRegistrationsRequest" 
+        message="isis:RemoveRegistrationsRequest"/>
+        <wsdl:output name="RemoveRegistrationsResponse" 
+        message="isis:RemoveRegistrationsResponse"/>
     </wsdl:operation>
     <wsdl:operation name="GetISISList">
         <wsdl:input name="GetISISListRequest" message="isis:GetISISListRequest"/>
@@ -1043,7 +1057,8 @@ Interface of Information Indexing Service
         </wsdl:output>
     </wsdl:operation>
 </wsdl:binding>
-<wsdl:binding name="GetResourcePropertyDocument" type="wsrf-rpw:GetResourcePropertyDocument">
+<wsdl:binding name="GetResourcePropertyDocument" 
+type="wsrf-rpw:GetResourcePropertyDocument">
     <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
     <wsdl:operation name="GetResourcePropertyDocument">
        <soap:operation soapAction="GetResourcePropertyDocument"/>
@@ -1117,7 +1132,8 @@ Interface of Information Indexing Service
 
 <!-- ====== Service definition ====== -->
 <wsdl:service name="isis">
-    <wsdl:port name="GetResourcePropertyDocument" binding="isis:GetResourcePropertyDocument">
+    <wsdl:port name="GetResourcePropertyDocument" 
+    binding="isis:GetResourcePropertyDocument">
         <soap:address location="mailto:test@test.com"/>
     </wsdl:port>
     <wsdl:port name="GetResourceProperty" binding="isis:GetResourceProperty">
@@ -1192,7 +1208,8 @@ Interface of Information Indexing Service
   <xsd:element name="retry" type="xsd:nonNegativeInteger" default="5">
       <xsd:annotation>
           <xsd:documentation xml:lang="en">
-              Retry specifies how many times communication to ISIS have to fail/timeout to start treating it as unavailable.
+              Retry specifies how many times communication to ISIS have to 
+              fail/timeout to start treating it as unavailable.
           </xsd:documentation>
       </xsd:annotation>
   </xsd:element>
@@ -1200,34 +1217,8 @@ Interface of Information Indexing Service
   <xsd:element name="sparsity" type="xsd:nonNegativeInteger" default="2">
       <xsd:annotation>
           <xsd:documentation xml:lang="en">
-              It determines the number of neighbors as a function of the actual number of member nodes of the network.
-          </xsd:documentation>
-      </xsd:annotation>
-  </xsd:element>
-
-  <xsd:complexType name="Logger_Type">
-    <xsd:simpleContent>
-      <xsd:extension base="xsd:string">
-        <xsd:attribute name="level" default="INFO">
-          <xsd:simpleType>
-            <xsd:restriction base="xsd:string">
-              <xsd:enumeration value="VERBOSE"/>
-              <xsd:enumeration value="DEBUG"/>
-              <xsd:enumeration value="INFO"/>
-              <xsd:enumeration value="WARNING"/>
-              <xsd:enumeration value="ERROR"/>
-              <xsd:enumeration value="FATAL"/>
-            </xsd:restriction>
-          </xsd:simpleType>
-        </xsd:attribute>
-      </xsd:extension>
-    </xsd:simpleContent>
-  </xsd:complexType>
-
-  <xsd:element name="Logger" type="icfg:Logger_Type">
-      <xsd:annotation>
-          <xsd:documentation xml:lang="en">
-              File location where the log message is locally stored.
+              It determines the number of neighbors as a function of the actual 
+              number of member nodes of the network.
           </xsd:documentation>
       </xsd:annotation>
   </xsd:element>
@@ -1296,7 +1287,8 @@ Interface of Information Indexing Service
         </xsd:annotation>
         <xsd:sequence>
 
-            <xsd:element name="URL" type="xsd:string" minOccurs="1" maxOccurs="unbounded">.
+            <xsd:element name="URL" type="xsd:string" minOccurs="1" 
+            maxOccurs="unbounded">.
                 <xsd:annotation>
                     <xsd:documentation xml:lang="en">
                      URL specifies contact endpoint of a bootstrap Information.
@@ -1306,7 +1298,8 @@ Interface of Information Indexing Service
                 </xsd:annotation>
             </xsd:element>
 
-            <xsd:element name="ServiceID" type="xsd:string" minOccurs="0" maxOccurs="1">
+            <xsd:element name="ServiceID" type="xsd:string" minOccurs="0" 
+            maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation xml:lang="en">
                      Element defines the unique id of the service propagated outside.
@@ -1314,7 +1307,8 @@ Interface of Information Indexing Service
                 </xsd:annotation>
             </xsd:element>
 
-            <xsd:element name="KeyPath" type="xsd:string"  minOccurs="0" maxOccurs="1">
+            <xsd:element name="KeyPath" type="xsd:string"  minOccurs="0" 
+            maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation xml:lang="en">
                      Optional KeyPath for SSL connection
@@ -1322,14 +1316,16 @@ Interface of Information Indexing Service
                 </xsd:annotation>
             </xsd:element>
 
-            <xsd:element name="CertificatePath" type="xsd:string"  minOccurs="0" maxOccurs="1">
+            <xsd:element name="CertificatePath" type="xsd:string"  minOccurs="0" 
+            maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation xml:lang="en">
                      Optional CertificatePath for SSL connection
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-             <xsd:element name="ProxyPath" type="xsd:string"  minOccurs="0" maxOccurs="1">
+             <xsd:element name="ProxyPath" type="xsd:string"  minOccurs="0" 
+             maxOccurs="1">
                  <xsd:annotation>
                      <xsd:documentation xml:lang="en">
                       Optional ProxyPath for SSL connection
@@ -1337,7 +1333,8 @@ Interface of Information Indexing Service
                  </xsd:annotation>
              </xsd:element>
 
-            <xsd:element name="CACertificatesDir" type="xsd:string"  minOccurs="0" maxOccurs="1">
+            <xsd:element name="CACertificatesDir" type="xsd:string"  minOccurs="0" 
+            maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation xml:lang="en">
                      Optional CACertificatesDir for SSL connection
@@ -1345,11 +1342,13 @@ Interface of Information Indexing Service
                 </xsd:annotation>
             </xsd:element>
 
-            <xsd:element name="Retry" type="xsd:string" minOccurs="0" maxOccurs="1" default="5">
+            <xsd:element name="Retry" type="xsd:string" minOccurs="0" maxOccurs="1" 
+            default="5">
                 <xsd:annotation>
                     <xsd:documentation xml:lang="en">
-                     Retry count. Specified how many times have an ISIS to timeout to handle it as.
-                     unavailable. If there is no value specified the default value: 5 will be used..
+                     Retry count. Specified how many times have an ISIS to timeout to
+                     handle it as unavailable. If there is no value specified the default
+                     value: 5 will be used.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -1374,7 +1373,8 @@ Interface of Information Indexing Service
                 </xsd:documentation>
             </xsd:annotation>
 
-            <xsd:element name="Period" type="xsd:duration" minOccurs="1" maxOccurs="1" default="PT3M">
+            <xsd:element name="Period" type="xsd:duration" minOccurs="1" maxOccurs="1" 
+            default="PT3M">
                 <xsd:annotation>
                     <xsd:documentation xml:lang="en">
                      Period specifies how often registration to be done in minutes.
@@ -1392,14 +1392,17 @@ Interface of Information Indexing Service
                 </xsd:annotation>
             </xsd:element>
 
-            <xsd:element name="Expiration" type="xsd:string" minOccurs="1" maxOccurs="1" default="PT10M">
+            <xsd:element name="Expiration" type="xsd:string" minOccurs="1" maxOccurs="1" 
+            default="PT10M">
                 <xsd:annotation>
                     <xsd:documentation xml:lang="en">
-                     This element defines the expiration time of the information provided by the service.
+                     This element defines the expiration time of the information
+                     provided by the service.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="Registrar" type="iregc:Registrar_Type" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="Registrar" type="iregc:Registrar_Type" minOccurs="0" 
+            maxOccurs="unbounded"/>
             <!-- Default values for every Registrar -->
         </xsd:sequence>
     </xsd:complexType>
@@ -1441,10 +1444,12 @@ Interface of Information Indexing Service
              to link XML elements with defined policy.
              Currently only supported policy is one defined in
              http://www.nordugrid.org/schemas/policy-arc namespace. -->
-        <xsd:any namespace="##other" processContents="lax" minOccurs="1" maxOccurs="1"/>
+        <xsd:any namespace="##other" processContents="lax" minOccurs="1" 
+        maxOccurs="1"/>
         <xsd:attribute name="id" type="xsd:string" use="required"/>
     </xsd:complexType>
-    <xsd:element name="InfoFilterDefinition" type="if:InfoFilterDefinition_Type" minOccurs="0" maxOccurs="unbounded"/>
+    <xsd:element name="InfoFilterDefinition" type="if:InfoFilterDefinition_Type" 
+    minOccurs="0" maxOccurs="unbounded"/>
 
     <xsd:attribute name="InfoFilterTag">
         <!-- This attribute is to be used in element for which authorization
@@ -1509,7 +1514,9 @@ Interface of Information Indexing Service
              registration will be the value given here in every ISIS cloud. -->
             <infosys:Registrar>
                 <!-- Contact and behavior details of the Registrar element-->
-                <infosys:URL><!-- Available endpoint URL of an ISIS representing the cloud --></infosys:URL>
+                <infosys:URL>
+                    <!-- Available endpoint URL of an ISIS representing the cloud -->
+                </infosys:URL>
                 <infosys:Retry>4</infosys:Retry>        
             </infosys:Registrar>
         </infosys:InfoRegister>
