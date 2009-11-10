@@ -38,7 +38,8 @@ extern job_state_rec_t states_all[JOB_STATE_UNDEFINED+1];
   jobs_num[JOB_STATE_PREPARING] + \
   jobs_num[JOB_STATE_SUBMITTING] + \
   jobs_num[JOB_STATE_INLRMS] + \
-  jobs_num[JOB_STATE_FINISHING] \
+  jobs_num[JOB_STATE_FINISHING] + \
+  jobs_pending \
 )
 
 /* states running something heavy on frontend */

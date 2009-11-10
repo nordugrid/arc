@@ -41,11 +41,12 @@ static Arc::Logger& logger = Arc::Logger::getRootLogger();
 #include "states.h"
 
 
-int JobsList::jobs_num[JOB_STATE_NUM] = { 0, 0, 0, 0, 0, 0, 0, 0 };
-int JobsList::max_jobs_processing=DEFAULT_MAX_JOBS;
-int JobsList::max_jobs_processing_emergency=1;
-int JobsList::max_jobs_running=-1;
-int JobsList::max_jobs=-1;
+long int JobsList::jobs_num[JOB_STATE_NUM] = { 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+long int JobsList::jobs_pending = 0;
+long int JobsList::max_jobs_processing=DEFAULT_MAX_JOBS;
+long int JobsList::max_jobs_processing_emergency=1;
+long int JobsList::max_jobs_running=-1;
+long int JobsList::max_jobs=-1;
 int JobsList::max_downloads=-1;
 unsigned long long int JobsList::min_speed=0;
 time_t JobsList::min_speed_time=300;
@@ -1240,14 +1241,26 @@ bool JobsList::ActJob(JobsList::iterator &i,bool hard_job) {
      (i->job_state == JOB_STATE_UNDEFINED)) {
     /* this is the ONLY place there jobs are removed from memory */
     /* update counters */
-    if(!old_pending) jobs_num[old_state]--;
+    if(!old_pending) {
+      jobs_num[old_state]--;
+    } else {
+      jobs_pending--;
+    };
     if(i->local) { delete i->local; };
     i=jobs.erase(i);
   }
   else {
     /* update counters */
-    if(!old_pending) jobs_num[old_state]--;
-    if(!i->job_pending) jobs_num[i->job_state]++;
+    if(!old_pending) {
+      jobs_num[old_state]--;
+    } else {
+      jobs_pending--;
+    };
+    if(!i->job_pending) {
+      jobs_num[i->job_state]++;
+    } else {
+      jobs_pending++;
+    }
     ++i;
   };
   return true;
