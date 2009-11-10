@@ -127,10 +127,10 @@ namespace Arc {
                                 const JobDescription& jobdesc,
                                 const ExecutionTarget& et,
                                 bool forcemigration) const {
-    logger.msg(ERROR, "Migration to a UNICORE cluster is not supported.");
+    logger.msg(INFO, "Trying to migrate to %s: Migration to a UNICORE cluster is not supported.", et.url.str());
     return URL();
   }
-  
+
   bool SubmitterUNICORE::ModifyJobDescription(JobDescription& jobdesc, const ExecutionTarget& et) const {
     return true;
   }

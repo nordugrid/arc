@@ -105,7 +105,7 @@ namespace Arc {
 
   URL SubmitterARC0::Migrate(const URL& jobid, const JobDescription& jobdesc,
                              const ExecutionTarget& et, bool forcemigration) const {
-    logger.msg(ERROR, "Migration to a ARC0 cluster is not supported.");
+    logger.msg(INFO, "Trying to migrate to %s: Migration to a ARC0 cluster is not supported.", et.url.str());
     return URL();
   }
 

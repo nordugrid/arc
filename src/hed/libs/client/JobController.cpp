@@ -537,7 +537,6 @@ namespace Arc {
     std::list<URL> toberemoved;
 
     GetJobInformation();
-    // Loop over job descriptions.
     for (std::list<Job>::iterator itJob = jobstore.begin(); itJob != jobstore.end(); itJob++) {
       if (itJob->State != JobState::QUEUING) {
         logger.msg(WARNING, "Cannot migrate job %s, it is not queuing in the batch system.", itJob->JobID.str());
@@ -551,7 +550,6 @@ namespace Arc {
       jobDesc.Parse(itJob->JobDescription);
 
       broker->PreFilterTargets(targetGen.ModifyFoundTargets(), jobDesc);
-      // Try to submit modified JSDL. Only to ARC1 clusters.
       while (true) {
         const ExecutionTarget *currentTarget = broker->GetBestTarget();
         if (!currentTarget) {
@@ -560,27 +558,19 @@ namespace Arc {
           break;
         }
 
-        if (currentTarget->GridFlavour != "ARC1") {
-          logger.msg(WARNING, "Cannot migrate to a %s cluster.", currentTarget->GridFlavour);
-          logger.msg(INFO, "Note: Migration is currently only supported between ARC1 clusters.");
-          continue;
-        }
-
         URL jobid = currentTarget->GetSubmitter(usercfg)->Migrate(itJob->JobID, jobDesc, *currentTarget, forcemigration);
-        if (!jobid) {
-          logger.msg(WARNING, "Migration to %s failed, trying next target", currentTarget->url.str());
+        if (!jobid)
           continue;
-        }
 
         broker->RegisterJobsubmission();
         migratedJobIDs.push_back(jobid);
         toberemoved.push_back(URL(itJob->JobID.str()));
         break;
-      } // Loop over all possible targets
-    } // Loop over jobs
+      }
+    }
 
     if (toberemoved.size() > 0)
-      RemoveJobs(toberemoved);                             // Saves file aswell.
+      RemoveJobs(toberemoved);
 
     return retVal;
   }

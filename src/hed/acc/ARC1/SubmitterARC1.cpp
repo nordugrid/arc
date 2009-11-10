@@ -117,7 +117,7 @@ namespace Arc {
     }
 
     if (!ModifyJobDescription(job, et)) {
-      logger.msg(ERROR, "Submit: Failed to modify job description "
+      logger.msg(INFO, "Submit: Failed to modify job description "
                         "to be sent to target.");
       return URL();
     }
@@ -128,11 +128,10 @@ namespace Arc {
     std::string newjobid;
     if (!ac.migrate(idstr, job.UnParse("ARCJSDL"), forcemigration, newjobid,
                     et.url.Protocol() == "https")) {
-      logger.msg(ERROR, "Failed migrating job");
       return URL();
     }
     if (newjobid.empty()) {
-      logger.msg(ERROR, "Service returned no job identifier");
+      logger.msg(INFO, "Service returned no job identifier");
       return URL();
     }
 
@@ -140,7 +139,7 @@ namespace Arc {
     URL session_url((std::string)(newjobidx["ReferenceParameters"]["JobSessionDir"]));
 
     if (!PutFiles(job, session_url)) {
-      logger.msg(ERROR, "Failed uploading local input files");
+      logger.msg(INFO, "Failed uploading local input files");
       return URL();
     }
 

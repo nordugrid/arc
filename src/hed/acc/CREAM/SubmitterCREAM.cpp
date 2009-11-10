@@ -73,7 +73,7 @@ namespace Arc {
   URL SubmitterCREAM::Migrate(const URL& jobid, const JobDescription& jobdesc,
                               const ExecutionTarget& et,
                               bool forcemigration) const {
-    logger.msg(ERROR, "Migration to a CREAM cluster is not supported.");
+    logger.msg(INFO, "Trying to migrate to %s: Migration to a CREAM cluster is not supported.", et.url.str());
     return URL();
   }
 
