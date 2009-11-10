@@ -167,7 +167,7 @@ $ chelonia list / /newcoll
 With the \texttt{move} or \texttt{mv} method it is possible to move a file or collection within the namespace of chelonia (including renaming the entry). The source path and the target path should be specified as Logical Names
 \hspace*{0.5cm}
 \begin{shaded}
-   \uicommand{chelonia list $<$sourceLN$>$ $<$targetLN$>$}
+   \uicommand{chelonia move $<$sourceLN$>$ $<$targetLN$>$}
 \end{shaded}
 
 Example output of the method:
@@ -251,3 +251,195 @@ To change metadata key-value pairs:
 chelonia modify <LN> set|unset|add metadata <key> <value>    
 \end{verbatim}
 % subsubsection modify (end)
+
+\subsubsection{policy} % (fold)
+\label{ssub:policy}
+
+With the \texttt{policy} or \texttt{pol} method it is possible to modify the policy of the entry
+\hspace*{0.5cm}
+\begin{shaded}
+   \uicommand{chelonia policy $<$LN$>$ $<$changeType$>$ $<$identity$>$ $<$action list$>$}   
+\end{shaded}
+
+The possible values of `changeType' are `set' (sets the action list to the given user overwriting the old one), `change' (modify the current action list with adding and removing actions) and `clear' (clear the action list of the given user).
+
+The `identity' could be currently three things: the DN of a user; the name of a VO (with the syntax: `VOMS:$<$VO name$>$'); or `ALL' for all users.
+
+The `action list' is a list of actions prefixed with `+' or `-', e.g. `+read +addEntry -delete'.
+
+These are the actions which can be used for access control:
+\begin{itemize}
+    \item \emph{read}: user can get the list of entries in the collection; user can download the file
+    \item \emph{addEntry}: user can add a new entry to the collection;
+    \item \emph{removeEntry}: user can remove any entry from the collection 
+    \item \emph{delete}: user can delete the collection if it is empty; user can delete a file
+    \item \emph{modifyPolicy}: user can modify the policy of the file/collection
+    \item \emph{modifyStates}: user can modify some special metadata of the file/collection (close the collection, change the number of needed replica of the file)
+    \item \emph{modifyMetadata}: user can modify the arbitrary metadata section of the file/collection (these are property-value pairs)
+\end{itemize}
+
+There is an implicit default policy: the owner always has all the rights.
+Checking the `stat' of new collections:
+\begin{verbatim}
+$ chelonia stat /newcoll
+'/newcoll': found
+  states
+    closed: no
+  entry
+    owner: /C=HU/O=NIIF CA/OU=GRID/OU=NIIF/CN=Nagy Zsombor
+    GUID: 41CBD461-09BE-46FD-8A1B-767C7D427AF9
+    type: collection
+  parents
+    0/newcoll: parent
+  timestamps
+    created: 1257435820.26
+  entries
+    thing: A63658B4-2C6E-46A3-8238-7D291F8F81C2
+\end{verbatim}
+shows no policies, but it shows the owner. This collection has no additional policies just the default one: the owner can do anything, noone else can do anything.
+
+Let's set it in a way that all users can read the contents of this collection:
+\begin{verbatim}
+$ chelonia policy /newcoll change ALL +read
+Setting action list of '/newcoll' for user ALL to +read: set.
+$ chelonia stat /newcoll
+'/newcoll': found
+  [...]
+  policy
+    ALL: +read
+  [...]
+\end{verbatim}
+
+Then we can set that all the members of the knowarc VO would be able to add entries to this collection:
+\begin{verbatim}
+$ chelonia policy /newcoll change VOMS:knowarc +addEntry
+Setting action list of '/newcoll' for user VOMS:knowarc to +addEntry: set.
+$ chelonia stat /newcoll
+'/newcoll': found
+  [...]
+  policy
+    ALL: +read
+    VOMS:knowarc: +addEntry
+  [...]
+\end{verbatim}
+
+And for example we can set a specific user to be able to remove entries from this collections:
+\begin{verbatim}
+$ chelonia policy /newcoll change \
+    "/C=HU/O=NIIF CA/OU=GRID/OU=NIIF/CN=TestUser" +removeEntry
+Setting action list of '/newcoll'
+    for user /C=HU/O=NIIF CA/OU=GRID/OU=NIIF/CN=TestUser to +removeEntry: set.
+$ chelonia stat /newcoll'/newcoll': found
+  [...]
+  policy
+    /C=HU/O=NIIF CA/OU=GRID/OU=NIIF/CN=TestUser: +removeEntry
+    ALL: +read
+    VOMS:knowarc: +addEntry
+  [...]
+\end{verbatim}
+
+% subsubsection policy (end)
+
+\subsubsection{unlink} % (fold)
+\label{ssub:unlink}
+
+With the \texttt{unlink} method it is possible to remove a file or collection just from its parent collection without removing the file or collection itself.
+\hspace*{0.5cm}
+\begin{shaded}
+   \uicommand{chelonia unlink $<$LN$>$}   
+\end{shaded}
+
+If there is a file called `/newcoll/thing', it is in the listing of the `/newcoll' collection:
+\begin{verbatim}
+$ chelonia list /newcoll
+'/newcoll': collection
+  thing <file>
+\end{verbatim}    
+The file is in the entries of the collection:
+\begin{verbatim}
+$ chelonia stat /newcoll
+'/newcoll': found
+  entries
+    thing: A63658B4-2C6E-46A3-8238-7D291F8F81C2
+  [...]
+\end{verbatim}
+
+It is possible the `stat' the file with the Logical Name `/newcoll/thing':
+\begin{verbatim}
+jim:~ zsombor$ chelonia stat /newcoll/thing
+'/newcoll/thing': found
+  states
+    checksumType: md5
+    neededReplicas: 3
+    size: 6
+    checksum: a0186a90393bd4a639a1ce35d8ef85f6
+  [...]
+\end{verbatim}
+
+Now with the `unlink' method it is possible to remove the file from the `/newcoll' collection, but not from the system:
+\begin{verbatim}
+$ chelonia unlink /newcoll/thing
+Unlinking '/newcoll/thing': unset
+\end{verbatim}
+
+Now the file is not in the collection anymore:
+\begin{verbatim}
+$ chelonia list /newcoll
+'/newcoll': collection
+    empty.
+$ chelonia stat /newcoll/thing
+'/newcoll/thing': not found
+\end{verbatim}
+
+But with the GUID of the file, it can still be accessed:
+\begin{verbatim}
+$ chelonia stat A63658B4-2C6E-46A3-8238-7D291F8F81C2
+'A63658B4-2C6E-46A3-8238-7D291F8F81C2': found
+  states
+    checksumType: md5
+    neededReplicas: 3
+    size: 6
+    checksum: a0186a90393bd4a639a1ce35d8ef85f6
+  [...]
+\end{verbatim}
+% subsubsection unlink (end)
+
+\subsubsection{credentialDelegation} % (fold)
+\label{ssub:credentialdelegation}
+With the \texttt{credentialDelegation} or \texttt{cre} method it is possible to delegate credentials to the Bartender.
+\hspace*{0.5cm}
+\begin{shaded}
+   \uicommand{chelonia credentialDelegation}   
+\end{shaded}
+% subsubsection credentialdelegation (end)
+
+\subsubsection{removeCredentials} % (fold)
+\label{ssub:removecredentials}
+With the \texttt{removeCredentials} or \texttt{rem} method it is possible to remove the previously delegated credentials.
+\hspace*{0.5cm}
+\begin{shaded}
+   \uicommand{chelonia removeCredentials}   
+\end{shaded}
+% subsubsection removecredentials (end)
+
+\subsubsection{makeMountPoint} % (fold)
+\label{ssub:makemountpoint}
+With the \texttt{makeMountPoint} or \texttt{makemount} method it is possible to create a mount point within the namespace of Chelonia which points to a GridFTP server.
+\hspace*{0.5cm}
+\begin{shaded}
+   \uicommand{chelonia makeMountPoint $<$LN$>$ $<$URL$>$}   
+\end{shaded}
+
+The `LN' is the requested Logical Name for the mount point, the `URL' points to the GridFTP server.
+% subsubsection makemountpoint (end)
+
+\subsubsection{unmakeMountPoint} % (fold)
+\label{ssub:unmakemountpoint}
+With the \texttt{unmakeMountPoint} or \texttt{unmount} method it is possible to remove a previously created mount point.
+\hspace*{0.5cm}
+\begin{shaded}
+   \uicommand{chelonia unmakeMountPoint $<$LN$>$}   
+\end{shaded}
+
+The `LN' is the Logical Name of the mount point.
+% subsubsection unmakemountpoint (end)
