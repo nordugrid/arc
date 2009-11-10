@@ -484,6 +484,7 @@ sub build_config_from_inifile {
     move_keys $common, $config, [keys %$lrms_options, keys %$lrms_share_options];
     move_keys $gm, $config, [keys %$gmcommon_options];
     move_keys $gm, $config->{control}{'.'}, [keys %$gmuser_options];
+    rename_keys $gm, $config, {arex_mount_point => 'endpoint'};
 
     $config->{debugLevel} = $common->{debug} if $common->{debug};
 
@@ -492,7 +493,6 @@ sub build_config_from_inifile {
         my $section = { $iniparser->get_section("grid-manager/$name") };
         $config->{control}{$name} ||= {};
         move_keys $section, $config->{control}{$name}, [keys %$gmuser_options];
-        rename_keys $section, $config, {arex_mount_point => 'endpoint'};
     }
 
     ################################ deprecated config file structure #############################
@@ -729,8 +729,10 @@ sub printLRMSConfigScript {
         my $queue = {};
         move_keys $config->{shares}{$sname}, $queue, [keys %$lrms_options, keys %$lrms_share_options];
 
-        my $qname = $config->{shares}{$sname}{MappingQueue} || $sname;
-        _print_shell_section("queue/$qname", $queue);
+        my $qname = $config->{shares}{$sname}{MappingQueue};
+        $queue->{MappingQueue} = $qname if $qname;
+
+        _print_shell_section("queue/$sname", $queue);
     }
 
     _print_shell_end();
