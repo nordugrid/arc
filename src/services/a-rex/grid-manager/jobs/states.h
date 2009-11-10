@@ -42,12 +42,12 @@ class JobsList {
   /* these static members should be protected by lock, but job
      status change is single threaded, so not yet */
   /* number of jobs for every state */
-  static long int jobs_num[JOB_STATE_NUM];
+  static int jobs_num[JOB_STATE_NUM];
   /* maximal allowed values */
-  static long int max_jobs_running;
-  static long int max_jobs_processing;
-  static long int max_jobs_processing_emergency;
-  static long int max_jobs;
+  static int max_jobs_running;
+  static int max_jobs_processing;
+  static int max_jobs_processing_emergency;
+  static int max_jobs;
   static unsigned long long int min_speed;
   static time_t min_speed_time;
   static unsigned long long int min_average_speed;

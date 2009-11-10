@@ -41,11 +41,11 @@ static Arc::Logger& logger = Arc::Logger::getRootLogger();
 #include "states.h"
 
 
-long int JobsList::jobs_num[JOB_STATE_NUM] = { 0, 0, 0, 0, 0, 0, 0, 0 };
-long int JobsList::max_jobs_processing=DEFAULT_MAX_JOBS;
-long int JobsList::max_jobs_processing_emergency=1;
-long int JobsList::max_jobs_running=-1;
-long int JobsList::max_jobs=-1;
+int JobsList::jobs_num[JOB_STATE_NUM] = { 0, 0, 0, 0, 0, 0, 0, 0 };
+int JobsList::max_jobs_processing=DEFAULT_MAX_JOBS;
+int JobsList::max_jobs_processing_emergency=1;
+int JobsList::max_jobs_running=-1;
+int JobsList::max_jobs=-1;
 int JobsList::max_downloads=-1;
 unsigned long long int JobsList::min_speed=0;
 time_t JobsList::min_speed_time=300;

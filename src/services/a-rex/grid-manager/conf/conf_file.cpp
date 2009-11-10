@@ -618,8 +618,11 @@ bool configure_serviced_users(Arc::XMLNode cfg,JobUsers &users,uid_t my_uid,cons
   */
   tmp_node = cfg["loadLimits"];
   if(tmp_node) {
-    int max_jobs, max_jobs_running = -1;
-    int max_jobs_processing, max_jobs_processing_emergency, max_downloads = -1;
+    int max_jobs = -1;
+    int max_jobs_running = -1;
+    int max_jobs_processing = -1;
+    int max_jobs_processing_emergency = -1;
+    int max_downloads = -1;
     unsigned int wakeup_period = JobsList::WakeupPeriod();
     elementtoint(tmp_node,"maxJobsTracked",max_jobs,&logger);
     elementtoint(tmp_node,"maxJobsRun",max_jobs_running,&logger);
