@@ -1544,6 +1544,7 @@ AC_CONFIG_FILES([Makefile
                  debian/Makefile
                  debian/changelog.deb
                  arc.spec
+                 mingw32-arc.spec
                  src/hed/daemon/arched.8
                  src/services/janitor/interfaces/commandline/janitor.8
                  src/services/janitor/interfaces/commandline/rjanitor.c
