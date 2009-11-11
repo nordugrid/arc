@@ -85,7 +85,7 @@ X509Token::operator bool(void) {
   return (bool)header;
 }
 
-X509Token::X509Token(SOAPEnvelope& soap) : SOAPEnvelope(soap){
+X509Token::X509Token(SOAPEnvelope& soap, const std::string& keyfile) : SOAPEnvelope(soap){
   if(!Check(soap)){
     return;    
   }
@@ -146,7 +146,7 @@ X509Token::X509Token(SOAPEnvelope& soap) : SOAPEnvelope(soap){
 
     std::string str;
     encrypted_data.GetXML(str);
-    std::cout<<"Before Decryption++++: "<<str<<std::endl;
+    //std::cout<<"Before Decryption++++: "<<str<<std::endl;
 
     xmlNodePtr todecrypt_nd = ((X509Token*)(&encrypted_data))->node_;
 
@@ -157,7 +157,7 @@ X509Token::X509Token(SOAPEnvelope& soap) : SOAPEnvelope(soap){
     std::string issuer_name = (std::string)(header["wsse:Security"]["xenc:EncryptedKey"]["ds:KeyInfo"]["wsse:SecurityTokenReference"]["ds:X509Data"]["ds:X509IssuerSerial"]["ds:X509IssuerName"]);
     std::string serial_number = (std::string)(header["wsse:Security"]["xenc:EncryptedKey"]["ds:KeyInfo"]["wsse:SecurityTokenReference"]["ds:X509Data"]["ds:X509IssuerSerial"]["ds:X509SerialNumber"]);
  
-    keys_mngr = load_key_from_keyfile(&keys_mngr, "key.pem");
+    keys_mngr = load_key_from_keyfile(&keys_mngr, keyfile.c_str());
 
     xmlSecEncCtxPtr encCtx = NULL;
     encCtx = xmlSecEncCtxCreate(keys_mngr);

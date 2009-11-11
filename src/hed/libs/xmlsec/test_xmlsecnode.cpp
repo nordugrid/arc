@@ -36,8 +36,8 @@ int main(void)
     //Sign the node
     std::string idname("ID");
     secnode.AddSignatureTemplate(idname, Arc::XMLSecNode::RSA_SHA1);  
-    std::string privkey("key.pem");
-    std::string cert("cert.pem");  
+    std::string privkey("../../../tests/echo/testkey-nopass.pem");
+    std::string cert("../../../tests/echo/testcert.pem");  
     if(secnode.SignNode(privkey,cert)) {
       std::cout<<"Succeed to sign the signature under the node"<<std::endl;
       secnode.GetXML(str);
@@ -46,7 +46,7 @@ int main(void)
     else { Arc::final_xmlsec(); return 0; }
    
     //Verify the signature
-    std::string cafile("ca.pem");
+    std::string cafile("../../../tests/echo/testcacert.pem");
     std::string capath("");
     if(secnode.VerifyNode(idname, cafile, capath)) {
       std::cout<<"Succeed to verify the signature under the node"<<std::endl;

@@ -32,8 +32,9 @@ public:
  * be used for authentication if the tokentype is Signature; otherwise 
  * if the tokentype is Encryption, the encrypted soap body will be 
  * decrypted and replaced by decrypted message.
+ * keyfile is only needed when the X509Token is encryption token 
  */
-  X509Token(SOAPEnvelope& soap);
+  X509Token(SOAPEnvelope& soap, const std::string& keyfile = "");
 
 /** Constructor. Add X509 Token information into the SOAP header.
  *Generated token contains elements X509 token and signature, and is

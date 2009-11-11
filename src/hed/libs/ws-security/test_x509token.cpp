@@ -25,8 +25,8 @@ int main(void) {
 
   Arc::init_xmlsec();
 
-  std::string cert = "cert.pem";
-  std::string key = "key.pem";  
+  std::string cert = "../../../tests/echo/testcert.pem";
+  std::string key = "../../../tests/echo/testkey-nopass.pem";  
 
   /*Generate the signature X509 Token*/
   Arc::SOAPEnvelope soap1(xml);
@@ -41,7 +41,7 @@ int main(void) {
   Arc::X509Token xt2(soap2);
   if(!xt2) {
     std::cout<<"Failed parsing previously generated X509Token"<<std::endl<<std::endl;
-  } else if(!xt2.Authenticate() || !xt2.Authenticate("ca.pem", "")) {
+  } else if(!xt2.Authenticate() || !xt2.Authenticate("../../../tests/echo/testcacert.pem", "")) {
     std::cout<<"Failed to authenticate to previously generated X509Token"<<std::endl<<std::endl;
   }
 
@@ -50,17 +50,17 @@ int main(void) {
   Arc::X509Token xt3(soap3, cert, "", Arc::X509Token::Encryption);
 
   xt3.GetXML(str);
-  std::cout<<"SOAP message with X509Token and encrypted body:"<<std::endl<<str<<std::endl<<std::endl;
+  std::cout<<"SOAP message with X509Token and encrypted body: "<<std::endl<<str<<std::endl<<std::endl;
 
   /*Parse the encryption x509 token*/
   Arc::SOAPEnvelope soap4(str);
   soap4.GetXML(str);
-  std::cout<<"SOAP message with X509Token and encrypted body"<<str<<std::endl<<std::endl;
+  std::cout<<"SOAP message with X509Token and encrypted body: "<<std::endl<<str<<std::endl<<std::endl;
 
-  Arc::X509Token xt4(soap4);
+  Arc::X509Token xt4(soap4, key);
 
   xt4.GetXML(str);
-  std::cout<<"SOAP message with decrypted body"<<str<<std::endl<<std::endl;
+  std::cout<<"SOAP message with decrypted body: "<<std::endl<<str<<std::endl<<std::endl;
  
   Arc::final_xmlsec();
   return 0;
