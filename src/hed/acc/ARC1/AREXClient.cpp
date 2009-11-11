@@ -417,9 +417,15 @@ namespace Arc {
 
     logger.msg(INFO, "Creating and sending a service status request");
 
-    WSRPGetResourcePropertyDocumentRequest WSRPReq;
-    PayloadSOAP req(WSRPReq.SOAP());
+    PayloadSOAP req(arex_ns);
+    XMLNode clusterref = req.NewChild("rp:QueryResourceProperties").NewChild("rp:QueryExpression");
+    clusterref.NewAttribute("Dialect") = "http://www.w3.org/TR/1999/REC-xpath-19991116";
+    clusterref = "//glue:Services/glue:ComputingService";
+
     WSAHeader(req).To(rurl.str());
+    WSAHeader(req).Action("http://docs.oasis-open.org/wsrf/rpw-2"
+                        "/QueryResourceProperties/QueryResourcePropertiesRequest");
+
 
     // Send status request
     PayloadSOAP *resp = NULL;
@@ -482,8 +488,10 @@ namespace Arc {
     }
     resp->XMLNode::New(status);
     delete resp;
-    if (status)
+    if (status) {
+      status.SaveToStream(std::cout); std::cout << std::endl;
       return true;
+    }
     else {
       logger.msg(ERROR, "The service status could not be retrieved");
       return false;
