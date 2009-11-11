@@ -19,35 +19,48 @@ if [ "$1" = "--config" ]; then shift; ARC_CONFIG=$1; shift; fi
 
 if [ -z "$1" ] ; then echo "Argument missing" 1>&2 ; exit 1 ; fi
 
-# Prints the owner of the file given as argument
+# Prints the uid of the owner of the file given as argument
 # Perl is used because it's more protable than using the stat command
-printowner () {
-  code='$f=$ARGV[0];if(@s=stat $f){@p=getpwuid $s[4];if(@p){print $p[0]}else{exit 1}}else{die "$f: $!\n"}'
+printuid () {
+  code='my @s = stat($ARGV[0]); print($s[4] || 0)'
   perl -we "$code" "$1"
+}
+
+#
+# Attempts to switch to uid passed as the first argument and then runs the
+# commands passed as the second argument in a shell. The remaining arguments
+# are passed as arguments to the shell. No warning is given in case switching
+# uid is not possible.
+#
+do_as_uid () {
+    test $# -ge 2 || { log "do_as_uid requires 2 arguments"; return 1; }
+
+    script='use English;
+            my ($uid, @args) = @ARGV;
+            $UID = $uid if $UID == 0;
+            system("@posix_shell@","-c",@args);
+    '
+    perl -we "$script" "$@"
 }
 
 # Append .comment (containing STDOUT & STDERR of the job wrapper) to .errors
 save_commentfile () {
-  username=$1
+  uid=$1
   commentfile=$2
   errorsfile=$3
   action="
-    { echo '---------- Contents of output stream from job wrapper -----------'
+    { echo '---------- Output of the job wrapper script -----------'
       cat '$commentfile' 2> /dev/null
       echo '------------------------- End of output -------------------------'
     } >> '$errorsfile'
   "
-  if [ -z "$username" ] ; then
-    eval "$action"
-  else
-    su "$username" -c "eval \"$action\""
-  fi
+  do_as_uid "$uid" "$action"
 }
 
 for control_dir in "$@" ; do
 
     if [ ! -d "${control_dir}" ]; then 
-	echo "No control dir $control_dir" 1>&2
+        echo "No control dir $control_dir" 1>&2
         continue
     fi
 
@@ -85,33 +98,24 @@ for control_dir in "$@" ; do
             $debug "ps returned $? - process $joboption_jobid of job $job has exited!"
         fi
 
-        $debug "checking ${joboption_directory}.diag"
-        if [ "$id" = '0' ] ; then
-          username=`printowner "${control_dir}/job.${job}.local"`
-          exitcode=`su "$username" -c "cat ${joboption_directory}.diag" 2>/dev/null | sed -n 's/^exitcode=\([0-9]*\).*/\1/p'`
-        else
-          username=
-          exitcode=`cat "${joboption_directory}.diag" 2>/dev/null | sed -n 's/^exitcode=\([0-9]*\).*/\1/p'`
-        fi
-        $debug "local user  = $username"
-        $debug "exitcode = [$exitcode] extracted from ${joboption_directory}.diag"
-        if [ -z "$exitcode" ] ; then
-	  $debug "checking ${control_dir}/job.${job}.diag"
-          exitcode=`cat "${control_dir}/job.${job}.diag" 2>/dev/null | sed -n 's/^exitcode=\([0-9]*\).*/\1/p'`
-          $debug "exitcode = [$exitcode] extracted from ${control_dir}/job.${job}.diag"
-	fi	
+        uid=$(printuid "${control_dir}/job.${job}.local")
+        $debug "local user id = $uid"
+        diagfile=${joboption_directory}.diag
+        $debug "checking $diagfile"
+        exitcode=$(do_as_uid "$uid" "cat '$diagfile'" | sed -n 's/^exitcode=\([0-9]*\).*/\1/p')
+        $debug "exitcode = [$exitcode] extracted from $diagfile"
         fork_comment=""
-	if [ -z "$exitcode" ]; then
+        if [ -z "$exitcode" ]; then
             echo "Job $job with PID $joboption_jobid died unexpectedly" 1>&2
             fork_comment="Job died unexpectedly" 1>&2
-    	    exitcode=1
-	elif [ "$exitcode" -ne '0' ]; then
+            exitcode=-1
+        elif [ "$exitcode" -ne '0' ]; then
             fork_comment="Job finished with non-zero exit code" 1>&2
-	fi
+        fi
         $debug "got exitcode=$exitcode"
-        save_commentfile "$username" "${joboption_directory}.comment" "${control_dir}/job.${job}.errors"
-	echo "$exitcode $fork_comment" > "${control_dir}/job.${job}.lrms_done"
-    done    
+        save_commentfile "$uid" "${joboption_directory}.comment" "${control_dir}/job.${job}.errors"
+        echo "$exitcode $fork_comment" > "${control_dir}/job.${job}.lrms_done"
+    done
 
 done
 
