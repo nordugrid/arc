@@ -659,6 +659,10 @@ namespace Arc {
     std::list<FileInfo> outputfiles;
 
     DataHandle handle(dir, usercfg);
+    if (!handle) {
+      logger.msg(INFO, "Failed to get handle on directory: %s", dir.str());
+      return files;
+    }
     handle->ListFiles(outputfiles, true, false, false);
 
     for (std::list<FileInfo>::iterator i = outputfiles.begin();
