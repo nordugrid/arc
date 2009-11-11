@@ -16,16 +16,48 @@ namespace Arc {
   class Logger;
   class TargetGenerator;
 
-  //! Base class for the TargetRetrievers
-  /// Must be specialiced for each supported middleware flavour.
+  /// %TargetRetriever base class
+  /**
+   * The TargetRetriever class is a pure virtual base class to be used
+   * for grid flavour specializations. It is designed to work in
+   * conjunction with the TargetGenerator.
+   **/
   class TargetRetriever
     : public Plugin {
   protected:
+
+    /// TargetRetriever constructor
+    /**
+     * Default constructor to create a TargeGenerator. The constructor
+     * reads the computing and index service URL objects from the
+     * 
+     * @param usercfg 
+     * 
+     * @param url 
+     *
+     * @param st
+     *
+     * @param flavour
+     *
+     **/
     TargetRetriever(const UserConfig& usercfg,
                     const URL& url, ServiceType st,
                     const std::string& flavour);
   public:
     virtual ~TargetRetriever();
+    /// Method for collecting targets
+    /**
+     * Pure virtual method for collecting targets. Implementation
+     * depends on the Grid middleware in question and is thus left to
+     * the specialized class.
+     *
+     * @param mom is the reference to the TargetGenerator which has loaded the TargetRetriever
+     *
+     * @param targetType is the identificaion of targets to find (0=ExecutionTargets, 1=Grid Jobs)
+     *
+     * @param detailLevel is the required level of details (1 = All details, 2 = Limited details)
+     *
+     **/ 
     virtual void GetTargets(TargetGenerator& mom, int targetType,
                             int detailLevel) = 0;
   protected:

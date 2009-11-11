@@ -59,18 +59,78 @@ namespace Arc {
   class ExecutionTarget {
 
   public:
+    /// Create an ExecutionTarget
+    /**
+     * Default constructor to create an ExecutionTarget. Takes no
+     * arguments.
+     **/
     ExecutionTarget();
+
+    /// Create an ExecutionTarget
+    /**
+     * Copy constructor.
+     *
+     * @param target ExecutionTarget to copy.
+     **/
     ExecutionTarget(const ExecutionTarget& target);
+
+    /// Create an ExecutionTarget
+    /**
+     * Copy constructor? Needed from Python?
+     *
+     * @param addrptr 
+     *
+     **/
     ExecutionTarget(const long int addrptr);
+
+    /// Create an ExecutionTarget
+    /**
+     * Assignment operator
+     *
+     * @param target is ExecutionTarget to copy.
+     *
+     **/
     ExecutionTarget& operator=(const ExecutionTarget& target);
+
     virtual ~ExecutionTarget();
 
   private:
     void Copy(const ExecutionTarget& target);
 
   public:
+    
+    /// Get Submitter to the computing resource represented by the ExecutionTarget
+    /**
+     * Method which returns a specialized Submitter which can be used
+     * for submitting jobs to the computing resource represented by
+     * the ExecutionTarget. In order to return the correct specialized
+     * Submitter the GridFlavour variable must be correctly set.
+     *
+     * @param ucfg UserConfig object with paths to user credentials
+     * etc.
+     **/
     Submitter* GetSubmitter(const UserConfig& ucfg) const;
+
+
+    /// Update ExecutionTarget after succesful job submission
+    /**
+     * Method to update the ExecutionTarget after a job succesfully
+     * has been submitted to the computing resource it
+     * represents. E.g. if a job is sent to the computing resource and
+     * is expected to enter the queue, then the WaitingJobs attribute
+     * is incremented with 1.
+     *
+     * @param jobdesc contains all information about the job
+     * submitted.
+     **/   
     void Update(const JobDescription& jobdesc);
+    
+    /// Print the ExecutionTarget information to std::cout
+    /**
+     * Method to print the ExecutionTarget attributes to std::cout
+     *
+     * @param longlist is true for long list printing.
+     **/
     void Print(bool longlist) const;
 
     // Attributes from 5.3 Location

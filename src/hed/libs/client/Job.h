@@ -9,11 +9,21 @@
 #include <string>
 
 namespace Arc {
-
+  
+  
+  /// Job
+  /**
+   * This class describe a Grid job. Most of the members contained in
+   * this class are directly linked to the ComputingActivity defined
+   * in the GLUE Specification v. 2.0 (GFD-R-P.147).
+   */
   class Job {
-
   public:
-
+    
+    /// Create a Job object
+    /**
+     * Default constructor. Takes no arguments.
+     */
     Job();
     ~Job();
 
@@ -88,6 +98,12 @@ namespace Arc {
     std::string UsedOSFamily;
     std::string UsedPlatform;
 
+    /// Print the Job information to std::cout
+    /**
+     * Method to print the Job attributes to std::cout
+     *
+     * @param longlist is boolean for long listing (more details).
+     */
     void Print(bool longlist) const;
   };
 

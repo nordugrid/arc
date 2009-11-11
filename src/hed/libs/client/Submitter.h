@@ -19,7 +19,12 @@ namespace Arc {
   class UserConfig;
 
   //! Base class for the Submitters
-  /// Must be specialiced for each supported middleware flavour.
+  /**
+   * Submitter is the base class for Grid middleware specialized
+   * Submitter objects. The class submits job(s) to the computing
+   * resource it represents and uploads (needed by the job) local
+   * input files.
+   */
   class Submitter
     : public Plugin {
   protected:

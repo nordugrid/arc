@@ -14,8 +14,14 @@ namespace Arc {
   class Logger;
   class UserConfig;
 
+  /// %JobSupervisor for loading JobControllers
+  /**
+   * The JobSupervisor loads JobControllers for managing Grid jobs. 
+   **/
   class JobSupervisor {
   public:
+
+    
     JobSupervisor(const UserConfig& usercfg,
                   const std::list<std::string>& jobs);
 
