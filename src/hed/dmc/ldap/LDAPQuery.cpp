@@ -48,10 +48,6 @@
 #include <sasl/sasl.h>
 #endif
 
-#ifndef LDAP_SASL_SIMPLE
-#define LDAP_SASL_SIMPLE 0 /* Does not exist in Win32 LDAP */
-#endif
-
 #ifndef LDAP_SASL_QUIET
 #define LDAP_SASL_QUIET 0  /* Does not exist in Solaris LDAP */
 #endif
@@ -400,11 +396,15 @@ namespace Arc {
 
     int ldresult = 0;
     if (arg->anonymous) {
+#ifdef USE_WIN32_LDAP_API
+      ldresult = ldap_simple_bind_s(arg->connection, NULL, NULL);
+#else
       BerValue cred = {
         0, const_cast<char*>("")
       };
       ldresult = ldap_sasl_bind_s(arg->connection, NULL, LDAP_SASL_SIMPLE,
                                   &cred, NULL, NULL, NULL);
+#endif
     }
     else {
 #if defined (HAVE_SASL_H) || defined (HAVE_SASL_SASL_H)
@@ -429,11 +429,15 @@ namespace Arc {
                                               my_sasl_interact,
                                               &defaults);
 #else
+#ifdef USE_WIN32_LDAP_API
+      ldresult = ldap_simple_bind_s(arg->connection, NULL, NULL);
+#else
       BerValue cred = {
         0, const_cast<char*>("")
       };
       ldresult = ldap_sasl_bind_s(arg->connection, NULL, LDAP_SASL_SIMPLE,
                                   &cred, NULL, NULL, NULL);
+#endif
 #endif
     }
 
@@ -553,6 +557,12 @@ namespace Arc {
                                             LDAP_MSG_ONE,
                                             &tout,
                                             &res)) > 0) {
+#ifdef USE_WIN32_LDAP_API
+      if (ldap_count_entries(connection, res) == 0) {
+        done = true;
+        continue;
+      }
+#endif
       for (LDAPMessage *msg = ldap_first_message(connection, res); msg;
            msg = ldap_next_message(connection, msg)) {
 
@@ -564,8 +574,8 @@ namespace Arc {
         case LDAP_RES_SEARCH_RESULT:
           done = true;
           break;
-        }                 // switch
-      }           // for
+        } // switch
+      } // for
       ldap_msgfree(res);
     }
 
