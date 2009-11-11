@@ -339,23 +339,21 @@ sub _parse_ini {
 	my $c = 0;
 	while (my $line =<ArcConfigFILE>) {
 		$c++;
-		next if $line =~/^#/;
-		next if $line =~/^$/;
-		next if $line =~/^\s+$/;
+		next if $line =~/^\s*;/;
+		next if $line =~/^\s*#/;
+		next if $line =~/^\s*$/;
 
 		if ($line =~/^\s*\[(.+)\]\s*$/ ) {
 			$blockname = $1;
 			next;}
 
-		unless ($line =~ /=\s*".*"\s*$/) {
+		unless ($line =~ m/^(\w+)\s*=\s*(["']?)(.*)(\2)\s*$/) {
 			my $msg =  "skipping incorrect $conf_file line ($c): $line";
 			printf STDERR "WARNING: %s\n", $msg;
 			next;
 		}
-
-		$line =~m/^(\w+)\s*=\s*"(.*)"\s*$/;
 		$variable_name=$1;
-		$variable_value=$2;
+		$variable_value=$3;
 		unless ($self->{$blockname}{$variable_name}) {
 			$self->{$blockname}{$variable_name} = $variable_value;}
 		else {

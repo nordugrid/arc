@@ -52,6 +52,7 @@ sub _parse($) {
     while (my $line =<$fh>) {
 
         # skip comments and empty lines
+        next if $line =~/^\s*;/;
         next if $line =~/^\s*#/;
         next if $line =~/^\s*$/;
     
