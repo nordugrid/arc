@@ -161,8 +161,8 @@ static int verify_callback(int ok,X509_STORE_CTX *sctx) {
 #endif
       //for proxy certificate, give warning 1 hour in advance
       //for EEC certificate, give warning 5 days in advance
-      if(((pos >= 0) && (timeleft <= 3600)) ||
-         (timeleft <= 5*24*3600)) {
+      if(((pos < 0) && (timeleft <= 5*24*3600)) ||
+         (timeleft <= 3600)) {
         Logger::getRootLogger().msg(WARNING,"Certificate %s will expire in %s", subject_name, timeleft.istr());
       }
     }
