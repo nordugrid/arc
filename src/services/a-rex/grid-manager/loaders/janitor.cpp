@@ -141,6 +141,11 @@ void Janitor::deploy_thread(void* arg) {
       if(run.Wait(1)) break;
       if(it.cancel_.wait(0)) { it.completed_.signal(); return; };
     };
+    if(run.Result() == 3) {
+      logger.msg(Arc::VERBOSE, "janitor deploy returned 3 - no Janitor enabled in configuration");
+      it.result_=NOTENABLED; it.completed_.signal();
+      return;
+    };
     if(run.Result() != 0) {
       logger.msg(Arc::VERBOSE, "janitor deploy failed with exit code %i",run.Result());
       it.completed_.signal();
@@ -177,6 +182,11 @@ void Janitor::remove_thread(void* arg) {
     for(;;) {
       if(run.Wait(1)) break;
       if(it.cancel_.wait(0)) { it.completed_.signal(); return; };
+    };
+    if(run.Result() == 3) {
+      logger.msg(Arc::VERBOSE, "janitor remove returned 3 - no Janitor enabled in configuration");
+      it.result_=NOTENABLED; it.completed_.signal();
+      return;
     };
     if(run.Result() != 0) {
       logger.msg(Arc::VERBOSE, "janitor remove failed with exit code %i",run.Result());

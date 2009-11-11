@@ -65,6 +65,9 @@ my $format = "   %-12s %s\n";
 
 
 
+my $initstate = Janitor::Janitor::initstate();
+exit $initstate if $initstate;
+
 
 switch ($ARGV[0]) {
 

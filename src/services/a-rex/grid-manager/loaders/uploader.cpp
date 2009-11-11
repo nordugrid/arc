@@ -559,7 +559,7 @@ exit:
     if(!janitor.wait(5*60)) {
       logger.msg(Arc::WARNING, "Janitor timeout while removing Dynamic RTE(s) associations (ignoring)");
     };
-    if(janitor.result() != Janitor::REMOVED) {
+    if(janitor.result() != Janitor::REMOVED && janitor.result() != Janitor::NOTENABLED) {
       logger.msg(Arc::WARNING, "Janitor failed to remove Dynamic RTE(s) associations (ignoring)");
     };
   };
