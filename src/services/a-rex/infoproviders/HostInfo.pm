@@ -18,7 +18,7 @@ our $host_options_schema = {
         x509_cert_dir  => '',
         sessiondir     => [ '' ],
         cachedir       => [ '*' ],
-        bindir         => '',
+        libexecdir     => '',
         configfile     => '',
         runtimedir     => '*',
         processes      => [ '' ],
@@ -250,6 +250,7 @@ sub get_host_info($) {
                 } else {
                     while(<JPIPE>) {
                         chomp(my $listentry = $_);
+                        next unless $listentry;
                         push @runtimeenvironment, $listentry
                             unless grep {$listentry eq $_} @runtimeenvironment;
                     }
@@ -274,7 +275,7 @@ sub test {
                     x509_cert_dir => '/etc/grid-security/certificates',
                     sessiondir => [ '/home/grid/session/' ],
                     cachedir => [ '/home/grid/cache' ],
-                    bindir => '/opt/nordugrid/bin',
+                    libexecdir => '/opt/nordugrid/libexec/arc',
                     runtimeDir => '/home/grid/runtime',
                     processes => [ qw(bash ps init grid-manager bogous) ],
                     localusers => [ qw(root adrianta) ] };
