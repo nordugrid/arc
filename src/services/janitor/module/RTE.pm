@@ -3,7 +3,6 @@ package Janitor::RTE;
 use Janitor::Util qw(dir_lock dir_unlock dir_lock_remove);
 use Digest::MD5 qw(md5_hex);
 use File::stat;
-use Switch;
 
 use strict;
 
@@ -382,15 +381,14 @@ sub state2string {
 	return undef unless defined $state;
 
 	my $ret;
-	switch ($state) {
-		case FAILED		{ $ret = "FAILED"; }
-		case INSTALLED_A	{ $ret = "INSTALLED_A"; }
-		case INSTALLED_M	{ $ret = "INSTALLED_M"; }
-		case VALIDATED		{ $ret = "VALIDATED"; }
-		case BROKEN		{ $ret = "BROKEN"; }
-		case INSTALLABLE	{ $ret = "INSTALLABLE"; }
-		case REMOVAL_PENDING	{ $ret = "REMOVAL_PENDING"; }
-		case UNKNOWN		{ $ret = "UNKNOWN"; }
+	if      ($state eq FAILED)          { $ret = "FAILED";
+	} elsif ($state eq INSTALLED_A)     { $ret = "INSTALLED_A";
+	} elsif ($state eq INSTALLED_M)     { $ret = "INSTALLED_M";
+	} elsif ($state eq VALIDATED)       { $ret = "VALIDATED";
+	} elsif ($state eq BROKEN)          { $ret = "BROKEN";
+	} elsif ($state eq INSTALLABLE)     { $ret = "INSTALLABLE";
+	} elsif ($state eq REMOVAL_PENDING) { $ret = "REMOVAL_PENDING";
+	} elsif ($state eq UNKNOWN)         { $ret = "UNKNOWN";
 	}
 	return $ret;
 }
@@ -407,15 +405,14 @@ sub string2state {
 	return undef unless defined $string;
 
 	my $ret;
-	switch ($string) {
-		case "FAILED"		{ $ret = FAILED; }
-		case "INSTALLED_A"	{ $ret = INSTALLED_A; }
-		case "INSTALLED_M"	{ $ret = INSTALLED_M; }
-		case "VALIDATED"	{ $ret = VALIDATED; }
-		case "BROKEN"		{ $ret = BROKEN; }
-		case "INSTALLABLE"	{ $ret = INSTALLABLE; }
-		case "REMOVAL_PENDING"	{ $ret = REMOVAL_PENDING; }
-		case "UNKNOWN"		{ $ret = UNKNOWN; }
+	if      ($string eq "FAILED")          { $ret = FAILED;
+	} elsif ($string eq "INSTALLED_A")     { $ret = INSTALLED_A;
+	} elsif ($string eq "INSTALLED_M")     { $ret = INSTALLED_M;
+	} elsif ($string eq "VALIDATED")       { $ret = VALIDATED;
+	} elsif ($string eq "BROKEN")          { $ret = BROKEN;
+	} elsif ($string eq "INSTALLABLE")     { $ret = INSTALLABLE;
+	} elsif ($string eq "REMOVAL_PENDING") { $ret = REMOVAL_PENDING;
+	} elsif ($string eq "UNKNOWN")         { $ret = UNKNOWN;
 	}
 	return $ret;
 }

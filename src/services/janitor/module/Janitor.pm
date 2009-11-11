@@ -121,8 +121,6 @@ found within the corresponding class.
 
 # export NORDUGRID_CONFIG="/nfshome/knowarc/dredesign/src/services/janitor2/conf/arc.conf"
 
-use Switch;
-
 # Log4perl :rescurrect does not work, if this is not the first command
 BEGIN {
 	# get the path of this file and add it to @INC
@@ -372,6 +370,8 @@ if (defined $manualRuntimeDir) {
         $msg = "Directory $manualRuntimeDir does not exist\n";
     } elsif ( ! -r $manualRuntimeDir ) {
         $msg = "$manualRuntimeDir is not readable\n";
+    } elsif ( ! -w $manualRuntimeDir ) {
+        $msg = "$manualRuntimeDir is not writable\n";
     }
     if (defined $msg) {
 ###l4p        $logger->fatal($msg);
@@ -410,8 +410,8 @@ sub process {
 	my ($request) =  @_;
 	# TODO: NEEDED: check_rte_exist
 
-	switch ($request->action()) {
-		case Janitor::Request::REGISTER	{ 
+	my $action = $request->action();
+	if ($action eq Janitor::Request::REGISTER) {
 			my @rteList = $request->rteList();
 			if(defined $request->jobid() and defined $rteList[0]){
 				return &register_job($request->jobid(), $request->rteList());
@@ -420,8 +420,7 @@ sub process {
 				$response->result(2, "Function was not called properly.");
 				return $response;
 			}
-		}
-		case Janitor::Request::DEPLOY	{
+	} elsif ($action eq Janitor::Request::DEPLOY) {
 			if(defined $request->jobid()){
 				return &deploy_for_job($request->jobid());
 			}else{
@@ -429,8 +428,7 @@ sub process {
 				$response->result(2, "Function was not called properly.");
 				return $response;
 			}
-		}
-		case Janitor::Request::REMOVE	{
+	} elsif ($action eq Janitor::Request::REMOVE) {
 			if(defined $request->jobid()){
 				return &remove_job($request->jobid());
 			}else{
@@ -438,14 +436,11 @@ sub process {
 				$response->result(2, "Function was not called properly.");
 				return $response;
 			}
-		}
-		case Janitor::Request::SWEEP	{
+	} elsif ($action eq Janitor::Request::SWEEP) {
 			return &sweep($request->force());
-		}
-		case Janitor::Request::LIST	{
+	} elsif ($action eq Janitor::Request::LIST) {
 			return &list_info();
-		}
-		case Janitor::Request::INFO	{
+	} elsif ($action eq Janitor::Request::INFO) {
 			if(defined $request->jobid()){
 				return &list_job_info($request->jobid());
 			}else{
@@ -453,8 +448,7 @@ sub process {
 				$response->result(2, "Function was not called properly.");
 				return $response;
 			}
-		}
-		case Janitor::Request::SETSTATE	{
+	} elsif ($action eq Janitor::Request::SETSTATE) {
 			my @rteList = $request->rteList();
 			if(defined $request->state() and defined $rteList[0]){
 				return &setstate($request->state(), @rteList);
@@ -463,8 +457,7 @@ sub process {
 				$response->result(2, "Function was not called properly.");
 				return $response;
 			}
-		}
-		case Janitor::Request::SEARCH	{
+	} elsif ($action eq Janitor::Request::SEARCH) {
 			my @rteList = $request->rteList();
 			if(defined $rteList[0]){
 				return &search(@rteList);
@@ -473,7 +466,6 @@ sub process {
 				$response->result(2, "Function was not called properly.");
 				return $response;
 			}
-		}
 	}
 
 	my $response = new Janitor::Response(Janitor::Response::INFO);
