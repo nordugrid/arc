@@ -43,7 +43,7 @@
     // do the call
     int soap_err = SOAP_OK;
     if((soap_err=soap_call_SRMv2__srmPing(&soapobj, csoap->SOAP_URL(), "srmPing", request, response_struct)) != SOAP_OK){
-      logger.msg(Arc::DEBUG, "SOAP request failed (%s)", "srmPing");
+      logger.msg(Arc::VERBOSE, "SOAP request failed (%s)", "srmPing");
       if(report_error) soap_print_fault(&soapobj, stderr);
       csoap->disconnect();
       return SRM_ERROR_SOAP;
@@ -52,7 +52,7 @@
     // get the version info
     if (response_struct.srmPingResponse->versionInfo) {
       version = response_struct.srmPingResponse->versionInfo;
-      logger.msg(Arc::DEBUG, "Server SRM version: %s", version);
+      logger.msg(Arc::VERBOSE, "Server SRM version: %s", version);
   
       // get the implementation
       if (response_struct.srmPingResponse->otherInfo) {
@@ -62,19 +62,19 @@
           if(strcmp((char*)extrainfo->key, "backend_type") != 0) continue;
           if(strcmp((char*)extrainfo->value, "dCache") == 0) {
             implementation = SRM_IMPLEMENTATION_DCACHE;
-            logger.msg(Arc::DEBUG, "Server implementation: %s", "dCache");
+            logger.msg(Arc::VERBOSE, "Server implementation: %s", "dCache");
           }
           else if(strcmp((char*)extrainfo->value, "CASTOR") == 0) {
             implementation = SRM_IMPLEMENTATION_CASTOR;
-            logger.msg(Arc::DEBUG, "Server implementation: %s", "CASTOR");
+            logger.msg(Arc::VERBOSE, "Server implementation: %s", "CASTOR");
           }
           else if(strcmp((char*)extrainfo->value, "DPM") == 0) {
             implementation = SRM_IMPLEMENTATION_DPM;
-            logger.msg(Arc::DEBUG, "Server implementation: %s", "DPM");
+            logger.msg(Arc::VERBOSE, "Server implementation: %s", "DPM");
           }
           else if(strcmp((char*)extrainfo->value, "StoRM") == 0) {
             implementation = SRM_IMPLEMENTATION_STORM;
-            logger.msg(Arc::DEBUG, "Server implementation: %s", "StoRM");
+            logger.msg(Arc::VERBOSE, "Server implementation: %s", "StoRM");
           };
         };
       };
@@ -114,7 +114,7 @@
     for(int i = 0; i < response_inst->arrayOfSpaceTokens->__sizestringArray; i++) {
   
       std::string token(response_inst->arrayOfSpaceTokens->stringArray[i]);
-      logger.msg(Arc::DEBUG, "Adding space token %s", token);
+      logger.msg(Arc::VERBOSE, "Adding space token %s", token);
       tokens.push_back(token);
     };
   
@@ -158,7 +158,7 @@
     for(int i = 0; i < response_inst->arrayOfRequestTokens->__sizetokenArray; i++) {
   
       std::string token(response_inst->arrayOfRequestTokens->tokenArray[i]->requestToken);
-      logger.msg(Arc::DEBUG, "Adding request token %s", token);
+      logger.msg(Arc::VERBOSE, "Adding request token %s", token);
       tokens.push_back(token);
     };
   
@@ -230,7 +230,7 @@
         // sleep for recommended time (within limits)
         sleeptime = sleeptime<1?1:sleeptime;
         sleeptime = sleeptime>request_timeout ? request_timeout-request_time : sleeptime;
-        logger.msg(Arc::DEBUG, "%s: File request %s in SRM queue. Sleeping for %i seconds", req.surls().front(), request_token, sleeptime);
+        logger.msg(Arc::VERBOSE, "%s: File request %s in SRM queue. Sleeping for %i seconds", req.surls().front(), request_token, sleeptime);
         sleep(sleeptime);
         request_time += sleeptime;
   
@@ -287,7 +287,7 @@
     // the file is ready and pinned - we can get the TURL
     char * turl = file_statuses->statusArray[0]->transferURL;
   
-    logger.msg(Arc::DEBUG, "File is ready! TURL is %s", turl);
+    logger.msg(Arc::VERBOSE, "File is ready! TURL is %s", turl);
     urls.push_back(std::string(turl));
   
     return SRM_OK;
@@ -331,7 +331,7 @@
     // store the user id as part of the request, so they can find it later
     char * user = const_cast<char*>(g_get_user_name());
     if (user) {
-      logger.msg(Arc::DEBUG, "Setting userRequestDescription to %s", user);
+      logger.msg(Arc::VERBOSE, "Setting userRequestDescription to %s", user);
       request->userRequestDescription = user;
     };
   
@@ -450,22 +450,22 @@
       // so we have to look at the explanation string for the real reason.
       std::string explanation(sobo_response_struct.srmStatusOfBringOnlineRequestResponse->returnStatus->explanation);
       if(explanation.find("All files are done") != std::string::npos) {
-        logger.msg(Arc::DEBUG, "Request is reported as ABORTED, but all files are done");
+        logger.msg(Arc::VERBOSE, "Request is reported as ABORTED, but all files are done");
         req.finished_success();
         return SRM_OK;
       }
       else if(explanation.find("Canceled") != std::string::npos) {
-        logger.msg(Arc::DEBUG, "Request is reported as ABORTED, since it was cancelled");
+        logger.msg(Arc::VERBOSE, "Request is reported as ABORTED, since it was cancelled");
         req.cancelled();
         return SRM_OK;
       }
       else if(explanation.length() != 0){
-        logger.msg(Arc::DEBUG, "Request is reported as ABORTED. Reason: %s", explanation);
+        logger.msg(Arc::VERBOSE, "Request is reported as ABORTED. Reason: %s", explanation);
         req.finished_error();
         return SRM_ERROR_PERMANENT;
       }
       else {
-        logger.msg(Arc::DEBUG, "Request is reported as ABORTED");
+        logger.msg(Arc::VERBOSE, "Request is reported as ABORTED");
         req.finished_error();
         return SRM_ERROR_PERMANENT;
       }
@@ -595,7 +595,7 @@
         // sleep for recommended time (within limits)
         sleeptime = sleeptime<1?1:sleeptime;
         sleeptime = sleeptime>request_timeout ? request_timeout-request_time : sleeptime;
-        logger.msg(Arc::DEBUG, "%s: File request %s in SRM queue. Sleeping for %i seconds", req.surls().front(), request_token, sleeptime);
+        logger.msg(Arc::VERBOSE, "%s: File request %s in SRM queue. Sleeping for %i seconds", req.surls().front(), request_token, sleeptime);
         sleep(sleeptime);
         request_time += sleeptime;
   
@@ -642,7 +642,7 @@
               file_statuses->statusArray[0]->status->statusCode &&
               file_statuses->statusArray[0]->status->statusCode == SRMv2__TStatusCode__SRM_USCOREINVALID_USCOREPATH) {
             // make directories
-            logger.msg(Arc::DEBUG, "Path %s is invalid, creating required directories", req.surls().front());
+            logger.msg(Arc::VERBOSE, "Path %s is invalid, creating required directories", req.surls().front());
             SRMReturnCode mkdirres = mkDir(req);
             if (mkdirres == SRM_OK) return putTURLs(req, urls, size);
             logger.msg(Arc::ERROR, "Error creating required directories for %s", req.surls().front());
@@ -668,7 +668,7 @@
           file_statuses->statusArray[0]->status->statusCode &&
           file_statuses->statusArray[0]->status->statusCode == SRMv2__TStatusCode__SRM_USCOREINVALID_USCOREPATH) {
         // make directories
-        logger.msg(Arc::DEBUG, "Path %s is invalid, creating required directories", req.surls().front());
+        logger.msg(Arc::VERBOSE, "Path %s is invalid, creating required directories", req.surls().front());
         SRMReturnCode mkdirres = mkDir(req);
         if (mkdirres == SRM_OK) return putTURLs(req, urls, size);
         logger.msg(Arc::ERROR, "Error creating required directories for %s", req.surls().front());
@@ -684,7 +684,7 @@
     // the file is ready and pinned - we can get the TURL
     char * turl = file_statuses->statusArray[0]->transferURL;
   
-    logger.msg(Arc::DEBUG, "File is ready! TURL is %s", turl);
+    logger.msg(Arc::VERBOSE, "File is ready! TURL is %s", turl);
     urls.push_back(std::string(turl));
   
     return SRM_OK;
@@ -760,7 +760,7 @@
             request_time < request_timeout) {
   
         // sleep for some time (no estimated time is given by the server)
-        logger.msg(Arc::DEBUG, "%s: File request %s in SRM queue. Sleeping for %i seconds", req.surls().front(), request_token, sleeptime);
+        logger.msg(Arc::VERBOSE, "%s: File request %s in SRM queue. Sleeping for %i seconds", req.surls().front(), request_token, sleeptime);
         sleep(sleeptime);
         request_time += sleeptime;
   
@@ -1048,7 +1048,7 @@
     };
   
     // release went ok
-    logger.msg(Arc::DEBUG, "Files associated with request token %s released successfully", req.request_token());
+    logger.msg(Arc::VERBOSE, "Files associated with request token %s released successfully", req.request_token());
     return SRM_OK;
   
   };
@@ -1097,7 +1097,7 @@
     };
   
     // release went ok
-    logger.msg(Arc::DEBUG, "Files associated with request token %s put done successfully", req.request_token());
+    logger.msg(Arc::VERBOSE, "Files associated with request token %s put done successfully", req.request_token());
     return SRM_OK;
   
   };
@@ -1134,7 +1134,7 @@
     };
   
     // release went ok
-    logger.msg(Arc::DEBUG, "Files associated with request token %s aborted successfully", req.request_token());
+    logger.msg(Arc::VERBOSE, "Files associated with request token %s aborted successfully", req.request_token());
     return SRM_OK;
   
   };
@@ -1155,11 +1155,11 @@
     };
   
     if(metadata.front().fileType == SRM_FILE) {
-      logger.msg(Arc::DEBUG, "Type is file, calling srmRm");
+      logger.msg(Arc::VERBOSE, "Type is file, calling srmRm");
       return removeFile(req);
     };
     if(metadata.front().fileType == SRM_DIRECTORY) {
-      logger.msg(Arc::DEBUG, "Type is dir, calling srmRmDir");
+      logger.msg(Arc::VERBOSE, "Type is dir, calling srmRmDir");
       return removeDir(req);
     };
   
@@ -1205,7 +1205,7 @@
     };
   
     // remove went ok
-    logger.msg(Arc::DEBUG, "File %s removed successfully", req.surls().front());
+    logger.msg(Arc::VERBOSE, "File %s removed successfully", req.surls().front());
     return SRM_OK;
   
   };
@@ -1242,7 +1242,7 @@
     };
   
     // remove went ok
-    logger.msg(Arc::DEBUG, "Directory %s removed successfully", req.surls().front());
+    logger.msg(Arc::VERBOSE, "Directory %s removed successfully", req.surls().front());
     return SRM_OK;
   
   };
@@ -1306,7 +1306,7 @@
         // sleep for recommended time (within limits)
         sleeptime = sleeptime<1?1:sleeptime;
         sleeptime = sleeptime>10?10:sleeptime;
-        logger.msg(Arc::DEBUG, "%s: File request %s in SRM queue. Sleeping for %i seconds", req.surls().front(), request_token, sleeptime);
+        logger.msg(Arc::VERBOSE, "%s: File request %s in SRM queue. Sleeping for %i seconds", req.surls().front(), request_token, sleeptime);
         sleep(sleeptime);
         request_time += sleeptime;
   
@@ -1375,14 +1375,14 @@
       SRMClientRequest listreq(dirname);
       std::list<struct SRMFileMetaData> metadata;
       if (keeplisting) {
-        logger.msg(Arc::DEBUG, "Checking for existence of %s", dirname);
+        logger.msg(Arc::VERBOSE, "Checking for existence of %s", dirname);
         if (info(listreq, metadata, -1) == SRM_OK) {
           slashpos = surl.find("/", slashpos+1);
           continue;
         }; 
       };
       
-      logger.msg(Arc::DEBUG, "Creating directory %s", dirname);
+      logger.msg(Arc::VERBOSE, "Creating directory %s", dirname);
       // construct mkdir request
       xsd__anyURI dir = (char*)dirname.c_str();
       SRMv2__srmMkdirRequest * request = new SRMv2__srmMkdirRequest;

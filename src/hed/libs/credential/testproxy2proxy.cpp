@@ -13,7 +13,7 @@
 int main(void) {
   Arc::LogStream cdest(std::cerr);
   Arc::Logger::getRootLogger().addDestination(cdest);
-  Arc::Logger::getRootLogger().setThreshold(Arc::VERBOSE);
+  Arc::Logger::getRootLogger().setThreshold(Arc::DEBUG);
 
   std::string cafile("../../../tests/echo/testcacert.pem");
   std::string cadir("../../../tests/echo/certificates");

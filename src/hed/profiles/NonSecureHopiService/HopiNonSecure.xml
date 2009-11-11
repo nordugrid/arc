@@ -6,7 +6,7 @@
  xmlns:echo="urn:echo_config">
 	<Server>
 		<Pidfile>/tmp/arched.pid</Pidfile>
-		<Logger level="VERBOSE">/tmp/arched.log</Logger>
+		<Logger level="DEBUG">/tmp/arched.log</Logger>
 	</Server>
 	<ModuleManager>
 		<Path>/usr/lib/arc</Path>

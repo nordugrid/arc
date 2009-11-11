@@ -407,7 +407,7 @@ namespace Arc {
       }
       parsed = ParseRSL();
       if (!parsed)
-        logger.msg(DEBUG, "RSL parsing failed at position %ld", n);
+        logger.msg(VERBOSE, "RSL parsing failed at position %ld", n);
       else {
         SkipWS();
         if (n != std::string::npos) {
@@ -705,7 +705,7 @@ namespace Arc {
       int status;
       std::string attr = ParseString(status);
       if (status != 1) {
-        logger.msg(DEBUG, "Expected attribute name at position %ld", n);
+        logger.msg(VERBOSE, "Expected attribute name at position %ld", n);
         return NULL;
       }
       if (attr.find_first_of("+&|()=<>!\"'^#$") != std::string::npos) {
@@ -716,7 +716,7 @@ namespace Arc {
       SkipWS();
       RSLRelOp op = ParseRelOp();
       if (op == RSLRelError) {
-        logger.msg(DEBUG, "Expected relation operator at position %ld", n);
+        logger.msg(VERBOSE, "Expected relation operator at position %ld", n);
         return NULL;
       }
       SkipWS();

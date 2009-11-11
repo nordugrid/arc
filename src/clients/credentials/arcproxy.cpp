@@ -201,7 +201,7 @@ int main(int argc, char *argv[]) {
 
   std::string debug;
   options.AddOption('d', "debug",
-                    istring("FATAL, ERROR, WARNING, INFO, DEBUG or VERBOSE"),
+                    istring("FATAL, ERROR, WARNING, INFO, VERBOSE or DEBUG"),
                     istring("debuglevel"), debug);
 
   bool version = false;
@@ -490,7 +490,7 @@ int main(int argc, char *argv[]) {
         ret_str.append(ret_buf, len);
         memset(ret_buf, 0, 1024);
       } while (len == 1024);
-      logger.msg(Arc::VERBOSE, "Returned msg from myproxy server: %s", ret_str.c_str());
+      logger.msg(Arc::DEBUG, "Returned msg from myproxy server: %s", ret_str.c_str());
       if (ret_str.find("RESPONSE=0") == std::string::npos) {
         //TODO: process "RESPONSE=2"
         logger.msg(Arc::ERROR, "Myproxy server return failure msg");
@@ -532,14 +532,14 @@ int main(int argc, char *argv[]) {
         ret_str1.append(ret_buf, len);
         memset(ret_buf, 0, 1024);
       } while (len == 1024);
-      logger.msg(Arc::VERBOSE, "Returned msg from myproxy server: %s", ret_str1.c_str());
+      logger.msg(Arc::DEBUG, "Returned msg from myproxy server: %s", ret_str1.c_str());
 
       //The response includes a signed certificate
       BIO *bio = BIO_new(BIO_s_mem());
       BIO_write(bio, (unsigned char*)(ret_str1.c_str()), ret_str1.length());
       unsigned char number_of_certs;
       BIO_read(bio, &number_of_certs, sizeof(number_of_certs));
-      logger.msg(Arc::VERBOSE, "There are %d certificates in the returned msg", number_of_certs);
+      logger.msg(Arc::DEBUG, "There are %d certificates in the returned msg", number_of_certs);
       std::string proxy_cert_str;
       for (;;) {
         char s[256];
@@ -584,7 +584,7 @@ int main(int argc, char *argv[]) {
         ret_str2.append(ret_buf, len);
         memset(ret_buf, 0, 1024);
       } while (len == 1024);
-      logger.msg(Arc::VERBOSE, "Returned msg from myproxy server: %s", ret_str2.c_str());
+      logger.msg(Arc::DEBUG, "Returned msg from myproxy server: %s", ret_str2.c_str());
       if (ret_str.find("RESPONSE=0") == std::string::npos) {
         //TODO: process "RESPONSE=2"
         logger.msg(Arc::ERROR, "Myproxy server return failure msg");
@@ -822,7 +822,7 @@ int main(int argc, char *argv[]) {
           ret_str.append(ret_buf, len);
           memset(ret_buf, 0, 1024);
         } while (len == 1024);
-        logger.msg(Arc::DEBUG, "Returned msg from voms server: %s ", ret_str.c_str());
+        logger.msg(Arc::VERBOSE, "Returned msg from voms server: %s ", ret_str.c_str());
         if (ret_str.find("error") != std::string::npos)
           throw std::runtime_error("Cannot get any AC or attributes info from voms server: " + voms_server);
 
@@ -965,7 +965,7 @@ int main(int argc, char *argv[]) {
         ret_str.append(ret_buf, len);
         memset(ret_buf, 0, 1024);
       } while (len == 1024);
-      logger.msg(Arc::VERBOSE, "Returned msg from myproxy server: %s", ret_str.c_str());
+      logger.msg(Arc::DEBUG, "Returned msg from myproxy server: %s", ret_str.c_str());
       if (ret_str.find("RESPONSE=0") == std::string::npos) {
         //TODO: process "RESPONSE=2"
         logger.msg(Arc::ERROR, "Myproxy server return failure msg");
@@ -982,7 +982,7 @@ int main(int argc, char *argv[]) {
         x509ret_str.append(ret_buf, len);
         memset(ret_buf, 0, 1024);
       } while (len == 1024);
-      logger.msg(Arc::VERBOSE, "Returned msg from myproxy server: %s", x509ret_str.c_str());
+      logger.msg(Arc::DEBUG, "Returned msg from myproxy server: %s", x509ret_str.c_str());
       if (ret_str.find("RESPONSE=1") != std::string::npos) {
         logger.msg(Arc::ERROR, "Myproxy server return failure msg");
         return EXIT_FAILURE;
@@ -1045,7 +1045,7 @@ int main(int argc, char *argv[]) {
         ret_str1.append(ret_buf, len);
         memset(ret_buf, 0, 1024);
       } while (len == 1024);
-      logger.msg(Arc::VERBOSE, "Returned msg from myproxy server: %s", ret_str1.c_str());
+      logger.msg(Arc::DEBUG, "Returned msg from myproxy server: %s", ret_str1.c_str());
       if (ret_str.find("RESPONSE=0") == std::string::npos) {
         //TODO: process "RESPONSE=2"
         logger.msg(Arc::ERROR, "Myproxy server return failure msg");

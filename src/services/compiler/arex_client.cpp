@@ -144,7 +144,7 @@ namespace Arc {
       };
     }; 
     act_doc.GetXML(jsdl_str);
-    logger.msg(Arc::VERBOSE, "Job description to be sent: %s",jsdl_str);
+    logger.msg(Arc::DEBUG, "Job description to be sent: %s",jsdl_str);
 
     // Try to figure out which credentials are used
     // TODO: Method used is unstable beacuse it assumes some predefined 

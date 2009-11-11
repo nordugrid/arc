@@ -11,7 +11,7 @@ class LoggerTest
 
   CPPUNIT_TEST_SUITE(LoggerTest);
   CPPUNIT_TEST(TestLoggerINFO);
-  CPPUNIT_TEST(TestLoggerDEBUG);
+  CPPUNIT_TEST(TestLoggerVERBOSE);
   CPPUNIT_TEST_SUITE_END();
 
 public:
@@ -19,7 +19,7 @@ public:
   void tearDown();
 
   void TestLoggerINFO();
-  void TestLoggerDEBUG();
+  void TestLoggerVERBOSE();
 
 private:
   std::stringstream stream;
@@ -42,7 +42,7 @@ void LoggerTest::tearDown() {
 
 void LoggerTest::TestLoggerINFO() {
   std::string res;
-  logger->msg(Arc::DEBUG, "This DEBUG message should not be seen");
+  logger->msg(Arc::VERBOSE, "This VERBOSE message should not be seen");
   res = stream.str();
   CPPUNIT_ASSERT(res.empty());
 
@@ -54,13 +54,13 @@ void LoggerTest::TestLoggerINFO() {
 }
 
 
-void LoggerTest::TestLoggerDEBUG() {
+void LoggerTest::TestLoggerVERBOSE() {
   std::string res;
-  logger->setThreshold(Arc::DEBUG);
-  logger->msg(Arc::DEBUG, "This DEBUG message should now be seen");
+  logger->setThreshold(Arc::VERBOSE);
+  logger->msg(Arc::VERBOSE, "This VERBOSE message should now be seen");
   res = stream.str();
   res = res.substr(res.rfind(']') + 2);
-  CPPUNIT_ASSERT_EQUAL(res, std::string("This DEBUG message should now be seen\n"));
+  CPPUNIT_ASSERT_EQUAL(res, std::string("This VERBOSE message should now be seen\n"));
   stream.str("");
 
   logger->msg(Arc::INFO, "This INFO message should also be seen");

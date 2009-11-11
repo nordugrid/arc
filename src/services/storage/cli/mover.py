@@ -2,7 +2,7 @@
 import arc, sys, os
 root_logger = arc.Logger_getRootLogger()
 root_logger.addDestination(arc.LogStream(sys.stdout))
-root_logger.setThreshold(arc.VERBOSE)
+root_logger.setThreshold(arc.DEBUG)
 
 from arcom import datapoint_from_url
 

@@ -146,10 +146,10 @@ bool GACLPDP::isPermitted(Message *msg){
     };
     delete cauth;
   };
-  if(VERBOSE >= logger.getThreshold()) {
+  if(DEBUG >= logger.getThreshold()) {
     std::string s;
     requestxml.GetXML(s);
-    logger.msg(VERBOSE,"GACL Auth. request: %s",s);
+    logger.msg(DEBUG,"GACL Auth. request: %s",s);
   };
   if(requestxml.Size() <= 0) {
     logger.msg(ERROR,"No requested security information was collected");

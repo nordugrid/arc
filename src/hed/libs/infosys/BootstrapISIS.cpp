@@ -26,13 +26,13 @@ struct Registrar_data {
 };
 
     void InfoRegistrar::initISIS(XMLNode cfg) {
-        logger_.msg(DEBUG, "Initialize ISIS handler");
+        logger_.msg(VERBOSE, "Initialize ISIS handler");
         // Process configuration
         defaultBootstrapISIS.url   = (std::string)cfg["URL"];
         if(defaultBootstrapISIS.url.empty()) {
             logger_.msg(ERROR, "Can't recognize URL: %s",(std::string)cfg["URL"]);
         } else {
-            //logger_.msg(DEBUG, "InfoRegistrar created for URL: %s",(std::string)cfg["URL"]);
+            //logger_.msg(VERBOSE, "InfoRegistrar created for URL: %s",(std::string)cfg["URL"]);
         }
         defaultBootstrapISIS.key = (std::string)cfg["KeyPath"];
         defaultBootstrapISIS.cert = (std::string)cfg["CertificatePath"];
@@ -47,11 +47,11 @@ struct Registrar_data {
 
         //getISISList(myISIS);
         myISISList_initialized = false;
-        logger_.msg(DEBUG, "Initialize ISIS handler successed");
+        logger_.msg(VERBOSE, "Initialize ISIS handler successed");
     }
 
     void InfoRegistrar::removeISIS(ISIS_description isis) {
-        logger_.msg(DEBUG, "Remove ISIS (%s) from list", isis.url);
+        logger_.msg(VERBOSE, "Remove ISIS (%s) from list", isis.url);
         // Remove isis from myISISList
         for (std::vector<ISIS_description>::iterator it = myISISList.begin();
              it < myISISList.end() && ((*it).url != myISIS.url || myISISList.erase(it) == it); it++);
@@ -71,8 +71,8 @@ struct Registrar_data {
     }
 
     void InfoRegistrar::getISISList(ISIS_description isis) {
-        logger_.msg(DEBUG, "getISISList from %s", isis.url);
-        logger_.msg(DEBUG, "Key %s, Cert: %s, CA: %s", isis.key, isis.cert, isis.cadir);
+        logger_.msg(VERBOSE, "getISISList from %s", isis.url);
+        logger_.msg(VERBOSE, "Key %s, Cert: %s, CA: %s", isis.key, isis.cert, isis.cadir);
         // Try to get ISISList from the actual ISIS
         // Compose getISISList request
         NS query_ns;
@@ -104,9 +104,9 @@ struct Registrar_data {
             reconnection++;
             // If the given ISIS wasn't available try reconnect
             if (!status.isOk() || !response || !bool((*response)["GetISISListResponse"])) {
-                logger_.msg(DEBUG, "ISIS (%s) is not avaliable or not valid response. (%d. reconnection)", isis.url, reconnection);
+                logger_.msg(VERBOSE, "ISIS (%s) is not avaliable or not valid response. (%d. reconnection)", isis.url, reconnection);
             } else {
-                logger_.msg(DEBUG, "Connection to the ISIS (%s) is success and get the list of ISIS.", isis.url);
+                logger_.msg(VERBOSE, "Connection to the ISIS (%s) is success and get the list of ISIS.", isis.url);
                 break;
             }
         }
@@ -133,7 +133,7 @@ struct Registrar_data {
                 new_ISIS.cadir = defaultBootstrapISIS.cadir;
                 new_ISIS.cafile = defaultBootstrapISIS.cafile;
                 myISISList.push_back(new_ISIS);
-                logger_.msg(DEBUG, "GetISISList add this (%s) ISIS into the list.", new_ISIS.url);
+                logger_.msg(VERBOSE, "GetISISList add this (%s) ISIS into the list.", new_ISIS.url);
             }
             i++;
         }
@@ -145,14 +145,14 @@ struct Registrar_data {
         std::srand(time(NULL));
         ISIS_description rndISIS = myISISList[std::rand() % myISISList.size()];
 
-        logger_.msg(DEBUG, "Chosen ISIS for communication: %s", rndISIS.url);
+        logger_.msg(VERBOSE, "Chosen ISIS for communication: %s", rndISIS.url);
         myISIS = rndISIS;
 
         if (response) delete response;
     }
 
     ISIS_description InfoRegistrar::getISIS(void) {
-        logger_.msg(DEBUG, "Get ISIS from list of ISIS handler");
+        logger_.msg(VERBOSE, "Get ISIS from list of ISIS handler");
         if (myISISList.size() == 0) {
             if ( myISIS.url == defaultBootstrapISIS.url ) {
                 logger_.msg(WARNING, "There is no more ISIS available. The list of ISIS's is already empty.");

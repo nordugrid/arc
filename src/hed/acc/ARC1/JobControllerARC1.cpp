@@ -52,7 +52,7 @@ namespace Arc {
   bool JobControllerARC1::GetJob(const Job& job,
                                  const std::string& downloaddir) {
 
-    logger.msg(DEBUG, "Downloading job: %s", job.JobID.str());
+    logger.msg(VERBOSE, "Downloading job: %s", job.JobID.str());
 
     std::string path = job.JobID.Path();
     std::string::size_type pos = path.rfind('/');
@@ -115,7 +115,7 @@ namespace Arc {
       logger.msg(ERROR, "Job %s does not report a resumable state", job.JobID.str());
       //return false;
 
-    logger.msg(DEBUG, "Resuming job: %s at state: %s", job.JobID.str(), job.RestartState);
+    logger.msg(VERBOSE, "Resuming job: %s at state: %s", job.JobID.str(), job.RestartState);
 
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);
@@ -124,7 +124,7 @@ namespace Arc {
     AREXClient::createActivityIdentifier(job.JobID, idstr);
     bool ok = ac.resume(idstr);
     if (ok)
-      logger.msg(DEBUG, "Job resuming successful");
+      logger.msg(VERBOSE, "Job resuming successful");
     return ok;
   }
 

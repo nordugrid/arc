@@ -61,7 +61,7 @@ InfoCache::InfoCache(const Config &cfg, const std::string &service_id)
 {
     std::string cfg_s;
     cfg.GetXML(cfg_s);
-    logger.msg(VERBOSE,"Cache configuration: %s",cfg_s);
+    logger.msg(DEBUG,"Cache configuration: %s",cfg_s);
     std::string root = std::string(cfg["CacheRoot"]);
     if(root.empty()) {
         logger.msg(ERROR,"Missing cache root in configuration");
@@ -71,13 +71,13 @@ InfoCache::InfoCache(const Config &cfg, const std::string &service_id)
         logger.msg(ERROR,"Missing service id");
         return;
     }
-    logger.msg(VERBOSE,"Cache root: %s",root);
+    logger.msg(DEBUG,"Cache root: %s",root);
     if (!create_directory(root)) return;
     std::string id(service_id);
     std::string sdir = Glib::build_filename(root, id);
     if (!create_directory(sdir)) return;
     path_base=sdir;
-    logger.msg(VERBOSE,"Cache directory: %s",path_base);
+    logger.msg(DEBUG,"Cache directory: %s",path_base);
 }
 
 InfoCache::~InfoCache()

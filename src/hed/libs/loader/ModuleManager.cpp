@@ -20,7 +20,7 @@ ModuleManager::ModuleManager(const Config *cfg)
 { 
   if(cfg==NULL) return;
   if(!(*cfg)) return;
-  ModuleManager::logger.msg(VERBOSE, "Module Manager Init");
+  ModuleManager::logger.msg(DEBUG, "Module Manager Init");
   if(!MatchXMLName(*cfg,"ArcConfig")) return;
   XMLNode mm = (*cfg)["ModuleManager"];
   for (int n = 0;;++n) {
@@ -50,7 +50,7 @@ std::string ModuleManager::findLocation(const std::string& name)
   std::vector<std::string>::const_iterator i = plugin_dir.begin();
   for (; i != plugin_dir.end(); i++) {
     path = Glib::Module::build_path(*i, name);
-    // Loader::logger.msg(DEBUG, "Try load %s", path);
+    // Loader::logger.msg(VERBOSE, "Try load %s", path);
     FILE *file = fopen(path.c_str(), "r");
     if (file == NULL) {
       continue;
@@ -95,14 +95,14 @@ Glib::Module *ModuleManager::load(const std::string& name,bool probe /*,bool rel
   {
     plugin_cache_t::iterator p = plugin_cache.find(name);
     if (p != plugin_cache.end()) {
-      ModuleManager::logger.msg(VERBOSE, "Found %s in cache", name);
+      ModuleManager::logger.msg(DEBUG, "Found %s in cache", name);
       p->second.load();
       return static_cast<Glib::Module*>(p->second);
     }
   }
   std::string path = findLocation(name);
   if(path.empty()) {
-    ModuleManager::logger.msg(DEBUG, "Could not locate module %s", name);
+    ModuleManager::logger.msg(VERBOSE, "Could not locate module %s", name);
     return NULL;
   };
   Glib::ModuleFlags flags = Glib::ModuleFlags(0);
@@ -113,7 +113,7 @@ Glib::Module *ModuleManager::load(const std::string& name,bool probe /*,bool rel
     if(module) delete module;
     return NULL;
   }
-  ModuleManager::logger.msg(VERBOSE, "Loaded %s", path);
+  ModuleManager::logger.msg(DEBUG, "Loaded %s", path);
   (plugin_cache[name] = module).load();
   return module;
 }
@@ -172,11 +172,11 @@ bool ModuleManager::makePersistent(const std::string& name) {
     plugin_cache_t::iterator p = plugin_cache.find(name);
     if (p != plugin_cache.end()) {
       p->second.makePersistent();
-      ModuleManager::logger.msg(VERBOSE, "%s made persistent", name);
+      ModuleManager::logger.msg(DEBUG, "%s made persistent", name);
       return true;
     }
   }
-  ModuleManager::logger.msg(VERBOSE, "Not found %s in cache", name);
+  ModuleManager::logger.msg(DEBUG, "Not found %s in cache", name);
   return false;
 }
 
@@ -184,12 +184,12 @@ bool ModuleManager::makePersistent(Glib::Module* module) {
   for(plugin_cache_t::iterator p = plugin_cache.begin();
                                p!=plugin_cache.end();++p) {
     if(p->second == module) {
-      ModuleManager::logger.msg(VERBOSE, "%s made persistent", p->first);
+      ModuleManager::logger.msg(DEBUG, "%s made persistent", p->first);
       p->second.makePersistent();
       return true;
     }
   }
-  ModuleManager::logger.msg(VERBOSE, "Specified module not found in cache");
+  ModuleManager::logger.msg(DEBUG, "Specified module not found in cache");
   return false;
 }
 

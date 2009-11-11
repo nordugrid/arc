@@ -120,7 +120,7 @@ namespace Arc
     component.NewChild("next").NewAttribute("id")="http";
 
     clientchain.GetDoc(dump,true);
-    logger.msg(Arc::DEBUG, "Client chain configuration: %s",
+    logger.msg(Arc::VERBOSE, "Client chain configuration: %s",
                dump.c_str() );
 
     //Get Batch Size:
@@ -178,7 +178,7 @@ namespace Arc
     logger.msg(Arc::INFO, 
                "Logging UR set of %d URs.",
                urn);
-    logger.msg(Arc::VERBOSE, 
+    logger.msg(Arc::DEBUG, 
                "UR set dump: %s",
                urstr.c_str());
   

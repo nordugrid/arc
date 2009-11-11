@@ -73,7 +73,7 @@ bool LoggerClient::ReportV2(const char* url_,std::list<JobRecord>& info) {
   for(std::list<JobRecord>::iterator i = info.begin();i!=info.end();++i) {
     req.NewChild(*i);
   };
-Arc::Logger::rootLogger.setThreshold(Arc::VERBOSE);
+Arc::Logger::rootLogger.setThreshold(Arc::DEBUG);
   Arc::PayloadSOAP* resp = NULL;
   Arc::MCC_Status r = client->process(&req,&resp);
 Arc::Logger::rootLogger.setThreshold(Arc::WARNING);

@@ -28,13 +28,13 @@ namespace Arc {
 
     for (std::list<ExecutionTarget>::iterator target = targets.begin();
          target != targets.end(); target++) {
-      logger.msg(DEBUG, "Performing matchmaking against target (%s).", target->url.str());
+      logger.msg(VERBOSE, "Performing matchmaking against target (%s).", target->url.str());
 
       if (!job->Resources.CandidateTarget.empty()) {
         if (target->url.Host().empty())
-          logger.msg(DEBUG, "URL of ExecutionTarget is not properly defined");
+          logger.msg(VERBOSE, "URL of ExecutionTarget is not properly defined");
         if (target->MappingQueue.empty())
-          logger.msg(DEBUG, "MappingQueue of ExecutionTarget (%s) is not defined", target->url.str());
+          logger.msg(VERBOSE, "MappingQueue of ExecutionTarget (%s) is not defined", target->url.str());
 
         bool dropTarget = true;
 
@@ -44,13 +44,13 @@ namespace Arc {
 
             if (!it->EndPointURL.Host().empty() &&
                 target->url.Host().empty()) { // Drop target since URL is not defined.
-              logger.msg(DEBUG, "URL of ExecutionTarget is not properly defined: %s.", target->url.str());
+              logger.msg(VERBOSE, "URL of ExecutionTarget is not properly defined: %s.", target->url.str());
               break;
             }
 
             if (!it->QueueName.empty() &&
                 target->MappingQueue.empty()) { // Drop target since MappingQueue is not published.
-              logger.msg(DEBUG, "MappingQueue of ExecutionTarget is not published, and a queue (%s) have been requested.", it->QueueName);
+              logger.msg(VERBOSE, "MappingQueue of ExecutionTarget is not published, and a queue (%s) have been requested.", it->QueueName);
               break;
             }
 
@@ -68,12 +68,12 @@ namespace Arc {
           }
 
           if (dropTarget) {
-            logger.msg(DEBUG, "ExecutionTarget does not satisfy any of the CandidateTargets.");
+            logger.msg(VERBOSE, "ExecutionTarget does not satisfy any of the CandidateTargets.");
             continue;
           }
         }
         else {
-          logger.msg(DEBUG, "Neither URL or MappingQueue is reported by the cluster");
+          logger.msg(VERBOSE, "Neither URL or MappingQueue is reported by the cluster");
           continue;
         }
       }
@@ -81,7 +81,7 @@ namespace Arc {
       if ((int)job->Application.ProcessingStartTime.GetTime() != -1) {
         if ((int)target->DowntimeStarts.GetTime() != -1 && (int)target->DowntimeEnds.GetTime() != -1) {
           if (target->DowntimeStarts <= job->Application.ProcessingStartTime && job->Application.ProcessingStartTime <= target->DowntimeEnds) {
-            logger.msg(DEBUG, "ProcessingStartTime (%s) specified in job description is inside the targets downtime period [ %s - %s ].", (std::string)job->Application.ProcessingStartTime, (std::string)target->DowntimeStarts, (std::string)target->DowntimeEnds);
+            logger.msg(VERBOSE, "ProcessingStartTime (%s) specified in job description is inside the targets downtime period [ %s - %s ].", (std::string)job->Application.ProcessingStartTime, (std::string)target->DowntimeStarts, (std::string)target->DowntimeEnds);
             continue;
           }
         }
@@ -92,24 +92,24 @@ namespace Arc {
       if (!target->HealthState.empty()) {
 
         if (target->HealthState != "ok") { // Enumeration for healthstate: ok, critical, other, unknown, warning
-          logger.msg(DEBUG, "HealthState of ExecutionTarget (%s) is not OK (%s)", target->url.str(), target->HealthState);
+          logger.msg(VERBOSE, "HealthState of ExecutionTarget (%s) is not OK (%s)", target->url.str(), target->HealthState);
           continue;
         }
       }
       else {
-        logger.msg(DEBUG, "Matchmaking, ExecutionTarget:  %s, HealthState is not defined", target->url.str());
+        logger.msg(VERBOSE, "Matchmaking, ExecutionTarget:  %s, HealthState is not defined", target->url.str());
         continue;
       }
 
       if (!job->Resources.CEType.empty()) {
         if (!target->Implementation().empty()) {
           if (!job->Resources.CEType.isSatisfied(target->Implementation)) {
-            logger.msg(DEBUG, "Matchmaking, Computing endpoint requirement not satisfied. ExecutionTarget: %s", (std::string)target->Implementation);
+            logger.msg(VERBOSE, "Matchmaking, Computing endpoint requirement not satisfied. ExecutionTarget: %s", (std::string)target->Implementation);
             continue;
           }
         }
         else {
-          logger.msg(DEBUG, "Matchmaking, ExecutionTarget:  %s, ImplementationName is not defined", target->url.str());
+          logger.msg(VERBOSE, "Matchmaking, ExecutionTarget:  %s, ImplementationName is not defined", target->url.str());
           continue;
         }
       }
@@ -139,7 +139,7 @@ namespace Arc {
               if (jTime->second->benchmark.first.empty()) { // No benchmark defined, do not scale.
                 if (i%2 == 0 && jTime->second->range.max > etTime[i].second ||
                     i%2 == 1 && jTime->second->range.min < etTime[i].second) {
-                  logger.msg(DEBUG,
+                  logger.msg(VERBOSE,
                              "Matchmaking, %s (%d) is %s than %s (%d) published by the ExecutionTarget.",
                              jTime->first,
                              (i%2 == 0 ? jTime->second->range.max
@@ -154,7 +154,7 @@ namespace Arc {
                 if (target->Benchmarks.find(jTime->second->benchmark.first) != target->Benchmarks.end()) {
                   if (i%2 == 0 && jTime->second->scaleMax(target->Benchmarks.find(jTime->second->benchmark.first)->second) > etTime[i].second ||
                       i%2 == 1 && jTime->second->scaleMin(target->Benchmarks.find(jTime->second->benchmark.first)->second) < etTime[i].second) {
-                    logger.msg(DEBUG,
+                    logger.msg(VERBOSE,
                                "Matchmaking, The %s scaled %s (%d) is %s than the %s (%d) published by the ExecutionTarget.",
                                jTime->second->benchmark.first,
                                jTime->first,
@@ -167,7 +167,7 @@ namespace Arc {
                   }
                 }
                 else {
-                  logger.msg(DEBUG, "Matchmaking, Benchmark %s is not published by the ExecutionTarget.", jTime->second->benchmark.first);
+                  logger.msg(VERBOSE, "Matchmaking, Benchmark %s is not published by the ExecutionTarget.", jTime->second->benchmark.first);
                   break;
                 }
               }
@@ -183,19 +183,19 @@ namespace Arc {
       if (job->Resources.IndividualPhysicalMemory != -1) {
         if (target->MainMemorySize != -1) {     // Example: 678
           if (target->MainMemorySize < job->Resources.IndividualPhysicalMemory) {
-            logger.msg(DEBUG, "Matchmaking, MainMemorySize problem, ExecutionTarget: %d (MainMemorySize), JobDescription: %d (IndividualPhysicalMemory)", target->MainMemorySize, job->Resources.IndividualPhysicalMemory.max);
+            logger.msg(VERBOSE, "Matchmaking, MainMemorySize problem, ExecutionTarget: %d (MainMemorySize), JobDescription: %d (IndividualPhysicalMemory)", target->MainMemorySize, job->Resources.IndividualPhysicalMemory.max);
             continue;
           }
         }
         else if (target->MaxMainMemory != -1) {     // Example: 678
           if (target->MaxMainMemory < job->Resources.IndividualPhysicalMemory) {
-            logger.msg(DEBUG, "Matchmaking, MaxMainMemory problem, ExecutionTarget: %d (MaxMainMemory), JobDescription: %d (IndividualPhysicalMemory)", target->MaxMainMemory, job->Resources.IndividualPhysicalMemory.max);
+            logger.msg(VERBOSE, "Matchmaking, MaxMainMemory problem, ExecutionTarget: %d (MaxMainMemory), JobDescription: %d (IndividualPhysicalMemory)", target->MaxMainMemory, job->Resources.IndividualPhysicalMemory.max);
             continue;
           }
 
         }
         else {
-          logger.msg(DEBUG, "Matchmaking, ExecutionTarget: %s, MaxMainMemory and MainMemorySize are not defined", target->url.str());
+          logger.msg(VERBOSE, "Matchmaking, ExecutionTarget: %s, MaxMainMemory and MainMemorySize are not defined", target->url.str());
           continue;
         }
       }
@@ -203,12 +203,12 @@ namespace Arc {
       if (job->Resources.IndividualVirtualMemory != -1) {
         if (target->MaxVirtualMemory != -1) {     // Example: 678
           if (target->MaxVirtualMemory < job->Resources.IndividualVirtualMemory) {
-            logger.msg(DEBUG, "Matchmaking, MaxVirtualMemory problem, ExecutionTarget: %d (MaxVirtualMemory), JobDescription: %d (IndividualVirtualMemory)", target->MaxVirtualMemory, job->Resources.IndividualVirtualMemory.max);
+            logger.msg(VERBOSE, "Matchmaking, MaxVirtualMemory problem, ExecutionTarget: %d (MaxVirtualMemory), JobDescription: %d (IndividualVirtualMemory)", target->MaxVirtualMemory, job->Resources.IndividualVirtualMemory.max);
             continue;
           }
         }
         else {
-          logger.msg(DEBUG, "Matchmaking, ExecutionTarget: %s, MaxVirtualMemory is not defined", target->url.str());
+          logger.msg(VERBOSE, "Matchmaking, ExecutionTarget: %s, MaxVirtualMemory is not defined", target->url.str());
           continue;
         }
       }
@@ -216,12 +216,12 @@ namespace Arc {
       if (!job->Resources.Platform.empty()) {
         if (!target->Platform.empty()) {    // Example: i386
           if (target->Platform != job->Resources.Platform) {
-            logger.msg(DEBUG, "Matchmaking, Platform problem, ExecutionTarget: %s (Platform) JobDescription: %s (Platform)", target->Platform, job->Resources.Platform);
+            logger.msg(VERBOSE, "Matchmaking, Platform problem, ExecutionTarget: %s (Platform) JobDescription: %s (Platform)", target->Platform, job->Resources.Platform);
             continue;
           }
         }
         else {
-          logger.msg(DEBUG, "Matchmaking, ExecutionTarget:  %s, Platform is not defined", target->url.str());
+          logger.msg(VERBOSE, "Matchmaking, ExecutionTarget:  %s, Platform is not defined", target->url.str());
           continue;
         }
       }
@@ -229,12 +229,12 @@ namespace Arc {
       if (!job->Resources.OperatingSystem.empty()) {
         if (!target->OperatingSystem.empty()) {
           if (!job->Resources.OperatingSystem.isSatisfied(target->OperatingSystem)) {
-            logger.msg(DEBUG, "Matchmaking, ExecutionTarget: %s, OperatingSystem requirements not satisfied", target->url.str());
+            logger.msg(VERBOSE, "Matchmaking, ExecutionTarget: %s, OperatingSystem requirements not satisfied", target->url.str());
             continue;
           }
         }
         else {
-          logger.msg(DEBUG, "Matchmaking, ExecutionTarget:  %s,  OperatingSystem is not defined", target->url.str());
+          logger.msg(VERBOSE, "Matchmaking, ExecutionTarget:  %s,  OperatingSystem is not defined", target->url.str());
           continue;
         }
       }
@@ -242,12 +242,12 @@ namespace Arc {
       if (!job->Resources.RunTimeEnvironment.empty()) {
         if (!target->ApplicationEnvironments.empty()) {
           if (!job->Resources.RunTimeEnvironment.isSatisfied(target->ApplicationEnvironments)) {
-            logger.msg(DEBUG, "Matchmaking, ExecutionTarget:  %s, RunTimeEnvironment requirements not satisfied", target->url.str());
+            logger.msg(VERBOSE, "Matchmaking, ExecutionTarget:  %s, RunTimeEnvironment requirements not satisfied", target->url.str());
             continue;
           }
         }
         else {
-          logger.msg(DEBUG, "Matchmaking, ExecutionTarget: %s, ApplicationEnvironments not defined", target->url.str());
+          logger.msg(VERBOSE, "Matchmaking, ExecutionTarget: %s, ApplicationEnvironments not defined", target->url.str());
           continue;
         }
       }
@@ -256,11 +256,11 @@ namespace Arc {
         if (!target->NetworkInfo.empty()) {    // Example: infiniband
           if (std::find(target->NetworkInfo.begin(), target->NetworkInfo.end(),
                         job->Resources.NetworkInfo) == target->NetworkInfo.end()) {
-            logger.msg(DEBUG, "Matchmaking, NetworkInfo demand not fulfilled, ExecutionTarget do not support %s, specified in the JobDescription.", job->Resources.NetworkInfo);
+            logger.msg(VERBOSE, "Matchmaking, NetworkInfo demand not fulfilled, ExecutionTarget do not support %s, specified in the JobDescription.", job->Resources.NetworkInfo);
             continue;
           }
           else {
-            logger.msg(DEBUG, "Matchmaking, ExecutionTarget:  %s, NetworkInfo is not defined", target->url.str());
+            logger.msg(VERBOSE, "Matchmaking, ExecutionTarget:  %s, NetworkInfo is not defined", target->url.str());
             continue;
           }
         }
@@ -268,18 +268,18 @@ namespace Arc {
       if (job->Resources.DiskSpaceRequirement.SessionDiskSpace != -1) {
         if (target->MaxDiskSpace != -1) {     // Example: 5656
           if (target->MaxDiskSpace < job->Resources.DiskSpaceRequirement.SessionDiskSpace) {
-            logger.msg(DEBUG, "Matchmaking, MaxDiskSpace problem, ExecutionTarget: %d (MaxDiskSpace) JobDescription: %d (SessionDiskSpace)", target->MaxDiskSpace, job->Resources.DiskSpaceRequirement.SessionDiskSpace);
+            logger.msg(VERBOSE, "Matchmaking, MaxDiskSpace problem, ExecutionTarget: %d (MaxDiskSpace) JobDescription: %d (SessionDiskSpace)", target->MaxDiskSpace, job->Resources.DiskSpaceRequirement.SessionDiskSpace);
             continue;
           }
         }
         else if (target->WorkingAreaTotal != -1) {     // Example: 5656
           if (target->WorkingAreaTotal < job->Resources.DiskSpaceRequirement.SessionDiskSpace) {
-            logger.msg(DEBUG, "Matchmaking, WorkingAreaTotal problem, ExecutionTarget: %d (WorkingAreaTotal) JobDescription: %d (SessionDiskSpace)", target->WorkingAreaTotal, job->Resources.DiskSpaceRequirement.SessionDiskSpace);
+            logger.msg(VERBOSE, "Matchmaking, WorkingAreaTotal problem, ExecutionTarget: %d (WorkingAreaTotal) JobDescription: %d (SessionDiskSpace)", target->WorkingAreaTotal, job->Resources.DiskSpaceRequirement.SessionDiskSpace);
             continue;
           }
         }
         else {
-          logger.msg(DEBUG, "Matchmaking, ExecutionTarget:  %s, MaxDiskSpace and WorkingAreaTotal are not defined", target->url.str());
+          logger.msg(VERBOSE, "Matchmaking, ExecutionTarget:  %s, MaxDiskSpace and WorkingAreaTotal are not defined", target->url.str());
           continue;
         }
       }
@@ -287,18 +287,18 @@ namespace Arc {
       if (job->Resources.DiskSpaceRequirement.DiskSpace != -1 && job->Resources.DiskSpaceRequirement.CacheDiskSpace != -1) {
         if (target->MaxDiskSpace != -1) {     // Example: 5656
           if (target->MaxDiskSpace < job->Resources.DiskSpaceRequirement.DiskSpace - job->Resources.DiskSpaceRequirement.CacheDiskSpace) {
-            logger.msg(DEBUG, "Matchmaking, MaxDiskSpace >= DiskSpace - CacheDiskSpace problem, ExecutionTarget: %d (MaxDiskSpace) JobDescription: %d (DiskSpace) - %d (CacheDiskSpace)", target->MaxDiskSpace, job->Resources.DiskSpaceRequirement.DiskSpace.max, job->Resources.DiskSpaceRequirement.CacheDiskSpace);
+            logger.msg(VERBOSE, "Matchmaking, MaxDiskSpace >= DiskSpace - CacheDiskSpace problem, ExecutionTarget: %d (MaxDiskSpace) JobDescription: %d (DiskSpace) - %d (CacheDiskSpace)", target->MaxDiskSpace, job->Resources.DiskSpaceRequirement.DiskSpace.max, job->Resources.DiskSpaceRequirement.CacheDiskSpace);
             continue;
           }
         }
         else if (target->WorkingAreaTotal != -1) {     // Example: 5656
           if (target->WorkingAreaTotal < job->Resources.DiskSpaceRequirement.DiskSpace - job->Resources.DiskSpaceRequirement.CacheDiskSpace) {
-            logger.msg(DEBUG, "Matchmaking, WorkingAreaTotal >= DiskSpace - CacheDiskSpace problem, ExecutionTarget: %d (MaxDiskSpace) JobDescription: %d (DiskSpace) - %d (CacheDiskSpace)", target->WorkingAreaTotal, job->Resources.DiskSpaceRequirement.DiskSpace.max, job->Resources.DiskSpaceRequirement.CacheDiskSpace);
+            logger.msg(VERBOSE, "Matchmaking, WorkingAreaTotal >= DiskSpace - CacheDiskSpace problem, ExecutionTarget: %d (MaxDiskSpace) JobDescription: %d (DiskSpace) - %d (CacheDiskSpace)", target->WorkingAreaTotal, job->Resources.DiskSpaceRequirement.DiskSpace.max, job->Resources.DiskSpaceRequirement.CacheDiskSpace);
             continue;
           }
         }
         else {
-          logger.msg(DEBUG, "Matchmaking, ExecutionTarget:  %s, MaxDiskSpace and WorkingAreaTotal are not defined", target->url.str());
+          logger.msg(VERBOSE, "Matchmaking, ExecutionTarget:  %s, MaxDiskSpace and WorkingAreaTotal are not defined", target->url.str());
           continue;
         }
       }
@@ -306,18 +306,18 @@ namespace Arc {
       if (job->Resources.DiskSpaceRequirement.DiskSpace != -1) {
         if (target->MaxDiskSpace != -1) {     // Example: 5656
           if (target->MaxDiskSpace < job->Resources.DiskSpaceRequirement.DiskSpace) {
-            logger.msg(DEBUG, "Matchmaking, MaxDiskSpace problem, ExecutionTarget: %d (MaxDiskSpace) JobDescription: %d (DiskSpace)", target->MaxDiskSpace, job->Resources.DiskSpaceRequirement.DiskSpace.max);
+            logger.msg(VERBOSE, "Matchmaking, MaxDiskSpace problem, ExecutionTarget: %d (MaxDiskSpace) JobDescription: %d (DiskSpace)", target->MaxDiskSpace, job->Resources.DiskSpaceRequirement.DiskSpace.max);
             continue;
           }
         }
         else if (target->WorkingAreaTotal != -1) {     // Example: 5656
           if (target->WorkingAreaTotal < job->Resources.DiskSpaceRequirement.DiskSpace) {
-            logger.msg(DEBUG, "Matchmaking, WorkingAreaTotal problem, ExecutionTarget: %d (WorkingAreaTotal) JobDescription: %d (DiskSpace)", target->WorkingAreaTotal, job->Resources.DiskSpaceRequirement.DiskSpace.max);
+            logger.msg(VERBOSE, "Matchmaking, WorkingAreaTotal problem, ExecutionTarget: %d (WorkingAreaTotal) JobDescription: %d (DiskSpace)", target->WorkingAreaTotal, job->Resources.DiskSpaceRequirement.DiskSpace.max);
             continue;
           }
         }
         else {
-          logger.msg(DEBUG, "Matchmaking, ExecutionTarget:  %s, MaxDiskSpace and WorkingAreaTotal are not defined", target->url.str());
+          logger.msg(VERBOSE, "Matchmaking, ExecutionTarget:  %s, MaxDiskSpace and WorkingAreaTotal are not defined", target->url.str());
           continue;
         }
       }
@@ -325,12 +325,12 @@ namespace Arc {
       if (job->Resources.DiskSpaceRequirement.CacheDiskSpace != -1) {
         if (target->CacheTotal != -1) {     // Example: 5656
           if (target->CacheTotal < job->Resources.DiskSpaceRequirement.CacheDiskSpace) {
-            logger.msg(DEBUG, "Matchmaking, CacheTotal problem, ExecutionTarget: %d (CacheTotal) JobDescription: %d (CacheDiskSpace)", target->CacheTotal, job->Resources.DiskSpaceRequirement.CacheDiskSpace);
+            logger.msg(VERBOSE, "Matchmaking, CacheTotal problem, ExecutionTarget: %d (CacheTotal) JobDescription: %d (CacheDiskSpace)", target->CacheTotal, job->Resources.DiskSpaceRequirement.CacheDiskSpace);
             continue;
           }
         }
         else {
-          logger.msg(DEBUG, "Matchmaking, ExecutionTarget:  %s, CacheTotal is not defined", target->url.str());
+          logger.msg(VERBOSE, "Matchmaking, ExecutionTarget:  %s, CacheTotal is not defined", target->url.str());
           continue;
         }
       }
@@ -338,19 +338,19 @@ namespace Arc {
       if (job->Resources.SlotRequirement.NumberOfSlots != -1) {
         if (target->TotalSlots != -1) {     // Example: 5656
           if (target->TotalSlots < job->Resources.SlotRequirement.NumberOfSlots) {
-            logger.msg(DEBUG, "Matchmaking, TotalSlots problem, ExecutionTarget: %d (TotalSlots) JobDescription: %d (NumberOfProcesses)", target->TotalSlots, job->Resources.SlotRequirement.NumberOfSlots.max);
+            logger.msg(VERBOSE, "Matchmaking, TotalSlots problem, ExecutionTarget: %d (TotalSlots) JobDescription: %d (NumberOfProcesses)", target->TotalSlots, job->Resources.SlotRequirement.NumberOfSlots.max);
             continue;
           }
         }
         if (target->MaxSlotsPerJob != -1) {     // Example: 5656
           if (target->MaxSlotsPerJob < job->Resources.SlotRequirement.NumberOfSlots) {
-            logger.msg(DEBUG, "Matchmaking, MaxSlotsPerJob problem, ExecutionTarget: %d (MaxSlotsPerJob) JobDescription: %d (NumberOfProcesses)", target->TotalSlots, job->Resources.SlotRequirement.NumberOfSlots.max);
+            logger.msg(VERBOSE, "Matchmaking, MaxSlotsPerJob problem, ExecutionTarget: %d (MaxSlotsPerJob) JobDescription: %d (NumberOfProcesses)", target->TotalSlots, job->Resources.SlotRequirement.NumberOfSlots.max);
             continue;
           }
         }
 
         if (target->TotalSlots == -1 && target->MaxSlotsPerJob == -1) {
-          logger.msg(DEBUG, "Matchmaking, ExecutionTarget:  %s, TotalSlots and MaxSlotsPerJob are not defined", target->url.str());
+          logger.msg(VERBOSE, "Matchmaking, ExecutionTarget:  %s, TotalSlots and MaxSlotsPerJob are not defined", target->url.str());
           continue;
         }
       }
@@ -358,12 +358,12 @@ namespace Arc {
       if ((int)job->Resources.SessionLifeTime.GetPeriod() != -1) {
         if ((int)target->WorkingAreaLifeTime.GetPeriod() != -1) {     // Example: 123
           if (target->WorkingAreaLifeTime < job->Resources.SessionLifeTime) {
-            logger.msg(DEBUG, "Matchmaking, WorkingAreaLifeTime problem, ExecutionTarget: %s (WorkingAreaLifeTime) JobDescription: %s (SessionLifeTime)", (std::string)target->WorkingAreaLifeTime, (std::string)job->Resources.SessionLifeTime);
+            logger.msg(VERBOSE, "Matchmaking, WorkingAreaLifeTime problem, ExecutionTarget: %s (WorkingAreaLifeTime) JobDescription: %s (SessionLifeTime)", (std::string)target->WorkingAreaLifeTime, (std::string)job->Resources.SessionLifeTime);
             continue;
           }
         }
         else {
-          logger.msg(DEBUG, "Matchmaking, ExecutionTarget:  %s, WorkingAreaLifeTime is not defined", target->url.str());
+          logger.msg(VERBOSE, "Matchmaking, ExecutionTarget:  %s, WorkingAreaLifeTime is not defined", target->url.str());
           continue;
         }
       }
@@ -371,14 +371,14 @@ namespace Arc {
       if ((job->Resources.NodeAccess == NAT_INBOUND ||
            job->Resources.NodeAccess == NAT_INOUTBOUND) &&
           !target->ConnectivityIn) {     // Example: false (boolean)
-        logger.msg(DEBUG, "Matchmaking, ConnectivityIn problem, ExecutionTarget: %s (ConnectivityIn) JobDescription: %s (InBound)", (job->Resources.NodeAccess == NAT_INBOUND ? "INBOUND" : "INOUTBOUND"), (target->ConnectivityIn ? "true" : "false"));
+        logger.msg(VERBOSE, "Matchmaking, ConnectivityIn problem, ExecutionTarget: %s (ConnectivityIn) JobDescription: %s (InBound)", (job->Resources.NodeAccess == NAT_INBOUND ? "INBOUND" : "INOUTBOUND"), (target->ConnectivityIn ? "true" : "false"));
         continue;
       }
 
       if ((job->Resources.NodeAccess == NAT_OUTBOUND ||
            job->Resources.NodeAccess == NAT_INOUTBOUND) &&
           !target->ConnectivityOut) {     // Example: false (boolean)
-        logger.msg(DEBUG, "Matchmaking, ConnectivityOut problem, ExecutionTarget: %s (ConnectivityOut) JobDescription: %s (OutBound)", (job->Resources.NodeAccess == NAT_OUTBOUND ? "OUTBOUND" : "INOUTBOUND"), (target->ConnectivityIn ? "true" : "false"));
+        logger.msg(VERBOSE, "Matchmaking, ConnectivityOut problem, ExecutionTarget: %s (ConnectivityOut) JobDescription: %s (OutBound)", (job->Resources.NodeAccess == NAT_OUTBOUND ? "OUTBOUND" : "INOUTBOUND"), (target->ConnectivityIn ? "true" : "false"));
         continue;
       }
 
@@ -386,13 +386,13 @@ namespace Arc {
 
     } //end loop over all found targets
 
-    logger.msg(DEBUG, "Possible targets after prefiltering: %d", PossibleTargets.size());
+    logger.msg(VERBOSE, "Possible targets after prefiltering: %d", PossibleTargets.size());
 
     std::list<ExecutionTarget*>::iterator iter = PossibleTargets.begin();
 
     for (int i = 1; iter != PossibleTargets.end(); iter++, i++) {
-      logger.msg(DEBUG, "%d. Cluster: %s", i, (*iter)->DomainName);
-      logger.msg(DEBUG, "Health State: %s", (*iter)->HealthState);
+      logger.msg(VERBOSE, "%d. Cluster: %s", i, (*iter)->DomainName);
+      logger.msg(VERBOSE, "Health State: %s", (*iter)->HealthState);
     }
 
     TargetSortingDone = false;
@@ -403,7 +403,7 @@ namespace Arc {
       return NULL;
 
     if (!TargetSortingDone) {
-      logger.msg(VERBOSE, "Target sorting not done, sorting them now");
+      logger.msg(DEBUG, "Target sorting not done, sorting them now");
       SortTargets();
       current = PossibleTargets.begin();
     }

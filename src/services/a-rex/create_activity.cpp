@@ -30,7 +30,7 @@ Arc::MCC_Status ARexService::CreateActivity(ARexGMConfig& config,Arc::XMLNode in
   {
     std::string s;
     in.GetXML(s);
-    logger_.msg(Arc::DEBUG, "CreateActivity: request = \n%s", s);
+    logger_.msg(Arc::VERBOSE, "CreateActivity: request = \n%s", s);
   };
   Arc::XMLNode jsdl = in["ActivityDocument"]["JobDefinition"];
   if(!jsdl) {
@@ -101,11 +101,11 @@ Arc::MCC_Status ARexService::CreateActivity(ARexGMConfig& config,Arc::XMLNode in
   identifier.ReferenceParameters().NewChild("a-rex:JobID")=job.ID();
   identifier.ReferenceParameters().NewChild("a-rex:JobSessionDir")=config.Endpoint()+"/"+job.ID();
   out.NewChild(in["ActivityDocument"]);
-  logger_.msg(Arc::DEBUG, "CreateActivity finished successfully");
+  logger_.msg(Arc::VERBOSE, "CreateActivity finished successfully");
   {
     std::string s;
     out.GetXML(s);
-    logger_.msg(Arc::DEBUG, "CreateActivity: response = \n%s", s);
+    logger_.msg(Arc::VERBOSE, "CreateActivity: response = \n%s", s);
   };
   return Arc::MCC_Status(Arc::STATUS_OK);
 }

@@ -93,7 +93,7 @@ GridSchedulerService::CreateActivity(Arc::XMLNode& in, Arc::XMLNode& out)
         identifier.ReferenceParameters().NewChild("a-rex:JobID") = job.getID();
         out.NewChild(in["ActivityDocument"]);
     }
-    logger_.msg(Arc::DEBUG, "CreateActivity finished successfully");
+    logger_.msg(Arc::VERBOSE, "CreateActivity finished successfully");
     return Arc::MCC_Status(Arc::STATUS_OK);
 }
 

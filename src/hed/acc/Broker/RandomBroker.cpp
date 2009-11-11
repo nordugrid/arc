@@ -29,10 +29,10 @@ namespace Arc {
 
     std::list<ExecutionTarget*>::iterator iter = PossibleTargets.begin();
 
-    logger.msg(DEBUG, "Matching against job description, following targets possible for RandomBroker: %d", PossibleTargets.size());
+    logger.msg(VERBOSE, "Matching against job description, following targets possible for RandomBroker: %d", PossibleTargets.size());
 
     for (int i = 1; iter != PossibleTargets.end(); iter++, i++)
-      logger.msg(DEBUG, "%d. Cluster: %s", i, (*iter)->DomainName);
+      logger.msg(VERBOSE, "%d. Cluster: %s", i, (*iter)->DomainName);
 
     int i, j;
     std::srand(time(NULL));
@@ -47,12 +47,12 @@ namespace Arc {
       std::iter_swap(itI, itJ);
     }
 
-    logger.msg(DEBUG, "Best targets are: %d", PossibleTargets.size());
+    logger.msg(VERBOSE, "Best targets are: %d", PossibleTargets.size());
 
     iter = PossibleTargets.begin();
 
     for (int i = 1; iter != PossibleTargets.end(); iter++, i++)
-      logger.msg(DEBUG, "%d. Cluster: %s", i, (*iter)->DomainName);
+      logger.msg(VERBOSE, "%d. Cluster: %s", i, (*iter)->DomainName);
     TargetSortingDone = true;
   }
 

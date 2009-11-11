@@ -268,7 +268,7 @@ namespace Arc {
       if(l == 0) break;
       std::string buf_str;
       for(globus_size_t n=0;n<l;n++) buf_str += buf[n];
-      logger.msg(VERBOSE, "clear_input: %s", buf_str);
+      logger.msg(DEBUG, "clear_input: %s", buf_str);
     };
     return true;
   }
@@ -286,7 +286,7 @@ namespace Arc {
       globus_object_t* err = globus_error_get(result);
       char* tmp=globus_object_printable_to_string(err);
       if(strstr(tmp,"end-of-file") != NULL) {
-        logger.msg(VERBOSE, "Connection closed");
+        logger.msg(DEBUG, "Connection closed");
         res=2; // eof
       } else {
         logger.msg(ERROR, "Globus error (read): %s", tmp);
@@ -296,7 +296,7 @@ namespace Arc {
     } else {
       std::string buf_str;
       for(globus_size_t n=0;n<nbytes;n++) buf_str += buf[n];
-      logger.msg(VERBOSE, "*** Server response: %s", buf_str);
+      logger.msg(DEBUG, "*** Server response: %s", buf_str);
       if(it->read_size) *(it->read_size)=nbytes;
     };
     it->cond.lock();
@@ -313,7 +313,7 @@ namespace Arc {
     } else {
       std::string buf_str;
       for(globus_size_t n=0;n<nbytes;n++) buf_str += buf[n];
-      logger.msg(VERBOSE, "*** Client request: %s", buf_str);
+      logger.msg(DEBUG, "*** Client request: %s", buf_str);
     };
     it->cond.lock();
     it->write_done=res; it->cond.signal_nonblock();
@@ -321,7 +321,7 @@ namespace Arc {
   }
   
   globus_bool_t HTTPSClientConnectorGlobus::authorization_callback(void* arg,globus_io_handle_t* h,globus_result_t result,char* identity,gss_ctx_id_t context_handle) {
-    logger.msg(VERBOSE, "Authenticating: %s", identity);
+    logger.msg(DEBUG, "Authenticating: %s", identity);
     return GLOBUS_TRUE;
   }
   
@@ -567,9 +567,9 @@ namespace Arc {
       int conf_state;
       data_tok.length=write_size;
       data_tok.value=(void*)write_buf;
-      logger.msg(VERBOSE, "*** Client request: %s", (char*)(data_tok.value));
-      //for(globus_size_t n=0;n<data_tok.length;n++) odlog_(VERBOSE)<<((char*)(data_tok.value))[n];
-      //odlog_(VERBOSE));
+      logger.msg(DEBUG, "*** Client request: %s", (char*)(data_tok.value));
+      //for(globus_size_t n=0;n<data_tok.length;n++) odlog_(DEBUG)<<((char*)(data_tok.value))[n];
+      //odlog_(DEBUG));
       major_status = gss_wrap(&minor_status,
                               context,
                               0,
@@ -607,9 +607,9 @@ namespace Arc {
         logger.msg(ERROR, "Failed unwrapping GSI token: %s", gss_error_string(major_status,minor_status));
         return false;
       };
-      logger.msg(VERBOSE, "*** Server response: %s", (char*)(data_tok.value));
-      //for(globus_size_t n=0;n<data_tok.length;n++) odlog_(VERBOSE)<<((char*)(data_tok.value))[n];
-      //odlog_(VERBOSE));
+      logger.msg(DEBUG, "*** Server response: %s", (char*)(data_tok.value));
+      //for(globus_size_t n=0;n<data_tok.length;n++) odlog_(DEBUG)<<((char*)(data_tok.value))[n];
+      //odlog_(DEBUG));
   
       if(data_tok.length > read_size) {
         logger.msg(ERROR, "Unwrapped data does not fit into buffer");

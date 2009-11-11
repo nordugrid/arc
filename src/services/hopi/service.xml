@@ -5,7 +5,7 @@
 >
     <Server>
         <Foreground/>
-        <Logger level="VERBOSE">./log</Logger>
+        <Logger level="DEBUG">./log</Logger>
     </Server>
     <ModuleManager>
         <Path>../../hed/mcc/http/.libs/</Path>

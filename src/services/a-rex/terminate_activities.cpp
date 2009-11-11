@@ -26,7 +26,7 @@ Arc::MCC_Status ARexService::TerminateActivities(ARexGMConfig& config,Arc::XMLNo
   {
     std::string s;
     in.GetXML(s);
-    logger_.msg(Arc::DEBUG, "TerminateActivities: request = \n%s", s);
+    logger_.msg(Arc::VERBOSE, "TerminateActivities: request = \n%s", s);
   };
   for(int n = 0;;++n) {
     Arc::XMLNode id = in["ActivityIdentifier"][n];
@@ -66,7 +66,7 @@ Arc::MCC_Status ARexService::TerminateActivities(ARexGMConfig& config,Arc::XMLNo
   {
     std::string s;
     out.GetXML(s);
-    logger_.msg(Arc::DEBUG, "TerminateActivities: response = \n%s", s);
+    logger_.msg(Arc::VERBOSE, "TerminateActivities: response = \n%s", s);
   };
   return Arc::MCC_Status(Arc::STATUS_OK);
 }

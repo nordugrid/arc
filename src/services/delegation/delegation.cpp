@@ -67,7 +67,7 @@ Arc::MCC_Status Service_Delegation::process(Arc::Message& inmsg,Arc::Message& ou
   // Identify which of served endpoints request is for.
   // Delegation can only accept POST method
   if(method == "POST") {
-    logger_.msg(Arc::DEBUG, "process: POST");
+    logger_.msg(Arc::VERBOSE, "process: POST");
     // Both input and output are supposed to be SOAP
     // Extracting payload
     Arc::PayloadSOAP* inpayload = NULL;
@@ -91,7 +91,7 @@ Arc::MCC_Status Service_Delegation::process(Arc::Message& inmsg,Arc::Message& ou
         logger_.msg(Arc::ERROR, "Can not store proxy certificate");
         return make_soap_fault(outmsg);
       }
-      logger_.msg(Arc::VERBOSE,"Delegated credentials:\n %s",cred.c_str());
+      logger_.msg(Arc::DEBUG,"Delegated credentials:\n %s",cred.c_str());
 
       CredentialCache* cred_cache = NULL;
       std::string id = (std::string)((*inpayload)["UpdateCredentials"]["DelegatedToken"]["Id"]);
@@ -155,7 +155,7 @@ Arc::MCC_Status Service_Delegation::process(Arc::Message& inmsg,Arc::Message& ou
 
       token.NewChild("deleg:Value") = signedcert;
 
-      logger_.msg(Arc::VERBOSE,"Delegated credentials:\n %s",signedcert.c_str());
+      logger_.msg(Arc::DEBUG,"Delegated credentials:\n %s",signedcert.c_str());
     }
 
     //Compose response message
@@ -171,7 +171,7 @@ Arc::MCC_Status Service_Delegation::process(Arc::Message& inmsg,Arc::Message& ou
   }
   else {
     delete inmsg.Payload();
-    logger_.msg(Arc::DEBUG, "process: %s: not supported",method);
+    logger_.msg(Arc::VERBOSE, "process: %s: not supported",method);
     return Arc::MCC_Status();
   }
   return Arc::MCC_Status();

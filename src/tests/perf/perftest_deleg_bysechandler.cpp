@@ -188,7 +188,7 @@ int main(int argc, char* argv[]){
               << "         'soap' entry point and HOSTNAME, PORTNUMBER and PATH " << std::endl
               << "         keyword for hostname, port and HTTP path of 'echo' service." << std::endl
 	      << "debug    The textual representation of desired debug level. Available " << std::endl
-              << "         levels: VERBOSE, DEBUG, INFO, WARNING, ERROR, FATAL." << std::endl;
+              << "         levels: DEBUG, VERBOSE, INFO, WARNING, ERROR, FATAL." << std::endl;
     exit(EXIT_FAILURE);
   }
   url_str = std::string(argv[1]);

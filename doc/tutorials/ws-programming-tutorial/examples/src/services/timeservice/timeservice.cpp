@@ -76,7 +76,7 @@ namespace ArcService
 	*/
 	Arc::MCC_Status TimeService::process(Arc::Message& inmsg,Arc::Message& outmsg)//(@*\label{lst_code:time_cpp_process}*@)
 	{
-		logger.msg(Arc::DEBUG, "Timeservice has been started...");
+		logger.msg(Arc::VERBOSE, "Timeservice has been started...");
 
 		// Get time and create an string out of it
 		time_t timer;
@@ -95,9 +95,9 @@ namespace ArcService
 		// Create well formated, userfriendly (second argument) XML string
 		std::string xmlstring;
 		outpayload->GetDoc(xmlstring, true);
-		logger.msg(Arc::DEBUG, "Response message:\n\n%s",xmlstring.c_str());
+		logger.msg(Arc::VERBOSE, "Response message:\n\n%s",xmlstring.c_str());
 
-		logger.msg(Arc::DEBUG, "Timeservice done...");
+		logger.msg(Arc::VERBOSE, "Timeservice done...");
 
 		return Arc::MCC_Status(Arc::STATUS_OK);//(@*\label{lst_code:time_cpp_return}*@)
 	}

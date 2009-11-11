@@ -19,7 +19,7 @@ class CachedPickleStore(PickleStore):
         'non_existent_object' will be returned if an object not found
         """
         PickleStore.__init__(self, storecfg, non_existent_object)
-        log.msg(arc.DEBUG, "PickleStore with datadir '%s' is a CachedPickleStore" % self.datadir)
+        log.msg(arc.VERBOSE, "PickleStore with datadir '%s' is a CachedPickleStore" % self.datadir)
         self.store = {}
         self._load_storage()
 

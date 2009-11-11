@@ -42,7 +42,7 @@ namespace Arc {
   MCC_Status Plexer::process(Message& request, Message& response){
     std::string ep = request.Attributes()->get("ENDPOINT");
     std::string path = getPath(ep);
-    logger.msg(DEBUG, "Operation on path \"%s\"",path);
+    logger.msg(VERBOSE, "Operation on path \"%s\"",path);
     std::list<PlexerEntry>::iterator iter;
     for (iter=services.begin(); iter!=services.end(); ++iter) {
       std::list<std::string> unmatched, matched;

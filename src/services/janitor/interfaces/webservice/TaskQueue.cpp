@@ -40,7 +40,7 @@ namespace DREService
 				break;
 			}
 			pthread_mutex_unlock(&mutex);
-			logger.msg(Arc::VERBOSE, "TaskSet is waiting for objects still using the set.");
+			logger.msg(Arc::DEBUG, "TaskSet is waiting for objects still using the set.");
 			sleep(1);
 		}while(1);
 
@@ -109,8 +109,8 @@ namespace DREService
 					ppTask[taskAddress]   = pTask;
 					level = level+1;
 					found = 1;
-					logger.msg(Arc::VERBOSE, "Pushed Task %d into the queue. ",taskID);
-// 					logger.msg(Arc::VERBOSE, "Buffer statistic: Level: %d   Start: %d",level,start);
+					logger.msg(Arc::DEBUG, "Pushed Task %d into the queue. ",taskID);
+// 					logger.msg(Arc::DEBUG, "Buffer statistic: Level: %d   Start: %d",level,start);
 				}
 			pthread_mutex_unlock(&mutex);
 			/** */
@@ -160,7 +160,7 @@ namespace DREService
 				start = (start + 1) % length;
 				level--;
 				found = 1;
-				logger.msg(Arc::VERBOSE, "Shifted Task %d out of to the queue. ",pTask->getTaskID());
+				logger.msg(Arc::DEBUG, "Shifted Task %d out of to the queue. ",pTask->getTaskID());
 			}
 			pthread_mutex_unlock(&mutex);
 

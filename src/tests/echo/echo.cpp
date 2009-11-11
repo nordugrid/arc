@@ -95,7 +95,7 @@ Arc::MCC_Status Service_Echo::process(Arc::Message& inmsg,Arc::Message& outmsg) 
   {
       std::string str;
       inpayload->GetDoc(str, true);
-      logger.msg(Arc::DEBUG, "process: request=%s",str);
+      logger.msg(Arc::VERBOSE, "process: request=%s",str);
   }; 
 
   Arc::PayloadSOAP* outpayload = NULL;
@@ -163,7 +163,7 @@ Arc::MCC_Status Service_Echo::process(Arc::Message& inmsg,Arc::Message& outmsg) 
   {
       std::string str;
       outpayload->GetDoc(str, true);
-      logger.msg(Arc::DEBUG, "process: response=%s",str);
+      logger.msg(Arc::VERBOSE, "process: response=%s",str);
   }; 
   return Arc::MCC_Status(Arc::STATUS_OK);
 }

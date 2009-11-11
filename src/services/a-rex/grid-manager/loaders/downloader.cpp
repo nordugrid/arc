@@ -256,7 +256,7 @@ class PointPair {
 int main(int argc,char** argv) {
   Arc::LogStream logcerr(std::cerr);
   Arc::Logger::getRootLogger().addDestination(logcerr);
-  Arc::Logger::getRootLogger().setThreshold(Arc::DEBUG);
+  Arc::Logger::getRootLogger().setThreshold(Arc::VERBOSE);
   int res=0;
   bool not_uploaded;
   time_t start_time=time(NULL);
@@ -459,11 +459,11 @@ int main(int argc,char** argv) {
     }
   }
   if(min_speed != 0)
-    logger.msg(Arc::DEBUG, "Minimal speed: %llu B/s during %i s", min_speed, min_speed_time);
+    logger.msg(Arc::VERBOSE, "Minimal speed: %llu B/s during %i s", min_speed, min_speed_time);
   if(min_average_speed != 0)
-    logger.msg(Arc::DEBUG, "Minimal average speed: %llu B/s", min_average_speed);
+    logger.msg(Arc::VERBOSE, "Minimal average speed: %llu B/s", min_average_speed);
   if(max_inactivity_time != 0)
-    logger.msg(Arc::DEBUG, "Maximal inactivity time: %i s", max_inactivity_time);
+    logger.msg(Arc::VERBOSE, "Maximal inactivity time: %i s", max_inactivity_time);
 
   CollectCredentials(x509_proxy,x509_cert,x509_key,x509_cadir);
   prepare_proxy();

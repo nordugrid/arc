@@ -59,14 +59,14 @@
         </Plexer>
         <Service name="pythonservice" id="ahash">
             <ClassName>storage.ahash.ahash.AHashService</ClassName>
-            <LogLevel>VERBOSE</LogLevel>
+            <LogLevel>DEBUG</LogLevel>
             <AHashClass>storage.ahash.ahash.CentralAHash</AHashClass>
             <StoreClass>arcom.store.picklestore.PickleStore</StoreClass>
             <StoreCfg><DataDir>/home/sztoor/arc/spool/ahash_data</DataDir></StoreCfg>
         </Service>
         <Service name="pythonservice" id="librarian">
             <ClassName>storage.librarian.librarian.LibrarianService</ClassName>
-            <LogLevel>VERBOSE</LogLevel>
+            <LogLevel>DEBUG</LogLevel>
             <AHashURL>https://localhost:60000/AHash</AHashURL>
             
 	    <ClientSSLConfig>
@@ -80,7 +80,7 @@
         </Service>
         <Service name="pythonservice" id="bartender">
             <ClassName>storage.bartender.bartender.BartenderService</ClassName>
-            <LogLevel>VERBOSE</LogLevel>
+            <LogLevel>DEBUG</LogLevel>
             <LibrarianURL>https://localhost:60000/Librarian</LibrarianURL>
             <!-- <GatewayURL>https://localhost:60000/Gateway</GatewayURL> -->
             <ProxyStore>/home/sztoor/arc/spool/proxy_store</ProxyStore>	    
@@ -101,7 +101,7 @@
         </Service>
         <Service name="pythonservice" id="shepherd">
             <ClassName>storage.shepherd.shepherd.ShepherdService</ClassName>
-            <LogLevel>VERBOSE</LogLevel>
+            <LogLevel>DEBUG</LogLevel>
             <ServiceID>https://localhost:60000/Shepherd</ServiceID>
             <CheckPeriod>20</CheckPeriod>
             <MinCheckInterval>0.1</MinCheckInterval>
@@ -139,7 +139,7 @@
         </Service>
 	<Service name="pythonservice" id="gateway">
             <ClassName>storage.gateway.gateway.gateway.GatewayService</ClassName>
-	    <LogLevel>VERBOSE</LogLevel>	
+	    <LogLevel>DEBUG</LogLevel>	
 
 		<ClientSSLConfig>
                 <KeyPath>/etc/grid-security/hostkey1.pem</KeyPath>

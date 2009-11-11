@@ -39,17 +39,17 @@ int PayloadTCPSocket::connect_socket(const char* hostname,int port)
   }
   int s = -1;
   for(struct addrinfo *info_ = info;info_;info_=info_->ai_next) {
-    logger.msg(DEBUG,"Trying to connect %s(%s):%d",
+    logger.msg(VERBOSE,"Trying to connect %s(%s):%d",
                      hostname,info_->ai_family==AF_INET6?"IPv6":"IPv4",port);
     s = ::socket(info_->ai_family, info_->ai_socktype, info_->ai_protocol);
     if(s == -1) {
       // TODO: print error description
-      logger.msg(DEBUG, "Failed to create socket to %s(%s):%d",
+      logger.msg(VERBOSE, "Failed to create socket to %s(%s):%d",
                         hostname,info_->ai_family==AF_INET6?"IPv6":"IPv4",port);
       continue;
     }
     if(::connect(s, info_->ai_addr, info_->ai_addrlen) == -1) {
-      logger.msg(DEBUG, "Failed to connect to %s(%s):%i",
+      logger.msg(VERBOSE, "Failed to connect to %s(%s):%i",
                         hostname,info_->ai_family==AF_INET6?"IPv6":"IPv4",port);
       close(s); s = -1;
       continue;
@@ -57,7 +57,7 @@ int PayloadTCPSocket::connect_socket(const char* hostname,int port)
     break;
   };
   if(s == -1) {
-    logger.msg(DEBUG, "Failed to establish connection to %s:%i", hostname, port);
+    logger.msg(VERBOSE, "Failed to establish connection to %s:%i", hostname, port);
   };
   freeaddrinfo(info);
   return s;

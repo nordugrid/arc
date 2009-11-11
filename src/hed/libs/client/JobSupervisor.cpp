@@ -35,7 +35,7 @@ namespace Arc {
 
     if (!jobs.empty()) {
 
-      logger.msg(DEBUG, "Identifying needed job controllers according to "
+      logger.msg(VERBOSE, "Identifying needed job controllers according to "
                  "specified jobs");
 
       for (std::list<std::string>::const_iterator it = jobs.begin();
@@ -60,7 +60,7 @@ namespace Arc {
 
           if (std::find(controllers.begin(), controllers.end(),
                         flavour) == controllers.end()) {
-            logger.msg(DEBUG, "Need job controller for grid flavour %s",
+            logger.msg(VERBOSE, "Need job controller for grid flavour %s",
                        flavour);
             controllers.push_back(flavour);
           }
@@ -70,14 +70,14 @@ namespace Arc {
 
     if (!usercfg.GetSelectedServices(COMPUTING).empty()) {
 
-      logger.msg(DEBUG, "Identifying needed job controllers according to "
+      logger.msg(VERBOSE, "Identifying needed job controllers according to "
                  "specified clusters");
 
       for (URLListMap::const_iterator it = usercfg.GetSelectedServices(COMPUTING).begin();
            it != usercfg.GetSelectedServices(COMPUTING).end(); it++)
         if (std::find(controllers.begin(), controllers.end(),
                       it->first) == controllers.end()) {
-          logger.msg(DEBUG, "Need job controller for grid flavour %s",
+          logger.msg(VERBOSE, "Need job controller for grid flavour %s",
                      it->first);
           controllers.push_back(it->first);
         }
@@ -85,7 +85,7 @@ namespace Arc {
 
     if (jobs.empty() && usercfg.GetSelectedServices(COMPUTING).empty()) {
 
-      logger.msg(DEBUG, "Identifying needed job controllers according to "
+      logger.msg(VERBOSE, "Identifying needed job controllers according to "
                  "all jobs present in job list");
 
       XMLNodeList xmljobs = jobstorage.XPathLookup("/ArcConfig/Job", NS());
@@ -100,7 +100,7 @@ namespace Arc {
         if (std::find(controllers.begin(), controllers.end(),
                       (std::string)(*it)["Flavour"]) == controllers.end()) {
           std::string flavour = (*it)["Flavour"];
-          logger.msg(DEBUG, "Need job controller for grid flavour %s",
+          logger.msg(VERBOSE, "Need job controller for grid flavour %s",
                      flavour);
           controllers.push_back(flavour);
         }

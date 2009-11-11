@@ -72,18 +72,18 @@ bool Software::operator>(const Software& sv) const {
       continue;
     if (stringto(*lhsIt, lhsInt) && stringto(*rhsIt, rhsInt)) {
       if (lhsInt > rhsInt) {
-        logger.msg(DEBUG, "%s > %s => true", (std::string)*this, (std::string)sv);
+        logger.msg(VERBOSE, "%s > %s => true", (std::string)*this, (std::string)sv);
         return true;
       }
       if (lhsInt == rhsInt)
         continue;
     }
     else {
-      logger.msg(DEBUG, "%s > %s => false: \%s contains non numbers in the version part.", (std::string)*this, (std::string)sv, (!stringto(*lhsIt, lhsInt) ? (std::string)*this : (std::string)sv));
+      logger.msg(VERBOSE, "%s > %s => false: \%s contains non numbers in the version part.", (std::string)*this, (std::string)sv, (!stringto(*lhsIt, lhsInt) ? (std::string)*this : (std::string)sv));
       return false;
     }
 
-    logger.msg(DEBUG, "%s > %s => false", (std::string)*this, (std::string)sv);
+    logger.msg(VERBOSE, "%s > %s => false", (std::string)*this, (std::string)sv);
     return false;
   }
 
@@ -91,18 +91,18 @@ bool Software::operator>(const Software& sv) const {
     // Left side contains extra tokens. These must only contain numbers.
     for (; lhsIt != tokenizedVersion.end(); lhsIt++) {
       if (!stringto(*lhsIt, lhsInt)) { // Try to convert ot an integer.
-        logger.msg(DEBUG, "%s > %s => false: %s contains non numbers in the version part.", (std::string)*this, (std::string)sv, (std::string)*this);
+        logger.msg(VERBOSE, "%s > %s => false: %s contains non numbers in the version part.", (std::string)*this, (std::string)sv, (std::string)*this);
         return false;
       }
 
       if (lhsInt != 0) {
-        logger.msg(DEBUG, "%s > %s => true", (std::string)*this, (std::string)sv);
+        logger.msg(VERBOSE, "%s > %s => true", (std::string)*this, (std::string)sv);
         return true;
       }
     }
   }
 
-  logger.msg(DEBUG, "%s > %s => false", (std::string)*this, (std::string)sv);
+  logger.msg(VERBOSE, "%s > %s => false", (std::string)*this, (std::string)sv);
 
   return false;
 }
@@ -204,12 +204,12 @@ bool SoftwareRequirement::isSatisfied(const std::list<Software>& swList) const {
       std::list<SWRelPair>::const_iterator itSRL = itOSL->begin();
       for (; itSRL != itOSL->end(); itSRL++) {
         if (((*itSWList).*itSRL->second)(*itSRL->first)) { // One of the requirements satisfied.
-          logger.msg(DEBUG, "Requirement satisfied. %s %s %s.", (std::string)*itSWList, Software::toString(itSRL->second), (std::string)*itSRL->first);
+          logger.msg(VERBOSE, "Requirement satisfied. %s %s %s.", (std::string)*itSWList, Software::toString(itSRL->second), (std::string)*itSRL->first);
           if (!requiresAll) // Only one satisfied requirement is needed.
             return true;
         }
         else {
-          logger.msg(DEBUG, "Requirement NOT satisfied. %s %s %s.", (std::string)*itSWList, Software::toString(itSRL->second), (std::string)*itSRL->first);
+          logger.msg(VERBOSE, "Requirement NOT satisfied. %s %s %s.", (std::string)*itSWList, Software::toString(itSRL->second), (std::string)*itSRL->first);
           if (requiresAll) // If requiresAll == true, then a element from the swList have to satisfy all requirements for a unique software (family + name).
             break;
         }
@@ -221,15 +221,15 @@ bool SoftwareRequirement::isSatisfied(const std::list<Software>& swList) const {
 
     if (requiresAll && // All requirements have to be satisfied.
         itSWList == swList.end()) { // End of Software list reached, ie. requirement not satisfied.
-      logger.msg(DEBUG, "End of list reached requirement not met.");
+      logger.msg(VERBOSE, "End of list reached requirement not met.");
       return false;
     }
   }
 
   if (requiresAll)
-    logger.msg(DEBUG, "Requirements satisfied.");
+    logger.msg(VERBOSE, "Requirements satisfied.");
   else
-    logger.msg(DEBUG, "Requirements not satisfied.");
+    logger.msg(VERBOSE, "Requirements not satisfied.");
 
   return requiresAll;
 }

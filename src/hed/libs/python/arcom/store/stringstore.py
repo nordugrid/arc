@@ -18,8 +18,8 @@ class StringStore(PickleStore):
         'non_existent_object' will be returned if an object not found
         """
         PickleStore.__init__(self, storecfg, non_existent_object)
-        log.msg(arc.DEBUG, "StringStore constructor called")
-        log.msg(arc.DEBUG, "datadir:", self.datadir)
+        log.msg(arc.VERBOSE, "StringStore constructor called")
+        log.msg(arc.VERBOSE, "datadir:", self.datadir)
 
     def get(self, ID):
         """ Returns the object with the given ID.

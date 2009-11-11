@@ -71,7 +71,7 @@ namespace Arc {
 
   //SAML2SSOHTTPClient
   SAML2SSOHTTPClient::SAML2SSOHTTPClient(const MCCConfig cfg, const URL url, std::list<std::string> idp_stack) : SAML2LoginClient(cfg,url, idp_stack) {
-	  logger.msg(DEBUG, "Called SAML2SSOHTTPClient constructor");
+	  logger.msg(VERBOSE, "Called SAML2SSOHTTPClient constructor");
 
 	  std::list<std::string> idp_stack2;
 
@@ -104,11 +104,11 @@ namespace Arc {
 	  // start with confusa cookie
 	  http_attributes.insert(std::pair<std::string, std::string>("Cookie",(*session_cookies_)["Confusa"]));
 
-	  logger.msg(DEBUG, "Relaystate %s", relaystate);
+	  logger.msg(VERBOSE, "Relaystate %s", relaystate);
 
 	  std::string initSSO_url = (*sso_pages_)["SimpleSAML"] + "/" + initSSO_loc + "?RelayState=" + relaystate + "&idpentityid=" + idpentityid;
 
-	  logger.msg(DEBUG, "Performing SSO with %s ", initSSO_url);
+	  logger.msg(VERBOSE, "Performing SSO with %s ", initSSO_url);
 	  std::string actual_ip_login = ConfusaParserUtils::handle_redirect_step(cfg_,initSSO_url, &cookie, &http_attributes);
 
 	  if (actual_ip_login.empty()) {
@@ -143,7 +143,7 @@ namespace Arc {
 		  std::string relayparams = internal_request_site.substr(param_pos, internal_request_site.size()-param_pos);
 		  initSSO_url = simplesamlbase + relayparams + "&idpentityid=" + *it;
 
-		  logger.msg(DEBUG, "Performing SSO with %s ", initSSO_url);
+		  logger.msg(VERBOSE, "Performing SSO with %s ", initSSO_url);
 		  actual_ip_login = ConfusaParserUtils::handle_redirect_step(cfg_,initSSO_url, &cookie, &http_attributes);
 
 		  if (actual_ip_login.empty()) {
@@ -152,7 +152,7 @@ namespace Arc {
 	  }
 
 	  (*sso_pages_)["IdP"] = actual_ip_login;
-	  logger.msg(DEBUG, "The idp login is %s", actual_ip_login);
+	  logger.msg(VERBOSE, "The idp login is %s", actual_ip_login);
 	  return MCC_Status(STATUS_OK);
 
   }
@@ -193,7 +193,7 @@ namespace Arc {
 		return status;
 	}
 
-	logger.msg(DEBUG, "Successfully redirected from Confusa to the IdP login!");
+	logger.msg(VERBOSE, "Successfully redirected from Confusa to the IdP login!");
 
 	status = processIdPLogin(username, password);
 
@@ -210,7 +210,7 @@ namespace Arc {
 		return status;
 	}
 
-	logger.msg(DEBUG, "Successfully logged in to the IdP!");
+	logger.msg(VERBOSE, "Successfully logged in to the IdP!");
 
 	status = processIdP2Confusa();
 
@@ -219,7 +219,7 @@ namespace Arc {
 		return status;
 	}
 
-	logger.msg(DEBUG, "Successfully redirected back from the IdP to Confusa!");
+	logger.msg(VERBOSE, "Successfully redirected back from the IdP to Confusa!");
 
 	return status;
 
@@ -237,7 +237,7 @@ namespace Arc {
 
 	  std::multimap<std::string, std::string> http_attributes;
 	  http_attributes.insert(std::pair<std::string,std::string>("Cookie",(*session_cookies_)["Confusa"]));
-	  logger.msg(DEBUG, "The used session cookies for the about page is %s", (*session_cookies_)["Confusa"]);
+	  logger.msg(VERBOSE, "The used session cookies for the about page is %s", (*session_cookies_)["Confusa"]);
 	  MCC_Status stat = confusa_dn_client.process("GET", http_attributes, &confusa_dn_request, &confusa_dn_info, &confusa_dn_response);
 
 	  std::string about_page = "";
@@ -318,7 +318,7 @@ namespace Arc {
 	  std::multimap<std::string, std::string> http_attributes;
 	  http_attributes.insert(std::pair<std::string,std::string>("Cookie",(*session_cookies_)["Confusa"]));
 
-	  logger.msg(VERBOSE, "The cookie sent with approve is %s", http_attributes.find("Cookie")->second);
+	  logger.msg(DEBUG, "The cookie sent with approve is %s", http_attributes.find("Cookie")->second);
 
 	  MCC_Status stat = confusa_approve_client.process("GET", http_attributes, &confusa_approve_request, &confusa_approve_info, &confusa_approve_response);
 

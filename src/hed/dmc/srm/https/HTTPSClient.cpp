@@ -93,7 +93,7 @@ namespace Arc {
       if(!c->read(buf,&l)) return;
       if(!c->transfer(isread,iswritten,0)) { c->read(); return; };
       if(!isread) { c->read(); return; };
-      logger.msg(VERBOSE, "clear_input: %s", buf);
+      logger.msg(DEBUG, "clear_input: %s", buf);
     };
   }
   
@@ -163,7 +163,7 @@ namespace Arc {
         };
         line_buf[line_p]=0;
         if(line_p == 0) break; // end of header
-        logger.msg(VERBOSE, "read_response_header: line: %s", line_buf);
+        logger.msg(DEBUG, "read_response_header: line: %s", line_buf);
         analyze_response_line(line_buf);
         line_p=0;
       };
@@ -185,49 +185,49 @@ namespace Arc {
         return -1;
       };
     };
-    logger.msg(VERBOSE, "read_response_header: header finished");
+    logger.msg(DEBUG, "read_response_header: header finished");
     return 0;
   }
   
   int HTTPSClient::skip_response_entity(void) {
-    logger.msg(VERBOSE, "skip_response_entity");
+    logger.msg(DEBUG, "skip_response_entity");
     if(fields.haveContentLength() || fields.haveContentRange()) {
       unsigned long long int size = fields.ContentLength();
-      logger.msg(VERBOSE, "skip_response_entity: size: %llu", size);
+      logger.msg(DEBUG, "skip_response_entity: size: %llu", size);
       if(size<=answer_size) {
         memmove(answer_buf,answer_buf+size,answer_size-size);
         answer_size-=size;
-        logger.msg(VERBOSE, "skip_response_entity: already have all");
+        logger.msg(DEBUG, "skip_response_entity: already have all");
         return 0;
       };
       size-=answer_size;
-      logger.msg(VERBOSE, "skip_response_entity: size left: %llu", size);
+      logger.msg(DEBUG, "skip_response_entity: size left: %llu", size);
       // read size bytes
       char buf[1024];
       for(;size;) {
-        logger.msg(VERBOSE, "skip_response_entity:  to read: %llu", size);
+        logger.msg(DEBUG, "skip_response_entity:  to read: %llu", size);
         answer_size=sizeof(buf);
         if(!c->read(buf,&answer_size)) {
           disconnect(); return -1;
         };
         bool isread,iswritten;
         if(!c->transfer(isread,iswritten,timeout)) {
-          logger.msg(VERBOSE, "skip_response_entity: timeout %llu", size);
+          logger.msg(DEBUG, "skip_response_entity: timeout %llu", size);
           disconnect(); return -1; // timeout
         };
         if(!isread) { disconnect(); return -1; }; // failure
         size-=answer_size;
-        logger.msg(VERBOSE, "skip_response_entity: read: %u (%llu)", answer_size, size);
+        logger.msg(DEBUG, "skip_response_entity: read: %u (%llu)", answer_size, size);
       };
-      logger.msg(VERBOSE, "skip_response_entity: read all");
+      logger.msg(DEBUG, "skip_response_entity: read all");
       return 0;
     };
     if(fields.KeepAlive()) {
-      logger.msg(VERBOSE, "skip_response_entity: no entity");
+      logger.msg(DEBUG, "skip_response_entity: no entity");
       // no entity passed at all
       return 0;
     };
-    logger.msg(VERBOSE, "skip_response_entity: unknown size");
+    logger.msg(DEBUG, "skip_response_entity: unknown size");
     // can't handle unknown size - let connection be closed
     return 0;
   }
@@ -356,7 +356,7 @@ namespace Arc {
     header+="Connection: keep-alive\r\n";
     header+="Range: bytes="+tostring(offset)+"-"+tostring(offset+size-1)+"\r\n";
     header+="\r\n";
-    logger.msg(VERBOSE, "header: %s", header);
+    logger.msg(DEBUG, "header: %s", header);
     // *** Send header 
     c->clear();
     // get ready for any answer
@@ -411,7 +411,7 @@ namespace Arc {
         disconnect(); return -1;
       };
       if(!fields.KeepAlive()) {
-        logger.msg(DEBUG, "GET: connection to be closed");
+        logger.msg(VERBOSE, "GET: connection to be closed");
         disconnect();
       };
       return 0;
@@ -421,12 +421,12 @@ namespace Arc {
         disconnect(); return -1;
       };
       if(!fields.KeepAlive()) {
-      logger.msg(DEBUG, "GET: connection to be closed");
+      logger.msg(VERBOSE, "GET: connection to be closed");
         disconnect();
       };
       return -1;
     };
-    logger.msg(DEBUG, "GET: header is read - rest: %u", answer_size);
+    logger.msg(VERBOSE, "GET: header is read - rest: %u", answer_size);
     unsigned long long c_offset = 0;
     if(fields.haveContentRange()) c_offset=fields.ContentStart();
     bool have_length = fields.haveContentLength() || fields.haveContentRange();
@@ -434,9 +434,9 @@ namespace Arc {
     // take rest of already read data
     if(answer_size) {
       if(have_length) if(answer_size > length) answer_size=length;
-      logger.msg(VERBOSE, "GET: calling callback(rest): content: %s", answer_buf);
-      logger.msg(VERBOSE, "GET: calling callback(rest): size: %u", answer_size);
-      logger.msg(VERBOSE, "GET: calling callback(rest): offset: %llu", c_offset);
+      logger.msg(DEBUG, "GET: calling callback(rest): content: %s", answer_buf);
+      logger.msg(DEBUG, "GET: calling callback(rest): size: %u", answer_size);
+      logger.msg(DEBUG, "GET: calling callback(rest): offset: %llu", c_offset);
       unsigned char* in_buf = (unsigned char*)answer_buf;
       unsigned long  in_size = answer_size;
       for(;;) {
@@ -500,9 +500,9 @@ namespace Arc {
         if(in_buf) free(in_buf);
         return -1;
       };
-      logger.msg(VERBOSE, "GET: calling callback: content: %s", buf);
-      logger.msg(VERBOSE, "GET: calling callback: size: %u", answer_size);
-      logger.msg(VERBOSE, "GET: calling callback: offset: %llu", c_offset);
+      logger.msg(DEBUG, "GET: calling callback: content: %s", buf);
+      logger.msg(DEBUG, "GET: calling callback: size: %u", answer_size);
+      logger.msg(DEBUG, "GET: calling callback: offset: %llu", c_offset);
       if(callback(c_offset,answer_size,&buf,&bufsize,arg) != 0) {
         logger.msg(ERROR, "GET callback returned error");
         disconnect();
@@ -515,7 +515,7 @@ namespace Arc {
     // cancel? - just in case
     if(in_buf) free(in_buf);
     if(!fields.KeepAlive()) {
-      logger.msg(DEBUG, "GET: connection to be closed");
+      logger.msg(VERBOSE, "GET: connection to be closed");
       disconnect();
     };
     return 0;

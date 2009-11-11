@@ -5,7 +5,7 @@
 >
 <Server>
 	<Pidfile>/var/run/arched.pid</Pidfile>
-	<Logger level="VERBOSE">/var/log/arched_hopi.log</Logger>
+	<Logger level="DEBUG">/var/log/arched_hopi.log</Logger>
 </Server>
 <ModuleManager>
 	<Path>/usr/lib/arc</Path>
@@ -55,7 +55,7 @@
 		</Service>
 		<Service name="pythonservice" id="bartender">
 			<ClassName>storage.bartender.bartender.BartenderService</ClassName>
-				<LogLevel>VERBOSE</LogLevel>
+				<LogLevel>DEBUG</LogLevel>
 				<LibrarianURL>http://testbed1.grid.upjs.sk:60000/Librarian</LibrarianURL>
 		</Service>
 		<Service name="pythonservice" id="shepherd">
@@ -77,7 +77,7 @@
 			</BackendCfg>
 			<LibrarianURL>http://testbed1.grid.upjs.sk:60000/Librarian</LibrarianURL>
 			<BartenderURL>http://testbed1.grid.upjs.sk:60000/Bartender</BartenderURL>
-			<LogLevel>VERBOSE</LogLevel>
+			<LogLevel>DEBUG</LogLevel>
 		</Service>
 		<Service name="hopi" id="httpd">
 			<DocumentRoot>/opt/ARC1-component-tests/tmp/shepherd_transfer</DocumentRoot>

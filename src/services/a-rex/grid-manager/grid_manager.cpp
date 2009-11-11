@@ -325,7 +325,7 @@ static void grid_manager(void* arg) {
 //#//      };
 //#    }
 //#    else {
-      logger.msg(Arc::VERBOSE,"Timer kicking");
+      logger.msg(Arc::DEBUG,"Timer kicking");
 //#    };
   };
   return;
@@ -338,13 +338,13 @@ GridManager::GridManager(Arc::XMLNode argv):active_(false) {
   args->argv=(char**)malloc(sizeof(char*)*(argv.Size()+1));
   args->argc=0;
   args->argv[args->argc]=strdup("grid-manager");
-  logger.msg(Arc::DEBUG, "ARG: %s", args->argv[args->argc]);
+  logger.msg(Arc::VERBOSE, "ARG: %s", args->argv[args->argc]);
   for(;;) {
     Arc::XMLNode arg = argv["arg"][args->argc];
     ++(args->argc);
     if(!arg) break;
     args->argv[args->argc]=strdup(((std::string)arg).c_str());
-    logger.msg(Arc::DEBUG, "ARG: %s", args->argv[args->argc]);
+    logger.msg(Arc::VERBOSE, "ARG: %s", args->argv[args->argc]);
   };
   active_=Arc::CreateThreadFunction(&grid_manager,args);
   if(!active_) delete args;

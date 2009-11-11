@@ -162,7 +162,7 @@ void GridSchedulerService::InformationCollector(void) {
 
       root.GetDoc(s, true);
 
-      logger_.msg(Arc::DEBUG,"Assigned new informational document");
+      logger_.msg(Arc::VERBOSE,"Assigned new informational document");
     } else {
       logger_.msg(Arc::ERROR,"Failed to create informational document");
     };
@@ -174,7 +174,7 @@ void GridSchedulerService::InformationCollector(void) {
 }
 
 bool GridSchedulerService::RegistrationCollector(Arc::XMLNode &doc) {
-  logger_.msg(Arc::VERBOSE,"Passing service's information from collector to registrator");
+  logger_.msg(Arc::DEBUG,"Passing service's information from collector to registrator");
   Arc::XMLNode empty(ns_, "RegEntry");
   empty.New(doc);
 

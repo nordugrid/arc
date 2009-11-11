@@ -21,7 +21,7 @@ int main(void) {
 int main(void) {
   Arc::LogStream cdest(std::cerr);
   Arc::Logger::getRootLogger().addDestination(cdest);
-  Arc::Logger::getRootLogger().setThreshold(Arc::DEBUG);
+  Arc::Logger::getRootLogger().setThreshold(Arc::VERBOSE);
   std::string cert("../../../tests/echo/testcert.pem");
   std::string key("../../../tests/echo/testkey-nopass.pem");
   std::string cafile("../../../tests/echo/testcacert.pem");

@@ -493,7 +493,7 @@ namespace Arc {
                   continue;
                 }
                 const std::string flavour = it->substr(pos1+1,pos2-pos1-1);
-                logger.msg(DEBUG, "Adding selected service %s:%s:%s", serviceType, flavour, url.str());
+                logger.msg(VERBOSE, "Adding selected service %s:%s:%s", serviceType, flavour, url.str());
                 if (serviceType == "computing")
                   selectedServices.first[flavour].push_back(url);
                 else
@@ -540,7 +540,7 @@ namespace Arc {
                   continue;
                 }
                 const std::string flavour = it->substr(pos1+1,pos2-pos1-1);
-                logger.msg(DEBUG, "Adding rejected service %s:%s:%s", serviceType, flavour, url.str());
+                logger.msg(VERBOSE, "Adding rejected service %s:%s:%s", serviceType, flavour, url.str());
                 if (serviceType == "computing")
                   rejectedServices.first[flavour].push_back(url);
                 else
@@ -652,7 +652,7 @@ namespace Arc {
           continue;
         }
         const std::string flavour = service.substr(0, pos);
-        logger.msg(DEBUG, "Adding %s service %s:%s ", (*it)[0] != '-' ? "selected" : "rejected", flavour, url.str());
+        logger.msg(VERBOSE, "Adding %s service %s:%s ", (*it)[0] != '-' ? "selected" : "rejected", flavour, url.str());
         servicesRef[flavour].push_back(url);
       }
     }
@@ -702,7 +702,7 @@ namespace Arc {
           continue;
         }
         const std::string flavour = service.substr(0, pos);
-        logger.msg(DEBUG, "Adding %s service %s:%s ", isSelectedNotRejected ? "selected" : "rejected", flavour, url.str());
+        logger.msg(VERBOSE, "Adding %s service %s:%s ", isSelectedNotRejected ? "selected" : "rejected", flavour, url.str());
         servicesRef[flavour].push_back(url);
       }
     }
@@ -791,7 +791,7 @@ namespace Arc {
           continue;
         }
         const std::string flavour = it->substr(pos1+1, pos2-pos1-1);
-        logger.msg(DEBUG, "Adding service %s:%s:%s from resolved alias %s", serviceType, flavour, url.str(), resolvedAliases.back());
+        logger.msg(VERBOSE, "Adding service %s:%s:%s from resolved alias %s", serviceType, flavour, url.str(), resolvedAliases.back());
         services[flavour].push_back(url);
       }
       else {
@@ -847,7 +847,7 @@ namespace Arc {
           continue;
         }
         const std::string flavour = it->substr(pos1+1, pos2-pos1-1);
-        logger.msg(DEBUG, "Adding service %s:%s:%s from resolved alias %s", serviceType, flavour, url.str(), resolvedAliases.back());
+        logger.msg(VERBOSE, "Adding service %s:%s:%s from resolved alias %s", serviceType, flavour, url.str(), resolvedAliases.back());
         if (serviceType == "computing")
           services.first[flavour].push_back(url);
         else

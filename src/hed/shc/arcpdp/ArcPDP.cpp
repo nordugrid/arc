@@ -184,7 +184,7 @@ bool ArcPDP::isPermitted(Message *msg){
   {
     std::string s;
     requestxml.GetXML(s);
-    logger.msg(VERBOSE,"ARC Auth. request: %s",s);
+    logger.msg(DEBUG,"ARC Auth. request: %s",s);
     std::cout<<"ARC Auth. request "<<s<<std::endl;
   };
   if(requestxml.Size() <= 0) {

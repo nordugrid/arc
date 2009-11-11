@@ -34,14 +34,14 @@ Arc::Logger SRMClient::logger(Arc::Logger::getRootLogger(), "SRMClient");
     SRMReturnCode srm_error;
     if ((srm_error = client->ping(version, false)) == SRM_OK) {
       if (version.compare("v2.2") == 0) {
-        logger.msg(Arc::DEBUG, "srmPing gives v2.2, instantiating v2.2 client");
+        logger.msg(Arc::VERBOSE, "srmPing gives v2.2, instantiating v2.2 client");
         return client;
       };
     };
   
     // if soap error probably means v2 not supported
     if (srm_error == SRM_ERROR_SOAP) {
-      logger.msg(Arc::DEBUG, "SOAP error with srmPing, instantiating v1 client");
+      logger.msg(Arc::VERBOSE, "SOAP error with srmPing, instantiating v1 client");
       srm_url.SetSRMVersion("1");
       return new SRM1Client(url);
     };

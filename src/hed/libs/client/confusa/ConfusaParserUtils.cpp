@@ -157,7 +157,7 @@ std::string ConfusaParserUtils::evaluate_path(xmlDocPtr doc, const std::string x
 
 	  if ((nodeSet->nodeTab[0]->type == XML_ELEMENT_NODE) || (nodeSet->nodeTab[0]->type == XML_ATTRIBUTE_NODE)) {
 	  			  first_content = ((char *) nodeSet->nodeTab[0]->children->content);
-	  			  Arc::Logger::getRootLogger().msg(Arc::VERBOSE, "Trying to get content %s from XML element, size %d", first_content, nodeSet->nodeNr);
+	  			  Arc::Logger::getRootLogger().msg(Arc::DEBUG, "Trying to get content %s from XML element, size %d", first_content, nodeSet->nodeNr);
 	  		  } else {
 	  			  first_content = "";
 	  }
@@ -170,7 +170,7 @@ std::string ConfusaParserUtils::evaluate_path(xmlDocPtr doc, const std::string x
 		  for (int i = 1; i < nodeSet->nodeNr; i++) {
 			  if ((nodeSet->nodeTab[i]->type == XML_ELEMENT_NODE) || (nodeSet->nodeTab[i]->type == XML_ATTRIBUTE_NODE)) {
 				  content = ((char *) nodeSet->nodeTab[i]->children->content);
-				  Arc::Logger::getRootLogger().msg(Arc::VERBOSE, "Trying to get content %s from XML element, size %d", content, nodeSet->nodeNr);
+				  Arc::Logger::getRootLogger().msg(Arc::DEBUG, "Trying to get content %s from XML element, size %d", content, nodeSet->nodeNr);
 			  } else {
 				  content = "";
 			  }

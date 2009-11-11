@@ -111,7 +111,7 @@ namespace Arc {
     // Identify table of descriptors
     void *ptr = NULL;
     if(!module->get_symbol(plugins_table_name,ptr)) {
-      logger.msg(DEBUG, "Module %s is not an ARC plugin (%s)",kind,strip_newline(Glib::Module::get_last_error()));
+      logger.msg(VERBOSE, "Module %s is not an ARC plugin (%s)",kind,strip_newline(Glib::Module::get_last_error()));
       unload_module(module,*this);
       return NULL;
     };
@@ -126,7 +126,7 @@ namespace Arc {
         // Keep plugin loaded and registered
         Glib::Module* nmodule = reload_module(module,*this);
         if(!nmodule) {
-          logger.msg(DEBUG, "Module %s failed to reload (%s)",mname,strip_newline(Glib::Module::get_last_error()));
+          logger.msg(VERBOSE, "Module %s failed to reload (%s)",mname,strip_newline(Glib::Module::get_last_error()));
           unload_module(module,*this);
           return false;
         };
@@ -178,7 +178,7 @@ namespace Arc {
     // Identify table of descriptors
     void *ptr = NULL;
     if(!module->get_symbol(plugins_table_name,ptr)) {
-      logger.msg(DEBUG, "Module %s is not an ARC plugin (%s)",mname,strip_newline(Glib::Module::get_last_error()));
+      logger.msg(VERBOSE, "Module %s is not an ARC plugin (%s)",mname,strip_newline(Glib::Module::get_last_error()));
       unload_module(module,*this);
       return NULL;
     };
@@ -188,7 +188,7 @@ namespace Arc {
       // Keep plugin loaded and registered
       Glib::Module* nmodule = reload_module(module,*this);
       if(!nmodule) {
-        logger.msg(DEBUG, "Module %s failed to reload (%s)",mname,strip_newline(Glib::Module::get_last_error()));
+        logger.msg(VERBOSE, "Module %s failed to reload (%s)",mname,strip_newline(Glib::Module::get_last_error()));
         unload_module(module,*this);
         return false;
       };
@@ -233,7 +233,7 @@ namespace Arc {
       };
       // Identify table of descriptors
       if(!module->get_symbol(plugins_table_name,ptr)) {
-        logger.msg(DEBUG, "Module %s is not an ARC plugin (%s)",mname,strip_newline(Glib::Module::get_last_error()));
+        logger.msg(VERBOSE, "Module %s is not an ARC plugin (%s)",mname,strip_newline(Glib::Module::get_last_error()));
         unload_module(module,*this);
         return false;
       };
@@ -246,7 +246,7 @@ namespace Arc {
         if(desc) break;
       };
       if(!desc) {
-        //logger.msg(DEBUG, "Module %s does not contain plugin(s) of specified kind(s)",mname);
+        //logger.msg(VERBOSE, "Module %s does not contain plugin(s) of specified kind(s)",mname);
         if(module) unload_module(module,*this);
         return false;
       };
@@ -254,7 +254,7 @@ namespace Arc {
     if(!mname.empty()) {
       Glib::Module* nmodule=reload_module(module,*this);
       if(!nmodule) {
-        logger.msg(DEBUG, "Module %s failed to reload (%s)",mname,strip_newline(Glib::Module::get_last_error()));
+        logger.msg(VERBOSE, "Module %s failed to reload (%s)",mname,strip_newline(Glib::Module::get_last_error()));
         unload_module(module,*this);
         return false;
       };

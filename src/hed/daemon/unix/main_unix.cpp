@@ -33,10 +33,10 @@ Arc::Logger& logger = Arc::Logger::rootLogger;
 
 static void shutdown(int)
 {
-    logger.msg(Arc::DEBUG, "shutdown");
+    logger.msg(Arc::VERBOSE, "shutdown");
     delete loader;
     delete main_daemon;
-    logger.msg(Arc::VERBOSE, "exit");
+    logger.msg(Arc::DEBUG, "exit");
     _exit(0);
 }
 

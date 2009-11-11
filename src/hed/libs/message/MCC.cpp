@@ -63,7 +63,7 @@ namespace Arc {
     std::map<std::string, std::list<ArcSec::SecHandler *> >::iterator q =
       sechandlers_.find(label);
     if (q == sechandlers_.end()) {
-      logger.msg(VERBOSE,
+      logger.msg(DEBUG,
 		 "No security processing/check requested for '%s'", label);
       return true;
     }
@@ -77,7 +77,7 @@ namespace Arc {
 	return false;
       }
     }
-    logger.msg(VERBOSE, "Security processing/check passed");
+    logger.msg(DEBUG, "Security processing/check passed");
     return true;
   }
 

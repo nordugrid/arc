@@ -113,14 +113,14 @@ bool DelegationPDP::isPermitted(Message *msg){
         eval->addPolicy(policyxml); ++policies_num;
         {
           std::string s; policyxml.GetXML(s);
-          logger.msg(VERBOSE,"ARC delegation policy: %s",s);
+          logger.msg(DEBUG,"ARC delegation policy: %s",s);
         };
       } else if(policyxml.Name() == "Policies") {
         for(XMLNode p = policyxml["Policy"];(bool)p;++p) {
           eval->addPolicy(p); ++policies_num;
           {
             std::string s; policyxml.GetXML(s);
-            logger.msg(VERBOSE,"ARC delegation policy: %s",s);
+            logger.msg(DEBUG,"ARC delegation policy: %s",s);
           };
         };
       };
@@ -147,7 +147,7 @@ bool DelegationPDP::isPermitted(Message *msg){
     {
       std::string s;
       requestxml.GetXML(s);
-      logger.msg(VERBOSE,"ARC Auth. request: %s",s);
+      logger.msg(DEBUG,"ARC Auth. request: %s",s);
     };
     if(requestxml.Size() <= 0) {
       logger.msg(ERROR,"No requested security information was collected");

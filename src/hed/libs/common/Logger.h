@@ -21,14 +21,14 @@ namespace Arc {
         WARNING level designates potentially harmful situations.
         INFO level designates informational messages that highlight
           the progress of the application at coarse-grained level.
-        DEBUG level designates fine-grained informational events
+        VERBOSE level designates fine-grained informational events
           that are most useful to debug an application.
-        VERBOSE level designates finer-grained informational events
-        than the DEBUG
+        DEBUG level designates finer-grained informational events
+        than the VERBOSE
    */
   enum LogLevel {
-    VERBOSE = 1,
-    DEBUG = 2,
+    DEBUG = 1,
+    VERBOSE = 2,
     INFO = 4,
     WARNING = 8,
     ERROR = 16,

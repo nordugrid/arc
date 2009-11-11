@@ -105,13 +105,13 @@ int logger(const char* url,char const * const * dirs,int num,time_t ex_period) {
       } else {
         if(j.url.length()) logger_url=j.url;
         if(logger_url.length() == 0) {
-          odlog(DEBUG)<<"No service URL provided"<<std::endl;
+          odlog(VERBOSE)<<"No service URL provided"<<std::endl;
           result = false;
         } else {
           std::list<JobRecord> recs;
           recs.push_back(j);
-          odlog(DEBUG)<<"Reporting to: "<<logger_url<<std::endl;
-	  odlog(DEBUG)<<"Reporting about: "<<(std::string)(j["globaljobid"])<<std::endl;
+          odlog(VERBOSE)<<"Reporting to: "<<logger_url<<std::endl;
+	  odlog(VERBOSE)<<"Reporting about: "<<(std::string)(j["globaljobid"])<<std::endl;
 //          result = client.Report(logger_url.c_str(),recs);
           result = client.ReportV2(logger_url.c_str(),recs);
         };

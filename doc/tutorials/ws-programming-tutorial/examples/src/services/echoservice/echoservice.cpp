@@ -89,7 +89,7 @@ namespace ArcService
 	*/
 	Arc::MCC_Status EchoService::process(Arc::Message& inmsg, Arc::Message& outmsg) 
 	{
-		logger.msg(Arc::DEBUG, "Echoservice started...");
+		logger.msg(Arc::VERBOSE, "Echoservice started...");
 
 		/** Both input and output are supposed to be SOAP */
 		Arc::PayloadSOAP* inpayload  = NULL;
@@ -113,7 +113,7 @@ namespace ArcService
 		std::string operation = (std::string) sayNode.Attribute("operation");
 		std::string say       = (std::string) sayNode;
 		std::string hear      = "";
-		logger.msg(Arc::DEBUG, "Say: \"%s\"  Operation: \"%s\"",say,operation);
+		logger.msg(Arc::VERBOSE, "Say: \"%s\"  Operation: \"%s\"",say,operation);
 
 		//Compare strings with constants defined in the header file
 		if(operation.compare(ECHO_TYPE_ORDINARY) == 0)
@@ -141,10 +141,10 @@ namespace ArcService
 		outpayload = new Arc::PayloadSOAP(ns_);
 		outpayload->NewChild("echo:echoResponse").NewChild("echo:hear")=hear;
 		outmsg.Payload(outpayload);
-		//(@*\drain{std::string str;outpayload->GetDoc(str, true);logger.msg(Arc::DEBUG, "XML = \%s",str);//strip backslashes}*@)
+		//(@*\drain{std::string str;outpayload->GetDoc(str, true);logger.msg(Arc::VERBOSE, "XML = \%s",str);//strip backslashes}*@)
 		/** */
 
-		logger.msg(Arc::DEBUG, "Echoservice done...");
+		logger.msg(Arc::VERBOSE, "Echoservice done...");
 		return Arc::MCC_Status(Arc::STATUS_OK);
 	}
 

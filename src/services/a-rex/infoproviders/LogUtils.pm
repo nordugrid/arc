@@ -2,7 +2,7 @@ package LogUtils;
 
 # Object-oriented usage example:
 # 
-#    LogUtils::level("DEBUG");
+#    LogUtils::level("VERBOSE");
 #    $log = LogUtils->getLogger("MyProg.MyClass");
 #    $log->warning("Oops!");
 #    $log->error("Can't go on!");
@@ -23,7 +23,7 @@ use Exporter;
 
 use strict;
 
-our %names = (FATAL => 0, ERROR => 1, WARNING => 2, INFO => 3, DEBUG => 4, VERBOSE => 5);
+our %names = (FATAL => 0, ERROR => 1, WARNING => 2, INFO => 3, VERBOSE => 4, DEBUG => 5);
 
 our $loglevel = 1; # default level is WARNING
 
@@ -62,14 +62,14 @@ sub verbose {
     return unless $loglevel > 4;
     unshift(@_, $default_logger) unless ref($_[0]) eq __PACKAGE__;
     my ($self, $msg) = @_;
-    $self->_log('VERBOSE',$msg);
+    $self->_log('DEBUG',$msg);
 }
 
 sub debug {
     return unless $loglevel > 3;
     unshift(@_, $default_logger) unless ref($_[0]) eq __PACKAGE__;
     my ($self, $msg) = @_;
-    $self->_log('DEBUG',$msg);
+    $self->_log('VERBOSE',$msg);
 }
 
 sub info {
@@ -124,7 +124,7 @@ sub test {
 }
 
 sub test2 {
-    start_logging('DEBUG');
+    start_logging('VERBOSE');
     debug('geee');
     info('beee');
     warning('meee');

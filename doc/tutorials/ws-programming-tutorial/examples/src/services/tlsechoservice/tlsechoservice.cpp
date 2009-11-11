@@ -90,8 +90,8 @@ namespace ArcService
 	*/
 	Arc::MCC_Status TLSEchoService::process(Arc::Message& inmsg, Arc::Message& outmsg) 
 	{
-		logger.msg(Arc::DEBUG, "TLS Echo Web Service has been started...");
-		logger.msg(Arc::DEBUG, "TLS Echo Web Service: Current Client has the DN: \"%s\"",inmsg.Attributes()->get("TLS:PEERDN"));//(@*\label{lst_code:TLS_service_cpp_DN}*@)
+		logger.msg(Arc::VERBOSE, "TLS Echo Web Service has been started...");
+		logger.msg(Arc::VERBOSE, "TLS Echo Web Service: Current Client has the DN: \"%s\"",inmsg.Attributes()->get("TLS:PEERDN"));//(@*\label{lst_code:TLS_service_cpp_DN}*@)
 
 		/** Both input and output are supposed to be SOAP */
 		Arc::PayloadSOAP* inpayload  = NULL;
@@ -114,7 +114,7 @@ namespace ArcService
 		std::string operation = (std::string) sayNode.Attribute("operation");
 		std::string say       = (std::string) sayNode;
 		std::string hear      = "";
-		logger.msg(Arc::DEBUG, "Say: \"%s\"  Operation: \"%s\"",say,operation);
+		logger.msg(Arc::VERBOSE, "Say: \"%s\"  Operation: \"%s\"",say,operation);
 
 		//Compare strings with constants defined in the header file
 		if(operation.compare(ECHO_TYPE_ORDINARY) == 0)
@@ -145,10 +145,10 @@ namespace ArcService
 		{
 			std::string str;
 			outpayload->GetDoc(str, true);
-			logger.msg(Arc::DEBUG, "process: response=%s",str);
+			logger.msg(Arc::VERBOSE, "process: response=%s",str);
 		}; 
 
-		logger.msg(Arc::DEBUG, "TLS Echo Web Service done...");
+		logger.msg(Arc::VERBOSE, "TLS Echo Web Service done...");
   		return Arc::MCC_Status(Arc::STATUS_OK);
 	}
 

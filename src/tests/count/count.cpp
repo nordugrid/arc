@@ -69,7 +69,7 @@ Arc::MCC_Status Service_Count::process(Arc::Message& inmsg,Arc::Message& outmsg)
     logger.msg(Arc::ERROR, "input does not define operation");
     return Arc::MCC_Status(Arc::GENERIC_ERROR);
   };
-  logger.msg(Arc::DEBUG, "process: operation: %s",op.Name());
+  logger.msg(Arc::VERBOSE, "process: operation: %s",op.Name());
   if(MatchXMLName(op, "minus")) {
     inmsg.Attributes()->set("COUNT:METHOD", "minus");
   }

@@ -26,7 +26,7 @@ int main(void) {
   Arc::LogStream logcerr(std::cerr);
   logcerr.setFormat(Arc::ShortFormat);
   Arc::Logger::getRootLogger().addDestination(logcerr);
-  Arc::Logger::getRootLogger().setThreshold(Arc::VERBOSE);
+  Arc::Logger::getRootLogger().setThreshold(Arc::DEBUG);
 
   std::string cert("../../tests/echo/usercert.pem");
   std::string key("../../tests/echo/userkey.pem");

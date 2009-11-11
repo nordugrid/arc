@@ -19,8 +19,8 @@ class PickleStore(BaseStore):
         'non_existent_object' will be returned if an object not found
         """
         BaseStore.__init__(self, storecfg, non_existent_object)
-        log.msg(arc.DEBUG, "PickleStore constructor called")
-        log.msg(arc.DEBUG, "datadir:", self.datadir)
+        log.msg(arc.VERBOSE, "PickleStore constructor called")
+        log.msg(arc.VERBOSE, "datadir:", self.datadir)
 
     def _filename(self, ID):
         """ Creates a filename from an ID.

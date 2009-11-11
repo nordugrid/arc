@@ -8,7 +8,7 @@
  xmlns:infosys="http://www.nordugrid.org/schemas/InfoRegisterConfig/2008">
 	<Server>
 		<Pidfile>/tmp/arched.pid</Pidfile>
-		<Logger level="VERBOSE">/tmp/arched.log</Logger>
+		<Logger level="DEBUG">/tmp/arched.log</Logger>
 	</Server>
 	<ModuleManager>
 		<Path>/usr/lib/arc/</Path>

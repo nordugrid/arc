@@ -76,11 +76,11 @@ namespace Arc {
 		// we need to pass that through an URL to have the port in it, so checking the SHA1 signature verify on the OAuth SP will not fail
 		URL request_url((*sso_pages_)["SimpleSAML"] + REQUEST_TOKEN_URL);
 		std::string request_url_str = request_url.fullstr();
-		logger.msg(DEBUG, "The request_url is %s", request_url_str);
+		logger.msg(VERBOSE, "The request_url is %s", request_url_str);
 
 		// produce an OAuth request token
 		char *req_url = oauth_sign_url(request_url_str.c_str(), NULL, OA_HMAC, consumer_key.c_str(), consumer_secret.c_str(), NULL, NULL);
-		logger.msg(DEBUG, "Sending oauth request to signed url %s", req_url);
+		logger.msg(VERBOSE, "Sending oauth request to signed url %s", req_url);
 
 		if (!req_url) {
 			return MCC_Status(GENERIC_ERROR, origin, "Could not sign the request url " + request_url);
@@ -219,7 +219,7 @@ namespace Arc {
 		std::string about_url = sp_url.fullstr();
 
 		char *req_url = oauth_sign_url(about_url.c_str(), NULL, OA_HMAC, consumer_key.c_str(), consumer_secret.c_str(), oauth_access_token.c_str(), oauth_access_secret.c_str());
-		logger.msg(DEBUG, "The about-you request url is %s", req_url);
+		logger.msg(VERBOSE, "The about-you request url is %s", req_url);
 		ClientHTTP about_client(cfg_,URL(req_url));
 		PayloadRaw about_request;
 		PayloadRawInterface *about_response = NULL;
@@ -259,7 +259,7 @@ namespace Arc {
 		logger.msg(INFO, "Approving the cert signing request at %s", approve_page);
 
 		char *req_url = oauth_sign_url(approve_page.c_str(), NULL, OA_HMAC, consumer_key.c_str(), consumer_secret.c_str(), oauth_access_token.c_str(), oauth_access_secret.c_str());
-		logger.msg(DEBUG, "The OAuth request url is %s", req_url);
+		logger.msg(VERBOSE, "The OAuth request url is %s", req_url);
 
 		ClientHTTP confusa_approve_client(cfg_, URL(req_url));
 		PayloadRaw confusa_approve_request;
@@ -297,7 +297,7 @@ namespace Arc {
 		logger.msg(INFO, "The location to which the GET is performed is %s", endpoint);
 
 		char *req_url = oauth_sign_url(endpoint.c_str(), NULL, OA_HMAC, consumer_key.c_str(), consumer_secret.c_str(), oauth_access_token.c_str(), oauth_access_secret.c_str());
-		logger.msg(DEBUG, "The request url is %s", req_url);
+		logger.msg(VERBOSE, "The request url is %s", req_url);
 
 		ClientHTTP confusa_push_client(cfg_, URL(req_url));
 		PayloadRaw confusa_push_request;

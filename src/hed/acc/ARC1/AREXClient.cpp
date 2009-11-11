@@ -94,9 +94,9 @@ namespace Arc {
   }
 
   bool AREXClient::process(PayloadSOAP& req, PayloadSOAP **resp, bool delegate) {
-    logger.msg(DEBUG, "Processing a %s request", req.Child(0).FullName());
+    logger.msg(VERBOSE, "Processing a %s request", req.Child(0).FullName());
     if (WSAHeader(req).Action() != "")
-      logger.msg(DEBUG, "Action: %s", WSAHeader(req).Action());
+      logger.msg(VERBOSE, "Action: %s", WSAHeader(req).Action());
 
     // Try to figure out which credentials are used
     // TODO: Method used is unstable beacuse it assumes some predefined
@@ -220,7 +220,7 @@ namespace Arc {
     act_doc.NewChild(XMLNode(jobdesc));
     act_doc.Child(0).Namespaces(arex_ns); // Unify namespaces
 
-    logger.msg(VERBOSE, "Job description to be sent: %s", jobdesc);
+    logger.msg(DEBUG, "Job description to be sent: %s", jobdesc);
 
     PayloadSOAP *resp = NULL;
 
@@ -239,7 +239,7 @@ namespace Arc {
       faultstring = fs.Reason();
       std::string s;
       resp->GetXML(s);
-      logger.msg(VERBOSE, "Submission returned failure: %s", s);
+      logger.msg(DEBUG, "Submission returned failure: %s", s);
       logger.msg(ERROR, "Submission failed, service returned: %s", faultstring);
       delete resp;
       return false;
@@ -303,9 +303,9 @@ namespace Arc {
       return false;
     }
     else {
-      logger.msg(DEBUG, "Fetching job state");
+      logger.msg(VERBOSE, "Fetching job state");
       if(arex_enabled) {
-        logger.msg(DEBUG, "%s", (std::string)jobNode["State"]);
+        logger.msg(VERBOSE, "%s", (std::string)jobNode["State"]);
         // Fetch the proper state.
         for (int i = 0; jobNode["State"][i]; i++) {
           const std::string rawState = (std::string)jobNode["State"][i];
@@ -601,7 +601,7 @@ namespace Arc {
         faultstring = "unknown reason";
       std::string s;
       resp->GetXML(s);
-      logger.msg(VERBOSE, "Request returned failure: %s", s);
+      logger.msg(DEBUG, "Request returned failure: %s", s);
       logger.msg(ERROR, "Request failed, service returned: %s", faultstring);
       delete resp;
       return false;
@@ -646,7 +646,7 @@ namespace Arc {
           faultstring = "unknown reason";
         std::string s;
         resp->GetXML(s);
-        logger.msg(VERBOSE, "Request returned failure: %s", s);
+        logger.msg(DEBUG, "Request returned failure: %s", s);
         logger.msg(ERROR, "Request failed, service returned: %s", faultstring);
         delete resp;
         return false;
@@ -691,7 +691,7 @@ namespace Arc {
         faultstring = "unknown reason";
       std::string s;
       resp->GetXML(s);
-      logger.msg(VERBOSE, "Request returned failure: %s", s);
+      logger.msg(DEBUG, "Request returned failure: %s", s);
       logger.msg(ERROR, "Request failed, service returned: %s", faultstring);
       delete resp;
       return false;
@@ -727,7 +727,7 @@ namespace Arc {
     act_doc.NewChild(XMLNode(jobdesc));
     act_doc.Child(0).Namespaces(arex_ns); // Unify namespaces
 
-    logger.msg(VERBOSE, "Job description to be sent: %s", jobdesc);
+    logger.msg(DEBUG, "Job description to be sent: %s", jobdesc);
 
     PayloadSOAP *resp = NULL;
     if (!process(req, &resp, delegate))
@@ -745,7 +745,7 @@ namespace Arc {
       faultstring = fs.Reason();
       std::string s;
       resp->GetXML(s);
-      logger.msg(VERBOSE, "Migration returned failure: %s", s);
+      logger.msg(DEBUG, "Migration returned failure: %s", s);
       logger.msg(ERROR, "Migration failed, service returned: %s", faultstring);
       delete resp;
       return false;

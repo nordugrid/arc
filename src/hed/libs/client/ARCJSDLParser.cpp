@@ -154,23 +154,23 @@ namespace Arc {
     xmlParserCtxtPtr ctxt = xmlNewParserCtxt();
 
     if (ctxt == NULL) {
-        logger.msg(DEBUG, "[ARCJSDLParser] Failed to create parser context");
+        logger.msg(VERBOSE, "[ARCJSDLParser] Failed to create parser context");
     }
     xmlSetGenericErrorFunc(NULL, (xmlGenericErrorFunc)XmlErrorHandler);
     XMLNode node(source);
     xmlSetGenericErrorFunc(NULL, NULL);
 
     if (!node) {
-        logger.msg(DEBUG, "[ARCJSDLParser] Parsing error: %s\n", (xmlGetLastError())->message);
+        logger.msg(VERBOSE, "[ARCJSDLParser] Parsing error: %s\n", (xmlGetLastError())->message);
     }
     else if (ctxt->valid == 0) {
-        logger.msg(DEBUG, "[ARCJSDLParser] Validating error");
+        logger.msg(VERBOSE, "[ARCJSDLParser] Validating error");
     }
 
     xmlFreeParserCtxt(ctxt);
 
     if (node.Size() == 0) {
-      logger.msg(DEBUG, "[ARCJSDLParser] Wrong XML structure! ");
+      logger.msg(VERBOSE, "[ARCJSDLParser] Wrong XML structure! ");
       return JobDescription();
     }
 
@@ -271,7 +271,7 @@ namespace Arc {
         XMLNode env = xmlXApplication["Environment"][i];
         XMLNode name = env.Attribute("name");
         if (!name || ((std::string)name).empty()) {
-          logger.msg(DEBUG, "[ARCJSDLParser] Error during the parsing: missed the name attributes of the \"%s\" Environment", (std::string)env);
+          logger.msg(VERBOSE, "[ARCJSDLParser] Error during the parsing: missed the name attributes of the \"%s\" Environment", (std::string)env);
           return JobDescription();
         }
         job.Application.Environment.push_back(std::pair<std::string, std::string>(name, env));
@@ -298,7 +298,7 @@ namespace Arc {
     for (int i = 0; (bool)(xmlApplication["RemoteLogging"][i]); i++) {
       URL url((std::string)xmlApplication["RemoteLogging"][i]);
       if (!url) {
-        logger.msg(DEBUG, "[ARCJSDLParser] RemoteLogging URL is wrongly formatted.");
+        logger.msg(VERBOSE, "[ARCJSDLParser] RemoteLogging URL is wrongly formatted.");
         return JobDescription();
       }
       job.Application.RemoteLogging.push_back(url);

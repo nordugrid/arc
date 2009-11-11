@@ -14,7 +14,7 @@ int main() {
 
   Arc::LogStream logcerr(std::cerr);
   Arc::Logger::getRootLogger().addDestination(logcerr);
-  Arc::Logger::getRootLogger().setThreshold(Arc::DEBUG);
+  Arc::Logger::getRootLogger().setThreshold(Arc::VERBOSE);
 
   Arc::ACCConfig acccfg;
   Arc::NS ns;

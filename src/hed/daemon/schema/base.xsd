@@ -79,11 +79,11 @@
         </xsd:documentation>
     </xsd:annotation>
     <xsd:restriction base="xsd:string">
-        <xsd:enumeration value="DEBUG"/>
+        <xsd:enumeration value="VERBOSE"/>
         <xsd:enumeration value="INFO"/>
         <xsd:enumeration value="ERROR"/>
         <xsd:enumeration value="WARNING"/>
-        <xsd:enumeration value="VERBOSE"/>
+        <xsd:enumeration value="DEBUG"/>
     </xsd:restriction>
 </xsd:simpleType>
 

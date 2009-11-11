@@ -123,7 +123,7 @@ bool PaulService::information_collector(Arc::XMLNode &doc)
 }
 
 bool PaulService::RegistrationCollector(Arc::XMLNode &doc) {
-  logger_.msg(Arc::VERBOSE,"Passing service's information from collector to registrator");
+  logger_.msg(Arc::DEBUG,"Passing service's information from collector to registrator");
   Arc::XMLNode empty(ns_, "RegEntry");
   empty.New(doc);
 

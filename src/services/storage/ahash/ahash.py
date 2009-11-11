@@ -41,7 +41,7 @@ class CentralAHash:
         'storeclass', the name of the class which will store the data
         'storecfg', an XMLNode with the configuration of the storeclass
         """
-        log.msg(arc.DEBUG, "CentralAHash constructor called")
+        log.msg(arc.VERBOSE, "CentralAHash constructor called")
         
         self.public_request_names = []
         # import the storeclass and call its constructor with the datadir

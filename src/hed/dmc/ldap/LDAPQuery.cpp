@@ -173,7 +173,7 @@ namespace Arc {
     sasl_defaults *defaults = (sasl_defaults*)defaults_;
 
     if (flags == LDAP_SASL_INTERACTIVE)
-      LDAPQuery::logger.msg(VERBOSE, "SASL Interaction");
+      LDAPQuery::logger.msg(DEBUG, "SASL Interaction");
 
     while (interact->id != SASL_CB_LIST_END) {
 
@@ -221,11 +221,11 @@ namespace Arc {
           return 1;
 
         if (challenge && interact->challenge)
-          LDAPQuery::logger.msg(VERBOSE, "Challenge: %s",
+          LDAPQuery::logger.msg(DEBUG, "Challenge: %s",
                                 interact->challenge);
 
         if (interact->defresult)
-          LDAPQuery::logger.msg(VERBOSE, "Default: %s",
+          LDAPQuery::logger.msg(DEBUG, "Default: %s",
                                 interact->defresult);
 
         std::string prompt;
@@ -292,7 +292,7 @@ namespace Arc {
 
     const int version = LDAP_VERSION3;
 
-    logger.msg(DEBUG, "LDAPQuery: Initializing connection to %s:%d",
+    logger.msg(VERBOSE, "LDAPQuery: Initializing connection to %s:%d",
                host, port);
 
     if (connection) {
@@ -411,7 +411,7 @@ namespace Arc {
       int ldapflag = LDAP_SASL_QUIET;
 #ifdef LDAP_SASL_AUTOMATIC
       // solaris does not have LDAP_SASL_AUTOMATIC
-      if (arg->loglevel >= DEBUG)
+      if (arg->loglevel >= VERBOSE)
         ldapflag = LDAP_SASL_AUTOMATIC;
 #endif
       sasl_defaults defaults = sasl_defaults(arg->connection,
@@ -459,16 +459,16 @@ namespace Arc {
     if (!Connect())
       return false;
 
-    logger.msg(DEBUG, "LDAPQuery: Querying %s", host);
+    logger.msg(VERBOSE, "LDAPQuery: Querying %s", host);
 
-    logger.msg(VERBOSE, "  base dn: %s", base);
+    logger.msg(DEBUG, "  base dn: %s", base);
     if (!filter.empty())
-      logger.msg(VERBOSE, "  filter: %s", filter);
+      logger.msg(DEBUG, "  filter: %s", filter);
     if (!attributes.empty()) {
-      logger.msg(VERBOSE, "  attributes:");
+      logger.msg(DEBUG, "  attributes:");
       for (std::list<std::string>::const_iterator vs = attributes.begin();
            vs != attributes.end(); vs++)
-        logger.msg(VERBOSE, "    %s", *vs);
+        logger.msg(DEBUG, "    %s", *vs);
     }
 
     timeval tout;
@@ -537,7 +537,7 @@ namespace Arc {
 
   bool LDAPQuery::HandleResult(ldap_callback callback, void *ref) {
 
-    logger.msg(DEBUG, "LDAPQuery: Getting results from %s", host);
+    logger.msg(VERBOSE, "LDAPQuery: Getting results from %s", host);
 
     if (!messageid) {
       logger.msg(ERROR, "Error: no LDAP query started to %s", host);

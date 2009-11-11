@@ -120,7 +120,7 @@ Arc::MCC_Status ARex2Service::process(Arc::Message& inmsg,Arc::Message& outmsg) 
       logger_.msg(Arc::ERROR, "input does not define operation");
       return make_soap_fault(outmsg);
     };
-    logger_.msg(Arc::DEBUG, "process: operation: %s",op.Name());
+    logger_.msg(Arc::VERBOSE, "process: operation: %s",op.Name());
     // BES Factory operations
     Arc::PayloadSOAP* outpayload = new Arc::PayloadSOAP(ns_);
     Arc::PayloadSOAP& res = *outpayload;
@@ -171,10 +171,10 @@ Arc::MCC_Status ARex2Service::process(Arc::Message& inmsg,Arc::Message& outmsg) 
         return make_soap_fault(outmsg);
     };
     {
-        // DEBUG 
+        // VERBOSE 
         std::string str;
         outpayload->GetXML(str);
-        logger_.msg(Arc::DEBUG, "process: response=%s",str);
+        logger_.msg(Arc::VERBOSE, "process: response=%s",str);
     };
     // Set output
     outmsg.Payload(outpayload);

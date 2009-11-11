@@ -82,7 +82,7 @@ namespace Arc {
     //act_doc.Child(0).Namespaces(arex_ns); // Unify namespaces
     PayloadSOAP *resp = NULL;
     act_doc.GetXML(jsdl_str);
-    logger.msg(VERBOSE, "Job description to be sent: %s", jsdl_str);
+    logger.msg(DEBUG, "Job description to be sent: %s", jsdl_str);
     MCC_Status status =
       client.process("http://schemas.ggf.org/bes/2006/08/bes-factory/"
                      "BESFactoryPortType/CreateActivity", &req, &resp);
@@ -101,7 +101,7 @@ namespace Arc {
       std::string s;
       resp->GetXML(s);
       // delete resp;
-      logger.msg(VERBOSE, "Submission returned failure: %s", s);
+      logger.msg(DEBUG, "Submission returned failure: %s", s);
       logger.msg(ERROR, "Submission failed, service returned: %s", faultstring);
       return URL();
     }

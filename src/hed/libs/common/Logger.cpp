@@ -23,10 +23,10 @@
 namespace Arc {
 
   std::ostream& operator<<(std::ostream& os, LogLevel level) {
-    if (level == VERBOSE)
-      os << "VERBOSE";
-    else if (level == DEBUG)
+    if (level == DEBUG)
       os << "DEBUG";
+    else if (level == VERBOSE)
+      os << "VERBOSE";
     else if (level == INFO)
       os << "INFO";
     else if (level == WARNING)
@@ -40,10 +40,10 @@ namespace Arc {
   }
 
   LogLevel string_to_level(const std::string& str) {
-    if (str == "VERBOSE")
-      return VERBOSE;
-    else if (str == "DEBUG")
+    if (str == "DEBUG")
       return DEBUG;
+    else if (str == "VERBOSE")
+      return VERBOSE;
     else if (str == "INFO")
       return INFO;
     else if (str == "WARNING")
@@ -58,10 +58,10 @@ namespace Arc {
 
   bool istring_to_level(const std::string& llStr, LogLevel& ll) {
     const std::string str = upper(llStr);
-    if (str == "VERBOSE")
-      ll = VERBOSE;
-    else if (str == "DEBUG")
+    if (str == "DEBUG")
       ll = DEBUG;
+    else if (str == "VERBOSE")
+      ll = VERBOSE;
     else if (str == "INFO")
       ll = INFO;
     else if (str == "WARNING")
@@ -78,10 +78,10 @@ namespace Arc {
 
   std::string level_to_string(const LogLevel& level) {
     switch (level) {
-      case VERBOSE:
-        return "VERBOSE";
       case DEBUG:
         return "DEBUG";
+      case VERBOSE:
+        return "VERBOSE";
       case INFO:
         return "INFO";
       case WARNING:
@@ -373,7 +373,7 @@ namespace Arc {
   Logger::Logger()
     : parent(0),
       domain("Arc"),
-      threshold(VERBOSE) {
+      threshold(DEBUG) {
     // addDestination(cerr);
   }
 

@@ -159,7 +159,7 @@ namespace Arc {
 
         if (it1->Name == it2->Name && (!it1->Source.empty() && !it2->Source.empty() ||
                                        !it1->Target.empty() && !it2->Target.empty())) {
-          logger.msg(DEBUG, "Two files have identical file name '%s'.", it1->Name);
+          logger.msg(VERBOSE, "Two files have identical file name '%s'.", it1->Name);
           return false;
         }
 
@@ -227,21 +227,21 @@ namespace Arc {
     if (!jobdesc.Resources.RunTimeEnvironment.empty() &&
         !jobdesc.Resources.RunTimeEnvironment.selectSoftware(et.ApplicationEnvironments)) {
       // This error should never happen since RTE is checked in the Broker.
-      logger.msg(DEBUG, "Unable to select run time environment");
+      logger.msg(VERBOSE, "Unable to select run time environment");
       return false;
     }
 
     if (!jobdesc.Resources.CEType.empty() &&
         !jobdesc.Resources.CEType.selectSoftware(et.Implementation)) {
       // This error should never happen since Middleware is checked in the Broker.
-      logger.msg(DEBUG, "Unable to select middleware");
+      logger.msg(VERBOSE, "Unable to select middleware");
       return false;
     }
 
     if (!jobdesc.Resources.OperatingSystem.empty() &&
         !jobdesc.Resources.OperatingSystem.selectSoftware(et.Implementation)) {
       // This error should never happen since OS is checked in the Broker.
-      logger.msg(DEBUG, "Unable to select operating system.");
+      logger.msg(VERBOSE, "Unable to select operating system.");
       return false;
     }
 

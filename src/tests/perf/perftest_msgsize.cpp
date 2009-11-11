@@ -198,7 +198,7 @@ int main(int argc, char* argv[]){
               << "           'soap' entry point and HOSTNAME, PORTNUMBER and PATH " << std::endl
               << "            keyword for hostname, port and HTTP path of 'echo' service." << std::endl
               << "-d debug   The textual representation of desired debug level. Available " << std::endl
-              << "            levels: VERBOSE, DEBUG, INFO, WARNING, ERROR, FATAL." << std::endl
+              << "            levels: DEBUG, VERBOSE, INFO, WARNING, ERROR, FATAL." << std::endl
               << "-r         If specified close connection and reconnect after " << std::endl
               << "            every request." << std::endl
               << "-t         Toggles TCP_NODELAY option " << std::endl

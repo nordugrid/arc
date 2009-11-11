@@ -85,18 +85,18 @@ namespace ArcService
 	*/
 	Arc::MCC_Status SecEchoService::process(Arc::Message& inmsg, Arc::Message& outmsg) 
 	{
-		logger.msg(Arc::DEBUG, "Secure Echo Web Service has been started...");
+		logger.msg(Arc::VERBOSE, "Secure Echo Web Service has been started...");
 
 
 
 		/** Processes the SecHandlers of the service *///(@*\label{lst_code:sececho_service_cpp_process_secH}*@)
-		logger.msg(Arc::DEBUG, "Secure Echo Web Service: Current Client has the DN: \"%s\"",inmsg.Attributes()->get("TLS:PEERDN"));
+		logger.msg(Arc::VERBOSE, "Secure Echo Web Service: Current Client has the DN: \"%s\"",inmsg.Attributes()->get("TLS:PEERDN"));
 
 		if(!ProcessSecHandlers(inmsg,"incoming")) {
-			logger.msg(Arc::DEBUG, "Secure Echo Web Service: Didn't passes SecHandler!");
+			logger.msg(Arc::VERBOSE, "Secure Echo Web Service: Didn't passes SecHandler!");
 			return makeFault(outmsg, "Access to this service is not permitted!");
 		}else{
-			logger.msg(Arc::DEBUG, "Secure Echo Web Service: Passed SecHandler!");
+			logger.msg(Arc::VERBOSE, "Secure Echo Web Service: Passed SecHandler!");
 		}
 		/** */
 
@@ -124,7 +124,7 @@ namespace ArcService
 		std::string operation = (std::string) sayNode.Attribute("operation");
 		std::string say       = (std::string) sayNode;
 		std::string hear      = "";
-		logger.msg(Arc::DEBUG, "Say: \"%s\"  Operation: \"%s\"",say,operation);
+		logger.msg(Arc::VERBOSE, "Say: \"%s\"  Operation: \"%s\"",say,operation);
 
 		//Compare strings with constants defined in the header file
 		if(operation.compare(ECHO_TYPE_ORDINARY) == 0)
@@ -155,10 +155,10 @@ namespace ArcService
 		{
 			std::string str;
 			outpayload->GetDoc(str, true);
-			logger.msg(Arc::DEBUG, "process: response=%s",str);
+			logger.msg(Arc::VERBOSE, "process: response=%s",str);
 		}; 
 
-		logger.msg(Arc::DEBUG, "Secure Echo Web Service  done...");
+		logger.msg(Arc::VERBOSE, "Secure Echo Web Service  done...");
   		return Arc::MCC_Status(Arc::STATUS_OK);
 	}
 

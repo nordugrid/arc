@@ -6,7 +6,7 @@
 >
   <Server>
     <PidFile>/var/run/arched.pid</PidFile>
-    <Logger level="VERBOSE">/var/log/charon.log</Logger>
+    <Logger level="DEBUG">/var/log/charon.log</Logger>
   </Server>
     <ModuleManager>
         <Path>@prefix@/lib/arc/</Path>

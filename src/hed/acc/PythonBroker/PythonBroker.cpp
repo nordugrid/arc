@@ -86,7 +86,7 @@ namespace Arc {
 
     lock.unlock();
 
-    logger.msg(VERBOSE, "Loading python broker (%i)", refcount);
+    logger.msg(DEBUG, "Loading python broker (%i)", refcount);
 
     Broker *broker = new PythonBroker(*brokerarg);
 
@@ -110,7 +110,7 @@ namespace Arc {
       return;
     }
 
-    logger.msg(DEBUG, "PythonBroker init");
+    logger.msg(VERBOSE, "PythonBroker init");
 
     std::string args = usercfg.Broker().second;
     std::string::size_type pos = args.find(':');
@@ -123,8 +123,8 @@ namespace Arc {
     }
     std::string module_name = args.substr(0, pos);
     std::string class_name = args.substr(pos + 1);
-    logger.msg(DEBUG, "class name: %s", class_name);
-    logger.msg(DEBUG, "module name: %s", module_name);
+    logger.msg(VERBOSE, "class name: %s", class_name);
+    logger.msg(VERBOSE, "module name: %s", module_name);
 
     // Import arc python module
     PyObjectP py_arc_module_name = PyString_FromString("arc");
@@ -271,7 +271,7 @@ namespace Arc {
       return;
     }
 
-    logger.msg(DEBUG, "Python broker constructor called (%d)", refcount);
+    logger.msg(VERBOSE, "Python broker constructor called (%d)", refcount);
   }
 
   PythonBroker::~PythonBroker() {
@@ -293,7 +293,7 @@ namespace Arc {
 
     lock.unlock();
 
-    logger.msg(DEBUG, "Python broker destructor called (%d)", refcount);
+    logger.msg(VERBOSE, "Python broker destructor called (%d)", refcount);
   }
 
   void PythonBroker::SortTargets() {

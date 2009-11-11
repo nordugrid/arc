@@ -27,13 +27,13 @@ MatchSelector::match_application_environment(Arc::Job *j)
     {
         std::string s;
         resource_desc_.GetXML(s);
-        logger_.msg(Arc::DEBUG, s);
+        logger_.msg(Arc::VERBOSE, s);
         s = "";
         job_resources.GetXML(s);
-        logger_.msg(Arc::DEBUG, s);
+        logger_.msg(Arc::VERBOSE, s);
         s = "";
         app_envs.GetXML(s);
-        logger_.msg(Arc::DEBUG, s);
+        logger_.msg(Arc::VERBOSE, s);
     }
     int match_req = job_resources.Size();
     int matched = 0;
@@ -51,7 +51,7 @@ MatchSelector::match_application_environment(Arc::Job *j)
         }
     }
 
-    logger_.msg(Arc::DEBUG, "%d <> %d", match_req, matched);
+    logger_.msg(Arc::VERBOSE, "%d <> %d", match_req, matched);
     if (match_req == matched) {
         return true;
     }
@@ -76,7 +76,7 @@ GridSchedulerService::GetActivities(Arc::XMLNode &in, Arc::XMLNode &out, const s
     {
         std::string s;
         in.GetXML(s);
-        logger_.msg(Arc::DEBUG, s);
+        logger_.msg(Arc::VERBOSE, s);
     }
     Arc::XMLNode activities = out.NewChild("ibes:Activities");
     // create resource
@@ -115,7 +115,7 @@ GridSchedulerService::GetActivities(Arc::XMLNode &in, Arc::XMLNode &out, const s
             return Arc::MCC_Status();
         }
     }
-    logger_.msg(Arc::DEBUG, "NO job");
+    logger_.msg(Arc::VERBOSE, "NO job");
     return Arc::MCC_Status(Arc::STATUS_OK);
 }
 
@@ -128,7 +128,7 @@ GridSchedulerService::GetActivitiesStatusChanges(Arc::XMLNode &in, Arc::XMLNode 
         Arc::WSAEndpointReference id(id_node);
         std::string job_id = id.ReferenceParameters()["sched:JobID"];
         if (job_id.empty()) {
-            logger_.msg(Arc::DEBUG, "invalid job id");
+            logger_.msg(Arc::VERBOSE, "invalid job id");
             continue;
         }
         Arc::XMLNode activity = activities.NewChild("ibes:Activity");
@@ -179,7 +179,7 @@ GridSchedulerService::ReportActivitiesStatus(Arc::XMLNode &in, Arc::XMLNode &/*o
             }
             Arc::SchedJobStatus old_status = j->getStatus();
             Arc::SchedJobStatus new_status = Arc::sched_status_from_string((std::string)state);
-            logger_.msg(Arc::DEBUG, "%s try to status change: %s->%s", 
+            logger_.msg(Arc::VERBOSE, "%s try to status change: %s->%s", 
                         j->getID(),
                         Arc::sched_status_to_string(j->getStatus()), 
                         (std::string)state);

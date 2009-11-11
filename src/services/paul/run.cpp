@@ -34,7 +34,7 @@ static std::string save_filename(const std::string &in)
 
 bool PaulService::run(Job &j)
 {
-    logger_.msg(Arc::DEBUG, "Start process");
+    logger_.msg(Arc::VERBOSE, "Start process");
     Arc::XMLNode jd = j.getJSDL()["JobDescription"];
     Arc::XMLNode app = jd["Application"]["POSIXApplication"];
     if (app == false) {
@@ -43,7 +43,7 @@ bool PaulService::run(Job &j)
     if (app == false) {
         logger_.msg(Arc::ERROR, "Invalid JSDL! Missing application section");
         if (j.getStatus() != KILLED || j.getStatus() != KILLING) {
-            logger_.msg(Arc::DEBUG, "%s set exception", j.getID());
+            logger_.msg(Arc::VERBOSE, "%s set exception", j.getID());
             j.setStatus(FAILED);
         }
         return false;
@@ -54,7 +54,7 @@ bool PaulService::run(Job &j)
     if (exec.empty()) {
         logger_.msg(Arc::ERROR, "Empty executable");
         if (j.getStatus() != KILLED || j.getStatus() != KILLING) {
-            logger_.msg(Arc::DEBUG, "%s set exception", j.getID());
+            logger_.msg(Arc::VERBOSE, "%s set exception", j.getID());
             j.setStatus(FAILED);
         }
         return false;    
@@ -79,7 +79,7 @@ bool PaulService::run(Job &j)
         extension = Arc::upper(extension);
         if (extension == "BAT") {
           std::string cmd_path = Glib::find_program_in_path("cmd");
-          logger_.msg(Arc::DEBUG, "Windows cmd path: %s", cmd_path);
+          logger_.msg(Arc::VERBOSE, "Windows cmd path: %s", cmd_path);
           cmd = cmd_path + " /c " + exec;
         }
         if (extension != "BAT")
@@ -97,7 +97,7 @@ bool PaulService::run(Job &j)
 #ifdef WIN32
     cmd = save_filename(cmd);
 #endif
-    logger_.msg(Arc::DEBUG, "Cmd: %s", cmd);
+    logger_.msg(Arc::VERBOSE, "Cmd: %s", cmd);
 
     Arc::Run *run = NULL;
     try {
@@ -109,7 +109,7 @@ bool PaulService::run(Job &j)
         if (!std_err.empty())
           run->AssignStderr(std_err);
         run->AssignWorkingDirectory(wd);
-        logger_.msg(Arc::DEBUG, "Command: %s", cmd);
+        logger_.msg(Arc::VERBOSE, "Command: %s", cmd);
         if(!run->Start()) {
             logger_.msg(Arc::ERROR, "Cannot start application");
             goto error;
@@ -117,10 +117,10 @@ bool PaulService::run(Job &j)
         j.setStatus(RUNNING);
         runq[j.getID()] = run;
         if(run->Wait()) {
-            logger_.msg(Arc::DEBUG, "StdOut: %s", std_out);
-            logger_.msg(Arc::DEBUG, "StdErr: %s", std_err);
+            logger_.msg(Arc::VERBOSE, "StdOut: %s", std_out);
+            logger_.msg(Arc::VERBOSE, "StdErr: %s", std_err);
             if (run != NULL) {
-                //logger_.msg(Arc::DEBUG, "delete run");
+                //logger_.msg(Arc::VERBOSE, "delete run");
 
                 // TODO: erase should be delayed
                 //runq.erase(j.getID());
@@ -128,9 +128,9 @@ bool PaulService::run(Job &j)
                 delete run;
                 run = NULL;
             }
-            logger_.msg(Arc::DEBUG, "return from run");
+            logger_.msg(Arc::VERBOSE, "return from run");
             if (j.getStatus() != KILLED && j.getStatus() != KILLING) {
-                logger_.msg(Arc::DEBUG, "%s set finished", j.getID());
+                logger_.msg(Arc::VERBOSE, "%s set finished", j.getID());
                 j.setStatus(FINISHED);
             }
             return true;
@@ -151,7 +151,7 @@ bool PaulService::run(Job &j)
 
 error:
     if (j.getStatus() != KILLED && j.getStatus() != KILLING) {
-        logger_.msg(Arc::DEBUG, "%s set exception", j.getID());
+        logger_.msg(Arc::VERBOSE, "%s set exception", j.getID());
         j.setStatus(FAILED);
     }
     if (run != NULL) {

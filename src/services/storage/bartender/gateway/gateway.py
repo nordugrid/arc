@@ -28,7 +28,7 @@ class Gateway:
         self.proxy_store = str(self.cfg.Get('ProxyStore'))
         self.ca_dir = str(self.cfg.Get('CACertificatesDir'))
         if len(self.proxy_store) == 0:
-           log.msg(arc.DEBUG,'proxy store is not accessable.')
+           log.msg(arc.VERBOSE,'proxy store is not accessable.')
          
     def get(self, auth ,sourceURL, flags):
         response = {}  
@@ -36,7 +36,7 @@ class Gateway:
         protocol = ''
         proxyfile = base64.b64encode(auth.get_identity()) 
         if len(self.proxy_store) == 0:
-           log.msg(arc.DEBUG,'proxy store is not accessable.')
+           log.msg(arc.VERBOSE,'proxy store is not accessable.')
         filepath = self.proxy_store+'/'+proxyfile+'.proxy'
         if os.path.isfile(filepath):
             url = arc.URL(sourceURL);
@@ -58,7 +58,7 @@ class Gateway:
         else:
             status = 'cannot find valid credentials'
             response[url] = {'turl':'','status': status,'protocol':''}
-        log.msg(arc.DEBUG,'get response: %s',response)
+        log.msg(arc.VERBOSE,'get response: %s',response)
         return response
             
     def put(self, auth, url, flags):
@@ -89,7 +89,7 @@ class Gateway:
         else:
             protocol = 'unkonwn'
         if len(self.proxy_store) == 0:
-            log.msg(arc.DEBUG,'proxy store is not accessable.')
+            log.msg(arc.VERBOSE,'proxy store is not accessable.')
         if protocol != 'unknown':
             proxyfile = base64.b64encode(auth.get_identity())
             filepath = self.proxy_store + '/' + proxyfile + '.proxy'
@@ -116,7 +116,7 @@ class Gateway:
             else:
                 status = 'Your proxy cannot be found. Please delegate your credentials!'
         response[url] = {'list': tmpList, 'status': status, 'protocol': protocol}
-        log.msg(arc.DEBUG, 'list response: %s', response)
+        log.msg(arc.VERBOSE, 'list response: %s', response)
         return response
         
     def remove(self, auth, url, flags):
@@ -132,7 +132,7 @@ class Gateway:
             protocol = 'unkonwn'
         if len(self.proxy_store) == 0:
             status = 'failed' 
-            log.msg(arc.DEBUG,'proxy store is not accessable.')
+            log.msg(arc.VERBOSE,'proxy store is not accessable.')
         if protocol != 'unknown':
             proxyfile = base64.b64encode(auth.get_identity())
             filepath = self.proxy_store+'/'+proxyfile+'.proxy'

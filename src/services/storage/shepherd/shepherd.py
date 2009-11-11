@@ -160,7 +160,7 @@ class Shepherd:
                         # get its local data (GUID, size, state, etc.)
                         localData = self.store.get(changed)
                         if not localData.has_key('GUID'):
-                            log.msg(arc.DEBUG, 'Error in shepherd.reportingThread()\n\treferenceID is in changed_states, but not in store')
+                            log.msg(arc.VERBOSE, 'Error in shepherd.reportingThread()\n\treferenceID is in changed_states, but not in store')
                         else:
                             # add to the filelist the GUID, the referenceID and the state of the file
                             filelist.append((localData.get('GUID'), changed, localData.get('state')))
@@ -169,7 +169,7 @@ class Shepherd:
                     try:
                         next_report = self.librarian.report(self.serviceID, filelist)
                     except:
-                        log.msg(arc.DEBUG, 'Error sending report message to the Librarian, reason:', traceback.format_exc())
+                        log.msg(arc.VERBOSE, 'Error sending report message to the Librarian, reason:', traceback.format_exc())
                         # if next_report is below zero, then we will send everything again
                         next_report = -1
                     # we should get the time of the next report
@@ -179,7 +179,7 @@ class Shepherd:
                     last_report = time.time()
                     # if the next report time is below zero it means:
                     if next_report < 0: # 'please send all'
-                        log.msg(arc.DEBUG, 'reporting - asked to send all file data again')
+                        log.msg(arc.VERBOSE, 'reporting - asked to send all file data again')
                         # add the full list of stored files to the changed_state list - all the files will be reported next time (which is immediately, see below)
                         self.changed_states.extend(self.store.list())
                     # let's wait until there is any changed file or the reporting time is up - we need to do report even if no file changed (as a heartbeat)
@@ -228,7 +228,7 @@ class Shepherd:
             # if the original and the current checksum is the same, then the replica is valid
             if state in [INVALID, CREATING, STALLED]:
                 # if it is currently INVALID or CREATING or STALLED, its state should be changed
-                log.msg(arc.DEBUG, '\nCHECKSUM OK', referenceID)
+                log.msg(arc.VERBOSE, '\nCHECKSUM OK', referenceID)
                 self.changeState(referenceID, ALIVE)
                 state = ALIVE
             return state
@@ -248,7 +248,7 @@ class Shepherd:
                 return state
             if state != INVALID:
                 # but if it is not CREATING, not DELETED or STALLED and not INVALID - then it was ALIVE: now its state should be changed to INVALID
-                log.msg(arc.DEBUG, '\nCHECKSUM MISMATCH', referenceID, 'original:', checksum, 'current:', current_checksum)
+                log.msg(arc.VERBOSE, '\nCHECKSUM MISMATCH', referenceID, 'original:', checksum, 'current:', current_checksum)
                 self.changeState(referenceID, INVALID)
             return INVALID
         
@@ -283,7 +283,7 @@ class Shepherd:
                 else:
                     current_local_data['checksum'] = librarian_checksum
                     current_local_data['checksumType'] = librarian_checksumType
-                    log.msg(arc.DEBUG, 'checksum refreshed', current_local_data)
+                    log.msg(arc.VERBOSE, 'checksum refreshed', current_local_data)
                     self.store.set(referenceID, current_local_data)
                     self.store.unlock()
             except:
@@ -308,7 +308,7 @@ class Shepherd:
                     # but we don't want to run constantly, after a file is checked we should wait at least a specified amount of time
                     if interval < self.min_interval:
                         interval = self.min_interval
-                    log.msg(arc.DEBUG,'\n', self.serviceID, 'is checking', number, 'files with interval', interval)
+                    log.msg(arc.VERBOSE,'\n', self.serviceID, 'is checking', number, 'files with interval', interval)
                     # randomize the list of files to be checked
                     random.shuffle(referenceIDs)
                     # start checking the first one
@@ -340,7 +340,7 @@ class Shepherd:
                                 if state == ALIVE:
                                     if GUID in alive_GUIDs:
                                         # this means that we already have an other alive replica of this file
-                                        log.msg(arc.DEBUG, '\n\nFile', GUID, 'has more than one replicas on this storage element.')
+                                        log.msg(arc.VERBOSE, '\n\nFile', GUID, 'has more than one replicas on this storage element.')
                                         self.changeState(referenceID, DELETED)
                                     else:    
                                         # check the number of needed replicas
@@ -360,7 +360,7 @@ class Shepherd:
                                                                    if section == 'locations' and value in [ALIVE, CREATING]]))
                                         if alive_replicas < needed_replicas:
                                             # if the file has fewer replicas than needed
-                                            log.msg(arc.DEBUG, '\n\nFile', GUID, 'has fewer replicas than needed.')
+                                            log.msg(arc.VERBOSE, '\n\nFile', GUID, 'has fewer replicas than needed.')
                                             # we offer our copy to replication
                                             try:
                                                 response = self.bartender.addReplica({'checkingThread' : GUID}, common_supported_protocols)
@@ -373,11 +373,11 @@ class Shepherd:
                                                 self.backend.copyTo(localID, turl, protocol)
                                                 # TODO: this should be done in some other thread
                                             else:
-                                                log.msg(arc.DEBUG, 'checkingThread error, bartender responded', success)
+                                                log.msg(arc.VERBOSE, 'checkingThread error, bartender responded', success)
                                             # so this GUID has an alive replica here
                                             alive_GUIDs.append(GUID)
                                         elif alive_replicas > needed_replicas:
-                                            log.msg(arc.DEBUG, '\n\nFile', GUID, 'has %d more replicas than needed.' % (alive_replicas-needed_replicas))
+                                            log.msg(arc.VERBOSE, '\n\nFile', GUID, 'has %d more replicas than needed.' % (alive_replicas-needed_replicas))
                                             thirdwheels = len([property for (section, property), value in metadata.items()
                                                                if section == 'locations' and value == THIRDWHEEL])
                                             if thirdwheels == 0:
@@ -410,7 +410,7 @@ class Shepherd:
                                     state = ALIVE
                             # or if this replica is INVALID
                             elif state == INVALID:
-                                log.msg(arc.DEBUG, '\n\nI have an invalid replica of file', GUID)
+                                log.msg(arc.VERBOSE, '\n\nI have an invalid replica of file', GUID)
                                 my_replicas = len([property for (section, property), value in metadata.items()
                                                    if section == 'locations' and value in [ALIVE,CREATING] 
                                                    and property.startswith(self.serviceID)])
@@ -431,7 +431,7 @@ class Shepherd:
                                     self._file_arrived(referenceID)
                                     # TODO: this should be done in some other thread
                                 else:
-                                    log.msg(arc.DEBUG, 'checkingThread error, bartender responded', success)
+                                    log.msg(arc.VERBOSE, 'checkingThread error, bartender responded', success)
                             elif state == OFFLINE:
                                 # online now
                                 state = ALIVE
@@ -441,7 +441,7 @@ class Shepherd:
                                 bsuccess = self.backend.remove(localID)
                                 self.store.set(referenceID, None)
                         except:
-                            log.msg(arc.DEBUG, 'ERROR checking checksum of %s, reason: %s' % (referenceID, traceback.format_exc()))
+                            log.msg(arc.VERBOSE, 'ERROR checking checksum of %s, reason: %s' % (referenceID, traceback.format_exc()))
                         # sleep for interval +/- 0.5*interval seconds to avoid race condition
                         time.sleep(interval+((random.random()-0.5)*interval))
                 else:
@@ -458,7 +458,7 @@ class Shepherd:
                 self.store.unlock()
                 return False
             oldState = localData['state']
-            log.msg(arc.DEBUG, 'changeState', referenceID, oldState, '->', newState)
+            log.msg(arc.VERBOSE, 'changeState', referenceID, oldState, '->', newState)
             # if a previous state is given, change only if the current state is the given state
             if onlyIf and oldState != onlyIf:
                 self.store.unlock()
@@ -476,7 +476,7 @@ class Shepherd:
     def get(self, request):
         response = {}
         for requestID, getRequestData in request.items():
-            log.msg(arc.DEBUG, '\n\n', getRequestData)
+            log.msg(arc.VERBOSE, '\n\n', getRequestData)
             referenceID = dict(getRequestData)['referenceID']
             protocols = [value for property, value in getRequestData if property == 'protocol']
             #print 'Shepherd.get:', referenceID, protocols

@@ -280,7 +280,7 @@ sub test {
                     processes => [ qw(bash ps init grid-manager bogous) ],
                     localusers => [ qw(root adrianta) ] };
     require Data::Dumper; import Data::Dumper qw(Dumper);
-    LogUtils::level('DEBUG');
+    LogUtils::level('VERBOSE');
     $log->debug("Options:\n" . Dumper($options));
     my $results = HostInfo::collect($options);
     $log->debug("Results:\n" . Dumper($results));

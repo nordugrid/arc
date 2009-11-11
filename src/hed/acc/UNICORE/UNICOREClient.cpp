@@ -153,7 +153,7 @@ namespace Arc {
       }
     }
     act_doc.GetXML(jsdl_str);
-    logger.msg(VERBOSE, "Job description to be sent: %s", jsdl_str);
+    logger.msg(DEBUG, "Job description to be sent: %s", jsdl_str);
 
     // Try to figure out which credentials are used
     // TODO: Method used is unstable beacuse it assumes some predefined
@@ -269,7 +269,7 @@ namespace Arc {
       std::string s;
       resp->GetXML(s);
       delete resp;
-      logger.msg(VERBOSE, "Submission returned failure: %s", s);
+      logger.msg(DEBUG, "Submission returned failure: %s", s);
       logger.msg(ERROR, "Submission failed, service returned: %s", faultstring);
       return false;
     }
@@ -342,7 +342,7 @@ namespace Arc {
       std::string s;
       resp->GetXML(s);
       delete resp;
-      logger.msg(VERBOSE, "Submission returned failure: %s", s);
+      logger.msg(DEBUG, "Submission returned failure: %s", s);
       logger.msg(ERROR, "Submission failed, service returned: %s", faultstring);
       return false;
     }
@@ -526,7 +526,7 @@ namespace Arc {
       return false;
     }
     XMLNode st;
-    logger.msg(VERBOSE, "Response:\n%s", (std::string)(*resp));
+    logger.msg(DEBUG, "Response:\n%s", (std::string)(*resp));
     (*resp)["GetFactoryAttributesDocumentResponse"]
     ["FactoryResourceAttributesDocument"].New(st);
     st.GetDoc(state, true);

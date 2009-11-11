@@ -34,7 +34,7 @@ RequestAttribute::RequestAttribute(XMLNode& node, AttributeFactory* attrfactory)
   //Create the attribute value object according to the data type
   attrval = attrfactory->createValue(node, type);
 
-  logger.msg(DEBUG, "Id= %s,Type= %s,Issuer= %s,Value= %s",id, type, issuer, attrval?attrval->encode():"");
+  logger.msg(VERBOSE, "Id= %s,Type= %s,Issuer= %s,Value= %s",id, type, issuer, attrval?attrval->encode():"");
 
   if(attrval == NULL)
     logger.msg(ERROR,"No Attribute exists, which can deal with type: %s", type);

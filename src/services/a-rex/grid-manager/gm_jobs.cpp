@@ -43,7 +43,7 @@ int main(int argc, char* argv[]) {
   // stderr destination for error messages
   Arc::LogStream logcerr(std::cerr);
   Arc::Logger::getRootLogger().addDestination(logcerr);
-  Arc::Logger::getRootLogger().setThreshold(Arc::VERBOSE);
+  Arc::Logger::getRootLogger().setThreshold(Arc::DEBUG);
   
   Arc::OptionParser options(istring(""),
                             istring("gm-jobs displays information on "

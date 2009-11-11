@@ -15,7 +15,7 @@
     <PidFile>/var/run/arched.pid</PidFile>
     <Logger>
       <File>/var/log/arched.log</File>
-      <Level>VERBOSE</Level>
+      <Level>DEBUG</Level>
     </Logger>
   </Server>
   <!-- Where to find plugins -->
@@ -87,7 +87,7 @@
       <arex:longDescription>ARC execution service</arex:longDescription>
       <arex:LRMSName>fork</arex:LRMSName>
       <arex:OperatingSystem>LINUX</arex:OperatingSystem>
-      <arex:debugLevel>DEBUG</arex:debugLevel>
+      <arex:debugLevel>VERBOSE</arex:debugLevel>
       <arex:serviceMail>support@cluster.org</arex:serviceMail>
 
       <arex:loadLimits>

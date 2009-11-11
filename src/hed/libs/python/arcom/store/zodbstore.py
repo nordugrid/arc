@@ -40,8 +40,8 @@ class ZODBStore(BaseStore):
         'non_existent_object' will be returned if an object not found
         """
         BaseStore.__init__(self, storecfg, non_existent_object)
-        log.msg(arc.DEBUG, "ZODBStore constructor called")
-        log.msg(arc.DEBUG, "datadir:", self.datadir)
+        log.msg(arc.VERBOSE, "ZODBStore constructor called")
+        log.msg(arc.VERBOSE, "datadir:", self.datadir)
         self.dbfile = os.path.join(self.datadir,'metadata.fs')
         if os.path.isfile(self.dbfile):
             self.db = DB(FileStorage.FileStorage(self.dbfile))

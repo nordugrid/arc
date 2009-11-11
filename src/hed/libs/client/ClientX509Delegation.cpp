@@ -295,7 +295,7 @@ namespace Arc {
         proxy_cred.OutputPrivatekey(delegation_cred);
         proxy_cred.OutputCertificateChain(delegation_cred);
 
-        logger.msg(VERBOSE,"Get delegated credential from delegation service: \n %s",delegation_cred.c_str());
+        logger.msg(DEBUG,"Get delegated credential from delegation service: \n %s",delegation_cred.c_str());
         return true;
       }
       else {

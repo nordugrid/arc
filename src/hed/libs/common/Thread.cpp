@@ -81,7 +81,7 @@ namespace Arc {
     if(n > INT_MAX) n = INT_MAX;
     max_count = (int)n;
     // TODO: can't use logger here because it will try to initilize pool
-    //threadLogger.msg(VERBOSE, "Maximum number of threads is %i",max_count);
+    //threadLogger.msg(DEBUG, "Maximum number of threads is %i",max_count);
   }
   int ThreadPool::CheckQueue(void) {
     Glib::Mutex::Lock lock(queue_lock, Glib::TRY_LOCK);

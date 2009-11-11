@@ -293,7 +293,7 @@
         };
         if(n<fstatus->__size) continue;
       };
-      logger.msg(Arc::DEBUG, "File could not be moved to Running state: %s", *f_url);
+      logger.msg(Arc::VERBOSE, "File could not be moved to Running state: %s", *f_url);
       file_id=file_ids.erase(file_id); f_url=urls.erase(f_url);
     };
     req.file_ids(file_ids);
@@ -412,7 +412,7 @@
         };
         if(n<fstatus->__size) continue;
       };
-      logger.msg(Arc::DEBUG, "File could not be moved to Done state");
+      logger.msg(Arc::VERBOSE, "File could not be moved to Done state");
       ++file_id;
     };
     req.file_ids(file_ids);

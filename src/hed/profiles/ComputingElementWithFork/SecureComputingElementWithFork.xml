@@ -15,7 +15,7 @@
     <PidFile inisections="common arex" initag="pidfile">/tmp/arex_arched.pid</PidFile>
     <Logger>
       <File inisections="common arex" initag="logfile">/tmp/arex_arched.log</File>
-      <Level inisections="common arex" initag="loglevel">VERBOSE</Level>
+      <Level inisections="common arex" initag="loglevel">DEBUG</Level>
     </Logger>
   </Server>
   <loader:ModuleManager>
@@ -68,7 +68,7 @@
       <arex:LRMSName inisections="common arex" initag="lrms">fork</arex:LRMSName>
       <arex:OperatingSystem inisections="arex cluster" initag="operating_system">LINUX</arex:OperatingSystem>
       <arex:serviceMail inisections="arex cluster" initag="service_mail">support@cluster.org</arex:serviceMail>
-      <arex:debugLevel inisections="arex" initag="debug">DEBUG</arex:debugLevel>
+      <arex:debugLevel inisections="arex" initag="debug">VERBOSE</arex:debugLevel>
       <arex:loadLimits>
           <arex:maxJobsTracked inisections="arex" initag="jobs_tracked">1000</arex:maxJobsTracked>
           <arex:maxJobsRun inisections="arex" initag="max_jobs_run">100</arex:maxJobsRun>

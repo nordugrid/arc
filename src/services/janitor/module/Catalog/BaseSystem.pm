@@ -6,7 +6,7 @@ use Janitor::Catalog::Note;
 
 use strict;
 
-my $VERBOSE = 1;
+my $DEBUG = 1;
 
 =head1 NAME
 

@@ -73,7 +73,7 @@ time_t HopiFileChunks::last_timeout = time(NULL);
 void HopiFileChunks::Print(void) {
   int n = 0;
   for(chunks_t::iterator c = chunks.begin();c!=chunks.end();++c) {
-    Hopi::logger.msg(Arc::VERBOSE, "Chunk %u: %u - %u",n,c->first,c->second);
+    Hopi::logger.msg(Arc::DEBUG, "Chunk %u: %u - %u",n,c->first,c->second);
   };
 }
 
@@ -245,7 +245,7 @@ HopiFile::~HopiFile(void) {
     if(!for_read) {
       if(chunks.Complete()) {
         if(slave) {
-          Hopi::logger.msg(Arc::DEBUG, "Removing complete file in slave mode");
+          Hopi::logger.msg(Arc::VERBOSE, "Removing complete file in slave mode");
           ::unlink(path.c_str());
         }
         chunks.Remove();
@@ -488,7 +488,7 @@ static off_t GetEntitySize(Arc::MessagePayload &payload) {
 Arc::MCC_Status Hopi::Put(const std::string &path, Arc::MessagePayload &payload)
 {
     // XXX eliminate relative paths first
-    logger.msg(Arc::DEBUG, "PUT called");
+    logger.msg(Arc::VERBOSE, "PUT called");
     std::string full_path = Glib::build_filename(doc_root, path);
     if (slave_mode && (Glib::file_test(full_path, Glib::FILE_TEST_EXISTS) == false)) {
         logger.msg(Arc::ERROR, "Hopi SlaveMode is active, PUT is only allowed to existing files");        
@@ -499,7 +499,7 @@ Arc::MCC_Status Hopi::Put(const std::string &path, Arc::MessagePayload &payload)
         return Arc::MCC_Status();
     }
     fd.Size(GetEntitySize(payload));
-    logger.msg(Arc::VERBOSE, "File size is %u",fd.Size());
+    logger.msg(Arc::DEBUG, "File size is %u",fd.Size());
     try {
         Arc::PayloadStreamInterface& stream = dynamic_cast<Arc::PayloadStreamInterface&>(payload);
         char sbuf[1024*1024];
@@ -508,13 +508,13 @@ Arc::MCC_Status Hopi::Put(const std::string &path, Arc::MessagePayload &payload)
             off_t offset = stream.Pos();
             if(!stream.Get(sbuf,size)) {
                 if(!stream) {
-                    logger.msg(Arc::DEBUG, "error reading from HTTP stream");
+                    logger.msg(Arc::VERBOSE, "error reading from HTTP stream");
                     return Arc::MCC_Status();
                 }
                 break;
             }
             if(fd.Write(sbuf,offset,size) != size) {
-              logger.msg(Arc::DEBUG, "error on write");
+              logger.msg(Arc::VERBOSE, "error on write");
               return Arc::MCC_Status();
             }
         }
@@ -528,7 +528,7 @@ Arc::MCC_Status Hopi::Put(const std::string &path, Arc::MessagePayload &payload)
                 size_t size = buf.BufferSize(n);
                 if(size > 0) {
                     if(fd.Write(sbuf,offset,size) != size) {
-                        logger.msg(Arc::DEBUG, "error on write");
+                        logger.msg(Arc::VERBOSE, "error on write");
                         return Arc::MCC_Status();
                     }
                 }
@@ -563,7 +563,7 @@ Arc::MCC_Status Hopi::process(Arc::Message &inmsg, Arc::Message &outmsg)
     std::string base_url;
     std::string path = GetPath(inmsg,base_url);
 
-    logger.msg(Arc::DEBUG, "method=%s, path=%s, url=%s, base=%s", method, path, inmsg.Attributes()->get("HTTP:ENDPOINT"), base_url);
+    logger.msg(Arc::VERBOSE, "method=%s, path=%s, url=%s, base=%s", method, path, inmsg.Attributes()->get("HTTP:ENDPOINT"), base_url);
     // Do file cleaning here to avoid running dedicated thread
     HopiFile::DestroyStuck();
     HopiFileTimeout::DestroyOld();

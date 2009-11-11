@@ -64,7 +64,7 @@ Since Charon service is a normal service, the client "arcdecision" is a
 prototype client which is supposed to send policy decision request to
 Charon service and get back the policy decision result.
 On the client side, you can run arcdecision command as follows:
-./arcdecision -c pdp_client.xml -d VERBOSE https://127.0.0.1:60000/Charon pdp_request.xml
+./arcdecision -c pdp_client.xml -d DEBUG https://127.0.0.1:60000/Charon pdp_request.xml
 
 On the other hand, Charon service more normaly will serve for those policy 
 enforcement points which are in fact some services as well. So there is 

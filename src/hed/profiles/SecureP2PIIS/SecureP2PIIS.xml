@@ -13,7 +13,7 @@
         <cfg:PidFile inisections="common" initag="pidfile">/var/run/isis_arched.pid</cfg:PidFile>
         <cfg:Logger>
             <cfg:File inisections="common" initag="logfile">/tmp/isis.log</cfg:File>
-            <cfg:Level inisections="common" initag="debug">VERBOSE</cfg:Level>
+            <cfg:Level inisections="common" initag="debug">DEBUG</cfg:Level>
         </cfg:Logger>
     </cfg:Server>
     <ModuleManager>

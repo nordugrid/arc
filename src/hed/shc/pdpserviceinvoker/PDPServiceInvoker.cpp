@@ -108,7 +108,7 @@ bool PDPServiceInvoker::isPermitted(Message *msg){
   {
     std::string s;
     requestxml.GetXML(s);
-    logger.msg(VERBOSE,"ARC Auth. request: %s",s);
+    logger.msg(DEBUG,"ARC Auth. request: %s",s);
   };
   if(requestxml.Size() <= 0) {
     logger.msg(ERROR,"No requested security information was collected");

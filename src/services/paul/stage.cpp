@@ -59,7 +59,7 @@ class FileTransfer
 
         FileTransfer(const std::string &_cache_path):logger_(Arc::Logger::rootLogger, "Paul-FileTransfer") {
             cache_path = _cache_path;
-            logger_.msg(Arc::DEBUG, "Filetransfer created");
+            logger_.msg(Arc::VERBOSE, "Filetransfer created");
     
         };
 
@@ -103,11 +103,11 @@ class FileTransfer
                 mover->set_default_max_inactivity_time(max_inactivity_time);
             }
             create_cache(j);
-            logger_.msg(Arc::DEBUG, "download");
+            logger_.msg(Arc::VERBOSE, "download");
             Arc::XMLNode jd = j.getJSDL()["JobDescription"];
             std::string xml_str;
             j.getJSDL().GetXML(xml_str);
-            logger_.msg(Arc::DEBUG, xml_str);
+            logger_.msg(Arc::VERBOSE, xml_str);
             Arc::XMLNode ds;
             for (int i = 0; (ds = jd["DataStaging"][i]) != false; i++) {
                 std::string dest = Glib::build_filename(Glib::build_filename(job_root, j.getID()), (std::string)ds["FileName"]);
@@ -117,7 +117,7 @@ class FileTransfer
                     continue;
                 }
                 std::string src = (std::string)s["URI"];
-                logger_.msg(Arc::DEBUG, "%s -> %s", src, dest);
+                logger_.msg(Arc::VERBOSE, "%s -> %s", src, dest);
     
                 std::string failure;
                 Arc::UserConfig usercfg(true);
@@ -177,7 +177,7 @@ class FileTransfer
                     continue;
                 }
                 std::string dest = (std::string)d["URI"];
-                logger_.msg(Arc::DEBUG, "%s -> %s", src, dest);
+                logger_.msg(Arc::VERBOSE, "%s -> %s", src, dest);
     
                 std::string failure;
                 Arc::UserConfig usercfg(true);
@@ -201,7 +201,7 @@ class FileTransfer
                     delete pair;
                     continue;
                 }
-                logger_.msg(Arc::DEBUG, "Transfer completed");
+                logger_.msg(Arc::VERBOSE, "Transfer completed");
                 delete pair;
             }
         };
@@ -210,7 +210,7 @@ class FileTransfer
 
 bool PaulService::stage_in(Job &j)
 {
-    logger_.msg(Arc::DEBUG, "Stage in");
+    logger_.msg(Arc::VERBOSE, "Stage in");
     
     FileTransfer ft(configurator.getCachePath());
     ft.download(configurator.getJobRoot(), j);
@@ -219,7 +219,7 @@ bool PaulService::stage_in(Job &j)
 
 bool PaulService::stage_out(Job &j)
 {
-    logger_.msg(Arc::DEBUG, "Stage out");
+    logger_.msg(Arc::VERBOSE, "Stage out");
     FileTransfer ft(configurator.getCachePath());
     ft.upload(configurator.getJobRoot(), j);
     return true;

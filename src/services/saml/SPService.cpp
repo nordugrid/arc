@@ -276,15 +276,15 @@ Arc::MCC_Status Service_SP::process(Arc::Message& inmsg,Arc::Message& outmsg) {
     bool must_signed = true; //TODO: get the information from metadata
     std::string authnRequestQuery;
     std::string query = "SAMLRequest=" + BuildDeflatedQuery(authn_request);
-    logger.msg(Arc::VERBOSE,"AuthnRequest after deflation: %s", query.c_str());
+    logger.msg(Arc::DEBUG,"AuthnRequest after deflation: %s", query.c_str());
     if(must_signed) {
       //SP service uses it's private key to sign the AuthnRequest,
       //then after User Agent redirecting AuthnRequest to IdP, 
       //IdP will verify the signature by picking up SP's certificate
       //from IdP's metadata.
-      logger.msg(Arc::VERBOSE,"Using private key file to sign: %s", privkey_file_.c_str());
+      logger.msg(Arc::DEBUG,"Using private key file to sign: %s", privkey_file_.c_str());
       authnRequestQuery = SignQuery(query, Arc::RSA_SHA1, privkey_file_);
-      logger.msg(Arc::VERBOSE,"After signature: %s", authnRequestQuery.c_str());
+      logger.msg(Arc::DEBUG,"After signature: %s", authnRequestQuery.c_str());
     }
     else authnRequestQuery = query;
 
@@ -319,7 +319,7 @@ Arc::MCC_Status Service_SP::process(Arc::Message& inmsg,Arc::Message& outmsg) {
       //Decrypt the encrypted saml assertion
       std::string saml_assertion;
       assertion_nd.GetXML(saml_assertion);
-      logger.msg(Arc::VERBOSE,"Encrypted saml assertion: %s", saml_assertion.c_str());
+      logger.msg(Arc::DEBUG,"Encrypted saml assertion: %s", saml_assertion.c_str());
 
       Arc::XMLSecNode sec_assertion_nd(assertion_nd);
       Arc::XMLNode decrypted_assertion_nd;
@@ -332,13 +332,13 @@ Arc::MCC_Status Service_SP::process(Arc::Message& inmsg,Arc::Message& outmsg) {
 
       std::string decrypted_saml_assertion;
       decrypted_assertion_nd.GetXML(decrypted_saml_assertion);
-      logger.msg(Arc::VERBOSE,"Decrypted SAML Assertion: %s", decrypted_saml_assertion.c_str());
+      logger.msg(Arc::DEBUG,"Decrypted SAML Assertion: %s", decrypted_saml_assertion.c_str());
      
       //Decrypt the <saml:EncryptedID/> if it exists in the above saml assertion
       Arc::XMLNode nameid_nd = decrypted_assertion_nd["saml:Subject"]["saml:EncryptedID"];
       std::string nameid;
       nameid_nd.GetXML(nameid);
-      logger.msg(Arc::VERBOSE,"Encrypted name id: %s", nameid.c_str());
+      logger.msg(Arc::DEBUG,"Encrypted name id: %s", nameid.c_str());
 
       Arc::XMLSecNode sec_nameid_nd(nameid_nd);
       Arc::XMLNode decrypted_nameid_nd;
@@ -347,7 +347,7 @@ Arc::MCC_Status Service_SP::process(Arc::Message& inmsg,Arc::Message& outmsg) {
 
       std::string decrypted_nameid;
       decrypted_nameid_nd.GetXML(decrypted_nameid);
-      logger.msg(Arc::VERBOSE,"Decrypted SAML NameID: %s", decrypted_nameid.c_str());
+      logger.msg(Arc::DEBUG,"Decrypted SAML NameID: %s", decrypted_nameid.c_str());
 
       //Replace the <saml:EncryptedID/> with <saml:NameID/>
       nameid_nd.Replace(decrypted_nameid_nd);

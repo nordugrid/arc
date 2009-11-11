@@ -31,8 +31,8 @@ class TransDBStore(BaseStore):
         """
 
         BaseStore.__init__(self, storecfg, non_existent_object)
-        log.msg(arc.DEBUG, "TransDBStore constructor called")
-        log.msg(arc.DEBUG, "datadir:", self.datadir)
+        log.msg(arc.VERBOSE, "TransDBStore constructor called")
+        log.msg(arc.VERBOSE, "datadir:", self.datadir)
 
         # db and transaction pointers
         self.dbp  = None
@@ -139,7 +139,7 @@ class TransDBStore(BaseStore):
                 # It can take a while for the master site to be found and
                 # synced, and no DB will be available until then
                 if errnum == errno.ENOENT:
-                    log.msg(arc.DEBUG, "No stock db available yet - retrying")
+                    log.msg(arc.VERBOSE, "No stock db available yet - retrying")
                     log.msg()
                     try:
                         dbp.close(0)
@@ -154,7 +154,7 @@ class TransDBStore(BaseStore):
                     time.sleep(self.sleeptime)
                     continue
                 elif errnum == db.DB_LOCK_DEADLOCK:
-                    log.msg(arc.DEBUG, "got deadlock - retrying")
+                    log.msg(arc.VERBOSE, "got deadlock - retrying")
                     try:
                         dbp.close(0)
                     except db.DBError, (errnum2, strerror2):
@@ -282,12 +282,12 @@ class TransDBStore(BaseStore):
                 # need to close transaction handle as well
                 time.sleep(0.2)
                 if retry_count < self.deadlock_retries:
-                    log.msg(arc.DEBUG, "got DBLockDeadlockError")
+                    log.msg(arc.VERBOSE, "got DBLockDeadlockError")
                     retry_count += 1
-                    log.msg(arc.DEBUG, "retrying transaction", retry_count)
+                    log.msg(arc.VERBOSE, "retrying transaction", retry_count)
                     retry = True
                 else:
-                    log.msg(arc.DEBUG, "Deadlock exception, giving up...")
+                    log.msg(arc.VERBOSE, "Deadlock exception, giving up...")
                     retry = False
             except db.DBRepHandleDeadError:
                 log.msg(arc.INFO, "Got rep_dead_handle error")            

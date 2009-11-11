@@ -41,7 +41,7 @@ void ARexService::InformationCollector(void) {
       run.AssignStdin(stdin_str);
       run.AssignStdout(xml_str);
       run.AssignStderr(stderr_str);
-      logger_.msg(Arc::DEBUG,"Cluster information provider: %s",cmd);
+      logger_.msg(Arc::VERBOSE,"Cluster information provider: %s",cmd);
       if(!run.Start()) {
       };
       if(!run.Wait(infoprovider_wakeup_period_*10)) {
@@ -51,19 +51,19 @@ void ARexService::InformationCollector(void) {
         r = run.Result();
         if (r!=0) logger_.msg(Arc::WARNING,"Cluster information provider failed with exit status: %i",r);
       };
-      logger_.msg(Arc::DEBUG,"Cluster information provider log:\n%s",stderr_str);
+      logger_.msg(Arc::VERBOSE,"Cluster information provider log:\n%s",stderr_str);
     };
     if (r!=0) {
-      logger_.msg(Arc::DEBUG,"No new informational document assigned");
+      logger_.msg(Arc::VERBOSE,"No new informational document assigned");
     } else {
-      logger_.msg(Arc::VERBOSE,"Obtained XML: %s",xml_str);
+      logger_.msg(Arc::DEBUG,"Obtained XML: %s",xml_str);
       Arc::XMLNode root(xml_str);
       if(root) {
         // Collect job states
         GetGlueStates(root,glue_states_);
         // Put result into container
         infodoc_.Arc::InformationContainer::Assign(root,true);
-        logger_.msg(Arc::DEBUG,"Assigned new informational document");
+        logger_.msg(Arc::VERBOSE,"Assigned new informational document");
       } else {
         logger_.msg(Arc::ERROR,"Failed to create informational document");
       };
@@ -75,7 +75,7 @@ void ARexService::InformationCollector(void) {
 
 bool ARexService::RegistrationCollector(Arc::XMLNode &doc) {
   //Arc::XMLNode root = infodoc_.Acquire();
-  logger_.msg(Arc::VERBOSE,"Passing service's information from collector to registrator");
+  logger_.msg(Arc::DEBUG,"Passing service's information from collector to registrator");
   Arc::XMLNode empty(ns_, "RegEntry");
   empty.New(doc);
 

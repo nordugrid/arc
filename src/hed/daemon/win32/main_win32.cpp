@@ -20,7 +20,7 @@ Arc::Logger& logger=Arc::Logger::rootLogger;
 
 static void shutdown(int)
 {
-    logger.msg(Arc::DEBUG, "shutdown");
+    logger.msg(Arc::VERBOSE, "shutdown");
     delete loader;
     _exit(0);
 }
@@ -107,7 +107,7 @@ int main(int argc, char **argv)
             /* initalize logger infrastucture */
             std::string root_log_file = init_logger(config);
             
-            logger.msg(Arc::DEBUG, "ARC_PLUGIN_PATH=%s", getenv("ARC_PLUGIN_PATH"));
+            logger.msg(Arc::VERBOSE, "ARC_PLUGIN_PATH=%s", getenv("ARC_PLUGIN_PATH"));
             
             // set signal handlers 
             signal(SIGTERM, shutdown);

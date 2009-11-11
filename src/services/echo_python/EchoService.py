@@ -66,8 +66,8 @@ class EchoService:
         # time.sleep(10)
         # get the payload from the message
         inpayload = inmsg.Payload()
-        log.msg(arc.DEBUG, 'AuthRequest(inmsg) = ', AuthRequest(inmsg))
-        log.msg(arc.DEBUG, 'inmsg.Attributes().getAll() = ', inmsg.Attributes().getAll())
+        log.msg(arc.VERBOSE, 'AuthRequest(inmsg) = ', AuthRequest(inmsg))
+        log.msg(arc.VERBOSE, 'inmsg.Attributes().getAll() = ', inmsg.Attributes().getAll())
         log.msg(arc.INFO, "EchoService (python) got:", inpayload.GetXML())
         # the first child of the payload should be the name of the request
         request_node = inpayload.Child()

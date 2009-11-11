@@ -101,7 +101,7 @@ Arc::MCC_Status Service_SLCS::process(Arc::Message& inmsg,Arc::Message& outmsg) 
   // Identify which of served endpoints request is for.
   // SLCS can only accept POST method
   if(method == "POST") {
-    logger.msg(Arc::DEBUG, "process: POST");
+    logger.msg(Arc::VERBOSE, "process: POST");
     // Both input and output are supposed to be SOAP
     // Extracting payload
     Arc::PayloadSOAP* inpayload = NULL;
@@ -121,7 +121,7 @@ Arc::MCC_Status Service_SLCS::process(Arc::Message& inmsg,Arc::Message& outmsg) 
     {
       std::string req_xml;
       request.GetXML(req_xml);
-      logger.msg(Arc::DEBUG, "Request: %s",req_xml);
+      logger.msg(Arc::VERBOSE, "Request: %s",req_xml);
     };
 
     Arc::XMLNode x509_req_nd = request["X509Request"];
@@ -176,7 +176,7 @@ Arc::MCC_Status Service_SLCS::process(Arc::Message& inmsg,Arc::Message& outmsg) 
   }
   else {
     delete inmsg.Payload();
-    logger.msg(Arc::DEBUG, "process: %s: not supported",method);
+    logger.msg(Arc::VERBOSE, "process: %s: not supported",method);
     return Arc::MCC_Status();
   }
   return Arc::MCC_Status();

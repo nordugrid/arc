@@ -208,7 +208,7 @@ Configurator::sched_del(Configurator *self, HTMLRequest &request, HTMLResponse &
 {
     std::vector<std::string> tokens;
     Arc::tokenize(request.path, tokens, "/");
-    self->logger_.msg(Arc::DEBUG, "** %s", request.path);
+    self->logger_.msg(Arc::VERBOSE, "** %s", request.path);
     response += response.header;
     if (tokens.size() == 3) {
         int sched_id = Arc::stringtoi(tokens[2]);

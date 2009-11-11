@@ -157,7 +157,7 @@ namespace Arc {
     recv_tok.value = malloc(recv_tok.length);
     memcpy(recv_tok.value, readbuf, 5);
 
-    logger.msg(DEBUG, "Recieved token length: %i", recv_tok.length);
+    logger.msg(VERBOSE, "Recieved token length: %i", recv_tok.length);
 
     while (recv_tok.length > pos) {
       int len = recv_tok.length - pos;
@@ -189,7 +189,7 @@ namespace Arc {
 
       logger.msg(INFO, "GSS accept security context: %i/%i", majstat, minstat);
 
-      logger.msg(DEBUG, "Returned token length: %i", send_tok.length);
+      logger.msg(VERBOSE, "Returned token length: %i", send_tok.length);
 
       PayloadRaw *outpayload = new PayloadRaw;
       if (send_tok.length > 0)
@@ -216,7 +216,7 @@ namespace Arc {
 
       logger.msg(INFO, "GSS unwrap: %i/%i", majstat, minstat);
 
-      logger.msg(DEBUG, "Sent token length: %i", send_tok.length);
+      logger.msg(VERBOSE, "Sent token length: %i", send_tok.length);
 
       PayloadRaw payload;
       payload.Insert((const char*)send_tok.value, 0, send_tok.length);
@@ -340,7 +340,7 @@ namespace Arc {
       recv_tok.value = inpayload->Buffer(n);
       recv_tok.length = inpayload->BufferSize(n);
 
-      logger.msg(DEBUG, "Recieved token length: %i", recv_tok.length);
+      logger.msg(VERBOSE, "Recieved token length: %i", recv_tok.length);
 
       OM_uint32 majstat, minstat;
 
@@ -358,7 +358,7 @@ namespace Arc {
 
       logger.msg(INFO, "GSS wrap: %i/%i", majstat, minstat);
 
-      logger.msg(DEBUG, "Sent token length: %i", send_tok.length);
+      logger.msg(VERBOSE, "Sent token length: %i", send_tok.length);
 
       gsipayload.Insert((const char*)send_tok.value, size, send_tok.length);
       size += send_tok.length;
@@ -461,7 +461,7 @@ namespace Arc {
     namebuf.value = (void*)hostname.c_str();
     namebuf.length = hostname.size();
 
-    logger.msg(DEBUG, "Peer host name to which this client will access: %s", hostname.c_str());
+    logger.msg(VERBOSE, "Peer host name to which this client will access: %s", hostname.c_str());
 
     majstat = gss_import_name(&minstat, &namebuf, GSS_C_NT_HOSTBASED_SERVICE,
                               &target_name);
@@ -472,7 +472,7 @@ namespace Arc {
 
     //if(((gss_cred_id_t&)(cred)) == GSS_C_NO_CREDENTIAL) { 
     //  req_flags = GSS_C_ANON_FLAG;
-    //  logger.msg(VERBOSE, "Anonymous GSI communication (no client-side authentication)");
+    //  logger.msg(DEBUG, "Anonymous GSI communication (no client-side authentication)");
     //}
     //req_flags |= GSS_C_CONF_FLAG;
     //req_flags |= GSS_C_MUTUAL_FLAG;
@@ -505,7 +505,7 @@ namespace Arc {
 
       logger.msg(INFO, "GSS init security context: %i/%i", majstat, minstat);
 
-      logger.msg(DEBUG, "Sent token length: %i", send_tok.length);
+      logger.msg(VERBOSE, "Sent token length: %i", send_tok.length);
 
       MessageAttributes reqattr;
       MessageAttributes repattr;
@@ -544,20 +544,20 @@ namespace Arc {
         }
 
         if (readbuf[0] >= 20 && readbuf[0] <= 23)
-          logger.msg(DEBUG, "Transfer protocol is TLS or SSL3");
+          logger.msg(VERBOSE, "Transfer protocol is TLS or SSL3");
         else if (readbuf[0] == 26)
-          logger.msg(DEBUG, "Transfer protocol is GLOBUS SSL");
+          logger.msg(VERBOSE, "Transfer protocol is GLOBUS SSL");
         else if (readbuf[0] & 0x80 && readbuf[0] <= 23)
-          logger.msg(DEBUG, "Transfer protocol is SSL2");
+          logger.msg(VERBOSE, "Transfer protocol is SSL2");
         else
-          logger.msg(DEBUG, "Transfer protocol is GSI");
+          logger.msg(VERBOSE, "Transfer protocol is GSI");
 
         recv_tok.length = (unsigned char)readbuf[3] * 256 +
                           (unsigned char)readbuf[4] + 5;
         recv_tok.value = malloc(recv_tok.length);
         memcpy(recv_tok.value, readbuf, 5);
 
-        logger.msg(DEBUG, "Recieved token length: %i", recv_tok.length);
+        logger.msg(VERBOSE, "Recieved token length: %i", recv_tok.length);
 
         while (recv_tok.length > pos) {
           int len = recv_tok.length - pos;

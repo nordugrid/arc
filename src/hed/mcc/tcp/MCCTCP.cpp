@@ -124,7 +124,7 @@ MCC_TCP_Service::MCC_TCP_Service(Config *cfg):MCC_TCP(cfg),max_executers_(-1),ma
             continue;
         };
         for(struct addrinfo *info_ = info;info_;info_=info_->ai_next) {
-            logger.msg(DEBUG, "Trying to listen on TCP port %s(%s)", port_s, PROTO_NAME(info_));
+            logger.msg(VERBOSE, "Trying to listen on TCP port %s(%s)", port_s, PROTO_NAME(info_));
             int s = ::socket(info_->ai_family,info_->ai_socktype,info_->ai_protocol);
             if(s == -1) {
                 std::string e = StrError(errno);
@@ -190,7 +190,7 @@ MCC_TCP_Service::MCC_TCP_Service(Config *cfg):MCC_TCP(cfg),max_executers_(-1),ma
 }
 
 MCC_TCP_Service::~MCC_TCP_Service(void) {
-    //logger.msg(DEBUG, "TCP_Service destroy");
+    //logger.msg(VERBOSE, "TCP_Service destroy");
     lock_.lock();
     for(std::list<mcc_tcp_handle_t>::iterator i = handles_.begin();i!=handles_.end();++i) {
         ::close(i->handle); i->handle=-1;
@@ -498,7 +498,7 @@ void MCC_TCP_Service::executer(void* arg) {
         // Call next MCC 
         MCCInterface* next = it.Next();
         if(!next) break;
-        logger.msg(DEBUG, "next chain element called");
+        logger.msg(VERBOSE, "next chain element called");
         MCC_Status ret = next->process(nextinmsg,nextoutmsg);
         if(!it.ProcessSecHandlers(nextoutmsg,"outgoing")) {
           if(nextoutmsg.Payload()) delete nextoutmsg.Payload();
@@ -604,7 +604,7 @@ MCC_Status MCC_TCP_Client::process(Message& inmsg,Message& outmsg) {
     // Accepted payload is Raw
     // Returned payload is Stream
     
-    logger.msg(DEBUG, "client process called");
+    logger.msg(VERBOSE, "client process called");
     //outmsg.Attributes(inmsg.Attributes());
     //outmsg.Context(inmsg.Context());
     if(!s_) return MCC_Status(GENERIC_ERROR);

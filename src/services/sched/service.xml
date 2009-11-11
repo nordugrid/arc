@@ -8,7 +8,7 @@
   <Server>
     <Foreground/>
     <Pidfile>./arched.pid</Pidfile>
-    <Logger level="VERBOSE">./logfile</Logger>
+    <Logger level="DEBUG">./logfile</Logger>
   </Server>
   <ModuleManager>
         <Path>.libs/</Path>

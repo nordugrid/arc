@@ -299,7 +299,7 @@ namespace Arc {
       return false;
     }
 
-    logger.msg(DEBUG, "Try to parse as XRSL");
+    logger.msg(VERBOSE, "Try to parse as XRSL");
     XRSLParser parser1;
     *this = parser1.Parse(source);
     if (*this) {
@@ -307,7 +307,7 @@ namespace Arc {
       return true;
     }
 
-    logger.msg(DEBUG, "Try to parse as JDL");
+    logger.msg(VERBOSE, "Try to parse as JDL");
     JDLParser parser2;
     *this = parser2.Parse(source);
     if (*this) {
@@ -315,7 +315,7 @@ namespace Arc {
       return true;
     }
 
-    logger.msg(DEBUG, "Try to parse as ARCJSDL");
+    logger.msg(VERBOSE, "Try to parse as ARCJSDL");
     ARCJSDLParser parser3;
     *this = parser3.Parse(source);
     if (*this) {
@@ -333,26 +333,26 @@ namespace Arc {
 
     // Generate the output text with the right parser class
     if (!*this) {
-      logger.msg(DEBUG, "There is no successfully parsed source");
+      logger.msg(VERBOSE, "There is no successfully parsed source");
       return product;
     }
 
     if (lower(format) == "jdl") {
-      logger.msg(DEBUG, "Generate JDL output");
+      logger.msg(VERBOSE, "Generate JDL output");
       JDLParser parser;
       product = parser.UnParse(*this);
       if (product.empty())
         logger.msg(ERROR, "Generating %s output was unsuccessful", format);
     }
     else if (lower(format) == "xrsl") {
-      logger.msg(DEBUG, "Generate XRSL output");
+      logger.msg(VERBOSE, "Generate XRSL output");
       XRSLParser parser;
       product = parser.UnParse(*this);
       if (product.empty())
         logger.msg(ERROR, "Generating %s output was unsuccessful", format);
     }
     else if (lower(format) == "arcjsdl") {
-      logger.msg(DEBUG, "Generate ARCJSDL output");
+      logger.msg(VERBOSE, "Generate ARCJSDL output");
       ARCJSDLParser parser;
       product = parser.UnParse(*this);
       if (product.empty())
@@ -366,7 +366,7 @@ namespace Arc {
 
   bool JobDescription::getSourceFormat(std::string& _sourceFormat) const {
     if (!*this) {
-      logger.msg(DEBUG, "There is no input defined yet or it's format can be determinized.");
+      logger.msg(VERBOSE, "There is no input defined yet or it's format can be determinized.");
       return false;
     }
     else {

@@ -200,7 +200,7 @@ class Service:
             if request_name not in current_request_type['request_names']:
                 # if the name of the request is not in the list of supported request names
                 raise Exception, 'wrong request (%s)' % request_name
-            log.msg(arc.DEBUG,'%s.%s called' % (self.service_name, request_name))
+            log.msg(arc.VERBOSE,'%s.%s called' % (self.service_name, request_name))
             if not self.state.running:
                 outpayload = arc.PayloadSOAP(self.ns, True)
                 fault = outpayload.Fault()
@@ -212,7 +212,7 @@ class Service:
             # the 'getattr' method returns this method
             # which then we could call with the incoming payload
             # and which will return the response payload
-            log.msg(arc.VERBOSE, inpayload.GetXML())
+            log.msg(arc.DEBUG, inpayload.GetXML())
             outpayload = self._call_request(request_name, inmsg)
             # sets the payload of the outgoing message
             outmsg.Payload(outpayload)

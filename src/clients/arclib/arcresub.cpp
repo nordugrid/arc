@@ -102,7 +102,7 @@ int main(int argc, char **argv) {
 
   std::string debug;
   options.AddOption('d', "debug",
-                    istring("FATAL, ERROR, WARNING, INFO, DEBUG or VERBOSE"),
+                    istring("FATAL, ERROR, WARNING, INFO, VERBOSE or DEBUG"),
                     istring("debuglevel"), debug);
 
   std::string broker;
@@ -195,12 +195,12 @@ int main(int argc, char **argv) {
        it != toberesubmitted.end(); it++)
     if (same) {
       qlusters.push_back(it->Flavour + ":" + it->Cluster.str());
-      logger.msg(Arc::DEBUG, "Trying to resubmit job to %s", qlusters.front());
+      logger.msg(Arc::VERBOSE, "Trying to resubmit job to %s", qlusters.front());
     }
     else {
       qlusters.remove(it->Flavour + ":" + it->Cluster.str());
       qlusters.push_back("-" + it->Flavour + ":" + it->Cluster.str());
-      logger.msg(Arc::DEBUG, "Disregarding %s", it->Cluster.str());
+      logger.msg(Arc::VERBOSE, "Disregarding %s", it->Cluster.str());
     }
   qlusters.sort();
   qlusters.unique();

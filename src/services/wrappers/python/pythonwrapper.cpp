@@ -103,11 +103,11 @@ static Arc::Plugin* get_service(Arc::PluginArgument* arg) {
         PyEval_AcquireThread(tstate);
     }
     python_service_counter++;
-    Arc::Logger::getRootLogger().msg(Arc::VERBOSE, "Loading %u-th Python service", python_service_counter);
+    Arc::Logger::getRootLogger().msg(Arc::DEBUG, "Loading %u-th Python service", python_service_counter);
     service_lock.unlock();
     Arc::RegisteredService* service = new Arc::Service_PythonWrapper((Arc::Config*)(*srvarg));
     PyEval_ReleaseThread(tstate); // Release current thread
-    Arc::Logger::getRootLogger().msg(Arc::VERBOSE, "Initialized %u-th Python service", python_service_counter);
+    Arc::Logger::getRootLogger().msg(Arc::DEBUG, "Initialized %u-th Python service", python_service_counter);
     return service;
 }
 
@@ -148,8 +148,8 @@ Service_PythonWrapper::Service_PythonWrapper(Arc::Config *cfg):RegisteredService
     }
     std::string module_name = path.substr(0, p);
     std::string class_name = path.substr(p+1, path.length());
-    logger.msg(Arc::DEBUG, "class name: %s", class_name);
-    logger.msg(Arc::DEBUG, "module name: %s", module_name);
+    logger.msg(Arc::VERBOSE, "class name: %s", class_name);
+    logger.msg(Arc::VERBOSE, "module name: %s", module_name);
 
     // Convert module name to Python string
     py_module_name = PyString_FromString(module_name.c_str());
@@ -273,7 +273,7 @@ Service_PythonWrapper::Service_PythonWrapper(Arc::Config *cfg):RegisteredService
     //tstate = PyGILState_GetThisThreadState();
     //PyEval_ReleaseThread(tstate);
 
-    logger.msg(Arc::DEBUG, "Python Wrapper constructor succeeded");
+    logger.msg(Arc::VERBOSE, "Python Wrapper constructor succeeded");
     initialized = true;
 }
 
@@ -288,7 +288,7 @@ Service_PythonWrapper::~Service_PythonWrapper(void)
     if(object) Py_DECREF(object);
     // Finish the Python Interpreter
     python_service_counter--;
-    logger.msg(Arc::DEBUG, "Python Wrapper destructor (%d)", python_service_counter);
+    logger.msg(Arc::VERBOSE, "Python Wrapper destructor (%d)", python_service_counter);
     if (python_service_counter == 0) {
         Py_Finalize();
     } else {
@@ -321,11 +321,11 @@ class PythonLock {
   public:
     PythonLock(Arc::Logger& logger):logger_(logger) {
         gstate_ = PyGILState_Ensure();
-        logger_.msg(Arc::DEBUG, "Python interpreter locked");
+        logger_.msg(Arc::VERBOSE, "Python interpreter locked");
     };
     ~PythonLock(void) {
         PyGILState_Release(gstate_);
-        logger_.msg(Arc::DEBUG, "Python interpreter released");
+        logger_.msg(Arc::VERBOSE, "Python interpreter released");
     };
 };
 
@@ -385,7 +385,7 @@ Arc::MCC_Status Service_PythonWrapper::process(Arc::Message& inmsg, Arc::Message
     //PyObject *py_outmsg = NULL;
     PyObject *arg = NULL;
 
-    logger.msg(Arc::DEBUG, "Python wrapper process called");
+    logger.msg(Arc::VERBOSE, "Python wrapper process called");
 
     if(!initialized) return Arc::MCC_Status();
 
@@ -491,14 +491,14 @@ Arc::MCC_Status Service_PythonWrapper::process(Arc::Message& inmsg, Arc::Message
 bool Service_PythonWrapper::RegistrationCollector(Arc::XMLNode& doc) {
     PyObject *arg = NULL;
 
-    // logger.msg(Arc::DEBUG, "Python 'RegistrationCollector' wrapper process called");
+    // logger.msg(Arc::VERBOSE, "Python 'RegistrationCollector' wrapper process called");
 
     if(!initialized) return false;
 
     PythonLock plock(logger);
 
     // Convert doc to XMLNodeP
-    // logger.msg(Arc::DEBUG, "Convert doc to XMLNodeP");
+    // logger.msg(Arc::VERBOSE, "Convert doc to XMLNodeP");
     Arc::XMLNodeP doc_ptr(doc);
     if (!doc_ptr) {
         logger.msg(Arc::ERROR, "Failed to create XMLNode container");
@@ -506,8 +506,8 @@ bool Service_PythonWrapper::RegistrationCollector(Arc::XMLNode& doc) {
     }
 
     // Convert doc to python object
-    // logger.msg(Arc::DEBUG, "Convert doc to python object");
-    // logger.msg(Arc::DEBUG, "Create python XMLNode");
+    // logger.msg(Arc::VERBOSE, "Convert doc to python object");
+    // logger.msg(Arc::VERBOSE, "Create python XMLNode");
     // arc_dict is a borrowed reference
     PyObject *arc_dict = PyModule_GetDict(arc_module);
     if (arc_dict == NULL) {
@@ -538,7 +538,7 @@ bool Service_PythonWrapper::RegistrationCollector(Arc::XMLNode& doc) {
     Py_DECREF(arg);
 
     // Call the RegistrationCollector method
-    // logger.msg(Arc::DEBUG, "Call the RegistrationCollector method");
+    // logger.msg(Arc::VERBOSE, "Call the RegistrationCollector method");
     PyObjectP py_bool(PyObject_CallMethod(object, (char*)"RegistrationCollector", (char*)"(O)",
                       (PyObject*)py_doc));
 
@@ -548,7 +548,7 @@ bool Service_PythonWrapper::RegistrationCollector(Arc::XMLNode& doc) {
     }
 
     // Convert the return value of the function back to cpp
-    // logger.msg(Arc::DEBUG, "Convert the return value of the function back to cpp");
+    // logger.msg(Arc::VERBOSE, "Convert the return value of the function back to cpp");
     bool *ret_val2 = (bool *)extract_swig_wrappered_pointer(py_bool);
     bool return_value = false;
     if (ret_val2) return_value = (*ret_val2);

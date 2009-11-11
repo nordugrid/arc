@@ -85,7 +85,7 @@ namespace Arc {
   bool JobControllerUNICORE::GetJob(const Job& job,
                                     const std::string& downloaddir) {
     /*
-        logger.msg(DEBUG, "Downloading job: %s", job.JobID.str());
+        logger.msg(VERBOSE, "Downloading job: %s", job.JobID.str());
 
         std::string path = job.JobID.Path();
         std::string::size_type pos = path.rfind('/');

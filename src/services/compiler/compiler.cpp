@@ -359,7 +359,7 @@ std::string job_submit(const std::string job_name, const std::string site_url, c
 	jsdl_file +="       <Source><URI>";
 	jsdl_file +=script_url;
 	
-	local_logger.msg(Arc::DEBUG, "file_name:     " + File_name(script_url));
+	local_logger.msg(Arc::VERBOSE, "file_name:     " + File_name(script_url));
  
 	
 	jsdl_file +="</URI></Source>\n";
@@ -394,7 +394,7 @@ std::string job_submit(const std::string job_name, const std::string site_url, c
 	jsdl_file +=" </JobDescription>\n";
 	jsdl_file +="</JobDefinition>";      
 
-	local_logger.msg(Arc::DEBUG, "Jsdl:  " + jsdl_file);
+	local_logger.msg(Arc::VERBOSE, "Jsdl:  " + jsdl_file);
 
 	//creating the temporary jsdl file
 	std::time_t rawtime;
@@ -414,7 +414,7 @@ std::string job_submit(const std::string job_name, const std::string site_url, c
 	}
 	jsdl_file_name[local_string.size()]='\0';		//close character
 
-	local_logger.msg(Arc::DEBUG, "The submited JSDL file's name: " + (std::string)jsdl_file_name);
+	local_logger.msg(Arc::VERBOSE, "The submited JSDL file's name: " + (std::string)jsdl_file_name);
 	std::ofstream jsdlfile_o;
 	jsdlfile_o.open((const char *)&jsdl_file_name);
 	jsdlfile_o << jsdl_file;
@@ -485,7 +485,7 @@ std::vector<CompileInfo> Info_from_ISIS(Arc::XMLNode soap_xml, Service_Compiler 
 	std::stringstream tmp;
 	tmp << j;
 	sources.push_back( soap_xml["make"]["sourcefile"][j] );
-	local_logger.msg(Arc::DEBUG, "sourcefile"+tmp.str()+ ":  "+ (std::string)soap_xml["make"]["sourcefile"][j]);
+	local_logger.msg(Arc::VERBOSE, "sourcefile"+tmp.str()+ ":  "+ (std::string)soap_xml["make"]["sourcefile"][j]);
         j++;
 	if(tar) break;
     }
@@ -596,13 +596,13 @@ Arc::MCC_Status Service_Compiler::process(Arc::Message& inmsg,Arc::Message& outm
    Arc::XMLNode outpayload_node = outpayload->NewChild("compiler:compilerResponse");
 
    //info from the ISIS
-   logger.msg(Arc::DEBUG, "Info from the ISIS");
+   logger.msg(Arc::VERBOSE, "Info from the ISIS");
    std::vector<CompileInfo> Site_List;
    
    Site_List = Info_from_ISIS(compiler_op, *this);
 
    //job submit
-   logger.msg(Arc::DEBUG, "job(s) submit");
+   logger.msg(Arc::VERBOSE, "job(s) submit");
    std::vector<std::string> jobid_request;
    std::vector<CompileInfo>::iterator it; 
    for ( it=Site_List.begin() ; it < Site_List.end(); it++ ){
@@ -639,12 +639,12 @@ Arc::MCC_Status Service_Compiler::process(Arc::Message& inmsg,Arc::Message& outm
    std::string hear = "All Job(s) submited:    "+ out.str();
    outpayload_node.NewChild("compiler:response")=hear;
    outmsg.Payload(outpayload);
-   logger.msg(Arc::DEBUG, hear);
+   logger.msg(Arc::VERBOSE, hear);
     
     
    //output file(s) copy to the added directory
-   logger.msg(Arc::DEBUG, "Result(s) download");
-   logger.msg(Arc::DEBUG, "Download Place: " + compiler_op["make"]["download_place"]);
+   logger.msg(Arc::VERBOSE, "Result(s) download");
+   logger.msg(Arc::VERBOSE, "Download Place: " + compiler_op["make"]["download_place"]);
    try{
         std::string urlstr;
         std::vector<CompileInfo>::iterator it1;
@@ -653,15 +653,15 @@ Arc::MCC_Status Service_Compiler::process(Arc::Message& inmsg,Arc::Message& outm
 	
         //sleep(10);
         while( !jobid_request.empty() ){
- 	      logger.msg(Arc::DEBUG, "Download cycle: start");              
+ 	      logger.msg(Arc::VERBOSE, "Download cycle: start");              
               if(it1 != Site_List.begin())
 	             it1--;
               Current_Architecture = (*it1).architecture;
-              logger.msg(Arc::DEBUG, "Current Arhitecture: "+Current_Architecture);
+              logger.msg(Arc::VERBOSE, "Current Arhitecture: "+Current_Architecture);
 	      //Job ID checking
 	      if( jobid_request.back() == "" ){
 	            jobid_request.pop_back();
-	            logger.msg(Arc::DEBUG, "Empty Job ID. Go to the next Job ID.");
+	            logger.msg(Arc::VERBOSE, "Empty Job ID. Go to the next Job ID.");
                     continue;
 	      }
 	      //Wait until the job is Finished
@@ -669,7 +669,7 @@ Arc::MCC_Status Service_Compiler::process(Arc::Message& inmsg,Arc::Message& outm
 	            std::string message="Waiting 15 seconds";
 	            outpayload_node.NewChild("compiler:response")=message;
 	            outmsg.Payload(outpayload);
-	            logger.msg(Arc::DEBUG, message);
+	            logger.msg(Arc::VERBOSE, message);
 	            sleep(15);
 	     }
 	     //sleep(10);
@@ -682,8 +682,8 @@ Arc::MCC_Status Service_Compiler::process(Arc::Message& inmsg,Arc::Message& outm
 	        local_dir=  local_dir + Current_Architecture + "/";  
  	     jobid_request.pop_back();
 	   
-	     logger.msg(Arc::DEBUG, "Download url:  " + urlstr);
-	     logger.msg(Arc::DEBUG, "Download path:  " + local_dir);
+	     logger.msg(Arc::VERBOSE, "Download url:  " + urlstr);
+	     logger.msg(Arc::VERBOSE, "Download path:  " + local_dir);
 	   
 	     if(urlstr.empty())
 		throw std::invalid_argument("Missing service URL");
@@ -699,7 +699,7 @@ Arc::MCC_Status Service_Compiler::process(Arc::Message& inmsg,Arc::Message& outm
 	     Arc::Compiler_AREXClient download_ac(download_url,download_cfg);
 	     bool r = get_file(*(download_ac.SOAP()),download_url, local_dir);
 	     if(!r) throw std::invalid_argument("Failed to download files!");
-	     logger.msg(Arc::DEBUG, "Download cycle: end");
+	     logger.msg(Arc::VERBOSE, "Download cycle: end");
         }
    }
    catch (std::exception& err){
@@ -719,7 +719,7 @@ Arc::MCC_Status Service_Compiler::process(Arc::Message& inmsg,Arc::Message& outm
    out_finish << "GMT  "<< year << "."  << mon << "." << ptm->tm_mday;
    out_finish << "    " << ptm->tm_hour<< ":" << ptm->tm_min <<  ":" << ptm->tm_sec;
 
-   logger.msg(Arc::DEBUG, "Finished the compile:  " + out_finish.str() );
+   logger.msg(Arc::VERBOSE, "Finished the compile:  " + out_finish.str() );
     
    std::string say = compiler_op["make"]["name"];
    hear = "Finished the compile: " + out_finish.str();
@@ -727,7 +727,7 @@ Arc::MCC_Status Service_Compiler::process(Arc::Message& inmsg,Arc::Message& outm
    //the response
    outpayload_node.NewChild("compiler:response")=hear;
    outmsg.Payload(outpayload);
-   logger.msg(Arc::DEBUG, "               The SOAP message send and return");
+   logger.msg(Arc::VERBOSE, "               The SOAP message send and return");
 
    Arc::MCC_Status return_Status(Arc::STATUS_OK, "compiler" , "this is the explanation" );
    return return_Status;

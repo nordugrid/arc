@@ -42,7 +42,7 @@ namespace DREService
 			if(semaphore == 0){
 				break;
 			}
-			logger.msg(Arc::VERBOSE, "TaskSet is waiting for objects (%d) still using the set.",semaphore);
+			logger.msg(Arc::DEBUG, "TaskSet is waiting for objects (%d) still using the set.",semaphore);
 			pthread_mutex_unlock(&mutex);
 			
 			sleep(1);
@@ -98,7 +98,7 @@ namespace DREService
 				for (int i=0; i<size; i++){
 					if(ppTask[i] == 0){  // bingo
 						ppTask[i] = pTask;
-						logger.msg(Arc::VERBOSE, "Added Task %d to the set. ",pTask->getTaskID());
+						logger.msg(Arc::DEBUG, "Added Task %d to the set. ",pTask->getTaskID());
 						found = 1;
 						break;
 					}
@@ -151,7 +151,7 @@ namespace DREService
 					pTask = ppTask[i];
 					ppTask[i] = 0;
 					found = 1;
-					logger.msg(Arc::VERBOSE, "Removed Task %d out of to the set. ",pTask->getTaskID());
+					logger.msg(Arc::DEBUG, "Removed Task %d out of to the set. ",pTask->getTaskID());
 					break;
 				}
 			}

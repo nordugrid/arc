@@ -126,7 +126,7 @@ static int verify_callback(int ok, X509_STORE_CTX* store_ctx) {
       * own checks later on, when we check the last
       * certificate in the chain we will check the chain.
       */
-      logger.msg(Arc::VERBOSE,"X509_V_ERR_PATH_LENGTH_EXCEEDED");
+      logger.msg(Arc::DEBUG,"X509_V_ERR_PATH_LENGTH_EXCEEDED");
 
 #if (OPENSSL_VERSION_NUMBER >= 0x0090800fL)
       /*
@@ -136,7 +136,7 @@ static int verify_callback(int ok, X509_STORE_CTX* store_ctx) {
       * on.
       */
     case X509_V_ERR_PROXY_PATH_LENGTH_EXCEEDED:
-      logger.msg(Arc::VERBOSE,"X509_V_ERR_PATH_LENGTH_EXCEEDED --- with proxy");
+      logger.msg(Arc::DEBUG,"X509_V_ERR_PATH_LENGTH_EXCEEDED --- with proxy");
       ok = 1;
       break;
 #endif
@@ -152,7 +152,7 @@ static int verify_callback(int ok, X509_STORE_CTX* store_ctx) {
       * As OpenSSL does not recognize legacy proxies (pre-RFC, and older fasion proxies)
       */
     case X509_V_ERR_UNHANDLED_CRITICAL_EXTENSION:
-      logger.msg(Arc::VERBOSE,"X509_V_ERR_UNHANDLED_CRITICAL_EXTENSION");
+      logger.msg(Arc::DEBUG,"X509_V_ERR_UNHANDLED_CRITICAL_EXTENSION");
       /*
       * Setting this for 098 or later versions avoid the invalid
       * CA error but would result in proxy path len exceeded which
@@ -473,7 +473,7 @@ static int verify_callback(int ok, X509_STORE_CTX* store_ctx) {
         if(path_length > -1) {
           if(vctx->max_proxy_depth == -1 || vctx->max_proxy_depth > vctx->proxy_depth + path_length) {
             vctx->max_proxy_depth = vctx->proxy_depth + path_length;
-            logger.msg(Arc::VERBOSE,"proxy_depth: %i, path_length: %i",(int)(vctx->proxy_depth),(int)path_length);
+            logger.msg(Arc::DEBUG,"proxy_depth: %i, path_length: %i",(int)(vctx->proxy_depth),(int)path_length);
           }
         }
         /**Parse the policy*/
@@ -523,7 +523,7 @@ static int verify_callback(int ok, X509_STORE_CTX* store_ctx) {
           if(path_length > -1) {
             if(vctx->max_proxy_depth == -1 || vctx->max_proxy_depth > vctx->proxy_depth + path_length) {
               vctx->max_proxy_depth = vctx->proxy_depth + path_length;
-              logger.msg(Arc::VERBOSE,"proxy_depth: %i, path_length: %i",(int)(vctx->proxy_depth),(int)path_length);
+              logger.msg(Arc::DEBUG,"proxy_depth: %i, path_length: %i",(int)(vctx->proxy_depth),(int)path_length);
             }
           }
         }
@@ -594,7 +594,7 @@ static int verify_callback(int ok, X509_STORE_CTX* store_ctx) {
 }
 
 bool check_cert_type(X509* cert, certType& type) {
-  logger.msg(Arc::VERBOSE, "Trying to check X509 cert with check_cert_type");
+  logger.msg(Arc::DEBUG, "Trying to check X509 cert with check_cert_type");
 
   bool ret = false;
   type = CERT_TYPE_EEC;

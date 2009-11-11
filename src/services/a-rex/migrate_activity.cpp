@@ -34,7 +34,7 @@ Arc::MCC_Status ARexService::MigrateActivity(ARexGMConfig& config,Arc::XMLNode i
   {
     std::string s;
     in.GetXML(s);
-    logger_.msg(Arc::DEBUG, "MigrateActivity: request = \n%s", s);
+    logger_.msg(Arc::VERBOSE, "MigrateActivity: request = \n%s", s);
   };
   Arc::WSAEndpointReference id(in["ActivityIdentifier"]);
   if(!(Arc::XMLNode)id) {
@@ -77,7 +77,7 @@ Arc::MCC_Status ARexService::MigrateActivity(ARexGMConfig& config,Arc::XMLNode i
   if( !(in["ActivityDocument"]["JobDefinition"])) {
     /*
     // First try to get job desc from old cluster
-    logger_.msg(Arc::DEBUG, "MigrateActivity: no job description found try to get it from old cluster");
+    logger_.msg(Arc::VERBOSE, "MigrateActivity: no job description found try to get it from old cluster");
     Arc::MCCConfig cfg;
     // TODO:
     //if (!proxyPath.empty())
@@ -194,11 +194,11 @@ Arc::MCC_Status ARexService::MigrateActivity(ARexGMConfig& config,Arc::XMLNode i
   identifier.ReferenceParameters().NewChild("a-rex:JobID")=job.ID();
   identifier.ReferenceParameters().NewChild("a-rex:JobSessionDir")=config.Endpoint()+"/"+job.ID();
   out.NewChild(in["ActivityDocument"]);
-  logger_.msg(Arc::DEBUG, "MigrateActivity finished successfully");
+  logger_.msg(Arc::VERBOSE, "MigrateActivity finished successfully");
   {
     std::string s;
     out.GetXML(s);
-    logger_.msg(Arc::DEBUG, "MigrateActivity: response = \n%s", s);
+    logger_.msg(Arc::VERBOSE, "MigrateActivity: response = \n%s", s);
   };
   /* Needs to kill old job */
 

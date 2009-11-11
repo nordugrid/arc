@@ -68,7 +68,7 @@ class Bartender:
                             self.librarian = LibrarianClient(librarian_urls, ssl_config = self.ssl_config)
                             librarian_found = True
                     except:
-                        log.msg(arc.DEBUG, 'Error connecting to ISIS %s, reason: %s' % (isis_url, traceback.format_exc()))
+                        log.msg(arc.VERBOSE, 'Error connecting to ISIS %s, reason: %s' % (isis_url, traceback.format_exc()))
                 time.sleep(3)
             except Exception, e:
                 log.msg(arc.WARNING, 'Error in initThread: %s' % e)                
@@ -186,7 +186,7 @@ class Bartender:
         # the first item of the list is the Logical Name, we want to remove the trailing slash, and
         # leave the other items intact
         requests = [(rID, [remove_trailing_slash(data[0])] + list(data[1:])) for rID, data in requests.items()]
-        log.msg(arc.DEBUG, '//// _traverse request trailing slash removed:', dict(requests))
+        log.msg(arc.VERBOSE, '//// _traverse request trailing slash removed:', dict(requests))
         # then we do the traversing. a traverse request contains a requestID and the Logical Name
         # so we just need the key (which is the request ID) and the first item of the value (which is the LN)
         traverse_request = dict([(rID, data[0]) for rID, data in requests])
@@ -228,18 +228,18 @@ class Bartender:
                     decision = make_decision_metadata(parent_metadata, auth.get_request('addEntry'))
                     if decision == arc.DECISION_PERMIT:
                         # we need to add the newly created librarian-entry to the parent collection
-                        log.msg(arc.DEBUG, 'adding', child_GUID, 'to parent', parent_GUID)
+                        log.msg(arc.VERBOSE, 'adding', child_GUID, 'to parent', parent_GUID)
                         # this modifyMetadata request adds a new (('entries',  child_name) : child_GUID) element to the parent collection
                         modify_response = self.librarian.modifyMetadata({'_new' : (parent_GUID, 'add', 'entries', child_name, child_GUID),
                                                                         '_new_closed?' : (parent_GUID, 'setifvalue=yes', 'states', 'closed', 'broken')})
-                        log.msg(arc.DEBUG, 'modifyMetadata response', modify_response)
+                        log.msg(arc.VERBOSE, 'modifyMetadata response', modify_response)
                         # get the 'success' value
                         modify_success = modify_response['_new']
                     else:
                         modify_success = 'denied'
                     # if the new element was not set, we have a problem
                     if modify_success != 'set':
-                        log.msg(arc.DEBUG, 'modifyMetadata failed, removing the new librarian entry', child_GUID)
+                        log.msg(arc.VERBOSE, 'modifyMetadata failed, removing the new librarian entry', child_GUID)
                         # remove the newly created librarian-entry
                         self.librarian.remove({'_new' : child_GUID})
                         return 'failed to add child to parent', child_GUID
@@ -268,7 +268,7 @@ class Bartender:
                 response[url] = {'list': '', 'status': 'gateway is not configured. Bartender does not support mount points', 'protocol':''}            
             else:
                 response[url]={'turl': '' ,'status': 'gateway is not configured. Bartender does not support mount points', 'protocol':''}
-        log.msg(arc.DEBUG, '//// response from the external store:', response)
+        log.msg(arc.VERBOSE, '//// response from the external store:', response)
         return response
 
     def getFile(self, auth, requests):
@@ -289,7 +289,7 @@ class Bartender:
             protocol = ''
             success = 'unknown'
             try:
-                log.msg(arc.DEBUG, traverse_response[rID])
+                log.msg(arc.VERBOSE, traverse_response[rID])
                 # split the traverse response
                 metadata, GUID, traversedLN, restLN, wasComplete, traversedList = traverse_response[rID]
                 # wasComplete is true if the given LN was found, so it could have been fully traversed
@@ -334,7 +334,7 @@ class Bartender:
                                 while not ok and len(valid_locations) > 0:
                                     # if there are more valid_locations, randomly select one
                                     location = valid_locations.pop(random.choice(range(len(valid_locations))))
-                                    log.msg(arc.DEBUG, 'location chosen:', location)
+                                    log.msg(arc.VERBOSE, 'location chosen:', location)
                                     # split it to serviceID, referenceID - serviceID currently is just a plain URL of the service
                                     url, referenceID, _ = location
                                     # create an ShepherdClient with this URL, then send a get request with the referenceID
@@ -346,7 +346,7 @@ class Bartender:
                                     # get_response is a dictionary with keys such as 'TURL', 'protocol' or 'error'
                                     if get_response.has_key('error'):
                                         # if there was an error
-                                        log.msg(arc.DEBUG, 'ERROR from the chosen Shepherd', get_response['error'])
+                                        log.msg(arc.VERBOSE, 'ERROR from the chosen Shepherd', get_response['error'])
                                         success = 'error while getting TURL (%s)' % get_response['error']
                                     else:
                                         # get the TURL and the choosen protocol, these will be set as reply for this requestID
@@ -377,7 +377,7 @@ class Bartender:
         for rID, GUID in requests.items():
             # for each requested GUID
             metadata = data[GUID]
-            log.msg(arc.DEBUG, 'addReplica', 'requestID', rID, 'GUID', GUID, 'metadata', metadata, 'protocols', protocols)
+            log.msg(arc.VERBOSE, 'addReplica', 'requestID', rID, 'GUID', GUID, 'metadata', metadata, 'protocols', protocols)
             # get the size and checksum information of the file
             size = metadata[('states','size')]
             checksumType = metadata[('states','checksumType')]
@@ -401,10 +401,10 @@ class Bartender:
         # SEs contains entries such as {(serviceID, 'nextHeartbeat') : timestamp} which indicates
         #   when a specific Shepherd service should report next
         #   if this timestamp is not a positive number, that means the Shepherd have not reported in time, probably it is not alive
-        log.msg(arc.DEBUG, 'Registered Shepherds in Librarian', SEs)
+        log.msg(arc.VERBOSE, 'Registered Shepherds in Librarian', SEs)
         # get all the Shepherds which has a positiv nextHeartbeat timestamp and which has not already been used
         alive_SEs = [s for (s, p), v in SEs.items() if p == 'nextHeartbeat' and int(v) > 0 and not s in except_these]
-        log.msg(arc.DEBUG, 'Alive Shepherds:', alive_SEs)
+        log.msg(arc.VERBOSE, 'Alive Shepherds:', alive_SEs)
         response = []
         for se in alive_SEs:
             response.append(ShepherdClient(se, ssl_config = self.ssl_config))
@@ -438,7 +438,7 @@ class Bartender:
             except:
                 put_response = {'error' : traceback.format_exc()}
             if put_response.has_key('error'):
-                log.msg(arc.DEBUG, 'ERROR from the chosen Shepherd', put_response['error'])
+                log.msg(arc.VERBOSE, 'ERROR from the chosen Shepherd', put_response['error'])
             else:
                 # if the put request was successful then we have a transfer URL, a choosen protocol and the referenceID of the file
                 turl = put_response['TURL']
@@ -463,7 +463,7 @@ class Bartender:
             metadata_ok = False
             try:
                 # get the size and checksum of the new file
-                log.msg(arc.DEBUG, protocols)
+                log.msg(arc.VERBOSE, protocols)
                 size = child_metadata[('states', 'size')]
                 checksum = child_metadata[('states', 'checksum')]
                 checksumType = child_metadata[('states', 'checksumType')]
@@ -480,7 +480,7 @@ class Bartender:
                     # split the Logical Name, rootguid will be the GUID of the root collection of this LN,
                     #   child_name is the name of the new file withing the parent collection
                     rootguid, _, child_name = splitLN(LN)
-                    log.msg(arc.DEBUG, 'LN', LN, 'rootguid', rootguid, 'child_name', child_name, 'real rootguid', rootguid or global_root_guid)
+                    log.msg(arc.VERBOSE, 'LN', LN, 'rootguid', rootguid, 'child_name', child_name, 'real rootguid', rootguid or global_root_guid)
                     # get the traverse response corresponding to this request
                     #   metadata is the metadata of the last element which could been traversed, e.g. the parent of the new file
                     #   GUID is the GUID of the same
@@ -489,7 +489,7 @@ class Bartender:
                     #   wasComplete indicates if the traverse was complete or not, if it was complete means that this LN exists
                     #   traversedlist contains the GUID and metadata of each element along the path of the LN
                     metadata, GUID, traversedLN, restLN, wasComplete, traversedlist = traverse_response[rID]
-                    log.msg(arc.DEBUG, 'metadata', metadata, 'GUID', GUID, 'traversedLN', traversedLN, 'restLN', restLN, 'wasComplete',wasComplete, 'traversedlist', traversedlist)
+                    log.msg(arc.VERBOSE, 'metadata', metadata, 'GUID', GUID, 'traversedLN', traversedLN, 'restLN', restLN, 'wasComplete',wasComplete, 'traversedlist', traversedlist)
                     # if the traversing stopped at a mount point:
                     if metadata.get(('entry','type'), '') == 'mountpoint':
                         url = metadata[('mountpoint','externalURL')] + '/' + restLN                
@@ -558,7 +558,7 @@ class Bartender:
         response = {}
         for rID, [LN] in requests:
             metadata, GUID, traversedLN, restLN, wasComplete, traversedlist = traverse_response[rID]
-            log.msg(arc.DEBUG, 'metadata', metadata, 'GUID', GUID, 'traversedLN', traversedLN, 'restLN', restLN, 'wasComplete',wasComplete, 'traversedlist', traversedlist)
+            log.msg(arc.VERBOSE, 'metadata', metadata, 'GUID', GUID, 'traversedLN', traversedLN, 'restLN', restLN, 'wasComplete',wasComplete, 'traversedlist', traversedlist)
             if not wasComplete:
                 success = 'no such LN'
             else:
@@ -605,7 +605,7 @@ class Bartender:
                 success = 'cannot create collection in mountpoint'      
                 response[rID] = success    
                 return response
-            log.msg(arc.DEBUG, 'metadata', metadata, 'GUID', GUID, 'traversedLN', traversedLN, 'restLN', restLN, 'wasComplete',wasComplete, 'traversedlist', traversedlist)
+            log.msg(arc.VERBOSE, 'metadata', metadata, 'GUID', GUID, 'traversedLN', traversedLN, 'restLN', restLN, 'wasComplete',wasComplete, 'traversedlist', traversedlist)
             child_metadata[('entry','owner')] = auth.get_identity()
             child_metadata[('entry','type')] = 'collection'
             if wasComplete: # this means the LN exists
@@ -636,7 +636,7 @@ class Bartender:
         response = {}
         for rID, [LN] in requests:
             metadata, GUID, traversedLN, restLN, wasComplete, traversedlist = traverse_response[rID]
-            log.msg(arc.DEBUG, 'metadata', metadata, 'GUID', GUID, 'traversedLN', traversedLN, 'restLN', restLN, 'wasComplete',wasComplete, 'traversedlist', traversedlist)
+            log.msg(arc.VERBOSE, 'metadata', metadata, 'GUID', GUID, 'traversedLN', traversedLN, 'restLN', restLN, 'wasComplete',wasComplete, 'traversedlist', traversedlist)
             if not wasComplete:
                 success = 'no such LN'
             else:
@@ -676,7 +676,7 @@ class Bartender:
                 response[rID] = success
                 return response
 
-            log.msg(arc.DEBUG, 'LN', LN, 'URL', URL, 'metadata', metadata, 'GUID', GUID, 'traversedLN', traversedLN, 'restLN', restLN, 'wasComplete',wasComplete, 'traversedlist', traversedlist)
+            log.msg(arc.VERBOSE, 'LN', LN, 'URL', URL, 'metadata', metadata, 'GUID', GUID, 'traversedLN', traversedLN, 'restLN', restLN, 'wasComplete',wasComplete, 'traversedlist', traversedlist)
             child_metadata[('entry','owner')] = auth.get_identity()
             child_metadata[('entry','type')] = 'mountpoint'
             child_metadata[('mountpoint','externalURL')] = URL 
@@ -775,12 +775,12 @@ class Bartender:
             traverse_request[requestID + 'source'] = remove_trailing_slash(sourceLN)
             traverse_request[requestID + 'target'] = targetLN
         traverse_response = self.librarian.traverseLN(traverse_request)
-        log.msg(arc.DEBUG, '\/\/', traverse_response)
+        log.msg(arc.VERBOSE, '\/\/', traverse_response)
         response = {}
         for requestID, (sourceLN, targetLN, preserveOriginal) in requests.items():
             sourceLN = remove_trailing_slash(sourceLN)
             # for each request
-            log.msg(arc.DEBUG, requestID, sourceLN, targetLN, preserveOriginal)
+            log.msg(arc.VERBOSE, requestID, sourceLN, targetLN, preserveOriginal)
             # get the old and the new name of the entry, these are the last elements of the Logical Names
             _, _, old_child_name = splitLN(sourceLN)
             _, _, new_child_name = splitLN(targetLN)
@@ -818,7 +818,7 @@ class Bartender:
                 if decision != arc.DECISION_PERMIT:
                     success = 'adding child to parent denied'
                 else:
-                    log.msg(arc.DEBUG, 'adding', sourceGUID, 'to parent', targetGUID)
+                    log.msg(arc.VERBOSE, 'adding', sourceGUID, 'to parent', targetGUID)
                     # adding the entry to the new parent
                     mm_resp = self.librarian.modifyMetadata(
                         {'move-target' : (targetGUID, 'add', 'entries', new_child_name, sourceGUID),
@@ -838,7 +838,7 @@ class Bartender:
                                 source_parent_metadata = self.librarian.get([source_parent_guid])[source_parent_guid]
                                 decision = make_decision_metadata(source_parent_metadata, auth.get_request('removeEntry'))
                                 if decision == arc.DECISION_PERMIT:
-                                    log.msg(arc.DEBUG, 'removing', sourceGUID, 'from parent', source_parent_guid)
+                                    log.msg(arc.VERBOSE, 'removing', sourceGUID, 'from parent', source_parent_guid)
                                     # delete the entry from the source parent
                                     mm_resp = self.librarian.modifyMetadata(
                                         {'move-source' : (source_parent_guid, 'unset', 'entries', old_child_name, ''),
@@ -921,7 +921,7 @@ class BartenderService(Service):
         try:
             if not os.path.exists(self.proxy_store):
                 os.mkdir(self.proxy_store)
-            log.msg(arc.DEBUG, 'Proxy store:', self.proxy_store)
+            log.msg(arc.VERBOSE, 'Proxy store:', self.proxy_store)
         except:
             self.proxy_store = ''
         if not self.proxy_store:
@@ -1447,14 +1447,14 @@ class BartenderService(Service):
             if (os.path.isdir(self.proxy_store)):
                 #print "ProxyStore: "+self.proxy_store 
                 filePath = self.proxy_store+'/'+base64.b64encode(inpayload.auth.get_identity())+'.proxy'
-                log.msg(arc.DEBUG,'creating proxy file : ', filePath)
+                log.msg(arc.VERBOSE,'creating proxy file : ', filePath)
                 proxyfile = open(filePath, 'w') 
                 proxyfile.write(credAndid[1])
                 proxyfile.close()
-                log.msg(arc.DEBUG,'created successfully, ID: %s',credAndid[2]) 
+                log.msg(arc.VERBOSE,'created successfully, ID: %s',credAndid[2]) 
                 os.system('chmod 600 '+filePath)
             else:
-                log.msg(arc.DEBUG,'cannot access proxy_store, Check the configuration file (service.xml)\n Need to have a <ProxyStore>')
+                log.msg(arc.VERBOSE,'cannot access proxy_store, Check the configuration file (service.xml)\n Need to have a <ProxyStore>')
         else:
             log.msg(arc.INFO,'Delegation failed: ')
         return outpayload
@@ -1465,7 +1465,7 @@ class BartenderService(Service):
             log.msg(arc.INFO, 'ID: '+inpayload.auth.get_identity())
             message = ''
             if (os.path.isdir(self.proxy_store)):
-                log.msg(arc.DEBUG, 'ProxyStore: %s',self.proxy_store)
+                log.msg(arc.VERBOSE, 'ProxyStore: %s',self.proxy_store)
                 filePath = self.proxy_store+'/'+base64.b64encode(inpayload.auth.get_identity())+'.proxy'
                 if (os.path.isfile(filePath)):    
                     os.system('rm '+filePath)
@@ -1483,8 +1483,8 @@ class BartenderService(Service):
         #print message
         response['message'] = message
         response['status'] = status
-        log.msg(arc.DEBUG, 'removeCredentials: %s', message)
-        log.msg(arc.DEBUG, 'removeCredentials: %s', status)  
+        log.msg(arc.VERBOSE, 'removeCredentials: %s', message)
+        log.msg(arc.VERBOSE, 'removeCredentials: %s', status)  
         return create_response('bar:removeCredentials', ['bar:message','bar:status'],response, self._new_soap_payload(), single = True) 
 
     def RegistrationCollector(self, doc):

@@ -43,7 +43,7 @@ namespace Arc {
   void JobController::FillJobStore(const std::list<URL>& jobids) {
 
     if (!usercfg.JobListFile().empty()) {
-      logger.msg(DEBUG, "Using job list file %s", usercfg.JobListFile());
+      logger.msg(VERBOSE, "Using job list file %s", usercfg.JobListFile());
       FileLock lock(usercfg.JobListFile());
       jobstorage.ReadFromFile(usercfg.JobListFile());
     }
@@ -53,7 +53,7 @@ namespace Arc {
     }
 
     if (!jobids.empty()) {
-      logger.msg(DEBUG, "Filling job store with jobs according to "
+      logger.msg(VERBOSE, "Filling job store with jobs according to "
                  "specified jobids");
 
       for (std::list<URL>::const_iterator it = jobids.begin();
@@ -63,7 +63,7 @@ namespace Arc {
           jobstorage.XPathLookup("//Job[JobID='" + it->str() + "']", NS());
 
         if (xmljobs.empty()) {
-          logger.msg(DEBUG, "Job not found in job list: %s", it->str());
+          logger.msg(VERBOSE, "Job not found in job list: %s", it->str());
           continue;
         }
 
@@ -97,7 +97,7 @@ namespace Arc {
     if (itSelectedClusters != usercfg.GetSelectedServices(COMPUTING).end() &&
         !itSelectedClusters->second.empty()) {
       const std::list<URL>& selectedClusters = itSelectedClusters->second;
-      logger.msg(DEBUG, "Filling job store with jobs according to list of "
+      logger.msg(VERBOSE, "Filling job store with jobs according to list of "
                  "selected clusters");
 
       XMLNodeList xmljobs =
@@ -139,14 +139,14 @@ namespace Arc {
       if (!jobstore.empty()) {
         const std::list<URL>& rejectedClusters = itRejectedClusters->second;
 
-        logger.msg(DEBUG, "Removing jobs from job store according to list of "
+        logger.msg(VERBOSE, "Removing jobs from job store according to list of "
                    "rejected clusters");
 
         std::list<Job>::iterator it = jobstore.begin();
         while (it != jobstore.end())
           if (std::find(rejectedClusters.begin(), rejectedClusters.end(),
                         it->Cluster) != rejectedClusters.end()) {
-            logger.msg(DEBUG, "Removing job %s from job store since it runs "
+            logger.msg(VERBOSE, "Removing job %s from job store since it runs "
                        "on a rejected cluster", it->JobID.str());
             it = jobstore.erase(it);
           }
@@ -155,7 +155,7 @@ namespace Arc {
       }
 
     if (jobids.empty() && usercfg.GetSelectedServices(COMPUTING).empty()) {
-      logger.msg(DEBUG, "Filling job store with all jobs, except those "
+      logger.msg(VERBOSE, "Filling job store with all jobs, except those "
                  "running on rejected clusters");
 
       const std::list<URL>* rejectedClusters = (itRejectedClusters == usercfg.GetRejectedServices(COMPUTING).end() ? NULL : &itRejectedClusters->second);
@@ -193,8 +193,8 @@ namespace Arc {
       }
     }
 
-    logger.msg(DEBUG, "FillJobStore has finished successfully");
-    logger.msg(DEBUG, "Job store for %s contains %ld jobs",
+    logger.msg(VERBOSE, "FillJobStore has finished successfully");
+    logger.msg(VERBOSE, "Job store for %s contains %ld jobs",
                flavour, jobstore.size());
   }
 
@@ -222,7 +222,7 @@ namespace Arc {
                           const std::string& downloaddir,
                           const bool keep) {
 
-    logger.msg(DEBUG, "Getting %s jobs", flavour);
+    logger.msg(VERBOSE, "Getting %s jobs", flavour);
     std::list<URL> toberemoved;
 
     GetJobInformation();
@@ -285,7 +285,7 @@ namespace Arc {
   bool JobController::Kill(const std::list<std::string>& status,
                            const bool keep) {
 
-    logger.msg(DEBUG, "Killing %s jobs", flavour);
+    logger.msg(VERBOSE, "Killing %s jobs", flavour);
     std::list<URL> toberemoved;
 
     GetJobInformation();
@@ -347,7 +347,7 @@ namespace Arc {
   bool JobController::Clean(const std::list<std::string>& status,
                             const bool force) {
 
-    logger.msg(DEBUG, "Cleaning %s jobs", flavour);
+    logger.msg(VERBOSE, "Cleaning %s jobs", flavour);
     std::list<URL> toberemoved;
 
     GetJobInformation();
@@ -408,7 +408,7 @@ namespace Arc {
   bool JobController::Cat(const std::list<std::string>& status,
                           const std::string& whichfile) {
 
-    logger.msg(DEBUG, "Performing the 'cat' command on %s jobs", flavour);
+    logger.msg(VERBOSE, "Performing the 'cat' command on %s jobs", flavour);
 
     if (whichfile != "stdout" && whichfile != "stderr" && whichfile != "gmlog") {
       logger.msg(ERROR, "Unknown output %s", whichfile);
@@ -468,7 +468,7 @@ namespace Arc {
       }
       close(tmp_h);
 
-      logger.msg(DEBUG, "Catting %s for job %s", whichfile, (*it)->JobID.str());
+      logger.msg(VERBOSE, "Catting %s for job %s", whichfile, (*it)->JobID.str());
 
       URL src = GetFileUrlForJob((**it), whichfile);
       if (!src) {
@@ -701,8 +701,8 @@ namespace Arc {
     mover.passive(true);
     mover.verbose(false);
 
-    logger.msg(DEBUG, "Now copying (from -> to)");
-    logger.msg(DEBUG, " %s -> %s", src.str(), dst.str());
+    logger.msg(VERBOSE, "Now copying (from -> to)");
+    logger.msg(VERBOSE, " %s -> %s", src.str(), dst.str());
 
     DataHandle source(src, usercfg);
     if (!source) {
@@ -735,7 +735,7 @@ namespace Arc {
 
   bool JobController::RemoveJobs(const std::list<URL>& jobids) {
 
-    logger.msg(DEBUG, "Removing jobs from job list and job store");
+    logger.msg(VERBOSE, "Removing jobs from job list and job store");
 
     FileLock lock(usercfg.JobListFile());
     jobstorage.ReadFromFile(usercfg.JobListFile());
@@ -751,7 +751,7 @@ namespace Arc {
       else {
         XMLNode& xmljob = *xmljobs.begin();
         if (xmljob) {
-          logger.msg(DEBUG, "Removing job %s from job list file", it->str());
+          logger.msg(VERBOSE, "Removing job %s from job list file", it->str());
           xmljob.Destroy();
         }
       }
@@ -768,8 +768,8 @@ namespace Arc {
 
     jobstorage.SaveToFile(usercfg.JobListFile());
 
-    logger.msg(DEBUG, "Job store for %s now contains %d jobs", flavour, jobstore.size());
-    logger.msg(DEBUG, "Finished removing jobs from job list and job store");
+    logger.msg(VERBOSE, "Job store for %s now contains %d jobs", flavour, jobstore.size());
+    logger.msg(VERBOSE, "Finished removing jobs from job list and job store");
 
     return true;
   }
@@ -777,7 +777,7 @@ namespace Arc {
   std::list<Job> JobController::GetJobDescriptions(const std::list<std::string>& status,
                                                    const bool getlocal) {
 
-    logger.msg(DEBUG, "Getting %s jobs", flavour);
+    logger.msg(VERBOSE, "Getting %s jobs", flavour);
     GetJobInformation();
 
     // Only selected jobs with specified status
@@ -801,7 +801,7 @@ namespace Arc {
       CheckLocalDescription(gettable);
     }
     else
-      logger.msg(DEBUG, "Disregarding job decriptions from local job file");
+      logger.msg(VERBOSE, "Disregarding job decriptions from local job file");
 
     // Try to get description from cluster
     for (std::list<Job>::iterator it = gettable.begin();
@@ -843,7 +843,7 @@ namespace Arc {
 
         // Check for valid job description
         if (jobdesc)
-          logger.msg(DEBUG, "Valid jobdescription found for: %s", it->JobID.str());
+          logger.msg(VERBOSE, "Valid jobdescription found for: %s", it->JobID.str());
         else {
           logger.msg(WARNING, "No valid jobdescription found for: %s", it->JobID.str());
           it++;
@@ -862,7 +862,7 @@ namespace Arc {
             CKSUM = false;
           }
           else
-            logger.msg(DEBUG, "Stored and new checksum of input file %s are identical.", file);
+            logger.msg(VERBOSE, "Stored and new checksum of input file %s are identical.", file);
         }
         // Push_back job and job descriptions
         if (CKSUM) {

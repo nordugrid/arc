@@ -82,7 +82,7 @@ namespace Arc {
       return DataStatus::CheckError;
     }
 
-    logger.msg(DEBUG, "Check: looking for metadata: %s", CurrentLocation().str());
+    logger.msg(VERBOSE, "Check: looking for metadata: %s", CurrentLocation().str());
     std::list<struct SRMFileMetaData> metadata;
 
     SRMReturnCode res = client->info(*srm_request, metadata);
@@ -135,7 +135,7 @@ namespace Arc {
       client = NULL;
       return DataStatus::DeleteError;
     }
-    logger.msg(DEBUG, "remove_srm: deleting: %s", CurrentLocation().str());
+    logger.msg(VERBOSE, "remove_srm: deleting: %s", CurrentLocation().str());
 
     SRMReturnCode res = client->remove(*srm_request);
     delete client;
@@ -153,7 +153,7 @@ namespace Arc {
 
   DataStatus DataPointSRM::StartReading(DataBuffer& buf) {
 
-    logger.msg(DEBUG, "StartReading");
+    logger.msg(VERBOSE, "StartReading");
     if (reading)
       return DataStatus::IsReadingError;
     if (writing)
@@ -186,7 +186,7 @@ namespace Arc {
     }
     SRMReturnCode res;
     if (additional_checks) {
-      logger.msg(DEBUG, "StartReading: looking for metadata: %s", CurrentLocation().str());
+      logger.msg(VERBOSE, "StartReading: looking for metadata: %s", CurrentLocation().str());
       std::list<struct SRMFileMetaData> metadata;
       res = client->info(*srm_request, metadata);
       if (res != SRM_OK) {
@@ -237,7 +237,7 @@ namespace Arc {
       if (i == turls.end())
         continue;
       // Avoid redirection to SRM
-      logger.msg(DEBUG, "Checking URL returned by SRM: %s", *i);
+      logger.msg(VERBOSE, "Checking URL returned by SRM: %s", *i);
       if (strncasecmp(i->c_str(), "srm://", 6) == 0) {
         turls.erase(i);
         continue;
@@ -322,7 +322,7 @@ namespace Arc {
   DataStatus DataPointSRM::StartWriting(DataBuffer& buf,
                                         DataCallback *space_cb) {
 
-    logger.msg(DEBUG, "StartWriting");
+    logger.msg(VERBOSE, "StartWriting");
     if (reading)
       return DataStatus::IsReadingError;
     if (writing)
@@ -358,14 +358,14 @@ namespace Arc {
     if (space_token.empty()) {
       if (client->getVersion().compare("v2.2") == 0)
         // only print message if using v2.2
-        logger.msg(DEBUG, "No space token specified");
+        logger.msg(VERBOSE, "No space token specified");
     }
     else {
       if (client->getVersion().compare("v2.2") != 0)
         // print warning if not using srm2.2
         logger.msg(WARNING, "Warning: Using SRM protocol v1 which does not support space tokens");
       else {
-        logger.msg(DEBUG, "Using space token description %s", space_token);
+        logger.msg(VERBOSE, "Using space token description %s", space_token);
         // get token from SRM that matches description
         std::list<std::string> tokens;
         if (client->getSpaceTokens(tokens, space_token) != SRM_OK)
@@ -376,7 +376,7 @@ namespace Arc {
           logger.msg(WARNING, "Warning: No space tokens found matching description! Will copy without using token");
         else {
           // take the first one in the list
-          logger.msg(DEBUG, "Using space token %s", tokens.front());
+          logger.msg(VERBOSE, "Using space token %s", tokens.front());
           srm_request->space_token(tokens.front());
         }
       }
@@ -407,7 +407,7 @@ namespace Arc {
       if (i == turls.end())
         continue;
       // Avoid redirection to SRM
-      logger.msg(DEBUG, "Checking URL returned by SRM: %s", *i);
+      logger.msg(VERBOSE, "Checking URL returned by SRM: %s", *i);
       if (strncasecmp(i->c_str(), "srm://", 6) == 0) {
         turls.erase(i);
         continue;
@@ -522,7 +522,7 @@ namespace Arc {
       client = NULL;
       return DataStatus::ListError;
     }
-    logger.msg(DEBUG, "ListFiles: looking for metadata: %s", CurrentLocation().str());
+    logger.msg(VERBOSE, "ListFiles: looking for metadata: %s", CurrentLocation().str());
     if (long_list || metadata) srm_request->long_list(true);
     std::list<struct SRMFileMetaData> srm_metadata;
 

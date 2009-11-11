@@ -8,7 +8,7 @@
   <Server>
     <!--Foreground/-->
     <Pidfile>./arcserver.pid</Pidfile>
-    <Logger level="VERBOSE">./arcserver.log</Logger>
+    <Logger level="DEBUG">./arcserver.log</Logger>
   </Server>
   <ModuleManager>
     <Path>/usr/local/lib/arc/</Path>

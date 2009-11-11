@@ -5,7 +5,7 @@
 >
     <Server>
         <Pidfile>/var/run/arched_hopi.pid</Pidfile>
-        <Logger level="VERBOSE">/var/log/arched_hopi.log</Logger>
+        <Logger level="DEBUG">/var/log/arched_hopi.log</Logger>
     </Server>
     <ModuleManager>
         <Path>/usr/lib/arc/</Path>
@@ -43,7 +43,7 @@
 		
         <Service name="pythonservice" id="ahash">
             <ClassName>storage.ahash.ahash.AHashService</ClassName>
-            <LogLevel>VERBOSE</LogLevel>
+            <LogLevel>DEBUG</LogLevel>
             <AHashClass>storage.ahash.ahash.CentralAHash</AHashClass>
             <StoreClass>arcom.store.picklestore.PickleStore</StoreClass>
             <StoreCfg>

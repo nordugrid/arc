@@ -92,7 +92,7 @@ GridSchedulerService::process(Arc::Message& inmsg, Arc::Message& outmsg)
     {   
         std::string str;
         inpayload->GetDoc(str, true);
-        logger_.msg(Arc::DEBUG, "process: request=%s",str);
+        logger_.msg(Arc::VERBOSE, "process: request=%s",str);
     }; 
 
     // Get operation
@@ -101,7 +101,7 @@ GridSchedulerService::process(Arc::Message& inmsg, Arc::Message& outmsg)
         logger_.msg(Arc::ERROR, "input does not define operation");
         return make_soap_fault(outmsg);
     }
-    logger_.msg(Arc::DEBUG, "process: operation: %s", op.Name());
+    logger_.msg(Arc::VERBOSE, "process: operation: %s", op.Name());
     // BES Factory operations
     Arc::PayloadSOAP* outpayload = new Arc::PayloadSOAP(ns_);
     Arc::PayloadSOAP& res = *outpayload;
@@ -166,10 +166,10 @@ GridSchedulerService::process(Arc::Message& inmsg, Arc::Message& outmsg)
     
     }
     {
-        // DEBUG
+        // VERBOSE
         std::string str;
         outpayload->GetXML(str);
-        logger_.msg(Arc::DEBUG, "process: response=%s", str);
+        logger_.msg(Arc::VERBOSE, "process: response=%s", str);
     }
     // Set output
     outmsg.Payload(outpayload);
@@ -178,12 +178,12 @@ GridSchedulerService::process(Arc::Message& inmsg, Arc::Message& outmsg)
 
 void GridSchedulerService::doSched(void)
 {   
-    logger_.msg(Arc::DEBUG, "doSched");
+    logger_.msg(Arc::VERBOSE, "doSched");
     jobq.checkpoint();
-    logger_.msg(Arc::DEBUG, "jobq checkpoint done");
+    logger_.msg(Arc::VERBOSE, "jobq checkpoint done");
 #if 0
     // log status
-    logger_.msg(Arc::DEBUG, "Count of jobs: %i"
+    logger_.msg(Arc::VERBOSE, "Count of jobs: %i"
                 " Count of resources: %i"
                 " Scheduler period: %i"
                 " Endpoint: %s"
@@ -198,19 +198,19 @@ void GridSchedulerService::doSched(void)
     std::map<const std::string, Job *>::iterator iter;
     for (iter = new_jobs.begin(); iter != new_jobs.end(); iter++) {
         const std::string &job_id = iter->first;
-        logger_.msg(Arc::DEBUG, "NEW job: %s", job_id);
+        logger_.msg(Arc::VERBOSE, "NEW job: %s", job_id);
         Resource &arex = sched_resources.random();
         Job *j = iter->second;
         Arc::XMLNode &jsdl = j->getJSDL();
         // XXX better error handling
         std::string arex_job_id = arex.CreateActivity(jsdl);
-        logger_.msg(Arc::DEBUG, "A-REX ID: %s", arex.getURL());
+        logger_.msg(Arc::VERBOSE, "A-REX ID: %s", arex.getURL());
         if (arex_job_id != "") {
             j->setResourceJobID(arex_job_id);
             j->setResourceID(arex.getURL());
             j->setStatus(STARTING);
         } else {
-            logger_.msg(Arc::DEBUG, "Sched job ID: %s NOT SUBMITTED", job_id);
+            logger_.msg(Arc::VERBOSE, "Sched job ID: %s NOT SUBMITTED", job_id);
             sched_resources.refresh(arex.getURL());
         }
         j->save();
@@ -222,7 +222,7 @@ void GridSchedulerService::doSched(void)
         Arc::Job *j = *jobs;
         Arc::JobSchedMetaData *m = j->getJobSchedMetaData();
         if (m->getResourceID().empty()) {
-            logger_.msg(Arc::DEBUG, "%s set killed", j->getID());
+            logger_.msg(Arc::VERBOSE, "%s set killed", j->getID());
             j->setStatus(Arc::JOB_STATUS_SCHED_KILLED);
             m->setEndTime(Arc::Time());
         } 
@@ -230,7 +230,7 @@ void GridSchedulerService::doSched(void)
         else {
             Resource &arex = sched_resources.get(j->getResourceID());
             if (arex.TerminateActivity(arex_job_id)) {
-                logger_.msg(Arc::DEBUG, "JobID: %s KILLED", job_id);
+                logger_.msg(Arc::VERBOSE, "JobID: %s KILLED", job_id);
                 j->setStatus(KILLED);
                 sched_queue.removeJob(job_id);
             }
@@ -252,7 +252,7 @@ void GridSchedulerService::doSched(void)
             Arc::Period p(lifetime_after_done);
             Arc::Time now;
             if (now > (m->getEndTime() + p)) {
-                logger_.msg(Arc::DEBUG, "%s remove from queue", j->getID());
+                logger_.msg(Arc::VERBOSE, "%s remove from queue", j->getID());
                 jobs.remove();
             }
         }
@@ -272,7 +272,7 @@ void GridSchedulerService::doSched(void)
         const std::string &arex_job_id = j->getResourceJobID();
         // skip unscheduled jobs
         if (arex_job_id.empty()) {
-            logger_.msg(Arc::DEBUG, "Sched job ID: %s (A-REX job ID is empty)", job_id);
+            logger_.msg(Arc::VERBOSE, "Sched job ID: %s (A-REX job ID is empty)", job_id);
             continue; 
         }
         // get state of the job at the resource
@@ -287,14 +287,14 @@ void GridSchedulerService::doSched(void)
                 sched_resources.refresh(arex.getURL());
                 // std::string url = arex.getURL();
                 // sched_resources.removeResource(url);
-                logger_.msg(Arc::DEBUG, "Job RESCHEDULE: %s", job_id);
+                logger_.msg(Arc::VERBOSE, "Job RESCHEDULE: %s", job_id);
             }
         } else {
             // refresh status from A-REX state
             job_stat = sched_status_from_arex_status(state); 
             j->setStatus(job_stat);
             j->save();
-            logger_.msg(Arc::DEBUG, "JobID: %s state: %s", job_id, state);
+            logger_.msg(Arc::VERBOSE, "JobID: %s state: %s", job_id, state);
         }
     }
 #endif
@@ -313,7 +313,7 @@ void sched(void* arg)
 void
 GridSchedulerService::doReschedule(void)
 {
-    logger_.msg(Arc::DEBUG, "doReschedule");
+    logger_.msg(Arc::VERBOSE, "doReschedule");
     for (Arc::JobQueueIterator jobs = jobq.getAll(); jobs.hasMore(); jobs++){
         Arc::Job *j = *jobs;
         Arc::JobSchedMetaData *m = j->getJobSchedMetaData();
@@ -330,9 +330,9 @@ GridSchedulerService::doReschedule(void)
             jobs.refresh();
             continue;
         }
-        logger_.msg(Arc::DEBUG, "check: %s (%s - %s > %s (%s))", j->getID(), (std::string)now, (std::string)m->getLastChecked(), (std::string)(m->getLastUpdated() + p), (std::string)m->getLastUpdated());
+        logger_.msg(Arc::VERBOSE, "check: %s (%s - %s > %s (%s))", j->getID(), (std::string)now, (std::string)m->getLastChecked(), (std::string)(m->getLastUpdated() + p), (std::string)m->getLastUpdated());
         if (m->getLastChecked() > (m->getLastUpdated() + p)) {
-            logger_.msg(Arc::DEBUG, "Rescheduled job: %s", j->getID());
+            logger_.msg(Arc::VERBOSE, "Rescheduled job: %s", j->getID());
             j->setStatus(Arc::JOB_STATUS_SCHED_RESCHEDULED);
             m->setResourceID("");
         }

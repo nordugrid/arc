@@ -113,7 +113,7 @@ int main(int argc, char **argv) {
 
   std::string debug;
   options.AddOption('d', "debug",
-                    istring("FATAL, ERROR, WARNING, INFO, DEBUG or VERBOSE"),
+                    istring("FATAL, ERROR, WARNING, INFO, VERBOSE or DEBUG"),
                     istring("debuglevel"), debug);
 
   std::string broker;

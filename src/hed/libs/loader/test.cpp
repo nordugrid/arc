@@ -11,7 +11,7 @@ int main(void)
 {
     Arc::LogStream ldest(std::cerr);
     Arc::Logger::getRootLogger().addDestination(ldest);
-    Arc::Logger::getRootLogger().setThreshold(Arc::DEBUG);
+    Arc::Logger::getRootLogger().setThreshold(Arc::VERBOSE);
     Arc::Config *c = new Arc::Config("test.xml");    
     Arc::Loader chains(c);
     return 0;

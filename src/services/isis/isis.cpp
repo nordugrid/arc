@@ -107,7 +107,7 @@ static void message_send_thread(void *arg) {
 
         req.NewChild(((ISIS::Thread_data *)data)->node);
         Arc::MCC_Status status;
-        thread_logger.msg(Arc::DEBUG, "Sending \"Register/RemoveRegistrations\" message to %s and waiting for the response.", url );
+        thread_logger.msg(Arc::VERBOSE, "Sending \"Register/RemoveRegistrations\" message to %s and waiting for the response.", url );
         status= client_entry.process(&req,&response);
 
         if ( (!status.isOk()) || (!response) || (response->IsFault()) ) {
@@ -120,7 +120,7 @@ static void message_send_thread(void *arg) {
            it = find(not_availables_neighbors->begin(),not_availables_neighbors->end(),url);
            if ( it != not_availables_neighbors->end() )
               not_availables_neighbors->erase(it);
-           thread_logger.msg(Arc::DEBUG, "Status (%s): OK",url );
+           thread_logger.msg(Arc::VERBOSE, "Status (%s): OK",url );
            if(response) delete response;
            break;
         };
@@ -213,7 +213,7 @@ static void soft_state_thread(void *data) {
     // "sleep_period" is the time, when the thread wakes up and checks the "KillTread" variable's value and then sleep away.
     unsigned int sleep_period = 60;
     while (true){
-        thread_logger.msg(Arc::DEBUG, "%s: %d seconds to the next database cleaning.", method, sleep_time);
+        thread_logger.msg(Arc::VERBOSE, "%s: %d seconds to the next database cleaning.", method, sleep_time);
 
         // "sleep_time" is comminuted to some little period
         unsigned int tmp_sleep_time = sleep_time;
@@ -221,7 +221,7 @@ static void soft_state_thread(void *data) {
             // Whether ISIS's destructor called or not
             if( *(self->kill_thread) ) {
                (*(self->threads_count))--;
-               thread_logger.msg(Arc::DEBUG, "%s: Soft-State thread is finished.", method);
+               thread_logger.msg(Arc::VERBOSE, "%s: Soft-State thread is finished.", method);
                return;
             }
 
@@ -291,41 +291,41 @@ static void soft_state_thread(void *data) {
 
     ISIService::ISIService(Arc::Config *cfg):RegisteredService(cfg),logger_(Arc::Logger::rootLogger, "ISIS"),valid("PT1D"),remove("PT1D"),db_(NULL),neighbors_update_needed(false),available_provider(false),neighbors_count(0),neighbors_lock(false) {
 
-        logger_.msg(Arc::DEBUG, "Parsing configuration parameters");
+        logger_.msg(Arc::VERBOSE, "Parsing configuration parameters");
         // Endpoint url from the configuration
         endpoint_=(std::string)((*cfg)["endpoint"]);
-        logger_.msg(Arc::DEBUG, "Endpoint: %s", endpoint_);
+        logger_.msg(Arc::VERBOSE, "Endpoint: %s", endpoint_);
         if ( endpoint_.empty()){
            logger_.msg(Arc::ERROR, "Empty endpoint element in the configuration!");
            return;
         }
         // Key from the configuration
         my_key=(std::string)((*cfg)["KeyPath"]);
-        logger_.msg(Arc::DEBUG, "KeyPath: %s", my_key);
+        logger_.msg(Arc::VERBOSE, "KeyPath: %s", my_key);
         if (my_key.empty()){
            logger_.msg(Arc::WARNING, "Empty KeyPath element in the configuration!");
         }
         // Cert from the configuration
         my_cert=(std::string)((*cfg)["CertificatePath"]);
-        logger_.msg(Arc::DEBUG, "CertificatePath: %s", my_cert);
+        logger_.msg(Arc::VERBOSE, "CertificatePath: %s", my_cert);
         if (my_cert.empty()){
            logger_.msg(Arc::WARNING, "Empty CertificatePath element in the configuration!");
         }
         // Proxy from the configuration
         my_proxy=(std::string)((*cfg)["ProxyPath"]);
-        logger_.msg(Arc::DEBUG, "ProxyPath: %s", my_proxy);
+        logger_.msg(Arc::VERBOSE, "ProxyPath: %s", my_proxy);
         if (my_proxy.empty()){
            logger_.msg(Arc::WARNING, "Empty ProxyPath element in the configuration!");
         }
         // CaDir from the configuration
         my_cadir=(std::string)((*cfg)["CACertificatesDir"]);
-        logger_.msg(Arc::DEBUG, "CACertificatesDir: %s", my_cadir);
+        logger_.msg(Arc::VERBOSE, "CACertificatesDir: %s", my_cadir);
         if (my_cadir.empty()){
            logger_.msg(Arc::WARNING, "Empty CACertificatesDir element in the configuration!");
         }
 
         my_cafile=(std::string)((*cfg)["CACertificatePath"]);
-        logger_.msg(Arc::DEBUG, "CACertficatePath: %s", my_cafile);
+        logger_.msg(Arc::VERBOSE, "CACertficatePath: %s", my_cafile);
         if (my_cafile.empty()){
            logger_.msg(Arc::WARNING, "Empty CACertificatePath element in the configuration!");
         }
@@ -346,7 +346,7 @@ static void soft_state_thread(void *data) {
             } else retry = 5;
         } else retry = 5;
 
-        logger_.msg(Arc::DEBUG, "Retry: %d", retry);
+        logger_.msg(Arc::VERBOSE, "Retry: %d", retry);
 
         if ((bool)(*cfg)["sparsity"]) {
             if (!((std::string)(*cfg)["sparsity"]).empty()) {
@@ -358,7 +358,7 @@ static void soft_state_thread(void *data) {
             } else sparsity = 2;
         } else sparsity = 2;
 
-        logger_.msg(Arc::DEBUG, "Sparsity: %d", sparsity);
+        logger_.msg(Arc::VERBOSE, "Sparsity: %d", sparsity);
 
         ThreadsCount = 0;
         KillThread = false;
@@ -373,9 +373,9 @@ static void soft_state_thread(void *data) {
                     valid.SetPeriod( validp.GetPeriod() );
                 }
             } else logger_.msg(Arc::ERROR, "Configuration error. ETValid is empty. Default value will be used.");
-        } else logger_.msg(Arc::DEBUG, "ETValid: Default value will be used.");
+        } else logger_.msg(Arc::VERBOSE, "ETValid: Default value will be used.");
 
-        logger_.msg(Arc::DEBUG, "ETValid: %d seconds", valid.GetPeriod());
+        logger_.msg(Arc::VERBOSE, "ETValid: %d seconds", valid.GetPeriod());
 
         // Set up ETRemove if there is any in the configuration
         if ((bool)(*cfg)["ETRemove"]) {
@@ -387,9 +387,9 @@ static void soft_state_thread(void *data) {
                     remove.SetPeriod( removep.GetPeriod() );
                 }
             } else logger_.msg(Arc::ERROR, "Configuration error. ETRemove is empty. Default value will be used.");
-        } else logger_.msg(Arc::DEBUG, "ETRemove: Default value will be used.");
+        } else logger_.msg(Arc::VERBOSE, "ETRemove: Default value will be used.");
 
-        logger_.msg(Arc::DEBUG, "ETRemove: %d seconds", remove.GetPeriod());
+        logger_.msg(Arc::VERBOSE, "ETRemove: %d seconds", remove.GetPeriod());
 
         ns_["isis"] = "http://www.nordugrid.org/schemas/isis/2008/08";
 
@@ -515,7 +515,7 @@ static void soft_state_thread(void *data) {
                isis.cafile = my_cafile;
                std::multimap<std::string,Arc::ISIS_description> local_hash_table;
                local_hash_table = hash_table;
-               logger_.msg(Arc::DEBUG, "RemoveRegistrations message sent to neighbors.");
+               logger_.msg(Arc::VERBOSE, "RemoveRegistrations message sent to neighbors.");
                SendToNeighbors(remove_message, neighbors_, logger_, isis, &not_availables_neighbors_,endpoint_,local_hash_table);
             }
             break;
@@ -528,14 +528,14 @@ static void soft_state_thread(void *data) {
             if(garbage_collector[i]) delete garbage_collector[i];
         }
         while (ThreadsCount > 0){
-            logger_.msg(Arc::DEBUG, "ISIS (%s) has %d more thread%s", endpoint_, ThreadsCount, ThreadsCount>1?"s.":".");
+            logger_.msg(Arc::VERBOSE, "ISIS (%s) has %d more thread%s", endpoint_, ThreadsCount, ThreadsCount>1?"s.":".");
             sleep(10);
         }
 
         if (db_ != NULL) {
             delete db_;
         }
-        logger_.msg(Arc::DEBUG, "ISIS (%s) destroyed.", endpoint_);
+        logger_.msg(Arc::VERBOSE, "ISIS (%s) destroyed.", endpoint_);
     }
 
     bool ISIService::RegistrationCollector(Arc::XMLNode &doc) {
@@ -556,7 +556,7 @@ static void soft_state_thread(void *data) {
 
     Arc::MCC_Status ISIService::Query(Arc::XMLNode &request, Arc::XMLNode &response) {
         std::string querystring_ = request["QueryString"];
-        logger_.msg(Arc::DEBUG, "Query received: %s", querystring_);
+        logger_.msg(Arc::VERBOSE, "Query received: %s", querystring_);
         if (querystring_.empty()) {
             Arc::SOAPEnvelope fault(ns_, true);
             if (fault) {
@@ -598,7 +598,7 @@ static void soft_state_thread(void *data) {
         int i=0;
         while ((bool) request["RegEntry"][i]) {
             Arc::XMLNode regentry_ = request["RegEntry"][i++];
-            logger_.msg(Arc::DEBUG, "Register received: ID=%s; EPR=%s; MsgGenTime=%s",
+            logger_.msg(Arc::VERBOSE, "Register received: ID=%s; EPR=%s; MsgGenTime=%s",
                 (std::string) regentry_["MetaSrcAdv"]["ServiceID"], (std::string) regentry_["SrcAdv"]["EPR"]["Address"],
                 (std::string) request["Header"]["MessageGenerationTime"]);
 
@@ -646,7 +646,7 @@ static void soft_state_thread(void *data) {
         int i=0;
         while ((bool) request["ServiceID"][i]) {
             std::string service_id = (std::string) request["ServiceID"][i];
-            logger_.msg(Arc::DEBUG, "RemoveRegistrations received: ID=%s", service_id);
+            logger_.msg(Arc::VERBOSE, "RemoveRegistrations received: ID=%s", service_id);
 
             //search and check in the database
             Arc::XMLNode regentry;
@@ -712,7 +712,7 @@ static void soft_state_thread(void *data) {
     }
 
     Arc::MCC_Status ISIService::GetISISList(Arc::XMLNode &request, Arc::XMLNode &response) {
-        logger_.msg(Arc::DEBUG, "GetISISList received");
+        logger_.msg(Arc::VERBOSE, "GetISISList received");
         // If the neighbors_ vector is empty, then return with the own
         // address else with the list of neighbors.
         if (neighbors_.size() == 0 ) {
@@ -725,7 +725,7 @@ static void soft_state_thread(void *data) {
     }
 
     Arc::MCC_Status ISIService::Connect(Arc::XMLNode &request, Arc::XMLNode &response) {
-        logger_.msg(Arc::DEBUG, "Connect received");
+        logger_.msg(Arc::VERBOSE, "Connect received");
 
         // Database Dump
         response.NewChild("Database");
@@ -966,7 +966,7 @@ static void soft_state_thread(void *data) {
         // neighbors count update
         // log(2)x = (log(10)x)/(log(10)2)
         int new_neighbors_count = (int)ceil(log10(hash_table.size())/log10(sparsity));
-        logger_.msg(Arc::DEBUG, "Neighbors count recalculate from %d to %d (at ISIS %s)", neighbors_count, new_neighbors_count, endpoint_);
+        logger_.msg(Arc::VERBOSE, "Neighbors count recalculate from %d to %d (at ISIS %s)", neighbors_count, new_neighbors_count, endpoint_);
 
         // neighbors vector filling
         std::multimap<std::string,Arc::ISIS_description>::const_iterator it = hash_table.upper_bound(my_hash);
@@ -1107,7 +1107,7 @@ static void soft_state_thread(void *data) {
             bool isavailable = false;
             while ( !isavailable && retry_.size() > 0 ) {
                 Arc::ClientSOAP client_entry(mcc_cfg, rndProvider.url, 60);
-                logger_.msg(Arc::DEBUG, "Sending Query message to the InfoProvider (%s) and waiting for the response.", rndProvider.url );
+                logger_.msg(Arc::VERBOSE, "Sending Query message to the InfoProvider (%s) and waiting for the response.", rndProvider.url );
                 status= client_entry.process(&req,&response);
 
                 if ( (!status.isOk()) || (!response) || (response->IsFault()) ) {
@@ -1127,7 +1127,7 @@ static void soft_state_thread(void *data) {
                    if ( temporary_provider.size() > 0 )
                       rndProvider = temporary_provider[std::rand() % temporary_provider.size()];
                 } else {
-                   logger_.msg(Arc::DEBUG, "Status (%s): OK", rndProvider.url );
+                   logger_.msg(Arc::VERBOSE, "Status (%s): OK", rndProvider.url );
                    isavailable = true;
                    bootstrapISIS = rndProvider.url;
                 };
@@ -1165,10 +1165,10 @@ static void soft_state_thread(void *data) {
 
             neighbors_count = 0;
             if ( !isavailable) {
-               logger_.msg(Arc::DEBUG, "No InfoProvider is available." );
+               logger_.msg(Arc::VERBOSE, "No InfoProvider is available." );
             }
             else if ( hash_table.size() == 0 ) {
-               logger_.msg(Arc::DEBUG, "The hash table is empty. New cloud has been created." );
+               logger_.msg(Arc::VERBOSE, "The hash table is empty. New cloud has been created." );
             } else {
                // log(2)x = (log(10)x)/(log(10)2)
                // and the largest integral value that is not greater than x.
@@ -1179,7 +1179,7 @@ static void soft_state_thread(void *data) {
                // neighbors vector filling
                std::multimap<std::string,Arc::ISIS_description>::const_iterator it = hash_table.upper_bound(my_hash);
                Neighbors_Calculate(it, neighbors_count);
-               logger_.msg(Arc::DEBUG, "Neighbors count: %d", neighbors_.size() );
+               logger_.msg(Arc::VERBOSE, "Neighbors count: %d", neighbors_.size() );
 
                // 5. step: Connect message send to one ISIS of the neighbors
                Arc::PayloadSOAP connect_req(message_ns);
@@ -1198,14 +1198,14 @@ static void soft_state_thread(void *data) {
                            continue;
                        }
                        Arc::ClientSOAP connectclient_entry(mcc_cfg, neighbors_[current].url, 60);
-                       logger_.msg(Arc::DEBUG, "Sending Connect request to the ISIS(%s) and waiting for the response.", neighbors_[current].url );
+                       logger_.msg(Arc::VERBOSE, "Sending Connect request to the ISIS(%s) and waiting for the response.", neighbors_[current].url );
 
                        status= connectclient_entry.process(&connect_req,&response_c);
                        if ( (!status.isOk()) || (!response_c) || (response_c->IsFault()) ) {
                           logger_.msg(Arc::INFO, "Connect status (%s): Failed", neighbors_[current].url );
                           retry_connect--;
                        } else {
-                          logger_.msg(Arc::DEBUG, "Connect status (%s): OK", neighbors_[current].url );
+                          logger_.msg(Arc::VERBOSE, "Connect status (%s): OK", neighbors_[current].url );
                           isavailable_connect = true;
                        };
                    }
@@ -1213,7 +1213,7 @@ static void soft_state_thread(void *data) {
                    if ( current+1 == neighbors_.size() ) {
                       no_more_isis = true;
                       not_availables_neighbors_.push_back(neighbors_[current].url);
-                      logger_.msg(Arc::DEBUG, "No more available ISIS in the neighbors list." );
+                      logger_.msg(Arc::VERBOSE, "No more available ISIS in the neighbors list." );
                    } else if (!isavailable_connect) {
                       if ( find(not_availables_neighbors_.begin(),not_availables_neighbors_.end(),neighbors_[current].url)
                            == not_availables_neighbors_.end() )
@@ -1293,7 +1293,7 @@ static void soft_state_thread(void *data) {
                      local_hash_table = hash_table;
                      SendToNeighbors(sync_datas, neighbors_, logger_, isis, &not_availables_neighbors_,endpoint_,local_hash_table);
                   }
-                  logger_.msg(Arc::DEBUG, "Database mass updated." );
+                  logger_.msg(Arc::VERBOSE, "Database mass updated." );
                }
                if (response_c) delete response_c;
             }

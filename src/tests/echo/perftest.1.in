@@ -24,7 +24,7 @@ keyword for hostname, port and HTTP path of 'echo' service
 .TP
 .IP "\fB\ -d debug\fR"
 The textual representation of desired debug level. Available
-levels: VERBOSE, DEBUG, INFO, WARNING, ERROR, FATAL
+levels: DEBUG, VERBOSE, INFO, WARNING, ERROR, FATAL
 .TP
 .IP "\fB\ host \fR"
 The name of the host of the service

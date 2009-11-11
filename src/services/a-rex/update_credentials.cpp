@@ -27,7 +27,7 @@ Arc::MCC_Status ARexService::UpdateCredentials(ARexGMConfig& config,Arc::XMLNode
   {
     std::string s;
     in.GetXML(s);
-    logger_.msg(Arc::DEBUG, "UpdateCredentials: request = \n%s", s);
+    logger_.msg(Arc::VERBOSE, "UpdateCredentials: request = \n%s", s);
   };
   // Extract job id from references
   Arc::XMLNode refnode = in["DelegatedToken"]["Reference"];
@@ -83,7 +83,7 @@ Arc::MCC_Status ARexService::UpdateCredentials(ARexGMConfig& config,Arc::XMLNode
   {
     std::string s;
     out.GetXML(s);
-    logger_.msg(Arc::DEBUG, "UpdateCredentials: response = \n%s", s);
+    logger_.msg(Arc::VERBOSE, "UpdateCredentials: response = \n%s", s);
   };
   return Arc::MCC_Status(Arc::STATUS_OK);
 }

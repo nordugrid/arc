@@ -90,12 +90,12 @@ namespace Arc
 	errno=0;
 	if (usagerecord.ReadFromFile(archive_fn))
 	  {
-	    Arc::Logger::rootLogger.msg(Arc::DEBUG,
+	    Arc::Logger::rootLogger.msg(Arc::VERBOSE,
 		"Read archive file %s",
 		archive_fn.c_str());
 	    return;
 	  }
-	Arc::Logger::rootLogger.msg(Arc::DEBUG,
+	Arc::Logger::rootLogger.msg(Arc::VERBOSE,
 	   "Could not read archive file %s for job log file %s (%s), generating new UR",
 	   archive_fn.c_str(),
 	   filename.c_str(),
@@ -173,7 +173,7 @@ namespace Arc
     else
     {
       //TODO what if not valid?
-      Arc::Logger::rootLogger.msg(Arc::DEBUG,
+      Arc::Logger::rootLogger.msg(Arc::VERBOSE,
 		      "Missing required UR element \"RecordIdentity\", in job log file %s",
 		      filename.c_str());
       usagerecord.Destroy();
@@ -211,7 +211,7 @@ namespace Arc
     else
       {
 	//TODO what if not valid?
-	Arc::Logger::rootLogger.msg(Arc::DEBUG,
+	Arc::Logger::rootLogger.msg(Arc::VERBOSE,
 			"Missing required element \"Status\" in job log file %s",
 			filename.c_str());
 	usagerecord.Destroy();
@@ -370,7 +370,7 @@ namespace Arc
 	std::string dir_name=(*this)["jobreport_option_archiving"];
 	if (stat(dir_name.c_str(),&st)!=0)
 	  {
-	    Arc::Logger::rootLogger.msg(Arc::DEBUG,
+	    Arc::Logger::rootLogger.msg(Arc::VERBOSE,
 				        "Creating directory %s",
 				        dir_name.c_str());
 	    errno=0;
@@ -383,7 +383,7 @@ namespace Arc
 	      }
 	  }
 	
-	Arc::Logger::rootLogger.msg(Arc::DEBUG,
+	Arc::Logger::rootLogger.msg(Arc::VERBOSE,
 				    "Archiving UR to file %s",
 				    archive_fn.c_str());
 	errno=0;

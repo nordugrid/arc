@@ -26,7 +26,7 @@ Condor or SGE etc.
    \texttt{-b, --broker}&\textit{string}&select broker method (default is Random)\\
    \texttt{-n, --dolocalsandbox}& &store job descriptions in local sandbox (useful for eventual resubmission/migration)\\
    \texttt{-t, --timeout}&\textit{seconds}&timeout in seconds (default 20)\\
-   \texttt{-d, --debug}&\textit{debuglevel}&debug level, FATAL, ERROR, WARNING, INFO, DEBUG or VERBOSE - default WARNING\\
+   \texttt{-d, --debug}&\textit{debuglevel}&debug level, FATAL, ERROR, WARNING, INFO, VERBOSE or DEBUG - default WARNING\\
    \texttt{-z, --conffile}&\textit{filename}& configuration file (default {\$}HOME/.arc/client.conf)\\
    \texttt{-v, --version}&&print version information\\
    \texttt{-h, --help}&&print help page\\
@@ -163,13 +163,13 @@ If you would like to get diagnostics of the process of resource
 discovery and requirements matching, a very useful option is
 \verb#-d#. The following command:
 \begin{verbatim}
-    arcsub -d DEBUG myjob.xrsl
+    arcsub -d VERBOSE myjob.xrsl
 \end{verbatim}
 
 will print out the steps taken by the ARC client to find the
 best cluster satisfying your job requirements. Possible diagnostics degrees, in the
 order of increasing verbosity, are: \texttt{FATAL}, \texttt{ERROR}, \texttt{WARNING},
-\texttt{INFO}, \texttt{DEBUG} and \texttt{VERBOSE}. Default is \texttt{WARNING}, and
+\texttt{INFO}, \texttt{VERBOSE} and \texttt{DEBUG}. Default is \texttt{WARNING}, and
 it can be set to another value in the user's configuration file.
 
 Default configuration file is {\$}HOME/.arc/client.conf. However, a user can chose any
@@ -196,7 +196,7 @@ Command line option \verb#-v# prints out version of the installed ARC client, an
 %   \texttt{-i, --index}& \textit{url} &URL of an index service\\
    \texttt{-l, --long}& & long format (extended information)\\
    \texttt{-t, --timeout}& \textit{time}& timeout for queries (default 20 sec)\\
-   \texttt{-d, --debug}& \textit{debuglevel}&debug level is one of  FATAL, ERROR, WARNING, INFO, DEBUG or VERBOSE\\
+   \texttt{-d, --debug}& \textit{debuglevel}&debug level is one of  FATAL, ERROR, WARNING, INFO, VERBOSE or DEBUG\\
    \texttt{-z, --conffile}&\textit{filename}& configuration file (default {\$}HOME/.arc/client.conf)\\
    \texttt{-v, --version}& & print version information\\
    \texttt{-h, --help}& & print help page\\
@@ -261,7 +261,7 @@ finished task without actually retreiving it.
    \texttt{-e, --stderr}& & show the stderr of the job\\
    \texttt{-l, --gmlog}& & show the grid manager's error log of the job\\
    \texttt{-t, --timeout}& \textit{time} & timeout for queries (default 20 sec)\\
-   \texttt{-d, --debug}& \textit{debuglevel}&debug level is one of  FATAL, ERROR, WARNING, INFO, DEBUG or VERBOSE\\
+   \texttt{-d, --debug}& \textit{debuglevel}&debug level is one of  FATAL, ERROR, WARNING, INFO, VERBOSE or DEBUG\\
    \texttt{-z, --conffile}&\textit{filename}& configuration file (default {\$}HOME/.arc/client.conf)\\
    \texttt{-v, --version}& & print version information\\
    \texttt{-h, --help}& & print help page\\
@@ -298,7 +298,7 @@ to the user's computer.
    \texttt{-D, --dir} & \textit{dirname} & download path (the job directory will be created in that location)\\
    \texttt{-k, --keep}& & keep files in the Grid (do not clean)\\
    \texttt{-t, --timeout}& \textit{time} & timeout for queries (default 20 sec)\\
-   \texttt{-d, --debug}& \textit{debuglevel}&debug level is one of  FATAL, ERROR, WARNING, INFO, DEBUG or VERBOSE\\
+   \texttt{-d, --debug}& \textit{debuglevel}&debug level is one of  FATAL, ERROR, WARNING, INFO, VERBOSE or DEBUG\\
    \texttt{-z, --conffile}&\textit{filename}& configuration file (default {\$}HOME/.arc/client.conf)\\
    \texttt{-v, --version}& & print version information\\
    \texttt{-h, --help}& & print help page\\
@@ -349,7 +349,7 @@ these lists with the information in the Information System, use the
 %   \texttt{-m, --merge}& &merge the found jobs with the jobs already in the joblist\\
    \texttt{-T, --truncate}& &truncate the job list before synchronising\\
    \texttt{-t, --timeout}&\textit{seconds}&timeout in seconds (default 20)\\
-   \texttt{-d, --debug}&\textit{debuglevel}&debug level, FATAL, ERROR, WARNING, INFO, DEBUG or VERBOSE - default WARNING\\
+   \texttt{-d, --debug}&\textit{debuglevel}&debug level, FATAL, ERROR, WARNING, INFO, VERBOSE or DEBUG - default WARNING\\
    \texttt{-z, --conffile}&\textit{filename}& configuration file (default {\$}HOME/.arc/client.conf)\\
    \texttt{-v, --version}&&print version information\\
    \texttt{-h, --help}&&print help page\\
@@ -388,7 +388,7 @@ job can be killed almost at any stage of processing through the Grid.
    \texttt{-s, --status}& \textit{statusstr} &only select jobs whose status is \textit{statusstr}\\
    \texttt{-k, --keep}& & keep files in the Grid (do not clean)\\
    \texttt{-t, --timeout}& \textit{time} & timeout for queries (default 20 sec)\\
-   \texttt{-d, --debug}& \textit{debuglevel}&debug level is one of  FATAL, ERROR, WARNING, INFO, DEBUG or VERBOSE\\
+   \texttt{-d, --debug}& \textit{debuglevel}&debug level is one of  FATAL, ERROR, WARNING, INFO, VERBOSE or DEBUG\\
    \texttt{-z, --conffile}&\textit{filename}& configuration file (default {\$}HOME/.arc/client.conf)\\
    \texttt{-v, --version}& & print version information\\
    \texttt{-h, --help}& & print help page\\
@@ -429,7 +429,7 @@ space and to remove the job ID from the list of submitted jobs and from the Info
    \texttt{-s, --status}& \textit{statusstr} &only select jobs whose status is \textit{statusstr}\\
    \texttt{-f, --force} & & removes the job ID from the local list even if the job is not found on the Grid\\
    \texttt{-t, --timeout}& \textit{time} & timeout for queries (default 20 sec)\\
-   \texttt{-d, --debug}& \textit{debuglevel}&debug level is one of  FATAL, ERROR, WARNING, INFO, DEBUG or VERBOSE\\
+   \texttt{-d, --debug}& \textit{debuglevel}&debug level is one of  FATAL, ERROR, WARNING, INFO, VERBOSE or DEBUG\\
    \texttt{-z, --conffile}&\textit{filename}& configuration file (default {\$}HOME/.arc/client.conf)\\
    \texttt{-v, --version}& & print version information\\
    \texttt{-h, --help}& & print help page\\
@@ -475,7 +475,7 @@ the job by uploading the output files to the desired location.
    \texttt{-c, --cluster}&\verb#[-]#textem{name}&explicitly select or reject a specific site (cluster)\\
    \texttt{-s, --status}& \textit{statusstr} &only select jobs whose status is \textit{statusstr}\\
    \texttt{-t, --timeout}& \textit{time} & timeout for queries (default 20 sec)\\
-   \texttt{-d, --debug}& \textit{debuglevel}&debug level is one of  FATAL, ERROR, WARNING, INFO, DEBUG or VERBOSE\\
+   \texttt{-d, --debug}& \textit{debuglevel}&debug level is one of  FATAL, ERROR, WARNING, INFO, VERBOSE or DEBUG\\
    \texttt{-z, --conffile}&\textit{filename}& configuration file (default {\$}HOME/.arc/client.conf)\\
    \texttt{-v, --version}& & print version information\\
    \texttt{-h, --help}& & print help page\\
@@ -515,7 +515,7 @@ Make sure your proxy is still valid, or when uncertain, run \verb#arcproxy# foll
    \texttt{-c, --cluster}&\verb#[-]#textem{name}&explicitly select or reject a specific site (cluster)\\
    \texttt{-s, --status}& \textit{statusstr} &only select jobs whose status is \textit{statusstr}\\
    \texttt{-t, --timeout}& \textit{time} & timeout for queries (default 20 sec)\\
-   \texttt{-d, --debug}& \textit{debuglevel}&debug level is one of  FATAL, ERROR, WARNING, INFO, DEBUG or VERBOSE\\
+   \texttt{-d, --debug}& \textit{debuglevel}&debug level is one of  FATAL, ERROR, WARNING, INFO, VERBOSE or DEBUG\\
    \texttt{-z, --conffile}&\textit{filename}& configuration file (default {\$}HOME/.arc/client.conf)\\
    \texttt{-v, --version}& & print version information\\
    \texttt{-h, --help}& & print help page\\
@@ -554,7 +554,7 @@ in such situations, allowing users to resubmit jobs.
    \texttt{-k, --keep}& & keep files in the Grid (do not clean)\\
    \texttt{-b, --broker}&\textit{string}&select broker method (default is Random)\\
    \texttt{-t, --timeout}& \textit{time} & timeout for queries (default 20 sec)\\
-   \texttt{-d, --debug}& \textit{debuglevel}&debug level is one of  FATAL, ERROR, WARNING, INFO, DEBUG or VERBOSE\\
+   \texttt{-d, --debug}& \textit{debuglevel}&debug level is one of  FATAL, ERROR, WARNING, INFO, VERBOSE or DEBUG\\
    \texttt{-z, --conffile}&\textit{filename}& configuration file (default {\$}HOME/.arc/client.conf)\\
    \texttt{-v, --version}& & print version information\\
    \texttt{-h, --help}& & print help page\\
@@ -616,7 +616,7 @@ execution services do not support this functionality.
    \texttt{-f, --forcemigration}& & force migration, ignoring kill failure\\
    \texttt{-b, --broker}&\textit{string}&select broker method (default is Random)\\
    \texttt{-t, --timeout}& \textit{time} & timeout for queries (default 20 sec)\\
-   \texttt{-d, --debug}& \textit{debuglevel}&debug level is one of  FATAL, ERROR, WARNING, INFO, DEBUG or VERBOSE\\
+   \texttt{-d, --debug}& \textit{debuglevel}&debug level is one of  FATAL, ERROR, WARNING, INFO, VERBOSE or DEBUG\\
    \texttt{-z, --conffile}&\textit{filename}& configuration file (default {\$}HOME/.arc/client.conf)\\
    \texttt{-v, --version}& & print version information\\
    \texttt{-h, --help}& & print help page\\

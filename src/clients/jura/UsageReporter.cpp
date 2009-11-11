@@ -27,10 +27,10 @@ namespace Arc
   {
     logger.msg(Arc::INFO, "Initialised, job log dir: %s",
 	       job_log_dir.c_str());
-    logger.msg(Arc::DEBUG, "Expiration time: %d seconds",
+    logger.msg(Arc::VERBOSE, "Expiration time: %d seconds",
 	       expiration_time);
     if (!urls.empty())
-      logger.msg(Arc::DEBUG, "Interactive mode.",
+      logger.msg(Arc::VERBOSE, "Interactive mode.",
 		 expiration_time);
     //Collection of logging destinations:
     dests=new Arc::Destinations();

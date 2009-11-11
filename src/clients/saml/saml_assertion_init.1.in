@@ -15,14 +15,14 @@ command is a prototype client which is used for sending an attribute query reque
 
 .B saml_assertion_init [options] [filename ...]
 
-./saml_assertion_init -c saml_assertion_init_client.xml -d VERBOSE  https://squark.uio.no:8443/voms/saml/knowarc/services/AttributeAuthorityPortType
+./saml_assertion_init -c saml_assertion_init_client.xml -d DEBUG  https://squark.uio.no:8443/voms/saml/knowarc/services/AttributeAuthorityPortType
 
 .SH OPTIONS
 
 .IP "\fB-c\fR [-]\fIconfigurefile\fR, \fB-conf\fR [-]\fIconfigurefile\fR"
 specify the configuration file of this client
 .IP "\fB-d\fR \fIdebuglevel\fR, \fB-debug\fR \fIdebuglevel\fR"
-FATAL, ERROR, WARNING, INFO, DEBUG or VERBOSE
+FATAL, ERROR, WARNING, INFO, VERBOSE or DEBUG
 .IP "\fB-v\fR, \fB-version\fR"
 print version information
 .IP "\fB-?\fR, \fB-help\fR"
@@ -42,7 +42,7 @@ The
 command is a prototype client which is used for sending an attribute query request to a saml aa service.
 
 .IR Examples :
-.IP "\fBsaml_assertion_init -c saml_assertion_init_client.xml -d VERBOSE  https://squark.uio.no:8443/voms/saml/knowarc/services/AttributeAuthorityPortType\fR ..."
+.IP "\fBsaml_assertion_init -c saml_assertion_init_client.xml -d DEBUG  https://squark.uio.no:8443/voms/saml/knowarc/services/AttributeAuthorityPortType\fR ..."
 send the attribute query request to https://squark.uio.no:8443/voms/saml/knowarc/services/AttributeAuthorityPortType
 .LP
 

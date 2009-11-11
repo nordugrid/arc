@@ -56,7 +56,7 @@ class HardlinkingBackend:
                         # if the file does not exist, maybe it's already removed
                         del self.idstore[localID]
                         nlink = 0
-                    log.msg(arc.DEBUG, 'checking', localID, referenceID, nlink)
+                    log.msg(arc.VERBOSE, 'checking', localID, referenceID, nlink)
                     if nlink == 1:
                         # if there is just one link for this file, it is already removed from the transfer dir
                         self.file_arrived(referenceID)
@@ -68,14 +68,14 @@ class HardlinkingBackend:
 
     def copyTo(self, localID, turl, protocol):
         f = file(os.path.join(self.datadir, localID),'rb')
-        log.msg(arc.DEBUG, self.turlprefix, 'Uploading file to', turl)
+        log.msg(arc.VERBOSE, self.turlprefix, 'Uploading file to', turl)
         upload_to_turl(turl, protocol, f, ssl_config = self.ssl_config)
         f.close()
     
     def copyFrom(self, localID, turl, protocol):
         # TODO: download to a separate file, and if checksum OK, then copy the file 
         f = file(os.path.join(self.datadir, localID), 'wb')
-        log.msg(arc.DEBUG, self.turlprefix, 'Downloading file from', turl)
+        log.msg(arc.VERBOSE, self.turlprefix, 'Downloading file from', turl)
         download_from_turl(turl, protocol, f, ssl_config = self.ssl_config)
         f.close()
 
@@ -88,7 +88,7 @@ class HardlinkingBackend:
             # set it to readonly
             os.chmod(filepath, 0444)
             os.link(filepath, os.path.join(self.transferdir, turl_id))
-            log.msg(arc.DEBUG, self.turlprefix, '++', self.idstore)
+            log.msg(arc.VERBOSE, self.turlprefix, '++', self.idstore)
             turl = self.turlprefix + turl_id
             return turl
         except:
@@ -103,7 +103,7 @@ class HardlinkingBackend:
         f.close()
         os.link(datapath, os.path.join(self.transferdir, turl_id))
         self.idstore[localID] = referenceID
-        log.msg(arc.DEBUG, self.turlprefix, '++', self.idstore)
+        log.msg(arc.VERBOSE, self.turlprefix, '++', self.idstore)
         turl = self.turlprefix + turl_id
         return turl
 
@@ -142,8 +142,8 @@ class HopiBackend( HardlinkingBackend ):
 
     def __init__(self, *args):
         HardlinkingBackend.__init__(self, *args)
-        log.msg(arc.DEBUG, "HopiBackend datadir:", self.datadir)
-        log.msg(arc.DEBUG, "HopiBackend transferdir:", self.transferdir)        
+        log.msg(arc.VERBOSE, "HopiBackend datadir:", self.datadir)
+        log.msg(arc.VERBOSE, "HopiBackend transferdir:", self.transferdir)        
 
 
 import pwd
@@ -158,8 +158,8 @@ class ApacheBackend( HardlinkingBackend ):
         self.apacheuser = str(backendcfg.Get('ApacheUser'))
         self.uid = os.getuid()
         _, _, _, self.apachegid, _, _, _ = pwd.getpwnam(self.apacheuser) 
-        log.msg(arc.DEBUG, "ApacheBackend datadir:", self.datadir)
-        log.msg(arc.DEBUG, "ApacheBackend transferdir:", self.transferdir)
+        log.msg(arc.VERBOSE, "ApacheBackend datadir:", self.datadir)
+        log.msg(arc.VERBOSE, "ApacheBackend transferdir:", self.transferdir)
         
 
     def prepareToPut(self, referenceID, localID, protocol):

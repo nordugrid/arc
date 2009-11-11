@@ -86,7 +86,7 @@ Arc::MCC_Status ARexService::Get(Arc::Message& inmsg,Arc::Message& outmsg,ARexGM
 // start - chunk start
 // start - chunk end
 static Arc::MCC_Status http_get(Arc::Message& outmsg,const std::string& burl,ARexJob& job,std::string hpath,size_t start,size_t end) {
-Arc::Logger::rootLogger.msg(Arc::DEBUG, "http_get: start=%u, end=%u, burl=%s, hpath=%s", (unsigned int)start, (unsigned int)end, burl, hpath);
+Arc::Logger::rootLogger.msg(Arc::VERBOSE, "http_get: start=%u, end=%u, burl=%s, hpath=%s", (unsigned int)start, (unsigned int)end, burl, hpath);
   if(!hpath.empty()) if(hpath[0] == '/') hpath=hpath.substr(1);
   if(!hpath.empty()) if(hpath[hpath.length()-1] == '/') hpath.resize(hpath.length()-1);
   std::string joblog = job.LogDir();

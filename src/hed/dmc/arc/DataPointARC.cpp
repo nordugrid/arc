@@ -67,7 +67,7 @@ namespace Arc {
       ret = false;
     else{
       response->Child().GetXML(xml, true);
-      logger.msg(DEBUG, "checingBartenderURL: Response:\n%s", xml);
+      logger.msg(VERBOSE, "checingBartenderURL: Response:\n%s", xml);
       if(xml.find("Failed to send SOAP message") != std::string::npos)
         ret = false;
     }
@@ -212,7 +212,7 @@ namespace Arc {
   }
 
   DataStatus DataPointARC::StartReading(DataBuffer& buf) {
-    logger.msg(DEBUG, "StartReading");
+    logger.msg(VERBOSE, "StartReading");
     if (reading)
       return DataStatus::IsReadingError;
     if (writing)
@@ -302,7 +302,7 @@ namespace Arc {
 
   DataStatus DataPointARC::StartWriting(DataBuffer& buf,
                                         DataCallback *callback) {
-    logger.msg(DEBUG, "StartWriting");
+    logger.msg(VERBOSE, "StartWriting");
     if (reading)
       return DataStatus::IsReadingError;
     if (writing)
@@ -411,7 +411,7 @@ namespace Arc {
       sprintf(tmpChar, "%.2x", md5res_u[i]);
       md5str += tmpChar;
     }
-    logger.msg(DEBUG, "Calculated checksum: %s", md5str);
+    logger.msg(VERBOSE, "Calculated checksum: %s", md5str);
 
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);

@@ -29,7 +29,7 @@ Arc::MCC_Status ARexService::GetActivityStatuses(ARexGMConfig& config,Arc::XMLNo
   {
     std::string s;
     in.GetXML(s);
-    logger.msg(Arc::DEBUG, "GetActivityStatuses: request = \n%s", s);
+    logger.msg(Arc::VERBOSE, "GetActivityStatuses: request = \n%s", s);
   };
   for(int n = 0;;++n) {
     Arc::XMLNode id = in["ActivityIdentifier"][n];
@@ -64,7 +64,7 @@ Arc::MCC_Status ARexService::GetActivityStatuses(ARexGMConfig& config,Arc::XMLNo
   {
     std::string s;
     out.GetXML(s);
-    logger.msg(Arc::DEBUG, "GetActivityStatuses: response = \n%s", s);
+    logger.msg(Arc::VERBOSE, "GetActivityStatuses: response = \n%s", s);
   };
   return Arc::MCC_Status(Arc::STATUS_OK);
 }

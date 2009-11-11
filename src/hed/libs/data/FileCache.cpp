@@ -226,7 +226,7 @@ namespace Arc {
         }
       }
       else {
-        logger.msg(DEBUG, "The file is currently locked with a valid lock");
+        logger.msg(VERBOSE, "The file is currently locked with a valid lock");
         is_locked = true;
         return false;
       }
@@ -236,10 +236,10 @@ namespace Arc {
       // look at modification time
       time_t mod_time = fileStat.st_mtime;
       time_t now = time(NULL);
-      logger.msg(DEBUG, "%li seconds since lock file was created", now - mod_time);
+      logger.msg(VERBOSE, "%li seconds since lock file was created", now - mod_time);
 
       if ((now - mod_time) > lock_timeout) {
-        logger.msg(DEBUG, "Timeout has expired, will remove lock file");
+        logger.msg(VERBOSE, "Timeout has expired, will remove lock file");
         // TODO: kill the process holding the lock, only if we know it was the original
         // process which created it
         if (remove(lock_file.c_str()) != 0 && errno != ENOENT) {
@@ -261,7 +261,7 @@ namespace Arc {
       if (pFile == NULL) {
         // lock could have been released by another process, so call Start again
         if (errno == ENOENT) {
-          logger.msg(DEBUG, "Lock that recently existed has been deleted by another process, calling Start() again");
+          logger.msg(VERBOSE, "Lock that recently existed has been deleted by another process, calling Start() again");
           return Start(url, available, is_locked);
         }
         logger.msg(ERROR, "Error opening valid and existing lock file %s: %s", lock_file, strerror(errno));
@@ -282,7 +282,7 @@ namespace Arc {
       }
 
       if (lock_info_s.substr(index + 1) != _hostname) {
-        logger.msg(DEBUG, "Lock is owned by a different host");
+        logger.msg(VERBOSE, "Lock is owned by a different host");
         // TODO: here do ssh login and check
         is_locked = true;
         return false;
@@ -297,7 +297,7 @@ namespace Arc {
         std::string procdir("/proc/");
         procdir = procdir.append(lock_pid);
         if (stat(procdir.c_str(), &fileStat) != 0 && errno == ENOENT) {
-          logger.msg(DEBUG, "The process owning the lock is no longer running, will remove lock");
+          logger.msg(VERBOSE, "The process owning the lock is no longer running, will remove lock");
           if (remove(lock_file.c_str()) != 0) {
             logger.msg(ERROR, "Failed to unlock file %s: %s", lock_file, strerror(errno));
             return false;
@@ -311,7 +311,7 @@ namespace Arc {
         }
       }
 
-      logger.msg(DEBUG, "The file is currently locked with a valid lock");
+      logger.msg(VERBOSE, "The file is currently locked with a valid lock");
       is_locked = true;
       return false;
     }
@@ -633,7 +633,7 @@ namespace Arc {
         if (strcmp(dp->d_name, ".") == 0 || strcmp(dp->d_name, "..") == 0)
           continue;
         std::string to_delete = job_dir + "/" + dp->d_name;
-        logger.msg(DEBUG, "Removing %s", to_delete);
+        logger.msg(VERBOSE, "Removing %s", to_delete);
         if (remove(to_delete.c_str()) != 0) {
           logger.msg(ERROR, "Failed to remove hard link %s: %s", to_delete, strerror(errno));
           closedir(dirp);
@@ -643,7 +643,7 @@ namespace Arc {
       closedir(dirp);
 
       // remove now-empty dir
-      logger.msg(DEBUG, "Removing %s", job_dir);
+      logger.msg(VERBOSE, "Removing %s", job_dir);
       if (rmdir(job_dir.c_str()) != 0) {
         logger.msg(ERROR, "Failed to remove cache per-job dir %s: %s", job_dir, strerror(errno));
         return false;
@@ -760,12 +760,12 @@ namespace Arc {
           dnstring.resize(dnstring.find('\n'));
         std::string exp_time = dnstring.substr(space_pos + 1);
         if (Time(exp_time) > Time()) {
-          logger.msg(DEBUG, "DN %s is cached and is valid until %s for URL %s", DN, Time(exp_time).str(), url);
+          logger.msg(VERBOSE, "DN %s is cached and is valid until %s for URL %s", DN, Time(exp_time).str(), url);
           fclose(pFile);
           return true;
         }
         else {
-          logger.msg(DEBUG, "DN %s is cached but has expired for URL %s", DN, url);
+          logger.msg(VERBOSE, "DN %s is cached but has expired for URL %s", DN, url);
           fclose(pFile);
           return false;
         }
@@ -932,7 +932,7 @@ namespace Arc {
     }
 
     if (lock_info_s.substr(index + 1) != _hostname) {
-      logger.msg(DEBUG, "Lock is owned by a different host");
+      logger.msg(VERBOSE, "Lock is owned by a different host");
       // TODO: here do ssh login and check
       return false;
     }
@@ -956,7 +956,7 @@ namespace Arc {
     struct stat fileStat;
     int err = stat(dir.c_str(), &fileStat);
     if (0 != err) {
-      logger.msg(DEBUG, "Creating directory %s", dir);
+      logger.msg(VERBOSE, "Creating directory %s", dir);
       std::string::size_type slashpos = 0;
       do {
         slashpos = dir.find("/", slashpos + 1);

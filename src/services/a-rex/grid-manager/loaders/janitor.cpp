@@ -40,12 +40,12 @@ Janitor::Janitor(const std::string& id,const std::string& cdir):
   // create path to janitor utility
   path_ = Glib::build_filename(nordugrid_libexec_loc(),"janitor");
   if(path_.empty()) {
-    logger.msg(Arc::DEBUG, "Failed to create path to janitor at %s",nordugrid_libexec_loc());
+    logger.msg(Arc::VERBOSE, "Failed to create path to janitor at %s",nordugrid_libexec_loc());
     return;
   };
   // check if utility exists
   if(!Glib::file_test(path_,Glib::FILE_TEST_IS_EXECUTABLE)) {
-    logger.msg(Arc::DEBUG, "Janitor executable not found at %s",path_);
+    logger.msg(Arc::VERBOSE, "Janitor executable not found at %s",path_);
     path_.resize(0);
     return;
   };
@@ -86,14 +86,14 @@ void Janitor::deploy_thread(void* arg) {
   {
     Arc::Run run(cmd);
     if(!run) {
-      logger.msg(Arc::VERBOSE, "Can't run %s", cmd);
+      logger.msg(Arc::DEBUG, "Can't run %s", cmd);
       it.completed_.signal();
       return;
     };
     run.KeepStdout(true);
     run.KeepStderr(true);
     if(!run.Start()) {
-      logger.msg(Arc::VERBOSE, "Can't start %s", cmd);
+      logger.msg(Arc::DEBUG, "Can't start %s", cmd);
       it.completed_.signal();
       return;
     };
@@ -103,12 +103,12 @@ void Janitor::deploy_thread(void* arg) {
       if(it.cancel_.wait(0)) { it.completed_.signal(); return; };
     };
     if(run.Result() == 0) {
-      logger.msg(Arc::VERBOSE, "janitor register returned 0 - no RTE needs to be deployed");
+      logger.msg(Arc::DEBUG, "janitor register returned 0 - no RTE needs to be deployed");
       it.result_=DEPLOYED; it.completed_.signal();
       return;
     };
     if(run.Result() == 3) {
-      logger.msg(Arc::VERBOSE, "janitor register returned 3 - no Janitor enabled in configuration");
+      logger.msg(Arc::DEBUG, "janitor register returned 3 - no Janitor enabled in configuration");
       it.result_=NOTENABLED; it.completed_.signal();
       return;
     };
@@ -117,7 +117,7 @@ void Janitor::deploy_thread(void* arg) {
       it.completed_.signal();
       return;
     };
-    logger.msg(Arc::VERBOSE, "janitor register returned 1 - need to run janitor deploy");
+    logger.msg(Arc::DEBUG, "janitor register returned 1 - need to run janitor deploy");
   };
   // Make command line
   cmd = it.path_ + " deploy " + it.id_;
@@ -125,14 +125,14 @@ void Janitor::deploy_thread(void* arg) {
   {
     Arc::Run run(cmd);
     if(!run) {
-      logger.msg(Arc::VERBOSE, "Can't run %s", cmd);
+      logger.msg(Arc::DEBUG, "Can't run %s", cmd);
       it.completed_.signal();
       return;
     };
     run.KeepStdout(true);
     run.KeepStderr(true);
     if(!run.Start()) {
-      logger.msg(Arc::VERBOSE, "Can't start %s", cmd);
+      logger.msg(Arc::DEBUG, "Can't start %s", cmd);
       it.completed_.signal();
       return;
     };
@@ -147,7 +147,7 @@ void Janitor::deploy_thread(void* arg) {
       return;
     };
     if(run.Result() != 0) {
-      logger.msg(Arc::VERBOSE, "janitor deploy failed with exit code %i",run.Result());
+      logger.msg(Arc::DEBUG, "janitor deploy failed with exit code %i",run.Result());
       it.completed_.signal();
       return;
     };
@@ -167,14 +167,14 @@ void Janitor::remove_thread(void* arg) {
   {
     Arc::Run run(cmd);
     if(!run) {
-      logger.msg(Arc::VERBOSE, "Can't run %s", cmd);
+      logger.msg(Arc::DEBUG, "Can't run %s", cmd);
       it.completed_.signal();
       return;
     };
     run.KeepStdout(true);
     run.KeepStderr(true);
     if(!run.Start()) {
-      logger.msg(Arc::VERBOSE, "Can't start %s", cmd);
+      logger.msg(Arc::DEBUG, "Can't start %s", cmd);
       it.completed_.signal();
       return;
     };
@@ -189,7 +189,7 @@ void Janitor::remove_thread(void* arg) {
       return;
     };
     if(run.Result() != 0) {
-      logger.msg(Arc::VERBOSE, "janitor remove failed with exit code %i",run.Result());
+      logger.msg(Arc::DEBUG, "janitor remove failed with exit code %i",run.Result());
       it.completed_.signal();
       return;
     };

@@ -6,7 +6,7 @@
   xmlns:arex="http://www.nordugrid.org/schemas/a-rex/Config">
 	<Server>
 		<Pidfile>/tmp/arex_arched.pid</Pidfile>
-		<Logger level="VERBOSE">/var/log/arex_arched.log</Logger>
+		<Logger level="DEBUG">/var/log/arex_arched.log</Logger>
 	</Server>
 	<ModuleManager>
 		<Path>/usr/lib/arc</Path>

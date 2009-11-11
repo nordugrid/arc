@@ -136,7 +136,7 @@ static void cpp_public_part(std::string &name, std::ofstream &cpp, Arc::XMLNode 
       logger.msg(Arc::ERROR, \"input does not define operation\");\n\
       return make_soap_fault(outmsg);\n\
     }; \n\
-    logger.msg(Arc::DEBUG,\"process: operation: %s\", op.Name());\n\
+    logger.msg(Arc::VERBOSE,\"process: operation: %s\", op.Name());\n\
     Arc::PayloadSOAP* outpayload = new Arc::PayloadSOAP(ns);\n\
     Arc::PayloadSOAP& res = *outpayload;\n\
     Arc::MCC_Status ret = Arc::STATUS_OK;" << std::endl;

@@ -68,7 +68,7 @@ bool ArcAuthZ::MakePDPs(Config* cfg) {
         if(!can) break;
         Arc::Config cfg_(can);
         std::string name = can.Attribute("name");
-        logger.msg(DEBUG, "PDP: %s (%d)", name, n);
+        logger.msg(VERBOSE, "PDP: %s (%d)", name, n);
         PDP* pdp = NULL;
         PDPPluginArgument arg(&cfg_);
         pdp = pdp_factory->GetInstance<PDP>(PDPPluginKind,name,&arg);

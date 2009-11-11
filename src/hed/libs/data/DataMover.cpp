@@ -119,7 +119,7 @@ namespace Arc {
             break;
           }
         if (url_was_deleted) {
-          logger.msg(VERBOSE, "This instance was already deleted");
+          logger.msg(DEBUG, "This instance was already deleted");
         }
         else {
           url.SetSecure(false);
@@ -202,7 +202,7 @@ namespace Arc {
                                  const char *prefix) {
 
     if (cb != NULL) {
-      logger.msg(DEBUG, "DataMover::Transfer : starting new thread");
+      logger.msg(VERBOSE, "DataMover::Transfer : starting new thread");
       transfer_struct *param = (transfer_struct*)malloc(sizeof(transfer_struct));
       if (param == NULL)
         return DataStatus::TransferError;
@@ -301,7 +301,7 @@ namespace Arc {
       if ((destination.IsIndex() && destination_meta_initially_stored)
           || (!destination.IsIndex())) {
         URL del_url = destination.GetURL();
-        logger.msg(DEBUG, "DataMover::Transfer: trying to destroy/overwrite "
+        logger.msg(VERBOSE, "DataMover::Transfer: trying to destroy/overwrite "
                    "destination: %s", del_url.str());
         int try_num = destination.GetTries();
         for (;;) {
@@ -352,16 +352,16 @@ namespace Arc {
     DataStatus res = DataStatus::TransferError;
     int try_num;
     for (try_num = 0;; try_num++) { /* cycle for retries */
-      logger.msg(DEBUG, "DataMover: cycle");
+      logger.msg(VERBOSE, "DataMover: cycle");
       if ((try_num != 0) && (!do_retries)) {
-        logger.msg(DEBUG, "DataMover: no retries requested - exit");
+        logger.msg(VERBOSE, "DataMover: no retries requested - exit");
         return res;
       }
       if ((!source.LocationValid()) || (!destination.LocationValid())) {
         if (!source.LocationValid())
-          logger.msg(DEBUG, "DataMover: source out of tries - exit");
+          logger.msg(VERBOSE, "DataMover: source out of tries - exit");
         if (!destination.LocationValid())
-          logger.msg(DEBUG, "DataMover: destination out of tries - exit");
+          logger.msg(VERBOSE, "DataMover: destination out of tries - exit");
         /* out of tries */
         return res;
       }
@@ -408,7 +408,7 @@ namespace Arc {
           bufnum = destination.BufNum();
       }
       bufnum = bufnum * 2;
-      logger.msg(DEBUG, "Creating buffer: %lli x %i", bufsize, bufnum);
+      logger.msg(VERBOSE, "Creating buffer: %lli x %i", bufsize, bufnum);
       /* prepare crc */
       CheckSumAny crc;
       // Shold we trust indexing service or always compute checksum ?
@@ -416,15 +416,15 @@ namespace Arc {
       if (destination.AcceptsMeta()) { // may need to compute crc
         // Let it be CRC32 by default.
         std::string crc_type = destination.GetURL().Option("checksum", "cksum");
-        logger.msg(DEBUG, "DataMover::Transfer: checksum type is %s", crc_type);
+        logger.msg(VERBOSE, "DataMover::Transfer: checksum type is %s", crc_type);
         if (!source.CheckCheckSum()) {
           crc = crc_type.c_str();
-          logger.msg(DEBUG, "DataMover::Transfer: will try to compute crc");
+          logger.msg(VERBOSE, "DataMover::Transfer: will try to compute crc");
         }
         else if (CheckSumAny::Type(crc_type.c_str())
                  != CheckSumAny::Type(source.GetCheckSum().c_str())) {
           crc = crc_type.c_str();
-          logger.msg(DEBUG, "DataMover::Transfer: will try to compute crc");
+          logger.msg(VERBOSE, "DataMover::Transfer: will try to compute crc");
         }
       }
       /* create buffer and tune speed control */
@@ -453,7 +453,7 @@ namespace Arc {
         if (!mapped)
           mapped_url = URL();
         else {
-          logger.msg(DEBUG, "Url is mapped to: %s", mapped_url.str());
+          logger.msg(VERBOSE, "Url is mapped to: %s", mapped_url.str());
           if ((mapped_url.Protocol() == "link") || (mapped_url.Protocol()
                                                     == "file"))
             /* can't cache links */
@@ -480,7 +480,7 @@ namespace Arc {
           bool is_locked = false;
           if (!cache.Start(canonic_url, is_in_cache, is_locked)) {
             if (is_locked) {
-              logger.msg(DEBUG, "Cached file is locked - should retry");
+              logger.msg(VERBOSE, "Cached file is locked - should retry");
               source.NextLocation(); /* to decrease retry counter */
               return DataStatus::CacheErrorRetryable;
             }
@@ -492,7 +492,7 @@ namespace Arc {
             // check for forced re-download option
             std::string cache_option = source.GetURL().Option("cache");
             if (cache_option == "renew") {
-              logger.msg(DEBUG, "Forcing re-download of file %s", canonic_url);
+              logger.msg(VERBOSE, "Forcing re-download of file %s", canonic_url);
               cache.StopAndDelete(canonic_url);
               continue;
             }
@@ -520,13 +520,13 @@ namespace Arc {
                 logger.msg(ERROR, "Permission checking failed: %s", source.str());
                 cache.Stop(canonic_url);
                 source.NextLocation(); /* try another source */
-                logger.msg(DEBUG, "source.next_location");
+                logger.msg(VERBOSE, "source.next_location");
                 res = cres;
                 break;
               }
               cache.AddDN(canonic_url, dn, exp_time);
             }
-            logger.msg(DEBUG, "Permission checking passed");
+            logger.msg(VERBOSE, "Permission checking passed");
             /* check if file is fresh enough */
             bool outdated = true;
             if (have_permission)
@@ -534,14 +534,14 @@ namespace Arc {
             if (source.CheckCreated() && cache.CheckCreated(canonic_url)) {
               Time sourcetime = source.GetCreated();
               Time cachetime = cache.GetCreated(canonic_url);
-              logger.msg(DEBUG, "Source creation date: %s", sourcetime.str());
-              logger.msg(DEBUG, "Cache creation date: %s", cachetime.str());
+              logger.msg(VERBOSE, "Source creation date: %s", sourcetime.str());
+              logger.msg(VERBOSE, "Cache creation date: %s", cachetime.str());
               if (sourcetime <= cachetime)
                 outdated = false;
             }
             if (cache.CheckValid(canonic_url)) {
               Time validtime = cache.GetValid(canonic_url);
-              logger.msg(DEBUG, "Cache file valid until: %s", validtime.str());
+              logger.msg(VERBOSE, "Cache file valid until: %s", validtime.str());
               if (validtime > Time())
                 outdated = false;
               else
@@ -552,9 +552,9 @@ namespace Arc {
               logger.msg(INFO, "Cached file is outdated, will re-download");
               continue;
             }
-            logger.msg(DEBUG, "Cached copy is still valid");
+            logger.msg(VERBOSE, "Cached copy is still valid");
             if (source.ReadOnly() && !executable && !cache_copy) {
-              logger.msg(DEBUG, "Linking/copying cached file");
+              logger.msg(VERBOSE, "Linking/copying cached file");
               if (!cache.Link(destination.CurrentLocation().Path(), canonic_url)) {
                 /* failed cache link is unhandable */
                 cache.Stop(canonic_url);
@@ -563,7 +563,7 @@ namespace Arc {
               }
             }
             else {
-              logger.msg(DEBUG, "Copying cached file");
+              logger.msg(VERBOSE, "Copying cached file");
               if (!cache.Copy(destination.CurrentLocation().Path(), canonic_url, executable)) {
                 /* failed cache copy is unhandable */
                 cache.Stop(canonic_url);
@@ -592,7 +592,7 @@ namespace Arc {
             logger.msg(ERROR, "Permission checking on original URL failed: %s",
                        source.str());
             source.NextLocation(); /* try another source */
-            logger.msg(DEBUG, "source.next_location");
+            logger.msg(VERBOSE, "source.next_location");
             res = cres;
 #ifndef WIN32
             if (cacheable)
@@ -600,9 +600,9 @@ namespace Arc {
 #endif
             continue;
           }
-          logger.msg(DEBUG, "Permission checking passed");
+          logger.msg(VERBOSE, "Permission checking passed");
           if (mapped_url.Protocol() == "link") {
-            logger.msg(DEBUG, "Linking local file");
+            logger.msg(VERBOSE, "Linking local file");
             const std::string& file_name = mapped_url.Path();
             const std::string& link_name = destination.CurrentLocation().Path();
             // create directory structure for link_name
@@ -615,7 +615,7 @@ namespace Arc {
                   logger.msg(ERROR, "Failed to create/find directory %s : %s",
                              dirpath, StrError());
                   source.NextLocation(); /* try another source */
-                  logger.msg(DEBUG, "source.next_location");
+                  logger.msg(VERBOSE, "source.next_location");
                   res = DataStatus::ReadStartError;
 #ifndef WIN32
                   if (cacheable)
@@ -630,7 +630,7 @@ namespace Arc {
               logger.msg(ERROR, "Failed to make symbolic link %s to %s : %s",
                          link_name, file_name, StrError());
               source.NextLocation(); /* try another source */
-              logger.msg(DEBUG, "source.next_location");
+              logger.msg(VERBOSE, "source.next_location");
               res = DataStatus::ReadStartError;
 #ifndef WIN32
               if (cacheable)
@@ -678,7 +678,7 @@ namespace Arc {
           res = source.GetFailureReason();
         /* try another source */
         if (source.NextLocation())
-          logger.msg(DEBUG, "(Re)Trying next source");
+          logger.msg(VERBOSE, "(Re)Trying next source");
 #ifndef WIN32
         if (cacheable)
           cache.StopAndDelete(canonic_url);
@@ -710,7 +710,7 @@ namespace Arc {
         logger.msg(ERROR, "Failed to preregister destination: %s",
                    destination.str());
         destination.NextLocation(); /* not exactly sure if this would help */
-        logger.msg(DEBUG, "destination.next_location");
+        logger.msg(VERBOSE, "destination.next_location");
         res = datares;
         // Normally remote destination is not cached. But who knows.
 #ifndef WIN32
@@ -733,7 +733,7 @@ namespace Arc {
             logger.msg(ERROR, "Failed to unregister preregistered lfn. "
                        "You may need to unregister it manually: %s", destination.str());
           if (destination.NextLocation())
-            logger.msg(DEBUG, "(Re)Trying next destination");
+            logger.msg(VERBOSE, "(Re)Trying next destination");
           res = datares;
           if(destination.GetFailureReason() != DataStatus::UnknownError)
             res = destination.GetFailureReason();
@@ -757,17 +757,17 @@ namespace Arc {
         }
 #endif
       }
-      logger.msg(DEBUG, "Waiting for buffer");
+      logger.msg(VERBOSE, "Waiting for buffer");
       for (; (!buffer.eof_read() || !buffer.eof_write()) && !buffer.error();)
         buffer.wait_any();
       logger.msg(INFO, "buffer: read eof : %i", (int)buffer.eof_read());
       logger.msg(INFO, "buffer: write eof: %i", (int)buffer.eof_write());
       logger.msg(INFO, "buffer: error    : %i", (int)buffer.error());
-      logger.msg(DEBUG, "Closing read channel");
+      logger.msg(VERBOSE, "Closing read channel");
       read_failure = source_url.StopReading();
       if (cacheable && mapped)
         source.SetMeta(mapped_p); // pass more metadata (checksum)
-      logger.msg(DEBUG, "Closing write channel");
+      logger.msg(VERBOSE, "Closing write channel");
       if (!destination_url.StopWriting().Passed())
         buffer.error_write(true);
 
@@ -785,7 +785,7 @@ namespace Arc {
         // go to next endpoint.
         if (buffer.error_read()) {
           if (source.NextLocation())
-            logger.msg(DEBUG, "(Re)Trying next source");
+            logger.msg(VERBOSE, "(Re)Trying next source");
           // check for error from callbacks etc
           if(source.GetFailureReason() != DataStatus::UnknownError)
             res=source.GetFailureReason();
@@ -794,7 +794,7 @@ namespace Arc {
         }
         else if (buffer.error_write()) {
           if (destination.NextLocation())
-            logger.msg(DEBUG, "(Re)Trying next destination");
+            logger.msg(VERBOSE, "(Re)Trying next destination");
           // check for error from callbacks etc
           if(destination.GetFailureReason() != DataStatus::UnknownError)
             res=destination.GetFailureReason();
@@ -809,27 +809,27 @@ namespace Arc {
             // No free buffers for 'read' side. Buffer must be full.
             res.SetDesc(destination.GetFailureReason().GetDesc());
             if (destination.NextLocation())
-              logger.msg(DEBUG, "(Re)Trying next destination");
+              logger.msg(VERBOSE, "(Re)Trying next destination");
           }
           else if (!buffer.for_write()) {
             // Buffer is empty
             res.SetDesc(source.GetFailureReason().GetDesc());
             if (source.NextLocation())
-              logger.msg(DEBUG, "(Re)Trying next source");
+              logger.msg(VERBOSE, "(Re)Trying next source");
           }
           else {
             // Both endpoints were very slow? Choose randomly.
-            logger.msg(DEBUG, "Cause of failure unclear - choosing randomly");
+            logger.msg(VERBOSE, "Cause of failure unclear - choosing randomly");
             Glib::Rand r;
             if (r.get_int() < (RAND_MAX / 2)) {
               res.SetDesc(source.GetFailureReason().GetDesc());
               if (source.NextLocation())
-                logger.msg(DEBUG, "(Re)Trying next source");
+                logger.msg(VERBOSE, "(Re)Trying next source");
             }
             else {
               res.SetDesc(destination.GetFailureReason().GetDesc());
               if (destination.NextLocation())
-                logger.msg(DEBUG, "(Re)Trying next destination");
+                logger.msg(VERBOSE, "(Re)Trying next destination");
             }
           }
         }
@@ -840,7 +840,7 @@ namespace Arc {
           !destination.GetURL().MetaDataOption("checksumvalue").empty()) {
         std::string csum = destination.GetURL().MetaDataOption("checksumtype") + ":" + destination.GetURL().MetaDataOption("checksumvalue");
         source.SetCheckSum(csum.c_str());
-        logger.msg(DEBUG, "DataMove::Transfer: using supplied checksum %s", csum);
+        logger.msg(VERBOSE, "DataMove::Transfer: using supplied checksum %s", csum);
       }
       else if (crc)
         if (buffer.checksum_valid()) {
@@ -848,7 +848,7 @@ namespace Arc {
           char buf[100];
           crc.print(buf, 100);
           source.SetCheckSum(buf);
-          logger.msg(DEBUG, "DataMover::Transfer: have valid checksum");
+          logger.msg(VERBOSE, "DataMover::Transfer: have valid checksum");
         }
       destination.SetMeta(source); // pass more metadata (checksum)
       datares = destination.PostRegister(replication);
@@ -860,7 +860,7 @@ namespace Arc {
           logger.msg(ERROR, "Failed to unregister preregistered lfn. "
                      "You may need to unregister it manually: %s", destination.str());
         destination.NextLocation(); /* not sure if this can help */
-        logger.msg(DEBUG, "destination.next_location");
+        logger.msg(VERBOSE, "destination.next_location");
 #ifndef WIN32
         if(cacheable) 
           cache.Stop(canonic_url);
@@ -882,11 +882,11 @@ namespace Arc {
         }
         bool cache_link_result;
         if (executable || cache_copy) {
-          logger.msg(DEBUG, "Copying cached file");
+          logger.msg(VERBOSE, "Copying cached file");
           cache_link_result = cache.Copy(destination.CurrentLocation().Path(), canonic_url, executable);
         }
         else {
-          logger.msg(DEBUG, "Linking/copying cached file");
+          logger.msg(VERBOSE, "Linking/copying cached file");
           cache_link_result = cache.Link(destination.CurrentLocation().Path(), canonic_url);
         }
         cache.Stop(canonic_url);

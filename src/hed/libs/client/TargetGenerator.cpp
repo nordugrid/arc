@@ -52,7 +52,7 @@ namespace Arc {
 
   void TargetGenerator::GetTargets(int targetType, int detailLevel) {
 
-    logger.msg(DEBUG, "Running resource (target) discovery");
+    logger.msg(VERBOSE, "Running resource (target) discovery");
 
     for (std::list<TargetRetriever*>::const_iterator it =
            loader.GetTargetRetrievers().begin();
@@ -69,8 +69,8 @@ namespace Arc {
 
     for (std::list<ExecutionTarget>::iterator iter = foundTargets.begin();
          iter != foundTargets.end(); iter++) {
-      logger.msg(DEBUG, "Cluster: %s", iter->DomainName);
-      logger.msg(DEBUG, "Health State: %s", iter->HealthState);
+      logger.msg(VERBOSE, "Cluster: %s", iter->DomainName);
+      logger.msg(VERBOSE, "Health State: %s", iter->HealthState);
     }
 
   }

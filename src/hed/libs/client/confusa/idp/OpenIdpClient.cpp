@@ -79,7 +79,7 @@ namespace Arc {
 		  }
 
 		  std::string post_2_ssoservice_redirect = id_login_post_info.location;
-		  logger.msg(DEBUG, "post_2_ssoservice_redirect url is %s", post_2_ssoservice_redirect);
+		  logger.msg(VERBOSE, "post_2_ssoservice_redirect url is %s", post_2_ssoservice_redirect);
 
 		  if(post_2_ssoservice_redirect.empty()) {
 			  return MCC_Status(PARSING_ERROR, origin, "Could not get the id-login post location from the IdP");
@@ -93,7 +93,7 @@ namespace Arc {
 			std::string consent_test_response_str = "";
 
 			std::string consent_page = consent_test_info.location;
-			logger.msg(DEBUG, "The consent_page is %s", consent_page);
+			logger.msg(VERBOSE, "The consent_page is %s", consent_page);
 
 			if (consent_test_response) {
 				consent_test_response_str = consent_test_response->Content();
@@ -129,7 +129,7 @@ namespace Arc {
 			  return MCC_Status(STATUS_OK);	// no consent necessary
 		  }
 
-		  logger.msg(DEBUG, "SAML2SSOHTTPClient::processConsent()");
+		  logger.msg(VERBOSE, "SAML2SSOHTTPClient::processConsent()");
 
 		  if ((*session_cookies_)["IdP"] == "") {
 			  return MCC_Status(GENERIC_ERROR, origin, "IdP's PHPSESSID Cookie not present");
@@ -194,7 +194,7 @@ namespace Arc {
 
 		  if (user_conf == "y") {
 			  std::string confirm_site = yes_action + "?StateId=" + ConfusaParserUtils::urlencode(state_id) + "&yes=" + ConfusaParserUtils::urlencode(confirm_param);
-			  logger.msg(DEBUG, "Trying to open confirm site %s", confirm_site);
+			  logger.msg(VERBOSE, "Trying to open confirm site %s", confirm_site);
 
 			  std::string cookie;
 			  std::string post_sso_idp_page = ConfusaParserUtils::handle_redirect_step(cfg_, confirm_site, &cookie, &http_attributes);
@@ -251,7 +251,7 @@ namespace Arc {
 
 		  xmlDocPtr doc = ConfusaParserUtils::get_doc(idp_s_content);
 		  std::string idp_s_action = ConfusaParserUtils::evaluate_path(doc, "//form/@action");
-		  logger.msg(DEBUG, "The found action is %s", idp_s_action);
+		  logger.msg(VERBOSE, "The found action is %s", idp_s_action);
 		  std::string idp_s_samlresponse = ConfusaParserUtils::evaluate_path(doc, "//form/input[@name='SAMLResponse']/@value");
 		  std::string idp_s_relaystate = ConfusaParserUtils::evaluate_path(doc, "//form/input[@name='RelayState']/@value");
 	 	  ConfusaParserUtils::destroy_doc(doc);
@@ -267,13 +267,13 @@ namespace Arc {
 		  // now redirect from IdP SSOService to SP AssertionConsumerService
 		  std::string post_params = "SAMLResponse=" + ConfusaParserUtils::urlencode(idp_s_samlresponse) + "&RelayState=" + ConfusaParserUtils::urlencode(idp_s_relaystate);
 
-		  logger.msg(DEBUG, "The post IdP-authentication action is %s", idp_s_action);
+		  logger.msg(VERBOSE, "The post IdP-authentication action is %s", idp_s_action);
 
 		  // IdP loginuserpass POST to SP AssertionConsumerervice -- Confusa
 		  http_attributes.clear();
 		  http_attributes.insert(std::pair<std::string,std::string>("Cookie",(*session_cookies_)["Confusa"]));
 		  http_attributes.insert(std::pair<std::string,std::string>("Content-Type","application/x-www-form-urlencoded"));
-		  logger.msg(DEBUG, "The used session cookies for the assertion consumer is %s", (*session_cookies_)["Confusa"]);
+		  logger.msg(VERBOSE, "The used session cookies for the assertion consumer is %s", (*session_cookies_)["Confusa"]);
 		  ClientHTTP sp_assertionconsumer_post_client(cfg_, URL(idp_s_action));
 		  PayloadRaw sp_ass_cons_body;
 		  PayloadRawInterface *sp_assertionconsumer_post_response = NULL;

@@ -161,12 +161,12 @@ bool ARexJob::is_allowed(bool fast) {
   ArcSec::EvaluatorLoader eval_loader;
   AutoPointer<ArcSec::Policy> policy(eval_loader.getPolicy(ArcSec::Source(acl)));
   if(!policy) {
-    logger_.msg(Arc::DEBUG, "%s: Failed to parse user policy", id_);
+    logger_.msg(Arc::VERBOSE, "%s: Failed to parse user policy", id_);
     return true;
   };
   AutoPointer<ArcSec::Evaluator> eval(eval_loader.getEvaluator(policy));
   if(!eval) {
-    logger_.msg(Arc::DEBUG, "%s: Failed to load evaluator for user policy ", id_);
+    logger_.msg(Arc::VERBOSE, "%s: Failed to load evaluator for user policy ", id_);
     return true;
   };
   std::string policyname = policy->getName();
@@ -271,7 +271,7 @@ bool ARexJob::is_allowed(bool fast) {
     };
     // TODO: <list/>, <admin/>
   } else {
-    logger_.msg(Arc::DEBUG, "%s: Unknown user policy '%s'", id_, policyname);
+    logger_.msg(Arc::VERBOSE, "%s: Unknown user policy '%s'", id_, policyname);
   };
   return true;
 }

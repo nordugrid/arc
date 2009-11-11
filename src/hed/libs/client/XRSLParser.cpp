@@ -61,7 +61,7 @@ namespace Arc {
     RSLParser parser(source);
     const RSL *r = parser.Parse();
     if (!r) {
-      logger.msg(DEBUG, "RSL parsing error");
+      logger.msg(VERBOSE, "RSL parsing error");
       return JobDescription();
     }
 
@@ -461,15 +461,15 @@ namespace Arc {
         if (!ListValue(c, l))
           return false;
         if (l.size() < 2) {
-          logger.msg(DEBUG, "Syntax error in notify attribute. One or more job states and one or more email addresses must be specified.");
+          logger.msg(VERBOSE, "Syntax error in notify attribute. One or more job states and one or more email addresses must be specified.");
           return false;
         }
         if (l.front().find('@') != std::string::npos) {
-          logger.msg(DEBUG, "Syntax error in notify attribute. It cannot begin with an email address.");
+          logger.msg(VERBOSE, "Syntax error in notify attribute. It cannot begin with an email address.");
           return false;
         }
         if (l.back().find('@') == std::string::npos) {
-          logger.msg(DEBUG, "Syntax error in notify attribute. It must end with an email address.");
+          logger.msg(VERBOSE, "Syntax error in notify attribute. It must end with an email address.");
           return false;
         }
 
@@ -525,7 +525,7 @@ namespace Arc {
           else if (*it == "outbound")
             j.Resources.NodeAccess = (j.Resources.NodeAccess == NAT_INBOUND || j.Resources.NodeAccess == NAT_INOUTBOUND ? NAT_INOUTBOUND : NAT_OUTBOUND);
           else {
-            logger.msg(DEBUG, "Invalid nodeaccess value: %s", *it);
+            logger.msg(VERBOSE, "Invalid nodeaccess value: %s", *it);
             return false;
           }
         return true;
@@ -590,7 +590,7 @@ namespace Arc {
         if (!SingleValue(c, action))
           return false;
         if (action != "request" && action != "cancel" && action != "clean") {
-          logger.msg(DEBUG, "Invalid action value %s", action);
+          logger.msg(VERBOSE, "Invalid action value %s", action);
           return false;
         }
         j.XRSL_elements["action"] = action;
@@ -664,7 +664,7 @@ namespace Arc {
         return true;
       }
 
-      logger.msg(DEBUG, "Unknown XRSL attribute: %s - Ignoring it.", c->Attr());
+      logger.msg(VERBOSE, "Unknown XRSL attribute: %s - Ignoring it.", c->Attr());
       return true;
     }
     else {

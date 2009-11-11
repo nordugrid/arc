@@ -51,7 +51,7 @@ class ReplicatedAHash(CentralAHash):
         ReplicatedAHash(cfg)
 
         """
-        log.msg(arc.DEBUG, "ReplicatedAHash constructor called")
+        log.msg(arc.VERBOSE, "ReplicatedAHash constructor called")
         # ssame ssl_config will be used for any ahash
         self.ssl_config = parse_ssl_config(cfg)
         self.store = None
@@ -77,12 +77,12 @@ class ReplicatedAHash(CentralAHash):
                        ('ahash:processMessage', [
                            ('ahash:msg', repmsg)
                            ]))
-        log.msg(arc.DEBUG, "sending message of length %d to %s"%(len(repmsg),url))
+        log.msg(arc.VERBOSE, "sending message of length %d to %s"%(len(repmsg),url))
         msg = ahash.call(tree)
         ahash.reset()
         xml = ahash.xmlnode_class(msg)
         success = str(get_data_node(xml))
-        log.msg(arc.DEBUG, "sendt message, success=%s"%success)
+        log.msg(arc.VERBOSE, "sendt message, success=%s"%success)
         return success
 
     def newSOAPPayload(self):
@@ -92,7 +92,7 @@ class ReplicatedAHash(CentralAHash):
         """
         processing ahash replication message
         """
-        log.msg(arc.DEBUG, "processing message...")
+        log.msg(arc.VERBOSE, "processing message...")
         # get the grandchild of the root node, which is the 'changeRequestList'
         request_node = inpayload.Child()
         msg = eval(base64.decodestring(str(request_node.Get('msg'))))
@@ -113,7 +113,7 @@ class ReplicatedAHash(CentralAHash):
         tree = XMLTree(from_tree = ('ahash:success', resp))
         # add the XMLTree to the XMLNode
         tree.add_to_node(response_node)
-        log.msg(arc.DEBUG, "processing message... Finished")
+        log.msg(arc.VERBOSE, "processing message... Finished")
         return out
 
 class ReplicationStore(TransDBStore):
@@ -156,7 +156,7 @@ class ReplicationStore(TransDBStore):
         self.__configureReplication(cfg)
 
 
-        log.msg(arc.DEBUG, "Initialized replication environment")
+        log.msg(arc.VERBOSE, "Initialized replication environment")
 
         # eid is a local environment id, so I will be number 1
         self.eid = 1
@@ -250,7 +250,7 @@ class ReplicationStore(TransDBStore):
         if self.repmgr.isMaster():
             # only lock if master
             locked = self.llock.acquire(blocking)
-            log.msg(arc.DEBUG, "master locking", locked)
+            log.msg(arc.VERBOSE, "master locking", locked)
             return locked
         else:
             return True
@@ -260,12 +260,12 @@ class ReplicationStore(TransDBStore):
 
         unlock()
         """
-        log.msg(arc.DEBUG, "unlocking", self.repmgr.isMaster())
+        log.msg(arc.VERBOSE, "unlocking", self.repmgr.isMaster())
         try:
             self.llock.release()
-            log.msg(arc.DEBUG, "unlocked")
+            log.msg(arc.VERBOSE, "unlocked")
         except:
-            log.msg(arc.DEBUG, "couldn't unlock")
+            log.msg(arc.VERBOSE, "couldn't unlock")
             pass
 
     def getDBFlags(self):
@@ -281,7 +281,7 @@ class ReplicationStore(TransDBStore):
         time.sleep(10)
 
         while True:
-            log.msg(arc.DEBUG, "checkingThread slept %d s"%period)
+            log.msg(arc.VERBOSE, "checkingThread slept %d s"%period)
             # self.site_list is set in event_callback when elected to master
             # and deleted if not elected in the event of election
             try:
@@ -304,9 +304,9 @@ class ReplicationStore(TransDBStore):
                         time.sleep(0.2)
                     self.set(ahash_list_guid, new_obj)
                     self.unlock()
-                    log.msg(arc.DEBUG, "wrote ahash list %s"%str(new_obj))
+                    log.msg(arc.VERBOSE, "wrote ahash list %s"%str(new_obj))
                     if not self.dbenv_ready:
-                        log.msg(arc.DEBUG, "but dbenv wasn't ready.")
+                        log.msg(arc.VERBOSE, "but dbenv wasn't ready.")
             except:
                 log.msg()
             time.sleep(period)
@@ -395,7 +395,7 @@ class ReplicationManager:
                     #threading.Thread(target=self.sendHeartbeatMsg, args=[]).start()
                     self.pool.queueTask(self.sendHeartbeatMsg)
             # add some randomness to avoid bugging the master too much
-            log.msg(arc.DEBUG, ("heartbeat", self.masterID, self.role))
+            log.msg(arc.VERBOSE, ("heartbeat", self.masterID, self.role))
             time.sleep(period)
 
     def getRole(self):
@@ -412,14 +412,14 @@ class ReplicationManager:
         return site_list
     
     def start(self, nthreads, flags):
-        log.msg(arc.DEBUG, "entering start")
+        log.msg(arc.VERBOSE, "entering start")
         self.pool = ThreadPool(nthreads)
         while not self.comm_ready:
             time.sleep(2)
         try:
             self.dbenv.rep_set_transport(self.eid, self.repSend)
             self.dbenv.rep_start(db.DB_REP_CLIENT)
-            log.msg(arc.DEBUG, ("rep_start called with REP_CLIENT", self.hostMap))
+            log.msg(arc.VERBOSE, ("rep_start called with REP_CLIENT", self.hostMap))
             self.startElection()
         except:
             log.msg(arc.ERROR, "Couldn't start replication framework")
@@ -428,7 +428,7 @@ class ReplicationManager:
     def electionThread(self):
         role = db.DB_EID_INVALID
         try:
-            log.msg(arc.DEBUG, "entered election thread")
+            log.msg(arc.VERBOSE, "entered election thread")
             # send a message to discover if clients are offline
             self.sendElectionMsg()
             self.locker.acquire_read()
@@ -437,23 +437,23 @@ class ReplicationManager:
             votes = num_reps/2 + 1
             if votes < 2:
                 votes = 2
-            log.msg(arc.DEBUG, "%s: my role is %d"%(self.url, role))
+            log.msg(arc.VERBOSE, "%s: my role is %d"%(self.url, role))
             self.dbenv.rep_elect(num_reps, votes)
             # wait one second for election results
             time.sleep(1)
             role = self.getRole()
-            log.msg(arc.DEBUG, "%s: my role is now %d"%(self.url, role))
+            log.msg(arc.VERBOSE, "%s: my role is now %d"%(self.url, role))
             if self.elected:
                 self.elected = False
                 self.dbenv.rep_start(db.DB_REP_MASTER)                    
         except:
             log.msg(arc.ERROR, "Couldn't run election")
-            log.msg(arc.DEBUG, "num_reps is %d, votes is %d, hostMap is %s"%(num_reps,votes,str(self.hostMap)))
+            log.msg(arc.VERBOSE, "num_reps is %d, votes is %d, hostMap is %s"%(num_reps,votes,str(self.hostMap)))
             time.sleep(2)
-        log.msg(arc.DEBUG, "%s tried election with %d replicas"%(self.url, num_reps))
+        log.msg(arc.VERBOSE, "%s tried election with %d replicas"%(self.url, num_reps))
             
     def startElection(self):
-        log.msg(arc.DEBUG, "entering startElection")
+        log.msg(arc.VERBOSE, "entering startElection")
         self.stop_electing = False
         self.dbReady(False)
         try:
@@ -485,7 +485,7 @@ class ReplicationManager:
         # wrap control, record, lsn, eid, flags and sender into dict
         # note: could be inefficient to send sender info for every message
         # if bandwidth and latency is low
-        log.msg(arc.DEBUG, "entering send")
+        log.msg(arc.VERBOSE, "entering send")
         sender = self.my_replica
         msg = {'control':control,
                'record':record,
@@ -560,7 +560,7 @@ class ReplicationManager:
         """
         callback function for dbenv transport
         """
-        log.msg(arc.DEBUG, "entering repSend")
+        log.msg(arc.VERBOSE, "entering repSend")
         if flags & db.DB_REP_PERMANENT and lsn != None:
             self.semapool.acquire()
             res = self.send(env, control, record, lsn, eid, flags, REP_MESSAGE)
@@ -576,7 +576,7 @@ class ReplicationManager:
         if new site is discovered sendNewSiteMsg will send 
         the hostMap to the new site
         """
-        log.msg(arc.DEBUG, "entering sendNewSiteMsg")
+        log.msg(arc.VERBOSE, "entering sendNewSiteMsg")
         self.locker.acquire_read()
         site_list = copy.deepcopy(self.hostMap)
         self.locker.release_read()
@@ -595,7 +595,7 @@ class ReplicationManager:
         if new site is discovered sendHeartbeatMsg will send 
         the hostMap to the new site
         """
-        log.msg(arc.DEBUG, "entering sendHeartbeatMsg")
+        log.msg(arc.VERBOSE, "entering sendHeartbeatMsg")
         self.semapool.acquire()
         ret = self.send(None, None, None, None, None, None, HEARTBEAT_MESSAGE)
         self.semapool.release()
@@ -605,7 +605,7 @@ class ReplicationManager:
         """
         If elected, broadcast master id to all clients
         """
-        log.msg(arc.DEBUG, "entering sendNewMasterMsg")
+        log.msg(arc.VERBOSE, "entering sendNewMasterMsg")
         self.semapool.acquire()
         ret = self.send(None, None, None, None, eid, None, ELECTION_MESSAGE)
         self.semapool.release()
@@ -615,7 +615,7 @@ class ReplicationManager:
         """
         If elected, broadcast master id to all clients
         """
-        log.msg(arc.DEBUG, "entering sendNewMasterMsg")
+        log.msg(arc.VERBOSE, "entering sendNewMasterMsg")
         self.semapool.acquire()
         ret = self.send(None, None, None, None, eid, None, MASTER_MESSAGE)
         self.semapool.release()
@@ -626,7 +626,7 @@ class ReplicationManager:
         Function to process incoming messages, forwarding 
         them to self.dbenv.rep_process_message()
         """
-        log.msg(arc.DEBUG, "entering processMessage from ", sender)
+        log.msg(arc.VERBOSE, "entering processMessage from ", sender)
 
         self.locker.acquire_read()
         urls = [rep['url'] for id,rep in self.hostMap.items() if rep['status']=='online']
@@ -635,7 +635,7 @@ class ReplicationManager:
             log.msg(arc.ERROR, "received message from myself!")
             return "failed" 
         if not sender['url'] in urls:
-            log.msg(arc.DEBUG, "received from new sender or sender back online")
+            log.msg(arc.VERBOSE, "received from new sender or sender back online")
             really_new = False
             try:
                 # check if we know this one
@@ -655,19 +655,19 @@ class ReplicationManager:
                 self.pool.queueTask(self.sendNewSiteMsg, args=sender)
         if msgID == MASTER_MESSAGE:
             # sender is master, find local id for sender and set as masterID
-            log.msg(arc.DEBUG, "received master id")
+            log.msg(arc.VERBOSE, "received master id")
             self.masterID = [id for id,rep in self.hostMap.items() if rep['url']==sender['url']][0]
             self.master_timestamp = time.time()
             return "processed"
         if msgID == HEARTBEAT_MESSAGE:
-            log.msg(arc.DEBUG, "received HEARTBEAT_MESSAGE")
+            log.msg(arc.VERBOSE, "received HEARTBEAT_MESSAGE")
             return "processed"
         if msgID == ELECTION_MESSAGE:
-            log.msg(arc.DEBUG, "received ELECTION_MESSAGE")
+            log.msg(arc.VERBOSE, "received ELECTION_MESSAGE")
             return "processed"
         if msgID == NEWSITE_MESSAGE:
             # if unknown changes in record, update hostMap
-            log.msg(arc.DEBUG, "received NEWSITE_MESSAGE")
+            log.msg(arc.VERBOSE, "received NEWSITE_MESSAGE")
             for replica in record.values():
                 if  not replica['url'] in urls:
                     really_new = False
@@ -696,7 +696,7 @@ class ReplicationManager:
         if eid == self.masterID:
             self.master_timestamp = time.time()
         try:
-            log.msg(arc.DEBUG, "processing message from %d"%eid)
+            log.msg(arc.VERBOSE, "processing message from %d"%eid)
             res, retlsn = self.dbenv.rep_process_message(control, record, eid)
         except db.DBNotFoundError:
             log.msg(arc.ERROR, "Got dbnotfound")
@@ -710,35 +710,35 @@ class ReplicationManager:
             return "failed"
         
         if res == db.DB_REP_NEWSITE:
-            log.msg(arc.DEBUG, "received DB_REP_NEWSITE from %s"%str(sender))
+            log.msg(arc.VERBOSE, "received DB_REP_NEWSITE from %s"%str(sender))
             if self.isMaster():
                 # use threaded send to avoid blocking
                 #threading.Thread(target=self.sendNewMasterMsg, args=[eid]).start()
                 self.pool.queueTask(self.sendNewMasterMsg, args=eid)
         elif res == db.DB_REP_HOLDELECTION:
-            log.msg(arc.DEBUG, "received DB_REP_HOLDELECTION")
+            log.msg(arc.VERBOSE, "received DB_REP_HOLDELECTION")
             self.beginRole(db.DB_EID_INVALID)
             self.masterID = db.DB_EID_INVALID
             self.startElection()
         elif res == db.DB_REP_ISPERM:
-            log.msg(arc.DEBUG, "REP_ISPERM returned for LSN %s"%str(retlsn))
+            log.msg(arc.VERBOSE, "REP_ISPERM returned for LSN %s"%str(retlsn))
             self.dbReady(True)
             self.setRole(db.DB_REP_CLIENT)
         elif res == db.DB_REP_NOTPERM:
-            log.msg(arc.DEBUG, "REP_NOTPERM returned for LSN %s"%str(retlsn))
+            log.msg(arc.VERBOSE, "REP_NOTPERM returned for LSN %s"%str(retlsn))
         elif res == db.DB_REP_DUPMASTER:
-            log.msg(arc.DEBUG, "REP_DUPMASTER received, starting new election")
+            log.msg(arc.VERBOSE, "REP_DUPMASTER received, starting new election")
             # yield to revolution, switch to client
             self.beginRole(db.DB_EID_INVALID)
             self.masterID = db.DB_EID_INVALID
             self.startElection()
         elif res == db.DB_REP_IGNORE:
-            log.msg(arc.DEBUG, "REP_IGNORE received")
-            log.msg(arc.DEBUG, (control, record, eid, retlsn, sender, msgID))
+            log.msg(arc.VERBOSE, "REP_IGNORE received")
+            log.msg(arc.VERBOSE, (control, record, eid, retlsn, sender, msgID))
         elif res == db.DB_REP_JOIN_FAILURE:
             log.msg(arc.ERROR, "JOIN_FAILURE received")
         else:
-            log.msg(arc.DEBUG, "unknown return code %s"%str(res))        
+            log.msg(arc.VERBOSE, "unknown return code %s"%str(res))        
 
         return "processed"
 
@@ -754,30 +754,30 @@ class ReplicationManager:
         info = None
         try:
             if which == db.DB_EVENT_REP_MASTER:
-                log.msg(arc.DEBUG, "I am now a master")
-                log.msg(arc.DEBUG, "received DB_EVENT_REP_MASTER")
+                log.msg(arc.VERBOSE, "I am now a master")
+                log.msg(arc.VERBOSE, "received DB_EVENT_REP_MASTER")
                 self.setRole(db.DB_REP_MASTER)
                 self.dbReady(True)
                 # use threaded send to avoid blocking
                 #threading.Thread(target=self.sendNewMasterMsg, args=[]).start()
                 self.pool.queueTask(self.sendNewMasterMsg)
             elif which == db.DB_EVENT_REP_CLIENT:
-                log.msg(arc.DEBUG, "I am now a client")
+                log.msg(arc.VERBOSE, "I am now a client")
                 self.setRole(db.DB_REP_CLIENT)
                 self.dbReady(True)
             elif which == db.DB_EVENT_REP_STARTUPDONE:
-                log.msg(arc.DEBUG, ("Replication startup done",which,info))
+                log.msg(arc.VERBOSE, ("Replication startup done",which,info))
             elif which == db.DB_EVENT_REP_PERM_FAILED:
-                log.msg(arc.DEBUG, "Getting permission failed")
+                log.msg(arc.VERBOSE, "Getting permission failed")
             elif which == db.DB_EVENT_WRITE_FAILED:
-                log.msg(arc.DEBUG, "Write failed")
+                log.msg(arc.VERBOSE, "Write failed")
             elif which == db.DB_EVENT_REP_NEWMASTER:
-                log.msg(arc.DEBUG, "New master elected")
+                log.msg(arc.VERBOSE, "New master elected")
                 # give master 5 seconds to celebrate victory
                 time.sleep(5)
                 self.check_heartbeat = True
             elif which == db.DB_EVENT_REP_ELECTED:
-                log.msg(arc.DEBUG, "I won the election: I am the MASTER")
+                log.msg(arc.VERBOSE, "I won the election: I am the MASTER")
                 self.elected = True
                 # use threaded send to avoid blocking
                 #threading.Thread(target=self.sendNewMasterMsg, args=[]).start()

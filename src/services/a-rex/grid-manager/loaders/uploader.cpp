@@ -163,7 +163,7 @@ void expand_files(std::list<FileData> &job_files,char* session_dir) {
 int main(int argc,char** argv) {
   Arc::LogStream logcerr(std::cerr);
   Arc::Logger::getRootLogger().addDestination(logcerr);
-  Arc::Logger::getRootLogger().setThreshold(Arc::DEBUG);
+  Arc::Logger::getRootLogger().setThreshold(Arc::VERBOSE);
   int res=0;
   int n_threads = 1;
   int n_files = MAX_UPLOADS;
@@ -363,11 +363,11 @@ int main(int argc,char** argv) {
     }
   }
   if(min_speed != 0)
-    logger.msg(Arc::DEBUG, "Minimal speed: %llu B/s during %i s", min_speed, min_speed_time);
+    logger.msg(Arc::VERBOSE, "Minimal speed: %llu B/s during %i s", min_speed, min_speed_time);
   if(min_average_speed != 0)
-    logger.msg(Arc::DEBUG, "Minimal average speed: %llu B/s", min_average_speed);
+    logger.msg(Arc::VERBOSE, "Minimal average speed: %llu B/s", min_average_speed);
   if(max_inactivity_time != 0)
-    logger.msg(Arc::DEBUG, "Maximal inactivity time: %i s", max_inactivity_time);
+    logger.msg(Arc::VERBOSE, "Maximal inactivity time: %i s", max_inactivity_time);
 
   prepare_proxy();
 

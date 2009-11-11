@@ -7,7 +7,7 @@
     <Server>
         <Foreground/>
         <PidFile>./arched.pid</PidFile>
-        <Logger level="VERBOSE">./logfile</Logger>
+        <Logger level="DEBUG">./logfile</Logger>
     </Server>
     <ModuleManager>
         <Path>../../tests/echo/.libs/</Path>

@@ -492,7 +492,7 @@ bool JobsList::state_loading(const JobsList::iterator &i,bool &state_changed,boo
     };
   } else {
     if(i->child->Running()) {
-      logger.msg(Arc::DEBUG,"%s: State: PREPARING/FINISHING: child is running",i->job_id);
+      logger.msg(Arc::VERBOSE,"%s: State: PREPARING/FINISHING: child is running",i->job_id);
       /* child is running - come later */
       return true;
     };
@@ -543,7 +543,7 @@ bool JobsList::state_loading(const JobsList::iterator &i,bool &state_changed,boo
           i->AddFailure("Failed in files download due to expired credentials - try to renew");
         };
       } else if(i->child->Result() == 4) { // retryable cache error
-        logger.msg(Arc::VERBOSE, "%s: State: PREPARING/FINISHING: retryable error", i->job_id);
+        logger.msg(Arc::DEBUG, "%s: State: PREPARING/FINISHING: retryable error", i->job_id);
         delete i->child; i->child=NULL;
         return true;
       } 
@@ -743,7 +743,7 @@ void JobsList::ActJobAccepted(JobsList::iterator &i,bool /*hard_job*/,
       /* accepted state - job was just accepted by jobmager-ng and we already
          know that it is accepted - now we are analyzing/parsing request,
          or it can also happen we are waiting for user specified time */
-        logger.msg(Arc::DEBUG,"%s: State: ACCEPTED",i->job_id);
+        logger.msg(Arc::VERBOSE,"%s: State: ACCEPTED",i->job_id);
         if(!GetLocalDescription(i)) {
           job_error=true; i->AddFailure("Internal error");
           return; /* go to next job */
@@ -792,7 +792,7 @@ void JobsList::ActJobPreparing(JobsList::iterator &i,bool /*hard_job*/,
         /* preparing state - means job is parsed and we are going to download or
            already downloading input files. process downloader is run for
            that. it also checks for files user interface have to upload itself*/
-        logger.msg(Arc::DEBUG,"%s: State: PREPARING",i->job_id);
+        logger.msg(Arc::VERBOSE,"%s: State: PREPARING",i->job_id);
         if(i->job_pending || state_loading(i,state_changed,false)) {
           if(i->job_pending || state_changed) {
             if((JOB_NUM_RUNNING<max_jobs_running) || (max_jobs_running==-1)) {
@@ -817,7 +817,7 @@ void JobsList::ActJobSubmitting(JobsList::iterator &i,bool /*hard_job*/,
                                 bool& job_error,bool& state_changed) {
         /* state submitting - everything is ready for submission - 
            so run submission */
-        logger.msg(Arc::DEBUG,"%s: State: SUBMITTING",i->job_id);
+        logger.msg(Arc::VERBOSE,"%s: State: SUBMITTING",i->job_id);
         if(state_submitting(i,state_changed)) {
           if(state_changed) {
             i->job_state = JOB_STATE_INLRMS;
@@ -834,7 +834,7 @@ void JobsList::ActJobCanceling(JobsList::iterator &i,bool /*hard_job*/,
                                bool& once_more,bool& /*delete_job*/,
                                bool& job_error,bool& state_changed) {
         /* This state is like submitting, only -rm instead of -submit */
-        logger.msg(Arc::DEBUG,"%s: State: CANCELING",i->job_id);
+        logger.msg(Arc::VERBOSE,"%s: State: CANCELING",i->job_id);
         if(state_submitting(i,state_changed,true)) {
           if(state_changed) {
             i->job_state = JOB_STATE_FINISHING;
@@ -848,7 +848,7 @@ void JobsList::ActJobCanceling(JobsList::iterator &i,bool /*hard_job*/,
 void JobsList::ActJobInlrms(JobsList::iterator &i,bool /*hard_job*/,
                             bool& once_more,bool& /*delete_job*/,
                             bool& job_error,bool& state_changed) {
-        logger.msg(Arc::DEBUG,"%s: State: INLRMS",i->job_id);
+        logger.msg(Arc::VERBOSE,"%s: State: INLRMS",i->job_id);
         if(!GetLocalDescription(i)) {
           i->AddFailure("Failed reading local job information");
           job_error=true;
@@ -907,7 +907,7 @@ void JobsList::ActJobInlrms(JobsList::iterator &i,bool /*hard_job*/,
 void JobsList::ActJobFinishing(JobsList::iterator &i,bool hard_job,
                                bool& once_more,bool& /*delete_job*/,
                                bool& job_error,bool& state_changed) {
-        logger.msg(Arc::DEBUG,"%s: State: FINISHING",i->job_id);
+        logger.msg(Arc::VERBOSE,"%s: State: FINISHING",i->job_id);
         if(state_loading(i,state_changed,true)) {
           if(state_changed) {
             i->job_state = JOB_STATE_FINISHED;

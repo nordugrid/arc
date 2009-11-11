@@ -62,7 +62,7 @@ std::string Register( Arc::URL url, std::vector<std::string> &serviceID, std::ve
                       std::vector<std::string> type, std::vector<std::string> expiration, Arc::UserConfig usercfg ){
 
     if (serviceID.size() != epr.size()){
-       logger.msg(Arc::DEBUG, " Service_ID's number is not equivalent with the EPR's number!");
+       logger.msg(Arc::VERBOSE, " Service_ID's number is not equivalent with the EPR's number!");
        return "-1";
     }
 
@@ -272,7 +272,7 @@ int main(int argc, char** argv) {
 
     std::string debug;
       options.AddOption('d', "debug",
-                istring("FATAL, ERROR, WARNING, INFO, DEBUG or VERBOSE"),
+                istring("FATAL, ERROR, WARNING, INFO, VERBOSE or DEBUG"),
                 istring("debuglevel"), debug);
 
     bool neighbors = false;

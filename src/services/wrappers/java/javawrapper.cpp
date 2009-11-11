@@ -29,7 +29,7 @@ Service_JavaWrapper::Service_JavaWrapper(Arc::Config *cfg)
     jvm(NULL) {
     std::string path = "-Djava.class.path=" + (std::string)((*cfg)["ClassPath"]);
     std::string class_name = (std::string)(*cfg)["ClassName"];
-    logger.msg(Arc::DEBUG, "config: %s, class name: %s", path, class_name);
+    logger.msg(Arc::VERBOSE, "config: %s, class name: %s", path, class_name);
     JNIEnv *jenv = NULL;
     JavaVMInitArgs jvm_args;
     JavaVMOption options[1];
@@ -60,7 +60,7 @@ Service_JavaWrapper::Service_JavaWrapper(Arc::Config *cfg)
     jvm_args.ignoreUnrecognized = JNI_FALSE;
     ((jint(*)(JavaVM**, void**, void*))myJNI_CreateJavaVM)(&jvm, (void **)&jenv,
 							   &jvm_args);
-    logger.msg(Arc::DEBUG, "JVM started");
+    logger.msg(Arc::VERBOSE, "JVM started");
     
     /* Find and construct class */
     serviceClass = jenv->FindClass(class_name.c_str());
@@ -80,11 +80,11 @@ Service_JavaWrapper::Service_JavaWrapper(Arc::Config *cfg)
         return;
     }
     serviceObj = jenv->NewObject(serviceClass, constructorID);
-    logger.msg(Arc::DEBUG, "%s constructed", class_name);
+    logger.msg(Arc::VERBOSE, "%s constructed", class_name);
 }
 
 Service_JavaWrapper::~Service_JavaWrapper(void) {
-    logger.msg(Arc::DEBUG, "Destroy jvm"); 
+    logger.msg(Arc::VERBOSE, "Destroy jvm"); 
     if (jvm)
         jvm->DestroyJavaVM();
     if (libjvm)

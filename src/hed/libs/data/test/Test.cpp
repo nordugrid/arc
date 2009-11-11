@@ -15,7 +15,7 @@ int main(int argc, char **argv) {
   if (argc > 1 && strcmp(argv[1], "-v") == 0) {
     // set logging
     Arc::Logger::getRootLogger().addDestination(logcerr);
-    Arc::Logger::getRootLogger().setThreshold(Arc::DEBUG);
+    Arc::Logger::getRootLogger().setThreshold(Arc::VERBOSE);
   }
 
   CppUnit::TextUi::TestRunner runner;

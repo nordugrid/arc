@@ -239,7 +239,7 @@ my $opt3 = {lrms => 'pbs',
 
 sub test {
     my $options = shift;
-    LogUtils::level('DEBUG');
+    LogUtils::level('VERBOSE');
     require Data::Dumper; import Data::Dumper qw(Dumper);
     $log->debug("Options: " . Dumper($options));
     my $results = LRMSInfo::collect($options);

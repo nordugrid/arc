@@ -302,7 +302,7 @@ namespace Arc {
         ERROR(AC_ERR_MEMORY);
       }
 
-      CredentialLogger.msg(VERBOSE,"VOMS: create FQAN: %s",*i);
+      CredentialLogger.msg(DEBUG,"VOMS: create FQAN: %s",*i);
 
 #ifdef HAVE_OPENSSL_OLDRSA
       ASN1_OCTET_STRING_set(tmpc, (unsigned char*)((*i).c_str()), (*i).length());
@@ -339,7 +339,7 @@ namespace Arc {
     for (std::vector<std::string>::iterator i = attrs.begin(); i != attrs.end(); i++) {
       std::string qual, name, value;
 
-      CredentialLogger.msg(VERBOSE,"VOMS: create attribute: %s",*i); 
+      CredentialLogger.msg(DEBUG,"VOMS: create attribute: %s",*i); 
  
       AC_ATTRIBUTE *ac_attr = AC_ATTRIBUTE_new();
       if (!ac_attr) {
@@ -952,7 +952,7 @@ err:
       X509 * x = NULL;
       for(int i = 0; (i < 2 && !found); ++i) {
         std::string directory = vomsdir + (i ? "" : "/" + voname);
-        CredentialLogger.msg(VERBOSE,"VOMS: directory for trusted service certificates: %s",directory);
+        CredentialLogger.msg(DEBUG,"VOMS: directory for trusted service certificates: %s",directory);
         Glib::Dir dir(directory); 
         while(true){
           std::string filename = dir.read_name(); 
@@ -1385,9 +1385,9 @@ err:
       }
       
       //If the holder is self-signed, and the holder also self sign the AC
-      CredentialLogger.msg(VERBOSE,"VOMS: DN of holder in AC: %s",X509_NAME_oneline(name->d.dirn,NULL,0));
-      CredentialLogger.msg(VERBOSE,"VOMS: DN of holder: %s",X509_NAME_oneline(cert->cert_info->subject,NULL,0));
-      CredentialLogger.msg(VERBOSE,"VOMS: DN of issuer: %s",X509_NAME_oneline(cert->cert_info->issuer,NULL,0));
+      CredentialLogger.msg(DEBUG,"VOMS: DN of holder in AC: %s",X509_NAME_oneline(name->d.dirn,NULL,0));
+      CredentialLogger.msg(DEBUG,"VOMS: DN of holder: %s",X509_NAME_oneline(cert->cert_info->subject,NULL,0));
+      CredentialLogger.msg(DEBUG,"VOMS: DN of issuer: %s",X509_NAME_oneline(cert->cert_info->issuer,NULL,0));
       if (X509_NAME_cmp(name->d.dirn, cert->cert_info->subject) && 
         X509_NAME_cmp(name->d.dirn, cert->cert_info->issuer)) {
         CredentialLogger.msg(ERROR,"VOMS: the holder itself can not sign an AC by using a self-sign certificate"); 

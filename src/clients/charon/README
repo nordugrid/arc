@@ -2,12 +2,12 @@ arcdecision -- client for accessing pdp service (charon) and get
 decision result
 Firstly, make sure the ARC_LOCATION has been set.
 The usage is like this:
-./arcdecision -c charon_client.xml -d VERBOSE https://127.0.0.1:60000/Charon charon_request.xml
+./arcdecision -c charon_client.xml -d DEBUG https://127.0.0.1:60000/Charon charon_request.xml
 
 Explaination about the arguments:
 -c charon_client.xml   specify the configuration information about client, 
                     see $ARC_LOCATION/share/doc/arc/charon_client.xml.example
--d FATAL, ERROR, WARNING, INFO, DEBUG or VERBOSE   specify debug level 
+-d FATAL, ERROR, WARNING, INFO, VERBOSE or DEBUG   specify debug level 
 service url   specify the url of pdp service
 request file  the request should be in specific format, 
               see $ARC_LOCATION/share/doc/arc/charon_request.xml.example

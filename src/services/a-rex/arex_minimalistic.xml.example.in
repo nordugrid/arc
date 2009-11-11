@@ -8,7 +8,7 @@
     <PidFile>/var/run/arched.pid</PidFile>
     <Logger>
       <File>/var/log/arched.log</File>
-      <Level>VERBOSE</Level>
+      <Level>DEBUG</Level>
     </Logger>
   </Server>
   <loader:ModuleManager>

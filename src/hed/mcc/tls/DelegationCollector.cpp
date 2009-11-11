@@ -36,11 +36,11 @@ static bool get_proxy_policy(X509* cert,DelegationMultiSecAttr* sattr) {
       // Either such situation should be disallowed or 
       // policy should be generated which granst no right for enything.
       // First option is easier to implement so using it at least yet.
-      logger.msg(VERBOSE,"Independent proxy - no rights granted");
+      logger.msg(DEBUG,"Independent proxy - no rights granted");
     }; break; 
     case NID_id_ppl_inheritAll: {
       // All right granted. No additional policies should be enforced.
-      logger.msg(VERBOSE,"Proxy with all rights inherited");
+      logger.msg(DEBUG,"Proxy with all rights inherited");
       result=true;
     }; break;
     case NID_id_ppl_anyLanguage: { // Here we store ARC policy
@@ -48,18 +48,18 @@ static bool get_proxy_policy(X509* cert,DelegationMultiSecAttr* sattr) {
       const char* policy_str = (const char *)(pci->proxyPolicy->policy->data);
       int policy_length = pci->proxyPolicy->policy->length;
       if((policy_str == NULL) || (policy_length <= 0)) {
-        logger.msg(VERBOSE,"Proxy with empty policy  - fail on unrecognized policy");
+        logger.msg(DEBUG,"Proxy with empty policy  - fail on unrecognized policy");
         break;
       };
       {
         std::string s(policy_str,policy_length);
-        logger.msg(VERBOSE,"Proxy with specific policy: %s",s);
+        logger.msg(DEBUG,"Proxy with specific policy: %s",s);
       };
       result = sattr->Add(policy_str,policy_length);
       if(result) {
-        logger.msg(VERBOSE,"Proxy with ARC Policy");
+        logger.msg(DEBUG,"Proxy with ARC Policy");
       } else {
-        logger.msg(VERBOSE,"Proxy with unknown policy  - fail on unrecognized policy");
+        logger.msg(DEBUG,"Proxy with unknown policy  - fail on unrecognized policy");
       };
     };
     default: {

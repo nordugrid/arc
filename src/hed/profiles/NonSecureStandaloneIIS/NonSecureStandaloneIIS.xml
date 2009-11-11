@@ -6,7 +6,7 @@
 >
     <Server>
         <Pidfile>/var/run/isis_arched.pid</Pidfile>
-        <Logger level="VERBOSE">/tmp/isis.log</Logger>
+        <Logger level="DEBUG">/tmp/isis.log</Logger>
     </Server>
     <ModuleManager>
         <Path>/usr/local/lib/arc/</Path>

@@ -101,7 +101,7 @@ namespace Arc {
     }
     if (!source && !url.MetaDataOption("guid").empty()) {
       guid = url.MetaDataOption("guid");
-      logger.msg(DEBUG, "Using supplied guid %s", guid);
+      logger.msg(VERBOSE, "Using supplied guid %s", guid);
     }
 
     resolved = false;
@@ -148,7 +148,7 @@ namespace Arc {
         if (AddLocation(uloc, url.ConnectionURL()) == DataStatus::LocationAlreadyExistsError)
           logger.msg(WARNING, "Duplicate replica found in LFC: %s", uloc.str());
         else
-          logger.msg(DEBUG, "Adding location: %s - %s", url.ConnectionURL(), entries[n].sfn);
+          logger.msg(VERBOSE, "Adding location: %s - %s", url.ConnectionURL(), entries[n].sfn);
       }
     }
     else { // add given locations, checking they don't already exist
@@ -176,7 +176,7 @@ namespace Arc {
         if (AddLocation(uloc, url.ConnectionURL()) == DataStatus::LocationAlreadyExistsError)
           logger.msg(WARNING, "Duplicate replica location: %s", uloc.str());
         else
-          logger.msg(DEBUG, "Adding location: %s - %s", url.ConnectionURL(), uloc.str());
+          logger.msg(VERBOSE, "Adding location: %s - %s", url.ConnectionURL(), uloc.str());
       }
     }
     if (entries)
@@ -204,9 +204,9 @@ namespace Arc {
       logger.msg(ERROR, "No locations found for %s", url.str());
       return source ? DataStatus::ReadResolveError : DataStatus::WriteResolveError;
     }
-    if (CheckCheckSum()) logger.msg(DEBUG, "meta_get_data: checksum: %s", GetCheckSum());
-    if (CheckSize()) logger.msg(DEBUG, "meta_get_data: size: %llu", GetSize());
-    if (CheckCreated()) logger.msg(DEBUG, "meta_get_data: created: %s", GetCreated().str());
+    if (CheckCheckSum()) logger.msg(VERBOSE, "meta_get_data: checksum: %s", GetCheckSum());
+    if (CheckSize()) logger.msg(VERBOSE, "meta_get_data: size: %llu", GetSize());
+    if (CheckCreated()) logger.msg(VERBOSE, "meta_get_data: created: %s", GetCreated().str());
 
     resolved = true;
     return DataStatus::Success;
@@ -247,7 +247,7 @@ namespace Arc {
       guid = UUID();
     else if (!url.MetaDataOption("guid").empty()) {
       guid = url.MetaDataOption("guid");
-      logger.msg(DEBUG, "Using supplied guid %s", guid);
+      logger.msg(VERBOSE, "Using supplied guid %s", guid);
     }
     if (lfc_creatg(url.Path().c_str(), guid.c_str(),
                    S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP) != 0) {
@@ -265,7 +265,7 @@ namespace Arc {
             continue;
           }
 
-          logger.msg(DEBUG, "Creating LFC directory %s", dirname);
+          logger.msg(VERBOSE, "Creating LFC directory %s", dirname);
           if (lfc_mkdir(dirname.c_str(), 0775) != 0)
             if (serrno != EEXIST) {
               logger.msg(ERROR, "Error creating required LFC dirs: %s", sstrerror(serrno));
@@ -351,7 +351,7 @@ namespace Arc {
         if (ckstype == "adler32")
           ckstype = "AD";
         cksumvalue = cksumvalue.substr(p + 1);
-        logger.msg(DEBUG, "Entering checksum type %s, value %s, file size %llu", ckstype, cksumvalue, GetSize());
+        logger.msg(VERBOSE, "Entering checksum type %s, value %s, file size %llu", ckstype, cksumvalue, GetSize());
       }
       if (CheckSize()) {
         if (lfc_setfsizeg(guid.c_str(), GetSize(), ckstype.c_str(), const_cast<char*>(cksumvalue.c_str())) != 0)
@@ -647,7 +647,7 @@ namespace Arc {
     }
     // Need to fix this - url is const now...
     // url = URL(url.Protocol() + "://" + url.Host() + "/" + std::string(info[0].path));
-    logger.msg(DEBUG, "guid %s resolved to LFN %s", guid, url.Path());
+    logger.msg(VERBOSE, "guid %s resolved to LFN %s", guid, url.Path());
     lfc_listlinks(NULL, (char*)guid.c_str(), CNS_LIST_END, &listp);
     return true;
   }

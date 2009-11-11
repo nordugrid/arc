@@ -85,22 +85,22 @@ namespace DREService
 	*/
 	DREWebService::~DREWebService(void) 
 	{
-		logger.msg(Arc::VERBOSE, " Deconstructing Web Service");
-		logger.msg(Arc::VERBOSE, " Flushing set and queue");
+		logger.msg(Arc::DEBUG, " Deconstructing Web Service");
+		logger.msg(Arc::DEBUG, " Flushing set and queue");
 		pTaskqueue->flush();
 		pTaskset->flush();
 
-		logger.msg(Arc::VERBOSE, " Deconstructing is waiting for PerlProcessor");
+		logger.msg(Arc::DEBUG, " Deconstructing is waiting for PerlProcessor");
 		delete pPerlProcessor; // holds taskqueue and taskset
 
 
-		logger.msg(Arc::VERBOSE, " Deconstructing is waiting for TaskQueue");
+		logger.msg(Arc::DEBUG, " Deconstructing is waiting for TaskQueue");
 		delete pTaskqueue;
-		logger.msg(Arc::VERBOSE, " Deconstructing is waiting for TaskSet");
+		logger.msg(Arc::DEBUG, " Deconstructing is waiting for TaskSet");
 		delete pTaskset;
 
 		
-		logger.msg(Arc::VERBOSE, " Deconstructing Web Service ... done");
+		logger.msg(Arc::DEBUG, " Deconstructing Web Service ... done");
 	}
 
 	/**
@@ -129,7 +129,7 @@ namespace DREService
 		Task::Task *pTask = new Task::Task(-1,&inmsg, &outmsg);
 		pTask->bla = 666;
 
-		logger.msg(Arc::VERBOSE, "DREWEBSERVICE 1  %d",pTask->bla);
+		logger.msg(Arc::DEBUG, "DREWEBSERVICE 1  %d",pTask->bla);
 		int taskID = pTaskqueue->pushTask(pTask);
 		pTaskset->removeTask(taskID);  // we don't want the return pointer. 
 		                               // the result should be also in our original one
@@ -137,7 +137,7 @@ namespace DREService
 		
 		// We don't have to extract the outmsg either
 		// because the object is already manipulated
-		logger.msg(Arc::VERBOSE, "DREWEBSERVICE 2  %d",pTask->bla);
+		logger.msg(Arc::DEBUG, "DREWEBSERVICE 2  %d",pTask->bla);
 	
 
 // 		PerlInterpreter *my_perl = NULL;
@@ -410,7 +410,7 @@ void *run2(void *arg)
 
 
 	// Initiate the Logger and set it to the standard error stream
-	Arc::LogLevel threshold = Arc::VERBOSE;
+	Arc::LogLevel threshold = Arc::DEBUG;
 	Arc::Logger logger(Arc::Logger::getRootLogger(), "dREMain");
 	Arc::LogStream logcerr(std::cerr);
 	Arc::Logger::getRootLogger().addDestination(logcerr);

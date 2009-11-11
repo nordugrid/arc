@@ -35,7 +35,7 @@ namespace Arc {
 
   void FastestQueueBroker::SortTargets() {
 
-    logger.msg(DEBUG, "FastestQueueBroker is filtering %d targets",
+    logger.msg(VERBOSE, "FastestQueueBroker is filtering %d targets",
                PossibleTargets.size());
 
     //Remove clusters with incomplete information for target sorting
@@ -43,21 +43,21 @@ namespace Arc {
     while (iter != PossibleTargets.end()) {
       if ((*iter)->WaitingJobs == -1 || (*iter)->TotalSlots == -1 || (*iter)->FreeSlots == -1) {
         if ((*iter)->WaitingJobs == -1)
-          logger.msg(DEBUG, "Target %s removed by FastestQueueBroker, doesn't report number of waiting jobs", (*iter)->DomainName);
+          logger.msg(VERBOSE, "Target %s removed by FastestQueueBroker, doesn't report number of waiting jobs", (*iter)->DomainName);
         else if ((*iter)->TotalSlots == -1)
-          logger.msg(DEBUG, "Target %s removed by FastestQueueBroker, doesn't report number of total slots", (*iter)->DomainName);
+          logger.msg(VERBOSE, "Target %s removed by FastestQueueBroker, doesn't report number of total slots", (*iter)->DomainName);
         else if ((*iter)->FreeSlots == -1)
-          logger.msg(DEBUG, "Target %s removed by FastestQueueBroker, doesn't report number of free slots", (*iter)->DomainName);
+          logger.msg(VERBOSE, "Target %s removed by FastestQueueBroker, doesn't report number of free slots", (*iter)->DomainName);
         iter = PossibleTargets.erase(iter);
         continue;
       }
       iter++;
     }
 
-    logger.msg(DEBUG, "FastestQueueBroker will rank the following %d targets", PossibleTargets.size());
+    logger.msg(VERBOSE, "FastestQueueBroker will rank the following %d targets", PossibleTargets.size());
     iter = PossibleTargets.begin();
     for (int i = 1; iter != PossibleTargets.end(); iter++, i++)
-      logger.msg(DEBUG, "%d. Cluster: %s", i, (*iter)->DomainName);
+      logger.msg(VERBOSE, "%d. Cluster: %s", i, (*iter)->DomainName);
 
     //Sort the targets according to the number of waiting jobs (in % of the cluster size)
     PossibleTargets.sort(CompareExecutionTarget);
@@ -90,12 +90,12 @@ namespace Arc {
         }
       }
 
-    logger.msg(DEBUG, "Best targets are: %d", PossibleTargets.size());
+    logger.msg(VERBOSE, "Best targets are: %d", PossibleTargets.size());
 
     iter = PossibleTargets.begin();
 
     for (int i = 1; iter != PossibleTargets.end(); iter++, i++)
-      logger.msg(DEBUG, "%d. Cluster: %s", i, (*iter)->DomainName);
+      logger.msg(VERBOSE, "%d. Cluster: %s", i, (*iter)->DomainName);
 
     TargetSortingDone = true;
 

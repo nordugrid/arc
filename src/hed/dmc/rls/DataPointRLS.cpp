@@ -229,7 +229,7 @@ namespace Arc {
           pfn.AddOption(i->first, i->second, false);
         }
         URL pfn_ = AddPFN(pfn,source);
-        logger.msg(DEBUG, "Adding location: %s - %s", rlsurl.str(), pfn.str());
+        logger.msg(VERBOSE, "Adding location: %s - %s", rlsurl.str(), pfn.str());
         AddLocation(pfn_, rlsurl.str());
       }
     } else {
@@ -243,7 +243,7 @@ namespace Arc {
             URL pfn(str2->s2);
             // for RLS URLs are used instead of metanames
             if (pfn == *loc) {
-              logger.msg(DEBUG, "Adding location: %s - %s",
+              logger.msg(VERBOSE, "Adding location: %s - %s",
                          rlsurl.str(), pfn.str());
               for (std::map<std::string, std::string>::const_iterator i =
                      url.CommonLocOptions().begin();
@@ -295,7 +295,7 @@ namespace Arc {
           (globus_rls_attribute_t*)globus_list_first(lpa);
         if (attr->type != globus_rls_attr_type_str)
           continue;
-        logger.msg(DEBUG, "Attribute: %s - %s", attr->name, attr->val.s);
+        logger.msg(VERBOSE, "Attribute: %s - %s", attr->name, attr->val.s);
         if (strcmp(attr->name, "filechecksum") == 0) {
           if (!CheckCheckSum())
             SetCheckSum(attr->val.s);
@@ -383,13 +383,13 @@ namespace Arc {
            loc != locations.end();) {
         // AddPFN
         if (!loc->Name().empty()) {
-          logger.msg(DEBUG, "Using location: %s - %s",
+          logger.msg(VERBOSE, "Using location: %s - %s",
                      loc->Name(), loc->str());
           ++loc;
         }
         // Use arbitrary lrc
         else if (lrc_p == lrcs.end()) {   // no LRC
-          logger.msg(DEBUG, "Removing location: %s - %s",
+          logger.msg(VERBOSE, "Removing location: %s - %s",
                      loc->Name(), loc->str());
           loc = locations.erase(loc);
         }
@@ -398,16 +398,16 @@ namespace Arc {
           ++lrc_p;
           if (lrc_p == lrcs.end())
             lrc_p = lrcs.begin();
-          logger.msg(DEBUG, "Using location: %s - %s",
+          logger.msg(VERBOSE, "Using location: %s - %s",
                      loc->Name(), loc->str());
           ++loc;
         }
       }
 */
     }
-    if (CheckCheckSum()) logger.msg(DEBUG, "meta_get_data: checksum: %s", GetCheckSum());
-    if (CheckSize()) logger.msg(DEBUG, "meta_get_data: size: %llu", GetSize());
-    if (CheckCreated()) logger.msg(DEBUG, "meta_get_data: created: %s", GetCreated().str());
+    if (CheckCheckSum()) logger.msg(VERBOSE, "meta_get_data: checksum: %s", GetCheckSum());
+    if (CheckSize()) logger.msg(VERBOSE, "meta_get_data: size: %llu", GetSize());
+    if (CheckCreated()) logger.msg(VERBOSE, "meta_get_data: created: %s", GetCreated().str());
     resolved = true;
     return DataStatus::Success;
   }
@@ -712,12 +712,12 @@ namespace Arc {
       if (err != GLOBUS_SUCCESS) {
         globus_rls_client_error_info(err, &errcode, errmsg, MAXERRMSG + 32,
                                      GLOBUS_FALSE);
-        logger.msg(VERBOSE, "Failed to find GUID for specified LFN in %s: %s",
+        logger.msg(DEBUG, "Failed to find GUID for specified LFN in %s: %s",
                    rlsurl.str(), errmsg);
         return true;
       }
       if (!guids) {
-        logger.msg(VERBOSE, "There is no GUID for specified LFN in %s",
+        logger.msg(DEBUG, "There is no GUID for specified LFN in %s",
                    rlsurl.str());
         return true;
       }
@@ -748,7 +748,7 @@ namespace Arc {
           (globus_rls_string2_t*)globus_list_first(lp);
         URL pfn(str2->s2);
         if (pfn.Protocol() == "se")
-          logger.msg(DEBUG, "SE location will be unregistered automatically");
+          logger.msg(VERBOSE, "SE location will be unregistered automatically");
         else {
           err = globus_rls_client_lrc_delete(h, str2->s1, str2->s2);
           if (err != GLOBUS_SUCCESS) {
@@ -797,7 +797,7 @@ namespace Arc {
         return DataStatus::UnregisterError;
       }
       if (CurrentLocation().Protocol() == "se") {
-        logger.msg(DEBUG, "SE location will be unregistered automatically");
+        logger.msg(VERBOSE, "SE location will be unregistered automatically");
         return DataStatus::Success;
       }
     }
@@ -891,7 +891,7 @@ namespace Arc {
               (globus_rls_string2_t*)globus_list_first(lp);
             URL pfn(str2->s1);
             if (pfn.Protocol() == "se")
-              logger.msg(DEBUG,
+              logger.msg(VERBOSE,
                          "SE location will be unregistered automatically");
             else {
               err = globus_rls_client_lrc_delete
@@ -988,7 +988,7 @@ namespace Arc {
         (globus_rls_attribute_t*)globus_list_first(pa);
       if (attr->type != globus_rls_attr_type_str)
         continue;
-      // logger.msg(DEBUG, "Attribute: %s - %s", attr->name, attr->val.s);
+      // logger.msg(VERBOSE, "Attribute: %s - %s", attr->name, attr->val.s);
       if (strcmp(attr->name, "filechecksum") == 0)
         f.SetCheckSum(attr->val.s);
       else if (strcmp(attr->name, "size") == 0)
@@ -1085,7 +1085,7 @@ namespace Arc {
       globus_rls_client_error_info(err, &errcode, errmsg, MAXERRMSG + 32,
                                    GLOBUS_FALSE);
       if (errcode == GLOBUS_RLS_LFN_NEXIST) {
-        logger.msg(DEBUG, "No LFNs found in %s", rlsurl.str());
+        logger.msg(VERBOSE, "No LFNs found in %s", rlsurl.str());
         success = DataStatus::Success;
         return true;
       }
@@ -1128,7 +1128,7 @@ namespace Arc {
           globus_rls_client_free_list(lfn_list);
         }
         if (!last_lfn.empty()) {
-          logger.msg(DEBUG, "lfn: %s(%s) - %s",
+          logger.msg(VERBOSE, "lfn: %s(%s) - %s",
                      last_lfn, last_guid, pfn.str());
           std::list<FileInfo>::iterator f;
           for (f = files.begin(); f != files.end(); ++f)
@@ -1143,7 +1143,7 @@ namespace Arc {
         }
       }
       else { // !guid_enabled
-        logger.msg(DEBUG, "lfn: %s - pfn: %s", lfn, pfn.str());
+        logger.msg(VERBOSE, "lfn: %s - pfn: %s", lfn, pfn.str());
         std::list<FileInfo>::iterator f;
         for (f = files.begin(); f != files.end(); ++f)
           if (f->GetName() == lfn)

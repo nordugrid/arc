@@ -50,7 +50,7 @@ void PaulService::GetActivities(const std::string &url_str, std::vector<std::str
     {
         std::string str;
         glue2.GetDoc(str);
-        logger_.msg(Arc::DEBUG, str);
+        logger_.msg(Arc::VERBOSE, str);
     }
     // Create client to url
     Arc::ClientSOAP *client;
@@ -103,18 +103,18 @@ void PaulService::GetActivities(const std::string &url_str, std::vector<std::str
     for (int i = 0; (activity = activities.Child(i)) != false; i++) {
         Arc::XMLNode id = activity["ActivityIdentifier"];
         if (!id) {
-            logger_.msg(Arc::DEBUG, "Missing job identifier");
+            logger_.msg(Arc::VERBOSE, "Missing job identifier");
             continue;
         }
         Arc::WSAEndpointReference epr(id);
         std::string job_id = epr.ReferenceParameters()["sched:JobID"];
         if (job_id.empty()) {
-            logger_.msg(Arc::DEBUG, "Cannot find job id");
+            logger_.msg(Arc::VERBOSE, "Cannot find job id");
             continue;
         }
         std::string resource_id = epr.Address();
         if (resource_id.empty()) {
-            logger_.msg(Arc::DEBUG, "Cannot find scheduler endpoint");
+            logger_.msg(Arc::VERBOSE, "Cannot find scheduler endpoint");
             continue;
         }
         Arc::XMLNode jsdl = activity["ActivityDocument"]["JobDefinition"];
@@ -126,7 +126,7 @@ void PaulService::GetActivities(const std::string &url_str, std::vector<std::str
         ret.push_back(job_id);
         jobq.addJob(j);
         std::string s = sched_status_to_string(j.getStatus());
-        logger_.msg(Arc::DEBUG, "Status: %s %d",s,j.getStatus());
+        logger_.msg(Arc::VERBOSE, "Status: %s %d",s,j.getStatus());
         // j.save();
     }
     delete response;
@@ -142,21 +142,21 @@ void PaulService::process_job(void *arg)
     ServiceAndJob &info = *((ServiceAndJob *)arg);
     PaulService &self = *(info.self);
     Job &j = self.jobq[*(info.job_id)];
-    self.logger_.msg(Arc::DEBUG, "Process job: %s", j.getID());
+    self.logger_.msg(Arc::VERBOSE, "Process job: %s", j.getID());
     j.setStatus(STARTING);
     self.stage_in(j);
     self.run(j);
     if (!self.in_shutdown) {
         self.stage_out(j);
         if (j.getStatus() != KILLED && j.getStatus() != KILLING && j.getStatus() != FAILED) {
-            self.logger_.msg(Arc::DEBUG, "%s set finished", j.getID());
+            self.logger_.msg(Arc::VERBOSE, "%s set finished", j.getID());
             j.setStatus(FINISHED);
         }
     }
     // free memory
     delete info.job_id;
     delete &info;
-    self.logger_.msg(Arc::DEBUG, "Finished job %s", j.getID());
+    self.logger_.msg(Arc::VERBOSE, "Finished job %s", j.getID());
 }
 
 void PaulService::do_request(void)
@@ -169,7 +169,7 @@ void PaulService::do_request(void)
     }
     std::string url = schedulers[0];
     // XXX check if there is no scheduler
-    logger_.msg(Arc::DEBUG, "Do Request: %s", url);
+    logger_.msg(Arc::VERBOSE, "Do Request: %s", url);
     // check if there is no free CPU slot
     int active_job = 0;
     std::map<const std::string, Job *> all = jobq.getAllJobs();
@@ -183,7 +183,7 @@ void PaulService::do_request(void)
     }
     int cpu_num = sysinfo.getPhysicalCPUs();
     if (active_job >= cpu_num) {
-        logger_.msg(Arc::DEBUG, "No free CPU slot");
+        logger_.msg(Arc::VERBOSE, "No free CPU slot");
         return;
     }
     std::vector<std::string> job_ids;
@@ -204,7 +204,7 @@ void PaulService::request_loop(void* arg)
     for (;;) {
         self->do_request();
         int p = self->configurator.getPeriod();
-        self->logger_.msg(Arc::DEBUG, "Per: %d", p);
+        self->logger_.msg(Arc::VERBOSE, "Per: %d", p);
         sleep(p);       
     }
 }
@@ -212,7 +212,7 @@ void PaulService::request_loop(void* arg)
 // Report status of jobs
 void PaulService::do_report(void)
 {
-    logger_.msg(Arc::DEBUG, "Report status");
+    logger_.msg(Arc::VERBOSE, "Report status");
     std::map<const std::string, Job *> all = jobq.getAllJobs();
     std::map<const std::string, Job *>::iterator it;
     std::map<std::string, Arc::PayloadSOAP *> requests;
@@ -239,7 +239,7 @@ void PaulService::do_report(void)
 
         Arc::XMLNode state = activity.NewChild("ibes:ActivityStatus");
         std::string s = sched_status_to_string(j->getStatus());
-        logger.msg(Arc::DEBUG, "%s reported %s", j->getID(), s);
+        logger.msg(Arc::VERBOSE, "%s reported %s", j->getID(), s);
         state.NewAttribute("ibes:state") = s;
         
     }
@@ -304,10 +304,10 @@ void PaulService::do_report(void)
                 logger_.msg(Arc::ERROR, "Cannot find job id");
                 continue;
             }
-            logger_.msg(Arc::DEBUG, "%s reported", job_id);
+            logger_.msg(Arc::VERBOSE, "%s reported", job_id);
             Job &j = jobq[job_id];
             if (j.getStatus() == FINISHED || j.getStatus() == FAILED) {
-                logger_.msg(Arc::DEBUG, "%s job reported finished", j.getID());
+                logger_.msg(Arc::VERBOSE, "%s job reported finished", j.getID());
                 j.finishedReported();
             }
         }
@@ -320,7 +320,7 @@ void PaulService::do_report(void)
 
 void PaulService::do_action(void)
 {
-    logger_.msg(Arc::DEBUG, "Get activity status changes");   
+    logger_.msg(Arc::VERBOSE, "Get activity status changes");   
     std::map<const std::string, Job *> all = jobq.getAllJobs();
     std::map<const std::string, Job *>::iterator it;
     std::map<std::string, Arc::PayloadSOAP *> requests;
@@ -405,7 +405,7 @@ void PaulService::do_action(void)
                 // skip job which was already finished
                 continue;
             }
-            logger.msg(Arc::DEBUG, "%s new status: %s", j.getID(), new_status);
+            logger.msg(Arc::VERBOSE, "%s new status: %s", j.getID(), new_status);
             j.setStatus(sched_status_from_string(new_status));
             // do actions
             if (j.getStatus() == KILLED) { 
@@ -414,7 +414,7 @@ void PaulService::do_action(void)
             if (j.getStatus() == KILLING) {
                 Arc::Run *run = runq[job_id];
                 if (run != NULL) {
-                    logger_.msg(Arc::DEBUG, "Killing %s", job_id);
+                    logger_.msg(Arc::VERBOSE, "Killing %s", job_id);
                     run->Kill(1);
                 }
                 j.setStatus(KILLED);
@@ -429,13 +429,13 @@ void PaulService::do_action(void)
     // cleanup finished process
     for (it = all.begin(); it != all.end(); it++) {
         Job *j = it->second;
-        logger_.msg(Arc::DEBUG, "pre cleanup %s %d", j->getID(), j->getStatus());
+        logger_.msg(Arc::VERBOSE, "pre cleanup %s %d", j->getID(), j->getStatus());
         if (j->getStatus() == FINISHED || j->getStatus() == FAILED) {
             // do clean if and only if the finished state already reported
             if (j->isFinishedReported()) {
-                logger_.msg(Arc::DEBUG, "cleanup %s", j->getID());
+                logger_.msg(Arc::VERBOSE, "cleanup %s", j->getID());
                 j->clean(configurator.getJobRoot());
-                logger_.msg(Arc::DEBUG, "cleanup 2 %s", j->getID());
+                logger_.msg(Arc::VERBOSE, "cleanup 2 %s", j->getID());
                 jobq.removeJob(*j);
             }           
         } 
@@ -475,11 +475,11 @@ PaulService::PaulService(Arc::Config *cfg):RegisteredService(cfg),in_shutdown(fa
 PaulService::~PaulService(void) 
 {
     in_shutdown = true;
-    logger_.msg(Arc::DEBUG, "PaulService shutdown");
+    logger_.msg(Arc::VERBOSE, "PaulService shutdown");
     std::map<std::string, Arc::Run *>::iterator it;
     for (it = runq.begin(); it != runq.end(); it++) {
         if (it->second != NULL) {
-            logger_.msg(Arc::DEBUG, "Terminate job %s", it->first);
+            logger_.msg(Arc::VERBOSE, "Terminate job %s", it->first);
             Arc::Run *r = it->second;
             r->Kill(1);
         }

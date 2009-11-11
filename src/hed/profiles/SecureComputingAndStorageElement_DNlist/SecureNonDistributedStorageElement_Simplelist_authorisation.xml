@@ -7,7 +7,7 @@
   xmlns:infosys="http://www.nordugrid.org/schemas/InfoRegisterConfig/2008">
 	<Server>
 		<Pidfile>/tmp/arex_storage_arched.pid</Pidfile>
-		<Logger level="VERBOSE">/tmp/arex_storage.log</Logger>
+		<Logger level="DEBUG">/tmp/arex_storage.log</Logger>
 	</Server>
 	<ModuleManager>
 		<Path>/usr/local/lib/arc</Path>
@@ -91,7 +91,7 @@
 		</Service>
 		<Service name="pythonservice" id="bartender">
 			<ClassName>storage.bartender.bartender.BartenderService</ClassName>
-			<LogLevel>VERBOSE</LogLevel>
+			<LogLevel>DEBUG</LogLevel>
 			<LibrarianURL>https://localhost:60000/Librarian</LibrarianURL>
     			<infosys:InfoRegister>
 	        	    <infosys:Period>PT75S</infosys:Period>
@@ -103,7 +103,7 @@
 		</Service>
 		<Service name="pythonservice" id="shepherd">
 			<ClassName>storage.shepherd.shepherd.ShepherdService</ClassName>
-			<LogLevel>VERBOSE</LogLevel>
+			<LogLevel>DEBUG</LogLevel>
 			<ServiceID>https://localhost:60000/Shepherd</ServiceID>
 			<CheckPeriod>5</CheckPeriod>
 			<MinCheckInterval>0.1</MinCheckInterval>
@@ -119,7 +119,7 @@
 			</BackendCfg>
 			<LibrarianURL>https://localhost:60000/Librarian</LibrarianURL>
 			<BartenderURL>https://localhost:60000/Bartender</BartenderURL>
-			<LogLevel>VERBOSE</LogLevel>
+			<LogLevel>DEBUG</LogLevel>
     			<infosys:InfoRegister>
 	        	    <infosys:Period>PT75S</infosys:Period>
     			    <infosys:Endpoint>https://localhost:60000/Shepherd</infosys:Endpoint>

@@ -197,7 +197,7 @@ FUSETRANSFER = os.path.join(os.getcwd(),'fuse_transfer')
 if not os.path.isdir(FUSETRANSFER):
     os.mkdir(FUSETRANSFER)
 
-DEBUG = 0
+VERBOSE = 0
 
 debugfile = open('arcfsmessages','a')
 
@@ -206,7 +206,7 @@ def debug_msg(msg, msg2=''):
     """
     Function to get readable debug output to file
     """
-    if DEBUG:
+    if VERBOSE:
         print >> debugfile, BartenderURL+":", msg, msg2
         debugfile.flush()
 

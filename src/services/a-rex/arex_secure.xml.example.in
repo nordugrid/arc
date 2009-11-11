@@ -12,7 +12,7 @@
   <Server>
     <PidFile>/var/run/arched.pid</PidFile>
     <Logger>
-      <Level>VERBOSE</Level>
+      <Level>DEBUG</Level>
       <File>/var/log/arched.log</File>
     </Logger>
   </Server>

@@ -34,7 +34,7 @@ class Librarian:
         ahash_urls =  get_child_values_by_name(cfg, 'AHashURL')
         if ahash_urls:
             log.msg(arc.INFO,'Got AHash URLs:', ahash_urls)
-            log.msg(arc.DEBUG, 'AHash URL found in the configuration.')
+            log.msg(arc.VERBOSE, 'AHash URL found in the configuration.')
             self.master_ahash = arc.URL(ahash_urls[0])
             self.ahash_reader = AHashClient(ahash_urls, ssl_config = self.ssl_config)
             self.ahash_writer = AHashClient(ahash_urls, ssl_config = self.ssl_config)
@@ -207,7 +207,7 @@ class Librarian:
         ahash_response = self.ahash_change(ahash_request)
         #print '_set_next_heartbeat response', ahash_response
         if ahash_response['report'][0] != 'set':
-            log.msg(arc.DEBUG, 'ERROR setting next heartbeat time!')
+            log.msg(arc.VERBOSE, 'ERROR setting next heartbeat time!')
     
     def report(self, serviceID, filelist):
         try:

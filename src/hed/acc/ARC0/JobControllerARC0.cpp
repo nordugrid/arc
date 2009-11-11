@@ -196,7 +196,7 @@ namespace Arc {
   bool JobControllerARC0::GetJob(const Job& job,
                                  const std::string& downloaddir) {
 
-    logger.msg(DEBUG, "Downloading job: %s", job.JobID.str());
+    logger.msg(VERBOSE, "Downloading job: %s", job.JobID.str());
 
     std::string path = job.JobID.Path();
     std::string::size_type pos = path.rfind('/');
@@ -232,7 +232,7 @@ namespace Arc {
 
   bool JobControllerARC0::CleanJob(const Job& job, bool force) {
 
-    logger.msg(DEBUG, "Cleaning job: %s", job.JobID.str());
+    logger.msg(VERBOSE, "Cleaning job: %s", job.JobID.str());
 
     FTPControl ctrl;
     if (!ctrl.Connect(job.JobID, usercfg.ProxyPath(), usercfg.CertificatePath(),
@@ -261,7 +261,7 @@ namespace Arc {
       return false;
     }
 
-    logger.msg(DEBUG, "Job cleaning successful");
+    logger.msg(VERBOSE, "Job cleaning successful");
 
     return true;
 
@@ -269,7 +269,7 @@ namespace Arc {
 
   bool JobControllerARC0::CancelJob(const Job& job) {
 
-    logger.msg(DEBUG, "Cleaning job: %s", job.JobID.str());
+    logger.msg(VERBOSE, "Cleaning job: %s", job.JobID.str());
 
     FTPControl ctrl;
     if (!ctrl.Connect(job.JobID, usercfg.ProxyPath(), usercfg.CertificatePath(),
@@ -298,14 +298,14 @@ namespace Arc {
       return false;
     }
 
-    logger.msg(DEBUG, "Job cancelling successful");
+    logger.msg(VERBOSE, "Job cancelling successful");
 
     return true;
   }
 
   bool JobControllerARC0::RenewJob(const Job& job) {
 
-    logger.msg(DEBUG, "Renewing credentials for job: %s", job.JobID.str());
+    logger.msg(VERBOSE, "Renewing credentials for job: %s", job.JobID.str());
 
     FTPControl ctrl;
     if (!ctrl.Connect(job.JobID, usercfg.ProxyPath(), usercfg.CertificatePath(),
@@ -334,7 +334,7 @@ namespace Arc {
       return false;
     }
 
-    logger.msg(DEBUG, "Renewal of credentials was successful");
+    logger.msg(VERBOSE, "Renewal of credentials was successful");
 
     return true;
   }
@@ -356,7 +356,7 @@ namespace Arc {
       logger.msg(ERROR, "Illegal jobid specified");
     std::string jobnr = urlstr.substr(pos + 1);
     urlstr = urlstr.substr(0, pos) + "/new/action";
-    logger.msg(DEBUG, "HER: %s", urlstr);
+    logger.msg(VERBOSE, "HER: %s", urlstr);
 
     std::string rsl("&(action=restart)(jobid=" + jobnr + ")");
 
@@ -399,7 +399,7 @@ namespace Arc {
     //Cleaning up
     source->Remove();
 
-    logger.msg(DEBUG, "Job resumed successful");
+    logger.msg(VERBOSE, "Job resumed successful");
 
     return true;
   }
@@ -491,7 +491,7 @@ namespace Arc {
     // Extracting original client xrsl
     pos = desc_str.find("clientxrsl");
     if (pos != std::string::npos) {
-      logger.msg(DEBUG, "clientxrsl found");
+      logger.msg(VERBOSE, "clientxrsl found");
       std::string::size_type pos1 = desc_str.find("&", pos);
       if (pos1 == std::string::npos) {
         logger.msg(ERROR, "could not find start of clientxrsl");
@@ -509,7 +509,7 @@ namespace Arc {
         if (i != std::string::npos)
           desc_str.erase(i, 1);
       }
-      logger.msg(VERBOSE, "Job description:%s", desc_str);
+      logger.msg(DEBUG, "Job description:%s", desc_str);
     }
     else {
       logger.msg(ERROR, "clientxrsl not found");

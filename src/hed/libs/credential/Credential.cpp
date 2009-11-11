@@ -368,7 +368,7 @@ namespace Arc {
 
     switch(format) {
       case CRED_PEM:
-        CredentialLogger.msg(VERBOSE,"Certificate format is PEM");
+        CredentialLogger.msg(DEBUG,"Certificate format is PEM");
         //Get the certificte, By default, certificate is without passphrase
         //Read certificate
         if(!(PEM_read_bio_X509(certbio, &x509, NULL, NULL))) {
@@ -392,7 +392,7 @@ namespace Arc {
         break;
 
       case CRED_DER:
-        CredentialLogger.msg(VERBOSE,"Certificate format is DER");
+        CredentialLogger.msg(DEBUG,"Certificate format is DER");
         x509=d2i_X509_bio(certbio,NULL);
         if(!x509){
           throw CredentialError("Unable to read DER credential from BIO");
@@ -415,7 +415,7 @@ namespace Arc {
         break;
 
       case CRED_PKCS:
-        CredentialLogger.msg(VERBOSE,"Certificate format is PKCS");
+        CredentialLogger.msg(DEBUG,"Certificate format is PKCS");
         pkcs12 = d2i_PKCS12_bio(certbio, NULL);
         if(pkcs12){
           char password[100];
@@ -441,7 +441,7 @@ namespace Arc {
         break;
 
       default:
-        CredentialLogger.msg(VERBOSE,"Certificate format is unknown");
+        CredentialLogger.msg(DEBUG,"Certificate format is unknown");
         break;
      } // end switch
   }
@@ -574,7 +574,7 @@ namespace Arc {
 
   bool Credential::Verify(void) {
     if(verify_cert_chain(cert_, &cert_chain_, &verify_ctx_)) {
-      CredentialLogger.msg(VERBOSE, "Certificate verification succeeded");
+      CredentialLogger.msg(DEBUG, "Certificate verification succeeded");
       return true;
     }
     else {CredentialLogger.msg(ERROR, "Certificate verification failed"); LogError(); return false;}
@@ -1032,21 +1032,21 @@ namespace Arc {
 #endif
 
     X509_REQ *req = NULL;
-    CredentialLogger.msg(DEBUG, "Created RSA key, proceeding with request");
+    CredentialLogger.msg(VERBOSE, "Created RSA key, proceeding with request");
     pkey = EVP_PKEY_new();
 
     if (pkey) {
       if (rsa_key) {
-        CredentialLogger.msg(DEBUG, "pkey and rsa_key exist!");
+        CredentialLogger.msg(VERBOSE, "pkey and rsa_key exist!");
         if (EVP_PKEY_set1_RSA(pkey, rsa_key)) {
           req = X509_REQ_new();
-          CredentialLogger.msg(DEBUG, "Generate new X509 request!");
+          CredentialLogger.msg(VERBOSE, "Generate new X509 request!");
           if(req) {
             if (X509_REQ_set_version(req,3L)) {
               X509_NAME *name = NULL;
               unsigned long chtype = MBSTRING_ASC;  //TODO
               name = parse_name((char*)(dn.c_str()), chtype, 0);
-              CredentialLogger.msg(DEBUG, "Setting subject name!");
+              CredentialLogger.msg(VERBOSE, "Setting subject name!");
 
               X509_REQ_set_subject_name(req, name);
               X509_NAME_free(name);
@@ -1480,7 +1480,7 @@ namespace Arc {
     BIO *out = BIO_new(BIO_s_mem());
     if(!out) return false;
     X509 *cert;
-    CredentialLogger.msg(VERBOSE, "Certiticate chain number %d",sk_X509_num(cert_chain_));
+    CredentialLogger.msg(DEBUG, "Certiticate chain number %d",sk_X509_num(cert_chain_));
     //std::cout<<"+++++ cert chain number: "<<sk_X509_num(cert_chain_)<<std::endl;
 
     //Out put the cert chain. After the verification the cert_chain_
@@ -1579,7 +1579,7 @@ namespace Arc {
     else if(if_eec == false) { cert_type_ =  CERT_TYPE_RFC_INDEPENDENT_PROXY; } //CERT_TYPE_GSI_2_PROXY; }
     else { cert_type_ = CERT_TYPE_EEC; }
 
-    CredentialLogger.msg(VERBOSE,"Cert Type: %d",cert_type_);
+    CredentialLogger.msg(DEBUG,"Cert Type: %d",cert_type_);
 
     res = true;
 

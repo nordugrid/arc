@@ -163,7 +163,7 @@ TLSSecAttr::TLSSecAttr(PayloadTLSStream& payload, ConfigTLSMCC& config, Logger& 
       buf[0]=0;
       X509_NAME_oneline(X509_get_subject_name(peercert),buf,sizeof buf);
       subject=buf;
-      //logger.msg(DEBUG, "Peer name: %s", peer_dn);
+      //logger.msg(VERBOSE, "Peer name: %s", peer_dn);
       subjects_.push_back(subject);
 #ifdef HAVE_OPENSSL_PROXY
       if(X509_get_ext_by_NID(peercert,NID_proxyCertInfo,-1) < 0) {
@@ -185,7 +185,7 @@ TLSSecAttr::TLSSecAttr(PayloadTLSStream& payload, ConfigTLSMCC& config, Logger& 
       buf[0]=0;
       X509_NAME_oneline(X509_get_subject_name(hostcert),buf,sizeof buf);
       target_=buf;
-      //logger.msg(DEBUG, "Host name: %s", peer_dn);
+      //logger.msg(VERBOSE, "Host name: %s", peer_dn);
    };
 }
 
@@ -364,11 +364,11 @@ MCC_Status MCC_TLS_Service::process(Message& inmsg,Message& outmsg) {
       TLSSecAttr* sattr = new TLSSecAttr(*tstream, config_, logger);
       nextinmsg.Auth()->set("TLS",sattr);
       //Getting the subject name of peer(client) certificate
-      logger.msg(DEBUG, "Peer name: %s", sattr->Subject());
+      logger.msg(VERBOSE, "Peer name: %s", sattr->Subject());
       nextinmsg.Attributes()->set("TLS:PEERDN",sattr->Subject());
-      logger.msg(DEBUG, "Identity name: %s", sattr->Identity());
+      logger.msg(VERBOSE, "Identity name: %s", sattr->Identity());
       nextinmsg.Attributes()->set("TLS:IDENTITYDN",sattr->Identity());
-      logger.msg(DEBUG, "CA name: %s", sattr->CA());
+      logger.msg(VERBOSE, "CA name: %s", sattr->CA());
       nextinmsg.Attributes()->set("TLS:CADN",sattr->CA());
 
       nextinmsg.Attributes()->set("TLS:PEERCERT",sattr->X509Str());
@@ -427,11 +427,11 @@ MCC_Status MCC_TLS_Client::process(Message& inmsg,Message& outmsg) {
       TLSSecAttr* sattr = new TLSSecAttr(*tstream, config_, logger);
       inmsg.Auth()->set("TLS",sattr);
       //Getting the subject name of peer(client) certificate
-      logger.msg(DEBUG, "Peer name: %s", sattr->Subject());
+      logger.msg(VERBOSE, "Peer name: %s", sattr->Subject());
       inmsg.Attributes()->set("TLS:PEERDN",sattr->Subject());
-      logger.msg(DEBUG, "Identity name: %s", sattr->Identity());
+      logger.msg(VERBOSE, "Identity name: %s", sattr->Identity());
       inmsg.Attributes()->set("TLS:IDENTITYDN",sattr->Identity());
-      logger.msg(DEBUG, "CA name: %s", sattr->CA());
+      logger.msg(VERBOSE, "CA name: %s", sattr->CA());
       inmsg.Attributes()->set("TLS:CADN",sattr->CA());
    }
 

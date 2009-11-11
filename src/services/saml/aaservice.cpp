@@ -420,7 +420,7 @@ bool Service_AA::query_db(Arc::QueryArrayResult& attributes, const std::string& 
   portstr = (std::string)(nd.Attribute("port"));
   port = atoi((portstr.c_str()));
 
-  logger_.msg(Arc::DEBUG, "Access database %s from server %s port %s, with user %s and password %s",
+  logger_.msg(Arc::VERBOSE, "Access database %s from server %s port %s, with user %s and password %s",
               dbname.c_str(), server.c_str(), portstr.c_str(), user.c_str(), password.c_str()); 
 
   //TODO: make the database and sql object dynamic loaded 
@@ -433,7 +433,7 @@ bool Service_AA::query_db(Arc::QueryArrayResult& attributes, const std::string& 
   }
 
   Arc::MySQLQuery myquery(&mydb);
-    logger_.msg(Arc::DEBUG, "Is connected to database? %s", mydb.isconnected()? "yes":"no");
+    logger_.msg(Arc::VERBOSE, "Is connected to database? %s", mydb.isconnected()? "yes":"no");
 
   std::string querystr;
   for(int i = 0;; i++) {
@@ -444,12 +444,12 @@ bool Service_AA::query_db(Arc::QueryArrayResult& attributes, const std::string& 
         Arc::XMLNode scn = cn["aa:SQL"][k];
         if(!scn) break;
         querystr = (std::string)scn;
-        logger_.msg(Arc::DEBUG, "Query: %s", querystr.c_str());
+        logger_.msg(Arc::VERBOSE, "Query: %s", querystr.c_str());
         myquery.get_array(querystr, attributes, sqlargs);
       }
     }
   }
-  logger_.msg(Arc::DEBUG, "Get result array with %d rows",attributes.size());
+  logger_.msg(Arc::VERBOSE, "Get result array with %d rows",attributes.size());
   return true;
 }
 

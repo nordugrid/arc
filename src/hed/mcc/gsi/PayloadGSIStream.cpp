@@ -49,7 +49,7 @@ namespace Arc {
       input_tok.value = malloc(input_tok.length);
       memcpy(input_tok.value, readbuf, 5);
 
-      logger.msg(DEBUG, "input token length: %i", input_tok.length);
+      logger.msg(VERBOSE, "input token length: %i", input_tok.length);
 
       int pos = len;
       while (input_tok.length > pos) {
@@ -87,7 +87,7 @@ namespace Arc {
         return false;
       }
 
-      logger.msg(DEBUG, "Output token length: %i", output_tok.length);
+      logger.msg(VERBOSE, "Output token length: %i", output_tok.length);
 
       bufferlen = output_tok.length;
       bufferpos = 0;

@@ -159,7 +159,7 @@ namespace Arc {
       }
       it->callback_status = CALLBACK_DONE;
       dos_to_unix((char*)(it->resp->response_buffer));
-      logger.msg(DEBUG, "Response: %s", it->resp->response_buffer);
+      logger.msg(VERBOSE, "Response: %s", it->resp->response_buffer);
     }
     globus_cond_signal(&(it->cond));
     globus_mutex_unlock(&(it->mutex));
@@ -198,7 +198,7 @@ namespace Arc {
       globus_size_t nlen;
       nlen = strcspn(name, "\n\r");
       name[nlen] = 0;
-      logger.msg(DEBUG, "list record: %s", name);
+      logger.msg(VERBOSE, "list record: %s", name);
       if (nlen == length)
         if (!eof) {
           memmove(it->readbuf, name, nlen);
@@ -321,26 +321,26 @@ namespace Arc {
         strcat(cmd, " ");
         strcat(cmd, arg);
       }
-      logger.msg(DEBUG, "Command: %s", cmd);
+      logger.msg(VERBOSE, "Command: %s", cmd);
       strcat(cmd, "\r\n");
       if (globus_ftp_control_send_command(handle, cmd, resp_callback, this)
           != GLOBUS_SUCCESS) {
-        logger.msg(DEBUG, "%s failed", command);
+        logger.msg(VERBOSE, "%s failed", command);
         if (cmd)
           free(cmd);
         return GLOBUS_FTP_UNKNOWN_REPLY;
       }
-      logger.msg(VERBOSE, "Command is being sent");
+      logger.msg(DEBUG, "Command is being sent");
     }
     if (wait_for_response) {
       globus_mutex_lock(&mutex);
       while ((callback_status == CALLBACK_NOTREADY) && (resp_n == 0)) {
-        logger.msg(VERBOSE, "Waiting for response");
+        logger.msg(DEBUG, "Waiting for response");
         globus_cond_wait(&cond, &mutex);
       }
       free(cmd);
       if (callback_status != CALLBACK_DONE) {
-        logger.msg(VERBOSE, "Callback got failure");
+        logger.msg(DEBUG, "Callback got failure");
         callback_status = CALLBACK_NOTREADY;
         if (resp_n > 0) {
           globus_ftp_control_response_destroy(resp + (resp_n - 1));
@@ -356,14 +356,14 @@ namespace Arc {
             memcpy(*sresp, (char*)(resp[resp_n - 1].response_buffer + 4),
                    resp[resp_n - 1].response_length - 4);
             (*sresp)[resp[resp_n - 1].response_length - 4] = 0;
-            logger.msg(DEBUG, "Response: %s", *sresp);
+            logger.msg(VERBOSE, "Response: %s", *sresp);
           }
           else
             logger.msg(ERROR, "Memory allocation error");
         }
         else {
           /* look for pair of enclosing characters */
-          logger.msg(DEBUG, "Response: %s", resp[resp_n - 1].response_buffer);
+          logger.msg(VERBOSE, "Response: %s", resp[resp_n - 1].response_buffer);
           char *s_start = (char*)(resp[resp_n - 1].response_buffer + 4);
           char *s_end = NULL;
           int l = 0;
@@ -385,7 +385,7 @@ namespace Arc {
             if ((*sresp) != NULL) {
               memcpy(*sresp, s_start, l);
               (*sresp)[l] = 0;
-              logger.msg(DEBUG, "Response: %s", *sresp);
+              logger.msg(VERBOSE, "Response: %s", *sresp);
             }
           }
         }
@@ -445,7 +445,7 @@ namespace Arc {
   int Lister::close_connection() {
     if (!connected)
       return 0;
-    logger.msg(DEBUG, "Closing connection");
+    logger.msg(VERBOSE, "Closing connection");
     if (globus_ftp_control_quit(handle, resp_callback, this) !=
         GLOBUS_SUCCESS)
       if (globus_ftp_control_force_close(handle, resp_callback, this) !=
@@ -465,7 +465,7 @@ namespace Arc {
       }
     }
     connected = false;
-    logger.msg(DEBUG, "Closed successfully");
+    logger.msg(VERBOSE, "Closed successfully");
     return 0;
   }
 
@@ -477,7 +477,7 @@ namespace Arc {
         handle = NULL;
       }
       else {
-        logger.msg(DEBUG, "Memory leak (globus_ftp_control_handle_t)");
+        logger.msg(VERBOSE, "Memory leak (globus_ftp_control_handle_t)");
         handle = NULL;
       }
       globus_mutex_destroy(&mutex);
@@ -514,7 +514,7 @@ namespace Arc {
       return -1;
     }
     free(sresp);
-    logger.msg(DEBUG, "Data channel: %d.%d.%d.%d %d", pasv_addr.host[0],
+    logger.msg(VERBOSE, "Data channel: %d.%d.%d.%d %d", pasv_addr.host[0],
                pasv_addr.host[1], pasv_addr.host[2], pasv_addr.host[3],
                pasv_addr.port);
     if (!(res = globus_ftp_control_local_port(handle, &pasv_addr))) {
@@ -546,7 +546,7 @@ namespace Arc {
           (username == url.Username()) &&
           (userpass == url.Passwd())) {
         /* same server - check if connection alive */
-        logger.msg(DEBUG, "Reusing connection");
+        logger.msg(VERBOSE, "Reusing connection");
         if (send_command("NOOP", NULL, true, NULL) ==
             GLOBUS_FTP_POSITIVE_COMPLETION_REPLY)
           reconnect = false;

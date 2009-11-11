@@ -12,7 +12,7 @@ the default \texttt{{\$}HOME/.arc/client.conf}, if it does not exist.
 
 The ARC configuration file consists of several configuration blocks.
 Each configuration block is identified by a keyword and contains
-configuration options for a specific part of the ARC middleware. 
+configuration options for a specific part of the ARC middleware.
 
 The configuration file is written in a plain text format known as INI.
 Configuration blocks start with identifying keywords inside square brackets.
@@ -67,7 +67,7 @@ when contacting the service (e.g. ARC0, ARC1, CREAM, UNICORE, etc.) and
 can be listed, separated with a blank space (no line breaks allowed).
 
 Example:
-\begin{verbatim*} 
+\begin{verbatim*}
 defaultservices=index:ARC0:ldap://index1.ng.org:2135/Mds-Vo-name=testvo,o=grid
  index:ARC1:https://index2.ng.org:50000/isis
  computing:ARC1:https://ce.arc.org:60000/arex
@@ -100,8 +100,8 @@ Example:
  Default verbosity (debug) level to use for the ARC clients. Corresponds to the
 \verb#-d# command line option of the clients. Default value is \texttt{WARNING},
 possible values are \texttt{FATAL}, \texttt{ERROR}, \texttt{WARNING},
-\texttt{INFO}, \texttt{DEBUG} or \texttt{VERBOSE}.
- 
+\texttt{INFO}, \texttt{VERBOSE} or \texttt{DEBUG}.
+
 Example:
 \verb#    verbosity=INFO#
 
@@ -130,7 +130,7 @@ Configures which brokering algorithm to use during job submission. This attribut
 corresponds to the \verb#-b# command line option. The
 default one is the \texttt{Random} broker that chooses targets randomly.
 Another possibility is, for example, the \texttt{FastestQueue} broker that
-chooses the target with the shortest estimated queue waiting time. For an 
+chooses the target with the shortest estimated queue waiting time. For an
 overview of brokers, please refer to Section~\ref{sec:arcsub}.
 
  Example:
@@ -384,7 +384,7 @@ Users often prefer to submit jobs to a specific site; since contact URLs (and
 especially end-point references) are very long, it is very convenient to replace
 them with aliases. Block \texttt{[alias]} simply contains a list of
 alias-value pairs.
- 
+
  Alias substitutions is performed in connection with the \verb#-c# command line
  switch of the ARC clients.
 
@@ -394,7 +394,7 @@ alias-value pairs.
  defined in a list that is read before a given list can be used in
  alias definitions in that list. An alias defined in a list can also
  be used in alias definitions later in the same list.
- 
+
  Examples:
 \begin{verbatim}
 [alias]
@@ -433,8 +433,8 @@ configuration. Any command line options override the defaults.
 
 The file \textbf{{\$}\texttt{HOME/.nggiislist}} was used to keep the
 list of default GIIS server URLs, one line per GIIS (see \texttt{giis}
-attribute description above). 
+attribute description above).
 
 The file \textbf{{\$}\texttt{HOME/.ngalias}} was used to keep the
 list of site aliases, one line per alias (see \texttt{alias}
-attribute description above). 
+attribute description above).

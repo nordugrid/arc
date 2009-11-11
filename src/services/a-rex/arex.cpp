@@ -191,7 +191,7 @@ ARexConfigContext* ARexService::get_configuration(Arc::Message& inmsg) {
     logger_.msg(Arc::ERROR, "No local account name specified");
     return NULL;
   };
-  logger_.msg(Arc::VERBOSE,"Using local account '%s'",uname);
+  logger_.msg(Arc::DEBUG,"Using local account '%s'",uname);
   std::string grid_name = inmsg.Attributes()->get("TLS:IDENTITYDN");
   std::string endpoint = endpoint_;
   if(endpoint.empty()) {
@@ -242,8 +242,8 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
   std::string id = GetPath(inmsg,endpoint);
   std::string clientid = (inmsg.Attributes()->get("TCP:REMOTEHOST"))+":"+(inmsg.Attributes()->get("TCP:REMOTEPORT"));
   if((inmsg.Attributes()->get("PLEXER:PATTERN").empty()) && id.empty()) id=endpoint;
-  logger_.msg(Arc::DEBUG, "process: method: %s", method);
-  logger_.msg(Arc::DEBUG, "process: endpoint: %s", endpoint);
+  logger_.msg(Arc::VERBOSE, "process: method: %s", method);
+  logger_.msg(Arc::VERBOSE, "process: endpoint: %s", endpoint);
   while(id[0] == '/') id=id.substr(1);
   std::string subpath;
   {
@@ -254,8 +254,8 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
       while(subpath[0] == '/') subpath=subpath.substr(1);
     };
   };
-  logger_.msg(Arc::DEBUG, "process: id: %s", id);
-  logger_.msg(Arc::DEBUG, "process: subpath: %s", subpath);
+  logger_.msg(Arc::VERBOSE, "process: id: %s", id);
+  logger_.msg(Arc::VERBOSE, "process: subpath: %s", subpath);
 
   // Process grid-manager configuration if not done yet
   ARexConfigContext* config = get_configuration(inmsg);
@@ -278,7 +278,7 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
   // Using simplified algorithm - POST for SOAP messages,
   // GET and PUT for data transfer
   if(method == "POST") {
-    logger_.msg(Arc::DEBUG, "process: POST");
+    logger_.msg(Arc::VERBOSE, "process: POST");
     // Both input and output are supposed to be SOAP
     // Extracting payload
     Arc::PayloadSOAP* inpayload = NULL;
@@ -294,7 +294,7 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
     {
         std::string str;
         inpayload->GetDoc(str, true);
-        logger_.msg(Arc::DEBUG, "process: request=%s",str);
+        logger_.msg(Arc::VERBOSE, "process: request=%s",str);
     };
     // Analyzing request
     Arc::XMLNode op = inpayload->Child(0);
@@ -302,12 +302,12 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
       logger_.msg(Arc::ERROR, "input does not define operation");
       return make_soap_fault(outmsg);
     };
-    logger_.msg(Arc::DEBUG, "process: operation: %s",op.Name());
+    logger_.msg(Arc::VERBOSE, "process: operation: %s",op.Name());
     // Check if request is for top of tree (BES factory) or particular 
     // job (listing activity)
     if(id.empty()) {
       // Factory operations
-      logger_.msg(Arc::DEBUG, "process: factory endpoint");
+      logger_.msg(Arc::VERBOSE, "process: factory endpoint");
       Arc::PayloadSOAP* outpayload = new Arc::PayloadSOAP(ns_);
       Arc::PayloadSOAP& res = *outpayload;
       // Preparing known namespaces
@@ -373,7 +373,7 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
       {
         std::string str;
         outpayload->GetDoc(str, true);
-        logger_.msg(Arc::DEBUG, "process: response=%s",str);
+        logger_.msg(Arc::VERBOSE, "process: response=%s",str);
       };
       outmsg.Payload(outpayload);
     } else {
@@ -388,7 +388,7 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
     return Arc::MCC_Status(Arc::STATUS_OK);
   } else if(method == "GET") {
     // HTTP plugin either provides buffer or stream
-    logger_.msg(Arc::DEBUG, "process: GET");
+    logger_.msg(Arc::VERBOSE, "process: GET");
     CountedResourceLock cl_lock(datalimit_);
     // TODO: in case of error generate some content
     Arc::MCC_Status ret = Get(inmsg,outmsg,*config,id,subpath);
@@ -401,7 +401,7 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
     };
     return ret;
   } else if(method == "PUT") {
-    logger_.msg(Arc::DEBUG, "process: PUT");
+    logger_.msg(Arc::VERBOSE, "process: PUT");
     CountedResourceLock cl_lock(datalimit_);
     Arc::MCC_Status ret = Put(inmsg,outmsg,*config,id,subpath);
     if(!ret) return make_fault(outmsg);
@@ -416,7 +416,7 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
     };
     return ret;
   } else {
-    logger_.msg(Arc::DEBUG, "process: method %s is not supported",method);
+    logger_.msg(Arc::VERBOSE, "process: method %s is not supported",method);
     // TODO: make useful response
     return Arc::MCC_Status();
   };
@@ -479,7 +479,7 @@ ARexService::ARexService(Arc::Config *cfg):RegisteredService(cfg),
       if(h == -1) {
         throw Glib::FileError(Glib::FileError::FAILED,"Failed to create temporary file in any of control directories");
       };
-      logger_.msg(Arc::VERBOSE, "Storing configuration into temporary file - %s",gmconfig_);
+      logger_.msg(Arc::DEBUG, "Storing configuration into temporary file - %s",gmconfig_);
       Arc::XMLNode gmxml;
       cfg->New(gmxml);
       // Storing configuration into temporary file

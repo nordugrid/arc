@@ -89,7 +89,7 @@ namespace Arc {
 
     //Parse the authenRequestUrl from response
     std::string authnRequestUrl(responseSP->Content());
-    logger.msg(VERBOSE, "Authentication Request URL: %s", authnRequestUrl);
+    logger.msg(DEBUG, "Authentication Request URL: %s", authnRequestUrl);
 
     if (responseSP)
       delete responseSP;

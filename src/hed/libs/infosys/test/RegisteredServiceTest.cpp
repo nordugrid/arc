@@ -65,10 +65,10 @@ xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"><SOAP-ENV:Body><bes-fact
           /** Example contructor - Server takes at least it's configuration subtree */
           MyRegisteredService(Arc::Config* cfg):RegisteredService(cfg) 
                       { std::cout << "My Service called!" << std::endl;
-                        // DEBUG                    
+                        // VERBOSE                    
                         std::string config_str;
                         cfg->GetXML(config_str, true);
-                        logger.msg(Arc::DEBUG, "The config: \n%s \n", config_str);
+                        logger.msg(Arc::VERBOSE, "The config: \n%s \n", config_str);
                       };
 
           virtual ~MyRegisteredService(void) { };

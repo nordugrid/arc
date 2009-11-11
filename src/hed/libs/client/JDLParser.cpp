@@ -117,14 +117,14 @@ namespace Arc {
       if (value == "job")
         return true;
       if (value == "dag") {
-        logger.msg(DEBUG, "[JDLParser] This kind of JDL decriptor is not supported yet: %s", value);
+        logger.msg(VERBOSE, "[JDLParser] This kind of JDL decriptor is not supported yet: %s", value);
         return false;  // This kind of JDL decriptor is not supported yet
       }
       if (value == "collection") {
-        logger.msg(DEBUG, "[JDLParser] This kind of JDL decriptor is not supported yet: %s", value);
+        logger.msg(VERBOSE, "[JDLParser] This kind of JDL decriptor is not supported yet: %s", value);
         return false;  // This kind of JDL decriptor is not supported yet
       }
-      logger.msg(DEBUG, "[JDLParser] Attribute name: %s, has unknown value: %s", attributeName, value);
+      logger.msg(VERBOSE, "[JDLParser] Attribute name: %s, has unknown value: %s", attributeName, value);
       return false;    // Unknown attribute value - error
     }
     else if (attributeName == "jobtype")
@@ -219,7 +219,7 @@ namespace Arc {
           i++;
         }
         else {
-          logger.msg(DEBUG, "Not enough outputsandboxdesturi element!");
+          logger.msg(VERBOSE, "Not enough outputsandboxdesturi element!");
           return false;
         }
       }
@@ -278,7 +278,7 @@ namespace Arc {
               trim(it->substr(equal_pos + 1))));
         }
         else {
-          logger.msg(DEBUG, "[JDLParser] Environment variable has been defined without any equal sign.");
+          logger.msg(VERBOSE, "[JDLParser] Environment variable has been defined without any equal sign.");
           return false;
         }
       }
@@ -458,7 +458,7 @@ namespace Arc {
     unsigned long first = source.find_first_of("[");
     unsigned long last = source.find_last_of("]");
     if (first == std::string::npos || last == std::string::npos) {
-      logger.msg(DEBUG, "[JDLParser] There is at least one necessary ruler character missing. ('[' or ']')");
+      logger.msg(VERBOSE, "[JDLParser] There is at least one necessary ruler character missing. ('[' or ']')");
       return JobDescription();
     }
     std::string input_text = source.substr(first + 1, last - first - 1);
@@ -490,11 +490,11 @@ namespace Arc {
     }
 
     if (!splitJDL(wcpy, lines)) {
-      logger.msg(DEBUG, "[JDLParser] Syntax error found during the split function.");
+      logger.msg(VERBOSE, "[JDLParser] Syntax error found during the split function.");
       return JobDescription();
     }
     if (lines.size() <= 0) {
-      logger.msg(DEBUG, "[JDLParser] Lines count is zero or other funny error has occurred.");
+      logger.msg(VERBOSE, "[JDLParser] Lines count is zero or other funny error has occurred.");
       return JobDescription();
     }
 
@@ -504,7 +504,7 @@ namespace Arc {
          it != lines.end(); it++) {
       const size_t equal_pos = it->find_first_of("=");
       if (equal_pos == std::string::npos) {
-        logger.msg(DEBUG, "[JDLParser] JDL syntax error. There is at least one equal sign missing where it would be expected.");
+        logger.msg(VERBOSE, "[JDLParser] JDL syntax error. There is at least one equal sign missing where it would be expected.");
         return JobDescription();
       }
       if (!handleJDLattribute(trim(it->substr(0, equal_pos)), trim(it->substr(equal_pos + 1)), job))

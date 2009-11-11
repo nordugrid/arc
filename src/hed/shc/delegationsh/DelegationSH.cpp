@@ -145,7 +145,7 @@ bool DelegationSH::Handle(Arc::Message* msg){
         logger.msg(Arc::INFO,"Delegation handler with delegatee role starts to process");
         std::string method = (*msg).Attributes()->get("HTTP:METHOD");
         if(method == "POST") {
-          logger.msg(Arc::DEBUG, "process: POST");
+          logger.msg(Arc::VERBOSE, "process: POST");
           // Extracting payload
           Arc::PayloadSOAP* inpayload = NULL;
           try {
