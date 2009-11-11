@@ -22,9 +22,9 @@ namespace Arc {
         INFO level designates informational messages that highlight
           the progress of the application at coarse-grained level.
         VERBOSE level designates fine-grained informational events
-          that are most useful to debug an application.
+          that will give additional information about the application.
         DEBUG level designates finer-grained informational events
-        than the VERBOSE
+          which should only be used for debugging purposes.
    */
   enum LogLevel {
     DEBUG = 1,
