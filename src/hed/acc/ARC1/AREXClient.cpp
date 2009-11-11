@@ -488,10 +488,8 @@ namespace Arc {
     }
     resp->XMLNode::New(status);
     delete resp;
-    if (status) {
-      status.SaveToStream(std::cout); std::cout << std::endl;
+    if (status)
       return true;
-    }
     else {
       logger.msg(ERROR, "The service status could not be retrieved");
       return false;
