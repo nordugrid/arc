@@ -271,10 +271,10 @@ umask 0022;
 #directory where we keep the current state
 ######################################################################
 my $registrationDir = $config->{'janitor'}{'registrationdir'};
-$registrationDir .= "/" unless $registrationDir =~ m#/$#;		#
-
 my $msg = undef;
-if ( ! -d $registrationDir) {
+if (not defined $registrationDir) {
+	$msg = "Option registrationdir is missing from config\n";
+} elsif (! -d $registrationDir) {
 	$msg = "Directory $registrationDir does not exist\n";
 } elsif (! -r $registrationDir) {
 	$msg = "Can not read directory $registrationDir\n";
@@ -296,7 +296,7 @@ my $regDirRTE = "$registrationDir/rtes";
 my $regDirPackages = "$registrationDir/packages";
 
 foreach my $dir ( ($regDirJob, $regDirRTE, $regDirPackages) ) {
-	my $msg = undef;
+	$msg = undef;
 
 	if (! -e $dir) {
 		unless (mkdir $dir) {
@@ -321,63 +321,60 @@ foreach my $dir ( ($regDirJob, $regDirRTE, $regDirPackages) ) {
 #directory for installation of packages
 ######################################################################
 my $instdir=$config->{'janitor'}{'installationdir'};
-if (defined $instdir) {
-    $instdir .= "/" unless $instdir =~ m#/$#;		#
-    my $msg;
-    if ( ! -d $instdir ) {
-        $msg = "Directory $instdir does not exist\n";
-    } elsif ( ! -r $instdir ) {
-        $msg = "$instdir is not readable\n";
-    } elsif ( ! -w $instdir ) {
-        $msg = "$instdir is not writable\n";
-    }
-    if (defined $msg) {
-###l4p        $logger->fatal($msg);
-        printf STDERR $msg;
-        return 4
-    }
+$msg = undef;
+if (not defined $instdir) {
+	$msg = "Option installationdir is missing from config\n";
+} elsif ( ! -d $instdir ) {
+    $msg = "Directory $instdir does not exist\n";
+} elsif ( ! -r $instdir ) {
+    $msg = "$instdir is not readable\n";
+} elsif ( ! -w $instdir ) {
+    $msg = "$instdir is not writable\n";
+}
+if (defined $msg) {
+###l4p    $logger->fatal($msg);
+    printf STDERR $msg;
+    return 4
 }
 
 ######################################################################
 #directory for downloads
 ######################################################################
 my $downloaddir = $config->{'janitor'}{'downloaddir'};
-if (defined $downloaddir) {
-    $downloaddir .= "/" unless $downloaddir=~ m#/$#;		#
-    my $msg;
-    if ( ! -d $downloaddir ) {
-        $msg = "Directory $downloaddir does not exist\n";
-    } elsif ( ! -r $downloaddir ) {
-        $msg = "$downloaddir is not readable\n";
-    } elsif ( ! -w $downloaddir ) {
-        $msg = "$downloaddir is not writable\n";
-    }
-    if (defined $msg) {
-###l4p        $logger->fatal($msg);
-        printf STDERR $msg;
-        return 4
-    }
+$msg = undef;
+if (not defined $downloaddir) {
+	$msg = "Option downloaddir is missing from config\n";
+} elsif ( ! -d $downloaddir ) {
+    $msg = "Directory $downloaddir does not exist\n";
+} elsif ( ! -r $downloaddir ) {
+    $msg = "$downloaddir is not readable\n";
+} elsif ( ! -w $downloaddir ) {
+    $msg = "$downloaddir is not writable\n";
+}
+if (defined $msg) {
+###l4p    $logger->fatal($msg);
+    printf STDERR $msg;
+    return 4
 }
 
 ######################################################################
 #manual installation directory for the site admin (the old way)
 ######################################################################
 my $manualRuntimeDir = $config->{"grid-manager"}{"runtimedir"};
-if (defined $manualRuntimeDir) {
-	$manualRuntimeDir .= "/" unless $manualRuntimeDir =~ m#/$#;	#
-    my $msg;
-    if ( ! -d $manualRuntimeDir ) {
-        $msg = "Directory $manualRuntimeDir does not exist\n";
-    } elsif ( ! -r $manualRuntimeDir ) {
-        $msg = "$manualRuntimeDir is not readable\n";
-    } elsif ( ! -w $manualRuntimeDir ) {
-        $msg = "$manualRuntimeDir is not writable\n";
-    }
-    if (defined $msg) {
-###l4p        $logger->fatal($msg);
-        printf STDERR $msg;
-        return 4
-    }
+$msg = undef;
+if (not defined $manualRuntimeDir) {
+	# That's ok, will just skip creating softlinks
+} elsif ( ! -d $manualRuntimeDir ) {
+    $msg = "Directory $manualRuntimeDir does not exist\n";
+} elsif ( ! -r $manualRuntimeDir ) {
+    $msg = "$manualRuntimeDir is not readable\n";
+} elsif ( ! -w $manualRuntimeDir ) {
+    $msg = "$manualRuntimeDir is not writable\n";
+}
+if (defined $msg) {
+###l4p    $logger->fatal($msg);
+    printf STDERR $msg;
+    return 4
 }
 
 #If a job is older than this, it is considered dead and will be removed by
@@ -1451,11 +1448,6 @@ The following options are supported.
 
 =over 4
 
-=item basedir
-
-Location of the basedir of the janitor installation. Used by the ARC backend scripts
-to find the Janitors modules.
-
 =item logconf
 
 Location of the Log4perl configuration file.
@@ -1531,7 +1523,6 @@ Location of the nordugrid arc.conf. If unset /etc/arc.conf is used.
 =head1 EXAMPLE
 
  [janitor]
- basedir="/opt/janitor"
  logconf="/opt/janitor/work/log.conf"
  registrationdir="/opt/janitor/work/reg"
  installationdir="/grid/runtime/janitor"
