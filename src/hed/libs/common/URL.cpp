@@ -471,11 +471,15 @@ namespace Arc {
         path = Path2BaseDN(path);
 
     // add absolute path for relative file URLs
-    } else if ((protocol == "file" || protocol == "urllist") && !Glib::path_is_absolute(path)) {
-      char cwd[PATH_MAX];
-      if (getcwd(cwd, PATH_MAX))
-        path = Glib::build_filename(cwd, path);
+    } else if (protocol == "file" || protocol == "urllist") {
+      if(!Glib::path_is_absolute(path)) {
+        char cwd[PATH_MAX];
+        if (getcwd(cwd, PATH_MAX))
+          path = Glib::build_filename(cwd, path);
+      }
     }
+
+    // for generic URL just make sure path has leading /
     else if ((path[0] != '/') && (!path.empty())) {
       URLLogger.msg(WARNING, "Attempt to assign relative path to URL - making it absolute");
       path = "/" + path;
