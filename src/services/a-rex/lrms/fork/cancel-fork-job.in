@@ -4,9 +4,8 @@
 #  Cancel job running in FORK.
 # 
 
-set -e
-
 echo "----- starting cancel_fork_job -----" 1>&2
+trap 'echo "----- exiting cancel_fork_job -----" 1>&2; echo "" 1>&2' EXIT
 
 joboption_lrms=fork
 
@@ -50,9 +49,9 @@ if [ ! -r "$job_control_dir/job.${joboption_gridid}.status" ]; then
 fi
 
 case X`cat "$job_control_dir/job.${joboption_gridid}.status"` in
-    XINLRMS)
+    XINLRMS | XCANCELING)
         if [ -z "$joboption_jobid" ] ; then
-            echo "Can't find local id of job"
+            echo "Can't find local id of job" 1>&2
             exit 1
         fi
         kill -TERM $joboption_jobid
@@ -68,7 +67,5 @@ case X`cat "$job_control_dir/job.${joboption_gridid}.status"` in
         ;;
 esac
 
-echo "----- exiting cancel_fork_job -----" 1>&2
-echo "" 1>&2
 exit 0
 

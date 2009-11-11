@@ -4,8 +4,6 @@
 #  reported an exitcode
 #
 
-set -e
-
 id=`id -u`
 
 #debug='eval echo >> @tmp_dir@/parse-fork-log.$id'
