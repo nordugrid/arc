@@ -529,7 +529,7 @@ int main(int argc,char** argv) {
   if(job_output_read_file(desc.get_id(),user,output_files)) {
     for (std::list<FileData>::iterator j = output_files.begin(); j != output_files.end(); j++) {
       for (std::list<FileData>::iterator i = job_files_.begin(); i != job_files_.end(); i++) {
-        if (i->pfn == j->pfn && j->lfn.empty()) {
+        if (i->pfn == j->pfn && j->lfn.empty() && i->lfn.find(':') != std::string::npos) {
           Arc::URL u(i->lfn);
           std::string opt = u.Option("cache");
           // don't add copy option if exists or current option is "no" or "renew"
@@ -578,8 +578,6 @@ int main(int argc,char** argv) {
   for(FileDataEx::iterator i=job_files.begin();i!=job_files.end();++i) {
     if(i->lfn.find(":") == std::string::npos) { /* is it lfn ? */
       upload_timeout+=MAX_USER_TIME;
-    } else {
-      userfiles_only=false;
     };
   };
   // Main download cycle

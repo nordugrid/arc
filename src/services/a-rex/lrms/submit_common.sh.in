@@ -258,6 +258,7 @@ setup_local_transfer () {
   cat "${joboption_controldir}/job.${joboption_gridid}.proxy" >"${RUNTIME_CONTROL_DIR}/job.local.proxy"
   cat "${joboption_controldir}/job.${joboption_gridid}.input" >"${RUNTIME_CONTROL_DIR}/job.local.input"
   cat "${joboption_controldir}/job.${joboption_gridid}.output">"${RUNTIME_CONTROL_DIR}/job.local.output"
+  cat "${joboption_controldir}/job.${joboption_gridid}.local">"${RUNTIME_CONTROL_DIR}/job.local.local"
   RUNTIME_CONTROL_DIR_REL=`basename "$RUNTIME_CONTROL_DIR"`
   echo "$RUNTIME_CONTROL_DIR_REL *.*" >>"${RUNTIME_CONTROL_DIR}/job.local.input"
   echo "$RUNTIME_CONTROL_DIR_REL" >>"${RUNTIME_CONTROL_DIR}/job.local.output"
