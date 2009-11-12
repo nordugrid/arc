@@ -503,10 +503,18 @@ EOSCR
     echo '  echo "Cannot run $executable: $interpreter: not found"' "$output_redirect 1>&2" >> $LRMS_JOB_SCRIPT
     echo '  exit 1; }' >> $LRMS_JOB_SCRIPT
 
-  if [ -z "$GNU_TIME" ] ; then
-    echo "$joboption_args $input_redirect $output_redirect" >> $LRMS_JOB_SCRIPT
-  else
-    echo "$GNU_TIME -o \"\$RUNTIME_JOB_DIAG\" -a -f '\
+    # Check that gnu_time works
+    cat >> $LRMS_JOB_SCRIPT <<EOSCR
+GNU_TIME='$GNU_TIME'
+if [ ! -z "\$GNU_TIME" ] && ! "\$GNU_TIME" --version >/dev/null 2>&1; then
+  echo "WARNING: GNU time not found at: \$GNU_TIME" 2>&1;
+  GNU_TIME=
+fi 
+if [ -z "\$GNU_TIME" ] ; then
+EOSCR
+  echo "  $joboption_args $input_redirect $output_redirect" >> $LRMS_JOB_SCRIPT
+  echo "else" >> $LRMS_JOB_SCRIPT
+  echo "  \"\$GNU_TIME\" -o \"\$RUNTIME_JOB_DIAG\" -a -f '\
 WallTime=%es\nKernelTime=%Ss\nUserTime=%Us\nCPUUsage=%P\n\
 MaxResidentMemory=%MkB\nAverageResidentMemory=%tkB\n\
 AverageTotalMemory=%KkB\nAverageUnsharedMemory=%DkB\n\
@@ -516,7 +524,7 @@ Swaps=%W\nForcedSwitches=%c\nWaitSwitches=%w\n\
 Inputs=%I\nOutputs=%O\nSocketReceived=%r\nSocketSent=%s\n\
 Signals=%k\n' \
 $joboption_args $input_redirect $output_redirect" >> $LRMS_JOB_SCRIPT
-  fi
+  echo "fi" >> $LRMS_JOB_SCRIPT
   echo "RESULT=\$?" >> $LRMS_JOB_SCRIPT
 
 }
