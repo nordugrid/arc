@@ -228,9 +228,18 @@ MCC_Status MCC_SOAP_Service::process(Message& inmsg,Message& outmsg) {
     retpayload = dynamic_cast<PayloadSOAP*>(nextoutmsg.Payload());
   } catch(std::exception& e) { };
   if(!retpayload) {
-    logger.msg(WARNING, "next element of the chain returned invalid payload");
-    delete nextoutmsg.Payload(); 
-    return make_raw_fault(outmsg,"There is no SOAP response"); 
+    // There is a chance that next MCC decided to return pre-rendered SOAP
+    // or otherwise valid non-SOAP response. For that case we simply pass 
+    // it back to previous MCC and let it decide.
+    logger.msg(INFO, "next element of the chain returned unknown payload - passing through");
+    //Checking authentication and authorization; 
+    if(!ProcessSecHandlers(nextoutmsg,"outgoing")) {
+      logger.msg(ERROR, "Security check failed in SOAP MCC for outgoing message");
+      delete nextoutmsg.Payload();
+      return make_raw_fault(outmsg,"Security check failed for SOAP response");
+    };
+    outmsg = nextoutmsg;
+    return MCC_Status(STATUS_OK);
   };
   if(!(*retpayload)) {
     delete retpayload;
