@@ -160,7 +160,7 @@ JOB_ID=
 cleanup() {
     [ -n "$JOB_ID" ] && kill -9 $JOB_ID 2>/dev/null
     # remove temp files
-    [ $# -gt 0 ] && rm -f $@
+    rm -f "$LRMS_JOB_SCRIPT" "$LRMS_JOB_OUT"
 }
 
 watcher() {
@@ -175,7 +175,6 @@ watcher() {
     else
         echo "OK" > "$3"
         wait $JOB_ID
-        cleanup "$1" "$2"
     fi
 }
 
@@ -186,7 +185,8 @@ echo "job script ${LRMS_JOB_SCRIPT} built" 1>&2
 
 # simple queuing system: make hard reference to the queue
 cd "$joboption_directory" 1>&2 || { echo "Could not cd to $joboption_directory, aborting" && exit 1; }
-watcher "${LRMS_JOB_SCRIPT}" "${joboption_directory}.comment" "${LRMS_JOB_ERR}" &
+# Bash (but not dash) needs the parantheses, otherwise 'trap' has no effect!
+( watcher "$LRMS_JOB_SCRIPT" "${joboption_directory}.comment" "$LRMS_JOB_ERR"; ) &
 job_id=$!
 result=
 while [ -z "$result" ]; do
