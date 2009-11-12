@@ -41,7 +41,7 @@ void ARexService::InformationCollector(void) {
       run.AssignStdin(stdin_str);
       run.AssignStdout(xml_str);
       run.AssignStderr(stderr_str);
-      logger_.msg(Arc::VERBOSE,"Cluster information provider: %s",cmd);
+      logger_.msg(Arc::DEBUG,"Cluster information provider: %s",cmd);
       if(!run.Start()) {
       };
       if(!run.Wait(infoprovider_wakeup_period_*10)) {
@@ -51,23 +51,39 @@ void ARexService::InformationCollector(void) {
         r = run.Result();
         if (r!=0) logger_.msg(Arc::WARNING,"Cluster information provider failed with exit status: %i",r);
       };
-      logger_.msg(Arc::VERBOSE,"Cluster information provider log:\n%s",stderr_str);
+      logger_.msg(Arc::DEBUG,"Cluster information provider log:\n%s",stderr_str);
     };
     if (r!=0) {
-      logger_.msg(Arc::VERBOSE,"No new informational document assigned");
+      logger_.msg(Arc::DEBUG,"No new informational document assigned");
     } else {
-      logger_.msg(Arc::DEBUG,"Obtained XML: %s",xml_str);
+      logger_.msg(Arc::VERBOSE,"Obtained XML: %s",xml_str.substr(0,100));
+      /*
       Arc::XMLNode root(xml_str);
       if(root) {
         // Collect job states
         GetGlueStates(root,glue_states_);
         // Put result into container
         infodoc_.Arc::InformationContainer::Assign(root,true);
-        logger_.msg(Arc::VERBOSE,"Assigned new informational document");
+        logger_.msg(Arc::DEBUG,"Assigned new informational document");
       } else {
         logger_.msg(Arc::ERROR,"Failed to create informational document");
       };
-    }
+      */
+      if(!xml_str.empty()) {
+        infodoc_.Assign(xml_str);
+        Arc::XMLNode root = infodoc_.Acquire();
+        if(root) {
+          logger_.msg(Arc::DEBUG,"Assigned new informational document");
+          // Collect job states
+          GetGlueStates(root,glue_states_);
+        } else {
+          logger_.msg(Arc::ERROR,"Failed to create informational document");
+        };
+        infodoc_.Release();
+      } else {
+        logger_.msg(Arc::ERROR,"Informational document is empty");
+      };
+    };
     if(thread_count_.WaitOrCancel(infoprovider_wakeup_period_*1000)) break;
   };
   thread_count_.UnregisterThread();
@@ -75,7 +91,7 @@ void ARexService::InformationCollector(void) {
 
 bool ARexService::RegistrationCollector(Arc::XMLNode &doc) {
   //Arc::XMLNode root = infodoc_.Acquire();
-  logger_.msg(Arc::DEBUG,"Passing service's information from collector to registrator");
+  logger_.msg(Arc::VERBOSE,"Passing service's information from collector to registrator");
   Arc::XMLNode empty(ns_, "RegEntry");
   empty.New(doc);
 
@@ -139,6 +155,7 @@ class PrefixedFilePayload: public Arc::PayloadRawInterface {
     prefix_ = prefix;
     postfix_ = postfix;
     handle_ = handle;
+    addr_ = NULL;
     length_ = 0;
     if(handle != -1) {
       struct stat st;
@@ -160,7 +177,7 @@ class PrefixedFilePayload: public Arc::PayloadRawInterface {
     if(!p) return 0;
     return *p;
   };
-  virtual char* Content(Size_t pos = -1) {
+  virtual char* Content(Size_t pos) {
     if(pos < prefix_.length()) return (char*)(prefix_.c_str() + pos);
     pos -= prefix_.length();
     if(pos < length_) return ((char*)(addr_) + pos);
@@ -215,6 +232,8 @@ OptimizedInformationContainer::OptimizedInformationContainer(void) {
 }
 
 OptimizedInformationContainer::~OptimizedInformationContainer(void) {
+  if(handle_ != -1) ::close(handle_);
+  if(!filename_.empty()) ::unlink(filename_.c_str());
 }
 
 int OptimizedInformationContainer::OpenDocument(void) {
@@ -274,18 +293,37 @@ void OptimizedInformationContainer::AssignFile(const std::string& filename) {
 void OptimizedInformationContainer::Assign(const std::string& xml) {
   std::string filename;
   int h = Glib::file_open_tmp(filename);
-  if(h == -1) return;
+  if(h == -1) {
+    Arc::Logger::getRootLogger().msg(Arc::ERROR,"OptimizedInformationContainer failed to create temporary file");
+    return;
+  };
+  Arc::Logger::getRootLogger().msg(Arc::VERBOSE,"OptimizedInformationContainer created temporary file: %s",filename);
   for(std::string::size_type p = 0;p<xml.length();++p) {
     ssize_t l = ::write(h,xml.c_str()+p,xml.length()-p);
     if(l == -1) {
       ::unlink(filename.c_str());
       ::close(h);
+      Arc::Logger::getRootLogger().msg(Arc::ERROR,"OptimizedInformationContainer failed to store XML document to temporary file");
       return;
     };
     p+=l;
   };
-  AssignFile(filename);
-  ::close(h);
+  Arc::XMLNode newxml(xml);
+  if(!newxml) {
+    Arc::Logger::getRootLogger().msg(Arc::ERROR,"OptimizedInformationContainer failed to parse XML");
+    return;
+  };
+  // Here we have XML stored in file and parsed
+  olock_.lock();
+  if(!filename_.empty()) ::unlink(filename_.c_str());
+  if(handle_ != -1) ::close(handle_);
+  filename_ = filename;
+  handle_ = h;
+  lock_.lock();
+  doc_.Swap(newxml);
+  lock_.unlock();
+  Arc::InformationContainer::Assign(doc_,false);
+  olock_.unlock();
 }
 
 }
