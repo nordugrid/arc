@@ -291,7 +291,7 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
     };
     // Aplying known namespaces
     inpayload->Namespaces(ns_);
-    {
+    if(logger_.getThreshold() <= Arc::VERBOSE) {
         std::string str;
         inpayload->GetDoc(str, true);
         logger_.msg(Arc::VERBOSE, "process: request=%s",str);
@@ -357,6 +357,7 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
         UpdateCredentials(*config,op,outpayload->Child(),credentials);
       } else if(MatchXMLNamespace(op,"http://docs.oasis-open.org/wsrf/rp-2")) {
         CountedResourceLock cl_lock(infolimit_);
+        /*
         Arc::SOAPEnvelope* out_ = infodoc_.Arc::InformationInterface::Process(*inpayload);
         if(out_) {
           out_->Swap(*outpayload);
@@ -365,12 +366,37 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
           delete outpayload;
           return make_soap_fault(outmsg);
         };
+        */
+        delete outpayload;
+        Arc::MessagePayload* mpayload = infodoc_.Process(*inpayload);
+        if(!mpayload) {
+          return make_soap_fault(outmsg);
+        };
+        try {
+          outpayload = dynamic_cast<Arc::PayloadSOAP*>(mpayload);
+        } catch(std::exception& e) { };
+        outmsg.Payload(mpayload);
+        if(logger_.getThreshold() <= Arc::VERBOSE) {
+          if(outpayload) {
+            std::string str;
+            outpayload->GetDoc(str, true);
+            logger_.msg(Arc::VERBOSE, "process: response=%s",str);
+          } else {
+            logger_.msg(Arc::VERBOSE, "process: response is not SOAP");
+          };
+        };
+        if(!ProcessSecHandlers(outmsg,"outgoing")) {
+          logger_.msg(Arc::ERROR, "Security Handlers processing failed");
+          delete outmsg.Payload(NULL);
+          return Arc::MCC_Status();
+        };
+        return Arc::MCC_Status(Arc::STATUS_OK);
       } else {
         logger_.msg(Arc::ERROR, "SOAP operation is not supported: %s", op.Name());
         delete outpayload;
         return make_soap_fault(outmsg);
       };
-      {
+      if(logger_.getThreshold() <= Arc::VERBOSE) {
         std::string str;
         outpayload->GetDoc(str, true);
         logger_.msg(Arc::VERBOSE, "process: response=%s",str);
