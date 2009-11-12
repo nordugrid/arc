@@ -98,6 +98,20 @@ class Shepherd:
         print "Shepherd's destructor called"
         self.service_is_running = False
         
+    def getSpaceInformation(self):
+        free_size = self.backend.getAvailableSpace()
+        used_size = 0
+        referenceIDs = self.store.list()
+        for referenceID in referenceIDs:
+            try:
+                localData = self.store.get(referenceID)
+                size = int(localData['size'])
+                used_size += size
+            except:
+                pass
+        total_size = free_size + used_size
+        return free_size, used_size, total_size
+    
     def isisLibrarianThread(self, isis_urls):
         while self.service_is_running:
             try:
@@ -703,5 +717,12 @@ class ShepherdService(Service):
         return True
 
     def GetAdditionalLocalInformation(self, service_node):
+        service_node.Name('StorageService')
         service_node.NewChild('Type').Set(shepherd_servicetype)
-
+        capacity_node = service_node.NewChild('StorageServiceCapacity')
+        free_size, used_size, total_size = self.shepherd.getSpaceInformation()
+        print free_size, used_size, total_size
+        gigabyte = 1073741824.0
+        capacity_node.NewChild('FreeSize').Set(str(free_size/gigabyte))
+        capacity_node.NewChild('UsedSize').Set(str(used_size/gigabyte))
+        capacity_node.NewChild('TotalSize').Set(str(total_size/gigabyte))
