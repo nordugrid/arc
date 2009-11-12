@@ -8,9 +8,9 @@
 #include <arc/UserConfig.h>
 #include <arc/client/ClientInterface.h>
 #include <arc/delegation/DelegationInterface.h>
+#include <arc/infosys/InformationInterface.h>
 #include <arc/loader/Loader.h>
 #include <arc/ws-addressing/WSA.h>
-#include <arc/wsrf/WSResourceProperties.h>
 
 #include "JobStateARC1.h"
 #include "JobStateBES.h"
@@ -93,10 +93,10 @@ namespace Arc {
       delete client;
   }
 
-  bool AREXClient::process(PayloadSOAP& req, PayloadSOAP **resp, bool delegate) {
+  bool AREXClient::process(const std::string& action, PayloadSOAP& req, PayloadSOAP **resp, bool delegate) {
     logger.msg(VERBOSE, "Processing a %s request", req.Child(0).FullName());
-    if (WSAHeader(req).Action() != "")
-      logger.msg(VERBOSE, "Action: %s", WSAHeader(req).Action());
+    if (action != "")
+      logger.msg(VERBOSE, "Action: %s", action);
 
     // Try to figure out which credentials are used
     // TODO: Method used is unstable beacuse it assumes some predefined
@@ -139,7 +139,7 @@ namespace Arc {
         deleg.DelegatedToken(op);
       }
       MCC_Status status =
-        client->process(WSAHeader(req).Action(), &req, resp);
+        client->process(action, &req, resp);
       if (!status) {
         logger.msg(ERROR, "SOAP request failed");
         return false;
@@ -153,7 +153,7 @@ namespace Arc {
       Message reqmsg;
       Message repmsg;
       MessageAttributes attributes_req;
-      attributes_req.set("SOAP:ACTION", WSAHeader(req).Action());
+      attributes_req.set("SOAP:ACTION", action);
       MessageAttributes attributes_rep;
       MessageContext context;
 
@@ -216,7 +216,8 @@ namespace Arc {
     XMLNode op = req.NewChild("bes-factory:CreateActivity");
     XMLNode act_doc = op.NewChild("bes-factory:ActivityDocument");
     set_bes_factory_action(req, "CreateActivity");
-    WSAHeader(req).To(rurl.str());
+    WSAHeader header(req);
+    header.To(rurl.str());
     act_doc.NewChild(XMLNode(jobdesc));
     act_doc.Child(0).Namespaces(arex_ns); // Unify namespaces
 
@@ -224,7 +225,7 @@ namespace Arc {
 
     PayloadSOAP *resp = NULL;
 
-    if (!process(req, &resp, delegate))
+    if (!process(header.Action(), req, &resp, delegate))
       return false;
 
     XMLNode id;
@@ -252,19 +253,12 @@ namespace Arc {
     logger.msg(INFO, "Creating and sending a status request");
 
     PayloadSOAP req(arex_ns);
+    WSAHeader header(req);
     if(arex_enabled) {
       // AREX service
-      XMLNode jobref =
-        req.NewChild("rp:QueryResourceProperties").
-        NewChild("rp:QueryExpression");
-      jobref.NewAttribute("Dialect") = "http://www.w3.org/TR/1999/REC-xpath-19991116";
-
-      std::string jobidnumber = (std::string)(XMLNode(jobid)["ReferenceParameters"]["JobID"]);
-      jobref = "//glue:Services/glue:ComputingService/glue:ComputingEndpoint/glue:ComputingActivities/glue:ComputingActivity/glue:ID[contains(.,'" + jobidnumber + "')]/..";
-
-      WSAHeader(req).To(rurl.str());
-      WSAHeader(req).Action("http://docs.oasis-open.org/wsrf/rpw-2"
-                          "/QueryResourceProperties/QueryResourcePropertiesRequest");
+      std::string xpathquery = "//glue:Services/glue:ComputingService/glue:ComputingEndpoint/glue:ComputingActivities/glue:ComputingActivity/glue:ID[contains(.,'" + (std::string)(XMLNode(jobid)["ReferenceParameters"]["JobID"]) + "')]/..";
+      req = *InformationRequest(XMLNode("<XPathQuery>" + xpathquery + "</XPathQuery>")).SOAP();
+      header.To(rurl.str());
     } else {
       // Simple BES service
       // GetActivityStatuses
@@ -273,13 +267,13 @@ namespace Arc {
         req.NewChild("bes-factory:GetActivityStatuses").
         NewChild(XMLNode(jobid));
       set_bes_factory_action(req, "GetActivityStatuses");
-      WSAHeader(req).To(rurl.str());
+      header.To(rurl.str());
       jobref.Child(0).Namespaces(arex_ns); // Unify namespaces
     }
 
       // Send status request
     PayloadSOAP *resp = NULL;
-    if (!process(req, &resp, false))
+    if (!process(header.Action(), req, &resp, false))
       return false;
 
     SOAPFault *fs = (*resp).Fault();
@@ -417,68 +411,14 @@ namespace Arc {
 
     logger.msg(INFO, "Creating and sending a service status request");
 
-    PayloadSOAP req(arex_ns);
-    XMLNode clusterref = req.NewChild("rp:QueryResourceProperties").NewChild("rp:QueryExpression");
-    clusterref.NewAttribute("Dialect") = "http://www.w3.org/TR/1999/REC-xpath-19991116";
-    clusterref = "//glue:Services/glue:ComputingService";
-
-    WSAHeader(req).To(rurl.str());
-    WSAHeader(req).Action("http://docs.oasis-open.org/wsrf/rpw-2"
-                        "/QueryResourceProperties/QueryResourcePropertiesRequest");
-
+    PayloadSOAP req(*InformationRequest(XMLNode("<XPathQuery>//glue:Services/glue:ComputingService</XPathQuery>")).SOAP());
+    WSAHeader header(req);
+    header.To(rurl.str());
 
     // Send status request
     PayloadSOAP *resp = NULL;
-    if (client) {
-      MCC_Status status =
-        client->process("http://docs.oasis-open.org/wsrf/rpw-2"
-                        "/GetResourcePropertyDocument"
-                        "/GetResourcePropertyDocumentRequest",
-                        &req, &resp);
-      if (resp == NULL) {
-        logger.msg(ERROR, "There was no SOAP response");
-        return false;
-      }
-    }
-    else if (client_entry) {
-      Message reqmsg;
-      Message repmsg;
-      MessageAttributes attributes_req;
-      attributes_req.set("SOAP:ACTION", "http://docs.oasis-open.org/wsrf/rpw-2"
-                         "/GetResourcePropertyDocument"
-                         "/GetResourcePropertyDocumentRequest");
-      MessageAttributes attributes_rep;
-      MessageContext context;
-      reqmsg.Payload(&req);
-      reqmsg.Attributes(&attributes_req);
-      reqmsg.Context(&context);
-      repmsg.Attributes(&attributes_rep);
-      repmsg.Context(&context);
-      MCC_Status status = client_entry->process(reqmsg, repmsg);
-      if (!status) {
-        logger.msg(ERROR, "A service status request failed");
-        return false;
-      }
-      logger.msg(INFO, "A service status request succeeded");
-      if (repmsg.Payload() == NULL) {
-        logger.msg(ERROR,
-                   "There was no response to a service status request");
-        return false;
-      }
-      try {
-        resp = dynamic_cast<PayloadSOAP*>(repmsg.Payload());
-      } catch (std::exception&) {}
-      if (resp == NULL) {
-        logger.msg(ERROR, "The response of a service status request was "
-                   "not a SOAP message");
-        delete repmsg.Payload();
-        return false;
-      }
-    }
-    else {
-      logger.msg(ERROR, "There is no connection chain configured");
+    if (!process(header.Action(), req, &resp, false))
       return false;
-    }
 
     SOAPFault *fault = resp->Fault();
     if (fault) {
@@ -505,56 +445,13 @@ namespace Arc {
     PayloadSOAP req(NS("isis", "http://www.nordugrid.org/schemas/isis/2007/06"));
     XMLNode query = req.NewChild("isis:Query").NewChild("isis:QueryString");
     query = "/RegEntry/SrcAdv[Type=\"org.nordugrid.execution.arex\"]";
-
-    //Be polite and add some stuff to the WSA header (mainly for future compatibility)
-    WSAHeader(req).To(rurl.str());
-    WSAHeader(req).Action("http://www.nordugrid.org/schemas/isis/2007/06/Query/QueryRequest");
+    WSAHeader header(req);
+    header.To(rurl.str());
+    header.Action("http://www.nordugrid.org/schemas/isis/2007/06/Query/QueryRequest");
 
     PayloadSOAP *resp = NULL;
-
-    if (client) {
-      MCC_Status status =
-        client->process("http://www.nordugrid.org/schemas/isis/2007/06/Query/QueryRequest", &req, &resp);
-
-      if (resp == NULL) {
-        logger.msg(ERROR, "There was no SOAP response");
-        return false;
-      }
-    }
-    else if (client_entry) {
-      Message reqmsg;
-      Message repmsg;
-      MessageAttributes attributes_req;
-      attributes_req.set("SOAP:ACTION", "http://www.nordugrid.org/schemas/isis/2007/06/Query/QueryRequest");
-      MessageAttributes attributes_rep;
-      MessageContext context;
-      reqmsg.Payload(&req);
-      reqmsg.Attributes(&attributes_req);
-      reqmsg.Context(&context);
-      repmsg.Attributes(&attributes_rep);
-      repmsg.Context(&context);
-      MCC_Status status = client_entry->process(reqmsg, repmsg);
-      if (!status) {
-        logger.msg(ERROR, "An index service query failed");
-        return false;
-      }
-      logger.msg(INFO, "An index service query was successful");
-      if (repmsg.Payload() == NULL) {
-        logger.msg(ERROR, "There was an empty response to an index service query");
-        return false;
-      }
-      resp = dynamic_cast<PayloadSOAP*>(repmsg.Payload());
-      if (resp == NULL) {
-        logger.msg(ERROR,
-                   "The response of a index service query was not a SOAP message");
-        delete repmsg.Payload();
-        return false;
-      }
-    }
-    else {
-      logger.msg(ERROR, "There is no connection chain configured");
+    if (!process(header.Action(), req, &resp, false))
       return false;
-    }
 
     if (XMLNode n = resp->Body()["QueryResponse"]["RegEntry"])
       for (; n; ++n) {
@@ -582,10 +479,11 @@ namespace Arc {
       req.NewChild("bes-factory:TerminateActivities").
       NewChild(XMLNode(jobid));
     set_bes_factory_action(req, "TerminateActivities");
-    WSAHeader(req).To(rurl.str());
+    WSAHeader header(req);
+    header.To(rurl.str());
 
     PayloadSOAP *resp = NULL;
-    if (!process(req, &resp, false))
+    if (!process(header.Action(), req, &resp, false))
       return false;
 
     XMLNode terminated;
@@ -627,12 +525,12 @@ namespace Arc {
     XMLNode jobstate = op.NewChild("a-rex:NewStatus");
     jobstate.NewAttribute("bes-factory:state") = "Finished";
     jobstate.NewChild("a-rex:state") = "Deleted";
-    WSAHeader(req).Action("");
-    WSAHeader(req).To(rurl.str());
+    WSAHeader header(req);
+    header.To(rurl.str());
 
     // Send clean request
     PayloadSOAP *resp = NULL;
-    if (!process(req, &resp, false))
+    if (!process(header.Action(), req, &resp, false))
       return false;
 
     if (!((*resp)["ChangeActivityStatusResponse"])) {
@@ -669,11 +567,12 @@ namespace Arc {
       req.NewChild("bes-factory:GetActivityDocuments").
       NewChild(XMLNode(jobid));
     set_bes_factory_action(req, "GetActivityDocuments");
-    WSAHeader(req).To(rurl.str());
+    WSAHeader header(req);
+    header.To(rurl.str());
 
     // Send status request
     PayloadSOAP *resp = NULL;
-    if (!process(req, &resp, false))
+    if (!process(header.Action(), req, &resp, false))
       return false;
 
     XMLNode st;
@@ -720,15 +619,15 @@ namespace Arc {
     XMLNode act_doc = op.NewChild("bes-factory:ActivityDocument");
     op.NewChild(XMLNode(jobid));
     op.NewChild("a-rex:ForceMigration") = (forcemigration ? "true" : "false");
-    WSAHeader(req).Action("");
-    WSAHeader(req).To(rurl.str());
+    WSAHeader header(req);
+    header.To(rurl.str());
     act_doc.NewChild(XMLNode(jobdesc));
     act_doc.Child(0).Namespaces(arex_ns); // Unify namespaces
 
     logger.msg(DEBUG, "Job description to be sent: %s", jobdesc);
 
     PayloadSOAP *resp = NULL;
-    if (!process(req, &resp, delegate))
+    if (!process(header.Action(), req, &resp, delegate))
       return false;
 
     XMLNode id;
@@ -765,11 +664,11 @@ namespace Arc {
     jobstate.NewAttribute("bes-factory:state") = "Running";
     // Not supporting resume into user-defined state
     jobstate.NewChild("a-rex:state") = "";
-    WSAHeader(req).Action("");
-    WSAHeader(req).To(rurl.str());
+    WSAHeader header(req);
+    header.To(rurl.str());
 
     PayloadSOAP *resp = NULL;
-    if (!process(req, &resp, true))
+    if (!process(header.Action(), req, &resp, true))
       return false;
 
     if (!((*resp)["ChangeActivityStatusResponse"])) {
