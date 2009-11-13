@@ -620,7 +620,7 @@ namespace Arc {
   }
 
   bool UserConfig::AddServices(const std::list<std::string>& services, ServiceType st) {
-    const std::string serviceType = (st == COMPUTING ? "computing" : "index");
+    const std::string serviceType = tostring(st);
     for (std::list<std::string>::const_iterator it = services.begin();
          it != services.end(); it++) {
       URLListMap& servicesRef = ((*it)[0] != '-' ? (st == COMPUTING ? selectedServices.first : selectedServices.second)
@@ -664,7 +664,7 @@ namespace Arc {
                                const std::list<std::string>& rejected,
                                ServiceType st) {
     bool isSelectedNotRejected = true;
-    const std::string serviceType = (st == COMPUTING ? "computing" : "index");
+    const std::string serviceType = tostring(st);
     for (std::list<std::string>::const_iterator it = selected.begin();
          it != selected.end(); it++) {
       if (it == selected.end()) {
