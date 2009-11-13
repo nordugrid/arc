@@ -11,34 +11,21 @@
 #include "DateTime.h"
 #include "StringConv.h"
 #include "Logger.h"
+#include "Utils.h"
 
 
 #ifndef HAVE_TIMEGM
 time_t timegm(struct tm *tm) {
-  char *tz = getenv("TZ");
-#ifdef HAVE_SETENV
-  setenv("TZ", "", 1);
-#else
-  putenv("TZ=");
-#endif
+  bool found;
+  std::string tz = Arc::GetEnv("TZ", found);
+  Arc::SetEnv("TZ", "UTC");
   tzset();
+  tm->tm_isdst = -1;
   time_t ret = mktime(tm);
-  if (tz) {
-#ifdef HAVE_SETENV
-    setenv("TZ", tz, 1);
-#else
-    static std::string oldtz;
-    oldtz = std::string("TZ=") + tz;
-    putenv(strdup(const_cast<char*>(oldtz.c_str())));
-#endif
-  }
-  else {
-#ifdef HAVE_UNSETENV
-    unsetenv("TZ");
-#else
-    putenv("TZ");
-#endif
-  }
+  if (found)
+    Arc::SetEnv("TZ", tz);
+  else
+    Arc::UnsetEnv("TZ");
   tzset();
   return ret;
 }
@@ -171,8 +158,10 @@ namespace Arc {
             gtime += tzh * 3600 + tzm * 60;
         }
       }
-      else
+      else {
+        timestr.tm_isdst = -1;
         gtime = mktime(&timestr);
+      }
 
       if (timestring.size() != pos) {
         dateTimeLogger.msg(ERROR, "Illegal time format: %s", timestring);
@@ -229,6 +218,7 @@ namespace Arc {
         return;
       }
 
+      timestr.tm_isdst = -1;
       gtime = mktime(&timestr);
     }
     else if (timestring.length() == 29) {

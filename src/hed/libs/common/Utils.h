@@ -13,6 +13,9 @@ namespace Arc {
   /// Portable function for getting environment variables
   std::string GetEnv(const std::string& var);
 
+  /// Portable function for getting environment variables
+  std::string GetEnv(const std::string& var, bool &found);
+
   /// Portable function for setting environment variables
   bool SetEnv(const std::string& var, const std::string& value);
 

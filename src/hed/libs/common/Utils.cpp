@@ -46,6 +46,16 @@ namespace Arc {
 #endif
   }
 
+  std::string GetEnv(const std::string& var, bool &found) {
+#ifdef HAVE_GLIBMM_GETENV
+    return Glib::getenv(var, found);
+#else
+    char val* = getenv(var.c_str());
+    found = (val != NULL)
+    return val ? val : "";
+#endif
+  }
+
   bool SetEnv(const std::string& var, const std::string& value) {
 #ifdef HAVE_GLIBMM_SETENV
     return Glib::setenv(var, value);
