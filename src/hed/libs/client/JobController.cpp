@@ -895,6 +895,10 @@ namespace Arc {
       return NULL;
 
     PluginList list = FinderLoader::GetPluginList("HED:JobController");
+    if (list.find(name) == list.end()) {
+      logger.msg(ERROR, "JobController plugin \"%s\" not found.", name);
+      return NULL;
+    }
     factory_->load(list[name], "HED:JobController");
 
     JobControllerPluginArgument arg(usercfg);
