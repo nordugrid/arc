@@ -72,15 +72,15 @@ namespace Arc {
 
   Plugin::~Plugin(void) { }
 
-  Plugin* PluginsFactory::get_instance(const std::string& kind,PluginArgument* arg) {
-    return get_instance(kind,0,INT_MAX,arg);
+  Plugin* PluginsFactory::get_instance(const std::string& kind,PluginArgument* arg,bool search) {
+    return get_instance(kind,0,INT_MAX,arg,search);
   }
 
-  Plugin* PluginsFactory::get_instance(const std::string& kind,int version,PluginArgument* arg) {
-    return get_instance(kind,version,version,arg);
+  Plugin* PluginsFactory::get_instance(const std::string& kind,int version,PluginArgument* arg,bool search) {
+    return get_instance(kind,version,version,arg,search);
   }
 
-  Plugin* PluginsFactory::get_instance(const std::string& kind,int min_version,int max_version,PluginArgument* arg) {
+  Plugin* PluginsFactory::get_instance(const std::string& kind,int min_version,int max_version,PluginArgument* arg,bool search) {
     if(arg) arg->set_factory(this);
     descriptors_t_::iterator i = descriptors_.begin();
     for(;i != descriptors_.end();++i) {
@@ -101,6 +101,7 @@ namespace Arc {
         ++desc;
       };
     };
+    if(!search) return NULL;
     // Try to load module of plugin
     std::string mname = kind;
     Glib::Module* module = probe_module(kind,*this);
@@ -142,15 +143,15 @@ namespace Arc {
     return NULL;
   }
 
-  Plugin* PluginsFactory::get_instance(const std::string& kind,const std::string& name,PluginArgument* arg) {
-    return get_instance(kind,name,0,INT_MAX,arg);
+  Plugin* PluginsFactory::get_instance(const std::string& kind,const std::string& name,PluginArgument* arg,bool search) {
+    return get_instance(kind,name,0,INT_MAX,arg,search);
   }
 
-  Plugin* PluginsFactory::get_instance(const std::string& kind,const std::string& name,int version,PluginArgument* arg) {
-    return get_instance(kind,version,version,arg);
+  Plugin* PluginsFactory::get_instance(const std::string& kind,const std::string& name,int version,PluginArgument* arg,bool search) {
+    return get_instance(kind,version,version,arg,search);
   }
 
-  Plugin* PluginsFactory::get_instance(const std::string& kind,const std::string& name,int min_version,int max_version,PluginArgument* arg) {
+  Plugin* PluginsFactory::get_instance(const std::string& kind,const std::string& name,int min_version,int max_version,PluginArgument* arg,bool search) {
     if(arg) arg->set_factory(this);
     descriptors_t_::iterator i = descriptors_.begin();
     for(;i != descriptors_.end();++i) {
@@ -165,6 +166,7 @@ namespace Arc {
       };
       if(desc) return desc->instance(arg);
     };
+    if(!search) return NULL;
     // Try to load module - first by name of plugin
     std::string mname = name;
     Glib::Module* module = probe_module(name,*this);
@@ -172,7 +174,7 @@ namespace Arc {
       // Then by kind of plugin
       mname=kind;
       module=probe_module(kind,*this);
-      logger.msg(ERROR, "Could not find loadable module by name %s and %s (%s)",name,kind,strip_newline(Glib::Module::get_last_error()));
+      logger.msg(ERROR, "Could not find loadable module by names %s and %s (%s)",name,kind,strip_newline(Glib::Module::get_last_error()));
       return NULL;
     };
     // Identify table of descriptors
@@ -264,6 +266,21 @@ namespace Arc {
       //modules_.push_back(module);
     };
     return true;
+  }
+
+  bool PluginsFactory::load(const std::list<std::string>& names,const std::string& kind) {
+    std::list<std::string> kinds;
+    kinds.push_back(kind);
+    return load(names,kinds);
+  }
+
+  bool PluginsFactory::load(const std::list<std::string>& names,const std::list<std::string>& kinds) {
+    bool r = false;
+    for(std::list<std::string>::const_iterator name = names.begin();
+                                name != names.end();++name) {
+      if(load(*name,kinds)) r=true;
+    }
+    return r;
   }
 
   PluginsFactory::PluginsFactory(const Config& cfg): ModuleManager(&cfg) {

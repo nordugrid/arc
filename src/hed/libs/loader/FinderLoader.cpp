@@ -11,13 +11,39 @@
 
 namespace Arc {
 
+  const std::list<std::string> FinderLoader::GetLibrariesList(void) {
+    BaseConfig basecfg;
+    NS ns;
+    Config cfg(ns);
+    basecfg.MakeConfig(cfg);
+    std::list<std::string> names;
+
+    for (XMLNode n = cfg["ModuleManager"]; n; ++n) {
+      for (XMLNode m = n["Path"]; m; ++m) {
+        // Protect against insane configurations...
+        if ((std::string)m == "/usr/lib" || (std::string)m == "/usr/lib64" ||
+            (std::string)m == "/usr/bin" || (std::string)m == "/usr/libexec")
+          continue;
+        try {
+          Glib::Dir dir((std::string)m);
+          for (Glib::DirIterator file = dir.begin(); file != dir.end(); file++)
+            if ((*file).substr(0, 3) == "lib") {
+              std::string name = (*file).substr(3, (*file).find('.') - 3);
+              names.push_back(name);
+            }
+        } catch (Glib::FileError) {}
+      }
+    }
+    return names;
+  }
+
   const PluginList FinderLoader::GetPluginList(const std::string& type) {
     BaseConfig basecfg;
     NS ns;
     Config cfg(ns);
     basecfg.MakeConfig(cfg);
 
-    for (XMLNode n = cfg["ModuleManager"]; n; ++n)
+    for (XMLNode n = cfg["ModuleManager"]; n; ++n) {
       for (XMLNode m = n["Path"]; m; ++m) {
         // Protect against insane configurations...
         if ((std::string)m == "/usr/lib" || (std::string)m == "/usr/lib64" ||
@@ -32,6 +58,7 @@ namespace Arc {
             }
         } catch (Glib::FileError) {}
       }
+    }
 
     FinderLoader loader(cfg);
     return loader.iGetPluginList(type);

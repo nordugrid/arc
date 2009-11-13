@@ -36,7 +36,7 @@ ModuleManager::ModuleManager(const Config *cfg)
 
 ModuleManager::~ModuleManager(void)
 {
-    // removes all element from cache
+    // removes all elements from cache
     plugin_cache_t::iterator i;
     for(i=plugin_cache.begin();i!=plugin_cache.end();++i) {
         while(i->second.unload() > 0) { };

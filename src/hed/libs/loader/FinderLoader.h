@@ -21,6 +21,7 @@ namespace Arc {
     const PluginList iGetPluginList(const std::string& type);
   public:
     static const PluginList GetPluginList(const std::string& type);
+    static const std::list<std::string> GetLibrariesList(void);
   };
 
 } // namespace Arc
