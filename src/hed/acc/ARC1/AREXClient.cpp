@@ -320,7 +320,7 @@ namespace Arc {
       }
 
       if (!job.State) {
-        logger.msg(ERROR, "The status of the job (%s) could not be retrieved.", job.JobID.str());
+        logger.msg(VERBOSE, "The status of the job (%s) could not be retrieved.", job.JobID.str());
         return false;
       }
       if(!arex_enabled) return true;

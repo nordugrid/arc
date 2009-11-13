@@ -506,8 +506,7 @@ namespace Arc {
     for (std::list<Job>::iterator it = jobstore.begin();
          it != jobstore.end(); it++) {
       if (!it->State) {
-        logger.msg(WARNING, "Job state information not found: %s",
-                   it->JobID.str());
+        logger.msg(WARNING, "Job information not found: %s", it->JobID.str());
         if (Time() - it->LocalSubmissionTime < 90)
           logger.msg(WARNING, "This job was very recently "
                      "submitted and might not yet "
