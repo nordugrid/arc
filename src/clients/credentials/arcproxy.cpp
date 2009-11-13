@@ -886,7 +886,7 @@ int main(int argc, char *argv[]) {
     Arc::Credential proxy_cred(proxy_path, proxy_path, ca_dir, "");
     Arc::Time left = proxy_cred.GetEndTime();
     std::cout << Arc::IString("Proxy generation succeeded") << std::endl;
-    std::cout << Arc::IString("Your proxy is valid until: %s", (std::string)left) << std::endl;
+    std::cout << Arc::IString("Your proxy is valid until: %s", left.str(Arc::UserTime)) << std::endl;
 
     //return EXIT_SUCCESS;
   } catch (std::exception& err) {
