@@ -189,7 +189,7 @@ add_user_env () {
 
    # guess globalid in case not already provided
    if [ -z "$has_gridglobalid" ]; then
-      hostname=`perl -MSys::Hostname -we 'print hostname'`
+      hostname=`/usr/bin/perl -MSys::Hostname -we 'print hostname'`
       hostname=${CONFIG_hostname:-$hostname}
       gm_port=${CONFIG_gm_port:-2811}
       gm_mount_point=${CONFIG_gm_mount_point:-/jobs}

@@ -115,10 +115,14 @@ do_as_uid () {
 
     script='use English;
             my ($uid, @args) = @ARGV;
-            $UID = $uid if $UID == 0;
+            if ( $UID == 0 ) {
+                eval { $UID = $uid };
+                print STDERR "Cannot switch to uid($UID): $@\n" if $@;
+            }
             system("@posix_shell@","-c",@args);
+            exit ($?>>8||128+($?&127));
     '
-    perl -we "$script" "$@"
+    /usr/bin/perl -we "$script" "$@"
 }
 
 #
@@ -126,7 +130,7 @@ do_as_uid () {
 # If not a valid number, prints nothing and returns 1
 #
 to_integer() {
-    perl -we 'chomp(my $line = <>);
+    /usr/bin/perl -we 'chomp(my $line = <>);
               exit 0 if $line eq "";
               if ( $line =~ m/^(\d*)(?:\.\d+)?$/ ) {
                   print $1 || 0;
@@ -512,12 +516,12 @@ scan_main() {
         lrmsids=$(lrms_list_jobs) || { log "lrms_list_jobs failed"; continue; }
 
         if [ -n "$LIST_IMPLEMENTED" ]; then
-            filter_jobs() { perl -we "$filterscript" $lrmsids; }
+            filter_jobs() { /usr/bin/perl -we "$filterscript" $lrmsids; }
         else
             filter_jobs() { cat; } # no filtering
         fi
 
-        perl -we "$listscript" | filter_jobs | while read gridid lrmsid uid; do
+        /usr/bin/perl -we "$listscript" | filter_jobs | while read gridid lrmsid uid; do
 
             log () { echo "$progname: $*" 1>&2; }
 
@@ -546,7 +550,7 @@ lrms_list_jobs() {
             my @ids = ($out =~ m/^\s*(\d+)\.\d+\s+/mg);
             print "$_\n" for @ids;
     '
-    perl -we "$script"
+    /usr/bin/perl -we "$script"
 }
 
 
@@ -580,7 +584,7 @@ condor_read_history() {
 
 
 seconds() {
-    perl -e 'my $str = "'"$1"'";
+    /usr/bin/perl -e 'my $str = "'"$1"'";
         exit unless $str =~ /(\d+) (\d\d):(\d\d):(\d\d)/;
         printf "%.0f", ( $1 * 24  + $2 ) * 3600 + $3 * 60 + $4;
     '

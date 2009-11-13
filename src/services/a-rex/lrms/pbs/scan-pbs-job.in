@@ -64,7 +64,7 @@ if [ -z "$ldate" ] ; then ldate='0' ; fi
 # Perl is used because it's more protable than using the stat command
 printowner () {
   code='$f=$ARGV[0];if(@s=stat $f){@p=getpwuid $s[4];if(@p){print $p[0]}else{exit 1}}else{die "$f: $!\n"}'
-  perl -we "$code" "$1"
+  /usr/bin/perl -we "$code" "$1"
 }
 
 # Append .comment (containing STDOUT & STDERR of the job wrapper) to .errors
