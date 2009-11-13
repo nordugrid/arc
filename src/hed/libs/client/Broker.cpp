@@ -441,6 +441,10 @@ namespace Arc {
       return NULL;
 
     PluginList list = FinderLoader::GetPluginList("HED:Broker");
+    if (list.find(name) == list.end()) {
+      logger.msg(ERROR, "Broker plugin \"%s\" not found.", name);
+      return NULL;
+    }
     factory_->load(list[name], "HED:Broker");
 
     BrokerPluginArgument arg(usercfg);
