@@ -101,27 +101,26 @@ namespace Arc {
 
   bool PersistentLibraryInit(const std::string& name) {
     std::string arc_lib_path = ArcLocation::Get();
-    if(!arc_lib_path.empty()) {
 #ifndef WIN32
+    if(!arc_lib_path.empty()) 
       arc_lib_path = arc_lib_path + G_DIR_SEPARATOR_S + LIBSUBDIR;
+#ifdef __APPLE__
+    // According to "Mac OS X Reference Library" proper macro to detect 
+    // compilation on Mac OS X is either __MACH__ or __APPLE__.
+    // According to "Mac OS X for Unix geeks" Mac OS X suffix for 
+    // _shared libraries_ is "dylib". While "so" and "bundle" are used for
+    // "loadable modules". Hence G_MODULE_SUFFIX macro is not suitable
+    // because it reads "so" under Mac OS X and that is proper suffix 
+    // for _loadable modules_ but not for _shared libraries_. 
+    std::string libpath = Glib::build_filename(arc_lib_path,"lib"+name+".dylib");
 #else
-      arc_lib_path = arc_lib_path + G_DIR_SEPARATOR_S + "bin";
-#endif
-    }
-#ifndef WIN32
     std::string libpath = Glib::build_filename(arc_lib_path,"lib"+name+"."+G_MODULE_SUFFIX);
+#endif
 #else
+    if(!arc_lib_path.empty()) 
+      arc_lib_path = arc_lib_path + G_DIR_SEPARATOR_S + "bin";
     std::string libpath = Glib::build_filename(arc_lib_path,"lib"+name+"-0."+G_MODULE_SUFFIX);
 #endif
-
-    // MacOSX suffix is "dylib" and not "so" (G_MODULE_SUFFIX macro content "so" under MacOSX, maybe this is a glib bug)
-
-    if (!Glib::file_test(libpath, Glib::FILE_TEST_EXISTS)) {
-       // this should happen only if G_MODULE_SUFFIX is not "dll" or not "so" 
-       libpath = Glib::build_filename(arc_lib_path,"lib"+name+".dylib");
-    }   
-
-    // std::cout << "PersistentLibraryInit libpath: " << libpath << std::endl;
 
     persistent_libraries_lock.lock();
     for(std::list<std::string>::iterator l = persistent_libraries_list.begin();
