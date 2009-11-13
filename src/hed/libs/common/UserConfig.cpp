@@ -647,7 +647,7 @@ namespace Arc {
         }
 
         const URL url(service.substr(pos+1));
-        if (!url) {
+        if (!url || url.Protocol() == "file") {
           logger.msg(WARNING, "The specified %s service (%s) is not a valid URL", serviceType, service.substr(pos+1));
           continue;
         }
@@ -697,7 +697,7 @@ namespace Arc {
         }
 
         const URL url(service.substr(pos+1));
-        if (!url) {
+        if (!url || url.Protocol() == "file") {
           logger.msg(WARNING, "The specified %s service (%s) is not a valid URL", serviceType, service.substr(pos+1));
           continue;
         }
