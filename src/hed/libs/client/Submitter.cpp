@@ -68,10 +68,11 @@ namespace Arc {
 
   // TODO: This method is not scaling well in case of many submitted jobs.
   // For few thousands it may take tens of second to finish. Taking into
-  // accoutn it is called after every job submission it needs rewriting.
+  // account it is called after every job submission it needs rewriting.
   void Submitter::AddJob(const JobDescription& job, const URL& jobid,
                          const URL& cluster,
-                         const URL& infoendpoint) const {
+                         const URL& infoendpoint,
+                         const std::map<std::string, std::string>& additionalInfo) const {
     NS ns;
     XMLNode info(ns, "Job");
     info.NewChild("JobID") = jobid.str();
@@ -81,6 +82,10 @@ namespace Arc {
     info.NewChild("Cluster") = cluster.str();
     info.NewChild("InfoEndpoint") = infoendpoint.str();
     info.NewChild("LocalSubmissionTime") = (std::string)Arc::Time();
+
+    for (std::map<std::string, std::string>::const_iterator it = additionalInfo.begin();
+         it != additionalInfo.end(); it++)
+      info.NewChild(it->first) = it->second;
 
     for (std::list<std::string>::const_iterator
            it = job.Identification.ActivityOldId.begin();

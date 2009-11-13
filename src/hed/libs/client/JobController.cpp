@@ -80,7 +80,6 @@ namespace Arc {
           job.OSB = (std::string)xmljob["OSB"];
           job.StdOut = (std::string)xmljob["StdOut"];
           job.StdErr = (std::string)xmljob["StdErr"];
-          job.AuxURL = (std::string)xmljob["AuxURL"];
           job.AuxInfo = (std::string)xmljob["AuxInfo"];
           if (!((std::string)xmljob["LocalSubmissionTime"]).empty())
             job.LocalSubmissionTime = (std::string)xmljob["LocalSubmissionTime"];
@@ -120,7 +119,6 @@ namespace Arc {
           job.OSB = (std::string)(*it)["OSB"];
           job.StdOut = (std::string)(*it)["StdOut"];
           job.StdErr = (std::string)(*it)["StdErr"];
-          job.AuxURL = (std::string)(*it)["AuxURL"];
           job.AuxInfo = (std::string)(*it)["AuxInfo"];
           if (!((std::string)(*it)["LocalSubmissionTime"]).empty())
             job.LocalSubmissionTime = (std::string)(*it)["LocalSubmissionTime"];
@@ -180,7 +178,6 @@ namespace Arc {
           job.OSB = (std::string)(*it)["OSB"];
           job.StdOut = (std::string)(*it)["StdOut"];
           job.StdErr = (std::string)(*it)["StdErr"];
-          job.AuxURL = (std::string)(*it)["AuxURL"];
           job.AuxInfo = (std::string)(*it)["AuxInfo"];
           if (!((std::string)(*it)["LocalSubmissionTime"]).empty())
             job.LocalSubmissionTime = (std::string)(*it)["LocalSubmissionTime"];

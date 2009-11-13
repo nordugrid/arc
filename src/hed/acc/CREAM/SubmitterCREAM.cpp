@@ -64,8 +64,12 @@ namespace Arc {
       return URL();
     }
 
+    std::map<std::string, std::string> additionalInfo;
+    additionalInfo["ISB"] = jobInfo.ISB_URI;
+    additionalInfo["OSB"] = jobInfo.OSB_URI;
+
     AddJob(job, submissionurl.str() + '/' + jobInfo.jobId, et.Cluster,
-           delegationurl.str() + '/' + delegationid);
+           delegationurl.str() + '/' + delegationid, additionalInfo);
 
     return submissionurl.str() + '/' + jobInfo.jobId;
   }

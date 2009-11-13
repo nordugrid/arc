@@ -96,8 +96,8 @@ namespace Arc {
       logger.msg(ERROR, "Failed to clean job");
       return false;
     }
-    PathIterator pi2(job.AuxURL.Path(), true);
-    URL url2(job.AuxURL);
+    PathIterator pi2(job.InfoEndpoint.Path(), true);
+    URL url2(job.InfoEndpoint);
     url2.ChangePath(*pi2);
     CREAMClient gLiteClient2(url2, cfg, usercfg.Timeout());
     if (!gLiteClient2.destroyDelegation(pi2.Rest())) {

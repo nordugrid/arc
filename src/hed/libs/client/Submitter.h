@@ -4,6 +4,7 @@
 #define __ARC_SUBMITTER_H__
 
 #include <list>
+#include <map>
 #include <string>
 
 #include <arc/URL.h>
@@ -32,7 +33,7 @@ namespace Arc {
               const std::string& flavour);
   public:
     virtual ~Submitter();
-    
+
     /**
      * This virtual method should be overridden by plugins which should
      * be capable of submitting jobs, defined in the JobDescription
@@ -67,7 +68,15 @@ namespace Arc {
     void AddJob(const JobDescription& job,
                 const URL& jobid,
                 const URL& cluster,
-                const URL& infoendpoint) const;
+                const URL& infoendpoint) const {
+      std::map<std::string, std::string> additionalInfo;
+      AddJob(job, jobid, cluster, infoendpoint, additionalInfo);
+    }
+    void AddJob(const JobDescription& job,
+                const URL& jobid,
+                const URL& cluster,
+                const URL& infoendpoint,
+                const std::map<std::string, std::string>& additionalInfo) const;
 
     const std::string flavour;
     const UserConfig& usercfg;
