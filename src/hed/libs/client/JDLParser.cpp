@@ -84,7 +84,7 @@ namespace Arc {
     else
       return attributeValue.substr(attributeValue.find_first_of("\"") + 1, last_pos - attributeValue.find_first_of("\"") - 1);
   }
-   
+
   std::list<std::string> JDLParser::listJDLvalue(const std::string& attributeValue, std::pair<char, char> brackets, char lineEnd) const {
     std::list<std::string> elements;
     unsigned long first_bracket = attributeValue.find_first_of(brackets.first);
@@ -214,21 +214,38 @@ namespace Arc {
         if (it->Target.empty())
           continue;
         if (i != value.end()) {
-          it->Target.front().URI = *i;
+          URL url = *i;
+          if (url.Protocol() == "gsiftp" && url.Host() == "localhost") {
+            /* Specifying the local grid ftp server (local to CREAM),
+             * is the "same", in ARC analogy, to specify the output
+             * files being user downloadable files. Upon finished job
+             * execution CREAM will copy outputfiles to the specified
+             * destination, it does not support storing them at the
+             * working directory of the job for later retrieval. Instead
+             * the local grid ftp server to CREAM can be specified.
+             */
+            url.ChangeProtocol("file");
+            url.ChangeHost("");
+          }
+          it->Target.front().URI = url;
           it->KeepData = (it->Target.front().URI.Protocol() == "file");
           i++;
         }
         else {
-          logger.msg(VERBOSE, "Not enough outputsandboxdesturi element!");
+          logger.msg(VERBOSE, "Not enough outputsandboxdesturi elements!");
           return false;
         }
       }
       return true;
     }
-    else if (attributeName == "outputsandboxbaseuri") {
+/*
+ * The parsing of the outputsandboxbasedesturi does not work as intended.
+ * Either it should be unsupported (which it is now) or else it should
+ * be implemented correctly.
+    else if (attributeName == "outputsandboxbasedesturi") {
       for (std::list<FileType>::iterator it = job.DataStaging.File.begin();
            it != job.DataStaging.File.end(); it++)
-        if (!it->Target.empty() && !it->Target.front().URI)
+        if (!it->Target.empty() && !it->Target.front().URI) {
           it->Target.front().URI = simpleJDLvalue(attributeValue);
       for (std::list<DirectoryType>::iterator it = job.DataStaging.Directory.begin();
            it != job.DataStaging.Directory.end(); it++)
@@ -236,6 +253,7 @@ namespace Arc {
           it->Target.front().URI = simpleJDLvalue(attributeValue);
       return true;
     }
+*/
     else if (attributeName == "prologue") {
       job.Application.Prologue.Name = simpleJDLvalue(attributeValue);
       return true;
@@ -590,16 +608,16 @@ namespace Arc {
          */
         if (!it->Source.empty())
           inputSandboxList.push_back(it->Source.front().URI ? it->Source.front().URI.fullstr() : it->Name);
-        if (!it->Target.empty() && it->Target.front().URI) {
+        if (!it->Target.empty() && it->Target.front().URI || it->KeepData) {
           outputSandboxList.push_back(it->Name);
-          const std::string uri_tmp = (it->Target.front().URI.Host() == "localhost" ?
-                                       it->Target.front().URI.Protocol() + "://" + it->Target.front().URI.Host() + it->Target.front().URI.Path() :
+          /* User downloadable files should go to the local grid ftp
+           * server (local to CREAM). See comments on the parsing of the
+           * outputsandboxdesturi attribute above.
+           */
+          const std::string uri_tmp = (it->Target.empty() || it->Target.front().URI.Protocol() == "file" ?
+                                       "gsiftp://localhost/" + it->Name :
                                        it->Target.front().URI.fullstr());
           outputSandboxDestURIList.push_back(uri_tmp);
-        }
-        else if (it->KeepData) {
-          outputSandboxList.push_back(it->Name);
-          outputSandboxDestURIList.push_back(it->Name);
         }
 
         addExecutable &= (it->Name != job.Application.Executable.Name);
