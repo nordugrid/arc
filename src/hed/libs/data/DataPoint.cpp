@@ -181,6 +181,7 @@ namespace Arc {
   DataPointLoader::~DataPointLoader() {}
 
   DataPoint* DataPointLoader::load(const URL& url, const UserConfig& usercfg) {
+    DataPointPluginArgument arg(url, usercfg);
     factory_->load(FinderLoader::GetLibrariesList(), "HED:DMC");
     return factory_->GetInstance<DataPoint>("HED:DMC", &arg, false);
   }
