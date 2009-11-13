@@ -77,9 +77,9 @@ namespace Arc {
     : ok(false) {
     if (loadSysConfig) {
       if (!Glib::file_test(SYSCONFIG, Glib::FILE_TEST_IS_REGULAR))
-        logger.msg(WARNING, "System configuration file (%s) does not exist.", SYSCONFIG);
+        logger.msg(INFO, "System configuration file (%s) does not exist.", SYSCONFIG);
       else if (!LoadConfigurationFile(SYSCONFIG, true))
-        logger.msg(WARNING, "System configuration file (%s) contains errors.", SYSCONFIG);
+        logger.msg(INFO, "System configuration file (%s) contains errors.", SYSCONFIG);
     }
 
     if (conffile.empty()) {
