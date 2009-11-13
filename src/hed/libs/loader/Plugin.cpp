@@ -217,6 +217,7 @@ namespace Arc {
   }
 
   bool PluginsFactory::load(const std::string& name,const std::list<std::string>& kinds) {
+    if(name.empty()) return false;
     Glib::Module* module = NULL;
     void *ptr = NULL;
     std::string mname;
@@ -244,6 +245,7 @@ namespace Arc {
       PluginDescriptor* desc = NULL;
       for(std::list<std::string>::const_iterator kind = kinds.begin();
           kind != kinds.end(); ++kind) {
+        if(kind->empty()) continue;
         desc=find_constructor((PluginDescriptor*)ptr,*kind,0,INT_MAX);
         if(desc) break;
       };
