@@ -10,13 +10,15 @@ objects of a specified (by a URL) remote directory.
 \versions{ARC 0.9}
 \begin{longtable}{llp{8cm}}
     Options:&&\\
-    \texttt{-h} && short help\\
-    \texttt{-v} && print version information\\
-    \texttt{-d} & \textit{debuglevel} &debug level is one of  FATAL, ERROR, WARNING, INFO, VERBOSE or DEBUG\\
-    \texttt{-l} &  & detailed listing\\
-    \texttt{-L} &  & detailed listing including URLs from which file can 
-    be downloaded\\
-    \texttt{-m} && display all available metadata\\
+   \texttt{-l, --long} &  & detailed listing\\
+   \texttt{-L, --locations} &  & detailed listing including URLs from which files can be downloaded\\
+   \texttt{-m, --metadata} && display all available metadata\\
+   \texttt{-r, --recursive} & \textit{recursion\_level} & operate recursively (if possible) up to specified level (0 - no recursion)\\
+   \texttt{-t, --timeout}&\textit{seconds}&timeout in seconds (default 20)\\
+   \texttt{-d, --debug}&\textit{debuglevel}&debug level, FATAL, ERROR, WARNING, INFO, VERBOSE or DEBUG - default WARNING\\
+   \texttt{-z, --conffile}&\textit{filename}& configuration file (default {\$}HOME/.arc/client.conf)\\
+   \texttt{-v, --version}&&print version information\\
+   \texttt{-h, --help}&&print help page\\
     Arguments:&&\\
     \texttt{URL} && file or directory URL\\
 \end{longtable}
@@ -51,19 +53,20 @@ but can be used by the User Interface as well.
 \versions{ARC 0.9}
 \begin{longtable}{llp{8cm}}
     Options:&&\\
-    \texttt{-h} && short help\\
-    \texttt{-v} && print version information\\
-    \texttt{-d} & \textit{debuglevel} &debug level is one of  FATAL, ERROR, WARNING, INFO, VERBOSE or DEBUG\\
-    \texttt{-y} & \textit{cache\_path} & path to local cache (use to put file into cache)\\
-    \texttt{-p} && use passive transfer (does not work if secure is on, default if secure is not requested)\\
-    \texttt{-n} && do not try to force passive transfer\\
-    \texttt{-i} && show progress indicator\\
-    \texttt{-u} && use secure transfer (insecure by default)\\
-    \texttt{-r} & \textit{recursion\_level} & operate recursively (if possible) up to specified level (0 - no recursion)\\
-    \texttt{-R} & \textit{number} & how many times to retry transfer of every file before failing\\
-    \texttt{-t} & \textit{time} & timeout in seconds (default 20)\\
-    \texttt{-f} && if the destination is an indexing service and not the same as the source and the destination is already registered, then the copy is normally not done. However, if this option is specified the source is assumed to be a replica of the destination created in an uncontrolled way and the copy is done like in case of replication\\
-    \texttt{-T} && do not transfer file, just register it - destination must be non-existing meta-url\\
+   \texttt{-p, --passive} && use passive transfer (does not work if secure is on, default if secure is not requested)\\
+   \texttt{-n, --nopassive} && do not try to force passive transfer\\
+   \texttt{-f, --force} && if the destination is an indexing service and not the same as the source and the destination is already registered, then the copy is normally not done. However, if this option is specified the source is assumed to be a replica of the destination created in an uncontrolled way and the copy is done like in case of replication\\
+   \texttt{-i, --indicate} && show progress indicator\\
+   \texttt{-T, --notransfer} && do not transfer file, just register it - destination must be non-existing meta-url\\
+   \texttt{-u, --secure} && use secure transfer (insecure by default)\\
+   \texttt{-y, --cache} &\textit{path} & path to local cache (use to put file into cache). The \texttt{X509\_USER\_PROXY} and \texttt{X509\_CERT\_DIR} environment variables must be set correctly\\
+   \texttt{-r, --recursive} & \textit{recursion\_level} & operate recursively (if possible) up to specified level (0 - no recursion)\\
+   \texttt{-R, --retries} & \textit{number} & how many times to retry transfer of every file before failing\\
+   \texttt{-t, --timeout}&\textit{seconds}&timeout in seconds (default 20)\\
+   \texttt{-d, --debug}&\textit{debuglevel}&debug level, FATAL, ERROR, WARNING, INFO, VERBOSE or DEBUG - default WARNING\\
+   \texttt{-z, --conffile}&\textit{filename}& configuration file (default {\$}HOME/.arc/client.conf)\\
+   \texttt{-v, --version}&&print version information\\
+   \texttt{-h, --help}&&print help page\\
     Arguments:&&\\
     \texttt{source} && source URL\\
     \texttt{destination} && destination URL\\
@@ -104,12 +107,14 @@ valid URL.
 \versions{ARC 0.9}
 \begin{longtable}{llp{8cm}}
     Options:&&\\
-    \texttt{-h} && short help\\
-    \texttt{-v} && print version information\\
-    \texttt{-d} & \textit{debuglevel} &debug level is one of  FATAL, ERROR, WARNING, INFO, VERBOSE or DEBUG\\
-    \texttt{-c} & &continue with meta-data even if it failed to delete real file\\
+   \texttt{-f, --force} & &remove logical file name registration even if not all physical instances were removed\\
+   \texttt{-t, --timeout}&\textit{seconds}&timeout in seconds (default 20)\\
+   \texttt{-d, --debug}&\textit{debuglevel}&debug level, FATAL, ERROR, WARNING, INFO, VERBOSE or DEBUG - default WARNING\\
+   \texttt{-z, --conffile}&\textit{filename}& configuration file (default {\$}HOME/.arc/client.conf)\\
+   \texttt{-v, --version}&&print version information\\
+   \texttt{-h, --help}&&print help page\\
     Arguments:&&\\
-    \texttt{source} && source URL\\
+   \texttt{source} && source URL\\
 \end{longtable}
 
 \begin{framed}
@@ -124,37 +129,37 @@ Here is an \texttt{arcrm} example:
     arcrm lfc://grid.uio.no/grid/atlas/AOD_0947.pool.root
 \end{verbatim}
 
-\subsection{arcacl}\label{sec:arcacl}
+% \subsection{arcacl}\label{sec:arcacl}
+% 
+% \index{arcacl}\index{commands:arcacl}This command retrieves or modifies
+% access control information associated with a stored object if service
+% supports GridSite GACL language~\cite{gacl} for access control.
+% \hspace*{0.5cm}
+% \begin{shaded}
+%    \uicommand{arcacl [options] get$|$put $<$URL$>$}
+% \end{shaded}
+% \versions{ARC 0.9}
+% \begin{longtable}{llp{8cm}}
+%    Options:&&\\
+%     \texttt{-d, -debug} & \textit{debuglevel} &debug level is one of  FATAL, ERROR, WARNING, INFO, VERBOSE or DEBUG\\
+%     \texttt{-v} && print version information\\
+%     \texttt{-h} && short help\\
+%    Arguments:&&\\
+%     \texttt{get} &\textit{URL}& get Grid ACL for the object\\
+%     \texttt{put} &\textit{URL}& set Grid ACL for the object\\
+%     \texttt{URL} && object URL; curently only gsiftp and sse URLs are supported\\
+% \end{longtable}
+% 
+% The ACL document (an XML file) is printed to standard output when
+% \texttt{get} is requested, and is acquired from standard input when
+% \texttt{set} is specified\footnote{In ARC $\leq$ 0.5.28, \texttt{set}
+%   was used instead of \texttt{put}}. Usage examples are:
+% \begin{verbatim}
+%     arcacl get gsiftp://se1.ndgf.csc.fi/ndgf/tutorial/dirname/filename
+%     arcacl set gsiftp://se1.ndgf.csc.fi/ndgf/tutorial/dirname/filename < myacl
+% \end{verbatim}
 
-\index{arcacl}\index{commands:arcacl}This command retrieves or modifies
-access control information associated with a stored object if service
-supports GridSite GACL language~\cite{gacl} for access control.
-\hspace*{0.5cm}
-\begin{shaded}
-   \uicommand{arcacl [options] get$|$put $<$URL$>$}
-\end{shaded}
-\versions{ARC 0.9}
-\begin{longtable}{llp{8cm}}
-   Options:&&\\
-    \texttt{-d, -debug} & \textit{debuglevel} &debug level is one of  FATAL, ERROR, WARNING, INFO, VERBOSE or DEBUG\\
-    \texttt{-v} && print version information\\
-    \texttt{-h} && short help\\
-   Arguments:&&\\
-    \texttt{get} &\textit{URL}& get Grid ACL for the object\\
-    \texttt{put} &\textit{URL}& set Grid ACL for the object\\
-    \texttt{URL} && object URL; curently only gsiftp and sse URLs are supported\\
-\end{longtable}
-
-The ACL document (an XML file) is printed to standard output when
-\texttt{get} is requested, and is acquired from standard input when
-\texttt{set} is specified\footnote{In ARC $\leq$ 0.5.28, \texttt{set}
-  was used instead of \texttt{put}}. Usage examples are:
-\begin{verbatim}
-    arcacl get gsiftp://se1.ndgf.csc.fi/ndgf/tutorial/dirname/filename
-    arcacl set gsiftp://se1.ndgf.csc.fi/ndgf/tutorial/dirname/filename < myacl
-\end{verbatim}
-
-\subsection{arctransfer}\label{sec:arctransfer}
-\index{arctransfer}\index{commands:arctransfer}
-The \texttt{arctransfer} command is not implemented.
+% \subsection{arctransfer}\label{sec:arctransfer}
+% \index{arctransfer}\index{commands:arctransfer}
+% The \texttt{arctransfer} command is not implemented.
 

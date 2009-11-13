@@ -26,20 +26,14 @@ and move and stat collections and files, using Logical Names (LN).
    \texttt{getFile, get} &\textit{source [target]}& download a file from a \textit{source} to a \textit{target}\\
    \texttt{delFile, del, rm} &\textit{LN [LN ...]}& remove file(s))\\
    \texttt{modify, mod} &\textit{string}& modify metadata\\
-   \texttt{policy, pol} &\textit{string}& modify access policy rules. The string has a form $<$LN$>$ $<$changeType$>$ $<$identity$>$ $<$action list$>$.\\
-   & &$<$changeType$>$ could be `set', `change' or `clear'\\
-   & & `set': sets the action list to the given user overwriting the old one\\
-   & & `change': modify the current action list with adding and removing actions\\
-   & & `clear': clear the action list of the given user\\
-   & &$<$identity$>$ could be a `$<$UserDN$>$' or a `VOMS:$<$VO name$>$'\\
-   & &$<$action list$>$ is a list actions prefixed with `+' or `-', e.g. `+read +addEntry -delete'; possible actions are: \texttt{read}, \texttt{addEntry}, \texttt{removeEntry}, \texttt{delete}, \texttt{modifyPolicy}, \texttt{modifyStates}, \texttt{modifyMetadata}\\
+   \texttt{policy, pol} &\textit{string}& modify access policy rules\\
    \texttt{unlink} &\textit{string}& remove a link to an entry from a collection without removing the entry itself\\
    \texttt{credentialsDelegation, cre} &\textit{string}& delegate credentials for using gateway\\
    \texttt{removeCredentials, rem} &\textit{string}& remove previously delegated credentials\\
    \texttt{makeMountPoint, makemount} &\textit{string}& create a mount point\\
 \end{longtable}
 
-Without arguments, each method prints its own help.
+Without arguments, each method prints its own help. Detailed explanation of each method is given below.
 
 Examples:
 \begin{verbatim}
@@ -60,7 +54,7 @@ Examples:
 
 \subsubsection{stat} % (fold)
 \label{ssub:stat}
-With the \texttt{stat} method it is possible to get all the metadata about one or more entry (file, collection, etc.). The entries are specified with their Logical Name (LN).
+With the \texttt{stat}\index{commands:chelonia:stat} method it is possible to get all the metadata about one or more entry (file, collection, etc.). The entries are specified with their Logical Name (LN).
 \hspace*{0.5cm}
 \begin{shaded}
    \uicommand{chelonia stat $<$LN$>$ [$<$LN$>$ ...]}
@@ -106,7 +100,7 @@ $ chelonia stat /
 
 \subsubsection{makeCollection} % (fold)
 \label{ssub:makecollection}
-With the \texttt{makeCollection} or \texttt{mkdir} method it is possible to create a new empty collection. The requested Logical Name (LN) should be specified.
+With the \texttt{makeCollection}\index{commands:chelonia:makeCollection} or \texttt{mkdir} method it is possible to create a new empty collection. The requested Logical Name (LN) should be specified.
 \hspace*{0.5cm}
 \begin{shaded}
    \uicommand{chelonia makeCollection $<$LN$>$}
@@ -126,7 +120,7 @@ Creating collection '/nonexistent/newcoll': parent does not exist
 
 \subsubsection{unmakeCollection} % (fold)
 \label{ssub:unmakecollection}
-With the \texttt{unmakeCollection} or \texttt{rmdir} method it is possible to delete an empty collection which is specified by its Logical Name (LN).
+With the \texttt{unmakeCollection}\index{commands:chelonia:unmakeCollection} or \texttt{rmdir} method it is possible to delete an empty collection which is specified by its Logical Name (LN).
 \hspace*{0.5cm}
 \begin{shaded}
    \uicommand{chelonia unmakeCollection $<$LN$>$}
@@ -144,7 +138,7 @@ Removing collection '/dir': collection is not empty
 
 \subsubsection{list} % (fold)
 \label{ssub:list}
-With the \texttt{list} or \texttt{ls} method it is possible to list the contents of one or more collections which are specified by their Logical Name (LN).
+With the \texttt{list}\index{commands:chelonia:list} or \texttt{ls} method it is possible to list the contents of one or more collections which are specified by their Logical Name (LN).
 \hspace*{0.5cm}
 \begin{shaded}
    \uicommand{chelonia list $<$LN$>$ [$<$LN$>$ ...]}
@@ -164,7 +158,7 @@ $ chelonia list / /newcoll
 
 \subsubsection{move} % (fold)
 \label{ssub:move}
-With the \texttt{move} or \texttt{mv} method it is possible to move a file or collection within the namespace of chelonia (including renaming the entry). The source path and the target path should be specified as Logical Names
+With the \texttt{move}\index{commands:chelonia:move} or \texttt{mv} method it is possible to move a file or collection within the namespace of chelonia (including renaming the entry). The source path and the target path should be specified as Logical Names
 \hspace*{0.5cm}
 \begin{shaded}
    \uicommand{chelonia move $<$sourceLN$>$ $<$targetLN$>$}
@@ -182,7 +176,7 @@ Moving '/newcoll/thing' to '/newcoll/othername': moved
 
 \subsubsection{putFile} % (fold)
 \label{ssub:putfile}
-With the \texttt{putFile} or \texttt{put} method it is possible to upload a new file into the system creating a new Logical Name (LN). It is possible the specify the number of needed replicas.
+With the \texttt{putFile}\index{commands:chelonia:putFile} or \texttt{put} method it is possible to upload a new file into the system creating a new Logical Name (LN). It is possible the specify the number of needed replicas.
 \hspace*{0.5cm}
 \begin{shaded}
    \uicommand{chelonia putFile $<$source filename$>$ $<$target LN$>$ [$<$number of replicas needed$>$]}
@@ -197,7 +191,7 @@ $ chelonia put thing /newcoll/
 
 \subsubsection{getFile} % (fold)
 \label{ssub:getfile}
-With the \texttt{getFile} or \texttt{get} method it is possible to download a file specified with its Logical Name (LN). If the target local path is not given, then the file will be put into the local directory.
+With the \texttt{getFile}\index{commands:chelonia:getFile} or \texttt{get} method it is possible to download a file specified with its Logical Name (LN). If the target local path is not given, then the file will be put into the local directory.
 \hspace*{0.5cm}
 \begin{shaded}
    \uicommand{chelonia getFile $<$source LN$>$ [$<$target filename$>$]}
@@ -212,7 +206,7 @@ $ chelonia get /newcoll/thing newlocalname
 
 \subsubsection{delFile} % (fold)
 \label{ssub:delfile}
-With the \texttt{delFile} or \texttt{rm} method it is possible to delete one or more files from the system.
+With the \texttt{delFile}\index{commands:chelonia:delFile} or \texttt{rm} method it is possible to delete one or more files from the system.
 \hspace*{0.5cm}
 \begin{shaded}
    \uicommand{chelonia delFile $<$LN$>$ [$<$LN$>$ ...]}
@@ -228,7 +222,7 @@ $ chelonia rm /newcoll/othername
 \subsubsection{modify} % (fold)
 \label{ssub:modify}
 
-With the \texttt{modify} or \texttt{mod} method it is possible to modify some metadata of an entry.
+With the \texttt{modify}\index{commands:chelonia:modify} or \texttt{mod} method it is possible to modify some metadata of an entry.
 \hspace*{0.5cm}
 \begin{shaded}
    \uicommand{chelonia modify $<$LN$>$ $<$changeType$>$ $<$section$>$ $<$property$>$ $<$value$>$}
@@ -255,7 +249,7 @@ chelonia modify <LN> set|unset|add metadata <key> <value>
 \subsubsection{policy} % (fold)
 \label{ssub:policy}
 
-With the \texttt{policy} or \texttt{pol} method it is possible to modify the policy of the entry
+With the \texttt{policy}\index{commands:chelonia:policy} or \texttt{pol} method it is possible to modify the policy of the entry
 \hspace*{0.5cm}
 \begin{shaded}
    \uicommand{chelonia policy $<$LN$>$ $<$changeType$>$ $<$identity$>$ $<$action list$>$}   
@@ -343,7 +337,7 @@ $ chelonia stat /newcoll'/newcoll': found
 \subsubsection{unlink} % (fold)
 \label{ssub:unlink}
 
-With the \texttt{unlink} method it is possible to remove a file or collection just from its parent collection without removing the file or collection itself.
+With the \texttt{unlink}\index{commands:chelonia:unlink} method it is possible to remove a file or collection just from its parent collection without removing the file or collection itself.
 \hspace*{0.5cm}
 \begin{shaded}
    \uicommand{chelonia unlink $<$LN$>$}   
@@ -406,7 +400,7 @@ $ chelonia stat A63658B4-2C6E-46A3-8238-7D291F8F81C2
 
 \subsubsection{credentialDelegation} % (fold)
 \label{ssub:credentialdelegation}
-With the \texttt{credentialDelegation} or \texttt{cre} method it is possible to delegate credentials to the Bartender.
+With the \texttt{credentialDelegation}\index{commands:chelonia:credentialDelegation} or \texttt{cre} method it is possible to delegate credentials to the Bartender.
 \hspace*{0.5cm}
 \begin{shaded}
    \uicommand{chelonia credentialDelegation}   
@@ -415,7 +409,7 @@ With the \texttt{credentialDelegation} or \texttt{cre} method it is possible to 
 
 \subsubsection{removeCredentials} % (fold)
 \label{ssub:removecredentials}
-With the \texttt{removeCredentials} or \texttt{rem} method it is possible to remove the previously delegated credentials.
+With the \texttt{removeCredentials}\index{commands:chelonia:removeCredentials} or \texttt{rem} method it is possible to remove the previously delegated credentials.
 \hspace*{0.5cm}
 \begin{shaded}
    \uicommand{chelonia removeCredentials}   
@@ -424,7 +418,7 @@ With the \texttt{removeCredentials} or \texttt{rem} method it is possible to rem
 
 \subsubsection{makeMountPoint} % (fold)
 \label{ssub:makemountpoint}
-With the \texttt{makeMountPoint} or \texttt{makemount} method it is possible to create a mount point within the namespace of Chelonia which points to a GridFTP server.
+With the \texttt{makeMountPoint}\index{commands:chelonia:makeMountPoint} or \texttt{makemount} method it is possible to create a mount point within the namespace of Chelonia which points to a GridFTP server.
 \hspace*{0.5cm}
 \begin{shaded}
    \uicommand{chelonia makeMountPoint $<$LN$>$ $<$URL$>$}   
@@ -435,7 +429,7 @@ The `LN' is the requested Logical Name for the mount point, the `URL' points to 
 
 \subsubsection{unmakeMountPoint} % (fold)
 \label{ssub:unmakemountpoint}
-With the \texttt{unmakeMountPoint} or \texttt{unmount} method it is possible to remove a previously created mount point.
+With the \texttt{unmakeMountPoint}\index{commands:chelonia:unmakeMountPoint} or \texttt{unmount} method it is possible to remove a previously created mount point.
 \hspace*{0.5cm}
 \begin{shaded}
    \uicommand{chelonia unmakeMountPoint $<$LN$>$}   

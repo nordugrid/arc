@@ -293,7 +293,7 @@ to the user's computer.
    Options:&&\\
    \texttt{-a, --all}& & all jobs\\
    \texttt{-j, --joblist}& \textit{filename} & file containing a list of jobIDs\\
-   \texttt{-c, --cluster}&\verb#[-]#textem{name}&explicitly select or reject a specific site (cluster)\\
+   \texttt{-c, --cluster}&\verb#[-]#\textit{name}&explicitly select or reject a specific site (cluster)\\
    \texttt{-s, --status}& \textit{statusstr} &only select jobs whose status is \textit{statusstr}\\
    \texttt{-D, --dir} & \textit{dirname} & download path (the job directory will be created in that location)\\
    \texttt{-k, --keep}& & keep files in the Grid (do not clean)\\
@@ -425,7 +425,7 @@ space and to remove the job ID from the list of submitted jobs and from the Info
    Options:&&\\
    \texttt{-a, --all}& & all jobs\\
    \texttt{-j, --joblist}& \textit{filename} & file containing a list of jobIDs\\
-   \texttt{-c, --cluster}&\verb#[-]#textem{name}&explicitly select or reject a specific site (cluster)\\
+   \texttt{-c, --cluster}&\verb#[-]#\textit{name}&explicitly select or reject a specific site (cluster)\\
    \texttt{-s, --status}& \textit{statusstr} &only select jobs whose status is \textit{statusstr}\\
    \texttt{-f, --force} & & removes the job ID from the local list even if the job is not found on the Grid\\
    \texttt{-t, --timeout}& \textit{time} & timeout for queries (default 20 sec)\\
@@ -472,7 +472,7 @@ the job by uploading the output files to the desired location.
    Options:&&\\
    \texttt{-a, --all}& & all jobs\\
    \texttt{-j, --joblist}& \textit{filename} & file containing a list of jobIDs\\
-   \texttt{-c, --cluster}&\verb#[-]#textem{name}&explicitly select or reject a specific site (cluster)\\
+   \texttt{-c, --cluster}&\verb#[-]#\textit{name}&explicitly select or reject a specific site (cluster)\\
    \texttt{-s, --status}& \textit{statusstr} &only select jobs whose status is \textit{statusstr}\\
    \texttt{-t, --timeout}& \textit{time} & timeout for queries (default 20 sec)\\
    \texttt{-d, --debug}& \textit{debuglevel}&debug level is one of  FATAL, ERROR, WARNING, INFO, VERBOSE or DEBUG\\
@@ -512,7 +512,7 @@ Make sure your proxy is still valid, or when uncertain, run \verb#arcproxy# foll
 \begin{longtable}{llp{8cm}}
    \texttt{-a, --all}& & all jobs\\
    \texttt{-j, --joblist}& \textit{filename} & file containing a list of jobIDs\\
-   \texttt{-c, --cluster}&\verb#[-]#textem{name}&explicitly select or reject a specific site (cluster)\\
+   \texttt{-c, --cluster}&\verb#[-]#\textit{name}&explicitly select or reject a specific site (cluster)\\
    \texttt{-s, --status}& \textit{statusstr} &only select jobs whose status is \textit{statusstr}\\
    \texttt{-t, --timeout}& \textit{time} & timeout for queries (default 20 sec)\\
    \texttt{-d, --debug}& \textit{debuglevel}&debug level is one of  FATAL, ERROR, WARNING, INFO, VERBOSE or DEBUG\\
@@ -546,8 +546,8 @@ in such situations, allowing users to resubmit jobs.
    \texttt{-a, --all}& & all jobs\\
    \texttt{-i, --index}&\textit{url}&explicitly select or reject (-) a specific index server\\
    \texttt{-j, --joblist}& \textit{filename} & file containing a list of jobIDs\\
-   \texttt{-c, --cluster}&\verb#[-]#textem{name}&explicitly select or reject a specific source site\\
-   \texttt{-q, --qluster}&\verb#[-]#textem{name}&explicitly select or reject a specific site as re-submission target\\
+   \texttt{-c, --cluster}&\verb#[-]#\textit{name}&explicitly select or reject a specific source site\\
+   \texttt{-q, --qluster}&\verb#[-]#\textit{name}&explicitly select or reject a specific site as re-submission target\\
    \texttt{-m, --same}& &re-submit to the same site\\
    \texttt{-s, --status}& \textit{statusstr} &only select jobs whose status is \textit{statusstr}\\
    \texttt{-x, --dumpdescription}&&do not submit -- dump transformed job description to stdout\\
@@ -611,8 +611,8 @@ execution services do not support this functionality.
    \texttt{-a, --all}& & all jobs\\
    \texttt{-i, --index}&\textit{url}&explicitly select or reject (-) a specific index server\\
    \texttt{-j, --joblist}& \textit{filename} & file containing a list of jobIDs\\
-   \texttt{-c, --cluster}&\verb#[-]#textem{name}&explicitly select or reject a specific site (cluster)\\
-   \texttt{-q, --qluster}&\verb#[-]#textem{name}&explicitly select or reject a specific site as re-submission target\\
+   \texttt{-c, --cluster}&\verb#[-]#\textit{name}&explicitly select or reject a specific site (cluster)\\
+   \texttt{-q, --qluster}&\verb#[-]#\textit{name}&explicitly select or reject a specific site as re-submission target\\
    \texttt{-f, --forcemigration}& & force migration, ignoring kill failure\\
    \texttt{-b, --broker}&\textit{string}&select broker method (default is Random)\\
    \texttt{-t, --timeout}& \textit{time} & timeout for queries (default 20 sec)\\
