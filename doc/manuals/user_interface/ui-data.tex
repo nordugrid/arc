@@ -129,6 +129,28 @@ Here is an \texttt{arcrm} example:
     arcrm lfc://grid.uio.no/grid/atlas/AOD_0947.pool.root
 \end{verbatim}
 
+\subsection{arcsrmping}\label{sec:arcsrmping}
+
+The \texttt{arcsrmping}\index{arcsrmping}\index{commands:arcsrmping}
+command is used to quickly test availability of an SRM service, similarly to the \textit{ping} tool in Unix.
+\hspace*{0.5cm}
+\begin{shaded}
+   \uicommand{arcsrmping [options] $<$service$>$}
+\end{shaded}
+\versions{ARC 0.9}
+\begin{longtable}{llp{8cm}}
+    Options:&&\\
+   \texttt{-t, --timeout}&\textit{seconds}&timeout in seconds (default 20)\\
+   \texttt{-d, --debug}&\textit{debuglevel}&debug level, FATAL, ERROR, WARNING, INFO, VERBOSE or DEBUG - default WARNING\\
+   \texttt{-z, --conffile}&\textit{filename}& configuration file (default {\$}HOME/.arc/client.conf)\\
+   \texttt{-v, --version}&&print version information\\
+   \texttt{-h, --help}&&print help page\\
+    Arguments:&&\\
+   \texttt{service} && A URL to an SRM service\\
+\end{longtable}
+
+The \texttt{arcsrmping} command is a \textit{ping} client for the SRM service. It sends an SRM ping request to the SRM service and displays the result.
+
 % \subsection{arcacl}\label{sec:arcacl}
 % 
 % \index{arcacl}\index{commands:arcacl}This command retrieves or modifies
