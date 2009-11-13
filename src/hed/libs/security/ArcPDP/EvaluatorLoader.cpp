@@ -113,7 +113,7 @@ Evaluator* EvaluatorLoader::getEvaluator(const std::string& classname) {
           std::size_t pos = name.rfind(".");
           std::string subname;
           if(pos!=std::string::npos) subname = name.substr(pos);
-          if((subname != ".so") && (subname != ".dll") && (subname != ".dylib")) continue;
+          if(subname != G_MODULE_SUFFIX) continue;
           std::string fname = Glib::build_filename(*plugin,name);
           // Few tests just in case
           if(!file_test(fname,Glib::FILE_TEST_IS_EXECUTABLE)) continue;
