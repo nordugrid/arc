@@ -1,23 +1,24 @@
 ARC Middleware
 ==============
 
-The Advanced Resource Connector (ARC) middleware, introduced by
-NorduGrid (www.nordugrid.org), is an open source software solution
-enabling production quality computational and data grids.
+The Advanced Resource Connector (ARC) middleware, introduced by the
+NorduGrid Collaboration (www.nordugrid.org), is an open source software
+solution enabling production quality computational and data grids.
 
-Since the first release (May 2002) the middleware has been deployed and
+Since its first release (May 2002) the middleware has been deployed and
 been used in production environments. Emphasis is put on scalability,
 stability, reliability and performance of the middleware. A growing
-number of grid projects, like Swegrid, NDGF and Swiss Bio Grid has
+number of grid projects, like Swegrid, NDGF and Swiss Bio Grid have
 chosen ARC as their middleware.
 
-This release (February 2008) is a first release of a new generation of ARC 
-and will be referenced as ARC1. It is based on a service container - the
-Hosting Environment Daemon (HED) - and different grid capabilities are
-implemented as Web Services residing in HED. Currently, an OGSA BES
-compliant execution service - ARC Resource-coupled EXecution service
-(A-REX) - and an echo service (for testing purposes) are included, but
-the set of services is rapidly growing.
+This release (February 2008) is a first release of a new generation
+of ARC and will now be referenced as ARC-nox, formerly ARC1. It is
+based on a service container - the Hosting Environment Daemon (HED)
+- and different grid capabilities are implemented as Web Services
+residing in HED. Currently, an OGSA BES compliant execution service -
+ARC Resource-coupled EXecution service (A-REX) - and an echo service
+(for testing purposes) are included, but the set of services is rapidly
+growing.
 
 
 
@@ -61,9 +62,8 @@ requirements is shown:
     o Berkeley DB C++ interface (build, run)
     o xmlsec1 1.2.4 or higher (build, run)
 
-Please note that depending on operating system distribution in order to 
-build ARC1 you may need to install development versions of mentioned 
-packages.
+Please note that depending on operating system distribution to build
+ARC-nox you may need to install development versions of mentioned packages.
 
 
 
@@ -81,7 +81,7 @@ The NorduGrid repository hosts the source code, and provides most of
 the required external software which are not part of a standard Linux
 distribution.
 
-You can get the latest source code for ARC1 from the Subversion 
+You can get the latest source code for ARC-nox from the Subversion 
 repository. See http://svn.nordugrid.org for more details.
 
 There are also nightly code snapshots available at 
@@ -94,7 +94,7 @@ for example nordugrid-arc1-200802201038-snapshot.tar.gz.
 Building & Installation
 =======================
 
-Building from source is currently the recommended way to install ARC1. 
+Building from source is currently the recommended way to install ARC-nox. 
 If you downloaded the tarball, unpack it and cd into the created
 directory.
 
@@ -109,12 +109,12 @@ If you obtained the code from the Subversion repository, use the
 Now configure the obtained code with
 
   ./autogen.sh
-  ./configure --prefix=PLACE_TO_INSTALL_ARC1
+  ./configure --prefix=PLACE_TO_INSTALL_ARC-nox
 
-Choose installation prefix wisely and according to the requirements of
-your OS and personal preferences. ARC1 should function properly from
+Choose the installation prefix wisely and according to the requirements of
+your OS and personal preferences. ARC-nox should function properly from
 any location. By default installation goes into /usr/local if you omit
-the '--prefix' option. For some modules of ARC1 to work properly you
+the '--prefix' option. For some modules of ARC-nox to work properly you
 may need to set up the environment variable after installation:
 
   export ARC_LOCATION=PLACE_TO_INSTALL_ARC
@@ -124,7 +124,7 @@ long as 'configure' passes without errors. But in case of problems
 during configure or compilation, collect them and present while 
 reporting problems.
 
-If the previous commands finish without errors, compile and install ARC1
+If the previous commands finish without errors, compile and install ARC-nox
 
   make
   make install
@@ -139,7 +139,7 @@ bin/ - user tools and command line clients
 lib/ - common libraries used by clients, server and plugins
 lib/arc/ - plugins implementing Message Chain, Service and Security components
 include/arc/ - C++ headers for application development
-libexec/ - additional modules used by ARC1 services - currently only A-REX
+libexec/ - additional modules used by ARC-nox services - currently only A-REX
 share/doc/arc - configuration examples/templates and documentation
 share/locale - internationalization files - curently very limited support
 share/man - manual pages for various utilities
@@ -149,7 +149,7 @@ share/man - manual pages for various utilities
 X509 Certificates
 =================
 
-Most of ARC1 planned and existing services use HTTPS as transport protocol
+Most of ARC-nox planned and existing services use HTTPS as transport protocol
 so they require proper setup of X509 security infrastructure. Minimal 
 requirements are:
 * Host certificate aka public key in PEM format
@@ -158,31 +158,32 @@ requirements are:
 * Certificates of CAs of clients which are going to send requests to services. Unless
 of course clients use the same CA as the server.
 
-More information about X509 certificates and their usage in Grid environement 
+More information about X509 certificates and their usage in Grid environment 
 can be found on http://www.nordugrid.org/documents/certificate_howto.html
 and http://www.nordugrid.org/documents/ng-server-install.html#security
 
-For testing purposes you can use the pre-generated certificates and
+For testing purposes you can use pre-generated certificates and
 keys available at:
 
  http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk/doc/sec/TestCA
 
 Alternatively You may choose to use KnowARC Instant CA service available at 
-https://vls.grid.upjs.sk/CA/instantCA . It is especially usefull if You 
-want to test installation consisting on multiple hosts.
+https://vls.grid.upjs.sk/CA/instantCA . It is especially useful if to test
+installations consisting on multiple hosts.
 
-Please remember that it is not safe to use these keys in publicly accessible
-insallations of ARC1. Make sure that even the CA certificate is removed
-before making your services available to the outside world.
+Please remember that it is not safe to use such instant keys in publicly
+accessible installations of ARC-nox. Make sure that even the generate CA
+certificate is removed before making your services available to the
+outside world.
 
-You can put host certificates and private keys anywhere. Common locations for
-servers running from root account are /etc/grid-security/hostcert.pem and
-/etc/grid-security/hostkey.pem respectively. The content of private key 
-must not be encrypted and protected by password. Service has no way to
-ask person about password. So make sure it is properly protected by means
-of file system.
+You can put host certificates and private keys anywhere. Common locations
+for servers running from root account are /etc/grid-security/hostcert.pem
+and /etc/grid-security/hostkey.pem, respectively. The content of the
+private key must not be encrypted and or protected by a password sinc
+a service has no way to ask person about password. So make sure it is
+properly protected by means of file system.
 
-It is possible to configure ARC1 server to accept either a single CA certificate
+It is possible to configure ARC-nox server to accept either a single CA certificate
 or multiple CA certificates located in the specified directory. The latter
 option is recommended. The common location is /etc/grid-security/certificates/ .
 In that case names of certificate files have to follow hash values of
@@ -207,10 +208,10 @@ or
       <CACertificatePath>/etc/grid-security/ca.pem</CACertificatePath>
 
 The key file has to be without passphrase for the server side. You can also 
-configure proxy certificate instead of normal certificate (See part:
+configure a proxy certificate instead of the normal certificate (See part:
 Proxy certificate Generation & Usage).
 
-The same requirements are valid for the client tools of ARC1. You may use
+The same requirements are valid for the client tools of ARC-nox. You may use
 the pregenerated user certificate and key located at the same
 place. Locations of the credentials are provided to the client tools
 from the command line.
@@ -227,9 +228,9 @@ should look like this:
       <CertificatePath>/etc/grid-security/hostcert.pem</CertificatePath>
       <ClientAuthn>false</ClientAuthn>
 Note: here either <CACertificatePath/> or <<CACertificatesDir>/> are not needed,
-because the client's certificate will not checked by server; But <ClientAuthn/>
+because the client's certificate will not checked by server; but <ClientAuthn/>
 is required here, which explicitly specify that client's certificate will not 
-be checke, the default value of <ClientAuthn/> is "true" and it does not need 
+be checked, the default value of <ClientAuthn/> is "true" and it does not need 
 to be explicitly specified.
 
 For the client side, the configuration for the certificate for TLS MCC 
@@ -244,10 +245,10 @@ Note: here only the ca information needs to be specified.
 
 The set of pre-generated keys and certificates also includes a user
 certificate in PKCS12 format which you can import into your browser
-for accessing ARC1 services capable of producing HTML output.
+for accessing ARC-nox services capable of producing HTML output.
 
-ARC1 comes with utility arcproxy which generates proxy credentials
-from certificate/private key pair. It provides only basic functionality 
+ARC-nox comes with the utility arcproxy to generate proxy credentials
+from a certificate/private key pair. It provides only basic functionality 
 and is meant for testing purposes only. 
 
 IMPORTANT: If during configuration stage You see a message "OpenSSL 
@@ -260,7 +261,7 @@ to be kept unencrypted.
 
 Proxy certificate Generation & Usage
 ====================================
-As metioned above, ARC1 comes with utility proxy generation utility
+As metioned above, ARC-nox comes with utility proxy generation utility
 --arcproxy. 
 arcproxy appears in ARC_LOCATION/bin. The usage of arcproxy is like:
 ARC_LOCATION/bin/arcproxy -P proxy.pem -C cert.pem -K key.pem 
@@ -287,7 +288,7 @@ should look like this:
       <KeyPath>./proxy.pem</KeyPath>
       <CertificatePath>./proxy.pem</CertificatePath>
       <CACertificatePath>./ca.pem</CACertificatePath>
-Because normally a proxy certificate file includes the proxy certificate
+Since normally a proxy certificate file includes the proxy certificate
 and private key corresponding to the proxy certificate, <KeyPath/> and 
 <CertificatePath/> are configured the same.
 
@@ -311,7 +312,7 @@ The configuration of the ARC server is specified in an XML file, the
 location of which is specified as a command line argument with the -c
 option of 'arched' daemon. Examples of configuration files with comments
 describing various elements are available in directory share/doc/arc of
-the ARC1 installation. 
+the ARC-nox installation. 
 
 
 
@@ -345,23 +346,24 @@ where <message> is the message which the echo service will return.
 The A-REX Service
 =================
 
-ARC1 comes with OGSA BES compliant Grid job management service called A-REX.
+ARC-nox comes with OGSA BES compliant Grid job management service called A-REX.
 To deploy A-REX use example configuration files available in share/doc/arc :
- * arex.xml - configuration for arched server. Read comments inside this file
-and edit it to fit your installation. This file defines WS interface of A-REX.
- * arc-arex.conf - legacy configuration for Grid Manager part of A-REX. This
-file defines how jobs are managed by A-REX locally. Read and edit it. For more
-detailed information please read Grid Manager documentation available in SVN
-repository
-http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk/doc/a-rex/arex_tech_doc.pdf?format=raw
 
-Grid Manager runs as part of A-REX service. There is no need to run any additional
+ * arex.xml - configuration for arched server. Read comments inside this file
+   and edit it to fit your installation. This file defines the WS interface of A-REX.
+ * arc-arex.conf - legacy configuration for the Grid Manager part of A-REX. This
+   file defines how jobs are managed by A-REX locally. Read and edit it. For more
+   detailed information please read Grid Manager documentation available in SVN
+   repository
+   http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk/doc/a-rex/arex_tech_doc.pdf?format=raw
+
+The Grid Manager runs as part of the A-REX service. There is no need to run any additional
 executable. But you still need to setup its infrastructure as long as you are 
 going to have anything more sophisticated than described in the example configuration.
 For more information read the previously mentioned document.
 
 Currently, a proper functioning A-REX requires environment variable ARC_LOCATION
-to be set to the installation prefix of ARC1.
+to be set to the installation prefix of ARC-nox.
 
 A-REX uses HTTPS as transport protocol (although You can reconfigure it to use 
 plain HTTP) so it requires proper setup of X509 security infrastructure. See
@@ -376,7 +378,7 @@ with command
 Look into log file specified in arex.xml for possible errors. You can safely ignore 
 messages like "Not a '...' type plugin" and "Unknown element ... - ignoring".
 
-If You compiled ARC1 with Globus support and You see complaints about "libglobus..." 
+If you compiled ARC-nox with Globus support and you see complaints about "libglobus..." 
 and that it cannot open a shared object file, try to add "/opt/globus/lib" to your
 LD_LIBRARY_PATH:
 
@@ -385,9 +387,9 @@ LD_LIBRARY_PATH:
 
 
 Testing and Using A-REX (clients)
-================================
+=================================
 
-Now You may use the command line utility 'arcinfo' to obtain a service description.
+Now you may use the command line utility 'arcinfo' to obtain a service description.
 You can do something like
 
  ./arcinfo -c ARC1:https://localhost:60000/arex -l
@@ -550,16 +552,16 @@ Execution Environment information:
  Execution environment does not support outbound connections
 ---
 
-Please note that you can run similar arcinfo request against any ARC1 service
-except echo service.
+Please note that you can run similar arcinfo request against any ARC-nox service
+except for the echo service.
 
-A-REX accepts jobs described in JSDL language. Example JSDL jobs are provided
+A-REX accepts jobs described in JSDL. Example JSDL jobs are provided
 in $ARC_LOCATION/share/doc/ in files 'jsdl_simple.xml' and 'jsdl_stage.xml'. To 
-submit job to A-REX service one may use the 'arcsub' command:
+submit job to the A-REX service one may use the 'arcsub' command:
 
 $ARC_LOCATION/bin/arcsub -c ARC1:https://localhost:60000/arex -f /usr/local/share/doc/arc/jsdl_simple.xml -j id.xml
 
-If everything goes properly somewhere in it's output there should be a message
+If everything goes fine, somewhere in its output there should be a message
 "Job submitted!", and a job identifier is obtained which will be stored
 in 'id.xml' file. One can then query job state with the 'arcstat' utility:
 
@@ -579,48 +581,49 @@ and arcclean commands. For more information please see the man pages of those ut
 Security and Authorization
 ==========================
 
-ARC1 implements security related features through set of Security Handler and 
+ARC-nox implements security related features through set of Security Handler and 
 Policy Decision Point components. Security Handler components are attached to 
 message processing components. Each Security Handler takes care of processing
-own part of security information. Currently ARC1 comes with 2 Security Handlers:
+own part of security information. Currently ARC-nox comes with 2 Security Handlers:
+
  * identity.map - associates client's identity with local (UNIX) identity. It 
    uses PDP components to choose local isentity and/or identity mapping algorithm.
  * arc.authz - calls PDP components and combines obtained authorization
    decisions.
  * delegation.collector - parses proxy policy from remote proxy certificate.
-                          this Security Handler should be configured under tls
-                          mcc component.
+   this Security Handler should be configured under tls mcc component.
  * usernametoken.handler - implement the functioanlity ofws-security usernametoken 
-                          profile. It will generate usernametoken into soap header,
-                          or extract usernametoken outof soap header and do 
-                          authentication based on the extracted usernametoken.
+   profile. It will generate usernametoken into soap header, or extract
+   usernametoken outof soap header and do authentication based on the
+   extracted usernametoken.
 
 Among available PDP components there are
+
  * allow - always returns positive result
  * deny - always returns negative result 
  * simplelist.pdp - compares DN of user to those stored in a file.
  * arc.pdp - compares request information parsed from message and policy 
-             information specified in this pdp.
+   information specified in this pdp.
  * pdpservice.invoker -  it composes the request, puts request into soap message,
-             and invokes the remote pdp service to get the response soap which includes
-             authorization decision. the pdp service has similar functionality
-             with arc.pdp.
+   and invokes the remote pdp service to get the response soap which
+   includes authorization decision. the pdp service has similar
+   functionality with arc.pdp.
  * delegation.pdp - compares request information parsed from message and policy
-             information specified in proxy certificate from remote side.
+   information specified in proxy certificate from remote side.
 
-There are examples of A-Rex service and echo service with Security Handlers being used.
+There are examples of A-REX service and echo service with Security Handlers being used.
 They may be found at $ARC_LOCATION/share/doc/arc/arex_secure.xml and 
 $ARC_LOCATION/share/doc/arc/echo.xml
 
 There is also a pdp service which implements the same functionality as arc.pdp. See 
 src/service/pdp/README.
-Specifically for arc.pdp and pdpservice, a formatted policy with specific schema
+Specifically for arc.pdp and pdp service, a formatted policy with specific schema
 should be managed, see $ARC_LOCATION/share/doc/arc/pdp_policy.xml.example and 
 $ARC_LOCATION/share/doc/arc/Policy.xsd for details.
 
 For usernametoken handler, there is example about configuration on service side in 
-$ARC_LOCATION/share/doc/arc/echo.xml, you can run echo service by using this configuration
-file with usernametoken sechandler configuered. For client side, the echo client 
+$ARC_LOCATION/share/doc/arc/echo.xml, you can run the echo service by using this configuration
+file with usernametoken sechandler configuered. For the client side, the echo client 
 (src/client/echo)can use usernametoken sechandler to authenticate against echo service 
 (see README under src/client/echo); there is also a test program in 
 src/tests/echo/test_clientinterface.cpp which can be compiled and tested against echo
@@ -641,7 +644,7 @@ Contributing
 
 The open source development of the ARC middleware is coordinated by
 the NorduGrid Collaboration. Currently, the main contributor is the
-KnowARC project (www.knowarc.eu), but the Collaboration is open to new
+KnowARC project (www.knowarc.eu), but the collaboration is open to new
 members. Contributions from the community to the software and the
 documentation is welcomed. Sources can be downloaded from the software
 repository at download.nordugrid.org or the Subversion code repository at
@@ -664,13 +667,11 @@ Support, documentation, mailing lists, contact
 
 User support and site installation assistance is provided via the
 request tracking system available at nordugrid-support@nordugrid.org.
-In addition, NorduGrid runs a couple of mailing lists, among which the
+In addition, the NorduGrid runs several mailing lists, among which the
 nordugrid-discuss mailing list is a general forum for all kind of
-issues related to the ARC middleware.
-
-NorduGrid deploys the Bugzilla problem tracking system
-(bugzilla.nordugrid.org). Feature and enhancement requests, as well as
-discovered problems, should be reported there.
+issues related to the ARC middleware. The Bugzilla problem tracking system
+(bugzilla.nordugrid.org) accepts requests for features or enhancements,
+and is the prime medium to track and report problems.
 
 Research papers, overview talks, reference manuals, user guides,
 installation instructions, conference presentations, FAQ and even
