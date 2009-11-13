@@ -119,7 +119,7 @@ int main(int argc, char **argv) {
     return 0;
   }
 
-  if (!joblist.empty() && jobs.empty() && clusters.empty())
+  if ((!joblist.empty() || !status.empty()) && jobs.empty() && clusters.empty())
     all = true;
 
   if (jobs.empty() && clusters.empty() && !all) {
