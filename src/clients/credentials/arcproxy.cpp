@@ -281,22 +281,7 @@ int main(int argc, char *argv[]) {
         ca_dir = "";
     }
     if (ca_dir.empty()) {
-      ca_dir = Arc::ArcLocation::Get() + G_DIR_SEPARATOR_S + "etc" + G_DIR_SEPARATOR_S + "grid-security" + G_DIR_SEPARATOR_S + "certificates";
-      if (!Glib::file_test(ca_dir, Glib::FILE_TEST_IS_DIR))
-        ca_dir = "";
-    }
-    if (ca_dir.empty()) {
-      ca_dir = Arc::ArcLocation::Get() + G_DIR_SEPARATOR_S + "etc" + G_DIR_SEPARATOR_S + "certificates";
-      if (!Glib::file_test(ca_dir, Glib::FILE_TEST_IS_DIR))
-        ca_dir = "";
-    }
-    if (ca_dir.empty()) {
       ca_dir = user.Home() + G_DIR_SEPARATOR_S + ".globus" + G_DIR_SEPARATOR_S + "certificates";
-      if (!Glib::file_test(ca_dir, Glib::FILE_TEST_IS_DIR))
-        ca_dir = "";
-    }
-    if (ca_dir.empty()) {
-      ca_dir = Arc::ArcLocation::Get() + G_DIR_SEPARATOR_S + "share" + G_DIR_SEPARATOR_S + "certificates";
       if (!Glib::file_test(ca_dir, Glib::FILE_TEST_IS_DIR))
         ca_dir = "";
     }
@@ -307,6 +292,21 @@ int main(int argc, char *argv[]) {
         ca_dir = "";
     }
 #endif
+    if (ca_dir.empty()) {
+      ca_dir = Arc::ArcLocation::Get() + G_DIR_SEPARATOR_S + "etc" + G_DIR_SEPARATOR_S + "grid-security" + G_DIR_SEPARATOR_S + "certificates";
+      if (!Glib::file_test(ca_dir, Glib::FILE_TEST_IS_DIR))
+        ca_dir = "";
+    }
+    if (ca_dir.empty()) {
+      ca_dir = Arc::ArcLocation::Get() + G_DIR_SEPARATOR_S + "etc" + G_DIR_SEPARATOR_S + "certificates";
+      if (!Glib::file_test(ca_dir, Glib::FILE_TEST_IS_DIR))
+        ca_dir = "";
+    }
+    if (ca_dir.empty()) {
+      ca_dir = Arc::ArcLocation::Get() + G_DIR_SEPARATOR_S + "share" + G_DIR_SEPARATOR_S + "certificates";
+      if (!Glib::file_test(ca_dir, Glib::FILE_TEST_IS_DIR))
+        ca_dir = "";
+    }
   } catch (std::exception& err) {
     logger.msg(Arc::ERROR, err.what());
     tls_process_error(logger);
