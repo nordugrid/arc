@@ -54,6 +54,7 @@ namespace Arc {
     void child_handler(Glib::Pid pid, int result);
     bool started_;
     bool running_;
+    bool abandoned_;
     int result_;
     Glib::Mutex lock_;
     Glib::Cond cond_;
@@ -62,7 +63,7 @@ namespace Arc {
     Run(const std::string& cmdline);
     /** Constructor preapres object to run executable and arguments specified in argv */
     Run(const std::list<std::string>& argv);
-    /** Destructor kill running executable and releases associated resources */
+    /** Destructor kills running executable and releases associated resources */
     ~Run(void);
     /** Returns true if object is valid */
     operator bool(void) {
@@ -135,6 +136,10 @@ namespace Arc {
        after timeout seconds executable is still running it's killed
        completely. Curently this method does not work for Windows OS */
     void Kill(int timeout);
+    /** Detach this object from running process.
+      After calling this method instance is not associated with external
+      process anymore. As result destructor will not kill process. */
+    void Abandon(void);
   };
 
 }

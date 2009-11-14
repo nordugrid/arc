@@ -38,7 +38,17 @@ namespace Arc {
     static RunPump *instance_;
     static unsigned int mark_;
 #define RunPumpMagic (0xA73E771F)
+    class Abandoned {
+    friend class RunPump;
+    private:
+      sigc::connection child_conn_;
+      Glib::Pid pid_;
+    public:
+      Abandoned(Glib::Pid pid,sigc::connection child_conn):child_conn_(child_conn),pid_(pid) { };
+    };
+    std::list<Abandoned> abandoned_;
     //std::list<Run*> runs_;
+    Glib::Mutex abandoned_lock_;
     Glib::Mutex list_lock_;
     Glib::Mutex pump_lock_;
     Glib::RefPtr<Glib::MainContext> context_;
@@ -55,6 +65,7 @@ namespace Arc {
     void Pump(void);
     void Add(Run *r);
     void Remove(Run *r);
+    void child_handler(Glib::Pid pid, int result);
   };
 
   Glib::Mutex RunPump::instance_lock_;
@@ -62,18 +73,15 @@ namespace Arc {
   unsigned int RunPump::mark_ = ~RunPumpMagic;
 
   class Pid {
-    friend class Run;
-    friend class RunPump;
   private:
-    Glib::Pid p;
-    Pid(void) {
-      p = 0;
-    }
-    Pid(int p_) {
-      p = p_;
-    }
+    Glib::Pid p_;
+  public:
+    Pid(void):p_(0) { }; 
+    Pid(Glib::Pid p):p_(p) { }; 
+    operator Glib::Pid(void) { return p_; };
+    Glib::Pid pid(void) { return p_; };
+    Glib::Pid operator=(Glib::Pid p) { return (p_=p); };
   };
-
 
   class RunInitializerArgument {
   private:
@@ -137,6 +145,15 @@ namespace Arc {
         list_lock_.unlock();
         pump_lock_.lock();
         bool dispatched = context_->iteration(true);
+        for(std::list<Abandoned>::iterator a = abandoned_.begin();
+                            a != abandoned_.end();) {
+          if(a->pid_ == 0) {
+            SAFE_DISCONNECT(a->child_conn_);
+            a = abandoned_.erase(a);
+          } else {
+            ++a;
+          }
+        }
         pump_lock_.unlock();
         thread_->yield();
         if (!dispatched)
@@ -170,7 +187,7 @@ namespace Arc {
       if (r->stdin_str_ && !(r->stdin_keep_))
         r->stdin_conn_ = context_->signal_io().connect(sigc::mem_fun(*r, &Run::stdin_handler), r->stdin_, Glib::IO_OUT | Glib::IO_HUP);
 #ifdef HAVE_GLIBMM_CHILDWATCH
-      r->child_conn_ = context_->signal_child_watch().connect(sigc::mem_fun(*r, &Run::child_handler), r->pid_->p);
+      r->child_conn_ = context_->signal_child_watch().connect(sigc::mem_fun(*r, &Run::child_handler), r->pid_->pid());
       //if(r->child_conn_.empty()) std::cerr<<"connect for signal_child_watch failed"<<std::endl;
 #endif
     } catch (Glib::Exception& e) {} catch (std::exception& e) {}
@@ -199,8 +216,24 @@ namespace Arc {
     SAFE_DISCONNECT(r->stderr_conn_);
     SAFE_DISCONNECT(r->stdin_conn_);
     SAFE_DISCONNECT(r->child_conn_);
+    if(r->running_) {
+      abandoned_.push_back(Abandoned(r->pid_->pid(),context_->signal_child_watch().connect(sigc::mem_fun(*this,&RunPump::child_handler), r->pid_->pid())));
+      r->running_ = false;
+    };
     pump_lock_.unlock();
     list_lock_.unlock();
+  }
+
+  void RunPump::child_handler(Glib::Pid pid, int result) {
+    abandoned_lock_.lock();
+    for(std::list<Abandoned>::iterator a = abandoned_.begin();
+                        a != abandoned_.end();++a) {
+      if(a->pid_ == pid) {
+        a->pid_ = 0;
+        break;
+      }
+    }
+    abandoned_lock_.unlock();
   }
 
   Run::Run(const std::string& cmdline)
@@ -220,8 +253,9 @@ namespace Arc {
       kicker_func_(NULL),
       started_(false),
       running_(false),
+      abandoned_(false),
       result_(-1) {
-    pid_ = new Pid();
+    pid_ = new Pid;
   }
 
   Run::Run(const std::list<std::string>& argv)
@@ -232,25 +266,25 @@ namespace Arc {
       stdout_str_(NULL),
       stderr_str_(NULL),
       stdin_str_(NULL),
-      pid_(NULL),
+      pid_(0),
       argv_(argv),
       initializer_func_(NULL),
       kicker_func_(NULL),
       started_(false),
       running_(false),
+      abandoned_(false),
       result_(-1) {
-    pid_ = new Pid();
+    pid_ = new Pid;
   }
 
   Run::~Run(void) {
     if(*this) {
-      Kill(0);
+      if(!abandoned_) Kill(0);
       CloseStdout();
       CloseStderr();
       CloseStdin();
       RunPump::Instance().Remove(this);
     };
-    if(pid_) delete pid_;
   }
 
   bool Run::Start(void) {
@@ -263,22 +297,25 @@ namespace Arc {
     try {
       UserSwitch usw(0,0);
       running_ = true;
+      Glib::Pid pid;
       if (initializer_func_) {
         arg = new RunInitializerArgument(initializer_func_, initializer_arg_);
         spawn_async_with_pipes(working_directory, argv_,
                                Glib::SpawnFlags(Glib::SPAWN_DO_NOT_REAP_CHILD),
                                sigc::mem_fun(*arg, &RunInitializerArgument::Run),
-                               &(pid_->p), stdin_keep_ ? NULL : &stdin_,
+                               &pid, stdin_keep_ ? NULL : &stdin_,
                                stdout_keep_ ? NULL : &stdout_,
                                stderr_keep_ ? NULL : &stderr_);
       }
-      else
+      else {
         spawn_async_with_pipes(working_directory, argv_,
                                Glib::SpawnFlags(Glib::SPAWN_DO_NOT_REAP_CHILD),
-                               sigc::slot<void>(), &(pid_->p),
+                               sigc::slot<void>(), &pid,
                                stdin_keep_ ? NULL : &stdin_,
                                stdout_keep_ ? NULL : &stdout_,
                                stderr_keep_ ? NULL : &stderr_);
+      }
+      *pid_ = pid;
       if (!stdin_keep_)
         fcntl(stdin_, F_SETFL, fcntl(stdin_, F_GETFL) | O_NONBLOCK);
       started_ = true;
@@ -304,15 +341,22 @@ namespace Arc {
       return;
     if (timeout > 0) {
       // Kill softly
-      ::kill(pid_->p, SIGTERM);
+      ::kill(pid_->pid(), SIGTERM);
       Wait(timeout);
     }
     if (!running_)
       return;
     // Kill with no merci
-    running_ = false;
-    ::kill(pid_->p, SIGKILL);
-    pid_->p = 0;
+    ::kill(pid_->pid(), SIGKILL);
+  }
+
+  void Run::Abandon(void) {
+    if(*this) {
+      CloseStdout();
+      CloseStderr();
+      CloseStdin();
+      abandoned_=true;
+    }
   }
 
   bool Run::stdout_handler(Glib::IOCondition) {
@@ -474,7 +518,7 @@ namespace Arc {
       cond_.timed_wait(lock_, till);
 #else
       int status;
-      int r = waitpid(pid_->p, &status, WNOHANG);
+      int r = waitpid(pid_, &status, WNOHANG);
       if (r == 0) {
         if (!t.negative())
           break;
@@ -489,7 +533,7 @@ namespace Arc {
         status = WEXITSTATUS(status);
       // Child exited
       lock_.unlock();
-      child_handler(pid_->p, status << 8);
+      child_handler(pid_, status << 8);
       lock_.lock();
 #endif
     }
@@ -511,7 +555,7 @@ namespace Arc {
       cond_.timed_wait(lock_, till);
 #else
       int status;
-      int r = waitpid(pid_->p, &status, WNOHANG);
+      int r = waitpid(pid_, &status, WNOHANG);
       if (r == 0) {
         lock_.unlock();
         sleep(1);
@@ -524,7 +568,7 @@ namespace Arc {
         status = WEXITSTATUS(status);
       // Child exited
       lock_.unlock();
-      child_handler(pid_->p, status << 8);
+      child_handler(pid_, status << 8);
       lock_.lock();
 #endif
     }

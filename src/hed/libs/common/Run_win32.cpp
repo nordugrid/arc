@@ -55,6 +55,7 @@ namespace Arc {
       kicker_func_(NULL),
       started_(false),
       running_(false),
+      abandoned_(false),
       result_(-1) {
     pid_ = new Pid();
   }
@@ -73,13 +74,14 @@ namespace Arc {
       kicker_func_(NULL),
       started_(false),
       running_(false),
+      abandoned_(false),
       result_(-1) {
     pid_ = new Pid();
   }
 
   Run::~Run(void) {
     if(*this) {
-      Kill(0);
+      if(!abandoned_) Kill(0);
       CloseStdout();
       CloseStderr();
       CloseStdin();
@@ -145,6 +147,15 @@ namespace Arc {
     // Kill with no merci
     running_ = false;
     TerminateProcess(pid_->processinfo.hProcess, 256);
+  }
+
+  void Run::Abandon(void) {
+    if(*this) {
+      CloseStdout();
+      CloseStderr();
+      CloseStdin();
+      abandoned_=true;
+    }
   }
 
   bool Run::stdout_handler(Glib::IOCondition) {
