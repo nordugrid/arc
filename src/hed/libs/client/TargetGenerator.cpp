@@ -23,23 +23,29 @@ namespace Arc {
   TargetGenerator::TargetGenerator(const UserConfig& usercfg)
     : threadCounter(0), usercfg(usercfg) {
 
-    if (usercfg.GetSelectedServices(COMPUTING).empty() &&
-        usercfg.GetSelectedServices(INDEX).empty())
-      return;
-
+    /* When loading a specific middleware plugin fails, subsequent loads
+     * should fail aswell. Therefore it should be unecessary to load the
+     * same plugin multiple times, if it failed the first time.
+     */
+    std::map<std::string, bool> pluginLoaded;
     for (URLListMap::const_iterator it = usercfg.GetSelectedServices(COMPUTING).begin();
          it != usercfg.GetSelectedServices(COMPUTING).end(); it++)
       for (std::list<URL>::const_iterator it2 = it->second.begin();
            it2 != it->second.end(); it2++) {
-        loader.load(it->first, usercfg, *it2, COMPUTING);
+        if (pluginLoaded[it->first] = !loader.load(it->first, usercfg, *it2, COMPUTING))
+          continue;
       }
 
     for (URLListMap::const_iterator it = usercfg.GetSelectedServices(INDEX).begin();
-         it != usercfg.GetSelectedServices(INDEX).end(); it++)
+         it != usercfg.GetSelectedServices(INDEX).end(); it++) {
+      if (pluginLoaded.find(it->first) != pluginLoaded.end() && !pluginLoaded[it->first]) // Do not try to load if it failed above.
+        continue;
       for (std::list<URL>::const_iterator it2 = it->second.begin();
            it2 != it->second.end(); it2++) {
-        loader.load(it->first, usercfg, *it2, INDEX);
+        if (!loader.load(it->first, usercfg, *it2, INDEX))
+          continue;
       }
+    }
   }
 
   TargetGenerator::~TargetGenerator() {
