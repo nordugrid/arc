@@ -518,7 +518,7 @@ namespace Arc {
       cond_.timed_wait(lock_, till);
 #else
       int status;
-      int r = waitpid(pid_, &status, WNOHANG);
+      int r = waitpid(pid_->pid(), &status, WNOHANG);
       if (r == 0) {
         if (!t.negative())
           break;
@@ -533,7 +533,7 @@ namespace Arc {
         status = WEXITSTATUS(status);
       // Child exited
       lock_.unlock();
-      child_handler(pid_, status << 8);
+      child_handler(pid_->pid(), status << 8);
       lock_.lock();
 #endif
     }
@@ -555,7 +555,7 @@ namespace Arc {
       cond_.timed_wait(lock_, till);
 #else
       int status;
-      int r = waitpid(pid_, &status, WNOHANG);
+      int r = waitpid(pid_->pid(), &status, WNOHANG);
       if (r == 0) {
         lock_.unlock();
         sleep(1);
@@ -568,7 +568,7 @@ namespace Arc {
         status = WEXITSTATUS(status);
       // Child exited
       lock_.unlock();
-      child_handler(pid_, status << 8);
+      child_handler(pid_->pid(), status << 8);
       lock_.lock();
 #endif
     }
