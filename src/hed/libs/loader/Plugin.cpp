@@ -82,6 +82,7 @@ namespace Arc {
 
   Plugin* PluginsFactory::get_instance(const std::string& kind,int min_version,int max_version,PluginArgument* arg,bool search) {
     if(arg) arg->set_factory(this);
+    Glib::Mutex::Lock lock(lock_);
     descriptors_t_::iterator i = descriptors_.begin();
     for(;i != descriptors_.end();++i) {
       PluginDescriptor* desc = i->second;
@@ -153,6 +154,7 @@ namespace Arc {
 
   Plugin* PluginsFactory::get_instance(const std::string& kind,const std::string& name,int min_version,int max_version,PluginArgument* arg,bool search) {
     if(arg) arg->set_factory(this);
+    Glib::Mutex::Lock lock(lock_);
     descriptors_t_::iterator i = descriptors_.begin();
     for(;i != descriptors_.end();++i) {
       PluginDescriptor* desc = find_constructor(i->second,kind,name,min_version,max_version);
@@ -221,6 +223,7 @@ namespace Arc {
     Glib::Module* module = NULL;
     void *ptr = NULL;
     std::string mname;
+    Glib::Mutex::Lock lock(lock_);
     // Check if module already loaded
     descriptors_t_::iterator d = descriptors_.find(name);
     if(d != descriptors_.end()) {

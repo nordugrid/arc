@@ -11,6 +11,7 @@
 #include <stdint.h>
 #endif
 
+#include <arc/Thread.h>
 #include <arc/Logger.h>
 #include <arc/loader/ModuleManager.h>
 
@@ -87,9 +88,14 @@ namespace Arc {
   /** The instance of this class provides functionality
      of loading pluggable ARC components stored in shared 
      libraries. For more information please check HED 
-     documentation. */
+     documentation.
+     This class is thread-safe - its methods are proceted from 
+     simultatneous use form multiple threads. Current thread
+     protection implementation is suboptimal and will be revised
+     in future. */
   class PluginsFactory: public ModuleManager {
     private:
+      Glib::Mutex lock_;
       typedef std::map<std::string,PluginDescriptor*> descriptors_t_;
       typedef std::map<std::string,Glib::Module*> modules_t_;
       descriptors_t_ descriptors_;
