@@ -95,10 +95,18 @@ namespace Arc {
       return source ? DataStatus::ReadResolveError : DataStatus::WriteResolveError;
     }
 
-    if (source && !resolveGUIDToLFN()) {
-      lfc_endsess();
-      return DataStatus::ReadResolveError;
+    std::string path;
+
+    if (source) {
+      path = ResolveGUIDToLFN();
+      if (path.empty()) {
+        lfc_endsess();
+        return DataStatus::ReadResolveError;
+      }
     }
+    else
+      path = url.Path();
+
     if (!source && !url.MetaDataOption("guid").empty()) {
       guid = url.MetaDataOption("guid");
       logger.msg(VERBOSE, "Using supplied guid %s", guid);
@@ -107,14 +115,14 @@ namespace Arc {
     resolved = false;
     registered = false;
     if (source) {
-      if (url.Path().empty()) {
+      if (path.empty()) {
         logger.msg(ERROR, "Source must contain LFN");
         lfc_endsess();
         return DataStatus::ReadResolveError;
       }
     }
     else {
-      if (url.Path().empty()) {
+      if (path.empty()) {
         logger.msg(ERROR, "Destination must contain LFN");
         lfc_endsess();
         return DataStatus::WriteResolveError;
@@ -127,7 +135,7 @@ namespace Arc {
     }
     int nbentries = 0;
     struct lfc_filereplica *entries = NULL;
-    if (lfc_getreplica(url.Path().c_str(), NULL, NULL, &nbentries, &entries) != 0) {
+    if (lfc_getreplica(path.c_str(), NULL, NULL, &nbentries, &entries) != 0) {
       if (source || ((serrno != ENOENT) && (serrno != ENOTDIR))) {
         logger.msg(ERROR, "Error finding replicas: %s", sstrerror(serrno));
         lfc_endsess();
@@ -164,11 +172,11 @@ namespace Arc {
         if (pfn.find_last_of("/") != pfn.length() - 1)
           pfn += "/"; 
         // take off leading dirs of LFN
-        std::string::size_type slash_index = url.Path().rfind("/", url.Path().length() + 1);
+        std::string::size_type slash_index = path.rfind("/", path.length() + 1);
         if (slash_index != std::string::npos)
-          pfn += url.Path().substr(slash_index + 1);
+          pfn += path.substr(slash_index + 1);
         else
-          pfn += url.Path();
+          pfn += path;
         URL uloc(pfn);
         for (std::map<std::string, std::string>::const_iterator i = url.CommonLocOptions().begin();
              i != url.CommonLocOptions().end(); i++)
@@ -183,7 +191,7 @@ namespace Arc {
       free(entries);
 
     struct lfc_filestatg st;
-    if (lfc_statg(url.Path().c_str(), NULL, &st) == 0) {
+    if (lfc_statg(path.c_str(), NULL, &st) == 0) {
       registered = true;
       SetSize(st.filesize);
       SetCreated(st.mtime);
@@ -387,11 +395,12 @@ namespace Arc {
         return DataStatus::UnregisterErrorRetryable;
       return DataStatus::UnregisterError;
     }
-    if (!resolveGUIDToLFN()) {
+    std::string path = ResolveGUIDToLFN();
+    if (path.empty()) {
       lfc_endsess();
       return DataStatus::UnregisterError;
     }
-    if (lfc_unlink(url.Path().c_str()) != 0)
+    if (lfc_unlink(path.c_str()) != 0)
       if ((serrno != ENOENT) && (serrno != ENOTDIR)) {
         logger.msg(ERROR, "Failed to remove LFN in LFC - You may need to do it by hand");
         lfc_endsess();
@@ -422,14 +431,15 @@ namespace Arc {
         return DataStatus::UnregisterErrorRetryable;
       return DataStatus::UnregisterError;
     }
-    if (!resolveGUIDToLFN()) {
+    std::string path = ResolveGUIDToLFN();
+    if (path.empty()) {
       lfc_endsess();
       return DataStatus::UnregisterError;
     }
     if (all) {
       int nbentries = 0;
       struct lfc_filereplica *entries = NULL;
-      if (lfc_getreplica(url.Path().c_str(), NULL, NULL, &nbentries, &entries) != 0) {
+      if (lfc_getreplica(path.c_str(), NULL, NULL, &nbentries, &entries) != 0) {
         lfc_endsess();
         if ((serrno == ENOENT) || (serrno == ENOTDIR)) {
           registered = false;
@@ -447,9 +457,9 @@ namespace Arc {
           logger.msg(ERROR, "Failed to remove location from LFC");
           return DataStatus::UnregisterError;
         }
-      if (lfc_unlink(url.Path().c_str()) != 0) {
+      if (lfc_unlink(path.c_str()) != 0) {
         if (serrno == EPERM) { // we have a directory
-          if (lfc_rmdir(url.Path().c_str()) != 0) {
+          if (lfc_rmdir(path.c_str()) != 0) {
             if (serrno == EEXIST) { // still files in the directory
               logger.msg(ERROR, "Failed to remove LFC directory: directory is not empty");
               lfc_endsess();
@@ -499,13 +509,15 @@ namespace Arc {
         return DataStatus::ListErrorRetryable;
       return DataStatus::ListError;
     }
-    if (!resolveGUIDToLFN()) {
+    std::string path = ResolveGUIDToLFN();
+    if (path.empty()) {
       lfc_endsess();
       return DataStatus::ListError;
     }
     // first stat the url and see if it is a file or directory
     struct lfc_filestatg st;
-    if (lfc_statg(url.Path().c_str(), NULL, &st) != 0) {
+
+    if (lfc_statg(path.c_str(), NULL, &st) != 0) {
       logger.msg(ERROR, "Error listing file or directory: %s", sstrerror(serrno));
       lfc_endsess();
       return DataStatus::ListError;
@@ -513,7 +525,7 @@ namespace Arc {
 
     // if it's a directory, list entries
     if (st.filemode & S_IFDIR && !metadata) {
-      lfc_DIR *dir = lfc_opendirxg(const_cast<char*>(url.Host().c_str()), url.Path().c_str(), NULL);
+      lfc_DIR *dir = lfc_opendirxg(const_cast<char*>(url.Host().c_str()), path.c_str(), NULL);
       if (dir == NULL) {
         logger.msg(ERROR, "Error opening directory: %s", sstrerror(serrno));
         lfc_endsess();
@@ -574,8 +586,8 @@ namespace Arc {
       lfc_closedir(dir);
     } // if (dir)
     else {
-      std::list<FileInfo>::iterator f = files.insert(files.end(), FileInfo(url.Path().c_str()));
-      f->SetMetaData("path", url.Path());
+      std::list<FileInfo>::iterator f = files.insert(files.end(), FileInfo(path.c_str()));
+      f->SetMetaData("path", path);
       f->SetSize(st.filesize);
       f->SetMetaData("size", tostring(st.filesize));
       if (st.csumvalue[0]) {
@@ -593,7 +605,7 @@ namespace Arc {
         int nbentries = 0;
         struct lfc_filereplica *entries = NULL;
 
-        if (lfc_getreplica(url.Path().c_str(), NULL, NULL, &nbentries, &entries) != 0) {
+        if (lfc_getreplica(path.c_str(), NULL, NULL, &nbentries, &entries) != 0) {
           logger.msg(ERROR, "Error listing replicas: %s", sstrerror(serrno));
           lfc_endsess();
           return DataStatus::ListError;
@@ -628,28 +640,31 @@ namespace Arc {
     return DataStatus::Success;
   }
 
-  bool DataPointLFC::resolveGUIDToLFN() {
+  std::string DataPointLFC::ResolveGUIDToLFN() {
 
     // check if guid is already defined
     if (!guid.empty())
-      return true;
+      return url.Path();
 
     // check for guid in the attributes
     if (url.MetaDataOption("guid").empty())
-      return true;
+      return url.Path();
+
     guid = url.MetaDataOption("guid");
 
     lfc_list listp;
-    struct lfc_linkinfo *info = lfc_listlinks(NULL, (char*)guid.c_str(), CNS_LIST_BEGIN, &listp);
+    struct lfc_linkinfo *info = lfc_listlinks(NULL, (char*)guid.c_str(),
+                                              CNS_LIST_BEGIN, &listp);
     if (!info) {
-      logger.msg(ERROR, "Error finding LFN from guid %s: %s", guid, sstrerror(serrno));
-      return false;
+      logger.msg(ERROR, "Error finding LFN from guid %s: %s",
+                 guid, sstrerror(serrno));
+      return "";
     }
-    // Need to fix this - url is const now...
-    // url = URL(url.Protocol() + "://" + url.Host() + "/" + std::string(info[0].path));
-    logger.msg(VERBOSE, "guid %s resolved to LFN %s", guid, url.Path());
+
+    logger.msg(VERBOSE, "guid %s resolved to LFN %s", guid, info[0].path);
+    std::string path = info[0].path;
     lfc_listlinks(NULL, (char*)guid.c_str(), CNS_LIST_END, &listp);
-    return true;
+    return path;
   }
 
 } // namespace Arc

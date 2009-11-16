@@ -27,7 +27,7 @@ namespace Arc {
     static Logger logger;
     std::string guid;
   private:
-    bool resolveGUIDToLFN();
+    std::string ResolveGUIDToLFN();
   };
 
 } // namespace Arc
