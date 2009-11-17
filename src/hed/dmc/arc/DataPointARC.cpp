@@ -269,7 +269,6 @@ namespace Arc {
 
     turl = (std::string) nd["TURL"];
     delete response;
-    delete response;
     // redirect actual reading to http dmc
     if (transfer){ 
       delete transfer;
