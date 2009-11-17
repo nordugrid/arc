@@ -72,100 +72,218 @@ AM_GNU_GETTEXT_VERSION([0.12])
 # Portable 64bit file offsets
 AC_SYS_LARGEFILE
 
-# Swig
-AC_CHECK_PROGS(SWIG, swig)
-AM_CONDITIONAL([SWIG_ENABLED],[test "x$SWIG" != "x"])
+# pkg-config needed for many checks
+AC_PATH_PROG(PKG_CONFIG, pkg-config, no)
+if test "x$PKG_CONFIG" = "xno"; then
+        AC_MSG_ERROR([ *** pkg-config not found])
+else
+        pkgconfigdir=${libdir}/pkgconfig
+        AC_SUBST(pkgconfigdir)
+fi
 
-# Java
+# Default enable/disable switches
+#  Features
+enable_cppunit=yes
+enable_gsoap=yes
+enable_java=yes
+enable_ldap=yes
+enable_lfc=no
+enable_mysql=no
+enable_python=yes
+enable_swig=yes
+enable_xmlsec1=yes
+#  Services
+enable_a_rex_service=yes
+enable_compiler_service=yes
+enable_hopi_service=yes
+enable_isis_service=yes
+enable_janitor_service=yes
+enable_paul_service=yes
+enable_sched_service=yes
+enable_charon_service=yes
+enable_storage_service=yes
+#  Clients
+enable_arclib_client=yes
+enable_charon_client=yes
+enable_credentials_client=yes
+enable_echo_client=yes
+enable_data_client=yes
+enable_isis_client=yes
+enable_jura_client=yes
+enable_saml_client=yes
+enable_srm_client=yes
+#  Documentation
+enable_doc=yes
+
+# Handle group enable/disable switches
+AC_ARG_ENABLE(all, AC_HELP_STRING([--disable-all], [disables all buildable components. Can be overwritten with --enable-* for group or specific component. It is also possible to use --enable-all to overwrite defaults.]),
+[
+enable_a_rex_service=$enableval
+enable_compiler_service=$enableval
+enable_hopi_service=$enableval
+enable_isis_service=$enableval
+enable_janitor_service=$enableval
+enable_paul_service=$enableval
+enable_sched_service=$enableval
+enable_charon_service=$enableval
+enable_storage_service=$enableval
+enable_arclib_client=$enableval
+enable_charon_client=$enableval
+enable_credentials_client=$enableval
+enable_echo_client=$enableval
+enable_data_client=$enableval
+enable_isis_client=$enableval
+enable_jura_client=$enableval
+enable_saml_client=$enableval
+enable_srm_client=$enableval
+enable_doc=$enableval
+],
+[])
+
+AC_ARG_ENABLE(all-clients, AC_HELP_STRING([--disable-all-clients], [disables all buildable client components. Can be overwritten with --enable-* for specific component. It is also possible to use --enable-all-clients to overwrite defaults and --enable-all.]),
+[
+enable_arclib_client=$enableval
+enable_charon_client=$enableval
+enable_credentials_client=$enableval
+enable_echo_client=$enableval
+enable_data_client=$enableval
+enable_isis_client=$enableval
+enable_jura_client=$enableval
+enable_saml_client=$enableval
+enable_srm_client=$enableval
+enable_doc=$enableval
+],
+[])
+
+AC_ARG_ENABLE(all-data-clients, AC_HELP_STRING([--disable-all-data-clients], [disables all buildable client components providing data handling abilities. Can be overwritten with --enable-* for specific component. It is also possible to use --enable-all-data-clients to overwrite defaults, --enable-all and --enable-all-clients.]),
+[
+enable_data_client=$enableval
+enable_srm_client=$enableval
+],
+[])
+
+AC_ARG_ENABLE(all-services, AC_HELP_STRING([--disable-all-services], [disables all buildable service componets. Can be overwritten with --enable-* for specific component. It is also possible to use --enable-all-services to overwrite defaults and --enable-all.]),
+[
+enable_a_rex_service=$enableval
+enable_compiler_service=$enableval
+enable_hopi_service=$enableval
+enable_isis_service=$enableval
+enable_janitor_service=$enableval
+enable_paul_service=$enableval
+enable_sched_service=$enableval
+enable_charon_service=$enableval
+enable_storage_service=$enableval
+],
+[])
+
+# Enable/disable switches for third-party.
+
+#  Swig
+AC_ARG_ENABLE(swig, AC_HELP_STRING([--disable-swig], [disable all bindings through SWIG]),
+[enable_swig=$enableval],[])
+if test "$enable_swig" = "yes"; then
+  AC_CHECK_PROGS(SWIG, swig)
+  if test "x$SWIG" == "x"; then
+    enable_swig="no"
+  fi
+else
+  SWIG=""
+fi
+AM_CONDITIONAL([SWIG_ENABLED],[test "$SWIG" != "x"])
+
+#  Java
 dnl Check if Java is explicitly disabled.
-AC_ARG_ENABLE(java, AC_HELP_STRING([--disable-java], [disable the Java binding]),[],enable_java="yes")
-AC_ARG_WITH(jdk, AC_HELP_STRING([--with-jdk=(JDK)], [path SUN JDK. If unset the system JDK will be used]))
-
 JAVAC_FLAGS=
 JDK_CFLAGS=
+AC_ARG_ENABLE(java, AC_HELP_STRING([--disable-java], [disable the Java binding]),
+[enable_java=$enableval],[])
+if test "$enable_java" = "yes"; then
+  AC_ARG_WITH(jdk, AC_HELP_STRING([--with-jdk=(JDK)], [path to SUN JDK. If unset the system JDK will be used]))
+  if test "X$with_jdk" != "X"; then
 
-if test "X$with_jdk" != "X"; then
+    # user-specified SUN JDK
 
-    # SUN JDK
-
-    JAVA=$with_jdk/bin/java
-    JAVAC=$with_jdk/bin/javac
-    JAR=$with_jdk/bin/jar
-
-    JDK_CFLAGS=-I$with_jdk/include
+    JAVA="$with_jdk/bin/java"
+    JAVAC="$with_jdk/bin/javac"
+    JAR="$with_jdk/bin/jar"
+    JDK_CFLAGS="-I$with_jdk/include"
     SUN_EXTRA_INCLUDE=
     case "${host}" in
-  *-pc-mingw32)
-      SUN_EXTRA_INCLUDE="win32"
-      ;;
-  *-pc-cygwin)
-      SUN_EXTRA_INCLUDE="win32"
-      ;;
-  *linux*)
-      SUN_EXTRA_INCLUDE="linux"
-      ;;
-  *solaris*)
-      SUN_EXTRA_INCLUDE="solaris"
-      ;;
+      *-pc-mingw32)
+        SUN_EXTRA_INCLUDE="win32"
+        ;;
+      *-pc-cygwin)
+        SUN_EXTRA_INCLUDE="win32"
+        ;;
+      *linux*)
+        SUN_EXTRA_INCLUDE="linux"
+        ;;
+      *solaris*)
+        SUN_EXTRA_INCLUDE="solaris"
+        ;;
     esac
     JDK_CFLAGS="$JDK_CFLAGS $JDK_CFLAGS/$SUN_EXTRA_INCLUDE"
 
     SAVE_CPPFLAGS=$CPPFLAGS
     CPPFLAGS="$CPPFLAGS $JDK_CFLAGS"
-    AC_CHECK_HEADERS(jni.h)
+    AC_CHECK_HEADERS(jni.h,[jni_h="yes"],[jni_h="no"])
     CPPFLAGS=$SAVE_CPPFLAGS
 
-else
+  else
 
     # System JDK
 
-    AC_CHECK_HEADERS(jni.h JavaVM/jni.h)
+    AC_CHECK_HEADERS(jni.h JavaVM/jni.h,[jni_h="yes"; break],[jni_h="no"])
 
-fi
+  fi
 
-AC_CHECK_PROGS(JAVA, java gij)
-AC_CHECK_PROGS(JAVAC, gcj javac ecj)
-AC_CHECK_PROGS(JAR, fastjar jar)
+  AC_CHECK_PROGS(JAVA, java gij)
+  AC_CHECK_PROGS(JAVAC, gcj javac ecj)
+  AC_CHECK_PROGS(JAR, fastjar jar)
 
-if test "X$JAVAC" != "X" && test "X`basename $JAVAC`" = "Xgcj"; then
+  if test "X$JAVAC" != "X" && test "X`basename $JAVAC`" = "Xgcj"; then
     JAVAC_FLAGS=-C
-fi
+  fi
 
-jni_h=no
-if test "X$ac_cv_header_jni_h" == "Xyes" ||
-   test "X$ac_cv_header_JavaVM_jni_h" == "Xyes" ; then
-    jni_h=yes
-fi
-
-JAVAWRAP=no
-if test -f java/arc_wrap.cpp || test "X$SWIG" != "X" ; then
+  JAVAWRAP=no
+  if test -f java/arc_wrap.cpp || test "X$SWIG" != "X" ; then
     JAVAWRAP=yes
-else
-    AC_MSG_NOTICE([Missing java wrapper or swig - skipping java bindings])
-fi
+  else
+    AC_MSG_NOTICE([Missing pre-compiled Java wrapper or SWIG - skipping Java bindings])
+  fi
 
-if test "X$jni_h" = "Xyes" && test "X$JAVAWRAP" = "Xyes" &&
-   test "X$JAVAC" != "X" && test "X$JAR" != "X" ; then
+  if test "x$jni_h" != "xyes"; then
+    AC_MSG_NOTICE([Missing Java headers - skipping Java bindings])
+    enable_java="no"
+  elif test "x$JAVAWRAP" != "xyes"; then
+    enable_java="no"
+  elif test "x$JAVAC" == "x"; then
+    AC_MSG_NOTICE([Missing Java compiler - skipping Java bindings])
+    enable_java="no"
+  elif test "x$JAR" == "x"; then
+    AC_MSG_NOTICE([Missing Java archiver - skipping Java bindings])
+    enable_java="no"
+  else
     AC_MSG_NOTICE([Java available: $JAVAC])
-else
-    enable_java=no
+  fi
+
 fi
 
 AC_MSG_NOTICE([Java enabled: $enable_java])
-
 AM_CONDITIONAL([JAVA_ENABLED],[test "x$enable_java" = "xyes"])
 
 AC_SUBST(JAVAC_FLAGS)
 AC_SUBST(JDK_CFLAGS)
 
 # Python
-AC_ARG_ENABLE(python, AC_HELP_STRING([--disable-python], [disable the Python binding]),[],enable_python="yes")
+AC_ARG_ENABLE(python, AC_HELP_STRING([--disable-python], [disable the Python binding]),[enable_python=$enableval],[])
+if test "$enable_python" = "yes"; then
 
-AC_ARG_WITH(python, AC_HELP_STRING([--with-python=(PYTHON)], [set the full path to the python program to use]))
+  AC_ARG_WITH(python, AC_HELP_STRING([--with-python=(PYTHON)], [set the full path to the python program to use]))
 
-AC_CHECK_PROGS(PYTHON, $with_python python)
+  AC_CHECK_PROGS(PYTHON, $with_python python)
 
-if test "X$PYTHON" != "X" && test "X$enable_python" = "Xyes"; then
+  if test "X$PYTHON" != "X"; then
     changequote(<<, >>)dnl
     PYTHON_VERSION=`$PYTHON -c 'import sys; print sys.version[:3]'`
 
@@ -204,39 +322,34 @@ if test "X$PYTHON" != "X" && test "X$enable_python" = "Xyes"; then
     AC_SUBST(PYTHON_CFLAGS)
     AC_SUBST(PYTHON_LIBS)
     AC_SUBST(PYTHON_SITE_PACKAGES)
-fi
+  fi
 
-PYTHONWRAP=no
-if test -f python/arc_wrap.cpp || test "X$SWIG" != "X" ; then
+  PYTHONWRAP=no
+  if test -f python/arc_wrap.cpp || test "X$SWIG" != "X" ; then
     PYTHONWRAP=yes
-else
-    AC_MSG_NOTICE([Missing python wrapper or swig - skipping python bindings])
-fi
+  fi
 
-case $host in
+  case $host in
    *-*-mingw*)
      PYTHON_VERSION=$SAVE_PYTHON_VERSION
    ;;
-esac
+  esac
 
-if test "X$PYTHONWRAP" = "Xyes" && test "X$PYTHON" != "X" && test "X$enable_python" = "Xyes"; then
-    AC_MSG_NOTICE([Python available: $PYTHON_VERSION])
-else
+  if test "X$PYTHONWRAP" != "Xyes"; then
+    AC_MSG_NOTICE([Missing pre-compiled Python wrapper and SWIG - skipping Python bindings])
     enable_python=no
+  elif test "X$PYTHON" == "X"; then
+    AC_MSG_NOTICE([Missing Python - skipping Python bindings])
+    enable_python=no
+  else
+    AC_MSG_NOTICE([Python available: $PYTHON_VERSION])
+  fi
 fi
 
 AC_MSG_NOTICE([Python enabled: $enable_python])
 
 AM_CONDITIONAL([PYTHON_ENABLED],[test "x$enable_python" = "xyes"])
 AM_CONDITIONAL([PYTHON_SERVICE],[test ! "x$PYTHON_VERSION" '<' "x2.4"])
-
-AC_PATH_PROG(PKG_CONFIG, pkg-config, no)
-if test "x$PKG_CONFIG" = "xno"; then
-        AC_MSG_ERROR([ *** pkg-config not found])
-else
-        pkgconfigdir=${libdir}/pkgconfig
-        AC_SUBST(pkgconfigdir)
-fi
 
 # using pkgconfig
 # check gthread
@@ -375,54 +488,56 @@ else
 fi
 
 # check gSOAP
-PKG_CHECK_MODULES(GSOAP, [gsoap++ >= 2.7], [gsoap=yes], [gsoap=no])
-AC_SUBST(GSOAP_CFLAGS)
-AC_SUBST(GSOAP_LIBS)
-SOAPCPP2=
-WSDL2H=
-if test "$gsoap" = 'yes'; then
-  AC_PATH_PROG(SOAPCPP2, soapcpp2, [])
-  AC_PATH_PROG(WSDL2H, wsdl2h, [])
-  if test "x$SOAPCPP2" = "x"; then
-    gsoap=no
-    AC_MSG_WARN([Missing soapcpp2 utility - maybe You have to add it's location to PATH])
-  elif test "x$WSDL2H" = "x"; then
-    gsoap=no
-    AC_MSG_WARN([Missing wsdl2h utility - maybe You have to add it's location to PATH])
-  else
-    # gSOAP package does not report third number of version. Hence we
-    # have to extract it
-    AC_MSG_CHECKING(for gSOAP version)
-    gsoap_version=`${SOAPCPP2} -v 2>&1 | sed -e 's/.*version \([[^ ]]*\).*/\1/' -e 't new' -e 's/^.*Compiler for C and C++ *\([[^ ]]*\).*/\1/' -e 't matched' -e 's/.*//' -e ':matched' -e ':new' | grep '.'`
-    if test "x$gsoap_version" = "x"; then
+AC_ARG_ENABLE(gsoap, AC_HELP_STRING([--disable-gsoap], [disable the code dependant on gSOAP]),[enable_gsoap=$enableval],[])
+if test "$enable_gsoap" = "yes"; then
+  PKG_CHECK_MODULES(GSOAP, [gsoap++ >= 2.7], [gsoap=yes], [gsoap=no])
+  AC_SUBST(GSOAP_CFLAGS)
+  AC_SUBST(GSOAP_LIBS)
+  SOAPCPP2=
+  WSDL2H=
+  if test "$gsoap" = 'yes'; then
+    AC_PATH_PROG(SOAPCPP2, soapcpp2, [])
+    AC_PATH_PROG(WSDL2H, wsdl2h, [])
+    if test "x$SOAPCPP2" = "x"; then
       gsoap=no
-      AC_MSG_WARN([Could not determine version.])
+      AC_MSG_WARN([Missing soapcpp2 utility - maybe You have to add it's location to PATH])
+    elif test "x$WSDL2H" = "x"; then
+      gsoap=no
+      AC_MSG_WARN([Missing wsdl2h utility - maybe You have to add it's location to PATH])
     else
-      gsoap_version_major=`echo "$gsoap_version" | sed -e 's/^\([[^\.]]\).*/\1/' -e 't match' -e 's/.*/0/' -e ':match'`
-      gsoap_version_minor=`echo "$gsoap_version" | sed -e 's/^[[^\.]]*\.\([[^\.]]*\).*/\1/' -e 't match' -e 's/.*/0/' -e ':match'`
-      gsoap_version_subminor=`echo "$gsoap_version" | sed -e 's/^[[^\.]]*\.[[^\.]]*\.\([[0-9]]*\).*/\1/' -e 't match' -e 's/.*/0/' -e ':match'`
-      AC_MSG_RESULT($gsoap_version_major.$gsoap_version_minor.$gsoap_version_subminor)
-      if test "$gsoap_version_major" -lt "2"; then
+      # gSOAP package does not report third number of version. Hence we
+      # have to extract it
+      AC_MSG_CHECKING(for gSOAP version)
+      gsoap_version=`${SOAPCPP2} -v 2>&1 | sed -e 's/.*version \([[^ ]]*\).*/\1/' -e 't new' -e 's/^.*Compiler for C and C++ *\([[^ ]]*\).*/\1/' -e 't matched' -e 's/.*//' -e ':matched' -e ':new' | grep '.'`
+      if test "x$gsoap_version" = "x"; then
         gsoap=no
-        AC_MSG_WARN([gSOAP with version below 2.7.2 is not supported])
-      fi
-      if test "$gsoap_version_major" -eq "2"; then
-        if test "$gsoap_version_minor" -lt "7" ; then
+        AC_MSG_WARN([Could not determine version.])
+      else
+        gsoap_version_major=`echo "$gsoap_version" | sed -e 's/^\([[^\.]]\).*/\1/' -e 't match' -e 's/.*/0/' -e ':match'`
+        gsoap_version_minor=`echo "$gsoap_version" | sed -e 's/^[[^\.]]*\.\([[^\.]]*\).*/\1/' -e 't match' -e 's/.*/0/' -e ':match'`
+        gsoap_version_subminor=`echo "$gsoap_version" | sed -e 's/^[[^\.]]*\.[[^\.]]*\.\([[0-9]]*\).*/\1/' -e 't match' -e 's/.*/0/' -e ':match'`
+        AC_MSG_RESULT($gsoap_version_major.$gsoap_version_minor.$gsoap_version_subminor)
+        if test "$gsoap_version_major" -lt "2"; then
           gsoap=no
           AC_MSG_WARN([gSOAP with version below 2.7.2 is not supported])
         fi
-        if test "$gsoap_version_minor" -eq "7" && test "$gsoap_version_subminor" -lt "2" ; then
-          gsoap=no
-          AC_MSG_WARN([found gSOAP version $gsoap_version_major.$gsoap_version_minor.$gsoap_version_subminor - gSOAP with version below 2.7.2 is not supported anymore])
+        if test "$gsoap_version_major" -eq "2"; then
+          if test "$gsoap_version_minor" -lt "7" ; then
+            gsoap=no
+            AC_MSG_WARN([gSOAP with version below 2.7.2 is not supported])
+          fi
+          if test "$gsoap_version_minor" -eq "7" && test "$gsoap_version_subminor" -lt "2" ; then
+            gsoap=no
+            AC_MSG_WARN([found gSOAP version $gsoap_version_major.$gsoap_version_minor.$gsoap_version_subminor - gSOAP with version below 2.7.2 is not supported anymore])
+          fi
         fi
       fi
     fi
   fi
-fi
 
-if test "$gsoap" = 'yes'; then
+  if test "$gsoap" = 'yes'; then
 
-  AC_MSG_CHECKING(for gSOAP pecularities)
+    AC_MSG_CHECKING(for gSOAP pecularities)
 
 cat > gsoaptest.xsd <<EOF
 <?xml version="1.0" encoding="UTF-8"?>
@@ -436,69 +551,72 @@ cat > gsoaptest.xsd <<EOF
 </xsd:schema>
 EOF
 
-  ${WSDL2H} -s gsoaptest.xsd
+    ${WSDL2H} -s gsoaptest.xsd
 
-  ${SOAPCPP2} -p gsoaptest gsoaptest.h
+    ${SOAPCPP2} -p gsoaptest gsoaptest.h
 
-  AC_LANG_SAVE
-  AC_LANG_CPLUSPLUS
-  CXXFLAGS_SAVE=$CXXFLAGS
-  CXXFLAGS="$CXXFLAGS $GSOAP_CFLAGS"
-  AC_TRY_COMPILE([#include "gsoaptestStub.h"],
-      [ns1__X x; x.Y = "";],
-      [use_namespaces="no"],
-      [AC_TRY_COMPILE([#include "gsoaptestStub.h"],
-                      [ns1__X x; x.ns1__Y = "";],
-                      [use_namespaces="yes"],
-                      [gsoap=no])
-      ]
-  )
+    AC_LANG_SAVE
+    AC_LANG_CPLUSPLUS
+    CXXFLAGS_SAVE=$CXXFLAGS
+    CXXFLAGS="$CXXFLAGS $GSOAP_CFLAGS"
+    AC_TRY_COMPILE([#include "gsoaptestStub.h"],
+        [ns1__X x; x.Y = "";],
+        [use_namespaces="no"],
+        [AC_TRY_COMPILE([#include "gsoaptestStub.h"],
+                        [ns1__X x; x.ns1__Y = "";],
+                        [use_namespaces="yes"],
+                        [gsoap=no])
+        ]
+    )
 
-  CXXFLAGS=$CXXFLAGS_SAVE
-  AC_LANG_RESTORE
+    CXXFLAGS=$CXXFLAGS_SAVE
+    AC_LANG_RESTORE
 
-  rm -rf gsoaptest*
+    rm -rf gsoaptest*
 
-  if test "x$use_namespaces" = "xyes"; then
-    AC_DEFINE(GSOAP_ALWAYS_USES_NAMESPACES_FOR_MEMBER_NAMES,,[define if gSOAP prepends names of class members with namespace])
+    if test "x$use_namespaces" = "xyes"; then
+      AC_DEFINE(GSOAP_ALWAYS_USES_NAMESPACES_FOR_MEMBER_NAMES,,[define if gSOAP prepends names of class members with namespace])
+    fi
+
+    AC_MSG_RESULT(done)
+
   fi
 
-  AC_MSG_RESULT(done)
+  if test ! "$gsoap" = 'yes'; then
+    SOAPCPP2=
+    WSDL2H=
+    GSOAP_CFLAGS=
+    GSOAP_LIBS=
+  fi
 
+  AC_SUBST(SOAPCPP2)
+  AC_SUBST(WSDL2H)
+  AC_SUBST(GSOAP_CFLAGS)
+  AC_SUBST(GSOAP_LIBS)
+  AM_CONDITIONAL(HAVE_GSOAP, test "x$gsoap" = "xyes")
+  enable_gsoap="$gsoap"
 fi
-
-if test ! "$gsoap" = 'yes'; then
-  SOAPCPP2=
-  WSDL2H=
-  GSOAP_CFLAGS=
-  GSOAP_LIBS=
-fi
-
-AC_SUBST(SOAPCPP2)
-AC_SUBST(WSDL2H)
-AC_SUBST(GSOAP_CFLAGS)
-AC_SUBST(GSOAP_LIBS)
-AM_CONDITIONAL(HAVE_GSOAP, test "x$gsoap" = "xyes")
-enable_gsoap="$gsoap"
 
 # check cppunit
-PKG_CHECK_MODULES(CPPUNIT, [cppunit],[],
-[AC_PATH_PROG(CPPUNIT_CONFIG, cppunit-config, no)
-if test "x$CPPUNIT_CONFIG" = "xno"; then
+AC_ARG_ENABLE(cppunit, AC_HELP_STRING([--disable-cppunit], [disable cppunit-based UNIT testing of code]),[enable_cppunit=$enableval],[])
+if test "$enable_gsoap" = "yes"; then
+  PKG_CHECK_MODULES(CPPUNIT, [cppunit],[],
+    [AC_PATH_PROG(CPPUNIT_CONFIG, cppunit-config, no)
+    if test "x$CPPUNIT_CONFIG" = "xno"; then
         AC_MSG_WARN([cppunit-config not found - no UNIT testing will be performed])
         CPPUNIT_CFLAGS=
         CPPUNIT_LIBS=
-else
+    else
         CPPUNIT_CFLAGS="`$CPPUNIT_CONFIG --cflags`"
         CPPUNIT_LIBS="`$CPPUNIT_CONFIG --libs`"
-fi])
-if test "x$CPPUNIT_CONFIG" != "xno" || test "x$CPPUNIT_PKG_ERRORS" != "x"
-then
-  enable_cppunit=yes
-  TEST_DIR=test
-else
-  enable_cppunit=no
-  TEST_DIR=
+    fi])
+  if test "x$CPPUNIT_CONFIG" != "xno" || test "x$CPPUNIT_PKG_ERRORS" != "x"
+  then
+    TEST_DIR=test
+  else
+    enable_cppunit=no
+    TEST_DIR=
+  fi
 fi
 AC_SUBST(CPPUNIT_CFLAGS)
 AC_SUBST(CPPUNIT_LIBS)
@@ -531,9 +649,8 @@ XMLSEC_CFLAGS=""
 XMLSEC_LIBS=""
 XMLSEC_INSTALLED=no
 dnl Check if xmlsec1 is explicitly disabled, default is enable.
-AC_ARG_ENABLE(xmlsec1, AC_HELP_STRING([--disable-xmlsec1], [disable the xmlsec1 library, default is enable]),[disable_xmlsec1="yes"],[disable_xmlsec1="no"])
-
-if test "x$disable_xmlsec1" = "xno"; then
+AC_ARG_ENABLE(xmlsec1, AC_HELP_STRING([--disable-xmlsec1], [disable features which need xmlsec1 library]),[enable_xmlsec1=$enableval],[])
+if test "x$enable_xmlsec1" = "xyes"; then
   AC_ARG_WITH(xmlsec1, [  --with-xmlsec1=(PATH)  xmlsec1 location])
   if test "x$with_xmlsec1" = "x" ; then
     PKG_CHECK_MODULES(XMLSEC, [xmlsec1 >= $XMLSEC_MIN_VERSION],
@@ -547,22 +664,24 @@ if test "x$disable_xmlsec1" = "xno"; then
   if test "x$XMLSEC_INSTALLED" = "xno" -a "x$MACOS" != "xyes"; then
       AC_MSG_CHECKING(for xmlsec1 libraries >= $XMLSEC_MIN_VERSION)
       if test "x$with_xmlsec1" != "x" ; then
-      XMLSEC_CONFIG=$with_xmlsec1/bin/$XMLSEC_CONFIG
+        XMLSEC_CONFIG=$with_xmlsec1/bin/$XMLSEC_CONFIG
       fi
-      if ! $XMLSEC_CONFIG --version > /dev/null 2>&1 ; then
+      "$XMLSEC_CONFIG" --version 2>/dev/null 1>/dev/null
+      if test "$?" != '0' ; then
         AC_MSG_WARN(Could not find xmlsec1 anywhere; The xml security related functionality will not be compiled)
-      fi
-      vers=`$XMLSEC_CONFIG --version | awk -F. '{ printf "%d", ($1 * 1000 + $2) * 1000 + $3;}'`
-      minvers=`echo $XMLSEC_MIN_VERSION | awk -F. '{ printf "%d", ($1 * 1000 + $2) * 1000 + $3;}'`
-      if test "$vers" -ge "$minvers" ; then
+      else
+        vers=`$XMLSEC_CONFIG --version 2>/dev/null | awk -F. '{ printf "%d", ($1 * 1000 + $2) * 1000 + $3;}'`
+        minvers=`echo $XMLSEC_MIN_VERSION | awk -F. '{ printf "%d", ($1 * 1000 + $2) * 1000 + $3;}'`
+        if test "$vers" -ge "$minvers" ; then
           XMLSEC_LIBS="`$XMLSEC_CONFIG --libs`"
           XMLSEC_CFLAGS="`$XMLSEC_CONFIG --cflags`"
           #check the xmlsec1-openssl here
           PKG_CONFIG_PATH="$with_xmlsec1/lib/pkgconfig/:$PKG_CONFIG_PATH"
           PKG_CHECK_MODULES(XMLSEC_OPENSSL, [xmlsec1-openssl >= $XMLSEC_OPENSSL_MIN_VERSION],
               [XMLSEC_INSTALLED=yes],[XMLSEC_INSTALLED=no])
-      else
+        else
           AC_MSG_WARN(You need at least xmlsec1 $XMLSEC_MIN_VERSION for this version of arc1)
+        fi
       fi
   elif test "x$XMLSEC_INSTALLED" = "xno" -a "x$MACOS" = "xyes"; then
     #MACOS has no "ldd" which is needed by xmlsec1-config, so here simply we use PKG_CHECK_MODULES
@@ -582,9 +701,9 @@ if test "x$disable_xmlsec1" = "xno"; then
 
   #AC_SUBST(XMLSEC_CONFIG)
   #AC_SUBST(XMLSEC_MIN_VERSION)
+  enable_xmlsec1="$XMLSEC_INSTALLED"
 fi
 
-enable_xmlsec1="$XMLSEC_INSTALLED"
 
 #########################
 #
@@ -596,7 +715,7 @@ MYSQL_CFLAGS=""
 MYSQL_LIBS=""
 MYSQL_INSTALLED=no
 dnl Check if libmysqlclient is explicitly enabled, default is disable.
-AC_ARG_ENABLE(mysql, AC_HELP_STRING([--enable-mysql], [enable the MySQL client library]),[enable_mysql="yes"],[enable_mysql="no"])
+AC_ARG_ENABLE(mysql, AC_HELP_STRING([--enable-mysql], [enable use of the MySQL client library]),[enable_mysql="$enableval"],[])
 # Ask user for path to libmysqlclient
 if test "x$enable_mysql" = "xyes"; then
   AC_ARG_WITH(mysql, [  --with-mysql=(PATH) prefix of MySQL installation. e.g. /usr/local or /usr])
@@ -613,6 +732,7 @@ if test "x$enable_mysql" = "xyes"; then
 
   AC_SUBST(MYSQL_LIBS)
   AC_SUBST(MYSQL_CFLAGS)
+  enable_mysql=$MYSQL_INSTALLED
 fi
 AC_MSG_NOTICE([MySQL client library enabled: $MYSQL_INSTALLED])
 AM_CONDITIONAL([MYSQL_LIBRARY_ENABLED],[test "x$MYSQL_INSTALLED" = "xyes"])
@@ -663,7 +783,7 @@ AC_LANG_CPLUSPLUS
 # If user did not specify location we start by searching at the standard locations
 #
 
-if test x$dbcxx_include_paths = x
+if test "x$dbcxx_include_paths" = "x"
 then
   AC_MSG_NOTICE([Looking for db_cxx.h in standard locations])
   AC_CHECK_HEADERS(db_cxx.h,HAVE_DBCXX=yes,HAVE_DBCXX=no)
@@ -859,7 +979,7 @@ AC_MSG_RESULT($DEFAULT_GLOBUS_LOCATION)
 AC_SUBST(DEFAULT_GLOBUS_LOCATION)
 
 # Check for LFC
-AC_ARG_ENABLE(lfc, AC_HELP_STRING([--enable-lfc], [enable the LFC support, default is disable]),[enable_lfc="yes"],[enable_lfc="no"])
+AC_ARG_ENABLE(lfc, AC_HELP_STRING([--enable-lfc], [enable the LFC support, default is disable]),[enable_lfc="$enableval"],[])
 if test "x$enable_lfc" = "xyes"; then
   LFC_CFLAGS="-I/usr/include/lfc"
   LFC_LDFLAGS=""
@@ -886,7 +1006,7 @@ AC_SUBST(LFC_CFLAGS)
 AC_SUBST(LFC_LIBS)
 
 # Check if user asks to skip documentation build
-AC_ARG_ENABLE(doc, AC_HELP_STRING([--disable-doc], [disable building documentation (requires doxygen and pdflatex)]),[],enable_doc="yes")
+AC_ARG_ENABLE(doc, AC_HELP_STRING([--disable-doc], [disable building documentation (requires doxygen and pdflatex)]),[enable_doc=$enableval],[])
 if test "x$enable_doc" = "xyes"; then
   AC_CHECK_PROGS(PDFLATEX, pdflatex)
   AC_CHECK_PROGS(DOXYGEN, doxygen)
@@ -953,53 +1073,59 @@ if test x$XMLSEC_INSTALLED = xyes ; then enable_saml=yes; fi
 
 # Check for LDAP
 
-AC_CHECK_HEADER(ldap.h, [
-LDAP=yes
+AC_ARG_ENABLE(ldap, AC_HELP_STRING([--disable-ldap], [disable the LDAP support - requires OpenLDAP]),[enable_ldap="$enableval"],[])
+if test "x$enable_ldap" = "xyes"; then
+  AC_CHECK_HEADER(ldap.h, [
+    LDAP=yes
 
-SAVE_LDFLAGS=$LDFLAGS
+    SAVE_LDFLAGS=$LDFLAGS
 
-case "${host}" in
-  *-*-mingw32):
-  ;;
+    case "${host}" in
+      *-*-mingw32):
+      ;;
       *):
         LDFLAGS=-lpthread
-  ;;
-esac
+      ;;
+    esac
     AC_CHECK_LIB([ldap_r], [ldap_first_message], [
-    AC_CHECK_LIB([ldap_r], [ldap_initialize], [ AC_DEFINE(HAVE_LDAP_INITIALIZE,[],[Define if you have ldap_initialize function]) ])
-    LDAP_LIBS=-lldap_r ], [
-    AC_CHECK_LIB([ldap], [ldap_first_message], [
-    AC_CHECK_LIB([ldap], [ldap_initialize], [ AC_DEFINE(HAVE_LDAP_INITIALIZE,[],[Define if you have ldap_initialize function]) ])
-    LDAP_LIBS=-lldap ], [
-    LDAP=no
-  ])
-])
-AC_CHECK_LIB([lber], [ber_init], [LDAP_LIBS="$LDAP_LIBS -llber"], [])
-AC_SUBST(LDAP_LIBS)
-LDFLAGS=$SAVE_LDFLAGS
-],
-
-[
-  LDAP=no
-
-  # Try native LDAP on Win32 if OpenLDAP fails
-  case "${host}" in
-    *-*-mingw32)
-  AC_CHECK_HEADER([winldap.h],
-  [
-    AC_CHECK_LIB([wldap32], [ldap_init],
-    [
-      LDAP=yes
-      LDAP_LIBS="-lwldap32"
-      AC_DEFINE(USE_WIN32_LDAP_API,,[Define if using WIN32 LDAP API])
+      AC_CHECK_LIB([ldap_r], [ldap_initialize], [
+        AC_DEFINE(HAVE_LDAP_INITIALIZE,[],[Define if you have ldap_initialize function])
+      ])
+      LDAP_LIBS=-lldap_r ], [
+      AC_CHECK_LIB([ldap], [ldap_first_message], [
+        AC_CHECK_LIB([ldap], [ldap_initialize], [ AC_DEFINE(HAVE_LDAP_INITIALIZE,[],[Define if you have ldap_initialize function])
+      ])
+      LDAP_LIBS=-lldap ], [
+      LDAP=no
     ])
-  ], [], [[#include <windows.h>]]) ;;
-  esac
+  ])
+  AC_CHECK_LIB([lber], [ber_init], [LDAP_LIBS="$LDAP_LIBS -llber"], [])
+  AC_SUBST(LDAP_LIBS)
+  LDFLAGS=$SAVE_LDFLAGS
+  ],
 
-])
+  [
+    LDAP=no
 
-AM_CONDITIONAL([LDAP_ENABLED], test x$LDAP = xyes)
-enable_ldap="$LDAP"
+    # Try native LDAP on Win32 if OpenLDAP fails
+    case "${host}" in
+      *-*-mingw32)
+    AC_CHECK_HEADER([winldap.h],
+    [
+      AC_CHECK_LIB([wldap32], [ldap_init],
+      [
+        LDAP=yes
+        LDAP_LIBS="-lwldap32"
+        AC_DEFINE(USE_WIN32_LDAP_API,,[Define if using WIN32 LDAP API])
+      ])
+    ], [], [[#include <windows.h>]]) ;;
+    esac
+
+  ])
+
+  AM_CONDITIONAL([LDAP_ENABLED], test x$LDAP = xyes)
+  enable_ldap="$LDAP"
+fi
 
 # Check for the uuid lib
 UUID_LIBS=""
@@ -1126,120 +1252,181 @@ if test "x$WIN32" = "xyes" ; then
   AC_MSG_NOTICE([In WIN32 environment many (all) services are not supported yet])
 fi
 # A-Rex
-AC_ARG_ENABLE(a_rex_service, AC_HELP_STRING([--disable-a-rex-service], [disable building A-Rex service]),[],[
-  if test ! "x$WIN32" = "xyes" ; then
-    enable_a_rex_service="yes"
-  else
+AC_ARG_ENABLE(a_rex_service, AC_HELP_STRING([--disable-a-rex-service], [disable building A-Rex service]),
+  [enable_a_rex_service=$enableval],[])
+if test "$enable_a_rex_service" = "yes"; then
+  if test "x$WIN32" = "xyes" ; then
+    AC_MSG_NOTICE([A-Rex can't be built for WIN32 environment - disabling])
     enable_a_rex_service="no"
   fi
-])
+fi
 AC_MSG_NOTICE([A-Rex service enabled: $enable_a_rex_service])
 AM_CONDITIONAL([A_REX_SERVICE_ENABLED],[test "x$enable_a_rex_service" = "xyes"])
 
-# ISI(S)
-AC_ARG_ENABLE(isi_service, AC_HELP_STRING([--disable-isi-service], [disable building ISI Service]),[],[
-  if test ! "x$WIN32" = "xyes" ; then
-    enable_isi_service="yes"
-  else
-    enable_isi_service="no"
-  fi
-])
-if test "$enable_isi_service" = "yes"; then
-  if test "$DBCXX_LIBS" = ""; then
-    enable_isi_service="no"
-    AC_MSG_NOTICE([WARNING: Missing db_cxx - disabling ISI Service])
+# ISIS
+AC_ARG_ENABLE(isis_service, AC_HELP_STRING([--disable-isis-service], [disable building ISIS Service]),
+  [enable_isis_service=$enableval],[])
+if test "$enable_isis_service" = "yes"; then
+  if test "x$WIN32" = "xyes" ; then
+    AC_MSG_NOTICE([ISIS can't be built for WIN32 environment - disabling])
+    enable_isis_service="no"
   fi
 fi
-AC_MSG_NOTICE([ISI Service enabled: $enable_isi_service])
-AM_CONDITIONAL([ISI_SERVICE_ENABLED],[test "x$enable_isi_service" = "xyes"])
+if test "$enable_isi_service" = "yes"; then
+  if test "$DBCXX_LIBS" = ""; then
+    enable_isis_service="no"
+    AC_MSG_NOTICE([WARNING: Missing db_cxx - disabling ISIS])
+  fi
+fi
+AC_MSG_NOTICE([ISIS service enabled: $enable_isis_service])
+AM_CONDITIONAL([ISIS_SERVICE_ENABLED],[test "x$enable_isis_service" = "xyes"])
 
 # Charon service
-AC_ARG_ENABLE(charon_service, AC_HELP_STRING([--disable-charon-service], [disable building Charon Service]),[],[
-  if test ! "x$WIN32" = "xyes" ; then
-    enable_charon_service="yes"
-  else
+AC_ARG_ENABLE(charon_service, AC_HELP_STRING([--disable-charon-service], [disable building Charon Service]),
+  [enable_charon_service=$enableval],[])
+if test "$enable_charon_service" = "yes"; then
+  if test "x$WIN32" = "xyes" ; then
     enable_charon_service="no"
+    AC_MSG_NOTICE([Charon can't be built for WIN32 environment - disabling])
   fi
-])
+fi
 AC_MSG_NOTICE([Charon Service enabled: $enable_charon_service])
 AM_CONDITIONAL([CHARON_SERVICE_ENABLED],[test "x$enable_charon_service" = "xyes"])
 
 # Compiler service
-AC_ARG_ENABLE(compiler_service, AC_HELP_STRING([--disable-compiler-service], [disable building Compiler Service]),[],[
-  if test ! "x$WIN32" = "xyes" ; then
-    enable_compiler_service="yes"
-  else
+AC_ARG_ENABLE(compiler_service, AC_HELP_STRING([--disable-compiler-service], [disable building Compiler Service]),
+  [enable_compiler_service=$enableval],[])
+if test "$enable_compiler_service" = "yes"; then
+  if test "x$WIN32" = "xyes" ; then
     enable_compiler_service="no"
+    AC_MSG_NOTICE([Compiler can't be built for WIN32 environment - disabling])
   fi
-])
+fi
 AC_MSG_NOTICE([Compiler Service enabled: $enable_compiler_service])
 AM_CONDITIONAL([COMPILER_SERVICE_ENABLED],[test "x$enable_compiler_service" = "xyes"])
 
 # Hopi service
-AC_ARG_ENABLE(hopi_service, AC_HELP_STRING([--disable-hopi-service], [disable building Hopi Service]),[],[
-  if test ! "x$WIN32" = "xyes" ; then
-    enable_hopi_service="yes"
-  else
+AC_ARG_ENABLE(hopi_service, AC_HELP_STRING([--disable-hopi-service], [disable building Hopi Service]),
+  [enable_hopi_service=$enableval],[])
+if test "$enable_hopi_service" = "yes"; then
+  if test "x$WIN32" = "xyes" ; then
     enable_hopi_service="no"
+    AC_MSG_NOTICE([Hopi can't be built for WIN32 environment - disabling])
   fi
-])
+fi
 AC_MSG_NOTICE([Hopi Service enabled: $enable_hopi_service])
 AM_CONDITIONAL([HOPI_SERVICE_ENABLED],[test "x$enable_hopi_service" = "xyes"])
 
 # Paul service
-AC_ARG_ENABLE(paul_service, AC_HELP_STRING([--disable-paul-service], [disable building PAUL Service]),[],[
-  if test ! "x$WIN32" = "xyes" ; then
-    enable_paul_service="yes"
-  else
+AC_ARG_ENABLE(paul_service, AC_HELP_STRING([--disable-paul-service], [disable building PAUL Service]),
+  [enable_paul_service=$enableval],[])
+if test "$enable_paul_service" = "yes"; then
+  if test "x$WIN32" = "xyes" ; then
     enable_paul_service="no"
+    AC_MSG_NOTICE([PAUL can't be built for WIN32 environment - disabling])
   fi
-])
+fi
 AC_MSG_NOTICE([PAUL Service enabled: $enable_paul_service])
 AM_CONDITIONAL([PAUL_SERVICE_ENABLED],[test "x$enable_paul_service" = "xyes"])
 
 # Sched service
-AC_ARG_ENABLE(sched_service, AC_HELP_STRING([--disable-sched-service], [disable building SCHED Service]),[],[
-  if test ! "x$WIN32" = "xyes" ; then
-    enable_sched_service="yes"
-  else
+AC_ARG_ENABLE(sched_service, AC_HELP_STRING([--disable-sched-service], [disable building SCHED Service]),
+  [enable_sched_service=$enableval],[])
+if test "$enable_sched_service" = "yes"; then
+  if test "x$WIN32" = "xyes" ; then
     enable_sched_service="no"
+    AC_MSG_NOTICE([SCHED can't be built for WIN32 environment - disabling])
   fi
-])
+fi
 if test "$enable_sched_service" = "yes"; then
   if test "$DBCXX_LIBS" = ""; then
     enable_sched_service="no"
     AC_MSG_NOTICE([WARNING: Missing db_cxx - disabling SCHED Service])
   fi
-else
-  enable_sched_service="no"
 fi
 AC_MSG_NOTICE([SCHED Service enabled: $enable_sched_service])
 AM_CONDITIONAL([SCHED_SERVICE_ENABLED],[test "x$enable_sched_service" = "xyes"])
 
 # Storage service
-if test "x$enable_python" = "xyes"; then
-    AC_ARG_ENABLE(storage_service, AC_HELP_STRING([--disable-storage-service], [disable building STORAGE Service]),[],enable_storage_service="yes")
-    AC_MSG_NOTICE([STORAGE Service enabled: $enable_storage_service])
-else
+AC_ARG_ENABLE(storage_service, AC_HELP_STRING([--disable-storage-service], [disable building Storage service]),
+  [enable_storage_service=$enableval],[])
+if test "$enable_storage_service" = "yes"; then
+  if test "x$enable_python" != "xyes"; then
+    AC_MSG_NOTICE([WARNING: Missing or disabled Python - disabling STORAGE service])
     enable_storage_service="no"
-    AC_MSG_NOTICE([STORAGE Service disabled - Python needed])
+  fi
 fi
+AC_MSG_NOTICE([STORAGE Service enabled: $enable_storage_service])
 AM_CONDITIONAL([STORAGE_SERVICE_ENABLED],[test "x$enable_storage_service" = "xyes"])
 
 # Janitor service
-AC_ARG_ENABLE(janitor_service, AC_HELP_STRING([--disable-janitor-service], [disable building JANITOR Service]),[],
-[
-  if test ! "x$WIN32" = "xyes" ; then
-    enable_janitor_service="yes"
-  else
+AC_ARG_ENABLE(janitor_service, AC_HELP_STRING([--disable-janitor-service], [disable building JANITOR Service]),
+  [enable_janitor_service=$enableval],[])
+if test "$enable_janitor_service" = "yes"; then
+  if test "x$WIN32" = "xyes" ; then
     enable_janitor_service="no"
+    AC_MSG_NOTICE([Janitor can't be built for WIN32 environment - disabling])
   fi
-])
+fi
 AC_MSG_NOTICE([JANITOR Service enabled: $enable_janitor_service])
 AM_CONDITIONAL([JANITOR_SERVICE_ENABLED],[test "x$enable_janitor_service" = "xyes"])
 AM_CONDITIONAL([JANITOR_WEBSERVICE_ENABLED],[test "x$enable_janitor_service" = "xyes"])
 
-# hack for backend scripts
+# Check for explicitely and implicitely disabled clients
+AC_ARG_ENABLE(arclib_client, AC_HELP_STRING([--disable-arclib-client], [disable building Arclib (job management) client tools]),
+  [enable_arclib_client=$enableval],[])
+AC_MSG_NOTICE([Arclib client tools enabled: $enable_arclib_client])
+AM_CONDITIONAL([ARCLIB_CLIENT_ENABLED],[test "x$enable_arclib_client" = "xyes"])
+
+AC_ARG_ENABLE(charon_client, AC_HELP_STRING([--disable-charon-client], [disable building client for Charon service]),
+  [enable_charon_client=$enableval],[])
+AC_MSG_NOTICE([Charon client tool enabled: $enable_charon_client])
+AM_CONDITIONAL([CHARON_CLIENT_ENABLED],[test "x$enable_charon_client" = "xyes"])
+
+AC_ARG_ENABLE(credentials_client, AC_HELP_STRING([--disable-credentials-client], [disable building client tools for handling X.509 credentials]),
+  [enable_credentials_client=$enableval],[])
+AC_MSG_NOTICE([Credentials client tools enabled: $enable_credentials_client])
+AM_CONDITIONAL([CREDENTIALS_CLIENT_ENABLED],[test "x$enable_credentials_client" = "xyes"])
+
+AC_ARG_ENABLE(echo_client, AC_HELP_STRING([--disable-echo-client], [disable building client tools for communicationg with Echo service]),
+  [enable_echo_client=$enableval],[])
+AC_MSG_NOTICE([Echo client tool enabled: $enable_echo_client])
+AM_CONDITIONAL([ECHO_CLIENT_ENABLED],[test "x$enable_echo_client" = "xyes"])
+
+AC_ARG_ENABLE(data_client, AC_HELP_STRING([--disable-data-client], [disable building generic client tools for handling data]),
+  [enable_data_client=$enableval],[])
+AC_MSG_NOTICE([Data client tools enabled: $enable_data_client])
+AM_CONDITIONAL([DATA_CLIENT_ENABLED],[test "x$enable_data_client" = "xyes"])
+
+AC_ARG_ENABLE(isis_client, AC_HELP_STRING([--disable-isis-client], [disable building client tool for communicating ISIS]),
+  [enable_isis_client=$enableval],[])
+AC_MSG_NOTICE([ISIS client tool enabled: $enable_isis_client])
+AM_CONDITIONAL([ISIS_CLIENT_ENABLED],[test "x$enable_isis_client" = "xyes"])
+
+AC_ARG_ENABLE(jura_client, AC_HELP_STRING([--disable-jura-client], [disable building client tool for communicating JURA]),
+  [enable_jura_client=$enableval],[])
+AC_MSG_NOTICE([JURA client tool enabled: $enable_jura_client])
+AM_CONDITIONAL([JURA_CLIENT_ENABLED],[test "x$enable_jura_client" = "xyes"])
+
+AC_ARG_ENABLE(saml_client, AC_HELP_STRING([--disable-saml-client], [disable building client tool for communicating SAML-based VOMS service]),
+  [enable_saml_client=$enableval],[])
+if test "$enable_saml_client" = "yes"; then
+  if test "$enable_xmlsec1" != "yes" ; then
+    enable_saml_client="no"
+    AC_MSG_NOTICE([SAML client requires xmlsec1 - disabling])
+  fi
+fi
+AC_MSG_NOTICE([SAML client tool enabled: $enable_saml_client])
+AM_CONDITIONAL([SAML_CLIENT_ENABLED],[test "x$enable_saml_client" = "xyes"])
+
+AC_ARG_ENABLE(srm_client, AC_HELP_STRING([--disable-srm-client], [disable building client tools for communicating SRM services. This does not disable SRM DMC.]),
+  [enable_srm_client=$enableval],[])
+AC_MSG_NOTICE([SRM client tool enabled: $enable_srm_client])
+AM_CONDITIONAL([SRM_CLIENT_ENABLED],[test "x$enable_srm_client" = "xyes"])
+
+
+
+# A-Rex specific hack for backend scripts
 
 pbs_bin_path=/usr/bin
 pbs_log_path=/var/spool/pbs/server_logs
@@ -1570,15 +1757,29 @@ xmlsec1:            ${enable_xmlsec1}
 
 Included components:
 A-REX service:      ${enable_a_rex_service}
-ISI service:        ${enable_isi_service}
+ISIS service:       ${enable_isis_service}
 CHARON service:     ${enable_charon_service}
 HOPI service:       ${enable_hopi_service}
 SCHED service:      ${enable_sched_service}
 STORAGE service:    ${enable_storage_service}
 JANITOR service:    ${enable_janitor_service}
 PAUL service:       ${enable_paul_service}
+COMPILER service:   ${enable_compiler_service}
+
+ARCLIB clients:     ${enable_arclib_client}
+ISIS client:        ${enable_isis_client}
+CHARON client:      ${enable_charon_client}
+DATA clients:       ${enable_data_client}
+SRM ping client:    ${enable_srm_client}
+CREDENTIAL clients: ${enable_credentials_client}
+ECHO client:        ${enable_echo_client}
+JURA client:        ${enable_jura_client}
+SAML VOMS client:   ${enable_saml_client}
+
 SRM client (DMC):   ${enable_srm_dmc}
 GSI channel (MCC):  ${enable_gsi_mcc}
+
+Documentation:      ${enable_doc}
 ])
 
 if test ! "X$OPENSSL_PROXY" = "Xyes"; then
