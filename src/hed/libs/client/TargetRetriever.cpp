@@ -48,7 +48,7 @@ namespace Arc {
 
     TargetRetrieverPluginArgument arg(usercfg, url, st);
     TargetRetriever *targetretriever =
-      factory_->GetInstance<TargetRetriever>("HED:TargetRetriever", name, &arg);
+      factory_->GetInstance<TargetRetriever>("HED:TargetRetriever", name, &arg, false);
 
     if (!targetretriever) {
       logger.msg(ERROR, "TargetRetriever %s could not be created", name);

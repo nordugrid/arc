@@ -448,7 +448,7 @@ namespace Arc {
     factory_->load(list[name], "HED:Broker");
 
     BrokerPluginArgument arg(usercfg);
-    Broker *broker = factory_->GetInstance<Broker>("HED:Broker", name, &arg);
+    Broker *broker = factory_->GetInstance<Broker>("HED:Broker", name, &arg, false);
 
     if (!broker) {
       logger.msg(ERROR, "Broker %s could not be created", name);

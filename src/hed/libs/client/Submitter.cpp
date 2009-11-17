@@ -165,7 +165,7 @@ namespace Arc {
 
     SubmitterPluginArgument arg(usercfg);
     Submitter *submitter =
-      factory_->GetInstance<Submitter>("HED:Submitter", name, &arg);
+      factory_->GetInstance<Submitter>("HED:Submitter", name, &arg, false);
 
     if (!submitter) {
       logger.msg(ERROR, "Submitter %s could not be created", name);

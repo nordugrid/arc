@@ -902,7 +902,7 @@ namespace Arc {
 
     JobControllerPluginArgument arg(usercfg);
     JobController *jobcontroller =
-      factory_->GetInstance<JobController>("HED:JobController", name, &arg);
+      factory_->GetInstance<JobController>("HED:JobController", name, &arg, false);
 
     if (!jobcontroller) {
       logger.msg(ERROR, "JobController %s could not be created", name);

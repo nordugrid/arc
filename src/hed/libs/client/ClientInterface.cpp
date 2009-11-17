@@ -54,7 +54,7 @@ namespace Arc {
                                      const char *id, const char *next = NULL) {
     XMLNode comp = chain.NewChild("Component");
 
-    // Make sure namespaces and names are corre
+    // Make sure namespaces and names are correct
     comp.NewAttribute("name") = name;
     comp.NewAttribute("id") = id;
     if (next)
