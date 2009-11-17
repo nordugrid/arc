@@ -177,6 +177,7 @@ Summary: ARC Remote EXecution service
 Group: System Environment/Libraries
 Requires: %{name} = %{version}
 Requires: %{name}-hed = %{version}
+Requires: perl-XML-Simple
 Provides: nordugrid-arc1-arex = %{version}
 Obsoletes: nordugrid-arc1-arex < 1.0.0
 
@@ -256,6 +257,8 @@ Java wrapper for ARC
 %package janitor
 Summary: ARC dynamic installation of runtime environments
 Group: Applications/Internet
+Requires: wget
+Requires: perl-Log-Log4perl
 Provides: nordugrid-arc1-janitor = %{version}
 Obsoletes: nordugrid-arc1-janitor < 1.0.0
 
