@@ -22,7 +22,7 @@ libpaul_la_LIBADD   = $(GLIBMM_LIBS) $(LIBXML2_LIBS) libsysinfo.la \
                       $(top_srcdir)/src/hed/libs/ws/libarcws.la \
                       $(top_srcdir)/src/hed/libs/common/libarccommon.la \
                       $(top_srcdir)/src/hed/libs/data/libarcdata2.la \
-                      $(top_srcdir)/src/hed/libs/infosys/libinfosys.la
+                      $(top_srcdir)/src/hed/libs/ws/libarcws.la
 libpaul_la_LDFLAGS=-no-undefined -avoid-version -module
 
 #test_r_SOURCES  = test_r.cpp

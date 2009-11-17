@@ -17,7 +17,7 @@ libgrid_sched_la_LIBADD   = $(top_srcdir)/src/hed/libs/loader/libarcloader.la \
                             $(top_srcdir)/src/hed/libs/delegation/libarcdelegation.la \
                             $(top_srcdir)/src/hed/libs/common/libarccommon.la \
                             $(top_srcdir)/src/hed/libs/client/libarcclient.la \
-                            $(top_srcdir)/src/hed/libs/infosys/libinfosys.la \
+                            $(top_srcdir)/src/hed/libs/ws/libarcws.la \
                             $(GLIBMM_LIBS) $(LIBXML2_LIBS) $(DBCXX_LIBS)
 libgrid_sched_la_LDFLAGS = -no-undefined -avoid-version -module
 

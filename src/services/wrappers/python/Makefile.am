@@ -7,6 +7,6 @@ libpythonservice_la_LDFLAGS  = -no-undefined -avoid-version -module
 libpythonservice_la_LIBADD   = $(top_srcdir)/src/hed/libs/common/libarccommon.la \
                                $(top_srcdir)/src/hed/libs/loader/libarcloader.la \
                                $(top_srcdir)/src/hed/libs/message/libarcmessage.la \
-                               $(top_srcdir)/src/hed/libs/infosys/libinfosys.la \
+                               $(top_srcdir)/src/hed/libs/ws/libarcws.la \
                                $(LIBXML2_LIBS) $(PYTHON_LIBS) $(GLIBMM_LIBS)
 

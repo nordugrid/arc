@@ -6,7 +6,7 @@ libhopi_la_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
 libhopi_la_LIBADD = $(top_srcdir)/src/hed/libs/common/libarccommon.la \
 					$(top_srcdir)/src/hed/libs/loader/libarcloader.la \
 					$(top_srcdir)/src/hed/libs/message/libarcmessage.la \
-					$(top_srcdir)/src/hed/libs/infosys/libinfosys.la \
+					$(top_srcdir)/src/hed/libs/ws/libarcws.la \
 					$(GLIBMM_LIBS)
 libhopi_la_LDFLAGS = -no-defined -avoid-version -module
 

@@ -31,7 +31,7 @@ test_LDADD    = $(top_srcdir)/src/hed/libs/common/libarccommon.la \
                 $(top_srcdir)/src/hed/libs/message/libarcmessage.la \
                 $(top_srcdir)/src/hed/libs/security/libarcsecurity.la \
                 $(top_srcdir)/src/hed/libs/delegation/libarcdelegation.la \
-                $(top_srcdir)/src/hed/libs/infosys/libinfosys.la
+                $(top_srcdir)/src/hed/libs/ws/libarcws.la
 
 
 test_cache_check_SOURCES  = test_cache_check.cpp
