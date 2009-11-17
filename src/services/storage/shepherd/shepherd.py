@@ -219,7 +219,7 @@ class Shepherd:
             # ask the backend to create the checksum of the file 
             try:
                 current_checksum = self.backend.checksum(localData['localID'], localData['checksumType'])
-                print 'self.backend.checksum was called, returned:', current_checksum
+                log.msg(arc.DEBUG, 'self.backend.checksum was called on %s, the calculated checksum is %s' % (referenceID, current_checksum))
                 self.store.lock()
                 try:
                     current_local_data = self.store.get(referenceID)
