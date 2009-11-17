@@ -97,8 +97,10 @@ namespace Arc {
             arg->set_module(NULL);
           };
         };
+        lock.release();
         Plugin* plugin = desc->instance(arg);
         if(plugin) return plugin;
+        lock.acquire();
         ++desc;
       };
     };
@@ -123,7 +125,9 @@ namespace Arc {
       desc=find_constructor(desc,kind,min_version,max_version);
       if(!desc) break;
       if(arg) arg->set_module(module);
+      lock.release();
       Plugin* plugin = desc->instance(arg);
+      lock.acquire();
       if(plugin) {
         // Keep plugin loaded and registered
         Glib::Module* nmodule = reload_module(module,*this);
@@ -166,7 +170,10 @@ namespace Arc {
           arg->set_module(NULL);
         };
       };
-      if(desc) return desc->instance(arg);
+      if(desc) {
+        lock.release();
+        return desc->instance(arg);
+      }
     };
     if(!search) return NULL;
     // Try to load module - first by name of plugin
@@ -201,6 +208,7 @@ namespace Arc {
       //descriptors_.push_back((PluginDescriptor*)ptr);
       //modules_.push_back(module);
       if(arg) arg->set_module(nmodule);
+      lock.release();
       return desc->instance(arg);
     };
     unload_module(module,*this);
