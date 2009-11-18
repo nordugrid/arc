@@ -655,6 +655,9 @@ namespace Arc {
     if (!ldapfilter.empty())
       urlstr += '?' + ldapfilter;
 
+    if (!metadataoptions.empty())
+      urlstr += ':' + OptionString(metadataoptions, ':');
+      
     return urlstr;
   }
 
@@ -719,6 +722,9 @@ namespace Arc {
 
     if (!ldapfilter.empty())
       urlstr += '?' + ldapfilter;
+
+    if (!metadataoptions.empty())
+      urlstr += ':' + OptionString(metadataoptions, ':');
 
     return urlstr;
   }
