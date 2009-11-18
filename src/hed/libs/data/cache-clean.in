@@ -116,11 +116,16 @@ if (!@caches) {
     usage() unless $configfile;
     my $config = ConfigCentral::parseConfig($configfile);
     die "Failed parsing A-REX config file '$configfile'" unless $config;
-    die "No cahes set up in config file '$configfile'" unless $config->{cachedir};
-    for (@{$config->{cachedir}}) {
-        print "\n Warning: cache-clean cannot deal with substitutions - $_\n" and next if /%/;
-        print "\n Warning: ignoring malformed cahe location - $_\n" and next unless m{^(/\S+)};
-        push @caches, $1;
+    die "No users set up in config file '$configfile'"
+        unless $config->{control} and ref $config->{control} eq 'HASH';
+    for my $control (values %{$config->{control}}) {
+        next unless ref $control eq 'HASH';
+        next unless $control->{cachedir} and ref $control->{cachedir} eq 'ARRAY';
+        for (@{$control->{cachedir}}) {
+            print "\n Warning: cache-clean cannot deal with substitutions - $_\n" and next if /%/;
+            print "\n Warning: ignoring malformed cahe location - $_\n" and next unless m{^(/\S+)};
+            push @caches, $1;
+        }
     }
     die "No caches found in config file '$configfile'" unless @caches;
 }
