@@ -60,7 +60,7 @@
 \vspace*{2cm}
 
 %%%%---- The title ----
-{\centering \textsc{\ SECURITY FRAMEWORK OF ARC1}\Large \par}
+{\centering \textsc{SECURITY FRAMEWORK OF ARC NOX}\Large \par}
 \vspace*{0.5cm}
 
 %%%%---- A subtitle, if necessary ----
@@ -84,39 +84,41 @@
 \section{Introduction}
 \label{sec:introduction}
 
-The security framework of the ARC1 includes two parts of capabilities: security capability embedded in hosting environment, and security capability implemented as plug-ins with well-defined interfaces which can be accessed by hosting environment and applications. The following design concerns were employed when designing:
+The security framework of the ARC NOX includes two parts of capabilities: security capability embedded in hosting environment, and security capability implemented as plug-ins with well-defined interfaces which can be accessed by hosting environment and applications. The following concerns were employed when designing this framework:
 
 \begin{itemize}
-    \item Interoperability and standardlization. In consistent with the main design concern of the ARC1, interoperability and standardization is considered in security framework. For example, in terms of authentication, PKI infrastructure and proxy certificate (RFC3820 [1]) is used as most of the other grid middle-wares do. Since supporting of standardization is a way for implementing interoperability, some standard specifications have been implemented as prototype and tested, such as SAML specification.
+    \item Interoperability and standardization. In consistency with the main design concerns of the ARC middle-ware, interoperability and standardization is considered in security framework. For example, in terms of authentication, PKI infrastructure and X.509 proxy certificates (RFC3820 \cite{x509proxy}) are used as most of the other Grid middle-wares do. Since supporting of standardization is a way for implementing interoperability, some standard specifications have been implemented as prototype and tested, such as SAML specification.
 
-    \item Modularity and extensibility. Besides the security functionality which is embedded in hosting environment, the other security functionality is implemented as plug-ins which has well-defined interfaces, and is configurable and dynamically loadable. Since the interoperation interface between security plug-in and hosting environment or applications is predefined, it is easy to extend the security functionality in order to support some other security capability by implementing the interface.
+    \item Modularity and extensibility. Besides the security functionality which is embedded in hosting environment, a lot of functionality is implemented as plug-ins which has well-defined interfaces, and are configurable and dynamically loadable. Since the interoperation interface between security plug-ins and hosting environment or applications is predefined, it is easy to extend the security functionality in order to support other new security capabilites.
 
-    \item Backward compatibility. The GSI (Grid Security Infrastructure) based mechanism has been a de-facto solution for grid security. The design of security framework should be compatible to it.
+    \item Backward compatibility. The GSI (Grid Security Infrastructure)\cite{gsi} based mechanism has been a de-facto solution for Grid security for long time alredy. Although it has drawback for compatibility reasons the security framework should include it as part of its capability.
 
 \end{itemize}
 
 %section introduction (end)
 
-\section{Security architecture in HED: SecHandler and PDP} % (fold)
+\section{Security architecture in HED: Security Handler and Policy Decision Point} % (fold)
 \label{sec:sec_architecture}
 
 
-\subsection{Structure of SecHandler and PDP} % (fold)
+\subsection{Structure of Security Handler and Policy Decision  Point} % (fold)
 \label{subsec:structure_sechandler}
 
-In the implementation of the ARC1, there is a Service Container – the Hosting Environment Daemon (HED) (D1.2-2, [2]) which provides a hosting place for various services in application level, as well as a flexible and efficient communication mechanism.
+In the implementation of the ARC NOX, there is a Service Container called Hosting Environment Daemon (HED) \cite{hed} which provides a hosting place for various services at application and protocol level, as well as a flexible and efficient communication mechanism.
 
-HED contains a framework for implementing and enforcing authentication and authorization. Each Message Chain Component (MCC) or service has a common interface for implementing various authentication and authorization functionality. This functionality is implemented by using pluggable components (plug-ins) called SecHandler. The SecHandler components are C++ classes and provide method for processing messages traveling through Message Chains of the HED. Each MCC or Service  usually implement two queues of SecHandlers – one for incoming messages and one for outgoing called ``incoming'' and ``outgoing'' respectively. It is possible for MCC or Service to implement other set of queues. Please check documentation of particular component for that particular information. All SecHandler components attached to the queue are executed sequentially. If any of them fails, message processing fails as well.
+HED contains a framework for implementing and enforcing authentication and authorization. Each Message Chain Component (MCC) or Service has a common interface for implementing various authentication and authorization functionality. This functionality is implemented by using pluggable components (plug-ins) called Security Handlers (SecHandler). The SecHandler components are C++ classes and provide method for processing messages traveling through Message Chains of the HED. Each MCC or Service  usually implement two queues of SecHandlers one for incoming messages and one for outgoing called ``incoming'' and ``outgoing'' respectively. It is possible for MCC or Service to implement other set of queues. Please check documentation of particular component for that particular information. All SecHandler components attached to the queue are executed sequentially. If any of them fails, message processing fails as well.
+
+Each SecHandler is configured inside same configuration file used for configuring whole chain of MCCs. Some of implemented SecHandler components also make use of other pluggable and configurable sub-modules which specifically handle various security functionalities, such as authorization, authentication, etc. The currently implemented sub-modules used by some SecHandlers are Policy Decision Point (PDP) components such as Arc PDP which can process ARC specific Request and Policy documents. Figure \ref{fig:messageinMCC} shows the structure of a MCC/Service, and the message processing sequence inside it.
 
 \begin{figure}[ht]
 \centering{{{\includegraphics[width=1.0\textwidth]{MCC_Component.pdf}}}
-\caption{\label{fig:messageinMCC}\textit{There are usually two chains of SecHandlers inside the MCC or service. Each SecHandler will parse the Security Attributes which are generated by the upstream MCC/services or probably upstream SecHandlers in the same or other MCC/Service, and do message processing or authenticate or authorize the incoming/outgoing message based on the collected information. The SecHandler can also change the payload and attributes of Messsage itself. For example, the Username-Token SecHandler will insert the WSS Username Token [3] into header part of SOAP message. The PDPs are called by the SecHandlers and are supposed to make authorization decision. Here the two local PDP and one remote PDP service is just for demonstration, and one or any number of PDPs can be configured under each SecHandler.
+\caption{
+\label{fig:messageinMCC}
+\textit{There are usually two chains of SecHandlers inside the MCC or service. Each SecHandler will parse the Security Attributes which are generated by the upstream MCC/services or probably upstream SecHandlers in the same or other MCC/Service, and do message processing or authenticate or authorize the incoming/outgoing message based on the collected information. The SecHandler can also change the payload and attributes of Messsage itself. For example, the Username-Token SecHandler will insert the WSS Username Token \cite{ws-security} into header part of SOAP message. The PDPs are called by the dedicated SecHandlers and are supposed to make authorization decision. In this example two local PDPs and one remote PDP service are presented, and any number of PDPs can be configured under corresponding SecHandler.
 }} }
 \end{figure}
 
-Each SecHandler is configured inside same configuration file used for configuring whole chain of MCCs. Some of implemented SecHandler components also make use of pluggable and configurable sub-modules which specifically handle various security functionalities, such as authorization, authentication, etc. The currently implemented sub-modules used by some SecHandlers are Policy Decision Point (PDP) components such as Arc PDP which can process ARC specific Request and Policy documents. Figure \ref{fig:messageinMCC} gives the structure of a MCC/Service, and the message sequence inside it.
-
-The configuration of SecHandler components for an example ``Echo'' service is shown as below. Example Echo service is configured to use two SecHandlers, both responsible for authorization. First SecHandler uses the identity of client extracted from the incoming message to map it into local identity like local Linux username. In this case all clients are mapped to local account “test”. The second one uses two PDPs: one will compose ARC specific authorization request based on the Security Attributes collected from “incoming” message and evaluate it against the ARC specific authorization policy which is defined in local file “policy.xml”; the other will compare the X509 identity of client extracted from the incoming message against list of identities stored locally.
+The configuration of SecHandler components for an example ``Echo'' service is shown below. Example ``Echo'' service is configured to use two SecHandlers, both performing authorization. First SecHandler uses the X.509 identity of client (certificate subject) extracted from the incoming message to map it into local identity like Linux username. In this case all clients are mapped to local account ``test''. The second one uses two PDPs: one will compose ARC specific authorization request based on the Security Attributes collected from incoming message and evaluate it against the ARC specific authorization policy which is stored in local file ``policy.xml'', the other will compare the X.509 identity of client extracted from the incoming message against list of identities stored locally.
 
 \begin{verbatim}
 <Service name="echo" id="echo">
@@ -139,9 +141,9 @@ The configuration of SecHandler components for an example ``Echo'' service is sh
 \subsection{Interface of SecHandler} % (fold)
 \label{subsec:interface_sechandler}
 
-When one component (MCC or service) is loaded according to the configuration information, the SecHandler under the component and the plug-ins like PDP which are attached to the SecHandler will be loaded as well.
+When either MCC or Service are loaded according to the configuration information, the SecHandler under the component and the plug-ins like PDP which are attached to the SecHandler will be loaded as well.
 
-There is one simple interface (see below) defined in class SecHandler, which will be called by the containing MCC/Service once there is message (incoming or outgoing) need to be processed.
+Each SecHandler implements one simple interface (see below), which is called by the containing MCC/Service once there is message (incoming or outgoing) need to be processed.
 
 \begin{verbatim}
 class SecHandler {
@@ -152,22 +154,31 @@ class SecHandler {
   };
 \end{verbatim}
 
-Class \textit{SecHandler} is an abstract class which includes a general interface called \textit{Handle} which uses Message object as argument. Any security handler implementation should inherit class \textit{SecHandler} and implement the interface according to the actual functionality. The interface only return simple \textit{Boolean} value, and any useful information generated during the calling of this interface should be put into the security attribute of the message, or put into the payload itself.
+Class \textit{SecHandler} is an abstract class which includes a general interface method called \textit{Handle} which takes Message object as argument. Any security handler implementation must inherit from class \textit{SecHandler} and implement the interface according to the actual functionality. The method returns simple \textit{Boolean} value, and any useful information generated during the calling of this interface should be put into the security attributes of the message, or put into the payload itself.
 
-Currently, the ARC1 comes with the following four security handler implemented:
+Currently, the ARC NOX comes with the following security handlers implemented:
 
 \begin{itemize}
-    \item arc.authz – Authorization SecHandler
-The arc.authz and serves as container for he Policy Decision Point components. It is responsible for calling their interface and getting back the authorization result. Then obtained results are processed and   combined decision is made. Description of configuration and examples can be found in section 8.7. Usually the Authorization SecHandler and included PDPs are used on the service side of communication channel. Although it is also possible to use them on the client side.
+    \item arc.authz Authorization SecHandler
+The arc.authz and serves as container for the Policy Decision Point components. It is responsible for calling their interface and getting back the authorization result. Then obtained results are processed and combined decision is made. Description of configuration and examples can be found in section \ref{subsec:authzhandler_conf}. Usually the Authorization SecHandler and included PDPs are used on the service side of communication channel. Although it is also possible to use them on the client side.
 
-    \item identity.map – Identity Mapping SecHandler
+    \item identity.map Identity Mapping SecHandler
 The identity.map is a specific authorization oriented security handler. It will map the global identity in the message into local identity like system username based on the result returned by Policy Decision Point components.
 
-    \item delegation.collector – Delegation SecHandler
-The delegation.collector is responsible for collecting the delegation policy information from the remote proxy credential (proxy certificate is compatible to RFC3820) inside the message, and putting this policy into message’s security attribute for the usage of other components, such as  delegation.pdp.
+    \item delegation.collector Delegation Collector SecHandler
+The delegation.collector is responsible for collecting the delegation policy information from the remote proxy credential (proxy certificate compatible with RFC3820) inside the message, and putting this policy into the message security attribute for the usage of other components, such as the ``delegation.pdp''.
 
-    \item usernametoken.handler – UseranemToken SecHandler
-The task of the  usernametoken.handler is to generate the WS-Security Username-Token and add it into header of SOAP message which is the payload of outgoing message. It can also extract the WS-Security Username-Token from the header of SOAP message which is the payload of incoming message.
+    \item usernametoken.handler UseranemToken SecHandler
+The task of the  usernametoken.handler is to generate the WS-Security\cite{ws-security} Username Token and add it into header of SOAP message which is the payload of outgoing message. It can also extract the WS-Security Username-Token from the header of SOAP message which is the payload of incoming message.
+
+    \item x509token.handler X.509 Token SecHandler
+This SecHandler generates and process the WS-Security\cite{ws-security} X.509 Token inside the header of SOAP message.
+
+    \item samltoken.handler 
+
+    \item saml2ssoassertionconsumer.handler 
+
+    \item delegation.handler 
 
 \end{itemize}
 
@@ -175,7 +186,7 @@ The task of the  usernametoken.handler is to generate the WS-Security Username-T
 \subsection{Interface of PDP} % (fold)
 \label{subsec:interface_pdp}
 
-Below shows the definition of abstract class PDP. The implementation could be some function which implements the interface by composing the policy evaluation request, evaluating this request against some policy, and returning the evaluation result, or just by composing the policy evaluation request, invoking some remote policy decision web service and getting back the evaluation result.
+Below is the definition of abstract class PDP. The implementation for example could implement method isPermitted() by composing the policy evaluation request, evaluating this request against some policy, and returning the evaluation result. Or it could compose the policy evaluation request, invoke some remote policy decision web service and return back the evaluation result.
 
 \begin{verbatim}
 class PDP {
@@ -186,25 +197,31 @@ class PDP {
   };
 \end{verbatim}
 
-Class \textit{PDP} is an abstract class which includes a general interface called \textit{isPermitted} which uses Message object as argument. Any policy decision point implementation should inherit class PDP and implement the interface according to the actual functionality. The interface only return simple \textit{Boolean} value, and any useful information generated during the calling of this interface should be put into the security attribute of the message, or put into the payload itself.
+Class \textit{PDP} is an abstract class which includes a general interface method called \textit{isPermitted} which uses Message object as argument. Any policy decision point implementation must inherit from class PDP and implement the interface according to the actual functionality. The interface method return simple \textit{Boolean} value, and any useful information generated during the calling of this interface should be put into the security attribute of the message, or put into the payload itself.
 
-Currently, the ARC1 comes with the following four policy decision point implementation:
+Currently, the ARC NOX comes with the following PDP implementations:
 
 \begin{itemize}
-    \item arc.pdp – Arc PDP
-The Arc PDP will organize the security attributes into the ARC specific authorization request, call the policy evaluator to evaluate the request against the policy (which is in ARC specific format) repository, and get back the evaluation result. See paragraph 3 for detail information about request schema and policy schema.
+    \item arc.pdp Arc PDP
+The Arc PDP will organize the security attributes into the ARC specific authorization request, call the policy evaluator to evaluate the request against the policy (which is in ARC specific format) stored in local repository, and return back the evaluation result. See section \ref{sec:policy_eval} for detailed information about request and policy schema.
 
-    \item xacml.pdp – XACML PDP
-The XACML PDP will organize the security attributes into the XACML authorization request (see: http://docs.oasis-open.org/xacml/2.0/access\_control-xacml-2.0-context-schema-os.xsd), call the policy evaluator to evaluate the request against the policy (which is in XACML format: http://docs.oasis-open.org/xacml/2.0/access\_control-xacml-2.0-policy-schema-os.xsd) repository, and get back the evaluation result.
+    \item xacml.pdp XACML PDP
+The XACML PDP will organize the security attributes into the XACML authorization request (see: http://docs.oasis-open.org/xacml/2.0/access\_control-xacml-2.0-context-schema-os.xsd), call the policy evaluator to evaluate the request against the policy (which is in XACML format: http://docs.oasis-open.org/xacml/2.0/access\_control-xacml-2.0-policy-schema-os.xsd) stored in local repository, and return back the evaluation result.
 
-    \item delegation.pdp – Delegation PDP
-The Delegation PDP is basically similar to Arc PDP, except it uses the delegation policy parsed from remote proxy credential by delegation.collector, and evaluates the request against delegation policy. See section 6for the design idea and use case of delegation policy in fine-grained identity delegation.
+    \item delegation.pdp Delegation PDP
+The Delegation PDP is basically similar to Arc PDP, except it uses the delegation policy parsed from remote proxy credential by delegation.collector, and evaluates the request against configured delegation policy. See section \ref{sec:delegation} for the design idea and use case of delegation policy in fine-grained identity delegation.
 
-    \item simplelist.pdp – Simplelist PDP
-The Simplelist PDP is a simplest implementation of policy decision point. It will match the identity extracted from the remote credential (or proxy credential) with local list of permitted identities.
+    \item simplelist.pdp Simplelist PDP
+The Simplelist PDP is a simplest implementation of policy decision point. It will match the identity extracted from the remote credential (or proxy credential) to local list of permitted identities.
 
-    \item pdpservice.invoker – PDP Service Invoker
+    \item pdpservice.invoker PDP Service Invoker
 The PDP Service Invoker is a client which can be used to invoke the PDP Service which implements the same functionality as Arc PDP or XACML PDP, except that the evaluation request and response are carried by SOAP message. The benefit of implementing PDP Service and PDP Service Invoker is that the policy evaluation engine can be accessed remotely and maintained centrally.
+
+    \item allow.pdp Allow PDP
+This PDP always returns positive result.
+
+    \item deny.pdp Deny PDP
+This PDP always returns negative result.
 
 \end{itemize}
 
@@ -218,7 +235,7 @@ The PDP Service Invoker is a client which can be used to invoke the PDP Service 
 \subsection{Design of policy evaluation engine} % (fold)
 \label{subsec:design_policyengine}
 
-The ARC1 defines specific evaluation request and policy schema. Based on the schema definition, one policy evaluation engine is implemented. The design principal of policy evaluation engine is generality by which the implementation of the policy evaluation engine can be easily extended to adopt some other policy schema, such as XACML policy schema.
+The ARC NOX defines specific evaluation request and policy schema. Based on the schema definition, one policy evaluation engine is implemented. The design principal of policy evaluation engine is generality by which the implementation of the policy evaluation engine can be easily extended to adopt some other policy schema, such as XACML policy schema.
 
 \begin{figure}[ht]
 \centering{{{\includegraphics[width=1.0\textwidth]{Evaluator_ARC.pdf}}}
@@ -830,7 +847,7 @@ The WSDL description of policy decision service is available at
 
  http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk/src/services/charon/charon.wsdl
 
-It's configuration is presented in Section \ref{subsec:pdpservice_conf}.
+It's configuration is presented in section \ref{subsec:pdpservice_conf}.
 
 %section policy_decision_service (end)
 
@@ -845,19 +862,19 @@ Security Attributes represent security related information inside HED framework 
 
 Each kind of Security Attribute is represented by own class inherited from parent SecAttr class $<$arc/message/SecAttr.h$>$.
 
-Each Security Attribute stores it's information in internal format and is capable to export it to one of predefined formats using \textit{Export()} method. Currently only supported format is ARC Policy/Request XML document described in Section 8.1and 8.2
-Collectors of Security Attributes instantiate corresponding classes and link them to Secuirity Attributes containers - MessageAuth $<$arc/message/MessageAuth.h$>$ and MessageAuthContext $<$arc/message/Message.h$>$ storing collected attributes per request and per session correspondingly. Each attribute is assigned a name. Current implementations of Security Attributes Collectors are either integrated into existing MCCs or implemented as separate SecHandler plugins. See Section 5.2for available Collectors and corresponding Security Attributes.
+Each Security Attribute stores it's information in internal format and is capable to export it to one of predefined formats using \textit{Export()} method. Currently only supported format is ARC Policy/Request XML document described in sections \ref{subsec:authz_policy} and \ref{subsec:authz_request}.
+Collectors of Security Attributes instantiate corresponding classes and link them to Secuirity Attributes containers - MessageAuth $<$arc/message/MessageAuth.h$>$ and MessageAuthContext $<$arc/message/Message.h$>$ storing collected attributes per request and per session correspondingly. Each attribute is assigned a name. Current implementations of Security Attributes Collectors are either integrated into existing MCCs or implemented as separate SecHandler plugins. See section \ref{subsec:sec_attr_avail_collectors} for available Collectors and corresponding Security Attributes.
 
 Note for service developers: Services may implement own authorization algorithms. But they may use Security Atributes as well by providing instances of classes inherited from SecAttr and running them through either configured or hardcoded processors/PDPs.
 Processors of Security Attributes are implemented as Policy Decision Point components. Currently there are 2 PDP components available:
 Arc PDP makes use of Security Attributes containing identities of client, resource and requested action. It evaluates either all or selected set of attributes against specified Policy documents thus making it possible to enforce policies defined/selected by service providers.
-Delegation PDP is described below in Section 6.3.
+Delegation PDP is described below in section \ref{subsec:delegation_pdp}.
 
 
 \subsection{Available collectors} % (fold)
 \label{subsec:sec_attr_avail_collectors}
 
-Here Security Attribute collectors distributed as part of the ARC1 are described except those used for Delegation Restrictions. Those are described in Section 6.2
+Here Security Attribute collectors distributed as part of the ARC NOX are described except those used for Delegation Restrictions. Those are described in section \ref{subsec:delegation_collector}
 
 \subsubsection{TCP} % (fold)
 \label{subsubsec:sec_attr_TCP}
@@ -910,7 +927,7 @@ If VOMS extensions contain user definable attributes those are presented togethe
 
 \emph{/voname=knowarc.eu/hostname=arthur.hep.lu.se:15001/knowarc.eu:UniqueKnowarcAttribute=False}
 
-Configuration of the TLS MCC is described in section 8.5.
+Configuration of the TLS MCC is described in section \ref{subsec:tlsmcc_conf}.
 
 
 
@@ -957,25 +974,25 @@ Context & http://www.nordugrid.org/schemas/policy-arc/types/soap/namespace & Nam
 
 \subsection{Delegation Architecture} % (fold)
 \label{subsec:delegation_arch}
-In current implementation delegation is achieved through Identity Delegation implemented using X509 Proxy Certificates as defined in RFC 3820 [1]. Client wishing to allow service to act on it's behalf provides Proxy Certificate to the service using Web Service based Delegation interface described in Section 6.4.
+In current implementation delegation is achieved through Identity Delegation implemented using X.509 Proxy Certificates as defined in RFC 3820 \cite{x509proxy}. Client wishing to allow service to act on it's behalf provides Proxy Certificate to the service using Web Service based Delegation interface described in section \ref{subsec:delegation_interface}.
 
 For limiting the scope of delegated credentials along with usually used time constraints it is possible to attach Policy document to Proxy Certificate. According to RFC 3820 Policy is stored in \textit{ProxyPolicy} extension. In order not to introduce new type of object Policy is assigned \textit{id-ppl-anyLanguage} identifier. RFC 3820 allows any octet string associated with such object. We are using textual representation of ARC Policy XML document.
 
-Each deployment implementing Delegation Restrictions must use dedicated Security Handler plugin (see section 5.1) to collect all Policy documents from Proxy Certificates used for establishing secure connection. Then those documents must be processed by dedicated Policy Decision Point plugin (see section 2.3) to make a final decision based on collected Policies and various information about client's identity and requested operation. Service or MCC chain supporting Delegation Restrictions must accept negative decision of this PDP as final and do not override it with any other decision based on other policies.
+Each deployment implementing Delegation Restrictions must use dedicated Security Handler plugin (see section \ref{subsec:delegation_collector}) to collect all Policy documents from Proxy Certificates used for establishing secure connection. Then those documents must be processed by dedicated Policy Decision Point plugin (see section \ref{subsec:interface_pdp}) to make a final decision based on collected Policies and various information about client's identity and requested operation. Service or MCC chain supporting Delegation Restrictions must accept negative decision of this PDP as final and do not override it with any other decision based on other policies.
 
 To have Delegation Restriction working their processing must be enabled in all participating clients and services. Because Delegated Restrictions are marked as critical extension in X.509 proxy certificate any  service which does not support such extension will fail to autheticate client presenting such certificate.
 
 \subsection{Delegation Collector} % (fold)
 \label{subsec:delegation_collector}
-This Security Attribute is collected by dedicated Security Handler plugin named ``delegation.collector'' avaialble as part of the ARC1 distribution. It extracts policy document stored inside X509 certificate proxy extension as defined in RFC3820 and described in Section 6.1. All proxy certificates in a chain provided by client are examined and all available policies are extracted. Configuration of Delegation SecHandler is described in section 8.12.
+This Security Attribute is collected by dedicated Security Handler plugin named ``delegation.collector'' avaialble as part of the ARC NOX distribution. It extracts policy document stored inside X.509 certificate proxy extension as defined in RFC3820 and described in section \ref{subsec:delegation_arch}. All proxy certificates in a chain provided by client are examined and all available policies are extracted. Configuration of Delegation SecHandler is described in section \ref{subsec:deleg_sechandler_conf}.
 
 Extracted content is converted into XML document. Then document is checked to be of ARC Policy kind. If policy is not recognized as ARC Policy procedure fails and that causes failure of communication.
 
-Proxy certificates with id-ppl-inheritAll [5. RFC3820. http://www.faqs.org/rfcs/rfc3820.html] property are passed through and no policy document is generated for them. Proxies with other type of policies including id-ppl-independent are not accepted and generate immediate failure.
+Proxy certificates with id-ppl-inheritAll \cite{x509proxy} property are passed through and no policy document is generated for them. Proxies with other type of policies including id-ppl-independent are not accepted and generate immediate failure.
 
 \subsection{Delegation PDP} % (fold)
 \label{subsec:delegation_pdp}
-The Delegation PDP is similar to the Arc PDP described above except that it takes it's Policy documents directly from Security Attributes. Differently from Arc PDP it is meant to be used for enforcing policies defined by client. Configuration of Delegation PDP is described in section 8.11.
+The Delegation PDP is similar to the Arc PDP described above except that it takes it's Policy documents directly from Security Attributes. Differently from Arc PDP it is meant to be used for enforcing policies defined by client. Configuration of Delegation PDP is described in section \ref{subsec:deleg_pdp_conf}.
 
 \subsection{Delegation Interface} % (fold)
 \label{subsec:delegation_interface}
@@ -990,7 +1007,7 @@ The Delegation PDP is similar to the Arc PDP described above except that it take
 \caption{\label{fig:delegation_flow1}The flow diagram of delegation procedure with certificate transfered as payload of service specific message} }
 \end{figure}
 
-Delegation interface in the ARC1 is implemented using Web Service approach. Each ARC1 service wishing to act on behalf of client identity implements this interface in order to accept delegated credentials. Here is how delegation procedure works (also shown in Figure \ref{fig:delegation_flow} and Figure \ref{fig:delegation_flow1}) :
+Delegation interface in the ARC NOX is implemented using Web Service approach. Each ARC NOX service wishing to act on behalf of client identity implements this interface in order to accept delegated credentials. Here is how delegation procedure works (also shown in Figure \ref{fig:delegation_flow} and Figure \ref{fig:delegation_flow1}) :
 
     \begin{itemize}
         \item \emph{Step 1}
@@ -1034,7 +1051,7 @@ Here options -P, -C and -K specify path to files containing generated Proxy, use
 -c proxyPolicyFile=delegation\_policy.xml
     \end{itemize}
 
-The Policy maybe any of any type supported by ARC1 middleware (or third-party plugins) installed on the services where that policy is processed. Currenlty supported Policies include ARC Policy (described in section 8) and GACL Policy [2].
+The Policy maybe any of any type supported by ARC NOX middleware (or third-party plugins) installed on the services where that policy is processed. Currenlty supported Policies include ARC Policy (described in section \ref{subsec:authz_policy}) and GACL Policy \cite{gacl}.
 
 Simple example below renders delegated credentials usable only for contacting service attached to HTTP communication channel under path /arex (line 5)  and allows HTTP operation POST (line 8) on it.
 
@@ -1059,7 +1076,7 @@ Simple example below renders delegated credentials usable only for contacting se
 11.</Policy>
 \end{verbatim}
 
-Another example of the delegation policy is presented below. This policy restricts usage of delegated credentials to SOAP operation CreateActivity (line 5) of Basic Execution Service (BES) [4] namespace (line 9). Such policy could be embedded into credentials delegated to high level Brokering service performing Grid job submission to low level BES on behalf of user.
+Another example of the delegation policy is presented below. This policy restricts usage of delegated credentials to SOAP operation CreateActivity (line 5) of Basic Execution Service (BES) \cite{ogsa-bes} namespace (line 9). Such policy could be embedded into credentials delegated to high level Brokering service performing Grid job submission to low level BES on behalf of user.
 
 \begin{verbatim}
 1.<?xml version="1.0" encoding="UTF-8"?>
@@ -1099,7 +1116,7 @@ Currently the proxy creation utility arcproxy can also be used for creating VOMS
 
 \subsection{UsernameToken SecHandler} % (fold)
 \label{subsec:username_token}
-The UsernameToken SecHandler is meant for processing - generating and extracting - WS-Security [4] UsernameToken in the SOAP header. Hence it must be attached to the MCC which processes SOAP payloads - like SOAP MCC or Service accepting SOAP messages. For description of configuration see section \ref{subsec:ut_sechandler_conf}.
+The UsernameToken SecHandler is meant for processing - generating and extracting - WS-Security \cite{ws-security} UsernameToken in the SOAP header. Hence it must be attached to the MCC which processes SOAP payloads - like SOAP MCC or Service accepting SOAP messages. For description of configuration see section \ref{subsec:ut_sechandler_conf}.
 
 For the incoming message this SecHandler authorizes SOAP message according to specified configuration.
 
@@ -1107,22 +1124,22 @@ For the outgoing message this SecHandler creates and adds proper token into SOAP
 
 \subsection{X509Token SecHandler} % (fold)
 \label{subsec:x509_token}
-The X509Token SecHandler is meant for processing - generating and extracting - WS-Security [4] X509Token from SOAP header. Hence it must be attached to the MCC which processes SOAP payloads – like SOAP MCC or Service accepting SOAP messages. For description of configuration see section \ref{subsec:xt_sechandler_conf}.
+The X.509 Token SecHandler is meant for processing - generating and extracting - WS-Security \cite{ws-security} X.509 Token from SOAP header. Hence it must be attached to the MCC which processes SOAP payloads – like SOAP MCC or Service accepting SOAP messages. For description of configuration see section \ref{subsec:xt_sechandler_conf}.
 
 For the incoming message this SecHandler decrypts and checks signature of SOAP message using attached public key and verifies that key against specified CA certificate.
 
-For the outgoing message this SecHandler creates X509Token in SOAP header. SOAP message body is encrypted and signed.
+For the outgoing message this SecHandler creates X.509 Token in SOAP header. SOAP message body is encrypted and signed.
 
 \subsection{SAMLToken SecHandler} % (fold)
 \label{subsec:saml_token}
-The SAMLToken SecHandler is meant for processing - generating and extracting - WS-Security [4] SAMLToken from SOAP header. Hence it must be attached to the MCC which processes SOAP payloads – like SOAP MCC or Service accepting SOAP messages. For description of configuration see section \ref{subsec:st_sechandler_conf}.
+The SAMLToken SecHandler is meant for processing - generating and extracting - WS-Security \cite{ws-security} SAMLToken from SOAP header. Hence it must be attached to the MCC which processes SOAP payloads – like SOAP MCC or Service accepting SOAP messages. For description of configuration see section \ref{subsec:st_sechandler_conf}.
 
 \begin{figure}
 \centering{{{\includegraphics[width=0.9\textwidth]{samltoken_aa.pdf}}}
 \caption{\label{fig:samltoken_aa} Interaction among Client, Grid/Web Service and Attribute Authority} }
 \end{figure}
 
-Figure \ref{fig:samltoken_aa} shows the interaction among Client, Grid/Web Service and Attribute Authority when SAMLToken security hanlder is deployed. The Attribute Authority service is described in Section \ref{sec:saml_aa_service}. For the Grid/Web service, if the service is hosted on ARC middleware, then the SAMLToken security handler should be deployed; if the service is hosted on other middlewares, then there should be other ways for supporting SAML Token authentication, e.g., Rampart (WS-Security modlue for Axis2).
+Figure \ref{fig:samltoken_aa} shows the interaction among Client, Grid/Web Service and Attribute Authority when SAMLToken security hanlder is deployed. The Attribute Authority service is described in section \ref{sec:saml_aa_service}. For the Grid/Web service, if the service is hosted on ARC middleware, then the SAMLToken security handler should be deployed; if the service is hosted on other middlewares, then there should be other ways for supporting SAML Token authentication, e.g., Rampart (WS-Security modlue for Axis2).
 
 For the incoming message this SecHandler decrypts and checks signature of SOAP message using attached public key and verifies that key against specified CA certificate.
 
@@ -1241,7 +1258,7 @@ Below is an example configuration of PDP service which can evaluate ARC Request 
 </Service>
 \end{verbatim}
 
-See Section 8.9for the explanation of ARC Policy.
+See section \ref{subsec:arcpdp_conf} for the explanation of ARC Policy.
 
 
 \subsection{Authorization SecHandler configuration} % (fold)
@@ -1308,7 +1325,7 @@ Below is an example configuration of SimpleList PDP inside ``echo'' service.
 
 The attribute ``name'' of \textit{$<$PDP/$>$} is critical for loading the object. Specifically, the name ``simplelist.pdp'' is for loading the SimpleList PDP object.
 
-The policy file ``simplelist'' is a local file which contains the list of X509 subjects of authorized entities. It the peer certificate is proxy certificate, the identity in this list should only include the original DN of users's certificate.
+The policy file ``simplelist'' is a local file which contains the list of X.509 subjects of authorized entities. It the peer certificate is proxy certificate, the identity in this list should only include the original DN of users's certificate.
 For example content of simplelist file may look like this:
 
 \emph{/C=NO/O=UiO/CN=test1}
@@ -1343,14 +1360,14 @@ The name ``arc.pdp'' is for loading the ArcPDP object.
 
 There could be a few policy files under \textit{$<$PolicyStore/$>$}. The request will be checked against all of the policies.
 
-There is an example policy for echo service below. See Section 8.1for the policy schema. The example policy is  made of following elements:
+There is an example policy for echo service below. See section \ref{subsec:authz_policy} for the policy schema. The example policy is  made of following elements:
 
   \newcounter{policy_count}
   \begin{list}{\arabic{policy_count}.}
   {\usecounter{policy_count}\setlength{\rightmargin}{\leftmargin}}
     \item Line 14  defines resource being protected. In this it is everything located under HTTP path ``/Echo''.
     \item Lines 17 and 18 define allowed HTTP operations to be ``POST'' and ``GET''. Line 19 also defines SOAP operation ``echo'' to be applied to service at path defined above.
-    \item Lines 10 and 9 require the requester to present X509 certificate with specified identity and signed by specified Certification Authority.
+    \item Lines 10 and 9 require the requester to present X.509 certificate with specified identity and signed by specified Certification Authority.
     \item No \textit{$<$Conditions/$>$} defined.
     \item Line 3 defines that if and only if all of the above constraints have been satisfied by requester, the \textit{$<$Rule/$>$} evaluates to Permit decision.
   \end{list}
@@ -1482,7 +1499,7 @@ http://www.oasis-open.org/committees/download.php/11474/access\_control-xacml-2.
 
 
 \subsection{Delegation PDP configuration} % (fold)
-\label{subsec:delegpdp_conf}
+\label{subsec:deleg_pdp_conf}
 Configuration XML schema with comments available at
 
 http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk/src/hed/shc/delegationpdp/DelegationPDP.xsd
@@ -1542,7 +1559,7 @@ Below is an example of configuration of UsernameToken SecHandler inside MCCSOAP 
 
 This example will add token with username ``user'' and password ``pass'' (using ``digest'' encoding algorithm) into outgoing SOAP message.
 
-For the client side, the developer should add the configuration information about X.509 security handler into client's configuration, in order to generate X509 Token into any SOAP message. Below is an example of how to use it:
+For the client side, the developer should add the configuration information about X.509 security handler into client's configuration, in order to generate X.509 Token into any SOAP message. Below is an example of how to use it:
 
 \begin{verbatim}
     Arc::XMLNode sechanlder_nd_ut("\
@@ -1563,7 +1580,7 @@ Configuration XML schema with comments is available at
 
 http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk/src/hed/shc/x509tokensh/X509TokenSH.xsd
 
-Below is an example of configuration of X509Token SecHandler inside MCCSOAP component of the service side. This example processes X509Token related information in SOAP message and returns failure if any problem found.
+Below is an example of configuration of X.509 Token SecHandler inside MCCSOAP component of the service side. This example processes X.509 Token related information in SOAP message and returns failure if any problem found.
 
 \begin{verbatim}
 <Component name="soap.service" id="soap">
@@ -1575,7 +1592,7 @@ Below is an example of configuration of X509Token SecHandler inside MCCSOAP comp
 </Component>
 \end{verbatim}
 
-For the client side, the developer should add the configuration information about X.509 security handler into client's configuration, in order to generate X509 Token into any SOAP message. Below is an example of how to use it:
+For the client side, the developer should add the configuration information about X.509 security handler into client's configuration, in order to generate X.509 Token into any SOAP message. Below is an example of how to use it:
 
 \begin{verbatim}
   Arc::XMLNode sechanlder_nd_xt("\
@@ -1601,9 +1618,9 @@ http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk/src/hed/shc/samltoken
 
 \section{Using SAML2 Web SSO for Authentication and Attribute-based Authorization} % (fold)
 \label{sec:samlsso}
-   In ARC1, besides that GSI is supported for talking with external grid services which are based on GSI, the standard TLS/SSL is also supported. No matter standard SSL/TLS or GSI is used, mutual authentication applies for both of them, and is the default configuration for grid deployment; and X.509 certificate is required for both of the client and service sides. X.509 certificates is issued by certificate authorities (CA), and then CAs constitute trust federation and guarantee two different X.509 certificates from different CAs can accomplish authentication to each other. So if a user would access grid system, he/she should own a X.509 certificate which is issued by a CA that is trusted by other's entity in the grid system.
+   In ARC NOX, besides that GSI is supported for talking with external Grid services which are based on GSI, the standard TLS/SSL is also supported. No matter standard SSL/TLS or GSI is used, mutual authentication applies for both of them, and is the default configuration for Grid deployment; and X.509 certificate is required for both of the client and service sides. X.509 certificates is issued by certificate authorities (CA), and then CAs constitute trust federation and guarantee two different X.509 certificates from different CAs can accomplish authentication to each other. So if a user would access Grid system, he/she should own a X.509 certificate which is issued by a CA that is trusted by other's entity in the Grid system.
 
-   ARC1 provides another option by which users are not required to possess a X.509 certificate for authentication. It is based on AAI(Authentication and Authorization Infrastructure) and utilize users' existing community credential (such as username password) for authentication rather than X.509 credential.
+   ARC NOX provides another option by which users are not required to possess a X.509 certificate for authentication. It is based on AAI(Authentication and Authorization Infrastructure) and utilize users' existing community credential (such as username password) for authentication rather than X.509 credential.
 
    SAML 2.0 specification defines the Web browser SSO profile which is a standardization for single sign-on (SSO). SSO enables the establishment of federated environment in which clients can sign in the home organization once and access services offered by different external organizations. By using SAML2.0 Web browser SSO profile, users can access external organizations by only authenticating to their own organization. Also instead of requiring users to possess X.509 credential, different authentication mechanisms, such as username/password authentication, IP address authentication, etc.
 
@@ -1717,9 +1734,9 @@ The steps shows in Figure 8 are described as follows:
 
 \section{Short-Lived Credential Service} % (fold)
 \label{sec:slcs}
-In order to create X.509 credential for inter-operating with Grid services that requires client side certificate authentication, based on the solution described in Section 9, a short lived credential service (SLCS) is implemented by which user can get a short-lived X.509 certificate without being bothered to contact any registration authority (RA) or certificate authority (CA).
+In order to create X.509 credential for inter-operating with Grid services that requires client side certificate authentication, based on the solution described in section \ref{sec:samlsso}, a short lived credential service (SLCS) is implemented by which user can get a short-lived X.509 certificate without being bothered to contact any registration authority (RA) or certificate authority (CA).
 
-    SLCS service is for signing short-lived x509 credential based on user's username/password credential. Then the user can use this short-lived x509 credential to access grid services/resources where x509 credential is required by default. SLCS service should depend on the SP (Service provider) service which is one of the participants of SAML2 SSO profile (SAML2 SSO profile is used for authenticating based on username/password credential and getting SAML authentication assertion; and SAML authentication assertion is then used as basis for signing short-lived x509 credential).
+    SLCS service is for signing short-lived x509 credential based on user's username/password credential. Then the user can use this short-lived x509 credential to access Grid services/resources where x509 credential is required by default. SLCS service should depend on the SP (Service provider) service which is one of the participants of SAML2 SSO profile (SAML2 SSO profile is used for authenticating based on username/password credential and getting SAML authentication assertion; and SAML authentication assertion is then used as basis for signing short-lived x509 credential).
 
     The SLCS service is also a Web Service (standard Web Service implemented by using ARC service interface), and the SLCS client is a specific command-line interface (CLI) which includes the user agent and WS client. The whole process of SLCS invocation is showed in Figure 10 (from step 1 to step 8), which is the same as in Figure 8, except that step 7 and step 8 are invoked for the SLCS certificate request and response.
 
@@ -1771,7 +1788,7 @@ In order to create X.509 credential for inter-operating with Grid services that 
 
     SP service needs to be configured with $<$MetaDataLocation$>$ and $<$ServiceProviderName$>$.
 
-    SLCS service should specifically include the CA credential (certificate and key file) and the serial number file (which includes the serial number of each signed certificate), so SLCS service needs to be configured with $<$CACertificate$>$ $<$CAKey$>$ and $<$CASerial$>$. Therefore, the service administrator should firstly create a CA credential (note for interoperability purpose in the production grid deployment, the CA credential should be trusted by others).
+    SLCS service should specifically include the CA credential (certificate and key file) and the serial number file (which includes the serial number of each signed certificate), so SLCS service needs to be configured with $<$CACertificate$>$ $<$CAKey$>$ and $<$CASerial$>$. Therefore, the service administrator should firstly create a CA credential (note for interoperability purpose in the production Grid deployment, the CA credential should be trusted by others).
 
 Note: When deploying the SLCS service, service administrator should deploy a dedicated IdP (Identity Provider) which can be assigned as authentication/attribute authority, or the users should have already had his own IdP. And the IdP information (authentication URL and attribute authority URL) should have already been included into the metadata of above configuration (e.g. test\_metadata.xml). On the other hand, the SP (SP service) information (assertion consuming URL) should also have been included into the metadata of the IdP.
 
@@ -1855,7 +1872,7 @@ verbosity=INFO
 
 \section{X.509 Credential Delegation Service} % (fold)
 \label{sec:delegation_service}
-Besides the delegation interface described in Section 6.4, which provides interface for X.509 credential delegation. A dedicated Web Service is also developed for credential delegation, with the intention of providing a general approach for using delegation by changing the configuration information, rather than a specific approach which requires directly changing the code.
+Besides the delegation interface described in section \ref{subsec:delegation_interface}, which provides interface for X.509 credential delegation. A dedicated Web Service is also developed for credential delegation, with the intention of providing a general approach for using delegation by changing the configuration information, rather than a specific approach which requires directly changing the code.
 
     As shown in Figure 11, there is a specific WS client and Web Service for processing delegation: delegation client, and delegation service. The WSDL (Web Service Description Language) of the delegation service has three main operations, the first one for processing the delegation initiation, the second one for storing the signed proxy certificate, and the last one for processing acquisition of the delegated credential. The sequential diagram of the delegation is detailed in Figure 12.
 
