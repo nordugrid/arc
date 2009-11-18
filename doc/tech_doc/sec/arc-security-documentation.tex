@@ -8,7 +8,7 @@
 \usepackage{textcomp}                              %for various symbols, e.g. Registered Mark
 \usepackage{geometry}                              %for defining page size
 \usepackage{longtable}                             %for breaking tables
-\usepackage{trackchanges}
+%\usepackage{trackchanges}
 %
 \geometry{verbose,a4paper,tmargin=2.5cm,bmargin=2.5cm,lmargin=2.5cm,rmargin=2CM}
 \hypersetup{
@@ -2013,7 +2013,7 @@ glite-security-voms-admin-client-2.0.8-1
 \caption{\label{fig:arc_voms}The relationship between ARC components and gLite (VOMS) components} }
 \end{figure}
 
-Howerver, the running of ARC's SAML AA Service does not neccessarily depend on VOMS Admin Service. As long as there is another attribute administration service (in parallel to VOMS Admin Service) which can nicely be used to manage the attributes, the SAML AA Service can be configured to adopt that service. The relationship between ARC's implementation and VOMS implementation is shown in \ref{figure:arc_voms}.
+Howerver, the running of ARC's SAML AA Service does not neccessarily depend on VOMS Admin Service. As long as there is another attribute administration service (in parallel to VOMS Admin Service) which can nicely be used to manage the attributes, the SAML AA Service can be configured to adopt that service. The relationship between ARC's implementation and VOMS implementation is shown in \ref{fig:arc_voms}.
 
 In terms of implementation, SAML AA Service in ARC is designed not to be coupled with any specific backend database schema. Therefore even if the database schema is changed, the implementation is not necessarily going to be changed. The way about decoupling the service implementation with database schema is through the service configuration.
 
@@ -2155,5 +2155,7 @@ The configuration of SAML AA service is according to the schema:
 http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk/src/services/saml/aaservice.xsd
 
 %section saml_aa_service (end)
+
+\bibliography{grid}
 
 \end{document}
