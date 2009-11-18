@@ -46,5 +46,5 @@ test_jobdescription_LDFLAGS = $(GLIBMM_LIBS) $(LIBXML2_LIBS)
 test_jobdescription_LDADD = libarcclient.la \
 	$(top_srcdir)/src/hed/libs/common/libarccommon.la
 
-DIST_SUBDIRS = $(TEST_DIR)
+DIST_SUBDIRS = test
 SUBDIRS = $(TEST_DIR)
