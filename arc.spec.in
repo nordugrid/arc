@@ -609,7 +609,7 @@ exit 0
 %doc doc/manuals/janitor/Janitor.pdf
 %doc doc/tech_doc/janitor/Janitor.pdf
 %doc doc/tech_doc/jura/jura-tech-doc.pdf
-%doc doc/tech_doc/sec/SecurityFrameworkofARC1.pdf
+%doc doc/tech_doc/sec/arc-security-documentation.pdf
 %doc doc/manuals/user_interface/ui.pdf
 %doc doc/manuals/ws-quick-guide/ws-quick-guide.pdf
 %doc doc/tutorials/ws-programming-tutorial/doc/WS-tutorial.pdf
