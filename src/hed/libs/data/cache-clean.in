@@ -2,10 +2,10 @@
 
 #
 #    Copyright 2008 Niklas Edmundsson <nikke@acc.umu.se>,
-#                   Tomas Ögren <stric@acc.umu.se>,
+#                   Tomas Ã–gren <stric@acc.umu.se>,
 #                   David Cameron <cameron@ndgf.org>
 #
-#    Originally developed by Niklas Edmundsson and Tomas Ögren as
+#    Originally developed by Niklas Edmundsson and Tomas Ã–gren as
 #    cleanbyage. Modified, renamed cache-clean and maintained
 #    for ARC by David Cameron.
 #
@@ -100,13 +100,18 @@ sub usage {
         -M NN   - Free space to stop cleaning (percent)
         -D      - Debug output
 
-   If dir arguments are not given, cache directories are read from arc.conf.
+   Caches are given by dir1, dir2.. or taken from the config file specified
+   by -c or ARC_CONFIG
 
 EOH
     exit 1;
 }
 
 usage() if(defined($opts{'h'}) || ((!defined($opts{'M'}) || !defined($opts{'m'})) && !defined($opts{'s'})));
+
+if (!$configfile && -e $ENV{"ARC_CONFIG"}) {
+    $configfile = $ENV{"ARC_CONFIG"};
+}
 
 debug "cache cleaning started";
 

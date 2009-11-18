@@ -34,6 +34,10 @@ EOH
     exit 1;
 }
 
+if (!$conffile && -e $ENV{"ARC_CONFIG"}) {
+    $conffile = $ENV{"ARC_CONFIG"};
+}
+
 usage() unless $conffile;
 
 # parse to find cache dirs
