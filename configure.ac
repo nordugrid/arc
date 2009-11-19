@@ -1272,7 +1272,7 @@ if test "$enables_isis_service" = "yes"; then
     enables_isis_service="no"
   fi
 fi
-if test "$enables_isi_service" = "yes"; then
+if test "$enables_isis_service" = "yes"; then
   if test "$DBCXX_LIBS" = ""; then
     enables_isis_service="no"
     AC_MSG_NOTICE([WARNING: Missing db_cxx - disabling ISIS])
