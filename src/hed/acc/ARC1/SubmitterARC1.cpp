@@ -44,18 +44,16 @@ namespace Arc {
     JobDescription job(jobdesc);
 
     if (!ModifyJobDescription(job, et)) {
-      logger.msg(ERROR, "Submit: Failed to modify job description "
-                        "to be sent to target.");
+      logger.msg(INFO, "Failed adapting job description to target resources");
       return URL();
     }
 
     std::string jobid;
-    if (!ac.submit(job.UnParse("ARCJSDL"), jobid, et.url.Protocol() == "https")) {
-      logger.msg(ERROR, "Failed submitting job");
+    if (!ac.submit(job.UnParse("ARCJSDL"), jobid, et.url.Protocol() == "https"))
       return URL();
-    }
+
     if (jobid.empty()) {
-      logger.msg(ERROR, "Service returned no job identifier");
+      logger.msg(INFO, "No job identifier returned by A-REX");
       return URL();
     }
 
@@ -63,7 +61,7 @@ namespace Arc {
     URL session_url((std::string)(jobidx["ReferenceParameters"]["JobSessionDir"]));
 
     if (!PutFiles(job, session_url)) {
-      logger.msg(ERROR, "Failed uploading local input files");
+      logger.msg(INFO, "Failed uploading local input files");
       return URL();
     }
 
@@ -117,8 +115,7 @@ namespace Arc {
     }
 
     if (!ModifyJobDescription(job, et)) {
-      logger.msg(INFO, "Submit: Failed to modify job description "
-                        "to be sent to target.");
+      logger.msg(INFO, "Failed adapting job description to target resources");
       return URL();
     }
 
@@ -127,11 +124,11 @@ namespace Arc {
 
     std::string newjobid;
     if (!ac.migrate(idstr, job.UnParse("ARCJSDL"), forcemigration, newjobid,
-                    et.url.Protocol() == "https")) {
+                    et.url.Protocol() == "https"))
       return URL();
-    }
+
     if (newjobid.empty()) {
-      logger.msg(INFO, "Service returned no job identifier");
+      logger.msg(INFO, "No job identifier returned by A-REX");
       return URL();
     }
 

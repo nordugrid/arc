@@ -45,7 +45,7 @@ namespace Arc {
       std::string idstr;
       AREXClient::createActivityIdentifier(iter->JobID, idstr);
       if (!ac.stat(idstr, *iter))
-        logger.msg(INFO, "Failed retrieving job information: %s", iter->JobID.str());
+        logger.msg(INFO, "Failed retrieving information for job: %s", iter->JobID.str());
     }
   }
 
@@ -78,7 +78,7 @@ namespace Arc {
       src.ChangePath(srcpath + *it);
       dst.ChangePath(dstpath + *it);
       if (!ARCCopyFile(src, dst)) {
-        logger.msg(ERROR, "Failed dowloading %s to %s", src.str(), dst.str());
+        logger.msg(INFO, "Failed dowloading %s to %s", src.str(), dst.str());
         ok = false;
       }
     }
@@ -105,15 +105,16 @@ namespace Arc {
   }
 
   bool JobControllerARC1::RenewJob(const Job& job) {
-    logger.msg(ERROR, "Renewal of ARC1 jobs is not supported");
+    logger.msg(INFO, "Renewal of ARC1 jobs is not supported");
     return false;
   }
 
   bool JobControllerARC1::ResumeJob(const Job& job) {
 
-    if (job.RestartState.empty())
-      logger.msg(ERROR, "Job %s does not report a resumable state", job.JobID.str());
-      //return false;
+    if (job.RestartState.empty()) {
+      logger.msg(INFO, "Job %s does not report a resumable state", job.JobID.str());
+      return false;
+    }
 
     logger.msg(VERBOSE, "Resuming job: %s at state: %s", job.JobID.str(), job.RestartState);
 
@@ -150,14 +151,11 @@ namespace Arc {
     AREXClient::createActivityIdentifier(job.JobID, idstr);
     if (ac.getdesc(idstr, desc_str)) {
       JobDescription desc;
-      desc.Parse(desc_str);
-      if (desc)
-        logger.msg(INFO, "Valid job description");
-      return true;
+      if (desc.Parse(desc_str))
+        return true;
     }
-    else {
-      logger.msg(ERROR, "No job description");
-      return false;
-    }
+
+    logger.msg(ERROR, "Failed retrieving job description for job: %s", job.JobID.str());
+    return false;
   }
 } // namespace Arc

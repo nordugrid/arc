@@ -63,7 +63,7 @@ namespace Arc {
       rurl(url),
       arex_enabled(arex_extensions) {
 
-    logger.msg(INFO, "Creating an A-REX client");
+    logger.msg(DEBUG, "Creating an A-REX client");
     client = new ClientSOAP(cfg, url, timeout);
     if (!client)
       logger.msg(VERBOSE, "Unable to create SOAP client used by AREXClient.");
@@ -86,7 +86,6 @@ namespace Arc {
     }
 
     logger.msg(VERBOSE, "Processing a %s request", req.Child(0).FullName());
-    logger.msg(VERBOSE, "Action: %s", action);
 
     if (delegate) {
       // Try to figure out which credentials are used
@@ -109,16 +108,15 @@ namespace Arc {
           deleg_key = deleg_cert;
       }
       if (deleg_cert.empty() || deleg_key.empty()) {
-        logger.msg(ERROR, "Failed to find delegation credentials in "
-                   "client configuration");
+        logger.msg(VERBOSE, "Failed locating delegation credentials in chain configuration");
         return false;
       }
 
       DelegationProviderSOAP deleg(deleg_cert, deleg_key);
-      logger.msg(INFO, "Initiating delegation procedure");
+      logger.msg(VERBOSE, "Initiating delegation procedure");
       if (!deleg.DelegateCredentialsInit(*(client->GetEntry()),
                                          &(client->GetContext()))) {
-        logger.msg(ERROR, "Failed to initiate delegation");
+        logger.msg(VERBOSE, "Failed to initiate delegation credentials");
         return false;
       }
       XMLNode op = req.Child(0);
@@ -134,12 +132,12 @@ namespace Arc {
     }
 
     if (resp == NULL) {
-      logger.msg(ERROR, "There was no SOAP response");
+      logger.msg(VERBOSE, "No response from %s", rurl.str());
       return false;
     }
 
     if (resp->IsFault()) {
-      logger.msg(VERBOSE, "%s request failed with response: %s", action, resp->Fault()->Reason());
+      logger.msg(VERBOSE, "%s request to %s failed with response: %s", action, rurl.str(), resp->Fault()->Reason());
       std::string s;
       resp->GetXML(s);
       logger.msg(DEBUG, "XML response: %s", s);
@@ -148,7 +146,7 @@ namespace Arc {
     }
 
     if (!(*resp)[action + "Response"]) {
-      logger.msg(VERBOSE, "%s request failed. Empty response.", action);
+      logger.msg(VERBOSE, "%s request to %s failed. Empty response.", action, rurl.str());
       delete resp;
       return false;
     }
@@ -161,7 +159,7 @@ namespace Arc {
   bool AREXClient::submit(const std::string& jobdesc, std::string& jobid,
                           bool delegate) {
     action = "CreateActivity";
-    logger.msg(INFO, "Creating and sending request");
+    logger.msg(VERBOSE, "Creating and sending submit request to %s", rurl.str());
 
     // Create job request
     /*
@@ -191,7 +189,7 @@ namespace Arc {
 
   bool AREXClient::stat(const std::string& jobid, Job& job) {
     std::string faultstring;
-    logger.msg(INFO, "Creating and sending a status request");
+    logger.msg(VERBOSE, "Creating and sending job information query request to %s", rurl.str());
 
     PayloadSOAP req(arex_ns);
     if(arex_enabled) {
@@ -221,7 +219,7 @@ namespace Arc {
         const std::string rawState = (std::string)response["ComputingActivity"]["State"][i];
         const std::size_t pos = rawState.find_first_of(':');
         if (pos == std::string::npos) {
-          logger.msg(WARNING, "Found malformed job state string: %s", rawState);
+          logger.msg(VERBOSE, "Found malformed job state string: %s", rawState);
           continue;
         }
         const std::string model = rawState.substr(0, pos);
@@ -236,7 +234,7 @@ namespace Arc {
     }
 
     if (!job.State) {
-      logger.msg(ERROR, "The status of the job (%s) could not be retrieved.", job.JobID.str());
+      logger.msg(VERBOSE, "Unable to retrieve status of job (%s)", job.JobID.str());
       return false;
     }
     if(!arex_enabled) return true;
@@ -325,9 +323,10 @@ namespace Arc {
     if(!arex_enabled) return false;
 
     action = "QueryResourceProperties";
-    logger.msg(INFO, "Creating and sending a service status request");
+    logger.msg(VERBOSE, "Creating and sending service information query request to %s", rurl.str());
 
     PayloadSOAP req(*InformationRequest(XMLNode("<XPathQuery>//glue:Services/glue:ComputingService</XPathQuery>")).SOAP());
+
     if (!process(req, false, response))
       return false;
 
@@ -338,7 +337,7 @@ namespace Arc {
     if(!arex_enabled) return false;
 
     action = "Query";
-    logger.msg(INFO, "Creating and sending an index service query");
+    logger.msg(VERBOSE, "Creating and sending ISIS information query request to %s", rurl.str());
 
     PayloadSOAP req(NS("isis", "http://www.nordugrid.org/schemas/isis/2007/06"));
     req.NewChild("isis:" + action).NewChild("isis:QueryString") = "/RegEntry/SrcAdv[Type=\"org.nordugrid.execution.arex\"]";
@@ -355,18 +354,16 @@ namespace Arc {
           services.push_back(std::pair<URL, ServiceType>(URL((std::string)n["SrcAdv"]["EPR"]["Address"]), COMPUTING));
         }
         else
-          logger.msg(INFO,
-                     "Service %s of type %s ignored", (std::string)n["MetaSrcAdv"]["ServiceID"], (std::string)n["SrcAdv"]["Type"]);
+          logger.msg(DEBUG, "Service %s of type %s ignored", (std::string)n["MetaSrcAdv"]["ServiceID"], (std::string)n["SrcAdv"]["Type"]);
       }
     else
-      logger.msg(INFO,
-                 "No execution services registered in the index service");
+      logger.msg(VERBOSE, "No execution services registered in the index service");
     return true;
   }
 
   bool AREXClient::kill(const std::string& jobid) {
     action = "TerminateActivities";
-    logger.msg(INFO, "Creating and sending request to terminate a job");
+    logger.msg(VERBOSE, "Creating and sending terminate request to %s", rurl.str());
 
     PayloadSOAP req(arex_ns);
     XMLNode jobref = req.NewChild("bes-factory:" + action).NewChild(XMLNode(jobid));
@@ -388,7 +385,7 @@ namespace Arc {
     if(!arex_enabled) return false;
 
     action = "ChangeActivityStatus";
-    logger.msg(INFO, "Creating and sending request to terminate a job");
+    logger.msg(VERBOSE, "Creating and sending clean request to %s", rurl.str());
 
     PayloadSOAP req(arex_ns);
     XMLNode op = req.NewChild("a-rex:" + action);
@@ -408,7 +405,7 @@ namespace Arc {
  * unclear if this is the desired behaviour.
  * See trunk/src/services/a-rex/change_activity_status.cpp
     ????if ((std::string)response["NewStatus"]["state"] != "Deleted") {????
-      logger.msg(ERROR, "Job cleaning failed");
+      logger.msg(VERBOSE, "Job cleaning failed: Wrong response???");
       return false;
     }
 */
@@ -418,7 +415,7 @@ namespace Arc {
 
   bool AREXClient::getdesc(const std::string& jobid, std::string& jobdesc) {
     action = "GetActivityDocuments";
-    logger.msg(INFO, "Creating and sending a job description request");
+    logger.msg(VERBOSE, "Creating and sending job description retrieval request to %s", rurl.str());
 
     PayloadSOAP req(arex_ns);
     req.NewChild("bes-factory:" + action).NewChild(XMLNode(jobid));
@@ -438,7 +435,7 @@ namespace Arc {
     if(!arex_enabled) return false;
 
     action = "MigrateActivity";
-    logger.msg(INFO, "Creating and sending request");
+    logger.msg(VERBOSE, "Creating and sending job migrate request to %s", rurl.str());
 
     // Create migrate request
     /*
@@ -472,7 +469,7 @@ namespace Arc {
     if(!arex_enabled) return false;
 
     action = "ChangeActivityStatus";
-    logger.msg(INFO, "Creating and sending request to resume a job");
+    logger.msg(VERBOSE, "Creating and sending job resume request to %s", rurl.str());
 
     bool delegate = true;
     PayloadSOAP req(arex_ns);
@@ -493,12 +490,11 @@ namespace Arc {
  * unclear if this is the desired behaviour.
  * See trunk/src/services/a-rex/change_activity_status.cpp
     ????if ((std::string)response["NewStatus"]["state"] != "Running") {????
-      logger.msg(ERROR, "Job resuming failed");
+      logger.msg(VERBOSE, "Job resuming failed: Wrong response???");
       return false;
     }
 */
 
-    logger.msg(INFO, "Job resumed at state: %s", (std::string)response["NewStatus"]["state"]);
     return true;
   }
 

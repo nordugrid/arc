@@ -45,7 +45,7 @@ namespace Arc {
   void TargetRetrieverBES::GetTargets(TargetGenerator& mom, int targetType,
                                        int detailLevel) {
 
-    logger.msg(INFO, "TargetRetriverBES initialized with %s service url: %s",
+    logger.msg(VERBOSE, "TargetRetriverBES initialized with %s service url: %s",
                serviceType, url.str());
 
     switch (serviceType) {

@@ -60,25 +60,17 @@ namespace Arc {
 
     std::string jobid;
     // !! TODO: ordinary JSDL is needed - keeping ARCJSDL so far
-    if (!ac.submit(jobdesc.UnParse("ARCJSDL"), jobid, et.url.Protocol() == "https")) {
-      logger.msg(ERROR, "Failed submitting job");
+    if (!ac.submit(jobdesc.UnParse("ARCJSDL"), jobid, et.url.Protocol() == "https"))
       return URL();
-    }
+
     if (jobid.empty()) {
-      logger.msg(ERROR, "Service returned no job identifier");
+      logger.msg(INFO, "No job identifier returned by BES service");
       return URL();
     }
 
     XMLNode jobidx(jobid);
 
     JobDescription job(jobdesc);
-
-    // ???????????????
-    if (!ModifyJobDescription(job, et)) {
-      logger.msg(ERROR, "Submit: Failed to modify job description "
-                        "to be sent to target.");
-      return URL();
-    }
 
     // Unfortunately Job handling framework somewhy want to have job
     // URL instead of identifier we have to invent one. So we disguise

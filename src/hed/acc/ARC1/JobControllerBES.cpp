@@ -70,18 +70,18 @@ namespace Arc {
       AREXClient ac(iter->Cluster, cfg, usercfg.Timeout(),false);
       std::string idstr = extract_job_id(iter->JobID);
       if (!ac.stat(idstr, *iter))
-        logger.msg(ERROR, "Failed retrieving job status information");
+        logger.msg(INFO, "Failed retrieving job status information");
     }
   }
 
   bool JobControllerBES::GetJob(const Job& job,
                                  const std::string& downloaddir) {
-    logger.msg(ERROR, "Get for BES jobs is not supported");
+    logger.msg(INFO, "Getting BES jobs is not supported");
     return false;
   }
 
   bool JobControllerBES::CleanJob(const Job& job, bool force) {
-    logger.msg(ERROR, "Cleaning of BES jobs is not supported");
+    logger.msg(INFO, "Cleaning of BES jobs is not supported");
     return false;
   }
 
@@ -94,12 +94,12 @@ namespace Arc {
   }
 
   bool JobControllerBES::RenewJob(const Job& job) {
-    logger.msg(ERROR, "Renewal of BES jobs is not supported");
+    logger.msg(INFO, "Renewal of BES jobs is not supported");
     return false;
   }
 
   bool JobControllerBES::ResumeJob(const Job& job) {
-    logger.msg(ERROR, "Resume of BES jobs is not supported");
+    logger.msg(INFO, "Resumíng BES jobs is not supported");
     return false;
   }
 
@@ -112,13 +112,11 @@ namespace Arc {
       JobDescription desc;
       desc.Parse(desc_str);
       if (desc)
-        logger.msg(INFO, "Valid job description");
       return true;
     }
-    else {
-      logger.msg(ERROR, "No job description");
-      return false;
-    }
+
+    logger.msg(ERROR, "Failed retrieving job description for job: %s", job.JobID.str());
+    return false;
   }
 
   URL JobControllerBES::GetFileUrlForJob(const Job& job, const std::string& whichfile) {
