@@ -14,9 +14,7 @@ namespace Arc {
 
   class ClientSOAP;
   class Config;
-  class Loader;
   class Logger;
-  class MCC;
   class MCCConfig;
   class PayloadSOAP;
   enum ServiceType;
@@ -134,27 +132,9 @@ namespace Arc {
     static const std::string mainStateModel;
 
   private:
-    bool process(const std::string& action, PayloadSOAP& req, PayloadSOAP **resp, bool delegate);
-
-    //! The configuration.
-    /*! A configuration object containing information about how to set
-       up this A-REX client.
-     */
-    Config *client_config;
-
-    //! The loader.
-    /*! A loader object that loads and connects the appropriate
-       components according to the configuration object.
-     */
-    Loader *client_loader;
+    bool process(PayloadSOAP& req, bool delegate, XMLNode& response);
 
     ClientSOAP *client;
-
-    //! The entry into the client message chain.
-    /*! This is a pointer to the message chain components (MCC) where
-       messages sent from this client enters the message chain.
-     */
-    MCC *client_entry;
 
     //! Namespaces.
     /*! A map containing namespaces.
@@ -162,6 +142,8 @@ namespace Arc {
     NS arex_ns;
 
     URL rurl;
+
+    std::string action;
 
     bool arex_enabled;
 

@@ -126,7 +126,7 @@ namespace Arc {
     }
 
     if (targetType == 0) {
-      for (XMLNode GLUEService = servicesQueryResponse["QueryResourcePropertiesResponse"]["ComputingService"];
+      for (XMLNode GLUEService = servicesQueryResponse["ComputingService"];
            GLUEService; ++GLUEService) {
         ExecutionTarget target;
 
