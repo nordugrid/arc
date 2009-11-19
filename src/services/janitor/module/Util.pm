@@ -345,6 +345,6 @@ sub sane_job_id {
 
 =name1 SEE ALSO
 
-Janitor.pl.1
+janitor(8)
 
 =cut
