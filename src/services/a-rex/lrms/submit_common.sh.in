@@ -125,7 +125,7 @@ RTE_stage0 () {
    while [ ! -z "${var_is_set}" ] ; do
       eval "var_value=\${joboption_runtime_$joboption_num}"
       if [ -r "$RUNTIME_CONFIG_DIR/${var_value}" ] ; then
-         . "$RUNTIME_CONFIG_DIR/${var_value}" "0"
+         . "$RUNTIME_CONFIG_DIR/${var_value}" 0 1>&2
          if [ $? -ne '0' ] ; then
             echo "ERROR: runtime script ${var_value} failed" 1>&2
             exit 1
