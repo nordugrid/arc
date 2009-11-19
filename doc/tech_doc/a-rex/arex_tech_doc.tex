@@ -1137,6 +1137,10 @@ is specified in days. Last specified value becomes effective.
 to use encryption while transferring data. Currently works for GridFTP
 only. Default is \emph{no}. It is overridden by value specified in
 URL options.
+\item \textbf{\textit{passivetransfer}}\textit{=yes|no} -- specifies
+  whether GridFTP transfers are passive. Setting this option to yes
+  can solve transfer problems caused by firewalls. Default is no.
+
 \item \textbf{\textit{localtransfer}}\textit{=yes|no} -- specifies whether
 to pass file downloading/uploading task to computing node. If set
 to yes the A-REX won't initiate download/upload files. Instead it
