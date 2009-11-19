@@ -17,7 +17,7 @@ with all major Linux distributions.
 \begin{table}[!h]
    \begin{center}
         \mycaption{Required perl packages for Janitor.}{Log4perl is used for the internal logging of Janitor, while the 
-                   Redland RDF library is used for accessing the knowledge base of Runtime Environments.}
+                   Redland RDF library is used for accessing the catalogue of Runtime Environments.}
         \label{tab:install_dependencies}
 	\begin{tabular}{|p{3cm}|p{7cm}|}
 	\hline
@@ -30,7 +30,7 @@ with all major Linux distributions.
 \end{table}
 \begin{table}[!h]
    \begin{center}
-        \mycaption{Optional libraries for Janitor.}{The library libperl-dev provides header files which are needed to link the 
+        \mycaption{Optional libraries for the Janitor.}{The library libperl-dev provides the required header files to link the 
                    WebService to the Perl interpreter.}
         \label{tab:install_dependencies_optional}
 	\begin{tabular}{|p{3cm}|p{7cm}|}
@@ -42,24 +42,28 @@ with all major Linux distributions.
 \end{table}
 \forcelinebreak
 
-The Janitor will be installed by default along with ARC1. Support for
+The Janitor will be installed by default along with ARC-NOX. Support for
 the dynamic REs can be completely disabled at compile time by using
 the \textit{configure} flags \textit{--disable-janitor-service} for
 the complete janitor or \textit{--disable-janitor-webservice} to only
 disable the Janitor's Web Service.
 
 Furthermore it is recommended to install the ontology editor 
-Prot\`eg\`e\footnote{\href{http://protege.stanford.edu}{http://protege.stanford.edu}} in order to be to easily maintain the 
-knowledge database of installable packages. At the time of writing, no Linux distribution is offering packages for this fine tool.
+Prot\`eg\`e\footnote{\href{http://protege.stanford.edu}{http://protege.stanford.edu}}
+in order to be to easily maintain the knowledge database of installable packages.
+At the time of writing, no Linux distribution is offering packages for this fine tool.
 
 
 \section{Configuration}\label{sec:janitor_configuration}
 
-The current version of the Janitor can be configured using the common file \textit{arc.conf}. It is expected in the 
-configuration directory \textit{etc}. The Janitor is using the environment variable \textit{NORDUGRID\_CONFIG}
-to determine the location of the corresponding file. If that variable is not set, the default location \textit{/etc/arc.conf} will be used. 
-The configuration is assigned by the section \lbrack janitor\rbrack. Table~\ref{tab:arc_conf_tags} describes the available tags
-for Janitor's configuration.
+The current version of the Janitor can be configured using the
+common file \textit{arc.conf}. It is expected in the configuration
+directory \textit{etc}. The Janitor is using the environment
+variable \textit{NORDUGRID\_CONFIG} to determine the location of the
+corresponding file. If that variable is not set, the default location
+\textit{/etc/arc.conf} will be used.  The configuration is assigned
+by the section \lbrack janitor\rbrack. Table~\ref{tab:arc_conf_tags}
+describes the available tags for Janitor's configuration.
 
 \begin{landscape}
 \begin{table}[!h]
@@ -90,26 +94,39 @@ for Janitor's configuration.
 \end{table}
 \end{landscape}
 
-The parameter \texttt{enable} specifies whether the Janitor shall be used within A-REX or not. Use the value \texttt{"0"} to disable Janitor. The
-\texttt{uid} and the \texttt{gid} are defining which effective the user and group id shall be used for Janitor. 
-The \texttt{registrationdir} describes the directory in which the subdirectories \texttt{jobs} and \texttt{rtes} will be created.
-In these directories the states of the jobs and the runtime environments will be stored. 
-The knowledge base of installable packages is specified by the parameter \texttt{catalog}. 
-Its value can be any kind of URL pointing to a file written in the Resource Description Framework (RDF) format.
-The specification of the RDF file will be explained in detail in section~\ref{sec:catalog}.
-The parameter \texttt{downloaddir} assigns the directory in which the installation files will be saved after they have been 
-downloaded or copied from the repository which was specified by the catalog. The \texttt{installationdir} finally specifies the
-directory into which all packages will be installed and should be 
-available for all computing elements, i.e.\ by using a shared volume.
-If the configuration file furthermore contains the \texttt{runtimedir} tag within the section \texttt{grid-manager}, the Janitor will also
-create a symbolic link in the \texttt{runtimedir} pointing to the configuration script of the installation done by the Janitor.
-The tags \texttt{jobexpirytime} and \texttt{rteexpirytime} are used for automated cleanup and is defined in seconds.
-The default value for the \texttt{jobexpirytime} is seven days and for the \texttt{rteexpirytime} three days. 
-The additional tags \texttt{allow\_base} \texttt{deny\_base} \texttt{allow\_rte} and \texttt{deny\_rte} are used to include
-or exclude certain base packages or runtime environments of the catalog. This feature is useful, if the catalog is maintained by
-a higher organization.
-The path to the log4perl configuration file is defined by the tag \texttt{logconf}.
-An example how to configure ARC and log4perl is provided in the Listings~\ref{lst:arc_conf} and ~\ref{lst:log_conf}.
+The parameter \texttt{enable} specifies whether the Janitor shall be used
+within A-REX or not. Use the value \texttt{"0"} to disable Janitor. The
+\texttt{uid} and the \texttt{gid} are defining which effective user id
+(uid) and group id (gid) shall be used for the Janitor.\footnote{For
+the time speaking, you need to have started the ARC services as root to
+allow the Janitor to change into those IDs.} The \texttt{registrationdir}
+describes the directory in which the subdirectories \texttt{jobs} and
+\texttt{rtes} will be created.  In these directories the states of the
+jobs and the runtime environments will be stored.  The knowledge base
+of installable packages is specified by the parameter \texttt{catalog}.
+Its value can be any kind of URL pointing to a file written in the
+Resource Description Framework (RDF) format.  The specification of the
+RDF file will be explained in detail in section~\ref{sec:catalog}.
+The parameter \texttt{downloaddir} assigns the directory in which
+the installation files will be saved after they have been downloaded
+or copied from the repository which was specified by the catalog. The
+\texttt{installationdir} finally specifies the directory into which all
+packages will be installed and should be available for all computing
+elements, i.e.\ by using a shared volume.  If the configuration file
+furthermore contains the \texttt{runtimedir} tag within the section
+\texttt{grid-manager}, the Janitor will also create a symbolic link
+in the \texttt{runtimedir} pointing to the configuration script of the
+installation performed by the Janitor.  The tags \texttt{jobexpirytime}
+and \texttt{rteexpirytime} are used for an automated cleanup and is
+defined in seconds.  The default value for the \texttt{jobexpirytime} is
+seven days and for the \texttt{rteexpirytime} three days.  The additional
+tags \texttt{allow\_base} \texttt{deny\_base} \texttt{allow\_rte} and
+\texttt{deny\_rte} are used to include or exclude certain base packages
+or runtime environments of the catalog. This feature is useful, if
+the catalog is maintained by a higher organization.  The path to the
+log4perl configuration file is defined by the tag \texttt{logconf}.
+An example how to configure ARC and log4perl is provided in the
+Listings~\ref{lst:arc_conf} and ~\ref{lst:log_conf}.
 
 \lstsetCONFIGURE
 \begin{lstlisting}[
@@ -171,7 +188,7 @@ log4perl.appender.ErrorLog.layout.ConversionPattern = %d %p> %m%n
 
 \section{Limitations}
 
-The Janitor is designed for the usage on Linux distributions.
+The Janitor is designed to be used on Linux distributions.
 Its porting to other platforms has not yet been addressed.
 
 The ARC middleware is not ultimately essential for dynamic Runtime Environments.
