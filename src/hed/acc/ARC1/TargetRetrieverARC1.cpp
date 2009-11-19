@@ -115,17 +115,18 @@ namespace Arc {
     const UserConfig& usercfg = *thrarg->usercfg;
     int targetType = thrarg->targetType;
     URL& url = thrarg->url;
-    MCCConfig cfg;
-    usercfg.ApplyToConfig(cfg);
-    AREXClient ac(url, cfg, usercfg.Timeout());
-    XMLNode servicesQueryResponse;
-    if (!ac.sstat(servicesQueryResponse)) {
-      delete thrarg;
-      mom.RetrieverDone();
-      return;
-    }
 
     if (targetType == 0) {
+      MCCConfig cfg;
+      usercfg.ApplyToConfig(cfg);
+      AREXClient ac(url, cfg, usercfg.Timeout());
+      XMLNode servicesQueryResponse;
+      if (!ac.sstat(servicesQueryResponse)) {
+        delete thrarg;
+        mom.RetrieverDone();
+        return;
+      }
+
       for (XMLNode GLUEService = servicesQueryResponse["ComputingService"];
            GLUEService; ++GLUEService) {
         ExecutionTarget target;
