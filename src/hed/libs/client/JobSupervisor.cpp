@@ -40,9 +40,14 @@ namespace Arc {
 
       for (std::list<std::string>::const_iterator it = jobs.begin();
            it != jobs.end(); it++) {
+        std::string strJobID = *it;
+        // Remove trailing slashes '/'.
+        const std::string::size_type pos = strJobID.find_last_not_of("/");
+        if (pos != std::string::npos)
+          strJobID = strJobID.substr(0, pos + 1);
 
         XMLNodeList xmljobs =
-          jobstorage.XPathLookup("//Job[JobID='" + *it + "' or "
+          jobstorage.XPathLookup("//Job[JobID='" + strJobID + "' or "
                                  "Name='" + *it + "']", NS());
 
         if (xmljobs.empty()) {
@@ -52,11 +57,8 @@ namespace Arc {
 
         for (XMLNodeList::iterator xit = xmljobs.begin();
              xit != xmljobs.end(); xit++) {
-
-          URL jobid = (std::string)(*xit)["JobID"];
-          std::string flavour = (std::string)(*xit)["Flavour"];
-
-          jobids[flavour].push_back(jobid);
+          const std::string flavour = (std::string)(*xit)["Flavour"];
+          jobids[flavour].push_back((std::string)(*xit)["JobID"]);
 
           if (std::find(controllers.begin(), controllers.end(),
                         flavour) == controllers.end()) {
