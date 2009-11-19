@@ -58,7 +58,7 @@ namespace Arc {
   void TargetRetrieverARC0::GetTargets(TargetGenerator& mom, int targetType,
                                        int detailLevel) {
 
-    logger.msg(INFO, "TargetRetriverARC0 initialized with %s service url: %s",
+    logger.msg(VERBOSE, "TargetRetriverARC0 initialized with %s service url: %s",
                tostring(serviceType), url.str());
 
     switch (serviceType) {
@@ -95,8 +95,8 @@ namespace Arc {
     DataBuffer buffer;
 
     if (!handler) {
-      logger.msg(ERROR, "Can't create information handle - "
-                 "is the ARC ldap DMC available?");
+      logger.msg(INFO, "Can't create information handle - "
+                 "is the ARC ldap DMC plugin available?");
       delete thrarg;
       mom.RetrieverDone();
       return;
@@ -198,8 +198,8 @@ namespace Arc {
     DataBuffer buffer;
 
     if (!handler) {
-      logger.msg(ERROR, "Can't create information handle - "
-                 "is the ARC ldap DMC available?");
+      logger.msg(INFO, "Can't create information handle - "
+                 "is the ARC ldap DMC plugin available?");
       delete thrarg;
       mom.RetrieverDone();
       return;

@@ -93,7 +93,7 @@ namespace Arc {
 
     result = globus_ftp_control_handle_init(&control_handle);
     if (!result) {
-      logger.msg(ERROR, "Connect: Failed to init handle: %s", result.str());
+      logger.msg(VERBOSE, "Connect: Failed to init handle: %s", result.str());
       return false;
     }
 
@@ -102,19 +102,19 @@ namespace Arc {
                                         const_cast<char*>(url.Host().c_str()),
                                         url.Port(), &ControlCallback, &cb);
     if (!result) {
-      logger.msg(ERROR, "Connect: Failed to connect: %s", result.str());
+      logger.msg(VERBOSE, "Connect: Failed to connect: %s", result.str());
       return false;
     }
     while (!cb.ctrl) {
       timedin = cb.cond.wait(timeout * 1000);
       if (!timedin) {
-        logger.msg(ERROR, "Connect: Connecting timed out after %d ms",
+        logger.msg(VERBOSE, "Connect: Connecting timed out after %d ms",
                    timeout * 1000);
         return false;
       }
     }
     if (!cb.responseok) {
-      logger.msg(ERROR, "Connect: Failed to connect: %s", cb.response);
+      logger.msg(VERBOSE, "Connect: Failed to connect: %s", cb.response);
       return false;
     }
 
@@ -126,7 +126,7 @@ namespace Arc {
                                                const_cast<char*>("user@"),
                                                GLOBUS_NULL, GLOBUS_NULL);
     if (!result) {
-      logger.msg(ERROR, "Connect: Failed to init auth info handle: %s",
+      logger.msg(VERBOSE, "Connect: Failed to init auth info handle: %s",
                  result.str());
       return false;
     }
@@ -136,19 +136,19 @@ namespace Arc {
                                              GLOBUS_TRUE,
                                              &ControlCallback, &cb);
     if (!result) {
-      logger.msg(ERROR, "Connect: Failed authentication: %s", result.str());
+      logger.msg(VERBOSE, "Connect: Failed authentication: %s", result.str());
       return false;
     }
     while (!cb.ctrl) {
       timedin = cb.cond.wait(timeout * 1000);
       if (!timedin) {
-        logger.msg(ERROR, "Connect: Authentication timed out after %d ms",
+        logger.msg(VERBOSE, "Connect: Authentication timed out after %d ms",
                    timeout * 1000);
         return false;
       }
     }
     if (!cb.responseok) {
-      logger.msg(ERROR, "Connect: Failed authentication: %s", cb.response);
+      logger.msg(VERBOSE, "Connect: Failed authentication: %s", cb.response);
       return false;
     }
 
@@ -166,18 +166,18 @@ namespace Arc {
     result = globus_ftp_control_send_command(&control_handle, cmd.c_str(),
                                              &ControlCallback, &cb);
     if (!result) {
-      logger.msg(ERROR, "SendCommand: Failed: %s", result.str());
+      logger.msg(VERBOSE, "SendCommand: Failed: %s", result.str());
       return false;
     }
     while (!cb.ctrl) {
       timedin = cb.cond.wait(timeout * 1000);
       if (!timedin) {
-        logger.msg(ERROR, "SendCommand: Timed out after %d ms", timeout * 1000);
+        logger.msg(VERBOSE, "SendCommand: Timed out after %d ms", timeout * 1000);
         return false;
       }
     }
     if (!cb.responseok) {
-      logger.msg(ERROR, "SendCommand: Failed: %s", cb.response);
+      logger.msg(VERBOSE, "SendCommand: Failed: %s", cb.response);
       return false;
     }
 
@@ -196,18 +196,18 @@ namespace Arc {
     result = globus_ftp_control_send_command(&control_handle, cmd.c_str(),
                                              &ControlCallback, &cb);
     if (!result) {
-      logger.msg(ERROR, "SendCommand: Failed: %s", result.str());
+      logger.msg(VERBOSE, "SendCommand: Failed: %s", result.str());
       return false;
     }
     while (!cb.ctrl) {
       timedin = cb.cond.wait(timeout * 1000);
       if (!timedin) {
-        logger.msg(ERROR, "SendCommand: Timed out after %d ms", timeout * 1000);
+        logger.msg(VERBOSE, "SendCommand: Timed out after %d ms", timeout * 1000);
         return false;
       }
     }
     if (!cb.responseok) {
-      logger.msg(ERROR, "SendCommand: Failed: %s", cb.response);
+      logger.msg(VERBOSE, "SendCommand: Failed: %s", cb.response);
       return false;
     }
 
@@ -225,19 +225,19 @@ namespace Arc {
     GlobusResult result;
 
     if (!SendCommand("DCAU N", timeout)) {
-      logger.msg(ERROR, "SendData: Failed sending DCAU command");
+      logger.msg(VERBOSE, "SendData: Failed sending DCAU command");
       return false;
     }
 
     if (!SendCommand("TYPE I", timeout)) {
-      logger.msg(ERROR, "SendData: Failed sending TYPE command");
+      logger.msg(VERBOSE, "SendData: Failed sending TYPE command");
       return false;
     }
 
     std::string response;
 
     if (!SendCommand("PASV", response, timeout)) {
-      logger.msg(ERROR, "SendData: Failed sending PASV command");
+      logger.msg(VERBOSE, "SendData: Failed sending PASV command");
       return false;
     }
 
@@ -259,14 +259,14 @@ namespace Arc {
 
     result = globus_ftp_control_local_port(&control_handle, &passive_addr);
     if (!result) {
-      logger.msg(ERROR, "SendData: Local port failed: %s", result.str());
+      logger.msg(VERBOSE, "SendData: Local port failed: %s", result.str());
       return false;
     }
 
     result = globus_ftp_control_local_type(&control_handle,
                                            GLOBUS_FTP_CONTROL_TYPE_IMAGE, 0);
     if (!result) {
-      logger.msg(ERROR, "SendData: Local type failed: %s", result.str());
+      logger.msg(VERBOSE, "SendData: Local type failed: %s", result.str());
       return false;
     }
 
@@ -274,7 +274,7 @@ namespace Arc {
                                              ("STOR " + filename).c_str(),
                                              &ControlCallback, &cb);
     if (!result) {
-      logger.msg(ERROR, "SendData: Failed sending STOR command: %s",
+      logger.msg(VERBOSE, "SendData: Failed sending STOR command: %s",
                  result.str());
       return false;
     }
@@ -284,14 +284,14 @@ namespace Arc {
     result = globus_ftp_control_data_connect_write(&control_handle,
                                                    &ConnectCallback, &cb);
     if (!result) {
-      logger.msg(ERROR, "SendData: Data connect write failed: %s",
+      logger.msg(VERBOSE, "SendData: Data connect write failed: %s",
                  result.str());
       return false;
     }
     while (!cb.data) {
       timedin = cb.cond.wait(timeout * 1000);
       if (!timedin) {
-        logger.msg(ERROR, "SendData: Data connect write timed out after %d ms",
+        logger.msg(VERBOSE, "SendData: Data connect write timed out after %d ms",
                    timeout * 1000);
         return false;
       }
@@ -299,13 +299,13 @@ namespace Arc {
     while (!cb.ctrl) {
       timedin = cb.cond.wait(timeout * 1000);
       if (!timedin) {
-        logger.msg(ERROR, "SendData: Data connect write timed out after %d ms",
+        logger.msg(VERBOSE, "SendData: Data connect write timed out after %d ms",
                    timeout * 1000);
         return false;
       }
     }
     if (!cb.responseok) {
-      logger.msg(ERROR, "SendData: Data connect write failed: %s", cb.response);
+      logger.msg(VERBOSE, "SendData: Data connect write failed: %s", cb.response);
       return false;
     }
 
@@ -316,13 +316,13 @@ namespace Arc {
                                            data.size(), 0, GLOBUS_TRUE,
                                            &ReadWriteCallback, &cb);
     if (!result) {
-      logger.msg(ERROR, "SendData: Data write failed: %s", result.str());
+      logger.msg(VERBOSE, "SendData: Data write failed: %s", result.str());
       return false;
     }
     while (!cb.data) {
       timedin = cb.cond.wait(timeout * 1000);
       if (!timedin) {
-        logger.msg(ERROR, "SendData: Data write timed out after %d ms",
+        logger.msg(VERBOSE, "SendData: Data write timed out after %d ms",
                    timeout * 1000);
         return false;
       }
@@ -330,13 +330,13 @@ namespace Arc {
     while (!cb.ctrl) {
       timedin = cb.cond.wait(timeout * 1000);
       if (!timedin) {
-        logger.msg(ERROR, "SendData: Data write timed out after %d ms",
+        logger.msg(VERBOSE, "SendData: Data write timed out after %d ms",
                    timeout * 1000);
         return false;
       }
     }
     if (!cb.responseok) {
-      logger.msg(ERROR, "SendData: Data write failed: %s", cb.response);
+      logger.msg(VERBOSE, "SendData: Data write failed: %s", cb.response);
       return false;
     }
 
@@ -353,13 +353,13 @@ namespace Arc {
     cb.ctrl = false;
     result = globus_ftp_control_quit(&control_handle, &ControlCallback, &cb);
     if (!result) {
-      logger.msg(ERROR, "Disconnect: Failed quitting: %s", result.str());
+      logger.msg(VERBOSE, "Disconnect: Failed quitting: %s", result.str());
       return false;
     }
     while (!cb.ctrl) {
       timedin = cb.cond.wait(timeout * 1000);
       if (!timedin) {
-        logger.msg(ERROR, "Disconnect: Quitting timed out after %d ms",
+        logger.msg(VERBOSE, "Disconnect: Quitting timed out after %d ms",
                    timeout * 1000);
         return false;
       }
@@ -367,7 +367,7 @@ namespace Arc {
 
     result = globus_ftp_control_handle_destroy(&control_handle);
     if (!result) {
-      logger.msg(ERROR, "Disconnect: Failed to destroy handle: %s",
+      logger.msg(VERBOSE, "Disconnect: Failed to destroy handle: %s",
                  result.str());
       return false;
     }

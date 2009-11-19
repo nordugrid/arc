@@ -71,8 +71,7 @@ namespace Arc {
       DataBuffer buffer;
 
       if (!handler) {
-        logger.msg(ERROR, "Can't create information handle - "
-                   "is the ARC ldap DMC available?");
+        logger.msg(INFO, "Can't create information handle - is the ARC ldap DMC plugin available?");
         return;
       }
 
@@ -222,7 +221,7 @@ namespace Arc {
       src.ChangePath(srcpath + *it);
       dst.ChangePath(dstpath + *it);
       if (!ARCCopyFile(src, dst)) {
-        logger.msg(ERROR, "Failed dowloading %s to %s", src.str(), dst.str());
+        logger.msg(INFO, "Failed dowloading %s to %s", src.str(), dst.str());
         ok = false;
       }
     }
@@ -237,7 +236,7 @@ namespace Arc {
     FTPControl ctrl;
     if (!ctrl.Connect(job.JobID, usercfg.ProxyPath(), usercfg.CertificatePath(),
                       usercfg.KeyPath(), usercfg.Timeout())) {
-      logger.msg(ERROR, "Failed to connect for job cleaning");
+      logger.msg(INFO, "Failed to connect for job cleaning");
       return false;
     }
 
@@ -247,24 +246,23 @@ namespace Arc {
     std::string jobidnum = path.substr(pos + 1);
 
     if (!ctrl.SendCommand("CWD " + jobpath, usercfg.Timeout())) {
-      logger.msg(ERROR, "Failed sending CWD command for job cleaning");
+      logger.msg(INFO, "Failed sending CWD command for job cleaning");
       return false;
     }
 
     if (!ctrl.SendCommand("RMD " + jobidnum, usercfg.Timeout())) {
-      logger.msg(ERROR, "Failed sending RMD command for job cleaning");
+      logger.msg(INFO, "Failed sending RMD command for job cleaning");
       return false;
     }
 
     if (!ctrl.Disconnect(usercfg.Timeout())) {
-      logger.msg(ERROR, "Failed to disconnect after job cleaning");
+      logger.msg(INFO, "Failed to disconnect after job cleaning");
       return false;
     }
 
     logger.msg(VERBOSE, "Job cleaning successful");
 
     return true;
-
   }
 
   bool JobControllerARC0::CancelJob(const Job& job) {
@@ -274,7 +272,7 @@ namespace Arc {
     FTPControl ctrl;
     if (!ctrl.Connect(job.JobID, usercfg.ProxyPath(), usercfg.CertificatePath(),
                       usercfg.KeyPath(), usercfg.Timeout())) {
-      logger.msg(ERROR, "Failed to connect for job cleaning");
+      logger.msg(INFO, "Failed to connect for job cleaning");
       return false;
     }
 
@@ -284,17 +282,17 @@ namespace Arc {
     std::string jobidnum = path.substr(pos + 1);
 
     if (!ctrl.SendCommand("CWD " + jobpath, usercfg.Timeout())) {
-      logger.msg(ERROR, "Failed sending CWD command for job cancelling");
+      logger.msg(INFO, "Failed sending CWD command for job cancelling");
       return false;
     }
 
     if (!ctrl.SendCommand("DELE " + jobidnum, usercfg.Timeout())) {
-      logger.msg(ERROR, "Failed sending DELE command for job cancelling");
+      logger.msg(INFO, "Failed sending DELE command for job cancelling");
       return false;
     }
 
     if (!ctrl.Disconnect(usercfg.Timeout())) {
-      logger.msg(ERROR, "Failed to disconnect after job cancelling");
+      logger.msg(INFO, "Failed to disconnect after job cancelling");
       return false;
     }
 
@@ -310,7 +308,7 @@ namespace Arc {
     FTPControl ctrl;
     if (!ctrl.Connect(job.JobID, usercfg.ProxyPath(), usercfg.CertificatePath(),
                       usercfg.KeyPath(), usercfg.Timeout())) {
-      logger.msg(ERROR, "Failed to connect for credential renewal");
+      logger.msg(INFO, "Failed to connect for credential renewal");
       return false;
     }
 
@@ -320,17 +318,17 @@ namespace Arc {
     std::string jobidnum = path.substr(pos + 1);
 
     if (!ctrl.SendCommand("CWD " + jobpath, usercfg.Timeout())) {
-      logger.msg(ERROR, "Failed sending CWD command for credentials renewal");
+      logger.msg(INFO, "Failed sending CWD command for credentials renewal");
       return false;
     }
 
     if (!ctrl.SendCommand("CWD " + jobidnum, usercfg.Timeout())) {
-      logger.msg(ERROR, "Failed sending CWD command for credentials renewal");
+      logger.msg(INFO, "Failed sending CWD command for credentials renewal");
       return false;
     }
 
     if (!ctrl.Disconnect(usercfg.Timeout())) {
-      logger.msg(ERROR, "Failed to disconnect after credentials renewal");
+      logger.msg(INFO, "Failed to disconnect after credentials renewal");
       return false;
     }
 
@@ -340,20 +338,21 @@ namespace Arc {
   }
 
   bool JobControllerARC0::ResumeJob(const Job& job) {
-
-    std::cout << "Resuming job " << job.JobID.str() << " at state " << job.RestartState << std::endl;
     if (job.RestartState.empty()) {
-      logger.msg(ERROR, "Job %s does not report a resumable state", job.JobID.str());
+      logger.msg(INFO, "Job %s does not report a resumable state", job.JobID.str());
       return false;
     }
+    std::cout << "Resuming job " << job.JobID.str() << " at state " << job.RestartState << std::endl;
 
     RenewJob(job);
 
     // dump rsl into temporary file
     std::string urlstr = job.JobID.str();
     std::string::size_type pos = urlstr.rfind('/');
-    if (pos == std::string::npos || pos == 0)
-      logger.msg(ERROR, "Illegal jobid specified");
+    if (pos == std::string::npos || pos == 0) {
+      logger.msg(INFO, "Illegal jobid specified");
+      return false;
+    }
     std::string jobnr = urlstr.substr(pos + 1);
     urlstr = urlstr.substr(0, pos) + "/new/action";
     logger.msg(VERBOSE, "HER: %s", urlstr);
@@ -363,13 +362,13 @@ namespace Arc {
     std::string filename = Glib::build_filename(Glib::get_tmp_dir(), "arcresume.XXXXXX");
     int tmp_h = Glib::mkstemp(filename);
     if (tmp_h == -1) {
-      logger.msg(ERROR, "Could not create temporary file: %s", filename);
+      logger.msg(INFO, "Could not create temporary file: %s", filename);
       return false;
     }
     std::ofstream outfile(filename.c_str(), std::ofstream::binary);
     outfile.write(rsl.c_str(), rsl.size());
     if (outfile.fail()) {
-      logger.msg(ERROR, "Could not write temporary file: %s", filename);
+      logger.msg(INFO, "Could not write temporary file: %s", filename);
       return false;
     }
     outfile.close();
@@ -425,12 +424,11 @@ namespace Arc {
   bool JobControllerARC0::GetJobDescription(const Job& job, std::string& desc_str) {
 
     std::string jobid = job.JobID.str();
-    logger.msg(INFO, "Trying to retrieve job description"
-               "of %s from cluster", jobid);
+    logger.msg(VERBOSE, "Trying to retrieve job description of %s from cluster", jobid);
 
     std::string::size_type pos = jobid.rfind("/");
     if (pos == std::string::npos) {
-      logger.msg(ERROR, "invalid jobid: %s", jobid);
+      logger.msg(INFO, "invalid jobid: %s", jobid);
       return false;
     }
     std::string cluster = jobid.substr(0, pos);
@@ -469,7 +467,7 @@ namespace Arc {
     std::ifstream descriptionfile(localfile.c_str());
 
     if (!descriptionfile) {
-      logger.msg(ERROR, "Can not open job description file: %s", localfile);
+      logger.msg(INFO, "Can not open job description file: %s", localfile);
       return false;
     }
 
@@ -494,12 +492,12 @@ namespace Arc {
       logger.msg(VERBOSE, "clientxrsl found");
       std::string::size_type pos1 = desc_str.find("&", pos);
       if (pos1 == std::string::npos) {
-        logger.msg(ERROR, "could not find start of clientxrsl");
+        logger.msg(INFO, "could not find start of clientxrsl");
         return false;
       }
       std::string::size_type pos2 = desc_str.find(")\"", pos1);
       if (pos2 == std::string::npos) {
-        logger.msg(ERROR, "could not find end of clientxrsl");
+        logger.msg(INFO, "could not find end of clientxrsl");
         return false;
       }
       desc_str.erase(pos2 + 1);
@@ -509,20 +507,21 @@ namespace Arc {
         if (i != std::string::npos)
           desc_str.erase(i, 1);
       }
-      logger.msg(DEBUG, "Job description:%s", desc_str);
+      logger.msg(DEBUG, "Job description: %s", desc_str);
     }
     else {
-      logger.msg(ERROR, "clientxrsl not found");
+      logger.msg(INFO, "clientxrsl not found");
       return false;
     }
+
     JobDescription desc;
     desc.Parse(desc_str);
     if (!desc) {
-      logger.msg(ERROR, "Invalid JobDescription:");
+      logger.msg(INFO, "Invalid JobDescription:");
       std::cout << desc_str << std::endl;
       return false;
     }
-    logger.msg(INFO, "Valid JobDescription found");
+    logger.msg(VERBOSE, "Valid JobDescription found");
     return true;
   }
 

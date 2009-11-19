@@ -40,12 +40,12 @@ namespace Arc {
     if (!ctrl.Connect(et.url,
                       usercfg.ProxyPath(), usercfg.CertificatePath(),
                       usercfg.KeyPath(), usercfg.Timeout())) {
-      logger.msg(ERROR, "Submit: Failed to connect");
+      logger.msg(INFO, "Submit: Failed to connect");
       return URL();
     }
 
     if (!ctrl.SendCommand("CWD " + et.url.Path(), usercfg.Timeout())) {
-      logger.msg(ERROR, "Submit: Failed sending CWD command");
+      logger.msg(INFO, "Submit: Failed sending CWD command");
       ctrl.Disconnect(usercfg.Timeout());
       return URL();
     }
@@ -53,7 +53,7 @@ namespace Arc {
     std::string response;
 
     if (!ctrl.SendCommand("CWD new", response, usercfg.Timeout())) {
-      logger.msg(ERROR, "Submit: Failed sending CWD new command");
+      logger.msg(INFO, "Submit: Failed sending CWD new command");
       ctrl.Disconnect(usercfg.Timeout());
       return URL();
     }
@@ -65,7 +65,7 @@ namespace Arc {
     JobDescription job(jobdesc);
 
     if (!ModifyJobDescription(job, et)) {
-      logger.msg(ERROR, "Submit: Failed to modify job description "
+      logger.msg(INFO, "Submit: Failed to modify job description "
                         "to be sent to target.");
       ctrl.Disconnect(usercfg.Timeout());
       return URL();
@@ -74,13 +74,13 @@ namespace Arc {
     std::string jobdescstring = job.UnParse("XRSL");
 
     if (!ctrl.SendData(jobdescstring, "job", usercfg.Timeout())) {
-      logger.msg(ERROR, "Submit: Failed sending job description");
+      logger.msg(INFO, "Submit: Failed sending job description");
       ctrl.Disconnect(usercfg.Timeout());
       return URL();
     }
 
     if (!ctrl.Disconnect(usercfg.Timeout())) {
-      logger.msg(ERROR, "Submit: Failed to disconnect after submission");
+      logger.msg(INFO, "Submit: Failed to disconnect after submission");
       return URL();
     }
 
@@ -88,7 +88,7 @@ namespace Arc {
     jobid.ChangePath(jobid.Path() + '/' + jobnumber);
 
     if (!PutFiles(job, jobid)) {
-      logger.msg(ERROR, "Submit: Failed uploading local input files");
+      logger.msg(INFO, "Submit: Failed uploading local input files");
       return URL();
     }
 
