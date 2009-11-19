@@ -41,7 +41,7 @@ bool write_grami(const Arc::JobDescription& arc_job_desc, const JobDescription& 
 
   {
     std::string executable = Arc::trim(arc_job_desc.Application.Executable.Name);
-    if (executable[0] != '/' && executable[0] != '.' && executable[1] != '/') executable = "./"+executable;
+    if (executable[0] != '/' && executable[0] != '$' && !(executable[0] == '.' && executable[1] == '/')) executable = "./"+executable;
     f<<"joboption_arg_0"<<"="<<value_for_shell(executable.c_str(),true)<<std::endl;
     int i = 1;
     for (std::list<std::string>::const_iterator it = arc_job_desc.Application.Executable.Argument.begin();
