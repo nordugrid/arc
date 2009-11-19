@@ -1,0 +1,4 @@
+This directory hosts scripts associated with the functionality of the
+Janitor.
+
+prepareDRE.pl	- converts a directory in to a complete dRTE.
