@@ -127,7 +127,7 @@ namespace Arc {
     header.To(rurl.str());
     PayloadSOAP* resp = NULL;
     if (!client->process(header.Action(), &req, &resp)) {
-      logger.msg(ERROR, "SOAP request failed");
+      logger.msg(VERBOSE, "%s request failed", action);
       return false;
     }
 
