@@ -1,5 +1,6 @@
 #!/usr/bin/perl -w
 
+use File::Spec;
 use File::Temp 'tempfile';
 use File::Basename;
 use Sys::Hostname;
@@ -78,6 +79,7 @@ if ($debug) {
     $condor_log = File::Temp::tempnam($grami{joboption_directory}, 'log.');
 }
 
+run_rte0();
 create_shell_wrapper();
 create_condor_job_description();
 submit_condor_job();
@@ -122,6 +124,52 @@ sub parse_grami {
 }
 
 #
+# Run RTE stage 0 scripts. Also update %grami hash to match the variables set by the
+# scripts (but only those beginnig with joboption_)
+#
+sub run_rte0 {
+    for (my $i = 0; my $r = $grami{"joboption_runtime_$i"}; $i++) {
+
+        # Shell script which will source RTE scripts
+        my $script = '';
+
+        # construct randon string to use as separator
+        my @chars = ("0".."9","A".."Z");
+        my $sep = "----";
+        $sep .= $chars[rand(@chars)] for 1..16;
+        $sep .= "----";
+
+        # initialize joboption_* variables
+        $script .= "$_=\Q$grami{$_}\E\n" for (grep /^joboption_[A-Za-z0-9_]+$/, keys %grami);
+
+        # source RTE script
+        $script .= ". \Q$ENV{RUNTIME_CONFIG_DIR}/$r\E 0 1>&2\n";
+        $script .= "ret=\$?\n";
+
+        # print joboption_* variables to stdout. First export them, then use perl for printing.
+        $script .= 'export $(set | sed -n "s/^\(joboption_[A-Za-z0-9_]*\)=.*/\1/p")';
+        $script .= "\n/usr/bin/perl -we 'print \"\$_=\$ENV{\$_}$sep\" for grep /^joboption_[A-Za-z0-9_]+\$/, keys \%ENV'\n";
+        $script .= "echo STATUS=\$ret\n";
+
+        # write script to temporary file and run it.
+        my $dir = $config{tmpdir} || $ENV{TMPDIR} || File::Spec->tmpdir;
+        my ($fh, $fname) = tempfile('condor_XXXXXXXX', DIR => $dir);
+        print $fh $script or die "$0: write $fname: $!\n";
+        close $fh           or die "$0: close $fname: $!\n";
+        my $output = `@posix_shell@ $fname`;
+        unlink $fname;
+
+        # is output complete?
+        if (not $output =~ m/^(?:joboption_\w+=.*?$sep)+STATUS=(\d+)$/s) {
+            die "$0: ERROR: RTE script $r exited unexpectedly\n";
+        }
+
+        delete $grami{$_} for grep /^joboption_/, keys %grami;
+        $grami{$1} = $2 while ($output =~ m/(\w+)=(.*?)$sep/sg);
+    }
+}
+
+#
 # Creates a shell script that:
 #
 #  (1) Sources the runtime scripts with argument "0" before evaluating the job
@@ -138,11 +186,10 @@ sub parse_grami {
 #  (5) Exits with the value returned by the job executable in step (3).
 #
 sub create_shell_wrapper {
-    # Create the shell commands to run runtime environment files (stages 0-2).
-    my ($setrte0, $setrte1, $setrte2) = ('true', '', '');
+    # Create the shell commands to run runtime environment files (stages 1-2).
+    my ($setrte1, $setrte2) = ('', '');
     if (notnull($grami{joboption_runtime_0})) {
         for (my $i = 0; notnull(my $r = $grami{"joboption_runtime_$i"}); $i++) {
-            $setrte0 .= "; . \Q$ENV{RUNTIME_CONFIG_DIR}/$r\E 0";
             $setrte1 .= qq{. "\$RUNTIME_CONFIG_DIR/$r" 1\n};
             $setrte2 .= qq{. "\$RUNTIME_CONFIG_DIR/$r" 2\n};
         }
