@@ -99,7 +99,7 @@ namespace Arc {
   }
 
   bool JobControllerBES::ResumeJob(const Job& job) {
-    logger.msg(INFO, "Resumíng BES jobs is not supported");
+    logger.msg(INFO, "Resuming BES jobs is not supported");
     return false;
   }
 
