@@ -14,6 +14,7 @@ namespace Arc {
   class Logger;
   class MCCConfig;
   class URL;
+  class PayloadSOAP;
 
   struct creamJobInfo {
     std::string jobId;
@@ -39,6 +40,10 @@ namespace Arc {
     bool purge(const std::string& jobid);
 
   private:
+    bool process(PayloadSOAP& req, XMLNode& response);
+
+    std::string action;
+
     ClientSOAP *client;
     std::string cafile;
     std::string cadir;
