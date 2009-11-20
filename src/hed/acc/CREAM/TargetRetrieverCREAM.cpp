@@ -58,7 +58,7 @@ namespace Arc {
   void TargetRetrieverCREAM::GetTargets(TargetGenerator& mom, int targetType,
                                         int detailLevel) {
 
-    logger.msg(INFO, "TargetRetriverCREAM initialized with %s service url: %s",
+    logger.msg(VERBOSE, "TargetRetriverCREAM initialized with %s service url: %s",
                tostring(serviceType), url.str());
 
     switch (serviceType) {
@@ -96,8 +96,8 @@ namespace Arc {
     DataBuffer buffer;
 
     if (!handler) {
-      logger.msg(ERROR, "Can't create information handle - "
-                 "is the ARC ldap DMC available?");
+      logger.msg(INFO, "Can't create information handle - "
+                 "is the ARC ldap DMC plugin available?");
       delete thrarg;
       mom.RetrieverDone();
       return;
@@ -171,8 +171,8 @@ namespace Arc {
     DataBuffer buffer;
 
     if (!handler) {
-      logger.msg(ERROR, "Can't create information handle - "
-                 "is the ARC ldap DMC available?");
+      logger.msg(INFO, "Can't create information handle - "
+                 "is the ARC ldap DMC plugin available?");
       delete thrarg;
       mom.RetrieverDone();
       return;
@@ -380,28 +380,20 @@ namespace Arc {
 
       if (CE["GlueCEName"])
         target.MappingQueue = (std::string)CE["GlueCEName"];
-
       if (CE["GlueCEInfoLRMSType"])
         target.ManagerProductName = (std::string)CE["GlueCEInfoLRMSType"];
-
       if (CE["GlueCEInfoLRMSVersion"])
         target.ManagerProductVersion = (std::string)CE["GlueCEInfoLRMSVersion"];
-
       if (Site["GlueSiteName"])
         target.DomainName = (std::string)Site["GlueSiteName"];
-
       if (Site["GlueSiteLocation"])
         target.Place = (std::string)Site["GlueSiteLocation"];
-
       if (Site["GlueSiteLatitude"])
         target.Latitude = stringtof(Site["GlueSiteLatitude"]);
-
       if (Site["GlueSiteLongitude"])
         target.Longitude = stringtof(Site["GlueSiteLongitude"]);
-
       if (CE["GlueCEInfoContactString"])
         target.url = (std::string)CE["GlueCEInfoContactString"];
-
       if (CE["GlueCEImplementationName"]) {
         if (CE["GlueCEImplementationVersion"])
           target.Implementation =
@@ -411,17 +403,14 @@ namespace Arc {
           target.Implementation =
             (std::string)CE["GlueCEImplementationName"];
       }
-
       if (VOView["GlueCEStateTotalJobs"])
         target.TotalJobs = stringtoi(VOView["GlueCEStateTotalJobs"]);
       else if (CE["GlueCEStateTotalJobs"])
         target.TotalJobs = stringtoi(CE["GlueCEStateTotalJobs"]);
-
       if (VOView["GlueCEStateRunningJobs"])
         target.RunningJobs = stringtoi(VOView["GlueCEStateRunningJobs"]);
       else if (CE["GlueCEStateRunningJobs"])
         target.RunningJobs = stringtoi(CE["GlueCEStateRunningJobs"]);
-
       if (VOView["GlueCEStateWaitingJobs"])
         target.WaitingJobs = stringtoi(VOView["GlueCEStateWaitingJobs"]);
       else if (CE["GlueCEStateWaitingJobs"])
@@ -452,19 +441,16 @@ namespace Arc {
         target.MaxTotalJobs = stringtoi(VOView["GlueCEPolicyMaxTotalJobs"]);
       else if (CE["GlueCEPolicyMaxTotalJobs"])
         target.MaxTotalJobs = stringtoi(CE["GlueCEPolicyMaxTotalJobs"]);
-
       if (VOView["GlueCEPolicyMaxRunningJobs"])
         target.MaxRunningJobs =
           stringtoi(VOView["GlueCEPolicyMaxRunningJobs"]);
       else if (CE["GlueCEPolicyMaxRunningJobs"])
         target.MaxRunningJobs = stringtoi(CE["GlueCEPolicyMaxRunningJobs"]);
-
       if (VOView["GlueCEPolicyMaxWaitingJobs"])
         target.MaxWaitingJobs =
           stringtoi(VOView["GlueCEPolicyMaxWaitingJobs"]);
       else if (CE["GlueCEPolicyMaxWaitingJobs"])
         target.MaxWaitingJobs = stringtoi(CE["GlueCEPolicyMaxWaitingJobs"]);
-
       if (SubCluster["GlueHostMainMemoryRAMSize"])
         target.MaxMainMemory = stringtoi(SubCluster["GlueHostMainMemoryRAMSize"]);
 
@@ -477,7 +463,6 @@ namespace Arc {
       else if (CE["GlueCEPolicyAssignedJobSlots"])
         target.MaxUserRunningJobs =
           stringtoi(CE["GlueCEPolicyAssignedJobSlots"]);
-
       if (VOView["GlueCEPolicyMaxSlotsPerJob"])
         target.MaxSlotsPerJob =
           stringtoi(VOView["GlueCEPolicyMaxSlotsPerJob"]);
@@ -500,31 +485,26 @@ namespace Arc {
           (std::string)VOView["GlueCEInfoDefaultSE"];
       else if (CE["GlueCEInfoDefaultSE"])
         target.DefaultStorageService = (std::string)CE["GlueCEInfoDefaultSE"];
-
       if (VOView["GlueCEPolicyPreemption"])
         target.Preemption = stringtoi(VOView["GlueCEPolicyPreemption"]);
       else if (CE["GlueCEPolicyPreemption"])
         target.Preemption = stringtoi(CE["GlueCEPolicyPreemption"]);
-
       if (VOView["GlueCEStateStatus"])
         target.ServingState = (std::string)VOView["GlueCEStateStatus"];
       else if (CE["GlueCEStateStatus"])
         target.ServingState = (std::string)CE["GlueCEStateStatus"];
-
       if (VOView["GlueCEStateEstimatedResponseTime"])
         target.EstimatedAverageWaitingTime =
           stringtoi(VOView["GlueCEStateEstimatedResponseTime"]);
       else if (CE["GlueCEStateEstimatedResponseTime"])
         target.EstimatedAverageWaitingTime =
           stringtoi(CE["GlueCEStateEstimatedResponseTime"]);
-
       if (VOView["GlueCEStateWorstResponseTime"])
         target.EstimatedWorstWaitingTime =
           stringtoi(VOView["GlueCEStateWorstResponseTime"]);
       else if (CE["GlueCEStateWorstResponseTime"])
         target.EstimatedWorstWaitingTime =
           stringtoi(CE["GlueCEStateWorstResponseTime"]);
-
       if (VOView["GlueCEStateFreeJobSlots"])
         target.FreeSlots = stringtoi(VOView["GlueCEStateFreeJobSlots"]);
       else if (VOView["GlueCEStateFreeCPUs"])

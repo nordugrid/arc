@@ -38,7 +38,7 @@ namespace Arc {
     delegationurl.ChangePath(delegationurl.Path() + "/gridsite-delegation");
     CREAMClient gLiteClientDelegation(delegationurl, cfg, usercfg.Timeout());
     if (!gLiteClientDelegation.createDelegation(delegationid, usercfg.ProxyPath())) {
-      logger.msg(ERROR, "Creating delegation failed");
+      logger.msg(INFO, "Failed creating singed delegation certificate");
       return URL();
     }
     URL submissionurl(et.url);
@@ -47,20 +47,25 @@ namespace Arc {
     gLiteClientSubmission.setDelegationId(delegationid);
 
     JobDescription job(jobdesc);
-    ModifyJobDescription(job, et);
+    if (!ModifyJobDescription(job, et)) {
+      logger.msg(INFO, "Failed adapting job description to target resources");
+      return URL();
+    }
 
     std::string jobdescstring = job.UnParse("JDL");
     creamJobInfo jobInfo;
     if (!gLiteClientSubmission.registerJob(jobdescstring, jobInfo)) {
-      logger.msg(ERROR, "Job registration failed");
+      logger.msg(INFO, "Failed registering job");
       return URL();
     }
+
     if (!PutFiles(job, jobInfo.ISB_URI)) {
-      logger.msg(ERROR, "Failed uploading local input files");
+      logger.msg(INFO, "Failed uploading local input files");
       return URL();
     }
+
     if (!gLiteClientSubmission.startJob(jobInfo.jobId)) {
-      logger.msg(ERROR, "Failed starting job");
+      logger.msg(INFO, "Failed starting job");
       return URL();
     }
 

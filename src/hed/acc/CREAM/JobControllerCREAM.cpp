@@ -43,7 +43,7 @@ namespace Arc {
       url.ChangePath(*pi);
       CREAMClient gLiteClient(url, cfg, usercfg.Timeout());
       if (!gLiteClient.stat(pi.Rest(), (*iter)))
-        logger.msg(ERROR, "Could not retrieve job information");
+        logger.msg(INFO, "Failed retrieving job information for job: %s", iter->JobID.str());
     }
   }
 
@@ -76,7 +76,7 @@ namespace Arc {
       src.ChangePath(srcpath + *it);
       dst.ChangePath(dstpath + *it);
       if (!ARCCopyFile(src, dst)) {
-        logger.msg(ERROR, "Failed dowloading %s to %s", src.str(), dst.str());
+        logger.msg(INFO, "Failed dowloading %s to %s", src.str(), dst.str());
         ok = false;
       }
     }
@@ -93,7 +93,7 @@ namespace Arc {
     url.ChangePath(*pi);
     CREAMClient gLiteClient(url, cfg, usercfg.Timeout());
     if (!gLiteClient.purge(pi.Rest())) {
-      logger.msg(ERROR, "Failed to clean job");
+      logger.msg(INFO, "Failed cleaning job: %s", job.JobID.str());
       return false;
     }
     PathIterator pi2(job.InfoEndpoint.Path(), true);
@@ -101,7 +101,7 @@ namespace Arc {
     url2.ChangePath(*pi2);
     CREAMClient gLiteClient2(url2, cfg, usercfg.Timeout());
     if (!gLiteClient2.destroyDelegation(pi2.Rest())) {
-      logger.msg(ERROR, "Destroying delegation failed");
+      logger.msg(INFO, "Failed destroying delegation credentials for job: %s", job.JobID.str());
       return false;
     }
     return true;
@@ -116,19 +116,19 @@ namespace Arc {
     url.ChangePath(*pi);
     CREAMClient gLiteClient(url, cfg, usercfg.Timeout());
     if (!gLiteClient.cancel(pi.Rest())) {
-      logger.msg(ERROR, "Failed to cancel job");
+      logger.msg(INFO, "Failed canceling job: %s", job.JobID.str());
       return false;
     }
     return true;
   }
 
   bool JobControllerCREAM::RenewJob(const Job& job) {
-    logger.msg(ERROR, "Renewal of CREAM jobs is not supported");
+    logger.msg(INFO, "Renewal of CREAM jobs is not supported");
     return false;
   }
 
   bool JobControllerCREAM::ResumeJob(const Job& job) {
-    logger.msg(ERROR, "Resumation of CREAM jobs is not supported");
+    logger.msg(INFO, "Resumation of CREAM jobs is not supported");
     return false;
   }
 
