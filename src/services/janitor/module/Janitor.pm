@@ -261,7 +261,7 @@ umask 0022;
 # some unified way and output then goes to client
 # and/or administrator. Probably ARC specific parts
 # should be isolated into dedicated module.
-###l4p  my $stderr_layout = Log::Log4perl::Layout::SimpleLayout->new();
+###l4p  my $stderr_layout = Log::Log4perl::Layout::PatternLayout->new("[%C] %d %p> %m%n");
 ###l4p  my $stderr_appender = Log::Log4perl::Appender->new("Log::Log4perl::Appender::Screen");
 ###l4p  $stderr_appender->layout($stderr_layout);
 ###l4p  $logger->add_appender($stderr_appender);
