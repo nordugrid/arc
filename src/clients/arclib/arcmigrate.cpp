@@ -152,7 +152,7 @@ int main(int argc, char **argv) {
     usercfg.AddServices(clusters, Arc::COMPUTING);
   }
 
-  if (!qlusters.empty() && !indexurls.empty())
+  if (!qlusters.empty() || !indexurls.empty())
     usercfg2.ClearSelectedServices();
 
   if (!qlusters.empty())
