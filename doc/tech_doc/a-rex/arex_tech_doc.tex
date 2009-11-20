@@ -1174,7 +1174,8 @@ Missing value or -1 means no limit.
 \item \textbf{\textit{wakeupperiod}}\textit{=time} -- specifies how often
 the A-REX checks for job state changes (like new arrived job, job
 finished in LRMS, etc.). \textit{time} is a minimal time period specified
-in seconds. Default is \emph{3 minutes}.
+in seconds. Default is \emph{3 minutes}. The A-REX may also be woken up by
+external processes such as LRMS scripts before this time period expires.
 \item \textbf{\textit{authplugin}}\textit{=state options plugin} -- specifies
 \emph{plugin} (external executable) to be run every time job is going
 to switch to \emph{state}. Following states are allowed: ACCEPTED,
