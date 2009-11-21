@@ -560,9 +560,16 @@ int main(int argc,char** argv) {
 
   // Start janitor in parallel
   if(!janitor) {
+    if (!janitor.enabled()) {
+      logger.msg(Arc::VERBOSE,"Not invoking janitor because it's not enabled in the config file");
+    };
     if(desc.get_local()->rtes > 0) {
       failure_reason+="Non-existing RTE(s) requested\n";
-      logger.msg(Arc::ERROR, "Janitor is missing and job contains non-deployed RTEs");
+      if (!janitor.enabled()) {
+        logger.msg(Arc::ERROR, "Janitor not enabled and job contains non-deployed RTEs");
+      } else {
+        logger.msg(Arc::ERROR, "Janitor not installed and job contains non-deployed RTEs");
+      };
       res=1; goto exit;
     };
   } else {

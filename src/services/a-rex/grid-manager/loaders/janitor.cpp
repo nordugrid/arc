@@ -9,7 +9,10 @@
 #include <arc/Thread.h>
 #include <arc/Run.h>
 #include <arc/Logger.h>
+#include <arc/XMLNode.h>
 
+#include "../conf/conf.h"
+#include "../conf/conf_sections.h"
 #include "../conf/environment.h"
 #include "../jobs/users.h"
 #include "../files/info_files.h"
@@ -34,18 +37,20 @@
 static Arc::Logger logger(Arc::Logger::rootLogger, "Janitor Control");
 
 Janitor::Janitor(const std::string& id,const std::string& cdir):
-         id_(id),cdir_(cdir),running_(false),result_(FAILED) {
+         id_(id),cdir_(cdir),running_(false),result_(FAILED),enabled_(false) {
+  if(!readConfig()) return;
+  if(!enabled()) return;
   if(id_.empty()) return;
   if(cdir_.empty()) return;
   // create path to janitor utility
   path_ = Glib::build_filename(nordugrid_libexec_loc(),"janitor");
   if(path_.empty()) {
-    logger.msg(Arc::VERBOSE, "Failed to create path to janitor at %s",nordugrid_libexec_loc());
+    logger.msg(Arc::ERROR, "Failed to create path to janitor at %s",nordugrid_libexec_loc());
     return;
   };
   // check if utility exists
   if(!Glib::file_test(path_,Glib::FILE_TEST_IS_EXECUTABLE)) {
-    logger.msg(Arc::VERBOSE, "Janitor executable not found at %s",path_);
+    logger.msg(Arc::ERROR, "Janitor executable not found at %s",path_);
     path_.resize(0);
     return;
   };
@@ -53,6 +58,46 @@ Janitor::Janitor(const std::string& id,const std::string& cdir):
 
 Janitor::~Janitor(void) {
   cancel();;
+}
+
+bool Janitor::readConfig() {
+  // open conf file
+  std::ifstream cfile;
+  if(nordugrid_config_loc().empty()) read_env_vars(true);
+  if(!config_open(cfile)) {
+    logger.msg(Arc::ERROR,"Can't open configuration file");
+    return false;
+  }
+  switch(config_detect(cfile)) {
+    case config_file_XML: {
+      Arc::XMLNode cfg;
+      if(!cfg.ReadFromStream(cfile)) {
+        config_close(cfile);
+        logger.msg(Arc::ERROR,"Can't interpret configuration file as XML");
+        return false;
+      }
+      std::string enabled = cfg["janitor"]["enabled"];
+      enabled_ = (enabled == "1");
+    }; break;
+    case config_file_INI: {
+      ConfigSections* cf = new ConfigSections(cfile);
+      cf->AddSection("janitor");
+      for(;;) {
+        std::string rest;
+        std::string command;
+        cf->ReadNext(command,rest);
+        if(command.empty()) break;
+        if(command == "enabled") enabled_ = (config_next_arg(rest) == "1");
+      }
+      delete cf;
+    }; break;
+    default: {
+      logger.msg(Arc::ERROR,"Can't recognize type of configuration file");
+      return false;
+    }; break;
+  };
+  config_close(cfile);
+  return true;
 }
 
 void Janitor::cancel(void) {

@@ -12,6 +12,7 @@ class Janitor {
     FAILED
   } Result;
  private:
+  bool enabled_;
   std::string path_;
   std::string id_;
   std::string cdir_;
@@ -22,6 +23,7 @@ class Janitor {
   static void deploy_thread(void* arg);
   static void remove_thread(void* arg);
   void cancel(void);
+  bool readConfig();
  public:
   /// Creates instance representing job entry in Janitor database
   /** Takes id for job identifier and cdir for the control 
@@ -29,6 +31,8 @@ class Janitor {
      the Janitor. It only associates job with this instance. */
   Janitor(const std::string& id,const std::string& cdir);
   ~Janitor(void);
+  /// Returns true if janitor is enabled in the config file.
+  bool enabled() { return enabled_; };
   /// Returns true if instance is valid
   operator bool(void) { return !path_.empty(); };
   /// Returns true if instance is invalid
