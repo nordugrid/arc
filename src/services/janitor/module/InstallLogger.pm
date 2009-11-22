@@ -56,7 +56,7 @@ sub new {
 			unless (chmod $mode, $logfile) {
 				my $msg = "Can not chmod $logfile: $!\n";
 ###l4p				if (1) { $logger->error($msg); } else {
-					print STDERR $msg;
+					print STDERR "janitor: $msg";
 ###l4p				}
 			}
 		}
@@ -64,7 +64,7 @@ sub new {
 		$self->{_log} = undef;
 		my $msg = "Can not open $logfile: $!\n";
 ###l4p		if (1) { $logger->error($msg); } else {
-			print STDERR $msg;
+			print STDERR "janitor: $msg";
 ###l4p		}
 	}
 	

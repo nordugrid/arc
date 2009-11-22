@@ -80,14 +80,14 @@ sub new {
 	my $storage = new RDF::Redland::Storage("hashes", "",
 				"new='yes',hash-type='memory'");
 	unless (defined  $storage) {
-		printf STDERR "Can not create RDF::Redland::Storage\n";
+		printf STDERR "janitor: Can not create RDF::Redland::Storage\n";
 		return undef;
 	}
 
 	# create model
 	my $model = new RDF::Redland::Model($storage, "");
 	unless (defined $model) {
-		printf STDERR "Can not create RDF::Redland::Model for storage\n";
+		printf STDERR "janitor: Can not create RDF::Redland::Model for storage\n";
 		return undef;
 	}
 
@@ -136,7 +136,7 @@ sub add {
 	my ($self, $file) = @_;
 
 	unless ( -e $file) {
-		print STDERR "Can not add file to catalog: $file does not exist\n";
+		print STDERR "janitor: Can not add file to catalog: $file does not exist\n";
 ###l4p 		$logger->error("Can not add file to catalog: "
 ###l4p					. "$file does not exist");
 		return;
@@ -145,7 +145,7 @@ sub add {
 	my $uri = new RDF::Redland::URI("file:$file");	
 	my $parser = new RDF::Redland::Parser("rdfxml", "application/rdf+xml");
 	unless (defined $parser) {
-		printf STDERR "Can not create RDF::Redland::Parser\n";
+		printf STDERR "janitor: Can not create RDF::Redland::Parser\n";
 		return undef;
 	}
 
@@ -312,7 +312,7 @@ sub _check_dependencies {
 		# check if there is such an instance
 		my $b = $self->get_object($instance, "kb:basesystem");
 		if (! defined $b) {
-			printf STDERR "Can not find package with id \"%s\" "
+			printf STDERR "janitor: Can not find package with id \"%s\" "
 				. "while checking dependencies of \"%s\"\n",
 				$instance, $packageid;
 			return (0,undef);
@@ -321,7 +321,7 @@ sub _check_dependencies {
 		# check if the basesystem is right
 		$b = prepare_uri($b);
 		if ($baseid ne $b) {
-			printf STDERR "found unexpected basesystem entry \"%s\" "
+			printf STDERR "janitor: found unexpected basesystem entry \"%s\" "
 				. "while checking meta package \"%s\". Expected \"%s\"\n",
 				$b, $packageid, $baseid;
 			return (0,undef);
@@ -465,7 +465,7 @@ sub _BaseSystemByKey {
 	$bs->immutable(1);
 
 	unless (defined $bs->name) {
-		printf STDERR "There is no valid basesystem with id \"%s\" " .
+		printf STDERR "janitor: There is no valid basesystem with id \"%s\" " .
 			"in the catalog.\n", $key;
 		return undef;
 	}
@@ -609,7 +609,7 @@ sub _MetaPackageByKey {
 	$mp->immutable(1);
 
 	unless (defined $mp->name) {
-		printf STDERR "There is no valid MetaPackage with id \"%s\" " .
+		printf STDERR "janitor: There is no valid MetaPackage with id \"%s\" " .
 			"in the catalog.\n", $key;
 		return undef;
 	}
@@ -655,7 +655,7 @@ sub _TagByKey {
 	$tag->immutable(1);
 
 	unless (defined $tag->name) {
-		printf STDERR "There is no valid Tag with id \"%s\" " .
+		printf STDERR "janitor: There is no valid Tag with id \"%s\" " .
 			"in the catalog.\n", $key;
 		return undef; }
 

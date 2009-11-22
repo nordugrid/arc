@@ -262,7 +262,7 @@ about this job are listed.
 			my $jobid = $ARGV[1];
 
 			if (sane_job_id($jobid) == 0) {
-				printf STDERR "invalid jobid: \"" . $jobid . "\"\n";
+				printf STDERR "janitor: invalid jobid: \"" . $jobid . "\"\n";
 				exit (1);
 			}
 
@@ -383,12 +383,12 @@ occured 2 is returned.
 		map { s/'(.*)'/$1/; } @rte ; # this changes @ARGV
 
 		if (sane_job_id($jobid) == 0) {
-			printf STDERR "invalid jobid: \"" . $jobid . "\"\n";
+			printf STDERR "janitor: invalid jobid: \"" . $jobid . "\"\n";
 			exit (2);
 		}
  
 		if (sane_rte_name(@rte) == 0) {
-			printf STDERR "I don't like this kind of RE name!\n";
+			printf STDERR "janitor: I don't like this kind of RE name!\n";
 			exit(2);
 		}
 
@@ -418,7 +418,7 @@ successfull it returns 0, otherwise 1.
 		my $jobid = $ARGV[1];
 
 		if (sane_job_id($jobid) == 0) {
-			printf STDERR "invalid jobid: \"" . $jobid . "\"\n";
+			printf STDERR "janitor: invalid jobid: \"" . $jobid . "\"\n";
 			exit (1);
 		}
 
@@ -445,7 +445,7 @@ Removes the job <job-id> from the Janitors database.
 		my $request = new Janitor::Request(Janitor::Request::REMOVE, $ARGV[1]);
 		
 		if (sane_job_id($request->jobid()) == 0) {
-			printf STDERR "invalid jobid: \"" . $request->jobid() . "\"\n";
+			printf STDERR "janitor: invalid jobid: \"" . $request->jobid() . "\"\n";
 			exit (2);
 		}
 
@@ -475,7 +475,7 @@ Sets the state of a RE.
 		map { s/'(.*)'/$1/; } @rte ; # this changes @ARGV
 
 		if (sane_rte_name(@rte) == 0) {
-			printf STDERR "I don't like this kind of RE name!\n";
+			printf STDERR "janitor: I don't like this kind of RE name!\n";
 			exit(2);
 		}
 

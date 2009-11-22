@@ -133,7 +133,7 @@ BEGIN {
 	if (defined($resurrect)) { 
 		eval 'require Log::Log4perl';
 		if ($@) {
-			print STDERR "Log::Log4perl not found, doing without logging\n";
+			print STDERR "janitor: Log::Log4perl not found, doing without logging\n";
 			$resurrect = undef;
 		} else { 
 			import Log::Log4perl qw(:resurrect get_logger); 
@@ -186,15 +186,15 @@ my $INITSTATE = 4;
 my $conffile = $ENV{'ARC_CONFIG'};
 $conffile = "/etc/arc.conf" unless defined $conffile;
 
-printf STDERR "DEBUG: using configuration file \"%s\"\n", $conffile	if $DEBUG;
+printf STDERR "janitor: DEBUG: using configuration file \"%s\"\n", $conffile	if $DEBUG;
 if(! -e $conffile){
-	printf STDERR "ERROR: Couldn't find configuration file \"%s\"\n", $conffile;
+	printf STDERR "janitor: ERROR: Couldn't find configuration file \"%s\"\n", $conffile;
 	return 4;
 }
 
 my $config = Janitor::ArcConfig->parse($conffile);
 if ( !defined $config->{'janitor'} ) {
-	printf STDERR "There is no valid [janitor]-section in \"%s\"\n", $conffile;
+	printf STDERR "janitor: There is no valid [janitor]-section in \"%s\"\n", $conffile;
 	$INITSTATE = 3;
 	return 3;
 }
@@ -206,15 +206,15 @@ if (defined $config->{'janitor'}{'gid'}) {
 	my $gn = $config->{'janitor'}{'gid'};
 	my $gi = Janitor::Util::asGID($gn);
 	unless (defined $gi) {
-		printf STDERR "no such group: \"%s\"\n", $gn;
+		printf STDERR "janitor: no such group: \"%s\"\n", $gn;
 		return 4;
 	}
 	$) = $gi; # set the effective group id
 	if ( $) != $gi ) {
-		printf STDERR "FATAL: Can not set effective group id to %d: $!\n", $gi;
+		printf STDERR "janitor: FATAL: Can not set effective group id to %d: $!\n", $gi;
 		return 4;
 	}
-	printf STDERR "setting effective group id to %s\n", $gn		if $DEBUG;
+	printf STDERR "janitor: setting effective group id to %s\n", $gn		if $DEBUG;
 }
 
 ######################################################################
@@ -224,25 +224,25 @@ if (defined $config->{'janitor'}{'uid'}) {
 	my $un = $config->{'janitor'}{'uid'};
 	my $ui = Janitor::Util::asUID($un);
 	unless (defined $ui) {
-		printf STDERR "no such user: \"%s\"\n", $un;
+		printf STDERR "janitor: no such user: \"%s\"\n", $un;
 		return 4;
 	}
 	$> = $ui; # set the effective user id
 	if ( $> != $ui ) {
-		printf STDERR "FATAL: Can not set effective user id to %d: $!\n", $ui;
+		printf STDERR "janitor: FATAL: Can not set effective user id to %d: $!\n", $ui;
 		return 4;
 	}
-	printf STDERR "setting effective user id to %s\n", $un if $DEBUG;
+	printf STDERR "janitor: setting effective user id to %s\n", $un if $DEBUG;
 }
 
 ######################################################################
 # warn if we are running as root
 ######################################################################
 if ($> == 0) {
-	printf STDERR "Warning: running as user root.\n";
+	printf STDERR "janitor: Warning: running as user root.\n";
 }
 if ($) == 0) {
-	printf STDERR "Warning: running with group root.\n";
+	printf STDERR "janitor: Warning: running with group root.\n";
 }
 	
 
@@ -283,7 +283,7 @@ if (not defined $registrationDir) {
 }
 if (defined $msg) {
 ###l4p	$logger->fatal($msg);
-	printf STDERR $msg;
+	printf STDERR "janitor: $msg";
 	return 4;
 }
 
@@ -312,7 +312,7 @@ foreach my $dir ( ($regDirJob, $regDirRTE, $regDirPackages) ) {
 	
 	if (defined $msg) {
 ###l4p		$logger->fatal($msg);
-		printf STDERR $msg;
+		printf STDERR "janitor: $msg";
 		return 4;
 	}
 }
@@ -333,7 +333,7 @@ if (not defined $instdir) {
 }
 if (defined $msg) {
 ###l4p    $logger->fatal($msg);
-    printf STDERR $msg;
+    printf STDERR "janitor: $msg";
     return 4
 }
 
@@ -353,7 +353,7 @@ if (not defined $downloaddir) {
 }
 if (defined $msg) {
 ###l4p    $logger->fatal($msg);
-    printf STDERR $msg;
+    printf STDERR "janitor: $msg";
     return 4
 }
 
@@ -373,7 +373,7 @@ if (not defined $manualRuntimeDir) {
 }
 if (defined $msg) {
 ###l4p    $logger->fatal($msg);
-    printf STDERR $msg;
+    printf STDERR "janitor: $msg";
     return 4
 }
 
@@ -824,7 +824,7 @@ sub setup_runtime_package {
 
 	my $state = $tarpackage->state;
 	if (! defined $state) {
-		print STDERR "package state not defined!\n";
+		print STDERR "janitor: package state not defined!\n";
 	}
 	if ($state == Janitor::TarPackageShared::INSTALLED) {
 		# everything available and nothing to do
@@ -1030,7 +1030,7 @@ sub sweep_rte {
 			$package->connect;
 			eval { $package->not_used($rte->id); };
 			if ($@) {
-				printf STDERR "Error while removing used flag on package: $@\n";
+				printf STDERR "janitor: Error while removing used flag on package: $@\n";
 			}
 			$package->disconnect;
 		}
@@ -1100,7 +1100,7 @@ sub sweep {
 			}
 		};
 		if ($@) {
-			printf STDERR "Error while trying to remove a RTE!: $@\n";
+			printf STDERR "janitor: Error while trying to remove a RTE!: $@\n";
 		}
 
 		$rte->disconnect unless $flag;
@@ -1328,7 +1328,7 @@ sub setstate {
 
 	my $newstate = Janitor::RTE::string2state($state);
 	unless (defined $newstate) {
-		print STDERR $state . ": not a valid statename\n";
+		print STDERR "janitor: $state: not a valid statename\n";
 		$response->result(1,$state.": is not a valid state.");
 		return $response;
 	}
@@ -1365,7 +1365,7 @@ sub setstate {
 			$rte->state($newstate);
 		};
 		if ($@) {
-			printf STDERR "Can not change the state: %s\n", $@;
+			printf STDERR "janitor: Can not change the state: %s\n", $@;
 			$rte->disconnect;
 			$response->result(1,"Can not change the state ".$@.".");
 		}

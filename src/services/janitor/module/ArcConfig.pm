@@ -104,7 +104,7 @@ sub get_ArcConfig {
 	if (!defined $singleton) {
 		my $msg = "Janitor::ArcConfig::get_ArcConfig: returning " .
 			"reference to empty hash; call parse() to fill it";
-			printf STDERR "DEBUG: %s\n", $msg if $DEBUG;
+			printf STDERR "janitor: DEBUG: %s\n", $msg if $DEBUG;
 
 	}
 	return Janitor::ArcConfig->get();
@@ -179,7 +179,7 @@ sub _parse {
 sub isXML {
     my $file = shift;
     unless (open CONFIGFILE, "<$file") {
-        print STDERR "FATAL: can not open $file: $!\n";
+        print STDERR "janitor: FATAL: can not open $file: $!\n";
         exit 1;
     }
     my $isxml = 0;
@@ -233,13 +233,13 @@ sub read_arex_xml {
     my $xml;
     eval { $xml = XML::Simple->new(%xmlopts) };
     if ($@) {
-        print STDERR "FATAL: $@\n";
+        print STDERR "janitor: FATAL: $@\n";
         exit 1;
     }
     my $data;
     eval { $data = $xml->XMLin($file) };
     if ($@) {
-        print STDERR "FATAL: $@\n";
+        print STDERR "janitor: FATAL: $@\n";
         exit 1;
     }
     hash_tree_apply $data, \&hash_strip_prefixes;
@@ -261,7 +261,7 @@ sub read_arex_xml {
         return $srv if $srv->{name} eq 'a-rex';
     }
 
-    printf STDERR "FATAL: A-REX config not found in $file\n";
+    printf STDERR "janitor: FATAL: A-REX config not found in $file\n";
     exit 1;
 }
 
@@ -331,7 +331,7 @@ sub _parse_ini {
 
 	unless ( open (ArcConfigFILE, "<$conf_file") ) {
 		my $msg = "can not open $conf_file: $!";
-		printf STDERR "FATAL: %s\n", $msg;
+		printf STDERR "janitor: FATAL: %s\n", $msg;
 		exit 1;
 	}
 
@@ -349,7 +349,7 @@ sub _parse_ini {
 
 		unless ($line =~ m/^(\w+)\s*=\s*(["']?)(.*)(\2)\s*$/) {
 			my $msg =  "skipping incorrect $conf_file line ($c): $line";
-			printf STDERR "WARNING: %s\n", $msg;
+			printf STDERR "janitor: WARNING: %s\n", $msg;
 			next;
 		}
 		$variable_name=$1;
