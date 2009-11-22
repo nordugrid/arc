@@ -236,7 +236,7 @@ Replaces: nordugrid-arc1-client (<< 1.0.0~)
 Conflicts: nordugrid-arc1-client (<< 1.0.0~)
 Architecture: any
 Depends: librdf-perl, ${perl:Depends}
-Recommends: liblog-log4perl-perl
+Recommends: liblog-log4perl-perl, libfile-copy-recursive-perl
 Suggests: nordugrid-arc-nox
 Description: ARC dynamic installation of runtime environments
  The NorduGrid is a collaboration aiming at development, maintenance
