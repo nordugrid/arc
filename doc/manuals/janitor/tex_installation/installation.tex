@@ -94,12 +94,6 @@ describes the available tags for Janitor's configuration.
 \end{table}
 \end{landscape}
 
-It should be noted that the downloaddir or the installationdir specified
-in arc.conf could be any directory. Those will not be prepared by the
-package for the Linux distribution but need be created by the administrator
-manually after the Janitor has been installed. This also holds for the
-catalog.
-
 The parameter \texttt{enable} specifies whether the Janitor shall be used
 within A-REX or not. Use the value \texttt{"0"} to disable Janitor. The
 \texttt{uid} and the \texttt{gid} are defining which effective user id
@@ -156,6 +150,16 @@ allow_rte="*"
 [janitor/nordugrid]
 catalog="/var/spool/nordugrid/janitor/catalog/knowarc.rdf"
 \end{lstlisting}
+
+It should be noted that the downloaddir or the installationdir specified
+in arc.conf could be any directory. Those will not be prepared by the
+package for the Linux distribution but need be created by the administrator
+manually after the Janitor has been installed. This also holds for the
+catalog.
+
+When working with several catalogs, then the multiple catalog lines can
+be placed into the same arc.conf file. But every must go into its own block
+as separated with \[janitor/someName\] directives.
 
 \lstsetCONFIGURE
 \begin{lstlisting}[
