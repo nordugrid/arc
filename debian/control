@@ -217,6 +217,10 @@ Conflicts: nordugrid-arc1-plugins-globus (<< 1.0.0~)
 Architecture: any
 Depends: ${shlibs:Depends}
 Description: ARC Globus plugins
+ The NorduGrid is a collaboration aiming at development, maintenance
+ and support of the free Grid middleware, known as the Advanced
+ Resource Connector (ARC).
+ .
  ARC Globus plugins. This includes the Globus dependent Data Manager
  Components (DMCs).
 
