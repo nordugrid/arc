@@ -755,25 +755,31 @@ int main(int argc,char** argv) {
         job.Cluster = Arc::URL(desc.get_local()->migrateactivityid.substr(0, found));
 
         Arc::UserConfig usercfg(job.Cluster.Protocol() == "https" ?
-                                initializeCredentialsType() :
-                                initializeCredentialsType(initializeCredentialsType::SkipCredentials));
+                                Arc::initializeCredentialsType() :
+                                Arc::initializeCredentialsType(Arc::initializeCredentialsType::SkipCredentials));
+        if (job.Cluster.Protocol() != "https" ||
+            job.Cluster.Protocol() == "https" && usercfg.CredentialsFound()) {
+          Arc::JobControllerLoader loader;
+          Arc::JobController *jobctrl = loader.load("ARC1", usercfg);
+          if (jobctrl) {
+            jobctrl->FillJobStore(job);
 
-        Arc::JobControllerLoader loader;
-        Arc::JobController *jobctrl = loader.load("ARC1", usercfg);
-        if (jobctrl) {
-          jobctrl->FillJobStore(job);
+            std::list<std::string> status;
+            status.push_back("Queuing");
 
-          std::list<std::string> status;
-          status.push_back("Queuing");
-
-          if (!jobctrl->Kill(status, true) && !desc.get_local()->forcemigration) {
+            if (!jobctrl->Kill(status, true) && !desc.get_local()->forcemigration) {
+              res = 1;
+              failure_reason = "FATAL ERROR: Migration failed attempting to kill old job \"" + desc.get_local()->migrateactivityid + "\".";
+            }
+          }
+          else {
             res = 1;
-            failure_reason = "FATAL ERROR: Migration failed attempting to kill old job \"" + desc.get_local()->migrateactivityid + "\".";
+            failure_reason = "FATAL ERROR: Migration failed, could not locate ARC1 JobController plugin. Maybe it is not installed?";
           }
         }
         else {
           res = 1;
-          failure_reason = "FATAL ERROR: Could not locate ARC1 JobController plugin. Maybe it is not installed?";
+          failure_reason = "FATAL ERROR: Migration failed, unable to find credentials.";
         }
       }
     }
