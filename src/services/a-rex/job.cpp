@@ -409,11 +409,10 @@ ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& crede
   };
   // Call authentication/authorization plugin/exec
   {
-    int result;
     std::string response;
     // talk to external plugin to ask if we can proceed
     ContinuationPlugins::action_t act =
-                 config_.Plugins().run(job,*config_.User(),result,response);
+                 config_.Plugins().run(job,*config_.User(),response);
     // analyze result
     if(act == ContinuationPlugins::act_fail) {
       delete_job_id();

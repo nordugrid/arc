@@ -27,7 +27,7 @@ class ContinuationPlugins {
   bool add(const char* state,unsigned int timeout,const char* command);
   bool add(job_state_t state,const char* options,const char* command);
   bool add(const char* state,const char* options,const char* command);
-  action_t run(const JobDescription &job,const JobUser& user,int& result,std::string& response);
+  action_t run(const JobDescription &job,const JobUser& user,std::string& response);
 };
 
 #endif

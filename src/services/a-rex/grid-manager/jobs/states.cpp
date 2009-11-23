@@ -65,7 +65,7 @@ bool ContinuationPlugins::add(const char* state,unsigned int timeout,const char*
 bool ContinuationPlugins::add(job_state_t state,unsigned int timeout,const char* command) { return true; };
 bool ContinuationPlugins::add(const char* state,const char* options,const char* command) { return true; };
 bool ContinuationPlugins::add(job_state_t state,const char* options,const char* command) { return true; };
-ContinuationPlugins::action_t ContinuationPlugins::run(const JobDescription &job,const JobUser& user,int& result,std::string& response) { return act_pass; };
+ContinuationPlugins::action_t ContinuationPlugins::run(const JobDescription &job,const JobUser& user,std::string& response) { return act_pass; };
 void RunPlugin::set(const std::string& cmd) { };
 void RunPlugin::set(char const * const * args) { };
 #endif
@@ -1175,10 +1175,9 @@ bool JobsList::ActJob(JobsList::iterator &i,bool hard_job) {
         } else {
           // talk to external plugin to ask if we can proceed
           if(plugins) {
-            int result;
             std::string response;
             ContinuationPlugins::action_t act =
-                     plugins->run(*i,*user,result,response);
+                     plugins->run(*i,*user,response);
             // analyze result
             if(act == ContinuationPlugins::act_fail) {
               logger.msg(Arc::ERROR,"%s: Plugin in state %s : %s",

@@ -140,11 +140,11 @@ bool ContinuationPlugins::add(const char* state,const char* options,const char* 
   return false;
 }
 
-ContinuationPlugins::action_t ContinuationPlugins::run(const JobDescription &job,const JobUser& user,int& result,std::string& response) {
+ContinuationPlugins::action_t ContinuationPlugins::run(const JobDescription &job,const JobUser& user,std::string& response) {
   job_state_t state = job.get_state();
   response.resize(0);
   if(commands[state].cmd.length() == 0) {
-    result=0; return act_pass;
+    return act_pass;
   };
   std::string cmd = commands[state].cmd;
   for(std::string::size_type p = 0;;) {
@@ -166,19 +166,15 @@ ContinuationPlugins::action_t ContinuationPlugins::run(const JobDescription &job
   std::string res_out("");
   std::string res_err("");
   int to = commands[state].to;
-  bool r = false;
-  bool t = false;
-  {
-    Arc::Run re(cmd);
-    re.AssignStdout(res_out);
-    re.AssignStderr(res_err);
-    re.KeepStdin();
-    if(re.Start()) {
-      if(re.Wait(to)) {
-        r=true;
-      } else {
-        t=true;
-      };
+  bool timeout = false;
+
+  Arc::Run re(cmd);
+  re.AssignStdout(res_out);
+  re.AssignStderr(res_err);
+  re.KeepStdin();
+  if(re.Start()) {
+    if(!re.Wait(to)) {
+      timeout=true;
     };
   };
   response=res_out;
@@ -186,16 +182,16 @@ ContinuationPlugins::action_t ContinuationPlugins::run(const JobDescription &job
     if(response.length()) response+=" : ";
     response+=res_err;
   };
-  if(!r) { // failure
-    if(t) { // timeout occured
-      if(response.length()) { response="TIMEOUT : "+response; }
-      else { response="TIMEOUT"; };
-      return commands[state].ontimeout;
-    };
-    return act_undefined;
+
+  if(timeout) { // timeout occured
+    if(response.length()) { response="TIMEOUT : "+response; }
+    else { response="TIMEOUT"; };
+    return commands[state].ontimeout;
   };
-  if(result == 0) return commands[state].onsuccess;
-  if(response.length()) { response="FAILED : "+response; }
-  else { response="FAILED"; };
-  return commands[state].onfailure; 
+  if(re.Result() != 0) { // non-zero exit code
+    if(response.length()) { response="FAILED : "+response; }
+    else { response="FAILED"; };
+    return commands[state].onfailure;
+  } 
+  return commands[state].onsuccess; 
 }
