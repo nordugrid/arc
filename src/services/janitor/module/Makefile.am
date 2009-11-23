@@ -5,7 +5,7 @@
 data_janitordir = $(pkgdatadir)/perl/Janitor
 dist_data_janitor_DATA = ArcConfig.pm Catalog.pm Common.pm Execute.pm Filefetcher.pm Installer.pm InstallLogger.pm Janitor.pm Job.pm Request.pm Response.pm RTE.pm TarPackageShared.pm Util.pm
 
-JanitorPerlModuleManSection=3arc
+JanitorPerlModuleManSection=8pm
 
 Janitor\:\:Janitor.$(JanitorPerlModuleManSection): Janitor.pm
 	pod2man $< > $@
