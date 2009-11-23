@@ -83,7 +83,14 @@ Provides: nordugrid-arc1-client = %{version}
 Obsoletes: nordugrid-arc1-client < 1.0.0
 
 %description client
-ARC prototype clients.
+The NorduGrid is a collaboration aiming at development, maintenance
+and support of the free Grid middleware, known as the Advanced Resource
+Connector (ARC).
+.
+For the regular user of any ARC-based computational grid,
+this client package contains (or depends on) all packages
+that are needed to submit jobs, query their status and
+retrieve results.
 
 %package hed
 Summary: ARC Hosting Environment Daemon
@@ -98,7 +105,20 @@ Requires(preun): initscripts
 Requires(postun): initscripts
 
 %description hed
-ARC Hosting Environment Daemon (HED).
+The NorduGrid is a collaboration aiming at development, maintenance
+and support of the free Grid middleware, known as the Advanced Resource
+Connector (ARC).
+.
+The ARC Hosting Environment Daemon (HED). This daemon presents a
+site to other participants on the grid.  An intrinsic component
+of any grid system is a mechanism allowing for the secure stateful
+communication with remote environments. HED prepares for such an
+environment and as such is the core of the ARC middleware. HED
+was however written in a way, that represents typical grid
+computing tasks (the sharing of CPU time or storage) to become
+just one possible service between a user and a remote machine.
+Many others are thinkable, and HED takes considerable effort
+away from the respective implementors.
 
 %package charon
 Summary: ARC charon service
@@ -107,7 +127,15 @@ Requires: %{name} = %{version}
 Requires: %{name}-hed = %{version}
 
 %description charon
-ARC Charon service.
+The NorduGrid is a collaboration aiming at development, maintenance
+and support of the free Grid middleware, known as the Advanced
+Resource Connector (ARC).
+.
+CHARON is a remote policy decision point service.  It accepts formatted
+policy decision request and return positive or negative response. When
+running a CHARON (within the HED), the TLS layer can be used for
+securing the communication, when the request or response  information
+are critical.
 
 %package hopi
 Summary: ARC hopi service
@@ -116,7 +144,14 @@ Requires: %{name} = %{version}
 Requires: %{name}-hed = %{version}
 
 %description hopi
-ARC hopi service.
+The NorduGrid is a collaboration aiming at development, maintenance
+and support of the free Grid middleware, known as the Advanced Resource
+Connector (ARC).
+.
+The HOPI service provides a simple implementation of an http(s)
+server. It supports GET and PUT operations. It can be used as a simple
+file transfer service and it is usable via common web browsers and
+other http(s) clients (e.g. wget).
 
 %package isis
 Summary: ARC isis service
@@ -125,7 +160,14 @@ Requires: %{name} = %{version}
 Requires: %{name}-hed = %{version}
 
 %description isis
-ARC isis service.
+The NorduGrid is a collaboration aiming at development, maintenance
+and support of the free Grid middleware, known as the Advanced Resource
+Connector (ARC).
+.
+ISIS is the new ARC information system implemented within HED. ISIS
+comes with P2P capabilities and a web-services interface. The new system
+grants grid participants an increase in flexibility, robustness and it
+also offers easier configuration and self-healing capability.
 
 %package compiler
 Summary: ARC compiler service
@@ -134,7 +176,15 @@ Requires: %{name} = %{version}
 Requires: %{name}-hed = %{version}
 
 %description compiler
-ARC compiler service.
+The NorduGrid is a collaboration aiming at development, maintenance
+and support of the free Grid middleware, known as the Advanced Resource
+Connector (ARC).
+.
+The purpose of this service is to provide compilation capability on the
+remote site utilizing its full CPU capacity for parallel compilation
+tasks. The service presumes that the compilation task is described
+in a usual make file. The current implementation supports GNU compilers
+only.
 
 %package delegation
 Summary: ARC delegation service
@@ -143,7 +193,11 @@ Requires: %{name} = %{version}
 Requires: %{name}-hed = %{version}
 
 %description delegation
-ARC delegation service.
+The NorduGrid is a collaboration aiming at development, maintenance
+and support of the free Grid middleware, known as the Advanced Resource
+Connector (ARC).
+.
+The description of the delegation services is still pending.
 
 %package paul
 Summary: ARC paul service
@@ -152,7 +206,16 @@ Requires: %{name} = %{version}
 Requires: %{name}-hed = %{version}
 
 %description paul
-ARC paul service.
+The NorduGrid is a collaboration aiming at development, maintenance
+and support of the free Grid middleware, known as the Advanced Resource
+Connector (ARC).
+.
+The Paul is a pull-based execution service for computing resources. In
+these case the computing resource can be single SMP computer. The Paul
+uses the iBES protocol to communicate with Scheduler services or any
+other service which implements iBES. The Paul can interact with multiple
+Scheduler and can controll multiple job in one time. Paul can be used
+to run on desktops (MS Windows as well) to form a 'desktop' grid.
 
 %package saml2sp
 Summary: ARC saml2sp service
@@ -161,7 +224,14 @@ Requires: %{name} = %{version}
 Requires: %{name}-hed = %{version}
 
 %description saml2sp
-ARC saml2sp service.
+The NorduGrid is a collaboration aiming at development, maintenance
+and support of the free Grid middleware, known as the Advanced Resource
+Connector (ARC).
+.
+Service Provider is a utility service which is supposed to work together
+with external Identity Provider and user agent (client) to accomplish
+the "SAML2.0 Web SSO Profile" which requires client to provider
+"username/password" instead of X.509 certificate for authentication.
 
 %package slcs
 Summary: ARC slcs service
@@ -170,7 +240,11 @@ Requires: %{name} = %{version}
 Requires: %{name}-hed = %{version}
 
 %description slcs
-ARC slcs service.
+The NorduGrid is a collaboration aiming at development, maintenance
+and support of the free Grid middleware, known as the Advanced Resource
+Connector (ARC).
+.
+ARC Short-lived credential service.
 
 %package arex
 Summary: ARC Remote EXecution service
@@ -187,7 +261,14 @@ Requires(preun): initscripts
 Requires(postun): initscripts
 
 %description arex
-ARC Remote EXecution service (AREX)
+The NorduGrid is a collaboration aiming at development, maintenance
+and support of the free Grid middleware, known as the Advanced
+Resource Connector (ARC).
+.
+The ARC Remote EXecution service (AREX) represents those parts of
+the middleware that is responsible for the execution of compute
+jobs and the transfer of input or output data.
+
 
 %package plugins-base
 Summary: ARC base plugins
@@ -197,6 +278,10 @@ Provides: nordugrid-arc1-plugins-base = %{version}
 Obsoletes: nordugrid-arc1-plugins-base < 1.0.0
 
 %description plugins-base
+The NorduGrid is a collaboration aiming at development, maintenance
+and support of the free Grid middleware, known as the Advanced
+Resource Connector (ARC).
+.
 ARC base plugins. This includes the Message Chain Components (MCCs) and
 Data Manager Components (DMCs).
 
@@ -208,6 +293,10 @@ Provides: nordugrid-arc1-plugins-globus = %{version}
 Obsoletes: nordugrid-arc1-plugins-globus < 1.0.0
 
 %description plugins-globus
+The NorduGrid is a collaboration aiming at development, maintenance
+and support of the free Grid middleware, known as the Advanced
+Resource Connector (ARC).
+.
 ARC Globus plugins. This includes the Globus dependent Data Manager
 Components (DMCs).
 
@@ -223,7 +312,14 @@ Provides: nordugrid-arc1-devel = %{version}
 Obsoletes: nordugrid-arc1-devel < 1.0.0
 
 %description devel
-Development files for ARC
+The NorduGrid is a collaboration aiming at development, maintenance
+and support of the free Grid middleware, known as the Advanced
+Resource Connector (ARC).
+.
+The ARC middleware's core functionality, the Hosting Environment
+Daemon (HED) can be extended for novel services. Considerable parts
+of a regular installation of a regular installation of the NorduGrid
+represent such modules. 
 
 %package python
 Summary: ARC Python wrapper
@@ -234,7 +330,15 @@ Provides: nordugrid-arc1-python = %{version}
 Obsoletes: nordugrid-arc1-python < 1.0.0
 
 %description python
-Python wrapper for ARC
+The NorduGrid is a collaboration aiming at development, maintenance
+and support of the free Grid middleware, known as the Advanced
+Resource Connector (ARC).
+.
+Developers with an interest to integrate the some functionality on
+a remote site via an interface compatible with ARC, may find it
+preferable to perform that remote invocation from within Python.
+While today most services in ARC are associated with computation or
+storage, there is no constraint on these applications.
 
 %if %{with_java}
 %package java
@@ -251,7 +355,15 @@ Provides: nordugrid-arc1-java = %{version}
 Obsoletes: nordugrid-arc1-java < 1.0.0
 
 %description java
-Java wrapper for ARC
+The NorduGrid is a collaboration aiming at development, maintenance
+and support of the free Grid middleware, known as the Advanced
+Resource Connector (ARC).
+.
+Developers with an interest to integrate the some functionality on
+a remote site via an interface compatible with ARC, may find it
+preferable to perform that remote invocation from within Java.
+While today most services in ARC are associated with computation or
+storage, there is no constraint on these applications.
 %endif
 
 %package janitor
@@ -286,7 +398,11 @@ BuildArch: noarch
 %endif
 
 %description doc
-ARC API docmentation
+The NorduGrid is a collaboration aiming at development, maintenance
+and support of the free Grid middleware, known as the Advanced
+Resource Connector (ARC).
+.
+Reference to the ARC programming API. It is prepared with doxygen.
 
 %prep
 %setup -q
