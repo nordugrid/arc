@@ -50,7 +50,7 @@ my $config = get_ArcConfig();
 
 =item Janitor::Installer::new($instdir)
 
-The consturctor for this class. The argument is the name of the directory in
+The constructor for this class. The argument is the name of the directory in
 which the packages will be installed.
 
 =cut

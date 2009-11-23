@@ -36,15 +36,21 @@ use constant statefiles => qw(
 
 
 ######################################################################
-# The constructor. This class has the following attributes:
-#	_jobdir		(the direcotry which is used to store information about this job)
-#	_jobregdir	(the directory which is used to store informations about all jobs)
-#	_name		(the name of the Job)
 ######################################################################
 
 =item new($name, $jobregdir)
 
-The costructor. 
+The constructor. This class has the following attributes:
+
+=over 4
+
+=item name - the name of the job
+
+=item jobregdir - the directory which is used to store informations about all jobs
+
+=back
+
+Internally set is the attribute jobdir to jobregdir/name .
 
 =cut
 

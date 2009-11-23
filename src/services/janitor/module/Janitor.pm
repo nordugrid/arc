@@ -730,7 +730,7 @@ sub deploy_for_job {
 	$rte->disconnect;
 	$job->disconnect;
 	
-	printf "XXX dies sollte niemals ausgeführt werden!!!\n";
+	printf "XXX this should not be reached (search for 6423764523) !!!\n";
 
 	$response->result(1, "");
 	return $response;
@@ -1474,7 +1474,7 @@ supported:
 
 =item catalog
 
-The location of the catalogs RDF file. Currently this must be a local file.
+The location of the catalog's RDF file. Currently this must be a local file.
 Remotely managed Catalogs must be downloaded first.
 
 =back
@@ -1518,10 +1518,11 @@ Location of the nordugrid arc.conf. If unset /etc/arc.conf is used.
 
 =over 4
 
-=item http://dre.knowarc.eu:8080
+=item http://dre.knowarc.eu
 
 =item http://www.nordugrid.org
 
 =back
 
 =cut
+

@@ -1,6 +1,6 @@
 =head1 NAME
 
-Request.pm - This class bundles the information to be passed to the method process of Janitor::Main.pm
+Request.pm - This class bundles the information to be passed to the method process of Janitor::Janitor.pm
 
 Following methods and constructors are provides by this class:
 

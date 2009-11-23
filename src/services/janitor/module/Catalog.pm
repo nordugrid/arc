@@ -269,7 +269,7 @@ sub basesystems_supporting_metapackages {
 
 =item _check_dependencies($baseid, $packageid) - internal
  
-Checks if the Dependencies of MetaPackage $package (by id) are satisfied on
+Checks if the dependencies of MetaPackage $package (by id) are satisfied on
 basesystem $baseid (by id). The method returns a tupel: The first element is true iff the
 dependencies are satisfyable, the second element is a list of packages (by id)
 which must be installed to provide the requested MetaPackage. If circles in
@@ -297,7 +297,7 @@ sub _check_dependencies {
 		}
 	}
 
-	# XXX here we need some more logic: For example DebinPackage is only
+	# XXX here we need some more logic: For example DebianPackage is only
 	# installable on Debian, etc.
 
 	# and now check the dependencies
@@ -369,10 +369,9 @@ sub _check_dependencies {
 }
 
 ######################################################################
-# Returns a tupel. The first element is true if the requestes metapackages (by
+# Returns a tupel. The first element is true if the requests metapackages (by
 # name) can be provides on the requestes basesystem (by object). The second
-# element is a 
-# list of packages to be installed to provide all requested
+# element is a  list of packages to be installed to provide all requested
 # metapackages (by name) on the specified basesystem (by object).
 #
 # XXX This function only does some minimal checking. If it is not possible or

@@ -111,8 +111,8 @@ sub gid {
 
 =item $obj->execute(@command)
 
-Executes the given command. For this it forkes a child process which exec the
-command. The parent process waits for the child to finish.
+Executes the given command. For this it forks a child process which exec
+the command. The parent process waits for the child to finish.
 Currently timeouts are not supported.
 
 This method returns a non-zero value if the execution succeeded.
@@ -401,6 +401,6 @@ The output of the command is also stored in this file.
 
 =name1 SEE ALSO
 
-Janitor.pl.1
+Janitor.8
 
 =cut

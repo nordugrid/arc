@@ -7,7 +7,7 @@ use strict;
 
 =head1 NAME
 
-Janitor::TarPackageShared - 
+Janitor::TarPackageShared - once untared file becomes RTE on shared directory
 
 =head1 SYNOPSIS
 
