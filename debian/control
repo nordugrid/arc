@@ -18,8 +18,8 @@ Architecture: any
 Depends: ${shlibs:Depends}
 Description: ARC grid middleware
  The NorduGrid is a collaboration aiming at development, maintenance
- and support of the free Grid middleware, known as the Advanced
- Resource Connector (ARC).
+ and support of the free Grid middleware, known as the Advanced Resource
+ Connector (ARC).
  .
  The Advanced Resource Connector (ARC) brings computing resources together
  across institutional boundaries. This concept is commonly referred to as 
@@ -48,8 +48,8 @@ Architecture: any
 Depends: ${shlibs:Depends}, ${python:Depends}, nordugrid-arc-nox-plugins-base
 Description: ARC prototype clients
  The NorduGrid is a collaboration aiming at development, maintenance
- and support of the free Grid middleware, known as the Advanced
- Resource Connector (ARC).
+ and support of the free Grid middleware, known as the Advanced Resource
+ Connector (ARC).
  .
  For the regular user of any ARC-based computational grid,
  this client package contains (or depends on) all packages
@@ -65,8 +65,8 @@ Depends: ${shlibs:Depends}
 Recommends: nordugrid-arc-nox-python
 Description: ARC Hosting Environment Daemon
  The NorduGrid is a collaboration aiming at development, maintenance
- and support of the free Grid middleware, known as the Advanced
- Resource Connector (ARC).
+ and support of the free Grid middleware, known as the Advanced Resource
+ Connector (ARC).
  .
  The ARC Hosting Environment Daemon (HED). This daemon presents a
  site to other participants on the grid.  An intrinsic component
@@ -82,50 +82,104 @@ Description: ARC Hosting Environment Daemon
 Package: nordugrid-arc-nox-charon
 Architecture: any
 Depends: ${shlibs:Depends}, nordugrid-arc-nox-hed
-Description: ARC charon service
- ARC charon service.
+Description: ARC CHARON service
+ The NorduGrid is a collaboration aiming at development, maintenance
+ and support of the free Grid middleware, known as the Advanced
+ Resource Connector (ARC).
+ .
+ CHARON is a remote policy decision point service.  It accepts formatted
+ policy decision request and return positive or negative response. When
+ running a CHARON (within the HED), the TLS layer can be used for
+ securing the communication, when the request or response  information
+ are critical.
 
 Package: nordugrid-arc-nox-hopi
 Architecture: any
 Depends: ${shlibs:Depends}, nordugrid-arc-nox-hed
-Description: ARC hopi service
- ARC hopi service.
+Description: ARC HOPI service
+ The NorduGrid is a collaboration aiming at development, maintenance
+ and support of the free Grid middleware, known as the Advanced Resource
+ Connector (ARC).
+ .
+ The HOPI service provides a simple implementation of an http(s)
+ server. It supports GET and PUT operations. It can be used as a simple
+ file transfer service and it is usable via common web browsers and
+ other http(s) clients (e.g. wget).
 
 Package: nordugrid-arc-nox-isis
 Architecture: any
 Depends: ${shlibs:Depends}, nordugrid-arc-nox-hed
 Description: ARC isis service
- ARC isis service.
+ The NorduGrid is a collaboration aiming at development, maintenance
+ and support of the free Grid middleware, known as the Advanced Resource
+ Connector (ARC).
+ .
+ ISIS is the new ARC information system implemented within HED. ISIS
+ comes with P2P capabilities and a web-services interface. The new system
+ grants grid participants an increase in flexibility, robustness and it
+ also offers easier configuration and self-healing capability.
 
 Package: nordugrid-arc-nox-compiler
 Architecture: any
 Depends: ${shlibs:Depends}, nordugrid-arc-nox-hed
 Description: ARC compiler service
- ARC compiler service.
+ The NorduGrid is a collaboration aiming at development, maintenance
+ and support of the free Grid middleware, known as the Advanced Resource
+ Connector (ARC).
+ .
+ The purpose of this service is to provide compilation capability on the
+ remote site utilizing its full CPU capacity for parallel compilation
+ tasks. The service presumes that the compilation task is described
+ in a usual make file. The current implementation supports GNU compilers
+ only.
 
 Package: nordugrid-arc-nox-delegation
 Architecture: any
 Depends: ${shlibs:Depends}, nordugrid-arc-nox-hed
 Description: ARC delegation service
- ARC delegation service.
+ The NorduGrid is a collaboration aiming at development, maintenance
+ and support of the free Grid middleware, known as the Advanced Resource
+ Connector (ARC).
+ .
+ The description of the delegation services is still pending.
 
 Package: nordugrid-arc-nox-paul
 Architecture: any
 Depends: ${shlibs:Depends}, nordugrid-arc-nox-hed
 Description: ARC paul service
- ARC paul service.
+ The NorduGrid is a collaboration aiming at development, maintenance
+ and support of the free Grid middleware, known as the Advanced Resource
+ Connector (ARC).
+ .
+ The Paul is a pull-based execution service for computing resources. In
+ these case the computing resource can be single SMP computer. The Paul
+ uses the iBES protocol to communicate with Scheduler services or any
+ other service which implements iBES. The Paul can interact with multiple
+ Scheduler and can controll multiple job in one time. Paul can be used
+ to run on desktops (MS Windows as well) to form a 'desktop' grid.
 
 Package: nordugrid-arc-nox-saml2sp
 Architecture: any
 Depends: ${shlibs:Depends}, nordugrid-arc-nox-hed
 Description: ARC saml2sp service
- ARC saml2sp service.
+ The NorduGrid is a collaboration aiming at development, maintenance
+ and support of the free Grid middleware, known as the Advanced Resource
+ Connector (ARC).
+ .
+ Service Provider is a utility service which is supposed to work together
+ with external Identity Provider and user agent (client) to accomplish
+ the "SAML2.0 Web SSO Profile" which requires client to provider
+ "username/password" instead of X.509 certificate for authentication.
 
 Package: nordugrid-arc-nox-slcs
 Architecture: any
 Depends: ${shlibs:Depends}, nordugrid-arc-nox-hed
 Description: ARC slcs service
- ARC slcs service.
+ The NorduGrid is a collaboration aiming at development, maintenance
+ and support of the free Grid middleware, known as the Advanced Resource
+ Connector (ARC).
+ .
+ ARC Short-lived credential service.
 
 Package: nordugrid-arc-nox-arex
 Provides: nordugrid-arc1-arex
