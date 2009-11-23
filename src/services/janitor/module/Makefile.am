@@ -43,6 +43,6 @@ Janitor\:\:TarPackageShared.$(JanitorPerlModuleManSection): TarPackageShared.pm
 Janitor\:\:Util.$(JanitorPerlModuleManSection): Util.pm
 	pod2man $< > $@
 
-MANPAGES=JanitorPerlModuleManSection=3arc Janitor\:\:Janitor.$(JanitorPerlModuleManSection) Janitor\:\:Catalog.$(JanitorPerlModuleManSection) Janitor\:\:Common.$(JanitorPerlModuleManSection) Janitor\:\:Execute.$(JanitorPerlModuleManSection) Janitor\:\:Filefetcher.$(JanitorPerlModuleManSection) Janitor\:\:Installer.$(JanitorPerlModuleManSection) Janitor\:\:InstallLogger.$(JanitorPerlModuleManSection) Janitor\:\:Job.$(JanitorPerlModuleManSection) Janitor\:\:Request.$(JanitorPerlModuleManSection) Janitor\:\:Response.$(JanitorPerlModuleManSection) Janitor\:\:TarPackageShared.$(JanitorPerlModuleManSection) Janitor\:\:Util.$(JanitorPerlModuleManSection)
+man_MANS=JanitorPerlModuleManSection=3arc Janitor\:\:Janitor.$(JanitorPerlModuleManSection) Janitor\:\:Catalog.$(JanitorPerlModuleManSection) Janitor\:\:Common.$(JanitorPerlModuleManSection) Janitor\:\:Execute.$(JanitorPerlModuleManSection) Janitor\:\:Filefetcher.$(JanitorPerlModuleManSection) Janitor\:\:Installer.$(JanitorPerlModuleManSection) Janitor\:\:InstallLogger.$(JanitorPerlModuleManSection) Janitor\:\:Job.$(JanitorPerlModuleManSection) Janitor\:\:Request.$(JanitorPerlModuleManSection) Janitor\:\:Response.$(JanitorPerlModuleManSection) Janitor\:\:TarPackageShared.$(JanitorPerlModuleManSection) Janitor\:\:Util.$(JanitorPerlModuleManSection)
 
 SUBDIRS = Catalog
