@@ -71,7 +71,7 @@ sub debconf {
 
 =item 
 
-FIXME: Daniel, it this the URL from the debian/control?
+The URL at which to find the .deb file
 
 =cut
 

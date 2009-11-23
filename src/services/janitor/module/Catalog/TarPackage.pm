@@ -13,15 +13,30 @@ use Janitor::Catalog::TarPackage;
 
 =head1 DESCRIPTION
 
-This class is a decendant of Janitor::Catalog::Package. Below only the additional
+This class is a descendant of Janitor::Catalog::Package. Below only the additional
 methods are listed.
 
 =cut
 
 ######################################################################
-# The constructor.  This class has the following attributes:
-#	_url 	(a string describing where to get the tar file)	
 ######################################################################
+
+=over 4
+
+=item The constructor
+
+This class has the following attributes:
+
+=over 8
+
+=item url - a string describing where to get the tar file
+
+=back
+
+=back
+
+=cut
+
 sub new {
 	return bless {}, shift;
 }

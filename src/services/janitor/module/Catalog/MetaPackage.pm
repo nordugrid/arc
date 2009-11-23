@@ -13,7 +13,7 @@ use Janitor::Catalog::MetaPackage;
 =head1 DESCRIPTION
 
 MetaPackages represent the Runtime Environments (REs) in the traditional
-sense. The Packages are means to implement the RE, but not to be mistaken
+sense of ARC. The Packages are means to implement the RE, but not to be mistaken
 for the REs themselves. The availability of Base Systems on which the
 packages depend, render it obvious that there must be alternatives in packages
 to chose from to fulfill the requirements of a MetaPackage.
@@ -24,7 +24,25 @@ to chose from to fulfill the requirements of a MetaPackage.
 
 =item new()
 
-The Constructor.
+The Constructor. Set are
+
+=over 4
+
+=item id - unique identifier of the MetaPackage
+
+=item name - human-interpretable name
+
+=item homepage - web location at which to find further details
+
+=item description - longer text explaining the functionality of the package
+
+=item lastupdate - date of last change
+
+=item immutable - internal indicator if the information may be amended
+
+=item tag - reference to array of tags
+
+=back
 
 =cut
 

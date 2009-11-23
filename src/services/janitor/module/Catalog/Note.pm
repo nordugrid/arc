@@ -23,16 +23,24 @@ This class is used to store the informations about one Note.
 =cut
 
 ######################################################################
-# The constructor. This class has the following attributes:
-#	_description	(the Description of the Note)
-#	_id		(the RDF ID)
-#	_immutable	(if true the objects can not be changed anymore)
-#	_name		(the name of the Note)
 ######################################################################
 
 =item new()
 
 The constructor.  Creates a new, empty object.
+This class has the following attributes:
+
+=over 4
+
+=item description	- the Description of the Note)
+
+=item id		- the RDF ID)
+
+=item immutable	- if true the objects can not be changed anymore)
+
+=item name		- the name of the Note)
+
+=back
 
 =cut
 

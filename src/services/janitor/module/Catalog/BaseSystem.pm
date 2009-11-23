@@ -34,16 +34,23 @@ a particular package to fulfill the requirements of a Runtime Environment.
 =cut
 
 ######################################################################
-# The constructor. This class has the following additional attributes:
-#	_lastupdate	(the time of the last update)
-#	_distribution	(the kind of distribution (Debian, SLC, ...)j
-#	_url		(where to find an image of this bs)
-#	_short_description	(a human friendly short name of the basesystem)
 ######################################################################
 
 =item new()
 
 The constructor.  It creates a new, still empty object of this class.
+
+This class has the following additional attributes:
+
+=over 4
+
+=item lastupdate	- the time of the last update
+
+=item distribution	- the kind of distribution (Debian, SLC, ...)j
+
+=item url		- where to find an image of this basesystem
+
+=item short_description	- a human friendly short name of the basesystem
 
 =cut
 

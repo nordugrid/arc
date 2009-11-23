@@ -6,7 +6,7 @@ use strict;
 
 =head1 NAME
 
-Janitor::Catalog::MetaPackageCollection - A Collection of all MetaPackagesread.
+Janitor::Catalog::MetaPackageCollection - A Collection of all MetaPackages read.
 
 =head1 SYNOPSIS
 
