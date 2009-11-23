@@ -205,10 +205,10 @@ else {
 	open  RUNTIME,">$tmpdir/control/runtime"
 		or quitMe(1,"Could not create runtime config file");
 	print RUNTIME "#!/bin/sh\n";
-	my $bindir=$readyDir;
-	$bindir="$readyDir/bin" if -d "$readyDir/bin";
-	my $libdir=$readyDir;
-	$bindir="$readyDir/lib" if -d "$readyDir/lib";
+	my $bindir="%BASEDIR%";
+	$bindir="%BASEDIR%/bin" if -d "$readyDir/bin";
+	my $libdir="%BASEDIR%";
+	$bindir="%BASEDIR%/lib" if -d "$readyDir/lib";
 	print RUNTIME <<EOSCRIPT;
 if [ -n "\$LD_LIBRARY_PATH" ]; then
 	export LD_LIBRARY_PATH=$libdir:\$LD_LIBRARY_PATH
