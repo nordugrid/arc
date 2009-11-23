@@ -218,8 +218,6 @@ namespace Arc {
   bool JobController::Get(const std::list<std::string>& status,
                           const std::string& downloaddir,
                           const bool keep) {
-
-    logger.msg(VERBOSE, "Getting %s jobs", flavour);
     std::list<URL> toberemoved;
 
     GetJobInformation();
@@ -281,8 +279,6 @@ namespace Arc {
 
   bool JobController::Kill(const std::list<std::string>& status,
                            const bool keep) {
-
-    logger.msg(VERBOSE, "Killing %s jobs", flavour);
     std::list<URL> toberemoved;
 
     GetJobInformation();
@@ -343,8 +339,6 @@ namespace Arc {
 
   bool JobController::Clean(const std::list<std::string>& status,
                             const bool force) {
-
-    logger.msg(VERBOSE, "Cleaning %s jobs", flavour);
     std::list<URL> toberemoved;
 
     GetJobInformation();
@@ -405,8 +399,6 @@ namespace Arc {
   bool JobController::Cat(const std::list<std::string>& status,
                           const std::string& whichfile) {
 
-    logger.msg(VERBOSE, "Performing the 'cat' command on %s jobs", flavour);
-
     if (whichfile != "stdout" && whichfile != "stderr" && whichfile != "gmlog") {
       logger.msg(ERROR, "Unknown output %s", whichfile);
       return false;
@@ -429,17 +421,16 @@ namespace Arc {
           std::find(status.begin(), status.end(), it->State.GetGeneralState()) == status.end())
         continue;
 
-      if (whichfile == "stdout" || whichfile == "stderr" || whichfile == "gmlog") {
-        if (it->State == JobState::DELETED) {
-          logger.msg(WARNING, "Job has already been deleted: %s", it->JobID.str());
-          continue;
-        }
-        if (!it->State.IsFinished() &&
-            it->State != JobState::RUNNING &&
-            it->State != JobState::FINISHING) {
-          logger.msg(WARNING, "Job has not started yet: %s", it->JobID.str());
-          continue;
-        }
+      if (it->State == JobState::DELETED) {
+        logger.msg(WARNING, "Job deleted: %s", it->JobID.str());
+        continue;
+      }
+
+      if (!it->State.IsFinished() &&
+          it->State != JobState::RUNNING &&
+          it->State != JobState::FINISHING) {
+        logger.msg(WARNING, "Job has not started yet: %s", it->JobID.str());
+        continue;
       }
 
       if (whichfile == "stdout" && it->StdOut.empty() ||
@@ -459,7 +450,8 @@ namespace Arc {
       std::string filename = Glib::build_filename(Glib::get_tmp_dir(), "arccat.XXXXXX");
       int tmp_h = Glib::mkstemp(filename);
       if (tmp_h == -1) {
-        logger.msg(ERROR, "Could not create temporary file \"%s\"", filename);
+        logger.msg(INFO, "Could not create temporary file \"%s\"", filename);
+        logger.msg(ERROR, "Cannot output %s for job (%s)", whichfile, (*it)->JobID.str());
         ok = false;
         continue;
       }
@@ -469,13 +461,13 @@ namespace Arc {
 
       URL src = GetFileUrlForJob((**it), whichfile);
       if (!src) {
-        logger.msg(ERROR, "Cannot output %s for job (%s), non-valid source URL (%s)", whichfile, (*it)->JobID.str(), src.str());
+        logger.msg(ERROR, "Cannot output %s for job (%s): Invalid source %s", whichfile, (*it)->JobID.str(), src.str());
         continue;
       }
 
       URL dst(filename);
       if (!dst) {
-        logger.msg(ERROR, "Cannot output %s for job (%s), non-valid destination URL (%s)", whichfile, (*it)->JobID.str(), dst.str());
+        logger.msg(ERROR, "Cannot output %s for job (%s): Invalid destination %s", whichfile, (*it)->JobID.str(), dst.str());
         continue;
       }
 
@@ -535,7 +527,7 @@ namespace Arc {
     GetJobInformation();
     for (std::list<Job>::iterator itJob = jobstore.begin(); itJob != jobstore.end(); itJob++) {
       if (itJob->State != JobState::QUEUING) {
-        logger.msg(WARNING, "Cannot migrate job %s, it is not queuing in the batch system.", itJob->JobID.str());
+        logger.msg(WARNING, "Cannot migrate job %s, it is not queuing.", itJob->JobID.str());
         continue;
       }
 
@@ -656,7 +648,7 @@ namespace Arc {
 
     DataHandle handle(dir, usercfg);
     if (!handle) {
-      logger.msg(INFO, "Failed to get handle on directory: %s", dir.str());
+      logger.msg(INFO, "Unable to list files at %s", dir.str());
       return files;
     }
     handle->ListFiles(outputfiles, true, false, false);
@@ -702,13 +694,13 @@ namespace Arc {
 
     DataHandle source(src, usercfg);
     if (!source) {
-      logger.msg(ERROR, "Failed to get DataHandle on source: %s", src.str());
+      logger.msg(ERROR, "Unable to initialise connection to source: %s", src.str());
       return false;
     }
 
     DataHandle destination(dst, usercfg);
     if (!destination) {
-      logger.msg(ERROR, "Failed to get DataHandle on destination: %s",
+      logger.msg(ERROR, "Unable to initialise connection to destination: %s",
                  dst.str());
       return false;
     }
@@ -742,12 +734,11 @@ namespace Arc {
       XMLNodeList xmljobs = jobstorage.XPathLookup("//Job[JobID='" + it->str() + "']", NS());
 
       if (xmljobs.empty())
-        logger.msg(ERROR, "Job %s has been deleted (i.e. was in job store), "
-                   "but is not listed in job list", it->str());
+        logger.msg(ERROR, "Job %s not found in job list.", it->str());
       else {
         XMLNode& xmljob = *xmljobs.begin();
         if (xmljob) {
-          logger.msg(VERBOSE, "Removing job %s from job list file", it->str());
+          logger.msg(INFO, "Removing job %s from job list file", it->str());
           xmljob.Destroy();
         }
       }
@@ -773,7 +764,6 @@ namespace Arc {
   std::list<Job> JobController::GetJobDescriptions(const std::list<std::string>& status,
                                                    const bool getlocal) {
 
-    logger.msg(VERBOSE, "Getting %s jobs", flavour);
     GetJobInformation();
 
     // Only selected jobs with specified status
@@ -793,7 +783,7 @@ namespace Arc {
 
     //First try to get descriptions from local job file
     if (getlocal) {
-      logger.msg(INFO, "Getting job decriptions from local job file");
+      logger.msg(VERBOSE, "Getting job decriptions from local job file");
       CheckLocalDescription(gettable);
     }
     else
@@ -807,11 +797,11 @@ namespace Arc {
         continue;
       }
       if (GetJobDescription(*it, it->JobDescription)) {
-        logger.msg(INFO, "Got job description for %s", it->JobID.str());
+        logger.msg(VERBOSE, "Got job description for %s", it->JobID.str());
         it++;
       }
       else {
-        logger.msg(WARNING, "Failed getting job description for %s", it->JobID.str());
+        logger.msg(INFO, "Failed getting job description for %s", it->JobID.str());
         it = gettable.erase(it);
       }
     }
@@ -827,7 +817,7 @@ namespace Arc {
         jobstorage.XPathLookup("//Job[JobID='" + it->JobID.str() + "']", NS());
 
       if (xmljobs.empty()) {
-        logger.msg(ERROR, "Job not found in job list: %s", it->JobID.str());
+        logger.msg(INFO, "Job not found in job list: %s", it->JobID.str());
         it++;
         continue;
       }
@@ -841,7 +831,7 @@ namespace Arc {
         if (jobdesc)
           logger.msg(VERBOSE, "Valid jobdescription found for: %s", it->JobID.str());
         else {
-          logger.msg(WARNING, "No valid jobdescription found for: %s", it->JobID.str());
+          logger.msg(INFO, "Invalid jobdescription found for: %s", it->JobID.str());
           it++;
           continue;
         }
@@ -872,7 +862,7 @@ namespace Arc {
         }
       }
       else {
-        logger.msg(WARNING, "Job description for %s could not be retrieved locally", it->JobID.str());
+        logger.msg(INFO, "Job description for %s could not be retrieved locally", it->JobID.str());
         it++;
       }
     } //end loop over jobs
