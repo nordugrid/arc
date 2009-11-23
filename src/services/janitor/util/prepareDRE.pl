@@ -17,6 +17,8 @@ my $category;
 my $homepage;
 my $description;
 my $basesystem;
+my $catalog;
+my $verbose;
 
 GetOptions(
 	"dir:s"=>\$readyDir,
@@ -28,7 +30,9 @@ GetOptions(
 	"homepage"=>\$homepage,
 	"description"=>\$description,
 	"basesystem"=>\$basesystem,
-	"help"=>\$help
+	"catalog:s"=>\$catalog,
+	"help"=>\$help,
+	"verbose"=>\$verbose
 ) or die "Could not parse options: $@\n";
 
 =head1 NAME
@@ -107,6 +111,10 @@ a verbose description of the runtime environment, to appear in the catalog enry 
 =item --basesystem I<string>
 
 indication of the base system that the particular runtime environment is known to be compatible with, defaults to the RDF ID for Debian Etch, &kb;knowarc_Instance_0.
+
+=item --catalog I<string>
+
+If set, a file that may act as a catalog only for the just prepared runtime environment is prepared.
 
 =back
 
@@ -197,44 +205,59 @@ else {
 	open  RUNTIME,">$tmpdir/control/runtime"
 		or quitMe(1,"Could not create runtime config file");
 	print RUNTIME "#!/bin/sh\n";
-	print RUNTIME "# Nothing to do.\n";
+	my $bindir=$readyDir;
+	$bindir="$readyDir/bin" if -d "$readyDir/bin";
+	my $libdir=$readyDir;
+	$bindir="$readyDir/lib" if -d "$readyDir/lib";
+	print RUNTIME <<EOSCRIPT;
+if [ -n "\$LD_LIBRARY_PATH" ]; then
+	export LD_LIBRARY_PATH=$libdir:\$LD_LIBRARY_PATH
+else
+	export LD_LIBRARY_PATH=$libdir
+fi
+if [ -n "\$PATH" ]; then
+	export PATH=$bindir:\$PATH
+else
+	export PATH=$bindir
+fi
+EOSCRIPT
 	close(RUNTIME);
 }
 
 my $command="tar -C '$tmpdir' -czvf '$re' data control";
 system($command) and quitMe(1,"An error occurred while executing '$command'\n");
 
-print STDERR "Preparation of dynamic Runtime Environment was successful.\n";
+if (defined($catalog) and "" ne "$catalog") {
 
+	open CATALOG, ">$catalog" or quitMe(1,"Could not create catalog file at '$catalog'.");
 
-my $REid=$re;
-$REid=~ s/[. \t\n]//g; # delete some characters that seem unappropriate
+	my $REid=$re;
+	$REid=~ s/[. \t\n]//g; # delete some characters that seem unappropriate
 
-my $REname=basename($re);
-$REname = uc($REname);
+	my $REname=basename($re);
+	$REname = uc($REname);
 
-my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime time;
-$mon++;
-$year+=1900;
+	my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime time;
+	$mon++;
+	$year+=1900;
 
-if (!defined($category) or "" eq "$homepage") {
-	$category = "APPS/OTHER";
-}
+	if (!defined($category) or "" eq "$homepage") {
+		$category = "APPS/OTHER";
+	}
 
-if (!defined($homepage) or "" eq "$homepage") {
-	$homepage = "http://www.nordugrid.org";
-}
+	if (!defined($homepage) or "" eq "$homepage") {
+		$homepage = "http://www.nordugrid.org";
+	}
 
-if (!defined($description) or "" eq "$description") {
-	$description="no description available";
-}
+	if (!defined($description) or "" eq "$description") {
+		$description="no description available";
+	}
 
-if (!defined($basesystem) or "" eq "$basesystem") {
-	$basesystem="&kb;knowarc_Instance_0";
-}
+	if (!defined($basesystem) or "" eq "$basesystem") {
+		$basesystem="&kb;knowarc_Instance_0";
+	}
 
-print <<EOCATENTRY;
-
+	print CATALOG <<EOCATENTRY;
 <?xml version='1.0' encoding='UTF-8'?>
 <!DOCTYPE rdf:RDF [
          <!ENTITY rdf 'http://www.w3.org/1999/02/22-rdf-syntax-ns#'>
@@ -263,5 +286,6 @@ print <<EOCATENTRY;
 
 EOCATENTRY
 
-
+	print STDERR "Preparation of dynamic Runtime Environment was successful.\n" if $verbose;
+}
 1;

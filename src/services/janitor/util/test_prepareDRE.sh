@@ -16,7 +16,7 @@ echo Welcome $* to dynamic runtime environments
 EOAPPLICATION
 
 if [ -r re-simple.tar.gz ] ; then rm re-simple.tar.gz; fi
-./prepareDRE.pl --re re-simple.tar.gz --dir "$d"
+./prepareDRE.pl --re re-simple.tar.gz --catalog catalog-simple.rdf --dir "$d"
 
 # cleaning up
 if [ -n "$d" ]; then rm -r "$d"; fi
