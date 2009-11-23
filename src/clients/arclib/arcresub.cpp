@@ -188,9 +188,14 @@ int main(int argc, char **argv) {
     return 1;
   }
 
-  // Preventing resubmitted jobs to be send to old clusters
-  if (same)
+  if (same) {
     qlusters.clear();
+    usercfg2.ClearSelectedServices();
+  }
+  else if (!qlusters.empty() || !indexurls.empty())
+    usercfg2.ClearSelectedServices();
+
+  // Preventing resubmitted jobs to be send to old clusters
   for (std::list<Arc::Job>::iterator it = toberesubmitted.begin();
        it != toberesubmitted.end(); it++)
     if (same) {
@@ -205,8 +210,12 @@ int main(int argc, char **argv) {
   qlusters.sort();
   qlusters.unique();
 
+  usercfg2.AddServices(qlusters, Arc::COMPUTING);
+  if (!same && !indexurls.empty())
+    usercfg2.AddServices(indexurls, Arc::INDEX);
+
   // Resubmitting jobs
-  Arc::TargetGenerator targen(usercfg);
+  Arc::TargetGenerator targen(usercfg2);
   targen.GetTargets(0, 1);
 
   if (targen.FoundTargets().empty()) {
@@ -215,12 +224,12 @@ int main(int argc, char **argv) {
   }
 
   Arc::BrokerLoader loader;
-  Arc::Broker *ChosenBroker = loader.load(usercfg.Broker().first, usercfg);
+  Arc::Broker *ChosenBroker = loader.load(usercfg.Broker().first, usercfg2);
   if (!ChosenBroker) {
-    logger.msg(Arc::ERROR, "Unable to load broker %s", usercfg.Broker().first);
+    logger.msg(Arc::ERROR, "Unable to load broker %s", usercfg2.Broker().first);
     return 1;
   }
-  logger.msg(Arc::INFO, "Broker %s loaded", usercfg.Broker().first);
+  logger.msg(Arc::INFO, "Broker %s loaded", usercfg2.Broker().first);
 
   // Loop over jobs
   for (std::list<Arc::Job>::iterator it = toberesubmitted.begin();
@@ -238,7 +247,7 @@ int main(int argc, char **argv) {
         break;
       }
 
-      Arc::Submitter *submitter = target->GetSubmitter(usercfg);
+      Arc::Submitter *submitter = target->GetSubmitter(usercfg2);
 
       //submit the job
       Arc::URL jobid = submitter->Submit(jobdesc, *target);

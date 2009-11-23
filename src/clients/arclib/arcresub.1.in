@@ -58,8 +58,8 @@ jobid or job name of jobs to be resubmitted
 The
 .B arcresub
 command is used for resubmitting jobs on grid enabled computing
-resources to the same or new resources. The job can be referred to
-either by the jobid that was returned by
+resources to the same (not default, see below) or new resources.
+The job can be referred to either by the jobid that was returned by
 .BR arcsub (1)
 at submission time or by its jobname if the job description that was
 submitted contained a jobname attribute.
@@ -112,10 +112,14 @@ option to the command. See
 .BR arcsub (1)
 for a discussion of the format of arguments to this option.
 
-The
+The default behaviour of
+.BR arcresub
+is to disregard the cluster which job(s) resides on. If the desired
+behaviour is to resubmit to the same cluster it can be obtained by
+specifying the
 .B --same
-option can be used to force jobs to be resubmitted to the same cluster
-as where they were initial run.
+option which will force jobs to be resubmitted to the same cluster
+as where they initial run.
 If the old job was successfully killed the job will be removed from the
 remote cluster unless the
 .B --keep
