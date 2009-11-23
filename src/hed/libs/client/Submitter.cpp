@@ -113,7 +113,7 @@ namespace Arc {
     jobstorage.SaveToFile(usercfg.JobListFile());
   }
 
-  std::string Submitter::GetCksum(const std::string& file) const {
+  std::string Submitter::GetCksum(const std::string& file, const UserConfig& usercfg) {
     DataHandle source(file, usercfg);
     DataBuffer buffer;
 

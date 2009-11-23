@@ -120,9 +120,9 @@ int clean_files(std::list<FileData> &job_files,char* session_dir) {
 
 /*
    Check for existence of user uploadable file
-   returns 0 if file exists 
+   returns 0 if file exists
            1 - it is not proper file or other error
-           2 - not here yet 
+           2 - not here yet
 */
 int user_file_exists(FileData &dt,char* session_dir,std::string* error = NULL) {
   struct stat st;
@@ -202,7 +202,7 @@ int user_file_exists(FileData &dt,char* session_dir,std::string* error = NULL) {
     close(h);
     crc.end();
     if(fsum != crc.crc()) {
-      if(have_size) { /* size was checked - it is an error to have wrong crc */ 
+      if(have_size) { /* size was checked - it is an error to have wrong crc */
         logger.msg(Arc::ERROR, "File %s has wrong CRC.", dt.pfn);
         if(error) (*error)="Delivered file has wrong checksum.";
         return 1;
@@ -221,7 +221,7 @@ class PointPair {
   Arc::DataHandle source;
   Arc::DataHandle destination;
   PointPair(const std::string& source_str, const std::string& destination_str,
-	    const Arc::UserConfig& usercfg)
+      const Arc::UserConfig& usercfg)
     : source_url(source_str),
       destination_url(destination_str),
       source(source_url, usercfg),
@@ -420,7 +420,7 @@ int main(int argc,char** argv) {
   JobUser user(uid);
   user.SetControlDir(control_dir);
   user.SetSessionRoot(session_dir);
-  
+
   // if u or U option not set, use our username
   if (file_owner_username == "") {
     struct passwd pw_;
@@ -493,7 +493,7 @@ int main(int argc,char** argv) {
   }
 
   Janitor janitor(desc.get_id(),user.ControlDir());
-  
+
   Arc::UserConfig usercfg(Arc::initializeCredentialsType(Arc::initializeCredentialsType::TryCredentials));
 
   Arc::DataMover mover;
@@ -543,9 +543,9 @@ int main(int argc,char** argv) {
   }
   else
     logger.msg(Arc::WARNING, "Can't read list of output files");
-      
+
   // remove bad files
-  if(clean_files(job_files_,session_dir) != 0) { 
+  if(clean_files(job_files_,session_dir) != 0) {
     failure_reason+="Internal error in downloader\n";
     logger.msg(Arc::ERROR, "Can't remove junk files"); res=1; goto exit;
   };
@@ -754,7 +754,9 @@ int main(int argc,char** argv) {
         job.JobID = Arc::URL(desc.get_local()->migrateactivityid);
         job.Cluster = Arc::URL(desc.get_local()->migrateactivityid.substr(0, found));
 
-        Arc::UserConfig usercfg(true);
+        Arc::UserConfig usercfg(job.Cluster.Protocol() == "https" ?
+                                initializeCredentialsType() :
+                                initializeCredentialsType(initializeCredentialsType::SkipCredentials));
 
         Arc::JobControllerLoader loader;
         Arc::JobController *jobctrl = loader.load("ARC1", usercfg);
@@ -763,7 +765,7 @@ int main(int argc,char** argv) {
 
           std::list<std::string> status;
           status.push_back("Queuing");
-          
+
           if (!jobctrl->Kill(status, true) && !desc.get_local()->forcemigration) {
             res = 1;
             failure_reason = "FATAL ERROR: Migration failed attempting to kill old job \"" + desc.get_local()->migrateactivityid + "\".";
@@ -779,7 +781,7 @@ int main(int argc,char** argv) {
 
 exit:
   logger.msg(Arc::INFO, "Leaving downloader (%i)", res);
-  // clean unfinished files here 
+  // clean unfinished files here
   job_files_.clear();
   for(FileDataEx::iterator i = job_files.begin();i!=job_files.end();++i) job_files_.push_back(*i);
   clean_files(job_files_,session_dir);

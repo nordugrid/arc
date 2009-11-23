@@ -842,7 +842,7 @@ namespace Arc {
         for (int i = 0; i < size; i++) {
           const std::string file = (std::string)xmljob["LocalInputFiles"]["File"][i]["Source"];
           const std::string cksum_old = (std::string)xmljob["LocalInputFiles"]["File"][i]["CheckSum"];
-          const std::string cksum_new; // = Submitter::GetCksum(file);
+          const std::string cksum_new = Submitter::GetCksum(file, usercfg);
           if (cksum_old != cksum_new) {
             logger.msg(WARNING, "Checksum of input file %s has changed.", file);
             CKSUM = false;

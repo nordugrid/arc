@@ -62,7 +62,8 @@ namespace Arc {
 
     virtual bool ModifyJobDescription(JobDescription& jobdesc,
                                       const ExecutionTarget& et) const = 0;
-    std::string GetCksum(const std::string& file) const;
+    std::string GetCksum(const std::string& file) const { return GetCksum(file, usercfg); }
+    static std::string GetCksum(const std::string& file, const UserConfig& usercfg);
   protected:
     bool PutFiles(const JobDescription& jobdesc, const URL& url) const;
     void AddJob(const JobDescription& job,
