@@ -284,7 +284,7 @@ The number trailing RE name (here 0000) is the available disk space in MegaBytes
 	<kb:package>make</kb:package>
 </kb:DebianPackage>
 <kb:MetaPackage rdf:about="&kb;knowarc_Instance_38"
-	 kb:description="Geman language environment"
+	 kb:description="German language environment"
 	 kb:name="ENV/LANGUAGE/GERMAN"
 	 rdfs:label="ENV/LANGUAGE/GERMAN">
 	<kb:instance rdf:resource="&kb;knowarc_Instance_39"/>
