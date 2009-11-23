@@ -78,7 +78,7 @@ describes the available tags for Janitor's configuration.
 	   uid             & "root"                                & The effective uid. \\
 	   gid             & "0"                                   & The effective gid. \\
 	   registrationdir & "/var/spool/nordugrid/janitor"        & Directory where we the current states of jobs are kept. \\
-	   catalog         & "/var/spool/nordugrid/janitor/catalog/knowarc.rdf"& URL of the catalog containg the package information.\\
+	   catalog         & "/var/spool/nordugrid/janitor/catalog/knowarc.rdf"& URL of the catalog containing the package information.\\
 	   downloaddir     & "/var/spool/nordugrid/janitor/download" & Directory for downloads \\
 	   installationdir & "/var/spool/nordugrid/janitor/runtime"& Directory for installation of packages                   \\
 	   jobexpirytime   & "7200"                                & If a job is older than this, it is considered dead and assigned to be removal pending.\\
@@ -93,6 +93,12 @@ describes the available tags for Janitor's configuration.
    \end{center}
 \end{table}
 \end{landscape}
+
+It should be noted that the downloaddir or the installationdir specified
+in arc.conf could be any directory. Those will not be prepared by the
+package for the Linux distribution but need be created by the administrator
+manually after the Janitor has been installed. This also holds for the
+catalog.
 
 The parameter \texttt{enable} specifies whether the Janitor shall be used
 within A-REX or not. Use the value \texttt{"0"} to disable Janitor. The
