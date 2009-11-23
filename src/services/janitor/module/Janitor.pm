@@ -2,38 +2,13 @@ package Janitor::Janitor;
 
 =head1 NAME
 
-Janitor::Janitor - Perl extension for blah blah blah
+Janitor.pm - This file encapsulates the functionality of the Runtime Environment maintenance.
 
 =head1 SYNOPSIS
 
   use Janitor::Janitor;
-  blah blah blah
 
 =head1 DESCRIPTION
-
-Stub documentation for Janitor::Janitor, created by h2xs. It looks like the
-author of the extension was negligent enough to leave the stub
-unedited.
-
-Blah blah blah.
-
-=head2 EXPORT
-
-None by default.
-
-
-
-=head1 SEE ALSO
-
-Mention other useful documentation such as the documentation of
-related modules or operating system documentation (such as man pages
-in UNIX), or any relevant external documentation such as RFCs or
-standards.
-
-
-=head1 NAME
-
-Main.pm - This file encapsulates the functionality of the Runtime Environment maintenance.
 
 The most importants methods are:
 
