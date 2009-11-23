@@ -325,7 +325,7 @@ static void grid_manager(void* arg) {
 //#//      };
 //#    }
 //#    else {
-      logger.msg(Arc::DEBUG,"Timer kicking");
+      logger.msg(Arc::DEBUG,"Waking up");
 //#    };
   };
   return;
