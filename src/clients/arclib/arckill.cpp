@@ -127,11 +127,14 @@ int main(int argc, char **argv) {
   // If the user specified a joblist on the command line joblist equals
   // usercfg.JobListFile(). If not use the default, ie. usercfg.JobListFile().
   Arc::JobSupervisor jobmaster(usercfg, jobs);
-
+  if (!jobmaster.JobsFound()) {
+    std::cout << "No jobs found" << std::endl;
+    return 0;
+  }
   std::list<Arc::JobController*> jobcont = jobmaster.GetJobControllers();
 
   if (jobcont.empty()) {
-    logger.msg(Arc::ERROR, "No job controllers loaded");
+    logger.msg(Arc::ERROR, "No job controller plugins loaded");
     return 1;
   }
 

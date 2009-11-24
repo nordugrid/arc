@@ -16,12 +16,12 @@ namespace Arc {
 
   /// %JobSupervisor for loading JobControllers
   /**
-   * The JobSupervisor loads JobControllers for managing Grid jobs. 
+   * The JobSupervisor loads JobControllers for managing Grid jobs.
    **/
   class JobSupervisor {
   public:
 
-    
+
     JobSupervisor(const UserConfig& usercfg,
                   const std::list<std::string>& jobs);
 
@@ -31,9 +31,12 @@ namespace Arc {
       return loader.GetJobControllers();
     }
 
+    bool JobsFound() const { return jobsFound; }
+
   private:
     static Logger logger;
     JobControllerLoader loader;
+    bool jobsFound;
   };
 
 } //namespace ARC

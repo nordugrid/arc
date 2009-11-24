@@ -22,7 +22,8 @@ namespace Arc {
   Logger JobSupervisor::logger(Logger::getRootLogger(), "JobSupervisor");
 
   JobSupervisor::JobSupervisor(const UserConfig& usercfg,
-                               const std::list<std::string>& jobs) {
+                               const std::list<std::string>& jobs)
+    : jobsFound(false) {
     URLListMap jobids;
 
     Config jobstorage;
@@ -54,6 +55,8 @@ namespace Arc {
           logger.msg(WARNING, "Job not found in job list: %s", *it);
           continue;
         }
+        else
+          jobsFound = true;
 
         for (XMLNodeList::iterator xit = xmljobs.begin();
              xit != xmljobs.end(); xit++) {
@@ -76,13 +79,23 @@ namespace Arc {
                  "specified clusters");
 
       for (URLListMap::const_iterator it = usercfg.GetSelectedServices(COMPUTING).begin();
-           it != usercfg.GetSelectedServices(COMPUTING).end(); it++)
+           it != usercfg.GetSelectedServices(COMPUTING).end(); it++) {
         if (std::find(controllers.begin(), controllers.end(),
                       it->first) == controllers.end()) {
+          std::list<URL>::const_iterator itCluster = it->second.begin();
+          for (; itCluster != it->second.end(); itCluster++)
+            if (jobstorage.XPathLookup("//Job[Cluster='" + itCluster->str() + "']", NS()).size() > 0)
+              break;
+
+          if (itCluster == it->second.end()) // No jobs found at the specified cluster.
+            break;
+
+          jobsFound = true;
           logger.msg(VERBOSE, "Need job controller for grid flavour %s",
                      it->first);
           controllers.push_back(it->first);
         }
+      }
     }
 
     if (jobs.empty() && usercfg.GetSelectedServices(COMPUTING).empty()) {
@@ -92,10 +105,10 @@ namespace Arc {
 
       XMLNodeList xmljobs = jobstorage.Path("Job");
 
-      if (xmljobs.empty()) {
-        logger.msg(INFO, "No jobs to handle");
+      if (xmljobs.empty())
         return;
-      }
+
+      jobsFound = true;
 
       for (XMLNodeList::iterator it = xmljobs.begin();
            it != xmljobs.end(); it++)
