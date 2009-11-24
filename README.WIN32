@@ -211,7 +211,7 @@ certificate and the CA certificates diretory)
 
     arcsub -d VERBOSE -f C:\testjob.jsdl -z "C:\Documents and Settings\<username>\Application Data\.arc\client.conf" -c ARC1:https://knowarc1.grid.niif.hu:60000/arex
 
-  b) Example of command on Windows Vista:
+  b) Example of command on Windows Vista, 7:
 
     arcsub -d VERBOSE -f C:\testjob.jsdl -z "C:\Users\<username>\AppData\Roaming\.arc\client.conf" -c  ARC1:https://knowarc1.grid.niif.hu:60000/arex
 
@@ -228,6 +228,6 @@ IMPORTANT |
 
       C:\Documents and Settings\<username>\.globus  
 
-    On Windows Vista:
+    On Windows Vista, 7:
 
       C:\Users\<username>\.globus
