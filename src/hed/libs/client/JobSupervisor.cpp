@@ -90,7 +90,7 @@ namespace Arc {
       logger.msg(VERBOSE, "Identifying needed job controllers according to "
                  "all jobs present in job list");
 
-      XMLNodeList xmljobs = jobstorage.XPathLookup("/ArcConfig/Job", NS());
+      XMLNodeList xmljobs = jobstorage.Path("Job");
 
       if (xmljobs.empty()) {
         logger.msg(INFO, "No jobs to handle");
