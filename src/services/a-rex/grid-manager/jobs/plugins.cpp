@@ -176,7 +176,11 @@ ContinuationPlugins::action_t ContinuationPlugins::run(const JobDescription &job
     if(!re.Wait(to)) {
       timeout=true;
     };
+  } else {
+    response="FAILED to start plugin";
+    return commands[state].onfailure;
   };
+  
   response=res_out;
   if(res_err.length()) {
     if(response.length()) response+=" : ";
