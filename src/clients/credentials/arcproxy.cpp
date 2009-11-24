@@ -316,7 +316,7 @@ int main(int argc, char *argv[]) {
   if (ca_dir.empty()) {
     logger.msg(Arc::ERROR, "Cannot find the CA Certificate Directory path, "
                "please setup environment X509_CERT_DIR, "
-               "or CACertificatesDir in configuration file");
+               "or cacertificatesdirectory in configuration file");
     return EXIT_FAILURE;
   }
 
@@ -327,7 +327,7 @@ int main(int argc, char *argv[]) {
     if (proxy_path.empty()) {
       logger.msg(Arc::ERROR, "Cannot find the path of the proxy file, "
                  "please setup environment X509_USER_PROXY, "
-                 "or ProxyPath in configuration file");
+                 "or proxypath in configuration file");
       return EXIT_FAILURE;
     }
     else if (!(Glib::file_test(proxy_path, Glib::FILE_TEST_EXISTS))) {
