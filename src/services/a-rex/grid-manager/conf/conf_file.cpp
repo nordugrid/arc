@@ -473,7 +473,7 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
             cmd_+=" --config ";
             cmd_+=nordugrid_config_loc();
             cmd_+=" ";
-            cmd_+=control_dir_;
+            cmd_+=user->ControlDir();
             user->add_helper(cmd_);
             /* creating empty list of jobs */
             JobsList *jobs = new JobsList(*user,plugins); 
