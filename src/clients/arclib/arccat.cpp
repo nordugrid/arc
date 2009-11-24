@@ -137,7 +137,7 @@ int main(int argc, char **argv) {
 
   Arc::JobSupervisor jobmaster(usercfg, jobs);
   if (!jobmaster.JobsFound()) {
-    std::cout << "No jobs found" << std::endl;
+    std::cout << "No jobs" << std::endl;
     return 0;
   }
   std::list<Arc::JobController*> jobcont = jobmaster.GetJobControllers();
