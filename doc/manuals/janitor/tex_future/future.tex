@@ -5,11 +5,11 @@
 % ** Glue2 specification for RTE states
 % 
 
-\section{Representation of dynamic REs in the information model}
-Dynamic REs require an extended representation in the
+\section{Representation of dynamic RTEs in the information model}
+Dynamic RTEs require an extended representation in the
 information model.  The Application Software description should be able
-to distinguish installed REs from installable REs, potentially offer
-description of extended RE state-like information. This work is planned
+to distinguish installed RTEs from installable RTEs, potentially offer
+description of extended RTE state-like information. This work is planned
 to be carried out as part of the Glue-2.0 effort of OGF\footnote{OGF
 GLUE: https://forge.gridforum.org/sf/projects/glue-wg}.
 
@@ -17,14 +17,14 @@ GLUE: https://forge.gridforum.org/sf/projects/glue-wg}.
 
 Future development of ARC aims at integrating grid computing with
 workflow tools for the web services that have a growing user base in
-bioinformatics. The challenge is to prepare REs for
+bioinformatics. The challenge is to prepare RTEs for
 programs or databases and to offer such concisely to users of the
 workflow environments.  In the bioinformatics community, such are
 today offered as web services.  This anticipated development instead
 fosters the dynamic installation on the grid whenever appropriate to
 allow for special computational demands in high-throughput analyses.
 Conversely, because of the increased complexity of workflows with respect
-to the already today not manually manageable number of REs, without an
+to the already today not manually manageable number of RTEs, without an
 automatism for the automated installation of software packages on the
 grid, the use of workflows in grid computing seems mute.
 
@@ -57,12 +57,12 @@ of REs is essential to have a means to decide for the equivalence of
 manual additions and the functionality that comes with BaseSystem.
 
 
-TODO:\\
-\begin{itemize}
- \item There is a arc.conf file in which all possiblie flags are listed... ADD THE JANITOR FLAGS!!!
- \item Dynamic RTEs are now listed as manually installed in the ``janitor list'' command.. change that
- \item Verfication
-\end{itemize}
+%TODO:\\
+%\begin{itemize}
+% \item There is a arc.conf file in which all possiblie flags are listed... ADD THE JANITOR FLAGS!!!
+% \item Dynamic RTEs are now listed as manually installed in the ``janitor list'' command.. change that
+% \item Verfication
+%\end{itemize}
 
 
 
@@ -78,11 +78,11 @@ TODO:\\
 
 % (3) > ... ?? hmm... well seems there is some information loss here... point 3... suppose it must have been important.
 
-%(4) The function "check" (nowadays ``info'') was ment to return the information about a runtime 
+%(4) The function "check" (nowadays ``info'') was meant to return the information about a runtime 
 %      environment. It may possible to merge with the deploy functionality 
 %      if desired. (The Janitor source code will remain the same, only the interface will 
 %      be changed.)
-%      >Due to this is beautification, this is postponed
+%      >Since this is mere beautification, this is postponed
 
 %(5) The information about the runtime environments is passed to the backend
 %    script. (It is not specifed yet how this has to be done)

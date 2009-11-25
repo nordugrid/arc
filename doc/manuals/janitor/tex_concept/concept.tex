@@ -1,8 +1,22 @@
-\chapter{Programming concept}
+\chapter{Technical Motivation and Concepts}
+
+The current implementation, using the rather advanced concepts of the
+semantic web, may seem unexpected. They were chosen since they are expected
+to scale with all the extra demands forseen for the Janitor.
+
+\section{Implementation}
+
+\subsection{Choice of Perl}
 
  The main language for the implementation of the functionality of the
- dynamic runtime environment functionality is Perl. And it is solely required (exceptions are the
- integration with the Grid Manager and the Web server) for the Janitor. In
+ dRTE's functionality is Perl. And it is solely required (exceptions are the
+ integration with the Grid Manager and the Web server) for the Janitor.
+ The language was perceived a side-issue, the complexity of the data
+ expected was of major concern. 
+
+\subsection{Modular structure}
+
+ In
  the pre-web-service implementation the Catalog remains a static web page.
  The Perl code is split into multiple modules as depicted in Figure~\ref{fig:janitorDependencies}. 
  The modules can be separated into two
@@ -27,13 +41,20 @@ In order to get a more detailed view on the full functionality of the envisioned
 Design Document\footnote{\href{http://www.knowarc.eu/documents/Knowarc_D1.1-1_07.pdf}
 {http://www.knowarc.eu/documents/Knowarc\_D1.1-1\_07.pdf}}.
 
+\section{Concepts}
 
+In the following, some paragraphs fail render it difficult to 
+clearly distinguish between conceptional truths and the state
+of the current implementation. Please read carefully.
 
+\subsection{States of runtime environments}
 
-\section{States of runtime environments}
 A major motivation for the managed, manual initiation of dynamic RE
 installation is the subsequent manual verification of the installed
-packages -- prior to their use in production.
+packages -- prior to their use in production. It would be nice to
+see the Janitor and/or the Catalog prepare for reviews by selected
+users. This has not yet been implemented.
+
 With an automation of the installation, the verification of
 that process shall be performed externally to that process.  At this
 time, only the automation of the installation has been implemented.
@@ -114,6 +135,7 @@ advent of a job requesting a particular dynamic RE) or manually by the
 site's supervisor or an individual with respective rights to use the
 Janitor's web service.
 
+\subsection{Subset of that functionality as implemented today}
 Upon presentation of a the package name to a Catalog, from which details about
 the package are retrieved, a CE may
 classify a package to be \texttt{INSTALLABLE} if all the dependencies
@@ -284,16 +306,18 @@ Proposal for SOAP messages:\\
 
 
 
-\section{Janitor file system permissions}
+%FIXME: needs further communication with Anders
+%\section{Janitor file system permissions}
+%
+%In the current implementation the Janitor perl scripts must be executed as root. In order to execute Janitor with the required permissions,
+%a setuid wrapper has been prepared. During the installation \task{not done yet} the mode of rjanitor will be set to \texttt{u+s},
+%i.e. the sticky bit is set to make the binary suid root. \task{According to Daniel: ``A future version of the Janitor will get rid of the suid root helper.''}\\
+%
+%Thus, Janitor is not executed directly. Instead, a dynamic link will be created in \task{libexec or sbin} which is pointing to
+%the wrapper.\\
+%
+%It is suggested to create a user and a group "janitor" for the Janitor.\\
 
-In the current implementation the Janitor perl scripts must be executed as root. In order to execute Janitor with the required permissions,
-a setuid wrapper has been prepared. During the installation \task{not done yet} the mode of rjanitor will be set to \texttt{u+s},
-i.e. the sticky bit is set to make the binary suid root. \task{According to Daniel: ``A future version of the Janitor will get rid of the suid root helper.''}\\
-
-Thus, Janitor is not executed directly. Instead, a dynamic link will be created in \task{libexec or sbin} which is pointing to
-the wrapper.\\
-
-It is suggested to create a user and a group "janitor" for the Janitor.\\
 
 % Currently the Janitor must be executed as root. For this a suid root helper
 % is needed. It is provided in /opt/janitor/rjanitor.c. If you installed
