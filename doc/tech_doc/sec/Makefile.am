@@ -6,11 +6,7 @@ doc_DATA = arc-security-documentation.pdf
 
 STYLES = IEEEtran.bst ng-logo.png grid.bib
 
-IMAGES = Secpaper-img1.png \
-         SecurityFrameworkofARC1-img1.jpg SecurityFrameworkofARC1-img2.jpg \
-         SecurityFrameworkofARC1-img3.png SecurityFrameworkofARC1-img4.png \
-         SecurityFrameworkofARC1-img5.png SecurityFrameworkofARC1-img6.png \
-         SecurityFrameworkofARC1-img7.png SecurityFrameworkofARC1-img8.png
+IMAGES = figures/*.pdf figures/*.png
 
 $(doc_DATA): $(docsource) $(IMAGES)
 	pdflatex $(docsource:.tex=) ; bibtex $(docsource:.tex=) ; pdflatex $(docsource:.tex=) ; pdflatex $(docsource:.tex=)
