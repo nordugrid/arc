@@ -495,7 +495,7 @@ sub build_config_from_inifile {
         move_keys $section, $config->{control}{$name}, [keys %$gmuser_options];
     }
 
-    ################################ deprecated config file structure #############################
+    ################################ legacy config file structure #############################
 
     move_keys $common, $config, ['AdminDomain'];
     move_keys $common, $config->{service}, [keys %{$config_schema->{service}}];
