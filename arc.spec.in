@@ -493,6 +493,8 @@ exit 0
 %defattr(-,root,root,-)
 %{_libdir}/lib*.so.*
 %{_datadir}/%{pkgdir}/schema
+%dir %{_datadir}/%{pkgdir}/perl
+%dir %{_datadir}/%{pkgdir}
 %doc README AUTHORS LICENSE
 
 %files client
@@ -707,7 +709,8 @@ exit 0
 %files janitor
 %defattr(-,root,root,-)
 %{_libexecdir}/%{pkgdir}/janitor
-%{_datadir}/%{pkgdir}/perl
+%{_datadir}/%{pkgdir}/janitor
+%{_datadir}/%{pkgdir}/perl/Janitor
 %doc %{_mandir}/man8/janitor.8*
 
 %files doc
