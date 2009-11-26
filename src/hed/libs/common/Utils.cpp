@@ -4,6 +4,10 @@
 #include <config.h>
 #endif
 
+#ifndef WIN32
+#include <signal.h>
+#endif
+
 #ifdef HAVE_GLIBMM_GETENV
 #include <glibmm/miscutils.h>
 #else
@@ -36,6 +40,26 @@
 #endif
 
 namespace Arc {
+
+#ifndef WIN32
+  class SIGPIPEIngore {
+  private:
+    sighandler_t sighandler_;
+  public:
+    SIGPIPEIngore(void);
+    ~SIGPIPEIngore(void);
+  };
+
+  SIGPIPEIngore::SIGPIPEIngore(void) {
+    sighandler_ = signal(SIGPIPE,SIG_IGN);
+  }
+
+  SIGPIPEIngore::~SIGPIPEIngore(void) {
+    signal(SIGPIPE,sighandler_);
+  }
+
+  static SIGPIPEIngore sigpipe_ignore;
+#endif
 
   std::string GetEnv(const std::string& var) {
 #ifdef HAVE_GLIBMM_GETENV
