@@ -94,7 +94,7 @@ namespace Arc {
     iter = PossibleTargets.begin();
 
     for (int i = 1; iter != PossibleTargets.end(); iter++, i++)
-      logger.msg(VERBOSE, "%d. Cluster: %s", i, (*iter)->DomainName);
+      logger.msg(VERBOSE, "%d. Cluster: %s; Queue: %s", i, (*iter)->DomainName, (*iter)->MappingQueue);
 
     cmp Cmp(benchmark);
 
@@ -107,7 +107,7 @@ namespace Arc {
     iter = PossibleTargets.begin();
 
     for (int i = 1; iter != PossibleTargets.end(); iter++, i++)
-      logger.msg(VERBOSE, "%d. Cluster: %s", i, (*iter)->DomainName);
+      logger.msg(VERBOSE, "%d. Cluster: %s; Queue: %s", i, (*iter)->DomainName, (*iter)->MappingQueue);
 
     TargetSortingDone = true;
 
