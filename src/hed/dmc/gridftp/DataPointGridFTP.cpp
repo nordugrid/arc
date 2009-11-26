@@ -746,9 +746,19 @@ namespace Arc {
       credential(NULL),
       reading(false),
       writing(false) {
-    globus_module_activate(GLOBUS_FTP_CLIENT_MODULE);
-    if (!proxy_initialized)
+    //globus_module_activate(GLOBUS_FTP_CLIENT_MODULE);
+    //if (!proxy_initialized)
+    //  proxy_initialized = GlobusRecoverProxyOpenSSL();
+    // Activating globus only once because it looks like 
+    // deactivation of GLOBUS_FTP_CONTROL_MODULE is not
+    // handled properly on Windows. This should not cause
+    // problems (except for valgrind) because this plugin
+    // is registered as persistent.
+    if (!proxy_initialized) {
+      globus_module_activate(GLOBUS_COMMON_MODULE);
+      globus_module_activate(GLOBUS_FTP_CLIENT_MODULE);
       proxy_initialized = GlobusRecoverProxyOpenSSL();
+    }
     is_secure = false;
     if (url.Protocol() == "gsiftp")
       is_secure = true;
@@ -888,7 +898,8 @@ namespace Arc {
     }
     if (credential)
       delete credential;
-    globus_module_deactivate(GLOBUS_FTP_CLIENT_MODULE);
+    // See activation for description
+    //globus_module_deactivate(GLOBUS_FTP_CLIENT_MODULE);
   }
 
   Plugin* DataPointGridFTP::Instance(PluginArgument *arg) {
@@ -902,7 +913,11 @@ namespace Arc {
     // and Globus have problems with unloading
     Glib::Module* module = dmcarg->get_module();
     PluginsFactory* factory = dmcarg->get_factory();
-    if(factory && module) factory->makePersistent(module);
+    if(!(factory && module)) {
+      logger.msg(ERROR, "Missing reference to factory and/or module. It is unsafe to use Globus in non-persistent mode - (Grid)FTP code is disabled. Report to developers.");
+      return NULL;
+    }
+    factory->makePersistent(module);
     OpenSSLInit();
     return new DataPointGridFTP(*dmcarg, *dmcarg);
   }

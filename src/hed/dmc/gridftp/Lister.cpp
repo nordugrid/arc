@@ -413,6 +413,7 @@ namespace Arc {
       resp_n(0),
       callback_status(CALLBACK_NOTREADY),
       connected(false),
+      pasv_set(false),
       credential(credential),
       port((unsigned short int)(-1)) {
     if (globus_cond_init(&cond, GLOBUS_NULL) != GLOBUS_SUCCESS) {
@@ -486,6 +487,7 @@ namespace Arc {
   }
 
   int Lister::setup_pasv(globus_ftp_control_host_port_t& pasv_addr) {
+    if(pasv_set) return 0;
     char *sresp;
     GlobusResult res;
     if (send_command("PASV", NULL, true, &sresp, '(') !=
@@ -522,10 +524,20 @@ namespace Arc {
       logger.msg(INFO, "Failure: %s", res.str());
       return -1;
     }
+    /* it looks like _pasv is not enough for connection - start reading
+       immediately */
+    data_callback_status = (callback_status_t)CALLBACK_NOTREADY;
+    if (globus_ftp_control_data_connect_read(handle, &list_conn_callback,
+                                             this) != GLOBUS_SUCCESS) {
+      logger.msg(INFO, "Failed to open data channel");
+      pasv_set = false;
+      return -1;
+    }
+    pasv_set = true;
     return 0;
   }
 
-  int Lister::retrieve_dir(const URL& url,bool names_only) {
+  int Lister::handle_connect(const URL& url) {
     GlobusResult res;
     /* get listing */
     fnames.clear();
@@ -557,6 +569,7 @@ namespace Arc {
       path.resize(path.length() - 1);
     if (reconnect) {
       connected = false;
+      pasv_set = false;
       port = url.Port();
       scheme = url.Protocol();
       host = url.Host();
@@ -628,6 +641,11 @@ namespace Arc {
       resp_destroy();
       connected = true;
     }
+    return 0;
+  }
+
+  int Lister::retrieve_file_info(const URL& url,bool names_only) {
+    if(handle_connect(url) != 0) return -1;
     globus_ftp_control_response_class_t cmd_resp;
     char *sresp;
     if (url.Protocol() == "gsiftp") {
@@ -651,14 +669,56 @@ namespace Arc {
     facts = true;
     if (setup_pasv(pasv_addr) != 0)
       return -1;
-    /* it looks like _pasv is not enough for connection - start reading
-       immediately */
-    data_callback_status = (callback_status_t)CALLBACK_NOTREADY;
-    if (globus_ftp_control_data_connect_read(handle, &list_conn_callback,
-                                             this) != GLOBUS_SUCCESS) {
-      logger.msg(INFO, "Failed to open data channel");
-      return -1;
+    if(!names_only) {
+      /* try MLST */
+      cmd_resp = send_command("MLST", path.c_str(), true, &sresp);
+      if (cmd_resp == GLOBUS_FTP_PERMANENT_NEGATIVE_COMPLETION_REPLY) {
+        logger.msg(INFO, "MLST is not supported - trying LIST");
+        free(sresp);
+        /* run NLST */
+        facts = false;
+        cmd_resp = send_command("LIST", path.c_str(), true, &sresp);
+      }
+    } else {
+      facts = false;
+      cmd_resp = send_command("LIST", path.c_str(), true, &sresp);
     }
+
+
+
+
+
+
+
+
+
+  }
+
+  int Lister::retrieve_dir(const URL& url,bool names_only) {
+    if(handle_connect(url) != 0) return -1;
+    globus_ftp_control_response_class_t cmd_resp;
+    char *sresp;
+    if (url.Protocol() == "gsiftp") {
+      cmd_resp = send_command("DCAU", "N", true, &sresp, '"');
+      if ((cmd_resp != GLOBUS_FTP_POSITIVE_COMPLETION_REPLY) &&
+          (cmd_resp != GLOBUS_FTP_PERMANENT_NEGATIVE_COMPLETION_REPLY)) {
+        if (sresp) {
+          logger.msg(INFO, "DCAU failed: %s", sresp);
+          free(sresp);
+        }
+        else
+          logger.msg(INFO, "DCAU failed");
+        return -1;
+      }
+      free(sresp);
+    }
+    globus_ftp_control_dcau_t dcau;
+    dcau.mode = GLOBUS_FTP_CONTROL_DCAU_NONE;
+    globus_ftp_control_local_dcau(handle, &dcau, GSS_C_NO_CREDENTIAL);
+    globus_ftp_control_host_port_t pasv_addr;
+    facts = true;
+    if (setup_pasv(pasv_addr) != 0)
+      return -1;
     if(!names_only) {
       /* try MLSD */
       cmd_resp = send_command("MLSD", path.c_str(), true, &sresp);
@@ -675,6 +735,7 @@ namespace Arc {
     }
     if (cmd_resp == GLOBUS_FTP_POSITIVE_COMPLETION_REPLY) {
       /* completion is not expected here */
+      pasv_set = false;
       logger.msg(INFO, "Immediate completion: %s", sresp);
       if (sresp)
         free(sresp);
@@ -706,6 +767,7 @@ namespace Arc {
         else
           logger.msg(INFO, "Data transfer aborted");
         // Destroy data connections here ?????????
+        pasv_set = false;
         return -1;
       }
       if (sresp)
@@ -716,8 +778,10 @@ namespace Arc {
     /* waiting for data ended */
     if (wait_for_data_callback() != CALLBACK_DONE) {
       logger.msg(INFO, "Failed to transfer data");
+      pasv_set = false;
       return -1;
     }
+    pasv_set = false;
     /* success */
     return 0;
   }
