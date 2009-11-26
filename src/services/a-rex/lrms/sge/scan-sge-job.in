@@ -152,15 +152,19 @@ for ctr_dir in $control_dirs ; do
 
       diagfile_tmp=`mktemp "$TMP_DIR/diag_tmp.XXXXXX"` || { sleep 60; exit 1; }
       diagfile_acct=`mktemp "$TMP_DIR/diag_acct.XXXXXX"` || { sleep 60; exit 1; }
+      noaccounting=
 
       # qacct can take quite long. Here is a workaround.
-      # Find the accounting file, and copy the last 10000
+      # Find the accounting file, and copy the last 50000
       # records to a temp file.
       acctfile=$SGE_ROOT/$SGE_CELL/common/accounting
       if [ -f  "$acctfile" ]; then
         briefacct=`mktemp "$TMP_DIR/accounting.XXXXXX"` || { sleep 60; exit 1; }
-        tail -n 1000 "$acctfile" > "$briefacct"
+        tail -n 50000 "$acctfile" > "$briefacct"
         if [ $? = 0 ]; then extraargs="-f $briefacct"; fi
+      else
+        # Accounting file is not accessible on this host.
+        noaccounting=1
       fi
 
       # get accounting info. write diag file
@@ -327,6 +331,22 @@ for ctr_dir in $control_dirs ; do
       fi # accounting info ok
 
       rm -f "$diagfile_tmp" "$diagfile_acct"
+
+      # Accouting file not accessible on this host.
+      if [ -n "$noaccounting" ]; then
+        if [ -z "$exitcode" ]; then
+          echo "-1 Job failed with unknown exit code" > "$donefile"
+        elif [ "$exitcode" = "0" ]; then
+          echo "0" > "$donefile"
+        else
+          echo "$exitcode Job failed with exit code $exitcode" > "$donefile"
+        fi
+  
+        $GMKICK "$statusfile" >> "$errorsfile"
+
+        # we're done, go to next job id
+        continue
+      fi
 
     fi # session directory exists
 
