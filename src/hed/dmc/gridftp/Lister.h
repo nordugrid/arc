@@ -37,7 +37,6 @@ namespace Arc {
     callback_status_t data_callback_status;
     globus_off_t list_shift;
     bool connected;
-    bool pasv_set;
     unsigned short int port;
     std::string host;
     std::string username;
@@ -66,13 +65,11 @@ namespace Arc {
     send_command(const char *command, const char *arg, bool wait_for_response,
                  char **sresp, char delim = 0);
     int setup_pasv(globus_ftp_control_host_port_t& pasv_addr);
-    int handle_connect(const URL& url);
 
   public:
     Lister(GSSCredential& credential);
     ~Lister();
     int retrieve_dir(const URL& url,bool names_only = false);
-    int retrieve_file_info(const URL& url,bool names_only = false);
     operator bool() {
       return inited;
     }
