@@ -391,7 +391,7 @@ namespace Arc {
     std::list<ExecutionTarget*>::iterator iter = PossibleTargets.begin();
 
     for (int i = 1; iter != PossibleTargets.end(); iter++, i++) {
-      logger.msg(VERBOSE, "%d. Cluster: %s", i, (*iter)->DomainName);
+      logger.msg(VERBOSE, "%d. Cluster: %s; Queue: %s", i, (*iter)->DomainName, (*iter)->MappingQueue);
       logger.msg(VERBOSE, "Health State: %s", (*iter)->HealthState);
     }
 
