@@ -891,8 +891,12 @@ namespace Arc {
       // Range<int> ProcessPerHost;
       XMLNode xmlPPH("<ProcessPerHost/>");
       outputARCJSDLRange(job.Resources.SlotRequirement.ProcessPerHost, xmlPPH, -1);
-      if (xmlPPH.Size() > 0)
+      if (xmlPPH.Size() > 0) {
         xmlSlotRequirement.NewChild(xmlPPH);
+        XMLNode xmlTCC("<TotalCPUCount/>");
+        outputJSDLRange(job.Resources.SlotRequirement.ProcessPerHost, xmlTCC, -1);
+        xmlResources.NewChild(xmlTCC);
+      }
 
       // Range<int> ThreadsPerProcesses;
       XMLNode xmlTPP("<ThreadsPerProcesses/>");
