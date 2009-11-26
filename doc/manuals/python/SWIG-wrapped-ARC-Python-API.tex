@@ -69,7 +69,7 @@
 \vspace*{2cm}
 
 %%%%---- The title ----
-{\centering \textsc{\Large The SWIG wrapped ARC Python API and the arcom utility package\footnote{as of rev. 13724}}\Large \par}
+{\centering \textsc{\Large The SWIG wrapped ARC Python API and the arcom utility package}\Large \par}
 \vspace*{0.5cm}
     
 %%%%---- A subtitle, if necessary ----
@@ -269,6 +269,50 @@ are applied to all languages.
   }
 \end{itemize}
 \begin{itemize}
+  \item{ \begin{verbatim}
+#ifdef SWIGPYTHON
+namespace Arc {
+
+%typemap(in, numinputs=0) std::string& content (std::string str) { 
+  $1 = &str; 
+}
+\end{verbatim}
+  If target language is Python then this input typemap tells SWIG that ''content'' 
+  arguments of type ''\verb$std::string&$'' found in ''Arc'' namespace are to be ignored. 
+  As stated in the SWIG documentation: ''When numinputs is set to 0, the argument is 
+  effectively ignored and cannot be supplied from the target language. '' 
+  However the argument is still required when making the C/C++ call. This is solved 
+  by providing a locally declared variable called str from which the value used is 
+  obtained. Statement ''\verb#$1 = &str;#'' sets the input argument to point to this 
+  temporary variable.
+\begin{verbatim}
+%typemap(argout) std::string& content { 
+  PyObject *tuple; 
+  tuple = PyTuple_New(2); 
+  PyTuple_SetItem(tuple,0,$result); 
+  PyTuple_SetItem(tuple,1,Py_BuildValue("s",$1->c_str())); 
+  $result = tuple; 
+} 
+\end{verbatim}
+  As the SWIG documentation tells: ''The \verb$"argout"$ typemap is used to return values from arguments.''
+  With the previous typemap in mind this one indicates that the result will be changed as follows:
+    \begin{itemize}
+    \item{
+      A tuple will be created with two members.
+    }
+    \item{
+      The first member comes from the original result.
+    }
+    \item{
+      The second one comes from the argument.
+    }
+    \item{
+      The tuple will be returned as the new result.
+    }
+    \end{itemize}
+  }
+\end{itemize}
+\begin{itemize}
   \item{
 \begin{verbatim}
   %include "common.i"
@@ -298,6 +342,10 @@ are applied to all languages.
   Typemaps will be used. 
 \end{itemize}
 \begin{itemize}
+  \item{ \verb$%include <std_vector.i>$} \linebreak
+  The \verb$std_vector$ library will be used.
+\end{itemize}
+\begin{itemize}
   \item{\begin{verbatim}
   %ignore operator !;
   %ignore operator [];
@@ -315,6 +363,8 @@ are applied to all languages.
 
   %template(XMLNodeList) std::list<Arc::XMLNode>;
   %template(URLList) std::list<Arc::URL>;
+  %template(URLVector) std::vector<Arc::URL>;
+  %template(URLListMap) std::map< std::string, std::list<Arc::URL> >;
   \end{verbatim}
   }
   As stated in SWIG documentation: ''\verb$%ignore$ instructs SWIG to ignore 
@@ -324,7 +374,9 @@ are applied to all languages.
   According to this, ignored operators and methods above will not be accessible 
   from Python. \linebreak
   Define XMLNodeList as a template list of Arc::XMLNode and URLList as a template list of 
-  Arc::URL objects. (See Example\ref{listex} for an example of using a list of objects - 
+  Arc::URL objects. Define URLVector as a template vector of Arc::URL objects and URLListMap 
+  as a template map where the key is a string and the value is a list of Arc::URL objects. 
+  (See Example\ref{listex} for an example of using a list of objects - 
   list of strings in that particular case - in Python.)\linebreak
 \end{itemize}
 \begin{itemize}
@@ -648,8 +700,9 @@ g/soap/envelope/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http:/
   %template(FileTypeList) std::list<Arc::FileType>;
   %template(DirectoryTypeList) std::list<Arc::DirectoryType>;
   %template(ApplicationEnvironmentList) std::list<Arc::ApplicationEnvironment>;
-  %template(SoftwareVersionList) std::list<Arc::SoftwareVersion>;
+  %template(SoftwareList) std::list<Arc::Software>;
   %template(SoftwareRequirementList) std::list<Arc::SoftwareRequirement>;
+  %template(ResourceTargetTypeList) std::list<Arc::ResourceTargetType>;
   \end{verbatim}
   }
   Define ExecutionTargetList as a template list of Arc::ExecutionTarget objects, 
@@ -659,9 +712,10 @@ g/soap/envelope/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http:/
   TargetTypeList as a template list of Arc::DataTargetType, FileTypeList as a 
   template list of Arc::FileType, DirectoryTypeList as a template list of 
   Arc::DirectoryType, ApplicationEnvironmentList as a template list of 
-  Arc::ApplicationEnvironment, SoftwareVersionList as a template list of 
-  Arc::SoftwareVersion and SoftwareRequirementList as a template list of 
-  Arc::SoftwareRequirement objects. \linebreak
+  Arc::ApplicationEnvironment, SoftwareList as a template list of 
+  Arc::Software, SoftwareRequirementList as a template list of 
+  Arc::SoftwareRequirement and ResourceTargetTypeList as a template list of 
+  Arc::ResourceTargetType objects. \linebreak
   (See Example\ref{listex} for an example of using a list of objects in Python.)
 \end{itemize}
 \begin{itemize}
@@ -691,8 +745,7 @@ g/soap/envelope/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http:/
       $result = tuple;
   }
   \end{verbatim}
-  As the SWIG documentation tells: ''The \verb$"argout"$ typemap is used to return values from arguments.''
-  With the previous typemap in mind this one indicates that the result will be changed as the following:
+  This argout typemap - with the previous typemap in mind - indicates that the result will be changed as follows:
     \begin{itemize}
     \item{
       A tuple will be created with two members.
@@ -742,28 +795,28 @@ True
   
   }
 \end{itemize}
-\begin{itemize}
-  \item{ \begin{verbatim}
-%extend ACCLoader {
-  Arc::Broker * getBroker(const std::string& brokername) { 
-      return dynamic_cast<Arc::Broker*>( self->getACC(brokername) ); 
-  }
-  Arc::Broker * loadBroker(const std::string& brokername, const XMLNode * cfg) { 
-      return dynamic_cast<Arc::Broker*>( self->loadACC(brokername, cfg) ); 
-  }
-  Arc::JobController * getJobController(const std::string& jobcontrollername) { 
-      return dynamic_cast<Arc::JobController*>( self->getACC(jobcontrollername) ); 
-  }
-  Arc::JobController * loadJobController(const std::string& jobcontrollername, 
-                                         const XMLNode * cfg) { 
-      return dynamic_cast<Arc::JobController*>( 
-                                         self->loadACC(jobcontrollername, cfg) ); 
-  }
-}
-  \end{verbatim}
-  SWIG methods added to get/load Broker and JobController objects from an ACCLoader object.
-  }
-\end{itemize}
+% \begin{itemize}
+%   \item{ \begin{verbatim}
+% %extend ACCLoader {
+%   Arc::Broker * getBroker(const std::string& brokername) { 
+%       return dynamic_cast<Arc::Broker*>( self->getACC(brokername) ); 
+%   }
+%   Arc::Broker * loadBroker(const std::string& brokername, const XMLNode * cfg) { 
+%       return dynamic_cast<Arc::Broker*>( self->loadACC(brokername, cfg) ); 
+%   }
+%   Arc::JobController * getJobController(const std::string& jobcontrollername) { 
+%       return dynamic_cast<Arc::JobController*>( self->getACC(jobcontrollername) ); 
+%   }
+%   Arc::JobController * loadJobController(const std::string& jobcontrollername, 
+%                                          const XMLNode * cfg) { 
+%       return dynamic_cast<Arc::JobController*>( 
+%                                          self->loadACC(jobcontrollername, cfg) ); 
+%   }
+% }
+%   \end{verbatim}
+%   SWIG methods added to get/load Broker and JobController objects from an ACCLoader object.
+%   }
+% \end{itemize}
 \begin{itemize}
   \item{ \begin{verbatim}
   %apply std::string& INOUT { std::string& delegation_id };
@@ -830,7 +883,7 @@ However, this implies that one should take great care when dealing with delegati
     $result = tuple;
   }
   \end{verbatim}
-  This argout typemap - with the previous typemap in mind - indicates that the result will be changed as the following:
+  This argout typemap - with the previous typemap in mind - indicates that the result will be changed as follows:
     \begin{itemize}
     \item{
       A tuple will be created with two members.
@@ -852,75 +905,6 @@ One possible use of the FileInfo list could be the ListFiles funcionality of the
 DataPointARC class. This returns DataStatus along with the collected files. An example 
 of using ListFiles will be shown later.
 \end{verbatim} See Example\ref{url2dp} for details.
-    \end{example}
-  }
-\end{itemize}
-\begin{itemize}
-  \item{ \begin{verbatim}
-  %typemap(in, numinputs=0) std::string& failure_description (std::string temp) {
-    $1 = &temp;
-  }
-  \end{verbatim}
-  This input typemap tells SWIG that \verb$failure_description$ arguments of type \verb$std::string&$
-  are to be ignored. However the argument is still required when making the C/C++ call. 
-  This is solved by providing a locally declared variable called temp from which the value 
-  used is obtained from. Statement ''\verb#$1 = &temp;#'' sets the input argument to point to this temporary variable.
-  }
-\end{itemize}
-\begin{itemize}
-  \item{ \begin{verbatim}
-  %typemap(argout) std::string & failure_description {
-    PyObject *o, *tuple;
-    tuple = PyTuple_New(2);
-    o = PyString_FromString($1->c_str());
-    PyTuple_SetItem(tuple,0,$result);
-    PyTuple_SetItem(tuple,1,o);
-    $result = tuple;
-  }
-  \end{verbatim}
-  This argout typemap - with the previous typemap in mind - indicates that the result will be changed as the following:
-    \begin{itemize}
-    \item{
-      A tuple will be created with two members.
-    }
-    \item{
-      The first member comes from the original result.
-    }
-    \item{
-      The second one comes from the argument.
-    }
-    \item{
-      The tuple will be returned as the new result.
-    }
-
-  One possible use of \verb$failure_description$ could be the Transfer funcionality of the 
-  DataMover class. This returns a failure description along with the corresponding 
-  DataStatus. This description may contain more details about the error if transfer 
-  fails for some reason.
-  (See example below.)
-    \end{itemize}
-    \begin{example}
-      \caption{DataMover - Transfer}\label{dmex}
-\begin{verbatim}
->>> import arc
->>> # create DataMover
-... mover = arc.DataMover()
->>> # import datapoint_from_url from arcom package
-... # DataPoints are required to use DataMover
-... from arcom import datapoint_from_url
->>> # create source DataPoint
-... src = datapoint_from_url('file://./file1')
->>> # create destination DataPoint
-... dst = datapoint_from_url('file://./file2')
->>> # do the transfer
-... status, failure = mover.Transfer(src, dst, arc.FileCache(), arc.URLMap())
->>> # check status
-... str(status)
-'Operation completed successfully'
->>> # check for failure message
-... failure
-''
-\end{verbatim}
     \end{example}
   }
 \end{itemize}
@@ -985,6 +969,16 @@ take two parameters (both of them being of type SOAPEnvelope) and return a list.
 \end{verbatim}
     \end{example}
   }
+\end{itemize}
+\begin{itemize}
+  \item{ \begin{verbatim}
+    %template(ScalableTimeInt) Arc::ScalableTime<int>;
+    %template(RangeInt) Arc::Range<int>;
+    %template(RangeInt64) Arc::Range<int64_t>;
+  \end{verbatim}
+  }
+  These are template instantiations for template classes \verb$Arc::ScalableTime<int>$, 
+  \verb$Arc::Range<int>$ and \verb$Arc::Range<int64_t>$.
 \end{itemize}
 \end{flushleft}
 
@@ -1379,8 +1373,9 @@ In the example below, the following structure will be created:
   }
 \end{itemize}
 \begin{itemize}
-  \item{ \verb$datapoint_from_url(url_string)$\newline
-  Creates DataPoint from specified URL (\verb$url_string$).
+  \item{ \verb$datapoint_from_url(url_string, ssl_config = None)$\newline
+  Creates DataPoint from specified URL (\verb$url_string$) with the 
+  specified SSL configuration (if \verb$ssl_config$ is present).
     \begin{example}
       \caption{Creating DataPoint from URL}\label{url2dp}
 \begin{verbatim}
@@ -1821,7 +1816,7 @@ of ARC.
   \ref{DummyServiceCode} of this document.)\linebreak
   Note that a small change in AuthRequest class (found in ''security.py'') is required for 
   this example to work because the incoming message in our example could not be processed
-  in a way like on the server side. Therefore it is assumed that the \verb$__init__$ method
+  in a way like on the server side.\label{ModAuthReq} Therefore it is assumed that the \verb$__init__$ method
   of AuthRequest has:
 \begin{verbatim}
         auth = message.Auth()
@@ -1864,6 +1859,7 @@ of ARC.
 ... se = arc.SOAPEnvelope(ns)
 >>> # Create content
 ... se.NewChild('dmmy:foo').Set('Foo!')
+(None, 'Foo!')
 >>> # Create SOAP Message
 ... msg = arc.SOAPMessage()
 >>> # Payload
@@ -1874,10 +1870,10 @@ of ARC.
 ... outse = arc.SOAPEnvelope(ns)
 >>> outmsg = arc.SOAPMessage()
 >>> outpls = arc.PayloadSOAP(outse)
->>> outmsg.Payload(pls)
+>>> outmsg.Payload(outpls)
 >>> # call service
 ... ds.process(msg, outmsg)
-<arc.MCC_Status; proxy of <Swig Object of type 'Arc::MCC_Status *' at 0x8a39078> >
+<arc.MCC_Status; proxy of <Swig Object of type 'Arc::MCC_Status *' at 0x9cd8228> >
 >>> # show result
 ... print outmsg.Payload().GetXML()
 <soap-env:Envelope xmlns:dmmy="urn:foo" xmlns:soap-enc="http://schemas.xmlsoap.o
@@ -1885,6 +1881,76 @@ rg/soap/encoding/" xmlns:soap-env="http://schemas.xmlsoap.org/soap/envelope/" xm
 lns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XML
 Schema-instance"><soap-env:Body><dmmy:fooResponse>Foo message is: Foo!</dmmy:foo
 Response></soap-env:Body></soap-env:Envelope>
+\end{verbatim}
+    \end{example}
+  }
+\end{itemize}
+
+\begin{itemize}
+  \item{ \verb$ServiceState$ \linebreak
+  ServiceState is part of the basic LIDI\footnote{Local Information Description Interface; see: 
+  \url{http://www.knowarc.eu/documents/Knowarc_D1.2-1_07.pdf}} for Python services. This basic 
+  implementation provides information about whether a service is up and running. XML 
+  representation of state could be retrieved by calling the ''GetLocalInformation'' method 
+  found in the Service class. This will be presented through an example, in which DummyService 
+  will provide information regarding its state. (Complete source code can be found in Appendix 
+  \ref{DummyServiceCode} of this document.)\linebreak
+  Note that a change in AuthRequest class (found in ''security.py'') is required for 
+  this example to work (see \ref{ModAuthReq}).
+    \begin{example}
+      \caption{Retrieving state of DummyService}\label{RetDSstate}
+\begin{verbatim}
+>>> # Reminder:
+... # import arc
+... #
+... # ...
+... # 
+... # from arcom.service import Service
+... # 
+... # class DummyService(Service):
+... #   """ DummyService class based on Service class in arcom.service """
+... # 
+... #   ...
+... # 
+... #   def status(self, inpayload):
+... #       # get local info
+... #       fooinfo = self.GetLocalInformation()
+... #       
+... #       # get service status
+... #       foostatus = str(fooinfo.Get('AdminDomain').Get('Services').Get('Service').\
+... #       Get('Endpoint').Get('ServingState'))
+... #       ...
+... 
+>>> # Create instance of DummyService
+... ds = DummyService(None)
+>>> # Create namespace - it will be used for the message sent
+... ns = arc.NS({'dmmy':'urn:foo'})
+>>> # Create SOAP Envelope
+... se = arc.SOAPEnvelope(ns)
+>>> # Create content
+... se.NewChild('dmmy:status')
+<arc.XMLNode; proxy of <Swig Object of type 'Arc::XMLNode *' at 0x9cb8af8> >
+>>> # Create SOAP Message
+... msg = arc.SOAPMessage()
+>>> # Payload
+... pls = arc.PayloadSOAP(se)
+>>> # Set Message Payload
+... msg.Payload(pls)
+>>> # create outgoing message that will hold response
+... outse = arc.SOAPEnvelope(ns)
+>>> outmsg = arc.SOAPMessage()
+>>> outpls = arc.PayloadSOAP(outse)
+>>> outmsg.Payload(outpls)
+>>> # call service
+... ds.process(msg, outmsg)
+<arc.MCC_Status; proxy of <Swig Object of type 'Arc::MCC_Status *' at 0x9cdb090> >
+>>> # show result
+... print outmsg.Payload().GetXML()
+<soap-env:Envelope xmlns:dmmy="urn:foo" xmlns:soap-enc="http://schemas.xmlsoap.o
+rg/soap/encoding/" xmlns:soap-env="http://schemas.xmlsoap.org/soap/envelope/" xm
+lns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XML
+Schema-instance"><soap-env:Body><dmmy:statusResponse>Status: production</dmmy:st
+atusResponse></soap-env:Body></soap-env:Envelope>
 \end{verbatim}
     \end{example}
   }
@@ -2989,7 +3055,7 @@ class DummyService(Service):
     self.service_name = 'Dummy'
     
     # set name of provided method
-    self.request_names = ['foo']
+    self.request_names = ['foo','status']
     
     # call the Service's constructor
     Service.__init__(self,\
@@ -3012,6 +3078,21 @@ class DummyService(Service):
     out = self._new_soap_payload()
     response_node = out.NewChild('dmmy:fooResponse')    
     response_node.Set(foomsg)
+    
+    return out
+    
+  def status(self, inpayload):
+    # get local info
+    dummyinfo = self.GetLocalInformation()
+    
+    # get service status
+    dummystatus = str(dummyinfo.Get('AdminDomain').Get('Services').Get('Service').\
+    Get('Endpoint').Get('ServingState'))
+    
+    # create response
+    out = self._new_soap_payload()
+    response_node = out.NewChild('dmmy:statusResponse')    
+    response_node.Set('Status: ' + dummystatus)
     
     return out
 \end{verbatim}
@@ -3094,7 +3175,6 @@ print "COUNTER after join: ", COUNTER
 \input{app/ex-2-1-2.tex}
 \input{app/ex-2-1-3.tex}
 \input{app/ex-2-1-4.tex}
-\input{app/ex-2-1-5.tex}
 \input{app/ex-3-1.tex}
 \input{app/ex-3-2.tex}
 \input{app/ex-3-3.tex}

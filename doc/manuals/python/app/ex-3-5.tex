@@ -34,7 +34,57 @@ msg.Payload(pls)
 outse = arc.SOAPEnvelope(ns)
 outmsg = arc.SOAPMessage()
 outpls = arc.PayloadSOAP(outse)
-outmsg.Payload(pls)
+outmsg.Payload(outpls)
+# call service
+ds.process(msg, outmsg)
+# show result
+print outmsg.Payload().GetXML()
+\end{verbatim}
+
+\subsection{Retrieving state of DummyService}
+(Example \ref{RetDSstate})
+\label{cRetDSstate}
+\begin{verbatim}
+# Reminder:
+# import arc
+#
+# ...
+# 
+# from arcom.service import Service
+# 
+# class DummyService(Service):
+#   """ DummyService class based on Service class in arcom.service """
+# 
+#   ...
+# 
+#   def status(self, inpayload):
+#       # get local info
+#       fooinfo = self.GetLocalInformation()
+#       
+#       # get service status
+#       foostatus = str(fooinfo.Get('AdminDomain').Get('Services').Get('Service').\
+#       Get('Endpoint').Get('ServingState'))
+#       ...
+
+# Create instance of DummyService
+ds = DummyService(None)
+# Create namespace - it will be used for the message sent
+ns = arc.NS({'dmmy':'urn:foo'})
+# Create SOAP Envelope
+se = arc.SOAPEnvelope(ns)
+# Create content
+se.NewChild('dmmy:status')
+# Create SOAP Message
+msg = arc.SOAPMessage()
+# Payload
+pls = arc.PayloadSOAP(se)
+# Set Message Payload
+msg.Payload(pls)
+# create outgoing message that will hold response
+outse = arc.SOAPEnvelope(ns)
+outmsg = arc.SOAPMessage()
+outpls = arc.PayloadSOAP(outse)
+outmsg.Payload(outpls)
 # call service
 ds.process(msg, outmsg)
 # show result
