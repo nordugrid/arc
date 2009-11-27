@@ -518,6 +518,19 @@ SampleBroker.py file that comes with your arc python installation.
 
 \chapter{Job Description}
 \label{sec:jobdesc}
+Since new WS-ARC utilizes a middleware plugin structure, it also need to
+support the various job description languages used by these middlewares.
+Therefore the JSDL, XRSL and JDL job description languages are supported.
+In order to provide support for the
+three languages listed above, an internal job description data strucuture
+is needed which is the union of the supported languages. The internal job
+description data structure of new WS-ARC is described in a separate document,
+the ARC Job Description Internal Representation~\cite{internaljobdescription}.
+%~ Additional
+%~ documentation on each of the supported job description languages can be
+%~ found in the respective language documentation~\cite{}, but also in the job
+%~ description mapping document which documents how the three languages are
+%~ mapped in and out from the ARC internal job description data structure~\cite{}.
 
 \chapter{Grid Flavour Plugins and Commons}
 \label{sec:plugins}
@@ -720,6 +733,6 @@ OTHER & \NST{Any other state} & \NST{Any other state} & \NST{None} & \NST{Any ot
 \end{tabularx}
 \end{center}
 
-\bibliography{grid, libarcclient}
+\bibliography{grid,libarcclient}
 
 \end{document}
