@@ -123,23 +123,18 @@ of C++ classes for
 \end{itemize}
 
 All capabilities are enabled for three different grid flavours
-(Production ARC, ARC1 and gLite~\cite{glite}) through a modular design
-using plugins specialized for each supported middleware. Future
-extensions to support additional middlewares involve plugin
-compilation only i.e., no recompilation of main libraries or clients
-is necessary.
+(Production ARC, Web Service ARC and gLite~\cite{glite}) through a
+modular design using plugins specialized for each supported
+middleware. Future extensions to support additional middlewares
+involve plugin compilation only i.e., no recompilation of main
+libraries or clients is necessary.
 
 Using the library, a set of command line tools have been built which
-puts the library's functionality at the fingertips of users. While
-this documentation will illustrate how such command line tools can be
-built, the main documentation of the command line tools is given in
-the client user manual~\cite{ui}.
-
-In the following we will give a functionality overview in
-Section~\ref{sec:FuncOver} while all technical details will be given
-in Section~\ref{sec:Implementation}. Section~\ref{sec:cli} will
-show through examples how command line interfaces can be built upon
-the library.
+puts the library's functionality at the fingertips of users. This
+documentation is not intended to document the developed CLI but the
+concept of how to build command line tools will be
+demonstrated. Readers interested in the user interface are recommended
+to read the client user manual~\cite{ui}.
 
 \chapter{Functionality Overview}
 \label{sec:FuncOver}
@@ -149,7 +144,8 @@ handling. These plugins are handled by a set of higher level classes
 which thus are the ones to offer the plugin functionality to external
 calls. In this section an overview of the library's main functionality
 is given which also introduces the most important higher level
-classes.
+classes. Readers interested in the library API are recommended to look
+up the online API documentation~\cite{libarcclientAPI}.
 
 \section{Resource Discovery and Information Retrieval}
 \label{sec:TargetDiscovery}
@@ -272,7 +268,6 @@ description of each step is given:
 \end{enumerate}
 
 \section{Job Management}
-
 Once a job is submitted, job related information (job identification
 string, cluster etc.) is stored in a local XML file which stores this 
 information for all active jobs. This file may contain jobs running on
@@ -319,10 +314,9 @@ together and below a step by step description is given:
 
 \chapter{The ARC Brokering Module}
 \label{sec:brokering}
-
-The {\Broker} inherits from the {\ACC} base class in order to be
-loadable by the ARC \texttt{Loader}. It is the base class of the
-specialized {\Broker} and it implements the method for reducing a list
+The ARC brokering module is made up of two kinds of classes: one
+brokering base class and specialized classes derived thereof. The
+brokering base class which implements the method for reducing a list
 of resources found by resource discovery (the list of
 {\ExecutionTarget}s residing within the {\TargetGenerator}) to a list
 of resources capable of running a certain job:
@@ -371,57 +365,54 @@ The {\Random} ranks the {\ExecutionTarget}s randomly.
 
 \subsection{\Benchmark}
 
-The {\Benchmark} ranks the {\ExecutionTarget}s according to their CPU performance. The most 
-reliable comparison is achieved through the usage of a benchmark scenario, and the {\Benchmark}
-uses the CINT2000 (Integer Component of SPEC CPU2000)\footnote{http://www.spec.org/cpu2000/CINT2000/} 
-benchmark for this purpose. 
-
-The {\texttt SortTargets} method has two steps:
-
-\begin{enumerate}
-\item{{\ExecutionTarget}s not publishing the specint2000 benchmark information are removed from the list 
-  of possible targets as their performance is unknown.}
-\item{The {\ExecutionTarget}s are ranked such that the {\ExecutionTarget} with highest specint2000 value 
-  receives top ranking}
-\end{enumerate}
+The {\Benchmark} ranks the {\ExecutionTarget}s according to their
+benchmark performance. Through the command line tool (see the user
+manual\cite{ui} for reference) this specialized broker takes a user
+specified benchmark as input and ranks the {\ExecutionTarget}s
+according to their published benchmark performance. If no benchmark is
+specified the CINT2000 (Integer Component of SPEC
+CPU2000)\footnote{http://www.spec.org/cpu2000/CINT2000/} benchmark is
+used as default.
 
 \subsection{\FastestQueueBroker}
 
-The {\FastestQueueBroker} ranks the {\ExecutionTarget}s according to their queue length measured in percentage 
-of the {\ExecutionTarget}'s size (i.e. the queue length divided by the number of total slots/CPUs). If more 
-than one {\ExecutionTarget} has zero queue, the {\FastestQueueBroker} makes use of a basic load balancing method 
-to rearrange the zero queue {\ExecutionTarget}s depending on their number of free slots/CPUs. 
-
-The {\texttt SortTargets} method has three steps:
-
-\begin{enumerate}
-\item{{\ExecutionTarget}s not publishing WaitingJobs, TotalSlots and FreeSlots are removed from the list of possible targets 
-as it is impossible to determine their queue length and perform load balancing.}
-\item{The {\ExecutionTarget}s are ranked according to their queue length relative to the number of slots/CPUs. Zero queue 
-{\ExecutionTarget}s is ranked first.}
-\item{If more than one {\ExecutionTarget} has zero queue, the targets are randomly reshuffled based upon how many free slots 
-they have, e.g. if two {\ExecutionTarget}s have zero queue and they have 90 and 10 free slots respectively, then the first
-{\ExecutionTarget} has a 90\% probability of becoming the top ranked cluster.}
-\end{enumerate}
+The {\FastestQueueBroker} ranks the {\ExecutionTarget}s according to
+their queue length measured in percentage of the {\ExecutionTarget}'s
+size (i.e. the queue length divided by the number of total
+slots/CPUs). If more than one {\ExecutionTarget} has zero queue, the
+{\FastestQueueBroker} makes use of a basic load balancing method to
+rearrange the zero queue {\ExecutionTarget}s depending on their number
+of free slots/CPUs.
 
 \subsection{\Data}
 
-The {\Data} ranks the {\ExecutionTarget}s according to how many megabytes of the requested input files that already 
-stored in the cache of the computing resource the {\ExecutionTarget} represents. The broker is motivated by that jobs should 
-be submitted to {\ExecutionTarget}s where the data already is, thus reducing the network load on both the computing resource 
-and client side. The ranking method is based upon the A-REX\footnote{http://www.knowarc.eu/download/D1.2-3\_documentation.pdf} 
-interface {\texttt CacheCheck} for querying for the presence of the file in the cache directory. This interface has a limitation 
-in the current implementation and does not support per user caches.
+The {\Data} ranks the {\ExecutionTarget}s according to how many
+megabytes of the requested input files that already stored in the
+cache of the computing resource the {\ExecutionTarget} represents. The
+broker is motivated by that jobs should be submitted to
+{\ExecutionTarget}s where the data already is, thus reducing the
+network load on both the computing resource and client side. The
+ranking method is based upon the
+A-REX\footnote{http://www.knowarc.eu/download/D1.2-3\_documentation.pdf}
+interface {\texttt CacheCheck} for querying for the presence of the
+file in the cache directory. This interface has a limitation in the
+current implementation and does not support per user caches.
 
 The {\texttt SortTargets} method has four steps:
 
 \begin{enumerate}
-\item{Only the A-REX service has {\texttt CacheCheck} method, thus {\ExecutionTarget}s not running A-REX are removed.}
-\item{Information about input files requested in the job description is collected from the \texttt{JobInnerRepresentation.}}
-\item{Each {\ExecutionTarget} is queried (through the {\texttt CacheCheck} method) for the existence of input files. 
-A single query is used for achieving all the necessary information and file sizes are summarized. If there are problems 
-determining file sizes, then the summarized size will be zero.}
-\item{The possible {\ExecutionTarget}s are ranked in a descending order according to the amount of input data they have in their cache.}
+\item{Only the A-REX service has {\texttt CacheCheck} method, thus
+  {\ExecutionTarget}s not running A-REX are removed.}
+\item{Information about input files requested in the job description
+  is collected from the \texttt{JobInnerRepresentation.}}
+\item{Each {\ExecutionTarget} is queried (through the {\texttt
+    CacheCheck} method) for the existence of input files.  A single
+  query is used for achieving all the necessary information and file
+  sizes are summarized. If there are problems determining file sizes,
+  then the summarized size will be zero.}
+\item{The possible {\ExecutionTarget}s are ranked in a descending
+  order according to the amount of input data they have in their
+  cache.}
 \end{enumerate}
 
 Example of a CacheCheck request that can be sent to an A-REX service:
@@ -594,6 +585,6 @@ http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk/doc/client/broker-map
 http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk/doc/client/broker-mapping.ods
 
 
-\bibliography{grid}
+\bibliography{grid, libarcclient}
 
 \end{document}
