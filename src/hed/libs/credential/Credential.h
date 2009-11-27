@@ -156,7 +156,7 @@ class Credential {
     /**Assistant method for signing the proxy request, the method will duplicate some information
     *(subject and extension) from signing certificate
     */
-    bool SignRequestAssistant(Credential* &proxy, EVP_PKEY* &req_pubkey, X509** tosign);
+    bool SignRequestAssistant(Credential* proxy, EVP_PKEY* req_pubkey, X509** tosign);
 
   public:
     /**Log error information related with openssl*/
@@ -279,7 +279,7 @@ class Credential {
 	  *
 	  * The user will be asked for a private key password
 	  */
-    bool GenerateEECRequest(BIO* &reqbio, BIO* &keybio, std::string dn = "");
+    bool GenerateEECRequest(BIO* reqbio, BIO* keybio, std::string dn = "");
 
     /**Generate an EEC request, output the certificate request to a string*/
     bool GenerateEECRequest(std::string &reqcontent, std::string &keycontent, std::string dn = "");
@@ -291,7 +291,7 @@ class Credential {
     * algorithm information inside this object
     * output the certificate request to output BIO
     */
-    bool GenerateRequest(BIO* &bio, bool if_der = false);
+    bool GenerateRequest(BIO* bio, bool if_der = false);
 
     /**Generate a proxy request, output the certificate request to a string*/
     bool GenerateRequest(std::string &content, bool if_der = false);
@@ -305,7 +305,7 @@ class Credential {
     * of request' extension
     * @param if_der false for PEM; true for DER
     */
-    bool InquireRequest(BIO* &reqbio, bool if_eec = false, bool if_der = false);
+    bool InquireRequest(BIO* reqbio, bool if_eec = false, bool if_der = false);
 
     /**Inquire the certificate request from a string*/
     bool InquireRequest(std::string &content, bool if_eec = false, bool if_der = false);

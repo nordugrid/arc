@@ -75,6 +75,7 @@ namespace Arc {
     const char *password = NULL;
     PW_CB_DATA *cb_data = (PW_CB_DATA *)cb_tmp;
 
+    if (bufsiz < 1) return res;
     if (cb_data) {
       if (cb_data->password)
       password = (const char*)(cb_data->password);
@@ -84,9 +85,12 @@ namespace Arc {
 
     if (password) {
       res = strlen(password);
-      if (res > bufsiz)
-        res = bufsiz;
-      memcpy(buf, password, res);
+      if (res > (bufsiz-1))
+        res = bufsiz-1;
+      if(buf) {
+        memcpy(buf, password, res);
+        buf[res] = 0;
+      }
       return res;
     }
 
@@ -94,7 +98,8 @@ namespace Arc {
     ui = UI_new();
     if (ui) {
       int ok = 0;
-      char *buff = NULL;
+      char *buf1 = NULL;
+      char *buf2 = NULL;
       int ui_flags = 0;
       char *prompt = NULL;
 
@@ -103,33 +108,52 @@ namespace Arc {
       ui_flags |= UI_INPUT_FLAG_DEFAULT_PWD;
       UI_ctrl(ui, UI_CTRL_PRINT_ERRORS, 1, 0, 0);
 
-      if (ok >= 0)
-        ok = UI_add_input_string(ui,prompt,ui_flags,buf,PASS_MIN_LENGTH,BUFSIZ-1);
+      if (ok >= 0) {
+        ok = -1;
+        if((buf1 = (char *)OPENSSL_malloc(bufsiz)) != NULL) {
+          memset(buf1,0,(unsigned int)bufsiz);
+          ok = UI_add_input_string(ui,prompt,ui_flags,buf1,PASS_MIN_LENGTH,bufsiz-1);
+        }
+      }
       if (ok >= 0 && verify) {
-        buff = (char *)OPENSSL_malloc(bufsiz);
-        ok = UI_add_verify_string(ui,prompt,ui_flags,buff,PASS_MIN_LENGTH,BUFSIZ-1, buf);
+        ok = -1;
+        if((buf2 = (char *)OPENSSL_malloc(bufsiz)) != NULL) {
+          memset(buf2,0,(unsigned int)bufsiz);
+          ok = UI_add_verify_string(ui,prompt,ui_flags,buf2,PASS_MIN_LENGTH,bufsiz-1, buf);
+        }
       }
       if (ok >= 0)
         do{
           ok = UI_process(ui);
         }while (ok < 0 && UI_ctrl(ui, UI_CTRL_IS_REDOABLE, 0, 0, 0));
 
-      if (buff){
-        memset(buff,0,(unsigned int)bufsiz);
-        OPENSSL_free(buff);
+      if (buf2){
+        memset(buf2,0,(unsigned int)bufsiz);
+        OPENSSL_free(buf2);
       }
 
-      if (ok >= 0)
-        res = strlen(buf);
+      if (ok >= 0) {
+        if(buf1) {
+          buf1[bufsiz-1] = 0;
+          res = strlen(buf1);
+          if(buf) memcpy(buf,buf1,res+1);
+        }
+      }
+
+      if (buf1){
+        memset(buf1,0,(unsigned int)bufsiz);
+        OPENSSL_free(buf1);
+      }
+
       if (ok == -1){
         std::cerr<<"User interface error\n"<<std::endl;
         ERR_print_errors_cb(&ssl_err_cb, &CredentialLogger);
-        memset(buf,0,(unsigned int)bufsiz);
+        if(buf) memset(buf,0,(unsigned int)bufsiz);
         res = 0;
       }
       if (ok == -2) {
         std::cerr<<"Aborted!\n"<<std::endl;
-        memset(buf,0,(unsigned int)bufsiz);
+        if(buf) memset(buf,0,(unsigned int)bufsiz);
         res = 0;
       }
       UI_free(ui);
@@ -143,6 +167,7 @@ namespace Arc {
   }
 
   Time asn1_to_utctime(const ASN1_UTCTIME *s) {
+    if(s == NULL) return Time();
     std::string t_str;
     if(s->type == V_ASN1_UTCTIME) {
       t_str.append("20");
@@ -155,11 +180,17 @@ namespace Arc {
   }
 
   //Get the life time of the credential
-  static void getLifetime(STACK_OF(X509)* &certchain, X509* &cert, Time& start, Period &lifetime) {
+  static void getLifetime(STACK_OF(X509)* certchain, X509* cert, Time& start, Period &lifetime) {
     X509* tmp_cert = NULL;
     Time start_time(-1), end_time(-1);
     int n;
     ASN1_UTCTIME* atime = NULL;
+
+    if((cert == NULL) || (certchain == NULL)) {
+      start = Time();
+      lifetime = Period();
+      return;
+    }
 
     for (n = 0; n < sk_X509_num(certchain); n++) {
       tmp_cert = sk_X509_value(certchain, n);
@@ -188,6 +219,7 @@ namespace Arc {
   //Parse the BIO for certificate and get the format of it
   Credformat Credential::getFormat(BIO* bio, const bool is_file) {
     Credformat format = CRED_UNKNOWN;
+    if(bio == NULL) return format;
     if(is_file) {
       char buf[1];
       char firstbyte;
@@ -359,6 +391,7 @@ namespace Arc {
     PKCS12* pkcs12 = NULL;
     STACK_OF(X509)* pkcs12_certs = NULL;
 
+    if(certbio == NULL) return;
     format = getFormat(certbio, is_file);
     int n;
     if(*certchain) {
@@ -475,6 +508,7 @@ namespace Arc {
     Credformat format;
     PKCS12* pkcs12 = NULL;
 
+    if(keybio == NULL) return;
     format = getFormat(keybio, is_file);
     std::string prompt;
     switch(format){
@@ -983,7 +1017,7 @@ namespace Arc {
     return req_;
   }
 
-  bool Credential::GenerateEECRequest(BIO* &reqbio, BIO* &keybio, std::string dn) {
+  bool Credential::GenerateEECRequest(BIO* reqbio, BIO* /*keybio*/, std::string dn) {
     bool res = false;
     RSA* rsa_key = NULL;
     const EVP_MD *digest = signing_alg_;
@@ -1145,7 +1179,7 @@ namespace Arc {
 
   //TODO: self request/sign proxy
 
-  bool Credential::GenerateRequest(BIO* &reqbio, bool if_der){
+  bool Credential::GenerateRequest(BIO* reqbio, bool if_der){
     bool res = false;
     RSA* rsa_key = NULL;
     int keybits = keybits_;
@@ -1508,7 +1542,7 @@ namespace Arc {
   }
 
   //Inquire the input request bio to get PROXYCERTINFO, certType
-  bool Credential::InquireRequest(BIO* &reqbio, bool if_eec, bool if_der){
+  bool Credential::InquireRequest(BIO* reqbio, bool if_eec, bool if_der){
     bool res = false;
     if(reqbio == NULL) { CredentialLogger.msg(ERROR, "NULL BIO passed to InquireRequest"); return false; }
     if(req_) {X509_REQ_free(req_); req_ = NULL; }
@@ -1739,7 +1773,7 @@ err:
     return false;
   }
 
-  bool Credential::SignRequestAssistant(Credential* &proxy, EVP_PKEY* &req_pubkey, X509** tosign){
+  bool Credential::SignRequestAssistant(Credential* proxy, EVP_PKEY* req_pubkey, X509** tosign){
 
     bool res = false;
     X509* issuer = NULL;
