@@ -21,6 +21,7 @@
 <xsd:import namespace="http://www.nordugrid.org/schemas/usernametokensh/2009/08" schemaLocation="UsernameTokenSH.xsd"/> 
 <xsd:import namespace="http://www.nordugrid.org/schemas/delegationsh/2009/08" schemaLocation="DelegationSH.xsd"/> 
 <xsd:import namespace="http://www.nordugrid.org/schemas/arcauthz/2009/08" schemaLocation="ArcAuthZ.xsd"/> 
+<xsd:import namespace="http://www.nordugrid.org/schemas/identitymap/2009/10" schemaLocation="identitymap.xsd"/> 
 <xsd:import namespace="http://www.nordugrid.org/schemas/xacmlpdp/2009/08" schemaLocation="XACMLPDP.xsd"/> 
 <xsd:import namespace="http://www.nordugrid.org/schemas/pdpserviceinvoker/2009/08" schemaLocation="PDPServiceInvoker.xsd"/> 
 <xsd:import namespace="http://www.nordugrid.org/schemas/samltokensh/2009/08" schemaLocation="SAMLTokenSH.xsd"/> 

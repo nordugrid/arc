@@ -5,6 +5,7 @@
   xmlns:tcp="http://www.nordugrid.org/schemas/tcp/2009/08"
   xmlns:tls="http://www.nordugrid.org/schemas/tls/2009/08"
   xmlns:authz="http://www.nordugrid.org/schemas/arcauthz/2009/08"
+  xmlns:idmap="http://www.nordugrid.org/schemas/identitymap/2009/10"
   xmlns:spdp="http://www.nordugrid.org/schemas/simplelistpdp/2009/08"
   xmlns:arex="http://www.nordugrid.org/schemas/a-rex/2009/08"
   xmlns:ip="http://www.nordugrid.org/schemas/a-rex/InfoProvider/2009/08"
@@ -58,7 +59,7 @@
            Comment it if no user mapping is needed. -->
       <loader:SecHandler name="identity.map" id="map" event="incoming">
         <!-- Safe choice if all other rules failed -->
-        <authz:PDP name="allow.pdp"><LocalName>nobody</LocalName></authz:PDP>
+        <idmap:PDP name="allow.pdp"><idmap:LocalName>nobody</idmap:LocalName></idmap:PDP>
       </loader:SecHandler>
     </loader:Component>
     <!-- HTTP processing is done here -->
