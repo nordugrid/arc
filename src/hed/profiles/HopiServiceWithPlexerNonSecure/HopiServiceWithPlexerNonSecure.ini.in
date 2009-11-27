@@ -1,0 +1,11 @@
+profile=@datadir@/@PACKAGE@profiles/HopiServiceWithPlexerNonSecure.xml
+
+pidfile=/tmp/arched.pid
+logfile=/tmp/arched.log
+debug=ERROR
+
+port=60000
+
+[hopi]
+urlpatter=^/hopi/
+documentroot=/tmp/hopi

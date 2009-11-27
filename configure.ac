@@ -1738,6 +1738,48 @@ AC_CONFIG_FILES([Makefile
                  src/services/janitor/interfaces/commandline/janitor.8
                  src/services/janitor/interfaces/commandline/rjanitor.c
                  arcbase.pc
+                 src/hed/profiles/CheloniaAllServicesCentralizedAHash/CheloniaAllServicesCentralizedAHash.ini
+                 src/hed/profiles/CheloniaAllServicesCentralizedAHash/CheloniaAllServicesCentralizedAHash.xml
+                 src/hed/profiles/CheloniaAllServicesCentralizedAHashWithISIS/CheloniaAllServicesCentralizedAHashWithISIS.ini
+                 src/hed/profiles/CheloniaAllServicesCentralizedAHashWithISIS/CheloniaAllServicesCentralizedAHashWithISIS.xml
+                 src/hed/profiles/CheloniaAllServicesReplicatedAHash/CheloniaAllServicesReplicatedAHash.ini
+                 src/hed/profiles/CheloniaAllServicesReplicatedAHash/CheloniaAllServicesReplicatedAHash.xml
+                 src/hed/profiles/CheloniaAllServicesReplicatedAHashGatewayVOMSWithISIS/CheloniaAllServicesReplicatedAHashGatewayVOMSWithISIS.ini
+                 src/hed/profiles/CheloniaAllServicesReplicatedAHashGatewayVOMSWithISIS/CheloniaAllServicesReplicatedAHashGatewayVOMSWithISIS.xml
+                 src/hed/profiles/CheloniaAllServicesReplicatedAHashWithISIS/CheloniaAllServicesReplicatedAHashWithISIS.ini
+                 src/hed/profiles/CheloniaAllServicesReplicatedAHashWithISIS/CheloniaAllServicesReplicatedAHashWithISIS.xml
+                 src/hed/profiles/CheloniaReplicatedAHash/CheloniaReplicatedAHash.ini
+                 src/hed/profiles/CheloniaReplicatedAHash/CheloniaReplicatedAHash.xml
+                 src/hed/profiles/CheloniaShepherdWithHopi/CheloniaShepherdWithHopi.ini
+                 src/hed/profiles/CheloniaShepherdWithHopi/CheloniaShepherdWithHopi.xml
+                 src/hed/profiles/EchoService/EchoService.ini
+                 src/hed/profiles/EchoService/EchoService.xml
+                 src/hed/profiles/EchoServiceNonSecure/EchoServiceNonSecure.ini
+                 src/hed/profiles/EchoServiceNonSecure/EchoServiceNonSecure.xml
+                 src/hed/profiles/EchoServicePython/EchoServicePython.ini
+                 src/hed/profiles/EchoServicePython/EchoServicePython.xml
+                 src/hed/profiles/EchoServicePythonNonSecure/EchoServicePythonNonSecure.ini
+                 src/hed/profiles/EchoServicePythonNonSecure/EchoServicePythonNonSecure.xml
+                 src/hed/profiles/EchoServiceSAMLToken/EchoServiceSAMLToken.ini
+                 src/hed/profiles/EchoServiceSAMLToken/EchoServiceSAMLToken.xml
+                 src/hed/profiles/EchoServiceUsernameToken/EchoServiceUsernameToken.ini
+                 src/hed/profiles/EchoServiceUsernameToken/EchoServiceUsernameToken.xml
+                 src/hed/profiles/EchoServiceX509Token/EchoServiceX509Token.ini
+                 src/hed/profiles/EchoServiceX509Token/EchoServiceX509Token.xml
+                 src/hed/profiles/HopiService/HopiService.ini
+                 src/hed/profiles/HopiService/HopiService.xml
+                 src/hed/profiles/HopiServiceNonSecure/HopiServiceNonSecure.ini
+                 src/hed/profiles/HopiServiceNonSecure/HopiServiceNonSecure.xml
+                 src/hed/profiles/HopiServiceWithPlexer/HopiServiceWithPlexer.ini
+                 src/hed/profiles/HopiServiceWithPlexer/HopiServiceWithPlexer.xml
+                 src/hed/profiles/HopiServiceWithPlexerNonSecure/HopiServiceWithPlexerNonSecure.ini
+                 src/hed/profiles/HopiServiceWithPlexerNonSecure/HopiServiceWithPlexerNonSecure.xml
+                 src/hed/profiles/NonSecureNonDistributedStorageElement/NonSecureNonDistributedStorageElement.xml
+                 src/hed/profiles/NonSecureP2PIIS/NonSecureP2PIIS.xml
+                 src/hed/profiles/NonSecureStandaloneIIS/NonSecureStandaloneIIS.xml
+                 src/hed/profiles/SecureComputingElementWithMapfile/SecureComputingElementWithMapfile.ini
+                 src/hed/profiles/SecureP2PIIS/SecureP2PIIS.xml
+                 src/hed/profiles/SecureStandaloneIIS/SecureStandaloneIIS.xml
 ])
 AC_OUTPUT
 

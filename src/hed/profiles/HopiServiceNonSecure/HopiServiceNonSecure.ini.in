@@ -1,0 +1,10 @@
+profile=@datadir@/@PACKAGE@profiles/HopiServiceNonSecure.xml
+
+pidfile=/tmp/arched.pid
+logfile=/tmp/arched.log
+debug=ERROR
+
+port=60000
+
+[hopi]
+documentroot=/tmp/hopi
