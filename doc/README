@@ -10,13 +10,12 @@ manuals		   - The documentation which should be part of the official ARC manuals
 tech_doc	   - The official technical documentation.
 tutorial	   - Any tutorial concerning the ARC software
 templates	   - Templates of the documentation.
-
-articles	   - All (both scientific and outreach) papers submitted to journals, conferences or others.
+release_notes      - Official release notes of subsequent releases of ARC Nox series.
 internal_notes	   - Deliverable design documents, old documentation or other internal notes not to be shown public.
-config_templates   - Standard examples on configuration of all ARC components.
 
 All documents in manuals, tech_doc, tutorials must be kept up-to-date and integrated with the build system.
 The ARC documentation package can be configured and build as a stand-alone package through the doc/configure.ac. 
 Any new documentation should be added to this file and not to the top-level ../configure.ac
 
 No document should be placed outside the folders above!
+

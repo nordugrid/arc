@@ -1,0 +1,281 @@
+Advanced Resource Connector Nox 1.0.0 
+=====================================
+
+                                             November 26, 2009
+
+
+
+The Advanced Resource Connector (ARC) middleware, introduced by NorduGrid
+(www.nordugrid.org), is an open source software solution enabling production
+quality computational and data grids. Current production ARC is one of the
+major production grid middlewares available today.
+
+Over the last three years, the KnowARC project has further developed the
+Advanced Resource Connector Grid middleware produced by the NorduGrid
+Collaboration. This release collects and integrates several service and client
+tools available for some time as a technology preview prototypes, into a
+consistent  software release. Final KnowARC release comes under the NOX code
+name.
+
+Nox includes number of innovative components, such as Chelonia, a self-healing,
+distributed storage system, the ISIS peer to peer information system, advanced
+clients and A-REX – new implementation of the ARC’s highly efficient job
+execution system.
+
+ARC has been long known for very good portability and support for wide range of
+Linux versions. Design of new ARC and careful choice of underlying dependencies
+manifests itself in even better portability of the code. The NOX is now
+availabile on wide variety of non Linux platforms including Microsoft Windows,
+Mac OS X and Solaris.
+
+Nox release brings ARC’s new Web Service based components to a broader audience.
+Thus providing an opportunity to the user community to evaluate various new ARC
+components before introducing them into production releases of ARC.
+
+
+1. Release Content
+==================
+
+
+1.1 Hosting Environment Daemon
+
+The central part of the WS based ARC is Hosting Environment Daemon (HED). HED
+is a container for all other functional components of the ARC middleware on 
+the server side. It is implemented as a daemon which hooks up the system and
+initialize components the way as it is described in the configuration files. 
+This configuration describes the components and their relations to each other.
+
+
+1.2 A-REX Service
+
+A-REX is the job execution service providing computing element (CE)
+functionality. It is implemented as a service within HED framework. CE is a
+service accepting requests containing description of generic computational jobs
+and executing it in underlying Local Resource Management System (LRMS). 
+
+The A-REX uses a WS interface which provides a way to submit and control jobs
+to be executed by the A-REX and the underlying LRMS). A-REX comes with highly 
+configurable security management implemented via policy decision points and
+policy handlers based on X.509 certification schema.
+
+A-REX supports following LRMS:
+
+  o Torque (or PBS/OpenPBS)
+  o SGE
+  o LoadLeveler
+  o LSF
+  o Condor
+  o SLURM
+
+There are two notable A-REX plugins included in the release:
+  o Janitor - dynamic runtime environment management plugin.
+  o Jura - accounting plugin
+
+
+1.3 Chelonia - distributed storage system
+
+The ARC storage system is a distributed system for storing replicated files on
+several file storage nodes and manage them in a global namespace.
+
+The services of the Storage system are the following:
+
+      o the A-Hash service is a database
+
+      o the Shepherd service, which provides a simple interface for 
+        storing files on storage nodes
+
+      o the Librarian service, which stores the metadata and 
+        hierarchy of collections and files, the location of replicas, 
+        and health data of the Shepherd services, using the A-Hash as 
+        database
+
+      o the Bartender service, which provides a high-level interface 
+        for the users and for other services
+
+All these services of the Storage system are implemented within the HED
+framework.
+
+The main client tool coming with the release is
+
+  o chelonia
+
+It is written in python and needs only a basic Python installation to run.
+
+
+1.4 ISIS the information system
+
+ISIS is new ARC information system implemented within HED. ISIS comes with
+P2P capabilities and WS interface. The new system allows grid participants
+improved flexibility, robustness and it also offers easier configuration
+and self-healing capability.
+
+1.5 HOPI Service
+
+HOPI service provides simple implementation of http(s) server. It support GET
+and PUT operations. It can be used as a simple file transfer service and it is
+usable via common web browsers and other http(s) clients (e.g. wget).
+
+
+1.6 CHARON Service
+
+CHARON is a remote policy decision point service, implemented in HED. It
+accepts formatted policy decision request and return positive or negative
+response. When running a CHARON (within the HED), the TLS layer can be used for
+securing the communication, when the request or response information are
+critical.
+
+The release contains a client tool for the CHARON: 
+
+  o arcdecision. 
+
+The client arcdecision sends a policy decision request to CHARON service and 
+returns the policy decision result.
+
+
+1.7 ECHO Service
+
+ECHO service is a simple testing service developed in the HED framework which
+accepts a soap messages and returns them either the same or slightly modified.
+The ECHO service come with two clients arcecho and perftest usable for testing
+the setup and performance of HED.
+
+
+1.8 ARC client development libraries
+
+There are two general purpose libraries on which the client tools of WS ARC are
+built upon:
+
+  o libarcclient
+  o libarcdata
+
+Job submission and control binaries (arc* commands) are based on libarcclient
+library in which also ability to interoperate with different middlewares is 
+implemented.
+
+libarcdata serves as the base for the data management binaries.
+
+
+1.9 Job management commands
+
+The WS ARC clients in this release depend on the libarcclient library in which
+all functionalities for job submission and control are implemented. The new
+library comes with support for multiple grid flavours: ARC (both WS based and 
+pre-WS ARC) and gLite (through CREAM interface).
+
+o arcsub
+  The arcsub command serves for submission of one or several grid jobs.
+
+o arcstat
+  The arcstat utility serve to query a job or computing cluster status query.
+
+o arcget
+  The arcget utility serve for retrieve outputs of grid jobs.
+
+o arcclean
+  The arcclean serve for deleting the job session directory. Only applicable
+  to jobs in a post execution state (e.g. failed or finished).
+
+o arckill
+  The arckill utility serve to stop the jobs it is applicable to all jobs not
+  in a post execution states (e.g. queuing or running). Supports keeping the
+  job session directory.
+
+o arccat
+  The arccat command perform the cat command to either the stdout or stderr
+  file by copying the file in question from the job session directory and 
+  printing it on the client side screen.
+
+Each command listed above comes with a detailed manual page with usage
+examples and descriptions of flags and their possible arguments. The commands
+work for the three initially supported grid flavours for now.
+
+1.10 Brokering capabilities
+
+The Nox release comes with set of broker implementations allowing for effective
+job distribution.
+
+1.11 Data management command line tools
+
+o arccp
+  The arccp command copies files to, from and between grid storage elements.
+
+o arcrm
+  The arcrm command deletes files and on grid storage elements.
+
+o arcls
+  The arcls command is used for listing files in grid storage elements and
+  file index catalogs.
+
+
+1.12 Miscellaneous command line tools
+
+o arcinfo
+  The arcinfo requests full service description XML document from services
+  which support WSRF.
+
+
+
+3. Availability
+===============
+
+ARC is known for it's portability through wide variety of Linux operating 
+systems. New development was even more ambitious and now makes ARC available
+also on non Linux platforms: Microsoft Windows, Mac OS X and Solaris Sparc.
+
+The code was tested on the following systems
+
+  o Linux:
+     o Fedora 4, 5, 6, 7, 8, 9, 10, 11 (32/64 bit)
+     o Red Hat Enterprise Linux 4, 5 (32/64 bit)
+     o OpenSuSE 11.1, 11.2, 11.3 (32/64 bit)
+     o Ubuntu 8.04, 9.10 (32 bit)
+     o Debian 4.0, 5.0 (32/64 bit)
+     o Gentoo (32/64 bit)
+  o MAC OS X 10.4.x (Tiger), 10.5.x (Leopard), 10.6.x (Snow Leopard)
+  o Sparc Solaris 9,10
+  o Microsoft Windows (XP,Vista,7)
+
+
+4.System requirements
+=====================
+
+For a computing service, you will need a cluster running LRMS or a standalone
+box configured with "fork" job submission. It can be shared with other services.
+
+For a storage service, you will need a conventional disk array with front end
+running one of supported OS, or simply a box with some storage capacity. The box
+iteself can be shared with other services.
+
+For all the optional services, a shared computer is sufficient. For a client any
+machine with OS from supported pool will do, no administrator privileges are 
+required.
+
+
+5. Known issues
+================
+This release of ARC comes with some known issues:
+
+o Python bindings missing on Windows
+o A-REX is not available on Windows
+
+
+6. Support and contact
+======================
+User support and site installation assistance is provided via the request
+tracking system available by e-mail to nordugrid-support@nordugrid.org. In
+addition, NorduGrid runs a couple of mailing lists, among which the
+nordugrid-discuss mailing list is a general forum for all kind of issues
+related to the ARC middleware.
+
+Feature and enhancement requests, as well as discovered problems, should be
+reported in the Bugzilla:
+
+  http://bugzilla.nordugrid.org
+
+Research papers, overview talks, reference manuals, user guides, installation
+instructions, conference presentations, FAQ and even tutorial materials can
+be fetched from the documentation section of the NorduGrid Web site. Contact
+information is kept updated on the NorduGrid Web site.
+
+
+ LocalWords:  functionalities arcsub

@@ -1,4 +1,4 @@
-SUBDIRS = manuals tech_doc tutorials
+SUBDIRS = manuals tech_doc tutorials release_notes
 
 docdir = @docdir@
 

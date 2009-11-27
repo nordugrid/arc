@@ -61,6 +61,7 @@ AC_CONFIG_FILES([Makefile
                  manuals/Makefile
                  manuals/user_interface/Makefile
                  manuals/ws-quick-guide/Makefile
-                 manuals/janitor/Makefile])
+                 manuals/janitor/Makefile
+		 release_notes/Makefile])
 
 AC_OUTPUT
