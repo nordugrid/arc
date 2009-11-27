@@ -730,7 +730,7 @@ sub deploy_for_job {
 	$rte->disconnect;
 	$job->disconnect;
 	
-	printf "XXX this should not be reached (search for 6423764523) !!!\n";
+	printf STDERR "XXX this should not be reached (search for 6423764523) !!!\n";
 
 	$response->result(1, "");
 	return $response;
@@ -860,7 +860,7 @@ sub setup_runtime_package {
 ###l4p 						$logger->error("Failed creating directory ".$currentpath." for ".$mp->name());
 						last;
 					}
-# 					print "mkdir ".$currentpath."  =>  $result\n";
+# 					print STDERR "mkdir ".$currentpath."  =>  $result\n";
 				}
 			}
 			$currentpath = $currentpath."/".pop(@mpNameTokens);
@@ -869,7 +869,7 @@ sub setup_runtime_package {
 				if($result != 1){
 ###l4p 						$logger->error("Failed creating symbolic link ".$currentpath);
 				}
-# 				print "ln -s ".$installed."/runtime ".$currentpath."  =>  $result\n";
+# 				print STDERR "ln -s ".$installed."/runtime ".$currentpath."  =>  $result\n";
 			}
 		}
 	}
@@ -994,7 +994,7 @@ sub sweep_rte {
 			if($result != 1){
 ###l4p 				$logger->error("Failed removing symbolic link ".$currentpath);
 			}
-# 			print "rm ".$currentpath."  =>  $result\n";
+# 			print STDERR "rm ".$currentpath."  =>  $result\n";
 		}
 	}
 
