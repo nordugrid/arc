@@ -608,6 +608,7 @@ sub get_cluster_info($) {
 
     # OBS: when is it 'queueing' and 'closed'?
     # OBS: allownew no longer supported by arex?
+    # OBS: This option is not even parsed by ConfigCentral
     if ( defined($config->{allownew}) and $config->{allownew} eq "no" ) {
         $cep->{ServingState} = [ 'draining' ];
     } else {
@@ -794,9 +795,9 @@ sub get_cluster_info($) {
 
         # ServingState: closed and queuing are not yet supported
         if (defined $config->{allownew} and lc($config->{allownew}) eq 'no') {
-            $csha->{ServingState} = [ 'production' ];
-        } else {
             $csha->{ServingState} = [ 'draining' ];
+        } else {
+            $csha->{ServingState} = [ 'production' ];
         }
 
         # Count local jobs
