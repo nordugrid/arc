@@ -950,9 +950,12 @@ namespace Arc {
         datastaging.NewChild("FileName") = it->Name;
       if (it->Source.size() != 0 &&
           it->Source.begin()->URI &&
-          it->Source.begin()->URI.Protocol() != "file" &&
-          trim(it->Source.begin()->URI.fullstr()) != "")
-        datastaging.NewChild("Source").NewChild("URI") = it->Source.begin()->URI.fullstr();
+          trim(it->Source.begin()->URI.fullstr()) != "") {
+        if (it->Source.begin()->URI.Protocol() == "file")
+          datastaging.NewChild("Source");
+        else
+          datastaging.NewChild("Source").NewChild("URI") = it->Source.begin()->URI.fullstr();
+      }
       if (it->Target.size() != 0 &&
           it->Target.begin()->URI &&
           trim(it->Target.begin()->URI.fullstr()) != "")
