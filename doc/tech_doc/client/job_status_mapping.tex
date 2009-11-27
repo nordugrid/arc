@@ -1,0 +1,169 @@
+\documentclass{article}
+\usepackage{graphicx}                              %for PNG images (pdflatex)
+%\usepackage{graphics}                              %for EPS images (latex)
+\usepackage[linkbordercolor={1.0 1.0 0.0}]{hyperref} %for \url tag
+%~ \usepackage{color}                                 %for defining custom colors
+\usepackage{framed}                                %for shaded and framed paragraphs
+\usepackage{textcomp}                              %for various symbols, e.g. Registered Mark
+\usepackage{geometry}                              %for defining page size
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage{ltablex}
+\usepackage[english]{babel}
+\usepackage{multirow}
+\usepackage[table]{xcolor} % Note: The rowcolors command does not work properly with the tabularx environment.
+
+
+\colorlet{tableheadcolor}{gray!25}
+\colorlet{tablerowcolor}{gray!12.5}
+
+\newcolumntype{C}{>{\ttfamily\footnotesize}c}
+\newcolumntype{T}{>{\ttfamily\footnotesize\centering\arraybackslash}X}
+
+\newcommand{\TODO}{\normalsize{\textnormal{TODO}}}
+\newcommand{\NM}{\normalsize{\textnormal{Not mapped}}}
+\newcommand{\NST}[1]{\normalsize{\textnormal{#1}}}
+\newcommand{\defineheadfoot}{\endfirsthead %
+\midrule %
+\multicolumn{3}{c}{Continued from previous page}\\%
+\midrule %
+\endhead %
+\midrule %
+\multicolumn{3}{c}{Continues at next page}\\%
+\midrule %
+\endfoot %
+\bottomrule %
+\endlastfoot}
+
+
+\renewcommand{\tabularxcolumn}[1]{m{#1}}
+
+\geometry{verbose,a4paper,tmargin=2.5cm,bmargin=2.5cm,lmargin=2.5cm,rmargin=2cm}
+
+\hypersetup{
+  pdfauthor = {Author Name},
+  pdftitle = {Paper title},
+  pdfsubject = {Paper subject},
+  pdfkeywords = {Paper,keyword,comma-separated},
+  pdfcreator = {PDFLaTeX with hyperref package},
+  pdfproducer = {PDFLaTeX}
+}
+%
+\bibliographystyle{IEEEtran}                       %a nice bibliography style
+%
+\def\efill{\hfill\nopagebreak}%
+\hyphenation{Nordu-Grid}
+\setlength{\parindent}{0cm}
+\setlength{\FrameRule}{1pt}
+\setlength{\FrameSep}{8pt}
+\addtolength{\parskip}{5pt}
+\renewcommand{\thefootnote}{\fnsymbol{footnote}}
+\renewcommand{\arraystretch}{1.3}
+\newcommand{\dothis}{\colorbox{shadecolor}}
+\newcommand{\globus}{Globus Toolkit\textsuperscript{\textregistered}~2~}
+\newcommand{\GT}{Globus Toolkit\textsuperscript{\textregistered}}
+\newcommand{\ngdl}{\url{http://ftp.nordugrid.org/download}~}
+\definecolor{shadecolor}{rgb}{1,1,0.6}
+\definecolor{salmon}{rgb}{1,0.9,1}
+\definecolor{bordeaux}{rgb}{0.75,0.,0.}
+\definecolor{cyan}{rgb}{0,1,1}
+
+\newcommand{\todo}{TODO}
+
+\newcommand{\same}{{\textquotesingle}{\textquotesingle}}
+\newcommand{\subsubsubsection}[1]{\paragraph{#1}}
+\newcommand{\subsubsubsubsection}[1]{\subparagraph{#1}}
+
+\newenvironment{inouttabular}%
+{\begin{center}\begin{tabular}{l>{\ttfamily\footnotesize}c>{\ttfamily\footnotesize}c}%
+\toprule
+& \textnormal{\normalsize{In}} & \textnormal{\normalsize{Out}}\\ \cmidrule{2-3}}
+{\bottomrule\end{tabular}\end{center}}
+
+\makeatletter
+\newcommand\arraybslash{\let\\\@arraycr}
+\makeatother
+
+%
+%----- DON'T CHANGE HEADER MATTER
+\begin{document}
+\def\today{\number\day/\number\month/\number\year}
+
+\begin{titlepage}
+
+\begin{tabular}{rl}
+\resizebox*{3cm}{!}{\includegraphics{ng-logo.png}}
+&\parbox[b]{2cm}{\textbf \it {\hspace*{-1.5cm}NORDUGRID\vspace*{0.5cm}}}
+\end{tabular}
+
+\hrulefill
+
+%-------- Change this to NORDUGRID-XXXXXXX-NN
+
+\raggedleft {NORDUGRID-XXXXXXX-NN\par}
+
+{\raggedleft \today\par}
+
+\vspace*{2cm}
+
+%%%%---- The title ----
+{\centering \textsc{\Large Job Status Mapping}\Large \par}
+\vspace*{0.5cm}
+
+%%%%---- A subtitle, if necessary ----
+{\centering \textit{\large }\large \par}
+
+\vspace*{1.5cm}
+%%%%---- A list of authors ----
+    {\centering \large M. S. Andersen\footnote{skou@nbi.dk} \large \par}
+
+%%%%---- An abstract - if style is article ----
+%\begin{abstract}
+%The abstract
+%\end{abstract}
+\end{titlepage}
+
+\tableofcontents                          %Comment if use article style
+\newpage
+
+\section{Job states in ARC}
+The following job states comprises the state model in WS-ARC:
+\begin{description}
+\item[UNDEFINED] Job state could not be resolved,
+\item[ACCEPTED] Job was accepted by the service,
+\item[PREPARING] Job is preparing,
+\item[SUBMITTING] Job is being submitted to a computing share,
+\item[HOLD] Job is put on hold,
+\item[QUEUING] Job is on computing share waiting to run,
+\item[RUNNING] Job is running on computing share,
+\item[FINISHING] Job is finishing,
+\item[FINISHED] Job has finished,
+\item[KILLED] Job has been killed,
+\item[FAILED] Job failed,
+\item[DELETED] Job have been deleted,
+\item[OTHER] Any job state which does not fit the above states.
+\end{description}
+
+\section{Job state mapping}
+\begin{center}
+\rowcolors{3}{tablerowcolor}{}
+\begin{tabularx}{\textwidth}{CCTCT}
+\toprule
+\NST{Internal} & \NST{ARC0}  & \NST{ARC1} & \NST{BES} & \NST{CREAM}\\
+\midrule
+\defineheadfoot
+ACCEPTED & ACCEPTED & ACCEPTED & Pending & REGISTERED,\linebreak PENDING\\
+PREPARING & PREPARING & PREPARING & \\
+SUBMITTING & SUBMIT & SUBMIT & \NST{None} & \NST{None} \\
+HOLD & \NST{None} & \NST{None} & \NST{None} & HELD \\
+QUEUING & INLRMS:Q & INLRMS:Q & \NST{None} & IDLE \\
+RUNNING & INLRMS:R & INLRMS:R,\linebreak INLRMS:EXECUTED,\linebreak INLRMS:S, INLRMS:E & Running & RUNNING,\linebreak REALLY-RUNNING\\
+FINISHING & FINISHING & FINISHING & \NST{None} & \NST{None}\\
+FINISHED & FINISHED & FINISHED & Finished & DONE-OK \\
+KILLED & KILLED & KILLED & \NST{None} & CANCELLED \\
+FAILED & FAILED & FAILED & Failed & DONE-FAILED,\linebreak ABORTED\\
+DELETED & DELETED & DELETED & \NST{None} & \NST{None} \\
+OTHER & \NST{Any other state} & \NST{Any other state} & \NST{None} & \NST{Any other state} \\
+\end{tabularx}
+\end{center}
+\end{document}
