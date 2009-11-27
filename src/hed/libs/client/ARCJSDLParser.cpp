@@ -946,20 +946,17 @@ namespace Arc {
     for (std::list<FileType>::const_iterator it = job.DataStaging.File.begin();
          it != job.DataStaging.File.end(); it++) {
       XMLNode datastaging = jobdescription.NewChild("DataStaging");
-      if (!(*it).Name.empty())
-        datastaging.NewChild("FileName") = (*it).Name;
-      if ((*it).Source.size() != 0) {
-        XMLNode source = datastaging.NewChild("Source");
-        if (trim((it->Source.begin()->URI).fullstr()) != "")
-          source.NewChild("URI") = (it->Source.begin()->URI).fullstr();
-      }
-      if ((*it).Target.size() != 0) {
-        std::list<DataTargetType>::const_iterator it3;
-        it3 = ((*it).Target).begin();
-        XMLNode target = datastaging.NewChild("Target");
-        if (trim(((*it3).URI).fullstr()) != "")
-          target.NewChild("URI") = ((*it3).URI).fullstr();
-      }
+      if (!it->Name.empty())
+        datastaging.NewChild("FileName") = it->Name;
+      if (it->Source.size() != 0 &&
+          it->Source.begin()->URI &&
+          it->Source.begin()->URI.Protocol() != "file" &&
+          trim(it->Source.begin()->URI.fullstr()) != "")
+        datastaging.NewChild("Source").NewChild("URI") = it->Source.begin()->URI.fullstr();
+      if (it->Target.size() != 0 &&
+          it->Target.begin()->URI &&
+          trim(it->Target.begin()->URI.fullstr()) != "")
+        datastaging.NewChild("Target").NewChild("URI") = it->Target.begin()->URI.fullstr();
       if (it->IsExecutable || it->Name == job.Application.Executable.Name)
         datastaging.NewChild("IsExecutable") = "true";
       datastaging.NewChild("DeleteOnTermination") = (it->KeepData ? "false" : "true");
