@@ -35,6 +35,7 @@ namespace Arc {
     static bool SeqListValue(const RSLCondition *c,
                              std::list<std::list<std::string> >& value,
                              int seqlength = -1);
+    static bool cached;
   };
 
 } // namespace Arc

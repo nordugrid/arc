@@ -57,6 +57,8 @@ namespace Arc {
     return l;
   }
 
+  bool XRSLParser::cached = true;
+
   JobDescription XRSLParser::Parse(const std::string& source) const {
     RSLParser parser(source);
     const RSL *r = parser.Parse();
@@ -159,7 +161,6 @@ namespace Arc {
   bool XRSLParser::Parse(const RSL *r, JobDescription& j) const {
     const RSLBoolean *b;
     const RSLCondition *c;
-    bool cached = true;
     if ((b = dynamic_cast<const RSLBoolean*>(r))) {
       if (b->Op() == RSLAnd) {
         for (std::list<RSL*>::const_iterator it = b->begin();
@@ -247,11 +248,8 @@ namespace Arc {
         std::string cache;
         if (!SingleValue(c, cache))
           return false;
-        if (lower(cache) == "yes") {
-          cached = true;
-        } else {
+        if (lower(cache) != "yes")
           cached = false;
-        }
         return true;
       }
 
@@ -820,8 +818,12 @@ namespace Arc {
           s->Add(new RSLLiteral(it->Name));
           if (!it->Target.front().URI || it->Target.front().URI.Protocol() == "file")
             s->Add(new RSLLiteral(""));
-          else
-            s->Add(new RSLLiteral(it->Target.front().URI.fullstr()));
+          else {
+            URL url(it->Target.front().URI);
+            if (it->DownloadToCache)
+              url.AddOption("cache", "yes");
+            s->Add(new RSLLiteral(url.fullstr()));
+          }
           if (!l)
             l = new RSLList;
           l->Add(new RSLSequence(s));
