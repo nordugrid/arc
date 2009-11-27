@@ -461,7 +461,7 @@ namespace Arc {
         }
       }
       // Do not link if user asks. Replace link:// with file://
-      if (source.ReadOnly() && mapped)
+      if ((!source.ReadOnly()) && mapped)
         if (mapped_url.Protocol() == "link")
           mapped_url.ChangeProtocol("file");
       DataHandle mapped_h(mapped_url, source.GetUserConfig());
@@ -608,9 +608,9 @@ namespace Arc {
             // create directory structure for link_name
             {
               User user;
-              std::string dirpath = Glib::path_get_basename(link_name);
+              std::string dirpath = Glib::path_get_dirname(link_name);
               if(dirpath == ".") dirpath = G_DIR_SEPARATOR_S;
-              if (mkdir_recursive(NULL, dirpath.c_str(), S_IRWXU, user) != 0) {
+              if (mkdir_recursive("", dirpath.c_str(), S_IRWXU, user) != 0) {
                 if (errno != EEXIST) {
                   logger.msg(ERROR, "Failed to create/find directory %s : %s",
                              dirpath, StrError());
