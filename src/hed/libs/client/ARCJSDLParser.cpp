@@ -753,6 +753,8 @@ namespace Arc {
 
     // std::string NetworkInfo;
     if (!job.Resources.NetworkInfo.empty()) {
+      xmlResources.NewChild("NetworkInfo") = job.Resources.NetworkInfo;
+
       std::string value = "";
       if (job.Resources.NetworkInfo == "100megabitethernet")
         value = "104857600.0";
