@@ -85,7 +85,8 @@
             If attribute "drop" is specified and is set to true then
             connections over specified limit will be dropped. Otherwise
             they will be put on hold.
-        </xsd:documentation>
+            </xsd:documentation>
+        </xsd:annotation>
         <xsd:simpleContent>
             <xsd:extension base="xsd:int">
                 <xsd:attribute name="drop" type="xsd:boolean" use="optional"/>

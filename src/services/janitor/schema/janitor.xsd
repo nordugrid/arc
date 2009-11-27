@@ -5,19 +5,19 @@
   targetNamespace="http://www.nordugrid.org/schemas/Janitor/2009/08"
   elementFormDefault="qualified">
 
-<xsd:element name="enabled" type="xsd:string" minOccurs="0"/>
-<xsd:element name="logconf" type="xsd:string" minOccurs="0"/>
-<xsd:element name="uid" type="xsd:string" minOccurs="0"/>
-<xsd:element name="gid" type="xsd:string" minOccurs="0"/>
-<xsd:element name="registrationdir" type="xsd:string" minOccurs="0"/>
-<xsd:element name="installationdir" type="xsd:string" minOccurs="0"/>
-<xsd:element name="downloaddir" type="xsd:string" minOccurs="0"/>
-<xsd:element name="jobexpirytime" type="xsd:nonNegativeInteger" minOccurs="0"/>
-<xsd:element name="rteexpirytime" type="xsd:nonNegativeInteger" minOccurs="0"/>
-<xsd:element name="allow_base" type="xsd:string" minOccurs="0"/>
-<xsd:element name="deny_base" type="xsd:string" minOccurs="0"/>
-<xsd:element name="allow_rte" type="xsd:string" minOccurs="0"/>
-<xsd:element name="deny_rte" type="xsd:string" minOccurs="0"/>
+<xsd:element name="enabled" type="xsd:string"/>
+<xsd:element name="logconf" type="xsd:string"/>
+<xsd:element name="uid" type="xsd:string"/>
+<xsd:element name="gid" type="xsd:string"/>
+<xsd:element name="registrationdir" type="xsd:string"/>
+<xsd:element name="installationdir" type="xsd:string"/>
+<xsd:element name="downloaddir" type="xsd:string"/>
+<xsd:element name="jobexpirytime" type="xsd:nonNegativeInteger"/>
+<xsd:element name="rteexpirytime" type="xsd:nonNegativeInteger"/>
+<xsd:element name="allow_base" type="xsd:string"/>
+<xsd:element name="deny_base" type="xsd:string"/>
+<xsd:element name="allow_rte" type="xsd:string"/>
+<xsd:element name="deny_rte" type="xsd:string"/>
 
 <xsd:complexType name="catalog_Type">
     <xsd:annotation>
