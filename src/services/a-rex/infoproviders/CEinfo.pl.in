@@ -29,6 +29,7 @@ use ConfigCentral;
 use LogUtils; 
 
 use HostInfo;
+use RTEInfo;
 use GMJobsInfo;
 use LRMSInfo;
 
@@ -133,6 +134,7 @@ sub collect($) {
     $data->{config} = $config;
     $data->{usermap} = $usermap;
     $data->{host_info} = get_host_info($config,\@localusers);
+    $data->{rte_info} = get_rte_info($config);
     $data->{gmjobs_info} = $gmjobs_info;
     $data->{lrms_info} = get_lrms_info($config,\@localusers,\@jobids);
 
@@ -168,9 +170,20 @@ sub get_host_info($$) {
     my $host_opts = Storable::dclone($config);
     $host_opts->{localusers} = $localusers;
     $host_opts->{configfile} = $configfile;
-    $host_opts->{libexecdir} = dirname($0);
 
     return timed 'HostInfo', \&HostInfo::collect, $host_opts;
+}
+
+sub get_rte_info($) {
+    my ($config) = @_;
+
+    my $rte_opts;
+    $rte_opts->{configfile} = $configfile;
+    $rte_opts->{runtimedir} = $config->{runtimedir} if $config->{runtimedir};
+    $rte_opts->{JanitorEnabled} = $config->{JanitorEnabled} if $config->{JanitorEnabled};
+    $rte_opts->{pkgdatadir} = dirname($0).'/@pkgdatadir_rel_to_pkglibexecdir@';
+
+    return timed 'RTEInfo', \&RTEInfo::collect, $rte_opts;
 }
 
 sub get_lrms_info($$$) {

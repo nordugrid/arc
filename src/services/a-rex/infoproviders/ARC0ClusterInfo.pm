@@ -51,6 +51,7 @@ sub get_cluster_info($) {
     my $config = $options->{config};
     my $usermap = $options->{usermap};
     my $host_info = $options->{host_info};
+    my $rte_info = $options->{rte_info};
     my $gmjobs_info = $options->{gmjobs_info};
     my $lrms_info = $options->{lrms_info};
 
@@ -258,7 +259,7 @@ sub get_cluster_info($) {
     }
     $c->{'nc0:cache-free'} = [ $host_info->{cache_free} ];
     $c->{'nc0:cache-total'} = [ $host_info->{cache_total} ];
-    $c->{'nc0:runtimeenvironment'} = $host_info->{runtimeenvironments};
+    $c->{'nc0:runtimeenvironment'} = [ sort keys %$rte_info ];
     push @{$c->{'nc0:middleware'}}, "ARC-".$config->{arcversion};
     push @{$c->{'nc0:middleware'}}, "globus-$host_info->{globusversion}" if $host_info->{globusversion};
     push @{$c->{'nc0:middleware'}}, @{$config->{service}{Middleware}} if $config->{service}{Middleware};

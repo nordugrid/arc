@@ -18,9 +18,7 @@ our $host_options_schema = {
         x509_cert_dir  => '',
         sessiondir     => [ '' ],
         cachedir       => [ '*' ],
-        libexecdir     => '',
         configfile     => '',
-        runtimedir     => '*',
         processes      => [ '' ],
         localusers     => [ '' ],
         gmconfig       => '*',
@@ -50,7 +48,6 @@ our $host_info_schema = {
         cache_free    => '', # unit: MB
         cache_total   => '', # unit: MB
         globusversion => '*',
-        runtimeenvironments => [ '' ],
         processes  => { '*' => '' },
         localusers => {
             '*' => {
@@ -218,50 +215,6 @@ sub get_host_info($) {
     }
     $host_info->{globusversion} = $globusversion if $globusversion;
 
-    timer_start("collecting RTE info");
-    
-    my @runtimeenvironment;
-    my $runtimedir = $options->{runtimedir};
-    if ($runtimedir){
-        if (opendir DIR, $runtimedir) {
-            @runtimeenvironment = `find $runtimedir -type f ! -name ".*" ! -name "*~"` ;
-            closedir DIR;
-            foreach my $listentry (@runtimeenvironment) {
-               chomp($listentry);
-               $listentry=~s/$runtimedir\/*//;
-            }
-        } else {
-          # $listentry="";
-           $log->warning("Can't acess runtimedir: $runtimedir");
-        }
-        # Try to fetch something from Janitor
-        # Integration with Janitor is done through calling 
-        # executable beacuse I'm nor skilled enough to isolate
-        # possible Janitor errors and in order not to redo 
-        # all Log4Perl tricks again. Please redo it later. A.K.
-        if ($options->{JanitorEnabled}) {
-            my $janitor = $options->{libexecdir}.'/janitor';
-            if (! -e $janitor) {
-               $log->debug("Janitor not found at '$janitor' - not using");
-            } else {
-                my $config = $options->{configfile};
-                if (! open (JPIPE, "$janitor --config $config list shortlist dynamic |")) {
-                    $log->warning("$janitor: $!");
-                } else {
-                    while(<JPIPE>) {
-                        chomp(my $listentry = $_);
-                        next unless $listentry;
-                        push @runtimeenvironment, $listentry
-                            unless grep {$listentry eq $_} @runtimeenvironment;
-                    }
-                }
-            }
-        }
-    }
-    $host_info->{runtimeenvironments} = \@runtimeenvironment;
-
-    timer_stop();
-
     $host_info->{processes} = Sysinfo::processid(@{$options->{processes}});
 
     return $host_info;
@@ -276,7 +229,7 @@ sub test {
                     sessiondir => [ '/home/grid/session/' ],
                     cachedir => [ '/home/grid/cache' ],
                     libexecdir => '/opt/nordugrid/libexec/arc',
-                    runtimeDir => '/home/grid/runtime',
+                    runtimedir => '/home/grid/runtime',
                     processes => [ qw(bash ps init grid-manager bogous) ],
                     localusers => [ qw(root adrianta) ] };
     require Data::Dumper; import Data::Dumper qw(Dumper);

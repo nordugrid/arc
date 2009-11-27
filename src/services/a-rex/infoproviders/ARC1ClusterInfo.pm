@@ -303,6 +303,7 @@ sub get_cluster_info($) {
     my $config = $options->{config};
     my $usermap = $options->{usermap};
     my $host_info = $options->{host_info};
+    my $rte_info = $options->{rte_info};
     my $gmjobs_info = $options->{gmjobs_info};
     my $lrms_info = $options->{lrms_info};
 
@@ -499,7 +500,7 @@ sub get_cluster_info($) {
     }
 
     # Generate ApplicationEnvironment IDs
-    for my $rte (@{$host_info->{runtimeenvironments}}) {
+    for my $rte (keys %$rte_info) {
         $aenvIDs{$rte} = "$aenvIDp:$rte";
     }
 
@@ -1101,7 +1102,7 @@ sub get_cluster_info($) {
 
     $cmgr->{ApplicationEnvironments}{ApplicationEnvironment} = [];
 
-    for my $rte (@{$host_info->{runtimeenvironments}}) {
+    for my $rte (sort keys %$rte_info) {
 
         my $appenv = {};
         push @{$cmgr->{ApplicationEnvironments}{ApplicationEnvironment}}, $appenv;
@@ -1113,10 +1114,8 @@ sub get_cluster_info($) {
         $appenv->{AppName} = [ $name ];
         $appenv->{AppVersion} = [ $version ];
         $appenv->{ID} = [ $aenvIDs{$rte} ];
-        #TODO: mechanism for getting metadata about RTEs, even for manually installed ones
-        # Could use tags inside the RTE script inspired by as doxygen or init scripts
-        #$appenv->{State} = [ 'installednotverified' ];
-        #$appenv->{Description} = [ 'NotImplemented' ];
+        $appenv->{State} = [ $rte_info->{$rte}{state} ] if $rte_info->{$rte}{state};
+        $appenv->{Description} = [ $rte_info->{$rte}{description} ] if $rte_info->{$rte}{description};
         #$appenv->{ParallelSupport} = [ 'none' ];
     }
 

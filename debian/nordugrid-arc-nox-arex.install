@@ -31,6 +31,8 @@ debian/tmp/usr/lib/arc/ARC1ClusterSchema.pm
 debian/tmp/usr/lib/arc/ConfigCentral.pm
 debian/tmp/usr/lib/arc/GMJobsInfo.pm
 debian/tmp/usr/lib/arc/HostInfo.pm
+debian/tmp/usr/lib/arc/RTEInfo.pm
+debian/tmp/usr/lib/arc/JanitorRuntimes.pm
 debian/tmp/usr/lib/arc/InfoChecker.pm
 debian/tmp/usr/lib/arc/IniParser.pm
 debian/tmp/usr/lib/arc/LogUtils.pm
