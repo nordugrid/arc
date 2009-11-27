@@ -558,6 +558,8 @@ exit 0
 %{_initrddir}/arched
 %{_sbindir}/arched
 %{_libdir}/%{pkgdir}/libecho.so
+%{_datadir}/%{pkgdir}/profiles
+%{_datadir}/%{pkgdir}/examples/config
 %doc src/tests/echo/echo_service.xml.example
 %doc %{_mandir}/man8/arched.8*
 
