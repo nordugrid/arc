@@ -337,6 +337,11 @@ namespace Arc {
     if (bool(resource["OperatingSystem"])) {
       if (!parseSoftware(resource["OperatingSystem"], job.Resources.OperatingSystem))
         return JobDescription();
+      if (!resource["OperatingSystem"]["Software"] &&
+          resource["OperatingSystem"]["OperatingSystemType"]["OperatingSystemName"] &&
+          resource["OperatingSystem"]["OperatingSystemVersion"])
+        job.Resources.OperatingSystem = Software((std::string)resource["OperatingSystem"]["OperatingSystemType"]["OperatingSystemName"],
+                                                 (std::string)resource["OperatingSystem"]["OperatingSystemVersion"]);
     }
 
     // std::string Platform;
