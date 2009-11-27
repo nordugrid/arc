@@ -20,7 +20,10 @@ namespace Arc {
   static Glib::Mutex* ssl_locks = NULL;
   static int ssl_locks_num = 0;
 
-  static Logger logger(Logger::getRootLogger(), "OpenSSL");
+  static Logger& logger(void) {
+    static Logger* logger_ = new Logger(Logger::getRootLogger(), "OpenSSL");
+    return *logger_;
+  }
 
   void HandleOpenSSLError(void) {
     HandleOpenSSLError(SSL_ERROR_NONE);
@@ -31,12 +34,12 @@ namespace Arc {
     while(e != SSL_ERROR_NONE) {
       if(e == SSL_ERROR_SYSCALL) {
         // Hiding system errors
-        //logger.msg(ERROR, "SSL error: %d - system call failed",e);
+        //logger().msg(ERROR, "SSL error: %d - system call failed",e);
       } else {
         const char* lib = ERR_lib_error_string(e);
         const char* func = ERR_func_error_string(e);
         const char* reason = ERR_reason_error_string(e);
-        logger.msg(ERROR, "SSL error: %d - %s:%s:%s",
+        logger().msg(ERROR, "SSL error: %d - %s:%s:%s",
                           e,
                           lib?lib:"",
                           func?func:"",
@@ -48,11 +51,11 @@ namespace Arc {
 
   static void ssl_locking_cb(int mode, int n, const char * s_, int n_){
     if(!ssl_locks) {
-      logger.msg(ERROR, "FATAL: SSL locks not initialized");
+      logger().msg(ERROR, "FATAL: SSL locks not initialized");
       _exit(-1);
     };
     if((n < 0) || (n >= ssl_locks_num)) {
-      logger.msg(ERROR, "FATAL: wrong SSL lock requested: %i of %i: %i - %s",n,ssl_locks_num,n_,s_);
+      logger().msg(ERROR, "FATAL: wrong SSL lock requested: %i of %i: %i - %s",n,ssl_locks_num,n_,s_);
       _exit(-1);
     };
     if(mode & CRYPTO_LOCK) {
@@ -74,11 +77,11 @@ namespace Arc {
     Glib::Mutex::Lock flock(lock);
     if(!initialized) {
       if(!PersistentLibraryInit("arccrypto")) {
-        logger.msg(WARNING, "Failed to lock arccrypto library in memory");
+        logger().msg(WARNING, "Failed to lock arccrypto library in memory");
       };  
       SSL_load_error_strings();
       if(!SSL_library_init()){
-        logger.msg(ERROR, "Failed to initialize OpenSSL library");
+        logger().msg(ERROR, "Failed to initialize OpenSSL library");
         HandleOpenSSLError();
         ERR_free_strings();
         return false;
@@ -99,7 +102,7 @@ namespace Arc {
     if(num_locks > 0) {
       if(num_locks != ssl_locks_num) {
         if(ssl_locks_num > 0) {
-          logger.msg(ERROR, "Number of OpenSSL locks changed - reinitializing");
+          logger().msg(ERROR, "Number of OpenSSL locks changed - reinitializing");
           ssl_locks_num=0;
           ssl_locks=NULL;
         };
