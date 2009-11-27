@@ -599,7 +599,7 @@ fi
 
 # check cppunit
 AC_ARG_ENABLE(cppunit, AC_HELP_STRING([--disable-cppunit], [disable cppunit-based UNIT testing of code]),[enables_cppunit=$enableval],[])
-if test "$enables_gsoap" = "yes"; then
+if test "$enables_cppunit" = "yes"; then
   PKG_CHECK_MODULES(CPPUNIT, [cppunit],[],
     [AC_PATH_PROG(CPPUNIT_CONFIG, cppunit-config, no)
     if test "x$CPPUNIT_CONFIG" = "xno"; then
