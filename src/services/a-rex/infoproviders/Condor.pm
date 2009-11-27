@@ -492,6 +492,8 @@ sub queue_info ($$) {
     $lrms_queue{mincputime} = '';
     $lrms_queue{defaultcput} = '';
 
+    $lrms_queue{status} = 1;
+
     return %lrms_queue;
 }
 
