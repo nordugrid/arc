@@ -600,33 +600,25 @@ http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk/doc/client/ExecutionT
 
 \chapter{Broker mapping}
 \label{app:broker-mapping}
+The table below shows the relation between {\JobDescription}
+attributes and the {\ExecutionTarget} attributes when the {\Broker}
+base class filter the available targets to find those suitable for job
+submission.
 
-This document contains a description of the broker used in the Advanced
-Resource Connector (ARC) middleware as of version 1.0. In section
-\ref{sec:Attribute-matching} a description of how target attributes
-are matched and compared to attributes specified in the job description.
-
-In the broker attributes published by the candidate target need to
-be matched and compared to attributes specified in the job description
-to be able to select targets which are suitable for accepting the
-job description. Targets which do not pass a certain comparison will
-be not be a candidate target for submission. Detailed information
-about the attributes described below can be found in the ARC job description
-document. First the broker will check some basics for the target being
-processed. First, if the job description specifies submission to specific
-targets and/or queues, the target will be checked and if it is not
-among these targets and/or queues, it will be dropped. Next the number
-of free slots on the target will be checked, and if no free slots
-exist, then it will be dropped. After this, the health state of the
-target is checked, and if any other value than "ok"
-is published then it is dropped. Last, if middleware specific submission
-is specified in the job description, the middleware type of the target
-is checked, and if it does not satisfy the middleware requirements
-then it is dropped. After these basic checks, certain attributes specified
-in the job description are compared to the attributes published by
-the target being processed. If the target does not publish a attribute
-which is specified in the job description the target will dropped,
-with some exceptions.
+First, if the job description specifies submission to specific targets
+and/or queues, the target will be checked and if it is not among these
+targets and/or queues, it will be dropped. Next the number of free
+slots on the target will be checked, and if no free slots exist, then
+it will be dropped. After this, the health state of the target is
+checked, and if any other value than "ok" is published then it is
+dropped. Last, if middleware specific submission is specified in the
+job description, the middleware type of the target is checked, and if
+it does not satisfy the middleware requirements then it is
+dropped. After these basic checks, certain attributes specified in the
+job description are compared to the attributes published by the target
+being processed. If the target does not publish a attribute which is
+specified in the job description the target will dropped, with some
+exceptions.
 
 \begin{table}
 \footnotesize{\texttt{
