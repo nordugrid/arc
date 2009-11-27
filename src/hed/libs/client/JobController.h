@@ -20,6 +20,20 @@ namespace Arc {
   class UserConfig;
 
   //! Base class for the JobControllers
+  /** The JobController is the base class for middleware specialized
+   *  derived classes. The JobController base class is also the
+   *  implementer of all public functionality that should be offered
+   *  by the middleware specific specializations. In other words all
+   *  virtual functions of the JobController are private. The
+   *  initialization of a (specialized) JobController object takes two
+   *  steps. First the JobController specialization for the required
+   *  grid flavour must be loaded by the JobControllerLoader, which
+   *  sees to that the JobController receives information about its
+   *  Grid flavour and the local joblist file containing information
+   *  about all active jobs (flavour independent). The next step is
+   *  the filling of the JobController job pool (JobStore) which is
+   *  the pool of jobs that the JobController can manage.
+  **/
   /// Must be specialiced for each supported middleware flavour.
   class JobController
     : public Plugin {
@@ -29,6 +43,15 @@ namespace Arc {
   public:
     virtual ~JobController();
 
+    /// Fill jobstore
+    /**
+     * Method to fill the jobstore with jobs that should be managed. 
+     *
+     * @param jobids List of jobids to be loaded to the jobstore. If
+     * empty all jobs of the specialized grid flavour present in the
+     * joblist file (given through the usercfg to the constructor)
+     * will be loaded to the jobstore.
+     **/
     void FillJobStore(const std::list<URL>& jobids);
     void FillJobStore(const Job& job);
 
@@ -72,6 +95,19 @@ namespace Arc {
     bool PrintJobStatus(const std::list<std::string>& status,
                         const bool longlist);
 
+    /// Migrate job from cluster A to Cluster B
+    /**  Method to migrate the jobs contained in the jobstore.
+     *
+     * @param targetGen TargetGenerator with targets to migrate the
+     * job to.
+     *
+     * @param broker Broker to be used when selecting target.
+     *
+     * @param forcemigration boolean which specifies whether a
+     * migrated job should persist if the new cluster does not succeed
+     * sending a kill/terminate request for the job.
+     * 
+     **/
     bool Migrate(TargetGenerator& targetGen,
                  Broker *broker,
                  const UserConfig& usercfg,

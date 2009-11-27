@@ -22,7 +22,13 @@ namespace Arc {
   class MCCLoader;
   class Logger;
   class MCC;
-
+   
+  //! Utility base class for MCC
+  /** The ClientInterface class is a utility base class used for
+   *  configuring a client side Message Chain Component (MCC) chain
+   *  and loading it into memory. It has several specializations of
+   *  increasing complexity of the MCC chains.
+   **/
   class ClientInterface {
   public:
     ClientInterface()
@@ -51,7 +57,12 @@ namespace Arc {
     NoSec, TLSSec, GSISec, SSL3Sec
   };
 
-  // Also supports TLS & GSI
+  //! Class for setting up a MCC chain for TCP communication
+  /** The ClientTCP class is a specialization of the ClientInterface
+   * which sets up a client MCC chain for TCP communication, and
+   * optionally with a security layer on top which can be either TLS,
+   * GSI or SSL3.
+   **/
   class ClientTCP
     : public ClientInterface {
   public:
@@ -83,6 +94,10 @@ namespace Arc {
     std::string location;
   };
 
+  //! Class for setting up a MCC chain for HTTP communication
+  /** The ClientHTTP class inherits from the ClientTCP class and adds
+   * an HTTP MCC to the chain.
+   **/
   class ClientHTTP
     : public ClientTCP {
   public:

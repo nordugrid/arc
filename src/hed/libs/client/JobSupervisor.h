@@ -14,19 +14,35 @@ namespace Arc {
   class Logger;
   class UserConfig;
 
-  /// %JobSupervisor for loading JobControllers
+  /// % JobSupervisor class
   /**
-   * The JobSupervisor loads JobControllers for managing Grid jobs.
+   * The JobSupervisor class is tool for loading JobController plugins
+   * for managing Grid jobs.
    **/
+
   class JobSupervisor {
   public:
-
-
+    /// Create a JobSupervisor object
+    /**
+     * Default constructor to create a JobSupervisor. Automatically
+     * loads JobController plugins based upon the input jobids.
+     * 
+     * @param usercfg Reference to UserConfig object with information
+     * about user credentials and joblistfile.
+     *
+     * @param jobs List of jobs(jobid or job name) to be managed.
+     *
+     **/
     JobSupervisor(const UserConfig& usercfg,
                   const std::list<std::string>& jobs);
 
     ~JobSupervisor();
 
+    /// Get list of JobControllers
+    /**
+     * Method to get the list of JobControllers loaded by constructor.
+     *
+     **/
     const std::list<JobController*>& GetJobControllers() {
       return loader.GetJobControllers();
     }
