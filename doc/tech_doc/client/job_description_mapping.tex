@@ -151,9 +151,8 @@ description was generated, and it is stored in the JobMetaData class.
 \begin{table}[h]
 \begin{inouttabular}
 XRSL & jobname & jobname\\
-JDL & No matching attribute & Not mapped\\
 JSDL & JobIdentification/JobName & JobIdentification/JobName\\
-ARC-JSDL &  & \\
+ARC-JSDL & JobIdentification/JobName & JobIdentification/JobName \\
 \end{inouttabular}
 \end{table}
 
@@ -192,8 +191,6 @@ JDL & Executable, Arguments & Executable, Arguments\\
 &  Application/POSIXApplication/Arguments & Application/POSIXApplication/Arguments\\
 \multirow{2}{*}{HPCP-JSDL} & Application/HPCProfileApplication/Executable, & Application/HPCProfileApplication/Executable,\\
 &  Application/HPCProfileApplication/Arguments & Application/HPCProfileApplication/Arguments\\
-\multirow{2}{*}{ARC-JSDL} & Application/Executable/Path, & Application/Executable/Path,\\
- & Application/Executable/Argument & Application/Executable/Argument\\
 \end{inouttabular}
 The Executable data member is a composite structure of a string and a
 list of strings, where the string holds the executable and the list
@@ -205,7 +202,6 @@ XRSL & stdin & stdin, inputFiles\\
 JDL & StdInput & StdInput, InputSandbox\\
 Posix-JSDL & Application/POSIXApplication/Input & Application/POSIXApplication/Input\\
 HPCP-JSDL & Application/HPCProfileApplication/Input & Application/HPCProfileApplication/Input\\
-ARC-JSDL & Application/Input & \\
 \end{inouttabular}
 If the Input data member does not exist in the file list, it will be
 added to it.
@@ -214,9 +210,8 @@ added to it.
 \begin{inouttabular}
 XRSL & stdout & stdout, outputFiles\\
 JDL & StdOutput & StdOutput, OutputSandbox, OutputSandboxDestURI\\
-Posix-JSDL & Application/POSIXApplication/Output & \\
-HPCP-JSDL & Application/HPCProfileApplication/Output & \\
-ARC-JSDL & Application/Output & \\
+Posix-JSDL & Application/POSIXApplication/Output & Application/POSIXApplication/Output\\
+HPCP-JSDL & Application/HPCProfileApplication/Output & Application/HPCProfileApplication/Output\\
 \end{inouttabular}
 If the Output data member does not exist in the File
 list, it will be added to it.
@@ -225,16 +220,15 @@ list, it will be added to it.
 \begin{inouttabular}
 XRSL & stderr & stderr, outputFiles\\
 JDL & StdError & StdError, OutputSandbox, OutputSandboxDestURI\\
-Posix-JSDL & Application/POSIXApplication/Error &\\
-HPCP-JSDL & Application/HPCProfileApplication/Error &\\
-ARC-JSDL & Application/Error & \\
+Posix-JSDL & Application/POSIXApplication/Error & Application/POSIXApplication/Error\\
+HPCP-JSDL & Application/HPCProfileApplication/Error & Application/HPCProfileApplication/Error\\
 \end{inouttabular}
 If the Error data member does not exist in the File list, it will be
 added to it.
 
 \subsubsection{Join}
 \begin{inouttabular}
-XRSL & join & Not mapped\todo{}\\
+XRSL & join & \NM\\
 ARC-JSDL & Application/Join & Application/Join\\
 \end{inouttabular}
 
@@ -246,7 +240,6 @@ XRSL & environment* & environment*\\
 JDL & Environment** & Environment**\\
 Posix-JSDL & Application/POSIXApplication/Environment.name & Application/POSIXApplication/Environment.name\\
 HPCP-JSDL & Application/HPCProfileApplication/Environment.name & Application/HPCProfileApplication/Environment.name\\
-ARC-JSDL & Application/Environment/Name & ~\\
 \end{inouttabular}
 The XRSL attribute environment is a list of
 pairs. The first element of each pair is mapped to the Name data member.
@@ -259,7 +252,6 @@ JDL & Environment** & Environment**\\
 JSDL & No matching attribute & Not mapped\\
 Posix-JSDL & Application/POSIXApplication/Environment & Application/POSIXApplication/Environment\\
 HPCP-JSDL & Application/HPCProfileApplication/Environment & Applicaion/HPCProfileApplication/Environment\\
-ARC-JSDL & Application/Environment/Value & ~\\
 \end{inouttabular}
 
 \subsubsection{Prologue}
@@ -278,7 +270,7 @@ JDL & Epilogue, EpilogueArgument & Epilogue, EpilogueArgument\\
 
 \subsubsection{LogDir}
 \begin{inouttabular}
-XRSL & gmlog & gmlog outputFiles\\
+XRSL & gmlog & gmlog, outputFiles\\
 ARC-JSDL & Application/LogDir & Application/LogDir\\
 \end{inouttabular}
 
@@ -304,10 +296,6 @@ Rerun is set, and they will both have the value of Rerun.
 \begin{inouttabular}
 JDL & ExpiryTime & ExpiryTime\\
 ARC-JSDL & Application/ExpiryTime & Application/ExpiryTime\\
-\end{inouttabular}
-
-\subsubsection{StartOnHold}
-\begin{inouttabular}
 \end{inouttabular}
 
 \subsubsection{ProcessingStartTime}
@@ -344,41 +332,43 @@ ARC-JSDL & Resources/OperatingSystem & Resources/OperatingSystem\\
 \subsubsection{Platform}
 \begin{inouttabular}
 XRSL & architecture & architecture\\
-JSDL & Resources/CPUAchitecture/CPUArchitectureName & ~\\
-ARC-JSDL & Resources/Platform &~\\
+JSDL & Resources/CPUAchitecture/CPUArchitectureName & Resources/CPUAchitecture/CPUArchitectureName\\
+ARC-JSDL & Resources/Platform & Resources/Platform\\
 \end{inouttabular}
 
 \subsubsection{NetworkInfo}
 \begin{inouttabular}
-JSDL & Resources/IndividualNetworkBandwidth &\\
-ARC-JSDL & Resources/NetworkInfo &\\
+JSDL & Resources/IndividualNetworkBandwidth & Resources/IndividualNetworkBandwidth \\
+ARC-JSDL & Resources/NetworkInfo & \NM\\
 \end{inouttabular}
 
 \subsubsection{NodeAccess}
 \begin{inouttabular}
 XRSL & nodeAccess & nodeAccess\\
-ARC-JSDL & Resources/NodeAccess & ~\\
+ARC-JSDL & Resources/NodeAccess & Resources/NodeAccess\\
 \end{inouttabular}
 
 \subsubsection{IndividualPhysicalMemory}
 \begin{inouttabular}
 XRSL & memory & memory\\
-Posix-JSDL & Application/POSIXApplication/MemoryLimit &\\
-ARC-JSDL & Resources/IndividualPhysicalMemory &\\
+JSDL & Resources/IndividualPhysicalMemory & Resources/IndividualPhysicalMemory\\
+Posix-JSDL & Application/POSIXApplication/MemoryLimit & Application/POSIXApplication/MemoryLimit\\
+ARC-JSDL & Resources/IndividualPhysicalMemory & Resources/IndividualPhysicalMemory\\
 \end{inouttabular}
 
 \subsubsection{IndividualVirtualMemory}
 \begin{inouttabular}
-Posix-JSDL & Application/POSIXApplication/VirtualMemoryLimit &\\
-ARC-JSDL & Resources/IndividualVirtualMemory &\\
+JSDL & Resources/IndividualVirtualMemory & Resources/IndividualVirtualMemory\\
+Posix-JSDL & Application/POSIXApplication/VirtualMemoryLimit & Application/POSIXApplication/VirtualMemoryLimit\\
+ARC-JSDL & Resources/IndividualVirtualMemory & Resources/IndividualVirtualMemory\\
 \end{inouttabular}
 
 \subsubsection{DiskSpaceRequirement}
 \subsubsubsection{DiskSpace}
 \begin{inouttabular}
 XRSL & disk & disk\\
-JSDL & Application/FileSystem/DiskSpace &\\
-ARC-JSDL & Resources/DiskSpaceRequirement/DiskSpace &\\
+JSDL & Resources/FileSystem/DiskSpace & Resources/FileSystem/DiskSpace\\
+ARC-JSDL & Resources/DiskSpaceRequirement/DiskSpace & Resources/DiskSpaceRequirement/DiskSpace\\
 \end{inouttabular}
 
 \subsubsubsection{CacheDiskSpace}
@@ -397,51 +387,38 @@ XRSL & lifeTime & lifeTime\\
 ARC-JSDL & Resources/SessionLifeTime & Resources/SessionLifeTime\\
 \end{inouttabular}
 
-\subsubsection{SessionAccessMode}
-\begin{inouttabular}
-\end{inouttabular}
-
 \subsubsection{IndividualCPUTime}
 \begin{inouttabular}
-JSDL & Resources/IndividualCPUTime* &\\
-ARC-JSDL & Resources/IndividualCPUTime &\\
+JSDL & Resources/IndividualCPUTime* & Resources/IndividualCPUTime\\
+ARC-JSDL & Resources/IndividualCPUTime & Resources/IndividualCPUTime\\
 \end{inouttabular}
 * The JSDL element is mapped to the Range part of
 IndividualCPUTime.
 
 \subsubsection{TotalCPUTime}
 \begin{inouttabular}
-XRSL & cpuTime & cpuTime\\
-JSDL & Resources/TotalCPUTime* &\\
-Posix-JSDL & Application/POSIXApplication/CPUTimeLimit* &\\
-ARC-JSDL & Resources/TotalCPUTime &\\
+XRSL & cpuTime, gridtime, benchmark & cpuTime\\
+JSDL & Resources/TotalCPUTime* & Resources/TotalCPUTime\\
+Posix-JSDL & Application/POSIXApplication/CPUTimeLimit* & Application/POSIXApplication/CPUTimeLimit\\
+ARC-JSDL & Resources/TotalCPUTime & Resources/TotalCPUTime\\
 \end{inouttabular}
-* The JSDL and POSIX-JSDL elements is mapped to the
-Range part of TotalCPUTime.
+The \texttt{XRSL} attribute \texttt{cputime} is mapped to the
+\texttt{Range} part of \texttt{TotalCPUTime}, where as for the
+\texttt{gridtime} attibute the pair ("ARC-gridtime", 1800) will
+be added to the benchmark part.
+The JSDL and POSIX-JSDL elements is mapped to the Range part of
+TotalCPUTime.
 
 \subsubsection{IndividualWallTime}
 \begin{inouttabular}
-ARC-JSDL & Resources/IndividualWallTime &\\
+ARC-JSDL & Resources/IndividualWallTime & Resources/IndividualWallTime\\
 \end{inouttabular}
 
 \subsubsection{TotalWallTime}
 \begin{inouttabular}
 XRSL & wallTime & wallTime\\
-Posix-JSDL & Application/POSIXApplication/WallTimeLimit &\\
-ARC-JSDL & Resources/TotalWallTime &\\
-\end{inouttabular}
-
-\subsubsection{Homogeneous}
-\begin{inouttabular}
-\end{inouttabular}
-
-\subsubsection{Benchmark}
-\subsubsubsection{Type}
-\begin{inouttabular}
-\end{inouttabular}
-
-\subsubsubsection{Value}
-\begin{inouttabular}
+Posix-JSDL & Application/POSIXApplication/WallTimeLimit & Application/POSIXApplication/WallTimeLimit\\
+ARC-JSDL & Resources/TotalWallTime & Resources/TotalWallTime\\
 \end{inouttabular}
 
 \subsubsection{CEType}
@@ -453,33 +430,33 @@ ARC-JSDL & Application/CEType & Application/CEType\\
 \subsubsection{SlotRequirement}
 \subsubsubsection{NumberOfSlots}
 \begin{inouttabular}
-Posix-JSDL & Application/POSIXApplication/ProcessCountLimit &\\
-ARC-JSDL & Resources/SlotRequirement/NumberOfSlots &\\
+Posix-JSDL & Application/POSIXApplication/ProcessCountLimit & Application/POSIXApplication/ProcessCountLimit\\
+ARC-JSDL & Resources/SlotRequirement/NumberOfSlots & Resources/SlotRequirement/NumberOfSlots\\
 \end{inouttabular}
 
 \subsubsubsection{ProcessPerHost}
 \begin{inouttabular}
 XRSL & count & count\\
-JSDL & Resources/TotalCPUCount & \\
-ARC-JSDL & Resources/SlotRequirement/ProcessPerHost &\\
+JSDL & Resources/TotalCPUCount & Resources/TotalCPUCount\\
+ARC-JSDL & Resources/SlotRequirement/ProcessPerHost & Resources/SlotRequirement/ProcessPerHost\\
 \end{inouttabular}
 
 \subsubsubsection{ThreadsPerProcesses}
 \begin{inouttabular}
-Posix-JSDL & Application/POSIXApplication/ThreadCountLimit &\\
-ARC-JSDL & Resources/SlotRequirement/ThreadsPerProcesses &\\
+Posix-JSDL & Application/POSIXApplication/ThreadCountLimit & Application/POSIXApplication/ThreadCountLimit\\
+ARC-JSDL & Resources/SlotRequirement/ThreadsPerProcesses & Resources/SlotRequirement/ThreadsPerProcesses\\
 \end{inouttabular}
 
 \subsubsubsection{SPMDVariation}
 \begin{inouttabular}
-ARC-JSDL & Resources/SlotRequirement/SPMDVariation &\\
+ARC-JSDL & Resources/SlotRequirement/SPMDVariation & Resources/SlotRequirement/SPMDVariation\\
 \end{inouttabular}
 
 \subsubsection{CandidateTarget}
 \subsubsubsection{EndPointURL}
 \begin{inouttabular}
-XRSL & cluster & Not mapped\\
-JSDL & Resources/CandidateHosts/HostName &\\
+XRSL & cluster & \NM\\
+JSDL & Resources/CandidateHosts/HostName & \NM\\
 ARC-JSDL & Resources/CandidateTarget/EndPointURL & Resources/CandidateTarget/EndPointURL\\
 \end{inouttabular}
 
@@ -500,167 +477,130 @@ ARC-JSDL & Application/RunTimeEnvironment & Application/RunTimeEnvironment\\
 \subsubsection{File}
 \subsubsubsection{Name}
 \begin{inouttabular}
-XRSL & &\\
-JDL & &\\
-JSDL & &\\
-Posix-JSDL & &\\
-HPCP-JSDL & &\\
-ARC-JSDL & &\\
+XRSL & inputFiles, outputFiles & inputFiles, outputFiles\\
+JDL & InputSandbox, OutputSandbox & InputSandbox, OutputSandbox\\
+JSDL & DataStaging/File/FileName & DataStaging/File/FileName\\
 \end{inouttabular}
 
 \subsubsubsection{Source}
-\subsubsubsubsection{URL}
+\subsubsubsubsection{URI}
 \begin{inouttabular}
-XRSL & &\\
-JDL & &\\
-JSDL & &\\
-Posix-JSDL & &\\
-HPCP-JSDL & &\\
-ARC-JSDL & &\\
+XRSL & inputFiles & inputFiles\\
+JDL & InputSandbox, InputSandboxURI & InputSandbox, InputSandboxURI\\
+JSDL & DataStaging/File/Source/URI & DataStaging/File/Source/URI\\
 \end{inouttabular}
 
 \subsubsubsubsection{Threads}
 \begin{inouttabular}
-XRSL & &\\
-JDL & &\\
-JSDL & &\\
-Posix-JSDL & &\\
-HPCP-JSDL & &\\
-ARC-JSDL & &\\
+XRSL & ftpThreads & ftpThreads\\
+%~ ARC-JSDL & &\\
 \end{inouttabular}
 
-\subsubsubsubsection{DataIndexingService}
-\begin{inouttabular}
-XRSL & &\\
-JDL & &\\
-JSDL & &\\
-Posix-JSDL & &\\
-HPCP-JSDL & &\\
-ARC-JSDL & &\\
-\end{inouttabular}
+%~ \subsubsubsubsection{DataIndexingService}
+%~ \begin{inouttabular}
+%~ XRSL & &\\
+%~ JDL & &\\
+%~ JSDL & &\\
+%~ Posix-JSDL & &\\
+%~ HPCP-JSDL & &\\
+%~ ARC-JSDL & &\\
+%~ \end{inouttabular}
 
 \subsubsubsection{Target}
-\subsubsubsubsection{URL}
+\subsubsubsubsection{URI}
 \begin{inouttabular}
-XRSL & &\\
-JDL & &\\
-JSDL & &\\
-Posix-JSDL & &\\
-HPCP-JSDL & &\\
-ARC-JSDL & &\\
+XRSL & outputFiles & outputFiles\\
+JDL & OutputSandbox, OutputSandboxDestURI & OutputSandbox, OutputSandboxDestURI\\
+JSDL & DataStaging/File/Target/URI & DataStaging/File/Target/URI\\
 \end{inouttabular}
 
 \subsubsubsubsection{Threads}
 \begin{inouttabular}
-XRSL & &\\
-JDL & &\\
-JSDL & &\\
-Posix-JSDL & &\\
-HPCP-JSDL & &\\
-ARC-JSDL & &\\
+XRSL & ftpThreads &ftpThreads\\
+%~ ARC-JSDL & &\\
 \end{inouttabular}
 
-\subsubsubsubsection{Mandatory}
-\begin{inouttabular}
-XRSL & &\\
-JDL & &\\
-JSDL & &\\
-Posix-JSDL & &\\
-HPCP-JSDL & &\\
-ARC-JSDL & &\\
-\end{inouttabular}
+%~ \subsubsubsubsection{Mandatory}
+%~ \begin{inouttabular}
+%~ XRSL & &\\
+%~ JDL & &\\
+%~ JSDL & &\\
+%~ Posix-JSDL & &\\
+%~ HPCP-JSDL & &\\
+%~ ARC-JSDL & &\\
+%~ \end{inouttabular}
 
-\subsubsubsubsection{DataIndexingService}
-\begin{inouttabular}
-XRSL & &\\
-JDL & &\\
-JSDL & &\\
-Posix-JSDL & &\\
-HPCP-JSDL & &\\
-ARC-JSDL & &\\
-\end{inouttabular}
+%~ \subsubsubsubsection{DataIndexingService}
+%~ \begin{inouttabular}
+%~ XRSL & &\\
+%~ JDL & &\\
+%~ JSDL & &\\
+%~ Posix-JSDL & &\\
+%~ HPCP-JSDL & &\\
+%~ ARC-JSDL & &\\
+%~ \end{inouttabular}
 
-\subsubsubsubsection{NeededReplica}
-\begin{inouttabular}
-XRSL & &\\
-JDL & &\\
-JSDL & &\\
-Posix-JSDL & &\\
-HPCP-JSDL & &\\
-ARC-JSDL & &\\
-\end{inouttabular}
+%~ \subsubsubsubsection{NeededReplica}
+%~ \begin{inouttabular}
+%~ XRSL & &\\
+%~ JDL & &\\
+%~ JSDL & &\\
+%~ Posix-JSDL & &\\
+%~ HPCP-JSDL & &\\
+%~ ARC-JSDL & &\\
+%~ \end{inouttabular}
 
 \subsubsubsection{KeepData}
 \begin{inouttabular}
-XRSL & &\\
-JDL & &\\
-JSDL & &\\
-Posix-JSDL & &\\
-HPCP-JSDL & &\\
-ARC-JSDL & &\\
+JDL & OutputSandboxDestURI & OutputSandboxDestURI\\
+JSDL & DataStaging/File/DeleteOnTermination & DataStaging/File/DeleteOnTermination\\
 \end{inouttabular}
 
 \subsubsubsection{IsExecutable}
 \begin{inouttabular}
-XRSL & &\\
-JDL & &\\
-JSDL & &\\
-Posix-JSDL & &\\
-HPCP-JSDL & &\\
-ARC-JSDL & &\\
+XRSL & executables & executables\\
+ARC-JSDL & DataStaging/File/IsExecutable & DataStaging/File/IsExecutable\\
 \end{inouttabular}
 
 \subsubsubsection{DownloadToCache}
 \begin{inouttabular}
-XRSL & &\\
-JDL & &\\
-JSDL & &\\
-Posix-JSDL & &\\
-HPCP-JSDL & &\\
-ARC-JSDL & &\\
+XRSL & \todo{} & \todo{}\\
+ARC-JSDL & DataStaging/File/DownloadToCache & DataStaging/File/DownloadToCache\\
 \end{inouttabular}
 
-\subsubsection{Directory}
+%~ \subsubsection{Directory}
 
 \subsection{JobMetaData}
-\subsubsection{Author}
-\begin{inouttabular}
-XRSL & &\\
-JDL & &\\
-JSDL & &\\
-Posix-JSDL & &\\
-HPCP-JSDL & &\\
-ARC-JSDL & &\\
-\end{inouttabular}
-
-\subsubsection{DocumentExpiration}
-\begin{inouttabular}
-XRSL & &\\
-JDL & &\\
-JSDL & &\\
-Posix-JSDL & &\\
-HPCP-JSDL & &\\
-ARC-JSDL & &\\
-\end{inouttabular}
+%~ \subsubsection{Author}
+%~ \begin{inouttabular}
+%~ XRSL & &\\
+%~ JDL & &\\
+%~ JSDL & &\\
+%~ Posix-JSDL & &\\
+%~ HPCP-JSDL & &\\
+%~ ARC-JSDL & &\\
+%~ \end{inouttabular}
+%~
+%~ \subsubsection{DocumentExpiration}
+%~ \begin{inouttabular}
+%~ XRSL & &\\
+%~ JDL & &\\
+%~ JSDL & &\\
+%~ Posix-JSDL & &\\
+%~ HPCP-JSDL & &\\
+%~ ARC-JSDL & &\\
+%~ \end{inouttabular}
 
 \subsubsection{Rank}
 \begin{inouttabular}
-XRSL & &\\
-JDL & &\\
-JSDL & &\\
-Posix-JSDL & &\\
-HPCP-JSDL & &\\
-ARC-JSDL & &\\
+JDL & Rank & Rank\\
+%~ ARC-JSDL & &\\
 \end{inouttabular}
 
 \subsubsection{FuzzyRank}
 \begin{inouttabular}
-XRSL & ~ & ~\\
-JDL & ~ & ~\\
-JSDL & ~ & ~\\
-Posix-JSDL & ~ & ~\\
-HPCP-JSDL & ~ & ~\\
-ARC-JSDL & ~ & ~\\
+JDL & FuzzyRank & FuzzyRank\\
+%~ ARC-JSDL & & \\
 \end{inouttabular}
 
 \section{XRSL mapping}
@@ -699,7 +639,7 @@ queue & Resources.CandidateTarget.QueueName & queue\\
 startTime & Application.ProcessingStartTime & \NM\\
 lifeTime & Resources.SessionLifeTime & lifeTime\\
 notify & Application.Notification & notify\\
-replicaCollection & DataStaging.File.DataIndexingService & \NM\\
+replicaCollection & \NM & \NM\\
 rerun & Application.Rerun & rerun\\
 architecture & Resources.Platform & architecture\\
 nodeAccess & Resources.NodeAccess & \NM\\
@@ -731,7 +671,6 @@ InputSandbox & DataStaging.File.Name,\linebreak DataStaging.File.Source & InputS
 InputSandboxBaseURI & DataStaging.File.Source.URI & InputSandbox\\
 OutputSandbox & DataStaging.File.Name,\linebreak DataStaging.File.Target.URI & OutputSandbox,\linebreak OutputSandboxDestURI\\
 OutputSandboxDestURI & DataStaging.File.Target,\linebreak DataStaging.File.KeepData & OutputSandbox,\linebreak OutputSandboxDestURI\\
-OutputSandboxBaseDestURI & DataStaging.File.Target.URI & OutputSandbox,\linebreak OutputSandboxDestURI\\
 Prologue & Application.Prologue.Name & Prologue\\
 PrologueArguments & Application.Prologue.Arguments & PrologueArguments\\
 Epilogue & Application.Epilogue.Name & Epilogue\\
@@ -776,106 +715,106 @@ QueueName & Resources.CandidateTarget.QueueName & QueueName
 \section{JSDL mapping}
 \begin{center}
 \rowcolors{3}{}{tablerowcolor}
-\begin{tabularx}{400pt}{TCC}
+\begin{tabularx}{\textwidth}{TCT}
 \toprule
 \NST{JSDL input} & \NST{Internal representaion} & \NST{JSDL output}\\
 \midrule
 \defineheadfoot
 \multicolumn{3}{c}{\bfseries JobIdentification}\\
 \midrule
-JobName & &\\
-JobAnnotation & &\\
-JobProject & &\\
+JobName & Application.JobName & JobName\\
+JobAnnotation & \NM & \NM\\
+JobProject & \NM & \NM\\
 \midrule
 \multicolumn{3}{c}{\bfseries Application}\\
 \midrule
-ApplicationName & &\\
-ApplicationVersion & &\\
+ApplicationName & \NM & \NM\\
+ApplicationVersion & \NM & \NM\\
 \midrule
 \multicolumn{3}{c}{\bfseries Resources}\\
 \midrule
-CandidateHosts/HostName & &\\
-FileSystem/FileSystemType & &\\
-FileSystem/Description & &\\
-FileSystem/MountPoint & &\\
-FileSystem/DiskSpace & &\\
-ExclusiveExecution & &\\
-OperatingSystem/\linebreak OperatingSystemType/\linebreak OperatingSystemName & &\\
-OperatingSystem/\linebreak OperatingSystemVersion & &\\
-CPUArchitecture/\linebreak CPUArchitectureName & &\\
-IndividualCPUSpeed & &\\
-IndividualCPUTime & &\\
-IndividualCPUCount & &\\
-IndividualNetworkBandwidth & &\\
-IndividualPhysicalMemory & &\\
-IndividualVirtualMemory & &\\
-IndividualDiskSpace & &\\
-TotalCPUTime & &\\
-TotalCPUCount & &\\
-TotalPhysicalMemory & &\\
-TotalVirtualMemory & &\\
-TotalDiskSpace & &\\
-TotalResourceCount & &\\
+CandidateHosts/HostName & Resources.CandidateTarget.EndPointURL & \NM\\
+FileSystem/FileSystemType & \NM & \NM\\
+FileSystem/Description & \NM & \NM\\
+FileSystem/MountPoint & \NM & \NM\\
+FileSystem/DiskSpace & Resources.DiskSpaceRequirement.DiskSpace & FileSystem/DiskSpace\\
+ExclusiveExecution & \NM & \NM\\
+OperatingSystem/\linebreak OperatingSystemType/\linebreak OperatingSystemName & Resources.OperatingSystem & OperatingSystem/\linebreak OperatingSystemType/\linebreak OperatingSystemName\\
+OperatingSystem/\linebreak OperatingSystemVersion & Resources.OperatingSystem & OperatingSystem/\linebreak OperatingSystemVersion\\
+CPUArchitecture/\linebreak CPUArchitectureName & Resources.Platform & CPUAchitecture/\linebreak CPUAchitectureName\\
+IndividualCPUSpeed & \NM & \NM\\
+IndividualCPUTime & job.Resources.IndividualCPUTime & IndividualCPUTime\\
+IndividualCPUCount & \NM & \NM\\
+IndividualNetworkBandwidth & Resources.NetworkInfo & IndividualNetworkBandwidth\\
+IndividualPhysicalMemory & job.Resources.IndividualPhysicalMemory & IndividualPhysicalMemory\\
+IndividualVirtualMemory & job.Resources.IndividualVirtualMemory & IndividualVirtualMemory\\
+IndividualDiskSpace & \NM & \NM\\
+TotalCPUTime & job.Resources.TotalCPUTime.range & TotalCPUTime\\
+TotalCPUCount & job.Resources.SlotRequirement.ProcessPerHost & TotalCPUCount\\
+TotalPhysicalMemory & \NM & \NM\\
+TotalVirtualMemory & \NM & \NM\\
+TotalDiskSpace & \NM & \NM\\
+TotalResourceCount & \NM & \NM\\
 \midrule
 \multicolumn{3}{c}{\bfseries DataStaging}\\
 \midrule
-FileName & &\\
-FileSystemName & &\\
-CreationFlag & &\\
-DeleteOnTermination & &\\
-Source/URI & &\\
-Target/URI & &\\
+FileName & DataStaging.File.FileName & FileName\\
+FileSystemName & \NM & \NM\\
+CreationFlag & \NM & \NM\\
+DeleteOnTermination & DataStaging.File.KeepData & DeleteOnTermination\\
+Source/URI & DataStaging.File.Source.URI & Source/URI\\
+Target/URI & DataStaging.File.Target.URI & Target/URI\\
 \end{tabularx}
 \end{center}
 
 \section{POSIX-JSDL mapping}
 \begin{center}
 \rowcolors{3}{}{tablerowcolor}
-\begin{tabularx}{400pt}{CCC}
+\begin{tabularx}{\textwidth}{CCT}
 \toprule
 \NST{POSIX-JSDL input} & \NST{Internal representation} & \NST{POSIX-JSDL output}\\
 \midrule
 \defineheadfoot
-Executable & &\\
-Argument & &\\
-Input & &\\
-Output & &\\
-Error & &\\
-WorkingDirectory & &\\
-Environment & &\\
-WallTimeLimit & &\\
-FileSizeLimit & &\\
-CoreDumpLimit & &\\
-DataSegmentLimit & &\\
-LockedMemoryLimit & &\\
-OpenDescriptorsLimit & &\\
-PipeSizeLimit & &\\
-StackSizeLimit & &\\
-CPUTimeLimit & &\\
-ProcessCountLimit & &\\
-VirtualMemoryLimit & &\\
-ThreadCountLimit & &\\
-UserName & &\\
-GroupName & &\\
+Executable & Application.Executable.Name & Executable,\linebreak DataStaging.File.Name,\linebreak DataStaging.File.Source\\
+Argument & Application.Executable.Arguments & Argument\\
+Input & Application.Input & Input,\linebreak DataStaging.File.Name,\linebreak DataStaging.File.Source\\
+Output & Application.Output & Output,\linebreak DataStaging.File.Name,\linebreak DataStaging.File.Target\\
+Error & Application.Error & Error,\linebreak DataStaging.File.Name,\linebreak DataStaging.File.Target\\
+WorkingDirectory & \NM & \NM\\
+Environment & Application.Environment & Environment\\
+WallTimeLimit & job.Resources.TotalWallTime.range.max & WallTimeLimit\\
+FileSizeLimit & \NM & \NM\\
+CoreDumpLimit & \NM & \NM\\
+DataSegmentLimit & \NM & \NM\\
+LockedMemoryLimit & \NM & \NM\\
+OpenDescriptorsLimit & \NM & \NM\\
+PipeSizeLimit & \NM & \NM\\
+StackSizeLimit & \NM & \NM\\
+CPUTimeLimit & job.Resources.TotalCPUTime.range.max & CPUTimeLimit\\
+ProcessCountLimit & job.Resources.SlotRequirement.NumberOfSlots.max & ProcessCountLimit\\
+VirtualMemoryLimit & job.Resources.IndividualVirtualMemory.max & VirtualMemoryLimit\\
+ThreadCountLimit & job.Resources.SlotRequirement.ThreadsPerProcesses.max & ThreadCountLimit\\
+UserName & \NM & \NM\\
+GroupName & \NM & \NM\\
 \end{tabularx}
 \end{center}
 
 \section{HPCProfile-JSDL mapping}
 \begin{center}
 \rowcolors{3}{tablerowcolor}{}
-\begin{tabularx}{400pt}{CCC}
+\begin{tabularx}{\textwidth}{CCT}
 \toprule
 \NST{HPCProfile-JSDL input}  & \NST{Internal representaion} & \NST{HPCProfile-JSDL output}\\
 \midrule
 \defineheadfoot
-Executable & & \\
-Argument & & \\
-Input & & \\
-Output & & \\
-Error & & \\
-WorkingDirectory & &\\
-Environment & &\\
-UserName & &\\
+Executable & Application.Executable.Name & Executable,\linebreak DataStaging.File.Name,\linebreak DataStaging.File.Source\\
+Argument & Application.Executable.Arguments & Argument\\
+Input & Application.Input & Input,\linebreak DataStaging.File.Name,\linebreak DataStaging.File.Source\\
+Output & Application.Output & Output,\linebreak DataStaging.File.Name,\linebreak DataStaging.File.Target\\
+Error & Application.Error & Error,\linebreak DataStaging.File.Name,\linebreak DataStaging.File.Target\\
+WorkingDirectory & \NM & \NM \\
+Environment & Application.Environment & Environment\\
+UserName & \NM & \NM\\
 \end{tabularx}
 \end{center}
 \end{document}
