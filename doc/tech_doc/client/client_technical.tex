@@ -519,8 +519,29 @@ SampleBroker.py file that comes with your arc python installation.
 \chapter{Job Description}
 \label{sec:jobdesc}
 
-\chapter{Grid Flavour Plugins)}
+\chapter{Grid Flavour Plugins and Commons}
 \label{sec:plugins}
+With a library utilizing plugins a mapping to a common set of job states
+is needed in order to be able to treat jobs from different middlewares
+in the same way. In WS-ARC the following job states comprises the state
+model which plugins should map their job states:
+\begin{description}
+\item[UNDEFINED] Job state could not be resolved,
+\item[ACCEPTED] Job was accepted by the service,
+\item[PREPARING] Job is preparing,
+\item[SUBMITTING] Job is being submitted to a computing share,
+\item[HOLD] Job is put on hold,
+\item[QUEUING] Job is on computing share waiting to run,
+\item[RUNNING] Job is running on computing share,
+\item[FINISHING] Job is finishing,
+\item[FINISHED] Job has finished,
+\item[KILLED] Job has been killed,
+\item[FAILED] Job failed,
+\item[DELETED] Job have been deleted,
+\item[OTHER] Any job state which does not fit the above states.
+\end{description}
+See Appendix~\ref{app:job-status-mapping} for the actual job state
+mapping of each of the below described plugins
 
 \section{ARC0 Plugins}
 
@@ -676,25 +697,7 @@ Resources.NodeAccess is NAT\_{}OUTBOUND OR NAT\_{}INOUTBOUND & AND & Connectivit
 \end{table}
 
 \chapter{Job Status mapping}
-\label{app:broker-mapping}
-
-The following job states comprises the state model in WS-ARC:
-\begin{description}
-\item[UNDEFINED] Job state could not be resolved,
-\item[ACCEPTED] Job was accepted by the service,
-\item[PREPARING] Job is preparing,
-\item[SUBMITTING] Job is being submitted to a computing share,
-\item[HOLD] Job is put on hold,
-\item[QUEUING] Job is on computing share waiting to run,
-\item[RUNNING] Job is running on computing share,
-\item[FINISHING] Job is finishing,
-\item[FINISHED] Job has finished,
-\item[KILLED] Job has been killed,
-\item[FAILED] Job failed,
-\item[DELETED] Job have been deleted,
-\item[OTHER] Any job state which does not fit the above states.
-\end{description}
-
+\label{app:job-status-mapping}
 \begin{center}
 \rowcolors{3}{tablerowcolor}{}
 \begin{tabularx}{\textwidth}{CCTCT}
