@@ -8,6 +8,11 @@
 \usepackage{textcomp}              %for various symbols, e.g. Registered Mark
 \usepackage{geometry}              %for defining page size
 \usepackage{longtable}             %for breaking tables
+\usepackage{multirow}
+\usepackage{booktabs}
+\usepackage{ltablex}
+\usepackage[table]{xcolor} % Note: The rowcolors command does not work properly with the tabularx environment.
+
 %
 \geometry{verbose,a4paper,tmargin=2.5cm,bmargin=2.5cm,lmargin=2.5cm,rmargin=2cm}
 \hypersetup{
@@ -62,10 +67,29 @@
 \newcommand{\UserConfig}{\texttt{UserConfig}}
 \newcommand{\XML}{\texttt{XML}}
 \newcommand{\XMLNode}{\texttt{XMLNode}}
+\newcommand{\NST}[1]{\normalsize{\textnormal{#1}}}
+\newcommand{\defineheadfoot}{\endfirsthead %
+\midrule %
+\multicolumn{5}{c}{Continued from previous page}\\%
+\midrule %
+\endhead %
+\midrule %
+\multicolumn{5}{c}{Continues at next page}\\%
+\midrule %
+\endfoot %
+\bottomrule %
+\endlastfoot}
 \definecolor{shadecolor}{rgb}{1,1,0.6}
 \definecolor{salmon}{rgb}{1,0.9,1}
 \definecolor{bordeaux}{rgb}{0.75,0.,0.}
 \definecolor{cyan}{rgb}{0,1,1}
+
+\colorlet{tableheadcolor}{gray!25}
+\colorlet{tablerowcolor}{gray!12.5}
+
+\newcolumntype{C}{>{\ttfamily\footnotesize}c}
+\newcolumntype{T}{>{\ttfamily\footnotesize\centering\arraybackslash}X}
+
 %
 %----- DON'T CHANGE HEADER MATTER
 \begin{document}
@@ -91,10 +115,10 @@
 %%%%---- The title ----
 {\centering \textsc{\Large {\libarcclient}}\Large \par}
 \vspace*{0.5cm}
-    
+
 %%%%---- A subtitle, if necessary ----
 {\centering \textit{\large A Client Library for ARC}\large \par}
-    
+
 \vspace*{1.5cm}
 %%%%---- A list of authors ----
 {\centering \large KnowARC \large \par}
@@ -255,7 +279,7 @@ description of each step is given:
 \item{In order to rank the found services ({\ExecutionTarget}s) the
   {\Broker} needs detailed knowledge about the job requirements, thus
   the {\JobDescription} is passed as input to the brokering process.}
-\item{The {\Broker} filters and ranks the {\ExecutionTarget}s according 
+\item{The {\Broker} filters and ranks the {\ExecutionTarget}s according
   to the ranking method chosen by the user.}
 \item{Each {\ExecutionTarget} has a method to return a specialized
   {\Submitter} which is capable of submitting jobs to the service it
@@ -269,7 +293,7 @@ description of each step is given:
 
 \section{Job Management}
 Once a job is submitted, job related information (job identification
-string, cluster etc.) is stored in a local XML file which stores this 
+string, cluster etc.) is stored in a local XML file which stores this
 information for all active jobs. This file may contain jobs running on
 completely different grid flavours, and thus job management should be
 handled using plugins similar to resource discovery and job
@@ -337,7 +361,7 @@ the computing resource, the {\ExecutionTarget} will be removed from
 the list of possible targets. A detailed overview of the matchmaking
 between {\JobDescription} and {\ExecutionTarget} attributes is given
 in Appendix~\ref{app:broker-mapping}.
- 
+
 Once prefiltered, the remaining {\ExecutionTarget}s should be ranked
 in order to return the ``best'' {\ExecutionTarget} for job
 submission. Different ranking methods are implemented by the
@@ -361,7 +385,7 @@ at each call, thus upon a second call the second best
 
 \subsubsection{\Random}
 
-The {\Random} ranks the {\ExecutionTarget}s randomly. 
+The {\Random} ranks the {\ExecutionTarget}s randomly.
 
 \subsection{\Benchmark}
 
@@ -448,11 +472,11 @@ Example CacheCheck response from the A-REX service:
 </CacheCheckResponse>
 \end{verbatim}
 \end{shaded}
-   
+
 \subsection{\PythonBroker}
 
 This {\PythonBroker} allows users to write their customized broker in
-python. To use this broker the user should write a python class which 
+python. To use this broker the user should write a python class which
 should contain:
 
 \begin{itemize}
@@ -561,7 +585,7 @@ LDAP DMC similarly to the ARC0 plugins.
 
 CREAM has its own SOAP-based interface. The CREAM
 specializations of the {\Submitter} and {\JobController} classes
-therefore use an MCC chain ending with the SOAP client MCC the same 
+therefore use an MCC chain ending with the SOAP client MCC the same
 way the ARC1 plugin does.
 
 Stage-in and stage-out of input and output files are done using the
@@ -577,13 +601,129 @@ http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk/doc/client/ExecutionT
 \chapter{Broker mapping}
 \label{app:broker-mapping}
 
-http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk/doc/client/broker-mapping.ods
+This document contains a description of the broker used in the Advanced
+Resource Connector (ARC) middleware as of version 1.0. In section
+\ref{sec:Attribute-matching} a description of how target attributes
+are matched and compared to attributes specified in the job description.
+
+In the broker attributes published by the candidate target need to
+be matched and compared to attributes specified in the job description
+to be able to select targets which are suitable for accepting the
+job description. Targets which do not pass a certain comparison will
+be not be a candidate target for submission. Detailed information
+about the attributes described below can be found in the ARC job description
+document. First the broker will check some basics for the target being
+processed. First, if the job description specifies submission to specific
+targets and/or queues, the target will be checked and if it is not
+among these targets and/or queues, it will be dropped. Next the number
+of free slots on the target will be checked, and if no free slots
+exist, then it will be dropped. After this, the health state of the
+target is checked, and if any other value than "ok"
+is published then it is dropped. Last, if middleware specific submission
+is specified in the job description, the middleware type of the target
+is checked, and if it does not satisfy the middleware requirements
+then it is dropped. After these basic checks, certain attributes specified
+in the job description are compared to the attributes published by
+the target being processed. If the target does not publish a attribute
+which is specified in the job description the target will dropped,
+with some exceptions.
+
+\begin{table}
+\footnotesize{\texttt{
+\begin{tabular}{cccc}
+\toprule
+\textnormal{\normalsize Job description attributes} & \textnormal{\normalsize Comparator} & \textnormal{\normalsize Target attribute} & \tabularnewline
+\midrule
+Resources.CandidateTarget[i].EndPointURL & $==$ & url & \tabularnewline
+Resources.CandidateTarget[i].QueueName & $==$ & MappingQueue & \tabularnewline
+\midrule
+Application.ProcessingStartTime    & $<$ & DowntimeStarts & \multirow{2}{*}{AND} \tabularnewline
+Application.ProcessingStartTime    & $>$ & DowntimeEnds &\tabularnewline
+\midrule
+Resources.CEType & isSatisfied( & Implementation & ) \tabularnewline
+\midrule
+Resources.TotalWallTime.range.max & $<$ & MaxWallTime & \tabularnewline
+Resources.TotalWallTime.range.min & $>$ & MinWallTime & \tabularnewline
+Resources.TotalCPUTime.range.max & $<$ & MaxCPUTime & \tabularnewline
+Resources.TotalCPUTime.range.min & $>$ & MinCPUTime & \tabularnewline
+\midrule
+Resources.IndividualPhysicalMemory & $\leq$ & MainMemory & \multirow{2}{*}{OR} \tabularnewline
+Resources.IndividualPhysicalMemory & $\leq$ & MaxMemory &\tabularnewline
+Resources.IndividualVirtualMemory & $\leq$ & MaxVirtualMemory & \tabularnewline
+\midrule
+Resources.Platform & $==$ & Platform & \tabularnewline
+\midrule
+Resources.OperatingSystem & isSatisfied( & OperatingSystem & )\tabularnewline
+Resources.RunTimeEnvironment & isSatisfied( & ApplicationEnvironments & )\tabularnewline
+\midrule
+Resources.NetworkInfo & in & NetworkInfo & \tabularnewline
+\midrule
+Resources.DiskSpaceRequirement.SessionDiskSpace & $\leq$ & MaxDiskSpace & \multirow{2}{*}{OR} \tabularnewline
+Resources.DiskSpaceRequirement.SessionDiskSpace & $\leq$ & WorkingAreaTotal & \tabularnewline
+\midrule
+Resources.DiskSpaceRequirement.DiskSpace & \multirow{2}{*}{$\leq$} & \multirow{2}{*}{MaxDiskSpace} & \multirow{4}{*}{OR} \tabularnewline
+$-$ Resources.DiskSpaceRequirement.CacheDiskSpace & & & \tabularnewline
+Resources.DiskSpaceRequirement.DiskSpace & \multirow{2}{*}{$\leq$} & \multirow{2}{*}{WorkingAreaTotal} & \tabularnewline
+$-$ Resources.DiskSpaceRequirement.CacheDiskSpace & & & \tabularnewline
+\midrule
+Resources.DiskSpaceRequirement.DiskSpace & $\leq$ & MaxDiskSpace & \multirow{2}{*}{OR} \tabularnewline
+Resources.DiskSpaceRequirement.DiskSpace & $\leq$ & WorkingAreaTotal & \tabularnewline
+Resources.DiskSpaceRequirement.CacheDiskSpace & $\leq$ & CacheTotal & \tabularnewline
+\midrule
+Resources.SlotRequirement.NumberOfSlots & $\leq$ & TotalSlots & \tabularnewline
+Resources.SlotRequirement.NumberOfSlots & $\leq$ & MaxSlotsPerJob & \tabularnewline
+\midrule
+Resources.SessionLifeTime & $\leq$ & WorkingAreaLifeTime & \tabularnewline
+\midrule
+Resources.NodeAccess is NAT\_{}INBOUND OR NAT\_{}INOUTBOUND & AND & ConnectivityIn & \tabularnewline
+Resources.NodeAccess is NAT\_{}OUTBOUND OR NAT\_{}INOUTBOUND & AND & ConnectivityOut & \tabularnewline
+\bottomrule
+\end{tabular}
+}}
+\caption{}
+\end{table}
 
 \chapter{Job Status mapping}
 \label{app:broker-mapping}
 
-http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk/doc/client/broker-mapping.ods
+The following job states comprises the state model in WS-ARC:
+\begin{description}
+\item[UNDEFINED] Job state could not be resolved,
+\item[ACCEPTED] Job was accepted by the service,
+\item[PREPARING] Job is preparing,
+\item[SUBMITTING] Job is being submitted to a computing share,
+\item[HOLD] Job is put on hold,
+\item[QUEUING] Job is on computing share waiting to run,
+\item[RUNNING] Job is running on computing share,
+\item[FINISHING] Job is finishing,
+\item[FINISHED] Job has finished,
+\item[KILLED] Job has been killed,
+\item[FAILED] Job failed,
+\item[DELETED] Job have been deleted,
+\item[OTHER] Any job state which does not fit the above states.
+\end{description}
 
+\begin{center}
+\rowcolors{3}{tablerowcolor}{}
+\begin{tabularx}{\textwidth}{CCTCT}
+\toprule
+\NST{Internal} & \NST{ARC0}  & \NST{ARC1} & \NST{BES} & \NST{CREAM}\\
+\midrule
+\defineheadfoot
+ACCEPTED & ACCEPTED & ACCEPTED & Pending & REGISTERED,\linebreak PENDING\\
+PREPARING & PREPARING & PREPARING & \NST{None} & \NST{None} \\
+SUBMITTING & SUBMIT & SUBMIT & \NST{None} & \NST{None} \\
+HOLD & \NST{None} & \NST{None} & \NST{None} & HELD \\
+QUEUING & INLRMS:Q & INLRMS:Q & \NST{None} & IDLE \\
+RUNNING & INLRMS:R & INLRMS:R,\linebreak INLRMS:EXECUTED,\linebreak INLRMS:S, INLRMS:E & Running & RUNNING,\linebreak REALLY-RUNNING\\
+FINISHING & FINISHING & FINISHING & \NST{None} & \NST{None}\\
+FINISHED & FINISHED & FINISHED & Finished & DONE-OK \\
+KILLED & KILLED & KILLED & \NST{None} & CANCELLED \\
+FAILED & FAILED & FAILED & Failed & DONE-FAILED,\linebreak ABORTED\\
+DELETED & DELETED & DELETED & \NST{None} & \NST{None} \\
+OTHER & \NST{Any other state} & \NST{Any other state} & \NST{None} & \NST{Any other state} \\
+\end{tabularx}
+\end{center}
 
 \bibliography{grid, libarcclient}
 
