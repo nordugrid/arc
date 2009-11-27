@@ -28,9 +28,13 @@ namespace Arc {
                   int timeout);
     bool Disconnect(int timeout);
 
+    class CBArg;
+
   private:
     static Logger logger;
     globus_ftp_control_handle_t control_handle;
+    CBArg* cb;
+    bool connected;
   };
 
 } // namespace Arc
