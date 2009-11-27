@@ -146,16 +146,23 @@ namespace Arc {
           target.HealthState = (std::string)ComputingEndpoint["HealthState"];
         else
           logger.msg(VERBOSE, "The Service advertises no Health State.");
+        if (ComputingEndpoint["HealthStateInfo"])
+          target.HealthState = (std::string)ComputingEndpoint["HealthStateInfo"];
         if (GLUEService["Name"])
           target.ServiceName = (std::string)GLUEService["Name"];
-        if (GLUEService["Capability"])
+        if (ComputingEndpoint["Capability"])
+          for (XMLNode n = ComputingEndpoint["Capability"]; n; ++n)
+            target.Capability.push_back((std::string)n);
+        else if (GLUEService["Capability"])
           for (XMLNode n = GLUEService["Capability"]; n; ++n)
             target.Capability.push_back((std::string)n);
         if (GLUEService["Type"])
           target.ServiceType = (std::string)GLUEService["Type"];
         else
           logger.msg(VERBOSE, "The Service doesn't advertise its Type.");
-        if (GLUEService["QualityLevel"])
+        if (ComputingEndpoint["QualityLevel"])
+          target.QualityLevel = (std::string)ComputingEndpoint["QualityLevel"];
+        else if (GLUEService["QualityLevel"])
           target.QualityLevel = (std::string)GLUEService["QualityLevel"];
         else
           logger.msg(VERBOSE, "The Service doesn't advertise its Quality Level.");
@@ -168,12 +175,16 @@ namespace Arc {
           target.InterfaceName = (std::string)ComputingEndpoint["Interface"];
         else
           logger.msg(VERBOSE, "The Service doesn't advertise its Interface.");
+        if (ComputingEndpoint["InterfaceVersion"])
+          target.InterfaceName = (std::string)ComputingEndpoint["InterfaceVersion"];
         if (ComputingEndpoint["InterfaceExtension"])
           for (XMLNode n = ComputingEndpoint["InterfaceExtension"]; n; ++n)
             target.InterfaceExtension.push_back((std::string)n);
         if (ComputingEndpoint["SupportedProfile"])
           for (XMLNode n = ComputingEndpoint["SupportedProfile"]; n; ++n)
             target.SupportedProfile.push_back((std::string)n);
+        if (ComputingEndpoint["Implementor"])
+          target.Implementor = (std::string)ComputingEndpoint["Implementor"];
         if (ComputingEndpoint["ImplementationName"])
           if (ComputingEndpoint["ImplementationVersion"])
             target.Implementation =
@@ -237,6 +248,10 @@ namespace Arc {
           target.LocalWaitingJobs = stringtoi((std::string)ComputingEndpoint["LocalWaitingJobs"]);
         else if (GLUEService["LocalWaitingJobs"])
           target.LocalWaitingJobs = stringtoi((std::string)GLUEService["LocalWaitingJobs"]);
+        if (ComputingEndpoint["LocalSuspendedJobs"])
+          target.LocalSuspendedJobs = stringtoi((std::string)ComputingEndpoint["LocalSuspendedJobs"]);
+        else if (GLUEService["LocalSuspendedJobs"])
+          target.LocalWaitingJobs = stringtoi((std::string)GLUEService["LocalSuspendedJobs"]);
 
         /*
          * The following target attributes might be problematic since there might be many shares and
@@ -330,8 +345,12 @@ namespace Arc {
           target.ReservationPolicy = stringtoi((std::string)ComputingShare["ReservationPolicy"]);
 
         XMLNode ComputingManager = GLUEService["ComputingManager"];
-        if (ComputingManager["Type"])
+        if (ComputingManager["ProductName"])
+          target.ManagerProductName = (std::string)ComputingManager["ProductName"];
+        else if (ComputingManager["Type"]) // is this non-standard fallback needed?
           target.ManagerProductName = (std::string)ComputingManager["Type"];
+        if (ComputingManager["ProductVersion"])
+          target.ManagerProductName = (std::string)ComputingManager["ProductVersion"];
         if (ComputingManager["Reservation"])
           target.Reservation = ((std::string)ComputingManager["Reservation"] == "true") ? true : false;
         if (ComputingManager["BulkSubmission"])

@@ -163,6 +163,11 @@ defined)</td>
 <td>(objectClass=nordugrid-cluster)</td>
 <td>nordugrid-cluster-name</td>
 </tr>
+<tr class="ARC1">
+<th></th>
+<td>["ComputingService"]</td>
+<td>Name</td>
+</tr>
 
 <tr class="Attribute">
 <th colspan="3"><span class="type">std::string</span> ServiceType</th>
@@ -177,6 +182,11 @@ reserved)</td>
 <th></th>
 <td>static mapping</td>
 <td>“org.nordugrid.arc-classic”</td>
+</tr>
+<tr class="ARC1">
+<th></th>
+<td>["ComputingService"]</td>
+<td>Type</td>
 </tr>
 
 </table>
@@ -217,6 +227,15 @@ by the related endpoints)</td>
 <td>static mapping</td>
 <td>“executionmanagement.jobexecution”, “executionmanagement.jobmanager”</td>
 </tr>
+<tr class="ARC1">
+<th rowspan="2"></th>
+<td>["ComputingService"]["ComputingEndpoint"]</td>
+<td>Capability</td>
+</tr>
+<tr class="ARC1">
+<td>["ComputingService"]</td>
+<td>Capability</td>
+</tr>
 
 <tr class="Attribute">
 <th colspan="3"><span class="type">std::string</span> Technology</th>
@@ -229,12 +248,26 @@ by the related endpoints)</td>
 <td>static mapping</td>
 <td>“gridftp”</td>
 </tr>
+<tr class="ARC1">
+<th></th>
+<td>["ComputingService"]["ComputingEndpoint"]</td>
+<td>Technology</td>
+</tr>
 
 <tr class="Attribute">
 <th colspan="3"><span class="type">std::string</span> InterfaceName</th>
 </tr>
 <tr>
 <td colspan="3">Identification of the interface</td>
+</tr>
+<tr class="ARC1">
+<th rowspan="2"></th>
+<td>["ComputingService"]["ComputingEndpoint"]</td>
+<td>InterfaceName</td>
+</tr>
+<tr class="ARC1">
+<td>["ComputingService"]["ComputingEndpoint"]</td>
+<td>Interface</td>
 </tr>
 
 <tr class="Attribute">
@@ -244,6 +277,11 @@ InterfaceVersion</th>
 <tr>
 <td colspan="3">Version of the interface</td>
 </tr>
+<tr class="ARC1">
+<th></th>
+<td>["ComputingService"]["ComputingEndpoint"]</td>
+<td>InterfaceVersion</td>
+</tr>
 
 <tr class="Attribute">
 <th colspan="3"><span class="type">std::list&lt;std::string&gt;</span>
@@ -252,6 +290,11 @@ InterfaceExtension</th>
 <tr>
 <td colspan="3">Identification of an extension to the interface</td>
 </tr>
+<tr class="ARC1">
+<th></th>
+<td>["ComputingService"]["ComputingEndpoint"]</td>
+<td>InterfaceExtension</td>
+</tr>
 
 <tr class="Attribute">
 <th colspan="3"><span class="type">std::list&lt;std::string&gt;</span>
@@ -259,6 +302,11 @@ SupportedProfile</th>
 </tr>
 <tr>
 <td colspan="3">URI identifying a supported profile</td>
+</tr>
+<tr class="ARC1">
+<th></th>
+<td>["ComputingService"]["ComputingEndpoint"]</td>
+<td>SupportedProfile</td>
 </tr>
 
 <tr class="Attribute">
@@ -272,6 +320,11 @@ SupportedProfile</th>
 <td>(objectClass=nordugrid-cluster)</td>
 <td>nordugrid-cluster-middleware | cut -d- -f1</td>
 </tr>
+<tr class="ARC1">
+<th></th>
+<td>["ComputingService"]["ComputingEndpoint"]</td>
+<td>Implementor</td>
+</tr>
 
 <tr class="Attribute">
 <th colspan="3"><span class="type">std::string</span> ImplementationName</th>
@@ -283,6 +336,11 @@ SupportedProfile</th>
 <th></th>
 <td>(objectClass=nordugrid-cluster)</td>
 <td>nordugrid-cluster-middleware | cut -d- -f2</td>
+</tr>
+<tr class="ARC1">
+<th></th>
+<td>["ComputingService"]["ComputingEndpoint"]</td>
+<td>ImplementationName</td>
 </tr>
 <tr class="CREAM">
 <th></th>
@@ -303,6 +361,11 @@ version.minor version.patch version)</td>
 <td>(objectClass=nordugrid-cluster)</td>
 <td>nordugrid-cluster-middleware | cut -d- -f3</td>
 </tr>
+<tr class="ARC1">
+<th></th>
+<td>["ComputingService"]["ComputingEndpoint"]</td>
+<td>ImplementationVersion</td>
+</tr>
 <tr class="CREAM">
 <th></th>
 <td>(objectClass=GlueCE)</td>
@@ -315,6 +378,15 @@ version.minor version.patch version)</td>
 <tr>
 <td colspan="3">Maturity of the service in terms of quality of the
 software components</td>
+</tr>
+<tr class="ARC1">
+<th rowspan="2"></th>
+<td>["ComputingService"]["ComputingEndpoint"]</td>
+<td>QualityLevel</td>
+</tr>
+<tr class="ARC1">
+<td>["ComputingService"]</td>
+<td>QualityLevel</td>
 </tr>
 
 <tr class="Attribute">
@@ -330,6 +402,11 @@ functionalities</td>
 <td>(objectClass=nordugrid-queue)</td>
 <td>nordugrid-queue-status (mapped)</td>
 </tr>
+<tr class="ARC1">
+<th></th>
+<td>["ComputingService"]["ComputingEndpoint"]</td>
+<td>HealthState</td>
+</tr>
 
 <tr class="Attribute">
 <th colspan="3"><span class="type">std::string</span> HealthStateInfo</th>
@@ -342,6 +419,11 @@ functionalities</td>
 <td>(objectClass=nordugrid-queue)</td>
 <td>nordugrid-queue-status</td>
 </tr>
+<tr class="ARC1">
+<th></th>
+<td>["ComputingService"]["ComputingEndpoint"]</td>
+<td>HealthStateInfo</td>
+</tr>
 
 <tr class="Attribute">
 <th colspan="3"><span class="type">std::string</span> ServingState</th>
@@ -349,6 +431,11 @@ functionalities</td>
 <tr>
 <td colspan="3">A state specifying if the endpoint is accepting new
 requests and if it is serving the already accepted requests</td>
+<tr class="ARC1">
+<th></th>
+<td>["ComputingService"]["ComputingEndpoint"]</td>
+<td>ServingState</td>
+</tr>
 </tr>
 <tr class="CREAM">
 <th rowspan="2"></th>
@@ -372,6 +459,11 @@ the certificate for the endpoint</td>
 <td>(objectClass=nordugrid-cluster)</td>
 <td>nordugrid-cluster-issuerca</td>
 </tr>
+<tr class="ARC1">
+<th></th>
+<td>["ComputingService"]["ComputingEndpoint"]</td>
+<td>IssuerCA</td>
+</tr>
 
 <tr class="Attribute">
 <th colspan="3"><span class="type">std::list&lt;std::string&gt;</span>
@@ -381,6 +473,11 @@ TrustedCA</th>
 <td colspan="3">Distinguished names of the trusted Certification
 Authorities (CAs), i.e., certificates issued by the CAs are accepted
 by the authentication process</td>
+</tr>
+<tr class="ARC1">
+<th></th>
+<td>["ComputingService"]["ComputingEndpoint"]</td>
+<td>TrustedCA</td>
 </tr>
 
 <tr class="Attribute">
@@ -466,6 +563,11 @@ single share MAY be mapped into many different queues)</td>
 <td>(objectClass=nordugrid-queue)</td>
 <td>nordugrid-queue-name</td>
 </tr>
+<tr class="ARC1">
+<th></th>
+<td>["ComputingService"]["ComputingShares"]["ComputingShare"]</td>
+<td>MappingQueue</td>
+</tr>
 
 <tr class="Attribute">
 <th colspan="3"><span class="type">Arc::Period</span> MaxWallTime</th>
@@ -479,6 +581,11 @@ value)</td>
 <th></th>
 <td>(objectClass=nordugrid-queue)</td>
 <td>nordugrid-queue-maxwalltime</td>
+</tr>
+<tr class="ARC1">
+<th></th>
+<td>["ComputingService"]["ComputingShares"]["ComputingShare"]</td>
+<td>MaxWallTime</td>
 </tr>
 <tr class="CREAM">
 <th rowspan="2"></th>
@@ -499,6 +606,11 @@ the job upon user request across all assigned slots; this attribute is
 a limit for the sum of the wall time used in all the slots occupied by
 a multi-slot job (unnormalized value)</td>
 </tr>
+<tr class="ARC1">
+<th></th>
+<td>["ComputingService"]["ComputingShares"]["ComputingShare"]</td>
+<td>MaxTotalWallTime</td>
+</tr>
 
 <tr class="Attribute">
 <th colspan="3"><span class="type">Arc::Period</span> MinWallTime</th>
@@ -513,6 +625,11 @@ shorter time, than it might be accounted for this value</td>
 <th></th>
 <td>(objectClass=nordugrid-queue)</td>
 <td>nordugrid-queue-minwalltime</td>
+</tr>
+<tr class="ARC1">
+<th></th>
+<td>["ComputingService"]["ComputingShares"]["ComputingShare"]</td>
+<td>MinWallTime</td>
 </tr>
 
 <tr class="Attribute">
@@ -530,6 +647,11 @@ value)</td>
 <td>(objectClass=nordugrid-queue)</td>
 <td>nordugrid-queue-defaultwalltime</td>
 </tr>
+<tr class="ARC1">
+<th></th>
+<td>["ComputingService"]["ComputingShares"]["ComputingShare"]</td>
+<td>DefaultWallTime</td>
+</tr>
 
 <tr class="Attribute">
 <th colspan="3"><span class="type">Arc::Period</span> MaxCPUTime</th>
@@ -542,6 +664,11 @@ the job upon user request per slot (unnormalized value)</td>
 <th></th>
 <td>(objectClass=nordugrid-queue)</td>
 <td>nordugrid-queue-maxcputime</td>
+</tr>
+<tr class="ARC1">
+<th></th>
+<td>["ComputingService"]["ComputingShares"]["ComputingShare"]</td>
+<td>MaxCPUTime</td>
 </tr>
 <tr class="CREAM">
 <th rowspan="2"></th>
@@ -562,6 +689,11 @@ the job upon user request across all assigned slots; this attribute is
 a limit for the sum of the CPU time used in all the slots occupied by
 a multi-slot job (unnormalized value)</td>
 </tr>
+<tr class="ARC1">
+<th></th>
+<td>["ComputingService"]["ComputingShares"]["ComputingShare"]</td>
+<td>MaxTotalCPUTime</td>
+</tr>
 
 <tr class="Attribute">
 <th colspan="3"><span class="type">Arc::Period</span> MinCPUTime</th>
@@ -577,6 +709,11 @@ than it might be accounted for this value (unnormalized value)</td>
 <td>(objectClass=nordugrid-queue)</td>
 <td>nordugrid-queue-mincputime</td>
 </tr>
+<tr class="ARC1">
+<th></th>
+<td>["ComputingService"]["ComputingShares"]["ComputingShare"]</td>
+<td>MinCPUTime</td>
+</tr>
 
 <tr class="Attribute">
 <th colspan="3"><span class="type">Arc::Period</span> DefaultCPUTime</th>
@@ -591,12 +728,22 @@ submission description (unnormalized value)</td>
 <td>(objectClass=nordugrid-queue)</td>
 <td>nordugrid-queue-defaultcputime</td>
 </tr>
+<tr class="ARC1">
+<th></th>
+<td>["ComputingService"]["ComputingShares"]["ComputingShare"]</td>
+<td>DefaultCPUTime</td>
+</tr>
 
 <tr class="Attribute">
 <th colspan="3"><span class="type">int</span> MaxTotalJobs</th>
 </tr>
 <tr>
 <td colspan="3">The maximum allowed number of jobs in this share</td>
+</tr>
+<tr class="ARC1">
+<th></th>
+<td>["ComputingService"]["ComputingShares"]["ComputingShare"]</td>
+<td>MaxTotalJobs</td>
 </tr>
 <tr class="CREAM">
 <th rowspan="2"></th>
@@ -620,6 +767,11 @@ this share</td>
 <td>(objectClass=nordugrid-queue)</td>
 <td>nordugrid-queue-maxrunning</td>
 </tr>
+<tr class="ARC1">
+<th></th>
+<td>["ComputingService"]["ComputingShares"]["ComputingShare"]</td>
+<td>MaxRunningJobs</td>
+</tr>
 <tr class="CREAM">
 <th rowspan="2"></th>
 <td>(objectClass=GlueVOView)</td>
@@ -642,6 +794,11 @@ this share</td>
 <td colspan="3">The maximum allowed number of jobs in waiting state in
 this share</td>
 </tr>
+<tr class="ARC1">
+<th></th>
+<td>["ComputingService"]["ComputingShares"]["ComputingShare"]</td>
+<td>MaxWaitingJobs</td>
+</tr>
 <tr class="CREAM">
 <th rowspan="2"></th>
 <td>(objectClass=GlueVOView)</td>
@@ -660,6 +817,11 @@ this share</td>
 Grid layer waiting to be passed to the underlying computing manager
 (i.e. LRMS) for this share</td>
 </tr>
+<tr class="ARC1">
+<th></th>
+<td>["ComputingService"]["ComputingShares"]["ComputingShare"]</td>
+<td>MaxPreLRMSWaitingJobs</td>
+</tr>
 
 <tr class="Attribute">
 <th colspan="3"><span class="type">int</span> MaxUserRunningJobs</th>
@@ -672,6 +834,11 @@ per Grid user in this share</td>
 <th></th>
 <td>(objectClass=nordugrid-queue)</td>
 <td>nordugrid-queue-maxuserrun</td>
+</tr>
+<tr class="ARC1">
+<th></th>
+<td>["ComputingService"]["ComputingShares"]["ComputingShare"]</td>
+<td>MaxUserRunningJobs</td>
 </tr>
 <tr class="CREAM">
 <th rowspan="2"></th>
@@ -691,6 +858,11 @@ per Grid user in this share</td>
 to a single job (defined to be 1 for a computing service accepting
 only single-slot jobs)</td>
 </tr>
+<tr class="ARC1">
+<th></th>
+<td>["ComputingService"]["ComputingShares"]["ComputingShare"]</td>
+<td>MaxSlotsPerJobs</td>
+</tr>
 <tr class="CREAM">
 <th rowspan="2"></th>
 <td>(objectClass=GlueVOView)</td>
@@ -707,12 +879,22 @@ only single-slot jobs)</td>
 <tr>
 <td colspan="3">The maximum number of streams to stage files in</td>
 </tr>
+<tr class="ARC1">
+<th></th>
+<td>["ComputingService"]["ComputingShares"]["ComputingShare"]</td>
+<td>MaxStageInStreams</td>
+</tr>
 
 <tr class="Attribute">
 <th colspan="3"><span class="type">int</span> MaxStageOutStreams</th>
 </tr>
 <tr>
 <td colspan="3">The maximum number of streams to stage files out</td>
+</tr>
+<tr class="ARC1">
+<th></th>
+<td>["ComputingService"]["ComputingShares"]["ComputingShare"]</td>
+<td>MaxStageOutStreams</td>
 </tr>
 
 <tr class="Attribute">
@@ -725,6 +907,11 @@ only single-slot jobs)</td>
 <th></th>
 <td>(objectClass=nordugrid-queue)</td>
 <td>nordugrid-queue-schedulingpolicy</td>
+</tr>
+<tr class="ARC1">
+<th></th>
+<td>["ComputingService"]["ComputingShares"]["ComputingShare"]</td>
+<td>SchedulingPolicy</td>
 </tr>
 
 <tr class="Attribute">
@@ -742,6 +929,11 @@ hit, then the LRMS could kill the job</td>
 <tr class="ARC0">
 <td>(objectClass=nordugrid-cluster)</td>
 <td>nordugrid-cluster-nodememory</td>
+</tr>
+<tr class="ARC1">
+<th></th>
+<td>["ComputingService"]["ComputingShares"]["ComputingShare"]</td>
+<td>MaxMainMemory</td>
 </tr>
 <tr class="CREAM">
 <th></th>
@@ -765,6 +957,11 @@ limit is hit, then the LRMS could kill the job</td>
 <td>(objectClass=nordugrid-cluster)</td>
 <td>nordugrid-cluster-nodememory</td>
 </tr>
+<tr class="ARC1">
+<th></th>
+<td>["ComputingService"]["ComputingShares"]["ComputingShare"]</td>
+<td>MaxVirtualMemory</td>
+</tr>
 <tr class="CREAM">
 <th></th>
 <td>(objectClass=GlueSubCluster)</td>
@@ -783,6 +980,11 @@ working area</td>
 <td>(objectClass=nordugrid-authuser)</td>
 <td>0.001 × nordugrid-authuser-diskspace</td>
 </tr>
+<tr class="ARC1">
+<th></th>
+<td>["ComputingService"]["ComputingShares"]["ComputingShare"]</td>
+<td>MaxDiskSpace</td>
+</tr>
 
 <tr class="Attribute">
 <th colspan="3"><span class="type">Arc::URL</span> DefaultStorageService</th>
@@ -796,6 +998,11 @@ stated</td>
 <th></th>
 <td>(objectClass=nordugrid-cluster)</td>
 <td>nordugrid-cluster-localse</td>
+</tr>
+<tr class="ARC1">
+<th></th>
+<td>["ComputingService"]["ComputingShares"]["ComputingShare"]</td>
+<td>DefaultStorageService</td>
 </tr>
 <tr class="CREAM">
 <th rowspan="2"></th>
@@ -814,6 +1021,11 @@ stated</td>
 <td colspan="3">True if the computing manager (i.e. LRMS) enables
 preemption of jobs; a preempted job is supposed to be automatically
 resumed</td>
+</tr>
+<tr class="ARC1">
+<th></th>
+<td>["ComputingService"]["ComputingShares"]["ComputingShare"]</td>
+<td>Preemption</td>
 </tr>
 <tr class="CREAM">
 <th rowspan="2"></th>
@@ -839,6 +1051,15 @@ jobs</td>
 <td>calculated from other fields</td>
 <td>RunningJobs + WaitingJobs + PreLRMSWaitingJobs</td>
 </tr>
+<tr class="ARC1">
+<th rowspan="2"></th>
+<td>["ComputingService"]["ComputingEndpoint"]</td>
+<td>TotalJobs</td>
+</tr>
+<tr class="ARC1">
+<td>["ComputingService"]</td>
+<td>TotalJobs</td>
+</tr>
 <tr class="CREAM">
 <th rowspan="2"></th>
 <td>(objectClass=GlueVOView)</td>
@@ -861,6 +1082,15 @@ interface (local and Grid)</td>
 <td>(objectClass=nordugrid-queue)</td>
 <td>nordugrid-queue-running</td>
 </tr>
+<tr class="ARC1">
+<th rowspan="2"></th>
+<td>["ComputingService"]["ComputingEndpoint"]</td>
+<td>RunningJobs</td>
+</tr>
+<tr class="ARC1">
+<td>["ComputingService"]</td>
+<td>RunningJobs</td>
+</tr>
 <tr class="CREAM">
 <th rowspan="2"></th>
 <td>(objectClass=GlueVOView)</td>
@@ -882,6 +1112,15 @@ interface (local and Grid)</td>
 <td>(objectClass=nordugrid-queue)</td>
 <td>nordugrid-queue-running − nordugrid-queue-gridrunning</td>
 </tr>
+<tr class="ARC1">
+<th rowspan="2"></th>
+<td>["ComputingService"]["ComputingEndpoint"]</td>
+<td>LocalRunningJobs</td>
+</tr>
+<tr class="ARC1">
+<td>["ComputingService"]</td>
+<td>LocalRunningJobs</td>
+</tr>
 
 <tr class="Attribute">
 <th colspan="3"><span class="type">int</span> WaitingJobs</th>
@@ -895,6 +1134,15 @@ Grid)</td>
 <th></th>
 <td>(objectClass=nordugrid-queue)</td>
 <td>nordugrid-queue-gridqueued + nordugrid-queue-localqueued</td>
+</tr>
+<tr class="ARC1">
+<th rowspan="2"></th>
+<td>["ComputingService"]["ComputingEndpoint"]</td>
+<td>WaitingJobs</td>
+</tr>
+<tr class="ARC1">
+<td>["ComputingService"]</td>
+<td>WaitingJobs</td>
 </tr>
 <tr class="CREAM">
 <th rowspan="2"></th>
@@ -918,6 +1166,15 @@ managers (i.e. LRMSs) submitted via a local interface</td>
 <td>(objectClass=nordugrid-queue)</td>
 <td>nordugrid-queue-localqueued</td>
 </tr>
+<tr class="ARC1">
+<th rowspan="2"></th>
+<td>["ComputingService"]["ComputingEndpoint"]</td>
+<td>LocalWaitingJobs</td>
+</tr>
+<tr class="ARC1">
+<td>["ComputingService"]</td>
+<td>LocalWaitingJobs</td>
+</tr>
 
 <tr class="Attribute">
 <th colspan="3"><span class="type">int</span> SuspendedJobs</th>
@@ -925,6 +1182,15 @@ managers (i.e. LRMSs) submitted via a local interface</td>
 <tr>
 <td colspan="3">Number of jobs which started their execution, but are
 suspended, e.g. for preemption (local and Grid)</td>
+</tr>
+<tr class="ARC1">
+<th rowspan="2"></th>
+<td>["ComputingService"]["ComputingEndpoint"]</td>
+<td>SuspendedJobs</td>
+</tr>
+<tr class="ARC1">
+<td>["ComputingService"]</td>
+<td>SuspendedJobs</td>
 </tr>
 
 <tr class="Attribute">
@@ -934,12 +1200,30 @@ suspended, e.g. for preemption (local and Grid)</td>
 <td colspan="3">Number of local jobs which started their execution,
 but are suspended (e.g. for preemption)</td>
 </tr>
+<tr class="ARC1">
+<th rowspan="2"></th>
+<td>["ComputingService"]["ComputingEndpoint"]</td>
+<td>LocalSuspendedJobs</td>
+</tr>
+<tr class="ARC1">
+<td>["ComputingService"]</td>
+<td>LocalSuspendedJobs</td>
+</tr>
 
 <tr class="Attribute">
 <th colspan="3"><span class="type">int</span> StagingJobs</th>
 </tr>
 <tr>
 <td colspan="3">Number of Grid jobs that are staging files in/out</td>
+</tr>
+<tr class="ARC1">
+<th rowspan="2"></th>
+<td>["ComputingService"]["ComputingEndpoint"]</td>
+<td>StagingJobs</td>
+</tr>
+<tr class="ARC1">
+<td>["ComputingService"]</td>
+<td>StagingJobs</td>
 </tr>
 
 <tr class="Attribute">
@@ -954,6 +1238,15 @@ to be passed to the underlying computing manager (i.e. LRMS)</td>
 <td>(objectClass=nordugrid-queue)</td>
 <td>nordugrid-queue-prelrmsqueued</td>
 </tr>
+<tr class="ARC1">
+<th rowspan="2"></th>
+<td>["ComputingService"]["ComputingEndpoint"]</td>
+<td>PreLRMSWaitingJobs</td>
+</tr>
+<tr class="ARC1">
+<td>["ComputingService"]</td>
+<td>PreLRMSWaitingJobs</td>
+</tr>
 
 <tr class="Attribute">
 <th colspan="3"><span class="type">Arc::Period</span>
@@ -962,6 +1255,11 @@ EstimatedAverageWaitingTime</th>
 <tr>
 <td colspan="3">Estimated time to last for a new job from the
 acceptance to the start of its execution</td>
+</tr>
+<tr class="ARC1">
+<th></th>
+<td>["ComputingService"]["ComputingShares"]["ComputingShare"]</td>
+<td>EstimatedAverageWaitingTime</td>
 </tr>
 <tr class="CREAM">
 <th rowspan="2"></th>
@@ -980,6 +1278,11 @@ EstimatedWorstWaitingTime</th>
 <tr>
 <td colspan="3">Estimated worst waiting time assuming that all jobs
 run for the maximum wall time</td>
+</tr>
+<tr class="ARC1">
+<th></th>
+<td>["ComputingService"]["ComputingShares"]["ComputingShare"]</td>
+<td>EstimatedWorstWaitingTime</td>
 </tr>
 <tr class="CREAM">
 <th rowspan="2"></th>
@@ -1001,6 +1304,11 @@ run for the maximum wall time</td>
 <th></th>
 <td>(objectClass=nordugrid-authuser)</td>
 <td>nordugrid-authuser-freecpus</td>
+</tr>
+<tr class="ARC1">
+<th></th>
+<td>["ComputingService"]["ComputingShares"]["ComputingShare"]</td>
+<td>FreeSlots</td>
 </tr>
 <tr class="CREAM">
 <th rowspan="4"></th>
@@ -1035,6 +1343,11 @@ information is optional</td>
 <td>(objectClass=nordugrid-authuser)</td>
 <td>nordugrid-authuser-freecpus</td>
 </tr>
+<tr class="ARC1">
+<th></th>
+<td>["ComputingService"]["ComputingShares"]["ComputingShare"]</td>
+<td>FreeSlotsWithDuration</td>
+</tr>
 
 <tr class="Attribute">
 <th colspan="3"><span class="type">int</span> UsedSlots</th>
@@ -1047,6 +1360,11 @@ information is optional</td>
 <td>(objectClass=nordugrid-cluster)</td>
 <td>nordugrid-cluster-usedcpus</td>
 </tr>
+<tr class="ARC1">
+<th></th>
+<td>["ComputingService"]["ComputingShares"]["ComputingShare"]</td>
+<td>UsedSlots</td>
+</tr>
 
 <tr class="Attribute">
 <th colspan="3"><span class="type">int</span> RequestedSlots</th>
@@ -1054,6 +1372,11 @@ information is optional</td>
 <tr>
 <td colspan="3">Number of slots which are needed to execute all
 waiting and staging jobs</td>
+</tr>
+<tr class="ARC1">
+<th></th>
+<td>["ComputingService"]["ComputingShares"]["ComputingShare"]</td>
+<td>RequestedSlots</td>
 </tr>
 
 <tr class="Attribute">
@@ -1066,6 +1389,11 @@ waiting and staging jobs</td>
 <th></th>
 <td>(objectClass=nordugrid-queue)</td>
 <td>nordugrid-queue-schedulingpolicy</td>
+</tr>
+<tr class="ARC1">
+<th></th>
+<td>["ComputingService"]["ComputingShares"]["ComputingShare"]</td>
+<td>ReservationPolicy</td>
 </tr>
 
 </table>
@@ -1085,6 +1413,15 @@ waiting and staging jobs</td>
 <td>(objectClass=nordugrid-cluster)</td>
 <td>nordugrid-cluster-lrms-type</td>
 </tr>
+<tr class="ARC1">
+<th rowspan="2"></th>
+<td>["ComputingService"]["ComputingManager"]</td>
+<td>ProductName</td>
+</tr>
+<tr class="ARC1">
+<td>["ComputingService"]["ComputingManager"]</td>
+<td>Type</td>
+</tr>
 
 <tr class="Attribute">
 <th colspan="3"><span class="type">std::string</span> ManagerProductVersion</th>
@@ -1097,6 +1434,11 @@ waiting and staging jobs</td>
 <td>(objectClass=nordugrid-cluster)</td>
 <td>nordugrid-cluster-lrms-version</td>
 </tr>
+<tr class="ARC1">
+<th></th>
+<td>["ComputingService"]["ComputingManager"]</td>
+<td>ProductVersion</td>
+</tr>
 
 <tr class="Attribute">
 <th colspan="3"><span class="type">bool</span> Reservation</th>
@@ -1105,6 +1447,11 @@ waiting and staging jobs</td>
 <td colspan="3">True if the computing manager (i.e. LRMS) supports
 advance reservation</td>
 </tr>
+<tr class="ARC1">
+<th></th>
+<td>["ComputingService"]["ComputingManager"]</td>
+<td>Reservation</td>
+</tr>
 
 <tr class="Attribute">
 <th colspan="3"><span class="type">bool</span> BulkSubmission</th>
@@ -1112,6 +1459,11 @@ advance reservation</td>
 <tr>
 <td colspan="3">True if the computing manager (i.e. LRMS) supports the
 bulk submission</td>
+</tr>
+<tr class="ARC1">
+<th></th>
+<td>["ComputingService"]["ComputingManager"]</td>
+<td>BulkSubmission</td>
 </tr>
 
 <tr class="Attribute">
@@ -1129,6 +1481,11 @@ the available endpoints (there is one physical CPU per socket)</td>
 <tr class="ARC0">
 <td>(objectClass=nordugrid-cluster)</td>
 <td>nordugrid-cluster-totalcpus</td>
+</tr>
+<tr class="ARC1">
+<th></th>
+<td>["ComputingService"]["ComputingManager"]</td>
+<td>TotalPhysicalCPUs</td>
 </tr>
 
 <tr class="Attribute">
@@ -1148,6 +1505,11 @@ the operating system)</td>
 <td>(objectClass=nordugrid-cluster)</td>
 <td>nordugrid-cluster-totalcpus</td>
 </tr>
+<tr class="ARC1">
+<th></th>
+<td>["ComputingService"]["ComputingManager"]</td>
+<td>TotalLogicalCPUs</td>
+</tr>
 
 <tr class="Attribute">
 <th colspan="3"><span class="type">int</span> TotalSlots</th>
@@ -1163,6 +1525,11 @@ the operating system)</td>
 <tr class="ARC0">
 <td>(objectClass=nordugrid-cluster)</td>
 <td>nordugrid-cluster-totalcpus</td>
+</tr>
+<tr class="ARC1">
+<th></th>
+<td>["ComputingService"]["ComputingManager"]</td>
+<td>TotalSlots</td>
 </tr>
 
 <tr class="Attribute">
@@ -1181,6 +1548,11 @@ execution environment</td>
 <td>(objectClass=nordugrid-cluster)</td>
 <td>nordugrid-cluster-homogeneity</td>
 </tr>
+<tr class="ARC1">
+<th></th>
+<td>["ComputingService"]["ComputingManager"]</td>
+<td>Homogeneous</td>
+</tr>
 
 <tr class="Attribute">
 <th colspan="3"><span class="type">std::list&lt;std::string&gt;</span>
@@ -1193,6 +1565,11 @@ the various types of network MAY be available only within subsets of
 the execution environment instances; the execution environment
 properties SHOULD be checked</td>
 </tr>
+<tr class="ARC1">
+<th></th>
+<td>["ComputingService"]["ComputingManager"]</td>
+<td>NetworkInfo</td>
+</tr>
 
 <tr class="Attribute">
 <th colspan="3"><span class="type">bool</span> WorkingAreaShared</th>
@@ -1201,6 +1578,11 @@ properties SHOULD be checked</td>
 <td colspan="3">True if the working area is shared across different
 execution environment instances (i.e. cluster nodes); this attribute
 applies to single-slot jobs</td>
+</tr>
+<tr class="ARC1">
+<th></th>
+<td>["ComputingService"]["ComputingManager"]</td>
+<td>WorkingAreaShared</td>
 </tr>
 
 <tr class="Attribute">
@@ -1221,6 +1603,11 @@ across all the execution environment instances
 <th></th>
 <td>(objectClass=nordugrid-cluster)</td>
 <td>0.001 × nordugrid-cluster-sessiondir-total</td>
+</tr>
+<tr class="ARC1">
+<th></th>
+<td>["ComputingService"]["ComputingManager"]</td>
+<td>WorkingAreaTotal</td>
 </tr>
 
 <tr class="Attribute">
@@ -1243,6 +1630,11 @@ area, the free area equals the total area</td>
 <td>(objectClass=nordugrid-cluster)</td>
 <td>0.001 × nordugrid-cluster-sessiondir-free</td>
 </tr>
+<tr class="ARC1">
+<th></th>
+<td>["ComputingService"]["ComputingManager"]</td>
+<td>WorkingAreaFree</td>
+</tr>
 
 <tr class="Attribute">
 <th colspan="3"><span class="type">Arc::Period</span> WorkingAreaLifeTime</th>
@@ -1257,6 +1649,11 @@ guaranteed to exist</td>
 <th></th>
 <td>(objectClass=nordugrid-cluster)</td>
 <td>nordugrid-cluster-sessiondir-lifetime</td>
+</tr>
+<tr class="ARC1">
+<th></th>
+<td>["ComputingService"]["ComputingManager"]</td>
+<td>WorkingAreaLifeTime</td>
 </tr>
 
 <tr class="Attribute">
@@ -1275,6 +1672,11 @@ algorithm</td>
 <td>(objectClass=nordugrid-cluster)</td>
 <td>0.001 × nordugrid-cluster-cache-total</td>
 </tr>
+<tr class="ARC1">
+<th></th>
+<td>["ComputingService"]["ComputingManager"]</td>
+<td>CacheTotal</td>
+</tr>
 
 <tr class="Attribute">
 <th colspan="3"><span class="type">int</span> CacheFree</th>
@@ -1290,6 +1692,11 @@ are not claimed by any job MAY be considered as deleted</td>
 <th></th>
 <td>(objectClass=nordugrid-cluster)</td>
 <td>0.001 × nordugrid-cluster-cache-free</td>
+</tr>
+<tr class="ARC1">
+<th></th>
+<td>["ComputingService"]["ComputingManager"]</td>
+<td>CacheFree</td>
 </tr>
 
 </table>
@@ -1313,6 +1720,11 @@ double&gt;</span> Benchmarks</th>
 <tr class="ARC0">
 <td>(objectClass=nordugrid-cluster)</td>
 <td>nordugrid-cluster-benchmark</td>
+</tr>
+<tr class="ARC1">
+<th></th>
+<td>["ComputingService"]["ComputingManager"]["BenchMark"]</td>
+<td>Type, Value</td>
 </tr>
 
 </table>
@@ -1506,6 +1918,11 @@ ApplicationEnvironments</th>
 <th></th>
 <td>(objectClass=nordugrid-cluster)</td>
 <td>nordugrid-cluster-runtimeenvironment</td>
+</tr>
+<tr class="ARC1">
+<th></th>
+<td>["ComputingService"]["ComputingManager"]["ApplicationEnvironments"]["ApplicationEnvironment"]</td>
+<td>AppName, AppVersion, State, FreeSlots, FreeJobs, FreeUserSeats</td>
 </tr>
 <tr class="CREAM">
 <th></th>
