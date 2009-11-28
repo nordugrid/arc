@@ -111,7 +111,7 @@ void ArcRule::getItemlist(XMLNode& nd, OrList& items, const std::string& itemtyp
       }
       f.close();
 
-      XMLNode root = XMLNode(xml_str);
+      XMLNode root(xml_str);
       XMLNode subref = root.Child();
 
       XMLNode snd;
