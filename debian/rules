@@ -91,7 +91,7 @@ install-arch: build-arch-stamp
 	  profile=`basename $$i` ; \
 	  mkdir -p $$profileexampledir/$$profile ; \
 	  ( cd src/hed/profiles/$$profile ; \
-	    cp -p *.xml *.ini *.conf *.txt $$profileexampledir/$$profile/ ) ; \
+	    cp -p *[xiot][mnx][lift] $$profileexampledir/$$profile/ ) ; \
 	done
 
 binary-indep: install-indep

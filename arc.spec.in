@@ -443,7 +443,7 @@ for i in src/hed/profiles/*; do
   profile=`basename $i` 
   mkdir -p $profileexampledir/$profile
   ( cd src/hed/profiles/$profile ;
-    cp -p *.xml *.ini *.conf *.txt $profileexampledir/$profile )
+    cp -p *[xiot][mnx][lift] $profileexampledir/$profile )
 done
 
 %find_lang arc
