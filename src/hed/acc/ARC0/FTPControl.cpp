@@ -294,7 +294,17 @@ namespace Arc {
     }
 
     std::string::size_type pos1 = response.find('(');
+    if (pos1 == std::string::npos) {
+      logger.msg(VERBOSE, "SendData: Server PASV response parsing failed: %s",
+                 response);
+      return false;
+    }
     std::string::size_type pos2 = response.find(')', pos1 + 1);
+    if (pos2 == std::string::npos) {
+      logger.msg(VERBOSE, "SendData: Server PASV response parsing failed: %s",
+                 response);
+      return false;
+    }
 
     globus_ftp_control_host_port_t passive_addr;
     passive_addr.port = 0;
@@ -306,8 +316,13 @@ namespace Arc {
                &passive_addr.host[2],
                &passive_addr.host[3],
                &port_high,
-               &port_low) == 6)
+               &port_low) == 6) {
       passive_addr.port = 256 * port_high + port_low;
+    } else {
+      logger.msg(VERBOSE, "SendData: Server PASV response parsing failed: %s",
+                 response);
+      return false;
+    }
 
     result = globus_ftp_control_local_port(&control_handle, &passive_addr);
     if (!result) {
