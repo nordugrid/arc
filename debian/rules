@@ -84,6 +84,16 @@ install-arch: build-arch-stamp
 	cp -p src/hed/daemon/scripts/arched.debian \
 		debian/nordugrid-arc-nox-server.arched.init
 
+	# Install profile examples
+	profileexampledir=$(CURDIR)/debian/tmp/usr/share/arc/examples/config ; \
+	mkdir -p $$profileexampledir ; \
+	for i in src/hed/profiles/*; do \
+	  profile=`basename $$i` ; \
+	  mkdir -p $$profileexampledir/$$profile \
+	  ( cd src/hed/profiles/$$profile ; \
+	    cp -p *.xml *.ini *.conf *.txt $$profileexampledir/$$profile/ ) ; \
+	done
+
 binary-indep: install-indep
 	dh_testdir
 	dh_testroot
