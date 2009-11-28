@@ -355,7 +355,8 @@ bool XMLSecNode::DecryptNode(const std::string& privkey_file, XMLNode& decrypted
   std::string decrypted_str((const char*)decrypted_buf->data);
   //std::cout<<"Decrypted node: "<<decrypted_str<<std::endl;
 
-  XMLNode decrypted_data = XMLNode(decrypted_str);
+  // TODO: less copies
+  XMLNode decrypted_data(decrypted_str);
   decrypted_data.New(decrypted_node);
 
   xmlSecEncCtxDestroy(encCtx);

@@ -182,7 +182,8 @@ X509Token::X509Token(SOAPEnvelope& soap, const std::string& keyfile) : SOAPEnvel
 
     //Insert the decrypted data into soap body
     std::string decrypted_str((const char*)decrypted_buf->data);
-    XMLNode decrypted_data = XMLNode(decrypted_str); 
+    XMLNode decrypted_data(decrypted_str); 
+    // TODO: less copies
     body.Replace(decrypted_data);
 
     //Destroy the wsse:Security in header
