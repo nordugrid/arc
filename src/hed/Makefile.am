@@ -26,6 +26,6 @@ profile_DATA = \
     profiles/NonSecureP2PIIS/NonSecureP2PIIS.xml \
     profiles/NonSecureStandaloneIIS/NonSecureStandaloneIIS.xml \
     profiles/SecureP2PIIS/SecureP2PIIS.xml \
-    profiles/SecureStandaloneIIS/SecureStandaloneIIS.xml \
+    profiles/SecureStandaloneIIS/SecureStandaloneIIS.xml
 
 EXTRA_DIST = profiles/*/*
