@@ -17,11 +17,11 @@ if DOC_ENABLED
 DOC_SD = doc
 endif
 
-SUBDIRS = src include $(SWIG_SD) $(JAVA_SD) $(PYTHON_SD) $(POSUB) debian
+SUBDIRS = src include $(SWIG_SD) $(JAVA_SD) $(PYTHON_SD) $(POSUB) debian nsis
 
 DOCDIRS = $(DOC_SD)
 
-DIST_SUBDIRS = src swig java python po doc include debian
+DIST_SUBDIRS = src swig java python po doc include debian nsis
 
 EXTRA_DIST = arc.spec mingw32-arc.spec autogen.sh LICENSE
 

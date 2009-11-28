@@ -1738,6 +1738,8 @@ AC_CONFIG_FILES([Makefile
                  src/services/janitor/interfaces/commandline/janitor.8
                  src/services/janitor/interfaces/commandline/rjanitor.c
                  arcbase.pc
+                 nsis/Makefile
+                 nsis/arc.nsis
                  src/hed/profiles/CheloniaAllServicesCentralizedAHash/CheloniaAllServicesCentralizedAHash.ini
                  src/hed/profiles/CheloniaAllServicesCentralizedAHash/CheloniaAllServicesCentralizedAHash.xml
                  src/hed/profiles/CheloniaAllServicesCentralizedAHashWithISIS/CheloniaAllServicesCentralizedAHashWithISIS.ini
