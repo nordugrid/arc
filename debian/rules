@@ -89,7 +89,7 @@ install-arch: build-arch-stamp
 	mkdir -p $$profileexampledir ; \
 	for i in src/hed/profiles/*; do \
 	  profile=`basename $$i` ; \
-	  mkdir -p $$profileexampledir/$$profile \
+	  mkdir -p $$profileexampledir/$$profile ; \
 	  ( cd src/hed/profiles/$$profile ; \
 	    cp -p *.xml *.ini *.conf *.txt $$profileexampledir/$$profile/ ) ; \
 	done
