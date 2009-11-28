@@ -817,9 +817,11 @@ namespace Arc {
         if (job.Resources.DiskSpaceRequirement.SessionDiskSpace != -1)
           xmlResources["DiskSpaceRequirement"].NewChild("SessionDiskSpace") = tostring(job.Resources.DiskSpaceRequirement.SessionDiskSpace);
       }
+    }
 
+    {
       // JSDL Compliance...
-      xmlDiskSpace = XMLNode("<FileSystem/>");
+      XMLNode xmlDiskSpace("<FileSystem/>");
       outputJSDLRange(job.Resources.DiskSpaceRequirement.DiskSpace, xmlDiskSpace, (int64_t)-1);
       if (xmlDiskSpace.Size() > 0)
         xmlResources.NewChild("FileSystem").NewChild(xmlDiskSpace);
