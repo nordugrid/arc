@@ -1574,7 +1574,6 @@ AC_CONFIG_FILES([Makefile
                  src/hed/shc/delegationsh/schema/Makefile
                  src/hed/identitymap/Makefile
                  src/hed/identitymap/schema/Makefile
-                 src/hed/profiles/Makefile
                  src/services/Makefile
                  src/services/a-rex/Makefile
                  src/services/a-rex/a-rex
