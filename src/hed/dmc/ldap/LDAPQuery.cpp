@@ -288,6 +288,15 @@ namespace Arc {
   }
 
 
+  // Lock to protect thread-unsafe OpenLDAP functions - 
+  // currently ldap_initialize.
+  // TODO: investigate if OpenLDAP unloads cleanly and if
+  // not make this plugin persistent.
+  static Glib::Mutex* ldap_lock(void) {
+    static Glib::Mutex* lock = new Glib::Mutex;
+    return lock;
+  }
+
   bool LDAPQuery::Connect() {
 
     const int version = LDAP_VERSION3;
@@ -300,6 +309,7 @@ namespace Arc {
       return false;
     }
 
+    ldap_lock()->lock();
 #ifdef HAVE_LDAP_INITIALIZE
     ldap_initialize(&connection,
                     ("ldap://" + host + ':' + tostring(port)).c_str());
@@ -310,6 +320,7 @@ namespace Arc {
     connection = ldap_init(host.c_str(), port);
 #endif
 #endif
+    ldap_lock()->unlock();
 
     if (!connection) {
       logger.msg(ERROR, "Could not open LDAP connection to %s", host);
