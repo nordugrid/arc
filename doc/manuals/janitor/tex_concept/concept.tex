@@ -8,34 +8,36 @@ to scale with all the extra demands forseen for the Janitor.
 
 \subsection{Choice of Perl}
 
- The main language for the implementation of the functionality of the
- dRTE's functionality is Perl. And it is solely required (exceptions are the
- integration with the Grid Manager and the Web server) for the Janitor.
- The language was perceived a side-issue, the complexity of the data
- expected was of major concern. 
+The main language for the implementation of the functionality of the
+dRTEs' functionality is Perl. And it is solely required (exceptions
+are the integration with the Grid Manager and the Web service) for the
+Janitor.
+The language was perceived a side-issue, the complexity of the data
+expected was of major concern. This led to the choice of RDF with its
+intrinsic query engine and Perl offering access to the Redland library.
 
 \subsection{Modular structure}
 
- In
- the pre-web-service implementation the Catalog remains a static web page.
- The Perl code is split into multiple modules as depicted in Figure~\ref{fig:janitorDependencies}. 
- The modules can be separated into two
- functional groups. One addresses the retrieval of information from
- the Catalog's RDF file in the left major branch of the figure. The other
- addresses the process of fetching and installing the packages.
+In the pre-web-service implementation the Catalog remains a static
+web page. The Perl code is split into multiple modules as depicted
+in Figure~\ref{fig:janitorDependencies}.  The modules can be separated
+into two functional groups. One addresses the retrieval of information
+from the Catalog's RDF file in the left major branch of the figure. The
+other addresses the process of fetching and installing the packages.
 
- \begin{landscape}
-\begin{figure}[!h]
-\vspace{4cm}
+\begin{landscape}
+ \begin{figure}[!h]
+ \vspace{4cm}
  \begin{center} 
-%    \resizebox{24cm}{!}{\input{images/dependencies}}
-    \includegraphics[width=24cm]{images/dependencies.png}
-    \mycaption{Modules of the Janitor and their dependencies}{}
+ %\resizebox{24cm}{!}{\input{images/dependencies}}
+ %\includegraphics[width=24cm]{images/dependencies.png}
+ \includegraphics[width=24cm]{images/dependencies.pdf}
+ \mycaption{Modules of the Janitor and their dependencies}{}
  \end{center} 
-\vfill
+ \vfill
  \label{fig:janitorDependencies} 
-\end{figure}
- \end{landscape}
+ \end{figure}
+\end{landscape}
 
 In order to get a more detailed view on the full functionality of the envisioned system it is suggested to consult the 
 Design Document\footnote{\href{http://www.knowarc.eu/documents/Knowarc_D1.1-1_07.pdf}
@@ -47,7 +49,7 @@ In the following, some paragraphs fail render it difficult to
 clearly distinguish between conceptional truths and the state
 of the current implementation. Please read carefully.
 
-\subsection{States of runtime environments}
+\subsection{States of Runtime Environments}
 
 A major motivation for the managed, manual initiation of dynamic RE
 installation is the subsequent manual verification of the installed
@@ -65,12 +67,11 @@ in order to stimulate grid clients to submit packages. The here described
 states will be represented to the clients in upcoming developments.
 
 These states are specific for every compute element (CE) and communicated
-between the Janitor and the Execution Service. Table~\ref{tab:states} shows all
+between the Janitor and the Execution Service. Table~\ref{tab:states}
+shows all
 possible states, while Figure~\ref{fig:RE_states}
 displays the transitions between the states that a Runtime Environment may
-be in during its life time at a particular CE. \task{?at a particular CE?}  
-
-
+be in during its life time at a particular CE.
 
 \begin{table}[!h]
  \begin{center}
@@ -116,7 +117,17 @@ be in during its life time at a particular CE. \task{?at a particular CE?}
  \end{center}
  \mycaption{States a Runtime Environment can possibly be in.}{}
  \label{tab:states}
- \end{table}
+\end{table}
+
+The concept of ARC prevails to have a single directory into which to
+install software to be execute on all compute elements of the site.
+Otherwise, the installation of a runtime environment would be
+required to be performed just when the jobs initiates its computation.
+
+In principle this would be doable, particularly for those runtime 
+environments that are part of a trusted Linux distribution already.
+But this would also mean that the compute nodes become inhomogeneous,
+and at the time of writing this was considered undesireable.
 
 \begin{figure}[!h]
   \begin{center}
@@ -130,14 +141,14 @@ be in during its life time at a particular CE. \task{?at a particular CE?}
 \end{figure}
  
 The manually induced transitions are marked in red, he automated transitions in black.
-A transition between states can be induced automatically (i.\,e.\ by the
+A transition between states can be induced automatically (\ie by the
 advent of a job requesting a particular dynamic RE) or manually by the
-site's supervisor or an individual with respective rights to use the
-Janitor's web service.
+site's administrator or an individual with respective rights to use the
+Janitor's command line.
 
 \subsection{Subset of that functionality as implemented today}
-Upon presentation of a the package name to a Catalog, from which details about
-the package are retrieved, a CE may
+Upon presentation of a the package name to a Catalog, from which
+details about the package are retrieved, a CE may
 classify a package to be \texttt{INSTALLABLE} if all the dependencies
 are installable or already \texttt{INSTALLED}. The installation can be
 performed manually (\texttt{INSTALLING}/{\bf m}) or in an automated fashion
@@ -152,8 +163,18 @@ can only be removed upon manual induction.  The \ldots/{\bf s} states
 represent those Runtime Environments that are installed in the original
 manual way of RE installation in ARC 0.6.
 
-% Runtime Environment are installed for job idenitified by a certain id.
+\subsection{Dependencies on Job IDs}
 
+The Janitor was designed with the job execution in mind. As such, all
+actions it performs are driven by the need of a job. And those jobs
+should then be specified, to learn when the demand for a particular
+runtime environment has ended.
+
+This concept partially conflicts with the idea to use the Janitor
+as an aid for the manual invocation of an installation -- there is no
+job ID that could be assigned for that process. Today, the administrator
+is suggested to use a special number, \eg 0, to indicate such manual
+installs. This will change in near future.
 
 \section{Job states}
 
@@ -165,11 +186,14 @@ The installation or removal of REs by the Janitor is perceived as a mere
 consequene of jobs demanding a RE or not, thus, the communcation between
 the job-manager AREX and the Janitor will be performed on that 'job level'.
 
-The Janitor has two states for jobs: \texttt{PREPARED} and \texttt{INITIALIZED}. After a job has been succesfully registered 
-in the Janitor, its state will be set to \texttt{PREPARED}. Invalid jobs are not cached. 
-After the Janitor is requested to deploy the runtime environment, the state of the job will change to \texttt{INITIALIZED}. If 
-an unforeseen exception occures during that process, the Janitor will drop the job from its database and set the affected runtime
-environments to the state \texttt{FAILED}.
+The Janitor has two states for jobs: \texttt{PREPARED} and
+\texttt{INITIALIZED}. After a job has been succesfully registered with
+the Janitor, its state will be set to \texttt{PREPARED}. Invalid jobs
+are not cached.  After the Janitor is requested to deploy the runtime
+environment, the state of the job will change to \texttt{INITIALIZED}. If
+an unforeseen exception occures during that process, The Janitor will drop
+the job from its database and set the affected runtime environments to
+the state \texttt{FAILED}.
 
 \section{Integration with AREX}
 
@@ -177,19 +201,12 @@ environments to the state \texttt{FAILED}.
 \newenvironment{note}
 {\rule{1ex}{1ex}\hspace{\stretch{1}}}
 {\hspace{\stretch{1}}\rule{1ex}{1ex}\\}
-\begin{note}
-The integration into AREX is not completed yet!
-\end{note}
-\begin{note}
-Thus, there will be bigger changes here in this section\dots
-\end{note}
-
 
 \begin{figure}[!h]
   \begin{center}
     \includegraphics[width=5cm]{images/arex-stages.pdf}
     \mycaption{}{}
-    \label{fig:RE_states}
+    \label{fig:arex_states}
   \end{center}
 \end{figure}
 
@@ -197,7 +214,7 @@ Thus, there will be bigger changes here in this section\dots
   \begin{center}
     \includegraphics[width=12cm]{images/janitor_integration_2nd_edition.pdf}
     \mycaption{}{}
-    \label{fig:RE_states}
+    \label{fig:janitor_integration_2}
   \end{center}
 \end{figure}
 
@@ -211,7 +228,7 @@ Client command equal, except assignment of HED.xml\\
   \begin{center}
     \includegraphics[width=12cm]{images/WS_structure.pdf}
     \mycaption{}{\task{To be translated and beautificated. SVG file is missing!}}
-    \label{fig:RE_states}
+    \label{fig:WS_structure}
   \end{center}
 \end{figure}
 
@@ -221,7 +238,7 @@ Proposal for SOAP messages:\\
 \task{Permission concepts: Depending on certificates. Certain certificates may \texttt{sweep}. Defined in service\_HED.xml. Evaluated in:?? }
 \lstsetJUSTXML
 \begin{lstlisting}[
-        label=lst:SOAPrequest,
+        label=lst:arc_conf2,
         caption={ [Example \textit{arc.conf} settings for janitor.]
                   \textbf{Example \textit{arc.conf} settings for janitor.}}
         ]
@@ -243,7 +260,7 @@ Proposal for SOAP messages:\\
 
 \lstsetJUSTXML
 \begin{lstlisting}[
-        label=lst:SOAPrequest,
+        label=lst:arc_conf3,
         caption={ [Example \textit{arc.conf} settings for janitor.]
                   \textbf{Example \textit{arc.conf} settings for janitor.}}
         ]
@@ -302,8 +319,6 @@ Proposal for SOAP messages:\\
 
 </response>
 \end{lstlisting}
-
-
 
 
 %FIXME: needs further communication with Anders
@@ -365,17 +380,15 @@ Deploy
 
 \subsection{Security Consideration}
 
-
-
 Security is a major concern for grid systems. Any additional feature
-and especially an automatic software
+and especially an automated software
 installation inheritently introduces security threats. This section
 addresses those and describes the available solutions to limit
 security risks.
 
 In the current installation, every user authorised to execute a job is
 also authorised to install a REs. Restrictions are
-only imposed on the set of dynamic REs that are available for installation.
+only imposed on the set of dynamic RTEs that are available for installation.
 Restrictions are imposed by the site admininistrators on the descriptions
 that are given by the Catalog that is offering the package. These
 descriptions may explicitly mention dynamic REs' names, e.g. a regular expression on
@@ -388,7 +401,7 @@ disk space is the duty of the site administrator.  In the current
 implementation, the installation is completely transparent to the user:
 
 \begin{itemize}
-\item Dynamic REs are not distinguished between {\em installed} and
+\item Dynamic RTEs are not distinguished between {\em installed} and
   {\em installable} in the information system.
 \item No status information is given at the time a dynamic RE is installed.
 \end{itemize}
@@ -403,9 +416,11 @@ side-effects by the installation of software.
 The worst case scenario would be the installation of a RE
 that overwrites system files. With the current implementation, which is
 based solely on tar files, this is barely possible, unless such is
-performed by the install scripts that accompany the tar files. However,
-hereto the installation would have to be performed by a user with system
-priviledges, for which there is no technical requirement.
+performed by the install scripts that accompany the tar files.
+\task{Clarify root vs non-root execution of Janitor.}
+%However,
+%hereto the installation would have to be performed by a user with system
+%priviledges, for which there is no technical requirement.
 
 The installation of packages from the Debian distribution (or other
 packages of mainstream Linux distributions) is seeked to reduce the
