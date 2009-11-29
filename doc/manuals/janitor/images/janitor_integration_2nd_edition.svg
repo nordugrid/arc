@@ -76,12 +76,12 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="1.979899"
-     inkscape:cx="290.73992"
-     inkscape:cy="122.58652"
+     inkscape:cx="353.89025"
+     inkscape:cy="1.3682197"
      inkscape:document-units="px"
      inkscape:current-layer="g9421"
      showgrid="true"
-     inkscape:window-width="1270"
+     inkscape:window-width="1272"
      inkscape:window-height="956"
      inkscape:window-x="0"
      inkscape:window-y="0">
@@ -172,6 +172,29 @@
              x="330.85059"
              y="252.328">Info-System</tspan></text>
       </g>
+      <rect
+         style="fill:#b3b3b3;fill-opacity:0.39195981;stroke:#000000;stroke-width:1;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         id="rect2450"
+         width="130"
+         height="50"
+         x="180"
+         y="352.36218" />
+      <text
+         xml:space="preserve"
+         style="font-size:18px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans"
+         x="245.19043"
+         y="374.36707"
+         id="text2452"><tspan
+           style="text-align:center;text-anchor:middle"
+           sodipodi:role="line"
+           id="tspan2454"
+           x="245.19043"
+           y="374.36707">BS</tspan><tspan
+           style="font-size:12px;text-align:center;text-anchor:middle"
+           id="tspan2461"
+           sodipodi:role="line"
+           x="245.19043"
+           y="390.88657">submit_common.sh</tspan></text>
       <path
          sodipodi:nodetypes="ccccccc"
          id="path2467"
@@ -267,7 +290,11 @@
            style="font-size:8px"
            y="266.9079"
            x="497.14172"
-           sodipodi:role="line">HostInfoJanitor.pm</tspan></text>
+           sodipodi:role="line">RuntimeEnvironment.pl</tspan></text>
+      <path
+         id="path8797"
+         d="M 60,312.36218 L 60,392.36218 L 180,392.36218"
+         style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;marker-end:url(#Arrow1Lend);stroke-opacity:1" />
       <path
          style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;marker-start:none;marker-end:url(#Arrow1Lend);stroke-opacity:1"
          d="M 180,286.9079 L 320,286.9079"
@@ -284,6 +311,20 @@
            x="230.94531"
            id="tspan9334"
            sodipodi:role="line">info 1999</tspan></text>
+      <text
+         xml:space="preserve"
+         style="font-size:8px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans"
+         x="72.33712"
+         y="371.16623"
+         id="text9348"><tspan
+           sodipodi:role="line"
+           id="tspan9350"
+           x="72.33712"
+           y="371.16623">Passes information about</tspan><tspan
+           id="tspan9358"
+           sodipodi:role="line"
+           x="72.33712"
+           y="381.16623">the runtime environments</tspan></text>
       <g
          transform="translate(-3.9477905,4.3229647e-8)"
          id="g9376">
@@ -423,6 +464,34 @@
              x="180.67874"
              id="tspan9411"
              sodipodi:role="line">6</tspan></text>
+      </g>
+      <g
+         id="g9413"
+         transform="translate(-119.89464,134.76607)">
+        <path
+           sodipodi:open="true"
+           sodipodi:end="6.2654438"
+           sodipodi:start="0"
+           transform="matrix(0.8892513,0,0,0.8888791,108.36143,80.764202)"
+           d="M 91.688537,177.36218 A 6.6885371,6.8125763 0 1 1 91.687485,177.24132"
+           sodipodi:ry="6.8125763"
+           sodipodi:rx="6.6885371"
+           sodipodi:cy="177.36218"
+           sodipodi:cx="85"
+           id="path9415"
+           style="fill:#f5f5f5;fill-opacity:0.96078431;stroke:#0000f5;stroke-width:1;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:0.96078431"
+           sodipodi:type="arc" />
+        <text
+           id="text9417"
+           y="242.06276"
+           x="180.67874"
+           style="font-size:8px;font-style:normal;font-weight:normal;fill:#0000f5;fill-opacity:0.96078431;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans"
+           xml:space="preserve"><tspan
+             style="font-size:10px"
+             y="242.06276"
+             x="180.67874"
+             id="tspan9419"
+             sodipodi:role="line">5</tspan></text>
       </g>
     </g>
     <text
