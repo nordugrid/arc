@@ -729,7 +729,6 @@ exit 0
 %doc doc/tech_doc/infosys/infosys_technical.pdf
 %doc doc/tech_doc/infosys/TechnicalHandbook/ISIS-TechnicalHandbook.pdf
 %doc doc/manuals/janitor/Janitor.pdf
-%doc doc/tech_doc/janitor/Janitor.pdf
 %doc doc/tech_doc/jura/jura-tech-doc.pdf
 %doc doc/tech_doc/sec/arc-security-documentation.pdf
 %doc doc/manuals/user_interface/ui.pdf

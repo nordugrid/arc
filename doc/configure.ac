@@ -44,17 +44,6 @@ AC_CONFIG_FILES([Makefile
                  tech_doc/jura/Makefile
                  tech_doc/chelonia/Makefile
                  tech_doc/sec/Makefile
-                 tech_doc/janitor/Makefile
-                 tech_doc/janitor/tex_appendix/Makefile
-                 tech_doc/janitor/tex_concept/Makefile
-                 tech_doc/janitor/tex_future/Makefile
-                 tech_doc/janitor/tex_installation/Makefile
-                 tech_doc/janitor/tex_introduction/Makefile
-                 tech_doc/janitor/tex_layout/Makefile
-                 tech_doc/janitor/tex_maintenance/Makefile
-                 tech_doc/janitor/tex_titlepage/Makefile
-                 tech_doc/janitor/tex_usage/Makefile
-                 tech_doc/janitor/images/Makefile
                  tutorials/Makefile
                  tutorials/ws-programming-tutorial/Makefile
                  tutorials/ws-programming-tutorial/doc/Makefile
