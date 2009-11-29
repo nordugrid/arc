@@ -55,12 +55,12 @@ Requires: %{name}-plugins-base = %{version}
 %description client
 ARC prototype clients.
 
-%package server
+%package hed
 Summary: ARC Hosting Environment Daemon
 Group: System Environment/Libraries
 Requires: %{name} = %{version}
 
-%description server
+%description hed
 ARC Hosting Environment Daemon (HED).
 
 %package plugins-base
@@ -222,11 +222,13 @@ rm -rf $RPM_BUILD_ROOT
 #%doc %{_mingw32_mandir}/man1/voms_assertion_init.1*
 #%doc %{_mingw32_mandir}/man1/arc_storage_cli.1*
 
-%files server
+%files hed
 %defattr(-,root,root,-)
 #/etc/init.d/arched
 %{_mingw32_sbindir}/arched.exe
 %doc %{_mingw32_mandir}/man8/arched.8*
+%{_mingw32_datadir}/%{pkgdir}/profiles
+%{_mingw32_datadir}/%{pkgdir}/examples/config
 #%{_mingw32_sbindir}/manage_jobq
 #%doc %{_mingw32_mandir}/man8/manage_jobq.8*
 #%doc src/services/charon/charon_policy.xml.example
