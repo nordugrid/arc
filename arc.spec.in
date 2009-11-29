@@ -436,16 +436,6 @@ chmod +x $RPM_BUILD_ROOT%{_initrddir}/arched
 # RPM does it's own doc handling
 rm -fr $RPM_BUILD_ROOT%{_datadir}/doc/%{pkgdir}
 
-# Install profile examples
-profileexampledir=$RPM_BUILD_ROOT%{_datadir}/%{pkgdir}/examples/config
-mkdir -p $profileexampledir
-for i in src/hed/profiles/*; do
-  profile=`basename $i` 
-  mkdir -p $profileexampledir/$profile
-  ( cd src/hed/profiles/$profile ;
-    cp -p *[xiot][mnx][lift] $profileexampledir/$profile )
-done
-
 %find_lang arc
 
 %if %{with_gcj}

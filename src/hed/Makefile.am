@@ -28,4 +28,16 @@ profile_DATA = \
     profiles/SecureP2PIIS/SecureP2PIIS.xml \
     profiles/SecureStandaloneIIS/SecureStandaloneIIS.xml
 
+profileexampledir = $(pkgdatadir)/examples/config
+profileexample_DATA = profiles/*/*.xml profiles/*/*.ini profiles/*/*.conf profiles/*/*.txt
+
+install-profileexampleDATA: $(profile_DATA)
+	for i in profiles/*; do \
+          profile=`basename $$i` ; \
+          mkdir -p "$(DESTDIR)$(profileexampledir)/$$profile" ; \
+          ( cd profiles/$$profile ; for i in *.xml *.ini *.conf *.txt ; do \
+            test -f $$i && cp -p $$i "$(DESTDIR)$(profileexampledir)/$$profile/" || : ; \
+          done ) ; \
+        done
+
 EXTRA_DIST = profiles/*/*
