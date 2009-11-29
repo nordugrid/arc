@@ -8,12 +8,13 @@
 
 
 The Janitor requires the two perl packages listed in
-table~\ref{tab:install_dependencies}. To have the WebService
+table~\ref{tab:installDependencies}. To have the WebService
 interface for the Janitor, the packages listed in
-table~\ref{tab:install_dependencies_optional}
+table~\ref{tab:installDependenciesOptional}
 need to be installed before
 the build process is. The Perl modules are available on CPAN and ship
 with all major Linux distributions.  
+
 \begin{table}[!h]
    \begin{center}
         \mycaption{Required perl packages for the Janitor.
@@ -21,7 +22,7 @@ with all major Linux distributions.
 		   Janitor, while the Redland RDF library is used
 		   for accessing the knowledge base (catalog) of
 		   Runtime Environments.}
-        \label{tab:install_dependencies}
+        \label{tab:installDependencies}
 	\begin{tabular}{|p{3cm}|p{7cm}|}
 	\hline
 	   liblog-log4perl-perl & \textit{Log4perl is a port of the log4j logging package}\\
@@ -36,7 +37,7 @@ with all major Linux distributions.
         \mycaption{Optional libraries for the Janitor.}{The
 		   library libperl-dev provides the required header files to link the 
                    WebService to the Perl interpreter.}
-        \label{tab:install_dependencies_optional}
+        \label{tab:installDependenciesOptional}
 	\begin{tabular}{|p{3cm}|p{7cm}|}
 	\hline
 	   libperl-dev & \textit{ Perl library: development files}\\
@@ -72,7 +73,7 @@ fairly easily without that tool, but one is unlikely to use the technology
 to its full potential, then.
 
 
-\section{Configuration}\label{sec:janitor_configuration}
+\section{Configuration}\label{sec:janitorConfiguration}
 
 The current version of the Janitor can be configured using the
 common file \textit{arc.conf}. It is expected in the configuration
@@ -80,14 +81,14 @@ directory \textit{etc}. The Janitor is using the environment
 variable \textit{NORDUGRID\_CONFIG} to determine the location of the
 corresponding file. If that variable is not set, the default location
 \textit{/etc/arc.conf} will be used.  The configuration is assigned
-by the section \lbrack janitor\rbrack. Table~\ref{tab:arc_conf_tags}
+by the section \lbrack janitor\rbrack. Table~\ref{tab:arcConfTags}
 describes the available tags for the Janitor's configuration.
 
 \begin{landscape}
 \begin{table}[!h]
    \begin{center}
         \mycaption{Tags usable in \textit{arc.conf} within the section janitor.}{Tags usable in \textit{arc.conf} within the section janitor.}
-	\label{tab:arc_conf_tags}
+	\label{tab:arcConfTags}
 	\begin{longtable}{|p{3cm}|p{10cm}||p{10cm}|}
 	\hline
 	   \textbf{tag}    & \textbf{example}                      & \textbf{description}\\
@@ -162,12 +163,12 @@ trust it.
 
 The path to the log4perl configuration file is defined by the tag
 \texttt{logconf}.  Examples on how to configure ARC and log4perl are
-provided in the Listings~\ref{lst:arc_conf} and ~\ref{lst:log_conf}.
+provided in the Listings~\ref{lst:arcConf} and ~\ref{lst:logConf}.
 
 
 \lstsetCONFIGURE
 \begin{lstlisting}[
-        label=lst:arc_conf,
+        label=lst:arcConf,
         caption={ [Example \textit{arc.conf} settings for janitor.]
                   \textbf{Example \textit{arc.conf} settings for janitor.}}
         ]
@@ -200,7 +201,7 @@ as separated with \[janitor/someName\] directives.
 
 \lstsetCONFIGURE
 \begin{lstlisting}[
-        label=lst:log_conf,
+        label=lst:logConf,
         caption={ [Example \textit{log.conf} settings for janitor.]
                   \textbf{Example \textit{log.conf} settings for janitor.}}
         ]
