@@ -10,6 +10,7 @@
 #include <glibmm/fileutils.h>
 
 #include <arc/crypto/OpenSSL.h>
+#include <arc/Utils.h>
 
 #include "Credential.h"
 
@@ -553,8 +554,18 @@ namespace Arc {
   static bool proxy_init_ = false;
 
   void Credential::InitProxyCertInfo(void) {
+    static Glib::Mutex lock_;
     #define OBJC(c,n) OBJ_create(c,n,#c)
     X509V3_EXT_METHOD *pci_x509v3_ext_meth = NULL;
+
+    // At least in some versions of OpenSSL functions manupulating
+    // global lists seems to be not thread-safe despite locks
+    // installed (tested for 0.9.7). Hence it is safer to protect
+    // such calls. 
+    // It is also good idea to protect proxy_init_ too.
+
+    Glib::Mutex::Lock lock(lock_);
+    if(proxy_init_) return;
 
     /* Proxy Certificate Extension's related objects */
     if(OBJ_txt2nid(PROXYCERTINFO_V3) == NID_undef) {
@@ -587,6 +598,12 @@ namespace Arc {
     if(OBJ_txt2nid(LIMITED_PROXY_OID) == NID_undef) {
       OBJ_create(LIMITED_PROXY_OID, LIMITED_PROXY_SN, LIMITED_PROXY_LN);
     }
+    // This library provides methods and objects which when registred in 
+    // global OpenSSL lists can't be unregistred anymore. Hence it must not 
+    // be allowed to unload.
+    if(!PersistentLibraryInit("arccredential")) {
+      CredentialLogger.msg(WARNING, "Failed to lock arccredential library in memory");
+    };
     proxy_init_=true;
   }
 
