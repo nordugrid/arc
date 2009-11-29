@@ -9,7 +9,7 @@
 Dynamic RTEs require an extended representation in the
 information model.  The Application Software description should be able
 to distinguish installed RTEs from installable RTEs, potentially offer
-description of extended RTE state-like information. This work is planned
+insights on the state that an dRTE is in. This work is planned
 to be carried out as part of the Glue-2.0 effort of OGF\footnote{OGF
 GLUE: https://forge.gridforum.org/sf/projects/glue-wg}.
 
@@ -55,6 +55,28 @@ another can make direct use of the data that is presented in the schema.
 The integration of packages from Linux distributions in the description
 of REs is essential to have a means to decide for the equivalence of
 manual additions and the functionality that comes with BaseSystem.
+
+
+\section{Use of RDF}
+
+The RDF is "correctly" used within the Janitor via the Redland libraries.
+What is still missing is a semantical reasoning on what packages to
+allow or disallow. For instance: allow all packages associated with
+bioinformatics. This shall wait a bit longer until more experiences
+on the community's demand for this service have been made.
+
+\section{Manual Verification}
+
+There is yet no explicit notion of a concept on how users can report
+on the reliability of individual compute nodes and use such information
+for the decision making on where to sent their jobs. And with an increasing
+complexity of software installed, being used across versions, one will
+rather trust one's very own experiences for individual sites than some
+external repository or other pieces of information that may be weeks
+or months old.
+
+Consequently, no means for a manual verification and the communication
+of results of such have yet been implemented.
 
 
 %TODO:\\
