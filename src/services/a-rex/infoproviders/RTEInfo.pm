@@ -54,42 +54,24 @@ sub add_static_rtes {
 }
 
 
-# Janitor uses ARC_CONFIG env var to find the config file
-{   our $arc_config;
-    sub save_arc_conf {
-        $arc_config = $ENV{ARC_CONFIG} if defined $ENV{ARC_CONFIG};
-    }
-    sub restore_arc_conf {
-        $ENV{ARC_CONFIG} = $arc_config if defined $arc_config;
-        delete $ENV{ARC_CONFIG}    unless defined $arc_config;
-    }
-}
-
-
 sub add_janitor_res {
     my ($options, $rtes) = @_;
     return unless $options->{JanitorEnabled};
 
     my $jmodpath = $options->{pkgdatadir}.'/perl';
-    if (! -e "$jmodpath/Janitor/Janitor.pm") {
+    if (! -e "$jmodpath/Janitor/ArcUtils.pm") {
        $log->warning("Janitor modules not found in '$jmodpath'");
+       $log->warning("The janitor package is not installed");
        return;
     }
 
-    save_arc_conf();
-    $ENV{ARC_CONFIG} = $options->{configfile};
-
-    eval { unshift @INC, $jmodpath;
-           require JanitorRuntimes;
-           import JanitorRuntimes qw(process);
-    };
+    eval { unshift @INC, $jmodpath; require Janitor::ArcUtils };
     if ($@) {
         $log->warning("Failed to load Janitor modules: $@");
-        restore_arc_conf();
         return;
     }
 
-    JanitorRuntimes::list($rtes);
+    Janitor::ArcUtils::listAll($rtes);
 
     # Hide unusable runtimes
     for my $rte (keys %$rtes) {
@@ -104,8 +86,6 @@ sub add_janitor_res {
         # UNDEFINEDVALUE
         delete $rtes->{$rte};
     }
-
-    restore_arc_conf();
 }
 
 

@@ -1,12 +1,27 @@
-package JanitorRuntimes;
+package Janitor::ArcUtils;
 
 use warnings;
 use strict;
 
 use Janitor::Janitor qw(process);
 
-sub list {
-    my ($rtes) = @_;
+# Janitor uses ARC_CONFIG env var to find the config file
+{   our $arc_config;
+    sub set_env {
+        my ($configfile) = @_;
+        $arc_config = $ENV{ARC_CONFIG} if defined $ENV{ARC_CONFIG};
+        $ENV{ARC_CONFIG} = $configfile;
+    }
+    sub revert_env {
+        $ENV{ARC_CONFIG} = $arc_config if defined $arc_config;
+        delete $ENV{ARC_CONFIG}    unless defined $arc_config;
+    }
+}
+
+sub listAll {
+    my ($configfile,$rtes) = @_;
+
+    set_env($configfile);
 
     my $response = &process(new Janitor::Request(Janitor::Response::LIST));
     my %result = $response->result();
@@ -41,6 +56,7 @@ sub list {
             }
         }
     }
+    revert_env();
     return ( $result{errorcode}, $result{message} );
 }
 

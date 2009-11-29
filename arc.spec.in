@@ -645,7 +645,6 @@ exit 0
 %{_libdir}/%{pkgdir}/GMJobsInfo.pm
 %{_libdir}/%{pkgdir}/HostInfo.pm
 %{_libdir}/%{pkgdir}/RTEInfo.pm
-%{_libdir}/%{pkgdir}/JanitorRuntimes.pm
 %{_libdir}/%{pkgdir}/InfoChecker.pm
 %{_libdir}/%{pkgdir}/IniParser.pm
 %{_libdir}/%{pkgdir}/LogUtils.pm
