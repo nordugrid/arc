@@ -616,7 +616,9 @@ int main(int argc, char *argv[]) {
     std::cout << Arc::IString("Your identity: %s", signer_tmp.GetDN()) << std::endl;
 
     Arc::Credential signer(cert_path, key_path, ca_dir, "");
-
+    if((signer.GetVerification()) == false) 
+      return EXIT_FAILURE;
+   
     std::string private_key, signing_cert, signing_cert_chain;
 
     Arc::Time start = constraints["validityStart"].empty() ? Arc::Time() : Arc::Time(constraints["validityStart"]);

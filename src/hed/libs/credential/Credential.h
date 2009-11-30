@@ -165,6 +165,9 @@ class Credential {
     /************************************/
     /*****Get information from "this" object**/
 
+    /**Get the verification result about certificate chain checking*/
+    bool GetVerification(void) {return verification_valid; };
+
     /**Get the private key attached to this object*/
     EVP_PKEY* GetPrivKey(void);
 
@@ -349,6 +352,9 @@ class Credential {
 
     // Verification context
     ArcCredential::cert_verify_context verify_ctx_;
+
+    //Verification result
+    bool verification_valid;
 
     //Certificate structures
     X509 *           cert_;    //certificate

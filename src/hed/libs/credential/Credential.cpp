@@ -626,6 +626,7 @@ namespace Arc {
   bool Credential::Verify(void) {
     if(verify_cert_chain(cert_, &cert_chain_, &verify_ctx_)) {
       CredentialLogger.msg(DEBUG, "Certificate verification succeeded");
+      verification_valid = true;
       return true;
     }
     else {CredentialLogger.msg(ERROR, "Certificate verification failed"); LogError(); return false;}
@@ -871,7 +872,7 @@ namespace Arc {
         cacertfile_(cafile), cacertdir_(cadir), certfile_(certfile), keyfile_(keyfile),
         cert_(NULL), pkey_(NULL), cert_chain_(NULL), proxy_cert_info_(NULL),
         req_(NULL), rsa_key_(NULL), signing_alg_((EVP_MD*)EVP_sha1()),
-        keybits_(1024), extensions_(NULL) {
+        keybits_(1024), extensions_(NULL), verification_valid(false) {
 
     OpenSSLInit();
     //EVP_add_digest(EVP_sha1());
