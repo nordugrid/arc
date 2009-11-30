@@ -293,6 +293,8 @@ AREXCFG="\
     <Logger>\
       <File>$LOGFILE</File>\
       <Level>$LOGLEVEL</Level>\
+      <Backups>$LOGNUM</Backups>\
+      <Maxsize>$LOGSIZE</Maxsize>\      
     </Logger>\
   </Server>\
   <ModuleManager>\
@@ -319,6 +321,8 @@ AREXCFGWSS="\
     <Logger>\
       <File>$LOGFILE</File>\
       <Level>$LOGLEVEL</Level>\
+      <Backups>$LOGNUM</Backups>\
+      <Maxsize>$LOGSIZE</Maxsize>\      
     </Logger>\
   </Server>\
   <ModuleManager>\
