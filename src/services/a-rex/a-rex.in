@@ -93,20 +93,6 @@ if [ ! -d "$ARC_LOCATION" ]; then
 fi
 export ARC_LOCATION
 
-if [ `id -u` = 0 ] ; then
-  # Debian does not have /var/lock/subsys
-  if test -d /var/lock/subsys; then
-    LOCKFILE=/var/lock/subsys/$prog
-  else
-    LOCKFILE=/var/lock/$prog
-  fi
-  PID_FILE=/var/run/$prog.pid
-else
-  LOCKFILE=$HOME/$prog.lock
-  PID_FILE=$HOME/$prog.pid
-fi 
-
-
 readconfigvar()
 {
   fname=$1
@@ -140,6 +126,27 @@ readconfigvar()
     done
   }
 }
+
+# PID and lock file
+PID_FILE=`readconfigvar "$ARC_CONFIG" grid-manager pidfile`
+
+if [ `id -u` = 0 ] ; then
+  # Debian does not have /var/lock/subsys
+  if test -d /var/lock/subsys; then
+    LOCKFILE=/var/lock/subsys/$prog
+  else
+    LOCKFILE=/var/lock/$prog
+  fi
+  if test "x$PID_FILE" = "x"; then 
+    PID_FILE=/var/run/$prog.pid
+  fi
+else
+  LOCKFILE=$HOME/$prog.lock
+  if test "x$PID_FILE" = "x"; then 
+    PID_FILE=$HOME/$prog.pid
+  fi
+fi 
+
 
 prepare() 
 {
