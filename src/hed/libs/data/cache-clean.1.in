@@ -86,6 +86,10 @@ space in a cache is below 20%, data is deleted until the free space reaches
 30%. Debug output is switched on so information is output on each file that
 is deleted.
 
+.SH COPYRIGHT
+
+APACHE LICENSE Version 2.0
+
 .SH AUTHOR
 
 David Cameron <cameron@ndgf.org>

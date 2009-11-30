@@ -19,6 +19,10 @@ of their source in the format:
 This tool can be useful for finding out if a certain URL is stored in the
 cache, or simply to give a list of all URLs in the cache.
 
+.SH COPYRIGHT
+
+APACHE LICENSE Version 2.0
+
 .SH AUTHOR
 
 David Cameron <cameron@ndgf.org>

@@ -38,9 +38,11 @@ The number of concurrent requests
 .IP "\fB\ duration \fR"
 The duration of the test in seconds
 
-.SH "REPORTING BUGS"
+.SH REPORTING BUGS
 Report bugs to http://bugzilla.nordugrid.org
-.SH "COPYRIGHT"
-We need to have this
+
+.SH COPYRIGHT
+APACHE LICENSE Version 2.0
+
 .SH AUTHOR
-Written by developers
+Markus Norden <Markus.Norden@tsl.uu.se>

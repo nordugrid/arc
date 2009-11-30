@@ -80,6 +80,10 @@ the proxy is in a non-standard location. Note that this could also be
 set in the client configuration file, however the environment variable
 overrides the settings in configuration.
 
+.SH COPYRIGHT
+
+APACHE LICENSE Version 2.0
+
 .SH AUTHOR
 
 Mattias Ellert <mattias.ellert@fysast.uu.se>

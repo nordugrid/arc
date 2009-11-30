@@ -147,6 +147,6 @@ Error while retrieving job information.
 .br
 Report bugs to http://bugzilla.nordugrid.org/
 .SH COPYRIGHT
-The current copyright can found at http://nordugrid.org
+APACHE LICENSE Version 2.0
 .SH AUTHOR
-Nordugrid
+Steffen Moeller <steffen_moeller@gmx.de>

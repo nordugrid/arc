@@ -27,8 +27,8 @@ Exit status is bla bla ...
 .SH "REPORTING BUGS"
 Report bugs to http://bugzilla.nordugrid.org/
 .SH COPYRIGHT
-We need to have this
+APACHE LICENSE Version 2.0
 .SH FILES
 .BR /etc/arc.conf
 .SH AUTHOR
-Written by developers
+Aleksandr Konstantinov <aleks@fys.uio.no>

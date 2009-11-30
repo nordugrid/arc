@@ -104,6 +104,10 @@ option a different file can be used than the default.
 The location of the user's grid proxy file. Shouldn't be set unless
 the proxy is in a non-standard location.
 
+.SH COPYRIGHT
+
+APACHE LICENSE Version 2.0
+
 .SH AUTHOR
 
 Mattias Ellert <mattias.ellert@fysast.uu.se>

@@ -53,6 +53,9 @@ send the request to https://127.0.0.1:60001
 Some options can be given default values by specifying them in the
 ARC configuration file.
 
+.SH COPYRIGHT
+APACHE LICENSE Version 2.0
+
 .SH AUTHOR
 
 Weizhong Qiang <weizhong.qiang@fys.uio.no>

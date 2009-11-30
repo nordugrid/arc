@@ -376,7 +376,13 @@ Removing collection '/': removed
 - done in 0.04 seconds.
 '/': not found
 .fi
-.SH "REPORTING BUGS"
+.SH REPORTING BUGS
+
 Report bugs to http://bugzilla.nordugrid.org/
+
+.SH COPYRIGHT
+
+APACHE LICENSE Version 2.0
+
 .SH AUTHOR
 Zsombor Nagy, zsombor@niif.hu
