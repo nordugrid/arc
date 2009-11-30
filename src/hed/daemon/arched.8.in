@@ -1,5 +1,5 @@
 .\" -*- nroff -*-
-.TH ARCHED 8 "November 2009" "NorduGrid ARC @VERSION@" "NorduGrid System Managers Manual"
+.TH ARCHED 8 "@DATE@" "NorduGrid ARC @VERSION@" "NorduGrid System Managers Manual"
 .SH NAME
 arched \- ARC Hosting Environment Daemon
 .SH SYNOPSIS
