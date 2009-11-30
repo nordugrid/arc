@@ -1,5 +1,5 @@
 Name "NorduGrid ARC"
-OutFile "nordugrid-arc-nox-@VERSION@--1.exe"
+OutFile "nordugrid-arc-nox-@VERSION@-1.exe"
 InstallDir "$PROGRAMFILES\NorduGridArc"
 InstallDirRegKey HKLM SOFTWARE\NorduGridArc "Install_Dir"
 ShowInstDetails hide
