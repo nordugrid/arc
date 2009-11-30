@@ -286,7 +286,7 @@ LOGNUM=`echo "$LOGSIZE" | sed 's/^ *[-+0-9]* *//'`
 LOGSIZE=`echo "$LOGSIZE" | sed 's/^ *\([-+0-9]*\).*/\1/'`
 
 if [ ! -z "$USERNAME" ] ; then
-  CMD="su '$USERNAME' $CMD"
+  CMD="su '$USERNAME' -c \"$CMD\""
 fi
 
 # A-Rex without WS interface
@@ -382,6 +382,11 @@ elif [ "$arex_proto" = "https" ] ; then
 else
   failure "Unsupported protocol: $arex_proto"
 fi
+
+if [ ! -z "$USERNAME" ] ; then
+  test -f $AREX_CONFIG && chown $USERNAME $AREX_CONFIG
+fi
+
 #cat "$AREX_CONFIG"
 
 }
