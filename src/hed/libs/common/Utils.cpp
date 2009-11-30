@@ -44,7 +44,7 @@ namespace Arc {
 #ifndef WIN32
   class SIGPIPEIngore {
   private:
-    sighandler_t sighandler_;
+    void (*sighandler_)(int);
   public:
     SIGPIPEIngore(void);
     ~SIGPIPEIngore(void);
