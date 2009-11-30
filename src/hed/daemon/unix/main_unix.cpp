@@ -150,7 +150,7 @@ static void init_config(const Arc::ServerOptions &options)
     if (!options.xml_config_file.empty()) {
         if (Glib::file_test(options.xml_config_file, 
             Glib::FILE_TEST_EXISTS) == false) {
-            logger.msg(Arc::ERROR, "XML config file %s does not exits", options.xml_config_file);
+            logger.msg(Arc::ERROR, "XML config file %s does not exist", options.xml_config_file);
             exit(1);
         }
         config.parse(options.xml_config_file.c_str());
@@ -161,12 +161,12 @@ static void init_config(const Arc::ServerOptions &options)
     } else if (!options.ini_config_file.empty()) {
         if (Glib::file_test(options.ini_config_file, 
             Glib::FILE_TEST_EXISTS) == false) {
-            logger.msg(Arc::ERROR, "INI config file %s does not exits", options.xml_config_file);
+            logger.msg(Arc::ERROR, "INI config file %s does not exist", options.xml_config_file);
             exit(1);
         }
         Arc::IniConfig ini_parser(options.ini_config_file);
         if (ini_parser.Evaluate(config) == false) {
-            logger.msg(Arc::ERROR, "Error evaulate profile");
+            logger.msg(Arc::ERROR, "Error evaluating profile");
             exit(1);
         }
         if (!config) {
@@ -186,7 +186,7 @@ static void init_config(const Arc::ServerOptions &options)
             Arc::IniConfig ini_parser(ini_config_file);
             ini_parser.Evaluate(config);
             if (ini_parser.Evaluate(config) == false) {
-                logger.msg(Arc::ERROR, "Error evaulate profile");
+                logger.msg(Arc::ERROR, "Error evaulating profile");
                 exit(1);
             }
         }

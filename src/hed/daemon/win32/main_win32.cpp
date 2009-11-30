@@ -93,7 +93,7 @@ int main(int argc, char **argv)
             /* Load and parse config file */
             config.parse(options.xml_config_file.c_str());
             if(!config) {
-                logger.msg(Arc::ERROR, "Failed to load service configuration form file %s",options.xml_config_file);
+                logger.msg(Arc::ERROR, "Failed to load service configuration from file %s",options.xml_config_file);
                 exit(1);
             };
             if(!MatchXMLName(config,"ArcConfig")) {
