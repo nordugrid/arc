@@ -1,5 +1,5 @@
 .\" -*- nroff -*-
-.TH ARCHED 8 "July 2007" "NorduGrid ARC @VERSION@" "NorduGrid System Managers Manual"
+.TH ARCHED 8 "November 2009" "NorduGrid ARC @VERSION@" "NorduGrid System Managers Manual"
 .SH NAME
 arched \- ARC Hosting Environment Daemon
 .SH SYNOPSIS
@@ -23,12 +23,15 @@ full path of pid file
 \fB\-v\fR, \fB\-\-version\fR
 output version information and exit
 .PP
-Exit status is bla bla ...
-.SH "REPORTING BUGS"
+
+.SH REPORTING BUGS
 Report bugs to http://bugzilla.nordugrid.org/
+
 .SH COPYRIGHT
 APACHE LICENSE Version 2.0
+
 .SH FILES
 .BR /etc/arc.conf
+
 .SH AUTHOR
 Aleksandr Konstantinov <aleks@fys.uio.no>
