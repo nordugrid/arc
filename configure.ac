@@ -1466,7 +1466,8 @@ AC_SUBST(posix_shell)
 
 DATE=`date +%Y-%m-%d`
 AC_SUBST(DATE)
-DATER=`date -R`
+#DATER=`date -R`
+DATER=`date +'%a, %d %b %Y %H:%M:%S %z'`
 AC_SUBST(DATER)
 SPECDATE=`LANG=C date +"%a %b %d %Y"`
 AC_SUBST(SPECDATE)
