@@ -463,7 +463,7 @@ case "$1" in
         start
         ;;
   condrestart)
-        test -f $LOCKFILE && restart || :
+        test -f $LOCKFILE && stop && start
         ;;
   *)
         echo "Usage: $0 {start|stop|status|restart|reload|condrestart}"
