@@ -125,13 +125,23 @@ namespace Arc {
 		  std::list<std::string> *attrname = new std::list<std::string>();
 		  std::list<std::string> *attrvalue = new std::list<std::string>();
 
-		  if ((*sso_pages_)["Consent"] == "") {
+                  if (NULL == *attrname || NULL *attrvalue) {
+                          if (attrname) delete attrname;
+                          if (attrvalue) delete attrvalue;
+                          return MCC_Status(GENERIC_ERROR, origin, "Could not allocate memory.");
+                  }
+
+                  if ((*sso_pages_)["Consent"] == "") {
+                          if (attrname) delete attrname;
+                          if (attrvalue) delete attrvalue;
 			  return MCC_Status(STATUS_OK);	// no consent necessary
 		  }
 
 		  logger.msg(VERBOSE, "SAML2SSOHTTPClient::processConsent()");
 
 		  if ((*session_cookies_)["IdP"] == "") {
+                          if (attrname) delete attrname;
+                          if (attrvalue) delete attrvalue;
 			  return MCC_Status(GENERIC_ERROR, origin, "IdP's PHPSESSID Cookie not present");
 		  }
 
@@ -146,8 +156,12 @@ namespace Arc {
 
 		  if (consent_response) {
 			  consent_response_str = consent_response->Content();
+                          if (attrname) delete attrname;
+                          if (attrvalue) delete attrvalue;
 			  delete consent_response;
 		  } else {
+                          if (attrname) delete attrname;
+                          if (attrvalue) delete attrvalue;
 			  return MCC_Status(PARSING_ERROR, origin, "Could not get the consent page's body information!");
 		  }
 
@@ -161,10 +175,16 @@ namespace Arc {
 		  ConfusaParserUtils::destroy_doc(doc);
 
 		  if (state_id.empty()) {
+                          if (attrname) delete attrname;
+                          if (attrvalue) delete attrvalue;
 			  return MCC_Status(PARSING_ERROR, origin, "Could not get a state_id from the consent page!");
 		  } else if (confirm_param.empty()) {
+                          if (attrname) delete attrname;
+                          if (attrvalue) delete attrvalue;
 			  return MCC_Status(PARSING_ERROR, origin, "Could not get a confirm parameter from the consent page!");
 		  } else if (yes_action.empty()) {
+                          if (attrname) delete attrname;
+                          if (attrvalue) delete attrvalue;
 			  return MCC_Status(PARSING_ERROR, origin, "Could not get a confirmation action from the consent page!");
 		  }
 
@@ -180,13 +200,8 @@ namespace Arc {
 		  }
 		  std::cout << "==============================================================================" << std::endl;
 
-		  if (attrname) {
-			  delete attrname;
-		  }
-
-		  if (attrvalue) {
-			  delete attrvalue;
-		  }
+                  if (attrname) delete attrname;
+                  if (attrvalue) delete attrvalue;
 
 		  std::cout << std::endl;
 		  std::cout << "Do you consent to the release of that information? (y/n) ";
