@@ -91,7 +91,6 @@ bool process_job_req(JobUser &user,const JobDescription &desc,JobLocalDescriptio
   job_local_read_file(desc.get_id(),user,job_desc);
   /* some default values */
   job_desc.lrms=user.DefaultLRMS();
-  job_desc.reruns=user.Reruns();
   job_desc.queue=user.DefaultQueue();
   job_desc.lifetime=Arc::tostring(user.KeepFinished());
   std::string filename;
