@@ -57,12 +57,14 @@ namespace Arc {
 		EVP_PKEY * req_pubkey = X509_REQ_get_pubkey(req);
 		PEM_write_bio_PUBKEY(bp, req_pubkey);
 		size_t length = BIO_ctrl_pending(bp);
-		char *pub_key_c = new char[length];
+		char *pub_key_c = new char[length + 1];
+                memset(pub_key_c, 0, length+1);
 		std::string pub_key;
 		int num = BIO_read(bp, pub_key_c, length);
 
 		// the BIO_ctrl_pending method is not reliable, hence cut the string to the right number of characters!
 		if (num <= 0) {
+                        delete [] pub_key_c;
 			logger.msg(ERROR, "No characters were read from the BIO in public key extraction");
 			return result;
 		} else {
@@ -105,7 +107,7 @@ namespace Arc {
 		 }
 
 		 if (pub_key_c) {
-			 delete pub_key_c;
+                         delete [] pub_key_c;
 		 }
 
 		 return result;
