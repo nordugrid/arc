@@ -106,10 +106,12 @@ void handleSLCS() {
       Arc::MCC_Status status = client_soap->process(&req_soap, &resp_soap, idp_name, username, password);
       if (!status) {
         logger.msg(Arc::ERROR, "SOAP with SAML2SSO invokation failed");
+        delete client_soap;
         throw std::runtime_error("SOAP with SAML2SSO invokation failed");
       }
       if (resp_soap == NULL) {
         logger.msg(Arc::ERROR, "There was no SOAP response");
+        delete client_soap;
         throw std::runtime_error("There was no SOAP response");
       }
     }
@@ -133,6 +135,8 @@ void handleSLCS() {
       unsigned long ca_hash;
       ca_hash = X509_subject_name_hash(ca_cert);
       snprintf(ca_name, 20, "%08lx.0", ca_hash);
+      BIO_free_all(ca_bio);
+      X509_free(ca_cert);
     }
     std::string ca_path = cert_path.substr(0, (cert_path.size() - 13)) + "/certificates/" + ca_name;
     std::ofstream out_ca(ca_path.c_str(), std::ofstream::out);
