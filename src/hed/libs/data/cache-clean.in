@@ -137,7 +137,7 @@ if (!@caches) {
 
 foreach my $filesystem (@caches) {
 
-	$filesystem =~ s|/+$||;
+    $filesystem =~ s|/+$|| if ($filesystem ne "/");
     next if ($filesystem eq "");
 
     if ($filesystem =~ /%/) {
@@ -145,7 +145,7 @@ foreach my $filesystem (@caches) {
         next;
     }
 
-    if (! -d $filesystem) {
+    if (! -d $filesystem || ! -d $filesystem."/data") {
         debug "$filesystem: Cache is empty";
         next;
 	}
@@ -234,8 +234,8 @@ foreach my $filesystem (@caches) {
         last if $fsfree > $minfbytes;
 
         next if (-e "$fil.lock");
+        next if (-d "$fil");
 
-        debug "file: $fil  atime: $files{$fil}{atime}  size: $files{$fil}{size}";
         if ( unlink $fil ) {
             $fsfree+=$files{$fil}{size};
             if (defined($opts{'D'}) && -e "$fil.meta") {
@@ -243,24 +243,22 @@ foreach my $filesystem (@caches) {
                 my @lines = <FILE>;
                 close FILE;
                 my @values = split(' ', $lines[0]);
-                debug "unlink $fil - $values[0]";
+                debug "Deleting file: $fil  atime: $files{$fil}{atime}  size: $files{$fil}{size}  url: $values[0]";
             }
             else {
-                debug "unlink $fil";
+                debug "Deleting file: $fil  atime: $files{$fil}{atime}  size: $files{$fil}{size}";
             }
         } else {
-            print STDERR "unlink '$fil': $!\n";
+            print STDERR "Error deleting file '$fil': $!\n";
         }
         # not critical if this fails
         if ( unlink "$fil.meta" ) {
             my $lastslash = rindex($fil, "/");
-            while (1) {
-                last unless ( rmdir(substr("$fil.meta", 0, $lastslash)));
-                debug "rmdir ".substr("$fil.meta", 0, $lastslash);
-                $lastslash = rindex($fil, "/", $lastslash-1);
+            if ( rmdir(substr($fil, 0, $lastslash))) {
+                debug "Deleting directory ".substr($fil, 0, $lastslash);
             }
         } else {
-            print STDERR "unlink '$fil.meta': $!\n";
+            print STDERR "Error deleting file '$fil.meta': $!\n";
         } 
 	}
 	debug ("Cleaning finished, used space now ", printsize($fssize-$fsfree), " / ", printsize($fssize), " (", sprintf("%.2f",100-100*$fsfree/$fssize),"%)");
@@ -272,22 +270,22 @@ sub wanted {
     return if $name =~ m|\.lock$|;
     return if $name =~ m|\.meta$|;
 
-    my ($atime, $blocksize, $blocks);
+    my ($atime, $blocks);
 
-    ($atime, $blocksize, $blocks) = (stat($_))[8,11,12];
+    ($atime, $blocks) = (lstat($_))[8,12];
 
     return unless defined $atime;
 
-    return unless (!$opts{'d'} && -d _) || -f _ || -l _;
+    return unless !(-d _) || -f _ || -l _;
     if (-e "$name.lock") {
-        $totlocksize += $blocksize * $blocks;
+        $totlocksize += 512 * $blocks;
         $totlockfiles++;
         return;
     }
 
     $files{$name}{atime}=$atime;
-    $files{$name}{size}=$blocksize * $blocks;
-    $totsize += $blocksize * $blocks;
+    $files{$name}{size}=512 * $blocks;
+    $totsize += 512 * $blocks;
 }
 
 sub debug
