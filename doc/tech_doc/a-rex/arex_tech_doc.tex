@@ -1092,82 +1092,110 @@ the corresponding file is deleted.
 
 \subsection{Configuration of the A-REX\label{SubSection:ConfigFile}}
 
-Due to historical reasons configuration of the A-REX is split into
-2 parts. The small part is located inside HED configuration (see Appendix~\ref{annex:arex-conf}) for schema and description of supported elements. It refers to
-file containing main part of configuration. The default location of
-main configuration file is \textit{/etc/arc.conf}.
+Due to historical reasons configuration of the A-REX is split into 2
+parts. The small part is located inside HED configuration (see
+Appendix~\ref{annex:arex-conf} for schema and description of supported
+elements). This configuration refers to the file containing the main
+part of the configuration. The default location of the main
+configuration file is \textit{/etc/arc.conf}.
 
 The configuration file can contain empty lines and comments in lines
 starting with \#. It is separated into sections. Each section starts
-from string containing pattern
+with a string containing
 
 \begin{shaded}
 \verb|[section name/subsection name/subsubsection name]|
 \end{shaded}
 
-Each section continues till next section or end of file. One configuration
-file can have commands for multiple services/modules/programs. Each
-service get it's own section named after it. The A-REX uses section
-\emph{{[}grid-manager]}. Some services can make use of multiple subsections
-to reflect their internal modular structure. Commands in section \emph{{[}common]}
-apply to all services. Command lines have format 
+Each section continues until the next section or until the end of the
+file. The configuration file can have commands for multiple
+services/modules/programs. Each service has its own section named
+after it. The A-REX uses the \emph{{[}grid-manager]} section. Some
+services can make use of multiple subsections to reflect their
+internal modular structure. Commands in section \emph{{[}common]}
+apply to all services. Command lines have the format
 
 \begin{shaded}
 \verb|name=``arguments string''|
 \end{shaded}
-Following commands are defined:
+The following commands are defined:
+
+Commands affecting the A-REX process and logging:
 
 \begin{itemize}
-\item \textbf{\textit{joblog}}\textit{={[}path]} -- specifies where to store
+\item \textbf{\textit{pidfile}}\textit{=path} -- specifies file where
+  process id of A-REX process will be stored. Defaults to
+  \emph{/var/log/arched.pid} if running as root and
+  \emph{\$HOME/arched.pid} otherwise.
+\item \textbf{\textit{logfile}}\textit{=path} -- specifies name of file
+  for logging debug/informational output. Defaults to
+  \emph{/var/log/grid-manager.log}.
+\item \textbf{\textit{logsize}}\textit{=size number} -- restricts
+  log file size to \emph{size} and keeps \emph{number} archived log
+  files.
+\item \textbf{\textit{debug}}\textit{=number} -- specifies level of
+  debug information. More information is printed for higher
+  levels. Currently the highest effective number is 5 (DEBUG) and
+  lowest 0 (FATAL). Defaults to 2 (WARNING).
+\item \textbf{\textit{user}}\textit{=username} -- specifies username to
+  which the A-REX must switch after reading configuration. Defaults to
+  \emph{not switch}.
+\end{itemize}
+
+Commands setting limits and options for how the A-REX handles jobs and
+files:
+
+\begin{itemize}
+\item \textbf{\textit{joblog}}\textit{=path} -- specifies where to store
 log file containing information about started and finished jobs.
-\item \textbf{\textit{jobreport}}\textit{={[}URL ... number]} -- specifies
+\item \textbf{\textit{jobreport}}\textit{=URL ... number} -- specifies
 that A-REX has to report information about jobs being processed (started,
-finished) to centralized service running at given \textit{URL}. Multiple
+finished) to a centralized service running at the given \textit{URL}. Multiple
 entries and multiple URLs are allowed. \textit{number} specifies how
-long old records have to be kept if failed to be reported. That value
-is specified in days. Last specified value becomes effective.
-\item \textbf{\textit{jobreport\_credentials}}\textit{={[}key\_file
-    {[}cert\_file {[}ca\_dir]]]} -- specifies the credentials for
+long (in days) old records have to be kept if failed to be
+reported. The last specified value becomes effective.
+\item \textbf{\textit{jobreport\_credentials}}\textit{=key\_file
+    {[}cert\_file {[}ca\_dir]]} -- specifies the credentials for
   accessing the accounting service.
-\item \textbf{\textit{jobreport\_options}}\textit{={[}options]}
+\item \textbf{\textit{jobreport\_options}}\textit{=options}
   -- specifies additional options for Usage Reporter and/or
   accounting service. The \textit{options} string is interpreted by Usage
   Reporter, its format is described in the corresponding technical document.
 \item \textbf{\textit{securetransfer}}\textit{=yes|no} -- specifies whether
 to use encryption while transferring data. Currently works for GridFTP
-only. Default is \emph{no}. It is overridden by value specified in
+only. Default is \emph{no}. It is overridden by values specified in
 URL options.
 \item \textbf{\textit{passivetransfer}}\textit{=yes|no} -- specifies
   whether GridFTP transfers are passive. Setting this option to yes
   can solve transfer problems caused by firewalls. Default is no.
-
 \item \textbf{\textit{localtransfer}}\textit{=yes|no} -- specifies whether
 to pass file downloading/uploading task to computing node. If set
-to yes the A-REX won't initiate download/upload files. Instead it
-composes script submitted to LRMS in way to make it do that. This
+to yes the A-REX will not download/upload files but compose script
+submitted to the LRMS in order that the LRMS can execute file tranfer. This
 requires installation of A-REX and all related software to be accessible
 from computing nodes and environment variable ARC\_LOCATION to be
 set accordingly. Default is \emph{no}.
 \item \textbf{\textit{maxjobs}}\textit{={[}max\_processed\_jobs {[}max\_running\_jobs]]}
-- specifies maximum number of jobs being processed by the A-REX at
+-- specifies maximum number of jobs being processed by the A-REX at
 different stages:\\
-\textit{max\_processed\_jobs} -- maximal amount of jobs being processed
-by A-REX. This does not limit amount of jobs, which can be submitted
-to A-REX\\
-\textit{max\_running jobs} -- maximal amount of jobs passed to Local
+\textit{max\_processed\_jobs} -- maximum number of concurrent jobs
+processed by A-REX. This does not limit the amount of jobs, which can
+be submitted to the cluster.\\
+\textit{max\_running jobs} -- maximum number of jobs passed to Local
 Resource Management System\\
 Missing value or -1 means no limit.
 \item \textbf{\textit{maxload}}\textit{={[}max\_frontend\_jobs {[}emergency\_frontend\_jobs
 {[}max\_transferred\_files]]]} -- specifies maximum load caused by
 jobs being processed on frontend:\\
-\textit{max\_frontend\_jobs} -- maximal amount of jobs heavily using
-resources of frontend (applied before moving job to PREPARING and
-FINISHING states)\textit{}\\
+\textit{max\_frontend\_jobs} -- maximum number of jobs in PREPARING and
+FINISHING states (downloading and uploading files). Jobs in these
+states can cause a heavy load on the A-REX host. This limit is applied
+before moving jobs to PREPARING and FINISHING states.\\
 \textit{emergency\_frontend\_jobs} -- if limit of \textit{max\_frontend\_jobs}
-is used only by PREPARING or by FINISHING jobs aforementioned number
-of jobs can be moved to another state. This is used to avoid case
-then jobs can't finish due to big amount of recently submitted jobs.\textit{}\\
-\textit{max\_transfered\_files} -- maximal number of files being transferred
+is used only by PREPARING or by FINISHING jobs, aforementioned number
+of jobs can be moved to another state. This is used to avoid the case
+where jobs cannot finish due to a large number of recently submitted jobs.\\
+\textit{max\_transferred\_files} -- maximum number of files being transferred
 in parallel by every job. Used to decrease load on not so powerful
 frontends.\\
 Missing value or -1 means no limit.
@@ -1177,11 +1205,11 @@ finished in LRMS, etc.). \textit{time} is a minimal time period specified
 in seconds. Default is \emph{3 minutes}. The A-REX may also be woken up by
 external processes such as LRMS scripts before this time period expires.
 \item \textbf{\textit{authplugin}}\textit{=state options plugin} -- specifies
-\emph{plugin} (external executable) to be run every time job is going
-to switch to \emph{state}. Following states are allowed: ACCEPTED,
+\emph{plugin} (external executable) to be run every time job is about
+to switch to \emph{state}. The following states are allowed: ACCEPTED,
 PREPARING, SUBMIT, FINISHING, FINISHED and DELETED. If exit code is
-not 0 job is canceled by default. \textit{Options} consist of \textit{name}=\textit{value}
-pairs separated by a comma. Following \textit{name}s are supported:\\
+not 0 job is canceled by default. \textit{Options} consists of \textit{name}=\textit{value}
+pairs separated by commas. The following \textit{name}s are supported:\\
 \textit{timeout} -- specifies how long in seconds execution of the
 plugin allowed to last (mandatory, {}``\textit{timeout=}{}`` can
 be skipped for backward compatibility).\\
@@ -1211,46 +1239,49 @@ max\_inactivity} -- specifies how long/slow data transfer is allowed
 to take place. Transfer is canceled if transfer rate (bytes per second)
 is lower than \emph{min\_speed} for at least \emph{min\_time} seconds,
 or if average rate is lower than \emph{min\_average\_speed}, or no
-data is received for longer than \textit{max\_inactivity} seconds.
+data is received for longer than \textit{max\_inactivity} seconds. To
+allow statistics to build up, no transfers will be stopped within the
+first 3 minutes.
 \item \textbf{\textit{copyurl}}\textit{=template replacement} -- specifies
-that URLs, starting from template should be accessed in a different
+that URLs starting from \emph{template} should be accessed in a different
 way (most probably Unix open). The \textit{template} part of the URL
 will be replaced with \textit{replacement.} \textit{replacement} can
 be either URL or local path starting from '/'. It is advisable to
 end template with '/'.
 \item \textbf{\textit{linkurl}}\textit{=template replacement {[}node\_path]}
--- mostly identical to \textit{copyurl} but file won't be copied. Instead
-soft-link will be created. \textit{replacement} specifies the way
+-- mostly identical to \textit{copyurl} but file will not be copied. Instead
+a soft-link will be created. \textit{replacement} specifies the way
 to access the file from the frontend, and is used to check permissions.
 The \textit{node\_path} specifies how the file can be accessed from
 computing nodes, and will be used for soft-link creation. If \textit{node\_path}
-is missing, \textit{local\_path} will be used instead. Both \textit{node\_path}
-and \textit{replacement} should not be URLs.
+is missing, \textit{local\_path} will be used instead. Neither \textit{node\_path}
+nor \textit{replacement} should be URLs.
 \begin{framed}
 NOTE: URLs which fit into \textit{copyurl} or \textit{linkurl} are
 treated as more easily accessible than other URLs. That means if A-REX
-has to choose between few URLs from which should it download input
+has to choose between several URLs from which should it download input
 file, these will be tried first.
 \end{framed}
 \end{itemize}
 
-Per UNIX user commands:
+Per UNIX user commands
 
 \begin{itemize}
 \item \textbf{\textit{mail}}\textit{=e-mail\_address} -- specifies an email
-address \textbf{from} which the notification mails are sent.
+address \textbf{from} which notification mails are sent.
 \item \textbf{\textit{defaultttl}}\textit{=ttl {[}ttr]} -- specifies the
-time in seconds for the SD to be available after job finished (\emph{ttl})
+time in seconds for the SD to be available after job finishes (\emph{ttl})
 and after job was deleted (\emph{ttr}) due to \emph{ttl}. Defaults
-are 7 days for \emph{ttl} and 30 days for \emph{ttr}.
+are 7 days for \emph{ttl} and 30 days for \emph{ttr}. The minumum value
+for both parameters is 2 hours.
 \item \textbf{\textit{lrms}}\textit{=default\_lrms\_name default\_queue\_name}
-- specifies names for the LRMS and queue. Queue name can also be specified
-in the JD (currently it is not allowed to override LRMS by usingon
+-- specifies names for the LRMS and queue. Queue name can also be specified
+in the JD (currently it is not allowed to override LRMS by using
 the JD).
-\item \textbf{\textit{sessiondir}}\textit{=path} -- specifies path to the directory
-in which the SD is created. If the path is {*} the default one is
-used -- \textit{\$HOME/.jobs}.
-\item \textbf{\textit{cachedir}}\textit{=path {[}link\_path]} - specifies
+\item \textbf{\textit{sessiondir}}\textit{=path} -- specifies path to
+  the directory in which the SD is created. If \emph{path} is {*} the
+  default sessiondir is used -- \textit{\$HOME/.jobs}.
+\item \textbf{\textit{cachedir}}\textit{=path {[}link\_path]} -- specifies
 a directory to store cached data (see section \ref{sec:cache}). Multiple
 cache directories may be specified by specifying multiple \emph{cachedir}
 commands. Cached files will be distributed evenly between the caches.
@@ -1260,7 +1291,7 @@ at which \emph{path} is accessible on computing nodes, if it is different
 from the path on the A-REX host. If \textit{link\_path} is set to '.'
 files are not soft-linked, nor are per-job links created, but files
 are copied to the session directory.
-\item \textbf{\textit{cachesize}}\textit{=high\_mark {[}low\_mark]} -
+\item \textbf{\textit{cachesize}}\textit{=high\_mark {[}low\_mark]} --
   specifies high and low watermarks for space used on the file system
   on which the cache directory is located, as a percentage of total
   file system capacity. When the max is exceeded, files will be
@@ -1271,41 +1302,45 @@ are copied to the session directory.
   \emph{cachedir} commands.
 \item \textbf{\textit{maxrerun}}\textit{=number} -- specifies maximal number
 of times job will be allowed to rerun after it failed at any stage.
-Default value is \emph{5}. This only specifies a upper limit. Actual
+Default value is \emph{5}. This only specifies a upper limit. The actual
 number is provided in job description and defaults to 0.
 \end{itemize}
 
-All per-user commands should be put before \textit{control} command
+All per-user commands should be put before the \textit{control} command
 which initiates serviced user.
 
 \begin{itemize}
-\item \textbf{\textit{control}}\textit{=path username {[}username {[}...]]}
-- This option initiates UNIX user as being serviced by the A-REX.
-\textit{path} refers to the control directory (see Section~\ref{section:internals}
-for the description of control directory). If the path is {*} the
-default one is used -- \verb|$HOME/.jobstatus|. \textit{username} stands
-for UNIX name of the local user. Multiple names can be specified.
-If the name is {*} it is substituted by all names found in file \texttt{/etc/grid-security/grid-mapfile}
-(for the format of this file one should study the Globus project~\cite{globus}).\\
-Also the special name '.'(dot) can be used. Corresponding control
-directory will be used for \textbf{any} user. This option should be
-the last one in the configuration file. There is also command \textbf{\textit{controldir}}\textit{=path}.
-It uses special username '.' and is always executed last independent
-of placement in file.
-\item \textbf{\textit{helper}}\textit{=username command {[}argument {[}argument
-{[}...]]]} -- associates external program with the local UNIX user.
-This program will be kept running under account of the specified user.
-\textit{username} stands for the name of the user. Special names can
-be used: '{*}' -- all names from /etc/grid-security/grid-mapfile, '.'
-- root user. The user should be already configured with \textit{control}
-option (except root, who is always configured). \textit{command} is
-an executable and \textit{argument}s are passed as arguments to it.
+\item \textbf{\textit{control}}\textit{=path username {[}username
+    {[}...]]} -- This option initiates UNIX user as being serviced by
+  the A-REX.  \textit{path} refers to the control directory (see
+  Section~\ref{section:internals} for the description of control
+  directory). If the path is {*} the default one is used --
+  \verb|$HOME/.jobstatus|. \textit{username} stands for UNIX name of
+  the local user. Multiple names can be specified.  If the name is {*}
+  it is substituted by all names found in file
+  \texttt{/etc/grid-security/grid-mapfile} (for the format of this
+  file one should study the Globus project~\cite{globus}).\\ Also the
+  special name '.'(dot) can be used. Corresponding control directory
+  will be used for \textbf{any} user. This option should be the last
+  one in the configuration file. There is also command
+  \textbf{\textit{controldir}}\textit{=path}.  It uses special
+  username '.' and is always executed last independent of its
+  placement in file.
+\item \textbf{\textit{helper}}\textit{=username command {[}argument
+    {[}argument {[}...]]]} -- associates an external program with the
+  local UNIX user.  This program will be kept running under account of
+  the user specified by \textit{username}. Special names can be used:
+  '{*}' -- all names from /etc/grid-security/grid-mapfile, '.'  - root
+  user. The user should be already configured with \textit{control}
+  option (except root, who is always configured). \textit{command} is
+  an executable and \textit{argument}s are passed as arguments to it.
 \end{itemize}
 
-\begin{comment}
 
-Following are global commands specific to communication with underlying
-LRMS (PBS in this case).
+The following are global commands specific to communication with the underlying
+LRMS.
+
+\begin{comment}
 
 \begin{itemize}
 \item \textbf{\textit{pbs\_bin\_path}}\textit{=path} -- path to directory
@@ -1316,7 +1351,8 @@ with PBS server's log files.
 \end{comment}
 
 \begin{itemize}
-\item \textbf{\textit{gnu\_time}}\textit{=path} -- path to \emph{time} utility.
+\item \textbf{\textit{gnu\_time}}\textit{=path} -- path to \emph{time}
+  utility.
 \item \textbf{\textit{tmpdir}}\textit{=path} -- path to directory for temporary
 files.
 \item \textbf{\textit{runtimedir}}\textit{=path} -- path to directory which
@@ -1337,19 +1373,19 @@ In the command arguments (paths, executables, ...) following substitutions
 can be used:
 
 \begin{itemize}
-\item [{\%R}] -- session root -- see command \emph{session}
+\item [{\%R}] -- session root -- see command \emph{sessiondir}
 \item [{\%C}] -- control dir -- see command \emph{control}
 \item [{\%U}] -- username
 \item [{\%u}] -- userid -- numerical
 \item [{\%g}] -- groupid -- numerical
 \item [{\%H}] -- home dir -- home specified in /etc/passwd
-\item [{\%Q}] -- default queue -- look command 'defaultlrms'
-\item [{\%L}] -- default lrms -- look command 'defaultlrms'
+\item [{\%Q}] -- default queue -- see command \emph{lrms}
+\item [{\%L}] -- default lrms -- ses command \emph{lrms}
 \item [{\%W}] -- installation path -- \$\{ARC\_LOCATION\}
 \item [{\%G}] -- globus path -- \$\{GLOBUS\_LOCATION\}
 \item [{\%c}] -- list of all control directories
-\item [{\%I}] -- job's ID (for plugins only, substituted in runtime)
-\item [{\%S}] -- job's state (for \emph{authplugin} plugins only, substituted
+\item [{\%I}] -- job ID (for plugins only, substituted in runtime)
+\item [{\%S}] -- job state (for \emph{authplugin} plugins only, substituted
 in runtime)
 \item [{\%O}] -- reason (for \emph{localcred} plugins only, substituted
 in runtime). Possible reasons are:
