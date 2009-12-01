@@ -32,8 +32,8 @@ namespace Arc {
          it != usercfg.GetSelectedServices(COMPUTING).end(); it++)
       for (std::list<URL>::const_iterator it2 = it->second.begin();
            it2 != it->second.end(); it2++) {
-        if (pluginLoaded[it->first] = !loader.load(it->first, usercfg, *it2, COMPUTING))
-          continue;
+        if (pluginLoaded[it->first] = (loader.load(it->first, usercfg, *it2, COMPUTING) != NULL))
+          break;
       }
 
     for (URLListMap::const_iterator it = usercfg.GetSelectedServices(INDEX).begin();
@@ -42,8 +42,8 @@ namespace Arc {
         continue;
       for (std::list<URL>::const_iterator it2 = it->second.begin();
            it2 != it->second.end(); it2++) {
-        if (!loader.load(it->first, usercfg, *it2, INDEX))
-          continue;
+        if (loader.load(it->first, usercfg, *it2, INDEX) == NULL)
+          break;
       }
     }
   }
