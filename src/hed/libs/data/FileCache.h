@@ -360,25 +360,25 @@ namespace Arc {
               int job_gid) {}
     FileCache(const FileCache& cache) {}
     FileCache() {}
-    bool Start(std::string url, bool& available, bool& is_locked) {}
-    bool Stop(std::string url) {}
-    bool StopAndDelete(std::string url) {}
-    std::string File(std::string url) {}
-    bool Link(std::string link_path, std::string url)  {}
-    bool Copy(std::string dest_path, std::string url, bool executable = false) {}
-    bool Clean(unsigned long long int size = 1) {} 
-    bool Release() {}
-    bool AddDN(std::string url, std::string DN, Time expiry_time) {}
-    bool CheckDN(std::string url, std::string DN) {}
-    bool CheckCreated(std::string url){}
-    Time GetCreated(std::string url) {}
-    bool CheckValid(std::string url) {}
-    Time GetValid(std::string url)  {}
-    bool SetValid(std::string url, Time val) {}
+    bool Start(std::string url, bool& available, bool& is_locked) { return false; }
+    bool Stop(std::string url) { return false; }
+    bool StopAndDelete(std::string url) {return false; }
+    std::string File(std::string url) { return std::string; }
+    bool Link(std::string link_path, std::string url)  { return false; }
+    bool Copy(std::string dest_path, std::string url, bool executable = false) { return false; }
+    bool Clean(unsigned long long int size = 1) { return false;}
+    bool Release() { return false;}
+    bool AddDN(std::string url, std::string DN, Time expiry_time) { return false;}
+    bool CheckDN(std::string url, std::string DN) { return false; }
+    bool CheckCreated(std::string url){ return false; }
+    Time GetCreated(std::string url) { return Time(); }
+    bool CheckValid(std::string url) { return false; }
+    Time GetValid(std::string url)  { return Time(); }
+    bool SetValid(std::string url, Time val) { return false; }
     operator bool() {
       return false;
     };
-    bool operator==(const FileCache& a)  {}
+    bool operator==(const FileCache& a)  { return false; }
   };
 #endif /*WIN32*/
 
