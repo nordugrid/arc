@@ -64,6 +64,11 @@ Arc::MCC_Status Service_Delegation::process(Arc::Message& inmsg,Arc::Message& ou
   };
 
   Arc::PayloadSOAP* outpayload = new Arc::PayloadSOAP(ns_);
+  if(!outpayload) {
+    logger_.msg(Arc::ERROR, "Can not create output SOAP payload for delegation service");
+    return make_soap_fault(outmsg);
+  };
+
   // Identify which of served endpoints request is for.
   // Delegation can only accept POST method
   if(method == "POST") {
@@ -76,12 +81,14 @@ Arc::MCC_Status Service_Delegation::process(Arc::Message& inmsg,Arc::Message& ou
     } catch(std::exception& e) { };
     if(!inpayload) {
       logger_.msg(Arc::ERROR, "input is not SOAP");
+      delete outpayload;
       return make_soap_fault(outmsg);
     };
     // Analyzing request
     if((*inpayload)["DelegateCredentialsInit"]) {
       if(!deleg_service_->DelegateCredentialsInit(*inpayload,*outpayload)) {
         logger_.msg(Arc::ERROR, "Can not generate X509 request");
+        delete outpayload;
         return make_soap_fault(outmsg);
       }
     } else if((*inpayload)["UpdateCredentials"]) {
@@ -89,6 +96,7 @@ Arc::MCC_Status Service_Delegation::process(Arc::Message& inmsg,Arc::Message& ou
       std::string identity;
       if(!deleg_service_->UpdateCredentials(cred,identity,*inpayload,*outpayload)) {
         logger_.msg(Arc::ERROR, "Can not store proxy certificate");
+        delete outpayload;
         return make_soap_fault(outmsg);
       }
       logger_.msg(Arc::DEBUG,"Delegated credentials:\n %s",cred.c_str());
@@ -143,6 +151,7 @@ Arc::MCC_Status Service_Delegation::process(Arc::Message& inmsg,Arc::Message& ou
       proxy.InquireRequest(x509req_value);
       if(!(signer.SignRequest(&proxy, signedcert))) {
         logger_.msg(Arc::ERROR, "Signing proxy on delegation service failed");
+        delete outpayload;
         return Arc::MCC_Status();
       }
 
