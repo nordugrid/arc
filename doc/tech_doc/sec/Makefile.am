@@ -8,11 +8,11 @@ STYLES = IEEEtran.bst ng-logo.png grid.bib
 
 IMAGES = figures/*.pdf figures/*.png
 
-$(doc_DATA): $(docsource) $(IMAGES)
+$(doc_DATA): $(docsource) $(IMAGES)  $(STYLES)
 	pdflatex $(docsource:.tex=) ; bibtex $(docsource:.tex=) ; pdflatex $(docsource:.tex=) ; pdflatex $(docsource:.tex=)
 
 $(STYLES):
-	$(LN_S) ../../templates/tex/$@ .
+	$(LN_S) ../../templates/tex/$@ $@
 
 EXTRA_DIST = $(doc_DATA) $(IMAGES) $(docsource)
 

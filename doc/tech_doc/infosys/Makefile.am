@@ -10,8 +10,8 @@ STYLES = IEEEtran.bst color.sty framed.sty geometry.sty makeidx.sty gind.ist \
 	ng-logo.png grid.bib
 
 $(doc_DATA): $(docsource) $(STYLES)
-	pdflatex $(docsource) ; bibtex $(docsource) ; makeindex -s gind.ist $(docsource) ; pdflatex $(docsource) ; \
-	pdflatex $(docsource)
+	pdflatex $(docsource:.tex=) ; bibtex $(docsource:.tex=) ; makeindex -s gind.ist $(docsource:.tex=) ; \
+	pdflatex $(docsource:.tex=) ; pdflatex $(docsource:.tex=)
 
 $(STYLES):
 	$(LN_S) ../../templates/tex/$@ $@
