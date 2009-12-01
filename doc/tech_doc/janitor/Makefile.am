@@ -1,1 +1,0 @@
-../../manuals/janitor/Makefile.am
