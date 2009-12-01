@@ -25,6 +25,7 @@ int main(void)
       val = attrfactory->createValue(nd,"string");
       std::string tmp1 = val->encode();
       std::cout<<tmp1<<std::endl;
+      delete val;
       delete attrfactory;
     }
     
@@ -41,6 +42,7 @@ int main(void)
       val = attrfactory->createValue(nd,"string");
       std::string tmp2 = val->encode();
       std::cout<<tmp2<<std::endl;
+      delete val;
       delete attrfactory;
     }
  
