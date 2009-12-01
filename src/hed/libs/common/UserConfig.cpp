@@ -85,19 +85,19 @@ namespace Arc {
     if (conffile.empty()) {
       if (CreateDefaultConfigurationFile()) {
         if (!LoadConfigurationFile(DEFAULTCONFIG, false)) {
-          logger.msg(ERROR, "User configuration file (%s) contains errors.", DEFAULTCONFIG);
+          logger.msg(WARNING, "User configuration file (%s) contains errors.", DEFAULTCONFIG);
           return;
         }
       }
       else
-        logger.msg(WARNING, "No configuration file could be loaded.");
+        logger.msg(INFO, "No configuration file could be loaded.");
     }
     else if (!Glib::file_test(conffile, Glib::FILE_TEST_IS_REGULAR)) {
-      logger.msg(ERROR, "User configuration file (%s) does not exist or cannot be loaded.", conffile);
+      logger.msg(WARNING, "User configuration file (%s) does not exist or cannot be loaded.", conffile);
       return;
     }
     else if (!LoadConfigurationFile(conffile)) {
-      logger.msg(ERROR, "User configuration file (%s) contains errors.", conffile);
+      logger.msg(WARNING, "User configuration file (%s) contains errors.", conffile);
       return;
     }
 
@@ -130,19 +130,19 @@ namespace Arc {
     if (conffile.empty()) {
       if (CreateDefaultConfigurationFile()) {
         if (!LoadConfigurationFile(DEFAULTCONFIG, !jfile.empty())) {
-          logger.msg(ERROR, "User configuration file (%s) contains errors.", DEFAULTCONFIG);
+          logger.msg(WARNING, "User configuration file (%s) contains errors.", DEFAULTCONFIG);
           return;
         }
       }
       else
-        logger.msg(WARNING, "No configuration file could be loaded.");
+        logger.msg(INFO, "No configuration file could be loaded.");
     }
     else if (!Glib::file_test(conffile, Glib::FILE_TEST_IS_REGULAR)) {
-      logger.msg(ERROR, "User configuration file (%s) does not exist or cannot be loaded.", conffile);
+      logger.msg(WARNING, "User configuration file (%s) does not exist or cannot be loaded.", conffile);
       return;
     }
     else if (!LoadConfigurationFile(conffile)) {
-      logger.msg(ERROR, "User configuration file (%s) contains errors.", conffile);
+      logger.msg(WARNING, "User configuration file (%s) contains errors.", conffile);
       return;
     }
 
