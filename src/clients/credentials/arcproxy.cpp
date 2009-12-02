@@ -17,7 +17,6 @@
 #include <glibmm/fileutils.h>
 #include <glibmm.h>
 #include <unistd.h>
-#include <openssl/ui.h>
 
 #include <arc/ArcLocation.h>
 #include <arc/Logger.h>
@@ -29,10 +28,12 @@
 #include <arc/Utils.h>
 #include <arc/UserConfig.h>
 #include <arc/client/ClientInterface.h>
-#include <arc/credential/Credential.h>
 #include <arc/credential/VOMSAttribute.h>
 #include <arc/credential/VOMSUtil.h>
+#include <arc/credential/Credential.h>
 #include <arc/crypto/OpenSSL.h>
+
+#include <openssl/ui.h>
 
 static void tls_process_error(Arc::Logger& logger) {
   unsigned long err;

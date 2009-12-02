@@ -462,7 +462,7 @@ namespace Arc {
         else{
           throw CredentialError("Can not read PKCS12 credential from BIO");
         }
-        if (pkcs12_certs && sk_num(pkcs12_certs)){
+        if (pkcs12_certs && sk_X509_num(pkcs12_certs)){
           X509* tmp;
           for (n = 0; n < sk_X509_num(pkcs12_certs); n++) {
             tmp = X509_dup(sk_X509_value(pkcs12_certs, n));
@@ -1291,7 +1291,7 @@ namespace Arc {
                 //if(proxy_cert_info_->version == 3)
 
                 if(!(certinfo_sn.empty())) {
-                  X509V3_EXT_METHOD*  ext_method = NULL;
+                  const X509V3_EXT_METHOD*  ext_method = NULL;
                   unsigned char* data = NULL;
                   int length;
                   ext_method = X509V3_EXT_get_nid(OBJ_sn2nid(certinfo_sn.c_str()));
@@ -1833,7 +1833,7 @@ err:
       unsigned char   md[SHA_DIGEST_LENGTH];
       long  sub_hash;
       unsigned int   len;
-      X509V3_EXT_METHOD* ext_method = NULL;
+      const X509V3_EXT_METHOD* ext_method = NULL;
       ext_method = X509V3_EXT_get_nid(certinfo_NID);
       if(ext_method == NULL) {
         CredentialLogger.msg(ERROR, "Can get X509V3_EXT_METHOD for %s",OBJ_nid2sn(certinfo_NID));

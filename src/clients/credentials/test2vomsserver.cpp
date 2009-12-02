@@ -16,10 +16,10 @@
 #include <arc/message/MCC.h>
 #include <arc/message/MCCLoader.h>
 #include <arc/client/ClientInterface.h>
-#include <arc/crypto/OpenSSL.h>
-#include <arc/credential/Credential.h>
 #include <arc/credential/VOMSAttribute.h>
 #include <arc/credential/VOMSUtil.h>
+#include <arc/credential/Credential.h>
+#include <arc/crypto/OpenSSL.h>
 #ifdef WIN32
 #include <arc/win32.h>
 #endif

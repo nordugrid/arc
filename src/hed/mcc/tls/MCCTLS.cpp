@@ -14,6 +14,8 @@
 #include <fstream>
 #include <vector>
 
+#include <arc/credential/VOMSUtil.h>
+
 #include <openssl/err.h>
 #include <openssl/rand.h>
 #include <openssl/ssl.h>
@@ -24,7 +26,6 @@
 #include <arc/message/MCCLoader.h>
 #include <arc/XMLNode.h>
 #include <arc/message/SecAttr.h>
-#include <arc/credential/VOMSUtil.h>
 #include <arc/crypto/OpenSSL.h>
 
 #include "GlobusSigningPolicy.h"

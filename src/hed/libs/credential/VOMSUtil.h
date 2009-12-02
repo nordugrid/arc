@@ -5,8 +5,8 @@
 #include <string>
 
 #include <arc/ArcRegex.h>
-#include <arc/credential/Credential.h>
 #include <arc/credential/VOMSAttribute.h>
+#include <arc/credential/Credential.h>
 
 namespace Arc {
 

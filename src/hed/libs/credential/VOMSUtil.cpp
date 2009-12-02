@@ -602,7 +602,7 @@ err:
     BN_one(dataorder);
 
     //Parse the AC, and insert it into an AC list
-    if((received_ac = d2i_AC(NULL, (unsigned char **)&p, l))) {
+    if((received_ac = d2i_AC(NULL, (const unsigned char**)&p, l))) {
       actmplist = (AC **)listadd((char **)aclist, (char *)received_ac, sizeof(AC *));
       if (actmplist) {
         aclist = actmplist; 
@@ -1002,7 +1002,7 @@ err:
 
     /* find AC_ATTR with IETFATTR type */
     int  nid = OBJ_txt2nid("idatcap");
-    int pos = X509at_get_attr_by_NID(atts, nid, -1);
+    int pos = X509at_get_attr_by_NID((STACK_OF(X509_ATTRIBUTE)*)atts, nid, -1);
     if (!(pos >=0)) { 
       CredentialLogger.msg(ERROR,"VOMS: Can not find AC_ATTR with IETFATTR type");
       return false;
@@ -1460,7 +1460,7 @@ err:
     int nid = 0;
     int pos = 0;
     nid = OBJ_txt2nid("idatcap");
-    pos = X509at_get_attr_by_NID(atts, nid, -1);
+    pos = X509at_get_attr_by_NID((STACK_OF(X509_ATTRIBUTE)*)atts, nid, -1);
     if(!(pos >=0)) {
       CredentialLogger.msg(ERROR,"VOMS: unable to extract VO name from AC");
       return false;

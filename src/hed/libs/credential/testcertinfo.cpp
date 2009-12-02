@@ -87,7 +87,7 @@ int main(void) {
    int l = PROXYCERTINFO_get_path_length(cert_info);
    std::cout<<"Path length: "<<l<<std::endl;
 
-   X509V3_EXT_METHOD*  ext_method1 = X509V3_EXT_get_nid(certinfo_v3_NID);
+   const X509V3_EXT_METHOD* ext_method1 = X509V3_EXT_get_nid(certinfo_v3_NID);
    int length = ext_method1->i2d(cert_info, NULL);
    std::cout<<"Length of proxy cert info: "<<length<<std::endl;
    unsigned char* data1 = NULL;
@@ -115,7 +115,7 @@ int main(void) {
 
 
    ArcCredential::PROXYCERTINFO * cert_info2;
-   X509V3_EXT_METHOD*  ext_method2 = X509V3_EXT_get_nid(certinfo_v3_NID);
+   const X509V3_EXT_METHOD* ext_method2 = X509V3_EXT_get_nid(certinfo_v3_NID);
    unsigned char* data2 = ext2->value->data;
 #if(OPENSSL_VERSION_NUMBER >= 0x0090800fL)
    cert_info2 = (ArcCredential::PROXYCERTINFO*)ext_method2->d2i(NULL, (const unsigned char**) &data2, ext2->value->length);

@@ -6,8 +6,8 @@
 #include <iostream>
 #include <fstream>
 #include <arc/Logger.h>
-#include "Credential.h"
 #include "VOMSUtil.h"
+#include "Credential.h"
 
 
 int main(void) {
