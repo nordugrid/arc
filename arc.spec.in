@@ -20,7 +20,11 @@ Provides: nordugrid-arc1 = %{version}
 Obsoletes: nordugrid-arc1 < 1.0.0
 BuildRequires: cppunit-devel
 BuildRequires: pkgconfig
+%if %{?fedora}%{!?fedora:0} >= 12 || %{?rhel}%{!?rhel:0} >= 6
+BuildRequires: libuuid-devel
+%else
 BuildRequires: e2fsprogs-devel
+%endif
 BuildRequires: gettext
 BuildRequires: python-devel
 BuildRequires: glibmm24-devel
