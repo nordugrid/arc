@@ -26,8 +26,7 @@ using namespace ArcSec;
 
 Arc::Logger ArcSec::GACLEvaluator::logger(Arc::Logger::rootLogger, "GACLEvaluator");
 
-GACLEvaluator::GACLEvaluator(Arc::XMLNode* cfg) : Evaluator(cfg) /* , m_cfg(cfg) */ {
-  plstore = NULL;;
+GACLEvaluator::GACLEvaluator(Arc::XMLNode* cfg) : Evaluator(cfg), plstore(NULL)  {
   plstore = new PolicyStore("", "gacl.policy", NULL);
   if(!plstore) logger.msg(ERROR, "Can not create PolicyStore object");
   combining_alg = EvaluatorFailsOnDeny;
