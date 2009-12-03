@@ -34,30 +34,18 @@ int getdomainname_mingw (char *name, size_t len) {
 #endif
 
 #ifndef HAVE_TIMEGM
-time_t timegm (struct tm *tm) {
-  char *tz = getenv("TZ");
-#ifdef HAVE_SETENV
-  setenv("TZ", "", 1);
-#else
-  putenv("TZ=");
-#endif
+// TODO: add lock or move it to Utils
+static time_t timegm (struct tm *tm) {
+  bool tz_found = false;
+  std::string tz = Arc::GetEnv("TZ", tz_found);
+  Arc::SetEnv("TZ","UTC");
   tzset();
+  tm->tm_isdst = -1;
   time_t ret = mktime(tm);
-  if(tz) {
-#ifdef HAVE_SETENV
-    setenv("TZ", tz, 1);
-#else
-    static std::string oldtz;
-    oldtz = std::string("TZ=") + tz;
-    putenv(strdup(const_cast<char*>(oldtz.c_str())));
-#endif
-  }
-  else {
-#ifdef HAVE_UNSETENV
-    unsetenv("TZ");
-#else
-    putenv("TZ");
-#endif
+  if(tz_found) {
+    Arc::SetEnv("TZ", tz);
+  } else {
+    Arc::UnsetEnv("TZ");
   }
   tzset();
   return ret;
