@@ -11,6 +11,7 @@
 #endif
 
 #include <arc/ArcRegex.h>
+#include <arc/Utils.h>
 
 #include <arc/credential/VOMSAttribute.h>
 #include <arc/credential/VOMSUtil.h>
