@@ -121,10 +121,13 @@ int main(int argc, char **argv) {
                     istring("select broker method (Random (default), FastestQueue, or custom)"),
                     istring("broker"), broker);
 
+/**
+ * Sandboxing is always done atm. Maybe there should be a switch to turn it off? 'n' "nolocalsandbox"
   bool dolocalsandbox = true;
   options.AddOption('n', "dolocalsandbox",
                     istring("store job descriptions in local sandbox."),
                     dolocalsandbox);
+*/
 
   bool version = false;
   options.AddOption('v', "version", istring("print version information"),

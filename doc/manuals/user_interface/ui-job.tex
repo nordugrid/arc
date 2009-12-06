@@ -24,7 +24,7 @@ Condor or SGE etc.
    \texttt{-x, --dumpdescription}&&do not submit -- dump transformed job description to stdout\\
 %   \texttt{-U, --unknownattr}&&allow unknown attributes in the job description\\
    \texttt{-b, --broker}&\textit{string}&select broker method (default is Random)\\
-   \texttt{-n, --dolocalsandbox}& &store job descriptions in local sandbox (useful for eventual resubmission/migration)\\
+%   \texttt{-n, --dolocalsandbox}& &store job descriptions in local sandbox (useful for eventual resubmission/migration)\\
    \texttt{-t, --timeout}&\textit{seconds}&timeout in seconds (default 20)\\
    \texttt{-d, --debug}&\textit{debuglevel}&debug level, FATAL, ERROR, WARNING, INFO, VERBOSE or DEBUG - default WARNING\\
    \texttt{-z, --conffile}&\textit{filename}& configuration file (default {\$}HOME/.arc/client.conf)\\
@@ -206,7 +206,7 @@ Command line option \verb#-v# prints out version of the installed ARC client, an
 
 The arcstat command returns the status of jobs in the Grid, and is typically issued with a
 job ID (as returned by \verb#arcsub#) as an argument. It is also possible to use job name instead of
-ID, but if several jobs have identical names, information will be collected about all of them. 
+ID, but if several jobs have identical names, information will be collected about all of them.
 More than one job ID and/or name can be given.
 
 If the \verb#-l# option is given, extended information is printed.
@@ -217,11 +217,11 @@ is used, the list of jobs is read from a file with the specified filename, inste
 the default one (\texttt{{\$}HOME/.arc/jobs.xml}).
 
 Option \verb#-c# accepts arguments in the \texttt{GRID:URL} notation,
-as explained in the description of \texttt{arcsub}, or their aliases as 
+as explained in the description of \texttt{arcsub}, or their aliases as
 specified in the configuration file.
 
 Different sites may report different job states, depending on
-the installed grid middleware version. Typical values can be e.g. 
+the installed grid middleware version. Typical values can be e.g.
 ``Accepted'', ``Preparing'', ``Running'', ``Finished'' or ``Deleted''.
 Please refer to the respective middleware documentation for job state model
 description.
@@ -306,7 +306,7 @@ to the user's computer.
    \texttt{job ...} && list of job IDs and/or jobnames\\
 \end{longtable}
 
-Only the results of jobs that have finished can be downloaded. Just like in \verb#arcstat# 
+Only the results of jobs that have finished can be downloaded. Just like in \verb#arcstat#
 and \verb#arccat# cases, the job can be referred to either by the \texttt{jobID} that was returned by
 \texttt{arcsub} at submission time, or by its name, if the job
 description contained a job name attribute.
@@ -410,11 +410,11 @@ Command line options have the same meaning as the corresponding ones of \verb#ar
 \subsection{arcclean}
 \label{sec:arcclean}
 
-If a job fails or gets killed with \verb#-k# option, or when you are not willing 
-to retrieve the results for some reasons, a good practice for users is not to wait 
-for the system to clean up the job leftovers, but to use 
-\texttt{arcclean}\index{arcclean}\index{commands:arcclean} to release the disk 
-space and to remove the job ID from the list of submitted jobs and from the Information System. 
+If a job fails or gets killed with \verb#-k# option, or when you are not willing
+to retrieve the results for some reasons, a good practice for users is not to wait
+for the system to clean up the job leftovers, but to use
+\texttt{arcclean}\index{arcclean}\index{commands:arcclean} to release the disk
+space and to remove the job ID from the list of submitted jobs and from the Information System.
 
 \hspace*{0.5cm}
 \begin{shaded}
@@ -439,9 +439,9 @@ space and to remove the job ID from the list of submitted jobs and from the Info
 
 Only jobs that have finished or were cancelled can be cleaned.
 
-It happens ever so often that the job is cleaned by the system, or is otherwise unreachable, and yet your 
+It happens ever so often that the job is cleaned by the system, or is otherwise unreachable, and yet your
 local job list file still has it listed. Use \verb#-f# option in this case to forcefully remove such stale job
-information from the local list. 
+information from the local list.
 
 Other command line options have the same meaning as the corresponding ones of \verb#arcstat# and others.
 
@@ -461,7 +461,7 @@ can be issued whithin 24 hours (or whatever is
 the expiration time set by the site) after the job
 end, which must be followed by \texttt{arcresume}. The Grid
 Manager or A-REX will then attempt to finalize
-the job by uploading the output files to the desired location. 
+the job by uploading the output files to the desired location.
 
 \hspace*{0.5cm}
 \begin{shaded}
@@ -500,7 +500,7 @@ online, or when a proxy is renewed with \texttt{arcrenew}. This can be done usin
 the \texttt{arcresume}\index{arcresume}\index{commands:arcresume} command.
 
 \begin{framed}
-Make sure your proxy is still valid, or when uncertain, run \verb#arcproxy# followed by 
+Make sure your proxy is still valid, or when uncertain, run \verb#arcproxy# followed by
 \verb#arcrenew# before \verb#arcresume#. The job will be resumed from the state where it has failed.
 \end{framed}
 
@@ -567,10 +567,10 @@ in such situations, allowing users to resubmit jobs.
    specified in the job description can be resubmitted.
 \end{framed}
 
-More  than  one  jobid and/or jobname can be given. If several 
+More  than  one  jobid and/or jobname can be given. If several
 jobs were submitted with the same jobname all those jobs will be resubmitted.
 
-Upon resubmission of a job the corresponding job description will be 
+Upon resubmission of a job the corresponding job description will be
 fetched from the local job list file. If input files have changed since the
 original job submission, the job no longer remains the same job
 and will therefore not be resubmitted. To make sure the job is always resubmittable,
@@ -585,7 +585,7 @@ Upon resubmision the job will receive a new job ID. The old job ID will be kept
 in the local job list file, enabling future back tracing of the resubmitted job.
 
 Regarding command line options, \verb#arcresub# behaves much like \verb#arcsub#, except that
-\verb#-c# in this case indicates not the submission target site, but on the contrary, the \textbf{site 
+\verb#-c# in this case indicates not the submission target site, but on the contrary, the \textbf{site
 from which the jobs will be resubmitted}. Submission target site is specified with
 option \verb#-q#. If you wish to re-submit each job to the same site, use option \verb#-m#.
 
@@ -628,8 +628,8 @@ execution services do not support this functionality.
 Currently only jobs having the A-REX status ``Running'', ``Executing'' or ``Queuing'' can be migrated
 \end{framed}
 
-Command line options \verb#-c# and \verb #-q# are interpreted in the same way as in \verb#arcresub#, namely, 
+Command line options \verb#-c# and \verb #-q# are interpreted in the same way as in \verb#arcresub#, namely,
 \verb#-c# indicates ``from'' and \verb #-q# -- ``to'' which site the job will be migrated.
 
-If the job(s) is successfully migrated, a new job ID(s) is printed out. This jobID uniquely 
+If the job(s) is successfully migrated, a new job ID(s) is printed out. This jobID uniquely
 identifies the job while it is being executed.
