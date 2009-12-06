@@ -9,9 +9,11 @@ Possible \index{broker}broker values for the \texttt{arcsub} command line option
  \item[--] \texttt{Data} -- ranks targets according the amount of megabytes of the
 requested input files that are already in the computing resource’s cache.
  \item[--] \texttt{Python:$<$module$>$.$<$class$>$[:arguments]} -- ranks targets using any user-supplied custom Python broker module, optionally with broker arguments. Such module can reside anywhere in user's \texttt{PYTHONPATH}
+% Below path is OS dependend.
  \item[--] \texttt{$<$otherbroker$>$[:arguments]} -- ranks targets using any user-supplied custom C++ broker plugin, optionally with broker arguments. Default location for broker plugins is \texttt{/usr/lib/arc} (may depend on the operating system), or the one specified by the \texttt{ARC\_PLUGIN\_PATH}.
 \end{itemize}
 
+% Below paths and description are OS dependend.
 To write a custom broker in C++ one has to write a new specialization of the \texttt{Broker} base class and implement the \texttt{SortTargets} method in the new class. The class should be compiled as a loadable
 module that has the proper ARC plugin descriptor for the new broker. For example, to build a broker plugin ``MyBroker'' one executes:
 \begin{lstlisting}[language=sh]

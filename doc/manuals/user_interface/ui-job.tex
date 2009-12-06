@@ -10,13 +10,13 @@ Condor or SGE etc.
 
 \hspace*{0.5cm}
 \begin{shaded}
-   \uicommand{arcsub [options] [filename]}
+   \uicommand{arcsub [options] [filename ...]}
 \end{shaded}
 \versions{ARC 0.9}
 \begin{longtable}{llp{8cm}}
    Options:&&\\
    \texttt{-c, --cluster}&\verb#[-]#\textit{url}&explicitly select or reject (-) a specific site\\
-   \texttt{-i, --index}&\textit{url}&explicitly select or reject (-) a specific index server\\
+   \texttt{-i, --index}&\verb#[-]#\textit{url}&explicitly select or reject (-) a specific index server\\
    \texttt{-e, --jobdescrstring}&\textit{filename}&string describing the job to be submitted\\
    \texttt{-f, --jobdescrfile}&\textit{filename}&file describing the job to be submitted\\
    \texttt{-j, --joblist}&\textit{filename}&file where user's job information will be stored\\
@@ -24,14 +24,14 @@ Condor or SGE etc.
    \texttt{-x, --dumpdescription}&&do not submit -- dump transformed job description to stdout\\
 %   \texttt{-U, --unknownattr}&&allow unknown attributes in the job description\\
    \texttt{-b, --broker}&\textit{string}&select broker method (default is Random)\\
-%   \texttt{-n, --dolocalsandbox}& &store job descriptions in local sandbox (useful for eventual resubmission/migration)\\
+%   \texttt{-n, --dolocalsandbox}& &store job descriptions in local sandbox (useful for eventual resubmission)\\
    \texttt{-t, --timeout}&\textit{seconds}&timeout in seconds (default 20)\\
    \texttt{-d, --debug}&\textit{debuglevel}&debug level, FATAL, ERROR, WARNING, INFO, VERBOSE or DEBUG - default WARNING\\
    \texttt{-z, --conffile}&\textit{filename}& configuration file (default {\$}HOME/.arc/client.conf)\\
    \texttt{-v, --version}&&print version information\\
    \texttt{-h, --help}&&print help page\\
    Arguments:&&\\
-   \texttt{filename}&&file describing the job(s) to be submitted\\
+   \texttt{filename ...}&&file(s) describing the job(s) to be submitted\\
 \end{longtable}
 
 \begin{framed}
@@ -47,6 +47,9 @@ or clusters:
 It is strongly recommended to use aliases for these long URLs. Aliases are specified in the configuration file (see Section~\ref{sec:client.conf}).
 \end{framed}
 
+%%% This might depend on the version of glibmm installed. In recent versions atleast it
+%%% does not matter where the job description filename occurs on the command line. Any argument
+%%% without a corresponding flag is taken to be a job description filename.
 As a shorthand \texttt{-f} can be omitted if the job description file is put last on the commandline.
 
 A simple \textit{"Hello World"} job can look like:
@@ -90,16 +93,6 @@ A user has to have valid credentials (see Section~\ref{sec:proxy}) and be author
        <posix:Error>err.txt</posix:Error>
      </posix:POSIXApplication>
    </Application>
-   <DataStaging>
-     <FileName>out.txt</FileName>
-     <CreationFlag>overwrite</CreationFlag>
-     <DeleteOnTermination>false</DeleteOnTermination>
-   </DataStaging>
-   <DataStaging>
-     <FileName>err.txt</FileName>
-     <CreationFlag>overwrite</CreationFlag>
-     <DeleteOnTermination>false</DeleteOnTermination>
-   </DataStaging>
  </JobDescription>
 </JobDefinition>
 \end{lstlisting}
@@ -117,18 +110,20 @@ killing it (\verb#arckill#), re-submitting (\verb#arcresub#), or
 retrieving the result (\verb#arcget#).
 
 \begin{framed}
+%% This depends on the middleware flavour. Some flavours do not accept listing
+%% the job session directory (CREAM).
    Every job ID is a valid URL for the job session directory. You can
    always use it to access the files related to the job, by using data
    management tools (see Chapter~\ref{sec:dm}).
 \end{framed}
 
-The job description in xRSL or JSDL format can be given either as an
+The job description in one of the supported languages can be given, either as an
 argument on the command line, or can be read from a file. Several jobs can be
-requested at the same time by giving more than one filename
-argument, or by repeating the \verb#-f# or \verb#-e# options. It is
-possible to mix \verb#-e# and \verb#-f# options in the same
-\texttt{arcsub} command.
+requested at the same time by giving more than one filename argument, or by
+repeating the \verb#-f# or \verb#-e# options. It is possible to mix \verb#-e#
+and \verb#-f# options in the same \texttt{arcsub} command.
 
+%%% The below path is OS dependend.
 In order to keep track of submitted jobs, ARC client stores information in a
 dedicated file, by default located in \texttt{{\$}HOME/.arc/jobs.xml}. It is
 sometimes convenient to keep separate lists (e.g., for different kinds of jobs),
@@ -137,16 +132,18 @@ to be used later with e.g. \verb#arcstat#. This is achieved with the help of
 
 The user interface transforms input job description into a format
 that can be understood by the Grid services to which it is being
-submitted. By specifying the \verb#-dumpdescription# option, such transformed
+submitted. By specifying the \verb#--dumpdescription# option, such transformed
 description is written to stdout instead of being submitted to the remote site.
 
 % Description of brokers in a separate file
 \input{ui-brokers}
 
-If you plan to resubmit or migrate jobs, you will have to use command line
-option \verb#-n#, which will instruct the client to store complete job descriptions
-in a local sandbox, such that a resubmitted/migrated job will be identical to the
-original one.
+% By default local sandbox is enabled, and it is not possible atm to turn it
+% off.
+%If you plan to resubmit jobs, you will have to use command line option
+%\verb#-n#, which will instruct the client to store complete job descriptions
+%in a local sandbox, such that a resubmitted job will be identical to the
+%original one.
 
 It often happens that some sites that \verb#arcsub# has to contact
 are slow to answer, or are down altogether. This will not prevent
@@ -172,7 +169,7 @@ order of increasing verbosity, are: \texttt{FATAL}, \texttt{ERROR}, \texttt{WARN
 \texttt{INFO}, \texttt{VERBOSE} and \texttt{DEBUG}. Default is \texttt{WARNING}, and
 it can be set to another value in the user's configuration file.
 
-Default configuration file is {\$}HOME/.arc/client.conf. However, a user can choose any
+Default configuration file is \texttt{{\$}HOME/.arc/client.conf}. However, a user can choose any
 other pre-defined configuration through option \verb#-z#.
 
 Command line option \verb#-v# prints out version of the installed ARC client, and option
