@@ -206,6 +206,15 @@ job ID (as returned by \verb#arcsub#) as an argument. It is also possible to use
 ID, but if several jobs have identical names, information will be collected about all of them.
 More than one job ID and/or name can be given.
 
+\begin{framed}
+  When several of the \verb#-a#,  \verb#-j#, \verb#-c#, \verb#-s# and \verb#[job...]#
+  command line options are specified, the comand returns information for \textbf{ALL} jobs that
+  match either of the criteria (logical OR).
+
+  For example, \verb#arcstat -s Finished -c mycluster <jobid># will return information about all finished
+  jobs on the Grid, plus about all jobs (in any state) on the cluster \verb#mycluster#, plus about the job \verb#<jobid>#.
+\end{framed}
+
 If the \verb#-l# option is given, extended information is printed.
 
 Options \verb#-a#, \verb#-c#, \verb#-s# and \verb#-j# do not use job ID or names. By
@@ -272,6 +281,15 @@ errors reported by either Grid Manager or A-REX (\texttt{-l} option).
 
 Other command line options have the same meaning as in \verb#arcstat#.
 
+\begin{framed}
+  When several of the \verb#-a#,  \verb#-j#, \verb#-c#, \verb#-s# and \verb#[job...]#
+  command line options are specified, the comand prints logs for \textbf{ALL} jobs that
+  match either of the criteria (logical OR).
+
+  For example, \verb#arccat -s Finished -c mycluster <jobid># will print logs of all finished
+  jobs on the Grid, plus of all jobs (in any state) on the cluster \verb#mycluster#, plus of the job \verb#<jobid>#.
+\end{framed}
+
 
 \subsection{arcget}
 \label{sec:arcget}
@@ -322,6 +340,16 @@ path, use option \verb#-D# (note the capital ``D''), e.g.
 
 Other command line options are identical to those of e.g. \verb#arcstat#.
 
+\begin{framed}
+  When several of the \verb#-a#,  \verb#-j#, \verb#-c#, \verb#-s# and \verb#[job...]#
+  command line options are specified, the comand retrieves \textbf{ALL} jobs that
+  match either of the criteria (logical OR).
+
+  For example, \verb#arcget -s Finished -c mycluster <jobid># will retrieve all finished
+  jobs on the Grid, plus all jobs (in any state) on the cluster \verb#mycluster#, plus the job \verb#<jobid>#.
+\end{framed}
+
+
 \subsection{arcsync}
 \label{sec:arcsync}
 
@@ -364,6 +392,38 @@ submitted or removed a job, a warning is issued when this command is run. The \v
 If the job list is not empty when invoking syncronisation, the old jobs will be merged with the new jobs, unless
 the \verb#-T# option is given (note the capital ``T''), in which case the job list will first be truncated and then the new jobs will be added.
 
+\subsection{arcinfo}
+\label{sec:arcinfo}
+
+The \texttt{arcinfo} \index{arcinfo}\index{commands:arcinfo} command is used to obtain status information about clusters on the Grid.
+
+\hspace*{0.5cm}
+\begin{shaded}
+   \uicommand{arcinfo [options]}
+\end{shaded}
+\versions{ARC 0.9}
+\begin{longtable}{llp{8cm}}
+   Options:&&\\
+   \texttt{-c, --cluster}&\verb#[-]#\textit{name}&explicitly select or reject a specific site\\
+   \texttt{-i, --index}&\textit{url}&explicitly select or reject (-) a specific index server\\
+   \texttt{-l, --long}& & long format (extended information)\\
+   \texttt{-t, --timeout}&\textit{seconds}&timeout in seconds (default 20)\\
+   \texttt{-d, --debug}&\textit{debuglevel}&debug level, FATAL, ERROR, WARNING, INFO, VERBOSE or DEBUG - default WARNING\\
+   \texttt{-z, --conffile}&\textit{filename}& configuration file (default {\$}HOME/.arc/client.conf)\\
+   \texttt{-v, --version}&&print version information\\
+   \texttt{-h, --help}&&print help page\\
+\end{longtable}
+
+The  \texttt{arcinfo}  command is used to obtain information about clusters and queues (\textit{targets})
+available on the Grid. Either the \verb#--cluster# or \verb#--index# flag should be used to specify the
+target(s) which should be queried for information. Both of these flags take a service endpoint as argument.
+See \texttt{arcsub} and the configuration notes in Section~\ref{sec:client.conf} for description of these.
+
+Detailed information about queried computing services can be obtained by specifying the \verb#--long# flag.
+
+When  specifying  the  \verb#--index#  flag,  the  information about the computing services registered at the index server will
+be queried, rather than the status of the index server itself.
+
 
 \subsection{arckill}
 \label{sec:arckill}
@@ -403,6 +463,15 @@ in the system, e.g. for a post-mortem analysis, use the \verb#-k# option.
 
 Command line options have the same meaning as the corresponding ones of \verb#arcstat# and others.
 
+\begin{framed}
+  When several of the \verb#-a#,  \verb#-j#, \verb#-c#, \verb#-s# and \verb#[job...]#
+  command line options are specified, the comand kills \textbf{ALL} jobs that
+  match either of the criteria (logical OR).
+
+  For example, \verb#arckill -s INLRMS:R -c mycluster <jobid># will kill all running
+  jobs on the Grid, plus all jobs (in any state) on the cluster \verb#mycluster#, plus the job \verb#<jobid>#.
+\end{framed}
+
 
 \subsection{arcclean}
 \label{sec:arcclean}
@@ -441,6 +510,15 @@ local job list file still has it listed. Use \verb#-f# option in this case to fo
 information from the local list.
 
 Other command line options have the same meaning as the corresponding ones of \verb#arcstat# and others.
+
+\begin{framed}
+  When several of the \verb#-a#,  \verb#-j#, \verb#-c#, \verb#-s# and \verb#[job...]#
+  command line options are specified, the comand cleans \textbf{ALL} jobs that
+  match either of the criteria (logical OR).
+
+  For example, \verb#arcclean -s FAILED -c mycluster <jobid># will clean all failed
+  jobs on the Grid, plus all jobs (in any state) on the cluster \verb#mycluster#, plus the job \verb#<jobid>#.
+\end{framed}
 
 
 \subsection{arcrenew}
@@ -487,6 +565,15 @@ new proxy by running \verb#arcproxy#!
 
 Command line options have the same meaning as the corresponding ones of \verb#arcstat# and others.
 
+\begin{framed}
+  When several of the \verb#-a#,  \verb#-j#, \verb#-c#, \verb#-s# and \verb#[job...]#
+  command line options are specified, the comand renews proxies for \textbf{ALL} jobs that
+  match either of the criteria (logical OR).
+
+  For example, \verb#arcrenew -s FAILED -c mycluster <jobid># will renew proxies of all failed
+  jobs on the Grid, plus of all jobs (in any state) on the cluster \verb#mycluster#, plus of the job \verb#<jobid>#.
+\end{framed}
+
 
 \subsection{arcresume}
 \label{sec:arcresume}
@@ -521,6 +608,15 @@ Make sure your proxy is still valid, or when uncertain, run \verb#arcproxy# foll
 \end{longtable}
 
 Command line options have the same meaning as the corresponding ones of \verb#arcstat# and others.
+
+\begin{framed}
+  When several of the \verb#-a#,  \verb#-j#, \verb#-c#, \verb#-s# and \verb#[job...]#
+  command line options are specified, the comand resumes \textbf{ALL} jobs that
+  match either of the criteria (logical OR).
+
+  For example, \verb#arcresume -s FAILED -c mycluster <jobid># will resume all failed
+  jobs on the Grid, plus all jobs (in any state) on the cluster \verb#mycluster#, plus the job \verb#<jobid>#.
+\end{framed}
 
 
 \subsection{arcresub}
@@ -589,6 +685,15 @@ option \verb#-q#. If you wish to re-submit each job to the same site, use option
 If the original job was successfully killed, its traces will be removed from the execution site,
 unless the \verb#-k# option is specified.
 
+\begin{framed}
+  When several of the \verb#-a#,  \verb#-j#, \verb#-c#, \verb#-s# and \verb#[job...]#
+  command line options are specified, the comand resubmits \textbf{ALL} jobs that
+  match either of the criteria (logical OR).
+
+  For example, \verb#arcresub -s FAILED -c mycluster <jobid># will resubmit all failed
+  jobs on the Grid, plus all jobs (in any state) on the cluster \verb#mycluster#, plus the job \verb#<jobid>#.
+\end{framed}
+
 
 \subsection{arcmigrate}
 \label{sec:arcmigrate}
@@ -630,3 +735,12 @@ Command line options \verb#-c# and \verb #-q# are interpreted in the same way as
 
 If the job(s) is successfully migrated, a new job ID(s) is printed out. This jobID uniquely
 identifies the job while it is being executed.
+
+\begin{framed}
+  When several of the \verb#-a#,  \verb#-j#, \verb#-c#, \verb#-s# and \verb#[job...]#
+  command line options are specified, the comand migrates \textbf{ALL} jobs that
+  match either of the criteria (logical OR).
+
+  For example, \verb#arcmigrate -s FAILED -c mycluster <jobid># will migrate all failed
+  jobs on the Grid, plus all jobs (in any state) on the cluster \verb#mycluster#, plus the job \verb#<jobid>#.
+\end{framed}
