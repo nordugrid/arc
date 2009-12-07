@@ -45,7 +45,10 @@ std::list<PolicyStore::PolicyElement> PolicyStore::findPolicy(EvaluationCtx*) { 
 
 void PolicyStore::addPolicy(const Source& policy, EvaluatorContext* ctx, const std::string& id) {
   PolicyParser plparser;
-  policies.push_back(PolicyElement(plparser.parsePolicy(policy, policy_classname, ctx),id));
+  Policy* pls;
+  pls = PolicyElement(plparser.parsePolicy(policy, policy_classname, ctx),id);
+  if(pls != NULL)
+    policies.push_back(pls);
 }
 
 void PolicyStore::addPolicy(Policy* policy, EvaluatorContext* ctx,const std::string& id) {
