@@ -99,7 +99,7 @@ readconfigvar()
   bname="[$2]"
   vname=$3
   value=
-  cat "$fname" | {
+  cat "$fname" | grep -e '^\[' -e "^${vname}=" | {
     while true; do
       read line
       if [ ! $? = 0 ] ; then

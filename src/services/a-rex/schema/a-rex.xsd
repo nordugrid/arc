@@ -414,12 +414,12 @@
              <xsd:attribute name="level" default="INFO">
                 <xsd:simpleType>
                    <xsd:restriction base="xsd:string">
-                      <xsd:enumeration value="DEBUG"/>          
+                      <xsd:enumeration value="DEBUG"/>
                       <xsd:enumeration value="VERBOSE"/>
                       <xsd:enumeration value="INFO"/>
                       <xsd:enumeration value="WARNING"/>
-                       <xsd:enumeration value="ERROR"/>
-                       <xsd:enumeration value="FATAL"/>
+                      <xsd:enumeration value="ERROR"/>
+                      <xsd:enumeration value="FATAL"/>
                    </xsd:restriction>
                  </xsd:simpleType>
              </xsd:attribute>
@@ -437,7 +437,7 @@
 
     <xsd:element name="jobLogPath" type="xsd:string"/>
 
-    
+
     <xsd:complexType name="jobReport_Type">
        <xsd:sequence>
            <xsd:element name="destination" type="xsd:anyURI"/>

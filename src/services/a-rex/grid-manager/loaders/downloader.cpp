@@ -278,6 +278,8 @@ int main(int argc,char** argv) {
   bool passive = false;
   std::string failure_reason("");
   std::string x509_proxy, x509_cert, x509_key, x509_cadir;
+for(int n = 0;n<argc;++n) std::cerr<<argv[n]<<" ";
+std::cerr<<std::endl;
 
   // process optional arguments
   for(;;) {
