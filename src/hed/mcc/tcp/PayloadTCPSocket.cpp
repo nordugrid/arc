@@ -6,6 +6,7 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <errno.h>
 #ifdef WIN32
 #include <arc/win32.h>
 #else // UNIX
@@ -15,9 +16,13 @@
 #include <netinet/in.h>
 #include <sys/poll.h>
 #include <netinet/tcp.h>
+#include <fcntl.h>
 #endif
 
+#include <glibmm.h>
+
 #include <arc/StringConv.h>
+#include <arc/Utils.h>
 #include "PayloadTCPSocket.h"
 
 namespace Arc {
@@ -43,17 +48,78 @@ int PayloadTCPSocket::connect_socket(const char* hostname,int port)
                      hostname,info_->ai_family==AF_INET6?"IPv6":"IPv4",port);
     s = ::socket(info_->ai_family, info_->ai_socktype, info_->ai_protocol);
     if(s == -1) {
-      // TODO: print error description
-      logger.msg(VERBOSE, "Failed to create socket to %s(%s):%d",
-                        hostname,info_->ai_family==AF_INET6?"IPv6":"IPv4",port);
+      logger.msg(VERBOSE, "Failed to create socket to %s(%s):%d - %s",
+                        hostname,info_->ai_family==AF_INET6?"IPv6":"IPv4",port,
+                        Arc::StrError(errno));
       continue;
     }
+#ifndef WIN32
+    // In *NIX we can use non-blocking socket because poll() will 
+    // be used for waiting.
+    int s_flags = ::fcntl(s, F_GETFL, 0);
+    if(s_flags != -1) {
+      ::fcntl(s, F_SETFL, s_flags | O_NONBLOCK);
+    } else {
+      logger.msg(WARNING, "Failed to get TCP socket options for connection"
+                        " to %s(%s):%d - timeout won't work - %s",
+                        hostname,info_->ai_family==AF_INET6?"IPv6":"IPv4",port,
+                        Arc::StrError(errno));
+    }
+    if(::connect(s, info_->ai_addr, info_->ai_addrlen) == -1) {
+      if(errno != EINPROGRESS) {
+        logger.msg(VERBOSE, "Failed to connect to %s(%s):%i - %s",
+                        hostname,info_->ai_family==AF_INET6?"IPv6":"IPv4",port,
+                        Arc::StrError(errno));
+        close(s); s = -1;
+        continue;
+      }
+      int pres;
+      // Second resolution is enough
+      time_t c_time = time(NULL);
+      time_t f_time = c_time + timeout_;
+      struct pollfd fd;
+      for(;;) {
+        fd.fd=s; fd.events=POLLOUT | POLLPRI; fd.revents=0;
+        pres = ::poll(&fd,1,(f_time-c_time)*1000);
+        // Checking for operation interrupted by signal
+        if((pres == -1) && (errno == EINTR)) {
+          c_time = time(NULL);
+          // TODO: protection against time jumping backward.
+          if(((int)(f_time - c_time)) < 0) c_time = f_time; 
+        }
+        break;
+      }
+      if(pres == 0) {
+        logger.msg(VERBOSE, "Timeout connecting to %s(%s):%i - %i s",
+                        hostname,info_->ai_family==AF_INET6?"IPv6":"IPv4",port,
+                        timeout_);
+        close(s); s = -1;
+        continue;
+      }
+      if(pres != 1) {
+        logger.msg(VERBOSE, "Failed waiting connection to %s(%s):%i - %s",
+                        hostname,info_->ai_family==AF_INET6?"IPv6":"IPv4",port,
+                        Arc::StrError(errno));
+        close(s); s = -1;
+        continue;
+      }
+      // man connect says one has to check SO_ERROR, but poll() returns
+      // POLLERR and POLLHUP so we can use them directly. 
+      if(fd.revents & (POLLERR | POLLHUP)) {
+        logger.msg(VERBOSE, "Failed to connect to %s(%s):%i",
+                        hostname,info_->ai_family==AF_INET6?"IPv6":"IPv4",port);
+        close(s); s = -1;
+        continue;
+      }
+    }
+#else
     if(::connect(s, info_->ai_addr, info_->ai_addrlen) == -1) {
       logger.msg(VERBOSE, "Failed to connect to %s(%s):%i",
                         hostname,info_->ai_family==AF_INET6?"IPv6":"IPv4",port);
       close(s); s = -1;
       continue;
     };
+#endif
     break;
   };
   if(s == -1) {
@@ -69,9 +135,9 @@ PayloadTCPSocket::PayloadTCPSocket(const char* hostname,
 				                   Logger& logger) :
   logger(logger)
 {
+  timeout_=timeout;
   handle_=connect_socket(hostname,port);
   acquired_=true;
-  timeout_=timeout;
 }
 
 PayloadTCPSocket::PayloadTCPSocket(const std::string endpoint, int timeout,
@@ -83,9 +149,9 @@ PayloadTCPSocket::PayloadTCPSocket(const std::string endpoint, int timeout,
   if(p == std::string::npos) return;
   int port = atoi(hostname.c_str()+p+1);
   hostname.resize(p);
+  timeout_=timeout;
   handle_=connect_socket(hostname.c_str(),port);
   acquired_=true;
-  timeout_=timeout;
 }
 
 PayloadTCPSocket::~PayloadTCPSocket(void) {
@@ -99,7 +165,7 @@ bool PayloadTCPSocket::Get(char* buf,int& size) {
 #ifndef WIN32
   struct pollfd fd;
   fd.fd=handle_; fd.events=POLLIN | POLLPRI | POLLERR; fd.revents=0;
-  if(poll(&fd,1,timeout_*1000) != 1) return false;
+  if(::poll(&fd,1,timeout_*1000) != 1) return false;
   if(!(fd.revents & (POLLIN | POLLPRI))) return false;
 #endif
   l=::recv(handle_,buf,l,0);
@@ -131,7 +197,7 @@ bool PayloadTCPSocket::Put(const char* buf,Size_t size) {
     fd.fd=handle_; fd.events=POLLOUT | POLLERR; fd.revents=0;
     int to = timeout_-(unsigned int)(time(NULL)-start);
     if(to < 0) to=0;
-    if(poll(&fd,1,to*1000) != 1) return false;
+    if(::poll(&fd,1,to*1000) != 1) return false;
     if(!(fd.revents & POLLOUT)) return false;
 #endif
     l=::send(handle_, buf, size, 0);
