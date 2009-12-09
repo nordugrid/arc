@@ -22,24 +22,25 @@ Description: ARC grid middleware
  and support of the free Grid middleware, known as the Advanced Resource
  Connector (ARC).
  .
- The Advanced Resource Connector (ARC) brings computing resources together
- across institutional boundaries. This concept is commonly referred to as 
- a "computational grid". Historically, grids address the organisation of
- distributed storage of data and parallel computation, but arbitrary services
- are thinkable.
+ The Advanced Resource Connector (ARC) brings computing resources
+ together across institutional boundaries. This concept is commonly
+ referred to as a "computational grid". Historically, grids address the
+ organisation of distributed storage of data and parallel computation,
+ but arbitrary services are thinkable.
  .
  Just like the web, ARC has its roots in the IT infrastructure that was
  erected to analyse the experiments for high energy physics at CERN. The
- first release, ARC-0.x, was dependent on Globus, the current release keeps
- that compatibility but can also be used independently.
+ first release, ARC-0.x, was dependent on Globus, the current release
+ keeps that compatibility but can also be used independently.
  .
- With ARC-1, the user gains flexibility with additional services and
- more supported platforms. The service developer notices that even for
- persistent functionality across the two major versions, what has been
- a script on the server side once, that was repeatedly started and ran
- through, this has now become a service. Those are only started once and
- can then be queried, which is far more efficient, far more responsive,
- and is no longer stateless but can observe changes of values over time.
+ With ARC-nox, formerly known as ARC-1, the user gains flexibility
+ with additional services and more supported platforms. The service
+ developer notices that even for persistent functionality across the
+ two major versions, what has been a script on the server side once,
+ that was repeatedly started and ran through, this has now become a
+ service. Those are only started once and can then be queried, which
+ is far more efficient, far more responsive, and is no longer stateless
+ but can observe changes of values over time.
 
 Package: nordugrid-arc-nox-client
 Provides: nordugrid-arc1-client
@@ -69,24 +70,23 @@ Description: ARC Hosting Environment Daemon
  and support of the free Grid middleware, known as the Advanced Resource
  Connector (ARC).
  .
- The ARC Hosting Environment Daemon (HED). This daemon presents a
- site to other participants on the grid.  An intrinsic component
- of any grid system is a mechanism allowing for the secure stateful
- communication with remote environments. HED prepares for such an
- environment and as such is the core of the ARC middleware. HED
- was however written in a way, that represents typical grid
- computing tasks (the sharing of CPU time or storage) to become
- just one possible service between a user and a remote machine.
- Many others are thinkable, and HED takes considerable effort
- away from the respective implementors.
+ The ARC Hosting Environment Daemon (HED). This daemon presents a site
+ to other participants on the grid.  An intrinsic component of any grid
+ system is a mechanism allowing for the secure stateful communication with
+ remote environments. HED prepares for such an environment and as such
+ is the core of the ARC middleware. HED was however written in a way,
+ that represents typical grid computing tasks (the sharing of CPU time
+ or storage) to become just one possible service between a user and a
+ remote machine.  Many others are thinkable, and HED takes considerable
+ effort away from the respective implementors.
 
 Package: nordugrid-arc-nox-charon
 Architecture: any
 Depends: ${shlibs:Depends}, nordugrid-arc-nox-hed
 Description: ARC CHARON service
  The NorduGrid is a collaboration aiming at development, maintenance
- and support of the free Grid middleware, known as the Advanced
- Resource Connector (ARC).
+ and support of the free Grid middleware, known as the Advanced Resource
+ Connector (ARC).
  .
  CHARON is a remote policy decision point service.  It accepts formatted
  policy decision request and return positive or negative response. When
@@ -130,9 +130,8 @@ Description: ARC compiler service
  .
  The purpose of this service is to provide compilation capability on the
  remote site utilizing its full CPU capacity for parallel compilation
- tasks. The service presumes that the compilation task is described
- in a usual make file. The current implementation supports GNU compilers
- only.
+ tasks. The service presumes that the compilation task is described in a
+ usual make file. The current implementation supports GNU compilers only.
 
 Package: nordugrid-arc-nox-delegation
 Architecture: any
@@ -190,12 +189,12 @@ Architecture: any
 Depends: ${shlibs:Depends}, ${perl:Depends}, nordugrid-arc-nox-hed, nordugrid-arc-nox-plugins-base, libxml-simple-perl
 Description: ARC Remote EXecution service
  The NorduGrid is a collaboration aiming at development, maintenance
- and support of the free Grid middleware, known as the Advanced
- Resource Connector (ARC).
+ and support of the free Grid middleware, known as the Advanced Resource
+ Connector (ARC).
  .
- The ARC Remote EXecution service (AREX) represents those parts of
- the middleware that is responsible for the execution of compute
- jobs and the transfer of input or output data.
+ The ARC Remote EXecution service (AREX) represents those parts of the
+ middleware that is responsible for the execution of compute jobs and
+ the transfer of input or output data.
 
 Package: nordugrid-arc-nox-plugins-base
 Provides: nordugrid-arc1-plugins-base
@@ -239,7 +238,7 @@ Description: ARC development files
  The ARC middleware's core functionality, the Hosting Environment
  Daemon (HED) can be extended for novel services. Considerable parts
  of a regular installation of a regular installation of the NorduGrid
- represent such modules. 
+ represent such modules.
 
 Package: nordugrid-arc-nox-python
 Provides: nordugrid-arc1-python
@@ -252,11 +251,11 @@ Description: ARC Python wrapper
  and support of the free Grid middleware, known as the Advanced
  Resource Connector (ARC).
  .
- Developers with an interest to integrate the some functionality on
- a remote site via an interface compatible with ARC, may find it
- preferable to perform that remote invocation from within Python.
- While today most services in ARC are associated with computation or
- storage, there is no constraint on these applications.
+ Developers with an interest to integrate the some functionality on a
+ remote site via an interface compatible with ARC, may find it preferable
+ to perform that remote invocation from within Python.  While today most
+ services in ARC are associated with computation or storage, there is
+ no constraint on these applications.
 
 Package: nordugrid-arc-nox-java
 Provides: nordugrid-arc1-java
@@ -270,11 +269,11 @@ Description: ARC Java wrapper
  and support of the free Grid middleware, known as the Advanced
  Resource Connector (ARC).
  .
- Developers with an interest to integrate the some functionality on
- a remote site via an interface compatible with ARC, may find it
- preferable to perform that remote invocation from within Java.
- While today most services in ARC are associated with computation or
- storage, there is no constraint on these applications.
+ Developers with an interest to integrate the some functionality on a
+ remote site via an interface compatible with ARC, may find it preferable
+ to perform that remote invocation from within Java.  While today most
+ services in ARC are associated with computation or storage, there is
+ no constraint on these applications.
 
 Package: nordugrid-arc-nox-doc
 Provides: nordugrid-arc1-doc
@@ -308,5 +307,4 @@ Description: ARC dynamic installation of runtime environments
  a site, and this Janitor service helps automating this process.
  .
  The Janitor is a recent development and the community to prepare
- catalogues of dynamically installable packages still needs to
- evolve.
+ catalogues of dynamically installable packages still needs to evolve.
