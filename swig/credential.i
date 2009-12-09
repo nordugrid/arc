@@ -2,6 +2,5 @@
 #include <arc/credential/Credential.h>
 %}
 
-%import <openssl/safestack.h>
-
+#define STACK_OF(A) void
 %include "../src/hed/libs/credential/Credential.h"
