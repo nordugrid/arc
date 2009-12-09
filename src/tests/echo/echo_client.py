@@ -1,6 +1,9 @@
 #! /usr/bin/env python
 import arc
 import sys
+root_logger = arc.Logger_getRootLogger()
+root_logger.addDestination(arc.LogStream(sys.stdout))
+root_logger.setThreshold(arc.ERROR)
 if len(sys.argv) < 2:
     print "Usage: echo_client.py URL [message]"
     print "  echo_client gets the credentials from the default user config file"
