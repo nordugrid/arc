@@ -1404,7 +1404,8 @@
       
       // there can be undetectable errors in creating dirs that already exist
       // so only report error on creating the final dir
-      if (response_struct.srmMkdirResponse->returnStatus->statusCode == SRMv2__TStatusCode__SRM_USCORESUCCESS) 
+      if (response_struct.srmMkdirResponse->returnStatus->statusCode == SRMv2__TStatusCode__SRM_USCORESUCCESS ||
+          response_struct.srmMkdirResponse->returnStatus->statusCode == SRMv2__TStatusCode__SRM_USCOREDUPLICATION_USCOREERROR) 
         keeplisting = false;
       else if (slashpos == std::string::npos) {
         char * msg = response_struct.srmMkdirResponse->returnStatus->explanation;

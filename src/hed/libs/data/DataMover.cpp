@@ -727,6 +727,7 @@ namespace Arc {
         if (!datares.Passed()) {
           logger.msg(ERROR, "Failed to start writing to destination: %s",
                      destination.str());
+          destination.StopWriting();
           source_url.StopReading();
           if (!destination.PreUnregister(replication ||
                                          destination_meta_initially_stored).Passed())
@@ -746,6 +747,7 @@ namespace Arc {
         if (!datares.Passed()) {
           // TODO: put callback to clean cache into FileCache
           logger.msg(ERROR, "Failed to start writing to cache");
+          chdest.StopWriting();
           source_url.StopReading();
           // hope there will be more space next time
           cache.StopAndDelete(canonic_url);
