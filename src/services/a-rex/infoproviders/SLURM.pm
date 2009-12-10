@@ -208,8 +208,14 @@ sub slurm_get_data($){
 sub slurm_to_arc_time($){
     my $timeslurm = shift;
     my $timearc = 0;
+    # $timeslurm can be "infinite" or "UNLIMITED"
+    if (($timeslurm =~ "UNLIMITED")
+	or ($timeslurm =~ "infinite")) {
+	#Max number allowed by ldap
+	$timearc = 2**31-1;
+    }
     # days-hours:minutes:seconds
-    if ( $timeslurm =~ /(\d+)-(\d+):(\d+):(\d+)/ ) {
+    elsif ( $timeslurm =~ /(\d+)-(\d+):(\d+):(\d+)/ ) {
 	$timearc = $1*24*60*60 + $2*60*60 + $3*60 + $4;
     }
     # hours:minutes:seconds
@@ -391,17 +397,8 @@ sub queue_info ($$) {
     $lrms_queue{maxqueuable} = $scont_config{"MaxJobCount"};
     $lrms_queue{maxuserrun} = $scont_config{"MaxJobCount"};
 
-    my $maxtime=0;
-    # MaxTime can be reported as
-    # "UNLIMITED" in SLURM 1.2 and 1.3
-    # "infinite"  in SLURM 1.4
-    if (($scont_part{$queue}{"MaxTime"} =~ "UNLIMITED")
-	or ($scont_part{$queue}{"MaxTime"} =~ "infinite")) {
-	#Max number allowed by ldap
-	$maxtime = 2**31-1;
-    }else {
-	$maxtime = $scont_part{$queue}{"MaxTime"};
-    }
+    my $maxtime = $scont_part{$queue}{"MaxTime"};
+    
     $lrms_queue{maxcputime} = $maxtime;
     $lrms_queue{mincputime} = 0;
     $lrms_queue{defaultcput} = $maxtime;
