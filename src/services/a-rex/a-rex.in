@@ -18,6 +18,19 @@
 # contain undocumented option in [grid-manager] section:
 #
 #    arex_mount_point="a_rex_url"
+
+### BEGIN INIT INFO
+# Provides:          a-rex
+# Required-Start:    $local_fs $remote_fs
+# Required-Stop:     
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: ARC grid manager
+# Description:       The unit of the NorduGrid's ARC middleware to 
+#                    accept and control jobs. 
+### END INIT INFO
+
+
 #  
 #
 # source function library
@@ -458,7 +471,7 @@ case "$1" in
   status)
 	status $prog
         ;;
-  restart|reload)
+  restart|reload|force-reload)
         stop
         start
         ;;
@@ -466,7 +479,7 @@ case "$1" in
         test -f $LOCKFILE && stop && start
         ;;
   *)
-        echo "Usage: $0 {start|stop|status|restart|reload|condrestart}"
+        echo "Usage: $0 {start|stop|status|restart|reload|force-reload|condrestart}"
         exit 1
 esac
 
