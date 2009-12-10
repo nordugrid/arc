@@ -1,4 +1,4 @@
-profile=@datadir@/@PACKAGE@profiles/EchoServiceNonSecure.xml
+profile=@datadir@/@PACKAGE@/profiles/EchoServiceNonSecure.xml
 
 pidfile=/tmp/arched.pid
 logfile=/tmp/arched.log
