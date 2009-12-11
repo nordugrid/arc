@@ -9,9 +9,9 @@
 namespace Arc {
 
   PlexerEntry::PlexerEntry(const RegularExpression& label,
-			   MCCInterface* service) :
+			   MCCInterface* mcc) :
     label(label),
-    service(service)
+    mcc(mcc)
   {
   }
 
@@ -26,14 +26,16 @@ namespace Arc {
     if (next!=0) {
       RegularExpression regex(label);
       if (regex.isOk()) {
-        services.push_front(PlexerEntry(regex,next));
+        mccs.push_front(PlexerEntry(regex,next));
       } else {
-	    logger.msg(WARNING, "Bad label: \"%s\"", label);
+        logger.msg(WARNING, "Bad label: \"%s\"", label);
       }
     } else {
-      for (iter=services.begin(); iter!=services.end(); ++iter) {
-	    if (iter->label.hasPattern(label)) {
-	        services.erase(iter);
+      for (iter=mccs.begin(); iter!=mccs.end();) {
+        if (iter->label.hasPattern(label)) {
+          iter = mccs.erase(iter);
+        } else {
+          ++iter;
         }
       }
     }
@@ -44,7 +46,7 @@ namespace Arc {
     std::string path = getPath(ep);
     logger.msg(VERBOSE, "Operation on path \"%s\"",path);
     std::list<PlexerEntry>::iterator iter;
-    for (iter=services.begin(); iter!=services.end(); ++iter) {
+    for (iter=mccs.begin(); iter!=mccs.end(); ++iter) {
       std::list<std::string> unmatched, matched;
       if (iter->label.match(path, unmatched, matched)) {
         request.Attributes()->set("PLEXER:PATTERN",iter->label.getPattern());
@@ -52,10 +54,10 @@ namespace Arc {
         if(unmatched.size() > 0) {
           request.Attributes()->set("PLEXER:EXTENSION",*(--unmatched.end()));
         };
-        return iter->service->process(request, response);
+        return iter->mcc->process(request, response);
       }
     }
-    logger.msg(WARNING, "No service at path \"%s\"",path);
+    logger.msg(WARNING, "No next MCC or Service at path \"%s\"",path);
     return MCC_Status(UNKNOWN_SERVICE_ERROR,
 			   (std::string)("MCC Plexer"),
 			   path);  

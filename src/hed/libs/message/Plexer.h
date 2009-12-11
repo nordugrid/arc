@@ -12,7 +12,7 @@
 
 namespace Arc {
 
-  //! A pair of label (regex) and pointer to service.
+  //! A pair of label (regex) and pointer to MCC.
   /*! A helper class that stores a label (regex) and a pointer to a
     service.
   */
@@ -24,7 +24,7 @@ namespace Arc {
     PlexerEntry(const RegularExpression& label,
 		MCCInterface* service);
     RegularExpression label;
-    MCCInterface* service;
+    MCCInterface* mcc;
     friend class Plexer;
   };
 
@@ -75,11 +75,11 @@ namespace Arc {
     //! Extracts the path part of an URL.
     static std::string getPath(std::string url);
 
-    //! The map of services.
-    /*! This is a map that maps service labels (strings) to services
-      (with MCC interface). It is used for routing messages.
+    //! The map of next MCCs.
+    /*! This is a map that maps labels (regex expressions) to next
+      elements with MCC interface. It is used for routing messages.
     */
-    std::list<PlexerEntry> services;
+    std::list<PlexerEntry> mccs;
   };
 
 }
