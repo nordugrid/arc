@@ -194,6 +194,10 @@ bool ArcPDP::isPermitted(Message *msg){
 
   //Call the evaluation functionality inside Evaluator
   Response *resp = eval->evaluate(requestxml);
+  if(!resp) {
+    logger.msg(ERROR, "Not authorized from arc.pdp - failed to get reponse from Evaluator");
+    return false;
+  };
   ResponseList rlist = resp->getResponseItems();
   int size = rlist.size();
 
@@ -237,8 +241,8 @@ bool ArcPDP::isPermitted(Message *msg){
   else if(atleast_onepermit) result = true;
   else result = false;
 
-  if(result) logger.msg(INFO, "Authorized from arc.pdp");
-  else logger.msg(ERROR, "UnAuthorized from arc.pdp; Some of the RequestItem does not satisfy Policy");
+  if(result) logger.msg(INFO, "Authorized by arc.pdp");
+  else logger.msg(INFO, "Not authorized by arc.pdp - some of the RequestItem elements do not satisfy Policy");
   
   if(resp) delete resp;
     
