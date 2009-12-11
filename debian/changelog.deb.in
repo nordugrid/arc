@@ -1,5 +1,12 @@
 nordugrid-arc-nox (@VERSION@-1) unstable; urgency=low
 
-  * Initial release
+  * New upstream release.
 
  -- Anders Waananen <waananen@nbi.dk>  @DATER@
+
+nordugrid-arc-nox (1.0.0-1) unstable; urgency=low
+
+  * Initial release (Closes: #560255).
+
+ -- Anders Waananen <waananen@nbi.dk>  Sun, 29 Nov 2009 23:46:25 +0100
+
