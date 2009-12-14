@@ -262,7 +262,7 @@ Provides: nordugrid-arc1-java
 Replaces: nordugrid-arc1-java (<< 1.0.0~)
 Conflicts: nordugrid-arc1-java (<< 1.0.0~)
 Architecture: any
-Depends: ${shlibs:Depends}, sun-java6-jre|java-virtual-machine
+Depends: ${shlibs:Depends}, default-jre|java-virtual-machine
 Recommends: java6-runtime | java5-runtime | java2-runtime
 Description: ARC Java wrapper
  The NorduGrid is a collaboration aiming at development, maintenance
