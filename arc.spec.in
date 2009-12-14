@@ -553,9 +553,9 @@ exit 0
 %doc %{_mandir}/man1/chelonia.1*
 %doc %{_mandir}/man1/perftest.1.gz
 %doc %{_mandir}/man1/saml_assertion_init.1*
-%doc src/clients/charon/charon_client.xml.example
-%doc src/clients/charon/charon_request.xml.example
-%doc src/tests/echo/echo.wsdl
+%doc %{_datadir}/%{pkgdir}/examples/charon/charon_client.xml.example
+%doc %{_datadir}/%{pkgdir}/examples/charon/charon_request.xml.example
+%doc %{_datadir}/%{pkgdir}/examples/echo/echo.wsdl
 
 %files hed
 %defattr(-,root,root,-)
@@ -564,20 +564,20 @@ exit 0
 %{_libdir}/%{pkgdir}/libecho.so
 %{_datadir}/%{pkgdir}/profiles
 %{_datadir}/%{pkgdir}/examples/config
-%doc src/tests/echo/echo_service.xml.example
+%doc %{_datadir}/%{pkgdir}/examples/echo/echo_service.xml.example
 %doc %{_mandir}/man8/arched.8*
 
 %files charon
 %defattr(-,root,root,-)
 %{_libdir}/%{pkgdir}/libcharon.so
-%doc src/services/charon/charon_policy_arc.xml.example
-%doc src/services/charon/charon_policy_xacml.xml.example
-%doc src/services/charon/charon_service.xml.example
+%doc %{_datadir}/%{pkgdir}/examples/charon/charon_policy_arc.xml.example
+%doc %{_datadir}/%{pkgdir}/examples/charon/charon_policy_xacml.xml.example
+%doc %{_datadir}/%{pkgdir}/examples/charon/charon_service.xml.example
 
 %files hopi
 %defattr(-,root,root,-)
 %{_libdir}/%{pkgdir}/libhopi.so
-%doc src/services/hopi/hopi_service.xml.example
+%doc %{_datadir}/%{pkgdir}/examples/hopi/hopi_service.xml.example
 
 %files isis
 %defattr(-,root,root,-)
@@ -653,9 +653,11 @@ exit 0
 %{_datadir}/%{pkgdir}/nordugrid.schema
 %doc %{_mandir}/man1/cache-clean.1*
 %doc %{_mandir}/man1/cache-list.1*
-%doc src/services/a-rex/arex.xml.example
-%doc src/services/a-rex/arex_minimalistic.xml.example
-%doc src/services/a-rex/arex_secure.xml.example
+%doc %{_datadir}/%{pkgdir}/examples/a-rex/arex.xml.example
+%doc %{_datadir}/%{pkgdir}/examples/a-rex/arex_minimalistic.xml.example
+%doc %{_datadir}/%{pkgdir}/examples/a-rex/arex_secure.xml.example
+%doc %{_datadir}/%{pkgdir}/examples/a-rex/arex_showcase.xml.example
+%doc %{_datadir}/%{pkgdir}/examples/a-rex/arex_xmlonly.xml.example
 
 %files devel
 %defattr(-,root,root,-)
@@ -700,7 +702,7 @@ exit 0
 %{_libdir}/%{pkgdir}/libaccPythonBroker.so
 %{ifpy}%{_libdir}/%{pkgdir}/libpythonservice.so
 %{_datadir}/%{pkgdir}/examples/storage_service.xml.example
-%doc src/hed/acc/PythonBroker/SampleBroker.py
+%doc %{_datadir}/%{pkgdir}/examples/PythonBroker/SampleBroker.py*
 
 %if %{with_java}
 %files java

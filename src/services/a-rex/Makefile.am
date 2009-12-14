@@ -6,9 +6,9 @@ noinst_PROGRAMS=test test_cache_check
 initddir=@initddir@
 initd_SCRIPTS=a-rex
 
-docdir = @docdir@
-doc_DATA = arex.xml.example arex_secure.xml.example arex_minimalistic.xml.example \
-           arex_xmlonly.xml.example arex_showcase.xml.example
+exampledir = $(pkgdatadir)/examples/a-rex
+example_DATA = arex.xml.example arex_secure.xml.example arex_minimalistic.xml.example \
+               arex_xmlonly.xml.example arex_showcase.xml.example
 
 #GRIDMANAGER_LIBS = grid-manager/conf/libconf.la grid-manager/jobs/libjobs.la grid-manager/files/libfiles.la grid-manager/run/librun.la \
 #                   grid-manager/jobdesc/libjobdesc.la grid-manager/misc/libmisc.la grid-manager/log/liblog.la \
@@ -40,4 +40,4 @@ test_cache_check_LDFLAGS  = $(GLIBMM_LIBS) $(LIBXML2_LIBS)
 test_cache_check_LDADD    = $(top_srcdir)/src/hed/libs/common/libarccommon.la $(top_srcdir)/src/hed/libs/loader/libarcloader.la $(top_srcdir)/src/hed/libs/message/libarcmessage.la $(top_srcdir)/src/hed/libs/client/libarcclient.la
 
 
-EXTRA_DIST = $(doc_DATA)
+EXTRA_DIST = $(example_DATA)

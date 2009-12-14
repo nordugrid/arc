@@ -2,8 +2,9 @@ SUBDIRS=schema
 pkglib_LTLIBRARIES = libecho.la
 noinst_PROGRAMS=test test_client test_clientinterface test_service
 bin_PROGRAMS=perftest
-docdir = @docdir@
-doc_DATA = echo_service.xml.example echo.wsdl
+
+exampledir = $(pkgdatadir)/examples/echo
+example_DATA = echo_service.xml.example echo.wsdl
 
 libecho_la_SOURCES  = echo.cpp echo.h
 libecho_la_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
@@ -35,6 +36,6 @@ perftest_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
 perftest_LDFLAGS  = $(GLIBMM_LIBS) $(LIBXML2_LIBS)
 perftest_LDADD    = $(top_srcdir)/src/hed/libs/common/libarccommon.la $(top_srcdir)/src/hed/libs/loader/libarcloader.la $(top_srcdir)/src/hed/libs/message/libarcmessage.la
 
-EXTRA_DIST = $(doc_DATA)
+EXTRA_DIST = $(example_DATA)
 
 man_MANS = perftest.1

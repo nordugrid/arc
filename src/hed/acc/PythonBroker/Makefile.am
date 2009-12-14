@@ -10,5 +10,7 @@ libaccPythonBroker_la_LIBADD   = \
 	$(top_srcdir)/src/hed/libs/loader/libarcloader.la \
 	$(GLIBMM_LIBS) $(LIBXML2_LIBS) $(PYTHON_LIBS)
 
-doc_DATA = SampleBroker.py
-EXTRA_DIST = $(doc_DATA)
+exampledir =  $(pkgdatadir)/examples/PythonBroker
+example_DATA = SampleBroker.py
+
+EXTRA_DIST = $(example_DATA)

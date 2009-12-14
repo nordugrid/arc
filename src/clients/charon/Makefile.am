@@ -1,5 +1,7 @@
 bin_PROGRAMS = arcdecision
-doc_DATA = charon_client.xml.example charon_request.xml.example
+
+exampledir = $(pkgdatadir)/examples/charon
+example_DATA = charon_client.xml.example charon_request.xml.example
 
 man_MANS = arcdecision.1 
 
@@ -14,4 +16,4 @@ arcdecision_SOURCES  = arcdecision.cpp
 arcdecision_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
 arcdecision_LDADD    = $(CLILIBS)
 
-EXTRA_DIST = $(doc_DATA)
+EXTRA_DIST = $(example_DATA)
