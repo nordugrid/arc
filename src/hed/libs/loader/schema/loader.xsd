@@ -83,7 +83,7 @@
     <xsd:complexType>
         <xsd:annotation>
             <xsd:documentation xml:lang="en">
-            This element defines MCC plugin. Required attribute 'name' specifies name of plugin as defined in MCC description. Optional attribute 'id' assigns identifier which is used to refer to this element from others. If not specified it will be assigned automatically. Sub-elements 'next' refer to next components in a chain through their attribute 'id' and their content represent assigned component-specific label. If attribute 'id' is missing all 'next' refer to next component in document. If 'next' is missing one label-less 'next' is assigned automatically. Presence of attribute 'entry' exposes this MCC through Loader class interface to external code. That is meant to be used in code which cretes chains dynamically like client utilities. Rest elements define component-specific configuration.
+            This element defines MCC plugin. Required attribute 'name' specifies name of plugin as defined in MCC description. Required attribute 'id' assigns identifier which is used to refer to this element from others. Sub-elements 'next' refer to next components in a chain through their attribute 'id' and their content represent assigned component-specific label. If attribute 'id' is missing all 'next' refer to next component in document. If 'next' is missing one label-less 'next' is assigned automatically. Presence of attribute 'entry' exposes this MCC through Loader class interface to external code. That is meant to be used in code which cretes chains dynamically like client utilities. Rest elements define component-specific configuration.
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
@@ -92,7 +92,7 @@
             <xsd:any namespace="##other" processContents="strict" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
         <xsd:attribute name="name" type="xsd:string" use="required"/>
-        <xsd:attribute name="id" type="xsd:string" use="optional"/>
+        <xsd:attribute name="id" type="xsd:string" use="required"/>
         <xsd:attribute name="entry" type="xsd:string" use="optional"/>
         <xsd:anyAttribute namespace="##other" processContents="strict"/>
     </xsd:complexType>
@@ -103,7 +103,7 @@
     <xsd:complexType>
         <xsd:annotation>
             <xsd:documentation xml:lang="en">
-             This element is a Plexer. Optional attribute 'id' assigns identifier which is used to refer to this element from others. If not specified it will be assigned automatically. Sub-elements 'next' refer to next components in a chain and their content represent requested endpoints. In Plexer content of element 'next' represents Regular Expression pattern. For every incoming message path part of message's endpoint is matched pattern.In case of ordinary service element 'next' may look like
+             This element is a Plexer. Optional attribute 'id' assigns identifier which is used to refer to this element from others. If not specified it will be assigned to "plexer" automatically. Sub-elements 'next' refer to next components in a chain and their content represent requested endpoints. In Plexer content of element 'next' represents Regular Expression pattern. For every incoming message path part of message's endpoint is matched pattern.In case of ordinary service element 'next' may look like
               <next>^/service$</next>
             If service is also responsible for whole subtree then simple solution is
               <next>^/service</next>
@@ -128,7 +128,7 @@
     <xsd:complexType>
         <xsd:annotation>
             <xsd:documentation xml:lang="en">
-             This element represents a service - last compnent in a chain. Required attribute 'name' specifies name of plugin as defined in Service description. Optional attribute 'id' assigns identifier which is used to refer to this element from others. If not specified it will be assigned automatically. Rest elements define service-specific configuration.
+             This element represents a service - last compnent in a chain. Required attribute 'name' specifies name of plugin as defined in Service description. Required attribute 'id' assigns identifier which is used to refer to this element from others. Rest elements define service-specific configuration.
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
@@ -136,7 +136,7 @@
             <xsd:any namespace="##other" processContents="strict" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
         <xsd:attribute name="name" type="xsd:string" use="required"/>
-        <xsd:attribute name="id" type="xsd:string" use="optional"/>
+        <xsd:attribute name="id" type="xsd:string" use="required"/>
         <xsd:anyAttribute namespace="##other" processContents="strict"/>
     </xsd:complexType>
 </xsd:element>
