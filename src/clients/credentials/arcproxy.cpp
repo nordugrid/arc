@@ -153,9 +153,12 @@ int main(int argc, char *argv[]) {
                                          ),
                     istring("string"), vomslist);
 
-  std::string order;
-  options.AddOption('o', "order", istring("group<:role>. Specify ordering of attributes"),
-                    istring("string"), order);
+  std::list<std::string> orderlist;
+  options.AddOption('o', "order", istring("group<:role>. Specify ordering of attributes \n"
+                    "              Example: --order /knowarc.eu/coredev:Developer,/knowarc.eu/testers:Tester \n"
+                    "              or: --order /knowarc.eu/coredev:Developer --order /knowarc.eu/testers:Tester \n"
+                    " Note that it does not make sense to specify the order if you have two or more different voms server specified"),
+                    istring("string"), orderlist);
 
   bool use_gsi_comm = false;
   options.AddOption('G', "gsicom", istring("use GSI communication protocol for contacting VOMS services"), use_gsi_comm);
@@ -653,7 +656,7 @@ int main(int argc, char *argv[]) {
       out_f.close();
 
       //Parse the voms server and command from command line
-      std::map<std::string, std::string> server_command_map;
+      std::multimap<std::string, std::string> server_command_map;
       for (std::list<std::string>::iterator it = vomslist.begin();
            it != vomslist.end(); it++) {
         size_t p;
@@ -662,7 +665,8 @@ int main(int argc, char *argv[]) {
         p = (*it).find(":");
         voms_server = (p == std::string::npos) ? (*it) : (*it).substr(0, p);
         command = (p == std::string::npos) ? "" : (*it).substr(p + 1);
-        server_command_map[voms_server] = command;
+        server_command_map.insert(std::pair<std::string, std::string>(voms_server, command));
+//        server_command_map[voms_server] = command;
       }
 
       //Parse the 'vomses' file to find configure lines corresponding to
@@ -713,7 +717,7 @@ int main(int argc, char *argv[]) {
           pos = voms_line.rfind("\"");
           if (pos != std::string::npos) {
             str = voms_line.substr(pos + 1);
-            for (std::map<std::string, std::string>::iterator it = server_command_map.begin();
+            for (std::multimap<std::string, std::string>::iterator it = server_command_map.begin();
                  it != server_command_map.end(); it++) {
               std::string voms_server = (*it).first;
               if (str == voms_server) {
@@ -730,7 +734,7 @@ int main(int argc, char *argv[]) {
           size_t pos2 = voms_line.find("\"", pos1+1);
           if (pos2 != std::string::npos) {
             std::string str1 = voms_line.substr(pos1+1, pos2-pos1-1);
-            for (std::map<std::string, std::string>::iterator it = server_command_map.begin();
+            for (std::multimap<std::string, std::string>::iterator it = server_command_map.begin();
                  it != server_command_map.end(); it++) {
               std::string voms_server = (*it).first;
               if (str1 == voms_server) {
@@ -748,7 +752,7 @@ int main(int argc, char *argv[]) {
       // throw std::runtime_error("Cannot get voms server information from file: " + vomses_path);
       //}
       if (matched_voms_line.size() != server_command_map.size())
-        for (std::map<std::string, std::string>::iterator it = server_command_map.begin();
+        for (std::multimap<std::string, std::string>::iterator it = server_command_map.begin();
              it != server_command_map.end(); it++)
           if (matched_voms_line.find((*it).first) == matched_voms_line.end())
             logger.msg(Arc::ERROR, "Cannot get voms server %s information from file: %s ",
@@ -756,7 +760,7 @@ int main(int argc, char *argv[]) {
 
       //Contact the voms server to retrieve attribute certificate
       std::string voms_server;
-      std::string command;
+      std::list<std::string> command_list;
       ArcCredential::AC **aclist = NULL;
       std::string acorder;
       Arc::MCCConfig cfg;
@@ -768,7 +772,14 @@ int main(int argc, char *argv[]) {
         std::map<std::string, std::string>::iterator it = matched_voms_line.begin();
         voms_server = (*it).first;
         voms_line = (*it).second;
-        command = server_command_map[voms_server];
+        int count = server_command_map.count(voms_server);
+        logger.msg(Arc::DEBUG, "There are %d commands to the same voms server %s\n", count, voms_server.c_str());
+ 
+        std::multimap<std::string, std::string>::iterator command_it;
+        for(command_it = server_command_map.equal_range(voms_server).first; command_it!=server_command_map.equal_range(voms_server).second; ++command_it) {
+          command_list.push_back((*command_it).second);
+        }
+
         size_t p = 0;
         for (int i = 0; i < 3; i++) {
           p = voms_line.find("\"", p);
@@ -789,27 +800,34 @@ int main(int argc, char *argv[]) {
         std::cout << Arc::IString("Contacting VOMS server (named %s): %s on port: %s", voms_server, address, port) << std::endl;
 
         std::string send_msg;
-        send_msg.append("<?xml version=\"1.0\" encoding = \"US-ASCII\"?><voms><command>");
-        std::string command_2server;
-        if (command.empty())
-          command_2server.append("G/").append(voms_server);
-        else if (command == "all" || command == "ALL")
-          command_2server.append("A");
-        else if (command == "list")
-          command_2server.append("N");
-        else {
-          std::string::size_type pos = command.find("/Role=");
-          if (pos == 0)
-            command_2server.append("R").append(command.substr(pos + 6));
-          else if (pos != std::string::npos && pos > 0)
-            command_2server.append("B").append(command.substr(0, pos)).append(":").append(command.substr(pos + 6));
-          else if(command[0] == '/')
-            command_2server.append("G").append(command);
+        send_msg.append("<?xml version=\"1.0\" encoding = \"US-ASCII\"?><voms>");
+        std::string command;
+
+        for(std::list<std::string>::iterator c_it = command_list.begin(); c_it != command_list.end(); c_it++) {
+          std::string command_2server;
+          command = *c_it;
+          if (command.empty())
+            command_2server.append("G/").append(voms_server);
+          else if (command == "all" || command == "ALL")
+            command_2server.append("A");
+          else if (command == "list")
+            command_2server.append("N");
+          else {
+            std::string::size_type pos = command.find("/Role=");
+            if (pos == 0)
+              command_2server.append("R").append(command.substr(pos + 6));
+            else if (pos != std::string::npos && pos > 0)
+              command_2server.append("B").append(command.substr(0, pos)).append(":").append(command.substr(pos + 6));
+            else if(command[0] == '/')
+              command_2server.append("G").append(command);
+          }
+          send_msg.append("<command>").append(command_2server).append("</command>");
         }
-        send_msg.append(command_2server).append("</command>");
 
         std::string ordering;
-        ordering.append(order);
+        for(std::list<std::string>::iterator o_it = orderlist.begin(); o_it != orderlist.end(); o_it++) {
+          ordering.append(o_it == orderlist.begin() ? "" : ",").append(*o_it);
+        }
         logger.msg(Arc::VERBOSE, "Try to get attribute from voms server with order: %s ", ordering.c_str());
         send_msg.append("<order>").append(ordering).append("</order>");
 
