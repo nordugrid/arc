@@ -666,7 +666,6 @@ int main(int argc, char *argv[]) {
         voms_server = (p == std::string::npos) ? (*it) : (*it).substr(0, p);
         command = (p == std::string::npos) ? "" : (*it).substr(p + 1);
         server_command_map.insert(std::pair<std::string, std::string>(voms_server, command));
-//        server_command_map[voms_server] = command;
       }
 
       //Parse the 'vomses' file to find configure lines corresponding to
@@ -683,16 +682,25 @@ int main(int argc, char *argv[]) {
           if (!Glib::file_test(vomses_path, Glib::FILE_TEST_IS_REGULAR)) {
             vomses_path = user.Home() + G_DIR_SEPARATOR_S + ".vomses";
             if (!Glib::file_test(vomses_path, Glib::FILE_TEST_IS_REGULAR)) {
-              vomses_path = "/etc/grid-security/vomses";
+              vomses_path = G_DIR_SEPARATOR_S;
+              vomses_path.append("etc").append(G_DIR_SEPARATOR_S).append("grid-security").append(G_DIR_SEPARATOR_S).append("vomses");
               if (!Glib::file_test(vomses_path, Glib::FILE_TEST_IS_REGULAR)) {
-                vomses_path = user.Home() + G_DIR_SEPARATOR_S + ".voms" + G_DIR_SEPARATOR_S + "vomses";
+                vomses_path = G_DIR_SEPARATOR_S;
+                vomses_path.append("etc").append(G_DIR_SEPARATOR_S).append("vomses");
                 if (!Glib::file_test(vomses_path, Glib::FILE_TEST_IS_REGULAR)) {
-                  std::string tmp1 = user.Home() + G_DIR_SEPARATOR_S + ".vomses";
-                  std::string tmp2 = user.Home() + G_DIR_SEPARATOR_S + ".voms" + G_DIR_SEPARATOR_S + "vomses";
-                  std::string tmp3 = Arc::ArcLocation::Get() + G_DIR_SEPARATOR_S + "etc" + G_DIR_SEPARATOR_S + "grid-security" + G_DIR_SEPARATOR_S + "vomses";
-                  logger.msg(Arc::ERROR, "Cannot find vomses at %s, %s, %s and /etc/grid-security/vomses",
-                             tmp1.c_str(), tmp2.c_str(), tmp3.c_str());
-                  return EXIT_FAILURE;
+                  vomses_path = user.Home() + G_DIR_SEPARATOR_S + ".voms" + G_DIR_SEPARATOR_S + "vomses";
+                  if (!Glib::file_test(vomses_path, Glib::FILE_TEST_IS_REGULAR)) {
+                    std::string tmp1 = Arc::ArcLocation::Get() + G_DIR_SEPARATOR_S + "etc" + G_DIR_SEPARATOR_S + "grid-security" + G_DIR_SEPARATOR_S + "vomses";
+                    std::string tmp2 = user.Home() + G_DIR_SEPARATOR_S + ".vomses";
+                    std::string tmp3 = G_DIR_SEPARATOR_S;
+                    tmp3.append("etc").append(G_DIR_SEPARATOR_S).append("grid-security").append(G_DIR_SEPARATOR_S).append("vomses");
+                    std::string tmp4 = G_DIR_SEPARATOR_S;
+                    tmp4.append("etc").append(G_DIR_SEPARATOR_S).append("vomses");
+                    std::string tmp5 = user.Home() + G_DIR_SEPARATOR_S + ".voms" + G_DIR_SEPARATOR_S + "vomses";
+                    logger.msg(Arc::ERROR, "Cannot find vomses at %s, %s, %s, %s and %s",
+                               tmp1.c_str(), tmp2.c_str(), tmp3.c_str(), tmp4.c_str(), tmp5.c_str());
+                    return EXIT_FAILURE;
+                  }
                 }
               }
             }
