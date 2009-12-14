@@ -152,6 +152,11 @@ int main(int argc, char *argv[]) {
                                          "                               has such a role, the role will be put into AC \n"
                                          ),
                     istring("string"), vomslist);
+
+  std::string order;
+  options.AddOption('o', "order", istring("group<:role>. Specify ordering of attributes"),
+                    istring("string"), order);
+
   bool use_gsi_comm = false;
   options.AddOption('G', "gsicom", istring("use GSI communication protocol for contacting VOMS services"), use_gsi_comm);
 
@@ -798,8 +803,17 @@ int main(int argc, char *argv[]) {
             command_2server.append("R").append(command.substr(pos + 6));
           else if (pos != std::string::npos && pos > 0)
             command_2server.append("B").append(command.substr(0, pos)).append(":").append(command.substr(pos + 6));
+          else if(command[0] == '/')
+            command_2server.append("G").append(command);
         }
-        send_msg.append(command_2server).append("</command><lifetime>").append(voms_period).append("</lifetime></voms>");
+        send_msg.append(command_2server).append("</command>");
+
+        std::string ordering;
+        ordering.append(order);
+        logger.msg(Arc::VERBOSE, "Try to get attribute from voms server with order: %s ", ordering.c_str());
+        send_msg.append("<order>").append(ordering).append("</order>");
+
+        send_msg.append("<lifetime>").append(voms_period).append("</lifetime></voms>");
         Arc::ClientTCP client(cfg, address, atoi(port.c_str()), use_gsi_comm ? Arc::GSISec : Arc::SSL3Sec, usercfg.Timeout());
         Arc::PayloadRaw request;
         request.Insert(send_msg.c_str(), 0, send_msg.length());
@@ -826,11 +840,14 @@ int main(int argc, char *argv[]) {
           memset(ret_buf, 0, 1024);
         } while (len == 1024);
         logger.msg(Arc::VERBOSE, "Returned msg from voms server: %s ", ret_str.c_str());
-        if (ret_str.find("error") != std::string::npos)
-          throw std::runtime_error("Cannot get any AC or attributes info from voms server: " + voms_server);
+        Arc::XMLNode node(ret_str);
+
+        if (ret_str.find("error") != std::string::npos) {
+          std::string str = node["error"]["item"]["message"];
+          throw std::runtime_error("Cannot get any AC or attributes info from voms server: " + voms_server + ";\n       Returned msg from voms server: " + str);
+        }
 
         //Put the return attribute certificate into proxy certificate as the extension part
-        Arc::XMLNode node(ret_str);
         std::string codedac;
         if (command == "list")
           codedac = (std::string)(node["bitstr"]);
