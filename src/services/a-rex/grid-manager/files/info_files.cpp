@@ -716,6 +716,7 @@ bool job_local_write_file(const std::string &fname,const JobLocalDescription &jo
     write_pair(f,"migrateactivityid",job_desc.migrateactivityid);
     write_pair(f,"forcemigration",job_desc.forcemigration);
   }
+  write_pair(f,"transfershare",job_desc.transfershare);
   f.close();
   return true;
 }
