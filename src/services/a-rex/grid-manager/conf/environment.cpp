@@ -124,6 +124,8 @@ static prstring nordugrid_lib_loc_;
 static prstring nordugrid_sbin_loc_;
 // ARC configuration file
 static prstring nordugrid_config_loc_;
+// Certificates directory 
+static prstring cert_dir_loc_;
 // RTE setup scripts
 static prstring runtime_config_dir_;
 // Email address of person responsible for this ARC installation
@@ -157,6 +159,10 @@ std::string nordugrid_sbin_loc(void) {
 
 std::string nordugrid_config_loc(void) {
   return nordugrid_config_loc_.str();
+}
+
+std::string cert_dir_loc(void) {
+  return cert_dir_loc_.str();
 }
 
 void nordugrid_config_loc(const std::string& val) {
@@ -241,6 +247,11 @@ bool read_env_vars(bool guess) {
     };
     if(!tmp.empty()) nordugrid_config_loc_=tmp;
   };
+  
+  if(cert_dir_loc_.empty()) {
+    cert_dir_loc_=Arc::GetEnv("X509_CERT_DIR");
+  };
+
   // Set all environement variables for other tools
   Arc::SetEnv("ARC_CONFIG",nordugrid_config_loc_);
   if(support_mail_address_.empty()) {

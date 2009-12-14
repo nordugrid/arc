@@ -35,6 +35,7 @@
 #include <arc/DateTime.h>
 #include <arc/StringConv.h>
 #include <arc/URL.h>
+#include <arc/credential/Credential.h>
 
 static Arc::Logger& logger = Arc::Logger::getRootLogger();
 
@@ -48,6 +49,8 @@ int JobsList::max_jobs_processing_emergency=1;
 int JobsList::max_jobs_running=-1;
 int JobsList::max_jobs=-1;
 int JobsList::max_downloads=-1;
+unsigned int JobsList::max_processing_share = 0;
+std::string JobsList::share_type = "";
 unsigned long long int JobsList::min_speed=0;
 time_t JobsList::min_speed_time=300;
 unsigned long long int JobsList::min_average_speed=0;
@@ -133,6 +136,83 @@ bool JobsList::ActJob(const JobId &id,bool hard_job)  {
 }
 
 bool JobsList::ActJobs(bool hard_job) {
+  if (!JobsList::share_type.empty() && max_processing_share > 0) {
+ /**
+     * transfer share calculation - look at current share
+     * for preparing and finishing states, then look at
+     * jobs ready to go into preparing or finished and set
+     * the share. Need to do it here because in the ActJob*
+     * methods we don't have an overview of all jobs.
+     * In those methods we check the share to see if each
+     * job can proceed.
+     */
+
+    // clear shares with 0 count
+    for (std::map<std::string, int>::iterator i = preparing_job_share.begin(); i != preparing_job_share.end(); i++)
+      if (i->second == 0) preparing_job_share.erase(i);
+    for (std::map<std::string, int>::iterator i = finishing_job_share.begin(); i != finishing_job_share.end(); i++)
+      if (i->second == 0) finishing_job_share.erase(i);
+
+    // counters of current and potential preparing/finishing jobs
+    std::map<std::string, int> pre_preparing_job_share = preparing_job_share;
+    std::map<std::string, int> pre_finishing_job_share = finishing_job_share;
+
+    for (iterator i=jobs.begin();i!=jobs.end();i++) {
+      if (i->job_state == JOB_STATE_ACCEPTED) {
+        // is job ready to move to preparing?
+        if (/*i->retries == 0 &&*/ i->local->processtime != -1) {
+          if (i->local->processtime <= time(NULL)) {
+              pre_preparing_job_share[i->transfer_share]++;
+          }
+        }
+        else //if (i->next_retry <= time(NULL)) {
+          pre_preparing_job_share[i->transfer_share]++;
+        //}
+      }
+      else if (i->job_state == JOB_STATE_INLRMS) {
+        // is job ready to move to finishing?
+        if (job_lrms_mark_check(i->job_id,*user) /*&& i->next_retry <= time(NULL)*/) {
+          pre_finishing_job_share[i->transfer_share]++;
+        }
+      }
+    };
+    // calculate the number of slots that can be allocated per share
+    // count the total number of jobs (pre)preparing
+    int total_pre_preparing = 0;
+    for (std::map<std::string, int>::iterator i = pre_preparing_job_share.begin(); i != pre_preparing_job_share.end(); i++) {
+      total_pre_preparing += i->second;
+    }
+    if (max_jobs_processing == -1 || pre_preparing_job_share.size() <= (max_jobs_processing / max_processing_share))
+      preparing_max_share = max_processing_share;
+    else if (pre_preparing_job_share.size() > max_jobs_processing)
+      preparing_max_share = 1;
+    else if (total_pre_preparing <= max_jobs_processing)
+      preparing_max_share = max_processing_share;
+    else
+      preparing_max_share = max_jobs_processing / pre_preparing_job_share.size();
+
+    // count the total number of jobs (pre)finishing
+ int total_pre_finishing = 0;
+    for (std::map<std::string, int>::iterator i = pre_finishing_job_share.begin(); i != pre_finishing_job_share.end(); i++) {
+      total_pre_finishing += i->second;
+    }
+    if (max_jobs_processing == -1 || pre_finishing_job_share.size() <= (max_jobs_processing / max_processing_share))
+      finishing_max_share = max_processing_share;
+    else if (pre_finishing_job_share.size() > max_jobs_processing)
+      finishing_max_share = 1;
+    else if (total_pre_finishing <= max_jobs_processing)
+      finishing_max_share = max_processing_share;
+    else
+      finishing_max_share = max_jobs_processing / pre_finishing_job_share.size();
+
+    // if there are queued jobs for both preparing and finishing, split the share between the two states
+    if (max_jobs_processing > 0 && total_pre_preparing > max_jobs_processing/2 && total_pre_finishing > max_jobs_processing/2) {
+      preparing_max_share = preparing_max_share < 2 ? 1 : preparing_max_share/2;
+      finishing_max_share = finishing_max_share < 2 ? 1 : finishing_max_share/2;
+    }
+  } // if transfer share activated
+
+
   bool res = true;
   bool once_more = false;
   bool postpone_preparing = false;
@@ -721,6 +801,22 @@ void JobsList::ActJobUndefined(JobsList::iterator &i,bool /*hard_job*/,
               return; /* go to next job */
             };
             i->local=job_desc;
+   	    // set transfer share
+            if (!share_type.empty()) {
+		std::string user_proxy_file = job_proxy_filename(i->get_id(), *user).c_str();
+		std::string cert_dir = "/etc/grid-security/certificates";
+		std::string v = cert_dir_loc();
+		if(! v.empty()) cert_dir = v;
+	        Arc::Credential u(user_proxy_file,"",cert_dir,"");
+
+		const std::string share = u.get_property(share_type);
+                i->set_share(share);
+              logger.msg(Arc::INFO, "%s: adding to transfer share %s",i->get_id(),i->transfer_share);
+            }
+            job_desc->transfershare = i->transfer_share;
+            job_local_write_file(*i,*user,*job_desc);
+            i->local->transfershare=i->transfer_share;
+
             // prepare information for logger
             job_log.make_file(*i,*user);
           } else if(new_state == JOB_STATE_FINISHED) {
@@ -732,6 +828,23 @@ void JobsList::ActJobUndefined(JobsList::iterator &i,bool /*hard_job*/,
                 JobDescription::get_state_name(new_state),i->get_uid(),i->get_gid());
             // Make it clean state after restart
             job_state_write_file(*i,*user,i->job_state);
+	    // set transfer share and counters
+            JobLocalDescription job_desc;
+            if (!share_type.empty()) {
+        	 std::string user_proxy_file = job_proxy_filename(i->get_id(), *user).c_str();
+		std::string cert_dir = "/etc/grid-security/certificates";
+		std::string v = cert_dir_loc();
+		if(! v.empty()) cert_dir = v;
+                Arc::Credential u(user_proxy_file,"",cert_dir,"");
+                const std::string share = u.get_property(share_type);
+              i->set_share(share);
+              logger.msg(Arc::INFO, "%s: adding to transfer share %s",i->get_id(),i->transfer_share);
+            }
+            job_desc.transfershare = i->transfer_share;
+            job_local_write_file(*i,*user,job_desc);
+            if (new_state == JOB_STATE_PREPARING) preparing_job_share[i->transfer_share]++;
+            if (new_state == JOB_STATE_FINISHING) finishing_job_share[i->transfer_share]++;
+	
           };
         }; // Not doing JobPending here because that job kind of does not exist.
         return;
@@ -757,9 +870,11 @@ void JobsList::ActJobAccepted(JobsList::iterator &i,bool /*hard_job*/,
         if((max_jobs_processing == -1) ||
            (use_local_transfer) ||
            ((i->local->downloads == 0) && (i->local->rtes == 0)) ||
-           (JOB_NUM_PROCESSING < max_jobs_processing) ||
+           (((JOB_NUM_PROCESSING < max_jobs_processing) ||
            ((JOB_NUM_FINISHING >= max_jobs_processing) && 
-            (JOB_NUM_PREPARING < max_jobs_processing_emergency))) {
+            (JOB_NUM_PREPARING < max_jobs_processing_emergency))) && 
+	   (share_type.empty() || preparing_job_share[i->transfer_share] < preparing_max_share)))
+	{
           /* check for user specified time */
           if(i->local->processtime != -1) {
             logger.msg(Arc::INFO,"%s: State: ACCEPTED: have processtime %i",i->job_id.c_str(),
@@ -768,12 +883,14 @@ void JobsList::ActJobAccepted(JobsList::iterator &i,bool /*hard_job*/,
               logger.msg(Arc::INFO,"%s: State: ACCEPTED: moving to PREPARING",i->job_id);
               state_changed=true; once_more=true;
               i->job_state = JOB_STATE_PREPARING;
+	      preparing_job_share[i->transfer_share]++;
             };
           }
           else {
             logger.msg(Arc::INFO,"%s: State: ACCEPTED: moving to PREPARING",i->job_id);
             state_changed=true; once_more=true;
             i->job_state = JOB_STATE_PREPARING;
+	    preparing_job_share[i->transfer_share]++;
           };
           if(state_changed) {
             /* gather some frontend specific information for user,
@@ -795,6 +912,7 @@ void JobsList::ActJobPreparing(JobsList::iterator &i,bool /*hard_job*/,
         logger.msg(Arc::VERBOSE,"%s: State: PREPARING",i->job_id);
         if(i->job_pending || state_loading(i,state_changed,false)) {
           if(i->job_pending || state_changed) {
+	    if (state_changed) preparing_job_share[i->transfer_share]--;
             if((JOB_NUM_RUNNING<max_jobs_running) || (max_jobs_running==-1)) {
               i->job_state = JOB_STATE_SUBMITTING;
               state_changed=true; once_more=true;
@@ -894,11 +1012,13 @@ void JobsList::ActJobInlrms(JobsList::iterator &i,bool /*hard_job*/,
           if((max_jobs_processing == -1) ||
              (use_local_transfer) ||
              (i->local->uploads == 0) ||
-             (JOB_NUM_PROCESSING < max_jobs_processing) ||
-             ((JOB_NUM_PREPARING >= max_jobs_processing) &&
-              (JOB_NUM_FINISHING < max_jobs_processing_emergency))) {
+             (((JOB_NUM_PROCESSING < max_jobs_processing) ||
+              ((JOB_NUM_PREPARING >= max_jobs_processing) &&
+               (JOB_NUM_FINISHING < max_jobs_processing_emergency))) &&
+              (share_type.empty() || finishing_job_share[i->transfer_share] < finishing_max_share))) {
             state_changed=true; once_more=true;
             i->job_state = JOB_STATE_FINISHING;
+	    finishing_job_share[i->transfer_share]++;
           } else JobPending(i);
         };
         return;
@@ -910,6 +1030,7 @@ void JobsList::ActJobFinishing(JobsList::iterator &i,bool hard_job,
         logger.msg(Arc::VERBOSE,"%s: State: FINISHING",i->job_id);
         if(state_loading(i,state_changed,true)) {
           if(state_changed) {
+	    finishing_job_share[i->transfer_share]--;
             i->job_state = JOB_STATE_FINISHED;
             once_more=true; hard_job=true;
           };
@@ -920,6 +1041,7 @@ void JobsList::ActJobFinishing(JobsList::iterator &i,bool hard_job,
           if(i->GetFailure().length() == 0)
             i->AddFailure("uploader failed (post-processing)");
           job_error=true;
+	  finishing_job_share[i->transfer_share]--;
           return; /* go to next job */
         };
         return;
@@ -1078,6 +1200,9 @@ bool JobsList::ActJob(JobsList::iterator &i,bool hard_job) {
           i->child->Kill(0);
           delete i->child; i->child=NULL;
         };
+        /* update transfer share counters */
+          if (i->job_state == JOB_STATE_PREPARING && !i->job_pending) preparing_job_share[i->transfer_share]--;
+          else if (i->job_state == JOB_STATE_FINISHING) finishing_job_share[i->transfer_share]--;
         /* put some explanation */
         i->AddFailure("User requested to cancel the job");
         /* behave like if job failed */
@@ -1323,3 +1448,4 @@ bool JobsList::ScanNewJobs(bool /*hard_job*/) {
   };
   return true;
 }
+

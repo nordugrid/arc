@@ -193,6 +193,20 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
       JobsList::SetMaxJobsLoad(
               max_jobs_processing,max_jobs_processing_emergency,max_downloads);
     }
+    else if(command == "maxloadshare") {
+	std::string max_share_s = config_next_arg(rest);
+        unsigned int max_share = 0;
+        if(max_share_s.length() != 0) {
+          if(!Arc::stringto(max_share_s,max_share) || max_share<=0) {
+            logger.msg(Arc::ERROR,"wrong number in maxloadshare: %s", max_share_s); goto exit;
+          };
+        };
+        std::string transfer_share = config_next_arg(rest);
+	if (transfer_share.empty()){
+            logger.msg(Arc::ERROR,"the type of share is not set in maxloadshare"); goto exit;
+	}
+        JobsList::SetTransferShare(max_share, transfer_share);
+    }
     else if(command == "speedcontrol") {  
       std::string speed_s = config_next_arg(rest);
       int min_speed=0;

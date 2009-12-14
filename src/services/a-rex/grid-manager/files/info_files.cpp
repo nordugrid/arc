@@ -61,6 +61,7 @@ const char * const sfx_diag        = ".diag";
 const char * const sfx_lrmsoutput  = ".comment";
 const char * const sfx_diskusage   = ".disk";
 const char * const sfx_acl         = ".acl";
+const char * const sfx_proxy         = ".proxy";
 
 static Arc::Logger& logger = Arc::Logger::getRootLogger();
 
@@ -876,6 +877,9 @@ bool job_input_read_file(const JobId &id,JobUser &user,std::list<FileData> &file
   return job_Xput_read_file(fname,files);
 }
 
+std::string job_proxy_filename(const JobId &id, const JobUser &user){
+	return user.ControlDir() + "/job." + id + sfx_proxy;
+}
 /* job.ID.rte functions */
 
 bool job_rte_write_file(const JobDescription &desc,JobUser &user,std::list<std::string> &rtes) {

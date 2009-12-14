@@ -49,6 +49,8 @@ class JobsList {
   static int max_jobs_processing;
   static int max_jobs_processing_emergency;
   static int max_jobs;
+  static unsigned int max_processing_share;
+  static std::string share_type;
   static unsigned long long int min_speed;
   static time_t min_speed_time;
   static unsigned long long int min_average_speed;
@@ -59,6 +61,12 @@ class JobsList {
   static bool use_local_transfer;
   static unsigned int wakeup_period;
   std::list<JobDescription> jobs;
+  /* counters of share for preparing/finishing states */
+  std::map<std::string, int> preparing_job_share;
+  std::map<std::string, int> finishing_job_share;
+ /* current max share for preparing/finishing */
+  int preparing_max_share;
+  int finishing_max_share;
   JobUser *user;
   ContinuationPlugins *plugins;
   /* Add job into list without checking if it is already there
@@ -126,6 +134,11 @@ class JobsList {
   };
   static void SetWakeupPeriod(unsigned int t) { wakeup_period=t; };
   static unsigned int WakeupPeriod(void) { return wakeup_period; };
+
+  static void SetTransferShare(unsigned int max_share, std::string type){
+	max_processing_share = max_share;
+	share_type = type;
+  };
  /* Add job to list */
   bool AddJob(JobUser &user,const JobId &id,uid_t uid,gid_t gid);
   bool AddJob(const JobId &id,uid_t uid,gid_t gid);

@@ -62,6 +62,10 @@ job_state_t JobDescription::get_state(const char* state) {
   return JOB_STATE_UNDEFINED;
 }
 
+void JobDescription::set_share(std::string share) {
+  transfer_share = share.empty() ? JobLocalDescription::transfersharedefault : share;
+}
+
 JobDescription::JobDescription(void) {
   job_state=JOB_STATE_UNDEFINED;
   job_pending=false;
@@ -81,6 +85,7 @@ JobDescription::JobDescription(const JobDescription &job) {
   child=NULL;
   local=job.local;
   job_uid=job.job_uid; job_gid=job.job_gid;
+  transfer_share=job.transfer_share;
 }
 
 JobDescription::JobDescription(const JobId &id,const std::string &dir,job_state_t state) {
@@ -93,6 +98,7 @@ JobDescription::JobDescription(const JobId &id,const std::string &dir,job_state_
   child=NULL;
   local=NULL;
   job_uid=0; job_gid=0;
+  transfer_share=JobLocalDescription::transfersharedefault;
 }
 
 JobDescription::~JobDescription(void){

@@ -202,6 +202,10 @@ class Credential {
      */
     std::string GetIdentityName(void);
 
+    /**Extract the needed field from the certificate
+    */
+    const std::string get_property(const std::string property);
+
     /**Get type of the certificate attached to this object*/
     ArcCredential::certType GetType(void);
 

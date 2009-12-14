@@ -199,6 +199,7 @@ bool job_output_read_file(const JobId &id,JobUser &user,std::list<FileData> &fil
 bool job_input_write_file(const JobDescription &desc,JobUser &user,std::list<FileData> &files);
 bool job_input_read_file(const JobId &id,JobUser &user,std::list<FileData> &files);
 
+std::string job_proxy_filename(const JobId &id, const JobUser &user);
 /*
   Same for RTEs.
 */

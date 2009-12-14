@@ -103,6 +103,8 @@ bool FileData::has_lfn(void) {
   return (lfn.find(':') != std::string::npos);
 }
 
+const std::string JobLocalDescription::transfersharedefault = "_default";
+
 JobLocalDescription& JobLocalDescription::operator=(const Arc::JobDescription& arc_job_desc)
 {
   action = "request";

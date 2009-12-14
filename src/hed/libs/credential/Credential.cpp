@@ -3,6 +3,8 @@
 #include <config.h>
 #endif
 
+#include <vector>
+
 #include <fstream>
 #include <fcntl.h>
 #include <openssl/ui.h>
@@ -11,6 +13,8 @@
 
 #include <arc/crypto/OpenSSL.h>
 #include <arc/Utils.h>
+
+#include <arc/credential/VOMSUtil.h>
 
 #include "Credential.h"
 
@@ -2716,6 +2720,82 @@ error:
     return true;
   }
 
+  const std::string Credential::get_property(const std::string property) {
+    if (property == "dn"){
+	return GetIdentityName();
+    }
+// If it was not DN, then we have to deal with VOMS
+    std::vector<std::string> output;
+    std::string emptystring = "";
+    VOMSTrustList emptylist;
+    parseVOMSAC(*this,emptystring,emptystring,emptylist,output,false);
+    if (property == "voms:vo"){
+	if (output.empty())return ""; // if it's not possible to determine the VO -- such jobs will go into generic share
+	else { // the  name of the VO is in the first string. Strip hostname from it, leave only voname parameter;
+		size_t pos1, pos2;
+		pos1 = output[0].find("=",1);
+		pos2 = output[0].find("/",1);
+		return output[0].substr(pos1+1,pos2-pos1-1);
+	}
+    }
+    else if (property == "voms:role"){
+	if (output.empty()) return "";
+	else{
+		size_t pos1, pos2;
+		unsigned int i,j;
+		std::string role = "null";
+		std::string vo_name;
+		pos1 = output[0].find("=",1);
+		pos2 = output[0].find("/",1);
+		vo_name = output[0].substr(pos1+1,pos2-pos1-1);
+		for (i=1;i<output.size();i++){
+			pos1 = output[i].find("/Role=");
+			if(pos1 != std::string::npos){
+				pos2 = output[i].find("/",pos1+1);
+				if(pos2 == std::string::npos)
+					role = output[i].substr(pos1+6,output[i].length()-pos1-6);
+				else
+					role = output[i].substr(pos1+6,pos2-pos1-6);
+				break;
+			}
+		}
+		vo_name.insert(vo_name.end(),':');
+		vo_name.insert(vo_name.length(),role);
+		return vo_name;
+	}
+    }
+    else if (property == "voms:group"){
+	if (output.empty()) return "";
+	else{
+		size_t pos1, pos2;
+		unsigned int i,j;
+		std::string group = "";
+		std::string vo_name;
+		pos1 = output[0].find("=",1);
+		pos2 = output[0].find("/",1);
+		vo_name = output[0].substr(pos1+1,pos2-pos1-1);
+		vo_name.insert(vo_name.begin(),'/');
+		for (i=1;i<output.size();i++){
+			pos1 = output[i].find("/Group=");
+			if(pos1 != std::string::npos){
+				pos2 = output[i].find("/",pos1+1);
+				if(pos2 == std::string::npos)
+					group = output[i].substr(pos1+7,output[i].length()-pos1-7);
+				else
+					group = output[i].substr(pos1+7,pos2-pos1-7);
+				break;
+			}
+		}
+		if(group != ""){
+			vo_name.insert(vo_name.end(),'/');
+			vo_name.insert(vo_name.length(),group);
+		}
+		return vo_name;
+	}
+    }
+    else return "";
+  }
+  
   Credential::~Credential() {
     if(cert_) X509_free(cert_);
     if(pkey_) EVP_PKEY_free(pkey_);

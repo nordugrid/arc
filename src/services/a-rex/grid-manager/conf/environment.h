@@ -47,6 +47,10 @@ std::string nordugrid_sbin_loc(void);
 ///   $ARC_LOCATION/etc/arc.conf
 std::string nordugrid_config_loc(void);
 void nordugrid_config_loc(const std::string&);
+
+// Certificates directory location
+std::string cert_dir_loc();
+
 // RTE setup scripts
 std::string runtime_config_dir(void);
 void runtime_config_dir(const std::string&);

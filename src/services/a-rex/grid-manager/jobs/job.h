@@ -93,6 +93,8 @@ class JobDescription {
   /* uid and gid of job's owner */
   uid_t job_uid;
   gid_t job_gid;
+   /* used to determine data transfer share (eg DN, VOMS VO) */
+  std::string transfer_share;
  public:
   /* external utility beeing run to perform tasks like stage-in/our, 
      submit/cancel. (todo - move to private) */
@@ -130,6 +132,7 @@ class JobDescription {
   };
   uid_t get_uid(void) const { return job_uid; };
   gid_t get_gid(void) const { return job_gid; };
+  void set_share(std::string share);
   /* force 'local' to be created and read from file if not already available */
   bool GetLocalDescription(const JobUser &user);
 };
