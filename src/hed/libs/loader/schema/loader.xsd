@@ -68,7 +68,7 @@
     </xsd:complexType>
 </xsd:element>
 
-<!-- Component -->    
+<!-- Component -->
 <xsd:element name="next">
     <xsd:complexType>
         <xsd:simpleContent>
@@ -111,19 +111,18 @@
               <next>^/service$</next>
               <next>^/service/</next>
             Unmatched part of message endpoint is propagated with incoming message in
-            attribute PLEXER:EXTENSION and may be used by service to determine response. 
+            attribute PLEXER:EXTENSION and may be used by service to determine response.
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element ref="next" minOccurs="0" maxOccurs="unbounded"/>
             <xsd:any namespace="##other" processContents="strict" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
-        <xsd:attribute name="name" type="xsd:string" use="required"/>
         <xsd:attribute name="id" type="xsd:string" use="optional"/>
         <xsd:anyAttribute namespace="##other" processContents="strict"/>
     </xsd:complexType>
 </xsd:element>
-    
+
 <!-- Service -->
 <xsd:element name="Service">
     <xsd:complexType>
