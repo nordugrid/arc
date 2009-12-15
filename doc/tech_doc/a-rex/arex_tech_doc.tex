@@ -225,8 +225,8 @@ for files which are supposed to be uploaded by the UI. If all files
 are successfully gathered the job moves to the next state. If \textbf{any}
 file can't be downloaded or it takes the UI too long to upload a file,
 the job moves to \textbf{Finishing} state. It is possible to put a
-limit on the number of simultaneous \textbf{Preparing} jobs. If this
-limit is exceeded, jobs ready to enter the \textbf{Preparing} state
+limit on the number of simultaneous \textbf{Preparing} jobs. 
+If this limit is exceeded, jobs ready to enter the \textbf{Preparing} state
  will stay in the \textbf{Accepted} state, but prefixed with the PENDING:
 mark. Exceptions are jobs which have no files to be downloaded. These
 are processed out of limits.
@@ -246,8 +246,7 @@ Specified data files are moved to the specified SEs and are optionally
 registered at an Indexing Service. The user can download data files
 from the SD by using the UI or other adequate tool. All the files
 not specified as output files are removed from the SD at very beginning
-of this state. It is possible to limit number of simultaneous jobs
-in this state.
+of this state.It is possible to limit the number of simultaneous jobs in this state.
 \item \textbf{Finished} -- No more processing is performed by the A-REX.
 The user can continue to download data files from the SD. The SD is
 kept available for some time (default is 1 week). After that the job
@@ -375,6 +374,8 @@ resubmitted or migrate more than once.
 \item \textit{forcemigration} -- This boolean is only used for migration of jobs.
 It determines whether the job should persist if the termination of the previous 
 job fails.
+\item \textit{transfershare} -- name of share used in \textbf{Preparing}
+and \textbf{Finishing} states.
 \end{itemize}
 
 This file is filled partially during job submission and fully when
@@ -1199,6 +1200,11 @@ where jobs cannot finish due to a large number of recently submitted jobs.\\
 in parallel by every job. Used to decrease load on not so powerful
 frontends.\\
 Missing value or -1 means no limit.
+\item \textbf{\textit{maxloadshare}}\textit{=max\_share share\_type} -- specifies a 
+sharing mechanism for data transfer. \emph{max\_share} is the maximum
+number of processes that can run per transfer share and \emph{share\_type} is 
+the scheme used to assign jobs to transfer shares. See Section~\ref{sub:Transfershare}
+for possible values and more details.
 \item \textbf{\textit{wakeupperiod}}\textit{=time} -- specifies how often
 the A-REX checks for job state changes (like new arrived job, job
 finished in LRMS, etc.). \textit{time} is a minimal time period specified
@@ -1397,6 +1403,60 @@ in runtime). Possible reasons are:
 \item [{extern}] -- call external program 
 \end{list}
 \end{itemize}
+
+\subsection{Transfer shares\label{sub:Transfershare}}
+
+For many jobs, large amounts of input and output data can mean
+significant time is spent in the PREPARING and FINISHING states
+gathering input data and writing output data. With FIFO processing,
+this can lead to one user or group of users blocking the queue for
+others. The A-REX implements a sharing system to avoid this problem, by
+assigning each user or group of users to a ``transfer share'' and
+specifying a limit on the number of data transfer processes per
+share. If one user's jobs' transfer share is using the maximum number
+of processes and another user submits jobs which are assigned to a
+different share, the second user's jobs can immediately go to
+PREPARING, up to the same maximum limit of processes. This means that
+no matter how many jobs the first user submits, the second user's jobs
+are not blocked. Assuming the bandwidth from the sources of input data
+for both users' jobs is similar, the available throughput will then be
+split evenly between the two users' jobs.
+
+If a limit on the total number of data transfer processes is set in
+the \emph{maxload} option, the maximum number of processes per
+transfer share is set by splitting the total maximum evenly among all
+the shares with jobs in data transfer states, up to the maximum
+allowed per share.
+
+The scheme used to assign jobs to transfer shares can be set in the
+\emph{maxloadshare} option. Possible values are:
+
+\begin{itemize}
+\item \emph{dn} - each job is assigned to a share based on the DN of
+  the user sumbitting the job.
+\item \emph{voms:vo} - if the user's proxy is a VOMS~\cite{voms} proxy
+  the job is assigned to a share based on the VO specified in the
+  proxy. If the proxy is not a VOMS proxy a default share is used.
+\item \emph{voms:role} - if the user's proxy is a VOMS proxy the job
+  is assigned to a share based on the role specified in the first
+  attribute found in the proxy. If the proxy is not a VOMS proxy a
+  default share is used.
+\item \emph{voms:group} - if the user's proxy is a VOMS proxy the job is
+  assigned to a share based on the group specified in the first
+  attribute found in the proxy. If the proxy is not a VOMS proxy a
+  default share is used.
+\end{itemize}
+
+If VOMS is not supported, the \emph{dn} scheme is the only option that
+should be used, as using a VOMS-based scheme will lead to all jobs
+being assigned to the default share.
+
+\textbf{Important:} If a sharing mechanism based on VOMS is used,
+server certificates for each supported VO must be installed. It is
+possible to either download the public key of each VOMS server, or
+create a special file for each VO containing the server's DN and its
+CA DN. Instructions are given on NorduGrid's web site at
+\url{http://www.nordugrid.org/documents/voms-notes.html}.
 
 \subsection{Authorization\label{sub:Authorization}}
 
