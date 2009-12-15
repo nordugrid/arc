@@ -48,3 +48,7 @@ debian/tmp/usr/share/man/man1/arcsync.1
 debian/tmp/usr/share/man/man1/chelonia.1
 debian/tmp/usr/share/man/man1/perftest.1
 debian/tmp/usr/share/man/man1/saml_assertion_init.1
+
+debian/tmp/usr/share/arc/examples/charon/charon_client.xml.example
+debian/tmp/usr/share/arc/examples/charon/charon_request.xml.example
+debian/tmp/usr/share/arc/examples/echo/echo.wsdl
