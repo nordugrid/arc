@@ -1024,8 +1024,9 @@ In addition, there is also an administration utility:
 \begin{itemize}
 \item \textit{gm-jobs} -- prints a list of jobs available on the cluster
 and the number of jobs in each state.\\
-\hspace*{0.5cm}gm-jobs {[}-h] {[}-l] {[}-u uid] {[}-U name] {[}-c conf\_file] {[}-d control\_dir]\\
+\hspace*{0.5cm}gm-jobs {[}-h] {[}-s] {[}-l] {[}-u uid] {[}-U name] {[}-c conf\_file] {[}-d control\_dir]\\
 \hspace*{0.5cm}-h -- print short help,\\
+\hspace*{0.5cm}-s -- print summary of jobs in each transfer share,\\
 \hspace*{0.5cm}-l -- print more information about each job,\\
 \hspace*{0.5cm}-u -- pretend utility is run by user with id \emph{uid},\\
 \hspace*{0.5cm}-U -- pretend utility is run by user with name \emph{name},\\
@@ -1449,7 +1450,9 @@ The scheme used to assign jobs to transfer shares can be set in the
 
 If VOMS is not supported, the \emph{dn} scheme is the only option that
 should be used, as using a VOMS-based scheme will lead to all jobs
-being assigned to the default share.
+being assigned to the default share. The current number of jobs
+processing and pending processing for each share can be seen with the
+command \emph{gm-jobs -s}.
 
 \textbf{Important:} If a sharing mechanism based on VOMS is used,
 server certificates for each supported VO must be installed. It is

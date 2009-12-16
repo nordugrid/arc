@@ -74,6 +74,11 @@ int main(int argc, char* argv[]) {
                     istring("read information from specified control dir"),
                     istring("dir"), control_dir);
                     
+  bool show_share = false;
+  options.AddOption('s', "showshares",
+		    istring("print summary of jobs in each transfer share"),
+		    show_share);
+
   std::list<std::string> params = options.Parse(argc, argv);
 
   if (!my_username.empty()) {
@@ -146,11 +151,16 @@ int main(int argc, char* argv[]) {
     counters_pending[i] = 0;
   }
 
+  std::map<std::string, int> share_preparing;
+  std::map<std::string, int> share_preparing_pending;
+  std::map<std::string, int> share_finishing;
+  std::map<std::string, int> share_finishing_pending;
+
   unsigned int jobs_total = 0;
   for (JobUsers::iterator user = users.begin(); user != users.end(); ++user) {
     user->get_jobs()->ScanNewJobs(false);
     for (JobsList::iterator i=user->get_jobs()->begin(); i!=user->get_jobs()->end(); ++i) {
-      std::cout<<"Job: "<<i->get_id();
+      if(!show_share) std::cout << "Job: "<<i->get_id();
       jobs_total++;
       bool pending;
       job_state_t new_state = job_state_read_file(i->get_id(), *user, pending);
@@ -164,6 +174,16 @@ int main(int argc, char* argv[]) {
       JobLocalDescription job_desc;
       if (!job_local_read_file(i->get_id(), *user, job_desc)) {
         std::cout<<" : ERROR : No local information."<<std::endl;
+        continue;
+      }
+      if (show_share){
+	if(new_state == JOB_STATE_PREPARING && !pending) share_preparing[job_desc.transfershare]++;
+        else if(new_state == JOB_STATE_ACCEPTED && pending) share_preparing_pending[job_desc.transfershare]++;
+        else if(new_state == JOB_STATE_FINISHING) share_finishing[job_desc.transfershare]++;
+        else if(new_state == JOB_STATE_INLRMS && pending) {
+          std::string jobid = i->get_id();
+          if (job_lrms_mark_check(jobid,*user)) share_finishing_pending[job_desc.transfershare]++;
+        };
         continue;
       }
       if (!long_list) {
@@ -185,7 +205,28 @@ int main(int argc, char* argv[]) {
         std::cout<<"\tFrom: "<<job_desc.clientname<<std::endl;
     }
   }
-    
+  
+  if(show_share) {
+    std::cout<<"\n Preparing/Pending\tTransfer share"<<std::endl;
+    for (std::map<std::string, int>::iterator i = share_preparing.begin(); i != share_preparing.end(); i++) {
+      std::cout<<"         "<<i->second<<"/"<<share_preparing_pending[i->first]<<"\t\t"<<i->first<<std::endl;
+    }
+    for (std::map<std::string, int>::iterator i = share_preparing_pending.begin(); i != share_preparing_pending.end(); i++) {
+      if (share_preparing[i->first] == 0)
+        std::cout<<"         0/"<<share_preparing_pending[i->first]<<"\t\t"<<i->first<<std::endl;
+    }
+    std::cout<<"\n Finishing/Pending\tTransfer share"<<std::endl;
+    for (std::map<std::string, int>::iterator i = share_finishing.begin(); i != share_finishing.end(); i++) {
+      std::cout<<"         "<<i->second<<"/"<<share_finishing_pending[i->first]<<"\t\t"<<i->first<<std::endl;
+    }
+    for (std::map<std::string, int>::iterator i = share_finishing_pending.begin(); i != share_finishing_pending.end(); i++) {
+      if (share_finishing[i->first] == 0)
+        std::cout<<"         0/"<<share_finishing_pending[i->first]<<"\t\t"<<i->first<<std::endl;
+    }
+    std::cout<<std::endl;
+    return 0;
+  }
+  
   std::cout<<"Jobs total: "<<jobs_total<<std::endl;
 
   for (int i=0; i<JOB_STATE_UNDEFINED; i++) {

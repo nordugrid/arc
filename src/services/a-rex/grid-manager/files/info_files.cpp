@@ -803,7 +803,8 @@ bool job_local_read_file(const std::string &fname,JobLocalDescription &job_desc)
       if(strcasecmp("yes",buf+p) == 0) { job_desc.forcemigration = true; }
       else if(strcasecmp("true",buf+p) == 0) { job_desc.forcemigration = true; }
       else job_desc.forcemigration = false;
-    };
+    }
+    else if(name == "transfershare") { job_desc.transfershare = buf+p; };
   }
   f.close();
   return true;
