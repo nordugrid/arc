@@ -628,6 +628,8 @@ bool configure_serviced_users(Arc::XMLNode cfg,JobUsers &users,uid_t my_uid,cons
     maxJobsTransfered
     maxJobsTransferedAdditional
     maxFilesTransfered
+    maxLoadShare
+    loadShareType
     wakeupPeriod
   */
   tmp_node = cfg["loadLimits"];
@@ -637,6 +639,7 @@ bool configure_serviced_users(Arc::XMLNode cfg,JobUsers &users,uid_t my_uid,cons
     int max_jobs_processing = -1;
     int max_jobs_processing_emergency = -1;
     int max_downloads = -1;
+    int max_share;
     unsigned int wakeup_period = JobsList::WakeupPeriod();
     elementtoint(tmp_node,"maxJobsTracked",max_jobs,&logger);
     elementtoint(tmp_node,"maxJobsRun",max_jobs_running,&logger);
@@ -647,6 +650,10 @@ bool configure_serviced_users(Arc::XMLNode cfg,JobUsers &users,uid_t my_uid,cons
     JobsList::SetMaxJobsLoad(max_jobs_processing,
                              max_jobs_processing_emergency,
                              max_downloads);
+    std::string transfer_share = tmp_node["loadShareType"];
+    if(elementtoint(tmp_node,"maxLoadShare",max_share,&logger) && (max_share > 0) && ! transfer_share.empty()){
+	JobsList::SetTransferShare(max_share, transfer_share);
+    }
     if(elementtoint(tmp_node,"wakeupPeriod",wakeup_period,&logger)) {
       JobsList::SetWakeupPeriod(wakeup_period);
     };
