@@ -9,6 +9,9 @@
 #include <glibmm/fileutils.h>
 #include <algorithm>
 #include <unistd.h>
+#include <string.h>
+
+#include "schemaconv.h"
 
 Arc::NS ns;
 
@@ -242,6 +245,11 @@ static void gen_makefile_am(std::string &name)
 
 int main(int argc, char **argv)
 {
+    bool parse_schema = false;
+    if (strcmp(argv[1],"-s") == 0) {
+      parse_schema = true;
+      --argc; ++argv;
+    }
     if (argc < 3) {
         std::cerr << "Invalid arguments" << std::endl;        
         return -1;
@@ -277,6 +285,11 @@ int main(int argc, char **argv)
     if (!cpp) {
         unlink (header_path.c_str());
         std::cerr << "Cannot create: " << cpp_path << std::endl;
+    }
+
+    if(parse_schema) {
+      if(!schemaconv(xml,h,cpp,lname)) return 1;
+      return 0;
     }
     
     std_h_header(name, h);
