@@ -22,15 +22,15 @@ namespace Arc {
 
 /** This class is MCC implementing TCP server.
   Upon creation this object binds to specified TCP ports and listens
- for incoming TCP connections on dedicated thread. Each connection is 
- accepted and dedicated thread is created. Then that thread is used 
+ for incoming TCP connections on dedicated thread. Each connection is
+ accepted and dedicated thread is created. Then that thread is used
  to call process() method of next MCC in chain. That method is passed
  payload implementing PayloadStreamInterface. On response payload
- with PayloadRawInterface is expected. Alternatively called MCC 
- may use provided PayloadStreamInterface to send it's response back 
+ with PayloadRawInterface is expected. Alternatively called MCC
+ may use provided PayloadStreamInterface to send it's response back
  directly.
   During processing of request this MCC generates following attributes:
-   TCP:HOST - IP address of interface to which local TCP socket is bound 
+   TCP:HOST - IP address of interface to which local TCP socket is bound
    TCP:PORT - port number to which local TCP socket is bound
    TCP:REMOTEHOST - IP address from which connection is accepted
    TCP:REMOTEPORT - TCP port from which connection is accepted
@@ -57,9 +57,7 @@ class MCC_TCP_Service: public MCC_TCP
                 int handle;
                 bool no_delay;
                 int timeout;
-                int num;
-                int max;
-                mcc_tcp_handle_t(int h, int t, bool nd = false, int m = -1):handle(h),no_delay(nd),timeout(t),num(0),max(m) { };
+                mcc_tcp_handle_t(int h, int t, bool nd = false):handle(h),no_delay(nd),timeout(t) { };
                 operator int(void) { return handle; };
         };
         std::list<mcc_tcp_handle_t> handles_; /** listening sockets */
@@ -78,17 +76,17 @@ class MCC_TCP_Service: public MCC_TCP
 };
 
 /** This class is MCC implementing TCP client.
-  Upon creation it connects to specified TCP post at specified host. 
+  Upon creation it connects to specified TCP post at specified host.
  process() method accepts PayloadRawInterface type of payload. Content
- of payload is sent over TCP socket. It returns PayloadStreamInterface 
+ of payload is sent over TCP socket. It returns PayloadStreamInterface
  payload for previous MCC to read response.
 */
 class MCC_TCP_Client: public MCC_TCP
 {
     private:
-        /** Socket object connected to remote site. 
+        /** Socket object connected to remote site.
           It contains NULL if connectino failed. */
-        PayloadTCPSocket* s_; 
+        PayloadTCPSocket* s_;
     public:
         MCC_TCP_Client(Config *cfg);
         virtual ~MCC_TCP_Client(void);

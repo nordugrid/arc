@@ -15,23 +15,23 @@ typedef int socklen_t;
 // There is no inet_ntop on WIN32
 inline const char *inet_ntop(int af, const void *__restrict src, char *__restrict dest, socklen_t size)
 {
-	// IPV6 not supported (yet?)
-	if(AF_INET!=af)
-	{
-		printf("inet_ntop is only implemented for AF_INET address family on win32/msvc8");
-		abort();
-	}
+  // IPV6 not supported (yet?)
+  if(AF_INET!=af)
+  {
+    printf("inet_ntop is only implemented for AF_INET address family on win32/msvc8");
+    abort();
+  }
 
-	// Format address
-	char *s=inet_ntoa(*reinterpret_cast<const in_addr*>(src));
-	if(!s)
-		return 0;
+  // Format address
+  char *s=inet_ntoa(*reinterpret_cast<const in_addr*>(src));
+  if(!s)
+    return 0;
 
-	// Copy to given buffer
-	socklen_t len=(socklen_t)strlen(s);
-	if(len>=size)
-		return 0;
-	return strncpy(dest, s, len);
+  // Copy to given buffer
+  socklen_t len=(socklen_t)strlen(s);
+  if(len>=size)
+    return 0;
+  return strncpy(dest, s, len);
 }
 
 #else // UNIX
@@ -90,7 +90,7 @@ MCC_TCP_Service::MCC_TCP_Service(Config *cfg):MCC_TCP(cfg),max_executers_(-1),ma
 #ifdef WIN32
     WSADATA wsadata;
     if (WSAStartup(MAKEWORD(2,2), &wsadata) != 0) {
-    	logger.msg(ERROR, "Cannot initialize winsock library");
+      logger.msg(ERROR, "Cannot initialize winsock library");
         return;
     }
 #endif
@@ -128,18 +128,18 @@ MCC_TCP_Service::MCC_TCP_Service(Config *cfg):MCC_TCP(cfg),max_executers_(-1),ma
             int s = ::socket(info_->ai_family,info_->ai_socktype,info_->ai_protocol);
             if(s == -1) {
                 std::string e = StrError(errno);
-	        logger.msg(ERROR, "Failed to create socket for for listening at TCP port %s(%s): %s", port_s, PROTO_NAME(info_),e);
+          logger.msg(ERROR, "Failed to create socket for for listening at TCP port %s(%s): %s", port_s, PROTO_NAME(info_),e);
                 continue;
             };
             if(::bind(s,info->ai_addr,info->ai_addrlen) == -1) {
                 std::string e = StrError(errno);
-	        logger.msg(ERROR, "Failed to bind socket for TCP port %s(%s): %s", port_s, PROTO_NAME(info_),e);
+          logger.msg(ERROR, "Failed to bind socket for TCP port %s(%s): %s", port_s, PROTO_NAME(info_),e);
                 close(s);
                 continue;
             };
             if(::listen(s,-1) == -1) {
                 std::string e = StrError(errno);
-	        logger.msg(WARNING, "Failed to listen at TCP port %s(%s): %s", port_s, PROTO_NAME(info_),e);
+          logger.msg(WARNING, "Failed to listen at TCP port %s(%s): %s", port_s, PROTO_NAME(info_),e);
                 close(s);
                 continue;
             };
@@ -153,17 +153,7 @@ MCC_TCP_Service::MCC_TCP_Service(Config *cfg):MCC_TCP(cfg),max_executers_(-1),ma
                 std::string v = l["Timeout"];
                 timeout = atoi(v.c_str());
             }
-            int limit = -1;
-            bool limit_drop = false;
-            if (l["Limit"]) {
-                std::string v = l["Limit"];
-                limit = atoi(v.c_str());
-                v=(std::string)(l["Limit"].Attribute("drop"));
-                if((v == "yes") || (v == "true") || (v == "1")) {
-                  limit_drop=true;
-                };
-            }
-            handles_.push_back(mcc_tcp_handle_t(s,timeout,no_delay,limit));
+            handles_.push_back(mcc_tcp_handle_t(s,timeout,no_delay));
             logger.msg(INFO, "Listening on TCP port %s(%s)", port_s, PROTO_NAME(info_));
         };
         freeaddrinfo(info);
@@ -216,7 +206,7 @@ MCC_TCP_Service::mcc_tcp_exec_t::mcc_tcp_exec_t(MCC_TCP_Service* o,int h,int t,b
     if(handle == -1) return;
     id=local_id++;
     // list is locked externally
-    std::list<mcc_tcp_exec_t>::iterator e = o->executers_.insert(o->executers_.end(),*this); 
+    std::list<mcc_tcp_exec_t>::iterator e = o->executers_.insert(o->executers_.end(),*this);
     if(!CreateThreadFunction(&MCC_TCP_Service::executer,&(*e))) {
         logger.msg(ERROR, "Failed to start thread for communication");
         ::shutdown(handle,2);
@@ -248,12 +238,12 @@ void MCC_TCP_Service::listener(void* arg) {
         int n = select(max_s+1,&readfds,NULL,NULL,&tv);
         if(n < 0) {
             if(ErrNo != EINTR) {
-	        logger.msg(ERROR,
-			"Failed while waiting for connection request");
+          logger.msg(ERROR,
+      "Failed while waiting for connection request");
                 it.lock_.lock();
                 for(std::list<mcc_tcp_handle_t>::iterator i = it.handles_.begin();i!=it.handles_.end();) {
                     int s = i->handle;
-                    ::close(s); 
+                    ::close(s);
                     i=it.handles_.erase(i);
                 };
                 it.lock_.unlock();
@@ -495,7 +485,7 @@ void MCC_TCP_Service::executer(void* arg) {
         nextoutmsg.Context(&context);
         nextoutmsg.AuthContext(&auth_context);
         if(!it.ProcessSecHandlers(nextinmsg,"incoming")) break;
-        // Call next MCC 
+        // Call next MCC
         MCCInterface* next = it.Next();
         if(!next) break;
         logger.msg(VERBOSE, "next chain element called");
@@ -546,7 +536,7 @@ void MCC_TCP_Service::executer(void* arg) {
 }
 
 MCC_Status MCC_TCP_Service::process(Message&,Message&) {
-  // Service is not really processing messages because there 
+  // Service is not really processing messages because there
   // are no lower lelel MCCs in chain.
   return MCC_Status();
 }
@@ -555,7 +545,7 @@ MCC_TCP_Client::MCC_TCP_Client(Config *cfg):MCC_TCP(cfg),s_(NULL) {
 #ifdef WIN32
     WSADATA wsadata;
     if (WSAStartup(MAKEWORD(2,2), &wsadata) != 0) {
-    	logger.msg(ERROR, "Cannot initialize winsock library");
+      logger.msg(ERROR, "Cannot initialize winsock library");
         return;
     }
 #endif
@@ -603,7 +593,7 @@ MCC_TCP_Client::~MCC_TCP_Client(void) {
 MCC_Status MCC_TCP_Client::process(Message& inmsg,Message& outmsg) {
     // Accepted payload is Raw
     // Returned payload is Stream
-    
+
     logger.msg(VERBOSE, "client process called");
     //outmsg.Attributes(inmsg.Attributes());
     //outmsg.Context(inmsg.Context());
@@ -635,11 +625,11 @@ MCC_Status MCC_TCP_Client::process(Message& inmsg,Message& outmsg) {
       socklen_t addrlen;
       addrlen=sizeof(addr);
       if (getsockname(s_->GetHandle(), (struct sockaddr*)&addr, &addrlen) == 0)
-	get_host_port(&addr, host_attr, port_attr);
+  get_host_port(&addr, host_attr, port_attr);
       addrlen=sizeof(addr);
       if (getpeername(s_->GetHandle(), (struct sockaddr*)&addr, &addrlen) == 0)
-	if (get_host_port(&addr, remotehost_attr, remoteport_attr))
-	  endpoint_attr = "://"+remotehost_attr+":"+remoteport_attr;
+  if (get_host_port(&addr, remotehost_attr, remoteport_attr))
+    endpoint_attr = "://"+remotehost_attr+":"+remoteport_attr;
     }
     outmsg.Payload(new PayloadTCPSocket(*s_));
     outmsg.Attributes()->set("TCP:HOST",host_attr);
