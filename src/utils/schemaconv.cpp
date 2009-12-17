@@ -164,29 +164,33 @@ static const char* array_element_method_pattern_cpp = "\
 
 
 static void strprintf(std::ostream& out,const char* fmt,
-                      const char* arg1 = NULL,const char* arg2 = NULL,
-                      const char* arg3 = NULL,const char* arg4 = NULL,
-                      const char* arg5 = NULL,const char* arg6 = NULL,
-                      const char* arg7 = NULL,const char* arg8 = NULL,
-                      const char* arg9 = NULL,const char* arg10 = NULL) {
+                const std::string& arg1 = "",const std::string& arg2 = "",
+                const std::string& arg3 = "",const std::string& arg4 = "",
+                const std::string& arg5 = "",const std::string& arg6 = "",
+                const std::string& arg7 = "",const std::string& arg8 = "",
+                const std::string& arg9 = "",const std::string& arg10 = "") {
   char buf[65536];
   buf[0]=0;
-  snprintf(buf,sizeof(buf)-1,fmt,arg1,arg2,arg3,arg4,arg5,
-                                 arg6,arg7,arg8,arg9,arg10);
+  snprintf(buf,sizeof(buf)-1,fmt,arg1.c_str(),arg2.c_str(),arg3.c_str(),
+                                 arg4.c_str(),arg5.c_str(),arg6.c_str(),
+                                 arg7.c_str(),arg8.c_str(),arg9.c_str(),
+                                 arg10.c_str());
   buf[sizeof(buf)-1]=0;
   out<<buf;
 }
 
 static void strprintf(std::string& out,const char* fmt,
-                      const char* arg1 = NULL,const char* arg2 = NULL,
-                      const char* arg3 = NULL,const char* arg4 = NULL,
-                      const char* arg5 = NULL,const char* arg6 = NULL,
-                      const char* arg7 = NULL,const char* arg8 = NULL,
-                      const char* arg9 = NULL,const char* arg10 = NULL) {
+                const std::string& arg1 = "",const std::string& arg2 = "",
+                const std::string& arg3 = "",const std::string& arg4 = "",
+                const std::string& arg5 = "",const std::string& arg6 = "",
+                const std::string& arg7 = "",const std::string& arg8 = "",
+                const std::string& arg9 = "",const std::string& arg10 = "") {
   char buf[65536];
   buf[0]=0;
-  snprintf(buf,sizeof(buf)-1,fmt,arg1,arg2,arg3,arg4,arg5,
-                                 arg6,arg7,arg8,arg9,arg10);
+  snprintf(buf,sizeof(buf)-1,fmt,arg1.c_str(),arg2.c_str(),arg3.c_str(),
+                                 arg4.c_str(),arg5.c_str(),arg6.c_str(),
+                                 arg7.c_str(),arg8.c_str(),arg9.c_str(),
+                                 arg10.c_str());
   buf[sizeof(buf)-1]=0;
   out+=buf;
 }
@@ -229,15 +233,14 @@ namespace "<<name<<" {\n\
     if(!type) break;
     std::string ntype = type.Attribute("name");
     if(ntype.empty()) continue;
-    strprintf(h_file,"class %s;\n",ntype.c_str());
+    strprintf(h_file,"class %s;\n",ntype);
   };
   // Simple types
   for(XMLNode stype = schema["xsd:simpleType"];(bool)stype;++stype) {
     std::string ntype = stype.Attribute("name");
     h_file<<"//simple type: "<<ntype<<std::endl;
-    strprintf(h_file,simple_type_pattern_h,ntype.c_str());
-    strprintf(cpp_file,simple_type_pattern_cpp,
-                       ntype.c_str(),nnamespace.c_str());
+    strprintf(h_file,simple_type_pattern_h,ntype);
+    strprintf(cpp_file,simple_type_pattern_cpp,ntype,nnamespace);
   };
   // Complex types
   for(XMLNode ctype = schema["xsd:complexType"];(bool)ctype;++ctype) {
@@ -247,7 +250,7 @@ namespace "<<name<<" {\n\
     if(!sequence) {
       std::cout<<"complex type is not sequence - not supported"<<std::endl;
     };
-    strprintf(h_file,complex_type_header_pattern_h,ntype.c_str());
+    strprintf(h_file,complex_type_header_pattern_h,ntype);
     std::string complex_file_constructor_cpp;
     for(XMLNode element = sequence["xsd:element"];(bool)element;++element) {
       int minoccurs = 1;
@@ -264,6 +267,8 @@ namespace "<<name<<" {\n\
       std::string cpptype = etype;
       if(enamespace != nnamespace) {
         cpptype = "Arc::XMLNode";
+      } else {
+        eprefix = "ns";
       };
       std::string n;
       n=(std::string)(element.Attribute("minOccurs"));
@@ -296,46 +301,43 @@ namespace "<<name<<" {\n\
       h_file<<"//    maxOccurs: "<<maxoccurs<<std::endl;
       // header
       if((maxoccurs == 1) && (minoccurs == 1)) {
-        strprintf(h_file,mandatory_element_pattern_h,
-                                   ename.c_str(),cpptype.c_str());
+        strprintf(h_file,mandatory_element_pattern_h,ename,cpptype);
       } else if((maxoccurs == 1) && (minoccurs == 0)) {
-        strprintf(h_file,optional_element_pattern_h,
-                                   ename.c_str(),cpptype.c_str());
+        strprintf(h_file,optional_element_pattern_h,ename,cpptype);
       } else {
-        strprintf(h_file,array_element_pattern_h,
-                                   ename.c_str(),cpptype.c_str());
+        strprintf(h_file,array_element_pattern_h,ename,cpptype);
       };
       // constructor
       if((maxoccurs == 1) && (minoccurs == 1)) {
         strprintf(complex_file_constructor_cpp,
-                  mandatory_element_constructor_pattern_cpp,ename.c_str());
+                  mandatory_element_constructor_pattern_cpp,ename);
       } else if((maxoccurs == 1) && (minoccurs == 0)) {
         strprintf(complex_file_constructor_cpp,
-                  optional_element_constructor_pattern_cpp,ename.c_str());
+                  optional_element_constructor_pattern_cpp,ename);
       } else {
         strprintf(complex_file_constructor_cpp,
-                  array_element_constructor_pattern_cpp,ename.c_str(),
-                  tostring(minoccurs).c_str());
+                  array_element_constructor_pattern_cpp,ename,
+                  tostring(minoccurs));
       };
       // method
       if((maxoccurs == 1) && (minoccurs == 1)) {
         strprintf(cpp_file,mandatory_element_method_pattern_cpp,
-              ename.c_str(),cpptype.c_str(),ntype.c_str(),"ns",etype.c_str());
+           ename,cpptype,ntype,eprefix,etype);
       } else if((maxoccurs == 1) && (minoccurs == 0)) {
         strprintf(cpp_file,optional_element_method_pattern_cpp,
-              ename.c_str(),cpptype.c_str(),ntype.c_str(),"ns",etype.c_str());
+           ename,cpptype,ntype,eprefix,etype);
       } else {
         strprintf(cpp_file,array_element_method_pattern_cpp,
-              ename.c_str(),cpptype.c_str(),ntype.c_str(),"ns",etype.c_str(),
-              tostring(minoccurs).c_str());
+           ename,cpptype,ntype,eprefix,etype,
+           tostring(minoccurs));
       };
     };
-    strprintf(h_file,complex_type_footer_pattern_h,ntype.c_str());
+    strprintf(h_file,complex_type_footer_pattern_h,ntype);
     strprintf(cpp_file,complex_type_constructor_header_pattern_cpp,
-                               ntype.c_str(),nnamespace.c_str());
+                               ntype,nnamespace);
     cpp_file<<complex_file_constructor_cpp;
     strprintf(cpp_file,complex_type_constructor_footer_pattern_cpp,
-                               ntype.c_str(),nnamespace.c_str());
+                               ntype,nnamespace);
   };
 
   h_file<<"\
