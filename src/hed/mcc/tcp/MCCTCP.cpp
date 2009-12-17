@@ -108,6 +108,7 @@ MCC_TCP_Service::MCC_TCP_Service(Config *cfg):MCC_TCP(cfg),max_executers_(-1),ma
             logger.msg(ERROR, "Missing Port in Listen element");
             continue;
         };
+        std::string interface_s = l["Interface"];
         std::string version_s = l["Version"];
         if(!version_s.empty()) {
             if(version_s == "4") { hint.ai_family = AF_INET; }
@@ -117,10 +118,15 @@ MCC_TCP_Service::MCC_TCP_Service(Config *cfg):MCC_TCP(cfg),max_executers_(-1),ma
                 continue;
             };
         };
-        int ret = getaddrinfo(NULL, port_s.c_str(), &hint, &info);
+        int ret = getaddrinfo(interface_s.empty()?NULL:interface_s.c_str(),
+                              port_s.c_str(), &hint, &info);
         if (ret != 0) {
             std::string err_str = gai_strerror(ret);
-            logger.msg(ERROR, "Failed to obtain local address for port %s - %s", port_s, err_str);
+            if(interface_s.empty()) {
+              logger.msg(ERROR, "Failed to obtain local address for port %s - %s", port_s, err_str);
+            } else {
+              logger.msg(ERROR, "Failed to obtain local address for %s:%s - %s", interface_s, port_s, err_str);
+            };
             continue;
         };
         for(struct addrinfo *info_ = info;info_;info_=info_->ai_next) {
