@@ -315,7 +315,7 @@ This operation allows the ISIS to get the already existing database from the ISI
 
 % TODO figure with mutiple service types
 
-\textit{This section extensively uses terms defined in "ARC Security Framework (NORDUGRID-TECH-16)" document"~\cite{arcsec}.}
+\textit{This section extensively uses terms defined in "ARC Security Framework (NORDUGRID-TECH-16)" document"~\cite{arc1-security}.}
 
 To ensure that the information stored in the ISIS cloud can't be tampered with and only is available to proper clients the following authorization framework is implemented. All actions performed by ISIS clients are divided into the three following groups:
 
@@ -342,7 +342,7 @@ To ensure that the information stored in the ISIS cloud can't be tampered with a
  \end{itemize}
 \end{itemize}
 
-Those 3 action groups are handled using Security Framework of ARC~\cite{arcsec}. For each group a corresponding
+Those 3 action groups are handled using Security Framework of ARC~\cite{arc1-security}. For each group a corresponding
 Action is defined for the ARC policy language as described in table \ref{tab:policy_actions}.
 
 \begin{table}[h]
@@ -500,7 +500,7 @@ requesting client.
 \subsection{Configuration}
 \label{sub:isis_authorization_configuration}
 
-\textit{For information about sophisticated authorization policies and how to deploy various Policy Decision Point entities please see "ARC Security Framework (NORDUGRID-TECH-16)" document"~\cite{arcsec}.}
+\textit{For information about sophisticated authorization policies and how to deploy various Policy Decision Point entities please see "ARC Security Framework (NORDUGRID-TECH-16)" document"~\cite{arc1-security}.}
 
 To restrict the set of clients allowed to perform operations on the ISIS service a proper authorization policy is needed. Let's assume ISIS is operating over a TLS connection and all participants possess X.509 certificates with the following subject names:
 \begin{itemize}
@@ -571,7 +571,7 @@ services and to allow services which perform discovery of other services to beha
 In order to activate the policy it must be linked to the ISIS service through the Security Handle and the Policy 
 Decision Point emedded into the configuration of ISIS. Below is a minimal example configuration element of 
 an ISIS service. In lines 7--17 a set of Security Handlers and Policy Decision Points is configured to handle
-policies written in the ARC Policy Language (described in ~\cite{arcsec}). Line 14 specifies that the policy is 
+policies written in the ARC Policy Language (described in~\cite{arc1-security}). Line 14 specifies that the policy is
 read from file \textit{/opt/arc/etc/isis/policy.xml} every time a new request arrives. If the policy is not 
 satisfied then the ISIS returns SOAP Fault instead of the usual informative response.
 
@@ -1530,5 +1530,5 @@ type="wsrf-rpw:GetResourcePropertyDocument">
 % chapter appendices (end)
 
 
-\bibliography{grid}
+\bibliography{grid,nordugrid}
 \end{document}
