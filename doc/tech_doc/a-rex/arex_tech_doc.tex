@@ -1461,6 +1461,11 @@ create a special file for each VO containing the server's DN and its
 CA DN. Instructions are given on NorduGrid's web site at
 \url{http://www.nordugrid.org/documents/voms-notes.html}.
 
+When XML file only is used to configure the A-REX, the transfer shares
+can be implemented by defining \emph{maxLoadShare} (the limit itself)
+and \emph{loadShareType} (the scheme used) elements inside 
+\emph{loadLimits} block.
+
 \subsection{Authorization\label{sub:Authorization}}
 
 Authorization is performed by generic means provided by HED framework.
