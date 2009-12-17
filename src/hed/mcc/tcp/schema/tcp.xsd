@@ -22,18 +22,19 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="Port" type="xsd:int" minOccurs="0" maxOccurs="1" default="60000">
+            <xsd:element name="Port" type="xsd:int">
                 <xsd:annotation>
                     <xsd:documentation xml:lang="en">
                     Listen network port.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="Version" minOccurs="0" maxOccurs="1" default="4">
+            <xsd:element name="Version" minOccurs="0" maxOccurs="1">
                 <xsd:simpleType>
                     <xsd:annotation>
                         <xsd:documentation xml:lang="en">
                         This element defines TCP/IP protocol version.
+                        If not specified both versions will be used whenether possible.
                         </xsd:documentation>
                     </xsd:annotation>
                     <xsd:restriction base="xsd:string">
@@ -42,17 +43,19 @@
                     </xsd:restriction>
                 </xsd:simpleType>
             </xsd:element>
-            <xsd:element name="NoDelay" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="true">
+            <xsd:element name="NoDelay" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false">
                 <xsd:annotation>
                     <xsd:documentation xml:lang="en">
-                    Allow no delay socket option.
+                    Apply no delay socket option. If set to true TCP packets will
+                    be proceesd as soon as possible without waiting for more data
+                    to become available.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="Timeout" type="xsd:int" minOccurs="0" maxOccurs="1" default="60">
                 <xsd:annotation>
                     <xsd:documentation xml:lang="en">
-                    Socket level timeout in seconds
+                    Timeout for socket level operations
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -69,9 +72,9 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="Host" type="xsd:string" minOccurs="1" maxOccurs="1"/>
-            <xsd:element name="Port" type="xsd:int" minOccurs="1" maxOccurs="1"/>
-            <xsd:element name="Timeout" type="xsd:int" minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="Host" type="xsd:string"/>
+            <xsd:element name="Port" type="xsd:int"/>
+            <xsd:element name="Timeout" type="xsd:int"/>
         </xsd:sequence>
     </xsd:complexType>
 </xsd:element>
