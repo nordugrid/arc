@@ -128,18 +128,18 @@ MCC_TCP_Service::MCC_TCP_Service(Config *cfg):MCC_TCP(cfg),max_executers_(-1),ma
             int s = ::socket(info_->ai_family,info_->ai_socktype,info_->ai_protocol);
             if(s == -1) {
                 std::string e = StrError(errno);
-          logger.msg(ERROR, "Failed to create socket for for listening at TCP port %s(%s): %s", port_s, PROTO_NAME(info_),e);
+                logger.msg(ERROR, "Failed to create socket for for listening at TCP port %s(%s): %s", port_s, PROTO_NAME(info_),e);
                 continue;
             };
             if(::bind(s,info->ai_addr,info->ai_addrlen) == -1) {
                 std::string e = StrError(errno);
-          logger.msg(ERROR, "Failed to bind socket for TCP port %s(%s): %s", port_s, PROTO_NAME(info_),e);
+                logger.msg(ERROR, "Failed to bind socket for TCP port %s(%s): %s", port_s, PROTO_NAME(info_),e);
                 close(s);
                 continue;
             };
             if(::listen(s,-1) == -1) {
                 std::string e = StrError(errno);
-          logger.msg(WARNING, "Failed to listen at TCP port %s(%s): %s", port_s, PROTO_NAME(info_),e);
+                logger.msg(WARNING, "Failed to listen at TCP port %s(%s): %s", port_s, PROTO_NAME(info_),e);
                 close(s);
                 continue;
             };
@@ -238,8 +238,7 @@ void MCC_TCP_Service::listener(void* arg) {
         int n = select(max_s+1,&readfds,NULL,NULL,&tv);
         if(n < 0) {
             if(ErrNo != EINTR) {
-          logger.msg(ERROR,
-      "Failed while waiting for connection request");
+                logger.msg(ERROR, "Failed while waiting for connection request");
                 it.lock_.lock();
                 for(std::list<mcc_tcp_handle_t>::iterator i = it.handles_.begin();i!=it.handles_.end();) {
                     int s = i->handle;
@@ -625,11 +624,11 @@ MCC_Status MCC_TCP_Client::process(Message& inmsg,Message& outmsg) {
       socklen_t addrlen;
       addrlen=sizeof(addr);
       if (getsockname(s_->GetHandle(), (struct sockaddr*)&addr, &addrlen) == 0)
-  get_host_port(&addr, host_attr, port_attr);
+        get_host_port(&addr, host_attr, port_attr);
       addrlen=sizeof(addr);
       if (getpeername(s_->GetHandle(), (struct sockaddr*)&addr, &addrlen) == 0)
-  if (get_host_port(&addr, remotehost_attr, remoteport_attr))
-    endpoint_attr = "://"+remotehost_attr+":"+remoteport_attr;
+        if (get_host_port(&addr, remotehost_attr, remoteport_attr))
+          endpoint_attr = "://"+remotehost_attr+":"+remoteport_attr;
     }
     outmsg.Payload(new PayloadTCPSocket(*s_));
     outmsg.Attributes()->set("TCP:HOST",host_attr);
