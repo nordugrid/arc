@@ -63,7 +63,7 @@ static void* cache_func(void* arg) {
         if (!cache_info->cleanCache()) continue;
         
         // get the cache dirs
-        std::list<std::string> cache_info_dirs = cache_info->getCacheDirs();
+        std::vector<std::string> cache_info_dirs = cache_info->getCacheDirs();
 
         // in arc.conf % of used space is given, but cleanbyage uses % of free space
         std::string minfreespace = Arc::tostring(100-cache_info->getCacheMax());
@@ -83,12 +83,12 @@ static void* cache_func(void* arg) {
         args[argc++]=(char*)"-M";
         args[argc++]=(char*)maxfreespace.c_str();
         args[argc++]=(char*)"-D";
-        std::list<std::string> cache_dirs;
+        std::vector<std::string> cache_dirs;
         // have to loop over twice to avoid repeating the same pointer in args
-        for (std::list<std::string>::iterator i = cache_info_dirs.begin(); i != cache_info_dirs.end(); i++) {
+        for (std::vector<std::string>::iterator i = cache_info_dirs.begin(); i != cache_info_dirs.end(); i++) {
           cache_dirs.push_back(i->substr(0, i->find(" ")));
         }
-        for (std::list<std::string>::iterator i = cache_dirs.begin(); i != cache_dirs.end(); i++) {
+        for (std::vector<std::string>::iterator i = cache_dirs.begin(); i != cache_dirs.end(); i++) {
           args[argc++]=(char*)(*i).c_str();
         }
         args[argc]=NULL;

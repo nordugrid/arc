@@ -56,9 +56,9 @@ Arc::MCC_Status ARexService::CacheCheck(ARexGMConfig& config,Arc::XMLNode in,Arc
     // use cache dir(s) from conf file
     try {
       CacheConfig * cache_config = new CacheConfig(std::string(file_owner_username));
-      std::list<std::string> conf_caches = cache_config->getCacheDirs();
+      std::vector<std::string> conf_caches = cache_config->getCacheDirs();
       // add each cache to our list
-      for (std::list<std::string>::iterator i = conf_caches.begin(); i != conf_caches.end(); i++) {
+      for (std::vector<std::string>::iterator i = conf_caches.begin(); i != conf_caches.end(); i++) {
         user.substitute(*i);
         caches.push_back(*i);
       }

@@ -21,7 +21,7 @@ private:
   
 public:
   CacheConfigException(std::string desc = ""): _desc(desc) {};
-  virtual ~CacheConfigException() throw() {};
+  ~CacheConfigException() throw() {};
   std::string what() {return _desc;};
 };
 
@@ -33,17 +33,17 @@ class CacheConfig {
    /**
     * List of (cache dir [link dir])
     */
-   std::list<std::string> _cache_dirs;
+   std::vector<std::string> _cache_dirs;
+   /**
+    * List of (cache dir [link dir]) for remote caches
+    */
+   std::vector<std::string> _remote_cache_dirs;
    int _cache_max;
    int _cache_min;
    /**
-    * true if cleaning is enabled
-    */
-   bool _clean_cache;
-   /**
-    * true if old configuration is detected
-    */
-   bool _old_conf;
+    * Cache directories that are needed to be drained
+    **/
+   std::vector<std::string> _draining_cache_dirs;
  public:
    /**
     * Create a new CacheConfig instance. Read the config file and fill in
@@ -51,21 +51,23 @@ class CacheConfig {
     * defined in the conf file, use the cache parameters for the given username.
     */
   CacheConfig(std::string username = "");
-  ~CacheConfig(void) {};
   /**
    * Parsers for the two different conf styles
    */
   void parseINIConf(std::string username, ConfigSections* cf);
   void parseXMLConf(std::string username, Arc::XMLNode cfg);
-  std::list<std::string> getCacheDirs() { return _cache_dirs; };
+  std::vector<std::string> getCacheDirs() { return _cache_dirs; };
+  std::vector<std::string> getRemoteCacheDirs() { return _remote_cache_dirs; };
+  std::vector<std::string> getDrainingCacheDirs() { return _draining_cache_dirs; };
   /**
    * To allow for substitutions done during configuration
    */
-  void setCacheDirs(std::list<std::string> cache_dirs) { _cache_dirs = cache_dirs; };
+  void setCacheDirs(std::vector<std::string> cache_dirs) { _cache_dirs = cache_dirs; };
+  void setRemoteCacheDirs(std::vector<std::string> remote_cache_dirs) { _remote_cache_dirs = remote_cache_dirs; };
+  void setDrainingCacheDirs(std::vector<std::string> draining_cache_dirs) { _draining_cache_dirs = draining_cache_dirs; }; 
   int getCacheMax() { return _cache_max; };
   int getCacheMin() { return _cache_min; };
-  bool cleanCache() { return _clean_cache; };
-  bool oldConf() { return _old_conf; };
+  bool cleanCache() { return _cache_max < 100; };
 };
 
 #endif /*__GM_CONFIG_CACHE_H__*/

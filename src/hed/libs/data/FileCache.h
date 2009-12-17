@@ -3,9 +3,9 @@
 #ifndef FILECACHE_H_
 #define FILECACHE_H_
 
-
 #include <sstream>
 #include <vector>
+#include <map>
 
 #include <arc/DateTime.h>
 
@@ -64,10 +64,23 @@ namespace Arc {
   class FileCache {
   private:
     /**
+     * Map of the cache files and the cache directories.
+     */
+    std::map <std::string, int> _cache_map;
+    /**
      * Vector of caches. Each entry defines a cache and specifies
      * a cache directory and optional link path.
      */
     std::vector<struct CacheParameters> _caches;
+    /**
+     * Vector of remote caches. Each entry defines a cache and specifies 
+     * a cache directory, per-job directory and link/copy information.
+     */
+    std::vector<struct CacheParameters> _remote_caches;
+    /**
+     * Vector of caches to be drained. 
+     */
+    std::vector<struct CacheParameters> _draining_caches;
     /**
      * identifier used to claim files, ie the job id
      */
@@ -86,6 +99,12 @@ namespace Arc {
      * Our pid
      */
     std::string _pid;
+    /**
+     * The max and min used space for caches, as a percentage of the
+     * file system
+     */
+    int _max_used;
+    int _min_used;
     /**
      * The sub-dir of the cache for data
      */
@@ -118,9 +137,13 @@ namespace Arc {
      * Common code for constuctors
      */
     bool _init(std::vector<std::string> caches,
+               std::vector<std::string> remote_caches,
+               std::vector<std::string> draining_caches,
                std::string id,
                uid_t job_uid,
-               gid_t job_gid);
+               gid_t job_gid,
+               int cache_max = 100,
+               int cache_min = 100);
     /**
      * Return the filename of the lock file associated to the given url
      */
@@ -141,12 +164,16 @@ namespace Arc {
      * if false, it is readable only by the user who created it.
      */
     bool _cacheMkDir(std::string dir, bool all_read);
-    /**
-     * Choose a cache to use from the list, based on the first character
-     * of the url hash mod number of caches.
+   /**
+     * Choose a cache directory to use for this url, based on the free 
+     * size of the cache directories and cache_size limitation of the arc.conf
      * Returns the index of the cache to use in the list.
+     */ 
+    int _chooseCache(std::string url);
+    /**
+     * Retun the cache info < total space in KB, used space in KB>   
      */
-    int _chooseCache(std::string hash);
+    std::pair <unsigned long long , unsigned long long> _getCacheInfo(std::string path);
     /**
      * Logger for messages
      */
@@ -184,21 +211,42 @@ namespace Arc {
     FileCache(std::vector<std::string> caches,
               std::string id,
               uid_t job_uid,
-              gid_t job_gid);
+              gid_t job_gid);       
     /**
-     * Copy constructor
+     * Create a new FileCache instance with multiple cache dirs,
+     * remote caches and draining cache directories.
+     * @param caches a vector of strings describing caches. The format
+     * of each string is "cache_dir[ link_path]".
+     * @param remote_caches Same format as caches. These are the
+     * paths to caches which are under the control of other Grid
+     * Managers and are read-only for this process.
+     * @param draining_caches Same format as caches. These are the
+     * paths to caches which are to be drained.
+     * @param id the job id. This is used to create the per-job dir
+     * which the job's cache files will be hard linked from
+     * @param job_uid owner of job. The per-job dir will only be
+     * readable by this user
+     * @param job_gid owner group of job
+     * @param cache_max maximum used space by cache, as percentage
+     * of the file system
+     * @param cache_min minimum used space by cache, as percentage
+     * of the file system
      */
-    FileCache(const FileCache& cache);
+    FileCache(std::vector<std::string> caches,
+              std::vector<std::string> remote_caches,
+              std::vector<std::string> draining_caches, 
+              std::string id,
+              uid_t job_uid,
+              gid_t job_gid,
+              int cache_max = 100,
+              int cache_min = 100);
     /**
      * Default constructor. Invalid cache.
      */
     FileCache() {
       _caches.clear();
     }
-    /**
-     * Destructor
-     */
-    virtual ~FileCache(void);
+
     /**
      * Prepare cache for downloading file, and lock the cached file.
      * On success returns true. If there is another process downloading
@@ -212,8 +260,11 @@ namespace Arc {
      * @param available true on exit if the file is already in cache
      * @param is_locked true on exit if the file is already locked, ie
      * cannot be used by this process
+     * @param remote_caches Same format as caches. These are the
+     * paths to caches which are under the control of other Grid
+     * Managers and are read-only for this process.
      */
-    bool Start(std::string url, bool& available, bool& is_locked);
+    bool Start(std::string url, bool& available, bool& is_locked, bool use_remote = true);
     /**
      * This method (or stopAndDelete) must be called after file was
      * downloaded or download failed, to release the lock on the
@@ -259,14 +310,6 @@ namespace Arc {
      * Copy the cache file corresponding to url to the dest_path
      */
     bool Copy(std::string dest_path, std::string url, bool executable = false);
-    /**
-     * Remove some amount of oldest information from cache.
-     * Returns true on success. Not implemented.
-     * @param size amount to be removed (bytes)
-     */
-    bool Clean(unsigned long long int size = 1) {
-      return false;
-    }
     /**
      * Release claims on input files for the job specified by id.
      * For each cache directory the per-job directory with the
@@ -341,12 +384,6 @@ namespace Arc {
   class FileCache {
   public:
     FileCache(std::string cache_path,
-              std::string cache_job_dir_path,
-              std::string cache_link_path,
-              std::string id,
-              int job_uid,
-              int job_gid) {}
-    FileCache(std::string cache_path,
               std::string id,
               int job_uid,
               int job_gid) {}
@@ -354,19 +391,22 @@ namespace Arc {
               std::string id,
               int job_uid,
               int job_gid) {}
-    FileCache(std::vector<struct CacheParameters> caches,
+    FileCache(std::vector<std::string> caches,
+              std::vector<std::string> remote_caches,
+              std::vector<std::string> draining_caches, 
               std::string id,
               int job_uid,
-              int job_gid) {}
+              int job_gid,
+              int cache_max,
+              int cache_min) {}
     FileCache(const FileCache& cache) {}
     FileCache() {}
-    bool Start(std::string url, bool& available, bool& is_locked) { return false; }
+    bool Start(std::string url, bool& available, bool& is_locked, bool& use_remote) { return false; }
     bool Stop(std::string url) { return false; }
     bool StopAndDelete(std::string url) {return false; }
     std::string File(std::string url) { return url; }
     bool Link(std::string link_path, std::string url)  { return false; }
     bool Copy(std::string dest_path, std::string url, bool executable = false) { return false; }
-    bool Clean(unsigned long long int size = 1) { return false;}
     bool Release() { return false;}
     bool AddDN(std::string url, std::string DN, Time expiry_time) { return false;}
     bool CheckDN(std::string url, std::string DN) { return false; }

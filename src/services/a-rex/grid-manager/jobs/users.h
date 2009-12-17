@@ -88,7 +88,7 @@ class JobUser {
   /* Set and get corresponding private values */
   void SetControlDir(const std::string &dir);
   void SetSessionRoot(const std::string &dir);
-  void SetCacheParams(CacheConfig* params) { cache_params = params; };
+  void SetCacheParams(CacheConfig* params);
   void SetLRMS(const std::string &lrms_name,const std::string &queue_name);
   void SetKeepFinished(time_t ttl) { keep_finished=ttl; };
   void SetKeepDeleted(time_t ttr) { keep_deleted=ttr; };

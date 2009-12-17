@@ -13,6 +13,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <dirent.h>
 #include <fcntl.h>
 #include <errno.h>
 #include <limits>
@@ -984,7 +985,7 @@ bool job_clean_finished(const JobId &id,JobUser &user) {
   return true;
 }
 
-bool job_clean_deleted(const JobDescription &desc,JobUser &user) {
+bool job_clean_deleted(const JobDescription &desc,JobUser &user,std::list<std::string> cache_per_job_dirs) {
   std::string id = desc.get_id();
   job_clean_finished(id,user);
   std::string fname;
@@ -1009,6 +1010,22 @@ bool job_clean_deleted(const JobDescription &desc,JobUser &user) {
     delete_all_files(dname,flist,true);
     remove(dname.c_str());
   };
+  // remove cache per-job links, in case this failed earlier
+  // list all files in the dir and delete them
+  for (std::list<std::string>::iterator i = cache_per_job_dirs.begin(); i != cache_per_job_dirs.end(); i++) {
+    std::string cache_job_dir = (*i) + "/" + id;
+    DIR * dirp = opendir(cache_job_dir.c_str());
+    if ( dirp == NULL) return true; // already deleted
+    struct dirent *dp;
+    while ((dp = readdir(dirp)))  {
+      if (strcmp(dp->d_name, ".") == 0 || strcmp(dp->d_name, "..") == 0) continue;
+      std::string to_delete = cache_job_dir + "/" + dp->d_name; 
+      remove(to_delete.c_str());
+    }
+    closedir(dirp);
+    // remove now-empty dir
+    rmdir(cache_job_dir.c_str());
+  }
   return true;
 }
 

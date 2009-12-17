@@ -453,20 +453,6 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
             logger.msg(Arc::WARNING,"Warning: creation of user \"%s\" failed",username);
           }
           else {
-            // get cache parameters for this user
-            try {
-              CacheConfig * cache_config = new CacheConfig(user->UnixName());
-              std::list<std::string> cache_info = cache_config->getCacheDirs();
-              for (std::list<std::string>::iterator i = cache_info.begin(); i != cache_info.end(); i++) {
-                user->substitute(*i);
-              }
-              cache_config->setCacheDirs(cache_info);
-              user->SetCacheParams(cache_config);
-            }
-            catch (CacheConfigException e) {
-              logger.msg(Arc::ERROR, "Error with cache configuration: %s", e.what());
-              logger.msg(Arc::ERROR, "Caching is disabled");
-            }
             std::string control_dir_ = control_dir;
             std::string session_root_ = session_root;
             user->SetLRMS(default_lrms,default_queue);
@@ -479,6 +465,15 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
             user->SetControlDir(control_dir_);
             user->SetSessionRoot(session_root_);
             user->SetStrictSession(strict_session);
+            // get cache parameters for this user
+            try {
+              CacheConfig * cache_config = new CacheConfig(user->UnixName());
+              user->SetCacheParams(cache_config);
+            }
+            catch (CacheConfigException e) {
+              logger.msg(Arc::ERROR, "Error with cache configuration: %s", e.what());
+              goto exit;
+            }
             /* add helper to poll for finished jobs */
             std::string cmd_ = nordugrid_libexec_loc();
             make_escaped_string(control_dir_);
@@ -881,21 +876,6 @@ bool configure_serviced_users(Arc::XMLNode cfg,JobUsers &users,uid_t my_uid,cons
           logger.msg(Arc::WARNING,"Warning: creation of user \"%s\" failed",*username);
         }
         else {
-          // get cache parameters for this user
-          try {
-            CacheConfig * cache_config = new CacheConfig(tmp_node);
-            std::list<std::string> cache_info = cache_config->getCacheDirs();
-            for (std::list<std::string>::iterator i = cache_info.begin();
-                 i != cache_info.end(); i++) {
-              user->substitute(*i);
-            }
-            cache_config->setCacheDirs(cache_info);
-            user->SetCacheParams(cache_config);
-          }
-          catch (CacheConfigException e) {
-            logger.msg(Arc::ERROR, "Error with cache configuration: %s", e.what());
-            logger.msg(Arc::ERROR, "Caching is disabled");
-          }
           std::string control_dir_ = control_dir;
           std::string session_root_ = session_root;
           user->SetLRMS(default_lrms,default_queue);
@@ -908,6 +888,15 @@ bool configure_serviced_users(Arc::XMLNode cfg,JobUsers &users,uid_t my_uid,cons
           user->SetControlDir(control_dir_);
           user->SetSessionRoot(session_root_);
           user->SetStrictSession(strict_session);
+          // get cache parameters for this user
+          try {
+            CacheConfig * cache_config = new CacheConfig(user->UnixName());
+            user->SetCacheParams(cache_config);
+          }
+          catch (CacheConfigException e) {
+            logger.msg(Arc::ERROR, "Error with cache configuration: %s", e.what());
+            return false;
+          }
           /* add helper to poll for finished jobs */
           std::string cmd_ = nordugrid_libexec_loc();
           make_escaped_string(control_dir_);
@@ -998,21 +987,28 @@ bool print_serviced_users(const JobUsers &users) {
       continue;
     }
 
-    std::list<std::string> conf_caches = cache_config->getCacheDirs();
-
+    std::vector<std::string> conf_caches = cache_config->getCacheDirs();
+    std::vector<std::string> remote_conf_caches = cache_config->getRemoteCacheDirs();
     if(conf_caches.empty()) {
       logger.msg(Arc::INFO,"No valid caches found in configuration, caching is disabled");
       continue;
     }
     // list each cache
-    for (std::list<std::string>::iterator i = conf_caches.begin(); i != conf_caches.end(); i++) {
+    for (std::vector<std::string>::iterator i = conf_caches.begin(); i != conf_caches.end(); i++) {
       logger.msg(Arc::INFO, "\tCache            : %s", (*i).substr(0, (*i).find(" ")));
-      if ((*i).find(" ") != std::string::npos) {
+      if ((*i).find(" ") != std::string::npos)
         logger.msg(Arc::INFO, "\tCache link dir   : %s", (*i).substr((*i).find_last_of(" ")+1, (*i).length()-(*i).find_last_of(" ")+1));
-      }
     }
-    if (cache_config->cleanCache()) logger.msg(Arc::INFO, "\tCache cleaning enabled");
-    else logger.msg(Arc::INFO, "\tCache cleaning disabled");
+    // list each remote cache
+    for (std::vector<std::string>::iterator i = remote_conf_caches.begin(); i != remote_conf_caches.end(); i++) {
+      logger.msg(Arc::INFO, "\tRemote cache     : %s", (*i).substr(0, (*i).find(" ")));
+      if ((*i).find(" ") != std::string::npos) 
+        logger.msg(Arc::INFO, "\tRemote cache link: %s", (*i).substr((*i).find_last_of(" ")+1, (*i).length()-(*i).find_last_of(" ")+1));
+    }
+    if (cache_config->cleanCache())
+      logger.msg(Arc::INFO, "\tCache cleaning enabled");
+    else
+      logger.msg(Arc::INFO, "\tCache cleaning disabled");
   };
   return true;
 }

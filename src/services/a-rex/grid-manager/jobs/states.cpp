@@ -1130,12 +1130,22 @@ void JobsList::ActJobFinished(JobsList::iterator &i,bool hard_job,
                   state_changed=true;
                   return;
                 }
-                std::list<std::string> conf_caches = cache_config->getCacheDirs();
+                std::vector<std::string> conf_caches = cache_config->getCacheDirs();
                 // add each dir to our list
-                for (std::list<std::string>::iterator it = conf_caches.begin(); it != conf_caches.end(); it++) {
+                for (std::vector<std::string>::iterator it = conf_caches.begin(); it != conf_caches.end(); it++) {
                   cache_per_job_dirs.push_back(it->substr(0, it->find(" "))+"/joblinks");
                 }
-                job_clean_deleted(*i,*user);
+                // add remote caches
+                std::vector<std::string> remote_caches = cache_config->getRemoteCacheDirs();
+                for (std::vector<std::string>::iterator it = remote_caches.begin(); it != remote_caches.end(); it++) {
+                  cache_per_job_dirs.push_back(it->substr(0, it->find(" "))+"/joblinks");
+                }
+                // add draining caches
+                std::vector<std::string> draining_caches = cache_config->getDrainingCacheDirs();
+                for (std::vector<std::string>::iterator it = draining_caches.begin(); it != draining_caches.end(); it++) {
+                  cache_per_job_dirs.push_back(it->substr(0, it->find(" "))+"/joblinks");
+                }
+                job_clean_deleted(*i,*user,cache_per_job_dirs);
                 i->job_state = JOB_STATE_DELETED;
                 state_changed=true;
               } else {

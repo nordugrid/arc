@@ -254,7 +254,7 @@ bool job_clean_finished(const JobId &id,JobUser &user);
 /*
   Remove all files, which should be removed after job's state becomes DELETED
 */
-bool job_clean_deleted(const JobDescription &desc,JobUser &user);
+bool job_clean_deleted(const JobDescription &desc,JobUser &user, std::list<std::string> cache_per_job_dirs=std::list<std::string>());
 
 /*
   Remove all job's files.

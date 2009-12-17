@@ -56,6 +56,19 @@ void JobUser::SetSessionRoot(const std::string &dir) {
   if(dir.length() == 0) { session_root=home + "/.jobs"; }
   else { session_root=dir; };
 }
+void JobUser::SetCacheParams(CacheConfig* params) {
+  std::vector<std::string> cache_dirs = params->getCacheDirs();
+  for (std::vector<std::string>::iterator i = cache_dirs.begin(); i != cache_dirs.end(); i++) {
+    substitute(*i);
+  }
+  params->setCacheDirs(cache_dirs);
+  std::vector<std::string> drain_cache_dirs = params->getDrainingCacheDirs();
+  for (std::vector<std::string>::iterator i = drain_cache_dirs.begin(); i != drain_cache_dirs.end(); i++) {
+    substitute(*i);
+  }
+  params->setDrainingCacheDirs(drain_cache_dirs);
+  cache_params = params;
+}
 
 bool JobUser::CreateDirectories(void) {
   bool res = true;
@@ -254,6 +267,7 @@ JobUser::JobUser(const JobUser &user) {
 }
 
 JobUser::~JobUser(void) { 
+  delete cache_params;
 }
 
 JobUsers::JobUsers(void) {

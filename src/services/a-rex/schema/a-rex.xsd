@@ -184,6 +184,8 @@
                   Multiple cache directories may be specified by specifying
                   multiple location elements. Cached data will be distributed
                   evenly over the caches.
+                * remotelocation - path to a cache which is managed by
+                  another grid-manager.
                 * link - optional path at which the location is accessible on
                   computing nodes, if it is different from the path on the
                   service host.
@@ -198,6 +200,8 @@
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="location" type="cachelocation_Type"
+                         maxOccurs="unbounded"/>
+            <xsd:element name="remotelocation" type="cachelocation_Type"
                          maxOccurs="unbounded"/>
             <xsd:element name="highWatermark" type="xsd:nonNegativeInteger"
                          minOccurs="0"/>

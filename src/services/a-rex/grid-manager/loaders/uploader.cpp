@@ -171,7 +171,6 @@ int main(int argc,char** argv) {
   std::string file_owner_username = "";
   uid_t file_owner = 0;
   gid_t file_group = 0;
-  std::vector<std::string> caches;
   bool use_conf_cache = false;
   unsigned long long int min_speed = 0;
   time_t min_speed_time = 300;
@@ -336,32 +335,47 @@ int main(int argc,char** argv) {
     }
     if(pw->pw_name) file_owner_username=pw->pw_name;
   }
+  
+  Arc::FileCache * cache;
 
-  if(use_conf_cache) {
-    // use cache dir(s) from conf file
-    CacheConfig * cache_config;
+  if (use_conf_cache) {
     try {
-      cache_config = new CacheConfig(std::string(file_owner_username));
-      std::list<std::string> conf_caches = cache_config->getCacheDirs();
-      // add each cache to our list
-      for (std::list<std::string>::iterator i = conf_caches.begin(); i != conf_caches.end(); i++) {
-        user.substitute(*i);
-        caches.push_back(*i);
+      CacheConfig * cache_config = new CacheConfig(std::string(file_owner_username));
+      user.SetCacheParams(cache_config);
+      cache = new Arc::FileCache(cache_config->getCacheDirs(),
+                                 cache_config->getRemoteCacheDirs(),
+                                 cache_config->getDrainingCacheDirs(),
+                                 std::string(id), uid, gid,
+                                 cache_config->getCacheMax(),
+                                 cache_config->getCacheMin());
+      if (!(cache_config->getCacheDirs().size() == 0) && !(*cache)) {
+        logger.msg(Arc::ERROR, "Error creating cache");
+        delete cache;
+        exit(1);
       }
     }
     catch (CacheConfigException e) {
       logger.msg(Arc::ERROR, "Error with cache configuration: %s", e.what());
-      logger.msg(Arc::ERROR, "Cannot clean up any cache files");
+      delete cache;
+      exit(1);
     }
-    delete cache_config;
+  }
+  else if(argv[optind+3]) {
+    std::string cache_path = argv[optind+3];
+    if(argv[optind+4])
+      cache_path += " "+std::string(argv[optind+4]);
+    cache = new Arc::FileCache(cache_path, std::string(id), uid, gid);
+    if (!(*cache)) {
+      logger.msg(Arc::ERROR, "Error creating cache");
+      delete cache;
+      exit(1);
+    }
   }
   else {
-    if(argv[optind+3]) {
-      std::string cache_path = argv[optind+3];
-      if(argv[optind+4]) cache_path += " "+std::string(argv[optind+4]);
-      caches.push_back(cache_path);
-    }
+    // if no cache defined, use null cache
+    cache = new Arc::FileCache();
   }
+
   if(min_speed != 0)
     logger.msg(Arc::VERBOSE, "Minimal speed: %llu B/s during %i s", min_speed, min_speed_time);
   if(min_average_speed != 0)
@@ -378,20 +392,6 @@ int main(int argc,char** argv) {
 
   UrlMapConfig url_map;
   logger.msg(Arc::INFO, "Uploader started");
-
-  Arc::FileCache * cache;
-  if(!caches.empty()) {
-    cache = new Arc::FileCache(caches,std::string(id),uid,gid);
-    if (!(*cache)) {
-      logger.msg(Arc::ERROR, "Error creating cache");
-      delete cache;
-      exit(1);
-    }
-  }
-  else {
-    // if no cache defined, use null cache
-    cache = new Arc::FileCache();
-  }
 
   Janitor janitor(desc.get_id(),user.ControlDir());
   
@@ -547,7 +547,6 @@ exit:
   // release input files used for this job
   cache->Release();
   delete cache;
-  logger.msg(Arc::INFO, "Leaving uploader (%i)", res);
   // clean uploaded files here 
   job_files_.clear();
   for(FileDataEx::iterator i = job_files.begin();i!=job_files.end();++i) job_files_.push_back(*i);
@@ -566,6 +565,7 @@ exit:
   if(res != 0) {
     job_failed_mark_add(desc,user,failure_reason);
   };
+  logger.msg(Arc::INFO, "Leaving uploader (%i)", res);
   return res;
 }
 

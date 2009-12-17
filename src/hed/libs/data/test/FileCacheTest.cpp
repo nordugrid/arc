@@ -18,6 +18,7 @@ class FileCacheTest
 
   CPPUNIT_TEST_SUITE(FileCacheTest);
   CPPUNIT_TEST(testStart);
+  CPPUNIT_TEST(testRemoteCache);
   CPPUNIT_TEST(testStop);
   CPPUNIT_TEST(testStopAndDelete);
   CPPUNIT_TEST(testLinkFile);
@@ -39,6 +40,7 @@ public:
   void tearDown();
 
   void testStart();
+  void testRemoteCache();
   void testStop();
   void testStopAndDelete();
   void testLinkFile();
@@ -231,7 +233,104 @@ void FileCacheTest::testStart() {
   CPPUNIT_ASSERT(!_fc1->Start(_url, available, is_locked));
   _createFile(_fc1->File(_url) + ".meta", "rls://rls1.ndgf.org/file1.bad");
   CPPUNIT_ASSERT(!_fc1->Start(_url, available, is_locked));
+  CPPUNIT_ASSERT_EQUAL(0, remove(std::string(_fc1->File(_url)+".meta").c_str()));
 
+}
+
+void FileCacheTest::testRemoteCache() {
+  
+  // test with remote cache
+  std::vector<std::string> caches;
+  std::vector<std::string> remote_caches;
+  std::vector<std::string> draining_caches;
+  
+  caches.push_back(_cache_dir);
+  std::string remote_cache_dir = "/tmp/"+_intToString(getpid())+"_remotecache";
+  remote_caches.push_back(remote_cache_dir);
+  delete _fc1;
+  _fc1 = new Arc::FileCache(caches, remote_caches, draining_caches, _jobid, _uid, _gid);
+
+  // file is not available
+  bool available, is_locked;
+  CPPUNIT_ASSERT(_fc1->Start(_url, available, is_locked));
+  CPPUNIT_ASSERT(!available);
+  CPPUNIT_ASSERT(!is_locked);
+  CPPUNIT_ASSERT(_fc1->Stop(_url));
+  
+  // create a cache file
+  CPPUNIT_ASSERT(_createFile(_fc1->File(_url)));
+  
+  // should be available
+  CPPUNIT_ASSERT(_fc1->Start(_url, available, is_locked));
+  CPPUNIT_ASSERT(available);
+  CPPUNIT_ASSERT(!is_locked);
+  
+  // delete file and create in remote cache
+  CPPUNIT_ASSERT(_fc1->StopAndDelete(_url));
+  CPPUNIT_ASSERT(_createFile(remote_cache_dir+"/data/69/59dbaef4f0a0d9aa84368e01a35a78abf267ac"));
+  _files.push_back(remote_cache_dir+"/data/69/59dbaef4f0a0d9aa84368e01a35a78abf267ac");
+  _files.push_back(remote_cache_dir+"/data/69");
+  _files.push_back(remote_cache_dir+"/data");
+  
+  // check not available if not using remote caches
+  CPPUNIT_ASSERT(_fc1->Start(_url, available, is_locked, false));
+  CPPUNIT_ASSERT(!available);
+  CPPUNIT_ASSERT(!is_locked);
+  CPPUNIT_ASSERT(_fc1->Stop(_url));
+  
+  // check available when remote caches are enabled
+  CPPUNIT_ASSERT(_fc1->Start(_url, available, is_locked, true));
+  CPPUNIT_ASSERT(available);
+  CPPUNIT_ASSERT(!is_locked);
+  struct stat fileStat; 
+  CPPUNIT_ASSERT_EQUAL_MESSAGE("Could not stat remote lock file", 0, stat(std::string(remote_cache_dir+"/data/69/59dbaef4f0a0d9aa84368e01a35a78abf267ac.lock").c_str(), &fileStat) );
+
+  // check a symlink was created
+  CPPUNIT_ASSERT_EQUAL_MESSAGE( "Could not stat soft link "+_fc1->File(_url), 0, lstat( _fc1->File(_url).c_str(), &fileStat) );
+  // check our soft link links to yet another link
+  CPPUNIT_ASSERT(S_ISLNK(fileStat.st_mode));
+  // check the target is correct
+  CPPUNIT_ASSERT_EQUAL_MESSAGE( "Could not stat target of soft link "+_fc1->File(_url), 0, stat( _fc1->File(_url).c_str(), &fileStat) );
+
+  // call link and check it was created in the remote cache
+  std::string soft_link = _session_dir+"/"+_jobid+"/file1";
+  std::string local_hard_link = _cache_job_dir+"/"+_jobid+"/file1";
+  CPPUNIT_ASSERT(_fc1->Link(soft_link, _url));
+  _files.push_back(soft_link);
+  _files.push_back(local_hard_link);
+  _files.push_back(remote_cache_dir+"/joblinks/1/file1");
+  _files.push_back(remote_cache_dir+"/joblinks/1");
+  _files.push_back(remote_cache_dir+"/joblinks");
+  _files.push_back(remote_cache_dir);
+
+  CPPUNIT_ASSERT_EQUAL_MESSAGE( "Could not stat remote hard link ", 0, stat((remote_cache_dir+"/joblinks/1/file1").c_str(), &fileStat) );
+  CPPUNIT_ASSERT_EQUAL_MESSAGE( "Hard link is a soft link", true, (lstat((remote_cache_dir+"/joblinks/1/file1").c_str(), &fileStat) == 0 && !S_ISLNK(fileStat.st_mode)));  
+  CPPUNIT_ASSERT(stat( local_hard_link.c_str(), &fileStat) != 0 );
+
+  // stop cache to release locks and remove symlink
+  CPPUNIT_ASSERT(_fc1->Stop(_url));
+  CPPUNIT_ASSERT(stat( _fc1->File(_url).c_str(), &fileStat) != 0 );
+  CPPUNIT_ASSERT(stat(std::string(remote_cache_dir+"/data/69/59dbaef4f0a0d9aa84368e01a35a78abf267ac.lock").c_str(), &fileStat) != 0 );
+  CPPUNIT_ASSERT(stat((_fc1->File(_url)+".lock").c_str(), &fileStat) != 0 );
+  
+  // release
+  CPPUNIT_ASSERT(_fc1->Release());
+  CPPUNIT_ASSERT(stat(std::string(remote_cache_dir+"/joblinks/1/file1").c_str(), &fileStat) != 0 );
+  CPPUNIT_ASSERT(stat(std::string(remote_cache_dir+"/joblinks/1").c_str(), &fileStat) != 0 );
+  
+  // test with a replicate policy
+  delete _fc1;
+  remote_cache_dir = "/tmp/"+_intToString(getpid())+"_remotecache replicate";
+  remote_caches.clear();
+  remote_caches.push_back(remote_cache_dir);
+  _fc1 = new Arc::FileCache(caches, remote_caches, draining_caches, _jobid, _uid, _gid);
+  CPPUNIT_ASSERT(_fc1->Start(_url, available, is_locked));
+  CPPUNIT_ASSERT(available);
+  CPPUNIT_ASSERT(!is_locked);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE( "Could not stat file "+_fc1->File(_url), 0, stat( _fc1->File(_url).c_str(), &fileStat) );
+  // check it is a copy and not a symlink
+  CPPUNIT_ASSERT(!S_ISLNK(fileStat.st_mode));
+  CPPUNIT_ASSERT(_fc1->Stop(_url));
 }
 
 void FileCacheTest::testStop() {
@@ -494,7 +593,8 @@ void FileCacheTest::testCopyFile() {
 
 void FileCacheTest::testFile() {
   // test hash returned
-  CPPUNIT_ASSERT_EQUAL(std::string(_cache_data_dir + "/69/59dbaef4f0a0d9aa84368e01a35a78abf267ac"), _fc1->File(_url));
+  std::string hash = "/69/59dbaef4f0a0d9aa84368e01a35a78abf267ac";
+  CPPUNIT_ASSERT_EQUAL(std::string(_cache_data_dir + hash), _fc1->File(_url));
 
   // set up two caches
   std::vector<std::string> caches;
@@ -507,10 +607,14 @@ void FileCacheTest::testFile() {
   _files.push_back(cache_dir2);
 
   Arc::FileCache *fc2 = new Arc::FileCache(caches, "1", _uid, _gid);
-  // _url should go to the first cache
-  CPPUNIT_ASSERT_EQUAL(std::string(_cache_data_dir + "/69/59dbaef4f0a0d9aa84368e01a35a78abf267ac"), fc2->File(_url));
-  // this url goes to the second cache
-  CPPUNIT_ASSERT_EQUAL(std::string(cache_dir2 + "/data/11/8f1aa74364c6546cfe2c536c8979bfd1609a7b"), fc2->File("rls://rls1.ndgf.org/file2"));
+  // _url can go to either cache, so check it at least is mapped to one
+  bool found = false;
+  if (fc2->File(_url) == std::string(_cache_data_dir + hash))
+    found = true;
+  if (fc2->File(_url) == std::string(cache_dir2 + "/data" + hash))
+    found = true;
+  
+  CPPUNIT_ASSERT(found);
   delete fc2;
 }
 
@@ -628,6 +732,7 @@ void FileCacheTest::testTwoCaches() {
   bool available = false;
   bool is_locked = false;
   CPPUNIT_ASSERT(fc2->Start(_url, available, is_locked));
+  std::string cache_file1 = fc2->File(_url);
   _files.push_back(fc2->File(_url) + ".meta");
   _files.push_back(fc2->File(_url) + ".lock");
 
@@ -639,6 +744,7 @@ void FileCacheTest::testTwoCaches() {
   bool available2 = false;
   bool is_locked2 = false;
   CPPUNIT_ASSERT(fc2->Start(url2, available2, is_locked2));
+  std::string cache_file2 = fc2->File(url2);
   _files.push_back(fc2->File(url2) + ".meta");
   _files.push_back(fc2->File(url2) + ".lock");
 
@@ -647,31 +753,39 @@ void FileCacheTest::testTwoCaches() {
   CPPUNIT_ASSERT(!is_locked2);
 
   // create cache files
-  CPPUNIT_ASSERT(_createFile(fc2->File(_url)));
-  CPPUNIT_ASSERT(_createFile(fc2->File(url2)));
+  CPPUNIT_ASSERT(_createFile(cache_file1));
+  CPPUNIT_ASSERT(_createFile(cache_file2));
 
   // create links
   std::string soft_link = _session_dir + "/" + _jobid + "/file1";
   std::string soft_link2 = _session_dir + "/" + _jobid + "/file2";
+  
   // we expect the hard links to be made to here
-  std::string hard_link = _cache_job_dir + "/" + _jobid + "/file1";
-  std::string hard_link2 = cache_dir2 + "/joblinks/" + _jobid + "/file2";
+  std::string hard_link_cache1 = _cache_job_dir + "/" + _jobid + "/file1";
+  std::string hard_link_cache2 = cache_dir2 + "/joblinks/" + _jobid + "/file1";
+  std::string hard_link2_cache1 = _cache_job_dir + "/" + _jobid + "/file2";
+  std::string hard_link2_cache2 = cache_dir2 + "/joblinks/" + _jobid + "/file2";
+
   CPPUNIT_ASSERT(fc2->Link(soft_link, _url));
   CPPUNIT_ASSERT(fc2->Link(soft_link2, url2));
-  _files.push_back(hard_link);
-  _files.push_back(hard_link2);
+  _files.push_back(hard_link_cache1);
+  _files.push_back(hard_link_cache2);
+  _files.push_back(hard_link2_cache1);
+  _files.push_back(hard_link2_cache2);
   _files.push_back(soft_link);
   _files.push_back(soft_link2);
   _files.push_back(cache_dir2 + "/data/11");
+  _files.push_back(cache_dir2 + "/data/69");
   _files.push_back(cache_dir2 + "/data");
   _files.push_back(cache_dir2 + "/joblinks/1");
   _files.push_back(cache_dir2 + "/joblinks");
   _files.push_back(cache_dir2);
 
-  // check correct hard links are made
+  // check hard links are made in one of the caches
   struct stat fileStat;
-  CPPUNIT_ASSERT(stat(hard_link.c_str(), &fileStat) == 0);
-  CPPUNIT_ASSERT(stat(hard_link2.c_str(), &fileStat) == 0);
+  CPPUNIT_ASSERT(stat(hard_link_cache1.c_str(), &fileStat) == 0 || stat(hard_link_cache2.c_str(), &fileStat) == 0);
+  CPPUNIT_ASSERT(stat(hard_link2_cache1.c_str(), &fileStat) == 0 || stat(hard_link2_cache2.c_str(), &fileStat) == 0);
+
 
   // Stop caches to release locks
   CPPUNIT_ASSERT(fc2->Stop(_url));
@@ -680,9 +794,10 @@ void FileCacheTest::testTwoCaches() {
   // release with correct IDs
   CPPUNIT_ASSERT(fc2->Release());
 
-  // check files and dir are gone
-  CPPUNIT_ASSERT(stat(hard_link.c_str(), &fileStat) != 0);
-  CPPUNIT_ASSERT(stat(hard_link2.c_str(), &fileStat) != 0);
+  // check links and job dir are gone
+  CPPUNIT_ASSERT(stat(hard_link_cache1.c_str(), &fileStat) != 0 && stat(hard_link_cache2.c_str(), &fileStat) != 0);
+  CPPUNIT_ASSERT(stat(hard_link2_cache1.c_str(), &fileStat) != 0 && stat(hard_link2_cache2.c_str(), &fileStat) != 0);
+
   CPPUNIT_ASSERT(stat(std::string(_cache_job_dir + "/" + _jobid).c_str(), &fileStat) != 0);
   CPPUNIT_ASSERT(stat(std::string(cache_dir2 + "/joblinks/" + _jobid).c_str(), &fileStat) != 0);
 
@@ -693,6 +808,7 @@ void FileCacheTest::testTwoCaches() {
 
   // check job dir is not created
   CPPUNIT_ASSERT(stat(std::string(_cache_job_dir + "/" + _jobid).c_str(), &fileStat) != 0);
+  CPPUNIT_ASSERT(stat(std::string(cache_dir2 + "/joblinks/" + _jobid).c_str(), &fileStat) != 0);
 
   // release should not give an error, even though job dir does not exist
   CPPUNIT_ASSERT(fc2->Release());
