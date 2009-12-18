@@ -92,6 +92,12 @@ enables_mysql=no
 enables_python=yes
 enables_swig=yes
 enables_xmlsec1=yes
+#  Libraries and plugins
+# Currently no fine-grained choice is supported.
+# Also this variable is used to check if source
+# build is neded at all because no component can
+# be built without HED.
+enables_hed=yes
 #  Services
 enables_a_rex_service=yes
 enables_compiler_service=yes
@@ -138,6 +144,7 @@ enables_jura_client=$enableval
 enables_saml_client=$enableval
 enables_srm_client=$enableval
 enables_wsrf_client=$enableval
+enables_hed=$enableval
 enables_doc=$enableval
 ],
 [])
@@ -194,8 +201,12 @@ else
 fi
 AM_CONDITIONAL([SWIG_ENABLED],[test "$SWIG" != "x"])
 
+AC_ARG_ENABLE(hed, AC_HELP_STRING([--disable-hed], [disable building HED libraries and plugins. Do not do that unless You do not want to build anything. Even in that case better use --disable-all.]),
+[enables_hed=$enableval],[])
+
 #  Java
 dnl Check if Java is explicitly disabled.
+if test "$enables_hed" = "yes"; then
 JAVAC_FLAGS=
 JDK_CFLAGS=
 AC_ARG_ENABLE(java, AC_HELP_STRING([--disable-java], [disable the Java binding]),
@@ -271,6 +282,7 @@ if test "$enables_java" = "yes"; then
   fi
 
 fi
+fi
 
 AC_MSG_NOTICE([Java enabled: $enables_java])
 AM_CONDITIONAL([JAVA_ENABLED],[test "x$enables_java" = "xyes"])
@@ -279,6 +291,7 @@ AC_SUBST(JAVAC_FLAGS)
 AC_SUBST(JDK_CFLAGS)
 
 # Python
+if test "$enables_hed" = "yes"; then
 AC_ARG_ENABLE(python, AC_HELP_STRING([--disable-python], [disable the Python binding]),[enables_python=$enableval],[])
 if test "$enables_python" = "yes"; then
 
@@ -348,20 +361,27 @@ if test "$enables_python" = "yes"; then
     AC_MSG_NOTICE([Python available: $PYTHON_VERSION])
   fi
 fi
+fi
 
 AC_MSG_NOTICE([Python enabled: $enables_python])
 
 AM_CONDITIONAL([PYTHON_ENABLED],[test "x$enables_python" = "xyes"])
 AM_CONDITIONAL([PYTHON_SERVICE],[test ! "x$PYTHON_VERSION" '<' "x2.4"])
 
+
+
+
 # using pkgconfig
 # check gthread
+if test "$enables_hed" = "yes"; then
 PKG_CHECK_MODULES(GTHREAD, [gthread-2.0 >= 2.4.7])
 AC_SUBST(GTHREAD_CFLAGS)
 AC_SUBST(GTHREAD_LIBS)
+fi
 
 # check glibmm
 # check for giomm which became a part of glibmm as of version 2.16
+if test "$enables_hed" = "yes"; then
 "$PKG_CONFIG" giomm-2.4
 if test "$?" = '1'; then
   PKG_CHECK_MODULES(GLIBMM, [glibmm-2.4 >= 2.4.7])
@@ -425,13 +445,17 @@ else
 fi
 AC_LANG_RESTORE
 CPPFLAGS=$SAVE_CPPFLAGS
+fi
 
 # check libxml
+if test "$enables_hed" = "yes"; then
 PKG_CHECK_MODULES(LIBXML2, [libxml-2.0 >= 2.4.0])
 AC_SUBST(LIBXML2_CFLAGS)
 AC_SUBST(LIBXML2_LIBS)
+fi
 
 # check openssl
+if test "$enables_hed" = "yes"; then
 PKG_CHECK_MODULES(OPENSSL, [openssl >= 0.9.7a])
 AC_SUBST(OPENSSL_CFLAGS)
 AC_SUBST(OPENSSL_LIBS)
@@ -489,8 +513,11 @@ else
             OPENSSL_OLDRSA=no
     fi
 fi
+fi
 
 # check gSOAP
+gsoap=no
+if test "$enables_hed" = "yes"; then
 AC_ARG_ENABLE(gsoap, AC_HELP_STRING([--disable-gsoap], [disable the code dependant on gSOAP]),[enables_gsoap=$enableval],[])
 if test "$enables_gsoap" = "yes"; then
   PKG_CHECK_MODULES(GSOAP, [gsoap++ >= 2.7], [gsoap=yes], [gsoap=no])
@@ -596,11 +623,13 @@ EOF
   AC_SUBST(WSDL2H)
   AC_SUBST(GSOAP_CFLAGS)
   AC_SUBST(GSOAP_LIBS)
-  AM_CONDITIONAL(HAVE_GSOAP, test "x$gsoap" = "xyes")
   enables_gsoap="$gsoap"
 fi
+fi
+AM_CONDITIONAL(HAVE_GSOAP, test "x$gsoap" = "xyes")
 
 # check cppunit
+if test "$enables_hed" = "yes"; then
 AC_ARG_ENABLE(cppunit, AC_HELP_STRING([--disable-cppunit], [disable cppunit-based UNIT testing of code]),[enables_cppunit=$enableval],[])
 if test "$enables_cppunit" = "yes"; then
   PKG_CHECK_MODULES(CPPUNIT, [cppunit],[],
@@ -624,6 +653,7 @@ fi
 AC_SUBST(CPPUNIT_CFLAGS)
 AC_SUBST(CPPUNIT_LIBS)
 AC_SUBST(TEST_DIR)
+fi
 
 #check lasso
 #LASSO_INSTALLED=no
@@ -645,6 +675,7 @@ case "${host}" in
     ;;
 esac
 
+if test "$enables_hed" = "yes"; then
 XMLSEC_MIN_VERSION="1.2.4"
 XMLSEC_OPENSSL_MIN_VERSION="1.2.4"
 XMLSEC_CONFIG="xmlsec1-config"
@@ -706,17 +737,18 @@ if test "x$enables_xmlsec1" = "xyes"; then
   #AC_SUBST(XMLSEC_MIN_VERSION)
   enables_xmlsec1="$XMLSEC_INSTALLED"
 fi
-
+fi
 
 #########################
 #
 # Check libmysqlclient
 #
 #########################
+MYSQL_INSTALLED=no
+if test "$enables_hed" = "yes"; then
 MYSQL_CONFIG="mysql_config"
 MYSQL_CFLAGS=""
 MYSQL_LIBS=""
-MYSQL_INSTALLED=no
 dnl Check if libmysqlclient is explicitly enabled, default is disable.
 AC_ARG_ENABLE(mysql, AC_HELP_STRING([--enable-mysql], [enable use of the MySQL client library]),[enables_mysql="$enableval"],[])
 # Ask user for path to libmysqlclient
@@ -738,10 +770,11 @@ if test "x$enables_mysql" = "xyes"; then
   enables_mysql=$MYSQL_INSTALLED
 fi
 AC_MSG_NOTICE([MySQL client library enabled: $MYSQL_INSTALLED])
+fi
 AM_CONDITIONAL([MYSQL_LIBRARY_ENABLED],[test "x$MYSQL_INSTALLED" = "xyes"])
 
-
 # check zlib
+if test "$enables_hed" = "yes"; then
 AC_ARG_WITH(zlib,
   AC_HELP_STRING([--with-zlib=PATH], [where zlib is installed]),
     [ if test -d "$withval"; then
@@ -752,15 +785,17 @@ AC_ARG_WITH(zlib,
 )
 AC_CHECK_HEADER([zlib.h],,AC_MSG_ERROR([unable to find zlib header files]))
 AC_CHECK_LIB([z],[deflateInit2_],,AC_MSG_ERROR([unable to link with zlib library]))
-
+fi
 
 ###############################################
 #
 # Check for Berkeley DB C++
 #
 ###############################################
-
+DBCXX_LIBS=""
 DBCXX_CPPFLAGS=
+
+if test "$enables_hed" = "yes"; then
 
 #
 # Allow the user to specify db_cxx.h location (we will still check though)
@@ -872,7 +907,6 @@ else
   CXXFLAGS=$SAVE_CXXFLAGS
 fi
 
-AM_CONDITIONAL([DBXML_ENABLED],[test ! "x$DBCXX_LIBS" = "x"])
 AC_SUBST(DBCXX_LIBS)
 if test ! "x$DBCXX_LIBS" = "x"
 then
@@ -885,7 +919,11 @@ then
 fi
 AC_LANG_RESTORE
 
+fi
+AM_CONDITIONAL([DBXML_ENABLED],[test ! "x$DBCXX_LIBS" = "x"])
+
 # globus/gpt packages
+if test "$enables_hed" = "yes"; then
 PKG_CHECK_MODULES(GLOBUS_COMMON, [globus-common], [
 GLOBUS_COMMON_VERSION=`$PKG_CONFIG --modversion globus-common`], [
 GPT_PKG(globus_common)
@@ -1007,26 +1045,7 @@ if test "x$enables_lfc" = "xyes"; then
 fi
 AC_SUBST(LFC_CFLAGS)
 AC_SUBST(LFC_LIBS)
-
-# Check if user asks to skip documentation build
-AC_ARG_ENABLE(doc, AC_HELP_STRING([--disable-doc], [disable building documentation (requires doxygen and pdflatex)]),[enables_doc=$enableval],[])
-if test "x$enables_doc" = "xyes"; then
-  AC_CHECK_PROGS(PDFLATEX, pdflatex)
-  AC_CHECK_PROGS(DOXYGEN, doxygen)
-  AC_CHECK_PROGS(DOT, dot)
-  if test "x$PDFLATEX" = "x"; then
-    enables_doc="no"
-    AC_MSG_NOTICE([WARNING: Missing pdflatex - documentation won't be built])
-  elif test "x$DOXYGEN" = "x"; then
-    enables_doc="no"
-    AC_MSG_NOTICE([WARNING: Missing doxygen - documentation won't be built])
-  elif test "x$DOT" = "x"; then
-    enables_doc="no"
-    AC_MSG_NOTICE([WARNING: Missing dot - documentation won't be built])
-  fi
 fi
-AC_MSG_NOTICE([Documentation enabled: $enables_doc])
-AM_CONDITIONAL([DOC_ENABLED],[test "x$enables_doc" = "xyes"])
 
 # Setup conditionals
 AM_CONDITIONAL([GLOBUSUTILS_ENABLED], test -n "$GLOBUS_COMMON_VERSION")
@@ -1036,16 +1055,22 @@ AM_CONDITIONAL([LFC_ENABLED], test x$enables_lfc = xyes)
 AM_CONDITIONAL([OPENSSL_PROXY_ENABLED], test x$OPENSSL_PROXY = xyes)
 AM_CONDITIONAL([OPENSSL_X509_VERIFY_PARAM_ENABLED], test x$OPENSSL_X509_VERIFY_PARAM = xyes)
 AM_CONDITIONAL([XMLSEC_ENABLED], test x$XMLSEC_INSTALLED = xyes)
+
 enables_srm_dmc=no
+if test "$enables_hed" = "yes"; then
 if test "x$gsoap" = 'xyes'; then
   if test ! "x$GLOBUS_IO_LIBS" = "x"; then
     enables_srm_dmc=yes
   fi
 fi
+fi
 AM_CONDITIONAL([SRM_DMC_ENABLED],[test "x$enables_srm_dmc" = "xyes"])
+
 enables_gsi_mcc=no
+if test "$enables_hed" = "yes"; then
 if test ! "x$GLOBUS_GSSAPI_GSI_VERSION" = 'x'; then
   enables_gsi_mcc=yes
+fi
 fi
 AM_CONDITIONAL([GSI_MCC_ENABLED],[test "x$enables_gsi_mcc" = "xyes"])
 
@@ -1076,6 +1101,8 @@ if test x$XMLSEC_INSTALLED = xyes ; then enables_saml=yes; fi
 
 # Check for LDAP
 
+if test "$enables_hed" = "yes"; then
+LDAP=no
 AC_ARG_ENABLE(ldap, AC_HELP_STRING([--disable-ldap], [disable the LDAP support - requires OpenLDAP]),[enables_ldap="$enableval"],[])
 if test "x$enables_ldap" = "xyes"; then
   AC_CHECK_HEADER(ldap.h, [
@@ -1126,12 +1153,14 @@ if test "x$enables_ldap" = "xyes"; then
 
   ])
 
-  AM_CONDITIONAL([LDAP_ENABLED], test x$LDAP = xyes)
   enables_ldap="$LDAP"
 fi
+fi
+AM_CONDITIONAL([LDAP_ENABLED], test x$LDAP = xyes)
 
 # Check for the uuid lib
 UUID_LIBS=""
+if test "$enables_hed" = "yes"; then
 AC_CHECK_HEADER(uuid/uuid.h, [
   AC_CHECK_FUNC([uuid_generate], [UUID_LIBS=], [
     AC_CHECK_LIB([uuid], [uuid_generate], [UUID_LIBS=-luuid], [
@@ -1141,18 +1170,26 @@ AC_CHECK_HEADER(uuid/uuid.h, [
 ], [AC_MSG_NOTICE([Can't find uuid header])])
 AC_SUBST(UUID_LIBS)
 LIBS="$LIBS $UUID_LIBS"
+fi
 
 # Check for dlopen
 DLOPEN_LIBS=""
+if test "$enables_hed" = "yes"; then
 AC_CHECK_FUNC([dlopen], [DLOPEN_LIBS=], [
   AC_CHECK_LIB([dl], [dlopen], [DLOPEN_LIBS=-ldl], [
     AC_MSG_NOTICE([Can't find library containing dlopen implementation])
   ])
 ])
 AC_SUBST(DLOPEN_LIBS)
+fi
 
 # check for fsusage
+if test "$enables_hed" = "yes"; then
 gl_FSUSAGE
+fi
+
+
+if test "$enables_hed" = "yes"; then
 
 # Checks for header files.
 AC_HEADER_DIRENT
@@ -1204,6 +1241,7 @@ AC_CHECK_LIB([nsl], [gethostbyname], [LIBRESOLV="$LIBRESOLV -lnsl"], [])
 AC_CHECK_LIB([nsl], [getdomainname])
 AC_SUBST(LIBRESOLV)
 
+fi
 
 # check for platfom specific extra libraries and flags
 
@@ -1249,6 +1287,27 @@ case " $LDFLAGS " in
         esac
         ;;
 esac
+
+# Check if user asks to skip documentation build
+AC_ARG_ENABLE(doc, AC_HELP_STRING([--disable-doc], [disable building documentation (requires doxygen and pdflatex)]),[enables_doc=$enableval],[])
+if test "x$enables_doc" = "xyes"; then
+  AC_CHECK_PROGS(PDFLATEX, pdflatex)
+  AC_CHECK_PROGS(DOXYGEN, doxygen)
+  AC_CHECK_PROGS(DOT, dot)
+  if test "x$PDFLATEX" = "x"; then
+    enables_doc="no"
+    AC_MSG_NOTICE([WARNING: Missing pdflatex - documentation won't be built])
+  elif test "x$DOXYGEN" = "x"; then
+    enables_doc="no"
+    AC_MSG_NOTICE([WARNING: Missing doxygen - documentation won't be built])
+  elif test "x$DOT" = "x"; then
+    enables_doc="no"
+    AC_MSG_NOTICE([WARNING: Missing dot - documentation won't be built])
+  fi
+fi
+AC_MSG_NOTICE([Documentation enabled: $enables_doc])
+AM_CONDITIONAL([DOC_ENABLED],[test "x$enables_doc" = "xyes"])
+
 
 # Check for explicitely and implicitely disabled services
 if test "x$WIN32" = "xyes" ; then
@@ -1432,6 +1491,32 @@ AC_ARG_ENABLE(wsrf_client, AC_HELP_STRING([--disable-wsrf-client], [disable buil
 AC_MSG_NOTICE([WSRF client tool enabled: $enables_wsrf_client])
 AM_CONDITIONAL([WSRF_CLIENT_ENABLED],[test "x$enables_wsrf_client" = "xyes"])
 
+
+# Check for consistency among disabled components
+if test "$enables_hed" = "no"; then
+  if test "$enables_a_rex_service" = "yes" -o \
+          "$enables_compiler_service" = "yes" -o \
+          "$enables_hopi_service" = "yes" -o \
+          "$enables_isis_service" = "yes" -o \
+          "$enables_janitor_service" = "yes" -o \
+          "$enables_paul_service" = "yes" -o \
+          "$enables_sched_service" = "yes" -o \
+          "$enables_charon_service" = "yes" -o \
+          "$enables_storage_service" = "yes" -o \
+          "$enables_arclib_client" = "yes" -o \
+          "$enables_charon_client" = "yes" -o \
+          "$enables_credentials_client" = "yes" -o \
+          "$enables_echo_client" = "yes" -o \
+          "$enables_data_client" = "yes" -o \
+          "$enables_isis_client" = "yes" -o \
+          "$enables_jura_client" = "yes" -o \
+          "$enables_saml_client" = "yes" -o \
+          "$enables_srm_client" = "yes" -o \
+          "$enables_wsrf_client" = "yes"; then
+    AC_MSG_ERROR(HED is needed for building any of client or service tools. Please enabled HED by using --enable-hed.)
+  fi
+fi
+AM_CONDITIONAL([HED_ENABLED],[test "x$enables_hed" = "xyes"])
 
 # A-Rex specific hack for backend scripts
 
@@ -1810,6 +1895,8 @@ LDAP:               ${enables_ldap}
 xmlsec1:            ${enables_xmlsec1}
 
 Included components:
+HED:                ${enables_hed}
+
 A-REX service:      ${enables_a_rex_service}
 ISIS service:       ${enables_isis_service}
 CHARON service:     ${enables_charon_service}
@@ -1837,6 +1924,7 @@ GSI channel (MCC):  ${enables_gsi_mcc}
 Documentation:      ${enables_doc}
 ])
 
+if test "$enables_hed" = "yes"; then
 if test ! "X$OPENSSL_PROXY" = "Xyes"; then
 AC_MSG_RESULT([
 
@@ -1849,3 +1937,5 @@ to avoid this situation.
 
 ])
 fi
+fi
+
