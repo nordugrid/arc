@@ -88,8 +88,8 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
-          <xsd:element name="VOMSCertTrustDN" type="xsd:string"/>
-          <xsd:element name="VOMSCertTrustRegex" type="xsd:string"/>
+          <xsd:element name="VOMSCertTrustDN" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+          <xsd:element name="VOMSCertTrustRegex" type="xsd:string" minOccurs="0"/>
         </xsd:sequence>
     </xsd:complexType>
 </xsd:element>
