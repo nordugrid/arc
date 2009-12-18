@@ -814,7 +814,7 @@ The A-REX can cache input files, so that subsequent jobs requiring the
 same files do not have to download them again. Caching is enabled if
 one or more cache directories are specified in the configuration
 file. All input files except files uploaded by the user during job
-submission are cached by default. This includes excutable files
+submission are cached by default. This includes executable files
 downloaded by the A-REX. Caching can be explicitly turned off by the
 user in the job description (see~\cite{userguide1}). The disk space
 occupied by the cache is controlled by removing files in the order of
@@ -823,27 +823,21 @@ Section~\ref{SubSection:ConfigFile}.
 
 \subsection{Structure}
 
-Cached files are stored in sub-direcories under the \emph{data} directory
-in each main cache directory. Filenames are constructed from an SHA-1
-hash of the URL of the file, and split into subdirectories based on
-the two initial characters of the hash. This enables the cached files
-to be evenly split over a number of subdirectories. If
-more than one cache directory is used the initial letter of the hash
-also determines which cache is to be used. The algorithm is simply
-to use the cache directory at index \emph{i} in the list of directories,
-where \emph{i} is found from the initial letter of the hash mod the
-number of caches. This limits the maximum number of cache directories
-to 16, as SHA-1 hashes use the character set {[}\emph{0-9,a-f}]. In
-the extremely unlikely event of a collision between two URLs having
-the same SHA-1 hash, caching will not be used for the second file.
+Cached files are stored in sub-directories under the \emph{data}
+directory in each main cache directory. Filenames are constructed from
+an SHA-1 hash of the URL of the file and split into subdirectories
+based on the two initial characters of the hash. In the extremely
+unlikely event of a collision between two URLs having the same SHA-1
+hash, caching will not be used for the second file.
 
-There is no indexing system for the cache, and any cache filename
-can be easily determined from a URL by using the same hashing algorithm
-as the A-REX, e.g. the standard command line tool \emph{sha1sum. }The
-cache directory used by a file can be determined from the initial
-letter of the hash and the order of cache directories in the configuration
-file. Some associated metadata (the corresponding URL and an expiry
-time, if available) are stored in a file with the same name as the
+When multiple caches are used, a new cache file goes to a randomly
+selected cache, where each cache is weighted according to the size of
+the file system on which it is located.  For example: if there are two
+caches of 1TB and 9TB then on average 10\% of input files will go to
+the first cache and 90\% will go to the second cache.
+
+Some associated metadata including the corresponding URL and an expiry
+time, if available, are stored in a file with the same name as the
 cache file, with a \emph{.meta} suffix.
 
 For example, with a cache directory \emph{/cache}, the file 
@@ -883,15 +877,25 @@ subdirectory of the main cache directory. The former option is advised
 if the cache is on a file system which will suffer poor performance
 from a large number of jobs reading files on it, or the file system
 containing the cache is not accessible from worker nodes. The latter
-option is the default option. The per-job directory is only readable
-by the local user running the job, and the cache directory is readable
-only by the A-REX user. This means that the local user cannot access
-any other users' cache files. It also means that cache files can be
-removed without needing to know whether they are in use by a currently
-running job. Note that when running A-REX under a non-privileged user
-account, all cache files will be owned and accessible by the same
-user, and therefore modifyable by running jobs. This is potentially
-dangerous and so cacheing should be used with caution in this case.
+option is the default option.  Files marked as executable in the job
+will be stored in the cache without executable permissions, but they
+will be copied to the SD and the appropriate permissions applied to
+the copy.
+
+The per-job directory is only readable by the local user running the
+job, and the cache directory is readable only by the A-REX user. This
+means that the local user cannot access any other users' cache
+files. It also means that cache files can be removed without needing
+to know whether they are in use by a currently running
+job. \textbf{IMPORTANT:} If a cache is mounted from an NFS server and
+the GM is run by the root user, the server must have the
+\emph{no\_root\_squash} option set for the GM host in the
+\emph{/etc/exports} file, otherwise the GM will not be able to create
+the required directories. Note that when running A-REX under a
+non-privileged user account, all cache files will be owned and
+accessible by the same user, and therefore modifyable by running
+jobs. This is potentially dangerous and so cacheing should be used
+with caution in this case.
 
 If the file system containing the cache is full and it is impossible
 to free any space, the download fails and is retried without using
@@ -919,6 +923,29 @@ system containing the cache exceeds the high water-mark given in the
 configuration file it tries to remove the least-recently accessed
 files to reduce size to the low water-mark.
 
+\subsection{Remote Caches}
+\label{sec:remotecaches}
+
+If a site has multiple A-REXs running, an A-REX can be configured to
+have its own caches and have read-only access to caches under the
+control of other A-REXs (remote caches). An efficient way to reduce
+network traffic within a site is to configure A-REXs to be under
+control of caches on their local disks and have caches on other hosts
+as remote caches. If an A-REX wishes to cache a file and it is not
+available on the local cache, it searches for the file in remote
+caches. If the file is found in a remote cache, the actions the A-REX
+takes depends on the policy for the remote cache. The file may be
+replicated to the local cache to decrease the load on the remote file
+system caused by many jobs accessing the file. However, this will
+decrease the total number of cache files that can be stored. The other
+policy is to use the file in the remote cache, creating a per-job
+directory for the hard link in the remote cache. Then the link is
+created from the session dir to that directory, bypassing the local
+cache completely. The usual permission and validity checks are
+performed for the remote file. Note that no creation or deletion of
+remote cache data is done - cache cleaning is only performed on local
+caches.
+
 \subsection{Cache Administration}
 
 The cache is cleaned automatically periodically (every 2 minutes) by
@@ -943,6 +970,19 @@ caches filling up beyond their configured limits. For performance
 reasons it may be advantageous to disable cache cleaning by the A-REX,
 and run the \emph{cache-clean} tool independently on the machine
 hosting the file system.
+
+Caches can be added to and removed from the configuration as required
+without affecting any cached data, but after changing the
+configuration file, the A-REX should be restarted. If a cache is to be
+removed and all data erased, it is recommended that the cache be put
+in a \emph{draining} state until all currently running jobs possibly
+accessing files in this cache have finished. In this state the cache
+will not be used by any new jobs, but the hard links in the
+\emph{joblinks} directory will be cleaned up as each job
+finishes. Once this directory is empty it is safe to delete the entire
+cache. See the \emph{cachedir} option in
+Section~\ref{SubSection: ConfigFile} for how to set a cache to a
+draining state.
 
 The following tools (installed in \emph{\$ARC\_LOCATION/libexec/arc})
 exist to help with administration of the cache:
@@ -1288,16 +1328,29 @@ the JD).
 \item \textbf{\textit{sessiondir}}\textit{=path} -- specifies path to
   the directory in which the SD is created. If \emph{path} is {*} the
   default sessiondir is used -- \textit{\$HOME/.jobs}.
-\item \textbf{\textit{cachedir}}\textit{=path {[}link\_path]} -- specifies
-a directory to store cached data (see section \ref{sec:cache}). Multiple
-cache directories may be specified by specifying multiple \emph{cachedir}
-commands. Cached files will be distributed evenly between the caches.
-Specifying no \emph{cachedir }command or commands with an empty path
-disables caching. Optional \textit{link\_path} specifies the path
-at which \emph{path} is accessible on computing nodes, if it is different
-from the path on the A-REX host. If \textit{link\_path} is set to '.'
-files are not soft-linked, nor are per-job links created, but files
-are copied to the session directory.
+\item \textbf{\textit{cachedir}}\textit{=path {[}link\_path]} --
+  specifies a directory to store cached data (see section
+  \ref{sec:cache}). Multiple cache directories may be specified by
+  specifying multiple \emph{cachedir} commands. Cached data will be
+  distributed over multiple caches according to free space in
+  each. Specifying no \emph{cachedir} command or commands with an
+  empty path disables caching. The optional \textit{link\_path} specifies
+  the path at which \emph{path} is accessible on computing nodes, if
+  it is different from the path on the A-REX host. If
+  \textit{link\_path} is set to '.'  files are not soft-linked, nor
+  are per-job links created, but files are copied to the session
+  directory. If a cache directory needs to be drained, then
+  \emph{cachedir} should specify \emph{``drain''} as the
+  \emph{link\_path}.
+\item \textbf{\textit{remotecachedir}}\textit{=path {[}link\_path]} -
+  specifies caches which are under the control of other A-REXs, but which
+  this A-REX can have read-only access to (see
+  Section~\ref{sec:remotecaches}).  Multiple remote cache directories may be
+  specified by specifying multiple \emph{remotecachedir} commands. If
+  a file is not available in paths specified by cachedir, the GM looks
+  in remote caches. \emph{link\_path} has the same meaning as in
+  \emph{cachedir}, but the special path ``replicate'' means files will
+  be replicated from remote caches to local caches when they are requested.
 \item \textbf{\textit{cachesize}}\textit{=high\_mark {[}low\_mark]} --
   specifies high and low watermarks for space used on the file system
   on which the cache directory is located, as a percentage of total
