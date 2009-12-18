@@ -30,11 +30,13 @@ bool ContinuationPlugins::add(job_state_t state,unsigned int timeout,const char*
      (state == JOB_STATE_FINISHING) ||
      (state == JOB_STATE_FINISHED) ||
      (state == JOB_STATE_DELETED)) {
-    commands[state].cmd=command;
-    commands[state].to=timeout;
-    commands[state].onsuccess=act_pass;
-    commands[state].onfailure=act_fail;
-    commands[state].ontimeout=act_fail;
+    command_t cmd;
+    cmd.cmd=command;
+    cmd.to=timeout;
+    cmd.onsuccess=act_pass;
+    cmd.onfailure=act_fail;
+    cmd.ontimeout=act_fail;
+    commands[state].push_back(cmd);
   } else { return false; };
   return true;
 }
@@ -124,11 +126,13 @@ bool ContinuationPlugins::add(job_state_t state,const char* options,const char* 
     opt_p=next_opt_p; if(!(*opt_p)) break;
     opt_p++;
   };
-  commands[state].cmd=command;
-  commands[state].to=to;
-  commands[state].onsuccess=onsuccess;
-  commands[state].onfailure=onfailure;
-  commands[state].ontimeout=ontimeout;
+  command_t cmd;
+  cmd.cmd=command;
+  cmd.to=to;
+  cmd.onsuccess=onsuccess;
+  cmd.onfailure=onfailure;
+  cmd.ontimeout=ontimeout;
+  commands[state].push_back(cmd);
   return true;
 }
 
@@ -140,62 +144,71 @@ bool ContinuationPlugins::add(const char* state,const char* options,const char* 
   return false;
 }
 
-ContinuationPlugins::action_t ContinuationPlugins::run(const JobDescription &job,const JobUser& user,std::string& response) {
+void ContinuationPlugins::run(const JobDescription &job,const JobUser& user,std::list<result_t>& results) {
   job_state_t state = job.get_state();
-  response.resize(0);
-  if(commands[state].cmd.length() == 0) {
-    return act_pass;
-  };
-  std::string cmd = commands[state].cmd;
-  for(std::string::size_type p = 0;;) {
-    p=cmd.find('%',p);
-    if(p==std::string::npos) break;
-    if(cmd[p+1]=='I') {
-      cmd.replace(p,2,job.get_id().c_str());
-      p+=job.get_id().length();
-    } else if(cmd[p+1]=='S') {
-      cmd.replace(p,2,job.get_state_name());
-      p+=strlen(job.get_state_name());
+  for(std::list<command_t>::iterator command = commands[state].begin();
+                     command != commands[state].end();++command) {
+    action_t act = act_pass;
+    if(command->cmd.length() == 0) {
+      results.push_back(result_t(act_pass));
+      continue;
+    };
+    std::string cmd = command->cmd;
+    for(std::string::size_type p = 0;;) {
+      p=cmd.find('%',p);
+      if(p==std::string::npos) break;
+      if(cmd[p+1]=='I') {
+        cmd.replace(p,2,job.get_id().c_str());
+        p+=job.get_id().length();
+      } else if(cmd[p+1]=='S') {
+        cmd.replace(p,2,job.get_state_name());
+        p+=strlen(job.get_state_name());
+      } else {
+        p+=2;
+      };
+    };
+    if(!user.substitute(cmd)) {
+      results.push_back(result_t(act_undefined));
+      continue; // or break ?
+    };
+    std::string res_out("");
+    std::string res_err("");
+    int to = command->to;
+    int result = -1;
+
+    Arc::Run re(cmd);
+    re.AssignStdout(res_out);
+    re.AssignStderr(res_err);
+    re.KeepStdin();
+    std::string response;
+    if(re.Start()) {
+      if(!re.Wait(to)) {
+        response="TIMEOUT";
+        act=command->ontimeout;
+      } else {
+        result=re.Result();
+        if(result == 0) {
+          act=command->onsuccess;
+        } else {
+          response="FAILED";
+          act=command->onfailure;
+        };
+      };
     } else {
-      p+=2;
+      response="FAILED to start plugin";
+      // act=command->onfailure; ?? 
+      act=act_undefined;
     };
-  };
-  if(!user.substitute(cmd)) {
-    return act_undefined;
-  };
-  std::string res_out("");
-  std::string res_err("");
-  int to = commands[state].to;
-  bool timeout = false;
-
-  Arc::Run re(cmd);
-  re.AssignStdout(res_out);
-  re.AssignStderr(res_err);
-  re.KeepStdin();
-  if(re.Start()) {
-    if(!re.Wait(to)) {
-      timeout=true;
+    if(!res_out.empty()) {
+      if(!response.empty()) response+=" : ";
+      response+=res_out;
     };
-  } else {
-    response="FAILED to start plugin";
-    return commands[state].onfailure;
+    if(!res_err.empty()) {
+      if(!response.empty()) response+=" : ";
+      response+=res_err;
+    };
+    results.push_back(result_t(act,result,response));
+    if(act == act_fail) break;
   };
-  
-  response=res_out;
-  if(res_err.length()) {
-    if(response.length()) response+=" : ";
-    response+=res_err;
-  };
-
-  if(timeout) { // timeout occured
-    if(response.length()) { response="TIMEOUT : "+response; }
-    else { response="TIMEOUT"; };
-    return commands[state].ontimeout;
-  };
-  if(re.Result() != 0) { // non-zero exit code
-    if(response.length()) { response="FAILED : "+response; }
-    else { response="FAILED"; };
-    return commands[state].onfailure;
-  } 
-  return commands[state].onsuccess; 
 }
+

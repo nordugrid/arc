@@ -68,7 +68,7 @@ bool ContinuationPlugins::add(const char* state,unsigned int timeout,const char*
 bool ContinuationPlugins::add(job_state_t state,unsigned int timeout,const char* command) { return true; };
 bool ContinuationPlugins::add(const char* state,const char* options,const char* command) { return true; };
 bool ContinuationPlugins::add(job_state_t state,const char* options,const char* command) { return true; };
-ContinuationPlugins::action_t ContinuationPlugins::run(const JobDescription &job,const JobUser& user,std::string& response) { return act_pass; };
+void ContinuationPlugins::run(const JobDescription &job,const JobUser& user,std::list<ContinuationPlugins::result_t>& results) { };
 void RunPlugin::set(const std::string& cmd) { };
 void RunPlugin::set(char const * const * args) { };
 #endif
@@ -377,7 +377,7 @@ bool JobsList::state_submitting(const JobsList::iterator &i,bool &state_changed,
     };
     std::string grami = user->ControlDir()+"/job."+(*i).job_id+".grami";
     std::string cfg_path = nordugrid_config_loc();
-    char* args[5] ={ (char*)cmd.c_str(), (char*)"--config", (char*)cfg_path.c_str(), (char*)grami.c_str(), NULL };
+    char const * args[5] ={ cmd.c_str(), "--config", cfg_path.c_str(), grami.c_str(), NULL };
     job_errors_mark_put(*i,*user);
     if(!RunParallel::run(*user,*i,args,&(i->child))) {
       if(!cancel) {
@@ -484,9 +484,9 @@ bool JobsList::state_loading(const JobsList::iterator &i,bool &state_changed,boo
     std::string max_inactivity_time_s;
     int argn=4;
     const char* args[] = {
-      (char*)(cmd.c_str()),
+      cmd.c_str(),
       "-U",
-      (char*)(user_id_s.c_str()),
+      user_id_s.c_str(),
       "-f",
       NULL, // -n
       NULL, // (-n)
@@ -561,7 +561,7 @@ bool JobsList::state_loading(const JobsList::iterator &i,bool &state_changed,boo
     else { logger.msg(Arc::INFO,"%s: State FINISHING: starting child: %s",i->job_id,args[0]); };
     job_errors_mark_put(*i,*user);
     job_restart_mark_remove(i->job_id,*user);
-    if(!RunParallel::run(*user,*i,args,&(i->child),switch_user)) {
+    if(!RunParallel::run(*user,*i,(char**)args,&(i->child),switch_user)) {
       logger.msg(Arc::ERROR,"%s: Failed to run down/uploader process",i->job_id);
       if(up) {
         i->AddFailure("Failed to run uploader (post-processing)");
@@ -1310,27 +1310,32 @@ bool JobsList::ActJob(JobsList::iterator &i,bool hard_job) {
         } else {
           // talk to external plugin to ask if we can proceed
           if(plugins) {
-            std::string response;
-            ContinuationPlugins::action_t act =
-                     plugins->run(*i,*user,response);
-            // analyze result
-            if(act == ContinuationPlugins::act_fail) {
-              logger.msg(Arc::ERROR,"%s: Plugin in state %s : %s",
-                  i->job_id.c_str(),states_all[i->get_state()].name,response.c_str());
-              i->AddFailure(std::string("Plugin at state ")+
-                  states_all[i->get_state()].name+" failed: "+response);
-              job_error=true;
-            } else if(act == ContinuationPlugins::act_log) {
-              // Scream but go ahead
-              logger.msg(Arc::WARNING,"%s: Plugin at state %s : %s",
-                  i->job_id.c_str(),states_all[i->get_state()].name,response.c_str());
-            } else if(act == ContinuationPlugins::act_pass) {
-              // Just continue quietly
-            } else {
-              logger.msg(Arc::ERROR,"%s: Plugin execution failed",i->job_id);
-              i->AddFailure(std::string("Failed running plugin at state ")+
-                  states_all[i->get_state()].name);
-              job_error=true;
+            std::list<ContinuationPlugins::result_t> results;
+            plugins->run(*i,*user,results);
+            std::list<ContinuationPlugins::result_t>::iterator result = results.begin();
+            while(result != results.end()) {
+              // analyze results
+              if(result->action == ContinuationPlugins::act_fail) {
+                logger.msg(Arc::ERROR,"%s: Plugin at state %s : %s",
+                    i->job_id.c_str(),states_all[i->get_state()].name,
+                    result->response);
+                i->AddFailure(std::string("Plugin at state ")+
+                states_all[i->get_state()].name+" failed: "+(result->response));
+                job_error=true;
+              } else if(result->action == ContinuationPlugins::act_log) {
+                // Scream but go ahead
+                logger.msg(Arc::WARNING,"%s: Plugin at state %s : %s",
+                    i->job_id.c_str(),states_all[i->get_state()].name,
+                    result->response);
+              } else if(result->action == ContinuationPlugins::act_pass) {
+                // Just continue quietly
+              } else {
+                logger.msg(Arc::ERROR,"%s: Plugin execution failed",i->job_id);
+                i->AddFailure(std::string("Failed running plugin at state ")+
+                    states_all[i->get_state()].name);
+                job_error=true;
+              };
+              ++result;
             };
           };
           // Processing to be done on state changes 
