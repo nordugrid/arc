@@ -144,6 +144,11 @@
                 * maxFilesTransfered - number of files being transfered 
                   simultaneously by jobs in PREPARING and FINISHING states.
                   Value is per job.
+		* maxLoadShare - sharing mechanism for data transfer - 
+		  the maximum number of processes that can run per transfer share
+		* loadShareType - sharing mechanism for data transfer - 
+		  the scheme used to assign jobs to transfer shares. Possible
+		  values are "dn", "voms:vo", "voms:role" and "voms:group"
                 * wakeupPeriod - specifies how often cheks for new jobs 
                   arrived, job state change requests, etc are done. That 
                   is resposivity of the service. The period is in seconds. 
@@ -161,6 +166,10 @@
                          type="xsd:nonNegativeInteger" minOccurs="0"/>
             <xsd:element name="maxFilesTransfered"
                          type="xsd:nonNegativeInteger" minOccurs="0"/>
+	    <xsd:element name="maxLoadShare"
+			 type="xsd:nonNegativeInteger" minOccurs="0"/>
+	    <xsd:element name="loadShareType"
+			 type="xsd:string" minOccurs="0"/>
             <xsd:element name="wakeupPeriod" type="xsd:nonNegativeInteger"
                          minOccurs="0"/>
         </xsd:sequence>
