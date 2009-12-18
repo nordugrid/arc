@@ -100,7 +100,7 @@ namespace Arc {
         if (ptr)
           delete ptr;
       }
-      Base<P> add(void) {
+      Base<P>* add(void) {
         ++cnt;
         return this;
       }
