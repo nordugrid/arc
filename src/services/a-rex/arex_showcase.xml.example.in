@@ -113,6 +113,8 @@ appropiate.
           <arex:maxJobsTransferedAdditional>2</arex:maxJobsTransferedAdditional>
           <arex:maxFilesTransfered>4</arex:maxFilesTransfered>
           <arex:wakeupPeriod>30</arex:wakeupPeriod>
+          <arex:maxLoadShare>4</arex:maxLoadShare>
+          <arex:loadShareType>voms:role</arex:loadShareType>
       </arex:loadLimits>
       <arex:dataTransfer>
           <arex:secureTransfer>true</arex:secureTransfer>
@@ -169,6 +171,9 @@ appropiate.
               <arex:location>
                   <arex:path>/data/cache</arex:path>
               </arex:location>
+              <arex:remotelocation>
+                  <arex:path>/mnt/cache</arex:path>
+              </arex:remotelocation>
               <arex:highWatermark>90</arex:highWatermark>
               <arex:lowWatermark>70</arex:lowWatermark>
           </arex:cache>

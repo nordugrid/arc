@@ -92,7 +92,7 @@ my $gmcommon_options = {
     hostname => '*',
     maxjobs => '*',
     maxload => '*',
-    maxloadshare => [ '*' ],
+    maxloadshare => '*',
     gridmap => '*',
     x509_user_key => '*',
     x509_user_cert => '*',
@@ -299,6 +299,7 @@ sub build_config_from_xmlfile {
     my $arex = read_arex_config($file);
     $log->fatal("A-REX config not found in $file") unless ref $arex eq 'HASH';
 
+    # The structure that will hold all config options
     my $config = {};
     $config->{control} = {};
     $config->{service} = {};
@@ -311,7 +312,7 @@ sub build_config_from_xmlfile {
     # converts these into an empty hash. Since ForceArray => 1 was used, these
     # hashes are placed inside an array. Replace these empty hashes with the
     # empty string. Do not touch keys that normally contain deep structures.
-    my @deepstruct = qw(control dataTransfer Globus cache location loadLimits
+    my @deepstruct = qw(control dataTransfer Globus cache location remotelocation loadLimits
                         LRMS InfoProvider Location Contact ExecutionEnvironment
                         ComputingShare NodeSelection);
     hash_tree_apply $arex, sub { my $h = shift;
@@ -328,7 +329,7 @@ sub build_config_from_xmlfile {
     # to options which are not multivalued, the arrays should contain only one
     # element. Replace these arrays with the value of the last element. Keys
     # corresponding to multivalued options are left untouched.
-    my @multival = qw(cache location control sessionRootDir maxJobsPerShare
+    my @multival = qw(cache location remotelocation control sessionRootDir
                       OpSys Middleware LocalSE ClusterOwner Benchmark OtherInfo
                       StatusInfo Regex Command Tag ExecEnvName AuthorizedVO
                       Contact ExecutionEnvironment ComputingShare);
@@ -373,14 +374,17 @@ sub build_config_from_xmlfile {
         my $caches = hash_get_arrayref($control, 'cache');
         for my $cache (@$caches) {
             $log->fatal("badly formed 'cache' element in XML config") unless ref $cache eq 'HASH';
-            my $type = $cache->{type} || '';
             my $locations = hash_get_arrayref($cache, 'location');
             for my $location (@$locations) {
                 $log->fatal("badly formed 'location' element in XML config") unless ref $location eq 'HASH';
-                my $path = $location->{path};
-                next unless $path;
-                push @{$cconf->{cachedir}}, $path if $type ne 'REMOTE';
-                push @{$cconf->{remotecachedir}}, $path if $type eq 'REMOTE';
+                next unless $location->{path};
+                push @{$cconf->{cachedir}}, $location->{path};
+            }
+            my $rlocations = hash_get_arrayref($cache, 'remotelocation');
+            for my $location (@$rlocations) {
+                $log->fatal("badly formed 'location' element in XML config") unless ref $location eq 'HASH';
+                next unless $location->{path};
+                push @{$cconf->{remotecachedir}}, $location->{path};
             }
         }
         $config->{control}{$user} = $cconf;
@@ -399,10 +403,8 @@ sub build_config_from_xmlfile {
     $config->{maxjobs} = "$mj $mjr";
     $config->{maxload} = "$mjt $mjta $mft";
 
-    my $loadshare = hash_get_arrayref($load, 'maxJobsPerShare');
-    for my $ts (@$loadshare) {
-        $log->fatal("badly formed 'maxJobsPerShare' element in XML config") unless ref $ts eq 'HASH';
-        push @{$config->{maxloadshare}}, $ts->{content}." ".$ts->{shareType};
+    if ($load->{maxLoadShare} and $load->{loadShareType}) {
+        $config->{maxloadshare} = $load->{maxLoadShare}." ".$load->{loadShareType};
     }
 
     my $lrms = hash_get_hashref($arex, 'LRMS');
@@ -446,7 +448,7 @@ sub build_config_from_xmlfile {
     hash_tree_apply $config, sub { fixbools shift, $allbools };
 
     my $janitor = hash_get_hashref($arex,  'janitor');
-    $config->{JanitorEnabled} = $janitor->{enabled} ? 1 : 0;
+    $config->{JanitorEnabled} = (defined $janitor->{enabled} and $janitor->{enabled} eq 1) ? 1 : 0;
 
     #print(Dumper $config);
     return $config;
@@ -605,7 +607,7 @@ sub build_config_from_inifile {
     hash_tree_apply $config, sub { fixbools shift, $allbools };
 
     my $janitor = { $iniparser->get_section('janitor') };
-    $config->{JanitorEnabled} = $janitor->{enabled} ? 1 : 0;
+    $config->{JanitorEnabled} = (defined $janitor->{enabled} and $janitor->{enabled} eq 1) ? 1 : 0;
 
     #print(Dumper $config);
     return $config;
