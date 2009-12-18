@@ -210,6 +210,9 @@ namespace Arc {
   * coding method (not base64 encoding), we simply copy the method from voms code to here*/
   char *VOMSDecode(const char *data, int size, int *j);
 
+  /**Extract the needed field from the certificate
+  */
+  const std::string get_property(Arc::Credential& u, const std::string property);
 }// namespace Arc
 
 #endif /* __ARC_VOMSUTIL_H__ */

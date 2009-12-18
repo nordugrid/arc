@@ -35,7 +35,7 @@
 #include <arc/DateTime.h>
 #include <arc/StringConv.h>
 #include <arc/URL.h>
-#include <arc/credential/Credential.h>
+#include <arc/credential/VOMSUtil.h>
 
 static Arc::Logger& logger = Arc::Logger::getRootLogger();
 
@@ -808,10 +808,9 @@ void JobsList::ActJobUndefined(JobsList::iterator &i,bool /*hard_job*/,
 		std::string v = cert_dir_loc();
 		if(! v.empty()) cert_dir = v;
 	        Arc::Credential u(user_proxy_file,"",cert_dir,"");
-
-		const std::string share = u.get_property(share_type);
+		const std::string share = get_property(u,share_type);
                 i->set_share(share);
-              logger.msg(Arc::INFO, "%s: adding to transfer share %s",i->get_id(),i->transfer_share);
+                logger.msg(Arc::INFO, "%s: adding to transfer share %s",i->get_id(),i->transfer_share);
             }
             job_desc->transfershare = i->transfer_share;
             job_local_write_file(*i,*user,*job_desc);
@@ -831,14 +830,14 @@ void JobsList::ActJobUndefined(JobsList::iterator &i,bool /*hard_job*/,
 	    // set transfer share and counters
             JobLocalDescription job_desc;
             if (!share_type.empty()) {
-        	 std::string user_proxy_file = job_proxy_filename(i->get_id(), *user).c_str();
+                std::string user_proxy_file = job_proxy_filename(i->get_id(), *user).c_str();
 		std::string cert_dir = "/etc/grid-security/certificates";
 		std::string v = cert_dir_loc();
 		if(! v.empty()) cert_dir = v;
                 Arc::Credential u(user_proxy_file,"",cert_dir,"");
-                const std::string share = u.get_property(share_type);
-              i->set_share(share);
-              logger.msg(Arc::INFO, "%s: adding to transfer share %s",i->get_id(),i->transfer_share);
+                const std::string share = get_property(u,share_type);
+                i->set_share(share);
+                logger.msg(Arc::INFO, "%s: adding to transfer share %s",i->get_id(),i->transfer_share);
             }
             job_desc.transfershare = i->transfer_share;
             job_local_write_file(*i,*user,job_desc);
