@@ -112,6 +112,7 @@ enables_isis_client=yes
 enables_jura_client=yes
 enables_saml_client=yes
 enables_srm_client=yes
+enables_wsrf_client=yes
 #  Documentation
 enables_doc=yes
 
@@ -136,6 +137,7 @@ enables_isis_client=$enableval
 enables_jura_client=$enableval
 enables_saml_client=$enableval
 enables_srm_client=$enableval
+enables_wsrf_client=$enableval
 enables_doc=$enableval
 ],
 [])
@@ -151,6 +153,7 @@ enables_isis_client=$enableval
 enables_jura_client=$enableval
 enables_saml_client=$enableval
 enables_srm_client=$enableval
+enables_wsrf_client=$enableval
 enables_doc=$enableval
 ],
 [])
@@ -1424,6 +1427,10 @@ AC_ARG_ENABLE(srm_client, AC_HELP_STRING([--disable-srm-client], [disable buildi
 AC_MSG_NOTICE([SRM client tool enabled: $enables_srm_client])
 AM_CONDITIONAL([SRM_CLIENT_ENABLED],[test "x$enables_srm_client" = "xyes"])
 
+AC_ARG_ENABLE(wsrf_client, AC_HELP_STRING([--disable-wsrf-client], [disable building client tools for querying WSRF-enabled services.]),
+  [enables_wsrf_client=$enableval],[])
+AC_MSG_NOTICE([WSRF client tool enabled: $enables_wsrf_client])
+AM_CONDITIONAL([WSRF_CLIENT_ENABLED],[test "x$enables_wsrf_client" = "xyes"])
 
 
 # A-Rex specific hack for backend scripts
@@ -1822,6 +1829,7 @@ CREDENTIAL clients: ${enables_credentials_client}
 ECHO client:        ${enables_echo_client}
 JURA client:        ${enables_jura_client}
 SAML VOMS client:   ${enables_saml_client}
+WSRF client:        ${enables_wsrf_client}
 
 SRM client (DMC):   ${enables_srm_dmc}
 GSI channel (MCC):  ${enables_gsi_mcc}
