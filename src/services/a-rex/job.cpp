@@ -409,27 +409,32 @@ ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& crede
   };
   // Call authentication/authorization plugin/exec
   {
-    std::string response;
     // talk to external plugin to ask if we can proceed
-    ContinuationPlugins::action_t act =
-                 config_.Plugins().run(job,*config_.User(),response);
-    // analyze result
-    if(act == ContinuationPlugins::act_fail) {
-      delete_job_id();
-      failure_="Job is not allowed by external plugin: "+response;
-      failure_type_=ARexJobInternalError;
-      return;
-    } else if(act == ContinuationPlugins::act_log) {
-      // Scream but go ahead
-      logger_.msg(Arc::WARNING, "Failed to run external plugin: %s", response);
-    } else if(act == ContinuationPlugins::act_pass) {
-      // Just continue
-      if(response.length()) logger_.msg(Arc::INFO, "Plugin response: %s", response);
-    } else {
-      delete_job_id();
-      failure_="Failed to pass external plugin: "+response;
-      failure_type_=ARexJobInternalError;
-      return;
+    std::list<ContinuationPlugins::result_t> results;
+    config_.Plugins().run(job,*config_.User(),results);
+    std::list<ContinuationPlugins::result_t>::iterator result = results.begin();
+    while(result != results.end()) {
+      // analyze results
+      if(result->action == ContinuationPlugins::act_fail) {
+        delete_job_id();
+        failure_="Job is not allowed by external plugin: "+result->response;
+        failure_type_=ARexJobInternalError;
+        return;
+      } else if(result->action == ContinuationPlugins::act_log) {
+        // Scream but go ahead
+        logger_.msg(Arc::WARNING, "Failed to run external plugin: %s", result->response);
+      } else if(result->action == ContinuationPlugins::act_pass) {
+        // Just continue
+        if(result->response.length()) {
+          logger_.msg(Arc::INFO, "Plugin response: %s", result->response);
+        };
+      } else {
+        delete_job_id();
+        failure_="Failed to pass external plugin: "+result->response;
+        failure_type_=ARexJobInternalError;
+        return;
+      };
+      ++result;
     };
   };
 /*@
