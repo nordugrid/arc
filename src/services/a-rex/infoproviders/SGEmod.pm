@@ -382,7 +382,7 @@ sub count_array_spec($) {
     sub handle_waiting_jobs {
         my $fh = shift;
 
-        my $rank = 0;
+        my $rank = 1;
         my $regex = $compat_mode ? $waiting_regex5 : $waiting_regex6;
 
         while (defined $line and $line =~ /$regex/) {
@@ -394,10 +394,14 @@ sub count_array_spec($) {
                 unless ($ntasks) {
                     $log->error("Failed parsing task definition: $taskdef");
                 }
-                $waiting_jobs{$jobid} = {user => $user, state => $3, date => $4,
-                                         slots => $5, tasks => $ntasks, rank => $rank};
-                $user_total_jobs{$user}++;
-                $user_waiting_jobs{$user}++;
+                $waiting_jobs{$jobid}{user} = $user;
+                $waiting_jobs{$jobid}{state} = $3;
+                $waiting_jobs{$jobid}{date} = $4;
+                $waiting_jobs{$jobid}{slots} = $5;
+                $waiting_jobs{$jobid}{tasks} += $ntasks;
+                $waiting_jobs{$jobid}{rank} = $rank;
+                $user_total_jobs{$user} += $ntasks;
+                $user_waiting_jobs{$user} += $ntasks;
                 $rank += $ntasks;
 
             } else { ### SGE 5.x, pre 6.0 ###
@@ -408,12 +412,15 @@ sub count_array_spec($) {
                     $log->error("Failed parsing task definition: $taskdef");
                 }
                 # The number of slots is not available from qstat output.
-                $waiting_jobs{$jobid} = {user => $user, state => $3, date => $4,
-                                         tasks => $ntasks, rank => $rank};
+                $waiting_jobs{$jobid}{user} = $user;
+                $waiting_jobs{$jobid}{state} = $3;
+                $waiting_jobs{$jobid}{date} = $4;
+                $waiting_jobs{$jobid}{tasks} += $ntasks;
+                $waiting_jobs{$jobid}{rank} = $rank;
                 # SGE 5.x does not list number of slots. Assuming 1 slot per job!
                 $waiting_jobs{$jobid}{slots} = 1;
-                $user_total_jobs{$user}++;
-                $user_waiting_jobs{$user}++;
+                $user_total_jobs{$user} += $ntasks;
+                $user_waiting_jobs{$user} += $ntasks;
                 $rank += $ntasks;
             }
             last unless defined ($line = <$fh>);
@@ -438,7 +445,7 @@ sub run_qconf {
     my %cpuhash;
     $cpuhash{$_->{totalcpus}}++ for values %node_stats;
     while ( my ($cpus,$count)  = each %cpuhash ) {
-	$cpudistribution .= "${cpus}cpu:$count " if $cpus > 0;
+        $cpudistribution .= "${cpus}cpu:$count " if $cpus > 0;
     }
     chop $cpudistribution;
 
@@ -458,10 +465,10 @@ sub req_limits ($) {
     my $line = shift;
     my ($reqcputime, $reqwalltime);
     while ($line =~ /[sh]_cpu=(\d+)/g) {
-	$reqcputime = $1 if not $reqcputime or $reqcputime > $1;
+        $reqcputime = $1 if not $reqcputime or $reqcputime > $1;
     }
     while ($line =~ /[sh]_rt=(\d+)/g) {
-	$reqwalltime = $1 if not $reqwalltime or $reqwalltime > $1;
+        $reqwalltime = $1 if not $reqwalltime or $reqwalltime > $1;
     }
     return ($reqcputime, $reqwalltime);
 }
@@ -518,7 +525,7 @@ sub cluster_info () {
     }
 
     for my $job (values %waiting_jobs) {
-        ++$queuedjobs;
+        $queuedjobs += $job->{tasks};
         $queuedcpus += $job->{tasks} * $job->{slots};
     }
 
@@ -580,12 +587,12 @@ sub queue_info ($) {
             $nodeused += $q->{usedslots} - $q->{suspslots};
             # Any flag on the queue implies that the queue is not taking more jobs.
             $nodefree += $q->{totalslots} - $q->{usedslots} unless $q->{flags};
-	    # The queue is healty if there is an instance in any other states
-	    # than normal or (a)larm. See man qstat for the meaning of the flags.
+            # The queue is healty if there is an instance in any other states
+            # than normal or (a)larm. See man qstat for the meaning of the flags.
             $queuestatus = 1 unless $q->{flags} =~ /[dosuACDE]/;
         }
-	# Cheating a bit here. SGE's scheduler would consider load averages
-	# among other things to decide if there are free slots.
+        # Cheating a bit here. SGE's scheduler would consider load averages
+        # among other things to decide if there are free slots.
         if (defined $node->{totalcpus}) {
             $log->debug("Capping nodetotal ($nodename): $nodetotal > ".$node->{totalcpus})
                 if $nodetotal > $node->{totalcpus};
@@ -661,8 +668,7 @@ sub queue_info ($) {
     # Grid Engine puts queueing jobs in single "PENDING" state pool,
     # so here we report the total number queueing jobs in the cluster.
 
-    #$lrms_queue->{queued} = $queuedjobs;
-    $lrms_queue->{queued} = $queuedcpus; # TODO: This disregards NG infosys spec.
+    $lrms_queue->{queued} = $queuedjobs;
 
     # nordugrid-queue-maxrunning
     # nordugrid-queue-maxqueuable
@@ -703,13 +709,13 @@ sub jobs_info ($) {
             $log->warning("SGE job $jid is an array job. Unable to handle it");
 
         } elsif (defined ($job = $running_jobs{$jid}{0})) {
-	    push @running, $jid;
+            push @running, $jid;
 
             my $user = $job->{user};
             $user_total_jobs{$user}++;
 
-	    # OBS: it's assumed that jobs in this loop are not part of array
-	    # jobs, which is true for grid jobs (non-array jobs have taskid 0)
+            # OBS: it's assumed that jobs in this loop are not part of array
+            # jobs, which is true for grid jobs (non-array jobs have taskid 0)
 
             if ($job->{state} =~ /[rt]/) {
                 # running or transfering
@@ -729,7 +735,7 @@ sub jobs_info ($) {
             $lrms_jobs->{$jid}{cpus} = $job->{slots};
 
         } elsif (defined ($job = $waiting_jobs{$jid})) {
-	    push @queueing, $jid;
+            push @queueing, $jid;
 
             $lrms_jobs->{$jid}{rank} = $job->{rank};
 
@@ -806,36 +812,36 @@ sub jobs_info ($) {
     $jid = undef;
     die unless loop_callback("$path/qstat -j $jidstr", sub {
         my $l = shift;
-	if ($l =~ /^job_number:\s+(\d+)/) {
-	    $jid=$1;
-	}
+        if ($l =~ /^job_number:\s+(\d+)/) {
+            $jid=$1;
+        }
         elsif ($l =~ /^hard resource_list/) {
             my ($reqcputime, $reqwalltime) = req_limits($l);
             $lrms_jobs->{$jid}{reqcputime} = $reqcputime if $reqcputime;
             $lrms_jobs->{$jid}{reqwalltime} = $reqwalltime if $reqwalltime;
-	}
+        }
         elsif ($l =~ /^\s*(cannot run because.*)/) {
-	    # Reason for being held in queue
-	    push @{$lrms_jobs->{$jid}{comment}}, "LRMS: $1";
-	}
+            # Reason for being held in queue
+            push @{$lrms_jobs->{$jid}{comment}}, "LRMS: $1";
+        }
         # Look for error messages, often jobs pending in error state 'Eqw'
         elsif ($l =~ /^error reason\s*\d*:\s*(.*)/) {
-	    # for SGE version 6.x. Examples:
+            # for SGE version 6.x. Examples:
             # error reason  1:  can't get password entry for user "grid". Either the user does not exist or NIS error!
             # error reason  1:  08/20/2008 13:40:27 [113794:25468]: error: can't chdir to /some/dir: No such file or directory
             # error reason  1:          fork failed: Cannot allocate memory
             #               1:          fork failed: Cannot allocate memory
-	    push @{$lrms_jobs->{$jid}{comment}}, "LRMS: $1";
-	}
+            push @{$lrms_jobs->{$jid}{comment}}, "LRMS: $1";
+        }
         elsif ($l =~ /(job is in error state)/) {
-	    # for SGE version 5.x.
-	    push @{$lrms_jobs->{$jid}{comment}}, "LRMS: $1";
+            # for SGE version 5.x.
+            push @{$lrms_jobs->{$jid}{comment}}, "LRMS: $1";
 
-	    # qstat is not informative. qacct would be a bit more helpful with
-	    # messages like:
+            # qstat is not informative. qacct would be a bit more helpful with
+            # messages like:
             # failed   1  : assumedly before job
             # failed   28 : changing into working directory
-	}
+        }
     });
 }
 
@@ -863,12 +869,12 @@ sub users_info($$) {
             $freecpus = $lrms_queue->{status}
                 if $lrms_queue->{status} < $freecpus;
         } else {
-	    $freecpus = $lrms_queue->{status};
+            $freecpus = $lrms_queue->{status};
         }
    $lrms_queue->{minwalltime} = 0;
    $lrms_queue->{mincputime} = 0;
 
-	$lrms_users->{$u}{queuelength} = $user_waiting_jobs{$u} || 0;
+        $lrms_users->{$u}{queuelength} = $user_waiting_jobs{$u} || 0;
         $freecpus = 0 if $freecpus < 0;
         if ($lrms_queue->{maxwalltime}) {
             $lrms_users->{$u}{freecpus} = { $freecpus => $lrms_queue->{maxwalltime} };
