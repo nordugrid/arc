@@ -9,6 +9,7 @@
 #include <string>
 
 #include <arc/ArcLocation.h>
+#include <arc/Utils.h>
 #include <arc/IString.h>
 #include <arc/Logger.h>
 #include <arc/OptionParser.h>
@@ -111,7 +112,7 @@ int main(int argc, char **argv) {
   //if (!usercfg.CheckProxy())
   //  return 1;
 
-  InformationRequest* request = NULL;
+  CountedPointer<InformationRequest> request(NULL);
   if(!query.empty()) {
     XMLNode q(query);
     if(!q) {
@@ -129,7 +130,7 @@ int main(int argc, char **argv) {
     }
     request = new InformationRequest(qpaths);
   }
-  if((!request) || (!(*request))) {
+  if(!(*request)) {
     logger.msg(Arc::ERROR, "Failed to create WSRP request");
     return 1;
   }
@@ -143,10 +144,11 @@ int main(int argc, char **argv) {
 
   MCCConfig cfg;
   usercfg.ApplyToConfig(cfg);
-  ClientSOAP client(cfg,u, usercfg.Timeout());
+  ClientSOAP client(cfg, u, usercfg.Timeout());
   PayloadSOAP req(*(request->SOAP()));
-  PayloadSOAP* resp = NULL;
-  MCC_Status r = client.process(&req,&resp);
+  PayloadSOAP* resp_ = NULL;
+  MCC_Status r = client.process(&req,&resp_);
+  CountedPointer<PayloadSOAP> resp(resp_);
   if(!r) {
     logger.msg(Arc::ERROR, "Failed to send request");
     return 1;

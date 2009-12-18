@@ -1,0 +1,84 @@
+.\" -*- nroff -*-
+.TH ARCWSRF 1 "@DATE@" "NorduGrid ARC @VERSION@" "NorduGrid Users Manual"
+
+.SH NAME
+
+arcwsrf \- run WSRF query against service
+
+.SH DESCRIPTION
+
+The
+.B arcwsrf
+command issues WSRF resource property query to service specified by its URL.
+
+.SH SYNOPSIS
+
+.B arcwsrf [options] service_url [query]
+
+.SH OPTIONS
+
+
+  -h, --help                  Show help options
+  -p, --property=[-]name      Request for specific Resource Property
+  -t, --timeout=seconds       timeout in seconds (default 20)
+  -z, --conffile=filename     configuration file (default ~/.arc/client.conf)
+  -d, --debug=debuglevel      FATAL, ERROR, WARNING, INFO, VERBOSE or DEBUG
+  -v, --version               print version information
+
+.IP "\fB-p\fR, \fB--property\fR"
+request specific Resource Property.
+.IP "\fB-t\fR, \fB--timeout\fR=\fIseconds\fR"
+timeout in seconds (default 20)
+.IP "\fB-z\fR, \fB--conffile\fR=\fIfilename\fR"
+configuration file (default ~/.arc/client.conf)
+.IP "\fB-d\fR, \fB--debug\fR=\fIdebuglevel\fR"
+FATAL, ERROR, WARNING, INFO, VERBOSE or DEBUG
+.IP "\fB-v\fR, \fB--version\fR"
+print version information
+.IP "\fB-?\fR, \fB--help\fR"
+print help
+
+.SH ARGUMENTS
+
+.IP "\fBservice_url\fR"
+URL of service to which request is sent
+.IP "\fBquery\fR"
+query expression (usually XPath) to be sent
+.LP
+
+.SH EXTENDED DESCRIPTION
+
+The
+.B arcwsrf
+send WSRF query to specified service URL and prints response. If query is 
+provided this query is sent to service. Otherwise request for whole 
+information document or for selected properties (if -p options are specified)
+is made.
+
+.SH FILES
+
+.TP
+.B ~/.arc/client.conf
+Some options can be given default values by specifying them in the
+ARC client configuration file. By using the
+.B --conffile
+option a different configuration file can be used than the default.
+
+.SH ENVIRONMENT VARIABLES
+
+.TP
+.B X509_USER_PROXY
+The location of the user's grid proxy file. Shouldn't be set unless
+the proxy is in a non-standard location.
+
+.SH COPYRIGHT
+
+APACHE LICENSE Version 2.0
+
+.SH AUTHOR
+
+Aleksandr Konstantinov <aleksandr.konstantinov@fys.uio.no>
+
+.SH SEE ALSO
+
+.BR arcinfo (1)

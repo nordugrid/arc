@@ -185,6 +185,7 @@ rm -rf $RPM_BUILD_ROOT
 %{_mingw32_bindir}/arcmigrate.exe
 %{_mingw32_bindir}/arcrenew.exe
 %{_mingw32_bindir}/arcresume.exe
+%{_mingw32_bindir}/arcwsrf.exe
 %{_mingw32_bindir}/perftest.exe
 %{_mingw32_bindir}/saml_assertion_init.exe
 #
@@ -217,6 +218,7 @@ rm -rf $RPM_BUILD_ROOT
 %doc %{_mingw32_mandir}/man1/arcmigrate.1*
 %doc %{_mingw32_mandir}/man1/arcrenew.1*
 %doc %{_mingw32_mandir}/man1/arcresume.1*
+%doc %{_mingw32_mandir}/man1/arcwsrf.1*
 %doc %{_mingw32_mandir}/man1/perftest.1*
 %doc %{_mingw32_mandir}/man1/saml_assertion_init.1*
 #%doc %{_mingw32_mandir}/man1/voms_assertion_init.1*

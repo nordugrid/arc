@@ -1,4 +1,4 @@
-noinst_PROGRAMS = arcwsrf
+bin_PROGRAMS = arcwsrf
 
 man_MANS = 
 
