@@ -227,6 +227,18 @@ namespace Arc {
           name++;
         }
       }
+      if(it->free_format) {
+        // assuming it is 'ls -l'-like
+        // a lot of attributes followed by filename
+        // NOTE: it is not possible to reliably distinguish files
+        // with empty spaces. So assuming no such files.
+        char* name_start = strrchr(name,' ');
+        if(name_start) {
+          nlen-=(name_start-name+1);
+          length-=(name_start-name+1);
+          name=name_start+1;
+        };
+      };
       std::list<FileInfo>::iterator i;
       if (name[0] == '/') {
         i = it->fnames.insert(it->fnames.end(), FileInfo(name));
@@ -676,6 +688,7 @@ namespace Arc {
     globus_ftp_control_local_dcau(handle, &dcau, GSS_C_NO_CREDENTIAL);
     globus_ftp_control_host_port_t pasv_addr;
     facts = true;
+    free_format = false;
     if(!names_only) {
       /* try MLST */
       cmd_resp = send_command("MLST", path.c_str(), true, &sresp);
@@ -686,6 +699,7 @@ namespace Arc {
         if (setup_pasv(pasv_addr) != 0)
           return -1;
         facts = false;
+        free_format = true;
         cmd_resp = send_command("LIST", path.c_str(), true, &sresp);
       } else {
         // MLST replies through control channel
@@ -743,6 +757,7 @@ namespace Arc {
     } else {
       if (setup_pasv(pasv_addr) != 0) return -1;
       facts = false;
+      free_format = true;
       cmd_resp = send_command("LIST", path.c_str(), true, &sresp);
     }
     if (cmd_resp == GLOBUS_FTP_POSITIVE_COMPLETION_REPLY) {
@@ -755,11 +770,11 @@ namespace Arc {
     if ((cmd_resp != GLOBUS_FTP_POSITIVE_PRELIMINARY_REPLY) &&
         (cmd_resp != GLOBUS_FTP_POSITIVE_INTERMEDIATE_REPLY)) {
       if (sresp) {
-        logger.msg(INFO, "NLST/MLSD failed: %s", sresp);
+        logger.msg(INFO, "LIST/MLST failed: %s", sresp);
         free(sresp);
       }
       else
-        logger.msg(INFO, "NLST/MLSD failed");
+        logger.msg(INFO, "LIST/MLST failed");
       return -1;
     }
     free(sresp);
@@ -789,11 +804,11 @@ namespace Arc {
     globus_ftp_control_local_dcau(handle, &dcau, GSS_C_NO_CREDENTIAL);
     globus_ftp_control_host_port_t pasv_addr;
     facts = true;
+    free_format = false;
     if (setup_pasv(pasv_addr) != 0)
       return -1;
     if(!names_only) {
       /* try MLSD */
-cmd_resp = GLOBUS_FTP_PERMANENT_NEGATIVE_COMPLETION_REPLY;
       cmd_resp = send_command("MLSD", path.c_str(), true, &sresp);
       if (cmd_resp == GLOBUS_FTP_PERMANENT_NEGATIVE_COMPLETION_REPLY) {
         logger.msg(INFO, "MLSD is not supported - trying NLST");

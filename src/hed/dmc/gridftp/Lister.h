@@ -39,6 +39,7 @@ namespace Arc {
     bool connected;
     bool pasv_set;
     bool data_activated;
+    bool free_format;
     unsigned short int port;
     std::string host;
     std::string username;
