@@ -21,6 +21,7 @@ class URLTest
   CPPUNIT_TEST(TestRlsUrl2);
   CPPUNIT_TEST(TestRlsUrl3);
   CPPUNIT_TEST(TestLfcUrl);
+  CPPUNIT_TEST(TestSrmUrl);
   CPPUNIT_TEST(TestBadUrl);
   CPPUNIT_TEST_SUITE_END();
 
@@ -38,15 +39,17 @@ public:
   void TestRlsUrl2();
   void TestRlsUrl3();
   void TestLfcUrl();
+  void TestSrmUrl();
   void TestBadUrl();
 
 private:
-  Arc::URL *gsiftpurl, *ldapurl, *httpurl, *fileurl, *ldapurl2, *opturl, *ftpurl, *rlsurl, *rlsurl2, *rlsurl3, *lfcurl;
+  Arc::URL *gsiftpurl, *gsiftpurl2, *ldapurl, *httpurl, *fileurl, *ldapurl2, *opturl, *ftpurl, *rlsurl, *rlsurl2, *rlsurl3, *lfcurl, *srmurl;
 };
 
 
 void URLTest::setUp() {
   gsiftpurl = new Arc::URL("gsiftp://hathi.hep.lu.se/public/test.txt");
+  gsiftpurl2 = new Arc::URL("gsiftp://hathi.hep.lu.se:2811/public:/test.txt:checksumtype=adler32");
   ldapurl = new Arc::URL("ldap://grid.uio.no/o=grid/mds-vo-name=local");
   httpurl = new Arc::URL("http://www.nordugrid.org/monitor.php?debug=2&sort=yes");
   fileurl = new Arc::URL("file:/home/grid/runtime/TEST-ATLAS-8.0.5");
@@ -57,11 +60,13 @@ void URLTest::setUp() {
   rlsurl2 = new Arc::URL("rls://gsiftp://hagrid.it.uu.se/storage/test.txt|http://www.nordugrid.org/files/test.txt@rls.nordugrid.org/test.txt");
   rlsurl3 = new Arc::URL("rls://;exec=yes|gsiftp://hagrid.it.uu.se;threads=10/storage/test.txt|http://www.nordugrid.org;cache=no/files/test.txt@rls.nordugrid.org;readonly=yes/test.txt");
   lfcurl = new Arc::URL("lfc://atlaslfc.nordugrid.org;cache=no/grid/atlas/file1:guid=7d36da04-430f-403c-adfb-540b27506cfa:checksumtype=ad:checksumvalue=12345678");
+  srmurl = new Arc::URL("srm://srm.nordugrid.org/srm/managerv2?SFN=/data/public:/test.txt:checksumtype=adler32");
 }
 
 
 void URLTest::tearDown() {
   delete gsiftpurl;
+  delete gsiftpurl2;
   delete ldapurl;
   delete httpurl;
   delete fileurl;
@@ -72,6 +77,7 @@ void URLTest::tearDown() {
   delete rlsurl2;
   delete rlsurl3;
   delete lfcurl;
+  delete srmurl;
 }
 
 
@@ -86,6 +92,18 @@ void URLTest::TestGsiftpUrl() {
   CPPUNIT_ASSERT(gsiftpurl->HTTPOptions().empty());
   CPPUNIT_ASSERT(gsiftpurl->Options().empty());
   CPPUNIT_ASSERT(gsiftpurl->Locations().empty());
+  
+  CPPUNIT_ASSERT(*gsiftpurl2);
+  CPPUNIT_ASSERT_EQUAL(std::string("gsiftp"), gsiftpurl2->Protocol());
+  CPPUNIT_ASSERT(gsiftpurl2->Username().empty());
+  CPPUNIT_ASSERT(gsiftpurl2->Passwd().empty());
+  CPPUNIT_ASSERT_EQUAL(std::string("hathi.hep.lu.se"), gsiftpurl2->Host());
+  CPPUNIT_ASSERT_EQUAL(2811, gsiftpurl2->Port());
+  CPPUNIT_ASSERT_EQUAL(std::string("/public:/test.txt"), gsiftpurl2->Path());
+  CPPUNIT_ASSERT(gsiftpurl2->HTTPOptions().empty());
+  CPPUNIT_ASSERT(gsiftpurl2->Options().empty());
+  CPPUNIT_ASSERT(gsiftpurl2->Locations().empty());
+  CPPUNIT_ASSERT_EQUAL(std::string("adler32"), gsiftpurl2->MetaDataOption("checksumtype"));
 }
 
 
@@ -290,6 +308,20 @@ void URLTest::TestLfcUrl() {
   CPPUNIT_ASSERT_EQUAL(std::string("ad"), lfcurl->MetaDataOption("checksumtype"));
   CPPUNIT_ASSERT_EQUAL(std::string("12345678"), lfcurl->MetaDataOption("checksumvalue"));
   CPPUNIT_ASSERT_EQUAL(std::string("lfc://atlaslfc.nordugrid.org:5010;cache=no/grid/atlas/file1:checksumtype=ad:checksumvalue=12345678:guid=7d36da04-430f-403c-adfb-540b27506cfa"), lfcurl->fullstr());
+}
+
+void URLTest::TestSrmUrl() {
+  CPPUNIT_ASSERT(*srmurl);
+  CPPUNIT_ASSERT_EQUAL(std::string("srm"), srmurl->Protocol());
+  CPPUNIT_ASSERT(srmurl->Username().empty());
+  CPPUNIT_ASSERT(srmurl->Passwd().empty());
+  CPPUNIT_ASSERT_EQUAL(std::string("srm.nordugrid.org"), srmurl->Host());
+  CPPUNIT_ASSERT_EQUAL(8443, srmurl->Port());
+  CPPUNIT_ASSERT_EQUAL(std::string("/srm/managerv2"), srmurl->Path());
+  CPPUNIT_ASSERT_EQUAL(std::string("/data/public:/test.txt"), srmurl->HTTPOption("SFN"));
+  CPPUNIT_ASSERT(srmurl->Options().empty());
+  CPPUNIT_ASSERT(srmurl->Locations().empty());
+  CPPUNIT_ASSERT_EQUAL(std::string("adler32"), srmurl->MetaDataOption("checksumtype"));
 }
 
 void URLTest::TestBadUrl() {

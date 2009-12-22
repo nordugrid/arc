@@ -328,10 +328,22 @@ namespace Arc {
     }
 
     if (protocol != "ldap" && protocol != "arc") {
-      pos = path.find(':');
-      if (pos != std::string::npos) {
-        metadataoptions = ParseOptions(path.substr(pos + 1), ':');
-        path = path.substr(0, pos);
+      pos2 = path.rfind('=');
+      if (pos2 != std::string::npos) {
+        pos3 = path.rfind(':', pos2);
+        if (pos3 != std::string::npos) {
+          pos = pos3;
+          while (pos2 != std::string::npos && pos3 != std::string::npos) {
+            pos2 = path.rfind('=', pos);
+            if (pos2 != std::string::npos) {
+              pos3 = path.rfind(':', pos2);
+              if (pos3 != std::string::npos)
+                pos = pos3;
+            }
+          }
+          metadataoptions = ParseOptions(path.substr(pos + 1), ':');
+          path = path.substr(0, pos);
+        }
       }
     }
 
