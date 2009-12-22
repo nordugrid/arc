@@ -39,7 +39,7 @@ static void dos_to_unix(char *s) {
   for (; l;) {
     l--;
     if ((s[l] == '\r') || (s[l] == '\n'))
-      s[l] = 0;
+      s[l] = ' ';
   }
 }
 
@@ -146,9 +146,9 @@ namespace Arc {
       if (it->resp_n < LISTER_MAX_RESPONSES) {
         memmove((it->resp) + 1, it->resp,
                 sizeof(globus_ftp_control_response_t) * (it->resp_n));
-        if (response->response_buffer)
+        if (response->response_buffer) {
           globus_ftp_control_response_copy(response, it->resp);
-        else {    // invalid reply causes *_copy to segfault
+        } else {    // invalid reply causes *_copy to segfault
           it->resp->response_buffer = (globus_byte_t*)strdup("000 ");
           it->resp->response_buffer_size = 5;
           it->resp->response_length = 4;
@@ -158,8 +158,10 @@ namespace Arc {
         (it->resp_n)++;
       }
       it->callback_status = CALLBACK_DONE;
-      dos_to_unix((char*)(it->resp->response_buffer));
-      logger.msg(VERBOSE, "Response: %s", it->resp->response_buffer);
+      if(response->response_buffer) {
+        dos_to_unix((char*)(response->response_buffer));
+        logger.msg(VERBOSE, "Response(%i): %s", (int)(response->response_length), response->response_buffer);
+      }
     }
     globus_cond_signal(&(it->cond));
     globus_mutex_unlock(&(it->mutex));
@@ -173,6 +175,7 @@ namespace Arc {
                                   globus_off_t,
                                   globus_bool_t eof) {
     Lister *it = (Lister*)arg;
+    if(!it->data_activated) return;
     length += it->list_shift;
     if (error != GLOBUS_SUCCESS) {
       /* no such file or connection error - assume no such file */
@@ -213,7 +216,7 @@ namespace Arc {
         continue;
       }
       char *attrs = name;
-      if (it->facts)
+      if (it->facts) {
         for (; *name;) {
           nlen--;
           length--;
@@ -223,13 +226,17 @@ namespace Arc {
           }
           name++;
         }
+      }
       std::list<FileInfo>::iterator i;
-      if (name[0] == '/')
+      if (name[0] == '/') {
         i = it->fnames.insert(it->fnames.end(), FileInfo(name));
-      else {
+      } else {
         std::string name_ = !it->path.empty() ? it->path : "/";
-        name_ += "/";
-        name_ += name;
+        // Workaround for bug in our gridftp server!
+        if(name[0]) {
+          name_ += "/";
+          name_ += name;
+        }
         i = it->fnames.insert(it->fnames.end(), FileInfo(name_));
       }
       if (it->facts)
@@ -258,6 +265,7 @@ namespace Arc {
       }
       return;
     }
+    it->data_activated = false;
     globus_mutex_lock(&(it->mutex));
     it->data_callback_status = CALLBACK_DONE;
     globus_cond_signal(&(it->cond));
@@ -283,6 +291,7 @@ namespace Arc {
     }
     it->list_shift = 0;
     it->fnames.clear();
+    it->data_activated = true;
     if (globus_ftp_control_data_read(hctrl, (globus_byte_t*)(it->readbuf),
                                      sizeof(it->readbuf) - 1,
                                      &list_read_callback, arg) !=
@@ -296,8 +305,7 @@ namespace Arc {
     }
   }
 
-  globus_ftp_control_response_class_t Lister::send_command(const char *command, const char *arg,
-                                                           bool wait_for_response, char **sresp, char delim) {
+  globus_ftp_control_response_class_t Lister::send_command(const char *command, const char *arg, bool wait_for_response, char **sresp, char delim) {
     char *cmd = NULL;
     if (sresp)
       (*sresp) = NULL;
@@ -413,6 +421,8 @@ namespace Arc {
       resp_n(0),
       callback_status(CALLBACK_NOTREADY),
       connected(false),
+      pasv_set(false),
+      data_activated(false),
       credential(credential),
       port((unsigned short int)(-1)) {
     if (globus_cond_init(&cond, GLOBUS_NULL) != GLOBUS_SUCCESS) {
@@ -486,6 +496,7 @@ namespace Arc {
   }
 
   int Lister::setup_pasv(globus_ftp_control_host_port_t& pasv_addr) {
+    if(pasv_set) return 0;
     char *sresp;
     GlobusResult res;
     if (send_command("PASV", NULL, true, &sresp, '(') !=
@@ -522,10 +533,20 @@ namespace Arc {
       logger.msg(INFO, "Failure: %s", res.str());
       return -1;
     }
+    /* it looks like _pasv is not enough for connection - start reading
+       immediately */
+    data_callback_status = (callback_status_t)CALLBACK_NOTREADY;
+    if (globus_ftp_control_data_connect_read(handle, &list_conn_callback,
+                                             this) != GLOBUS_SUCCESS) {
+      logger.msg(INFO, "Failed to open data channel");
+      pasv_set = false;
+      return -1;
+    }
+    pasv_set = true;
     return 0;
   }
 
-  int Lister::retrieve_dir(const URL& url,bool names_only) {
+  int Lister::handle_connect(const URL& url) {
     GlobusResult res;
     /* get listing */
     fnames.clear();
@@ -552,11 +573,12 @@ namespace Arc {
           reconnect = false;
       }
 
-    path = '/' + url.Path();
+    path = url.Path();
     if ((path.length() != 0) && (path[path.length() - 1] == '/'))
       path.resize(path.length() - 1);
     if (reconnect) {
       connected = false;
+      pasv_set = false;
       port = url.Port();
       scheme = url.Protocol();
       host = url.Host();
@@ -628,6 +650,11 @@ namespace Arc {
       resp_destroy();
       connected = true;
     }
+    return 0;
+  }
+
+  int Lister::retrieve_file_info(const URL& url,bool names_only) {
+    if(handle_connect(url) != 0) return -1;
     globus_ftp_control_response_class_t cmd_resp;
     char *sresp;
     if (url.Protocol() == "gsiftp") {
@@ -649,18 +676,124 @@ namespace Arc {
     globus_ftp_control_local_dcau(handle, &dcau, GSS_C_NO_CREDENTIAL);
     globus_ftp_control_host_port_t pasv_addr;
     facts = true;
-    if (setup_pasv(pasv_addr) != 0)
-      return -1;
-    /* it looks like _pasv is not enough for connection - start reading
-       immediately */
-    data_callback_status = (callback_status_t)CALLBACK_NOTREADY;
-    if (globus_ftp_control_data_connect_read(handle, &list_conn_callback,
-                                             this) != GLOBUS_SUCCESS) {
-      logger.msg(INFO, "Failed to open data channel");
+    if(!names_only) {
+      /* try MLST */
+      cmd_resp = send_command("MLST", path.c_str(), true, &sresp);
+      if (cmd_resp == GLOBUS_FTP_PERMANENT_NEGATIVE_COMPLETION_REPLY) {
+        logger.msg(INFO, "MLST is not supported - trying LIST");
+        free(sresp);
+        /* run NLST */
+        if (setup_pasv(pasv_addr) != 0)
+          return -1;
+        facts = false;
+        cmd_resp = send_command("LIST", path.c_str(), true, &sresp);
+      } else {
+        // MLST replies through control channel
+        // 250 -
+        //  information
+        // 250 -
+        if (cmd_resp != GLOBUS_FTP_POSITIVE_COMPLETION_REPLY) {
+          logger.msg(INFO, "Immediate completion expected: %s", sresp);
+          free(sresp);
+          return -1;
+        }
+        // Try to collect full response
+        char* nresp = strchr(sresp,'\n');
+        if(nresp) {
+          ++nresp;
+        } else {
+          free(sresp);
+          cmd_resp = send_command(NULL, NULL, true, &sresp);
+          if(cmd_resp != GLOBUS_FTP_UNKNOWN_REPLY) {
+            logger.msg(INFO, "Missing information in reply: %s", sresp);
+            free(sresp);
+            return -1;
+          }
+          nresp=sresp;
+        }
+        char* fresp = NULL;
+        if(nresp) {
+          if(*nresp == ' ') ++nresp;
+          fresp=strchr(nresp,'\n');
+          // callback
+          *fresp=0;
+          list_shift = 0;
+          fnames.clear();
+          int nlength = strlen(nresp);
+          if(nlength > sizeof(readbuf)) nlength=sizeof(readbuf);
+          memcpy(readbuf,nresp,nlength);
+          list_read_callback(this,handle,GLOBUS_SUCCESS,
+                             (globus_byte_t*)readbuf,nlength,0,1);
+        };
+        if(fresp) {
+          ++fresp;
+        } else {
+          free(sresp);
+          cmd_resp = send_command(NULL, NULL, true, &sresp);
+          if(cmd_resp != GLOBUS_FTP_POSITIVE_COMPLETION_REPLY) {
+            logger.msg(INFO, "Missing final reply: %s", sresp);
+            free(sresp);
+            return -1;
+          }
+          fresp=sresp;
+        }
+        free(sresp);
+        return 0; 
+      }
+    } else {
+      if (setup_pasv(pasv_addr) != 0) return -1;
+      facts = false;
+      cmd_resp = send_command("LIST", path.c_str(), true, &sresp);
+    }
+    if (cmd_resp == GLOBUS_FTP_POSITIVE_COMPLETION_REPLY) {
+      /* completion is not expected here */
+      pasv_set = false;
+      logger.msg(INFO, "Unexpected immediate completion: %s", sresp);
+      if (sresp) free(sresp);
       return -1;
     }
+    if ((cmd_resp != GLOBUS_FTP_POSITIVE_PRELIMINARY_REPLY) &&
+        (cmd_resp != GLOBUS_FTP_POSITIVE_INTERMEDIATE_REPLY)) {
+      if (sresp) {
+        logger.msg(INFO, "NLST/MLSD failed: %s", sresp);
+        free(sresp);
+      }
+      else
+        logger.msg(INFO, "NLST/MLSD failed");
+      return -1;
+    }
+    free(sresp);
+    return transfer_list();
+  }
+
+  int Lister::retrieve_dir_info(const URL& url,bool names_only) {
+    if(handle_connect(url) != 0) return -1;
+    globus_ftp_control_response_class_t cmd_resp;
+    char *sresp = NULL;
+    if (url.Protocol() == "gsiftp") {
+      cmd_resp = send_command("DCAU", "N", true, &sresp, '"');
+      if ((cmd_resp != GLOBUS_FTP_POSITIVE_COMPLETION_REPLY) &&
+          (cmd_resp != GLOBUS_FTP_PERMANENT_NEGATIVE_COMPLETION_REPLY)) {
+        if (sresp) {
+          logger.msg(INFO, "DCAU failed: %s", sresp);
+          free(sresp);
+        }
+        else
+          logger.msg(INFO, "DCAU failed");
+        return -1;
+      }
+      free(sresp);
+    }
+    globus_ftp_control_dcau_t dcau;
+    dcau.mode = GLOBUS_FTP_CONTROL_DCAU_NONE;
+    globus_ftp_control_local_dcau(handle, &dcau, GSS_C_NO_CREDENTIAL);
+    globus_ftp_control_host_port_t pasv_addr;
+    facts = true;
+    if (setup_pasv(pasv_addr) != 0)
+      return -1;
     if(!names_only) {
       /* try MLSD */
+cmd_resp = GLOBUS_FTP_PERMANENT_NEGATIVE_COMPLETION_REPLY;
       cmd_resp = send_command("MLSD", path.c_str(), true, &sresp);
       if (cmd_resp == GLOBUS_FTP_PERMANENT_NEGATIVE_COMPLETION_REPLY) {
         logger.msg(INFO, "MLSD is not supported - trying NLST");
@@ -675,6 +808,7 @@ namespace Arc {
     }
     if (cmd_resp == GLOBUS_FTP_POSITIVE_COMPLETION_REPLY) {
       /* completion is not expected here */
+      pasv_set = false;
       logger.msg(INFO, "Immediate completion: %s", sresp);
       if (sresp)
         free(sresp);
@@ -691,6 +825,12 @@ namespace Arc {
       return -1;
     }
     free(sresp);
+    return transfer_list();
+  }
+
+  int Lister::transfer_list(void) {
+    globus_ftp_control_response_class_t cmd_resp;
+    char* sresp = NULL;
     /* start transfer */
     for (;;) {
       /* waiting for response received */
@@ -706,6 +846,7 @@ namespace Arc {
         else
           logger.msg(INFO, "Data transfer aborted");
         // Destroy data connections here ?????????
+        pasv_set = false;
         return -1;
       }
       if (sresp)
@@ -716,8 +857,10 @@ namespace Arc {
     /* waiting for data ended */
     if (wait_for_data_callback() != CALLBACK_DONE) {
       logger.msg(INFO, "Failed to transfer data");
+      pasv_set = false;
       return -1;
     }
+    pasv_set = false;
     /* success */
     return 0;
   }
