@@ -187,7 +187,6 @@
      */
     SRMClientRequest(std::list<std::string> urls) 
       throw (SRMInvalidRequestException):
-      _request_token(""),
       _space_token(""), 
       _waiting_time(1), 
       _status(SRM_REQUEST_ONGOING),
@@ -205,7 +204,6 @@
      */
     SRMClientRequest(std::string url="", std::string id="")
       throw (SRMInvalidRequestException):
-      _request_token(""),
       _space_token(""),
       _waiting_time(1),
       _status(SRM_REQUEST_ONGOING),
@@ -352,7 +350,6 @@
     static SRMClient* getInstance(std::string url,
                                   time_t timeout=300,
                                   SRMVersion srm_version=SRM_VNULL);
-  
     /**
      * empty destructor
      */
@@ -482,12 +479,14 @@
      * @param req The request object
      * @param metadata A list of structs filled with file information
      * @param recursive The level of recursion into sub directories
+     * @param report_error Determines if errors should be reported
      * @returns SRMReturnCode specifying outcome of operation
      * @see SRMFileMetaData
      */
     virtual SRMReturnCode info(SRMClientRequest& req,
                                std::list<struct SRMFileMetaData>& metadata,
-                               const int recursive = 0) = 0;
+                               const int recursive = 0,
+                               bool report_error = true) = 0;
   
     /**
      * Delete a file physically from storage and the SRM namespace.

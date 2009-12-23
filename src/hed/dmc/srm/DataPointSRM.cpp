@@ -19,6 +19,7 @@
 #include <arc/URL.h>
 #include <arc/data/DataBuffer.h>
 #include <arc/data/DataCallback.h>
+#include <arc/data/CheckSum.h>
 #include <arc/globusutils/GlobusWorkarounds.h>
 
 
@@ -47,8 +48,10 @@ namespace Arc {
   DataPointSRM::~DataPointSRM() {
     globus_module_deactivate(GLOBUS_GSI_GSSAPI_MODULE);
     globus_module_deactivate(GLOBUS_IO_MODULE);
-    delete r_handle;
-    delete srm_request;
+    if (r_handle)
+      delete r_handle;
+    if (srm_request)
+      delete srm_request;
   }
 
   Plugin* DataPointSRM::Instance(PluginArgument *arg) {
@@ -98,13 +101,14 @@ namespace Arc {
     
     if (metadata.empty())
       return DataStatus::CheckError;
-    logger.msg(INFO, "Check: obtained size: %lli", metadata.front().size);
-    if (metadata.front().size > 0)
+    if (metadata.front().size > 0) {
+      logger.msg(INFO, "Check: obtained size: %lli", metadata.front().size);
       SetSize(metadata.front().size);
-    logger.msg(INFO, "Check: obtained checksum: %s", metadata.front().checkSumValue);
+    }
     if (metadata.front().checkSumValue.length() > 0 &&
         metadata.front().checkSumType.length() > 0) {
       std::string csum(metadata.front().checkSumType + ":" + metadata.front().checkSumValue);
+      logger.msg(INFO, "Check: obtained checksum: %s", csum);
       SetCheckSum(csum);
     }
     if (metadata.front().createdAtTime > 0) {
@@ -162,7 +166,7 @@ namespace Arc {
     reading = true;
     buffer = &buf;
 
-    SRMClient *client = SRMClient::getInstance(url.fullstr());
+    SRMClient *client = SRMClient::getInstance(url.fullstr(), buffer->speed.get_max_inactivity_time());
     if (!client) {
       reading = false;
       return DataStatus::ReadStartError;
@@ -200,13 +204,14 @@ namespace Arc {
       }
       // provide some metadata
       if (!metadata.empty()) {
-        logger.msg(INFO, "StartReading: obtained size: %lli", metadata.front().size);
-        if (metadata.front().size > 0)
+        if (metadata.front().size > 0) {
+          logger.msg(INFO, "StartReading: obtained size: %lli", metadata.front().size);
           SetSize(metadata.front().size);
-        logger.msg(INFO, "StartReading: obtained checksum: %s:%s", metadata.front().checkSumType, metadata.front().checkSumValue);
+        }
         if (metadata.front().checkSumValue.length() > 0 &&
             metadata.front().checkSumType.length() > 0) {
           std::string csum(metadata.front().checkSumType + ":" + metadata.front().checkSumValue);
+          logger.msg(INFO, "StartReading: obtained checksum: %s", csum);
           SetCheckSum(csum);
         }
       }
@@ -256,7 +261,7 @@ namespace Arc {
         turls.erase(i);
         continue;
       }
-      if ((*r_handle)->ProvidesMeta()) {
+      if ((*r_handle)->IsIndex()) {
         delete r_handle;
         r_handle = NULL;
         turls.erase(i);
@@ -306,7 +311,7 @@ namespace Arc {
     DataStatus r = (*r_handle)->StopReading();
     delete r_handle;
     if (srm_request) {
-      SRMClient *client = SRMClient::getInstance(url.fullstr());
+      SRMClient *client = SRMClient::getInstance(url.fullstr(), buffer->speed.get_max_inactivity_time());
       if (client) {
         client->releaseGet(*srm_request);
         delete client;
@@ -331,7 +336,7 @@ namespace Arc {
     writing = true;
     buffer = &buf;
 
-    SRMClient *client = SRMClient::getInstance(url.fullstr());
+    SRMClient *client = SRMClient::getInstance(url.fullstr(), buffer->speed.get_max_inactivity_time());
     if (!client) {
       writing = false;
       return DataStatus::WriteStartError;
@@ -426,7 +431,7 @@ namespace Arc {
         turls.erase(i);
         continue;
       }
-      if ((*r_handle)->ProvidesMeta()) {
+      if ((*r_handle)->IsIndex()) {
         delete r_handle;
         r_handle = NULL;
         turls.erase(i);
@@ -470,9 +475,13 @@ namespace Arc {
     }
 
     DataStatus r = (*r_handle)->StopWriting();
-    delete r_handle;
+    // disable checksum check at this level if was done at lower level
+    // gsiftp turls should provide checksum
+    if ((*r_handle)->ProvidesMeta())
+      additional_checks = false; 
+      
     if (!r) {
-      SRMClient *client = SRMClient::getInstance(url.fullstr());
+      SRMClient *client = SRMClient::getInstance(url.fullstr(), buffer->speed.get_max_inactivity_time());
       if(client) {
         client->abort(*srm_request);
         delete client;
@@ -482,20 +491,65 @@ namespace Arc {
       srm_request = NULL;
       return r;
     }
-    if (srm_request) {
-      SRMClient *client = SRMClient::getInstance(url.fullstr());
-      if (client) {
-        if (buffer->error())
-          client->abort(*srm_request);
-        else
+
+    SRMClient * client = SRMClient::getInstance(url.fullstr(), buffer->speed.get_max_inactivity_time());
+    if(client) {
+      // call abort if failure, or releasePut on success
+      if(buffer->error()) client->abort(*srm_request);
+      else {
+        // checksum verification
+        // TODO: checksum for writing to srm is not enabled in DataMover
+        const CheckSumAny * cs = (CheckSumAny*)buffer->checksum_object();
+        if(additional_checks && cs && *cs && buffer->checksum_valid()) {
+          char buf[100];
+          cs->print(buf,100);
+          std::string checksum = buf;
+          if (cs->Type() == CheckSumAny::adler32) {
+            // get checksum info for checksum verification
+            logger.msg(DEBUG, "start_reading_srm: looking for metadata: %s", url.str());
+            std::list<struct SRMFileMetaData> metadata;
+            SRMReturnCode res = client->info(*srm_request,metadata);
+            if (res != SRM_OK) {
+              client->abort(*srm_request);
+              if (res == SRM_ERROR_TEMPORARY)
+                return DataStatus::WriteStopErrorRetryable;              
+              return DataStatus::WriteStopError;
+            }
+            /* provide some metadata */
+            if(!metadata.empty()){
+              if(metadata.front().checkSumValue.length() > 0 &&
+                 metadata.front().checkSumType.length() > 0) {
+                std::string csum(metadata.front().checkSumType+":"+metadata.front().checkSumValue);
+                logger.msg(INFO, "start_reading_srm: obtained checksum: %s", csum);
+                if (checksum.substr(0, checksum.find(':')) == metadata.front().checkSumType) { // should always be true
+                  if (checksum.substr(checksum.find(':')+1) == metadata.front().checkSumValue) {
+                    logger.msg(VERBOSE, "Calculated transfer checksum %s matches checksum reported by SRM destination %s", checksum, csum);
+                  }
+                  else {
+                    logger.msg(VERBOSE, "Error: Checksum mismatch between calculated checksum %s and checksum reported by SRM destination ", checksum, csum);
+                    r = DataStatus::WriteStopErrorRetryable;
+                  }
+                }
+                else 
+                  logger.msg(VERBOSE, "Checksum type of SRM and calculated checksum %s differ, cannot compare", checksum);
+              }
+            }
+          }
+          else 
+            logger.msg(VERBOSE, "Checksum type of SRM and calculated checksum %s differ, cannot compare", checksum);
+        }
+        if (r)
           client->releasePut(*srm_request);
+        else
+          client->abort(*srm_request);
       }
-      delete srm_request;
-      delete client;
-      client = NULL;
     }
-    r_handle = NULL;
+    delete srm_request;
     srm_request = NULL;
+    delete client;
+    client=NULL;
+    delete r_handle;
+    r_handle = NULL;
     return r;
   }
 
@@ -530,6 +584,14 @@ namespace Arc {
     int recursion = 0;
     if (metadata) recursion = -1; // get info on directory rather than contents
     SRMReturnCode res = client->info(*srm_request, srm_metadata, recursion);
+    if (res == SRM_ERROR_SOAP) {
+      logger.msg(ERROR, "Retrying with gsi protocol...\n");
+      URL gsiurl(url);
+      gsiurl.AddOption("protocol", "gsi", true);
+      client = SRMClient::getInstance(std::string(gsiurl.fullstr()));
+      if(!client) return DataStatus::ListError;
+      res = client->info(*srm_request, srm_metadata, recursion);
+    }   
     delete client;
     client = NULL;
     delete srm_request;

@@ -329,7 +329,8 @@
   
   SRMReturnCode SRM1Client::info(SRMClientRequest& req,
                                  std::list<struct SRMFileMetaData>& metadata,
-                                 const int recursive) {
+                                 const int recursive,
+                                 bool report_error) {
     if(!csoap) return SRM_ERROR_OTHER;
     if(!connect()) return SRM_ERROR_CONNECTION;
   
@@ -352,13 +353,15 @@
       return SRM_ERROR_SOAP;
     };
     if(r._Result == NULL) {
-      logger.msg(Arc::INFO, "SRM did not return any information");
+      if (report_error) logger.msg(Arc::INFO, "SRM did not return any information");
+      else logger.msg(Arc::DEBUG, "SRM did not return any information");
       return SRM_ERROR_OTHER;
     };
     if((r._Result->__size == 0) || 
        (r._Result->__ptr == NULL) ||
        (r._Result->__ptr[0] == NULL)) {
-      logger.msg(Arc::INFO, "SRM did not return any useful information");
+      if (report_error) logger.msg(Arc::INFO, "SRM did not return any useful information");
+      else logger.msg(Arc::DEBUG, "SRM did not return any useful information");
       return SRM_ERROR_OTHER;
     };
     SRMv1Type__FileMetaData& mdata = *(r._Result->__ptr[0]);

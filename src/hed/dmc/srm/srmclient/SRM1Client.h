@@ -53,7 +53,7 @@ const static SOAP_NMAC struct Namespace srm1_soap_namespaces[] =
     SRMReturnCode releasePut(SRMClientRequest& req);
     SRMReturnCode release(SRMClientRequest& req);
     SRMReturnCode abort(SRMClientRequest& req);
-    SRMReturnCode info(SRMClientRequest& req, std::list<struct SRMFileMetaData>& metadata, const int recursive = 0);
+    SRMReturnCode info(SRMClientRequest& req, std::list<struct SRMFileMetaData>& metadata, const int recursive = 0, bool report_error = true);
     SRMReturnCode remove(SRMClientRequest& req);
     SRMReturnCode copy(SRMClientRequest& req, const std::string& source);
     

@@ -34,7 +34,7 @@
   
   SRMReturnCode SRM22Client::ping(std::string& version, bool report_error) {
   
-    if(!csoap) return SRM_ERROR_CONNECTION;
+    if(!csoap) return SRM_ERROR_OTHER;
     if(!connect()) return SRM_ERROR_CONNECTION;
   
     SRMv2__srmPingRequest * request = new SRMv2__srmPingRequest;
@@ -87,7 +87,7 @@
   SRMReturnCode SRM22Client::getSpaceTokens(std::list<std::string>& tokens,
                                             std::string description) {
   
-    if(!csoap) return SRM_ERROR_CONNECTION;
+    if(!csoap) return SRM_ERROR_OTHER;
     if(!connect()) return SRM_ERROR_CONNECTION;
   
     SRMv2__srmGetSpaceTokensRequest * request = new SRMv2__srmGetSpaceTokensRequest;
@@ -125,7 +125,7 @@
   SRMReturnCode SRM22Client::getRequestTokens(std::list<std::string>& tokens,
                                               std::string description) {
   
-    if(!csoap) return SRM_ERROR_CONNECTION;
+    if(!csoap) return SRM_ERROR_OTHER;
     if(!connect()) return SRM_ERROR_CONNECTION;
   
     SRMv2__srmGetRequestTokensRequest * request = new SRMv2__srmGetRequestTokensRequest;
@@ -295,7 +295,7 @@
   
   SRMReturnCode SRM22Client::requestBringOnline(SRMClientRequest& req) {
   
-    if(!csoap) return SRM_ERROR_CONNECTION;
+    if(!csoap) return SRM_ERROR_OTHER;
     if(!connect()) return SRM_ERROR_CONNECTION;
   
     // construct bring online request
@@ -394,7 +394,7 @@
   
   SRMReturnCode SRM22Client::requestBringOnlineStatus(SRMClientRequest& req) {
   
-    if(!csoap) return SRM_ERROR_CONNECTION;
+    if(!csoap) return SRM_ERROR_OTHER;
     if(!connect()) return SRM_ERROR_CONNECTION;
   
     SRMv2__srmStatusOfBringOnlineRequestRequest * sobo_request = new SRMv2__srmStatusOfBringOnlineRequestRequest;
@@ -638,15 +638,20 @@
           if (file_statuses &&
               file_statuses->statusArray &&
               file_statuses->statusArray[0] &&
-              file_statuses->statusArray[0]->status &&
-              file_statuses->statusArray[0]->status->statusCode &&
-              file_statuses->statusArray[0]->status->statusCode == SRMv2__TStatusCode__SRM_USCOREINVALID_USCOREPATH) {
-            // make directories
-            logger.msg(Arc::VERBOSE, "Path %s is invalid, creating required directories", req.surls().front());
-            SRMReturnCode mkdirres = mkDir(req);
-            if (mkdirres == SRM_OK) return putTURLs(req, urls, size);
-            logger.msg(Arc::ERROR, "Error creating required directories for %s", req.surls().front());
-            return mkdirres;
+              file_statuses->statusArray[0]->status) {
+            if (file_statuses->statusArray[0]->status->statusCode &&
+                file_statuses->statusArray[0]->status->statusCode == SRMv2__TStatusCode__SRM_USCOREINVALID_USCOREPATH) {
+              // make directories
+              logger.msg(Arc::VERBOSE, "Path %s is invalid, creating required directories", req.surls().front());
+              SRMReturnCode mkdirres = mkDir(req);
+              if (mkdirres == SRM_OK)
+                return putTURLs(req, urls, size);
+              logger.msg(Arc::ERROR, "Error creating required directories for %s", req.surls().front());
+              return mkdirres;
+            }
+            // log file-level error message
+            if (file_statuses->statusArray[0]->status->explanation)
+              logger.msg(Arc::ERROR, "Error: %s", file_statuses->statusArray[0]->status->explanation);
           }
           char * msg = sog_response_struct.srmStatusOfPutRequestResponse->returnStatus->explanation;
           logger.msg(Arc::ERROR, "Error: %s", msg);
@@ -664,16 +669,21 @@
       if (file_statuses &&
           file_statuses->statusArray &&
           file_statuses->statusArray[0] &&
-          file_statuses->statusArray[0]->status &&
-          file_statuses->statusArray[0]->status->statusCode &&
-          file_statuses->statusArray[0]->status->statusCode == SRMv2__TStatusCode__SRM_USCOREINVALID_USCOREPATH) {
-        // make directories
-        logger.msg(Arc::VERBOSE, "Path %s is invalid, creating required directories", req.surls().front());
-        SRMReturnCode mkdirres = mkDir(req);
-        if (mkdirres == SRM_OK) return putTURLs(req, urls, size);
-        logger.msg(Arc::ERROR, "Error creating required directories for %s", req.surls().front());
-        return mkdirres;
-      }
+          file_statuses->statusArray[0]->status) {
+        if (file_statuses->statusArray[0]->status->statusCode &&
+            file_statuses->statusArray[0]->status->statusCode == SRMv2__TStatusCode__SRM_USCOREINVALID_USCOREPATH) {
+          // make directories
+          logger.msg(Arc::VERBOSE, "Path %s is invalid, creating required directories", req.surls().front());
+          SRMReturnCode mkdirres = mkDir(req);
+          if (mkdirres == SRM_OK)
+            return putTURLs(req, urls, size);
+          logger.msg(Arc::ERROR, "Error creating required directories for %s", req.surls().front());
+          return mkdirres;
+        }
+        // log file-level error message
+        if (file_statuses->statusArray[0]->status->explanation)
+          logger.msg(Arc::ERROR, "Error: %s", file_statuses->statusArray[0]->status->explanation);
+      }  
       char * msg = response_inst->returnStatus->explanation;
       logger.msg(Arc::ERROR, "Error: %s", msg);
       if (return_status == SRMv2__TStatusCode__SRM_USCOREINTERNAL_USCOREERROR)
@@ -692,13 +702,15 @@
   
   SRMReturnCode SRM22Client::info(SRMClientRequest& req,
                                   std::list<struct SRMFileMetaData>& metadata,
-                                  const int recursive) {
-    return info(req, metadata, recursive, 0, 0);
+                                  const int recursive,
+                                  bool report_error) {
+    return info(req, metadata, recursive, report_error, 0, 0);
   }
   
   SRMReturnCode SRM22Client::info(SRMClientRequest& req,
                                   std::list<struct SRMFileMetaData>& metadata,
                                   const int recursive,
+                                  bool report_error,
                                   const int offset,
                                   const int count) {
   
@@ -786,15 +798,26 @@
             return_status != SRMv2__TStatusCode__SRM_USCOREREQUEST_USCOREQUEUED &&
             return_status != SRMv2__TStatusCode__SRM_USCOREREQUEST_USCOREINPROGRESS) {
           // error
-          char * msg = sols_response_struct.srmStatusOfLsRequestResponse->returnStatus->explanation;
-          logger.msg(Arc::ERROR, "Error: %s", msg);
+          const char * msg = "Error in srmLs";
+          if (sols_response_struct.srmStatusOfLsRequestResponse->returnStatus->explanation)
+            msg = sols_response_struct.srmStatusOfLsRequestResponse->returnStatus->explanation;
+          if (report_error) {
+            logger.msg(Arc::ERROR, "Error: %s", msg);
+          } else {
+            logger.msg(Arc::VERBOSE, "Error: %s", msg);
+          }
           // check if individual file status gives more info
           if (sols_response_struct.srmStatusOfLsRequestResponse->details &&
               sols_response_struct.srmStatusOfLsRequestResponse->details->pathDetailArray &&
               sols_response_struct.srmStatusOfLsRequestResponse->details->__sizepathDetailArray > 0 &&
               sols_response_struct.srmStatusOfLsRequestResponse->details->pathDetailArray[0]->status &&
-              sols_response_struct.srmStatusOfLsRequestResponse->details->pathDetailArray[0]->status->explanation)
-            logger.msg(Arc::ERROR, "Error: %s", sols_response_struct.srmStatusOfLsRequestResponse->details->pathDetailArray[0]->status->explanation);
+              sols_response_struct.srmStatusOfLsRequestResponse->details->pathDetailArray[0]->status->explanation) {
+            if (report_error) {
+              logger.msg(Arc::ERROR, "Error: %s", sols_response_struct.srmStatusOfLsRequestResponse->details->pathDetailArray[0]->status->explanation);
+            } else {
+              logger.msg(Arc::VERBOSE, "Error: %s", sols_response_struct.srmStatusOfLsRequestResponse->details->pathDetailArray[0]->status->explanation);
+            }
+          }
           if (return_status == SRMv2__TStatusCode__SRM_USCOREINTERNAL_USCOREERROR)
             return SRM_ERROR_TEMPORARY;
           return SRM_ERROR_PERMANENT;
@@ -811,19 +834,30 @@
   
     else {
       // any other return code is a failure
-      char * msg = response_inst->returnStatus->explanation;
-      logger.msg(Arc::ERROR, "Error: %s", msg);
+      const char * msg = "Error in srmLs";
+      if (response_inst->returnStatus->explanation)
+        msg = response_inst->returnStatus->explanation;
+      if (report_error) {
+        logger.msg(Arc::ERROR, "Error: %s", msg);
+      } else {
+        logger.msg(Arc::VERBOSE, "Error: %s", msg);
+      }
       // check if individual file status gives more info
       if (response_inst->details &&
           response_inst->details->pathDetailArray &&
           response_inst->details->__sizepathDetailArray > 0 &&
           response_inst->details->pathDetailArray[0]->status &&
-          response_inst->details->pathDetailArray[0]->status->explanation)
-        logger.msg(Arc::ERROR, "Error: %s", response_inst->details->pathDetailArray[0]->status->explanation);
+          response_inst->details->pathDetailArray[0]->status->explanation) {
+        if (report_error) {
+          logger.msg(Arc::ERROR, "Error: %s", response_inst->details->pathDetailArray[0]->status->explanation);
+        } else {
+          logger.msg(Arc::VERBOSE, "Error: %s", response_inst->details->pathDetailArray[0]->status->explanation);
+        }
+      }
       if (return_status == SRMv2__TStatusCode__SRM_USCOREINTERNAL_USCOREERROR)
         return SRM_ERROR_TEMPORARY;
       return SRM_ERROR_PERMANENT;
-    };
+    }
   
     // the request is ready - collect the details
     if (!file_details || !file_details->pathDetailArray || file_details->__sizepathDetailArray == 0 || !file_details->pathDetailArray[0]) return SRM_OK; // see bug 1364
@@ -847,6 +881,11 @@
     else if (file_details->__sizepathDetailArray > 1) subpaths = file_details;
     // no subpaths
     else return SRM_OK;
+ 
+    // sometimes we don't know if we have a file or dir so take out the
+    // entry added above if there are subpaths and offset is 0
+    if (offset == 0 && subpaths->__sizepathDetailArray > 0)
+      metadata.clear();
   
     // if there are more entries than max_files_list, we have to call info()
     // multiple times, setting offset and count
@@ -863,7 +902,7 @@
           SRMClientRequest list_req(req.surls().front());
           list_offset = max_files_list * list_no;
           list_count = max_files_list;
-          SRMReturnCode res = info(list_req, list_metadata, 0, list_offset, list_count);
+          SRMReturnCode res = info(list_req, list_metadata, 0, true, list_offset, list_count);
           if (res != SRM_OK) return res;
           list_no++;
           // append to metadata
@@ -991,9 +1030,12 @@
       time_t * mod_time = details->lastModificationTime;
       metadata.lastModificationTime = *mod_time;
     }
+    else {metadata.lastModificationTime = 0;}
     
     if(details->lifetimeAssigned) metadata.lifetimeAssigned = *(details->lifetimeAssigned);
+    else metadata.lifetimeAssigned = 0;
     if(details->lifetimeLeft) metadata.lifetimeLeft = *(details->lifetimeLeft);  
+    else metadata.lifetimeLeft = 0;
     
     if(details->retentionPolicyInfo) {
       if (details->retentionPolicyInfo->retentionPolicy == SRMv2__TRetentionPolicy__REPLICA) metadata.retentionPolicy = SRM_REPLICA;
@@ -1001,6 +1043,7 @@
       else if (details->retentionPolicyInfo->retentionPolicy == SRMv2__TRetentionPolicy__CUSTODIAL) metadata.retentionPolicy = SRM_CUSTODIAL;
       else metadata.retentionPolicy = SRM_RETENTION_UNKNOWN;
     }
+    else {metadata.retentionPolicy = SRM_RETENTION_UNKNOWN;}
     
     if(details->fileStorageType) {
       SRMv2__TFileStorageType * file_storage_type = details->fileStorageType;
@@ -1009,6 +1052,7 @@
       else if (*file_storage_type == SRMv2__TFileStorageType__PERMANENT) metadata.fileStorageType = SRM_PERMANENT;
       else metadata.fileStorageType = SRM_FILE_STORAGE_UNKNOWN;
     }
+    else {metadata.fileStorageType = SRM_FILE_STORAGE_UNKNOWN;}
     
     // if any other value, leave undefined
   
@@ -1164,13 +1208,17 @@
     };
   
     logger.msg(Arc::WARNING, "File type is not available, attempting file delete");
-    if (removeFile(req)) return SRM_OK;
+    if (removeFile(req) == SRM_OK)
+      return SRM_OK;
     logger.msg(Arc::WARNING, "File delete failed, attempting directory delete");
     return removeDir(req);
   };
   
   SRMReturnCode SRM22Client::removeFile(SRMClientRequest& req) {
   
+    if (!csoap) return SRM_ERROR_OTHER;
+    if (!connect()) return SRM_ERROR_CONNECTION;
+
     // construct rm request - only one file requested at a time
     xsd__anyURI * req_array = new xsd__anyURI[1];
     req_array[0] = (char*)req.surls().front().c_str();
@@ -1213,6 +1261,9 @@
   
   SRMReturnCode SRM22Client::removeDir(SRMClientRequest& req) {
   
+    if (!csoap) return SRM_ERROR_OTHER;
+    if (!connect()) return SRM_ERROR_CONNECTION;
+
     // construct rmdir request - only one file requested at a time
     xsd__anyURI surl = (char*)req.surls().front().c_str();
   
@@ -1376,7 +1427,7 @@
       std::list<struct SRMFileMetaData> metadata;
       if (keeplisting) {
         logger.msg(Arc::VERBOSE, "Checking for existence of %s", dirname);
-        if (info(listreq, metadata, -1) == SRM_OK) {
+        if (info(listreq, metadata, -1, false) == SRM_OK) {
           slashpos = surl.find("/", slashpos+1);
           continue;
         }; 

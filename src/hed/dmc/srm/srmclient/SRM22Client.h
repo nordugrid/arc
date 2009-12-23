@@ -40,6 +40,7 @@ const static unsigned int max_files_list = 999;
     SRMReturnCode info(SRMClientRequest& req,
                        std::list<struct SRMFileMetaData>& metadata,
                        const int recursive,
+                       bool report_error,
                        const int offset,
                        const int count);
   
@@ -121,7 +122,8 @@ const static unsigned int max_files_list = 999;
      */
     SRMReturnCode info(SRMClientRequest& req,
                        std::list<struct SRMFileMetaData>& metadata,
-                       const int recursive = 0);
+                       const int recursive = 0,
+                       bool report_error = true);
   
     /**
      * Release files that have been pinned by srmPrepareToGet using
