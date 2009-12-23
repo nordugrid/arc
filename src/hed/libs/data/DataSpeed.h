@@ -87,6 +87,8 @@ namespace Arc {
     /// \param max_inactivity_time - if no data is passing for specified
     /// amount of time (seconds), error is triggered.
     void set_max_inactivity_time(time_t max_inactivity_time);
+    /// Get inactivity timeout.
+    time_t get_max_inactivity_time() { return max_inactivity_time; };
     /// Set averaging time period.
     /// \param base time period used to average values (default 1 minute).
     void set_base(time_t base_ = DATASPEED_AVERAGING_PERIOD);
