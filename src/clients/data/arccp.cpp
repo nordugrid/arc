@@ -371,6 +371,8 @@ bool arccp(const Arc::URL& source_url_,
             logger.msg(Arc::INFO, "Current transfer FAILED: %s - %s", std::string(res), res.GetDesc());
           else
             logger.msg(Arc::INFO, "Current transfer FAILED: %s", std::string(res));
+          if (res.Retryable())
+            logger.msg(Arc::ERROR, "This seems like a temporary error, please try again later");
           destination->SetTries(1);
           // It is not clear how to clear half-registered file. So remove it
           // only in case of explicit destination.
@@ -443,6 +445,8 @@ bool arccp(const Arc::URL& source_url_,
       logger.msg(Arc::ERROR, "Transfer FAILED: %s - %s", std::string(res), res.GetDesc());
     else
       logger.msg(Arc::ERROR, "Transfer FAILED: %s", std::string(res));
+    if (res.Retryable())
+      logger.msg(Arc::ERROR, "This seems like a temporary error, please try again later");
     return false;
     destination->SetTries(1);
     // It is not clear how to clear half-registered file. So remove it only

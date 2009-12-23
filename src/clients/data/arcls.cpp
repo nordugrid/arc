@@ -51,9 +51,12 @@ bool arcls(const Arc::URL& dir_url,
   }
   std::list<Arc::FileInfo> files;
   url->SetSecure(false);
-  if (!url->ListFiles(files, (show_details || recursion > 0), show_urls, show_meta)) {
+  Arc::DataStatus res = url->ListFiles(files, (show_details || recursion > 0), show_urls, show_meta);
+  if (!res.Passed()) {
     if (files.size() == 0) {
       logger.msg(Arc::ERROR, "Failed listing metafiles");
+      if (res.Retryable())
+        logger.msg(Arc::ERROR, "This seems like a temporary error, please try again later");  
       return false;
     }
     logger.msg(Arc::INFO, "Warning: "

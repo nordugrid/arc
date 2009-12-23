@@ -18,35 +18,46 @@
 
 static Arc::Logger logger(Arc::Logger::getRootLogger(), "arcrm");
 
-void arcrm(const Arc::URL& file_url,
+bool arcrm(const Arc::URL& file_url,
            const Arc::UserConfig& usercfg,
            bool errcont,
            int timeout) {
   if (!file_url) {
     logger.msg(Arc::ERROR, "Invalid URL: %s", file_url.str());
-    return;
+    return false;
   }
   if (file_url.Protocol() == "filelist") {
     std::list<Arc::URL> files = Arc::ReadURLList(file_url);
     if (files.size() == 0) {
       logger.msg(Arc::ERROR, "Can't read list of locations from file %s",
                  file_url.Path());
-      return;
+      return false;
     }
+    bool r = true;
     for (std::list<Arc::URL>::iterator file = files.begin();
-         file != files.end(); file++)
-      arcrm(*file, usercfg, errcont, timeout);
-    return;
+         file != files.end(); file++) {
+      if (!arcrm(*file, usercfg, errcont, timeout))
+        r = false;
+    }
+    return r;
   }
 
   Arc::DataHandle url(file_url, usercfg);
   if (!url) {
     logger.msg(Arc::ERROR, "Unsupported url given");
-    return;
+    return false;
   }
+  // only one try
+  url->SetTries(1);
   Arc::DataMover mover;
-  mover.Delete(*url,errcont);
-  return;
+  Arc::DataStatus res =  mover.Delete(*url,errcont);
+  if (!res.Passed()) {
+    logger.msg(Arc::ERROR, "Delete failed: %s", std::string(res));
+    if (res.Retryable())
+      logger.msg(Arc::ERROR, "This seems like a temporary error, please try again later");
+    return false;
+  }    
+  return true;
 }
 
 int main(int argc, char **argv) {
@@ -118,7 +129,8 @@ int main(int argc, char **argv) {
   }
 
   std::list<std::string>::iterator it = params.begin();
-  arcrm(*it, usercfg, force, timeout);
+  if (!arcrm(*it, usercfg, force, timeout))
+    return 1;
 
   return 0;
 }
