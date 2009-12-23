@@ -441,7 +441,7 @@ namespace Arc {
       struct lfc_filereplica *entries = NULL;
       if (lfc_getreplica(path.c_str(), NULL, NULL, &nbentries, &entries) != 0) {
         lfc_endsess();
-        if ((serrno == ENOENT) || (serrno == ENOTDIR)) {
+        if (serrno == ENOTDIR) {
           registered = false;
           ClearLocations();
           return DataStatus::Success;
