@@ -110,6 +110,10 @@ namespace Arc {
   const std::string& DataPoint::GetCheckSum() const {
     return checksum;
   }
+    
+  const std::string DataPoint::DefaultCheckSum() const {
+    return std::string("cksum");
+  }
 
   bool DataPoint::CheckCreated() const {
     return (created != -1);

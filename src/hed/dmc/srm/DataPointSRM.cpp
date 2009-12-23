@@ -677,6 +677,10 @@ namespace Arc {
     return DataStatus::Success;
   }
 
+  const std::string DataPointSRM::DefaultCheckSum() const {
+    return std::string("adler32");
+  }
+
 } // namespace Arc
 
 Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {

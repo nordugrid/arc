@@ -415,7 +415,7 @@ namespace Arc {
       // Let's trust.
       if (destination.AcceptsMeta()) { // may need to compute crc
         // Let it be CRC32 by default.
-        std::string crc_type = destination.GetURL().Option("checksum", "cksum");
+        std::string crc_type = destination.GetURL().Option("checksum", destination.DefaultCheckSum());
         logger.msg(VERBOSE, "DataMover::Transfer: checksum type is %s", crc_type);
         if (!source.CheckCheckSum()) {
           crc = crc_type.c_str();

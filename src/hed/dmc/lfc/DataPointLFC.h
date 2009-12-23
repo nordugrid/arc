@@ -23,6 +23,7 @@ namespace Arc {
     virtual DataStatus PreUnregister(bool replication);
     virtual DataStatus Unregister(bool all);
     virtual DataStatus ListFiles(std::list<FileInfo>& files, bool long_list = false, bool resolve = false, bool metadata = false);
+    virtual const std::string DefaultCheckSum() const;
   protected:
     static Logger logger;
     std::string guid;

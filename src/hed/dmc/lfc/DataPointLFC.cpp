@@ -667,6 +667,10 @@ namespace Arc {
     return path;
   }
 
+  const std::string DataPointLFC::DefaultCheckSum() const {
+    return std::string("adler32");
+  }
+
 } // namespace Arc
 
 Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {

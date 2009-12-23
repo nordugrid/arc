@@ -211,6 +211,9 @@ namespace Arc {
     /// Get value of meta-information 'checksum'.
     virtual const std::string& GetCheckSum() const;
 
+    /// Default checksum type
+    virtual const std::string DefaultCheckSum() const;
+
     /// Check if meta-information 'creation/modification time' is available.
     virtual bool CheckCreated() const;
 
