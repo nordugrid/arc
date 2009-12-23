@@ -928,6 +928,10 @@ namespace Arc {
     return true;
   }
 
+  bool DataPointGridFTP::ProvidesMeta() {
+    return true;
+  }
+
 } // namespace Arc
 
 Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
