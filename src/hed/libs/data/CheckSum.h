@@ -210,7 +210,7 @@ namespace Arc {
       return (cs != NULL);
     }
     static type Type(const char *crc);
-    type Type(void) {
+    type Type(void) const {
       return tp;
     }
     void operator=(const char *type);
