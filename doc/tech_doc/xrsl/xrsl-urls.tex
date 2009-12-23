@@ -99,7 +99,8 @@ The following options are supported for location URLs:\index{URL:options}
    \verb#protocol=gsi|gssapi# & to distinguish between two kinds of 
    \verb#httpg#. \verb#gssapi# stands for implemention using only GSSAPI 
    functions to wrap data and \verb#gsi# uses additional headers as 
-   implmented in Globus IO\\
+   implmented in Globus IO. The default is \verb#gssapi#. In case
+   this fails, \verb#gsi# is then tried.\\
    \verb#spacetoken=<pattern># & specify the space token to be used for
    uploads to SRM storage elements supporting SRM version 2.2 or higher\\
    \verb#autodir=yes|no# & specify if before writing to specified location
