@@ -1428,6 +1428,10 @@
       if (keeplisting) {
         logger.msg(Arc::VERBOSE, "Checking for existence of %s", dirname);
         if (info(listreq, metadata, -1, false) == SRM_OK) {
+          if (metadata.front().fileType == SRM_FILE) {
+            logger.msg(Arc::ERROR, "File already exists: %s", dirname);
+            return SRM_ERROR_PERMANENT;
+          }
           slashpos = surl.find("/", slashpos+1);
           continue;
         }; 
