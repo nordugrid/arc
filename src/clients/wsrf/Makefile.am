@@ -1,6 +1,6 @@
 bin_PROGRAMS = arcwsrf
 
-man_MANS = 
+man_MANS = arcwsrf.1
 
 arcwsrf_SOURCES  = arcwsrf.cpp
 arcwsrf_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
