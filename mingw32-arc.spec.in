@@ -157,9 +157,6 @@ rm -rf $RPM_BUILD_ROOT
 
 %files client
 %defattr(-,root,root,-)
-%doc src/clients/charon/charon_client.xml.example
-%doc src/clients/charon/charon_request.xml.example
-%doc src/tests/echo/echo.wsdl
 %{_mingw32_datadir}/%{pkgdir}/examples/client.conf.example
 #
 # Executables
@@ -223,6 +220,9 @@ rm -rf $RPM_BUILD_ROOT
 %doc %{_mingw32_mandir}/man1/saml_assertion_init.1*
 #%doc %{_mingw32_mandir}/man1/voms_assertion_init.1*
 #%doc %{_mingw32_mandir}/man1/arc_storage_cli.1*
+%doc %{_mingw32_datadir}/%{pkgdir}/examples/charon/charon_client.xml.example
+%doc %{_mingw32_datadir}/%{pkgdir}/examples/charon/charon_request.xml.example
+%doc %{_mingw32_datadir}/%{pkgdir}/examples/echo/echo.wsdl
 
 %files hed
 %defattr(-,root,root,-)
@@ -231,6 +231,7 @@ rm -rf $RPM_BUILD_ROOT
 %doc %{_mingw32_mandir}/man8/arched.8*
 %{_mingw32_datadir}/%{pkgdir}/profiles
 %{_mingw32_datadir}/%{pkgdir}/examples/config
+%doc %{_mingw32_datadir}/%{pkgdir}/examples/echo/echo_service.xml.example
 #%{_mingw32_sbindir}/manage_jobq
 #%doc %{_mingw32_mandir}/man8/manage_jobq.8*
 #%doc src/services/charon/charon_policy.xml.example
