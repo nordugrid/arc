@@ -1,5 +1,5 @@
 bin_PROGRAMS = wsdl2hed
-SOURCES = wsdl2hed.cpp schemaconv.cpp
+SOURCES = wsdl2hed.cpp schemaconv.cpp schemaconv.h
 
 man_MANS = wsdl2hed.1
 
