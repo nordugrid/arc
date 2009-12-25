@@ -53,7 +53,7 @@ static int verify_callback(int ok,X509_STORE_CTX *sctx) {
   unsigned long flag = get_flag_STORE_CTX(sctx);
   if(!(flag & FLAG_CRL_DISABLED)) {
     // Not sure if this will work
-#if OPENSSL_VERSION_NUMBER < 0x00908000 
+#if OPENSSL_VERSION_NUMBER < 0x00908000
     if(!(sctx->flags & X509_V_FLAG_CRL_CHECK)) {
       sctx->flags |= X509_V_FLAG_CRL_CHECK;
 #else
@@ -147,7 +147,7 @@ static int verify_callback(int ok,X509_STORE_CTX *sctx) {
       };
     };
     //Check the left validity time of the peer certificate;
-    //Give warning if the certificate is going to be expired 
+    //Give warning if the certificate is going to be expired
     //in a while of time
     Time exptime = asn1_to_utctime(X509_get_notAfter(cert));
     if(exptime <= Time()) {
@@ -171,21 +171,10 @@ static int verify_callback(int ok,X509_STORE_CTX *sctx) {
   return ok;
 }
 
-// This callback is just a placeholder. We do not expect 
+// This callback is just a placeholder. We do not expect
 // encrypted private keys here.
 static int no_passphrase_callback(char*, int, int, void*) {
    return -1;
-}
-
-static void config_VOMS_add(XMLNode cfg,std::vector<std::string>& vomscert_trust_dn) {
-  XMLNode nd = cfg["VOMSCertTrustDNChain"];
-  for(;(bool)nd;++nd) {
-    XMLNode cnd = nd["VOMSCertTrustDN"];
-    for(;(bool)cnd;++cnd) {
-      vomscert_trust_dn.push_back((std::string)cnd);
-    }
-    vomscert_trust_dn.push_back("----NEXT CHAIN----");
-  }
 }
 
 bool PayloadTLSMCC::StoreInstance(void) {
@@ -218,13 +207,13 @@ PayloadTLSMCC* PayloadTLSMCC::RetrieveInstance(X509_STORE_CTX* container) {
   return it;
 }
 
-PayloadTLSMCC::PayloadTLSMCC(MCCInterface* mcc, const ConfigTLSMCC& cfg, Logger& logger):PayloadTLSStream(logger),sslctx_(NULL),config_(cfg) { 
+PayloadTLSMCC::PayloadTLSMCC(MCCInterface* mcc, const ConfigTLSMCC& cfg, Logger& logger):PayloadTLSStream(logger),sslctx_(NULL),config_(cfg) {
    // Client mode
    int err = SSL_ERROR_NONE;
    master_=true;
    // Creating BIO for communication through stream which it will
    // extract from provided MCC
-   BIO* bio = BIO_new_MCC(mcc); 
+   BIO* bio = BIO_new_MCC(mcc);
    // Initialize the SSL Context object
    if(cfg.IfTLSHandshake()) {
      sslctx_=SSL_CTX_new(SSLv23_client_method());
@@ -358,8 +347,8 @@ error:
 PayloadTLSMCC::PayloadTLSMCC(PayloadTLSMCC& stream):
   PayloadTLSStream(stream), config_(stream.config_) {
    master_=false;
-   sslctx_=stream.sslctx_; 
-   ssl_=stream.ssl_; 
+   sslctx_=stream.sslctx_;
+   ssl_=stream.ssl_;
 }
 
 
