@@ -31,7 +31,7 @@ class Shepherd:
             backendcfg = cfg.Get('BackendCfg')
             self.backend = import_class_from_string(backendclass)(backendcfg, shepherd_uri, self._file_arrived, self.ssl_config)
         except Exception, e:
-            log.msg(arc.ERROR, 'Cannot import backend class %s (reason: %s)' % (backendclass, e))
+            log.msg(arc.ERROR, 'Cannot import backend class %(c)s (reason: %(r)s)' % {'c':backendclass, 'r':e})
             raise
         
         try:
@@ -219,7 +219,7 @@ class Shepherd:
             # ask the backend to create the checksum of the file 
             try:
                 current_checksum = self.backend.checksum(localData['localID'], localData['checksumType'])
-                log.msg(arc.DEBUG, 'self.backend.checksum was called on %s, the calculated checksum is %s' % (referenceID, current_checksum))
+                log.msg(arc.DEBUG, 'self.backend.checksum was called on %(rID)s, the calculated checksum is %(cs)s' % {'rID':referenceID, 'cs':current_checksum})
                 self.store.lock()
                 try:
                     current_local_data = self.store.get(referenceID)
@@ -455,7 +455,7 @@ class Shepherd:
                                 bsuccess = self.backend.remove(localID)
                                 self.store.set(referenceID, None)
                         except:
-                            log.msg(arc.VERBOSE, 'ERROR checking checksum of %s, reason: %s' % (referenceID, traceback.format_exc()))
+                            log.msg(arc.VERBOSE, 'ERROR checking checksum of %(rID)s, reason: %(r)s' % {'rID':referenceID, 'r':traceback.format_exc()})
                         # sleep for interval +/- 0.5*interval seconds to avoid race condition
                         time.sleep(interval+((random.random()-0.5)*interval))
                 else:

@@ -200,7 +200,7 @@ class Service:
             if request_name not in current_request_type['request_names']:
                 # if the name of the request is not in the list of supported request names
                 raise Exception, 'wrong request (%s)' % request_name
-            log.msg(arc.VERBOSE,'%s.%s called' % (self.service_name, request_name))
+            log.msg(arc.VERBOSE,'%(sn)s.%(rn)s called' % {'sn':self.service_name, 'rn':request_name})
             if not self.state.running:
                 outpayload = arc.PayloadSOAP(self.ns, True)
                 fault = outpayload.Fault()

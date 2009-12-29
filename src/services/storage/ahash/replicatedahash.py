@@ -437,20 +437,20 @@ class ReplicationManager:
             votes = num_reps/2 + 1
             if votes < 2:
                 votes = 2
-            log.msg(arc.VERBOSE, "%s: my role is %d"%(self.url, role))
+            log.msg(arc.VERBOSE, "%s: my role is" % self.url, role)
             self.dbenv.rep_elect(num_reps, votes)
             # wait one second for election results
             time.sleep(1)
             role = self.getRole()
-            log.msg(arc.VERBOSE, "%s: my role is now %d"%(self.url, role))
+            log.msg(arc.VERBOSE, "%s: my role is now" % self.url, role)
             if self.elected:
                 self.elected = False
                 self.dbenv.rep_start(db.DB_REP_MASTER)                    
         except:
             log.msg(arc.ERROR, "Couldn't run election")
-            log.msg(arc.VERBOSE, "num_reps is %d, votes is %d, hostMap is %s"%(num_reps,votes,str(self.hostMap)))
+            log.msg(arc.VERBOSE, "num_reps is %(nr)d, votes is %(v)d, hostMap is %(hm)s" % {'nr':num_reps, 'v':votes, 'hm':str(self.hostMap)})
             time.sleep(2)
-        log.msg(arc.VERBOSE, "%s tried election with %d replicas"%(self.url, num_reps))
+        log.msg(arc.VERBOSE, self.url, "tried election with %d replicas" % num_reps)
             
     def startElection(self):
         log.msg(arc.VERBOSE, "entering startElection")
@@ -527,7 +527,7 @@ class ReplicationManager:
                         self.locker.release_write()
             except:
                 # assume url is disconnected
-                log.msg(arc.WARNING, "failed to send to %d of %s"%(id,str(eids)))
+                log.msg(arc.WARNING, "failed to send to", id, "of", str(eids))
                 self.locker.acquire_write()
                 
                 if id == self.masterID:
