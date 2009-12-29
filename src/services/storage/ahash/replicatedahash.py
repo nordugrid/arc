@@ -77,7 +77,7 @@ class ReplicatedAHash(CentralAHash):
                        ('ahash:processMessage', [
                            ('ahash:msg', repmsg)
                            ]))
-        log.msg(arc.VERBOSE, "sending message of length %d to %s"%(len(repmsg),url))
+        log.msg(arc.VERBOSE, "sending message of length", len(repmsg), "to", url)
         msg = ahash.call(tree)
         ahash.reset()
         xml = ahash.xmlnode_class(msg)
