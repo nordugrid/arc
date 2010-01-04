@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    targetNamespace="http://www.nordugrid.org/schemas/gsi/2009/08"
+    xmlns="http://www.nordugrid.org/schemas/gsi/2009/08"
+    elementFormDefault="qualified"
+    attributeFormDefault="unqualified">
+
+<xsd:element name="KeyPath" type="xsd:string">
+    <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+        Location of private key.
+        </xsd:documentation>
+    </xsd:annotation>
+</xsd:element>
+
+<xsd:element name="CertificatePath" type="xsd:string">
+    <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+        Location of public certificate.
+        </xsd:documentation>
+    </xsd:annotation>
+</xsd:element>
+
+<xsd:element name="ProxyPath" type="xsd:string">
+    <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+        Location of proxy credentials - includes certificates,
+        key and chain of involved certificates. Overwrites
+        elements KeyPath and CertificatePath.
+        </xsd:documentation>
+    </xsd:annotation>
+</xsd:element>
+
+</xsd:schema>
