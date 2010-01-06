@@ -1,10 +1,10 @@
-o Was soll der RTE-Catalog  Service im SVN??
-o Store identity for each jobID in order to control access
-o create a admin identity to control
-o Bessere Ideen als Perl
 
-o Client ohne job kriegen eine Random JobID
-o AREX, die AREX Jobid
+o Store identity for each jobID in order to control access
+o Create an admin identity to control
+o Think of a substitution for Perl
+
+o Clients the cannot present a job could be assigned a random JobID
+o AREX receives the AREX Jobid
 
 
 
