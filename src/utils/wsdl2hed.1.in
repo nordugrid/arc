@@ -3,13 +3,13 @@
 
 .SH NAME
 
-wsdl2hed \- ARC1 skeleton generator
+wsdl2hed \- ARC skeleton generator
 
 .SH DESCRIPTION
 
 The
 .B wsdl2hed
-command creates the C++ skeleton from a WSDL file
+command creates the C++ skeleton from a WSDL file.
 
 .SH SYNOPSIS
 
@@ -34,4 +34,4 @@ Report bugs to http://bugzilla.nordugrid.org
 APACHE LICENSE Version 2.0
 
 .SH AUTHOR
-Ferenc Szalain <szferi@avaxio.hu>
+Ferenc Szalain <szferi@avaxio.hu>, Aleksandr Konstantinov <aleksandr.konstantinov@fys.uio.no>

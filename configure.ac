@@ -1817,6 +1817,7 @@ AC_CONFIG_FILES([Makefile
                  src/tests/perf/Makefile
                  src/tests/client/Makefile
                  src/utils/wsdl2hed.1
+                 src/utils/arcplugin.1
                  src/utils/Makefile
                  swig/Makefile
                  java/Makefile

@@ -246,7 +246,7 @@ static void gen_makefile_am(std::string &name)
 int main(int argc, char **argv)
 {
     bool parse_schema = false;
-    if (strcmp(argv[1],"-s") == 0) {
+    if ((argc > 1) && (strcmp(argv[1],"-s") == 0)) {
       parse_schema = true;
       --argc; ++argv;
     }

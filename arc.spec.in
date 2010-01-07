@@ -667,6 +667,8 @@ exit 0
 %{_libdir}/lib*.so
 %{_bindir}/wsdl2hed
 %doc %{_mandir}/man1/wsdl2hed.1*
+%{_bindir}/arcplugin
+%doc %{_mandir}/man1/arcplugin.1*
 %{_libdir}/pkgconfig/arcbase.pc
 
 %files plugins-base

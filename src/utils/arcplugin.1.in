@@ -1,0 +1,34 @@
+.\" -*- nroff -*- 
+.TH ARCPLUGIN 1 "@DATE@" "NorduGrid ARC @VERSION@" "NorduGrid Users Manual"
+
+.SH NAME
+
+arcplugin \- ARC plugin management utility
+
+.SH DESCRIPTION
+
+The
+.B arcplugin
+command prints description of ARC plugin or creates Arc Plugin Descriptor (APD) file.
+
+.SH SYNOPSIS
+
+.B arcplugin [-c] plugin_path
+
+.SH OPTIONS
+
+.IP "\fB\ -c \fR"
+If specified then APD file is created using same name as ARC plugin with suffix
+replaced with .apd.
+.IP "\fB\ plugin_path \fR"
+full path to ARC plugin loadable module file.
+.PP
+
+.SH REPORTING BUGS
+Report bugs to http://bugzilla.nordugrid.org
+
+.SH COPYRIGHT
+APACHE LICENSE Version 2.0
+
+.SH AUTHOR
+Aleksandr Konstantinov <aleksandr.konstantnov@fys.uio.no>

@@ -256,6 +256,8 @@ rm -rf $RPM_BUILD_ROOT
 %{_mingw32_libdir}/lib*.dll.a
 %{_mingw32_bindir}/wsdl2hed.exe
 %doc %{_mingw32_mandir}/man1/wsdl2hed.1*
+%{_mingw32_bindir}/arcplugin.exe
+%doc %{_mingw32_mandir}/man1/arcplugin.1*
 %{_mingw32_libdir}/pkgconfig/arcbase.pc
 
 %files plugins-base
