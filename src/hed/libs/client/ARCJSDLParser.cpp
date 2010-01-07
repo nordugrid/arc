@@ -317,8 +317,17 @@ namespace Arc {
       job.Application.ProcessingStartTime = Time((std::string)xmlApplication["ProcessingStartTime"]);
 
     // XMLNode Notification;
-    for (int i = 0; bool(jobdescription["Notification"][i]); i++)
-      job.Application.Notification.push_back((std::string)jobdescription["Notification"][i]);
+    for (int i = 0; bool(jobdescription["Notification"][i]); i++) {
+      XMLNode n = jobdescription["Notification"][i];
+      // Accepting only supported notification types
+      if(((bool)n["Type"]) && (n["Type"] != "Email")) continue;
+      NotificationType notification;
+      notification.Email = (std::string)n["Endpoint"];
+      for (int j = 0; bool(n["State"][j]); j++) {
+        notification.States.push_back((std::string)n["State"][j]);
+      }
+      job.Application.Notification.push_back(notification);
+    }
 
     // std::list<URL> CredentialService;
     for (int i = 0; (bool)(xmlApplication["CredentialService"][i]); i++)
@@ -354,9 +363,9 @@ namespace Arc {
     if (bool(resource["NetworkInfo"]))
       job.Resources.NetworkInfo = (std::string)resource["NetworkInfo"];
     else if (bool(resource["IndividualNetworkBandwidth"])) {
-      Range<long> bits_per_sec;
-      parseRange<long>(resource["IndividualNetworkBandwidth"], bits_per_sec, -1);
-      const long network = 1024 * 1024;
+      Range<long long> bits_per_sec;
+      parseRange<long long>(resource["IndividualNetworkBandwidth"], bits_per_sec, -1);
+      const long long network = 1024 * 1024;
       if (bits_per_sec < 100 * network)
         job.Resources.NetworkInfo = "100megabitethernet";
       else if (bits_per_sec < 1024 * network)
@@ -694,9 +703,16 @@ namespace Arc {
       xmlApplication.NewChild("ProcessingStartTime") = job.Application.ProcessingStartTime.str();
 
     // XMLNode Notification;
-    for (std::list<std::string>::const_iterator it = job.Application.Notification.begin();
-         it != job.Application.Notification.end(); it++)
-      xmlApplication.NewChild("Notification") = *it;
+    for (std::list<NotificationType>::const_iterator it = job.Application.Notification.begin();
+         it != job.Application.Notification.end(); it++) {
+      XMLNode n = xmlApplication.NewChild("Notification");
+      n.NewChild("Type") = "Email";
+      n.NewChild("Endpoint") = it->Email;
+      for (std::list<std::string>::const_iterator s = it->States.begin();
+                  s != it->States.end(); s++) {
+        n.NewChild("State") = *s;
+      }
+    }
 
     // XMLNode AccessControl;
     if (bool(job.Application.AccessControl))

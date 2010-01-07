@@ -90,6 +90,12 @@ namespace Arc {
     std::list<std::string> Argument;
   };
 
+  class NotificationType {
+  public:
+    std::string Email;
+    std::list<std::string> States;
+  };
+
   class ApplicationType {
   public:
     ApplicationType() :
@@ -110,7 +116,7 @@ namespace Arc {
     int Rerun;
     Time ExpiryTime;
     Time ProcessingStartTime;
-    std::list<std::string> Notification;
+    std::list<NotificationType> Notification;
     std::list<URL> CredentialService;
     XMLNode AccessControl;
   };

@@ -119,9 +119,14 @@ namespace Arc {
 
       if (Application.Notification.size() > 0) {
         std::cout << IString(" Notify:") << std::endl;
-        for (std::list<std::string>::const_iterator it = Application.Notification.begin();
-             it != Application.Notification.end(); it++)
-          std::cout << "   " << *it << std::endl;
+        for (std::list<NotificationType>::const_iterator it = Application.Notification.begin();
+             it != Application.Notification.end(); it++) {
+          for (std::list<std::string>::const_iterator it2 = it->States.begin();
+               it2 != it->States.end(); it2++) {
+            std::cout << " " << *it2;
+          }
+          std::cout << ":   " << it->Email << std::endl;
+        }
       }
 
       if (!Application.CredentialService.empty()) {

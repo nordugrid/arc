@@ -158,6 +158,64 @@ namespace Arc {
     return true;
   }
 
+  static char StateToShortcut(const std::string& state) {
+    if(state == "ACCEPTED") return 'a'; // not supported
+    if(state == "PREPARING") return 'b';
+    if(state == "SUBMIT") return 's'; // not supported
+    if(state == "INLRMS") return 'q';
+    if(state == "FINISHING") return 'f';
+    if(state == "FINISHED") return 'e';
+    if(state == "DELETED") return 'd';
+    if(state == "CANCELING") return 'c';
+    return ' ';
+  }
+
+  static std::string ShortcutToState(char state) {
+    if(state == 'a') return "ACCEPTED"; // not supported
+    if(state == 'b') return "PREPARING";
+    if(state == 's') return "SUBMIT"; // not supported
+    if(state == 'q') return "INLRMS";
+    if(state == 'f') return "FINISHING";
+    if(state == 'e') return "FINISHED";
+    if(state == 'd') return "DELETED";
+    if(state == 'c') return "CANCELING";
+    return "";
+  }
+
+  static bool AddNotificationState(
+         NotificationType &notification,
+         const std::string& states) {
+    for (int n = 0; n<states.length(); n++) {
+      std::string state = ShortcutToState(states[n]);
+      if(state.empty()) return false;
+      for (std::list<std::string>::iterator s = notification.States.begin();
+                     s != notification.States.end(); s++) {
+        if(*s == state) {
+          state.resize(0);
+          break;
+        }
+      }
+      if(!state.empty()) notification.States.push_back(state);
+    }
+    return true;
+  }
+
+  static bool AddNotification(
+         std::list<NotificationType> &notifications,
+         const std::string& states, const std::string& email) {
+    for(std::list<NotificationType>::iterator it = 
+                 notifications.begin(); it != notifications.end(); it++) {
+      if(it->Email == email) {
+        return AddNotificationState(*it,states);
+      }
+    }
+    NotificationType notification;
+    notification.Email = email;
+    if(!AddNotificationState(notification,states)) return false;
+    notifications.push_back(notification);
+    return true;
+  }
+
   bool XRSLParser::Parse(const RSL *r, JobDescription& j) const {
     const RSLBoolean *b;
     const RSLCondition *c;
@@ -458,32 +516,34 @@ namespace Arc {
         std::list<std::string> l;
         if (!ListValue(c, l))
           return false;
-        if (l.size() < 2) {
-          logger.msg(VERBOSE, "Syntax error in notify attribute. One or more job states and one or more email addresses must be specified.");
+        if (l.size() < 1) {
+          logger.msg(VERBOSE, "Syntax error in notify attribute. At least one notification description must be specified.");
           return false;
         }
-        if (l.front().find('@') != std::string::npos) {
-          logger.msg(VERBOSE, "Syntax error in notify attribute. It cannot begin with an email address.");
-          return false;
-        }
-        if (l.back().find('@') == std::string::npos) {
-          logger.msg(VERBOSE, "Syntax error in notify attribute. It must end with an email address.");
-          return false;
-        }
-
-        for (std::list<std::string>::iterator it = l.begin();
-             it != l.end(); it++) {
-          if (it->find('@') != std::string::npos) { // Not an email address.
-            if (j.Application.Notification.back().find('@') == std::string::npos) {
-              j.Application.Notification.back() += *it; // Another state.
-              continue;
-            }
-
-            j.Application.Notification.push_back(*it);
-            continue;
+        for (std::list<std::string>::iterator notf = l.begin();
+                                 notf != l.end(); ++notf) {
+          std::list<std::string> ll;
+          tokenize(*notf, ll, " \t");
+          if (ll.size() < 2) {
+            logger.msg(VERBOSE, "Syntax error in notify attribute. One or more job states and one or more email addresses must be specified.");
+            return false;
           }
-
-          j.Application.Notification.back() += " " + *it;
+          if (ll.front().find('@') != std::string::npos) {
+            logger.msg(VERBOSE, "Syntax error in notify attribute. Item cannot begin with an email address.");
+            return false;
+          }
+          std::list<std::string>::iterator it = ll.begin();
+          std::string states = *it;
+          for (it++; it != ll.end(); it++) {
+            if (it->find('@') == std::string::npos) {
+              logger.msg(VERBOSE, "Syntax error in notify attribute. Item must contain only an email addresses after state flags.");
+              return false;
+            }
+            if(!AddNotification(j.Application.Notification,states,*it)) {
+              logger.msg(VERBOSE, "Syntax error in notify attribute. Item contains wrong state flags.");
+              return false;
+            }
+          }
         }
         return true;
       }
@@ -936,9 +996,17 @@ namespace Arc {
 
     if (!j.Application.Notification.empty()) {
       RSLList *l = new RSLList;
-      for (std::list<std::string>::const_iterator it = j.Application.Notification.begin();
-           it != j.Application.Notification.end(); it++)
-        l->Add(new RSLLiteral(*it));
+      for (std::list<NotificationType>::const_iterator it = j.Application.Notification.begin();
+           it != j.Application.Notification.end(); it++) {
+        // Suboptimal, group emails later
+        std::string states;
+        for (std::list<std::string>::const_iterator s = it->States.begin();
+             s != it->States.end(); s++) {
+          char state = StateToShortcut(*s);
+          if (state != ' ') states+=state;
+        }
+        l->Add(new RSLLiteral(states + " " + it->Email));
+      }
       r.Add(new RSLCondition("notify", RSLEqual, l));
     }
 

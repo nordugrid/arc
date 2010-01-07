@@ -105,6 +105,18 @@ bool FileData::has_lfn(void) {
 
 const std::string JobLocalDescription::transfersharedefault = "_default";
 
+static char StateToShortcut(const std::string& state) {
+  if(state == "ACCEPTED") return 'a'; // not supported
+  if(state == "PREPARING") return 'b';
+  if(state == "SUBMIT") return 's'; // not supported
+  if(state == "INLRMS") return 'q';
+  if(state == "FINISHING") return 'f';
+  if(state == "FINISHED") return 'e';
+  if(state == "DELETED") return 'd';
+  if(state == "CANCELING") return 'c';
+  return ' ';
+}
+
 JobLocalDescription& JobLocalDescription::operator=(const Arc::JobDescription& arc_job_desc)
 {
   action = "request";
@@ -202,11 +214,21 @@ JobLocalDescription& JobLocalDescription::operator=(const Arc::JobDescription& a
 
   {
     int n = 0;
-    for (std::list<std::string>::const_iterator it = arc_job_desc.Application.Notification.begin();
-         it != arc_job_desc.Application.Notification.end(); it++, n++) {
+    for (std::list<Arc::NotificationType>::const_iterator it = arc_job_desc.Application.Notification.begin();
+         it != arc_job_desc.Application.Notification.end(); it++) {
       if (n >= 3) break; // Only 3 instances are allowed.
+      std::string states;
+      for (std::list<std::string>::const_iterator s = it->States.begin();
+           s != it->States.end(); ++s) {
+        char state = StateToShortcut(*s);
+        if(state == ' ') continue;
+        states+=state;
+      }
+      if(states.empty()) continue;
+      if(it->Email.empty()) continue;
       if (n != 0) notify += " ";
-      notify += *it;
+      notify += states + " " + it->Email;
+      n++;
     }
   }
 
