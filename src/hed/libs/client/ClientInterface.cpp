@@ -85,12 +85,13 @@ namespace Arc {
       delete loader;
   }
 
-  void ClientInterface::Load() {
+  bool ClientInterface::Load() {
     if (!loader) {
       if (overlay)
         Overlay(overlay);
       loader = new MCCLoader(xmlcfg);
     }
+    return (*loader);
   }
 
   void ClientInterface::Overlay(XMLNode cfg) {
@@ -172,20 +173,23 @@ namespace Arc {
 
   ClientTCP::~ClientTCP() {}
 
-  void ClientTCP::Load() {
-    ClientInterface::Load();
+  bool ClientTCP::Load() {
+    if(!ClientInterface::Load()) return false;
     if (!tls_entry)
       tls_entry = (*loader)["tls"];
     if (!tls_entry)
       tls_entry = (*loader)["gsi"];
     if (!tcp_entry)
       tcp_entry = (*loader)["tcp"];
+    if((!tls_entry) && (!tcp_entry)) return false;
+    return true;
   }
 
   MCC_Status ClientTCP::process(PayloadRawInterface *request,
                                 PayloadStreamInterface **response, bool tls) {
-    Load();
     *response = NULL;
+    if (!Load())
+      return MCC_Status();
     if (tls && !tls_entry)
       return MCC_Status();
     if (!tls && !tcp_entry)
@@ -294,10 +298,11 @@ namespace Arc {
 
   ClientHTTP::~ClientHTTP() {}
 
-  void ClientHTTP::Load() {
-    ClientTCP::Load();
+  bool ClientHTTP::Load() {
+    if(ClientTCP::Load()) return false;
     if (!http_entry)
       http_entry = (*loader)["http"];
+    if (!http_entry) return false;
   }
 
   MCC_Status ClientHTTP::process(const std::string& method,
@@ -351,8 +356,9 @@ namespace Arc {
                          PayloadRawInterface *request,
                          HTTPClientInfo *info,
                          PayloadRawInterface **response) {
-    Load();
     *response = NULL;
+    if (!Load())
+      return MCC_Status();
     if (!http_entry)
       return MCC_Status();
     MessageAttributes attributes_req;
@@ -446,17 +452,19 @@ namespace Arc {
     return process("", request, response);
   }
 
-  void ClientSOAP::Load() {
-    ClientHTTP::Load();
+  bool ClientSOAP::Load() {
+    if(!ClientHTTP::Load()) return false;
     if (!soap_entry)
       soap_entry = (*loader)["soap"];
+    if (!soap_entry) return false;
   }
 
   MCC_Status ClientSOAP::process(const std::string& action,
                                  PayloadSOAP *request,
                                  PayloadSOAP **response) {
-    Load();
     *response = NULL;
+    if(!Load())
+      return MCC_Status();
     if (!soap_entry)
       return MCC_Status();
     MessageAttributes attributes_req;

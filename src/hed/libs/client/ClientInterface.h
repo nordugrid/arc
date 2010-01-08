@@ -42,7 +42,7 @@ namespace Arc {
     MessageContext& GetContext() {
       return context;
     }
-    virtual void Load();
+    virtual bool Load();
   protected:
     Config xmlcfg;
     XMLNode overlay;
@@ -77,7 +77,7 @@ namespace Arc {
     MCC* GetEntry() {
       return tls_entry ? tls_entry : tcp_entry;
     }
-    virtual void Load();
+    virtual bool Load();
     void AddSecHandler(XMLNode handlercfg, SecurityLayer sec, const std::string& libanme = "", const std::string& libpath = "");
   protected:
     MCC *tcp_entry;
@@ -131,7 +131,7 @@ namespace Arc {
       return http_entry;
     }
     void AddSecHandler(XMLNode handlercfg, const std::string& libanme = "", const std::string& libpath = "");
-    virtual void Load();
+    virtual bool Load();
     void RelativeURI(bool val) { relative_uri=val; };
   protected:
     MCC *http_entry;
@@ -164,7 +164,7 @@ namespace Arc {
     /** Adds security handler to configuration of SOAP MCC */
     void AddSecHandler(XMLNode handlercfg, const std::string& libanme = "", const std::string& libpath = "");
     /** Instantiates pluggable elements according to generated configuration */
-    virtual void Load();
+    virtual bool Load();
   protected:
     MCC *soap_entry;
   };
