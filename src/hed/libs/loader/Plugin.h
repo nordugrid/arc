@@ -101,6 +101,7 @@ namespace Arc {
       descriptors_t_ descriptors_;
       modules_t_ modules_;
       static Logger logger;
+      bool load(const std::string& name,const std::list<std::string>& kinds,const std::list<std::string>& pnames);
     public:
       /** Constructor - accepts  configuration (not yet used) meant to
         tune loading of modules. */
@@ -124,17 +125,19 @@ namespace Arc {
       Plugin* get_instance(const std::string& kind,const std::string& name,int version,PluginArgument* arg,bool search = true);
       Plugin* get_instance(const std::string& kind,const std::string& name,int min_version,int max_version,PluginArgument* arg,bool search = true);
       /** These methods load module named lib'name' and check if it
-        contains ARC plugin(s) of specified 'kind'. If there are no specified
-        plugins or if library does not contain any plugins it is unloaded.
+        contains ARC plugin(s) of specified 'kind' and 'name'. If there are no
+        specified plugins or module does not contain any ARC plugins it is 
+        unloaded.
         All loaded plugins are also registered in internal list of this
         instance of PluginsFactory class.
-        Returns true if plugin was loaded. */ 
+        Returns true if any plugin was loaded. */ 
       bool load(const std::string& name);
       bool load(const std::string& name,const std::string& kind);
+      bool load(const std::string& name,const std::string& kind,const std::string& pname);
       bool load(const std::string& name,const std::list<std::string>& kinds);
       bool load(const std::list<std::string>& names,const std::string& kind);
+      bool load(const std::list<std::string>& names,const std::string& kind,const std::string& pname);
       bool load(const std::list<std::string>& names,const std::list<std::string>& kinds);
-      const descriptors_t_& Descriptors() { return descriptors_; };
       template<class P>
       P* GetInstance(const std::string& kind,PluginArgument* arg,bool search = true) {
         Plugin* plugin = get_instance(kind,arg,search);

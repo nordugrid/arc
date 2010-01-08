@@ -156,12 +156,11 @@ namespace Arc {
     if (name.empty())
       return NULL;
 
-    PluginList list = FinderLoader::GetPluginList("HED:Submitter");
-    if (list.find(name) == list.end()) {
+    if(!factory_->load(FinderLoader::GetLibrariesList(),
+                       "HED:Submitter", name)) {
       logger.msg(ERROR, "Submitter plugin \"%s\" not found.", name);
       return NULL;
     }
-    factory_->load(list[name], "HED:Submitter");
 
     SubmitterPluginArgument arg(usercfg);
     Submitter *submitter =

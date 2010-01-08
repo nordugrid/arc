@@ -47,41 +47,5 @@ namespace Arc {
     return names;
   }
 
-  const PluginList FinderLoader::GetPluginList(const std::string& kind) {
-    BaseConfig basecfg;
-    NS ns;
-    Config cfg(ns);
-    basecfg.MakeConfig(cfg);
-    std::list<std::string> names;
-
-    for (XMLNode n = cfg["ModuleManager"]; n; ++n) {
-      for (XMLNode m = n["Path"]; m; ++m) {
-        // Protect against insane configurations...
-        if ((std::string)m == "/usr/lib" || (std::string)m == "/usr/lib64" ||
-            (std::string)m == "/usr/bin" || (std::string)m == "/usr/libexec")
-          continue;
-        try {
-          Glib::Dir dir((std::string)m);
-          for (Glib::DirIterator file = dir.begin();
-                                file != dir.end(); file++) {
-            std::string name = *file;
-            if(name_is_plugin(name)) names.push_back(name);
-          }
-        } catch (Glib::FileError) {}
-      }
-    }
-
-    PluginsFactory factory(cfg);
-    factory.load(names,kind);
-    PluginList list;
-    for (std::map<std::string, PluginDescriptor*>::const_iterator it =
-           factory.Descriptors().begin();
-         it != factory.Descriptors().end(); it++)
-      for (PluginDescriptor *p = it->second; p->name; p++)
-        if (p->kind == kind)
-          list[p->name] = it->first;
-    return list;
-  }
-
 } // namespace Arc
 

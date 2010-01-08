@@ -440,12 +440,11 @@ namespace Arc {
     if (name.empty())
       return NULL;
 
-    PluginList list = FinderLoader::GetPluginList("HED:Broker");
-    if (list.find(name) == list.end()) {
+    if(!factory_->load(FinderLoader::GetLibrariesList(),
+                       "HED:Broker", name)) {
       logger.msg(ERROR, "Broker plugin \"%s\" not found.", name);
       return NULL;
     }
-    factory_->load(list[name], "HED:Broker");
 
     BrokerPluginArgument arg(usercfg);
     Broker *broker = factory_->GetInstance<Broker>("HED:Broker", name, &arg, false);

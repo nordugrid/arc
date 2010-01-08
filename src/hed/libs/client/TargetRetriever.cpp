@@ -39,12 +39,11 @@ namespace Arc {
     if (name.empty())
       return NULL;
 
-    PluginList list = FinderLoader::GetPluginList("HED:TargetRetriever");
-    if (list.find(name) == list.end()) {
+    if(!factory_->load(FinderLoader::GetLibrariesList(),
+                       "HED:TargetRetriever", name)) {
       logger.msg(ERROR, "TargetRetriever plugin \"%s\" not found.", name);
       return NULL;
     }
-    factory_->load(list[name], "HED:TargetRetriever");
 
     TargetRetrieverPluginArgument arg(usercfg, url, st);
     TargetRetriever *targetretriever =

@@ -380,6 +380,14 @@ namespace Arc {
   }
 
   bool PluginsFactory::load(const std::string& name,const std::list<std::string>& kinds) {
+    std::list<std::string> pnames;
+    return load(name,kinds,pnames);
+  }
+
+  bool PluginsFactory::load(const std::string& name,const std::list<std::string>& kinds,const std::list<std::string>& pnames) {
+    // In real use-case all combinations of kinds and pnames
+    // have no sense. So normally if both are defined each contains
+    // only onr item.
     if(name.empty()) return false;
     Glib::Module* module = NULL;
     PluginDescriptor* desc = NULL;
@@ -406,7 +414,7 @@ namespace Arc {
       };
       // Descriptor not found or indicates presence of requested kinds.
       // Now try to load module directly
-      module = probe_module(name,*this);
+      module = probe_module(mname,*this);
       if (module == NULL) {
         logger.msg(ERROR, "Could not find loadable module by name %s (%s)",name,strip_newline(Glib::Module::get_last_error()));
         return false;
@@ -452,6 +460,19 @@ namespace Arc {
     std::list<std::string> kinds;
     kinds.push_back(kind);
     return load(names,kinds);
+  }
+
+  bool PluginsFactory::load(const std::list<std::string>& names,const std::string& kind,const std::string& pname) {
+    bool r = false;
+    std::list<std::string> kinds;
+    std::list<std::string> pnames;
+    kinds.push_back(kind);
+    pnames.push_back(pname);
+    for(std::list<std::string>::const_iterator name = names.begin();
+                                name != names.end();++name) {
+      if(load(*name,kinds,pnames)) r=true;
+    }
+    return r;
   }
 
   bool PluginsFactory::load(const std::list<std::string>& names,const std::list<std::string>& kinds) {
