@@ -21,7 +21,7 @@ command prints description of ARC plugin or creates Arc Plugin Descriptor (APD) 
 If specified then APD file is created using same name as ARC plugin with suffix
 replaced with .apd.
 .IP "\fB\ plugin_path \fR"
-full path to ARC plugin loadable module file.
+full path to ARC plugin loadable module file or directory containing such modules. In last case operation is recursive.
 .PP
 
 .SH REPORTING BUGS
