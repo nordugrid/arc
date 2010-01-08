@@ -9,9 +9,11 @@
 
 namespace Arc {
 
-  MCCLoader::MCCLoader(Config& cfg):Loader(cfg) {
+  MCCLoader::MCCLoader(Config& cfg):Loader(cfg),valid_(false) {
     context_ = new ChainContext(*this);
-    make_elements(cfg);
+    valid_ = make_elements(cfg);
+    if(!valid_) 
+      MCCLoader::logger.msg(ERROR, "Chain(s) configuration failed");
   }
 
   MCCLoader::~MCCLoader(void) {
@@ -112,7 +114,11 @@ namespace Arc {
   static ArcSec::SecHandler* MakeSecHandler(Config& cfg, ChainContext *ctx,
                                             MCCLoader::sechandler_container_t& sechandlers,
                                             PluginsFactory *factory, XMLNode& node) {
-    if(!node) return NULL;
+    if(!node) {
+      // Normally should not happen
+      MCCLoader::logger.msg(ERROR, "SecHandler configuration is not defined");
+      return NULL;
+    }
     XMLNode desc_node;
     std::string refid = node.Attribute("refid");
     if(refid.empty()) {
@@ -154,9 +160,10 @@ namespace Arc {
     return sechandler;
   }
 
-  void MCCLoader::make_elements(Config& cfg, int level,
+  bool MCCLoader::make_elements(Config& cfg, int level,
                                 mcc_connectors_t *mcc_connectors,
                                 plexer_connectors_t *plexer_connectors) {
+    bool success = true;
     if(mcc_connectors == NULL) mcc_connectors = new mcc_connectors_t;
     if(plexer_connectors == NULL) plexer_connectors = new plexer_connectors_t;
     // 1st stage - creating all elements.
@@ -168,12 +175,14 @@ namespace Arc {
       Config cfg_(cn, cfg.getFileName());
 
       if(MatchXMLName(cn, "ArcConfig")) {
-        make_elements(cfg_, level + 1, mcc_connectors, plexer_connectors);
+        if(!make_elements(cfg_, level + 1, mcc_connectors, plexer_connectors))
+          success = false;
         continue;
       }
 
       if(MatchXMLName(cn, "Chain")) {
-        make_elements(cfg_, level + 1, mcc_connectors, plexer_connectors);
+        if(!make_elements(cfg_, level + 1, mcc_connectors, plexer_connectors))
+          success = false;
         continue;
       }
 
@@ -182,11 +191,13 @@ namespace Arc {
         std::string name = cn.Attribute("name");
         if(name.empty()) {
           logger.msg(ERROR, "Component has no name attribute defined");
+          success = false;
           continue;
         }
         std::string id = cn.Attribute("id");
         if(id.empty()) {
           logger.msg(ERROR, "Component has no id attribute defined");
+          success = false;
           continue;
         }
         MCCPluginArgument arg(&cfg_,context_);
@@ -194,6 +205,7 @@ namespace Arc {
         MCC* mcc = plugin?dynamic_cast<MCC*>(plugin):NULL;
         if(!mcc) {
           logger.msg(ERROR, "Component %s(%s) could not be created", name, id);
+          success = false;
           continue;
         }
         mccs_[id] = mcc;
@@ -205,7 +217,10 @@ namespace Arc {
           if(!can) break;
           ArcSec::SecHandler* sechandler = MakeSecHandler(cfg, context_,
                                         sechandlers_, factory_, can);
-          if(!sechandler) continue;
+          if(!sechandler) {
+            success = false;
+            continue;
+          };
           std::string event = can.Attribute("event");
           mcc->AddSecHandler(&cfg_, sechandler, event);
         }
@@ -221,6 +236,7 @@ namespace Arc {
           if(nid.empty()) {
             logger.msg(ERROR, "Component's %s(%s) next has no id "
                  "attribute defined", name, id);
+            success = false;
             continue;
           }
           std::string label = cnn;
@@ -245,6 +261,7 @@ namespace Arc {
           if(nid.empty()) {
             logger.msg(ERROR, "Plexer's (%s) next has no id "
                  "attribute defined", id);
+            success = false;
             continue;
           }
           std::string label = cnn;
@@ -259,18 +276,21 @@ namespace Arc {
         std::string name = cn.Attribute("name");
         if(name.empty()) {
           logger.msg(ERROR, "Service has no name attribute defined");
+          success = false;
           continue;
         }
         std::string id = cn.Attribute("id");
         if(id.empty()) {
           logger.msg(ERROR, "Service has no id attribute defined");
+          success = false;
           continue;
         }
-              ServicePluginArgument arg(&cfg_,context_);
+        ServicePluginArgument arg(&cfg_,context_);
         Plugin* plugin = factory_->get_instance(ServicePluginKind, name, &arg);
               Service* service = plugin?dynamic_cast<Service*>(plugin):NULL;
         if(!service) {
           logger.msg(ERROR, "Service %s(%s) could not be created", name, id);
+          success = false;
           continue;
         }
         services_[id] = service;
@@ -285,11 +305,13 @@ namespace Arc {
           if(!can) break;
           ArcSec::SecHandler* sechandler = MakeSecHandler(cfg, context_,
                                         sechandlers_, factory_, can);
-          if(!sechandler) continue;
+          if(!sechandler) {
+            success = false;
+            continue;
+          }
           std::string event = can.Attribute("event");
           service->AddSecHandler(&cfg_, sechandler, event);
         }
-
         continue;
       }
 
@@ -298,7 +320,7 @@ namespace Arc {
       //logger.msg(WARNING, "Unknown element \"%s\" - ignoring", cn.Name());
     }
 
-    if(level != 0) return;
+    if(level != 0) return true;
 
     // 2nd stage - making links between elements.
 
@@ -339,6 +361,7 @@ namespace Arc {
         }
         logger.msg(ERROR, "MCC %s(%s) - next %s(%s) has no target",
                    mcc->name, mcc->mcc->first, label, id);
+        success = false;
         mcc->nexts.erase(next);
       }
     }
@@ -380,11 +403,13 @@ namespace Arc {
 
         logger.msg(ERROR, "Plexer (%s) - next %s(%s) has no target",
                    plexer->plexer->first, label, id);
+        success = false;
         plexer->nexts.erase(next);
       }
     }
     if(mcc_connectors) delete mcc_connectors;
     if(plexer_connectors) delete plexer_connectors;
+    return success;
   }
 
   MCC* MCCLoader::operator[](const std::string& id) {

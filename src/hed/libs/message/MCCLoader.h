@@ -52,6 +52,8 @@ namespace Arc {
     typedef std::map<std::string, Plexer*>     plexer_container_t;
 
    private:
+    bool valid_;
+
     /** Set of labeled MCC objects */
     mcc_container_t mccs_;
 
@@ -70,15 +72,17 @@ namespace Arc {
     /** Internal method which performs whole stuff specific to 
        creation of Message Chains.
        It is taken out from constructor to make it easier to reconfigure
-       chains in a future. */
-    void make_elements(Config& cfg, int level = 0,
+       chains in a future.
+       Returns true if all objects were succesfully initialized 
+       and all links created. */
+    bool make_elements(Config& cfg, int level = 0,
 		       mcc_connectors_t *mcc_connectors = NULL,
 		       plexer_connectors_t *plexer_connectors = NULL);
 
     ChainContext* context_;
 
    public:
-    MCCLoader() {};
+    MCCLoader():valid_(false) {};
     /** Constructor that takes whole XML configuration and creates
        component chains */
     MCCLoader(Config& cfg);
@@ -88,7 +92,10 @@ namespace Arc {
        Those are components exposed for external access using 'entry'
        attribute */
     MCC* operator[](const std::string& id);
+    MCC* operator[](const char* id) { return operator[](std::string(id)); };
 
+    operator bool(void) { return valid_; };
+    bool operator!(void) { return !valid_; };
  };
 
   /// Interface to chain specific functionality
