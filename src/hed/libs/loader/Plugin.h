@@ -105,7 +105,7 @@ namespace Arc {
       /** Constructor - accepts  configuration (not yet used) meant to
         tune loading of modules. */
       PluginsFactory(const Config& cfg);
-      /** These methods load shared library named lib'name', locate plugin
+      /** These methods load module named lib'name', locate plugin
          constructor functions of specified 'kind' and 'name' (if specified) 
          and call it. Supplied argument affects way plugin instance is created
          in plugin-specific way.
@@ -113,28 +113,28 @@ namespace Arc {
          are tried with supplied argument till valid instance is created.
          All loaded plugins are also registered in internal list of this
          instance of PluginsFactory class.
-         If serach is set to false then no attempt is made to find plugins in
-         shared libraries. Only plugins already loaded with previous calls to
+         If search is set to false then no attempt is made to find plugins in
+         loadable modules. Only plugins already loaded with previous calls to
          get_instance() and load() are checked.
-         Returns created instance. */
+         Returns created instance or NULL if failed. */
       Plugin* get_instance(const std::string& kind,PluginArgument* arg,bool search = true);
       Plugin* get_instance(const std::string& kind,int version,PluginArgument* arg,bool search = true);
       Plugin* get_instance(const std::string& kind,int min_version,int max_version,PluginArgument* arg,bool search = true);
       Plugin* get_instance(const std::string& kind,const std::string& name,PluginArgument* arg,bool search = true);
       Plugin* get_instance(const std::string& kind,const std::string& name,int version,PluginArgument* arg,bool search = true);
       Plugin* get_instance(const std::string& kind,const std::string& name,int min_version,int max_version,PluginArgument* arg,bool search = true);
-      /** These methods load shared library named lib'name' and check if it
-        contains ARC plugins of specified 'kind'. If there are no specified
+      /** These methods load module named lib'name' and check if it
+        contains ARC plugin(s) of specified 'kind'. If there are no specified
         plugins or if library does not contain any plugins it is unloaded.
         All loaded plugins are also registered in internal list of this
         instance of PluginsFactory class.
-        Returns true if library was loaded. */ 
+        Returns true if plugin was loaded. */ 
       bool load(const std::string& name);
       bool load(const std::string& name,const std::string& kind);
       bool load(const std::string& name,const std::list<std::string>& kinds);
       bool load(const std::list<std::string>& names,const std::string& kind);
       bool load(const std::list<std::string>& names,const std::list<std::string>& kinds);
-      const descriptors_t_& Descriptors() {return descriptors_;};
+      const descriptors_t_& Descriptors() { return descriptors_; };
       template<class P>
       P* GetInstance(const std::string& kind,PluginArgument* arg,bool search = true) {
         Plugin* plugin = get_instance(kind,arg,search);

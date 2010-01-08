@@ -6,8 +6,9 @@
 
 #include <glibmm/fileutils.h>
 
-#include <arc/loader/FinderLoader.h>
-#include <arc/loader/Plugin.h>
+#include "Plugin.h"
+
+#include "FinderLoader.h"
 
 namespace Arc {
 
@@ -46,11 +47,12 @@ namespace Arc {
     return names;
   }
 
-  const PluginList FinderLoader::GetPluginList(const std::string& type) {
+  const PluginList FinderLoader::GetPluginList(const std::string& kind) {
     BaseConfig basecfg;
     NS ns;
     Config cfg(ns);
     basecfg.MakeConfig(cfg);
+    std::list<std::string> names;
 
     for (XMLNode n = cfg["ModuleManager"]; n; ++n) {
       for (XMLNode m = n["Path"]; m; ++m) {
@@ -63,26 +65,23 @@ namespace Arc {
           for (Glib::DirIterator file = dir.begin();
                                 file != dir.end(); file++) {
             std::string name = *file;
-            if(name_is_plugin(name)) 
-              cfg.NewChild("Plugins").NewChild("Name") = name;
+            if(name_is_plugin(name)) names.push_back(name);
           }
         } catch (Glib::FileError) {}
       }
     }
 
-    FinderLoader loader(cfg);
-    return loader.iGetPluginList(type);
-  }
-
-  const PluginList FinderLoader::iGetPluginList(const std::string& type) {
+    PluginsFactory factory(cfg);
+    factory.load(names,kind);
     PluginList list;
     for (std::map<std::string, PluginDescriptor*>::const_iterator it =
-           factory_->Descriptors().begin();
-         it != factory_->Descriptors().end(); it++)
+           factory.Descriptors().begin();
+         it != factory.Descriptors().end(); it++)
       for (PluginDescriptor *p = it->second; p->name; p++)
-        if (p->kind == type)
+        if (p->kind == kind)
           list[p->name] = it->first;
     return list;
   }
 
 } // namespace Arc
+

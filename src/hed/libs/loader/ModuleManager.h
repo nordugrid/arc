@@ -51,13 +51,16 @@ class ModuleManager
         plugin_cache_t plugin_cache; /** Cache of handles of loaded modules */
     public:
         /** Constructor.
-           It is supposed to process correponding configuration subtree and tune
-          module loading parameters accordingly. 
-           Currently it only sets modulr directory to current one. */
+           It is supposed to process correponding configuration subtree 
+          and tune module loading parameters accordingly. */
         ModuleManager(const Config *cfg);
         ~ModuleManager();
-        /** Finds module 'name' in cache or loads corresponding shared library */
+        /** Finds module 'name' in cache or loads corresponding 
+           loadable module */
         Glib::Module* load(const std::string& name,bool probe = false /*,bool reload = false*/ );
+        /** Finds loadable module by 'name' looking in 
+           same places as load() does, but does not load it. */
+        std::string find(const std::string& name);
         /** Reload module previously loaded in probe mode.
           New module is loaded with all symbols resolved and 
           old module handler is unloaded. In case of error old 

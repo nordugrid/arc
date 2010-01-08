@@ -43,6 +43,124 @@ namespace Arc {
     return NULL;
   }
 
+  class ARCModuleDescriptor {
+   private:
+    bool valid;
+    class ARCPluginDescriptor {
+     public:
+      std::string name;
+      std::string kind;
+      uint32_t version;
+      bool valid;
+      ARCPluginDescriptor(std::ifstream& in):valid(false) {
+        if(!in) return;
+        std::string line;
+        // Protect against insane line length?
+        while(std::getline(in,line)) {
+          line = trim(line);
+          if(line.empty()) break; // end of descripton
+          std::string::size_type p = line.find('=');
+          std::string tag = line.substr(0,p);
+          line.replace(0,p+1,"");
+          line = trim(line);
+          if(line.length() < 2) return;
+          if(line[0] != '"') return;
+          if(line[line.length()-1] != '"') return;
+          line=line.substr(1,line.length()-2);
+          p=0;
+          while((p = line.find('\\',p)) != std::string::npos) {
+            line.replace(p,1,""); ++p;
+          }
+          if(tag == "name") {
+            name = line;
+          } else if(tag == "kind") {
+            kind = line;
+          } else if(tag == "version") {
+            if(!stringto(line,version)) return;
+          } 
+        }
+        if(name.empty()) return;
+        if(kind.empty()) return;
+        valid = true;
+      };
+    };
+    std::list<ARCPluginDescriptor> descriptors;
+   public:
+    ARCModuleDescriptor(std::ifstream& in):valid(false) {
+      if(!in) return;
+      for(;;) {
+        ARCPluginDescriptor plg(in);
+        if(!plg.valid) break;
+        descriptors.push_back(plg);
+      };
+      valid = true;
+    }
+
+    operator bool(void) const { return valid; };
+    bool operator!(void) const { return !valid; };
+
+    bool contains(const std::list<std::string>& kinds) const {
+      if(kinds.size() == 0) return valid;
+      for(std::list<std::string>::const_iterator kind = kinds.begin();
+               kind != kinds.end(); ++kind) {
+        if(contains(*kind)) return true;
+      };
+      return false;
+    }
+
+    bool contains(const std::string& kind) const {
+      for(std::list<ARCPluginDescriptor>::const_iterator desc = 
+                descriptors.begin(); desc != descriptors.end(); ++desc) {
+        if(desc->kind == kind) return true;
+      };
+      return false;
+    };
+
+    bool contains(const std::string& kind, const std::string& pname) {
+      for(std::list<ARCPluginDescriptor>::const_iterator desc = 
+                descriptors.begin(); desc != descriptors.end(); ++desc) {
+        if((desc->name == pname) && (desc->kind == kind)) return true;
+      };
+      return false;
+    };
+  };
+
+  static void replace_file_suffix(std::string& path,const std::string& suffix) {
+    std::string::size_type name_p = path.rfind(G_DIR_SEPARATOR_S);
+    if(name_p == std::string::npos) {
+      name_p = 0;
+    } else {
+      ++name_p;
+    }
+    std::string::size_type suffix_p = path.find('.',name_p);
+    if(suffix_p != std::string::npos) {
+      path.resize(suffix_p);
+    }
+    path += "." + suffix;
+  }
+
+
+  static ARCModuleDescriptor* probe_descriptor(std::string name,ModuleManager& manager) {
+    std::string::size_type p = 0;
+    for(;;) {
+      p=name.find(':',p);
+      if(p == std::string::npos) break;
+      name.replace(p,1,"_");
+      ++p;
+    };
+    std::string path = manager.find(name);
+    if(path.empty()) return NULL;
+    replace_file_suffix(path,"apd");
+    std::ifstream in(path.c_str());
+    ARCModuleDescriptor* md = new ARCModuleDescriptor(in);
+    if(!(*md)) {
+      delete md;
+      return NULL;
+    };
+    return md;
+  }
+
+
   static Glib::Module* probe_module(std::string name,ModuleManager& manager) {
     std::string::size_type p = 0;
     for(;;) {
@@ -107,6 +225,17 @@ namespace Arc {
     if(!search) return NULL;
     // Try to load module of plugin
     std::string mname = kind;
+    ARCModuleDescriptor* mdesc = probe_descriptor(mname,*this);
+    if(mdesc) {
+      if(!mdesc->contains(kind)) {
+        delete mdesc;
+        return NULL;
+      };
+      delete mdesc;
+      mdesc = NULL;
+    };
+    // Descriptor not found or indicates presence of requested kinds.
+    // Now try to load module directly
     Glib::Module* module = probe_module(kind,*this);
     if (module == NULL) {
       logger.msg(ERROR, "Could not find loadable module by name %s (%s)",kind,strip_newline(Glib::Module::get_last_error()));
@@ -178,10 +307,34 @@ namespace Arc {
     if(!search) return NULL;
     // Try to load module - first by name of plugin
     std::string mname = name;
+    ARCModuleDescriptor* mdesc = probe_descriptor(mname,*this);
+    if(mdesc) {
+      if(!mdesc->contains(kind,name)) {
+        delete mdesc;
+        logger.msg(ERROR, "Loadable module %s contains no requested plugin %s of kind %s",mname,name,kind);
+        return NULL;
+      };
+      delete mdesc;
+      mdesc = NULL;
+    };  
+    // Descriptor not found or indicates presence of requested kinds.
+    // Now try to load module directly
     Glib::Module* module = probe_module(name,*this);
     if (module == NULL) {
       // Then by kind of plugin
       mname=kind;
+      mdesc = probe_descriptor(mname,*this);
+      if(mdesc) {
+        if(!mdesc->contains(kind,name)) {
+          delete mdesc;
+          logger.msg(ERROR, "Loadable module %s contains no requested plugin %s of kind %s",mname,name,kind);
+          return NULL;
+        };
+        delete mdesc;
+        mdesc = NULL;
+      };
+      // Descriptor not found or indicates presence of requested kinds.
+      // Now try to load module directly
       module=probe_module(kind,*this);
       logger.msg(ERROR, "Could not find loadable module by names %s and %s (%s)",name,kind,strip_newline(Glib::Module::get_last_error()));
       return NULL;
@@ -229,35 +382,49 @@ namespace Arc {
   bool PluginsFactory::load(const std::string& name,const std::list<std::string>& kinds) {
     if(name.empty()) return false;
     Glib::Module* module = NULL;
-    void *ptr = NULL;
+    PluginDescriptor* desc = NULL;
     std::string mname;
     Glib::Mutex::Lock lock(lock_);
     // Check if module already loaded
     descriptors_t_::iterator d = descriptors_.find(name);
     if(d != descriptors_.end()) {
-      ptr = d->second;
-      if(!ptr) return false;
+      desc = d->second;
+      if(!desc) return false;
     } else {
       // Try to load module by specified name
       mname = name;
+      // First try to find descriptor of module
+      ARCModuleDescriptor* mdesc = probe_descriptor(mname,*this);
+      if(mdesc) {
+        if(!mdesc->contains(kinds)) {
+          //logger.msg(VERBOSE, "Module %s does not contain plugin(s) of specified kind(s)",mname);
+          delete mdesc;
+          return false;
+        };
+        delete mdesc;
+        mdesc = NULL;
+      };
+      // Descriptor not found or indicates presence of requested kinds.
+      // Now try to load module directly
       module = probe_module(name,*this);
       if (module == NULL) {
         logger.msg(ERROR, "Could not find loadable module by name %s (%s)",name,strip_newline(Glib::Module::get_last_error()));
         return false;
       };
       // Identify table of descriptors
+      void *ptr = NULL;
       if(!module->get_symbol(plugins_table_name,ptr)) {
         logger.msg(VERBOSE, "Module %s is not an ARC plugin (%s)",mname,strip_newline(Glib::Module::get_last_error()));
         unload_module(module,*this);
         return false;
       };
+      desc = (PluginDescriptor*)ptr; 
     };
     if(kinds.size() > 0) {
-      PluginDescriptor* desc = NULL;
       for(std::list<std::string>::const_iterator kind = kinds.begin();
           kind != kinds.end(); ++kind) {
         if(kind->empty()) continue;
-        desc=find_constructor((PluginDescriptor*)ptr,*kind,0,INT_MAX);
+        desc=find_constructor(desc,*kind,0,INT_MAX);
         if(desc) break;
       };
       if(!desc) {
@@ -273,7 +440,7 @@ namespace Arc {
         unload_module(module,*this);
         return false;
       };
-      descriptors_[mname]=(PluginDescriptor*)ptr;
+      descriptors_[mname]=desc;
       modules_[mname]=nmodule;
       //descriptors_.push_back((PluginDescriptor*)ptr);
       //modules_.push_back(module);

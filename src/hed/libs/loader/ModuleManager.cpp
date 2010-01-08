@@ -86,6 +86,11 @@ void ModuleManager::unload(const std::string& name)
   }
 }
 
+std::string ModuleManager::find(const std::string& name)
+{
+  return findLocation(name);
+}
+
 Glib::Module *ModuleManager::load(const std::string& name,bool probe /*,bool reload*/ )
 {
   if (!Glib::Module::get_supported()) {
