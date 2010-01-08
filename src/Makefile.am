@@ -6,3 +6,10 @@ endif
 
 SUBDIRS = $(BUILD_SOURCES)
 DIST_SUBDIRS = hed tests services clients utils
+
+# This won't work in case of cross-compilation. Please
+# some autotools experts fix it.
+if HED_ENABLED
+install-exec-hook:
+	$(bindir)/arcplugin -c $(pkglibdir)
+endif
