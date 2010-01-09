@@ -50,9 +50,9 @@ class JobLocalDescription {
                            cleanuptime((time_t)(-1)),expiretime((time_t)(-1)),
                            failedstate(""),
                            credentialserver(""),gsiftpthreads(1),
-                           dryrun(false),diskspace(0), migrateactivityid(""),
-                           forcemigration(false),
-			   transfershare(JobLocalDescription::transfersharedefault)
+                           dryrun(false),diskspace(0),
+                           migrateactivityid(""), forcemigration(false),
+                           transfershare(JobLocalDescription::transfersharedefault)                        
   {}
 
   JobLocalDescription& operator=(const Arc::JobDescription& arc_job_desc);
@@ -101,12 +101,14 @@ class JobLocalDescription {
                                 during gsiftp down/uploads */
   bool   dryrun;             /* if true, this is test job */
   unsigned long long int diskspace;  /* anount of requested space on disk (unit bytes) */
-  std::string transfershare; /* share assigned to job for transfer fair share */
-  static const std::string transfersharedefault; /* default value for transfer share */
 
   std::list<std::string> activityid;     /* ID of activity */
   std::string migrateactivityid;     /* ID of activity that is being migrated*/
   bool forcemigration;      /* Ignore if killing of old job fails */
+
+  std::string transfershare; /* share assigned to job for transfer fair share */
+  static const char* const transfersharedefault; /* default value for transfer share */
+  
 };
 
 /* Information stored in job.#.lrms_done file */

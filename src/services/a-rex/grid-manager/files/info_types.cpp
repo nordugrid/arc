@@ -103,7 +103,6 @@ bool FileData::has_lfn(void) {
   return (lfn.find(':') != std::string::npos);
 }
 
-const std::string JobLocalDescription::transfersharedefault = "_default";
 
 static char StateToShortcut(const std::string& state) {
   if(state == "ACCEPTED") return 'a'; // not supported
@@ -131,6 +130,7 @@ JobLocalDescription& JobLocalDescription::operator=(const Arc::JobDescription& a
   outputdata.clear();
   inputdata.clear();
   rte.clear();
+  transfershare="_default";
 
   const std::list<Arc::Software>& sw = arc_job_desc.Resources.RunTimeEnvironment.getSoftwareList();
   for (std::list<Arc::Software>::const_iterator itSW = sw.begin(); itSW != sw.end(); ++itSW, ++rtes)
@@ -245,6 +245,8 @@ JobLocalDescription& JobLocalDescription::operator=(const Arc::JobDescription& a
 
   return *this;
 };
+
+const char* const JobLocalDescription::transfersharedefault = "_default";
 
 bool LRMSResult::set(const char* s) {
   // 1. Empty string = exit code 0
