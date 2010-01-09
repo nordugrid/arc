@@ -11,5 +11,5 @@ DIST_SUBDIRS = hed tests services clients utils
 # some autotools experts fix it.
 if HED_ENABLED
 install-exec-hook:
-	$(bindir)/arcplugin -c $(pkglibdir)
+	$(DESTDIR)$(bindir)/arcplugin$(EXEEXT) -c $(pkglibdir)
 endif
