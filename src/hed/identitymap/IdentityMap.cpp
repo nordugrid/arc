@@ -3,6 +3,7 @@
 #endif
 
 #include <fstream>
+#include <vector>
 
 #include <arc/Logger.h>
 #include <arc/StringConv.h>
@@ -65,14 +66,19 @@ std::string LocalMapPool::ID(Arc::Message* msg) {
 // --------------------------------------------------------------------------
 class LocalMapList: public LocalMap {
  private:
-  std::string file_;
+  std::vector<std::string> files_;
  public:
-  LocalMapList(const std::string& dir);
+  LocalMapList(const std::vector<std::string>& files);
+  LocalMapList(const std::string& file);
   virtual ~LocalMapList(void);
   virtual std::string ID(Arc::Message* msg);
 };
 
-LocalMapList::LocalMapList(const std::string& file):file_(file) {
+LocalMapList::LocalMapList(const std::vector<std::string>& files):files_(files) {
+}
+
+LocalMapList::LocalMapList(const std::string& file) {
+    files_.push_back(file);
 }
 
 LocalMapList::~LocalMapList(void) {
@@ -108,23 +114,26 @@ std::string LocalMapList::ID(Arc::Message* msg) {
   // So far only DN from TLS is supported.
   std::string dn = msg->Attributes()->get("TLS:IDENTITYDN");
   if(dn.empty()) return "";
-  std::ifstream f(file_.c_str());
-  if(!f.is_open() ) return "";
-  for(;!f.eof();) {
-    std::string buf;
-    std::getline(f,buf);
-    buf=Arc::trim(buf);
-    if(buf.empty()) continue;
-    if(buf[0] == '#') continue;
-    std::string val = get_val(buf);
-    if(val != dn) continue;
-    buf=Arc::trim(buf);
-    val=get_val(buf);
-    if(val.empty()) continue;
+  for (std::vector<std::string>::iterator it = files_.begin(); it != files_.end(); it++) {
+    std::string file_ = *it;
+    std::ifstream f(file_.c_str());
+    if(!f.is_open() ) continue;
+    for(;!f.eof();) {
+      std::string buf;
+      std::getline(f,buf);
+      buf=Arc::trim(buf);
+      if(buf.empty()) continue;
+      if(buf[0] == '#') continue;
+      std::string val = get_val(buf);
+      if(val != dn) continue;
+      buf=Arc::trim(buf);
+      val=get_val(buf);
+      if(val.empty()) continue;
+      f.close();
+      return val;
+    };
     f.close();
-    return val;
-  };
-  f.close();
+  }
   return "";
 }
 
@@ -139,9 +148,13 @@ static LocalMap* MakeLocalMap(Arc::XMLNode pdp) {
   };
   p=pdp["LocalList"];
   if(p) {
-    std::string file = p;
-    if(file.empty()) return NULL;
-    return new LocalMapList(file);
+    std::vector<std::string> files;
+    while (p) {
+        files.push_back((std::string) p);
+        ++p;
+    }
+    if(files.empty()) return NULL;
+    return new LocalMapList(files);
   };
   p=pdp["LocalSimplePool"];
   if(p) {
