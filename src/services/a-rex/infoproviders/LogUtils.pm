@@ -26,6 +26,7 @@ use strict;
 our %names = (FATAL => 0, ERROR => 1, WARNING => 2, INFO => 3, VERBOSE => 4, DEBUG => 5);
 
 our $loglevel = 1; # default level is WARNING
+our $ts_enabled = 0; # by default do not print timestamps
 
 our $default_logger = LogUtils->getLogger(basename($0));
 
@@ -47,6 +48,12 @@ sub level {
         fatal("No such loglevel '$level'");
     }
     return $loglevel;
+}
+
+# enable/disable printing of timestamps
+sub timestamps {
+    return $ts_enabled unless  @_;
+    return $ts_enabled = shift() ? 1 : 0;
 }
 
 # constructor
@@ -106,11 +113,18 @@ sub _log {
     my ($self,$severity,$msg) = @_;
     my $name = $self->{name};
     $name = $name ? "$name: " : "";
-    print STDERR "$name$severity: $msg\n";
+    print STDERR ($ts_enabled ? format_ts()." " : "")."$name$severity: $msg\n";
+}
+
+sub format_ts {
+    my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime();
+    return POSIX::strftime("%Y-%m-%d %H:%M:%S", $sec,$min,$hour,$mday,
+                           $mon,$year,$wday,$yday,$isdst);
 }
 
 sub test {
     LogUtils::level('INFO');
+    LogUtils::timestamps(1);
     my $log = LogUtils->getLogger();
     $log->warning("Hi");
     $log = LogUtils->getLogger("main");
