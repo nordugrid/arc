@@ -58,14 +58,14 @@ sub getLogger {
     return $self;
 }
 
-sub verbose {
+sub debug {
     return unless $loglevel > 4;
     unshift(@_, $default_logger) unless ref($_[0]) eq __PACKAGE__;
     my ($self, $msg) = @_;
     $self->_log('DEBUG',$msg);
 }
 
-sub debug {
+sub verbose {
     return unless $loglevel > 3;
     unshift(@_, $default_logger) unless ref($_[0]) eq __PACKAGE__;
     my ($self, $msg) = @_;
