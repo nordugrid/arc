@@ -40,7 +40,7 @@ sub start_logging($) {
 sub level {
     return $loglevel unless  @_;
     my $level = shift;
-    if ($names{$level}) {
+    if (defined $names{$level}) {
         $loglevel = $names{$level};
     } elsif ($level =~ m/^\d+$/ and $level < keys %names)  {
         $loglevel = $level;
