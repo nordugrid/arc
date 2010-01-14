@@ -31,9 +31,10 @@ class ArcAuthZ : public SecHandler {
       breakAlways,
       breakNever
     } action;
-    PDPDesc(const std::string& action,PDP* pdp);
+    std::string id;
+    PDPDesc(const std::string& action,const std::string& id,PDP* pdp);
   };
-  typedef std::map<std::string,PDPDesc>  pdp_container_t;
+  typedef std::list<PDPDesc> pdp_container_t;
 
   /** Link to Factory responsible for loading and creation of PDP objects */
   Arc::PluginsFactory *pdp_factory;
@@ -42,7 +43,7 @@ class ArcAuthZ : public SecHandler {
 
  protected:
   /** Create PDP according to conf info */
-  bool MakePDPs(Arc::Config* cfg);
+  bool MakePDPs(Arc::XMLNode cfg);
 
  public:
   ArcAuthZ(Arc::Config *cfg, Arc::ChainContext* ctx);

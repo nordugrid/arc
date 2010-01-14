@@ -9,23 +9,16 @@
 #include "ArcAuthZ.h"
 
 Arc::Plugin* ArcSec::ArcAuthZ::get_sechandler(Arc::PluginArgument* arg) {
-    ArcSec::SecHandlerPluginArgument* shcarg =
+  ArcSec::SecHandlerPluginArgument* shcarg =
             arg?dynamic_cast<ArcSec::SecHandlerPluginArgument*>(arg):NULL;
-    if(!shcarg) return NULL;
-    return new ArcSec::ArcAuthZ((Arc::Config*)(*shcarg),(Arc::ChainContext*)(*shcarg));
+  if(!shcarg) return NULL;
+  return new ArcSec::ArcAuthZ((Arc::Config*)(*shcarg),(Arc::ChainContext*)(*shcarg));
 }
-
-/*
-sechandler_descriptors ARC_SECHANDLER_LOADER = {
-    { "arc.authz", 0, &get_sechandler},
-    { NULL, 0, NULL }
-};
-*/
 
 using namespace Arc;
 namespace ArcSec {
 
-ArcAuthZ::PDPDesc::PDPDesc(const std::string& action_,PDP* pdp_):pdp(pdp_),action(breakOnDeny) {
+ArcAuthZ::PDPDesc::PDPDesc(const std::string& action_,const std::string& id_,PDP* pdp_):pdp(pdp_),action(breakOnDeny),id(id_) {
   if(strcasecmp("breakOnAllow",action_.c_str()) == 0) { action=breakOnAllow; }
   else if(strcasecmp("breakOnDeny",action_.c_str()) == 0) { action=breakOnDeny; }
   else if(strcasecmp("breakAlways",action_.c_str()) == 0) { action=breakAlways; }
@@ -43,55 +36,58 @@ ArcAuthZ::ArcAuthZ(Config *cfg,ChainContext* ctx):SecHandler(cfg){
       pdp_factory->load(name,PDPPluginKind);
     };
   };
-  if(!MakePDPs(cfg)) {
-    for(pdp_container_t::iterator p = pdps_.begin();p!=pdps_.end();++p) {
-      if(p->second.pdp) delete p->second.pdp;
+  if(!MakePDPs(*cfg)) {
+    for(pdp_container_t::iterator p = pdps_.begin();p!=pdps_.end();) {
+      if(p->pdp) delete p->pdp;
+      p = pdps_.erase(p);
     };
     logger.msg(ERROR, "ArcAuthZ: failed to initiate all PDPs - this instance will be non-functional"); 
   };
 }
 
 ArcAuthZ::~ArcAuthZ() {
-  for(pdp_container_t::iterator p = pdps_.begin();p!=pdps_.end();++p) {
-    if(p->second.pdp) delete p->second.pdp;
+  for(pdp_container_t::iterator p = pdps_.begin();p!=pdps_.end();) {
+    if(p->pdp) delete p->pdp;
+    p = pdps_.erase(p);
   };
 }
 
 /**Producing PDPs */
-bool ArcAuthZ::MakePDPs(Config* cfg) {
+bool ArcAuthZ::MakePDPs(XMLNode cfg) {
   /**Creating the PDP plugins*/
-    XMLNode cn;
-    cn=(*cfg)["PDP"]; //need some polishing
+  XMLNode cn;
+  cn=cfg["PDP"]; //need some polishing
 
-    for(int n = 0;;++n) {
-        XMLNode can = cn[n];
-        if(!can) break;
-        Arc::Config cfg_(can);
-        std::string name = can.Attribute("name");
-        logger.msg(VERBOSE, "PDP: %s (%d)", name, n);
-        PDP* pdp = NULL;
-        PDPPluginArgument arg(&cfg_);
-        pdp = pdp_factory->GetInstance<PDP>(PDPPluginKind,name,&arg);
-        if(!pdp) { 
-            logger.msg(ERROR, "PDP: %s can not be loaded", name); 
-            return false; 
-        };
-        if(pdps_.insert(std::make_pair(name,PDPDesc(can.Attribute("action"),pdp))).second == false) {
-            logger.msg(ERROR, "PDP: %s name is duplicate", name); 
-            return false; 
-        };
-    } 
-    return true;
+  for(;cn;++cn) {
+    if(!cn) break;
+    Arc::Config cfg_(cn);
+    std::string name = cn.Attribute("name");
+    if(name.empty()) {
+      logger.msg(ERROR, "PDP: missing name attribute"); 
+      return false; 
+    };
+    std::string id = cn.Attribute("id");
+    logger.msg(VERBOSE, "PDP: %s (%s)", name, id);
+    PDP* pdp = NULL;
+    PDPPluginArgument arg(&cfg_);
+    pdp = pdp_factory->GetInstance<PDP>(PDPPluginKind,name,&arg);
+    if(!pdp) { 
+      logger.msg(ERROR, "PDP: %s (%s) can not be loaded", name, id); 
+      return false; 
+    };
+    pdps_.push_back(PDPDesc(cn.Attribute("action"),id,pdp));
+  } 
+  return true;
 }
 
 bool ArcAuthZ::Handle(Arc::Message* msg){
   pdp_container_t::iterator it;
   bool r = false;
   for(it=pdps_.begin();it!=pdps_.end();it++){
-    r = it->second.pdp->isPermitted(msg);
-    if((r == true) && (it->second.action == PDPDesc::breakOnAllow)) break;
-    if((r == false) && (it->second.action == PDPDesc::breakOnDeny)) break;
-    if(it->second.action == PDPDesc::breakAlways) break;
+    r = it->pdp->isPermitted(msg);
+    if((r == true) && (it->action == PDPDesc::breakOnAllow)) break;
+    if((r == false) && (it->action == PDPDesc::breakOnDeny)) break;
+    if(it->action == PDPDesc::breakAlways) break;
   }
   return r;
 }
