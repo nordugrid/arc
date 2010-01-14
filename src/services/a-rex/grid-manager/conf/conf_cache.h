@@ -44,6 +44,10 @@ class CacheConfig {
     * Cache directories that are needed to be drained
     **/
    std::vector<std::string> _draining_cache_dirs;
+   /**
+    * cache-clean log level
+    */
+   std::string _log_level;
  public:
    /**
     * Create a new CacheConfig instance. Read the config file and fill in
@@ -68,6 +72,7 @@ class CacheConfig {
   int getCacheMax() { return _cache_max; };
   int getCacheMin() { return _cache_min; };
   bool cleanCache() { return _cache_max < 100; };
+  std::string getLogLevel() { return _log_level; };
 };
 
 #endif /*__GM_CONFIG_CACHE_H__*/

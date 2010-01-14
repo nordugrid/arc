@@ -176,6 +176,7 @@ appropiate.
               </arex:remotelocation>
               <arex:highWatermark>90</arex:highWatermark>
               <arex:lowWatermark>70</arex:lowWatermark>
+              <arex:cacheLogLevel>INFO</arex:cacheLogLevel>
           </arex:cache>
           <arex:defaultTTL>259200</arex:defaultTTL>
           <arex:defaultTTR>2592000</arex:defaultTTR>

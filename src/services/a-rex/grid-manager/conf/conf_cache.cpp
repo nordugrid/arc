@@ -3,7 +3,8 @@
 #include "conf_cache.h"
 
 CacheConfig::CacheConfig(std::string username): _cache_max(100),
-                                                _cache_min(100) {
+                                                _cache_min(100),
+                                                _log_level("INFO") {
   // open conf file
   std::ifstream cfile;
   if(nordugrid_config_loc().empty()) read_env_vars(true);
@@ -158,6 +159,31 @@ void CacheConfig::parseINIConf(std::string username, ConfigSections* cf) {
         throw CacheConfigException("max cache size must be greater than min size");
       _cache_min = min_i;
     }
+    else if(command == "cacheloglevel") {
+      std::string log_level = config_next_arg(rest);
+      if(log_level.length() == 0)
+        throw CacheConfigException("No value specified in cacheloglevel");
+      off_t level_i;
+      if(!Arc::stringto(log_level, level_i))
+        throw CacheConfigException("bad number in cacheloglevel parameter");
+      // manual conversion from int to log level
+      switch (level_i) {
+        case 0: { _log_level = "FATAL"; };
+          break;
+        case 1: { _log_level = "ERROR"; };
+          break;
+        case 2: { _log_level = "WARNING"; };
+          break;
+        case 3: { _log_level = "INFO"; };
+          break;
+        case 4: { _log_level = "VERBOSE"; };
+          break;
+        case 5: { _log_level = "DEBUG"; };
+          break;
+        default: { _log_level = "INFO"; };
+          break;
+      } 
+    }
     else if(command == "control") {
       // if the user specified here matches the one given, exit the loop
       config_next_arg(rest);
@@ -196,6 +222,7 @@ void CacheConfig::parseXMLConf(std::string username, Arc::XMLNode cfg) {
         link
       highWatermark
       lowWatermark
+      cacheLogLevel
     defaultTTL
     defaultTTR
     maxReruns
@@ -281,6 +308,9 @@ void CacheConfig::parseXMLConf(std::string username, Arc::XMLNode cfg) {
           throw CacheConfigException("highWatermark must be greater than lowWatermark");
         _cache_min = min_i;
       }
+      std::string cache_log_level = cache_node["cacheLogLevel"];
+      if (!cache_log_level.empty())
+        _log_level = cache_log_level;
       Arc::XMLNode remote_location_node = cache_node["remotelocation"];
       for(;remote_location_node;++remote_location_node) {
         std::string cache_dir = remote_location_node["path"];

@@ -73,7 +73,7 @@ static void* cache_func(void* arg) {
         // TODO: use GM log?
         gmuser.SetControlDir(cacheuser->ControlDir()); // Should this requirement be removed ?
         int argc=0;
-        char* args[6+cache_info_dirs.size()+1];
+        char* args[7+cache_info_dirs.size()+1];
         
         // do cache-clean -h for explanation of options
         std::string cmd = nordugrid_libexec_loc() + "/cache-clean";
@@ -83,6 +83,7 @@ static void* cache_func(void* arg) {
         args[argc++]=(char*)"-M";
         args[argc++]=(char*)maxfreespace.c_str();
         args[argc++]=(char*)"-D";
+        args[argc++]=(char*)cache_info->getLogLevel().c_str();
         std::vector<std::string> cache_dirs;
         // have to loop over twice to avoid repeating the same pointer in args
         for (std::vector<std::string>::iterator i = cache_info_dirs.begin(); i != cache_info_dirs.end(); i++) {

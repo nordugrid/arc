@@ -205,6 +205,8 @@
                   to bring the used space down to the min level. It is a
                   good idea to have the cache on its own separate file system.
                   To turn off this feature those elements must be absent.
+                * cacheLogLevel - the log level used by the cache cleaning
+                  script.
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
@@ -216,6 +218,8 @@
                          minOccurs="0"/>
             <xsd:element name="lowWatermark" type="xsd:nonNegativeInteger"
                          minOccurs="0"/>
+            <xsd:element name="cacheLogLevel" type="xsd:string"
+                         minOccurs="0"/>                         
         </xsd:sequence>
     </xsd:complexType>
 

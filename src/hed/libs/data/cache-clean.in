@@ -23,12 +23,12 @@ use File::Basename;
 use strict;
 use warnings;
 
+
 BEGIN {
     unshift @INC, dirname($0).'/@pkglibdir_rel_to_pkglibexecdir@';
 }
 
 use ConfigCentral;
-
 
 # Set the variable $File::Find::dont_use_nlink if you're using AFS,
 # since AFS cheats.
@@ -58,7 +58,13 @@ my $totsize = 0;
 my $totlocksize = 0;
 my $totlockfiles = 0;
 
-getopts('hsdc:m:M:i:e:D', \%opts);
+my $debuglevel = 'INFO';
+LogUtils::level($debuglevel);
+LogUtils::timestamps(1);
+my $log = LogUtils->getLogger('cache-clean');
+
+getopts('hsdc:m:M:i:e:D:', \%opts);
+
 if(defined($opts{c})) {
     $configfile = $opts{c};
 }
@@ -67,6 +73,14 @@ if(defined($opts{m})) {
 }
 if(defined($opts{M})) {
     $mincleanfree = $opts{M};
+}
+if(defined($opts{D})) {
+    $debuglevel = $opts{D};
+    LogUtils::level($debuglevel);
+}
+if(defined($opts{s})) {
+    $debuglevel = 'ERROR';
+    LogUtils::level($debuglevel);
 }
 
 if($minfree < 0 || $minfree > 100) {
@@ -81,13 +95,15 @@ if($mincleanfree < $minfree) {
 
 sub usage {
     print <<EOH;
-   usage: $0 -h | -s | -m <NN> -M <NN> [-D] { -c <arex_config_file> | <dir1> [<dir2> [...]] }
-        -h      - This help
-        -s      - Statistics mode, show cache usage stats, dont delete anything
-        -c      - path to an A-REX config file, xml or ini format
-        -m NN   - Min free space to start cleaning (percent)
-        -M NN   - Free space to stop cleaning (percent)
-        -D      - Debug output
+   usage: cache-clean -h | -s | -m <NN> -M <NN> [-D debug_level]
+            [ -c <arex_config_file> | <dir1> [<dir2> [...]] ]
+    -h      - This help
+    -s      - Statistics mode, show cache usage stats, dont delete anything
+    -c      - path to an A-REX config file, xml or ini format
+    -m NN   - Min free space to start cleaning (percent)
+    -M NN   - Free space to stop cleaning (percent)
+    -D      - Debug level, FATAL, ERROR, WARNING, INFO, VERBOSE or DEBUG.
+              Default is INFO
 
    Caches are given by dir1, dir2.. or taken from the config file specified
    by -c or ARC_CONFIG
@@ -98,31 +114,34 @@ EOH
 
 usage() if(defined($opts{'h'}) || ((!defined($opts{'M'}) || !defined($opts{'m'})) && !defined($opts{'s'})));
 
-if (!$configfile && -e $ENV{"ARC_CONFIG"}) {
-    $configfile = $ENV{"ARC_CONFIG"};
+if (!$configfile && $ENV{'ARC_CONFIG'} && -e $ENV{'ARC_CONFIG'}) {
+    $configfile = $ENV{'ARC_CONFIG'};
 }
 
-debug "cache cleaning started";
+$log->info('Cache cleaning started');
 
 my @caches = @ARGV;
 
 if (!@caches) {
-    usage() unless $configfile;
+    die 'No config file found\n' unless $configfile;
     my $config = ConfigCentral::parseConfig($configfile);
-    die "Failed parsing A-REX config file '$configfile'" unless $config;
-    die "No users set up in config file '$configfile'"
+    die "Failed parsing A-REX config file '$configfile'\n" unless $config;
+    die "No users set up in config file '$configfile'\n"
         unless $config->{control} and ref $config->{control} eq 'HASH';
     for my $control (values %{$config->{control}}) {
         next unless ref $control eq 'HASH';
         next unless $control->{cachedir} and ref $control->{cachedir} eq 'ARRAY';
         for (@{$control->{cachedir}}) {
-            print "\n Warning: cache-clean cannot deal with substitutions - $_\n" and next if /%/;
-            print "\n Warning: ignoring malformed cahe location - $_\n" and next unless m{^(/\S+)};
+            $log->warning("\n Warning: cache-clean cannot deal with substitutions - $_") and next if /%/;
+            $log->warning("\n Warning: ignoring malformed cahe location - $_\n") and next unless m{^(/\S+)};
             push @caches, $1;
         }
     }
-    die "No caches found in config file '$configfile'" unless @caches;
+    die "No caches found in config file '$configfile'\n" unless @caches;
 }
+
+# ConfigCentral sets debug level to level in conf file, so we have to reset it here
+LogUtils::level($debuglevel);
 
 foreach my $filesystem (@caches) {
 
@@ -130,52 +149,51 @@ foreach my $filesystem (@caches) {
     next if ($filesystem eq "");
 
     if ($filesystem =~ /%/) {
-        print STDERR "$filesystem: Warning: cache-clean cannot deal with substitutions\n";
+        $log->warning("$filesystem: Warning: cache-clean cannot deal with substitutions");
         next;
     }
 
     if (! -d $filesystem || ! -d $filesystem."/data") {
-        debug "$filesystem: Cache is empty";
+        $log->info("$filesystem: Cache is empty");
         next;
-	}
+    }
 
-	# follow sym links to real filesystem
-	my $symlinkdest = $filesystem;
-	while ($symlinkdest) {
-  	    $filesystem = $symlinkdest;
-    	$symlinkdest = readlink($symlinkdest);
-    	$symlinkdest =~ s|/+$|| if $symlinkdest;
-	}
+    # follow sym links to real filesystem
+    my $symlinkdest = $filesystem;
+    while ($symlinkdest) {
+        $filesystem = $symlinkdest;
+        $symlinkdest = readlink($symlinkdest);
+        $symlinkdest =~ s|/+$|| if $symlinkdest;
+    }
 
     my $fsvalues = diskspace($filesystem);
 
-	if(!($fsvalues)) {
-  	    print STDERR "Unable to stat $filesystem\n";
-    	next;
-	}
+    if(!($fsvalues)) {
+        $log->warning("Unable to stat $filesystem");
+        next;
+    }
 
-	my $fssize = $fsvalues->{total};
-	my $fsfree = $fsvalues->{free};
+    my $fssize = $fsvalues->{total};
+    my $fsfree = $fsvalues->{free};
 
-	my $minfbytes=$fssize*$minfree/100;
+    my $minfbytes=$fssize*$minfree/100;
+    $log->info(join("", "$filesystem: used space ", printsize($fssize-$fsfree), " / ", printsize($fssize), " (", sprintf("%.2f",100-100*$fsfree/$fssize), "%)"));
+    if ($fsfree > $minfbytes && !$opts{'s'}) {
+        $log->info(join("", "Used space is lower than upper limit (", 100-$minfree, "%)"));
+        next;
+    }
 
-	debug ("$filesystem: used space ", printsize($fssize-$fsfree), " / ", printsize($fssize), " (", sprintf("%.2f",100-100*$fsfree/$fssize),"%)");
-	if ($fsfree > $minfbytes && !$opts{'s'}) {
-  	    debug "Used space is lower than upper limit (", 100-$minfree, "%)";
-    	next;
-	}
+    $minfbytes=$fssize*$mincleanfree/100;
+    
+    %files = ();
+    $totsize = 0;
+    $totlocksize = 0;
+    $totlockfiles = 0;
 
-	$minfbytes=$fssize*$mincleanfree/100;
-	
-	%files = ();
-	$totsize = 0;
-	$totlocksize = 0;
-	$totlockfiles = 0;
+    File::Find::find({wanted => \&wanted}, $filesystem."/data");
 
-	File::Find::find({wanted => \&wanted}, $filesystem."/data");
-
-	if($opts{'s'}) {
-  	    print "\nUsage statistics: $filesystem\n";
+    if($opts{'s'}) {
+        print "\nUsage statistics: $filesystem\n";
         print "Total deletable files found: ",scalar keys %files," ($totlockfiles files locked)\n";
         print "Total size of deletable files found: ",printsize($totsize)," (",printsize($totlocksize)," locked)\n";
         print "Used space on file system: ",printsize($fssize-$fsfree)," / ",printsize($fssize), " (",sprintf("%.2f",100-100*$fsfree/$fssize),"%)\n";
@@ -219,7 +237,7 @@ foreach my $filesystem (@caches) {
     }
 
 
-	foreach my $fil (sort { $files{$a}{atime} <=> $files{$b}{atime} } keys %files) {
+    foreach my $fil (sort { $files{$a}{atime} <=> $files{$b}{atime} } keys %files) {
         last if $fsfree > $minfbytes;
 
         next if (-e "$fil.lock");
@@ -232,25 +250,26 @@ foreach my $filesystem (@caches) {
                 my @lines = <FILE>;
                 close FILE;
                 my @values = split(' ', $lines[0]);
-                debug "Deleting file: $fil  atime: $files{$fil}{atime}  size: $files{$fil}{size}  url: $values[0]";
+                $log->verbose("Deleting file: $fil  atime: $files{$fil}{atime}  size: $files{$fil}{size}  url: $values[0]");
             }
             else {
-                debug "Deleting file: $fil  atime: $files{$fil}{atime}  size: $files{$fil}{size}";
+                $log->verbose("Deleting file: $fil  atime: $files{$fil}{atime}  size: $files{$fil}{size}");
             }
         } else {
-            print STDERR "Error deleting file '$fil': $!\n";
+            $log->warning("Error deleting file '$fil': $!");
         }
+	next if (! -e "$fil.meta");
         # not critical if this fails
         if ( unlink "$fil.meta" ) {
             my $lastslash = rindex($fil, "/");
             if ( rmdir(substr($fil, 0, $lastslash))) {
-                debug "Deleting directory ".substr($fil, 0, $lastslash);
+                $log->verbose("Deleting directory ".substr($fil, 0, $lastslash));
             }
         } else {
-            print STDERR "Error deleting file '$fil.meta': $!\n";
+            $log->warning("Error deleting file '$fil.meta': $!");
         } 
-	}
-	debug ("Cleaning finished, used space now ", printsize($fssize-$fsfree), " / ", printsize($fssize), " (", sprintf("%.2f",100-100*$fsfree/$fssize),"%)");
+    }
+    $log->info(join("", "Cleaning finished, used space now ", printsize($fssize-$fsfree), " / ", printsize($fssize), " (", sprintf("%.2f",100-100*$fsfree/$fssize),"%)"));
 }
 exit 0;
 
@@ -275,17 +294,6 @@ sub wanted {
     $files{$name}{atime}=$atime;
     $files{$name}{size}=512 * $blocks;
     $totsize += 512 * $blocks;
-}
-
-sub debug
-{
-    if( !defined($opts{'D'}) || defined($opts{'s'})) {
-        return;
-    }
-
-    my (@args) = @_;
-
-    print STDERR scalar localtime(), ": ", @args, "\n";
 }
 
 sub printsize($)
@@ -326,30 +334,30 @@ sub diskspace ($) {
         if ($path =~ m#/afs/#) {
             my @dfstring =`fs listquota $path 2>/dev/null`;
             if ($? != 0) {
-                print STDERR "Failed running: fs listquota $path\n";
+                $log->warning("Failed running: fs listquota $path");
             } elsif ($dfstring[-1] =~ /\s+(\d+)\s+(\d+)\s+\d+%\s+\d+%/) {
                 $disktotal = int $1/1024;
                 $diskfree  = int(($1 - $2)/1024);
             } else {
-                print STDERR "Failed interpreting output of: fs listquota $path\n";
+                $log->warning("Failed interpreting output of: fs listquota $path");
             }
         # "ordinary" disk
         } else {
             my @dfstring =`df -k $path 2>/dev/null`;
             if ($? != 0) {
-                print STDERR "Failed running: df -k $path\n";
+                $log->warning("Failed running: df -k $path");
 
             # The first column may be printed on a separate line.
             # The relevant numbers are always on the last line.
             } elsif ($dfstring[-1] =~ /\s+(\d+)\s+\d+\s+(\d+)\s+\d+%\s+\//) {
-    	        $disktotal = $1*1024;
-    	        $diskfree  = $2*1024;
+                $disktotal = $1*1024;
+                $diskfree  = $2*1024;
             } else {
-                print STDERR "Failed interpreting output of: df -k $path\n";
+                $log->warning("Failed interpreting output of: df -k $path");
             }
         }
     } else {
-        print STDERR "Not a directory: $path\n";
+        $log->warning("Not a directory: $path");
     }
 
     return undef unless defined($disktotal) and defined($diskfree);

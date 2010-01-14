@@ -29,7 +29,7 @@ if (@ARGV == 2 && $ARGV[0] eq '-c') {
 
 sub usage {
     print <<EOH;
-   usage: $0 -c <arex_config_file>
+    usage: $0 -c <arex_config_file>
 EOH
     exit 1;
 }
@@ -59,9 +59,9 @@ for my $control (values %{$config->{control}}) {
 die "No caches found in config file '$conffile'" unless @caches;
 
 foreach $cache (@caches) {
-	print "Cache: $cache\n";
-    if (! -d $cache) { print " Cache is empty\n"; }
-	else { File::Find::find({wanted => \&wanted}, $cache."/data"); }
+    print "Cache: $cache\n";
+    if (! -d $cache || ! -d $cache."/data") { print " Cache is empty\n"; }
+        else { File::Find::find({wanted => \&wanted}, $cache."/data"); }
 }
 
 sub wanted {
