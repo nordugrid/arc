@@ -299,10 +299,11 @@ namespace Arc {
   ClientHTTP::~ClientHTTP() {}
 
   bool ClientHTTP::Load() {
-    if(ClientTCP::Load()) return false;
+    if(!ClientTCP::Load()) return false;
     if (!http_entry)
       http_entry = (*loader)["http"];
     if (!http_entry) return false;
+    return true;
   }
 
   MCC_Status ClientHTTP::process(const std::string& method,
@@ -457,6 +458,7 @@ namespace Arc {
     if (!soap_entry)
       soap_entry = (*loader)["soap"];
     if (!soap_entry) return false;
+    return true;
   }
 
   MCC_Status ClientSOAP::process(const std::string& action,
