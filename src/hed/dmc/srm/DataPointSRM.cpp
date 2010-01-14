@@ -224,8 +224,6 @@ namespace Arc {
     client = NULL;
     
     if (res != SRM_OK) {
-      delete srm_request;
-      srm_request = NULL;
       if (res == SRM_ERROR_TEMPORARY) return DataStatus::ReadStartErrorRetryable;
       return DataStatus::ReadStartError;
     }
@@ -272,8 +270,6 @@ namespace Arc {
 
     if (!r_handle) {
       logger.msg(INFO, "SRM returned no useful Transfer URLs: %s", url.str());
-      delete srm_request;
-      srm_request = NULL;
       return DataStatus::ReadStartError;
     }
 
@@ -285,8 +281,6 @@ namespace Arc {
     if (!(*r_handle)->StartReading(buf)) {
       delete r_handle;
       r_handle = NULL;
-      delete srm_request;
-      srm_request = NULL;
       reading = false;
       return DataStatus::ReadStartError;
     }
@@ -302,18 +296,20 @@ namespace Arc {
     }
     reading = false;
 
-    if (!r_handle) {
-      delete srm_request;
-      srm_request = NULL;
-      return DataStatus::Success;
+    DataStatus r = DataStatus::Success;
+    if (r_handle) {
+      r = (*r_handle)->StopReading();
+      delete r_handle;
     }
     
-    DataStatus r = (*r_handle)->StopReading();
-    delete r_handle;
     if (srm_request) {
       SRMClient *client = SRMClient::getInstance(url.fullstr(), buffer->speed.get_max_inactivity_time());
       if (client) {
-        client->releaseGet(*srm_request);
+        if(buffer->error_read() || srm_request->status() == SRM_REQUEST_SHOULD_ABORT) {
+          client->abort(*srm_request);
+        } else if (srm_request->status() == SRM_REQUEST_FINISHED_SUCCESS) {
+          client->releaseGet(*srm_request);
+        }
         delete client;
         client = NULL;
       }
@@ -394,8 +390,6 @@ namespace Arc {
     client = NULL;
     
     if (res != SRM_OK) {
-      delete srm_request;
-      srm_request = NULL;
       if (res == SRM_ERROR_TEMPORARY) return DataStatus::WriteStartErrorRetryable;
       return DataStatus::WriteStartError;
     }
@@ -442,8 +436,6 @@ namespace Arc {
 
     if (!r_handle) {
       logger.msg(INFO, "SRM returned no useful Transfer URLs: %s", url.str());
-      delete srm_request;
-      srm_request = NULL;
       return DataStatus::WriteStartError;
     }
 
@@ -451,8 +443,6 @@ namespace Arc {
     if (!(*r_handle)->StartWriting(buf)) {
       delete r_handle;
       r_handle = NULL;
-      delete srm_request;
-      srm_request = NULL;
       reading = false;
       return DataStatus::WriteStartError;
     }
@@ -468,17 +458,16 @@ namespace Arc {
     }
     writing = false;
 
-    if (!r_handle) {
-      delete srm_request;
-      srm_request = NULL;
-      return DataStatus::Success;
+    DataStatus r = DataStatus::Success;
+    if (r_handle) {
+      r = (*r_handle)->StopWriting();
+      // disable checksum check at this level if was done at lower level
+      // gsiftp turls should provide checksum
+      if ((*r_handle)->ProvidesMeta())
+        additional_checks = false; 
+      delete r_handle;
+      r_handle = NULL;
     }
-
-    DataStatus r = (*r_handle)->StopWriting();
-    // disable checksum check at this level if was done at lower level
-    // gsiftp turls should provide checksum
-    if ((*r_handle)->ProvidesMeta())
-      additional_checks = false; 
       
     if (!r) {
       SRMClient *client = SRMClient::getInstance(url.fullstr(), buffer->speed.get_max_inactivity_time());
@@ -495,7 +484,8 @@ namespace Arc {
     SRMClient * client = SRMClient::getInstance(url.fullstr(), buffer->speed.get_max_inactivity_time());
     if(client) {
       // call abort if failure, or releasePut on success
-      if(buffer->error()) client->abort(*srm_request);
+      if(buffer->error() || srm_request->status() == SRM_REQUEST_SHOULD_ABORT) 
+        client->abort(*srm_request);
       else {
         // checksum verification
         // TODO: checksum for writing to srm is not enabled in DataMover
@@ -538,18 +528,18 @@ namespace Arc {
           else 
             logger.msg(VERBOSE, "Checksum type of SRM and calculated checksum %s differ, cannot compare", checksum);
         }
-        if (r)
-          client->releasePut(*srm_request);
-        else
+        if (r) {
+          if (srm_request->status() == SRM_REQUEST_FINISHED_SUCCESS)
+            client->releasePut(*srm_request);
+        } else {
           client->abort(*srm_request);
+        }
       }
     }
     delete srm_request;
     srm_request = NULL;
     delete client;
     client=NULL;
-    delete r_handle;
-    r_handle = NULL;
     return r;
   }
 

@@ -673,6 +673,7 @@ namespace Arc {
       if (!datares.Passed()) {
         logger.msg(ERROR, "Failed to start reading from source: %s",
                    source_url.str());
+        source_url.StopReading();
         res = datares;
         if (source.GetFailureReason() != DataStatus::UnknownError)
           res = source.GetFailureReason();
@@ -691,6 +692,7 @@ namespace Arc {
         // at least compare metadata
         if (!destination.CompareMeta(source)) {
           logger.msg(ERROR, "Metadata of source and destination are different");
+          source_url.StopReading();
           source.NextLocation(); /* not exactly sure if this would help */
           res = DataStatus::PreRegisterError;
 #ifndef WIN32
@@ -709,6 +711,7 @@ namespace Arc {
       if (!datares.Passed()) {
         logger.msg(ERROR, "Failed to preregister destination: %s",
                    destination.str());
+        source_url.StopReading();
         destination.NextLocation(); /* not exactly sure if this would help */
         logger.msg(VERBOSE, "destination.next_location");
         res = datares;

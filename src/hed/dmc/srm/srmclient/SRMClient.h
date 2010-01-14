@@ -120,6 +120,7 @@
     SRM_REQUEST_FINISHED_SUCCESS,
     SRM_REQUEST_FINISHED_PARTIAL_SUCCESS,
     SRM_REQUEST_FINISHED_ERROR,
+    SRM_REQUEST_SHOULD_ABORT,
     SRM_REQUEST_CANCELLED,
   };
   
@@ -273,6 +274,7 @@
     void finished_success() {_status = SRM_REQUEST_FINISHED_SUCCESS;};
     void finished_partial_success() {_status = SRM_REQUEST_FINISHED_PARTIAL_SUCCESS;};
     void finished_error() {_status = SRM_REQUEST_FINISHED_ERROR;};
+    void finished_abort() {_status = SRM_REQUEST_SHOULD_ABORT;};
     void cancelled() {_status = SRM_REQUEST_CANCELLED;};
     SRMRequestStatus status() {return _status;};
     

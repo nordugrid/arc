@@ -244,6 +244,7 @@
           logger.msg(Arc::INFO, "SOAP request failed (%s)", "srmStatusOfGetRequest");
           soap_print_fault(&soapobj, stderr);
           csoap->disconnect();
+          req.finished_abort();  
           return SRM_ERROR_SOAP;
         };
   
@@ -258,6 +259,7 @@
           // check for timeout
           if (request_time >= request_timeout) {
             logger.msg(Arc::ERROR, "Error: PrepareToGet request timed out after %i seconds", request_timeout);
+            req.finished_abort();
             return SRM_ERROR_TEMPORARY;
           }
           if(file_statuses->statusArray[0]->estimatedWaitTime)
@@ -289,7 +291,8 @@
   
     logger.msg(Arc::VERBOSE, "File is ready! TURL is %s", turl);
     urls.push_back(std::string(turl));
-  
+
+    req.finished_success();
     return SRM_OK;
   }
   
@@ -398,7 +401,7 @@
     if(!connect()) return SRM_ERROR_CONNECTION;
   
     SRMv2__srmStatusOfBringOnlineRequestRequest * sobo_request = new SRMv2__srmStatusOfBringOnlineRequestRequest;
-    if(req.request_token() == "") {
+    if(req.request_token().empty()) {
       logger.msg(Arc::ERROR, "No request token specified!");
       return SRM_ERROR_OTHER;
     };
@@ -609,6 +612,7 @@
           logger.msg(Arc::INFO, "SOAP request failed (%s)", "srmStatusOfPutRequest");
           soap_print_fault(&soapobj, stderr);
           csoap->disconnect();
+          req.finished_abort();
           return SRM_ERROR_SOAP;
         };
   
@@ -623,6 +627,7 @@
           // check for timeout
           if (request_time >= request_timeout) {
             logger.msg(Arc::ERROR, "Error: PrepareToPut request timed out after %i seconds", request_timeout);
+            req.finished_abort();
             return SRM_ERROR_TEMPORARY;
           }
           if (file_statuses &&
@@ -696,7 +701,8 @@
   
     logger.msg(Arc::VERBOSE, "File is ready! TURL is %s", turl);
     urls.push_back(std::string(turl));
-  
+
+    req.finished_success();
     return SRM_OK;
   }
   
@@ -755,6 +761,8 @@
     SRMv2__srmLsResponse * response_inst = response_struct.srmLsResponse;
     SRMv2__TStatusCode return_status = response_inst->returnStatus->statusCode;
     SRMv2__ArrayOfTMetaDataPathDetail * file_details= response_inst->details;
+  
+    if (response_inst->requestToken) req.request_token(response_inst->requestToken);
   
     // deal with response code - successful ones first
     if (return_status == SRMv2__TStatusCode__SRM_USCORESUCCESS) {
@@ -827,6 +835,7 @@
       // check for timeout
       if (request_time >= request_timeout) {
         logger.msg(Arc::ERROR, "Error: Ls request timed out after %i seconds", request_timeout);
+        abort(req);
         return SRM_ERROR_TEMPORARY;
       }
   
@@ -1064,7 +1073,7 @@
   
     // Release all the pins referred to by the request token in the request object
     SRMv2__srmReleaseFilesRequest * request = new SRMv2__srmReleaseFilesRequest;
-    if(req.request_token() == "") {
+    if(req.request_token().empty()) {
       logger.msg(Arc::ERROR, "No request token specified!");
       return SRM_ERROR_OTHER;
     };
@@ -1103,7 +1112,7 @@
     // Set the files referred to by the request token in the request object
     // which were prepared to put to done
     SRMv2__srmPutDoneRequest * request = new SRMv2__srmPutDoneRequest;
-    if(req.request_token() == "") {
+    if(req.request_token().empty()) {
       logger.msg(Arc::ERROR, "No request token specified!");
       return SRM_ERROR_OTHER;
     };
@@ -1150,7 +1159,7 @@
   
     // Call srmAbortRequest on the files in the request token
     SRMv2__srmAbortRequestRequest * request = new SRMv2__srmAbortRequestRequest;
-    if(req.request_token() == "") {
+    if(req.request_token().empty()) {
       logger.msg(Arc::ERROR, "No request token specified!");
       return SRM_ERROR_OTHER;
     };
@@ -1371,6 +1380,7 @@
           logger.msg(Arc::INFO, "SOAP request failed (%s)", "srmStatusOfCopyRequest");
           soap_print_fault(&soapobj, stderr);
           csoap->disconnect();
+          req.finished_abort();
           return SRM_ERROR_SOAP;
         };
   
@@ -1398,6 +1408,7 @@
       // check for timeout
       if (request_time >= copy_timeout) {
         logger.msg(Arc::ERROR, "Error: copy request timed out after %i seconds", copy_timeout);
+        req.finished_abort();
         return SRM_ERROR_TEMPORARY;
       }
   
@@ -1411,6 +1422,7 @@
         return SRM_ERROR_TEMPORARY;
       return SRM_ERROR_PERMANENT;
     };
+    req.finished_success();
     return SRM_OK;
   };
   
