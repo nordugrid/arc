@@ -24,7 +24,7 @@ images/dependencies.png: images/dependencies.dot
 
 JANITOR_SOURCECODE = $(top_srcdir)/src/services/janitor/module
 
-STYLES = IEEEtran.bst ng-logo.png
+STYLES = ng-logo.png
 
 $(doc_DATA): $(docsource) $(STYLES) $(docsrcdeps)
 	pdflatex $(docsource) ; bibtex $(docsource) ; makeindex -s gind.ist $(docsource) ; pdflatex $(docsource) ; \
