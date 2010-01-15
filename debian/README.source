@@ -1,0 +1,15 @@
+The source code presented as .orig.tar.gz to Debian is functionally
+complete. The sources of all images shall be distributed with it.
+There is however the possibility that some files do exist in
+the subversion repository, that are not distributed further. This
+shall be considered a regular consequence of the development process,
+i.e. the Debian packages are not expected to be built from the 
+development branch.
+
+The upstream developers, who are also maintaining this package, invite
+everyone to contribute actively with the future development of the
+ARC middleware and suggest to inspect http://svn.nordugrid.org for
+first steps.
+
+--
+  Steffen Moeller <moeller@debian.org>  Thu, 14 Jan 2010 12:13:30 +0000
