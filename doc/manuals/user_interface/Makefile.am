@@ -10,8 +10,7 @@ xrsl_PARTS = xrsl-urls.tex
 
 chelonia_PARTS = chelonia-cli.tex
 
-STYLES = IEEEtran.bst color.sty framed.sty geometry.sty makeidx.sty gind.ist \
-	grid.bib nordugrid.bib ng-logo.png
+STYLES = grid.bib nordugrid.bib ng-logo.png
 
 $(doc_DATA): $(docsource) $(STYLES) $(xrsl_PARTS) $(chelonia_PARTS)
 	pdflatex $(docsource) ; bibtex $(doctitle) ; makeindex -s gind.ist $(doctitle) ; pdflatex $(docsource) ; \

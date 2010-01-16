@@ -4,8 +4,7 @@ docsource = jura-tech-doc.tex
 
 doc_DATA = jura-tech-doc.pdf
 
-STYLES = IEEEtran.bst color.sty framed.sty geometry.sty makeidx.sty gind.ist \
-	ng-logo.png ng-logo.eps grid.bib
+STYLES = ng-logo.png ng-logo.eps grid.bib
 
 $(doc_DATA): $(docsource) $(STYLES)
 	pdflatex $(docsource:.tex=) ; bibtex $(docsource:.tex=) ; makeindex -s gind.ist $(docsource:.tex=) ; \

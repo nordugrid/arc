@@ -6,8 +6,7 @@ docsource = WS-tutorial.tex
 
 doc_DATA = WS-tutorial.pdf
 
-STYLES = IEEEtran.bst color.sty framed.sty geometry.sty makeidx.sty gind.ist \
-	ng-logo.png
+STYLES = ng-logo.png
 
 $(doc_DATA): $(docsource) $(STYLES)
 	pdflatex $(docsource) ; bibtex $(docsource) ; makeindex -s gind.ist $(docsource) ; pdflatex $(docsource) ; \

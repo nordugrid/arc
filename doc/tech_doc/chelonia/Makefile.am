@@ -4,8 +4,7 @@ docsource = arc-storage-documentation.tex
 
 doc_DATA = arc-storage-documentation.pdf
 
-STYLES = IEEEtran.bst color.sty framed.sty geometry.sty makeidx.sty gind.ist \
-	ng-logo.png grid.bib
+STYLES = ng-logo.png grid.bib
 
 $(doc_DATA): $(docsource) $(STYLES)
 	pdflatex $(docsource:.tex=) ; bibtex $(docsource:.tex=) ; makeindex -s gind.ist $(docsource:.tex=) ; \

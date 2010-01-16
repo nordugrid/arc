@@ -4,8 +4,7 @@ docsource = ARCHED_article.tex
 
 doc_DATA = ARCHED_article.pdf
 
-STYLES = IEEEtran.bst color.sty framed.sty geometry.sty makeidx.sty gind.ist \
-	ng-logo.png grid.bib nordugrid.bib
+STYLES = ng-logo.png grid.bib nordugrid.bib
 
 $(doc_DATA): $(docsource) $(STYLES)
 	pdflatex $(docsource:.tex=) ; bibtex $(docsource:.tex=) ; makeindex -s gind.ist $(docsource:.tex=) ; \
