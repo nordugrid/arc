@@ -28,13 +28,9 @@ namespace Arc {
 
 Logger Daemon::logger(Logger::rootLogger, "Daemon");
 
-Daemon::Daemon(const std::string& pid_file_, const std::string& log_file_)
+Daemon::Daemon(const std::string& pid_file, const std::string& log_file_) : pid_file(pid_file)
 {
-    pid_t pid;
-    
-    pid_file = pid_file_;
-
-    pid = fork();
+    pid_t pid = fork();
     switch(pid) {
         case -1: // parent fork error
             logger.msg(ERROR, "Daemonization fork failed: %s", strerror(errno));
@@ -49,7 +45,7 @@ Daemon::Daemon(const std::string& pid_file_, const std::string& log_file_)
              * The goal is not to have a controlling terminal.
              * As we now don't have a controlling terminal we will not receive
              * tty-related signals - no need to ignore them.
-             */ 
+             */
             setsid();
             /* redirect standard input to /dev/null */
             if (std::freopen("/dev/null", "r", stdin) == NULL) {
