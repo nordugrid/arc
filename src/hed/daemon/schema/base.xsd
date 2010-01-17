@@ -102,7 +102,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="Level" type="LoggerLevel_Type" minOccurs="0" maxOccurs="1" default="INFO">
+            <xsd:element name="Level" type="LoggerLevel_Type" minOccurs="0" maxOccurs="1" default="WARNING">
                 <xsd:annotation>
                     <xsd:documentation xml:lang="en">
                     Define the level of logging.

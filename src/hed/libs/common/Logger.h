@@ -71,6 +71,8 @@ namespace Arc {
    * @see LogLevel
    */
   bool istring_to_level(const std::string& llStr, LogLevel& ll);
+  //! Same as istring_to_level except it is case-sensitive.
+  bool string_to_level(const std::string& str, LogLevel& ll);
   //! Convert LogLevel to a string
   std::string level_to_string(const LogLevel& level);
 

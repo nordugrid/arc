@@ -83,9 +83,12 @@ static std::string init_logger(const Arc::XMLNode& log, bool foreground)
 {
     /* setup root logger */
     Arc::LogFile* sd = NULL;
-    if((bool)log["Level"]) {
-      Arc::Logger::rootLogger.setThreshold(Arc::string_to_level((std::string)log["Level"]));
+    Arc::LogLevel level = Arc::WARNING;
+    if((bool)log["Level"] && !string_to_level((std::string)log["Level"], level)) {
+      logger.msg(Arc::WARNING, "Unknown log level %s", (std::string)log["Level"]);
     }
+    Arc::Logger::rootLogger.setThreshold(level);
+
     std::string log_file = (log["File"] ? (std::string)log["File"] : "/var/log/arched.log");
     sd = new Arc::LogFile(log_file);
     if((!sd) || (!(*sd))) {
