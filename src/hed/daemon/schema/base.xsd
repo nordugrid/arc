@@ -7,7 +7,7 @@
     elementFormDefault="qualified"
     attributeFormDefault="unqualified">
 
-<xsd:import namespace="http://www.nordugrid.org/schemas/loader/2009/08" schemaLocation="loader.xsd"/> 
+<xsd:import namespace="http://www.nordugrid.org/schemas/loader/2009/08" schemaLocation="loader.xsd"/>
 <!-- Root element -->
 <xsd:element name="ArcConfig">
     <xsd:complexType>
@@ -38,7 +38,7 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:all>
-            <xsd:element name="PidFile" type="xsd:string" minOccurs="0" maxOccurs="1" default="">
+            <xsd:element name="PidFile" type="xsd:string" minOccurs="0" maxOccurs="1" default="/var/run/arched.pid">
                 <xsd:annotation>
                     <xsd:documentation xml:lang="en">
                     Path of pid file.
@@ -59,7 +59,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="Gser" type="xsd:string" minOccurs="0" maxOccurs="1">
+            <xsd:element name="Group" type="xsd:string" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation xml:lang="en">
                     The daemon will switch to this specified group using the start time. If it is not specified the effective group won't be changed.
@@ -109,10 +109,10 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="MaxSize" type="xsd:nonNegativeInteger" minOccurs="0" maxOccurs="1">
+            <xsd:element name="Maxsize" type="xsd:nonNegativeInteger" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation xml:lang="en">
-                    Defines the maximal size of the logfile in byte. If the logfile reach the specified size than it will be rotated.  
+                    Defines the maximal size of the logfile in byte. If the logfile reach the specified size than it will be rotated.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
