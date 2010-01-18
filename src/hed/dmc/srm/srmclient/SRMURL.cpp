@@ -73,9 +73,9 @@
     try {
       const std::string proto_val =
             ((std::map<std::string,std::string>&)(Options()))["protocol"];
-      if(proto_val == "gsi") return false;
+      if(proto_val == "gssapi") return true;
     } catch (std::exception e) { };
-    return true;
+    return false;
   }
 
 //} // namespace Arc

@@ -574,6 +574,7 @@ namespace Arc {
     int recursion = 0;
     if (metadata) recursion = -1; // get info on directory rather than contents
     SRMReturnCode res = client->info(*srm_request, srm_metadata, recursion);
+    /* Reverted back to gsi protocol by default so this code is not needed
     if (res == SRM_ERROR_SOAP) {
       logger.msg(ERROR, "Retrying with gsi protocol...\n");
       URL gsiurl(url);
@@ -581,7 +582,7 @@ namespace Arc {
       client = SRMClient::getInstance(std::string(gsiurl.fullstr()));
       if(!client) return DataStatus::ListError;
       res = client->info(*srm_request, srm_metadata, recursion);
-    }   
+    }*/
     delete client;
     client = NULL;
     delete srm_request;
