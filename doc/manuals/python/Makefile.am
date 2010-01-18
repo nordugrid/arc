@@ -4,8 +4,7 @@ docsource = SWIG-wrapped-ARC-Python-API.tex
 
 doc_DATA = SWIG-wrapped-ARC-Python-API.pdf
 
-STYLES = IEEEtran.bst color.sty framed.sty geometry.sty makeidx.sty gind.ist \
-	ng-logo.png grid.bib
+STYLES = ng-logo.png grid.bib
 
 $(doc_DATA): $(docsource) $(STYLES)
 	pdflatex $(docsource:.tex=) ; bibtex $(docsource:.tex=) ; makeindex -s gind.ist $(docsource:.tex=) ; \

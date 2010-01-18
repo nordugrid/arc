@@ -4,7 +4,7 @@ docsource = arc-security-documentation.tex
 
 doc_DATA = arc-security-documentation.pdf
 
-STYLES = IEEEtran.bst ng-logo.png grid.bib
+STYLES = ng-logo.png grid.bib
 
 IMAGES = figures/*.pdf figures/*.png
 IMAGESOURCES = figures/*.dia
