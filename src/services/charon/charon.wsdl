@@ -23,14 +23,14 @@
         </xsd:sequence>
       </xsd:complexType>
       <xsd:element name="GetPolicyDecisionRequest" type="charon:GetPolicyDecisionRequestType"/>
-		
+
       <xsd:complexType name="GetPolicyDecisionResponseType">
         <xsd:sequence>
           <xsd:element name="Response" type="response-arc:Response" minOccurs="1" maxOccurs="1"/>
         </xsd:sequence>
       </xsd:complexType>
       <xsd:element name="GetPolicyDecisionResponse" type="charon:GetPolicyDecisionResponseType"/>
-		
+
     </xsd:schema>
   </wsdl:types>
 

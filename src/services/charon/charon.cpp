@@ -5,6 +5,8 @@
 #include <iostream>
 
 #include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
 
 #ifndef WIN32
 #include <pwd.h>
@@ -39,12 +41,16 @@ static Arc::Plugin* get_service(Arc::PluginArgument* arg) {
     return new Charon((Arc::Config*)(*srvarg));
 }
 
-Arc::MCC_Status Charon::make_soap_fault(Arc::Message& outmsg) {
+Arc::MCC_Status Charon::make_soap_fault(Arc::Message& outmsg, const std::string& msg) {
   Arc::PayloadSOAP* outpayload = new Arc::PayloadSOAP(ns_,true);
   Arc::SOAPFault* fault = outpayload?outpayload->Fault():NULL;
   if(fault) {
     fault->Code(Arc::SOAPFault::Sender);
-    fault->Reason("Failed processing request");
+    if(msg.empty()) {
+      fault->Reason("Failed processing request");
+    } else {
+      fault->Reason(msg);
+    };
   };
   outmsg.Payload(outpayload);
   return Arc::MCC_Status(Arc::STATUS_OK);
@@ -97,12 +103,24 @@ Arc::MCC_Status Charon::process(Arc::Message& inmsg,Arc::Message& outmsg) {
       return make_soap_fault(outmsg);
     };
 
+    if(!eval) {
+      logger.msg(Arc::ERROR, "Evaluator is not initialized");
+      return make_soap_fault(outmsg,"Internal policy processing error");
+    };
+
     //Call the functionality of policy engine
     //Here the decision algorithm is the same as that in ArcPDP.cpp,
     //so this algorithm implicitly applies to policy with Arc format;
     //for xacml policy (the "rlist" will only contains one item), this 
     //decision algorithm also applies.
     Response *resp = NULL;
+    // Evaluator stores results inside, hence can't be used multi-threaded
+    // TODO: fix multi-threading for Evaluator
+    Glib::Mutex::Lock eval_lock(lock_);
+    if(policies_modified()) {
+      logger.msg(Arc::INFO, "Policy(ies) modified - reloading evaluator");
+      load_policies();
+    }
     resp = eval->evaluate(Source(arc_requestnd));
     ResponseList rlist = resp->getResponseItems();
     int size = rlist.size();
@@ -141,15 +159,19 @@ Arc::MCC_Status Charon::process(Arc::Message& inmsg,Arc::Message& outmsg) {
     else if(!atleast_onedeny && !atleast_onepermit) result = false;
 
     if(result) logger.msg(Arc::INFO, "Authorized from Charon service");
-    else logger.msg(Arc::ERROR, "UnAuthorized from Charon service; Some of the RequestItem does not satisfy Policy");
+    else logger.msg(Arc::ERROR, "Not authorized from Charon service; Some of the RequestItem does not satisfy Policy");
 
-    //Put those request items which satisfy the policies into the response SOAP message (implicitly
-    //means the decision result: <ItemA, permit>, <ItemB, permit>, <ItemC, deny> (ItemC will not in the 
-    //response SOAP message)
-    //The client of the pdpservice (normally a policy enforcement point, like job executor) is supposed
-    //to compose the policy decision request to pdpservice by parsing the information from the request 
-    //(aiming to the client itself), and permit or deny the request by using the information responded 
-    //from pdpservice; Here pdpservice only gives some coarse decision to pdpservice invoker.
+    // Put those request items which satisfy the policies into the 
+    // response SOAP message (implicitly means the decision result: 
+    // <ItemA, permit>, <ItemB, permit>, <ItemC, deny> (ItemC will 
+    // not be in the response SOAP message).
+    // The client of the pdpservice (normally a policy enforcement 
+    // point, like job executor) is supposed to compose the policy
+    // decision request to pdpservice by parsing the information 
+    // from the request (aiming to the client itself), and permit 
+    // or deny the request by using the information responded from 
+    // pdpservice; Here pdpservice only gives some coarse decision 
+    // to pdpservice invoker.
     if(!use_saml) {
       Arc::PayloadSOAP* outpayload = new Arc::PayloadSOAP(ns_);
       Arc::XMLNode response = outpayload->NewChild("pdp:GetPolicyDecisionResponse");
@@ -246,27 +268,56 @@ Charon::Charon(Arc::Config *cfg):RegisteredService(cfg), logger_(Arc::Logger::ro
   ns_["pdp"]="http://www.nordugrid.org/schemas/pdp";
 
   //Load the Evaluator object
-  std::string evaluator = (*cfg)["Evaluator"].Attribute("name");
-  logger.msg(Arc::INFO, "Evaluator: %s", evaluator);
-  ArcSec::EvaluatorLoader eval_loader;
-  eval = eval_loader.getEvaluator(evaluator);
-  if(eval == NULL) {
-    logger.msg(Arc::ERROR, "Can not dynamically produce Evaluator");
-  }
-  else logger.msg(Arc::INFO, "Succeeded to produce Evaluator");
+  evaluator_name_ = (std::string)((*cfg)["Evaluator"].Attribute("name"));
+  logger.msg(Arc::INFO, "Evaluator: %s", evaluator_name_);
 
   //Get the policy location, and put it into evaluator
-  Arc::XMLNode policyfile;
   Arc::XMLNode policystore = (*cfg)["PolicyStore"];
-  if(policystore) {
-    for(int i = 0; ; i++) {
-      policyfile = policystore["Location"][i];
-      if(!policyfile) break;
-      eval->addPolicy(SourceFile((std::string)policyfile));
-      logger.msg(Arc::INFO, "Policy location: %s", (std::string)policyfile);
-    }
+  Arc::XMLNode location = policystore["Location"];
+  for(;(bool)location;++location) {
+    std::string policyfile = location;
+    std::string autoreload = location.Attribute("AutoReload");
+    bool autoreload_b = true;
+    if((autoreload == "false") || (autoreload == "0")) autoreload_b = false;
+    if(policyfile.empty()) continue;
+    locations_.push_back(PolicyLocation(policyfile,autoreload_b));
+    logger.msg(Arc::INFO, "Policy location: %s", policyfile);
   }
+  load_policies();
 }
+
+bool Charon::policies_modified(void) {
+  for(std::list<PolicyLocation>::iterator p = locations_.begin();
+                   p != locations_.end(); ++p) {
+    if(p->IsModified()) return true;
+  }
+  return false;
+}
+
+bool Charon::load_policies(void) {
+  ArcSec::EvaluatorLoader eval_loader;
+  if(eval) delete eval;
+  eval = eval_loader.getEvaluator(evaluator_name_);
+  if(eval == NULL) {
+    logger.msg(Arc::ERROR, "Can not dynamically produce Evaluator");
+    return false;
+  }
+  else logger.msg(Arc::INFO, "Succeeded to produce Evaluator");
+  for(std::list<PolicyLocation>::iterator p = locations_.begin();
+                   p != locations_.end(); ++p) {
+    logger.msg(Arc::VERBOSE, "Loading policy from %s",p->path);
+    SourceFile source(p->path);
+    if(!source) {
+      logger.msg(Arc::ERROR, "Failed loading policy from %s",p->path);
+      delete eval;
+      eval = NULL;
+      return false;
+    }
+    eval->addPolicy(SourceFile(p->path));
+  }
+  return true;
+}
+
 
 Charon::~Charon(void) {
   if(eval)
@@ -281,6 +332,35 @@ bool Charon::RegistrationCollector(Arc::XMLNode &doc) {
   regentry.New(doc);
   return true;
 }
+
+Charon::PolicyLocation::PolicyLocation(const std::string& location,bool autoreload) {
+  reload = autoreload;
+  struct stat st;
+  if(stat(location.c_str(), &st) != 0) return;
+  if(!S_ISREG(st.st_mode)) return;
+  mtime = st.st_mtime;
+  ctime = st.st_ctime;
+  path = location;
+}
+
+bool Charon::PolicyLocation::IsModified(void) {
+  if(!reload) return false;
+  logger.msg(Arc::DEBUG, "Checking policy modification: %s",path);
+  if(path.empty()) return false;
+  struct stat st;
+  if((stat(path.c_str(), &st) != 0) || (!S_ISREG(st.st_mode))) {
+    logger.msg(Arc::INFO, "Policy removed: %s", path);
+    return true;
+  }
+  logger.msg(Arc::DEBUG, "Old policy times: %u/%u",(unsigned int)mtime,(unsigned int)ctime);
+  logger.msg(Arc::DEBUG, "New policy times: %u/%u",(unsigned int)st.st_mtime,(unsigned int)st.st_ctime);
+  if((mtime == st.st_mtime) && (ctime == st.st_ctime)) return false;
+  mtime = st.st_mtime;
+  ctime = st.st_ctime;
+  logger.msg(Arc::INFO, "Policy modified: %s", path);
+  return true;
+}
+
 
 } // namespace ArcSec
 
