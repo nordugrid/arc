@@ -393,6 +393,7 @@ namespace Arc {
     if(name.empty()) return false;
     Glib::Module* module = NULL;
     PluginDescriptor* desc = NULL;
+    void *ptr = NULL;
     std::string mname;
     Glib::Mutex::Lock lock(lock_);
     // Check if module already loaded
@@ -422,7 +423,6 @@ namespace Arc {
         return false;
       };
       // Identify table of descriptors
-      void *ptr = NULL;
       if(!module->get_symbol(plugins_table_name,ptr)) {
         logger.msg(VERBOSE, "Module %s is not an ARC plugin (%s)",mname,strip_newline(Glib::Module::get_last_error()));
         unload_module(module,*this);
@@ -450,7 +450,7 @@ namespace Arc {
         unload_module(module,*this);
         return false;
       };
-      descriptors_[mname]=desc;
+      descriptors_[mname]=(PluginDescriptor*)ptr;
       modules_[mname]=nmodule;
       //descriptors_.push_back((PluginDescriptor*)ptr);
       //modules_.push_back(module);
