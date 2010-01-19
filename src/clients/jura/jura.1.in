@@ -68,7 +68,7 @@ certificate location, \fI/etc/grid-security/hostcert.pem\fR.
 .B X509_USER_KEY
 The location of the private key of the reporting entity, used only if
 not specified in job log files. The default is the standard host key
-location, \fI/etc/grid-security/hostcert.pem\fR.
+location, \fI/etc/grid-security/hostkey.pem\fR.
 
 .TP
 .B X509_CERT_DIR
