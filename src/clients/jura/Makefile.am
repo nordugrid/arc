@@ -7,4 +7,4 @@ jura_LDADD    = $(top_srcdir)/src/hed/libs/common/libarccommon.la \
 	$(top_srcdir)/src/hed/libs/message/libarcmessage.la \
 	$(GLIBMM_LIBS) $(LIBXML2_LIBS)
 
-#man_MANS = arexlutsclient.1
+man_MANS = jura.1
