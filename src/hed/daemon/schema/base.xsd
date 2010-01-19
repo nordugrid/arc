@@ -13,7 +13,7 @@
     <xsd:complexType>
         <xsd:annotation>
             <xsd:documentation>
-            This is a top level element of ARC configuration document.
+            This is the top level element of ARC configuration document.
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
@@ -41,28 +41,28 @@
             <xsd:element name="PidFile" type="xsd:string" minOccurs="0" maxOccurs="1" default="/var/run/arched.pid">
                 <xsd:annotation>
                     <xsd:documentation xml:lang="en">
-                    Path of pid file.
+                    Path to pid file.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="Foreground" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false">
                 <xsd:annotation>
                     <xsd:documentation xml:lang="en">
-                    Indicate wether the server runs in foreground or in daemon mode. It it runs in foreground the log will goes to standard error as well.
+                    Indicates whether the server runs in foreground or daemon mode. If it runs in foreground the log goes to standard error as well.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="User" type="xsd:string" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation xml:lang="en">
-                    The daemon will switch to this specified user using the start time. If it is not specified the effective user won't be changed.
+                    arched will run under the specified user. If not specified the effective user will not be changed.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="Group" type="xsd:string" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation xml:lang="en">
-                    The daemon will switch to this specified group using the start time. If it is not specified the effective group won't be changed.
+                    arched will run under the specified group. If not specified the effective group will not be changed.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -75,14 +75,15 @@
 <xsd:simpleType name="LoggerLevel_Type">
     <xsd:annotation>
         <xsd:documentation xml:lang="en">
-        Define log level.
+        The enumeration lists the supported log levels.
         </xsd:documentation>
     </xsd:annotation>
     <xsd:restriction base="xsd:string">
-        <xsd:enumeration value="VERBOSE"/>
-        <xsd:enumeration value="INFO"/>
+        <xsd:enumeration value="FATAL"/>
         <xsd:enumeration value="ERROR"/>
         <xsd:enumeration value="WARNING"/>
+        <xsd:enumeration value="INFO"/>
+        <xsd:enumeration value="VERBOSE"/>
         <xsd:enumeration value="DEBUG"/>
     </xsd:restriction>
 </xsd:simpleType>
@@ -91,35 +92,35 @@
     <xsd:complexType>
         <xsd:annotation>
             <xsd:documentation xml:lang="en">
-            Configuration of logger.
+            Logger configuration element.
             </xsd:documentation>
         </xsd:annotation>
         <xsd:all>
             <xsd:element name="File" type="xsd:string" minOccurs="0" maxOccurs="1" default="/var/log/arched.log">
                 <xsd:annotation>
                     <xsd:documentation xml:lang="en">
-                    Define the full path of log file.
+                    This element configures the file which should be used for storing log messages.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="Level" type="LoggerLevel_Type" minOccurs="0" maxOccurs="1" default="WARNING">
                 <xsd:annotation>
                     <xsd:documentation xml:lang="en">
-                    Define the level of logging.
+                    Specifies the log level of the messages which should be logged.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="Maxsize" type="xsd:nonNegativeInteger" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation xml:lang="en">
-                    Defines the maximal size of the logfile in byte. If the logfile reach the specified size than it will be rotated.
+                    Defines the maximal size of the logfile in bytes.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="Backups" type="xsd:nonNegativeInteger" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation xml:lang="en">
-                    Defines the maximal number of rotated log file.
+                    Defines the maximal number of logfiles used in log rotation.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
