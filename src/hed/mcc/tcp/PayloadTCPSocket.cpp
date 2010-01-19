@@ -39,7 +39,7 @@ int PayloadTCPSocket::connect_socket(const char* hostname,int port)
   int ret = getaddrinfo(hostname, port_str.c_str(), &hint, &info);
   if (ret != 0) {
     std::string err_str = gai_strerror(ret); 
-    logger.msg(WARNING, "Failed to resolve %s (%s)", hostname, err_str);
+    logger.msg(VERBOSE, "Failed to resolve %s (%s)", hostname, err_str);
 	return -1;
   }
   int s = -1;
@@ -60,7 +60,7 @@ int PayloadTCPSocket::connect_socket(const char* hostname,int port)
     if(s_flags != -1) {
       ::fcntl(s, F_SETFL, s_flags | O_NONBLOCK);
     } else {
-      logger.msg(WARNING, "Failed to get TCP socket options for connection"
+      logger.msg(VERBOSE, "Failed to get TCP socket options for connection"
                         " to %s(%s):%d - timeout won't work - %s",
                         hostname,info_->ai_family==AF_INET6?"IPv6":"IPv4",port,
                         Arc::StrError(errno));
@@ -130,9 +130,9 @@ int PayloadTCPSocket::connect_socket(const char* hostname,int port)
 }
 
 PayloadTCPSocket::PayloadTCPSocket(const char* hostname,
-				                   int port,
+                                   int port,
                                    int timeout,
-				                   Logger& logger) :
+                                   Logger& logger) :
   logger(logger)
 {
   timeout_=timeout;

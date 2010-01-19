@@ -137,7 +137,18 @@ MCC_TCP_Service::MCC_TCP_Service(Config *cfg):MCC_TCP(cfg),max_executers_(-1),ma
                 logger.msg(ERROR, "Failed to create socket for for listening at TCP port %s(%s): %s", port_s, PROTO_NAME(info_),e);
                 continue;
             };
-            if(::bind(s,info->ai_addr,info->ai_addrlen) == -1) {
+#ifdef IPV6_V6ONLY
+            if(info_->ai_family == AF_INET6) {
+              int v = 1;
+              // Some systems (Linux for example) make v6 support v4 too
+              // by default. Some don't. Make it same for everyone - 
+              // separate sockets for v4 and v6.
+              if(setsockopt(s,IPPROTO_IPV6,IPV6_V6ONLY,&v,sizeof(v)) != 0) {
+                logger.msg(ERROR, "Failed to limit socket to IPv6 at TCP port %s - may cause errors for IPv4 at same port", port_s);
+              };
+            };
+#endif
+            if(::bind(s,info_->ai_addr,info_->ai_addrlen) == -1) {
                 std::string e = StrError(errno);
                 logger.msg(ERROR, "Failed to bind socket for TCP port %s(%s): %s", port_s, PROTO_NAME(info_),e);
                 close(s);
