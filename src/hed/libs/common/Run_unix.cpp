@@ -98,6 +98,11 @@ namespace Arc {
     void *arg = arg_;
     void (*func)(void*) = func_;
     delete this;
+    // To leave clean environment reset all signal.
+    // Otherwise we may get some signals non-intentionally ignored.
+    // Glib takes care of open handles.
+    for(int n = SIGHUP; n < SIGRTMIN; ++n)
+      signal(n,SIG_DFL);
     if (!func)
       return;
     (*func)(arg);
@@ -250,6 +255,7 @@ namespace Arc {
       pid_(NULL),
       argv_(Glib::shell_parse_argv(cmdline)),
       initializer_func_(NULL),
+      initializer_arg_(NULL),
       kicker_func_(NULL),
       started_(false),
       running_(false),
@@ -269,6 +275,7 @@ namespace Arc {
       pid_(0),
       argv_(argv),
       initializer_func_(NULL),
+      initializer_arg_(NULL),
       kicker_func_(NULL),
       started_(false),
       running_(false),
@@ -298,23 +305,13 @@ namespace Arc {
       UserSwitch usw(0,0);
       running_ = true;
       Glib::Pid pid;
-      if (initializer_func_) {
-        arg = new RunInitializerArgument(initializer_func_, initializer_arg_);
-        spawn_async_with_pipes(working_directory, argv_,
-                               Glib::SpawnFlags(Glib::SPAWN_DO_NOT_REAP_CHILD),
-                               sigc::mem_fun(*arg, &RunInitializerArgument::Run),
-                               &pid, stdin_keep_ ? NULL : &stdin_,
-                               stdout_keep_ ? NULL : &stdout_,
-                               stderr_keep_ ? NULL : &stderr_);
-      }
-      else {
-        spawn_async_with_pipes(working_directory, argv_,
-                               Glib::SpawnFlags(Glib::SPAWN_DO_NOT_REAP_CHILD),
-                               sigc::slot<void>(), &pid,
-                               stdin_keep_ ? NULL : &stdin_,
-                               stdout_keep_ ? NULL : &stdout_,
-                               stderr_keep_ ? NULL : &stderr_);
-      }
+      arg = new RunInitializerArgument(initializer_func_, initializer_arg_);
+      spawn_async_with_pipes(working_directory, argv_,
+                             Glib::SpawnFlags(Glib::SPAWN_DO_NOT_REAP_CHILD),
+                             sigc::mem_fun(*arg, &RunInitializerArgument::Run),
+                             &pid, stdin_keep_ ? NULL : &stdin_,
+                             stdout_keep_ ? NULL : &stdout_,
+                             stderr_keep_ ? NULL : &stderr_);
       *pid_ = pid;
       if (!stdin_keep_)
         fcntl(stdin_, F_SETFL, fcntl(stdin_, F_GETFL) | O_NONBLOCK);
