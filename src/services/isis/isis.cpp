@@ -871,9 +871,9 @@ static void soft_state_thread(void *data) {
                 workingcopy["AdminDomain"]["Services"]["Service"].Attribute("ID") = endpoint_;
                 workingcopy["AdminDomain"]["Services"]["Service"].Attribute("CreationTime") = Current_Time();
                 workingcopy["AdminDomain"]["Services"]["Service"].Attribute("Validity") = "600";
-                char * otherInfo;
-                sprintf(otherInfo, "isis_sparsity=%d", sparsity);
-                workingcopy["AdminDomain"]["Services"]["Service"].Attribute("OtherInfo") = (std::string) otherInfo;
+                std::stringstream sparsity_string;
+                sparsity_string << "isis_sparsity=" << sparsity;
+                workingcopy["AdminDomain"]["Services"]["Service"].Attribute("OtherInfo") = sparsity_string.str();
                 // TODO: Update infodoc_
                 infodoc_.Release();
                 infodoc_.Assign(workingcopy, true);
