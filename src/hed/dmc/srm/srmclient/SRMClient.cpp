@@ -8,7 +8,16 @@ Arc::Logger SRMClient::logger(Arc::Logger::getRootLogger(), "SRMClient");
 
   time_t SRMClient::request_timeout=300;
   
+  SRMReturnCode SRMClient::connect(void) {
+    if(!csoap) return SRM_ERROR_OTHER;
+    int r = csoap->connect();
+    if (r == 1) return SRM_ERROR_TEMPORARY;
+    if (r != 0) return SRM_ERROR_CONNECTION;
+    return SRM_OK;
+  }
+
   SRMClient* SRMClient::getInstance(std::string url,
+                                    bool& timedout,
                                     time_t timeout,
                                     SRMVersion srm_version) {
   
@@ -46,6 +55,12 @@ Arc::Logger SRMClient::logger(Arc::Logger::getRootLogger(), "SRMClient");
       return new SRM1Client(url);
     };
   
+    // connection timeout
+    if (srm_error == SRM_ERROR_TEMPORARY) {
+      timedout = true;
+      return NULL;
+    };
+    
     // any other error probably means service is down - return error
     // TODO - proper exceptions!
     //throw new SRMServiceError;

@@ -36,7 +36,8 @@ namespace Arc {
       srm_request(NULL),
       r_handle(NULL),
       reading(false),
-      writing(false) {
+      writing(false),
+      timeout(false) {
     valid_url_options.push_back("protocol");
     valid_url_options.push_back("spacetoken");
     globus_module_activate(GLOBUS_GSI_GSSAPI_MODULE);
@@ -70,9 +71,12 @@ namespace Arc {
 
   DataStatus DataPointSRM::Check() {
 
-    SRMClient *client = SRMClient::getInstance(url.fullstr());
-    if (!client)
+    SRMClient *client = SRMClient::getInstance(url.fullstr(), timeout);
+    if (!client) {
+      if (timeout)
+        return DataStatus::CheckErrorRetryable;
       return DataStatus::CheckError;
+    }
 
     if (url.HTTPOption("SFN", "") == "")
       srm_request = new SRMClientRequest(url.str());
@@ -121,9 +125,12 @@ namespace Arc {
 
   DataStatus DataPointSRM::Remove() {
 
-    SRMClient *client = SRMClient::getInstance(url.fullstr());
-    if (!client)
+    SRMClient *client = SRMClient::getInstance(url.fullstr(), timeout);
+    if (!client) {
+      if (timeout)
+        return DataStatus::DeleteErrorRetryable;
       return DataStatus::DeleteError;
+    }
 
     // take out options in srm url
     std::string canonic_url;
@@ -166,9 +173,11 @@ namespace Arc {
     reading = true;
     buffer = &buf;
 
-    SRMClient *client = SRMClient::getInstance(url.fullstr(), buffer->speed.get_max_inactivity_time());
+    SRMClient *client = SRMClient::getInstance(url.fullstr(), timeout, buffer->speed.get_max_inactivity_time());
     if (!client) {
       reading = false;
+      if (timeout)
+        return DataStatus::ReadStartErrorRetryable;
       return DataStatus::ReadStartError;
     }
 
@@ -303,7 +312,7 @@ namespace Arc {
     }
     
     if (srm_request) {
-      SRMClient *client = SRMClient::getInstance(url.fullstr(), buffer->speed.get_max_inactivity_time());
+      SRMClient *client = SRMClient::getInstance(url.fullstr(), timeout, buffer->speed.get_max_inactivity_time());
       if (client) {
         if(buffer->error_read() || srm_request->status() == SRM_REQUEST_SHOULD_ABORT) {
           client->abort(*srm_request);
@@ -332,9 +341,11 @@ namespace Arc {
     writing = true;
     buffer = &buf;
 
-    SRMClient *client = SRMClient::getInstance(url.fullstr(), buffer->speed.get_max_inactivity_time());
+    SRMClient *client = SRMClient::getInstance(url.fullstr(), timeout, buffer->speed.get_max_inactivity_time());
     if (!client) {
       writing = false;
+      if (timeout)
+        return DataStatus::WriteStartErrorRetryable;
       return DataStatus::WriteStartError;
     }
 
@@ -470,7 +481,7 @@ namespace Arc {
     }
       
     if (!r) {
-      SRMClient *client = SRMClient::getInstance(url.fullstr(), buffer->speed.get_max_inactivity_time());
+      SRMClient *client = SRMClient::getInstance(url.fullstr(), timeout, buffer->speed.get_max_inactivity_time());
       if(client) {
         client->abort(*srm_request);
         delete client;
@@ -481,7 +492,7 @@ namespace Arc {
       return r;
     }
 
-    SRMClient * client = SRMClient::getInstance(url.fullstr(), buffer->speed.get_max_inactivity_time());
+    SRMClient * client = SRMClient::getInstance(url.fullstr(), timeout, buffer->speed.get_max_inactivity_time());
     if(client) {
       // call abort if failure, or releasePut on success
       if(buffer->error() || srm_request->status() == SRM_REQUEST_SHOULD_ABORT) 
@@ -548,9 +559,12 @@ namespace Arc {
                                      bool resolve,
                                      bool metadata) {
 
-    SRMClient * client = SRMClient::getInstance(url.fullstr());
-    if(!client) 
+    SRMClient * client = SRMClient::getInstance(url.fullstr(), timeout);
+    if(!client) {
+      if (timeout)
+        return DataStatus::ListErrorRetryable;
       return DataStatus::ListError;
+    }
     
     std::string canonic_url;
     if (!url.HTTPOption("SFN").empty())

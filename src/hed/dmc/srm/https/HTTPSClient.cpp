@@ -62,7 +62,11 @@ namespace Arc {
   int HTTPSClient::connect(void) {
     if(connected) return 0;
     if(!valid) return -1;
-    if(!c->connect()) return -1;
+    bool timeout = false;
+    if(!c->connect(timeout)) {
+      if (timeout) return 1;
+      return -1;
+    }
     connected=true;
     return 0;
   }
@@ -525,7 +529,7 @@ namespace Arc {
 
   SimpleCondition * HTTPSClientConnector::connect_lock = new SimpleCondition();
 
-  bool HTTPSClientConnector::connect(void) { return false; }
+  bool HTTPSClientConnector::connect(bool& timeout) { return false; }
   
   bool HTTPSClientConnector::disconnect(void)  { return false; }
   

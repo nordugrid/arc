@@ -38,6 +38,7 @@ namespace Arc {
     DataHandle *r_handle;  /* handle used for redirected operations */
     bool reading;
     bool writing;
+    bool timeout; /* flag to say whether connection timed out */
   };
 
 } // namespace Arc

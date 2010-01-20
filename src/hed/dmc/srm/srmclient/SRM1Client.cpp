@@ -24,9 +24,9 @@
   
   SRMReturnCode SRM1Client::getTURLs(SRMClientRequest& req,
                                      std::list<std::string>& urls) {
-    if(!csoap) return SRM_ERROR_OTHER;
-    if(!connect()) return SRM_ERROR_CONNECTION;
-  
+    SRMReturnCode rc = connect();
+    if (rc != SRM_OK) return rc;
+
     SRMURL srmurl(req.surls().front().c_str());
     int soap_err = SOAP_OK;
     std::list<int> file_ids;
@@ -99,8 +99,8 @@
   SRMReturnCode SRM1Client::putTURLs(SRMClientRequest& req,
                                      std::list<std::string>& urls,
                                      unsigned long long size) {
-    if(!csoap) return SRM_ERROR_OTHER;
-    if(!connect()) return SRM_ERROR_CONNECTION;
+    SRMReturnCode rc = connect();
+    if (rc != SRM_OK) return rc;
   
     SRMURL srmurl(req.surls().front().c_str());
     int soap_err = SOAP_OK;
@@ -188,8 +188,8 @@
   
   SRMReturnCode SRM1Client::copy(SRMClientRequest& req,
                                  const std::string& source) {
-    if(!csoap) return SRM_ERROR_OTHER;
-    if(!connect()) return SRM_ERROR_CONNECTION;
+    SRMReturnCode rc = connect();
+    if (rc != SRM_OK) return rc;
   
     SRMURL srmurl(req.surls().front().c_str());
     int soap_err = SOAP_OK;
@@ -303,8 +303,8 @@
   }
   
   SRMReturnCode SRM1Client::remove(SRMClientRequest& req) {
-    if(!csoap) return SRM_ERROR_OTHER;
-    if(!connect()) return SRM_ERROR_CONNECTION;
+    SRMReturnCode rc = connect();
+    if (rc != SRM_OK) return rc;
   
     SRMURL srmurl(req.surls().front().c_str());
     int soap_err = SOAP_OK;
@@ -331,8 +331,8 @@
                                  std::list<struct SRMFileMetaData>& metadata,
                                  const int recursive,
                                  bool report_error) {
-    if(!csoap) return SRM_ERROR_OTHER;
-    if(!connect()) return SRM_ERROR_CONNECTION;
+    SRMReturnCode rc = connect();
+    if (rc != SRM_OK) return rc;
   
     SRMURL srmurl(req.surls().front().c_str());
     int soap_err = SOAP_OK;
@@ -388,8 +388,8 @@
   }
   
   SRMReturnCode SRM1Client::release(SRMClientRequest& req) {
-    if(!csoap) return SRM_ERROR_OTHER;
-    if(!connect()) return SRM_ERROR_CONNECTION;
+    SRMReturnCode rc = connect();
+    if (rc != SRM_OK) return rc;
     int soap_err = SOAP_OK;
     std::list<int> file_ids = req.file_ids();
     // Tell server to move files into "Done" state

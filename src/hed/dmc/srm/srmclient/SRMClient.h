@@ -330,8 +330,9 @@
   
     /**
      * Establish a connection to the service
+     * @returns SRMReturnCode specifying outcome of operation
      */
-    bool connect(void) { if(!csoap) return false; return (csoap->connect() == 0);};
+    SRMReturnCode connect(void);
   
     /**
      * Disconnect from the service and destroy the connection
@@ -345,11 +346,13 @@
      * @param url A SURL. A client connects to the service host derived from
      * this SURL. All operations with a client instance must use SURLs with
      * the same host as this one.
+     * @param timedout Whether the connection timed out
      * @param timeout Connection timeout.
      * @param version If this is non-NULL a client instance of this version
      * is returned.
      */
     static SRMClient* getInstance(std::string url,
+                                  bool& timedout,
                                   time_t timeout=300,
                                   SRMVersion srm_version=SRM_VNULL);
     /**

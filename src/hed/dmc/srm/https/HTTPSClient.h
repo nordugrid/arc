@@ -85,7 +85,7 @@ namespace Arc {
     /// Lock for mutex on connection (bug 1613)
     static SimpleCondition * connect_lock;
     /// Establish connection and context (if needed)
-    virtual bool connect(void);
+    virtual bool connect(bool& timedout);
     /// Close connection to remote host
     virtual bool disconnect(void);
     /// Read all pending data
@@ -130,7 +130,7 @@ namespace Arc {
     static void write_callback(void *arg,globus_io_handle_t *handle,globus_result_t result,globus_byte_t *buf,globus_size_t nbytes);
     static globus_bool_t authorization_callback(void* arg,globus_io_handle_t* h,globus_result_t result,char* identity,gss_ctx_id_t context_handle);
    protected:
-    virtual bool connect(void);
+    virtual bool connect(bool& timedout);
     virtual bool disconnect(void);
     virtual bool read(char* buf = NULL,unsigned int* size = NULL);
     virtual bool write(const char* buf = NULL,unsigned int size = 0);
@@ -163,7 +163,7 @@ namespace Arc {
     unsigned int write_size;
     bool check_host_cert;
    protected:
-    virtual bool connect(void);
+    virtual bool connect(bool& timedout);
     virtual bool disconnect(void);
     virtual bool clear(void);
     virtual bool read(char* buf = NULL,unsigned int* size = NULL);
@@ -210,6 +210,7 @@ namespace Arc {
     virtual ~HTTPSClient(void);
     operator bool(void) { return valid; };
     bool credentials(const char* filename);
+    /** Returns 0 on success, 1 on timeout and -1 on other error */
     int connect(void);
     int disconnect(void);
     int PUT(const char* path,unsigned long long int offset,unsigned long long int size,const unsigned char* buf,unsigned long long int fd_size,bool wait = true);

@@ -207,7 +207,7 @@ namespace Arc {
     return true;
   }
   
-  bool HTTPSClientConnectorGlobus::connect(void) {
+  bool HTTPSClientConnectorGlobus::connect(bool &timedout) {
     if(!valid) return false;
     if(connected) return true;
     globus_result_t res;
@@ -228,6 +228,7 @@ namespace Arc {
       globus_io_cancel(&s,GLOBUS_FALSE);
       globus_io_close(&s);
       connect_lock->unlock();
+      timedout = true;
       return false;
     };
     connect_lock->unlock();
@@ -376,7 +377,7 @@ namespace Arc {
     valid=false;
   }
   
-  bool HTTPSClientConnectorGSSAPI::connect(void) {
+  bool HTTPSClientConnectorGSSAPI::connect(bool &timedout) {
     if(!valid) return false;
     if(s != -1) return true;
     read_buf=NULL; read_size=0; read_size_result=NULL;

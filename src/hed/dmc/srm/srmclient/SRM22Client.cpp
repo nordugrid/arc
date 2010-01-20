@@ -34,8 +34,8 @@
   
   SRMReturnCode SRM22Client::ping(std::string& version, bool report_error) {
   
-    if(!csoap) return SRM_ERROR_OTHER;
-    if(!connect()) return SRM_ERROR_CONNECTION;
+    SRMReturnCode rc = connect();
+    if (rc != SRM_OK) return rc;
   
     SRMv2__srmPingRequest * request = new SRMv2__srmPingRequest;
     struct SRMv2__srmPingResponse_ response_struct;
@@ -87,8 +87,8 @@
   SRMReturnCode SRM22Client::getSpaceTokens(std::list<std::string>& tokens,
                                             std::string description) {
   
-    if(!csoap) return SRM_ERROR_OTHER;
-    if(!connect()) return SRM_ERROR_CONNECTION;
+    SRMReturnCode rc = connect();
+    if (rc != SRM_OK) return rc;
   
     SRMv2__srmGetSpaceTokensRequest * request = new SRMv2__srmGetSpaceTokensRequest;
     if(description.compare("") != 0) request->userSpaceTokenDescription = (char*)description.c_str();
@@ -125,8 +125,8 @@
   SRMReturnCode SRM22Client::getRequestTokens(std::list<std::string>& tokens,
                                               std::string description) {
   
-    if(!csoap) return SRM_ERROR_OTHER;
-    if(!connect()) return SRM_ERROR_CONNECTION;
+    SRMReturnCode rc = connect();
+    if (rc != SRM_OK) return rc;
   
     SRMv2__srmGetRequestTokensRequest * request = new SRMv2__srmGetRequestTokensRequest;
     if(description.compare("") != 0) request->userRequestDescription = (char*)description.c_str();
@@ -168,8 +168,8 @@
   
   SRMReturnCode SRM22Client::getTURLs(SRMClientRequest& req,
                                       std::list<std::string>& urls) {
-    if(!csoap) return SRM_ERROR_OTHER;
-    if(!connect()) return SRM_ERROR_CONNECTION;
+    SRMReturnCode rc = connect();
+    if (rc != SRM_OK) return rc;
   
     // call get
     
@@ -298,8 +298,8 @@
   
   SRMReturnCode SRM22Client::requestBringOnline(SRMClientRequest& req) {
   
-    if(!csoap) return SRM_ERROR_OTHER;
-    if(!connect()) return SRM_ERROR_CONNECTION;
+    SRMReturnCode rc = connect();
+    if (rc != SRM_OK) return rc;
   
     // construct bring online request
     std::list<std::string> surls = req.surls();
@@ -397,8 +397,8 @@
   
   SRMReturnCode SRM22Client::requestBringOnlineStatus(SRMClientRequest& req) {
   
-    if(!csoap) return SRM_ERROR_OTHER;
-    if(!connect()) return SRM_ERROR_CONNECTION;
+    SRMReturnCode rc = connect();
+    if (rc != SRM_OK) return rc;
   
     SRMv2__srmStatusOfBringOnlineRequestRequest * sobo_request = new SRMv2__srmStatusOfBringOnlineRequestRequest;
     if(req.request_token().empty()) {
@@ -526,8 +526,8 @@
   SRMReturnCode SRM22Client::putTURLs(SRMClientRequest& req,
                                       std::list<std::string>& urls,
                                       unsigned long long size) {
-    if(!csoap) return SRM_ERROR_OTHER;
-    if(!connect()) return SRM_ERROR_CONNECTION;
+    SRMReturnCode rc = connect();
+    if (rc != SRM_OK) return rc;
   
     // call put
     
@@ -720,8 +720,8 @@
                                   const int offset,
                                   const int count) {
   
-    if(!csoap) return SRM_ERROR_OTHER;
-    if(!connect()) return SRM_ERROR_CONNECTION;
+    SRMReturnCode rc = connect();
+    if (rc != SRM_OK) return rc;
   
     // call ls
   
@@ -1225,8 +1225,8 @@
   
   SRMReturnCode SRM22Client::removeFile(SRMClientRequest& req) {
   
-    if (!csoap) return SRM_ERROR_OTHER;
-    if (!connect()) return SRM_ERROR_CONNECTION;
+    SRMReturnCode rc = connect();
+    if (rc != SRM_OK) return rc;
 
     // construct rm request - only one file requested at a time
     xsd__anyURI * req_array = new xsd__anyURI[1];
@@ -1270,8 +1270,8 @@
   
   SRMReturnCode SRM22Client::removeDir(SRMClientRequest& req) {
   
-    if (!csoap) return SRM_ERROR_OTHER;
-    if (!connect()) return SRM_ERROR_CONNECTION;
+    SRMReturnCode rc = connect();
+    if (rc != SRM_OK) return rc;
 
     // construct rmdir request - only one file requested at a time
     xsd__anyURI surl = (char*)req.surls().front().c_str();
