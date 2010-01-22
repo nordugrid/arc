@@ -1687,6 +1687,7 @@ AC_CONFIG_FILES([Makefile
                  src/services/a-rex/grid-manager/run/Makefile
                  src/services/a-rex/infoproviders/Makefile
                  src/services/a-rex/infoproviders/CEinfo.pl
+                 src/services/a-rex/infoproviders/test/Makefile
                  src/services/a-rex/ldif/Makefile
                  src/services/a-rex/lrms/Makefile
                  src/services/a-rex/lrms/submit_common.sh

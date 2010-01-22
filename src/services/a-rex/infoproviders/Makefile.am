@@ -11,3 +11,5 @@ pkglib_DATA = ARC0mod.pm SGEmod.pm FORKmod.pm PBS.pm \
 pkgdata_DATA = nordugrid.schema
 
 EXTRA_DIST = $(pkglibexec_SCRIPTS) $(pkglib_DATA) $(pkgdata_DATA)
+
+SUBDIRS = test
