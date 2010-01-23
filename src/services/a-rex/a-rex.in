@@ -109,6 +109,9 @@ export ARC_LOCATION
 readconfigvar()
 {
   fname=$1
+  if [ ! -r "$fname" ]; then
+    return
+  fi
   bname="[$2]"
   vname=$3
   value=
