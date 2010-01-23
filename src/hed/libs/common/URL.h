@@ -228,6 +228,9 @@ namespace Arc {
     /** hostname of the url. */
     std::string host;
 
+    /** if host is IPv6 numerical address notation. */
+    bool ip6addr;
+
     /** portnumber of the url. */
     int port;
 

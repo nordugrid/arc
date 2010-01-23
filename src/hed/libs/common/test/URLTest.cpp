@@ -22,6 +22,9 @@ class URLTest
   CPPUNIT_TEST(TestRlsUrl3);
   CPPUNIT_TEST(TestLfcUrl);
   CPPUNIT_TEST(TestSrmUrl);
+  CPPUNIT_TEST(TestIP6Url);
+  CPPUNIT_TEST(TestIP6Url2);
+  CPPUNIT_TEST(TestIP6Url3);
   CPPUNIT_TEST(TestBadUrl);
   CPPUNIT_TEST_SUITE_END();
 
@@ -40,10 +43,13 @@ public:
   void TestRlsUrl3();
   void TestLfcUrl();
   void TestSrmUrl();
+  void TestIP6Url();
+  void TestIP6Url2();
+  void TestIP6Url3();
   void TestBadUrl();
 
 private:
-  Arc::URL *gsiftpurl, *gsiftpurl2, *ldapurl, *httpurl, *fileurl, *ldapurl2, *opturl, *ftpurl, *rlsurl, *rlsurl2, *rlsurl3, *lfcurl, *srmurl;
+  Arc::URL *gsiftpurl, *gsiftpurl2, *ldapurl, *httpurl, *fileurl, *ldapurl2, *opturl, *ftpurl, *rlsurl, *rlsurl2, *rlsurl3, *lfcurl, *srmurl, *ip6url, *ip6url2, *ip6url3;
 };
 
 
@@ -61,6 +67,9 @@ void URLTest::setUp() {
   rlsurl3 = new Arc::URL("rls://;exec=yes|gsiftp://hagrid.it.uu.se;threads=10/storage/test.txt|http://www.nordugrid.org;cache=no/files/test.txt@rls.nordugrid.org;readonly=yes/test.txt");
   lfcurl = new Arc::URL("lfc://atlaslfc.nordugrid.org;cache=no/grid/atlas/file1:guid=7d36da04-430f-403c-adfb-540b27506cfa:checksumtype=ad:checksumvalue=12345678");
   srmurl = new Arc::URL("srm://srm.nordugrid.org/srm/managerv2?SFN=/data/public:/test.txt:checksumtype=adler32");
+  ip6url = new Arc::URL("ftp://[ffff:eeee:dddd:cccc:aaaa:9999:8888:7777]/path");
+  ip6url2 = new Arc::URL("ftp://[ffff:eeee:dddd:cccc:aaaa:9999:8888:7777]:2021/path");
+  ip6url3 = new Arc::URL("ftp://[ffff:eeee:dddd:cccc:aaaa:9999:8888:7777];cache=no/path");
 }
 
 
@@ -78,6 +87,9 @@ void URLTest::tearDown() {
   delete rlsurl3;
   delete lfcurl;
   delete srmurl;
+  delete ip6url;
+  delete ip6url2;
+  delete ip6url3;
 }
 
 
@@ -323,6 +335,40 @@ void URLTest::TestSrmUrl() {
   CPPUNIT_ASSERT(srmurl->Locations().empty());
   CPPUNIT_ASSERT_EQUAL(std::string("adler32"), srmurl->MetaDataOption("checksumtype"));
 }
+
+
+void URLTest::TestIP6Url() {
+  CPPUNIT_ASSERT(*ip6url);
+  CPPUNIT_ASSERT_EQUAL(std::string("ftp"), ip6url->Protocol());
+  CPPUNIT_ASSERT_EQUAL(std::string("ffff:eeee:dddd:cccc:aaaa:9999:8888:7777"), ip6url->Host());
+  CPPUNIT_ASSERT_EQUAL(21, ip6url->Port());
+  CPPUNIT_ASSERT_EQUAL(std::string("/path"), ip6url->Path());
+  CPPUNIT_ASSERT(ip6url->Options().empty());
+}
+
+
+void URLTest::TestIP6Url2() {
+  CPPUNIT_ASSERT(*ip6url2);
+  CPPUNIT_ASSERT_EQUAL(std::string("ftp"), ip6url2->Protocol());
+  CPPUNIT_ASSERT_EQUAL(std::string("ffff:eeee:dddd:cccc:aaaa:9999:8888:7777"), ip6url2->Host());
+  CPPUNIT_ASSERT_EQUAL(2021, ip6url2->Port());
+  CPPUNIT_ASSERT_EQUAL(std::string("/path"), ip6url2->Path());
+  CPPUNIT_ASSERT(ip6url2->Options().empty());
+}
+
+
+void URLTest::TestIP6Url3() {
+  CPPUNIT_ASSERT(*ip6url3);
+  CPPUNIT_ASSERT_EQUAL(std::string("ftp"), ip6url3->Protocol());
+  CPPUNIT_ASSERT_EQUAL(std::string("ffff:eeee:dddd:cccc:aaaa:9999:8888:7777"), ip6url3->Host());
+  CPPUNIT_ASSERT_EQUAL(21, ip6url3->Port());
+  CPPUNIT_ASSERT_EQUAL(std::string("/path"), ip6url3->Path());
+  CPPUNIT_ASSERT_EQUAL(1, (int)(ip6url3->Options().size()));
+  std::map<std::string,std::string> options = ip6url3->Options();
+  CPPUNIT_ASSERT_EQUAL(std::string("no"), options["cache"]);
+  CPPUNIT_ASSERT_EQUAL(std::string("ftp://[ffff:eeee:dddd:cccc:aaaa:9999:8888:7777]:21;cache=no/path"), ip6url3->fullstr());
+}
+
 
 void URLTest::TestBadUrl() {
   Arc::URL *url = new Arc::URL("");

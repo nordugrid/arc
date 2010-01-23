@@ -101,12 +101,14 @@ namespace Arc {
 
 
   URL::URL()
-    : port(-1),
+    : ip6addr(false),
+      port(-1),
       ldapscope(base),
       valid(false) {}
 
   URL::URL(const std::string& url)
-    : port(-1),
+    : ip6addr(false),
+      port(-1),
       ldapscope(base),
       valid(true) {
 
@@ -171,6 +173,7 @@ namespace Arc {
     // Checking if protocol followed by host/authority part 
     // or by path directly
     if((url[pos+1] != '/') || (url[pos+2] != '/')) {
+      // No host part
       host = "";
       pos += 1;
       pos2 = pos; // path start position
@@ -287,7 +290,34 @@ namespace Arc {
 
     // Extracting port URL options (ARC extension)
     if (!host.empty()) {
-      pos2 = host.find(':');
+      // Check for [ip6address] notation
+      // If behaving strictly we should check for valid address 
+      // inside []. But if we do not do that only drawback is that
+      // URL may have any hostname inside []. Not really important
+      // issue.
+      if(host[0] == '[') {
+        ip6addr = true;
+        pos2 = host.find(']');
+        if(pos2 == std::string::npos) {
+          URLLogger.msg(ERROR, "Illegal URL - no closing ] for IPv6 address found");
+          valid = false;
+          return;
+        }
+        // There may be only port or options after closing ]
+        ++pos2;
+        if(pos2 < host.length()) {
+          if((host[pos2] != ':') && (host[pos2] != ';')) {
+            URLLogger.msg(ERROR, "Illegal URL - closing ] for IPv6 address is at followed by illegal token");
+            valid = false;
+            return;
+          }
+          if(host[pos2] != ':') pos2 = std::string::npos;
+        } else {
+          pos2 = std::string::npos;
+        }
+      } else {
+        pos2 = host.find(':');
+      }
       if (pos2 != std::string::npos) {
         pos3 = host.find(';', pos2);
         port = stringtoi(pos3 == std::string::npos ?
@@ -300,8 +330,10 @@ namespace Arc {
       }
       if (pos3 != std::string::npos)
         urloptions = ParseOptions(host.substr(pos3 + 1), ';');
-      if (pos2 != std::string::npos)
+      if (pos2 != std::string::npos) 
         host.resize(pos2);
+      if (ip6addr)
+        host = host.substr(1,host.length()-2);
     }
 
     if (port == -1) {
@@ -615,8 +647,12 @@ namespace Arc {
     if (!username.empty() || !passwd.empty() || !locations.empty())
       urlstr += '@';
 
-    if (!host.empty())
-      urlstr += host;
+    if (!host.empty()) {
+      if(ip6addr) 
+        urlstr += "[" + host + "]";
+      else
+        urlstr += host;
+    }
 
     if (port != -1)
       urlstr += ':' + tostring(port);
@@ -686,8 +722,12 @@ namespace Arc {
     if (!username.empty() || !passwd.empty())
       urlstr += '@';
 
-    if (!host.empty())
-      urlstr += host;
+    if (!host.empty()) {
+      if(ip6addr)
+        urlstr += "[" + host + "]";
+      else
+        urlstr += host;
+    }
 
     if (port != -1)
       urlstr += ':' + tostring(port);
@@ -747,8 +787,12 @@ namespace Arc {
     if (!protocol.empty())
       urlstr = protocol + "://";
 
-    if (!host.empty())
-      urlstr += host;
+    if (!host.empty()) {
+      if(ip6addr)
+        urlstr += "[" + host + "]";
+      else
+        urlstr += host;
+    }
 
     if (port != -1)
       urlstr += ':' + tostring(port);
