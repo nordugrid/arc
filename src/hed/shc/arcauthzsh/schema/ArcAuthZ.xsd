@@ -51,7 +51,7 @@
        In any case if there is no next PDP in chain last result is
        used as result of SecHandler. Default behavior is breakOnAllow.
   -->
-  <xsd:attribute name="action" use="optional">
+  <xsd:attribute name="action" use="optional" default="breakOnDeny">
     <xsd:simpleType>
       <xsd:restriction base="xsd:string">
         <xsd:enumeration value="breakOnDeny"/>
