@@ -28,12 +28,12 @@ namespace Arc {
 
   void MCC::Unlink() {
     for (std::map<std::string, MCCInterface *>::iterator n = next_.begin();
-	 n != next_.end(); n = next_.begin())
+         n != next_.end(); n = next_.begin())
       next_.erase(n);
   }
 
   void MCC::AddSecHandler(Config *cfg, ArcSec::SecHandler *sechandler,
-			  const std::string& label) {
+        const std::string& label) {
     if (sechandler) {
       sechandlers_[label].push_back(sechandler);
       // need polishing to put the SecHandlerFactory->getinstance here
@@ -43,7 +43,7 @@ namespace Arc {
   }
 
   bool MCC::ProcessSecHandlers(Message& message,
-			       const std::string& label) {
+             const std::string& label) const {
     // Each MCC/Service can define security handler queues in the configuration
     // file, the queues have labels specified in handlers configuration 'event'
     // attribute.
@@ -60,21 +60,21 @@ namespace Arc {
     // stored in the attributes of message (e.g. the Identity extracted from
     // authentication will be used by authorization to make access control
     // decision).
-    std::map<std::string, std::list<ArcSec::SecHandler *> >::iterator q =
+    std::map<std::string, std::list<ArcSec::SecHandler *> >::const_iterator q =
       sechandlers_.find(label);
     if (q == sechandlers_.end()) {
       logger.msg(DEBUG,
-		 "No security processing/check requested for '%s'", label);
+     "No security processing/check requested for '%s'", label);
       return true;
     }
-    for (std::list<ArcSec::SecHandler *>::iterator h = q->second.begin();
-	 h != q->second.end(); ++h) {
-      ArcSec::SecHandler *handler = *h;
+    for (std::list<ArcSec::SecHandler *>::const_iterator h = q->second.begin();
+         h != q->second.end(); ++h) {
+      const ArcSec::SecHandler *handler = *h;
       if (!handler)
-	continue; // Shouldn't happen. Just a sanity check.
+        continue; // Shouldn't happen. Just a sanity check.
       if (!(handler->Handle(&message))) {
-	logger.msg(INFO, "Security processing/check failed");
-	return false;
+        logger.msg(INFO, "Security processing/check failed");
+        return false;
       }
     }
     logger.msg(DEBUG, "Security processing/check passed");
@@ -85,19 +85,19 @@ namespace Arc {
     XMLNode mm = BaseConfig::MakeConfig(cfg);
     std::list<std::string> mccs;
     for (std::list<std::string>::const_iterator path = plugin_paths.begin();
-	 path != plugin_paths.end(); path++) {
+         path != plugin_paths.end(); path++) {
       try {
-	Glib::Dir dir(*path);
-	for (Glib::DirIterator file = dir.begin(); file != dir.end(); file++) {
-	  if ((*file).substr(0, 6) == "libmcc") {
-	    std::string name = (*file).substr(6, (*file).find('.') - 6);
-	    if (std::find(mccs.begin(), mccs.end(), name) == mccs.end()) {
-	      mccs.push_back(name);
-	      cfg.NewChild("Plugins").NewChild("Name") = "mcc" + name;
-	    }
-	  }
-          //Since the security handler could also be used by mcc like 
-          // tls and soap, putting the libarcshc here. Here we suppose 
+        Glib::Dir dir(*path);
+        for (Glib::DirIterator file = dir.begin(); file != dir.end(); file++) {
+          if ((*file).substr(0, 6) == "libmcc") {
+            std::string name = (*file).substr(6, (*file).find('.') - 6);
+            if (std::find(mccs.begin(), mccs.end(), name) == mccs.end()) {
+              mccs.push_back(name);
+              cfg.NewChild("Plugins").NewChild("Name") = "mcc" + name;
+            }
+          }
+          //Since the security handler could also be used by mcc like
+          // tls and soap, putting the libarcshc here. Here we suppose
           // all of the sec handlers are put in libarcshc
           // TODO: Rewrite it to behave in generic way.
           //if ((*file).substr(0, 9) == "libarcshc") {

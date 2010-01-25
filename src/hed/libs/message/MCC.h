@@ -19,21 +19,21 @@ namespace Arc {
   class MCCInterface: public Plugin {
   public:
     /** Method for processing of requests and responses.
-       	This method is called by preceeding MCC in chain when a request
-       	needs to be processed.
-       	This method must call similar method of next MCC in chain unless
-       	any failure happens. Result returned by call to next MCC should
-       	be processed and passed back to previous MCC.
-       	In case of failure this method is expected to generate valid
-       	error response and return it back to previous MCC without calling
-       	the next one.
+        This method is called by preceeding MCC in chain when a request
+        needs to be processed.
+        This method must call similar method of next MCC in chain unless
+        any failure happens. Result returned by call to next MCC should
+        be processed and passed back to previous MCC.
+        In case of failure this method is expected to generate valid
+        error response and return it back to previous MCC without calling
+        the next one.
      \param request The request that needs to be processed.
      \param response A Message object that will contain the response
-       	of the request when the method returns.
+        of the request when the method returns.
      \return An object representing the status of the call.
      */
     virtual MCC_Status process(Message& request,
-				    Message& response) = 0;
+            Message& response) = 0;
     virtual ~MCCInterface() {}
   };
 
@@ -45,29 +45,29 @@ namespace Arc {
     : public MCCInterface {
   protected:
     /** Set of labeled "next" components.
-       	Each implemented MCC must call process() method of
-       	corresponding MCCInterface from this set in own process() method. */
+        Each implemented MCC must call process() method of
+        corresponding MCCInterface from this set in own process() method. */
     std::map<std::string, MCCInterface *> next_;
     MCCInterface *Next(const std::string& label = "");
 
     /** Set of labeled authentication and authorization handlers.
-       	MCC calls sequence of handlers at specific point depending
-       	on associated identifier. In most aces those are "in" and "out"
-       	for incoming and outgoing messages correspondingly. */
+        MCC calls sequence of handlers at specific point depending
+        on associated identifier. In most aces those are "in" and "out"
+        for incoming and outgoing messages correspondingly. */
     std::map<std::string, std::list<ArcSec::SecHandler *> > sechandlers_;
 
     /** Executes security handlers of specified queue.
-       	Returns true if the message is authorized for further processing or if
-       	there are no security handlers which implement authorization
-       	functionality.
-       	This is a convenience method and has to be called by the implemention
-       	of the MCC. */
+        Returns true if the message is authorized for further processing or if
+        there are no security handlers which implement authorization
+        functionality.
+        This is a convenience method and has to be called by the implemention
+        of the MCC. */
     bool ProcessSecHandlers(Message& message,
-			    const std::string& label = "");
+                            const std::string& label = "") const;
 
     /// A logger for MCCs.
     /** A logger intended to be the parent of loggers in the different
-       	MCCs. */
+        MCCs. */
     static Logger logger;
 
   public:
@@ -77,31 +77,31 @@ namespace Arc {
     virtual ~MCC() {}
 
     /** Add reference to next MCC in chain.
-       	This method is called by Loader for every potentially labeled link to
-       	next component which implements MCCInterface. If next is NULL
-       	corresponding link is removed.  */
+        This method is called by Loader for every potentially labeled link to
+        next component which implements MCCInterface. If next is NULL
+        corresponding link is removed.  */
     virtual void Next(MCCInterface *next, const std::string& label = "");
 
     /** Add security components/handlers to this MCC.
-       	Security handlers are stacked into a few queues with each queue
-       	identified by its label. The queue labelled 'incoming' is executed for
-       	every 'request' message after the message is processed by the MCC on
-       	the service side and before processing on the client side. The queue
-       	labelled 'outgoing' is run for response message before it is processed
-       	by MCC algorithms on the service side and after processing on the
-       	client side. Those labels are just a matter of agreement
-       	and some MCCs may implement different queues executed at various
-       	message processing steps. */
+        Security handlers are stacked into a few queues with each queue
+        identified by its label. The queue labelled 'incoming' is executed for
+        every 'request' message after the message is processed by the MCC on
+        the service side and before processing on the client side. The queue
+        labelled 'outgoing' is run for response message before it is processed
+        by MCC algorithms on the service side and after processing on the
+        client side. Those labels are just a matter of agreement
+        and some MCCs may implement different queues executed at various
+        message processing steps. */
     virtual void AddSecHandler(Config *cfg,
-			       ArcSec::SecHandler *sechandler,
-			       const std::string& label = "");
+             ArcSec::SecHandler *sechandler,
+             const std::string& label = "");
 
     /** Removing all links. Useful for destroying chains. */
     virtual void Unlink();
 
     /** Dummy Message processing method. Just a placeholder. */
     virtual MCC_Status process(Message& /* request */,
-				    Message& /* response */) {
+            Message& /* response */) {
       return MCC_Status();
     }
   };

@@ -10,24 +10,24 @@
 namespace Arc {
 
 /// Service - last component in a Message Chain.
-/**  This class which defines interface and common functionality for every 
- Service plugin. Interface is made of method process() which is called by 
+/**  This class which defines interface and common functionality for every
+ Service plugin. Interface is made of method process() which is called by
  Plexer or MCC class.
-  There is one Service object created for every service description 
- processed by Loader class objects. Classes derived from Service class 
- must implement process() method of MCCInterface. 
-  It is up to developer how internal state of service is stored and 
+  There is one Service object created for every service description
+ processed by Loader class objects. Classes derived from Service class
+ must implement process() method of MCCInterface.
+  It is up to developer how internal state of service is stored and
  communicated to other services and external utilites.
   Service is free to expect any type of payload passed to it and generate
- any payload as well. Useful types depend on MCCs in chain which leads to 
+ any payload as well. Useful types depend on MCCs in chain which leads to
  that service. For example if service is expected to by linked to SOAP
  MCC it must accept and generate messages with PayloadSOAP payload.
-  Method process() of class derived from Service class may be called 
- concurently in multiple threads. Developers must take that into account 
+  Method process() of class derived from Service class may be called
+ concurently in multiple threads. Developers must take that into account
  and write thread-safe implementation.
   Simple example of service is provided in /src/tests/echo/echo.cpp of
  source tree.
-  The way to write client couterpart of corresponding service is 
+  The way to write client couterpart of corresponding service is
  undefined yet. For example see /src/tests/echo/test.cpp .
  */
 class Service: public MCCInterface
@@ -44,7 +44,7 @@ class Service: public MCCInterface
 
         /** Executes security handlers of specified queue.
           For more information please see description of MCC::ProcessSecHandlers */
-        bool ProcessSecHandlers(Message& message,const std::string& label = "");
+        bool ProcessSecHandlers(Message& message,const std::string& label = "") const;
 
     public:
         /** Example contructor - Server takes at least it's configuration subtree */
@@ -55,8 +55,8 @@ class Service: public MCCInterface
         /** Add security components/handlers to this MCC.
           For more information please see description of MCC::AddSecHandler */
         virtual void AddSecHandler(Config *cfg,ArcSec::SecHandler* sechandler,const std::string& label = "");
-        
-        /** Service specific registartion collector, 
+
+        /** Service specific registartion collector,
             used for generate service registartions.
            In implemented service this method should generate GLUE2 document
            with part of service description which service wishes to advertise
