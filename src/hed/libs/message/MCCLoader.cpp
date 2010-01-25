@@ -12,7 +12,7 @@ namespace Arc {
   MCCLoader::MCCLoader(Config& cfg):Loader(cfg),valid_(false) {
     context_ = new ChainContext(*this);
     valid_ = make_elements(cfg);
-    if(!valid_) 
+    if(!valid_)
       MCCLoader::logger.msg(ERROR, "Chain(s) configuration failed");
   }
 
@@ -86,20 +86,19 @@ namespace Arc {
   class mcc_connectors_t : public std::list<mcc_connector_t> {};
   class plexer_connectors_t : public std::list<plexer_connector_t> {};
 
-  static XMLNode FindElementByID(XMLNode node, const std::string &fn, const std::string& id, const std::string& name) {
+  static XMLNode FindElementByID(XMLNode node, const std::string& id, const std::string& name) {
     for(int n = 0;; ++n) {
       XMLNode cn = node.Child(n);
       if(!cn) break;
-      Config cfg_(cn, fn);
 
       if(MatchXMLName(cn, "ArcConfig")) {
-        XMLNode result = FindElementByID(cn, fn, id, name);
+        XMLNode result = FindElementByID(cn, id, name);
         if(result) return result;
         continue;
       }
 
       if(MatchXMLName(cn, "Chain")) {
-        XMLNode result = FindElementByID(cn, fn, id, name);
+        XMLNode result = FindElementByID(cn, id, name);
         if(result) return result;
       continue;
       }
@@ -135,7 +134,7 @@ namespace Arc {
         return phandler->second;
       }
       // Look for it's configuration
-      desc_node = FindElementByID(cfg, cfg.getFileName(), refid, "SecHandler");
+      desc_node = FindElementByID(cfg, refid, "SecHandler");
     }
     if(!desc_node) {
       MCCLoader::logger.msg(ERROR, "SecHandler has no configuration");
