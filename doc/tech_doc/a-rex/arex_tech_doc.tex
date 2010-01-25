@@ -886,12 +886,14 @@ The per-job directory is only readable by the local user running the
 job, and the cache directory is readable only by the A-REX user. This
 means that the local user cannot access any other users' cache
 files. It also means that cache files can be removed without needing
-to know whether they are in use by a currently running
-job. \textbf{IMPORTANT:} If a cache is mounted from an NFS server and
-the GM is run by the root user, the server must have the
-\emph{no\_root\_squash} option set for the GM host in the
-\emph{/etc/exports} file, otherwise the GM will not be able to create
-the required directories. Note that when running A-REX under a
+to know whether they are in use by a currently running job. However,
+as deleting a file which has hard links does not free space on the
+disk, cache files are not deleted until all per-job hard links are
+deleted. \textbf{IMPORTANT:} If a cache is mounted from an NFS server
+and the A-REX is run by the root user, the server must have the
+\emph{no\_root\_squash} option set for the A-REX host in the
+\emph{/etc/exports} file, otherwise the A-REX will not be able to
+create the required directories. Note that when running A-REX under a
 non-privileged user account, all cache files will be owned and
 accessible by the same user, and therefore modifyable by running
 jobs. This is potentially dangerous and so cacheing should be used
@@ -981,7 +983,7 @@ will not be used by any new jobs, but the hard links in the
 \emph{joblinks} directory will be cleaned up as each job
 finishes. Once this directory is empty it is safe to delete the entire
 cache. See the \emph{cachedir} option in
-Section~\ref{SubSection: ConfigFile} for how to set a cache to a
+Section~\ref{SubSection:ConfigFile} for how to set a cache to a
 draining state.
 
 The following tools (installed in \emph{\$ARC\_LOCATION/libexec/arc})
@@ -1347,7 +1349,7 @@ the JD).
   this A-REX can have read-only access to (see
   Section~\ref{sec:remotecaches}).  Multiple remote cache directories may be
   specified by specifying multiple \emph{remotecachedir} commands. If
-  a file is not available in paths specified by cachedir, the GM looks
+  a file is not available in paths specified by cachedir, the A-REX looks
   in remote caches. \emph{link\_path} has the same meaning as in
   \emph{cachedir}, but the special path ``replicate'' means files will
   be replicated from remote caches to local caches when they are requested.

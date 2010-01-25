@@ -194,8 +194,8 @@ foreach my $filesystem (@caches) {
 
     if($opts{'s'}) {
         print "\nUsage statistics: $filesystem\n";
-        print "Total deletable files found: ",scalar keys %files," ($totlockfiles files locked)\n";
-        print "Total size of deletable files found: ",printsize($totsize)," (",printsize($totlocksize)," locked)\n";
+        print "Total deletable files found: ",scalar keys %files," ($totlockfiles files locked or in use)\n";
+        print "Total size of deletable files found: ",printsize($totsize)," (",printsize($totlocksize)," locked or in use)\n";
         print "Used space on file system: ",printsize($fssize-$fsfree)," / ",printsize($fssize), " (",sprintf("%.2f",100-100*$fsfree/$fssize),"%)\n";
         my $increment = $totsize / 10;
         if($increment < 1) {
@@ -278,14 +278,14 @@ sub wanted {
     return if $name =~ m|\.lock$|;
     return if $name =~ m|\.meta$|;
 
-    my ($atime, $blocks);
+    my ($links, $atime, $blocks);
 
-    ($atime, $blocks) = (lstat($_))[8,12];
+    ($links, $atime, $blocks) = (stat($_))[3,8,12];
 
     return unless defined $atime;
 
-    return unless !(-d _) || -f _ || -l _;
-    if (-e "$name.lock") {
+    return unless !(-d _) || -f _;
+    if ($links != 1 || -e "$name.lock") {
         $totlocksize += 512 * $blocks;
         $totlockfiles++;
         return;
