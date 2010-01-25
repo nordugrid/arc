@@ -52,13 +52,13 @@ class DelegationSH : public SecHandler {
   static Arc::Logger logger;
  
  private:
-  DelegationContext* get_delegcontext(Arc::Message& msg);
+  DelegationContext* get_delegcontext(Arc::Message& msg) const;
 
  public:
   DelegationSH(Arc::Config *cfg, Arc::ChainContext* ctx);
   virtual ~DelegationSH(void);
   static Arc::Plugin* get_sechandler(Arc::PluginArgument* arg);
-  virtual bool Handle(Arc::Message* msg);  
+  virtual bool Handle(Arc::Message* msg) const;
 };
 
 } // namespace ArcSec

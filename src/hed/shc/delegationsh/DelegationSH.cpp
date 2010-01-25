@@ -95,7 +95,7 @@ DelegationSH::~DelegationSH() {
   delete mcontext_;
 }
 
-DelegationContext* DelegationSH::get_delegcontext(Arc::Message& msg) {
+DelegationContext* DelegationSH::get_delegcontext(Arc::Message& msg) const {
   DelegationContext* deleg_ctx=NULL;
   Arc::MessageContextElement* mcontext = (*msg.Context())["deleg.context"];
   if(mcontext) {
@@ -124,7 +124,7 @@ static unsigned long string_hash(const std::string& value){
   return ret;
 }
 
-bool DelegationSH::Handle(Arc::Message* msg){
+bool DelegationSH::Handle(Arc::Message* msg) const {
   if(delegation_type_ == delegation_x509) {
     try {
       PayloadSOAP* soap = dynamic_cast<PayloadSOAP*>(msg->Payload());

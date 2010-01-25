@@ -71,7 +71,7 @@ static bool get_proxy_policy(X509* cert,DelegationMultiSecAttr* sattr) {
   return result;
 }
 
-bool DelegationCollector::Handle(Arc::Message* msg){
+bool DelegationCollector::Handle(Arc::Message* msg) const {
   DelegationMultiSecAttr* sattr = NULL;
   try {
     MessagePayload* mpayload = msg->Payload();

@@ -28,13 +28,13 @@ class SAMLTokenSH : public SecHandler {
   std::string ca_dir_;
   std::string local_dn_;
   std::string aa_service_;
-  Arc::XMLNode saml_assertion_;
+  mutable Arc::XMLNode saml_assertion_;
 
  public:
   SAMLTokenSH(Arc::Config *cfg, Arc::ChainContext* ctx);
   virtual ~SAMLTokenSH(void);
   static Arc::Plugin* get_sechandler(Arc::PluginArgument* arg);
-  virtual bool Handle(Arc::Message* msg);  
+  virtual bool Handle(Arc::Message* msg) const;
 };
 
 } // namespace ArcSec

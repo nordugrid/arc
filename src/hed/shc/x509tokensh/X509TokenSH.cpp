@@ -68,7 +68,7 @@ X509TokenSH::~X509TokenSH() {
   final_xmlsec();
 }
 
-bool X509TokenSH::Handle(Arc::Message* msg){
+bool X509TokenSH::Handle(Arc::Message* msg) const {
   if(process_type_ == process_extract) {
     try {
       PayloadSOAP* soap = dynamic_cast<PayloadSOAP*>(msg->Payload());

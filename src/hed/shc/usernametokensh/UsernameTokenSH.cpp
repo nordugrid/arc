@@ -67,7 +67,7 @@ UsernameTokenSH::UsernameTokenSH(Config *cfg,ChainContext*):SecHandler(cfg){
 UsernameTokenSH::~UsernameTokenSH() {
 }
 
-bool UsernameTokenSH::Handle(Arc::Message* msg){
+bool UsernameTokenSH::Handle(Arc::Message* msg) const {
   if(process_type_ == process_extract) {
     try {
       PayloadSOAP* soap = dynamic_cast<PayloadSOAP*>(msg->Payload());

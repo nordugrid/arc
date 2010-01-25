@@ -33,7 +33,7 @@ class SAML2SSO_AssertionConsumerSH : public SecHandler {
   SAML2SSO_AssertionConsumerSH(Arc::Config *cfg, Arc::ChainContext* ctx);
   virtual ~SAML2SSO_AssertionConsumerSH(void);
   static Arc::Plugin* get_sechandler(Arc::PluginArgument* arg);
-  virtual bool Handle(Arc::Message* msg);  
+  virtual bool Handle(Arc::Message* msg) const;
 };
 
 } // namespace ArcSec

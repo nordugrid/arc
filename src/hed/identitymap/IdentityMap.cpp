@@ -220,8 +220,8 @@ IdentityMap::~IdentityMap(void) {
   };
 }
 
-bool IdentityMap::Handle(Arc::Message* msg){
-  for(std::list<map_pair_t>::iterator p = maps_.begin();p!=maps_.end();++p) {
+bool IdentityMap::Handle(Arc::Message* msg) const {
+  for(std::list<map_pair_t>::const_iterator p = maps_.begin();p!=maps_.end();++p) {
     if(p->pdp->isPermitted(msg)) {
       std::string id = p->uid->ID(msg);
       logger.msg(Arc::INFO,"Grid identity is mapped to local identity '%s'",id);

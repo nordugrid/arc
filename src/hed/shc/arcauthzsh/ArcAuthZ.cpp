@@ -80,8 +80,8 @@ bool ArcAuthZ::MakePDPs(XMLNode cfg) {
   return true;
 }
 
-bool ArcAuthZ::Handle(Arc::Message* msg){
-  pdp_container_t::iterator it;
+bool ArcAuthZ::Handle(Arc::Message* msg) const {
+  pdp_container_t::const_iterator it;
   bool r = false;
   for(it=pdps_.begin();it!=pdps_.end();it++){
     r = it->pdp->isPermitted(msg);
