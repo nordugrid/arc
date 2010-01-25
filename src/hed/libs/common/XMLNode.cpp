@@ -159,10 +159,10 @@ namespace Arc {
   // The 'node_' and its children are converted to new prefixes.
   // If keep == false all existing namespaces with same href
   // defined in 'node_' or children are removed.
-  // 'recursion' limits how deep to follow children nodes. 0 for 
+  // 'recursion' limits how deep to follow children nodes. 0 for
   // 'node_' only. -1 for unlimited depth. If 'recursion' is set
   //  to >=0 then existing namespaces always kept disregarding
-  //  value of 'keep'. Otherwise some XML node would be left 
+  //  value of 'keep'. Otherwise some XML node would be left
   //  without valid namespaces.
   static void SetNamespaces(const NS& namespaces, xmlNodePtr node_,bool keep = false,int recursion = -1) {
     for (NS::const_iterator ns = namespaces.begin();
@@ -651,7 +651,7 @@ namespace Arc {
     new_node.is_owner_ = true;
     return;
   }
- 
+
   void XMLNode::Move(XMLNode& node) {
     if (node.is_owner_ && node.node_)
       xmlFreeDoc(node.node_->doc);
@@ -707,8 +707,8 @@ namespace Arc {
     xmlNodePtr parent2 = node2?(node2->parent):NULL;
     xmlDocPtr doc1 = node1?(node1->doc):NULL;
     xmlDocPtr doc2 = node2?(node2->doc):NULL;
-    // In current implementation it is dangerous to move 
-    // top level element if node is not owning document 
+    // In current implementation it is dangerous to move
+    // top level element if node is not owning document
     if((parent1 == NULL) && (!is_owner_)) return;
     if((parent2 == NULL) && (!node.is_owner_)) return;
     xmlUnlinkNode(node1);
@@ -913,7 +913,7 @@ namespace Arc {
     xmlDocPtr doc = node_->doc;
     if (doc == NULL)
       return;
-    xmlOutputBufferPtr buf = 
+    xmlOutputBufferPtr buf =
      xmlOutputBufferCreateIO(&write_to_string,&close_string,&out_xml_str,NULL);
     if(buf == NULL)
       return;
@@ -951,7 +951,7 @@ namespace Arc {
     out_xml_str = (char*)(buf->content);
     xmlBufferFree(buf);
 */
-    xmlOutputBufferPtr buf = 
+    xmlOutputBufferPtr buf =
      xmlOutputBufferCreateIO(&write_to_string,&close_string,&out_xml_str,NULL);
     if(buf == NULL)
       return;
@@ -973,7 +973,7 @@ namespace Arc {
     if (handler == NULL)
       return;
     //xmlOutputBufferPtr buf = xmlAllocOutputBuffer(handler);
-    xmlOutputBufferPtr buf = 
+    xmlOutputBufferPtr buf =
      xmlOutputBufferCreateIO(&write_to_string,&close_string,&out_xml_str,NULL);
     if(buf == NULL)
       return;
@@ -1048,7 +1048,7 @@ namespace Arc {
 
   static void error_collector(void *ctx, const char *fmt, ...) {
     char *str = (char *)ctx;
-    
+
     str = (char *)realloc(str, strlen(str) + strlen(fmt) + 1);
     if (str == NULL) {
         return;
@@ -1071,7 +1071,7 @@ namespace Arc {
         return false;
     }
     xmlSchemaFreeParserCtxt(schemaParser);
-    
+
     // create schema validation context
     xmlSchemaValidCtxtPtr validityCtx = xmlSchemaNewValidCtxt(schema);
     if (!validityCtx) {
@@ -1079,19 +1079,19 @@ namespace Arc {
         err_msg = "Cannot create validation context";
         return false;
     }
-    
-    // Set contect collectoors    
+
+    // Set contect collectoors
     xmlSchemaSetValidErrors(validityCtx,
                             (xmlSchemaValidityErrorFunc) fprintf,
                             (xmlSchemaValidityWarningFunc) fprintf,
                             stderr);
     // validate against schema
     bool result = (xmlSchemaValidateDoc(validityCtx, node_->doc) == 0);
-    
+
     // free resources and return result
     xmlSchemaFreeValidCtxt(validityCtx);
     xmlSchemaFree(schema);
-    
+
     return result;
   }
 
@@ -1144,11 +1144,11 @@ namespace Arc {
       AddNew(*n);
   }
 
-  int XMLNodeContainer::Size(void) {
+  int XMLNodeContainer::Size(void) const {
     return nodes_.size();
   }
 
-  XMLNode XMLNodeContainer::operator[](int n) {
+  XMLNode XMLNodeContainer::operator[](int n) const {
     if (n < 0)
       return XMLNode();
     if (n >= nodes_.size())

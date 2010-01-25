@@ -110,25 +110,25 @@ namespace Arc {
        is created. 'new_node' becomes a pointer owning new XML document. */
     void New(XMLNode& node) const;
     /** Exchanges XML (sub)trees.
-     Following conbinations are possible 
+     Following conbinations are possible
        * If either this ir node are refering owned XML tree (top level
          node) then references are simply excanged. This opearationis fast.
        * If both this and node are refering to XML (sub)tree of different
          documents then (sub)trees are exchahed between documments.
-       * If both this and node are refering to XML (sub)tree of same 
+       * If both this and node are refering to XML (sub)tree of same
          document then (sub)trees are moved inside document.
      The main reason for this method is to provide effective way to insert
      one XML document inside another.
-     One should take into account that if any of exchanged nodes is top 
+     One should take into account that if any of exchanged nodes is top
      level it must be also owner of document. Otherwise method will fail.
      If both nodes are top level owners and/or invlaid nodes then this
      method is identical to Swap(). */
     void Exchange(XMLNode& node);
     /** Moves content of this XML (sub)tree to node
-      This opeartion is similar to New except that XML (sub)tree to 
+      This opeartion is similar to New except that XML (sub)tree to
       refered by this is destroyed. This method is more effective than
       combination of New() and Destroy() because internally it is optimized
-      not to copy data if not needed. The main purpose of this is to 
+      not to copy data if not needed. The main purpose of this is to
       effectively extract part of XML document. */
     void Move(XMLNode& node);
     /** Swaps XML (sub)trees to this this and node refer.
@@ -268,7 +268,7 @@ namespace Arc {
     int AttributesSize(void) const;
     /** Assigns namespaces of XML document at point specified by this instance.
        If namespace already exists it gets new prefix. New namespaces are added.
-       It is useful to apply this method to XML being processed in order to 
+       It is useful to apply this method to XML being processed in order to
        refer to it's elements by known prefix.
        If keep is set to false existing namespace definition residing at
        this instance and below are removed (default beavior).
@@ -371,9 +371,9 @@ namespace Arc {
     /** Copy multiple XML subtrees to container. */
     void AddNew(const std::list<XMLNode>&);
     /** Return number of refered/stored nodes. */
-    int Size(void);
+    int Size(void) const;
     /** Returns n-th node in a store. */
-    XMLNode operator[](int);
+    XMLNode operator[](int) const;
     /** Returns all stored nodes. */
     std::list<XMLNode> Nodes(void);
   };
