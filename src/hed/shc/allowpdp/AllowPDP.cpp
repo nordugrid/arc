@@ -20,7 +20,7 @@ Plugin* AllowPDP::get_allow_pdp(PluginArgument *arg) {
 AllowPDP::AllowPDP(Config* cfg):PDP(cfg){
 }
 
-bool AllowPDP::isPermitted(Message*){
+bool AllowPDP::isPermitted(Message*) const {
   return true;
 }
 

@@ -86,7 +86,7 @@ GACLPDP::GACLPDP(Config* cfg):PDP(cfg) {
   for(;(bool)policy_doc;++policy_doc) policy_docs.AddNew(policy_doc);
 }
 
-bool GACLPDP::isPermitted(Message *msg){
+bool GACLPDP::isPermitted(Message *msg) const{
   Evaluator* eval = NULL;
 
   std::string ctxid = "arcsec.gaclpdp";
@@ -104,7 +104,7 @@ bool GACLPDP::isPermitted(Message *msg){
     if(pdpctx) {
       eval=pdpctx->eval;
       if(eval) {
-        for(std::list<std::string>::iterator it = policy_locations.begin(); it!= policy_locations.end(); it++) {
+        for(std::list<std::string>::const_iterator it = policy_locations.begin(); it!= policy_locations.end(); it++) {
           eval->addPolicy(SourceFile(*it));
         }
         for(int n = 0;n<policy_docs.Size();++n) {

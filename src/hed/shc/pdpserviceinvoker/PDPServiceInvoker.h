@@ -16,7 +16,7 @@ class PDPServiceInvoker : public PDP {
   static Arc::Plugin* get_pdpservice_invoker(Arc::PluginArgument* arg);
   PDPServiceInvoker(Arc::Config* cfg);
   virtual ~PDPServiceInvoker();
-  virtual bool isPermitted(Arc::Message *msg);
+  virtual bool isPermitted(Arc::Message *msg) const;
  private:
   Arc::ClientSOAP* client;
   std::string proxy_path;

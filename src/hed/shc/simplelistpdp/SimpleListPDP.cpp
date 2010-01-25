@@ -32,14 +32,14 @@ SimpleListPDP::SimpleListPDP(Config* cfg):PDP(cfg){
   }
 }
 
-bool SimpleListPDP::isPermitted(Message *msg){
+bool SimpleListPDP::isPermitted(Message *msg) const {
   std::string subject=msg->Attributes()->get("TLS:IDENTITYDN");
   std::string line;
   if(location.empty() && dns.empty()) {
     logger.msg(ERROR, "No policy file or DNs specified for simplelist.pdp, please set location attribute or at least one DN element for simplelist PDP node in configuration.");
     return false; 
   }
-  for(std::list<std::string>::iterator dn = dns.begin(); 
+  for(std::list<std::string>::const_iterator dn = dns.begin();
                             dn != dns.end();++dn) {
     if((*dn) == subject) {
       logger.msg(INFO, "Authorized from simplelist.pdp");

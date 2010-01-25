@@ -71,13 +71,13 @@ XACMLPDP::XACMLPDP(Config* cfg):PDP(cfg) /*, eval(NULL)*/ {
   policy_combining_alg = (std::string)((*cfg)["PolicyCombiningAlg"]);
 }
 
-bool XACMLPDP::isPermitted(Message *msg){
+bool XACMLPDP::isPermitted(Message *msg) const {
   //Compose Request based on the information inside message, the Request will be
   //compatible to xacml request schema
 
   Evaluator* eval = NULL;
 
-  std::string ctxid = "arcsec.xacmlpdp";
+  const std::string ctxid = "arcsec.xacmlpdp";
   try {
     Arc::MessageContextElement* mctx = (*(msg->Context()))[ctxid];
     if(mctx) {
@@ -96,7 +96,7 @@ bool XACMLPDP::isPermitted(Message *msg){
         //for(Arc::AttributeIterator it = (msg->Attributes())->getAll("PDP:POLICYLOCATION"); it.hasMore(); it++) {
         //  eval->addPolicy(SourceFile(*it));
         //}
-        for(std::list<std::string>::iterator it = policy_locations.begin(); it!= policy_locations.end(); it++) {
+        for(std::list<std::string>::const_iterator it = policy_locations.begin(); it!= policy_locations.end(); it++) {
           eval->addPolicy(SourceFile(*it));
         }
         for(int n = 0;n<policies.Size();++n) {

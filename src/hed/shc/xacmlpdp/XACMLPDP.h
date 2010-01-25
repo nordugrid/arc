@@ -17,7 +17,7 @@ class XACMLPDP : public PDP {
   XACMLPDP(Arc::Config* cfg);
   virtual ~XACMLPDP();
 
-  virtual bool isPermitted(Arc::Message *msg);
+  virtual bool isPermitted(Arc::Message *msg) const;
  private:
   // Evaluator *eval;
   // Arc::ClassLoader* classloader;

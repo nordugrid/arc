@@ -22,7 +22,7 @@ class GACLPDP: public PDP {
   static Arc::Plugin* get_gacl_pdp(Arc::PluginArgument *arg);
   GACLPDP(Arc::Config* cfg);
   virtual ~GACLPDP();
-  virtual bool isPermitted(Arc::Message *msg);
+  virtual bool isPermitted(Arc::Message *msg) const;
  private:
   std::list<std::string> select_attrs;
   std::list<std::string> reject_attrs;

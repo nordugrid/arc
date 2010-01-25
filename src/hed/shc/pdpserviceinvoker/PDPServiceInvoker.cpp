@@ -75,7 +75,7 @@ PDPServiceInvoker::PDPServiceInvoker(Config* cfg):PDP(cfg), client(NULL),
   client = new Arc::ClientSOAP(mcc_cfg,url,60);
 }
 
-bool PDPServiceInvoker::isPermitted(Message *msg){
+bool PDPServiceInvoker::isPermitted(Message *msg) const {
   if((!is_xacml) && is_saml) {
     logger.msg(ERROR,"Arc policy can not been carried by SAML2.0 profile of XACML");
     return false;

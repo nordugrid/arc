@@ -19,7 +19,7 @@ class SimpleListPDP : public PDP {
   static Arc::Plugin* get_simplelist_pdp(Arc::PluginArgument *arg);
   SimpleListPDP(Arc::Config* cfg);
   virtual ~SimpleListPDP() {};
-  virtual bool isPermitted(Arc::Message *msg);
+  virtual bool isPermitted(Arc::Message *msg) const;
  private:
   std::string location;
   std::list<std::string> dns;

@@ -14,7 +14,7 @@ class DenyPDP : public PDP {
   static Arc::Plugin* get_deny_pdp(Arc::PluginArgument* arg);
   DenyPDP(Arc::Config* cfg);
   virtual ~DenyPDP() {};
-  virtual bool isPermitted(Arc::Message *msg);
+  virtual bool isPermitted(Arc::Message *msg) const;
 };
 
 } // namespace ArcSec
