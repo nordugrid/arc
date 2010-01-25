@@ -25,21 +25,21 @@ class MessageAuth {
     /// Retrieves reference to security attribute stored under specified key
     SecAttr* get(const std::string& key);
     /// Same as MessageAuth::get
-    SecAttr* operator[](const std::string& key) { return get(key); }; 
+    SecAttr* operator[](const std::string& key) { return get(key); };
     /// Returns properly catenated attributes in specified format
     /** Content of XML node at @val is replaced with generated information
-       if XML tree is empty. If tree at @val is not empty then Export() tries 
-       to merge generated information to already existing like everything would 
+       if XML tree is empty. If tree at @val is not empty then Export() tries
+       to merge generated information to already existing like everything would
        be generated inside same Export() method. If @val does not
        represent valid node then new XML tree is created. */
     bool Export(SecAttrFormat format,XMLNode &val) const;
     /// Creates new instance of MessageAuth with attributes filtered
-    /** In new instance all attributes with keys listed in @rejected_keys are 
+    /** In new instance all attributes with keys listed in @rejected_keys are
       removed. If @selected_keys is not empty only corresponding attributes
       are transfered to new instance. Created instance does not own refered
-      attributes. Hence parent instance must not be deleted as long as 
+      attributes. Hence parent instance must not be deleted as long as
       this one is in use. */
-    MessageAuth* Filter(const std::list<std::string> selected_keys,const std::list<std::string> rejected_keys) const;
+    MessageAuth* Filter(const std::list<std::string>& selected_keys,const std::list<std::string>& rejected_keys) const;
 };
 
 }

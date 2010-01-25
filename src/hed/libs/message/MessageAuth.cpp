@@ -55,9 +55,9 @@ void copy_xml_elements(XMLNode item,XMLNode elements) {
 }
 
 // All permutations of Subject, Resource, Action elements are generated.
-// Attribute sub-elements get collected in single Element (Subject, Condition). 
-// Each element withoit Attribute sub-elements are put into separate 
-// RequestItem. Attributes of Condition are collected inside single 
+// Attribute sub-elements get collected in single Element (Subject, Condition).
+// Each element withoit Attribute sub-elements are put into separate
+// RequestItem. Attributes of Condition are collected inside single
 // Condition element in every RequestItem if it comes from same source
 // as corresponding Subject, Resource or Action.
 // All generated content is merged to existing content in val variable.
@@ -92,7 +92,7 @@ bool MessageAuth::Export(SecAttrFormat format,XMLNode &val) const {
     int actions_new = actions.size();
 
     // Getting XMLs from all SecAttr
-    std::map<std::string,SecAttr*>::const_iterator attr = attrs_.begin(); 
+    std::map<std::string,SecAttr*>::const_iterator attr = attrs_.begin();
     for(;attr != attrs_.end();++attr) {
       xmls.AddNew(XMLNode(ns,""));
       XMLNode r = xmls[xmls.Size()-1];
@@ -123,7 +123,7 @@ bool MessageAuth::Export(SecAttrFormat format,XMLNode &val) const {
     {
       std::list<_XMLPair>::iterator subject = subjects.begin();
       for(int subject_n = 0;;++subject_n,++subject) {
-        if(subject_n < subjects_new) continue; 
+        if(subject_n < subjects_new) continue;
         if(subject == subjects.end()) break;
         if(subject->element.Size() > 0) {
           copy_xml_elements(new_subject,subject->element["SubjectAttribute"]);
@@ -136,13 +136,13 @@ bool MessageAuth::Export(SecAttrFormat format,XMLNode &val) const {
     {
       std::list<_XMLPair>::iterator subject = subjects.begin();
       for(int subject_n = 0;;++subject_n,++subject) {
-        if(subject_n >= subjects_new) break; 
+        if(subject_n >= subjects_new) break;
         if(subject == subjects.end()) break;
         copy_xml_elements(subject->element,new_subject["SubjectAttribute"]);
         copy_xml_elements(subject->context,new_subject["ContextAttribute"]);
       };
     };
-    // Use one of existing old subjects as template for new 
+    // Use one of existing old subjects as template for new
     // elements (if present)
     if(subjects_new > 0) {
       new_subject=subjects.begin()->element;
@@ -180,7 +180,7 @@ bool MessageAuth::Export(SecAttrFormat format,XMLNode &val) const {
       if(action == actions.end()) break;
     };
     return true;
-  } 
+  }
   else if(format == SecAttr::XACML) {
     // Making XML document top level Request element
     /* XACML request is like this:
@@ -214,7 +214,7 @@ bool MessageAuth::Export(SecAttrFormat format,XMLNode &val) const {
     XMLNodeContainer xmls;
     // Getting XMLs from all SecAttr
     std::map<std::string,SecAttr*>::const_iterator attr = attrs_.begin();
-    for(;attr != attrs_.end();++attr) { 
+    for(;attr != attrs_.end();++attr) {
       xmls.AddNew(XMLNode(ns,""));
       XMLNode r = xmls[xmls.Size()-1];
       if(!(attr->second)) return false;
@@ -262,7 +262,7 @@ bool MessageAuth::Export(SecAttrFormat format,XMLNode &val) const {
   newreq.Namespaces(ns);
   newreq.Name("ra:Request");
 
-  //A specific RequestItem for collecting all of the <Request> from 
+  //A specific RequestItem for collecting all of the <Request> from
   //differenc SecAttr
   XMLNode subjects(ns,"ra:RequestItem");
 
@@ -280,14 +280,14 @@ bool MessageAuth::Export(SecAttrFormat format,XMLNode &val) const {
 
       //Collect all of the <Subject/>s. Since in HED each incomming/outgoing message
       //is supposed to implicitly have only one meaningful entity(Subject), it doesn't hurt
-      //if we put all of the <Subject/>s together and merge(later) them into one <Subject/> (with 
+      //if we put all of the <Subject/>s together and merge(later) them into one <Subject/> (with
       //a number of <Attribute/>s from different original <Subject>s).
       add_new_elements(subjects,item["Subject"]);
 
       //<Context/> is also collected.
       add_new_elements(subjects,item["Context"]);
 
-      //We store <Resource/> <Action/> <Context/> into the just generated new 
+      //We store <Resource/> <Action/> <Context/> into the just generated new
       //<RequestItem/> by keeping the original organizing shape.
       //Notice that we do not put the <Subject> into new <RequestItem> now.
       if( ((bool)(item["Resource"])) || ((bool)(item["Action"])) ) {
@@ -315,7 +315,7 @@ bool MessageAuth::Export(SecAttrFormat format,XMLNode &val) const {
   }
 
   //If finally, there is not any output ["RequestItem"], we use the just generated new <Subject/>.
-  //This is the case: There is MCCTLS SecAttr which has no elements except ["Subject"], and 
+  //This is the case: There is MCCTLS SecAttr which has no elements except ["Subject"], and
   //there is no other SecAttr exist.
   //<Context/> is also added
   XMLNode item = newreq["ra:RequestItem"];
@@ -337,7 +337,7 @@ bool MessageAuth::Export(SecAttrFormat format,XMLNode &val) const {
 }
 #endif
 
-MessageAuth* MessageAuth::Filter(const std::list<std::string> selected_keys,const std::list<std::string> rejected_keys) const {
+MessageAuth* MessageAuth::Filter(const std::list<std::string>& selected_keys,const std::list<std::string>& rejected_keys) const {
   MessageAuth* newauth = new MessageAuth;
   newauth->attrs_created_=false;
   if(selected_keys.empty()) {
