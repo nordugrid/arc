@@ -202,22 +202,19 @@ Response* ArcEvaluator::evaluate(const Source& req){
   node.Namespaces(ns);
 
   //1.Create the request object according to the configuration
-  Request* request = NULL;
-  request = make_reqobj(node);
+  Request* request = make_reqobj(node);
+  if(request == NULL) return NULL;
   
   //2.Pre-process the Request object
   request->setAttributeFactory(attrfactory);
   request->make_request();
   
-  EvaluationCtx * evalctx = NULL;
-  evalctx =  new ArcEvaluationCtx(request);
+  EvaluationCtx * evalctx = new ArcEvaluationCtx(request);
   
   //3.evaluate the request based on policy
-  Response* resp = NULL;
-  if(evalctx)
-    resp = evaluate(evalctx);
-  if(request)
-    delete request;
+  Response* resp = evaluate(evalctx);
+
+  delete request;
 
   return resp;
 }
@@ -225,6 +222,7 @@ Response* ArcEvaluator::evaluate(const Source& req){
 Response* ArcEvaluator::evaluate(EvaluationCtx* evl_ctx){
   //Split request into <subject, action, object, environment> tuples
   ArcEvaluationCtx* ctx = dynamic_cast<ArcEvaluationCtx*>(evl_ctx);
+  if(!ctx) return NULL;
   ctx->split();
   
   std::list<PolicyStore::PolicyElement> policies;

@@ -48,9 +48,12 @@ AttributeValue* XACMLAttributeFactory::createValue(const XMLNode& node, const st
 #if 0
   // This may look like hack, but generic attribute needs special treatment
   std::string value;
-  if((bool)(node.Child())) value = (std::string)(node.Child());
+  if((bool)(const_cast<XMLNode&>(node).Child())) {
+    value = (std::string)(const_cast<XMLNode&>(node).Child());
   //<Attribute AttributeId="" DataType=""><AttributeValue>abc</AttributeValue></Attribute>
-  else value = (std::string)node; 
+  } else {
+    value = (std::string)node; 
+  }
   //<AttributeValue DataType="">abc</AttributeValue>
 
   std::size_t start;
@@ -60,7 +63,8 @@ AttributeValue* XACMLAttributeFactory::createValue(const XMLNode& node, const st
   end = value.find_last_not_of(" \n\r\t");
   value = value.substr(0, end+1);
 
-  GenericAttribute* attr = new GenericAttribute(value,(std::string)(node.Attribute("AttributeId")));
+  GenericAttribute* attr = new GenericAttribute(value,
+            (std::string)(const_cast<XMLNode&>(node).Attribute("AttributeId")));
   attr->setType(type);
   return attr;
 #endif

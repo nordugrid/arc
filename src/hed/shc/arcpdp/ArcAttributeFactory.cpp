@@ -53,7 +53,9 @@ AttributeValue* ArcAttributeFactory::createValue(const XMLNode& node, const std:
   if((it=apmap.find(type)) != apmap.end())
     return ((*it).second)->getAttribute(node);
   // This may look like hack, but generic attribute needs special treatment
-  GenericAttribute* attr = new GenericAttribute((std::string)node,(std::string)(node.Attribute("AttributeId")));
+  GenericAttribute* attr = new GenericAttribute(
+          (std::string)const_cast<XMLNode&>(node),
+          (std::string)(const_cast<XMLNode&>(node).Attribute("AttributeId")));
   attr->setType(type);
   return attr;
   // return NULL;

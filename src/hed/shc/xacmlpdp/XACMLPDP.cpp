@@ -100,7 +100,7 @@ bool XACMLPDP::isPermitted(Message *msg) const {
           eval->addPolicy(SourceFile(*it));
         }
         for(int n = 0;n<policies.Size();++n) {
-          eval->addPolicy(Source(policies[n]));
+          eval->addPolicy(Source(const_cast<Arc::XMLNodeContainer&>(policies)[n]));
         }
         if(!policy_combining_alg.empty()) {
           if(policy_combining_alg == "EvaluatorFailsOnDeny") {

@@ -24,10 +24,14 @@ template <class TheAttribute>
 AttributeValue* XACMLAttributeProxy<TheAttribute>::getAttribute(const Arc::XMLNode& node){
   Arc::XMLNode x;
   std::string value;
-  if((bool)(node.Child())) x=node.Child(0); 
-  else x=node;
+  if((bool)(const_cast<Arc::XMLNode&>(node).Child())) {
+    x=const_cast<Arc::XMLNode&>(node).Child(0); 
+  } else {
+    x=node;
+  }
   value = (std::string)x;
-  std::string attrid = (std::string)(node.Attribute("AttributeId"));
+  std::string attrid =
+        (std::string)(const_cast<Arc::XMLNode&>(node).Attribute("AttributeId"));
   std::size_t start;
   start = value.find_first_not_of(" \n\r\t");
   value = value.substr(start);

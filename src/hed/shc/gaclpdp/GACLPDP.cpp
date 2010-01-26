@@ -108,7 +108,7 @@ bool GACLPDP::isPermitted(Message *msg) const{
           eval->addPolicy(SourceFile(*it));
         }
         for(int n = 0;n<policy_docs.Size();++n) {
-          eval->addPolicy(Source(policy_docs[n]));
+          eval->addPolicy(Source(const_cast<Arc::XMLNodeContainer&>(policy_docs)[n]));
         }
         msg->Context()->Add(ctxid, pdpctx);
       } else {
