@@ -38,13 +38,13 @@ class SOAPFault {
     DataEncodingUnknown
   } SOAPFaultCode;
   /** Parse Fault elements of SOAP Body or any other XML tree with Fault element */
-  SOAPFault(const XMLNode& body);
+  SOAPFault(XMLNode body);
   /** Creates Fault element inside @body SOAP Body node with specified @code and @reason.
      Version of Fault element is picked from SOAP Body version. */
-  SOAPFault(const XMLNode& body,SOAPFaultCode code,const char* reason);
+  SOAPFault(XMLNode body,SOAPFaultCode code,const char* reason);
   /** Creates Fault element inside @body SOAP Body node with specified @code and @reason.
      SOAP version of Fault element must be specified explicitely. */
-  SOAPFault(const XMLNode& body,SOAPFaultCode code,const char* reason,bool ver12);
+  SOAPFault(XMLNode body,SOAPFaultCode code,const char* reason,bool ver12);
   /** Returns true if instance refers to SOAP Fault */
   operator bool(void) { return (bool)fault; };
   /** Returns top level Fault element.

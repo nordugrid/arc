@@ -69,12 +69,12 @@ namespace Arc {
     virtual bool Export(SecAttrFormat format,XMLNode &val) const;
 
     /** Fills internal structure from external object of 
-       specified format. Retrns false if failed to do. 
+       specified format. Returns false if failed to do. 
        The usage pattern for this method is not defined and
        it is provided only to make class symmetric. Hence
        it's implementation is not required yet. */
     virtual bool Import(SecAttrFormat format,const std::string &val);
-    virtual bool Import(SecAttrFormat format,const XMLNode &val);
+    virtual bool Import(SecAttrFormat format,XMLNode val);
 
    protected:
     virtual bool equal(const SecAttr &b) const;
@@ -93,7 +93,7 @@ namespace Arc {
     virtual ~MultiSecAttr() {};
     virtual operator bool() const;
     virtual bool Export(SecAttrFormat format,XMLNode &val) const;
-    virtual bool Import(SecAttrFormat format,const XMLNode &val);
+    virtual bool Import(SecAttrFormat format,XMLNode val);
    protected:
     std::list<SecAttr*> attrs_;
     virtual bool equal(const SecAttr &b) const;

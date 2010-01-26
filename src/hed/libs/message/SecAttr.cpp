@@ -35,7 +35,7 @@ bool SecAttr::Import(SecAttrFormat format,const std::string &val) {
   return Import(format,x);
 }
 
-bool SecAttr::Import(SecAttrFormat, const XMLNode&) {
+bool SecAttr::Import(SecAttrFormat, XMLNode) {
   return false;
 }
 
@@ -60,7 +60,7 @@ bool MultiSecAttr::Export(SecAttrFormat format,XMLNode &val) const {
   return true;
 }
 
-bool MultiSecAttr::Import(SecAttrFormat format,const XMLNode &val) {
+bool MultiSecAttr::Import(SecAttrFormat format,XMLNode val) {
   XMLNode x = val.Child(0);
   for(;(bool)x;x=x[1]) {
     if(!Add(format,x)) return false;
