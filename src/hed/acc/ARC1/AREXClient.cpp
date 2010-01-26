@@ -22,7 +22,7 @@ namespace Arc {
 
   // TODO: probably worth moving it to common library
   // Of course xpath can be used too. But such solution is probably an overkill.
-  static XMLNode find_xml_node(const XMLNode& node,
+  static XMLNode find_xml_node(XMLNode node,
                                const std::string& el_name,
                                const std::string& attr_name,
                                const std::string& attr_value) {
