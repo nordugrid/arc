@@ -98,14 +98,14 @@ class DelegationConsumerSOAP: public DelegationConsumer {
   bool DelegateCredentialsInit(const std::string& id,const SOAPEnvelope& in,SOAPEnvelope& out);
   /** Accepts delegated credentials.
      Process 'in' SOAP message and stores full proxy credentials in 'credentials'. 
-    'out' message is genarated for sending to DelagationProviderSOAP. */
+    'out' message is generated for sending to DelagationProviderSOAP. */
   bool UpdateCredentials(std::string& credentials,const SOAPEnvelope& in,SOAPEnvelope& out);
   /** Includes the functionality in above UpdateCredentials method; plus extracting the
    credential identity*/
   bool UpdateCredentials(std::string& credentials,std::string& identity,const SOAPEnvelope& in,SOAPEnvelope& out);
   /** Similar to UpdateCredentials but takes only DelegatedToken XML element */ 
-  bool DelegatedToken(std::string& credentials,const XMLNode& token);
-  bool DelegatedToken(std::string& credentials,std::string& identity,const XMLNode& token);
+  bool DelegatedToken(std::string& credentials,XMLNode token);
+  bool DelegatedToken(std::string& credentials,std::string& identity,XMLNode token);
 };
 
 /** Extension of DelegationProvider with SOAP exchange interface. 
@@ -145,7 +145,7 @@ class DelegationProviderSOAP: public DelegationProvider {
   /** Generates DelegatedToken element.
      Element is created as child of provided XML element and contains structure
     described in delegation.wsdl. */
-  bool DelegatedToken(XMLNode& parent);
+  bool DelegatedToken(XMLNode parent);
   /** Returns the identifier by service accepting delegated credentials.
      This identifier may then be used to refer to credentials stored 
      at service. */
@@ -190,8 +190,8 @@ class DelegationContainerSOAP {
   bool UpdateCredentials(std::string& credentials,const SOAPEnvelope& in,SOAPEnvelope& out);
   bool UpdateCredentials(std::string& credentials,std::string& identity,const SOAPEnvelope& in,SOAPEnvelope& out);
   /** See DelegationConsumerSOAP::DelegatedToken */
-  bool DelegatedToken(std::string& credentials,const XMLNode& token);
-  bool DelegatedToken(std::string& credentials,std::string& identity,const XMLNode& token);
+  bool DelegatedToken(std::string& credentials,XMLNode token);
+  bool DelegatedToken(std::string& credentials,std::string& identity,XMLNode token);
 };
 
 } // namespace Arc

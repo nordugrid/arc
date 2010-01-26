@@ -828,12 +828,12 @@ bool DelegationConsumerSOAP::UpdateCredentials(std::string& credentials,std::str
   return true;
 }
 
-bool DelegationConsumerSOAP::DelegatedToken(std::string& credentials,const XMLNode& token) {
+bool DelegationConsumerSOAP::DelegatedToken(std::string& credentials,XMLNode token) {
   std::string identity;
   return DelegatedToken(credentials,identity,token);
 }
 
-bool DelegationConsumerSOAP::DelegatedToken(std::string& credentials,std::string& identity,const XMLNode& token) {
+bool DelegationConsumerSOAP::DelegatedToken(std::string& credentials,std::string& identity,XMLNode token) {
   credentials = (std::string)(token["Value"]);
   if(credentials.empty()) return false;
   if(((std::string)(token.Attribute("Format"))) != "x509") return false;
@@ -924,7 +924,7 @@ bool DelegationProviderSOAP::UpdateCredentials(MCCInterface& interface,MessageAt
   return true;
 }
 
-bool DelegationProviderSOAP::DelegatedToken(XMLNode& parent) {
+bool DelegationProviderSOAP::DelegatedToken(XMLNode parent) {
   if(id_.empty()) return false;
   if(request_.empty()) return false;
   std::string delegation = Delegate(request_);
@@ -1057,7 +1057,7 @@ bool DelegationContainerSOAP::UpdateCredentials(std::string& credentials,const S
 
 bool DelegationContainerSOAP::UpdateCredentials(std::string& credentials,std::string& identity, const SOAPEnvelope& in,SOAPEnvelope& out) {
   lock_.lock();
-  std::string id = (std::string)(in["UpdateCredentials"]["DelegatedToken"]["Id"]);
+  std::string id = (std::string)(const_cast<SOAPEnvelope&>(in)["UpdateCredentials"]["DelegatedToken"]["Id"]);
   ConsumerIterator i = consumers_.find(id);
   if(i == consumers_.end()) { lock_.unlock(); return false; };
   if(!(i->second.deleg)) { lock_.unlock(); return false; };
@@ -1075,12 +1075,12 @@ bool DelegationContainerSOAP::UpdateCredentials(std::string& credentials,std::st
   return r;
 }
 
-bool DelegationContainerSOAP::DelegatedToken(std::string& credentials,const XMLNode& token) {
+bool DelegationContainerSOAP::DelegatedToken(std::string& credentials,XMLNode token) {
   std::string identity;
   return DelegatedToken(credentials,identity,token);
 }
 
-bool DelegationContainerSOAP::DelegatedToken(std::string& credentials,std::string& identity,const XMLNode& token) {
+bool DelegationContainerSOAP::DelegatedToken(std::string& credentials,std::string& identity,XMLNode token) {
   lock_.lock();
   std::string id = (std::string)(token["Id"]);
   ConsumerIterator i = consumers_.find(id);
