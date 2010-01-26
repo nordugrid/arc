@@ -55,6 +55,7 @@ unsigned long long int JobsList::min_speed=0;
 time_t JobsList::min_speed_time=300;
 unsigned long long int JobsList::min_average_speed=0;
 time_t JobsList::max_inactivity_time=300;
+int JobsList::max_retries=DEFAULT_MAX_RETRIES;
 bool JobsList::use_secure_transfer=false; /* secure data transfer is OFF by default !!! */
 bool JobsList::use_passive_transfer=false;
 bool JobsList::use_local_transfer=false;
@@ -160,18 +161,18 @@ bool JobsList::ActJobs(bool hard_job) {
     for (iterator i=jobs.begin();i!=jobs.end();i++) {
       if (i->job_state == JOB_STATE_ACCEPTED) {
         // is job ready to move to preparing?
-        if (/*i->retries == 0 &&*/ i->local->processtime != -1) {
+        if (i->retries == 0 && i->local->processtime != -1) {
           if (i->local->processtime <= time(NULL)) {
               pre_preparing_job_share[i->transfer_share]++;
           }
         }
-        else //if (i->next_retry <= time(NULL)) {
+        else if (i->next_retry <= time(NULL)) {
           pre_preparing_job_share[i->transfer_share]++;
-        //}
+        }
       }
       else if (i->job_state == JOB_STATE_INLRMS) {
         // is job ready to move to finishing?
-        if (job_lrms_mark_check(i->job_id,*user) /*&& i->next_retry <= time(NULL)*/) {
+        if (job_lrms_mark_check(i->job_id,*user) && i->next_retry <= time(NULL)) {
           pre_finishing_job_share[i->transfer_share]++;
         }
       }
@@ -463,7 +464,7 @@ bool JobsList::state_submitting(const JobsList::iterator &i,bool &state_changed,
   };
 }
 
-bool JobsList::state_loading(const JobsList::iterator &i,bool &state_changed,bool up) {
+bool JobsList::state_loading(const JobsList::iterator &i,bool &state_changed,bool up,bool &retry) {
   /* RSL was analyzed/parsed - now run child process downloader
      to download job input files and to wait for user uploaded ones */
   if(i->child == NULL) { /* no child started */
@@ -625,6 +626,7 @@ bool JobsList::state_loading(const JobsList::iterator &i,bool &state_changed,boo
       } else if(i->child->Result() == 4) { // retryable cache error
         logger.msg(Arc::DEBUG, "%s: State: PREPARING/FINISHING: retryable error", i->job_id);
         delete i->child; i->child=NULL;
+	retry = true;
         return true;
       } 
       else {
@@ -827,6 +829,7 @@ void JobsList::ActJobUndefined(JobsList::iterator &i,bool /*hard_job*/,
                 JobDescription::get_state_name(new_state),i->get_uid(),i->get_gid());
             // Make it clean state after restart
             job_state_write_file(*i,*user,i->job_state);
+	    i->retries = JobsList::max_retries;
 	    // set transfer share and counters
             JobLocalDescription job_desc;
             if (!share_type.empty()) {
@@ -870,18 +873,20 @@ void JobsList::ActJobAccepted(JobsList::iterator &i,bool /*hard_job*/,
            (use_local_transfer) ||
            ((i->local->downloads == 0) && (i->local->rtes == 0)) ||
            (((JOB_NUM_PROCESSING < max_jobs_processing) ||
-           ((JOB_NUM_FINISHING >= max_jobs_processing) && 
-            (JOB_NUM_PREPARING < max_jobs_processing_emergency))) && 
+            ((JOB_NUM_FINISHING >= max_jobs_processing) && 
+            (JOB_NUM_PREPARING < max_jobs_processing_emergency))) &&
+           (i->next_retry <= time(NULL)) && 
 	   (share_type.empty() || preparing_job_share[i->transfer_share] < preparing_max_share)))
 	{
           /* check for user specified time */
-          if(i->local->processtime != -1) {
+          if(i->retries == 0 && i->local->processtime != -1) {
             logger.msg(Arc::INFO,"%s: State: ACCEPTED: have processtime %i",i->job_id.c_str(),
                   i->local->processtime.str(Arc::MDSTime).c_str());
             if((i->local->processtime) <= time(NULL)) {
               logger.msg(Arc::INFO,"%s: State: ACCEPTED: moving to PREPARING",i->job_id);
               state_changed=true; once_more=true;
               i->job_state = JOB_STATE_PREPARING;
+	      i->retries = JobsList::max_retries;
 	      preparing_job_share[i->transfer_share]++;
             };
           }
@@ -889,9 +894,11 @@ void JobsList::ActJobAccepted(JobsList::iterator &i,bool /*hard_job*/,
             logger.msg(Arc::INFO,"%s: State: ACCEPTED: moving to PREPARING",i->job_id);
             state_changed=true; once_more=true;
             i->job_state = JOB_STATE_PREPARING;
+	    /* if first pass then reset retries */
+	    if (i->retries ==0) i->retries = JobsList::max_retries;
 	    preparing_job_share[i->transfer_share]++;
           };
-          if(state_changed) {
+          if(state_changed && i->retries == JobsList::max_retries) {
             /* gather some frontend specific information for user,
                do it only once */
             std::string cmd = nordugrid_libexec_loc()+"/frontend-info-collector";
@@ -909,21 +916,46 @@ void JobsList::ActJobPreparing(JobsList::iterator &i,bool /*hard_job*/,
            already downloading input files. process downloader is run for
            that. it also checks for files user interface have to upload itself*/
         logger.msg(Arc::VERBOSE,"%s: State: PREPARING",i->job_id);
-        if(i->job_pending || state_loading(i,state_changed,false)) {
+	bool retry = false;
+        if(i->job_pending || state_loading(i,state_changed,false,retry)) {
           if(i->job_pending || state_changed) {
 	    if (state_changed) preparing_job_share[i->transfer_share]--;
             if((JOB_NUM_RUNNING<max_jobs_running) || (max_jobs_running==-1)) {
               i->job_state = JOB_STATE_SUBMITTING;
               state_changed=true; once_more=true;
+	      i->retries = JobsList::max_retries;
             } else {
               state_changed=false;
               JobPending(i);
             };
-          };
-        } else {
+          }
+          else if (retry){
+	    preparing_job_share[i->transfer_share]--;
+	    if(--i->retries == 0) { // no tries left
+	      logger.msg(Arc::ERROR,"%s: Download failed. No retries left.",i->job_id);
+	      i->AddFailure("downloader failed (pre-processing)");
+	      job_error=true;
+	      JobFailStateRemember(i,JOB_STATE_PREPARING);
+	      return;
+	    }
+	    /* set next retry time
+	       exponential back-off algorithm - wait 10s, 40s, 90s, 160s,...
+	       with a bit of randomness thrown in - vary by up to 50% of wait_time */
+	    int wait_time = 10 * (JobsList::max_retries - i->retries) * (JobsList::max_retries - i->retries);
+	    int randomness = (rand() % wait_time) - (wait_time/2);
+	    wait_time += randomness;
+	    i->next_retry = time(NULL) + wait_time;
+	    logger.msg(Arc::ERROR,"%s: Download failed. %d retries left. Will wait for %ds before retrying",i->job_id,i->retries,wait_time);
+	    /* set back to ACCEPTED */
+	    i->job_state = JOB_STATE_ACCEPTED;
+	    state_changed = true;
+ 	  };	 
+	} 
+        else {
           if(i->GetFailure().length() == 0)
             i->AddFailure("downloader failed (pre-processing)");
           job_error=true;
+	  preparing_job_share[i->transfer_share]--;
           return; /* go to next job */
         };
         return;
@@ -971,13 +1003,15 @@ void JobsList::ActJobInlrms(JobsList::iterator &i,bool /*hard_job*/,
           job_error=true;
           return; /* go to next job */
         };
-        if(i->job_pending || job_lrms_mark_check(i->job_id,*user)) {
-          if(!i->job_pending) {
-            logger.msg(Arc::INFO,"%s: Job finished",i->job_id);
-            job_diagnostics_mark_move(*i,*user);
-            LRMSResult ec = job_lrms_mark_read(i->job_id,*user);
-            if(ec.code() != 0) {
-              logger.msg(Arc::INFO,"%s: State: INLRMS: exit message is %i %s",i->job_id,ec.code(),ec.description());
+	/* only check lrms job status on first pass */
+	if(i->retries == 0 || i->retries == JobsList::max_retries) {
+          if(i->job_pending || job_lrms_mark_check(i->job_id,*user)) {
+            if(!i->job_pending) {
+              logger.msg(Arc::INFO,"%s: Job finished",i->job_id);
+              job_diagnostics_mark_move(*i,*user);
+              LRMSResult ec = job_lrms_mark_read(i->job_id,*user);
+              if(ec.code() != 0) {
+                logger.msg(Arc::INFO,"%s: State: INLRMS: exit message is %i %s",i->job_id,ec.code(),ec.description());
               /*
               * check if not asked to rerun job *
               JobLocalDescription *job_desc = i->local;
@@ -1002,24 +1036,41 @@ void JobsList::ActJobInlrms(JobsList::iterator &i,bool /*hard_job*/,
               /*
               };
               */
-              state_changed=true; once_more=true;
-              return;
-            } else {
+                state_changed=true; once_more=true;
+                return;
+              } else {
               // i->job_state = JOB_STATE_FINISHING;
+              };
             };
+            if((max_jobs_processing == -1) ||
+              (use_local_transfer) ||
+              (i->local->uploads == 0) ||
+              (((JOB_NUM_PROCESSING < max_jobs_processing) ||
+               ((JOB_NUM_PREPARING >= max_jobs_processing) &&
+                (JOB_NUM_FINISHING < max_jobs_processing_emergency))) &&
+	       (i->next_retry <= time(NULL)) &&
+               (share_type.empty() || finishing_job_share[i->transfer_share] < finishing_max_share))) {
+                 state_changed=true; once_more=true;
+                 i->job_state = JOB_STATE_FINISHING;
+	         /* if first pass then reset retries */
+	         if (i->retries == 0) i->retries = JobsList::max_retries;
+	         finishing_job_share[i->transfer_share]++;
+            } else JobPending(i);
           };
-          if((max_jobs_processing == -1) ||
-             (use_local_transfer) ||
-             (i->local->uploads == 0) ||
-             (((JOB_NUM_PROCESSING < max_jobs_processing) ||
-              ((JOB_NUM_PREPARING >= max_jobs_processing) &&
-               (JOB_NUM_FINISHING < max_jobs_processing_emergency))) &&
-              (share_type.empty() || finishing_job_share[i->transfer_share] < finishing_max_share))) {
-            state_changed=true; once_more=true;
-            i->job_state = JOB_STATE_FINISHING;
-	    finishing_job_share[i->transfer_share]++;
-          } else JobPending(i);
-        };
+	} else if((max_jobs_processing == -1) ||
+		  (use_local_transfer) ||
+		  (i->local->uploads == 0) ||
+		  (((JOB_NUM_PROCESSING < max_jobs_processing) ||
+		   ((JOB_NUM_PREPARING >= max_jobs_processing) &&
+		    (JOB_NUM_FINISHING < max_jobs_processing_emergency))) &&
+		  (i->next_retry <= time(NULL)) &&
+		  (share_type.empty() || finishing_job_share[i->transfer_share] < finishing_max_share))) {
+		    state_changed=true; once_more=true;
+		    i->job_state = JOB_STATE_FINISHING;
+		    finishing_job_share[i->transfer_share]++;
+	  } else {
+		JobPending(i);
+	  };
         return;
 }
 
@@ -1027,8 +1078,30 @@ void JobsList::ActJobFinishing(JobsList::iterator &i,bool hard_job,
                                bool& once_more,bool& /*delete_job*/,
                                bool& job_error,bool& state_changed) {
         logger.msg(Arc::VERBOSE,"%s: State: FINISHING",i->job_id);
-        if(state_loading(i,state_changed,true)) {
-          if(state_changed) {
+	bool retry = false;
+        if(state_loading(i,state_changed,true,retry)) {
+	  if (retry) {
+            finishing_job_share[i->transfer_share]--;
+	    if(--i->retries == 0) { // no tries left
+	      logger.msg(Arc::ERROR,"%s: Upload failed. No retries left.",i->job_id);
+	      i->AddFailure("uploader failed (post-processing)");
+	      job_error=true;
+	      JobFailStateRemember(i,JOB_STATE_FINISHING);
+	      return;
+	    };
+	    /* set next retry time
+            exponential back-off algorithm - wait 10s, 40s, 90s, 160s,...
+            with a bit of randomness thrown in - vary by up to 50% of wait_time */
+            int wait_time = 10 * (JobsList::max_retries - i->retries) * (JobsList::max_retries - i->retries);
+            int randomness = (rand() % wait_time) - (wait_time/2);
+            wait_time += randomness;
+            i->next_retry = time(NULL) + wait_time;
+            logger.msg(Arc::ERROR,"%s: Upload failed. %d retries left. Will wait for %ds before retrying.",i->job_id,i->retries,wait_time);
+            /* set back to INLRMS */
+            i->job_state = JOB_STATE_INLRMS;
+            state_changed = true;
+          }
+          else if(state_changed) {
 	    finishing_job_share[i->transfer_share]--;
             i->job_state = JOB_STATE_FINISHED;
             once_more=true; hard_job=true;

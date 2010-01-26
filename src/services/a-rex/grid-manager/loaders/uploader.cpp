@@ -396,7 +396,7 @@ int main(int argc,char** argv) {
   Janitor janitor(desc.get_id(),user.ControlDir());
   
   Arc::UserConfig usercfg(Arc::initializeCredentialsType(Arc::initializeCredentialsType::TryCredentials));
-
+  
   Arc::DataMover mover;
   mover.retry(false);
   mover.secure(secure);
@@ -520,6 +520,12 @@ int main(int argc,char** argv) {
     logger.msg(Arc::INFO, "Uploaded %s", i->lfn);
   };
   for(FileDataEx::iterator i=failed_files.begin();i!=failed_files.end();++i) {
+    if(i->res.Retryable()) {
+      job_files.push_back(*i);
+      logger.msg(Arc::ERROR,"Failed to upload (but may be retried) %s",i->lfn);
+      res = 4;
+      continue;
+    }
     logger.msg(Arc::ERROR, "Failed to upload %s", i->lfn);
     failure_reason+="Output file: "+i->lfn+" - "+(std::string)(i->res)+"\n";
     if(i->res == Arc::DataStatus::CredentialsExpiredError)
@@ -531,11 +537,13 @@ int main(int argc,char** argv) {
     logger.msg(Arc::INFO, "Some uploads failed"); res=2;
     if(credentials_expired) res=3;
     goto exit;
-  };
-  /* all files left should be kept */
-  for(FileDataEx::iterator i=job_files.begin();i!=job_files.end();) {
-    i->lfn=""; ++i;
-  };
+  }
+  else if(res == 4) { logger.msg(Arc::INFO,"Some uploads failed, but may be retried"); }
+  else { /* all files left should be kept */
+    for(FileDataEx::iterator i=job_files.begin();i!=job_files.end();) {
+      i->lfn=""; ++i;
+    };
+  }
   if(!userfiles_only) {
     job_files_.clear();
     for(FileDataEx::iterator i = job_files.begin();i!=job_files.end();++i) job_files_.push_back(*i);
@@ -562,7 +570,7 @@ exit:
       logger.msg(Arc::WARNING, "Janitor failed to remove Dynamic RTE(s) associations (ignoring)");
     };
   };
-  if(res != 0) {
+  if(res != 0 && res != 4) {
     job_failed_mark_add(desc,user,failure_reason);
   };
   logger.msg(Arc::INFO, "Leaving uploader (%i)", res);

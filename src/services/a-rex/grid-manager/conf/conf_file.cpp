@@ -282,6 +282,16 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
       };
       JobsList::SetPassiveTransfer(use_passive_transfer);
     }
+    else if(command == "maxtransfertries") {
+      std::string maxtries_s = config_next_arg(rest);
+      int max_retries = DEFAULT_MAX_RETRIES;
+      if(maxtries_s.length() != 0) {
+        if(!Arc::stringto(maxtries_s,max_retries)) {
+          logger.msg(Arc::ERROR,"wrong number in maxtransfertries"); goto exit;
+        };
+        JobsList::SetMaxRetries(max_retries);
+      };
+    }
     else if(command == "norootpower") {
       std::string s = config_next_arg(rest);
       if(strcasecmp("yes",s.c_str()) == 0) {
@@ -683,6 +693,7 @@ bool configure_serviced_users(Arc::XMLNode cfg,JobUsers &users,uid_t my_uid,cons
     int min_speed_time=300;
     int min_average_speed=0;
     int max_inactivity_time=300;
+    int max_retries = DEFAULT_MAX_RETRIES;
     bool use_secure_transfer = false;
     bool use_passive_transfer = true;
     bool use_local_transfer = false;
@@ -701,6 +712,9 @@ bool configure_serviced_users(Arc::XMLNode cfg,JobUsers &users,uid_t my_uid,cons
     JobsList::SetSecureTransfer(use_secure_transfer);
     elementtobool(tmp_node,"localTransfer",use_local_transfer,&logger);
     JobsList::SetLocalTransfer(use_local_transfer);
+    if(elementtoint(tmp_node,"maxRetries",max_retries,&logger) && (max_retries > 0)) {
+        JobsList::SetMaxRetries(max_retries);
+    }
 
 
   };

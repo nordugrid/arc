@@ -93,7 +93,11 @@ class JobDescription {
   /* uid and gid of job's owner */
   uid_t job_uid;
   gid_t job_gid;
-   /* used to determine data transfer share (eg DN, VOMS VO) */
+  /* reties left (should be reset for each state change) */
+  int retries;
+  /* time to perform the next retry */
+  time_t next_retry;
+  /* used to determine data transfer share (eg DN, VOMS VO) */
   std::string transfer_share;
  public:
   /* external utility beeing run to perform tasks like stage-in/our, 

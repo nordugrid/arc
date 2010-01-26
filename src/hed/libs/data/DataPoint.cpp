@@ -23,7 +23,7 @@ namespace Arc {
       size((unsigned long long int)(-1)),
       created(-1),
       valid(-1),
-      triesleft(5),
+      triesleft(1),
       failure_code(DataStatus::UnknownError),
       cache(url.Option("cache") != "no") {
     // add standard options applicable to all protocols

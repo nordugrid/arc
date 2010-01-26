@@ -15,6 +15,8 @@
 #define DEFAULT_JOB_RERUNS (5)
 /* not used */
 #define DEFAULT_DISKSPACE (200*1024L*1024L)
+/* default maximum down/upload retries */
+#define DEFAULT_MAX_RETRIES (10)
 
 class JobUser;
 class JobLocalDescription;
@@ -56,6 +58,7 @@ class JobsList {
   static unsigned long long int min_average_speed;
   static time_t max_inactivity_time;
   static int max_downloads;
+  static int max_retries;
   static bool use_secure_transfer;
   static bool use_passive_transfer;
   static bool use_local_transfer;
@@ -86,7 +89,7 @@ class JobsList {
      SUBMITTING/CANCELING state */
   bool state_submitting(const iterator &i,bool &state_changed,bool cancel=false);
   /* Same for PREPARING/FINISHING */
-  bool state_loading(const iterator &i,bool &state_changed,bool up);
+  bool state_loading(const iterator &i,bool &state_changed,bool up,bool &retry);
   bool JobPending(JobsList::iterator &i);
   job_state_t JobFailStateGet(const iterator &i);
   bool JobFailStateRemember(const iterator &i,job_state_t state);
@@ -134,7 +137,8 @@ class JobsList {
   };
   static void SetWakeupPeriod(unsigned int t) { wakeup_period=t; };
   static unsigned int WakeupPeriod(void) { return wakeup_period; };
-
+  static void SetMaxRetries(int r) {JobsList::max_retries = r; };
+  static int MaxRetries() { return JobsList::max_retries; };
   static void SetTransferShare(unsigned int max_share, std::string type){
 	max_processing_share = max_share;
 	share_type = type;
