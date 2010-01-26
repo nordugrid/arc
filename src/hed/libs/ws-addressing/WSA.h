@@ -20,7 +20,7 @@ class WSAEndpointReference {
   XMLNode epr_; /** Link to top level EPR XML node */
  public:
   /** Linking to existing EPR in XML tree */
-  WSAEndpointReference(const XMLNode& epr);
+  WSAEndpointReference(XMLNode epr);
   /** Copy constructor */
   WSAEndpointReference(const WSAEndpointReference& wsa);
   /** Creating independent EPR - not implemented */

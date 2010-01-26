@@ -35,7 +35,7 @@ static XMLNode get_node(XMLNode& parent,const char* name) {
 }
 
 
-WSAEndpointReference::WSAEndpointReference(const XMLNode& epr) : epr_(epr) {}
+WSAEndpointReference::WSAEndpointReference(XMLNode epr) : epr_(epr) {}
 
 WSAEndpointReference::WSAEndpointReference(const WSAEndpointReference& wsa) : epr_(wsa.epr_) {}
 
@@ -56,7 +56,7 @@ WSAEndpointReference::~WSAEndpointReference(void) {
 
 
 std::string WSAEndpointReference::Address(void) const {
-  return strip_spaces(epr_["wsa:Address"]);
+  return strip_spaces(const_cast<XMLNode&>(epr_)["wsa:Address"]);
 }
 
 WSAEndpointReference& WSAEndpointReference::operator=(const std::string& address) {
@@ -112,7 +112,7 @@ WSAHeader::~WSAHeader(void) {
 
 
 std::string WSAHeader::To(void) const {
-  return strip_spaces(header_["wsa:To"]);
+  return strip_spaces(const_cast<XMLNode&>(header_)["wsa:To"]);
 }
 
 
@@ -122,7 +122,7 @@ void WSAHeader::To(const std::string& uri) {
 
 
 std::string WSAHeader::Action(void) const {
-  return strip_spaces(header_["wsa:Action"]);
+  return strip_spaces(const_cast<XMLNode&>(header_)["wsa:Action"]);
 }
 
 
@@ -132,7 +132,7 @@ void WSAHeader::Action(const std::string& uri) {
 
 
 std::string WSAHeader::MessageID(void) const {
-  return strip_spaces(header_["wsa:MessageID"]);
+  return strip_spaces(const_cast<XMLNode&>(header_)["wsa:MessageID"]);
 }
 
 
@@ -142,7 +142,7 @@ void WSAHeader::MessageID(const std::string& uri) {
 
 
 std::string WSAHeader::RelatesTo(void) const {
-  return strip_spaces(header_["wsa:RelatesTo"]);
+  return strip_spaces(const_cast<XMLNode&>(header_)["wsa:RelatesTo"]);
 }
 
 
@@ -166,7 +166,7 @@ WSAEndpointReference WSAHeader::FaultTo(void) {
 }
 
 std::string WSAHeader::RelationshipType(void) const {
-  return strip_spaces(header_["wsa:ReplyTo"].Attribute("wsa:RelationshipType"));
+  return strip_spaces(const_cast<XMLNode&>(header_)["wsa:ReplyTo"].Attribute("wsa:RelationshipType"));
 }
 
 
