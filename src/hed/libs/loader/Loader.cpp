@@ -18,7 +18,7 @@ namespace Arc {
   Loader::Loader(const Config& cfg) {
     factory_    = new PluginsFactory(cfg);
     for(int n = 0;; ++n) {
-      XMLNode cn = cfg.Child(n);
+      XMLNode cn = const_cast<Config&>(cfg).Child(n);
       if(!cn) break;
       Config cfg_(cn, cfg.getFileName());
 
