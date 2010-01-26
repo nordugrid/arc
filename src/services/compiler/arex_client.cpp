@@ -12,7 +12,7 @@ namespace Arc {
 
   // TODO: probably worth moving it to common library
   // Of course xpath can be used too. But such solution is probably an overkill.
-  static Arc::XMLNode find_xml_node(const Arc::XMLNode& node,const std::string& el_name,
+  static Arc::XMLNode find_xml_node(Arc::XMLNode node,const std::string& el_name,
                                     const std::string& attr_name,const std::string& attr_value) {
     if(MatchXMLName(node,el_name) && 
        (((std::string)node.Attribute(attr_name)) == attr_value)) return node;

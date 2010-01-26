@@ -286,7 +286,7 @@ ARexJob::ARexJob(const std::string& id,ARexGMConfig& config,Arc::Logger& logger,
   if(!(allowed_to_see_ || allowed_to_maintain_)) { id_.clear(); return; };
 }
 
-ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& credentials,const std::string& clientid, Arc::Logger& logger, const Arc::XMLNode& migration):id_(""),logger_(logger),config_(config) {
+ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& credentials,const std::string& clientid, Arc::Logger& logger, Arc::XMLNode migration):id_(""),logger_(logger),config_(config) {
   if(!config_) return;
   // New job is created here
   // First get and acquire new id
