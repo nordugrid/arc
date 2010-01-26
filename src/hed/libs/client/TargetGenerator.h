@@ -128,6 +128,7 @@ namespace Arc {
      * @param job XMLNode describing the job.
      *
      **/
+    // XMLNode is reference by itself - passing it as const& has no sense
     void AddJob(const XMLNode& job);
     
     /// Decrement the threadCounter by 1

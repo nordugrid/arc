@@ -262,6 +262,7 @@ namespace Arc {
 
     // Try to parse the source string and store it.
     bool Parse(const std::string& source);
+    // XMLNode is reference by itself - passing it as const& has no sense
     bool Parse(const XMLNode& xmlSource);
 
     // Transform the job description representation into a given format,

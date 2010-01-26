@@ -27,7 +27,7 @@ namespace Arc {
     return;
   }
 
-  bool ARCJSDLParser::parseSoftware(const XMLNode& xmlSoftware, SoftwareRequirement& sr) const {
+  bool ARCJSDLParser::parseSoftware(XMLNode xmlSoftware, SoftwareRequirement& sr) const {
     for (int i = 0; (bool)(xmlSoftware["Software"][i]); i++) {
       Software::ComparisonOperator comOp = &Software::operator==;
       if (bool(xmlSoftware["Software"][i]["Version"].Attribute("require"))) {
@@ -78,7 +78,7 @@ namespace Arc {
   }
 
   template<typename T>
-  void ARCJSDLParser::parseRange(const XMLNode& xmlRange, Range<T>& range, const T& undefValue) const {
+  void ARCJSDLParser::parseRange(XMLNode xmlRange, Range<T>& range, const T& undefValue) const {
     if (!xmlRange) return;
 
     if (bool(xmlRange["Min"])) {
@@ -101,7 +101,7 @@ namespace Arc {
   }
 
   template<typename T>
-  Range<T> ARCJSDLParser::parseRange(const XMLNode& xmlRange, const T& undefValue) const {
+  Range<T> ARCJSDLParser::parseRange(XMLNode xmlRange, const T& undefValue) const {
     Range<T> range;
     parseRange(xmlRange, range, undefValue);
     return range;
@@ -133,7 +133,7 @@ namespace Arc {
     }
   }
 
-  void ARCJSDLParser::parseBenchmark(const XMLNode& xmlBenchmark, std::pair<std::string, double>& benchmark) const {
+  void ARCJSDLParser::parseBenchmark(XMLNode xmlBenchmark, std::pair<std::string, double>& benchmark) const {
     int value;
     if (bool(xmlBenchmark["BenchmarkType"]) &&
         bool(xmlBenchmark["BenchmarkValue"]) &&
