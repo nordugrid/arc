@@ -17,7 +17,7 @@ namespace Arc {
   static const std::string BES_FACTORY_ACTIONS_BASE_URL("http://schemas.ggf.org/bes/2006/08/bes-factory/BESFactoryPortType/");
   static const std::string BES_MANAGEMENT_ACTIONS_BASE_URL("http://schemas.ggf.org/bes/2006/08/bes-management/BESManagementPortType/");
 
-  static XMLNode find_xml_node(const XMLNode& node,
+  static XMLNode find_xml_node(XMLNode node,
                                const std::string& el_name,
                                const std::string& attr_name,
                                const std::string& attr_value) {
