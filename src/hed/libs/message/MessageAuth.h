@@ -39,7 +39,7 @@ class MessageAuth {
       are transfered to new instance. Created instance does not own refered
       attributes. Hence parent instance must not be deleted as long as
       this one is in use. */
-    MessageAuth* Filter(const std::list<std::string>& selected_keys,const std::list<std::string>& rejected_keys) const;
+    MessageAuth* Filter(const std::list<std::string>& selected_keys,const std::list<std::string>& rejected_keys);
 };
 
 }

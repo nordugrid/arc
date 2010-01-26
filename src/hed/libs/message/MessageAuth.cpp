@@ -337,7 +337,7 @@ bool MessageAuth::Export(SecAttrFormat format,XMLNode &val) const {
 }
 #endif
 
-MessageAuth* MessageAuth::Filter(const std::list<std::string>& selected_keys,const std::list<std::string>& rejected_keys) const {
+MessageAuth* MessageAuth::Filter(const std::list<std::string>& selected_keys,const std::list<std::string>& rejected_keys) {
   MessageAuth* newauth = new MessageAuth;
   newauth->attrs_created_=false;
   if(selected_keys.empty()) {
