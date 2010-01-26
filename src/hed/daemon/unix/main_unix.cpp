@@ -79,7 +79,7 @@ static void merge_options_and_config(Arc::Config& cfg, Arc::ServerOptions& opt)
     }
 }
 
-static std::string init_logger(const Arc::XMLNode& log, bool foreground)
+static std::string init_logger(Arc::XMLNode log, bool foreground)
 {
     /* setup root logger */
     Arc::LogFile* sd = NULL;
