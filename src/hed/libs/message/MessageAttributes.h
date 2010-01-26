@@ -34,7 +34,7 @@ namespace Arc {
   typedef AttrMap::iterator AttrIter;
 
 
-  //! An iterator class for accessing multiple values of an attribute.
+  //! A const iterator class for accessing multiple values of an attribute.
   /*! This is an iterator class that is used when accessing multiple
     values of an attribute. The getAll() method of the
     MessageAttributes class returns an AttributeIterator object that
