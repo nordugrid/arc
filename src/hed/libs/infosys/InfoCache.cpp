@@ -62,7 +62,7 @@ InfoCache::InfoCache(const Config &cfg, const std::string &service_id)
     std::string cfg_s;
     cfg.GetXML(cfg_s);
     logger.msg(DEBUG,"Cache configuration: %s",cfg_s);
-    std::string root = std::string(cfg["CacheRoot"]);
+    std::string root = std::string(const_cast<Config&>(cfg)["CacheRoot"]);
     if(root.empty()) {
         logger.msg(ERROR,"Missing cache root in configuration");
         return;
