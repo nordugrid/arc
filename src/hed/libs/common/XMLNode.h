@@ -183,19 +183,19 @@ namespace Arc {
     }
     /** Returns XMLNode instance representing n-th child of XML element.
        If such does not exist invalid XMLNode instance is returned */
-    XMLNode Child(int n = 0) const;
+    XMLNode Child(int n = 0);
     /** Returns XMLNode instance representing first child element with specified name.
        Name may be "namespace_prefix:name" or simply "name". In last case namespace is ignored.
        If such node does not exist invalid XMLNode instance is returned */
-    XMLNode operator[](const char *name) const;
+    XMLNode operator[](const char *name);
     /** Similar to previous method */
-    XMLNode operator[](const std::string& name) const {
+    XMLNode operator[](const std::string& name) {
       return operator[](name.c_str());
     }
     /** Returns XMLNode instance representing n-th node in sequence of siblings of same name.
        It's main purpose is to be used to retrieve element in array of children of same name
        like  node["name"][5] */
-    XMLNode operator[](int n) const;
+    XMLNode operator[](int n);
     /** Convenience operator to switch to next element of same name.
        If there is no such node this object becomes invalid. */
     void operator++(void);
@@ -205,7 +205,7 @@ namespace Arc {
     /** Returns number of children nodes */
     int Size(void) const;
     /** Same as operator[] **/
-    XMLNode Get(const std::string& name) const {
+    XMLNode Get(const std::string& name) {
       return operator[](name.c_str());
     }
     /** Returns name of XML node */
@@ -249,11 +249,11 @@ namespace Arc {
     /// Returns list of all attributes of node
     // std::list<XMLNode> Attributes(void);
     /** Returns XMLNode instance reresenting n-th attribute of node. */
-    XMLNode Attribute(int n = 0) const;
+    XMLNode Attribute(int n = 0);
     /** Returns XMLNode instance representing first attribute of node with specified by name */
-    XMLNode Attribute(const char *name) const;
+    XMLNode Attribute(const char *name);
     /** Returns XMLNode instance representing first attribute of node with specified by name */
-    XMLNode Attribute(const std::string& name) const {
+    XMLNode Attribute(const std::string& name) {
       return Attribute(name.c_str());
     }
     /** Creates new attribute with specified name. */
@@ -312,7 +312,7 @@ namespace Arc {
        and is relative to current node. node_names are treated in same way
        as in operator[].
        Returns all nodes which are represented by path. */
-    XMLNodeList Path(const std::string& path) const;
+    XMLNodeList Path(const std::string& path);
     /** Uses xPath to look up the whole xml structure,
        Returns a list of XMLNode points. The xpathExpr should be like
        "//xx:child1/" which indicates the namespace and node that you
@@ -320,7 +320,7 @@ namespace Arc {
        belong to (e.g. xx="uri:test"). Query is run on whole XML document
        but only the elements belonging to this XML subtree are returned.
      */
-    XMLNodeList XPathLookup(const std::string& xpathExpr, const NS& nsList) const;
+    XMLNodeList XPathLookup(const std::string& xpathExpr, const NS& nsList);
     /** Get the root node from any child node of the tree */
     XMLNode GetRoot(void);
     /** Get the parent node from any child node of the tree */
@@ -371,7 +371,7 @@ namespace Arc {
     /** Return number of refered/stored nodes. */
     int Size(void) const;
     /** Returns n-th node in a store. */
-    XMLNode operator[](int) const;
+    XMLNode operator[](int);
     /** Returns all stored nodes. */
     std::list<XMLNode> Nodes(void);
   };

@@ -292,7 +292,7 @@ namespace Arc {
       xmlFreeDoc(node_->doc);
   }
 
-  XMLNode XMLNode::operator[](int n) const {
+  XMLNode XMLNode::operator[](int n) {
     if (!node_)
       return XMLNode();
     xmlNodePtr p = n < 0 ? NULL : node_;
@@ -312,7 +312,7 @@ namespace Arc {
     return XMLNode(p);
   }
 
-  XMLNode XMLNode::operator[](const char *name) const {
+  XMLNode XMLNode::operator[](const char *name) {
     if (!node_)
       return XMLNode();
     if ((node_->type != XML_ELEMENT_NODE) &&
@@ -410,7 +410,7 @@ namespace Arc {
     return n;
   }
 
-  XMLNode XMLNode::Attribute(int n) const {
+  XMLNode XMLNode::Attribute(int n) {
     if (!node_)
       return XMLNode();
     if (node_->type != XML_ELEMENT_NODE)
@@ -425,7 +425,7 @@ namespace Arc {
     return XMLNode((xmlNodePtr)p);
   }
 
-  XMLNode XMLNode::Attribute(const char *name) const {
+  XMLNode XMLNode::Attribute(const char *name) {
     if (!node_)
       return XMLNode();
     if (node_->type != XML_ELEMENT_NODE)
@@ -500,7 +500,7 @@ namespace Arc {
       node_->ns = ns;
   }
 
-  XMLNode XMLNode::Child(int n) const {
+  XMLNode XMLNode::Child(int n) {
     if (!node_)
       return XMLNode();
     if (node_->type != XML_ELEMENT_NODE)
@@ -790,7 +790,7 @@ namespace Arc {
     }
   }
 
-  XMLNodeList XMLNode::Path(const std::string& path) const {
+  XMLNodeList XMLNode::Path(const std::string& path) {
     XMLNodeList res;
     std::string::size_type name_s = 0;
     std::string::size_type name_e = path.find('/', name_s);
@@ -824,7 +824,7 @@ namespace Arc {
     return res;
   }
 
-  XMLNodeList XMLNode::XPathLookup(const std::string& xpathExpr, const NS& nsList) const {
+  XMLNodeList XMLNode::XPathLookup(const std::string& xpathExpr, const NS& nsList) {
     std::list<XMLNode> retlist;
     if (node_ == NULL)
       return retlist;
@@ -1148,7 +1148,7 @@ namespace Arc {
     return nodes_.size();
   }
 
-  XMLNode XMLNodeContainer::operator[](int n) const {
+  XMLNode XMLNodeContainer::operator[](int n) {
     if (n < 0)
       return XMLNode();
     if (n >= nodes_.size())

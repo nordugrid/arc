@@ -19,13 +19,14 @@ namespace Arc {
   static void EvaluateNode (XMLNode n, const IniConfig& ini) {
     XMLNode sections = n.Attribute("inisections");
     XMLNode tag = n.Attribute("initag");
+    XMLNode ini_node = const_cast<IniConfig&>(ini);
     if (sections && tag) {
       std::list<std::string> section;
       tokenize (sections, section);
       for (std::list<std::string>::iterator it = section.begin();
            it != section.end(); it++) {
-        if (ini[*it][(std::string)tag]) {
-          n = (std::string)ini[*it][(std::string)tag];
+        if (ini_node[*it][(std::string)tag]) {
+          n = (std::string)ini_node[*it][(std::string)tag];
           break;
         }
       }
