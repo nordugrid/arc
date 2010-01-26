@@ -75,7 +75,7 @@ namespace Arc {
   /// This method converts to upper case of the string
   std::string upper(const std::string& s);
 
-  /// This method tokenize string
+  /// This method tokenizes string
   void tokenize(const std::string& str, std::vector<std::string>& tokens,
                 const std::string& delimiters = " ");
   void tokenize(const std::string& str, std::list<std::string>& tokens,

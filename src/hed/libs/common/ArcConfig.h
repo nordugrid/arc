@@ -99,7 +99,9 @@ namespace Arc {
     /** Read overlay from file */
     void GetOverlay(std::string fname);
     /** Adds configuration part corresponding to stored information into
-        common configuration tree supplied in 'cfg' argument. */
+        common configuration tree supplied in 'cfg' argument.
+        Returns reference to XML node representing configuration of 
+        ModuleManager */
     virtual XMLNode MakeConfig(XMLNode cfg) const;
   };
 

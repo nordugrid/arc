@@ -183,8 +183,6 @@ namespace Arc {
     }
     /** Returns XMLNode instance representing n-th child of XML element.
        If such does not exist invalid XMLNode instance is returned */
-    /** Returns XMLNode instance representing n-th child of XML element.
-       If such does not exist invalid XMLNode instance is returned */
     XMLNode Child(int n = 0) const;
     /** Returns XMLNode instance representing first child element with specified name.
        Name may be "namespace_prefix:name" or simply "name". In last case namespace is ignored.
