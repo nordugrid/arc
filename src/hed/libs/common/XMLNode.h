@@ -86,7 +86,9 @@ namespace Arc {
         is_owner_(false),
         is_temporary_(false) {}
     /** Copies existing instance.
-       Underlying XML element is NOT copied. Ownership is NOT inherited. */
+       Underlying XML element is NOT copied. Ownership is NOT inherited.
+       Strictly speaking it shuld be no const here - but that conflicts
+       with C++. */
     XMLNode(const XMLNode& node)
       : node_(node.node_),
         is_owner_(false),
@@ -184,18 +186,31 @@ namespace Arc {
     /** Returns XMLNode instance representing n-th child of XML element.
        If such does not exist invalid XMLNode instance is returned */
     XMLNode Child(int n = 0);
-    /** Returns XMLNode instance representing first child element with specified name.
-       Name may be "namespace_prefix:name" or simply "name". In last case namespace is ignored.
-       If such node does not exist invalid XMLNode instance is returned */
-    XMLNode operator[](const char *name);
+    /** Returns XMLNode instance representing first child element with 
+       specified name.
+       Name may be "namespace_prefix:name" or simply "name". In last 
+       case namespace is ignored. If such node does not exist invalid 
+       XMLNode instance is returned.
+       This method should not be marked const because obtaining 
+       unrestricted XMLNode of child element allows modification
+       of underlying XML tree. But in order to keep const in other
+       places non-const-handling is passed to programmer. Otherwise
+       C++ compiler goes nuts. */
+    XMLNode operator[](const char *name) const;
     /** Similar to previous method */
-    XMLNode operator[](const std::string& name) {
+    XMLNode operator[](const std::string& name) const {
       return operator[](name.c_str());
     }
-    /** Returns XMLNode instance representing n-th node in sequence of siblings of same name.
-       It's main purpose is to be used to retrieve element in array of children of same name
-       like  node["name"][5] */
-    XMLNode operator[](int n);
+    /** Returns XMLNode instance representing n-th node in sequence of 
+       siblings of same name.
+       It's main purpose is to be used to retrieve element in array of 
+       children of same name like  node["name"][5].
+       This method should not be marked const because obtaining
+       unrestricted XMLNode of child element allows modification
+       of underlying XML tree. But in order to keep const in other
+       places non-const-handling is passed to programmer. Otherwise
+       C++ compiler goes nuts. */
+    XMLNode operator[](int n) const;
     /** Convenience operator to switch to next element of same name.
        If there is no such node this object becomes invalid. */
     void operator++(void);
@@ -205,7 +220,7 @@ namespace Arc {
     /** Returns number of children nodes */
     int Size(void) const;
     /** Same as operator[] **/
-    XMLNode Get(const std::string& name) {
+    XMLNode Get(const std::string& name) const {
       return operator[](name.c_str());
     }
     /** Returns name of XML node */
@@ -244,7 +259,9 @@ namespace Arc {
     void Set(const std::string& content) {
       operator=(content.c_str());
     }
-    /** Make instance refer to another XML node. Ownership is not inherited. */
+    /** Make instance refer to another XML node. Ownership is not inherited.
+        Due to nature of XMLNode there should be no const here, but that
+        does not fit into C++. */
     XMLNode& operator=(const XMLNode& node);
     /// Returns list of all attributes of node
     // std::list<XMLNode> Attributes(void);

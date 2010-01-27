@@ -292,7 +292,7 @@ namespace Arc {
       xmlFreeDoc(node_->doc);
   }
 
-  XMLNode XMLNode::operator[](int n) {
+  XMLNode XMLNode::operator[](int n) const {
     if (!node_)
       return XMLNode();
     xmlNodePtr p = n < 0 ? NULL : node_;
@@ -312,7 +312,7 @@ namespace Arc {
     return XMLNode(p);
   }
 
-  XMLNode XMLNode::operator[](const char *name) {
+  XMLNode XMLNode::operator[](const char *name) const {
     if (!node_)
       return XMLNode();
     if ((node_->type != XML_ELEMENT_NODE) &&
