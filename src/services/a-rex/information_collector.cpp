@@ -310,6 +310,8 @@ void OptimizedInformationContainer::Assign(const std::string& xml) {
   };
   Arc::XMLNode newxml(xml);
   if(!newxml) {
+    ::unlink(filename.c_str());
+    ::close(h);
     Arc::Logger::getRootLogger().msg(Arc::ERROR,"OptimizedInformationContainer failed to parse XML");
     return;
   };
