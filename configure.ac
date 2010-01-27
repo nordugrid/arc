@@ -145,6 +145,8 @@ enables_saml_client=$enableval
 enables_srm_client=$enableval
 enables_wsrf_client=$enableval
 enables_hed=$enableval
+enables_java=$enableval
+enables_python=$enableval
 enables_doc=$enableval
 ],
 [])
