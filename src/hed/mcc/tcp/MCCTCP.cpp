@@ -130,11 +130,19 @@ MCC_TCP_Service::MCC_TCP_Service(Config *cfg):MCC_TCP(cfg),max_executers_(-1),ma
             continue;
         };
         for(struct addrinfo *info_ = info;info_;info_=info_->ai_next) {
-            logger.msg(VERBOSE, "Trying to listen on TCP port %s(%s)", port_s, PROTO_NAME(info_));
+            if(interface_s.empty()) {
+              logger.msg(VERBOSE, "Trying to listen on TCP port %s(%s)", port_s, PROTO_NAME(info_));
+            } else {
+              logger.msg(VERBOSE, "Trying to listen on %s:%s(%s)", interface_s, port_s, PROTO_NAME(info_));
+            };
             int s = ::socket(info_->ai_family,info_->ai_socktype,info_->ai_protocol);
             if(s == -1) {
                 std::string e = StrError(errno);
-                logger.msg(ERROR, "Failed to create socket for for listening at TCP port %s(%s): %s", port_s, PROTO_NAME(info_),e);
+                if(interface_s.empty()) {
+                  logger.msg(ERROR, "Failed to create socket for for listening at TCP port %s(%s): %s", port_s, PROTO_NAME(info_),e);
+                } else {
+                  logger.msg(ERROR, "Failed to create socket for for listening at %s:%s(%s): %s", interface_s, port_s, PROTO_NAME(info_),e);
+                };
                 continue;
             };
 #ifdef IPV6_V6ONLY
@@ -144,19 +152,31 @@ MCC_TCP_Service::MCC_TCP_Service(Config *cfg):MCC_TCP(cfg),max_executers_(-1),ma
               // by default. Some don't. Make it same for everyone - 
               // separate sockets for v4 and v6.
               if(setsockopt(s,IPPROTO_IPV6,IPV6_V6ONLY,&v,sizeof(v)) != 0) {
-                logger.msg(ERROR, "Failed to limit socket to IPv6 at TCP port %s - may cause errors for IPv4 at same port", port_s);
+                if(interface_s.empty()) {
+                  logger.msg(ERROR, "Failed to limit socket to IPv6 at TCP port %s - may cause errors for IPv4 at same port", port_s);
+                } else {
+                  logger.msg(ERROR, "Failed to limit socket to IPv6 at %s:%s - may cause errors for IPv4 at same port", interface_s, port_s);
+                };
               };
             };
 #endif
             if(::bind(s,info_->ai_addr,info_->ai_addrlen) == -1) {
                 std::string e = StrError(errno);
-                logger.msg(ERROR, "Failed to bind socket for TCP port %s(%s): %s", port_s, PROTO_NAME(info_),e);
+                if(interface_s.empty()) {
+                  logger.msg(ERROR, "Failed to bind socket for TCP port %s(%s): %s", port_s, PROTO_NAME(info_),e);
+                } else {
+                  logger.msg(ERROR, "Failed to bind socket for %s:%s(%s): %s", interface_s, port_s, PROTO_NAME(info_),e);
+                };
                 close(s);
                 continue;
             };
             if(::listen(s,-1) == -1) {
                 std::string e = StrError(errno);
-                logger.msg(WARNING, "Failed to listen at TCP port %s(%s): %s", port_s, PROTO_NAME(info_),e);
+                if(interface_s.empty()) {
+                  logger.msg(WARNING, "Failed to listen at TCP port %s(%s): %s", port_s, PROTO_NAME(info_),e);
+                } else {
+                  logger.msg(WARNING, "Failed to listen at %s:%s(%s): %s", interface_s, port_s, PROTO_NAME(info_),e);
+                };
                 close(s);
                 continue;
             };
@@ -171,7 +191,11 @@ MCC_TCP_Service::MCC_TCP_Service(Config *cfg):MCC_TCP(cfg),max_executers_(-1),ma
                 timeout = atoi(v.c_str());
             }
             handles_.push_back(mcc_tcp_handle_t(s,timeout,no_delay));
-            logger.msg(INFO, "Listening on TCP port %s(%s)", port_s, PROTO_NAME(info_));
+            if(interface_s.empty()) {
+              logger.msg(INFO, "Listening on TCP port %s(%s)", port_s, PROTO_NAME(info_));
+            } else {
+              logger.msg(INFO, "Listening on %s:%s(%s)", interface_s, port_s, PROTO_NAME(info_));
+            };
         };
         freeaddrinfo(info);
     };
