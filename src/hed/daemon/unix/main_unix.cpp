@@ -26,18 +26,19 @@
 #include "daemon.h"
 #include "../options.h"
 
-Arc::Daemon *main_daemon;
+Arc::Daemon *main_daemon = NULL;
 Arc::Config config;
-Arc::MCCLoader *loader;
+Arc::MCCLoader *loader = NULL;
 Arc::Logger& logger = Arc::Logger::rootLogger;
+int exit_code = 0;
 
 static void shutdown(int)
 {
     logger.msg(Arc::VERBOSE, "shutdown");
-    delete loader;
-    delete main_daemon;
+    if(loader) delete loader;
+    if(main_daemon) delete main_daemon;
     logger.msg(Arc::DEBUG, "exit");
-    _exit(0);
+    _exit(exit_code);
 }
 
 static void merge_options_and_config(Arc::Config& cfg, Arc::ServerOptions& opt)
@@ -285,5 +286,7 @@ int main(int argc, char **argv)
       logger.msg(Arc::ERROR, error.what());
     }
 
-    return 0;
+    exit_code = -1;
+    shutdown(0);
+    return exit_code;
 }
