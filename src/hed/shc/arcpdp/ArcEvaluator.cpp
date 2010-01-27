@@ -219,10 +219,15 @@ Response* ArcEvaluator::evaluate(const Source& req){
   return resp;
 }
 
+// NOTE: This method deletes passed context on exit
 Response* ArcEvaluator::evaluate(EvaluationCtx* evl_ctx){
+  if(!evl_ctx) return NULL;
   //Split request into <subject, action, object, environment> tuples
   ArcEvaluationCtx* ctx = dynamic_cast<ArcEvaluationCtx*>(evl_ctx);
-  if(!ctx) return NULL;
+  if(!ctx) {
+    delete evl_ctx;
+    return NULL;
+  }
   ctx->split();
   
   std::list<PolicyStore::PolicyElement> policies;
@@ -381,8 +386,7 @@ Response* ArcEvaluator::evaluate(EvaluationCtx* evl_ctx){
     }
   }
 
-  if(ctx)
-    delete ctx; 
+  delete evl_ctx; 
 
   return resp;
 }
