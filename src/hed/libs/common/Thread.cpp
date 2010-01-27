@@ -3,6 +3,7 @@
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
+#define USE_THREAD_POOL
 
 #ifdef HAVE_STDINT_H
 #include <stdint.h>
@@ -10,10 +11,14 @@
 
 #include <glibmm/init.h>
 
+#ifdef USE_THREAD_POOL
+#include <sys/time.h>
+#include <sys/resource.h>
+#endif
+
 #include "Thread.h"
 #include "Logger.h"
 
-#define USE_THREAD_POOL
 
 namespace Arc {
 
@@ -75,9 +80,30 @@ namespace Arc {
     void PushQueue(ThreadArgument* arg);
   };
 
-  ThreadPool::ThreadPool(void):max_count(32),count(0) {
-    // Very rough estimation of number of threads which can be run
-    uint64_t n = (((uint64_t)1)<<(8*sizeof(int*) - 2))/thread_stacksize;
+  ThreadPool::ThreadPool(void):max_count(0),count(0) {
+    // Estimating amount of available memory 
+    uint64_t n = 0;
+    struct rlimit rl;
+    if(getrlimit(RLIMIT_AS,&rl) == 0) {
+      if(rl.rlim_cur != RLIM_INFINITY) {
+        // Dividing by 2 assuming each thread will equally use 
+        // stack and heap
+        n = rl.rlim_cur/thread_stacksize/2;
+        if(n == 0) {
+          // What else can we do. Application will fail on first thread
+          n=1;
+        }
+      } else if(rl.rlim_max != RLIM_INFINITY) {
+        n = rl.rlim_max/thread_stacksize/2;
+        if(n == 0) {
+          n=1;
+        }
+      }
+    }
+    if(n == 0) {
+      // Very rough estimation of number of threads which can be run
+      n = (((uint64_t)1)<<(8*sizeof(int*) - 2))/thread_stacksize;
+    }
     if(n > INT_MAX) n = INT_MAX;
     max_count = (int)n;
     // TODO: can't use logger here because it will try to initilize pool
