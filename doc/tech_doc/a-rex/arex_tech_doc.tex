@@ -1369,6 +1369,10 @@ the JD).
 of times job will be allowed to rerun after it failed at any stage.
 Default value is \emph{5}. This only specifies a upper limit. The actual
 number is provided in job description and defaults to 0.
+\item \textbf{\textit{maxtransfertries}}\textit{=number} -- specifies
+  the maximum number of times download and upload will be attempted
+  per job (retries are only performed if an error is judged to be
+  temporary). This number must be greater than 0 and defaults to 10.
 \end{itemize}
 
 All per-user commands should be put before the \textit{control} command

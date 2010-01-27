@@ -107,6 +107,7 @@
               <arex:certpath>/etc/grid-security/hostcert.pem</arex:certpath>
               <arex:keypath>/etc/grid-security/hostkey.pem</arex:keypath>
           </arex:Globus>
+	  <arex:maxRetries>10</arex:maxRetries>
       </arex:dataTransfer>
       <arex:jobLogPath>/var/log/arex-jobs.log</arex:jobLogPath>
       <arex:control>
