@@ -101,7 +101,12 @@ namespace Arc {
     // To leave clean environment reset all signal.
     // Otherwise we may get some signals non-intentionally ignored.
     // Glib takes care of open handles.
+#ifdef SIGRTMIN
     for(int n = SIGHUP; n < SIGRTMIN; ++n)
+#else
+    // At least reset all signals whoe numbers are well defined
+    for(int n = SIGHUP; n < SIGTERM; ++n)
+#endif
       signal(n,SIG_DFL);
     if (!func)
       return;
