@@ -49,7 +49,7 @@ ClassLoader* ClassLoader::getClassLoader(Config* cfg) {
     atexit(freeClassLoader);
   }
   if(_instance != NULL && cfg !=NULL) {
-    _instance->setCfg(cfg);
+    _instance->setCfg(*cfg);
     _instance->load_all_instances(cfg);
   }
   return _instance;

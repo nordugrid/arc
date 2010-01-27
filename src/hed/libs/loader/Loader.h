@@ -3,7 +3,6 @@
 
 #include <string>
 #include <map>
-#include <arc/ArcConfig.h>
 #include <arc/Logger.h>
 #include <arc/loader/Plugin.h>
 
@@ -27,7 +26,7 @@ namespace Arc {
     Loader() {};
     /** Constructor that takes whole XML configuration and performs
        common configuration part */
-    Loader(const Config& cfg);
+    Loader(XMLNode cfg);
     /** Destructor destroys all components created by constructor */
     ~Loader();
  };

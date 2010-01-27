@@ -486,7 +486,7 @@ namespace Arc {
     return r;
   }
 
-  PluginsFactory::PluginsFactory(const Config& cfg): ModuleManager(&cfg) {
+  PluginsFactory::PluginsFactory(XMLNode cfg): ModuleManager(cfg) {
   }
 
   PluginArgument::PluginArgument(void): factory_(NULL), module_(NULL) {

@@ -5,7 +5,7 @@
 #include <map>
 #include <vector>
 #include <glibmm/module.h>
-#include <arc/ArcConfig.h>
+#include <arc/XMLNode.h>
 #include <arc/Thread.h>
 #include <arc/Logger.h>
 
@@ -53,7 +53,7 @@ class ModuleManager
         /** Constructor.
            It is supposed to process correponding configuration subtree 
           and tune module loading parameters accordingly. */
-        ModuleManager(const Config *cfg);
+        ModuleManager(XMLNode cfg);
         ~ModuleManager();
         /** Finds module 'name' in cache or loads corresponding 
            loadable module */
@@ -78,7 +78,7 @@ class ModuleManager
         bool makePersistent(const std::string& name);
         /** Input the configuration subtree, and trigger the module loading (do almost the same as the Constructor); 
         It is function desgined for ClassLoader to adopt the singleton pattern */
-        void setCfg (Config *cfg);
+        void setCfg (XMLNode cfg);
 };
 
 } // namespace Arc

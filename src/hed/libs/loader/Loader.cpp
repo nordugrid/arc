@@ -15,12 +15,11 @@ namespace Arc {
     if(factory_) delete factory_;
   }
 
-  Loader::Loader(const Config& cfg) {
+  Loader::Loader(XMLNode cfg) {
     factory_    = new PluginsFactory(cfg);
     for(int n = 0;; ++n) {
-      XMLNode cn = const_cast<Config&>(cfg).Child(n);
+      XMLNode cn = cfg.Child(n);
       if(!cn) break;
-      Config cfg_(cn, cfg.getFileName());
 
       if(MatchXMLName(cn, "ModuleManager")) {
         continue;

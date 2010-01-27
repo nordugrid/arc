@@ -7,6 +7,7 @@
 #include <algorithm>
 
 #include <arc/StringConv.h>
+#include <arc/ArcConfig.h>
 #include <arc/client/Broker.h>
 #include <arc/client/ExecutionTarget.h>
 #include <arc/loader/FinderLoader.h>

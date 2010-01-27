@@ -13,6 +13,7 @@
 
 #include <arc/Thread.h>
 #include <arc/Logger.h>
+#include <arc/XMLNode.h>
 #include <arc/loader/ModuleManager.h>
 
 namespace Arc {
@@ -105,7 +106,7 @@ namespace Arc {
     public:
       /** Constructor - accepts  configuration (not yet used) meant to
         tune loading of modules. */
-      PluginsFactory(const Config& cfg);
+      PluginsFactory(XMLNode cfg);
       /** These methods load module named lib'name', locate plugin
          constructor functions of specified 'kind' and 'name' (if specified) 
          and call it. Supplied argument affects way plugin instance is created

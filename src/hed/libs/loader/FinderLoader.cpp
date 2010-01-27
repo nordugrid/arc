@@ -6,6 +6,8 @@
 
 #include <glibmm/fileutils.h>
 
+#include <arc/ArcConfig.h>
+
 #include "Plugin.h"
 
 #include "FinderLoader.h"

@@ -16,13 +16,12 @@ static std::string strip_newline(const std::string& str) {
   return s;
 }
   
-ModuleManager::ModuleManager(const Config *cfg)
+ModuleManager::ModuleManager(XMLNode cfg)
 { 
-  if(cfg==NULL) return;
-  if(!(*cfg)) return;
+  if(!cfg) return;
   ModuleManager::logger.msg(DEBUG, "Module Manager Init");
-  if(!MatchXMLName(*cfg,"ArcConfig")) return;
-  XMLNode mm = (*cfg)["ModuleManager"];
+  if(!MatchXMLName(cfg,"ArcConfig")) return;
+  XMLNode mm = cfg["ModuleManager"];
   for (int n = 0;;++n) {
     XMLNode path = mm.Child(n);
     if (!path) {
@@ -143,13 +142,12 @@ Glib::Module* ModuleManager::reload(Glib::Module* omodule)
   return module; 
 }
 
-void ModuleManager::setCfg (Config *cfg) {
-  if(cfg==NULL) return;
-  if(!(*cfg)) return;
+void ModuleManager::setCfg (XMLNode cfg) {
+  if(!cfg) return;
   ModuleManager::logger.msg(INFO, "Module Manager Init by ModuleManager::setCfg");
 
-  if(!MatchXMLName(*cfg,"ArcConfig")) return;
-  XMLNode mm = (*cfg)["ModuleManager"];
+  if(!MatchXMLName(cfg,"ArcConfig")) return;
+  XMLNode mm = cfg["ModuleManager"];
   for (int n = 0;;++n) {
     XMLNode path = mm.Child(n);
     if (!path) {
