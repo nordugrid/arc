@@ -99,7 +99,7 @@ bool SAMLAssertionSecAttr::Export(Arc::SecAttrFormat format, XMLNode& val) const
     XMLNode subj = item.NewChild("ra:Subject");
 
     for(int i=0;;i++) {
-      XMLNode attr_statement = saml_assertion_node_["AttributeStatement"][i];
+      XMLNode attr_statement = const_cast<XMLNode&>(saml_assertion_node_)["AttributeStatement"][i];
       if(!attr_statement) break;
       for(int j=0;;j++) {
         XMLNode attr = attr_statement["Attribute"][j];
@@ -117,7 +117,7 @@ bool SAMLAssertionSecAttr::Export(Arc::SecAttrFormat format, XMLNode& val) const
     XMLNode subj = val.NewChild("ra:Subject");
 
     for(int i=0;;i++) {
-      XMLNode attr_statement = saml_assertion_node_["AttributeStatement"][i];
+      XMLNode attr_statement = const_cast<XMLNode&>(saml_assertion_node_)["AttributeStatement"][i];
       if(!attr_statement) break;
       for(int j=0;;j++) {
         XMLNode attr = attr_statement["Attribute"][j];
