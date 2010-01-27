@@ -26,7 +26,8 @@ Arc::Logger Service_JavaWrapper::logger(Service::logger, "JavaWrapper");
 Service_JavaWrapper::Service_JavaWrapper(Arc::Config *cfg)
   : Service(cfg),
     libjvm(NULL),
-    jvm(NULL) {
+    jvm(NULL),
+    classPath(NULL) {
     std::string path = "-Djava.class.path=" + (std::string)((*cfg)["ClassPath"]);
     std::string class_name = (std::string)(*cfg)["ClassName"];
     logger.msg(Arc::VERBOSE, "config: %s, class name: %s", path, class_name);
@@ -54,7 +55,9 @@ Service_JavaWrapper::Service_JavaWrapper(Arc::Config *cfg)
     ((jint(*)(void*))myJNI_GetDefaultJavaVMInitArgs)(&jvm_args);
     jvm_args.version = JNI_VERSION_1_2;
     jvm_args.nOptions = 1;
-    options[0].optionString = strdup(path.c_str());
+    classPath = strdup(path.c_str());
+    options[0].optionString = classPath;
+    options[0].extraInfo = NULL;
     // "-Djava.class.path=.:/home/szferi/arc1/src/services/echo_java/:/home/szferi/arc1/java/arc.jar";
     jvm_args.options = options;
     jvm_args.ignoreUnrecognized = JNI_FALSE;
@@ -89,6 +92,8 @@ Service_JavaWrapper::~Service_JavaWrapper(void) {
         jvm->DestroyJavaVM();
     if (libjvm)
         delete libjvm;
+    if (classPath)
+        free(classPath);
 }
 
 Arc::MCC_Status Service_JavaWrapper::make_fault(Arc::Message& outmsg) 

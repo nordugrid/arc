@@ -17,6 +17,7 @@ class Service_JavaWrapper: public Arc::Service {
     protected:
         Glib::Module *libjvm;
         JavaVM *jvm;
+        char* classPath;
         jclass serviceClass;
         jobject serviceObj;
         
