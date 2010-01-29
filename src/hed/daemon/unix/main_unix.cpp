@@ -230,7 +230,7 @@ int main(int argc, char **argv)
             if (options.config_dump == true) {
                 std::string str;
                 config.GetXML(str, true);
-                std::cout << str << std::endl;
+                std::cout << Arc::strip(str) << std::endl;
                 exit(0);
             }
 
