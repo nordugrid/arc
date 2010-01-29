@@ -20,11 +20,11 @@ namespace Arc {
     XMLNode section;
     while (getline(is, line)) {
       line = trim(line, " \t");
-      if (line[0] == '#')
+      if (line.empty() || line[0] == '#')
         continue;
       if (line[0] == '[' && line[line.size() - 1] == ']') {
         std::string sectionname = trim(line.substr(1, line.size() - 2), " \t");
-        section = NewChild(sectionname);
+        section = (sectionname == "common" && Get("common") ? Get("common") : NewChild(sectionname));
         continue;
       }
       std::string::size_type sep = line.find('=');
