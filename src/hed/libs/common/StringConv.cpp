@@ -67,6 +67,27 @@ namespace Arc {
     return (first == std::string::npos) ? std::string() : str.substr(first, str.find_last_not_of(sep) - first + 1);
   }
 
+  std::string strip(const std::string& str) {
+    std::string retstr = "";
+
+    std::string::size_type pos = str.find_first_of("\n");
+    std::string::size_type lastPos = 0;
+
+    while (std::string::npos != pos) {
+      const std::string tmpstr = str.substr(lastPos, pos-lastPos);
+      if (!trim(tmpstr).empty()) {
+        if (!retstr.empty())
+          retstr += "\n";
+        retstr += tmpstr;
+      }
+
+      lastPos = pos+1;
+      pos = str.find_first_of("\n", lastPos+1);
+    }
+
+    return retstr;
+  }
+
 #if HAVE_URI_UNESCAPE_STRING
   std::string uri_unescape(const std::string& str) {
     return Glib::uri_unescape_string(str);

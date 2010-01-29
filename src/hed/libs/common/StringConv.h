@@ -84,6 +84,9 @@ namespace Arc {
   /// This method removes given separators from the beginning and the end of the string
   std::string trim(const std::string& str, const char *sep = NULL);
 
+  /// This method removes blank lines from the passed text string. Lines with only space on them are considered blank.
+  std::string strip(const std::string& str);
+
   /// This method unescape the URI encoded string
   std::string uri_unescape(const std::string& str);
 
