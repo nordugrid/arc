@@ -67,6 +67,10 @@ BuildRequires: jpackage-utils
 BuildRequires: java-gcj-compat-devel
 %endif
 %endif
+# Needed for LRMS testing during make check
+%if %{?fedora}%{!?fedora:0} >= 7
+BuildRequires: perl-Test-Harness
+%endif
 
 %define pyver %(python -c 'import sys; print sys.version[:3]')
 %if "%{pyver}" < "2.4"
