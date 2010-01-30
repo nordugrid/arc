@@ -13,7 +13,9 @@
 
 #ifdef USE_THREAD_POOL
 #include <sys/time.h>
+#ifndef WIN32
 #include <sys/resource.h>
+#endif
 #endif
 
 #include "Thread.h"
@@ -83,6 +85,7 @@ namespace Arc {
   ThreadPool::ThreadPool(void):max_count(0),count(0) {
     // Estimating amount of available memory 
     uint64_t n = 0;
+#ifndef WIN32
     struct rlimit rl;
     if(getrlimit(RLIMIT_AS,&rl) == 0) {
       if(rl.rlim_cur != RLIM_INFINITY) {
@@ -100,6 +103,7 @@ namespace Arc {
         }
       }
     }
+#endif
     if(n == 0) {
       // Very rough estimation of number of threads which can be run
       n = (((uint64_t)1)<<(8*sizeof(int*) - 2))/thread_stacksize;
