@@ -374,7 +374,7 @@ namespace Arc {
         std::string time;
         if (!SingleValue(c, time))
           return false;
-        j.Resources.TotalCPUTime = Period(time, PeriodMinutes).GetPeriod();
+        j.Resources.TotalCPUTime = Period(time, PeriodSeconds).GetPeriod();
         return true;
       }
 
@@ -382,7 +382,7 @@ namespace Arc {
         std::string time;
         if (!SingleValue(c, time))
           return false;
-        j.Resources.TotalWallTime = Period(time, PeriodMinutes).GetPeriod();
+        j.Resources.TotalWallTime = Period(time, PeriodSeconds).GetPeriod();
         return true;
       }
 
