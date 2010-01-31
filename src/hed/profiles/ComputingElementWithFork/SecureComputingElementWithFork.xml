@@ -33,9 +33,11 @@
   <loader:Chain>
     <loader:Component name="tcp.service" id="tcp">
       <loader:next id="tls"/>
-      <tcp:Interface inisections="common" initag="interface">0.0.0.0</tcp:Interface>
-      <tcp:Listen><tcp:Port inisections="common" initag="port">60000</tcp:Port></tcp:Listen>
-      <tcp:Version>4</tcp:Version>
+      <tcp:Listen>
+        <tcp:Interface inisections="common" initag="interface">0.0.0.0</tcp:Interface>
+        <tcp:Port inisections="common" initag="port">60000</tcp:Port>
+        <tcp:Version inisections="common" initag="ipversion">4</tcp:Version>
+      </tcp:Listen>
     </loader:Component>
     <loader:Component name="tls.service" id="tls">
       <loader:next id="http"/>
@@ -43,8 +45,7 @@
       <tls:CertificatePath inisections="common" initag="x509_user_cert">/etc/grid-security/hostcert.pem</tls:CertificatePath>
       <tls:CACertificatesDir inisections="common" initag="x509_cert_dir">/etc/grid-security/certificates</tls:CACertificatesDir>
       <loader:SecHandler name="arc.authz" id="pdps" event="incoming">
-       <!-- how to set grid-mapfile in using ini config parser??? -->
-        <authz:PDP name="simplelist.pdp" spdp:location="/etc/grid-security/grid-mapfile"/>
+        <authz:PDP name="simplelist.pdp" spdp:location="/etc/grid-security/grid-mapfile"><AttributeRepresentation id="location" inisections="common" initag="gridmap"/></authz:PDP>
       </loader:SecHandler>
     </loader:Component>
     <loader:Component name="http.service" id="http">
