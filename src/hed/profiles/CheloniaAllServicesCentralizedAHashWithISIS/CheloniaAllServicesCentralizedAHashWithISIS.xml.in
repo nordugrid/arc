@@ -213,6 +213,29 @@
             <isis:KeyPath inisections="common isis" initag="client_key"/>
             <isis:CertificatePath inisections="common isis" initag="client_cert"/>
             <isis:CACertificatesDir inisections="common isis" initag="cacert"/>
+            <infosys:InfoRegister>
+                <infosys:Period inisections="register isis" initag="period">PT20S</infosys:Period>
+                <infosys:Endpoint inisections="isis" initag="endpoint"/>
+                <infosys:Expiration inisections="register isis" initag="expiration">PT100S</infosys:Expiration>
+                <infosys:Registrar>
+                    <infosys:URL inisections="register isis" initag="index_server1"/>
+                    <infosys:KeyPath inisections="common isis" initag="client_key"/>
+                    <infosys:CertificatePath inisections="common isis" initag="client_cert"/>
+                    <infosys:CACertificatesDir inisections="common isis" initag="cacert"/>
+                </infosys:Registrar>
+                <infosys:Registrar>
+                    <infosys:URL inisections="register isis" initag="index_server2"/>
+                    <infosys:KeyPath inisections="common isis" initag="client_key"/>
+                    <infosys:CertificatePath inisections="common isis" initag="client_cert"/>
+                    <infosys:CACertificatesDir inisections="common isis" initag="cacert"/>
+                </infosys:Registrar>
+                <infosys:Registrar>
+                    <infosys:URL inisections="register isis" initag="index_server3"/>
+                    <infosys:KeyPath inisections="common isis" initag="client_key"/>
+                    <infosys:CertificatePath inisections="common isis" initag="client_cert"/>
+                    <infosys:CACertificatesDir inisections="common isis" initag="cacert"/>
+                </infosys:Registrar>
+            </infosys:InfoRegister>
         </Service>
     </Chain>
 </cfg:ArcConfig>
