@@ -279,7 +279,7 @@ namespace Arc {
       // check for possible replication
       if (source.GetURL() == destination.GetURL()) {
         replication = true;
-        // we do not want to replicate to same site
+        // we do not want to replicate to same physical file
         destination.RemoveLocations(source);
         if (!destination.HaveLocations()) {
           logger.msg(ERROR, "No locations for destination different from source "

@@ -289,6 +289,22 @@ namespace Arc {
           return DataStatus::PreRegisterError;
         }
       }
+      // LFN may already exist, caused by 2 uploaders simultaneously uploading to the same LFN
+      // ignore the error if force is true and get the previously registered guid 
+      else if (serrno == EEXIST && force) {
+        struct lfc_filestatg st;
+        if (lfc_statg(url.Path().c_str(), NULL, &st) == 0) {
+          registered = true;
+          guid = st.guid;
+          lfc_endsess();
+          return DataStatus::Success;
+        }
+        else {
+          logger.msg(ERROR, "Error finding info on LFC entry %s which should exist: %s", url.Path(), sstrerror(serrno));
+          lfc_endsess();
+          return DataStatus::PreRegisterError;
+        }
+      }
       else {
         logger.msg(ERROR, "Error creating LFC entry %s, guid %s: %s", url.Path(), guid, sstrerror(serrno));
         lfc_endsess();

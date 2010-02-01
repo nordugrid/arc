@@ -80,7 +80,7 @@ namespace Arc {
     std::list<URLLocation> locations;
     std::list<URLLocation>::iterator location;
     DataHandle *h;
-    bool SetHandle();
+    void SetHandle();
   };
 
 } // namespace Arc

@@ -49,7 +49,7 @@ namespace Arc {
     return true;
   }
 
-  bool DataPointIndex::SetHandle(void) {
+  void DataPointIndex::SetHandle(void) {
     // TODO: pass various options from old handler to new
     if (h)
       delete h;
@@ -90,8 +90,8 @@ namespace Arc {
     std::list<URLLocation>::const_iterator p_ext;
     for (p_ext = p.locations.begin(); p_ext != p.locations.end(); ++p_ext)
       for (p_int = locations.begin(); p_int != locations.end();)
-        // Compare protocol+host+port part
-        if ((p_int->ConnectionURL() == p_ext->ConnectionURL()))
+        // Compare URLs
+        if (*p_int == *p_ext)
           if (location == p_int) {
             p_int = locations.erase(p_int);
             location = p_int;

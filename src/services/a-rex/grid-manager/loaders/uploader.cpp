@@ -411,7 +411,8 @@ int main(int argc,char** argv) {
   bool transfered = true;
   bool credentials_expired = false;
   std::list<FileData>::iterator it = job_files_.begin();
-
+  std::list<FileData>::iterator it2 = job_files_.begin();
+  
   // get the list of output files
   if(!job_output_read_file(desc.get_id(),user,job_files_)) {
     failure_reason+="Internal error in uploader\n";
@@ -433,6 +434,35 @@ int main(int argc,char** argv) {
   while (it != job_files_.end()) {
     if(it->pfn.find("@") == 1) it = job_files_.erase(it);
     else it++;
+  }
+  // check if any files share the same LFN, if so allow overwriting existing LFN
+  for (it = job_files_.begin(); it != job_files_.end(); it++) {
+    bool done = false;
+    for (it2 = job_files_.begin(); it2 != job_files_.end(); it2++) {
+      if (it != it2 && !it->lfn.empty() && !it2->lfn.empty()) {
+        // error if lfns (including locations) are identical
+        if (it->lfn == it2->lfn) {
+          logger.msg(Arc::ERROR, "Two identical output destinations: %s", it->lfn);
+          res = 1;
+          goto exit;
+        }
+        Arc::URL u_it(it->lfn);
+        Arc::URL u_it2(it2->lfn);
+        if (u_it == u_it2) {
+          // error if pfns are different
+          if (it->pfn != it2->pfn) {
+            logger.msg(Arc::ERROR, "Cannot upload two different files %s and %s to same LFN: %s", it->pfn, it2->pfn, it->lfn);
+            res = 1;
+            goto exit;
+          }    
+          mover.force_to_meta(true);
+          done = true;
+          break;
+        }
+      }
+    }
+    if (done)
+      break;
   }
   // remove bad files
   if(clean_files(job_files_,session_dir) != 0) {
