@@ -254,8 +254,7 @@ namespace Arc {
     virtual void SetTries(const int n);
 
     /// Decrease number of retries left.
-    /** Returns false if no retries left. */
-    virtual bool NextTry(void);
+    virtual void NextTry(void);
 
     /// Check if URL is an Indexing Service.
     virtual bool IsIndex() const = 0;

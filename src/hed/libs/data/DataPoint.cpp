@@ -147,7 +147,7 @@ namespace Arc {
     triesleft = std::max(0, n);
   }
 
-  bool DataPoint::NextTry() {
+  void DataPoint::NextTry() {
     if(triesleft) --triesleft;
   }
 
@@ -169,9 +169,6 @@ namespace Arc {
     if (CheckCheckSum() && p.CheckCheckSum())
       // TODO: compare checksums properly
       if (strcasecmp(GetCheckSum().c_str(), p.GetCheckSum().c_str()))
-        return false;
-    if (CheckCreated() && p.CheckCreated())
-      if (GetCreated() != p.GetCreated())
         return false;
     if (CheckValid() && p.CheckValid())
       if (GetValid() != p.GetValid())
