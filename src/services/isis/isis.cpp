@@ -289,7 +289,7 @@ static void soft_state_thread(void *data) {
     }
 }
 
-    ISIService::ISIService(Arc::Config *cfg):RegisteredService(cfg),logger_(Arc::Logger::rootLogger, "ISIS"),valid("PT1D"),remove("PT1D"),db_(NULL),neighbors_update_needed(false),available_provider(false),neighbors_count(0),neighbors_lock(false) {
+    ISIService::ISIService(Arc::Config *cfg):RegisteredService(cfg),logger_(Arc::Logger::rootLogger, "ISIS"),valid("PT1D"),remove("PT1D"),db_(NULL),neighbors_update_needed(false),available_provider(false),neighbors_count(0),neighbors_lock(false),connection_lock(false) {
 
         logger_.msg(Arc::VERBOSE, "Parsing configuration parameters");
         // Endpoint url from the configuration
@@ -787,7 +787,11 @@ static void soft_state_thread(void *data) {
         if ( db_ == NULL ) return make_soap_fault(outmsg);
 
         if ( neighbors_count == 0 || !available_provider) {
-            BootStrap(1);
+            if ( !connection_lock ) {
+                connection_lock = true;
+                BootStrap(1);
+                connection_lock = false;
+            }
             neighbors_update_needed = false;
         } else if ( neighbors_count > 0 && neighbors_.size() == not_availables_neighbors_.size() ){
             // Reposition itself in the peer-to-peer network
@@ -795,7 +799,11 @@ static void soft_state_thread(void *data) {
             // the network
             FileCacheHash md5;
             my_hash = md5.getHash(my_hash);
-            BootStrap(retry);
+            if ( !connection_lock ) {
+                connection_lock = true;
+                BootStrap(retry);
+                connection_lock = false;
+            }
             neighbors_update_needed = false;
         } else if (neighbors_update_needed) {
             Neighbors_Update(my_hash, false);

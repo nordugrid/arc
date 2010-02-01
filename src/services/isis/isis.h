@@ -44,6 +44,7 @@ namespace ISIS {
             void BootStrap(int retry_count);
             bool neighbors_update_needed;
             bool available_provider;
+            bool connection_lock;    // It is need for the connection ignoring  to the InfoProvider because it is circular dependency.
 
             // List of known neighbor's endpoint URL, key, cert, proxy and cadir in string
             int neighbors_count;
