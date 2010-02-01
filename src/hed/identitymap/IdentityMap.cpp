@@ -38,14 +38,6 @@ class LocalMapDirect: public LocalMap {
 };
 
 // --------------------------------------------------------------------------
-class LocalMapDNName: public LocalMap {
- public:
-  LocalMapDNName(void){};
-  virtual ~LocalMapDNName(void) {};
-  virtual std::string ID(Arc::Message* msg) { return (std::string) msg->Attributes()->get("TLS:IDENTITYDN"); };
-};
-
-// --------------------------------------------------------------------------
 class LocalMapPool: public LocalMap {
  private:
   std::string dir_;
@@ -154,10 +146,6 @@ static LocalMap* MakeLocalMap(Arc::XMLNode pdp) {
     if(name.empty()) return NULL;
     return new LocalMapDirect(name);
   };
-  p=pdp["DNAsLocalName"];
-  if(p) {
-    return new LocalMapDNName();
-  }
   p=pdp["LocalList"];
   if(p) {
     std::vector<std::string> files;

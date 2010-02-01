@@ -42,15 +42,6 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="DNAsLocalName" minOccurs="0" maxOccurs="1">
-                <xsd:annotation>
-                    <xsd:documentation xml:lang="en">
-                     Will use the TLS:IDENTITYDN attribute of each 
-                     message as local username. The username uid 
-                     matching can be done by any third party service.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
             <xsd:element name="LocalList" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation xml:lang="en">
