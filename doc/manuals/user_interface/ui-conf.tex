@@ -1,4 +1,4 @@
-Default behaviour of an ARC client can be configured by specifying
+The default behaviour of an ARC client can be configured by specifying
 alternative values for some parameters in the client configuration
 file. The file is called \texttt{client.conf} and is located in
 directory \texttt{.arc} in user's home area:
@@ -405,6 +405,18 @@ cream=computing:CREAM:ldap://cream.glite.org:2170/o=grid
 unicore=computing:UNICORE:https://bes.unicore.org:8080/test/services/BESFactory?res=default_bes
 crossbrokering=arc0 arc1 cream unicore
 \end{verbatim}
+
+\index{configuration:srms.conf}\section{srms.conf}
+
+If any data management commands are used with the Storage Resource
+Management (SRM)~\cite{srm} protocol, the file
+ 
+\begin{shaded}
+ {\$}HOME/.arc/srms.conf
+\end{shaded}
+ 
+may be created to store cached information on these services. For more
+information see the description inside this file.
 
 \index{configuration:deprecated files}\section{Deprecated configuration files}
 

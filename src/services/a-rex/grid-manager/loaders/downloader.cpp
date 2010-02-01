@@ -99,17 +99,6 @@ class SimpleConditionLock {
   };
 };
 
-bool is_checksum(std::string str) {
-  /* check if have : */
-  std::string::size_type n;
-  const char *s = str.c_str();
-  if((n=str.find('.')) == std::string::npos) return false;
-  if(str.find('.',n+1) != std::string::npos) return false;
-  for(unsigned int i=0;i<n;i++) { if(!isdigit(s[i])) return false; };
-  for(unsigned int i=n+1;s[i];i++) { if(!isdigit(s[i])) return false; };
-  return true;
-}
-
 int clean_files(std::list<FileData> &job_files,char* session_dir) {
   std::string session(session_dir);
   /* delete only downloadable files, let user manage his/hers files */
@@ -496,6 +485,7 @@ int main(int argc,char** argv) {
   Janitor janitor(desc.get_id(),user.ControlDir());
 
   Arc::UserConfig usercfg(Arc::initializeCredentialsType(Arc::initializeCredentialsType::TryCredentials));
+  usercfg.UtilsDirPath(control_dir);
 
   Arc::DataMover mover;
   mover.retry(false);
@@ -759,7 +749,7 @@ int main(int argc,char** argv) {
                                 Arc::initializeCredentialsType() :
                                 Arc::initializeCredentialsType(Arc::initializeCredentialsType::SkipCredentials));
         if (job.Cluster.Protocol() != "https" ||
-            job.Cluster.Protocol() == "https" && usercfg.CredentialsFound()) {
+            (job.Cluster.Protocol() == "https" && usercfg.CredentialsFound())) {
           Arc::JobControllerLoader loader;
           Arc::JobController *jobctrl = loader.load("ARC1", usercfg);
           if (jobctrl) {

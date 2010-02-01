@@ -1129,7 +1129,10 @@ accumulate information about started and finished jobs. This information
 is periodically sent to the desired \emph{logger service}(s). For
 each job start and stop event, and for each logger service where that
 event must be sent, a separate file is written. Once an event is sent,
-the corresponding file is deleted.
+the corresponding file is deleted.\\
+Some utility files, which contain for example cached information on remote
+services, may also be found in the control directory. These files have
+a \textit{.conf} suffix.
 \end{itemize}
 
 \section{Configuration}

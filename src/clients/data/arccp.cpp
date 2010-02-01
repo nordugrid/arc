@@ -212,6 +212,7 @@ bool arccp(const Arc::URL& source_url_,
   std::string cache_path;
   std::string cache_data_path;
   std::string id = "<ngcp>";
+  
   if (timeout <= 0)
     timeout = 300; // 5 minute default
   if (tries < 0)
@@ -437,7 +438,6 @@ bool arccp(const Arc::URL& source_url_,
   if (!cache_dir.empty()) cache = Arc::FileCache(cache_dir+" .", "", cache_user.get_uid(), cache_user.get_gid());
   if (verbose)
     mover.set_progress_indicator(&progress);
-  std::string failure;
   Arc::DataStatus res = mover.Transfer(*source, *destination, cache, Arc::URLMap(),
                                        0, 0, 0, timeout);
   if (!res.Passed()) {
@@ -557,6 +557,7 @@ int main(int argc, char **argv) {
     logger.msg(Arc::ERROR, "Failed configuration initialization");
     return 1;
   }
+  usercfg.UtilsDirPath(Arc::UserConfig::ARCUSERDIRECTORY);
 
   if (debug.empty() && !usercfg.Verbosity().empty())
     Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(usercfg.Verbosity()));

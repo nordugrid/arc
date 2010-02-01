@@ -264,7 +264,7 @@ namespace Arc {
      * @see InitializeCredentials()
      **/
     bool CredentialsFound() const {
-      return !(proxyPath.empty() && (certificatePath.empty() || keyPath.empty()) || caCertificatesDirectory.empty());
+      return !((proxyPath.empty() && (certificatePath.empty() || keyPath.empty())) || caCertificatesDirectory.empty());
     }
 
     /// Load specified configuration file
@@ -1050,6 +1050,23 @@ namespace Arc {
      **/
     const std::string& OverlayFile() const { return overlayfile; }
 
+    /// Set path to directory storing utility files for DataPoints
+    /**
+     * Some DataPoints can store information on remote services in local
+     * files. This method sets the path to the directory containing these
+     * files. For example arc* tools set it to ARCUSERDIRECTORY and A-REX
+     * sets it to the control directory.
+     * @param path is the new utils dir path.
+     * @return This method always returns \c true.
+     */
+    bool UtilsDirPath(const std::string& dir) { utilsdir = dir; return true; }
+    /// Get path to directory storing utility files for DataPoints
+    /**
+     * @return The utils dir path
+     * @see UtilsDirPath(const std::string&)
+     */
+    const std::string& UtilsDirPath() const { return utilsdir; };
+    
     /// Path to ARC user home directory
     /**
      * The \a ARCUSERDIRECTORY variable is the path to the ARC home
@@ -1146,6 +1163,7 @@ namespace Arc {
     std::string password;
 
     std::string overlayfile;
+    std::string utilsdir;
 
     // Private members not refered to outside this class:
     // Alias map.

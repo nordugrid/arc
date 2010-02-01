@@ -110,6 +110,7 @@ int main(int argc, char **argv) {
     logger.msg(Arc::ERROR, "Failed configuration initialization");
     return 1;
   }
+  usercfg.UtilsDirPath(Arc::UserConfig::ARCUSERDIRECTORY);
 
   if (debug.empty() && !usercfg.Verbosity().empty())
     Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(usercfg.Verbosity()));

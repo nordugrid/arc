@@ -347,14 +347,14 @@
      * this SURL. All operations with a client instance must use SURLs with
      * the same host as this one.
      * @param timedout Whether the connection timed out
+     * @param utils_dir Path to a directory contining files with SRM info
      * @param timeout Connection timeout.
-     * @param version If this is non-NULL a client instance of this version
      * is returned.
      */
     static SRMClient* getInstance(std::string url,
                                   bool& timedout,
-                                  time_t timeout=300,
-                                  SRMVersion srm_version=SRM_VNULL);
+                                  std::string utils_dir,
+                                  time_t timeout=300);
     /**
      * empty destructor
      */

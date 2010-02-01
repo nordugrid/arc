@@ -1,6 +1,9 @@
+#include <vector>
+
 #include "SRMClient.h"
 #include "SRM1Client.h"
 #include "SRM22Client.h"
+#include "SRMInfo.h"
 
 //namespace Arc {
   
@@ -18,55 +21,100 @@ Arc::Logger SRMClient::logger(Arc::Logger::getRootLogger(), "SRMClient");
 
   SRMClient* SRMClient::getInstance(std::string url,
                                     bool& timedout,
-                                    time_t timeout,
-                                    SRMVersion srm_version) {
-  
+                                    std::string utils_dir,
+                                    time_t timeout) {
     request_timeout = timeout;
     SRMURL srm_url(url);
     if (!srm_url) return NULL;
-    
-    // if version is defined, return the appropriate client
-    if (srm_version == SRM_V1) return new SRM1Client(srm_url);
-    if (srm_version == SRM_V2_2) return new SRM22Client(srm_url);
-
-    // if version defined in the URL, use that
-    if (srm_url.SRMVersion() == SRMURL::SRM_URL_VERSION_1) return new SRM1Client(srm_url);
-    if (srm_url.SRMVersion() == SRMURL::SRM_URL_VERSION_2_2) return new SRM22Client(srm_url);
   
-    // try to do srmPing with the 2.2 client - if this returns ok
-    // use v2.2, else use v1, or error, depending on the return value
+    // can't use ping with srmv1 so just return
+    if (srm_url.SRMVersion() == SRMURL::SRM_URL_VERSION_1)
+      return new SRM1Client(srm_url);
   
-    srm_url.SetSRMVersion("2.2");
-    SRMClient * client = new SRM22Client(srm_url);
+    if (utils_dir.empty()) {
+      if (srm_url.SRMVersion() == SRMURL::SRM_URL_VERSION_2_2) return new SRM22Client(srm_url);
+      return NULL;
+    }
+      
+    SRMReturnCode srm_error;
     std::string version;
   
-    SRMReturnCode srm_error;
-    if ((srm_error = client->ping(version, false)) == SRM_OK) {
-      if (version.compare("v2.2") == 0) {
-        logger.msg(Arc::VERBOSE, "srmPing gives v2.2, instantiating v2.2 client");
-        return client;
-      };
-    };
-  
-    // if soap error probably means v2 not supported
-    if (srm_error == SRM_ERROR_SOAP) {
-      logger.msg(Arc::VERBOSE, "SOAP error with srmPing, instantiating v1 client");
-      srm_url.SetSRMVersion("1");
-      return new SRM1Client(url);
-    };
-  
-    // connection timeout
-    if (srm_error == SRM_ERROR_TEMPORARY) {
-      timedout = true;
-      return NULL;
-    };
+    SRMInfo info(utils_dir);
+    SRMFileInfo srm_file_info;
+    // lists of ports and protocols in the order to try them
+    std::vector<int> ports;
+    ports.push_back(srm_url.Port());
+    if (srm_url.Port() != 8443) ports.push_back(8443);
+    if (srm_url.Port() != 8446) ports.push_back(8446);
+    if (srm_url.Port() != 8444) ports.push_back(8444);
+    std::vector<std::string> protocols;
+    if (srm_url.GSSAPI()) {
+      protocols.push_back("gssapi");
+      protocols.push_back("gsi");
+    }
+    else {
+      protocols.push_back("gsi");
+      protocols.push_back("gssapi");
+    }    
     
-    // any other error probably means service is down - return error
-    // TODO - proper exceptions!
-    //throw new SRMServiceError;
-    logger.msg(Arc::ERROR, "Service error, cannot instantiate SRM client");
-    return NULL;
+    srm_file_info.host = srm_url.Host();
+    srm_file_info.version = srm_url.SRMVersion();
+    
+    // no info
+    if (!info.getSRMFileInfo(srm_file_info)) {
+      for (std::vector<std::string>::iterator protocol = protocols.begin(); protocol != protocols.end(); protocol++) {
+        srm_url.GSSAPI((*protocol == "gssapi") ? true : false);
+        for (std::vector<int>::iterator port = ports.begin(); port != ports.end(); port++) {
+          logger.msg(Arc::VERBOSE, "Attempting to contact %s on port %i using protocol %s", srm_url.Host(), *port, *protocol);
+          srm_url.SetPort(*port);
+          SRMClient * client = new SRM22Client(srm_url);
+      
+          if ((srm_error = client->ping(version, false)) == SRM_OK) {
+            srm_file_info.port = *port;
+            srm_file_info.protocol = *protocol;
+            logger.msg(Arc::VERBOSE, "Storing port %i and protocol %s for %s", *port, *protocol, srm_url.Host());
+            info.putSRMFileInfo(srm_file_info);
+            return client;
+          }
+          delete client;
+          if (srm_error == SRM_ERROR_TEMPORARY) {
+            // probably correct port and protocol and service is down
+            // but don't want to risk storing incorrect info
+            timedout = true;
+            return NULL;
+          }
+        }
+      }
+      // if we get here no combination has worked
+      logger.msg(Arc::VERBOSE, "No combination of port and protocol succeeded for %s", srm_url.Host());
+      return NULL;
+    }
+    // url agrees with file info
+    else if (srm_file_info == srm_url) {
+      srm_url.SetPort(srm_file_info.port);
+      srm_url.GSSAPI((srm_file_info.protocol == "gssapi") ? true : false);
+      return new SRM22Client(srm_url);
+    }
+    // url disagrees with file info
+    else {
+      // ping and if ok, replace file info
+      logger.msg(Arc::VERBOSE, "URL %s disagrees with stored SRM info, testing new info", srm_url.ShortURL());
+      SRMClient * client = new SRM22Client(srm_url);
   
-  };
-
+      if ((srm_error = client->ping(version, false)) == SRM_OK) {
+        srm_file_info.port = srm_url.Port();
+        srm_file_info.protocol = srm_url.GSSAPI()? "gssapi" : "gsi";
+        logger.msg(Arc::VERBOSE, "Replacing old SRM info with new for URL %s", srm_url.ShortURL());
+        info.putSRMFileInfo(srm_file_info);
+        return client;
+      }
+      delete client;
+      if (srm_error == SRM_ERROR_TEMPORARY) {
+        // probably correct port and protocol and service is down
+        // but don't want to risk storing incorrect info
+        timedout = true;
+      }
+      return NULL;
+    }
+ }
 //} // namespace Arc
