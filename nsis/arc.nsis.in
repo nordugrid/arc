@@ -151,6 +151,7 @@ Section "NorduGrid ARC clients"
   File "${ARC_LOCATION}/lib/arc/libmccsoap.dll"
   File "${ARC_LOCATION}/lib/arc/libmcctcp.dll"
   File "${ARC_LOCATION}/lib/arc/libmcctls.dll"
+  File "${ARC_LOCATION}/lib/arc/libmodcrypto.dll"
 
 ; Extra stuff now we have Globus
   File "${ARC_LOCATION}/lib/arc/libaccARC0.dll"
