@@ -364,17 +364,19 @@ child elements can be specified:
   or 6 only.
 \item[\texttt{NoDelay}] By default Nagle's algorithm is used for sending data,
   however if the \texttt{NoDelay} element is set to \texttt{true} data will be
-  send when ready.
-\item[\texttt{Timeout}] Specifies how much time, in seconds, there should be
-  used on waiting for a client response. If no client response is obtained
-  before timeout the connection is dropped. The default value is 60 seconds.
+  sent when ready. This is mainly used for optimizing connections for communication
+  patterns which involve a lot of very short messages exchanged by service 
+  and client.
+\item[\texttt{Timeout}] Specifies how much time, in seconds, data sending or
+  receiving may take. If time is exceeded MCC reports error and in most cases 
+  connection is dropped. The default value is 60 seconds.
 \end{description}
-It is also possible to put a limit on incoming connections, and how these should
-be handled if the limit is reached. The limit can only be put on all configured
-interfaces, and not per interface. The \texttt{Limit} element specifies the
-limit on incoming connections, and the \texttt{drop} attribute specifies whether
-new connections, above the limit, will be put on hold (default) or if they
-should be dropped, which is specified by setting the attribute to \texttt{true}.
+It is also possible to put a limit on number of incoming connections, and how 
+these should be handled if the limit is reached. The limit can only be put on all 
+configured interfaces, and not per interface. The \texttt{Limit} element specifies 
+the limit on incoming connections, and the \texttt{drop} attribute specifies whether 
+new connections, above the limit, will be put on hold (default) or if they should 
+be dropped, which is specified by setting the attribute to \texttt{true}.
 
 An example of a TCP MCC configuration using the described elements is shown
 below:
@@ -403,8 +405,8 @@ below:
 \subsubsection{TLS MCC}\label{sec:tls-mcc}
 A security layer can be configured with the TLS MCC, named \texttt{tls.service},
 and it should be put on top of a TCP MCC. By default it is able to understand
-the SSLv2, SSLv3 and TLSv1 protocols, however the \texttt{Handshake} element can
-be used to specify another behaviour. The supported values for the
+the SSLv2 (hadshake only), SSLv3 and TLSv1 protocols, however the \texttt{Handshake} 
+element can be used to specify another behaviour. The supported values for the
 \texttt{Handshake} element are \texttt{TLS} (default) and \texttt{SSLv3}, where
 specifying the latter will configure a MCC which only understand the SSLv3
 protocol. If other values than the mentioned ones are given, then \texttt{TLS}
@@ -457,8 +459,14 @@ verification can also be skipped, which is done by setting the
 ...
 \end{lstlisting}
 
-%~ \paragraph{Globus Policy}
-%~ attribute \texttt{PolicyGlobus} (CACertificatePath).
+If element \texttt{CACertificatesDir} have attribute \texttt{PolicyGlobus} set
+to "true" additional verification of client credentials is performed. Client
+credentials are restricted to be signed by specific Certification Authorities
+as specified in additional configuration files. Those files are stored in the
+location specified by the element \texttt{CACertificatesDir} and have names
+made of the hash of the subject of CA certificate followed by \texttt{.signing\_policy}
+suffix. Information about format of those files may be found at 
+http://dev.globus.org/wiki/Signing\_Policy.
 %~
 %~ \paragraph{Trusted VOMS Credentials}
 %~ \texttt{VOMSCertTrustDNChain}
@@ -492,6 +500,19 @@ verification can also be skipped, which is done by setting the
 %~ ...
 %~ \end{lstlisting}
 
+\subsubsection{GSI MCC}\label{sec:gsi-mcc}
+At its purpose MCC is similar to TLS described in section \ref{sec:tls-mcc}. It 
+provides security layer using Globus implementation of GSS-API and corresponding 
+communication protocol.
+
+Its configuration element \texttt{KeyPath} and \texttt{CertificatePath} are 
+identical to those of TLS MCC. This MCC is implemented using libraries of 
+Globus Toolkit and its functionality and requirements are better to be 
+described by descrition of Globus gssapi library.
+
+Use of this MCC is not recommended due to non-standard origin of underlying
+protocol.
+
 \subsubsection{HTTP MCC}\label{sec:http-mcc}
 The HTTP protocol is supported by the HTTP MCC named \texttt{http.service}, and
 it should either be put on top of the TCP or TLS MCC. A working configuration of
@@ -508,15 +529,6 @@ MCC configuration is shown below.
 </Component>
 ...
 \end{lstlisting}
-
-%~ \subsubsection{GSI MCC}\label{sec:gsi-mcc}
-%~ \texttt{KeyPath} Location of private key.
-%~
-%~ \texttt{CertificatePath} Location of public certificate.
-%~
-%~ \texttt{ProxyPath} Location of proxy credentials - includes certificates, key
-%~ and chain of involved certificates. Overwrites elements \texttt{KeyPath} and
-%~ \texttt{CertificatePath}.
 
 \subsubsection{SOAP MCC}\label{sec:soap-mcc}
 SOAP is supported by the SOAP MCC, named \texttt{soap.service}. It parses and
@@ -549,14 +561,16 @@ example of a Plexer configuration is shown below.
 \end{lstlisting}
 
 \subsection{Security Handlers}\label{sec:Security Handlers}
-\subsubsection{Identity Mapping}% identity.map
-\subsubsection{ARC Authorization}% arc.authz
-\subsubsection{Delegation Collector}% delegation.collector
-\subsubsection{Username Token}% usernametoken.handler
-%\subsubsection{Delegation Handler}% delegation.handler
-%\subsubsection{X509 Token}% x509token.handler
+\subsubsection{Identity Mapping}\label{sec:identitymap-shc}
+\subsubsection{ARC Authorization}\label{sec:arcautz-shc}
+\subsubsection{Delegation Collector}\label{sec:delegcollector-shc}
+\subsubsection{Delegation Handler}\label{sec:deleghandler-shc}
+\subsubsection{Username Token}\label{sec:unametoken-shc}
+\subsubsection{Username Token}\label{sec:x509token-shc}
 %\subsubsection{SAML Token}% samltoken.handler
 %\subsubsection{SAML Single Sign-On}% saml2ssoassertionconsumer.handler
+
+\subsection{Policy Decision Points}\label{sec:Policy Decision Points}
 
 \subsection{General Daemon Configuration}\label{sec:General Daemon Configuration}
 The following options configures the \texttt{arched} daemon, and thus applies to
