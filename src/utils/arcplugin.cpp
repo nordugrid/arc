@@ -61,8 +61,11 @@ static bool process_module(const std::string& plugin_filename, bool create_apd) 
     void *ptr = NULL;
     if(!module->get_symbol(PLUGINS_TABLE_SYMB,ptr)) {
         std::cerr << "Module " << plugin_filename << " is not an ARC plugin: " << Glib::Module::get_last_error() << std::endl;
-        delete module;
-        return -1;
+        if(create_apd) {
+          std::cerr << "Empty descriptor file will be created to avoid loading this module at all" << std::endl;
+        }
+        //delete module;
+        //return -1;
     };
 
     Arc::PluginDescriptor* desc = (Arc::PluginDescriptor*)ptr;
@@ -98,14 +101,19 @@ static bool process_module(const std::string& plugin_filename, bool create_apd) 
         std::cout << "Created descriptor " << descriptor_filename << std::endl;
     };
 
-    delete module;
+    // We are not unloading module because it may be not suitable 
+    // for unloading or it may be library which may fail unloading
+    // after it was loaded with dlopen().
+    //delete module;
 
     return true;
 }
 
 int main(int argc, char **argv)
 {
+    const std::string modsuffix("." G_MODULE_SUFFIX);
     bool create_apd = false;
+
     if (argc > 1) {
         if (strcmp(argv[1],"-c") == 0) {
             create_apd = true;
@@ -128,13 +136,19 @@ int main(int argc, char **argv)
           for (Glib::DirIterator file = dir.begin();
                                 file != dir.end(); file++) {
             std::string name = *file;
+            if(name == ".") continue;
+            if(name == "..") continue;
             paths.push_back(Glib::build_filename(*path, name));
           }
         } catch (Glib::FileError) {
+          if(path->length() <= modsuffix.length()) continue;
+          if(path->substr(path->length()-modsuffix.length()) != modsuffix) continue;
           process_module(*path, create_apd);
         }
     }
 
-    return 0;
+    //return 0;
+    // Do quick exit to avoid possible problems with module unloading
+    _exit(0);
 }
 
