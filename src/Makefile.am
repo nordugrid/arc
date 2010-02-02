@@ -11,5 +11,5 @@ DIST_SUBDIRS = hed tests services clients utils
 # some autotools experts fix it.
 if HED_ENABLED
 install-exec-hook:
-	$(top_srcdir)/src/utils/arcplugin$(EXEEXT) -c $(DESTDIR)$(pkglibdir)
+	test "x$(build_triple)" = "x$(host_triple)" && $(top_srcdir)/src/utils/arcplugin$(EXEEXT) -c $(DESTDIR)$(pkglibdir) || echo "No .apd files since we are cross-compiling"
 endif
