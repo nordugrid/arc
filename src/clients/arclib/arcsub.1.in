@@ -27,6 +27,8 @@ jobdescription string describing the job to be submitted
 jobdescription file describing the job to be submitted
 .IP "\fB-j\fR, \fB--joblist\fR=\fIfilename\fR"
 file where the jobs will be stored
+.IP "\fB-x\fR, \fB--dumpdescription\fR"
+do not submit - dump job description in the language accepted by the target
 .IP "\fB-t\fR, \fB--timeout\fR=\fIseconds\fR"
 timeout in seconds (default 20)
 .IP "\fB-z\fR, \fB--conffile\fR=\fIfilename\fR"
@@ -82,6 +84,12 @@ in the same \fBarcsub\fR command.
 If the job is successfully submitted a jobid is printed to
 stdout. This jobid uniquely identifies the job while it is being
 executed.
+
+Before submitting a job description to a target, it might get modified
+by \fB arcsub \fR to fit the chosen target. The modified job description
+can be printed to stdout by specifying the \fB --dumpdescription \fR
+option. The format of the printed job description cannot be specified,
+and will be that accepted by the chosen target.
 
 Information about active jobs are stored in a local joblist file. By
 using the
