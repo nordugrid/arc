@@ -13,15 +13,19 @@ command prints description of ARC plugin or creates Arc Plugin Descriptor (APD) 
 
 .SH SYNOPSIS
 
-.B arcplugin [-c] plugin_path
+.B arcplugin [-c] plugin_path [plugin_path [...]]
 
 .SH OPTIONS
 
 .IP "\fB\ -c \fR"
 If specified then APD file is created using same name as ARC plugin with suffix
 replaced with .apd.
+.IP "\fB\ -r \fR"
+If specified operation is recursive
 .IP "\fB\ plugin_path \fR"
-full path to ARC plugin loadable module file or directory containing such modules. In last case operation is recursive.
+full path to ARC plugin loadable module file or directory containing such modules.
+In last case operation will recurse once into that directory. For fully recursive 
+operation use -r.
 .PP
 
 .SH REPORTING BUGS

@@ -113,11 +113,16 @@ int main(int argc, char **argv)
 {
     const std::string modsuffix("." G_MODULE_SUFFIX);
     bool create_apd = false;
+    bool recursive = false;
 
-    if (argc > 1) {
+    while (argc > 1) {
         if (strcmp(argv[1],"-c") == 0) {
             create_apd = true;
             --argc; ++argv;
+        } else if(strcmp(argv[1],"-r") == 0) {
+            recursive = true;
+        } else {
+            break;
         };
     };
    
@@ -128,11 +133,14 @@ int main(int argc, char **argv)
 
     std::list<std::string> paths;
     for(int n = 1; n < argc; ++n) paths.push_back(argv[n]);
+    int user_paths = paths.size();
 
+    int num = 0;
     for(std::list<std::string>::iterator path = paths.begin();
                   path != paths.end(); ++path) {
         try {
           Glib::Dir dir(*path);
+          if((!recursive) && (num >= user_paths)) continue;
           for (Glib::DirIterator file = dir.begin();
                                 file != dir.end(); file++) {
             std::string name = *file;
@@ -145,6 +153,7 @@ int main(int argc, char **argv)
           if(path->substr(path->length()-modsuffix.length()) != modsuffix) continue;
           process_module(*path, create_apd);
         }
+        ++num;
     }
 
     //return 0;
