@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <errno.h>
+#include <string.h>
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -33,6 +34,8 @@ CommFIFO::~CommFIFO(void) {
 }
 
 JobUser* CommFIFO::wait(int timeout) {
+  time_t start_time = time(NULL);
+  time_t end_time = start_time + timeout;
   for(;;) {
     fd_set fin,fout,fexc;
     FD_ZERO(&fin); FD_ZERO(&fout); FD_ZERO(&fexc);
@@ -49,9 +52,11 @@ JobUser* CommFIFO::wait(int timeout) {
     maxfd++;
     if(timeout >= 0) {
       struct timeval t;
-      t.tv_sec=timeout;
+      if(((int)(end_time-start_time)) < 0) return NULL;
+      t.tv_sec=end_time-start_time;
       t.tv_usec=0;
       n = select(maxfd,&fin,&fout,&fexc,&t);
+      start_time = time(NULL);
     } else {
       n = select(maxfd,&fin,&fout,&fexc,NULL);
     };
@@ -71,9 +76,11 @@ JobUser* CommFIFO::wait(int timeout) {
       if(i->fd < 0) continue;
       if(FD_ISSET(i->fd,&fin)) {
         lock.unlock();
-        char buf[256]; (read(i->fd,buf,256) != -1);
+        char buf[256];
+        ssize_t l = read(i->fd,buf,sizeof(buf));
         // -1 ???
-        return i->user;
+        // 0 means kick, 1 - ping, rest undefined yet
+        if(l > 0) if(memchr(buf,0,sizeof(buf))) return i->user;
       };
     };
     lock.unlock();
@@ -106,16 +113,32 @@ bool CommFIFO::add(JobUser& user) {
   return true;
 }
 
-bool SignalFIFO(const JobUser& user) {
+static int OpenFIFO(const JobUser& user) {
+  // Here O_NONBLOCK ensures open() will fail if nothing listens
   std::string path = user.ControlDir() + "/gm." + user.UnixName() + ".fifo";
   int fd = open(path.c_str(),O_WRONLY | O_NONBLOCK);
   if(fd == -1) {
     // If there is no fifo for this user, try to use common one
     path=user.ControlDir() + "/gm..fifo";
     fd=open(path.c_str(),O_WRONLY | O_NONBLOCK);
-    if(fd == -1) return false;
   };
+  // If fd == -1 here there is no FIFO or nothing is listening on another end
+  return fd;
+}
+
+bool SignalFIFO(const JobUser& user) {
+  int fd = OpenFIFO(user);
+  if(fd == -1) return false;
   char c = 0;
+  if(write(fd,&c,1) != 1) { close(fd); return false; };
+  close(fd);
+  return true;
+}
+
+bool PingFIFO(const JobUser& user) {
+  int fd = OpenFIFO(user);
+  if(fd == -1) return false;
+  char c = 1;
   if(write(fd,&c,1) != 1) { close(fd); return false; };
   close(fd);
   return true;

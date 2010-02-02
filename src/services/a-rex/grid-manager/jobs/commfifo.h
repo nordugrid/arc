@@ -29,3 +29,5 @@ class CommFIFO {
 };
 
 bool SignalFIFO(const JobUser& user);
+bool PingFIFO(const JobUser& user);
+

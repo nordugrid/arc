@@ -16,6 +16,7 @@
 #include "conf/conf_file.h"
 #include "jobs/plugins.h"
 #include "files/info_files.h"
+#include "jobs/commfifo.h"
 
 void get_arex_xml(Arc::XMLNode& arex) {
   
@@ -79,7 +80,27 @@ int main(int argc, char* argv[]) {
 		    istring("print summary of jobs in each transfer share"),
 		    show_share);
 
+  bool notshow_jobs = false;
+  options.AddOption('J', "notshowjobs",
+		    istring("do not print list of jobs"),
+		    notshow_jobs);
+
+  bool notshow_states = false;
+  options.AddOption('S', "notshowstates",
+		    istring("do not print number of jobs in each state"),
+		    notshow_states);
+
+  bool show_service = false;
+  options.AddOption('w', "showservice",
+		    istring("print state of the service"),
+		    show_service);
+
   std::list<std::string> params = options.Parse(argc, argv);
+
+  if(show_share) { // Why?
+    notshow_jobs=true;
+    notshow_states=true;
+  }
 
   if (!my_username.empty()) {
     struct passwd pw_;
@@ -142,7 +163,11 @@ int main(int argc, char* argv[]) {
     (*jobuser)=jobs; 
   }
 
-  std::cout << "Looking for current jobs" << std::endl;
+  if((!notshow_jobs) || (!notshow_states) || (show_share)) {
+    std::cout << "Looking for current jobs" << std::endl;
+  }
+
+  bool service_alive = false;
 
   unsigned int counters[JOB_STATE_NUM];
   unsigned int counters_pending[JOB_STATE_NUM];
@@ -158,9 +183,10 @@ int main(int argc, char* argv[]) {
 
   unsigned int jobs_total = 0;
   for (JobUsers::iterator user = users.begin(); user != users.end(); ++user) {
+    if((!notshow_jobs) || (!notshow_states) || (show_share)) {
     user->get_jobs()->ScanNewJobs(false);
     for (JobsList::iterator i=user->get_jobs()->begin(); i!=user->get_jobs()->end(); ++i) {
-      if(!show_share) std::cout << "Job: "<<i->get_id();
+      if((!show_share) && (!notshow_jobs)) std::cout << "Job: "<<i->get_id();
       jobs_total++;
       bool pending;
       job_state_t new_state = job_state_read_file(i->get_id(), *user, pending);
@@ -184,8 +210,8 @@ int main(int argc, char* argv[]) {
           std::string jobid = i->get_id();
           if (job_lrms_mark_check(jobid,*user)) share_finishing_pending[job_desc.transfershare]++;
         };
-        continue;
       }
+      if(!notshow_jobs) {
       if (!long_list) {
         std::cout<<" : "<<states_all[new_state].name<<" : "<<job_desc.DN<<" : "<<job_time.str()<<std::endl;
         continue;
@@ -203,6 +229,11 @@ int main(int argc, char* argv[]) {
         std::cout<<"\tName: "<<job_desc.jobname<<std::endl;
       if (!job_desc.clientname.empty()) 
         std::cout<<"\tFrom: "<<job_desc.clientname<<std::endl;
+      }
+    }
+    }
+    if(show_service) {
+      if(PingFIFO(*user)) service_alive = true;
     }
   }
   
@@ -224,9 +255,9 @@ int main(int argc, char* argv[]) {
         std::cout<<"         0/"<<share_finishing_pending[i->first]<<"\t\t"<<i->first<<std::endl;
     }
     std::cout<<std::endl;
-    return 0;
   }
   
+  if(!notshow_states) {
   std::cout<<"Jobs total: "<<jobs_total<<std::endl;
 
   for (int i=0; i<JOB_STATE_UNDEFINED; i++) {
@@ -257,6 +288,10 @@ int main(int argc, char* argv[]) {
     counters[JOB_STATE_PREPARING]-counters_pending[JOB_STATE_PREPARING]<<"+"<<
     counters[JOB_STATE_FINISHING]-counters_pending[JOB_STATE_FINISHING]<<"/"<<
     max_processing<<"+"<<max_processing_emergency<<std::endl;
+  }
+  if(show_service) {
+    std::cout<<" Service state: "<<(service_alive?"alive":"not detected")<<std::endl;
+  }
   
   for (JobUsers::iterator user = users.begin(); user != users.end(); ++user) {
     JobsList* jobs = user->get_jobs();
