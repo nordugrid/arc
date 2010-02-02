@@ -124,27 +124,15 @@ namespace Arc {
   static std::list<std::string> persistent_libraries_list;
 
   bool PersistentLibraryInit(const std::string& name) {
+    // Library is made persistent by loading intermediate
+    // module which depends on that library. So passed name
+    // is name of that module. Modules usually reside in 
+    // ARC_LOCATION/lib/arc. This approach is needed because
+    // on some platforms shared libraries can't be dlopen'ed.
     std::string arc_lib_path = ArcLocation::Get();
-#ifndef WIN32
     if(!arc_lib_path.empty()) 
-      arc_lib_path = arc_lib_path + G_DIR_SEPARATOR_S + LIBSUBDIR;
-#ifdef __APPLE__
-    // According to "Mac OS X Reference Library" proper macro to detect 
-    // compilation on Mac OS X is either __MACH__ or __APPLE__.
-    // According to "Mac OS X for Unix geeks" Mac OS X suffix for 
-    // _shared libraries_ is "dylib". While "so" and "bundle" are used for
-    // "loadable modules". Hence G_MODULE_SUFFIX macro is not suitable
-    // because it reads "so" under Mac OS X and that is proper suffix 
-    // for _loadable modules_ but not for _shared libraries_. 
-    std::string libpath = Glib::build_filename(arc_lib_path,"lib"+name+".dylib");
-#else
+      arc_lib_path = arc_lib_path + G_DIR_SEPARATOR_S + PKGLIBSUBDIR;
     std::string libpath = Glib::build_filename(arc_lib_path,"lib"+name+"."+G_MODULE_SUFFIX);
-#endif
-#else
-    if(!arc_lib_path.empty()) 
-      arc_lib_path = arc_lib_path + G_DIR_SEPARATOR_S + "bin";
-    std::string libpath = Glib::build_filename(arc_lib_path,"lib"+name+"-0."+G_MODULE_SUFFIX);
-#endif
 
     persistent_libraries_lock.lock();
     for(std::list<std::string>::iterator l = persistent_libraries_list.begin();

@@ -76,7 +76,7 @@ namespace Arc {
   bool OpenSSLInit(void) {
     Glib::Mutex::Lock flock(lock);
     if(!initialized) {
-      if(!PersistentLibraryInit("arccrypto")) {
+      if(!PersistentLibraryInit("modcrypto")) {
         logger().msg(WARNING, "Failed to lock arccrypto library in memory");
       };  
       SSL_load_error_strings();
