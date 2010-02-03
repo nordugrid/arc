@@ -25,8 +25,12 @@ namespace Arc {
     virtual ~JobDescriptionParser();
     virtual JobDescription Parse(const std::string& source) const = 0;
     virtual std::string UnParse(const JobDescription& job) const = 0;
+    void AddHint(const std::string& key,const std::string& value);
+    void SetHints(const std::map<std::string,std::string>& hints);
   protected:
     static Logger logger;
+    std::map<std::string,std::string> hints;
+    std::string GetHint(const std::string& key) const;
   };
 
 } // namespace Arc

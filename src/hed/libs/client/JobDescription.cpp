@@ -304,28 +304,37 @@ namespace Arc {
       return false;
     }
 
-    logger.msg(VERBOSE, "Try to parse as XRSL");
-    XRSLParser parser1;
-    *this = parser1.Parse(source);
-    if (*this) {
-      sourceFormat = "xrsl";
-      return true;
+    {
+      logger.msg(VERBOSE, "Try to parse as XRSL");
+      XRSLParser parser;
+      parser.SetHints(hints);
+      *this = parser.Parse(source);
+      if (*this) {
+        sourceFormat = "xrsl";
+        return true;
+      }
     }
 
-    logger.msg(VERBOSE, "Try to parse as JDL");
-    JDLParser parser2;
-    *this = parser2.Parse(source);
-    if (*this) {
-      sourceFormat = "jdl";
-      return true;
+    {
+      logger.msg(VERBOSE, "Try to parse as JDL");
+      JDLParser parser;
+      parser.SetHints(hints);
+      *this = parser.Parse(source);
+      if (*this) {
+        sourceFormat = "jdl";
+        return true;
+      }
     }
 
-    logger.msg(VERBOSE, "Try to parse as ARCJSDL");
-    ARCJSDLParser parser3;
-    *this = parser3.Parse(source);
-    if (*this) {
-      sourceFormat = "arcjsdl";
-      return true;
+    {
+      logger.msg(VERBOSE, "Try to parse as ARCJSDL");
+      ARCJSDLParser parser;
+      parser.SetHints(hints);
+      *this = parser.Parse(source);
+      if (*this) {
+        sourceFormat = "arcjsdl";
+        return true;
+      }
     }
 
     logger.msg(ERROR, "The parsing of the job description was unsuccessful");
@@ -345,6 +354,7 @@ namespace Arc {
     if (lower(format) == "jdl") {
       logger.msg(VERBOSE, "Generate JDL output");
       JDLParser parser;
+      parser.SetHints(hints);
       product = parser.UnParse(*this);
       if (product.empty())
         logger.msg(ERROR, "Generating %s output was unsuccessful", format);
@@ -352,6 +362,7 @@ namespace Arc {
     else if (lower(format) == "xrsl") {
       logger.msg(VERBOSE, "Generate XRSL output");
       XRSLParser parser;
+      parser.SetHints(hints);
       product = parser.UnParse(*this);
       if (product.empty())
         logger.msg(ERROR, "Generating %s output was unsuccessful", format);
@@ -359,6 +370,7 @@ namespace Arc {
     else if (lower(format) == "arcjsdl") {
       logger.msg(VERBOSE, "Generate ARCJSDL output");
       ARCJSDLParser parser;
+      parser.SetHints(hints);
       product = parser.UnParse(*this);
       if (product.empty())
         logger.msg(ERROR, "Generating %s output was unsuccessful", format);
@@ -378,6 +390,11 @@ namespace Arc {
       _sourceFormat = sourceFormat;
       return true;
     }
+  }
+
+  void JobDescription::AddHint(const std::string& key,const std::string& value) {
+    if(key.empty()) return;
+    hints[key]=value;
   }
 
 } // namespace Arc

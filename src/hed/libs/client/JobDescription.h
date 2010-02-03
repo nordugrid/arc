@@ -277,6 +277,8 @@ namespace Arc {
     // Print all value to the standard output.
     void Print(bool longlist = false) const;
 
+    void AddHint(const std::string& key,const std::string& value);
+
     JobIdentificationType Identification;
     ApplicationType Application;
     ResourcesType Resources;
@@ -291,6 +293,8 @@ namespace Arc {
     std::string sourceFormat;
 
     static Logger logger;
+
+    std::map<std::string,std::string> hints;
   };
 
 } // namespace Arc

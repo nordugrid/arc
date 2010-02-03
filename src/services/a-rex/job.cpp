@@ -391,6 +391,7 @@ ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& crede
   };
   // Write grami file
   Arc::JobDescription desc;
+  desc.AddHint("SOURCEDIALECT","GRIDMANAGER");
   desc.Parse(job_desc_str);
   if(!write_grami(desc,job,*config_.User(),NULL)) {
     delete_job_id();

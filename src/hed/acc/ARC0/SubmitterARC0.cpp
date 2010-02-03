@@ -226,6 +226,8 @@ namespace Arc {
     jobdesc.XRSL_elements["hostname"] = hostname;
 #endif
 
+    jobdesc.AddHint("TARGETDIALECT","GRIDMANAGER");
+
     return true;
   }
 

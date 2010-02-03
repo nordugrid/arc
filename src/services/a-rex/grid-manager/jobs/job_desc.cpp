@@ -24,6 +24,7 @@ bool get_arc_job_description(const std::string& fname, Arc::JobDescription& desc
     return false;
   }
 
+  desc.AddHint("SOURCEDIALECT","GRIDMANAGER");
   return desc.Parse(job_desc_str);
 }
 

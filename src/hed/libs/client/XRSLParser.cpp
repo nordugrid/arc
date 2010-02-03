@@ -366,7 +366,11 @@ namespace Arc {
         std::string time;
         if (!SingleValue(c, time))
           return false;
-        j.Resources.SessionLifeTime = Period(time, PeriodMinutes);
+        if(GetHint("SOURCEDIALECT") == "GRIDMANAGER") {
+          j.Resources.SessionLifeTime = Period(time, PeriodSeconds);
+        } else {
+          j.Resources.SessionLifeTime = Period(time, PeriodDays);
+        }
         return true;
       }
 
@@ -374,7 +378,11 @@ namespace Arc {
         std::string time;
         if (!SingleValue(c, time))
           return false;
-        j.Resources.TotalCPUTime = Period(time, PeriodSeconds).GetPeriod();
+        if(GetHint("SOURCEDIALECT") == "GRIDMANAGER") {
+          j.Resources.TotalCPUTime = Period(time, PeriodSeconds).GetPeriod();
+        } else {
+          j.Resources.TotalCPUTime = Period(time, PeriodMinutes).GetPeriod();
+        }
         return true;
       }
 
@@ -382,7 +390,11 @@ namespace Arc {
         std::string time;
         if (!SingleValue(c, time))
           return false;
-        j.Resources.TotalWallTime = Period(time, PeriodSeconds).GetPeriod();
+        if(GetHint("SOURCEDIALECT") == "GRIDMANAGER") {
+          j.Resources.TotalWallTime = Period(time, PeriodSeconds).GetPeriod();
+        } else {
+          j.Resources.TotalWallTime = Period(time, PeriodMinutes).GetPeriod();
+        }
         return true;
       }
 
@@ -798,13 +810,25 @@ namespace Arc {
 
     if (j.Resources.TotalCPUTime.range > -1) {
       RSLList *l = new RSLList;
-      l->Add(new RSLLiteral(tostring(j.Resources.TotalCPUTime.range)));
+      if(GetHint("TARGETDIALECT") == "GRIDMANAGER") {
+        // Seconds
+        l->Add(new RSLLiteral(tostring(j.Resources.TotalCPUTime.range)));
+      } else {
+        // Free format
+        l->Add(new RSLLiteral((std::string)Period(j.Resources.TotalCPUTime.range)));
+      }
       r.Add(new RSLCondition("cputime", RSLEqual, l));
     }
 
     if (j.Resources.TotalWallTime.range > -1) {
       RSLList *l = new RSLList;
-      l->Add(new RSLLiteral(tostring(j.Resources.TotalWallTime.range)));
+      if(GetHint("TARGETDIALECT") == "GRIDMANAGER") {
+        // Seconds
+        l->Add(new RSLLiteral(tostring(j.Resources.TotalWallTime.range)));
+      } else {
+        // Free format
+        l->Add(new RSLLiteral((std::string)Period(j.Resources.TotalWallTime.range)));
+      }
       r.Add(new RSLCondition("walltime", RSLEqual, l));
     }
 
@@ -916,7 +940,16 @@ namespace Arc {
 
     if (j.Resources.SessionLifeTime != -1) {
       RSLList *l = new RSLList;
-      l->Add(new RSLLiteral(tostring(j.Resources.SessionLifeTime)));
+      if(GetHint("TARGETDIALECT") == "GRIDMANAGER") {
+        // Seconds
+        l->Add(new RSLLiteral(tostring(j.Resources.SessionLifeTime.GetPeriod())));
+      } else {
+        // Days
+        // After things settle a bit we could switch to free format
+        time_t t = j.Resources.SessionLifeTime.GetPeriod();
+        t = (t + (60*60*24-1))/(60*60*24);
+        l->Add(new RSLLiteral(tostring(t)));
+      }
       r.Add(new RSLCondition("lifetime", RSLEqual, l));
     }
 
