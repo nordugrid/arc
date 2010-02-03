@@ -104,7 +104,7 @@ struct Registrar_data {
             reconnection++;
             // If the given ISIS wasn't available try reconnect
             if (!status.isOk() || !response || !bool((*response)["GetISISListResponse"])) {
-                logger_.msg(VERBOSE, "ISIS (%s) is not avaliable or not valid response. (%d. reconnection)", isis.url, reconnection);
+                logger_.msg(VERBOSE, "ISIS (%s) is not available or not valid response. (%d. reconnection)", isis.url, reconnection);
             } else {
                 logger_.msg(VERBOSE, "Connection to the ISIS (%s) is success and get the list of ISIS.", isis.url);
                 break;
