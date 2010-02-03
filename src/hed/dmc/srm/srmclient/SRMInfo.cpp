@@ -3,6 +3,8 @@
 #include <stdio.h>
 #include <sys/stat.h>
 
+#include <glibmm.h>
+
 #include <arc/StringConv.h>
 #include <arc/Logger.h>
 
