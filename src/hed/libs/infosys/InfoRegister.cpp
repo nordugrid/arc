@@ -323,7 +323,7 @@ bool InfoRegistrar::removeService(InfoRegister* reg) {
             }
 
             if (retry_ == 0 )
-               removeISIS(usedISIS);
+               logger_.msg(VERBOSE, "ISIS (%s) is not available.", usedISIS.url);
 
             reg_.erase(r);
 
