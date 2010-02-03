@@ -459,7 +459,7 @@ sub jobs_info ($$@) {
 	if ($line =~ /^Job Id:\s+(\d+.*)/) {
 	    $jid = 0;
 	    foreach my $k ( @{$jids}) {
-		if ( $1 =~ /^$k/ ) { 
+		if ( $1 =~ /^$k$/ ) { 
 		    $jid = $k;
 		    last;
 		}
