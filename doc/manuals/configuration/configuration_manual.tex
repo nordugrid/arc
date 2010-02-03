@@ -561,8 +561,55 @@ example of a Plexer configuration is shown below.
 \end{lstlisting}
 
 \subsection{Security Handlers}\label{sec:Security Handlers}
-\subsubsection{Identity Mapping}\label{sec:identitymap-shc}
+Security Handlers are components which extract security related properties of
+the message, collect then and use for making authorization decisions.
+
+The Security Handlers are assigned MCCs and are arranged in queues. Each queue
+is processing specific messages. Usually MCCs implement two queues named 
+"incoming" and "outgoing" for the messages going through chain to service
+and returning back respectively.
+
+The Security Handlers in each queue are applied sequentially and if any
+produces negative result processing stops are error is raised.
+
+The Security Handlers are added to MCCs through \texttt{SecHandler} configuration
+element put inside \texttt{Component} or \texttt{Service} elements. The
+\texttt{name} attribute specifies which plugin to be used. And queue is 
+specified by \texttt{event} attribute. Each configured instance can be 
+optionally assigned identifier through \texttt{id} attribute. Tne content
+of \texttt{SecHandler} is specific for every kind of plugin.
+Example is below:
+\begin{lstlisting}[language=xml]
+...
+<Component name="mcc1.service" id="mcc1">
+  <next id="mcc2"/>
+  <SecHandler name="handler1" event="incoming" id="id1">
+  </SecHandler>
+</Component>
+...
+\end{lstlisting}
+
+
 \subsubsection{ARC Authorization}\label{sec:arcautz-shc}
+This Security Handler applies set of Policy Decision Point (PDP) element to the
+message and then produces decision result using combining algorithm specified in 
+\texttt{action} attribute of \texttt{SecHandler} element. For desciption of PDP
+elements see section \ref{sec:Policy Decision Points}.
+
+Available combining algorithms are:
+\begin{description}
+\item[breakOnDeny] - processing stops when PDP returns Deny decision. The SecHandler
+produces negative result. This is a default algorith.
+\item[breakOnAllow] - processing stopr when PDP return Allow decision. The SecHandler
+produces positive result.
+\item[breakAlways] - processing stops after first PDP. Produced result is used as
+result of SecHandler.
+\item[breakNever] - all PDPs are applied. Result of last PDP is used as result of 
+SecHandler.
+\end{description}
+
+\subsubsection{Identity Mapping}\label{sec:identitymap-shc}
+
 \subsubsection{Delegation Collector}\label{sec:delegcollector-shc}
 \subsubsection{Delegation Handler}\label{sec:deleghandler-shc}
 \subsubsection{Username Token}\label{sec:unametoken-shc}
