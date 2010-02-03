@@ -227,7 +227,7 @@ sub slurm_to_arc_time($){
 	$timearc = $1*60 + $2;
     }
     # ARC infosys uses minutes as the smallest allowed value.
-    $timearc = ceil($timearc/60);
+    $timearc = floor($timearc/60);
     return $timearc;
 }
 
