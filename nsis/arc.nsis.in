@@ -198,6 +198,7 @@ Section "Uninstall"
 
   Delete /rebootok "$INSTDIR\UninstallNorduGridARC.exe"
 
+  Delete /rebootok "$INSTDIR\lib\arc\libmodcrypto.dll"
   Delete /rebootok "$INSTDIR\lib\arc\libmcctls.dll"
   Delete /rebootok "$INSTDIR\lib\arc\libmcctcp.dll"
   Delete /rebootok "$INSTDIR\lib\arc\libmccsoap.dll"
