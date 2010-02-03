@@ -128,7 +128,7 @@ sub collect($) {
     my @jobids;
     for my $job (values %$gmjobs_info) {
         next unless $job->{status} and $job->{status} eq 'INLRMS';
-        next unless $job->{localid};
+        next unless defined $job->{localid} and length $job->{localid};
         push @jobids, $job->{localid};
     }
 
