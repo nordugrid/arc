@@ -90,7 +90,7 @@ bool write_grami(const Arc::JobDescription& arc_job_desc, const JobDescription& 
     int i = 0; 
     for (std::list<Arc::Software>::const_iterator itSW = arc_job_desc.Resources.RunTimeEnvironment.getSoftwareList().begin();
          itSW != arc_job_desc.Resources.RunTimeEnvironment.getSoftwareList().end(); itSW++) {
-      if (itSW->empty() || itSW->getVersion().empty()) continue;
+      if (itSW->empty()) continue;
       std::string rte = Arc::upper(*itSW);
       if (canonical_dir(rte) != 0) {
         logger.msg(Arc::ERROR, "Bad name for runtime environment: %s", (std::string)*itSW);
