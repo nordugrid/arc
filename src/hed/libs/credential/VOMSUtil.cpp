@@ -591,7 +591,7 @@ err:
     BN_one(dataorder);
 
     //Parse the AC, and insert it into an AC list
-    if((received_ac = d2i_AC(NULL, (const unsigned char**)&p, l))) {
+    if((received_ac = d2i_AC(NULL, (SSLCONST unsigned char**)&p, l))) {
       actmplist = (AC **)listadd((char **)aclist, (char *)received_ac, sizeof(AC *));
       if (actmplist) {
         aclist = actmplist; 
