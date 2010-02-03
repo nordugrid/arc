@@ -501,6 +501,8 @@ exit 0
 %files -f arc.lang
 %defattr(-,root,root,-)
 %{_libdir}/lib*.so.*
+# We need to have libmodcrypto.so close to libarccrypto
+%{_libdir}/%{pkgdir}/libmodcrypto.so
 %{_datadir}/%{pkgdir}/schema
 %dir %{_datadir}/%{pkgdir}/perl
 %dir %{_datadir}/%{pkgdir}

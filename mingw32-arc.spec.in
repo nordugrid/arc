@@ -151,8 +151,9 @@ rm -rf $RPM_BUILD_ROOT
 %files -f arc.lang
 %defattr(-,root,root,-)
 %doc README AUTHORS LICENSE
-#%{_mingw32_libdir}/lib*.so.*
 %{_mingw32_bindir}/lib*.dll
+# We need to have libmodcrypto.dll close to libarccrypto
+%{_mingw32_libdir}/%{pkgdir}/libmodcrypto.dll*
 %{_mingw32_datadir}/%{pkgdir}/schema
 
 %files client
@@ -218,6 +219,7 @@ rm -rf $RPM_BUILD_ROOT
 %doc %{_mingw32_mandir}/man1/arcwsrf.1*
 %doc %{_mingw32_mandir}/man1/perftest.1*
 %doc %{_mingw32_mandir}/man1/saml_assertion_init.1*
+%doc %{_mingw32_mandir}/man1/jura.1*
 #%doc %{_mingw32_mandir}/man1/voms_assertion_init.1*
 #%doc %{_mingw32_mandir}/man1/arc_storage_cli.1*
 %doc %{_mingw32_datadir}/%{pkgdir}/examples/charon/charon_client.xml.example
@@ -262,7 +264,7 @@ rm -rf $RPM_BUILD_ROOT
 
 %files plugins-base
 %defattr(-,root,root,-)
-%{_mingw32_libdir}/%{pkgdir}/libmcchttp.dll**
+%{_mingw32_libdir}/%{pkgdir}/libmcchttp.dll*
 %{_mingw32_libdir}/%{pkgdir}/libmccmsgvalidator.dll*
 %{_mingw32_libdir}/%{pkgdir}/libmccsoap.dll*
 %{_mingw32_libdir}/%{pkgdir}/libmcctcp.dll*
