@@ -711,7 +711,7 @@ Security Handler will raise an error.
 \subsubsection{X.509 Token}\label{sec:x509token-shc}
 The X.509 Token Security Handler processes information in the SOAP Header
 stored according to "Web Services Security X.509 Token Profile 1.0"
-\cite{ws-security-usernametoken}. The plugin name of this Security Handler
+\cite{ws-security-x509token}. The plugin name of this Security Handler
 is \texttt{x509token.handler} and it resides in \texttt{arcshc} loadable
 module.
 
@@ -734,10 +734,92 @@ Following configuration elements specify location of trusted CA certificates:
 If provided credentials failed verification this Security Handler will raise 
 an error.
 
-%\subsubsection{SAML Token}% samltoken.handler
-%\subsubsection{SAML Single Sign-On}% saml2ssoassertionconsumer.handler
+\subsubsection{SAML Token}
+
+\subsubsection{SAML Single Sign-On}
 
 \subsection{Policy Decision Points}\label{sec:Policy Decision Points}
+The Policy Decision Point component is responsible for applying particular
+policy or any kind of authorization evaluation algorithm to properties 
+of the message and providing authorization decision which then used by
+other components - usually by the Security Handlers implementing 
+functionality of Policy Enforcement Point.
+
+\subsubsection{Allow}
+This PDP always returns positive result. Its plugin name is \texttt{allow.pdp}
+and it resides in \texttt{arcshc} loadable module.
+
+\subsubsection{Deny}
+This PDP always returns negative result. Its plugin name is \texttt{deny.pdp}
+and it resides in \texttt{arcshc} loadable module.
+
+\subsection{Simple List}
+This PDP matches X.509 subject of client certificate to list of predefined values.
+Its plugin name is \texttt{simplelist.pdp} and it resides in \texttt{arcshc} loadable
+module.
+
+Multiple configuration elements \texttt{DN} specify accepted subjects. Also attribute
+\texttt{location} may be used to point to a file containing list of subjects, one
+per line. If client's subject is not listed neither in \texttt{DN} nor in 
+\texttt{location} PDP returns negative result. Otherwise result is positive. Below is
+configuration example for simple authorization by grid-mapfile:
+\begin{lstlisting}[language=xml]
+...
+    <PDP name="simplelist.pdp" location="/etc/grid-security/grid-mapfile">
+      <DN>/O=Grid/O=NorduGrid/CN=Service Admin</DN>
+    </PDP>
+...
+\end{lstlisting}
+
+\subsubsection{ARC}\label{sec:arc-pdp}
+This plugin applies authorization policy written in ARC Policy language to attributes
+of the message. Its plugin name is \texttt{arc.pdp} and it resides in \texttt{arcshc}
+loadable module. For more information about ARC Policy language please "Security 
+Framework of ARC NOX" \cite{arc1-sec}.
+
+The configuration element \texttt{PolicyStore} specifies locations of policy. Its
+\texttt{Location} subelement provides path to file storing policy. Also policy can be 
+directly embedded into configuration by using \texttt{Policy} configuration element.
+
+The \texttt{PolicyCombiningAlg} element specifies how results from multiple policies
+are combined. For detailed explanation please refer to \cite{arc1-sec}.
+
+It is also possible to limit number of message attributes which are matched to policy
+using \texttt{Filter} configuration element. This may be needed to achieve better
+evaluation performance. The multiple subelements \texttt{Select} and \texttt{Reject}
+allow to either use only specific attributes or remove specific attributes. If neither 
+\texttt{Select} not \texttt{Reject} are specified then all attribites are used.
+
+Example of simple ARC PDP reading policy from external file is below:
+\begin{lstlisting}[language=xml]
+...
+    <PDP name="arc.pdp">
+      <PolicyStore>
+        <Location>/etc/grid-security/policy.xml</Location>
+      </PolicyStore>
+    </PDP>
+...
+\end{lstlisting}
+
+
+\subsubsection{GACL}
+
+\subsubsection{XACML}
+
+\subsubsection{Delegation}\label{sec:delegation-pdp}
+This plugin applies authorization policy written in ARC Policy language and obtained
+from cahin of X.509 Proxy Certificates of client to attributes of the message. Its 
+plugin name is \texttt{delegation.pdp} and it resides in \texttt{arcshc} loadable module.
+
+Functionality wise it is very similar to ARC PDP described in section \ref{sec:arc-pdp}
+but uses policy internally obtained from message. Hence it has only \texttt{Filter}
+configuration element.
+
+For detailed explanation how policy document is embedded into X.509 Proxy Certificate 
+please refer to \cite{arc1-sec}.
+
+\subsubsection{Service Invoker}
+
 
 \subsection{General Daemon Configuration}\label{sec:General Daemon Configuration}
 The following options configures the \texttt{arched} daemon, and thus applies to
