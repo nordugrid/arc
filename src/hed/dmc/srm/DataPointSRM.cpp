@@ -91,6 +91,7 @@ namespace Arc {
     }
 
     logger.msg(VERBOSE, "Check: looking for metadata: %s", CurrentLocation().str());
+    srm_request->long_list(true);
     std::list<struct SRMFileMetaData> metadata;
 
     SRMReturnCode res = client->info(*srm_request, metadata);
@@ -201,6 +202,7 @@ namespace Arc {
     SRMReturnCode res;
     if (additional_checks) {
       logger.msg(VERBOSE, "StartReading: looking for metadata: %s", CurrentLocation().str());
+      srm_request->long_list(true);
       std::list<struct SRMFileMetaData> metadata;
       res = client->info(*srm_request, metadata);
       if (res != SRM_OK) {
@@ -509,6 +511,7 @@ namespace Arc {
           if (cs->Type() == CheckSumAny::adler32) {
             // get checksum info for checksum verification
             logger.msg(DEBUG, "start_reading_srm: looking for metadata: %s", url.str());
+            srm_request->long_list(true);
             std::list<struct SRMFileMetaData> metadata;
             SRMReturnCode res = client->info(*srm_request,metadata);
             if (res != SRM_OK) {
