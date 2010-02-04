@@ -880,8 +880,8 @@ void JobsList::ActJobAccepted(JobsList::iterator &i,bool /*hard_job*/,
 	{
           /* check for user specified time */
           if(i->retries == 0 && i->local->processtime != -1) {
-            logger.msg(Arc::INFO,"%s: State: ACCEPTED: have processtime %i",i->job_id.c_str(),
-                  i->local->processtime.str(Arc::MDSTime).c_str());
+            logger.msg(Arc::INFO,"%s: State: ACCEPTED: have processtime %s",i->job_id.c_str(),
+                  i->local->processtime.str(Arc::UserTime));
             if((i->local->processtime) <= time(NULL)) {
               logger.msg(Arc::INFO,"%s: State: ACCEPTED: moving to PREPARING",i->job_id);
               state_changed=true; once_more=true;
