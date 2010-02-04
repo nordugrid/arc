@@ -590,11 +590,12 @@ Example is below:
 \end{lstlisting}
 
 
-\subsubsection{ARC Authorization}\label{sec:arcautz-shc}
+\subsubsection{ARC Authorization}\label{sec:arcauthz-shc}
 This Security Handler applies set of Policy Decision Point (PDP) element to the
 message and then produces decision result using combining algorithm specified in 
 \texttt{action} attribute of \texttt{SecHandler} element. For desciption of PDP
-elements see section \ref{sec:Policy Decision Points}.
+elements see section \ref{sec:Policy Decision Points}. The plugin name of this 
+Secirity hadler is \texttt{arc.authz} and it resides in \texttt{arcshc} loadable module.
 
 Available combining algorithms are:
 \begin{description}
@@ -607,13 +608,132 @@ result of SecHandler.
 \item[breakNever] - all PDPs are applied. Result of last PDP is used as result of 
 SecHandler.
 \end{description}
+Here is an example of of ARC Authorization Security Handler configuration.
+\begin{lstlisting}[language=xml]
+...
+  <SecHandler name="arc.authz" event="incoming" id="authz">
+    <PDP name="arc.pdp">
+      ...
+    </PDP>
+    <PDP name="xacml.pdp">
+      ...
+    </PDP>
+  </SecHandler>
+...
+\end{lstlisting}
+
 
 \subsubsection{Identity Mapping}\label{sec:identitymap-shc}
+The Identity Mapping plugin applies set of associated PDPs to the message
+being processed and depending on result assigns local account to the 
+message. Its plugin name is \texttt{identity.map} and it resides in 
+\texttt{identitymap} loading module.
+
+This Security Handler works in a similar way to ARC Authorization (see
+section \ref{sec:arcauthz-shc}). But instead of passing results of PDPs as
+final processing result it applies local account mapping algorithm 
+associated with particular PDP.
+
+Configuration is also similar with only difference being that inside 
+each \texttt{PDP} configuration element there is additional element
+representing mapping algorithm used for producing local account name.
+Available are following mapping algorithms:
+\begin{description}
+\item[\texttt{LocalName}] - maps to specified account name.
+\begin{lstlisting}[language=xml]
+...
+    <PDP name="arc.pdp">
+      <LocalName>nobody</LocalName>
+      ...
+    </PDP>
+...
+\end{lstlisting}
+
+\item[\texttt{LocalList}] - uses subject of X.509 certificate presented by client
+to perform mapping. Element content provides path to local file containing pairs
+of subjects and account names. One pair per line separated by blank space.
+\begin{lstlisting}[language=xml]
+...
+    <PDP name="arc.pdp">
+      <LocalList>/etc/grid-security/grid-mapfile</LocalList>
+      ...
+    </PDP>
+...
+\end{lstlisting}
+
+\item[\texttt{LocalSimplePool}] - manages dynamic mapping of X.509 client subject
+to a set of local accont names. Content of element point to directory containing
+file named \texttt{pool}. This file contains list of local account available for
+mapping one per line. This directory is also used fro storing currently active
+mappings.
+\begin{lstlisting}[language=xml]
+...
+    <PDP name="arc.pdp">
+      <LocalSimplePool>/etc/grid-security/mappool</LocalSimplePool>
+      ...
+    </PDP>
+...
+\end{lstlisting}
+\end{description}
 
 \subsubsection{Delegation Collector}\label{sec:delegcollector-shc}
-\subsubsection{Delegation Handler}\label{sec:deleghandler-shc}
-\subsubsection{Username Token}\label{sec:unametoken-shc}
-\subsubsection{Username Token}\label{sec:x509token-shc}
+This plugin processes chain of X.509 certificates and extracts embedded
+policies. Policies are attached to the message and may be later used by
+Delegation PDP described in section \ref{sec:delegation-pdp}. The
+plugin name of this Security Handler is \texttt{delegation.collector} 
+and it resides in \texttt{mcctls} loadable module.
+It has no configuration parameters.
+
+% \subsubsection{Delegation Handler}\label{sec:deleghandler-shc}
+
+\subsubsection{UsernameToken}\label{sec:unametoken-shc}
+The UsernameToken Security Handler processes information in the SOAP Header
+stored according to "Web Services Security UsernameToken Profile 1.0"
+\cite{ws-security-usernametoken}. The plugin name of this Security Handler
+is \texttt{usernametoken.handler} and it resides in \texttt{arcshc} loadable
+module.
+
+The configuration element \texttt{Process} defines type of processing to 
+be performed. Possible values are:
+\begin{description}
+\item[extract] - parse and process elements in SOAP Header. This option
+shoudl be used for service side configuration.
+\item[generate] - create UsernameToken. This option is only used for client
+side.
+\end{description}
+
+Only another configuration element relevant for service side processing is
+\texttt{PasswordSource}. It specifies path to local file containing
+list of usernames and passwords (one pair per line) which are accepted 
+by plugin. If there is no pair in file matching one SOAP Header this 
+Security Handler will raise an error.
+
+\subsubsection{X.509 Token}\label{sec:x509token-shc}
+The X.509 Token Security Handler processes information in the SOAP Header
+stored according to "Web Services Security X.509 Token Profile 1.0"
+\cite{ws-security-usernametoken}. The plugin name of this Security Handler
+is \texttt{x509token.handler} and it resides in \texttt{arcshc} loadable
+module.
+
+The configuration element \texttt{Process} defines type of processing to 
+be performed. Possible values are:
+\begin{description}
+\item[extract] - parse and process elements in SOAP Header. This option
+shoudl be used for service side configuration.
+\item[generate] - create X.509 Token. This option is only used for client
+side.
+\end{description}
+
+In \texttt{extract} mode this plugin process X.509 Token from SOAP Header
+and validates contained credetials against locally stored CA certificates.
+Following configuration elements specify location of trusted CA certificates:
+\begin{description}
+\item[CACertificatePath] - path to file containing CA certificate.
+\item[CACertificatesDir] - path to directory containing files with CA certificates.
+\end{description}
+If provided credentials failed verification this Security Handler will raise 
+an error.
+
 %\subsubsection{SAML Token}% samltoken.handler
 %\subsubsection{SAML Single Sign-On}% saml2ssoassertionconsumer.handler
 
@@ -1042,5 +1162,5 @@ conventions for leaf XML elements (element with no children).
 \subsection{TLS Schema}
 \lstinputlisting[language=xml]{tls.xsd}
 
-%%% REFERENCES
+\bibliography{grid}
 \end{document}
