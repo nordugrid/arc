@@ -116,10 +116,8 @@ AC_IETFATTR *d2i_AC_IETFATTR(AC_IETFATTR **a, SSLCONST unsigned char **pp, long 
   M_ASN1_D2I_get_IMP_opt(ret->names, d2i_GENERAL_NAMES, 0, V_ASN1_SEQUENCE);
 #if (OPENSSL_VERSION_NUMBER >= 0x10000000L)
   M_ASN1_D2I_get_seq_type(AC_IETFATTRVAL, *ret->values, d2i_AC_IETFATTRVAL, AC_IETFATTRVAL_free);
-#elif (OPENSSL_VERSION_NUMBER >= 0x0090800fL)
-  M_ASN1_D2I_get_seq_type(AC_IETFATTRVAL, ret->values, (AC_IETFATTRVAL* (*)())d2i_AC_IETFATTRVAL, AC_IETFATTRVAL_free);
 #else
-  M_ASN1_D2I_get_seq(ret->values, d2i_AC_IETFATTRVAL, AC_IETFATTRVAL_free);
+  M_ASN1_D2I_get_seq_type(AC_IETFATTRVAL, ret->values, (AC_IETFATTRVAL* (*)())d2i_AC_IETFATTRVAL, AC_IETFATTRVAL_free);
 #endif
   M_ASN1_D2I_Finish(a, AC_IETFATTR_free, ASN1_F_D2I_AC_IETFATTR);
 }
