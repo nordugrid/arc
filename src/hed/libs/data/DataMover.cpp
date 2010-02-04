@@ -241,8 +241,59 @@ namespace Arc {
       destination.NextTry();
       return DataStatus::WriteAcquireError;
     }
+    // initial cache check, if the DN is cached we can exit straight away
+    bool cacheable = false;
+    bool executable = (source.GetURL().Option("exec") == "yes") ? true : false;
+    bool cache_copy = (source.GetURL().Option("cache") == "copy") ? true : false;
+    // DN is used for cache permissions
+    std::string dn;
+    Time exp_time(0);
+    if (source.Cache() && destination.Local() && cache) {
+      cacheable = true;
+      try {
+        // TODO (important) load credential in unified way or 
+        // use already loaded one
+        Credential ci(GetEnv("X509_USER_PROXY"), GetEnv("X509_USER_PROXY"), GetEnv("X509_CERT_DIR"), "");
+        dn = ci.GetIdentityName();
+        exp_time = ci.GetEndTime();
+      } catch (CredentialError e) {
+        logger.msg(WARNING, "Couldn't handle certificate: %s", e.what());
+      }
+    }
+#ifndef WIN32
+    if (cacheable && source.GetURL().Option("cache") != "renew") {
+      std::string canonic_url = source.str();
+      bool is_in_cache = false;
+      bool is_locked = false;
+      if (cache.Start(canonic_url, is_in_cache, is_locked)) {
+        if (is_in_cache) {
+          logger.msg(INFO, "File %s is cached (%s) - checking permissions",
+                     canonic_url, cache.File(canonic_url));
+          // check the list of cached DNs
+          if (cache.CheckDN(canonic_url, dn)) {
+            logger.msg(VERBOSE, "Permission checking passed");
+            bool cache_link_result;
+            if (source.ReadOnly() && !executable && !cache_copy) {
+              logger.msg(VERBOSE, "Linking/copying cached file");
+              cache_link_result = cache.Link(destination.CurrentLocation().Path(), canonic_url);
+            }
+            else {
+              logger.msg(VERBOSE, "Copying cached file");
+              cache_link_result = cache.Copy(destination.CurrentLocation().Path(), canonic_url, executable);
+            }
+            cache.Stop(canonic_url);
+            source.NextLocation(); /* to decrease retry counter */
+            if (!cache_link_result)
+              return DataStatus::CacheError;           
+            return DataStatus::Success;
+          }
+        }
+        cache.Stop(canonic_url);
+      }
+    }
+#endif /*WIN32*/
+      
     for (;;) {
-      // if(source.Resolve(true, map)) {
       DataStatus dres = source.Resolve(true);
       if (dres.Passed()) {
         if (source.HaveLocations())
@@ -258,7 +309,6 @@ namespace Arc {
         return dres;
     }
     for (;;) {
-      // if(destination.Resolve(false, URLMap())) {
       DataStatus dres = destination.Resolve(false);
       if (dres.Passed()) {
         if (destination.HaveLocations())
@@ -378,20 +428,8 @@ namespace Arc {
       destination.Passive(force_passive);
       destination.SetAdditionalChecks(do_checks);
       /* take suggestion from DataHandle about buffer, etc. */
-      bool cacheable = false;
-      /* is file executable */
-      bool executable = false;
-      std::string exec_option = source.GetURL().Option("exec");
-      if (exec_option == "yes")
-        executable = true;
-      bool cache_copy = false;
-      std::string cache_option = source.GetURL().Option("cache");
-      if (cache_option == "copy")
-        cache_copy = true;
       long long int bufsize;
       int bufnum;
-      if (source.Cache() && destination.Local() && cache)
-        cacheable = true;
       /* tune buffers */
       bufsize = 65536; /* have reasonable buffer size */
       bool seekable = destination.WriteOutOfOrder();
@@ -501,20 +539,9 @@ namespace Arc {
                        canonic_url, cache.File(canonic_url));
             // check the list of cached DNs
             bool have_permission = false;
-            std::string dn;
-            Time exp_time(0);
-            try {
-              // TODO (important) load credential in unified way or 
-              // use already loaded one
-              Credential ci(GetEnv("X509_USER_PROXY"), GetEnv("X509_USER_PROXY"), GetEnv("X509_CERT_DIR"), "");
-              dn = ci.GetIdentityName();
-              if (cache.CheckDN(canonic_url, dn))
-                have_permission = true;
-              exp_time = ci.GetEndTime();
-            } catch (CredentialError e) {
-              logger.msg(WARNING, "Couldn't handle certificate: %s", e.what());
-            }
-            if (!have_permission) {
+            if (cache.CheckDN(canonic_url, dn))
+              have_permission = true;
+            else {
               DataStatus cres = source.Check();
               if (!cres.Passed()) {
                 logger.msg(ERROR, "Permission checking failed: %s", source.str());
@@ -877,14 +904,7 @@ namespace Arc {
       if (cacheable) {
         if (source.CheckValid())
           cache.SetValid(canonic_url, source.GetValid());
-        try {
-          // TODO (important) load credential in unified way or
-          // use already loaded one
-          Credential ci(GetEnv("X509_USER_PROXY"), GetEnv("X509_USER_PROXY"), GetEnv("X509_CERT_DIR"), "");
-          cache.AddDN(canonic_url, ci.GetIdentityName(), ci.GetEndTime());
-        } catch (CredentialError e) {
-          logger.msg(WARNING, "Couldn't handle certificate: %s", e.what());
-        }
+        cache.AddDN(canonic_url, dn, exp_time);
         bool cache_link_result;
         if (executable || cache_copy) {
           logger.msg(VERBOSE, "Copying cached file");
