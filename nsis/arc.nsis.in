@@ -152,6 +152,7 @@ Section "NorduGrid ARC clients"
   File "${ARC_LOCATION}/lib/arc/libmcctcp.dll"
   File "${ARC_LOCATION}/lib/arc/libmcctls.dll"
   File "${ARC_LOCATION}/lib/arc/libmodcrypto.dll"
+  File "${ARC_LOCATION}/lib/arc/libmodcredential.dll"
 
 ; Extra stuff now we have Globus
   File "${ARC_LOCATION}/lib/arc/libaccARC0.dll"
@@ -199,6 +200,7 @@ Section "Uninstall"
   Delete /rebootok "$INSTDIR\UninstallNorduGridARC.exe"
 
   Delete /rebootok "$INSTDIR\lib\arc\libmodcrypto.dll"
+  Delete /rebootok "$INSTDIR\lib\arc\libmodcredential.dll"
   Delete /rebootok "$INSTDIR\lib\arc\libmcctls.dll"
   Delete /rebootok "$INSTDIR\lib\arc\libmcctcp.dll"
   Delete /rebootok "$INSTDIR\lib\arc\libmccsoap.dll"

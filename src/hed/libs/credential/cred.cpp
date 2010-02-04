@@ -6,7 +6,7 @@
 
 #include <arc/loader/Plugin.h>
 
-// This is just an intermediate module for making libarccrypto library
+// This is just an intermediate module for making libarccredential library
 // persistent in compatible way.
 
 // Adding plugin descriptor to avoid warning messages from loader

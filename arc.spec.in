@@ -503,6 +503,8 @@ exit 0
 %{_libdir}/lib*.so.*
 # We need to have libmodcrypto.so close to libarccrypto
 %{_libdir}/%{pkgdir}/libmodcrypto.so
+# We need to have libmodcredential.so close to libarccredential
+%{_libdir}/%{pkgdir}/libmodcredential.so
 %{_datadir}/%{pkgdir}/schema
 %dir %{_datadir}/%{pkgdir}/perl
 %dir %{_datadir}/%{pkgdir}

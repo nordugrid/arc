@@ -605,7 +605,7 @@ namespace Arc {
     // This library provides methods and objects which when registred in 
     // global OpenSSL lists can't be unregistred anymore. Hence it must not 
     // be allowed to unload.
-    if(!PersistentLibraryInit("arccredential")) {
+    if(!PersistentLibraryInit("modcredential")) {
       CredentialLogger.msg(WARNING, "Failed to lock arccredential library in memory");
     };
     proxy_init_=true;

@@ -154,6 +154,8 @@ rm -rf $RPM_BUILD_ROOT
 %{_mingw32_bindir}/lib*.dll
 # We need to have libmodcrypto.dll close to libarccrypto
 %{_mingw32_libdir}/%{pkgdir}/libmodcrypto.dll*
+# We need to have libmodcredential.dll close to libarccredential
+%{_mingw32_libdir}/%{pkgdir}/libmodcredential.dll*
 %{_mingw32_datadir}/%{pkgdir}/schema
 
 %files client

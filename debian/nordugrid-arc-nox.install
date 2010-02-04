@@ -1,4 +1,5 @@
 debian/tmp/usr/lib/lib*.so.*
 debian/tmp/usr/lib/arc/libmodcrypto.so
+debian/tmp/usr/lib/arc/libmodcredential.so
 debian/tmp/usr/share/arc/schema
 debian/tmp/usr/share/locale/*/LC_MESSAGES/arc.mo
