@@ -400,11 +400,13 @@ namespace Arc {
 
       if (c->Attr() == "gridtime") {
         std::string time;
-        int intTime;
-        if (!SingleValue(c, time) ||
-            !stringto(time, intTime)) // Unable to parse as integer.
+        if (!SingleValue(c, time))
           return false;
-        j.Resources.TotalCPUTime.range = intTime;
+        if(GetHint("SOURCEDIALECT") == "GRIDMANAGER") {
+          j.Resources.TotalCPUTime.range = Period(time, PeriodSeconds).GetPeriod();
+        } else {
+          j.Resources.TotalCPUTime.range = Period(time, PeriodMinutes).GetPeriod();
+        }
         j.Resources.TotalCPUTime.benchmark = std::pair<std::string, double>("ARC-clockrate", 2800);
         return true;
       }
@@ -414,16 +416,18 @@ namespace Arc {
         if (!SeqListValue(c, bm, 3))
           return false;
         double bValue;
-        int bTime;
         // Only the first parsable benchmark is currently supported.
         for (std::list< std::list<std::string> >::const_iterator it = bm.begin();
              it != bm.end(); it++) {
           std::list<std::string>::const_iterator itB = it->begin();
-          if (!stringto(*++itB, bValue) || !stringto(*++itB, bTime))
+          if (!stringto(*++itB, bValue))
             continue;
-
+          if(GetHint("SOURCEDIALECT") == "GRIDMANAGER") {
+            j.Resources.TotalCPUTime.range = Period(*++itB, PeriodSeconds).GetPeriod();
+          } else {
+            j.Resources.TotalCPUTime.range = Period(*++itB, PeriodMinutes).GetPeriod();
+          }
           j.Resources.TotalCPUTime.benchmark = std::pair<std::string, double>(it->front(), bValue);
-          j.Resources.TotalCPUTime.range = bTime;
           return true;
         }
         return false;
@@ -944,11 +948,8 @@ namespace Arc {
         // Seconds
         l->Add(new RSLLiteral(tostring(j.Resources.SessionLifeTime.GetPeriod())));
       } else {
-        // Days
-        // After things settle a bit we could switch to free format
-        time_t t = j.Resources.SessionLifeTime.GetPeriod();
-        t = (t + (60*60*24-1))/(60*60*24);
-        l->Add(new RSLLiteral(tostring(t)));
+        // Free format
+        l->Add(new RSLLiteral((std::string)j.Resources.SessionLifeTime));
       }
       r.Add(new RSLCondition("lifetime", RSLEqual, l));
     }
