@@ -7,8 +7,8 @@
   elementFormDefault="qualified">
  
 
-    <xsd:element name="Filter" type="FilterType"/> 
-    <xsd:complexType name="FilterType">
+    <xsd:element name="Filter"> 
+    <xsd:complexType>
         <xsd:annotation>
             <xsd:documentation xml:lang="en">
               This element defines Security Attributes to select and reject.
@@ -21,13 +21,14 @@
             <xsd:element name="Reject" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
     </xsd:complexType>
+    </xsd:element>
 
     <xsd:element name="PolicyStore">
-        <xsd:complexType>
+    <xsd:complexType>
         <xsd:annotation>
             <xsd:documentation xml:lang="en">
               This element specifies file containing policy document.
-              There could be multiple sub elements <Location/>.
+              There can be multiple sub elements <Location/>.
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
@@ -36,7 +37,23 @@
         </xsd:sequence>
     </xsd:complexType>
     </xsd:element>
-    
+
+    <xsd:element name="Policy">
+    <xsd:complexType>
+    </xsd:complexType>
+        <xsd:annotation>
+            <xsd:documentation xml:lang="en">
+              This element contains policy to be processed.
+              There may be nultiple such elements.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:any namespace="##other" processContents="strict" minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+        <xsd:anyAttribute namespace="##other" processContents="strict"/>
+    </xsd:complexType>
+    </xsd:element>
+
     <xsd:element name="PolicyCombiningAlg" type="xsd:string">
         <xsd:annotation>
             <xsd:documentation xml:lang="en">
