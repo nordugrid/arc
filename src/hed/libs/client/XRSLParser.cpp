@@ -76,6 +76,9 @@ namespace Arc {
         logger.msg(ERROR, "XRSL parsing error");
         return JobDescription();
       }
+
+      j.XRSL_elements["clientxrsl"] = source;
+
       J.push_back(j);
     }
 
@@ -203,7 +206,7 @@ namespace Arc {
   static bool AddNotification(
          std::list<NotificationType> &notifications,
          const std::string& states, const std::string& email) {
-    for(std::list<NotificationType>::iterator it = 
+    for(std::list<NotificationType>::iterator it =
                  notifications.begin(); it != notifications.end(); it++) {
       if(it->Email == email) {
         return AddNotificationState(*it,states);

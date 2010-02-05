@@ -110,7 +110,8 @@ namespace Arc {
   }
 
   bool SubmitterARC0::ModifyJobDescription(JobDescription& jobdesc, const ExecutionTarget& et) const {
-    jobdesc.XRSL_elements["clientxrsl"] = jobdesc.UnParse("XRSL");
+    if (jobdesc.XRSL_elements["clientxrsl"].empty())
+      jobdesc.XRSL_elements["clientxrsl"] = jobdesc.UnParse("XRSL");
 
     // Check for identical file names.
     // Check if executable and input is contained in the file list.
