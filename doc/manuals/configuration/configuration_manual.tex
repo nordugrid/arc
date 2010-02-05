@@ -365,17 +365,17 @@ child elements can be specified:
 \item[\texttt{NoDelay}] By default Nagle's algorithm is used for sending data,
   however if the \texttt{NoDelay} element is set to \texttt{true} data will be
   sent when ready. This is mainly used for optimizing connections for communication
-  patterns which involve a lot of very short messages exchanged by service 
+  patterns which involve a lot of very short messages exchanged by service
   and client.
 \item[\texttt{Timeout}] Specifies how much time, in seconds, data sending or
-  receiving may take. If time is exceeded MCC reports error and in most cases 
+  receiving may take. If time is exceeded MCC reports error and in most cases
   connection is dropped. The default value is 60 seconds.
 \end{description}
-It is also possible to put a limit on number of incoming connections, and how 
-these should be handled if the limit is reached. The limit can only be put on all 
-configured interfaces, and not per interface. The \texttt{Limit} element specifies 
-the limit on incoming connections, and the \texttt{drop} attribute specifies whether 
-new connections, above the limit, will be put on hold (default) or if they should 
+It is also possible to put a limit on number of incoming connections, and how
+these should be handled if the limit is reached. The limit can only be put on all
+configured interfaces, and not per interface. The \texttt{Limit} element specifies
+the limit on incoming connections, and the \texttt{drop} attribute specifies whether
+new connections, above the limit, will be put on hold (default) or if they should
 be dropped, which is specified by setting the attribute to \texttt{true}.
 
 An example of a TCP MCC configuration using the described elements is shown
@@ -405,7 +405,7 @@ below:
 \subsubsection{TLS MCC}\label{sec:tls-mcc}
 A security layer can be configured with the TLS MCC, named \texttt{tls.service},
 and it should be put on top of a TCP MCC. By default it is able to understand
-the SSLv2 (hadshake only), SSLv3 and TLSv1 protocols, however the \texttt{Handshake} 
+the SSLv2 (hadshake only), SSLv3 and TLSv1 protocols, however the \texttt{Handshake}
 element can be used to specify another behaviour. The supported values for the
 \texttt{Handshake} element are \texttt{TLS} (default) and \texttt{SSLv3}, where
 specifying the latter will configure a MCC which only understand the SSLv3
@@ -465,7 +465,7 @@ credentials are restricted to be signed by specific Certification Authorities
 as specified in additional configuration files. Those files are stored in the
 location specified by the element \texttt{CACertificatesDir} and have names
 made of the hash of the subject of CA certificate followed by \texttt{.signing\_policy}
-suffix. Information about format of those files may be found at 
+suffix. Information about format of those files may be found at
 http://dev.globus.org/wiki/Signing\_Policy.
 %~
 %~ \paragraph{Trusted VOMS Credentials}
@@ -501,13 +501,13 @@ http://dev.globus.org/wiki/Signing\_Policy.
 %~ \end{lstlisting}
 
 \subsubsection{GSI MCC}\label{sec:gsi-mcc}
-At its purpose MCC is similar to TLS described in section \ref{sec:tls-mcc}. It 
-provides security layer using Globus implementation of GSS-API and corresponding 
+At its purpose MCC is similar to TLS described in section \ref{sec:tls-mcc}. It
+provides security layer using Globus implementation of GSS-API and corresponding
 communication protocol.
 
-Its configuration element \texttt{KeyPath} and \texttt{CertificatePath} are 
-identical to those of TLS MCC. This MCC is implemented using libraries of 
-Globus Toolkit and its functionality and requirements are better to be 
+Its configuration element \texttt{KeyPath} and \texttt{CertificatePath} are
+identical to those of TLS MCC. This MCC is implemented using libraries of
+Globus Toolkit and its functionality and requirements are better to be
 described by descrition of Globus gssapi library.
 
 Use of this MCC is not recommended due to non-standard origin of underlying
@@ -565,7 +565,7 @@ Security Handlers are components which extract security related properties of
 the message, collect then and use for making authorization decisions.
 
 The Security Handlers are assigned MCCs and are arranged in queues. Each queue
-is processing specific messages. Usually MCCs implement two queues named 
+is processing specific messages. Usually MCCs implement two queues named
 "incoming" and "outgoing" for the messages going through chain to service
 and returning back respectively.
 
@@ -574,8 +574,8 @@ produces negative result processing stops are error is raised.
 
 The Security Handlers are added to MCCs through \texttt{SecHandler} configuration
 element put inside \texttt{Component} or \texttt{Service} elements. The
-\texttt{name} attribute specifies which plugin to be used. And queue is 
-specified by \texttt{event} attribute. Each configured instance can be 
+\texttt{name} attribute specifies which plugin to be used. And queue is
+specified by \texttt{event} attribute. Each configured instance can be
 optionally assigned identifier through \texttt{id} attribute. Tne content
 of \texttt{SecHandler} is specific for every kind of plugin.
 Example is below:
@@ -592,9 +592,9 @@ Example is below:
 
 \subsubsection{ARC Authorization}\label{sec:arcauthz-shc}
 This Security Handler applies set of Policy Decision Point (PDP) element to the
-message and then produces decision result using combining algorithm specified in 
+message and then produces decision result using combining algorithm specified in
 \texttt{action} attribute of \texttt{SecHandler} element. For desciption of PDP
-elements see section \ref{sec:Policy Decision Points}. The plugin name of this 
+elements see section \ref{sec:Policy Decision Points}. The plugin name of this
 Secirity hadler is \texttt{arc.authz} and it resides in \texttt{arcshc} loadable module.
 
 Available combining algorithms are:
@@ -605,7 +605,7 @@ produces negative result. This is a default algorith.
 produces positive result.
 \item[breakAlways] - processing stops after first PDP. Produced result is used as
 result of SecHandler.
-\item[breakNever] - all PDPs are applied. Result of last PDP is used as result of 
+\item[breakNever] - all PDPs are applied. Result of last PDP is used as result of
 SecHandler.
 \end{description}
 Here is an example of of ARC Authorization Security Handler configuration.
@@ -625,16 +625,16 @@ Here is an example of of ARC Authorization Security Handler configuration.
 
 \subsubsection{Identity Mapping}\label{sec:identitymap-shc}
 The Identity Mapping plugin applies set of associated PDPs to the message
-being processed and depending on result assigns local account to the 
-message. Its plugin name is \texttt{identity.map} and it resides in 
+being processed and depending on result assigns local account to the
+message. Its plugin name is \texttt{identity.map} and it resides in
 \texttt{identitymap} loading module.
 
 This Security Handler works in a similar way to ARC Authorization (see
 section \ref{sec:arcauthz-shc}). But instead of passing results of PDPs as
-final processing result it applies local account mapping algorithm 
+final processing result it applies local account mapping algorithm
 associated with particular PDP.
 
-Configuration is also similar with only difference being that inside 
+Configuration is also similar with only difference being that inside
 each \texttt{PDP} configuration element there is additional element
 representing mapping algorithm used for producing local account name.
 Available are following mapping algorithms:
@@ -680,7 +680,7 @@ mappings.
 This plugin processes chain of X.509 certificates and extracts embedded
 policies. Policies are attached to the message and may be later used by
 Delegation PDP described in section \ref{sec:delegation-pdp}. The
-plugin name of this Security Handler is \texttt{delegation.collector} 
+plugin name of this Security Handler is \texttt{delegation.collector}
 and it resides in \texttt{mcctls} loadable module.
 It has no configuration parameters.
 
@@ -693,7 +693,7 @@ stored according to "Web Services Security UsernameToken Profile 1.0"
 is \texttt{usernametoken.handler} and it resides in \texttt{arcshc} loadable
 module.
 
-The configuration element \texttt{Process} defines type of processing to 
+The configuration element \texttt{Process} defines type of processing to
 be performed. Possible values are:
 \begin{description}
 \item[extract] - parse and process elements in SOAP Header. This option
@@ -704,8 +704,8 @@ side.
 
 Only another configuration element relevant for service side processing is
 \texttt{PasswordSource}. It specifies path to local file containing
-list of usernames and passwords (one pair per line) which are accepted 
-by plugin. If there is no pair in file matching one SOAP Header this 
+list of usernames and passwords (one pair per line) which are accepted
+by plugin. If there is no pair in file matching one SOAP Header this
 Security Handler will raise an error.
 
 \subsubsection{X.509 Token}\label{sec:x509token-shc}
@@ -715,7 +715,7 @@ stored according to "Web Services Security X.509 Token Profile 1.0"
 is \texttt{x509token.handler} and it resides in \texttt{arcshc} loadable
 module.
 
-The configuration element \texttt{Process} defines type of processing to 
+The configuration element \texttt{Process} defines type of processing to
 be performed. Possible values are:
 \begin{description}
 \item[extract] - parse and process elements in SOAP Header. This option
@@ -731,7 +731,7 @@ Following configuration elements specify location of trusted CA certificates:
 \item[CACertificatePath] - path to file containing CA certificate.
 \item[CACertificatesDir] - path to directory containing files with CA certificates.
 \end{description}
-If provided credentials failed verification this Security Handler will raise 
+If provided credentials failed verification this Security Handler will raise
 an error.
 
 \subsubsection{SAML Token}
@@ -740,9 +740,9 @@ an error.
 
 \subsection{Policy Decision Points}\label{sec:Policy Decision Points}
 The Policy Decision Point component is responsible for applying particular
-policy or any kind of authorization evaluation algorithm to properties 
+policy or any kind of authorization evaluation algorithm to properties
 of the message and providing authorization decision which then used by
-other components - usually by the Security Handlers implementing 
+other components - usually by the Security Handlers implementing
 functionality of Policy Enforcement Point.
 
 \subsubsection{Allow}
@@ -760,7 +760,7 @@ module.
 
 Multiple configuration elements \texttt{DN} specify accepted subjects. Also attribute
 \texttt{location} may be used to point to a file containing list of subjects, one
-per line. If client's subject is not listed neither in \texttt{DN} nor in 
+per line. If client's subject is not listed neither in \texttt{DN} nor in
 \texttt{location} PDP returns negative result. Otherwise result is positive. Below is
 configuration example for simple authorization by grid-mapfile:
 \begin{lstlisting}[language=xml]
@@ -774,12 +774,12 @@ configuration example for simple authorization by grid-mapfile:
 \subsubsection{ARC}\label{sec:arc-pdp}
 This plugin applies authorization policy written in ARC Policy language to attributes
 of the message. Its plugin name is \texttt{arc.pdp} and it resides in \texttt{arcshc}
-loadable module. For more information about ARC Policy language please see "Security 
+loadable module. For more information about ARC Policy language please see "Security
 Framework of ARC NOX" \cite{arc1-sec}. That docment also describes security
 attributes produced by different components of ARC which can be included in policies.
 
 The configuration element \texttt{PolicyStore} specifies locations of policy. Its
-\texttt{Location} subelement provides path to file storing policy. Also policy can be 
+\texttt{Location} subelement provides path to file storing policy. Also policy can be
 directly embedded into configuration by using \texttt{Policy} configuration element.
 
 The \texttt{PolicyCombiningAlg} element specifies how results from multiple policies
@@ -788,7 +788,7 @@ are combined. For detailed explanation please refer to \cite{arc1-sec}.
 It is also possible to limit number of message attributes which are matched to policy
 using \texttt{Filter} configuration element. This may be needed to achieve better
 evaluation performance. The multiple subelements \texttt{Select} and \texttt{Reject}
-allow to either use only specific attributes or remove specific attributes. If neither 
+allow to either use only specific attributes or remove specific attributes. If neither
 \texttt{Select} not \texttt{Reject} are specified then all attribites are used.
 
 Example of simple ARC PDP reading policy from external file is below:
@@ -816,19 +816,19 @@ This plugin's configuration and functionality are similar to previously describe
 GACL PDPs.  Its plugin name is \texttt{xacml.pdp} and it resides in the same \texttt{arcshc}
 loadable module.
 
-This plugin accepts policies written in subset of XACML language \cite{xacml}. Currently 
+This plugin accepts policies written in subset of XACML language \cite{xacml}. Currently
 XACML functionality is not complete yet. For more information see \cite{arc1-sec}.
 
 \subsubsection{Delegation}\label{sec:delegation-pdp}
 This plugin applies authorization policy written in ARC Policy language and obtained
-from cahin of X.509 Proxy Certificates of client to attributes of the message. Its 
+from cahin of X.509 Proxy Certificates of client to attributes of the message. Its
 plugin name is \texttt{delegation.pdp} and it resides in \texttt{arcshc} loadable module.
 
 Functionality wise it is very similar to ARC PDP described in section \ref{sec:arc-pdp}
 but uses policy internally obtained from message. Hence it has only \texttt{Filter}
 configuration element.
 
-For detailed explanation how policy document is embedded into X.509 Proxy Certificate 
+For detailed explanation how policy document is embedded into X.509 Proxy Certificate
 please refer to \cite{arc1-sec}.
 
 \subsubsection{Service Invoker}\label{service-pdp}
@@ -852,7 +852,7 @@ Alternatively if PDP uses X.509 Proxy Certificate path to file containing proxy 
 specified in \texttt{ProxyPath}.
 
 For verifying credentials presented by service trusted CA certificates are specified through
-\texttt{CACertificatePath} and \texttt{CACertificatesDir} for single file and directory 
+\texttt{CACertificatePath} and \texttt{CACertificatesDir} for single file and directory
 containing multiple files respectively.
 
 \subsection{General Daemon Configuration}\label{sec:General Daemon Configuration}
@@ -1284,9 +1284,6 @@ conventions for leaf XML elements (element with no children).
 
 \subsection{GSI MCC Schema}
 \lstinputlisting[language=xml]{gsi.xsd}
-
-\subsection{HTTP MCC Schema}
-\lstinputlisting[language=xml]{http.xsd}
 
 \subsection{ARC Authorization Security Handler Schema}
 \lstinputlisting[language=xml]{ArcAuthZ.xsd}

@@ -10,7 +10,6 @@ SCHEMAS = src/hed/daemon/schema/base.xsd \
 	src/hed/mcc/tcp/schema/tcp.xsd \
 	src/hed/mcc/tls/schema/tls.xsd \
 	src/hed/mcc/gsi/schema/gsi.xsd \
-	src/hed/mcc/http/schema/http.xsd \
 	src/hed/shc/arcauthzsh/schema/ArcAuthZ.xsd \
 	src/hed/shc/usernametokensh/schema/UsernameTokenSH.xsd \
 	src/hed/shc/x509tokensh/schema/X509TokenSH.xsd \
