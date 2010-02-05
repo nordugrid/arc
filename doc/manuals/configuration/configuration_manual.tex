@@ -753,7 +753,7 @@ and it resides in \texttt{arcshc} loadable module.
 This PDP always returns negative result. Its plugin name is \texttt{deny.pdp}
 and it resides in \texttt{arcshc} loadable module.
 
-\subsection{Simple List}
+\subsubsection{Simple List}
 This PDP matches X.509 subject of client certificate to list of predefined values.
 Its plugin name is \texttt{simplelist.pdp} and it resides in \texttt{arcshc} loadable
 module.
@@ -774,8 +774,9 @@ configuration example for simple authorization by grid-mapfile:
 \subsubsection{ARC}\label{sec:arc-pdp}
 This plugin applies authorization policy written in ARC Policy language to attributes
 of the message. Its plugin name is \texttt{arc.pdp} and it resides in \texttt{arcshc}
-loadable module. For more information about ARC Policy language please "Security 
-Framework of ARC NOX" \cite{arc1-sec}.
+loadable module. For more information about ARC Policy language please see "Security 
+Framework of ARC NOX" \cite{arc1-sec}. That docment also describes security
+attributes produced by different components of ARC which can be included in policies.
 
 The configuration element \texttt{PolicyStore} specifies locations of policy. Its
 \texttt{Location} subelement provides path to file storing policy. Also policy can be 
@@ -802,9 +803,21 @@ Example of simple ARC PDP reading policy from external file is below:
 \end{lstlisting}
 
 
-\subsubsection{GACL}
+\subsubsection{GACL}\label{gacl-pdp}
+This PDP shares configuration parameters and provides functionality similar to ARC PDP
+described in the section \ref{sec:arc-pdp}. Its plugin name is \texttt{gacl.pdp} and it
+resides in the same \texttt{arcshc} loadable module.
 
-\subsubsection{XACML}
+This plugin accepts policies written in GACL instead of ARC language. For more information
+about GACL prease check "The Gridsite Web" \cite{gacl} and "GACL Mini-Howto" \cite{gacl-mini}.
+
+\subsubsection{XACML}\label{xacml-pdp}
+This plugin's configuration and functionality are similar to previously described ARC and
+GACL PDPs.  Its plugin name is \texttt{xacml.pdp} and it resides in the same \texttt{arcshc}
+loadable module.
+
+This plugin accepts policies written in subset of XACML language \cite{xacml}. Currently 
+XACML functionality is not complete yet. For more information see \cite{arc1-sec}.
 
 \subsubsection{Delegation}\label{sec:delegation-pdp}
 This plugin applies authorization policy written in ARC Policy language and obtained
@@ -818,8 +831,29 @@ configuration element.
 For detailed explanation how policy document is embedded into X.509 Proxy Certificate 
 please refer to \cite{arc1-sec}.
 
-\subsubsection{Service Invoker}
+\subsubsection{Service Invoker}\label{service-pdp}
+This plugin comunicates with possibly remote authorization service by passing it authorization
+request and getting back authorization decision. Its plugin name is \texttt{pdpservice.invoker}
+and it resides in \texttt{arcshc} loadable module.
 
+The configuration element \texttt{Filter} is similar to those in other PDPs.
+
+To specify service to be contacted \texttt{ServiceEndpoint} element is used. It contains
+contact URL of service. Service is expected to accept SOAP over HTTP(S) messages conforming
+to protocol defined in \texttt{TransferProtocol} configuration element. Possible options
+are \texttt{arc} for ARC own protocol and \texttt{saml} for "SAML 2.0 Profile of the XACML 2.0"
+kind of exchange. The format of payload - authorization request and response - is controlled
+using \texttt{RequestFormat} element. Implemented are \texttt{xacml} and \texttt{arc} options
+for XACML conforming or ARC specific formats respectively.
+
+For establishing TLS communication channel to the service PDP needs to apply X.509 credentials.
+For that configuration elements \texttt{CertificatePath} and \texttt{KeyPath} are used.
+Alternatively if PDP uses X.509 Proxy Certificate path to file containing proxy may be
+specified in \texttt{ProxyPath}.
+
+For verifying credentials presented by service trusted CA certificates are specified through
+\texttt{CACertificatePath} and \texttt{CACertificatesDir} for single file and directory 
+containing multiple files respectively.
 
 \subsection{General Daemon Configuration}\label{sec:General Daemon Configuration}
 The following options configures the \texttt{arched} daemon, and thus applies to
