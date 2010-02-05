@@ -32,15 +32,25 @@ void RunTest::tearDown() {
 }
 
 void RunTest::TestRun0() {
+  std::string outstr;
+  std::string errstr;
   Arc::Run run("./rcode 0");
+  run.AssignStdout(outstr);
+  run.AssignStderr(errstr);
   CPPUNIT_ASSERT((bool)run);
   CPPUNIT_ASSERT(run.Start());
   CPPUNIT_ASSERT(run.Wait(10));
   CPPUNIT_ASSERT_EQUAL(0, run.Result());
+  CPPUNIT_ASSERT_EQUAL(std::string("STDOUT"), outstr);
+  CPPUNIT_ASSERT_EQUAL(std::string("STDERR"), errstr);
 }
 
 void RunTest::TestRun255() {
+  std::string outstr;
+  std::string errstr;
   Arc::Run run("./rcode 255");
+  run.AssignStdout(outstr);
+  run.AssignStderr(errstr);
   CPPUNIT_ASSERT((bool)run);
   CPPUNIT_ASSERT(run.Start());
   CPPUNIT_ASSERT(run.Wait(10));
