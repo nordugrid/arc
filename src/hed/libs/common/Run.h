@@ -88,16 +88,25 @@ namespace Arc {
     /** Return true if execution is going on. */
     bool Running(void);
     /** Read from stdout handle of running executable.
+       Parameter timeout specifies upper limit for which method 
+       will block in milliseconds. Negative means infinite.
        This method may be used while stdout is directed to string.
-       But result is unpredictable. */
+       But result is unpredictable.
+       Returns number of read bytes. */
     int ReadStdout(int timeout, char *buf, int size);
     /** Read from stderr handle of running executable.
+       Parameter timeout specifies upper limit for which method 
+       will block in milliseconds.  Negative means infinite.
        This method may be used while stderr is directed to string.
-       But result is unpredictable. */
+       But result is unpredictable.
+       Returns number of read bytes. */
     int ReadStderr(int timeout, char *buf, int size);
     /** Write to stdin handle of running executable.
+       Parameter timeout specifies upper limit for which method 
+       will block in milliseconds. Negative means infinite.
        This method may be used while stdin is directed to string.
-       But result is unpredictable. */
+       But result is unpredictable.
+       Returns number of written bytes. */
     int WriteStdin(int timeout, const char *buf, int size);
     /** Associate stdout handle of executable with string.
        This method must be called before Start(). str object

@@ -9,6 +9,7 @@
 #include <sys/wait.h>
 #include <fcntl.h>
 #include <signal.h>
+#include <poll.h>
 
 #include <iostream>
 
@@ -314,12 +315,17 @@ namespace Arc {
       spawn_async_with_pipes(working_directory, argv_,
                              Glib::SpawnFlags(Glib::SPAWN_DO_NOT_REAP_CHILD),
                              sigc::mem_fun(*arg, &RunInitializerArgument::Run),
-                             &pid, stdin_keep_ ? NULL : &stdin_,
+                             &pid,
+                             stdin_keep_  ? NULL : &stdin_,
                              stdout_keep_ ? NULL : &stdout_,
                              stderr_keep_ ? NULL : &stderr_);
       *pid_ = pid;
       if (!stdin_keep_)
         fcntl(stdin_, F_SETFL, fcntl(stdin_, F_GETFL) | O_NONBLOCK);
+      if (!stdout_keep_)
+        fcntl(stdout_, F_SETFL, fcntl(stdout_, F_GETFL) | O_NONBLOCK);
+      if (!stderr_keep_)
+        fcntl(stderr_, F_SETFL, fcntl(stderr_, F_GETFL) | O_NONBLOCK);
       started_ = true;
     } catch (Glib::Exception& e) {
       running_ = false;
@@ -471,24 +477,39 @@ namespace Arc {
     SAFE_DISCONNECT(stdin_conn_);
   }
 
-  int Run::ReadStdout(int /*timeout*/, char *buf, int size) {
+  int Run::ReadStdout(int timeout, char *buf, int size) {
     if (stdout_ == -1)
       return -1;
-    // TODO: do it through context for timeout
+    // TODO: do it through context for timeout?
+    pollfd fd;
+    fd.fd = stdout_; fd.events = POLLIN; fd.revents = 0;
+    int err = poll(&fd, 1, timeout);
+    if(err <= 0) return err;
+    if(!(fd.revents & POLLIN)) return -1;
     return ::read(stdout_, buf, size);
   }
 
-  int Run::ReadStderr(int /*timeout*/, char *buf, int size) {
+  int Run::ReadStderr(int timeout, char *buf, int size) {
     if (stderr_ == -1)
       return -1;
     // TODO: do it through context for timeout
+    pollfd fd;
+    fd.fd = stderr_; fd.events = POLLIN; fd.revents = 0;
+    int err = poll(&fd, 1, timeout);
+    if(err <= 0) return err;
+    if(!(fd.revents & POLLIN)) return -1;
     return ::read(stderr_, buf, size);
   }
 
-  int Run::WriteStdin(int /*timeout*/, const char *buf, int size) {
+  int Run::WriteStdin(int timeout, const char *buf, int size) {
     if (stdin_ == -1)
       return -1;
     // TODO: do it through context for timeout
+    pollfd fd;
+    fd.fd = stdout_; fd.events = POLLOUT; fd.revents = 0;
+    int err = poll(&fd, 1, timeout);
+    if(err <= 0) return err;
+    if(!(fd.revents & POLLOUT)) return -1;
     return write(stdin_, buf, size);
   }
 
