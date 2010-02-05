@@ -38,6 +38,7 @@ except:
     sys.exit(-1)
 
 from storage.client import BartenderClient
+from storage.client import ISISClient
 from storage.common import create_checksum
 from arcom.service import false, true
 from storage.common import upload_to_turl, download_from_turl
