@@ -120,11 +120,11 @@ void BrokerTest::BenckmarkCPUWallTimeTest() {
   etl.front().MaxCPUTime = 200;
   job.Resources.TotalCPUTime.range.max = -1;
   job.Resources.TotalCPUTime.benchmark = std::pair<std::string, double>("", -1);
-  std::string xrsl = "&(executable=/bin/echo)(gridtime=600)";
+  std::string xrsl = "&(executable=/bin/echo)(gridtime=600s)";
   CPPUNIT_ASSERT(job.Parse(xrsl)); CPPASSERT(0)
-  xrsl = "&(executable=/bin/echo)(gridtime=400)";
+  xrsl = "&(executable=/bin/echo)(gridtime=400s)";
   CPPUNIT_ASSERT(job.Parse(xrsl)); CPPASSERT(1)
-  xrsl = "&(executable=/bin/echo)(gridtime=200)";
+  xrsl = "&(executable=/bin/echo)(gridtime=200s)";
   CPPUNIT_ASSERT(job.Parse(xrsl)); CPPASSERT(1)
 }
 
