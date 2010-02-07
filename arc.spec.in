@@ -64,7 +64,11 @@ BuildRequires: db-devel
 BuildRequires: java-devel
 BuildRequires: jpackage-utils
 %if %{with_gcj}
+%if %{?fedora}%{!?fedora:0} >= 4
 BuildRequires: java-gcj-compat-devel
+%else
+BuildRequires: java-1.4.2-gcj-compat-devel
+%endif
 %endif
 %endif
 # Needed for LRMS testing during make check
