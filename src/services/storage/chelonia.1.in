@@ -1,4 +1,4 @@
-.\" -*- nroff -*- 
+.\" -*- nroff -*-
 .TH CHELONIA 1 "10 July 2008" "NorduGrid ARC @VERSION@" "NorduGrid Users Manual"
 .SH NAME
 chelonia - Client for the Chelonia storage system
@@ -40,14 +40,29 @@ Move the file or collection with Logical Name 'source' to the Logical Name 'targ
 .TP
 .B stat LN [LN ...]
 Get state information about files with Logical Names (LN)
-.SH ENVIRONMENT
-The
-.B ARC_BARTENDER_URL
-environment variable can contain the URL of the Bartender service.
+.SH ENVIRONMENT VARIABLES
 
-If this variable is not set, 
+.TP
+.B ARC_BARTENDER_URL
+The URL of the Bartender service can be specified by this variable.
+
+If this variable is not set,
 .B http://localhost:60000/Bartender
 will be used.
+
+.TP
+.B ARC_LOCATION
+The location where ARC is installed can be specified by this variable. If not
+specified the install location will be determined from the path to the
+command being executed, and if this fails a WARNING will be given stating the
+location which will be used.
+
+.TP
+.B ARC_PLUGIN_PATH
+The location of ARC plugins can be specified by this variable. Multiple
+locations can be specified by separating them by : (; in Windows). The
+default location is \fB$ARC_LOCATION\fR/lib/arc (\\ in Windows).
+
 .SH EXAMPLES
 Let's see some examples with results:
 
@@ -226,7 +241,7 @@ Let's list them:
 
 Let's upload a file:
 
-$ cat testfile 
+$ cat testfile
 This is a testfile.
 .fi
 .B $ chelonia put testfile /tmp
@@ -320,7 +335,7 @@ Let's download the file:
 Downloading 20 bytes... done.
 - done in 0.0035 seconds.
 '/tmp/testfile' (20 bytes) downloaded as 'newfile'.
-$ cat newfile 
+$ cat newfile
 This is a testfile.
 
 Let's remove everything:

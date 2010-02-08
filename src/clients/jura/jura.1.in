@@ -9,7 +9,7 @@ jura \- Job Usage Reporter of ARC
 
 The
 .B jura
-application is a resource-side accounting (usage logging) client. 
+application is a resource-side accounting (usage logging) client.
 
 .SH SYNOPSIS
 
@@ -75,6 +75,19 @@ location, \fI/etc/grid-security/hostkey.pem\fR.
 The path to the certificates of trusted CAs, used only if not
 specified in job log files. The default is the standard certificates
 directory, \fI/etc/grid-security/certificates\fR.
+
+.TP
+.B ARC_LOCATION
+The location where ARC is installed can be specified by this variable. If not
+specified the install location will be determined from the path to the
+command being executed, and if this fails a WARNING will be given stating the
+location which will be used.
+
+.TP
+.B ARC_PLUGIN_PATH
+The location of ARC plugins can be specified by this variable. Multiple
+locations can be specified by separating them by : (; in Windows). The
+default location is \fB$ARC_LOCATION\fR/lib/arc (\\ in Windows).
 
 .SH COPYRIGHT
 

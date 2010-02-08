@@ -1,4 +1,4 @@
-.\" -*- nroff -*- 
+.\" -*- nroff -*-
 .TH ARCDECISION 1 "@DATE@" "NorduGrid ARC @VERSION@" "NorduGrid Users Manual"
 
 .SH NAME
@@ -52,6 +52,21 @@ send the request to https://127.0.0.1:60001
 .B .arc/config.xml
 Some options can be given default values by specifying them in the
 ARC configuration file.
+
+.SH ENVIRONMENT VARIABLES
+
+.TP
+.B ARC_LOCATION
+The location where ARC is installed can be specified by this variable. If not
+specified the install location will be determined from the path to the
+command being executed, and if this fails a WARNING will be given stating the
+location which will be used.
+
+.TP
+.B ARC_PLUGIN_PATH
+The location of ARC plugins can be specified by this variable. Multiple
+locations can be specified by separating them by : (; in Windows). The
+default location is \fB$ARC_LOCATION\fR/lib/arc (\\ in Windows).
 
 .SH COPYRIGHT
 APACHE LICENSE Version 2.0
