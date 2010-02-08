@@ -214,7 +214,11 @@
             <isis:DBPath inisections="isis" initag="dbpath">/var/spool/arc/isis_data</isis:DBPath>
             <isis:InfoProvider>
                 <isis:URL inisections="isis" initag="peerurl1"/>
+            </isis:InfoProvider>
+            <isis:InfoProvider>
                 <isis:URL inisections="isis" initag="peerurl2"/>
+            </isis:InfoProvider>
+            <isis:InfoProvider>
                 <isis:URL inisections="isis" initag="peerurl3"/>
             </isis:InfoProvider>
             <isis:KeyPath inisections="common isis" initag="client_key"/>
