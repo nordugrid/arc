@@ -10,7 +10,6 @@
 \usepackage{longtable}             %for breaking tables
 \usepackage{multirow}
 \usepackage{booktabs}
-\usepackage{ltablex}
 \usepackage[table]{xcolor} % Note: The rowcolors command does not work properly with the tabularx environment.
 
 %
@@ -68,17 +67,10 @@
 \newcommand{\XML}{\texttt{XML}}
 \newcommand{\XMLNode}{\texttt{XMLNode}}
 \newcommand{\NST}[1]{\normalsize{\textnormal{#1}}}
-\newcommand{\defineheadfoot}{\endfirsthead %
-\midrule %
-\multicolumn{5}{c}{Continued from previous page}\\%
-\midrule %
-\endhead %
-\midrule %
-\multicolumn{5}{c}{Continues at next page}\\%
-\midrule %
-\endfoot %
-\bottomrule %
-\endlastfoot}
+% parbox with centered text and vertical padding. It provides fixed width table-cells holding multiline centered text. \mlccell{<width>}{<text>}
+% Use in a tabular environment as \mlccell{10em}{line 1 \linebreak line 2 \linebreak line 3, etc.}
+\newcommand{\mlccell}[2]{\parbox{#1}{\vspace{0.4\baselineskip}\centering #2 \vspace{0.4\baselineskip}}}
+\newcommand{\n}{\linebreak}
 \definecolor{shadecolor}{rgb}{1,1,0.6}
 \definecolor{salmon}{rgb}{1,0.9,1}
 \definecolor{bordeaux}{rgb}{0.75,0.,0.}
@@ -87,10 +79,6 @@
 \colorlet{tableheadcolor}{gray!25}
 \colorlet{tablerowcolor}{gray!12.5}
 
-\newcolumntype{C}{>{\ttfamily\footnotesize}c}
-\newcolumntype{T}{>{\ttfamily\footnotesize\centering\arraybackslash}X}
-
-%
 %----- DON'T CHANGE HEADER MATTER
 \begin{document}
 \def\today{\number\day/\number\month/\number\year}
@@ -713,24 +701,26 @@ Resources.NodeAccess is NAT\_{}OUTBOUND OR NAT\_{}INOUTBOUND & AND & Connectivit
 \label{app:job-status-mapping}
 \begin{center}
 \rowcolors{3}{tablerowcolor}{}
-\begin{tabularx}{\textwidth}{CCTCT}
+\texttt{
+\begin{tabular}{ccccc}
 \toprule
 \NST{Internal} & \NST{ARC0}  & \NST{ARC1} & \NST{BES} & \NST{CREAM}\\
 \midrule
-\defineheadfoot
-ACCEPTED & ACCEPTED & ACCEPTED & Pending & REGISTERED,\linebreak PENDING\\
+ACCEPTED & ACCEPTED & ACCEPTED & Pending & \mlccell{10em}{REGISTERED,\n PENDING}\\
 PREPARING & PREPARING & PREPARING & \NST{None} & \NST{None} \\
 SUBMITTING & SUBMIT & SUBMIT & \NST{None} & \NST{None} \\
 HOLD & \NST{None} & \NST{None} & \NST{None} & HELD \\
 QUEUING & INLRMS:Q & INLRMS:Q & \NST{None} & IDLE \\
-RUNNING & INLRMS:R & INLRMS:R,\linebreak INLRMS:EXECUTED,\linebreak INLRMS:S, INLRMS:E & Running & RUNNING,\linebreak REALLY-RUNNING\\
+RUNNING & INLRMS:R & \mlccell{10em}{INLRMS:R,\n INLRMS:EXECUTED,\n INLRMS:S,\n INLRMS:E} & Running & \mlccell{10em}{RUNNING, \n REALLY-RUNNING}\\
 FINISHING & FINISHING & FINISHING & \NST{None} & \NST{None}\\
 FINISHED & FINISHED & FINISHED & Finished & DONE-OK \\
 KILLED & KILLED & KILLED & \NST{None} & CANCELLED \\
-FAILED & FAILED & FAILED & Failed & DONE-FAILED,\linebreak ABORTED\\
+FAILED & FAILED & FAILED & Failed & \mlccell{10em}{DONE-FAILED,\n ABORTED}\\
 DELETED & DELETED & DELETED & \NST{None} & \NST{None} \\
 OTHER & \NST{Any other state} & \NST{Any other state} & \NST{None} & \NST{Any other state} \\
-\end{tabularx}
+\bottomrule
+\end{tabular}
+}
 \end{center}
 
 \bibliography{grid,libarcclient}
