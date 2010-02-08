@@ -261,6 +261,10 @@ int main(int argc, char **argv) {
       const Arc::ExecutionTarget* target = ChosenBroker->GetBestTarget();
 
       if (!target) {
+        if (dumpdescription) {
+          std::cout << Arc::IString("Unable to print job description: No target found.") << std::endl;
+          return 1;
+        }
         std::cout << Arc::IString("Job submission failed, no more possible targets") << std::endl;
         break;
       }
@@ -281,11 +285,11 @@ int main(int argc, char **argv) {
           jobdesclang = "JDL";
         const std::string jobdesc = jobdescdump.UnParse(jobdesclang);
         if (jobdesc.empty()) {
-          std::cout << "An error occurred during the generation of the job description output." << std::endl;
+          std::cout << Arc::IString("An error occurred during the generation of the job description output.") << std::endl;
           return 1;
         }
 
-        std::cout << "Job description to be send to " << target->Cluster.str() << ":" << std::endl;
+        std::cout << Arc::IString("Job description to be send to ") << target->Cluster.str() << ":" << std::endl;
         std::cout << jobdesc << std::endl;
         return 0;
       }
