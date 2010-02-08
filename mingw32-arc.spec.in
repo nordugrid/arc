@@ -111,13 +111,6 @@ Development files for ARC
 #%description python
 #Python wrapper for ARC
 
-%package doc
-Summary: ARC API documentation
-Group: Documentation
-
-%description doc
-ARC API docmentation
-
 %prep
 %setup -q -n nordugrid-arc-nox-%{version}
 
@@ -297,10 +290,6 @@ rm -rf $RPM_BUILD_ROOT
 #%{ifpy}%{_mingw32_libdir}/%{pkgdir}/libpythonservice.so
 #%{ifpy}%{_mingw32_libdir}/%{pkgdir}/libaccPythonBroker.so
 #%{ifpy}%doc src/hed/acc/PythonBroker/SampleBroker.py
-
-%files doc
-%defattr(-,root,root,-)
-%doc doc/tech_doc/doxygen/*pdf
 
 %changelog
 
