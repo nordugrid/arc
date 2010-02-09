@@ -621,10 +621,6 @@ namespace Arc {
             source.NextLocation(); /* try another source */
             logger.msg(VERBOSE, "source.next_location");
             res = cres;
-#ifndef WIN32
-            if (cacheable)
-              cache.StopAndDelete(canonic_url);
-#endif
             continue;
           }
           logger.msg(VERBOSE, "Permission checking passed");
@@ -644,10 +640,6 @@ namespace Arc {
                   source.NextLocation(); /* try another source */
                   logger.msg(VERBOSE, "source.next_location");
                   res = DataStatus::ReadStartError;
-#ifndef WIN32
-                  if (cacheable)
-                    cache.StopAndDelete(canonic_url);
-#endif
                   continue;
                 }
               }
@@ -659,18 +651,10 @@ namespace Arc {
               source.NextLocation(); /* try another source */
               logger.msg(VERBOSE, "source.next_location");
               res = DataStatus::ReadStartError;
-#ifndef WIN32
-              if (cacheable)
-                cache.StopAndDelete(canonic_url);
-#endif
               continue;
             }
             User user;
             (lchown(link_name.c_str(), user.get_uid(), user.get_gid()) != 0);
-#ifndef WIN32
-            if (cacheable)
-              cache.Stop(canonic_url);
-#endif
             return DataStatus::Success;
             // Leave after making a link. Rest moves data.
           }
