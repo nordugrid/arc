@@ -193,11 +193,16 @@ XmlContainer::get_doc_names()
     Dbt key, value;
     key.set_flags(0);
     value.set_flags(0);
-    DbTxn *tid;
+    DbTxn *tid = NULL;
     std::vector<std::string> empty_result;
     while (true) {
         std::vector<std::string> result;
-        env_->txn_begin(NULL, &tid, 0);
+        // Looping through records in Berkeley DB in
+        // transaction accumulates locks (sigh).
+        // Usage patern seems not requiring cursor looping
+        // to be protected by transaaction.
+        // If You really need that uncomment following line.
+        // env_->txn_begin(NULL, &tid, 0);
         try {
             db_->cursor(tid, &cursor, 0);
             int ret;
@@ -210,15 +215,13 @@ XmlContainer::get_doc_names()
                 result.push_back(std::string(k));
             }
             cursor->close();
-            tid->commit(0);
+            if (tid != NULL) tid->commit(0);
             return result;
 #ifdef HAVE_DBDEADLOCKEXCEPTION
         } catch (DbDeadlockException &e) {
             try {
-                if (cursor != NULL) {
-                    cursor->close();
-                }
-                tid->abort();
+                if (cursor != NULL) cursor->close();
+                if (tid != NULL) tid->abort();
                 logger_.msg(Arc::INFO, "get_doc_name: deadlock handling, try again");
             } catch (DbException &e) {
                 logger_.msg(Arc::ERROR, "get_doc_names: cannot abort transaction: %s", e.what());
@@ -228,10 +231,8 @@ XmlContainer::get_doc_names()
         } catch (DbException &e) {
             logger_.msg(Arc::ERROR, "Error during the transaction: %s", e.what());
             try {
-                if (cursor != NULL) {
-                    cursor->close();
-                }
-                tid->abort();
+                if (cursor != NULL) cursor->close();
+                if (tid != NULL) tid->abort();
             } catch (DbException &e) {
                 logger_.msg(Arc::ERROR, "get_doc_names: cannot abort transaction: %s", e.what());
             }
