@@ -492,8 +492,7 @@ namespace Arc {
           mapped_url = URL();
         else {
           logger.msg(VERBOSE, "Url is mapped to: %s", mapped_url.str());
-          if ((mapped_url.Protocol() == "link") || (mapped_url.Protocol()
-                                                    == "file"))
+          if (mapped_url.Protocol() == "link")
             /* can't cache links */
             cacheable = false;
         }
@@ -620,6 +619,10 @@ namespace Arc {
                        source.str());
             source.NextLocation(); /* try another source */
             logger.msg(VERBOSE, "source.next_location");
+#ifndef WIN32
+            if (cacheable)
+              cache.StopAndDelete(canonic_url);
+#endif
             res = cres;
             continue;
           }
