@@ -35,8 +35,8 @@ namespace Arc {
     } initializeType;
     initializeCredentialsType(void):val(RequireCredentials) { };
     initializeCredentialsType(initializeType v):val(v) { };
-    bool operator==(initializeType v) { return (val == v); }; 
-    bool operator!=(initializeType v) { return (val != v); }; 
+    bool operator==(initializeType v) { return (val == v); };
+    bool operator!=(initializeType v) { return (val != v); };
    private:
     initializeType val;
   };
@@ -329,8 +329,22 @@ namespace Arc {
      *        (\c true).
      * @return If loading the configuration file succeeds \c true is
      *         returned, otherwise \c false is returned.
+     * @see SaveToFile()
      **/
     bool LoadConfigurationFile(const std::string& conffile, bool ignoreJobListFile = true);
+
+    /// Save to INI file.
+    /**
+     * This method will save the object data as a INI file. The
+     * saved file can be loaded with the LoadConfigurationFile method.
+     *
+     * @param filename the name of the file which the data will be
+     *        saved to.
+     * @return \c false if unable to get handle on file, otherwise
+     *         \c true is returned.
+     * @see LoadConfigurationFile()
+     **/
+    bool SaveToFile(const std::string& filename) const;
 
     /// Apply credentials to BaseConfig
     /**
@@ -682,7 +696,7 @@ namespace Arc {
 
     /// Set path to file containing VOMS configuration
     /**
-     * Set path to file which contians list of VOMS services and 
+     * Set path to file which contians list of VOMS services and
      * associated configuration parameters needed to contact those
      * services. It is used by arcproxy.
      *
@@ -696,7 +710,7 @@ namespace Arc {
     bool VOMSServerPath(const std::string& path) { vomsServerPath = path; return true; }
     /// Get path to file containing VOMS configuration
     /**
-     * Get path to file which contians list of VOMS services and 
+     * Get path to file which contians list of VOMS services and
      * associated configuration parameters.
      *
      * @return The path to VOMS configuration file is returned.
@@ -706,7 +720,7 @@ namespace Arc {
 
     /// Set user-name for SLCS
     /**
-     * Set username which is used for requesting credentials from 
+     * Set username which is used for requesting credentials from
      * Short Lived Credentials Service.
      *
      * The attribute associated with this setter method is 'username'.
@@ -718,7 +732,7 @@ namespace Arc {
     bool UserName(const std::string& name) { username = name; return true; }
     /// Get user-name
     /**
-     * Get username which is used for requesting credentials from 
+     * Get username which is used for requesting credentials from
      * Short Lived Credentials Service.
      *
      * @return The username is returned.
@@ -728,7 +742,7 @@ namespace Arc {
 
     /// Set password
     /**
-     * Set password which is used for requesting credentials from 
+     * Set password which is used for requesting credentials from
      * Short Lived Credentials Service.
      *
      * The attribute associated with this setter method is 'password'.
@@ -740,7 +754,7 @@ namespace Arc {
     bool Password(const std::string& newPassword) { password = newPassword; return true; }
     /// Get password
     /**
-     * Get password which is used for requesting credentials from 
+     * Get password which is used for requesting credentials from
      * Short Lived Credentials Service.
      *
      * @return The password is returned.
@@ -838,7 +852,7 @@ namespace Arc {
 
     /// Set password for generated key
     /**
-     * Set password to be used to encode private key of credentials 
+     * Set password to be used to encode private key of credentials
      * obtained from Short Lived Credentials Service.
      *
      * The attribute associated with this setter method is
@@ -853,7 +867,7 @@ namespace Arc {
     bool KeyPassword(const std::string& newKeyPassword) { keyPassword = newKeyPassword; return true; }
     /// Get password for generated key
     /**
-     * Get password to be used to encode private key of credentials 
+     * Get password to be used to encode private key of credentials
      * obtained from Short Lived Credentials Service.
      *
      * @return The key password is returned.
@@ -1033,7 +1047,7 @@ namespace Arc {
      * generated from information stored in this class. The content
      * of file is passed to BaseConfig class in ApplyToConfig(BaseConfig&)
      * then merged with internal configuration XML representation.
-     * This feature is meant for quick prototyping/testing/tuning of 
+     * This feature is meant for quick prototyping/testing/tuning of
      * functionality without rewriting code. It is meant for developers and
      * most users won't need it.
      *
@@ -1066,7 +1080,7 @@ namespace Arc {
      * @see UtilsDirPath(const std::string&)
      */
     const std::string& UtilsDirPath() const { return utilsdir; };
-    
+
     /// Path to ARC user home directory
     /**
      * The \a ARCUSERDIRECTORY variable is the path to the ARC home

@@ -4,6 +4,7 @@
 #include <config.h>
 #endif
 
+#include <fstream>
 #include <glibmm.h>
 #ifdef HAVE_GIOMM
 #include <giomm/file.h>
@@ -575,6 +576,111 @@ namespace Arc {
       else
         logger.msg(WARNING, "Could not load configuration (%s)", conffile);
     }
+
+    return true;
+  }
+
+  bool UserConfig::SaveToFile(const std::string& filename) const {
+    std::ofstream file(filename.c_str(), std::ios::out);
+    if (!file)
+      return false;
+
+    file << "[ common ]" << std::endl;
+    if (!verbosity.empty())
+      file << "verbosity = " << verbosity << std::endl;
+    if (!joblistfile.empty())
+      file << "joblist = " << joblistfile << std::endl;
+    if (timeout > 0)
+      file << "timeout = " << timeout << std::endl;
+    if (!broker.first.empty()) {
+      file << "brokername = " << broker.first << std::endl;
+      if (!broker.second.empty())
+        file << "brokerarguments = " << broker.second << std::endl;
+    }
+    if (!bartenders.empty()) {
+      file << "bartender =";
+      for (std::vector<URL>::const_iterator it = bartenders.begin();
+           it != bartenders.end(); it++) {
+        file << " " << it->fullstr();
+      }
+      file << std::endl;
+    }
+    if (!vomsServerPath.empty())
+      file << "vomsserverpath = " << vomsServerPath << std::endl;
+    if (!username.empty())
+      file << "username = " << username << std::endl;
+    if (!password.empty())
+      file << "password = " << password << std::endl;
+    if (!proxyPath.empty())
+      file << "proxypath = " << proxyPath << std::endl;
+    if (!certificatePath.empty())
+      file << "certificatepath = " << certificatePath << std::endl;
+    if (!keyPath.empty())
+      file << "keypath = " << keyPath << std::endl;
+    if (!keyPassword.empty())
+      file << "keypassword = " << keyPassword << std::endl;
+    if (keySize > 0)
+      file << "keysize = " << keySize << std::endl;
+    if (!caCertificatePath.empty())
+      file << "cacertificatepath = " << caCertificatePath << std::endl;
+    if (!caCertificatesDirectory.empty())
+      file << "cacertificatesdirectory = " << caCertificatesDirectory << std::endl;
+    if (certificateLifeTime > 0)
+      file << "certificatelifetime = " << certificateLifeTime << std::endl;
+    if (slcs)
+      file << "slcs = " << slcs.fullstr() << std::endl;
+    if (!storeDirectory.empty())
+      file << "storedirectory = " << storeDirectory << std::endl;
+    if (!idPName.empty())
+      file << "idpname = " << idPName << std::endl;
+    if (!selectedServices.first.empty() || !selectedServices.second.empty()) {
+      file << "defaultservices =";
+      for (URLListMap::const_iterator it = selectedServices.first.begin();
+           it != selectedServices.first.end(); it++) {
+        for (std::list<URL>::const_iterator iitt = it->second.begin();
+             iitt != it->second.end(); iitt++) {
+          file << " computing:" << it->first << ":" << iitt->fullstr();
+        }
+      }
+      for (URLListMap::const_iterator it = selectedServices.second.begin();
+           it != selectedServices.second.end(); it++) {
+        for (std::list<URL>::const_iterator iitt = it->second.begin();
+             iitt != it->second.end(); iitt++) {
+          file << " index:" << it->first << ":" << iitt->fullstr();
+        }
+      }
+      file << std::endl;
+    }
+    if (!rejectedServices.first.empty() || !rejectedServices.second.empty()) {
+      file << "rejectedservices =";
+      for (URLListMap::const_iterator it = rejectedServices.first.begin();
+           it != rejectedServices.first.end(); it++) {
+        for (std::list<URL>::const_iterator iitt = it->second.begin();
+             iitt != it->second.end(); iitt++) {
+          file << " computing:" << it->first << ":" << iitt->fullstr();
+        }
+      }
+      for (URLListMap::const_iterator it = rejectedServices.second.begin();
+           it != rejectedServices.second.end(); it++) {
+        for (std::list<URL>::const_iterator iitt = it->second.begin();
+             iitt != it->second.end(); iitt++) {
+          file << " index:" << it->first << ":" << iitt->fullstr();
+        }
+      }
+      file << std::endl;
+    }
+    if (!overlayfile.empty())
+      file << "overlayfile = " << overlayfile << std::endl;
+
+    if (aliasMap.Size() > 0) {
+      int i = 0;
+      file << std::endl << "[ alias ]" << std::endl;
+      while (XMLNode n = const_cast<XMLNode&>(aliasMap).Child(i++)) {
+        file << n.Name() << " = " << (std::string)n << std::endl;
+      }
+    }
+
+    logger.msg(INFO, "UserConfiguration saved to file (%s)", filename);
 
     return true;
   }
