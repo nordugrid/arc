@@ -676,7 +676,7 @@ namespace Arc {
       if (chdest_h) {
         chdest.SetSecure(force_secure);
         chdest.Passive(force_passive);
-        chdest.SetAdditionalChecks(do_checks);
+        chdest.SetAdditionalChecks(false); // don't pre-allocate space in cache
         chdest.SetMeta(destination); // share metadata
       }
       DataPoint& source_url = mapped ? mapped_p : source;
@@ -716,9 +716,10 @@ namespace Arc {
           continue;
         }
       }
-      destination.SetMeta(source);
       // pass metadata gathered during start_reading()
       // from source to destination
+      destination.SetMeta(source);
+      chdest.SetMeta(source);
       if (destination.CheckSize())
         buffer.speed.set_max_data(destination.GetSize());
       datares = destination.PreRegister(replication, force_registration);
@@ -787,6 +788,8 @@ namespace Arc {
       if (cacheable && mapped)
         source.SetMeta(mapped_p); // pass more metadata (checksum)
       logger.msg(VERBOSE, "Closing write channel");
+      // turn off checks during stop_writing() if force is turned on
+      destination_url.SetAdditionalChecks(!force_registration);
       if (!destination_url.StopWriting().Passed())
         buffer.error_write(true);
 

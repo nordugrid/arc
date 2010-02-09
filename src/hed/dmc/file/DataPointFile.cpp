@@ -171,7 +171,14 @@ namespace Arc {
       /* 3. announce */
       buffer->is_written(h);
     }
-    close(fd);
+    if (fsync(fd) != 0) {
+      logger.msg(ERROR, "fsync of file %s failed: %s", url.Path(), strerror(errno));
+      buffer->error_write(true);
+    }
+    if (close(fd) != 0) {
+      logger.msg(ERROR, "closing file %s failed: %s", url.Path(), strerror(errno));
+      buffer->error_write(true);
+    }    
     transfer_cond.signal();
   }
 
@@ -347,7 +354,7 @@ namespace Arc {
 
       /* preallocate space */
       buffer->speed.hold(true);
-      if (CheckSize()) {
+      if (additional_checks && CheckSize()) {
         unsigned long long int fsize = GetSize();
         logger.msg(INFO, "setting file %s to size %llu",
                    url.Path(), fsize);
@@ -409,6 +416,21 @@ namespace Arc {
     }
     // buffer->wait_eof_write();
     transfer_cond.wait();         /* wait till writing thread exited */
+    // validate file size
+    if (additional_checks && CheckSize()) {
+      struct stat st;
+      std::string path = url.Path();
+      if (stat(path.c_str(), &st) != 0) {
+        logger.msg(ERROR, "Error during file validation. Can't stat file %s", url.Path());
+        return DataStatus::WriteStopError;
+      }
+      if (GetSize() != st.st_size) {
+        logger.msg(ERROR, "Error during file validation: Local file size %llu does not match source file size %llu for file %s",
+                          st.st_size, GetSize(), url.Path());
+        return DataStatus::WriteStopError;
+      }
+    }
+    
     if (buffer->error_write())
       return DataStatus::WriteError;
     return DataStatus::Success;
