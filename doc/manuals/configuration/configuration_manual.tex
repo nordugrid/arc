@@ -283,14 +283,17 @@ section~\ref{sec:XML examples} example XML configuration files are given.
 The following services are part of WS-ARC and specific configuration details for
 these are given in the respective references below:
 \begin{description}
-\item[A-REX]
-  A-REX
-\item[Chelonia]
-\item[ISIS]
-\item[Charon]
-\item[hopi]
-  hopi, a lightweight HTTP webserver, is described in details in \%\% REFERENCE.
-
+\item[A-REX] - configuration manual in "The ARC Computational Job Management
+Module - A-REX" \cite{a-rex},
+\item[Chelonia] storage multi-service - "Chelonia Adminstrator's Manual"
+\cite{storage-manual},
+\item[ISIS] distributed P2P information service - "ARC Information System"
+\cite{isis},
+\item[Charon] authorization service - currently described in "Security
+Framework of ARC NOX" \cite{arc1-security},
+\item[HOPI] lightweight HTTP webserver - "The HOPI Manual" \cite{hopi} 
+and also partially described in "Chelonia Administrator's Manual"
+\cite{storage-manual}.
 \end{description}
 
 \subsection{Message Chain}\label{sec:Message Chain}
@@ -300,11 +303,11 @@ message components (MCCs) which serves different levels of functionality. In one
 end it accepts messages from an interface and in the other a service processes
 them and produce a response. Two types of MCCs exist, and they differ in that
 the first type should be able to listen on some interface for messages, while
-the other simply
-receives messages from another MCC. The MCC then process the message and pass it
-on to a single or multiple other MCCs or services. MCCs should be configured
-using the XML element \texttt{Component}, where the \texttt{name} attribute
-specifies the MCC to use. The following MCCs is part of WS-ARC:
+the other simply receives messages from another MCC. The MCC then process
+the message and pass it on to a single or multiple other MCCs or services.
+MCCs should be configured using the XML element \texttt{Component}, where the
+\texttt{name} attribute specifies the MCC to use. The following MCCs are part
+of WS-ARC:
 \begin{description}
 \item[\texttt{tcp.service}] Listens on the TCP interface, see
   section~\ref{sec:tcp-mcc},
@@ -312,16 +315,16 @@ specifies the MCC to use. The following MCCs is part of WS-ARC:
   section~\ref{sec:tls-mcc},
 \item[\texttt{http.service}] Processes HTTP messages, see
   section~\ref{sec:http-mcc},
-%~ \item[\texttt{gsi.service}] Processes GSI messages, see
-  %~ section~\ref{sec:gsi-mcc},
+\item[\texttt{gsi.service}] Processes GSI messages as implemented in 
+Globus toolkit \cite{globus}, see section~\ref{sec:gsi-mcc},
 \item[\texttt{soap.service}] Processes SOAP messages, see
   section~\ref{sec:soap-mcc}.
 \end{description}
 Additionally a special MCC,
-the Plexer, exist which is able to pass messages to different components simply
-based on the endpoint the messages was sent to, and it should should be
+the Plexer, exists which is able to pass messages to different components simply
+based on the endpoint the messages was sent to, and it should be
 configured using the \texttt{Plexer} element, see section~\ref{sec:plexer}. In
-the end of the chain a service should be specified, using the  \texttt{Service}
+the end of the chain a service should be specified, using the \texttt{Service}
 element, where the \texttt{name} attribute indicates the given service.
 
 A working configuration should then link a set of MCCs and services, starting
@@ -329,9 +332,13 @@ with a MCC that receives messages from some interface. The MCCs and services
 should be uniquely identifiable, by setting the \texttt{id} attributes of these
 elements. A MCC links to another or several MCCs or services using the
 \texttt{next} element, where the \texttt{id} attribute specifies the \texttt{id}
-of that MCC or service. The message chain should be contained in the root
-element \texttt{ArcConfig}, which is shown in the conceptual configuration
-example below:
+of that MCC or service. Some MCCs support multiple \texttt{next} elements with
+textual label inside. Those are used by such MCCs to perform internal routing
+of processed message. But most MCCs do not do any routing and hence require
+single \texttt{next} without label.
+
+The message chain should be contained in the root element \texttt{ArcConfig},
+which is shown in the conceptual configuration example below:
 \begin{lstlisting}[language=xml]
 ...
 <Component name="mcc1.service" id="mcc1">
@@ -345,6 +352,9 @@ example below:
 \end{lstlisting}
 For readability the message chain can be grouped into a \texttt{Chain} element
 in one or more levels.
+
+More technical information about available MCCs and the messages their process
+may be found in the Hosting Environment technical manual \cite{hed}.
 
 \subsubsection{TCP MCC}\label{sec:tcp-mcc}
 The TCP message component is named \texttt{tcp.service} and should be the first
@@ -516,9 +526,14 @@ protocol.
 \subsubsection{HTTP MCC}\label{sec:http-mcc}
 The HTTP protocol is supported by the HTTP MCC named \texttt{http.service}, and
 it should either be put on top of the TCP or TLS MCC. A working configuration of
-this MCC is simple, since it should only use the \texttt{next} element which
-must have a value equal to one of the HTTP request methods. An example of a HTTP
-MCC configuration is shown below.
+this MCC is simple, since it should only use the \texttt{next} element.
+Differently from most other MCCs this one may have multiple \texttt{next} with
+content being name of HTTP method in uppercase. Depending on method client
+requested message may be routed to different components. Most services 
+of WS-ARC support GET and PUT for data communication and POST for SOAP. Some
+also support HEAD.
+
+An example of a HTTP MCC configuration is shown below.
 
 \begin{lstlisting}[language=xml]
 ...
@@ -540,16 +555,16 @@ and it is done with the \texttt{next} element as for the other components.
 
 \subsubsection{Plexer}\label{sec:plexer}
 The Plexer is a special MCC which filters messages based on their URL endpoints.
-One or more regular expressions (POSIX extended) should be defined using one or
-more \texttt{next} elements, and these will then be used to filter incoming
-messages, thus forwarding messages, where the path of the endpoint URL matched a
-given regular expression, to the component or service specified by the
-\texttt{id} attribute of the corresponding \texttt{next} element. At the first
-match the message will be forwarded to the respective component or service and
-no more expressions will be tried. If a message did not match any of the regular
-expressions then it is discarded and an error code is returned to the client. An
-example of a Plexer configuration is shown below.
-%% What is the order testing the regular expressions. First listed first tested or Last listed firsted tested?
+It supports multiple \texttt{next} elements with content being regular expressions
+(POSIX extended) used to filter incoming messages.
+The message is forwarded to the component or service specified by the \texttt{id}
+attribute of the corresponding \texttt{next} element which mathed the endpoint 
+URL of the message. At the first match the message will be forwarded to the
+respective component or service and no more expressions will be tried. The
+\texttt{next} elements are tried in order they are specified in configuration.
+If the message did not match any of the regular expressions then it is discarded
+and an error is returned to the client. An example of a Plexer configuration is
+shown below.
 
 \begin{lstlisting}[language=xml]
 ...
@@ -589,6 +604,8 @@ Example is below:
 ...
 \end{lstlisting}
 
+For more technical information about security-related attributes of the
+message and the Security Handlers please see \cite{arc1-security}.
 
 \subsubsection{ARC Authorization}\label{sec:arcauthz-shc}
 This Security Handler applies set of Policy Decision Point (PDP) element to the
@@ -710,7 +727,7 @@ Security Handler will raise an error.
 
 \subsubsection{X.509 Token}\label{sec:x509token-shc}
 The X.509 Token Security Handler processes information in the SOAP Header
-stored according to "Web Services Security X.509 Token Profile 1.0"
+stored according to "Web Services Security: X.509 Token Profile 1.0"
 \cite{ws-security-x509token}. The plugin name of this Security Handler
 is \texttt{x509token.handler} and it resides in \texttt{arcshc} loadable
 module.
@@ -735,6 +752,18 @@ If provided credentials failed verification this Security Handler will raise
 an error.
 
 \subsubsection{SAML Token}
+The SAML Token Security Handler processes information in the SOAP Header
+stored according to "Web Services Security: SAML Token Profile 1.1"
+\cite{ws-security-samltoken}. The plugin name of this Security Handler
+is \texttt{samltoken.handler} and it resides in \texttt{arcshc} loadable
+module.
+
+The configuration of this plugin is identical to previously described
+X.509 Token Security Handler. It supports configuration elements 
+\texttt{Process}, \texttt{CACertificatePath} and \texttt{CACertificatesDir}.
+
+The information collected by this plugin may then be used in ARC Policy 
+Decision Point and Service Invoker Policy Decision Point plugins.
 
 \subsubsection{SAML Single Sign-On}
 
@@ -1294,6 +1323,9 @@ conventions for leaf XML elements (element with no children).
 \subsection{X.509 Token Security Handler Schema}
 \lstinputlisting[language=xml]{X509TokenSH.xsd}
 
+\subsection{SAML Token Security Handler Schema}
+\lstinputlisting[language=xml]{SAMLTokenSH.xsd}
+
 \subsection{ARC PDP Schema}
 \lstinputlisting[language=xml]{ArcPDP.xsd}
 
@@ -1309,5 +1341,5 @@ conventions for leaf XML elements (element with no children).
 \subsection{Simple List PDP Schema}
 \lstinputlisting[language=xml]{SimpleListPDP.xsd}
 
-\bibliography{grid}
+\bibliography{grid,nordugrid}
 \end{document}

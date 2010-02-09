@@ -4,7 +4,7 @@ docsource = configuration_manual.tex
 
 doc_DATA = configuration_manual.pdf
 
-STYLES = ng-logo.png grid.bib
+STYLES = ng-logo.png grid.bib nordugrid.bib
 SCHEMAS = src/hed/daemon/schema/base.xsd \
 	src/hed/libs/loader/schema/loader.xsd \
 	src/hed/mcc/tcp/schema/tcp.xsd \
@@ -13,6 +13,7 @@ SCHEMAS = src/hed/daemon/schema/base.xsd \
 	src/hed/shc/arcauthzsh/schema/ArcAuthZ.xsd \
 	src/hed/shc/usernametokensh/schema/UsernameTokenSH.xsd \
 	src/hed/shc/x509tokensh/schema/X509TokenSH.xsd \
+	src/hed/shc/samltokensh/schema/SAMLTokenSH.xsd \
 	src/hed/shc/arcpdp/schema/ArcPDP.xsd \
 	src/hed/shc/xacmlpdp/schema/XACMLPDP.xsd \
 	src/hed/shc/delegationpdp/schema/DelegationPDP.xsd \
