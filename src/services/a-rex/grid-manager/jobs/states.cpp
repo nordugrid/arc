@@ -986,6 +986,7 @@ void JobsList::ActJobCanceling(JobsList::iterator &i,bool /*hard_job*/,
         if(state_submitting(i,state_changed,true)) {
           if(state_changed) {
             i->job_state = JOB_STATE_FINISHING;
+            finishing_job_share[i->transfer_share]++;
             once_more=true;
           };
         }
@@ -1299,6 +1300,7 @@ bool JobsList::ActJob(JobsList::iterator &i,bool hard_job) {
         }
         else {
           i->job_state = JOB_STATE_FINISHING;
+          finishing_job_share[i->transfer_share]++;
         };
         job_cancel_mark_remove(i->job_id,*user);
         state_changed=true;
@@ -1361,6 +1363,7 @@ bool JobsList::ActJob(JobsList::iterator &i,bool hard_job) {
           } else {
             // Any other failure should cause transfer to FINISHING
             i->job_state = JOB_STATE_FINISHING;
+            finishing_job_share[i->transfer_share]++;
             state_changed=true;
             once_more=true;
           };
