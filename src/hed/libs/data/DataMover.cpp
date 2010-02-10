@@ -719,7 +719,8 @@ namespace Arc {
       // pass metadata gathered during start_reading()
       // from source to destination
       destination.SetMeta(source);
-      chdest.SetMeta(source);
+      if (chdest)
+        chdest.SetMeta(source);
       if (destination.CheckSize())
         buffer.speed.set_max_data(destination.GetSize());
       datares = destination.PreRegister(replication, force_registration);
