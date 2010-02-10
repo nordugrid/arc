@@ -803,7 +803,7 @@ msgstr "Connect: Authentikation fehlgeschlagen: %s"
 #: src/hed/acc/ARC0/FTPControl.cpp:200
 #, c-format
 msgid "Connect: Authentication timed out after %d ms"
-msgstr "Connect: Zeitüberschreitung der Authentikation nach %s ms"
+msgstr "Connect: Zeitüberschreitung der Authentikation nach %d ms"
 
 #: src/hed/acc/ARC0/FTPControl.cpp:223
 #: src/hed/acc/ARC0/FTPControl.cpp:234
@@ -863,7 +863,7 @@ msgstr "SendData: Fehler bei Datenverbindung zum Schreiben: %s"
 #: src/hed/acc/ARC0/FTPControl.cpp:369
 #, c-format
 msgid "SendData: Data connect write timed out after %d ms"
-msgstr "SendData: Zeitüberschreitung bei Datenverbindung zum Schreiben nach %s ms"
+msgstr "SendData: Zeitüberschreitung bei Datenverbindung zum Schreiben nach %d ms"
 
 #: src/hed/acc/ARC0/FTPControl.cpp:387
 #: src/hed/acc/ARC0/FTPControl.cpp:407
