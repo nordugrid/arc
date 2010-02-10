@@ -5,6 +5,8 @@
 
 #include <string>
 
+#include <arc/Logger.h>
+
 #define DATASPEED_AVERAGING_PERIOD 60
 
 namespace Arc {
@@ -35,6 +37,7 @@ namespace Arc {
     bool max_inactivity_time_failed;
 
     bool disabled;
+    static Logger logger;
 
   public:
     typedef void (*show_progress_t)(FILE *o, const char *s, unsigned int t,

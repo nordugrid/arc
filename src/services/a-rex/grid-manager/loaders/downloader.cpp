@@ -491,6 +491,7 @@ int main(int argc,char** argv) {
   mover.retry(false);
   mover.secure(secure);
   mover.passive(passive);
+  mover.verbose(true); // statistics will be shown if logging is higher than VERBOSE
   if(min_speed != 0)
     mover.set_default_min_speed(min_speed,min_speed_time);
   if(min_average_speed != 0)
@@ -609,11 +610,13 @@ int main(int argc,char** argv) {
           i->pair=pair;
         };
         FileDataEx::iterator* it = new FileDataEx::iterator(i);
+        std::string prefix = i->pfn;
+        if (prefix.find('/') != std::string::npos) prefix.erase(0, prefix.find('/')+1);
         Arc::DataStatus dres = mover.Transfer(*(i->pair->source), *(i->pair->destination), *cache,
                                               url_map, min_speed, min_speed_time,
                                               min_average_speed, max_inactivity_time,
                                               &PointPair::callback, it,
-                                              i->pfn.c_str());
+                                              prefix.c_str());
         if (!dres.Passed()) {
           failure_reason+=std::string("Failed to initiate file transfer: ")+source.c_str()+" - "+std::string(dres)+"\n";
           logger.msg(Arc::ERROR, "Failed to initiate file transfer: %s - %s", source, std::string(dres));

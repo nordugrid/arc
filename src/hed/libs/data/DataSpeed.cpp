@@ -9,6 +9,8 @@
 #include <arc/data/DataSpeed.h>
 
 namespace Arc {
+  
+  Logger DataSpeed::logger(Logger::getRootLogger(), "DataSpeed"); 
 
   bool DataSpeed::verbose(void) {
     return be_verbose;
@@ -83,8 +85,9 @@ namespace Arc {
                         (((double)Nall) / (t - first_time)) : ((double)0)));
       return;
     }
-    fprintf(o,
-            "%s%5u s: %10.1f kB  %8.1f kB/s  %8.1f kB/s    %c %c %c       \n",
+    char out[verbose_prefix.length()+100];
+    sprintf(out,
+            "%s%5u s: %10.1f kB  %8.1f kB/s  %8.1f kB/s    %c %c %c       ",
             verbose_prefix.c_str(),
             (unsigned int)(t - first_time),
             ((double)Nall) / 1024,
@@ -96,6 +99,7 @@ namespace Arc {
             (min_speed_failed ? '!' : '.'),
             (min_average_speed_failed ? '!' : '.'),
             (max_inactivity_time_failed ? '!' : '.'));
+    logger.msg(VERBOSE, out);
   }
 
   void DataSpeed::set_min_speed(unsigned long long int min_speed_,
