@@ -719,7 +719,7 @@ namespace Arc {
       // pass metadata gathered during start_reading()
       // from source to destination
       destination.SetMeta(source);
-      if (chdest)
+      if (chdest_h)
         chdest.SetMeta(source);
       if (destination.CheckSize())
         buffer.speed.set_max_data(destination.GetSize());
