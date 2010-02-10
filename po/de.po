@@ -337,7 +337,7 @@ msgstr "Kann information handle nicht anlegen - ist das ARC LDAP DMC plugin verf
 #: src/hed/acc/CREAM/JobControllerCREAM.cpp:46
 #, fuzzy, c-format
 msgid "Failed retrieving job information for job: %s"
-msgstr "Konnte job information nicht beziehen für job: %s""
+msgstr "Konnte job information nicht beziehen für job: %s"
 
 #: src/hed/acc/CREAM/JobControllerCREAM.cpp:96
 #, fuzzy, c-format
