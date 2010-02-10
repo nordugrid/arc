@@ -423,9 +423,13 @@ static void soft_state_thread(void *data) {
         int i=0;
         while ((bool)(*cfg)["InfoProvider"][i]) {
             if ( endpoint_ != (std::string)(*cfg)["InfoProvider"][i]["URL"] ) {
-               Arc::ISIS_description isisdesc;
-               isisdesc.url = (std::string)(*cfg)["InfoProvider"][i]["URL"];
-               infoproviders_.push_back(isisdesc);
+               if ((std::string)(*cfg)["InfoProvider"][i]["URL"] == "") {
+                  logger_.msg(Arc::WARNING, "The InfoProvider URL is empty.");
+               } else {
+                 Arc::ISIS_description isisdesc;
+                 isisdesc.url = (std::string)(*cfg)["InfoProvider"][i]["URL"];
+                 infoproviders_.push_back(isisdesc);
+               }
             }
             i++;
         }
