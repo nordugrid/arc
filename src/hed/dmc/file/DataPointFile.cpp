@@ -171,6 +171,7 @@ namespace Arc {
       /* 3. announce */
       buffer->is_written(h);
     }
+    // This is for broken filesystems. Specifically for Lustre.
     if (fsync(fd) != 0) {
       logger.msg(ERROR, "fsync of file %s failed: %s", url.Path(), strerror(errno));
       buffer->error_write(true);
