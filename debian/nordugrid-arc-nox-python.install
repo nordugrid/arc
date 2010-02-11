@@ -2,3 +2,4 @@ debian/tmp/usr/lib/python?.?/site-packages
 debian/tmp/usr/lib/arc/libaccPythonBroker.so
 debian/tmp/usr/lib/arc/libpythonservice.so
 debian/tmp/usr/share/arc/examples/PythonBroker/SampleBroker.py
+debian/tmp/usr/bin/arcfs

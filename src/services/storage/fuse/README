@@ -1,1 +1,1 @@
-This directory contains arcfs.py, an interface between ARC storage system and Filesystem in USErspace (FUSE)
+This directory contains arcfs, an interface between ARC storage system and Filesystem in USErspace (FUSE)

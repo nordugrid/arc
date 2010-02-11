@@ -341,6 +341,7 @@ Requires: %{name} = %{version}
 Requires: python
 Provides: nordugrid-arc1-python = %{version}
 Obsoletes: nordugrid-arc1-python < 1.0.0
+Requires: fuse-python
 
 %description python
 The NorduGrid is a collaboration aiming at development, maintenance
@@ -722,6 +723,8 @@ exit 0
 %{ifpy}%{_libdir}/%{pkgdir}/libpythonservice.so
 %{_datadir}/%{pkgdir}/examples/storage_service.xml.example
 %doc %{_datadir}/%{pkgdir}/examples/PythonBroker/SampleBroker.py*
+%{_bindir}/arcfs
+#%{_bindir}/arcfs.1*
 
 %if %{with_java}
 %files java

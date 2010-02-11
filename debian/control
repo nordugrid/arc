@@ -245,7 +245,7 @@ Provides: nordugrid-arc1-python
 Replaces: nordugrid-arc1-python (<< 1.0.0~)
 Conflicts: nordugrid-arc1-python (<< 1.0.0~)
 Architecture: any
-Depends: ${shlibs:Depends}, ${python:Depends}
+Depends: ${shlibs:Depends}, ${python:Depends}, python-fuse
 Description: ARC Python wrapper
  The NorduGrid is a collaboration aiming at development, maintenance
  and support of the free Grid middleware, known as the Advanced

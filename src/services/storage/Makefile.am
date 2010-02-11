@@ -8,6 +8,11 @@ man_MANS = chelonia.1
 
 EXTRA_DIST = $(python_DATA) $(example_DATA) $(bin_SCRIPTS)
 
-SUBDIRS = librarian cli shepherd ahash bartender
-DIST_SUBDIRS = librarian cli shepherd ahash bartender
+if PYTHON_ENABLED
+FUSE_CLIENT = fuse
+else
+FUSE_CLIENT =
+endif
 
+SUBDIRS = librarian cli shepherd ahash bartender $(FUSE_CLIENT)
+DIST_SUBDIRS = librarian cli shepherd ahash bartender fuse
