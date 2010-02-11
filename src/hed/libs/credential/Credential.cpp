@@ -1856,7 +1856,7 @@ err:
       sub_hash = md[0] + (md[1] + (md[2] + (md[3] >> 1) * 256) * 256) * 256;
 
       CN_name = (char*)malloc(sizeof(long)*4 + 1);
-      sprintf(CN_name, "%ld", sub_hash);
+      snprintf(CN_name, sizeof(long)*4 + 1, "%ld", sub_hash);
 
       //serial_number = ASN1_INTEGER_new();
       //ASN1_INTEGER_set(serial_number, sub_hash);

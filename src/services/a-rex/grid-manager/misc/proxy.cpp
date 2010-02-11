@@ -27,7 +27,7 @@ int prepare_proxy(void) {
     h=open(proxy_file.c_str(),O_RDONLY);
     if(h==-1) goto exit;
     if((len=lseek(h,0,SEEK_END))==-1) goto exit;
-    lseek(h,0,SEEK_SET);
+    if(lseek(h,0,SEEK_SET) != 0) goto exit;
     buf=(char*)malloc(len);
     if(buf==NULL) goto exit;
     for(l=0;l<len;) {
@@ -70,7 +70,7 @@ int renew_proxy(const char* old_proxy,const char* new_proxy) {
   int h = -1;
   off_t len,l,ll;
   char* buf = NULL;
-  char* proxy_file_tmp = NULL;
+  std::string proxy_file_tmp;
   struct stat st;
   int res = -1;
 
@@ -95,23 +95,19 @@ int renew_proxy(const char* old_proxy,const char* new_proxy) {
     l+=ll;
   };
   close(h); h=-1; len=l;
-  proxy_file_tmp=(char*)(malloc(strlen(old_proxy)+7));
-  if(proxy_file_tmp==NULL) {
-    fprintf(stderr,"Out of memory\n");
-    goto exit;
-  };
-  strcpy(proxy_file_tmp,old_proxy); strcat(proxy_file_tmp,".renew");
-  remove(proxy_file_tmp);
-  h=open(proxy_file_tmp,O_WRONLY | O_CREAT | O_EXCL,S_IRUSR | S_IWUSR);
+  proxy_file_tmp=old_proxy;
+  proxy_file_tmp+=".renew";
+  remove(proxy_file_tmp.c_str());
+  h=open(proxy_file_tmp.c_str(),O_WRONLY | O_CREAT | O_EXCL,S_IRUSR | S_IWUSR);
   if(h==-1) {
-    fprintf(stderr,"Can't create temporary proxy: %s\n",proxy_file_tmp);
+    fprintf(stderr,"Can't create temporary proxy: %s\n",proxy_file_tmp.c_str());
     goto exit;
   };
-  (void)chmod(proxy_file_tmp,S_IRUSR | S_IWUSR);
+  (void)chmod(proxy_file_tmp.c_str(),S_IRUSR | S_IWUSR);
   for(l=0;l<len;) {
     ll=write(h,buf+l,len-l);
     if(ll==-1) {
-      fprintf(stderr,"Can't write temporary proxy: %s\n",proxy_file_tmp);
+      fprintf(stderr,"Can't write temporary proxy: %s\n",proxy_file_tmp.c_str());
       goto exit;
     };
     l+=ll;
@@ -124,15 +120,15 @@ int renew_proxy(const char* old_proxy,const char* new_proxy) {
     };
   };
   close(h); h=-1;
-  if(rename(proxy_file_tmp,old_proxy) != 0) {
-    fprintf(stderr,"Can't rename temporary proxy: %s\n",proxy_file_tmp);
+  if(rename(proxy_file_tmp.c_str(),old_proxy) != 0) {
+    fprintf(stderr,"Can't rename temporary proxy: %s\n",proxy_file_tmp.c_str());
     goto exit;
   };
   res=0;
  exit:
   if(h!=-1) close(h);
   if(buf) free(buf);
-  if(proxy_file_tmp) { remove(proxy_file_tmp); free (proxy_file_tmp); };
+  if(!proxy_file_tmp.empty()) remove(proxy_file_tmp.c_str());
   return res;
 }
 

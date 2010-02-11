@@ -407,7 +407,7 @@ namespace Arc {
     std::string md5str = "";
     for (int i = 0; i < length; i++) {
       char tmpChar[3];
-      sprintf(tmpChar, "%.2x", md5res_u[i]);
+      snprintf(tmpChar, sizeof(tmpChar), "%.2x", md5res_u[i]);
       md5str += tmpChar;
     }
     logger.msg(VERBOSE, "Calculated checksum: %s", md5str);

@@ -485,7 +485,7 @@ bool job_diskusage_create_file(const JobDescription &desc,JobUser& /*user*/,unsi
   int h=open(fname.c_str(),O_WRONLY | O_CREAT,S_IRUSR | S_IWUSR);
   if(h==-1) return false;
   char content[200];
-  sprintf(content,"%llu 0\n",requested);
+  snprintf(content, sizeof(content), "%llu 0\n",requested);
   (write(h,content,strlen(content)) != -1);
   close(h); return true;
 }
@@ -541,7 +541,7 @@ bool job_diskusage_change_file(const JobDescription &desc,JobUser& /*user*/,sign
     if(use_>req_) result=false;
   };
   lseek(h,0,SEEK_SET);  
-  sprintf(content,"%llu %llu\n",req_,use_);
+  snprintf(content,sizeof(content),"%llu %llu\n",req_,use_);
   (write(h,content,strlen(content)) != -1);
   lock.l_whence=SEEK_SET; lock.l_start=0; lock.l_len=0;
   lock.l_type=F_UNLCK; fcntl(h,F_SETLK,&lock);

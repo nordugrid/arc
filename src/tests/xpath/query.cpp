@@ -19,7 +19,7 @@ int main(int argc, char **argv)
     for (int i = 0; i < filenum; i++) { 
 	    // load content of file
         char fname[200];
-        sprintf(fname, "file%d.xml", i);
+        snprintf(fname, sizeof(fname), "file%d.xml", i);
         
         std::string xml_str = "";
         std::string str;
@@ -34,7 +34,7 @@ int main(int argc, char **argv)
 	Glib::Rand r; 
         int n = r.get_int_range(0, attrnum);
 	char query[200];
-        sprintf(query, "//AttributeName%d", n);
+        snprintf(query, sizeof(query), "//AttributeName%d", n);
         
         std::cout << "Query: " << query << std::endl;
         std::list<Arc::XMLNode> result = doc.XPathLookup(query, ns);

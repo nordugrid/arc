@@ -212,7 +212,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
     tnd.uFlags = NIF_MESSAGE|NIF_ICON|NIF_TIP;
     tnd.uCallbackMessage = WM_TRAYNOTIFY;
     tnd.hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_PAULGUI)); 
-    strcpy(tnd.szTip, "ARC - Paul Configurator");
+    strncpy(tnd.szTip, "ARC - Paul Configurator", sizeof(tnd.szTip));
+    tnd.szTip[sizeof(tnd.szTip)-1]=0;
     Shell_NotifyIcon(NIM_ADD, &tnd);
     EnableMenuItem(popup_menu, ID_CLOSE, MF_ENABLED);
     

@@ -1088,7 +1088,6 @@ err:
     memcpy (name, pBuffer, result_len);
     if (result_len < length)
       name[result_len] = '\0';
-    //strcpy(name, pBuffer);
    
     return 0;
   }
@@ -1506,7 +1505,6 @@ err:
   bool parseVOMSAC(X509* holder,
         const std::string& ca_cert_dir, const std::string& ca_cert_file, 
         const VOMSTrustList& vomscert_trust_dn,
-        //const std::vector<std::string>& vomscert_trust_dn,
         std::vector<std::string>& output, bool verify) {
 
     InitVOMSAttribute();
@@ -1557,7 +1555,6 @@ err:
   bool parseVOMSAC(Credential& holder_cred,
          const std::string& ca_cert_dir, const std::string& ca_cert_file,
          const VOMSTrustList& vomscert_trust_dn,
-         //const std::vector<std::string>& vomscert_trust_dn,
          std::vector<std::string>& output, bool verify) {
     X509* holder = holder_cred.GetCert();
     if(!holder) return false;

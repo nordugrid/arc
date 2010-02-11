@@ -193,12 +193,6 @@ static std::string digest_password(const std::string& nonce, const std::string& 
   Base64::encode(encoded, (const char*)md_value, SHA_DIGEST_LENGTH);
   std::string ret(encoded);
 
-  //static char buf[80];
-  //for(i = 0; i < md_len; i++) sprintf(&(buf[i*2]), "%02x", md_value[i]);
-  //std::string ret(buf);
-  
-  //std::cout<<"Digest is:"<<ret<<std::endl;
-
   return ret;
 }
 

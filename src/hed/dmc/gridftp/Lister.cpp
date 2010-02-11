@@ -328,21 +328,22 @@ namespace Arc {
       resp_n = 0;
       callback_status = CALLBACK_NOTREADY;
       globus_mutex_unlock(&mutex);
-      if (arg)
-        cmd = (char*)malloc(strlen(arg) + strlen(command) + 4);
-      else
-        cmd = (char*)malloc(strlen(command) + 3);
-      if (cmd == NULL) {
-        logger.msg(ERROR, "Memory allocation error");
-        return GLOBUS_FTP_UNKNOWN_REPLY;
+      {
+        std::string cmds(command);
+        if(arg) {
+          cmds += " ";
+          cmds += arg;
+        }
+        logger.msg(VERBOSE, "Command: %s", cmds);
+        cmds += "\r\n";
+        cmd = (char*)malloc(cmds.length()+1);
+        if (cmd == NULL) {
+          logger.msg(ERROR, "Memory allocation error");
+          return GLOBUS_FTP_UNKNOWN_REPLY;
+        }
+        strncpy(cmd,cmds.c_str(),cmds.length()+1);
+        cmd[cmds.length()] = 0;
       }
-      strcpy(cmd, command);
-      if (arg) {
-        strcat(cmd, " ");
-        strcat(cmd, arg);
-      }
-      logger.msg(VERBOSE, "Command: %s", cmd);
-      strcat(cmd, "\r\n");
       if (globus_ftp_control_send_command(handle, cmd, resp_callback, this)
           != GLOBUS_SUCCESS) {
         logger.msg(VERBOSE, "%s failed", command);

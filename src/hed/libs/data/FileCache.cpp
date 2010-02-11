@@ -18,6 +18,8 @@
 #include <sys/utsname.h>
 #include <sys/statvfs.h>
 
+#include <glibmm.h>
+
 #include <arc/Logger.h>
 
 #include "FileCache.h"
@@ -215,24 +217,19 @@ namespace Arc {
         return false;
       }
       // lock does not exist - create tmp file
-      // ugly char manipulation to get mkstemp() to work...
-      char tmpfile[256];
-      tmpfile[0] = '\0';
-      strcat(tmpfile, lock_file.c_str());
-      strcat(tmpfile, ".XXXXXX");
-      int h = mkstemp(tmpfile);
+      std::string tmpfile = lock_file + ".XXXXXX";
+      int h = Glib::mkstemp(tmpfile);
       if (h == -1) {
         logger.msg(ERROR, "Error creating file %s with mkstemp(): %s", tmpfile, strerror(errno));
         return false;
       }
       // write pid@hostname to the lock file
-      char buf[_pid.length() + _hostname.length() + 2];
-      sprintf(buf, "%s@%s", _pid.c_str(), _hostname.c_str());
-      if (write(h, &buf, strlen(buf)) == -1) {
+      std::string buf = _pid + "@" + _hostname;
+      if (write(h, buf.c_str(), buf.length()) == -1) {
         logger.msg(ERROR, "Error writing to tmp lock file %s: %s", tmpfile, strerror(errno));
-        close(h);
         // not much we can do if this doesn't work, but it is only a tmp file
-        remove(tmpfile);
+        remove(tmpfile.c_str());
+        close(h);
         return false;
       }
       if (close(h) != 0)
@@ -243,9 +240,9 @@ namespace Arc {
       if (0 != err) {
         if (errno == ENOENT) {
           // ok, we can create lock
-          if (rename(tmpfile, lock_file.c_str()) != 0) {
+          if (rename(tmpfile.c_str(), lock_file.c_str()) != 0) {
             logger.msg(ERROR, "Error renaming tmp file %s to lock file %s: %s", tmpfile, lock_file, strerror(errno));
-            remove(tmpfile);
+            remove(tmpfile.c_str());
             return false;
           }
           // check it's really there
@@ -262,19 +259,19 @@ namespace Arc {
         }
         else if (errno == EACCES) {
           logger.msg(ERROR, "EACCES Error opening lock file %s: %s", lock_file, strerror(errno));
-          remove(tmpfile);
+          remove(tmpfile.c_str());
           return false;
         }
         else {
           // some other error occurred opening the lock file
           logger.msg(ERROR, "Error opening lock file we just renamed successfully %s: %s", lock_file, strerror(errno));
-          remove(tmpfile);
+          remove(tmpfile.c_str());
           return false;
         }
       }
       else {
         logger.msg(VERBOSE, "The file is currently locked with a valid lock");
-        remove(tmpfile);
+        remove(tmpfile.c_str());
         is_locked = true;
         return false;
       }
@@ -458,24 +455,19 @@ namespace Arc {
       }
     
       // lock does not exist - create tmp file
-      // ugly char manipulation to get mkstemp() to work...
-      char remote_tmpfile[256];
-      remote_tmpfile[0] = '\0';
-      strcat(remote_tmpfile, remote_lock_file.c_str());
-      strcat(remote_tmpfile, ".XXXXXX");
-      int h = mkstemp(remote_tmpfile);
+      std::string remote_tmpfile = remote_lock_file + ".XXXXXX";
+      int h = Glib::mkstemp(remote_tmpfile);
       if (h == -1) {
         logger.msg(WARNING, "Error creating tmp file %s for remote lock with mkstemp(): %s", remote_tmpfile, strerror(errno));
         return true;
       }
       // write pid@hostname to the lock file
-      char buf2[_pid.length()+_hostname.length()+2];
-      sprintf(buf2, "%s@%s", _pid.c_str(), _hostname.c_str());
-      if (write(h, &buf2, strlen(buf2)) == -1) {
+      std::string buf2 = _pid + "@" + _hostname;
+      if (write(h, buf2.c_str(), buf2.length()) == -1) {
         logger.msg(WARNING, "Error writing to tmp lock file for remote lock %s: %s", remote_tmpfile, strerror(errno));
-        close(h);
         // not much we can do if this doesn't work, but it is only a tmp file
-        remove(remote_tmpfile);
+        remove(remote_tmpfile.c_str());
+        close(h);
         return true;
       }
       if (close(h) != 0) {
@@ -487,9 +479,9 @@ namespace Arc {
       if (0 != err) {
         if (errno == ENOENT) {
           // ok, we can create lock
-          if (rename(remote_tmpfile, remote_lock_file.c_str()) != 0) {
+          if (rename(remote_tmpfile.c_str(), remote_lock_file.c_str()) != 0) {
             logger.msg(WARNING, "Error renaming tmp file %s to lock file %s for remote lock: %s", remote_tmpfile, remote_lock_file, strerror(errno));
-            remove(remote_tmpfile);
+            remove(remote_tmpfile.c_str());
             return true;
           }
           // check it's really there
@@ -502,13 +494,13 @@ namespace Arc {
         else {
           // some error occurred opening the lock file
           logger.msg(WARNING, "Error opening lock file for remote lock we just renamed successfully %s: %s", remote_lock_file, strerror(errno));
-          remove(remote_tmpfile);
+          remove(remote_tmpfile.c_str());
           return true;
         }
       }
       else {
         logger.msg(VERBOSE, "The remote cache file is currently locked with a valid lock, will download from source");
-        remove(remote_tmpfile);
+        remove(remote_tmpfile.c_str());
         return true;
       }
       

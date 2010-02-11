@@ -375,7 +375,7 @@ static int verify_callback(int ok, X509_STORE_CTX* store_ctx) {
             char buf[256];
             char* subject_string;
             serial = ASN1_INTEGER_get(revoked->serialNumber);
-            sprintf(buf,"%ld (0x%lX)",serial,serial);
+            snprintf(buf, sizeof(buf), "%ld (0x%lX)",serial,serial);
             subject_string = X509_NAME_oneline(X509_get_subject_name(store_ctx->current_cert),NULL,0);
             logger.msg(Arc::ERROR,"Certificate with serial number %s and subject \"%s\" is revoked",buf,subject_string);
             store_ctx->error = X509_V_ERR_CERT_REVOKED;

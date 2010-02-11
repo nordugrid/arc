@@ -1046,16 +1046,6 @@ namespace Arc {
     return in;
   }
 
-  static void error_collector(void *ctx, const char *fmt, ...) {
-    char *str = (char *)ctx;
-
-    str = (char *)realloc(str, strlen(str) + strlen(fmt) + 1);
-    if (str == NULL) {
-        return;
-    }
-    strcpy(str, fmt);
-  }
-
   bool XMLNode::Validate(const std::string &schema_file_name, std::string &err_msg) {
     // create parser ctxt for schema accessible on schemaPath
     xmlSchemaParserCtxtPtr schemaParser = xmlSchemaNewParserCtxt(schema_file_name.c_str());

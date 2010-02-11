@@ -152,7 +152,7 @@ std::string Arc::UUID(void) {
     uuid_part = 0L;
     for (int i = 0; i < 16; i++)
       uuid_part = (uuid_part << 8) + rnd[i];
-    sprintf(buffer, "%08lx", uuid_part);
+    snprintf(buffer, sizeof(buffer), "%08lx", uuid_part);
     uuid_str.append(buffer, 8);
   }
 

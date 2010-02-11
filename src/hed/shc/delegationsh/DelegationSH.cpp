@@ -195,7 +195,7 @@ bool DelegationSH::Handle(Arc::Message* msg) const {
             //service) to contact the next service. 
             std::string deleg_cred_path="/tmp/";
             char text[20];
-            sprintf(text, "%08lx", hash_value);
+            snprintf(text, sizeof(text), "%08lx", hash_value);
             deleg_cred_path.append(text).append(".pem");
             logger.msg(INFO,"Delegated credential identity: %s",cred_identity.c_str());
             logger.msg(INFO,"The delegated credential got from delegation service is stored into path: %s",deleg_cred_path.c_str());
@@ -259,7 +259,7 @@ bool DelegationSH::Handle(Arc::Message* msg) const {
           unsigned long hash_value = string_hash(delegation_cred_identity_);
           proxy_path="/tmp/";
           char text[20];
-          sprintf(text, "%08lx", hash_value);
+          snprintf(text, sizeof(text), "%08lx", hash_value);
           proxy_path.append(text).append(".pem");
           logger.msg(INFO,"Delegated credential identity: %s",delegation_cred_identity_.c_str());
           logger.msg(INFO,"The delegated credential got from path: %s",proxy_path.c_str());

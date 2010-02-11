@@ -96,7 +96,7 @@ namespace Arc {
 			 // but then casting unsigned char* to string is always problematic
 			 char buffer[50];
 			 for(int i = 0; i < md_len; i++) {
-				 int n = sprintf(buffer,"%02x", md_value[i]);
+				 int n = snprintf(buffer, sizeof(buffer), "%02x", md_value[i]);
 				 std::string bufferStr;
 				 bufferStr = (const char*) buffer;
 				 result += bufferStr.substr(0, n);
