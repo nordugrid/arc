@@ -23,6 +23,7 @@ AC_DEFUN([ARC_RELATIVE_PATHS],
   libsubdir=`get_relative_path "$instprefix" "$arc_libdir"`
   pkglibsubdir=`get_relative_path "$instprefix" "$arc_pkglibdir"`
   pkglibexecsubdir=`get_relative_path "$instprefix" "$arc_pkglibexecdir"`
+  pkgdatalibsubdir=`get_relative_path "$instprefix" "$arc_datadir"`
   pkglibdir_rel_to_pkglibexecdir=`get_relative_path "$arc_pkglibexecdir" "$arc_pkglibdir"`
   sbindir_rel_to_pkglibexecdir=`get_relative_path "$arc_pkglibexecdir" "$arc_sbindir"`
   bindir_rel_to_pkglibexecdir=`get_relative_path "$arc_pkglibexecdir" "$arc_bindir"`
@@ -44,6 +45,7 @@ AC_DEFUN([ARC_RELATIVE_PATHS],
   AC_DEFINE_UNQUOTED([LIBSUBDIR], ["${libsubdir}"], [library installation subdirectory])
   AC_DEFINE_UNQUOTED([PKGLIBSUBDIR], ["${pkglibsubdir}"], [plugin installation subdirectory])
   AC_DEFINE_UNQUOTED([PKGLIBEXECSUBDIR], ["${pkglibexecsubdir}"], [helper programs installation subdirectory])
+  AC_DEFINE_UNQUOTED([PKGDATASUBDIR], ["${pkgdatalibsubdir}"], [package data subdirectory])
   AC_DEFINE_UNQUOTED([PKGDATADIR], ["${arc_datadir}"], [arc data dir])
   AC_DEFINE_UNQUOTED([PKGSYSCONFDIR], ["${arc_sysconfdir}"], [arc system configuration directory])
 

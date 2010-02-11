@@ -177,7 +177,7 @@ an INI configuration file is shown:
 \begin{lstlisting}
 # A comment
 [ common ]
-profile = <path-to-profile>
+profile = <profilename> or <path-to-profile>
 
 <attribute> = <value>
 ...
@@ -205,9 +205,11 @@ names are different sections, except for the common section, which is special in
 this respect and if multiple common sections exist these will be considered as
 one.
 
-The \texttt{profile} attribute is also a special, as it is used to indicate
-which profile the INI configuration uses, and its value should be the
-absolute path to the profile file. The \texttt{profile} attribute must be
+The \texttt{profile} attribute is also special, as it is used to indicate
+which profile the INI configuration uses. Its value should either be the name of
+a WS-ARC profile (no \texttt{xml} suffix), see
+appendix~\ref{app:List of profiles} or it should be the absolute path to a
+profile (with \texttt{xml} suffix). The \texttt{profile} attribute must be
 located in the common section. If multiple \texttt{profile} attributes exist
 only the first attribute will be used.
 
@@ -291,7 +293,7 @@ Module - A-REX" \cite{a-rex},
 \cite{isis},
 \item[Charon] authorization service - currently described in "Security
 Framework of ARC NOX" \cite{arc1-security},
-\item[HOPI] lightweight HTTP webserver - "The HOPI Manual" \cite{hopi} 
+\item[HOPI] lightweight HTTP webserver - "The HOPI Manual" \cite{hopi}
 and also partially described in "Chelonia Administrator's Manual"
 \cite{storage-manual}.
 \end{description}
@@ -315,7 +317,7 @@ of WS-ARC:
   section~\ref{sec:tls-mcc},
 \item[\texttt{http.service}] Processes HTTP messages, see
   section~\ref{sec:http-mcc},
-\item[\texttt{gsi.service}] Processes GSI messages as implemented in 
+\item[\texttt{gsi.service}] Processes GSI messages as implemented in
 Globus toolkit \cite{globus}, see section~\ref{sec:gsi-mcc},
 \item[\texttt{soap.service}] Processes SOAP messages, see
   section~\ref{sec:soap-mcc}.
@@ -529,7 +531,7 @@ it should either be put on top of the TCP or TLS MCC. A working configuration of
 this MCC is simple, since it should only use the \texttt{next} element.
 Differently from most other MCCs this one may have multiple \texttt{next} with
 content being name of HTTP method in uppercase. Depending on method client
-requested message may be routed to different components. Most services 
+requested message may be routed to different components. Most services
 of WS-ARC support GET and PUT for data communication and POST for SOAP. Some
 also support HEAD.
 
@@ -558,7 +560,7 @@ The Plexer is a special MCC which filters messages based on their URL endpoints.
 It supports multiple \texttt{next} elements with content being regular expressions
 (POSIX extended) used to filter incoming messages.
 The message is forwarded to the component or service specified by the \texttt{id}
-attribute of the corresponding \texttt{next} element which mathed the endpoint 
+attribute of the corresponding \texttt{next} element which mathed the endpoint
 URL of the message. At the first match the message will be forwarded to the
 respective component or service and no more expressions will be tried. The
 \texttt{next} elements are tried in order they are specified in configuration.
@@ -759,10 +761,10 @@ is \texttt{samltoken.handler} and it resides in \texttt{arcshc} loadable
 module.
 
 The configuration of this plugin is identical to previously described
-X.509 Token Security Handler. It supports configuration elements 
+X.509 Token Security Handler. It supports configuration elements
 \texttt{Process}, \texttt{CACertificatePath} and \texttt{CACertificatesDir}.
 
-The information collected by this plugin may then be used in ARC Policy 
+The information collected by this plugin may then be used in ARC Policy
 Decision Point and Service Invoker Policy Decision Point plugins.
 
 \subsubsection{SAML Single Sign-On}

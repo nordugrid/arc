@@ -7,6 +7,8 @@
 #include <fstream>
 #include <glibmm/fileutils.h>
 #include <glibmm/miscutils.h>
+
+#include <arc/ArcLocation.h>
 #include <arc/IniConfig.h>
 #include <arc/Profile.h>
 #include <arc/StringConv.h>
@@ -46,8 +48,20 @@ namespace Arc {
     if (profilename.empty())
       return false;
     if (Glib::file_test(profilename, Glib::FILE_TEST_EXISTS) == false) {
+      // If profilename does not contain directory separators and do not have xml suffix, then look for the profile in ARC profile directory.
+      if (profilename.find(G_DIR_SEPARATOR_S) == std::string::npos && profilename.substr(profilename.size()-4, 4) != ".xml") {
+        const std::string pkgprofilename = ArcLocation::Get() +
+                                            G_DIR_SEPARATOR_S PKGDATASUBDIR
+                                              G_DIR_SEPARATOR_S "profiles"
+                                                G_DIR_SEPARATOR_S + profilename + ".xml";
+        if (Glib::file_test(pkgprofilename, Glib::FILE_TEST_EXISTS)) {
+          profilename = pkgprofilename;
+        }
+      }
+      else {
         std::cerr << profilename << " does not exits" << std::endl;
         return false;
+      }
     }
     Profile profile(profilename);
     profile.Evaluate(cfg, *this);
