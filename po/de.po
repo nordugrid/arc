@@ -55,7 +55,6 @@ msgid "The Service doesn't advertise its Serving State."
 msgstr "Der Servcice gibt seinen Serving State nicht an."
 
 #: src/hed/acc/ARC1/TargetRetrieverARC1.cpp:387
-#, fuzzy, c-format
 msgid ""
 "Couldn't parse benchmark XML:\n"
 "%s"
@@ -63,12 +62,10 @@ msgstr "Konnte benchmark XML nicht parsen:\n"
 "%s"
 
 #: src/hed/acc/ARC1/TargetRetrieverARC1.cpp:420
-#, c-format
 msgid "Failed retrieving job IDs: Unsupported url (%s) given"
 msgstr "Konnte job IDs nicht bestimmen: Nicht unterstützte URL erhalten (%s)"
 
 #: src/hed/acc/ARC1/TargetRetrieverARC1.cpp:428
-#, fuzzy
 msgid "Failed retrieving job IDs"
 msgstr "Konnt job IDs nicht erhalten."
 
@@ -628,7 +625,6 @@ msgid "The response of a service status request was not a SOAP message"
 msgstr "Die Antwort zu einer Service Status Anfrage war keine SOAP message"
 
 #: src/hed/acc/UNICORE/UNICOREClient.cpp:529
-#, c-format
 msgid ""
 "Response:\n"
 "%s"
@@ -1471,84 +1467,83 @@ msgid "Failed to convert security information to XACML request"
 msgstr "Fehler bei Konvertierung der security information zu einer XACML Anfrage"
 
 #: src/hed/shc/xacmlpdp/XACMLPDP.cpp:167
-#, fuzzy, c-format
 msgid "XACML request: %s"
 msgstr "XACML Anfrage: %s"
 
 #: src/hed/shc/xacmlpdp/XACMLPDP.cpp:170
+#, fuzzy
 msgid "No requested security information was collected"
-msgstr ""
+msgstr "Keine security information erhalten"
 
 #: src/hed/shc/xacmlpdp/XACMLPDP.cpp:179
-#, fuzzy
 msgid "Authorized from xacml.pdp"
-msgstr ""
+msgstr "Authorisiert durch xaml.pdp"
 
 #: src/hed/shc/xacmlpdp/XACMLPDP.cpp:180
 #, fuzzy
 msgid "UnAuthorized from xacml.pdp"
-msgstr ""
+msgstr "UnAuthorisiert durch xaml.pdp"
 
 #: src/hed/shc/xacmlpdp/XACMLEvaluator.cpp:55
 msgid "Can not parse classname for FunctionFactory from configuration"
-msgstr ""
+msgstr "Konnte classname für FunctionFactory nicht von Konfiguration parsen"
 
 #: src/hed/shc/xacmlpdp/XACMLEvaluator.cpp:63
 msgid "Can not parse classname for AttributeFactory from configuration"
-msgstr ""
+msgstr "Konnte classname für AttributeFactory nicht von Konfiguration parsen"
 
 #: src/hed/shc/xacmlpdp/XACMLEvaluator.cpp:71
 msgid "Can not parse classname for CombiningAlgorithmFactory from configuration"
-msgstr ""
+msgstr "Konnte classname für CombiningAlgorithmFactory nicht von Konfiguration parsen"
 
 #: src/hed/shc/xacmlpdp/XACMLEvaluator.cpp:79
 msgid "Can not parse classname for Request from configuration"
-msgstr ""
+msgstr "Konnte classname für Request nicht von Konfiguration parsen"
 
 #: src/hed/shc/xacmlpdp/XACMLEvaluator.cpp:88
 msgid "Can not parse classname for Policy from configuration"
-msgstr ""
+msgstr "Konnte classname für Policy nicht von Konfiguration parsen"
 
 #: src/hed/shc/xacmlpdp/XACMLEvaluator.cpp:100
 msgid "Can not dynamically produce AttributeFactory"
-msgstr ""
+msgstr "Kann AttributeFactory nicht dynamisch anlegen"
 
 #: src/hed/shc/xacmlpdp/XACMLEvaluator.cpp:105
 msgid "Can not dynamically produce FnFactory"
-msgstr ""
+msgstr "Kann FnFactory nicht dynamisch anlegen"
 
 #: src/hed/shc/xacmlpdp/XACMLEvaluator.cpp:110
 msgid "Can not dynamically produce AlgFacroty"
-msgstr ""
+msgstr "Kann AlgFactory nicht dynamisch anlegen"
 
 #: src/hed/shc/xacmlpdp/XACMLEvaluator.cpp:121
 #, fuzzy
 msgid "Can not create PolicyStore object"
-msgstr ""
+msgstr "Kann PolicyStore Objekt nicht anlegen"
 
 #: src/hed/shc/x509tokensh/X509TokenSH.cpp:77
 msgid "Failed to parse X509 Token from incoming SOAP"
-msgstr ""
+msgstr "Fehler bei Parsen von X509 Token in eigehendem SOAP"
 
 #: src/hed/shc/x509tokensh/X509TokenSH.cpp:81
 msgid "Failed to verify X509 Token inside the incoming SOAP"
-msgstr ""
+msgstr "Fehler bei Verifizieren von X509 Token in eigehendem SOAP"
 
 #: src/hed/shc/x509tokensh/X509TokenSH.cpp:85
 msgid "Failed to authenticate X509 Token inside the incoming SOAP"
-msgstr ""
+msgstr "Fehler bei Authentifizieren von X509 Token in eigehendem SOAP"
 
 #: src/hed/shc/x509tokensh/X509TokenSH.cpp:88
 msgid "Succeeded to authenticate X509Token"
-msgstr ""
+msgstr "X509Token erfolgreich authentifiziert"
 
 #: src/hed/shc/x509tokensh/X509TokenSH.cpp:98
 msgid "Failed to generate X509 Token for outgoing SOAP"
-msgstr ""
+msgstr "Fehler bei Generieren von X509 Token für ausgehende SOAP"
 
 #: src/hed/shc/x509tokensh/X509TokenSH.cpp:108
 msgid "X509 Token handler is not configured"
-msgstr ""
+msgstr "X509 Token handler ist nicht konfiguriert"
 
 #: src/hed/shc/delegationpdp/DelegationPDP.cpp:75
 #: src/hed/shc/delegationpdp/DelegationPDP.cpp:129
@@ -1558,13 +1553,13 @@ msgstr ""
 #: src/hed/shc/delegationpdp/DelegationPDP.cpp:95
 #: src/hed/shc/delegationpdp/DelegationPDP.cpp:109
 msgid "Failed to convert security information to ARC policy"
-msgstr ""
+msgstr "Fehler bei Konvertieren von security information für ARC policy"
 
 #: src/hed/shc/delegationpdp/DelegationPDP.cpp:116
 #: src/hed/shc/delegationpdp/DelegationPDP.cpp:123
 #, fuzzy, c-format
 msgid "ARC delegation policy: %s"
-msgstr ""
+msgstr "ARC delegation policy: %s"
 
 #: src/hed/shc/delegationpdp/DelegationPDP.cpp:137
 #: src/hed/shc/delegationpdp/DelegationPDP.cpp:143
@@ -1573,7 +1568,7 @@ msgstr ""
 #: src/hed/shc/arcpdp/ArcPDP.cpp:171
 #: src/hed/shc/arcpdp/ArcPDP.cpp:179
 msgid "Failed to convert security information to ARC request"
-msgstr ""
+msgstr "Fehler bei Konvertierung von security information für ARC Anfrage"
 
 #: src/hed/shc/delegationpdp/DelegationPDP.cpp:150
 #: src/hed/shc/pdpserviceinvoker/PDPServiceInvoker.cpp:111
@@ -1585,12 +1580,11 @@ msgstr ""
 #: src/hed/shc/delegationpdp/DelegationPDP.cpp:160
 #, c-format
 msgid "There are %d requests, which satisfy at least one policy"
-msgstr ""
+msgstr "Es gibt %d Anfragen, die wenigstens einer Policy Anfrage genügt"
 
 #: src/hed/shc/delegationpdp/DelegationPDP.cpp:164
-#, fuzzy
 msgid "No authorization response was returned"
-msgstr ""
+msgstr "Es wurde keine authorization response erwidert"
 
 #: src/hed/shc/delegationpdp/DelegationPDP.cpp:184
 msgid "Delegation authorization passed"
@@ -1598,11 +1592,11 @@ msgstr ""
 
 #: src/hed/shc/delegationpdp/DelegationPDP.cpp:186
 msgid "Delegation authorization failed"
-msgstr ""
+msgstr "Delegation Authorisierung fehlgeschlagen"
 
 #: src/hed/shc/pdpserviceinvoker/PDPServiceInvoker.cpp:48
 msgid "Creating a pdpservice client"
-msgstr ""
+msgstr "Lege pdpservice client an"
 
 #: src/hed/shc/pdpserviceinvoker/PDPServiceInvoker.cpp:80
 msgid "Arc policy can not been carried by SAML2.0 profile of XACML"
@@ -1642,14 +1636,12 @@ msgid "Missing or empty CertificatePath or CACertificatesDir element"
 msgstr ""
 
 #: src/hed/shc/delegationsh/DelegationSH.cpp:78
-#, fuzzy, c-format
 msgid "Delegation role not supported: %s"
-msgstr ""
+msgstr "Delegation role nicht unterstützt: %s"
 
 #: src/hed/shc/delegationsh/DelegationSH.cpp:87
-#, fuzzy, c-format
 msgid "Delegation type not supported: %s"
-msgstr ""
+msgstr "Delegation Typ nicht unterstützt: %s"
 
 #: src/hed/shc/delegationsh/DelegationSH.cpp:111
 #, fuzzy
@@ -1658,9 +1650,8 @@ msgstr ""
 
 #: src/hed/shc/delegationsh/DelegationSH.cpp:139
 #: src/hed/shc/delegationsh/DelegationSH.cpp:250
-#, fuzzy
 msgid "Can't create delegation context"
-msgstr ""
+msgstr "Kann delegation context nicht anlegen"
 
 #: src/hed/shc/delegationsh/DelegationSH.cpp:145
 #, fuzzy
@@ -1673,7 +1664,7 @@ msgstr ""
 
 #: src/hed/shc/delegationsh/DelegationSH.cpp:155
 msgid "input is not SOAP"
-msgstr ""
+msgstr "Eingabe ist kein SOAP"
 
 #: src/hed/shc/delegationsh/DelegationSH.cpp:162
 #, fuzzy, c-format
@@ -1734,7 +1725,7 @@ msgstr ""
 #: src/hed/shc/delegationsh/DelegationSH.cpp:355
 #, fuzzy
 msgid "Delegation handler is not configured"
-msgstr ""
+msgstr "Delegation handler wurde nicht konfiguriert"
 
 #: src/hed/shc/saml2sso_assertionconsumersh/SAML2SSO_AssertionConsumerSH.cpp:65
 #, fuzzy
@@ -1744,19 +1735,19 @@ msgstr ""
 #: src/hed/shc/arcpdp/ArcPDP.cpp:108
 #, fuzzy
 msgid "Can not find ArcPDPContext"
-msgstr ""
+msgstr "Kann ArcPDPContext nicht finden"
 
 #: src/hed/shc/arcpdp/ArcPDP.cpp:156
 msgid "Evaluator for ArcPDP was not loaded"
-msgstr ""
+msgstr "Evaluator für ArcPDP wurde nicht geladen"
 
 #: src/hed/shc/arcpdp/ArcPDP.cpp:240
 msgid "Authorized from arc.pdp"
-msgstr ""
+msgstr "Authorisiert von arc.pdp"
 
 #: src/hed/shc/arcpdp/ArcPDP.cpp:241
 msgid "UnAuthorized from arc.pdp; Some of the RequestItem does not satisfy Policy"
-msgstr ""
+msgstr "UnAuthorisiert von arc.pdp; einige der ReqestItems genügen nicht der Policy"
 
 #: src/hed/shc/arcpdp/ArcEvaluator.cpp:258
 #, c-format
@@ -1766,11 +1757,11 @@ msgstr ""
 #: src/hed/shc/arcpdp/ArcEvaluationCtx.cpp:256
 #, fuzzy, c-format
 msgid "There is %d RequestItems"
-msgstr ""
+msgstr "Es gibt %d RequestItems"
 
 #: src/hed/shc/arcauthzsh/ArcAuthZ.cpp:50
 msgid "ArcAuthZ: failed to initiate all PDPs - this instance will be non-functional"
-msgstr ""
+msgstr "ArcAuthZ: Fehler bei Initiierung wenigstens einer PDP - diese Instanz wird nicht funktional sein"
 
 #: src/hed/shc/arcauthzsh/ArcAuthZ.cpp:71
 #, c-format
@@ -1780,18 +1771,18 @@ msgstr ""
 #: src/hed/shc/arcauthzsh/ArcAuthZ.cpp:76
 #, c-format
 msgid "PDP: %s can not be loaded"
-msgstr ""
+msgstr "PDP: %s kann nicht geladen werden"
 
 #: src/hed/shc/arcauthzsh/ArcAuthZ.cpp:80
 #, fuzzy, c-format
 msgid "PDP: %s name is duplicate"
-msgstr ""
+msgstr "PDP: %s Name ist Doublette"
 
 #: src/hed/shc/gaclpdp/GACLPolicy.cpp:50
 #: src/hed/shc/gaclpdp/GACLPolicy.cpp:63
 #, fuzzy
 msgid "Policy is not gacl"
-msgstr ""
+msgstr "Policy ist nicht gacl"
 
 #: src/hed/shc/gaclpdp/GACLPDP.cpp:121
 msgid "Evaluator for GACLPDP was not loaded"
@@ -1800,7 +1791,7 @@ msgstr ""
 #: src/hed/shc/gaclpdp/GACLPDP.cpp:152
 #, fuzzy, c-format
 msgid "GACL Auth. request: %s"
-msgstr ""
+msgstr "GACL Auth. Anfrage. %s"
 
 #: src/hed/shc/simplelistpdp/SimpleListPDP.cpp:29
 #, fuzzy, c-format
@@ -1814,7 +1805,7 @@ msgstr ""
 #: src/hed/shc/simplelistpdp/SimpleListPDP.cpp:45
 #: src/hed/shc/simplelistpdp/SimpleListPDP.cpp:72
 msgid "Authorized from simplelist.pdp"
-msgstr ""
+msgstr "Authorisiert durch simplelist.pdp"
 
 #: src/hed/shc/simplelistpdp/SimpleListPDP.cpp:52
 msgid "The policy file setup for simplelist.pdp does not exist, please check location attribute for simplelist PDP node in service configuration"
