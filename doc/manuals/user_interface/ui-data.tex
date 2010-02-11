@@ -55,7 +55,7 @@ but can be used by the User Interface as well.
     Options:&&\\
    \texttt{-p, --passive} && use passive transfer (does not work if secure is on, default if secure is not requested)\\
    \texttt{-n, --nopassive} && do not try to force passive transfer\\
-   \texttt{-f, --force} && if the destination is an indexing service and not the same as the source and the destination is already registered, then the copy is normally not done. However, if this option is specified the source is assumed to be a replica of the destination created in an uncontrolled way and the copy is done like in case of replication\\
+   \texttt{-f, --force} && if the destination is an indexing service and not the same as the source and the destination is already registered, then the copy is normally not done. However, if this option is specified the source is assumed to be a replica of the destination created in an uncontrolled way and the copy is done like in case of replication. Using this option also skips validation of completed transfers.\\
    \texttt{-i, --indicate} && show progress indicator\\
    \texttt{-T, --notransfer} && do not transfer file, just register it - destination must be non-existing meta-url\\
    \texttt{-u, --secure} && use secure transfer (insecure by default)\\

@@ -436,8 +436,8 @@ bool arccp(const Arc::URL& source_url_,
   Arc::User cache_user;
   // always copy to destination rather than link
   if (!cache_dir.empty()) cache = Arc::FileCache(cache_dir+" .", "", cache_user.get_uid(), cache_user.get_gid());
-  if (verbose)
-    mover.set_progress_indicator(&progress);
+  //if (verbose)
+    //mover.set_progress_indicator(&progress);
   Arc::DataStatus res = mover.Transfer(*source, *destination, cache, Arc::URLMap(),
                                        0, 0, 0, timeout);
   if (!res.Passed()) {
@@ -493,7 +493,9 @@ int main(int argc, char **argv) {
                             "this option is specified the source is "
                             "assumed to be a replica of the destination "
                             "created in an uncontrolled way and the "
-                            "copy is done like in case of replication"),
+                            "copy is done like in case of replication. "
+                            "Using this option also skips validation of "
+                            "completed transfers."),
                     force);
 
   bool verbose = false;

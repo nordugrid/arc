@@ -22,7 +22,7 @@ use passive transfer (does not work if secure is on, default if secure is not re
 .IP "\fB-n\fR, \fB--nopassive\fR"
 do not try to force passive transfer
 .IP "\fB-f\fR, \fB--force\fR"
-if the destination is an indexing service and not the same as the source and the destination is already registered, then the copy is normally not done. However, if this option is specified the source is assumed to be a replica of the destination created in an uncontrolled way and the copy is done like in case of replication
+if the destination is an indexing service and not the same as the source and the destination is already registered, then the copy is normally not done. However, if this option is specified the source is assumed to be a replica of the destination created in an uncontrolled way and the copy is done like in case of replication. Using this option also skips validation of completed transfers.
 .IP "\fB-i\fR, \fB--indicate\fR"
 show progress indicator
 .IP "\fB-T\fR, \fB--notransfer\fR"
