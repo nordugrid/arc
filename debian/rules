@@ -91,7 +91,7 @@ install-arch: build-arch-stamp
 		./usr/lib/arc/uploader
 
 	cd $(CURDIR)/debian/tmp; \
-	chrpath -d `find ./usr/bin/ \! -name chelonia -a -type f` ./usr/sbin/arched
+	chrpath -d `find ./usr/bin/ \! -name chelonia -a \! -name arcfs -a -type f` ./usr/sbin/arched
 
 	cd $(CURDIR)/debian/tmp; \
 	chrpath -d `find ./usr/lib/ -name "*.so*" -a -type f`
