@@ -211,24 +211,24 @@ static int verify_callback(int ok, X509_STORE_CTX* store_ctx) {
       char * subject_name = X509_NAME_oneline(X509_get_subject_name(store_ctx->current_cert), 0, 0);
       unsigned long issuer_hash = X509_issuer_name_hash(store_ctx->current_cert);
 
-      logger.msg(Arc::ERROR,"Error number in store context: %i",(int)(store_ctx->error));
-      if(sk_X509_num(store_ctx->chain) == 1) { logger.msg(Arc::ERROR,"Self-signed certificate"); }
+      logger.msg(Arc::DEBUG,"Error number in store context: %i",(int)(store_ctx->error));
+      if(sk_X509_num(store_ctx->chain) == 1) { logger.msg(Arc::VERBOSE,"Self-signed certificate"); }
 
       if (store_ctx->error == X509_V_ERR_CERT_NOT_YET_VALID) {
-        logger.msg(Arc::ERROR,"The certificate with subject %s  is not valid",subject_name);
+        logger.msg(Arc::INFO,"The certificate with subject %s  is not valid",subject_name);
       }
       else if(store_ctx->error == X509_V_ERR_UNABLE_TO_GET_ISSUER_CERT_LOCALLY) {
-        logger.msg(Arc::ERROR,"Can not find issuer certificate for the certificate with subject %s and hash: %lu",subject_name,issuer_hash);
+        logger.msg(Arc::INFO,"Can not find issuer certificate for the certificate with subject %s and hash: %lu",subject_name,issuer_hash);
       }
       else if(store_ctx->error == X509_V_ERR_CERT_HAS_EXPIRED) {
-        logger.msg(Arc::ERROR,"Certificate with subject %s has expired",subject_name);
+        logger.msg(Arc::INFO,"Certificate with subject %s has expired",subject_name);
       }
       else if(store_ctx->error == X509_V_ERR_SELF_SIGNED_CERT_IN_CHAIN) {
-        logger.msg(Arc::ERROR,"Untrusted self-signed certificate in chain with "
+        logger.msg(Arc::INFO,"Untrusted self-signed certificate in chain with "
                    "subject %s and hash: %lu",subject_name,issuer_hash);
       }
       else
-        logger.msg(Arc::ERROR,"Certificate verification error: %s",X509_verify_cert_error_string(store_ctx->error));
+        logger.msg(Arc::INFO,"Certificate verification error: %s",X509_verify_cert_error_string(store_ctx->error));
 
       if(subject_name) OPENSSL_free(subject_name);
 
@@ -272,7 +272,7 @@ static int verify_callback(int ok, X509_STORE_CTX* store_ctx) {
       return (0);
     }
 
-    if(CERT_IS_LIMITED_PROXY(vctx->cert_type) && 
+    if(CERT_IS_LIMITED_PROXY(vctx->cert_type) &&
        !(CERT_IS_LIMITED_PROXY(type) || CERT_IS_INDEPENDENT_PROXY(type))) {
       logger.msg(Arc::ERROR,"Can't sign a non-limited, non-independent proxy with a limited proxy");
       store_ctx->error = X509_V_ERR_CERT_SIGNATURE_FAILURE;
@@ -458,9 +458,9 @@ static int verify_callback(int ok, X509_STORE_CTX* store_ctx) {
 // TODO: do not use openssl version - instead use result of check if
 // proxy extension is supported
 #if (OPENSSL_VERSION_NUMBER > 0x0090706fL) && (nid == NID_proxyCertInfo)
-      /* If the openssl version >=097g (which means proxy cert info is 
-       * supported), and NID_proxyCertInfo can be got from the extension, 
-       * then we use the proxy cert info support from openssl itself. 
+      /* If the openssl version >=097g (which means proxy cert info is
+       * supported), and NID_proxyCertInfo can be got from the extension,
+       * then we use the proxy cert info support from openssl itself.
        * Otherwise we have to use globus-customized proxy cert info support.
        */
       PROXY_CERT_INFO_EXTENSION*  proxycertinfo = NULL;
@@ -552,7 +552,7 @@ static int verify_callback(int ok, X509_STORE_CTX* store_ctx) {
             policy_string = (char*)PROXYPOLICY_get_policy(proxycertinfo->proxypolicy, &length);
             if(policy_string && (length > 0)) {
               vctx->proxy_policy.append(policy_string, length);
-              /* Use : as seperator for policies parsed from different 
+              /* Use : as seperator for policies parsed from different
                  proxy certificate*/
               /* !!!! Taking int account previous proxy_policy.clear() !!!!
                  !!!! it seems to be impossible to have more than one    !!!!

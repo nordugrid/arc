@@ -637,11 +637,11 @@ namespace Arc {
 
   bool Credential::Verify(void) {
     if(verify_cert_chain(cert_, &cert_chain_, &verify_ctx_)) {
-      CredentialLogger.msg(DEBUG, "Certificate verification succeeded");
+      CredentialLogger.msg(VERBOSE, "Certificate verification succeeded");
       verification_valid = true;
       return true;
     }
-    else {CredentialLogger.msg(ERROR, "Certificate verification failed"); LogError(); return false;}
+    else {CredentialLogger.msg(INFO, "Certificate verification failed"); LogError(); return false;}
   }
 
   Credential::Credential() : cert_(NULL), pkey_(NULL), cert_chain_(NULL), proxy_cert_info_(NULL),
