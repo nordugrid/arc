@@ -99,7 +99,7 @@ Obsoletes: nordugrid-arc1-client < 1.0.0
 The NorduGrid is a collaboration aiming at development, maintenance
 and support of the free Grid middleware, known as the Advanced Resource
 Connector (ARC).
-.
+
 For the regular user of any ARC-based computational grid,
 this client package contains (or depends on) all packages
 that are needed to submit jobs, query their status and
@@ -121,7 +121,7 @@ Requires(postun): initscripts
 The NorduGrid is a collaboration aiming at development, maintenance
 and support of the free Grid middleware, known as the Advanced Resource
 Connector (ARC).
-.
+
 The ARC Hosting Environment Daemon (HED). This daemon presents a
 site to other participants on the grid.  An intrinsic component
 of any grid system is a mechanism allowing for the secure stateful
@@ -143,7 +143,7 @@ Requires: %{name}-hed = %{version}
 The NorduGrid is a collaboration aiming at development, maintenance
 and support of the free Grid middleware, known as the Advanced
 Resource Connector (ARC).
-.
+
 CHARON is a remote policy decision point service.  It accepts formatted
 policy decision request and return positive or negative response. When
 running a CHARON (within the HED), the TLS layer can be used for
@@ -160,7 +160,7 @@ Requires: %{name}-hed = %{version}
 The NorduGrid is a collaboration aiming at development, maintenance
 and support of the free Grid middleware, known as the Advanced Resource
 Connector (ARC).
-.
+
 The HOPI service provides a simple implementation of an http(s)
 server. It supports GET and PUT operations. It can be used as a simple
 file transfer service and it is usable via common web browsers and
@@ -176,7 +176,7 @@ Requires: %{name}-hed = %{version}
 The NorduGrid is a collaboration aiming at development, maintenance
 and support of the free Grid middleware, known as the Advanced Resource
 Connector (ARC).
-.
+
 ISIS is the new ARC information system implemented within HED. ISIS
 comes with P2P capabilities and a web-services interface. The new system
 grants grid participants an increase in flexibility, robustness and it
@@ -192,7 +192,7 @@ Requires: %{name}-hed = %{version}
 The NorduGrid is a collaboration aiming at development, maintenance
 and support of the free Grid middleware, known as the Advanced Resource
 Connector (ARC).
-.
+
 The purpose of this service is to provide compilation capability on the
 remote site utilizing its full CPU capacity for parallel compilation
 tasks. The service presumes that the compilation task is described
@@ -209,7 +209,7 @@ Requires: %{name}-hed = %{version}
 The NorduGrid is a collaboration aiming at development, maintenance
 and support of the free Grid middleware, known as the Advanced Resource
 Connector (ARC).
-.
+
 The description of the delegation services is still pending.
 
 %package paul
@@ -222,7 +222,7 @@ Requires: %{name}-hed = %{version}
 The NorduGrid is a collaboration aiming at development, maintenance
 and support of the free Grid middleware, known as the Advanced Resource
 Connector (ARC).
-.
+
 The Paul is a pull-based execution service for computing resources. In
 these case the computing resource can be single SMP computer. The Paul
 uses the iBES protocol to communicate with Scheduler services or any
@@ -240,7 +240,7 @@ Requires: %{name}-hed = %{version}
 The NorduGrid is a collaboration aiming at development, maintenance
 and support of the free Grid middleware, known as the Advanced Resource
 Connector (ARC).
-.
+
 Service Provider is a utility service which is supposed to work together
 with external Identity Provider and user agent (client) to accomplish
 the "SAML2.0 Web SSO Profile" which requires client to provider
@@ -256,7 +256,7 @@ Requires: %{name}-hed = %{version}
 The NorduGrid is a collaboration aiming at development, maintenance
 and support of the free Grid middleware, known as the Advanced Resource
 Connector (ARC).
-.
+
 ARC Short-lived credential service.
 
 %package arex
@@ -277,7 +277,7 @@ Requires(postun): initscripts
 The NorduGrid is a collaboration aiming at development, maintenance
 and support of the free Grid middleware, known as the Advanced
 Resource Connector (ARC).
-.
+
 The ARC Remote EXecution service (AREX) represents those parts of
 the middleware that is responsible for the execution of compute
 jobs and the transfer of input or output data.
@@ -294,7 +294,7 @@ Obsoletes: nordugrid-arc1-plugins-base < 1.0.0
 The NorduGrid is a collaboration aiming at development, maintenance
 and support of the free Grid middleware, known as the Advanced
 Resource Connector (ARC).
-.
+
 ARC base plugins. This includes the Message Chain Components (MCCs) and
 Data Manager Components (DMCs).
 
@@ -309,7 +309,7 @@ Obsoletes: nordugrid-arc1-plugins-globus < 1.0.0
 The NorduGrid is a collaboration aiming at development, maintenance
 and support of the free Grid middleware, known as the Advanced
 Resource Connector (ARC).
-.
+
 ARC Globus plugins. This includes the Globus dependent Data Manager
 Components (DMCs).
 
@@ -328,7 +328,7 @@ Obsoletes: nordugrid-arc1-devel < 1.0.0
 The NorduGrid is a collaboration aiming at development, maintenance
 and support of the free Grid middleware, known as the Advanced
 Resource Connector (ARC).
-.
+
 The ARC middleware's core functionality, the Hosting Environment
 Daemon (HED) can be extended for novel services. Considerable parts
 of a regular installation of a regular installation of the NorduGrid
@@ -347,7 +347,7 @@ Requires: fuse-python
 The NorduGrid is a collaboration aiming at development, maintenance
 and support of the free Grid middleware, known as the Advanced
 Resource Connector (ARC).
-.
+
 Developers with an interest to integrate the some functionality on
 a remote site via an interface compatible with ARC, may find it
 preferable to perform that remote invocation from within Python.
@@ -372,7 +372,7 @@ Obsoletes: nordugrid-arc1-java < 1.0.0
 The NorduGrid is a collaboration aiming at development, maintenance
 and support of the free Grid middleware, known as the Advanced
 Resource Connector (ARC).
-.
+
 Developers with an interest to integrate the some functionality on
 a remote site via an interface compatible with ARC, may find it
 preferable to perform that remote invocation from within Java.
@@ -415,7 +415,7 @@ BuildArch: noarch
 The NorduGrid is a collaboration aiming at development, maintenance
 and support of the free Grid middleware, known as the Advanced
 Resource Connector (ARC).
-.
+
 Reference to the ARC programming API. It is prepared with doxygen.
 
 %prep
