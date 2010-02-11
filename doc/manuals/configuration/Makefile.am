@@ -30,7 +30,7 @@ $(STYLES):
 $(notdir $(SCHEMAS)):
 	$(LN_S) $(top_srcdir)/../$(filter %/$@, $(SCHEMAS)) $@
 
-EXTRA_DIST = $(doc_DATA) $(STYLES) $(docsource)
+EXTRA_DIST = $(doc_DATA) $(STYLES) $(docsource) $(notdir $(SCHEMAS))
 
 CLEANFILES = *.blg *.bbl *.ind *.ilg *.out *.log *.idx *.aux *.toc
 
