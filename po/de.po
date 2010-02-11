@@ -10303,32 +10303,30 @@ msgid ""
 "yet be present in the MDS information, whereas jobs very recently scheduled\n"
 "for deletion can still be present."
 msgstr ""
-"Синхронизация локального списка активных задач с информацией в системе Грид\n"
-"может привести к некоторым несоответствиям: только что запущенные задачи\n"
-"могут быть ещё не зарегистрированы в системе, а только что удалённые задачи\n"
-"могут всё ещё быть зарегистрированы."
+"Synchronisiere lokale Liste aktiver Jobs mit der Information im MDS. Dies mag\n"
+"zu Inkonsistenzen führen. Gerade erst hochgeladene Jobs sind vielleicht noch\n"
+"nicht dem MDB bekannt, während für die Löschung ausgewählte Jobs noch ange-\n"
+"zeigt werden."
 
 #: src/clients/arclib/arcsync.cpp:130
-#, fuzzy
 msgid "Are you sure you want to synchronize your local job list?"
-msgstr ""
+msgstr "Soll die lokale job list wirklich synchronisiert werden?"
 
 #: src/clients/arclib/arcsync.cpp:131
 msgid "y"
-msgstr ""
+msgstr "j"
 
 #: src/clients/arclib/arcsync.cpp:131
 msgid "n"
-msgstr ""
+msgstr "n"
 
 #: src/clients/arclib/arcsync.cpp:135
-#, fuzzy
 msgid "Cancelling synchronization request"
-msgstr ""
+msgstr "Abbruch der Synchronisationsanfrage"
 
 #: src/clients/arclib/arcresub.cpp:46
 msgid "[job ...]\n"
-msgstr ""
+msgstr "[Job ...]\n"
 
 #: src/clients/arclib/arcresub.cpp:67
 #, fuzzy
@@ -10346,16 +10344,15 @@ msgstr ""
 
 #: src/clients/arclib/arcresub.cpp:111
 msgid "broker"
-msgstr ""
+msgstr "Broker"
 
 #: src/clients/arclib/arcresub.cpp:191
 msgid "No jobs to resubmit"
-msgstr ""
+msgstr "Keine erneut hochzuladenen Jobs"
 
 #: src/clients/arclib/arcresub.cpp:207
-#, fuzzy, c-format
 msgid "Trying to resubmit job to %s"
-msgstr ""
+msgstr "Versuche den Job erneut hochzuladen zu %s"
 
 #: src/clients/arclib/arcresub.cpp:212
 #, c-format
@@ -10364,59 +10361,54 @@ msgstr ""
 
 #: src/clients/arclib/arcresub.cpp:226
 msgid "Job submission aborted because no clusters returned any information"
-msgstr ""
+msgstr "Hochladen des Jobs abgebrochen, da keine Cluster entsprechende Informationen anboten"
 
 #: src/clients/arclib/arcresub.cpp:233
 #, fuzzy, c-format
 msgid "Unable to load broker %s"
-msgstr ""
+msgstr "Konnter Broker %s nicht laden"
 
 #: src/clients/arclib/arcresub.cpp:236
 #, c-format
 msgid "Broker %s loaded"
-msgstr ""
+msgstr "Broker %s geladen"
 
 #: src/clients/arclib/arcresub.cpp:250
 msgid "Job submission failed, no more possible targets"
-msgstr ""
+msgstr "Hochladen des Jobs schlug fehl, keine weiteren Ziele verfügbar"
 
 #: src/clients/arclib/arcresub.cpp:259
 #, c-format
 msgid "Submission to %s failed, trying next target"
-msgstr ""
+msgstr "Hochladen zu %s schlug fehl, versuche nächtes Ziel"
 
 #: src/clients/arclib/arcresub.cpp:264
 #, c-format
 msgid "Job resubmitted with new jobid: %s"
-msgstr ""
+msgstr "Job erneut hochgeladen mit neuer Job ID: %s"
 
 #: src/clients/arclib/arcresub.cpp:294
 msgid "Job could not be killed or cleaned"
-msgstr ""
+msgstr "Job konnte nicht abgebrochen oder gelöscht werden"
 
 #: src/clients/arclib/arcclean.cpp:33
 msgid "The arcclean command removes a job from the remote cluster."
-msgstr ""
-"Эта команда используется для удаления результатов работы задач\n"
-"с удалённого компьютера"
+msgstr "Das arcclean Kommando entfernt einen Job von einem entfernten Cluster."
 
 #: src/clients/arclib/arcclean.cpp:66
 msgid "remove the job from the local list of jobs even if the job is not found in the infosys"
-msgstr ""
-"удалить задачу из локального списка, даже если информация о ней \n"
-"отсутствует"
+msgstr "entferne Job aus lokaler Liste selbst wenn der Job dem Infosys nicht bekannt ist"
 
 #: src/clients/arclib/arcsub.cpp:44
 msgid "[filename ...]"
-msgstr ""
+msgstr "[dateiname ...]"
 
 #: src/clients/arclib/arcsub.cpp:45
 msgid ""
 "The arcsub command is used for submitting jobs to grid enabled computing\n"
 "resources."
 msgstr ""
-"Эта команда используется для запуска задач на вычислительные\n"
-"ресурсы Грид"
+"Mit dem arcsub Kommando werden Jobs den entfernten Clustern zugewiesen"
 
 #: src/clients/arclib/arcsub.cpp:75
 msgid "jobdescription string describing the job to be submitted"
@@ -10434,7 +10426,7 @@ msgstr ""
 #: src/clients/credentials/arcproxy.cpp:192
 #: src/clients/charon/arcdecision.cpp:54
 msgid "string"
-msgstr ""
+msgstr "Zeichenkette"
 
 #: src/clients/arclib/arcsub.cpp:82
 msgid "jobdescription file describing the job to be submitted"
@@ -10449,35 +10441,33 @@ msgid "No job description input specified"
 msgstr ""
 
 #: src/clients/arclib/arcsub.cpp:302
-#, c-format
 msgid "Job submitted with jobid: %s"
-msgstr ""
+msgstr "Job hochgeladen mit Job ID: %s"
 
 #: src/clients/arclib/arcsub.cpp:310
 msgid "Job submission summary:"
 msgstr ""
 
 #: src/clients/arclib/arcsub.cpp:313
-#, fuzzy, c-format
 msgid "%d of %d jobs were submitted"
-msgstr ""
+msgstr "%d von %s Jobs wurden hochgeladen"
 
 #: src/clients/arclib/arcsub.cpp:317
 #, fuzzy, c-format
 msgid "The following %d were not submitted"
-msgstr ""
+msgstr "Die folgenden %d wurden nicht hochgeladen"
 
 #: src/clients/arclib/arcmigrate.cpp:44
 msgid ""
 "The arcmigrate command is used for migrating queud jobs to another cluster.\n"
 "Note that migration is only supported between ARC1 clusters."
 msgstr ""
-"Команда arcmigrate используется для миграции ожидающих задач на другой ресурс.\n"
-"Миграция поддерживается только между службами A-REX."
+"Das arcmigrate Kommando dient zur Verteilung von bereits hochgeladenen Jobs zwischen Clustern. "
+"Diese Migration wird nur zwischen ARC1 Clustern unterstützt."
 
 #: src/clients/arclib/arcmigrate.cpp:57
 msgid "force migration, ignore kill failure"
-msgstr ""
+msgstr "erzwinge Migration, ignoriere ein Fehlschlagen des Abbruchs bereits laufender Jobs"
 
 #: src/clients/arclib/arcmigrate.cpp:68
 msgid "explicitly select or reject a cluster holding queued jobs"
