@@ -6,11 +6,11 @@ debug=ERROR
 
 port=60001
 
-cacert=/etc/arc-security/certificates
-host_cert=/etc/arc-security/hostcert.pem
-host_key=/etc/arc-security/hostkey.pem
-client_cert=/etc/arc-security/hostcert.pem
-client_key=/etc/arc-security/hostkey.pem
+cacert=/etc/grid-security/certificates
+host_cert=/etc/grid-security/hostcert.pem
+host_key=/etc/grid-security/hostkey.pem
+client_cert=/etc/grid-security/hostcert.pem
+client_key=/etc/grid-security/hostkey.pem
 
 [register]
 index_server1=https://hostname:60000/ISIS
