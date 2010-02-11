@@ -1,3 +1,5 @@
+SUBDIRS=schema
+
 pkglib_LTLIBRARIES = libmccgsi.la
 
 libmccgsi_la_SOURCES  = MCCGSI.cpp PayloadGSIStream.cpp \

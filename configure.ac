@@ -1622,6 +1622,7 @@ AC_CONFIG_FILES([Makefile
                  src/hed/mcc/tls/Makefile
                  src/hed/mcc/tls/schema/Makefile
                  src/hed/mcc/gsi/Makefile
+                 src/hed/mcc/gsi/schema/Makefile
                  src/hed/mcc/msgvalidator/Makefile
                  src/hed/mcc/msgvalidator/schema/Makefile
                  src/hed/acc/Makefile
