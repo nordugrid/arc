@@ -399,7 +399,7 @@ int main(int argc,char** argv) {
   usercfg.UtilsDirPath(control_dir);
   
   Arc::DataMover mover;
-  mover.retry(false);
+  mover.retry(true);
   mover.secure(secure);
   mover.passive(passive);
   mover.verbose(true); // statistics will be shown if logging is higher than VERBOSE
