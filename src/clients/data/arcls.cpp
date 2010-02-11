@@ -13,6 +13,7 @@
 #include <arc/StringConv.h>
 #include <arc/URL.h>
 #include <arc/UserConfig.h>
+#include <arc/credential/Credential.h>
 #include <arc/data/DataHandle.h>
 #include <arc/OptionParser.h>
 
@@ -44,6 +45,11 @@ bool arcls(const Arc::URL& dir_url,
     return r;
   }
 
+  if (dir_url.IsSecureProtocol() && !Arc::Credential::IsCredentialsValid(usercfg)) {
+    logger.msg(Arc::ERROR, "Unable to list content of %s: No valid credentials found", dir_url.str());
+    return false;
+  }
+
   Arc::DataHandle url(dir_url, usercfg);
   if (!url) {
     logger.msg(Arc::ERROR, "Unsupported url given");
@@ -56,7 +62,7 @@ bool arcls(const Arc::URL& dir_url,
     if (files.size() == 0) {
       logger.msg(Arc::ERROR, "Failed listing metafiles");
       if (res.Retryable())
-        logger.msg(Arc::ERROR, "This seems like a temporary error, please try again later");  
+        logger.msg(Arc::ERROR, "This seems like a temporary error, please try again later");
       return false;
     }
     logger.msg(Arc::INFO, "Warning: "
@@ -195,10 +201,6 @@ int main(int argc, char **argv) {
     std::cout << Arc::IString("%s version %s", "arcls", VERSION) << std::endl;
     return 0;
   }
-
-  // Proxy check
-  //if (!usercfg.CheckProxy())
-  //  return 1;
 
   if (params.size() != 1) {
     logger.msg(Arc::ERROR, "Wrong number of parameters specified");

@@ -43,13 +43,13 @@ namespace Arc {
      The 'protocol' and 'host' parts are treated as case-insensitive and
      to avoid confusion are converted to lowercase in constructor.
      Note that 'path' is always converted to absolute path in constructor.
-     Meaning of 'absolute' may depend upon URL type. For generic URL and 
+     Meaning of 'absolute' may depend upon URL type. For generic URL and
      local POSIX file paths that means path starts from / like
        /path/to/file
-     For Windows paths absolute path may look like 
+     For Windows paths absolute path may look like
        C:\path\to\file
      It is important to note that path still can be empty.
-     For referencing local file using absolute path on POSIX filesystem 
+     For referencing local file using absolute path on POSIX filesystem
      one may use either
        file:///path/to/file
      or
@@ -94,6 +94,9 @@ namespace Arc {
 
     /** Changes the protocol of the URL. */
     void ChangeProtocol(const std::string& newprot);
+
+    /** Indicates whether the protocol is secure or not. */
+    bool IsSecureProtocol() const;
 
     /** Returns the username of the URL. */
     const std::string& Username() const;
@@ -206,7 +209,7 @@ namespace Arc {
     /** Check if instance holds valid URL */
     operator bool() const;
     bool operator!() const;
-    
+
     /** Parse a string of options separated by separator into an attribute->value map */
     std::map<std::string, std::string> ParseOptions(const std::string& optstring,
                                                     char separator);
@@ -263,7 +266,7 @@ namespace Arc {
 
     /** flag to describe validity of URL */
     bool valid;
-    
+
     /** a private method that converts an ldap basedn to a path. */
     static std::string BaseDN2Path(const std::string&);
 
@@ -318,7 +321,7 @@ namespace Arc {
   /// Class to iterate through elements of path
   class PathIterator {
   public:
-    /** Constructor accepts path and stores it internally. If 
+    /** Constructor accepts path and stores it internally. If
       end is set to false iterator is pointing at first element
       in path. Otherwise selected element is one before last. */
     PathIterator(const std::string& path, bool end = false);

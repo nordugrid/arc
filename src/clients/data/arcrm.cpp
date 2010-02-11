@@ -12,6 +12,7 @@
 #include <arc/StringConv.h>
 #include <arc/URL.h>
 #include <arc/UserConfig.h>
+#include <arc/credential/Credential.h>
 #include <arc/data/DataHandle.h>
 #include <arc/data/DataMover.h>
 #include <arc/OptionParser.h>
@@ -42,6 +43,11 @@ bool arcrm(const Arc::URL& file_url,
     return r;
   }
 
+  if (file_url.IsSecureProtocol() && !Arc::Credential::IsCredentialsValid(usercfg)) {
+    logger.msg(Arc::ERROR, "Unable to remove file (%s): No valid credentials found", file_url.str());
+    return false;
+  }
+
   Arc::DataHandle url(file_url, usercfg);
   if (!url) {
     logger.msg(Arc::ERROR, "Unsupported url given");
@@ -56,7 +62,7 @@ bool arcrm(const Arc::URL& file_url,
     if (res.Retryable())
       logger.msg(Arc::ERROR, "This seems like a temporary error, please try again later");
     return false;
-  }    
+  }
   return true;
 }
 
@@ -119,10 +125,6 @@ int main(int argc, char **argv) {
     std::cout << Arc::IString("%s version %s", "arcrm", VERSION) << std::endl;
     return 0;
   }
-
-  // Proxy check
-  //if (!usercfg.CheckProxy())
-  //  return 1;
 
   if (params.size() != 1) {
     logger.msg(Arc::ERROR, "Wrong number of parameters specified");

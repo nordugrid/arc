@@ -16,6 +16,7 @@
 #include <arc/URL.h>
 #include <arc/User.h>
 #include <arc/UserConfig.h>
+#include <arc/credential/Credential.h>
 #include <arc/data/FileCache.h>
 #include <arc/data/DataHandle.h>
 #include <arc/data/DataMover.h>
@@ -65,7 +66,7 @@ bool arcregister(const Arc::URL& source_url,
   if (!destination_url) {
     logger.msg(Arc::ERROR, "Invalid URL: %s", destination_url.str());
     return false;
-  }                  
+  }
   if (source_url.Protocol() == "urllist" &&
       destination_url.Protocol() == "urllist") {
     std::list<Arc::URL> sources = Arc::ReadURLList(source_url);
@@ -125,6 +126,10 @@ bool arcregister(const Arc::URL& source_url,
 
   if (destination_url.Path()[destination_url.Path().length() - 1] == '/') {
     logger.msg(Arc::ERROR, "Fileset registration is not supported yet");
+    return false;
+  }
+  if ((source_url.IsSecureProtocol() || destination_url.IsSecureProtocol()) && !Arc::Credential::IsCredentialsValid(usercfg)) {
+    logger.msg(Arc::ERROR, "Unable to register file (%s): No valid credentials found", source_url.str());
     return false;
   }
   Arc::DataHandle source(source_url, usercfg);
@@ -212,7 +217,7 @@ bool arccp(const Arc::URL& source_url_,
   std::string cache_path;
   std::string cache_data_path;
   std::string id = "<ngcp>";
-  
+
   if (timeout <= 0)
     timeout = 300; // 5 minute default
   if (tries < 0)
@@ -255,7 +260,7 @@ bool arccp(const Arc::URL& source_url_,
     bool r = true;
     for (std::list<Arc::URL>::iterator source = sources.begin();
          source != sources.end(); source++)
-      if(!arccp(*source, destination_url, cache_dir, usercfg, secure, 
+      if(!arccp(*source, destination_url, cache_dir, usercfg, secure,
                 passive, force_meta, recursion, tries, verbose, timeout))
         r = false;
     return r;
@@ -311,6 +316,10 @@ bool arccp(const Arc::URL& source_url_,
                    "Fileset copy for this kind of source is not supported");
         return false;
       }
+      if ((source_url.IsSecureProtocol() || destination_url.IsSecureProtocol()) && !Arc::Credential::IsCredentialsValid(usercfg)) {
+        logger.msg(Arc::ERROR, "Unable to copy file %s: No valid credentials found", source_url.str());
+        return false;
+      }
       Arc::DataHandle source(source_url, usercfg);
       if (!source) {
         logger.msg(Arc::ERROR, "Unsupported source url: %s", source_url.str());
@@ -364,7 +373,7 @@ bool arccp(const Arc::URL& source_url_,
         }
         Arc::User cache_user;
         Arc::FileCache cache;
-        if (!cache_dir.empty()) cache = Arc::FileCache(cache_dir+" .", "", cache_user.get_uid(), cache_user.get_gid());  
+        if (!cache_dir.empty()) cache = Arc::FileCache(cache_dir+" .", "", cache_user.get_uid(), cache_user.get_gid());
         Arc::DataStatus res = mover.Transfer(*source, *destination, cache, Arc::URLMap(),
                                              0, 0, 0, timeout);
         if (!res.Passed()) {
@@ -410,6 +419,10 @@ bool arccp(const Arc::URL& source_url_,
         }
       return r;
     }
+  }
+  if ((source_url.IsSecureProtocol() || destination_url.IsSecureProtocol()) && !Arc::Credential::IsCredentialsValid(usercfg)) {
+    logger.msg(Arc::ERROR, "Unable to copy file %s: No valid credentials found", source_url.str());
+    return false;
   }
   Arc::DataHandle source(source_url, usercfg);
   Arc::DataHandle destination(destination_url, usercfg);
@@ -568,10 +581,6 @@ int main(int argc, char **argv) {
     std::cout << Arc::IString("%s version %s", "arccp", VERSION) << std::endl;
     return 0;
   }
-
-  // Proxy check
-  //if (!usercfg.CheckProxy())
-  //  return 1;
 
   if (params.size() != 2) {
     logger.msg(Arc::ERROR, "Wrong number of parameters specified");

@@ -166,11 +166,11 @@ namespace Arc {
       return;
     }
 
-    // RFC says protocols should be lowercase and uppercase 
+    // RFC says protocols should be lowercase and uppercase
     // must be converted to lowercase for consistency
     protocol = lower(url.substr(0, pos));
 
-    // Checking if protocol followed by host/authority part 
+    // Checking if protocol followed by host/authority part
     // or by path directly
     if((url[pos+1] != '/') || (url[pos+2] != '/')) {
       // No host part
@@ -178,7 +178,7 @@ namespace Arc {
       pos += 1;
       pos2 = pos; // path start position
       path = url.substr(pos2);
-      // This must be only path - we can accept path only for 
+      // This must be only path - we can accept path only for
       // limited set of protocols
       if ((protocol == "file" || protocol == "urllist")) {
         if (!Glib::path_is_absolute(path)) {
@@ -188,7 +188,7 @@ namespace Arc {
         }
         return;
       } else if (protocol == "arc") {
-        // TODO: It is not defined how arc protocol discovers 
+        // TODO: It is not defined how arc protocol discovers
         // entry point in general case.
         // For same reason let's assume path must be always
         // absolute.
@@ -203,7 +203,7 @@ namespace Arc {
         return;
       }
     } else {
-      // There is host/authority part in this URL. That also 
+      // There is host/authority part in this URL. That also
       // means path is absolute if present
       pos += 3;
 
@@ -270,7 +270,7 @@ namespace Arc {
         path = "";
       }
       else if (pos2 == pos) {
-        // Empty host and non-empty absolute path 
+        // Empty host and non-empty absolute path
         host = "";
         path = url.substr(pos2);
       }
@@ -442,6 +442,18 @@ namespace Arc {
 
   void URL::ChangeProtocol(const std::string& newprot) {
     protocol = lower(newprot);
+  }
+
+  bool URL::IsSecureProtocol() const {
+    return protocol == "gsiftp" ||
+           protocol == "https" ||
+           protocol == "httpg" ||
+           protocol == "rc" ||
+           protocol == "rls" ||
+           protocol == "srm" ||
+           protocol == "arc" ||
+           protocol == "fireman" ||
+           protocol == "lfc";
   }
 
   const std::string& URL::Username() const {
@@ -705,7 +717,7 @@ namespace Arc {
 
     if (!metadataoptions.empty())
       urlstr += ':' + OptionString(metadataoptions, ':');
-      
+
     return urlstr;
   }
 
@@ -841,7 +853,7 @@ namespace Arc {
       basedn += newpath.substr(pos2 + 1, pos - pos2 - 1) + ", ";
       pos = pos2;
     }
-    
+
     if (pos2 == std::string::npos)
       basedn += newpath.substr(0, pos);
     else
