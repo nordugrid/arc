@@ -180,7 +180,7 @@ namespace Arc {
     }
     else {//V_ASN1_GENERALIZEDTIME
       t_str.append((char*)(s->data));
-    } 
+    }
     return Time(t_str);
   }
 
@@ -256,7 +256,7 @@ namespace Arc {
       int len;
       len = BIO_get_mem_data(bio, (unsigned char *) &bio_str);
       char firstbyte;
-      if(len>0) {  
+      if(len>0) {
         firstbyte = bio_str[0];
         if(firstbyte==48)  {}
         else { format = CRED_PEM; }
@@ -565,7 +565,7 @@ namespace Arc {
     // At least in some versions of OpenSSL functions manupulating
     // global lists seems to be not thread-safe despite locks
     // installed (tested for 0.9.7). Hence it is safer to protect
-    // such calls. 
+    // such calls.
     // It is also good idea to protect proxy_init_ too.
 
     Glib::Mutex::Lock lock(lock_);
@@ -602,8 +602,8 @@ namespace Arc {
     if(OBJ_txt2nid(LIMITED_PROXY_OID) == NID_undef) {
       OBJ_create(LIMITED_PROXY_OID, LIMITED_PROXY_SN, LIMITED_PROXY_LN);
     }
-    // This library provides methods and objects which when registred in 
-    // global OpenSSL lists can't be unregistred anymore. Hence it must not 
+    // This library provides methods and objects which when registred in
+    // global OpenSSL lists can't be unregistred anymore. Hence it must not
     // be allowed to unload.
     if(!PersistentLibraryInit("modcredential")) {
       CredentialLogger.msg(WARNING, "Failed to lock arccredential library in memory");
@@ -653,9 +653,9 @@ namespace Arc {
   }
 
   Credential::Credential(int keybits) : cert_(NULL), pkey_(NULL), cert_chain_(NULL), proxy_cert_info_(NULL),
-	  start_(Time()), lifetime_(Period("PT12H")),
-	  req_(NULL), rsa_key_(NULL), signing_alg_((EVP_MD*)EVP_sha1()), keybits_(keybits),
-	  extensions_(NULL) {
+    start_(Time()), lifetime_(Period("PT12H")),
+    req_(NULL), rsa_key_(NULL), signing_alg_((EVP_MD*)EVP_sha1()), keybits_(keybits),
+    extensions_(NULL) {
 
     OpenSSLInit();
     //EVP_add_digest(EVP_sha1());
@@ -871,7 +871,7 @@ namespace Arc {
   }
 
   Credential::Credential(const std::string& certfile, const std::string& keyfile,
-        const std::string& cadir, const std::string& cafile, 
+        const std::string& cadir, const std::string& cafile,
         const std::string& passphrase4key, const bool is_file) :
         cacertfile_(cafile), cacertdir_(cadir), certfile_(certfile), keyfile_(keyfile),
         cert_(NULL), pkey_(NULL), cert_chain_(NULL), proxy_cert_info_(NULL),
@@ -901,22 +901,17 @@ namespace Arc {
         if(keyfile.empty()) {
           //Detect if the certificate file/string contains private key.
           //If the key file is absent, and the private key is not contained inside
-          //certificate file/string, then the certificate file will not 
+          //certificate file/string, then the certificate file will not
           //be parsed for private key.
           //Note this detection only applies to PEM file
           std::string keystr;
-          if(Glib::file_test(certfile,Glib::FILE_TEST_EXISTS)) {      
-            std::ifstream in(certfile.c_str(), std::ios::in);
-            if (!in) {
-              CredentialLogger.msg(ERROR,"Can not read certificate file: %s", certfile);
-              throw CredentialError("Can not read certificate file");
-            }
-            std::getline<char>(in, keystr, 0);
-            in.close();
-          }
-          else {
-            keystr = certfile;
-          }
+          // Since the certfile file has been loaded in the call to
+          // loadCertificateFile, it is redundant to check if it exist.
+          // loadCertificateFile will throw an exception if the file does not
+          // exist.
+          std::ifstream in(certfile.c_str(), std::ios::in);
+          std::getline<char>(in, keystr, 0);
+          in.close();
           if(keystr.find("BEGIN RSA PRIVATE KEY") != std::string::npos)
             loadKeyFile(certfile, pkey_, passphrase4key);
         }
@@ -1074,7 +1069,7 @@ namespace Arc {
         LogError();
         if(prime) BN_free(prime);
         if(rsa_key) RSA_free(rsa_key);
-        return false; 
+        return false;
       }
     }
     else {
@@ -1113,7 +1108,7 @@ namespace Arc {
                     CredentialLogger.msg(ERROR, "PEM_write_bio_X509_REQ failed");
                     LogError();
                     res = false;
-                  } 
+                  }
                   else {
                     rsa_key_ = rsa_key;
                     rsa_key = NULL;
@@ -1717,7 +1712,7 @@ err:
     time_t end_t = end.GetTime();
     if( X509_cmp_time(X509_get_notAfter(issuer), &end_t) < 0) {
       X509_set_notAfter(tosign, X509_get_notAfter(issuer));
-    } 
+    }
 */
 #else
     if( X509_cmp_time(X509_get_notAfter(issuer), &t2) > 0) {
@@ -1727,7 +1722,7 @@ err:
       X509_set_notAfter(tosign, X509_get_notAfter(issuer));
     }
 #endif
- 
+
     return true;
   }
 
@@ -2720,7 +2715,7 @@ error:
     return true;
   }
 
-  
+
   Credential::~Credential() {
     if(cert_) X509_free(cert_);
     if(pkey_) EVP_PKEY_free(pkey_);
