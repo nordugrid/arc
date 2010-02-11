@@ -56,12 +56,27 @@ Arc::MCC_Status ARexService::Get(Arc::Message& inmsg,Arc::Message& outmsg,ARexGM
       line+="</A>\r\n";
       html+=line;
     };
-    html+="</UL>\r\n</BODY>\r\n</HTML>";
+    html+="</UL>\r\n";
+    // Service description access
+    html+="<A HREF=\""+config.Endpoint()+"/?info>SERVICE DESCRIPTION</A>";
+    html+="</BODY>\r\n</HTML>";
     Arc::PayloadRaw* buf = NULL;
     buf=new Arc::PayloadRaw;
     if(buf) buf->Insert(html.c_str(),0,html.length());
     outmsg.Payload(buf);
     outmsg.Attributes()->set("HTTP:content-type","text/html");
+    return Arc::MCC_Status(Arc::STATUS_OK);
+  };
+  if(id == "?info") {
+    int h = infodoc_.OpenDocument();
+    if(h == -1) return Arc::MCC_Status();
+    Arc::MessagePayload* payload = newFileRead(h);
+    if(!payload) {
+      ::close(h);
+      return Arc::MCC_Status();
+    };
+    outmsg.Payload(payload);
+    outmsg.Attributes()->set("HTTP:content-type","text/xml");
     return Arc::MCC_Status(Arc::STATUS_OK);
   };
   ARexJob job(id,config,logger_);
