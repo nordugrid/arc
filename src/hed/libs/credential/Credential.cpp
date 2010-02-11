@@ -354,6 +354,14 @@ namespace Arc {
     start_ = start_time;
   }
 
+  bool Credential::IsCredentialsValid(const UserConfig& usercfg) {
+    Credential cred(!usercfg.ProxyPath().empty() ? usercfg.ProxyPath() : usercfg.CertificatePath(),
+                    !usercfg.ProxyPath().empty() ? ""                  : usercfg.KeyPath(),
+                    usercfg.CACertificatesDirectory(), usercfg.CACertificatePath());
+    Time t;
+    return cred.verification_valid && cred.GetStartTime() < t && t < cred.GetEndTime();
+  }
+
   class AutoBIO {
    private:
     BIO* bio_;

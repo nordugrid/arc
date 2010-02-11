@@ -14,6 +14,7 @@
 
 #include <arc/Logger.h>
 #include <arc/DateTime.h>
+#include <arc/UserConfig.h>
 
 #include <arc/credential/CertUtil.h>
 
@@ -58,8 +59,8 @@ class Credential {
     Credential();
 
     /** Constructor with user-defined keylength. Needed for creation of EE certs, since some
-	 * applications will only support keys with a certain minimum length > 1024
-	 */
+    * applications will only support keys with a certain minimum length > 1024
+    */
     Credential(int keybits);
 
     virtual ~Credential();
@@ -111,6 +112,8 @@ class Credential {
 
     /**Initiate nid for proxy certificate extension*/
     static void InitProxyCertInfo(void);
+
+    static bool IsCredentialsValid(const UserConfig& usercfg);
 
     /**General method for adding a new nid into openssl's global const*/
     void AddCertExtObj(std::string& sn, std::string& oid);
@@ -178,7 +181,7 @@ class Credential {
     X509* GetCert(void);
 
     /** Get the certificate request, if there is any */
-	X509_REQ* GetCertReq(void);
+    X509_REQ* GetCertReq(void);
 
     /**Get the certificate chain attached to this object*/
     STACK_OF(X509)* GetCertChain(void);
@@ -188,7 +191,7 @@ class Credential {
      */
     int GetCertNumofChain(void);
 
-    /**Get the certificate format, PEM PKCS12 or DER 
+    /**Get the certificate format, PEM PKCS12 or DER
     * BIO could be memory or file, they should be processed
     * differently.
     */
@@ -277,11 +280,11 @@ class Credential {
     bool AddExtension(std::string name, char** binary, bool crit = false);
 
     /**Generate an EEC request, based on the keybits and signing
-	  * algorithm information inside this object
-	  * output the certificate request to output BIO
-	  *
-	  * The user will be asked for a private key password
-	  */
+    * algorithm information inside this object
+    * output the certificate request to output BIO
+    *
+    * The user will be asked for a private key password
+    */
     bool GenerateEECRequest(BIO* reqbio, BIO* keybio, std::string dn = "");
 
     /**Generate an EEC request, output the certificate request to a string*/
