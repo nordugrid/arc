@@ -56,6 +56,19 @@
             </pdp:PolicyStore>
           </PDP>
         </SecHandler>
+        <infosys:InfoRegister>
+            <infosys:Period inisections="register isis" initag="period">PT75S</infosys:Period>
+            <infosys:Endpoint inisections="isis" initag="endpoint">https://localhost:50000/isis1</infosys:Endpoint>
+            <infosys:Expiration inisections="register isis" initag="expiration">PT1M</infosys:Expiration>
+            <infosys:Registrar>
+                <infosys:URL inisections="register isis" initag="index_server">https://localhost:50000/isis1</infosys:URL>
+                <infosys:ServiceID inisections="isis" initag="serviceid">https://localhost:50000/isis1</infosys:ServiceID>
+                <infosys:KeyPath inisections="common isis" initag="client_key">>/etc/grid-security/hostkey.pem</infosys:KeyPath>
+                <infosys:CertificatePath inisections="common isis" initag="client_cert">>/etc/grid-security/hostcert.pem</infosys:CertificatePath>
+                <infosys:CACertificatesDir inisections="common isis" initag="cacert">>/etc/grid-security/certificates</infosys:CACertificatesDir>
+                <infosys:Retry inisections="register isis" initag="retry">4</infosys:Retry>
+            </infosys:Registrar> 
+        </infosys:InfoRegister>
     </Service>
   </Chain>
 </ArcConfig>
