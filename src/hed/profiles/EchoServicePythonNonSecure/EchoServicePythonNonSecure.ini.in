@@ -1,4 +1,4 @@
-profile=@datadir@/@PACKAGE@profiles/EchoServicePythonNonSecure.xml
+profile=@datadir@/@PACKAGE@/profiles/EchoServicePythonNonSecure.xml
 
 pidfile=/tmp/arched.pid
 logfile=/tmp/arched.log

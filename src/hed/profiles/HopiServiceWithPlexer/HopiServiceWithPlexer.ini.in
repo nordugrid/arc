@@ -1,4 +1,4 @@
-profile=@datadir@/@PACKAGE@profiles/HopiServiceWithPlexer.xml
+profile=@datadir@/@PACKAGE@/profiles/HopiServiceWithPlexer.xml
 
 pidfile=/tmp/arched.pid
 logfile=/tmp/arched.log

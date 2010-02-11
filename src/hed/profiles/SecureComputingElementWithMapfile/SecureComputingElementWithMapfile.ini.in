@@ -2,7 +2,7 @@
 # Where is _this_ file located?
 gmconfig=/etc/arc.conf
 
-profile=@datadir@/@PACKAGE@profiles/SecureComputingElementWithMapfile.xml
+profile=@datadir@/@PACKAGE@/profiles/SecureComputingElementWithMapfile.xml
 
 debugLevel=VERBOSE
 pidfile=/tmp/arched.pid

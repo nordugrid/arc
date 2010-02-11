@@ -1,4 +1,4 @@
-profile=@datadir@/@PACKAGE@profiles/EchoServiceX509Token.xml
+profile=@datadir@/@PACKAGE@/profiles/EchoServiceX509Token.xml
 
 pidfile=/tmp/arched.pid
 logfile=/tmp/arched.log

@@ -1,4 +1,4 @@
-profile=@datadir@/@PACKAGE@profiles/CheloniaAllServicesReplicatedAHash.xml
+profile=@datadir@/@PACKAGE@/profiles/CheloniaAllServicesReplicatedAHash.xml
 
 pidfile=/tmp/arched.pid
 logfile=/var/log/arched.log
