@@ -13,3 +13,4 @@ debian/tmp/usr/lib/arc/libmccmsgvalidator.so
 debian/tmp/usr/lib/arc/libmccsoap.so
 debian/tmp/usr/lib/arc/libmcctcp.so
 debian/tmp/usr/lib/arc/libmcctls.so
+debian/tmp/usr/lib/arc/*.apd

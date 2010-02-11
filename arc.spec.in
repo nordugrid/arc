@@ -703,7 +703,7 @@ exit 0
 %{_libdir}/%{pkgdir}/libmccsoap.so
 %{_libdir}/%{pkgdir}/libmcctcp.so
 %{_libdir}/%{pkgdir}/libmcctls.so
-#%{_libdir}/%{pkgdir}/*.apd
+%{_libdir}/%{pkgdir}/*.apd
 
 %files plugins-globus
 %defattr(-,root,root,-)
