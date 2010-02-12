@@ -3,7 +3,6 @@
 # export DH_VERBOSE=1
 
 export DH_OPTIONS
-export LANG=C
 
 DEB_HOST_GNU_TYPE   ?= $(shell dpkg-architecture -qDEB_HOST_GNU_TYPE)
 DEB_BUILD_GNU_TYPE  ?= $(shell dpkg-architecture -qDEB_BUILD_GNU_TYPE)
@@ -26,7 +25,7 @@ configure: configure-stamp
 
 configure-stamp:
 	dh_testdir
-	LANG=C CFLAGS="$(CFLAGS)" LDFLAGS="-Wl,-z,defs" \
+	CFLAGS="$(CFLAGS)" LDFLAGS="-Wl,-z,defs" \
 	./configure --host=$(DEB_HOST_GNU_TYPE) \
 		    --build=$(DEB_BUILD_GNU_TYPE) \
 		    --prefix=/usr \
@@ -44,15 +43,15 @@ build-arch: build-arch-stamp
 	:
 
 build-arch-stamp: configure-stamp
-	LANG=C $(MAKE)
-	LANG=C $(MAKE) check
+	$(MAKE)
+	$(MAKE) check
 	touch $@
 
 build-indep: build-indep-stamp
 	:
 
 build-indep-stamp: configure-stamp
-	LANG=C $(MAKE) doc
+	$(MAKE) doc
 	touch $@
 
 clean:
@@ -78,23 +77,12 @@ install-arch: build-arch-stamp
 	dh_testdir
 	dh_testroot
 	dh_clean -k -a
-	LANG=C $(MAKE) DESTDIR=$(CURDIR)/debian/tmp install
+	$(MAKE) DESTDIR=$(CURDIR)/debian/tmp install
 
 	rm -f $(CURDIR)/debian/tmp/usr/lib/arc/lib*.la
 	rm -f $(CURDIR)/debian/tmp/usr/lib/arc/lib*.a
 	rm -rf $(CURDIR)/debian/tmp/usr/share/doc/arc
 	rm -f $(CURDIR)/debian/tmp/usr/share/arc/examples/storage_service.xml.example
-
-	cd $(CURDIR)/debian/tmp; \
-	chrpath -d ./usr/lib/arc/downloader ./usr/lib/arc/gm-jobs \
-		./usr/lib/arc/gm-kick ./usr/lib/arc/libarex.so \
-		./usr/lib/arc/uploader
-
-	cd $(CURDIR)/debian/tmp; \
-	chrpath -d `find ./usr/bin/ \! -name chelonia -a \! -name arcfs -a -type f` ./usr/sbin/arched
-
-	cd $(CURDIR)/debian/tmp; \
-	chrpath -d `find ./usr/lib/ -name "*.so*" -a -type f`
 
 	mv debian/tmp/etc/init.d/a-rex debian/nordugrid-arc-nox-arex.a-rex.init
 
