@@ -348,7 +348,13 @@ int main(int argc, char *argv[]) {
     Arc::Credential holder(proxy_path, "", ca_dir, "");
     std::cout << Arc::IString("Subject: %s", holder.GetDN()) << std::endl;
     std::cout << Arc::IString("Identity: %s", holder.GetIdentityName()) << std::endl;
-    std::cout << Arc::IString("Timeleft for proxy: %s", (holder.GetEndTime() - Arc::Time()).istr()) << std::endl;
+    Arc::Time now;
+    if (holder.GetEndTime() < now)
+      std::cout << Arc::IString("Time left for proxy: Proxy expired") << std::endl;
+    else if (holder.GetVerification())
+      std::cout << Arc::IString("Time left for proxy: %s", (holder.GetEndTime() - now).istr()) << std::endl;
+    else
+      std::cout << Arc::IString("Time left for proxy: Proxy not valid") << std::endl;
     std::cout << Arc::IString("Proxy path: %s", proxy_path) << std::endl;
     std::cout << Arc::IString("Proxy type: %s", certTypeToString(holder.GetType())) << std::endl;
 
@@ -625,9 +631,9 @@ int main(int argc, char *argv[]) {
     std::cout << Arc::IString("Your identity: %s", signer_tmp.GetDN()) << std::endl;
 
     Arc::Credential signer(cert_path, key_path, ca_dir, "");
-    if((signer.GetVerification()) == false) 
+    if((signer.GetVerification()) == false)
       return EXIT_FAILURE;
-   
+
     std::string private_key, signing_cert, signing_cert_chain;
 
     Arc::Time start = constraints["validityStart"].empty() ? Arc::Time() : Arc::Time(constraints["validityStart"]);
@@ -782,7 +788,7 @@ int main(int argc, char *argv[]) {
         voms_line = (*it).second;
         int count = server_command_map.count(voms_server);
         logger.msg(Arc::DEBUG, "There are %d commands to the same voms server %s\n", count, voms_server.c_str());
- 
+
         std::multimap<std::string, std::string>::iterator command_it;
         for(command_it = server_command_map.equal_range(voms_server).first; command_it!=server_command_map.equal_range(voms_server).second; ++command_it) {
           command_list.push_back((*command_it).second);
