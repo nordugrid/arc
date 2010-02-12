@@ -129,8 +129,7 @@ namespace Arc {
   }
 
   DataStatus DataPointARC::ListFiles(std::list<FileInfo>& files, bool, bool, bool) {
-    std::string host = url.Host();
-    if (host.size() != 0){
+    if (!url.Host().empty()){
       logger.msg(ERROR, "Hostname is not implemented for arc protocol");
       return DataStatus::UnimplementedError;
     }
@@ -217,9 +216,7 @@ namespace Arc {
   }
 
   DataStatus DataPointARC::StartReading(DataBuffer& buf) {
-    std::string host = url.Host();
-    std::cerr << url.Host() << std::endl;
-    if (host.size() != 0){
+    if (!url.Host().empty()){
       logger.msg(ERROR, "Hostname is not implemented for arc protocol");
       return DataStatus::UnimplementedError;
     }
@@ -313,8 +310,7 @@ namespace Arc {
 
   DataStatus DataPointARC::StartWriting(DataBuffer& buf,
                                         DataCallback *callback) {
-    std::string host = url.Host();
-    if (host.size() != 0){
+    if (!url.Host().empty()){
       logger.msg(ERROR, "Hostname is not implemented for arc protocol");
       return DataStatus::UnimplementedError;
     }
@@ -484,8 +480,7 @@ namespace Arc {
   }
 
   DataStatus DataPointARC::Check() {
-    std::string host = url.Host();
-    if (host.size() != 0){
+    if (!url.Host().empty()){
       logger.msg(ERROR, "Hostname is not implemented for arc protocol");
       return DataStatus::CheckError;
     }
@@ -494,7 +489,7 @@ namespace Arc {
 
   DataStatus DataPointARC::Remove() {
     std::string host = url.Host();
-    if (host.size() != 0){
+    if (!url.Host().empty()){
       logger.msg(ERROR, "Hostname is not implemented for arc protocol");
       return DataStatus::UnimplementedError;
     }
