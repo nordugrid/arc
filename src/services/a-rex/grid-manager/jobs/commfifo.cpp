@@ -137,9 +137,9 @@ bool SignalFIFO(const JobUser& user) {
 
 bool PingFIFO(const JobUser& user) {
   int fd = OpenFIFO(user);
+  // If nothing is listening open() will fail
+  // so there is no need to send anything.
   if(fd == -1) return false;
-  char c = 1;
-  if(write(fd,&c,1) != 1) { close(fd); return false; };
   close(fd);
   return true;
 }
