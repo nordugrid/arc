@@ -85,6 +85,24 @@ namespace Arc {
     get_plugin_instance instance; // Pointer to constructor function
   } PluginDescriptor;
 
+
+  /// Description of plugin
+  /** This class is used for reports */
+  class PluginDesc {
+   public:
+    std::string name;
+    std::string kind;
+    uint32_t version;
+  };
+
+  /// Description of loadable module
+  /** This class is used for reports */
+  class ModuleDesc {
+   public:
+    std::string name;
+    std::list<PluginDesc> plugins;
+  };
+
   /// Generic ARC plugins loader
   /** The instance of this class provides functionality
      of loading pluggable ARC components stored in shared 
@@ -101,6 +119,7 @@ namespace Arc {
       typedef std::map<std::string,Glib::Module*> modules_t_;
       descriptors_t_ descriptors_;
       modules_t_ modules_;
+      bool try_load_;
       static Logger logger;
       bool load(const std::string& name,const std::list<std::string>& kinds,const std::list<std::string>& pnames);
     public:
@@ -119,6 +138,12 @@ namespace Arc {
          loadable modules. Only plugins already loaded with previous calls to
          get_instance() and load() are checked.
          Returns created instance or NULL if failed. */
+      /** Specifies if loadable module may be loaded while looking
+         for analyzing its content. If set to false only *.apd
+         files are checked. Modules without corresponding *.apd
+         will be ignored. Default is true; */
+      void TryLoad(bool v = true) { try_load_ = v; };
+      bool TryLoad(void) { return try_load_; };
       Plugin* get_instance(const std::string& kind,PluginArgument* arg,bool search = true);
       Plugin* get_instance(const std::string& kind,int version,PluginArgument* arg,bool search = true);
       Plugin* get_instance(const std::string& kind,int min_version,int max_version,PluginArgument* arg,bool search = true);
@@ -139,6 +164,14 @@ namespace Arc {
       bool load(const std::list<std::string>& names,const std::string& kind);
       bool load(const std::list<std::string>& names,const std::string& kind,const std::string& pname);
       bool load(const std::list<std::string>& names,const std::list<std::string>& kinds);
+
+      /** Collect information about plugins stored in module(s)
+        with specified names.
+        Returns true if any of specified modules has plugins. */
+      bool scan(const std::string& name, ModuleDesc& desc);
+      bool scan(const std::list<std::string>& names, std::list<ModuleDesc>& descs);
+      /** Provides information about currently loaded modules and plugins. */
+      void report(std::list<ModuleDesc>& descs);
       template<class P>
       P* GetInstance(const std::string& kind,PluginArgument* arg,bool search = true) {
         Plugin* plugin = get_instance(kind,arg,search);

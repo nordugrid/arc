@@ -125,6 +125,16 @@ namespace Arc {
       };
       return false;
     };
+
+    void get(std::list<PluginDesc>& descs) {
+      for(std::list<ARCPluginDescriptor>::const_iterator desc = 
+                descriptors.begin(); desc != descriptors.end(); ++desc) {
+        PluginDesc pd;
+        pd.name = desc->name;
+        pd.kind = desc->kind;
+        pd.version = desc->version;
+      };
+    };
   };
 
   static void replace_file_suffix(std::string& path,const std::string& suffix) {
@@ -237,6 +247,10 @@ namespace Arc {
       mdesc = NULL;
     };
     // Descriptor not found or indicates presence of requested kinds.
+    if(!try_load_) {
+      logger.msg(ERROR, "Could not find loadable module descriptor by name %s",kind);
+      return NULL;
+    };
     // Now try to load module directly
     Glib::Module* module = probe_module(kind,*this);
     if (module == NULL) {
@@ -321,7 +335,7 @@ namespace Arc {
     };  
     // Descriptor not found or indicates presence of requested kinds.
     // Now try to load module directly
-    Glib::Module* module = probe_module(name,*this);
+    Glib::Module* module = try_load_?probe_module(name,*this):NULL;
     if (module == NULL) {
       // Then by kind of plugin
       mname=kind;
@@ -334,6 +348,10 @@ namespace Arc {
         };
         delete mdesc;
         mdesc = NULL;
+      };
+      if(!try_load_) {
+        logger.msg(ERROR, "Could not find loadable module descriptor by names %s and %s",name,kind);
+        return NULL;
       };
       // Descriptor not found or indicates presence of requested kinds.
       // Now try to load module directly
@@ -415,6 +433,11 @@ namespace Arc {
         delete mdesc;
         mdesc = NULL;
       };
+      if(!try_load_) {
+        logger.msg(ERROR, "Could not find loadable module descriptor by name %s",name);
+        return NULL;
+      };
+      // Descriptor not found or indicates presence of requested kinds.
       // Descriptor not found or indicates presence of requested kinds.
       // Now try to load module directly
       module = probe_module(mname,*this);
@@ -486,7 +509,72 @@ namespace Arc {
     return r;
   }
 
-  PluginsFactory::PluginsFactory(XMLNode cfg): ModuleManager(cfg) {
+  bool PluginsFactory::scan(const std::string& name, ModuleDesc& desc) {
+    ARCModuleDescriptor* mod = probe_descriptor(name,*this);
+    if(mod) {
+      desc.name = name;
+      mod->get(desc.plugins);
+      return true;
+    }
+    // Descriptor not found
+    if(!try_load_) return false;
+    // Now try to load module directly
+    Glib::Module* module = probe_module(name,*this);
+    if (module == NULL) return false;
+    // Identify table of descriptors
+    void *ptr = NULL;
+    if(!module->get_symbol(plugins_table_name,ptr)) {
+      unload_module(module,*this);
+      return false;
+    };
+    PluginDescriptor* d = (PluginDescriptor*)ptr;
+    if(!d) {
+      unload_module(module,*this);
+      return false;
+    };
+    for(;(d->kind) && (d->name);++d) {
+      PluginDesc pd;
+      pd.name = d->name;
+      pd.kind = d->kind;
+      pd.version = d->version;
+      desc.plugins.push_back(pd);
+    };
+    return true;
+  }
+
+  bool PluginsFactory::scan(const std::list<std::string>& names, std::list<ModuleDesc>& descs) {
+    bool r = false;
+    ModuleDesc desc;
+    for(std::list<std::string>::const_iterator name = names.begin();
+                                name != names.end();++name) {
+      if(scan(*name,desc)) {
+        r=true;
+        descs.push_back(desc);
+      }
+    }
+    return r;
+  }
+
+  void PluginsFactory::report(std::list<ModuleDesc>& descs) {
+    for(descriptors_t_::iterator ds = descriptors_.begin();
+               ds != descriptors_.end(); ++ds) {
+      PluginDescriptor* d = ds->second;
+      if(!d) continue;
+      ModuleDesc md;
+      md.name = ds->first;
+      for(;(d->kind) && (d->name);++d) {
+        PluginDesc pd;
+        pd.name = d->name;
+        pd.kind = d->kind;
+        pd.version = d->version;
+        md.plugins.push_back(pd);
+      };
+      descs.push_back(md);
+    }
+  }
+
+  PluginsFactory::PluginsFactory(XMLNode cfg): ModuleManager(cfg),
+                                               try_load_(true) {
   }
 
   PluginArgument::PluginArgument(void): factory_(NULL), module_(NULL) {
