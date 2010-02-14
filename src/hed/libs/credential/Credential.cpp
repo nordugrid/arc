@@ -942,7 +942,7 @@ namespace Arc {
         else
           loadKeyString(keyfile, pkey_, passphrase4key);
       } catch(std::exception& err){
-        CredentialLogger.msg(ERROR, "ERROR:%s", err.what());
+        CredentialLogger.msg(ERROR, "%s", err.what());
         LogError(); return;
       }
     }
