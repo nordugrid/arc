@@ -35,7 +35,7 @@ namespace Arc {
   static PluginDescriptor* find_constructor(PluginDescriptor* desc,const std::string& kind,const std::string& name,int min_version,int max_version) {
     if(!desc) return NULL;
     for(;(desc->kind) && (desc->name);++desc) {
-      if(((kind == desc->kind) || (kind.empty())) && 
+      if(((kind == desc->kind) || (kind.empty())) &&
          ((name == desc->name) || (name.empty()))) {
         if((min_version <= desc->version) && (max_version >= desc->version)) {
           if(desc->instance) return desc;
@@ -79,7 +79,7 @@ namespace Arc {
             kind = line;
           } else if(tag == "version") {
             if(!stringto(line,version)) return;
-          } 
+          }
         }
         if(name.empty()) return;
         if(kind.empty()) return;
@@ -111,7 +111,7 @@ namespace Arc {
     }
 
     bool contains(const std::string& kind) const {
-      for(std::list<ARCPluginDescriptor>::const_iterator desc = 
+      for(std::list<ARCPluginDescriptor>::const_iterator desc =
                 descriptors.begin(); desc != descriptors.end(); ++desc) {
         if(desc->kind == kind) return true;
       };
@@ -119,7 +119,7 @@ namespace Arc {
     };
 
     bool contains(const std::string& kind, const std::string& pname) {
-      for(std::list<ARCPluginDescriptor>::const_iterator desc = 
+      for(std::list<ARCPluginDescriptor>::const_iterator desc =
                 descriptors.begin(); desc != descriptors.end(); ++desc) {
         if((desc->name == pname) && (desc->kind == kind)) return true;
       };
@@ -127,12 +127,13 @@ namespace Arc {
     };
 
     void get(std::list<PluginDesc>& descs) {
-      for(std::list<ARCPluginDescriptor>::const_iterator desc = 
+      for(std::list<ARCPluginDescriptor>::const_iterator desc =
                 descriptors.begin(); desc != descriptors.end(); ++desc) {
         PluginDesc pd;
         pd.name = desc->name;
         pd.kind = desc->kind;
         pd.version = desc->version;
+        descs.push_back(pd);
       };
     };
   };
@@ -332,7 +333,7 @@ namespace Arc {
       };
       delete mdesc;
       mdesc = NULL;
-    };  
+    };
     // Descriptor not found or indicates presence of requested kinds.
     // Now try to load module directly
     Glib::Module* module = try_load_?probe_module(name,*this):NULL;
@@ -451,7 +452,7 @@ namespace Arc {
         unload_module(module,*this);
         return false;
       };
-      desc = (PluginDescriptor*)ptr; 
+      desc = (PluginDescriptor*)ptr;
     };
     if(kinds.size() > 0) {
       for(std::list<std::string>::const_iterator kind = kinds.begin();
