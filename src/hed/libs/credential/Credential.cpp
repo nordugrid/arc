@@ -63,7 +63,7 @@ namespace Arc {
 
   static int ssl_err_cb(const char *str, size_t, void *u) {
     Logger& logger = *((Logger*)u);
-    logger.msg(ERROR, "OpenSSL Error: %s", str);
+    logger.msg(DEBUG, "OpenSSL error string: %s", str);
     return 1;
   }
 
@@ -926,7 +926,7 @@ namespace Arc {
         else
           loadKeyFile(keyfile, pkey_, passphrase4key);
       } catch(std::exception& err){
-        CredentialLogger.msg(ERROR, "ERROR:%s", err.what());
+        CredentialLogger.msg(ERROR, "%s", err.what());
         LogError(); return;
       }
     } else {
