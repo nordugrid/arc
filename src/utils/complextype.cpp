@@ -217,25 +217,18 @@ static void elementprint(Arc::XMLNode element,const std::string& ns,const std::s
   elementprintnamed(etype,element,ns,ntype,h_file,cpp_file,complex_file_constructor_cpp);
 }
 
-static void complextypeprintnamed(const std::string& cppspace,const std::string& ntype,Arc::XMLNode ctype,const std::string& ns,std::ostream& h_file,std::ostream& cpp_file) {
-  h_file<<"//complex type: "<<ntype<<std::endl;
-  XMLNode sequence = ctype["xsd:sequence"];
-  if(!sequence) {
-    std::cout<<"complex type is not sequence - not supported: "<<ntype<<std::endl;
-  };
+static void complextypeprintnamed(const std::string& cppspace,const std::string& ntype,Arc::XMLNode ctype,const std::string& ns,std::ostream& h_file,std::ostream& cpp_file);
+
+static void sequenceprintnamed(const std::string& cppspace,const std::string& ntype,Arc::XMLNode sequence,const std::string& ns,std::ostream& h_file,std::ostream& cpp_file) {
   strprintf(h_file,complex_type_header_pattern_h,ntype);
   std::string complex_file_constructor_cpp;
   for(XMLNode element = sequence["xsd:element"];(bool)element;++element) {
     if(element.Attribute("type")) {
       elementprint(element,ns,cppspace+ntype,h_file,cpp_file,complex_file_constructor_cpp);
     } else if(element["xsd:simpleType"]) {
-
-/*
       std::string ename = element.Attribute("name");
-      simpletypeprint(element["xsd:simpleType"],ns,h_file,cpp_file);
-      elementprintnamed(ename+"_TYPE",element,ns,cppspace+ntype,h_file,cpp_file,complex_file_constructor_cpp);
-*/
-
+      simpletypeprintnamed(cppspace+ntype+"::",ename+"_TYPE",element["xsd:simpleType"],ns,h_file,cpp_file);
+      elementprintnamed(cppspace+ntype+"::"+ename+"_TYPE",element,ns,cppspace+ntype,h_file,cpp_file,complex_file_constructor_cpp);
     } else if(element["xsd:complexType"]) {
       std::string ename = element.Attribute("name");
       complextypeprintnamed(cppspace+ntype+"::",ename+"_TYPE",element["xsd:complexType"],ns,h_file,cpp_file);
@@ -250,6 +243,29 @@ static void complextypeprintnamed(const std::string& cppspace,const std::string&
   cpp_file<<complex_file_constructor_cpp;
   strprintf(cpp_file,complex_type_constructor_footer_pattern_cpp,
                            ntype,ns,cppspace);
+}
+
+static void simplecontentprintnamed(const std::string& cppspace,const std::string& ntype,Arc::XMLNode content,const std::string& ns,std::ostream& h_file,std::ostream& cpp_file) {
+    
+
+}
+
+static void complextypeprintnamed(const std::string& cppspace,const std::string& ntype,Arc::XMLNode ctype,const std::string& ns,std::ostream& h_file,std::ostream& cpp_file) {
+  h_file<<"//complex type: "<<ntype<<std::endl;
+  XMLNode sequence = ctype["xsd:sequence"];
+  XMLNode content = ctype["xsd:simpleContent"];
+  if(sequence) {
+    sequenceprintnamed(cppspace,ntype,sequence,ns,h_file,cpp_file);
+  } else if(content) {
+    XMLNode extension = content["xsd:extension"];
+    if(!extension) {
+      std::cout<<"simpleContent is not an extension - not supported"<<std::endl;
+      return;
+    };
+    simpletypeprint(ctype,ns,h_file,cpp_file);
+  } else {
+    std::cout<<"complex type is neither sequence nor simpleContent - not supported: "<<ntype<<std::endl;
+  };
 }
 
 void complextypeprint(Arc::XMLNode ctype,const std::string& ns,std::ostream& h_file,std::ostream& cpp_file) {

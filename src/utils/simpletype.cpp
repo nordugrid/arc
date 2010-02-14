@@ -42,10 +42,24 @@ static const char* simple_type_pattern_cpp = "\
 \n\
 ";
 
-void simpletypeprint(XMLNode stype,const std::string& ns,std::ostream& h_file,std::ostream& cpp_file) {
-  std::string ntype = stype.Attribute("name");
-  h_file<<"//simple type: "<<ntype<<std::endl;
+void simpletypeprintnamed(const std::string& cppspace,const std::string& ntype,XMLNode stype,const std::string& ns,std::ostream& h_file,std::ostream& cpp_file) {
   strprintf(h_file,simple_type_pattern_h,ntype);
   strprintf(cpp_file,simple_type_pattern_cpp,ntype,ns);
+}
+
+void simpletypeprint(XMLNode stype,const std::string& ns,std::ostream& h_file,std::ostream& cpp_file) {
+  std::string ntype;
+  if(stype.Name() == "simpleType") {
+    ntype = (std::string)(stype.Attribute("name"));
+    h_file<<"//simple type: "<<ntype<<std::endl;
+  } else if(stype.Name() == "complexType") {
+    XMLNode extension = stype["xsd:simpleContent"]["xsd:extension"];
+    if(!extension) return;
+    ntype = (std::string)(stype.Attribute("name"));
+    h_file<<"//complex type: "<<ntype<<" (simple content)"<<std::endl;
+  } else {
+    return;
+  }
+  simpletypeprintnamed("",ntype,stype,ns,h_file,cpp_file);
 }
 

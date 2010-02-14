@@ -22,6 +22,7 @@ void strprintf(std::string& out,const char* fmt,
 // simple type
 
 void simpletypeprint(Arc::XMLNode stype,const std::string& ns,std::ostream& h_file,std::ostream& cpp_file);
+void simpletypeprintnamed(const std::string& cppspace,const std::string& ntype,Arc::XMLNode stype,const std::string& ns,std::ostream& h_file,std::ostream& cpp_file);
 
 
 // complex type
