@@ -329,6 +329,8 @@ int main(int argc, char *argv[]) {
     return EXIT_FAILURE;
   }
 
+  const Arc::Time now;
+
   if (info) {
     std::vector<std::string> voms_attributes;
     bool res = false;
@@ -348,7 +350,6 @@ int main(int argc, char *argv[]) {
     Arc::Credential holder(proxy_path, "", ca_dir, "");
     std::cout << Arc::IString("Subject: %s", holder.GetDN()) << std::endl;
     std::cout << Arc::IString("Identity: %s", holder.GetIdentityName()) << std::endl;
-    Arc::Time now;
     if (holder.GetEndTime() < now)
       std::cout << Arc::IString("Time left for proxy: Proxy expired") << std::endl;
     else if (holder.GetVerification())
@@ -426,7 +427,7 @@ int main(int argc, char *argv[]) {
              (!(constraints["validityPeriod"].empty())))
       constraints["vomsACvalidityPeriod"] = constraints["validityPeriod"];
     else
-      constraints["vomsACvalidityPeriod"] = constraints["validityStart"].empty() ? (Arc::Time(constraints["validityEnd"]) - Arc::Time()) : (Arc::Time(constraints["validityEnd"]) - Arc::Time(constraints["validityStart"]));
+      constraints["vomsACvalidityPeriod"] = constraints["validityStart"].empty() ? (Arc::Time(constraints["validityEnd"]) - now) : (Arc::Time(constraints["validityEnd"]) - Arc::Time(constraints["validityStart"]));
   }
 
   std::string voms_period = Arc::tostring(Arc::Period(constraints["vomsACvalidityPeriod"]).GetPeriod());
@@ -631,7 +632,11 @@ int main(int argc, char *argv[]) {
 
     Arc::Credential signer(cert_path, key_path, ca_dir, "");
     if((signer.GetVerification()) == false) {
-      std::cerr << "Proxy generation failed: Certificate has expired." << std::endl;
+      if (now > signer.GetEndTime())
+        std::cerr << "Proxy generation failed: Certificate has expired." << std::endl;
+      else if (now < signer.GetStartTime())
+        std::cerr << "Proxy generation failed: Certificate is not valid yet." << std::endl;
+      //else In the other cases a error message should already have been printed.
       return EXIT_FAILURE;
     }
 
