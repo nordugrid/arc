@@ -418,6 +418,7 @@ namespace Arc {
       DataHandle dir_url(url, usercfg);
       if (!dir_url) {
         logger.msg(INFO, "Failed retrieving job IDs: Unsupported url (%s) given", url.str());
+        mom.RetrieverDone();
         return;
       }
 
@@ -426,6 +427,7 @@ namespace Arc {
       if (!dir_url->ListFiles(files, false, false, false)) {
         if (files.size() == 0) {
           logger.msg(INFO, "Failed retrieving job IDs");
+          mom.RetrieverDone();
           return;
         }
         logger.msg(VERBOSE, "Error encoutered during job ID retrieval. All job IDs might not have been retrieved");
