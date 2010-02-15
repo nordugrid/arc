@@ -83,7 +83,6 @@ msgid "Unable to create SOAP client used by AREXClient."
 msgstr "Konnte SOAP client nicht für AREXClient anlegen."
 
 #: src/hed/acc/ARC1/AREXClient.cpp:84
-#, fuzzy
 msgid "AREXClient was not created properly."
 msgstr "AREXClient wurde nicht richtig angelegt."
 
@@ -95,7 +94,7 @@ msgstr "Verarbeite %s Anfrage"
 #: src/hed/acc/ARC1/AREXClient.cpp:111
 #, fuzzy
 msgid "Failed locating delegation credentials in chain configuration"
-msgstr "Fehler beim Lokalisation der delegation credentials in chain Konfiguration"
+msgstr "Fehler bei Lokalisation der delegation credentials in chain Konfiguration"
 
 #: src/hed/acc/ARC1/AREXClient.cpp:116
 msgid "Initiating delegation procedure"
@@ -106,38 +105,31 @@ msgid "Failed to initiate delegation credentials"
 msgstr "Fehler bei der Initialisierung der delegation credentials"
 
 #: src/hed/acc/ARC1/AREXClient.cpp:130
-#, c-format
 msgid "%s request failed"
 msgstr "Anfrage %s schlug fehl"
 
 #: src/hed/acc/ARC1/AREXClient.cpp:135
-#, c-format
 msgid "No response from %s"
 msgstr "Keine Antwort von %s"
 
 #: src/hed/acc/ARC1/AREXClient.cpp:140
-#, c-format
 msgid "%s request to %s failed with response: %s"
 msgstr "%s Anfrage an %s schlug fehl mit Antwort %s"
 
 #: src/hed/acc/ARC1/AREXClient.cpp:143
-#, c-format
 msgid "XML response: %s"
 msgstr "XML Antwort: %s"
 
 #: src/hed/acc/ARC1/AREXClient.cpp:149
-#, c-format
 msgid "%s request to %s failed. Empty response."
 msgstr "Anfrage %s an %s schlug fehl. Leere Anwort."
 
 #: src/hed/acc/ARC1/AREXClient.cpp:162
-#, c-format
 msgid "Creating and sending submit request to %s"
 msgstr "Erstelle und sende submit Anfrage an %s"
 
 #: src/hed/acc/ARC1/AREXClient.cpp:178
 #: src/hed/acc/ARC1/AREXClient.cpp:456
-#, c-format
 msgid "Job description to be sent: %s"
 msgstr "Zu sendende Job-Beschreibung : %s"
 
@@ -2134,89 +2126,81 @@ msgstr "SE location wird automatisch deregistriert"
 #: src/hed/dmc/rls/DataPointRLS.cpp:929
 #, c-format
 msgid "Warning: Failed to delete LFN/PFN from %s: %s"
-msgstr ""
+msgstr "Warnung: Fehler beim Löschen von LFN/PFN von %s: %s"
 
 #: src/hed/dmc/rls/DataPointRLS.cpp:834
 msgid "LFN must be already deleted, try LRC anyway"
-msgstr ""
+msgstr "LFN muss bereits gelöscht sein, versuche dennoch LRC"
 
 #: src/hed/dmc/rls/DataPointRLS.cpp:838
 #, fuzzy, c-format
 msgid "Failed to retrieve LFN/LRC: %s"
-msgstr ""
+msgstr "Fehler bei Bezug von LFN/LRC: %s"
 
 #: src/hed/dmc/rls/DataPointRLS.cpp:860
 #, c-format
 msgid "Warning: Failed to connect to LRC at %s: %s"
-msgstr ""
+msgstr "Warnung. Fehler bei Verbindung zu LRC bei %s: %s"
 
 #: src/hed/dmc/rls/DataPointRLS.cpp:1088
-#, c-format
 msgid "No LFNs found in %s"
-msgstr ""
+msgstr "Keine LFNs gefunden in %s"
 
 #: src/hed/dmc/rls/DataPointRLS.cpp:1092
-#, c-format
 msgid "Failed to retrieve list of LFNs/PFNs from %s"
-msgstr ""
+msgstr "Fehler bei Bezug von List von LFNs/PFNs von %s"
 
 #: src/hed/dmc/rls/DataPointRLS.cpp:1131
-#, c-format
 msgid "lfn: %s(%s) - %s"
-msgstr ""
+msgstr "lfn: %s(%s) - %s"
 
 #: src/hed/dmc/rls/DataPointRLS.cpp:1146
-#, c-format
 msgid "lfn: %s - pfn: %s"
-msgstr ""
+msgstr "lfn: %s - pfn: %s"
 
 #: src/hed/dmc/rls/RLS.cpp:61
 #: src/hed/dmc/rls/RLS.cpp:124
 #: src/hed/dmc/rls/RLS.cpp:206
 #: src/hed/dmc/rls/RLS.cpp:260
-#, c-format
 msgid "Contacting %s"
-msgstr ""
+msgstr "Kontaktiere %s"
 
 #: src/hed/dmc/rls/RLS.cpp:67
 #: src/hed/dmc/rls/RLS.cpp:130
 #: src/hed/dmc/rls/RLS.cpp:212
 #: src/hed/dmc/rls/RLS.cpp:266
-#, fuzzy, c-format
 msgid "Warning: can't connect to RLS server %s: %s"
-msgstr ""
+msgstr "Warnung: kann nicht verbinden zu RLS server %s: %s"
 
 #: src/hed/dmc/rls/RLS.cpp:94
 #: src/hed/dmc/rls/RLS.cpp:147
 #: src/hed/dmc/rls/RLS.cpp:172
 #: src/hed/dmc/rls/RLS.cpp:292
-#, c-format
 msgid "Warning: can't get list of RLIs from server %s: %s"
-msgstr ""
+msgstr "Warnung. Erhalte keine Liste von RLIs von server %s: %s"
 
 #: src/hed/dmc/rls/RLS.cpp:234
-#, c-format
+#, fuzzy
 msgid "Warning: can't get list of senders from server %s: %s"
-msgstr ""
+msgstr "Warnung: Erhalte keine Liste von senders von Server %s: %s"
 
 #: src/hed/dmc/arc/DataPointARC.cpp:70
-#, fuzzy, c-format
 msgid ""
 "checingBartenderURL: Response:\n"
 "%s"
-msgstr ""
+msgstr "checkingBartenderURL: Response:\n"
+"%s"
 
 #: src/hed/dmc/arc/DataPointARC.cpp:145
 #: src/hed/dmc/arc/DataPointARC.cpp:237
 #: src/hed/dmc/arc/DataPointARC.cpp:341
 #: src/hed/dmc/arc/DataPointARC.cpp:433
 #: src/hed/dmc/arc/DataPointARC.cpp:486
-#, c-format
 msgid ""
 "Request:\n"
 "%s"
 msgstr ""
-"Запрос:\n"
+"Anfrage:\n"
 "%s"
 
 #: src/hed/dmc/arc/DataPointARC.cpp:159
@@ -2225,7 +2209,7 @@ msgstr ""
 #: src/hed/dmc/arc/DataPointARC.cpp:447
 #: src/hed/dmc/arc/DataPointARC.cpp:500
 msgid "No SOAP response"
-msgstr ""
+msgstr "Keine SOAP Antwort"
 
 #: src/hed/dmc/arc/DataPointARC.cpp:169
 #: src/hed/dmc/arc/DataPointARC.cpp:261
@@ -2240,13 +2224,13 @@ msgstr ""
 "%s"
 
 #: src/hed/dmc/arc/DataPointARC.cpp:188
-#, c-format
+#, fuzzy
 msgid ""
 "cnd:\n"
 "%s is a %s"
 msgstr ""
 "cnd:\n"
-"%s is a %s"
+"%s ist ein %s"
 
 #: src/hed/dmc/arc/DataPointARC.cpp:215
 #: src/hed/dmc/srm/DataPointSRM.cpp:156
@@ -2255,33 +2239,31 @@ msgstr ""
 
 #: src/hed/dmc/arc/DataPointARC.cpp:268
 #: src/hed/dmc/arc/DataPointARC.cpp:372
-#, fuzzy, c-format
 msgid "Recieved transfer URL: %s"
-msgstr ""
+msgstr "Erhielt transfer URL: %s"
 
 #: src/hed/dmc/arc/DataPointARC.cpp:304
 #: src/hed/dmc/srm/DataPointSRM.cpp:325
 msgid "StartWriting"
-msgstr ""
+msgstr "StartWriting"
 
 #: src/hed/dmc/arc/DataPointARC.cpp:413
-#, c-format
+#, fuzzy
 msgid "Calculated checksum: %s"
-msgstr ""
+msgstr "Errechneted checksum: %s"
 
 #: src/hed/dmc/arc/DataPointARC.cpp:510
-#, c-format
 msgid "Deleted %s"
-msgstr ""
+msgstr "Löschte %s"
 
 #: src/hed/dmc/ldap/LDAPQuery.cpp:176
 msgid "SASL Interaction"
-msgstr ""
+msgstr "SASL Interaktion"
 
 #: src/hed/dmc/ldap/LDAPQuery.cpp:224
-#, c-format
+#, fuzzy
 msgid "Challenge: %s"
-msgstr ""
+msgstr "Herausforderung: %s"
 
 #: src/hed/dmc/ldap/LDAPQuery.cpp:228
 #, c-format
@@ -2289,59 +2271,48 @@ msgid "Default: %s"
 msgstr ""
 
 #: src/hed/dmc/ldap/LDAPQuery.cpp:304
-#, c-format
 msgid "LDAPQuery: Initializing connection to %s:%d"
-msgstr ""
+msgstr "LDAPQuery: Initialisiere Verbindung zu %s:%d"
 
 #: src/hed/dmc/ldap/LDAPQuery.cpp:308
-#, c-format
 msgid "LDAP connection already open to %s"
-msgstr ""
+msgstr "LDAP Verbindung bereits offen zu %s"
 
 #: src/hed/dmc/ldap/LDAPQuery.cpp:326
-#, c-format
 msgid "Could not open LDAP connection to %s"
-msgstr ""
+msgstr "Konnte LDAP Verbindung nicht öffnen zu %s"
 
 #: src/hed/dmc/ldap/LDAPQuery.cpp:347
-#, c-format
 msgid "Failed to create ldap bind thread (%s)"
-msgstr ""
+msgstr "Fehler bei Anlegen von ldap bind thread (%s)"
 
 #: src/hed/dmc/ldap/LDAPQuery.cpp:354
-#, c-format
 msgid "Ldap bind timeout (%s)"
-msgstr ""
+msgstr "Ldap bind timeout (%s)"
 
 #: src/hed/dmc/ldap/LDAPQuery.cpp:361
-#, c-format
 msgid "Failed to bind to ldap server (%s)"
-msgstr ""
+msgstr "Fehler bei Verbinden zu ldap server (%s)"
 
 #: src/hed/dmc/ldap/LDAPQuery.cpp:382
-#, c-format
 msgid "Could not set LDAP network timeout (%s)"
-msgstr ""
+msgstr "Konnte LDAP netowrk Zeitüberschreitung nicht setzen (%s)"
 
 #: src/hed/dmc/ldap/LDAPQuery.cpp:390
-#, c-format
 msgid "Could not set LDAP timelimit (%s)"
-msgstr ""
+msgstr "Konnte LDAP Zeitlimit nicht setzen (%s)"
 
 #: src/hed/dmc/ldap/LDAPQuery.cpp:397
-#, c-format
 msgid "Could not set LDAP protocol version (%s)"
-msgstr ""
+msgstr "Konnte LDAP Protokoll Version nicht setzen (%s)"
 
 #: src/hed/dmc/ldap/LDAPQuery.cpp:473
-#, c-format
 msgid "LDAPQuery: Querying %s"
-msgstr ""
+msgstr "LDAPQuery: Frage an %s"
 
 #: src/hed/dmc/ldap/LDAPQuery.cpp:475
-#, c-format
 msgid "  base dn: %s"
-msgstr ""
+msgstr "  base dn: %s"
 
 #: src/hed/dmc/ldap/LDAPQuery.cpp:477
 #, c-format
@@ -2391,27 +2362,27 @@ msgstr ""
 #: src/hed/dmc/srm/DataPointSRM.cpp:104
 #, c-format
 msgid "Check: obtained checksum: %s"
-msgstr ""
+msgstr "Check: erhielt checksum: %s"
 
 #: src/hed/dmc/srm/DataPointSRM.cpp:111
 #, c-format
 msgid "Check: obtained creation date: %s"
-msgstr ""
+msgstr "Check: erhielt Erstelldatum: %s"
 
 #: src/hed/dmc/srm/DataPointSRM.cpp:138
 #, c-format
 msgid "remove_srm: deleting: %s"
-msgstr ""
+msgstr "remove_srm: lösche: %s"
 
 #: src/hed/dmc/srm/DataPointSRM.cpp:189
 #, fuzzy, c-format
 msgid "StartReading: looking for metadata: %s"
-msgstr ""
+msgstr "StartReading: suche nach Metadaten: %s"
 
 #: src/hed/dmc/srm/DataPointSRM.cpp:203
 #, fuzzy, c-format
 msgid "StartReading: obtained size: %lli"
-msgstr ""
+msgstr "StartReading: erhielt Größe: %"
 
 #: src/hed/dmc/srm/DataPointSRM.cpp:206
 #, fuzzy, c-format
