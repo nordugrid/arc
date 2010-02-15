@@ -17,7 +17,7 @@ namespace Arc {
   std::string GetEnv(const std::string& var, bool &found);
 
   /// Portable function for setting environment variables
-  bool SetEnv(const std::string& var, const std::string& value);
+  bool SetEnv(const std::string& var, const std::string& value, bool overwrite = true);
 
   /// Portable function for unsetting environment variables
   void UnsetEnv(const std::string& var);

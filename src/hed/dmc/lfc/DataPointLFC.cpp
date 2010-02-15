@@ -48,11 +48,11 @@ namespace Arc {
       guid("") {
     // set retry env variables (don't overwrite if set already)
     // connection timeout
-    SetEnv("LFC_CONNTIMEOUT", "30");
+    SetEnv("LFC_CONNTIMEOUT", "30", false);
     // number of retries
-    SetEnv("LFC_CONRETRY", "1");
+    SetEnv("LFC_CONRETRY", "1", false);
     // interval between retries
-    SetEnv("LFC_CONRETRYINT", "10");
+    SetEnv("LFC_CONRETRYINT", "10", false);
 
     // set host name env var
     SetEnv("LFC_HOST", url.Host());
