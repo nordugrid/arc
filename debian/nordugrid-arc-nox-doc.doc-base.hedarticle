@@ -1,6 +1,5 @@
 Document: arc1-archedarticle
-Title: The Hosting Environment of the Advanced Resource
-Connector middleware
+Title: The Hosting Environment of the Advanced Resource Connector middleware
 Author: D. Cameron, M. Ellert, J. Jonemo, A. Konstantinov, I. Marton, B. Mohn, J. K. Nilsen, M. Norden, W. Quiang, G. Roczei, F. Szalai, A. Waananen
 Abstract: The Hosting Environment Daemon (HED) is the container of all the functional components of the next generation of the Advanced Resource Connector (ARC) middleware on the server side. It is the central part in a new very lightweight incarnation of ARC that is aimed at - but not limited to - providing Web Service. The document explains the implementation and principles behind HED.
 Section: Network/Communication
