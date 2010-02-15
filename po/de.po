@@ -1414,9 +1414,9 @@ msgid "Can not find <Policy/> element with proper namespace"
 msgstr "Kann <Policy/> element mit passendem namespace nicht finden"
 
 #: src/hed/shc/xacmlpdp/XACMLPolicy.cpp:115
-#, c-format
+#, fuzzy
 msgid "PolicyId: %s  Alg inside this policy is:-- %s"
-msgstr ""
+msgstr "PolicyId: %s  Alg in dieser Policy ist:-- %s"
 
 #: src/hed/shc/xacmlpdp/XACMLPolicy.cpp:132
 msgid "No target available inside the policy"
@@ -1539,8 +1539,9 @@ msgstr "X509 Token handler ist nicht konfiguriert"
 
 #: src/hed/shc/delegationpdp/DelegationPDP.cpp:75
 #: src/hed/shc/delegationpdp/DelegationPDP.cpp:129
+#, fuzzy
 msgid "No delegation policies in this context and message - passing through"
-msgstr ""
+msgstr "Keine delegation policies in diesem context und message - durchgelassen"
 
 #: src/hed/shc/delegationpdp/DelegationPDP.cpp:95
 #: src/hed/shc/delegationpdp/DelegationPDP.cpp:109
@@ -1549,7 +1550,6 @@ msgstr "Fehler bei Konvertieren von security information für ARC policy"
 
 #: src/hed/shc/delegationpdp/DelegationPDP.cpp:116
 #: src/hed/shc/delegationpdp/DelegationPDP.cpp:123
-#, fuzzy, c-format
 msgid "ARC delegation policy: %s"
 msgstr "ARC delegation policy: %s"
 
@@ -1565,12 +1565,10 @@ msgstr "Fehler bei Konvertierung von security information für ARC Anfrage"
 #: src/hed/shc/delegationpdp/DelegationPDP.cpp:150
 #: src/hed/shc/pdpserviceinvoker/PDPServiceInvoker.cpp:111
 #: src/hed/shc/arcpdp/ArcPDP.cpp:187
-#, fuzzy, c-format
 msgid "ARC Auth. request: %s"
-msgstr ""
+msgstr "ARC Auth. Anfrage: %s"
 
 #: src/hed/shc/delegationpdp/DelegationPDP.cpp:160
-#, c-format
 msgid "There are %d requests, which satisfy at least one policy"
 msgstr "Es gibt %d Anfragen, die wenigstens einer Policy Anfrage genügt"
 
@@ -1579,8 +1577,9 @@ msgid "No authorization response was returned"
 msgstr "Es wurde keine authorization response erwidert"
 
 #: src/hed/shc/delegationpdp/DelegationPDP.cpp:184
+#, fuzzy
 msgid "Delegation authorization passed"
-msgstr ""
+msgstr "Delegations Authorisation zugelassen"
 
 #: src/hed/shc/delegationpdp/DelegationPDP.cpp:186
 msgid "Delegation authorization failed"
@@ -1591,24 +1590,25 @@ msgid "Creating a pdpservice client"
 msgstr "Lege pdpservice client an"
 
 #: src/hed/shc/pdpserviceinvoker/PDPServiceInvoker.cpp:80
+#, fuzzy
 msgid "Arc policy can not been carried by SAML2.0 profile of XACML"
-msgstr ""
+msgstr "Arc policy can nicht mit SAML2.0 Profil von XACML geprüft werden"
 
 #: src/hed/shc/pdpserviceinvoker/PDPServiceInvoker.cpp:152
 #: src/hed/shc/pdpserviceinvoker/PDPServiceInvoker.cpp:185
 msgid "Policy Decision Service invocation failed"
-msgstr ""
+msgstr "Ausführen des Policy Decision Service schlug fehl"
 
 #: src/hed/shc/pdpserviceinvoker/PDPServiceInvoker.cpp:163
 #: src/hed/shc/pdpserviceinvoker/PDPServiceInvoker.cpp:196
 #, c-format
 msgid "Response: %s"
-msgstr ""
+msgstr "Antwort: %s"
 
 #: src/hed/shc/pdpserviceinvoker/PDPServiceInvoker.cpp:170
 #: src/hed/shc/pdpserviceinvoker/PDPServiceInvoker.cpp:204
 msgid "Authorized from remote pdp service"
-msgstr ""
+msgstr "Authorisiert durch remote pdp service"
 
 #: src/hed/shc/pdpserviceinvoker/PDPServiceInvoker.cpp:171
 #: src/hed/shc/pdpserviceinvoker/PDPServiceInvoker.cpp:205
@@ -1617,15 +1617,15 @@ msgstr ""
 
 #: src/hed/shc/delegationsh/DelegationSH.cpp:60
 msgid "Missing CertificatePath element or ProxyPath element, or <DelegationCredIdentity/> is missing"
-msgstr ""
+msgstr "Fehlendes CertificatePath Element oder ProxyPath Element, oder <DelegationCredIdentity/> fehlt"
 
 #: src/hed/shc/delegationsh/DelegationSH.cpp:65
 msgid "Missing or empty KeyPath element, or <DelegationCredIdentity/> is missing"
-msgstr ""
+msgstr "Fehlendes oder leeres KeyPath Element, oder <DelegationCredIdentity/> fehlt"
 
 #: src/hed/shc/delegationsh/DelegationSH.cpp:71
 msgid "Missing or empty CertificatePath or CACertificatesDir element"
-msgstr ""
+msgstr "Fehlendes oder leeres CertificatePath oder CACertificatesDir Element"
 
 #: src/hed/shc/delegationsh/DelegationSH.cpp:78
 msgid "Delegation role not supported: %s"
@@ -1638,7 +1638,7 @@ msgstr "Delegation Typ nicht unterstützt: %s"
 #: src/hed/shc/delegationsh/DelegationSH.cpp:111
 #, fuzzy
 msgid "Failed to acquire delegation context"
-msgstr ""
+msgstr "Konnte delegation context nicht erhalten"
 
 #: src/hed/shc/delegationsh/DelegationSH.cpp:139
 #: src/hed/shc/delegationsh/DelegationSH.cpp:250
@@ -1648,32 +1648,31 @@ msgstr "Kann delegation context nicht anlegen"
 #: src/hed/shc/delegationsh/DelegationSH.cpp:145
 #, fuzzy
 msgid "Delegation handler with delegatee role starts to process"
-msgstr ""
+msgstr "Delegation handler mit delegatee role gestartet."
 
 #: src/hed/shc/delegationsh/DelegationSH.cpp:148
+#, fuzzy
 msgid "process: POST"
-msgstr ""
+msgstr "Prozess: POST"
 
 #: src/hed/shc/delegationsh/DelegationSH.cpp:155
 msgid "input is not SOAP"
 msgstr "Eingabe ist kein SOAP"
 
 #: src/hed/shc/delegationsh/DelegationSH.cpp:162
-#, fuzzy, c-format
 msgid "Delegation service: %s"
-msgstr ""
+msgstr "Delegation service: %s"
 
 #: src/hed/shc/delegationsh/DelegationSH.cpp:177
 #: src/hed/shc/delegationsh/DelegationSH.cpp:184
-#, c-format
 msgid "Can not get the delegation credential: %s from delegation service:%s"
-msgstr ""
+msgstr "Kann delegation credential nicht erhalten: %s von delegation service: %s"
 
 #: src/hed/shc/delegationsh/DelegationSH.cpp:200
 #: src/hed/shc/delegationsh/DelegationSH.cpp:264
-#, fuzzy, c-format
+#, fuzzy
 msgid "Delegated credential identity: %s"
-msgstr ""
+msgstr "Delegated credential Identität: %s"
 
 #: src/hed/shc/delegationsh/DelegationSH.cpp:201
 #, fuzzy, c-format
@@ -1682,37 +1681,37 @@ msgstr ""
 
 #: src/hed/shc/delegationsh/DelegationSH.cpp:214
 msgid "The endpoint of delgation service should be configured"
-msgstr ""
+msgstr "Der Endpunkt des delegation service konnte nicht konfiguriert werden"
 
 #: src/hed/shc/delegationsh/DelegationSH.cpp:224
 #: src/hed/shc/delegationsh/DelegationSH.cpp:336
 #, fuzzy
 msgid "Delegation handler with delegatee role ends"
-msgstr ""
+msgstr "Delegation handler mit delegatee Rolle endet"
 
 #: src/hed/shc/delegationsh/DelegationSH.cpp:256
 #, fuzzy
 msgid "Delegation handler with delegator role starts to process"
-msgstr ""
+msgstr "Delegation handler mit delegator Rolle startet"
 
 #: src/hed/shc/delegationsh/DelegationSH.cpp:265
 #, fuzzy, c-format
 msgid "The delegated credential got from path: %s"
-msgstr ""
+msgstr "Das delegated credetion erhalten von Pfad: %s"
 
 #: src/hed/shc/delegationsh/DelegationSH.cpp:286
 #, fuzzy, c-format
 msgid "Can not create delegation crendential to delgation service: %s"
-msgstr ""
+msgstr "Kann delegation credential nicht anlegen für delegation service: %s"
 
 #: src/hed/shc/delegationsh/DelegationSH.cpp:324
 msgid "output is not SOAP"
-msgstr ""
+msgstr "Ausgabe ist nicht SOAP"
 
 #: src/hed/shc/delegationsh/DelegationSH.cpp:335
-#, c-format
+#, fuzzy
 msgid "Succeeded to send DelegationService: %s and DelegationID: %s info to peer service"
-msgstr ""
+msgstr "Senden von DelegationService erfolgreich: %s und DelegationID: %s Info an peer service"
 
 #: src/hed/shc/delegationsh/DelegationSH.cpp:355
 #, fuzzy
@@ -1722,7 +1721,7 @@ msgstr "Delegation handler wurde nicht konfiguriert"
 #: src/hed/shc/saml2sso_assertionconsumersh/SAML2SSO_AssertionConsumerSH.cpp:65
 #, fuzzy
 msgid "Can not get SAMLAssertion SecAttr from message context"
-msgstr ""
+msgstr "Kann SAMLAssertion SecAttr nicht erhalten von message context"
 
 #: src/hed/shc/arcpdp/ArcPDP.cpp:108
 #, fuzzy
@@ -1744,7 +1743,7 @@ msgstr "UnAuthorisiert von arc.pdp; einige der ReqestItems genügen nicht der Po
 #: src/hed/shc/arcpdp/ArcEvaluator.cpp:258
 #, c-format
 msgid "Result value (0=Permit, 1=Deny, 2=Indeterminate, 3=Not_Applicable): %d"
-msgstr ""
+msgstr Return-Wert (0=gestatten, 1=verbieten, 2=dazwischen, 3=nicht_anwendbar)_ %d"
 
 #: src/hed/shc/arcpdp/ArcEvaluationCtx.cpp:256
 #, fuzzy, c-format
@@ -1790,7 +1789,7 @@ msgstr "Zugriffslist location: %s"
 
 #: src/hed/shc/simplelistpdp/SimpleListPDP.cpp:39
 msgid "No policy file or DNs specified for simplelist.pdp, please set location attribute or at least one DN element for simplelist PDP node in configuration."
-msgstr ""
+msgstr "Keine Policy Datei oder DNs angegeben für simplelist.pdp, bitte setzen Sie ein location Attribut oder zumindest ein DN Element für den PDP Knoten in der Konfiguration"
 
 #: src/hed/shc/simplelistpdp/SimpleListPDP.cpp:45
 #: src/hed/shc/simplelistpdp/SimpleListPDP.cpp:72
@@ -2088,12 +2087,12 @@ msgstr "Fehler bei Überprüfung für existierenden LFN in %s: %s"
 #: src/hed/dmc/rls/DataPointRLS.cpp:512
 #, fuzzy, c-format
 msgid "There is same LFN in %s"
-msgstr ""
+msgstr "Es existiert dieselbe LFN in %s"
 
 #: src/hed/dmc/rls/DataPointRLS.cpp:527
 #, c-format
 msgid "Failed to add LFN-GUID to RLS: %s"
-msgstr ""
+msgstr "Fehler bei Hinzugüden von LFN-GUID zu RLS"
 
 #: src/hed/dmc/rls/DataPointRLS.cpp:587
 msgid "Failed to create/add LFN-PFN mapping: %s"
@@ -2235,7 +2234,7 @@ msgstr ""
 #: src/hed/dmc/arc/DataPointARC.cpp:215
 #: src/hed/dmc/srm/DataPointSRM.cpp:156
 msgid "StartReading"
-msgstr ""
+msgstr "StartReading"
 
 #: src/hed/dmc/arc/DataPointARC.cpp:268
 #: src/hed/dmc/arc/DataPointARC.cpp:372
@@ -2268,7 +2267,7 @@ msgstr "Herausforderung: %s"
 #: src/hed/dmc/ldap/LDAPQuery.cpp:228
 #, c-format
 msgid "Default: %s"
-msgstr ""
+msgstr "Voreinstellung: %s"
 
 #: src/hed/dmc/ldap/LDAPQuery.cpp:304
 msgid "LDAPQuery: Initializing connection to %s:%d"
@@ -2317,47 +2316,47 @@ msgstr "  base dn: %s"
 #: src/hed/dmc/ldap/LDAPQuery.cpp:477
 #, c-format
 msgid "  filter: %s"
-msgstr ""
+msgstr "  Filter: %s"
 
 #: src/hed/dmc/ldap/LDAPQuery.cpp:479
 msgid "  attributes:"
-msgstr ""
+msgstr "  Attribute"
 
 #: src/hed/dmc/ldap/LDAPQuery.cpp:482
 #, c-format
 msgid "    %s"
-msgstr ""
+msgstr "    %s"
 
 #: src/hed/dmc/ldap/LDAPQuery.cpp:527
 #: src/hed/dmc/ldap/LDAPQuery.cpp:599
 #, c-format
 msgid "%s (%s)"
-msgstr ""
+msgstr "%s (%s)"
 
 #: src/hed/dmc/ldap/LDAPQuery.cpp:551
 #, c-format
 msgid "LDAPQuery: Getting results from %s"
-msgstr ""
+msgstr "LDAPQuery: Erhalte Ergebnisse von %s"
 
 #: src/hed/dmc/ldap/LDAPQuery.cpp:554
 #, c-format
 msgid "Error: no LDAP query started to %s"
-msgstr ""
+msgstr "Fehler: keine LDAP Anfrage gestartet bei %s"
 
 #: src/hed/dmc/ldap/LDAPQuery.cpp:594
 #, c-format
 msgid "LDAP query timed out: %s"
-msgstr ""
+msgstr "Zeitüberschreibung bei LDAP Anfrage: %s"
 
 #: src/hed/dmc/srm/DataPointSRM.cpp:85
 #, c-format
 msgid "Check: looking for metadata: %s"
-msgstr ""
+msgstr "Check: looking für Metadata: %s"
 
 #: src/hed/dmc/srm/DataPointSRM.cpp:101
 #, c-format
 msgid "Check: obtained size: %lli"
-msgstr ""
+msgstr "Check: erhielt Größe: %lli"
 
 #: src/hed/dmc/srm/DataPointSRM.cpp:104
 #, c-format
@@ -2387,39 +2386,39 @@ msgstr "StartReading: erhielt Größe: %"
 #: src/hed/dmc/srm/DataPointSRM.cpp:206
 #, fuzzy, c-format
 msgid "StartReading: obtained checksum: %s:%s"
-msgstr ""
+msgstr "StartReading: erhielt checksum: %s:%s"
 
 #: src/hed/dmc/srm/DataPointSRM.cpp:240
 #: src/hed/dmc/srm/DataPointSRM.cpp:410
 #, c-format
 msgid "Checking URL returned by SRM: %s"
-msgstr ""
+msgstr "Überprüfen der URL zurückgegeben von SRM: %s"
 
 #: src/hed/dmc/srm/DataPointSRM.cpp:269
 #: src/hed/dmc/srm/DataPointSRM.cpp:439
 #, c-format
 msgid "SRM returned no useful Transfer URLs: %s"
-msgstr ""
+msgstr "SRM gab keine nützliche Transfer URLs: %s"
 
 #: src/hed/dmc/srm/DataPointSRM.cpp:279
 #: src/hed/dmc/srm/DataPointSRM.cpp:445
 #, fuzzy, c-format
 msgid "Redirecting to new URL: %s"
-msgstr ""
+msgstr "Weiterleitung zu neuer URL: %s"
 
 #: src/hed/dmc/srm/DataPointSRM.cpp:361
 #, fuzzy
 msgid "No space token specified"
-msgstr ""
+msgstr "Kein space token angegeben"
 
 #: src/hed/dmc/srm/DataPointSRM.cpp:366
 msgid "Warning: Using SRM protocol v1 which does not support space tokens"
-msgstr ""
+msgstr "Warnung: Nutze SRM Protokol v1 das keine space tokens unterstützt"
 
 #: src/hed/dmc/srm/DataPointSRM.cpp:368
 #, fuzzy, c-format
 msgid "Using space token description %s"
-msgstr ""
+msgstr "Nutze space token Beschreibugn %s"
 
 #: src/hed/dmc/srm/DataPointSRM.cpp:373
 #, c-format
@@ -15559,7 +15558,7 @@ msgstr "removeCredentials: %s"
 #: src/services/storage/bartender/gateway/gateway.py:92
 #: src/services/storage/bartender/gateway/gateway.py:135
 msgid "proxy store is not accessable."
-msgstr ""
+msgstr "Proxy store nicht zugereifbar"
 
 #: src/services/storage/bartender/gateway/gateway.py:61
 #, python-format
