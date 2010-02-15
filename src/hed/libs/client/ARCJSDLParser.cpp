@@ -615,8 +615,8 @@ namespace Arc {
 
     // Application
     XMLNode xmlApplication("<Application/>");
-    XMLNode xmlPApplication(NS("posix-jsdl", "http://schemas.ggf.org/jsdl/2005/11/jsdl-posix"), "POSIXApplication");
-    XMLNode xmlHApplication(NS("hpcp-jsdl", "http://schemas.ggf.org/jsdl/2006/07/jsdl-hpcpa"), "HPCProfileApplication");
+    XMLNode xmlPApplication(NS("posix-jsdl", "http://schemas.ggf.org/jsdl/2005/11/jsdl-posix"), "posix-jsdl:POSIXApplication");
+    XMLNode xmlHApplication(NS("hpcp-jsdl", "http://schemas.ggf.org/jsdl/2006/07/jsdl-hpcpa"), "hpcp-jsdl:HPCProfileApplication");
 
     // ExecutableType Executable;
     if (!job.Application.Executable.Name.empty()) {
