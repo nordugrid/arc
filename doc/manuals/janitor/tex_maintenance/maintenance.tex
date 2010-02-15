@@ -4,9 +4,9 @@ This chapter explains how to maintain the {\em Catalog} and the {\em Janitor}
 themselves.
 It gives detailed instructions how to create new packages for the
 Janitor.
-To administrate the catalog, it is strongly recommended
-(but not ultimately required) to use the ontology editor Prot\`eg\`e,
-as explained in the next section.
+To administrate the catalog, one can either use an ontology editor 
+like Prot\`eg\`e, as explained in the next section, edit the documents
+manually.
 In the last section, a typical use case in maintaining the Janitor will
 be presented.
 
@@ -28,8 +28,9 @@ example file \texttt{knowarc.rdf} in the Janitor source directory
 \href{http://svn.nordugrid.org/repos/nordugrid/arc1/trunk/src/services/janitor/resources/catalog/}
 {http://svn.nordugrid.org/repos/nordugrid/arc1/trunk/src/services/janitor/resources/catalog/}.
 
-To edit the catalog, the ontology editor Prot\`eg\`e should be
-used. Figure~\ref{fig:protege_example} shows the editor while the
+To edit the catalog, the ontology editor Prot\`eg\`e may be
+used. With some experience gained, one is likely to prefer a manual editing.
+Figure~\ref{fig:protege_example} shows the editor while the
 MetaPackage \texttt{APPS/BIO/JASPAR-CORE-1.0} of the example file has
 been selected.
 
@@ -43,13 +44,53 @@ been selected.
 
 On the left side of the editor the class browser is placed. Three
 main classes are prepared: \texttt{MetaPackage}, \texttt{Note} and
-\texttt{Package}.
+\texttt{Package}. The RDF file is kept in the RDF:XML format, and
+when inspecting the entry, one will fine a direct correspondence 
+to the data stored in RDF:
+
+\begin{verbatim}
+<rdfs:Class rdf:about="&kb;MetaPackage"
+         rdfs:label="MetaPackage">
+  <rdfs:subClassOf rdf:resource="&rdfs;Resource"/>
+  <rdfs:comment>
+   Reference to a piece of software that shall be made available -
+   somehow, and to the expectation to the grid user.  The traditional
+   way to achieve the installation is via tarballs. Debian packages may
+   be an alternative.
+  </rdfs:comment>
+</rdfs:Class>
+<rdfs:Class rdf:about="&kb;Note"
+   rdfs:label="Note">
+   <rdfs:subClassOf rdf:resource="&rdfs;Resource"/>
+</rdfs:Class>
+<rdfs:Class rdf:about="&kb;Package"
+   rdfs:label="Package">
+  <rdfs:subClassOf rdf:resource="&rdfs;Resource"/>
+  <rdfs:comment>
+   Superclass of "TarPackage" and "DebianPackage".
+  </rdfs:comment>
+</rdfs:Class>
+\end{verbatim}
 
 The \texttt{Metapackage} is a general platform-independent description
 of a \texttt{Package}. It can be understood as a reference to a functionality
 that should be implemented at the remote site. But the exact instruction
 on how to install it is not given.  The "instruction-level" comes with
 instances of its subclass \texttt{Package}.
+
+Links between resources are referred to as {\em Properties}. The following
+specifies the dependencies that any package may have on other resources, i.e.
+on other packages. The dependency on a base system is expressed by the
+property {\em basesystem}, which not to be confused with the resource
+{\em BaseSystem}.
+
+\begin{verbatim}
+<rdf:Property rdf:about="&kb;depends"
+         rdfs:comment="lists dependencies of this package"
+         rdfs:label="depends">
+        <rdfs:domain rdf:resource="&kb;Package"/>
+        <rdfs:range rdf:resource="&rdfs;Resource"/>
+\end{verbatim}
 
 MetaPackages contain one or more instances of the class
 \texttt{Package}, which are then tangible software packages providing
