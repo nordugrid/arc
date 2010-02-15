@@ -68,6 +68,7 @@ namespace Arc {
   }
 
 #define PASS_MIN_LENGTH 4
+#define PASS_MAX_LENGTH 20
   typedef struct pw_cb_data {
     const void *password;
     const char *prompt_info;
@@ -117,14 +118,14 @@ namespace Arc {
         ok = -1;
         if((buf1 = (char *)OPENSSL_malloc(bufsiz)) != NULL) {
           memset(buf1,0,(unsigned int)bufsiz);
-          ok = UI_add_input_string(ui,prompt,ui_flags,buf1,PASS_MIN_LENGTH,bufsiz-1);
+          ok = UI_add_input_string(ui,prompt,ui_flags,buf1,PASS_MIN_LENGTH,PASS_MAX_LENGTH);
         }
       }
       if (ok >= 0 && verify) {
         ok = -1;
         if((buf2 = (char *)OPENSSL_malloc(bufsiz)) != NULL) {
           memset(buf2,0,(unsigned int)bufsiz);
-          ok = UI_add_verify_string(ui,prompt,ui_flags,buf2,PASS_MIN_LENGTH,bufsiz-1, buf);
+          ok = UI_add_verify_string(ui,prompt,ui_flags,buf2,PASS_MIN_LENGTH,PASS_MAX_LENGTH, buf);
         }
       }
       if (ok >= 0)
@@ -164,6 +165,7 @@ namespace Arc {
       UI_free(ui);
       OPENSSL_free(prompt);
     }
+
     return res;
   }
 
@@ -538,7 +540,13 @@ namespace Arc {
         cb_data.password = (passphrase.empty()) ? NULL : (void*)(passphrase.c_str());
         cb_data.prompt_info = prompt_info.empty() ? NULL : prompt_info.c_str();
         if(!(pkey = PEM_read_bio_PrivateKey(keybio, NULL, (pem_password_cb *)passwordcb, &cb_data))) {
-          throw CredentialError("Can not read credential key from PEM key BIO");
+          int reason = ERR_GET_REASON(ERR_peek_error());
+          if(reason == PEM_R_BAD_BASE64_DECODE ||
+            reason == PEM_R_BAD_DECRYPT ||
+            reason == PEM_R_BAD_PASSWORD_READ ||
+            reason == PEM_R_PROBLEMS_GETTING_PASSWORD)
+            throw CredentialError("Can not read credential key from PEM key BIO: Bad password");
+          else throw CredentialError("Can not read credential key from PEM key BIO");
         }
         break;
 
