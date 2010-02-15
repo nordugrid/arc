@@ -1764,7 +1764,6 @@ msgid "ArcAuthZ: failed to initiate all PDPs - this instance will be non-functio
 msgstr "ArcAuthZ: Fehler bei Initiierung wenigstens einer PDP - diese Instanz wird nicht funktional sein"
 
 #: src/hed/shc/arcauthzsh/ArcAuthZ.cpp:71
-#, c-format
 msgid "PDP: %s (%d)"
 msgstr ""
 
@@ -1774,7 +1773,6 @@ msgid "PDP: %s can not be loaded"
 msgstr "PDP: %s kann nicht geladen werden"
 
 #: src/hed/shc/arcauthzsh/ArcAuthZ.cpp:80
-#, fuzzy, c-format
 msgid "PDP: %s name is duplicate"
 msgstr "PDP: %s Name ist Doublette"
 
@@ -1786,7 +1784,7 @@ msgstr "Policy ist nicht gacl"
 
 #: src/hed/shc/gaclpdp/GACLPDP.cpp:121
 msgid "Evaluator for GACLPDP was not loaded"
-msgstr ""
+msgstr "Evaluator für GACLPDP wurde nicht geladen"
 
 #: src/hed/shc/gaclpdp/GACLPDP.cpp:152
 #, fuzzy, c-format
@@ -1794,9 +1792,9 @@ msgid "GACL Auth. request: %s"
 msgstr "GACL Auth. Anfrage. %s"
 
 #: src/hed/shc/simplelistpdp/SimpleListPDP.cpp:29
-#, fuzzy, c-format
+#, fuzzy
 msgid "Access list location: %s"
-msgstr ""
+msgstr "Zugriffslist location: %s"
 
 #: src/hed/shc/simplelistpdp/SimpleListPDP.cpp:39
 msgid "No policy file or DNs specified for simplelist.pdp, please set location attribute or at least one DN element for simplelist PDP node in configuration."
@@ -1808,27 +1806,27 @@ msgid "Authorized from simplelist.pdp"
 msgstr "Authorisiert durch simplelist.pdp"
 
 #: src/hed/shc/simplelistpdp/SimpleListPDP.cpp:52
+#, fuzzy
 msgid "The policy file setup for simplelist.pdp does not exist, please check location attribute for simplelist PDP node in service configuration"
-msgstr ""
+msgstr "Die Policy Datei Konfiguration für simplelist.pdb existiert nicht, bitte überprüfen Sie das location Attribut für simplelist PDP node in der Serivice Konfiguration"
 
 #: src/hed/shc/simplelistpdp/SimpleListPDP.cpp:59
-#, fuzzy, c-format
+#, fuzzy
 msgid "policy line: %s"
-msgstr ""
+msgstr "Policy Zeile: %s"
 
 #: src/hed/shc/simplelistpdp/SimpleListPDP.cpp:60
-#, fuzzy, c-format
 msgid "subject: %s"
-msgstr ""
+msgstr "Subjekt: %s"
 
 #: src/hed/shc/simplelistpdp/SimpleListPDP.cpp:78
 msgid "Not authorized from simplelist.pdp"
-msgstr ""
+msgstr "Nicht authorisiert von simplelist.pdp"
 
 #: src/hed/identitymap/IdentityMap.cpp:202
 #, c-format
 msgid "Grid identity is mapped to local identity '%s'"
-msgstr ""
+msgstr "Grid Identität wird zugewiesen zu lokaler Identität '%s'"
 
 #: src/hed/dmc/lfc/DataPointLFC.cpp:84
 #: src/hed/dmc/lfc/DataPointLFC.cpp:228
@@ -1836,9 +1834,8 @@ msgstr ""
 #: src/hed/dmc/lfc/DataPointLFC.cpp:384
 #: src/hed/dmc/lfc/DataPointLFC.cpp:418
 #: src/hed/dmc/lfc/DataPointLFC.cpp:500
-#, fuzzy, c-format
 msgid "Cthread_init() error: %s"
-msgstr ""
+msgstr "Cthread_init() Fehler: %s"
 
 #: src/hed/dmc/lfc/DataPointLFC.cpp:91
 #: src/hed/dmc/lfc/DataPointLFC.cpp:249
@@ -1848,110 +1845,100 @@ msgstr ""
 #: src/hed/dmc/lfc/DataPointLFC.cpp:507
 #, fuzzy, c-format
 msgid "Error starting session: %s"
-msgstr ""
+msgstr "Fehler beim start von session: %s"
 
 #: src/hed/dmc/lfc/DataPointLFC.cpp:112
 #: src/hed/dmc/lfc/DataPointLFC.cpp:258
-#, fuzzy, c-format
+#, fuzzy
 msgid "Using supplied guid %s"
-msgstr ""
+msgstr "Nutze angegebene guid %s"
 
 #: src/hed/dmc/lfc/DataPointLFC.cpp:119
 #: src/hed/dmc/rls/DataPointRLS.cpp:342
 #, fuzzy
 msgid "Source must contain LFN"
-msgstr ""
+msgstr "Quelle muss LFN enthalten"
 
 #: src/hed/dmc/lfc/DataPointLFC.cpp:126
 #: src/hed/dmc/rls/DataPointRLS.cpp:357
-#, fuzzy
 msgid "Destination must contain LFN"
-msgstr ""
-" Назначение \"%s\" должно быть каталогом \n"
-" %s "
+msgstr "Destination muss LFN enthalten"
 
 #: src/hed/dmc/lfc/DataPointLFC.cpp:131
 msgid "Locations are missing in destination LFC URL"
-msgstr ""
+msgstr "Locations fehlen in destination LFC URL"
 
 #: src/hed/dmc/lfc/DataPointLFC.cpp:140
 #, fuzzy, c-format
 msgid "Error finding replicas: %s"
-msgstr ""
+msgstr "Konnte replica nicht finden: %s"
 
 #: src/hed/dmc/lfc/DataPointLFC.cpp:157
 #, c-format
 msgid "Duplicate replica found in LFC: %s"
-msgstr ""
+msgstr "Doppelte replica gefunden in LFC: %s"
 
 #: src/hed/dmc/lfc/DataPointLFC.cpp:159
 #: src/hed/dmc/lfc/DataPointLFC.cpp:187
 #: src/hed/dmc/rls/DataPointRLS.cpp:232
 #: src/hed/dmc/rls/DataPointRLS.cpp:246
-#, fuzzy, c-format
 msgid "Adding location: %s - %s"
-msgstr ""
+msgstr "Füge location hinzu: %s - %s"
 
 #: src/hed/dmc/lfc/DataPointLFC.cpp:166
 #, fuzzy, c-format
 msgid "Replica %s already exists for LFN %s"
-msgstr ""
+msgstr "Replica %s existiert bereits für LFN %s"
 
 #: src/hed/dmc/lfc/DataPointLFC.cpp:185
-#, c-format
 msgid "Duplicate replica location: %s"
-msgstr ""
+msgstr "Doppelte replica location: %s"
 
 #: src/hed/dmc/lfc/DataPointLFC.cpp:212
-#, fuzzy, c-format
+#, fuzzy
 msgid "No locations found for %s"
-msgstr ""
+msgstr "Keine locations gefunden für %s"
 
 #: src/hed/dmc/lfc/DataPointLFC.cpp:215
 #: src/hed/dmc/rls/DataPointRLS.cpp:408
-#, fuzzy, c-format
+#, fuzzy
 msgid "meta_get_data: checksum: %s"
-msgstr ""
+msgstr "meta_get_data: checksum: %s"
 
 #: src/hed/dmc/lfc/DataPointLFC.cpp:216
 #: src/hed/dmc/rls/DataPointRLS.cpp:409
-#, c-format
 msgid "meta_get_data: size: %llu"
-msgstr ""
+msgstr "meta_get_data: Größe: %llu"
 
 #: src/hed/dmc/lfc/DataPointLFC.cpp:217
 #: src/hed/dmc/rls/DataPointRLS.cpp:410
-#, fuzzy, c-format
 msgid "meta_get_data: created: %s"
-msgstr ""
+msgstr "meta_get_data: angelegt: %s"
 
 #: src/hed/dmc/lfc/DataPointLFC.cpp:235
 msgid "LFN is missing in LFC (needed for replication)"
-msgstr ""
+msgstr "LFN fehlt in LFC (benötigt für Replikation)"
 
 #: src/hed/dmc/lfc/DataPointLFC.cpp:242
 msgid "LFN already exists in LFC"
-msgstr ""
+msgstr "LFN existiert bereits in LFC"
 
 #: src/hed/dmc/lfc/DataPointLFC.cpp:276
-#, c-format
 msgid "Creating LFC directory %s"
-msgstr ""
+msgstr "Anlegen von LFC Verzeichnis %s"
 
 #: src/hed/dmc/lfc/DataPointLFC.cpp:279
-#, c-format
 msgid "Error creating required LFC dirs: %s"
-msgstr ""
+msgstr "Fehler bei Anlegen benötigter LFC Verzeichnisse: %s"
 
 #: src/hed/dmc/lfc/DataPointLFC.cpp:287
-#, c-format
 msgid "Error creating LFC entry: %s"
-msgstr ""
+msgstr "Fehler bei Anlegen von LFC Eintrag: %s"
 
 #: src/hed/dmc/lfc/DataPointLFC.cpp:293
 #, c-format
 msgid "Error creating LFC entry %s, guid %s: %s"
-msgstr ""
+msgstr "Fehler beim Anlegen von LFC Eintrag %s, guid %s: %s"
 
 #: src/hed/dmc/lfc/DataPointLFC.cpp:310
 #: src/hed/dmc/lfc/DataPointLFC.cpp:313
@@ -1961,121 +1948,111 @@ msgstr ""
 #: src/hed/dmc/lfc/DataPointLFC.cpp:373
 #, fuzzy, c-format
 msgid "Error entering metadata: %s"
-msgstr ""
+msgstr "Fehler bei Eingabe von Metadaten: %s"
 
 #: src/hed/dmc/lfc/DataPointLFC.cpp:334
 msgid "No GUID defined for LFN - probably not preregistered"
-msgstr ""
+msgstr "Keine GUID definiert für LFN - vielleicht nicht preregistriert"
 
 #: src/hed/dmc/lfc/DataPointLFC.cpp:345
-#, c-format
 msgid "Error adding replica: %s"
-msgstr ""
+msgstr "Fehler beim Hinzufügen von replica: %s"
 
 #: src/hed/dmc/lfc/DataPointLFC.cpp:362
-#, c-format
+#, fuzzy
 msgid "Entering checksum type %s, value %s, file size %llu"
-msgstr ""
+msgstr "Eingabe von checksum Typ %s, Wert %s, Dateigröße %llu"
 
 #: src/hed/dmc/lfc/DataPointLFC.cpp:405
 msgid "Failed to remove LFN in LFC - You may need to do it by hand"
-msgstr ""
+msgstr "Fehler beim Entfernen von LFN in LFC - Sie müssen dies wohl von Hand erledigen"
 
 #: src/hed/dmc/lfc/DataPointLFC.cpp:424
 #: src/hed/dmc/rls/DataPointRLS.cpp:796
 #, fuzzy
 msgid "Location is missing"
-msgstr ""
+msgstr "Location fehlt"
 
 #: src/hed/dmc/lfc/DataPointLFC.cpp:449
-#, c-format
+#, fuzzy
 msgid "Error getting replicas: %s"
-msgstr ""
+msgstr "Fehler bei Erhalt der replicas: %s"
 
 #: src/hed/dmc/lfc/DataPointLFC.cpp:457
 msgid "Failed to remove location from LFC"
-msgstr ""
+msgstr "Fehler beim Entfernen von location von LFC"
 
 #: src/hed/dmc/lfc/DataPointLFC.cpp:464
 msgid "Failed to remove LFC directory: directory is not empty"
-msgstr ""
+msgstr "Fehler beim Entfernen von LFC Verzeichnis: Verzeichnis ist nicht leer"
 
 #: src/hed/dmc/lfc/DataPointLFC.cpp:468
 #, c-format
 msgid "Failed to remove LFC directory: %s"
-msgstr ""
+msgstr "Fehler beim Entfernen von LFC Verzeichnis: %s"
 
 #: src/hed/dmc/lfc/DataPointLFC.cpp:474
-#, c-format
 msgid "Failed to remove LFN in LFC: %s"
-msgstr ""
+msgstr "Fehler beim Entfernen von LFN in LFC: %s"
 
 #: src/hed/dmc/lfc/DataPointLFC.cpp:482
-#, c-format
+#, fuzzy
 msgid "Failed to remove location from LFC: %s"
-msgstr ""
+msgstr "Fehler beim Entfernen der location vom LFC: %s"
 
 #: src/hed/dmc/lfc/DataPointLFC.cpp:521
-#, c-format
 msgid "Error listing file or directory: %s"
-msgstr ""
+msgstr "Fehler beim listen von Datei oder Verzeichnis: %s"
 
 #: src/hed/dmc/lfc/DataPointLFC.cpp:530
-#, c-format
 msgid "Error opening directory: %s"
-msgstr ""
+msgstr "Fehler beim Öffnen von Verzeichs: %s"
 
 #: src/hed/dmc/lfc/DataPointLFC.cpp:559
 #: src/hed/dmc/lfc/DataPointLFC.cpp:580
 #, c-format
 msgid "Error listing directory: %s"
-msgstr ""
+msgstr "Fehler beim Listen von Verzeichnis: %s"
 
 #: src/hed/dmc/lfc/DataPointLFC.cpp:609
-#, c-format
+#, fuzzy
 msgid "Error listing replicas: %s"
-msgstr ""
+msgstr "Fehler beim Listen der replicas: %s"
 
 #: src/hed/dmc/lfc/DataPointLFC.cpp:659
 #, c-format
 msgid "Error finding LFN from guid %s: %s"
-msgstr ""
+msgstr "Fehler bei Suche nach LFN anhand guid %s: %s"
 
 #: src/hed/dmc/lfc/DataPointLFC.cpp:664
-#, c-format
 msgid "guid %s resolved to LFN %s"
-msgstr ""
+msgstr "guid %s aufgelöst zu LFN %s"
 
 #: src/hed/dmc/rls/DataPointRLS.cpp:177
 #: src/hed/dmc/rls/DataPointRLS.cpp:562
 #: src/hed/dmc/rls/DataPointRLS.cpp:715
 #: src/hed/dmc/rls/DataPointRLS.cpp:1060
-#, c-format
 msgid "Failed to find GUID for specified LFN in %s: %s"
-msgstr ""
+msgstr "Konnte GUID für angegebenen LFN nicht finden in %s: %s"
 
 #: src/hed/dmc/rls/DataPointRLS.cpp:182
 #: src/hed/dmc/rls/DataPointRLS.cpp:568
 #: src/hed/dmc/rls/DataPointRLS.cpp:720
 #: src/hed/dmc/rls/DataPointRLS.cpp:1065
-#, c-format
 msgid "There is no GUID for specified LFN in %s"
-msgstr ""
+msgstr "Es gibt keine GUID für angegebenen LFN in %s"
 
 #: src/hed/dmc/rls/DataPointRLS.cpp:211
-#, c-format
 msgid "Warning: can't get PFNs from server %s: %s"
-msgstr ""
+msgstr "Warnung: Kann keine PFNs erhalten von server %s: %s"
 
 #: src/hed/dmc/rls/DataPointRLS.cpp:288
-#, c-format
 msgid "Warning: Failed to obtain attributes from %s: %s"
-msgstr ""
+msgstr "Warnung: Fehler bei Bezug von Attributen von %s: %s"
 
 #: src/hed/dmc/rls/DataPointRLS.cpp:298
-#, c-format
 msgid "Attribute: %s - %s"
-msgstr ""
+msgstr "Attribut: %s - %s"
 
 #: src/hed/dmc/rls/DataPointRLS.cpp:334
 #: src/hed/dmc/rls/DataPointRLS.cpp:417
@@ -2084,41 +2061,37 @@ msgstr ""
 #: src/hed/dmc/rls/DataPointRLS.cpp:1167
 #, fuzzy
 msgid "RLS URL must contain host"
-msgstr ""
+msgstr "RLS URL muss Angabe von host enthalten"
 
 #: src/hed/dmc/rls/DataPointRLS.cpp:365
+#, fuzzy
 msgid "Locations are missing in destination RLS url - will use those registered with special name"
-msgstr ""
+msgstr "Lokalisation fehlen in Ziel RLS URL - werde die mit special name registrierten nutzen"
 
 #: src/hed/dmc/rls/DataPointRLS.cpp:373
-#, fuzzy
 msgid "No locations found for destination"
-msgstr ""
+msgstr "Keine locations gefunden für Ziel"
 
 #: src/hed/dmc/rls/DataPointRLS.cpp:422
 msgid "LFN is missing in RLS (needed for replication)"
-msgstr ""
+msgstr "LFN fehlt in RLS (benötigt für Replikation)"
 
 #: src/hed/dmc/rls/DataPointRLS.cpp:429
-#, fuzzy
 msgid "LFN already exists in replica"
-msgstr ""
+msgstr "LFN existiert bereits in replica"
 
 #: src/hed/dmc/rls/DataPointRLS.cpp:451
 #: src/hed/dmc/rls/DataPointRLS.cpp:816
-#, fuzzy, c-format
 msgid "Failed to connect to RLS server: %s"
-msgstr ""
+msgstr "Fehler beim Verbinden zu RLS server: %s"
 
 #: src/hed/dmc/rls/DataPointRLS.cpp:484
-#, c-format
 msgid "Failed to create GUID in RLS: %s"
-msgstr ""
+msgstr "Fehler bei Erstellen von GUID in RLS: %s"
 
 #: src/hed/dmc/rls/DataPointRLS.cpp:504
-#, c-format
 msgid "Failed to check for existing LFN in %s: %s"
-msgstr ""
+msgstr "Fehler bei Überprüfung für existierenden LFN in %s: %s"
 
 #: src/hed/dmc/rls/DataPointRLS.cpp:512
 #, fuzzy, c-format
@@ -2131,9 +2104,8 @@ msgid "Failed to add LFN-GUID to RLS: %s"
 msgstr ""
 
 #: src/hed/dmc/rls/DataPointRLS.cpp:587
-#, c-format
 msgid "Failed to create/add LFN-PFN mapping: %s"
-msgstr ""
+msgstr "Fehler bei Anlegen/Hinzufügen von LFN-PFN Zuweisungen: %s"
 
 #: src/hed/dmc/rls/DataPointRLS.cpp:604
 #: src/hed/dmc/rls/DataPointRLS.cpp:617
@@ -2142,19 +2114,19 @@ msgstr ""
 #: src/hed/dmc/rls/DataPointRLS.cpp:660
 #, c-format
 msgid "Warning: failed to add attribute to RLS: %s"
-msgstr ""
+msgstr "Warnung: Fehler bei Hinzufügen eines Attributs zu RLS: %s"
 
 #: src/hed/dmc/rls/DataPointRLS.cpp:741
 #: src/hed/dmc/rls/DataPointRLS.cpp:879
 #, c-format
 msgid "Warning: Failed to retrieve LFN/PFNs from %s: %s"
-msgstr ""
+msgstr "Warnung: Fehler bei Bezug von LFN/PFNs von %s: %s"
 
 #: src/hed/dmc/rls/DataPointRLS.cpp:751
 #: src/hed/dmc/rls/DataPointRLS.cpp:800
 #: src/hed/dmc/rls/DataPointRLS.cpp:895
 msgid "SE location will be unregistered automatically"
-msgstr ""
+msgstr "SE location wird automatisch deregistriert"
 
 #: src/hed/dmc/rls/DataPointRLS.cpp:760
 #: src/hed/dmc/rls/DataPointRLS.cpp:780
