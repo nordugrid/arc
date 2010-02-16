@@ -6,8 +6,9 @@
 #include <sstream>
 #include <vector>
 #include <map>
-
 #include <arc/DateTime.h>
+// Independent implementaion of std roundf() 
+#define roundf(num) ((fmod(num,1) < 0.5) ? floor(num):ceil(num))
 
 #include "FileCacheHash.h"
 
