@@ -8,9 +8,13 @@ use XML::Simple;
 use Sys::Hostname;
 use Data::Dumper;
 use Cwd;
-use Encode;
 
 use strict;
+
+# comatibility with perl 5.6
+BEGIN {
+    eval {require Encode; import Encode 'decode'};
+}
 
 BEGIN {
     eval {require Time::HiRes; import Time::HiRes "time"};
