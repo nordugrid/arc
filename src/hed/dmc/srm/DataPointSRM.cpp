@@ -199,38 +199,8 @@ namespace Arc {
       client = NULL;
       return DataStatus::ReadStartError;
     }
-    SRMReturnCode res;
-    if (additional_checks) {
-      logger.msg(VERBOSE, "StartReading: looking for metadata: %s", CurrentLocation().str());
-      srm_request->long_list(true);
-      std::list<struct SRMFileMetaData> metadata;
-      res = client->info(*srm_request, metadata);
-      if (res != SRM_OK) {
-        reading = false;
-        delete client;
-        client = NULL;
-        delete srm_request;
-        srm_request = NULL;
-        if (res == SRM_ERROR_TEMPORARY) return DataStatus::ReadStartErrorRetryable;
-        return DataStatus::ReadStartError;
-      }
-      // provide some metadata
-      if (!metadata.empty()) {
-        if (metadata.front().size > 0) {
-          logger.msg(INFO, "StartReading: obtained size: %lli", metadata.front().size);
-          SetSize(metadata.front().size);
-        }
-        if (metadata.front().checkSumValue.length() > 0 &&
-            metadata.front().checkSumType.length() > 0) {
-          std::string csum(metadata.front().checkSumType + ":" + metadata.front().checkSumValue);
-          logger.msg(INFO, "StartReading: obtained checksum: %s", csum);
-          SetCheckSum(csum);
-        }
-      }
-    }
-
     std::list<std::string> turls;
-    res = client->getTURLs(*srm_request, turls);
+    SRMReturnCode res = client->getTURLs(*srm_request, turls);
     client->disconnect();
     delete client;
     client = NULL;

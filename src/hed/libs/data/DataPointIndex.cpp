@@ -37,6 +37,17 @@ namespace Arc {
     return location->Name();
   }
 
+  DataStatus DataPointIndex::CompareLocationMetadata() const {
+    if (h && *h) {
+      DataStatus res = (*h)->Check();
+      if (!res.Passed())
+        return res;
+      if (!CompareMeta(*(*h)))
+        return DataStatus::InconsistentMetadataError;
+    }
+    return DataStatus::Success;
+  }  
+    
   bool DataPointIndex::HaveLocations() const {
     return (locations.size() != 0);
   }

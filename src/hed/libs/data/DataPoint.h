@@ -283,6 +283,11 @@ namespace Arc {
     /** Usage differs between different indexing services. */
     virtual const std::string& CurrentLocationMetadata() const = 0;
 
+    /// Compare metadata of DataPoint and current location
+    /** Returns inconsistency error or error encountered during
+     * operation, or success */
+    virtual DataStatus CompareLocationMetadata() const = 0;
+    
     /// Switch to next location in list of URLs.
     /** At last location switch to first if number of allowed retries
        is not exceeded. Returns false if no retries left. */

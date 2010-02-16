@@ -683,6 +683,23 @@ namespace Arc {
       DataPoint& destination_url = cacheable ? chdest : destination;
       // Disable checks meant to provide meta-information if not needed
       source_url.SetAdditionalChecks(do_checks & (checks_required | cacheable));
+      
+      // check location meta
+      if (source_url.GetAdditionalChecks()) {
+        DataStatus r = source_url.CompareLocationMetadata();
+        if (!r.Passed()) {
+          if (r == DataStatus::InconsistentMetadataError)
+            logger.msg(ERROR, "Meta info of source and location do not match for %s", source_url.str());
+          if (source.NextLocation())
+            logger.msg(VERBOSE, "(Re)Trying next source");
+          res = DataStatus::ReadError;
+#ifndef WIN32
+          if (cacheable)
+            cache.StopAndDelete(canonic_url);
+#endif
+          continue;
+        }
+      }
       DataStatus datares = source_url.StartReading(buffer);
       if (!datares.Passed()) {
         logger.msg(ERROR, "Failed to start reading from source: %s",

@@ -97,8 +97,10 @@ namespace Arc {
     }
     else if (!condstatus)
       logger.msg(INFO, "check_ftp: failed to get file's size");
-    else
+    else {
       SetSize(size);
+      logger.msg(VERBOSE, "check_ftp: obtained size: %lli", GetSize());
+    }
     res = globus_ftp_client_modification_time(&ftp_handle, url.str().c_str(),
                                               &ftp_opattr, &gl_modify_time,
                                               &ftp_complete_callback, this);
@@ -117,6 +119,7 @@ namespace Arc {
     else {
       GlobusTimeAbstimeGet(gl_modify_time, modify_time, modify_utime);
       SetCreated(modify_time);
+      logger.msg(VERBOSE, "check_ftp: obtained creation date: %s", GetCreated().str());
     }
     // Do not use partial_get for ordinary ftp. Stupid globus tries to
     // use non-standard commands anyway.
@@ -251,8 +254,6 @@ namespace Arc {
     set_attributes();
     reading = true;
     buffer = &buf;
-    /* size of file first */
-    globus_off_t size = 0;
     bool limit_length = false;
     unsigned long long int range_length = 0;
     if (range_end > range_start) {
@@ -263,95 +264,6 @@ namespace Arc {
     ftp_eof_flag = false;
     globus_ftp_client_handle_cache_url_state(&ftp_handle, url.str().c_str());
     GlobusResult res;
-    if ((additional_checks) && (!(CheckSize()))) {
-      logger.msg(VERBOSE, "start_reading_ftp: size: url: %s", url.str());
-      res = globus_ftp_client_size(&ftp_handle, url.str().c_str(), &ftp_opattr,
-                                   &size, &ftp_complete_callback, this);
-      if (!res) {
-        logger.msg(ERROR, "start_reading_ftp: failure");
-        logger.msg(INFO, "Globus error: %s", res.str());
-        // globus_ftp_client_handle_flush_url_state(&ftp_handle,
-        //                                          url.str().c_str());
-        // buffer->error_read(true);
-        // reading = false;
-        // return DataStatus::ReadStartError;
-      }
-      else if (!cond.wait(1000*usercfg.Timeout())) {
-        logger.msg(ERROR, "start_reading_ftp: timeout waiting for file size");
-        /* timeout - have to cancel operation here */
-        logger.msg(INFO,
-                   "Timeout waiting for FTP file size - cancel transfer");
-        globus_ftp_client_abort(&ftp_handle);
-        // have to do something in addition if complete callback will be called
-        cond.wait();
-        // globus_ftp_client_handle_flush_url_state(&ftp_handle,
-        //                                          url.str().c_str());
-        // buffer->error_read(true);
-        // reading = false;
-        // return DataStatus::ReadStartError;
-      }
-      else if (!condstatus)
-        logger.msg(INFO, "start_reading_ftp: failed to get file's size");
-      // buffer->error_read(true);
-      // reading = false;
-      // return read_start_error;
-      else {
-        /* provide some metadata */
-        logger.msg(INFO, "start_reading_ftp: obtained size: %llu", size);
-        SetSize(size);
-      }
-    }
-    if ((additional_checks) && (!(CheckCreated()))) {
-      globus_abstime_t gl_modify_time;
-      res = globus_ftp_client_modification_time(&ftp_handle, url.str().c_str(),
-                                                &ftp_opattr, &gl_modify_time,
-                                                &ftp_complete_callback, this);
-      if (!res) {
-        logger.msg(VERBOSE, "start_reading_ftp: "
-                   "globus_ftp_client_modification_time failed");
-        logger.msg(INFO, "Globus error: %s", res.str());
-        // buffer->error_read(true);
-        // reading = false;
-        // return DataStatus::ReadStartError;
-      }
-      else if (!cond.wait(1000*usercfg.Timeout())) {
-        logger.msg(INFO, "start_reading_ftp: "
-                   "timeout waiting for modification_time");
-        globus_ftp_client_abort(&ftp_handle);
-        cond.wait();
-        // globus_ftp_client_handle_flush_url_state(&ftp_handle,
-        //                                          url.str().c_str());
-        // buffer->error_read(true);
-        // reading = false;
-        // return DataStatus::ReadStartError;
-      }
-      if (!condstatus)
-        logger.msg(INFO, "start_reading_ftp: "
-                   "failed to get file's modification time");
-      // buffer->error_read(true);
-      // reading = false;
-      // return condstatus;
-      else {
-        time_t modify_time;
-        int modify_utime;
-        GlobusTimeAbstimeGet(gl_modify_time, modify_time, modify_utime);
-        SetCreated(modify_time);
-        logger.msg(VERBOSE, "start_reading_ftp: creation time: %s",
-                   GetCreated().str());
-      }
-      if (limit_length)
-        if ((unsigned long long int)size < range_end) {
-          if ((unsigned long long int)size <= range_start) {
-            // report eof immediately
-            logger.msg(VERBOSE, "start_reading_ftp: range is out of size");
-            buffer->eof_read(true);
-            condstatus = DataStatus::Success;
-            cond.signal();
-            return DataStatus::Success;
-          }
-          range_length = size - range_start;
-        }
-    }
     logger.msg(VERBOSE, "start_reading_ftp: globus_ftp_client_get");
     if (limit_length)
       res = globus_ftp_client_partial_get(&ftp_handle, url.str().c_str(),

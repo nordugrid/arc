@@ -124,9 +124,12 @@ namespace Arc {
       /// Staging error
       StageError = 28,
       StageErrorRetryable = DataStatusRetryableBase+StageError,
+      
+      /// Inconsistent metadata
+      InconsistentMetadataError = 29,
  
       /// Undefined
-      UnknownError = 29
+      UnknownError = 30
     };
 
     DataStatus(const DataStatusType& status, std::string desc="")

@@ -139,6 +139,10 @@ namespace Arc {
     static const std::string empty;
     return empty;
   }
+  
+  DataStatus DataPointDirect::CompareLocationMetadata() const {
+    return DataStatus::NotSupportedForDirectDataPointsError;
+  }
 
   bool DataPointDirect::NextLocation() {
     if (triesleft > 0)
