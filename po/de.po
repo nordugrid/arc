@@ -6,8 +6,8 @@ msgstr ""
 "Project-Id-Version: Arc\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2009-12-10 14:30+0100\n"
-"PO-Revision-Date: 2009-12-10 20:48+0100\n"
-"Last-Translator: Steffen Moeller <moeller@inb.uni-luebeck.de>\n"
+"PO-Revision-Date: 2010-02-16 13:42+0100\n"
+"Last-Translator: Steffen Möller <moeller@inb.uni-luebeck.de>\n"
 "Language-Team: German\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -58,7 +58,8 @@ msgstr "Der Servcice gibt seinen Serving State nicht an."
 msgid ""
 "Couldn't parse benchmark XML:\n"
 "%s"
-msgstr "Konnte benchmark XML nicht parsen:\n"
+msgstr ""
+"Konnte benchmark XML nicht parsen:\n"
 "%s"
 
 #: src/hed/acc/ARC1/TargetRetrieverARC1.cpp:420
@@ -1613,7 +1614,7 @@ msgstr "Authorisiert durch remote pdp service"
 #: src/hed/shc/pdpserviceinvoker/PDPServiceInvoker.cpp:171
 #: src/hed/shc/pdpserviceinvoker/PDPServiceInvoker.cpp:205
 msgid "Unauthorized from remote pdp service"
-msgstr ""
+msgstr "Nicht authorisiert von entferntem PDP service"
 
 #: src/hed/shc/delegationsh/DelegationSH.cpp:60
 msgid "Missing CertificatePath element or ProxyPath element, or <DelegationCredIdentity/> is missing"
@@ -1675,9 +1676,9 @@ msgid "Delegated credential identity: %s"
 msgstr "Delegated credential Identität: %s"
 
 #: src/hed/shc/delegationsh/DelegationSH.cpp:201
-#, fuzzy, c-format
+#, c-format
 msgid "The delegated credential got from delegation service is stored into path: %s"
-msgstr ""
+msgstr "Das delegierte credential wie erhalten von delegation service is abgelegt unter Pfad: %s"
 
 #: src/hed/shc/delegationsh/DelegationSH.cpp:214
 msgid "The endpoint of delgation service should be configured"
@@ -1741,10 +1742,6 @@ msgid "UnAuthorized from arc.pdp; Some of the RequestItem does not satisfy Polic
 msgstr "UnAuthorisiert von arc.pdp; einige der ReqestItems genügen nicht der Policy"
 
 #: src/hed/shc/arcpdp/ArcEvaluator.cpp:258
-#, c-format
-msgid "Result value (0=Permit, 1=Deny, 2=Indeterminate, 3=Not_Applicable): %d"
-msgstr Return-Wert (0=gestatten, 1=verbieten, 2=dazwischen, 3=nicht_anwendbar)_ %d"
-
 #: src/hed/shc/arcpdp/ArcEvaluationCtx.cpp:256
 #, fuzzy, c-format
 msgid "There is %d RequestItems"
@@ -1756,7 +1753,7 @@ msgstr "ArcAuthZ: Fehler bei Initiierung wenigstens einer PDP - diese Instanz wi
 
 #: src/hed/shc/arcauthzsh/ArcAuthZ.cpp:71
 msgid "PDP: %s (%d)"
-msgstr ""
+msgstr "PDP: %s (%d)"
 
 #: src/hed/shc/arcauthzsh/ArcAuthZ.cpp:76
 #, c-format
@@ -2092,7 +2089,7 @@ msgstr "Es existiert dieselbe LFN in %s"
 #: src/hed/dmc/rls/DataPointRLS.cpp:527
 #, c-format
 msgid "Failed to add LFN-GUID to RLS: %s"
-msgstr "Fehler bei Hinzugüden von LFN-GUID zu RLS"
+msgstr "Fehler bei Hinzufüden von LFN-GUID zu RLS: %s"
 
 #: src/hed/dmc/rls/DataPointRLS.cpp:587
 msgid "Failed to create/add LFN-PFN mapping: %s"
@@ -2187,7 +2184,8 @@ msgstr "Warnung: Erhalte keine Liste von senders von Server %s: %s"
 msgid ""
 "checingBartenderURL: Response:\n"
 "%s"
-msgstr "checkingBartenderURL: Response:\n"
+msgstr ""
+"checkingBartenderURL: Response:\n"
 "%s"
 
 #: src/hed/dmc/arc/DataPointARC.cpp:145
@@ -2421,64 +2419,65 @@ msgid "Using space token description %s"
 msgstr "Nutze space token Beschreibugn %s"
 
 #: src/hed/dmc/srm/DataPointSRM.cpp:373
-#, c-format
+#, fuzzy, c-format
 msgid "Warning: Error looking up space tokens matching description %s. Will copy without using token"
-msgstr ""
+msgstr "Warnung: Fehler beim Nachschlagen von space tokens, entsprechend der Beschreibung %s. Kopiere ohne Nutzung der Token"
 
 #: src/hed/dmc/srm/DataPointSRM.cpp:376
+#, fuzzy
 msgid "Warning: No space tokens found matching description! Will copy without using token"
-msgstr ""
+msgstr "Warnung: Keine space tokens gefunden, die der Beschreibung entsprechen! Kopiere ohne Nutzung der Token"
 
 #: src/hed/dmc/srm/DataPointSRM.cpp:379
-#, fuzzy, c-format
+#, c-format
 msgid "Using space token %s"
-msgstr ""
+msgstr "Nutze space token %s"
 
 #: src/hed/dmc/srm/DataPointSRM.cpp:525
 #, fuzzy, c-format
 msgid "ListFiles: looking for metadata: %s"
-msgstr ""
+msgstr "ListFiles: suche nach Metadata: %s"
 
 #: src/hed/dmc/srm/https/HTTPSClientSoap.cpp:15
 #, fuzzy
 msgid "Timeout while sending SOAP request"
-msgstr ""
+msgstr "Timeout beim Senden von SOAP request"
 
 #: src/hed/dmc/srm/https/HTTPSClientSoap.cpp:19
 msgid "Error sending data to server"
-msgstr ""
+msgstr "Fehler beim Senden von Daten zum Server"
 
 #: src/hed/dmc/srm/https/HTTPSClientConnector.cpp:160
 #: src/hed/dmc/srm/https/HTTPSClientConnector.cpp:190
 #, fuzzy, c-format
 msgid "globus_io_cancel failed: %s"
-msgstr ""
+msgstr "globus_io_cancel ist fehlgeschlagen: %s"
 
 #: src/hed/dmc/srm/https/HTTPSClientConnector.cpp:176
 #, c-format
 msgid "globus_io_register_read failed: %s"
-msgstr ""
+msgstr "globus_io_register_read ist fehlgeschlagen: %s"
 
 #: src/hed/dmc/srm/https/HTTPSClientConnector.cpp:204
 #, c-format
 msgid "globus_io_register_write failed: %s"
-msgstr ""
+msgstr "globus_io_register_write ist fehlgeschlagen: %s"
 
 #: src/hed/dmc/srm/https/HTTPSClientConnector.cpp:221
 #, fuzzy, c-format
 msgid "Connect to %s failed: %s"
-msgstr ""
+msgstr "Verbindung zu %s schlug fehl: %s"
 
 #: src/hed/dmc/srm/https/HTTPSClientConnector.cpp:227
-#, fuzzy, c-format
+#, c-format
 msgid "Connection to %s timed out after %i seconds"
-msgstr ""
+msgstr "Verbindung zu %s fehlgeschlagen nach %i Sekunden"
 
 #: src/hed/dmc/srm/https/HTTPSClientConnector.cpp:271
 #: src/hed/dmc/srm/https/HTTPSClient.cpp:96
 #, fuzzy, c-format
 msgid "clear_input: %s"
-msgstr ""
+msgstr "clear_input: %s"
 
 #: src/hed/dmc/srm/https/HTTPSClientConnector.cpp:278
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:54
@@ -2500,277 +2499,270 @@ msgstr ""
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:781
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:789
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:797
-#, fuzzy, c-format
+#, c-format
 msgid "Globus error: %s"
-msgstr ""
+msgstr "Globus Fehler: %s"
 
 #: src/hed/dmc/srm/https/HTTPSClientConnector.cpp:289
 msgid "Connection closed"
-msgstr ""
+msgstr "Verbindung geschlossen"
 
 #: src/hed/dmc/srm/https/HTTPSClientConnector.cpp:292
 #, fuzzy, c-format
 msgid "Globus error (read): %s"
-msgstr ""
+msgstr "Globus Fehler (Lesen): %s"
 
 #: src/hed/dmc/srm/https/HTTPSClientConnector.cpp:299
 #: src/hed/dmc/srm/https/HTTPSClientConnector.cpp:610
 #, fuzzy, c-format
 msgid "*** Server response: %s"
-msgstr ""
+msgstr "*** Server Antwort: %s"
 
 #: src/hed/dmc/srm/https/HTTPSClientConnector.cpp:311
 #, fuzzy, c-format
 msgid "Globus error (write): %s"
-msgstr ""
-"Ошибка:\n"
-"\n"
-"Не удалось записать %s\n"
+msgstr "Globus error (Schreiben): %s"
 
 #: src/hed/dmc/srm/https/HTTPSClientConnector.cpp:316
 #: src/hed/dmc/srm/https/HTTPSClientConnector.cpp:570
 #, fuzzy, c-format
 msgid "*** Client request: %s"
-msgstr ""
+msgstr "*** Client Anfrage: %s"
 
 #: src/hed/dmc/srm/https/HTTPSClientConnector.cpp:324
 #, c-format
 msgid "Authenticating: %s"
-msgstr ""
+msgstr "Authentifiziere: %s"
 
 #: src/hed/dmc/srm/https/HTTPSClientConnector.cpp:389
 #: src/hed/dmc/srm/https/HTTPSClientConnector.cpp:408
 #, fuzzy, c-format
 msgid "Address resolution failed: %s"
-msgstr ""
+msgstr "Addressen-Auflösung schlug fehl: %s"
 
 #: src/hed/dmc/srm/https/HTTPSClientConnector.cpp:414
 #, fuzzy, c-format
 msgid "Socket creation failed: %s"
-msgstr ""
+msgstr "Anlegen von Socket schlug fehl: %s"
 
 #: src/hed/dmc/srm/https/HTTPSClientConnector.cpp:420
 #, fuzzy, c-format
 msgid "Connection to server failed: %s"
-msgstr ""
+msgstr "Kein Verbindungsaufbau zu Server: %s"
 
 #: src/hed/dmc/srm/https/HTTPSClientConnector.cpp:491
 #, c-format
 msgid "Failed to authenticate: %s"
-msgstr ""
+msgstr "Fehler beim Authentifizieren: %s"
 
 #: src/hed/dmc/srm/https/HTTPSClientConnector.cpp:495
 #, c-format
 msgid "Failed to create GSI context: %s"
-msgstr ""
+msgstr "Fehler bei Anlegen von GSI Context: %s"
 
 #: src/hed/dmc/srm/https/HTTPSClientConnector.cpp:508
 msgid "Failed to read SSL token during authentication"
-msgstr ""
+msgstr "Fehler beim Lesen von SSL Token während Authentifizierung"
 
 #: src/hed/dmc/srm/https/HTTPSClientConnector.cpp:581
 #, fuzzy, c-format
 msgid "Failed wrapping GSI token: %s"
-msgstr ""
+msgstr "Konnte GI token nicht wrappen: %s"
 
 #: src/hed/dmc/srm/https/HTTPSClientConnector.cpp:607
 #, fuzzy, c-format
 msgid "Failed unwrapping GSI token: %s"
-msgstr ""
+msgstr "Fehler bei unwrap des GSI token: %s"
 
 #: src/hed/dmc/srm/https/HTTPSClientConnector.cpp:615
+#, fuzzy
 msgid "Unwrapped data does not fit into buffer"
-msgstr ""
+msgstr "Unwrapped data passt nicht in Puffer"
 
 #: src/hed/dmc/srm/https/HTTPSClientConnector.cpp:704
 #, fuzzy
 msgid "Urecognized SSL token received"
-msgstr ""
+msgstr "Nicht erkannter SSL token erkannt"
 
 #: src/hed/dmc/srm/https/HTTPSClient.cpp:166
 #, fuzzy, c-format
 msgid "read_response_header: line: %s"
-msgstr ""
+msgstr "read_response_header: Zeile: %s"
 
 #: src/hed/dmc/srm/https/HTTPSClient.cpp:178
 #, fuzzy
 msgid "Timeout while reading response header"
-msgstr ""
-"Ошибка при чтении заголовка файла:\n"
-" %1"
+msgstr "Timeout beim Lesen des response header"
 
 #: src/hed/dmc/srm/https/HTTPSClient.cpp:183
 #, fuzzy
 msgid "Error while reading response header"
-msgstr ""
-"Ошибка при чтении заголовка файла:\n"
-" %1"
+msgstr "Fehler beim Lesen des response header"
 
 #: src/hed/dmc/srm/https/HTTPSClient.cpp:188
-#, fuzzy
 msgid "read_response_header: header finished"
-msgstr ""
+msgstr "read_response_header: header beendet"
 
 #: src/hed/dmc/srm/https/HTTPSClient.cpp:193
-#, fuzzy
 msgid "skip_response_entity"
-msgstr ""
+msgstr "skip_response_entity"
 
 #: src/hed/dmc/srm/https/HTTPSClient.cpp:196
 #, c-format
 msgid "skip_response_entity: size: %llu"
-msgstr ""
+msgstr "skip_response_entity: Größe: %llu"
 
 #: src/hed/dmc/srm/https/HTTPSClient.cpp:200
 msgid "skip_response_entity: already have all"
-msgstr ""
+msgstr "skip_response_entity: Sie haben bereits alle"
 
 #: src/hed/dmc/srm/https/HTTPSClient.cpp:204
 #, c-format
 msgid "skip_response_entity: size left: %llu"
-msgstr ""
+msgstr "skip_response_entity: Größe verbleibend: %llu"
 
 #: src/hed/dmc/srm/https/HTTPSClient.cpp:208
 #, c-format
 msgid "skip_response_entity:  to read: %llu"
-msgstr ""
+msgstr "skip_response_entity:  zu lesen: %llu"
 
 #: src/hed/dmc/srm/https/HTTPSClient.cpp:215
 #, c-format
 msgid "skip_response_entity: timeout %llu"
-msgstr ""
+msgstr "skip_response_entity: Zeitüberschreitung %llu"
 
 #: src/hed/dmc/srm/https/HTTPSClient.cpp:220
 #, c-format
 msgid "skip_response_entity: read: %u (%llu)"
-msgstr ""
+msgstr "skip_response_entity: gelesen: %u (%llu)"
 
 #: src/hed/dmc/srm/https/HTTPSClient.cpp:222
 msgid "skip_response_entity: read all"
-msgstr ""
+msgstr "skip_response_entity: alles gelesen"
 
 #: src/hed/dmc/srm/https/HTTPSClient.cpp:226
 #, fuzzy
 msgid "skip_response_entity: no entity"
-msgstr ""
+msgstr "skip_response_entity: no entity"
 
 #: src/hed/dmc/srm/https/HTTPSClient.cpp:230
 msgid "skip_response_entity: unknown size"
-msgstr ""
+msgstr "skip_response_entity: unbekannte Größe"
 
 #: src/hed/dmc/srm/https/HTTPSClient.cpp:278
 #: src/hed/dmc/srm/https/HTTPSClient.cpp:394
 msgid "Not connected"
-msgstr ""
+msgstr "Nicht verbunden"
 
 #: src/hed/dmc/srm/https/HTTPSClient.cpp:296
 #, fuzzy
 msgid "Timeout sending header"
-msgstr ""
+msgstr "Zeitüberschreitung beim Senden des Header"
 
 #: src/hed/dmc/srm/https/HTTPSClient.cpp:300
 msgid "Early response from server"
-msgstr ""
+msgstr "Frühe Antwort vom Server"
 
 #: src/hed/dmc/srm/https/HTTPSClient.cpp:309
 #: src/hed/dmc/srm/https/HTTPSClient.cpp:405
 msgid "No response from server received"
-msgstr ""
+msgstr "Keine Antwort von Server erhalten"
 
 #: src/hed/dmc/srm/https/HTTPSClient.cpp:313
+#, fuzzy
 msgid "Failed to send body"
-msgstr ""
+msgstr "Fehler beim Senden von body"
 
 #: src/hed/dmc/srm/https/HTTPSClient.cpp:318
 #, fuzzy
 msgid "Failure while receiving entity"
-msgstr ""
+msgstr "Fehler beim Emfpangen von entity"
 
 #: src/hed/dmc/srm/https/HTTPSClient.cpp:359
 #, c-format
 msgid "header: %s"
-msgstr ""
+msgstr "header: %s"
 
 #: src/hed/dmc/srm/https/HTTPSClient.cpp:376
 #, fuzzy
 msgid "Timeout while sending header"
-msgstr ""
+msgstr "Zeitüberschreitung beim Senden von header"
 
 #: src/hed/dmc/srm/https/HTTPSClient.cpp:382
 msgid "Failed to send header"
-msgstr ""
+msgstr "Fehler beim Senden von header"
 
 #: src/hed/dmc/srm/https/HTTPSClient.cpp:414
 #: src/hed/dmc/srm/https/HTTPSClient.cpp:424
 #: src/hed/dmc/srm/https/HTTPSClient.cpp:518
 #, fuzzy
 msgid "GET: connection to be closed"
-msgstr ""
+msgstr "GET: Verbindung wird geschlossen"
 
 #: src/hed/dmc/srm/https/HTTPSClient.cpp:429
 #, c-format
 msgid "GET: header is read - rest: %u"
-msgstr ""
+msgstr "GET: header wird gelesen - verbleibend: %u"
 
 #: src/hed/dmc/srm/https/HTTPSClient.cpp:437
 #, c-format
 msgid "GET: calling callback(rest): content: %s"
-msgstr ""
+msgstr "GET: rufe callback(rest): Inhalt: %s"
 
 #: src/hed/dmc/srm/https/HTTPSClient.cpp:438
 #, c-format
 msgid "GET: calling callback(rest): size: %u"
-msgstr ""
+msgstr "GET: rufe callbeck(rest): Größe: %u"
 
 #: src/hed/dmc/srm/https/HTTPSClient.cpp:439
 #, c-format
 msgid "GET: calling callback(rest): offset: %llu"
-msgstr ""
+msgstr "GET: rufe callbeck(rest): offset: %llu"
 
 #: src/hed/dmc/srm/https/HTTPSClient.cpp:449
 #: src/hed/dmc/srm/https/HTTPSClient.cpp:457
 #: src/hed/dmc/srm/https/HTTPSClient.cpp:507
 #, fuzzy
 msgid "GET callback returned error"
-msgstr ""
+msgstr "GET callback lieferte Fehlermeldung"
 
 #: src/hed/dmc/srm/https/HTTPSClient.cpp:473
 msgid "Failed to allocate memory"
-msgstr ""
+msgstr "Fehler beim Reservieren von Speicher"
 
 #: src/hed/dmc/srm/https/HTTPSClient.cpp:482
 #, fuzzy
 msgid "Failed while reading response content"
-msgstr ""
+msgstr "Fehler beim Lesen von Antwort Inhalt"
 
 #: src/hed/dmc/srm/https/HTTPSClient.cpp:489
 #, fuzzy
 msgid "Timeout while reading response content"
-msgstr ""
+msgstr "Timeout beim Lesen von Antwort Inhalt"
 
 #: src/hed/dmc/srm/https/HTTPSClient.cpp:498
 #, fuzzy
 msgid "Error while reading response content"
-msgstr ""
+msgstr "Fehler beim Lesen von Antwort Inhalt"
 
 #: src/hed/dmc/srm/https/HTTPSClient.cpp:503
 #, c-format
 msgid "GET: calling callback: content: %s"
-msgstr ""
+msgstr "GET: rufe callback: Inhalt: %s"
 
 #: src/hed/dmc/srm/https/HTTPSClient.cpp:504
 #, fuzzy, c-format
 msgid "GET: calling callback: size: %u"
-msgstr ""
+msgstr "GET: rufe callback: Größe: %u"
 
 #: src/hed/dmc/srm/https/HTTPSClient.cpp:505
 #, c-format
 msgid "GET: calling callback: offset: %llu"
-msgstr ""
+msgstr "GET: rufe callback: offset: %llu"
 
 #: src/hed/dmc/srm/srmclient/SRM1Client.cpp:46
 msgid "SOAP request failed (get)"
-msgstr ""
+msgstr "SOAP Anfrage fehlgeschlagen (get)"
 
 #: src/hed/dmc/srm/srmclient/SRM1Client.cpp:52
 #: src/hed/dmc/srm/srmclient/SRM1Client.cpp:88
@@ -2780,59 +2772,60 @@ msgstr ""
 #: src/hed/dmc/srm/srmclient/SRM1Client.cpp:256
 #: src/hed/dmc/srm/srmclient/SRM1Client.cpp:355
 msgid "SRM did not return any information"
-msgstr ""
+msgstr "SRM lieferte keine Information zurück"
 
 #: src/hed/dmc/srm/srmclient/SRM1Client.cpp:82
 #: src/hed/dmc/srm/srmclient/SRM1Client.cpp:172
 #: src/hed/dmc/srm/srmclient/SRM1Client.cpp:250
 msgid "SOAP request failed (getRequestStatus)"
-msgstr ""
+msgstr "SOAP Anfrage fehlgeschlagen (getRequestStatus)"
 
 #: src/hed/dmc/srm/srmclient/SRM1Client.cpp:133
 msgid "SOAP request failed (put)"
-msgstr ""
+msgstr "SOAP Anfrage fehlgeschlagen (put)"
 
 #: src/hed/dmc/srm/srmclient/SRM1Client.cpp:214
 msgid "SOAP request failed (copy)"
-msgstr ""
+msgstr "SOAP Anfrage fehlgeschlagen (copy)"
 
 #: src/hed/dmc/srm/srmclient/SRM1Client.cpp:277
 #: src/hed/dmc/srm/srmclient/SRM1Client.cpp:398
 msgid "SOAP request failed (setFileStatus)"
-msgstr ""
+msgstr "SOAP Anfrage fehlgeschlagen (setFileStatus)"
 
 #: src/hed/dmc/srm/srmclient/SRM1Client.cpp:296
-#, c-format
+#, fuzzy, c-format
 msgid "File could not be moved to Running state: %s"
-msgstr ""
+msgstr "Datei konnte nicht zu Running Zustand bewegt werden: %s"
 
 #: src/hed/dmc/srm/srmclient/SRM1Client.cpp:322
 msgid "SOAP request failed (SRMv1Meth__advisoryDelete)"
-msgstr ""
+msgstr "SOAP Anfragen fehlgeschlagen (SRMv1Meth__advisoryDelete)"
 
 #: src/hed/dmc/srm/srmclient/SRM1Client.cpp:349
 msgid "SOAP request failed (getFileMetaData)"
-msgstr ""
+msgstr "SOAP Anfragen fehlgeschlagen (getFileMetaData)"
 
 #: src/hed/dmc/srm/srmclient/SRM1Client.cpp:361
 msgid "SRM did not return any useful information"
-msgstr ""
+msgstr "SRM lieferte keinerlei gebrauchbare Information"
 
 #: src/hed/dmc/srm/srmclient/SRM1Client.cpp:415
+#, fuzzy
 msgid "File could not be moved to Done state"
-msgstr ""
+msgstr "Datei konnte nicht zu Done Zustand bewegt werden"
 
 #: src/hed/dmc/srm/srmclient/SRMClient.cpp:37
 msgid "srmPing gives v2.2, instantiating v2.2 client"
-msgstr ""
+msgstr "srmPing gibt v2.2, instanziierend v2.2 client"
 
 #: src/hed/dmc/srm/srmclient/SRMClient.cpp:44
 msgid "SOAP error with srmPing, instantiating v1 client"
-msgstr ""
+msgstr "SOAP Fehler mit srmPing, instanziierende v1 client"
 
 #: src/hed/dmc/srm/srmclient/SRMClient.cpp:52
 msgid "Service error, cannot instantiate SRM client"
-msgstr ""
+msgstr "Service Fehler, kann nicht SRM client instanziieren"
 
 #: src/hed/dmc/srm/srmclient/SRM22Client.cpp:46
 #: src/hed/dmc/srm/srmclient/SRM22Client.cpp:100
@@ -2854,12 +2847,12 @@ msgstr ""
 #: src/hed/dmc/srm/srmclient/SRM22Client.cpp:1320
 #, c-format
 msgid "SOAP request failed (%s)"
-msgstr ""
+msgstr "SOAP Anfrage fehlgeschlagen (%s)"
 
 #: src/hed/dmc/srm/srmclient/SRM22Client.cpp:55
 #, c-format
 msgid "Server SRM version: %s"
-msgstr ""
+msgstr "Server SRM version: %s"
 
 #: src/hed/dmc/srm/srmclient/SRM22Client.cpp:65
 #: src/hed/dmc/srm/srmclient/SRM22Client.cpp:69
@@ -2867,11 +2860,11 @@ msgstr ""
 #: src/hed/dmc/srm/srmclient/SRM22Client.cpp:77
 #, c-format
 msgid "Server implementation: %s"
-msgstr ""
+msgstr "Server Implementation: %s"
 
 #: src/hed/dmc/srm/srmclient/SRM22Client.cpp:83
 msgid "Could not determine version of server"
-msgstr ""
+msgstr "Konnte Version des Server nicht bestimmen"
 
 #: src/hed/dmc/srm/srmclient/SRM22Client.cpp:110
 #: src/hed/dmc/srm/srmclient/SRM22Client.cpp:154
@@ -2894,22 +2887,22 @@ msgstr ""
 #: src/hed/dmc/srm/srmclient/SRM22Client.cpp:1358
 #, c-format
 msgid "Error: %s"
-msgstr ""
+msgstr "Error: %s"
 
 #: src/hed/dmc/srm/srmclient/SRM22Client.cpp:117
 #, fuzzy, c-format
 msgid "Adding space token %s"
-msgstr ""
+msgstr "Füge space token %s hinzu"
 
 #: src/hed/dmc/srm/srmclient/SRM22Client.cpp:149
 #, fuzzy
 msgid "No request tokens found"
-msgstr ""
+msgstr "Keine Anfrage-Token gefunden"
 
 #: src/hed/dmc/srm/srmclient/SRM22Client.cpp:161
 #, fuzzy, c-format
 msgid "Adding request token %s"
-msgstr ""
+msgstr "Füge Anfrage-Token %s hinzu"
 
 #: src/hed/dmc/srm/srmclient/SRM22Client.cpp:233
 #: src/hed/dmc/srm/srmclient/SRM22Client.cpp:598
@@ -2917,25 +2910,23 @@ msgstr ""
 #: src/hed/dmc/srm/srmclient/SRM22Client.cpp:1309
 #, c-format
 msgid "%s: File request %s in SRM queue. Sleeping for %i seconds"
-msgstr ""
+msgstr "%s: Datei Anfrage %s in SRM queue. Schlage für %i Sekunden"
 
 #: src/hed/dmc/srm/srmclient/SRM22Client.cpp:260
 #, c-format
 msgid "Error: PrepareToGet request timed out after %i seconds"
-msgstr ""
+msgstr "Fehler: Zeitüberschreitung bei PrepareToGet Anfrage nach %i Sekunden"
 
 #: src/hed/dmc/srm/srmclient/SRM22Client.cpp:290
 #: src/hed/dmc/srm/srmclient/SRM22Client.cpp:687
 #, fuzzy, c-format
 msgid "File is ready! TURL is %s"
-msgstr ""
+msgstr "Datei ist bereit! Die URL ist %s"
 
 #: src/hed/dmc/srm/srmclient/SRM22Client.cpp:334
 #, fuzzy, c-format
 msgid "Setting userRequestDescription to %s"
-msgstr ""
-"Спецификация %s установлена в '%s'\n"
-"\n"
+msgstr "Setzer userRequestDescription zu %s"
 
 #: src/hed/dmc/srm/srmclient/SRM22Client.cpp:402
 #: src/hed/dmc/srm/srmclient/SRM22Client.cpp:1024
@@ -2943,519 +2934,520 @@ msgstr ""
 #: src/hed/dmc/srm/srmclient/SRM22Client.cpp:1110
 #, fuzzy
 msgid "No request token specified!"
-msgstr ""
+msgstr "Keine Anfrage-Token spezifiziert!"
 
 #: src/hed/dmc/srm/srmclient/SRM22Client.cpp:453
 msgid "Request is reported as ABORTED, but all files are done"
-msgstr ""
+msgstr "Anfrage wurde berichtet als ABORTED (abgebrochen), aber alle Dateien wurden bearbeitet"
 
 #: src/hed/dmc/srm/srmclient/SRM22Client.cpp:458
 msgid "Request is reported as ABORTED, since it was cancelled"
-msgstr ""
+msgstr "Anfrage wurde berichtet als ABORTED (abgebrochen), denn sie wurde abgebrochen"
 
 #: src/hed/dmc/srm/srmclient/SRM22Client.cpp:463
 #, c-format
 msgid "Request is reported as ABORTED. Reason: %s"
-msgstr ""
+msgstr "Anfrage wurde berichtet als ABORTED (abgebrochen). Grund: %s"
 
 #: src/hed/dmc/srm/srmclient/SRM22Client.cpp:468
 msgid "Request is reported as ABORTED"
-msgstr ""
+msgstr "Anfrage wurde berichtet als ABORTED (abgebrochen)"
 
 #: src/hed/dmc/srm/srmclient/SRM22Client.cpp:625
 #, c-format
 msgid "Error: PrepareToPut request timed out after %i seconds"
-msgstr ""
+msgstr "Fehler: Zeitüberschreitung bei PrepareToPut Anfrage nach %i Sekunden"
 
 #: src/hed/dmc/srm/srmclient/SRM22Client.cpp:645
 #: src/hed/dmc/srm/srmclient/SRM22Client.cpp:671
 #, c-format
 msgid "Path %s is invalid, creating required directories"
-msgstr ""
+msgstr "Pfad %s ist ungültig, lege benötigte Verzeichnisse an"
 
 #: src/hed/dmc/srm/srmclient/SRM22Client.cpp:648
 #: src/hed/dmc/srm/srmclient/SRM22Client.cpp:674
 #, fuzzy, c-format
 msgid "Error creating required directories for %s"
-msgstr ""
+msgstr "Fehler bei Anlegen von benötigten Verzeichnissen für %s"
 
 #: src/hed/dmc/srm/srmclient/SRM22Client.cpp:806
 #, c-format
 msgid "Error: Ls request timed out after %i seconds"
-msgstr ""
+msgstr "Fehler: Zeitüberschreitung bei Ls Anfrage nach %i Sekunden"
 
 #: src/hed/dmc/srm/srmclient/SRM22Client.cpp:856
 #, c-format
 msgid "Directory size is larger than %i files, will have to call multiple times"
-msgstr ""
+msgstr "Verzeichnis enthält mehr als %i Dateien, werde Aufruf mehrfach ausführen"
 
 #: src/hed/dmc/srm/srmclient/SRM22Client.cpp:1051
 #, c-format
 msgid "Files associated with request token %s released successfully"
-msgstr ""
+msgstr "Dateien assoziiert mit Anfrage Token %s erfolgreich freigegeben"
 
 #: src/hed/dmc/srm/srmclient/SRM22Client.cpp:1100
-#, c-format
+#, fuzzy, c-format
 msgid "Files associated with request token %s put done successfully"
-msgstr ""
+msgstr "Dateien assoziiert mit Anfrage Token %s erfolgreich put done"
 
 #: src/hed/dmc/srm/srmclient/SRM22Client.cpp:1137
 #, c-format
 msgid "Files associated with request token %s aborted successfully"
-msgstr ""
+msgstr "Dateien assoziiert mit Anfrage Token %s erfolgreich abgebrochen"
 
 #: src/hed/dmc/srm/srmclient/SRM22Client.cpp:1153
 #, c-format
 msgid "Failed to find metadata info on file %s"
-msgstr ""
+msgstr "Konnte Metadaen für Datei %s nicht finden"
 
 #: src/hed/dmc/srm/srmclient/SRM22Client.cpp:1158
-#, fuzzy
 msgid "Type is file, calling srmRm"
-msgstr ""
+msgstr "Typ ist Datei, rufe srmRm auf"
 
 #: src/hed/dmc/srm/srmclient/SRM22Client.cpp:1162
-msgid "Type is dir, calling srmRmDir"
-msgstr ""
+msgid "Typ is dir, calling srmRmDir"
+msgstr "Typ ist Datei, rufe srmRmDir auf"
 
 #: src/hed/dmc/srm/srmclient/SRM22Client.cpp:1166
 msgid "File type is not available, attempting file delete"
-msgstr ""
+msgstr "Dateitype ist nicht verfügbar, versuche Datei zu löschen"
 
 #: src/hed/dmc/srm/srmclient/SRM22Client.cpp:1168
-#, fuzzy
 msgid "File delete failed, attempting directory delete"
-msgstr ""
+msgstr "Löschen von Datei schlug fehl, versuche als Verzeichnis zu löschen"
 
 #: src/hed/dmc/srm/srmclient/SRM22Client.cpp:1208
 #, fuzzy, c-format
 msgid "File %s removed successfully"
-msgstr ""
+msgstr "Datei %s erfolgreich entfernt"
 
 #: src/hed/dmc/srm/srmclient/SRM22Client.cpp:1245
 #, fuzzy, c-format
 msgid "Directory %s removed successfully"
-msgstr ""
+msgstr "Verzeichnis %s erfolgreich entfernt"
 
 #: src/hed/dmc/srm/srmclient/SRM22Client.cpp:1349
 #, c-format
 msgid "Error: copy request timed out after %i seconds"
-msgstr ""
+msgstr "Fehler: Zeitüberschreitung bei Kopieranfrage nach %i Sekunden "
 
 #: src/hed/dmc/srm/srmclient/SRM22Client.cpp:1378
 #, fuzzy, c-format
 msgid "Checking for existence of %s"
-msgstr ""
+msgstr "Suche nache Existenz von %s"
 
 #: src/hed/dmc/srm/srmclient/SRM22Client.cpp:1385
 #, c-format
 msgid "Creating directory %s"
-msgstr ""
+msgstr "Lege Verzeichnis %s an"
 
 #: src/hed/dmc/srm/srmclient/SRM22Client.cpp:1397
 #, fuzzy
 msgid "SOAP request failed (srmMkdir)"
-msgstr ""
+msgstr "SOAP Anfrage schlug fehl (srmMkdir)"
 
 #: src/hed/dmc/srm/srmclient/SRM22Client.cpp:1412
 #, fuzzy, c-format
 msgid "Error creating directory %s: %s"
-msgstr ""
+msgstr "Fehler bei Anlegen von Verzeichnis %s: %s"
 
 #: src/hed/dmc/file/DataPointFile.cpp:186
 #, c-format
 msgid "File is not accessible: %s"
-msgstr ""
+msgstr "Datei ist nicht zugreifbar: %s"
 
 #: src/hed/dmc/file/DataPointFile.cpp:191
-#, c-format
+#, fuzzy, c-format
 msgid "Can't stat file: %s"
-msgstr ""
+msgstr "Kann stat-Informationen zu Datei nicht einholen: %s"
 
 #: src/hed/dmc/file/DataPointFile.cpp:209
 #, c-format
 msgid "File is not accessible: %s - %s"
-msgstr ""
+msgstr "Dati ist nicht zugreifbar: %s - %s"
 
 #: src/hed/dmc/file/DataPointFile.cpp:215
 #, c-format
 msgid "Can't delete directory: %s - %s"
-msgstr ""
+msgstr "Kann Verzeichnis nicht löschen: %s - %s"
 
 #: src/hed/dmc/file/DataPointFile.cpp:222
 #, c-format
 msgid "Can't delete file: %s - %s"
-msgstr ""
+msgstr "Kann Datei nicht löschen: %s - %s"
 
 #: src/hed/dmc/file/DataPointFile.cpp:300
 msgid "Failed to use channel stdout"
-msgstr ""
+msgstr "Kann Kanal stdout nicht nutzen"
 
 #: src/hed/dmc/file/DataPointFile.cpp:313
 #, c-format
 msgid "Invalid url: %s"
-msgstr ""
+msgstr "Ungültige url: %s"
 
 #: src/hed/dmc/file/DataPointFile.cpp:323
 #, c-format
 msgid "Failed to create/find directory %s, (%d)"
-msgstr ""
+msgstr "Fehler bei Anlegen/Finden von Verzeichnis %s, (%d)"
 
 #: src/hed/dmc/file/DataPointFile.cpp:341
 #, c-format
 msgid "Failed to create/open file %s (%d)"
-msgstr ""
+msgstr "Fehler bei Anlegen/Öffnen von Datei %s (%d)"
 
 #: src/hed/dmc/file/DataPointFile.cpp:352
 #, c-format
 msgid "setting file %s to size %llu"
-msgstr ""
+msgstr "Setze Datei %s zu Größe %llu"
 
 #: src/hed/dmc/file/DataPointFile.cpp:374
+#, fuzzy
 msgid "Failed to preallocate space"
-msgstr ""
+msgstr "Fehler bei Reservieren von Platz"
 
 #: src/hed/dmc/file/DataPointFile.cpp:431
 #, c-format
 msgid "Failed to read object %s: %s"
-msgstr ""
+msgstr "Fehler bei Lesen von Objekt %s: %s"
 
 #: src/hed/dmc/file/DataPointFile.cpp:456
 #, c-format
 msgid "Failed to read object %s"
-msgstr ""
+msgstr "Fehler bei Lesen von Objekt %s"
 
 #: src/hed/dmc/file/DataPointFile.cpp:466
 #, c-format
 msgid "size is %s"
-msgstr ""
+msgstr "Größe ist %s"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:32
 msgid "ftp_complete_callback: success"
-msgstr ""
+msgstr "ftp_complete_callback: erfolgreich"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:37
 #, c-format
 msgid "ftp_complete_callback: error: %s"
-msgstr ""
+msgstr "ftp_complete_callback: Fehler: %s"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:51
 #, fuzzy
 msgid "ftp_check_callback"
-msgstr ""
+msgstr "ftp_check_callback"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:66
+#, fuzzy
 msgid "Registration of Globus FTP buffer failed - cancel check"
-msgstr ""
+msgstr "Registrierung von Globus FTP buffer fehlgeschlagen - breche check ab"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:90
 msgid "check_ftp: globus_ftp_client_size failed"
-msgstr ""
+msgstr "check_ftp: globus_ftp_client_size fehlgeschlagen"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:94
 msgid "check_ftp: timeout waiting for size"
-msgstr ""
+msgstr "check_ftp: Zeitüberschreitung bei Warten für Größe"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:99
 msgid "check_ftp: failed to get file's size"
-msgstr ""
+msgstr "check_ftp: konnten Dateigröße nicht bestimmen"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:107
 msgid "check_ftp: globus_ftp_client_modification_time failed"
-msgstr ""
+msgstr "check_ftp: globus_ftp_client_modification_time fehlgeschlagen"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:111
 msgid "check_ftp: timeout waiting for modification_time"
-msgstr ""
+msgstr "check_ftp: Zeitüberschreitung bei Warten auf modification_time"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:116
 msgid "check_ftp: failed to get file's modification time"
-msgstr ""
+msgstr "check_ftp: konnte Modification time von Datei nicht erhalten"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:128
 msgid "check_ftp: globus_ftp_client_get failed"
-msgstr ""
+msgstr "check_ftp: globus_ftp_client_get fehlgeschlagen"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:134
 msgid "check_ftp: globus_ftp_client_register_read"
-msgstr ""
+msgstr "check_ftp: globus_ftp_client_register_read"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:145
+#, fuzzy
 msgid "check_ftp: timeout waiting for partial get"
-msgstr ""
+msgstr "check_ftp: Zeitüberschreitung beim Warten auf partial get"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:173
 #, fuzzy
 msgid "delete_ftp: globus_ftp_client_delete failed"
-msgstr ""
+msgstr "delete_ftp: globus_ftp_client_delete fehlgeschlagen"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:178
 msgid "delete_ftp: globus_ftp_client_delete timeout"
-msgstr ""
+msgstr "delete_ftp: globus_ftp_client_delete Zeitüberschreitung"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:223
 #, fuzzy, c-format
 msgid "mkdir_ftp: making %s"
-msgstr ""
+msgstr "mkdir_ftp: erstelle %s"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:232
 #, fuzzy
 msgid "mkdir_ftp: timeout waiting for mkdir"
-msgstr ""
+msgstr "mkdir_ftp: Zeitüberschreitung bei mkdir"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:262
 #, fuzzy
 msgid "start_reading_ftp"
-msgstr ""
+msgstr "start_reading_ftp"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:267
 #, c-format
 msgid "start_reading_ftp: size: url: %s"
-msgstr ""
+msgstr "start_reading_ftp: url: %s"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:271
 #, fuzzy
 msgid "start_reading_ftp: failure"
-msgstr ""
+msgstr "start_reading_ftp: Fehler"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:280
 msgid "start_reading_ftp: timeout waiting for file size"
-msgstr ""
+msgstr "start_reading_ftp: Zeitüberschreitung bei Warten auf Dateigröße"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:283
 msgid "Timeout waiting for FTP file size - cancel transfer"
-msgstr ""
+msgstr "Zeitüberschreitung bei Warten auf FTP Datei Größe - breche Transfer ab"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:294
 msgid "start_reading_ftp: failed to get file's size"
-msgstr ""
+msgstr "start_reading_ftp: Fehler bei Bezug von Dateigröße"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:300
 #, c-format
 msgid "start_reading_ftp: obtained size: %llu"
-msgstr ""
+msgstr "start_reading_ftp: erzielte Größe: %llu"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:310
 msgid "start_reading_ftp: globus_ftp_client_modification_time failed"
-msgstr ""
+msgstr "start_reading_ftp: globus_ftp_client_modification_time fehlgeschlagen"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:318
 msgid "start_reading_ftp: timeout waiting for modification_time"
-msgstr ""
+msgstr "start_reading_ftp: Zeitüberschreitung bei Warten auf Zeitpunkt letzter Änderung"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:329
 msgid "start_reading_ftp: failed to get file's modification time"
-msgstr ""
+msgstr "start_reading_ftp: Fehler bei Bezug von Zeitpunkt letzter Änderung"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:339
 #, c-format
 msgid "start_reading_ftp: creation time: %s"
-msgstr ""
+msgstr "start_reading_ftp: angegelegt um: %s"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:346
+#, fuzzy
 msgid "start_reading_ftp: range is out of size"
-msgstr ""
+msgstr "start_reading_ftp: Größe von Wert verlässt erwarteten Bereich"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:355
 msgid "start_reading_ftp: globus_ftp_client_get"
-msgstr ""
+msgstr "start_reading_ftp: globus_ftp_client_get fehlgeschlagen"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:367
 msgid "start_reading_ftp: globus_ftp_client_get failed"
-msgstr ""
+msgstr "start_reading_ftp: globus_ftp_client_get fehlgeschlagen"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:376
 msgid "start_reading_ftp: globus_thread_create failed"
-msgstr ""
+msgstr "start_reading_ftp: globus_thread_create fehlgeschlagen"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:394
 msgid "stop_reading_ftp: aborting connection"
-msgstr ""
+msgstr "stop_reading_ftp: Abbruch der Verbindung"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:397
 msgid "stop_reading_ftp: waiting for transfer to finish"
-msgstr ""
+msgstr "stop_reading_ftp: warte auf Beenden von Transfer"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:399
 #, fuzzy, c-format
 msgid "stop_reading_ftp: exiting: %s"
-msgstr ""
+msgstr "stop-reading_ftp: verlasse: %s"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:410
 msgid "ftp_read_thread: get and register buffers"
-msgstr ""
+msgstr "ftp_read_thread: beziehe und registriere Puffer"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:417
 #, c-format
 msgid "ftp_read_thread: for_read failed - aborting: %s"
-msgstr ""
+msgstr "ftp_read_thread: for_read fehlgeschlagen - Abbruch: %s"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:428
 #, c-format
 msgid "ftp_read_thread: Globus error: %s"
-msgstr ""
+msgstr "ftp_read_thread: Globus Fehler: %s"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:435
 #, c-format
 msgid "ftp_read_thread: too many registration failures - abort: %s"
-msgstr ""
+msgstr "ftp_read_thread: zu viele Registrierungsfehler - Abbruch: %s"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:440
 #, c-format
 msgid "ftp_read_thread: failed to register globus buffer - will try later: %s"
-msgstr ""
+msgstr "ftp_read_thread: Fehler bei Registrieren von Globus Puffer - verschoben auf später: %s"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:451
 msgid "ftp_read_thread: waiting for eof"
-msgstr ""
+msgstr "ftp_read_thread: warte auf EOF"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:453
 #, fuzzy
 msgid "ftp_read_thread: exiting"
-msgstr ""
+msgstr "ftp_read_thread: Beenden"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:469
 msgid "ftp_read_callback: failure"
-msgstr ""
+msgstr "ftp_read_callback: Fehler"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:473
 msgid "ftp_read_callback: success"
-msgstr ""
+msgstr "ftp_read_callback: Erfolg"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:486
 #, fuzzy
 msgid "Failed to get ftp file"
-msgstr ""
+msgstr "Fehler bei Bezug von FTP Datei"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:518
 #, fuzzy
 msgid "start_writing_ftp: mkdir"
-msgstr ""
+msgstr "start_wrtiting_ftp: mkdir"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:521
 msgid "start_writing_ftp: mkdir failed - still trying to write"
-msgstr ""
+msgstr "start_writing_ftp: mkdir fehlgeschlagen - versuche weiter zu schreiben"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:523
 #, fuzzy
 msgid "start_writing_ftp: put"
-msgstr ""
+msgstr "start_writing_ftp: put"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:535
 msgid "start_writing_ftp: put failed"
-msgstr ""
+msgstr "start_writing_ftp: put fehlgeschlagen"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:544
 msgid "start_writing_ftp: globus_thread_create failed"
-msgstr ""
+msgstr "start_writitng_ftp: globus_thread_create failed"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:560
 #, fuzzy
 msgid "StopWriting: aborting connection"
-msgstr ""
+msgstr "StopWriting: Abbruch der Verbindung"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:575
 msgid "ftp_write_thread: get and register buffers"
-msgstr ""
+msgstr "ftp_write_thread: Beziehe und Registriere Puffer"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:579
 msgid "ftp_write_thread: for_write failed - aborting"
-msgstr ""
+msgstr "ftp_write_thread: for_write fehlgeschlagen - Abbruch"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:620
 msgid "ftp_write_callback: failure"
-msgstr ""
+msgstr "ftp_write_callback: Fehler"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:624
 msgid "ftp_write_callback: success"
-msgstr ""
+msgstr "ftp_write_callback: Erfolg"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:635
-#, fuzzy
 msgid "Failed to store ftp file"
-msgstr ""
+msgstr "Fehler bei Ablage von FTP Datei"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:658
 #, c-format
 msgid "Failed to obtain listing from ftp: %s"
-msgstr ""
+msgstr "Konnte Listing nicht via FTP beziehen: %s"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:679
 #, c-format
 msgid "list_files_ftp: looking for size of %s"
-msgstr ""
+msgstr "list_files_ftp: Suche nach Größe von %s"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:683
 msgid "list_files_ftp: globus_ftp_client_size failed"
-msgstr ""
+msgstr "list_files_ftp: globus_ftp_client_size fehlgeschlagen"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:688
 msgid "list_files_ftp: timeout waiting for size"
-msgstr ""
+msgstr "list_files_ftp: Zeitüberschreitung bei Warten auf Dateigröße "
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:694
 msgid "list_files_ftp: failed to get file's size"
-msgstr ""
+msgstr "list_files_ftp: Fehler bei Bezug von Dateigröße"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:708
 #, c-format
 msgid "list_files_ftp: looking for modification time of %s"
-msgstr ""
+msgstr "list_files_ftp: Bezug von Zeitpunkt der letzten Dateiänderung von %s"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:715
 msgid "list_files_ftp: globus_ftp_client_modification_time failed"
-msgstr ""
+msgstr "list_files_ftp: globus_ftp_client_modification_time fehlgeschlagen"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:721
 msgid "list_files_ftp: timeout waiting for modification_time"
-msgstr ""
+msgstr "list_files_ftp: Zeitüberschreitung bei Warten auf Zeitpunkt der letzten Dateiänderung "
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:728
 msgid "list_files_ftp: failed to get file's modification time"
-msgstr ""
+msgstr "list_files_ftp: Fehler bei Bezug von Zeitpunkt der letzten Dateiänderung"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:770
 msgid "init_handle: globus_ftp_client_handleattr_init failed"
-msgstr ""
+msgstr "init_handle: globus_ftp_client_handleattr_init fehlgeschlagen"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:779
 msgid "init_handle: globus_ftp_client_handleattr_set_gridftp2 failed"
-msgstr ""
+msgstr "init_handle: globus_ftp_client_handleattr_set_gridftp2 fehlgeschlagen"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:788
 #, fuzzy
 msgid "init_handle: globus_ftp_client_handle_init failed"
-msgstr ""
+msgstr "init_handle: globus_ftp_client_handle_init fehlgeschlagen"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:795
 msgid "init_handle: globus_ftp_client_operationattr_init failed"
-msgstr ""
+msgstr "init_handle: globus_ftp_client_operationattr_init fehlgeschlagen"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:861
 #, fuzzy
 msgid "Failed to set credentials for GridFTP transfer"
-msgstr ""
+msgstr "Fehler bei Setzen von Credentials für GridFTP transfer"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:862
 #, c-format
 msgid "globus_ftp_client_operationattr_set_authorization: error: %s"
-msgstr ""
+msgstr "globus_ftp_client_operationattr_set_authorisation: Fehler: %s"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:869
 msgid "Using secure data transfer"
-msgstr ""
+msgstr "Nutze sicheren Datentransfer"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:880
 msgid "Using insecure data transfer"
-msgstr ""
+msgstr "Nutze unsicheren Datentransfer"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:895
 msgid "DataPoint::deinit_handle: destroy ftp_handle"
-msgstr ""
+msgstr "DataPoint::deinit_handle: destroly ftp_handle"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:917
 msgid "Missing reference to factory and/or module. It is unsafe to use Globus in non-persistent mode - (Grid)FTP code is disabled. Report to developers."
-msgstr ""
+msgstr "Fehlende Referenz zu factory und/doer Module. Es ist unsicher, Globus im nicht-persistenten Modus zu nutzen  - (Grid)FTP code wurde disabled. Bitte die Entwickler informieren."
 
 #: src/hed/dmc/gridftp/Lister.cpp:141
 #: src/hed/dmc/gridftp/Lister.cpp:181
@@ -3464,372 +3456,374 @@ msgstr ""
 #: src/hed/dmc/gridftp/Lister.cpp:574
 #, c-format
 msgid "Failure: %s"
-msgstr ""
+msgstr "Fehler: %s"
 
 #: src/hed/dmc/gridftp/Lister.cpp:179
 #, fuzzy
 msgid "Error getting list of files (in list)"
-msgstr ""
+msgstr "Fehler bei Bezug von Dateiliste (in Liste)"
 
 #: src/hed/dmc/gridftp/Lister.cpp:182
 #, fuzzy
 msgid "Assuming - file not found"
-msgstr ""
+msgstr "Vermuting - Datei nicht gefunden"
 
 #: src/hed/dmc/gridftp/Lister.cpp:201
 #, fuzzy, c-format
 msgid "list record: %s"
-msgstr ""
+msgstr "Listen-Eintrag: %s"
 
 #: src/hed/dmc/gridftp/Lister.cpp:253
 msgid "Failed reading list of files"
-msgstr ""
+msgstr "Fehler bei Lesen von Dateiliste"
 
 #: src/hed/dmc/gridftp/Lister.cpp:290
 msgid "Failed reading data"
-msgstr ""
+msgstr "Fehler bei Lesen von Daten"
 
 #: src/hed/dmc/gridftp/Lister.cpp:316
 #: src/hed/dmc/gridftp/Lister.cpp:362
 msgid "Memory allocation error"
-msgstr ""
+msgstr "Speicherallokationsfehler"
 
 #: src/hed/dmc/gridftp/Lister.cpp:324
 #, c-format
 msgid "Command: %s"
-msgstr ""
+msgstr "Kommando: %s"
 
 #: src/hed/dmc/gridftp/Lister.cpp:328
 #, c-format
 msgid "%s failed"
-msgstr ""
+msgstr "%s fehlgeschlagen"
 
 #: src/hed/dmc/gridftp/Lister.cpp:333
 #, fuzzy
 msgid "Command is being sent"
-msgstr ""
+msgstr "Kommando wird gesendet"
 
 #: src/hed/dmc/gridftp/Lister.cpp:338
 msgid "Waiting for response"
-msgstr ""
+msgstr "Warte vor Antwort"
 
 #: src/hed/dmc/gridftp/Lister.cpp:343
 #, fuzzy
 msgid "Callback got failure"
-msgstr ""
+msgstr "Callback erhielt Fehler"
 
 #: src/hed/dmc/gridftp/Lister.cpp:419
 #, fuzzy
 msgid "Failed initing condition"
-msgstr ""
+msgstr "Fehler bei Initialisierung der condition"
 
 #: src/hed/dmc/gridftp/Lister.cpp:423
 #, fuzzy
 msgid "Failed initing mutex"
-msgstr ""
+msgstr "Fehler bei Initialisierung des Mutex"
 
 #: src/hed/dmc/gridftp/Lister.cpp:430
 #, fuzzy
 msgid "Failed allocating memory for handle"
-msgstr ""
+msgstr "Fehler bei Reservieren des Speichers für handle"
 
 #: src/hed/dmc/gridftp/Lister.cpp:435
 #, fuzzy
 msgid "Failed initing handle"
-msgstr ""
+msgstr "Fehler bei Initialisierung von handle"
 
 #: src/hed/dmc/gridftp/Lister.cpp:448
 msgid "Closing connection"
-msgstr ""
+msgstr "Schließe Verbindung"
 
 #: src/hed/dmc/gridftp/Lister.cpp:453
 #, fuzzy
 msgid "Failed to close connection 1"
-msgstr ""
+msgstr "Fehler bei Schließen von Verbindung 1"
 
 #: src/hed/dmc/gridftp/Lister.cpp:459
 #, fuzzy
 msgid "Failed to close connection 2"
-msgstr ""
+msgstr "Fehler bei Schließen von Verbindung 2"
 
 #: src/hed/dmc/gridftp/Lister.cpp:463
 #, fuzzy
 msgid "Failed to close connection 3"
-msgstr ""
+msgstr "Fehler bei Schließen von Verbindung 3"
 
 #: src/hed/dmc/gridftp/Lister.cpp:468
 msgid "Closed successfully"
-msgstr ""
+msgstr "Verbindung erfolgreich geschlossen"
 
 #: src/hed/dmc/gridftp/Lister.cpp:480
 #, fuzzy
 msgid "Memory leak (globus_ftp_control_handle_t)"
-msgstr ""
+msgstr "Memory leak (globus_ftp_control_handle_t)"
 
 #: src/hed/dmc/gridftp/Lister.cpp:494
 #, c-format
 msgid "PASV failed: %s"
-msgstr ""
+msgstr "PASV fehlgeschlagen: %s"
 
 #: src/hed/dmc/gridftp/Lister.cpp:498
 msgid "PASV failed"
-msgstr ""
+msgstr "PASV fehlgeschlagen"
 
 #: src/hed/dmc/gridftp/Lister.cpp:511
-#, fuzzy
 msgid "Can't parse host and port in response to PASV"
-msgstr ""
+msgstr "Kann host and port nicht aus Antwort zu PASV herauslesen"
 
 #: src/hed/dmc/gridftp/Lister.cpp:517
 #, fuzzy, c-format
 msgid "Data channel: %d.%d.%d.%d %d"
-msgstr ""
+msgstr "Datenkanal: %d.%d.%d.%d %d"
 
 #: src/hed/dmc/gridftp/Lister.cpp:521
 #, fuzzy
 msgid "Obtained host and address are not acceptable"
-msgstr ""
+msgstr "Erhaltener host und Adresse sind nicht akzeptabel"
 
 #: src/hed/dmc/gridftp/Lister.cpp:536
 #, c-format
 msgid "Unsupported protocol in url %s"
-msgstr ""
+msgstr "Nicht-unterstzütztes Protrokoll in URL %s"
 
 #: src/hed/dmc/gridftp/Lister.cpp:549
 msgid "Reusing connection"
-msgstr ""
+msgstr "Wiederholte Nutzung von Verbindung"
 
 #: src/hed/dmc/gridftp/Lister.cpp:572
 #, c-format
 msgid "Failed connecting to server %s:%d"
-msgstr ""
+msgstr "Fehler bei Verbinden zu server %s:%d"
 
 #: src/hed/dmc/gridftp/Lister.cpp:578
 #, c-format
 msgid "Failed to connect to server %s:%d"
-msgstr ""
+msgstr "Fehler bei Verbinden zu server %s:%d"
 
 #: src/hed/dmc/gridftp/Lister.cpp:597
 #: src/hed/dmc/gridftp/Lister.cpp:612
 msgid "Bad authentication information"
-msgstr ""
+msgstr "Ungültige Authentisierungs-Information"
 
 #: src/hed/dmc/gridftp/Lister.cpp:620
 #: src/hed/dmc/gridftp/Lister.cpp:624
 msgid "Failed authenticating"
-msgstr ""
+msgstr "Fehler bei Authentisieren"
 
 #: src/hed/dmc/gridftp/Lister.cpp:638
 #, c-format
 msgid "DCAU failed: %s"
-msgstr ""
+msgstr "DCAU fehlgeschlagen: %s"
 
 #: src/hed/dmc/gridftp/Lister.cpp:642
 msgid "DCAU failed"
-msgstr ""
+msgstr "DCAU fehlgeschlagen"
 
 #: src/hed/dmc/gridftp/Lister.cpp:659
 msgid "Failed to open data channel"
-msgstr ""
+msgstr "Fehler bei Öffnen von Datenkanal"
 
 #: src/hed/dmc/gridftp/Lister.cpp:666
 msgid "MLSD is not supported - trying NLST"
-msgstr ""
+msgstr "MLSD ist nicht unterstützt - versuche NLST"
 
 #: src/hed/dmc/gridftp/Lister.cpp:678
 #, fuzzy, c-format
 msgid "Immediate completion: %s"
-msgstr ""
+msgstr "Sofortige Vervollständigung: %s"
 
 #: src/hed/dmc/gridftp/Lister.cpp:686
 #, c-format
 msgid "NLST/MLSD failed: %s"
-msgstr ""
+msgstr "NLST/UMLSD fehlgeschlagen: %s"
 
 #: src/hed/dmc/gridftp/Lister.cpp:690
 msgid "NLST/MLSD failed"
-msgstr ""
+msgstr "NLST/UMLSD fehlgeschlagen"
 
 #: src/hed/dmc/gridftp/Lister.cpp:703
 #, c-format
 msgid "Data transfer aborted: %s"
-msgstr ""
+msgstr "Datentransfer abgebrochen: %s"
 
 #: src/hed/dmc/gridftp/Lister.cpp:707
 msgid "Data transfer aborted"
-msgstr ""
+msgstr "Datentransfer abgebrochen"
 
 #: src/hed/dmc/gridftp/Lister.cpp:718
 msgid "Failed to transfer data"
-msgstr ""
+msgstr "Fehler bei Transfer von Daten"
 
 #: src/hed/libs/globusutils/GSSCredential.cpp:27
 #, fuzzy, c-format
 msgid "Failed to read proxy file: %s"
-msgstr ""
+msgstr "Fehler bei Lesen von Proxy-Datei: %s"
 
 #: src/hed/libs/globusutils/GSSCredential.cpp:35
 #, fuzzy, c-format
 msgid "Failed to read certificate file: %s"
-msgstr ""
+msgstr "Fehler bei Lesen von Zertifikat-Datei: %s"
 
 #: src/hed/libs/globusutils/GSSCredential.cpp:43
 #, fuzzy, c-format
 msgid "Failed to read private key file: %s"
-msgstr ""
+msgstr "Fehler bei Lesen von privater Schlüssel-Datei: %s"
 
 #: src/hed/libs/globusutils/GSSCredential.cpp:62
 #, c-format
 msgid "Failed to convert GSI credential to GSS credential (major: %d, minor: %d)%s"
-msgstr ""
+msgstr "Fehler bei Konvertieren von GSI Credential zu GCC Credential (major: %d, minor: %d)%s"
 
 #: src/hed/libs/globusutils/GSSCredential.cpp:75
 #, c-format
 msgid "Failed to release GSS credential (major: %d, minor: %d):%s"
-msgstr ""
+msgstr "Fehler bei Freigabe von GSS Credential (major: %d, minor: %d):%s"
 
 #: src/hed/libs/crypto/OpenSSL.cpp:42
 #, c-format
 msgid "SSL error: %d - %s:%s:%s"
-msgstr ""
+msgstr "SSL Fehler: %d - %s:%s:%s"
 
 #: src/hed/libs/crypto/OpenSSL.cpp:54
+#, fuzzy
 msgid "FATAL: SSL locks not initialized"
-msgstr ""
+msgstr "FATAL: SSL Locks nicht initialisiert"
 
 #: src/hed/libs/crypto/OpenSSL.cpp:58
 #, c-format
 msgid "FATAL: wrong SSL lock requested: %i of %i: %i - %s"
-msgstr ""
+msgstr "FATAL: falsches SSL lock angefragt: %i von %i: %i - %s"
 
 #: src/hed/libs/crypto/OpenSSL.cpp:80
+#, fuzzy
 msgid "Failed to lock arccrypto library in memory"
-msgstr ""
+msgstr "Fehler bei Lock von arccrypto Bibliothek in Speicher"
 
 #: src/hed/libs/crypto/OpenSSL.cpp:84
 msgid "Failed to initialize OpenSSL library"
-msgstr ""
+msgstr "Fehler bei Initialisierung von OpenSSL Bibliothek"
 
 #: src/hed/libs/crypto/OpenSSL.cpp:105
 msgid "Number of OpenSSL locks changed - reinitializing"
-msgstr ""
+msgstr "Anzahl von OpenSSL locks verändert - reinitialisierung"
 
 #: src/hed/libs/data/FileCache.cpp:72
 #, fuzzy
 msgid "No cache directory specified"
-msgstr ""
+msgstr "Kein Cache-Verzeichnis angegeben"
 
 #: src/hed/libs/data/FileCache.cpp:87
 #: src/hed/libs/data/FileCache.cpp:91
 #, fuzzy, c-format
 msgid "Cannot create directory \"%s\" for cache"
-msgstr ""
+msgstr "Kann Verzeichnis \"%s\" für cache nicht anlegen"
 
 #: src/hed/libs/data/FileCache.cpp:104
 #: src/hed/libs/data/FileCache.cpp:121
 msgid "Cannot determine hostname from uname()"
-msgstr ""
+msgstr "Kann hostname von uname nciht ermitteln"
 
 #: src/hed/libs/data/FileCache.cpp:164
 #: src/hed/libs/data/FileCache.cpp:219
 #, fuzzy, c-format
 msgid "EACCES Error opening lock file %s: %s"
-msgstr ""
+msgstr "EACCESS Fehler bei Öffnen von Lock-Datei %s: %s"
 
 #: src/hed/libs/data/FileCache.cpp:169
 #, c-format
 msgid "Error opening lock file %s in initial check: %s"
-msgstr ""
+msgstr "Fehler bei Öffnen von Lock-Datei %s in initialer Überprüfung: %s"
 
 #: src/hed/libs/data/FileCache.cpp:180
 #, fuzzy, c-format
 msgid "Error creating file %s with mkstemp(): %s"
-msgstr ""
+msgstr "Fehler bei Anlegen von %s mit mkstemp(): %s"
 
 #: src/hed/libs/data/FileCache.cpp:187
 #, c-format
 msgid "Error writing to tmp lock file %s: %s"
-msgstr ""
+msgstr "Fehler beim Schreiben zu tmp lock Datei %s: %s"
 
 #: src/hed/libs/data/FileCache.cpp:195
 #, c-format
 msgid "Warning: closing tmp lock file %s failed"
-msgstr ""
+msgstr "Warnung: Schließen von tmp Lock Datei %s fehlgeschlagen"
 
 #: src/hed/libs/data/FileCache.cpp:202
 #, c-format
 msgid "Error renaming tmp file %s to lock file %s: %s"
-msgstr ""
+msgstr "Fehler bei Umbenennen von temporärer Datei %s zu Lock_datei %s: %s"
 
 #: src/hed/libs/data/FileCache.cpp:209
 msgid "Error renaming lock file, even though rename() did not return an error"
-msgstr ""
+msgstr "Fehler bei Umbenennen von Lock-Datei, obwohl rename() keinen Fehler zurücklieferte"
 
 #: src/hed/libs/data/FileCache.cpp:224
 #, c-format
 msgid "Error opening lock file we just renamed successfully %s: %s"
-msgstr ""
+msgstr "Fehler bei Öfnnen von Lock-Datei die gerade erfolgreich umgenannt wurde %s: %s"
 
 #: src/hed/libs/data/FileCache.cpp:229
 #: src/hed/libs/data/FileCache.cpp:314
 msgid "The file is currently locked with a valid lock"
-msgstr ""
+msgstr "Die Datei ist derzeit gelockt mit einem gültigen Lock"
 
 #: src/hed/libs/data/FileCache.cpp:239
 #, c-format
 msgid "%li seconds since lock file was created"
-msgstr ""
+msgstr "%li Sekunden seit Lock-Datei engelegt wurde"
 
 #: src/hed/libs/data/FileCache.cpp:242
 msgid "Timeout has expired, will remove lock file"
-msgstr ""
+msgstr "Zeitüberschreitung, werde lock-Datei entfernen"
 
 #: src/hed/libs/data/FileCache.cpp:246
 #: src/hed/libs/data/FileCache.cpp:302
 #, fuzzy, c-format
 msgid "Failed to unlock file %s: %s"
-msgstr ""
+msgstr "Fehler bei Unlock von Datei %s: %s"
 
 #: src/hed/libs/data/FileCache.cpp:251
 #: src/hed/libs/data/FileCache.cpp:307
 #: src/hed/libs/data/FileCache.cpp:412
 #, fuzzy, c-format
 msgid "Error removing cache file %s: %s"
-msgstr ""
+msgstr "Fehler bei Entfernen von Cache-Datei %s: %s"
 
 #: src/hed/libs/data/FileCache.cpp:264
 msgid "Lock that recently existed has been deleted by another process, calling Start() again"
-msgstr ""
+msgstr "Lock das zuvor existierte wurde gelöscht von anderem Prozess, rufe Start() nochmals"
 
 #: src/hed/libs/data/FileCache.cpp:267
 #, c-format
 msgid "Error opening valid and existing lock file %s: %s"
-msgstr ""
+msgstr "Fehler bei Öffnen von gültiger und existierener Lock-Datei %s: %s"
 
 #: src/hed/libs/data/FileCache.cpp:271
 #: src/hed/libs/data/FileCache.cpp:335
 #, c-format
 msgid "Error reading valid and existing lock file %s: %s"
-msgstr ""
+msgstr "Fehler bei Lesen von gültiger und existierender Lock-Datei %s: %s"
 
 #: src/hed/libs/data/FileCache.cpp:280
 #: src/hed/libs/data/FileCache.cpp:930
 #, c-format
 msgid "Error with formatting in lock file %s: %s"
-msgstr ""
+msgstr "Fehler bei Formatieren von Lock-Datei %s: %s"
 
 #: src/hed/libs/data/FileCache.cpp:285
 #: src/hed/libs/data/FileCache.cpp:935
 msgid "Lock is owned by a different host"
-msgstr ""
+msgstr "Lock gehört einem anderen host"
 
 #: src/hed/libs/data/FileCache.cpp:293
 msgid "Warning: This process already owns the lock"
-msgstr ""
+msgstr "Warnung: Diesem Prozess gehört der Lock bereits"
 
 #: src/hed/libs/data/FileCache.cpp:300
+#, fuzzy
 msgid "The process owning the lock is no longer running, will remove lock"
-msgstr ""
+msgstr "Der Prozesse, dem der Lock gehört, läuft nicht mehr. Der Lock wird entfernt."
 
 #: src/hed/libs/data/FileCache.cpp:330
 #: src/hed/libs/data/FileCache.cpp:674
@@ -3838,301 +3832,296 @@ msgstr ""
 #: src/hed/libs/data/FileCache.cpp:872
 #, fuzzy, c-format
 msgid "Error opening meta file %s: %s"
-msgstr ""
+msgstr "Fehler bei Öffnen von Meta-Datei %s: %s"
 
 #: src/hed/libs/data/FileCache.cpp:348
 #, c-format
 msgid "Error: File %s is already cached at %s under a different URL: %s - this file will not be cached"
-msgstr ""
+msgstr "Fehler: Datei %s wird bereits gecacht bei %s unter einer anderen URL: %s - diese Datei wird nicht gecacht"
 
 #: src/hed/libs/data/FileCache.cpp:358
 #, fuzzy, c-format
 msgid "Failed to create info file %s: %s"
-msgstr ""
+msgstr "Fehler bei Erstellen von Info-Datei %s: %s"
 
 #: src/hed/libs/data/FileCache.cpp:369
 #, c-format
 msgid "Error looking up attributes of meta file %s: %s"
-msgstr ""
+msgstr "Fehler bei Nachschlagen von Attributen von Meta-Datei %s: %s"
 
 #: src/hed/libs/data/FileCache.cpp:379
 #, c-format
 msgid "Warning: error looking up attributes of cached file: %s"
-msgstr ""
+msgstr "Warnung: Fehler bei Nachschlagen von Attributen von gecachter Datei: %s"
 
 #: src/hed/libs/data/FileCache.cpp:394
 #: src/hed/libs/data/FileCache.cpp:418
 #: src/hed/libs/data/FileCache.cpp:422
 #, fuzzy, c-format
 msgid "Failed to unlock file with lock %s: %s"
-msgstr ""
+msgstr "Fehler bei Unlock von Datei mit Lock %s: %s"
 
 #: src/hed/libs/data/FileCache.cpp:461
 #: src/hed/libs/data/FileCache.cpp:542
 #: src/hed/libs/data/FileCache.cpp:794
 #, fuzzy, c-format
 msgid "Cache file %s does not exist"
-msgstr ""
-"Указанный файл не существует:\n"
-"%1"
+msgstr "Cache-Datei %s existiert nicht"
 
 #: src/hed/libs/data/FileCache.cpp:463
 #: src/hed/libs/data/FileCache.cpp:544
 #: src/hed/libs/data/FileCache.cpp:796
 #, fuzzy, c-format
 msgid "Error accessing cache file %s: %s"
-msgstr ""
+msgstr "Fehler bei Zugriff auf Cache-Datei %s: %s"
 
 #: src/hed/libs/data/FileCache.cpp:471
-#, c-format
+#, fuzzy, c-format
 msgid "Cannot create directory \"%s\" for per-job hard links"
-msgstr ""
+msgstr "Kann Verzeichnis \"%s\" nicht anlegen für Job-spezifische hard links"
 
 #: src/hed/libs/data/FileCache.cpp:475
 #, fuzzy, c-format
 msgid "Cannot change owner of %s"
 msgstr ""
-"Невозможно изменить владельца папки %1.\n"
+"Kann Owner von %s nicht ändernНевозможно изменить владельца папки %1.\n"
 "Ошибка: %2"
 
 #: src/hed/libs/data/FileCache.cpp:479
 #, fuzzy, c-format
 msgid "Cannot change permissions of \"%s\" to 0700"
-msgstr ""
+msgstr "Kann Zugriffsrecht von \"%s\" nicht zu 0700 ändern"
 
 #: src/hed/libs/data/FileCache.cpp:489
 #, fuzzy, c-format
 msgid "Failed to create hard link from %s to %s: %s"
-msgstr ""
+msgstr "Fehler bei Anlegen von hard link von %s zu %s: %s"
 
 #: src/hed/libs/data/FileCache.cpp:495
-#, c-format
+#, fuzzy, c-format
 msgid "Failed to change owner of hard link to %i: %s"
-msgstr ""
+msgstr "Fehler bei Ändernn des Owner von hard link zu %i: %s"
 
 #: src/hed/libs/data/FileCache.cpp:499
 #, c-format
 msgid "Failed to change permissions of hard link to 0644: %s"
-msgstr ""
+msgstr "Konnte Zugriffsrechte von hard link nicht ändern zu 0644: %s"
 
 #: src/hed/libs/data/FileCache.cpp:508
 #: src/hed/libs/data/FileCache.cpp:526
-#, c-format
+#, fuzzy, c-format
 msgid "Failed to change owner of session dir to %i: %s"
-msgstr ""
+msgstr "Konnte ownen des session dir nicht ändern zu %i: %s"
 
 #: src/hed/libs/data/FileCache.cpp:512
 #: src/hed/libs/data/FileCache.cpp:558
 #, c-format
 msgid "Failed to change permissions of session dir to 0700: %s"
-msgstr ""
+msgstr "Konnte Zugriffsrechte auf session dir nicht ändern zu 0700: %s"
 
 #: src/hed/libs/data/FileCache.cpp:520
 #, fuzzy, c-format
 msgid "Failed to create soft link: %s"
-msgstr ""
+msgstr "Fehler bei Anlegen von soft link: %s"
 
 #: src/hed/libs/data/FileCache.cpp:554
 #, c-format
 msgid "Failed to change owner of destination dir to %i: %s"
-msgstr ""
+msgstr "Fehler bei Ändern von owner des Zielverzeichnisses zu %i: %s"
 
 #: src/hed/libs/data/FileCache.cpp:569
 #, fuzzy, c-format
 msgid "Failed to create file %s for writing: %s"
-msgstr ""
+msgstr "Fehler bei Anlegen von Datei %s zum Schreiben: %s"
 
 #: src/hed/libs/data/FileCache.cpp:573
-#, c-format
+#, fuzzy, c-format
 msgid "Failed change ownership of destination file %s: %s"
-msgstr ""
+msgstr "Fehler bei Ändern des Besitzers der destination Datei %s: %s"
 
 #: src/hed/libs/data/FileCache.cpp:581
 #, fuzzy, c-format
 msgid "Failed to open file %s for reading: %s"
-msgstr ""
+msgstr "Fehler bei Öffnen von Datei %s zum Lesen: %s"
 
 #: src/hed/libs/data/FileCache.cpp:591
 #, c-format
 msgid "Failed to read file %s: %s"
-msgstr ""
+msgstr "Fehler bei Lesen von Datei %s: %s"
 
 #: src/hed/libs/data/FileCache.cpp:602
 #, c-format
 msgid "Failed to write file %s: %s"
-msgstr ""
+msgstr "Fehler bei Schreiben zu Datein %s: %s"
 
 #: src/hed/libs/data/FileCache.cpp:625
 #, c-format
 msgid "Error opening per-job dir %s: %s"
-msgstr ""
+msgstr "Fehler bei Öffnen von per-job Verzeichnis %s. %s"
 
 #: src/hed/libs/data/FileCache.cpp:636
 #: src/hed/libs/data/FileCache.cpp:646
 #: src/hed/libs/data/DataMover.cpp:109
 #, c-format
 msgid "Removing %s"
-msgstr ""
+msgstr "Entferne %s"
 
 #: src/hed/libs/data/FileCache.cpp:638
 #, c-format
 msgid "Failed to remove hard link %s: %s"
-msgstr ""
+msgstr "Fehler bei Entfernen von hard link %s: %s"
 
 #: src/hed/libs/data/FileCache.cpp:648
 #, c-format
 msgid "Failed to remove cache per-job dir %s: %s"
-msgstr ""
+msgstr "Fehler bei Entfernen von cache per-job Verzeichnis %s: %s"
 
 #: src/hed/libs/data/FileCache.cpp:667
 #: src/hed/libs/data/FileCache.cpp:741
 #: src/hed/libs/data/FileCache.cpp:822
 #, fuzzy, c-format
 msgid "Error reading meta file %s: %s"
-msgstr ""
-"\n"
-"%s: ошибка чтения входного файла '%s': %s\n"
+msgstr "Fehler bei Lesen von Meta-Datei %s: %s"
 
 #: src/hed/libs/data/FileCache.cpp:689
-#, c-format
+#, fuzzy, c-format
 msgid "Error: File %s is already cached at %s under a different URL: %s - will not add DN to cached list"
-msgstr ""
+msgstr "Fehler: Datei %s wird bereits gecacht bei %s unter anderer URL: %s - werde DN nicht zu cached list hinzufügen"
 
 #: src/hed/libs/data/FileCache.cpp:703
 #, fuzzy, c-format
 msgid "Bad format detected in file %s, in line %s"
-msgstr ""
+msgstr "Formatierungsfehler erkannt in Datei %s, in Zeile %s"
 
 #: src/hed/libs/data/FileCache.cpp:721
 #, fuzzy, c-format
 msgid "Error opening meta file for writing %s: %s"
-msgstr ""
+msgstr "Fehler bei Öffnen von Meta-Datei zum schreiben %s: %s"
 
 #: src/hed/libs/data/FileCache.cpp:763
 #, c-format
 msgid "DN %s is cached and is valid until %s for URL %s"
-msgstr ""
+msgstr "DN %s wird gecacht und ist gültig bis %s für Datei %s"
 
 #: src/hed/libs/data/FileCache.cpp:768
 #, c-format
 msgid "DN %s is cached but has expired for URL %s"
-msgstr ""
+msgstr "DN %s wird gecacht aber ist abgelaufen für URL %s"
 
 #: src/hed/libs/data/FileCache.cpp:839
 #, fuzzy, c-format
 msgid "Mismatching url in file %s: %s Expected %s"
-msgstr ""
+msgstr "Nicht-Übereinstimmung von URL in Datei %s: %s erwartete %s"
 
 #: src/hed/libs/data/FileCache.cpp:843
 #, fuzzy, c-format
 msgid "Bad format in file %s: %s"
-msgstr ""
+msgstr "Formatierungfehler in Dati %s: %s"
 
 #: src/hed/libs/data/FileCache.cpp:847
 #, fuzzy, c-format
 msgid "Bad separator in file %s: %s"
-msgstr ""
+msgstr "Ungültges Trennzeichen in Datei %s: %s"
 
 #: src/hed/libs/data/FileCache.cpp:851
 #, fuzzy, c-format
 msgid "Bad value of expiry time in %s: %s"
-msgstr ""
+msgstr "Ungültiger Wert für expiry time in %s: %s"
 
 #: src/hed/libs/data/FileCache.cpp:906
 #, fuzzy, c-format
 msgid "Lock file %s doesn't exist"
-msgstr ""
+msgstr "Lock-Datei %s existiert nicht"
 
 #: src/hed/libs/data/FileCache.cpp:908
 #, fuzzy, c-format
 msgid "Error listing lock file %s: %s"
-msgstr ""
+msgstr "Fehler bei Listing von Lock-Datei %s: %s"
 
 #: src/hed/libs/data/FileCache.cpp:917
 #, fuzzy, c-format
 msgid "Error opening lock file %s: %s"
-msgstr ""
+msgstr "Fehler bei Öffnen von Lock Datei %s: %s"
 
 #: src/hed/libs/data/FileCache.cpp:921
 #, fuzzy, c-format
 msgid "Error reading lock file %s: %s"
-msgstr ""
-"\n"
-"%s: ошибка чтения входного файла '%s': %s\n"
+msgstr "Fehler bei Lesen von Lock-datei %s. %s"
 
 #: src/hed/libs/data/FileCache.cpp:940
 #, c-format
 msgid "Another process owns the lock on file %s. Must go back to Start()"
-msgstr ""
+msgstr "Ein anderer Prozess besitzt das Lock auf Datei %s. Muss zurück zu Start()"
 
 #: src/hed/libs/data/FileCache.cpp:976
 #, fuzzy, c-format
 msgid "Error creating required dirs: %s"
-msgstr ""
+msgstr "Fehler bei Anlegen benötigter Verzeichnisse: %s"
 
 #: src/hed/libs/data/FileCache.cpp:981
 #, fuzzy, c-format
 msgid "Error changing permission of dir %s: %s"
-msgstr ""
+msgstr "Fehler bei Änderung von Zugriffsrechten auf Datei %s: %s"
 
 #: src/hed/libs/data/DataPoint.cpp:71
 #, fuzzy, c-format
 msgid "Invalid URL option: %s"
-msgstr ""
+msgstr "Ungültige URL Option: %s"
 
 #: src/hed/libs/data/DataPointIndex.cpp:111
 #, fuzzy, c-format
 msgid "Add location: url: %s"
-msgstr ""
+msgstr "Füge location hinzu: url: %s"
 
 #: src/hed/libs/data/DataPointIndex.cpp:112
 #, fuzzy, c-format
 msgid "Add location: metadata: %s"
-msgstr ""
+msgstr "Füge location hinzu: Metadaten: %s"
 
 #: src/hed/libs/data/DataStatus.cpp:9
 msgid "Operation completed successfully"
-msgstr ""
+msgstr "Operation erfolgreich abgeschlossen"
 
 #: src/hed/libs/data/DataStatus.cpp:10
 msgid "Source is bad URL or can't be used due to some reason"
-msgstr ""
+msgstr "Quelle ist eine schlechte URL oder kann aus irgendeinem Grund nicht genutzt werden."
 
 #: src/hed/libs/data/DataStatus.cpp:11
 msgid "Destination is bad URL or can't be used due to some reason"
-msgstr ""
+msgstr "Ziel ist eine schlechte URL oder kann aus irgendeinem Grund nicht genutzt werden."
 
 #: src/hed/libs/data/DataStatus.cpp:12
 msgid "Resolving of index service URL for source failed"
-msgstr ""
+msgstr "Auflösen von index service URL für Quelle schlug fehl"
 
 #: src/hed/libs/data/DataStatus.cpp:13
 msgid "Resolving of index service URL for destination failed"
-msgstr ""
+msgstr "Auflösen von index service URL für Ziel schlug fehl"
 
 #: src/hed/libs/data/DataStatus.cpp:14
 msgid "Can't read from source"
-msgstr ""
+msgstr "Kann nicht von Quelle lesen"
 
 #: src/hed/libs/data/DataStatus.cpp:15
 msgid "Can't write to destination"
-msgstr ""
+msgstr "Kann nicht zu Ziel schreiben"
 
 #: src/hed/libs/data/DataStatus.cpp:16
 msgid "Failed while reading from source"
-msgstr ""
+msgstr "Fehler bei Lesen von Quelle"
 
 #: src/hed/libs/data/DataStatus.cpp:17
 msgid "Failed while writing to destination"
-msgstr ""
+msgstr "Fehler bei Schreiben zu Ziel"
 
 #: src/hed/libs/data/DataStatus.cpp:18
+#, fuzzy
 msgid "Failed while transfering data (mostly timeout)"
-msgstr ""
+msgstr "Fehler bei Datentransfer (überwiegend Zeitüberschreitung)"
 
 #: src/hed/libs/data/DataStatus.cpp:19
 msgid "Failed while finishing reading from source"
-msgstr ""
+msgstr "Fehler bei Abschluß des Lesens von Quelle"
 
 #: src/hed/libs/data/DataStatus.cpp:20
 msgid "Failed while finishing writing to destination"
@@ -10349,8 +10338,7 @@ msgstr "[dateiname ...]"
 msgid ""
 "The arcsub command is used for submitting jobs to grid enabled computing\n"
 "resources."
-msgstr ""
-"Mit dem arcsub Kommando werden Jobs den entfernten Clustern zugewiesen"
+msgstr "Mit dem arcsub Kommando werden Jobs den entfernten Clustern zugewiesen"
 
 #: src/clients/arclib/arcsub.cpp:75
 msgid "jobdescription string describing the job to be submitted"
@@ -10403,9 +10391,7 @@ msgstr "Die folgenden %d wurden nicht hochgeladen"
 msgid ""
 "The arcmigrate command is used for migrating queud jobs to another cluster.\n"
 "Note that migration is only supported between ARC1 clusters."
-msgstr ""
-"Das arcmigrate Kommando dient zur Verteilung von bereits hochgeladenen Jobs zwischen Clustern. "
-"Diese Migration wird nur zwischen ARC1 Clustern unterstützt."
+msgstr "Das arcmigrate Kommando dient zur Verteilung von bereits hochgeladenen Jobs zwischen Clustern. Diese Migration wird nur zwischen ARC1 Clustern unterstützt."
 
 #: src/clients/arclib/arcmigrate.cpp:57
 msgid "force migration, ignore kill failure"
@@ -15117,316 +15103,315 @@ msgstr ""
 
 #: src/services/storage/librarian/librarian.py:260
 msgid "Error processing report message"
-msgstr ""
+msgstr "Fehler bei Verarbeiten von report message"
 
 #: src/services/storage/librarian/librarian.py:337
 #, python-format
 msgid "Error traversing: %s"
-msgstr ""
+msgstr "Fehler bei Traversieren: %s"
 
 #: src/services/storage/librarian/librarian.py:371
 #, python-format
 msgid "Error in traverseLN method: %s"
-msgstr ""
+msgstr "Fehler in taverseLN Methode: %s"
 
 #: src/services/storage/ahash/replicatedahash.py:54
 msgid "ReplicatedAHash constructor called"
-msgstr ""
+msgstr "ReplicatedAHash aconstructor aufgrufen"
 
 #: src/services/storage/ahash/replicatedahash.py:80
 #, python-format
 msgid "sending message of length %d to %s"
-msgstr ""
+msgstr "sende Nachricht der Läng %d an %s"
 
 #: src/services/storage/ahash/replicatedahash.py:85
 #, python-format
 msgid "sendt message, success=%s"
-msgstr ""
+msgstr "Nachricht gesende, Erfolg=%s"
 
 #: src/services/storage/ahash/replicatedahash.py:95
 msgid "processing message..."
-msgstr ""
+msgstr "verarbeite Nachricht"
 
 #: src/services/storage/ahash/replicatedahash.py:116
 msgid "processing message... Finished"
-msgstr ""
+msgstr "Verarbeiten der Nachricht beendet"
 
 #: src/services/storage/ahash/replicatedahash.py:159
 msgid "Initialized replication environment"
-msgstr ""
+msgstr "Initialisierte replication Umgebung"
 
 #: src/services/storage/ahash/replicatedahash.py:182
 msgid "Couldn't start replication manager."
-msgstr ""
+msgstr "Konnte replication manager nicht starten"
 
 #: src/services/storage/ahash/replicatedahash.py:201
 msgid "Bad Priority value, using default 10"
-msgstr ""
+msgstr "Ungültiger Wert für Priority, nutze Voreinstellung von 10"
 
 #: src/services/storage/ahash/replicatedahash.py:207
 msgid "Could not find checking period, using default 10s"
-msgstr ""
+msgstr "Konnte checking period nicht finden, nutze Voreinstellung von 10s"
 
 #: src/services/storage/ahash/replicatedahash.py:228
 msgid "Bad cache size or no cache size configured, using 10MB"
-msgstr ""
+msgstr "Ungültige cache Größe oder keine cache Größe konfiguriert, nutze 10MB"
 
 #: src/services/storage/ahash/replicatedahash.py:253
 msgid "master locking"
-msgstr ""
+msgstr "master setzt lock"
 
 #: src/services/storage/ahash/replicatedahash.py:263
 msgid "unlocking"
-msgstr ""
+msgstr "entferne lock"
 
 #: src/services/storage/ahash/replicatedahash.py:266
 msgid "unlocked"
-msgstr ""
+msgstr "lock entfernt"
 
 #: src/services/storage/ahash/replicatedahash.py:268
 msgid "couldn't unlock"
-msgstr ""
+msgstr "konnte lock nicht entfernen"
 
 #: src/services/storage/ahash/replicatedahash.py:284
 #, python-format
 msgid "checkingThread slept %d s"
-msgstr ""
+msgstr "checkingThread schlief %d s"
 
 #: src/services/storage/ahash/replicatedahash.py:307
 #, fuzzy, python-format
 msgid "wrote ahash list %s"
-msgstr ""
+msgstr "schrieb ahash Liste %s"
 
 #: src/services/storage/ahash/replicatedahash.py:309
 msgid "but dbenv wasn't ready."
-msgstr ""
+msgstr "aber dbenv war nicht bereit"
 
 #: src/services/storage/ahash/replicatedahash.py:415
 #, fuzzy
 msgid "entering start"
-msgstr ""
+msgstr "Start start"
 
 #: src/services/storage/ahash/replicatedahash.py:425
 msgid "Couldn't start replication framework"
-msgstr ""
+msgstr "Konnte replication framework nicht starten"
 
 #: src/services/storage/ahash/replicatedahash.py:431
 #, fuzzy
 msgid "entered election thread"
-msgstr ""
+msgstr "Starte Auswahl-Thread"
 
 #: src/services/storage/ahash/replicatedahash.py:440
 #, fuzzy, python-format
 msgid "%s: my role is %d"
-msgstr ""
+msgstr "%s: meine Rolle ist %d"
 
 #: src/services/storage/ahash/replicatedahash.py:445
 #, fuzzy, python-format
 msgid "%s: my role is now %d"
-msgstr ""
+msgstr "%s: meine Rolle ist nun %d"
 
 #: src/services/storage/ahash/replicatedahash.py:450
 #, fuzzy
 msgid "Couldn't run election"
-msgstr ""
+msgstr "Konnte Auswahl nicht vornehmen"
 
 #: src/services/storage/ahash/replicatedahash.py:451
 #, python-format
 msgid "num_reps is %d, votes is %d, hostMap is %s"
-msgstr ""
+msgstr "num_reps ist %d, Stimmen sind %d, hostMap ist %s"
 
 #: src/services/storage/ahash/replicatedahash.py:453
 #, python-format
 msgid "%s tried election with %d replicas"
-msgstr ""
+msgstr "%s initiierte Auswahl mit %d Replicas"
 
 #: src/services/storage/ahash/replicatedahash.py:456
 msgid "entering startElection"
-msgstr ""
+msgstr "Start von startElection"
 
 #: src/services/storage/ahash/replicatedahash.py:471
 msgid "new role"
-msgstr ""
+msgstr "neue Rolle"
 
 #: src/services/storage/ahash/replicatedahash.py:476
-#, fuzzy
 msgid "Couldn't begin role"
-msgstr ""
+msgstr "Konnte Rolle nicht beginnen"
 
 #: src/services/storage/ahash/replicatedahash.py:488
 msgid "entering send"
-msgstr ""
+msgstr "Start von send"
 
 #: src/services/storage/ahash/replicatedahash.py:530
 #, python-format
 msgid "failed to send to %d of %s"
-msgstr ""
+msgstr "fehler bei Senden zu %d von %s"
 
 #: src/services/storage/ahash/replicatedahash.py:539
 msgid "Master is offline, starting re-election"
-msgstr ""
+msgstr "Master ist offline, starte Neuwahl"
 
 #: src/services/storage/ahash/replicatedahash.py:563
 msgid "entering repSend"
-msgstr ""
+msgstr "Starte repSend"
 
 #: src/services/storage/ahash/replicatedahash.py:579
 msgid "entering sendNewSiteMsg"
-msgstr ""
+msgstr "Start von sendNewSiteMsg"
 
 #: src/services/storage/ahash/replicatedahash.py:598
 msgid "entering sendHeartbeatMsg"
-msgstr ""
+msgstr "Start von sendHeartbeatMsg"
 
 #: src/services/storage/ahash/replicatedahash.py:608
 #: src/services/storage/ahash/replicatedahash.py:618
 msgid "entering sendNewMasterMsg"
-msgstr ""
+msgstr "Start von sendNewMasterMsg"
 
 #: src/services/storage/ahash/replicatedahash.py:629
 msgid "entering processMessage from "
-msgstr ""
+msgstr "verarbeite processMessage von "
 
 #: src/services/storage/ahash/replicatedahash.py:635
 msgid "received message from myself!"
-msgstr ""
+msgstr "erhielt Nachricht von mir selbst!"
 
 #: src/services/storage/ahash/replicatedahash.py:638
 msgid "received from new sender or sender back online"
-msgstr ""
+msgstr "erhalten von neuem Sender der Sender ist wieder online"
 
 #: src/services/storage/ahash/replicatedahash.py:658
 msgid "received master id"
-msgstr ""
+msgstr "erhielt master id"
 
 #: src/services/storage/ahash/replicatedahash.py:663
 msgid "received HEARTBEAT_MESSAGE"
-msgstr ""
+msgstr "erhielt HEARTBEAT_MESSAGE"
 
 #: src/services/storage/ahash/replicatedahash.py:666
 msgid "received ELECTION_MESSAGE"
-msgstr ""
+msgstr "erhielt ELECTION_MESSAGE"
 
 #: src/services/storage/ahash/replicatedahash.py:670
 msgid "received NEWSITE_MESSAGE"
-msgstr ""
+msgstr "erhielt NEWSITE_MESSAGE"
 
 #: src/services/storage/ahash/replicatedahash.py:699
 #, python-format
 msgid "processing message from %d"
-msgstr ""
+msgstr "Verarbeite Nachricht von %d"
 
 #: src/services/storage/ahash/replicatedahash.py:702
 msgid "Got dbnotfound"
-msgstr ""
+msgstr "Erhielt dbnotfound"
 
 #: src/services/storage/ahash/replicatedahash.py:707
 msgid "couldn't process message"
-msgstr ""
+msgstr "konnte Nachricht nicht verarbeiten"
 
 #: src/services/storage/ahash/replicatedahash.py:713
 #, python-format
 msgid "received DB_REP_NEWSITE from %s"
-msgstr ""
+msgstr "erhielt DB_REP_NEWSITE von %s"
 
 #: src/services/storage/ahash/replicatedahash.py:719
 msgid "received DB_REP_HOLDELECTION"
-msgstr ""
+msgstr "erhielt DB_REP_HODLELECTION"
 
 #: src/services/storage/ahash/replicatedahash.py:724
 #, python-format
 msgid "REP_ISPERM returned for LSN %s"
-msgstr ""
+msgstr "REP_ISPERM erhalten für LSN %s"
 
 #: src/services/storage/ahash/replicatedahash.py:728
 #, python-format
 msgid "REP_NOTPERM returned for LSN %s"
-msgstr ""
+msgstr "REP_NOTPERM erhalten für LSN %s"
 
 #: src/services/storage/ahash/replicatedahash.py:730
 msgid "REP_DUPMASTER received, starting new election"
-msgstr ""
+msgstr "REP_DUPMASTER erhalten, stare neue Verbindung"
 
 #: src/services/storage/ahash/replicatedahash.py:736
 msgid "REP_IGNORE received"
-msgstr ""
+msgstr "REP_IGNORE erhalten"
 
 #: src/services/storage/ahash/replicatedahash.py:739
 msgid "JOIN_FAILURE received"
-msgstr ""
+msgstr "JOIN_FAILURE erhalten"
 
 #: src/services/storage/ahash/replicatedahash.py:741
-#, python-format
+#, fuzzy, python-format
 msgid "unknown return code %s"
-msgstr ""
+msgstr "unbekannter return code %s"
 
 #: src/services/storage/ahash/replicatedahash.py:757
 msgid "I am now a master"
-msgstr ""
+msgstr "Ich bin nun ein master"
 
 #: src/services/storage/ahash/replicatedahash.py:758
 msgid "received DB_EVENT_REP_MASTER"
-msgstr ""
+msgstr "erhielt DB_EVEN_REP_MASTER"
 
 #: src/services/storage/ahash/replicatedahash.py:765
 msgid "I am now a client"
-msgstr ""
+msgstr "Ich bin nun ein Client"
 
 #: src/services/storage/ahash/replicatedahash.py:771
 msgid "Getting permission failed"
-msgstr ""
+msgstr "Erlaubnis nicht erhalten"
 
 #: src/services/storage/ahash/replicatedahash.py:773
 msgid "Write failed"
-msgstr ""
+msgstr "Schreibfehler"
 
 #: src/services/storage/ahash/replicatedahash.py:775
 msgid "New master elected"
-msgstr ""
+msgstr "Neuer Master ausgewählt"
 
 #: src/services/storage/ahash/replicatedahash.py:780
 msgid "I won the election: I am the MASTER"
-msgstr ""
+msgstr "Ich gewann die Auswahl: Ich bin der MASTER"
 
 #: src/services/storage/ahash/replicatedahash.py:786
+#, fuzzy
 msgid "Oops! Internal DB panic!"
-msgstr ""
+msgstr "Ooops! Interne DB Panik!"
 
 #: src/services/storage/ahash/ahash.py:44
 msgid "CentralAHash constructor called"
-msgstr ""
+msgstr "CentralAHash Konstruktor aufgerufen"
 
 #: src/services/storage/ahash/ahash.py:58
 msgid "Error importing"
-msgstr ""
+msgstr "Fehler bei Importieren"
 
 #: src/services/storage/ahash/ahash.py:222
 msgid "Error importing class"
-msgstr ""
+msgstr "Fehler bei Importieren von Klasse"
 
 #: src/services/storage/bartender/bartender.py:36
 #, python-format
 msgid "accessing gateway: %s"
-msgstr ""
+msgstr "greife zu auf gateway: %s"
 
 #: src/services/storage/bartender/bartender.py:38
-#, fuzzy
 msgid "This bartender does not support gateway"
-msgstr ""
+msgstr "Dieser Bartender benötigt keinen support gateway"
 
 #: src/services/storage/bartender/bartender.py:39
 msgid "cannot connect to gateway. Access of third party store required gateway."
-msgstr ""
+msgstr "kann nicht verbinden zu Gateway. Zugang zu store Dritter benötigt einen Gatway."
 
 #: src/services/storage/bartender/bartender.py:51
 #, fuzzy
 msgid "Librarian URL or ISIS URL not found in the configuration."
-msgstr ""
+msgstr "Librarian URL oder ISIS URL nicht gefunden in der Konfiguration."
 
 #: src/services/storage/bartender/bartender.py:71
 #, fuzzy, python-format
 msgid "Error connecting to ISIS %s, reason: %s"
-msgstr ""
+msgstr "Fehler beim Verbinden zu ISIS %s, Grund: %s"
 
 #: src/services/storage/bartender/bartender.py:75
 msgid "initThread finished, starting isisThread"
@@ -15611,3 +15596,4 @@ msgstr "Zeige Antwort: %s"
 #, fuzzy
 #~ msgid "No jobs to handle"
 #~ msgstr "Keine Jobs zu bearbeiten"
+
