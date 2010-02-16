@@ -95,6 +95,12 @@
                 <bar:CertificatePath inisections="common bartender" initag="client_cert"/>
                 <bar:CACertificatesDir inisections="common bartender" initag="cacert"/>
             </bar:ClientSSLConfig>
+            <bar:ProxyStore inisections="bartender" initag="proxystore">/var/spool/arc/proxy_store</bar:ProxyStore>
+            <bar:GatewayClass>storage.bartender.gateway.gateway.Gateway</bar:GatewayClass>
+            <bar:GatewayCfg>
+                <bar:ProxyStore inisections="bartender" initag="proxystore">/var/spool/arc/proxy_store</bar:ProxyStore>
+                <bar:CACertificatesDir inisections="common bartender" initag="cacert"/>
+            </bar:GatewayCfg>
             <infosys:InfoRegister>
                 <infosys:Period inisections="register bartender" initag="period">PT20S</infosys:Period>
                 <infosys:Endpoint inisections="bartender" initag="endpoint"/>
