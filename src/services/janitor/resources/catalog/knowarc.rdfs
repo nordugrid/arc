@@ -10,14 +10,35 @@
 <rdfs:Class rdf:about="&kb;BaseSystem"
 	 rdfs:label="BaseSystem">
 	<rdfs:subClassOf rdf:resource="&kb;Note"/>
+	<rdfs:comment>
+		Any Operating System that software can be
+		installed on and its derivatives.
+	</rdfs:comment>
+</rdfs:Class>
+<rdfs:Class rdf:about="&kb;VirtualBaseSystem"
+	 rdfs:label="VirtualBaseSystem">
+	<rdfs:subClassOf rdf:resource="&kb;BaseSystem"/>
+	<rdfs:comment>
+		An operating system that is run on a virtual machine.
+		Its location is indicated by a file in today's implementation,
+		later variants are likely to include AMIs of Amazon or Eucalyptus.
+	</rdfs:comment>
 </rdfs:Class>
 <rdfs:Class rdf:about="&kb;DebianPackage"
 	 rdfs:label="DebianPackage">
 	<rdfs:subClassOf rdf:resource="&kb;Package"/>
+	<rdfs:comment>
+		Any package that is offered by the Debian Linux distribution
+		and its derivatives like Ubuntu.
+	</rdfs:comment>
 </rdfs:Class>
 <rdfs:Class rdf:about="&kb;MetaPackage"
 	 rdfs:label="MetaPackage">
 	<rdfs:subClassOf rdf:resource="&rdfs;Resource"/>
+	<rdfs:comment>
+		Reference to a piece of software that shall be made available - somehow, and to the expectation to the grid user. 
+		The traditional way to achieve the installation is via tarballs. Debian packages may be an alternative.
+	</rdfs:comment>
 </rdfs:Class>
 <rdfs:Class rdf:about="&kb;Note"
 	 rdfs:label="Note">
@@ -26,14 +47,23 @@
 <rdfs:Class rdf:about="&kb;Package"
 	 rdfs:label="Package">
 	<rdfs:subClassOf rdf:resource="&rdfs;Resource"/>
+	<rdfs:comment>
+		Superclass of "TarPackage" and "DebianPackage" without a particular meaning by themselves.
+	</rdfs:comment>
 </rdfs:Class>
 <rdfs:Class rdf:about="&kb;Tag"
 	 rdfs:label="Tag">
 	<rdfs:subClassOf rdf:resource="&kb;Note"/>
+	<rdfs:comment>
+		Short formal descriptors of packages to help the filtering on these to decide on their eligibility for an installation.
+	</rdfs:comment>
 </rdfs:Class>
 <rdfs:Class rdf:about="&kb;TarPackage"
 	 rdfs:label="TarPackage">
 	<rdfs:subClassOf rdf:resource="&kb;Package"/>
+	<rdfs:comment>
+		The regular type of packages that are installed by untaring them in the RUNTIME_DIR.
+	</rdfs:comment>
 </rdfs:Class>
 <rdf:Property rdf:about="&kb;basesystem"
 	 rdfs:comment="which basesystem this package is for"
@@ -110,8 +140,23 @@
 </rdf:Property>
 <rdf:Property rdf:about="&kb;url"
 	 rdfs:label="url">
-	<rdfs:domain rdf:resource="&kb;BaseSystem"/>
+	<rdfs:domain rdf:resource="&kb;VirtualBaseSystem"/>
 	<rdfs:domain rdf:resource="&kb;TarPackage"/>
 	<rdfs:range rdf:resource="&rdfs;Literal"/>
+	<rdfs:comment>
+		The dynamically installable packages are not available
+		rightaway but need to be downloaded for becoming
+		installable. The URL attached shall be usable in conjunction
+		with common tools like wget, lynx or the curl library.
+
+		The analogous situation is with BaseSystems that are
+		shared between communities. Those will be offered as
+		a downloadable file. When versions matter, then those
+		should become a part of the URL. It is generally expected
+		the BaseSystems to be mostly version invariant, i.e.
+		there is Debian Lenny or Debian Etch, but those do not
+		have further distinctions that would be functionally
+		different. 
+	</rdfs:comment>
 </rdf:Property>
 </rdf:RDF>

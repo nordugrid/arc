@@ -1,118 +1,145 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <!DOCTYPE rdf:RDF [
 	 <!ENTITY rdf 'http://www.w3.org/1999/02/22-rdf-syntax-ns#'>
-	 <!ENTITY a 'http://protege.stanford.edu/system#'>
 	 <!ENTITY kb 'http://knowarc.eu/kb#'>
 	 <!ENTITY rdfs 'http://www.w3.org/2000/01/rdf-schema#'>
 ]>
+
 <rdf:RDF xmlns:rdf="&rdf;"
-	 xmlns:a="&a;"
 	 xmlns:kb="&kb;"
 	 xmlns:rdfs="&rdfs;">
-<a:_instance_annotation rdf:about="&kb;knowarc_Class1"
-	 a:_creation_timestamp="2009.04.09 15:14:15.407 GMT+01:00"
-	 a:_creator="knowarc"
-	 rdfs:label="knowarc_Class1"/>
-<a:_instance_annotation rdf:about="&kb;knowarc_Class2"
-	 a:_creation_timestamp="2009.04.09 15:14:15.597 GMT+01:00"
-	 a:_creator="knowarc"
-	 rdfs:label="knowarc_Class2"/>
-<kb:MetaPackage rdf:about="&kb;knowarc_Class3"
+
+<!--   Base Systems -->
+
+<kb:BaseSystem rdf:about="&kb;BaseSystem/debian/etch"
+	 kb:distribution="Debian"
+	 kb:name="debian::etch_tar"
+	 kb:short_description="Debian Etch (tar based)"
+	 rdfs:label="Native Debian Etch (tar based)">
+	<kb:description>This is a debian etch based basesystem. Only tar packages are supported.</kb:description>
+</kb:BaseSystem>
+
+<kb:VirtualBaseSystem rdf:about="&kb;VirtualBaseSystem/debian/etch"
+	 kb:description="The Debian Etch distribution, currently testing."
+	 kb:distribution="Debian"
+	 kb:name="debian::etch"
+	 kb:short_description="Debian Etch"
+	 kb:url="file://werkel/etch.tar.gz"
+	 rdfs:label="Virtual Debian Etch"/>
+
+<kb:VirtualBaseSystem rdf:about="&kb;VirtualBaseSystem/debian/sid"
+	 kb:description="The Debian Sid distribution, unstable."
+	 kb:distribution="Debian"
+	 kb:name="debian::sid"
+	 kb:short_description="Debian Sid"
+	 kb:url="file://werkel/sid.tar.gz"
+	 rdfs:label="Debian Sid"/>
+
+<!--    Tags to describe packages -->
+
+<kb:Tag rdf:about="&kb;knowarc_Tag/bio/alignment"
+	 kb:name="bio::alignment"
+	 rdfs:label="bio::alignment"/>
+<kb:Tag rdf:about="&kb;knowarc_Tag/application"
+	 kb:name="type::app"
+	 rdfs:label="type::app"/>
+<kb:Tag rdf:about="&kb;knowarc_Tag/bio/protein-binding"
+	 kb:name="bio::protein-binding"
+	 rdfs:label="bio::protein-binding"/>
+<kb:Tag rdf:about="&kb;knowarc_Tag/bio/sequence"
+	 kb:name="bio::sequence"
+	 rdfs:label="bio::sequence"/>
+<kb:Tag rdf:about="&kb;knowarc_Tag/bio/database"
+	 kb:name="bio::database"
+	 rdfs:label="bio::database"/>
+<kb:Tag rdf:about="&kb;knowarc_Tag/bio/machine-learning"
+	 kb:name="bio::machine_learning"
+	 rdfs:label="bio::machine_learning"/>
+
+<!--    Software of local interest -->
+
+
+<kb:MetaPackage rdf:about="&kb;MetaPackage/apps/bio/autodock/4.0.1"
 	 kb:homepage="http://autodock.scripps.edu/"
 	 kb:lastupdated="2009-04-09"
 	 kb:name="APPS/BIO/AUTODOCK"
 	 rdfs:label="APPS/BIO/AUTODOCK">
-	<kb:description>AutoDock is a suite of automated docking tools. It is designed to predict how small molecules, such as substrates or drug candidates, bind to a receptor of known 3D structure.</kb:description>
-	<kb:instance rdf:resource="&kb;knowarc_Class5"/>
-	<kb:tag rdf:resource="&kb;knowarc_Instance_10004"/>
+	<kb:description>AutoDock is a suite of automated docking tools.
+		It is designed to predict how small molecules, such as substrates
+		or drug candidates, bind to a receptor of known 3D structure.
+	</kb:description>
+	<kb:instance rdf:resource="&kb;package/tar/autodocksuite-4.0.1"/>
+	<kb:tag rdf:resource="&kb;knowarc_Tag/bio/protein-binding"/>
 </kb:MetaPackage>
-<kb:Tag rdf:about="&kb;knowarc_Class4"
-	 rdfs:label="knowarc_Class4"/>
-<kb:TarPackage rdf:about="&kb;knowarc_Class5"
+
+<kb:TarPackage rdf:about="&kb;package/tar/autodocksuite-4.0.1"
 	 kb:url="/grid/dre_repository/autodocksuite-4.0.1-i86Linux2.tar.gz">
 	<rdfs:label>Debian Etch (tar based): /grid/dre_repository/autodocksuite-4.0.1-i86Linux2.tar.gz</rdfs:label>
-	<kb:basesystem rdf:resource="&kb;knowarc_Instance_0"/>
+	<kb:basesystem rdf:resource="&kb;BaseSystem/debian/etch"/>
 </kb:TarPackage>
-<kb:BaseSystem rdf:about="&kb;knowarc_Class6"
-	 rdfs:label="knowarc_Class6"/>
-<kb:BaseSystem rdf:about="&kb;knowarc_Instance_0"
-	 kb:distribution="Debian"
-	 kb:name="debian::etch_tar"
-	 kb:short_description="Debian Etch (tar based)"
-	 rdfs:label="Debian Etch (tar based)">
-	<kb:description>This is a debian etch based basesystem. Only tar packages are supported.</kb:description>
-</kb:BaseSystem>
-<kb:MetaPackage rdf:about="&kb;knowarc_Instance_1"
+
+<kb:MetaPackage rdf:about="&kb;MetaPackage/apps/bio/jaspar-core/1.0"
 	 kb:description="JASPAR-CORE"
 	 kb:homepage="http://www.grid.tsl.uu.se/RTEs/JASPAR-CORE/"
 	 kb:lastupdated="2006-09-02"
 	 kb:name="APPS/BIO/JASPAR-CORE-1.0"
 	 rdfs:label="APPS/BIO/JASPAR-CORE-1.0">
-	<kb:tag rdf:resource="&kb;knowarc_Instance_10003"/>
-	<kb:tag rdf:resource="&kb;knowarc_Instance_10008"/>
-	<kb:instance rdf:resource="&kb;knowarc_Instance_10020"/>
+	<kb:tag rdf:resource="&kb;knowarc_Tag/application"/>
+	<kb:tag rdf:resource="&kb;knowarc_Tag/bio/database"/>
+	<kb:instance rdf:resource="&kb;package/tar/jaspar"/>
 </kb:MetaPackage>
-<kb:MetaPackage rdf:about="&kb;knowarc_Instance_10000"
+
+<kb:MetaPackage rdf:about="&kb;MetaPackage/apps/bio/weka/3.4.8a"
 	 kb:description="WEKA Machine Learning Software"
 	 kb:name="APPS/BIO/WEKA-3.4.8A"
 	 rdfs:label="APPS/BIO/WEKA-3.4.8A">
-	<kb:instance rdf:resource="&kb;knowarc_Instance_10001"/>
-	<kb:tag rdf:resource="&kb;knowarc_Instance_10003"/>
-	<kb:tag rdf:resource="&kb;knowarc_Instance_20009"/>
+	<kb:instance rdf:resource="&kb;package/tar/weka/3.4.8a"/>
+	<kb:tag rdf:resource="&kb;knowarc_Tag/application"/>
+	<kb:tag rdf:resource="&kb;knowarc_Tag/bio/machine-learning"/>
 </kb:MetaPackage>
-<kb:TarPackage rdf:about="&kb;knowarc_Instance_10001"
+
+<kb:TarPackage rdf:about="&kb;package/tar/weka/3.4.8a"
 	 kb:url="/grid/dre_repository/weka-3.4.8a.tar.gz">
 	<rdfs:label>Debian Etch (tar based): /grid/dre_repository/weka-3.4.8a.tar.gz</rdfs:label>
-	<kb:basesystem rdf:resource="&kb;knowarc_Instance_0"/>
-	<kb:depends rdf:resource="&kb;knowarc_Instance_10017"/>
-	<kb:depends rdf:resource="&kb;knowarc_Instance_20000"/>
+	<kb:basesystem rdf:resource="&kb;BaseSystem/debian/etch"/>
+	<!-- this needs some clarification on how to distinguish AND from OR, for the moment it is OR  -->
+	<kb:depends rdf:resource="&kb;package/tar/jre/1.5.0"/>
 </kb:TarPackage>
-<kb:Tag rdf:about="&kb;knowarc_Instance_10002"
-	 kb:name="bio::alignment"
-	 rdfs:label="bio::alignment"/>
-<kb:Tag rdf:about="&kb;knowarc_Instance_10003"
-	 kb:name="type::app"
-	 rdfs:label="type::app"/>
-<kb:Tag rdf:about="&kb;knowarc_Instance_10004"
-	 kb:name="bio::protein-binding"
-	 rdfs:label="bio::protein-binding"/>
-<kb:Tag rdf:about="&kb;knowarc_Instance_10005"
-	 kb:name="bio::sequence"
-	 rdfs:label="bio::sequence"/>
-<kb:Tag rdf:about="&kb;knowarc_Instance_10008"
-	 kb:name="bio::database"
-	 rdfs:label="bio::database"/>
-<kb:MetaPackage rdf:about="&kb;knowarc_Instance_10009"
+
+
+<!-- Packages as found on the regular ARC Runtime Environments list -->
+
+<kb:MetaPackage rdf:about="&kb;MetaPackage/apps/math/elmer-5.0.2"
 	 kb:description="Finite Element Software for Multiphysical Problems"
 	 kb:homepage="http://www.csc.fi/elmer/re/"
 	 kb:lastupdated="2006-03-28"
 	 kb:name="APPS/MATH/ELMER-5.0.2"
 	 rdfs:label="APPS/MATH/ELMER-5.0.2"/>
-<kb:MetaPackage rdf:about="&kb;knowarc_Instance_10010"
+<kb:MetaPackage rdf:about="&kb;MetaPackage/apps/statistics/R/2.3.1"
 	 kb:description="R"
 	 kb:homepage="http://www.grid.tsl.uu.se/RTEs/R/"
 	 kb:lastupdated="2006-10-16"
 	 kb:name="APPS/STATISTICS/R-2.3.1"
 	 rdfs:label="APPS/STATISTICS/R-2.3.1"/>
-<kb:MetaPackage rdf:about="&kb;knowarc_Instance_10011"
+<kb:MetaPackage rdf:about="&kb;MetaPackage/env/java/jre/1.4.2"
 	 kb:description="Java2 Runtime Environment"
 	 kb:homepage="http://ilja.webmedia.ee/upload/res/j2seJRE_1.4.2.html"
 	 kb:lastupdated="2005-06-02"
 	 kb:name="ENV/JAVA/JRE-1.4.2"
 	 rdfs:label="ENV/JAVA/JRE-1.4.2"/>
-<kb:MetaPackage rdf:about="&kb;knowarc_Instance_10012"
+<kb:MetaPackage rdf:about="&kb;MetaPackage/env/java/sdk/1.4.2"
 	 kb:description="Java2 Software Development Kit"
 	 kb:homepage="http://ilja.webmedia.ee/upload/res/j2seSDK_1.4.2.html"
 	 kb:lastupdated="2005-06-02"
 	 kb:name="ENV/JAVA/SDK-1.4.2"
 	 rdfs:label="ENV/JAVA/SDK-1.4.2"/>
-<kb:MetaPackage rdf:about="&kb;knowarc_Instance_10013"
+<kb:MetaPackage rdf:about="&kb;MetaPackage/env/mpi"
 	 kb:description="MPI environments branch"
 	 kb:homepage="http://re.swegrid.se/ENV/MPI-1.2.5.html"
 	 kb:lastupdated="2006-04-07"
 	 kb:name="ENV/MPI"
 	 rdfs:label="ENV/MPI"/>
-<kb:MetaPackage rdf:about="&kb;knowarc_Instance_10014"
+<kb:MetaPackage rdf:about="&kb;MetaPackage/env/localdisk"
 	 kb:homepage="http://staff.csc.fi/juha.lento/re/localdisk/LocaldiskRE.html"
 	 kb:lastupdated="2005-05-13"
 	 kb:name="ENV/LOCALDISK-0000"
@@ -121,217 +148,236 @@
 
 The number trailing RE name (here 0000) is the available disk space in MegaBytes.</kb:description>
 </kb:MetaPackage>
-<kb:MetaPackage rdf:about="&kb;knowarc_Instance_10016"
+
+<kb:MetaPackage rdf:about="&kb;MetaPackage/env/parallel/1.0"
 	 kb:description="PARALLEL environment"
 	 kb:homepage="http://re.swegrid.se/ENV/PARALLEL-1.0.html"
 	 kb:lastupdated="2005-06-08"
 	 kb:name="ENV/PARALLEL-1.0"
 	 rdfs:label="ENV/PARALLEL-1.0"/>
-<kb:MetaPackage rdf:about="&kb;knowarc_Instance_10017"
-	 kb:description="asdf"
+
+<!--   JAVA  -->
+
+<kb:MetaPackage rdf:about="&kb;MetaPackage/env/java/jre/1.5.0"
+	 kb:description="Sun Java Runtime Environment of version 1.5"
 	 kb:lastupdated="2006-11-29"
 	 kb:name="ENV/JAVA/JRE-1.5.0"
 	 rdfs:label="ENV/JAVA/JRE-1.5.0">
-	<kb:instance rdf:resource="&kb;knowarc_Instance_10018"/>
+	<kb:instance rdf:resource="&kb;package/tar/jre/1.5"/>
+	<kb:instance rdf:resource="&kb;package/tar/jre/1.5.0"/>
 </kb:MetaPackage>
-<kb:TarPackage rdf:about="&kb;knowarc_Instance_10018"
+
+	<!-- either of the following two is probably redundant -->
+
+<kb:TarPackage rdf:about="&kb;package/tar/jre/1.5"
 	 kb:url="/grid/dre_repository/jre1.5.tar.gz"
 	 rdfs:label="Debian Etch (tar based): /grid/dre_repository/jre1.5.tar.gz">
-	<kb:basesystem rdf:resource="&kb;knowarc_Instance_0"/>
+	<kb:basesystem rdf:resource="&kb;BaseSystem/debian/etch"/>
 </kb:TarPackage>
-<kb:TarPackage rdf:about="&kb;knowarc_Instance_10019"
+
+<kb:TarPackage rdf:about="&kb;package/tar/jre/1.5.0"
+	 kb:url="/grid/dre_repository/jre_1.5.0.10-1.tar.gz">
+	<rdfs:label>Debian Etch (tar based): /grid/dre_repository/jre_1.5.0.10-1.tar.gz</rdfs:label>
+	<kb:basesystem rdf:resource="&kb;BaseSystem/debian/etch"/>
+</kb:TarPackage>
+
+<kb:TarPackage rdf:about="&kb;package/tar/lagan"
 	 kb:url="/grid/dre_repository/lagan.tar.gz"
 	 rdfs:label="Debian Etch (tar based): /grid/dre_repository/lagan.tar.gz">
-	<kb:basesystem rdf:resource="&kb;knowarc_Instance_0"/>
+	<kb:basesystem rdf:resource="&kb;BaseSystem/debian/etch"/>
 </kb:TarPackage>
-<kb:TarPackage rdf:about="&kb;knowarc_Instance_10020"
+
+<kb:TarPackage rdf:about="&kb;package/tar/jaspar"
 	 kb:url="/grid/dre_repository/jaspar.tar.gz"
 	 rdfs:label="Debian Etch (tar based): /grid/dre_repository/jaspar.tar.gz">
-	<kb:basesystem rdf:resource="&kb;knowarc_Instance_0"/>
+	<kb:basesystem rdf:resource="&kb;BaseSystem/debian/etch"/>
 </kb:TarPackage>
-<kb:BaseSystem rdf:about="&kb;knowarc_Instance_15"
-	 kb:description="The Debian Sid distribution, unstable."
-	 kb:distribution="Debian"
-	 kb:name="debian::sid"
-	 kb:short_description="Debian Sid"
-	 kb:url="file://werkel/sid.tar.gz"
-	 rdfs:label="Debian Sid"/>
-<kb:MetaPackage rdf:about="&kb;knowarc_Instance_18"
+
+<kb:MetaPackage rdf:about="&kb;MetaPackage/apps/graph/povray/3.6"
 	 kb:description="The Persistence of Vision Raytracer"
 	 kb:homepage="http://staff.csc.fi/ajt/re/PovrayRE.html"
 	 kb:lastupdated="2005-08-17"
 	 kb:name="APPS/GRAPH/POVRAY-3.6"
 	 rdfs:label="APPS/GRAPH/POVRAY-3.6">
-	<kb:instance rdf:resource="&kb;knowarc_Instance_19"/>
-	<kb:instance rdf:resource="&kb;knowarc_Instance_20"/>
+	<kb:instance rdf:resource="&kb;package/debian/etch/povray"/>
+	<kb:instance rdf:resource="&kb;package/debian/sid/povray"/>
 </kb:MetaPackage>
-<kb:DebianPackage rdf:about="&kb;knowarc_Instance_19"
+
+<kb:DebianPackage rdf:about="&kb;package/debian/etch/povray"
 	 rdfs:label="Debian Etch: {povray-includes, povray}">
-	<kb:basesystem rdf:resource="&kb;knowarc_Instance_9"/>
+	<kb:basesystem rdf:resource="&kb;VirtualBaseSystem/debian/etch"/>
 	<kb:package>povray</kb:package>
 	<kb:package>povray-includes</kb:package>
 </kb:DebianPackage>
-<kb:MetaPackage rdf:about="&kb;knowarc_Instance_2"
+
+<kb:MetaPackage rdf:about="&kb;MetaPackage/apps/bio/lagan/1.2"
 	 kb:description="LAGAN"
 	 kb:homepage="http://www.grid.tsl.uu.se/RTEs/LAGAN/"
 	 kb:lastupdated="2006-09-21"
 	 kb:name="APPS/BIO/LAGAN-1.2"
 	 rdfs:label="APPS/BIO/LAGAN-1.2">
-	<kb:tag rdf:resource="&kb;knowarc_Instance_10002"/>
-	<kb:tag rdf:resource="&kb;knowarc_Instance_10003"/>
-	<kb:tag rdf:resource="&kb;knowarc_Instance_10005"/>
-	<kb:instance rdf:resource="&kb;knowarc_Instance_10019"/>
+	<kb:tag rdf:resource="&kb;knowarc_Tag/bio/alignment"/>
+	<kb:tag rdf:resource="&kb;knowarc_Tag/application"/>
+	<kb:tag rdf:resource="&kb;knowarc_Tag/bio/sequence"/>
+	<kb:instance rdf:resource="&kb;package/tar/lagan"/>
 </kb:MetaPackage>
-<kb:DebianPackage rdf:about="&kb;knowarc_Instance_20"
+
+<kb:DebianPackage rdf:about="&kb;package/debian/sid/povray"
 	 rdfs:label="Debian Sid: {povray-includes, povray}">
-	<kb:basesystem rdf:resource="&kb;knowarc_Instance_15"/>
+	<kb:basesystem rdf:resource="&kb;VirtualBaseSystem/debian/sid"/>
 	<kb:package>povray</kb:package>
 	<kb:package>povray-includes</kb:package>
 </kb:DebianPackage>
-<kb:TarPackage rdf:about="&kb;knowarc_Instance_20000"
-	 kb:url="/grid/dre_repository/jre_1.5.0.10-1.tar.gz">
-	<rdfs:label>Debian Etch (tar based): /grid/dre_repository/jre_1.5.0.10-1.tar.gz</rdfs:label>
-	<kb:basesystem rdf:resource="&kb;knowarc_Instance_0"/>
-</kb:TarPackage>
-<kb:Tag rdf:about="&kb;knowarc_Instance_20009"
-	 kb:name="bio::machine_learning"
-	 rdfs:label="bio::machine_learning"/>
-<kb:MetaPackage rdf:about="&kb;knowarc_Instance_21"
+
+<kb:MetaPackage rdf:about="&kb;MetaPackage/apps/bio/lagan/1.2"
 	 kb:description="R Runtime Environment"
 	 kb:name="APPS/STATISTICS/R-2.4.1"
 	 rdfs:label="APPS/STATISTICS/R-2.4.1">
-	<kb:tag rdf:resource="&kb;knowarc_Instance_10003"/>
-	<kb:instance rdf:resource="&kb;knowarc_Instance_22"/>
-	<kb:instance rdf:resource="&kb;knowarc_Instance_24"/>
+	<kb:tag rdf:resource="&kb;knowarc_Tag/application"/>
+	<kb:instance rdf:resource="&kb;knowarc_DebianPackage/sid/r-recommended"/>
+	<kb:instance rdf:resource="&kb;knowarc_DebianPackage/etch/r-recommended"/>
 </kb:MetaPackage>
-<kb:DebianPackage rdf:about="&kb;knowarc_Instance_22"
+
+<kb:DebianPackage rdf:about="&kb;knowarc_DebianPackage/sid/r-recommended"
 	 kb:package="r-recommended"
 	 rdfs:label="Debian Sid: r-recommended">
-	<kb:basesystem rdf:resource="&kb;knowarc_Instance_15"/>
+	<kb:basesystem rdf:resource="&kb;VirtualBaseSystem/debian/sid"/>
 </kb:DebianPackage>
-<kb:DebianPackage rdf:about="&kb;knowarc_Instance_24"
+
+<kb:DebianPackage rdf:about="&kb;knowarc_DebianPackage/etch/r-recommended"
 	 kb:package="r-recommended"
 	 rdfs:label="Debian Etch: r-recommended">
-	<kb:basesystem rdf:resource="&kb;knowarc_Instance_9"/>
+	<kb:basesystem rdf:resource="&kb;VirtualBaseSystem/debian/etch"/>
 </kb:DebianPackage>
-<kb:MetaPackage rdf:about="&kb;knowarc_Instance_25"
+
+<kb:MetaPackage rdf:about="&kb;MetaPackage/env/fortran/g95"
 	 kb:description="The GNU Fortran 95 compiler"
 	 kb:homepage="http://www.grid.tsl.uu.se/RTEs/ENV/FORTRAN/G95/"
 	 kb:lastupdated="2005-11-17"
 	 kb:name="ENV/FORTRAN/G95"
 	 rdfs:label="ENV/FORTRAN/G95">
-	<kb:instance rdf:resource="&kb;knowarc_Instance_26"/>
+	<kb:instance rdf:resource="&kb;package/debian/etch/gfortran-4.1"/>
 </kb:MetaPackage>
-<kb:DebianPackage rdf:about="&kb;knowarc_Instance_26"
+
+<kb:DebianPackage rdf:about="&kb;package/debian/etch/gfortran-4.1"
 	 kb:package="gfortran-4.1"
 	 rdfs:label="Debian Etch: gfortran-4.1">
-	<kb:basesystem rdf:resource="&kb;knowarc_Instance_9"/>
+	<kb:basesystem rdf:resource="&kb;VirtualBaseSystem/debian/etch"/>
 </kb:DebianPackage>
-<kb:MetaPackage rdf:about="&kb;knowarc_Instance_3"
+
+<kb:MetaPackage rdf:about="&kb;MetaPackage/apps/bio/tfbs/0.5.0"
 	 kb:description="TFBS"
 	 kb:homepage="http://www.grid.tsl.uu.se/RTEs/TFBS/"
 	 kb:lastupdated="2006-09-16"
 	 kb:name="APPS/BIO/TFBS-0.5.0"
 	 rdfs:label="APPS/BIO/TFBS-0.5.0">
-	<kb:tag rdf:resource="&kb;knowarc_Instance_10003"/>
-	<kb:tag rdf:resource="&kb;knowarc_Instance_10004"/>
+	<kb:tag rdf:resource="&kb;knowarc_Tag/application"/>
+	<kb:tag rdf:resource="&kb;knowarc_Tag/bio/protein-binding"/>
 </kb:MetaPackage>
-<kb:MetaPackage rdf:about="&kb;knowarc_Instance_30"
+
+<kb:MetaPackage rdf:about="&kb;MetaPackage/env/development/g++/4.1"
 	 kb:description="The GNU C++ compiler, version 4.1"
 	 kb:name="ENV/DEVELOPMENT/G++-4.1"
 	 rdfs:label="ENV/DEVELOPMENT/G++-4.1">
-	<kb:instance rdf:resource="&kb;knowarc_Instance_31"/>
-	<kb:instance rdf:resource="&kb;knowarc_Instance_32"/>
+	<kb:instance rdf:resource="&kb;package/debian/etch/BuildEssential_gcc_make"/>
+	<kb:instance rdf:resource="&kb;package/debian/sid/BuildEssential_gcc_make"/>
 </kb:MetaPackage>
-<kb:MetaPackage rdf:about="&kb;knowarc_Instance_30000"
+
+<kb:MetaPackage rdf:about="&kb;MetaPackage/apps/bio/weka/3.4.10"
 	 kb:description="WEKA Machine Learning Software"
 	 kb:name="APPS/BIO/WEKA-3.4.10"
 	 rdfs:label="APPS/BIO/WEKA-3.4.10">
-	<kb:tag rdf:resource="&kb;knowarc_Instance_10003"/>
-	<kb:tag rdf:resource="&kb;knowarc_Instance_20009"/>
-	<kb:instance rdf:resource="&kb;knowarc_Instance_30002"/>
+	<kb:tag rdf:resource="&kb;knowarc_Tag/application"/>
+	<kb:tag rdf:resource="&kb;knowarc_Tag/bio/machine-learning"/>
+	<kb:instance rdf:resource="&kb;package/tar/weka-3.4.10/etch"/>
 </kb:MetaPackage>
-<kb:TarPackage rdf:about="&kb;knowarc_Instance_30002"
+
+<kb:TarPackage rdf:about="&kb;package/tar/weka-3.4.10/etch"
 	 kb:url="/grid/dre_repository/weka-3.4.10.tar.gz">
 	<rdfs:label>Debian Etch (tar based): /grid/dre_repository/weka-3.4.10.tar.gz</rdfs:label>
-	<kb:basesystem rdf:resource="&kb;knowarc_Instance_0"/>
-	<kb:depends rdf:resource="&kb;knowarc_Instance_20000"/>
+	<kb:basesystem rdf:resource="&kb;BaseSystem/debian/etch"/>
+	<kb:depends rdf:resource="&kb;package/tar/jre/1.5.0"/>
 </kb:TarPackage>
-<kb:DebianPackage rdf:about="&kb;knowarc_Instance_31"
+
+<kb:DebianPackage rdf:about="&kb;package/debian/etch/BuildEssential_gcc_make"
 	 rdfs:label="Debian Etch: {g++-4.1, make}">
-	<kb:basesystem rdf:resource="&kb;knowarc_Instance_9"/>
+	<kb:basesystem rdf:resource="&kb;VirtualBaseSystem/debian/etch"/>
 	<kb:package>g++-4.1</kb:package>
 	<kb:package>make</kb:package>
 </kb:DebianPackage>
-<kb:DebianPackage rdf:about="&kb;knowarc_Instance_32"
+
+<kb:DebianPackage rdf:about="&kb;package/debian/sid/BuildEssential_gcc_make"
 	 rdfs:label="Debian Sid: {make, g++-4.1}">
-	<kb:basesystem rdf:resource="&kb;knowarc_Instance_15"/>
+	<kb:basesystem rdf:resource="&kb;VirtualBaseSystem/debian/sid"/>
 	<kb:package>g++-4.1</kb:package>
 	<kb:package>make</kb:package>
 </kb:DebianPackage>
-<kb:MetaPackage rdf:about="&kb;knowarc_Instance_33"
+
+<kb:MetaPackage rdf:about="&kb;MetaPackage/env/development/gcc/4.1"
 	 kb:description="The GNU C compiler, version 4.1"
 	 kb:name="ENV/DEVELOPMENT/GCC-4.1"
 	 rdfs:label="ENV/DEVELOPMENT/GCC-4.1">
-	<kb:instance rdf:resource="&kb;knowarc_Instance_36"/>
+	<kb:instance rdf:resource="&kb;knowarc_development_collection_bison_make_flex_gcc-4.1"/>
 </kb:MetaPackage>
-<kb:DebianPackage rdf:about="&kb;knowarc_Instance_36"
+
+<kb:DebianPackage rdf:about="&kb;package/debian/etch/development_collection_bison_make_flex_gcc-4.1"
 	 rdfs:label="Debian Etch: {bison, make, flex, gcc-4.1}">
-	<kb:basesystem rdf:resource="&kb;knowarc_Instance_9"/>
+	<kb:basesystem rdf:resource="&kb;BaseSystem/debian/etch"/>
 	<kb:package>bison</kb:package>
 	<kb:package>flex</kb:package>
 	<kb:package>gcc-4.1</kb:package>
 	<kb:package>make</kb:package>
 </kb:DebianPackage>
-<kb:MetaPackage rdf:about="&kb;knowarc_Instance_38"
+
+<kb:MetaPackage rdf:about="&kb;MetaPackage/env/language/german"
 	 kb:description="German language environment"
 	 kb:name="ENV/LANGUAGE/GERMAN"
 	 rdfs:label="ENV/LANGUAGE/GERMAN">
-	<kb:instance rdf:resource="&kb;knowarc_Instance_39"/>
+	<kb:instance rdf:resource="&kb;package/DebianPackage/env/locales/de"/>
 </kb:MetaPackage>
-<kb:DebianPackage rdf:about="&kb;knowarc_Instance_39"
+
+<kb:DebianPackage rdf:about="&kb;package/DebianPackage/env/locales/de"
 	 kb:package="locales"
 	 rdfs:label="Debian Etch: locales">
 	<kb:debconf>locales locales/default_environment_locale      select  de_DE.UTF-8</kb:debconf>
 	<kb:debconf>locales locales/locales_to_be_generated multiselect     de_DE UTF-8, de_DE.UTF-8 UTF-8</kb:debconf>
-	<kb:basesystem rdf:resource="&kb;knowarc_Instance_9"/>
+	<kb:basesystem rdf:resource="&kb;Virtual/BaseSystem/debian/etch"/>
 </kb:DebianPackage>
-<kb:MetaPackage rdf:about="&kb;knowarc_Instance_4"
+
+<kb:MetaPackage rdf:about="&kb;MetaPackage/apps/cas/simics/2.2.7-1"
 	 kb:description="Computer Architecture Simulator"
 	 kb:homepage="http://re.swegrid.se/APPS/CHEM/DALTON-1.2-1.0.html"
 	 kb:lastupdated="2005-03-14"
 	 kb:name="APPS/CAS/SIMICS-2.2.7-1"
 	 rdfs:label="APPS/CAS/SIMICS-2.2.7-1"/>
-<kb:MetaPackage rdf:about="&kb;knowarc_Instance_5"
+
+<kb:MetaPackage rdf:about="&kb;MetaPackage/apps/chem/gamess/20041122-0"
 	 kb:homepage="http://grid.uio.no/RE/GAMESS_RE.html"
 	 kb:lastupdated="2005-01-31"
 	 kb:name="APPS/CHEM/GAMESS-20041122-0"
 	 rdfs:label="APPS/CHEM/GAMESS-20041122-0">
 	<kb:description>Quantum chemistry program for the calculation of SCF wavefunctions ranging from RHF, ROHF, UHF, GVB, and MCSCF.</kb:description>
 </kb:MetaPackage>
-<kb:MetaPackage rdf:about="&kb;knowarc_Instance_6"
+
+<kb:MetaPackage rdf:about="&kb;MetaPackage/apps/hep/atlas/13.0.10.1"
 	 kb:description="ATLAS"
 	 kb:homepage="http://www.grid.tsl.uu.se/RTEs/ATLAS/"
 	 kb:lastupdated="2007-07-01"
 	 kb:name="APPS/HEP/ATLAS-13.0.10.1"
 	 rdfs:label="APPS/HEP/ATLAS-13.0.10.1"/>
-<kb:MetaPackage rdf:about="&kb;knowarc_Instance_7"
+
+<kb:MetaPackage rdf:about="&kb;MetaPackage/apps/hep/cernlib/2005"
 	 kb:description="CERNLIB"
 	 kb:homepage="http://grid.tsl.uu.se/RTEs/CERNLIB/"
 	 kb:lastupdated="2006-06-09"
 	 kb:name="APPS/HEP/CERNLIB-2005"
 	 rdfs:label="APPS/HEP/CERNLIB-2005"/>
-<kb:MetaPackage rdf:about="&kb;knowarc_Instance_8"
+
+<kb:MetaPackage rdf:about="&kb;MetaPackage/apps/hep/root/4.04.02.6"
 	 kb:description="ROOT"
 	 kb:homepage="http://grid.tsl.uu.se/RTEs/ROOT/"
 	 kb:lastupdated="2005-10-29"
 	 kb:name="APPS/HEP/ROOT-4.04.02.6"
 	 rdfs:label="APPS/HEP/ROOT-4.04.02.6"/>
-<kb:BaseSystem rdf:about="&kb;knowarc_Instance_9"
-	 kb:description="The Debian Etch distribution, currently testing."
-	 kb:distribution="Debian"
-	 kb:name="debian::etch"
-	 kb:short_description="Debian Etch"
-	 kb:url="file://werkel/etch.tar.gz"
-	 rdfs:label="Debian Etch"/>
+
 </rdf:RDF>
