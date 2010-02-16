@@ -133,58 +133,83 @@ modules) is performed via HTTP(S). An URL for accessing input/output
 files is obtained through the WS Local Information Description
 Interface (LIDI) of A-REX.
 
-Each job gets an identifier (\textit{jobid}). This is a handle -- WS-Addressing~\cite{ws-addr-soap} XML document -- which identifies the job in the
-A-REX and in the Information Interface.
+Each job gets an identifier (\textit{jobid}). This is a handle --
+WS-Addressing~\cite{ws-addr-soap} XML document -- which identifies the
+job in the A-REX and in the Information Interface.
 
 Jobs are initiated and controlled through the WS interface. Complete
-job descriptions (JD) are passed to the A-REX through WS in JSDL~\cite{jsdl}
-coded description. Input data files and job executables are transferred
-separately through the same interface, as described in Section~\ref{sec:input/output data}.
+job descriptions (JD) are passed to the A-REX through WS in
+JSDL~\cite{jsdl} coded description. Input data files and job
+executables are transferred separately through the same interface, as
+described in Section~\ref{sec:input/output data}.
 
 \section{Input/output data\label{sec:input/output data}}
 
-One of the most important tasks of the A-REX is to take care of processing of the
-input and output data (files) of the job. Input files are gathered
-in the SD or in the associated cache area. There are two ways to put a file
-into the SD:
+One of the most important tasks of the A-REX is to take care of
+processing of the input and output data (files) of the job. Input
+files are gathered in the SD or in the associated cache area. There
+are two ways to put a file into the SD:
 
 \begin{itemize}
-\item Download is initiated by the A-REX -- This is the case for files defined
-in the JD (with name and source). The A-REX alone is responsible to
-ensure that all required files will be available in the SD.\\
-The supported protocols for sources at the moment are (in case of
-full installation): GridFTP, FTP, HTTP, HTTPS (HTTP over SSLv3). Also
-some less standard sources are supported. Those are described below.
-The A-REX fully relies on HED framework~\cite{hed} for data transferring
-capabilities. Hence actual set of supported protocols depends on installed
-Data Management Components of the HED.
-\item Upload is initiated by the user directly or through the User Interface
-(UI). Because the SD becomes available immediately at the time of
-submission of JD, UI can (and should) use that to upload data files
-which are not otherwise accessible by the A-REX. Examples of such
-files are the main executable of the job, the job's input files, etc.
-These files can (and should) also be specified in the JD.
+
+\item Download is initiated by the A-REX -- This is the case for files
+  defined in the JD (with name and source). The A-REX alone is
+  responsible to ensure that all required files will be available in
+  the SD.\\ The supported protocols for sources at the moment are (in
+  case of full installation): GridFTP, FTP, HTTP, HTTPS (HTTP over
+  SSLv3). Some less standard sources and \emph{Indexing Services} are
+  also supported, these are described in Section~\ref{sec:urls}. The
+  A-REX fully relies on the HED framework~\cite{hed} for data
+  transferring capabilities and so the actual set of supported
+  protocols depends on the installed Data Management Components of the
+  HED.
+
+\item Upload is initiated by the user directly or through the User
+  Interface (UI). Because the SD becomes available immediately at the
+  time of submission of the JD, the UI can (and should) use that to
+  upload data files which are not otherwise accessible by the
+  A-REX. Examples of such files are the main executable of the job,
+  the job's input files, etc.  These files can (and should) also be
+  specified in the JD.
 \end{itemize}
-\textbf{There is no} other reliable way for a job to obtain input
-data on the CE based on the A-REX. Access to AFS, NFS, FTP, HTTP and
-any other remote data transport during execution of a job is not guaranteed
-(at least not by A-REX).
+
+\textbf{There is no} other reliable way for a job to obtain input data
+on the CE based on the A-REX. Access to AFS, NFS, FTP, HTTP and any
+other remote data transport during execution of a job is not
+guaranteed (at least not by A-REX).
+
+At the start of a download, a dummy file with the same name and size
+as the source file is created in the SD to check that enough space is
+available. As the transfer proceeds this dummy file is over-written
+with the real data. If the file is to be cached (see
+Section~\ref{sec:cache}) then the pre-allocation of space is not done,
+as cache space is managed by the A-REX. In the case of caching two
+extra validation checks are also performed: firstly, if the source is
+an Indexing Service then metadata (file size, checksum) reported by
+the Indexing Service and the service hosting the physical replica are
+compared, if available. If they differ then that replica is not
+downloaded. Secondly, on completion of the download the file size is
+compared to that reported by the source - if they differ then the
+download is failed.
 
 Jobs should store output files in their SD. Like input files, output
 files belong into two groups:
 
 \begin{itemize}
-\item Files which are supposed to be moved to a \emph{Storage Element} (SE)
-and optionally registered in some \emph{Indexing Service} like the
-Globus \emph{Replica Location Service} (RLS) -- The A-REX takes care
-of these files. They have to be specified in the JD. If the job fails
-during any stage of processing, no attempt is made to transfer those
-files to their final destination, unless the option \emph{preserve=yes}
-is specified in their URLs.
-\item Files which are supposed to be fetched by the user -- The user has
-to use a tool like the UI to obtain these files. They \textbf{must}
-also be specified in the JD.
+
+\item Files which are supposed to be moved to a \emph{Storage Element}
+  (SE) and optionally registered in some Indexing Service like the
+  Globus \emph{Replica Location Service} (RLS) -- The A-REX takes care
+  of these files. They have to be specified in the JD. If the job
+  fails during any stage of processing, no attempt is made to transfer
+  those files to their final destination, unless the option
+  \emph{preserve=yes} is specified in their URLs.
+
+\item Files which are supposed to be fetched by the user -- The user
+  has to use a tool like the UI to obtain these files. They
+  \textbf{must} also be specified in the JD.
 \end{itemize}
+
 All files not specified in the JD are deleted after job execution
 finished. If job execution fails for any reason (if exit code of main
 executable is not 0) all files from first group are transferred to
@@ -215,58 +240,82 @@ Below is the description of all actions taken by the A-REX at every
 state:
 
 \begin{itemize}
-\item \textbf{Accepted} -- In this state the job has been submitted to a
-CE but is not processed yet. The A-REX will analyze the JD and move
-to the next stage. If the JD can not be processed the job will be
-canceled and moved to the state \textbf{Finishing}.
-\item \textbf{Preparing} -- The input data is being gathered in the SD (stage-in).
-The A-REX is downloading the files specified in the JD and is waiting
-for files which are supposed to be uploaded by the UI. If all files
-are successfully gathered the job moves to the next state. If \textbf{any}
-file can't be downloaded or it takes the UI too long to upload a file,
-the job moves to \textbf{Finishing} state. It is possible to put a
-limit on the number of simultaneous \textbf{Preparing} jobs. 
-If this limit is exceeded, jobs ready to enter the \textbf{Preparing} state
- will stay in the \textbf{Accepted} state, but prefixed with the PENDING:
-mark. Exceptions are jobs which have no files to be downloaded. These
-are processed out of limits.
-\item \textbf{Submitting} -- The job is being passed for execution to the
-\emph{Local Resource Management System} (LRMS). The corresponding
-backends for many LRMSs are provided with the default installation.
-If the local job submission is successful the job moves to the \textbf{Executing}
-state. Otherwise it moves to \textbf{Finishing}. It is possible to
-limit the aggregate number of jobs in \textbf{Submitting} and \textbf{Executing}
-states.
-\item \textbf{Executing} -- The job is queued or being executed in the LRMS.
-The A-REX takes no actions except waiting until the job finishes.
-\item \textbf{Killing} -- Necessary action to cancel the job in the LRMS
-is being taken.
-\item \textbf{Finishing} -- The output data is being processed (stage-out).
-Specified data files are moved to the specified SEs and are optionally
-registered at an Indexing Service. The user can download data files
-from the SD by using the UI or other adequate tool. All the files
-not specified as output files are removed from the SD at very beginning
-of this state.It is possible to limit the number of simultaneous jobs in this state.
-\item \textbf{Finished} -- No more processing is performed by the A-REX.
-The user can continue to download data files from the SD. The SD is
-kept available for some time (default is 1 week). After that the job
-is moved to the state \textbf{Deleted}. The 'deletion' time can be
-obtained by querying the Information Interface of the A-REX. If a
-job was moved to \textbf{Finished} because of failure, it may be restarted
-on request of a client. When restarted, a job is moved to the state
-previous to the one in which it failed and is assigned mark PENDING.
-This is needed in order to not break the configuration limits. Exception
-is a job failed in \textbf{Executing} state and lacking input files
-specified in JD. Such a job is treated like failed in \textbf{Preparing}
-state.
-\item \textbf{Deleted} -- The job is moved to this state if the user have
-not requested job to be cleaned before the SD's lifetime expires.
-Only minimal subset of information about such job is kept. The SD
-is not available anymore.
+
+\item \textbf{Accepted} -- In this state the job has been submitted to
+  a CE but is not processed yet. The A-REX will analyze the JD and
+  move to the next stage. If the JD can not be processed the job will
+  be canceled and moved to the state \textbf{Finishing}.
+
+\item \textbf{Preparing} -- The input data is being gathered in the SD
+  (stage-in).  The A-REX is downloading the files specified in the JD
+  and is waiting for files which are supposed to be uploaded by the
+  UI. If all files are successfully gathered the job moves to the next
+  state. If \textbf{any} file can't be downloaded or it takes the UI
+  too long to upload a file, the job moves to \textbf{Finishing}
+  state. It is possible to put a limit on the number of simultaneous
+  \textbf{Preparing} jobs.  If this limit is exceeded, jobs ready to
+  enter the \textbf{Preparing} state will stay in the
+  \textbf{Accepted} state, but prefixed with the PENDING:
+  mark. Exceptions are jobs which have no files to be
+  downloaded. These are processed out of limits. If the A-REX fails to
+  download a file due to a temporary error with a remote service, the
+  job will be moved back to the \textbf{Accepted} state, but prefixed
+  with the PENDING: mark, and will wait in that state for some time
+  before being retried. The waiting time increases exponentially with
+  each attempt.
+
+\item \textbf{Submitting} -- The job is being passed for execution to
+  the \emph{Local Resource Management System} (LRMS). The
+  corresponding backends for many LRMSs are provided with the default
+  installation.  If the local job submission is successful the job
+  moves to the \textbf{Executing} state. Otherwise it moves to
+  \textbf{Finishing}. It is possible to limit the aggregate number of
+  jobs in \textbf{Submitting} and \textbf{Executing} states.
+
+\item \textbf{Executing} -- The job is queued or being executed in the
+  LRMS.  The A-REX takes no actions except waiting until the job
+  finishes.
+
+\item \textbf{Killing} -- Necessary action to cancel the job in the
+  LRMS is being taken.
+
+\item \textbf{Finishing} -- The output data is being processed
+  (stage-out).  Specified data files are moved to the specified SEs
+  and are optionally registered at an Indexing Service. The user can
+  download data files from the SD by using the UI or other adequate
+  tool. All the files not specified as output files are removed from
+  the SD at very beginning of this state. It is possible to limit the
+  number of simultaneous jobs in this state.  If the A-REX fails to
+  upload a file due to a temporary error with a remote service, the
+  job will be moved back to the \textbf{Executing} state, but prefixed
+  with the PENDING: mark, and will wait in that state for some time
+  before being retried. The waiting time increases exponentially with
+  each attempt.
+
+\item \textbf{Finished} -- No more processing is performed by the
+  A-REX.  The user can continue to download data files from the
+  SD. The SD is kept available for some time (default is 1
+  week). After that the job is moved to the state
+  \textbf{Deleted}. The 'deletion' time can be obtained by querying
+  the Information Interface of the A-REX. If a job was moved to
+  \textbf{Finished} because of failure, it may be restarted on request
+  of a client. When restarted, a job is moved to the state previous to
+  the one in which it failed and is assigned mark PENDING.  This is
+  needed in order to not break the configuration limits. Exception is
+  a job failed in \textbf{Executing} state and lacking input files
+  specified in JD. Such a job is treated like failed in
+  \textbf{Preparing} state.
+
+\item \textbf{Deleted} -- The job is moved to this state if the user
+  have not requested job to be cleaned before the SD's lifetime
+  expires.  Only minimal subset of information about such job is
+  kept. The SD is not available anymore.
+
 \end{itemize}
+
 In case of a failure special processing is applied to output files.
-All specified output files are treated as \textbf{downloadable by
-the user}. No files will be moved to their destination SE.
+All specified output files are treated as \textbf{downloadable by the
+  user}. No files will be moved to their destination SE.
 
 \section{URLs\label{sec:urls}}
 
