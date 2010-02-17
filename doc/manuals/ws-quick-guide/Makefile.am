@@ -2,12 +2,16 @@ docdir = @docdir@
 
 docsource = ws-quick-guide.tex
 
+doctitle = ws-quick-guide
+
 doc_DATA = ws-quick-guide.pdf
 
 STYLES = ng-logo.png
 
 $(doc_DATA): $(docsource) $(STYLES)
-	pdflatex $(docsource) ; bibtex $(docsource) ; makeindex -s gind.ist $(docsource) ; pdflatex $(docsource) ; \
+	pdflatex $(docsource) ; bibtex $(doctitle) ; makeindex -s gind.ist $(doctitle) ; \
+	pdflatex $(docsource) ; bibtex $(doctitle) \
+	pdflatex $(docsource) ; \
 	pdflatex $(docsource)
 
 $(STYLES):

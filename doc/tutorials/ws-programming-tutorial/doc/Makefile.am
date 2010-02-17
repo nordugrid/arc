@@ -9,8 +9,10 @@ doc_DATA = WS-tutorial.pdf
 STYLES = ng-logo.png
 
 $(doc_DATA): $(docsource) $(STYLES)
-	pdflatex $(docsource) ; bibtex $(docsource) ; makeindex -s gind.ist $(docsource) ; pdflatex $(docsource) ; \
-	pdflatex $(docsource)
+	pdflatex $(docsource:.tex=) ; bibtex $(docsource:.tex=) ; makeindex -s gind.ist $(docsource:.tex=) ; \
+	pdflatex $(docsource:.tex=) ; bibtex $(docsource:.tex=) ; \
+	pdflatex $(docsource:.tex=) \
+	pdflatex $(docsource:.tex=)
 
 $(STYLES):
 	$(LN_S) ../../../templates/tex/$@ $@
