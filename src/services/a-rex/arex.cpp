@@ -18,6 +18,7 @@
 #include <arc/ws-addressing/WSA.h>
 #include <arc/Thread.h>
 #include <arc/StringConv.h>
+#include <arc/Utils.h>
 
 #include "job.h"
 #include "grid-manager/conf/conf_pre.h"
@@ -501,6 +502,7 @@ ARexService::ARexService(Arc::Config *cfg):RegisteredService(cfg),
           ::chmod(gmconfig_.c_str(), S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
           break;
         };
+        logger_.msg(Arc::DEBUG, "Failed to create emporay file in %s - %s",*t,Arc::StrError(errno));
       };
       if(h == -1) {
         throw Glib::FileError(Glib::FileError::FAILED,"Failed to create temporary file in any of control directories");
@@ -521,7 +523,7 @@ ARexService::ARexService(Arc::Config *cfg):RegisteredService(cfg),
       close(h);
       gmconfig_temporary_=true;
     } catch(Glib::FileError& e) {
-      logger_.msg(Arc::ERROR, "Failed to store configuration into temporary file");
+      logger_.msg(Arc::ERROR, "Failed to store configuration into temporary file: %s",e.what());
       if(!gmconfig_.empty()) {
         ::unlink(gmconfig_.c_str());
         gmconfig_.resize(0);
