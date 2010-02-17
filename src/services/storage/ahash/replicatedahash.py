@@ -38,9 +38,23 @@ from storage.client import AHashClient
 from arcom.store.transdbstore import TransDBStore
 from arcom.logger import Logger
 from arcom.security import parse_ssl_config
-from bsddb3 import db
 log = Logger(arc.Logger(arc.Logger_getRootLogger(), 'Storage.ReplicatedAHash'))
-
+try:
+    from bsddb3 import db
+except:
+    try:
+        from bsddb import db
+    except:
+        log.msg(arc.FATAL, "Could not import module bsddb. This is required for replicated A-Hash.")
+        raise Exception, "Could not import module bsddb. This is required for replicated A-Hash."
+if (db.DB_VERSION_MAJOR == 4 and db.DB_VERSION_MINOR < 6) or db.DB_VERSION_MAJOR < 4:
+    log.msg(arc.FATAL, "Berkeley DB is older than 4.6. Replicated A-Hash requires db4.6 or higher.")
+    raise Exception, "Berkeley DB is older than 4.6. Replicated A-Hash requires db4.6 or higher."
+try:
+    eid = db.DB_EID_BROADCAST
+except:
+    log.msg(arc.FATAL, "Python module bsddb is older than 4.7.5. Replicated A-Hash requires bsddb version 4.7.5 or higher.")
+    raise Exception, "Python module bsddb is older than 4.7.5. Replicated A-Hash requires bsddb version 4.7.5 or higher."
 
 class ReplicatedAHash(CentralAHash):
     """ A replicated implementation of the A-Hash service. """

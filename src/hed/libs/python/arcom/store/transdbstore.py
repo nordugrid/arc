@@ -8,8 +8,14 @@ from arcom.store.basestore import BaseStore
 from arcom.logger import Logger
 log = Logger(arc.Logger(arc.Logger_getRootLogger(), 'arcom.TransDBStore'))
 
-from bsddb3 import db
-
+try:
+    from bsddb import db
+except:
+    try:
+        from bsddb3 import db
+    except:
+        log.msg(arc.FATAL, "Could not import module bsddb. This is required for TransDBStore.")
+        raise Exception, "Could not import module bsddb. This is required for TransDBStore."
 
 class TransConfigInfo:
     """
