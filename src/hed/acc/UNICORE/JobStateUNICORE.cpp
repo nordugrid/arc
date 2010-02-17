@@ -2,20 +2,22 @@
 #include <config.h>
 #endif
 
+#include <arc/StringConv.h>
 #include "JobStateUNICORE.h"
+
 
 namespace Arc {
 
   JobState::StateType JobStateUNICORE::StateMap(const std::string& state) {
-    if (state == "ACCEPTED")
+    if (Arc::lower(state) == "accepted")
       return JobState::ACCEPTED;
-    else if (state == "QUEUED")
+    else if (Arc::lower(state) == "queued")
       return JobState::QUEUING;
-    else if (state == "RUNNING")
+    else if (Arc::lower(state) == "running")
       return JobState::RUNNING;
-    else if (state == "SUCCESSFUL")
+    else if (Arc::lower(state) == "finished")
       return JobState::FINISHED;
-    else if (state == "FAILED")
+    else if (Arc::lower(state) == "failed")
       return JobState::FAILED;
     else if (state == "")
       return JobState::UNDEFINED;

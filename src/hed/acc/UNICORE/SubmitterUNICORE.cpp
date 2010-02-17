@@ -118,7 +118,9 @@ namespace Arc {
     std::string jobid;
     id.GetDoc(jobid);
 
-    AddJob(jobdesc, (std::string)id["Address"], et.Cluster, et.url);
+    std::map<std::string, std::string> additional_info;
+    additional_info["AuxInfo"] = jobid;
+    AddJob(jobdesc, (std::string)id["Address"], et.Cluster, et.url, additional_info);
 
     return (std::string)id["Address"];
   }
