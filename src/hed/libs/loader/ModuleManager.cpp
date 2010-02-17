@@ -106,7 +106,11 @@ Glib::Module *ModuleManager::load(const std::string& name,bool probe /*,bool rel
   }
   std::string path = findLocation(name);
   if(path.empty()) {
-    ModuleManager::logger.msg(VERBOSE, "Could not locate module %s", name);
+    ModuleManager::logger.msg(VERBOSE, "Could not locate module %s in following paths:", name);
+    std::vector<std::string>::const_iterator i = plugin_dir.begin();
+    for (; i != plugin_dir.end(); i++) {
+      ModuleManager::logger.msg(VERBOSE, "\t%s", *i);
+    }
     return NULL;
   };
   Glib::ModuleFlags flags = Glib::ModuleFlags(0);
