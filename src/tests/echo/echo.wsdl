@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<definitions targetNamespace="urn:echo"
+<definitions
+ targetNamespace="http://www.nordugrid.org/schemas/echo"
  xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
  xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/"
  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -7,10 +8,10 @@
  xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
  xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
  xmlns="http://schemas.xmlsoap.org/wsdl/"
- xmlns:echo="urn:echo">
+ xmlns:echo="http://www.nordugrid.org/schemas/echo">
 
 <wsdl:types>
- <schema targetNamespace="urn:echo"
+ <schema targetNamespace="http://www.nordugrid.org/schemas/echo"
   xmlns="http://www.w3.org/2001/XMLSchema">
   <import namespace="http://schemas.xmlsoap.org/soap/encoding/"/>
 

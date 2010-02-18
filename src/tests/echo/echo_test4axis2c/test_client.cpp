@@ -54,7 +54,7 @@ int main(void) {
   // for (int i = 0; i < 10; i++) {
   // Create and send echo request
   logger.msg(Arc::INFO, "Creating and sending request");
-  Arc::NS echo_ns; echo_ns["echo"]="urn:echo";
+  Arc::NS echo_ns; echo_ns["echo"]="http://www.nordugrid.org/schemas/echo";
   Arc::PayloadSOAP req(echo_ns);
   req.NewChild("echo:echo").NewChild("say")="HELLO";
   Arc::Message reqmsg;

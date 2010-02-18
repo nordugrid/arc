@@ -17,7 +17,7 @@ cfg = arc.MCCConfig()
 s = arc.ClientSOAP(cfg, 'localhost', 60000, False, '/Echo')
 
 logger.msg(arc.INFO, "Creating and sending request")
-ns = arc.NS({'echo':'urn:echo'})
+ns = arc.NS({'echo':'http://www.nordugrid.org/schemas/echo'})
 outpayload = arc.PayloadSOAP(ns)
 outpayload.NewChild('echo:echo').NewChild('echo:say').Set('HELLO')
 

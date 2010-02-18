@@ -56,7 +56,7 @@ void sendRequests(){
   Arc::UserConfig usercfg("");
   usercfg.ApplyToConfig(mcc_cfg);
   
-  Arc::NS echo_ns; echo_ns["echo"]="urn:echo";
+  Arc::NS echo_ns; echo_ns["echo"]="http://www.nordugrid.org/schemas/echo";
   
   while(run){
     

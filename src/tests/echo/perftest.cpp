@@ -101,7 +101,7 @@ void sendRequests(){
     while(run and connected){
       // Prepare the request.
       Arc::NS echo_ns;
-      echo_ns["echo"]="urn:echo";
+      echo_ns["echo"]="http://www.nordugrid.org/schemas/echo";
       Arc::PayloadSOAP req(echo_ns);
       req.NewChild("echo").NewChild("say")="HELLO";
       Arc::Message reqmsg;

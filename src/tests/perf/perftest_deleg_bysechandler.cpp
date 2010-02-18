@@ -72,7 +72,7 @@ void sendRequests(){
   mcc_cfg.AddCAFile("../echo/testcacert.pem");
   mcc_cfg.AddCADir("../echo/certificates");
 
-  Arc::NS echo_ns; echo_ns["echo"]="urn:echo";
+  Arc::NS echo_ns; echo_ns["echo"]="http://www.nordugrid.org/schemas/echo";
   
   while(run){
     

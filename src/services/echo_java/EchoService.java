@@ -10,7 +10,7 @@ public class EchoService {
     public EchoService() {
         System.out.println("EchoService constructor called");
         // NS ns_ = new NS();
-        // ns_.set("echo", "urn:echo");
+        // ns_.set("echo", "http://www.nordugrid.org/schemas/echo");
     }
 
 /*
@@ -32,7 +32,7 @@ public class EchoService {
         System.out.println("Java got: " + say);
         String hear = new String("[ " + say + " ]");
         NS ns_ = new NS();
-        ns_.set("echo", "urn:echo");
+        ns_.set("echo", "http://www.nordugrid.org/schemas/echo");
         PayloadSOAP outpayload = new PayloadSOAP(ns_);
         outpayload.NewChild("echo:echoResponse").NewChild("echo:hear").Set(hear);
         outmsg.Payload(outpayload);

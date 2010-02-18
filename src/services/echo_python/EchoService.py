@@ -5,7 +5,7 @@ from arcom.logger import Logger
 log = Logger(arc.Logger(arc.Logger_getRootLogger(), 'EchoService.py'))
 
 wsrf_rp_ns = "http://docs.oasis-open.org/wsrf/rp-2"
-echo_ns = "urn:echo"
+echo_ns = "http://www.nordugrid.org/schemas/echo"
 import threading
 
 class EchoService:
@@ -88,7 +88,7 @@ class EchoService:
         # create an answer payload
         ns = arc.NS({'echo': echo_ns})
         outpayload = arc.PayloadSOAP(ns)
-        # here we defined that 'echo' prefix will be the namespace prefix of 'urn:echo'
+        # here we defined that 'echo' prefix will be the namespace prefix of 'http://www.nordugrid.org/schemas/echo'
         # get the message
         say = str(request_node.Get('say'))
         # put it between the response-prefix and the response-suffix
@@ -154,7 +154,7 @@ class EchoService:
 
 # you can easily test this with this shellscript:
 """
-MESSAGE='<?xml version="1.0"?><soap-env:Envelope xmlns:soap-enc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:soap-env="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:star="urn:echo"><soap-env:Body><star:echo><star:say>HELLO</star:say></star:echo></soap-env:Body></soap-env:Envelope>'
+MESSAGE='<?xml version="1.0"?><soap-env:Envelope xmlns:soap-enc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:soap-env="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:star="http://www.nordugrid.org/schemas/echo"><soap-env:Body><star:echo><star:say>HELLO</star:say></star:echo></soap-env:Body></soap-env:Envelope>'
 echo Request:
 echo $MESSAGE
 echo

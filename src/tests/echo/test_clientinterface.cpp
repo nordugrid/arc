@@ -37,7 +37,7 @@ int main(void) {
   mcc_cfg.AddCAFile("testcacert.pem");
   mcc_cfg.AddCADir("certificates");
 
-  Arc::NS echo_ns; echo_ns["echo"]="urn:echo";
+  Arc::NS echo_ns; echo_ns["echo"]="http://www.nordugrid.org/schemas/echo";
 
   /******** Test to service **********/
   //Create a SOAP client

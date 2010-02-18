@@ -7,7 +7,7 @@
   xmlns:xt="http://www.nordugrid.org/schemas/X509TokenSH"
   xmlns:st="http://www.nordugrid.org/schemas/SAMLTokenSH"
   xmlns:arcpdp="http://www.nordugrid.org/schemas/ArcPDP"
-  xmlns:echo="urn:echo_config"
+  xmlns:echo="http://www.nordugrid.org/schemas/echo/2009/08"
 >
 
     <ModuleManager>

@@ -89,7 +89,7 @@ int main(int argc, char **argv) {
 
   std::string xml;
 
-  Arc::NS ns("echo", "urn:echo");
+  Arc::NS ns("echo", "http://www.nordugrid.org/schemas/echo");
   Arc::PayloadSOAP request(ns);
   request.NewChild("echo:echo").NewChild("echo:say") = message;
 

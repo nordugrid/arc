@@ -38,7 +38,7 @@ axis2_echo_echo(const axutil_env_t *env, axiom_node_t *node)
      * </ns1:echoString>
      */
 /*
-<soap-env:Envelope xmlns:echo="urn:echo" 
+<soap-env:Envelope xmlns:echo="http://www.nordugrid.org/schemas/echo" 
  xmlns:soap-enc="http://schemas.xmlsoap.org/soap/encoding/" 
  xmlns:soap-env="http://schemas.xmlsoap.org/soap/envelope/" 
  xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
@@ -99,7 +99,7 @@ build_om_programatically(const axutil_env_t *env, axis2_char_t *text)
     axiom_element_t * text_om_ele = NULL;
     axiom_namespace_t *ns1 = NULL;
     
-    ns1 = axiom_namespace_create(env, "urn:echo", "echo");
+    ns1 = axiom_namespace_create(env, "http://www.nordugrid.org/schemas/echo", "echo");
     echo_om_ele = axiom_element_create(env, NULL, "echoResponse", ns1, &echo_om_node);
     text_om_ele = axiom_element_create(env, echo_om_node, "hear", NULL, &text_om_node);
     axiom_element_set_text(text_om_ele, env, text, text_om_node);

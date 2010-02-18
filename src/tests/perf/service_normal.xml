@@ -3,7 +3,7 @@
   xmlns="http://www.nordugrid.org/schemas/ArcConfig/2007"
   xmlns:tcp="http://www.nordugrid.org/schemas/ArcMCCTCP/2007"
   xmlns:tls="http://www.nordugrid.org/schemas/ArcMCCTLS/2007"
-  xmlns:echo="urn:echo_config"
+  xmlns:echo="http://www.nordugrid.org/schemas/echo"
 >
 
     <ModuleManager>
