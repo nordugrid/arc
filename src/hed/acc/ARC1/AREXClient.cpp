@@ -193,6 +193,7 @@ namespace Arc {
 
     PayloadSOAP req(arex_ns);
     if(arex_enabled) {
+      // TODO: use wsrf classes
       // AREX service
       action = "QueryResourceProperties";
       std::string xpathquery = "//glue:Services/glue:ComputingService/glue:ComputingEndpoint/glue:ComputingActivities/glue:ComputingActivity/glue:ID[contains(.,'" + (std::string)(XMLNode(jobid)["ReferenceParameters"]["JobID"]) + "')]/..";
@@ -229,12 +230,41 @@ namespace Arc {
         job.AuxStates[model] = state;
       }
     } else {
-      std::string state = response["Response"]["ActivityStatus"].Attribute("state");
-      job.State = JobStateBES(state);
+      XMLNode activity = response["Response"]["ActivityStatus"];
+      if(activity) {
+        NS ns("a-rex","http://www.nordugrid.org/schemas/a-rex");
+        activity.Namespaces(ns);
+        std::string state = activity.Attribute("state");
+        if(!state.empty()) {
+          job.State = JobStateBES(state);
+          XMLNode nstate = activity["a-rex:State"];
+          std::string nstates;
+          for(;nstate;++nstate) {
+            if(nstates.empty()) {
+              nstates = (std::string)nstate;
+            } else {
+              nstates = (std::string)nstate + ":" + nstates;
+            }
+          }
+          if(!nstates.empty()) {
+            job.State = JobStateARC1(nstates);
+            job.AuxStates["nordugrid"] = nstates;
+            job.AuxStates["bes"] = state;
+          }
+        }
+      }
     }
 
     if (!job.State) {
-      logger.msg(VERBOSE, "Unable to retrieve status of job (%s)", job.JobID.str());
+      if(arex_enabled) {
+        // If failed to fetch through Glue2 try through BES
+        arex_enabled = false;
+        bool r = stat(jobid,job);
+        arex_enabled = true;
+        return r;
+      } else {
+        logger.msg(VERBOSE, "Unable to retrieve status of job (%s)", job.JobID.str());
+      }
       return false;
     }
     if(!arex_enabled) return true;
