@@ -66,8 +66,6 @@ aboveskip=2\medskipamount
 
 \hrulefill
 
-%-------- Change this to NORDUGRID-XXXXXXX-NN
-
 {\raggedleft NORDUGRID-TECH-14\par}
 
 {\raggedleft \today\par}
@@ -91,27 +89,35 @@ aboveskip=2\medskipamount
 %\end{abstract}
 \end{titlepage}
 
-%\tableofcontents                          %Comment if use article style
+\tableofcontents                          %Comment if use article style
 \newpage
 \section{Introduction\label{sec:intro}}
 
-A-REX is one of ARC middleware components that implements functions
+The A-REX is an ARC middleware component that implements functions
 of the so-called \emph{Computing Element} (CE). Here Computing Element
-is a service accepting requests containing description of generic
-computational job and executing it in the underlying local batch system. 
+is a service accepting requests containing a description of generic
+computational jobs and executing it in the underlying local batch system. 
 
-It takes care of job pre- and post-processing. This comprises
-stage-in of files containing input data or program modules from wide
-range of sources and transfer or storing of output results.
+It takes care of job pre- and post-processing, i.e.\ stage-in of
+files containing input data or program modules from a wide range of
+sources and transfer or storing of output results.
 
-A-REX implements a Web Service (WS) interface which provides a
-way to submit and control computational tasks (jobs) to be executed
-by A-REX and the underlying Local Resource Management System.
+In previous versions of ARC, computational tasks (jobs) were submitted
+to a resource through a GridFTP service running on the CE, and
+processed by a Grid Manager (GM). The A-REX replaces both these
+components, by implementing a Web Service (WS) interface which
+provides a way to submit jobs, and a revised version of the GM to
+process jobs and interact with the underlying Local Resource
+Management System. The A-REX can also be set up to process jobs
+submitted through the traditional ARC GridFTP service, as well as or
+instead of those using the WS interface. Unless stated otherwise, the
+remainder of this document assumes running only the WS interface.
 
 \begin{framed}You should use this document for advanced configuration purposes
-and understanding of internals of the aforementioned tools. For general
-installation and configuration of whole system refer to other documents
-available at \url{http://www.nordugrid.org/papers.html}.
+and understanding of the internals of the aforementioned tools. For
+general installation and configuration of the whole system please
+refer to other documents available at
+\url{http://www.nordugrid.org/papers.html}.
 \end{framed}
 
 \section{Main concepts\label{sec:main concepts}}
@@ -130,7 +136,7 @@ The SD is also the only place which is controlled by the A-REX. It is
 accessible by the user from outside through the HTTP(S) protocol.  Any
 file created outside the SD is not controlled by the A-REX. Any
 exchange of data between client and A-REX (including also program
-modules) is performed via HTTP(S). An URL for accessing input/output
+modules) is performed via HTTP(S). A URL for accessing input/output
 files is obtained through the WS Local Information Description
 Interface (LIDI) of A-REX.
 
@@ -179,19 +185,19 @@ on the CE based on the A-REX. Access to AFS, NFS, FTP, HTTP and any
 other remote data transport during execution of a job is not
 guaranteed (at least not by A-REX).
 
-At the start of a download, a dummy file with the same name and size
-as the source file is created in the SD to check that enough space is
-available. As the transfer proceeds this dummy file is over-written
-with the real data. If the file is to be cached (see
-Section~\ref{sec:cache}) then the pre-allocation of space is not done,
-as cache space is managed by the A-REX. In the case of caching two
-extra validation checks are also performed: firstly, if the source is
-an Indexing Service then metadata (file size, checksum) reported by
-the Indexing Service and the service hosting the physical replica are
-compared, if available. If they differ then that replica is not
-downloaded. Secondly, on completion of the download the file size is
-compared to that reported by the source - if they differ then the
-download is failed.
+At the start of a download initiated by the A-REX, a dummy file with
+the same name and size as the source file is created in the SD to
+check that enough space is available. As the transfer proceeds this
+dummy file is over-written with the real data. If the file is to be
+cached (see Section~\ref{sec:cache}) then the pre-allocation of space
+is not done, as cache space is managed by the A-REX. In the case of
+caching two extra validation checks are also performed: firstly, if
+the source is an Indexing Service then metadata (file size, checksum)
+reported by the Indexing Service and the service hosting the physical
+replica are compared, if available. If they differ then that replica
+is not downloaded. Secondly, on completion of the download the file
+size is compared to that reported by the source - if they differ then
+the download is failed.
 
 Jobs should store output files in their SD. Like input files, output
 files belong into two groups:
@@ -220,7 +226,7 @@ second one.
 
 From the point of view of the A-REX a job passes through various states.
 Figure~\ref{job states diagram} presents a diagram of the possible
-states of a job.%
+states of a job.
 
 \begin{figure}[th]
 \centering \includegraphics{pic1.pdf}
@@ -273,11 +279,11 @@ state:
   \textbf{Finishing}. It is possible to limit the aggregate number of
   jobs in \textbf{Submitting} and \textbf{Executing} states.
 
-\item \textbf{Executing} -- The job is queued or being executed in the
+\item \textbf{Executing (InLRMS)} -- The job is queued or being executed in the
   LRMS.  The A-REX takes no actions except waiting until the job
   finishes.
 
-\item \textbf{Killing} -- Necessary action to cancel the job in the
+\item \textbf{Killing (Canceling)} -- Necessary action to cancel the job in the
   LRMS is being taken.
 
 \item \textbf{Finishing} -- The output data is being processed
@@ -314,17 +320,17 @@ state:
 
 \end{itemize}
 
-In case of a failure special processing is applied to output files.
+In case of failure, special processing is applied to output files.
 All specified output files are treated as \textbf{downloadable by the
   user}. No files will be moved to their destination SE.
 
 \section{URLs\label{sec:urls}}
 
-In full installation the A-REX and it's components support the following
-data transfer protocols and corresponding URLs: \emph{ftp, gsiftp,
-http, https, lfc, rls} and \emph{srm.} For more information please see
-{}``The Hosting Environment of the Advanced Resource Connector middleware''
-document~\cite{hed}.
+In a full installation, the A-REX and its components support the
+following data transfer protocols and corresponding URLs: \emph{ftp,
+  gsiftp, http, https, lfc, rls} and \emph{srm.} For more information
+please see ``The Hosting Environment of the Advanced Resource
+Connector middleware'' document~\cite{hed}.
 
 \section{Internals\label{section:internals}}
 
@@ -334,7 +340,7 @@ For each local UNIX user listed in the A-REX configuration -- including
 a generic one which covers all local user identities -- a \textit{control
 directory} exists. In this directory the A-REX stores information
 about jobs belonging to that user. Multiple users can share the same
-\textit{control directory}. In most common configuration case A-REX
+\textit{control directory}. In the most common configuration case, the A-REX
 serves all users defined by the Operating System and stores their control
 files in the same directory. To make it easier to recover in case of failure,
 the A-REX stores most information in files rather than in memory.
@@ -504,12 +510,12 @@ frontend computer,
 frontend computer,
 \end{itemize}
 and other information provided by GNU \emph{time} utility. Note that
-some implementation of \emph{time} insert unrequested information
+some implementations of \emph{time} insert unrequested information
 in their output. Hence some lines can have broken format.
-\item \textit{job.ID.proxy} -delegated X509 credentials.
+\item \textit{job.ID.proxy} -- delegated X509 credentials.
 \item \textit{job.ID.proxy.tmp} -- temporary X509 credentials with different
 UNIX ownership used by processes run with effective \emph{user id}
-different form job owner's \emph{id}.
+different from job owner's \emph{id}.
 \end{itemize}
 
 There are other files with names like job.ID.{*} which are created
@@ -597,7 +603,7 @@ listed in Table~\ref{tab:Job-states-definitions}. Their meaning is
 described in Section~\ref{Section:Job Flow}.
 
 The \emph{MigrateActivity} operation generates a request to migrate a 
-grid job from another ARC1 cluster, i.e. the operation will get input 
+grid job from another A-REX, i.e. the operation will get input 
 files and possibly job description from the cluster currently holding 
 the job and create the job as a new activity at the present cluster.
 Currently only migration of queuing jobs is supported. 
@@ -1172,7 +1178,7 @@ must be used to transfer files to execution nodes.
 \begin{comment} (LRMS\_COMMENT) For more information see Section~\ref{sub:LRMS}.\end{comment}
 
 \begin{itemize}
-\item \textit{control directory} -- In this directory A-REX stores an information
+\item \textit{control directory} -- In this directory A-REX stores information
 about accepted jobs. It must have full permissions there.\\
 A subdirectory called \textit{logs} is created there. It is used to
 accumulate information about started and finished jobs. This information
@@ -1189,12 +1195,18 @@ a \textit{.conf} suffix.
 
 \subsection{Configuration of the A-REX\label{SubSection:ConfigFile}}
 
-Due to historical reasons configuration of the A-REX is split into 2
-parts. The small part is located inside HED configuration (see
-Appendix~\ref{annex:arex-conf} for schema and description of supported
-elements). This configuration refers to the file containing the main
-part of the configuration. The default location of the main
-configuration file is \textit{/etc/arc.conf}.
+Due to historical reasons, configuration of the A-REX is split into 2
+parts: HED configuration for the WS interface and a legacy
+configuration file for the rest. For more information on the HED
+configuration see instructions in Section~\ref{sec:wssetup}, and
+Appendix~\ref{annex:arex-conf} for a full schema and description of
+supported elements. The HED configuration refers to the legacy file,
+which is identical to the configuration file used for the GridFTP/Grid
+Manager services in previous versions of ARC. The default location of
+this legacy file is \textit{/etc/arc.conf}. If the A-REX is run
+without the WS interface, then only the legacy file is needed (to
+configure the GridFTP interface see~\cite{gm}). This section describes
+the content of the legacy file relating to running the A-REX.
 
 The configuration file can contain empty lines and comments in lines
 starting with \#. It is separated into sections. Each section starts
@@ -1781,10 +1793,10 @@ For publicly available runtime environments please see the RTE repository at \ur
 
 \section{Installation\label{sec:installation}}
 
-The A-REX is installed as an ARC1 component of ARC middleware and is available
-in NorduGrid download area at ARC1 Download \url{http://download.nordugrid.org/software/nordugrid-arc1/}.There are packages available for various Linux distributions. The
-A-REX comes in the \texttt{nordugrid-arc1-arex} package. Source code ready for
-compilation is available too.
+The A-REX is installed as a component of the ARC middleware and
+packages for various distributions are available from NorduGrid
+repositories, or directly from the download area of the NorduGrid
+website. Source code ready for compilation is available too.
 
 \subsection{Requirements}
 
@@ -1792,7 +1804,8 @@ When installed from binary packages, all the dependencies are handled automatica
 For compilation from source code please read included README files.
 
 
-\subsection{Setup of the A-REX}
+\subsection{Setup of the A-REX with WS Interface}
+\label{sec:wssetup}
 
 The A-REX service is a pluggable module of the HED, so it is first
 required to set up HED configuration, and add the A-REX elements. To
@@ -1908,9 +1921,6 @@ HED configuration file, instead of a separate file. For more
 information on this see the examples included in the documentation
 bundled with the release.
 
-
-\subsection{Usage}
-
 For a quick start, simply run
 
 \begin{shaded}
@@ -1920,6 +1930,41 @@ $ARC_LOCATION/sbin/arched -c <HED configuration file>
 \end{shaded}
 
 For more information please read the \emph{User Guide}~\cite{userguide1}.
+
+
+\subsection{Setup of the A-REX with GridFTP Interface}
+
+The A-REX can process jobs submitted through a traditional GridFTP
+server instead of, or as well as, the WS interface. The GridFTP/Grid
+Manager server packages can be installed alongside A-REX packages, so
+it is easy to switch between the two. The configuration of the GridFTP
+server is in the same legacy \emph{arc.conf} configuration file as is
+used by the A-REX, and configuration instructions are given
+in~\cite{gm}. In general no configuration changes are necessary to use
+a Grid Manager-configured GridFTP server with the A-REX.
+
+If it is desired to run both WS and GridFTP interfaces at the same
+time, simply setup and start the A-REX as described in the previous
+section, then start the GridFTP server. If only the GridFTP interface
+is to be used, then the special \emph{a-rex} command should be used
+(rather than \emph{arched}).
+
+\begin{shaded}
+\begin{verbatim}
+$ARC_LOCATION/etc/init.d/a-rex start
+\end{verbatim}
+\end{shaded}
+
+This command automatically creates a HED configuration for running the
+A-REX without the WS interface, and so no manual HED configuration
+needs to be done. The GridFTP server should then be started.
+
+\begin{framed}
+IMPORTANT: Do not run the A-REX and Grid Manager services at the same
+time, as they will interfere with each other with unpredictable
+results.
+\end{framed}
+
 
 \subsection{Running as non-root}
 
