@@ -132,8 +132,8 @@ std::string Register( Arc::URL url, std::vector<std::string> &serviceID, std::ve
 }
 
 
-// RemoveRegistrations function
-std::string RemoveRegistrations( Arc::URL url, std::vector<std::string> &serviceID, Arc::UserConfig usercfg ){
+// RemoveRegistration function
+std::string RemoveRegistration( Arc::URL url, std::vector<std::string> &serviceID, Arc::UserConfig usercfg ){
     Arc::MCCConfig mcc_cfg;
     usercfg.ApplyToConfig(mcc_cfg);
     Arc::ClientSOAP client_entry(mcc_cfg, url, usercfg.Timeout());
@@ -249,7 +249,7 @@ int main(int argc, char** argv) {
     Arc::OptionParser options(istring("[ISIS testing ...]"),
       istring("This tiny tool can be used for testing "
               "the ISIS's abilities."),
-      istring("The method are the folows: Query, Register, RemoveRegistrations")
+      istring("The method are the folows: Query, Register, RemoveRegistration")
       );
 
     std::string infosys_url = "";
@@ -266,7 +266,7 @@ int main(int argc, char** argv) {
 
     std::string method = "";
       options.AddOption('m', "method",
-        istring("define which method are use (Query, Register, RemoveRegistrations)"),
+        istring("define which method are use (Query, Register, RemoveRegistration)"),
         istring("method"),
         method);
 
@@ -383,20 +383,20 @@ int main(int argc, char** argv) {
           }
        }
     }
-    //The method is RemoveRegistrations
-    else if (method == "RemoveRegistrations"){
+    //The method is RemoveRegistration
+    else if (method == "RemoveRegistration"){
        std::vector<std::string> serviceID;
 
        for (std::list<std::string>::const_iterator it=parameters.begin(); it!=parameters.end(); it++){
               serviceID.push_back(*it);
        }
-       response = RemoveRegistrations( ContactISIS, serviceID, usercfg );
+       response = RemoveRegistration( ContactISIS, serviceID, usercfg );
        if ( response != "-1" ){
           Arc::XMLNode resp(response);
           int i=0;
           Arc::XMLNode responsElements = resp["Body"]["RemoveRegistrationsResponse"]["RemoveRegistrationResponseElement"];
           while ( bool(responsElements[i]) ){
-             std::cout << " The RemoveRegistrations failed!" << std::endl;
+             std::cout << " The RemoveRegistration failed!" << std::endl;
              std::cout << " The ServiceID: " << (std::string)responsElements[i]["ServiceID"] << std::endl;
              std::cout << " The fault's name: " << (std::string)responsElements[i]["Fault"]["Name"] << std::endl;
              std::cout << " The fault's type: " << (std::string)responsElements[i]["Fault"]["Type"] << std::endl;
@@ -405,7 +405,7 @@ int main(int argc, char** argv) {
           }
 
           if (i == 0) {
-             std::cout << " The RemoveRegistrations method succeeded." << std::endl;
+             std::cout << " The RemoveRegistration method succeeded." << std::endl;
           }
        }
     }

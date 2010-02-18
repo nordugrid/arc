@@ -13,7 +13,7 @@ The test ISIS client is for the following operations:
             - A ServiceID and an Endpoint reference.
             - A ServiceID, an Endpoint reference and a Service type.
             - A ServiceID, an Endpoint reference, a Service type and an Expiration period.
-    RemoveRegistrations - for sending test RemoveRegistrations messages
+    RemoveRegistration - for sending test RemoveRegistration messages
         attributes: The ServiceID for remove.
     (The GetISISList operation will be used in every other cases impicitly.)
 
@@ -29,16 +29,16 @@ The test ISIS client is for the following operations:
     Usage:
         isistest -m Query "query string"
         isistest -m Register "ServiceID1,EPR1" "ServiceID2,EPR2,Type" "ServiceID3,EPR3,Type,ExpTime"
-        isistest -m RemoveRegistrations "ServiceID1" "ServiceID2"
+        isistest -m RemoveRegistration "ServiceID1" "ServiceID2"
         etc.
 
     Examples:
         isistest -m Register "Srv_ID1,EPR1"
         isistest -m Register "Srv_ID1,EPR1,org.nordugrid.tests.echo,PT1M"
         isistest -m Query "/RegEntry/MetaSrcAdv/ServiceID[text()=\"Srv_ID1\"]"
-        isistest -m RemoveRegistrations "Srv_ID1"
+        isistest -m RemoveRegistration "Srv_ID1"
 
-        isistest -b https://your.domain.com/infosys -m RemoveRegistrations "Srv_ID1"
+        isistest -b https://your.domain.com/infosys -m RemoveRegistration "Srv_ID1"
 
         isistest -i https://your.domain.com/infosys -m Query "/RegEntry"
 
