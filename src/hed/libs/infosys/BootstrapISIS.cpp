@@ -26,7 +26,7 @@ struct Registrar_data {
 };
 
     void InfoRegistrar::initISIS(XMLNode cfg) {
-        logger_.msg(VERBOSE, "Initialize ISIS handler");
+        logger_.msg(DEBUG, "Initialize ISIS handler");
         // Process configuration
         defaultBootstrapISIS.url   = (std::string)cfg["URL"];
         if(defaultBootstrapISIS.url.empty()) {
@@ -47,7 +47,7 @@ struct Registrar_data {
 
         //getISISList(myISIS);
         myISISList_initialized = false;
-        logger_.msg(VERBOSE, "Initialize ISIS handler successed");
+        logger_.msg(DEBUG, "Initialize ISIS handler succeeded");
     }
 
     void InfoRegistrar::removeISIS(ISIS_description isis) {
