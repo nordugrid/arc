@@ -52,7 +52,7 @@ namespace ISIS {
             std::vector<Arc::ISIS_description> neighbors_;
             std::vector<std::string> not_availables_neighbors_;
             void Neighbors_Calculate(std::multimap<std::string,Arc::ISIS_description>::const_iterator it, int count);
-            void Neighbors_Update(std::string hash, bool remove = false);
+            void Neighbors_Update();
 
             // Informations from the RegEntry
             std::string PeerID(Arc::XMLNode& regentry);

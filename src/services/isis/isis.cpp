@@ -424,6 +424,7 @@ static void soft_state_thread(void *data) {
         while ((bool)(*cfg)["InfoProvider"][i]) {
             if ( endpoint_ != (std::string)(*cfg)["InfoProvider"][i]["URL"] ) {
                if ((std::string)(*cfg)["InfoProvider"][i]["URL"] == "") {
+                  available_provider = true;
                   logger_.msg(Arc::WARNING, "The InfoProvider URL is empty.");
                } else {
                  Arc::ISIS_description isisdesc;
@@ -636,9 +637,10 @@ static void soft_state_thread(void *data) {
             SendToNeighbors(request, neighbors_, logger_, isis,&not_availables_neighbors_,endpoint_,local_hash_table);
             for (int i=0; bool(request["RegEntry"][i]); i++) {
                 Arc::XMLNode regentry = request["RegEntry"][i];
-                if ( (std::string)regentry["SrcAdv"]["Type"] == "org.nordugrid.infosys.isis" ) {
+                if ( (std::string)regentry["SrcAdv"]["Type"] == "org.nordugrid.infosys.isis" && 
+                     hash_table.find(PeerID(regentry)) == hash_table.end()) {
                     // Search the hash value in the request message
-                    Neighbors_Update( PeerID(regentry) );
+                    Neighbors_Update();
                 }
            }
         }
@@ -790,7 +792,7 @@ static void soft_state_thread(void *data) {
         // Return with fault if the service wasn't initialized and configured properly.
         if ( db_ == NULL ) return make_soap_fault(outmsg);
 
-        if ( neighbors_count == 0 || !available_provider) {
+        if ( neighbors_count == 0 || (!available_provider && infoproviders_.size() > 0) ) {
             if ( !connection_lock ) {
                 connection_lock = true;
                 BootStrap(1);
@@ -810,7 +812,7 @@ static void soft_state_thread(void *data) {
             }
             neighbors_update_needed = false;
         } else if (neighbors_update_needed) {
-            Neighbors_Update(my_hash, false);
+            Neighbors_Update();
             neighbors_update_needed = false;
         }
 
@@ -940,7 +942,7 @@ static void soft_state_thread(void *data) {
         return new ISIService((Arc::Config*)(*srvarg));
     }
 
-    void ISIService::Neighbors_Update(std::string hash, bool remove ) {
+    void ISIService::Neighbors_Update() {
         // wait until the neighbors list in used
         while ( neighbors_lock ) {
            //sleep(10);
@@ -949,12 +951,6 @@ static void soft_state_thread(void *data) {
         // neighbors lock start
         neighbors_lock = true;
 
-        // Examine if the neighbor update is necessary or not
-        if ( (remove && hash_table.find(hash) == hash_table.end()) ||
-             (!remove && hash_table.find(hash) != hash_table.end())) {
-            neighbors_lock = false;
-            return;
-        }
         // -hash_table recalculate
         hash_table.clear();
         std::map<std::string, Arc::XMLNodeList> result;
@@ -1177,9 +1173,15 @@ static void soft_state_thread(void *data) {
 
             neighbors_count = 0;
             if ( !isavailable) {
+	       if ( neighbors_.size() >0 ){
+                  Neighbors_Update();
+               }
                logger_.msg(Arc::VERBOSE, "No InfoProvider is available." );
             }
             else if ( hash_table.size() == 0 ) {
+	       if ( neighbors_.size() >0 ){
+                  Neighbors_Update();
+               }
                logger_.msg(Arc::VERBOSE, "The hash table is empty. New cloud has been created." );
             } else {
                // log(2)x = (log(10)x)/(log(10)2)
@@ -1309,6 +1311,8 @@ static void soft_state_thread(void *data) {
                }
                if (response_c) delete response_c;
             }
+        } else {
+            Neighbors_Update();
         }
         return;
     }
