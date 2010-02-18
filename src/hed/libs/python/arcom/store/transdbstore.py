@@ -9,10 +9,10 @@ from arcom.logger import Logger
 log = Logger(arc.Logger(arc.Logger_getRootLogger(), 'arcom.TransDBStore'))
 
 try:
-    from bsddb import db
+    from bsddb3 import db
 except:
     try:
-        from bsddb3 import db
+        from bsddb import db
     except:
         log.msg(arc.FATAL, "Could not import module bsddb. This is required for TransDBStore.")
         raise Exception, "Could not import module bsddb. This is required for TransDBStore."
