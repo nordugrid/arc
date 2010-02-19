@@ -1,6 +1,6 @@
 #! /bin/sh
 #
-# chkconfig: 345 87 13
+# chkconfig: - 87 13
 # description: ARC HED service
 # processname: arched
 
@@ -50,19 +50,21 @@ restart() {
 # See how we were called.
 case "$1" in
  start)
- 	start
+	start
 	;;
  stop)
- 	stop
+	stop
 	;;
  status)
- 	status arched
+	status arched
 	;;
- restart)
- 	restart
+ restart | force-reload)
+	restart
 	;;
- condrestart)
- 	[ -f /var/lock/subsys/arched ] && restart || :
+ reload)
+	;;
+ condrestart | try-restart)
+	[ -f /var/lock/subsys/arched ] && restart || :
 	;;
  *)
 	echo $"Usage: $0 {start|stop|status|restart}"

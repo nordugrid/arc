@@ -9,6 +9,16 @@
 #          /etc/arc/server.xml
 #          /etc/arc.conf
 
+### BEGIN INIT INFO
+# Provides:          arched
+# Required-Start:    $local_fs $remote_fs
+# Required-Stop:     
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: ARC HED
+# Description:       ARC's Hosting Environment Deamon
+### END INIT INFO
+
 export HED_CONFIG="/etc/arc/server.xml"
 export ARC_CONFIG="/etc/arc.conf"
 TCP_Port="60000"
@@ -166,13 +176,15 @@ case "$1" in
         stop
         ;;
   status)
-	status $prog
+        status $prog
         ;;
-  restart|reload)
+  restart | force-reload)
         stop
         start
         ;;
-  condrestart)
+  reload)
+        ;;
+  condrestart | try-restart)
         test -f $LOCKFILE && restart || :
         ;;
   *)

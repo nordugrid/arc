@@ -2,7 +2,7 @@
 #
 # Init file for the A-REX service
 #
-# chkconfig: - 55 25
+# chkconfig: 2345 55 25
 # description: NorduGrid grid-manager
 #
 # config: /etc/sysconfig/globus
