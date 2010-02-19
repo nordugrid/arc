@@ -987,7 +987,10 @@ static void soft_state_thread(void *data) {
 
         // neighbors count update
         // log(2)x = (log(10)x)/(log(10)2)
-        int new_neighbors_count = (int)ceil(log10(hash_table.size())/log10(sparsity));
+        int new_neighbors_count = 0;
+        if ( hash_table.size() > 0){
+            new_neighbors_count = (int)ceil(log10(hash_table.size())/log10(sparsity));
+        }
         logger_.msg(Arc::VERBOSE, "Neighbors count recalculate from %d to %d (at ISIS %s)", neighbors_count, new_neighbors_count, endpoint_);
 
         // neighbors vector filling
