@@ -292,6 +292,7 @@ static void soft_state_thread(void *data) {
     ISIService::ISIService(Arc::Config *cfg):RegisteredService(cfg),logger_(Arc::Logger::rootLogger, "ISIS"),valid("PT1D"),remove("PT1D"),db_(NULL),neighbors_update_needed(false),available_provider(false),neighbors_count(0),neighbors_lock(false),connection_lock(false) {
 
         logger_.msg(Arc::VERBOSE, "Parsing configuration parameters");
+
         // Endpoint url from the configuration
         endpoint_=(std::string)((*cfg)["endpoint"]);
         logger_.msg(Arc::VERBOSE, "Endpoint: %s", endpoint_);
@@ -299,36 +300,40 @@ static void soft_state_thread(void *data) {
            logger_.msg(Arc::ERROR, "Empty endpoint element in the configuration!");
            return;
         }
-        // Key from the configuration
-        my_key=(std::string)((*cfg)["KeyPath"]);
-        logger_.msg(Arc::VERBOSE, "KeyPath: %s", my_key);
-        if (my_key.empty()){
-           logger_.msg(Arc::WARNING, "Empty KeyPath element in the configuration!");
-        }
-        // Cert from the configuration
-        my_cert=(std::string)((*cfg)["CertificatePath"]);
-        logger_.msg(Arc::VERBOSE, "CertificatePath: %s", my_cert);
-        if (my_cert.empty()){
-           logger_.msg(Arc::WARNING, "Empty CertificatePath element in the configuration!");
-        }
-        // Proxy from the configuration
-        my_proxy=(std::string)((*cfg)["ProxyPath"]);
-        logger_.msg(Arc::VERBOSE, "ProxyPath: %s", my_proxy);
-        if (my_proxy.empty()){
-           logger_.msg(Arc::WARNING, "Empty ProxyPath element in the configuration!");
-        }
-        // CaDir from the configuration
-        my_cadir=(std::string)((*cfg)["CACertificatesDir"]);
-        logger_.msg(Arc::VERBOSE, "CACertificatesDir: %s", my_cadir);
-        if (my_cadir.empty()){
-           logger_.msg(Arc::WARNING, "Empty CACertificatesDir element in the configuration!");
-        }
+         // Key from the configuration
+         my_key=(std::string)((*cfg)["KeyPath"]);
+         if (!my_key.empty()) logger_.msg(Arc::VERBOSE, "KeyPath: %s", my_key);
 
-        my_cafile=(std::string)((*cfg)["CACertificatePath"]);
-        logger_.msg(Arc::VERBOSE, "CACertficatePath: %s", my_cafile);
-        if (my_cafile.empty()){
-           logger_.msg(Arc::WARNING, "Empty CACertificatePath element in the configuration!");
-        }
+         // Cert from the configuration
+         my_cert=(std::string)((*cfg)["CertificatePath"]);
+         if (!my_cert.empty()) logger_.msg(Arc::VERBOSE, "CertificatePath: %s", my_cert);
+
+         // Proxy from the configuration
+         my_proxy=(std::string)((*cfg)["ProxyPath"]);
+         if (!my_proxy.empty()) logger_.msg(Arc::VERBOSE, "ProxyPath: %s", my_proxy);
+
+         // CaDir from the configuration
+         my_cadir=(std::string)((*cfg)["CACertificatesDir"]);
+         if (!my_cadir.empty()) logger_.msg(Arc::VERBOSE, "CACertificatesDir: %s", my_cadir);
+
+         // CA Certificate Path from the configuration
+         my_cafile=(std::string)((*cfg)["CACertificatePath"]);
+         if (!my_cafile.empty()) logger_.msg(Arc::VERBOSE, "CACertficatePath: %s", my_cafile);
+
+         // Checking for credentials
+         if (my_key.empty() && my_proxy.empty()){
+             logger_.msg(Arc::WARNING, "Missing or empty KeyPath element in the configuration!");
+         }
+         if (my_cert.empty() && my_proxy.empty()){
+             logger_.msg(Arc::WARNING, "Misisng or empty CertificatePath element in the configuration!");
+         }
+         if (my_proxy.empty() && (my_cert.empty() || my_key.empty()) ){
+             logger_.msg(Arc::WARNING, "Missing or empty ProxyPath element in the configuration!");
+         }
+         if (my_cadir.empty() && my_cafile.empty()){
+             logger_.msg(Arc::WARNING, "Missing or empty CACertificatesDir element in the configuration!");
+             logger_.msg(Arc::WARNING, "Missing or empty CACertificatePath element in the configuration!");
+         }
 
         // Assigning service description - Glue2 document should go here.
         infodoc_.Assign(Arc::XMLNode(
@@ -406,6 +411,11 @@ static void soft_state_thread(void *data) {
 
         // Init database
         db_ = new Arc::XmlDatabase(db_path, "isis");
+
+        // Exit if the database was unable to initialize
+        if ( !(*db_) ) {
+            exit(EXIT_FAILURE);
+        }
 
         // -DB cleaning
         std::map<std::string, Arc::XMLNodeList> result;

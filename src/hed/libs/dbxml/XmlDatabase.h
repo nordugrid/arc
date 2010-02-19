@@ -30,6 +30,8 @@ class XmlDatabase
                     const std::string &query,
                     Arc::XMLNode &new_value);
         void checkpoint();
+        operator bool(void) {return (*container_);}
+        bool operator!(void) {return !(*container_);}
 };
 
 }

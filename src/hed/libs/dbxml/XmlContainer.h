@@ -28,6 +28,8 @@ class XmlContainer
         void start_update();
         void end_update();
         void checkpoint();
+        operator bool(void) {return db_ != NULL;}
+        bool operator!(void) {return db_ == NULL;}
 };
 
 }

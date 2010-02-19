@@ -18,16 +18,18 @@ namespace Arc
 
 XmlContainer::XmlContainer(const std::string &db_path, const std::string &db_name):logger_(Arc::Logger::rootLogger, "DBXML")
 {
+    env_ = NULL;
+    db_ = NULL;
+    update_tid_ = NULL;
+    env_ = new DbEnv(0);
+
     if (!Glib::file_test(db_path, Glib::FILE_TEST_IS_DIR)) {
         if (mkdir(db_path.c_str(), 0700) != 0) {
             logger_.msg(Arc::ERROR, "cannot create directory: %s", db_path);
             return;
         }
     }
-    env_ = NULL;
-    db_ = NULL;
-    update_tid_ = NULL;
-    env_ = new DbEnv(0);
+
     env_->open(db_path.c_str(), DB_CREATE | DB_INIT_MPOOL | DB_INIT_LOCK | DB_INIT_TXN | DB_RECOVER | DB_THREAD, 0644);
     // setup internal deadlock detection mechanizm
     env_->set_lk_detect(DB_LOCK_DEFAULT);
