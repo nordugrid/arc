@@ -435,16 +435,25 @@ namespace Arc {
     if (!process(req, response))
       return false;
 
-    if (!response["getProxyReqReturn"] || ((std::string)response["getProxyReqReturn"]).empty()) {
-      logger.msg(VERBOSE, "Malformated response");
+    std::string proxyRequestStr = (std::string)response["getProxyReqReturn"];
+    if (proxyRequestStr.empty()) {
+      logger.msg(VERBOSE, "Malformed response: missing getProxyReqReturn");
       return false;
     }
 
     //Sign the proxy certificate
     Credential signer(proxy, "", cadir, cafile);
-    std::string proxyRequestStr = (std::string)response["getProxyReqReturn"], signedCert;
+    std::string signedCert;
     // TODO: Hardcoded time shift - VERY BAD approach
-    Credential proxy_cred(Time() - Period(300), signer.GetLifeTime());
+    Time start_time = Time() - Period(300);
+    Time end_time = signer.GetEndTime();
+    if(end_time < start_time) {
+      logger.msg(VERBOSE, "Delegatable credentials expired: %s",end_time.str());
+      return false;
+    }
+    // CREAM is picky about end time of delegated credentials, so
+    // make sure it does not exceed end time of signer
+    Credential proxy_cred(start_time,end_time-start_time);
     proxy_cred.InquireRequest(proxyRequestStr);
     proxy_cred.SetProxyPolicy("gsi2", "", "", -1);
 
