@@ -227,6 +227,9 @@ sub create_shell_wrapper {
     # set HOME to the working directory of the job
     $output .= "HOME=\`pwd\`\nexport HOME\n";
 
+    # Overide umask of execution node
+    $output .= "umask 077\n";
+
     # Source runtime scripts with argument 1.
     $output .= $setrte1;
 
