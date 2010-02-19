@@ -235,6 +235,28 @@ static void soft_state_thread(void *data) {
             }
         }
 
+        time_t rawtime;
+        time ( &rawtime );    //current time
+
+        if ( method == "ETValid") {
+            // Current this is the Query
+            //"//RegEntry/MetaSrcAdv[count(Expiration)=1 and number(translate(GenTime,'TZ:-','.')) < number('20090420.082903')]/ServiceID"
+
+            // This Query is better, but it is not working now
+            //"//RegEntry/MetaSrcAdv[count(Expiration)=1 and ( (years-from-duration(Expiration)*1000) +(months-from-duration(Expiration)*10) + (days-from-duration(Expiration)) + (hours-from-duration(Expiration)*0.01) + (minutes-from-duration(Expiration)*0.0001) + (seconds-from-duration(Expiration)*0.000001) + number(translate(GenTime,'TZ:-','.'))) < number('20090420.132903')]/ServiceID"
+            std::string valid_query("//RegEntry/MetaSrcAdv[count(Expiration)=1 and number(translate(GenTime,'TZ:-','.')) < number(translate('");
+            valid_query += Current_Time(rawtime);
+            valid_query += "','TZ:-','.'))]/ServiceID";
+	    
+	    query_string = valid_query;
+        }
+        if ( method == "ETRemove") {
+            std::string remove_query("/RegEntry/MetaSrcAdv[count(Expiration)=0 and number(translate(GenTime,'TZ:-','.')) < number(translate('");
+            remove_query += Current_Time(rawtime);
+            remove_query += "','TZ:-','.'))]/ServiceID";
+	    query_string = remove_query;
+        }
+
         // Database cleaning
         std::vector<std::string> service_ids;
 
@@ -455,20 +477,7 @@ static void soft_state_thread(void *data) {
         valid_data = new Soft_State();
         valid_data->function = "ETValid";
         valid_data->sleep = ((int)valid.GetPeriod())/2;
-
-        time_t rawtime;
-        time ( &rawtime );    //current time
-
-        // Current this is the Query
-        //"//RegEntry/MetaSrcAdv[count(Expiration)=1 and number(translate(GenTime,'TZ:-','.')) < number('20090420.082903')]/ServiceID"
-
-        // This Query is better, but it is not working now
-        //"//RegEntry/MetaSrcAdv[count(Expiration)=1 and ( (years-from-duration(Expiration)*1000) +(months-from-duration(Expiration)*10) + (days-from-duration(Expiration)) + (hours-from-duration(Expiration)*0.01) + (minutes-from-duration(Expiration)*0.0001) + (seconds-from-duration(Expiration)*0.000001) + number(translate(GenTime,'TZ:-','.'))) < number('20090420.132903')]/ServiceID"
-        std::string valid_query("//RegEntry/MetaSrcAdv[count(Expiration)=1 and number(translate(GenTime,'TZ:-','.')) < number('");
-        valid_query += Current_Time(rawtime);
-        valid_query += "')]/ServiceID";
-
-        valid_data->query = valid_query;
+        valid_data->query = "//RegEntry/MetaSrcAdv[count(Expiration)=1]/ServiceID";
         valid_data->database = db_;
         valid_data->kill_thread = &KillThread;
         valid_data->threads_count = &ThreadsCount;
@@ -485,12 +494,7 @@ static void soft_state_thread(void *data) {
         remove_data = new Soft_State();
         remove_data->function = "ETRemove";
         remove_data->sleep = ((int)remove.GetPeriod())/2;
-
-        std::string remove_query("/RegEntry/MetaSrcAdv[count(Expiration)=0 and number(translate(GenTime,'TZ:-','.')) < number('");
-        remove_query += Current_Time(rawtime);
-        remove_query += "')]/ServiceID";
-
-        remove_data->query = remove_query;
+        remove_data->query = "//RegEntry/MetaSrcAdv[count(Expiration)=0]/ServiceID";
         remove_data->database = db_;
         remove_data->kill_thread = &KillThread;
         remove_data->threads_count = &ThreadsCount;
