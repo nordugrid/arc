@@ -511,9 +511,9 @@ namespace Arc {
     }
     AutoBIO keybio(BIO_new_file(keyfile.c_str(), "r"));
     if(!keybio){
-      CredentialLogger.msg(ERROR,"Can not read key file: %s", keyfile);
+      CredentialLogger.msg(ERROR,"Can not open key file %s", keyfile);
       LogError();
-      throw CredentialError("Can not read key file");
+      throw CredentialError("Can not open key file " + keyfile);
     }
     loadKey(keybio,pkey,passphrase, keyfile, true);
   }
@@ -528,14 +528,6 @@ namespace Arc {
     std::string prompt;
     switch(format){
       case CRED_PEM:
-#if 0
-        prompt = "Enter passphrase to decrypt the private key: ";
-        EVP_set_pw_prompt((char*)(prompt.c_str()));
-        if(!(pkey = PEM_read_bio_PrivateKey(keybio, NULL, passwordcb,
-          (passphrase.empty()) ? NULL : (void*)(passphrase.c_str())))) {
-          throw CredentialError("Can not read credential key from PEM key BIO");
-        }
-#endif
         PW_CB_DATA cb_data;
         cb_data.password = (passphrase.empty()) ? NULL : (void*)(passphrase.c_str());
         cb_data.prompt_info = prompt_info.empty() ? NULL : prompt_info.c_str();
@@ -545,8 +537,8 @@ namespace Arc {
             reason == PEM_R_BAD_DECRYPT ||
             reason == PEM_R_BAD_PASSWORD_READ ||
             reason == PEM_R_PROBLEMS_GETTING_PASSWORD)
-            throw CredentialError("Can not read credential key from PEM key BIO: Bad password");
-          else throw CredentialError("Can not read credential key from PEM key BIO");
+            throw CredentialError("Can not read PEM private key: Bad password");
+          else throw CredentialError("Can not read PEM private key");
         }
         break;
 
@@ -560,7 +552,7 @@ namespace Arc {
           char password[100];
           EVP_read_pw_string(password, 100, "Enter Password for PKCS12 certificate:", 0);
           if(!PKCS12_parse(pkcs12, password, &pkey, NULL, NULL)) {
-            throw CredentialError("Can not parse PKCS12 file");
+            throw CredentialError("Can not parse PKCS12");
           }
           PKCS12_free(pkcs12);
         }
