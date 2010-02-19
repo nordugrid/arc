@@ -72,8 +72,12 @@ if [ ! -z "$maxwalltime" ] ; then
   echo "ulimit -t $maxwalltime" >> $LRMS_JOB_SCRIPT
 fi
 
+##############################################################
+# Override umask
+##############################################################
 echo "" >> $LRMS_JOB_SCRIPT
-
+echo "# Overide umask of execution node (sometime values are really strange)" >> $LRMS_JOB_SCRIPT
+echo "umask 077" >> $LRMS_JOB_SCRIPT
 
 ##############################################################
 # Add environment variables
