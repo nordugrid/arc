@@ -443,6 +443,7 @@ namespace Arc {
     //Sign the proxy certificate
     Credential signer(proxy, "", cadir, cafile);
     std::string proxyRequestStr = (std::string)response["getProxyReqReturn"], signedCert;
+    // TODO: Hardcoded time shift - VERY BAD approach
     Credential proxy_cred(Time() - Period(300), signer.GetLifeTime());
     proxy_cred.InquireRequest(proxyRequestStr);
     proxy_cred.SetProxyPolicy("gsi2", "", "", -1);
