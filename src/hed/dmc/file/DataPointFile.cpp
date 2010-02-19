@@ -173,7 +173,7 @@ namespace Arc {
     }
 #ifndef WIN32
     // This is for broken filesystems. Specifically for Lustre.
-    if (url.Path() != "-" && fsync(fd) != 0) {
+    if (fsync(fd) != 0 && errno != EINVAL) { // this error is caused by special files like stdout
       logger.msg(ERROR, "fsync of file %s failed: %s", url.Path(), strerror(errno));
       buffer->error_write(true);
     }
@@ -423,11 +423,11 @@ namespace Arc {
     if (additional_checks && CheckSize()) {
       struct stat st;
       std::string path = url.Path();
-      if (stat(path.c_str(), &st) != 0) {
+      if (stat(path.c_str(), &st) != 0 && errno != ENOENT) {
         logger.msg(ERROR, "Error during file validation. Can't stat file %s", url.Path());
         return DataStatus::WriteStopError;
       }
-      if (GetSize() != st.st_size) {
+      if (errno != ENOENT && GetSize() != st.st_size) {
         logger.msg(ERROR, "Error during file validation: Local file size %llu does not match source file size %llu for file %s",
                           st.st_size, GetSize(), url.Path());
         return DataStatus::WriteStopError;
