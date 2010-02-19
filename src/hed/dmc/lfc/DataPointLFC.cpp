@@ -192,6 +192,10 @@ namespace Arc {
 
     struct lfc_filestatg st;
     if (lfc_statg(path.c_str(), NULL, &st) == 0) {
+      if (st.filemode & S_IFDIR) { // directory
+        lfc_endsess();
+        return DataStatus::Success;
+      }
       registered = true;
       SetSize(st.filesize);
       SetCreated(st.mtime);
@@ -283,7 +287,7 @@ namespace Arc {
           slashpos = url.Path().find("/", slashpos + 1);
         }
         if (lfc_creatg(url.Path().c_str(), guid.c_str(),
-                       S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP) != 0) {
+                       S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP) != 0 && serrno != EEXIST) {
           logger.msg(ERROR, "Error creating LFC entry: %s", sstrerror(serrno));
           lfc_endsess();
           return DataStatus::PreRegisterError;
@@ -492,6 +496,7 @@ namespace Arc {
           return DataStatus::UnregisterError;
         }
       }
+      registered = false;
     }
     else if (lfc_delreplica(guid.c_str(), NULL, CurrentLocation().str().c_str()) != 0) {
       lfc_endsess();
@@ -499,8 +504,6 @@ namespace Arc {
       return DataStatus::UnregisterError;
     }
     lfc_endsess();
-    registered = false;
-    ClearLocations();
     return DataStatus::Success;
   }
 
