@@ -157,7 +157,7 @@ namespace Arc {
         protocol = "file";
         path = url;
       }
-      if (path != "-" && !Glib::path_is_absolute(path)) {
+      if (!Glib::path_is_absolute(path)) {
         char cwd[PATH_MAX];
         if (getcwd(cwd, PATH_MAX))
           path = Glib::build_filename(cwd, path);
