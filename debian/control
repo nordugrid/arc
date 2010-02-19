@@ -309,3 +309,15 @@ Description: ARC dynamic installation of runtime environments
  .
  The Janitor is a recent development and the community to prepare
  catalogues of dynamically installable packages still needs to evolve.
+
+Package: nordugrid-arc-nox-dbg
+Architecture: any
+Section: debug
+Priority: extra
+Depends: nordugrid-arc-nox (= ${binary:Version}) | nordugrid-arc-nox-client (= ${binary:Version}) | nordugrid-arc-nox-hed (= ${binary:Version}) | nordugrid-arc-nox-charon (= ${binary:Version}) | nordugrid-arc-nox-hopi (= ${binary:Version}) | nordugrid-arc-nox-isis (= ${binary:Version}) | nordugrid-arc-nox-compiler (= ${binary:Version}) | nordugrid-arc-nox-delegation (= ${binary:Version}) | nordugrid-arc-nox-paul (= ${binary:Version}) | nordugrid-arc-nox-saml2sp (= ${binary:Version}) | nordugrid-arc-nox-slcs (= ${binary:Version}) | nordugrid-arc-nox-arex (= ${binary:Version}) | nordugrid-arc-nox-plugins-base (= ${binary:Version}) | nordugrid-arc-nox-plugins-globus (= ${binary:Version}) | nordugrid-arc-nox-dev (= ${binary:Version}) | nordugrid-arc-nox-python (= ${binary:Version}) | nordugrid-arc-nox-java (= ${binary:Version}) | nordugrid-arc-nox-janitor (= ${binary:Version})
+Description: ARC grid middleware - Debug Symbols
+ The NorduGrid is a collaboration aiming at development, maintenance
+ and support of the free Grid middleware, known as the Advanced Resource
+ Connector (ARC).
+ .
+ This package provides dubug symbols for the ARC grid middleware.

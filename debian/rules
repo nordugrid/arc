@@ -118,7 +118,7 @@ binary-arch: install-arch
 	dh_perl -a
 	dh_pysupport -a
 	dh_link -a
-	dh_strip -a
+	dh_strip -a --dbg-package=nordugrid-arc-nox-dbg
 	dh_compress -a -X .pdf
 	dh_fixperms -a
 	dh_makeshlibs -a
