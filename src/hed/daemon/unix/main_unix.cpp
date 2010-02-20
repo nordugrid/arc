@@ -234,6 +234,11 @@ int main(int argc, char **argv)
                 exit(0);
             }
 
+            if (options.version) {
+                std::cout << Arc::IString("%s version %s", "arched", VERSION) << std::endl;
+                exit(0);
+            }
+
             if(!MatchXMLName(config,"ArcConfig")) {
                 logger.msg(Arc::ERROR, "Configuration root element is not <ArcConfig>");
                 exit(1);

@@ -11,6 +11,7 @@ namespace Arc {
         
     /* Command line options values */
     bool foreground;
+    bool version;
     std::string xml_config_file;
     std::string ini_config_file;
     std::string pid_file;

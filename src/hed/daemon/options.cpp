@@ -19,6 +19,8 @@ namespace Arc {
     AddOption('u', "user", "user name", "user", user);
     AddOption('g', "group", "group name", "group", group);
     AddOption('s', "schema", "full path of XML schema file", "path", schema_file);
+    version = false;
+    AddOption('v', "version", "print version information", version);
 #ifdef WIN32
     install = false;
     AddOption('a', "install", "install windows service", install);

@@ -96,6 +96,12 @@ int main(int argc, char **argv)
                 logger.msg(Arc::ERROR, "Failed to load service configuration from file %s",options.xml_config_file);
                 exit(1);
             };
+
+            if (options.version) {
+                std::cout << Arc::IString("%s version %s", "arched", VERSION) << std::endl;
+                exit(0);
+            }
+
             if(!MatchXMLName(config,"ArcConfig")) {
               logger.msg(Arc::ERROR, "Configuration root element is not <ArcConfig>");
               exit(1);
