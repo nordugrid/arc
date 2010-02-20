@@ -1709,22 +1709,16 @@ err:
 #ifdef WIN32  //Different process here for Win, because X509_cmp_time always return 0 on Win when the second calling, which is not as expected
     ASN1_UTCTIME*  atime = X509_get_notAfter(issuer);
     Time end = asn1_to_utctime(atime);
-    if(Time(t2) < end)
-      X509_gmtime_adj(X509_get_notAfter(tosign), t2-t1);
-    else
-      X509_gmtime_adj(X509_get_notAfter(tosign), end.GetTime()-t1);
-/*
-    ASN1_UTCTIME* atime = NULL;
-    atime = X509_get_notAfter(tosign);
-    Time end = asn1_to_utctime(atime);
-    time_t end_t = end.GetTime();
-    if( X509_cmp_time(X509_get_notAfter(issuer), &end_t) < 0) {
-      X509_set_notAfter(tosign, X509_get_notAfter(issuer));
+    if(Time(t2) < end) {
+      X509_time_adj(X509_get_notAfter(tosign), 0L, &t2);
     }
-*/
+    else {
+      t2 = end.GetTime();
+      X509_time_adj(X509_get_notAfter(tosign), 0L, &t2);
+    }
 #else
     if( X509_cmp_time(X509_get_notAfter(issuer), &t2) > 0) {
-      X509_gmtime_adj(X509_get_notAfter(tosign), t2-t1);
+      X509_time_adj(X509_get_notAfter(tosign), 0L, &t2);
     }
     else {
       X509_set_notAfter(tosign, X509_get_notAfter(issuer));
@@ -1843,7 +1837,7 @@ err:
       const X509V3_EXT_METHOD* ext_method = NULL;
       ext_method = X509V3_EXT_get_nid(certinfo_NID);
       if(ext_method == NULL) {
-        CredentialLogger.msg(ERROR, "Can get X509V3_EXT_METHOD for %s",OBJ_nid2sn(certinfo_NID));
+        CredentialLogger.msg(ERROR, "Can't get X509V3_EXT_METHOD for %s",OBJ_nid2sn(certinfo_NID));
         LogError(); goto err;
       }
 
