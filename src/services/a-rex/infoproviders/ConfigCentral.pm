@@ -170,7 +170,7 @@ my $config_schema = {
     }
 };
 
-my $allbools = [ qw(shared_filesystem
+my $allbools = [ qw(
                  PublishNordugrid Homogeneous VirtualMachine
                  ConnectivityIn ConnectivityOut Preemption) ];
 
@@ -722,8 +722,7 @@ sub printLRMSConfigScript {
     $gmopts->{scratchdir} = $config->{scratchdir} if $config->{scratchdir};
     $gmopts->{shared_scratch} = $config->{shared_scratch} if $config->{shared_scratch};
     # shared_filesystem: if not set, assume 'yes'
-    $gmopts->{shared_filesystem} = 'no' if defined $config->{shared_filesystem}
-                                               and $config->{shared_filesystem} eq 'false';
+    $gmopts->{shared_filesystem} = $config->{shared_filesystem} if $config->{shared_filesystem};
 
     _print_shell_section('grid-manager', $gmopts);
     

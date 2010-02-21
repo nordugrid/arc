@@ -966,7 +966,8 @@ sub get_cluster_info($) {
 
     {
         my $sharedsession = "true";
-        $sharedsession = "false" if lc($config->{shared_filesystem}) eq "no";
+        $sharedsession = "false" if lc($config->{shared_filesystem}) eq "no"
+                                 or lc($config->{shared_filesystem}) eq "false";
         $cmgr->{WorkingAreaShared} = [ $sharedsession ];
         $cmgr->{WorkingAreaGuaranteed} = [ "false" ];
 
