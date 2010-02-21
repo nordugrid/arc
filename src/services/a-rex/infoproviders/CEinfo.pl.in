@@ -238,7 +238,7 @@ sub get_gmjobs_info($) {
         if ($share) {
             my $sconfig = $config->{shares}{$share};
             if ($sconfig) {
-                $job->{queue} = $sconfig->{MappingQueue} if $sconfig->{MappingQueue}
+                $job->{queue} = $sconfig->{MappingQueue} || $share;
             } else {
                 $log->warning("Job $jobid belongs to an invalid share '$share'");
                 $share = undef;

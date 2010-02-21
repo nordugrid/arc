@@ -254,7 +254,7 @@ sub xeinfos {
                 $info->{machine} = $stats->{machine} if $stats->{machine};
             }
         } else {
-            $log->info("The currently used LRMS plugin has not support for NodeSelection opions, ignoring them") if $nscfg;
+            $log->info("The LRMS plugin has no support for NodeSelection options, ignoring them") if $nscfg;
         }
         $info->{pmem} = $xecfg->{MainMemorySize} if $xecfg->{MainMemorySize};
         $info->{vmem} = $xecfg->{VirtualMemorySize} if $xecfg->{VirtualMemorySize};
@@ -421,16 +421,19 @@ sub get_cluster_info($) {
         if ($age < 6) {
             $gmtotalcount{notdeleted}++;
             $gmsharecount{$share}{notdeleted}++;
-        } elsif ($age < 5) {
+        }
+        if ($age < 5) {
             $gmtotalcount{notfinished}++;
             $gmsharecount{$share}{notfinished}++;
-        } elsif ($age < 3) {
+        }
+        if ($age < 3) {
             $gmtotalcount{notsubmitted}++;
             $gmsharecount{$share}{notsubmitted}++;
             $requestedslots{$share} += $job->{count} || 1;
             $share_prepping{$share}++;
             $user_prepping{$gridowner}++;
-        } elsif ($age < 2) {
+        }
+        if ($age < 2) {
             $pending{$share}++;
             $pendingtotal++;
         }
@@ -674,9 +677,10 @@ sub get_cluster_info($) {
 
         if ($qname) {
             my $siblings = $sconfig->{siblingshares} = [];
-            for (values %{$config->{shares}}) {
-                my $q = $_->{MappingQueue};
-                push @$siblings, $q if $q and $q eq $qname;
+            for my $sn (keys %{$config->{shares}}) {
+                my $s = $config->{shares}{$sn};
+                my $qn = $s->{MappingQueue} || $sn;
+                push @$siblings, $sn if $qn eq $qname;
             }
         }
 

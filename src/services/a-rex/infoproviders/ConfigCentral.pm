@@ -526,7 +526,7 @@ sub build_config_from_inifile {
             $config->{service}{ConnectivityOut} = 'true' if $_ eq 'outbound';
         }
         move_keys $cluster, $config->{service}, [keys %$share_options, keys %$xenv_options];
-        move_keys $cluster, $config, [keys %$lrms_share_options];
+        move_keys $cluster, $config, [keys %$lrms_options, keys %$lrms_share_options];
     }
     my @qnames = $iniparser->list_subsections('queue');
     for my $name (@qnames) {
@@ -609,7 +609,7 @@ sub build_config_from_inifile {
     my $janitor = { $iniparser->get_section('janitor') };
     $config->{JanitorEnabled} = (defined $janitor->{enabled} and $janitor->{enabled} eq 1) ? 1 : 0;
 
-    #print(Dumper $config);
+    #print STDERR (Dumper $config);
     return $config;
 }
 

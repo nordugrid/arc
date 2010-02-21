@@ -75,7 +75,7 @@ sub get_lrms_info($) {
     delete $cluster_config{queues};
     delete $cluster_config{jobs};
 
-    my $lrms_info = {cluster => {}, queues => {}, jobs => {}, nodes => {}};
+    my $lrms_info = {cluster => {}, queues => {}, jobs => {}};
 
     my $cluster_info = { cluster_info(\%cluster_config) };
     delete $cluster_info->{queue};
