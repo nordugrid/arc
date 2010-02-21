@@ -75,6 +75,109 @@ sub read_pbsnodes ($) {
     return %hoh_pbsnodes;
 }
 
+# Splits up the value of the exec_host string.
+# Returns a list of node names, one for each used cpu.
+# Should handle node specs of the form:
+#   (1) node1/0+node0/1+node0/2+node2/1                   (torque)
+#   (2) hosta/J1+hostb/J2*P       (according to the PBSPro manual)
+#   (3) node1+node1+node2+node2
+#   (4) altix:ssinodes=2:mem=7974912kb:ncpus=4  (found on the web)
+sub split_hostlist {
+    my ($exec_host_string) = @_;
+    my @nodes;
+    my $err;
+    for my $nodespec (split '\+', $exec_host_string) {
+	if ($nodespec =~ m{^([^/:]+)/\d+(?:\*(\d+))?$}) {  # cases (1) and (2)
+	    my ($nodename, $multiplier) = ($1, $2 || 1);
+	    push @nodes, $nodename for 1..$multiplier;
+	} elsif ($nodespec =~ m{^([^/:]+)(?::(.+))?$}) {  # cases (3) and (4)
+	    my ($nodename, $resc) = ($1, $2 || '');
+	    my $multiplier = get_ncpus($resc);
+	    push @nodes, $nodename for 1..$multiplier;
+	} else {
+	    $err = $nodespec;
+	}
+    }
+    warning("failed counting nodes in expression: $exec_host_string") if $err;
+}
+
+# Deduces the number of requested cpus from the values of these job properties:
+#   Resource_List.select (PBSPro 8+)
+#   Resource_List.nodes
+#   Resource_List.ncpus
+sub set_cpucount {
+    my ($job) = (@_);
+    my $select = $job->{"Resource_List.select"};
+    my $nodes = $job->{"Resource_List.nodes"};
+    my $ncpus = $job->{"Resource_List.ncpus"};
+    $job->{cpus} = count_usedcpus($select, $nodes, $ncpus);
+    delete $job->{"Resource_List.select"};
+    delete $job->{"Resource_List.nodes"};
+    delete $job->{"Resource_List.ncpus"};
+}
+
+sub count_usedcpus {
+    my ($select, $nodes, $ncpus) = @_;
+    return sum_over_chunks(\&cpus_in_select_chunk, $select) if defined $select;
+    return $ncpus || 1 if not defined $nodes or $nodes eq '1';
+    return sum_over_chunks(\&cpus_in_nodes_chunk, $nodes) if defined $nodes;
+    return 1;
+}
+
+sub sum_over_chunks {
+    my ($count_func, $string) = @_;
+    my $totalcpus = 0;
+    for my $chunk (split '\+', $string) {
+	my $cpus = &$count_func($chunk);
+	$totalcpus += $cpus;
+    }
+    return $totalcpus;
+}
+
+# counts cpus in chunk definitions of the forms found in Resource_List.nodes property
+#   4
+#   2:ppn=2
+#   host1
+#   host1:prop1:prop2
+#   prop1:prop2:ppn=4
+sub cpus_in_nodes_chunk {
+    my ($chunk) = @_;
+    my ($ncpus,$dummy) = split ':', $chunk;
+    $ncpus = 1 if $ncpus =~ m/\D/; # chunk count ommited
+    return $ncpus * get_ppn($chunk);
+}
+
+# counts cpus in chunk definitions of the forms found in Resource_List.select (PBSPro 8+):
+#   4
+#   2:ncpus=1
+#   1:ncpus=4:mpiprocs=4:host=hostA
+sub cpus_in_select_chunk {
+    my ($chunk) = @_;
+    return $1 if $chunk =~ m/^(\d+)$/;
+    if ($chunk =~ m{^(\d+):(.*)$}) {
+	my ($cpus, $resc) = ($1, $2);
+	return $cpus * get_ncpus($resc);
+    }
+    return 0; # not a valid chunk
+}
+
+# extracts the value of ppn from a string like blah:ppn=N:blah
+sub get_ppn {
+    my ($resc) = @_;
+    for my $res (split ':', $resc) {
+	return $1 if $res =~ m /^ppn=(\d+)$/;
+    }
+    return 1;
+}
+
+# extracts the value of ncpus from a string like blah:ncpus=N:blah
+sub get_ncpus {
+    my ($resc) = @_;
+    for my $res (split ':', $resc) {
+	return $1 if $res =~ m /^ncpus=(\d+)$/;
+    }
+    return 1;
+}
 
 ############################################
 # Public subs
@@ -114,6 +217,9 @@ sub cluster_info ($) {
 	}
 	$lrms_cluster{lrms_version}=$1;
     }
+
+    # PBS treats cputime limit for parallel/multi-cpu jobs as job-total
+    $lrms_cluster{has_total_cputime_limit} = 1;
 
     # processing the pbsnodes output by using a hash of hashes %hoh_pbsnodes
     my ( %hoh_pbsnodes ) = read_pbsnodes( $path );
@@ -423,12 +529,14 @@ sub jobs_info ($$@) {
 			'Resource_List.walltime' => 'reqwalltime',
 			'Resource_List.cputime' => 'reqcputime');
 
-    # Keywords that should not be translated
-    my (%nkeywords) = ('Resource_List.nodect' => 'cpus');
+    my (%nkeywords) = ( 'Resource_List.select' => 1,
+			'Resource_List.nodes' => 1,
+			'Resource_List.ncpus' => 1);
 
     my ($alljids) = join ' ', @{$jids};
-    my ($jid) = 0;
     my ($rank) = 0;
+    my %job_owner;
+
     # better rank for maui
     my %showqrank;
     if (lc($$config{scheduling_policy}) eq "maui") {
@@ -450,62 +558,39 @@ sub jobs_info ($$@) {
 	}
 	close SHOWQOUTPUT;
     }
-    unless (open QSTATOUTPUT,   "$path/qstat -f 2>/dev/null |") {
-	error("Error in executing qstat: $path/qstat -f ");
-    }
 
-    my %job_owner;
-    while (my $line = <QSTATOUTPUT>) {       
-	if ($line =~ /^Job Id:\s+(\d+.*)/) {
-	    $jid = 0;
-	    foreach my $k ( @{$jids}) {
-		if ( $1 =~ /^$k$/ ) { 
-		    $jid = $k;
-		    last;
-		}
-	    }
-	    next;
-	}
-
-	if ( ! $jid ) {next}
-
-	my ( $k, $v );
-	( $k, $v ) = split ' = ', $line;
-
-	$k =~ s/\s+(.*)/$1/;
-	chomp $v;
+    my $handle_attr = sub {
+	my ($jid, $k, $v) = @_;
 
 	if ( defined $skeywords{$k} ) {
 	    $lrms_jobs{$jid}{$skeywords{$k}} = $v;
 	    if($k eq "job_state") {
-	    	if( $v eq "U" ) {
-		  $lrms_jobs{$jid}{status} = "S";
+		if( $v eq "U" ) {
+		    $lrms_jobs{$jid}{status} = "S";
 		} elsif ( $v eq "C" ) {
-		  $lrms_jobs{$jid}{status} = ""; # No status means job has completed
+		    $lrms_jobs{$jid}{status} = ""; # No status means job has completed
 		} elsif ( $v ne "R" and $v ne "Q" and $v ne "S" and $v ne "E" ) {
-		  $lrms_jobs{$jid}{status} = "O";
+		    $lrms_jobs{$jid}{status} = "O";
 		}
 	    }
 	} elsif ( defined $tkeywords{$k} ) {
 	    my ( @t ) = split ':',$v;
 	    $lrms_jobs{$jid}{$tkeywords{$k}} = $t[0]*60+$t[1];
-	} elsif (defined $nkeywords{$k} ) {
-	    $lrms_jobs{$jid}{$nkeywords{$k}} = $v;
+	} elsif ( defined $nkeywords{$k} ) {
+	    $lrms_jobs{$jid}{$k} = $v;
 	} elsif ( $k eq 'exec_host' ) {
-	    #move hostnames from n12/3 syntax to n12
-	    $v =~ s/\/\d+//g;
-	    #nodes expected in list, split on +, \Q is necessary 
-	    #because + is a special character.
-	    @{$lrms_jobs{$jid}{nodes}} = split("\Q+",$v) ;
+	    my @nodes = split_hostlist($v);
+	    $lrms_jobs{$jid}{nodes} = \@nodes;
+	    #$lrms_jobs{$jid}{cpus} = scalar @nodes;
 	} elsif ( $k eq 'comment' ) {
-            $lrms_jobs{$jid}{comment} = []
-                unless $lrms_jobs{$jid}{comment};
-            push @{$lrms_jobs{$jid}{comment}}, "LRMS: $v";
+	    $lrms_jobs{$jid}{comment} = []
+		unless $lrms_jobs{$jid}{comment};
+	    push @{$lrms_jobs{$jid}{comment}}, "LRMS: $v";
 	} elsif ($k eq 'resources_used.vmem') {
 	    $v =~ s/(\d+).*/$1/;
 	    $lrms_jobs{$jid}{mem} = $v;
 	}
-	
+
 	if ( $k eq 'Job_Owner' ) {
 	    $v =~ /(\S+)@/;
 	    $job_owner{$jid} = $1;
@@ -518,9 +603,9 @@ sub jobs_info ($$@) {
 	    } else {
 		$rank++;
 		$lrms_jobs{$jid}{rank} = $rank;
-	 	$jid=~/^(\d+).+/;
+		$jid=~/^(\d+).+/;
 		if (defined $showqrank{$1}) {
-			$lrms_jobs{$jid}{rank} = $showqrank{$1};
+		    $lrms_jobs{$jid}{rank} = $showqrank{$1};
 		}
 	    }
 	    if ($v eq 'R' or 'E'){
@@ -530,7 +615,45 @@ sub jobs_info ($$@) {
 		++$user_jobs_queued{$job_owner{$jid}};
 	    }
 	}
+    };
+
+    unless (open QSTATOUTPUT,   "$path/qstat -f 2>/dev/null |") {
+	error("Error in executing qstat: $path/qstat -f ");
     }
+
+    my ($jid, $k, $v) = ();
+    while (my $line = <QSTATOUTPUT>) {
+	if ($line =~ /^Job Id:\s+(\d+.*)$/) {
+            my $pbsjid = $1;
+	    &$handle_attr($jid, $k, $v) if $k and $jid;
+	    set_cpucount($lrms_jobs{$jid}) if $jid;
+	    ($jid, $k, $v) = ();
+	    foreach my $j (@$jids) {
+		if ( $pbsjid =~ /^$j$/ ) { 
+		    $jid = $j;
+		    last;
+		}
+	    }
+	    next;
+	}
+
+	next unless defined $jid;
+
+	# a line starting with a tab is a continuation line
+	if ( $line =~ m/^\t(.+)$/ ) {
+	    $v .= $1;
+	    next;
+	}
+
+	if ( $line =~ m/^\s*(\S+) = (.*)$/ ) {
+	    my ($newk, $newv) = ($1, $2);
+	    &$handle_attr($jid, $k, $v) if $k and $jid;
+	    ($k, $v) = ($newk, $newv);
+	}
+    }
+    &$handle_attr($jid, $k, $v) if $k and $jid;
+    set_cpucount($lrms_jobs{$jid}) if $jid;
+
     close QSTATOUTPUT;
 
     my (@scalarkeywords) = ('status', 'rank', 'mem', 'walltime', 'cputime',
