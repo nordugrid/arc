@@ -113,8 +113,6 @@ int main(int argc, char **argv)
             /* initalize logger infrastucture */
             std::string root_log_file = init_logger(config);
             
-            logger.msg(Arc::VERBOSE, "ARC_PLUGIN_PATH=%s", getenv("ARC_PLUGIN_PATH"));
-            
             // set signal handlers 
             signal(SIGTERM, shutdown);
             signal(SIGINT, shutdown);
