@@ -71,7 +71,8 @@ sub add_janitor_res {
         return;
     }
 
-    Janitor::ArcUtils::listAll($rtes);
+    my $configfile = $options->{configfile};
+    Janitor::ArcUtils::listAll($configfile, $rtes);
 
     # Hide unusable runtimes
     for my $rte (keys %$rtes) {
