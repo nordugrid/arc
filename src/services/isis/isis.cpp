@@ -26,6 +26,38 @@
 
 namespace ISIS
 {
+
+std::vector<std::string>::iterator Neighbor_Container::find_element(const std::string value) {
+    return find(content.begin(), content.end(), value);
+}
+
+bool Neighbor_Container::contains(const std::string val) {
+    while (locked) {}
+    locked = true;
+    bool ret_val = (content.end() != find(content.begin(), content.end(), val));
+    locked = false;
+    return ret_val;
+}
+
+void Neighbor_Container::push(const std::string val) {
+    while (locked) {}
+    locked = true;
+    content.push_back(val);
+    locked = false;
+}
+
+void Neighbor_Container::remove(std::string value) {
+    while (locked) {}
+    locked = true;
+    std::vector<std::string>::iterator it = find_element(value);
+    if (it != content.end()) content.erase(it);
+    locked = false;
+}
+
+int Neighbor_Container::count() {
+    return (int) content.size();
+}
+
 static Arc::Logger thread_logger(Arc::Logger::rootLogger, "ISIS_Thread");
 
 // Current time calculation and convert to the UTC time format.
@@ -65,7 +97,7 @@ class Thread_data {
     public:
         std::vector<Arc::ISIS_description> isis_list;
         Arc::XMLNode node;
-        std::vector<std::string>* not_av_neighbors;
+        Neighbor_Container* not_av_neighbors;
 };
 
 static void message_send_thread(void *arg) {
@@ -82,7 +114,7 @@ static void message_send_thread(void *arg) {
        thread_logger.msg(Arc::ERROR, "Empty message add to the thread.");
        return;
     }
-    std::vector<std::string>* not_availables_neighbors  = data->not_av_neighbors;
+    Neighbor_Container* not_availables_neighbors  = data->not_av_neighbors;
 
     for (unsigned int i=0; i<data->isis_list.size(); i++ ){
         std::string url = data->isis_list[i].url;
@@ -111,15 +143,12 @@ static void message_send_thread(void *arg) {
         status= client_entry.process(&req,&response);
 
         if ( (!status.isOk()) || (!response) || (response->IsFault()) ) {
-           if ( find(not_availables_neighbors->begin(),not_availables_neighbors->end(),url)
-                == not_availables_neighbors->end() && i == 0)
-              not_availables_neighbors->push_back(url);
+           if ( !not_availables_neighbors->contains(url) && i == 0)
+              not_availables_neighbors->push(url);
            thread_logger.msg(Arc::ERROR, "Status (%s): Failed", url);
         } else {
-           std::vector<std::string>::iterator it;
-           it = find(not_availables_neighbors->begin(),not_availables_neighbors->end(),url);
-           if ( it != not_availables_neighbors->end() )
-              not_availables_neighbors->erase(it);
+           // Remove url just in case - implemented in the Neighbor_Container class
+           not_availables_neighbors->remove(url);
            thread_logger.msg(Arc::VERBOSE, "Status (%s): OK",url );
            if(response) delete response;
            break;
@@ -130,7 +159,7 @@ static void message_send_thread(void *arg) {
 }
 
 void SendToNeighbors(Arc::XMLNode& node, std::vector<Arc::ISIS_description> neighbors_,
-                     Arc::Logger& logger_, Arc::ISIS_description isis_desc, std::vector<std::string>* not_availables_neighbors,
+                     Arc::Logger& logger_, Arc::ISIS_description isis_desc, Neighbor_Container* not_availables_neighbors,
                      std::string endpoint, std::multimap<std::string,Arc::ISIS_description>& hash_table) {
     if ( !bool(node) ) {
        logger_.msg(Arc::WARNING, "Empty message won't be send to the neighbors.");
@@ -813,7 +842,7 @@ static void soft_state_thread(void *data) {
                 connection_lock = false;
             }
             neighbors_update_needed = false;
-        } else if ( neighbors_count > 0 && neighbors_.size() == not_availables_neighbors_.size() ){
+        } else if ( neighbors_count > 0 && neighbors_.size() == not_availables_neighbors_.count() ){
             // Reposition itself in the peer-to-peer network
             // if disconnected from every neighbors then reconnect to
             // the network
@@ -1243,22 +1272,19 @@ static void soft_state_thread(void *data) {
 
                    if ( current+1 == neighbors_.size() ) {
                       no_more_isis = true;
-                      not_availables_neighbors_.push_back(neighbors_[current].url);
+                      not_availables_neighbors_.push(neighbors_[current].url);
                       logger_.msg(Arc::VERBOSE, "No more available ISIS in the neighbors list." );
                    } else if (!isavailable_connect) {
-                      if ( find(not_availables_neighbors_.begin(),not_availables_neighbors_.end(),neighbors_[current].url)
-                           == not_availables_neighbors_.end() )
-                         not_availables_neighbors_.push_back(neighbors_[current].url);
+                      if ( !not_availables_neighbors_.contains(neighbors_[current].url) )
+                        not_availables_neighbors_.push(neighbors_[current].url);
                       current++;
                    }
                }
 
                if ( isavailable_connect ){
                   // 6. step: response data processing (DB sync, Config saving)
-                  std::vector<std::string>::iterator it;
-                  it = find(not_availables_neighbors_.begin(),not_availables_neighbors_.end(),neighbors_[current].url);
-                  if ( it != not_availables_neighbors_.end() )
-                     not_availables_neighbors_.erase(it);
+                  // Remove url just in case - implemented in the Neighbor_Container class
+                  not_availables_neighbors_.remove(neighbors_[current].url);
 
                   // -DB syncronisation
                   // serviceIDs in my DB

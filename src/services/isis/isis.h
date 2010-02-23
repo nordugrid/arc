@@ -11,6 +11,18 @@
 #include <arc/dbxml/XmlDatabase.h>
 
 namespace ISIS {
+    class Neighbor_Container {
+        private:
+            bool locked;
+            std::vector<std::string> content;
+        public:
+            Neighbor_Container():locked(false) {}
+            std::vector<std::string>::iterator find_element(const std::string);
+            bool contains(const std::string);
+            void push(const std::string);
+            void remove(std::string);
+            int count();
+    };
 
     class ISIService: public Arc::RegisteredService {
         private:
@@ -50,7 +62,7 @@ namespace ISIS {
             int neighbors_count;
             bool neighbors_lock;
             std::vector<Arc::ISIS_description> neighbors_;
-            std::vector<std::string> not_availables_neighbors_;
+            Neighbor_Container not_availables_neighbors_;
             void Neighbors_Calculate(std::multimap<std::string,Arc::ISIS_description>::const_iterator it, int count);
             void Neighbors_Update();
 
