@@ -22,7 +22,7 @@
 ### BEGIN INIT INFO
 # Provides:          a-rex
 # Required-Start:    $local_fs $remote_fs
-# Required-Stop:     
+# Required-Stop:     $local_fs 
 # Default-Start:     2 3 4 5
 # Default-Stop:      0 1 6
 # Short-Description: ARC grid manager
