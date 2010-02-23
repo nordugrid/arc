@@ -388,7 +388,7 @@ static void soft_state_thread(void *data) {
 
         // Assigning service description - Glue2 document should go here.
         infodoc_.Assign(Arc::XMLNode(
-        "<?xml version=\"1.0\"?><Domains xmlns=\"http://schemas.ogf.org/glue/2008/05/spec_2.0_d41_r01\"><AdminDomain Distributed=\"\"><Services><Service Name=\"\" ID=\"\" Validity=\"\" OtherInfo=\"\"><Associations /><Capability>information.provenance</Capability></Service></Services></AdminDomain></Domains>"
+        "<?xml version=\"1.0\"?><Domains xmlns=\"http://schemas.ogf.org/glue/2008/05/spec_2.0_d41_r01\"><AdminDomain Distributed=\"\"><Services><Service Name=\"\" ID=\"\" Validity=\"\" OtherInfo=\"\"><Associations /><Endpoint><HealthState>ok</HealthState><ServingState>production</ServingState></Endpoint><Capability>information.provenance</Capability></Service></Services></AdminDomain></Domains>"
         ),true);
 
 
