@@ -51,6 +51,7 @@
             <shep:CheckPeriod inisections="shepherd" initag="checkperiod">20</shep:CheckPeriod>
             <shep:MinCheckInterval inisections="shepherd" initag="mincheckinterval">0.1</shep:MinCheckInterval>
             <shep:CreatingTimeout inisections="shepherd" initag="creatingtimeout">1000</shep:CreatingTimeout>
+            <shep:ChecksumLifetime inisections="shepherd" initag="checksumlifetime">3600</shep:ChecksumLifetime>
             <shep:StoreClass>arcom.store.cachedpicklestore.CachedPickleStore</shep:StoreClass>
             <shep:StoreCfg>
                 <shep:DataDir inisections="shepherd" initag="datadir">/var/spool/arc/shepherd_data</shep:DataDir>
