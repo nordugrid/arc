@@ -54,31 +54,31 @@
             <ahash:OtherURL inisections="ahash" initag="peerurl3"/>
             <ahash:Priority inisections="ahash" initag="priority">50</ahash:Priority>
             <ahash:ClientSSLConfig>
-                <ahash:KeyPath inisections="common ahash" initag="client_key"/>
-                <ahash:CertificatePath inisections="common ahash" initag="client_cert"/>
-                <ahash:CACertificatesDir inisections="common ahash" initag="cacert"/>
+                <ahash:KeyPath inisections="ahash common" initag="client_key"/>
+                <ahash:CertificatePath inisections="ahash common" initag="client_cert"/>
+                <ahash:CACertificatesDir inisections="ahash common" initag="cacert"/>
             </ahash:ClientSSLConfig>
             <infosys:InfoRegister>
-                <infosys:Period inisections="register ahash" initag="period">PT20S</infosys:Period>
+                <infosys:Period inisections="ahash register" initag="period">PT20S</infosys:Period>
                 <infosys:Endpoint inisections="ahash" initag="endpoint"/>
-                <infosys:Expiration inisections="register ahash" initag="expiration">PT100S</infosys:Expiration>
+                <infosys:Expiration inisections="ahash register" initag="expiration">PT100S</infosys:Expiration>
                 <infosys:Registrar>
-                    <infosys:URL inisections="register ahash" initag="index_server1"/>
-                    <infosys:KeyPath inisections="common ahash" initag="client_key"/>
-                    <infosys:CertificatePath inisections="common ahash" initag="client_cert"/>
-                    <infosys:CACertificatesDir inisections="common ahash" initag="cacert"/>
+                    <infosys:URL inisections="ahash register" initag="index_server1"/>
+                    <infosys:KeyPath inisections="ahash common" initag="client_key"/>
+                    <infosys:CertificatePath inisections="ahash common" initag="client_cert"/>
+                    <infosys:CACertificatesDir inisections="ahash common" initag="cacert"/>
                 </infosys:Registrar>
                 <infosys:Registrar>
-                    <infosys:URL inisections="register ahash" initag="index_server2"/>
-                    <infosys:KeyPath inisections="common ahash" initag="client_key"/>
-                    <infosys:CertificatePath inisections="common ahash" initag="client_cert"/>
-                    <infosys:CACertificatesDir inisections="common ahash" initag="cacert"/>
+                    <infosys:URL inisections="ahash register" initag="index_server2"/>
+                    <infosys:KeyPath inisections="ahash common" initag="client_key"/>
+                    <infosys:CertificatePath inisections="ahash common" initag="client_cert"/>
+                    <infosys:CACertificatesDir inisections="ahash common" initag="cacert"/>
                 </infosys:Registrar>
                 <infosys:Registrar>
-                    <infosys:URL inisections="register ahash" initag="index_server3"/>
-                    <infosys:KeyPath inisections="common ahash" initag="client_key"/>
-                    <infosys:CertificatePath inisections="common ahash" initag="client_cert"/>
-                    <infosys:CACertificatesDir inisections="common ahash" initag="cacert"/>
+                    <infosys:URL inisections="ahash register" initag="index_server3"/>
+                    <infosys:KeyPath inisections="ahash common" initag="client_key"/>
+                    <infosys:CertificatePath inisections="ahash common" initag="client_cert"/>
+                    <infosys:CACertificatesDir inisections="ahash common" initag="cacert"/>
                 </infosys:Registrar>
             </infosys:InfoRegister>
         </Service>

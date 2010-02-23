@@ -59,107 +59,107 @@
             <ahash:OtherURL inisections="ahash" initag="peerurl3"/>
             <ahash:Priority inisections="ahash" initag="priority">50</ahash:Priority>
             <ahash:ClientSSLConfig>
-                <ahash:KeyPath inisections="common ahash" initag="client_key"/>
-                <ahash:CertificatePath inisections="common ahash" initag="client_cert"/>
-                <ahash:CACertificatesDir inisections="common ahash" initag="cacert"/>
+                <ahash:KeyPath inisections="ahash common" initag="client_key"/>
+                <ahash:CertificatePath inisections="ahash common" initag="client_cert"/>
+                <ahash:CACertificatesDir inisections="ahash common" initag="cacert"/>
             </ahash:ClientSSLConfig>
             <infosys:InfoRegister>
-                <infosys:Period inisections="register ahash" initag="period">PT20S</infosys:Period>
+                <infosys:Period inisections="ahash register" initag="period">PT20S</infosys:Period>
                 <infosys:Endpoint inisections="ahash" initag="endpoint"/>
-                <infosys:Expiration inisections="register ahash" initag="expiration">PT100S</infosys:Expiration>
+                <infosys:Expiration inisections="ahash register" initag="expiration">PT100S</infosys:Expiration>
                 <infosys:Registrar>
-                    <infosys:URL inisections="register ahash" initag="index_server1"/>
-                    <infosys:KeyPath inisections="common ahash" initag="client_key"/>
-                    <infosys:CertificatePath inisections="common ahash" initag="client_cert"/>
-                    <infosys:CACertificatesDir inisections="common ahash" initag="cacert"/>
+                    <infosys:URL inisections="ahash register" initag="index_server1"/>
+                    <infosys:KeyPath inisections="ahash common" initag="client_key"/>
+                    <infosys:CertificatePath inisections="ahash common" initag="client_cert"/>
+                    <infosys:CACertificatesDir inisections="ahash common" initag="cacert"/>
                 </infosys:Registrar>
                 <infosys:Registrar>
-                    <infosys:URL inisections="register ahash" initag="index_server2"/>
-                    <infosys:KeyPath inisections="common ahash" initag="client_key"/>
-                    <infosys:CertificatePath inisections="common ahash" initag="client_cert"/>
-                    <infosys:CACertificatesDir inisections="common ahash" initag="cacert"/>
+                    <infosys:URL inisections="ahash register" initag="index_server2"/>
+                    <infosys:KeyPath inisections="ahash common" initag="client_key"/>
+                    <infosys:CertificatePath inisections="ahash common" initag="client_cert"/>
+                    <infosys:CACertificatesDir inisections="ahash common" initag="cacert"/>
                 </infosys:Registrar>
                 <infosys:Registrar>
-                    <infosys:URL inisections="register ahash" initag="index_server3"/>
-                    <infosys:KeyPath inisections="common ahash" initag="client_key"/>
-                    <infosys:CertificatePath inisections="common ahash" initag="client_cert"/>
-                    <infosys:CACertificatesDir inisections="common ahash" initag="cacert"/>
+                    <infosys:URL inisections="ahash register" initag="index_server3"/>
+                    <infosys:KeyPath inisections="ahash common" initag="client_key"/>
+                    <infosys:CertificatePath inisections="ahash common" initag="client_cert"/>
+                    <infosys:CACertificatesDir inisections="ahash common" initag="cacert"/>
                 </infosys:Registrar>
             </infosys:InfoRegister>
         </Service>
         <Service name="pythonservice" id="bartender">
             <bar:ClassName>storage.bartender.bartender.BartenderService</bar:ClassName>
-            <bar:ISISURL inisections="register bartender" initag="index_server1"/>
-            <bar:ISISURL inisections="register bartender" initag="index_server2"/>
-            <bar:ISISURL inisections="register bartender" initag="index_server3"/>
+            <bar:ISISURL inisections="bartender register" initag="index_server1"/>
+            <bar:ISISURL inisections="bartender register" initag="index_server2"/>
+            <bar:ISISURL inisections="bartender register" initag="index_server3"/>
             <bar:ClientSSLConfig>
-                <bar:KeyPath inisections="common bartender" initag="client_key"/>
-                <bar:CertificatePath inisections="common bartender" initag="client_cert"/>
-                <bar:CACertificatesDir inisections="common bartender" initag="cacert"/>
+                <bar:KeyPath inisections="bartender common" initag="client_key"/>
+                <bar:CertificatePath inisections="bartender common" initag="client_cert"/>
+                <bar:CACertificatesDir inisections="bartender common" initag="cacert"/>
             </bar:ClientSSLConfig>
             <bar:ProxyStore inisections="bartender" initag="proxystore">/var/spool/arc/proxy_store</bar:ProxyStore>
             <bar:GatewayClass>storage.bartender.gateway.gateway.Gateway</bar:GatewayClass>
             <bar:GatewayCfg>
                 <bar:ProxyStore inisections="bartender" initag="proxystore">/var/spool/arc/proxy_store</bar:ProxyStore>
-                <bar:CACertificatesDir inisections="common bartender" initag="cacert"/>
+                <bar:CACertificatesDir inisections="bartender common" initag="cacert"/>
             </bar:GatewayCfg>
             <infosys:InfoRegister>
-                <infosys:Period inisections="register bartender" initag="period">PT20S</infosys:Period>
+                <infosys:Period inisections="bartender register" initag="period">PT20S</infosys:Period>
                 <infosys:Endpoint inisections="bartender" initag="endpoint"/>
-                <infosys:Expiration inisections="register bartender" initag="expiration">PT100S</infosys:Expiration>
+                <infosys:Expiration inisections="bartender register" initag="expiration">PT100S</infosys:Expiration>
                 <infosys:Registrar>
-                    <infosys:URL inisections="register bartender" initag="index_server1"/>
-                    <infosys:KeyPath inisections="common bartender" initag="client_key"/>
-                    <infosys:CertificatePath inisections="common bartender" initag="client_cert"/>
-                    <infosys:CACertificatesDir inisections="common bartender" initag="cacert"/>
+                    <infosys:URL inisections="bartender register" initag="index_server1"/>
+                    <infosys:KeyPath inisections="bartender common" initag="client_key"/>
+                    <infosys:CertificatePath inisections="bartender common" initag="client_cert"/>
+                    <infosys:CACertificatesDir inisections="bartender common" initag="cacert"/>
                 </infosys:Registrar>
                 <infosys:Registrar>
-                    <infosys:URL inisections="register bartender" initag="index_server2"/>
-                    <infosys:KeyPath inisections="common bartender" initag="client_key"/>
-                    <infosys:CertificatePath inisections="common bartender" initag="client_cert"/>
-                    <infosys:CACertificatesDir inisections="common bartender" initag="cacert"/>
+                    <infosys:URL inisections="bartender register" initag="index_server2"/>
+                    <infosys:KeyPath inisections="bartender common" initag="client_key"/>
+                    <infosys:CertificatePath inisections="bartender common" initag="client_cert"/>
+                    <infosys:CACertificatesDir inisections="bartender common" initag="cacert"/>
                 </infosys:Registrar>
                 <infosys:Registrar>
-                    <infosys:URL inisections="register bartender" initag="index_server3"/>
-                    <infosys:KeyPath inisections="common bartender" initag="client_key"/>
-                    <infosys:CertificatePath inisections="common bartender" initag="client_cert"/>
-                    <infosys:CACertificatesDir inisections="common bartender" initag="cacert"/>
+                    <infosys:URL inisections="bartender register" initag="index_server3"/>
+                    <infosys:KeyPath inisections="bartender common" initag="client_key"/>
+                    <infosys:CertificatePath inisections="bartender common" initag="client_cert"/>
+                    <infosys:CACertificatesDir inisections="bartender common" initag="cacert"/>
                 </infosys:Registrar>
             </infosys:InfoRegister>
         </Service>
         <Service name="pythonservice" id="librarian">
             <lib:ClassName>storage.librarian.librarian.LibrarianService</lib:ClassName>
-            <lib:ISISURL inisections="register librarian" initag="index_server1"/>
-            <lib:ISISURL inisections="register librarian" initag="index_server2"/>
-            <lib:ISISURL inisections="register librarian" initag="index_server3"/>
+            <lib:ISISURL inisections="librarian register" initag="index_server1"/>
+            <lib:ISISURL inisections="librarian register" initag="index_server2"/>
+            <lib:ISISURL inisections="librarian register" initag="index_server3"/>
             <lib:HeartbeatTimeout inisections="librarian" initag="heartbeattimeout">60</lib:HeartbeatTimeout>
             <lib:CheckPeriod inisections="librarian" initag="checkperiod">20</lib:CheckPeriod>
             <lib:ClientSSLConfig>
-                <lib:KeyPath inisections="common librarian" initag="client_key"/>
-                <lib:CertificatePath inisections="common librarian" initag="client_cert"/>
-                <lib:CACertificatesDir inisections="common librarian" initag="cacert"/>
+                <lib:KeyPath inisections="librarian common" initag="client_key"/>
+                <lib:CertificatePath inisections="librarian common" initag="client_cert"/>
+                <lib:CACertificatesDir inisections="librarian common" initag="cacert"/>
             </lib:ClientSSLConfig>
             <infosys:InfoRegister>
-                <infosys:Period inisections="register librarian" initag="period">PT20S</infosys:Period>
+                <infosys:Period inisections="librarian register" initag="period">PT20S</infosys:Period>
                 <infosys:Endpoint inisections="librarian" initag="endpoint"/>
-                <infosys:Expiration inisections="register librarian" initag="expiration">PT100S</infosys:Expiration>
+                <infosys:Expiration inisections="librarian register" initag="expiration">PT100S</infosys:Expiration>
                 <infosys:Registrar>
-                    <infosys:URL inisections="register librarian" initag="index_server1"/>
-                    <infosys:KeyPath inisections="common librarian" initag="client_key"/>
-                    <infosys:CertificatePath inisections="common librarian" initag="client_cert"/>
-                    <infosys:CACertificatesDir inisections="common librarian" initag="cacert"/>
+                    <infosys:URL inisections="librarian register" initag="index_server1"/>
+                    <infosys:KeyPath inisections="librarian common" initag="client_key"/>
+                    <infosys:CertificatePath inisections="librarian common" initag="client_cert"/>
+                    <infosys:CACertificatesDir inisections="librarian common" initag="cacert"/>
                 </infosys:Registrar>
                 <infosys:Registrar>
-                    <infosys:URL inisections="register librarian" initag="index_server2"/>
-                    <infosys:KeyPath inisections="common librarian" initag="client_key"/>
-                    <infosys:CertificatePath inisections="common librarian" initag="client_cert"/>
-                    <infosys:CACertificatesDir inisections="common librarian" initag="cacert"/>
+                    <infosys:URL inisections="librarian register" initag="index_server2"/>
+                    <infosys:KeyPath inisections="librarian common" initag="client_key"/>
+                    <infosys:CertificatePath inisections="librarian common" initag="client_cert"/>
+                    <infosys:CACertificatesDir inisections="librarian common" initag="cacert"/>
                 </infosys:Registrar>
                 <infosys:Registrar>
-                    <infosys:URL inisections="register librarian" initag="index_server3"/>
-                    <infosys:KeyPath inisections="common librarian" initag="client_key"/>
-                    <infosys:CertificatePath inisections="common librarian" initag="client_cert"/>
-                    <infosys:CACertificatesDir inisections="common librarian" initag="cacert"/>
+                    <infosys:URL inisections="librarian register" initag="index_server3"/>
+                    <infosys:KeyPath inisections="librarian common" initag="client_key"/>
+                    <infosys:CertificatePath inisections="librarian common" initag="client_cert"/>
+                    <infosys:CACertificatesDir inisections="librarian common" initag="cacert"/>
                 </infosys:Registrar>
             </infosys:InfoRegister>
         </Service>
@@ -180,35 +180,35 @@
                 <shep:TransferDir inisections="shepherd" initag="transferdir">/var/spool/arc/shepherd_transfer</shep:TransferDir>
                 <shep:TURLPrefix inisections="shepherd" initag="turlprefix"/>
             </shep:BackendCfg>
-            <shep:ISISURL inisections="register shepherd" initag="index_server1"/>
-            <shep:ISISURL inisections="register shepherd" initag="index_server2"/>
-            <shep:ISISURL inisections="register shepherd" initag="index_server3"/>
+            <shep:ISISURL inisections="shepherd register" initag="index_server1"/>
+            <shep:ISISURL inisections="shepherd register" initag="index_server2"/>
+            <shep:ISISURL inisections="shepherd register" initag="index_server3"/>
             <shep:ClientSSLConfig>
-                <shep:KeyPath inisections="common shepherd" initag="client_key"/>
-                <shep:CertificatePath inisections="common shepherd" initag="client_cert"/>
-                <shep:CACertificatesDir inisections="common shepherd" initag="cacert"/>
+                <shep:KeyPath inisections="shepherd common" initag="client_key"/>
+                <shep:CertificatePath inisections="shepherd common" initag="client_cert"/>
+                <shep:CACertificatesDir inisections="shepherd common" initag="cacert"/>
             </shep:ClientSSLConfig>
             <infosys:InfoRegister>
-                <infosys:Period inisections="register shepherd" initag="period">PT20S</infosys:Period>
+                <infosys:Period inisections="shepherd register" initag="period">PT20S</infosys:Period>
                 <infosys:Endpoint inisections="shepherd" initag="endpoint"/>
-                <infosys:Expiration inisections="register shepherd" initag="expiration">PT100S</infosys:Expiration>
+                <infosys:Expiration inisections="shepherd register" initag="expiration">PT100S</infosys:Expiration>
                 <infosys:Registrar>
-                    <infosys:URL inisections="register shepherd" initag="index_server1"/>
-                    <infosys:KeyPath inisections="common shepherd" initag="client_key"/>
-                    <infosys:CertificatePath inisections="common shepherd" initag="client_cert"/>
-                    <infosys:CACertificatesDir inisections="common shepherd" initag="cacert"/>
+                    <infosys:URL inisections="shepherd register" initag="index_server1"/>
+                    <infosys:KeyPath inisections="shepherd common" initag="client_key"/>
+                    <infosys:CertificatePath inisections="shepherd common" initag="client_cert"/>
+                    <infosys:CACertificatesDir inisections="shepherd common" initag="cacert"/>
                 </infosys:Registrar>
                 <infosys:Registrar>
-                    <infosys:URL inisections="register shepherd" initag="index_server2"/>
-                    <infosys:KeyPath inisections="common shepherd" initag="client_key"/>
-                    <infosys:CertificatePath inisections="common shepherd" initag="client_cert"/>
-                    <infosys:CACertificatesDir inisections="common shepherd" initag="cacert"/>
+                    <infosys:URL inisections="shepherd register" initag="index_server2"/>
+                    <infosys:KeyPath inisections="shepherd common" initag="client_key"/>
+                    <infosys:CertificatePath inisections="shepherd common" initag="client_cert"/>
+                    <infosys:CACertificatesDir inisections="shepherd common" initag="cacert"/>
                 </infosys:Registrar>
                 <infosys:Registrar>
-                    <infosys:URL inisections="register shepherd" initag="index_server3"/>
-                    <infosys:KeyPath inisections="common shepherd" initag="client_key"/>
-                    <infosys:CertificatePath inisections="common shepherd" initag="client_cert"/>
-                    <infosys:CACertificatesDir inisections="common shepherd" initag="cacert"/>
+                    <infosys:URL inisections="shepherd register" initag="index_server3"/>
+                    <infosys:KeyPath inisections="shepherd common" initag="client_key"/>
+                    <infosys:CertificatePath inisections="shepherd common" initag="client_cert"/>
+                    <infosys:CACertificatesDir inisections="shepherd common" initag="cacert"/>
                 </infosys:Registrar>
             </infosys:InfoRegister>
         </Service>
@@ -228,30 +228,30 @@
             <isis:InfoProvider>
                 <isis:URL inisections="isis" initag="peerurl3"/>
             </isis:InfoProvider>
-            <isis:KeyPath inisections="common isis" initag="client_key"/>
-            <isis:CertificatePath inisections="common isis" initag="client_cert"/>
-            <isis:CACertificatesDir inisections="common isis" initag="cacert"/>
+            <isis:KeyPath inisections="isis common" initag="client_key"/>
+            <isis:CertificatePath inisections="isis common" initag="client_cert"/>
+            <isis:CACertificatesDir inisections="isis common" initag="cacert"/>
             <infosys:InfoRegister>
-                <infosys:Period inisections="register isis" initag="period">PT20S</infosys:Period>
+                <infosys:Period inisections="isis register" initag="period">PT20S</infosys:Period>
                 <infosys:Endpoint inisections="isis" initag="endpoint"/>
-                <infosys:Expiration inisections="register isis" initag="expiration">PT100S</infosys:Expiration>
+                <infosys:Expiration inisections="isis register" initag="expiration">PT100S</infosys:Expiration>
                 <infosys:Registrar>
-                    <infosys:URL inisections="register isis" initag="index_server1"/>
-                    <infosys:KeyPath inisections="common isis" initag="client_key"/>
-                    <infosys:CertificatePath inisections="common isis" initag="client_cert"/>
-                    <infosys:CACertificatesDir inisections="common isis" initag="cacert"/>
+                    <infosys:URL inisections="isis register" initag="index_server1"/>
+                    <infosys:KeyPath inisections="isis common" initag="client_key"/>
+                    <infosys:CertificatePath inisections="isis common" initag="client_cert"/>
+                    <infosys:CACertificatesDir inisections="isis common" initag="cacert"/>
                 </infosys:Registrar>
                 <infosys:Registrar>
-                    <infosys:URL inisections="register isis" initag="index_server2"/>
-                    <infosys:KeyPath inisections="common isis" initag="client_key"/>
-                    <infosys:CertificatePath inisections="common isis" initag="client_cert"/>
-                    <infosys:CACertificatesDir inisections="common isis" initag="cacert"/>
+                    <infosys:URL inisections="isis register" initag="index_server2"/>
+                    <infosys:KeyPath inisections="isis common" initag="client_key"/>
+                    <infosys:CertificatePath inisections="isis common" initag="client_cert"/>
+                    <infosys:CACertificatesDir inisections="isis common" initag="cacert"/>
                 </infosys:Registrar>
                 <infosys:Registrar>
-                    <infosys:URL inisections="register isis" initag="index_server3"/>
-                    <infosys:KeyPath inisections="common isis" initag="client_key"/>
-                    <infosys:CertificatePath inisections="common isis" initag="client_cert"/>
-                    <infosys:CACertificatesDir inisections="common isis" initag="cacert"/>
+                    <infosys:URL inisections="isis register" initag="index_server3"/>
+                    <infosys:KeyPath inisections="isis common" initag="client_key"/>
+                    <infosys:CertificatePath inisections="isis common" initag="client_cert"/>
+                    <infosys:CACertificatesDir inisections="isis common" initag="cacert"/>
                 </infosys:Registrar>
             </infosys:InfoRegister>
         </Service>
