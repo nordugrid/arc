@@ -428,14 +428,12 @@ class Shepherd:
                                 my_replicas = len([property for (section, property), value in metadata.items()
                                                    if section == 'locations' and value in [ALIVE,CREATING] 
                                                    and property.startswith(self.serviceID)])
-                                # we try to get a valid one by simply downloading this file if we have no alive or 
-                                # creating replica
+                                # we try to get a valid one by simply downloading this file
                                 try:
-                                    if my_replicas == 0:
-                                        response = self.bartender.getFile({'checkingThread' : (GUID, common_supported_protocols)})
+                                    response = self.bartender.getFile({'checkingThread' : (GUID, common_supported_protocols)})
                                     success, turl, protocol = response['checkingThread']
                                 except:
-                                    success = ''
+                                    success = traceback.format_exc()
                                 if success == 'done':
                                     # if it's OK, then we change the state of our replica to CREATING
                                     self.changeState(referenceID, CREATING)
