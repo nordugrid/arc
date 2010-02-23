@@ -242,6 +242,16 @@ namespace Arc {
       return false;
     }
 
+    // Set cluster and queue if not specified by user.
+    if (jobdesc.Resources.CandidateTarget.empty()) {
+      ResourceTargetType candidateTarget;
+      candidateTarget.EndPointURL = URL();
+      candidateTarget.QueueName = et.MappingQueue;
+      jobdesc.Resources.CandidateTarget.push_back(candidateTarget);
+    }
+    else if (jobdesc.Resources.CandidateTarget.front().QueueName.empty())
+      jobdesc.Resources.CandidateTarget.front().QueueName = et.MappingQueue;
+
     return true;
   }
 
