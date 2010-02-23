@@ -269,6 +269,7 @@ bool InfoRegistrar::removeService(InfoRegister* reg) {
             std::stringstream out;
             out << ptm->tm_year+1900<<"-"<<mon_prefix<<ptm->tm_mon+1<<"-"<<day_prefix<<ptm->tm_mday<<"T";
             out << hour_prefix<<ptm->tm_hour<<":"<<min_prefix<<ptm->tm_min<<":"<<sec_prefix<<ptm->tm_sec;
+            out << "+0000";
 
             PayloadSOAP request(reg_ns);
             XMLNode op = request.NewChild("isis:RemoveRegistrations");
@@ -434,6 +435,7 @@ void InfoRegistrar::registration(void) {
                     std::stringstream out;
                     out << ptm->tm_year+1900<<"-"<<mon_prefix<<ptm->tm_mon+1<<"-"<<day_prefix<<ptm->tm_mday<<"T";
                     out << hour_prefix<<ptm->tm_hour<<":"<<min_prefix<<ptm->tm_min<<":"<<sec_prefix<<ptm->tm_sec;
+                    out << "+0000";
 
                     services_doc["MetaSrcAdv"].NewChild("GenTime") = out.str();
                     logger_.msg(WARNING, "Generation Time attribute calculated from current time");
@@ -499,7 +501,10 @@ void InfoRegistrar::registration(void) {
             std::string min_prefix = (ptm->tm_min < 10)?"0":"";
             std::string sec_prefix = (ptm->tm_sec < 10)?"0":"";
             std::stringstream out;
-            out << ptm->tm_year+1900<<"-"<<mon_prefix<<ptm->tm_mon+1<<"-"<<day_prefix<<ptm->tm_mday<<"T"<<hour_prefix<<ptm->tm_hour<<":"<<min_prefix<<ptm->tm_min<<":"<<sec_prefix<<ptm->tm_sec;
+            out << ptm->tm_year+1900<<"-"<<mon_prefix<<ptm->tm_mon+1<<"-"<<day_prefix;
+            out << ptm->tm_mday <<"T"<<hour_prefix<<ptm->tm_hour<<":"<<min_prefix;
+            out << ptm->tm_min <<":"<<sec_prefix<<ptm->tm_sec;
+            out << "+0000";
             header.NewChild("MessageGenerationTime") = out.str();
 
             // create body

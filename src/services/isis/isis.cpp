@@ -47,7 +47,7 @@ std::string Current_Time( time_t parameter_time = time(NULL) ){
     std::string sec_prefix = (ptm->tm_sec < 10)?"0":"";
     std::stringstream out;
     if ( parameter_time == time(NULL) ){
-        out << ptm->tm_year+1900<<"-"<<mon_prefix<<ptm->tm_mon+1<<"-"<<day_prefix<<ptm->tm_mday<<"T"<<hour_prefix<<ptm->tm_hour<<":"<<min_prefix<<ptm->tm_min<<":"<<sec_prefix<<ptm->tm_sec;
+        out << ptm->tm_year+1900<<"-"<<mon_prefix<<ptm->tm_mon+1<<"-"<<day_prefix<<ptm->tm_mday<<"T"<<hour_prefix<<ptm->tm_hour<<":"<<min_prefix<<ptm->tm_min<<":"<<sec_prefix<<ptm->tm_sec<<"+0000";
     } else {
         out << ptm->tm_year+1900<<mon_prefix<<ptm->tm_mon+1<<day_prefix<<ptm->tm_mday<<"."<<hour_prefix<<ptm->tm_hour<<min_prefix<<ptm->tm_min<<sec_prefix<<ptm->tm_sec;
     }
@@ -244,17 +244,17 @@ static void soft_state_thread(void *data) {
 
             // This Query is better, but it is not working now
             //"//RegEntry/MetaSrcAdv[count(Expiration)=1 and ( (years-from-duration(Expiration)*1000) +(months-from-duration(Expiration)*10) + (days-from-duration(Expiration)) + (hours-from-duration(Expiration)*0.01) + (minutes-from-duration(Expiration)*0.0001) + (seconds-from-duration(Expiration)*0.000001) + number(translate(GenTime,'TZ:-','.'))) < number('20090420.132903')]/ServiceID"
-            std::string valid_query("//RegEntry/MetaSrcAdv[count(Expiration)=1 and number(translate(GenTime,'TZ:-','.')) < number(translate('");
+            std::string valid_query("//RegEntry/MetaSrcAdv[count(Expiration)=1 and number(translate(GenTime,'TZ:-+','.')) < number(translate('");
             valid_query += Current_Time(rawtime);
-            valid_query += "','TZ:-','.'))]/ServiceID";
-	    
-	    query_string = valid_query;
+            valid_query += "','TZ:-+','.'))]/ServiceID";
+
+            query_string = valid_query;
         }
         if ( method == "ETRemove") {
-            std::string remove_query("/RegEntry/MetaSrcAdv[count(Expiration)=0 and number(translate(GenTime,'TZ:-','.')) < number(translate('");
+            std::string remove_query("/RegEntry/MetaSrcAdv[count(Expiration)=0 and number(translate(GenTime,'TZ:-+','.')) < number(translate('");
             remove_query += Current_Time(rawtime);
-            remove_query += "','TZ:-','.'))]/ServiceID";
-	    query_string = remove_query;
+            remove_query += "','TZ:-+','.'))]/ServiceID";
+            query_string = remove_query;
         }
 
         // Database cleaning
@@ -1190,13 +1190,13 @@ static void soft_state_thread(void *data) {
 
             neighbors_count = 0;
             if ( !isavailable) {
-	       if ( neighbors_.size() >0 ){
+               if ( neighbors_.size() >0 ){
                   Neighbors_Update();
                }
                logger_.msg(Arc::VERBOSE, "No InfoProvider is available." );
             }
             else if ( hash_table.size() == 0 ) {
-	       if ( neighbors_.size() >0 ){
+               if ( neighbors_.size() >0 ){
                   Neighbors_Update();
                }
                logger_.msg(Arc::VERBOSE, "The hash table is empty. New cloud has been created." );
