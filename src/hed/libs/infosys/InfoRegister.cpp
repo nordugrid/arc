@@ -68,7 +68,7 @@ InfoRegister::InfoRegister(XMLNode &cfg, Service *service):reg_period_(0),servic
     for(XMLNode r = cfg["InfoRegister"]["Registrar"];(bool)r;++r) {
       std::string id = (std::string) r["URL"];
       if(!id.empty()) ids.push_back(id);
-      else logger_.msg(WARNING, "Registrar discarded bacuse the \"URL\" element is missing or empty in the configuration.");
+      else logger_.msg(WARNING, "Discarding Registrar because the \"URL\" element is missing or empty.");
     };
     InfoRegisterContainer::Instance().addService(this,ids,cfg);
 }

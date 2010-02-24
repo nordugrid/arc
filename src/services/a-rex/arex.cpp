@@ -502,7 +502,7 @@ ARexService::ARexService(Arc::Config *cfg):RegisteredService(cfg),
           ::chmod(gmconfig_.c_str(), S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
           break;
         };
-        logger_.msg(Arc::DEBUG, "Failed to create emporay file in %s - %s",*t,Arc::StrError(errno));
+        logger_.msg(Arc::DEBUG, "Failed to create temporary file in %s - %s",*t,Arc::StrError(errno));
       };
       if(h == -1) {
         throw Glib::FileError(Glib::FileError::FAILED,"Failed to create temporary file in any of control directories");

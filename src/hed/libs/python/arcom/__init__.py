@@ -47,9 +47,9 @@ def get_child_values_by_name(node, name):
         <HeartbeatTimeout>60</HeartbeatTimeout>
         <CheckPeriod>20</CheckPeriod>
         <ClientSSLConfig>
-            <KeyPath>/etc/arc-security/hostkey.pem</KeyPath>
-            <CertificatePath>/etc/arc-security/hostcert.pem</CertificatePath>
-            <CACertificatesDir>/etc/arc-security/certificates</CACertificatesDir>
+            <KeyPath>/etc/grid-security/hostkey.pem</KeyPath>
+            <CertificatePath>/etc/grid-security/hostcert.pem</CertificatePath>
+            <CACertificatesDir>/etc/grid-security/certificates</CACertificatesDir>
         </ClientSSLConfig>
     </Service>
 
