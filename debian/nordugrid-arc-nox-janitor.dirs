@@ -1,8 +1,10 @@
 /etc/janitor
+/var/log/janitor
+/var/spool/nordugrid
+/var/spool/nordugrid/janitor
 /var/spool/nordugrid/janitor/catalog
 /var/spool/nordugrid/janitor/download
 /var/spool/nordugrid/janitor/jobs
-/var/log/janitor
 /var/spool/nordugrid/janitor/packages
 /var/spool/nordugrid/janitor/rtes
 /var/spool/nordugrid/janitor/runtime
