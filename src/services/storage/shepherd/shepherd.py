@@ -248,7 +248,7 @@ class Shepherd:
             return state
         else:
             # or if the checksum is not the same - we have a corrupt file, or a not-fully-uploaded one
-            if state == CREATING:
+            if state == CREATING: 
                 # if the file's local state is CREATING, that's OK, the file is still being uploaded
                 if self.creating_timeout:
                     # but if the file is in CREATED state for a long time, then maybe something was wrong, we should change its state
@@ -271,15 +271,19 @@ class Shepherd:
         # call the checksum checker which will change the state to ALIVE if its checksum is OK, but leave it as CREATING if the checksum is wrong
         # TODO: either this checking should be in seperate thread, or the backend's should call this in a seperate thread?
         localData = self.store.get(referenceID)
-        if not localData['checksum']:
-            time.sleep(3) # hack to wait for the ARC DMC to update the checksum
-            GUID = localData['GUID']
+        GUID = localData['GUID']
+        trials = 3 # if arccp hasn't set the right checksum yet, try to wait for it
+        while localData['checksum'] == '' and trials > 0:
+            trials = trials - 1
+            # first sleep 1 sec, then 2, then 3
+            time.sleep(3 - trials)
             # check if the cheksum changed in the Librarian
             metadata = self.librarian.get([GUID])[GUID]
-            self._refresh_checksum(referenceID, localData, metadata)
+            localData = self._refresh_checksum(referenceID, localData, metadata)
         state = self._checking_checksum(referenceID, localData)
         # if _checking_checksum haven't change the state to ALIVE: the file is corrupt
-        if state == CREATING:
+        # except if the checksum is '', then the arccp hasn't set the right checksum yet
+        if state == CREATING and localData['checksum'] != '':
             self.changeState(referenceID, INVALID)
 
     def _refresh_checksum(self, referenceID, localData, metadata):
@@ -300,9 +304,12 @@ class Shepherd:
                     log.msg(arc.VERBOSE, 'checksum refreshed', current_local_data)
                     self.store.set(referenceID, current_local_data)
                     self.store.unlock()
+                    return current_local_data
             except:
                 log.msg()
                 self.store.unlock()
+                return current_local_data
+        return localData
 
     def checkingThread(self, period):
         # first just wait a few seconds
@@ -334,7 +341,7 @@ class Shepherd:
                             # first we get the file's metadata from the librarian
                             metadata = self.librarian.get([GUID])[GUID]
                             # check if the cheksum changed in the Librarian
-                            self._refresh_checksum(referenceID, localData, metadata)
+                            localData = self._refresh_checksum(referenceID, localData, metadata)
                             # check the real checksum of the file: if the checksum is OK or not, it changes the state of the replica as well
                             # and it returns the state and the GUID and the localID of the file
                             #   if _checking_checksum changed the state then the new state is returned here:
@@ -424,26 +431,30 @@ class Shepherd:
                                     state = ALIVE
                             # or if this replica is INVALID
                             elif state == INVALID:
-                                log.msg(arc.VERBOSE, '\n\nI have an invalid replica of file', GUID)
-                                my_replicas = len([property for (section, property), value in metadata.items()
-                                                   if section == 'locations' and value in [ALIVE,CREATING] 
-                                                   and property.startswith(self.serviceID)])
+                                log.msg(arc.VERBOSE, '\n\nI have an invalid replica of file', GUID, '- now I remove it.')
+                                self.changeState(referenceID, DELETED)      
+                                #
+                                # # disabling pull-method of self-healing # #
+                                #                          
+                                #my_replicas = len([property for (section, property), value in metadata.items()
+                                #                   if section == 'locations' and value in [ALIVE,CREATING] 
+                                #                   and property.startswith(self.serviceID)])
                                 # we try to get a valid one by simply downloading this file
-                                try:
-                                    response = self.bartender.getFile({'checkingThread' : (GUID, common_supported_protocols)})
-                                    success, turl, protocol = response['checkingThread']
-                                except:
-                                    success = traceback.format_exc()
-                                if success == 'done':
-                                    # if it's OK, then we change the state of our replica to CREATING
-                                    self.changeState(referenceID, CREATING)
-                                    # then asks the backend to get the file from the TURL we got from the bartender
-                                    self.backend.copyFrom(localID, turl, protocol)
-                                    # and after this copying is done, we indicate that it's arrived
-                                    self._file_arrived(referenceID)
-                                    # TODO: this should be done in some other thread
-                                else:
-                                    log.msg(arc.VERBOSE, 'checkingThread error, bartender responded', success)
+                                #try:
+                                #    response = self.bartender.getFile({'checkingThread' : (GUID, common_supported_protocols)})
+                                #    success, turl, protocol = response['checkingThread']
+                                #except:
+                                #    success = traceback.format_exc()
+                                #if success == 'done':
+                                #    # if it's OK, then we change the state of our replica to CREATING
+                                #    self.changeState(referenceID, CREATING)
+                                #    # then asks the backend to get the file from the TURL we got from the bartender
+                                #    self.backend.copyFrom(localID, turl, protocol)
+                                #    # and after this copying is done, we indicate that it's arrived
+                                #    self._file_arrived(referenceID)
+                                #    # TODO: this should be done in some other thread
+                                #else:
+                                #    log.msg(arc.VERBOSE, 'checkingThread error, bartender responded', success)
                             elif state == OFFLINE:
                                 # online now
                                 state = ALIVE
