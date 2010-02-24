@@ -120,6 +120,7 @@ do_as_uid () {
                 print STDERR "Cannot switch to uid($UID): $@\n" if $@;
             }
             system("@posix_shell@","-c",@args);
+            exit 0 if $? eq 0;
             exit ($?>>8||128+($?&127));
     '
     /usr/bin/perl -we "$script" "$@"
@@ -162,7 +163,7 @@ job_read_diag() {
     [ -f "$diagfile" ] || { log "diag file not found at: $sessiondir.diag"; return 1; }
 
     diagstring=$(do_as_uid $uid "tail -n 1000 '$diagfile'")
-    [ $? = 0 ] || { log "cannot read diag file at: $PWD/$diagfile"; return 1; }
+    [ $? = 0 ] || { log "cannot read diag file at: $diagfile"; return 1; }
 
     nodename=$(echo "$diagstring" | sed -n 's/^nodename=\(..*\)/\1/p')
     WallTime=$(echo "$diagstring" | sed -n 's/^WallTime=\([0-9.]*\)s/\1/p' | tail -n 1)
@@ -203,7 +204,7 @@ job_write_diag() {
       [ -n "$lrmsexitcode" ] && echo "lrmsexitcode=$lrmsexitcode"
       [ -n "$exitcode" ] && echo "exitcode=$exitcode"
     } | do_as_uid $uid "cat > '$diagfile'"
-    [ $? = 0 ] || { log "cannot write diag file at: $PWD/$diagfile"; return 1; }
+    [ $? = 0 ] || { log "cannot write diag file at: $diagfile"; return 1; }
 }
 
 # Input variables
