@@ -207,6 +207,29 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
 	}
         JobsList::SetTransferShare(max_share, transfer_share);
     }
+    else if(command == "share_limit") {
+      std::string share_name = config_next_arg(rest);
+      std::string share_limit_s = config_next_arg(rest);
+      std::string temp = config_next_arg(rest);
+      while(temp.length() != 0) {
+        share_name.append(" ");
+        share_name.append(share_limit_s);
+        share_limit_s = temp;
+        temp = config_next_arg(rest);
+      }
+      if (share_name.empty()) {
+        logger.msg(Arc::ERROR,"the name of share is not set in share_limit"); goto exit;
+      }
+      unsigned int share_limit = 0;
+      if(share_limit_s.length() != 0) {
+        if(!Arc::stringto(share_limit_s,share_limit) || share_limit<=0){
+          logger.msg(Arc::ERROR,"wrong number in share_limit: %s",share_limit); goto exit;
+        }
+      }
+      if(!JobsList::AddLimitedShare(share_name,share_limit)) {
+        logger.msg(Arc::ERROR,"share_limit should be located after maxloadshare"); goto exit;
+      }
+    }
     else if(command == "speedcontrol") {  
       std::string speed_s = config_next_arg(rest);
       int min_speed=0;

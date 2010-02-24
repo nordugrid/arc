@@ -50,6 +50,7 @@ int JobsList::max_jobs_running=-1;
 int JobsList::max_jobs=-1;
 int JobsList::max_downloads=-1;
 unsigned int JobsList::max_processing_share = 0;
+std::map<std::string, int> JobsList::limited_share;
 std::string JobsList::share_type = "";
 unsigned long long int JobsList::min_speed=0;
 time_t JobsList::min_speed_time=300;
@@ -79,7 +80,7 @@ JobsList::JobsList(JobUser &user,ContinuationPlugins &plugins) {
   this->plugins=&plugins;
   jobs.clear();
 }
-
+ 
 JobsList::~JobsList(void){
 }
 
@@ -177,39 +178,90 @@ bool JobsList::ActJobs(bool hard_job) {
         }
       }
     };
-    // calculate the number of slots that can be allocated per share
-    // count the total number of jobs (pre)preparing
+  
+    // Now calculate how many of limited transfer shares are active
+    // We need to try to preserve the maximum number of transfer threads 
+    // for each active limited share. Jobs that belong to limited 
+    // shares will be excluded from calculation of a share limit later
+    int privileged_total_pre_preparing = 0;
+    int privileged_total_pre_finishing = 0;
+    int privileged_jobs_processing = 0;
+    int privileged_preparing_job_share = 0;
+    int privileged_finishing_job_share = 0;
+    for (std::map<std::string, int>::iterator i = limited_share.begin(); i != limited_share.end(); i++) {
+      if (pre_preparing_job_share.find(i->first) != pre_preparing_job_share.end()) {
+        privileged_preparing_job_share++;
+        privileged_jobs_processing += i->second;
+        privileged_total_pre_preparing += pre_preparing_job_share[i->first];
+      }
+      if (pre_finishing_job_share.find(i->first) != pre_finishing_job_share.end()) {
+        privileged_finishing_job_share++;
+        privileged_jobs_processing += i->second;
+        privileged_total_pre_finishing += pre_finishing_job_share[i->first];
+      }
+    }
+    int unprivileged_jobs_processing = max_jobs_processing - privileged_jobs_processing;
+
+    // calculate the number of slots that can be allocated per unprivileged share
+    // count the total number of unprivileged jobs (pre)preparing
     int total_pre_preparing = 0;
-    for (std::map<std::string, int>::iterator i = pre_preparing_job_share.begin(); i != pre_preparing_job_share.end(); i++) {
+    int unprivileged_preparing_limit;
+    int unprivileged_preparing_job_share = pre_preparing_job_share.size() - privileged_preparing_job_share;
+    for (std::map<std::string, int>::iterator i = pre_preparing_job_share.begin(); i != pre_preparing_job_share.end(); i++) { 
       total_pre_preparing += i->second;
     }
-    if (max_jobs_processing == -1 || pre_preparing_job_share.size() <= (max_jobs_processing / max_processing_share))
-      preparing_max_share = max_processing_share;
-    else if (pre_preparing_job_share.size() > max_jobs_processing)
-      preparing_max_share = 1;
-    else if (total_pre_preparing <= max_jobs_processing)
-      preparing_max_share = max_processing_share;
+    // exclude privileged jobs
+    total_pre_preparing -= privileged_total_pre_preparing;
+    if (max_jobs_processing == -1 || unprivileged_preparing_job_share <= (unprivileged_jobs_processing / max_processing_share))
+      unprivileged_preparing_limit = max_processing_share;
+    else if (unprivileged_preparing_job_share > unprivileged_jobs_processing || unprivileged_preparing_job_share <= 0)
+      unprivileged_preparing_limit = 1;
+    else if (total_pre_preparing <= unprivileged_jobs_processing)
+      unprivileged_preparing_limit = max_processing_share;
     else
-      preparing_max_share = max_jobs_processing / pre_preparing_job_share.size();
+      unprivileged_preparing_limit = unprivileged_jobs_processing / unprivileged_preparing_job_share;
 
     // count the total number of jobs (pre)finishing
- int total_pre_finishing = 0;
+    int total_pre_finishing = 0;
+    int unprivileged_finishing_limit;
+    int unprivileged_finishing_job_share = pre_finishing_job_share.size() - privileged_finishing_job_share;
     for (std::map<std::string, int>::iterator i = pre_finishing_job_share.begin(); i != pre_finishing_job_share.end(); i++) {
       total_pre_finishing += i->second;
     }
-    if (max_jobs_processing == -1 || pre_finishing_job_share.size() <= (max_jobs_processing / max_processing_share))
-      finishing_max_share = max_processing_share;
-    else if (pre_finishing_job_share.size() > max_jobs_processing)
-      finishing_max_share = 1;
-    else if (total_pre_finishing <= max_jobs_processing)
-      finishing_max_share = max_processing_share;
+    // exclude privileged jobs
+    total_pre_finishing -= privileged_total_pre_finishing;
+    if (max_jobs_processing == -1 || unprivileged_finishing_job_share <= (unprivileged_jobs_processing / max_processing_share))
+      unprivileged_finishing_limit = max_processing_share;
+    else if (unprivileged_finishing_job_share > unprivileged_jobs_processing || unprivileged_finishing_job_share <= 0)
+      unprivileged_finishing_limit = 1;
+    else if (total_pre_finishing <= unprivileged_jobs_processing)
+      unprivileged_finishing_limit = max_processing_share;
     else
-      finishing_max_share = max_jobs_processing / pre_finishing_job_share.size();
+      unprivileged_finishing_limit = unprivileged_jobs_processing / unprivileged_finishing_job_share;
 
     // if there are queued jobs for both preparing and finishing, split the share between the two states
-    if (max_jobs_processing > 0 && total_pre_preparing > max_jobs_processing/2 && total_pre_finishing > max_jobs_processing/2) {
-      preparing_max_share = preparing_max_share < 2 ? 1 : preparing_max_share/2;
-      finishing_max_share = finishing_max_share < 2 ? 1 : finishing_max_share/2;
+    if (max_jobs_processing > 0 && total_pre_preparing > unprivileged_jobs_processing/2 && total_pre_finishing > unprivileged_jobs_processing/2) {
+      unprivileged_preparing_limit = unprivileged_preparing_limit < 2 ? 1 : unprivileged_preparing_limit/2;
+      unprivileged_finishing_limit = unprivileged_finishing_limit < 2 ? 1 : unprivileged_finishing_limit/2;
+    }
+
+    if (max_jobs_processing > 0 && privileged_total_pre_preparing > privileged_jobs_processing/2 && privileged_total_pre_finishing > privileged_jobs_processing/2)
+    for (std::map<std::string, int>::iterator i = limited_share.begin(); i != limited_share.end(); i++)
+      i->second = i->second < 2 ? 1 : i->second/2; 
+      
+    preparing_max_share = pre_preparing_job_share;
+    finishing_max_share = pre_finishing_job_share;
+    for (std::map<std::string, int>::iterator i = preparing_max_share.begin(); i != preparing_max_share.end(); i++){
+      if (limited_share.find(i->first) != limited_share.end())
+        i->second = limited_share[i->first];
+      else
+        i->second = unprivileged_preparing_limit;
+    }
+    for (std::map<std::string, int>::iterator i = finishing_max_share.begin(); i != finishing_max_share.end(); i++){
+      if (limited_share.find(i->first) != limited_share.end())
+        i->second = limited_share[i->first];
+      else
+        i->second = unprivileged_finishing_limit;
     }
   } // if transfer share activated
 
@@ -875,7 +927,7 @@ void JobsList::ActJobAccepted(JobsList::iterator &i,bool /*hard_job*/,
             ((JOB_NUM_FINISHING >= max_jobs_processing) && 
             (JOB_NUM_PREPARING < max_jobs_processing_emergency))) &&
            (i->next_retry <= time(NULL)) && 
-           (share_type.empty() || preparing_job_share[i->transfer_share] < preparing_max_share)))
+           (share_type.empty() || preparing_job_share[i->transfer_share] < preparing_max_share[i->transfer_share])))
         {
           /* check for user specified time */
           if(i->retries == 0 && i->local->processtime != -1) {
@@ -1049,7 +1101,7 @@ void JobsList::ActJobInlrms(JobsList::iterator &i,bool /*hard_job*/,
                ((JOB_NUM_PREPARING >= max_jobs_processing) &&
                 (JOB_NUM_FINISHING < max_jobs_processing_emergency))) &&
                (i->next_retry <= time(NULL)) &&
-               (share_type.empty() || finishing_job_share[i->transfer_share] < finishing_max_share))) {
+               (share_type.empty() || finishing_job_share[i->transfer_share] < finishing_max_share[i->transfer_share]))) {
                  state_changed=true; once_more=true;
                  i->job_state = JOB_STATE_FINISHING;
                  /* if first pass then reset retries */
@@ -1064,7 +1116,7 @@ void JobsList::ActJobInlrms(JobsList::iterator &i,bool /*hard_job*/,
                    ((JOB_NUM_PREPARING >= max_jobs_processing) &&
                     (JOB_NUM_FINISHING < max_jobs_processing_emergency))) &&
                   (i->next_retry <= time(NULL)) &&
-                  (share_type.empty() || finishing_job_share[i->transfer_share] < finishing_max_share))) {
+                  (share_type.empty() || finishing_job_share[i->transfer_share] < finishing_max_share[i->transfer_share]))) {
                     state_changed=true; once_more=true;
                     i->job_state = JOB_STATE_FINISHING;
                     finishing_job_share[i->transfer_share]++;

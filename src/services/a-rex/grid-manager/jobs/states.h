@@ -64,12 +64,14 @@ class JobsList {
   static bool use_local_transfer;
   static unsigned int wakeup_period;
   std::list<JobDescription> jobs;
-  /* counters of share for preparing/finishing states */
+ /* the list of shares with defined limits */
+  static std::map<std::string, int> limited_share;
+ /* counters of share for preparing/finishing states */
   std::map<std::string, int> preparing_job_share;
   std::map<std::string, int> finishing_job_share;
  /* current max share for preparing/finishing */
-  int preparing_max_share;
-  int finishing_max_share;
+  std::map<std::string, int> preparing_max_share;
+  std::map<std::string, int> finishing_max_share;
   JobUser *user;
   ContinuationPlugins *plugins;
   /* Add job into list without checking if it is already there
@@ -140,9 +142,18 @@ class JobsList {
   static void SetMaxRetries(int r) {JobsList::max_retries = r; };
   static int MaxRetries() { return JobsList::max_retries; };
   static void SetTransferShare(unsigned int max_share, std::string type){
-	max_processing_share = max_share;
-	share_type = type;
+    max_processing_share = max_share;
+    share_type = type;
   };
+  static bool AddLimitedShare(std::string share_name, unsigned int share_limit) {
+    if(max_processing_share == 0)
+      return false;
+    if(share_limit == 0)
+      share_limit = max_processing_share;
+    limited_share[share_name] = share_limit;
+    return true;
+  }
+
  /* Add job to list */
   bool AddJob(JobUser &user,const JobId &id,uid_t uid,gid_t gid);
   bool AddJob(const JobId &id,uid_t uid,gid_t gid);
