@@ -61,7 +61,7 @@ clean:
 	if [ -r Makefile ] ; then $(MAKE) distclean ; fi
 
 	rm -f debian/nordugrid-arc-nox-arex.a-rex.init
-	rm -f debian/nordugrid-arc-nox-server.arched.init
+	rm -f debian/nordugrid-arc-nox-hed.arched.init
 
 	dh_clean configure-stamp build-arch-stamp build-indep-stamp 
 
@@ -87,7 +87,7 @@ install-arch: build-arch-stamp
 	mv debian/tmp/etc/init.d/a-rex debian/nordugrid-arc-nox-arex.a-rex.init
 
 	cp -p src/hed/daemon/scripts/arched.debian \
-		debian/nordugrid-arc-nox-server.arched.init
+		debian/nordugrid-arc-nox-hed.arched.init
 
 binary-indep: install-indep
 	dh_testdir
