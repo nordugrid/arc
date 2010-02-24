@@ -86,7 +86,7 @@ class HardlinkingBackend:
         try:
             filepath = os.path.join(self.datadir, localID)
             # set it to readonly
-            os.chmod(filepath, 0444)
+            os.chmod(filepath, 0400)
             os.link(filepath, os.path.join(self.transferdir, turl_id))
             log.msg(arc.VERBOSE, self.turlprefix, '++', self.idstore)
             turl = self.turlprefix + turl_id
@@ -101,6 +101,7 @@ class HardlinkingBackend:
         datapath = os.path.join(self.datadir, localID)
         f = file(datapath, 'wb')
         f.close()
+        os.chmod(datapath, 0600)
         os.link(datapath, os.path.join(self.transferdir, turl_id))
         self.idstore[localID] = referenceID
         log.msg(arc.VERBOSE, self.turlprefix, '++', self.idstore)
@@ -162,11 +163,21 @@ class ApacheBackend( HardlinkingBackend ):
         log.msg(arc.VERBOSE, "ApacheBackend transferdir:", self.transferdir)
         
 
+    def prepareToGet(self, referenceID, localID, protocol):
+        turl = HardlinkingBackend.prepareToGet(self, referenceID, localID, protocol)
+        if turl != None:
+            filepath = os.path.join(self.datadir, localID)
+            # set group to apache to make it readable to Apache
+            os.chown(filepath, self.uid, self.apachegid)
+            # set it to readonly
+            os.chmod(filepath, 0440)
+        return turl
+
     def prepareToPut(self, referenceID, localID, protocol):
         turl = HardlinkingBackend.prepareToPut(self, referenceID, localID, protocol)
         datapath = os.path.join(self.datadir, localID)
         # set group to apache to make it readable to Apache
         os.chown(datapath, self.uid, self.apachegid)
         # set file group writable
-        os.chmod(datapath, 0664)
+        os.chmod(datapath, 0660)
         return turl
