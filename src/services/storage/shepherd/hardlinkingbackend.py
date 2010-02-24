@@ -112,7 +112,7 @@ class HardlinkingBackend:
             fn = os.path.join(self.datadir, localID)
             os.remove(fn)
         except:
-            raise Exception, 'denied'
+            return 'failed: ' + traceback.format_exc()
         return 'removed'
 
     def list(self):
