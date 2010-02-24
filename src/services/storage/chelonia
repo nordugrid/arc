@@ -1733,6 +1733,8 @@ else:
                 filename = '.'
             if filename == '.':
                 _, _, filename = splitLN(LN)
+            if filename == '':
+                filename, _, _ = splitLN(LN)
             if os.path.exists(filename):
                 print "ERROR: local path '%s'" % filename, 'already exists!'
             else:
