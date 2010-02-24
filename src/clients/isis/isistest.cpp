@@ -33,16 +33,24 @@ std::string Query( Arc::URL url, std::string query, Arc::UserConfig usercfg ){
     Arc::XMLNode request = req.NewChild("Query");
     request.NewChild("QueryString") = query;
 
+    std::string request_string;
+    request.GetDoc(request_string,true);
+    logger.msg(Arc::DEBUG, "Request: %s", request_string);
+
     Arc::MCC_Status status;
     Arc::PayloadSOAP *resp = NULL;
     std::cout << " Request sent. Waiting for the response." << std::endl;
     status= client_entry.process(&req,&resp);
 
-    if(!status) {
+    if ( (!status.isOk()) || (!resp) || (resp->IsFault()) ) {
       logger.msg(Arc::ERROR, "Request failed");
       std::cerr << "Status: " << std::string(status) << std::endl;
       return "-1";
     };
+
+    std::string response_string;
+    (*resp).GetDoc(response_string,true);
+    logger.msg(Arc::DEBUG, "Response: %s", response_string);
 
     //The response message
     std::string response = "";
@@ -99,7 +107,7 @@ std::string Register( Arc::URL url, std::vector<std::string> &serviceID, std::ve
         Arc::XMLNode srcAdv = request.NewChild("RegEntry").NewChild("SrcAdv");
         srcAdv.NewChild("Type") = type[i];
         Arc::XMLNode epr_xmlnode = srcAdv.NewChild("EPR");
-        epr_xmlnode.NewChild("wsa:Address") = epr[i];
+        epr_xmlnode.NewChild("Address") = epr[i];
         //srcAdv.NewChild("SSPair");
 
         Arc::XMLNode metaSrcAdv = request["RegEntry"][i].NewChild("MetaSrcAdv");
@@ -108,16 +116,24 @@ std::string Register( Arc::URL url, std::vector<std::string> &serviceID, std::ve
         metaSrcAdv.NewChild("Expiration") = expiration[i];
     }
 
+    std::string request_string;
+    request.GetDoc(request_string,true);
+    logger.msg(Arc::DEBUG, "Request: %s", request_string);
+
     Arc::MCC_Status status;
     Arc::PayloadSOAP *resp = NULL;
     std::cout << " Request sent. Waiting for the response." << std::endl;
     status= client_entry.process(&req,&resp);
 
-    if(!status) {
+    if ( (!status.isOk()) || (!resp) || (resp->IsFault()) ) {
       logger.msg(Arc::ERROR, "Request failed");
       std::cerr << "Status: " << std::string(status) << std::endl;
       return "-1";
     };
+
+    std::string response_string;
+    (*resp).GetDoc(response_string,true);
+    logger.msg(Arc::DEBUG, "Response: %s", response_string);
 
     //The response message
     std::string response = "";
@@ -162,16 +178,24 @@ std::string RemoveRegistration( Arc::URL url, std::vector<std::string> &serviceI
     out << ptm->tm_year+1900<<"-"<<mon_prefix<<ptm->tm_mon+1<<"-"<<day_prefix<<ptm->tm_mday<<"T"<<hour_prefix<<ptm->tm_hour<<":"<<min_prefix<<ptm->tm_min<<":"<<sec_prefix<<ptm->tm_sec;
     request.NewChild("MessageGenerationTime") = out.str();
 
+    std::string request_string;
+    request.GetDoc(request_string,true);
+    logger.msg(Arc::DEBUG, "Request: %s", request_string);
+
     Arc::MCC_Status status;
     Arc::PayloadSOAP *resp = NULL;
     std::cout << " Request sent. Waiting for the response." << std::endl;
     status= client_entry.process(&req,&resp);
 
-    if(!status) {
+    if ( (!status.isOk()) || (!resp) || (resp->IsFault()) ) {
       logger.msg(Arc::ERROR, "Request failed");
       std::cerr << "Status: " << std::string(status) << std::endl;
       return "-1";
     };
+
+    std::string response_string;
+    (*resp).GetDoc(response_string,true);
+    logger.msg(Arc::DEBUG, "Response: %s", response_string);
 
     //The response message
     std::string response = "";
@@ -202,16 +226,24 @@ std::vector<std::string> GetISISList( Arc::URL url, Arc::UserConfig usercfg ){
     Arc::PayloadSOAP req(query_ns);
     Arc::XMLNode request = req.NewChild("GetISISList");
 
+    std::string request_string;
+    request.GetDoc(request_string,true);
+    logger.msg(Arc::DEBUG, "Request: %s", request_string);
+
     Arc::MCC_Status status;
     Arc::PayloadSOAP *resp = NULL;
     std::cout << " Request sent. Waiting for the response." << std::endl;
     status= client_entry.process(&req,&resp);
 
-    if(!status) {
+    if ( (!status.isOk()) || (!resp) || (resp->IsFault()) ) {
       logger.msg(Arc::ERROR, "Request failed");
       std::cerr << "Status: " << std::string(status) << std::endl;
       return response;
     };
+
+    std::string response_string;
+    (*resp).GetDoc(response_string,true);
+    logger.msg(Arc::DEBUG, "Response: %s", response_string);
 
     // Construct the response vector
     if (bool((*resp)["GetISISListResponse"]) ){
