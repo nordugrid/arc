@@ -11,12 +11,14 @@ use Cwd;
 
 use strict;
 
-# comatibility with perl 5.6
+# Some optional features that may be unavailable in older Perl versions.
+# Should work with Perl v5.8.0 and up.
 BEGIN {
-    eval {require Encode; import Encode 'decode'};
-}
-
-BEGIN {
+    # Makes sure the GLUE document is valid UTF8
+    eval {binmode(STDOUT, ":utf8")};
+    # Used for reading UTF8 encoded grid-mapfile
+    eval {require Encode; import Encode "decode"};
+    # Fall back to whole-second precision if not avaiable
     eval {require Time::HiRes; import Time::HiRes "time"};
 }
 
@@ -109,7 +111,6 @@ sub main {
     my $ceinfo = timed 'all info collectors', \&CEInfo::collect, $config;
 
     my $xml = new XML::Simple(NoAttr => 0, ForceArray => 1, RootName => 'InfoRoot', KeyAttr => ['name']);
-    binmode(STDOUT, ":utf8");
     print timed('printing XML', \&XML::Simple::XMLout, $xml, $ceinfo);
 }
     
