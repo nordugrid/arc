@@ -105,8 +105,8 @@ Performing configuration and installation:
 The following environment variable settings and configuration command line
 options are also recommended to use:
 
-  export PATH="/opt/globus/bin:/opt/globus/sbin:/usr/local/bin:"\
-    "/usr/local/sbin:${PATH}"
+  export PATH="/usr/local/bin:/opt/SUNWspro/bin:/usr/bin:/usr/sfw/bin:"\
+              "/opt/SUNWspro/bin:/usr/xpg4/bin:/usr/ucb:$PATH"
   export GLOBUS_LOCATION="/opt/globus"
   export GPT_LOCATION="/opt/globus"
   export PKG_CONFIG_PATH="/usr/local/xmlsec1/lib/pkgconfig:${PKG_CONFIG_PATH}"
