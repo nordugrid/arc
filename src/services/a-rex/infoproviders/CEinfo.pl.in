@@ -266,7 +266,7 @@ sub read_grid_mapfile($) {
         if ( $line =~ m/\"([^\"]+)\"\s+(\S+)/ ) {
             my $subject = $1;
             eval {
-                $subject = decode("utf8", $subject, Encode::FB_CROAK);
+                $subject = decode("utf8", $subject, 1);
             };
             $usermap->{$subject} = $2;
         }
