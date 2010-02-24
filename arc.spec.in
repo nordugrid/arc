@@ -515,8 +515,10 @@ exit 0
 %{_libdir}/lib*.so.*
 # We need to have libmodcrypto.so close to libarccrypto
 %{_libdir}/%{pkgdir}/libmodcrypto.so
+%{_libdir}/%{pkgdir}/libmodcrypto.apd
 # We need to have libmodcredential.so close to libarccredential
 %{_libdir}/%{pkgdir}/libmodcredential.so
+%{_libdir}/%{pkgdir}/libmodcredential.apd
 %{_datadir}/%{pkgdir}/schema
 %dir %{_datadir}/%{pkgdir}/perl
 %dir %{_datadir}/%{pkgdir}
@@ -586,6 +588,7 @@ exit 0
 %{_initrddir}/arched
 %{_sbindir}/arched
 %{_libdir}/%{pkgdir}/libecho.so
+%{_libdir}/%{pkgdir}/libecho.apd
 %{_datadir}/%{pkgdir}/profiles
 %{_datadir}/%{pkgdir}/examples/config
 %doc %{_datadir}/%{pkgdir}/examples/echo/echo_service.xml.example
@@ -594,6 +597,7 @@ exit 0
 %files charon
 %defattr(-,root,root,-)
 %{_libdir}/%{pkgdir}/libcharon.so
+%{_libdir}/%{pkgdir}/libcharon.apd
 %doc %{_datadir}/%{pkgdir}/examples/charon/charon_policy_arc.xml.example
 %doc %{_datadir}/%{pkgdir}/examples/charon/charon_policy_xacml.xml.example
 %doc %{_datadir}/%{pkgdir}/examples/charon/charon_service.xml.example
@@ -601,11 +605,13 @@ exit 0
 %files hopi
 %defattr(-,root,root,-)
 %{_libdir}/%{pkgdir}/libhopi.so
+%{_libdir}/%{pkgdir}/libhopi.apd
 %doc %{_datadir}/%{pkgdir}/examples/hopi/hopi_service.xml.example
 
 %files isis
 %defattr(-,root,root,-)
 %{_libdir}/%{pkgdir}/libisis.so
+%{_libdir}/%{pkgdir}/libisis.apd
 
 %files compiler
 %defattr(-,root,root,-)
@@ -647,6 +653,7 @@ exit 0
 %{_libexecdir}/%{pkgdir}/finish-condor-job
 %{_libexecdir}/%{pkgdir}/CEinfo.pl
 %{_libdir}/%{pkgdir}/libarex.so
+%{_libdir}/%{pkgdir}/libarex.apd
 %{_libdir}/%{pkgdir}/ARC0mod.pm
 %{_libdir}/%{pkgdir}/FORKmod.pm
 %{_libdir}/%{pkgdir}/SGEmod.pm
@@ -710,24 +717,45 @@ exit 0
 %{_libdir}/%{pkgdir}/libmccsoap.so
 %{_libdir}/%{pkgdir}/libmcctcp.so
 %{_libdir}/%{pkgdir}/libmcctls.so
-%{_libdir}/%{pkgdir}/*.apd
+%{_libdir}/%{pkgdir}/libaccARC1.apd
+%{_libdir}/%{pkgdir}/libaccCREAM.apd
+%{_libdir}/%{pkgdir}/libaccBroker.apd
+%{_libdir}/%{pkgdir}/libaccUNICORE.apd
+%{_libdir}/%{pkgdir}/libarcshc.apd
+%{_libdir}/%{pkgdir}/libdmcarc.apd
+%{_libdir}/%{pkgdir}/libdmcfile.apd
+%{_libdir}/%{pkgdir}/libdmchttp.apd
+%{_libdir}/%{pkgdir}/libdmcldap.apd
+%{_libdir}/%{pkgdir}/libidentitymap.apd
+%{_libdir}/%{pkgdir}/libmcchttp.apd
+%{_libdir}/%{pkgdir}/libmccsoap.apd
+%{_libdir}/%{pkgdir}/libmcctcp.apd
+%{_libdir}/%{pkgdir}/libmcctls.apd
 
 %files plugins-globus
 %defattr(-,root,root,-)
 %{_libdir}/%{pkgdir}/libaccARC0.so
 %{_libdir}/%{pkgdir}/libdmcgridftp.so
+%{_libdir}/%{pkgdir}/libaccARC0.apd
+%{_libdir}/%{pkgdir}/libdmcgridftp.apd
 %if %{with_lfc}
 %{_libdir}/%{pkgdir}/libdmclfc.so
+%{_libdir}/%{pkgdir}/libdmclfc.apd
 %endif
 %{_libdir}/%{pkgdir}/libdmcrls.so
 %{_libdir}/%{pkgdir}/libdmcsrm.so
 %{_libdir}/%{pkgdir}/libmccgsi.so
+%{_libdir}/%{pkgdir}/libdmcrls.apd
+%{_libdir}/%{pkgdir}/libdmcsrm.apd
+%{_libdir}/%{pkgdir}/libmccgsi.apd
 
 %files python
 %defattr(-,root,root,-)
 %{python_sitearch}/*
 %{_libdir}/%{pkgdir}/libaccPythonBroker.so
+%{_libdir}/%{pkgdir}/libaccPythonBroker.apd
 %{ifpy}%{_libdir}/%{pkgdir}/libpythonservice.so
+%{ifpy}%{_libdir}/%{pkgdir}/libpythonservice.apd
 %{_datadir}/%{pkgdir}/examples/storage_service.xml.example
 %doc %{_datadir}/%{pkgdir}/examples/PythonBroker/SampleBroker.py*
 %{_bindir}/arcfs
