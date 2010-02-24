@@ -1,5 +1,5 @@
 from mod_python import apache
-import os
+import os,sys
 
 CHUNK_SIZE=2**20
 
@@ -23,32 +23,45 @@ def handler(req):
     if req.filename.endswith('.transfering'):
         raise apache.SERVER_RETURN, apache.HTTP_FORBIDDEN
 
+    #for i in dir(req):
+    #   exec "print >> sys.stderr, \"%s\", req.%s"%(i,i)
+    #sys.stderr.flush()
+
     if os.path.isfile(req.filename) and not req.filename.endswith('.py'):
 
         req_method = req.the_request[:3]
 
+        tmp_filename=req.filename+'.transfering'
+
         if req_method == 'GET':
             f = open(req.filename, 'rb', CHUNK_SIZE)
         elif req_method == 'PUT':
-            f = open(req.filename, 'wb', CHUNK_SIZE)
+            f = open(req.filename, 'ab', CHUNK_SIZE)
 
-        tmp_filename=req.filename+'.transfering'
         os.rename(req.filename, tmp_filename)
 
-        if 'GET' in req.the_request:
+        if req_method == 'GET':
             
             for chunk in fbuffer(f):
                 req.write(chunk)
 
-        elif 'PUT' in req.the_request:
+        elif req_method == 'PUT':
             # the request req can also be used as file handle
             for chunk in fbuffer(req):
                 f.write(chunk)
 
-
-        f.close()
-        os.remove(tmp_filename)
         
+        if req_method == 'GET':
+           if req.headers_in.get("range", "").startswith("bytes=%ld"%f.tell()):
+              os.remove(tmp_filename)
+           else:
+              os.rename(tmp_filename, req.filename)
+        elif req_method == 'PUT':
+           if req.headers_in.get("Content-Range", "").endswith(str(f.tell())):
+              os.remove(tmp_filename)
+           else:
+              os.rename(tmp_filename, req.filename)
+        f.close()
         return apache.OK
         
             
