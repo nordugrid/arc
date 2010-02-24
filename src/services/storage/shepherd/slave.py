@@ -23,10 +23,6 @@ def handler(req):
     if req.filename.endswith('.transfering'):
         raise apache.SERVER_RETURN, apache.HTTP_FORBIDDEN
 
-    #for i in dir(req):
-    #   exec "print >> sys.stderr, \"%s\", req.%s"%(i,i)
-    #sys.stderr.flush()
-
     if os.path.isfile(req.filename) and not req.filename.endswith('.py'):
 
         req_method = req.the_request[:3]
@@ -41,12 +37,10 @@ def handler(req):
         os.rename(req.filename, tmp_filename)
 
         if req_method == 'GET':
-            
             for chunk in fbuffer(f):
                 req.write(chunk)
 
         elif req_method == 'PUT':
-            # the request req can also be used as file handle
             for chunk in fbuffer(req):
                 f.write(chunk)
 
@@ -64,7 +58,6 @@ def handler(req):
         f.close()
         return apache.OK
         
-            
 
     else:
         raise apache.SERVER_RETURN, apache.HTTP_NOT_FOUND
