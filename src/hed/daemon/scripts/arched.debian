@@ -57,7 +57,7 @@ fi
 prog="arched"
 
 # GLOBUS_LOCATION
-GLOBUS_LOCATION=${GLOBUS_LOCATION:-/opt/globus}
+GLOBUS_LOCATION=${GLOBUS_LOCATION:-/usr}
 if [ ! -d "$GLOBUS_LOCATION" ]; then
   echo "GLOBUS_LOCATION ($GLOBUS_LOCATION) not found" 
   exit 1
