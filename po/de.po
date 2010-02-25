@@ -5,8 +5,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Arc\n"
 "Report-Msgid-Bugs-To: support@nordugrid.org\n"
-"POT-Creation-Date: 2010-02-23 20:47+0100\n"
-"PO-Revision-Date: 2010-02-25 17:13+0100\n"
+"POT-Creation-Date: 2010-02-25 17:34+0100\n"
+"PO-Revision-Date: 2010-02-25 19:18+0100\n"
 "Last-Translator: Steffen Möller <moeller@inb.uni-luebeck.de>\n"
 "Language-Team: German\n"
 "MIME-Version: 1.0\n"
@@ -102,7 +102,7 @@ msgstr "Datei mit Liste aller Jobs"
 #: src/clients/data/arcls.cpp:173
 #: src/clients/data/arcrm.cpp:97
 #: src/clients/echo/arcecho.cpp:43
-#: src/clients/isis/isistest.cpp:286
+#: src/clients/isis/isistest.cpp:318
 #: src/clients/srm/arcsrmping.cpp:45
 #: src/clients/wsrf/arcwsrf.cpp:53
 msgid "filename"
@@ -241,7 +241,7 @@ msgstr "Sekunden"
 #: src/clients/data/arcls.cpp:172
 #: src/clients/data/arcrm.cpp:96
 #: src/clients/echo/arcecho.cpp:42
-#: src/clients/isis/isistest.cpp:285
+#: src/clients/isis/isistest.cpp:317
 #: src/clients/srm/arcsrmping.cpp:44
 #: src/clients/wsrf/arcwsrf.cpp:52
 msgid "configuration file (default ~/.arc/client.conf)"
@@ -266,7 +266,7 @@ msgstr "Konfigurationsdatei (Vorteinstellung ~/.arc/client.conf)"
 #: src/clients/data/arcls.cpp:177
 #: src/clients/data/arcrm.cpp:101
 #: src/clients/echo/arcecho.cpp:47
-#: src/clients/isis/isistest.cpp:275
+#: src/clients/isis/isistest.cpp:307
 #: src/clients/saml/saml_assertion_init.cpp:52
 #: src/clients/srm/arcsrmping.cpp:49
 #: src/clients/wsrf/arcwsrf.cpp:57
@@ -293,7 +293,7 @@ msgstr "FATAL, ERROR, WARNING, INFO, VERBOSE or DEBUG"
 #: src/clients/data/arcls.cpp:178
 #: src/clients/data/arcrm.cpp:102
 #: src/clients/echo/arcecho.cpp:48
-#: src/clients/isis/isistest.cpp:276
+#: src/clients/isis/isistest.cpp:308
 #: src/clients/saml/saml_assertion_init.cpp:53
 #: src/clients/srm/arcsrmping.cpp:50
 #: src/clients/wsrf/arcwsrf.cpp:58
@@ -1151,7 +1151,7 @@ msgstr ""
 
 #: src/clients/credentials/arcslcs.cpp:175
 msgid "Password for user account to IdP"
-msgstr ""
+msgstr "Passwort des user accountd für IdP"
 
 #: src/clients/credentials/arcslcs.cpp:178
 msgid "Key size of the private key (512, 1024, 2048)"
@@ -1164,11 +1164,11 @@ msgstr "Nummer"
 
 #: src/clients/credentials/arcslcs.cpp:181
 msgid "Private key passphrase"
-msgstr ""
+msgstr "Passphrase für privaten Schlüssel"
 
 #: src/clients/credentials/arcslcs.cpp:182
 msgid "passphrase"
-msgstr ""
+msgstr "Passphrase"
 
 #: src/clients/credentials/arcslcs.cpp:185
 msgid "Lifetime of the certificate, start with current time, hour as unit"
@@ -1246,14 +1246,14 @@ msgstr ""
 #: src/clients/data/arccp.cpp:430
 #, c-format
 msgid "Unsupported source url: %s"
-msgstr ""
+msgstr "Nicht unterstützte URL für Quelle: %s"
 
 #: src/clients/data/arccp.cpp:142
 #: src/clients/data/arccp.cpp:361
 #: src/clients/data/arccp.cpp:434
 #, c-format
 msgid "Unsupported destination url: %s"
-msgstr ""
+msgstr "Nicht unterstützte URL für Ziel: %s"
 
 #: src/clients/data/arccp.cpp:147
 msgid "For registration source must be ordinary URL and destination must be indexing service"
@@ -1297,11 +1297,11 @@ msgstr ""
 #: src/clients/data/arccp.cpp:331
 #: src/clients/data/arcls.cpp:63
 msgid "Failed listing metafiles"
-msgstr ""
+msgstr "Fehler beim Auflisten von Meta-Dateien"
 
 #: src/clients/data/arccp.cpp:337
 msgid "Failed listing files"
-msgstr ""
+msgstr "Fehler beim Auflisten von Dateien"
 
 #: src/clients/data/arccp.cpp:347
 #, c-format
@@ -1382,7 +1382,7 @@ msgstr ""
 
 #: src/clients/data/arccp.cpp:497
 msgid "do not try to force passive transfer"
-msgstr ""
+msgstr "versuche nicht, passiven Transfer zu erzwigen"
 
 #: src/clients/data/arccp.cpp:502
 msgid "if the destination is an indexing service and not the same as the source and the destination is already registered, then the copy is normally not done. However, if this option is specified the source is assumed to be a replica of the destination created in an uncontrolled way and the copy is done like in case of replication. Using this option also skips validation of completed transfers."
@@ -1542,9 +1542,9 @@ msgstr ""
 "%s"
 
 #: src/clients/isis/isistest.cpp:29
-#: src/clients/isis/isistest.cpp:74
-#: src/clients/isis/isistest.cpp:142
-#: src/clients/isis/isistest.cpp:199
+#: src/clients/isis/isistest.cpp:82
+#: src/clients/isis/isistest.cpp:158
+#: src/clients/isis/isistest.cpp:223
 #: src/hed/acc/UNICORE/UNICOREClient.cpp:90
 #: src/services/a-rex/test.cpp:154
 #: src/services/a-rex/test.cpp:227
@@ -1568,10 +1568,21 @@ msgstr ""
 msgid "Creating and sending request"
 msgstr "Erstellen und senden von Anfrage"
 
-#: src/clients/isis/isistest.cpp:42
-#: src/clients/isis/isistest.cpp:117
-#: src/clients/isis/isistest.cpp:171
-#: src/clients/isis/isistest.cpp:211
+#: src/clients/isis/isistest.cpp:38
+#: src/clients/isis/isistest.cpp:121
+#: src/clients/isis/isistest.cpp:183
+#: src/clients/isis/isistest.cpp:231
+#: src/services/charon/charon.cpp:89
+#: src/services/charon/test.cpp:101
+#: src/services/slcs/slcs.cpp:124
+#, c-format
+msgid "Request: %s"
+msgstr ""
+
+#: src/clients/isis/isistest.cpp:46
+#: src/clients/isis/isistest.cpp:129
+#: src/clients/isis/isistest.cpp:191
+#: src/clients/isis/isistest.cpp:239
 #: src/services/a-rex/test.cpp:112
 #: src/services/a-rex/test.cpp:191
 #: src/services/a-rex/test.cpp:248
@@ -1590,52 +1601,67 @@ msgstr "Erstellen und senden von Anfrage"
 msgid "Request failed"
 msgstr ""
 
-#: src/clients/isis/isistest.cpp:65
+#: src/clients/isis/isistest.cpp:53
+#: src/clients/isis/isistest.cpp:136
+#: src/clients/isis/isistest.cpp:198
+#: src/clients/isis/isistest.cpp:246
+#: src/hed/dmc/gridftp/Lister.cpp:143
+#: src/hed/dmc/gridftp/Lister.cpp:380
+#: src/hed/dmc/gridftp/Lister.cpp:387
+#: src/hed/dmc/gridftp/Lister.cpp:409
+#: src/hed/shc/pdpserviceinvoker/PDPServiceInvoker.cpp:163
+#: src/hed/shc/pdpserviceinvoker/PDPServiceInvoker.cpp:196
+#: src/services/charon/test.cpp:137
+#, c-format
+msgid "Response: %s"
+msgstr "Antwort: %s"
+
+#: src/clients/isis/isistest.cpp:73
 msgid " Service_ID's number is not equivalent with the EPR's number!"
 msgstr ""
 
-#: src/clients/isis/isistest.cpp:249
+#: src/clients/isis/isistest.cpp:281
 msgid "[ISIS testing ...]"
 msgstr ""
 
-#: src/clients/isis/isistest.cpp:250
+#: src/clients/isis/isistest.cpp:282
 msgid "This tiny tool can be used for testing the ISIS's abilities."
 msgstr ""
 
-#: src/clients/isis/isistest.cpp:252
+#: src/clients/isis/isistest.cpp:284
 msgid "The method are the folows: Query, Register, RemoveRegistration"
 msgstr ""
 
-#: src/clients/isis/isistest.cpp:257
+#: src/clients/isis/isistest.cpp:289
 msgid "define the URL of the Bootstrap ISIS"
 msgstr ""
 
-#: src/clients/isis/isistest.cpp:258
-#: src/clients/isis/isistest.cpp:264
+#: src/clients/isis/isistest.cpp:290
+#: src/clients/isis/isistest.cpp:296
 msgid "isis"
 msgstr "isis"
 
-#: src/clients/isis/isistest.cpp:263
+#: src/clients/isis/isistest.cpp:295
 msgid "define the URL of the ISIS to connect directly"
 msgstr ""
 
-#: src/clients/isis/isistest.cpp:269
+#: src/clients/isis/isistest.cpp:301
 msgid "define which method are use (Query, Register, RemoveRegistration)"
 msgstr ""
 
-#: src/clients/isis/isistest.cpp:270
+#: src/clients/isis/isistest.cpp:302
 msgid "method"
 msgstr "Methode"
 
-#: src/clients/isis/isistest.cpp:280
+#: src/clients/isis/isistest.cpp:312
 msgid "get neighbors list from the BootstrapISIS"
 msgstr ""
 
-#: src/clients/isis/isistest.cpp:318
+#: src/clients/isis/isistest.cpp:350
 msgid " ISIS tester start!"
 msgstr "ISIS tester Start"
 
-#: src/clients/isis/isistest.cpp:381
+#: src/clients/isis/isistest.cpp:413
 #, c-format
 msgid " Not enough or too much parameters! %s"
 msgstr ""
@@ -3149,8 +3175,14 @@ msgstr ""
 msgid "Cannot switch to user (%s)"
 msgstr ""
 
-#: src/hed/daemon/unix/main_unix.cpp:284
-#: src/hed/daemon/win32/main_win32.cpp:122
+#: src/hed/daemon/unix/main_unix.cpp:285
+#: src/hed/daemon/win32/main_win32.cpp:123
+#, fuzzy
+msgid "Failed to load service side MCCs"
+msgstr "Fehler bei Lesen von Zertifikat-Datei: %s"
+
+#: src/hed/daemon/unix/main_unix.cpp:287
+#: src/hed/daemon/win32/main_win32.cpp:125
 #: src/services/a-rex/test.cpp:41
 #: src/services/charon/test.cpp:40
 #: src/services/saml/test_service.cpp:33
@@ -3158,6 +3190,11 @@ msgstr ""
 #: src/tests/echo/test.cpp:35
 #: src/tests/echo/test_service.cpp:33
 msgid "Service side MCCs are loaded"
+msgstr ""
+
+#: src/hed/daemon/unix/main_unix.cpp:294
+#: src/hed/daemon/win32/main_win32.cpp:132
+msgid "Unexpected arguments supplied"
 msgstr ""
 
 #: src/hed/dmc/arc/DataPointARC.cpp:70
@@ -3633,17 +3670,6 @@ msgstr "Fehlende Referenz zu factory und/doer Module. Es ist unsicher, Globus im
 #, c-format
 msgid "Failure: %s"
 msgstr "Fehler: %s"
-
-#: src/hed/dmc/gridftp/Lister.cpp:143
-#: src/hed/dmc/gridftp/Lister.cpp:380
-#: src/hed/dmc/gridftp/Lister.cpp:387
-#: src/hed/dmc/gridftp/Lister.cpp:409
-#: src/hed/shc/pdpserviceinvoker/PDPServiceInvoker.cpp:163
-#: src/hed/shc/pdpserviceinvoker/PDPServiceInvoker.cpp:196
-#: src/services/charon/test.cpp:137
-#, c-format
-msgid "Response: %s"
-msgstr "Antwort: %s"
 
 #: src/hed/dmc/gridftp/Lister.cpp:163
 #, fuzzy, c-format
@@ -10246,7 +10272,7 @@ msgid ""
 msgstr ""
 
 #: src/hed/libs/infosys/InfoRegister.cpp:71
-msgid "Registrar discarded bacuse the \"URL\" element is missing or empty in the configuration."
+msgid "Discarding Registrar because the \"URL\" element is missing or empty."
 msgstr ""
 
 #: src/hed/libs/infosys/InfoRegister.cpp:122
@@ -11788,7 +11814,7 @@ msgid "Delegation handler with delegatee role starts to process"
 msgstr "Delegation handler mit delegatee role gestartet."
 
 #: src/hed/shc/delegationsh/DelegationSH.cpp:148
-#: src/services/a-rex/arex.cpp:282
+#: src/services/a-rex/arex.cpp:284
 #: src/services/charon/charon.cpp:66
 #: src/services/delegation/delegation.cpp:75
 #: src/services/slcs/slcs.cpp:104
@@ -11798,7 +11824,7 @@ msgstr "Prozess: POST"
 
 #: src/hed/shc/delegationsh/DelegationSH.cpp:155
 #: src/services/arex2/arex2.cpp:113
-#: src/services/a-rex/arex.cpp:290
+#: src/services/a-rex/arex.cpp:292
 #: src/services/charon/charon.cpp:74
 #: src/services/delegation/delegation.cpp:83
 #: src/services/saml/aaservice.cpp:82
@@ -12212,14 +12238,14 @@ msgid "No target available inside the rule"
 msgstr "Kein Ziel verfügbar in dieser Regel"
 
 #: src/services/arex2/arex2.cpp:120
-#: src/services/a-rex/arex.cpp:303
+#: src/services/a-rex/arex.cpp:305
 #: src/services/sched/grid_sched.cpp:101
 #: src/tests/count/count.cpp:69
 msgid "input does not define operation"
 msgstr ""
 
 #: src/services/arex2/arex2.cpp:123
-#: src/services/a-rex/arex.cpp:306
+#: src/services/a-rex/arex.cpp:308
 #: src/services/sched/grid_sched.cpp:104
 #: src/tests/count/count.cpp:72
 #, c-format
@@ -12227,67 +12253,67 @@ msgid "process: operation: %s"
 msgstr ""
 
 #: src/services/arex2/arex2.cpp:169
-#: src/services/a-rex/arex.cpp:396
+#: src/services/a-rex/arex.cpp:398
 #: src/services/sched/grid_sched.cpp:164
 #, c-format
 msgid "SOAP operation is not supported: %s"
 msgstr ""
 
 #: src/services/arex2/arex2.cpp:177
-#: src/services/a-rex/arex.cpp:384
-#: src/services/a-rex/arex.cpp:403
+#: src/services/a-rex/arex.cpp:386
+#: src/services/a-rex/arex.cpp:405
 #: src/services/sched/grid_sched.cpp:172
 #: src/tests/echo/echo.cpp:166
 #, c-format
 msgid "process: response=%s"
 msgstr ""
 
-#: src/services/a-rex/arex.cpp:179
+#: src/services/a-rex/arex.cpp:181
 msgid "Will not map to 'root' account by default"
 msgstr ""
 
-#: src/services/a-rex/arex.cpp:192
+#: src/services/a-rex/arex.cpp:194
 msgid "No local account name specified"
 msgstr ""
 
-#: src/services/a-rex/arex.cpp:195
+#: src/services/a-rex/arex.cpp:197
 #, c-format
 msgid "Using local account '%s'"
 msgstr ""
 
-#: src/services/a-rex/arex.cpp:216
+#: src/services/a-rex/arex.cpp:218
 msgid "Failed to acquire grid-manager's configuration"
 msgstr ""
 
-#: src/services/a-rex/arex.cpp:246
+#: src/services/a-rex/arex.cpp:248
 #, c-format
 msgid "process: method: %s"
 msgstr ""
 
-#: src/services/a-rex/arex.cpp:247
+#: src/services/a-rex/arex.cpp:249
 #, c-format
 msgid "process: endpoint: %s"
 msgstr ""
 
-#: src/services/a-rex/arex.cpp:258
+#: src/services/a-rex/arex.cpp:260
 #, c-format
 msgid "process: id: %s"
 msgstr ""
 
-#: src/services/a-rex/arex.cpp:259
+#: src/services/a-rex/arex.cpp:261
 #, c-format
 msgid "process: subpath: %s"
 msgstr ""
 
-#: src/services/a-rex/arex.cpp:264
+#: src/services/a-rex/arex.cpp:266
 msgid "Can't obtain configuration"
 msgstr ""
 
-#: src/services/a-rex/arex.cpp:274
-#: src/services/a-rex/arex.cpp:390
-#: src/services/a-rex/arex.cpp:411
-#: src/services/a-rex/arex.cpp:424
-#: src/services/a-rex/arex.cpp:439
+#: src/services/a-rex/arex.cpp:276
+#: src/services/a-rex/arex.cpp:392
+#: src/services/a-rex/arex.cpp:413
+#: src/services/a-rex/arex.cpp:426
+#: src/services/a-rex/arex.cpp:441
 #: src/services/delegation/delegation.cpp:62
 #: src/services/delegation/delegation.cpp:174
 #: src/services/slcs/slcs.cpp:43
@@ -12295,47 +12321,63 @@ msgstr ""
 msgid "Security Handlers processing failed"
 msgstr ""
 
-#: src/services/a-rex/arex.cpp:298
+#: src/services/a-rex/arex.cpp:300
 #: src/services/sched/grid_sched.cpp:95
 #: src/tests/echo/echo.cpp:98
 #, c-format
 msgid "process: request=%s"
 msgstr ""
 
-#: src/services/a-rex/arex.cpp:311
+#: src/services/a-rex/arex.cpp:313
 msgid "process: factory endpoint"
 msgstr ""
 
-#: src/services/a-rex/arex.cpp:386
+#: src/services/a-rex/arex.cpp:388
 msgid "process: response is not SOAP"
 msgstr ""
 
-#: src/services/a-rex/arex.cpp:418
+#: src/services/a-rex/arex.cpp:420
 msgid "process: GET"
 msgstr ""
 
-#: src/services/a-rex/arex.cpp:431
+#: src/services/a-rex/arex.cpp:433
 msgid "process: PUT"
 msgstr ""
 
-#: src/services/a-rex/arex.cpp:446
+#: src/services/a-rex/arex.cpp:448
 #, c-format
 msgid "process: method %s is not supported"
 msgstr ""
 
-#: src/services/a-rex/arex.cpp:505
+#: src/services/a-rex/arex.cpp:497
+#, fuzzy
+msgid "Failed to process service configuration"
+msgstr "Pfad zu VOMS Server Konfigurationsdatei"
+
+#: src/services/a-rex/arex.cpp:513
+#: src/services/a-rex/arex.cpp:568
 #, fuzzy, c-format
-msgid "Failed to create emporay file in %s - %s"
+msgid "Failed to create control (%s) or session (%s) directories"
+msgstr "Konnte ownen des session dir nicht ändern zu %i: %s"
+
+#: src/services/a-rex/arex.cpp:530
+#, fuzzy, c-format
+msgid "Failed to create temporary file in %s - %s"
 msgstr "Fehler bei Erstellen von Info-Datei %s: %s"
 
-#: src/services/a-rex/arex.cpp:510
+#: src/services/a-rex/arex.cpp:535
 #, c-format
 msgid "Storing configuration into temporary file - %s"
 msgstr ""
 
-#: src/services/a-rex/arex.cpp:526
+#: src/services/a-rex/arex.cpp:552
 #, fuzzy, c-format
 msgid "Failed to store configuration into temporary file: %s"
+msgstr "Fehler beim Laden der Service Konfigurationsdatei %s"
+
+#: src/services/a-rex/arex.cpp:563
+#, fuzzy, c-format
+msgid "Failed to process configuration in %s"
 msgstr "Fehler beim Laden der Service Konfigurationsdatei %s"
 
 #: src/services/a-rex/cachecheck.cpp:48
@@ -12344,9 +12386,9 @@ msgid "Error with cache configuration"
 msgstr ""
 
 #: src/services/a-rex/cachecheck.cpp:67
-#: src/services/a-rex/grid-manager/conf/conf_file.cpp:484
-#: src/services/a-rex/grid-manager/conf/conf_file.cpp:911
-#: src/services/a-rex/grid-manager/jobs/states.cpp:1199
+#: src/services/a-rex/grid-manager/conf/conf_file.cpp:507
+#: src/services/a-rex/grid-manager/conf/conf_file.cpp:934
+#: src/services/a-rex/grid-manager/jobs/states.cpp:1251
 #: src/services/a-rex/grid-manager/loaders/downloader.cpp:444
 #: src/services/a-rex/grid-manager/loaders/uploader.cpp:358
 #, c-format
@@ -12590,7 +12632,7 @@ msgstr ""
 #: src/services/a-rex/grid-manager/conf/conf_file.cpp:72
 #: src/services/a-rex/grid-manager/conf/conf_map.cpp:30
 #: src/services/a-rex/grid-manager/conf/conf_pre.cpp:45
-#: src/services/a-rex/grid-manager/conf/conf_pre.cpp:332
+#: src/services/a-rex/grid-manager/conf/conf_pre.cpp:325
 #: src/services/a-rex/grid-manager/loaders/janitor.cpp:76
 msgid "Can't interpret configuration file as XML"
 msgstr ""
@@ -12623,283 +12665,296 @@ msgstr ""
 msgid "the type of share is not set in maxloadshare"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/conf_file.cpp:218
-#: src/services/a-rex/grid-manager/conf/conf_file.cpp:232
-#: src/services/a-rex/grid-manager/conf/conf_file.cpp:239
+#: src/services/a-rex/grid-manager/conf/conf_file.cpp:221
+msgid "the name of share is not set in share_limit"
+msgstr ""
+
+#: src/services/a-rex/grid-manager/conf/conf_file.cpp:226
+#, c-format
+msgid "wrong number in share_limit: %s"
+msgstr ""
+
+#: src/services/a-rex/grid-manager/conf/conf_file.cpp:230
+msgid "share_limit should be located after maxloadshare"
+msgstr ""
+
+#: src/services/a-rex/grid-manager/conf/conf_file.cpp:241
+#: src/services/a-rex/grid-manager/conf/conf_file.cpp:255
+#: src/services/a-rex/grid-manager/conf/conf_file.cpp:262
 #, c-format
 msgid "wrong number in speedcontrol: %s"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/conf_file.cpp:225
+#: src/services/a-rex/grid-manager/conf/conf_file.cpp:248
 msgid "wrong number in speedcontrol: "
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/conf_file.cpp:251
+#: src/services/a-rex/grid-manager/conf/conf_file.cpp:274
 #, c-format
 msgid "wrong number in wakeupperiod: %s"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/conf_file.cpp:267
+#: src/services/a-rex/grid-manager/conf/conf_file.cpp:290
 msgid "wrong option in securetransfer"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/conf_file.cpp:281
+#: src/services/a-rex/grid-manager/conf/conf_file.cpp:304
 msgid "wrong option in passivetransfer"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/conf_file.cpp:290
+#: src/services/a-rex/grid-manager/conf/conf_file.cpp:313
 msgid "wrong number in maxtransfertries"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/conf_file.cpp:304
+#: src/services/a-rex/grid-manager/conf/conf_file.cpp:327
 msgid "wrong option in norootpower"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/conf_file.cpp:317
+#: src/services/a-rex/grid-manager/conf/conf_file.cpp:340
 msgid "wrong option in localtransfer"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/conf_file.cpp:324
+#: src/services/a-rex/grid-manager/conf/conf_file.cpp:347
 msgid "mail is empty"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/conf_file.cpp:331
+#: src/services/a-rex/grid-manager/conf/conf_file.cpp:354
 msgid "defaultttl is empty"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/conf_file.cpp:335
-#: src/services/a-rex/grid-manager/conf/conf_file.cpp:344
+#: src/services/a-rex/grid-manager/conf/conf_file.cpp:358
+#: src/services/a-rex/grid-manager/conf/conf_file.cpp:367
 msgid "wrong number in defaultttl command"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/conf_file.cpp:340
+#: src/services/a-rex/grid-manager/conf/conf_file.cpp:363
 msgid "junk in defaultttl command"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/conf_file.cpp:353
+#: src/services/a-rex/grid-manager/conf/conf_file.cpp:376
 msgid "maxrerun is empty"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/conf_file.cpp:356
+#: src/services/a-rex/grid-manager/conf/conf_file.cpp:379
 msgid "junk in maxrerun command"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/conf_file.cpp:361
+#: src/services/a-rex/grid-manager/conf/conf_file.cpp:384
 msgid "wrong number in maxrerun command"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/conf_file.cpp:367
+#: src/services/a-rex/grid-manager/conf/conf_file.cpp:390
 msgid "diskspace is empty"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/conf_file.cpp:370
+#: src/services/a-rex/grid-manager/conf/conf_file.cpp:393
 msgid "junk in diskspace command"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/conf_file.cpp:375
+#: src/services/a-rex/grid-manager/conf/conf_file.cpp:398
 msgid "wrong number in diskspace command"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/conf_file.cpp:385
+#: src/services/a-rex/grid-manager/conf/conf_file.cpp:408
 msgid "defaultlrms is empty"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/conf_file.cpp:388
+#: src/services/a-rex/grid-manager/conf/conf_file.cpp:411
 msgid "junk in defaultlrms command"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/conf_file.cpp:396
+#: src/services/a-rex/grid-manager/conf/conf_file.cpp:419
 msgid "state name for plugin is missing"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/conf_file.cpp:400
+#: src/services/a-rex/grid-manager/conf/conf_file.cpp:423
 msgid "Options for plugin are missing"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/conf_file.cpp:403
-#: src/services/a-rex/grid-manager/conf/conf_file.cpp:779
+#: src/services/a-rex/grid-manager/conf/conf_file.cpp:426
+#: src/services/a-rex/grid-manager/conf/conf_file.cpp:802
 #, c-format
 msgid "Failed to register plugin for state %s"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/conf_file.cpp:410
+#: src/services/a-rex/grid-manager/conf/conf_file.cpp:433
 msgid "timeout for plugin is missing"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/conf_file.cpp:415
+#: src/services/a-rex/grid-manager/conf/conf_file.cpp:438
 msgid "wrong number for timeout in plugin command"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/conf_file.cpp:426
+#: src/services/a-rex/grid-manager/conf/conf_file.cpp:449
 msgid "session root dir is missing"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/conf_file.cpp:429
+#: src/services/a-rex/grid-manager/conf/conf_file.cpp:452
 msgid "junk in session root command"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/conf_file.cpp:437
+#: src/services/a-rex/grid-manager/conf/conf_file.cpp:460
 msgid "missing directory in control command"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/conf_file.cpp:446
-#: src/services/a-rex/grid-manager/conf/conf_file.cpp:865
+#: src/services/a-rex/grid-manager/conf/conf_file.cpp:469
+#: src/services/a-rex/grid-manager/conf/conf_file.cpp:888
 #: src/services/a-rex/grid-manager/conf/conf_pre.cpp:112
 #: src/services/a-rex/grid-manager/conf/conf_pre.cpp:281
 #, c-format
 msgid "Can't read users in gridmap file %s"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/conf_file.cpp:463
-#: src/services/a-rex/grid-manager/conf/conf_file.cpp:890
+#: src/services/a-rex/grid-manager/conf/conf_file.cpp:486
+#: src/services/a-rex/grid-manager/conf/conf_file.cpp:913
 #, c-format
 msgid "Warning: creation of user \"%s\" failed"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/conf_file.cpp:508
+#: src/services/a-rex/grid-manager/conf/conf_file.cpp:531
 msgid "user for helper program is missing"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/conf_file.cpp:511
+#: src/services/a-rex/grid-manager/conf/conf_file.cpp:534
 msgid "helper program is missing"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/conf_file.cpp:541
+#: src/services/a-rex/grid-manager/conf/conf_file.cpp:564
 #, c-format
 msgid "%s user for helper program is not configured"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/conf_file.cpp:728
+#: src/services/a-rex/grid-manager/conf/conf_file.cpp:751
 msgid "serviceMail is empty"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/conf_file.cpp:742
+#: src/services/a-rex/grid-manager/conf/conf_file.cpp:765
 msgid "type in LRMS is missing"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/conf_file.cpp:748
+#: src/services/a-rex/grid-manager/conf/conf_file.cpp:771
 msgid "LRMS is missing"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/conf_file.cpp:760
+#: src/services/a-rex/grid-manager/conf/conf_file.cpp:783
 msgid "state name for authPlugin is missing"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/conf_file.cpp:765
+#: src/services/a-rex/grid-manager/conf/conf_file.cpp:788
 msgid "command for authPlugin is missing"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/conf_file.cpp:792
+#: src/services/a-rex/grid-manager/conf/conf_file.cpp:815
 msgid "command for localCred is missing"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/conf_file.cpp:799
+#: src/services/a-rex/grid-manager/conf/conf_file.cpp:822
 msgid "timeout for localCred is missing"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/conf_file.cpp:804
+#: src/services/a-rex/grid-manager/conf/conf_file.cpp:827
 msgid "timeout for localCred is incorrect number"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/conf_file.cpp:831
+#: src/services/a-rex/grid-manager/conf/conf_file.cpp:854
 msgid "At least one control element must be present"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/conf_file.cpp:837
+#: src/services/a-rex/grid-manager/conf/conf_file.cpp:860
 msgid "controlDir is missing"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/conf_file.cpp:842
+#: src/services/a-rex/grid-manager/conf/conf_file.cpp:865
 msgid "sessionRootDir is missing"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/conf_file.cpp:861
+#: src/services/a-rex/grid-manager/conf/conf_file.cpp:884
 msgid "username in control is empty"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/conf_file.cpp:878
+#: src/services/a-rex/grid-manager/conf/conf_file.cpp:901
 msgid "No username entries in control"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/conf_file.cpp:938
+#: src/services/a-rex/grid-manager/conf/conf_file.cpp:961
 msgid "command in helperUtility is missing"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/conf_file.cpp:945
+#: src/services/a-rex/grid-manager/conf/conf_file.cpp:968
 msgid "username in helperUtility is empty"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/conf_file.cpp:975
+#: src/services/a-rex/grid-manager/conf/conf_file.cpp:998
 #, c-format
 msgid "User %s for helperUtility is not configured"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/conf_file.cpp:990
+#: src/services/a-rex/grid-manager/conf/conf_file.cpp:1013
 #, c-format
 msgid "Added user : %s"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/conf_file.cpp:991
+#: src/services/a-rex/grid-manager/conf/conf_file.cpp:1014
 #, c-format
 msgid "\tSession root dir : %s"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/conf_file.cpp:992
+#: src/services/a-rex/grid-manager/conf/conf_file.cpp:1015
 #, c-format
 msgid "\tControl dir      : %s"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/conf_file.cpp:993
+#: src/services/a-rex/grid-manager/conf/conf_file.cpp:1016
 #, c-format
 msgid "\tdefault LRMS     : %s"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/conf_file.cpp:994
+#: src/services/a-rex/grid-manager/conf/conf_file.cpp:1017
 #, c-format
 msgid "\tdefault queue    : %s"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/conf_file.cpp:995
+#: src/services/a-rex/grid-manager/conf/conf_file.cpp:1018
 #, c-format
 msgid "\tdefault ttl      : %u"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/conf_file.cpp:1000
-#: src/services/a-rex/grid-manager/conf/conf_file.cpp:1007
+#: src/services/a-rex/grid-manager/conf/conf_file.cpp:1023
+#: src/services/a-rex/grid-manager/conf/conf_file.cpp:1030
 msgid "No valid caches found in configuration, caching is disabled"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/conf_file.cpp:1012
+#: src/services/a-rex/grid-manager/conf/conf_file.cpp:1035
 #, c-format
 msgid "\tCache            : %s"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/conf_file.cpp:1014
+#: src/services/a-rex/grid-manager/conf/conf_file.cpp:1037
 #, c-format
 msgid "\tCache link dir   : %s"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/conf_file.cpp:1018
+#: src/services/a-rex/grid-manager/conf/conf_file.cpp:1041
 #, c-format
 msgid "\tRemote cache     : %s"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/conf_file.cpp:1020
+#: src/services/a-rex/grid-manager/conf/conf_file.cpp:1043
 #, c-format
 msgid "\tRemote cache link: %s"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/conf_file.cpp:1023
+#: src/services/a-rex/grid-manager/conf/conf_file.cpp:1046
 msgid "\tCache cleaning enabled"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/conf_file.cpp:1025
+#: src/services/a-rex/grid-manager/conf/conf_file.cpp:1048
 msgid "\tCache cleaning disabled"
 msgstr ""
 
 #: src/services/a-rex/grid-manager/conf/conf_map.cpp:23
 #: src/services/a-rex/grid-manager/conf/conf_pre.cpp:39
-#: src/services/a-rex/grid-manager/conf/conf_pre.cpp:326
+#: src/services/a-rex/grid-manager/conf/conf_pre.cpp:319
 #: src/services/a-rex/grid-manager/loaders/janitor.cpp:68
 msgid "Can't open configuration file"
 msgstr ""
@@ -12918,11 +12973,6 @@ msgstr ""
 
 #: src/services/a-rex/grid-manager/conf/conf_map.cpp:88
 msgid "Not enough parameters in linkurl"
-msgstr ""
-
-#: src/services/a-rex/grid-manager/conf/conf_pre.cpp:301
-#, c-format
-msgid "Configured username is invalid %s"
 msgstr ""
 
 #: src/services/a-rex/grid-manager/conf/daemon.cpp:56
@@ -13134,378 +13184,378 @@ msgstr ""
 msgid "Bad name for executable: %s"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/states.cpp:110
+#: src/services/a-rex/grid-manager/jobs/states.cpp:111
 #, c-format
 msgid "%s: Added"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/states.cpp:257
+#: src/services/a-rex/grid-manager/jobs/states.cpp:309
 #, c-format
 msgid "%s: Destroying"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/states.cpp:261
+#: src/services/a-rex/grid-manager/jobs/states.cpp:313
 #, c-format
 msgid "%s: Can't read state - no comments, just cleaning"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/states.cpp:272
+#: src/services/a-rex/grid-manager/jobs/states.cpp:324
 #, c-format
 msgid "%s: Cleaning control and session directories"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/states.cpp:277
+#: src/services/a-rex/grid-manager/jobs/states.cpp:329
 #, c-format
 msgid "%s: This job may be still running - canceling"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/states.cpp:280
+#: src/services/a-rex/grid-manager/jobs/states.cpp:332
 #, c-format
 msgid "%s: Cancelation failed (probably job finished) - cleaning anyway"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/states.cpp:286
+#: src/services/a-rex/grid-manager/jobs/states.cpp:338
 #, c-format
 msgid "%s: Cancelation probably succeeded - cleaning"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/states.cpp:309
-#: src/services/a-rex/grid-manager/jobs/states.cpp:325
-#: src/services/a-rex/grid-manager/jobs/states.cpp:340
-#: src/services/a-rex/grid-manager/jobs/states.cpp:753
+#: src/services/a-rex/grid-manager/jobs/states.cpp:361
+#: src/services/a-rex/grid-manager/jobs/states.cpp:377
+#: src/services/a-rex/grid-manager/jobs/states.cpp:392
+#: src/services/a-rex/grid-manager/jobs/states.cpp:805
 #, c-format
 msgid "%s: Failed reading local information"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/states.cpp:353
+#: src/services/a-rex/grid-manager/jobs/states.cpp:405
 #, c-format
 msgid "%s: Failed creating grami file"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/states.cpp:357
+#: src/services/a-rex/grid-manager/jobs/states.cpp:409
 #, c-format
 msgid "%s: Failed setting executable permissions"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/states.cpp:369
+#: src/services/a-rex/grid-manager/jobs/states.cpp:421
 #, c-format
 msgid "%s: state SUBMITTING: starting child: %s"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/states.cpp:372
+#: src/services/a-rex/grid-manager/jobs/states.cpp:424
 #, c-format
 msgid "%s: state CANCELING: starting child: %s"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/states.cpp:374
+#: src/services/a-rex/grid-manager/jobs/states.cpp:426
 #, c-format
 msgid "%s: Job has completed already. No action taken to cancel"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/states.cpp:386
+#: src/services/a-rex/grid-manager/jobs/states.cpp:438
 #, c-format
 msgid "%s: Failed running submission process"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/states.cpp:388
+#: src/services/a-rex/grid-manager/jobs/states.cpp:440
 #, c-format
 msgid "%s: Failed running cancel process"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/states.cpp:401
+#: src/services/a-rex/grid-manager/jobs/states.cpp:453
 #, c-format
 msgid "%s: state SUBMITTING: child exited with code %i"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/states.cpp:403
+#: src/services/a-rex/grid-manager/jobs/states.cpp:455
 #, c-format
 msgid "%s: state CANCELING: child exited with code %i"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/states.cpp:407
+#: src/services/a-rex/grid-manager/jobs/states.cpp:459
 #, c-format
 msgid "%s: Job submission to LRMS failed"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/states.cpp:410
+#: src/services/a-rex/grid-manager/jobs/states.cpp:462
 #, c-format
 msgid "%s: Failed to cancel running job"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/states.cpp:421
+#: src/services/a-rex/grid-manager/jobs/states.cpp:473
 #, c-format
 msgid "%s: Failed obtaining lrms id"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/states.cpp:447
+#: src/services/a-rex/grid-manager/jobs/states.cpp:499
 #, c-format
 msgid "%s: Failed writing local information"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/states.cpp:456
+#: src/services/a-rex/grid-manager/jobs/states.cpp:508
 #, c-format
 msgid "%s: state CANCELING: job diagnostics collected"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/states.cpp:471
+#: src/services/a-rex/grid-manager/jobs/states.cpp:523
 #, c-format
 msgid "%s: state: PREPARING/FINISHING: starting new child"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/states.cpp:561
+#: src/services/a-rex/grid-manager/jobs/states.cpp:613
 #, c-format
 msgid "%s: State PREPARING: starting child: %s"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/states.cpp:562
+#: src/services/a-rex/grid-manager/jobs/states.cpp:614
 #, c-format
 msgid "%s: State FINISHING: starting child: %s"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/states.cpp:566
+#: src/services/a-rex/grid-manager/jobs/states.cpp:618
 #, c-format
 msgid "%s: Failed to run down/uploader process"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/states.cpp:576
+#: src/services/a-rex/grid-manager/jobs/states.cpp:628
 #, c-format
 msgid "%s: State: PREPARING/FINISHING: child is running"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/states.cpp:581
+#: src/services/a-rex/grid-manager/jobs/states.cpp:633
 #, c-format
 msgid "%s: State: PREPARING: child exited with code: %i"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/states.cpp:582
+#: src/services/a-rex/grid-manager/jobs/states.cpp:634
 #, c-format
 msgid "%s: State: FINISHING: child exited with code: %i"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/states.cpp:587
+#: src/services/a-rex/grid-manager/jobs/states.cpp:639
 #, c-format
 msgid "%s: State: FINISHING: unrecoverable error detected (exit code 1)"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/states.cpp:590
+#: src/services/a-rex/grid-manager/jobs/states.cpp:642
 #, c-format
 msgid "%s: State: PREPARING: unrecoverable error detected (exit code 1)"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/states.cpp:620
+#: src/services/a-rex/grid-manager/jobs/states.cpp:672
 #, c-format
 msgid "%s: State: FINISHING: credentials probably expired (exit code 3)"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/states.cpp:623
+#: src/services/a-rex/grid-manager/jobs/states.cpp:675
 #, c-format
 msgid "%s: State: PREPARING: credentials probably expired (exit code 3)"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/states.cpp:627
+#: src/services/a-rex/grid-manager/jobs/states.cpp:679
 #, c-format
 msgid "%s: State: PREPARING/FINISHING: retryable error"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/states.cpp:634
+#: src/services/a-rex/grid-manager/jobs/states.cpp:686
 #, c-format
 msgid "%s: State: FINISHING: some error detected (exit code %i). Recover from such type of errors is not supported yet."
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/states.cpp:637
+#: src/services/a-rex/grid-manager/jobs/states.cpp:689
 #, c-format
 msgid "%s: State: PREPARING: some error detected (exit code %i). Recover from such type of errors is not supported yet."
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/states.cpp:671
+#: src/services/a-rex/grid-manager/jobs/states.cpp:723
 #, c-format
 msgid "%s: Job is not allowed to be rerun anymore"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/states.cpp:680
+#: src/services/a-rex/grid-manager/jobs/states.cpp:732
 #, c-format
 msgid "%s: Job failed in unknown state. Won't rerun."
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/states.cpp:696
+#: src/services/a-rex/grid-manager/jobs/states.cpp:748
 #, c-format
 msgid "%s: Failed to read list of output files"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/states.cpp:700
+#: src/services/a-rex/grid-manager/jobs/states.cpp:752
 #, c-format
 msgid "%s: Failed to read list of input files"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/states.cpp:706
+#: src/services/a-rex/grid-manager/jobs/states.cpp:758
 #, c-format
 msgid "%s: Reprocessing RSL failed"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/states.cpp:713
+#: src/services/a-rex/grid-manager/jobs/states.cpp:765
 #, c-format
 msgid "%s: Failed to read reprocessed list of output files"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/states.cpp:717
+#: src/services/a-rex/grid-manager/jobs/states.cpp:769
 #, c-format
 msgid "%s: Failed to read reprocessed list of input files"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/states.cpp:780
+#: src/services/a-rex/grid-manager/jobs/states.cpp:832
 #, c-format
 msgid "%s: Reading status of new job failed"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/states.cpp:798
+#: src/services/a-rex/grid-manager/jobs/states.cpp:850
 #, c-format
 msgid "%s: State: ACCEPTED: parsing job description"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/states.cpp:800
+#: src/services/a-rex/grid-manager/jobs/states.cpp:852
 #, c-format
 msgid "%s: Processing job description failed"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/states.cpp:815
-#: src/services/a-rex/grid-manager/jobs/states.cpp:843
+#: src/services/a-rex/grid-manager/jobs/states.cpp:867
+#: src/services/a-rex/grid-manager/jobs/states.cpp:895
 #, fuzzy, c-format
 msgid "%s: adding to transfer share %s"
 msgstr "Datentransfer abgebrochen: %s"
 
-#: src/services/a-rex/grid-manager/jobs/states.cpp:828
+#: src/services/a-rex/grid-manager/jobs/states.cpp:880
 #, c-format
 msgid "%s: %s: New job belongs to %i/%i"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/states.cpp:860
+#: src/services/a-rex/grid-manager/jobs/states.cpp:912
 #, c-format
 msgid "%s: State: ACCEPTED"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/states.cpp:866
+#: src/services/a-rex/grid-manager/jobs/states.cpp:918
 #, c-format
 msgid "%s: State: ACCEPTED: dryrun"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/states.cpp:882
+#: src/services/a-rex/grid-manager/jobs/states.cpp:934
 #, c-format
 msgid "%s: State: ACCEPTED: have processtime %s"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/states.cpp:885
-#: src/services/a-rex/grid-manager/jobs/states.cpp:893
+#: src/services/a-rex/grid-manager/jobs/states.cpp:937
+#: src/services/a-rex/grid-manager/jobs/states.cpp:945
 #, c-format
 msgid "%s: State: ACCEPTED: moving to PREPARING"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/states.cpp:917
+#: src/services/a-rex/grid-manager/jobs/states.cpp:969
 #, c-format
 msgid "%s: State: PREPARING"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/states.cpp:934
+#: src/services/a-rex/grid-manager/jobs/states.cpp:986
 #, c-format
 msgid "%s: Download failed. No retries left."
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/states.cpp:947
+#: src/services/a-rex/grid-manager/jobs/states.cpp:999
 #, c-format
 msgid "%s: Download failed. %d retries left. Will wait for %ds before retrying"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/states.cpp:968
+#: src/services/a-rex/grid-manager/jobs/states.cpp:1020
 #, c-format
 msgid "%s: State: SUBMITTING"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/states.cpp:985
+#: src/services/a-rex/grid-manager/jobs/states.cpp:1037
 #, c-format
 msgid "%s: State: CANCELING"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/states.cpp:1000
+#: src/services/a-rex/grid-manager/jobs/states.cpp:1052
 #, c-format
 msgid "%s: State: INLRMS"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/states.cpp:1010
+#: src/services/a-rex/grid-manager/jobs/states.cpp:1062
 #, c-format
 msgid "%s: Job finished"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/states.cpp:1014
+#: src/services/a-rex/grid-manager/jobs/states.cpp:1066
 #, c-format
 msgid "%s: State: INLRMS: exit message is %i %s"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/states.cpp:1080
+#: src/services/a-rex/grid-manager/jobs/states.cpp:1132
 #, c-format
 msgid "%s: State: FINISHING"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/states.cpp:1086
+#: src/services/a-rex/grid-manager/jobs/states.cpp:1138
 #, c-format
 msgid "%s: Upload failed. No retries left."
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/states.cpp:1099
+#: src/services/a-rex/grid-manager/jobs/states.cpp:1151
 #, c-format
 msgid "%s: Upload failed. %d retries left. Will wait for %ds before retrying."
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/states.cpp:1139
+#: src/services/a-rex/grid-manager/jobs/states.cpp:1191
 #, c-format
 msgid "%s: Job is requested to clean - deleting"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/states.cpp:1179
+#: src/services/a-rex/grid-manager/jobs/states.cpp:1231
 #, c-format
 msgid "%s: Can't rerun on request - not a suitable state"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/states.cpp:1190
+#: src/services/a-rex/grid-manager/jobs/states.cpp:1242
 #, c-format
 msgid "%s: Job is too old - deleting"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/states.cpp:1246
+#: src/services/a-rex/grid-manager/jobs/states.cpp:1298
 #, c-format
 msgid "%s: Job is ancient - delete rest of information"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/states.cpp:1279
+#: src/services/a-rex/grid-manager/jobs/states.cpp:1331
 #, c-format
 msgid "%s: Canceling job (%s) because of user request"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/states.cpp:1349
+#: src/services/a-rex/grid-manager/jobs/states.cpp:1401
 #, c-format
 msgid "%s: Job failure detected"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/states.cpp:1378
+#: src/services/a-rex/grid-manager/jobs/states.cpp:1430
 #, c-format
 msgid "%s: State: %s from %s"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/states.cpp:1393
-#: src/services/a-rex/grid-manager/jobs/states.cpp:1401
+#: src/services/a-rex/grid-manager/jobs/states.cpp:1445
+#: src/services/a-rex/grid-manager/jobs/states.cpp:1453
 #, c-format
 msgid "%s: Plugin at state %s : %s"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/states.cpp:1407
+#: src/services/a-rex/grid-manager/jobs/states.cpp:1459
 #, c-format
 msgid "%s: Plugin execution failed"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/states.cpp:1435
+#: src/services/a-rex/grid-manager/jobs/states.cpp:1487
 #, c-format
 msgid "%s: Delete request due to internal problems"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/states.cpp:1525
+#: src/services/a-rex/grid-manager/jobs/states.cpp:1577
 #, c-format
 msgid "Failed reading control directory: %s"
 msgstr ""
@@ -14368,13 +14418,6 @@ msgstr ""
 #: src/services/charon/charon.cpp:82
 #: src/services/slcs/slcs.cpp:118
 msgid "soap body does not include any request node"
-msgstr ""
-
-#: src/services/charon/charon.cpp:89
-#: src/services/charon/test.cpp:101
-#: src/services/slcs/slcs.cpp:124
-#, c-format
-msgid "Request: %s"
 msgstr ""
 
 #: src/services/charon/charon.cpp:102
@@ -16222,19 +16265,19 @@ msgstr ""
 msgid "checking"
 msgstr ""
 
-#: src/services/storage/shepherd/hardlinkingbackend.py:145
+#: src/services/storage/shepherd/hardlinkingbackend.py:146
 msgid "HopiBackend datadir:"
 msgstr ""
 
-#: src/services/storage/shepherd/hardlinkingbackend.py:146
+#: src/services/storage/shepherd/hardlinkingbackend.py:147
 msgid "HopiBackend transferdir:"
 msgstr ""
 
-#: src/services/storage/shepherd/hardlinkingbackend.py:161
+#: src/services/storage/shepherd/hardlinkingbackend.py:162
 msgid "ApacheBackend datadir:"
 msgstr ""
 
-#: src/services/storage/shepherd/hardlinkingbackend.py:162
+#: src/services/storage/shepherd/hardlinkingbackend.py:163
 msgid "ApacheBackend transferdir:"
 msgstr ""
 
@@ -16332,17 +16375,17 @@ msgstr ""
 "\n"
 "CHECKSUM не совпадает"
 
-#: src/services/storage/shepherd/shepherd.py:300
+#: src/services/storage/shepherd/shepherd.py:304
 msgid "checksum refreshed"
 msgstr ""
 
-#: src/services/storage/shepherd/shepherd.py:325
+#: src/services/storage/shepherd/shepherd.py:332
 msgid "\n"
 msgstr "\n"
 
-#: src/services/storage/shepherd/shepherd.py:357
-#: src/services/storage/shepherd/shepherd.py:377
-#: src/services/storage/shepherd/shepherd.py:394
+#: src/services/storage/shepherd/shepherd.py:364
+#: src/services/storage/shepherd/shepherd.py:384
+#: src/services/storage/shepherd/shepherd.py:401
 msgid ""
 "\n"
 "\n"
@@ -16352,12 +16395,11 @@ msgstr ""
 "\n"
 "Файл"
 
-#: src/services/storage/shepherd/shepherd.py:390
-#: src/services/storage/shepherd/shepherd.py:446
+#: src/services/storage/shepherd/shepherd.py:397
 msgid "checkingThread error, bartender responded"
 msgstr ""
 
-#: src/services/storage/shepherd/shepherd.py:427
+#: src/services/storage/shepherd/shepherd.py:434
 msgid ""
 "\n"
 "\n"
@@ -16367,16 +16409,16 @@ msgstr ""
 "\n"
 "Обнаружена неверная копия файла"
 
-#: src/services/storage/shepherd/shepherd.py:456
+#: src/services/storage/shepherd/shepherd.py:467
 #, python-format
 msgid "ERROR checking checksum of %(rID)s, reason: %(r)s"
 msgstr ""
 
-#: src/services/storage/shepherd/shepherd.py:473
+#: src/services/storage/shepherd/shepherd.py:484
 msgid "changeState"
 msgstr ""
 
-#: src/services/storage/shepherd/shepherd.py:491
+#: src/services/storage/shepherd/shepherd.py:502
 msgid ""
 "\n"
 "\n"
