@@ -290,9 +290,9 @@ Description: ARC API documentation
  Reference to the ARC programming API. It is prepared with doxygen.
 
 Package: nordugrid-arc-nox-janitor
-Provides: nordugrid-arc1-client
-Replaces: nordugrid-arc1-client (<< 1.0.0~)
-Conflicts: nordugrid-arc1-client (<< 1.0.0~)
+Provides: nordugrid-arc1-janitor
+Replaces: nordugrid-arc1-janitor (<< 1.0.0~)
+Conflicts: nordugrid-arc1-janitor (<< 1.0.0~)
 Architecture: any
 Depends: librdf-perl, ${misc:Depends}, ${perl:Depends}
 Recommends: liblog-log4perl-perl, libfile-copy-recursive-perl
