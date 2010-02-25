@@ -616,25 +616,31 @@ exit 0
 %files compiler
 %defattr(-,root,root,-)
 %{_libdir}/%{pkgdir}/libcompiler.so
+%{_libdir}/%{pkgdir}/libcompiler.apd
 
 %files delegation
 %defattr(-,root,root,-)
 %{_libdir}/%{pkgdir}/libdelegation.so
+%{_libdir}/%{pkgdir}/libdelegation.apd
 
 %files paul
 %defattr(-,root,root,-)
 %{_sbindir}/manage_jobq
 %{_libdir}/%{pkgdir}/libgrid_sched.so
+%{_libdir}/%{pkgdir}/libgrid_sched.apd
 %{_libdir}/%{pkgdir}/libpaul.so
+%{_libdir}/%{pkgdir}/libpaul.apd
 %doc %{_mandir}/man8/manage_jobq.8*
 
 %files saml2sp
 %defattr(-,root,root,-)
 %{_libdir}/%{pkgdir}/libsaml2sp.so
+%{_libdir}/%{pkgdir}/libsaml2sp.apd
 
 %files slcs
 %defattr(-,root,root,-)
 %{_libdir}/%{pkgdir}/libslcs.so
+%{_libdir}/%{pkgdir}/libslcs.apd
 
 %files arex
 %defattr(-,root,root,-)
@@ -731,6 +737,7 @@ exit 0
 %{_libdir}/%{pkgdir}/libmcchttp.apd
 %{_libdir}/%{pkgdir}/libmccsoap.apd
 %{_libdir}/%{pkgdir}/libmcctcp.apd
+%{_libdir}/%{pkgdir}/libmccmsgvalidator.apd
 %{_libdir}/%{pkgdir}/libmcctls.apd
 
 %files plugins-globus
@@ -768,6 +775,7 @@ exit 0
 %{_libdir}/java/libjarc.so
 %{_libdir}/java/arc.jar
 %{_libdir}/%{pkgdir}/libjavaservice.so
+%{_libdir}/%{pkgdir}/libjavaservice.apd
 %if %{with_gcj}
 %{_libdir}/gcj/%{name}
 %endif
