@@ -280,6 +280,7 @@ Provides: nordugrid-arc1-doc
 Replaces: nordugrid-arc1-doc (<< 1.0.0~)
 Conflicts: nordugrid-arc1-doc (<< 1.0.0~)
 Architecture: all
+Depends: ${misc:Depends}
 Suggests: xpdf | pdf-viewer
 Section: doc
 Description: ARC API documentation
