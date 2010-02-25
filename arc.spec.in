@@ -662,6 +662,7 @@ exit 0
 %{_libdir}/%{pkgdir}/PBS.pm
 %{_libdir}/%{pkgdir}/Condor.pm
 %{_libdir}/%{pkgdir}/SLURM.pm
+%{_libdir}/%{pkgdir}/GridFactory.pm
 %{_libdir}/%{pkgdir}/ARC0ClusterInfo.pm
 %{_libdir}/%{pkgdir}/ARC0ClusterSchema.pm
 %{_libdir}/%{pkgdir}/ARC1ClusterInfo.pm

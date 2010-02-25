@@ -1,0 +1,214 @@
+#!@posix_shell@
+echo "Environment variables:"
+printenv |sort
+#set -x
+#
+#  Input: path to grami file (same as Globus).
+#
+
+echo "----- starting submit_gridfactory_job -----" 1>&2
+joboption_lrms=gridfactory
+
+walltime_ratio='1'
+##############################################################
+# These should be set automatically
+##############################################################
+# Path to pbs commands
+GF_BIN_PATH=${GF_BIN_PATH:-/usr/share/gridfactory/cli}
+# Where to store temporary files on gatekeeper
+TMP_DIR=${TMP_DIR:-/tmp}
+
+# ARC1 passes first the config file.
+if [ "$1" = "--config" ]; then shift; ARC_CONFIG=$1; shift; fi
+
+arg_file=$1
+##############################################################
+# Source the argument file. 
+##############################################################
+if [ -z "$arg_file" ] ; then
+   echo "Arguments file should be specified" 1>&2
+   exit 1
+fi
+if [ ! -f $arg_file ] ; then
+   echo "Missing arguments file" 1>&2
+   echo $* 1>&2
+   exit 1
+fi
+. $arg_file
+
+echo "joboption_user=`whoami`" >> $arg_file
+
+if [ -z "$joboption_controldir" ] ; then
+  joboption_controldir=`dirname "$arg_file"`
+  if [ "$joboption_controldir" = '.' ] ; then
+    joboption_controldir="$PWD"
+  fi
+fi
+if [ -z "$joboption_gridid" ] ; then
+  joboption_gridid=`basename "$arg_file" | sed 's/^job\.\(.*\)\.grami$/\1/'`
+fi
+
+##############################################################
+# Zero stage of runtime environments
+##############################################################
+joboption_args=`basename "$joboption_arg_0"`
+tmpdir=${TMP_DIR:-/tmp}
+# File name to be used for temporary job script
+LRMS_JOB_SCRIPT=`mktemp ${tmpdir}/gridfactory_job_script.XXXXXX`
+if [ -z "$LRMS_JOB_SCRIPT" ] ; then 
+  echo "Creation of temporary file failed"
+  exit 1
+fi
+#chmod u+x ${LRMS_JOB_SCRIPT}
+LRMS_JOB_SCRIPT_OUT="${LRMS_JOB_SCRIPT}.out"
+touch $LRMS_JOB_SCRIPT_OUT
+LRMS_JOB_SCRIPT_ERR="${LRMS_JOB_SCRIPT}.err"
+touch $LRMS_JOB_SCRIPT_ERR
+if [ ! -f "$LRMS_JOB_SCRIPT" ] || [ ! -f "$LRMS_JOB_SCRIPT_OUT" ] || [ ! -f "$LRMS_JOB_SCRIPT_ERR" ] ; then 
+  echo "Something is wrong. Either somebody is playing bad or can't write to ${tmpdir}"
+  exit 1
+fi
+
+##############################################################
+# Create job script
+##############################################################
+echo "# GridFactory batch job script built by grid-manager" > $LRMS_JOB_SCRIPT
+
+# Job name (Replace blanks with underscore and set max limit on length)
+if [ ! -z "${joboption_jobname}" ] ; then
+  jobname=`echo "$joboption_jobname" | \
+           sed 's/[^[:alnum:]]/_/g' | \
+           sed 's/\(...............\).*/\1/'`
+else
+  jobname="$joboption_rsl_executable"
+fi
+echo "#GRIDFACTORY -n $jobname" >> $LRMS_JOB_SCRIPT
+
+# Executable
+if test -n "x$joboption_rsl_executable"; then
+  echo "#GRIDFACTORY -e $joboption_rsl_executable" >> $LRMS_JOB_SCRIPT
+fi
+
+# Input files (skip every other filename which is just a checksums)
+skip=
+inputfiles=
+for file in $joboption_rsl_inputfiles; do
+  if test "x$skip" = "x"
+  then
+    ###Needed to be fixed
+    ###echo "#GRIDFACTORY -i $joboption_directory/$file" >> $LRMS_JOB_SCRIPT
+    inputfiles="$inputfiles -i $file"
+    skip=1
+  else
+    skip=
+  fi
+done
+
+# Output files (skip every other filename which is just a space or url)
+skip=
+tmp_str=`echo "$joboption_rsl_outputfiles"|tr ' ' ':'`
+OIFS=$IFS
+IFS=:
+for file in $tmp_str; do
+  if test "x$skip" = "x"
+  then
+    if test "$file" != "$joboption_rsl_stdout" -a "$file" != "$joboption_rsl_stderr" -a "$file" != "$joboption_rsl_gmlog"
+    then
+      echo "#GRIDFACTORY -o $file" >> $LRMS_JOB_SCRIPT
+    fi
+    skip=1
+  else
+    skip=
+  fi
+done
+IFS=$OIFS
+
+# Memory
+[ -n "$joboption_memory" ] && echo "#GRIDFACTORY -m $joboption_memory" >> $LRMS_JOB_SCRIPT
+
+# CPUtime
+[ -n "$joboption_cputime" ] && echo "#GRIDFACTORY -t $joboption_cputime" >> $LRMS_JOB_SCRIPT
+
+# Runtime environments
+if test -n "$joboption_runtime_0"; then
+  for rte in "$joboption_runtime_0"; do
+    if echo $rte|grep ^VM/; then
+      echo "#GRIDFACTORY -y $rte" >> $LRMS_JOB_SCRIPT
+    else
+      echo "#GRIDFACTORY -r $rte" >> $LRMS_JOB_SCRIPT
+    fi
+  done
+fi
+
+##############################################################
+# Check for existence of executable,
+##############################################################
+if [ -z "${joboption_arg_0}" ] ; then
+  echo 'Executable is not specified' 1>&2
+  exit 1
+fi
+
+# Executable
+echo $joboption_args |grep -q ^/ || joboption_args="./$joboption_args"
+
+echo "$joboption_args" >> $LRMS_JOB_SCRIPT
+echo "exitcode=\$?" >> $LRMS_JOB_SCRIPT
+echo "echo exitcode \$exitcode" >> $LRMS_JOB_SCRIPT
+echo "exit \$exitcode" >> $LRMS_JOB_SCRIPT
+
+#######################################
+#   Execute psub command
+#######################################
+
+# Setting up psub commands
+GF_PSUB="psub.sh $inputfiles -b localhost"
+if [ -n "$GF_BIN_PATH" ] ; then
+  GF_PSUB=${GF_BIN_PATH}/${GF_PSUB}
+fi
+
+cd "$joboption_directory"
+echo $GF_PSUB $LRMS_JOB_SCRIPT 1>&2
+echo "Job script:" 1>&2
+echo "---------------------------------------------------------------------------"
+cat $LRMS_JOB_SCRIPT 1>&2
+echo "---------------------------------------------------------------------------"
+GF_RESULT=1
+GF_TRIES=0
+while [ "$GF_TRIES" -lt '10' ] ; do
+    $GF_PSUB $LRMS_JOB_SCRIPT 1>$LRMS_JOB_SCRIPT_OUT 2>$LRMS_JOB_SCRIPT_ERR
+    GF_RESULT="$?"
+    if [ "$GF_RESULT" -eq '0' ] ; then 
+	break
+    fi
+    GF_TRIES=$(( GF_TRIES + 1 ))
+    sleep 2
+done
+if [ $GF_RESULT -eq '0' ] ; then
+    job_id=`cat $LRMS_JOB_SCRIPT_OUT|grep file`
+    if [ "${job_id}" = "" ] ; then
+	echo "job *NOT* submitted successfully!" 1>&2
+	echo "failed getting the gridfactory jobid for the job!" 1>&2
+	echo "Submission: Local submission client behaved unexpectedly.">>"${joboption_controldir}/job.${joboption_gridid}.lrms_done"
+    else
+	echo "joboption_jobid=$job_id" >> $arg_file
+	echo "job submitted successfully!" 1>&2
+	echo "gridfactory jobid: $job_id" 1>&2
+      # Remove temporary job script file
+	rm -f $LRMS_JOB_SCRIPT $LRMS_JOB_SCRIPT_OUT $LRMS_JOB_SCRIPT_ERR
+	echo "----- exiting submit_gridfactory_job -----" 1>&2
+	echo "" 1>&2
+	exit 0
+    fi
+else
+    echo "job *NOT* submitted successfully!" 1>&2
+    echo "got error code from psub: $GF_RESULT !" 1>&2
+    echo "Submission: Local submission client failed.">>"$failures_file"
+fi
+echo "Output is:" 1>&2
+cat $LRMS_JOB_SCRIPT_OUT 1>&2
+echo "Error output is:"
+cat $LRMS_JOB_SCRIPT_ERR 1>&2
+rm -f "$LRMS_JOB_SCRIPT" "$LRMS_JOB_SCRIPT_OUT" "$LRMS_JOB_SCRIPT_ERR"
+echo "----- exiting submit_gridfactory_job -----" 1>&2
+echo "" 1>&2
+exit 1

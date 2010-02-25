@@ -1,0 +1,81 @@
+#!@posix_shell@
+# set -x
+# 
+#  Cancel job running in gridfactory.
+# 
+
+echo "----- starting cancel_gridfactory_job -----" 1>&2
+
+# These should be set automatically
+# Paths to gridfactory commands and gridfactory settings
+GF_BIN_PATH=${GF_BIN_PATH:-/usr/share/gridfactory/cli}
+PKILL="pkill.sh -f dummy"
+PCLEAN="pclean.sh"
+PSTAT="pstat.sh -f dummy"
+if [ -n $GF_BIN_PATH ]; then
+    PKILL="$GF_BIN_PATH/$PKILL"
+    PCLEAN="$GF_BIN_PATH/$PCLEAN"
+    PSTAT="$GF_BIN_PATH/$PSTAT"
+fi
+
+joboption_lrms=gridfactory
+
+# ARC1 passes first the config file.
+if [ "$1" = "--config" ]; then shift; ARC_CONFIG=$1; shift; fi
+
+. ${pkglibdir}/cancel_common.sh $1 || exit $?
+
+if [ -z "$joboption_controldir" ] ; then
+  joboption_controldir=`dirname "$arg_file"`
+  if [ "$joboption_controldir" = '.' ] ; then
+    joboption_controldir="$PWD"
+  fi
+fi
+
+job_control_dir="$joboption_controldir"
+if [ -z "$joboption_gridid" ] ; then
+  joboption_gridid=`basename "$arg_file" | sed 's/^job\.\(.*\)\.grami$/\1/'`
+fi
+
+echo "Deleting job $joboption_gridid, local id $joboption_jobid" 1>&2
+
+if [ -z "$joboption_jobid" ] ; then
+  joboption_jobid=`cat "$job_control_dir/job.${joboption_gridid}.local" | grep '^localid=' | sed 's/^localid=//'`
+fi
+
+case X`cat "$job_control_dir/job.${joboption_gridid}.status"` in
+    XINLRMS)
+
+	$debug `su -c "$PSTAT -b localhost $joboption_jobid" - $joboption_user|sed 's,$joboption_jobid ,,'`
+	case `su -c "$PSTAT -b localhost $joboption_jobid" - $joboption_user|sed 's,$joboption_jobid ,,'` in
+
+	    ready | requested | prepared | submitted )
+		su -c "$PCLEAN $joboption_jobid" - $joboption_user
+		;;
+	    
+	    running | paused )
+		su -c "$PKILL $joboption_jobid" - $joboption_user
+		;;
+
+	    executed |uploaded | requestKill | aborted | failed | done)
+		echo "Job already died, won't do anything" 1>&2
+		;;
+	    *)
+		echo "Job is at unkillable state" 1>&2
+		exit 1
+		;;
+	esac
+        ;; 
+
+    XFINISHED | XDELETED)
+        echo "Job already died, won't do anything" 1>&2
+        ;;
+    *)
+        echo "Job is at unkillable state" 1>&2
+        ;;
+esac
+
+echo "----- exiting cancel_gridfactory_job -----" 1>&2
+echo "" 1>&2
+exit 0
+

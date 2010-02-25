@@ -1,0 +1,133 @@
+#!@posix_shell@
+#
+# Periodical scan job directory for jobs that has finished
+# 
+# usage: scan_gridfactory_job control_dir ...
+
+if [ -z "$1" ] ; then exit 1 ; fi
+
+id=`id -u`
+options=$@
+
+# Where to store temporary files on gatekeeper
+TMP_DIR=${TMP_DIR:-/tmp}
+
+# ARC1 passes first the config file.
+if [ "$1" = "--config" ]; then shift; ARC_CONFIG=$1; shift; fi
+
+#debug='eval echo >> $TMP_DIR/parse-gridfactory-log.$id'
+debug=:
+
+$debug "run at `date`"
+$debug "options = $options"
+
+# These should be set automatically
+# Paths to gridfactory commands and gridfactory settings
+GF_BIN_PATH=${GF_BIN_PATH:-/usr/share/gridfactory/cli}
+PSTAT="pstat.sh -b localhost -f dummy"
+PCLEAN="pclean.sh"
+if [ -n "$GF_BIN_PATH" ]; then
+    PSTAT="$GF_BIN_PATH/$PSTAT"
+    PCLEAN="$GF_BIN_PATH/$PCLEAN"
+fi
+
+# first control_dir is used for storing own files
+control_dir=$1
+control_dirs=
+while [ $# -gt 0 ] ; do
+  control_dirs="${control_dirs} \"$1\""
+  shift
+done
+
+for control_dir in "$options" ; do
+    # Checking id directory exists
+    if [ ! -d "${control_dir}" ]; then 
+	echo "No control dir $control_dir" >&2
+	$debug "No control dir $control_dir"
+        continue
+    fi
+    # Select jobs in LRMS state
+    for job in `grep -H INLRMS ${control_dir}/job.*.status 2>/dev/null | sed -e 's/.*job.//' -e 's/.status.*$//'` ; do
+        $debug "scanning job = $job"
+        unset joboption_jobid
+	unset joboption_user
+        unset joboption_directory
+	
+	# check for lrms.done file
+        [ -f "${control_dir}/job.${job}.lrms_done" ] && continue
+	
+	# check for grami file
+        [ ! -f "${control_dir}/job.${job}.grami" ] && continue
+        .  "${control_dir}/job.${job}.grami"
+	
+	# check for jobid in grami file
+        [ -z "$joboption_jobid" ] && continue
+	
+        $debug "local jobid = $joboption_jobid"
+        $debug "local user  = $joboption_user"
+
+	# Check job status with pstat
+	GF_TRIES=0
+	while [  $GF_TRIES -lt 5 ]; do
+	    [ $GF_TRIES -eq 4 ] && echo "pstat failed" > "${control_dir}/job.${job}.lrms_done"
+	    status_code=`su -c "$PSTAT $joboption_jobid" - $joboption_user | sed "s!.*$joboption_jobid !!"`
+	    if [ $? -eq "0" ];then
+		break
+	    else
+		echo "pstat failed" 1>&2
+		let GF_TRIES=GF_TRIES+1 
+		sleep 10
+	    fi
+	done
+   	$debug "pstat returned $status_code"
+        case $status_code in
+	    
+            "failed")
+		echo "Job lost in LRMS" > "${control_dir}/job.${job}.lrms_done"
+		;;
+
+            "done")
+		exitcode=0
+		for file in $joboption_rsl_outputfiles; do
+		#skipping GM output files
+		    [ $file == "$joboption_rsl_gmlog" ] && continue
+		    [ $file == "$joboption_rsl_stdout" ] && continue
+		    [ $file == "$joboption_rsl_stderr" ] && continue
+		# getting output files
+		    cp -p `echo $joboption_jobid|sed 's,file://,,g'`/$file $joboption_directory/$file
+		    [ $? -ne "0" ] && echo "transfer of outputfile $file failed" 1>&2
+		done
+	        # Erasing of GridFactory stdout
+		spool_dir=`echo $joboption_jobid|sed 's,file://,,g'`
+		file=$spool_dir/stdout
+		head -n -2 $file > $file.tmp
+	        # Getting exitcode
+		exitcode=`tail -1 $file.tmp|sed 's/exitcode //'`
+		$debug "exitcode $exitcode"
+		head -n -1 $file.tmp > $file
+		rm -f $file.tmp
+	        # copying stdout and stderr
+		cp -p $file $joboption_directory/$joboption_rsl_stdout
+		cp -p $spool_dir/stderr $joboption_directory/$joboption_rsl_stderr
+	        su -c "$PCLEAN $joboption_jobid" - $joboption_user
+		echo "$exitcode Executable finished with exit code $exitcode" > "${control_dir}/job.${job}.lrms_done"
+		;;
+
+           "aborted")
+		echo "Job kill by user" > "${control_dir}/job.${job}.lrms_done"
+		;;
+	    
+            "NOT found")
+		sleep 60
+		status_code=`su -c "$PSTAT $joboption_jobid" - $joboption_user | sed 's,$joboption_jobid ,,'`
+		if [ $status_code == "NOT found" ]; then
+		    echo "Job lost in LRMS" > "${control_dir}/job.${job}.lrms_done"
+		fi
+		;;
+        esac
+    done
+done
+
+$debug "done, going to sleep"
+sleep 30
+exit 0

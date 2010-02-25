@@ -23,6 +23,7 @@ debian/tmp/usr/lib/arc/LSF.pm
 debian/tmp/usr/lib/arc/PBS.pm
 debian/tmp/usr/lib/arc/Condor.pm
 debian/tmp/usr/lib/arc/SLURM.pm
+debian/tmp/usr/lib/arc/GridFactory.pm
 
 debian/tmp/usr/lib/arc/ARC0ClusterInfo.pm
 debian/tmp/usr/lib/arc/ARC0ClusterSchema.pm
