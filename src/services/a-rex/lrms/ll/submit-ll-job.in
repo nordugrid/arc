@@ -215,7 +215,7 @@ setup_runtime_env
 ###################################################################
 #setup soft limit trap
 ##################################################################
-echo "trap \"echo 'exitcode=24'>>\$RUNTIME_JOB_DIAG;exit(24)\" SIGXCPU" >> $LRMS_JOB_SCRIPT
+echo "trap \"echo 'exitcode=24'>>\$RUNTIME_JOB_DIAG;exit 24\" SIGXCPU" >> $LRMS_JOB_SCRIPT
 
 
 ##############################################################
