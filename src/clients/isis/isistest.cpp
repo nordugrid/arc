@@ -100,7 +100,7 @@ std::string Register( Arc::URL url, std::vector<std::string> &serviceID, std::ve
     std::string min_prefix = (ptm->tm_min < 10)?"0":"";
     std::string sec_prefix = (ptm->tm_sec < 10)?"0":"";
     std::stringstream out;
-    out << ptm->tm_year+1900<<"-"<<mon_prefix<<ptm->tm_mon+1<<"-"<<day_prefix<<ptm->tm_mday<<"T"<<hour_prefix<<ptm->tm_hour<<":"<<min_prefix<<ptm->tm_min<<":"<<sec_prefix<<ptm->tm_sec;
+    out << ptm->tm_year+1900<<"-"<<mon_prefix<<ptm->tm_mon+1<<"-"<<day_prefix<<ptm->tm_mday<<"T"<<hour_prefix<<ptm->tm_hour<<":"<<min_prefix<<ptm->tm_min<<":"<<sec_prefix<<ptm->tm_sec<<"+0000";
     request["Header"].NewChild("MessageGenerationTime") = out.str();
 
     for (int i=0; i < serviceID.size(); i++){
@@ -175,7 +175,7 @@ std::string RemoveRegistration( Arc::URL url, std::vector<std::string> &serviceI
     std::string min_prefix = (ptm->tm_min < 10)?"0":"";
     std::string sec_prefix = (ptm->tm_sec < 10)?"0":"";
     std::stringstream out;
-    out << ptm->tm_year+1900<<"-"<<mon_prefix<<ptm->tm_mon+1<<"-"<<day_prefix<<ptm->tm_mday<<"T"<<hour_prefix<<ptm->tm_hour<<":"<<min_prefix<<ptm->tm_min<<":"<<sec_prefix<<ptm->tm_sec;
+    out << ptm->tm_year+1900<<"-"<<mon_prefix<<ptm->tm_mon+1<<"-"<<day_prefix<<ptm->tm_mday<<"T"<<hour_prefix<<ptm->tm_hour<<":"<<min_prefix<<ptm->tm_min<<":"<<sec_prefix<<ptm->tm_sec<<"+0000";
     request.NewChild("MessageGenerationTime") = out.str();
 
     std::string request_string;
