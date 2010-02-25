@@ -685,6 +685,15 @@ bool configure_serviced_users(Arc::XMLNode cfg,JobUsers &users,uid_t my_uid,cons
     if(elementtoint(tmp_node,"wakeupPeriod",wakeup_period,&logger)) {
       JobsList::SetWakeupPeriod(wakeup_period);
     };
+    Arc::XMLNode share_limit_node;
+    share_limit_node = tmp_node["shareLimit"];
+    for(;share_limit_node;++share_limit_node) {
+      int share_limit = -1;
+      std::string limited_share = share_limit_node["name"];
+      if(elementtoint(share_limit_node,"limit",share_limit,&logger) && (share_limit > 0) && ! limited_share.empty()) {
+        JobsList::AddLimitedShare(limited_share,share_limit);
+      }
+    }
   }
 
   /*
