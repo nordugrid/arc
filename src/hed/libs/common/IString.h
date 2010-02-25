@@ -8,6 +8,7 @@
 #include <ostream>
 
 #include <sigc++/slot.h>
+#include <glibmm.h>
 
 #include <stdio.h>  // snprintf
 #include <stdlib.h> // free
@@ -123,6 +124,16 @@ namespace Arc {
 
     // std::string ()()
     inline static const char* Get(std::string (*t)()) {
+      return FindTrans(t().c_str());
+    }
+
+    // Glib::ustring
+    inline static const char* Get(const Glib::ustring& t) {
+      return FindTrans(t.c_str());
+    }
+
+    // Glib::ustring ()()
+    inline static const char* Get(Glib::ustring (*t)()) {
       return FindTrans(t().c_str());
     }
 

@@ -568,6 +568,9 @@ namespace Arc {
     static unsigned int rootLoggerMark;
   };
 
+//  Logger& operaror<<(Logger& logger,const char* str);
+//  Logger& operaror<<(Logger& logger,const std::string& str);
+
 } // namespace Arc
 
 #define rootLogger getRootLogger()
