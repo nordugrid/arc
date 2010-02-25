@@ -1,0 +1,138 @@
+.\" -*- nroff -*-
+.TH ISISTEST 1 "@DATE@" "NorduGrid ARC @VERSION@" "NorduGrid Users Manual"
+
+.SH NAME
+
+isistest \- ISIS Test
+
+.SH DESCRIPTION
+
+The
+.B isistest
+command is for managing information stored in the distributed P2P Grid
+information cloud of ISIS services.
+
+.SH SYNOPSIS
+
+.B isistest [options]
+
+.SH OPTIONS
+
+.IP "\fB-b\fR, \fB--bootstrap\fR=\fIurl\fR"
+the URL of the Bootstrap ISIS
+.IP "\fB-i\fR, \fB--isis\fR=\fIurl\fR"
+the URL of the ISIS to connect directly
+.IP "\fB-n\fR, \fB--neighbors\fR"
+get neighbors list from the BootstrapISIS or directly from the ISIS defined
+.IP "\fB-m\fR, \fB--method\fR=\fImethod_name\fR"
+the method to use on the ISIS
+(method_name can be 'Query', 'Register', or 'RemoveRegistration')
+.IP "\fB-z\fR, \fB--conffile\fR=\fIfilename\fR"
+configuration file (default ~/.arc/client.conf)
+.IP "\fB-d\fR, \fB--debug\fR=\fIdebuglevel\fR"
+FATAL, ERROR, WARNING, INFO, VERBOSE or DEBUG
+.IP "\fB-?\fR, \fB--help\fR"
+print help
+.LP
+
+.SH USAGE
+.IP "isistest -m Query \fIquery_string\fR
+
+.IP "isistest -m Register \fIservice_id\fR,\fIendpoint_reference\fR
+[,\fItype\fR[,\fIexpiration_time\fR]]
+[\fIservice_id\fR,\fIendpoint_reference\fR[,\fItype\fR
+[,\fIexpiration_time\fR]] [...]]"
+
+.IP "isistest -m RemoveRegistration \fIservice_id\fR
+[\fIservice_id\fR [...]]"
+
+.SH EXTENDED DESCRIPTION
+
+.TP
+The test ISIS client is for the following operations:
+.IP "\fBQuery\fR" 4
+for querying remote ISIS with an attribute: \fIguery_string\fR
+.IP "\fBRegister\fR" 4
+for sending test Register messages with one or more set of different number
+of arguments.
+.RS 4
+.IP "\(bu" 4
+A ServiceID and an Endpoint reference.
+.IP "\(bu" 4
+A ServiceID, an Endpoint reference and a Service type.
+.IP "\(bu" 4
+A ServiceID, an Endpoint reference, a Service type and an
+Expiration period.
+.RE
+.RE
+
+.IP "\fBRemoveRegistration\fR" 4
+for sending test RemoveRegistration messages. The arguments are a
+list of ServiceIDs to be removed.
+.HP
+It is also possible to define the BootstrapISIS with the \fB-b\fR or
+\fB--bootstrap\fR command line option. The isistest command gets the list
+of ISISes from the BootstrapISIS (with the GetISISList operation), then
+chooses a random ISIS from that list.
+.HP
+It's also possible to define the isis url directly
+with the \fB-i\fR or \fB--isis\fR option. If there is such an option
+defined the GetISISList operation will be skipped even if there is also
+a BootstrapISIS defined. (The GetISISList operation will be used in every
+other cases impicitly.)
+.HP
+If there is not a bootstrap either a direct url of an isis given then the first isis url stored in the user configuration will be used directly.
+.HP
+If \fB-n\fR or \fB--neighbors\fR options are used without any parameters,
+then the neighbors of the ISIS or the BootstrapISIS will also be printed.
+
+.SH FILES
+
+.TP
+.B ~/.arc/client.conf
+Some options can be given default values by specifying them in the
+ARC client configuration file. By using the
+.B -z
+or
+.B --conffile
+option a different configuration file can be used than the default.
+
+.SH ENVIRONMENT VARIABLES
+
+.TP
+.B X509_USER_PROXY
+The location of the user's grid proxy file. It should be set only if the
+proxy is in a non-standard location.
+
+.TP
+.B ARC_LOCATION
+The location where ARC is installed can be specified by this variable. If
+not specified the install location will be determined from the path to the
+command being executed, and if this fails a WARNING will be given stating
+the location which will be used.
+
+.TP
+.B ARC_PLUGIN_PATH
+The location of ARC plugins can be specified by this variable. Multiple
+locations can be specified by separating them by : (; in Windows). The
+default location is \fB$ARC_LOCATION\fR/lib/arc (\\ in Windows).
+
+.SH EXAMPLES
+
+.IP "isistest -m Register ServiceID1,EPR1"
+.IP "isistest -m Register ServiceID1,EPR1,org.nordugrid.tests.echo,PT1M"
+.IP "isistest -m Query \[dq]/*\[dq]"
+.IP "isistest -m Query /RegEntry/MetaSrcAdv/ServiceID[text()='ServiceID1']"
+.IP "isistest -m RemoveRegistration ServiceID1"
+.IP "isistest -b https://your.domain.com/infosys -m
+RemoveRegistration ServiceID1"
+.IP "isistest -i https://your.domain.com/infosys -m Query /RegEntry"
+
+.SH COPYRIGHT
+
+APACHE LICENSE Version 2.0
+
+.SH AUTHOR
+
+Ivan Marton<martoni@niif.hu>
+

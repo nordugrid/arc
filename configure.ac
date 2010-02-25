@@ -1791,6 +1791,7 @@ AC_CONFIG_FILES([Makefile
                  src/clients/charon/Makefile
                  src/clients/charon/arcdecision.1
                  src/clients/isis/Makefile
+                 src/clients/isis/isistest.1
                  src/clients/credentials/Makefile
                  src/clients/credentials/arcproxy.1
                  src/clients/credentials/arcslcs.1
