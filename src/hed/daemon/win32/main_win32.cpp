@@ -15,7 +15,7 @@
 #include "../options.h"
 
 Arc::Config config;
-Arc::MCCLoader *loader;
+Arc::MCCLoader *loader = NULL;
 Arc::Logger& logger=Arc::Logger::rootLogger;
 
 static void shutdown(int)
@@ -119,11 +119,17 @@ int main(int argc, char **argv)
 
             // bootstrap
             loader = new Arc::MCCLoader(config);
-            logger.msg(Arc::INFO, "Service side MCCs are loaded");
-            // sleep forever
-            for (;;) {
-                sleep(INT_MAX/1000);
+            if(!*loader) {
+                logger.msg(Arc::ERROR, "Failed to load service side MCCs");
+            } else {
+                logger.msg(Arc::INFO, "Service side MCCs are loaded");
+                // sleep forever
+                for (;;) {
+                    sleep(INT_MAX);
+                }
             }
+        } else {
+            logger.msg(Arc::ERROR, "Unexpected arguments supplied");
         }
     } catch (const Glib::Error& error) {
       logger.msg(Arc::ERROR, error.what());
