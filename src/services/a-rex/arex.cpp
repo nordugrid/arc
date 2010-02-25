@@ -69,7 +69,9 @@ static Arc::Plugin* get_service(Arc::PluginArgument* arg) {
     Arc::ServicePluginArgument* srvarg =
             arg?dynamic_cast<Arc::ServicePluginArgument*>(arg):NULL;
     if(!srvarg) return NULL;
-    return new ARexService((Arc::Config*)(*srvarg));
+    ARexService* arex = new ARexService((Arc::Config*)(*srvarg));
+    if(!*arex) { delete arex; arex=NULL; };
+    return arex;
 }
 
 class ARexConfigContext:public Arc::MessageContextElement, public ARexGMConfig {
@@ -458,8 +460,9 @@ static void information_collector_starter(void* arg) {
 ARexService::ARexService(Arc::Config *cfg):RegisteredService(cfg),
               logger_(Arc::Logger::rootLogger, "A-REX"),
               inforeg_(*cfg,this),
+              gmconfig_temporary_(false),
               gm_(NULL),
-              gmconfig_temporary_(false) {
+              valid_(false) {
   // logger_.addDestination(logcerr);
   // Define supported namespaces
   ns_[BES_ARC_NPREFIX]=BES_ARC_NAMESPACE;
@@ -477,6 +480,8 @@ ARexService::ARexService(Arc::Config *cfg):RegisteredService(cfg),
   endpoint_=(std::string)((*cfg)["endpoint"]);
   uname_=(std::string)((*cfg)["usermap"]["defaultLocalName"]);
   gmconfig_=(std::string)((*cfg)["gmconfig"]);
+
+  JobUsers users;
   if(gmconfig_.empty()) {
     // No external configuration file means configuration is
     // directly embedded into this configuration node.
@@ -488,9 +493,29 @@ ARexService::ARexService(Arc::Config *cfg):RegisteredService(cfg),
     // some better approach - maybe like creating file with service
     // id in its name.
     try {
+      if(!configure_users_dirs(*cfg,users)) {
+        logger_.msg(Arc::ERROR, "Failed to process service configuration");
+        return;
+      }
+      // create control and session directories if not yet done
+      // extract control directories to be used for temp configuration
       std::list<std::string> tmp_dirs;
-      if((!configure_control_dirs(*cfg,tmp_dirs)) || (tmp_dirs.size() <= 0)) {
-        throw Glib::FileError(Glib::FileError::FAILED,"Failed to find control directory in configuration");
+      for(JobUsers::iterator user = users.begin();user != users.end();++user) {
+        std::string tmp_dir = user->ControlDir();
+        std::list<std::string>::iterator t = tmp_dirs.begin();
+        for(;t != tmp_dirs.end();++t) {
+          if(*t == tmp_dir) break;
+        };
+        if(t == tmp_dirs.end()) {
+          tmp_dirs.push_back(tmp_dir);
+        };
+        if(!user->CreateDirectories()) {
+          logger_.msg(Arc::ERROR, "Failed to create control (%s) or session (%s) directories",user->ControlDir(),user->SessionRoot());
+          return;
+        };
+      };
+      if(tmp_dirs.size() <= 0) {
+        throw Glib::FileError(Glib::FileError::FAILED,"Failed to find control directories in configuration");
       };
       int h = -1;
       for(std::list<std::string>::iterator t = tmp_dirs.begin();
@@ -522,15 +547,28 @@ ARexService::ARexService(Arc::Config *cfg):RegisteredService(cfg),
       };
       close(h);
       gmconfig_temporary_=true;
+      nordugrid_config_loc(gmconfig_);
     } catch(Glib::FileError& e) {
       logger_.msg(Arc::ERROR, "Failed to store configuration into temporary file: %s",e.what());
       if(!gmconfig_.empty()) {
         ::unlink(gmconfig_.c_str());
         gmconfig_.resize(0);
       };
+      return; // GM configuration file is required
+    };
+  } else {
+    // External configuration file
+    nordugrid_config_loc(gmconfig_);
+    if(!configure_users_dirs(users)) {
+      logger_.msg(Arc::ERROR, "Failed to process configuration in %s",gmconfig_);
+    }
+    // create control and session directories if not yet done
+    for(JobUsers::iterator user = users.begin();user != users.end();++user) {
+      if(!user->CreateDirectories()) {
+        logger_.msg(Arc::ERROR, "Failed to create control (%s) or session (%s) directories",user->ControlDir(),user->SessionRoot());
+      };
     };
   };
-  if(!gmconfig_.empty()) nordugrid_config_loc(gmconfig_);
   std::string gmrun_ = (std::string)((*cfg)["gmrun"]);
   common_name_ = (std::string)((*cfg)["commonName"]);
   long_description_ = (std::string)((*cfg)["longDescription"]);
@@ -560,10 +598,10 @@ ARexService::ARexService(Arc::Config *cfg):RegisteredService(cfg),
   // Run grid-manager in thread
   if((gmrun_.empty()) || (gmrun_ == "internal")) {
     gm_=new GridManager(gmconfig_.empty()?NULL:gmconfig_.c_str());
-    if(!gm_) return;
     if(!(*gm_)) { delete gm_; gm_=NULL; return; };
   };
   CreateThreadFunction(&information_collector_starter,this);
+  valid_=true;
 }
 
 ARexService::~ARexService(void) {

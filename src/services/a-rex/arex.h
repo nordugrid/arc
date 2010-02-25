@@ -68,6 +68,7 @@ class ARexService: public Arc::RegisteredService {
   unsigned int infoprovider_wakeup_period_;
   std::map<std::string,std::string> glue_states_;
   GridManager* gm_;
+  bool valid_;
   ARexConfigContext* get_configuration(Arc::Message& inmsg);
   Arc::MCC_Status CreateActivity(ARexGMConfig& config,Arc::XMLNode in,Arc::XMLNode out,const std::string& clientid);
   Arc::MCC_Status GetActivityStatuses(ARexGMConfig& config,Arc::XMLNode in,Arc::XMLNode out);
@@ -108,6 +109,8 @@ class ARexService: public Arc::RegisteredService {
   virtual bool RegistrationCollector(Arc::XMLNode &doc);
   virtual std::string getID();
   void StopChildThreads(void);
+  operator bool(void) { return valid_; };
+  bool operator!(void) { return !valid_; };
 };
 
 } // namespace ARex

@@ -264,7 +264,7 @@ bool configure_user_dirs(const std::string &my_username,
   return configured;
 }
 
-bool configure_control_dirs(Arc::XMLNode cfg,std::list<std::string>& control_dirs) {
+bool configure_users_dirs(Arc::XMLNode cfg,JobUsers& users) {
   Arc::XMLNode tmp_node;
   tmp_node = cfg["control"];
   for(;tmp_node;++tmp_node) {
@@ -296,31 +296,24 @@ bool configure_control_dirs(Arc::XMLNode cfg,std::list<std::string>& control_dir
     for(std::list<std::string>::iterator u = usernames.begin();
                              u != usernames.end();++u) {
       std::string control_dir = tmp_node["controlDir"];
-      JobUser user(*u);
-      if(!user.is_valid()) {
-        logger.msg(Arc::ERROR,"Configured username is invalid %s",*u);
-        return false;
-      };
-      user.substitute(control_dir);
-      user.SetControlDir(control_dir);
-      control_dir=user.ControlDir();
-      std::list<std::string>::iterator c = control_dirs.begin();
-      for(;c != control_dirs.end();++c) {
-        if(*c == control_dir) break;
-      };
-      if(c == control_dirs.end()) {
-        control_dirs.push_back(user.ControlDir());
-      };
+      std::string session_root = tmp_node["sessionRootDir"];
+      JobUsers::iterator user=users.AddUser(*u);
+      if(user == users.end()) return false;
+      user->substitute(control_dir);
+      user->substitute(session_root);
+      user->SetControlDir(control_dir);
+      user->SetSessionRoot(session_root);
     };
   }; // for(control)
   return true;
 }
 
-bool configure_control_dirs(std::list<std::string>& control_dirs) {
+bool configure_users_dirs(JobUsers& users) {
   std::ifstream cfile;
   read_env_vars(true);
   std::string central_control_dir("");
   ConfigSections* cf = NULL;
+  std::string session_root;
 
   if(!config_open(cfile)) {
     logger.msg(Arc::ERROR,"Can't open configuration file"); return false;
@@ -333,7 +326,7 @@ bool configure_control_dirs(std::list<std::string>& control_dirs) {
         config_close(cfile);
         return false;
       };
-      if(!configure_control_dirs(cfg,control_dirs)) {
+      if(!configure_users_dirs(cfg,users)) {
         config_close(cfile);
         return false;
       };
@@ -357,6 +350,11 @@ bool configure_control_dirs(std::list<std::string>& control_dirs) {
         };
         if(cf->SectionNum() == 2) { // queue
         }
+        else if(command == "sessiondir") {
+          session_root = config_next_arg(rest);
+          if(session_root.length() == 0) { config_close(cfile); if(cf) delete cf; return false; };
+          if(session_root == "*") session_root="";
+        }
         else if(command == "controldir") {
           central_control_dir=rest;
         }
@@ -372,18 +370,12 @@ bool configure_control_dirs(std::list<std::string>& control_dirs) {
               continue;
             };
             if(username == ".") username = "";
-            JobUser user(username);
-            if(!user.is_valid()) { config_close(cfile); if(cf) delete cf; return false; };
-            user.substitute(control_dir);
-            user.SetControlDir(control_dir);
-            control_dir=user.ControlDir();
-            std::list<std::string>::iterator c = control_dirs.begin();
-            for(;c != control_dirs.end();++c) {
-              if(*c == control_dir) break;
-            };
-            if(c == control_dirs.end()) {
-              control_dirs.push_back(user.ControlDir());
-            };
+            JobUsers::iterator user=users.AddUser(username);
+            if(user == users.end()) { config_close(cfile); if(cf) delete cf; return false; };
+            user->substitute(control_dir);
+            user->substitute(session_root);
+            user->SetControlDir(control_dir);
+            user->SetSessionRoot(session_root);
           };
         };
       };
