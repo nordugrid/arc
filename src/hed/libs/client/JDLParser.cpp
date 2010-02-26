@@ -678,9 +678,9 @@ namespace Arc {
       for (it = job.JDL_elements.begin(); it != job.JDL_elements.end(); it++) {
         product += "  ";
         product += it->first;
-        product += " = ";
+        product += " = \"";
         product += it->second;
-        product += ";\n";
+        product += "\";\n";
       }
     }
     product += "]";
