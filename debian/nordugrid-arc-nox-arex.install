@@ -56,3 +56,4 @@ debian/tmp/usr/share/arc/examples/a-rex/arex_minimalistic.xml.example
 debian/tmp/usr/share/arc/examples/a-rex/arex_secure.xml.example
 debian/tmp/usr/share/arc/examples/a-rex/arex_xmlonly.xml.example
 debian/tmp/usr/share/arc/examples/a-rex/arex_showcase.xml.example
+debian/tmp/usr/share/arc/examples/a-rex/arex_janitor.xml.example

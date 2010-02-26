@@ -8,7 +8,7 @@ initd_SCRIPTS=a-rex
 
 exampledir = $(pkgdatadir)/examples/a-rex
 example_DATA = arex.xml.example arex_secure.xml.example arex_minimalistic.xml.example \
-               arex_xmlonly.xml.example arex_showcase.xml.example
+               arex_xmlonly.xml.example arex_showcase.xml.example arex_janitor.xml.example
 
 #GRIDMANAGER_LIBS = grid-manager/conf/libconf.la grid-manager/jobs/libjobs.la grid-manager/files/libfiles.la grid-manager/run/librun.la \
 #                   grid-manager/jobdesc/libjobdesc.la grid-manager/misc/libmisc.la grid-manager/log/liblog.la \
