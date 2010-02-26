@@ -149,6 +149,16 @@
                 * loadShareType - sharing mechanism for data transfer - 
                   the scheme used to assign jobs to transfer shares. Possible
                   values are "dn", "voms:vo", "voms:role" and "voms:group"
+                * shareLimit - specifies a transfer share that has a limit
+                  different from the default value in maxLoadShare
+                    * name - the name of the share. Examples for different sharing
+                      mechanisms:
+                        - dn         : /O=Grid/O=NorduGrid/OU=domainname.com/CN=Jane Doe
+                        - voms:vo    : voname
+                        - voms:role  : voname:rolename
+                        - voms:group : /voname/groupname
+                    * limit - the maximum number of processes that can run for this
+                      particular share
                 * wakeupPeriod - specifies how often cheks for new jobs 
                   arrived, job state change requests, etc are done. That 
                   is resposivity of the service. The period is in seconds. 
@@ -170,6 +180,10 @@
                          type="xsd:nonNegativeInteger" minOccurs="0"/>
             <xsd:element name="loadShareType"
                          type="xsd:string" minOccurs="0"/>
+            <xsd:element name="shareLimit" minOccurs="0">
+                         <xsd:element name="name" type="xsd:string" minOccurs="0" />
+                         <xsd:element name="limit" type="xsd:nonNegativeInteger" minOccurs="0" />
+            </xsd:element>
             <xsd:element name="wakeupPeriod" type="xsd:nonNegativeInteger"
                          minOccurs="0"/>
         </xsd:sequence>
