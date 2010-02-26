@@ -1,4 +1,4 @@
-Source: nordugrid-arc-nox
+uource: nordugrid-arc-nox
 Section: net
 Priority: optional
 Maintainer: Anders Waananen <waananen@nbi.dk>
@@ -298,13 +298,13 @@ Architecture: any
 Depends: librdf-perl, ${misc:Depends}, ${perl:Depends}
 Recommends: liblog-log4perl-perl, libfile-copy-recursive-perl
 Suggests: nordugrid-arc-nox
-Description: ARC dynamic installation of runtime environments
+Description: ARC dynamic runtime environment installation
  The NorduGrid is a collaboration aiming at development, maintenance
  and support of the free Grid middleware, known as the Advanced
  Resource Connector (ARC).
  .
  For grid computing, a major challenge is to keep the working environments
- homogeneous between the sites.  To help this situation, runtime
+ homogeneous between the sites. To help this situation, runtime
  environments have been developed. Those can be added to or removed from
  a site, and this Janitor service helps automating this process.
  .
