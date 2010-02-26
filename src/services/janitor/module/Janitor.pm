@@ -1069,7 +1069,8 @@ sub sweep {
 				sweep_rte($rte);
 				$flag = 1;
 			} elsif ($state == Janitor::RTE::FAILED ) {
-###l4p 				$logger->fatal("Runtime environment ".$rte->id." has a failed state. Please set state to removal pending in order to remove them.");
+###l4p 				$logger->fatal("Runtime environment ".$rte->id." has a failed state. "
+###l4p              ."To allow removal run: janitor setstate REMOVAL_PENDING '".join("' '",$rte->rte_list())."'");
 			} elsif ($state == Janitor::RTE::UNKNOWN){ # may still be INSTALLED_A
 ###l4p 				$logger->fatal("Runtime environment ".$rte->id." has an unknown state.");
 			}
