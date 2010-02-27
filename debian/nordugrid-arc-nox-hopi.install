@@ -1,3 +1,4 @@
 debian/tmp/usr/lib/arc/libhopi.so
+debian/tmp/usr/lib/arc/libhopi.apd
 debian/tmp/usr/share/arc/examples/hopi/hopi_service.xml.example
 

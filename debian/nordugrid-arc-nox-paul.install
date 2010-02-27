@@ -1,4 +1,6 @@
 debian/tmp/usr/sbin/manage_jobq
 debian/tmp/usr/lib/arc/libgrid_sched.so
 debian/tmp/usr/lib/arc/libpaul.so
+debian/tmp/usr/lib/arc/libgrid_sched.apd
+debian/tmp/usr/lib/arc/libpaul.apd
 debian/tmp/usr/share/man/man8/manage_jobq.8

@@ -1,4 +1,5 @@
 debian/tmp/usr/lib/arc/libcharon.so
+debian/tmp/usr/lib/arc/libcharon.apd
 debian/tmp/usr/share/arc/examples/charon/charon_policy_arc.xml.example
 debian/tmp/usr/share/arc/examples/charon/charon_policy_xacml.xml.example
 debian/tmp/usr/share/arc/examples/charon/charon_service.xml.example

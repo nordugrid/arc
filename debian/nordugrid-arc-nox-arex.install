@@ -14,6 +14,7 @@ debian/tmp/usr/lib/arc/finish-condor-job
 debian/tmp/usr/lib/arc/CEinfo.pl
 
 debian/tmp/usr/lib/arc/libarex.so
+debian/tmp/usr/lib/arc/libarex.apd
 
 debian/tmp/usr/lib/arc/ARC0mod.pm
 debian/tmp/usr/lib/arc/FORKmod.pm

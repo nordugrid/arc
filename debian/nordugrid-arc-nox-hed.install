@@ -1,5 +1,6 @@
 debian/tmp/usr/sbin/arched
 debian/tmp/usr/lib/arc/libecho.so
+debian/tmp/usr/lib/arc/libecho.apd
 debian/tmp/usr/share/man/man8/arched.8
 debian/tmp/usr/share/arc/profiles
 debian/tmp/usr/share/arc/examples/config
