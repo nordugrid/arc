@@ -32,7 +32,8 @@ our %modnames = ( PBS    => "PBS",
                   LSF    => "LSF",
                   CONDOR => "Condor",
                   SLURM  => "SLURM",
-                  FORK   => "Fork"
+                  FORK   => "Fork",
+                  GRIDFACTORY => "GridFactory"
                 );
 
 # Whether the module implements support for listing nodes.
