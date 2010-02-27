@@ -163,7 +163,7 @@ $conffile = "/etc/arc.conf" unless defined $conffile;
 
 printf STDERR "janitor: DEBUG: using configuration file \"%s\"\n", $conffile	if $DEBUG;
 if(! -e $conffile){
-	printf STDERR "janitor: ERROR: Couldn't find configuration file \"%s\"\n", $conffile;
+	printf STDERR "janitor: ERROR: Could not find configuration file \"%s\", change location with -c <filename>.\n", $conffile;
 	return 4;
 }
 
@@ -531,17 +531,17 @@ sub register_job {
 	my $state = $response->state($rte->state);
 
 	if ($state == Janitor::RTE::FAILED) {
-###l4p		$logger->info("$job_id: Can't provide requested RTEs: installation FAILED previously");
+###l4p		$logger->info("$job_id: Cannot provide requested RTEs: installation FAILED previously");
 		$rte->disconnect;
 		$job->remove;
-		$response->result(2, "Can't provide requested RTEs: installation FAILED previously.");
+		$response->result(2, "Cannot provide requested RTEs: installation FAILED previously.");
 		return $response;
 
 	} elsif ($state == Janitor::RTE::REMOVAL_PENDING) {
-###l4p		$logger->info("$job_id: Can't provide requested RTEs: its waiting for removal");
+###l4p		$logger->info("$job_id: Cannot provide requested RTEs: its waiting for removal");
 		$rte->disconnect;
 		$job->remove;
-		$response->result(2, "Can't provide requested RTEs: its waiting for removal.");
+		$response->result(2, "Cannot provide requested RTEs: its waiting for removal.");
 		return $response;
 
 	} elsif ($state == Janitor::RTE::INSTALLED_A or $state == Janitor::RTE::INSTALLED_M
@@ -570,7 +570,7 @@ sub register_job {
 			$response->result(1, "Sucessfully initialized job.");
 			return $response;
 		} else {
-###l4p 			$logger->info("$job_id: Can't provide requested RTEs: not supported");
+###l4p 			$logger->info("$job_id: Cannot provide requested RTEs: not supported");
 #			The following two lines are replaced by the third line beneath this comment.
 #			Reason: Excogitated RTE names are leading to this state, in which a folder remains
 #				after the registration process. This is not desired for the amount is not limited!
@@ -578,7 +578,7 @@ sub register_job {
 #- 			$rte->disconnect;
 			$rte->remove;
 			$job->remove;
-			$response->result(2, "Can't provide requested RTEs: not supported.");
+			$response->result(2, "Cannot provide requested RTEs: not supported.");
 			return $response;
 		}
 	}
@@ -606,8 +606,8 @@ sub deploy_for_job {
 	my $job = new Janitor::Job($job_id, $regDirJob);
 	$ret = $job->open;
 	unless (defined $ret and $ret == 0) {
-###l4p		$logger->error("$job_id: Can't deploy: no such job");
-		$response->result(1, "Can't deploy: no such job.");
+###l4p		$logger->error("$job_id: Cannot deploy: no such job");
+		$response->result(1, "Cannot deploy: no such job.");
 		return $response;
 	}
 
@@ -666,16 +666,16 @@ sub deploy_for_job {
 	$state = $response->state($rte->state);
 
 	if ($state == Janitor::RTE::FAILED) {
-###l4p		$logger->info("$job_id: Can't provide requested RTEs: installation FAILED previously");
+###l4p		$logger->info("$job_id: Cannot provide requested RTEs: installation FAILED previously");
 		$rte->disconnect;
 		$job->remove;
-		$response->result(1, "Can't provide requested RTEs: installation FAILED previously.");
+		$response->result(1, "Cannot provide requested RTEs: installation FAILED previously.");
 		return $response;
 	} elsif ($state == Janitor::RTE::REMOVAL_PENDING) {
-###l4p		$logger->info("$job_id: Can't provide requested RTEs: its waiting for removal");
+###l4p		$logger->info("$job_id: Cannot provide requested RTEs: its waiting for removal");
 		$rte->disconnect;
 		$job->remove;
-		$response->result(1, "Can't provide requested RTEs: its waiting for removal.");
+		$response->result(1, "Cannot provide requested RTEs: its waiting for removal.");
 		return $response;
 	} elsif ($state == Janitor::RTE::INSTALLED_A or $state == Janitor::RTE::INSTALLED_M
 			or $state == Janitor::RTE::VALIDATED or $state == Janitor::RTE::BROKEN) {
@@ -693,11 +693,11 @@ sub deploy_for_job {
 		my $catalog = &get_catalog;
 		my @bslist = $catalog->basesystems_supporting_metapackages(@rte_list);
 		unless ( @bslist ) {
-###l4p 			$logger->info("$job_id: Can't provide requested RTEs: not supported");
+###l4p 			$logger->info("$job_id: Cannot provide requested RTEs: not supported");
 			$rte->state(Janitor::RTE::UNKNOWN);
 			$rte->disconnect;
 			$job->remove;
-			$response->result(1, "Can't provide requested RTEs: not supported.");
+			$response->result(1, "Cannot provide requested RTEs: not supported.");
 			return $response;
 		}
 
@@ -708,11 +708,11 @@ sub deploy_for_job {
 			$ret = deploy_rte_for_job($job_id, $rte, \@rte_list, $catalog, \@bslist);
 		};
 		if ($@ or $ret != 0) {
-###l4p			$logger->error("$job_id: Can't provide requested RTEs: installation FAILED (".$@.")");
+###l4p			$logger->error("$job_id: Cannot provide requested RTEs: installation FAILED (".$@.")");
 			$rte->state($response->state(Janitor::RTE::FAILED));
 			$rte->disconnect;
 			$job->remove;
-			$response->result(1, "Can't provide requested RTEs: installation FAILED.");
+			$response->result(1, "Cannot provide requested RTEs: installation FAILED.");
 			return $response;
 		}
 
@@ -730,7 +730,7 @@ sub deploy_for_job {
 	$rte->disconnect;
 	$job->disconnect;
 	
-	printf STDERR "XXX this should not be reached (search for 6423764523) !!!\n";
+	printf STDERR "XXX this should not be reached (search for 6423764523 in sources) !!!\n";
 
 	$response->result(1, "");
 	return $response;

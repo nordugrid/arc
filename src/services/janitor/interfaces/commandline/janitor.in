@@ -5,7 +5,7 @@ BEGIN {
 	push @INC, "@prefix@/share/arc/perl/";
 
 	while (@ARGV > 0) {
-		if($ARGV[0] eq "-h") {
+		if($ARGV[0] eq "-h" or $ARGV[0] eq "--help" or $ARGV[0] eq "-help") {
 			# For compatibility with most Unix utilities
 			%ARGV = ();
 			last;
