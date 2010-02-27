@@ -109,6 +109,12 @@ CMD="$CMD -p '$PID_FILE' -c '$HED_CONFIG'"
 
 start()
 {
+    if [ -r /etc/default/arched ]; then
+      if egrep -q '[ \t]*disable' /etc/default/arched 2>/dev/null ; then
+         echo "Start of $prog disabled"
+         return 0
+      fi
+    fi
     echo -n "Starting $prog: "
 
     # Check if we are already running
