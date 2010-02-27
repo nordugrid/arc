@@ -696,6 +696,7 @@ exit 0
 %doc %{_datadir}/%{pkgdir}/examples/a-rex/arex_minimalistic.xml.example
 %doc %{_datadir}/%{pkgdir}/examples/a-rex/arex_secure.xml.example
 %doc %{_datadir}/%{pkgdir}/examples/a-rex/arex_showcase.xml.example
+%doc %{_datadir}/%{pkgdir}/examples/a-rex/arex_janitor.xml.example
 %doc %{_datadir}/%{pkgdir}/examples/a-rex/arex_xmlonly.xml.example
 
 %files devel
