@@ -71,7 +71,7 @@ if [ ! -z "${joboption_jobname}" ] ; then
            sed 's/^\([^[:alpha:]]\)/N\1/' | \
            sed 's/[^[:alnum:]]/_/g' | \
 	   sed 's/\(...............\).*/\1/'`
-  echo "#$ -N $jobname" >> $LRMS_JOB_SCRIPT
+  echo "#$ -N '$jobname'" >> $LRMS_JOB_SCRIPT
 fi
 echo "SGE jobname: $jobname" 1>&2
 
