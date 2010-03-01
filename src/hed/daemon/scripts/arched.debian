@@ -77,7 +77,7 @@ if ! test -x "$CMD"; then
 fi
 
 if [ ! -r "$HED_CONFIG" ]; then
-     echo "The HED configuration not found (usually /etc/arc/server.xml)"
+     echo "HED configuration not found (expected at '$HED_CONFIG')"
      exit 1
 fi
 
