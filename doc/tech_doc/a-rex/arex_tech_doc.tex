@@ -1313,6 +1313,13 @@ sharing mechanism for data transfer. \emph{max\_share} is the maximum
 number of processes that can run per transfer share and \emph{share\_type} is 
 the scheme used to assign jobs to transfer shares. See Section~\ref{sub:Transfershare}
 for possible values and more details.
+\item \textbf{\textit{share\_limit}}\textit{=name limit} -- specifies a transfer
+share that has a number of processes different from the default value in
+maxloadshare. \emph{name} is the name of the share and \emph{limit} is the 
+number of processes for this share. In the configuration should appear after 
+maxloadshare. Can be repeated several times for different shares.
+See Section~\ref{sub:Transfershare} for how to compose shares' names and more
+details.
 \item \textbf{\textit{wakeupperiod}}\textit{=time} -- specifies how often
 the A-REX checks for job state changes (like new arrived job, job
 finished in LRMS, etc.). \textit{time} is a minimal time period specified
@@ -1575,6 +1582,38 @@ The scheme used to assign jobs to transfer shares can be set in the
   default share is used.
 \end{itemize}
 
+It's possible to distinguish some transfer shares and assign them a limit
+different from what's specified in \emph{maxloadshare}. It's done by
+\emph{share\_limit} option. \emph{share\_limit} can only be used if 
+\emph{maxloadshare} has been already set before. Depending on the 
+sharing mechanism used by \emph{maxloadshare}, the proper name for the share
+should be specified, as illustrated by the following examples (note, that
+in dn case spaces are allowed, the configuration parser will take care of them):
+
+\begin{itemize}
+\item \emph{dn}: /O=Grid/O=NorduGrid/OU=domainname.com/CN=Jane Doe
+\item \emph{voms:vo}: voname
+\item \emph{voms:role}: voname:rolename
+\item \emph{voms:group}: /voname/groupname
+\end{itemize}
+
+The specific shares, specified in \emph{share\_limit}, are processed
+differently from the other shares. A-REX reserves an indicated number of 
+processes for each specific share. The number of unreserved processes is then
+split evenly between the ordinary shares, as determined by \emph{maxloadshare}. 
+So the specific shares have a strict, non-decreaseable limit, unlike all the 
+ordinary shares, whose limit can be decreased while A-REX tries to split the 
+load evenly. However, A-REX reserves processes only for active 
+specific shares, i.e. shares to which at least one active job on the resource 
+belongs to. If the share is not active, its slots are used in overall splitting
+between ordinary transfer shares.
+
+A particular case is when A-REX reserves more processes than specified in
+\emph{maxjobs}. A-REX will process jobs from specific share at FIFO-basis and
+stop at reaching \emph{maxjobs} number of processes, even if some specific
+shares haven't reached their limits. Also in this situation each ordinary
+share is allowed to launch only one upload and download process.
+
 If VOMS is not supported, the \emph{dn} scheme is the only option that
 should be used, as using a VOMS-based scheme will lead to all jobs
 being assigned to the default share. The current number of jobs
@@ -1591,7 +1630,9 @@ CA DN. Instructions are given on NorduGrid's web site at
 When XML file only is used to configure the A-REX, the transfer shares
 can be implemented by defining \emph{maxLoadShare} (the limit itself)
 and \emph{loadShareType} (the scheme used) elements inside 
-\emph{loadLimits} block.
+\emph{loadLimits} block. For defining the specific shares, \emph{shareLimit}
+sub-blocks with \emph{name} and \emph{limit} elements can be used after 
+\emph{maxLoadShare}.
 
 \subsection{Authorization\label{sub:Authorization}}
 
