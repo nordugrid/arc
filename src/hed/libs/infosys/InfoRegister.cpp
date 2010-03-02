@@ -383,6 +383,16 @@ void InfoRegistrar::registration(void) {
         Time min_reg_time(-1);
         XMLNode send_doc(reg_ns, "");
 
+        std::string mon_prefix = (ptm->tm_mon+1 < 10)?"0":"";
+        std::string day_prefix = (ptm->tm_mday < 10)?"0":"";
+        std::string hour_prefix = (ptm->tm_hour < 10)?"0":"";
+        std::string min_prefix = (ptm->tm_min < 10)?"0":"";
+        std::string sec_prefix = (ptm->tm_sec < 10)?"0":"";
+        std::stringstream out;
+        out << ptm->tm_year+1900<<"-"<<mon_prefix<<ptm->tm_mon+1<<"-"<<day_prefix<<ptm->tm_mday<<"T";
+        out << hour_prefix<<ptm->tm_hour<<":"<<min_prefix<<ptm->tm_min<<":"<<sec_prefix<<ptm->tm_sec;
+        out << "+0000";
+
         for(std::list<Register_Info_Type>::iterator r = reg_.begin();
                                                r!=reg_.end();++r) {
             if ( (r->next_registration).GetTime() <= current_time + stretch_window.GetPeriod() ){
@@ -427,16 +437,6 @@ void InfoRegistrar::registration(void) {
                     logger_.msg(WARNING, "ServiceID attribute calculated from Endpoint Reference");
                 }
                 if (!(bool)services_doc["MetaSrcAdv"]["GenTime"]) {
-                    std::string mon_prefix = (ptm->tm_mon+1 < 10)?"0":"";
-                    std::string day_prefix = (ptm->tm_mday < 10)?"0":"";
-                    std::string hour_prefix = (ptm->tm_hour < 10)?"0":"";
-                    std::string min_prefix = (ptm->tm_min < 10)?"0":"";
-                    std::string sec_prefix = (ptm->tm_sec < 10)?"0":"";
-                    std::stringstream out;
-                    out << ptm->tm_year+1900<<"-"<<mon_prefix<<ptm->tm_mon+1<<"-"<<day_prefix<<ptm->tm_mday<<"T";
-                    out << hour_prefix<<ptm->tm_hour<<":"<<min_prefix<<ptm->tm_min<<":"<<sec_prefix<<ptm->tm_sec;
-                    out << "+0000";
-
                     services_doc["MetaSrcAdv"].NewChild("GenTime") = out.str();
                     logger_.msg(WARNING, "Generation Time attribute calculated from current time");
                 }
@@ -494,17 +494,6 @@ void InfoRegistrar::registration(void) {
             PayloadSOAP request(reg_ns);
             XMLNode op = request.NewChild("isis:Register");
             XMLNode header = op.NewChild("isis:Header");
-
-            std::string mon_prefix = (ptm->tm_mon+1 < 10)?"0":"";
-            std::string day_prefix = (ptm->tm_mday < 10)?"0":"";
-            std::string hour_prefix = (ptm->tm_hour < 10)?"0":"";
-            std::string min_prefix = (ptm->tm_min < 10)?"0":"";
-            std::string sec_prefix = (ptm->tm_sec < 10)?"0":"";
-            std::stringstream out;
-            out << ptm->tm_year+1900<<"-"<<mon_prefix<<ptm->tm_mon+1<<"-"<<day_prefix;
-            out << ptm->tm_mday <<"T"<<hour_prefix<<ptm->tm_hour<<":"<<min_prefix;
-            out << ptm->tm_min <<":"<<sec_prefix<<ptm->tm_sec;
-            out << "+0000";
             header.NewChild("MessageGenerationTime") = out.str();
 
             // create body
