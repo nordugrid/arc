@@ -1,0 +1,33 @@
+<ArcConfig>
+  <ModuleManager>
+     <Path>/usr/local/lib</Path>
+     <Path>/usr/local/lib/arc</Path>
+  </ModuleManager>
+     <Plugins><Name>mcctcp</Name></Plugins>
+     <Plugins><Name>mcctls</Name></Plugins>
+     <Plugins><Name>mcchttp</Name></Plugins>
+     <Plugins><Name>mccsoap</Name></Plugins>
+   <Chain>
+     <Component name='tcp.client' id='tcp'>
+         <Connect>
+            <Host>HOSTNAME</Host>
+            <Port>PORTNUMBER</Port>
+         </Connect>
+     </Component>
+     <Component name='tls.client' id='tls'>
+         <next id='tcp'/>
+        <ProxyPath>/var/folders/gF/gFe0p2ZuGDW9jkwWbV6CWU+++TI/-Tmp-/x509up_u501</ProxyPath>
+        <!--KeyPath>/Users/roczei/.globus/userkey.pem</KeyPath>
+        <CertificatePath>/Users/roczei/.globus/userkey.pem</CertificatePath-->
+        <CACertificatesDir>/etc/grid-security/certificates</CACertificatesDir>
+     </Component> 
+     <Component name='http.client' id='http'>
+         <next id='tls'/>
+         <Method>POST</Method>
+         <Endpoint>HTTPPATH</Endpoint></Component>
+     <Component name='soap.client' id='soap' entry='soap'>
+         <next id='http'/>
+     </Component>
+   </Chain>
+</ArcConfig>
+
