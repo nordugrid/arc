@@ -303,8 +303,6 @@ bool InfoRegistrar::removeService(InfoRegister* reg) {
 
                 if ((!status.isOk()) ||
                     (!response)) {
-                    //(!response) ||
-                    //(!bool((*response)["RemoveRegistrationResponse"]))) {
                     logger_.msg(ERROR, "Failed to remove registration from %s ISIS )", usedISIS.url);
                 } else {
                     if(!(bool)(*response)["RemoveRegistrationResponseElement"])  {
@@ -405,12 +403,6 @@ void InfoRegistrar::registration(void) {
                 if(!((r->p_register)->getService())) continue;
                 (r->p_register)->getService()->RegistrationCollector(services_doc);
 
-                /* {
-                //VERBOSE//
-                std::string services_string;
-                services_doc.GetDoc(services_string, true);
-                logger_.msg(VERBOSE, "InfoRegister created with config:\n%s", services_string);
-                }*/
                 // Fill attributes from InfoRegister configuration
                 if (!((bool)services_doc["SrcAdv"]["EPR"]["Address"]) && !((r->endpoint).empty()) ) {
                     if (!(bool)services_doc["SrcAdv"]) services_doc.NewChild("SrcAdv");
@@ -434,11 +426,11 @@ void InfoRegistrar::registration(void) {
                 // Possible completion of the services_doc
                 if (!((bool)services_doc["MetaSrcAdv"]["ServiceID"]) && ((bool)services_doc["SrcAdv"]["EPR"]["Address"])) {
                     services_doc["MetaSrcAdv"].NewChild("ServiceID") = (std::string) services_doc["SrcAdv"]["EPR"]["Address"];
-                    logger_.msg(WARNING, "ServiceID attribute calculated from Endpoint Reference");
+                    logger_.msg(VERBOSE, "ServiceID attribute calculated from Endpoint Reference");
                 }
                 if (!(bool)services_doc["MetaSrcAdv"]["GenTime"]) {
                     services_doc["MetaSrcAdv"].NewChild("GenTime") = out.str();
-                    logger_.msg(WARNING, "Generation Time attribute calculated from current time");
+                    logger_.msg(VERBOSE, "Generation Time attribute calculated from current time");
                 }
 
                 // Store the sent ServiceID for the clear shutdown RemoveRegistration operation, if necessary
