@@ -212,6 +212,7 @@ rm -rf $RPM_BUILD_ROOT
 %doc %{_mingw32_mandir}/man1/arcrenew.1*
 %doc %{_mingw32_mandir}/man1/arcresume.1*
 %doc %{_mingw32_mandir}/man1/arcwsrf.1*
+%doc %{_mingw32_mandir}/man1/isistest.1*
 %doc %{_mingw32_mandir}/man1/perftest.1*
 %doc %{_mingw32_mandir}/man1/saml_assertion_init.1*
 %doc %{_mingw32_mandir}/man1/jura.1*
