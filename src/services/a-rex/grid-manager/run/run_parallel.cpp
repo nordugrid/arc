@@ -54,7 +54,7 @@ bool RunParallel::run(JobUser& user,const JobDescription& desc,const char *const
     JobUser tmp_user(desc.get_uid());
     if(!tmp_user.is_valid()) return false;
     tmp_user.SetControlDir(user.ControlDir());
-    tmp_user.SetSessionRoot(user.SessionRoot());
+    tmp_user.SetSessionRoot(user.SessionRoot(desc.get_id()));
     return run(tmp_user,desc.get_id().c_str(),args,ere,su,
                                         true,cred,&job_subst,&subs);
   };

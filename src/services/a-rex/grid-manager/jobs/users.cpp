@@ -26,13 +26,13 @@
 #include "users.h"
 
 static Arc::Logger& logger = Arc::Logger::getRootLogger();
+static std::string empty_string("");
 
 JobUser::JobUser(void) {
   control_dir="";
   unix_name=""; home=""; uid=0; gid=0;
   cache_params=NULL;
   valid=false; jobs=NULL;
-  session_root="";
   keep_finished=DEFAULT_KEEP_FINISHED;
   keep_deleted=DEFAULT_KEEP_DELETED;
   cred_plugin=NULL;
@@ -53,9 +53,37 @@ void JobUser::SetControlDir(const std::string &dir) {
 }
 
 void JobUser::SetSessionRoot(const std::string &dir) {
-  if(dir.length() == 0) { session_root=home + "/.jobs"; }
-  else { session_root=dir; };
+  session_roots.clear();
+  if(dir.length() == 0 || dir == "*") { session_roots.push_back(home + "/.jobs"); }
+  else { session_roots.push_back(dir); };
 }
+
+void JobUser::SetSessionRoot(const std::vector<std::string> &dirs) {
+  session_roots.clear();
+  if (dirs.empty()) {
+    std::string dir;
+    SetSessionRoot(dir);
+  } else {
+    for (std::vector<std::string>::const_iterator i = dirs.begin(); i != dirs.end(); i++) {
+      if (*i == "*") session_roots.push_back(home + "/.jobs");
+      else session_roots.push_back(*i);
+    }
+  }
+}
+
+const std::string & JobUser::SessionRoot(std::string job_id) const {
+  if (session_roots.size() == 0) return empty_string;
+  if (session_roots.size() == 1 || job_id.empty()) return session_roots[0];
+  // search for this jobid's session dir
+  struct stat st;
+  for (std::vector<std::string>::const_iterator i = session_roots.begin(); i != session_roots.end(); i++) {
+    std::string sessiondir(*i + '/' + job_id);
+    if (stat(sessiondir.c_str(), &st) == 0 && S_ISDIR(st.st_mode))
+      return *i;
+  }
+  return empty_string; // not found
+}
+
 void JobUser::SetCacheParams(CacheConfig* params) {
   std::vector<std::string> cache_dirs = params->getCacheDirs();
   for (std::vector<std::string>::iterator i = cache_dirs.begin(); i != cache_dirs.end(); i++) {
@@ -89,15 +117,17 @@ bool JobUser::CreateDirectories(void) {
       (chown((control_dir+"/logs").c_str(),uid,gid) != 0);
     };
   };
-  if(session_root.length() != 0) {
-    if(mkdir(session_root.c_str(),S_IRWXU) != 0) {
-      if(errno != EEXIST) res=false;
-    } else {
-      (chown(session_root.c_str(),uid,gid) != 0);
-      if(uid == 0) {
-        chmod(session_root.c_str(),S_IRUSR | S_IWUSR | S_IXUSR | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH);
+  if(session_roots.size() != 0) {
+    for(std::vector<std::string>::iterator i = session_roots.begin(); i != session_roots.end(); i++) {
+      if(mkdir(i->c_str(),S_IRWXU) != 0) {
+        if(errno != EEXIST) res=false;
       } else {
-        chmod(session_root.c_str(),S_IRUSR | S_IWUSR | S_IXUSR);
+        (chown(i->c_str(),uid,gid) != 0);
+        if(uid == 0) {
+          chmod(i->c_str(),S_IRUSR | S_IWUSR | S_IXUSR | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH);
+        } else {
+          chmod(i->c_str(),S_IRUSR | S_IWUSR | S_IXUSR);
+        };
       };
     };
   };
@@ -254,7 +284,7 @@ JobUser::JobUser(const JobUser &user) {
   control_dir=user.control_dir;
   home=user.home;
   jobs=user.jobs;
-  session_root=user.session_root;
+  session_roots=user.session_roots;
   default_lrms=user.default_lrms;
   default_queue=user.default_queue;
   valid=user.valid;
@@ -276,10 +306,10 @@ JobUsers::JobUsers(void) {
 JobUsers::~JobUsers(void) {
 }
 
-JobUsers::iterator JobUsers::AddUser(const std::string &unix_name,RunPlugin* cred_plugin,const std::string &control_dir, const std::string &session_root) {
+JobUsers::iterator JobUsers::AddUser(const std::string &unix_name,RunPlugin* cred_plugin,const std::string &control_dir, const std::vector<std::string> *session_roots) {
   JobUser user(unix_name,cred_plugin);
   user.SetControlDir(control_dir);
-  user.SetSessionRoot(session_root);
+  if(session_roots) user.SetSessionRoot(*session_roots);
   if(user.is_valid()) { return users.insert(users.end(),user); };
   return users.end();
 }

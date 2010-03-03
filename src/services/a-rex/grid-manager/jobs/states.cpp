@@ -98,7 +98,7 @@ bool JobsList::AddJobNoCheck(const JobId &id,uid_t uid,gid_t gid){
 }
 
 bool JobsList::AddJobNoCheck(const JobId &id,JobsList::iterator &i,uid_t uid,gid_t gid){
-  i=jobs.insert(jobs.end(),JobDescription(id,user->SessionRoot() + "/" + id));
+  i=jobs.insert(jobs.end(),JobDescription(id,user->SessionRoot(id) + "/" + id));
   i->keep_finished=user->KeepFinished();
   i->keep_deleted=user->KeepDeleted();
   i->set_uid(uid,gid);
@@ -110,7 +110,7 @@ bool JobsList::AddJob(const JobId &id,uid_t uid,gid_t gid){
   if(FindJob(id) != jobs.end()) return false;
   logger.msg(Arc::INFO,"%s: Added",id);
   iterator i=jobs.insert(jobs.end(),
-         JobDescription(id,user->SessionRoot() + "/" + id));
+         JobDescription(id,user->SessionRoot(id) + "/" + id));
   i->keep_finished=user->KeepFinished();
   i->keep_deleted=user->KeepDeleted();
   i->set_uid(uid,gid);

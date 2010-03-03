@@ -1399,9 +1399,19 @@ for both parameters is 2 hours.
 -- specifies names for the LRMS and queue. Queue name can also be specified
 in the JD (currently it is not allowed to override LRMS by using
 the JD).
-\item \textbf{\textit{sessiondir}}\textit{=path} -- specifies path to
-  the directory in which the SD is created. If \emph{path} is {*} the
-  default sessiondir is used -- \textit{\$HOME/.jobs}.
+\item \textbf{\textit{sessiondir}}\textit{=path [drain]} - specifies
+  the path to the directory in which the SD is created. Multiple
+  session directories may be specified by specifying multiple
+  \emph{sessiondir} commands. In this case jobs are spread evenly over
+  the session directories. If the path is {*} the default sessiondir
+  is used - \textit{\$HOME/.jobs}. When adding a new session
+  directory, ensure to restart the A-REX so that jobs assigned there
+  are processed. A session directory can be drained prior to removal
+  by adding the \emph{``drain''} option (no restart is required in
+  this case). No new jobs will be assigned to this session directory
+  but running jobs will still be accessible. When all jobs are
+  processed and the session directory is empty, it can be removed and
+  the A-REX should be restarted.
 \item \textbf{\textit{cachedir}}\textit{=path {[}link\_path]} --
   specifies a directory to store cached data (see section
   \ref{sec:cache}). Multiple cache directories may be specified by

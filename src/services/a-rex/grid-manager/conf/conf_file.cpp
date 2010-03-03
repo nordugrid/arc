@@ -43,6 +43,7 @@ static void check_lrms_backends(const std::string& default_lrms) {
 
 bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my_username,JobUser &my_user,Daemon* daemon) {
   std::ifstream cfile;
+  std::vector<std::string> session_roots;
   std::string session_root("");
   std::string default_lrms("");
   std::string default_queue("");
@@ -444,14 +445,14 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
     else if(command == "sessiondir") {
       /* set session root directory - applied
          to all following 'control' commands */
-      session_root = config_next_arg(rest);
+      std::string session_root = config_next_arg(rest);
       if(session_root.length() == 0) {
         logger.msg(Arc::ERROR,"session root dir is missing"); goto exit;
       };
-      if(rest.length() != 0) {
+      if(rest.length() != 0 && rest != "drain") {
         logger.msg(Arc::ERROR,"junk in session root command"); goto exit;
       };
-      if(session_root == "*") session_root="";
+      session_roots.push_back(session_root);
     } else if(command == "controldir") {
       central_control_dir=rest;
     } else if(command == "control") {
@@ -481,22 +482,23 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
             continue;
           };
           JobUsers::iterator user=users.AddUser(username,&cred_plugin,
-                                       control_dir,session_root);
+                                       control_dir,&session_roots);
           if(user == users.end()) { /* bad bad user */
             logger.msg(Arc::WARNING,"Warning: creation of user \"%s\" failed",username);
           }
           else {
             std::string control_dir_ = control_dir;
-            std::string session_root_ = session_root;
+            for(std::vector<std::string>::iterator i = session_roots.begin(); i != session_roots.end(); i++) {
+              user->substitute(*i);
+            }
             user->SetLRMS(default_lrms,default_queue);
             user->SetKeepFinished(default_ttl);
             user->SetKeepDeleted(default_ttr);
             user->SetReruns(default_reruns);
             user->SetDiskSpace(default_diskspace);
             user->substitute(control_dir_);
-            user->substitute(session_root_);
             user->SetControlDir(control_dir_);
-            user->SetSessionRoot(session_root_);
+            user->SetSessionRoot(session_roots);
             user->SetStrictSession(strict_session);
             // get cache parameters for this user
             try {
@@ -524,6 +526,7 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
         };
       };
       last_control_dir = control_dir;
+      session_roots.clear();
     }
     else if(command == "helper") {
       std::string helper_user = config_next_arg(rest);
@@ -543,14 +546,12 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
         };
       }
       else if(helper_user == ".") { /* special helper */
-        std::string session_root_ = session_root;
         std::string control_dir_ = last_control_dir;
         my_user.SetLRMS(default_lrms,default_queue);
         my_user.SetKeepFinished(default_ttl);
         my_user.SetKeepDeleted(default_ttr);
-        my_user.substitute(session_root_);
         my_user.substitute(control_dir_);
-        my_user.SetSessionRoot(session_root_);
+        my_user.SetSessionRoot(session_roots);
         my_user.SetControlDir(control_dir_);
         std::string my_helper=rest;
         users.substitute(my_helper);
@@ -609,7 +610,7 @@ bool configure_serviced_users(Arc::XMLNode cfg,JobUsers &users,uid_t my_uid,cons
   std::string default_lrms;
   std::string default_queue;
   std::string last_control_dir;
-  std::string last_session_root;
+  std::vector<std::string> session_roots;
   /*
    Currently we have everything running inside same arched.
    So we do not need any special treatment for infosys.
@@ -869,12 +870,19 @@ bool configure_serviced_users(Arc::XMLNode cfg,JobUsers &users,uid_t my_uid,cons
       logger.msg(Arc::ERROR,"controlDir is missing"); return false;
     };
     if(control_dir == "*") control_dir="";
-    std::string session_root = tmp_node["sessionRootDir"];
-    if(session_root.empty()) {
-      logger.msg(Arc::ERROR,"sessionRootDir is missing"); return false;
-    };
+    session_roots.clear();
+    Arc::XMLNode session_node = tmp_node["sessionRootDir"];
+    std::string session_root;
+    for (;session_node; ++session_node) {
+      session_root = std::string(session_node);
+      if(session_root.empty()) {
+        logger.msg(Arc::ERROR,"sessionRootDir is missing"); return false;
+      };
+      if (session_root.find(' ') != std::string::npos)
+        session_root = session_root.substr(0, session_root.find(' '));
+      session_roots.push_back(session_root);
+    }
     last_control_dir = control_dir;
-    last_session_root = session_root;
     bool strict_session = false;
     if(!elementtobool(tmp_node,"noRootPower",strict_session,&logger)) return false;
     unsigned int default_reruns = DEFAULT_JOB_RERUNS;
@@ -917,22 +925,23 @@ bool configure_serviced_users(Arc::XMLNode cfg,JobUsers &users,uid_t my_uid,cons
           continue;
         };
         JobUsers::iterator user=users.AddUser(*username,&cred_plugin,
-                                     control_dir,session_root);
+                                     control_dir,&session_roots);
         if(user == users.end()) { /* bad bad user */
           logger.msg(Arc::WARNING,"Warning: creation of user \"%s\" failed",*username);
         }
         else {
           std::string control_dir_ = control_dir;
-          std::string session_root_ = session_root;
           user->SetLRMS(default_lrms,default_queue);
           user->SetKeepFinished(default_ttl);
           user->SetKeepDeleted(default_ttr);
           user->SetReruns(default_reruns);
           user->SetDiskSpace(default_diskspace);
           user->substitute(control_dir_);
-          user->substitute(session_root_);
+          for(std::vector<std::string>::iterator i = session_roots.begin(); i != session_roots.end(); i++) {
+            user->substitute(*i);
+          }
           user->SetControlDir(control_dir_);
-          user->SetSessionRoot(session_root_);
+          user->SetSessionRoot(session_roots);
           user->SetStrictSession(strict_session);
           // get cache parameters for this user
           try {
@@ -988,12 +997,10 @@ bool configure_serviced_users(Arc::XMLNode cfg,JobUsers &users,uid_t my_uid,cons
       }
       else if(username == ".") { /* special helper */
         // Take parameters of last control
-        std::string session_root_ = last_session_root;
         std::string control_dir_ = last_control_dir;
         my_user.SetLRMS(default_lrms,default_queue);
-        my_user.substitute(session_root_);
         my_user.substitute(control_dir_);
-        my_user.SetSessionRoot(session_root_);
+        my_user.SetSessionRoot(session_roots);
         my_user.SetControlDir(control_dir_);
         std::string command_=command;
         users.substitute(command_);
@@ -1020,7 +1027,8 @@ bool configure_serviced_users(Arc::XMLNode cfg,JobUsers &users,uid_t my_uid,cons
 bool print_serviced_users(const JobUsers &users) {
   for(JobUsers::const_iterator user = users.begin();user!=users.end();++user) {
     logger.msg(Arc::INFO,"Added user : %s",user->UnixName());
-    logger.msg(Arc::INFO,"\tSession root dir : %s",user->SessionRoot());
+    for(std::vector<std::string>::const_iterator i = user->SessionRoots().begin(); i != user->SessionRoots().end(); i++)
+      logger.msg(Arc::INFO,"\tSession root dir : %s",*i);
     logger.msg(Arc::INFO,"\tControl dir      : %s",user->ControlDir());
     logger.msg(Arc::INFO,"\tdefault LRMS     : %s",user->DefaultLRMS());
     logger.msg(Arc::INFO,"\tdefault queue    : %s",user->DefaultQueue());

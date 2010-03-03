@@ -23,7 +23,8 @@ class RunPlugin;
     look description of grid-manager and configuration template.
 */
 bool configure_user_dirs(const std::string &my_username,
-                std::string &control_dir,std::string &session_root,
+                std::string &control_dir,std::vector<std::string> &session_roots,
+                std::vector<std::string> &session_roots_non_draining,
                 std::string &default_lrms,std::string &default_queue,
                 std::list<std::string>& queues,
                 ContinuationPlugins &plugins,RunPlugin& cred,

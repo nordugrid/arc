@@ -43,8 +43,8 @@ class JobUser {
  private:
   /* directory where files explaining jobs are stored */
   std::string control_dir;
-  /* directory where directories used to run jobs are created */
-  std::string session_root;
+  /* directories where directories used to run jobs are created */
+  std::vector<std::string> session_roots;
   /* cache information */
   CacheConfig * cache_params;
   /* default LRMS and queue to use */
@@ -88,6 +88,7 @@ class JobUser {
   /* Set and get corresponding private values */
   void SetControlDir(const std::string &dir);
   void SetSessionRoot(const std::string &dir);
+  void SetSessionRoot(const std::vector<std::string> &dirs);
   void SetCacheParams(CacheConfig* params);
   void SetLRMS(const std::string &lrms_name,const std::string &queue_name);
   void SetKeepFinished(time_t ttl) { keep_finished=ttl; };
@@ -99,7 +100,8 @@ class JobUser {
   bool CreateDirectories(void);
   bool is_valid(void) { return valid; };
   const std::string & ControlDir(void) const { return control_dir; };
-  const std::string & SessionRoot(void) const { return session_root; };
+  const std::string & SessionRoot(std::string job_id = "") const;
+  const std::vector<std::string> & SessionRoots() const { return session_roots; };
   CacheConfig * CacheParams(void) const { return cache_params; };
   bool CachePrivate(void) const { return false; };
   const std::string & DefaultLRMS(void) const { return default_lrms; };
@@ -147,7 +149,7 @@ class JobUsers {
   const_iterator end(void) const { return users.end(); };
   size_t size(void) const { return users.size(); };
   /* Create new user object and push into list */
-  iterator AddUser(const std::string &unix_name,RunPlugin* cred_plugin = NULL,const std::string &control_dir = "",const std::string &session_root = "");
+  iterator AddUser(const std::string &unix_name,RunPlugin* cred_plugin = NULL,const std::string &control_dir = "",const std::vector<std::string> *session_root = NULL);
   iterator DeleteUser(iterator &user) { return users.erase(user); };
   /* Check existance of user of given unix name */
   bool HasUser(const std::string &name) {

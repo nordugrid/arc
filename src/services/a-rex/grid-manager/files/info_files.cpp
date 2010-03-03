@@ -385,7 +385,7 @@ bool job_diagnostics_mark_move(const JobDescription &desc,JobUser &user) {
   if(h2==-1) return false;
   fix_file_owner(fname2,desc,user);
   fix_file_permissions(fname2,user);
-  std::string fname1 = user.SessionRoot() + "/" + desc.get_id() + sfx_diag;
+  std::string fname1 = user.SessionRoot(desc.get_id()) + "/" + desc.get_id() + sfx_diag;
   if(user.StrictSession()) {
     JobUser tmp_user(user.get_uid()==0?desc.get_uid():user.get_uid());
     job_file_read_t arg; arg.h=h2; arg.fname=&fname1;
@@ -998,10 +998,10 @@ bool job_clean_deleted(const JobDescription &desc,JobUser &user,std::list<std::s
   fname = user.ControlDir()+"/job."+id+".input"; remove(fname.c_str());
   fname = user.ControlDir()+"/job."+id+".rte"; remove(fname.c_str());
   fname = user.ControlDir()+"/job."+id+".grami_log"; remove(fname.c_str());
-  fname = user.SessionRoot()+"/"+id+sfx_lrmsoutput; remove(fname.c_str());
+  fname = user.SessionRoot(id)+"/"+id+sfx_lrmsoutput; remove(fname.c_str());
   /* remove session directory */
   std::list<FileData> flist;
-  std::string dname = user.SessionRoot()+"/"+id;
+  std::string dname = user.SessionRoot(id)+"/"+id;
   if(user.StrictSession()) {
     JobUser tmp_user(user.get_uid()==0?desc.get_uid():user.get_uid());
     job_dir_remove_t arg; arg.dname=&dname; arg.flist=&flist;

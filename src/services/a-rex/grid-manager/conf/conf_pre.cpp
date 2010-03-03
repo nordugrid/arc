@@ -22,7 +22,8 @@
 Arc::Logger& logger = Arc::Logger::getRootLogger();
 
 bool configure_user_dirs(const std::string &my_username,
-                std::string &control_dir,std::string &session_root,
+                std::string &control_dir,std::vector<std::string> &session_roots,
+                std::vector<std::string> &session_roots_non_draining,
                 std::string &default_lrms,std::string &default_queue,
                 std::list<std::string>& queues,
                 ContinuationPlugins &plugins,RunPlugin &cred_plugin,
@@ -135,7 +136,23 @@ bool configure_user_dirs(const std::string &my_username,
         };
         if(user_match) {
           std::string control_dir_ = tmp_node["controlDir"];
-          std::string session_root_ = tmp_node["sessionRootDir"];
+          Arc::XMLNode session_node = tmp_node["sessionRootDir"];
+          for (;session_node; ++session_node) {
+            std::string session_root = session_node;
+            if(session_root.empty()) {
+              logger.msg(Arc::ERROR,"sessionRootDir is missing"); return false;
+            };
+            std::string::size_type i = session_root.find(' ');
+            if (i != std::string::npos) {
+              if (session_root.substr(i+1) != "drain") {
+                session_roots_non_draining.push_back(session_root.substr(0, i));
+              }
+              session_root = session_root.substr(0, i);
+            } else {
+              session_roots_non_draining.push_back(session_root);
+            }
+            session_roots.push_back(session_root);
+          }
           if(username == ".") username = "";
           JobUser user(username);
           if(!user.is_valid()) { config_close(cfile); return false; };
@@ -143,10 +160,17 @@ bool configure_user_dirs(const std::string &my_username,
           elementtobool(tmp_node,"noRootPower",strict_session,&logger);
           user.SetLRMS(default_lrms,default_queue);
           user.substitute(control_dir_);
-          user.substitute(session_root_);
-          user.SetSessionRoot(session_root_);
           user.SetControlDir(control_dir_);
-          session_root=user.SessionRoot();
+          for(std::vector<std::string>::iterator i = session_roots_non_draining.begin(); i != session_roots_non_draining.end(); i++) {
+            user.substitute(*i);
+          }
+          user.SetSessionRoot(session_roots_non_draining);
+          session_roots_non_draining = user.SessionRoots();
+          for(std::vector<std::string>::iterator i = session_roots.begin(); i != session_roots.end(); i++) {
+            user.substitute(*i);
+          }
+          user.SetSessionRoot(session_roots);
+          session_roots=user.SessionRoots();
           control_dir=user.ControlDir();
           configured=true;
           break;
@@ -219,9 +243,13 @@ bool configure_user_dirs(const std::string &my_username,
         }
         else if(command == "sessiondir") {
           if(configured) continue;
-          session_root = config_next_arg(rest);
+          std::string session_root = config_next_arg(rest);
           if(session_root.length() == 0) { config_close(cfile); if(cf) delete cf; return false; };
-          if(session_root == "*") session_root="";
+          session_roots.push_back(session_root);
+          std::string drain = config_next_arg(rest);
+          if (drain.empty() || drain != "drain") {
+            session_roots_non_draining.push_back(session_root);
+          }
         }
         else if(command == "controldir") {
           central_control_dir=rest;
@@ -244,12 +272,22 @@ bool configure_user_dirs(const std::string &my_username,
               if(!user.is_valid()) { config_close(cfile); if(cf) delete cf; return false; };
               user.SetLRMS(default_lrms,default_queue);
               user.substitute(control_dir);
-              user.substitute(session_root);
-              user.SetSessionRoot(session_root);
               user.SetControlDir(control_dir);
-              session_root=user.SessionRoot();
+              for(std::vector<std::string>::iterator i = session_roots_non_draining.begin(); i != session_roots_non_draining.end(); i++) {
+                user.substitute(*i);
+              }
+              user.SetSessionRoot(session_roots_non_draining);
+              session_roots_non_draining=user.SessionRoots();
+              for(std::vector<std::string>::iterator i = session_roots.begin(); i != session_roots.end(); i++) {
+                user.substitute(*i);
+              }
+              user.SetSessionRoot(session_roots);
+              session_roots=user.SessionRoots();
               control_dir=user.ControlDir();
               configured=true;
+            } else {
+              session_roots.clear();
+              session_roots_non_draining.clear();
             };
           };
         };
@@ -269,7 +307,6 @@ bool configure_users_dirs(Arc::XMLNode cfg,JobUsers& users) {
   tmp_node = cfg["control"];
   for(;tmp_node;++tmp_node) {
     Arc::XMLNode unode = tmp_node["username"];
-    bool user_match = false;
     std::list<std::string> usernames;
     for(;unode;++unode) {
       std::string username;

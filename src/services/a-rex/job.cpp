@@ -62,14 +62,15 @@ ARexGMConfig::ARexGMConfig(const std::string& configfile,const std::string& unam
   if(!user_->is_valid()) { delete user_; user_=NULL; return; };
   if(nordugrid_loc().empty() != 0) { delete user_; user_=NULL; return; };
   /* read configuration */
-  std::string session_root;
+  std::vector<std::string> session_roots;
   std::string control_dir;
   std::string default_lrms;
   std::string default_queue;
   RunPlugin* cred_plugin = new RunPlugin;
   std::string allowsubmit;
   bool strict_session;
-  if(!configure_user_dirs(uname,control_dir,session_root,
+  if(!configure_user_dirs(uname,control_dir,session_roots,
+                          session_roots_non_draining_,
                           default_lrms,default_queue,queues_,
                           cont_plugins_,*cred_plugin,
                           allowsubmit,strict_session)) {
@@ -81,7 +82,7 @@ ARexGMConfig::ARexGMConfig(const std::string& configfile,const std::string& unam
     default_queue=*(queues_.begin());
   };
   user_->SetControlDir(control_dir);
-  user_->SetSessionRoot(session_root);
+  user_->SetSessionRoot(session_roots);
   user_->SetLRMS(default_lrms,default_queue);
   user_->SetStrictSession(strict_session);
   //for(;allowsubmit.length();) {
@@ -380,6 +381,15 @@ ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& crede
     delete_job_id();
     return;
   };
+  // Choose session directory
+  std::string sessiondir;
+  if (!ChooseSessionDir(id_, sessiondir)) {
+    delete_job_id();
+    failure_="Failed to find valid session directory";
+    failure_type_=ARexJobInternalError;
+    return;
+  };
+  config_.User()->SetSessionRoot(sessiondir);
   // Write local file
   JobDescription job(id_,config_.User()->SessionRoot()+"/"+id_,JOB_STATE_ACCEPTED);
   job.set_local(&job_); // need this for write_grami
@@ -541,7 +551,7 @@ bool ARexJob::Failed(void) {
 bool ARexJob::UpdateCredentials(const std::string& credentials) {
   if(id_.empty()) return false;
   if(!update_credentials(credentials)) return false;
-  JobDescription job(id_,config_.User()->SessionRoot()+"/"+id_,JOB_STATE_ACCEPTED);
+  JobDescription job(id_,config_.User()->SessionRoot(id_)+"/"+id_,JOB_STATE_ACCEPTED);
   if(!job_local_write_file(job,*config_.User(),job_)) return false;
   return true;
 }
@@ -620,7 +630,7 @@ bool ARexJob::delete_job_id(void) {
   if(!config_) return true;
   if(!id_.empty()) {
     job_clean_final(JobDescription(id_,
-                config_.User()->SessionRoot()+"/"+id_),*config_.User());
+                config_.User()->SessionRoot(id_)+"/"+id_),*config_.User());
     id_="";
   };
   return true;
@@ -648,7 +658,7 @@ std::list<std::string> ARexJob::Jobs(ARexGMConfig& config,Arc::Logger& logger) {
 
 std::string ARexJob::SessionDir(void) {
   if(id_.empty()) return "";
-  return config_.User()->SessionRoot()+"/"+id_;
+  return config_.User()->SessionRoot(id_)+"/"+id_;
 }
 
 std::string ARexJob::LogDir(void) {
@@ -688,7 +698,7 @@ int ARexJob::CreateFile(const std::string& filename) {
     return -1;
   };
   int lname = fname.length();
-  fname = config_.User()->SessionRoot()+"/"+id_+"/"+fname;
+  fname = config_.User()->SessionRoot(id_)+"/"+id_+"/"+fname;
   // First try to create/open file
   int h = Arc::FileOpen(fname.c_str(),O_WRONLY | O_CREAT,config_.User()->get_uid(),config_.User()->get_gid(),S_IRUSR | S_IWUSR);
   if(h != -1) return h;
@@ -714,7 +724,7 @@ int ARexJob::OpenFile(const std::string& filename,bool for_read,bool for_write) 
     failure_type_=ARexJobInternalError;
     return -1;
   };
-  fname = config_.User()->SessionRoot()+"/"+id_+"/"+fname;
+  fname = config_.User()->SessionRoot(id_)+"/"+id_+"/"+fname;
   int flags = 0;
   if(for_read && for_write) { flags=O_RDWR; }
   else if(for_read) { flags=O_RDONLY; }
@@ -727,7 +737,7 @@ Glib::Dir* ARexJob::OpenDir(const std::string& dirname) {
   std::string dname = dirname;
   if(!normalize_filename(dname)) return NULL;
   //if(dname.empty()) return NULL;
-  dname = config_.User()->SessionRoot()+"/"+id_+"/"+dname;
+  dname = config_.User()->SessionRoot(id_)+"/"+id_+"/"+dname;
   Glib::Dir* dir = Arc::DirOpen(dname.c_str(),config_.User()->get_uid(),config_.User()->get_gid());
   return dir;
 }
@@ -744,16 +754,12 @@ std::list<std::string> ARexJob::LogFiles(void) {
   if(id_.empty()) return logs;
   std::string dname = config_.User()->ControlDir();
   std::string prefix = "job." + id_ + ".";
-std::cerr<<"LogFiles: prefix: "<<prefix<<std::endl;
-std::cerr<<"LogFiles: dname: "<<dname<<std::endl;
   Glib::Dir* dir = Arc::DirOpen(dname.c_str(),config_.User()->get_uid(),config_.User()->get_gid());
   if(!dir) return logs;
   for(;;) {
     std::string name = dir->read_name();
-std::cerr<<"LogFiles: name: "<<name<<std::endl;
     if(name.empty()) break;
     if(strncmp(prefix.c_str(),name.c_str(),prefix.length()) != 0) continue;
-std::cerr<<"LogFiles: added"<<std::endl;
     logs.push_back(name.substr(prefix.length())); 
   };
   return logs;
@@ -763,8 +769,8 @@ std::string ARexJob::GetFilePath(const std::string& filename) {
   if(id_.empty()) return "";
   std::string fname = filename;
   if(!normalize_filename(fname)) return "";
-  if(fname.empty()) config_.User()->SessionRoot()+"/"+id_;
-  return config_.User()->SessionRoot()+"/"+id_+"/"+fname;
+  if(fname.empty()) config_.User()->SessionRoot(id_)+"/"+id_;
+  return config_.User()->SessionRoot(id_)+"/"+id_+"/"+fname;
 }
 
 std::string ARexJob::GetLogFilePath(const std::string& name) {
@@ -772,3 +778,13 @@ std::string ARexJob::GetLogFilePath(const std::string& name) {
   return config_.User()->ControlDir() + "/job." + id_ + "." + name;
 }
 
+bool ARexJob::ChooseSessionDir(const std::string& jobid, std::string& sessiondir) {
+  if (config_.SessionRootsNonDraining().size() == 0) {
+    // no active session dirs available
+    logger_.msg(Arc::ERROR, "No non-draining session dirs available");
+    return false;
+  }
+  // choose randomly from non-draining session dirs
+  sessiondir = config_.SessionRootsNonDraining().at(rand() % config_.SessionRootsNonDraining().size());
+  return true;
+}

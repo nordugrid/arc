@@ -22,6 +22,7 @@ class ARexGMConfig {
   std::string service_endpoint_; // temporary solution
   std::list<Arc::MessageAuth*> auths_;
   ContinuationPlugins cont_plugins_;
+  std::vector<std::string> session_roots_non_draining_;
  public:
   ARexGMConfig(const std::string& config_file,const std::string& uname,const std::string& grid_name,const std::string& service_endpoint);
   ~ARexGMConfig(void);
@@ -38,6 +39,7 @@ class ARexGMConfig {
   std::list<Arc::MessageAuth*>::iterator beginAuth(void) { return auths_.begin(); };
   std::list<Arc::MessageAuth*>::iterator endAuth(void) { return auths_.end(); };
   ContinuationPlugins& Plugins(void) { return cont_plugins_; };
+  std::vector<std::string> SessionRootsNonDraining(void) { return session_roots_non_draining_; };
 };
 
 
@@ -121,6 +123,8 @@ class ARexJob {
   std::list<std::string> LogFiles(void);
   /** Updates job credentials */
   bool UpdateCredentials(const std::string& credentials);
+  /** Select a session dir to use for this job */
+  bool ChooseSessionDir(const std::string& jobid, std::string& sessiondir);
 };
 
 } // namespace ARex

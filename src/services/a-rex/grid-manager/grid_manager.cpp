@@ -278,8 +278,11 @@ static void grid_manager(void* arg) {
              session and control directories */
           for(JobUsers::iterator user=users.begin();user!=users.end();++user) {
             std::list<FileData> flist;
-            logger.msg(Arc::INFO,"Cleaning all files in directories %s and %s",user->SessionRoot(),user->ControlDir());
-            delete_all_files(user->SessionRoot(),flist,true);
+            for(std::vector<std::string>::const_iterator i = user->SessionRoots().begin(); i != user->SessionRoots().end(); i++) {
+              logger.msg(Arc::INFO,"Cleaning all files in directory %s", *i);
+              delete_all_files(*i,flist,true);
+            }
+            logger.msg(Arc::INFO,"Cleaning all files in directory %s", user->ControlDir());
             delete_all_files(user->ControlDir(),flist,true);
           };
         };
