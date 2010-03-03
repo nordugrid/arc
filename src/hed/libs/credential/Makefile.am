@@ -1,5 +1,4 @@
 lib_LTLIBRARIES = libarccredential.la
-pkglib_LTLIBRARIES = libmodcredential.la
 noinst_PROGRAMS = testproxy testcertinfo testproxy2proxy testvoms testeec
 
 #if WIN32
@@ -20,11 +19,6 @@ libarccredential_la_LIBADD   = $(top_srcdir)/src/hed/libs/common/libarccommon.la
                                $(top_srcdir)/src/hed/libs/crypto/libarccrypto.la \
                                $(top_srcdir)/src/hed/libs/message/libarcmessage.la \
                                $(GLIBMM_LIBS) $(OPENSSL_LIBS)
-
-libmodcredential_la_SOURCES  = cred.cpp
-libmodcredential_la_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
-libmodcredential_la_LIBADD   = $(top_srcdir)/src/hed/libs/common/libarccommon.la libarccredential.la
-libmodcredential_la_LDFLAGS  = -no-undefined -avoid-version -module
 
 testproxy_SOURCES  = testproxy.cpp
 testproxy_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS) -I$(top_srcdir)/include
@@ -50,4 +44,3 @@ testeec_SOURCES  = testeec.cpp
 testeec_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS) -I$(top_srcdir)/include
 testeec_LDFLAGS  = $(GLIBMM_LIBS) $(LIBXML2_LIBS) $(OPENSSL_LIBS) $(EXTRA_LIBS)
 testeec_LDADD    = ./libarccredential.la $(top_srcdir)/src/hed/libs/common/libarccommon.la
-
