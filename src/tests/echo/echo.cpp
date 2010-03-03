@@ -52,7 +52,7 @@ Service_Echo::Service_Echo(Arc::Config *cfg):RegisteredService(cfg),logger(Arc::
   // Assigning service description - Glue2 document should go here.
   infodoc.Assign(Arc::XMLNode(
     "<?xml version=\"1.0\"?>"
-    "<Domains><AdminDomain><Services><Service>ECHO</Service></Services></AdminDomain></Domains>"
+    "<Domains><AdminDomain><Services><Service><Endpoint><HealthState>ok</HealthState><ServingState>production</ServingState></Endpoint>ECHO</Service></Services></AdminDomain></Domains>"
   ),true);
 }
 
