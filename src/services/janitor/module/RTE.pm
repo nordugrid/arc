@@ -93,7 +93,7 @@ until disconnect() or remove() is called. If successfull true is returned.
 sub connect {
 	my ($self, @RTE) = @_;
 
-	my $id = _calculate_RTE_ID(@RTE);
+	my $id = calculate_id(@RTE);
 	my $rtedir = $self->{_rteregdir} . "/" . $id;
 
 	my $ret = dir_lock($rtedir, $self->{_jobname});
@@ -417,11 +417,14 @@ sub string2state {
 	return $ret;
 }
 
-######################################################################
-# given a list of RTEs it calculates an uniq id which is later used
-# as the name for the directory.
-#######################################################################
-sub _calculate_RTE_ID {
+=item calculate_id(@RTE)
+
+Given a list of RTEs it calculates an unique id which is later used
+as the name for the directory.
+
+=cut
+
+sub calculate_id {
 	my (@RTE) = @_;
 	my $first;
 

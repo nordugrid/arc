@@ -1309,9 +1309,14 @@ sub setstate {
 		return $response;
 	}
 
-	my $rte = new Janitor::RTE($regDirRTE, "SETSTATE");
+	my $rte_key = Janitor::RTE::calculate_id(@rte);
 
-	$rte->connect(@rte);
+	my $rte = new Janitor::RTE($regDirRTE, "SETSTATE");
+	if (! $rte->reconnect($rte_key)) {
+		$response->result(1,"Failed to connect RTE. Maybe it is not registered with a job.");
+		return $response;
+	}
+
 	my $oldstate = $rte->state;
 
 	if ($oldstate == $newstate) {
@@ -1344,6 +1349,7 @@ sub setstate {
 			printf STDERR "janitor: Can not change the state: %s\n", $@;
 			$rte->disconnect;
 			$response->result(1,"Can not change the state ".$@.".");
+			return $response;
 		}
 		$rte->disconnect;
 		$response->result(0,"Changed state successfully.");
