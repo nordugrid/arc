@@ -228,10 +228,9 @@ sub basesystems_supporting_metapackages {
 				my $id = &prepare_uri($res->binding_value($i)->as_string);
 				next unless $self->{_mask}->{$id};
 				if (! defined $basesystems{$id}) {
-					$basesystems{$id} = 1;
-				} else {
-					$basesystems{$id}++;
+					$basesystems{$id}{$_} = 1 for @ids;
 				}
+				delete $basesystems{$id}{$p_id};
 			}
 		}
 	}
@@ -240,12 +239,12 @@ sub basesystems_supporting_metapackages {
 	# we still have to check if the dependencies are satisfied
 	#####
 	foreach my $b_key ( keys %basesystems ) {
-		next unless $basesystems{$b_key} == scalar @pakete;
+		next if keys %{$basesystems{$b_key}};
 	 
 		foreach my $p_key (@ids) {
 			my ($r, @x) = $self->_check_dependencies($b_key, $p_key);
 			unless ($r) {
-				$basesystems{$b_key} = 0;
+				$basesystems{$b_key}{$p_key} = 1;
 				last;
 			}
 		}
@@ -255,10 +254,9 @@ sub basesystems_supporting_metapackages {
 	# and now check wich basesystems supports all packages
 	#####
 	my @ret = ();
-	foreach my $key ( keys %basesystems ) {
-		if ($basesystems{$key} == scalar @pakete) {
-			push @ret, $self->_BaseSystemByKey($key);
-		}
+	foreach my $b_key ( keys %basesystems ) {
+		next if keys %{$basesystems{$b_key}};
+		push @ret, $self->_BaseSystemByKey($b_key);
 	}
 
 	return @ret;
