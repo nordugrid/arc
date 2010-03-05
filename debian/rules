@@ -85,9 +85,7 @@ install-arch: build-arch-stamp
 	rm -f $(CURDIR)/debian/tmp/usr/share/arc/examples/storage_service.xml.example
 
 	mv debian/tmp/etc/init.d/a-rex debian/nordugrid-arc-nox-arex.a-rex.init
-
-	cp -p src/hed/daemon/scripts/arched.debian \
-		debian/nordugrid-arc-nox-hed.arched.init
+	mv debian/tmp/etc/init.d/arched debian/nordugrid-arc-nox-hed.arched.init
 
 binary-indep: install-indep
 	dh_testdir

@@ -443,16 +443,12 @@ make install DESTDIR=$RPM_BUILD_ROOT
 
 find $RPM_BUILD_ROOT -type f -name \*.la -exec rm -fv '{}' ';'
 
-mkdir -p $RPM_BUILD_ROOT%{_initrddir}
-cp -p src/hed/daemon/scripts/arched.redhat $RPM_BUILD_ROOT%{_initrddir}/arched
-chmod +x $RPM_BUILD_ROOT%{_initrddir}/arched
-
-# Turn off default enabling of the a-rex service
+# Turn off default enabling of the services
 mkdir -p $RPM_BUILD_ROOT%{_initrddir}
 sed -e 's/\(chkconfig: \)\w*/\1-/' \
     -e '/Default-Start/d' \
     -e 's/\(Default-Stop:\s*\).*/\10 1 2 3 4 5 6/' \
-    -i $RPM_BUILD_ROOT%{_initrddir}/a-rex
+    -i $RPM_BUILD_ROOT%{_initrddir}/*
 
 # RPM does it's own doc handling
 rm -fr $RPM_BUILD_ROOT%{_datadir}/doc/%{pkgdir}
