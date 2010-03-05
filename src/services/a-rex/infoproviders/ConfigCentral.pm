@@ -483,6 +483,7 @@ sub build_config_from_inifile {
     my $common = { $iniparser->get_section("common") };
     my $gm = { $iniparser->get_section("grid-manager") };
     move_keys $common, $config, [keys %$gmcommon_options];
+    move_keys $common, $config->{control}{'.'}, [keys %$gmuser_options];
     move_keys $common, $config, [keys %$lrms_options, keys %$lrms_share_options];
     move_keys $gm, $config, [keys %$gmcommon_options];
     move_keys $gm, $config->{control}{'.'}, [keys %$gmuser_options];
