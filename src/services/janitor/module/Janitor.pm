@@ -1434,7 +1434,6 @@ sub manual_installed_rte {
 
 	my @runscripts;
 	for (&all_runscripts($manualRuntimeDir)) {
-		next if $dres{$_};
 		push @runscripts, $_ unless $dres{$_};
 	}
 
