@@ -2,7 +2,7 @@ package Janitor::Util;
 
 use Exporter;
 @ISA = qw(Exporter);     # Inherit from Exporter
-@EXPORT_OK = qw(remove_directory manual_installed_rte asGID asUID dir_lock dir_unlock dir_lock_remove sane_rte_name sane_job_id);
+@EXPORT_OK = qw(remove_directory all_runscripts asGID asUID dir_lock dir_unlock dir_lock_remove sane_rte_name sane_job_id);
 
 =head1 NAME
 
@@ -10,7 +10,7 @@ Jantior::Util - Some functions used by different parts of the Janitor
 
 =head1 SYNOPSIS
 
-use Jantior::Util qw(remove_directory manual_installed_rte asGID asUID dir_lock dir_unlock dir_lock_remove)
+use Jantior::Util qw(remove_directory all_runscripts asGID asUID dir_lock dir_unlock dir_lock_remove)
 
 =head1 FUNCTIONS
 
@@ -87,14 +87,14 @@ sub remove_directory {
 # @runtimeenvironment= `find $config{runtimedir} -type f ! -name ".*" ! -name "*~"` ;
 ######################################################################
 
-=item manual_installed_rte($dir)
+=item all_runscripts($dir)
 
 This function searches in $dir for RTEs which are installed in the old
 fashioned manual way. They are returned as a list.
 
 =cut
 
-sub manual_installed_rte {
+sub all_runscripts {
 	my ($dir) =  @_;
 	my @ret;
 	_getfiles($dir, "", \@ret);

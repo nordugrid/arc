@@ -136,7 +136,7 @@ use Janitor::Execute;
 use Janitor::Filefetcher;
 use Janitor::ArcConfig;
 use Janitor::Common qw(get_catalog);
-use Janitor::Util qw(remove_directory manual_installed_rte sane_rte_name sane_job_id);
+use Janitor::Util qw(remove_directory all_runscripts sane_rte_name sane_job_id);
 use Janitor::Job;
 use Janitor::RTE;
 use Janitor::TarPackageShared;
@@ -502,7 +502,7 @@ sub register_job {
 
 	# At first we check what is manually installed.
 	if (defined $manualRuntimeDir and -d $manualRuntimeDir) {
-		my %manual = map { $_ => 1 } &manual_installed_rte($manualRuntimeDir);
+		my %manual = map { $_ => 1 } &manual_installed_rte($manualRuntimeDir, $regDirRTE);
 		my @temp;
 		foreach ( @rte_list ) {
 			if (defined $manual{$_}) {
@@ -636,7 +636,7 @@ sub deploy_for_job {
 
 	# At first we check what is manually installed.
 	if (defined $manualRuntimeDir and -d $manualRuntimeDir) {
-		my %manual = map { $_ => 1 } &manual_installed_rte($manualRuntimeDir);
+		my %manual = map { $_ => 1 } &manual_installed_rte($manualRuntimeDir, $regDirRTE);
 		my @temp;
 		foreach ( @rte_list ) {
 			if (defined $manual{$_}) {
@@ -1246,7 +1246,7 @@ sub list_info {
 	
 
 	if (defined $manualRuntimeDir and -d $manualRuntimeDir) {
-		my @runscripts =  &manual_installed_rte($manualRuntimeDir);
+		my @runscripts =  &manual_installed_rte($manualRuntimeDir, $regDirRTE);
 		if (scalar @runscripts != 0 ) {
 			foreach my $packagename(@runscripts){
 				$response->runtimeLocal(($packagename));
@@ -1379,7 +1379,7 @@ sub search(){
 
 	# At first we check what is manually installed.
 	if (defined $manualRuntimeDir and -d $manualRuntimeDir) {
-		my @manual = &manual_installed_rte($manualRuntimeDir);
+		my @manual = &manual_installed_rte($manualRuntimeDir, $regDirRTE);
 		my $val;
 		my $valRTE;
 		foreach my $val(@manual){
@@ -1413,6 +1413,32 @@ sub search(){
 
 	$response->result(0,"Search sucessfully finished.");
 	return $response;
+}
+
+
+######################################################################
+# Searches $dir for manually installed RTEs. They are returned as a list.
+######################################################################
+
+sub manual_installed_rte {
+	my ($dir, $regDirRTE) = @_;
+
+	# Dynamically installed RTEs will be excluded
+	my %dres = ();
+	foreach my $dir (Janitor::RTE::all_rtes($regDirRTE)) {
+		my $rte = new Janitor::RTE($regDirRTE);
+		$rte->reconnect($dir) or next;
+		$dres{$_} = 1 for $rte->rte_list;
+		$rte->disconnect;
+	}
+
+	my @runscripts;
+	for (&all_runscripts($manualRuntimeDir)) {
+		next if $dres{$_};
+		push @runscripts, $_ unless $dres{$_};
+	}
+
+	return @runscripts;
 }
 
 
