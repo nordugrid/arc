@@ -79,7 +79,7 @@
 			</arex:control>
 			<arex:LRMS>
 				<arex:type>sge</arex:type>
-				<arex:defaultShare>share</arex:defaultShare>
+				<arex:defaultShare inisections="arex/lrms" initag="queue_name"></arex:defaultShare>
 				<arex:tmpDir inisections="arex/lrms" initag="tmp_dir">/tmp</arex:tmpDir>
 				<arex:sharedFilesystem inisections="arex/lrms" initag="shared_filesystem">true</arex:sharedFilesystem>
 				<arex:GNUTimeUtility inisections="arex/lrms" initag="gnu_time_utility">/usr/bin/time</arex:GNUTimeUtility>
@@ -120,9 +120,9 @@
 					<ip:ConnectivityIn inisections="arex/info" initag="connectivityin">true</ip:ConnectivityIn>
 					<ip:ConnectivityOut inisections="arex/info" initag="connectivityout">true</ip:ConnectivityOut>
 				</ip:ExecutionEnvironment>
-				<ip:ComputingShare name="share">
+				<ip:ComputingShare name="share"><AttributeRepresentation id="name" inisections="arex/lrms" initag="queue_name"/>
 					<ip:Description inisections="arex/lrms" initag="queue_description">Sun Grid Enginge pool</ip:Description>
-					<ip:MappingQueue inisections="arex/lrms" initag="mapping_queue"/>
+					<ip:MappingQueue inisections="arex/lrms" initag="queue_name"/>
 					<ip:ExecEnvName>environment</ip:ExecEnvName>
 					<ip:MaxVirtualMemory inisections="arex/lrms" initag="max_virtual_memory">2600</ip:MaxVirtualMemory>
 					<ip:SchedulingPolicy inisections="arex/lrms" initag="scheduling_policy">fairshare</ip:SchedulingPolicy>
