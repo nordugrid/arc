@@ -1,4 +1,11 @@
 initddir = @initddir@
-initd_SCRIPTS = arched
 
-EXTRA_DIST = $(initd_SCRIPTS)
+if WIN32
+HED_SCRIPT =
+else
+HED_SCRIPT = arched
+endif
+
+initd_SCRIPTS = $(HED_SCRIPT)
+
+EXTRA_DIST = arched
