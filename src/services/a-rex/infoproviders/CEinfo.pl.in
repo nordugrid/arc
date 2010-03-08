@@ -302,12 +302,15 @@ sub fix_config {
         chomp ($config->{service}{ClusterName} ||= $shorthost);
     }
 
-    if ($config->{endpoint} and $config->{endpoint} =~ m{^\w+://([^:]+):(\d+)}) {
-        $config->{arexhostport} = "$1:$2";
+    if ($config->{endpoint} and $config->{endpoint} =~ m{^(https?)://([^:/]+)(?::(\d+))?}) {
+        my ($proto,$host,$port) = ($1,$2,$3);
+        $port ||= 80 if $proto eq "http";
+        $port ||= 443 if $proto eq "https";
+        $config->{arexhostport} = "$host:$port";
     } else {
-        $config->{endpoint} = "https://$hostname:60000/arex";
-        $config->{arexhostport} = "$hostname:60000";
-        $log->warning("Config option endpoint or arex_mount_point is missing or not an URL. Assuming: ".$config->{endpoint});
+        $config->{endpoint} = "https://$hostname/arex";
+        $config->{arexhostport} = "$hostname:443";
+        $log->warning("Config option endpoint (or arex_mount_point) is missing or not a valid URL. Assuming: ".$config->{endpoint});
     }
 
     # deal with GM per-user options: select one user, ignore others

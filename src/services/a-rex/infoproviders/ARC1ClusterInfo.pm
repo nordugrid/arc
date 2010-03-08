@@ -596,7 +596,7 @@ sub get_cluster_info($) {
     $cep->{InterfaceVersion} = [ '1.0' ];
     # InterfaceExtension should return the same as BESExtension attribute of BES-Factory 
     #$cep->{InterfaceExtension} = [ 'http://www.nordugrid.org/schemas/a-rex' ];
-    $cep->{WSDL} = [ "https://$arexhostport/arex/?wsdl" ];
+    $cep->{WSDL} = [ $config->{endpoint}."/?wsdl" ];
     # Wrong type, should be URI
     $cep->{SupportedProfile} = [ "WS-I 1.0", "HPC-BP" ];
     $cep->{Semantics} = [ "http://www.nordugrid.org/documents/arex.pdf" ];
@@ -1140,7 +1140,7 @@ sub get_cluster_info($) {
         $cact->{BaseType} = 'Activity';
 
         my $share = $gmjob->{share};
-        my $gridid = "https://$arexhostport/arex/$jobid";
+        my $gridid = $config->{endpoint}."/$jobid";
 
         $cact->{Type} = [ 'single' ];
         $cact->{ID} = [ $cactIDs{$share}{$jobid} ];
