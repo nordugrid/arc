@@ -17,7 +17,7 @@
 # Get functions
 if [ -f /etc/init.d/functions ]; then
     . /etc/init.d/functions
-else if [ -f /lib/lsb/init-functions ]; then
+elif [ -f /lib/lsb/init-functions ]; then
     . /lib/lsb/init-functions
     success() {
 	log_success_msg "$@"
