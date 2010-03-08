@@ -70,9 +70,9 @@ sub get_lrms_info($) {
     run_qstat();
 
 require Data::Dumper; import Data::Dumper qw(Dumper);
-#print Dumper(\%node_stats);
-#print Dumper(\%running_jobs);
-#print Dumper(\%waiting_jobs);
+#print STDERR Dumper(\%node_stats);
+#print STDERR Dumper(\%running_jobs);
+#print STDERR Dumper(\%waiting_jobs);
 
     cluster_info();
 
@@ -297,6 +297,25 @@ sub count_array_spec($) {
                 $log->warning("Could not extract hostname for queue $qname") unless $currentnode;
             }
             if ($currentnode) {
+                # Was this node not listed with qconf -sep ?
+                if (not exists $node_stats{$currentnode} or
+                    not exists $node_stats{$currentnode}{totalcpus}) {
+                    # Node name may have been truncated
+                    if (length $qname >= 28) {
+                        # Try to match it with a node already listed.
+                        my @fullnames = grep { length($_) >= length($currentnode)
+                                                   and $_ =~ m/^\Q$currentnode\E/
+                                        } grep { exists $node_stats{$_} and
+                                                 exists $node_stats{$_}{totalcpus}
+                                        } keys %node_stats;
+                        $currentnode = $fullnames[0] if @fullnames == 1;
+                    }
+                }
+                if (not exists $node_stats{$currentnode} or
+                    not exists $node_stats{$currentnode}{totalcpus}) {
+                    $log->warning("Queue $currentqueue\@$currentnode cannot be matched"
+                                  ." with a hostname listed by qconf -sep");
+                }
                 $node_stats{$currentnode}{load} = $load unless $load eq '-NA-';
                 $node_stats{$currentnode}{runningslots} ||= 0; # will be counted later
                 $node_stats{$currentnode}{queues}{$currentqueue}
@@ -506,7 +525,7 @@ sub cluster_info () {
     $lrms_cluster->{lrms_version} = $sge_version;
 
     $lrms_cluster->{cpudistribution} = $cpudistribution;
-    $lrms_cluster->{totalcpus} += $_->{totalcpus} for values %node_stats;
+    $lrms_cluster->{totalcpus} += $_->{totalcpus} || 0 for values %node_stats;
 
     # Count used/free CPUs and queued jobs in the cluster
     
