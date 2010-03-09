@@ -303,7 +303,7 @@ namespace Arc {
 
         // Computing Share attributes
         if (queue["nordugrid-queue-name"])
-          target.MappingQueue = (std::string)queue["nordugrid-queue-name"];
+          target.ComputingShareName = (std::string)queue["nordugrid-queue-name"];
         if (queue["nordugrid-queue-maxwalltime"])
           target.MaxWallTime =
             (std::string)queue["nordugrid-queue-maxwalltime"];

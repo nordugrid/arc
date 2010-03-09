@@ -131,7 +131,7 @@ namespace Arc {
 
     // Attributes from 6.3 Computing Share
 
-    MappingQueue = target.MappingQueue;
+    ComputingShareName = target.ComputingShareName;
     MaxWallTime = target.MaxWallTime;
     MaxTotalWallTime = target.MaxTotalWallTime;
     MinWallTime = target.MinWallTime;
@@ -404,8 +404,8 @@ namespace Arc {
 
       std::cout << std::endl << IString("Queue information:") << std::endl;
 
-      if (!MappingQueue.empty())
-        std::cout << IString(" Mapping Queue: %s", MappingQueue) << std::endl;
+      if (!ComputingShareName.empty())
+        std::cout << IString(" Mapping Queue: %s", ComputingShareName) << std::endl;
       if (MaxWallTime != -1)
         std::cout << IString(" Max Wall Time: %s", MaxWallTime.istr())
                   << std::endl;

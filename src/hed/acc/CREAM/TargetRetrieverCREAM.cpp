@@ -379,7 +379,7 @@ namespace Arc {
 
 
       if (CE["GlueCEName"])
-        target.MappingQueue = (std::string)CE["GlueCEName"];
+        target.ComputingShareName = (std::string)CE["GlueCEName"];
       if (CE["GlueCEInfoLRMSType"])
         target.ManagerProductName = (std::string)CE["GlueCEInfoLRMSType"];
       if (CE["GlueCEInfoLRMSVersion"])
@@ -419,7 +419,7 @@ namespace Arc {
       // target.StagingJobs           - not available in schema
       // target.SuspendedJobs         - not available in schema
       // target.PreLRMSWaitingJobs    - not available in schema
-      // target.MappingQueue          - not available in schema
+      // target.ComputingShareName          - not available in schema
 
       if (VOView["GlueCEPolicyMaxWallClockTime"])
         target.MaxWallTime = stringtoi(VOView["GlueCEPolicyMaxWallClockTime"]);

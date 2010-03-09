@@ -94,7 +94,7 @@ namespace Arc {
     if (jobdesc.Resources.CandidateTarget.empty()) {
       ResourceTargetType candidateTarget;
       candidateTarget.EndPointURL = URL();
-      candidateTarget.QueueName = et.MappingQueue;
+      candidateTarget.QueueName = et.ComputingShareName;
       jobdesc.Resources.CandidateTarget.push_back(candidateTarget);
     }
 

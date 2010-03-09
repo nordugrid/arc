@@ -212,11 +212,11 @@ namespace Arc {
     if (jobdesc.Resources.CandidateTarget.empty()) {
       ResourceTargetType candidateTarget;
       candidateTarget.EndPointURL = URL();
-      candidateTarget.QueueName = et.MappingQueue;
+      candidateTarget.QueueName = et.ComputingShareName;
       jobdesc.Resources.CandidateTarget.push_back(candidateTarget);
     }
     else if (jobdesc.Resources.CandidateTarget.front().QueueName.empty())
-      jobdesc.Resources.CandidateTarget.front().QueueName = et.MappingQueue;
+      jobdesc.Resources.CandidateTarget.front().QueueName = et.ComputingShareName;
 
     jobdesc.XRSL_elements["action"] = "request";
     jobdesc.XRSL_elements["savestate"] = "yes";

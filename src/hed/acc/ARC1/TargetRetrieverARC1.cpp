@@ -291,8 +291,8 @@ namespace Arc {
           target.UsedSlots = stringtoi((std::string)ComputingShare["UsedSlots"]);
         if (ComputingShare["RequestedSlots"])
           target.RequestedSlots = stringtoi((std::string)ComputingShare["RequestedSlots"]);
-        if (ComputingShare["MappingQueue"])
-          target.MappingQueue = (std::string)ComputingShare["MappingQueue"];
+        if (ComputingShare["Name"])
+          target.ComputingShareName = (std::string)ComputingShare["Name"];
         if (ComputingShare["MaxWallTime"])
           target.MaxWallTime = (std::string)ComputingShare["MaxWallTime"];
         if (ComputingShare["MaxTotalWallTime"])

@@ -78,7 +78,7 @@ namespace Arc {
     /**
      * Copy constructor? Needed from Python?
      *
-     * @param addrptr 
+     * @param addrptr
      *
      **/
     ExecutionTarget(const long int addrptr);
@@ -98,7 +98,7 @@ namespace Arc {
     void Copy(const ExecutionTarget& target);
 
   public:
-    
+
     /// Get Submitter to the computing resource represented by the ExecutionTarget
     /**
      * Method which returns a specialized Submitter which can be used
@@ -122,9 +122,9 @@ namespace Arc {
      *
      * @param jobdesc contains all information about the job
      * submitted.
-     **/   
+     **/
     void Update(const JobDescription& jobdesc);
-    
+
     /// Print the ExecutionTarget information to std::cout
     /**
      * Method to print the ExecutionTarget attributes to std::cout
@@ -176,7 +176,13 @@ namespace Arc {
 
     // Attributes from 6.3 Computing Share
 
-    std::string MappingQueue;
+    /// ComputingShareName String 0..1
+    /**
+     * Human-readable name.
+     * This variable represents the ComputingShare.Name attribute of GLUE2.
+     **/
+    std::string ComputingShareName;
+
     Period MaxWallTime;
     Period MaxTotalWallTime; // not in current Glue2 draft
     Period MinWallTime;

@@ -34,12 +34,12 @@ namespace Arc {
       if (!job->Resources.CandidateTarget.empty()) {
         if (target->url.Host().empty())
           logger.msg(VERBOSE, "URL of ExecutionTarget is not properly defined");
-        if (target->MappingQueue.empty())
-          logger.msg(VERBOSE, "MappingQueue of ExecutionTarget (%s) is not defined", target->url.str());
+        if (target->ComputingShareName.empty())
+          logger.msg(VERBOSE, "ComputingShareName of ExecutionTarget (%s) is not defined", target->url.str());
 
         bool dropTarget = true;
 
-        if (!target->url.Host().empty() || !target->MappingQueue.empty()) {
+        if (!target->url.Host().empty() || !target->ComputingShareName.empty()) {
           for (std::list<ResourceTargetType>::const_iterator it = job->Resources.CandidateTarget.begin();
                it != job->Resources.CandidateTarget.end(); it++) {
 
@@ -50,8 +50,8 @@ namespace Arc {
             }
 
             if (!it->QueueName.empty() &&
-                target->MappingQueue.empty()) { // Drop target since MappingQueue is not published.
-              logger.msg(VERBOSE, "MappingQueue of ExecutionTarget is not published, and a queue (%s) have been requested.", it->QueueName);
+                target->ComputingShareName.empty()) { // Drop target since ComputingShareName is not published.
+              logger.msg(VERBOSE, "ComputingShareName of ExecutionTarget is not published, and a queue (%s) have been requested.", it->QueueName);
               break;
             }
 
@@ -62,7 +62,7 @@ namespace Arc {
             }
 
             if (!it->QueueName.empty() &&
-                target->MappingQueue == it->QueueName) {
+                target->ComputingShareName == it->QueueName) {
               dropTarget = false;
               break;
             }
@@ -74,7 +74,7 @@ namespace Arc {
           }
         }
         else {
-          logger.msg(VERBOSE, "Neither URL or MappingQueue is reported by the cluster");
+          logger.msg(VERBOSE, "Neither URL or ComputingShareName is reported by the cluster");
           continue;
         }
       }
@@ -392,7 +392,7 @@ namespace Arc {
     std::list<ExecutionTarget*>::iterator iter = PossibleTargets.begin();
 
     for (int i = 1; iter != PossibleTargets.end(); iter++, i++) {
-      logger.msg(VERBOSE, "%d. Cluster: %s; Queue: %s", i, (*iter)->DomainName, (*iter)->MappingQueue);
+      logger.msg(VERBOSE, "%d. Cluster: %s; Queue: %s", i, (*iter)->DomainName, (*iter)->ComputingShareName);
       logger.msg(VERBOSE, "Health State: %s", (*iter)->HealthState);
     }
 
