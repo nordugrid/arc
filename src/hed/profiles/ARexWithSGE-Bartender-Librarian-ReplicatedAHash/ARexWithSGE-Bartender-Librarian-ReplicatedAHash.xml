@@ -1,0 +1,271 @@
+<?xml version="1.0"?>
+<ArcConfig xmlns="http://www.nordugrid.org/schemas/arcconfig/2009/08" xmlns:loader="http://www.nordugrid.org/schemas/loader/2009/08" xmlns:tcp="http://www.nordugrid.org/schemas/tcp/2009/08" xmlns:tls="http://www.nordugrid.org/schemas/tls/2009/08" xmlns:authz="http://www.nordugrid.org/schemas/arcauthz/2009/08" xmlns:imap="http://www.nordugrid.org/schemas/identitymap/2009/10" xmlns:arex="http://www.nordugrid.org/schemas/a-rex/2009/08" xmlns:ip="http://www.nordugrid.org/schemas/a-rex/InfoProvider/2009/08" xmlns:lrms="http://www.nordugrid.org/schemas/a-rex/LRMS/2009/08" xmlns:infosys="http://www.nordugrid.org/schemas/InfoRegisterConfig/2008" xmlns:ahash="http://www.nordugrid.org/schemas/ahash/2009/08" xmlns:lib="http://www.nordugrid.org/schemas/librarian/2009/08" xmlns:bar="http://www.nordugrid.org/schemas/bartender/2009/08">
+	<Server>
+		<PidFile inisections="common" initag="pidfile">/var/log/arched.pid</PidFile>
+		<Logger>
+			<File inisections="common" initag="logfile">/var/log/arched.log</File>
+			<Level inisections="common" initag="loglevel">DEBUG</Level>
+			<Maxsize inisections="common" initag="logmaxsize">10000000</Maxsize>
+			<Backups inisections="common" initag="logbackups">10</Backups>
+		</Logger>
+	</Server>
+	<loader:ModuleManager>
+		<loader:Path inisections="common" initag="libpath">${exec_prefix}/lib/arc</loader:Path>
+	</loader:ModuleManager>
+	<loader:Plugins>
+		<loader:Name>mcctcp</loader:Name>
+		<loader:Name>mcctls</loader:Name>
+		<loader:Name>mcchttp</loader:Name>
+		<loader:Name>mccsoap</loader:Name>
+		<loader:Name>arcshc</loader:Name>
+		<loader:Name>identitymap</loader:Name>
+		<loader:Name>arex</loader:Name>
+		<loader:Name>isis</loader:Name>
+	</loader:Plugins>
+	<loader:Chain>
+		<loader:Component name="tcp.service" id="tcp">
+			<loader:next id="tls"/>
+			<tcp:Listen>
+				<tcp:Interface inisections="common" initag="interface">0.0.0.0</tcp:Interface>
+				<tcp:Port inisections="common" initag="port"/>
+				<tcp:Version inisections="common" initag="ipversion">4</tcp:Version>
+			</tcp:Listen>
+		</loader:Component>
+		<loader:Component name="tls.service" id="tls">
+			<loader:next id="http"/>
+			<tls:KeyPath inisections="common" initag="host_key"/>
+			<tls:CertificatePath inisections="common" initag="host_cert"/>
+			<tls:ca_dirificatesDir inisections="common" initag="ca_dir"/>
+			<loader:SecHandler name="identity.map" id="map" event="incoming">
+				<imap:PDP name="allow.pdp">
+					<imap:LocalList inisections="common" initag="gridmap">/etc/grid-security/grid-mapfile</imap:LocalList>
+				</imap:PDP>
+			</loader:SecHandler>
+		</loader:Component>
+		<loader:Component name="http.service" id="http">
+			<loader:next id="soap">POST</loader:next>
+			<loader:next id="plexer">GET</loader:next>
+			<loader:next id="plexer">PUT</loader:next>
+		</loader:Component>
+		<loader:Component name="soap.service" id="soap">
+			<loader:next id="plexer"/>
+		</loader:Component>
+		<loader:Plexer name="plexer.service" id="plexer">
+			<loader:next id="a-rex" inisections="arex" initag="urlpattern">^/arex</loader:next>
+			<loader:next id="ahash" inisections="ahash" initag="urlpattern">^/AHash$</loader:next>
+			<loader:next id="librarian" inisections="librarian" initag="urlpattern">^/Librarian$</loader:next>
+			<loader:next id="bartender" inisections="bartender" initag="urlpattern">^/Bartender$</loader:next>
+		</loader:Plexer>
+		<loader:Service name="a-rex" id="a-rex">
+			<arex:endpoint inisections="arex" initag="endpoint">https://localhost:60000/arex</arex:endpoint>
+			<arex:usermap>
+				<arex:defaultLocalName inisections="arex" initag="usermap"/>
+			</arex:usermap>
+			<arex:gmrun>internal</arex:gmrun>
+			<arex:commonName inisections="arex " initag="common_name">A-Rex with SGE</arex:commonName>
+			<arex:longDescription inisections="arex " initag="long_description">ARC execution service with Sun Grid Engine backend</arex:longDescription>
+			<arex:LRMSName>sge</arex:LRMSName>
+			<arex:OperatingSystem inisections="arex" initag="operating_system">Debian Lenny</arex:OperatingSystem>
+			<arex:serviceMail inisections="arex" initag="service_mail">knowarc@niif.hu</arex:serviceMail>
+			<arex:debugLevel inisections="arex" initag="debug">VERBOSE</arex:debugLevel>
+			<arex:InfoproviderWakeupPeriod inisections="arex" initag="wakeupperiod">15</arex:InfoproviderWakeupPeriod>
+			<arex:jobLogPath inisections="arex" initag="joblogpath">/var/log/arex-jobs.log</arex:jobLogPath>
+			<arex:control>
+				<arex:username inisections="arex/control" initag="username">.</arex:username>
+				<arex:controlDir inisections="arex/control" initag="controldir">/var/spool/arc/control</arex:controlDir>
+				<arex:sessionRootDir inisections="arex/control" initag="sessiondir">/var/spool/arc/session</arex:sessionRootDir>
+				<arex:defaultTTL inisections="arex/control" initag="default_ttl">604800</arex:defaultTTL>
+				<arex:defaultTTR inisections="arex/control" initag="default_ttr">2592000</arex:defaultTTR>
+				<arex:maxReruns inisections="arex/control" initag="max_reruns">5</arex:maxReruns>
+				<arex:noRootPower inisections="arex/control" initag="no_root_power">false</arex:noRootPower>
+			</arex:control>
+			<arex:LRMS>
+				<arex:type>sge</arex:type>
+				<arex:defaultShare inisections="arex/lrms" initag="queue_name"/>
+				<arex:tmpDir inisections="arex/lrms" initag="tmp_dir">/tmp</arex:tmpDir>
+				<arex:sharedFilesystem inisections="arex/lrms" initag="shared_filesystem">true</arex:sharedFilesystem>
+				<arex:GNUTimeUtility inisections="arex/lrms" initag="gnu_time_utility">/usr/bin/time</arex:GNUTimeUtility>
+				<lrms:sge_bin_path inisections="arex/lrms" initag="sge_bin_path">/usr/bin</lrms:sge_bin_path>
+				<lrms:sge_root inisections="arex/lrms" initag="sge_root">/var/lib/gridengine</lrms:sge_root>
+				<lrms:sge_cell inisections="arex/lrms" initag="sge_cell">default</lrms:sge_cell>
+				<lrms:sge_qmaster_port inisections="arex/lrms" initag="sge_qmaster_port">6444</lrms:sge_qmaster_port>
+				<lrms:sge_execd_port inisections="arex/lrms" initag="sge_execd_port">6445</lrms:sge_execd_port>
+			</arex:LRMS>
+			<arex:InfoProvider>
+				<arex:debugLevel inisections="arex/info" initag="debug">INFO</arex:debugLevel>
+				<ip:AdminDomain inisections="arex/info" initag="admindomain">HU/NIIF/ClusterGrid</ip:AdminDomain>
+				<ip:ClusterName inisections="arex/info" initag="clustername">Cluster name</ip:ClusterName>
+				<ip:OtherInfo inisections="arex/info" initag="otherinfo">Additional information</ip:OtherInfo>
+				<ip:Location>
+					<ip:Name inisections="arex/info" initag="location">Budapest, Hungary</ip:Name>
+					<ip:Address inisections="arex/info" initag="address">Victor Hugo 18-22</ip:Address>
+					<ip:Place inisections="arex/info" initag="city">Budapest</ip:Place>
+					<ip:Country inisections="arex/info" initag="country">Hungary</ip:Country>
+					<ip:PostCode inisections="arex/info" initag="postcode">HU-1132</ip:PostCode>
+					<ip:Latitude inisections="arex/info" initag="latitude">47.51</ip:Latitude>
+					<ip:Longitude inisections="arex/info" initag="longitude">19.05</ip:Longitude>
+				</ip:Location>
+				<ip:Contact>
+					<ip:Name inisections="arex/info" initag="contact_name">NIIF User Support</ip:Name>
+					<ip:Detail inisections="arex/info" initag="contact_detail">mailto:knowarc@niif.hu</ip:Detail>
+					<ip:Type inisections="arex/info" initag="contact_type">usersupport</ip:Type>
+				</ip:Contact>
+				<ip:ExecutionEnvironment name="environment">
+					<ip:OSName inisections="arex/info" initag="osname">adotf</ip:OSName>
+					<ip:OSVersion inisections="arex/info" initag="osversion">adotf</ip:OSVersion>
+					<ip:OSFamily inisections="arex/info" initag="osfamily">adotf</ip:OSFamily>
+					<ip:Platform inisections="arex/info" initag="platform">adotf</ip:Platform>
+					<ip:PhysicalCPUs inisections="arex/info" initag="cpunumber">adotf</ip:PhysicalCPUs>
+					<ip:CPUVendor inisections="arex/info" initag="cpuvendor">adotf</ip:CPUVendor>
+					<ip:CPUModel inisections="arex/info" initag="cpumodel">adotf</ip:CPUModel>
+					<ip:CPUClockSpeed inisections="arex/info" initag="cpuclockspeed">adotf</ip:CPUClockSpeed>
+					<ip:ConnectivityIn inisections="arex/info" initag="connectivityin">true</ip:ConnectivityIn>
+					<ip:ConnectivityOut inisections="arex/info" initag="connectivityout">true</ip:ConnectivityOut>
+				</ip:ExecutionEnvironment>
+				<ip:ComputingShare name="share">
+					<AttributeRepresentation id="name" inisections="arex/lrms" initag="queue_name"/>
+					<ip:Description inisections="arex/lrms" initag="queue_description">Sun Grid Enginge pool</ip:Description>
+					<ip:MappingQueue inisections="arex/lrms" initag="queue_name"/>
+					<ip:ExecEnvName>environment</ip:ExecEnvName>
+					<ip:MaxVirtualMemory inisections="arex/lrms" initag="max_virtual_memory">2600</ip:MaxVirtualMemory>
+					<ip:SchedulingPolicy inisections="arex/lrms" initag="scheduling_policy">fairshare</ip:SchedulingPolicy>
+					<ip:MaxSlotsPerJob inisections="arex/lrms" initag="max_slots_per_job">8</ip:MaxSlotsPerJob>
+					<ip:Preemption inisections="arex/lrms" initag="preemption">false</ip:Preemption>
+					<lrms:sge_jobopts inisections="arex/lrms" initag="sge_jobopts"/>
+					<lrms:queue_node_string inisections="arex/lrms" initag="queue_node_string"/>
+				</ip:ComputingShare>
+			</arex:InfoProvider>
+			<infosys:InfoRegister>
+				<infosys:Endpoint inisections="arex" initag="endpoint"/>
+				<infosys:Period inisections="arex register" initag="period">PT30S</infosys:Period>
+				<infosys:Expiration inisections="arex register" initag="expiration">PT1M</infosys:Expiration>
+				<infosys:Registrar>
+					<infosys:URL inisections="arex register" initag="index_server1"/>
+					<infosys:KeyPath inisections="arex common" initag="client_key"/>
+					<infosys:CertificatePath inisections="arex common" initag="client_cert"/>
+					<infosys:ca_dirificatesDir inisections="arex common" initag="ca_dir"/>
+				</infosys:Registrar>
+				<infosys:Registrar>
+					<infosys:URL inisections="arex register" initag="index_server2"/>
+					<infosys:KeyPath inisections="arex common" initag="client_key"/>
+					<infosys:CertificatePath inisections="arex common" initag="client_cert"/>
+					<infosys:ca_dirificatesDir inisections="arex common" initag="ca_dir"/>
+				</infosys:Registrar>
+				<infosys:Registrar>
+					<infosys:URL inisections="arex register" initag="index_server3"/>
+					<infosys:KeyPath inisections="arex common" initag="client_key"/>
+					<infosys:CertificatePath inisections="arex common" initag="client_cert"/>
+					<infosys:ca_dirificatesDir inisections="arex common" initag="ca_dir"/>
+				</infosys:Registrar>
+			</infosys:InfoRegister>
+		</loader:Service>
+		<loader:Service name="pythonservice" id="ahash">
+			<ahash:ClassName>storage.ahash.ahash.AHashService</ahash:ClassName>
+			<ahash:AHashClass>storage.ahash.replicatedahash.ReplicatedAHash</ahash:AHashClass>
+			<ahash:LocalDir inisections="ahash" initag="datadir">/var/spool/arc/ahash_data</ahash:LocalDir>
+			<ahash:MyURL inisections="ahash" initag="endpoint"/>
+			<ahash:OtherURL inisections="ahash" initag="peerurl1"/>
+			<ahash:OtherURL inisections="ahash" initag="peerurl2"/>
+			<ahash:OtherURL inisections="ahash" initag="peerurl3"/>
+			<ahash:Priority inisections="ahash" initag="priority">50</ahash:Priority>
+			<ahash:ClientSSLConfig>
+				<ahash:KeyPath inisections="ahash common" initag="client_key"/>
+				<ahash:CertificatePath inisections="ahash common" initag="client_cert"/>
+				<ahash:ca_dirificatesDir inisections="ahash common" initag="ca_dir"/>
+			</ahash:ClientSSLConfig>
+			<infosys:InfoRegister>
+				<infosys:Endpoint inisections="ahash" initag="endpoint"/>
+				<infosys:Period inisections="ahash register" initag="period">PT20S</infosys:Period>
+				<infosys:Expiration inisections="ahash register" initag="expiration">PT100S</infosys:Expiration>
+				<infosys:Registrar>
+					<infosys:URL inisections="ahash register" initag="index_server1"/>
+					<infosys:KeyPath inisections="ahash common" initag="client_key"/>
+					<infosys:CertificatePath inisections="ahash common" initag="client_cert"/>
+					<infosys:ca_dirificatesDir inisections="ahash common" initag="ca_dir"/>
+				</infosys:Registrar>
+				<infosys:Registrar>
+					<infosys:URL inisections="ahash register" initag="index_server2"/>
+					<infosys:KeyPath inisections="ahash common" initag="client_key"/>
+					<infosys:CertificatePath inisections="ahash common" initag="client_cert"/>
+					<infosys:ca_dirificatesDir inisections="ahash common" initag="ca_dir"/>
+				</infosys:Registrar>
+				<infosys:Registrar>
+					<infosys:URL inisections="ahash register" initag="index_server3"/>
+					<infosys:KeyPath inisections="ahash common" initag="client_key"/>
+					<infosys:CertificatePath inisections="ahash common" initag="client_cert"/>
+					<infosys:ca_dirificatesDir inisections="ahash common" initag="ca_dir"/>
+				</infosys:Registrar>
+			</infosys:InfoRegister>
+		</loader:Service>
+		<loader:Service name="pythonservice" id="bartender">
+			<bar:ClassName>storage.bartender.bartender.BartenderService</bar:ClassName>
+			<bar:ISISURL inisections="bartender register" initag="index_server1"/>
+			<bar:ISISURL inisections="bartender register" initag="index_server2"/>
+			<bar:ISISURL inisections="bartender register" initag="index_server3"/>
+			<bar:ClientSSLConfig>
+				<bar:KeyPath inisections="bartender common" initag="client_key"/>
+				<bar:CertificatePath inisections="bartender common" initag="client_cert"/>
+				<bar:ca_dirificatesDir inisections="bartender common" initag="ca_dir"/>
+			</bar:ClientSSLConfig>
+			<infosys:InfoRegister>
+				<infosys:Endpoint inisections="bartender" initag="endpoint"/>
+				<infosys:Period inisections="bartender register" initag="period">PT20S</infosys:Period>
+				<infosys:Expiration inisections="bartender register" initag="expiration">PT100S</infosys:Expiration>
+				<infosys:Registrar>
+					<infosys:URL inisections="bartender register" initag="index_server1"/>
+					<infosys:KeyPath inisections="bartender common" initag="client_key"/>
+					<infosys:CertificatePath inisections="bartender common" initag="client_cert"/>
+					<infosys:ca_dirificatesDir inisections="bartender common" initag="ca_dir"/>
+				</infosys:Registrar>
+				<infosys:Registrar>
+					<infosys:URL inisections="bartender register" initag="index_server2"/>
+					<infosys:KeyPath inisections="bartender common" initag="client_key"/>
+					<infosys:CertificatePath inisections="bartender common" initag="client_cert"/>
+					<infosys:ca_dirificatesDir inisections="bartender common" initag="ca_dir"/>
+				</infosys:Registrar>
+				<infosys:Registrar>
+					<infosys:URL inisections="bartender register" initag="index_server3"/>
+					<infosys:KeyPath inisections="bartender common" initag="client_key"/>
+					<infosys:CertificatePath inisections="bartender common" initag="client_cert"/>
+					<infosys:ca_dirificatesDir inisections="bartender common" initag="ca_dir"/>
+				</infosys:Registrar>
+			</infosys:InfoRegister>
+		</loader:Service>
+		<loader:Service name="pythonservice" id="librarian">
+			<lib:ClassName>storage.librarian.librarian.LibrarianService</lib:ClassName>
+			<lib:ISISURL inisections="librarian register" initag="index_server1"/>
+			<lib:ISISURL inisections="librarian register" initag="index_server2"/>
+			<lib:ISISURL inisections="librarian register" initag="index_server3"/>
+			<lib:HeartbeatTimeout inisections="librarian" initag="heartbeattimeout">60</lib:HeartbeatTimeout>
+			<lib:CheckPeriod inisections="librarian" initag="checkperiod">20</lib:CheckPeriod>
+			<lib:ClientSSLConfig>
+				<lib:KeyPath inisections="librarian common" initag="client_key"/>
+				<lib:CertificatePath inisections="librarian common" initag="client_cert"/>
+				<lib:ca_dirificatesDir inisections="librarian common" initag="ca_dir"/>
+			</lib:ClientSSLConfig>
+			<infosys:InfoRegister>
+				<infosys:Endpoint inisections="librarian" initag="endpoint"/>
+				<infosys:Period inisections="librarian register" initag="period">PT20S</infosys:Period>
+				<infosys:Expiration inisections="librarian register" initag="expiration">PT100S</infosys:Expiration>
+				<infosys:Registrar>
+					<infosys:URL inisections="librarian register" initag="index_server1"/>
+					<infosys:KeyPath inisections="librarian common" initag="client_key"/>
+					<infosys:CertificatePath inisections="librarian common" initag="client_cert"/>
+					<infosys:ca_dirificatesDir inisections="librarian common" initag="ca_dir"/>
+				</infosys:Registrar>
+				<infosys:Registrar>
+					<infosys:URL inisections="librarian register" initag="index_server2"/>
+					<infosys:KeyPath inisections="librarian common" initag="client_key"/>
+					<infosys:CertificatePath inisections="librarian common" initag="client_cert"/>
+					<infosys:ca_dirificatesDir inisections="librarian common" initag="ca_dir"/>
+				</infosys:Registrar>
+				<infosys:Registrar>
+					<infosys:URL inisections="librarian register" initag="index_server3"/>
+					<infosys:KeyPath inisections="librarian common" initag="client_key"/>
+					<infosys:CertificatePath inisections="librarian common" initag="client_cert"/>
+					<infosys:ca_dirificatesDir inisections="librarian common" initag="ca_dir"/>
+				</infosys:Registrar>
+			</infosys:InfoRegister>
+		</loader:Service>
+	</loader:Chain>
+</ArcConfig>
