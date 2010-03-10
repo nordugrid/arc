@@ -882,6 +882,8 @@ sub get_cluster_info($) {
         $freeslots = $maxuserslots < $freeslots
                    ? $maxuserslots : $freeslots;
 
+        $freeslots = 0 if $freeslots < 0;
+
         $csha->{FreeSlots} = [ $freeslots ];
 
         my @durations;

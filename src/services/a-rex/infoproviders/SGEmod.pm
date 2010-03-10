@@ -569,6 +569,12 @@ sub queue_info ($) {
     # multiple (even overlapping) queues are supported.
 
     my @qnames = ($qname);
+
+    # This code prepares for a scenario where grid jobs in a ComputingShare are
+    # submitted by a-rex to thout requesting specific queue. Jobs in can end up
+    # in several possible queues. This function should then try to agregate
+    # values over all the queues in a list.
+    # OBS: more work is needed to make this work
     if ($options->{queues}{$qname}{sge_queues}) {
         @qnames = split ' ', $options->{queues}{$qname}{sge_queues};
     }
@@ -596,13 +602,14 @@ sub queue_info ($) {
         my $queues = $node->{queues};
         next unless defined $queues;
         my $nodetotal = 0; # number of slots on this node in the selected queues
+        my $nodemax = 0; # largest number of slots in any of the selected queues
         my $nodefree = 0;
         my $nodeused = 0;
         for my $name (keys %$queues) {
-            # Simple algorithm, just count slots, cpus
             next unless grep {$name eq $_} @qnames;
             my $q = $queues->{$name};
             $nodetotal += $q->{totalslots};
+            $nodemax = $q->{totalslots} if $nodemax < $q->{totalslots};
             $nodeused += $q->{usedslots} - $q->{suspslots};
             # Any flag on the queue implies that the queue is not taking more jobs.
             $nodefree += $q->{totalslots} - $q->{usedslots} unless $q->{flags};
@@ -613,14 +620,16 @@ sub queue_info ($) {
         # Cheating a bit here. SGE's scheduler would consider load averages
         # among other things to decide if there are free slots.
         if (defined $node->{totalcpus}) {
-            $log->debug("Capping nodetotal ($nodename): $nodetotal > ".$node->{totalcpus})
-                if $nodetotal > $node->{totalcpus};
-            $nodetotal = $node->{totalcpus}
-                if $nodetotal > $node->{totalcpus};
-            $log->debug("Capping nodefree ($nodename): $nodefree > ".$node->{totalcpus}." - ".$node->{runningslots})
-                if $nodefree > $node->{totalcpus} - $node->{runningslots};
-            $nodefree = $node->{totalcpus} - $node->{runningslots}
-                if $nodefree > $node->{totalcpus} - $node->{runningslots};
+            my $maxslots = $node->{totalcpus};
+            if ($nodetotal > $maxslots) {
+                $log->debug("Capping nodetotal ($nodename): $nodetotal > ".$maxslots);
+                $nodetotal = $maxslots;
+            }
+            if ($nodefree > $maxslots - $node->{runningslots}) {
+                $log->debug("Capping nodefree ($nodename): $nodefree > ".$maxslots." - ".$node->{runningslots});
+                $nodefree = $maxslots - $node->{runningslots};
+                $nodefree = 0 if $nodefree < 0;
+            }
         } else {
             $log->info("Node not listed by qconf -sep: $nodename");
         }
