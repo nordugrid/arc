@@ -424,9 +424,9 @@ start()
       if test "x$pid" != "x"; then
         ps -p "$pid" -o comm 2>/dev/null | grep "^$prog$" 1>/dev/null 2>/dev/null
         if [ "$?" == '0' ] ; then
-          failure "Error: already running ($pid)"
+          success "Error: already running ($pid)"
           echo
-          return 1
+          return 0
         fi
       fi
       rm -f "$PID_FILE" "$LOCKFILE"
@@ -461,10 +461,12 @@ stop()
         kill -9 "$PID" 1>/dev/null 2>&1
         rm -f "$PID_FILE" "$LOCKFILE"
       else
+        RETVAL=1
         failure "$prog shutdown - pidfile is empty"     
       fi
     else
-      failure "$prog shutdown - pidfile missing"
+      RETVAL=0
+      success "$prog shutdown - already stopped"
     fi
     echo
     return $RETVAL
