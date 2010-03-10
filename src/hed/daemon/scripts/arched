@@ -65,14 +65,14 @@ fi
 if [ `id -u` = 0 ] ; then
     # Debian does not have /var/lock/subsys
     if test -d /var/lock/subsys; then
-	LOCKFILE=/var/lock/subsys/$prog
+	LOCKFILE=/var/lock/subsys/arched
     else
-	LOCKFILE=/var/lock/$prog
+	LOCKFILE=/var/lock/arched
     fi
-    PID_FILE=/var/run/$prog.pid
+    PID_FILE=/var/run/arched.pid
 else
-    LOCKFILE=$HOME/$prog.lock
-    PID_FILE=$HOME/$prog.pid
+    LOCKFILE=$HOME/arched.lock
+    PID_FILE=$HOME/arched.pid
 fi
 
 RETVAL=0
