@@ -419,7 +419,10 @@ sub build_config_from_xmlfile {
     my $ipcfg = hash_get_hashref($arex, 'InfoProvider');
 
     # OBS: temporary hack, accept config that worked with 0.8rc1
-    $ipcfg = hash_get_hashref($arex,  'ComputingService') if $arex->{ComputingService};
+    if ($arex->{ComputingService}) {
+        $log->warning("Config element <ip:ComputingService> is deprecated. Rename it to <arex:InfoProvider>");
+        $ipcfg = hash_get_hashref($arex, 'ComputingService');
+    }
     rename_keys $ipcfg, $ipcfg, {Name => 'ClusterName'};
 
     move_keys $ipcfg, $config->{service}, [keys %{$config_schema->{service}}];
@@ -457,7 +460,7 @@ sub build_config_from_xmlfile {
 #
 # Reads the INI config file passed as the first argument and produces a config
 # hash conforming to $config_schema. An already existing config hash can be
-# passed as a second, optional argument in which case opptions read from the
+# passed as a second, optional, argument in which case opptions read from the
 # INI file will be merged into the hash overriding options already present.
 #
 sub build_config_from_inifile {
