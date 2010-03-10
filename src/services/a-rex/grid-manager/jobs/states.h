@@ -162,6 +162,7 @@ class JobsList {
      advanced inside this function */
   bool ActJob(const JobId &id,bool hard_job = false); /* analyze job */
   bool ActJob(iterator &i,bool hard_job = false); /* analyze job */
+  void CalculateShares();
   bool ActJobs(bool hard_job = false); /* analyze all jobs */
   /* Look for new (or old FINISHED) jobs. Jobs are added to list
      with state undefined */
