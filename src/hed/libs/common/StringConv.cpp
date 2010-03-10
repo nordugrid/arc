@@ -85,6 +85,10 @@ namespace Arc {
       pos = str.find_first_of("\n", lastPos+1);
     }
 
+    if (!str.substr(lastPos).empty()) {
+      retstr += "\n"+str.substr(lastPos);
+    }
+
     return retstr;
   }
 
