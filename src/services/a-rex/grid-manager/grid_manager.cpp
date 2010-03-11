@@ -30,7 +30,7 @@
 /* do job cleaning every 2 hours */
 #define HARD_JOB_PERIOD 7200
 
-/* cache cleaning and registration every 5 minutes */
+/* cache cleaning every 5 minutes */
 #define CACHE_CLEAN_PERIOD 300
 
 #define DEFAULT_LOG_FILE "/var/log/grid-manager.log"
@@ -64,16 +64,18 @@ static void* cache_func(void* arg) {
         
         // get the cache dirs
         std::vector<std::string> cache_info_dirs = cache_info->getCacheDirs();
-
+        if (cache_info_dirs.empty()) continue;
+        
         // in arc.conf % of used space is given, but cleanbyage uses % of free space
         std::string minfreespace = Arc::tostring(100-cache_info->getCacheMax());
         std::string maxfreespace = Arc::tostring(100-cache_info->getCacheMin());  
-
+        std::string cachelifetime = cache_info->getLifeTime();
+        
         // set log file location - controldir/job.cache-clean.errors
         // TODO: use GM log?
         gmuser.SetControlDir(cacheuser->ControlDir()); // Should this requirement be removed ?
         int argc=0;
-        char* args[7+cache_info_dirs.size()+1];
+        char* args[9+cache_info_dirs.size()+1];
         
         // do cache-clean -h for explanation of options
         std::string cmd = nordugrid_libexec_loc() + "/cache-clean";
@@ -82,6 +84,8 @@ static void* cache_func(void* arg) {
         args[argc++]=(char*)minfreespace.c_str();
         args[argc++]=(char*)"-M";
         args[argc++]=(char*)maxfreespace.c_str();
+        args[argc++]=(char*)"-E";
+        args[argc++]=(char*)cachelifetime.c_str();        
         args[argc++]=(char*)"-D";
         args[argc++]=(char*)cache_info->getLogLevel().c_str();
         std::vector<std::string> cache_dirs;

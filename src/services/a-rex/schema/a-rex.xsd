@@ -221,6 +221,7 @@
                   To turn off this feature those elements must be absent.
                 * cacheLogLevel - the log level used by the cache cleaning
                   script.
+                * cacheLifetime - the lifetime of cache files
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
@@ -234,6 +235,8 @@
                          minOccurs="0"/>
             <xsd:element name="cacheLogLevel" type="xsd:string"
                          minOccurs="0"/>                         
+            <xsd:element name="cacheLifetime" type="xsd:string"
+                         minOccurs="0"/>                        
         </xsd:sequence>
     </xsd:complexType>
 

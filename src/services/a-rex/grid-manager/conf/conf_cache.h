@@ -48,6 +48,10 @@ class CacheConfig {
     * cache-clean log level
     */
    std::string _log_level;
+   /**
+    * Lifetime of files in cache
+    */
+   std::string _lifetime;
  public:
    /**
     * Create a new CacheConfig instance. Read the config file and fill in
@@ -73,6 +77,7 @@ class CacheConfig {
   int getCacheMin() { return _cache_min; };
   bool cleanCache() { return _cache_max < 100; };
   std::string getLogLevel() { return _log_level; };
+  std::string getLifeTime() { return _lifetime; };
 };
 
 #endif /*__GM_CONFIG_CACHE_H__*/

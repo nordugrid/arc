@@ -1059,9 +1059,13 @@ exist to help with administration of the cache:
   improve performance by running it on the file system's local node as
   mentioned above.
 \item \emph{cache-list} - This tool is used to list all files present
-  in each cache. It simply reads through all the \emph{.meta }files
-  and prints to stdout a list of all URLs stored in each cache and
-  their corresponding cache filename, one per line.
+  in each cache or, given a list of URLs as arguments, shows the
+  location of each URL in the cache if present. In the first case it
+  simply reads through all the \emph{.meta }files and prints to stdout
+  a list of all URLs stored in each cache and their corresponding
+  cache filename, one per line. In the second case the cache filename
+  of each URL is calculated and then each cache is checked for the
+  existence of the file.
 \end{itemize}
 
 
@@ -1444,6 +1448,11 @@ the JD).
   this feature, \char`\"{}cachesize\char`\"{} without parameters can
   be specified. These cache settings apply to all caches specified by
   \emph{cachedir} commands.
+\item \textbf{\textit{cachelifetime}}\textit{=lifetime} - if cache
+  cleaning is enabled, files accessed less recently than the
+  \emph{lifetime} time period will be deleted. Example values of this
+  option are 1800, 90s, 24h, 30d. When no suffix is given the unit is
+  seconds.
 \item \textbf{\textit{cacheloglevel}}\textit{=number} -- specified the
   level of logging by the \emph{cache-clean} tool, between 0 (FATAL)
   and 5 (DEBUG). Defaults to 3 (INFO).

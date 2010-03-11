@@ -4,7 +4,8 @@
 
 CacheConfig::CacheConfig(std::string username): _cache_max(100),
                                                 _cache_min(100),
-                                                _log_level("INFO") {
+                                                _log_level("INFO") ,
+                                                _lifetime("0") {
   // open conf file
   std::ifstream cfile;
   if(nordugrid_config_loc().empty()) read_env_vars(true);
@@ -184,6 +185,12 @@ void CacheConfig::parseINIConf(std::string username, ConfigSections* cf) {
           break;
       } 
     }
+    else if(command == "cachelifetime") {
+      std::string lifetime = config_next_arg(rest);
+      if(lifetime.length() != 0) {
+        _lifetime = lifetime;
+      }
+    }
     else if(command == "control") {
       // if the user specified here matches the one given, exit the loop
       config_next_arg(rest);
@@ -203,6 +210,7 @@ void CacheConfig::parseINIConf(std::string username, ConfigSections* cf) {
       _cache_dirs.clear();
       _cache_max = 100;
       _cache_min = 100;
+      _lifetime = "0";
     }
   }
 }
@@ -222,6 +230,7 @@ void CacheConfig::parseXMLConf(std::string username, Arc::XMLNode cfg) {
         link
       highWatermark
       lowWatermark
+      cacheLifetime
       cacheLogLevel
     defaultTTL
     defaultTTR
@@ -311,6 +320,9 @@ void CacheConfig::parseXMLConf(std::string username, Arc::XMLNode cfg) {
       std::string cache_log_level = cache_node["cacheLogLevel"];
       if (!cache_log_level.empty())
         _log_level = cache_log_level;
+      std::string cache_lifetime = cache_node["cacheLifetime"];
+      if (!cache_lifetime.empty())
+        _lifetime = cache_lifetime;
       Arc::XMLNode remote_location_node = cache_node["remotelocation"];
       for(;remote_location_node;++remote_location_node) {
         std::string cache_dir = remote_location_node["path"];

@@ -5,14 +5,15 @@ cache-clean \- Administration tool for the A-REX cache.
 
 .SH SYNOPSIS
 
-cache-clean -h | -s | -m NN -M NN [-D debug_level]
+cache-clean [-h] [-s] [-m NN -M NN] [-E N] [-D debug_level]
   [ -c <arex_config_file> | <dir1> [<dir2> [...]] ]
 .SH DESCRIPTION
 
 .B cache-clean
-is a tool for administrators of ARC server installations to safely remove
-data and provide an overview of the contents of the A-REX cache.
-It is used by the A-REX to automatically manage cache contents.
+is a tool for administrators of ARC server installations to safely
+remove A-REX cache data and to provide an overview of the contents of
+the cache.  It is used by the A-REX to automatically manage cache
+contents.
 
 There are two modes of operation - printing statistics and deleting files.
 If
@@ -24,9 +25,24 @@ and
 are used then files in each cache are deleted if the free space on 
 the file system is less than that given by
 .B -m,
-until the free space is equal to what is specified by
+in the order of least recently accessed, until the free space is equal
+to what is specified by
 .B -M.
-Caches directories are given by
+If
+.B -E
+is used, then all files accessed less recently than the given time are
+deleted.
+.B -E
+can be used in combination with 
+.B -m
+and
+.B -M
+but deleting files using
+.B -E
+is carried out first. If after this the cache free space is still less
+than that given by
+.B -m
+then cleaning according to those options is performed. Cache directories are given by
 .B dir1, dir2..
 or taken from the config file specified by
 .B -c
@@ -46,6 +62,11 @@ stored, and a histogram of access times of the files in the cache.
 
 .B -M
 - the minimum free space (as % of the file system) at which to stop cleaning
+
+.B -E
+- files accessed less recently than the given time period will be
+deleted. Example values of this option are 1800, 90s, 24h,
+30d. The default when no suffix is given is seconds.
 
 .B -D
 - debug level. Possible values are FATAL, ERROR, WARNING, INFO,
@@ -78,13 +99,14 @@ will then automatically only look at files within the data directory.
 
 .SH EXAMPLE
 
-.B cache-clean -m20 -M30 -D VERBOSE -c /etc/arc.conf
+.B cache-clean -m20 -M30 -E30d -D VERBOSE -c /etc/arc.conf
 
 Cache directories are taken from the configuration file
 .B /etc/arc.conf
-and if the free space in a cache is below 20%, data is deleted until
-the free space reaches 30%. Verbose debug output is enabled so
-information is output on each file that is deleted.
+and all cache files accessed more than 30 days ago are deleted. Then
+if the free space in a cache is below 20%, data is deleted until the
+free space reaches 30%. Verbose debug output is enabled so information
+is output on each file that is deleted.
 
 .SH COPYRIGHT
 
