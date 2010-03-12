@@ -413,6 +413,8 @@ namespace Arc {
         if (n != std::string::npos) {
           logger.msg(ERROR, "Junk at end of RSL at position %ld", n);
           delete parsed;
+          parsed = NULL;
+          return NULL;
         }
       }
       if (parsed)
