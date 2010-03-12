@@ -633,10 +633,11 @@ int main(int argc, char *argv[]) {
     Arc::Credential signer(cert_path, key_path, ca_dir, "");
     if((signer.GetVerification()) == false) {
       if (now > signer.GetEndTime())
-        std::cerr << "Proxy generation failed: Certificate has expired." << std::endl;
+        std::cerr << Arc::IString("Proxy generation failed: Certificate has expired.") << std::endl;
       else if (now < signer.GetStartTime())
-        std::cerr << "Proxy generation failed: Certificate is not valid yet." << std::endl;
-      //else In the other cases a error message should already have been printed.
+        std::cerr << Arc::IString("Proxy generation failed: Certificate is not valid yet.") << std::endl;
+      else
+        std::cerr << Arc::IString("Proxy generation failed: Unable to verify certificate.") << std::endl;
       return EXIT_FAILURE;
     }
 
