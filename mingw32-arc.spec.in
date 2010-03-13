@@ -3,6 +3,7 @@
 %define _use_internal_dependency_generator 0
 %define __find_requires %{_mingw32_findrequires}
 %define __find_provides %{_mingw32_findprovides}
+%define __debug_install_post %{_mingw32_debug_install_post}
 
 %define pkgdir @PACKAGE@
 
@@ -110,6 +111,8 @@ Development files for ARC
 
 #%description python
 #Python wrapper for ARC
+
+%{?_mingw32_debug_package}
 
 %prep
 %setup -q -n nordugrid-arc-nox-%{version}
