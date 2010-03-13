@@ -1595,6 +1595,7 @@ AC_CONFIG_FILES([Makefile
                  src/hed/libs/security/ArcPDP/policy/Makefile
                  src/hed/libs/security/ArcPDP/alg/Makefile
                  src/hed/libs/security/ArcPDP/fn/Makefile
+                 src/hed/libs/credentialstore/Makefile
                  src/hed/libs/wsrf/Makefile
                  src/hed/libs/ws-addressing/Makefile
                  src/hed/libs/ws-security/Makefile
