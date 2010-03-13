@@ -186,6 +186,18 @@ namespace Arc {
     return Time(t_str);
   }
 
+  class AutoBIO {
+   private:
+    BIO* bio_;
+   public:
+    AutoBIO(BIO* bio):bio_(bio) { };
+    ~AutoBIO(void) { if(bio_) { BIO_set_close(bio_,BIO_CLOSE); BIO_free_all(bio_); } };
+    operator bool(void) { return (bio_ != NULL); };
+    operator BIO*(void) { return bio_; };
+    BIO& operator*(void) const { return *bio_; };
+    BIO* operator->(void) const { return bio_; };
+  };
+
   //Get the life time of the credential
   static void getLifetime(STACK_OF(X509)* certchain, X509* cert, Time& start, Period &lifetime) {
     X509* tmp_cert = NULL;
@@ -260,8 +272,17 @@ namespace Arc {
       char firstbyte;
       if(len>0) {
         firstbyte = bio_str[0];
-        if(firstbyte==48)  {}
-        else { format = CRED_PEM; }
+        if(firstbyte==48)  {
+          //DER-encoded, PKCS12 or DER? firstly parse it as PKCS12 ASN.1,
+          //if can not parse it, then it is DER format
+          AutoBIO pkcs12bio(BIO_new_mem_buf(bio_str,len));
+          PKCS12* pkcs12 = NULL;
+          if((pkcs12 = d2i_PKCS12_bio(pkcs12bio,NULL)) == NULL){
+            format=CRED_DER;
+          } else {
+            format = CRED_PKCS; PKCS12_free(pkcs12);
+          }
+        } else { format = CRED_PEM; }
       }
       else {
         CredentialLogger.msg(ERROR,"Can't get the first byte of input BIO to get its format");
@@ -363,18 +384,6 @@ namespace Arc {
     Time t;
     return cred.verification_valid && cred.GetStartTime() < t && t < cred.GetEndTime();
   }
-
-  class AutoBIO {
-   private:
-    BIO* bio_;
-   public:
-    AutoBIO(BIO* bio):bio_(bio) { };
-    ~AutoBIO(void) { if(bio_) { BIO_set_close(bio_,BIO_CLOSE); BIO_free_all(bio_); } };
-    operator bool(void) { return (bio_ != NULL); };
-    operator BIO*(void) { return bio_; };
-    BIO& operator*(void) const { return *bio_; };
-    BIO* operator->(void) const { return bio_; };
-  };
 
   void Credential::loadCertificateString(const std::string& cert, X509* &x509, STACK_OF(X509) **certchain) {
     AutoBIO certbio(BIO_new_mem_buf((void*)(cert.c_str()), cert.length()));

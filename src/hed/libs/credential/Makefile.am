@@ -10,7 +10,8 @@ VOMS_SOURCE = VOMSUtil.cpp
 #endif
 
 libarccredential_ladir = $(pkgincludedir)/credential
-libarccredential_la_HEADERS  = Credential.h CertUtil.h Proxycertinfo.h VOMSAttribute.h $(VOMS_HEADER)
+libarccredential_la_HEADERS  = Credential.h CertUtil.h Proxycertinfo.h \
+                               VOMSAttribute.h $(VOMS_HEADER)
 libarccredential_la_SOURCES  = Proxycertinfo.cpp CertUtil.cpp \
                                Credential.cpp listfunc.c listfunc.h \
                                VOMSAttribute.cpp $(VOMS_SOURCE)
