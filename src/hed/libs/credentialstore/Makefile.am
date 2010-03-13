@@ -1,11 +1,11 @@
-lib_LTLIBRARIES = libarccredentailstore.la
+lib_LTLIBRARIES = libarccredentialstore.la
 #noinst_PROGRAMS = test
 
-libarccredentailstore_ladir = $(pkgincludedir)/myproxy
-libarccredentailstore_la_HEADERS  = CredentialStore.h
-libarccredentailstore_la_SOURCES  = CredentialStore.cpp
-libarccredentailstore_la_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS) -I$(top_srcdir)/include
-libarccredentailstore_la_LIBADD   = $(top_srcdir)/src/hed/libs/common/libarccommon.la \
+libarccredentialstore_ladir = $(pkgincludedir)/myproxy
+libarccredentialstore_la_HEADERS  = CredentialStore.h
+libarccredentialstore_la_SOURCES  = CredentialStore.cpp
+libarccredentialstore_la_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS) -I$(top_srcdir)/include
+libarccredentialstore_la_LIBADD   = $(top_srcdir)/src/hed/libs/common/libarccommon.la \
                                     $(top_srcdir)/src/hed/libs/credential/libarccredential.la \
                                     $(top_srcdir)/src/hed/libs/message/libarcmessage.la \
                                     $(top_srcdir)/src/hed/libs/client/libarcclient.la \
@@ -14,4 +14,4 @@ libarccredentailstore_la_LIBADD   = $(top_srcdir)/src/hed/libs/common/libarccomm
 #test_SOURCES  = test.cpp
 #test_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS) -I$(top_srcdir)/include
 #test_LDFLAGS  = $(GLIBMM_LIBS) $(LIBXML2_LIBS) $(OPENSSL_LIBS) $(EXTRA_LIBS)
-#test_LDADD    = ./libarccredentailstore.la $(top_srcdir)/src/hed/libs/common/libarccommon.la
+#test_LDADD    = ./libarccredentialstore.la $(top_srcdir)/src/hed/libs/common/libarccommon.la

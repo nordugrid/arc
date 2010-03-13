@@ -14,7 +14,10 @@ arcproxy_LDADD    = $(top_srcdir)/src/hed/libs/common/libarccommon.la \
                   $(top_srcdir)/src/hed/libs/client/libarcclient.la \
                   $(top_srcdir)/src/hed/libs/crypto/libarccrypto.la \
                   $(top_srcdir)/src/hed/libs/delegation/libarcdelegation.la \
+                  $(top_srcdir)/src/hed/libs/credentialstore/libarccredentialstore.la \
                   $(top_srcdir)/src/hed/libs/credential/libarccredential.la
+
+#                  $(top_srcdir)/src/hed/libs/delegation/libarcdelegation.la
 
 if XMLSEC_ENABLED
 arcslcs_SOURCES  = arcslcs.cpp
