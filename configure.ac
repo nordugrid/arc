@@ -201,7 +201,7 @@ if test "$enables_swig" = "yes"; then
 else
   SWIG=""
 fi
-AM_CONDITIONAL([SWIG_ENABLED],[test "$SWIG" != "x"])
+AM_CONDITIONAL([SWIG_ENABLED],[test "x$SWIG" != "x"])
 
 AC_ARG_ENABLE(hed, AC_HELP_STRING([--disable-hed], [disable building HED libraries and plugins. Do not do that unless You do not want to build anything. Even in that case better use --disable-all.]),
 [enables_hed=$enableval],[])
