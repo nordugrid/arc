@@ -1,5 +1,5 @@
 if XMLSEC_ENABLED
-noinst_PROGRAMS=perftest  perftest_saml2sso perftest_slcs perftest_deleg_bysechandler perftest_deleg_bydelegclient perftest_cmd_duration perftest_cmd_times perftest_msgsize
+noinst_PROGRAMS=perftest  perftest_saml2sso perftest_slcs perftest_deleg_bysechandler perftest_deleg_bydelegclient perftest_cmd_duration perftest_cmd_times perftest_msgsize perftest_samlaa
 else 
 if WIN32
 noinst_PROGRAMS=perftest  perftest_deleg_bysechandler perftest_deleg_bydelegclient
@@ -19,6 +19,11 @@ perftest_msgsize_LDFLAGS  = $(GLIBMM_LIBS) $(LIBXML2_LIBS)
 perftest_msgsize_LDADD    = $(top_srcdir)/src/hed/libs/common/libarccommon.la $(top_srcdir)/src/hed/libs/loader/libarcloader.la $(top_srcdir)/src/hed/libs/message/libarcmessage.la $(top_srcdir)/src/hed/libs/client/libarcclient.la
 
 if XMLSEC_ENABLED
+perftest_samlaa_SOURCES  = perftest_samlaa.cpp
+perftest_samlaa_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include $(XMLSEC_OPENSSL_CFLAGS) $(XMLSEC_CFLAGS)
+perftest_samlaa_LDFLAGS  = $(GLIBMM_LIBS) $(LIBXML2_LIBS)  $(XMLSEC_OPENSSL_LIBS) $(XMLSEC_LIBS)
+perftest_samlaa_LDADD    = $(top_srcdir)/src/hed/libs/common/libarccommon.la $(top_srcdir)/src/hed/libs/loader/libarcloader.la $(top_srcdir)/src/hed/libs/message/libarcmessage.la $(top_srcdir)/src/hed/libs/client/libarcclient.la $(top_srcdir)/src/hed/libs/xmlsec/libarcxmlsec.la
+
 perftest_saml2sso_SOURCES  = perftest_saml2sso.cpp
 perftest_saml2sso_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include $(XMLSEC_OPENSSL_CFLAGS) $(XMLSEC_CFLAGS)
 perftest_saml2sso_LDFLAGS  = $(GLIBMM_LIBS) $(LIBXML2_LIBS)  $(XMLSEC_OPENSSL_LIBS) $(XMLSEC_LIBS)
