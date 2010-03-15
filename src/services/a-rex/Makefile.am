@@ -4,7 +4,12 @@ pkglib_LTLIBRARIES = libarex.la
 noinst_PROGRAMS=test test_cache_check
 
 initddir=@initddir@
-initd_SCRIPTS=a-rex
+if SYSV_SCRIPTS_ENABLED
+AREX_SCRIPT = a-rex
+else
+AREX_SCRIPT =
+endif
+initd_SCRIPTS = $(AREX_SCRIPT)
 
 exampledir = $(pkgdatadir)/examples/a-rex
 example_DATA = arex.xml.example arex_secure.xml.example arex_minimalistic.xml.example \

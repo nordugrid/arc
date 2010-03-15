@@ -57,10 +57,11 @@ AC_ARG_WITH(sysv-scripts-location,
     fi
 
     if test -z "$initddir"; then
-      AC_MSG_ERROR(could not find a suitable location for the SYSV init scripts)
+      AC_MSG_WARN(could not find a suitable location for the SYSV init scripts - not installing)
     fi
   ]
 )
+AM_CONDITIONAL([SYSV_SCRIPTS_ENABLED],[test "x$initddir" != "x"])
 AC_MSG_RESULT($initddir)
 AC_SUBST(initddir)
 
