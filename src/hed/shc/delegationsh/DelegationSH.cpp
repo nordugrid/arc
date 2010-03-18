@@ -174,14 +174,14 @@ bool DelegationSH::Handle(Arc::Message* msg) const {
             std::string delegation_cred;
             if(!delegation_id.empty()) {
               if(!client_deleg.acquireDelegation(DELEG_ARC,delegation_cred,delegation_id)) {
-                logger.msg(ERROR,"Can not get the delegation credential: %s from delegation service:%s",delegation_id.c_str(),ds_endpoint.c_str());
+                logger.msg(ERROR,"Can not get the delegation credential: %s from delegation service: %s",delegation_id.c_str(),ds_endpoint.c_str());
                 return false;
               };
             } else {
               std::string cred_identity = msg->Attributes()->get("TLS:IDENTITYDN");
               std::string cred_delegator_ip = msg->Attributes()->get("TCP:REMOTEHOST");
               if(!client_deleg.acquireDelegation(DELEG_ARC,delegation_cred,delegation_id,cred_identity,cred_delegator_ip)) {
-                logger.msg(ERROR,"Can not get the delegation credential: %s from delegation service:%s",delegation_id.c_str(),ds_endpoint.c_str());
+                logger.msg(ERROR,"Can not get the delegation credential: %s from delegation service: %s",delegation_id.c_str(),ds_endpoint.c_str());
                 return false;
               };
             }
