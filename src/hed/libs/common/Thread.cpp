@@ -258,7 +258,7 @@ namespace Arc {
 
   void ThreadRegistry::UnregisterThread(void) {
     lock_.lock();
-    ++counter_;
+    --counter_;
     cond_.broadcast();
     lock_.unlock();
   }
