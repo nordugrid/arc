@@ -1,4 +1,5 @@
 #include <string>
+#include <map>
 #include <arc/UserConfig.h>
 #include <arc/message/MCC.h>
 #include <arc/URL.h>
@@ -23,14 +24,18 @@ namespace Arc {
     int port;
    public:
     CredentialStore(const URL& url);
-    CredentialStore(const std::string& host, int port = default_port);
     CredentialStore(const UserConfig& cfg, const URL& url);
-    CredentialStore(const UserConfig& cfg, const std::string& host, int port = default_port);
     ~CredentialStore(void);
     operator bool(void) { return valid; };
     bool operator!(void) { return !valid; };
-    bool Store(const std::string& username,const std::string& password,int lifetime,const std::string& cred);
-    bool Retrieve(const std::string& username,const std::string& password,int lifetime,std::string& cred);
+    // Store delegated credentials to credential store.
+    // The options contains key=value pairs affecting how credentials are
+    // stored. For MyProxy following options are supported -
+    //  username, password, credname, lifetime.
+    // If cred is not empty it should contains credentials to delegate.
+    // Otherwise credentials of user configuration are used.
+    bool Store(const std::map<std::string,std::string>& options,const std::string& cred = "");
+    bool Retrieve(const std::map<std::string,std::string>& options,std::string& cred);
 };
 
 }

@@ -7,6 +7,7 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <map>
 #include <stdexcept>
 #include <unistd.h>
 #include <stdlib.h>
@@ -455,7 +456,11 @@ int main(int argc, char *argv[]) {
       passphrase = password;
       std::string proxy_cred_str_pem;
       Arc::CredentialStore cstore(usercfg,Arc::URL("myproxy://"+myproxy_server));
-      if(!cstore.Retrieve(user_name,passphrase,43200,proxy_cred_str_pem))
+      std::map<std::string,std::string> myproxyopt;
+      myproxyopt["username"] = user_name;
+      myproxyopt["password"] = passphrase;
+      myproxyopt["lifetime"] = "43200";
+      if(!cstore.Retrieve(myproxyopt,proxy_cred_str_pem))
         throw std::invalid_argument("Failed to retrieve proxy from MyProxy service");
       int f = ::open(proxy_path.c_str(), O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
       if (f == -1)
@@ -835,7 +840,11 @@ int main(int argc, char *argv[]) {
       proxy_cred_file.close();
 
       Arc::CredentialStore cstore(usercfg,Arc::URL("myproxy://"+myproxy_server));
-      if(!cstore.Store(user_name,passphrase,43200,proxy_cred_str_pem))
+      std::map<std::string,std::string> myproxyopt;
+      myproxyopt["username"] = user_name;
+      myproxyopt["password"] = passphrase;
+      myproxyopt["lifetime"] = "43200";
+      if(!cstore.Store(myproxyopt,proxy_cred_str_pem))
         throw std::invalid_argument("Failed to delegate proxy to MyProxy service");
 
       return EXIT_SUCCESS;

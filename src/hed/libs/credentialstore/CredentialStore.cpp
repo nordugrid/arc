@@ -35,16 +35,6 @@ CredentialStore::CredentialStore(const UserConfig& cfg, const URL& url):valid(fa
   set(url.Host(),url.Port(),cfg);
 }
 
-
-CredentialStore::CredentialStore(const std::string& host_, int port_):valid(false) {
-  UserConfig ucfg;
-  set(host_,port_,ucfg);
-}
-
-CredentialStore::CredentialStore(const UserConfig& cfg, const std::string& host_, int port_):valid(false) {
-  set(host_,port_,cfg);
-}
-
 void CredentialStore::set(const std::string& host_, int port_, const UserConfig& cfg) {
   if(port_ <= 0) port_ = default_port;
   if(host_.empty()) return;
@@ -92,8 +82,23 @@ static std::map<std::string,std::string> parse_response(PayloadStreamInterface& 
   return parse_response(read_response(stream));
 }
 
-bool CredentialStore::Store(const std::string& username,const std::string& password,int lifetime,const std::string& cred) {
+bool CredentialStore::Store(const std::map<std::string,std::string>& options,const std::string& cred) {
   if(!valid) return false;
+
+  std::string credname;
+  std::string username;
+  std::string password;
+  int lifetime = 0;
+  std::map<std::string,std::string>::const_iterator val;
+  val = options.find("credname");
+  if(val != options.end()) credname = val->second;
+  val = options.find("username");
+  if(val != options.end()) username = val->second;
+  val = options.find("password");
+  if(val != options.end()) password = val->second;
+  val = options.find("lifetime");
+  if(val != options.end()) lifetime = stringto<int>(val->second);
+
   std::string msg("VERSION=MYPROXYv2\nCOMMAND=1\n");
   if(username.empty()) return false;
   msg.append("USERNAME="+username+"\n");
@@ -102,6 +107,9 @@ bool CredentialStore::Store(const std::string& username,const std::string& passw
   }
   if(lifetime > 0) {
     msg.append("LIFETIME="+tostring(lifetime)+"\n");
+  }
+  if(!credname.empty()) {
+    msg.append("CRED_NAME="+credname+"\n");
   }
   msg.append("\0");
   PayloadStreamInterface *response = NULL;
@@ -177,8 +185,23 @@ bool CredentialStore::Store(const std::string& username,const std::string& passw
   return true;
 }
 
-bool CredentialStore::Retrieve(const std::string& username,const std::string& password,int lifetime,std::string& cred) {
+bool CredentialStore::Retrieve(const std::map<std::string,std::string>& options,std::string& cred) {
   if(!valid) return false;
+
+  std::string credname;
+  std::string username;
+  std::string password;
+  int lifetime = 0;
+  std::map<std::string,std::string>::const_iterator val;
+  val = options.find("credname");
+  if(val != options.end()) credname = val->second;
+  val = options.find("username");
+  if(val != options.end()) username = val->second;
+  val = options.find("password");
+  if(val != options.end()) password = val->second;
+  val = options.find("lifetime");
+  if(val != options.end()) lifetime = stringto<int>(val->second);
+
   std::string msg("VERSION=MYPROXYv2\nCOMMAND=0\n");
   if(username.empty()) return false;
   msg.append("USERNAME="+username+"\n");
@@ -187,6 +210,9 @@ bool CredentialStore::Retrieve(const std::string& username,const std::string& pa
   }
   if(lifetime > 0) {
     msg.append("LIFETIME="+tostring(lifetime)+"\n");
+  }
+  if(!credname.empty()) {
+    msg.append("CRED_NAME="+credname+"\n");
   }
   msg.append("\0");
   PayloadStreamInterface *response = NULL;
