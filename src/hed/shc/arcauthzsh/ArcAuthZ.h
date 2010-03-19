@@ -40,6 +40,7 @@ class ArcAuthZ : public SecHandler {
   Arc::PluginsFactory *pdp_factory;
   /** One Handler can include few PDP */
   pdp_container_t pdps_;
+  bool valid_;
 
  protected:
   /** Create PDP according to conf info */
@@ -51,6 +52,8 @@ class ArcAuthZ : public SecHandler {
   static Plugin* get_sechandler(Arc::PluginArgument* arg);  
   /** Get authorization decision*/
   virtual bool Handle(Arc::Message* msg) const;
+  operator bool(void) { return valid_; };
+  bool operator!(void) { return !valid_; };
 };
 
 } // namespace ArcSec

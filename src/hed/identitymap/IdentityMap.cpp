@@ -14,10 +14,13 @@
 #include "IdentityMap.h"
 
 static Arc::Plugin* get_sechandler(Arc::PluginArgument* arg) {
-    ArcSec::SecHandlerPluginArgument* shcarg =
-            arg?dynamic_cast<ArcSec::SecHandlerPluginArgument*>(arg):NULL;
-    if(!shcarg) return NULL;
-    return new ArcSec::IdentityMap((Arc::Config*)(*shcarg),(Arc::ChainContext*)(*shcarg));
+  ArcSec::SecHandlerPluginArgument* shcarg =
+          arg?dynamic_cast<ArcSec::SecHandlerPluginArgument*>(arg):NULL;
+  if(!shcarg) return NULL;
+  ArcSec::IdentityMap* plugin = new ArcSec::IdentityMap((Arc::Config*)(*shcarg),(Arc::ChainContext*)(*shcarg));
+  if(!plugin) return NULL;
+  if(!(*plugin)) { delete plugin; return NULL; };
+  return plugin;
 }
 
 Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
@@ -166,7 +169,7 @@ static LocalMap* MakeLocalMap(Arc::XMLNode pdp) {
 }
 
 // ---------------------------------------------------------------------------
-IdentityMap::IdentityMap(Arc::Config *cfg,Arc::ChainContext* ctx):ArcSec::SecHandler(cfg){
+IdentityMap::IdentityMap(Arc::Config *cfg,Arc::ChainContext* ctx):ArcSec::SecHandler(cfg),valid_(false){
   Arc::PluginsFactory* pdp_factory = (Arc::PluginsFactory*)(*ctx);
   if(pdp_factory) {
     Arc::XMLNode plugins = (*cfg)["Plugins"];
@@ -191,7 +194,7 @@ IdentityMap::IdentityMap(Arc::Config *cfg,Arc::ChainContext* ctx):ArcSec::SecHan
       if(!pdp) {
         delete local_id;
         logger.msg(Arc::ERROR, "PDP: %s can not be loaded", name);
-        continue;
+        return;
       };
       map_pair_t m;
       m.pdp=pdp;
@@ -199,6 +202,7 @@ IdentityMap::IdentityMap(Arc::Config *cfg,Arc::ChainContext* ctx):ArcSec::SecHan
       maps_.push_back(m);
     };
   };
+  valid_ = true;
 }
 
 IdentityMap::~IdentityMap(void) {

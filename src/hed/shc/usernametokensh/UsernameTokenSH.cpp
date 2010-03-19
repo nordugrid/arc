@@ -15,10 +15,13 @@
 static Arc::Logger logger(Arc::Logger::rootLogger, "UsernameTokenSH");
 
 Arc::Plugin* ArcSec::UsernameTokenSH::get_sechandler(Arc::PluginArgument* arg) {
-    ArcSec::SecHandlerPluginArgument* shcarg =
-            arg?dynamic_cast<ArcSec::SecHandlerPluginArgument*>(arg):NULL;
-    if(!shcarg) return NULL;
-    return new ArcSec::UsernameTokenSH((Arc::Config*)(*shcarg),(Arc::ChainContext*)(*shcarg));
+  ArcSec::SecHandlerPluginArgument* shcarg =
+          arg?dynamic_cast<ArcSec::SecHandlerPluginArgument*>(arg):NULL;
+  if(!shcarg) return NULL;
+  ArcSec::UsernameTokenSH* plugin = new ArcSec::UsernameTokenSH((Arc::Config*)(*shcarg),(Arc::ChainContext*)(*shcarg));
+  if(!plugin) return NULL;
+  if(!(*plugin)) { delete plugin; plugin = NULL; };
+  return plugin;
 }
 
 /*
@@ -31,7 +34,7 @@ sechandler_descriptors ARC_SECHANDLER_LOADER = {
 namespace ArcSec {
 using namespace Arc;
 
-UsernameTokenSH::UsernameTokenSH(Config *cfg,ChainContext*):SecHandler(cfg){
+UsernameTokenSH::UsernameTokenSH(Config *cfg,ChainContext*):SecHandler(cfg),valid_(false){
   process_type_=process_none;
   std::string process_type = (std::string)((*cfg)["Process"]);
   if(process_type == "extract") { 
@@ -62,6 +65,7 @@ UsernameTokenSH::UsernameTokenSH(Config *cfg,ChainContext*):SecHandler(cfg){
     logger.msg(ERROR,"Processing type not supported: %s",process_type);
     return;
   };
+  valid_ = true;
 }
 
 UsernameTokenSH::~UsernameTokenSH() {

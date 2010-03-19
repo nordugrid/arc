@@ -16,13 +16,19 @@
 
 #include "SAML2SSO_AssertionConsumerSH.h"
 
-static Arc::Logger logger(Arc::Logger::rootLogger, "SAMLSSO_AssertionConsumerSH");
+namespace ArcSec {
+using namespace Arc;
 
-Arc::Plugin* ArcSec::SAML2SSO_AssertionConsumerSH::get_sechandler(Arc::PluginArgument* arg) {
-    ArcSec::SecHandlerPluginArgument* shcarg =
-            arg?dynamic_cast<ArcSec::SecHandlerPluginArgument*>(arg):NULL;
-    if(!shcarg) return NULL;
-    return new ArcSec::SAML2SSO_AssertionConsumerSH((Arc::Config*)(*shcarg),(Arc::ChainContext*)(*shcarg));
+static Logger logger(Logger::rootLogger, "SAMLSSO_AssertionConsumerSH");
+
+Plugin* SAML2SSO_AssertionConsumerSH::get_sechandler(PluginArgument* arg) {
+  SecHandlerPluginArgument* shcarg =
+          arg?dynamic_cast<SecHandlerPluginArgument*>(arg):NULL;
+  if(!shcarg) return NULL;
+  SAML2SSO_AssertionConsumerSH* plugin = new SAML2SSO_AssertionConsumerSH((Config*)(*shcarg),(ChainContext*)(*shcarg));
+  if(!plugin) return NULL;
+  if(!(*plugin)) { delete plugin; plugin = NULL; };
+  return plugin;
 }
 
 /*
@@ -32,11 +38,9 @@ sechandler_descriptors ARC_SECHANDLER_LOADER = {
 };
 */
 
-namespace ArcSec {
-using namespace Arc;
-
-SAML2SSO_AssertionConsumerSH::SAML2SSO_AssertionConsumerSH(Config *cfg,ChainContext*):SecHandler(cfg), SP_service_loader(NULL){
+SAML2SSO_AssertionConsumerSH::SAML2SSO_AssertionConsumerSH(Config *cfg,ChainContext*):SecHandler(cfg), SP_service_loader(NULL), valid_(false) {
   if(!init_xmlsec()) return;
+  valid_ = true;
 }
 
 SAML2SSO_AssertionConsumerSH::~SAML2SSO_AssertionConsumerSH() {

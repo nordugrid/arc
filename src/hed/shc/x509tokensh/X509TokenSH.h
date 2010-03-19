@@ -26,12 +26,15 @@ class X509TokenSH : public SecHandler {
   std::string key_file_;
   std::string ca_file_;
   std::string ca_dir_;
+  bool valid_;
 
  public:
   X509TokenSH(Arc::Config *cfg, Arc::ChainContext* ctx);
   virtual ~X509TokenSH(void);
   static Arc::Plugin* get_sechandler(Arc::PluginArgument* arg);
   virtual bool Handle(Arc::Message* msg) const;
+  operator bool(void) { return valid_; };
+  bool operator!(void) { return !valid_; };
 };
 
 } // namespace ArcSec

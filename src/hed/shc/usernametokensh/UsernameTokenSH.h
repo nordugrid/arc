@@ -25,12 +25,15 @@ class UsernameTokenSH : public SecHandler {
   std::string username_;
   std::string password_;
   std::string password_source_;
+  bool valid_;
 
  public:
   UsernameTokenSH(Arc::Config *cfg, Arc::ChainContext* ctx);
   virtual ~UsernameTokenSH(void);
   static Arc::Plugin* get_sechandler(Arc::PluginArgument* arg);
   virtual bool Handle(Arc::Message* msg) const;
+  operator bool(void) { return valid_; };
+  bool operator!(void) { return !valid_; };
 };
 
 } // namespace ArcSec

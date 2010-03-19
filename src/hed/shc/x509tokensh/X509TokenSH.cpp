@@ -15,10 +15,13 @@
 static Arc::Logger logger(Arc::Logger::rootLogger, "X509TokenSH");
 
 Arc::Plugin* ArcSec::X509TokenSH::get_sechandler(Arc::PluginArgument* arg) {
-    ArcSec::SecHandlerPluginArgument* shcarg =
-            arg?dynamic_cast<ArcSec::SecHandlerPluginArgument*>(arg):NULL;
-    if(!shcarg) return NULL;
-    return new ArcSec::X509TokenSH((Arc::Config*)(*shcarg),(Arc::ChainContext*)(*shcarg));
+  ArcSec::SecHandlerPluginArgument* shcarg =
+          arg?dynamic_cast<ArcSec::SecHandlerPluginArgument*>(arg):NULL;
+  if(!shcarg) return NULL;
+  ArcSec::X509TokenSH* plugin = new ArcSec::X509TokenSH((Arc::Config*)(*shcarg),(Arc::ChainContext*)(*shcarg));
+  if(!plugin) return NULL;
+  if(!(*plugin)) { delete plugin; plugin = NULL; };
+  return plugin;
 }
 
 /*
@@ -31,7 +34,7 @@ sechandler_descriptors ARC_SECHANDLER_LOADER = {
 namespace ArcSec {
 using namespace Arc;
 
-X509TokenSH::X509TokenSH(Config *cfg,ChainContext*):SecHandler(cfg){
+X509TokenSH::X509TokenSH(Config *cfg,ChainContext*):SecHandler(cfg),valid_(false){
   if(!init_xmlsec()) return;
   process_type_=process_none;
   std::string process_type = (std::string)((*cfg)["Process"]);
@@ -62,6 +65,7 @@ X509TokenSH::X509TokenSH(Config *cfg,ChainContext*):SecHandler(cfg){
     logger.msg(ERROR,"Processing type not supported: %s",process_type);
     return;
   };
+  valid_ = true;
 }
 
 X509TokenSH::~X509TokenSH() {

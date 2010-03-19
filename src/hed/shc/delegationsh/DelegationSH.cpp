@@ -16,14 +16,20 @@
 
 #include "DelegationSH.h"
 
-static Arc::Logger logger(Arc::Logger::rootLogger, "DelegationSH");
-Arc::Logger ArcSec::DelegationSH::logger(Arc::Logger::rootLogger,"DelegationSH");
+namespace ArcSec {
+using namespace Arc;
 
-Arc::Plugin* ArcSec::DelegationSH::get_sechandler(Arc::PluginArgument* arg) {
-    ArcSec::SecHandlerPluginArgument* shcarg =
-            arg?dynamic_cast<ArcSec::SecHandlerPluginArgument*>(arg):NULL;
-    if(!shcarg) return NULL;
-    return new ArcSec::DelegationSH((Arc::Config*)(*shcarg),(Arc::ChainContext*)(*shcarg));
+static Logger logger(Logger::rootLogger, "DelegationSH");
+Logger DelegationSH::logger(Logger::rootLogger,"DelegationSH");
+
+Plugin* DelegationSH::get_sechandler(PluginArgument* arg) {
+  SecHandlerPluginArgument* shcarg =
+          arg?dynamic_cast<SecHandlerPluginArgument*>(arg):NULL;
+  if(!shcarg) return NULL;
+  DelegationSH* plugin = new DelegationSH((Config*)(*shcarg),(ChainContext*)(*shcarg));
+  if(!plugin) return NULL;
+  if(!(*plugin)) { delete plugin; plugin = NULL; };
+  return plugin;
 }
 
 /*
@@ -33,9 +39,6 @@ sechandler_descriptors ARC_SECHANDLER_LOADER = {
 };
 */
 
-namespace ArcSec {
-using namespace Arc;
-
 class DelegationContext:public Arc::MessageContextElement{
  public:
   bool have_delegated_;
@@ -43,7 +46,7 @@ class DelegationContext:public Arc::MessageContextElement{
   virtual ~DelegationContext(void) { };
 };
 
-DelegationSH::DelegationSH(Config *cfg,ChainContext*):SecHandler(cfg) {
+DelegationSH::DelegationSH(Config *cfg,ChainContext*):SecHandler(cfg),valid_(false) {
   std::string delegation_type = (std::string)((*cfg)["Type"]);
   std::string delegation_role = (std::string)((*cfg)["Role"]);
   ds_endpoint_ = (std::string)((*cfg)["DelegationServiceEndpoint"]);
@@ -89,6 +92,7 @@ DelegationSH::DelegationSH(Config *cfg,ChainContext*):SecHandler(cfg) {
   }
 
   mcontext_ = new DelegationContext();
+  valid_ = true;
 }
 
 DelegationSH::~DelegationSH() {

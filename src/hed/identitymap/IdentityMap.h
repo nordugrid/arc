@@ -28,11 +28,14 @@ class IdentityMap : public SecHandler {
   } map_pair_t;
 
   std::list<map_pair_t> maps_;
+  bool valid_;
 
  public:
   IdentityMap(Arc::Config *cfg, Arc::ChainContext* ctx);
   virtual ~IdentityMap(void);
   virtual bool Handle(Arc::Message* msg) const;
+  operator bool(void) { return valid_; };
+  bool operator!(void) { return !valid_; };
 };
 
 } // namespace ArcSec

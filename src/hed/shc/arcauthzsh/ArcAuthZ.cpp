@@ -8,15 +8,18 @@
 
 #include "ArcAuthZ.h"
 
-Arc::Plugin* ArcSec::ArcAuthZ::get_sechandler(Arc::PluginArgument* arg) {
-  ArcSec::SecHandlerPluginArgument* shcarg =
-            arg?dynamic_cast<ArcSec::SecHandlerPluginArgument*>(arg):NULL;
-  if(!shcarg) return NULL;
-  return new ArcSec::ArcAuthZ((Arc::Config*)(*shcarg),(Arc::ChainContext*)(*shcarg));
-}
-
 using namespace Arc;
 namespace ArcSec {
+
+Plugin* ArcAuthZ::get_sechandler(PluginArgument* arg) {
+  SecHandlerPluginArgument* shcarg =
+            arg?dynamic_cast<SecHandlerPluginArgument*>(arg):NULL;
+  if(!shcarg) return NULL;
+  ArcAuthZ* plugin = new ArcAuthZ((Config*)(*shcarg),(Arc::ChainContext*)(*shcarg));
+  if(!plugin) return NULL;
+  if(!(*plugin)) { delete plugin; plugin = NULL; };
+  return plugin;
+}
 
 ArcAuthZ::PDPDesc::PDPDesc(const std::string& action_,const std::string& id_,PDP* pdp_):pdp(pdp_),action(breakOnDeny),id(id_) {
   if(strcasecmp("breakOnAllow",action_.c_str()) == 0) { action=breakOnAllow; }
@@ -25,7 +28,7 @@ ArcAuthZ::PDPDesc::PDPDesc(const std::string& action_,const std::string& id_,PDP
   else if(strcasecmp("breakNever",action_.c_str()) == 0) { action=breakNever; };
 }
 
-ArcAuthZ::ArcAuthZ(Config *cfg,ChainContext* ctx):SecHandler(cfg){
+ArcAuthZ::ArcAuthZ(Config *cfg,ChainContext* ctx):SecHandler(cfg),valid_(false) {
   pdp_factory = (PluginsFactory*)(*ctx);
   if(pdp_factory) {
     for(int n = 0;;++n) {
@@ -43,6 +46,7 @@ ArcAuthZ::ArcAuthZ(Config *cfg,ChainContext* ctx):SecHandler(cfg){
     };
     logger.msg(ERROR, "ArcAuthZ: failed to initiate all PDPs - this instance will be non-functional"); 
   };
+  valid_ = true;
 }
 
 ArcAuthZ::~ArcAuthZ() {

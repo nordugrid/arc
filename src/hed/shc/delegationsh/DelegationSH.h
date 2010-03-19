@@ -47,6 +47,7 @@ class DelegationSH : public SecHandler {
   std::string ca_dir_;
 
   Arc::MessageContextElement* mcontext_;
+  bool valid_;
 
  protected:
   static Arc::Logger logger;
@@ -59,6 +60,8 @@ class DelegationSH : public SecHandler {
   virtual ~DelegationSH(void);
   static Arc::Plugin* get_sechandler(Arc::PluginArgument* arg);
   virtual bool Handle(Arc::Message* msg) const;
+  operator bool(void) { return valid_; };
+  bool operator!(void) { return !valid_; };
 };
 
 } // namespace ArcSec

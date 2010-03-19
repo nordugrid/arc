@@ -28,12 +28,15 @@ class SAML2SSO_AssertionConsumerSH : public SecHandler {
   std::string ca_file_;
   std::string ca_dir_;
   Arc::MCCLoader* SP_service_loader;
+  bool valid_;
 
  public:
   SAML2SSO_AssertionConsumerSH(Arc::Config *cfg, Arc::ChainContext* ctx);
   virtual ~SAML2SSO_AssertionConsumerSH(void);
   static Arc::Plugin* get_sechandler(Arc::PluginArgument* arg);
   virtual bool Handle(Arc::Message* msg) const;
+  operator bool(void) { return valid_; };
+  bool operator!(void) { return !valid_; };
 };
 
 } // namespace ArcSec
