@@ -1261,42 +1261,47 @@ A naming convention list for the XML elements and attributes described in
 section~\ref{sec:XML configuration} is presented below. Note that there are only
 conventions for leaf XML elements (element with no children).
 
-\begin{tabular}{>{\ttfamily}l>{\ttfamily}l}
+\begin{center}
+\small
+\begin{tabular}{>{\ttfamily}l>{\ttfamily}l>{\ttfamily}l}
 \toprule
-\textrm{\textbf{XML element/attribute}} & \textrm{\textbf{INI tag}} \\
+\textrm{\textbf{XML element/attribute}} & \textrm{\textbf{INI tag}} & \textrm{\textbf{Default value}}\\
 \midrule
-/Server/PidFile & pidfile \\
-/Server/User & user \\
-/Server/Group & group \\
-/Server/Logger/File & logfile \\
-/Server/Logger/Level & loglevel \\
-/Server/Logger/Maxsize & logmaxsize \\
-/Server/Logger/Backups & logbackups \\
+/Server/PidFile & pidfile & /var/run/arched.pid\\
+/Server/User & user & \textrm{None} \\
+/Server/Group & group & \textrm{None} \\
+/Server/Logger/File & logfile & /var/log/arched.log \\
+/Server/Logger/Level & loglevel & WARNING \\
+/Server/Logger/Maxsize & logmaxsize & \textrm{None} \\
+/Server/Logger/Backups & logbackups & \textrm{None} \\
+/ModuleManager/Path & libpath & \textrm{None} \\
+/Plexer/next & endpointpattern & \textrm{None} \\
 \midrule
-\multicolumn{2}{c}{\textbf{TCP MCC}}\\
+\multicolumn{3}{c}{\textbf{TCP MCC}}\\
 \midrule
-/Component/Listen/Interface & interface \\
-/Component/Listen/Port & port \\
-/Component/Listen/Version & ipversion \\
-/Component/Listen/NoDelay & nodelay \\
-/Component/Listen/Timeout & timeout \\
-/Component/Limit & limit \\
-/Component/Limit.drop & drop \\
+/Component/Listen/Interface & interface & 0.0.0.0 \\
+/Component/Listen/Port & port & 60000\\
+/Component/Listen/Version & ipversion & \textrm{None} \\
+/Component/Listen/NoDelay & nodelay & false\\
+/Component/Listen/Timeout & timeout & \textrm{None}\\
+/Component/Limit & limit & \textrm{None}\\
+/Component/Limit.drop & drop & \textrm{None}\\
 \midrule
-\multicolumn{2}{c}{\textbf{TLS MCC}}\\
+\multicolumn{3}{c}{\textbf{TLS MCC}}\\
 \midrule
-/Component/KeyPath & x509\_user\_key \\
-/Component/CertificatePath & x509\_user\_cert \\
-/Component/CACertificatePath & x509\_cacert\_path \\
-/Component/CACertificatesDir & x509\_cacert\_dir \\
-/Component/CACertificatesDir.PolicyGlobus & policyglobus \\
-/Component/ClientAuthn & clientauthn \\
-/Component/VOMSCertTrustDNChain/VOMSCertTrustDN &  \\
-/Component/VOMSCertTrustDNChain/VOMSCertTrustRegex &  \\
-/Component/VOMSCertTrustDNChainsLocation & \\
-/Component/Handshake & handshake \\
+/Component/KeyPath & x509\_host\_key & /etc/grid-security/hostkey.pem\\
+/Component/CertificatePath & x509\_host\_cert & /etc/grid-security/hostcert.pem\\
+/Component/CACertificatePath & x509\_cacert\_path & \textrm{None}\\
+/Component/CACertificatesDir & x509\_cacert\_dir & /etc/grid-security/certificates\\
+%/Component/CACertificatesDir.PolicyGlobus & policyglobus \\
+/Component/ClientAuthn & clientauthn & true\\
+%/Component/VOMSCertTrustDNChain/VOMSCertTrustDN &  \\
+%/Component/VOMSCertTrustDNChain/VOMSCertTrustRegex &  \\
+%Component/VOMSCertTrustDNChainsLocation & \\
+/Component/Handshake & handshake & TLS\\
 \bottomrule
 \end{tabular}
+\end{center}
 
 \bibliography{grid,nordugrid}
 \end{document}
