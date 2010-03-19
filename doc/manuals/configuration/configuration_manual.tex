@@ -417,7 +417,8 @@ below:
 
 \subsubsection{TLS MCC}\label{sec:tls-mcc}
 A security layer can be configured with the TLS MCC, named \texttt{tls.service},
-and it should be put on top of a TCP MCC. By default it is able to understand
+which is based on the OpenSSL library~\cite{openssl}, and it should be put on
+top of a TCP MCC. By default it is able to understand
 the SSLv2 (hadshake only), SSLv3 and TLSv1 protocols, however the \texttt{Handshake}
 element can be used to specify another behaviour. The supported values for the
 \texttt{Handshake} element are \texttt{TLS} (default) and \texttt{SSLv3}, where
@@ -1111,8 +1112,8 @@ And the resulting XML configuration will look like:
 \end{lstlisting}
 
 \section{The \texttt{arched} daemon}\label{sec:arched}
-The \texttt{arched} daemon is the daemon which is used to start every service in
-WS-ARC. It will load a configuration file, and start the services specified
+The \texttt{arched} daemon is the daemon which is used to host every service in
+WS-ARC. It will load a configuration file, and host the services specified
 herein.
 
 \hspace*{0.5cm}
