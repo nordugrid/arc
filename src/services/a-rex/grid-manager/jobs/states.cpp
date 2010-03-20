@@ -23,13 +23,11 @@
 #include "../jobs/users.h"
 #include "../jobs/job.h"
 #include "../jobs/plugins.h"
-#ifdef HAVE_MYPROXY_H
 #include "../misc/proxy.h"
-#include "../misc/myproxy_proxy.h"
-#endif
 #include <iostream>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <fcntl.h>
 #include <unistd.h>
 #include <glibmm.h>
 #include <arc/DateTime.h>
@@ -362,32 +360,37 @@ bool JobsList::DestroyJob(JobsList::iterator &i,bool finished,bool active) {
 
 /* do processing necessary in case of failure */
 bool JobsList::FailedJob(const JobsList::iterator &i) {
+  bool r = true;
   /* put mark - failed */
-  if(!job_failed_mark_put(*i,*user,i->failure_reason)) return false;
+  //if(!job_failed_mark_put(*i,*user,i->failure_reason)) return false;
+  if(job_failed_mark_add(*i,*user,i->failure_reason)) {
+    i->failure_reason = "";
+  } else {
+    r = false;
+  };
   /* make all output files non-uploadable */
   std::list<FileData> fl;
-  if(!job_output_read_file(i->job_id,*user,fl)) return true; /* no file - no error */
-  for(std::list<FileData>::iterator ifl=fl.begin();ifl!=fl.end();++ifl) {
-    // Remove destination without "preserve" option
-    std::string value = Arc::URL(ifl->lfn).Option("preserve");
-    if(value != "yes") ifl->lfn="";
-  };
-  if(!job_output_write_file(*i,*user,fl)) return false;
-  if(!(i->local)) {
-    JobLocalDescription *job_desc = new JobLocalDescription;
-    if(!job_local_read_file(i->job_id,*user,*job_desc)) {
-      logger.msg(Arc::ERROR,"%s: Failed reading local information",i->job_id);
-      delete job_desc;
-    }
-    else {
-      i->local=job_desc;
+  if(job_output_read_file(i->job_id,*user,fl)) {
+    for(std::list<FileData>::iterator ifl=fl.begin();ifl!=fl.end();++ifl) {
+      // Remove destination without "preserve" option
+      std::string value = Arc::URL(ifl->lfn).Option("preserve");
+      if(value != "yes") ifl->lfn="";
     };
-  };
-  if(i->local) {
+    if(!job_output_write_file(*i,*user,fl)) {
+      r=false;
+      logger.msg(Arc::ERROR,"%s: Failed writing list of output files",i->job_id);
+    };
+  } else {
+    r=false;
+    logger.msg(Arc::ERROR,"%s: Failed reading list of output files",i->job_id);
+  }
+  if(GetLocalDescription(i)) {
     i->local->uploads=0;
     job_local_write_file(*i,*user,*(i->local));
+  } else {
+    r=false;
   };
-  return true;
+  return r;
 }
 
 bool JobsList::GetLocalDescription(const JobsList::iterator &i) {
@@ -538,7 +541,7 @@ bool JobsList::state_loading(const JobsList::iterator &i,bool &state_changed,boo
   /* RSL was analyzed/parsed - now run child process downloader
      to download job input files and to wait for user uploaded ones */
   if(i->child == NULL) { /* no child started */
-    logger.msg(Arc::INFO,"%s: state: PREPARING/FINISHING: starting new child",i->job_id);
+    logger.msg(Arc::INFO,"%s: state: %s: starting new child",i->job_id,up?"FINISHING":"PREPARING");
     /* no child was running yet, or recovering from fault */
     /* run it anyway and exit code will give more inforamtion */
     bool switch_user = (user->CachePrivate() || user->StrictSession());
@@ -628,15 +631,17 @@ bool JobsList::state_loading(const JobsList::iterator &i,bool &state_changed,boo
     args[argn]=(char*)(user->ControlDir().c_str()); argn++;
     args[argn]=(char*)(i->SessionDir().c_str()); argn++;
 
-    if(!up) { logger.msg(Arc::INFO,"%s: State PREPARING: starting child: %s",i->job_id,args[0]); }
-    else { logger.msg(Arc::INFO,"%s: State FINISHING: starting child: %s",i->job_id,args[0]); };
+    logger.msg(Arc::INFO,"%s: State %s: starting child: %s",i->job_id,up?"FINISHING":"PREPARING",args[0]);
     job_errors_mark_put(*i,*user);
-    job_restart_mark_remove(i->job_id,*user);
+    // Remove restart mark because restart point may change. Keep it if we are
+    // already processing failed job.
+    if(!job_failed_mark_check(i->job_id,*user)) job_restart_mark_remove(i->job_id,*user);
     if(!RunParallel::run(*user,*i,(char**)args,&(i->child),switch_user)) {
-      logger.msg(Arc::ERROR,"%s: Failed to run down/uploader process",i->job_id);
       if(up) {
+        logger.msg(Arc::ERROR,"%s: Failed to run uploader process",i->job_id);
         i->AddFailure("Failed to run uploader (post-processing)");
       } else {
+        logger.msg(Arc::ERROR,"%s: Failed to run downloader process",i->job_id);
         i->AddFailure("Failed to run downloader (pre-processing)");
       };
       return false;
@@ -660,39 +665,6 @@ bool JobsList::state_loading(const JobsList::iterator &i,bool &state_changed,boo
           logger.msg(Arc::ERROR,"%s: State: PREPARING: unrecoverable error detected (exit code 1)",i->job_id);
           i->AddFailure("Failed in files download (pre-processing)");
         };
-      } else if(i->child->Result() == 3) {
-        /* in case of expired credentials there is a chance to get them 
-           from credentials server - so far myproxy only */
-#ifdef HAVE_MYPROXY_H
-        if(GetLocalDescription(i)) {
-          i->AddFailure("Internal error");
-          if(i->local->credentialserver.length()) {
-            std::string new_proxy_file =
-                    user->ControlDir()+"/job."+i->job_id+".proxy.tmp";
-            std::string old_proxy_file =
-                    user->ControlDir()+"/job."+i->job_id+".proxy";
-            remove(new_proxy_file.c_str());
-            int h = open(new_proxy_file.c_str(),
-                    O_WRONLY | O_CREAT | O_EXCL,S_IRUSR | S_IWUSR);
-            if(h!=-1) {
-              close(h);
-              if(myproxy_renew(old_proxy_file.c_str(),new_proxy_file.c_str(),
-                      i->local->credentialserver.c_str())) {
-                renew_proxy(old_proxy_file.c_str(),new_proxy_file.c_str());
-                /* imitate rerun request */
-                job_restart_mark_put(*i,*user);
-              };
-            };
-          };
-        };
-#endif
-        if(up) {
-          logger.msg(Arc::ERROR,"%s: State: FINISHING: credentials probably expired (exit code 3)",i->job_id);
-          i->AddFailure("Failed in files upload due to expired credentials - try to renew");
-        } else {
-          logger.msg(Arc::ERROR,"%s: State: PREPARING: credentials probably expired (exit code 3)",i->job_id);
-          i->AddFailure("Failed in files download due to expired credentials - try to renew");
-        };
       } else if(i->child->Result() == 4) { // retryable cache error
         logger.msg(Arc::DEBUG, "%s: State: PREPARING/FINISHING: retryable error", i->job_id);
         delete i->child; i->child=NULL;
@@ -700,12 +672,55 @@ bool JobsList::state_loading(const JobsList::iterator &i,bool &state_changed,boo
         return true;
       } 
       else {
-        if(up) {
-          logger.msg(Arc::ERROR,"%s: State: FINISHING: some error detected (exit code %i). Recover from such type of errors is not supported yet.",i->job_id,i->child->Result());
-          i->AddFailure("Failed in files upload (post-processing)");
+        // Because we have no information (anymore) if failure happened
+        // due to expired credentials let's just check them
+        std::string old_proxy_file =
+                    user->ControlDir()+"/job."+i->job_id+".proxy";
+        Arc::Credential cred(old_proxy_file,"","","");
+        // TODO: check if cred is at all there
+        if(cred.GetEndTime() < Arc::Time()) {
+          // Credential is expired
+          logger.msg(Arc::ERROR,"%s: State: %s: credentials probably expired (exit code %i)",i->job_id,up?"FINISHING":"PREPARING",i->child->Result());
+          /* in case of expired credentials there is a chance to get them 
+             from credentials server - so far myproxy only */
+          if(GetLocalDescription(i)) {
+            if(i->local->credentialserver.length()) {
+              std::string new_proxy_file =
+                      user->ControlDir()+"/job."+i->job_id+".proxy.tmp";
+              remove(new_proxy_file.c_str());
+              int h = open(new_proxy_file.c_str(),
+                      O_WRONLY | O_CREAT | O_EXCL,S_IRUSR | S_IWUSR);
+              if(h!=-1) {
+                close(h);
+                logger.msg(Arc::INFO,"%s: State: %s: trying to renew credentials",i->job_id,up?"FINISHING":"PREPARING");
+                if(myproxy_renew(old_proxy_file.c_str(),new_proxy_file.c_str(),
+                        i->local->credentialserver.c_str())) {
+                  renew_proxy(old_proxy_file.c_str(),new_proxy_file.c_str());
+                  /* imitate rerun request */
+                  job_restart_mark_put(*i,*user);
+                } else {
+                  logger.msg(Arc::ERROR,"%s: State: %s: failed to renew credentials",i->job_id,up?"FINISHING":"PREPARING");
+                };
+              } else {
+                logger.msg(Arc::ERROR,"%s: State: %s: failed to create temporary proxy for renew: %s",i->job_id,up?"FINISHING":"PREPARING",new_proxy_file);
+              };
+            };
+          } else {
+            i->AddFailure("Internal error");
+          };
+          if(up) {
+            i->AddFailure("Failed in files upload probably due to expired credentials - try to renew");
+          } else {
+            i->AddFailure("Failed in files download probably due to expired credentials - try to renew");
+          };
         } else {
-          logger.msg(Arc::ERROR,"%s: State: PREPARING: some error detected (exit code %i). Recover from such type of errors is not supported yet.",i->job_id,i->child->Result());
-          i->AddFailure("Failed in files download (pre-processing)");
+          // Credentials were alright
+          logger.msg(Arc::ERROR,"%s: State: %s: some error detected (exit code %i). Recover from such type of errors is not supported yet.",i->job_id,up?"FINISHING":"PREPARING",i->child->Result());
+          if(up) {
+            i->AddFailure("Failed in files upload (post-processing)");
+          } else {
+            i->AddFailure("Failed in files download (pre-processing)");
+          };
         };
       };
       delete i->child; i->child=NULL;
@@ -1245,6 +1260,8 @@ void JobsList::ActJobFinished(JobsList::iterator &i,bool hard_job,
                 JobPending(i); // make it go to end of state immediately
                 return;
               };
+            } else if(state_ == JOB_STATE_UNDEFINED) {
+              logger.msg(Arc::ERROR,"%s: Can't rerun on request",i->job_id);
             } else {
               logger.msg(Arc::ERROR,"%s: Can't rerun on request - not a suitable state",i->job_id);
             };
@@ -1331,6 +1348,7 @@ bool JobsList::ActJob(JobsList::iterator &i,bool hard_job) {
   bool job_error     = false;
   bool state_changed = false;
   job_state_t old_state = i->job_state;
+  job_state_t old_reported_state = i->job_state;
   bool old_pending = i->job_pending;
   while(once_more) {
     once_more     = false;
@@ -1441,13 +1459,18 @@ bool JobsList::ActJob(JobsList::iterator &i,bool hard_job) {
         };
       };
       // Process state changes, also those generated by error processing
+      if(old_reported_state != i->job_state) {
+        if(old_reported_state != JOB_STATE_UNDEFINED) {
+          // Report state change into log
+          logger.msg(Arc::INFO,"%s: State: %s from %s",
+                i->job_id.c_str(),JobDescription::get_state_name(i->job_state),
+                JobDescription::get_state_name(old_reported_state));
+        }
+        old_reported_state=i->job_state;
+      };
       if(state_changed) {
         state_changed=false;
         i->job_pending=false;
-        // Report state change into log
-        logger.msg(Arc::INFO,"%s: State: %s from %s",
-              i->job_id.c_str(),JobDescription::get_state_name(i->job_state),
-              JobDescription::get_state_name(old_state));
         if(!job_state_write_file(*i,*user,i->job_state)) {
           i->AddFailure("Failed writing job status");
           job_error=true;

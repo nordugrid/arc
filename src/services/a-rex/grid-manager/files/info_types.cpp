@@ -238,7 +238,7 @@ JobLocalDescription& JobLocalDescription::operator=(const Arc::JobDescription& a
 
   if (!arc_job_desc.Application.CredentialService.empty() &&
       arc_job_desc.Application.CredentialService.front())
-    credentialserver = arc_job_desc.Application.CredentialService.front().str();
+    credentialserver = arc_job_desc.Application.CredentialService.front().fullstr();
 
   if (arc_job_desc.Application.Rerun > -1)
     reruns = arc_job_desc.Application.Rerun;

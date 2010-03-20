@@ -13,6 +13,10 @@
 #include "proxy.h"
 
 #include <arc/Utils.h>
+#include <arc/StringConv.h>
+#include <arc/URL.h>
+#include <arc/credential/Credential.h>
+#include <arc/credentialstore/CredentialStore.h>
 
 int prepare_proxy(void) {
   int h = -1;
@@ -131,4 +135,58 @@ int renew_proxy(const char* old_proxy,const char* new_proxy) {
   if(!proxy_file_tmp.empty()) remove(proxy_file_tmp.c_str());
   return res;
 }
+
+bool myproxy_renew(const char* old_proxy_file,const char* new_proxy_file,const char* myproxy_server) {
+  if(!myproxy_server) return false;
+  if(!old_proxy_file) return false;
+  if(!new_proxy_file) return false;
+
+  Arc::URL url(myproxy_server);
+  Arc::UserConfig usercfg(Arc::initializeCredentialsType(Arc::initializeCredentialsType::TryCredentials));
+  //usercfg.ProxyPath(old_proxy_file);
+  usercfg.ProxyPath("");
+  usercfg.CertificatePath("");
+  usercfg.KeyPath("");
+  Arc::CredentialStore cstore(usercfg,url);
+
+  std::map<std::string,std::string> storeopt;
+  std::map<std::string,std::string>::const_iterator m;
+  m=url.Options().find("username");
+  if(m != url.Options().end()) {
+    storeopt["username"]=m->second;
+  } else {
+    Arc::Credential proxy(std::string(old_proxy_file),"","","");
+    storeopt["username"]=proxy.GetIdentityName();
+  };
+  m=url.Options().find("credname");
+  if(m != url.Options().end()) {
+    storeopt["credname"]=m->second;
+  };
+  storeopt["lifetime"] = Arc::tostring(60*60*12);
+  m=url.Options().find("password");
+  if(m != url.Options().end()) {
+    storeopt["password"] = m->second;
+  };
+
+  /* Get new proxy */
+  std::string new_proxy_str;
+  if(!cstore.Retrieve(storeopt,new_proxy_str)) {
+    fprintf(stderr, "Failed to retrieve a proxy from MyProxy server %s\n", myproxy_server);
+    return false;
+  };
+  std::ofstream h(new_proxy_file,std::ios::trunc);
+  h<<new_proxy_str;
+  if(h.fail()) {
+    fprintf(stderr,"Can't open proxy file: %s\n",new_proxy_file);
+    return false;
+  };
+  h.close();
+  if(h.fail()) {
+    fprintf(stderr,"Can't write to proxy file: %s\n",new_proxy_file);
+    ::unlink(new_proxy_file);
+    return false;
+  };
+  return true;
+}
+
 
