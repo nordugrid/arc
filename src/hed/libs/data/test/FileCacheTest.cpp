@@ -714,7 +714,9 @@ void FileCacheTest::testCheckDN() {
 
   // add with no specified expiry time
   CPPUNIT_ASSERT(_fc1->AddDN(_url, dn2, Arc::Time(0)));
-  CPPUNIT_ASSERT_EQUAL(_url + "\n" + dn2 + " " + futuretime.str(Arc::MDSTime) + "\n" + dn1 + " " + futuretime.str(Arc::MDSTime) + '\n', _readFile(meta_file));
+  // allowing for second changing during AddDN call
+  CPPUNIT_ASSERT((_url + "\n" + dn2 + " " + futuretime.str(Arc::MDSTime) + "\n" + dn1 + " " + futuretime.str(Arc::MDSTime) + '\n') == _readFile(meta_file) ||
+                 (_url + "\n" + dn2 + " " + Arc::Time(futuretime.GetTime()+1).str(Arc::MDSTime) + "\n" + dn1 + " " + futuretime.str(Arc::MDSTime) + '\n') == _readFile(meta_file));
 }
 
 void FileCacheTest::testTwoCaches() {
