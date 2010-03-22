@@ -680,18 +680,18 @@ void FileCacheTest::testCheckDN() {
 
   // add DN
   Arc::Time now = Arc::Time();
-  Arc::Time futuretime = Arc::Time(time(NULL) + 1000);
+  Arc::Time futuretime = Arc::Time(now.GetTime() + 1000);
   CPPUNIT_ASSERT(_fc1->AddDN(_url, dn1, futuretime));
   CPPUNIT_ASSERT(_fc1->CheckDN(_url, dn1));
   CPPUNIT_ASSERT_EQUAL(_url + "\n" + dn1 + " " + futuretime.str(Arc::MDSTime) + '\n', _readFile(meta_file));
 
   // expired DN
-  Arc::Time pasttime = Arc::Time(time(NULL) - 10);
+  Arc::Time pasttime = Arc::Time(now.GetTime() - 10);
   CPPUNIT_ASSERT(_createFile(meta_file, _url + "\n" + dn1 + " " + pasttime.str(Arc::MDSTime) + '\n'));
   CPPUNIT_ASSERT(!_fc1->CheckDN(_url, dn1));
 
   // add again
-  futuretime = Arc::Time(time(NULL) + 86400);
+  futuretime = Arc::Time(now.GetTime() + 86400);
   CPPUNIT_ASSERT(_fc1->AddDN(_url, dn1, futuretime));
   CPPUNIT_ASSERT(_fc1->CheckDN(_url, dn1));
   CPPUNIT_ASSERT_EQUAL(_url + "\n" + dn1 + " " + futuretime.str(Arc::MDSTime) + '\n', _readFile(meta_file));
@@ -706,7 +706,7 @@ void FileCacheTest::testCheckDN() {
   CPPUNIT_ASSERT_EQUAL(_url + "\n" + dn2 + " " + futuretime.str(Arc::MDSTime) + "\n" + dn1 + " " + futuretime.str(Arc::MDSTime) + '\n', _readFile(meta_file));
 
   // create expired DN and check it gets removed
-  pasttime = Arc::Time(time(NULL) - 86401);
+  pasttime = Arc::Time(now.GetTime() - 86401);
   CPPUNIT_ASSERT(_createFile(meta_file, _url + '\n' + dn2 + " " + pasttime.str(Arc::MDSTime) + "\n" + dn1 + " " + pasttime.str(Arc::MDSTime) + '\n'));
   CPPUNIT_ASSERT(_fc1->AddDN(_url, dn1, futuretime));
   CPPUNIT_ASSERT(_fc1->CheckDN(_url, dn1));
