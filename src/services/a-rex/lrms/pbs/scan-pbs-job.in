@@ -114,10 +114,12 @@ process_log_file () {
   eval "set -- $control_dirs"
 
   #we grep for finished jobs, then use sed to remove already processed lines
-  exited_killed_jobs=`egrep '^[^;]*;0010;[^;]*;Job;|^[^;]*;0008;[^;]*;Job;[^;]*;Exit_status=|^[^;]*;0008;[^;]*;Job;[^;]*;Job deleted' ${lname} | sed -e "1,${lines_skip}d"` 
+  exited_killed_jobs=`egrep '^[^;]*;0010;[^;]*;Job;|^[^;]*;0008;[^;]*;Job;[^;]*;Exit_status=|^[^;]*;0008;[^;]*;Job;[^;]*;Job deleted' ${lname} | tail -n+$(( $lines_skip + 1 ))`
 
   #TODO should we add processed lines before jobs have actually been processed? What if the last job only has half a record?
   new_lines=`echo "$exited_killed_jobs" | wc -l`
+  # new_lines set to 1 when string is empty, should have been 0
+  [ "x$exited_killed_jobs" = x ] && new_lines=0
   lines_processed=$(( $lines_skip + $new_lines ))
 
   if [ "$lines_processed" -lt '0' ] ; then
@@ -127,15 +129,17 @@ process_log_file () {
   echo "$cname $lines_processed"> $state_file
 
   exited_killed_jobs=`echo "$exited_killed_jobs" | sort -u`
-  
-  for job in "$exited_killed_jobs"; do
+
+  # force word splitting to happen only on newlines
+  old_IFS=$IFS; IFS=$'\n'
+  for job in $exited_killed_jobs; do
+    IFS=$old_IFS
+
     # Split line into fields, split on ";" read is done by process
     # substitution and redirection. This does not work in plain sh.
     # I have not found any other nice way of doing this.
-    read pbs_date pbs_code pbs_server pbs_job job_id job_message rest_line < <(echo ${job} | tr ";" " ")
-    if [ "$?" != '0' ] ; then
-      break
-    fi
+    IFS=";" read pbs_date pbs_code pbs_server pbs_job job_id job_message rest_line < <(echo "$job")
+
     # Try to extract exit code of PBS (note: if executable fails it's code goes to PBS)
     exit_code=`echo "$job_message" | sed -n 's/^.*Exit_status=\([-0-9]*\).*/\1/p'`
     job_id=`echo "$job_id" | awk '{split($0,field,".");print field[1]"."field[2]}'`
