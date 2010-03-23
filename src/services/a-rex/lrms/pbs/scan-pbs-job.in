@@ -139,7 +139,7 @@ ${interesting_job}"
 
   echo "$cname $lines_processed"> $state_file
 
-  interesting_jobs=`echo "$interesting_jobs" | sort -u"`
+  interesting_jobs=`echo "$interesting_jobs" | sort -u`
   
   for job in "$interesting_jobs"; do
     # Split line into fields, split on ";" read is done by process
