@@ -491,11 +491,14 @@ cd_and_run () {
     echo "echo \"nodename=\$nodename\" >> \"\$RUNTIME_JOB_DIAG\"" >> $LRMS_JOB_SCRIPT
   fi
 
-   # In case the job executable is written in a scripting language and the
-   # interpreter is not found, the error message printed by GNU_TIME is
-   # misleading.  This will print a more appropriate error message.
-   echo "executable='$joboption_arg_0'" >> $LRMS_JOB_SCRIPT
-   cat >> $LRMS_JOB_SCRIPT <<'EOSCR'
+  #TODO this should probably be done on headnode instead
+  echo "echo \"CPUCores=${joboption_count}\" >> \"\$RUNTIME_JOB_DIAG\"" >> $LRMS_JOB_SCRIPT
+
+  # In case the job executable is written in a scripting language and the
+  # interpreter is not found, the error message printed by GNU_TIME is
+  # misleading.  This will print a more appropriate error message.
+  echo "executable='$joboption_arg_0'" >> $LRMS_JOB_SCRIPT
+  cat >> $LRMS_JOB_SCRIPT <<'EOSCR'
 # See if executable is a script, and extract the name of the interpreter
 line1=`dd if="$executable" count=1 2>/dev/null | head -n 1`
 command=`echo $line1 | sed -n 's/^#! *//p'`
@@ -504,8 +507,8 @@ if [ "$interpreter" = /usr/bin/env ]; then interpreter=`echo $command | awk '{pr
 # If it's a script and the interpreter is not found ...
 [ "x$interpreter" = x ] || type "$interpreter" > /dev/null 2>&1 || {
 EOSCR
-    echo '  echo "Cannot run $executable: $interpreter: not found"' "$output_redirect 1>&2" >> $LRMS_JOB_SCRIPT
-    echo '  exit 1; }' >> $LRMS_JOB_SCRIPT
+  echo '  echo "Cannot run $executable: $interpreter: not found"' "$output_redirect 1>&2" >> $LRMS_JOB_SCRIPT
+  echo '  exit 1; }' >> $LRMS_JOB_SCRIPT
 
     # Check that gnu_time works
     cat >> $LRMS_JOB_SCRIPT <<EOSCR
@@ -530,7 +533,6 @@ Signals=%k\n' \
 $joboption_args $input_redirect $output_redirect" >> $LRMS_JOB_SCRIPT
   echo "fi" >> $LRMS_JOB_SCRIPT
   echo "RESULT=\$?" >> $LRMS_JOB_SCRIPT
-
 }
 
 if [ "submit_common.sh" = `basename $0` ]; then
