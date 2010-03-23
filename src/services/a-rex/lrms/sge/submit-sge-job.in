@@ -149,8 +149,8 @@ fi
 # There are soft and hard limits for virtual memory consumption in SGE
 if [ -n "$joboption_memory" ] ; then
   joboption_memory_hard=$(( $joboption_memory * $memory_hardlimit_ratio ))
-  h_vmem_requestable=$($SGE_QCONF -sc|awk '($1=="h_vmem" && $5=="YES"){print $5}')
-  s_vmem_requestable=$($SGE_QCONF -sc|awk '($1=="s_vmem" && $5=="YES"){print $5}')
+  h_vmem_requestable=$($SGE_QCONF -sc|awk '($1=="h_vmem" && ( $5=="YES" || $5=="FORCED" )){print $5}')
+  s_vmem_requestable=$($SGE_QCONF -sc|awk '($1=="s_vmem" && ( $5=="YES" || $5=="FORCED" )){print $5}')
   opt="#$"
   if [ $s_vmem_requestable ]; then opt="$opt -l s_vmem=${joboption_memory}M"; fi
   if [ $h_vmem_requestable ]; then opt="$opt -l h_vmem=${joboption_memory_hard}M"; fi
