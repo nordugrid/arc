@@ -83,6 +83,7 @@ BuildRequires: perl-Test-Simple
 %else
 %define ifpy %{nil}
 %endif
+BuildRequires: mktemp
 
 %description
 ARC
@@ -264,6 +265,7 @@ Summary: ARC Remote EXecution service
 Group: System Environment/Libraries
 Requires: %{name} = %{version}
 Requires: %{name}-hed = %{version}
+Requires: mktemp
 Requires: perl-XML-Simple
 Requires: perl-Digest-SHA1
 Provides: nordugrid-arc1-arex = %{version}
@@ -686,6 +688,7 @@ exit 0
 %{_libdir}/%{pkgdir}/config_parser.sh
 %{_libdir}/%{pkgdir}/configure-*-env.sh
 %{_libdir}/%{pkgdir}/submit_common.sh
+%{_libdir}/%{pkgdir}/scan_common.sh
 %{_datadir}/%{pkgdir}/nordugrid.schema
 %doc %{_mandir}/man1/cache-clean.1*
 %doc %{_mandir}/man1/cache-list.1*
