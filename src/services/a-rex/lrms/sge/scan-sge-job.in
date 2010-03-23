@@ -14,8 +14,9 @@ basedir=`cd $basedir > /dev/null && pwd` || exit $?
 pkglibdir="$basedir/@pkglibdir_rel_to_pkglibexecdir@"
 pkglibdir=`cd $pkglibdir > /dev/null && pwd` || exit $?
 
-# Assume that gm-kick is installed in the same directory
+# Assume that gm-kick and scan_common is installed in the same directory
 GMKICK=${basedir}/gm-kick
+. ${basedir}/scan_common.sh
 
 ##############################################################
 # Set SGE specific environment.
@@ -95,8 +96,8 @@ write_diagfile_acct () {
   id=$3
   extraargs=$4
 
-  ${qacct_command} -j ${id} ${extraargs} 2> /dev/null \
-      | perl -e 'while(<>){
+  qacct_output=`${qacct_command} -j ${id} ${extraargs} 2> /dev/null` 
+  echo $qacct_output | perl -e 'while(<>){
                      $nodename=$1         if /^hostname\s+(\S+)/;
                      $id=$1               if /^jobnumber\s+(\S+)/;
                      $exitcode=$1         if /^exit_status\s+(\S+)/;
@@ -106,8 +107,6 @@ write_diagfile_acct () {
                      $WallTime=$1         if /^ru_wallclock\s+(\d+)/;
                      $UsedMemory=$1       if /^maxvmem\s+(\S+)M/;
                      $UsedMemory=$1*1024  if /^maxvmem\s+(\S+)G/;
-                     $StartTime=$1        if /^start_time\s+(\S+)/;
-                     $EndTime=$1          if /^end_time\s+(\S+)/;
                      $CPUCores=$1         if /^slots\s+(\S+)/;
                    }
                    END {
@@ -119,12 +118,30 @@ write_diagfile_acct () {
                      print "UserTime=".int($CPUTime-$KernelTime).".0s\n";
                      print "AverageTotalMemory=".int($UsedMemory*1024)."kB\n";
                      print "CPUCores=${CPUCores}\n";
-                     print "LRMSStartTime=".`date -d "${StartTime}" +"%Y%m%d%H%M%S"`."Z\n";
-                     print "LRMSEndTime=".`date -d "${EndTime}" +"%Y%m%d%H%M%S"`."Z\n";
+#TODO these two are in the wrong timezone
                      print "failed=$failed\n";
                      print "\nsgeexitcode=$exitcode\n";
                    }' \
   > "$diagfile_acct"
+
+  start_time=`echo $qacct_output | grep "start_time" | sed 's/start_time[ \t]*//g'`
+  end_time=`echo $qacct_output | grep "end_time" | sed 's/end_time[ \t]*//g'`
+
+  # Convert StartTime to utc and store as seconds
+  get_seconds_utc ${start_time}
+  # Convert from seconds to YYYYMMDDHHMMSSZ
+  get_date_from_seconds ${return_date_seconds}
+  start_time=${return_date}
+  # Convert EndTime to utc and store as seconds
+  get_seconds_utc ${end_time}
+  # Convert from seconds to YYYYMMDDHHMMSSZ
+  get_date_from_seconds ${return_date_seconds}
+  end_time=${return_date}
+
+  #Write job start and end times to diag
+  echo "LRMSStartTime=${start_time}" >> "$diagfile_acct"
+  echo "LRMSEndTime=${end_time}" >> "$diagfile_acct"
+
 }
 
 # Parse GRAMI-file and see what was requested
