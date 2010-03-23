@@ -49,7 +49,7 @@ namespace Arc {
       location() = INSTPREFIX;
     }
 #ifdef ENABLE_NLS
-    bindtextdomain(PACKAGE, (location() + G_DIR_SEPARATOR_S + "share" + G_DIR_SEPARATOR_S "locale").c_str());
+    bindtextdomain(PACKAGE, (location() + G_DIR_SEPARATOR_S "share" G_DIR_SEPARATOR_S "locale").c_str());
 #endif
   }
 
