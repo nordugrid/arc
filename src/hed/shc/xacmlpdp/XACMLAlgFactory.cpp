@@ -73,6 +73,7 @@ XACMLAlgFactory::~XACMLAlgFactory(){
   AlgMap::iterator it;
   for(it = algmap.begin(); it != algmap.end(); it = algmap.begin()){
     CombiningAlg * alg = (*it).second;
+    algmap.erase(it);
     if(alg) delete alg;
   }
 }
