@@ -115,12 +115,10 @@ echo "#BSUB -n $joboption_count" >> $LRMS_JOB_SCRIPT
 ##############################################################
 # Execution times (obtained in seconds)
 ##############################################################
+
+#OBS: Assuming here that LSB_JOB_CPULIMIT=y
 if [ -n "$joboption_cputime" ] && [ $joboption_cputime -gt 0 ]; then
-    if [ -n "$joboption_count" ] || [ "$joboption_count" -gt 1 ]; then
-	cputime=$(( (${joboption_cputime} * ${joboption_count}) / 60 ))
-    else
 	cputime=$(( ${joboption_cputime} / 60 ))
-    fi 
     echo "#BSUB -c ${cputime}" >> $LRMS_JOB_SCRIPT
 fi
 
