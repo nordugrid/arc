@@ -61,7 +61,7 @@ if [ -z "$lines_skip" ] ; then lines_skip='0' ; fi
 if [ -z "$ldate" ] ; then ldate='0' ; fi
 
 # Prints the owner of the file given as argument
-# Perl is used because it's more protable than using the stat command
+# Perl is used because it's more portable than using the stat command
 printowner () {
   code='$f=$ARGV[0];if(@s=stat $f){@p=getpwuid $s[4];if(@p){print $p[0]}else{exit 1}}else{die "$f: $!\n"}'
   /usr/bin/perl -we "$code" "$1"

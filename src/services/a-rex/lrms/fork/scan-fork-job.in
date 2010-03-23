@@ -18,7 +18,7 @@ if [ "$1" = "--config" ]; then shift; ARC_CONFIG=$1; shift; fi
 if [ -z "$1" ] ; then echo "Argument missing" 1>&2 ; exit 1 ; fi
 
 # Prints the uid of the owner of the file given as argument
-# Perl is used because it's more protable than using the stat command
+# Perl is used because it's more portable than using the stat command
 printuid () {
   code='my @s = stat($ARGV[0]); print($s[4] || "")'
   /usr/bin/perl -we "$code" "$1"
