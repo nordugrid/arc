@@ -405,8 +405,16 @@ move_files_to_node () {
     RUNTIME_NODE_JOB_DIR="$RUNTIME_LOCAL_SCRATCH_DIR"/`basename "$RUNTIME_JOB_DIR"`
     rm -rf "$RUNTIME_NODE_JOB_DIR"
     mkdir -p "$RUNTIME_NODE_JOB_DIR"
-    #use find here instead of mv to get files starting with a "."
-    find "$RUNTIME_JOB_DIR" -mindepth 1 -maxdepth 1 -exec mv '{}' "$RUNTIME_NODE_JOB_DIR" \;
+    # move directory contents
+    for f in "$RUNTIME_JOB_DIR"/.* "$RUNTIME_JOB_DIR"/*; do 
+      [ "$f" = "$RUNTIME_JOB_DIR/*" ] || continue # glob failed, no files
+      [ "$f" = "$RUNTIME_JOB_DIR/." ] || continue
+      [ "$f" = "$RUNTIME_JOB_DIR/.." ] || continue
+      if ! mv "$f" "$RUNTIME_NODE_JOB_DIR"; then
+        echo "Failed to move '$f' to '$RUNTIME_NODE_JOB_DIR'" 1>&2
+        RESULT=1
+      fi
+    done
     if [ ! -z "$RUNTIME_FRONTEND_SEES_NODE" ] ; then
       # creating link for whole directory
        ln -s "$RUNTIME_FRONTEND_SEES_NODE"/`basename "$RUNTIME_JOB_DIR"` "$RUNTIME_JOB_DIR"
@@ -459,17 +467,28 @@ move_files_to_frontend () {
     if [ ! -z "$RUNTIME_FRONTEND_SEES_NODE" ] ; then
       # just move it
       rm -rf "$RUNTIME_FRONTEND_JOB_DIR"
-      mv "$RUNTIME_NODE_JOB_DIR" `dirname "$RUNTIME_FRONTEND_JOB_DIR"`
+      destdir=`dirname "$RUNTIME_FRONTEND_JOB_DIR"`
+      if ! mv "$RUNTIME_NODE_JOB_DIR" "$destdir"; then
+        echo "Failed to move '$RUNTIME_NODE_JOB_DIR' to '$destdir'" 1>&2
+        RESULT=1
+      fi
     else
       # remove links
       rm -f "$RUNTIME_JOB_STDOUT" 2>/dev/null
       rm -f "$RUNTIME_JOB_STDERR" 2>/dev/null
       # move directory contents
-      find "$RUNTIME_NODE_JOB_DIR" -mindepth 1 -maxdepth 1 -exec mv '{}' "$RUNTIME_FRONTEND_JOB_DIR" \;
+      for f in "$RUNTIME_NODE_JOB_DIR"/.* "$RUNTIME_NODE_JOB_DIR"/*; do 
+        [ "$f" = "$RUNTIME_NODE_JOB_DIR/*" ] || continue # glob failed, no files
+        [ "$f" = "$RUNTIME_NODE_JOB_DIR/." ] || continue
+        [ "$f" = "$RUNTIME_NODE_JOB_DIR/.." ] || continue
+        if ! mv "$f" "$RUNTIME_FRONTEND_JOB_DIR"; then
+          echo "Failed to move '$f' to '$RUNTIME_FRONTEND_JOB_DIR'" 1>&2
+          RESULT=1
+        fi
+      done
       rm -rf "$RUNTIME_NODE_JOB_DIR"
     fi
   fi
-  echo "exitcode=$RESULT" >> "$RUNTIME_JOB_DIAG"
   exit $RESULT
 EOSCR
 }
@@ -500,10 +519,19 @@ setup_runtime_env () {
 # change to runtime dir and setup timed run
 ##############################################################
 cd_and_run () {
-  echo "# Changing to session directory" >> $LRMS_JOB_SCRIPT
-  echo "cd \$RUNTIME_JOB_DIR" >> $LRMS_JOB_SCRIPT
-  echo "HOME=\$RUNTIME_JOB_DIR" >> $LRMS_JOB_SCRIPT
-  echo "export HOME" >> $LRMS_JOB_SCRIPT
+
+  cat >> $LRMS_JOB_SCRIPT <<'EOSCR'
+  # Changing to session directory
+  HOME=$RUNTIME_JOB_DIR
+  export HOME
+  if ! cd "$RUNTIME_JOB_DIR"; then
+    echo "Failed to switch to '$RUNTIME_JOB_DIR'" 1>&2
+    RESULT=1
+  fi
+  if [ ! -z "$RESULT" ] && [ "$RESULT" != 0 ]; then
+    exit $RESULT
+  fi
+EOSCR
 
   if [ ! -z "$NODENAME" ] ; then
     echo "nodename=\`$NODENAME\`" >> $LRMS_JOB_SCRIPT
