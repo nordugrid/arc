@@ -186,12 +186,12 @@ function handle_start_end_time {
     starttime=$(echo "$jobinfostring"|sed -n 's/.*StartTime=\([^ ]*\) .*/\1/p' | sed 's/-/ /g')
     endtime=$(echo "$jobinfostring"|sed -n 's/.*EndTime=\([^ ]*\) .*/\1/p' | sed 's/-/ /g')
 
-    get_seconds_utc "${starttime}"
-    get_date_from_seconds "${return_date_seconds}"
-    LRMSStartTime="${return_date}"
-    get_seconds_utc "${endtime}"
-    get_date_from_seconds "${return_date_seconds}"
-    LRMSEndTime="${return_date}"
+    date_to_utc_seconds "$starttime"
+    seconds_to_mds_date "$return_date_seconds"
+    LRMSStartTime=$return_mds_date
+    date_to_utc_seconds "$endtime"
+    seconds_to_mds_date "$return_date_seconds"
+    LRMSEndTime=$return_mds_date
 
     echo "LRMSStartTime=$LRMSStartTime" >> ${ctr_diag}
     echo "LRMSEndTime=$LRMSEndTime" >> ${ctr_diag}

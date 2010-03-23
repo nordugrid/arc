@@ -13,7 +13,8 @@ basedir=`cd $basedir > /dev/null && pwd` || exit $?
 pkglibdir="$basedir/@pkglibdir_rel_to_pkglibexecdir@"
 pkglibdir=`cd $pkglibdir > /dev/null && pwd` || exit $?
 
-. ${pkglibdir}/configure-condor-env.sh || exit $?
+. "${pkglibdir}/configure-condor-env.sh" || exit $?
+. "${pkglibdir}/scan_common.sh" || exit $?
 
 #############################################################################
 ########################## LRMS specific functions ##########################
@@ -66,6 +67,8 @@ lrms_job_finished() {
 #   * KernelTime  -- in seconds
 #   * TotalMemory  -- in kB
 #   * ResidentMemory -- in kB
+#   * LRMSStartTime -- in Mds time format, UTC time zone (20091201140049Z)
+#   * LRMSEndTime -- in Mds time format, UTC time zone (20091201140049Z)
 # Output variables:
 #   * LRMSExitcode -- as reported by the LRMS. It will be saved to the .diag file
 #   * LRMSMessage -- any clues obtained from the LRMS about job failure. It
@@ -152,6 +155,8 @@ to_integer() {
 #   * KernelTime
 #   * TotalMemory
 #   * ResidentMemory
+#   * LRMSStartTime
+#   * LRMSEndTime
 #   * exitcode
 #
 job_read_diag() {
@@ -171,9 +176,12 @@ job_read_diag() {
     KernelTime=$(echo "$diagstring" | sed -n 's/^KernelTime=\([0-9.]*\)s/\1/p' | tail -n 1)
     TotalMemory=$(echo "$diagstring" | sed -n 's/^AverageTotalMemory=\([0-9.]*\)kB/\1/p' | tail -n 1)
     ResidentMemory=$(echo "$diagstring" | sed -n 's/^AverageResidentMemory=\([0-9.]*\)kB/\1/p' | tail -n 1)
+    LRMSStartTime=$(echo "$diagstring" | sed -n 's/^LRMSStartTime=\([0-9][0-9]*Z\)/\1/p' | tail -n 1)
+    LRMSEndTime=$(echo "$diagstring" | sed -n 's/^LRMSEndTime=\([0-9][0-9]*Z\)/\1/p' | tail -n 1)
     exitcode=$(echo "$diagstring" | sed -n 's/^exitcode=\([0-9]*\)/\1/p' | tail -n 1)
 
-    for key in LRMSExitcode LRMSMessage nodename WallTime UserTime KernelTime AverageTotalMemory AverageResidentMemory exitcode; do
+    for key in nodename WallTime UserTime KernelTime AverageTotalMemory AverageResidentMemory \
+               exitcode LRMSStartTime LRMSEndTime LRMSExitcode LRMSMessage; do
         diagstring=$(echo "$diagstring" | grep -v "^$key=")
     done
 }
@@ -200,6 +208,8 @@ job_write_diag() {
       [ -n "$KernelTime" ] && echo "KernelTime=${KernelTime}s"
       [ -n "$TotalMemory" ] && echo "AverageTotalMemory=${TotalMemory}kB"
       [ -n "$ResidentMemory" ] && echo "AverageResidentMemory=${ResidentMemory}kB"
+      [ -n "$LRMSStartTime" ] && echo "LRMSStartTime=$LRMSStartTime"
+      [ -n "$LRMSEndTime" ] && echo "LRMSEndTime=$LRMSEndTime"
       [ -n "$LRMSMessage" ] && echo "LRMSMessage=$LRMSMessage"
       [ -n "$LRMSExitcode" ] && echo "LRMSExitcode=$LRMSExitcode"
       [ -n "$exitcode" ] && echo "exitcode=$exitcode"
@@ -566,9 +576,9 @@ condor_read_history() {
 
     # Extract information from condor_history output
     __RemoteHost=$(echo "$histstring" | sed -n 's/^LastRemoteHost *= *"\(.*\)"[^"]*$/\1/p')
-    __WallTime=$(echo   "$histstring" | sed -n 's/^RemoteWallClockTime *= *\([0-9]*\).*/\1/p')
-    __KernelTime=$(echo "$histstring" | sed -n 's/^RemoteSysCpu *= *\([0-9]*\).*/\1/p')
-    __UserTime=$(echo   "$histstring" | sed -n 's/^RemoteUserCpu *= *\([0-9]*\).*/\1/p')
+    __WallTime=$(echo   "$histstring" | sed -n 's/^RemoteWallClockTime *= *\([0-9][0-9]*\).*/\1/p')
+    __KernelTime=$(echo "$histstring" | sed -n 's/^RemoteSysCpu *= *\([0-9][0-9]*\).*/\1/p')
+    __UserTime=$(echo   "$histstring" | sed -n 's/^RemoteUserCpu *= *\([0-9][0-9]*\).*/\1/p')
     __ImageSize=$(echo  "$histstring" | sed -n 's/^ImageSize *= *//p')
     __ExitCode=$(echo   "$histstring" | sed -n 's/^ExitCode *= *//p')
     ExitStatus=$(echo   "$histstring" | sed -n 's/^ExitStatus *= *//p')
@@ -576,6 +586,8 @@ condor_read_history() {
     ExitSignal=$(echo   "$histstring" | sed -n 's/^ExitSignal *= *//p')
     RemoveReason=$(echo "$histstring" | sed -n 's/^RemoveReason *= *"\(.*\)"[^"]*$/\1/p')
     ExitReason=$(echo   "$histstring" | sed -n 's/^ExitReason *= *"\(.*\)"[^"]*$/\1/p')
+    JobCurrentStartDate=$(echo  "$histstring" | sed -n 's/^JobCurrentStartDate *= *\([0-9][0-9]*\).*/\1/p')
+    EnteredCurrentStatus=$(echo "$histstring" | sed -n 's/^EnteredCurrentStatus *= *\([0-9][0-9]*\).*/\1/p')
 
     echo "$RemoveReason" | grep -q 'PeriodicRemove .*evaluated to \(TRUE\)'
     [ $? = 0 ] && PeriodicRemove=TRUE
@@ -635,7 +647,7 @@ lrms_last_call() {
 
     condor_read_log && {
 
-        # override values read from .diag
+        # override values read from .diag with those from condor log
         nodename=${_RemoteHost:-$nodename}
         UserTime=${_UserTime:-$UserTime}
         KernelTime=${_KernelTime:-$KernelTime}
@@ -658,7 +670,7 @@ lrms_last_call() {
         log "$progname: No condor_history for Condor ID $lrmsid"
     else
 
-        # override values read from condor_log
+        # override with values from condor_history
         nodename=${__RemoteHost:-$nodename}
         WallTime=${__WallTime:-$WallTime}
         UserTime=${__UserTime:-$UserTime}
@@ -680,8 +692,23 @@ lrms_last_call() {
         [ -n "$JobStatus" ] && echo "$progname: JobStatus=$JobStatus"
         [ -n "$ExitSignal" ] && echo "$progname: ExitSignal=$ExitSignal"
         [ -n "$RemoveReason" ] && echo "$progname: RemoveReason=$RemoveReason"
+        [ -n "$JobCurrentStartDate" ] && echo "$progname: JobCurrentStartDate=$JobCurrentStartDate"
+        [ -n "$EnteredCurrentStatus" ] && echo "$progname: EnteredCurrentStatus=$EnteredCurrentStatus"
         [ -n "$ExitReason" ] && echo "$progname: ExitReason=$ExitReason"
         echo "$progname: -----------------------------------------------------"
+
+        if [ -n "$JobCurrentStartDate" ]; then
+            date_seconds_to_utc "$JobCurrentStartDate"
+            seconds_to_mds_date "$return_date_seconds"
+            LRMSStartTime=$return_mds_date
+            echo "$progname: LRMSStartTime=$LRMSStartTime"
+        fi
+        if [ -n "$EnteredCurrentStatus" ]; then
+            date_seconds_to_utc "$EnteredCurrentStatus"
+            seconds_to_mds_date "$return_date_seconds"
+            LRMSEndTime=$return_mds_date
+            echo "$progname: LRMSEndTime=$LRMSEndTime"
+        fi
     fi
 
     LRMSExitcode=${__ExitCode:-$_ExitCode}

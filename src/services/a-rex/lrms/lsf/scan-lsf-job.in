@@ -140,12 +140,12 @@ for ctr_dir in $control_dir ; do
 	if [ "${job_status}" = "DONE" ] || [ "${job_status}" = "EXIT" ]; then
 	    starttime="`echo $bjobs_output | awk '{print $14}' | sed 's/-/ /g'`"
 	    endtime="`echo $bjobs_output | awk '{print $15}' | sed 's/-/ /g'`"
-	    get_seconds_utc "${starttime}"
-	    get_date_from_seconds "${return_date_seconds}"
-	    LRMSStartTime="${return_date}"
-	    get_seconds_utc "${endtime}"
-	    get_date_from_seconds "${return_date_seconds}"
-	    LRMSEndTime="${return_date}"
+	    date_to_utc_seconds "$starttime"
+	    seconds_to_mds_date "$return_date_seconds"
+	    LRMSStartTime=$return_mds_date
+	    date_to_utc_seconds "$endtime"
+	    seconds_to_mds_date "$return_date_seconds"
+	    LRMSEndTime=$return_mds_date
 	    
 	    echo "LRMSStartTime=$LRMSStartTime" >> ${ctr_diag}
 	    echo "LRMSEndTime=$LRMSEndTime" >> ${ctr_diag}

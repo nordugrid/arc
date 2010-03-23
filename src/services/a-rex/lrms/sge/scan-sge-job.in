@@ -96,8 +96,8 @@ write_diagfile_acct () {
   id=$3
   extraargs=$4
 
-  qacct_output=`${qacct_command} -j ${id} ${extraargs} 2> /dev/null` 
-  echo "$qacct_output" | perl -e 'while(<>){
+  $qacct_command -j $id $extraargs 2> /dev/null \
+        | perl -e 'while(<>) {
                      $nodename=$1         if /^hostname\s+(\S+)/;
                      $id=$1               if /^jobnumber\s+(\S+)/;
                      $exitcode=$1         if /^exit_status\s+(\S+)/;
@@ -107,38 +107,30 @@ write_diagfile_acct () {
                      $WallTime=$1         if /^ru_wallclock\s+(\d+)/;
                      $UsedMemory=$1       if /^maxvmem\s+(\S+)M/;
                      $UsedMemory=$1*1024  if /^maxvmem\s+(\S+)G/;
+                     $start_time=`date -d "$1" +%s` if /^start_time\s+(.+)/;
+                     $end_time  =`date -d "$1" +%s` if /^end_time\s+(.+)/;
+                   }
+                   # converts seconds since epoch in local time into Mds time format (UTC)
+                   sub mds_date {
+                       my ($seconds) = @_;
+                       my @t = gmtime $seconds;
+                       my ($Y,$M,$D,$h,$m,$s) = (1900+$t[5],1+$t[4],$t[3],$t[2],$t[1],$t[0]);
+                       return sprintf "%04i%02i%02i%02i%02i%02iZ",$Y,$M,$D,$h,$m,$s;
                    }
                    END {
                      exit unless $id;
+                     print "LRMSStartTime=".mds_date($1)."\n" if $start_time =~ m/^(\d+)$/;
+                     print "LRMSEndTime="  .mds_date($1)."\n" if $end_time   =~ m/^(\d+)$/;
                      print "nodename=${nodename}\n";
                      print "CPUTime=${CPUTime}.0s\n";
                      print "WallTime=${WallTime}.0s\n";
                      print "KernelTime=${KernelTime}.0s\n";
                      print "UserTime=".int($CPUTime-$KernelTime).".0s\n";
                      print "AverageTotalMemory=".int($UsedMemory*1024)."kB\n";
-#TODO these two are in the wrong timezone
                      print "failed=$failed\n";
                      print "\nsgeexitcode=$exitcode\n";
                    }' \
   > "$diagfile_acct"
-
-  start_time=`echo "$qacct_output" | grep "start_time" | sed 's/start_time[ \t]*//g'`
-  end_time=`echo "$qacct_output" | grep "end_time" | sed 's/end_time[ \t]*//g'`
-
-  # Convert StartTime to utc and store as seconds
-  get_seconds_utc "${start_time}"
-  # Convert from seconds to YYYYMMDDHHMMSSZ
-  get_date_from_seconds "${return_date_seconds}"
-  start_time="${return_date}"
-  # Convert EndTime to utc and store as seconds
-  get_seconds_utc "${end_time}"
-  # Convert from seconds to YYYYMMDDHHMMSSZ
-  get_date_from_seconds "${return_date_seconds}"
-  end_time="${return_date}"
-
-  #Write job start and end times to diag
-  echo "LRMSStartTime=${start_time}" >> "$diagfile_acct"
-  echo "LRMSEndTime=${end_time}" >> "$diagfile_acct"
 
 }
 
