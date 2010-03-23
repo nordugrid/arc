@@ -70,7 +70,7 @@ if [ ! -z "${joboption_jobname}" ] ; then
   jobname=`echo "$joboption_jobname" | \
            sed 's/^\([^[:alpha:]]\)/N\1/' | \
            sed 's/[^[:alnum:]]/_/g' | \
-	   sed 's/\(...............\).*/\1/'`
+           sed 's/\(...............\).*/\1/'`
   echo "#$ -N \"$jobname\"" >> $LRMS_JOB_SCRIPT
 fi
 echo "SGE jobname: $jobname" 1>&2
@@ -80,6 +80,8 @@ echo "SGE jobname: $jobname" 1>&2
 ##############################################################
 if [ -z "$joboption_count" ] || [ "$joboption_count" -le 1 ] ; then
   joboption_count=1
+fi
+
 ##############################################################
 # parallel jobs
 ##############################################################
@@ -94,20 +96,21 @@ if [ -z "$joboption_count" ] || [ "$joboption_count" -le 1 ] ; then
 # searches through the joboption_nodeproperty_# variables and compares them to
 # the PE list obtained from SGE. The first matching PE name is used.
 # 
-else
+if [ -n "$joboption_nodeproperty_0" ]; then 
     i=0
     sge_parallel_environment_list=`$SGE_QCONF -spl`
-    while eval jope=\${joboption_nodeproperty_$i} && test $jope ; do
+    while eval jope=\${joboption_nodeproperty_$i} && test "$jope" ; do
         for ipe in $sge_parallel_environment_list ; do
-	    if [ $jope = $ipe ] ; then
-		break 2 # now $jope contains the requested parallel env
-	    fi
+            if [ "$jope" = "$ipe" ] ; then
+                break 2 # now $jope contains the requested parallel env
+            fi
         done
         (( i++ ))
     done
-    echo "#\$ -pe $jope $joboption_count" >> $LRMS_JOB_SCRIPT
-    if [ -z "$jope" ] ; then
-	echo 'ERROR: Setting parallel environment failed.' 1>&2
+    if [ -n "$jope" ] ; then
+        echo "#\$ -pe $jope $joboption_count" >> $LRMS_JOB_SCRIPT
+    else
+        echo 'ERROR: Setting parallel environment failed.' 1>&2
     fi
 fi
 ##############################################################
@@ -245,9 +248,6 @@ echo "" >> $LRMS_JOB_SCRIPT
 #  Download input files
 ####################################################
 download_input_files
-
-echo "echo \"RUNTIME_JOB_DIAG =  \$RUNTIME_JOB_DIAG\" " >> $LRMS_JOB_SCRIPT
-echo "ls -l  \$RUNTIME_JOB_DIAG " >> $LRMS_JOB_SCRIPT
 
 ##############################################################
 #  Skip execution if something already failed
