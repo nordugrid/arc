@@ -72,7 +72,7 @@ printowner () {
 # Append .comment (containing STDOUT & STDERR of the job wrapper) to .errors
 # This file can also contain a message from PBS (i.e. the reason for killing the job).
 save_commentfile () {
-  username=$1
+  uid=$1
   commentfile=$2
   errorsfile=$3
   action="
@@ -81,11 +81,7 @@ save_commentfile () {
       echo '------------------------- End of output -------------------------'
     } >> '$errorsfile'
   "
-  if [ -z "$username" ] ; then
-    eval "$action"
-  else
-    su "$username" -c "eval \"$action\""
-  fi
+  do_as_uid "$uid" "$action"
 }
 
 find_by_local() {
@@ -119,7 +115,8 @@ process_log_file () {
   #TODO should we add processed lines before jobs have actually been processed? What if the last job only has half a record?
   new_lines=`echo "$exited_killed_jobs" | wc -l`
   # new_lines set to 1 when string is empty, should have been 0
-  [ "x$exited_killed_jobs" = x ] && new_lines=0
+  [ "x$exited_killed_jobs" = x ] &&  continue
+
   lines_processed=$(( $lines_skip + $new_lines ))
 
   if [ "$lines_processed" -lt '0' ] ; then
@@ -144,42 +141,20 @@ process_log_file () {
     exit_code=`echo "$job_message" | sed -n 's/^.*Exit_status=\([-0-9]*\).*/\1/p'`
     job_id=`echo "$job_id" | awk '{split($0,field,".");print field[1]"."field[2]}'`
 
-    # Try to extract walltime and cputime
-    #WallTime
-    walltime=`echo "$job_message" | sed 's/^.*resources_used.walltime=\(\([0-9]*:\)*[0-9][0-9]\).*/\1/;t leave;s/.*//;:leave'`
-    #UserTime
-    cputime=`echo "$job_message" | sed 's/^.*resources_used.cput=\(\([0-9]*:\)*[0-9][0-9]\).*/\1/;t leave;s/.*//;:leave'`
-
     # look for this id in job.ID.local, then in job.ID.grami
     name=`find_by_local`
     if [ -z "$name" ]; then
       name=`find_by_grami`
       if [ -z "$name" ]; then continue; fi
     fi
-
     if [ "$my_id" != '0' ] ; then
       if [ ! -O "$name" ] ; then continue ; fi
     fi
+    uid=$(get_owner_uid "$name")
+    [ -z "$uid" ] && { log "Failed to stat $name"; continue; }
+
     base_name=`echo "$name" 2>/dev/null | sed -n 's/\.local$//p'`
     if [ -z "${base_name}" ] ; then continue ; fi
-
-    # Check if this is already written in .diag file.
-    if [ -z "`grep ^WallTime= $base_name.diag`" ]; then
-      # Check if it is possible to write to file
-      if [ ! -w $base_name.diag ]; then
-        echo "Error: job $job_id has finished without writing WallTime to diag-file" 1>&2
-        echo " and the diag-file is not writeable by grid-manager." 1>&2
-        continue
-      fi
-
-      # It has not been written, write info to .diag file.
-      interval_to_seconds "$walltime"
-      echo "WallTime=${return_interval_seconds}s" >> $base_name.diag
-      interval_to_seconds "$cputime"
-      echo "UserTime=${return_interval_seconds}s" >> $base_name.diag
-      echo "KernelTime=0s" >> $base_name.diag
-
-    fi
 
     # check if job already reported
     if [ -f "${base_name}.lrms_done" ] ; then continue ; fi
@@ -188,64 +163,74 @@ process_log_file () {
     egrep 'INLRMS|SUBMIT|CANCELING' "${base_name}.status" >/dev/null 2>&1
     if [ ! $? = '0' ] ; then continue ; fi
 
-    # Convert StartTime to utc and store as seconds
-    date_to_utc_seconds "$pbs_date"
-    # Convert from seconds to YYYYMMDDHHMMSSZ
-    seconds_to_mds_date "$return_date_seconds"
-    endtime=$return_mds_date
-    # Find out how many seconds the job executed
-    interval_to_seconds "$walltime"
-    # Convert from seconds to YYYYMMDDHHMMSSZ
-    seconds_to_mds_date $(( $return_date_seconds - $return_interval_seconds ))
-    starttime=$return_mds_date
-
-    #Write job start and end times to diag
-    echo "LRMSStartTime=${starttime}" >> ${base_name}.diag
-    echo "LRMSEndTime=${endtime}" >> ${base_name}.diag
-
     # So far only PBS exit code is available
     # It would be nice to have exit code of main executable
     exitcode=''
+
     # get session directory of this job
-    session=`grep -h '^sessiondir=' "${base_name}.local" | sed 's/^sessiondir=\(.*\)/\1/'`
-    diagfile="${session}.diag"
-    commentfile="${session}.comment"
-    if [ "$my_id" = '0' ] ; then
-      username=`printowner "${name}"`
+    sessiondir=`grep -h '^sessiondir=' "${base_name}.local" | sed 's/^sessiondir=\(.*\)/\1/'`
+    diagfile="${sessiondir}.diag"
+    commentfile="${sessiondir}.comment"
+
+    if [ -z "$sessiondir" ] ; then
+      log "Faield to determine the path of the job's session directory"
     else
-      username=
-    fi
-    if [ ! -z "$session" ] ; then
       # have chance to obtain exit code
       if [ -z "${RUNTIME_NODE_SEES_FRONTEND}" ] ; then
         # In case of non-NFS setup it may take some time till
         # diagnostics file is delivered. Wait for it max 2 minutes.
-        diag_tries=20
-        while [ "$diag_tries" -gt 0 ] ; do
-          if [ -z "$username" ] ; then
-            exitcode=`grep '^exitcode=' "$diagfile" 2>/dev/null | sed 's/^exitcode=//'`
-          else
-            exitcode=`su "${username}" -c "grep '^exitcode=' $diagfile" 2>/dev/null | sed 's/^exitcode=//'`
-          fi
+        # OBS: exitcode may never appear in the .diag file if the job was
+        # killed. Ther will be a 2 minute delay for every such job!
+        diag_tries=0
+        while [ "$diag_tries" -lt 20 ] ; do
+          job_read_diag # uses $sessiondir, $uid
           if [ ! -z "$exitcode" ] ; then break ; fi
           sleep 10
-          diag_tries=$(( $diag_tries - 1 ))
+          diag_tries=$(( $diag_tries + 1 ))
+          log "no exitcode in diag file $diagfile (try $diag_tries of 20)"
         done
       else
-        if [ -z "$username" ] ; then
-          exitcode=`grep '^exitcode=' "$diagfile" 2>/dev/null | sed 's/^exitcode=//'`
-        else
-          exitcode=`su "${username}" -c "grep '^exitcode=' $diagfile" 2>/dev/null | sed 's/^exitcode=//'`
-        fi
+        job_read_diag # uses $sessiondir, $uid
       fi
     fi
     # Try to obtain message from PBS if any
-    if [ -z "$username" ] ; then
-      pbs_comment=`tail -n 1 "$commentfile"`
-    else
-      pbs_comment=`su "${username}" -c "tail -n 1 $commentfile"`
+    pbs_comment=$(do_as_uid "$uid" "tail -n 1 '$commentfile'")
+    save_commentfile "$uid" "$commentfile" "${base_name}.errors"
+
+    # Extract values from PBS
+    walltime=`echo "$job_message" | sed -n 's/^.*resources_used.walltime=\(\([0-9]*:\)*[0-9][0-9]\).*/\1/p'`
+    cputime=`echo "$job_message" | sed -n 's/^.*resources_used.cput=\(\([0-9]*:\)*[0-9][0-9]\).*/\1/p'`
+    mem=`echo "$job_message" | sed -n 's/^.*resources_used.mem=\([0-9]*\)kb.*/\1/p'`
+    vmem=`echo "$job_message" | sed -n 's/^.*resources_used.vmem=\([0-9]*\)kb.*/\1/p'`
+
+    # Convert to utc and store as seconds
+    date_to_utc_seconds "$pbs_date"
+    if [ ! -z "$return_date_seconds" ]; then
+      # Convert from seconds to YYYYMMDDHHMMSSZ
+      seconds_to_mds_date "$return_date_seconds"
+      endtime=$return_mds_date
+      # Find out how many seconds the job executed
+      interval_to_seconds "$walltime"
+      if [ ! -z "$return_interval_seconds" ]; then
+        # Convert from seconds to YYYYMMDDHHMMSSZ
+        seconds_to_mds_date $(( $return_date_seconds - $return_interval_seconds ))
+        starttime=$return_mds_date
+      fi
     fi
-    save_commentfile "$username" "$commentfile" "${base_name}.errors"
+
+    # Values to write to diag. These will override values already written.
+    interval_to_seconds "$walltime"
+    [ ! -z "$return_interval_seconds" ] && WallTime=$return_interval_seconds
+    interval_to_seconds "$cputime"
+    [ ! -z "$return_interval_seconds" ] && UserTime=$return_interval_seconds
+    [ ! -z "$return_interval_seconds" ] && KernelTime=0
+    [ ! -z "$mem" ]                     && UsedMemory=$mem
+    [ ! -z "$vmem" ]                    && TotalMemory=$vmem
+    [ ! -z "$starttime" ]               && LRMSStartTime=$starttime
+    [ ! -z "$endtime" ]                 && LRMSEndTime=$endtime
+    [ ! -z "$pbs_comment" ]             && LRMSMessage=$pbs_comment
+    [ ! -z "$exit_code" ]               && LRMSExitcode=$exit_code
+    job_write_diag
 
     if [ -z "$exitcode" ] ; then
       # No exit code of job means job was most probably killed
@@ -365,6 +350,11 @@ for ctr_dir in "$@" ; do
     # find grid job corresponding to curent local id
     jobfile=`find ${ctr_dir} -name 'job.*.local' -print0 | xargs -0 grep -F -l "localid=$id." 2>/dev/null`
     if [ -z "$jobfile" ] ; then continue ; fi
+    if [ "$my_id" != '0' ] ; then
+      if [ ! -O "$jobfile" ] ; then continue ; fi
+    fi
+    uid=$(get_owner_uid "$jobfile")
+    [ -z "$uid" ] && { log "Failed to stat $jobfile"; continue; }
     # extract grid id
     gridid=`basename "$jobfile" '.local' | sed 's/^job\.//'`
     donefile="${ctr_dir}/job.${gridid}.lrms_done"
@@ -373,11 +363,7 @@ for ctr_dir in "$@" ; do
     if [ ! -f "$statusfile" ] ; then continue ; fi
     status=`cat "$statusfile"`
     if [ "$status" != "INLRMS" ] && [ "$status" != "CANCELING" ]; then continue ; fi
-    if [ "$my_id" = '0' ] ; then
-      username=`printowner "${jobfile}"`
-    else
-      username=
-    fi
+
     # get session directory of this job
     session=`grep -h '^sessiondir=' "$jobfile" | sed 's/^sessiondir=\(.*\)/\1/'`
     if [ ! -z "$session" ] ; then
@@ -385,15 +371,11 @@ for ctr_dir in "$@" ; do
       diagfile="${session}.diag"
       if [ ! -z "$session" ] ; then
         # have chance to obtain exit code
-        if [ -z "$username" ] ; then
-          exitcode=`grep '^exitcode=' "$diagfile" | sed 's/^exitcode=//'`
-        else
-          exitcode=`su "${username}" -c "grep '^exitcode=' $diagfile" | sed 's/^exitcode=//'`
-        fi
+        exitcode=$(do_as_uid "$uid" "grep '^exitcode=' '$diagfile'" | sed 's/^exitcode=//')
       fi
       if [ ! -z "$exitcode" ] ; then
         # job finished and exit code is known
-        save_commentfile "$username" "${session}.comment" "${ctr_dir}/job.${gridid}.errors"
+        save_commentfile "$uid" "${session}.comment" "${ctr_dir}/job.${gridid}.errors"
         echo "$exitcode Executable finished with exit code $exitcode" > "$donefile"
         ${GMKICK} "$statusfile"
         echo "Job $gridid finished with exit code $exitcode"
@@ -410,7 +392,7 @@ for ctr_dir in "$@" ; do
     fi
     if [ "$counter" -gt 5 ] ; then
       rm -f "$countfile"
-      save_commentfile "$username" "${session}.comment" "${ctr_dir}/job.${gridid}.errors"
+      save_commentfile "$uid" "${session}.comment" "${ctr_dir}/job.${gridid}.errors"
       echo "$exitcode Job was lost with unknown exit code" > "$donefile"
       ${GMKICK} "$statusfile"
       echo "Job $gridid finished with unknown exit code"
