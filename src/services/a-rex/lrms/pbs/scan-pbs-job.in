@@ -88,13 +88,6 @@ save_commentfile () {
   fi
 }
 
-# Function for translating time from 00:01:01 format to 0061s format
-translate_time_to_seconds () {
-  orig_time=$1
-  ttts_new_time=`echo $orig_time | awk 'BEGIN { FS = ":" } ; { print $1*3600+$2*60+$3}'`
-  return ttts_new_time
-}
-
 find_by_local() {
   eval "set -- $control_dirs"
   for ctr_dir in "$@"; do
@@ -124,7 +117,7 @@ process_log_file () {
   exited_killed_jobs=`egrep '^[^;]*;0010;[^;]*;Job;|^[^;]*;0008;[^;]*;Job;[^;]*;Exit_status=|^[^;]*;0008;[^;]*;Job;[^;]*;Job deleted' ${lname} | sed -e "1,${lines_skip}d"` 
 
   #TODO should we add processed lines before jobs have actually been processed? What if the last job only has half a record?
-  new_lines=`wc -l $exited_killed_jobs`
+  new_lines=`echo "$exited_killed_jobs" | wc -l`
   lines_processed=$(( $lines_skip + $new_lines ))
 
   if [ "$lines_processed" -lt '0' ] ; then
@@ -167,7 +160,7 @@ process_log_file () {
     if [ -z "${base_name}" ] ; then continue ; fi
 
     # Check if this is already written in .diag file.
-    if [ -z "`grep WallTime $base_name.diag`" ]; then
+    if [ -z "`grep ^WallTime= $base_name.diag`" ]; then
       # Check if it is possible to write to file
       if [ ! -w $base_name.diag ]; then
         echo "Error: job $job_id has finished without writing WallTime to diag-file" 1>&2
@@ -176,10 +169,10 @@ process_log_file () {
       fi
 
       # It has not been written, write info to .diag file.
-      ttts_new_time=translate_time_to_seconds "$walltime"
-      echo "WallTime=${ttts_new_time}s" >> $base_name.diag
-      ttts_new_time=translate_time_to_seconds "$cputime"
-      echo "UserTime=${ttts_new_time}s" >> $base_name.diag
+      interval_to_seconds "$walltime"
+      echo "WallTime=${return_interval_seconds}s" >> $base_name.diag
+      interval_to_seconds "$cputime"
+      echo "UserTime=${return_interval_seconds}s" >> $base_name.diag
       echo "KernelTime=0s" >> $base_name.diag
 
     fi
