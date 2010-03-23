@@ -489,6 +489,7 @@ move_files_to_frontend () {
       rm -rf "$RUNTIME_NODE_JOB_DIR"
     fi
   fi
+  echo "exitcode=$RESULT" >> "$RUNTIME_JOB_DIAG"
   exit $RESULT
 EOSCR
 }
