@@ -97,6 +97,19 @@ EOHELP
    if [ -z "$joboption_gridid" ] ; then
      joboption_gridid=`basename "$arg_file" | sed 's/^job\.\(.*\)\.grami$/\1/'`
    fi
+   if [ -z "$joboption_memory" ] ; then
+       joboption_memory=1000
+       echo "---------------------------------------------------------------------" 1>&2
+       echo "WARNING: The job description contains no explicit memory requirement." 1>&2
+       echo "         A default memory limit of 1GB will apply.                   " 1>&2
+       echo "---------------------------------------------------------------------" 1>&2
+   fi
+   # downloader and uploader can take a lot of memory
+   if [ "$joboption_localtransfer" = 'yes' ] ; then
+     if [ "$joboption_memory" -lt 1000 ] ; then
+       joboption_memory=1000
+     fi
+   fi
 
    ##############################################################
    # combine arguments to command -  easier to use

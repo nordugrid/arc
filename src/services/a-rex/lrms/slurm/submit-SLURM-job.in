@@ -143,16 +143,6 @@ fi
 ##############################################################
 # Requested memory (mb)
 ##############################################################
-if [ "$joboption_localtransfer" = 'yes' ] ; then
-  # downloader and uploader can take a lot of memory
-  if [ -z "$joboption_memory" ] ; then
-    joboption_memory=1000
-  else
-    if [ "$joboption_memory" -lt 1000 ] ; then
-      joboption_memory=1000
-    fi
-  fi
-fi
 if [ ! -z "$joboption_memory" ] ; then
   echo "#SBATCH --mem ${joboption_memory}mb" >> $LRMS_JOB_SCRIPT
 fi

@@ -130,14 +130,6 @@ fi
 ##############################################################
 # Requested memory (mb)
 ##############################################################
-if [ -z "$joboption_memory" ] ; then
-   joboption_memory=1000
-else
-  if [ "$joboption_memory" -lt 1 ] ; then
-    joboption_memory=1000
-  fi
-fi
-
 if [ ! -z "$joboption_memory" ]; then
   memory=$(( ${joboption_memory} * 1024 ))
   echo "#BSUB -M ${memory}" >> $LRMS_JOB_SCRIPT
