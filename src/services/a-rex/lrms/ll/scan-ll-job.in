@@ -117,11 +117,11 @@ do
         save_commentfile "$username" "${session}.comment" "$errorsfile"
     	echo "$exitcode Job exceeded time limit." > "$donefile"
         # If job exceeded time, then it will have been killed and no cputime/walltime has been written
-        walltime=`$LL_BIN_PATH/llq -l $localid|grep '^ *Wall Clk Hard Limit'|awk '{print $5;}'|sed 's/(//g'`
-        usertime=`$LL_BIN_PATH/llq -l $localid|grep '^ *Cpu Hard Limit'|awk '{print $5;}' |sed 's/(//g'`
-        echo "WallTime=${walltime}s" >> $base_name.diag
-        echo "UserTime=${usertime}s" >> $base_name.diag
-        echo "KernelTime=0s" >> $base_name.diag
+        walltime=`$LL_BIN_PATH/llq -l $localid|grep '^ *Wall Clk Hard Limit'|sed 's/.*(\([0-9]*\) seconds.*/\1/'`
+        usertime=`$LL_BIN_PATH/llq -l $localid|grep '^ *Step Cpu Hard Limit'|sed 's/.*(\([0-9]*\) seconds.*/\1/'`
+        echo "WallTime=${walltime}s" >> $control_dir/job.${jobid}.diag
+        echo "UserTime=${usertime}s" >> $control_dir/job.${jobid}.diag
+        echo "KernelTime=0s" >> $control_dir/job.${jobid}.diag
 
         ${GMKICK} "$statusfile"
         continue  
