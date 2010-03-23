@@ -192,15 +192,15 @@ process_log_file () {
     if [ ! $? = '0' ] ; then continue ; fi
 
     # Convert StartTime to utc and store as seconds
-    get_seconds_utc ${pbs_date}
+    get_seconds_utc "${pbs_date}"
     # Convert from seconds to YYYYMMDDHHMMSSZ
-    get_date_from_seconds ${return_date_seconds}
-    endtime=${return_date}
+    get_date_from_seconds "${return_date_seconds}"
+    endtime="${return_date}"
     # Find out how many seconds the job executed
-    get_seconds_clock ${walltime}
+    get_seconds_clock "${walltime}"
     # Convert from seconds to YYYYMMDDHHMMSSZ
     get_date_from_seconds $(( ${return_date_seconds} - ${return_clock_seconds} ))
-    starttime=${return_date}
+    starttime="${return_date}"
 
     #Write job start and end times to diag
     echo "LRMSStartTime=${starttime}" >> ${base_name}.diag

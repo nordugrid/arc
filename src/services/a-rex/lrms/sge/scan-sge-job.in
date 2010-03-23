@@ -97,7 +97,7 @@ write_diagfile_acct () {
   extraargs=$4
 
   qacct_output=`${qacct_command} -j ${id} ${extraargs} 2> /dev/null` 
-  echo $qacct_output | perl -e 'while(<>){
+  echo "$qacct_output" | perl -e 'while(<>){
                      $nodename=$1         if /^hostname\s+(\S+)/;
                      $id=$1               if /^jobnumber\s+(\S+)/;
                      $exitcode=$1         if /^exit_status\s+(\S+)/;
@@ -122,19 +122,19 @@ write_diagfile_acct () {
                    }' \
   > "$diagfile_acct"
 
-  start_time=`echo $qacct_output | grep "start_time" | sed 's/start_time[ \t]*//g'`
-  end_time=`echo $qacct_output | grep "end_time" | sed 's/end_time[ \t]*//g'`
+  start_time=`echo "$qacct_output" | grep "start_time" | sed 's/start_time[ \t]*//g'`
+  end_time=`echo "$qacct_output" | grep "end_time" | sed 's/end_time[ \t]*//g'`
 
   # Convert StartTime to utc and store as seconds
-  get_seconds_utc ${start_time}
+  get_seconds_utc "${start_time}"
   # Convert from seconds to YYYYMMDDHHMMSSZ
-  get_date_from_seconds ${return_date_seconds}
-  start_time=${return_date}
+  get_date_from_seconds "${return_date_seconds}"
+  start_time="${return_date}"
   # Convert EndTime to utc and store as seconds
-  get_seconds_utc ${end_time}
+  get_seconds_utc "${end_time}"
   # Convert from seconds to YYYYMMDDHHMMSSZ
-  get_date_from_seconds ${return_date_seconds}
-  end_time=${return_date}
+  get_date_from_seconds "${return_date_seconds}"
+  end_time="${return_date}"
 
   #Write job start and end times to diag
   echo "LRMSStartTime=${start_time}" >> "$diagfile_acct"
