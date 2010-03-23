@@ -1,11 +1,7 @@
 #!@posix_shell@
 # set -xv
 #
-# Periodically read log files of SGE and put mark files
-# for job, which finished.
-# If log files are not available scan for finished (absent) jobs 
-# in SGE and put mark files for job, which finished.
-#
+# scan-sge-job does not use log-files, it only uses qacct.
 #
 # usage: scan_sge_job control_dir ...
 
@@ -95,11 +91,11 @@ save_commentfile () {
 # writes output to diagfile_acct (temporary file for accounting info)
 write_diagfile_acct () {
   diagfile_acct=$1
-  command=$2
+  qacct_command=$2
   id=$3
   extraargs=$4
 
-  ${command} -j ${id} ${extraargs} 2> /dev/null \
+  ${qacct_command} -j ${id} ${extraargs} 2> /dev/null \
       | perl -e 'while(<>){
                      $nodename=$1         if /^hostname\s+(\S+)/;
                      $id=$1               if /^jobnumber\s+(\S+)/;
@@ -110,6 +106,9 @@ write_diagfile_acct () {
                      $WallTime=$1         if /^ru_wallclock\s+(\d+)/;
                      $UsedMemory=$1       if /^maxvmem\s+(\S+)M/;
                      $UsedMemory=$1*1024  if /^maxvmem\s+(\S+)G/;
+                     $StartTime=$1        if /^start_time\s+(\S+)/;
+                     $EndTime=$1          if /^end_time\s+(\S+)/;
+                     $CPUCores=$1         if /^slots\s+(\S+)/;
                    }
                    END {
                      exit unless $id;
@@ -119,6 +118,9 @@ write_diagfile_acct () {
                      print "KernelTime=${KernelTime}.0s\n";
                      print "UserTime=".int($CPUTime-$KernelTime).".0s\n";
                      print "AverageTotalMemory=".int($UsedMemory*1024)."kB\n";
+                     print "CPUCores=${CPUCores}\n";
+                     print "LRMSStartTime=".`date -d "${StartTime}" +"%Y%m%d%H%M%S"`."Z\n";
+                     print "LRMSEndTime=".`date -d "${EndTime}" +"%Y%m%d%H%M%S"`."Z\n";
                      print "failed=$failed\n";
                      print "\nsgeexitcode=$exitcode\n";
                    }' \
@@ -253,13 +255,18 @@ add_accounting_to_diag () {
   failedcode=`echo $failedreason | awk '{print $1}'`
     
   if [ -s "$diagfile_acct" ]; then
-	
+
+    # Remove attributes from existing diagfile that we should have
+    # gotten from qacct this time, otherwise we will get duplicates
     as_owner cat "$diagfile" \
       | grep -v "^nodename=" \
       | grep -v "^WallTime=" \
       | grep -v "^KernelTime=" \
       | grep -v "^UserTime=" \
       | grep -v "^CPUTime=" \
+      | grep -v "^CPUCores=" \
+      | grep -v "^LRMSStartTime=" \
+      | grep -v "^LRMSEndTime=" \
       | grep -v "^MaxResidentMemory=" \
       | grep -v "^AverageTotalMemory=" \
       > "$diagfile_tmp"
