@@ -107,6 +107,7 @@ ArcFnFactory::~ArcFnFactory(){
   FnMap::iterator it;
   for(it = fnmap.begin(); it != fnmap.end(); it = fnmap.begin()){
     Function* fn = (*it).second;
+    fnmap.erase(it);
     if(fn) delete fn;
   }
 }
