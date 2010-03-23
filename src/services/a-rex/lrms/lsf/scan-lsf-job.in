@@ -78,28 +78,13 @@ if [ -z ${LSF_BIN_PATH} ]; then
     exit 1
 fi
 
-pidslist=`mktemp "${TMPDIR:-@tmp_dir@}/lsfstat.XXXXXX"` || 
-if [ ! "$?" = '0' ] ; then 
-  rm -f "$pidslist"
-  # PBS server down ?
-  sleep 60
-  exit 1
-fi
-
-
-lsf_stat=`${LSF_BIN_PATH}/bjobs -a -u all -q normal 2>/dev/null` # | grep RUN | grep '^ [:digit:]'
+lsf_stat=`${LSF_BIN_PATH}/bjobs -a -u all 2>/dev/null` # | grep RUN | grep '^ [:digit:]'
 
 if [ -z "${lsf_stat}" ] ; then
     echo "bjobs returned empty result" 1>&2
-#    rm -f "$pidslist"
-#    sleep 60
-#    exit 0
 fi
 
-echo "${lsf_stat}" 1>$pidslist
-
-pids=`cat "$pidslist" | egrep 'PSUSP|USUSP|SSUSP|RUN|PEND' | sed -e 's/^\([^ ]*\).*/\1/'`
-rm -f "$pidslist"
+pids=`echo "${lsf_stat}" | egrep 'PSUSP|USUSP|SSUSP|RUN|PEND' | sed -e 's/^\([^ ]*\).*/\1/'`
 
 eval "set -- $control_dirs"
 
