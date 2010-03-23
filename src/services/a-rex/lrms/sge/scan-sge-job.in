@@ -91,6 +91,256 @@ save_commentfile () {
   do_as_uid "$uid" "$action" 
 }
 
+# Takes diagfile_acct, SGE qacct command, id and extraargs
+# writes output to diagfile_acct (temporary file for accounting info)
+write_diagfile_acct () {
+  diagfile_acct=$1
+  command=$2
+  id=$3
+  extraargs=$4
+
+  ${command} -j ${id} ${extraargs} 2> /dev/null \
+      | perl -e 'while(<>){
+                     $nodename=$1         if /^hostname\s+(\S+)/;
+                     $id=$1               if /^jobnumber\s+(\S+)/;
+                     $exitcode=$1         if /^exit_status\s+(\S+)/;
+                     $failed=$1           if /^failed\s+(.*\S)/;
+                     $CPUTime=$1          if /^cpu\s+(\d+)/;
+                     $KernelTime=$1       if /^ru_stime\s+(\d+)/;
+                     $WallTime=$1         if /^ru_wallclock\s+(\d+)/;
+                     $UsedMemory=$1       if /^maxvmem\s+(\S+)M/;
+                     $UsedMemory=$1*1024  if /^maxvmem\s+(\S+)G/;
+                   }
+                   END {
+                     exit unless $id;
+                     print "nodename=${nodename}\n";
+                     print "CPUTime=${CPUTime}.0s\n";
+                     print "WallTime=${WallTime}.0s\n";
+                     print "KernelTime=${KernelTime}.0s\n";
+                     print "UserTime=".int($CPUTime-$KernelTime).".0s\n";
+                     print "AverageTotalMemory=".int($UsedMemory*1024)."kB\n";
+                     print "failed=$failed\n";
+                     print "\nsgeexitcode=$exitcode\n";
+                   }' \
+  > "$diagfile_acct"
+}
+
+# Parse GRAMI-file and see what was requested
+check_exceeded_resources_grami () {
+  gramifile=$1
+  errorsfile=$2
+  used_cputime=$3
+  used_walltime=$4
+  used_memory=$5
+
+  req_walltime=`sed -n "s/^joboption_walltime=//p" "$gramifile" | tail -n 1`
+  req_cputime=`sed -n "s/^joboption_cputime=//p" "$gramifile" | tail -n 1`
+  req_memory=`sed -n "s/^joboption_memory=//p" "$gramifile" | tail -n 1`
+    
+  if [ ! -z "$used_memory" ] && [ ! -z "$req_memory" ] \
+    && [ "$req_memory" != "" ] && [ "$req_memory" -gt 0 ] \
+    && [ $(( 100*$used_memory/1024/$req_memory )) -gt 95 ]; then
+    overlimit="memory"
+  fi
+  if [ ! -z "$used_cputime" ] && [ ! -z "$req_cputime" ] \
+    && [ "$req_cputime" != "" ] && [ "$req_cputime" -gt 0 ] \
+    && [ $(( 100*$used_cputime/$req_cputime )) -gt 95 ]; then
+    overlimit="cputime"
+  fi
+  if [ ! -z "$used_walltime" ] && [ ! -z "$req_walltime" ] \
+    && [ "$req_walltime" != "" ] && [ "$req_walltime" -gt 0 ] \
+    && [ $(( 100*$used_walltime/$req_walltime )) -gt 95 ]; then
+    overlimit="walltime"
+  fi
+    
+  echo ++++++++++++++++++++++++++   >> "$errorsfile"
+  echo Resources:                   >> "$errorsfile"
+  echo ++++++++++++++++++++++++++   >> "$errorsfile"
+  echo req_memory=$req_memory Mb    >> "$errorsfile"
+  echo req_cputime=$req_cputime     >> "$errorsfile"
+  echo req_walltime=$req_walltime   >> "$errorsfile"
+  echo used_memory=$used_memory kB  >> "$errorsfile"
+  echo used_cputime=$used_cputime   >> "$errorsfile"
+  echo used_walltime=$used_walltime >> "$errorsfile"
+  if [ ! -z "$overlimit" ]; then
+    echo overlimit=$overlimit       >> "$errorsfile"
+  fi
+  echo ++++++++++++++++++++++++++   >> "$errorsfile"
+  return "$overlimit"
+}
+
+#Handle failedcode
+handle_failedcode () {
+  failedcode=$1
+  donefile=$2
+  exitcode=$3
+  sgeexitcode=$4
+  overlimit=$5
+
+  if [ -z "$failedcode" ]; then
+    # Should never happen
+    olog "SGE job $id failed: SGE accouting record is incomplete"
+    echo "-1 SGE accouting record is incomplete" > "$donefile"
+	
+  elif [ "$failedcode" = "0" ]; then
+	
+    if [ -z "$exitcode" ]; then
+      olog "SGE job $id failed with unknown exit code"
+      if [ -z "$sgeexitcode" ] || [ "$sgeexitcode" = 0 ]; then sgeexitcode="-1"; fi
+      echo "$sgeexitcode Job failed with unknown exit code" > "$donefile"
+      
+    elif [ "$exitcode" = "0" ]; then
+      #olog "SGE job $id finished succesfully"
+      echo "0" > "$donefile"
+	    
+    else
+      #olog "SGE job $id failed with exit code $exitcode"
+      if [ -z "$sgeexitcode" ] || [ "$sgeexitcode" = 0 ]; then sgeexitcode="-1"; fi
+      echo "$sgeexitcode Job failed with exit code $exitcode" > "$donefile"
+    fi
+
+  else  # SGE reports a problem
+	
+    if [ "$failedcode" = "25" ]; then
+      failedreason="SGE error $failedcode: Job will be rescheduled"
+    elif [ "$failedcode" = "24" ]; then
+      failedreason="SGE error $failedcode: Job will be migrated"
+    elif [ "$failedcode" = "100" ]; then
+      # This happens when SGE signals the job, as in the case when a
+      # resource limit is exceeded.  We don't know for sure whether
+      # they were enforced or not but if a job is killed by SGE, this
+      # might be the likely cause.
+      if [ -z "$overlimit" ]; then
+        failedreason="SGE error $failedreason"
+      elif [ $overlimit = "memory" ]; then
+        failedreason="job killed: vmem"
+      elif [ $overlimit = "cputime" ]; then
+        failedreason="job killed: cput"
+      elif [ $overlimit = "walltime" ]; then
+        failedreason="job killed: wall"
+      fi
+    else
+      failedreason="SGE error $failedreason"
+    fi
+	
+    olog "SGE job $id failed: $failedreason"
+    if [ -z "$sgeexitcode" ] || [ "$sgeexitcode" = 0 ]; then sgeexitcode="-1"; fi
+    echo "271 $failedreason" > "$donefile"
+
+  fi # failedcode
+}
+
+# Add accounting info to $diagfile
+add_accounting_to_diag () {
+  diagfile=$1 
+  diagfile_acct=$2
+  diagfile_tmp=$3
+  errorsfile=$4
+  username=$5
+  commentfile=$6
+  ctr_dir=$7
+  
+  gramifile="${ctr_dir}/job.${gridid}.grami"
+  donefile="${ctr_dir}/job.${gridid}.lrms_done"
+  countfile="${ctr_dir}/job.${gridid}.lrms_job"
+  errorsfile="${ctr_dir}/job.${gridid}.errors"
+  statusfile="${ctr_dir}/job.${gridid}.status" 
+  
+  used_walltime=`sed -n 's/^WallTime=\(.*\).0s/\1/p' "$diagfile_acct" | tail -n 1`
+  used_cputime=`sed -n 's/^CPUTime=\(.*\).0s/\1/p' "$diagfile_acct" | tail -n 1`
+  used_memory=`sed -n 's/^AverageTotalMemory=\(.*\)kB/\1/p' "$diagfile_acct" | tail -n 1`
+  sgeexitcode=`sed -n 's/^sgeexitcode=//p' "$diagfile_acct" | tail -n 1`
+  failedreason=`sed -n 's/^failed=//p' "$diagfile_acct" | tail -n 1`
+  failedcode=`echo $failedreason | awk '{print $1}'`
+    
+  if [ -s "$diagfile_acct" ]; then
+	
+    as_owner cat "$diagfile" \
+      | grep -v "^nodename=" \
+      | grep -v "^WallTime=" \
+      | grep -v "^KernelTime=" \
+      | grep -v "^UserTime=" \
+      | grep -v "^CPUTime=" \
+      | grep -v "^MaxResidentMemory=" \
+      | grep -v "^AverageTotalMemory=" \
+      > "$diagfile_tmp"
+
+    cat "$diagfile_tmp" "$diagfile_acct" \
+      | grep -v '^sgeexitcode=' \
+      | as_owner "cat > '$diagfile'"
+	
+    # Check for exceeded resources limits
+    if [ -s "$gramifile" ]; then
+      overlimit=check_exceeded_resources_grami "$gramifile" "$errorsfile" "$used_cputime" "$used_walltime" "$used_memory"
+    fi # grami file
+	
+    save_commentfile "$username" "$commentfile" "$errorsfile"
+	
+    handle_failedcode "$failedcode" "$donefile" "$exitcode" "sgeexitcode" "$overlimit"
+	
+    # wake up GM
+    $GMKICK "$statusfile" >> "$errorsfile"
+
+    rm -f "$countfile"
+    rm -f "$diagfile_tmp" "$diagfile_acct"
+
+    # we're done, go to next job id
+    return 1
+
+  fi # accounting info ok
+  return 0
+}
+
+# Handle missing accounting info
+handle_missing_accounting () {
+  countfile=$1
+  username=$2
+  commentfile=$3
+  errorsfile=$4
+  donefile=$5
+  exitcode=$6
+  statusfile=$7
+  GMKICK=$8
+  SGE_BIN_PATH=$9
+  id=$10
+  
+  counter=0
+  if [ -f "$countfile" ] ; then
+    counter=`cat "$countfile"`
+    counter=$(( $counter + 1 ))
+  fi
+
+  if [ "$counter" -gt 5 ]; then
+    # Cannot wait more for accounting info.
+
+    save_commentfile "$username" "$commentfile" "$errorsfile"
+
+    if [ -z "$exitcode" ]; then
+      olog "SGE job $id failed with unknown exit code. No SGE accounting record found"
+      echo "-1 Job failed with unknown exit code. No SGE accounting record found" > "$donefile"
+    elif [ "$exitcode" = "0" ]; then
+      olog "SGE job $id finished succesfully but no SGE accounting record found"
+      echo "-1 Job finished succesfully but no SGE accounting record found" > "$donefile"
+	else 
+        olog "SGE job $id failed with exit code $exitcode. No SGE accounting record found"
+        echo "$exitcode Job failed with exit code $exitcode. No SGE accounting record found" > "$donefile"
+    fi
+    rm -f "$countfile"
+
+    # wake up GM
+    $GMKICK "$statusfile" >> "$errorsfile"
+
+  else
+    # test again for job existence, only count if not known
+    ${SGE_BIN_PATH}/qstat -j $id > /dev/null 2>&1
+    if [ $? -ne 0 ]; then
+      echo "$counter" > "$countfile"
+    else
+      olog "SGE job $id disappeared and then reappeared!"
+      rm -f "$countfile"
+    fi
+  fi
+}
 
 # GD: no attempt to look for SGE Manager logfiles, restrict to job logs.
 
@@ -131,7 +381,6 @@ for ctr_dir in $control_dirs ; do
     uid=`printuid "${jobfile}"`
     # extract grid id
     gridid=`basename "$jobfile" '.local' | sed 's/^job\.//'`
-    gramifile="${ctr_dir}/job.${gridid}.grami"
     donefile="${ctr_dir}/job.${gridid}.lrms_done"
     countfile="${ctr_dir}/job.${gridid}.lrms_job"
     failedfile="${ctr_dir}/job.${gridid}.failed"
@@ -168,36 +417,7 @@ for ctr_dir in $control_dirs ; do
       fi
 
       # get accounting info. write diag file
-      ${SGE_BIN_PATH}/qacct -j $id $extraargs 2> /dev/null \
-          | /usr/bin/perl -e 'while(<>){
-                         $nodename=$1         if /^hostname\s+(\S+)/;
-                         $id=$1               if /^jobnumber\s+(\S+)/;
-                         $exitcode=$1         if /^exit_status\s+(\S+)/;
-                         $failed=$1           if /^failed\s+(.*\S)/;
-                         $CPUTime=$1          if /^cpu\s+(\d+)/;
-                         $KernelTime=$1       if /^ru_stime\s+(\d+)/;
-                         $WallTime=$1         if /^ru_wallclock\s+(\d+)/;
-                         $UsedMemory=$1       if /^maxvmem\s+(\S+)M/;
-                         $UsedMemory=$1*1024  if /^maxvmem\s+(\S+)G/;
-                       }
-                       END {
-                         exit unless $id;
-                         print "nodename=${nodename}\n";
-                         print "CPUTime=${CPUTime}.0s\n";
-                         print "WallTime=${WallTime}.0s\n";
-                         print "KernelTime=${KernelTime}.0s\n";
-                         print "UserTime=".int($CPUTime-$KernelTime).".0s\n";
-                         print "AverageTotalMemory=".int($UsedMemory*1024)."kB\n";
-                         print "failed=$failed\n";
-                         print "\nsgeexitcode=$exitcode\n";
-                       }' \
-          > "$diagfile_acct"
-      used_walltime=`sed -n 's/^WallTime=\(.*\).0s/\1/p' "$diagfile_acct" | tail -n 1`
-      used_cputime=`sed -n 's/^CPUTime=\(.*\).0s/\1/p' "$diagfile_acct" | tail -n 1`
-      used_memory=`sed -n 's/^AverageTotalMemory=\(.*\)kB/\1/p' "$diagfile_acct" | tail -n 1`
-      sgeexitcode=`sed -n 's/^sgeexitcode=//p' "$diagfile_acct" | tail -n 1`
-      failedreason=`sed -n 's/^failed=//p' "$diagfile_acct" | tail -n 1`
-      failedcode=`echo $failedreason | awk '{print $1}'`
+      write_diagfile_acct "$diagfile_acct" "${SGE_BIN_PATH}/qacct" "$id" "$extraargs"
 
       if [ "x$briefacct" != "x" ]; then rm -f "$briefacct"; fi
 
@@ -211,127 +431,12 @@ for ctr_dir in $control_dirs ; do
       fi
 
       # Add accounting info to $diagfile
-      if [ -s "$diagfile_acct" ]; then
-
-          do_as_uid "$uid"  "cat '$diagfile'" \
-                        | grep -v "^nodename=" \
-                        | grep -v "^WallTime=" \
-                        | grep -v "^KernelTime=" \
-                        | grep -v "^UserTime=" \
-                        | grep -v "^CPUTime=" \
-                        | grep -v "^MaxResidentMemory=" \
-                        | grep -v "^AverageTotalMemory=" \
-          > "$diagfile_tmp"
-
-          cat "$diagfile_tmp" "$diagfile_acct" \
-            | grep -v '^sgeexitcode=' \
-            | do_as_uid "$uid" "cat > '$diagfile'"
-
-          # Check for exceeded resources limits
-          if [ -s "$gramifile" ]; then
-            req_walltime=`sed -n "s/^joboption_walltime=//p" "$gramifile" | tail -n 1`
-            req_cputime=`sed -n "s/^joboption_cputime=//p" "$gramifile" | tail -n 1`
-            req_memory=`sed -n "s/^joboption_memory=//p" "$gramifile" | tail -n 1`
-
-            if [ ! -z "$used_memory" ] && [ ! -z "$req_memory" ] \
-            && [ "$req_memory" != "" ] && [ "$req_memory" -gt 0 ] \
-            && [ $(( 100*$used_memory/1024/$req_memory )) -gt 95 ]; then
-              overlimit="memory"
-            fi
-            if [ ! -z "$used_cputime" ] && [ ! -z "$req_cputime" ] \
-            && [ "$req_cputime" != "" ] && [ "$req_cputime" -gt 0 ] \
-            && [ $(( 100*$used_cputime/$req_cputime )) -gt 95 ]; then
-              overlimit="cputime"
-            fi
-            if [ ! -z "$used_walltime" ] && [ ! -z "$req_walltime" ] \
-            && [ "$req_walltime" != "" ] && [ "$req_walltime" -gt 0 ] \
-            && [ $(( 100*$used_walltime/$req_walltime )) -gt 95 ]; then
-              overlimit="walltime"
-            fi
-
-            echo ++++++++++++++++++++++++++   >> "$errorsfile"
-            echo Resources:                   >> "$errorsfile"
-            echo ++++++++++++++++++++++++++   >> "$errorsfile"
-            echo req_memory=$req_memory Mb    >> "$errorsfile"
-            echo req_cputime=$req_cputime     >> "$errorsfile"
-            echo req_walltime=$req_walltime   >> "$errorsfile"
-            echo used_memory=$used_memory kB  >> "$errorsfile"
-            echo used_cputime=$used_cputime   >> "$errorsfile"
-            echo used_walltime=$used_walltime >> "$errorsfile"
-            if [ ! -z "$overlimit" ]; then
-              echo overlimit=$overlimit       >> "$errorsfile"
-            fi
-            echo ++++++++++++++++++++++++++   >> "$errorsfile"
-
-          fi # grami file
-
-          save_commentfile "$uid" "$commentfile" "$errorsfile"
-
-          if [ -z "$failedcode" ]; then
-            # Should never happen
-            olog "SGE job $id failed: SGE accouting record is incomplete"
-            echo "-1 SGE accouting record is incomplete" > "$donefile"
-
-          elif [ "$failedcode" = "0" ]; then
-
-            if [ -z "$exitcode" ]; then
-              olog "SGE job $id failed with unknown exit code"
-              if [ -z "$sgeexitcode" ] || [ "$sgeexitcode" = 0 ]; then sgeexitcode="-1"; fi
-              echo "$sgeexitcode Job failed with unknown exit code" > "$donefile"
-
-            elif [ "$exitcode" = "0" ]; then
-              #olog "SGE job $id finished succesfully"
-              echo "0" > "$donefile"
-
-            else
-              #olog "SGE job $id failed with exit code $exitcode"
-              if [ -z "$sgeexitcode" ] || [ "$sgeexitcode" = 0 ]; then sgeexitcode="-1"; fi
-              echo "$sgeexitcode Job failed with exit code $exitcode" > "$donefile"
-            fi
-
-          else  # SGE reports a problem
-
-            if [ "$failedcode" = "25" ]; then
-              failedreason="SGE error $failedcode: Job will be rescheduled"
-            elif [ "$failedcode" = "24" ]; then
-              failedreason="SGE error $failedcode: Job will be migrated"
-            elif [ "$failedcode" = "100" ]; then
-	      # This happens when SGE signals the job, as in the case when a
-	      # resource limit is exceeded.  We don't know for sure whether
-	      # they were enforced or not but if a job is killed by SGE, this
-	      # might be the likely cause.
-	      if [ -z "$overlimit" ]; then
-                failedreason="SGE error $failedreason"
-              elif [ $overlimit = "memory" ]; then
-                failedreason="job killed: vmem"
-              elif [ $overlimit = "cputime" ]; then
-                failedreason="job killed: cput"
-              elif [ $overlimit = "walltime" ]; then
-                failedreason="job killed: wall"
-              fi
-            else
-              failedreason="SGE error $failedreason"
-            fi
-
-            olog "SGE job $id failed: $failedreason"
-            if [ -z "$sgeexitcode" ] || [ "$sgeexitcode" = 0 ]; then sgeexitcode="-1"; fi
-            echo "271 $failedreason" > "$donefile"
-
-          fi # failedcode
-
-          # wake up GM
-          $GMKICK "$statusfile" >> "$errorsfile"
-
-          rm -f "$countfile"
-          rm -f "$diagfile_tmp" "$diagfile_acct"
-
-          # we're done, go to next job id
-          continue
-
-      fi # accounting info ok
-
-      rm -f "$diagfile_tmp" "$diagfile_acct"
-
+      accounting_in_diag=add_accounting_to_diag "$diagfile" "$diagfile_acct" "$diagfile_tmp" "$errorsfile" "$username" "$commentfile" "$ctr_dir"
+      if [ $accounting_in_diag ]; then
+	  continue
+      else
+	  rm -f "$diagfile_tmp" "$diagfile_acct"
+      fi
     fi # session directory exists
 
     # This section is only reached when accounting info is not present
@@ -356,48 +461,13 @@ for ctr_dir in $control_dirs ; do
       continue
     fi
 
+    # This section is only reached when accounting info is not present
     # There is a certain lag between the end of the job
     # and the time when accouting information becomes available.
     # We do 5 retries, keeping the count in $countfile
 
-    counter=0
-    if [ -f "$countfile" ] ; then
-      counter=`cat "$countfile"`
-      counter=$(( $counter + 1 ))
-    fi
+    handle_missing_accounting "$countfile" "$username" "$commentfile" "$errorsfile" "$donefile" "$exitcode" "$statusfile" "$GMKICK" "$SGE_BIN_PATH" "$id"
 
-    if [ "$counter" -gt 5 ]; then
-      # Cannot wait more for accounting info.
-      echo "scan-sge-job: WARNING: No SGE accounting record found for this job" >> "$errorsfile"
-      echo "scan-sge-job: WARNING: Resource usage reported for this job may be inaccurate or incomplete" >> "$errorsfile"
-
-      save_commentfile "$uid" "$commentfile" "$errorsfile"
-
-      if [ -z "$exitcode" ]; then
-        olog "No SGE accounting record found for job $id. No exitcode in diag file"
-        echo "-1 Job failed with unknown exit code" > "$donefile"
-      elif [ "$exitcode" = "0" ]; then
-        olog "No SGE accounting record found for job $id. exitcode=$exitcode in diag file"
-        echo "0" > "$donefile"
-      else 
-        olog "No SGE accounting record found for job $id. exitcode=$exitcode in diag file"
-        echo "$exitcode Job failed with exit code $exitcode" > "$donefile"
-      fi
-      rm -f "$countfile"
-
-      # wake up GM
-      $GMKICK "$statusfile" >> "$errorsfile"
-
-    else
-      # test again for job existence, only count if not known
-      ${SGE_BIN_PATH}/qstat -j $id > /dev/null 2>&1
-      if [ $? -ne 0 ]; then
-        echo "$counter" > "$countfile"
-      else
-        olog "SGE job $id disappeared and then reappeared!"
-        rm -f "$countfile"
-      fi
-    fi
   done # loop over bids
 
   # Detect the unlikely situation when a job reappears in the qstat listing
