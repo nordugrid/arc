@@ -20,8 +20,10 @@ pkglibdir=`cd $pkglibdir > /dev/null && pwd` || exit $?
 
 . ${pkglibdir}/configure-pbs-env.sh || exit $?
 
-# Assume that gm-kick is installed in the same directory
+# Assume that gm-kick and scan_common is installed in the same directory
 GMKICK=${basedir}/gm-kick
+
+. ${basedir}/scan_common.sh
 
 # Where to store temporary files
 TMP_DIR=${TMPDIR:-@tmp_dir@}
@@ -121,17 +123,9 @@ process_log_file () {
   #we grep for finished jobs, then use sed to remove already processed lines
   exited_killed_jobs=`egrep '^[^;]*;0010;[^;]*;Job;|^[^;]*;0008;[^;]*;Job;[^;]*;Exit_status=|^[^;]*;0008;[^;]*;Job;[^;]*;Job deleted' ${lname} | sed -e "1,${lines_skip}d"` 
 
-  lines_processed=$lines_skip
-
-  interesting_jobs=""
-
-  #TODO this can be done in one sed expression and one wc -l or something
-  for rest_line in "$exited_killed_jobs"; do
-    interesting_job=`echo "$rest_line" | sed 's/^[^;]*;//'`
-    interesting_jobs="${interesting_jobs}
-${interesting_job}"
-    lines_processed=$(( $lines_processed + 1 ))
-  done
+  #TODO should we add processed lines before jobs have actually been processed? What if the last job only has half a record?
+  new_lines=`wc -l $exited_killed_jobs`
+  lines_processed=$(( $lines_skip + $new_lines ))
 
   if [ "$lines_processed" -lt '0' ] ; then
     lines_processed=0;
@@ -139,13 +133,13 @@ ${interesting_job}"
 
   echo "$cname $lines_processed"> $state_file
 
-  interesting_jobs=`echo "$interesting_jobs" | sort -u`
+  exited_killed_jobs=`echo "$exited_killed_jobs" | sort -u`
   
-  for job in "$interesting_jobs"; do
+  for job in "$exited_killed_jobs"; do
     # Split line into fields, split on ";" read is done by process
     # substitution and redirection. This does not work in plain sh.
     # I have not found any other nice way of doing this.
-    read pbs_code pbs_server pbs_job job_id job_message rest_line < <(echo $job | tr ";" " ")
+    read pbs_date pbs_code pbs_server pbs_job job_id job_message rest_line < <(echo ${job} | tr ";" " ")
     if [ "$?" != '0' ] ; then
       break
     fi
@@ -162,120 +156,135 @@ ${interesting_job}"
     # look for this id in job.ID.local, then in job.ID.grami
     name=`find_by_local`
     if [ -z "$name" ]; then
-        name=`find_by_grami`
-        if [ -z "$name" ]; then continue; fi
+      name=`find_by_grami`
+      if [ -z "$name" ]; then continue; fi
     fi
 
-        if [ "$my_id" != '0' ] ; then
-          if [ ! -O "$name" ] ; then continue ; fi
-        fi
-        base_name=`echo "$name" 2>/dev/null | sed -n 's/\.local$//p'`
-        if [ -z "${base_name}" ] ; then continue ; fi
+    if [ "$my_id" != '0' ] ; then
+      if [ ! -O "$name" ] ; then continue ; fi
+    fi
+    base_name=`echo "$name" 2>/dev/null | sed -n 's/\.local$//p'`
+    if [ -z "${base_name}" ] ; then continue ; fi
 
-        # Check if this is already written in .diag file.
-	if [ -z "`grep WallTime $base_name.diag`" ]; then
-            # Check if it is possible to write to file
-            if [ ! -w $base_name.diag ]; then
-                echo "Error: job $job_id has finished without writing WallTime to diag-file" 1>&2
-                echo " and the diag-file is not writeable by grid-manager." 1>&2
-                continue
-            fi
+    # Check if this is already written in .diag file.
+    if [ -z "`grep WallTime $base_name.diag`" ]; then
+      # Check if it is possible to write to file
+      if [ ! -w $base_name.diag ]; then
+        echo "Error: job $job_id has finished without writing WallTime to diag-file" 1>&2
+        echo " and the diag-file is not writeable by grid-manager." 1>&2
+        continue
+      fi
 
-            # It has not been written, write info to .diag file.
-	    ttts_new_time=translate_time_to_seconds "$walltime"
-	    echo "WallTime=${ttts_new_time}s" >> $base_name.diag
-	    ttts_new_time=translate_time_to_seconds "$cputime"
-	    echo "UserTime=${ttts_new_time}s" >> $base_name.diag
-	    echo "KernelTime=0s" >> $base_name.diag
+      # It has not been written, write info to .diag file.
+      ttts_new_time=translate_time_to_seconds "$walltime"
+      echo "WallTime=${ttts_new_time}s" >> $base_name.diag
+      ttts_new_time=translate_time_to_seconds "$cputime"
+      echo "UserTime=${ttts_new_time}s" >> $base_name.diag
+      echo "KernelTime=0s" >> $base_name.diag
 
-	fi
+    fi
 
-	# check if job already reported
-        if [ -f "${base_name}.lrms_done" ] ; then continue ; fi
+    # check if job already reported
+    if [ -f "${base_name}.lrms_done" ] ; then continue ; fi
 
-        # more protection - check if grid-manager thinks job is still running
-        egrep 'INLRMS|SUBMIT|CANCELING' "${base_name}.status" >/dev/null 2>&1
-        if [ ! $? = '0' ] ; then continue ; fi
+    # more protection - check if grid-manager thinks job is still running
+    egrep 'INLRMS|SUBMIT|CANCELING' "${base_name}.status" >/dev/null 2>&1
+    if [ ! $? = '0' ] ; then continue ; fi
 
-	# So far only PBS exit code is available
-	# It would be nice to have exit code of main executable
-	exitcode=''
-        # get session directory of this job
-        session=`grep -h '^sessiondir=' "${base_name}.local" | sed 's/^sessiondir=\(.*\)/\1/'`
-        diagfile="${session}.diag"
-        commentfile="${session}.comment"
-	if [ "$my_id" = '0' ] ; then
-          username=`printowner "${name}"`
-	else
-	  username=
-	fi
-        if [ ! -z "$session" ] ; then
-          # have chance to obtain exit code
-          if [ -z "${RUNTIME_NODE_SEES_FRONTEND}" ] ; then
-            # In case of non-NFS setup it may take some time till
-            # diagnostics file is delivered. Wait for it max 2 minutes.
-            diag_tries=20
-            while [ "$diag_tries" -gt 0 ] ; do
-	      if [ -z "$username" ] ; then
-                exitcode=`grep '^exitcode=' "$diagfile" 2>/dev/null | sed 's/^exitcode=//'`
-	      else
-                exitcode=`su "${username}" -c "grep '^exitcode=' $diagfile" 2>/dev/null | sed 's/^exitcode=//'`
-	      fi
-              if [ ! -z "$exitcode" ] ; then break ; fi
-              sleep 10
-              diag_tries=$(( $diag_tries - 1 ))
-            done
+    # Convert StartTime to utc and store as seconds
+    get_seconds_utc ${pbs_date}
+    # Convert from seconds to YYYYMMDDHHMMSSZ
+    get_date_from_seconds ${return_date_seconds}
+    endtime=${return_date}
+    # Find out how many seconds the job executed
+    get_seconds_clock ${walltime}
+    # Convert from seconds to YYYYMMDDHHMMSSZ
+    get_date_from_seconds $(( ${return_date_seconds} - ${return_clock_seconds} ))
+    starttime=${return_date}
+
+    #Write job start and end times to diag
+    echo "LRMSStartTime=${starttime}" >> ${base_name}.diag
+    echo "LRMSEndTime=${endtime}" >> ${base_name}.diag
+
+    # So far only PBS exit code is available
+    # It would be nice to have exit code of main executable
+    exitcode=''
+    # get session directory of this job
+    session=`grep -h '^sessiondir=' "${base_name}.local" | sed 's/^sessiondir=\(.*\)/\1/'`
+    diagfile="${session}.diag"
+    commentfile="${session}.comment"
+    if [ "$my_id" = '0' ] ; then
+      username=`printowner "${name}"`
+    else
+      username=
+    fi
+    if [ ! -z "$session" ] ; then
+      # have chance to obtain exit code
+      if [ -z "${RUNTIME_NODE_SEES_FRONTEND}" ] ; then
+        # In case of non-NFS setup it may take some time till
+        # diagnostics file is delivered. Wait for it max 2 minutes.
+        diag_tries=20
+        while [ "$diag_tries" -gt 0 ] ; do
+          if [ -z "$username" ] ; then
+            exitcode=`grep '^exitcode=' "$diagfile" 2>/dev/null | sed 's/^exitcode=//'`
           else
-	    if [ -z "$username" ] ; then
-              exitcode=`grep '^exitcode=' "$diagfile" 2>/dev/null | sed 's/^exitcode=//'`
-	    else
-              exitcode=`su "${username}" -c "grep '^exitcode=' $diagfile" 2>/dev/null | sed 's/^exitcode=//'`
-	    fi
-	  fi
-	fi
-	# Try to obtain message from PBS if any
+            exitcode=`su "${username}" -c "grep '^exitcode=' $diagfile" 2>/dev/null | sed 's/^exitcode=//'`
+          fi
+          if [ ! -z "$exitcode" ] ; then break ; fi
+          sleep 10
+          diag_tries=$(( $diag_tries - 1 ))
+        done
+      else
         if [ -z "$username" ] ; then
-  	  pbs_comment=`tail -n 1 "$commentfile"`
-	else
-  	  pbs_comment=`su "${username}" -c "tail -n 1 $commentfile"`
-	fi
-        save_commentfile "$username" "$commentfile" "${base_name}.errors"
+          exitcode=`grep '^exitcode=' "$diagfile" 2>/dev/null | sed 's/^exitcode=//'`
+        else
+          exitcode=`su "${username}" -c "grep '^exitcode=' $diagfile" 2>/dev/null | sed 's/^exitcode=//'`
+        fi
+      fi
+    fi
+    # Try to obtain message from PBS if any
+    if [ -z "$username" ] ; then
+      pbs_comment=`tail -n 1 "$commentfile"`
+    else
+      pbs_comment=`su "${username}" -c "tail -n 1 $commentfile"`
+    fi
+    save_commentfile "$username" "$commentfile" "${base_name}.errors"
 
-        if [ -z "$exitcode" ] ; then
-          # No exit code of job means job was most probably killed
-          if [ -z "$exit_code" ] ; then exit_code='-1'; fi
-	  if [ "$exit_code" = '0' ] ; then 
-            echo "Job $job_id failed but PBS have not noticed that" 1>&2
-            echo "-1 Job failed but PBS reported 0 exit code." > "${base_name}.lrms_done"
-	  elif [ -z "$pbs_comment" ] ; then
-            echo "Job $job_id failed with PBS exit code $exit_code" 1>&2
+    if [ -z "$exitcode" ] ; then
+      # No exit code of job means job was most probably killed
+      if [ -z "$exit_code" ] ; then exit_code='-1'; fi
+      if [ "$exit_code" = '0' ] ; then
+        echo "Job $job_id failed but PBS have not noticed that" 1>&2
+        echo "-1 Job failed but PBS reported 0 exit code." > "${base_name}.lrms_done"
+      elif [ -z "$pbs_comment" ] ; then
+        echo "Job $job_id failed with PBS exit code $exit_code" 1>&2
+        echo "$exit_code Job was killed by PBS." > "${base_name}.lrms_done"
+      else
+        echo "Job $job_id failed with PBS exit code $exit_code" 1>&2
+        echo "$exit_code $pbs_comment" > "${base_name}.lrms_done"
+      fi
+    else
+      if [ -z "$exit_code" ] ; then exit_code='-1'; fi
+      if [ ! "$exitcode" = 0 ] ; then
+        if [ "$exit_code" = '0' ] ; then exit_code='-1'; fi
+        echo "Job $job_id failed with exit code $exitcode, PBS reported $exit_code." 1>&2
+        echo "$exit_code Job failed with exit code $exitcode." > "${base_name}.lrms_done"
+      else
+        if [ ! "$exit_code" = '0' ] ; then
+          echo "Job finished properly but PBS reported $exit_code." 1>&2
+          if [ -z "$pbs_comment" ] ; then
             echo "$exit_code Job was killed by PBS." > "${base_name}.lrms_done"
-	  else
-            echo "Job $job_id failed with PBS exit code $exit_code" 1>&2
+          else
             echo "$exit_code $pbs_comment" > "${base_name}.lrms_done"
-	  fi
-	else
-          if [ -z "$exit_code" ] ; then exit_code='-1'; fi
-          if [ ! "$exitcode" = 0 ] ; then
-  	    if [ "$exit_code" = '0' ] ; then exit_code='-1'; fi
-            echo "Job $job_id failed with exit code $exitcode, PBS reported $exit_code." 1>&2
-	    echo "$exit_code Job failed with exit code $exitcode." > "${base_name}.lrms_done"
-	  else
-  	    if [ ! "$exit_code" = '0' ] ; then
-              echo "Job finished properly but PBS reported $exit_code." 1>&2
-	      if [ -z "$pbs_comment" ] ; then
-                echo "$exit_code Job was killed by PBS." > "${base_name}.lrms_done"
-	      else
-                echo "$exit_code $pbs_comment" > "${base_name}.lrms_done"
-              fi
-	    else
-              # echo "Job finished without errors." 1>&2
-              echo "0" > "${base_name}.lrms_done"
-	    fi  
-	  fi	    
-	fi
-	# wake up GM
-	${GMKICK} "${base_name}.status"
+          fi
+        else
+          # echo "Job finished without errors." 1>&2
+          echo "0" > "${base_name}.lrms_done"
+        fi
+      fi
+    fi
+    # wake up GM
+    ${GMKICK} "${base_name}.status"
   done
 }
 
@@ -321,14 +330,14 @@ eval "set -- $control_dirs"
 # Get all running jobs
 
 pidslist=`mktemp "$TMP_DIR/qstat.XXXXXX"` || 
-if [ ! "$?" = '0' ] ; then 
+if [ ! "$?" = '0' ] ; then
   # FS problems ?
   # TODO debug output here
   sleep 60
   exit 1
 fi
 ${PBS_BIN_PATH}/qstat -a 2>/dev/null 1>"$pidslist"
-if [ ! "$?" = '0' ] ; then 
+if [ ! "$?" = '0' ] ; then
   rm -f "$pidslist"
   # PBS server down ?
   sleep 60
@@ -389,7 +398,7 @@ for ctr_dir in "$@" ; do
         # job finished and exit code is known
         save_commentfile "$username" "${session}.comment" "${ctr_dir}/job.${gridid}.errors"
         echo "$exitcode Executable finished with exit code $exitcode" > "$donefile"
-	${GMKICK} "$statusfile"
+        ${GMKICK} "$statusfile"
         echo "Job $gridid finished with exit code $exitcode"
         continue
       fi
@@ -425,4 +434,3 @@ for ctr_dir in "$@" ; do
 done
 sleep 60
 exit 0
-
