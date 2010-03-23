@@ -107,7 +107,6 @@ write_diagfile_acct () {
                      $WallTime=$1         if /^ru_wallclock\s+(\d+)/;
                      $UsedMemory=$1       if /^maxvmem\s+(\S+)M/;
                      $UsedMemory=$1*1024  if /^maxvmem\s+(\S+)G/;
-                     $CPUCores=$1         if /^slots\s+(\S+)/;
                    }
                    END {
                      exit unless $id;
@@ -117,7 +116,6 @@ write_diagfile_acct () {
                      print "KernelTime=${KernelTime}.0s\n";
                      print "UserTime=".int($CPUTime-$KernelTime).".0s\n";
                      print "AverageTotalMemory=".int($UsedMemory*1024)."kB\n";
-                     print "CPUCores=${CPUCores}\n";
 #TODO these two are in the wrong timezone
                      print "failed=$failed\n";
                      print "\nsgeexitcode=$exitcode\n";
