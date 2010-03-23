@@ -110,8 +110,10 @@ if [ -n "$joboption_memory" ] ; then
   joboption_memory_hard=$(( $joboption_memory * $memory_hardlimit_ratio ))
   requirements="(Memory > ${joboption_memory_hard})"
   preferences="(Memory > ${joboption_memory})"
-  echo "# @ requirements = ${requirements}" >> $LRMS_JOB_SCRIPT
-  echo "# @ preferences = ${preferences}" >> $LRMS_JOB_SCRIPT
+  if [ "$LL_CONSUMABLE_RESOURCES" != "yes" ]; then
+    echo "# @ requirements = ${requirements}" >> $LRMS_JOB_SCRIPT
+    echo "# @ preferences = ${preferences}" >> $LRMS_JOB_SCRIPT
+  fi
 else
   joboption_memory="1 mb"
 fi
@@ -119,7 +121,9 @@ fi
 ##############################################################
 # Consumable resources
 #############################################################
-echo "# @ resources = ConsumableCpus($joboption_count) ConsumableMemory(${joboption_memory})" >> $LRMS_JOB_SCRIPT
+if [ "$LL_CONSUMABLE_RESOURCES" = "yes" ]; then
+  echo "# @ resources = ConsumableCpus($joboption_count) ConsumableMemory(${joboption_memory})" >> $LRMS_JOB_SCRIPT
+fi
 
 ##############################################################
 # Override umask
