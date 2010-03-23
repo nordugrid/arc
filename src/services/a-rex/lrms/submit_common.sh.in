@@ -137,6 +137,12 @@ RTE_stage0 () {
       joboption_num=$(( $joboption_num + 1 ))
       eval "var_is_set=\${joboption_runtime_$joboption_num+yes}"
    done
+
+  # joboption_count might have been changed by an RTE. Save it for accouting purposes.
+  if [ -n "$joboption_count" ]; then
+    diagfile="${joboption_controldir}/job.${joboption_gridid}.diag"
+    echo "ExecutionUnits=$joboption_count" >> "$diagfile"
+  fi
 }
 
 ##############################################################
@@ -490,9 +496,6 @@ cd_and_run () {
     echo "nodename=\`$NODENAME\`" >> $LRMS_JOB_SCRIPT
     echo "echo \"nodename=\$nodename\" >> \"\$RUNTIME_JOB_DIAG\"" >> $LRMS_JOB_SCRIPT
   fi
-
-  #TODO this should probably be done on headnode instead
-  echo "echo \"CPUCores=${joboption_count}\" >> \"\$RUNTIME_JOB_DIAG\"" >> $LRMS_JOB_SCRIPT
 
   # In case the job executable is written in a scripting language and the
   # interpreter is not found, the error message printed by GNU_TIME is
