@@ -166,7 +166,6 @@ check_exceeded_resources_grami () {
     echo overlimit=$overlimit       >> "$errorsfile"
   fi
   echo ++++++++++++++++++++++++++   >> "$errorsfile"
-  return "$overlimit"
 }
 
 #Handle failedcode
@@ -270,8 +269,9 @@ add_accounting_to_diag () {
       | as_owner "cat > '$diagfile'"
 	
     # Check for exceeded resources limits
+    overlimit=
     if [ -s "$gramifile" ]; then
-      overlimit=check_exceeded_resources_grami "$gramifile" "$errorsfile" "$used_cputime" "$used_walltime" "$used_memory"
+      check_exceeded_resources_grami "$gramifile" "$errorsfile" "$used_cputime" "$used_walltime" "$used_memory"
     fi # grami file
 	
     save_commentfile "$username" "$commentfile" "$errorsfile"
@@ -285,10 +285,12 @@ add_accounting_to_diag () {
     rm -f "$diagfile_tmp" "$diagfile_acct"
 
     # we're done, go to next job id
-    return 1
+    return 0
 
   fi # accounting info ok
-  return 0
+
+  rm -f "$diagfile_tmp" "$diagfile_acct"
+  return 1
 }
 
 # Handle missing accounting info
@@ -431,11 +433,9 @@ for ctr_dir in $control_dirs ; do
       fi
 
       # Add accounting info to $diagfile
-      accounting_in_diag=add_accounting_to_diag "$diagfile" "$diagfile_acct" "$diagfile_tmp" "$errorsfile" "$username" "$commentfile" "$ctr_dir"
-      if [ $accounting_in_diag ]; then
+      add_accounting_to_diag "$diagfile" "$diagfile_acct" "$diagfile_tmp" "$errorsfile" "$username" "$commentfile" "$ctr_dir"
+      if [ $? == 0 ]; then
 	  continue
-      else
-	  rm -f "$diagfile_tmp" "$diagfile_acct"
       fi
     fi # session directory exists
 
