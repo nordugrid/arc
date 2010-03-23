@@ -1,10 +1,10 @@
 #!@posix_shell@
 # set -xv
 #
-# Periodically read log files of PBS and put mark files
+# Periodically read log files of SGE and put mark files
 # for job, which finished.
 # If log files are not available scan for finished (absent) jobs 
-# in PBS and put mark files for job, which finished.
+# in SGE and put mark files for job, which finished.
 #
 #
 # usage: scan_sge_job control_dir ...
