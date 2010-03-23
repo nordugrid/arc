@@ -407,9 +407,9 @@ move_files_to_node () {
     mkdir -p "$RUNTIME_NODE_JOB_DIR"
     # move directory contents
     for f in "$RUNTIME_JOB_DIR"/.* "$RUNTIME_JOB_DIR"/*; do 
-      [ "$f" = "$RUNTIME_JOB_DIR/*" ] || continue # glob failed, no files
-      [ "$f" = "$RUNTIME_JOB_DIR/." ] || continue
-      [ "$f" = "$RUNTIME_JOB_DIR/.." ] || continue
+      [ "$f" = "$RUNTIME_JOB_DIR/*" ] && continue # glob failed, no files
+      [ "$f" = "$RUNTIME_JOB_DIR/." ] && continue
+      [ "$f" = "$RUNTIME_JOB_DIR/.." ] && continue
       if ! mv "$f" "$RUNTIME_NODE_JOB_DIR"; then
         echo "Failed to move '$f' to '$RUNTIME_NODE_JOB_DIR'" 1>&2
         RESULT=1
@@ -478,9 +478,9 @@ move_files_to_frontend () {
       rm -f "$RUNTIME_JOB_STDERR" 2>/dev/null
       # move directory contents
       for f in "$RUNTIME_NODE_JOB_DIR"/.* "$RUNTIME_NODE_JOB_DIR"/*; do 
-        [ "$f" = "$RUNTIME_NODE_JOB_DIR/*" ] || continue # glob failed, no files
-        [ "$f" = "$RUNTIME_NODE_JOB_DIR/." ] || continue
-        [ "$f" = "$RUNTIME_NODE_JOB_DIR/.." ] || continue
+        [ "$f" = "$RUNTIME_NODE_JOB_DIR/*" ] && continue # glob failed, no files
+        [ "$f" = "$RUNTIME_NODE_JOB_DIR/." ] && continue
+        [ "$f" = "$RUNTIME_NODE_JOB_DIR/.." ] && continue
         if ! mv "$f" "$RUNTIME_FRONTEND_JOB_DIR"; then
           echo "Failed to move '$f' to '$RUNTIME_FRONTEND_JOB_DIR'" 1>&2
           RESULT=1
