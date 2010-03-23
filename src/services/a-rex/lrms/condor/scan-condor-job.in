@@ -44,9 +44,9 @@ lrms_job_finished() {
 # the job has left the LRMS.  Diagnostics might not be available right after
 # the job has finished and therefore a retry mechanism is implemented. If more
 # time is needed, the function should signal this by returning without setting
-# the lrmsexitcode variable. In this case it will be called again on the next
+# the LRMSExitcode variable. In this case it will be called again on the next
 # run on scan-*-jobs, but not more than $maxwait times for any given job. If
-# it sets lrmsexitcode, or $maxwait retries have already been done, then 
+# it sets LRMSExitcode, or $maxwait retries have already been done, then 
 # lrms_last_call will be called shortly afterwards and the job declared done.
 # STDOUT and STDERR are redirected to job.$gridid.errors. The interval between
 # successive runs of scan-*-jobs is controlled by $wakeupperiod.
@@ -67,13 +67,13 @@ lrms_job_finished() {
 #   * TotalMemory  -- in kB
 #   * ResidentMemory -- in kB
 # Output variables:
-#   * lrmsexitcode -- as reported by the LRMS. It will be saved to the .diag file
-#   * lrmsmessage -- any clues obtained from the LRMS about job failure. It
-#                    content will be addedd to .lrms_done in case lrmsexitcode is not 0.
+#   * LRMSExitcode -- as reported by the LRMS. It will be saved to the .diag file
+#   * LRMSMessage -- any clues obtained from the LRMS about job failure. It
+#                    content will be addedd to .lrms_done in case LRMSExitcode is not 0.
 #
 lrms_get_accounting() {
     ACCT_IMPLEMENTED=
-    lrmsexitcode=${exitcode:--1}
+    LRMSExitcode=${exitcode:--1}
 }
 
 #
@@ -84,10 +84,10 @@ lrms_get_accounting() {
 #   * any variables set in lrms_get_accounting are visible here
 #
 lrms_last_call() {
-    [ -n "$lrmsexitcode" ] \
+    [ -n "$LRMSExitcode" ] \
     || log "LRMS exit status not available for job $gridid ($LRMS id: $lrmsid)"
 
-    [ -n "$ACCT_IMPLEMENTED" ] || lrmsexitcode=
+    [ -n "$ACCT_IMPLEMENTED" ] || LRMSExitcode=
 
     # Suspect killing due to resource limit exceeded only if exitcode is
     # missing or is > 128 (as in the case of a shell killed by a signal)
@@ -173,7 +173,7 @@ job_read_diag() {
     ResidentMemory=$(echo "$diagstring" | sed -n 's/^AverageResidentMemory=\([0-9.]*\)kB/\1/p' | tail -n 1)
     exitcode=$(echo "$diagstring" | sed -n 's/^exitcode=\([0-9]*\)/\1/p' | tail -n 1)
 
-    for key in lrmsexitcode lrmsmessage nodename WallTime UserTime KernelTime AverageTotalMemory AverageResidentMemory exitcode; do
+    for key in LRMSExitcode LRMSMessage nodename WallTime UserTime KernelTime AverageTotalMemory AverageResidentMemory exitcode; do
         diagstring=$(echo "$diagstring" | grep -v "^$key=")
     done
 }
@@ -182,8 +182,8 @@ job_read_diag() {
 # Input variables:
 #   * sessiondir
 #   * uid
-#   * lrmsexitcode
-#   * lrmsmessage
+#   * LRMSExitcode
+#   * LRMSMessage
 #   + all output variables from job_read_diag
 #
 job_write_diag() {
@@ -200,8 +200,8 @@ job_write_diag() {
       [ -n "$KernelTime" ] && echo "KernelTime=${KernelTime}s"
       [ -n "$TotalMemory" ] && echo "AverageTotalMemory=${TotalMemory}kB"
       [ -n "$ResidentMemory" ] && echo "AverageResidentMemory=${ResidentMemory}kB"
-      [ -n "$lrmsmessage" ] && echo "lrmsmessage=$lrmsmessage"
-      [ -n "$lrmsexitcode" ] && echo "lrmsexitcode=$lrmsexitcode"
+      [ -n "$LRMSMessage" ] && echo "LRMSMessage=$LRMSMessage"
+      [ -n "$LRMSExitcode" ] && echo "LRMSExitcode=$LRMSExitcode"
       [ -n "$exitcode" ] && echo "exitcode=$exitcode"
     } | do_as_uid $uid "cat > '$diagfile'"
     [ $? = 0 ] || { log "cannot write diag file at: $diagfile"; return 1; }
@@ -239,7 +239,7 @@ read_grami() {
 
 #
 # Can be used from lrms_get_accounting() to guess whether the job was killed due to
-# an exceeded resource limit and set lrmsmessage accordingly.
+# an exceeded resource limit and set LRMSMessage accordingly.
 # Input variables
 #   * gridid
 #   * uid
@@ -252,8 +252,8 @@ read_grami() {
 #   * TotalMemory
 #   * ResidentMemory
 #   * exitcode
-#   * lrmsexitcode
-#   * lrmsmessage
+#   * LRMSExitcode
+#   * LRMSMessage
 # Output variables:
 #   * overlimit (if set, then one of memory cputime walltime )
 #
@@ -337,17 +337,17 @@ set_overlimit_message() {
     [ -n "$overlimit" ] || return
 
     if [ $overlimit = "cputime" ]; then
-        lrmsmessage="job killed: cput"
+        LRMSMessage="job killed: cput"
     elif [ $overlimit = "walltime" ]; then
-        lrmsmessage="job killed: wall"
+        LRMSMessage="job killed: wall"
     elif [ $overlimit = "memory" ]; then
-        lrmsmessage="job killed: vmem"
+        LRMSMessage="job killed: vmem"
     else
         log "invalid value overlimit=$overlimit";
         return 1
     fi
 
-    lrmsexitcode=271
+    LRMSExitcode=271
 }
 
 #
@@ -355,8 +355,8 @@ set_overlimit_message() {
 #   * gridid
 #   * basedir
 #   * exitcode
-#   * lrmsexitcode
-#   * lrmsmessage
+#   * LRMSExitcode
+#   * LRMSMessage
 #   * overlimit
 #
 job_write_donefile() {
@@ -365,22 +365,22 @@ job_write_donefile() {
 
     set_overlimit_message
 
-    if [ -n "$lrmsmessage" ] && [ "$lrmsexitcode" != 0 ]; then
+    if [ -n "$LRMSMessage" ] && [ "$LRMSExitcode" != 0 ]; then
 
-        msg="$lrmsmessage"
+        msg="$LRMSMessage"
 
     else
         if [ "$exitcode" = 0 ]; then
-            if [ -z "$lrmsexitcode" ] || [ "$lrmsexitcode" = 0 ]; then
+            if [ -z "$LRMSExitcode" ] || [ "$LRMSExitcode" = 0 ]; then
                 msg=
             else
                 msg="Job finished properly but $LRMS reported failure"
             fi
         elif [ -z "$exitcode" ]; then
-            if [ "$lrmsexitcode" = 0 ]; then lrmsexitcode=-1; fi
+            if [ "$LRMSExitcode" = 0 ]; then LRMSExitcode=-1; fi
             msg="Job was killed by $LRMS"
         else
-            if [ "$lrmsexitcode" = 0 ]; then lrmsexitcode=-1; fi
+            if [ "$LRMSExitcode" = 0 ]; then LRMSExitcode=-1; fi
             msg="Job failed with exit code $exitcode"
         fi
     fi
@@ -388,7 +388,7 @@ job_write_donefile() {
     log "${msg:-$LRMS job $lrmsid finished normally}"
 
     donefile=job.$gridid.lrms_done
-    echo "${lrmsexitcode:--1} $msg" > $donefile || log "failed writing file: $PWD/$donefile"
+    echo "${LRMSExitcode:--1} $msg" > $donefile || log "failed writing file: $PWD/$donefile"
 
     # wake up GM
     statusfile=job.$gridid.status
@@ -419,7 +419,7 @@ process_job() {
     job_read_diag
     lrms_get_accounting
  
-    if [ -z "$lrmsexitcode" ] && job_canwait; then
+    if [ -z "$LRMSExitcode" ] && job_canwait; then
         : # Come back again next time
     else
         rm -f "$countfile"
@@ -626,8 +626,8 @@ lrms_get_accounting() {
 
     condor_read_history || { log "Job has exited but is not yet listed by condor_history"; return 1; }
 
-    # set lrmsexitcode to signal that no more tries are necessary
-    lrmsexitcode=-1
+    # set LRMSExitcode to signal that no more tries are necessary
+    LRMSExitcode=-1
 }
 
 
@@ -654,7 +654,7 @@ lrms_last_call() {
         echo "$progname: -------------------------------------------------"
     }
 
-    if [ -z "$lrmsexitcode" ]; then
+    if [ -z "$LRMSExitcode" ]; then
         log "$progname: No condor_history for Condor ID $lrmsid"
     else
 
@@ -684,21 +684,21 @@ lrms_last_call() {
         echo "$progname: -----------------------------------------------------"
     fi
 
-    lrmsexitcode=${__ExitCode:-$_ExitCode}
+    LRMSExitcode=${__ExitCode:-$_ExitCode}
 
-    # set lrmsexitcode to signal that no more tries are necessary
-    [ -n "$lrmsexitcode" ] || log "ExitCode not found in condor log and condor_history"
+    # set LRMSExitcode to signal that no more tries are necessary
+    [ -n "$LRMSExitcode" ] || log "ExitCode not found in condor log and condor_history"
 
-    # set message in case condor killed the job. lrmsexitcode should not be 0.
+    # set message in case condor killed the job. LRMSExitcode should not be 0.
     if [ -n "$PeriodicRemove" ]; then
-        [ "$lrmsexitcode" = 0 ] && lrmsexitcode=
-        lrmsmessage="PeriodicRemove evaluated to TRUE"
+        [ "$LRMSExitcode" = 0 ] && LRMSExitcode=
+        LRMSMessage="PeriodicRemove evaluated to TRUE"
     elif [ -n "$RemoveReason" ] && [ "$RemoveReason" != "None" ]; then
-        [ "$lrmsexitcode" = 0 ] && lrmsexitcode=
-        lrmsmessage="RemoveReason: $RemoveReason"
+        [ "$LRMSExitcode" = 0 ] && LRMSExitcode=
+        LRMSMessage="RemoveReason: $RemoveReason"
     elif [ -n "$ExitReason" ] && [ "$ExitReason" != "None" ]; then
-        [ "$lrmsexitcode" = 0 ] && lrmsexitcode=
-        lrmsmessage="ExitReason: $ExitReason"
+        [ "$LRMSExitcode" = 0 ] && LRMSExitcode=
+        LRMSMessage="ExitReason: $ExitReason"
     fi
 
     # Check whether the job was killed by Condor. If yes, check for exceeded resources limits
@@ -707,7 +707,7 @@ lrms_last_call() {
     fi
 
     # Condor does not write a .diag file.
-    exitcode=$lrmsexitcode
+    exitcode=$LRMSExitcode
 }
 
 scan_init
