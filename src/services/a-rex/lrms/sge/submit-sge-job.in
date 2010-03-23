@@ -120,8 +120,8 @@ fi
 # parallel jobs, add initialization time, soft/hard limit configurable...
 if ( [ -n "$joboption_cputime" ] && [ $joboption_cputime -gt 0 ] ) ; then
   joboption_cputime_hard=$(( $joboption_cputime * $time_hardlimit_ratio ))
-  s_cpu_requestable=$($SGE_QCONF -sc|awk '($1=="s_cpu" && $5=="YES"){print $5}')
-  h_cpu_requestable=$($SGE_QCONF -sc|awk '($1=="h_cpu" && $5=="YES"){print $5}')
+  s_cpu_requestable=$($SGE_QCONF -sc|awk '($1=="s_cpu" && ( $5=="YES || $5=="FORCED" )){print $5}')
+  h_cpu_requestable=$($SGE_QCONF -sc|awk '($1=="h_cpu" && ( $5=="YES || $5=="FORCED" )){print $5}')
   opt="#$"
   if [ $s_cpu_requestable ]; then opt="$opt -l s_cpu=::${joboption_cputime}"; fi
   if [ $h_cpu_requestable ]; then opt="$opt -l h_cpu=::${joboption_cputime_hard}"; fi
@@ -133,8 +133,8 @@ if [ -n "$joboption_walltime" ] ; then
     joboption_walltime=0
   fi
   joboption_walltime_hard=$(( $joboption_walltime * $time_hardlimit_ratio ))
-  s_rt_requestable=$($SGE_QCONF -sc|awk '($1=="s_rt" && $5=="YES"){print $5}')
-  h_rt_requestable=$($SGE_QCONF -sc|awk '($1=="h_rt" && $5=="YES"){print $5}')
+  s_rt_requestable=$($SGE_QCONF -sc|awk '($1=="s_rt" && ( $5=="YES || $5=="FORCED" )){print $5}')
+  h_rt_requestable=$($SGE_QCONF -sc|awk '($1=="h_rt" && ( $5=="YES || $5=="FORCED" )){print $5}')
   opt="#$"
   if [ $s_rt_requestable ]; then opt="$opt -l s_rt=::${joboption_walltime}"; fi
   if [ $h_rt_requestable ]; then opt="$opt -l h_rt=::${joboption_walltime_hard}"; fi
