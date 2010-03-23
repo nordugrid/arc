@@ -401,7 +401,7 @@ move_files_to_node () {
   echo "RUNTIME_FRONTEND_SEES_NODE=\${RUNTIME_FRONTEND_SEES_NODE:-$RUNTIME_FRONTEND_SEES_NODE}" >> $LRMS_JOB_SCRIPT
   echo "RUNTIME_NODE_SEES_FRONTEND=\${RUNTIME_NODE_SEES_FRONTEND:-$RUNTIME_NODE_SEES_FRONTEND}" >> $LRMS_JOB_SCRIPT
   cat >> $LRMS_JOB_SCRIPT <<'EOSCR'
-  if [ ! -z "$RUNTIME_LOCAL_SCRATCH_DIR" ] ; then #add here? && [ ! -z "$RUNTIME_NODE_SEES_FRONTEND" ]
+  if [ ! -z "$RUNTIME_LOCAL_SCRATCH_DIR" ] && [ ! -z "$RUNTIME_NODE_SEES_FRONTEND" ]; then
     RUNTIME_NODE_JOB_DIR="$RUNTIME_LOCAL_SCRATCH_DIR"/`basename "$RUNTIME_JOB_DIR"`
     rm -rf "$RUNTIME_NODE_JOB_DIR"
     mkdir -p "$RUNTIME_NODE_JOB_DIR"
@@ -431,11 +431,11 @@ move_files_to_node () {
       RUNTIME_JOB_STDERR__=`echo "$RUNTIME_JOB_STDERR" | sed "s#^${RUNTIME_JOB_DIR}#${RUNTIME_NODE_JOB_DIR}#"`
       rm "$RUNTIME_JOB_STDOUT__" 2>/dev/null
       rm "$RUNTIME_JOB_STDERR__" 2>/dev/null
-      if [ ! -z "$RUNTIME_JOB_STDOUT__" ] ; then
+      if [ ! -z "$RUNTIME_JOB_STDOUT__" ] && [ "$RUNTIME_JOB_STDOUT" != "$RUNTIME_JOB_STDOUT__" ]; then
         ln -s "$RUNTIME_JOB_STDOUT" "$RUNTIME_JOB_STDOUT__"
       fi
       if [ "$RUNTIME_JOB_STDOUT__" != "$RUNTIME_JOB_STDERR__" ] ; then
-        if [ ! -z "$RUNTIME_JOB_STDOUT__" ] ; then
+        if [ ! -z "$RUNTIME_JOB_STDERR__" ] && [ "$RUNTIME_JOB_STDERR" != "$RUNTIME_JOB_STDERR__" ]; then
           ln -s "$RUNTIME_JOB_STDERR" "$RUNTIME_JOB_STDERR__"
         fi
       fi
@@ -463,7 +463,7 @@ EOSCR
 ##############################################################
 move_files_to_frontend () {
   cat >> $LRMS_JOB_SCRIPT <<'EOSCR'
-  if [ ! -z "$RUNTIME_LOCAL_SCRATCH_DIR" ] ; then 
+  if [ ! -z "$RUNTIME_LOCAL_SCRATCH_DIR" ] && [ ! -z "$RUNTIME_NODE_SEES_FRONTEND" ]; then 
     if [ ! -z "$RUNTIME_FRONTEND_SEES_NODE" ] ; then
       # just move it
       rm -rf "$RUNTIME_FRONTEND_JOB_DIR"
