@@ -5,6 +5,7 @@
 
 use File::Find ();
 use File::Basename;
+use Digest::SHA qw/sha1_hex/;
 
 BEGIN {
     unshift @INC, dirname($0).'/@pkglibdir_rel_to_pkglibexecdir@';
@@ -23,18 +24,56 @@ sub wanted;
 
 my $conffile;
 
-if (@ARGV == 2 && $ARGV[0] eq '-c') {
-    $conffile = $ARGV[1];
-}
 
 sub usage {
     print <<EOH;
-    usage: $0 -c <arex_config_file>
+    usage: $0 [-c arex_config_file] [url1 [url2 [...]]]
+    ARC_CONFIG can also be used to specify a config file
 EOH
     exit 1;
 }
 
-if (!$conffile && -e $ENV{"ARC_CONFIG"}) {
+# GM can store without ports, A-REX always uses ports
+# so check with default port no if none given
+my %ports = (
+    'rc'    => '389',
+    'rls'   => '39281',
+    'http'  => '80',
+    'https' => '443',
+    'httpg' => '8443',
+    'srm'   => '8443',
+    'ldap'  => '389',
+    'ftp'   => '21',
+    'gsiftp'=> '2811',
+    'lfc'   => '5010'
+    );
+
+my @files;
+
+if (@ARGV > 0) {
+    $file = $ARGV[0];
+    if ($file eq '-h') {
+	usage();
+    }
+    if ($file eq '-c') {
+	shift (@ARGV);
+	$conffile = shift (@ARGV);
+    }
+    # for each file add default port if necessary
+    foreach $file (@ARGV) {
+	push (@files, $file);
+	next if $file !~ m|(\w+)://(\S+?)/\S*|;
+	next if ! defined( $ports{$1} );
+	$protocol = $1;
+	$host = $2;
+	next if index($host, ':') != -1;
+	# no port so try the default
+	$file =~ s|$host|$host:$ports{$protocol}|;
+	push (@files, $file);
+    }
+}
+
+if (!$conffile && $ENV{"ARC_CONFIG"} && -e $ENV{"ARC_CONFIG"}) {
     $conffile = $ENV{"ARC_CONFIG"};
 }
 
@@ -51,17 +90,39 @@ for my $control (values %{$config->{control}}) {
     next unless ref $control eq 'HASH';
     next unless $control->{cachedir} and ref $control->{cachedir} eq 'ARRAY';
     for (@{$control->{cachedir}}) {
-        print "\n Warning: cache-clean cannot deal with substitutions - $_\n" and next if /%/;
-        print "\n Warning: ignoring malformed cahe location - $_\n" and next unless m{^(/\S+)};
+        print "\n Warning: cache-list cannot deal with substitutions - $_\n" and next if /%/;
+        print "\n Warning: ignoring malformed cache location - $_\n" and next unless m{^(/\S+)};
         push @caches, $1;
     }
 }
 die "No caches found in config file '$conffile'" unless @caches;
 
-foreach $cache (@caches) {
-    print "Cache: $cache\n";
-    if (! -d $cache || ! -d $cache."/data") { print " Cache is empty\n"; }
+# list all files
+if (@files == 0) {
+    foreach $cache (@caches) {
+	print "Cache: $cache\n";
+	if (! -d $cache || ! -d $cache."/data") { print " Cache is empty\n"; }
         else { File::Find::find({wanted => \&wanted}, $cache."/data"); }
+    }
+}
+# list files given as arguments
+else {
+    foreach $file (@files) {
+	$hash = sha1_hex($file);
+	if (length($hash) != 40) {
+	    print "Error in hash calculation for file $file\n";
+	    next;
+	}
+	# look for this file in the caches
+	foreach $cache (@caches) {
+	    $cachefile = $cache.'/data/'.substr($hash, 0, 2).'/'.substr($hash, 2);
+	    if (-e $cachefile) {
+		print " $file $cachefile";
+		print ' (locked)' if -e "$cachefile.lock";
+		print "\n";
+	    }
+	}
+    }
 }
 
 sub wanted {

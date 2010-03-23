@@ -5,16 +5,30 @@ cache-list \- List contents of the Grid Manager cache.
 
 .SH SYNOPSIS
 
-cache-list -c config_file
+cache-list [-h] [-c config_file] [url1 [url2 [...]]]
 
 .SH DESCRIPTION
 
+.B -h
+- print short help
+
+.B -c
+- configuration file from which to read cache information. The
+  ARC_CONFIG environment variable can be set in place of this option.
+
 .B cache-list
-prints to stdout each cache directory specified in the configuration file
-then a list of files in each cache directory and the corresponding URLs 
-of their source in the format:
+is used to list all files present in each cache or, given a list of
+  URLs as arguments, shows the location of each URL in the cache if
+  present. If no arguments are given, it prints to stdout each cache
+  directory specified in the configuration file then a list of files
+  in each cache directory and the corresponding URLs of their source
+  in the format:
 
 .B url filename
+
+If arguments are given, each cache is checked for the existence of
+each URL. If a URL is present in the cache then the URL and filename
+are printed to stdout in the above format.
 
 This tool can be useful for finding out if a certain URL is stored in the
 cache, or simply to give a list of all URLs in the cache.
