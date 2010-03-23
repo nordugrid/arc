@@ -204,9 +204,11 @@
       logger.msg(Arc::INFO, "SOAP request failed (%s)", "srmPrepareToGet");
       soap_print_fault(&soapobj, stderr);
       csoap->disconnect();
+      delete[] req_array;
       return SRM_ERROR_SOAP;
     };
   
+    delete[] req_array;
     SRMv2__srmPrepareToGetResponse * response_inst = response_struct.srmPrepareToGetResponse;
     SRMv2__TStatusCode return_status = response_inst->returnStatus->statusCode;
     SRMv2__ArrayOfTGetRequestFileStatus * file_statuses= response_inst->arrayOfFileStatuses;
@@ -572,9 +574,11 @@
       logger.msg(Arc::INFO, "SOAP request failed (%s)", "srmPrepareToPut");
       soap_print_fault(&soapobj, stderr);
       csoap->disconnect();
+      delete[] req_array;
       return SRM_ERROR_SOAP;
     };
   
+    delete[] req_array;
     SRMv2__srmPrepareToPutResponse * response_inst = response_struct.srmPrepareToPutResponse;
     SRMv2__TStatusCode return_status = response_inst->returnStatus->statusCode;
     SRMv2__ArrayOfTPutRequestFileStatus * file_statuses= response_inst->arrayOfFileStatuses;

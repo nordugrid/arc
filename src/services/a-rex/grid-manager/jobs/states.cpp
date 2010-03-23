@@ -146,12 +146,16 @@ void JobsList::CalculateShares(){
    * job can proceed.
 */
 
-    // clear shares with 0 count
-  for (std::map<std::string, int>::iterator i = preparing_job_share.begin(); i != preparing_job_share.end(); i++)
-    if (i->second == 0) preparing_job_share.erase(i);
-  for (std::map<std::string, int>::iterator i = finishing_job_share.begin(); i != finishing_job_share.end(); i++)
-    if (i->second == 0) finishing_job_share.erase(i);
-
+  // clear shares with 0 count
+  std::map<std::string, int> preparing_job_share_copy = preparing_job_share;
+  std::map<std::string, int> finishing_job_share_copy = finishing_job_share;
+  preparing_job_share.clear();
+  finishing_job_share.clear();
+  for (std::map<std::string, int>::iterator i = preparing_job_share_copy.begin(); i != preparing_job_share_copy.end(); i++)
+    if (i->second != 0) preparing_job_share[i->first] = i->second;
+  for (std::map<std::string, int>::iterator i = finishing_job_share_copy.begin(); i != finishing_job_share_copy.end(); i++)
+    if (i->second != 0) finishing_job_share[i->first] = i->second;
+  
   // counters of current and potential preparing/finishing jobs
   std::map<std::string, int> pre_preparing_job_share = preparing_job_share;
   std::map<std::string, int> pre_finishing_job_share = finishing_job_share;

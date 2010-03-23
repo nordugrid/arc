@@ -79,8 +79,7 @@ ArcAlgFactory::~ArcAlgFactory(){
   AlgMap::iterator it;
   for(it = algmap.begin(); it != algmap.end(); it = algmap.begin()){
     CombiningAlg * alg = (*it).second;
-    algmap.erase(it);
-    if(alg) delete alg;;
+    if(alg) delete alg;
   }
 }
 

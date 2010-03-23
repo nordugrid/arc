@@ -79,7 +79,6 @@ XACMLAttributeFactory::~XACMLAttributeFactory(){
   AttrProxyMap::iterator it;
   for(it = apmap.begin(); it != apmap.end(); it = apmap.begin()){
     AttributeProxy* attrproxy = (*it).second;
-    apmap.erase(it);
     if(attrproxy) delete attrproxy;
   }
 }

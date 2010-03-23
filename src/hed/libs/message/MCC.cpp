@@ -27,9 +27,7 @@ namespace Arc {
   }
 
   void MCC::Unlink() {
-    for (std::map<std::string, MCCInterface *>::iterator n = next_.begin();
-         n != next_.end(); n = next_.begin())
-      next_.erase(n);
+    next_.clear();
   }
 
   void MCC::AddSecHandler(Config *cfg, ArcSec::SecHandler *sechandler,

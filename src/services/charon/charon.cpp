@@ -122,6 +122,10 @@ Arc::MCC_Status Charon::process(Arc::Message& inmsg,Arc::Message& outmsg) {
       load_policies();
     }
     resp = eval->evaluate(Source(arc_requestnd));
+    if(!resp) {
+      logger.msg(Arc::ERROR, "NULL response");
+      return make_soap_fault(outmsg,"Internal policy processing error");
+    };
     ResponseList rlist = resp->getResponseItems();
     int size = rlist.size();
     int i;
@@ -248,7 +252,7 @@ Arc::MCC_Status Charon::process(Arc::Message& inmsg,Arc::Message& outmsg) {
       outmsg.Payload(outpayload);
     }
 
-    if(resp) delete resp;
+    delete resp;
     
     return Arc::MCC_Status(Arc::STATUS_OK);
   } 

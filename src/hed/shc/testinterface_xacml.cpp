@@ -77,8 +77,8 @@ int main(void){
     delete resp;
     resp = NULL;
   } 
-  if(eval) delete eval;
-  if(request) delete request;
+  delete eval;
+  delete request;
 
   return 0;
 }

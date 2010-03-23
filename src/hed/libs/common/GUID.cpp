@@ -141,7 +141,7 @@ std::string Arc::UUID(void) {
     initialized = true;
   }
   std::string uuid_str("");
-  int rnd[10];
+  int rnd[16];
   char buffer[20];
   unsigned long uuid_part;
   for (int j = 0; j < 4; j++) {
