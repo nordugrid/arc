@@ -85,6 +85,7 @@ for control_dir in "$@" ; do
         fi
 
         # extract process IDs of the grami file
+        [ ! -f "${control_dir}/job.${job}.grami" ] && continue
         . "${control_dir}/job.${job}.grami"
 
         # process IDs could not be learned, proceeding to next
