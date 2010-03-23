@@ -123,8 +123,8 @@ if ( [ -n "$joboption_cputime" ] && [ $joboption_cputime -gt 0 ] ) ; then
   # before enforcing them.
   cputime_perslot=$(( $joboption_cputime / $joboption_count ))
   cputime_hard_perslot=$(( $cputime_perslot * $time_hardlimit_ratio ))
-  s_cpu_requestable=$($SGE_QCONF -sc|awk '($1=="s_cpu" && ( $5=="YES || $5=="FORCED" )){print $5}')
-  h_cpu_requestable=$($SGE_QCONF -sc|awk '($1=="h_cpu" && ( $5=="YES || $5=="FORCED" )){print $5}')
+  s_cpu_requestable=$($SGE_QCONF -sc|awk '($1=="s_cpu" && ( $5=="YES" || $5=="FORCED" )){print $5}')
+  h_cpu_requestable=$($SGE_QCONF -sc|awk '($1=="h_cpu" && ( $5=="YES" || $5=="FORCED" )){print $5}')
   opt="#$"
   if [ $s_cpu_requestable ]; then opt="$opt -l s_cpu=::${cputime_perslot}"; fi
   if [ $h_cpu_requestable ]; then opt="$opt -l h_cpu=::${cputime_hard_perslot}"; fi
@@ -136,8 +136,8 @@ if [ -n "$joboption_walltime" ] ; then
     joboption_walltime=0
   fi
   joboption_walltime_hard=$(( $joboption_walltime * $time_hardlimit_ratio ))
-  s_rt_requestable=$($SGE_QCONF -sc|awk '($1=="s_rt" && ( $5=="YES || $5=="FORCED" )){print $5}')
-  h_rt_requestable=$($SGE_QCONF -sc|awk '($1=="h_rt" && ( $5=="YES || $5=="FORCED" )){print $5}')
+  s_rt_requestable=$($SGE_QCONF -sc|awk '($1=="s_rt" && ( $5=="YES" || $5=="FORCED" )){print $5}')
+  h_rt_requestable=$($SGE_QCONF -sc|awk '($1=="h_rt" && ( $5=="YES" || $5=="FORCED" )){print $5}')
   opt="#$"
   if [ $s_rt_requestable ]; then opt="$opt -l s_rt=::${joboption_walltime}"; fi
   if [ $h_rt_requestable ]; then opt="$opt -l h_rt=::${joboption_walltime_hard}"; fi
