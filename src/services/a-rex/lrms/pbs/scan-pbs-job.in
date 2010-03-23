@@ -88,8 +88,9 @@ save_commentfile () {
 
 # Function for translating time from 00:01:01 format to 0061s format
 translate_time_to_seconds () {
-    orig_time=$1
-    ttts_new_time=`echo $orig_time | awk 'BEGIN { FS = ":" } ; { print $1*3600+$2*60+$3}'`
+  orig_time=$1
+  ttts_new_time=`echo $orig_time | awk 'BEGIN { FS = ":" } ; { print $1*3600+$2*60+$3}'`
+  return ttts_new_time
 }
 
 find_by_local() {
@@ -110,40 +111,41 @@ find_by_grami() {
 }
 
 #
-#  Main fnction for processing one PBS log.
+#  Main function for processing one PBS log.
 #  Extracts log lines with code 0010 (job exited) and 0008 (job killed)
 #
 # TODO this should be split into smaller functions
 process_log_file () {
-eval "set -- $control_dirs"
-egrep '^[^;]*;0010;[^;]*;Job;|^[^;]*;0008;[^;]*;Job;[^;]*;Exit_status=|^[^;]*;0008;[^;]*;Job;[^;]*;Job deleted' ${lname} | \
-{
-  lines_processed='0'
-  # skip already processed lines
-  while [ $lines_skip -gt '0' ] ; do
-    read rest_line
-    if [ $? != '0' ] ; then break ; fi
-    lines_skip=$(( $lines_skip - 1 ))
+  eval "set -- $control_dirs"
+
+  #we grep for finished jobs, then use sed to remove already processed lines
+  exited_killed_jobs=`egrep '^[^;]*;0010;[^;]*;Job;|^[^;]*;0008;[^;]*;Job;[^;]*;Exit_status=|^[^;]*;0008;[^;]*;Job;[^;]*;Job deleted' ${lname} | sed -e "1,${lines_skip}d"` 
+
+  lines_processed=$lines_skip
+
+  interesting_jobs=""
+
+  #TODO this can be done in one sed expression and one wc -l or something
+  for rest_line in "$exited_killed_jobs"; do
+    interesting_job=`echo "$rest_line" | sed 's/^[^;]*;//'`
+    interesting_jobs="${interesting_jobs}
+${interesting_job}"
     lines_processed=$(( $lines_processed + 1 ))
   done
-  while true ; do
-    read rest_line
-    if [ $? != '0' ] ; then break ; fi
-    echo "$rest_line" | sed 's/^[^;]*;//'
-    lines_processed=$(( $lines_processed + 1 ))
-  done
+
   if [ "$lines_processed" -lt '0' ] ; then
     lines_processed=0;
   fi
+
   echo "$cname $lines_processed"> $state_file
-} | \
-sort -u | \
-{
-  # parse by ;
-  IFS=';'
-  while true ; do
-    # split line into fields
-    read pbs_code pbs_server pbs_job job_id job_message rest_line
+
+  interesting_jobs=`echo "$interesting_jobs" | sort -u"`
+  
+  for job in "$interesting_jobs"; do
+    # Split line into fields, split on ";" read is done by process
+    # substitution and redirection. This does not work in plain sh.
+    # I have not found any other nice way of doing this.
+    read pbs_code pbs_server pbs_job job_id job_message rest_line < <(echo $job | tr ";" " ")
     if [ "$?" != '0' ] ; then
       break
     fi
@@ -180,9 +182,9 @@ sort -u | \
             fi
 
             # It has not been written, write info to .diag file.
-	    translate_time_to_seconds "$walltime"
+	    ttts_new_time=translate_time_to_seconds "$walltime"
 	    echo "WallTime=${ttts_new_time}s" >> $base_name.diag
-	    translate_time_to_seconds "$cputime"
+	    ttts_new_time=translate_time_to_seconds "$cputime"
 	    echo "UserTime=${ttts_new_time}s" >> $base_name.diag
 	    echo "KernelTime=0s" >> $base_name.diag
 
@@ -275,7 +277,6 @@ sort -u | \
 	# wake up GM
 	${GMKICK} "${base_name}.status"
   done
-}
 }
 
 readable_logs=no
