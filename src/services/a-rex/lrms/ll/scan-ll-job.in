@@ -23,6 +23,9 @@ test -d "$control_dir" || exit 1
 # Get LoadLeveler environment
 . "${pkglibdir}/configure-ll-env.sh" || exit $?
 
+. "${pkglibdir}/scan_common.sh" || exit $?
+
+
 my_id=`id -u`
 
 # Prints the owner of the file given as argument

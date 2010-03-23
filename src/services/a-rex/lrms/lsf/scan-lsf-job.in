@@ -20,7 +20,9 @@ pkglibdir=`cd $pkglibdir > /dev/null && pwd` || exit $?
 # Assume that gm-kick is installed in the same directory
 GMKICK=${basedir}/gm-kick
 
-. ${pkglibdir}/configure-lsf-env.sh || exit $?
+. "${pkglibdir}/configure-lsf-env.sh" || exit $?
+
+. "${pkglibdir}/scan_common.sh" || exit $?
 
 umask 022
 

@@ -23,7 +23,7 @@ pkglibdir=`cd $pkglibdir > /dev/null && pwd` || exit $?
 # Assume that gm-kick and scan_common is installed in the same directory
 GMKICK=${basedir}/gm-kick
 
-. ${basedir}/scan_common.sh
+. "${pkglibdir}/scan_common.sh" || exit $?
 
 # Where to store temporary files
 TMP_DIR=${TMPDIR:-@tmp_dir@}

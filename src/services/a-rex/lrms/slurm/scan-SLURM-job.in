@@ -17,8 +17,9 @@ basedir=`cd $basedir > /dev/null && pwd` || exit $?
 pkglibdir="$basedir/@pkglibdir_rel_to_pkglibexecdir@"
 pkglibdir=`cd $pkglibdir > /dev/null && pwd` || exit $?
 
-. ${pkglibdir}/configure-${joboption_lrms}-env.sh || exit $?
+. "${pkglibdir}/configure-${joboption_lrms}-env.sh" || exit $?
 
+. "${pkglibdir}/scan_common.sh" || exit $?
 
 # Prevent multiple instances of scan-slurm-job to run concurrently
 lockfile="${TMPDIR:-@tmp_dir@}/scan-slurm-job.lock"
