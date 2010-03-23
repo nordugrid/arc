@@ -119,9 +119,25 @@ do
         # If job exceeded time, then it will have been killed and no cputime/walltime has been written
         walltime=`$LL_BIN_PATH/llq -l $localid|sed -n 's/^ *Wall Clk Hard Limit:.*(\([0-9]*\) seconds.*/\1/p'`
         usertime=`$LL_BIN_PATH/llq -l $localid|sed -n 's/^ *Step Cpu Hard Limit:.*(\([0-9]*\) seconds.*/\1/p'`
+	starttime=`$LL_BIN_PATH/llq -l $localid|sed -n 's/^ *Dispatch Time: \(.*\)/\1/p'`
+	endtime=`$LL_BIN_PATH/llq -l $localid|sed -n 's/^ *Completion Date: \(.*\)/\1/p'`
+
         [ -n "$walltime" ] && echo "WallTime=${walltime}s" >> $control_dir/job.${jobid}.diag
         [ -n "$usertime" ] && echo "UserTime=${usertime}s" >> $control_dir/job.${jobid}.diag
         [ -n "$usertime" ] && echo "KernelTime=0s" >> $control_dir/job.${jobid}.diag
+
+	if [ -n "$starttime" ]; then
+	    get_seconds_utc "$starttime"
+	    get_date_from_seconds "$return_date_seconds" 
+	    starttime="$return_date"
+	    echo "LRMSStartTime=${starttime}" >> $control_dir/job.${jobid}.diag
+	fi
+	if [ -n "$endtime" ]; then
+	    get_seconds_utc "$endtime"
+	    get_date_from_seconds "$return_date_seconds"
+	    endtime="$return_date"
+	    echo "LRMSEndTime=${endtime}" >> $control_dir/job.${jobid}.diag
+	fi
 
         ${GMKICK} "$statusfile"
         continue  

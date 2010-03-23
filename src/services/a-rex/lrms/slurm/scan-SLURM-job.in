@@ -160,6 +160,7 @@ function handle_exitcode {
     reason="$3"
     
     jobinfostring=$("$scontrol" -o show job $localid)
+
     exitcode1=$(echo $jobinfostring|sed -n 's/.*ExitCode=\([0-9]*\):\([0-9]*\).*/\1/p')
     exitcode2=$(echo $jobinfostring|sed -n 's/.*ExitCode=\([0-9]*\):\([0-9]*\).*/\2/p')
 
@@ -175,6 +176,24 @@ function handle_exitcode {
     
     echo "$exitcode $reason" > "${basenames[$localid]}.lrms_done"
     kicklist=(${kicklist[@]} $localid)
+}
+
+function handle_start_end_time {
+    localid="$1"
+    ctr_diag="$2"
+    jobinfostring=$("$scontrol" -o show job $localid)
+    starttime=$(echo "$jobinfostring"|sed -n 's/.*StartTime=\([^ ]*\) .*/\1/p' | sed 's/-/ /g')
+    endtime=$(echo "$jobinfostring"|sed -n 's/.*EndTime=\([^ ]*\) .*/\1/p' | sed 's/-/ /g')
+
+    get_seconds_utc "${starttime}"
+    get_date_from_seconds "${return_date_seconds}"
+    LRMSStartTime="${return_date}"
+    get_seconds_utc "${endtime}"
+    get_date_from_seconds "${return_date_seconds}"
+    LRMSEndTime="${return_date}"
+
+    echo "LRMSStartTime=$LRMSStartTime" >> ${ctr_diag}
+    echo "LRMSEndTime=$LRMSEndTime" >> ${ctr_diag}
 }
 
 # Look at the list of jobstates and determine which jobs that have
@@ -240,22 +259,27 @@ for localid in ${localids[@]}; do
 	    echo "-1 Job was cancelled" > "${basenames[$localid]}.lrms_done"
 	    kicklist=(${kicklist[@]} $localid)
 	    handle_exitcode $localid "-1" "Job was cancelled"
+	    handle_start_end_time "$localid" "${basenames[$localid]}.diag"
 	    ;;
   	COMPLETED)
 	    handle_commentfile $localid
 	    handle_exitcode $localid "0" ""
+	    handle_start_end_time "$localid" "${basenames[$localid]}.diag"
   	    ;;
   	FAILED)
 	    handle_commentfile $localid
 	    handle_exitcode $localid "-1" "Job failed"
+	    handle_start_end_time "$localid" "${basenames[$localid]}.diag"
   	    ;;
   	TIMEOUT)
 	    handle_commentfile $localid
 	    handle_exitcode $localid "-1" "Job timeout"
+	    handle_start_end_time "$localid" "${basenames[$localid]}.diag"
   	    ;;
   	NODE_FAIL)
 	    handle_commentfile $localid
 	    handle_exitcode $localid "-1" "Node fail"
+	    handle_start_end_time "$localid" "${basenames[$localid]}.diag"
   	    ;;
     esac
 done

@@ -129,6 +129,26 @@ for ctr_dir in $control_dir ; do
 	    username=
 	fi
 
+	# Handle start and end time of job.
+	ctr_diag="${ctr_dir}/job.${gridid}.diag"
+	# get job specific output and remove header
+	bjobs_output="`${LSF_BIN_PATH}/bjobs -W -w $id 2>/dev/null | sed -e'1,1d'`"
+	job_status="`echo $bjobs_output | awk '{print $3}'`"
+	# DONE if exit_code is 0, EXIT if non zero
+	if [ "${job_status}" = "DONE" ] || [ "${job_status}" = "EXIT" ]; then
+	    starttime="`echo $bjobs_output | awk '{print $14}' | sed 's/-/ /g'`"
+	    endtime="`echo $bjobs_output | awk '{print $15}' | sed 's/-/ /g'`"
+	    get_seconds_utc "${starttime}"
+	    get_date_from_seconds "${return_date_seconds}"
+	    LRMSStartTime="${return_date}"
+	    get_seconds_utc "${endtime}"
+	    get_date_from_seconds "${return_date_seconds}"
+	    LRMSEndTime="${return_date}"
+	    
+	    echo "LRMSStartTime=$LRMSStartTime" >> ${ctr_diag}
+	    echo "LRMSEndTime=$LRMSEndTime" >> ${ctr_diag}
+
+	fi
 	# get session directory of this job
 	session=`grep -h '^sessiondir=' "$jobfile" | sed 's/^sessiondir=\(.*\)/\1/'`
 	if [ ! -z "$session" ] ; then
