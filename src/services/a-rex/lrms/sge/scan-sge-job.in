@@ -314,23 +314,6 @@ add_accounting_to_diag () {
   fi # accounting info ok
 
   rm -f "$diagfile_tmp" "$diagfile_acct"
-
-  # Accouting file not accessible on this host.
-  if [ -n "$noaccounting" ]; then
-    if [ -z "$exitcode" ]; then
-      echo "-1 Job failed with unknown exit code" > "$donefile"
-    elif [ "$exitcode" = "0" ]; then
-      echo "0" > "$donefile"
-    else
-      echo "$exitcode Job failed with exit code $exitcode" > "$donefile"
-    fi
-
-    $GMKICK "$statusfile" >> "$errorsfile"
-
-    # we're done, go to next job id
-    continue
-  fi
-
   return 1
 }
 
@@ -346,7 +329,30 @@ handle_missing_accounting () {
   GMKICK=$8
   SGE_BIN_PATH=$9
   id=$10
-  
+
+  if [ -n "$noaccounting" ]; then
+
+    # Accounting file is not accessible on this host.
+    echo "scan-sge-job: WARNING: SGE's accounting file is not accessible on the Grid frontend node" >> "$errorsfile"
+    echo "scan-sge-job: WARNING: Resource usage reported for this job may be inaccurate or incomplete" >> "$errorsfile"
+
+    if [ -z "$exitcode" ]; then
+      echo "-1 Job failed with unknown exit code" > "$donefile"
+    elif [ "$exitcode" = "0" ]; then
+      echo "0" > "$donefile" 
+    else
+      echo "$exitcode Job failed with exit code $exitcode" > "$donefile"
+    fi
+
+    $GMKICK "$statusfile" >> "$errorsfile"
+
+    return
+  fi
+
+  # There is a certain lag between the end of the job
+  # and the time when accouting information becomes available.
+  # We do 5 retries, keeping the count in $countfile
+
   counter=0
   if [ -f "$countfile" ] ; then
     counter=`cat "$countfile"`
@@ -355,18 +361,20 @@ handle_missing_accounting () {
 
   if [ "$counter" -gt 5 ]; then
     # Cannot wait more for accounting info.
+    echo "scan-sge-job: WARNING: No SGE accounting record found for this job" >> "$errorsfile"
+    echo "scan-sge-job: WARNING: Resource usage reported for this job may be inaccurate or incomplete" >> "$errorsfile"
 
     save_commentfile "$username" "$commentfile" "$errorsfile"
 
     if [ -z "$exitcode" ]; then
-      olog "SGE job $id failed with unknown exit code. No SGE accounting record found"
-      echo "-1 Job failed with unknown exit code. No SGE accounting record found" > "$donefile"
+      olog "No SGE accounting record found for job $id. No exitcode in diag file"
+      echo "-1 Job failed with unknown exit code" > "$donefile"
     elif [ "$exitcode" = "0" ]; then
-      olog "SGE job $id finished succesfully but no SGE accounting record found"
-      echo "-1 Job finished succesfully but no SGE accounting record found" > "$donefile"
-	else 
-        olog "SGE job $id failed with exit code $exitcode. No SGE accounting record found"
-        echo "$exitcode Job failed with exit code $exitcode. No SGE accounting record found" > "$donefile"
+      olog "No SGE accounting record found for job $id. exitcode=$exitcode in diag file"
+      echo "0" > "$donefile"
+    else
+      olog "No SGE accounting record found for job $id. exitcode=$exitcode in diag file"
+      echo "$exitcode Job failed with exit code $exitcode" > "$donefile"
     fi
     rm -f "$countfile"
 
@@ -481,31 +489,6 @@ for ctr_dir in $control_dirs ; do
     fi # session directory exists
 
     # This section is only reached when accounting info is not present
-
-    if [ -n "$noaccounting" ]; then
-
-      # Accounting file is not accessible on this host.
-      echo "scan-sge-job: WARNING: SGE's accounting file is not accessible on the Grid frontend node" >> "$errorsfile"
-      echo "scan-sge-job: WARNING: Resource usage reported for this job may be inaccurate or incomplete" >> "$errorsfile"
-
-      if [ -z "$exitcode" ]; then
-        echo "-1 Job failed with unknown exit code" > "$donefile"
-      elif [ "$exitcode" = "0" ]; then
-        echo "0" > "$donefile"
-      else
-        echo "$exitcode Job failed with exit code $exitcode" > "$donefile"
-      fi
-
-      $GMKICK "$statusfile" >> "$errorsfile"
-
-      # we're done, go to next job id
-      continue
-    fi
-
-    # This section is only reached when accounting info is not present
-    # There is a certain lag between the end of the job
-    # and the time when accouting information becomes available.
-    # We do 5 retries, keeping the count in $countfile
 
     handle_missing_accounting "$countfile" "$username" "$commentfile" "$errorsfile" "$donefile" "$exitcode" "$statusfile" "$GMKICK" "$SGE_BIN_PATH" "$id"
 
