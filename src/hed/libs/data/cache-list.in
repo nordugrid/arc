@@ -5,7 +5,7 @@
 
 use File::Find ();
 use File::Basename;
-use Digest::SHA qw/sha1_hex/;
+use Digest::SHA1 qw/sha1_hex/;
 
 BEGIN {
     unshift @INC, dirname($0).'/@pkglibdir_rel_to_pkglibexecdir@';
