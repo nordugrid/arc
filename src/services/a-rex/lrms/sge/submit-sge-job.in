@@ -153,6 +153,10 @@ fi
 # Requested memory (mb)
 ##############################################################
 # There are soft and hard limits for virtual memory consumption in SGE
+if [ -z "$joboption_memory" ]; then
+  joboption_memory="1000"
+fi
+
 if [ -n "$joboption_memory" ] ; then
   joboption_memory_hard=$(( $joboption_memory * $memory_hardlimit_ratio ))
   h_vmem_requestable=$($SGE_QCONF -sc|awk '($1=="h_vmem" && ( $5=="YES" || $5=="FORCED" )){print $5}')

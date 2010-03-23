@@ -107,6 +107,10 @@ fi
 ##############################################################
 # There are soft and hard limits for virtual memory consumption in LL
 
+if [ -z "$joboption_memory" ]; then
+  joboption_memory="1000"
+fi
+
 if [ -n "$joboption_memory" ] ; then
   joboption_memory_hard=$(( $joboption_memory * $memory_hardlimit_ratio ))
   requirements="(Memory > ${joboption_memory_hard})"
@@ -115,8 +119,6 @@ if [ -n "$joboption_memory" ] ; then
     echo "# @ requirements = ${requirements}" >> $LRMS_JOB_SCRIPT
     echo "# @ preferences = ${preferences}" >> $LRMS_JOB_SCRIPT
   fi
-else
-  joboption_memory="1 mb"
 fi
 
 ##############################################################
