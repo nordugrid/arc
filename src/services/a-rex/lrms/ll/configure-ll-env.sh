@@ -30,3 +30,10 @@ if [ ! -d ${LL_BIN_PATH} ] ; then
     exit 1
 fi
 
+# Consumable resources
+LL_CONSUMABLE_RESOURCES=${LL_CONSUMABLE_RESOURCES:-$CONFIG_ll_consumable_resources}
+
+# Local scratch disk
+RUNTIME_LOCAL_SCRATCH_DIR=${RUNTIME_LOCAL_SCRATCH_DIR:-$CONFIG_scratchdir}
+export RUNTIME_LOCAL_SCRATCH_DIR
+
