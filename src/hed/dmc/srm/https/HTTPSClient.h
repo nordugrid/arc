@@ -14,6 +14,7 @@
 #include <arc/Logger.h>
 #include <arc/Thread.h>
 #include <arc/DateTime.h>
+#include <arc/UserConfig.h>
 #include <arc/globusutils/GSSCredential.h>
 
 namespace Arc {
@@ -206,7 +207,7 @@ namespace Arc {
    public:
     typedef int (*get_callback_t)(unsigned long long offset,unsigned long long size,unsigned char** buf,unsigned long long* bufsize,void* arg);
     typedef int (*put_callback_t)(unsigned long long offset,unsigned long long *size,char* buf);
-    HTTPSClient(const char* base,bool heavy_encryption = true,bool gssapi_server = false, int timeout=60000, bool check_host_cert = true);
+    HTTPSClient(const UserConfig& usercfg, const char* base,bool heavy_encryption = true,bool gssapi_server = false, int timeout=60000, bool check_host_cert = true);
     virtual ~HTTPSClient(void);
     operator bool(void) { return valid; };
     bool credentials(const char* filename);
@@ -236,7 +237,7 @@ namespace Arc {
     static int local_fclose(struct soap* sp);
     std::string soap_url;
    public:
-    HTTPSClientSOAP(const char* base,struct soap *sp,bool gssapi_server = false, int soap_timeout = 60, bool check_host_cert = true);
+    HTTPSClientSOAP(const UserConfig& usercfg, const char* base,struct soap *sp,bool gssapi_server = false, int soap_timeout = 60, bool check_host_cert = true);
     ~HTTPSClientSOAP(void);
     const char* SOAP_URL(void) { return soap_url.c_str(); };
     std::string SOAP_URL(const char* path);

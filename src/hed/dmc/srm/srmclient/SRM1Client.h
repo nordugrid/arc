@@ -25,7 +25,7 @@ const static SOAP_NMAC struct Namespace srm1_soap_namespaces[] =
     //static Logger logger;
     
    public:
-    SRM1Client(SRMURL url);
+    SRM1Client(const Arc::UserConfig& usercfg, SRMURL url);
     ~SRM1Client(void);
     
     // not supported in v1

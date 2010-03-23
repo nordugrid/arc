@@ -72,7 +72,7 @@ namespace Arc {
 
   DataStatus DataPointSRM::Check() {
 
-    SRMClient *client = SRMClient::getInstance(url.fullstr(), timeout, usercfg.UtilsDirPath());
+    SRMClient *client = SRMClient::getInstance(usercfg, url.fullstr(), timeout);
     if (!client) {
       if (timeout)
         return DataStatus::CheckErrorRetryable;
@@ -127,7 +127,7 @@ namespace Arc {
 
   DataStatus DataPointSRM::Remove() {
 
-    SRMClient *client = SRMClient::getInstance(url.fullstr(), timeout, usercfg.UtilsDirPath());
+    SRMClient *client = SRMClient::getInstance(usercfg, url.fullstr(), timeout);
     if (!client) {
       if (timeout)
         return DataStatus::DeleteErrorRetryable;
@@ -175,7 +175,7 @@ namespace Arc {
     reading = true;
     buffer = &buf;
 
-    SRMClient *client = SRMClient::getInstance(url.fullstr(), timeout, usercfg.UtilsDirPath(), buffer->speed.get_max_inactivity_time());
+    SRMClient *client = SRMClient::getInstance(usercfg, url.fullstr(), timeout, buffer->speed.get_max_inactivity_time());
     if (!client) {
       reading = false;
       if (timeout)
@@ -285,7 +285,7 @@ namespace Arc {
     }
     
     if (srm_request) {
-      SRMClient *client = SRMClient::getInstance(url.fullstr(), timeout, usercfg.UtilsDirPath(), buffer->speed.get_max_inactivity_time());
+      SRMClient *client = SRMClient::getInstance(usercfg, url.fullstr(), timeout, buffer->speed.get_max_inactivity_time());
       if (client) {
         if(buffer->error_read() || srm_request->status() == SRM_REQUEST_SHOULD_ABORT) {
           client->abort(*srm_request);
@@ -314,7 +314,7 @@ namespace Arc {
     writing = true;
     buffer = &buf;
 
-    SRMClient *client = SRMClient::getInstance(url.fullstr(), timeout, usercfg.UtilsDirPath(), buffer->speed.get_max_inactivity_time());
+    SRMClient *client = SRMClient::getInstance(usercfg, url.fullstr(), timeout, buffer->speed.get_max_inactivity_time());
     if (!client) {
       writing = false;
       if (timeout)
@@ -454,7 +454,7 @@ namespace Arc {
     }
       
     if (!r) {
-      SRMClient *client = SRMClient::getInstance(url.fullstr(), timeout, usercfg.UtilsDirPath(), buffer->speed.get_max_inactivity_time());
+      SRMClient *client = SRMClient::getInstance(usercfg, url.fullstr(), timeout, buffer->speed.get_max_inactivity_time());
       if(client) {
         client->abort(*srm_request);
         delete client;
@@ -465,7 +465,7 @@ namespace Arc {
       return r;
     }
 
-    SRMClient * client = SRMClient::getInstance(url.fullstr(), timeout, usercfg.UtilsDirPath(), buffer->speed.get_max_inactivity_time());
+    SRMClient * client = SRMClient::getInstance(usercfg, url.fullstr(), timeout, buffer->speed.get_max_inactivity_time());
     if(client) {
       // call abort if failure, or releasePut on success
       if(buffer->error() || srm_request->status() == SRM_REQUEST_SHOULD_ABORT) 
@@ -533,7 +533,7 @@ namespace Arc {
                                      bool resolve,
                                      bool metadata) {
 
-    SRMClient * client = SRMClient::getInstance(url.fullstr(), timeout, usercfg.UtilsDirPath());
+    SRMClient * client = SRMClient::getInstance(usercfg, url.fullstr(), timeout);
     if(!client) {
       if (timeout)
         return DataStatus::ListErrorRetryable;

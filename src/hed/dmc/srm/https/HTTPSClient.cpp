@@ -7,9 +7,11 @@ namespace Arc {
 
   Logger HTTPSClient::logger(Logger::getRootLogger(), "HTTPSClient");
   
-  HTTPSClient::HTTPSClient(const char* base,bool heavy_encryption,bool gssapi_server, int timeout, bool check_host_cert) try: base_url(base), timeout(timeout*1000){
+  HTTPSClient::HTTPSClient(const UserConfig& usercfg, const char* base,bool heavy_encryption,bool gssapi_server, int timeout, bool check_host_cert) try: base_url(base), timeout(timeout*1000){
     c=NULL;
-    cred=new GSSCredential();
+    cred=new GSSCredential(usercfg.ProxyPath(),
+                           usercfg.CertificatePath(),
+                           usercfg.KeyPath());
     valid=false; connected=false;
     /* initialize globus io connection related objects */
     if(base_url.Protocol() == "http") {
@@ -27,14 +29,14 @@ namespace Arc {
     };
     if(proxy_hostname.empty()) {
       if(!gssapi_server) {
-        c=new HTTPSClientConnectorGlobus(base,heavy_encryption);
+        c=new HTTPSClientConnectorGlobus(base,heavy_encryption, timeout*1000, *cred);
       } else {
         c=new HTTPSClientConnectorGSSAPI(base,heavy_encryption, timeout*1000, *cred, check_host_cert);
       };
     } else {
       std::string u = "http://"+proxy_hostname+":"+tostring<int>(proxy_port);
       if(!gssapi_server) {
-        c=new HTTPSClientConnectorGlobus(u.c_str(),heavy_encryption);
+        c=new HTTPSClientConnectorGlobus(u.c_str(),heavy_encryption, timeout*1000, *cred);
       } else {
         c=new HTTPSClientConnectorGSSAPI(u.c_str(),heavy_encryption, timeout*1000, *cred, check_host_cert);
       };

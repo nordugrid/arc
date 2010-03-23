@@ -6,7 +6,7 @@ libsrmclientsoap_la_LIBADD = $(GSOAP_LIBS)
 
 libsrmclient_la_SOURCES = SRMClient.h SRMClient.cpp SRM1Client.cpp SRM1Client.h SRM22Client.cpp SRM22Client.h SRMURL.cpp SRMURL.h SRMInfo.cpp SRMInfo.h
 nodist_libsrmclient_la_SOURCES = srm1_soapH.h srm2_2_soapH.h
-libsrmclient_la_CXXFLAGS = $(GLIBMM_CFLAGS) $(GLOBUS_IO_CFLAGS) $(GSOAP_CFLAGS) $(CC_MISC_FLAGS) -I$(top_srcdir)/include
+libsrmclient_la_CXXFLAGS = $(GLIBMM_CFLAGS) $(GLOBUS_IO_CFLAGS) $(GSOAP_CFLAGS) $(CC_MISC_FLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
 libsrmclient_la_LIBADD = libsrmclientsoap.la ../https/libhttpsclient.la
 
 MOSTLYCLEANFILES = srm1_soap* srm2_2_soap* *.xml

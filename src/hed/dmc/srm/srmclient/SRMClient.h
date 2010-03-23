@@ -7,6 +7,7 @@
 #include <exception>
 
 #include <arc/Logger.h>
+#include <arc/UserConfig.h>
 
 #include "../https/HTTPSClient.h"
 
@@ -343,17 +344,17 @@
      * Returns an SRMClient instance with the required protocol version.
      * This must be used to create SRMClient instances. Specifying a
      * version explicitly forces creation of a client with that version.
+     * @param usercfg The user configuration.
      * @param url A SURL. A client connects to the service host derived from
      * this SURL. All operations with a client instance must use SURLs with
      * the same host as this one.
      * @param timedout Whether the connection timed out
-     * @param utils_dir Path to a directory contining files with SRM info
      * @param timeout Connection timeout.
      * is returned.
      */
-    static SRMClient* getInstance(std::string url,
+    static SRMClient* getInstance(const Arc::UserConfig& usercfg,
+                                  std::string url,
                                   bool& timedout,
-                                  std::string utils_dir,
                                   time_t timeout=300);
     /**
      * empty destructor

@@ -19,9 +19,9 @@ Arc::Logger SRMClient::logger(Arc::Logger::getRootLogger(), "SRMClient");
     return SRM_OK;
   }
 
-  SRMClient* SRMClient::getInstance(std::string url,
+  SRMClient* SRMClient::getInstance(const Arc::UserConfig& usercfg,
+                                    std::string url,
                                     bool& timedout,
-                                    std::string utils_dir,
                                     time_t timeout) {
     request_timeout = timeout;
     SRMURL srm_url(url);
@@ -29,17 +29,17 @@ Arc::Logger SRMClient::logger(Arc::Logger::getRootLogger(), "SRMClient");
   
     // can't use ping with srmv1 so just return
     if (srm_url.SRMVersion() == SRMURL::SRM_URL_VERSION_1)
-      return new SRM1Client(srm_url);
+      return new SRM1Client(usercfg, srm_url);
   
-    if (utils_dir.empty()) {
-      if (srm_url.SRMVersion() == SRMURL::SRM_URL_VERSION_2_2) return new SRM22Client(srm_url);
+    if (usercfg.UtilsDirPath().empty()) {
+      if (srm_url.SRMVersion() == SRMURL::SRM_URL_VERSION_2_2) return new SRM22Client(usercfg, srm_url);
       return NULL;
     }
       
     SRMReturnCode srm_error;
     std::string version;
   
-    SRMInfo info(utils_dir);
+    SRMInfo info(usercfg.UtilsDirPath());
     SRMFileInfo srm_file_info;
     // lists of ports and protocols in the order to try them
     std::vector<int> ports;
@@ -67,7 +67,7 @@ Arc::Logger SRMClient::logger(Arc::Logger::getRootLogger(), "SRMClient");
         for (std::vector<int>::iterator port = ports.begin(); port != ports.end(); port++) {
           logger.msg(Arc::VERBOSE, "Attempting to contact %s on port %i using protocol %s", srm_url.Host(), *port, *protocol);
           srm_url.SetPort(*port);
-          SRMClient * client = new SRM22Client(srm_url);
+          SRMClient * client = new SRM22Client(usercfg, srm_url);
       
           if ((srm_error = client->ping(version, false)) == SRM_OK) {
             srm_file_info.port = *port;
@@ -93,13 +93,13 @@ Arc::Logger SRMClient::logger(Arc::Logger::getRootLogger(), "SRMClient");
     else if (srm_file_info == srm_url) {
       srm_url.SetPort(srm_file_info.port);
       srm_url.GSSAPI((srm_file_info.protocol == "gssapi") ? true : false);
-      return new SRM22Client(srm_url);
+      return new SRM22Client(usercfg, srm_url);
     }
     // url disagrees with file info
     else {
       // ping and if ok, replace file info
       logger.msg(Arc::VERBOSE, "URL %s disagrees with stored SRM info, testing new info", srm_url.ShortURL());
-      SRMClient * client = new SRM22Client(srm_url);
+      SRMClient * client = new SRM22Client(usercfg, srm_url);
   
       if ((srm_error = client->ping(version, false)) == SRM_OK) {
         srm_file_info.port = srm_url.Port();

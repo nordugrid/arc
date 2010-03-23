@@ -59,7 +59,8 @@ namespace Arc {
   };
   
   
-  HTTPSClientSOAP::HTTPSClientSOAP(const char* base,struct soap *sp,bool gssapi_server, int soap_timeout, bool check_host_cert):HTTPSClient(base,true,gssapi_server,soap_timeout, check_host_cert),soap(sp) {
+  HTTPSClientSOAP::HTTPSClientSOAP(const UserConfig& usercfg, const char* base,struct soap *sp,bool gssapi_server, int soap_timeout, bool check_host_cert)
+                                  :HTTPSClient(usercfg,base,true,gssapi_server,soap_timeout, check_host_cert),soap(sp) {
     /* intialize soap */
     namespaces=NULL;
     soap_init(soap);

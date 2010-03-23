@@ -6,11 +6,12 @@
   
   //Logger SRM22Client::logger(SRMClient::logger, "SRM22Client");
 
-  SRM22Client::SRM22Client(SRMURL url) {
+  SRM22Client::SRM22Client(const Arc::UserConfig& usercfg, SRMURL url) {
     version = "v2.2";
     implementation = SRM_IMPLEMENTATION_UNKNOWN;
     service_endpoint = url.ContactURL();
-    csoap = new Arc::HTTPSClientSOAP(service_endpoint.c_str(),
+    csoap = new Arc::HTTPSClientSOAP(usercfg,
+                                     service_endpoint.c_str(),
                                      &soapobj,
                                      url.GSSAPI(),
                                      request_timeout,
