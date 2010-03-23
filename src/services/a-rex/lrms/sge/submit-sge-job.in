@@ -115,16 +115,19 @@ fi
 ##############################################################
 # SGE has soft and hard limits (soft = SIGUSR1, hard = SIGKILL sent to the job), 
 # let's allow time_hardlimit_ratio extra before the hard limit.
-# These limits are per job, not per process (?)
 # cputime/walltime is obtained in seconds via $joboption_cputime and $joboption_walltime
 # parallel jobs, add initialization time, soft/hard limit configurable...
 if ( [ -n "$joboption_cputime" ] && [ $joboption_cputime -gt 0 ] ) ; then
-  joboption_cputime_hard=$(( $joboption_cputime * $time_hardlimit_ratio ))
+  # SGE enforces job-total cpu time limit, but it expects in h_cpu and s_cpu
+  # per-slot limits. It then scales these with the number of requested slots
+  # before enforcing them.
+  cputime_perslot=$(( $joboption_cputime / $joboption_count ))
+  cputime_hard_perslot=$(( $cputime_perslot * $time_hardlimit_ratio ))
   s_cpu_requestable=$($SGE_QCONF -sc|awk '($1=="s_cpu" && ( $5=="YES || $5=="FORCED" )){print $5}')
   h_cpu_requestable=$($SGE_QCONF -sc|awk '($1=="h_cpu" && ( $5=="YES || $5=="FORCED" )){print $5}')
   opt="#$"
-  if [ $s_cpu_requestable ]; then opt="$opt -l s_cpu=::${joboption_cputime}"; fi
-  if [ $h_cpu_requestable ]; then opt="$opt -l h_cpu=::${joboption_cputime_hard}"; fi
+  if [ $s_cpu_requestable ]; then opt="$opt -l s_cpu=::${cputime_perslot}"; fi
+  if [ $h_cpu_requestable ]; then opt="$opt -l h_cpu=::${cputime_hard_perslot}"; fi
   echo $opt >> $LRMS_JOB_SCRIPT
 fi
 

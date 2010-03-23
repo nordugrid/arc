@@ -88,17 +88,18 @@ fi
 # cputime/walltime is obtained in seconds via $joboption_cputime and $joboption_walltime
 
 if ( [ -n "$joboption_cputime" ] && [ $joboption_cputime -gt 0 ] ) ; then
-  joboption_cputime_hard=$(($(( $joboption_cputime * $time_hardlimit_ratio))+30))
+  # CPU time must be given per-task for LL
+  cputime_pertask=$(( $joboption_cputime / $joboption_count ))
+  cputime_hard_pertask=$(($(( $cputime_pertask * $time_hardlimit_ratio))+30))
+  echo "# @ job_cpu_limit = ${cputime_hard_pertask} , ${cputime_pertask}" >> $LRMS_JOB_SCRIPT
 fi
 if [ -n "$joboption_walltime" ] ; then  
   if [ $joboption_walltime -lt 0 ] ; then
     joboption_walltime=0
   fi
   joboption_walltime_hard=$(($(( $joboption_walltime * $time_hardlimit_ratio))+30))
+  echo "# @ wall_clock_limit = ${joboption_walltime_hard} , ${joboption_walltime}" >> $LRMS_JOB_SCRIPT
 fi
-
-echo "# @ job_cpu_limit = ${joboption_cputime_hard} , ${joboption_cputime}" >> $LRMS_JOB_SCRIPT
-echo "# @ wall_clock_limit = ${joboption_walltime_hard} , ${joboption_walltime}" >> $LRMS_JOB_SCRIPT
 
 
 ##############################################################

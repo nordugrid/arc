@@ -116,7 +116,8 @@ if [ ! -z "$joboption_cputime" ] ; then
   if [ $joboption_cputime -lt 0 ] ; then
     joboption_cputime=0
   fi
-  maxcputime="$joboption_cputime"
+  # this is actually walltime deduced from cputime !
+  maxcputime=$(( $joboption_cputime / $joboption_count ))
   cputime_min=$(( $maxcputime / 60 ))
   cputime_sec=$(( $maxcputime - $cputime_min * 60 ))
   echo "#SBATCH -t ${cputime_min}:${cputime_sec}" >> $LRMS_JOB_SCRIPT
@@ -125,7 +126,7 @@ fi
 if [ -z "$joboption_walltime" ] ; then
   if [ ! -z "$joboption_cputime" ] ; then
     # Set walltime for backward compatibility or incomplete requests
-    joboption_walltime=$(( $joboption_cputime * $walltime_ratio ))
+    joboption_walltime=$(( $maxcputime * $walltime_ratio ))
   fi
 fi
 
