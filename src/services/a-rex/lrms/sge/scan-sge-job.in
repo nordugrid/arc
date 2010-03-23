@@ -314,6 +314,23 @@ add_accounting_to_diag () {
   fi # accounting info ok
 
   rm -f "$diagfile_tmp" "$diagfile_acct"
+
+  # Accouting file not accessible on this host.
+  if [ -n "$noaccounting" ]; then
+    if [ -z "$exitcode" ]; then
+      echo "-1 Job failed with unknown exit code" > "$donefile"
+    elif [ "$exitcode" = "0" ]; then
+      echo "0" > "$donefile"
+    else
+      echo "$exitcode Job failed with exit code $exitcode" > "$donefile"
+    fi
+
+    $GMKICK "$statusfile" >> "$errorsfile"
+
+    # we're done, go to next job id
+    continue
+  fi
+
   return 1
 }
 
