@@ -97,7 +97,7 @@ write_diagfile_acct () {
   extraargs=$4
 
   $qacct_command -j $id $extraargs 2> /dev/null \
-        | perl -e 'while(<>) {
+        | /usr/bin/perl -e 'while(<>) {
                      $nodename=$1         if /^hostname\s+(\S+)/;
                      $id=$1               if /^jobnumber\s+(\S+)/;
                      $exitcode=$1         if /^exit_status\s+(\S+)/;

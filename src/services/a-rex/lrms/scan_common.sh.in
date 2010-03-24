@@ -69,7 +69,7 @@ get_owner_uid () {
           exit 1 unless defined $stat[4];
           print "$stat[4]\n";
          '
-  perl -we "$script" "$1"
+  /usr/bin/perl -we "$script" "$1"
 }
 
 #
@@ -86,7 +86,7 @@ do_as_uid () {
             $UID = $uid if $UID == 0;
             system("@posix_shell@","-c",@args);
     '
-    perl -we "$script" "$@"
+    /usr/bin/perl -we "$script" "$@"
 }
 
 #
