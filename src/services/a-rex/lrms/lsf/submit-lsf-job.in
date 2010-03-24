@@ -24,10 +24,13 @@ pkglibdir=`cd $pkglibdir > /dev/null && pwd` || exit $?
 ##############################################################
 
 . ${pkglibdir}/configure-lsf-env.sh || exit $?
-
 . ${pkglibdir}/submit_common.sh || exit $?
 
-init
+##############################################################
+# Parse grami file, read arc config
+##############################################################
+
+init $1
 
 # enforce this 
 RUNTIME_FRONTEND_SEES_NODE='yes'
@@ -35,11 +38,6 @@ RUNTIME_NODE_SEES_FRONTEND='yes'
 
 #TODO should this be specified here?
 joboption_localtransfer='no'
-
-##############################################################
-# Parse the argument file. 
-##############################################################
-parse_arg_file $1
 
 ##############################################################
 # Zero stage of runtime environments
@@ -130,6 +128,9 @@ fi
 ##############################################################
 # Requested memory (mb)
 ##############################################################
+
+set_req_mem
+
 if [ ! -z "$joboption_memory" ]; then
   memory=$(( ${joboption_memory} * 1024 ))
   echo "#BSUB -M ${memory}" >> $LRMS_JOB_SCRIPT

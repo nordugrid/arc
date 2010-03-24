@@ -428,8 +428,8 @@ sub create_condor_job_description {
         $remove .= " || RemoteWallClockTime > JobTimeLimit";
         warn "$0: Setting time limit\n";
     }
-    # Hardcoded default memory limit
-    $grami{joboption_memory} ||= 1000;
+    # Set a default memory limit
+    $grami{joboption_memory} ||= $config{nodememory} || 1000;
     $output .= "+JobMemoryLimit = ".int(1024*$grami{joboption_memory})."\n";
     $remove .= " || ImageSize > JobMemoryLimit";
     warn "$0: Setting memory limit\n";

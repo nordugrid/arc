@@ -63,6 +63,21 @@ init () {
    NODENAME=${CONFIG_nodename:-"@nodename@"}
 } 
 
+read_arc_conf () {
+   ARC_CONFIG=${ARC_CONFIG:-/etc/arc.conf}
+   . $pkglibdir/config_parser.sh || exit $?
+
+   config_parse_file $ARC_CONFIG 1>&2 || exit $?
+   config_import_section "common"
+   config_import_section "cluster"
+
+   # Also read queue section
+   if [ ! -z "$joboption_queue" ]; then
+     config_import_section "queue/$joboption_queue"
+   fi
+}
+
+
 usage="usage: `basename $0` (<arguments file>|-h|--help)"
 
 parse_arg_file () {
@@ -97,19 +112,6 @@ EOHELP
    if [ -z "$joboption_gridid" ] ; then
      joboption_gridid=`basename "$arg_file" | sed 's/^job\.\(.*\)\.grami$/\1/'`
    fi
-   if [ -z "$joboption_memory" ] ; then
-       joboption_memory=1000
-       echo "---------------------------------------------------------------------" 1>&2
-       echo "WARNING: The job description contains no explicit memory requirement." 1>&2
-       echo "         A default memory limit of 1GB will apply.                   " 1>&2
-       echo "---------------------------------------------------------------------" 1>&2
-   fi
-   # downloader and uploader can take a lot of memory
-   if [ "$joboption_localtransfer" = 'yes' ] ; then
-     if [ "$joboption_memory" -lt 1000 ] ; then
-       joboption_memory=1000
-     fi
-   fi
 
    ##############################################################
    # combine arguments to command -  easier to use
@@ -125,6 +127,35 @@ EOHELP
       i=$(( $i + 1 ))
       eval "var_is_set=\${joboption_arg_$i+yes}"
    done
+}
+
+set_req_mem () {
+    if [ -z "$joboption_memory" ] || [[ "$joboption_memory" =~ ^[0-9]+$ ]]; then
+        if [ ! -z "$CONFIG_nodememory" ] && [[ "$CONFIG_nodememory" =~ ^[0-9]+$ ]]; then
+            joboption_memory=$CONFIG_nodememory
+
+            echo "---------------------------------------------------------------------" 1>&2
+            echo "WARNING: The job description contains no explicit memory requirement." 1>&2
+            echo "         A default memory limit taken from arc.conf will apply.      " 1>&2
+            echo "         Limit is: $CONFIG_nodememory mb.                            " 1>&2
+            echo "                                                                     " 1>&2
+
+            if [ "$joboption_localtransfer" = 'yes' ] && [ "$CONFIG_nodememory" -lt 1000 ]; then
+                echo "WARNING: localtransfers are enabled and nodes have less than 1GB of  " 1>&2
+                echo "         ram. up- and downloaders take up a lot of ram, this can give" 1>&2
+                echo "         you problems.                                               " 1>&2
+            fi
+            echo "---------------------------------------------------------------------" 1>&2
+        else
+            joboption_memory=1000
+
+            echo "---------------------------------------------------------------------" 1>&2
+            echo "WARNING: The job description contains no explicit memory requirement " 1>&2
+            echo "         and nodememory is not specified in arc.conf. A default      " 1>&2
+            echo "         memory limit of 1GB will apply.                             " 1>&2
+            echo "---------------------------------------------------------------------" 1>&2
+        fi
+    fi
 }
 
 ##############################################################

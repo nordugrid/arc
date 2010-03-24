@@ -105,6 +105,9 @@ fi
 ##############################################################
 # Requested memory (mb)
 ##############################################################
+
+set_req_mem
+
 # There are soft and hard limits for virtual memory consumption in LL
 
 if [ -n "$joboption_memory" ] ; then

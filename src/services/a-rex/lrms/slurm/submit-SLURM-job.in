@@ -143,6 +143,9 @@ fi
 ##############################################################
 # Requested memory (mb)
 ##############################################################
+
+set_req_mem
+
 if [ ! -z "$joboption_memory" ] ; then
   echo "#SBATCH --mem ${joboption_memory}mb" >> $LRMS_JOB_SCRIPT
 fi
