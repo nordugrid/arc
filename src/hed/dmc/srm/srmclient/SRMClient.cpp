@@ -62,9 +62,9 @@ Arc::Logger SRMClient::logger(Arc::Logger::getRootLogger(), "SRMClient");
     
     // no info
     if (!info.getSRMFileInfo(srm_file_info)) {
-      for (std::vector<std::string>::iterator protocol = protocols.begin(); protocol != protocols.end(); protocol++) {
+      for (std::vector<std::string>::iterator protocol = protocols.begin(); protocol != protocols.end(); ++protocol) {
         srm_url.GSSAPI((*protocol == "gssapi") ? true : false);
-        for (std::vector<int>::iterator port = ports.begin(); port != ports.end(); port++) {
+        for (std::vector<int>::iterator port = ports.begin(); port != ports.end(); ++port) {
           logger.msg(Arc::VERBOSE, "Attempting to contact %s on port %i using protocol %s", srm_url.Host(), *port, *protocol);
           srm_url.SetPort(*port);
           SRMClient * client = new SRM22Client(usercfg, srm_url);

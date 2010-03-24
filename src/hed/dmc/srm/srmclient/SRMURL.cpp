@@ -36,7 +36,7 @@
   std::string SRMURL::empty("");
   
   
-  void SRMURL::SetSRMVersion(std::string version) {
+  void SRMURL::SetSRMVersion(const std::string& version) {
     if (version.empty()) return;
     if (version == "1") {
       srm_version = SRM_URL_VERSION_1;

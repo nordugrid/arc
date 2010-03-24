@@ -50,10 +50,8 @@ namespace Arc {
   DataPointSRM::~DataPointSRM() {
     globus_module_deactivate(GLOBUS_GSI_GSSAPI_MODULE);
     globus_module_deactivate(GLOBUS_IO_MODULE);
-    if (r_handle)
-      delete r_handle;
-    if (srm_request)
-      delete srm_request;
+    delete r_handle;
+    delete srm_request;
   }
 
   Plugin* DataPointSRM::Instance(PluginArgument *arg) {
@@ -190,8 +188,7 @@ namespace Arc {
     else
       canonic_url = url.Protocol() + "://" + url.Host() + url.Path();
 
-    if (srm_request)
-      delete srm_request;
+    delete srm_request;
     srm_request = new SRMClientRequest(canonic_url);
     
     if (!srm_request) {
@@ -232,7 +229,7 @@ namespace Arc {
       {
         std::map<std::string, std::string> options = url.Options();
         if (!options.empty())
-          for (std::map<std::string, std::string>::iterator oi = options.begin(); oi != options.end(); oi++)
+          for (std::map<std::string, std::string>::iterator oi = options.begin(); oi != options.end(); ++oi)
             r_url.AddOption((*oi).first, (*oi).second);
       }
       r_handle = new DataHandle(r_url, usercfg);
@@ -329,8 +326,7 @@ namespace Arc {
     else
       canonic_url = url.Protocol() + "://" + url.Host() + url.Path();
 
-    if (srm_request)
-      delete srm_request;
+    delete srm_request;
     srm_request = new SRMClientRequest(canonic_url);
     if (!srm_request) {
       delete client;
@@ -400,7 +396,7 @@ namespace Arc {
       {
         std::map<std::string, std::string> options = url.Options();
         if (!options.empty())
-          for (std::map<std::string, std::string>::iterator oi = options.begin(); oi != options.end(); oi++)
+          for (std::map<std::string, std::string>::iterator oi = options.begin(); oi != options.end(); ++oi)
             r_url.AddOption((*oi).first, (*oi).second);
       }
       r_handle = new DataHandle(r_url, usercfg);
@@ -546,8 +542,7 @@ namespace Arc {
     else
       canonic_url = url.Protocol() + "://" + url.Host() + url.Path();
 
-    if (srm_request)
-      delete srm_request;
+    delete srm_request;
     srm_request = new SRMClientRequest(canonic_url);
     if (!srm_request) {
       delete client;

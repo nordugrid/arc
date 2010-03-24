@@ -69,7 +69,7 @@
           };
         };
       };
-      if(urls.size()) break; // Have requested data
+      if(!urls.empty()) break; // Have requested data
       if(!request_state) break; // No data and no state - fishy
       if(strcasecmp(request_state,"pending") != 0) break;
       if((time(NULL) - t_start) > request_timeout) break;
@@ -92,7 +92,7 @@
       result = *(r._Result);
     };
     req.file_ids(file_ids);
-    if(urls.size() == 0) return SRM_ERROR_OTHER;
+    if(urls.empty()) return SRM_ERROR_OTHER;
     return acquire(req,urls);
   }
   
@@ -158,7 +158,7 @@
           };
         };
       };
-      if(urls.size()) break; // Have requested data
+      if(!urls.empty()) break; // Have requested data
       if(!request_state) break; // No data and no state - fishy
       // Leave if state is not pending and no endpoints 
       if(strcasecmp(request_state,"pending") != 0) break;
@@ -182,7 +182,7 @@
       result = r._Result;
     };
     req.file_ids(file_ids);
-    if(urls.size() == 0) return SRM_ERROR_OTHER;
+    if(urls.empty()) return SRM_ERROR_OTHER;
     return acquire(req,urls);
   }
   
@@ -236,7 +236,7 @@
           };
         };
       };
-      if(file_ids.size()) break; // Have requested data
+      if(!file_ids.empty()) break; // Have requested data
       if(!request_state) break; // No data and no state - fishy
       if((strcasecmp(request_state,"pending") != 0) && 
          (strcasecmp(request_state,"active") != 0)) break;
@@ -259,7 +259,7 @@
       request_state = r._Result->state;
       result = r._Result;
     };
-    if(file_ids.size() == 0) return SRM_ERROR_OTHER;
+    if(file_ids.empty()) return SRM_ERROR_OTHER;
     req.file_ids(file_ids);
     return release(req);
   }
@@ -297,7 +297,7 @@
       file_id=file_ids.erase(file_id); f_url=urls.erase(f_url);
     };
     req.file_ids(file_ids);
-    if(urls.size() == 0) return SRM_ERROR_OTHER;
+    if(urls.empty()) return SRM_ERROR_OTHER;
     // Do not disconnect
     return SRM_OK;
   }

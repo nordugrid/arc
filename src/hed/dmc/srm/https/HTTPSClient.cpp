@@ -83,7 +83,7 @@ namespace Arc {
   HTTPSClient::~HTTPSClient(void) {
     if(!valid) return;
     disconnect();
-    if(c) delete c;
+    delete c;
     if(*cred != GSS_C_NO_CREDENTIAL) {
       delete cred;
     };
@@ -487,14 +487,14 @@ namespace Arc {
       if(!c->read((char*)buf,&answer_size)) {
         logger.msg(ERROR, "Failed while reading response content");
         disconnect();
-        if(in_buf) free(in_buf);
+        free(in_buf);
         return -1;
       };
       bool isread,iswritten;
       if(!c->transfer(isread,iswritten,timeout)) {
         logger.msg(ERROR, "Timeout while reading response content");
         disconnect();
-        if(in_buf) free(in_buf);
+        free(in_buf);
         return -1; // timeout
       };
       if(!isread) { // failure
@@ -503,7 +503,7 @@ namespace Arc {
         };
         logger.msg(ERROR, "Error while reading response content");
         disconnect();
-        if(in_buf) free(in_buf);
+        free(in_buf);
         return -1;
       };
       logger.msg(DEBUG, "GET: calling callback: content: %s", buf);
@@ -512,14 +512,14 @@ namespace Arc {
       if(callback(c_offset,answer_size,&buf,&bufsize,arg) != 0) {
         logger.msg(ERROR, "GET callback returned error");
         disconnect();
-        if(in_buf) free(in_buf);
+        free(in_buf);
         return -1;
       };
       c_offset+=answer_size;
       if(have_length) length-=answer_size;
     };
     // cancel? - just in case
-    if(in_buf) free(in_buf);
+    free(in_buf);
     if(!fields.KeepAlive()) {
       logger.msg(VERBOSE, "GET: connection to be closed");
       disconnect();

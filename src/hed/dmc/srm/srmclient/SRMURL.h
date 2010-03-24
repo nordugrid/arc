@@ -28,7 +28,7 @@
     /**
     * Possible values of version are "1" and "2.2"
     */
-    void SetSRMVersion(const std::string version);
+    void SetSRMVersion(const std::string& version);
   
     /**
      * eg pnfs/ndgf.org/data/atlas/disk/user/user.mlassnig.dataset.1/dummyfile3

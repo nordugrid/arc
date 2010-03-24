@@ -189,6 +189,7 @@
      */
     SRMClientRequest(std::list<std::string> urls) 
       throw (SRMInvalidRequestException):
+      _request_id(0),
       _space_token(""), 
       _waiting_time(1), 
       _status(SRM_REQUEST_ONGOING),
@@ -206,6 +207,7 @@
      */
     SRMClientRequest(std::string url="", std::string id="")
       throw (SRMInvalidRequestException):
+      _request_id(0),
       _space_token(""),
       _waiting_time(1),
       _status(SRM_REQUEST_ONGOING),
@@ -220,32 +222,32 @@
      * set and get request id
      */
     void request_id(int id) {_request_id = id;};
-    int request_id() {return _request_id;};
+    int request_id() const {return _request_id;};
     
     /**
      * set and get request token
      */
     void request_token(char* token) {_request_token = token;};
-    std::string request_token() {return _request_token;};
+    std::string request_token() const {return _request_token;};
     
     /**
      * set and get file id list
      */
-    void file_ids(std::list<int> ids) {_file_ids = ids;};
-    std::list<int> file_ids() {return _file_ids;};
+    void file_ids(const std::list<int>& ids) {_file_ids = ids;};
+    std::list<int> file_ids() const {return _file_ids;};
   
     /**
      * set and get space token
      */
-    void space_token(std::string token) {_space_token = token;};
-    std::string space_token() {return _space_token;};
+    void space_token(const std::string& token) {_space_token = token;};
+    std::string space_token() const {return _space_token;};
   
     /**
      * get SURLs
      */
-    std::list<std::string> surls() {
+    std::list<std::string> surls() const {
       std::list<std::string> surl_list;
-      for (std::map<std::string,SRMFileLocality>::iterator it=_surls.begin() ; it != _surls.end(); it++ ) {
+      for (std::map<std::string,SRMFileLocality>::const_iterator it=_surls.begin() ; it != _surls.end(); ++it ) {
         surl_list.push_back((*it).first);
       };
       return surl_list;
@@ -254,20 +256,20 @@
     /**
      * set and get surl statuses
      */
-    void surl_statuses(std::string surl, SRMFileLocality locality) {_surls[surl] = locality;};
-    std::map<std::string, SRMFileLocality> surl_statuses() {return _surls;};
+    void surl_statuses(const std::string& surl, SRMFileLocality locality) {_surls[surl] = locality;};
+    std::map<std::string, SRMFileLocality> surl_statuses() const {return _surls;};
   
     /**
      * set and get surl failures
      */
-    void surl_failures(std::string surl, std::string reason) {_surl_failures[surl] = reason;};
-    std::map<std::string, std::string> surl_failures() {return _surl_failures;};
+    void surl_failures(const std::string& surl, const std::string& reason) {_surl_failures[surl] = reason;};
+    std::map<std::string, std::string> surl_failures() const {return _surl_failures;};
   
     /**
      * set and get waiting time
      */
     void waiting_time(int wait_time) {_waiting_time = wait_time;};
-    int waiting_time() {return _waiting_time;};
+    int waiting_time() const {return _waiting_time;};
   
     /**
      * set and get status of request
@@ -277,13 +279,13 @@
     void finished_error() {_status = SRM_REQUEST_FINISHED_ERROR;};
     void finished_abort() {_status = SRM_REQUEST_SHOULD_ABORT;};
     void cancelled() {_status = SRM_REQUEST_CANCELLED;};
-    SRMRequestStatus status() {return _status;};
+    SRMRequestStatus status() const {return _status;};
     
     /**
      * set and get long list flag
      */
     void long_list(bool list) { _long_list = list; };
-    bool long_list() { return _long_list; };
+    bool long_list() const { return _long_list; };
   };
   
   /**
@@ -369,7 +371,7 @@
     /**
      * Returns the version of the SRM protocol used by this instance
      */
-    std::string getVersion() {return version;};
+    std::string getVersion() const {return version;};
   
     /**
      * Find out the version supported by the server this client
@@ -517,8 +519,8 @@
      */
     virtual SRMReturnCode mkDir(SRMClientRequest& req) = 0;
 
-    operator bool(void) { return csoap; };
-    bool operator!(void) { return !csoap; };
+    operator bool(void) const { return csoap; };
+    bool operator!(void) const { return !csoap; };
   };
 
 //} // namespace Arc

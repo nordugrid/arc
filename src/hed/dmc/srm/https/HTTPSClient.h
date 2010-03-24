@@ -209,7 +209,7 @@ namespace Arc {
     typedef int (*put_callback_t)(unsigned long long offset,unsigned long long *size,char* buf);
     HTTPSClient(const UserConfig& usercfg, const char* base,bool heavy_encryption = true,bool gssapi_server = false, int timeout=60000, bool check_host_cert = true);
     virtual ~HTTPSClient(void);
-    operator bool(void) { return valid; };
+    operator bool(void) const { return valid; };
     bool credentials(const char* filename);
     /** Returns 0 on success, 1 on timeout and -1 on other error */
     int connect(void);
@@ -218,7 +218,7 @@ namespace Arc {
     int GET(const char* path,unsigned long long int offset,unsigned long long int size,get_callback_t callback,void* arg,unsigned char* buf = NULL,unsigned long long int bufsize = 0);
     bool keep_alive(void) const { return fields.KeepAlive(); };
     // unsigned long long int size(void) const { return fields.ContentSize(); };
-    const HTTPResponseHeader& response(void) { return fields; };
+    const HTTPResponseHeader& response(void) const { return fields; };
   };
   
   class HTTPSClientSOAP: public HTTPSClient {

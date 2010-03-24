@@ -175,41 +175,40 @@
     // call get
     
     // construct get request - only one file requested at a time
+    SRMv2__TGetFileRequest r;
+    r.sourceSURL=(char*)req.surls().front().c_str();
+  
     SRMv2__TGetFileRequest * req_array = new SRMv2__TGetFileRequest[1];
+    req_array[0] = r;
   
-    SRMv2__TGetFileRequest * r = new SRMv2__TGetFileRequest;
-    r->sourceSURL=(char*)req.surls().front().c_str();
-  
-    req_array[0] = *r;
-  
-    SRMv2__ArrayOfTGetFileRequest * file_requests = new SRMv2__ArrayOfTGetFileRequest;
-    file_requests->__sizerequestArray=1;
-    file_requests->requestArray=&req_array;
+    SRMv2__ArrayOfTGetFileRequest file_requests;
+    file_requests.__sizerequestArray=1;
+    file_requests.requestArray=&req_array;
   
     // transfer parameters with protocols
-    SRMv2__TTransferParameters * transfer_params = new SRMv2__TTransferParameters;
-    SRMv2__ArrayOfString * prot_array = new SRMv2__ArrayOfString;
-    prot_array->__sizestringArray=size_of_supported_protocols;
-    prot_array->stringArray=(char**)Supported_Protocols;
-    transfer_params->arrayOfTransferProtocols=prot_array;
+    SRMv2__TTransferParameters transfer_params;
+    SRMv2__ArrayOfString prot_array;
+    prot_array.__sizestringArray=size_of_supported_protocols;
+    prot_array.stringArray=(char**)Supported_Protocols;
+    transfer_params.arrayOfTransferProtocols=&prot_array;
     
-    SRMv2__srmPrepareToGetRequest * request = new SRMv2__srmPrepareToGetRequest;
-    request->transferParameters=transfer_params;
-    request->arrayOfFileRequests=file_requests;
+    SRMv2__srmPrepareToGetRequest request;
+    request.transferParameters=&transfer_params;
+    request.arrayOfFileRequests=&file_requests;
   
     struct SRMv2__srmPrepareToGetResponse_ response_struct;
   
     // do the call
     int soap_err = SOAP_OK;
-    if((soap_err=soap_call_SRMv2__srmPrepareToGet(&soapobj, csoap->SOAP_URL(), "srmPrepareToGet", request, response_struct)) != SOAP_OK){
+    if((soap_err=soap_call_SRMv2__srmPrepareToGet(&soapobj, csoap->SOAP_URL(), "srmPrepareToGet", &request, response_struct)) != SOAP_OK){
       logger.msg(Arc::INFO, "SOAP request failed (%s)", "srmPrepareToGet");
       soap_print_fault(&soapobj, stderr);
       csoap->disconnect();
       delete[] req_array;
       return SRM_ERROR_SOAP;
     };
-  
     delete[] req_array;
+  
     SRMv2__srmPrepareToGetResponse * response_inst = response_struct.srmPrepareToGetResponse;
     SRMv2__TStatusCode return_status = response_inst->returnStatus->statusCode;
     SRMv2__ArrayOfTGetRequestFileStatus * file_statuses= response_inst->arrayOfFileStatuses;
@@ -237,13 +236,13 @@
         sleep(sleeptime);
         request_time += sleeptime;
   
-        SRMv2__srmStatusOfGetRequestRequest * sog_request = new SRMv2__srmStatusOfGetRequestRequest;
-        sog_request->requestToken=request_token;
+        SRMv2__srmStatusOfGetRequestRequest sog_request;
+        sog_request.requestToken=request_token;
   
         struct SRMv2__srmStatusOfGetRequestResponse_ sog_response_struct;
   
         // call getRequestStatus
-        if ((soap_err=soap_call_SRMv2__srmStatusOfGetRequest(&soapobj, csoap->SOAP_URL(), "srmStatusOfGetRequest", sog_request, sog_response_struct)) != SOAP_OK) {
+        if ((soap_err=soap_call_SRMv2__srmStatusOfGetRequest(&soapobj, csoap->SOAP_URL(), "srmStatusOfGetRequest", &sog_request, sog_response_struct)) != SOAP_OK) {
           logger.msg(Arc::INFO, "SOAP request failed (%s)", "srmStatusOfGetRequest");
           soap_print_fault(&soapobj, stderr);
           csoap->disconnect();
@@ -306,52 +305,54 @@
   
     // construct bring online request
     std::list<std::string> surls = req.surls();
-    SRMv2__TGetFileRequest ** req_array = new SRMv2__TGetFileRequest*[surls.size()];
+    SRMv2__TGetFileRequest * req_array = new SRMv2__TGetFileRequest[surls.size()];
     
     // add each file to the request array
     int j = 0;
     for (std::list<std::string>::iterator i = surls.begin(); i != surls.end(); ++i) {
-      SRMv2__TGetFileRequest * r = new SRMv2__TGetFileRequest;
-      r->sourceSURL=(char*)(*i).c_str();
+      SRMv2__TGetFileRequest r;
+      r.sourceSURL=(char*)(*i).c_str();
       req_array[j] = r;
       j++;
     };
   
-    SRMv2__ArrayOfTGetFileRequest * file_requests = new SRMv2__ArrayOfTGetFileRequest;
-    file_requests->__sizerequestArray=surls.size();
-    file_requests->requestArray=req_array;
+    SRMv2__ArrayOfTGetFileRequest file_requests;
+    file_requests.__sizerequestArray=surls.size();
+    file_requests.requestArray=&req_array;
   
     // transfer parameters with protocols
     // should not be needed but dcache returns NullPointerException if
     // it is not given
-    SRMv2__TTransferParameters * transfer_params = new SRMv2__TTransferParameters;
-    SRMv2__ArrayOfString * prot_array = new SRMv2__ArrayOfString;
-    prot_array->__sizestringArray=size_of_supported_protocols;
-    prot_array->stringArray=(char**)Supported_Protocols;
-    transfer_params->arrayOfTransferProtocols=prot_array;
+    SRMv2__TTransferParameters transfer_params;
+    SRMv2__ArrayOfString prot_array;
+    prot_array.__sizestringArray=size_of_supported_protocols;
+    prot_array.stringArray=(char**)Supported_Protocols;
+    transfer_params.arrayOfTransferProtocols=&prot_array;
     
-    SRMv2__srmBringOnlineRequest * request = new SRMv2__srmBringOnlineRequest;
-    request->arrayOfFileRequests=file_requests;
-    request->transferParameters=transfer_params;
+    SRMv2__srmBringOnlineRequest request;;
+    request.arrayOfFileRequests=&file_requests;
+    request.transferParameters=&transfer_params;
   
     // store the user id as part of the request, so they can find it later
     char * user = const_cast<char*>(g_get_user_name());
     if (user) {
       logger.msg(Arc::VERBOSE, "Setting userRequestDescription to %s", user);
-      request->userRequestDescription = user;
+      request.userRequestDescription = user;
     };
   
     struct SRMv2__srmBringOnlineResponse_ response_struct;
     
     // do the call
     int soap_err = SOAP_OK;
-    if((soap_err=soap_call_SRMv2__srmBringOnline(&soapobj, csoap->SOAP_URL(), "srmBringOnline", request, response_struct)) != SOAP_OK){
+    if((soap_err=soap_call_SRMv2__srmBringOnline(&soapobj, csoap->SOAP_URL(), "srmBringOnline", &request, response_struct)) != SOAP_OK){
       logger.msg(Arc::INFO, "SOAP request failed (%s)", "srmBringOnline");
       soap_print_fault(&soapobj, stderr);
       csoap->disconnect();
+      delete[] req_array;
       return SRM_ERROR_SOAP;
     };
   
+    delete[] req_array;
     SRMv2__srmBringOnlineResponse * response_inst = response_struct.srmBringOnlineResponse;
     SRMv2__TStatusCode return_status = response_inst->returnStatus->statusCode;
     SRMv2__ArrayOfTBringOnlineRequestFileStatus * file_statuses= response_inst->arrayOfFileStatuses;
@@ -403,18 +404,18 @@
     SRMReturnCode rc = connect();
     if (rc != SRM_OK) return rc;
   
-    SRMv2__srmStatusOfBringOnlineRequestRequest * sobo_request = new SRMv2__srmStatusOfBringOnlineRequestRequest;
     if(req.request_token().empty()) {
       logger.msg(Arc::ERROR, "No request token specified!");
       return SRM_ERROR_OTHER;
     };
-    sobo_request->requestToken=(char*)req.request_token().c_str();
+    SRMv2__srmStatusOfBringOnlineRequestRequest sobo_request;
+    sobo_request.requestToken=(char*)req.request_token().c_str();
   
     struct SRMv2__srmStatusOfBringOnlineRequestResponse_ sobo_response_struct;
   
     // do the call
     int soap_err = SOAP_OK;
-    if ((soap_err=soap_call_SRMv2__srmStatusOfBringOnlineRequest(&soapobj, csoap->SOAP_URL(), "srmStatusOfBringOnlineRequest", sobo_request, sobo_response_struct)) != SOAP_OK) {
+    if ((soap_err=soap_call_SRMv2__srmStatusOfBringOnlineRequest(&soapobj, csoap->SOAP_URL(), "srmStatusOfBringOnlineRequest", &sobo_request, sobo_response_struct)) != SOAP_OK) {
       logger.msg(Arc::INFO, "SOAP request failed (%s)", "srmStatusOfBringOnlineRequest");
       soap_print_fault(&soapobj, stderr);
       csoap->disconnect();
@@ -537,32 +538,30 @@
     // construct put request - only one file requested at a time
     SRMv2__TPutFileRequest * req_array = new SRMv2__TPutFileRequest[1];
   
-    SRMv2__TPutFileRequest * r = new SRMv2__TPutFileRequest;
-    // need to create new object here or doesn't work
-    //std::string * surl = new std::string(srm_url.FullURL());
-    r->targetSURL=(char*)req.surls().front().c_str();
+    SRMv2__TPutFileRequest r;
+    r.targetSURL=(char*)req.surls().front().c_str();
     ULONG64 fsize = size;
-    r->expectedFileSize=&fsize;
+    r.expectedFileSize=&fsize;
   
-    req_array[0] = *r;
+    req_array[0] = r;
   
-    SRMv2__ArrayOfTPutFileRequest * file_requests = new SRMv2__ArrayOfTPutFileRequest;
-    file_requests->__sizerequestArray=1;
-    file_requests->requestArray=&req_array;
+    SRMv2__ArrayOfTPutFileRequest file_requests;
+    file_requests.__sizerequestArray=1;
+    file_requests.requestArray=&req_array;
   
     // transfer parameters with protocols
-    SRMv2__TTransferParameters * transfer_params = new SRMv2__TTransferParameters;
-    SRMv2__ArrayOfString * prot_array = new SRMv2__ArrayOfString;
-    prot_array->__sizestringArray=size_of_supported_protocols;
-    prot_array->stringArray=(char**)Supported_Protocols;
-    transfer_params->arrayOfTransferProtocols=prot_array;
+    SRMv2__TTransferParameters transfer_params;
+    SRMv2__ArrayOfString prot_array;
+    prot_array.__sizestringArray=size_of_supported_protocols;
+    prot_array.stringArray=(char**)Supported_Protocols;
+    transfer_params.arrayOfTransferProtocols=&prot_array;
     
-    SRMv2__srmPrepareToPutRequest * request = new SRMv2__srmPrepareToPutRequest;
-    request->transferParameters=transfer_params;
-    request->arrayOfFileRequests=file_requests;
+    SRMv2__srmPrepareToPutRequest request;
+    request.transferParameters=&transfer_params;
+    request.arrayOfFileRequests=&file_requests;
   
     // set space token if supplied
-    if(req.space_token() != "") request->targetSpaceToken = (char*)req.space_token().c_str();
+    if(req.space_token() != "") request.targetSpaceToken = (char*)req.space_token().c_str();
   
     // dcache does not handle this correctly yet
     //request->desiredTotalRequestTime=(int*)&request_timeout;
@@ -571,7 +570,7 @@
   
     // do the call
     int soap_err = SOAP_OK;
-    if((soap_err=soap_call_SRMv2__srmPrepareToPut(&soapobj, csoap->SOAP_URL(), "srmPrepareToPut", request, response_struct)) != SOAP_OK){
+    if((soap_err=soap_call_SRMv2__srmPrepareToPut(&soapobj, csoap->SOAP_URL(), "srmPrepareToPut", &request, response_struct)) != SOAP_OK){
       logger.msg(Arc::INFO, "SOAP request failed (%s)", "srmPrepareToPut");
       soap_print_fault(&soapobj, stderr);
       csoap->disconnect();
@@ -607,13 +606,13 @@
         sleep(sleeptime);
         request_time += sleeptime;
   
-        SRMv2__srmStatusOfPutRequestRequest * sog_request = new SRMv2__srmStatusOfPutRequestRequest;
-        sog_request->requestToken=request_token;
+        SRMv2__srmStatusOfPutRequestRequest sop_request;
+        sop_request.requestToken=request_token;
   
-        struct SRMv2__srmStatusOfPutRequestResponse_ sog_response_struct;
+        struct SRMv2__srmStatusOfPutRequestResponse_ sop_response_struct;
   
         // call putRequestStatus
-        if ((soap_err=soap_call_SRMv2__srmStatusOfPutRequest(&soapobj, csoap->SOAP_URL(), "srmStatusOfPutRequest", sog_request, sog_response_struct)) != SOAP_OK) {
+        if ((soap_err=soap_call_SRMv2__srmStatusOfPutRequest(&soapobj, csoap->SOAP_URL(), "srmStatusOfPutRequest", &sop_request, sop_response_struct)) != SOAP_OK) {
           logger.msg(Arc::INFO, "SOAP request failed (%s)", "srmStatusOfPutRequest");
           soap_print_fault(&soapobj, stderr);
           csoap->disconnect();
@@ -623,8 +622,8 @@
   
         // check return codes - loop will exit on success or return false on error
   
-        return_status = sog_response_struct.srmStatusOfPutRequestResponse->returnStatus->statusCode;
-        file_statuses = sog_response_struct.srmStatusOfPutRequestResponse->arrayOfFileStatuses;
+        return_status = sop_response_struct.srmStatusOfPutRequestResponse->returnStatus->statusCode;
+        file_statuses = sop_response_struct.srmStatusOfPutRequestResponse->arrayOfFileStatuses;
         
         if (return_status == SRMv2__TStatusCode__SRM_USCOREREQUEST_USCOREQUEUED ||
             return_status == SRMv2__TStatusCode__SRM_USCOREREQUEST_USCOREINPROGRESS) {
@@ -663,7 +662,7 @@
             if (file_statuses->statusArray[0]->status->explanation)
               logger.msg(Arc::ERROR, "Error: %s", file_statuses->statusArray[0]->status->explanation);
           }
-          char * msg = sog_response_struct.srmStatusOfPutRequestResponse->returnStatus->explanation;
+          char * msg = sop_response_struct.srmStatusOfPutRequestResponse->returnStatus->explanation;
           logger.msg(Arc::ERROR, "Error: %s", msg);
           if (return_status == SRMv2__TStatusCode__SRM_USCOREINTERNAL_USCOREERROR)
             return SRM_ERROR_TEMPORARY;
@@ -734,35 +733,36 @@
     xsd__anyURI * req_array = new xsd__anyURI[1];
     req_array[0] = (char*)req.surls().front().c_str();
   
-    SRMv2__ArrayOfAnyURI * surls_array = new SRMv2__ArrayOfAnyURI;
-    surls_array->__sizeurlArray=1;
-    surls_array->urlArray=req_array;
+    SRMv2__ArrayOfAnyURI surls_array;
+    surls_array.__sizeurlArray=1;
+    surls_array.urlArray=req_array;
   
-    SRMv2__srmLsRequest * request = new SRMv2__srmLsRequest;
-    request->arrayOfSURLs=surls_array;
+    SRMv2__srmLsRequest request;
+    request.arrayOfSURLs=&surls_array;
     // 0 corresponds to list the directory entry not the files in it
     // 1 corresponds to list the files in a directory - this is the desired
     // behaviour of ngls with no recursion, so we add 1 to the -r value
-    request->numOfLevels=new int(recursive+1);
+    request.numOfLevels=new int(recursive+1);
     
     // add count and offset options, if set
-    if (offset != 0) request->offset = new int(offset);
-    if (count != 0) request->count = new int(count);
+    if (offset != 0) request.offset = new int(offset);
+    if (count != 0) request.count = new int(count);
     
-    if (req.long_list()) request->fullDetailedList = new bool(true);
+    if (req.long_list()) request.fullDetailedList = new bool(true);
   
     struct SRMv2__srmLsResponse_ response_struct;
     
     int soap_err = SOAP_OK;
    
     // do the srmLs call
-    if((soap_err=soap_call_SRMv2__srmLs(&soapobj, csoap->SOAP_URL(), "srmLs", request, response_struct)) != SOAP_OK){
+    if((soap_err=soap_call_SRMv2__srmLs(&soapobj, csoap->SOAP_URL(), "srmLs", &request, response_struct)) != SOAP_OK){
       logger.msg(Arc::INFO, "SOAP request failed (%s)", "srmLs");
       soap_print_fault(&soapobj, stderr);
       csoap->disconnect();
+      delete[] req_array;
       return SRM_ERROR_SOAP;
     };
-  
+    delete[] req_array;
     SRMv2__srmLsResponse * response_inst = response_struct.srmLsResponse;
     SRMv2__TStatusCode return_status = response_inst->returnStatus->statusCode;
     SRMv2__ArrayOfTMetaDataPathDetail * file_details= response_inst->details;
@@ -789,13 +789,13 @@
         sleep(sleeptime);
         request_time += sleeptime;
   
-        SRMv2__srmStatusOfLsRequestRequest * sols_request = new SRMv2__srmStatusOfLsRequestRequest;
-        sols_request->requestToken=request_token;
+        SRMv2__srmStatusOfLsRequestRequest sols_request;
+        sols_request.requestToken=request_token;
   
         struct SRMv2__srmStatusOfLsRequestResponse_ sols_response_struct;
   
         // call statusOfLsResponse
-        if ((soap_err=soap_call_SRMv2__srmStatusOfLsRequest(&soapobj, csoap->SOAP_URL(), "srmStatusOfLsRequest", sols_request, sols_response_struct)) != SOAP_OK) {
+        if ((soap_err=soap_call_SRMv2__srmStatusOfLsRequest(&soapobj, csoap->SOAP_URL(), "srmStatusOfLsRequest", &sols_request, sols_response_struct)) != SOAP_OK) {
           logger.msg(Arc::INFO, "SOAP request failed (%s)", "srmStatusOfLsRequest");
           soap_print_fault(&soapobj, stderr);
           csoap->disconnect();
@@ -1077,19 +1077,19 @@
   SRMReturnCode SRM22Client::releaseGet(SRMClientRequest& req) {
   
     // Release all the pins referred to by the request token in the request object
-    SRMv2__srmReleaseFilesRequest * request = new SRMv2__srmReleaseFilesRequest;
     if(req.request_token().empty()) {
       logger.msg(Arc::ERROR, "No request token specified!");
       return SRM_ERROR_OTHER;
     };
-    request->requestToken=(char*)req.request_token().c_str();
+    SRMv2__srmReleaseFilesRequest request;
+    request.requestToken=(char*)req.request_token().c_str();
   
     struct SRMv2__srmReleaseFilesResponse_ response_struct;
   
     int soap_err = SOAP_OK;
    
     // do the srmReleaseFiles call
-    if((soap_err=soap_call_SRMv2__srmReleaseFiles(&soapobj, csoap->SOAP_URL(), "srmReleaseFiles", request, response_struct)) != SOAP_OK){
+    if((soap_err=soap_call_SRMv2__srmReleaseFiles(&soapobj, csoap->SOAP_URL(), "srmReleaseFiles", &request, response_struct)) != SOAP_OK){
       logger.msg(Arc::INFO, "SOAP request failed (%s)", "srmReleaseFiles");
       soap_print_fault(&soapobj, stderr);
       csoap->disconnect();
@@ -1116,34 +1116,36 @@
   
     // Set the files referred to by the request token in the request object
     // which were prepared to put to done
-    SRMv2__srmPutDoneRequest * request = new SRMv2__srmPutDoneRequest;
     if(req.request_token().empty()) {
       logger.msg(Arc::ERROR, "No request token specified!");
       return SRM_ERROR_OTHER;
     };
-    request->requestToken=(char*)req.request_token().c_str();
+    SRMv2__srmPutDoneRequest request;
+    request.requestToken=(char*)req.request_token().c_str();
 
     // add the SURLs to the request
     xsd__anyURI * req_array = new xsd__anyURI[1];
     req_array[0] = (char*)req.surls().front().c_str();
   
-    SRMv2__ArrayOfAnyURI * surls_array = new SRMv2__ArrayOfAnyURI;
-    surls_array->__sizeurlArray=1;
-    surls_array->urlArray=req_array;
+    SRMv2__ArrayOfAnyURI surls_array;
+    surls_array.__sizeurlArray=1;
+    surls_array.urlArray=req_array;
   
-    request->arrayOfSURLs=surls_array;
+    request.arrayOfSURLs=&surls_array;
     
     struct SRMv2__srmPutDoneResponse_ response_struct;
   
     int soap_err = SOAP_OK;
    
     // do the srmPutDone call
-    if((soap_err=soap_call_SRMv2__srmPutDone(&soapobj, csoap->SOAP_URL(), "srmPutDone", request, response_struct)) != SOAP_OK){
+    if((soap_err=soap_call_SRMv2__srmPutDone(&soapobj, csoap->SOAP_URL(), "srmPutDone", &request, response_struct)) != SOAP_OK){
       logger.msg(Arc::INFO, "SOAP request failed (%s)", "srmPutDone");
       soap_print_fault(&soapobj, stderr);
       csoap->disconnect();
+      delete[] req_array;
       return SRM_ERROR_SOAP;
     };
+    delete[] req_array;
   
     if (response_struct.srmPutDoneResponse->returnStatus->statusCode != SRMv2__TStatusCode__SRM_USCORESUCCESS) {
       char * msg = response_struct.srmPutDoneResponse->returnStatus->explanation;
@@ -1163,19 +1165,19 @@
   SRMReturnCode SRM22Client::abort(SRMClientRequest& req) {
   
     // Call srmAbortRequest on the files in the request token
-    SRMv2__srmAbortRequestRequest * request = new SRMv2__srmAbortRequestRequest;
     if(req.request_token().empty()) {
       logger.msg(Arc::ERROR, "No request token specified!");
       return SRM_ERROR_OTHER;
     };
-    request->requestToken=(char*)req.request_token().c_str();
+    SRMv2__srmAbortRequestRequest request;
+    request.requestToken=(char*)req.request_token().c_str();
   
     struct SRMv2__srmAbortRequestResponse_ response_struct;
   
     int soap_err = SOAP_OK;
    
     // do the srmAbortRequest call
-    if((soap_err=soap_call_SRMv2__srmAbortRequest(&soapobj, csoap->SOAP_URL(), "srmAbortRequest", request, response_struct)) != SOAP_OK){
+    if((soap_err=soap_call_SRMv2__srmAbortRequest(&soapobj, csoap->SOAP_URL(), "srmAbortRequest", &request, response_struct)) != SOAP_OK){
       logger.msg(Arc::INFO, "SOAP request failed (%s)", "srmAbortRequest");
       soap_print_fault(&soapobj, stderr);
       csoap->disconnect();
@@ -1237,25 +1239,27 @@
     xsd__anyURI * req_array = new xsd__anyURI[1];
     req_array[0] = (char*)req.surls().front().c_str();
   
-    SRMv2__ArrayOfAnyURI * surls_array = new SRMv2__ArrayOfAnyURI;
-    surls_array->__sizeurlArray=1;
-    surls_array->urlArray=req_array;
+    SRMv2__ArrayOfAnyURI surls_array;
+    surls_array.__sizeurlArray=1;
+    surls_array.urlArray=req_array;
   
     // Call srmRm on the files in the request token
-    SRMv2__srmRmRequest * request = new SRMv2__srmRmRequest;
-    request->arrayOfSURLs=surls_array;
+    SRMv2__srmRmRequest request;
+    request.arrayOfSURLs=&surls_array;
   
     struct SRMv2__srmRmResponse_ response_struct;
   
     int soap_err = SOAP_OK;
    
     // do the srmRm call
-    if((soap_err=soap_call_SRMv2__srmRm(&soapobj, csoap->SOAP_URL(), "srmRm", request, response_struct)) != SOAP_OK){
+    if((soap_err=soap_call_SRMv2__srmRm(&soapobj, csoap->SOAP_URL(), "srmRm", &request, response_struct)) != SOAP_OK){
       logger.msg(Arc::INFO, "SOAP request failed (%s)", "srmRm");
       soap_print_fault(&soapobj, stderr);
       csoap->disconnect();
+      delete[] req_array;
       return SRM_ERROR_SOAP;
     };
+    delete[] req_array;
   
     if (response_struct.srmRmResponse->returnStatus->statusCode != SRMv2__TStatusCode__SRM_USCORESUCCESS) {
       char * msg = response_struct.srmRmResponse->returnStatus->explanation;
@@ -1282,15 +1286,15 @@
     xsd__anyURI surl = (char*)req.surls().front().c_str();
   
     // Call srmRmdir on the files in the request token
-    SRMv2__srmRmdirRequest * request = new SRMv2__srmRmdirRequest;
-    request->SURL = surl;
+    SRMv2__srmRmdirRequest request;
+    request.SURL = surl;
   
     struct SRMv2__srmRmdirResponse_ response_struct;
   
     int soap_err = SOAP_OK;
    
     // do the srmRm call
-    if((soap_err=soap_call_SRMv2__srmRmdir(&soapobj, csoap->SOAP_URL(), "srmRmdir", request, response_struct)) != SOAP_OK){
+    if((soap_err=soap_call_SRMv2__srmRmdir(&soapobj, csoap->SOAP_URL(), "srmRmdir", &request, response_struct)) != SOAP_OK){
       logger.msg(Arc::INFO, "SOAP request failed (%s)", "srmRmdir");
       soap_print_fault(&soapobj, stderr);
       csoap->disconnect();
@@ -1315,33 +1319,35 @@
   SRMReturnCode SRM22Client::copy(SRMClientRequest& req, const std::string& source) {
     
     // construct copy request
-    SRMv2__TCopyFileRequest * copyrequest = new SRMv2__TCopyFileRequest;
-    copyrequest->sourceSURL = (char*)source.c_str();
-    copyrequest->targetSURL = (char*)req.surls().front().c_str();
-    
-    SRMv2__TCopyFileRequest ** req_array = new SRMv2__TCopyFileRequest*[1];
+    SRMv2__TCopyFileRequest * req_array = new SRMv2__TCopyFileRequest[1];
+
+    SRMv2__TCopyFileRequest copyrequest;
+    copyrequest.sourceSURL = (char*)source.c_str();
+    copyrequest.targetSURL = (char*)req.surls().front().c_str();
     req_array[0] = copyrequest;
   
-    SRMv2__ArrayOfTCopyFileRequest * file_requests = new SRMv2__ArrayOfTCopyFileRequest;
-    file_requests->__sizerequestArray=1;
-    file_requests->requestArray=req_array;
+    SRMv2__ArrayOfTCopyFileRequest file_requests;
+    file_requests.__sizerequestArray=1;
+    file_requests.requestArray=&req_array;
   
-    SRMv2__srmCopyRequest * request = new SRMv2__srmCopyRequest;
-    request->arrayOfFileRequests=file_requests;
+    SRMv2__srmCopyRequest request;
+    request.arrayOfFileRequests=&file_requests;
   
     // set space token if supplied
-    if(req.space_token() != "") request->targetSpaceToken = (char*)req.space_token().c_str();
+    if(req.space_token() != "") request.targetSpaceToken = (char*)req.space_token().c_str();
   
     struct SRMv2__srmCopyResponse_ response_struct;
   
     // do the call
     int soap_err = SOAP_OK;
-    if((soap_err=soap_call_SRMv2__srmCopy(&soapobj, csoap->SOAP_URL(), "srmCopy", request, response_struct)) != SOAP_OK){
+    if((soap_err=soap_call_SRMv2__srmCopy(&soapobj, csoap->SOAP_URL(), "srmCopy", &request, response_struct)) != SOAP_OK){
       logger.msg(Arc::INFO, "SOAP request failed (%s)", "srmCopy");
       soap_print_fault(&soapobj, stderr);
       csoap->disconnect();
+      delete[] req_array;
       return SRM_ERROR_SOAP;
     };
+    delete[] req_array;
   
     SRMv2__srmCopyResponse * response_inst = response_struct.srmCopyResponse;
     SRMv2__TStatusCode return_status = response_inst->returnStatus->statusCode;
@@ -1375,13 +1381,13 @@
         sleep(sleeptime);
         request_time += sleeptime;
   
-        SRMv2__srmStatusOfCopyRequestRequest * soc_request = new SRMv2__srmStatusOfCopyRequestRequest;
-        soc_request->requestToken=request_token;
+        SRMv2__srmStatusOfCopyRequestRequest soc_request;
+        soc_request.requestToken=request_token;
   
         struct SRMv2__srmStatusOfCopyRequestResponse_ soc_response_struct;
   
         // call statusOfCopyRequest
-        if ((soap_err=soap_call_SRMv2__srmStatusOfCopyRequest(&soapobj, csoap->SOAP_URL(), "srmStatusOfCopyRequest", soc_request, soc_response_struct)) != SOAP_OK) {
+        if ((soap_err=soap_call_SRMv2__srmStatusOfCopyRequest(&soapobj, csoap->SOAP_URL(), "srmStatusOfCopyRequest", &soc_request, soc_response_struct)) != SOAP_OK) {
           logger.msg(Arc::INFO, "SOAP request failed (%s)", "srmStatusOfCopyRequest");
           soap_print_fault(&soapobj, stderr);
           csoap->disconnect();
@@ -1457,15 +1463,15 @@
       logger.msg(Arc::VERBOSE, "Creating directory %s", dirname);
       // construct mkdir request
       xsd__anyURI dir = (char*)dirname.c_str();
-      SRMv2__srmMkdirRequest * request = new SRMv2__srmMkdirRequest;
-      request->SURL = dir;
+      SRMv2__srmMkdirRequest request;
+      request.SURL = dir;
   
       struct SRMv2__srmMkdirResponse_ response_struct;
   
       int soap_err = SOAP_OK;
    
       // do the srmMkdir call
-      if((soap_err=soap_call_SRMv2__srmMkdir(&soapobj, csoap->SOAP_URL(), "srmMkdir", request, response_struct)) != SOAP_OK){
+      if((soap_err=soap_call_SRMv2__srmMkdir(&soapobj, csoap->SOAP_URL(), "srmMkdir", &request, response_struct)) != SOAP_OK){
         logger.msg(Arc::INFO, "SOAP request failed (srmMkdir)");
         soap_print_fault(&soapobj, stderr);
         csoap->disconnect();

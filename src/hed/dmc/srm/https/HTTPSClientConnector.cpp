@@ -61,7 +61,10 @@ namespace Arc {
     return mode;
   }
     
-  HTTPSClientConnectorGlobus::HTTPSClientConnectorGlobus(const char* base,bool heavy_encryption,int timeout_,gss_cred_id_t cred_) try: base_url(base) {
+  HTTPSClientConnectorGlobus::HTTPSClientConnectorGlobus(const char* base,
+                                                         bool heavy_encryption,
+                                                         int timeout_,
+                                                         gss_cred_id_t cred_) try: base_url(base) {
     valid=false; connected=false;
     read_registered=false;
     write_registered=false;
@@ -367,7 +370,12 @@ namespace Arc {
     return message;
   }
   
-  HTTPSClientConnectorGSSAPI::HTTPSClientConnectorGSSAPI(const char* base,bool heavy_encryption,int timeout_,gss_cred_id_t cred_,bool check_host) try: base_url(base), check_host_cert(check_host) {
+  HTTPSClientConnectorGSSAPI::HTTPSClientConnectorGSSAPI(const char* base,
+                                                         bool heavy_encryption,
+                                                         int timeout_,
+                                                         gss_cred_id_t cred_,
+                                                         bool check_host) try: base_url(base), 
+                                                                               check_host_cert(check_host) {
     s=-1;
     cred=cred_;
     timeout=timeout_;
@@ -725,7 +733,7 @@ namespace Arc {
     while(true) {
       l=read_SSL_token(&(recv_tok.value),0);
       if(l <= 0) return true;
-      if(recv_tok.value) free(recv_tok.value);
+      free(recv_tok.value);
     };
   }
   

@@ -184,7 +184,7 @@ void SRMInfo::putSRMFileInfo(const SRMFileInfo& srm_file_info) {
     return;
   }
   
-  for (std::vector<std::string>::iterator i = lines.begin(); i != lines.end(); i++) {
+  for (std::vector<std::string>::iterator i = lines.begin(); i != lines.end(); ++i) {
     fputs ((char*)i->c_str(), pFile);
   }
   std::string this_info = srm_file_info.host + ' ' + Arc::tostring(srm_file_info.port) + ' ' + srm_file_info.protocol + ' ' + srm_file_info.versionString() + '\n';                       
