@@ -579,6 +579,8 @@ EOSCR
     echo "nodename=\`$NODENAME\`" >> $LRMS_JOB_SCRIPT
     echo "echo \"nodename=\$nodename\" >> \"\$RUNTIME_JOB_DIAG\"" >> $LRMS_JOB_SCRIPT
   fi
+  #TODO this should probably be done on headnode instead
+  echo "echo \"ExecutionUnits=${joboption_count}\" >> \"\$RUNTIME_JOB_DIAG\"" >> $LRMS_JOB_SCRIPT
 
   # In case the job executable is written in a scripting language and the
   # interpreter is not found, the error message printed by GNU_TIME is

@@ -271,7 +271,7 @@ add_accounting_to_diag () {
       | grep -v "^KernelTime=" \
       | grep -v "^UserTime=" \
       | grep -v "^CPUTime=" \
-      | grep -v "^CPUCores=" \
+      | grep -v "^ExecutionUnits=" \
       | grep -v "^LRMSStartTime=" \
       | grep -v "^LRMSEndTime=" \
       | grep -v "^MaxResidentMemory=" \
