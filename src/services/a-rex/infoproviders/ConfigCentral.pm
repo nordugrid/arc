@@ -36,7 +36,7 @@ my $lrms_options = {
     lsf_bin_path => '*',
     lsf_profile_path => '*',
     ll_bin_path => '*',
-    slurm_bin_path => '*',
+    SLURM_bin_path => '*',
 };
 my $lrms_share_options = {
     fork_job_limit => '*',

@@ -24,7 +24,7 @@ fi
 
 # Path to slurm commands
 #SLURM_BIN_PATH=${SLURM_BIN_PATH:-$CONFIG_SLURM_bin_path}
-SLURM_BIN_PATH=${CONFIG_slurm_bin_path:-/usr/bin}
+SLURM_BIN_PATH=${CONFIG_SLURM_bin_path:-/usr/bin}
 if [ ! -d ${SLURM_BIN_PATH} ] ; then
     echo "Could not set SLURM_BIN_PATH." 1>&2
     exit 1
