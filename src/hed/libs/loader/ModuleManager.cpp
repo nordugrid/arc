@@ -2,6 +2,7 @@
 #include <config.h>
 #endif
 
+#include <arc/ArcLocation.h>
 #include <arc/loader/ModuleManager.h>
 
 namespace Arc {
@@ -15,9 +16,9 @@ static std::string strip_newline(const std::string& str) {
   while((p=s.find('\n',p)) != std::string::npos) s[p]=' ';
   return s;
 }
-  
+
 ModuleManager::ModuleManager(XMLNode cfg)
-{ 
+{
   if(!cfg) return;
   ModuleManager::logger.msg(DEBUG, "Module Manager Init");
   if(!MatchXMLName(cfg,"ArcConfig")) return;
@@ -30,6 +31,9 @@ ModuleManager::ModuleManager(XMLNode cfg)
     if (MatchXMLName(path, "Path")) {
       plugin_dir.push_back((std::string)path);
     }
+  }
+  if (plugin_dir.empty()) {
+    plugin_dir = ArcLocation::GetPlugins();
   }
 }
 
@@ -46,7 +50,7 @@ ModuleManager::~ModuleManager(void)
 std::string ModuleManager::findLocation(const std::string& name)
 {
   std::string path;
-  std::vector<std::string>::const_iterator i = plugin_dir.begin();
+  std::list<std::string>::const_iterator i = plugin_dir.begin();
   for (; i != plugin_dir.end(); i++) {
     path = Glib::Module::build_path(*i, name);
     // Loader::logger.msg(VERBOSE, "Try load %s", path);
@@ -69,7 +73,7 @@ void ModuleManager::unload(Glib::Module *module)
     if(p->second == module) {
       if(p->second.unload() <= 0) {
         plugin_cache.erase(p);
-      }      
+      }
       break;
     }
   }
@@ -95,7 +99,7 @@ Glib::Module *ModuleManager::load(const std::string& name,bool probe /*,bool rel
   if (!Glib::Module::get_supported()) {
     return false;
   }
-  // find name in plugin_cache 
+  // find name in plugin_cache
   {
     plugin_cache_t::iterator p = plugin_cache.find(name);
     if (p != plugin_cache.end()) {
@@ -107,7 +111,7 @@ Glib::Module *ModuleManager::load(const std::string& name,bool probe /*,bool rel
   std::string path = findLocation(name);
   if(path.empty()) {
     ModuleManager::logger.msg(VERBOSE, "Could not locate module %s in following paths:", name);
-    std::vector<std::string>::const_iterator i = plugin_dir.begin();
+    std::list<std::string>::const_iterator i = plugin_dir.begin();
     for (; i != plugin_dir.end(); i++) {
       ModuleManager::logger.msg(VERBOSE, "\t%s", *i);
     }
@@ -143,7 +147,7 @@ Glib::Module* ModuleManager::reload(Glib::Module* omodule)
   }
   p->second=module;
   delete omodule;
-  return module; 
+  return module;
 }
 
 void ModuleManager::setCfg (XMLNode cfg) {
@@ -159,7 +163,7 @@ void ModuleManager::setCfg (XMLNode cfg) {
     }
     if (MatchXMLName(path, "Path")) {
       //std::cout<<"Size:"<<plugin_dir.size()<<"plugin cache size:"<<plugin_cache.size()<<std::endl;
-      std::vector<std::string>::const_iterator it;
+      std::list<std::string>::const_iterator it;
       for( it = plugin_dir.begin(); it != plugin_dir.end(); it++){
         //std::cout<<(std::string)path<<"*********"<<(*it)<<std::endl;
         if(((*it).compare((std::string)path)) == 0)break;
@@ -167,6 +171,9 @@ void ModuleManager::setCfg (XMLNode cfg) {
       if(it == plugin_dir.end())
         plugin_dir.push_back((std::string)path);
     }
+  }
+  if (plugin_dir.empty()) {
+    plugin_dir = ArcLocation::GetPlugins();
   }
 }
 
