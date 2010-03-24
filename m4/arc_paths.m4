@@ -17,7 +17,6 @@ AC_DEFUN([ARC_RELATIVE_PATHS],
       # It seems arc_datadir should be evaluated twice to be expanded fully.
       eval arc_datadir="\"${datadir}/${PACKAGE}\""
       eval arc_datadir="\"${arc_datadir}\""
-      eval arc_sysconfdir="\"${sysconfdir}/${PACKAGE}\""
   ])
 
   libsubdir=`get_relative_path "$instprefix" "$arc_libdir"`
@@ -46,8 +45,6 @@ AC_DEFUN([ARC_RELATIVE_PATHS],
   AC_DEFINE_UNQUOTED([PKGLIBSUBDIR], ["${pkglibsubdir}"], [plugin installation subdirectory])
   AC_DEFINE_UNQUOTED([PKGLIBEXECSUBDIR], ["${pkglibexecsubdir}"], [helper programs installation subdirectory])
   AC_DEFINE_UNQUOTED([PKGDATASUBDIR], ["${pkgdatalibsubdir}"], [package data subdirectory])
-  AC_DEFINE_UNQUOTED([PKGDATADIR], ["${arc_datadir}"], [arc data dir])
-  AC_DEFINE_UNQUOTED([PKGSYSCONFDIR], ["${arc_sysconfdir}"], [arc system configuration directory])
 
 ])
 

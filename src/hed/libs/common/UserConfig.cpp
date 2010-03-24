@@ -50,13 +50,8 @@ namespace Arc {
 
   const std::string UserConfig::ARCUSERDIRECTORY = Glib::build_filename(User().Home(), ".arc");
 
-#ifdef WIN32
-  const std::string UserConfig::SYSCONFIG =  ArcLocation::Get() + "\\etc\\arc\\client.conf";
-  const std::string UserConfig::EXAMPLECONFIG = ArcLocation::Get() + "\\share\\arc\\examples\\client.conf.example";
-#else
-  const std::string UserConfig::SYSCONFIG = Glib::build_filename(PKGSYSCONFDIR, "client.conf");
-  const std::string UserConfig::EXAMPLECONFIG = Glib::build_filename(PKGDATADIR G_DIR_SEPARATOR_S "examples", "client.conf.example");
-#endif
+  const std::string UserConfig::SYSCONFIG = G_DIR_SEPARATOR_S "etc" G_DIR_SEPARATOR_S "arc" G_DIR_SEPARATOR_S "client.conf";
+  const std::string UserConfig::EXAMPLECONFIG = ArcLocation::Get() + G_DIR_SEPARATOR_S PKGDATASUBDIR G_DIR_SEPARATOR_S "examples" G_DIR_SEPARATOR_S "client.conf.example";
 
   const std::string UserConfig::DEFAULTCONFIG = Glib::build_filename(ARCUSERDIRECTORY, "client.conf");
 
@@ -77,10 +72,16 @@ namespace Arc {
                          bool loadSysConfig)
     : ok(false) {
     if (loadSysConfig) {
-      if (!Glib::file_test(SYSCONFIG, Glib::FILE_TEST_IS_REGULAR))
-        logger.msg(INFO, "System configuration file (%s) does not exist.", SYSCONFIG);
-      else if (!LoadConfigurationFile(SYSCONFIG, true))
-        logger.msg(INFO, "System configuration file (%s) contains errors.", SYSCONFIG);
+      if (Glib::file_test(SYSCONFIG, Glib::FILE_TEST_IS_REGULAR)) {
+        if (!LoadConfigurationFile(SYSCONFIG, true))
+          logger.msg(INFO, "System configuration file (%s) contains errors.", SYSCONFIG);
+      }
+      else if (Glib::file_test(ArcLocation::Get() + SYSCONFIG, Glib::FILE_TEST_IS_REGULAR)) {
+        if (!LoadConfigurationFile(ArcLocation::Get() + SYSCONFIG, true))
+          logger.msg(INFO, "System configuration file (%s) contains errors.", ArcLocation::Get() + SYSCONFIG);
+      }
+      else
+        logger.msg(VERBOSE, "System configuration file (%s or %s) does not exist.", SYSCONFIG, ArcLocation::Get() + SYSCONFIG);
     }
 
     if (conffile.empty()) {
@@ -122,10 +123,16 @@ namespace Arc {
       return;
 
     if (loadSysConfig) {
-      if (!Glib::file_test(SYSCONFIG, Glib::FILE_TEST_IS_REGULAR))
-        logger.msg(INFO, "System configuration file (%s) does not exist.", SYSCONFIG);
-      else if (!LoadConfigurationFile(SYSCONFIG, true))
-        logger.msg(INFO, "System configuration file (%s) contains errors.", SYSCONFIG);
+      if (Glib::file_test(SYSCONFIG, Glib::FILE_TEST_IS_REGULAR)) {
+        if (!LoadConfigurationFile(SYSCONFIG, true))
+          logger.msg(INFO, "System configuration file (%s) contains errors.", SYSCONFIG);
+      }
+      else if (Glib::file_test(ArcLocation::Get() + SYSCONFIG, Glib::FILE_TEST_IS_REGULAR)) {
+        if (!LoadConfigurationFile(ArcLocation::Get() + SYSCONFIG, true))
+          logger.msg(INFO, "System configuration file (%s) contains errors.", ArcLocation::Get() + SYSCONFIG);
+      }
+      else
+        logger.msg(VERBOSE, "System configuration file (%s or %s) does not exist.", SYSCONFIG, ArcLocation::Get() + SYSCONFIG);
     }
 
     if (conffile.empty()) {
@@ -702,23 +709,23 @@ namespace Arc {
         if (Glib::file_test(EXAMPLECONFIG, Glib::FILE_TEST_IS_REGULAR)) {
           // Destination: Get basename, remove example prefix and add .arc directory.
           if (copyFile(EXAMPLECONFIG, DEFAULTCONFIG))
-            logger.msg(INFO, "Configuration example file created (%s)", DEFAULTCONFIG);
+            logger.msg(VERBOSE, "Configuration example file created (%s)", DEFAULTCONFIG);
           else
-            logger.msg(WARNING, "Unable to copy example configuration from existing configuration (%s)", EXAMPLECONFIG);
+            logger.msg(INFO, "Unable to copy example configuration from existing configuration (%s)", EXAMPLECONFIG);
             return false;
         }
         else {
-          logger.msg(WARNING, "Cannot copy example configuration (%s), it is not a regular file", EXAMPLECONFIG);
+          logger.msg(INFO, "Cannot copy example configuration (%s), it is not a regular file", EXAMPLECONFIG);
           return false;
         }
       }
       else {
-        logger.msg(WARNING, "Example configuration (%s) not created.", DEFAULTCONFIG);
+        logger.msg(INFO, "Example configuration (%s) not created.", DEFAULTCONFIG);
         return false;
       }
     }
     else if (!Glib::file_test(DEFAULTCONFIG, Glib::FILE_TEST_IS_REGULAR)) {
-      logger.msg(WARNING, "The default configuration file (%s) is not a regular file.", DEFAULTCONFIG);
+      logger.msg(INFO, "The default configuration file (%s) is not a regular file.", DEFAULTCONFIG);
       return false;
     }
 
