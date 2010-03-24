@@ -48,7 +48,7 @@ echo "$$" > "$lockfile"
 #If killed, remove lockfile
 trap 'rm $lockfile' EXIT KILL TERM
 #Default sleep-time is 30 seconds
-sleep ${CONFIG_wakeupperiod:-30}
+sleep ${CONFIG_SLURM_wakeupperiod:-30}
 
 
 

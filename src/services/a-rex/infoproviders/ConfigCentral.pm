@@ -37,6 +37,7 @@ my $lrms_options = {
     lsf_profile_path => '*',
     ll_bin_path => '*',
     SLURM_bin_path => '*',
+    SLURM_wakeupperiod => '*',
 };
 my $lrms_share_options = {
     fork_job_limit => '*',
@@ -45,7 +46,7 @@ my $lrms_share_options = {
     sge_jobopts => '*',
     lsf_architecture => '*',
     ll_consumable_resources => '*',
-    slurm_project => '*',
+    SLURM_project => '*',
 };
 my $xenv_options = {
     Platform => '*',
