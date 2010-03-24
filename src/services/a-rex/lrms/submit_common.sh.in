@@ -129,9 +129,19 @@ EOHELP
    done
 }
 
+#
+# Exits with 0 if the argument is all digits
+#
+is_number () {
+    /usr/bin/perl -e 'exit 1 if $ARGV[0] !~ m/^\d+$/' "$1"
+}
+
+#
+# Sets a default memory limit for jobs that don't have one
+#
 set_req_mem () {
-    if [ -z "$joboption_memory" ] || [[ "$joboption_memory" =~ ^[0-9]+$ ]]; then
-        if [ ! -z "$CONFIG_nodememory" ] && [[ "$CONFIG_nodememory" =~ ^[0-9]+$ ]]; then
+    if ! is_number "$joboption_memory"; then
+        if is_number "$CONFIG_nodememory"; then
             joboption_memory=$CONFIG_nodememory
 
             echo "---------------------------------------------------------------------" 1>&2
