@@ -19,10 +19,6 @@ pkglibdir=`cd $pkglibdir > /dev/null && pwd` || exit $?
 
 . ${pkglibdir}/cancel_common.sh $1 || exit $?
 
-##############################################################
-# These should be set automatically
-##############################################################
-
 PBS_QDEL='qdel'
 if [ ! -z "$PBS_BIN_PATH" ] ; then
   PBS_QDEL="${PBS_BIN_PATH}/${PBS_QDEL}"

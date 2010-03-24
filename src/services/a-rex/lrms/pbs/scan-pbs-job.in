@@ -177,14 +177,14 @@ process_log_file () {
     commentfile="${sessiondir}.comment"
 
     if [ -z "$sessiondir" ] ; then
-      log "Faield to determine the path of the job's session directory"
+      log "Failed to determine the path of the job's session directory"
     else
       # have chance to obtain exit code
       if [ -z "${RUNTIME_NODE_SEES_FRONTEND}" ] ; then
         # In case of non-NFS setup it may take some time till
         # diagnostics file is delivered. Wait for it max 2 minutes.
         # OBS: exitcode may never appear in the .diag file if the job was
-        # killed. Ther will be a 2 minute delay for every such job!
+        # killed. There will be a 2 minute delay for every such job!
         diag_tries=0
         while [ "$diag_tries" -lt 20 ] ; do
           job_read_diag # uses $sessiondir, $uid
