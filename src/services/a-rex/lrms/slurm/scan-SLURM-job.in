@@ -183,8 +183,17 @@ function handle_start_end_time {
     localid="$1"
     ctr_diag="$2"
     jobinfostring=$("$scontrol" -o show job $localid)
-    starttime=$(echo "$jobinfostring"|sed -n 's/.*StartTime=\([^ ]*\) .*/\1/p' | sed 's/-/ /g')
-    endtime=$(echo "$jobinfostring"|sed -n 's/.*EndTime=\([^ ]*\) .*/\1/p' | sed 's/-/ /g')
+
+    #Slurm can report StartTime and EndTime in at least these two formats:
+    #2010-02-15T15:30:29
+    #02/15-15:25:15
+    #For our code to be able to manage both, the first needs to keep its hyphens,
+    #the second needs them removed
+
+    starttime=$(echo "$jobinfostring"|sed -n 's/.*StartTime=\([^ ]*\) .*/\1/p' | \
+	sed 's,\([0-9]\+/[0-9]\+\)-\([0-9:]\+\),\1 \2,g')
+    endtime=$(echo "$jobinfostring"|sed -n 's/.*EndTime=\([^ ]*\) .*/\1/p' | \
+	sed 's,\([0-9]\+/[0-9]\+\)-\([0-9:]\+\),\1 \2,g')
 
     date_to_utc_seconds "$starttime"
     seconds_to_mds_date "$return_date_seconds"
