@@ -198,7 +198,11 @@ void CacheConfig::parseINIConf(std::string username, ConfigSections* cf) {
       std::string user = config_next_arg(rest);
       while (user != "") {
         if(user == "*") {  /* add all gridmap users */
-           if(!gridmap_user_list(rest)) throw CacheConfigException("Can't read users in gridmap file " + globus_gridmap());
+           throw CacheConfigException("Gridmap user list feature is not supported anymore. Plase use @filename to specify user list.");
+        }
+        else if (user[0] == '@') {
+           std::string filename = username.substr(1);
+           if(!file_user_list(filename,rest)) throw CacheConfigException("Can't read users in specified file " + filename);
         }
         else if (user == username || user == ".") {
           usermatch = true;

@@ -5,14 +5,14 @@
 #include <list>
 
 /*
-  Read gridmap file (specified by globus_gridmap global variable).
+  Read file specified by path argument.
   Returns:
     true - success
     false - error (most probaly file is missing)
-    'ulist' contains unix usernames found in gridmap file separted by
-    blank spaces.
+    'ulist' contains unix usernames found in file - one per line or
+    in gridmap-like format - separted by blank spaces.
 */
-bool gridmap_user_list(std::string &ulist);
-bool gridmap_user_list(std::list<std::string> &ulist);
+bool file_user_list(const std::string& path,std::string &ulist);
+bool file_user_list(const std::string& path,std::list<std::string> &ulist);
 
 #endif // __GM_GRIDMAP_H__

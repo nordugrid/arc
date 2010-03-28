@@ -136,7 +136,6 @@ void RunParallel::initializer(void* arg) {
   if(h != 2) { if(dup2(h,2) != 2) { sleep(10); exit(1); }; close(h); };
   // setting environment  - TODO - better environment 
   if(it->job_proxy_) {
-    Arc::SetEnv("GLOBUS_LOCATION",globus_loc());
     Arc::UnsetEnv("X509_USER_KEY");
     Arc::UnsetEnv("X509_USER_CERT");
     Arc::UnsetEnv("X509_USER_PROXY");
@@ -157,10 +156,6 @@ void RunParallel::initializer(void* arg) {
 #endif
     };
   };
-  //# execv(args[0],args);
-  //# perror("execv");
-  //# std::cerr<<(jobid?jobid:"")<<"Failed to start external program: "<<args[0]<<std::endl;
-  //# sleep(10); exit(1);
 #endif
 }
 

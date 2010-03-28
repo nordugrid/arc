@@ -110,10 +110,6 @@ std::string operator+(const std::string& val1,const prstring& val2) {
   return (val1 + val2.str());
 }
 
-// Globus installation path - $GLOBUS_LOCATION
-static prstring globus_loc_; 
-// Various Globus scripts - $GLOBUS_LOCATION/libexec
-static prstring globus_scripts_loc_;
 // ARC installation path - $ARC_LOCATION, executable path
 static prstring nordugrid_loc_;
 // ARC system tools
@@ -130,16 +126,6 @@ static prstring cert_dir_loc_;
 static prstring runtime_config_dir_;
 // Email address of person responsible for this ARC installation
 static prstring support_mail_address_;
-// Global gridmap files with welcomed users' DNs and UNIX names
-static prstring globus_gridmap_;
-
-std::string globus_loc(void) {
-  return globus_loc_.str();
-}
-
-std::string globus_scripts_loc(void) {
-  return globus_scripts_loc_.str();
-}
 
 std::string nordugrid_loc(void) {
   return nordugrid_loc_.str();
@@ -185,10 +171,6 @@ void support_mail_address(const std::string& val) {
   support_mail_address_=val;
 }
 
-std::string globus_gridmap(void) {
-  return globus_gridmap_.str();
-}
-
 
 static bool file_exists(const char* name) {
   struct stat st;
@@ -205,21 +187,6 @@ static bool dir_exists(const char* name) {
 }
 
 bool read_env_vars(bool guess) {
-  if(globus_loc_.empty()) {
-    globus_loc_=Arc::GetEnv("GLOBUS_LOCATION");
-    if(globus_loc_.empty()) {
-      if(!guess) {
-        olog<<"Warning: GLOBUS_LOCATION environment variable not defined"<<std::endl;
-        //return false;
-      }
-      else {
-        globus_loc_="/opt/globus";
-      };
-    };
-    Arc::SetEnv("GLOBUS_LOCATION",globus_loc_.str());
-  };
-  globus_scripts_loc_=globus_loc_+"/libexec";
-
   if(nordugrid_loc_.empty()) {
     nordugrid_loc_=Arc::GetEnv("ARC_LOCATION");
     if(nordugrid_loc_.empty()) {
@@ -264,9 +231,6 @@ bool read_env_vars(bool guess) {
       support_mail_address_+="localhost";
     };
   };
-  std::string tmp=Arc::GetEnv("GRIDMAP");
-  if(tmp.empty()) { globus_gridmap_="/etc/grid-security/grid-mapfile"; }
-  else { globus_gridmap_=tmp; };
   return true;
 }
 

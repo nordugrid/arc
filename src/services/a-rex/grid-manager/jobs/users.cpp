@@ -168,7 +168,9 @@ bool JobUser::substitute(std::string& param) const {
       case 'u': to_put=Arc::tostring(get_uid()); break;
       case 'g': to_put=Arc::tostring(get_gid()); break;
       case 'W': to_put=nordugrid_loc(); break;
-      case 'G': to_put=globus_loc(); break;
+      case 'G': 
+        logger.msg(Arc::ERROR,"Globus location variable substitution is not supported anymore. Please specify path directly.");
+        break;
       default: to_put=param.substr(pos-1,2);
     };
     curpos=pos+1+(to_put.length() - 2);

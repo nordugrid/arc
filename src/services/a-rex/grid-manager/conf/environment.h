@@ -30,10 +30,6 @@ std::string operator+(const char*,const prstring&);
 std::string operator+(const std::string&,const prstring&);
 */
 
-/// Globus installation path - $GLOBUS_LOCATION, /opt/globus
-std::string globus_loc(void);
-// Various Globus scripts - $GLOBUS_LOCATION/libexec
-std::string globus_scripts_loc(void);
 /// ARC installation path - $ARC_LOCATION, executable path
 std::string nordugrid_loc(void);
 /// ARC system tools - $ARC_LOCATION/libexec/arc, $ARC_LOCATION/libexec
@@ -58,9 +54,6 @@ void runtime_config_dir(const std::string&);
 /// grid.manager@hostname, it can also be set from configuration file 
 std::string support_mail_address(void);
 void support_mail_address(const std::string&);
-/// Global gridmap files with welcomed users' DNs and UNIX names
-/// $GRIDMAP, default /etc/grid-security/grid-mapfile
-std::string globus_gridmap(void);
 
 ///  Read environment, check files and set variables
 ///  Accepts:

@@ -466,8 +466,12 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
         std::string username = config_next_arg(rest);
         if(username.length() == 0) break;
         if(username == "*") {  /* add all gridmap users */
-          if(!gridmap_user_list(rest)) {
-            logger.msg(Arc::ERROR,"Can't read users in gridmap file %s",globus_gridmap()); goto exit;
+          logger.msg(Arc::ERROR,"Gridmap user list feature is not supported anymore. Plase use @filename to specify user list."); goto exit;
+        };
+        if(username[0] == '@') {  /* add users from file */
+          std::string filename = username.substr(1);
+          if(!file_user_list(filename,rest)) {
+            logger.msg(Arc::ERROR,"Can't read user list in specified file %s",filename); goto exit;
           };
           continue;
         };
@@ -901,8 +905,13 @@ bool configure_serviced_users(Arc::XMLNode cfg,JobUsers &users,uid_t my_uid,cons
         logger.msg(Arc::ERROR,"username in control is empty"); return false;
       };
       if(username == "*") {  /* add all gridmap users */
-        if(!gridmap_user_list(userlist)) {
-          logger.msg(Arc::ERROR,"Can't read users in gridmap file %s",globus_gridmap());
+        logger.msg(Arc::ERROR,"Gridmap user list feature is not supported anymore. Plase use @filename to specify user list.");
+        return false;
+      };
+      if(username[0] == '@') {  /* add users from file */
+        std::string filename = username.substr(1);
+        if(!file_user_list(filename,userlist)) {
+          logger.msg(Arc::ERROR,"Can't read users in specified file %s",filename);
           return false;
         };
         continue;
