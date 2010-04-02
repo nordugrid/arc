@@ -479,6 +479,9 @@ ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& crede
     failure_type_=ARexJobInternalError;
     return;
   };
+  // Create input status file to tell downloader we
+  // are hadling input in lever way.
+  job_input_status_add_file(job,*config_.User());
   // Create status file (do it last so GM picks job up here)
   if(!job_state_write_file(job,*config_.User(),JOB_STATE_ACCEPTED)) {
     delete_job_id();
@@ -771,6 +774,13 @@ std::string ARexJob::GetFilePath(const std::string& filename) {
   if(!normalize_filename(fname)) return "";
   if(fname.empty()) config_.User()->SessionRoot(id_)+"/"+id_;
   return config_.User()->SessionRoot(id_)+"/"+id_+"/"+fname;
+}
+
+bool ARexJob::ReportFileComplete(const std::string& filename) {
+  if(id_.empty()) return "";
+  std::string fname = filename;
+  if(!normalize_filename(fname)) return false;
+  return job_input_status_add_file(JobDescription(id_,""),*config_.User(),"/"+fname);
 }
 
 std::string ARexJob::GetLogFilePath(const std::string& name) {

@@ -880,6 +880,61 @@ bool job_input_read_file(const JobId &id,JobUser &user,std::list<FileData> &file
   return job_Xput_read_file(fname,files);
 }
 
+bool job_input_status_read_file(const JobId &id,JobUser &user,std::list<std::string>& files) {
+  std::string fname = user.ControlDir() + "/job." + id + ".input_status";
+  std::ifstream f(fname.c_str());
+  if(! f.is_open() ) return false; /* can't open file */
+  for(;!f.eof();) {
+    std::string fn; f >> fn;
+    if(fn.length() != 0) {  /* returns zero length only if empty std::string */
+      files.push_back(fn);
+    };
+  };
+  f.close();
+  return true;
+}
+
+bool job_input_status_add_file(const JobDescription &desc,JobUser &user,const std::string& file) {
+  // 1. lock
+  // 2. add
+  // 3. unlock
+  std::string fname = user.ControlDir() + "/job." + desc.get_id() + ".input_status";
+  int h=open(fname.c_str(),O_WRONLY | O_CREAT | O_APPEND, S_IRUSR | S_IWUSR);
+  if(h==-1) return false;
+  if(file.empty()) {
+    close(h); return true;
+  };
+  struct flock lock;
+  lock.l_type=F_WRLCK;
+  lock.l_whence=SEEK_SET; lock.l_start=0; lock.l_len=0;
+  for(;;) {
+    if(fcntl(h,F_SETLKW,&lock) != -1) break;
+    if(errno == EINTR) continue;
+    close(h); return false;
+  };
+  bool r = true;
+  std::string line = file + "\n";
+  const char* s = line.c_str();
+  size_t l = file.length();
+  for(;l>0;) {
+    ssize_t ll = write(h,s,l);
+    if(ll == -1) {
+      if(errno == EINTR) continue;
+      r=false; break;
+    };
+    l-=ll; s+=ll;
+  };
+  lock.l_whence=SEEK_SET; lock.l_start=0; lock.l_len=0;
+  lock.l_type=F_UNLCK; fcntl(h,F_SETLK,&lock);
+  for(;;) {
+    if(fcntl(h,F_SETLK,&lock) != -1) break;
+    if(errno == EINTR) continue;
+    r=false; break;
+  };
+  close(h);
+  return r;
+}
+
 std::string job_proxy_filename(const JobId &id, const JobUser &user){
 	return user.ControlDir() + "/job." + id + sfx_proxy;
 }
@@ -999,6 +1054,7 @@ bool job_clean_deleted(const JobDescription &desc,JobUser &user,std::list<std::s
   fname = user.ControlDir()+"/job."+id+".rte"; remove(fname.c_str());
   fname = user.ControlDir()+"/job."+id+".grami_log"; remove(fname.c_str());
   fname = user.SessionRoot(id)+"/"+id+sfx_lrmsoutput; remove(fname.c_str());
+  fname = user.SessionRoot(id)+"/"+id+".input_status"; remove(fname.c_str());
   /* remove session directory */
   std::list<FileData> flist;
   std::string dname = user.SessionRoot(id)+"/"+id;

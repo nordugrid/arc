@@ -43,6 +43,8 @@ static Arc::Logger logger(Arc::Logger::getRootLogger(), "Downloader");
 
 /* check for user uploaded files every 60 seconds */
 #define CHECK_PERIOD 60
+/* check for user uploaded files every 5 seconds if no checksum is involved */
+#define CHECK_PERIOD_FAST 5
 /* maximum number of retries (for every source/destination) */
 #define MAX_RETRIES 5
 /* maximum number simultaneous downloads */
@@ -113,7 +115,7 @@ int clean_files(std::list<FileData> &job_files,char* session_dir) {
            1 - it is not proper file or other error
            2 - not here yet
 */
-int user_file_exists(FileData &dt,char* session_dir,std::string* error = NULL) {
+int user_file_exists(FileData &dt,char* session_dir,std::list<std::string>* have_files,std::string* error = NULL) {
   struct stat st;
   const char *str = dt.lfn.c_str();
   if(strcmp(str,"*.*") == 0) return 0; /* do not wait for this file */
@@ -168,7 +170,13 @@ int user_file_exists(FileData &dt,char* session_dir,std::string* error = NULL) {
       return 1; /* too big file */
     };
   };
-  if(have_checksum) {
+  if(have_files) {
+    std::list<std::string>::iterator f = have_files->begin();
+    for(;f!=have_files->end();++f) {
+      if(dt.pfn == *f) break;
+    };
+    if(f == have_files->end()) return 2;
+  } else if(have_checksum) {
     int h=open(fname.c_str(),O_RDONLY);
     if(h==-1) { /* if we can't read that file job won't too */
       logger.msg(Arc::ERROR, "Error accessing file %s", dt.pfn);
@@ -665,12 +673,15 @@ int main(int argc,char** argv) {
   // run cycle waiting for uploaded files
   for(;;) {
     not_uploaded=false;
+    std::list<std::string> uploaded_files;
+    std::list<std::string>* uploaded_files_ = NULL;
+    if(job_input_status_read_file(desc.get_id(),user,uploaded_files)) uploaded_files_=&uploaded_files;
     for(FileDataEx::iterator i=job_files.begin();i!=job_files.end();) {
       if(i->lfn.find(":") == std::string::npos) { /* is it lfn ? */
         /* process user uploadable file */
         logger.msg(Arc::INFO, "Check user uploadable file: %s", i->pfn);
         std::string error;
-        int err=user_file_exists(*i,session_dir,&error);
+        int err=user_file_exists(*i,session_dir,uploaded_files_,&error);
         if(err == 0) { /* file is uploaded */
           logger.msg(Arc::INFO, "User has uploaded file %s", i->pfn);
           i=job_files.erase(i);
@@ -703,7 +714,11 @@ int main(int argc,char** argv) {
       };
       logger.msg(Arc::ERROR, "Uploadable files timed out"); res=2; break;
     };
-    sleep(CHECK_PERIOD);
+    if(uploaded_files_) {
+      sleep(CHECK_PERIOD_FAST);
+    } else {
+      sleep(CHECK_PERIOD);
+    };
   };
   job_files_.clear();
   for(FileDataEx::iterator i = job_files.begin();i!=job_files.end();++i) job_files_.push_back(*i);

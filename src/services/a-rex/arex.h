@@ -8,6 +8,7 @@
 #include <arc/infosys/InfoRegister.h>
 #include <arc/Thread.h>
 
+#include "FileChunks.h"
 #include "grid-manager/grid_manager.h"
 
 namespace ARex {
@@ -67,6 +68,7 @@ class ARexService: public Arc::RegisteredService {
   std::string os_name_;
   unsigned int infoprovider_wakeup_period_;
   std::map<std::string,std::string> glue_states_;
+  FileChunksList files_chunks_;
   GridManager* gm_;
   bool valid_;
   ARexConfigContext* get_configuration(Arc::Message& inmsg);

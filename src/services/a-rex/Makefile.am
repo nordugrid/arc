@@ -20,9 +20,13 @@ example_DATA = arex.xml.example arex_secure.xml.example arex_minimalistic.xml.ex
 #                   grid-manager/mail/libmail.la 
 GRIDMANAGER_LIBS = grid-manager/libgridmanager.la
 
-libarex_la_SOURCES  = arex.cpp job.cpp PayloadFile.cpp create_activity.cpp get_activity_documents.cpp get_activity_statuses.cpp terminate_activities.cpp \
-                      change_activity_status.cpp get_factory_attributes_document.cpp get.cpp put.cpp information_collector.cpp faults.cpp arex.h job.h \
-                      PayloadFile.h gacl.cpp gacl.h tools.cpp tools.h cachecheck.cpp migrate_activity.cpp update_credentials.cpp
+libarex_la_SOURCES  = arex.cpp job.cpp \
+                      create_activity.cpp get_activity_documents.cpp get_activity_statuses.cpp \
+                      terminate_activities.cpp change_activity_status.cpp migrate_activity.cpp \
+                      get_factory_attributes_document.cpp update_credentials.cpp faults.cpp \
+                      get.cpp put.cpp PayloadFile.cpp FileChunks.cpp \
+                      information_collector.cpp gacl.cpp cachecheck.cpp tools.cpp \
+                      arex.h job.h PayloadFile.h FileChunks.h gacl.h tools.h
 libarex_la_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
 # Needs real cleaning in respect to dependencies
 libarex_la_LIBADD   = $(top_srcdir)/src/hed/libs/loader/libarcloader.la $(top_srcdir)/src/hed/libs/message/libarcmessage.la $(top_srcdir)/src/hed/libs/security/libarcsecurity.la $(top_srcdir)/src/hed/libs/ws/libarcws.la $(top_srcdir)/src/hed/libs/common/libarccommon.la $(top_srcdir)/src/hed/libs/delegation/libarcdelegation.la $(top_srcdir)/src/hed/libs/data/libarcdata2.la $(top_srcdir)/src/hed/libs/client/libarcclient.la ldif/libldif.la ./config/libconfig.la $(GRIDMANAGER_LIBS)

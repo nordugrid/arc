@@ -26,8 +26,8 @@
 
 namespace ARex {
 
-static Arc::MCC_Status http_put(ARexJob& job,const std::string& hpath,Arc::Logger& logger,Arc::PayloadStreamInterface& stream);
-static Arc::MCC_Status http_put(ARexJob& job,const std::string& hpath,Arc::Logger& logger,Arc::PayloadRawInterface& buf);
+static Arc::MCC_Status http_put(ARexJob& job,const std::string& hpath,Arc::Logger& logger,Arc::PayloadStreamInterface& stream,FileChunksList& fchunks);
+static Arc::MCC_Status http_put(ARexJob& job,const std::string& hpath,Arc::Logger& logger,Arc::PayloadRawInterface& buf,FileChunksList& fchunks);
 
 // TODO: monitor chunks written into files and report when file is complete
 Arc::MCC_Status ARexService::Put(Arc::Message& inmsg,Arc::Message& /*outmsg*/,ARexGMConfig& config,const std::string& id,const std::string& subpath) {
@@ -48,12 +48,12 @@ Arc::MCC_Status ARexService::Put(Arc::Message& inmsg,Arc::Message& /*outmsg*/,AR
   try {
     stream = dynamic_cast<Arc::PayloadStreamInterface*>(payload);
   } catch(std::exception& e) { };
-  if(stream) return http_put(job,subpath,logger_,*stream);
+  if(stream) return http_put(job,subpath,logger_,*stream,files_chunks_);
   Arc::PayloadRawInterface* buf = NULL;
   try {
     buf = dynamic_cast<Arc::PayloadRawInterface*>(payload);
   } catch(std::exception& e) { };
-  if(buf) return http_put(job,subpath,logger_,*buf);
+  if(buf) return http_put(job,subpath,logger_,*buf,files_chunks_);
   logger_.msg(Arc::ERROR, "Put: unrecognized payload for file %s in job: %s", subpath, id);
   return Arc::MCC_Status();
 } 
@@ -67,7 +67,7 @@ static bool write_file(int h,char* buf,size_t size) {
   return true;
 }
 
-static Arc::MCC_Status http_put(ARexJob& job,const std::string& hpath,Arc::Logger& logger,Arc::PayloadStreamInterface& stream) {
+static Arc::MCC_Status http_put(ARexJob& job,const std::string& hpath,Arc::Logger& logger,Arc::PayloadStreamInterface& stream,FileChunksList& fchunks) {
   // TODO: Use memory mapped file to minimize number of in memory copies
   // File 
   const int bufsize = 1024*1024;
@@ -77,6 +77,8 @@ static Arc::MCC_Status http_put(ARexJob& job,const std::string& hpath,Arc::Logge
     logger.msg(Arc::ERROR, "Put: failed to create file %s for job %s - %s", hpath, job.ID(), job.Failure());
     return Arc::MCC_Status();
   };
+  FileChunks& fc = fchunks.Get(job.ID()+"/"+hpath);
+  if(!fc.Size()) fc.Size(stream.Size());
   int pos = stream.Pos(); 
   if(lseek(h,pos,SEEK_SET) != pos) {
     std::string err = Arc::StrError();
@@ -99,12 +101,15 @@ static Arc::MCC_Status http_put(ARexJob& job,const std::string& hpath,Arc::Logge
       logger.msg(Arc::ERROR, "Put: failed to write to file %s for job %s - %s", hpath, job.ID(), err);
       return Arc::MCC_Status();
     };
+    if(size) fc.Add(pos,size);
+    pos+=size;
   };
   delete[] buf; ::close(h);
+  if(fc.Complete()) job.ReportFileComplete(hpath);
   return Arc::MCC_Status(Arc::STATUS_OK);
 }
 
-static Arc::MCC_Status http_put(ARexJob& job,const std::string& hpath,Arc::Logger& logger,Arc::PayloadRawInterface& buf) {
+static Arc::MCC_Status http_put(ARexJob& job,const std::string& hpath,Arc::Logger& logger,Arc::PayloadRawInterface& buf,FileChunksList& fchunks) {
   // File 
   int h = job.CreateFile(hpath.c_str());
   if(h == -1) {
@@ -112,6 +117,8 @@ static Arc::MCC_Status http_put(ARexJob& job,const std::string& hpath,Arc::Logge
     logger.msg(Arc::ERROR, "Put: failed to create file %s for job %s - %s", hpath, job.ID(), job.Failure());
     return Arc::MCC_Status();
   };
+  FileChunks& fc = fchunks.Get(job.ID()+"/"+hpath);
+  if(!fc.Size()) fc.Size(buf.Size());
   for(int n = 0;;++n) {
     char* sbuf = buf.Buffer(n);
     if(sbuf == NULL) break;
@@ -127,9 +134,11 @@ static Arc::MCC_Status http_put(ARexJob& job,const std::string& hpath,Arc::Logge
         ::close(h);
         return Arc::MCC_Status();
       };
+      if(size) fc.Add(offset,size);
     };
   };
   ::close(h);
+  if(fc.Complete()) job.ReportFileComplete(hpath);
   return Arc::MCC_Status(Arc::STATUS_OK);
 }
 

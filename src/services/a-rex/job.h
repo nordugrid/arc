@@ -114,6 +114,7 @@ class ARexJob {
   /** Opens file in job's session directory and returns handler */
   int OpenFile(const std::string& filename,bool for_read,bool for_write);
   std::string GetFilePath(const std::string& filename);
+  bool ReportFileComplete(const std::string& filename);
   /** Opens log file in control directory */
   int OpenLogFile(const std::string& name);
   std::string GetLogFilePath(const std::string& name);
