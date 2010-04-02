@@ -50,7 +50,10 @@ namespace Arc {
 
   const std::string UserConfig::ARCUSERDIRECTORY = Glib::build_filename(User().Home(), ".arc");
 
+#ifndef WIN32
   const std::string UserConfig::SYSCONFIG = G_DIR_SEPARATOR_S "etc" G_DIR_SEPARATOR_S "arc" G_DIR_SEPARATOR_S "client.conf";
+#endif
+  const std::string UserConfig::SYSCONFIGARCLOC = ArcLocation::Get() + G_DIR_SEPARATOR_S "etc" G_DIR_SEPARATOR_S "arc" G_DIR_SEPARATOR_S "client.conf";
   const std::string UserConfig::EXAMPLECONFIG = ArcLocation::Get() + G_DIR_SEPARATOR_S PKGDATASUBDIR G_DIR_SEPARATOR_S "examples" G_DIR_SEPARATOR_S "client.conf.example";
 
   const std::string UserConfig::DEFAULTCONFIG = Glib::build_filename(ARCUSERDIRECTORY, "client.conf");
@@ -72,16 +75,26 @@ namespace Arc {
                          bool loadSysConfig)
     : ok(false) {
     if (loadSysConfig) {
+#ifndef WIN32
       if (Glib::file_test(SYSCONFIG, Glib::FILE_TEST_IS_REGULAR)) {
         if (!LoadConfigurationFile(SYSCONFIG, true))
           logger.msg(INFO, "System configuration file (%s) contains errors.", SYSCONFIG);
       }
-      else if (Glib::file_test(ArcLocation::Get() + SYSCONFIG, Glib::FILE_TEST_IS_REGULAR)) {
-        if (!LoadConfigurationFile(ArcLocation::Get() + SYSCONFIG, true))
-          logger.msg(INFO, "System configuration file (%s) contains errors.", ArcLocation::Get() + SYSCONFIG);
+      else
+#endif
+      if (Glib::file_test(SYSCONFIGARCLOC, Glib::FILE_TEST_IS_REGULAR)) {
+        if (!LoadConfigurationFile(SYSCONFIGARCLOC, true))
+          logger.msg(INFO, "System configuration file (%s) contains errors.", SYSCONFIGARCLOC);
       }
       else
-        logger.msg(VERBOSE, "System configuration file (%s or %s) does not exist.", SYSCONFIG, ArcLocation::Get() + SYSCONFIG);
+#ifndef WIN32
+        if (!ArcLocation::Get().empty() && ArcLocation::Get() != G_DIR_SEPARATOR_S)
+          logger.msg(VERBOSE, "System configuration file (%s or %s) does not exist.", SYSCONFIG, SYSCONFIGARCLOC);
+        else
+          logger.msg(VERBOSE, "System configuration file (%s) does not exist.", SYSCONFIG);
+#else
+        logger.msg(VERBOSE, "System configuration file (%s) does not exist.", SYSCONFIGARCLOC);
+#endif
     }
 
     if (conffile.empty()) {
@@ -123,16 +136,26 @@ namespace Arc {
       return;
 
     if (loadSysConfig) {
+#ifndef WIN32
       if (Glib::file_test(SYSCONFIG, Glib::FILE_TEST_IS_REGULAR)) {
         if (!LoadConfigurationFile(SYSCONFIG, true))
           logger.msg(INFO, "System configuration file (%s) contains errors.", SYSCONFIG);
       }
-      else if (Glib::file_test(ArcLocation::Get() + SYSCONFIG, Glib::FILE_TEST_IS_REGULAR)) {
-        if (!LoadConfigurationFile(ArcLocation::Get() + SYSCONFIG, true))
-          logger.msg(INFO, "System configuration file (%s) contains errors.", ArcLocation::Get() + SYSCONFIG);
+      else
+#endif
+      if (Glib::file_test(SYSCONFIGARCLOC, Glib::FILE_TEST_IS_REGULAR)) {
+        if (!LoadConfigurationFile(SYSCONFIGARCLOC, true))
+          logger.msg(INFO, "System configuration file (%s) contains errors.", SYSCONFIGARCLOC);
       }
       else
-        logger.msg(VERBOSE, "System configuration file (%s or %s) does not exist.", SYSCONFIG, ArcLocation::Get() + SYSCONFIG);
+#ifndef WIN32
+        if (!ArcLocation::Get().empty() && ArcLocation::Get() != G_DIR_SEPARATOR_S)
+          logger.msg(VERBOSE, "System configuration file (%s or %s) does not exist.", SYSCONFIG, SYSCONFIGARCLOC);
+        else
+          logger.msg(VERBOSE, "System configuration file (%s) does not exist.", SYSCONFIG);
+#else
+        logger.msg(VERBOSE, "System configuration file (%s) does not exist.", SYSCONFIGARCLOC);
+#endif
     }
 
     if (conffile.empty()) {

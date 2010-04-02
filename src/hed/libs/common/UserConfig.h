@@ -1089,12 +1089,21 @@ namespace Arc {
      * @see User::Home()
      **/
     static const std::string ARCUSERDIRECTORY;
+#ifndef WIN32
     /// Path to system configuration
     /**
      * The \a SYSCONFIG variable is the path to the system configuration
-     * file.
+     * file. This variable is only equal to SYSCONFIGARCLOC if ARC is installed
+     * in the root (highly unlikely).
      **/
     static const std::string SYSCONFIG;
+#endif
+    /// Path to system configuration at ARC location.
+    /**
+     * The \a SYSCONFIGARCLOC variable is the path to the system configuration
+     * file which reside at the ARC installation location.
+     **/
+    static const std::string SYSCONFIGARCLOC;
     /// Path to default configuration file
     /**
      * The \a DEFAULTCONFIG variable is the path to the default
