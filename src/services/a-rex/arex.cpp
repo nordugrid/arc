@@ -574,6 +574,10 @@ ARexService::ARexService(Arc::Config *cfg):RegisteredService(cfg),
   long_description_ = (std::string)((*cfg)["longDescription"]);
   lrms_name_ = (std::string)((*cfg)["LRMSName"]);
   os_name_ = (std::string)((*cfg)["OperatingSystem"]);
+  std::string debugLevel = (std::string)((*cfg)["debugLevel"]);
+  if(!debugLevel.empty()) {
+    logger_.setThreshold(Arc::string_to_level(debugLevel));
+  };
   int valuei;
   if ((!(*cfg)["InfoproviderWakeupPeriod"]) ||
       (!Arc::stringto((std::string)((*cfg)["InfoproviderWakeupPeriod"]),infoprovider_wakeup_period_))) {
