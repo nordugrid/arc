@@ -519,13 +519,24 @@ int main(int argc, char *argv[]) {
 
       //Generate a temporary self-signed proxy certificate
       //to contact the voms server
+      std::string proxy_cert;
+      if (!signer.SignRequest(&cred_request, proxy_cert))
+        throw std::runtime_error("Failed to sign proxy");
+      proxy_cert.append(private_key).append(signing_cert).append(signing_cert_chain);
+      int f = ::open(proxy_path.c_str(), O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
+      if (f == -1)
+        throw std::runtime_error("Failed to open proxy file " + proxy_path);
+      if (::write(f, proxy_cert.c_str(), proxy_cert.length()) != proxy_cert.length())
+        throw std::runtime_error("Failed to write into proxy file " + proxy_path);
+      ::close(f);
+/*
       signer.SignRequest(&cred_request, proxy_path.c_str());
       std::ofstream out_f(proxy_path.c_str(), std::ofstream::app);
       out_f.write(private_key.c_str(), private_key.size());
       out_f.write(signing_cert.c_str(), signing_cert.size());
       out_f.write(signing_cert_chain.c_str(), signing_cert_chain.size());
       out_f.close();
-
+*/
       //Parse the voms server and command from command line
       std::multimap<std::string, std::string> server_command_map;
       for (std::list<std::string>::iterator it = vomslist.begin();
