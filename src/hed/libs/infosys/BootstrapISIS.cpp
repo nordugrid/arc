@@ -28,6 +28,7 @@ struct Registrar_data {
     void InfoRegistrar::initISIS(XMLNode cfg) {
         logger_.msg(DEBUG, "Initialize ISIS handler");
         // Process configuration
+        call_depth = 0;
         defaultBootstrapISIS.url   = (std::string)cfg["URL"];
         if(defaultBootstrapISIS.url.empty()) {
             logger_.msg(ERROR, "Can't recognize URL: %s",(std::string)cfg["URL"]);
@@ -39,7 +40,7 @@ struct Registrar_data {
         defaultBootstrapISIS.proxy = (std::string)cfg["ProxyPath"];
         defaultBootstrapISIS.cadir = (std::string)cfg["CACertificatesDir"];
         defaultBootstrapISIS.cafile = (std::string)cfg["CACertificatePath"];
-               
+
         // Set up default values
         myISIS = defaultBootstrapISIS;
         originalISISCount = 1;
@@ -153,6 +154,14 @@ struct Registrar_data {
 
     ISIS_description InfoRegistrar::getISIS(void) {
         logger_.msg(VERBOSE, "Get ISIS from list of ISIS handler");
+        call_depth++;
+        if ( call_depth > 10 ){
+            call_depth = 0;
+            logger_.msg(DEBUG, "Here is the end of the infinite calling loop.");
+            ISIS_description temporary_ISIS;
+            temporary_ISIS.url = "";
+            return temporary_ISIS;
+        }
         if (myISISList.size() == 0) {
             if ( myISIS.url == defaultBootstrapISIS.url ) {
                 logger_.msg(WARNING, "There is no more ISIS available. The list of ISIS's is already empty.");
@@ -177,7 +186,7 @@ struct Registrar_data {
             getISISList(myISIS);
             return myISIS;
         }
-        if (myISISList.size() <= originalISISCount / 2) {
+        if ((int)myISISList.size() <= originalISISCount / 2) {
             // Select a new random isis from the list
             std::srand(time(NULL));
             ISIS_description rndISIS = myISISList[std::rand() % myISISList.size()];

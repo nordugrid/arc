@@ -126,6 +126,7 @@ class InfoRegistrar {
         ISIS_description myISIS;
         bool myISISList_initialized;
         int originalISISCount;
+        int call_depth;
         std::vector<ISIS_description> myISISList;
 
         void initISIS(XMLNode cfg);
