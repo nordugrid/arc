@@ -156,7 +156,7 @@ struct Registrar_data {
         logger_.msg(VERBOSE, "Get ISIS from list of ISIS handler");
         call_depth++;
         if ( call_depth > 10 ){
-            call_depth = 0;
+            call_depth--;
             logger_.msg(DEBUG, "Here is the end of the infinite calling loop.");
             ISIS_description temporary_ISIS;
             temporary_ISIS.url = "";
@@ -174,16 +174,19 @@ struct Registrar_data {
                 // If there is no available, return an empty ISIS
                 ISIS_description temporary_ISIS;
                 temporary_ISIS.url = "";
+                call_depth--;
                 return temporary_ISIS;
             } else {
                 // Try to receive the "original" bootsrap informations, if the BootstrapISIS is already available.
                 getISISList(defaultBootstrapISIS);
+                call_depth--;
                 return getISIS();
             }
         }
         if (myISISList.size() == 1) {
             // If there is only one known ISIS than force the check of availability of new cloud members.
             getISISList(myISIS);
+            call_depth--;
             return myISIS;
         }
         if ((int)myISISList.size() <= originalISISCount / 2) {
@@ -195,8 +198,8 @@ struct Registrar_data {
             getISISList(rndISIS);
         }
         //And finally...
+        call_depth--;
         return myISIS;
     }
 
 }
-
