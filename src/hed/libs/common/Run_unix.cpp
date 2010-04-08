@@ -228,7 +228,9 @@ namespace Arc {
     SAFE_DISCONNECT(r->stdin_conn_);
     SAFE_DISCONNECT(r->child_conn_);
     if(r->running_) {
+#ifdef HAVE_GLIBMM_CHILDWATCH
       abandoned_.push_back(Abandoned(r->pid_->pid(),context_->signal_child_watch().connect(sigc::mem_fun(*this,&RunPump::child_handler), r->pid_->pid())));
+#endif
       r->running_ = false;
     };
     pump_lock_.unlock();
