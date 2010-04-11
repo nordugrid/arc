@@ -1,11 +1,18 @@
 <?xml version="1.0"?>
 <ArcConfig 
-  xmlns="http://www.nordugrid.org/schemas/ArcConfig/2007"
-  xmlns:tcp="http://www.nordugrid.org/schemas/ArcMCCTCP/2007"
-  xmlns:tls="http://www.nordugrid.org/schemas/ArcMCCTLS/2007"
-  xmlns:arcpdp="http://www.nordugrid.org/schemas/ArcPDP"
-  xmlns:slcs="http://www.nordugrid.org/schemas/ArcConfig/2007/slcs"
+  xmlns="http://www.nordugrid.org/schemas/arcconfig/2009/08"
+  xmlns:tcp="http://www.nordugrid.org/schemas/tcp/2009/08"
+  xmlns:tls="http://www.nordugrid.org/schemas/tls/2009/08"
+  xmlns:slcs="http://www.nordugrid.org/schemas/slcs/2009/08"
 >
+    <Server>
+      <Foreground/>
+	  <Pidfile>./arched.pid</Pidfile>
+	  <Logger>
+	    <File>./arched.log</File>
+	    <Level>DEBUG</Level>
+	  </Logger>
+    </Server>
 
     <ModuleManager>
         <Path>.libs/</Path>

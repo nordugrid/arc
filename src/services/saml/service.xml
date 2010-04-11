@@ -1,9 +1,18 @@
 <?xml version="1.0"?>
 <ArcConfig 
-  xmlns="http://www.nordugrid.org/schemas/ArcConfig/2007"
-  xmlns:tcp="http://www.nordugrid.org/schemas/ArcMCCTCP/2007"
-  xmlns:aa="http://www.nordugrid.org/schemas/aa/Config"
+  xmlns="http://www.nordugrid.org/schemas/arcconfig/2009/08"
+  xmlns:tcp="http://www.nordugrid.org/schemas/tcp/2009/08"
+  xmlns:aa="http://www.nordugrid.org/schemas/aaservice/2009/08"
 >
+    <Server>
+      <Foreground/>
+      <Pidfile>./arched.pid</Pidfile>
+      <Logger>
+        <File>./arched.log</File>
+        <Level>DEBUG</Level>
+      </Logger>
+    </Server>
+
     <ModuleManager>
         <Path>.libs/</Path>
         <Path>../../hed/mcc/http/.libs/</Path>
@@ -11,7 +20,6 @@
         <Path>../../hed/mcc/soap/.libs/</Path>
         <Path>../../hed/mcc/tcp/.libs/</Path>
         <Path>../../hed/shc/.libs/</Path>
-	<Path>./.libs/</Path>
     </ModuleManager>
     <Plugins><Name>mcctcp</Name></Plugins>
     <Plugins><Name>mcctls</Name></Plugins>
