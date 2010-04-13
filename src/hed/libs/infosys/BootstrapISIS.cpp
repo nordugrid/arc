@@ -155,7 +155,7 @@ struct Registrar_data {
     ISIS_description InfoRegistrar::getISIS(void) {
         logger_.msg(VERBOSE, "Get ISIS from list of ISIS handler");
         call_depth++;
-        if ( call_depth > 10 ){
+        if ( call_depth > (int)myISISList.size() ){
             call_depth--;
             logger_.msg(DEBUG, "Here is the end of the infinite calling loop.");
             ISIS_description temporary_ISIS;
