@@ -56,7 +56,7 @@ namespace Arc {
             }
 
             if (!it->EndPointURL.Host().empty() &&
-                target->url.Host() == it->EndPointURL.Host()) { // Example: knowarc1.grid.niif.hu
+                target->url.Host() == it->EndPointURL.Host()) { // Example: example.org
               dropTarget = false;
               break;
             }

@@ -38,12 +38,7 @@ int main(void) {
     Arc::PayloadSOAP request(ns);
     Arc::XMLNode req = request.NewChild("CacheCheck").NewChild("TheseFilesNeedToCheck");
 
-    req.NewChild("FileURL") = "http://knowarc1.grid.niif.hu/storage/kiir";
-
-    req.NewChild("FileURL") = "http://knowarc1.grid.niif.hu/storage/Makefile";
-
-    req.NewChild("FileURL") = "http://knowarc1.grid.niif.hu/storage/rossz_file";
-
+    req.NewChild("FileURL") = "http://example.org/test.txt";
 
     Arc::PayloadSOAP* response;
 

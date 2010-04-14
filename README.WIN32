@@ -209,11 +209,11 @@ certificate and the CA certificates diretory)
     
   a) Example of command on Windows XP: 
 
-    arcsub -d VERBOSE -f C:\testjob.jsdl -z "C:\Documents and Settings\<username>\Application Data\.arc\client.conf" -c ARC1:https://knowarc1.grid.niif.hu:60000/arex
+    arcsub -d VERBOSE -f C:\testjob.jsdl -z "C:\Documents and Settings\<username>\Application Data\.arc\client.conf" -c ARC1:https://interop.grid.niif.hu:2010/arex-x509
 
   b) Example of command on Windows Vista, 7:
 
-    arcsub -d VERBOSE -f C:\testjob.jsdl -z "C:\Users\<username>\AppData\Roaming\.arc\client.conf" -c  ARC1:https://knowarc1.grid.niif.hu:60000/arex
+    arcsub -d VERBOSE -f C:\testjob.jsdl -z "C:\Users\<username>\AppData\Roaming\.arc\client.conf" -c  ARC1:https://interop.grid.niif.hu:60000/arex-x509
 
 ----------
 IMPORTANT |

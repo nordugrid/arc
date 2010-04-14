@@ -24,10 +24,10 @@ void GridSchedulerService::InformationCollector(void) {
           <Complexity>endpoint=1,share=1,resource=1</Complexity>\
           <ComputingEndpoint BaseType=\"Endpoint\" CreationTime=\"2009-07-16T07:55:47Z\" Validity=\"600\">\
             <Associations>\
-              <ComputingShareID>urn:ogsa:ComputingShare:knowarc1:2811:knowarc</ComputingShareID>\
+              <ComputingShareID>urn:ogsa:ComputingShare:example:2811:knowarc</ComputingShareID>\
             </Associations>\
             <HealthState>ok</HealthState>\
-            <ID>urn:ogsa:ComputingEndpoint:knowarc1:2811</ID>\
+            <ID>urn:ogsa:ComputingEndpoint:example:2811</ID>\
             <ImplementationName>ARC1</ImplementationName>\
             <ImplementationVersion>0.9</ImplementationVersion>\
             <Implementor>NorduGrid</Implementor>\
@@ -51,12 +51,12 @@ void GridSchedulerService::InformationCollector(void) {
           <ComputingShares>\
             <ComputingShare BaseType=\"Share\" CreationTime=\"2009-07-16T08:46:43Z\" Validity=\"600\">\
               <Associations>\
-                <ComputingEndpointID>urn:ogsa:ComputingEndpoint:knowarc1:2811</ComputingEndpointID>\
+                <ComputingEndpointID>urn:ogsa:ComputingEndpoint:example:2811</ComputingEndpointID>\
               </Associations>\
               <Description>Job scheduler service. It speaks BES and iBES as well. It implements a job queue and schedules job to other BES services like A-REX or iBES clients like Paul.</Description>\
               <FreeSlots>2000</FreeSlots>\
               <FreeSlotsWithDuration>1:6483600</FreeSlotsWithDuration>\
-              <ID>urn:ogsa:ComputingShare:knowarc1:2811:knowarc</ID>\
+              <ID>urn:ogsa:ComputingShare:example:2811:knowarc</ID>\
               <LocalRunningJobs>0</LocalRunningJobs>\
               <LocalSuspendedJobs>0</LocalSuspendedJobs>\
               <LocalWaitingJobs>0</LocalWaitingJobs>\
@@ -80,7 +80,7 @@ void GridSchedulerService::InformationCollector(void) {
               <WaitingJobs>0</WaitingJobs>\
             </ComputingShare>\
           </ComputingShares>\
-          <ID>urn:ogsa:ComputingService:knowarc1:2811</ID>\
+          <ID>urn:ogsa:ComputingService:example:2811</ID>\
           <Name>ARC1, Sched service</Name>\
           <PreLRMSWaitingJobs>0</PreLRMSWaitingJobs>\
           <QualityLevel>development</QualityLevel>\

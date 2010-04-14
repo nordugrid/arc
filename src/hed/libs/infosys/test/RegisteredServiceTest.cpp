@@ -111,7 +111,7 @@ void RegisteredServiceTest::TestRegisteredService() {
   cfg_str +="     <Plugins><Name>mcchttp</Name></Plugins>\n";
   cfg_str +="     <Plugins><Name>mccsoap</Name></Plugins>\n";
   cfg_str +="     <Chain>\n";
-  cfg_str +="      <Component name='tcp.client' id='tcp'><tcp:Connect><tcp:Host>knowarc1.grid.niif.hu</tcp:Host><tcp:Port>50000</tcp:Port></tcp:Connect></Component>\n";
+  cfg_str +="      <Component name='tcp.client' id='tcp'><tcp:Connect><tcp:Host>example.org</tcp:Host><tcp:Port>50000</tcp:Port></tcp:Connect></Component>\n";
   cfg_str +="      <Component name='http.client' id='http'><next id='tcp'/><Method>POST</Method><Endpoint>echo</Endpoint></Component>\n";
   cfg_str +="      <Component name='soap.client' id='soap' entry='soap'><next id='http'/></Component>\n";
   cfg_str +="     </Chain>\n";

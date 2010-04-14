@@ -72,7 +72,7 @@ int main(void) {
   cfg.AddCADir("$HOME/.globus/certificates/");
 
   //Arc::ClientTCP client(cfg, "127.0.0.1", 7512, Arc::GSISec, 60);
-  Arc::ClientTCP client(cfg, "knowarc1.grid.niif.hu", 7512, Arc::GSISec, 60);
+  Arc::ClientTCP client(cfg, "example.org", 7512, Arc::GSISec, 60);
 
   Arc::PayloadRaw request;
   request.Insert(send_msg.c_str(), 0, send_msg.length());

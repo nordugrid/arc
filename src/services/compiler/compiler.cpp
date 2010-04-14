@@ -455,7 +455,7 @@ std::vector<CompileInfo> Info_from_ISIS(Arc::XMLNode soap_xml, Service_Compiler 
       
     //they will be come from the ISIS, when working it
     ISIS_Info info;
-    info.arex_url = "http://knowarc1.grid.niif.hu:50000/arex";
+    info.arex_url = "http://example.org:50000/arex";
     info.url_cpu_number = "1";
     info.url_architecture= "x86_32";                  //etc.: ia64,x86_32,sparc
     if ((std::string)soap_xml["make"]["cpu_architecture"] != "")

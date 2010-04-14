@@ -67,15 +67,15 @@ int main(void) {
   make.NewChild("makefile")="Makefile";	                //empty (then use the default makefile) or the other Makefile's name
   make.NewChild("download_place")="/home/niif/tmp/s/";
   make.NewChild("gcc_parameters")="";		        //-Wall -O2
-  make.NewChild("gcc_sequence")="http://knowarc1.grid.niif.hu/storage/lista";
+  make.NewChild("gcc_sequence")="http://example.org/storage/lista";
   make.NewChild("compressed")="yess";		        //yes or no
   make.NewChild("cpu_architecture")="sparc4";		// empty string or JSDL CPU architecture
-  //make.NewChild("sourcefile")="http://knowarc1.grid.niif.hu/storage/proba.tar";
+  //make.NewChild("sourcefile")="http://example.org/storage/proba.tar";
   //or
-  make.NewChild("sourcefile")="http://knowarc1.grid.niif.hu/storage/compilerhez/Makefile";
-  make.NewChild("sourcefile")="http://knowarc1.grid.niif.hu/storage/compilerhez/lib.cpp";
-  make.NewChild("sourcefile")="http://knowarc1.grid.niif.hu/storage/compilerhez/lib.h";
-  make.NewChild("sourcefile")="http://knowarc1.grid.niif.hu/storage/compilerhez/project.cpp";
+  make.NewChild("sourcefile")="http://example.org/storage/compilerhez/Makefile";
+  make.NewChild("sourcefile")="http://example.org/storage/compilerhez/lib.cpp";
+  make.NewChild("sourcefile")="http://example.org/storage/compilerhez/lib.h";
+  make.NewChild("sourcefile")="http://exampler.org/storage/compilerhez/project.cpp";
   
   Arc::Message reqmsg;
   Arc::Message repmsg;

@@ -9,7 +9,7 @@
 # <flavour> specifies type of middleware plugin to use when contacting
 # the service (e.g. ARC0, ARC1, CREAM, UNICORE, etc.) and <service_url>
 # is the URL used to contact the service.
-#defaultservices=index:ARC0:ldap://grid.tsl.uu.se:2135/Mds-Vo-name=Sweden,o=grid computing:ARC1:https://knowarc1.grid.niif.hu:60000/arex
+#defaultservices=index:ARC0:ldap://grid.tsl.uu.se:2135/Mds-Vo-name=Sweden,o=grid computing:ARC1:https://interop.grid.niif.hu:2010/arex-x509
 
 # Rejected services.
 # The attribute 'rejectservices' can be used to indicate that a certain
@@ -55,7 +55,7 @@
 # Alias definition. Instead of typing the whole URL on the commandline use a alias instead.
 #[alias]
 #arc0=computing:ARC0:ldap://grid.tsl.uu.se:2135/nordugrid-cluster-name=grid.tsl.uu.se,Mds-Vo-name=local,o=grid
-#arc1=computing:ARC1:https://knowarc1.grid.niif.hu:60000/arex
+#arc1=computing:ARC1:https://interop.grid.niif.hu:2010/arex-x509
 #cream=computing:CREAM:ldap://cream.grid.upjs.sk:2170/o=grid
 #unicore=computing:UNICORE:https://testbed5.grid.upjs.sk:8080/KnowARC-testbed/services/BESFactory?res=default_bes_factory
 # An alias can also be defined from other aliases.

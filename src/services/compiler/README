@@ -29,10 +29,10 @@ For example, when the compilation type is make:
 	      * <cpu_architecture>x86_32</cpu_architecture>		
 	        <download_place>/home/user/place/</download_place>
 	        <compressed>no</compressed>
-	        <sourcefile>http://knowarc1.grid.niif.hu/storage/compilerhez/Makefile</sourcefile>	
-	        <sourcefile>http://knowarc1.grid.niif.hu/storage/compilerhez/lib.cpp</sourcefile>
-	        <sourcefile>http://knowarc1.grid.niif.hu/storage/compilerhez/lib.h</sourcefile>
-	        <sourcefile>http://knowarc1.grid.niif.hu/storage/compilerhez/project.cpp</sourcefile>
+	        <sourcefile>http://example.org/storage/compilerhez/Makefile</sourcefile>	
+	        <sourcefile>http://example.org/storage/compilerhez/lib.cpp</sourcefile>
+	        <sourcefile>http://example.org/storage/compilerhez/lib.h</sourcefile>
+	        <sourcefile>http://example.org/storage/compilerhez/project.cpp</sourcefile>
 	      </make>
 	    </compiler>
 	  </soap-env:Body>
@@ -48,7 +48,7 @@ For example, when the compilation type is make:
 	        <compiler_type>gcc</compiler_type>
 	        <download_place>/home/user/place/</download_place>
 	      * <gcc_parameters>-Wall</gcc_parameters>
-	        <gcc_sequence>http://knowarc1.grid.niif.hu/storage/lista</gcc_sequence>
+	        <gcc_sequence>http://example.org/storage/lista</gcc_sequence>
 	        <compressed>yes</compressed>
 	      * <cpu_architecture>sparc</cpu_architecture>		
 	        <sourcefile>http://.../Source.tar</sourcefile>
@@ -76,7 +76,7 @@ For example, when the compilation type is make:
         When the compiler_type is 'gcc' and you can be add some parameters to the gcc.
 	for example: empty or "-Wall -O2"
 
-6. <gcc_sequence>http://knowarc1.grid.niif.hu/storage/lista</gcc_sequence>
+6. <gcc_sequence>http://example.org/storage/lista</gcc_sequence>
 	When the compiler_type is 'gcc', than it can be use! It is a file, wherein is the compiler sequence. 
 	In the file the first item (xx.cpp) can be compile at first time, the second... and the last can be compile at last  time.
         for example: container.cpp main.cpp        
@@ -91,7 +91,7 @@ For example, when the compilation type is make:
 	Where would you like compile the sources. When the cpu_architecture is empty, then compile it all architecture in the Grid, otherwise compile it on the added architecture.
 	kind of architecture: all JSDL cpu architecture
         
-9. <sourcefile>http://knowarc1.grid.niif.hu/storage/compilerhez/Makefile</sourcefile>
+9. <sourcefile>http://example.org/storage/compilerhez/Makefile</sourcefile>
  	It is the source file's place. 
 	The valid protocol: http, ftp, gsiftp, etc.
 

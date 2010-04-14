@@ -70,10 +70,10 @@ be given in the format
 .B ARC1:protocol://hostname[:port]/path
 
 .IR Examples :
-.IP "\fBarcmigrate -q ARC1:https://knowarc1.grid.niif.hu:60000/arex ..."
-will migrate a  to knowarc1.grid.niif.hu.
-.IP "\fBarcmigrate -q -ARC1:https://knowarc1.grid.niif.hu:60000/arex ..."
-will migrate a job to some other cluster than knowarc1.grid.niif.hu.
+.IP "\fBarcmigrate -q ARC1:https://example.org:60000/arex ..."
+will migrate the job  to example.org.
+.IP "\fBarcmigrate -q -ARC1:https://example.org:60000/arex ..."
+will migrate the job to some other cluster than interop.grid.niif.hu.
 .LP
 
 Jobs to be migrated can be specified in serveral ways. Job IDs can be
