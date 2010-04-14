@@ -406,6 +406,17 @@ namespace Arc {
           target.ApplicationEnvironments.push_back(ae);
         }
 
+       // TODO: What need to do if there are more then one execution environment?
+
+        XMLNode ExecutionEnvironment = ComputingManager["ExecutionEnvironments"]["ExecutionEnvironment"];
+        if (ExecutionEnvironment["ConnectivityIn"])
+            if (lower((std::string)ExecutionEnvironment["ConnectivityIn"]) == "true")
+              target.ConnectivityIn = true;
+           
+        if (ExecutionEnvironment["ConnectivityOut"])
+            if (lower((std::string)ExecutionEnvironment["ConnectivityOut"]) == "true")
+              target.ConnectivityOut = true;
+
         mom.AddTarget(target);
       }
     }
