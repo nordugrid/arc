@@ -410,6 +410,11 @@ namespace Arc {
       return r;
     };
     stringto(repmsg.Attributes()->get("HTTP:CODE"),info->code);
+    if(info->code == 302) {
+      // Handle redirection transparently
+
+    }
+
     info->reason = repmsg.Attributes()->get("HTTP:REASON");
     stringto(repmsg.Attributes()->get("HTTP:content-length"),info->size);
     std::string lm;
