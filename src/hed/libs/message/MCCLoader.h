@@ -78,6 +78,8 @@ namespace Arc {
     bool make_elements(Config& cfg, int level = 0,
 		       mcc_connectors_t *mcc_connectors = NULL,
 		       plexer_connectors_t *plexer_connectors = NULL);
+    MCC* make_component(Config& cfg, XMLNode cn,
+                        mcc_connectors_t *mcc_connectors = NULL);
 
     ChainContext* context_;
 
@@ -96,6 +98,8 @@ namespace Arc {
 
     operator bool(void) { return valid_; };
     bool operator!(void) { return !valid_; };
+
+    bool ReloadElement(Config& cfg);
  };
 
   /// Interface to chain specific functionality

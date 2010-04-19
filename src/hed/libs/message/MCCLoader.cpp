@@ -159,6 +159,75 @@ namespace Arc {
     return sechandler;
   }
 
+  MCC* MCCLoader::make_component(Config& cfg, XMLNode cn, mcc_connectors_t *mcc_connectors) {
+    Config cfg_(cn, cfg.getFileName());
+    std::string name = cn.Attribute("name");
+    if(name.empty()) {
+      logger.msg(ERROR, "Component has no name attribute defined");
+      return NULL;
+    }
+    std::string id = cn.Attribute("id");
+    if(id.empty()) {
+      logger.msg(ERROR, "Component has no id attribute defined");
+      return NULL;
+    }
+    MCCPluginArgument arg(&cfg_,context_);
+    Plugin* plugin = factory_->get_instance(MCCPluginKind ,name, &arg);
+    MCC* mcc = plugin?dynamic_cast<MCC*>(plugin):NULL;
+    if(!mcc) {
+      logger.msg(ERROR, "Component %s(%s) could not be created", name, id);
+      if(plugin) delete plugin;
+      return NULL;
+    }
+
+    // Configure security plugins
+    XMLNode an = cn["SecHandler"];
+    for(int n = 0;; ++n) {
+      XMLNode can = an[n];
+      if(!can) break;
+      ArcSec::SecHandler* sechandler = MakeSecHandler(cfg, context_,
+                                    sechandlers_, factory_, can);
+      if(!sechandler) {
+        if(plugin) delete plugin;
+        return NULL;
+      };
+      std::string event = can.Attribute("event");
+      mcc->AddSecHandler(&cfg_, sechandler, event);
+    }
+
+    mcc_container_t::iterator mccp = mccs_.find(id);
+    MCC* oldmcc = (mccp == mccs_.end())?NULL:(mccp->second);
+    mccs_[id] = mcc;
+    if(mcc_connectors) {
+
+      // Add to chain list
+      mcc_connector_t mcc_connector(mccs_.find(id));
+      for(int nn = 0;; ++nn) {
+        XMLNode cnn = cn["next"][nn];
+        if(!cnn) break;
+        std::string nid = cnn.Attribute("id");
+        if(nid.empty()) {
+          logger.msg(ERROR, "Component's %s(%s) next has no id "
+                            "attribute defined", name, id);
+          if(plugin) delete plugin;
+          if(oldmcc) {
+            mccs_[id] = oldmcc;
+          } else {
+            mccs_.erase(id);
+          }
+          return NULL;
+        }
+        std::string label = cnn;
+        mcc_connector.nexts[label] = nid;
+      }
+      mcc_connector.name = name;
+      mcc_connectors->push_back(mcc_connector);
+    }
+    std::string entry = cn.Attribute("entry");
+    if(!entry.empty()) mccs_exposed_[entry] = mcc;
+    return mcc;
+  }
+
   bool MCCLoader::make_elements(Config& cfg, int level,
                                 mcc_connectors_t *mcc_connectors,
                                 plexer_connectors_t *plexer_connectors) {
@@ -187,63 +256,14 @@ namespace Arc {
 
       if(MatchXMLName(cn, "Component")) {
         // Create new MCC
-        std::string name = cn.Attribute("name");
-        if(name.empty()) {
-          logger.msg(ERROR, "Component has no name attribute defined");
-          success = false;
-          continue;
-        }
-        std::string id = cn.Attribute("id");
-        if(id.empty()) {
-          logger.msg(ERROR, "Component has no id attribute defined");
-          success = false;
-          continue;
-        }
-        MCCPluginArgument arg(&cfg_,context_);
-        Plugin* plugin = factory_->get_instance(MCCPluginKind ,name, &arg);
-        MCC* mcc = plugin?dynamic_cast<MCC*>(plugin):NULL;
+        MCC* mcc = make_component(cfg,cn,mcc_connectors);
         if(!mcc) {
-          logger.msg(ERROR, "Component %s(%s) could not be created", name, id);
           success = false;
           continue;
         }
-        mccs_[id] = mcc;
-
-        // Configure security plugins
-        XMLNode an = cn["SecHandler"];
-        for(int n = 0;; ++n) {
-          XMLNode can = an[n];
-          if(!can) break;
-          ArcSec::SecHandler* sechandler = MakeSecHandler(cfg, context_,
-                                        sechandlers_, factory_, can);
-          if(!sechandler) {
-            success = false;
-            continue;
-          };
-          std::string event = can.Attribute("event");
-          mcc->AddSecHandler(&cfg_, sechandler, event);
-        }
-
-        // Add to chain list
-        std::string entry = cn.Attribute("entry");
-        if(!entry.empty()) mccs_exposed_[entry] = mcc;
-        mcc_connector_t mcc_connector(mccs_.find(id));
-        for(int nn = 0;; ++nn) {
-          XMLNode cnn = cn["next"][nn];
-          if(!cnn) break;
-          std::string nid = cnn.Attribute("id");
-          if(nid.empty()) {
-            logger.msg(ERROR, "Component's %s(%s) next has no id "
-                 "attribute defined", name, id);
-            success = false;
-            continue;
-          }
-          std::string label = cnn;
-          mcc_connector.nexts[label] = nid;
-        }
-        mcc_connector.name = name;
-        mcc_connectors->push_back(mcc_connector);
-        logger.msg(INFO, "Loaded MCC %s(%s)", name, id);
+        logger.msg(INFO, "Loaded MCC %s(%s)",
+                   (std::string)cn.Attribute("name"),
+                   (std::string)cn.Attribute("id"));
         continue;
       }
 
@@ -409,6 +429,40 @@ namespace Arc {
     if(mcc_connectors) delete mcc_connectors;
     if(plexer_connectors) delete plexer_connectors;
     return success;
+  }
+
+  bool MCCLoader::ReloadElement(Config& cfg) {
+    XMLNode cn = cfg;
+    if(MatchXMLName(cn, "Component")) {
+      std::string id = cn.Attribute("id");
+      if(id.empty()) return false;
+      // Look for element to replace
+      mcc_container_t::iterator mccp = mccs_.find(id);
+      if(mccp == mccs_.end()) return false;
+      MCC* oldmcc = mccp->second;
+      // Replace element
+      MCC* mcc = make_component(cfg,cn,NULL);
+      if(!mcc) return false;
+      // Replace references to old element
+
+      // Create 'next' references
+
+      // Remove old element and all references
+      for(mccp = mccs_exposed_.begin();mccp != mccs_exposed_.end();++mccp) {
+        if(mccp->second == oldmcc) mccs_exposed_.erase(mccp);
+      }
+      if(oldmcc) delete oldmcc;
+      return true;
+    } else if(MatchXMLName(cn, "Service")) {
+
+
+      return false;
+    } else if(MatchXMLName(cn, "Plexer")) {
+
+
+      return false;
+    }
+    return false;
   }
 
   MCC* MCCLoader::operator[](const std::string& id) {
