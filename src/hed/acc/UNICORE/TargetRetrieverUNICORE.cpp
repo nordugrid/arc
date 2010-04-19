@@ -67,18 +67,16 @@ namespace Arc {
     case COMPUTING:
       if (mom.AddService(url)) {
         ThreadArg *arg = CreateThreadArg(mom, targetType, detailLevel);
-        if (!CreateThreadFunction(&InterrogateTarget, arg)) {
+        if (!CreateThreadFunction(&InterrogateTarget, arg, &(mom.ServiceCounter()))) {
           delete arg;
-          mom.RetrieverDone();
         }
       }
       break;
     case INDEX:
       if (mom.AddIndexServer(url)) {
         ThreadArg *arg = CreateThreadArg(mom, targetType, detailLevel);
-        if (!CreateThreadFunction(&QueryIndex, arg)) {
+        if (!CreateThreadFunction(&QueryIndex, arg, &(mom.ServiceCounter()))) {
           delete arg;
-          mom.RetrieverDone();
         }
       }
       break;
@@ -102,7 +100,6 @@ namespace Arc {
     }
 
     delete thrarg;
-    mom.RetrieverDone();
   }
 
   void TargetRetrieverUNICORE::InterrogateTarget(void *arg) {
@@ -117,7 +114,6 @@ namespace Arc {
     std::string status;
     if (!uc.sstat(status)) {
       delete thrarg;
-      mom.RetrieverDone();
       return;
     }
 
@@ -135,7 +131,6 @@ namespace Arc {
 
     delete thrarg;
     mom.AddTarget(target);
-    mom.RetrieverDone();
   }
 
 } // namespace Arc

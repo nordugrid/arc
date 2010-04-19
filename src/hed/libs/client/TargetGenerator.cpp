@@ -21,7 +21,7 @@ namespace Arc {
   Logger TargetGenerator::logger(Logger::getRootLogger(), "TargetGenerator");
 
   TargetGenerator::TargetGenerator(const UserConfig& usercfg)
-    : threadCounter(0), usercfg(usercfg) {
+    : usercfg(usercfg) {
 
     /* When loading a specific middleware plugin fails, subsequent loads
      * should fail aswell. Therefore it should be unecessary to load the
@@ -66,9 +66,7 @@ namespace Arc {
       (*it)->GetTargets(*this, targetType, detailLevel);
 
     {
-      Glib::Mutex::Lock threadLock(threadMutex);
-      while (threadCounter > 0)
-        threadCond.wait(threadMutex);
+      threadCounter.wait();
     }
 
     logger.msg(INFO, "Found %ld targets", foundTargets.size());
@@ -109,8 +107,6 @@ namespace Arc {
         foundServices.end()) {
       foundServices.push_back(url);
       added = true;
-      Glib::Mutex::Lock threadLock(threadMutex);
-      threadCounter++;
     }
     return added;
   }
@@ -131,8 +127,6 @@ namespace Arc {
         foundIndexServers.end()) {
       foundIndexServers.push_back(url);
       added = true;
-      Glib::Mutex::Lock threadLock(threadMutex);
-      threadCounter++;
     }
     return added;
   }
@@ -151,17 +145,14 @@ namespace Arc {
     foundJobs.push_back(j);
   }
 
-  void TargetGenerator::RetrieverDone() {
-    Glib::Mutex::Lock threadLock(threadMutex);
-    threadCounter--;
-    if (threadCounter == 0)
-      threadCond.signal();
-  }
-
   void TargetGenerator::PrintTargetInfo(bool longlist) const {
     for (std::list<ExecutionTarget>::const_iterator cli = foundTargets.begin();
          cli != foundTargets.end(); cli++)
       cli->Print(longlist);
+  }
+
+  SimpleCounter& TargetGenerator::ServiceCounter(void) {
+    return threadCounter;
   }
 
 } // namespace Arc

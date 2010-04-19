@@ -60,11 +60,9 @@ namespace Arc {
         target.DomainName = url.Host();
         target.HealthState = "ok";
         mom.AddTarget(target);
-        mom.RetrieverDone();
       }
       break;
     case INDEX:
-      mom.RetrieverDone();
       break;
     }
   }

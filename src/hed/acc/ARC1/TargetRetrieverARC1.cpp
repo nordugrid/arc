@@ -66,18 +66,16 @@ namespace Arc {
     case COMPUTING:
       if (mom.AddService(url)) {
         ThreadArg *arg = CreateThreadArg(mom, targetType, detailLevel);
-        if (!CreateThreadFunction(&InterrogateTarget, arg)) {
+        if (!CreateThreadFunction(&InterrogateTarget, arg, &(mom.ServiceCounter()))) {
           delete arg;
-          mom.RetrieverDone();
         }
       }
       break;
     case INDEX:
       if (mom.AddIndexServer(url)) {
         ThreadArg *arg = CreateThreadArg(mom, targetType, detailLevel);
-        if (!CreateThreadFunction(&QueryIndex, arg)) {
+        if (!CreateThreadFunction(&QueryIndex, arg, &(mom.ServiceCounter()))) {
           delete arg;
-          mom.RetrieverDone();
         }
       }
       break;
@@ -95,7 +93,6 @@ namespace Arc {
     std::list< std::pair<URL, ServiceType> > services;
     if (!ac.listServicesFromISIS(services)) {
       delete thrarg;
-      mom.RetrieverDone();
       return;
     }
     logger.msg(VERBOSE, "Found %u execution services from the index service at %s", services.size(), url.str());
@@ -106,7 +103,6 @@ namespace Arc {
     }
 
     delete thrarg;
-    mom.RetrieverDone();
   }
 
   void TargetRetrieverARC1::InterrogateTarget(void *arg) {
@@ -123,7 +119,6 @@ namespace Arc {
       XMLNode servicesQueryResponse;
       if (!ac.sstat(servicesQueryResponse)) {
         delete thrarg;
-        mom.RetrieverDone();
         return;
       }
 
@@ -429,7 +424,7 @@ namespace Arc {
       DataHandle dir_url(url, usercfg);
       if (!dir_url) {
         logger.msg(INFO, "Failed retrieving job IDs: Unsupported url (%s) given", url.str());
-        mom.RetrieverDone();
+        delete thrarg;
         return;
       }
 
@@ -438,7 +433,7 @@ namespace Arc {
       if (!dir_url->ListFiles(files, false, false, false)) {
         if (files.size() == 0) {
           logger.msg(INFO, "Failed retrieving job IDs");
-          mom.RetrieverDone();
+          delete thrarg;
           return;
         }
         logger.msg(VERBOSE, "Error encoutered during job ID retrieval. All job IDs might not have been retrieved");
@@ -456,7 +451,6 @@ namespace Arc {
     }
 
     delete thrarg;
-    mom.RetrieverDone();
   }
 
 } // namespace Arc

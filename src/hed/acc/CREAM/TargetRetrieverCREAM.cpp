@@ -65,18 +65,16 @@ namespace Arc {
     case COMPUTING:
       if (mom.AddService(url)) {
         ThreadArg *arg = CreateThreadArg(mom, targetType, detailLevel);
-        if (!CreateThreadFunction(&InterrogateTarget, arg)) {
+        if (!CreateThreadFunction(&InterrogateTarget, arg, &(mom.ServiceCounter()))) {
           delete arg;
-          mom.RetrieverDone();
         }
       }
       break;
     case INDEX:
       if (mom.AddIndexServer(url)) {
         ThreadArg *arg = CreateThreadArg(mom, targetType, detailLevel);
-        if (!CreateThreadFunction(&QueryIndex, arg)) {
-          delete arg;
-          mom.RetrieverDone();
+        if (!CreateThreadFunction(&QueryIndex, arg, &(mom.ServiceCounter(
+)))) { delete arg;
         }
       }
       break;
@@ -99,13 +97,11 @@ namespace Arc {
       logger.msg(INFO, "Can't create information handle - "
                  "is the ARC ldap DMC plugin available?");
       delete thrarg;
-      mom.RetrieverDone();
       return;
     }
 
     if (!handler->StartReading(buffer)) {
       delete thrarg;
-      mom.RetrieverDone();
       return;
     }
 
@@ -122,7 +118,6 @@ namespace Arc {
 
     if (!handler->StopReading()) {
       delete thrarg;
-      mom.RetrieverDone();
       return;
     }
 
@@ -157,7 +152,6 @@ namespace Arc {
     }
 
     delete thrarg;
-    mom.RetrieverDone();
   }
 
   void TargetRetrieverCREAM::InterrogateTarget(void *arg) {
@@ -174,13 +168,11 @@ namespace Arc {
       logger.msg(INFO, "Can't create information handle - "
                  "is the ARC ldap DMC plugin available?");
       delete thrarg;
-      mom.RetrieverDone();
       return;
     }
 
     if (!handler->StartReading(buffer)) {
       delete thrarg;
-      mom.RetrieverDone();
       return;
     }
 
@@ -197,7 +189,6 @@ namespace Arc {
 
     if (!handler->StopReading()) {
       delete thrarg;
-      mom.RetrieverDone();
       return;
     }
 
@@ -533,7 +524,6 @@ namespace Arc {
     }
 
     delete thrarg;
-    mom.RetrieverDone();
   }
 
 } // namespace Arc

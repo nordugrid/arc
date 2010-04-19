@@ -131,13 +131,6 @@ namespace Arc {
     // XMLNode is reference by itself - passing it as const& has no sense
     void AddJob(const XMLNode& job);
     
-    /// Decrement the threadCounter by 1
-    /**
-     * Method to decrement the threadCounter by 1 in a thread secure way. 
-     *
-     **/   
-    void RetrieverDone();
-
     /// Prints target information
     /**
      * Method to print information of the found targets to std::cout. 
@@ -146,6 +139,17 @@ namespace Arc {
      *
      **/
     void PrintTargetInfo(bool longlist) const;
+
+    /// Returns reference to worker counter
+    /**
+     * This method returns reference to counter which keeps
+     * amount of started worker threads communicating with 
+     * services asynchronously. The counter must be incremented
+     * for every thread started and decremented when thread
+     * exits. Main thread will then wait till counters 
+     * drops to zero.
+     **/
+    SimpleCounter& ServiceCounter(void);
 
   private:
     TargetRetrieverLoader loader;
@@ -162,9 +166,7 @@ namespace Arc {
     Glib::Mutex targetMutex;
     Glib::Mutex jobMutex;
 
-    int threadCounter;
-    Glib::Mutex threadMutex;
-    Glib::Cond threadCond;
+    SimpleCounter threadCounter;
 
     static Logger logger;
   };
