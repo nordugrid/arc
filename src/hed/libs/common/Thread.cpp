@@ -39,6 +39,7 @@ namespace Arc {
     typedef void (*func_t)(void*);
     void *arg;
     func_t func;
+    SimpleCounter* count;
 #ifdef USE_THREAD_POOL
     ThreadInc* resource;
     ThreadArgument& acquire(void) {
@@ -50,14 +51,15 @@ namespace Arc {
       resource = NULL;
     }
 #endif
-    ThreadArgument(func_t f, void *a)
+    ThreadArgument(func_t f, void *a, SimpleCounter *c)
       : arg(a),
-        func(f)
+        func(f),
+        count(c)
 #ifdef USE_THREAD_POOL
         ,resource(NULL)
 #endif
     {}
-    ~ThreadArgument(void) {}
+    ~ThreadArgument(void) { }
     void thread(void);
   };
 
@@ -172,17 +174,22 @@ namespace Arc {
 #endif
     func_t f_temp = func;
     void *a_temp = arg;
+    SimpleCounter *c_temp = count;
     delete this;
     (*f_temp)(a_temp);
+    if(c_temp) c_temp->dec();
   }
 
-  bool CreateThreadFunction(void (*func)(void*), void *arg) {
+  bool CreateThreadFunction(void (*func)(void*), void *arg, SimpleCounter* count
+) {
 #ifdef USE_THREAD_POOL
     if(!pool) return false;
-    ThreadArgument *argument = new ThreadArgument(func, arg);
+    ThreadArgument *argument = new ThreadArgument(func, arg, count);
+    if(count) count->inc();
     pool->PushQueue(argument);
 #else
-    ThreadArgument *argument = new ThreadArgument(func, arg);
+    ThreadArgument *argument = new ThreadArgument(func, arg, count);
+    if(count) count->inc();
     try {
       UserSwitch usw(0,0);
       Glib::Thread::create(sigc::mem_fun(*argument, &ThreadArgument::thread),
@@ -190,6 +197,7 @@ namespace Arc {
                            Glib::THREAD_PRIORITY_NORMAL);
     } catch (std::exception& e) {
       threadLogger.msg(ERROR, e.what());
+      if(count) count->dec();
       delete argument;
       return false;
     };

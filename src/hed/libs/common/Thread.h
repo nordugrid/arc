@@ -8,6 +8,10 @@
 #include <arc/User.h>
 
 namespace Arc {
+
+  class SimpleCondition;
+  class SimpleCounter;
+
   /// This module provides convenient helpers for Glibmm interface for thread management.
   /** So far it takes care of automatic initialization
      of threading environment and creation of simple detached threads.
@@ -46,8 +50,10 @@ namespace Arc {
   /** It takes care of all pecularities of Glib::Thread API.
      As result it runs function 'func' with argument 'arg' in a separate
      thread.
+     If count parameter not NULL then corresponding object will be incremented
+     before function returns and then decremented then thread finished.
      Returns true on success. */
-  bool CreateThreadFunction(void (*func)(void*), void *arg);
+  bool CreateThreadFunction(void (*func)(void*), void *arg, SimpleCounter* count = NULL);
 
   /// Helper function to create simple thread.
   /** It takes care of all pecularities of Glib::Thread API.
@@ -137,8 +143,60 @@ namespace Arc {
     }
   };
 
+  class SimpleCounter {
+  private:
+    Glib::Cond cond_;
+    Glib::Mutex lock_;
+    int count_;
+  public:
+   SimpleCounter(void)
+      : count_(0) {}
+    ~SimpleCounter(void) {
+      /* race condition ? */
+      lock_.lock();
+      count_ = 0;
+      cond_.broadcast();
+      lock_.unlock();
+    }
+    int inc(void) {
+      lock_.lock();
+      ++count_;
+      int r = count_;
+      lock_.unlock();
+      return r;
+    }
+    int dec(void) {
+      lock_.lock();
+      if(count_ > 0) --count_;
+      if(count_ <= 0) cond_.signal();
+      int r = count_;
+      lock_.unlock();
+      return r;
+    }
+    void wait(void) {
+      lock_.lock();
+      while (count_ > 0) cond_.wait(lock_);
+      lock_.unlock();
+    }
+    /** Wait for condition no longer than t milliseconds */
+    bool wait(int t) {
+      lock_.lock();
+      Glib::TimeVal etime;
+      etime.assign_current_time();
+      etime.add_milliseconds(t);
+      bool res(true);
+      while (count_ > 0) {
+        res = cond_.timed_wait(lock_, etime);
+        if (!res)
+          break;
+      }
+      lock_.unlock();
+      return res;
+    }
+  };
+
   /// This class is a set of conditions, mutexes, etc. conveniently
-  /// exposed to moitor running child threads and to wait till
+  /// exposed to monitor running child threads and to wait till
   /// they exit. There are no protections against race conditions.
   /// So use it carefully.
   class ThreadRegistry {
