@@ -64,7 +64,10 @@ parse_grami(my $gramifile = $ARGV[0]);
 
 my $configfile = $ENV{ARC_CONFIG} ? $ENV{ARC_CONFIG} : '/etc/arc.conf';
 my $fullconfig = ConfigCentral::parseConfig($configfile);
-my %config = ( %$fullconfig, %{$fullconfig->{shares}{$grami{joboption_queue}}} );
+my $share = $grami{joboption_queue};
+die "$0: ERROR: Job requested invalid share: $share\n"
+    unless exists $fullconfig->{shares}{$share};
+my %config = ( %$fullconfig, %{$fullconfig->{shares}{$share}} );
 
 # this finds location of condor executables, and sets up environment vars.
 configure_condor_env(%config) or die "Condor executables not found\n";

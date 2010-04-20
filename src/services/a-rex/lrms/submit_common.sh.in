@@ -73,7 +73,10 @@ read_arc_conf () {
 
    # Also read queue section
    if [ ! -z "$joboption_queue" ]; then
-     config_import_section "queue/$joboption_queue"
+     if ! config_import_section "queue/$joboption_queue"; then
+         echo "ERROR: Job requested invalid share: $joboption_queue" 1>&2
+         exit 1
+     fi
    fi
 }
 
