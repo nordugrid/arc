@@ -45,6 +45,7 @@
 %ignore NewChild(const char*, int, bool);
 %ignore NewChild(const char*, const NS&, int, bool);
 %ignore Config(const char*);
+%ignore Arc::TargetGenerator::ServiceCounter();
 
 
 %ignore *::operator==;
