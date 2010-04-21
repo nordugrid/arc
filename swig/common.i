@@ -65,6 +65,7 @@
 #ifdef SWIGPYTHON
 %rename(toBool) operator bool;
 %rename(__str__) operator std::string;
+%ignore Arc::TargetGenerator::ServiceCounter();
 #endif
 
 %rename(_print) Arc::Config::print;
