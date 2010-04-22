@@ -138,7 +138,7 @@ bool DirDelete(const char* path) {
     while ((file_name = dir.read_name()) != "") {
       std::string fullpath(path);
       fullpath += '/' + file_name;
-      if (stat(fullpath.c_str(), &st) != 0) return false;
+      if (lstat(fullpath.c_str(), &st) != 0) return false;
       if (S_ISDIR(st.st_mode)) {
         if (!DirDelete(fullpath.c_str())) {
           return false;

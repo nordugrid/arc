@@ -45,6 +45,7 @@ void FileUtilsTest::TestMakeAndDeleteDir() {
   CPPUNIT_ASSERT(stat(std::string(testroot + "/dir1/dir2").c_str(), &st) == 0);
   CPPUNIT_ASSERT(S_ISDIR(st.st_mode));
   CPPUNIT_ASSERT(_createFile(testroot + "/dir1/dir2/file3"));
+  CPPUNIT_ASSERT(symlink(std::string(testroot + "/dir1/dir2").c_str(), std::string(testroot + "/dir1/dir2/link1").c_str()) == 0);
 
   CPPUNIT_ASSERT(Arc::DirDelete(testroot.c_str()));
   CPPUNIT_ASSERT(stat(testroot.c_str(), &st) != 0);
