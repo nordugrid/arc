@@ -1,4 +1,4 @@
-TESTS = URLTest LoggerTest RunTest ThreadTest XMLNodeTest
+TESTS = URLTest LoggerTest RunTest XMLNodeTest FileUtilsTest ThreadTest XMLNodeTest FileUtilsTest
 check_PROGRAMS = $(TESTS)
 
 URLTest_SOURCES = $(top_srcdir)/src/Test.cpp URLTest.cpp
@@ -20,5 +20,9 @@ ThreadTest_LDADD = $(CPPUNIT_LIBS) ../libarccommon.la
 XMLNodeTest_SOURCES = $(top_srcdir)/src/Test.cpp XMLNodeTest.cpp
 XMLNodeTest_CXXFLAGS = $(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
 XMLNodeTest_LDADD = $(CPPUNIT_LIBS) ../libarccommon.la
+
+FileUtilsTest_SOURCES = $(top_srcdir)/src/Test.cpp FileUtilsTest.cpp
+FileUtilsTest_CXXFLAGS = $(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
+FileUtilsTest_LDADD = $(CPPUNIT_LIBS) ../libarccommon.la
 
 EXTRA_DIST = rcode

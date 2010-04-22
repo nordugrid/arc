@@ -12,6 +12,8 @@ bool FileStat(const char* path,struct stat *st,bool follow_symlinks);
 bool FileStat(const char* path,struct stat *st,uid_t uid,gid_t gid,bool follow_symlinks);
 bool DirCreate(const char* path,mode_t mode);
 bool DirCreate(const char* path,uid_t uid,gid_t gid,mode_t mode);
+bool DirDelete(const char* path);
+bool DirDelete(const char* path,uid_t uid,gid_t gid);
 
 } // namespace Arc
 

@@ -116,6 +116,48 @@ bool DirCreate(const char* path,uid_t uid,gid_t gid,mode_t mode) {
 }
 
 
+bool DirDelete(const char* path,uid_t uid,gid_t gid) {
+
+  bool r = false;
+  {
+    UserSwitch usw(uid, gid);
+    if (!usw) return false;
+    r = DirDelete(path);
+  }
+  return r;
+}  
+
+bool DirDelete(const char* path) {
+
+  struct stat st;
+  if (stat(path, &st) != 0 || ! S_ISDIR(st.st_mode))
+    return false;
+  try {
+    Glib::Dir dir(path);
+    std::string file_name;
+    while ((file_name = dir.read_name()) != "") {
+      std::string fullpath(path);
+      fullpath += '/' + file_name;
+      if (stat(fullpath.c_str(), &st) != 0) return false;
+      if (S_ISDIR(st.st_mode)) {
+        if (!DirDelete(fullpath.c_str())) {
+          return false;
+        }
+      } else {
+        if (remove(fullpath.c_str()) != 0) {
+          return false;
+        }
+      }
+    } 
+  }
+  catch (Glib::FileError& e) {
+    return false;
+  }
+  if (rmdir(path) != 0) return false;
+      
+  return true;
+}
+
 } // namespace Arc
 
 #endif
