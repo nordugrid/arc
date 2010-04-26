@@ -244,12 +244,12 @@ namespace Arc {
 
   void GlibThreadInitialize(void) {
     Glib::init();
-    if (!Glib::thread_supported()) {
+    if (!Glib::thread_supported())
       Glib::thread_init();
 #ifdef USE_THREAD_POOL
+    if (!pool)
       pool = new ThreadPool;
 #endif
-    }
   }
 
   ThreadRegistry::ThreadRegistry(void):counter_(0),cancel_(false) {
