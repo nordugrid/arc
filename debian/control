@@ -4,7 +4,7 @@ Priority: optional
 Maintainer: Anders Waananen <waananen@nbi.dk>
 Uploaders: Steffen Moeller <moeller@debian.org>, Mattias Ellert <mattias.ellert@fysast.uu.se>
 DM-Upload-Allowed: yes
-Build-Depends: debhelper (>= 5), autotools-dev, libxml2-dev (>=2.4.0), libssl-dev, libglibmm-2.4-dev, python-dev, libltdl-dev | libltdl7-dev | libltdl3-dev, libldap2-dev, uuid-dev, libcppunit-dev, pkg-config, libdb4.6++-dev | libdb4.5++-dev | libdb4.4++-dev | libdb4.3++-dev | libdb4.2++-dev | libdb++-dev, libxmlsec1-dev (>=1.2.4), gsoap, libglobus-common-dev, libglobus-gssapi-gsi-dev, libglobus-rls-client-dev, libglobus-ftp-client-dev, libglobus-ftp-control-dev, python-support, default-jdk-builddep | java-gcj-compat-dev
+Build-Depends: debhelper (>= 5), autotools-dev, libxml2-dev (>=2.4.0), libssl-dev, libglibmm-2.4-dev, python-dev, libltdl-dev | libltdl7-dev | libltdl3-dev, libldap2-dev, uuid-dev, libcppunit-dev, pkg-config, libdb4.8++-dev | libdb4.7++-dev | libdb4.6++-dev | libdb4.5++-dev | libdb4.4++-dev | libdb4.3++-dev | libdb4.2++-dev | libdb++-dev, libxmlsec1-dev (>=1.2.4), gsoap, libglobus-common-dev, libglobus-gssapi-gsi-dev, libglobus-rls-client-dev, libglobus-ftp-client-dev, libglobus-ftp-control-dev, python-support, default-jdk-builddep | java-gcj-compat-dev
 Build-Depends-Indep: graphviz, doxygen
 XS-Python-Version: current
 Standards-Version: 3.8.4
@@ -49,7 +49,6 @@ Replaces: nordugrid-arc1-client (<< 1.0.0~)
 Conflicts: nordugrid-arc1-client (<< 1.0.0~)
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, ${python:Depends}, nordugrid-arc-nox-plugins-base
-XB-Python-Version: ${python:Versions}
 Description: ARC prototype clients
  The NorduGrid is a collaboration aiming at development, maintenance
  and support of the free Grid middleware, known as the Advanced Resource
@@ -73,38 +72,38 @@ Description: ARC Hosting Environment Daemon
  Connector (ARC).
  .
  The ARC Hosting Environment Daemon (HED). This daemon presents a site
- to other participants on the grid.  An intrinsic component of any grid
+ to other participants on the grid. An intrinsic component of any grid
  system is a mechanism allowing for the secure stateful communication with
  remote environments. HED prepares for such an environment and as such
  is the core of the ARC middleware. HED was however written in a way,
  that represents typical grid computing tasks (the sharing of CPU time
  or storage) to become just one possible service between a user and a
- remote machine.  Many others are thinkable, and HED takes considerable
+ remote machine. Many others are thinkable, and HED takes considerable
  effort away from the respective implementors.
 
 Package: nordugrid-arc-nox-charon
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, nordugrid-arc-nox-hed
-Description: ARC CHARON service
+Description: ARC Charon service
  The NorduGrid is a collaboration aiming at development, maintenance
  and support of the free Grid middleware, known as the Advanced Resource
  Connector (ARC).
  .
- CHARON is a remote policy decision point service.  It accepts formatted
+ Charon is a remote policy decision point service. It accepts formatted
  policy decision request and return positive or negative response. When
- running a CHARON (within the HED), the TLS layer can be used for
+ running a Charon (within the HED), the TLS layer can be used for
  securing the communication, when the request or response  information
  are critical.
 
 Package: nordugrid-arc-nox-hopi
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, nordugrid-arc-nox-hed
-Description: ARC HOPI service
+Description: ARC Hopi service
  The NorduGrid is a collaboration aiming at development, maintenance
  and support of the free Grid middleware, known as the Advanced Resource
  Connector (ARC).
  .
- The HOPI service provides a simple implementation of an http(s)
+ The Hopi service provides a simple implementation of an http(s)
  server. It supports GET and PUT operations. It can be used as a simple
  file transfer service and it is usable via common web browsers and
  other http(s) clients (e.g. wget).
@@ -112,12 +111,12 @@ Description: ARC HOPI service
 Package: nordugrid-arc-nox-isis
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, nordugrid-arc-nox-hed
-Description: ARC isis service
+Description: ARC Isis service
  The NorduGrid is a collaboration aiming at development, maintenance
  and support of the free Grid middleware, known as the Advanced Resource
  Connector (ARC).
  .
- ISIS is the new ARC information system implemented within HED. ISIS
+ Isis is the new ARC information system implemented within HED. Isis
  comes with P2P capabilities and a web-services interface. The new system
  grants grid participants an increase in flexibility, robustness and it
  also offers easier configuration and self-healing capability.
@@ -248,6 +247,7 @@ Replaces: nordugrid-arc1-python (<< 1.0.0~)
 Conflicts: nordugrid-arc1-python (<< 1.0.0~)
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, ${python:Depends}, python-fuse
+XB-Python-Version: ${python:Versions}
 Description: ARC Python wrapper
  The NorduGrid is a collaboration aiming at development, maintenance
  and support of the free Grid middleware, known as the Advanced
@@ -255,7 +255,7 @@ Description: ARC Python wrapper
  .
  Developers with an interest to integrate the some functionality on a
  remote site via an interface compatible with ARC, may find it preferable
- to perform that remote invocation from within Python.  While today most
+ to perform that remote invocation from within Python. While today most
  services in ARC are associated with computation or storage, there is
  no constraint on these applications.
 
@@ -272,7 +272,7 @@ Description: ARC Java wrapper
  .
  Developers with an interest to integrate the some functionality on a
  remote site via an interface compatible with ARC, may find it preferable
- to perform that remote invocation from within Java.  While today most
+ to perform that remote invocation from within Java. While today most
  services in ARC are associated with computation or storage, there is
  no constraint on these applications.
 
@@ -296,7 +296,7 @@ Provides: nordugrid-arc1-janitor
 Replaces: nordugrid-arc1-janitor (<< 1.0.0~)
 Conflicts: nordugrid-arc1-janitor (<< 1.0.0~)
 Architecture: any
-Depends: librdf-perl, ${misc:Depends}, ${perl:Depends}
+Depends: ${misc:Depends}, ${perl:Depends}, librdf-perl
 Recommends: liblog-log4perl-perl, libfile-copy-recursive-perl
 Suggests: nordugrid-arc-nox
 Description: ARC dynamic runtime environment installation

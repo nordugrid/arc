@@ -5,4 +5,4 @@ Abstract: Instructions to setup a grid site.
 Section: Network/Communication
 
 Format: PDF
-Files: usr/share/doc/nordugrid-arc-nox-doc/ws-quick-guide.pdf
+Files: /usr/share/doc/nordugrid-arc-nox-doc/ws-quick-guide.pdf
