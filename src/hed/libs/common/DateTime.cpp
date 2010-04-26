@@ -435,7 +435,10 @@ namespace Arc {
 
         return ss.str();
       }
-
+    case EpochTime:
+      {
+        return tostring(gtime);
+      } 
     }
     return "";
   }

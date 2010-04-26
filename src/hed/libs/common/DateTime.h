@@ -18,7 +18,8 @@ namespace Arc {
     UserTime,      // YYYY-MM-DD HH:MM:SS
     ISOTime,       // YYYY-MM-DDTHH:MM:SS+HH:MM
     UTCTime,       // YYYY-MM-DDTHH:MM:SSZ
-    RFC1123Time    // Day, DD Mon YYYY HH:MM:SS GMT
+    RFC1123Time,   // Day, DD Mon YYYY HH:MM:SS GMT
+    EpochTime      // 1234567890
   };
 
   enum PeriodBase {
