@@ -17,7 +17,6 @@
 #include <arc/message/PayloadSOAP.h>
 
 #include "ldif/LDIFtoXML.h"
-#include "config/ngconfig.h"
 #include "grid-manager/conf/environment.h"
 #include "job.h"
 #include "arex.h"

@@ -1,4 +1,4 @@
-SUBDIRS = grid-manager ldif config infoproviders lrms logger schema
+SUBDIRS = grid-manager ldif infoproviders lrms logger schema
 DIST_SUBDIRS = grid-manager ldif config infoproviders lrms logger schema
 pkglib_LTLIBRARIES = libarex.la
 noinst_PROGRAMS=test test_cache_check
@@ -29,7 +29,7 @@ libarex_la_SOURCES  = arex.cpp job.cpp \
                       arex.h job.h PayloadFile.h FileChunks.h gacl.h tools.h
 libarex_la_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
 # Needs real cleaning in respect to dependencies
-libarex_la_LIBADD   = $(top_srcdir)/src/hed/libs/loader/libarcloader.la $(top_srcdir)/src/hed/libs/message/libarcmessage.la $(top_srcdir)/src/hed/libs/security/libarcsecurity.la $(top_srcdir)/src/hed/libs/ws/libarcws.la $(top_srcdir)/src/hed/libs/common/libarccommon.la $(top_srcdir)/src/hed/libs/delegation/libarcdelegation.la $(top_srcdir)/src/hed/libs/data/libarcdata2.la $(top_srcdir)/src/hed/libs/client/libarcclient.la ldif/libldif.la ./config/libconfig.la $(GRIDMANAGER_LIBS)
+libarex_la_LIBADD   = $(top_srcdir)/src/hed/libs/loader/libarcloader.la $(top_srcdir)/src/hed/libs/message/libarcmessage.la $(top_srcdir)/src/hed/libs/security/libarcsecurity.la $(top_srcdir)/src/hed/libs/ws/libarcws.la $(top_srcdir)/src/hed/libs/common/libarccommon.la $(top_srcdir)/src/hed/libs/delegation/libarcdelegation.la $(top_srcdir)/src/hed/libs/data/libarcdata2.la $(top_srcdir)/src/hed/libs/client/libarcclient.la ldif/libldif.la $(GRIDMANAGER_LIBS)
 libarex_la_LDFLAGS  = -no-undefined -avoid-version -module
 
 test_SOURCES  = test.cpp
