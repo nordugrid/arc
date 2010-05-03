@@ -20,9 +20,10 @@
 #include "jobs/commfifo.h"
 #include "conf/environment.h"
 #include "conf/conf_file.h"
-#include "conf/daemon.h"
+//#include "conf/daemon.h"
 #include "files/info_types.h"
 #include "files/delete.h"
+#include "log/job_log.h"
 #include "run/run_parallel.h"
 
 #include "grid_manager.h"
@@ -43,7 +44,7 @@ static Arc::Logger logger(Arc::Logger::getRootLogger(),"AREX:GM");
 static void* cache_func(void* arg) {
   const JobUsers* users = (const JobUsers*)arg;
   Arc::Run *proc = NULL;
-  JobUser gmuser(getuid()); // Cleaning should run under the GM user 
+  JobUser gmuser(users->Env(),getuid()); // Cleaning should run under the GM user 
   
   // run cache cleaning periodically 
   for(;;) {
@@ -78,7 +79,7 @@ static void* cache_func(void* arg) {
         char* args[9+cache_info_dirs.size()+1];
         
         // do cache-clean -h for explanation of options
-        std::string cmd = nordugrid_libexec_loc() + "/cache-clean";
+        std::string cmd = users->Env().nordugrid_libexec_loc() + "/cache-clean";
         args[argc++]=(char*)cmd.c_str();
         args[argc++]=(char*)"-m";
         args[argc++]=(char*)minfreespace.c_str();
@@ -138,6 +139,7 @@ typedef struct {
 
 static void grid_manager(void* arg) {
   const char* config_filename = (const char*)arg;
+  GMEnvironment* env = (GMEnvironment*)arg;
   if(!arg) return;
   unsigned int clean_first_level=0;
   // int n;
@@ -145,10 +147,10 @@ static void grid_manager(void* arg) {
   // char** argv = ((args_st*)arg)->argv;
   setpgid(0,0);
   opterr=0;
-  if(config_filename) nordugrid_config_loc(config_filename);
+  //if(config_filename) nordugrid_config_loc(config_filename);
 
   logger.msg(Arc::INFO,"Starting grid-manager thread");
-  Daemon daemon;
+  //Daemon daemon;
   // Only supported option now is -c
   /*
   while((n=daemon.getopt(argc,argv,"hvC:c:")) != -1) {
@@ -178,13 +180,13 @@ static void grid_manager(void* arg) {
   };
   */
 
-  JobUsers users;
+  JobUsers users(*env);
   std::string my_username("");
   uid_t my_uid=getuid();
   JobUser *my_user = NULL;
-  if(!read_env_vars()) {
-    logger.msg(Arc::FATAL,"Can't initialize runtime environment - EXITING"); return;
-  };
+  //if(!read_env_vars()) {
+  //  logger.msg(Arc::FATAL,"Can't initialize runtime environment - EXITING"); return;
+  //};
   
   /* recognize itself */
   {
@@ -197,9 +199,9 @@ static void grid_manager(void* arg) {
   if(my_username.length() == 0) {
     logger.msg(Arc::FATAL,"Can't recognize own username - EXITING"); return;
   };
-  my_user = new JobUser(my_username);
-  if(!configure_serviced_users(users,my_uid,my_username,*my_user,&daemon)) {
-    logger.msg(Arc::INFO,"Used configuration file %s",nordugrid_config_loc());
+  my_user = new JobUser(*env,my_username);
+  if(!configure_serviced_users(users,my_uid,my_username,*my_user/*,&daemon*/)) {
+    logger.msg(Arc::INFO,"Used configuration file %s",env->nordugrid_config_loc());
     logger.msg(Arc::FATAL,"Error processing configuration - EXITING"); return;
   };
   if(users.size() == 0) {
@@ -212,7 +214,7 @@ static void grid_manager(void* arg) {
   //  perror("Error - daemonization failed");
   //  exit(1);
   //}; 
-  logger.msg(Arc::INFO,"Used configuration file %s",nordugrid_config_loc());
+  logger.msg(Arc::INFO,"Used configuration file %s",env->nordugrid_config_loc());
   print_serviced_users(users);
 
   //unsigned int wakeup_period = JobsList::WakeupPeriod();
@@ -229,7 +231,7 @@ static void grid_manager(void* arg) {
   for(JobUsers::iterator i = users.begin();i!=users.end();++i) {
     wakeup_interface.add(*i);
   };
-  wakeup_interface.timeout(JobsList::WakeupPeriod());
+  wakeup_interface.timeout(env->jobs_cfg().WakeupPeriod());
 
   // Prepare signal handler(s). Must be done after fork/daemon and preferably
   // before any new thread is started. 
@@ -313,7 +315,7 @@ static void grid_manager(void* arg) {
   hard_job_time = time(NULL) + HARD_JOB_PERIOD;
   for(;;) { 
     users.run_helpers();
-    job_log.RunReporter(users);
+    env->job_log().RunReporter(users);
     my_user->run_helpers();
     bool hard_job = time(NULL) > hard_job_time;
     for(JobUsers::iterator user = users.begin();user != users.end();++user) {
@@ -359,13 +361,16 @@ GridManager::GridManager(Arc::XMLNode argv):active_(false) {
 }
 */
 
-GridManager::GridManager(const char* config_filename):active_(false) {
-  void* arg = config_filename?strdup(config_filename):NULL;
+GridManager::GridManager(GMEnvironment& env/*const char* config_filename*/):active_(false) {
+  void* arg = (void*)&env; // config_filename?strdup(config_filename):NULL;
   active_=Arc::CreateThreadFunction(&grid_manager,arg);
-  if(!active_) if(arg) free(arg);
+  //if(!active_) if(arg) free(arg);
 }
 
 GridManager::~GridManager(void) {
+  if(active_) {
+     // Stop GM thread
+  }
 }
 
 } // namespace ARex

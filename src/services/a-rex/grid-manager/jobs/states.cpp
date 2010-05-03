@@ -40,26 +40,27 @@ static Arc::Logger& logger = Arc::Logger::getRootLogger();
 #include "states.h"
 
 
-int JobsList::jobs_num[JOB_STATE_NUM] = { 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-int JobsList::jobs_pending = 0;
-int JobsList::max_jobs_processing=DEFAULT_MAX_JOBS;
-int JobsList::max_jobs_processing_emergency=1;
-int JobsList::max_jobs_running=-1;
-int JobsList::max_jobs=-1;
-int JobsList::max_downloads=-1;
-unsigned int JobsList::max_processing_share = 0;
-std::map<std::string, int> JobsList::limited_share;
-std::string JobsList::share_type = "";
-unsigned long long int JobsList::min_speed=0;
-time_t JobsList::min_speed_time=300;
-unsigned long long int JobsList::min_average_speed=0;
-time_t JobsList::max_inactivity_time=300;
-int JobsList::max_retries=DEFAULT_MAX_RETRIES;
-bool JobsList::use_secure_transfer=false; /* secure data transfer is OFF by default !!! */
-bool JobsList::use_passive_transfer=false;
-bool JobsList::use_local_transfer=false;
-unsigned int JobsList::wakeup_period = 120; // default wakeup every 3 min.
-
+JobsListConfig::JobsListConfig(void) {
+  for(int n = 0;n<JOB_STATE_NUM;n++) jobs_num[n]=0;
+  jobs_pending = 0;
+  max_jobs_processing=DEFAULT_MAX_JOBS;
+  max_jobs_processing_emergency=1;
+  max_jobs_running=-1;
+  max_jobs=-1;
+  max_downloads=-1;
+  max_processing_share = 0;
+  //limited_share;
+  share_type = "";
+  min_speed=0;
+  min_speed_time=300;
+  min_average_speed=0;
+  max_inactivity_time=300;
+  max_retries=DEFAULT_MAX_RETRIES;
+  use_secure_transfer=false; /* secure data transfer is OFF by default !!! */
+  use_passive_transfer=false;
+  use_local_transfer=false;
+  wakeup_period = 120; // default wakeup every 3 min.
+}
 
 #ifdef NO_GLOBUS_CODE
 ContinuationPlugins::ContinuationPlugins(void) { };
@@ -146,6 +147,7 @@ void JobsList::CalculateShares(){
    * job can proceed.
 */
 
+  JobsListConfig& jcfg = user->Env().jobs_cfg();
   // clear shares with 0 count
   std::map<std::string, int> preparing_job_share_copy = preparing_job_share;
   std::map<std::string, int> finishing_job_share_copy = finishing_job_share;
@@ -189,7 +191,7 @@ void JobsList::CalculateShares(){
   int privileged_jobs_processing = 0;
   int privileged_preparing_job_share = 0;
   int privileged_finishing_job_share = 0;
-  for (std::map<std::string, int>::iterator i = limited_share.begin(); i != limited_share.end(); i++) {
+  for (std::map<std::string, int>::iterator i = jcfg.limited_share.begin(); i != jcfg.limited_share.end(); i++) {
     if (pre_preparing_job_share.find(i->first) != pre_preparing_job_share.end()) {
       privileged_preparing_job_share++;
       privileged_jobs_processing += i->second;
@@ -201,7 +203,7 @@ void JobsList::CalculateShares(){
       privileged_total_pre_finishing += pre_finishing_job_share[i->first];
     }
   }
-  int unprivileged_jobs_processing = max_jobs_processing - privileged_jobs_processing;
+  int unprivileged_jobs_processing = jcfg.max_jobs_processing - privileged_jobs_processing;
 
   // calculate the number of slots that can be allocated per unprivileged share
   // count the total number of unprivileged jobs (pre)preparing
@@ -213,12 +215,12 @@ void JobsList::CalculateShares(){
   }
   // exclude privileged jobs
   total_pre_preparing -= privileged_total_pre_preparing;
-  if (max_jobs_processing == -1 || unprivileged_preparing_job_share <= (unprivileged_jobs_processing / max_processing_share))
-    unprivileged_preparing_limit = max_processing_share;
+  if (jcfg.max_jobs_processing == -1 || unprivileged_preparing_job_share <= (unprivileged_jobs_processing / jcfg.max_processing_share))
+    unprivileged_preparing_limit = jcfg.max_processing_share;
   else if (unprivileged_preparing_job_share > unprivileged_jobs_processing || unprivileged_preparing_job_share <= 0)
     unprivileged_preparing_limit = 1;
   else if (total_pre_preparing <= unprivileged_jobs_processing)
-    unprivileged_preparing_limit = max_processing_share;
+    unprivileged_preparing_limit = jcfg.max_processing_share;
   else
     unprivileged_preparing_limit = unprivileged_jobs_processing / unprivileged_preparing_job_share;
 
@@ -231,49 +233,50 @@ void JobsList::CalculateShares(){
   }
   // exclude privileged jobs
   total_pre_finishing -= privileged_total_pre_finishing;
-  if (max_jobs_processing == -1 || unprivileged_finishing_job_share <= (unprivileged_jobs_processing / max_processing_share))
-    unprivileged_finishing_limit = max_processing_share;
+  if (jcfg.max_jobs_processing == -1 || unprivileged_finishing_job_share <= (unprivileged_jobs_processing / jcfg.max_processing_share))
+    unprivileged_finishing_limit = jcfg.max_processing_share;
   else if (unprivileged_finishing_job_share > unprivileged_jobs_processing || unprivileged_finishing_job_share <= 0)
     unprivileged_finishing_limit = 1;
   else if (total_pre_finishing <= unprivileged_jobs_processing)
-    unprivileged_finishing_limit = max_processing_share;
+    unprivileged_finishing_limit = jcfg.max_processing_share;
   else
     unprivileged_finishing_limit = unprivileged_jobs_processing / unprivileged_finishing_job_share;
 
   // if there are queued jobs for both preparing and finishing, split the share between the two states
-  if (max_jobs_processing > 0 && total_pre_preparing > unprivileged_jobs_processing/2 && total_pre_finishing > unprivileged_jobs_processing/2) {
+  if (jcfg.max_jobs_processing > 0 && total_pre_preparing > unprivileged_jobs_processing/2 && total_pre_finishing > unprivileged_jobs_processing/2) {
     unprivileged_preparing_limit = unprivileged_preparing_limit < 2 ? 1 : unprivileged_preparing_limit/2;
     unprivileged_finishing_limit = unprivileged_finishing_limit < 2 ? 1 : unprivileged_finishing_limit/2;
   }
 
-  if (max_jobs_processing > 0 && privileged_total_pre_preparing > privileged_jobs_processing/2 && privileged_total_pre_finishing > privileged_jobs_processing/2)
-  for (std::map<std::string, int>::iterator i = limited_share.begin(); i != limited_share.end(); i++)
+  if (jcfg.max_jobs_processing > 0 && privileged_total_pre_preparing > privileged_jobs_processing/2 && privileged_total_pre_finishing > privileged_jobs_processing/2)
+  for (std::map<std::string, int>::iterator i = jcfg.limited_share.begin(); i != jcfg.limited_share.end(); i++)
     i->second = i->second < 2 ? 1 : i->second/2; 
       
   preparing_max_share = pre_preparing_job_share;
   finishing_max_share = pre_finishing_job_share;
   for (std::map<std::string, int>::iterator i = preparing_max_share.begin(); i != preparing_max_share.end(); i++){
-    if (limited_share.find(i->first) != limited_share.end())
-      i->second = limited_share[i->first];
+    if (jcfg.limited_share.find(i->first) != jcfg.limited_share.end())
+      i->second = jcfg.limited_share[i->first];
     else
       i->second = unprivileged_preparing_limit;
   }
   for (std::map<std::string, int>::iterator i = finishing_max_share.begin(); i != finishing_max_share.end(); i++){
-    if (limited_share.find(i->first) != limited_share.end())
-      i->second = limited_share[i->first];
+    if (jcfg.limited_share.find(i->first) != jcfg.limited_share.end())
+      i->second = jcfg.limited_share[i->first];
     else
       i->second = unprivileged_finishing_limit;
   }
 }
 
 bool JobsList::ActJobs(bool hard_job) {
+  JobsListConfig& jcfg = user->Env().jobs_cfg();
 /*
    * Need to calculate the shares here here because in the ActJob*
    * methods we don't have an overview of all jobs.
    * In those methods we check the share to see if each
    * job can proceed.
 */
-  if (!JobsList::share_type.empty() && max_processing_share > 0) {
+  if (!jcfg.share_type.empty() && jcfg.max_processing_share > 0) {
     CalculateShares();
   } 
 
@@ -281,9 +284,9 @@ bool JobsList::ActJobs(bool hard_job) {
   bool once_more = false;
   bool postpone_preparing = false;
   bool postpone_finishing = false;
-  if((max_jobs_processing != -1) && 
-     (!use_local_transfer) && 
-     ((JOB_NUM_PROCESSING*3) > (max_jobs_processing*2))) {
+  if((jcfg.max_jobs_processing != -1) && 
+     (!jcfg.use_local_transfer) && 
+     ((JOB_NUM_PROCESSING*3) > (jcfg.max_jobs_processing*2))) {
     if(JOB_NUM_PREPARING > JOB_NUM_FINISHING) { 
       postpone_preparing=true; 
     } else if(JOB_NUM_PREPARING < JOB_NUM_FINISHING) {
@@ -305,7 +308,7 @@ bool JobsList::ActJobs(bool hard_job) {
    * to update the shares that appeared as a result of 
    * moving some jobs to ACCEPTED during the first pass
   */
-  if (!JobsList::share_type.empty() && max_processing_share > 0) {
+  if (!jcfg.share_type.empty() && jcfg.max_processing_share > 0) {
     CalculateShares();
   }
 
@@ -406,6 +409,7 @@ bool JobsList::GetLocalDescription(const JobsList::iterator &i) {
 }
 
 bool JobsList::state_submitting(const JobsList::iterator &i,bool &state_changed,bool cancel) {
+  JobsListConfig& jcfg = user->Env().jobs_cfg();
   if(i->child == NULL) {
     /* no child was running yet, or recovering from fault */
     /* write grami file for globus-script-X-submit */
@@ -423,7 +427,7 @@ bool JobsList::state_submitting(const JobsList::iterator &i,bool &state_changed,
     };
     if(!cancel) {  /* in case of cancel all preparations are already done */
       const char *local_transfer_s = NULL;
-      if(use_local_transfer) { 
+      if(jcfg.use_local_transfer) { 
         local_transfer_s="joboption_localtransfer=yes";
       };
       if(!write_grami(*i,*user,local_transfer_s)) {
@@ -440,8 +444,8 @@ bool JobsList::state_submitting(const JobsList::iterator &i,bool &state_changed,
     };
     /* submit/cancel job to LRMS using submit/cancel-X-job */
     std::string cmd;
-    if(cancel) { cmd=nordugrid_libexec_loc()+"/cancel-"+job_desc->lrms+"-job"; }
-    else { cmd=nordugrid_libexec_loc()+"/submit-"+job_desc->lrms+"-job"; };
+    if(cancel) { cmd=user->Env().nordugrid_libexec_loc()+"/cancel-"+job_desc->lrms+"-job"; }
+    else { cmd=user->Env().nordugrid_libexec_loc()+"/submit-"+job_desc->lrms+"-job"; };
     if(!cancel) {
       logger.msg(Arc::INFO,"%s: state SUBMITTING: starting child: %s",i->job_id,cmd);
     } else {
@@ -454,7 +458,7 @@ bool JobsList::state_submitting(const JobsList::iterator &i,bool &state_changed,
       }
     };
     std::string grami = user->ControlDir()+"/job."+(*i).job_id+".grami";
-    std::string cfg_path = nordugrid_config_loc();
+    std::string cfg_path = user->Env().nordugrid_config_loc();
     char const * args[5] ={ cmd.c_str(), "--config", cfg_path.c_str(), grami.c_str(), NULL };
     job_errors_mark_put(*i,*user);
     if(!RunParallel::run(*user,*i,args,&(i->child))) {
@@ -542,6 +546,7 @@ bool JobsList::state_submitting(const JobsList::iterator &i,bool &state_changed,
 }
 
 bool JobsList::state_loading(const JobsList::iterator &i,bool &state_changed,bool up,bool &retry) {
+  JobsListConfig& jcfg = user->Env().jobs_cfg();
   /* RSL was analyzed/parsed - now run child process downloader
      to download job input files and to wait for user uploaded ones */
   if(i->child == NULL) { /* no child started */
@@ -550,8 +555,8 @@ bool JobsList::state_loading(const JobsList::iterator &i,bool &state_changed,boo
     /* run it anyway and exit code will give more inforamtion */
     bool switch_user = (user->CachePrivate() || user->StrictSession());
     std::string cmd; 
-    if(up) { cmd=nordugrid_libexec_loc()+"/uploader"; }
-    else { cmd=nordugrid_libexec_loc()+"/downloader"; };
+    if(up) { cmd=user->Env().nordugrid_libexec_loc()+"/uploader"; }
+    else { cmd=user->Env().nordugrid_libexec_loc()+"/downloader"; };
     uid_t user_id = user->get_uid();
     if(user_id == 0) user_id=i->get_uid();
     std::string user_id_s = Arc::tostring(user_id);
@@ -589,45 +594,45 @@ bool JobsList::state_loading(const JobsList::iterator &i,bool &state_changed,boo
       NULL,
       NULL
     };
-    if(JobsList::max_downloads > 0) {
-      max_files_s=Arc::tostring(JobsList::max_downloads);
+    if(jcfg.max_downloads > 0) {
+      max_files_s=Arc::tostring(jcfg.max_downloads);
       args[argn]="-n"; argn++;
       args[argn]=(char*)(max_files_s.c_str()); argn++;
     };
-    if(!use_secure_transfer) { 
+    if(!jcfg.use_secure_transfer) { 
       args[argn]="-c"; argn++;
     };
-    if(use_passive_transfer) { 
+    if(jcfg.use_passive_transfer) { 
       args[argn]="-p"; argn++;
     };
-    if(use_local_transfer) { 
+    if(jcfg.use_local_transfer) { 
       args[argn]="-l"; argn++;
     };
-    if(JobsList::min_speed) {
-      min_speed_s=Arc::tostring(JobsList::min_speed);
-      min_speed_time_s=Arc::tostring(JobsList::min_speed_time);
+    if(jcfg.min_speed) {
+      min_speed_s=Arc::tostring(jcfg.min_speed);
+      min_speed_time_s=Arc::tostring(jcfg.min_speed_time);
       args[argn]="-s"; argn++; 
       args[argn]=(char*)(min_speed_s.c_str()); argn++;
       args[argn]="-S"; argn++; 
       args[argn]=(char*)(min_speed_time_s.c_str()); argn++;
     };
-    if(JobsList::min_average_speed) {
-      min_average_speed_s=Arc::tostring(JobsList::min_average_speed);
+    if(jcfg.min_average_speed) {
+      min_average_speed_s=Arc::tostring(jcfg.min_average_speed);
       args[argn]="-a"; argn++; 
       args[argn]=(char*)(min_average_speed_s.c_str()); argn++;
     };
-    if(JobsList::max_inactivity_time) {
-      max_inactivity_time_s=Arc::tostring(JobsList::max_inactivity_time);
+    if(jcfg.max_inactivity_time) {
+      max_inactivity_time_s=Arc::tostring(jcfg.max_inactivity_time);
       args[argn]="-i"; argn++; 
       args[argn]=(char*)(max_inactivity_time_s.c_str()); argn++;
     };
     std::string debug_level = Arc::level_to_string(Arc::Logger::getRootLogger().getThreshold());
-    std::string cfg_path = nordugrid_config_loc();
+    std::string cfg_path = user->Env().nordugrid_config_loc();
     if (!debug_level.empty()) {
       args[argn]="-d"; argn++;
       args[argn]=(char*)(debug_level.c_str()); argn++;
     }
-    if (!nordugrid_config_loc().empty()) {
+    if (!user->Env().nordugrid_config_loc().empty()) {
       args[argn]="-C"; argn++;
       args[argn]=(char*)(cfg_path.c_str()); argn++;
     }
@@ -860,10 +865,11 @@ bool JobsList::JobFailStateRemember(const JobsList::iterator &i,job_state_t stat
 void JobsList::ActJobUndefined(JobsList::iterator &i,bool /*hard_job*/,
                                bool& once_more,bool& /*delete_job*/,
                                bool& job_error,bool& /*state_changed*/) {
+        JobsListConfig& jcfg = user->Env().jobs_cfg();
         /* read state from file */
         /* undefined means job just detected - read it's status */
         /* but first check if it's not too many jobs in system  */
-        if((JOB_NUM_ACCEPTED < max_jobs) || (max_jobs == -1)) {
+        if((JOB_NUM_ACCEPTED < jcfg.max_jobs) || (jcfg.max_jobs == -1)) {
           job_state_t new_state=job_state_read_file(i->job_id,*user);
           if(new_state == JOB_STATE_UNDEFINED) { /* something failed */
             logger.msg(Arc::ERROR,"%s: Reading status of new job failed",i->job_id);
@@ -893,13 +899,13 @@ void JobsList::ActJobUndefined(JobsList::iterator &i,bool /*hard_job*/,
             };
             i->local=job_desc;
             // set transfer share
-            if (!share_type.empty()) {
+            if (!jcfg.share_type.empty()) {
               std::string user_proxy_file = job_proxy_filename(i->get_id(), *user).c_str();
               std::string cert_dir = "/etc/grid-security/certificates";
-              std::string v = cert_dir_loc();
+              std::string v = user->Env().cert_dir_loc();
               if(! v.empty()) cert_dir = v;
                 Arc::Credential u(user_proxy_file,"",cert_dir,"");
-                const std::string share = get_property(u,share_type);
+                const std::string share = get_property(u,jcfg.share_type);
                 i->set_share(share);
                 logger.msg(Arc::INFO, "%s: adding to transfer share %s",i->get_id(),i->transfer_share);
             }
@@ -908,7 +914,7 @@ void JobsList::ActJobUndefined(JobsList::iterator &i,bool /*hard_job*/,
             i->local->transfershare=i->transfer_share;
 
             // prepare information for logger
-            job_log.make_file(*i,*user);
+            user->Env().job_log().make_file(*i,*user);
           } else if(new_state == JOB_STATE_FINISHED) {
             once_more=true;
           } else if(new_state == JOB_STATE_DELETED) {
@@ -918,16 +924,16 @@ void JobsList::ActJobUndefined(JobsList::iterator &i,bool /*hard_job*/,
                 JobDescription::get_state_name(new_state),i->get_uid(),i->get_gid());
             // Make it clean state after restart
             job_state_write_file(*i,*user,i->job_state);
-            i->retries = JobsList::max_retries;
+            i->retries = jcfg.max_retries;
             // set transfer share and counters
             JobLocalDescription job_desc;
-            if (!share_type.empty()) {
+            if (!jcfg.share_type.empty()) {
               std::string user_proxy_file = job_proxy_filename(i->get_id(), *user).c_str();
               std::string cert_dir = "/etc/grid-security/certificates";
-              std::string v = cert_dir_loc();
+              std::string v = user->Env().cert_dir_loc();
               if(! v.empty()) cert_dir = v;
                 Arc::Credential u(user_proxy_file,"",cert_dir,"");
-                const std::string share = get_property(u,share_type);
+                const std::string share = get_property(u,jcfg.share_type);
                 i->set_share(share);
                 logger.msg(Arc::INFO, "%s: adding to transfer share %s",i->get_id(),i->transfer_share);
             }
@@ -943,6 +949,7 @@ void JobsList::ActJobUndefined(JobsList::iterator &i,bool /*hard_job*/,
 void JobsList::ActJobAccepted(JobsList::iterator &i,bool /*hard_job*/,
                               bool& once_more,bool& /*delete_job*/,
                               bool& job_error,bool& state_changed) {
+      JobsListConfig& jcfg = user->Env().jobs_cfg();
       /* accepted state - job was just accepted by jobmager-ng and we already
          know that it is accepted - now we are analyzing/parsing request,
          or it can also happen we are waiting for user specified time */
@@ -957,14 +964,14 @@ void JobsList::ActJobAccepted(JobsList::iterator &i,bool /*hard_job*/,
           job_error=true; 
           return; /* go to next job */
         };
-        if((max_jobs_processing == -1) ||
-           (use_local_transfer) ||
+        if((jcfg.max_jobs_processing == -1) ||
+           (jcfg.use_local_transfer) ||
            ((i->local->downloads == 0) && (i->local->rtes == 0)) ||
-           (((JOB_NUM_PROCESSING < max_jobs_processing) ||
-            ((JOB_NUM_FINISHING >= max_jobs_processing) && 
-            (JOB_NUM_PREPARING < max_jobs_processing_emergency))) &&
+           (((JOB_NUM_PROCESSING < jcfg.max_jobs_processing) ||
+            ((JOB_NUM_FINISHING >= jcfg.max_jobs_processing) && 
+            (JOB_NUM_PREPARING < jcfg.max_jobs_processing_emergency))) &&
            (i->next_retry <= time(NULL)) && 
-           (share_type.empty() || preparing_job_share[i->transfer_share] < preparing_max_share[i->transfer_share])))
+           (jcfg.share_type.empty() || preparing_job_share[i->transfer_share] < preparing_max_share[i->transfer_share])))
         {
           /* check for user specified time */
           if(i->retries == 0 && i->local->processtime != -1) {
@@ -974,7 +981,7 @@ void JobsList::ActJobAccepted(JobsList::iterator &i,bool /*hard_job*/,
               logger.msg(Arc::INFO,"%s: State: ACCEPTED: moving to PREPARING",i->job_id);
               state_changed=true; once_more=true;
               i->job_state = JOB_STATE_PREPARING;
-              i->retries = JobsList::max_retries;
+              i->retries = jcfg.max_retries;
               preparing_job_share[i->transfer_share]++;
             };
           }
@@ -983,13 +990,13 @@ void JobsList::ActJobAccepted(JobsList::iterator &i,bool /*hard_job*/,
             state_changed=true; once_more=true;
             i->job_state = JOB_STATE_PREPARING;
             /* if first pass then reset retries */
-            if (i->retries ==0) i->retries = JobsList::max_retries;
+            if (i->retries ==0) i->retries = jcfg.max_retries;
             preparing_job_share[i->transfer_share]++;
           };
-          if(state_changed && i->retries == JobsList::max_retries) {
+          if(state_changed && i->retries == jcfg.max_retries) {
             /* gather some frontend specific information for user,
                do it only once */
-            std::string cmd = nordugrid_libexec_loc()+"/frontend-info-collector";
+            std::string cmd = user->Env().nordugrid_libexec_loc()+"/frontend-info-collector";
             char const * const args[2] = { cmd.c_str(), NULL };
             job_controldiag_mark_put(*i,*user,args);
           };
@@ -1000,6 +1007,7 @@ void JobsList::ActJobAccepted(JobsList::iterator &i,bool /*hard_job*/,
 void JobsList::ActJobPreparing(JobsList::iterator &i,bool /*hard_job*/,
                                bool& once_more,bool& /*delete_job*/,
                                bool& job_error,bool& state_changed) {
+        JobsListConfig& jcfg = user->Env().jobs_cfg();
         /* preparing state - means job is parsed and we are going to download or
            already downloading input files. process downloader is run for
            that. it also checks for files user interface have to upload itself*/
@@ -1008,10 +1016,10 @@ void JobsList::ActJobPreparing(JobsList::iterator &i,bool /*hard_job*/,
         if(i->job_pending || state_loading(i,state_changed,false,retry)) {
           if(i->job_pending || state_changed) {
             if (state_changed) preparing_job_share[i->transfer_share]--;
-            if((JOB_NUM_RUNNING<max_jobs_running) || (max_jobs_running==-1)) {
+            if((JOB_NUM_RUNNING<jcfg.max_jobs_running) || (jcfg.max_jobs_running==-1)) {
               i->job_state = JOB_STATE_SUBMITTING;
               state_changed=true; once_more=true;
-              i->retries = JobsList::max_retries;
+              i->retries = jcfg.max_retries;
             } else {
               state_changed=false;
               JobPending(i);
@@ -1029,7 +1037,7 @@ void JobsList::ActJobPreparing(JobsList::iterator &i,bool /*hard_job*/,
             /* set next retry time
                exponential back-off algorithm - wait 10s, 40s, 90s, 160s,...
                with a bit of randomness thrown in - vary by up to 50% of wait_time */
-            int wait_time = 10 * (JobsList::max_retries - i->retries) * (JobsList::max_retries - i->retries);
+            int wait_time = 10 * (jcfg.max_retries - i->retries) * (jcfg.max_retries - i->retries);
             int randomness = (rand() % wait_time) - (wait_time/2);
             wait_time += randomness;
             i->next_retry = time(NULL) + wait_time;
@@ -1052,6 +1060,7 @@ void JobsList::ActJobPreparing(JobsList::iterator &i,bool /*hard_job*/,
 void JobsList::ActJobSubmitting(JobsList::iterator &i,bool /*hard_job*/,
                                 bool& once_more,bool& /*delete_job*/,
                                 bool& job_error,bool& state_changed) {
+        JobsListConfig& jcfg = user->Env().jobs_cfg();
         /* state submitting - everything is ready for submission - 
            so run submission */
         logger.msg(Arc::VERBOSE,"%s: State: SUBMITTING",i->job_id);
@@ -1070,6 +1079,7 @@ void JobsList::ActJobSubmitting(JobsList::iterator &i,bool /*hard_job*/,
 void JobsList::ActJobCanceling(JobsList::iterator &i,bool /*hard_job*/,
                                bool& once_more,bool& /*delete_job*/,
                                bool& job_error,bool& state_changed) {
+        JobsListConfig& jcfg = user->Env().jobs_cfg();
         /* This state is like submitting, only -rm instead of -submit */
         logger.msg(Arc::VERBOSE,"%s: State: CANCELING",i->job_id);
         if(state_submitting(i,state_changed,true)) {
@@ -1086,6 +1096,7 @@ void JobsList::ActJobCanceling(JobsList::iterator &i,bool /*hard_job*/,
 void JobsList::ActJobInlrms(JobsList::iterator &i,bool /*hard_job*/,
                             bool& once_more,bool& /*delete_job*/,
                             bool& job_error,bool& state_changed) {
+        JobsListConfig& jcfg = user->Env().jobs_cfg();
         logger.msg(Arc::VERBOSE,"%s: State: INLRMS",i->job_id);
         if(!GetLocalDescription(i)) {
           i->AddFailure("Failed reading local job information");
@@ -1093,7 +1104,7 @@ void JobsList::ActJobInlrms(JobsList::iterator &i,bool /*hard_job*/,
           return; /* go to next job */
         };
         /* only check lrms job status on first pass */
-        if(i->retries == 0 || i->retries == JobsList::max_retries) {
+        if(i->retries == 0 || i->retries == jcfg.max_retries) {
           if(i->job_pending || job_lrms_mark_check(i->job_id,*user)) {
             if(!i->job_pending) {
               logger.msg(Arc::INFO,"%s: Job finished",i->job_id);
@@ -1131,29 +1142,29 @@ void JobsList::ActJobInlrms(JobsList::iterator &i,bool /*hard_job*/,
               // i->job_state = JOB_STATE_FINISHING;
               };
             };
-            if((max_jobs_processing == -1) ||
-              (use_local_transfer) ||
+            if((jcfg.max_jobs_processing == -1) ||
+              (jcfg.use_local_transfer) ||
               (i->local->uploads == 0) ||
-              (((JOB_NUM_PROCESSING < max_jobs_processing) ||
-               ((JOB_NUM_PREPARING >= max_jobs_processing) &&
-                (JOB_NUM_FINISHING < max_jobs_processing_emergency))) &&
+              (((JOB_NUM_PROCESSING < jcfg.max_jobs_processing) ||
+               ((JOB_NUM_PREPARING >= jcfg.max_jobs_processing) &&
+                (JOB_NUM_FINISHING < jcfg.max_jobs_processing_emergency))) &&
                (i->next_retry <= time(NULL)) &&
-               (share_type.empty() || finishing_job_share[i->transfer_share] < finishing_max_share[i->transfer_share]))) {
+               (jcfg.share_type.empty() || finishing_job_share[i->transfer_share] < finishing_max_share[i->transfer_share]))) {
                  state_changed=true; once_more=true;
                  i->job_state = JOB_STATE_FINISHING;
                  /* if first pass then reset retries */
-                 if (i->retries == 0) i->retries = JobsList::max_retries;
+                 if (i->retries == 0) i->retries = jcfg.max_retries;
                  finishing_job_share[i->transfer_share]++;
             } else JobPending(i);
           };
-        } else if((max_jobs_processing == -1) ||
-                  (use_local_transfer) ||
+        } else if((jcfg.max_jobs_processing == -1) ||
+                  (jcfg.use_local_transfer) ||
                   (i->local->uploads == 0) ||
-                  (((JOB_NUM_PROCESSING < max_jobs_processing) ||
-                   ((JOB_NUM_PREPARING >= max_jobs_processing) &&
-                    (JOB_NUM_FINISHING < max_jobs_processing_emergency))) &&
+                  (((JOB_NUM_PROCESSING < jcfg.max_jobs_processing) ||
+                   ((JOB_NUM_PREPARING >= jcfg.max_jobs_processing) &&
+                    (JOB_NUM_FINISHING < jcfg.max_jobs_processing_emergency))) &&
                   (i->next_retry <= time(NULL)) &&
-                  (share_type.empty() || finishing_job_share[i->transfer_share] < finishing_max_share[i->transfer_share]))) {
+                  (jcfg.share_type.empty() || finishing_job_share[i->transfer_share] < finishing_max_share[i->transfer_share]))) {
                     state_changed=true; once_more=true;
                     i->job_state = JOB_STATE_FINISHING;
                     finishing_job_share[i->transfer_share]++;
@@ -1166,6 +1177,7 @@ void JobsList::ActJobInlrms(JobsList::iterator &i,bool /*hard_job*/,
 void JobsList::ActJobFinishing(JobsList::iterator &i,bool hard_job,
                                bool& once_more,bool& /*delete_job*/,
                                bool& job_error,bool& state_changed) {
+        JobsListConfig& jcfg = user->Env().jobs_cfg();
         logger.msg(Arc::VERBOSE,"%s: State: FINISHING",i->job_id);
         bool retry = false;
         if(state_loading(i,state_changed,true,retry)) {
@@ -1181,7 +1193,7 @@ void JobsList::ActJobFinishing(JobsList::iterator &i,bool hard_job,
             /* set next retry time
             exponential back-off algorithm - wait 10s, 40s, 90s, 160s,...
             with a bit of randomness thrown in - vary by up to 50% of wait_time */
-            int wait_time = 10 * (JobsList::max_retries - i->retries) * (JobsList::max_retries - i->retries);
+            int wait_time = 10 * (jcfg.max_retries - i->retries) * (jcfg.max_retries - i->retries);
             int randomness = (rand() % wait_time) - (wait_time/2);
             wait_time += randomness;
             i->next_retry = time(NULL) + wait_time;
@@ -1284,7 +1296,7 @@ void JobsList::ActJobFinished(JobsList::iterator &i,bool hard_job,
                 CacheConfig * cache_config;
                 std::list<std::string> cache_per_job_dirs;
                 try {
-                  cache_config = new CacheConfig();
+                  cache_config = new CacheConfig(user->Env());
                 }
                 catch (CacheConfigException e) {
                   logger.msg(Arc::ERROR, "Error with cache configuration: %s", e.what());
@@ -1347,6 +1359,7 @@ void JobsList::ActJobDeleted(JobsList::iterator &i,bool hard_job,
    programs, do necessary things. Also advance pointer and/or delete
    slot if necessary */
 bool JobsList::ActJob(JobsList::iterator &i,bool hard_job) {
+  JobsListConfig& jcfg = user->Env().jobs_cfg();
   bool once_more     = true;
   bool delete_job    = false;
   bool job_error     = false;
@@ -1510,19 +1523,19 @@ bool JobsList::ActJob(JobsList::iterator &i,bool hard_job) {
             };
           };
           // Processing to be done on state changes 
-          job_log.make_file(*i,*user);
+          user->Env().job_log().make_file(*i,*user);
           if(i->job_state == JOB_STATE_FINISHED) {
             if(i->GetLocalDescription(*user)) {
               job_stdlog_move(*i,*user,i->local->stdlog);
             };
             job_clean_finished(i->job_id,*user);
-            job_log.finish_info(*i,*user);
+            user->Env().job_log().finish_info(*i,*user);
             prepare_cleanuptime(i->job_id,i->keep_finished,i,*user);
           } else if(i->job_state == JOB_STATE_PREPARING) {
-            job_log.start_info(*i,*user);
+            user->Env().job_log().start_info(*i,*user);
           };
         };
-        /* send mail after errora and change are processed */
+        /* send mail after error and change are processed */
         /* do not send if something really wrong happened to avoid email DoS */
         if(!delete_job) send_mail(*i,*user);
       };
@@ -1552,9 +1565,9 @@ bool JobsList::ActJob(JobsList::iterator &i,bool hard_job) {
     /* this is the ONLY place there jobs are removed from memory */
     /* update counters */
     if(!old_pending) {
-      jobs_num[old_state]--;
+      jcfg.jobs_num[old_state]--;
     } else {
-      jobs_pending--;
+      jcfg.jobs_pending--;
     };
     if(i->local) { delete i->local; };
     i=jobs.erase(i);
@@ -1562,14 +1575,14 @@ bool JobsList::ActJob(JobsList::iterator &i,bool hard_job) {
   else {
     /* update counters */
     if(!old_pending) {
-      jobs_num[old_state]--;
+      jcfg.jobs_num[old_state]--;
     } else {
-      jobs_pending--;
+      jcfg.jobs_pending--;
     };
     if(!i->job_pending) {
-      jobs_num[i->job_state]++;
+      jcfg.jobs_num[i->job_state]++;
     } else {
-      jobs_pending++;
+      jcfg.jobs_pending++;
     }
     ++i;
   };

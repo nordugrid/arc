@@ -2,14 +2,15 @@
 
 #include "conf_cache.h"
 
-CacheConfig::CacheConfig(std::string username): _cache_max(100),
+CacheConfig::CacheConfig(const GMEnvironment& env,std::string username):
+                                                _cache_max(100),
                                                 _cache_min(100),
                                                 _log_level("INFO") ,
                                                 _lifetime("0") {
   // open conf file
   std::ifstream cfile;
-  if(nordugrid_config_loc().empty()) read_env_vars(true);
-  if(!config_open(cfile)) throw CacheConfigException("Can't open configuration file");
+  //if(nordugrid_config_loc().empty()) read_env_vars(true);
+  if(!config_open(cfile,env)) throw CacheConfigException("Can't open configuration file");
   
   /* detect type of file */
   switch(config_detect(cfile)) {

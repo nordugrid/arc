@@ -36,7 +36,7 @@ Arc::MCC_Status ARexService::CacheCheck(ARexGMConfig& config,Arc::XMLNode in,Arc
  
   std::string file_owner_username = "";
 
-  JobUser user(uid);
+  JobUser user(*gm_env_,uid);
 
   std::vector<std::string> caches;
 
@@ -55,7 +55,7 @@ Arc::MCC_Status ARexService::CacheCheck(ARexGMConfig& config,Arc::XMLNode in,Arc
 
     // use cache dir(s) from conf file
     try {
-      CacheConfig * cache_config = new CacheConfig(std::string(file_owner_username));
+      CacheConfig * cache_config = new CacheConfig(*gm_env_,std::string(file_owner_username));
       std::vector<std::string> conf_caches = cache_config->getCacheDirs();
       // add each cache to our list
       for (std::vector<std::string>::iterator i = conf_caches.begin(); i != conf_caches.end(); i++) {

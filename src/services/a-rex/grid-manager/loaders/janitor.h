@@ -2,6 +2,8 @@
 
 #include <arc/Thread.h>
 
+#include "../conf/environment.h"
+
 /// Class to communicate with Janitor - Dynmaic Runtime Environment handler
 class Janitor {
  public:
@@ -18,6 +20,7 @@ class Janitor {
   std::string cdir_;
   bool running_;
   Result result_;
+  GMEnvironment env_;
   Arc::SimpleCondition completed_;
   Arc::SimpleCondition cancel_;
   static void deploy_thread(void* arg);
@@ -29,7 +32,7 @@ class Janitor {
   /** Takes id for job identifier and cdir for the control 
      directory of A-Rex. constructor does not register job in 
      the Janitor. It only associates job with this instance. */
-  Janitor(const std::string& id,const std::string& cdir);
+  Janitor(const std::string& id,const std::string& cdir,const GMEnvironment& env);
   ~Janitor(void);
   /// Returns true if janitor is enabled in the config file.
   bool enabled() { return enabled_; };

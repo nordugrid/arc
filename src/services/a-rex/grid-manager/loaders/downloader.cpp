@@ -37,6 +37,7 @@
 #include "../misc/proxy.h"
 #include "../conf/conf_map.h"
 #include "../conf/conf_cache.h"
+#include "../log/job_log.h"
 #include "janitor.h"
 
 static Arc::Logger logger(Arc::Logger::getRootLogger(), "Downloader");
@@ -275,6 +276,9 @@ int main(int argc,char** argv) {
   std::string failure_reason("");
   std::string x509_proxy, x509_cert, x509_key, x509_cadir;
   srand(time(NULL) + getpid()); 
+  JobLog job_log;
+  JobsListConfig jobs_cfg;
+  GMEnvironment env(job_log,jobs_cfg);
 
   // process optional arguments
   for(;;) {
@@ -294,7 +298,7 @@ int main(int argc,char** argv) {
         secure=false;
       }; break;
       case 'C': {
-        nordugrid_config_loc(optarg);
+        env.nordugrid_config_loc(optarg);
       }; break;
       case 'l': {
         userfiles_only=true;
@@ -404,7 +408,7 @@ int main(int argc,char** argv) {
   char* session_dir = argv[optind+2];
   if(!session_dir) { logger.msg(Arc::ERROR, "Missing session directory"); return 1; };
 
-  read_env_vars();
+  //read_env_vars();
   // prepare Job and User descriptions (needed for substitutions in cache dirs)
   JobDescription desc(id,session_dir);
   uid_t uid;
@@ -414,7 +418,7 @@ int main(int argc,char** argv) {
   if(file_group != 0) { gid=file_group; }
   else { gid= getgid(); };
   desc.set_uid(uid,gid);
-  JobUser user(uid);
+  JobUser user(env,uid);
   user.SetControlDir(control_dir);
   user.SetSessionRoot(session_dir);
 
@@ -434,7 +438,7 @@ int main(int argc,char** argv) {
 
   if (use_conf_cache) {
     try {
-      CacheConfig * cache_config = new CacheConfig(std::string(file_owner_username));
+      CacheConfig * cache_config = new CacheConfig(env,std::string(file_owner_username));
       user.SetCacheParams(cache_config);
       cache = new Arc::FileCache(cache_config->getCacheDirs(),
                                  cache_config->getRemoteCacheDirs(),
@@ -487,10 +491,10 @@ int main(int argc,char** argv) {
 /*
  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  Add this to DataMove !!!!!!!!!!!!
 */
-  UrlMapConfig url_map;
+  UrlMapConfig url_map(env);
   logger.msg(Arc::INFO, "Downloader started");
 
-  Janitor janitor(desc.get_id(),user.ControlDir());
+  Janitor janitor(desc.get_id(),user.ControlDir(),user.Env());
 
   Arc::UserConfig usercfg(Arc::initializeCredentialsType(Arc::initializeCredentialsType::TryCredentials));
   usercfg.UtilsDirPath(control_dir);

@@ -101,7 +101,7 @@ bool process_job_req(JobUser &user,const JobDescription &desc,JobLocalDescriptio
     job_desc.diskspace=user.DiskSpace();
   };
   // Adjust number of rtes - exclude existing ones
-  job_desc.rtes = filter_rtes(runtime_config_dir(),job_desc.rte);
+  job_desc.rtes = filter_rtes(user.Env().runtime_config_dir(),job_desc.rte);
   if(!job_local_write_file(desc,user,job_desc)) return false;
   if(!job_input_write_file(desc,user,job_desc.inputdata)) return false;
   if(!job_output_write_file(desc,user,job_desc.outputdata)) return false;
@@ -148,7 +148,7 @@ bool set_execs(const JobDescription &desc,const JobUser &user,const std::string 
   if (!get_arc_job_description(fname, arc_job_desc)) return false;
 
   if (user.StrictSession()) {
-    JobUser tmp_user(user.get_uid()==0?desc.get_uid():user.get_uid());
+    JobUser tmp_user(user.Env(),user.get_uid()==0?desc.get_uid():user.get_uid());
     set_execs_t arg; arg.arc_job_desc=&arc_job_desc; arg.session_dir=&session_dir;
     return (RunFunction::run(tmp_user, "set_execs", &set_execs_callback, &arg, 20) == 0);
   }

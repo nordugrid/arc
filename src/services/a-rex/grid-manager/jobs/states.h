@@ -4,6 +4,7 @@
 #include <sys/types.h>
 #include <list>
 #include "../jobs/job.h"
+#include "../conf/environment.h"
 
 /* default job ttl after finished - 1 week */
 #define DEFAULT_KEEP_FINISHED (7*24*60*60)
@@ -22,14 +23,7 @@ class JobUser;
 class JobLocalDescription;
 class ContinuationPlugins;
 class RunPlugin;
-
-/*
-typedef struct {
-  job_state_t id;
-  char* str;
-  char mail_flag;
-} job_state_rec_t;
-*/
+class JobsListConfig;
 
 /*
   List of jobs. This object is cross-linked to JobUser object, which
@@ -41,31 +35,7 @@ class JobsList {
  public:
   typedef std::list<JobDescription>::iterator iterator;
  private:
-  /* these static members should be protected by lock, but job
-     status change is single threaded, so not yet */
-  /* number of jobs for every state */
-  static int jobs_num[JOB_STATE_NUM];
-  static int jobs_pending;
-  /* maximal allowed values */
-  static int max_jobs_running;
-  static int max_jobs_processing;
-  static int max_jobs_processing_emergency;
-  static int max_jobs;
-  static unsigned int max_processing_share;
-  static std::string share_type;
-  static unsigned long long int min_speed;
-  static time_t min_speed_time;
-  static unsigned long long int min_average_speed;
-  static time_t max_inactivity_time;
-  static int max_downloads;
-  static int max_retries;
-  static bool use_secure_transfer;
-  static bool use_passive_transfer;
-  static bool use_local_transfer;
-  static unsigned int wakeup_period;
   std::list<JobDescription> jobs;
- /* the list of shares with defined limits */
-  static std::map<std::string, int> limited_share;
  /* counters of share for preparing/finishing states */
   std::map<std::string, int> preparing_job_share;
   std::map<std::string, int> finishing_job_share;
@@ -104,55 +74,6 @@ class JobsList {
   iterator begin(void) { return jobs.begin(); };
   iterator end(void) { return jobs.end(); };
   size_t size(void) const { return jobs.size(); };
-  static void SetMaxJobs(int max = -1,int max_running = -1) {
-    max_jobs=max;
-    max_jobs_running=max_running;
-  };
-  static void SetMaxJobsLoad(int max_processing = -1,int max_processing_emergency = 1,int max_down = -1) {
-    max_jobs_processing=max_processing;
-    max_jobs_processing_emergency=max_processing_emergency;
-    max_downloads=max_down;
-  };
-  static void GetMaxJobs(int &max,int &max_running) {
-    max=max_jobs;
-    max_running=max_jobs_running;
-  };
-  static void GetMaxJobsLoad(int &max_processing,int &max_processing_emergency,int &max_down) {
-    max_processing=max_jobs_processing;
-    max_processing_emergency=max_jobs_processing_emergency;
-    max_down=max_downloads;
-  };
-  static void SetSpeedControl(unsigned long long int min=0,time_t min_time=300,unsigned long long int min_average=0,time_t max_time=300) {
-    min_speed = min;
-    min_speed_time = min_time;
-    min_average_speed = min_average;
-    max_inactivity_time = max_time;
-  };
-  static void SetSecureTransfer(bool val) {
-    use_secure_transfer=val;
-  };
-  static void SetPassiveTransfer(bool val) {
-    use_passive_transfer=val;
-  };
-  static void SetLocalTransfer(bool val) {
-    use_local_transfer=val;
-  };
-  static void SetWakeupPeriod(unsigned int t) { wakeup_period=t; };
-  static unsigned int WakeupPeriod(void) { return wakeup_period; };
-  static void SetMaxRetries(int r) {JobsList::max_retries = r; };
-  static int MaxRetries() { return JobsList::max_retries; };
-  static void SetTransferShare(unsigned int max_share, std::string type){
-    max_processing_share = max_share;
-    share_type = type;
-  };
-  static bool AddLimitedShare(std::string share_name, unsigned int share_limit) {
-    if(max_processing_share == 0)
-      return false;
-    if(share_limit == 0)
-      share_limit = max_processing_share;
-    limited_share[share_name] = share_limit;
-    return true;
-  }
 
  /* Add job to list */
   bool AddJob(JobUser &user,const JobId &id,uid_t uid,gid_t gid);
@@ -184,6 +105,84 @@ class JobsList {
   void ActJobFinished(iterator &i,bool hard_job,bool& once_more,bool& delete_job,bool& job_error,bool& state_changed);
   void ActJobDeleted(iterator &i,bool hard_job,bool& once_more,bool& delete_job,bool& job_error,bool& state_changed);
 
+};
+
+class JobsListConfig {
+ friend class JobsList;
+ private:
+  /* number of jobs for every state */
+  int jobs_num[JOB_STATE_NUM];
+  int jobs_pending;
+  /* maximal allowed values */
+  int max_jobs_running;
+  int max_jobs_processing;
+  int max_jobs_processing_emergency;
+  int max_jobs;
+  unsigned int max_processing_share;
+  std::string share_type;
+  unsigned long long int min_speed;
+  time_t min_speed_time;
+  unsigned long long int min_average_speed;
+  time_t max_inactivity_time;
+  int max_downloads;
+  int max_retries;
+  bool use_secure_transfer;
+  bool use_passive_transfer;
+  bool use_local_transfer;
+  unsigned int wakeup_period;
+  /* the list of shares with defined limits */
+  std::map<std::string, int> limited_share;
+ public:
+  JobsListConfig(void);
+  void SetMaxJobs(int max = -1,int max_running = -1) {
+    max_jobs=max;
+    max_jobs_running=max_running;
+  };
+  void SetMaxJobsLoad(int max_processing = -1,int max_processing_emergency = 1,int max_down = -1) {
+    max_jobs_processing=max_processing;
+    max_jobs_processing_emergency=max_processing_emergency;
+    max_downloads=max_down;
+  };
+  void GetMaxJobs(int &max,int &max_running) {
+    max=max_jobs;
+    max_running=max_jobs_running;
+  };
+  void GetMaxJobsLoad(int &max_processing,int &max_processing_emergency,int &max_down) {
+    max_processing=max_jobs_processing;
+    max_processing_emergency=max_jobs_processing_emergency;
+    max_down=max_downloads;
+  };
+  void SetSpeedControl(unsigned long long int min=0,time_t min_time=300,unsigned long long int min_average=0,time_t max_time=300) {
+    min_speed = min;
+    min_speed_time = min_time;
+    min_average_speed = min_average;
+    max_inactivity_time = max_time;
+  };
+  void SetSecureTransfer(bool val) {
+    use_secure_transfer=val;
+  };
+  void SetPassiveTransfer(bool val) {
+    use_passive_transfer=val;
+  };
+  void SetLocalTransfer(bool val) {
+    use_local_transfer=val;
+  };
+  void SetWakeupPeriod(unsigned int t) { wakeup_period=t; };
+  unsigned int WakeupPeriod(void) { return wakeup_period; };
+  void SetMaxRetries(int r) { max_retries = r; };
+  int MaxRetries() { return max_retries; };
+  void SetTransferShare(unsigned int max_share, std::string type){
+    max_processing_share = max_share;
+    share_type = type;
+  };
+  bool AddLimitedShare(std::string share_name, unsigned int share_limit) {
+    if(max_processing_share == 0)
+      return false;
+    if(share_limit == 0)
+      share_limit = max_processing_share;
+    limited_share[share_name] = share_limit;
+    return true;
+  }
 };
 
 #endif

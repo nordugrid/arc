@@ -9,7 +9,9 @@
 #include <arc/XMLNode.h>
 #include <arc/Logger.h>
 
-extern char* config_file;
+#include "environment.h"
+
+//extern char* config_file;
 
 /*
   Open/assign configuration file to provided cfile.
@@ -17,7 +19,7 @@ extern char* config_file;
     true - success
     false - error
 */
-bool config_open(std::ifstream &cfile);
+bool config_open(std::ifstream &cfile,const GMEnvironment& env);
 /*
   Same as previous, but filename is given by 'name'.
 */

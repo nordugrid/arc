@@ -27,16 +27,17 @@ bool configure_user_dirs(const std::string &my_username,
                 std::string &default_lrms,std::string &default_queue,
                 std::list<std::string>& queues,
                 ContinuationPlugins &plugins,RunPlugin &cred_plugin,
-                std::string& allow_submit,bool& strict_session) {
+                std::string& allow_submit,bool& strict_session,
+                const GMEnvironment& env) {
   std::ifstream cfile;
-  read_env_vars(true);
+  //read_env_vars(true);
   bool configured = false;
   std::string central_control_dir("");
   ConfigSections* cf = NULL;
   std::list<std::string>::iterator last_queue = queues.end();
 
   strict_session = false;
-  if(!config_open(cfile)) {
+  if(!config_open(cfile,env)) {
     logger.msg(Arc::ERROR,"Can't open configuration file"); return false;
   };
   switch(config_detect(cfile)) {
@@ -160,7 +161,7 @@ bool configure_user_dirs(const std::string &my_username,
             session_roots.push_back(session_root);
           }
           if(username == ".") username = "";
-          JobUser user(username);
+          JobUser user(env,username);
           if(!user.is_valid()) { config_close(cfile); return false; };
           strict_session = false;
           elementtobool(tmp_node,"noRootPower",strict_session,&logger);
@@ -278,7 +279,7 @@ bool configure_user_dirs(const std::string &my_username,
             };
             if((username == my_username) || (username == ".")) { 
               if(username == ".") username = "";
-              JobUser user(username);
+              JobUser user(env,username);
               if(!user.is_valid()) { config_close(cfile); if(cf) delete cf; return false; };
               user.SetLRMS(default_lrms,default_queue);
               user.substitute(control_dir);
@@ -360,14 +361,14 @@ bool configure_users_dirs(Arc::XMLNode cfg,JobUsers& users) {
   return true;
 }
 
-bool configure_users_dirs(JobUsers& users) {
+bool configure_users_dirs(JobUsers& users,GMEnvironment& env) {
   std::ifstream cfile;
-  read_env_vars(true);
+  //read_env_vars(true);
   std::string central_control_dir("");
   ConfigSections* cf = NULL;
   std::string session_root;
 
-  if(!config_open(cfile)) {
+  if(!config_open(cfile,env)) {
     logger.msg(Arc::ERROR,"Can't open configuration file"); return false;
   };
   switch(config_detect(cfile)) {

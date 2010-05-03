@@ -17,10 +17,12 @@
 #include "jobs/plugins.h"
 #include "files/info_files.h"
 #include "jobs/commfifo.h"
+#include "jobs/states.h"
+#include "log/job_log.h"
 
-void get_arex_xml(Arc::XMLNode& arex) {
+void get_arex_xml(Arc::XMLNode& arex,GMEnvironment& env) {
   
-  Arc::Config cfg(nordugrid_config_loc().c_str());
+  Arc::Config cfg(env.nordugrid_config_loc().c_str());
   if (!cfg) return;
 
   for (int i=0;; i++) {
@@ -35,6 +37,15 @@ void get_arex_xml(Arc::XMLNode& arex) {
     }
   }
 }
+
+class counters_t {
+ public:
+  unsigned int jobs_num[JOB_STATE_NUM];
+  const static unsigned int jobs_pending;
+  unsigned int& operator[](int n) { jobs_num[n]; };
+};
+
+const unsigned int counters_t::jobs_pending = 0;
 
 /**
  * Print info to stdout on users' jobs
@@ -124,25 +135,30 @@ int main(int argc, char* argv[]) {
     my_username=pw->pw_name;
   }
 
+  JobLog job_log;
+  JobsListConfig jobs_cfg;
+  GMEnvironment env(job_log,jobs_cfg);
+
   if (!conf_file.empty())
-    nordugrid_config_loc(conf_file);
+    env.nordugrid_config_loc(conf_file);
   
-  if(!read_env_vars())
+  //if(!read_env_vars())
+  if(!env)
     exit(1);
   
-  JobUsers users;
+  JobUsers users(env);
   
   if (control_dir.empty()) {
-    JobUser my_user(my_username);
+    JobUser my_user(env,my_username);
     std::ifstream cfile;
-    if(!config_open(cfile)) {
+    if(!config_open(cfile,env)) {
       std::cout<<"Can't read configuration file"<<std::endl;
       return 1;
     }
     if (config_detect(cfile) == config_file_XML) {
       // take out the element that can be passed to configure_serviced_users
       Arc::XMLNode arex;
-      get_arex_xml(arex);
+      get_arex_xml(arex,env);
       if (!arex || !configure_serviced_users(arex, users, my_uid, my_username, my_user)) {
         std::cout<<"Error processing configuration."<<std::endl;
         return 1;
@@ -169,8 +185,9 @@ int main(int argc, char* argv[]) {
 
   bool service_alive = false;
 
-  unsigned int counters[JOB_STATE_NUM];
-  unsigned int counters_pending[JOB_STATE_NUM];
+  counters_t counters;
+  counters_t counters_pending;
+
   for(int i=0; i<JOB_STATE_NUM; i++) {
     counters[i] = 0;
     counters_pending[i] = 0;
@@ -269,18 +286,23 @@ int main(int argc, char* argv[]) {
   int max_processing_emergency;
   int max_down;
 
-  JobsList::GetMaxJobs(max, max_running);
-  JobsList::GetMaxJobsLoad(max_processing, max_processing_emergency, max_down);
+  env.jobs_cfg().GetMaxJobs(max, max_running);
+  env.jobs_cfg().GetMaxJobsLoad(max_processing, max_processing_emergency, max_down);
 
-  #undef jobs_pending
-  #define jobs_pending 0
-  #undef jobs_num
-  #define jobs_num counters
+//  #undef jobs_pending
+//  #define jobs_pending 0
+//  #undef jobs_num
+//  #define jobs_num counters
+  #undef jcfg
+  #define jcfg counters
   int accepted = JOB_NUM_ACCEPTED;
   int running = JOB_NUM_RUNNING;
-  #undef jobs_num
-  #define jobs_num counters_pending
+//  #undef jobs_num
+//  #define jobs_num counters_pending
+  #undef jcfg
+  #define jcfg counters_pending
   running-=JOB_NUM_RUNNING;
+  #undef jcfg
   
   std::cout<<" Accepted: "<<accepted<<"/"<<max<<std::endl;
   std::cout<<" Running: "<<running<<"/"<<max_running<<std::endl;

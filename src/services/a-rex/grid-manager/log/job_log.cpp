@@ -9,6 +9,8 @@
 #include "../files/info_types.h"
 #include "../files/info_log.h"
 #include "../conf/environment.h"
+#include "../misc/escaped.h"
+#include "../run/run_parallel.h"
 #include "job_log.h"
 #include <unistd.h>
 
@@ -34,9 +36,9 @@
 JobLog::JobLog(void):filename(""),proc(NULL),last_run(0),ex_period(0) {
 }
 
-JobLog::JobLog(const char* fname):proc(NULL),last_run(0),ex_period(0) {
-  filename=fname;
-}
+//JobLog::JobLog(const char* fname):proc(NULL),last_run(0),ex_period(0) {
+//  filename=fname;
+//}
 
 void JobLog::SetOutput(const char* fname) {
   filename=fname;
@@ -195,7 +197,7 @@ bool JobLog::RunReporter(JobUsers &users) {
   if(users.size() <= 0) return true; // no users to report
   const char** args = (const char**)malloc(sizeof(char*)*(users.size()+6)); 
   if(args == NULL) return false;
-  std::string cmd = nordugrid_libexec_loc()+"/logger";
+  std::string cmd = users.Env().nordugrid_libexec_loc()+"/logger";
   int argc=0; args[argc++]=(char*)cmd.c_str();
   std::string ex_str = Arc::tostring(ex_period);
   if(ex_period) {
@@ -206,7 +208,7 @@ bool JobLog::RunReporter(JobUsers &users) {
     args[argc++]=(char*)(i->ControlDir().c_str());
   };
   args[argc]=NULL;
-  JobUser user(getuid());
+  JobUser user(users.Env(),getuid());
   user.SetControlDir(users.begin()->ControlDir());
   bool res = RunParallel::run(user,"logger",args,&proc,false,false);
   free(args);

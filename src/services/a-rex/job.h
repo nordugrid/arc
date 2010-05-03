@@ -24,7 +24,7 @@ class ARexGMConfig {
   ContinuationPlugins cont_plugins_;
   std::vector<std::string> session_roots_non_draining_;
  public:
-  ARexGMConfig(const std::string& config_file,const std::string& uname,const std::string& grid_name,const std::string& service_endpoint);
+  ARexGMConfig(const GMEnvironment& env,const std::string& uname,const std::string& grid_name,const std::string& service_endpoint);
   ~ARexGMConfig(void);
   operator bool(void) const { return (user_ != NULL); };
   bool operator!(void) const { return (user_ == NULL); };
@@ -33,7 +33,7 @@ class ARexGMConfig {
   const std::string& GridName(void) const { return grid_name_; };
   const std::string& Endpoint(void) const { return service_endpoint_; };
   const std::list<std::string>& Queues(void) const { return queues_; };
-  static bool InitEnvironment(const std::string& configfile);
+  //static bool InitEnvironment(const std::string& configfile);
   void AddAuth(Arc::MessageAuth* auth) { auths_.push_back(auth); };
   void ClearAuths(void) { auths_.clear(); };
   std::list<Arc::MessageAuth*>::iterator beginAuth(void) { return auths_.begin(); };

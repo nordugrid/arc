@@ -73,6 +73,7 @@ class JobUser {
   /* List of jobs belonging to this user */
   JobsList *jobs;    /* filled by external functions */
   RunPlugin* cred_plugin;
+  const GMEnvironment& gm_env;
  public:
   JobsList* get_jobs() const { 
     return jobs;
@@ -80,9 +81,9 @@ class JobUser {
   void operator=(JobsList *jobs_list) { 
     jobs=jobs_list;
   };
-  JobUser(void);
-  JobUser(const std::string &unix_name,RunPlugin* cred_plugin = NULL);
-  JobUser(uid_t uid,RunPlugin* cred_plugin = NULL);
+  JobUser(const GMEnvironment& env);
+  JobUser(const GMEnvironment& env,const std::string &unix_name,RunPlugin* cred_plugin = NULL);
+  JobUser(const GMEnvironment& env,uid_t uid,RunPlugin* cred_plugin = NULL);
   JobUser(const JobUser &user);
   ~JobUser(void);
   /* Set and get corresponding private values */
@@ -117,6 +118,7 @@ class JobUser {
   int Reruns(void) const { return reruns; };
   RunPlugin* CredPlugin(void) { return cred_plugin; };
   unsigned long long int DiskSpace(void) { return diskspace; };
+  const GMEnvironment& Env(void) const { return gm_env; };
   bool operator==(std::string name) { return (name == unix_name); };
   /* Change owner of the process to this user if su=true.
      Otherwise just set environment variables USER_ID and USER_NAME */
@@ -138,10 +140,11 @@ class JobUser {
 class JobUsers {
  private:
   std::list<JobUser> users;
+  GMEnvironment& gm_env;
  public:
   typedef std::list<JobUser>::iterator iterator;
   typedef std::list<JobUser>::const_iterator const_iterator;
-  JobUsers(void);
+  JobUsers(GMEnvironment& env);
   ~JobUsers(void);
   iterator begin(void) { return users.begin(); };
   const_iterator begin(void) const { return users.begin(); };
@@ -159,6 +162,7 @@ class JobUsers {
   };
   std::string ControlDir(iterator user);
   std::string ControlDir(const std::string user);
+  GMEnvironment& Env(void) const { return gm_env; };
   /* Find user of given unix name */
   iterator find(const std::string user);
   /* Start/restart all associated processes of all users */

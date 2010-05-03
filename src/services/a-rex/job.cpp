@@ -36,9 +36,10 @@ using namespace ARex;
 
 #define JOB_POLICY_OPERATION_URN "http://www.nordugrid.org/schemas/policy-arc/types/a-rex/joboperation"
 
-static bool env_initialized = false;
-Glib::StaticMutex env_lock = GLIBMM_STATIC_MUTEX_INIT;
+//static bool env_initialized = false;
+//Glib::StaticMutex env_lock = GLIBMM_STATIC_MUTEX_INIT;
 
+/*
 bool ARexGMConfig::InitEnvironment(const std::string& configfile) {
   if(env_initialized) return true;
   env_lock.lock();
@@ -49,18 +50,19 @@ bool ARexGMConfig::InitEnvironment(const std::string& configfile) {
   env_lock.unlock();
   return env_initialized;
 }
+*/
 
 ARexGMConfig::~ARexGMConfig(void) {
   if(user_) delete user_;
 }
 
-ARexGMConfig::ARexGMConfig(const std::string& configfile,const std::string& uname,const std::string& grid_name,const std::string& service_endpoint):user_(NULL),readonly_(false),grid_name_(grid_name),service_endpoint_(service_endpoint) {
-  if(!InitEnvironment(configfile)) return;
+ARexGMConfig::ARexGMConfig(const GMEnvironment& env,const std::string& uname,const std::string& grid_name,const std::string& service_endpoint):user_(NULL),readonly_(false),grid_name_(grid_name),service_endpoint_(service_endpoint) {
+  //if(!InitEnvironment(configfile)) return;
   // const char* uname = user_s.get_uname();
   //if((bool)job_map) uname=job_map.unix_name();
-  user_=new JobUser(uname);
+  user_=new JobUser(env,uname);
   if(!user_->is_valid()) { delete user_; user_=NULL; return; };
-  if(nordugrid_loc().empty() != 0) { delete user_; user_=NULL; return; };
+  if(env.nordugrid_loc().empty()) { delete user_; user_=NULL; return; };
   /* read configuration */
   std::vector<std::string> session_roots;
   std::string control_dir;
@@ -73,7 +75,7 @@ ARexGMConfig::ARexGMConfig(const std::string& configfile,const std::string& unam
                           session_roots_non_draining_,
                           default_lrms,default_queue,queues_,
                           cont_plugins_,*cred_plugin,
-                          allowsubmit,strict_session)) {
+                          allowsubmit,strict_session,env)) {
     // olog<<"Failed processing grid-manager configuration"<<std::endl;
     delete user_; user_=NULL; delete cred_plugin; return;
   };

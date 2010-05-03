@@ -3,57 +3,49 @@
 
 #include <string>
 
-/*
-#include <arc/Thread.h>
+//#include "../log/job_log.h"
 
-class prstring {
- private:
-  Glib::Mutex lock_;
-  std::string val_;
+class JobLog;
+class JobsListConfig;
+
+class GMEnvironment {
+  bool valid_;
+  JobLog& job_log_;
+  JobsListConfig& jobs_cfg_;
  public:
-  prstring(void);
-  prstring(const char*);
-  prstring(const prstring&);
-  void operator=(const char*);
-  void operator=(const std::string&);
-  void operator=(const prstring&);
-  void operator+=(const char*);
-  void operator+=(const std::string&);
-  std::string operator+(const char*) const;
-  std::string operator+(const std::string&) const;
-  operator std::string(void) const;
-  std::string str(void) const;
-  bool empty() const;
-};
-
-std::string operator+(const char*,const prstring&);
-std::string operator+(const std::string&,const prstring&);
-*/
+  GMEnvironment(JobLog& job_log,JobsListConfig& jcfg,bool guess = false);
+  operator bool(void) { return valid_; };
+  bool operator!(void) { return !valid_; };
 
 /// ARC installation path - $ARC_LOCATION, executable path
-std::string nordugrid_loc(void);
+std::string nordugrid_loc(void) const;
 /// ARC system tools - $ARC_LOCATION/libexec/arc, $ARC_LOCATION/libexec
-std::string nordugrid_libexec_loc(void);
+std::string nordugrid_libexec_loc(void) const;
 // ARC libraries and plugins - $ARC_LOCATION/lib/arc, $ARC_LOCATION/lib
-std::string nordugrid_lib_loc(void);
+std::string nordugrid_lib_loc(void) const;
 // ARC adminstrator tools - $ARC_LOCATION/sbin
-std::string nordugrid_sbin_loc(void);
+std::string nordugrid_sbin_loc(void) const;
 /// ARC configuration file 
 ///   /etc/arc.conf
 ///   $ARC_LOCATION/etc/arc.conf
-std::string nordugrid_config_loc(void);
+std::string nordugrid_config_loc(void) const;
 void nordugrid_config_loc(const std::string&);
 
 // Certificates directory location
-std::string cert_dir_loc();
+std::string cert_dir_loc() const;
 
 // RTE setup scripts
-std::string runtime_config_dir(void);
+std::string runtime_config_dir(void) const;
 void runtime_config_dir(const std::string&);
 /// Email address of person responsible for this ARC installation
 /// grid.manager@hostname, it can also be set from configuration file 
-std::string support_mail_address(void);
+std::string support_mail_address(void) const;
 void support_mail_address(const std::string&);
+
+JobLog& job_log() const;
+JobsListConfig& jobs_cfg() const;
+
+};
 
 ///  Read environment, check files and set variables
 ///  Accepts:
@@ -61,6 +53,6 @@ void support_mail_address(const std::string&);
 ///  Returns:
 ///    true - success.
 ///    false - something is missing.
-bool read_env_vars(bool guess = false);
+//bool read_env_vars(bool guess = false);
 
 #endif // __GM_ENVIRONMENT_H__

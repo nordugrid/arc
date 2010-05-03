@@ -58,7 +58,7 @@ class CacheConfig {
     * private member variables with cache parameters. If different users are
     * defined in the conf file, use the cache parameters for the given username.
     */
-  CacheConfig(std::string username = "");
+  CacheConfig(const GMEnvironment& env,std::string username = "");
   /**
    * Parsers for the two different conf styles
    */

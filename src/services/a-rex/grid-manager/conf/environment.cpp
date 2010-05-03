@@ -12,6 +12,12 @@
 #define olog std::cerr
 #include "environment.h"
 
+static bool read_env_vars(bool guess);
+
+GMEnvironment::GMEnvironment(JobLog& job_log,JobsListConfig& jcfg,bool guess):job_log_(job_log),jobs_cfg_(jcfg) {
+  valid_=read_env_vars(guess);
+}
+
 class prstring {
  private:
   Glib::Mutex lock_;
@@ -127,47 +133,47 @@ static prstring runtime_config_dir_;
 // Email address of person responsible for this ARC installation
 static prstring support_mail_address_;
 
-std::string nordugrid_loc(void) {
+std::string GMEnvironment::nordugrid_loc(void) const {
   return nordugrid_loc_.str();
 }
 
-std::string nordugrid_libexec_loc(void) {
+std::string GMEnvironment::nordugrid_libexec_loc(void) const {
   return nordugrid_libexec_loc_.str();
 }
 
-std::string nordugrid_lib_loc(void) {
+std::string GMEnvironment::nordugrid_lib_loc(void) const {
   return nordugrid_lib_loc_.str();
 }
 
-std::string nordugrid_sbin_loc(void) {
+std::string GMEnvironment::nordugrid_sbin_loc(void) const {
   return nordugrid_sbin_loc_.str();
 }
 
-std::string nordugrid_config_loc(void) {
+std::string GMEnvironment::nordugrid_config_loc(void) const {
   return nordugrid_config_loc_.str();
 }
 
-std::string cert_dir_loc(void) {
+std::string GMEnvironment::cert_dir_loc(void) const {
   return cert_dir_loc_.str();
 }
 
-void nordugrid_config_loc(const std::string& val) {
+void GMEnvironment::nordugrid_config_loc(const std::string& val) {
   nordugrid_config_loc_=val;
 }
 
-std::string runtime_config_dir(void) {
+std::string GMEnvironment::runtime_config_dir(void) const {
   return runtime_config_dir_.str();
 }
 
-void runtime_config_dir(const std::string& val) {
+void GMEnvironment::runtime_config_dir(const std::string& val) {
   runtime_config_dir_=val;
 }
 
-std::string support_mail_address(void) {
+std::string GMEnvironment::support_mail_address(void) const {
   return support_mail_address_.str();
 }
 
-void support_mail_address(const std::string& val) {
+void GMEnvironment::support_mail_address(const std::string& val) {
   support_mail_address_=val;
 }
 
@@ -186,7 +192,7 @@ static bool dir_exists(const char* name) {
   return true;
 }
 
-bool read_env_vars(bool guess) {
+static bool read_env_vars(bool guess) {
   if(nordugrid_loc_.empty()) {
     nordugrid_loc_=Arc::GetEnv("ARC_LOCATION");
     if(nordugrid_loc_.empty()) {
@@ -232,5 +238,13 @@ bool read_env_vars(bool guess) {
     };
   };
   return true;
+}
+
+JobLog& GMEnvironment::job_log() const {
+  return job_log_;
+}
+
+JobsListConfig& GMEnvironment::jobs_cfg() const {
+  return jobs_cfg_;
 }
 

@@ -32,34 +32,34 @@ extern job_state_rec_t states_all[JOB_STATE_UNDEFINED+1];
 
 #define JOB_STATE_NUM (JOB_STATE_UNDEFINED+1)
 
-/* all states under control */
+/* all states under control - not nice */
 #define JOB_NUM_ACCEPTED (\
-  jobs_num[JOB_STATE_ACCEPTED] + \
-  jobs_num[JOB_STATE_PREPARING] + \
-  jobs_num[JOB_STATE_SUBMITTING] + \
-  jobs_num[JOB_STATE_INLRMS] + \
-  jobs_num[JOB_STATE_FINISHING] + \
-  jobs_pending \
+  jcfg.jobs_num[JOB_STATE_ACCEPTED] + \
+  jcfg.jobs_num[JOB_STATE_PREPARING] + \
+  jcfg.jobs_num[JOB_STATE_SUBMITTING] + \
+  jcfg.jobs_num[JOB_STATE_INLRMS] + \
+  jcfg.jobs_num[JOB_STATE_FINISHING] + \
+  jcfg.jobs_pending \
 )
 
 /* states running something heavy on frontend */
 #define JOB_NUM_PROCESSING (\
-  jobs_num[JOB_STATE_PREPARING] + \
-  jobs_num[JOB_STATE_FINISHING] \
+  jcfg.jobs_num[JOB_STATE_PREPARING] + \
+  jcfg.jobs_num[JOB_STATE_FINISHING] \
 )
 
 #define JOB_NUM_PREPARING (\
-  jobs_num[JOB_STATE_PREPARING] \
+  jcfg.jobs_num[JOB_STATE_PREPARING] \
 )
 
 #define JOB_NUM_FINISHING (\
-  jobs_num[JOB_STATE_FINISHING] \
+  jcfg.jobs_num[JOB_STATE_FINISHING] \
 )
 
 /* states doing their job mostly on computing nodes */
 #define JOB_NUM_RUNNING (\
-  jobs_num[JOB_STATE_SUBMITTING] + \
-  jobs_num[JOB_STATE_INLRMS] \
+  jcfg.jobs_num[JOB_STATE_SUBMITTING] + \
+  jcfg.jobs_num[JOB_STATE_INLRMS] \
 )
 
 /*

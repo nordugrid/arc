@@ -28,7 +28,8 @@ bool configure_user_dirs(const std::string &my_username,
                 std::string &default_lrms,std::string &default_queue,
                 std::list<std::string>& queues,
                 ContinuationPlugins &plugins,RunPlugin& cred,
-                std::string& allow_submit,bool& strict_session);
+                std::string& allow_submit,bool& strict_session,
+                const GMEnvironment& env);
 
 /*
   Reads configuration file to find all defined control directories.
@@ -37,7 +38,7 @@ bool configure_user_dirs(const std::string &my_username,
     false - failure
     On success 'control_dirs' contains list of all control directories.
 */
-bool configure_users_dirs(JobUsers& users);
+bool configure_users_dirs(JobUsers& users,GMEnvironment& env);
 bool configure_users_dirs(Arc::XMLNode cfg,JobUsers& users);
 
 #endif // __GM_CONFIG_PRE_H__

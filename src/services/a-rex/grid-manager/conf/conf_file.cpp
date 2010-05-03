@@ -16,32 +16,34 @@
 #include "environment.h"
 #include "gridmap.h"
 #include "../run/run_plugin.h"
+#include "../misc/escaped.h"
+#include "../log/job_log.h"
 #include "conf_cache.h"
 #include "conf_file.h"
 
 static Arc::Logger& logger = Arc::Logger::getRootLogger();
 
-JobLog job_log;
+//JobLog job_log;
 ContinuationPlugins plugins;
 RunPlugin cred_plugin;
 
-static void check_lrms_backends(const std::string& default_lrms) {
+static void check_lrms_backends(const std::string& default_lrms,GMEnvironment& env) {
   std::string tool_path;
-  tool_path=nordugrid_libexec_loc()+"/cancel-"+default_lrms+"-job";
+  tool_path=env.nordugrid_libexec_loc()+"/cancel-"+default_lrms+"-job";
   if(!Glib::file_test(tool_path,Glib::FILE_TEST_IS_REGULAR)) {
     logger.msg(Arc::WARNING,"Missing cancel-%s-job - job cancelation may not work",default_lrms);
   };
-  tool_path=nordugrid_libexec_loc()+"/submit-"+default_lrms+"-job";
+  tool_path=env.nordugrid_libexec_loc()+"/submit-"+default_lrms+"-job";
   if(!Glib::file_test(tool_path,Glib::FILE_TEST_IS_REGULAR)) {
     logger.msg(Arc::WARNING,"Missing submit-%s-job - job submission to LRMS may not work",default_lrms);
   };
-  tool_path=nordugrid_libexec_loc()+"/scan-"+default_lrms+"-job";
+  tool_path=env.nordugrid_libexec_loc()+"/scan-"+default_lrms+"-job";
   if(!Glib::file_test(tool_path,Glib::FILE_TEST_IS_REGULAR)) {
     logger.msg(Arc::WARNING,"Missing scan-%s-job - may miss when job finished executing",default_lrms);
   };
 }
 
-bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my_username,JobUser &my_user,Daemon* daemon) {
+bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my_username,JobUser &my_user/*,Daemon* daemon*/) {
   std::ifstream cfile;
   std::vector<std::string> session_roots;
   std::string session_root("");
@@ -59,9 +61,10 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
   std::string jobreport_key("");
   std::string jobreport_cert("");
   std::string jobreport_cadir("");
+  JobsListConfig jcfg = users.Env().jobs_cfg();
 
   /* read configuration and add users and other things */
-  if(!config_open(cfile)) {
+  if(!config_open(cfile,users.Env())) {
     logger.msg(Arc::ERROR,"Can't read configuration file"); return false;
   };
   /* detect type of file */
@@ -99,6 +102,7 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
     if(cf->SectionNum() == 0) { // infosys user may be in common too
       if(command == "user") infosys_user=rest;
     };
+    /*
     if(daemon) {
       int r = daemon->config(command,rest);
       if(r == 0) continue;
@@ -107,6 +111,7 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
       int r = Daemon::skip_config(command);
       if(r == 0) continue;
     };
+    */
     if(command.length() == 0) {
       if(central_control_dir.length() != 0) {
         command="control"; rest=central_control_dir+" .";
@@ -116,10 +121,10 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
       };
     };
     if(command == "runtimedir") { 
-      runtime_config_dir(rest);
+      users.Env().runtime_config_dir(rest);
     } else if(command == "joblog") { /* where to write job inforamtion */ 
       std::string fname = config_next_arg(rest);  /* empty is allowed too */
-      job_log.SetOutput(fname.c_str());
+      users.Env().job_log().SetOutput(fname.c_str());
     }
     else if(command == "jobreport") { /* service to report information to */ 
       for(;;) {
@@ -127,10 +132,10 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
         if(url.length() == 0) break;
         unsigned int i;
         if(Arc::stringto(url,i)) {
-          job_log.SetExpiration(i);
+          users.Env().job_log().SetExpiration(i);
           continue;
         };
-        job_log.SetReporter(url.c_str());
+        users.Env().job_log().SetReporter(url.c_str());
       };
     }
     else if(command == "jobreport_credentials") {
@@ -140,7 +145,7 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
     }
     else if(command == "jobreport_options") { /* e.g. for SGAS, interpreted by usage reporter */ 
       std::string accounting_options = config_next_arg(rest); 
-      job_log.set_options(accounting_options);
+      users.Env().job_log().set_options(accounting_options);
     }
     else if(command == "maxjobs") { /* maximum number of the jobs to support */ 
       std::string max_jobs_s = config_next_arg(rest);
@@ -161,7 +166,7 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
         };
         if(i<0) i=-1; max_jobs_running=i;
       };
-      JobsList::SetMaxJobs(
+      jcfg.SetMaxJobs(
               max_jobs,max_jobs_running);
     }
     else if(command == "maxload") { /* maximum number of the jobs processed on frontend */
@@ -191,7 +196,7 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
         };
         if(i<0) i=-1; max_downloads=i;
       };
-      JobsList::SetMaxJobsLoad(
+      jcfg.SetMaxJobsLoad(
               max_jobs_processing,max_jobs_processing_emergency,max_downloads);
     }
     else if(command == "maxloadshare") {
@@ -206,7 +211,7 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
 	if (transfer_share.empty()){
             logger.msg(Arc::ERROR,"the type of share is not set in maxloadshare"); goto exit;
 	}
-        JobsList::SetTransferShare(max_share, transfer_share);
+        jcfg.SetTransferShare(max_share, transfer_share);
     }
     else if(command == "share_limit") {
       std::string share_name = config_next_arg(rest);
@@ -227,7 +232,7 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
           logger.msg(Arc::ERROR,"wrong number in share_limit: %s",share_limit); goto exit;
         }
       }
-      if(!JobsList::AddLimitedShare(share_name,share_limit)) {
+      if(!jcfg.AddLimitedShare(share_name,share_limit)) {
         logger.msg(Arc::ERROR,"share_limit should be located after maxloadshare"); goto exit;
       }
     }
@@ -264,7 +269,7 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
           goto exit;
         };
       };
-      JobsList::SetSpeedControl(
+      jcfg.SetSpeedControl(
               min_speed,min_speed_time,min_average_speed,max_inactivity_time);
     }
     else if(command == "wakeupperiod") { 
@@ -275,7 +280,7 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
           logger.msg(Arc::ERROR,"wrong number in wakeupperiod: %s",wakeup_s);
           goto exit;
         };
-        JobsList::SetWakeupPeriod(wakeup_period);
+        jcfg.SetWakeupPeriod(wakeup_period);
       };
     }
     else if(command == "securetransfer") {
@@ -290,7 +295,7 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
       else {
         logger.msg(Arc::ERROR,"wrong option in securetransfer"); goto exit;
       };
-      JobsList::SetSecureTransfer(use_secure_transfer);
+      jcfg.SetSecureTransfer(use_secure_transfer);
     }
     else if(command == "passivetransfer") {
       std::string s = config_next_arg(rest);
@@ -304,7 +309,7 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
       else {
         logger.msg(Arc::ERROR,"wrong option in passivetransfer"); goto exit;
       };
-      JobsList::SetPassiveTransfer(use_passive_transfer);
+      jcfg.SetPassiveTransfer(use_passive_transfer);
     }
     else if(command == "maxtransfertries") {
       std::string maxtries_s = config_next_arg(rest);
@@ -313,7 +318,7 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
         if(!Arc::stringto(maxtries_s,max_retries)) {
           logger.msg(Arc::ERROR,"wrong number in maxtransfertries"); goto exit;
         };
-        JobsList::SetMaxRetries(max_retries);
+        jcfg.SetMaxRetries(max_retries);
       };
     }
     else if(command == "norootpower") {
@@ -340,11 +345,11 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
       else {
         logger.msg(Arc::ERROR,"wrong option in localtransfer"); goto exit;
       };
-      JobsList::SetLocalTransfer(use_local_transfer);
+      jcfg.SetLocalTransfer(use_local_transfer);
     }
     else if(command == "mail") { /* internal address from which to send mail */ 
-      support_mail_address(config_next_arg(rest));
-      if(support_mail_address().empty()) {
+      users.Env().support_mail_address(config_next_arg(rest));
+      if(users.Env().support_mail_address().empty()) {
         logger.msg(Arc::ERROR,"mail is empty"); goto exit;
       };
     }
@@ -411,7 +416,7 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
       if(!rest.empty()) {
         logger.msg(Arc::ERROR,"junk in defaultlrms command"); goto exit;
       };
-      check_lrms_backends(default_lrms);
+      check_lrms_backends(default_lrms,users.Env());
     }
     else if(command == "authplugin") { /* set plugin to be called on 
                                           state changes */
@@ -506,7 +511,7 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
             user->SetStrictSession(strict_session);
             // get cache parameters for this user
             try {
-              CacheConfig * cache_config = new CacheConfig(user->UnixName());
+              CacheConfig * cache_config = new CacheConfig(users.Env(),user->UnixName());
               user->SetCacheParams(cache_config);
             }
             catch (CacheConfigException e) {
@@ -514,12 +519,12 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
               goto exit;
             }
             /* add helper to poll for finished jobs */
-            std::string cmd_ = nordugrid_libexec_loc();
+            std::string cmd_ = users.Env().nordugrid_libexec_loc();
             make_escaped_string(control_dir_);
             cmd_+="/scan-"+default_lrms+"-job";
             make_escaped_string(cmd_);
             cmd_+=" --config ";
-            cmd_+=nordugrid_config_loc();
+            cmd_+=users.Env().nordugrid_config_loc();
             cmd_+=" ";
             cmd_+=user->ControlDir();
             user->add_helper(cmd_);
@@ -595,12 +600,14 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
       };
     };
   };
+  /*
   if(daemon) {
     if(jobreport_key.empty()) jobreport_key = daemon->keypath();
     if(jobreport_cert.empty()) jobreport_cert = daemon->certpath();
     if(jobreport_cadir.empty()) jobreport_cadir = daemon->cadirpath();
   }
-  job_log.set_credentials(jobreport_key,jobreport_cert,jobreport_cadir);
+  */
+  users.Env().job_log().set_credentials(jobreport_key,jobreport_cert,jobreport_cadir);
   return true;
 exit:
   delete cf;
@@ -615,6 +622,7 @@ bool configure_serviced_users(Arc::XMLNode cfg,JobUsers &users,uid_t my_uid,cons
   std::string default_queue;
   std::string last_control_dir;
   std::vector<std::string> session_roots;
+  JobsListConfig& jcfg = users.Env().jobs_cfg();
   /*
    Currently we have everything running inside same arched.
    So we do not need any special treatment for infosys.
@@ -635,22 +643,22 @@ bool configure_serviced_users(Arc::XMLNode cfg,JobUsers &users,uid_t my_uid,cons
   tmp_node = cfg["jobLogPath"];
   if(tmp_node) {
     std::string fname = tmp_node;
-    job_log.SetOutput(fname.c_str());
+    users.Env().job_log().SetOutput(fname.c_str());
   };
   tmp_node = cfg["jobReport"];
   if(tmp_node) {
     std::string url = tmp_node["destination"];
     if(!url.empty()) {
       // destination is required
-      job_log.SetReporter(url.c_str());
+      users.Env().job_log().SetReporter(url.c_str());
       unsigned int i;
-      if(Arc::stringto(tmp_node["expiration"],i)) job_log.SetExpiration(i);
+      if(Arc::stringto(tmp_node["expiration"],i)) users.Env().job_log().SetExpiration(i);
       std::string parameters = tmp_node["parameters"];
-      if(!parameters.empty()) job_log.set_options(parameters);
+      if(!parameters.empty()) users.Env().job_log().set_options(parameters);
       std::string jobreport_key = tmp_node["keyPath"];
       std::string jobreport_cert = tmp_node["certificatePath"];
       std::string jobreport_cadir = tmp_node["CACertificatesDir"];
-      job_log.set_credentials(jobreport_key,jobreport_cert,jobreport_cadir);
+      users.Env().job_log().set_credentials(jobreport_key,jobreport_cert,jobreport_cadir);
     };
   };
 
@@ -673,22 +681,22 @@ bool configure_serviced_users(Arc::XMLNode cfg,JobUsers &users,uid_t my_uid,cons
     int max_jobs_processing_emergency = -1;
     int max_downloads = -1;
     int max_share;
-    unsigned int wakeup_period = JobsList::WakeupPeriod();
+    unsigned int wakeup_period = jcfg.WakeupPeriod();
     elementtoint(tmp_node,"maxJobsTracked",max_jobs,&logger);
     elementtoint(tmp_node,"maxJobsRun",max_jobs_running,&logger);
-    JobsList::SetMaxJobs(max_jobs,max_jobs_running);
+    jcfg.SetMaxJobs(max_jobs,max_jobs_running);
     elementtoint(tmp_node,"maxJobsTransfered",max_jobs_processing,&logger);
     elementtoint(tmp_node,"maxJobsTransferedAdditional",max_jobs_processing_emergency,&logger);
     elementtoint(tmp_node,"maxFilesTransfered",max_downloads,&logger);
-    JobsList::SetMaxJobsLoad(max_jobs_processing,
+    jcfg.SetMaxJobsLoad(max_jobs_processing,
                              max_jobs_processing_emergency,
                              max_downloads);
     std::string transfer_share = tmp_node["loadShareType"];
     if(elementtoint(tmp_node,"maxLoadShare",max_share,&logger) && (max_share > 0) && ! transfer_share.empty()){
-	JobsList::SetTransferShare(max_share, transfer_share);
+	jcfg.SetTransferShare(max_share, transfer_share);
     }
     if(elementtoint(tmp_node,"wakeupPeriod",wakeup_period,&logger)) {
-      JobsList::SetWakeupPeriod(wakeup_period);
+      jcfg.SetWakeupPeriod(wakeup_period);
     };
     Arc::XMLNode share_limit_node;
     share_limit_node = tmp_node["shareLimit"];
@@ -696,7 +704,7 @@ bool configure_serviced_users(Arc::XMLNode cfg,JobUsers &users,uid_t my_uid,cons
       int share_limit = -1;
       std::string limited_share = share_limit_node["name"];
       if(elementtoint(share_limit_node,"limit",share_limit,&logger) && (share_limit > 0) && ! limited_share.empty()) {
-        JobsList::AddLimitedShare(limited_share,share_limit);
+        jcfg.AddLimitedShare(limited_share,share_limit);
       }
     }
   }
@@ -740,17 +748,17 @@ bool configure_serviced_users(Arc::XMLNode cfg,JobUsers &users,uid_t my_uid,cons
       elementtoint(tmp_node,"minSpeedTime",min_speed_time,&logger);
       elementtoint(tmp_node,"minAverageSpeed",min_average_speed,&logger);
       elementtoint(tmp_node,"maxInactivityTime",max_inactivity_time,&logger);
-      JobsList::SetSpeedControl(min_speed,min_speed_time,
+      jcfg.SetSpeedControl(min_speed,min_speed_time,
                                 min_average_speed,max_inactivity_time);
     };
     elementtobool(tmp_node,"passiveTransfer",use_passive_transfer,&logger);
-    JobsList::SetPassiveTransfer(use_passive_transfer);
+    jcfg.SetPassiveTransfer(use_passive_transfer);
     elementtobool(tmp_node,"secureTransfer",use_secure_transfer,&logger);
-    JobsList::SetSecureTransfer(use_secure_transfer);
+    jcfg.SetSecureTransfer(use_secure_transfer);
     elementtobool(tmp_node,"localTransfer",use_local_transfer,&logger);
-    JobsList::SetLocalTransfer(use_local_transfer);
+    jcfg.SetLocalTransfer(use_local_transfer);
     if(elementtoint(tmp_node,"maxRetries",max_retries,&logger) && (max_retries > 0)) {
-        JobsList::SetMaxRetries(max_retries);
+        jcfg.SetMaxRetries(max_retries);
     }
 
 
@@ -760,8 +768,8 @@ bool configure_serviced_users(Arc::XMLNode cfg,JobUsers &users,uid_t my_uid,cons
   */
   tmp_node = cfg["serviceMail"];
   if(tmp_node) {
-    support_mail_address((std::string)tmp_node);
-    if(support_mail_address().empty()) {
+    users.Env().support_mail_address((std::string)tmp_node);
+    if(users.Env().support_mail_address().empty()) {
       logger.msg(Arc::ERROR,"serviceMail is empty");
       return false;
     };
@@ -779,8 +787,8 @@ bool configure_serviced_users(Arc::XMLNode cfg,JobUsers &users,uid_t my_uid,cons
       logger.msg(Arc::ERROR,"type in LRMS is missing"); return false;
     };
     default_queue = (std::string)(tmp_node["defaultShare"]);
-    check_lrms_backends(default_lrms);
-    runtime_config_dir((std::string)(tmp_node["runtimeDir"]));
+    check_lrms_backends(default_lrms,users.Env());
+    users.Env().runtime_config_dir((std::string)(tmp_node["runtimeDir"]));
   } else {
     logger.msg(Arc::ERROR,"LRMS is missing"); return false;
   }
@@ -954,7 +962,7 @@ bool configure_serviced_users(Arc::XMLNode cfg,JobUsers &users,uid_t my_uid,cons
           user->SetStrictSession(strict_session);
           // get cache parameters for this user
           try {
-            CacheConfig * cache_config = new CacheConfig(user->UnixName());
+            CacheConfig * cache_config = new CacheConfig(users.Env(),user->UnixName());
             user->SetCacheParams(cache_config);
           }
           catch (CacheConfigException e) {
@@ -962,7 +970,7 @@ bool configure_serviced_users(Arc::XMLNode cfg,JobUsers &users,uid_t my_uid,cons
             return false;
           }
           /* add helper to poll for finished jobs */
-          std::string cmd_ = nordugrid_libexec_loc();
+          std::string cmd_ = users.Env().nordugrid_libexec_loc();
           make_escaped_string(control_dir_);
           cmd_+="/scan-"+default_lrms+"-job";
           make_escaped_string(cmd_);

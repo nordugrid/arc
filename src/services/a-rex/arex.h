@@ -11,6 +11,10 @@
 #include "FileChunks.h"
 #include "grid-manager/grid_manager.h"
 
+class JobLog;
+class JobsListConfig;
+class GMEnvironment;
+
 namespace ARex {
 
 class ARexGMConfig;
@@ -69,6 +73,9 @@ class ARexService: public Arc::RegisteredService {
   unsigned int infoprovider_wakeup_period_;
   std::map<std::string,std::string> glue_states_;
   FileChunksList files_chunks_;
+  JobLog* job_log_;
+  JobsListConfig* jobs_cfg_;
+  GMEnvironment* gm_env_;
   GridManager* gm_;
   bool valid_;
   ARexConfigContext* get_configuration(Arc::Message& inmsg);

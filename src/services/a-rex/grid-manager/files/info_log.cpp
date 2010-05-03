@@ -14,7 +14,7 @@
 #include <arc/StringConv.h>
 #include <arc/DateTime.h>
 #include <arc/client/JobDescription.h>
-#include "../jobs/job_desc.h"
+//#include "../jobs/job_desc.h"
 #include "info_files.h"
 #include "../conf/conf.h"
 //@ #include <arc/certificate.h>
@@ -182,7 +182,11 @@ bool job_log_make_file(const JobDescription &desc,JobUser &user,const std::strin
   {
     fname_src = user.ControlDir() + "/job." + desc.get_id() + sfx_rsl;
     Arc::JobDescription arc_job_desc;
-    if(!get_arc_job_description(fname_src, arc_job_desc)) goto error;
+    std::string job_desc_str;
+    if (!job_description_read_file(fname_src, job_desc_str)) goto error;
+    arc_job_desc.AddHint("SOURCEDIALECT","GRIDMANAGER");
+    if (!arc_job_desc.Parse(job_desc_str)) goto error;
+//    if(!get_arc_job_description(fname_src, arc_job_desc)) goto error;
     if(arc_job_desc.Resources.IndividualPhysicalMemory.max>=0) o_dst<<"requestedmemory="<<arc_job_desc.Resources.IndividualPhysicalMemory.max<<std::endl;
     if(arc_job_desc.Resources.TotalCPUTime.range.max>=0) o_dst<<"requestedcputime="<<arc_job_desc.Resources.TotalCPUTime.range.max<<std::endl;
     if(arc_job_desc.Resources.TotalWallTime.range.max>=0) o_dst<<"requestedwalltime="<<arc_job_desc.Resources.TotalWallTime.range.max<<std::endl;

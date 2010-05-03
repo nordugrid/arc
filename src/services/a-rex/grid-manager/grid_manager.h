@@ -3,6 +3,8 @@
 
 #include <arc/XMLNode.h>
 
+class GMEnvironment;
+
 namespace ARex {
 
 class GridManager {
@@ -12,7 +14,7 @@ class GridManager {
   GridManager(const GridManager&) { };
  public:
   //GridManager(Arc::XMLNode argv);
-  GridManager(const char* config_filename);
+  GridManager(GMEnvironment& env);
   ~GridManager(void);
   operator bool(void) { return active_; };
 };

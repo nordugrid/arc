@@ -22,6 +22,8 @@
 
 #include "job.h"
 #include "grid-manager/conf/conf_pre.h"
+#include "grid-manager/log/job_log.h"
+#include "grid-manager/jobs/states.h"
 #include "arex.h"
 
 namespace ARex {
@@ -76,7 +78,7 @@ static Arc::Plugin* get_service(Arc::PluginArgument* arg) {
 
 class ARexConfigContext:public Arc::MessageContextElement, public ARexGMConfig {
  public:
-  ARexConfigContext(const std::string& config_file,const std::string& uname,const std::string& grid_name,const std::string& service_endpoint):ARexGMConfig(config_file,uname,grid_name,service_endpoint) { };
+  ARexConfigContext(const GMEnvironment& env,const std::string& uname,const std::string& grid_name,const std::string& service_endpoint):ARexGMConfig(env,uname,grid_name,service_endpoint) { };
   virtual ~ARexConfigContext(void) { };
 };
 
@@ -209,7 +211,7 @@ ARexConfigContext* ARexService::get_configuration(Arc::Message& inmsg) {
     };
     endpoint+=GetPath(http_endpoint);
   };
-  config=new ARexConfigContext(gmconfig_,uname,grid_name,endpoint);
+  config=new ARexConfigContext(*gm_env_,uname,grid_name,endpoint);
   if(config) {
     if(*config) {
       inmsg.Context()->Add("arex.gmconfig",config);
@@ -461,6 +463,9 @@ ARexService::ARexService(Arc::Config *cfg):RegisteredService(cfg),
               logger_(Arc::Logger::rootLogger, "A-REX"),
               inforeg_(*cfg,this),
               gmconfig_temporary_(false),
+              job_log_(NULL),
+              jobs_cfg_(NULL),
+              gm_env_(NULL),
               gm_(NULL),
               valid_(false) {
   // logger_.addDestination(logcerr);
@@ -481,7 +486,10 @@ ARexService::ARexService(Arc::Config *cfg):RegisteredService(cfg),
   uname_=(std::string)((*cfg)["usermap"]["defaultLocalName"]);
   gmconfig_=(std::string)((*cfg)["gmconfig"]);
 
-  JobUsers users;
+  job_log_ = new JobLog;
+  jobs_cfg_ = new JobsListConfig;
+  gm_env_ = new GMEnvironment(*job_log_,*jobs_cfg_);
+  JobUsers users(*gm_env_);
   if(gmconfig_.empty()) {
     // No external configuration file means configuration is
     // directly embedded into this configuration node.
@@ -547,7 +555,7 @@ ARexService::ARexService(Arc::Config *cfg):RegisteredService(cfg),
       };
       close(h);
       gmconfig_temporary_=true;
-      nordugrid_config_loc(gmconfig_);
+      gm_env_->nordugrid_config_loc(gmconfig_);
     } catch(Glib::FileError& e) {
       logger_.msg(Arc::ERROR, "Failed to store configuration into temporary file: %s",e.what());
       if(!gmconfig_.empty()) {
@@ -558,8 +566,8 @@ ARexService::ARexService(Arc::Config *cfg):RegisteredService(cfg),
     };
   } else {
     // External configuration file
-    nordugrid_config_loc(gmconfig_);
-    if(!configure_users_dirs(users)) {
+    gm_env_->nordugrid_config_loc(gmconfig_);
+    if(!configure_users_dirs(users,*gm_env_)) {
       logger_.msg(Arc::ERROR, "Failed to process configuration in %s",gmconfig_);
     }
     // create control and session directories if not yet done
@@ -601,7 +609,7 @@ ARexService::ARexService(Arc::Config *cfg):RegisteredService(cfg),
 
   // Run grid-manager in thread
   if((gmrun_.empty()) || (gmrun_ == "internal")) {
-    gm_=new GridManager(gmconfig_.empty()?NULL:gmconfig_.c_str());
+    gm_=new GridManager(*gm_env_);
     if(!(*gm_)) { delete gm_; gm_=NULL; return; };
   };
   CreateThreadFunction(&information_collector_starter,this);
@@ -610,11 +618,14 @@ ARexService::ARexService(Arc::Config *cfg):RegisteredService(cfg),
 
 ARexService::~ARexService(void) {
   thread_count_.RequestCancel();
-  if(gm_) delete gm_;
+  if(gm_) delete gm_; // This should stop all GM-related threads too
+  if(gm_env_) delete gm_env_;
+  if(jobs_cfg_) delete jobs_cfg_;
+  if(job_log_) delete job_log_;
   if(gmconfig_temporary_) {
     if(!gmconfig_.empty()) unlink(gmconfig_.c_str());
   };
-  thread_count_.WaitForExit();
+  thread_count_.WaitForExit(); // Here A-REX threads are waited for
 }
 
 } // namespace ARex

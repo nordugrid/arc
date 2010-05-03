@@ -5,10 +5,11 @@
 #include <string>
 #include <list>
 #include <fstream>
-#include "../misc/escaped.h"
+
+#include <arc/Run.h>
+
 #include "../jobs/job.h"
 #include "../jobs/users.h"
-#include "../run/run_parallel.h"
 
 ///  Put short information into log when every job starts/finishes.
 ///  And store more detailed information for Reporter.
@@ -25,7 +26,7 @@ class JobLog {
   bool open_stream(std::ofstream &o);
  public:
   JobLog(void);
-  JobLog(const char* fname);
+  //JobLog(const char* fname);
   ~JobLog(void);
   /* chose name of log file */
   void SetOutput(const char* fname);

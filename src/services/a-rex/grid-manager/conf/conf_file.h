@@ -7,10 +7,11 @@
 
 #include "../jobs/users.h"
 #include "../jobs/states.h"
-#include "../log/job_log.h"
-#include "../conf/daemon.h"
+//#include "../log/job_log.h"
+//#include "../conf/daemon.h"
+#include "environment.h"
 
-extern JobLog job_log;
+//extern JobLog job_log;
 
 /*
   Functionality:
@@ -26,7 +27,7 @@ extern JobLog job_log;
     my_user - special user to run special helper programs (see 
       configuration template).
 */
-bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my_username,JobUser &my_user,Daemon* daemon = NULL);
+bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my_username,JobUser &my_user/*,Daemon* daemon = NULL*/);
 bool configure_serviced_users(Arc::XMLNode cfg,JobUsers &users,uid_t my_uid,const std::string &my_username,JobUser &my_user);
 bool print_serviced_users(const JobUsers &users);
  

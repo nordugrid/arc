@@ -36,16 +36,18 @@
 
 static Arc::Logger logger(Arc::Logger::rootLogger, "Janitor Control");
 
-Janitor::Janitor(const std::string& id,const std::string& cdir):
-         id_(id),cdir_(cdir),running_(false),result_(FAILED),enabled_(false) {
+Janitor::Janitor(const std::string& id,const std::string& cdir,
+                 const GMEnvironment& env):
+         id_(id),cdir_(cdir),running_(false),result_(FAILED),
+         enabled_(false),env_(env) {
   if(!readConfig()) return;
   if(!enabled()) return;
   if(id_.empty()) return;
   if(cdir_.empty()) return;
   // create path to janitor utility
-  path_ = Glib::build_filename(nordugrid_libexec_loc(),"janitor");
+  path_ = Glib::build_filename(env.nordugrid_libexec_loc(),"janitor");
   if(path_.empty()) {
-    logger.msg(Arc::ERROR, "Failed to create path to janitor at %s",nordugrid_libexec_loc());
+    logger.msg(Arc::ERROR, "Failed to create path to janitor at %s",env.nordugrid_libexec_loc());
     return;
   };
   // check if utility exists
@@ -63,8 +65,8 @@ Janitor::~Janitor(void) {
 bool Janitor::readConfig() {
   // open conf file
   std::ifstream cfile;
-  if(nordugrid_config_loc().empty()) read_env_vars(true);
-  if(!config_open(cfile)) {
+  //if(nordugrid_config_loc().empty()) read_env_vars(true);
+  if(!config_open(cfile,env_)) {
     logger.msg(Arc::ERROR,"Can't open configuration file");
     return false;
   }
@@ -111,7 +113,7 @@ void Janitor::deploy_thread(void* arg) {
   Janitor& it = *((Janitor*)arg);
   it.result_=FAILED;
     // Fetch list of REs
-  JobUser user;
+  JobUser user(it.env_);
   user.SetControlDir(it.cdir_);
   std::list<std::string> rtes;
   if(!job_rte_read_file(it.id_,user,rtes)) { it.completed_.signal(); return; };

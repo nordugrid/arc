@@ -286,7 +286,7 @@ static int job_dir_remove_callback(void* arg) {
 bool job_diagnostics_mark_put(const JobDescription &desc,JobUser &user) {
   std::string fname = desc.SessionDir() + sfx_diag;
   if(user.StrictSession()) {
-    JobUser tmp_user(user.get_uid()==0?desc.get_uid():user.get_uid());
+    JobUser tmp_user(user.Env(),user.get_uid()==0?desc.get_uid():user.get_uid());
     return (RunFunction::run(tmp_user,"job_diagnostics_mark_put",&job_mark_put_callback,&fname,10) == 0);
   };
   return job_mark_put(fname) & fix_file_owner(fname,desc,user) & fix_file_permissions(fname);
@@ -295,7 +295,7 @@ bool job_diagnostics_mark_put(const JobDescription &desc,JobUser &user) {
 bool job_session_create(const JobDescription &desc,JobUser &user) {
   std::string dname = desc.SessionDir();
   if(user.StrictSession()) {
-    JobUser tmp_user(user.get_uid()==0?desc.get_uid():user.get_uid());
+    JobUser tmp_user(user.Env(),user.get_uid()==0?desc.get_uid():user.get_uid());
     return (RunFunction::run(tmp_user,"job_session_create",&job_dir_create_callback,&dname,10) == 0);
   };
   return job_dir_create(dname) & fix_file_owner(dname,desc,user) & fix_file_permissions(dname,true);
@@ -311,7 +311,7 @@ bool job_controldiag_mark_put(const JobDescription &desc,JobUser &user,char cons
   if(h == -1) return false;
   int r;
   int t = 10;
-  JobUser tmp_user((uid_t)0);
+  JobUser tmp_user(user.Env(),(uid_t)0);
   r=RunRedirected::run(tmp_user,"job_controldiag_mark_put",-1,h,-1,(char**)args,t);
   close(h);
   if(r != 0) return false;
@@ -321,7 +321,7 @@ bool job_controldiag_mark_put(const JobDescription &desc,JobUser &user,char cons
 bool job_lrmsoutput_mark_put(const JobDescription &desc,JobUser &user) {
   std::string fname = desc.SessionDir() + sfx_lrmsoutput;
   if(user.StrictSession()) {
-    JobUser tmp_user(user.get_uid()==0?desc.get_uid():user.get_uid());
+    JobUser tmp_user(user.Env(),user.get_uid()==0?desc.get_uid():user.get_uid());
     return (RunFunction::run(tmp_user,"job_lrmsoutput_mark_put",&job_mark_put_callback,&fname,10) == 0);
   };
   return job_mark_put(fname) & fix_file_owner(fname,desc,user) & fix_file_permissions(fname);
@@ -330,7 +330,7 @@ bool job_lrmsoutput_mark_put(const JobDescription &desc,JobUser &user) {
 bool job_diagnostics_mark_add(const JobDescription &desc,JobUser &user,const std::string &content) {
   std::string fname = desc.SessionDir() + sfx_diag;
   if(user.StrictSession()) {
-    JobUser tmp_user(user.get_uid()==0?desc.get_uid():user.get_uid());
+    JobUser tmp_user(user.Env(),user.get_uid()==0?desc.get_uid():user.get_uid());
     job_mark_add_t arg; arg.fname=&fname; arg.content=&content;
     return (RunFunction::run(tmp_user,"job_diagnostics_mark_add",&job_mark_add_callback,&arg,10) == 0);
   };
@@ -342,7 +342,7 @@ bool job_diagnostics_mark_remove(const JobDescription &desc,JobUser &user) {
   bool res1 = job_mark_remove(fname);
   fname = desc.SessionDir() + sfx_diag;
   if(user.StrictSession()) {
-    JobUser tmp_user(user.get_uid()==0?desc.get_uid():user.get_uid());
+    JobUser tmp_user(user.Env(),user.get_uid()==0?desc.get_uid():user.get_uid());
     return (res1 | (RunFunction::run(tmp_user,"job_diagnostics_mark_remove",&job_mark_remove_callback,&fname,10) == 0));
   };
   return (res1 | job_mark_remove(fname));
@@ -351,7 +351,7 @@ bool job_diagnostics_mark_remove(const JobDescription &desc,JobUser &user) {
 bool job_lrmsoutput_mark_remove(const JobDescription &desc,JobUser &user) {
   std::string fname = desc.SessionDir() + sfx_lrmsoutput;
   if(user.StrictSession()) {
-    JobUser tmp_user(user.get_uid()==0?desc.get_uid():user.get_uid());
+    JobUser tmp_user(user.Env(),user.get_uid()==0?desc.get_uid():user.get_uid());
     return (RunFunction::run(tmp_user,"job_lrmsoutpur_mark_remove",&job_mark_remove_callback,&fname,10) == 0);
   };
   return job_mark_remove(fname);
@@ -387,7 +387,7 @@ bool job_diagnostics_mark_move(const JobDescription &desc,JobUser &user) {
   fix_file_permissions(fname2,user);
   std::string fname1 = user.SessionRoot(desc.get_id()) + "/" + desc.get_id() + sfx_diag;
   if(user.StrictSession()) {
-    JobUser tmp_user(user.get_uid()==0?desc.get_uid():user.get_uid());
+    JobUser tmp_user(user.Env(),user.get_uid()==0?desc.get_uid():user.get_uid());
     job_file_read_t arg; arg.h=h2; arg.fname=&fname1;
     RunFunction::run(tmp_user,"job_diagnostics_mark_move",&job_file_read_callback,&arg,10);
     close(h2);
@@ -1059,7 +1059,7 @@ bool job_clean_deleted(const JobDescription &desc,JobUser &user,std::list<std::s
   std::list<FileData> flist;
   std::string dname = user.SessionRoot(id)+"/"+id;
   if(user.StrictSession()) {
-    JobUser tmp_user(user.get_uid()==0?desc.get_uid():user.get_uid());
+    JobUser tmp_user(user.Env(),user.get_uid()==0?desc.get_uid():user.get_uid());
     job_dir_remove_t arg; arg.dname=&dname; arg.flist=&flist;
     return (RunFunction::run(tmp_user,"job_clean_deleted",&job_dir_remove_callback,&arg,10) == 0);
   } else {

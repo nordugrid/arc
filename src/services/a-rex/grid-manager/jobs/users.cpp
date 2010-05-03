@@ -28,7 +28,7 @@
 static Arc::Logger& logger = Arc::Logger::getRootLogger();
 static std::string empty_string("");
 
-JobUser::JobUser(void) {
+JobUser::JobUser(const GMEnvironment& env):gm_env(env) {
   control_dir="";
   unix_name=""; home=""; uid=0; gid=0;
   cache_params=NULL;
@@ -167,7 +167,7 @@ bool JobUser::substitute(std::string& param) const {
       case 'L': to_put=DefaultLRMS(); break;
       case 'u': to_put=Arc::tostring(get_uid()); break;
       case 'g': to_put=Arc::tostring(get_gid()); break;
-      case 'W': to_put=nordugrid_loc(); break;
+      case 'W': to_put=gm_env.nordugrid_loc(); break;
       case 'G': 
         logger.msg(Arc::ERROR,"Globus location variable substitution is not supported anymore. Please specify path directly.");
         break;
@@ -212,7 +212,7 @@ bool JobUsers::substitute(std::string& param) const {
   return true;
 }
 
-JobUser::JobUser(uid_t uid_,RunPlugin* cred) {
+JobUser::JobUser(const GMEnvironment& env,uid_t uid_,RunPlugin* cred):gm_env(env) {
   struct passwd pw_;
   struct passwd *pw;
   char buf[BUFSIZ];
@@ -246,7 +246,7 @@ JobUser::JobUser(uid_t uid_,RunPlugin* cred) {
   sharelevel=jobinfo_share_private;
 }
 
-JobUser::JobUser(const std::string &u_name,RunPlugin* cred) {
+JobUser::JobUser(const GMEnvironment& env,const std::string &u_name,RunPlugin* cred):gm_env(env) {
   struct passwd pw_;
   struct passwd *pw;
   char buf[BUFSIZ];
@@ -280,7 +280,7 @@ JobUser::JobUser(const std::string &u_name,RunPlugin* cred) {
   sharelevel=jobinfo_share_private;
 }
 
-JobUser::JobUser(const JobUser &user) {
+JobUser::JobUser(const JobUser &user):gm_env(user.gm_env) {
   uid=user.uid; gid=user.gid;
   unix_name=user.unix_name;  
   control_dir=user.control_dir;
@@ -302,14 +302,14 @@ JobUser::~JobUser(void) {
   delete cache_params;
 }
 
-JobUsers::JobUsers(void) {
+JobUsers::JobUsers(GMEnvironment& env):gm_env(env) {
 }
 
 JobUsers::~JobUsers(void) {
 }
 
 JobUsers::iterator JobUsers::AddUser(const std::string &unix_name,RunPlugin* cred_plugin,const std::string &control_dir, const std::vector<std::string> *session_roots) {
-  JobUser user(unix_name,cred_plugin);
+  JobUser user(gm_env,unix_name,cred_plugin);
   user.SetControlDir(control_dir);
   if(session_roots) user.SetSessionRoot(*session_roots);
   if(user.is_valid()) { return users.insert(users.end(),user); };

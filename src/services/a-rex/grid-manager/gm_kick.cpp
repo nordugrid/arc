@@ -8,6 +8,8 @@
 
 #include "jobs/users.h"
 #include "jobs/commfifo.h"
+#include "log/job_log.h"
+#include "jobs/states.h"
 
 
 int main(int argc,char* argv[]) {
@@ -16,7 +18,10 @@ int main(int argc,char* argv[]) {
     struct stat st;
     if(lstat(argv[n],&st) != 0) continue;
     if(!S_ISREG(st.st_mode)) continue;
-    JobUser user(st.st_uid);
+    JobLog job_log;
+    JobsListConfig jobs_cfg;
+    GMEnvironment env(job_log,jobs_cfg);
+    JobUser user(env,st.st_uid);
     if(!user.is_valid()) continue;
     std::string path = argv[n];
     if(path[0] != '/') {
