@@ -148,6 +148,7 @@ enables_wsrf_client=$enableval
 enables_hed=$enableval
 enables_java=$enableval
 enables_python=$enableval
+enables_cppunit=$enableval
 enables_doc=$enableval
 ],
 [])
@@ -628,6 +629,8 @@ EOF
   AC_SUBST(GSOAP_LIBS)
   enables_gsoap="$gsoap"
 fi
+else
+  enables_gsoap="no"
 fi
 AM_CONDITIONAL(HAVE_GSOAP, test "x$gsoap" = "xyes")
 
@@ -656,6 +659,8 @@ fi
 AC_SUBST(CPPUNIT_CFLAGS)
 AC_SUBST(CPPUNIT_LIBS)
 AC_SUBST(TEST_DIR)
+else
+  enables_cppunit="no"
 fi
 
 #check lasso
@@ -740,6 +745,8 @@ if test "x$enables_xmlsec1" = "xyes"; then
   #AC_SUBST(XMLSEC_MIN_VERSION)
   enables_xmlsec1="$XMLSEC_INSTALLED"
 fi
+else
+  enables_xmlsec1="no"
 fi
 
 #########################
@@ -1158,6 +1165,8 @@ if test "x$enables_ldap" = "xyes"; then
 
   enables_ldap="$LDAP"
 fi
+else
+  enables_ldap="no"
 fi
 AM_CONDITIONAL([LDAP_ENABLED], test x$LDAP = xyes)
 
