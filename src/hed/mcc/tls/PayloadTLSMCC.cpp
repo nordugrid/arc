@@ -361,7 +361,7 @@ PayloadTLSMCC::~PayloadTLSMCC(void) {
     return;
   if (ssl_) {
     if (SSL_shutdown(ssl_) < 0)
-      logger_.msg(ERROR, "Failed to shut down SSL");
+      logger_.msg(INFO, "Failed to shut down SSL");
     SSL_free(ssl_);
     ssl_ = NULL;
   }
