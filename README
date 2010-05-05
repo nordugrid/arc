@@ -31,36 +31,58 @@ requires different external packages, furthermore the client and server
 packages have different dependencies too. Below a list of the explicit 
 requirements is shown:
 
-  Mandatory (on client as well as server side):
-    o GNU make, autotools (autoconf>=2.56) (automake>=1.8) (build)
-    o C++ compiler and library (build)
-    o libtool (build)
-    o pkg-config (build)
-    o gthread-2.0 version 2.4.7 or later (build, run)
-    o glibmm-2.4 version 2.4.7 or later (build, run)
-    o libxml-2.0 version 2.4.0 or later (build, run)
-    o openssl version 0.9.7a or later (build, run)
-    o e2fsprogs (build, run)
-    o doxygen (build)
-    o GNU gettext (build, run)
+Mandatory dependencies
+----------------------
+Build:
+  o GNU make, autotools (autoconf>=2.56) (automake>=1.8)
+  o CVS
+  o m4
+  o GNU gettext
+  o C++ compiler and library
+  o libtool
+  o pkg-config
+  o doxygen
 
-  Mandatory for A-REX service:
-    o Perl, libxml-simple-perl package (run)
-    o GNU time (run)
+Build & runtime:
+  o e2fsprogs
+  o gthread-2.0 version 2.4.7 or later
+  o glibmm-2.4 version 2.4.7 or later
+  o libxml-2.0 version 2.4.0 or later
+  o openssl version 0.9.7a or later
 
-  Optional (mainly applicable on server side):
-    o swig version 1.3.28 or later (build)
-    o java sdk 1.4 or later for Java bindings (build, run)
-    o python 2.4 or higher for Python bindings (build, run)
-    o Grid Packaging Tools (GPT) (http://www.gridpackagingtools.org/) (build)
-    o Globus Toolkit 4 (http://www.globus.org/) which contains (build, run)
-      - Globus RLS client
-      - Globus FTP client
-      - Globus RSL
-    o LHC File Catalog (LFC) (https://savannah.cern.ch/projects/jra1mdw/) (build, run)
-    o CppUnit for unit testing (build)
-    o Berkeley DB C++ interface (build, run)
-    o xmlsec1 1.2.4 or higher (build, run)
+
+Optional dependencies
+---------------------
+Build:
+  o CppUnit for unit testing
+  o Grid Packaging Tools (GPT) (arclib)
+  o swig version 1.3.28 or later (Chelonia, bindings)
+
+Build & runtime:
+  o open-ldap (LDAP DMC)
+  o gsoap 2.7.2 (HED)
+  o python 2.4 or higher (Chelonia, bindings)
+  o java sdk 1.4 or later (bindings)
+  o globus-common 4 (arclib)
+  o globus-gssapi-gsi 4 (arclib)
+  o globus-rls-client 4 (arclib)
+  o globus-ftp-client 4 (arclib)
+  o globus-ftp-control 4 (arclib)
+  o globus-io  4 (arclib)
+  o globus-openssl (arclib)
+  o LHC File Catalog (LFC DMC)
+  o Berkeley DB C++ interface (ISIS)
+  o xmlsec1 1.2.4 or higher (Security)
+
+Runtime dependencies:
+  o Perl, libxml-simple-perl, perl-Digest-SHA1 (A-rex)
+  o GNU time (A-rex)
+  o VOMS (LFC DMC)
+  o Log4perl (Janitor)
+  o wget (Janitor)
+  o librdf-perl (Janitor)
+  o fuse-python (Chelonia)
+  o Berkley DB Python interface - python-bsddb3 (replicated A-Hash)
 
 Please note that depending on operating system distribution to build
 ARC-nox you may need to install development versions of mentioned packages.
