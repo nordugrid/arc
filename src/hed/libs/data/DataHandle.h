@@ -43,6 +43,8 @@ namespace Arc {
   private:
     DataPoint *p;
     static DataPointLoader loader;
+    DataHandle(void);
+    DataHandle(const DataHandle&);
   };
 
 } // namespace Arc
