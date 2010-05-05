@@ -56,7 +56,6 @@ Bug fixes:
 * Fixed #1881 (janitor setstate can create undeleteable phantom runtimes)
 * Fixed problem submitting jobs that contain spaces in job name
 * Set cluster and queue in for JSDL job description, if not specified by user. Fix for #1869 (brokered queue is not passed by arcsub to A-REX)
-* Correct wrongly named arex package (#1800 nordugrid-arc-nox-arex, AREX's init.d script bug)
 * Fixed bug preventing infoproviders from listing dynamic RTEs
 * Fixed #1816 (Calculating queue-gridrunning CPUs in PBS)
 * Fixed #1834 (Information system counters failed on bad controldir content)) 
@@ -81,7 +80,7 @@ Bug fixes:
 * Fixed #1830 (A-REX failed to parse informational XML which contains non-ASCII characters and did not remove the erroneous file)
 * Allow replication within one site and multiple uploads to same LFN (#1031: replication should be allowed within one site)
 * Remove temp file if informational XML parsing failed - partial fix for #1830 (A-REX failed to parse informational XML which contains non-ASCII characters and did not remove the erroneous file)
-* Fixed problem upon installation and auto-start of Debian package (#1800)
+* Fixed problem upon installation and auto-start of Debian package (#1800 nordugrid-arc-nox-arex, AREX's init.d script bug)
 * Retry connection timeouts (# 1805: http(g) connection timeouts are not retried)
 * Make IP v4 and v6 work on same port simultaneously - fix for 1826 (TCP MCC error message)
 * Make notify(xRSL) and Notify(JSDL) work as defined in documentation and schema. Fixed #1815 (XRSL parsing error using "notify")
