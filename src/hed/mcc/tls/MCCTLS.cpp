@@ -114,7 +114,7 @@ using namespace Arc;
 
 
 #define SELFSIGNED(cert) (X509_NAME_cmp(X509_get_issuer_name(cert),X509_get_subject_name(cert)) == 0)
- 
+
 
 TLSSecAttr::TLSSecAttr(PayloadTLSStream& payload, ConfigTLSMCC& config, Logger& logger) {
    char buf[100];
@@ -127,7 +127,7 @@ TLSSecAttr::TLSSecAttr(PayloadTLSStream& payload, ConfigTLSMCC& config, Logger& 
          X509* cert = sk_X509_value(peerchain,sk_X509_num(peerchain)-idx-1);
          if(idx == 0) { // Obtain CA subject
            // Sometimes certificates chain contains CA certificate.
-           if(!SELFSIGNED(cert)) {           
+           if(!SELFSIGNED(cert)) {
              buf[0]=0;
              X509_NAME_oneline(X509_get_issuer_name(cert),buf,sizeof(buf));
              subject=buf;
@@ -154,7 +154,7 @@ TLSSecAttr::TLSSecAttr(PayloadTLSStream& payload, ConfigTLSMCC& config, Logger& 
    if (peercert != NULL) {
       if(subjects_.size() <= 0) { // Obtain CA subject if not obtained yet
         // Check for CA certificate used for connection - overprotection
-        if(!SELFSIGNED(peercert)) {           
+        if(!SELFSIGNED(peercert)) {
           buf[0]=0;
           X509_NAME_oneline(X509_get_issuer_name(peercert),buf,sizeof buf);
           subject=buf;
@@ -285,7 +285,7 @@ bool TLSSecAttr::Export(SecAttrFormat format,XMLNode &val) const {
     if(!target_.empty()) {
       XMLNode resource = val.NewChild("ra:Resource");
       XMLNode attr = resource.NewChild("ra:Attribute");
-      attr.NewChild("ra:AttributeValue") = target_; 
+      attr.NewChild("ra:AttributeValue") = target_;
       attr.NewAttribute("DataType")="xs:string";
       attr.NewAttribute("AttributeId")="http://www.nordugrid.org/schemas/policy-arc/types/tls/hostidentity";
       // Following is agreed to not be use till all use cases are clarified (Bern agreement)
@@ -307,7 +307,7 @@ class MCC_TLS_Context:public MessageContextElement {
   virtual ~MCC_TLS_Context(void) { if(stream) delete stream; };
 };
 
-/* The main functionality of the constructor method is to 
+/* The main functionality of the constructor method is to
    initialize SSL layer. */
 MCC_TLS_Service::MCC_TLS_Service(Config& cfg):MCC_TLS(cfg,false) {
    if(!OpenSSLInit()) return;
@@ -318,7 +318,7 @@ MCC_TLS_Service::~MCC_TLS_Service(void) {
 }
 
 MCC_Status MCC_TLS_Service::process(Message& inmsg,Message& outmsg) {
-   // Accepted payload is StreamInterface 
+   // Accepted payload is StreamInterface
    // Returned payload is undefined - currently holds no information
 
    // TODO: probably some other credentials check is needed
@@ -334,7 +334,7 @@ MCC_Status MCC_TLS_Service::process(Message& inmsg,Message& outmsg) {
 
    // Obtaining previously created stream context or creating a new one
    MCC_TLS_Context* context = NULL;
-   {   
+   {
       MessageContextElement* mcontext = (*inmsg.Context())["tls.service"];
       if(mcontext) {
          try {
@@ -353,7 +353,7 @@ MCC_Status MCC_TLS_Service::process(Message& inmsg,Message& outmsg) {
       context=new MCC_TLS_Context(stream);
       inmsg.Context()->Add("tls.service",context);
    };
- 
+
    // Creating message to pass to next MCC
    Message nextinmsg = inmsg;
    nextinmsg.Payload(stream);
@@ -382,8 +382,8 @@ MCC_Status MCC_TLS_Service::process(Message& inmsg,Message& outmsg) {
       logger.msg(ERROR, "Security check failed in TLS MCC for incoming message");
       return MCC_Status();
    };
-   
-   // Call next MCC 
+
+   // Call next MCC
    MCCInterface* next = Next();
    if(!next)  return MCC_Status();
    MCC_Status ret = next->process(nextinmsg,nextoutmsg);
@@ -393,7 +393,7 @@ MCC_Status MCC_TLS_Service::process(Message& inmsg,Message& outmsg) {
       nextoutmsg.Payload(NULL);
    };
    if(!ret) return MCC_Status();
-   // For nextoutmsg, nothing to do for payload of msg, but 
+   // For nextoutmsg, nothing to do for payload of msg, but
    // transfer some attributes of msg
    outmsg = nextoutmsg;
    return MCC_Status(STATUS_OK);
@@ -447,7 +447,7 @@ MCC_Status MCC_TLS_Client::process(Message& inmsg,Message& outmsg) {
       if(!buf) break;
       int bufsize = inpayload->BufferSize(n);
       if(!(stream_->Put(buf,bufsize))) {
-         logger.msg(ERROR, "Failed to send content of buffer");
+         logger.msg(INFO, "Failed to send content of buffer");
          return MCC_Status();
       };
    };

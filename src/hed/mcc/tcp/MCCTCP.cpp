@@ -149,7 +149,7 @@ MCC_TCP_Service::MCC_TCP_Service(Config *cfg):MCC_TCP(cfg),max_executers_(-1),ma
             if(info_->ai_family == AF_INET6) {
               int v = 1;
               // Some systems (Linux for example) make v6 support v4 too
-              // by default. Some don't. Make it same for everyone - 
+              // by default. Some don't. Make it same for everyone -
               // separate sockets for v4 and v6.
               if(setsockopt(s,IPPROTO_IPV6,IPV6_V6ONLY,&v,sizeof(v)) != 0) {
                 if(interface_s.empty()) {
@@ -652,7 +652,7 @@ MCC_Status MCC_TCP_Client::process(Message& inmsg,Message& outmsg) {
         if(!buf) break;
         int bufsize = inpayload->BufferSize(n);
         if(!(s_->Put(buf,bufsize))) {
-            logger.msg(ERROR, "Failed to send content of buffer");
+            logger.msg(INFO, "Failed to send content of buffer");
             return MCC_Status();
         };
     };
