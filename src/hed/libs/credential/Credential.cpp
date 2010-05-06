@@ -2214,7 +2214,7 @@ err:
   static void print_ssl_errors() {
     unsigned long err;
     while(err = ERR_get_error()) {
-      CredentialLogger.msg(ERROR,"SSL error: %s, libs: %s, func: %s, reason: %s",
+      CredentialLogger.msg(DEBUG,"SSL error: %s, libs: %s, func: %s, reason: %s",
         ERR_error_string(err, NULL),ERR_lib_error_string(err),
         ERR_func_error_string(err),ERR_reason_error_string(err));
     }

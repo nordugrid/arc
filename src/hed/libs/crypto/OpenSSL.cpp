@@ -38,12 +38,12 @@ namespace Arc {
     while(e != SSL_ERROR_NONE) {
       if(e == SSL_ERROR_SYSCALL) {
         // Hiding system errors
-        //logger().msg(ERROR, "SSL error: %d - system call failed",e);
+        //logger().msg(DEBUG, "SSL error: %d - system call failed",e);
       } else {
         const char* lib = ERR_lib_error_string(e);
         const char* func = ERR_func_error_string(e);
         const char* reason = ERR_reason_error_string(e);
-        logger().msg(ERROR, "SSL error: %d - %s:%s:%s",
+        logger().msg(DEBUG, "SSL error: %d - %s:%s:%s",
                           e,
                           lib?lib:"",
                           func?func:"",
@@ -82,7 +82,7 @@ namespace Arc {
     if(!initialized) {
       if(!PersistentLibraryInit("modcrypto")) {
         logger().msg(WARNING, "Failed to lock arccrypto library in memory");
-      };  
+      };
       SSL_load_error_strings();
       if(!SSL_library_init()){
         logger().msg(ERROR, "Failed to initialize OpenSSL library");
