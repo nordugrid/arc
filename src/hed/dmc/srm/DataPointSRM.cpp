@@ -41,17 +41,18 @@ namespace Arc {
       timeout(false) {
     valid_url_options.push_back("protocol");
     valid_url_options.push_back("spacetoken");
-    globus_module_activate(GLOBUS_GSI_GSSAPI_MODULE);
-    globus_module_activate(GLOBUS_IO_MODULE);
-    if (!proxy_initialized)
+    if (!proxy_initialized) {
+      globus_module_activate(GLOBUS_GSI_GSSAPI_MODULE);
+      globus_module_activate(GLOBUS_IO_MODULE);
       proxy_initialized = GlobusRecoverProxyOpenSSL();
+    }
   }
 
   DataPointSRM::~DataPointSRM() {
-    globus_module_deactivate(GLOBUS_GSI_GSSAPI_MODULE);
-    globus_module_deactivate(GLOBUS_IO_MODULE);
-    delete r_handle;
-    delete srm_request;
+    if(r_handle) delete r_handle;
+    if(srm_request) delete srm_request;
+    //globus_module_deactivate(GLOBUS_IO_MODULE);
+    //globus_module_deactivate(GLOBUS_GSI_GSSAPI_MODULE);
   }
 
   Plugin* DataPointSRM::Instance(PluginArgument *arg) {
