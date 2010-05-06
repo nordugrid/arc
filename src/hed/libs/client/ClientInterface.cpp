@@ -156,7 +156,7 @@ namespace Arc {
         comp.NewChild("Handshake") = "SSLv3";
     }
     else if (sec == GSISec) {
-      comp = ConfigMakeComponent(xmlcfg["Chain"], "gsi.client", "gsi", "tcp");
+      comp = ConfigMakeComponent(xmlcfg["Chain"], "tls.client", "gsi", "tcp");
       if (!cfg.key.empty())
         comp.NewChild("KeyPath") = cfg.key;
       if (!cfg.cert.empty())
@@ -167,6 +167,7 @@ namespace Arc {
         comp.NewChild("CACertificatePath") = cfg.cafile;
       if (!cfg.cadir.empty())
         comp.NewChild("CACertificatesDir") = cfg.cadir;
+      comp.NewChild("GSI") = "globus";
       comp.NewAttribute("entry") = "gsi";
     }
   }
