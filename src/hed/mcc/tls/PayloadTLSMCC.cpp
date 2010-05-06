@@ -214,6 +214,8 @@ PayloadTLSMCC* PayloadTLSMCC::RetrieveInstance(X509_STORE_CTX* container) {
 PayloadTLSMCC::PayloadTLSMCC(MCCInterface* mcc, const ConfigTLSMCC& cfg, Logger& logger):PayloadTLSStream(logger),sslctx_(NULL),config_(cfg) {
    // Client mode
    int err = SSL_ERROR_NONE;
+   char gsi_cmd[1] = { '0' };
+   BIO* gsi_bio = NULL;
    master_=true;
    // Creating BIO for communication through stream which it will
    // extract from provided MCC
@@ -262,6 +264,7 @@ PayloadTLSMCC::PayloadTLSMCC(MCCInterface* mcc, const ConfigTLSMCC& cfg, Logger&
       logger.msg(ERROR, "Can not create the SSL object");
       goto error;
    };
+   gsi_bio = bio;
    SSL_set_bio(ssl_,bio,bio); bio=NULL;
    //SSL_set_connect_state(ssl_);
    if((err=SSL_connect(ssl_)) != 1) {
@@ -271,6 +274,9 @@ PayloadTLSMCC::PayloadTLSMCC(MCCInterface* mcc, const ConfigTLSMCC& cfg, Logger&
    // if(SSL_in_init(ssl_)){
    //handle error
    // }
+   if(config_.GlobusGSI()) {
+     Put(gsi_cmd,1);
+   }
    return;
 error:
    HandleError(err);

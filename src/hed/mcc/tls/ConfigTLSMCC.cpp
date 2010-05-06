@@ -45,6 +45,7 @@ ConfigTLSMCC::ConfigTLSMCC(XMLNode cfg,Logger& logger,bool client) {
   ca_file_ = (std::string)(cfg["CACertificatePath"]);
   ca_dir_ = (std::string)(cfg["CACertificatesDir"]);
   globus_policy_ = (((std::string)(cfg["CACertificatesDir"].Attribute("PolicyGlobus"))) == "true");
+  globus_gsi_ = (((std::string)(cfg["GSI"])) == "globus");
   handshake_ = (cfg["Handshake"] == "SSLv3")?ssl3_handshake:tls_handshake;
   proxy_file_ = (std::string)(cfg["ProxyPath"]);
   

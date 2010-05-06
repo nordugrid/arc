@@ -114,4 +114,19 @@
     </xsd:simpleType>
 </xsd:element>
 
+<xsd:element name="GSI" default="">
+    <xsd:simpleType>
+        <xsd:annotation>
+            <xsd:documentation xml:lang="en">
+            GSI features to instest. Currently only supports Globus 
+            without delegation.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value=""/>
+            <xsd:enumeration value="globus"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+</xsd:element>
+
 </xsd:schema>

@@ -19,6 +19,7 @@ class ConfigTLSMCC {
   std::string key_file_;
   bool client_authn_;
   bool globus_policy_;
+  bool globus_gsi_;
   enum {
     tls_handshake,
     ssl3_handshake
@@ -33,6 +34,7 @@ class ConfigTLSMCC {
   const std::string& CertFile(void) const { return cert_file_; };
   const std::string& KeyFile(void) const { return key_file_; };
   bool GlobusPolicy(void) const { return globus_policy_; };
+  bool GlobusGSI(void) const { return globus_gsi_; };
   const std::vector<std::string>& VOMSCertTrustDN(void) { return vomscert_trust_dn_; };
   bool Set(SSL_CTX* sslctx,Logger& logger);
   bool IfClientAuthn(void) const { return client_authn_; };
