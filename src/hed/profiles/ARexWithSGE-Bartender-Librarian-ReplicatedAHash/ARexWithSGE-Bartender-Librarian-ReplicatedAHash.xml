@@ -20,7 +20,6 @@
 		<loader:Name>arcshc</loader:Name>
 		<loader:Name>identitymap</loader:Name>
 		<loader:Name>arex</loader:Name>
-		<loader:Name>isis</loader:Name>
 	</loader:Plugins>
 	<loader:Chain>
 		<loader:Component name="tcp.service" id="tcp">
