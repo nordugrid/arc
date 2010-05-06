@@ -11,6 +11,7 @@
 #include <arc/ArcConfig.h>
 #include <arc/message/MCCLoader.h>
 #include <arc/XMLNode.h>
+#include <arc/StringConv.h>
 #include <arc/Logger.h>
 #include "../options.h"
 
@@ -49,25 +50,34 @@ static void merge_options_and_config(Arc::Config& cfg, Arc::ServerOptions& opt)
 static std::string init_logger(Arc::Config& cfg)
 {   
     /* setup root logger */
+    Arc::LogFile* sd = NULL;
+    Arc::LogLevel level = Arc::WARNING;
     Arc::XMLNode log = cfg["Server"]["Logger"];
-    Arc::LogStream* sd = NULL;
-    std::string log_file = (std::string)log;
-    std::string str = (std::string)log.Attribute("level");
-    if(!str.empty()) {
-      Arc::LogLevel level = Arc::string_to_level(str);
-      Arc::Logger::rootLogger.setThreshold(level); 
+    if((bool)log["Level"] && !string_to_level((std::string)log["Level"], level)) {
+      logger.msg(Arc::WARNING, "Unknown log level %s", (std::string)log["Level"]);
+    }   
+    Arc::Logger::rootLogger.setThreshold(level);
+
+    std::string log_file = (log["File"] ? (std::string)log["File"] :  Glib::build_filename(Glib::get_tmp_dir(), "arched.log"));
+    sd = new Arc::LogFile(log_file);
+    if((!sd) || (!(*sd))) {
+      logger.msg(Arc::ERROR, "Failed to open log file: %s", (std::string)log["File"]);
+      _exit(1);
+    }   
+    if(log["Backups"]) {
+      int backups;
+      if(Arc::stringto((std::string)log["Backups"], backups)) {
+        sd->setBackups(backups);
+      }   
+    }   
+    
+    if(log["Maxsize"]) {
+      int maxsize;
+      if(Arc::stringto((std::string)log["Maxsize"], maxsize)) {
+        sd->setMaxSize(maxsize);
+      }   
     }
 
-
-    Arc::Logger::rootLogger.addDestination(*sd);
-    if(!log_file.empty()) {
-      std::fstream *dest = new std::fstream(log_file.c_str(), std::fstream::out | std::fstream::app);
-      if(!(*dest)) {
-        logger.msg(Arc::ERROR,"Failed to open log file: %s",log_file);
-        _exit(1);
-      }
-      sd = new Arc::LogStream(*dest);
-    }
     Arc::Logger::rootLogger.removeDestinations();
     if(sd) Arc::Logger::rootLogger.addDestination(*sd);
     if ((bool)cfg["Server"]["Foreground"]) {
