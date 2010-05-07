@@ -15,7 +15,7 @@ EXTRA_DIST = $(SWIG_OUTPUTS)
 CLEANFILES = arc.pyc
 MAINTAINERCLEANFILES = $(SWIG_OUTPUTS)
 
-include ./$(DEPDIR)/arc_wrap.deps
+@AMDEP_TRUE@include ./$(DEPDIR)/arc_wrap.deps
 
 arc_wrap.cpp arc.py: $(top_srcdir)/swig/*.i
 	grep -h '^#' $(top_srcdir)/swig/*.i | \

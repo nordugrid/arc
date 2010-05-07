@@ -18,7 +18,7 @@ EXTRA_DIST = $(SWIG_OUTPUTS)
 CLEANFILES = $(JAVA_PATH)/*.class arc.jar
 MAINTAINERCLEANFILES = $(SWIG_OUTPUTS)
 
-include ./$(DEPDIR)/arc_wrap.deps
+@AMDEP_TRUE@include ./$(DEPDIR)/arc_wrap.deps
 
 arc_wrap.cpp $(JAVA_PATH)/*.java: $(top_srcdir)/swig/*.i
 	grep -h '^#' $(top_srcdir)/swig/*.i | \
