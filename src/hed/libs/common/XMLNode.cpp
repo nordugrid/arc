@@ -14,6 +14,7 @@
 namespace Arc {
 
   static xmlNsPtr GetNamespace(xmlNodePtr node) {
+    if (node == NULL) return NULL;
     xmlNsPtr ns_ = NULL;
     if (node->type == XML_ELEMENT_NODE)
       ns_ = node->ns;
@@ -28,6 +29,8 @@ namespace Arc {
   }
 
   static bool MatchXMLName(xmlNodePtr node1, xmlNodePtr node2) {
+    if (node1 == NULL) return false;
+    if (node2 == NULL) return false;
     if (strcmp((char*)(node1->name), (char*)(node2->name)) != 0)
       return false;
     if (node1->type != node2->type)
@@ -42,8 +45,8 @@ namespace Arc {
   }
 
   static bool MatchXMLName(xmlNodePtr node, const char *name) {
-    if (name == NULL)
-      return false;
+    if (node == NULL) return false;
+    if (name == NULL) return false;
     const char *name_ = strchr(name, ':');
     if (name_ == NULL)
       name_ = name;
@@ -61,8 +64,9 @@ namespace Arc {
   }
 
   static bool MatchXMLNamespace(xmlNodePtr node1, xmlNodePtr node2) {
-    if (node1->type != node2->type)
-      return false;
+    if (node1 == NULL) return false;
+    if (node2 == NULL) return false;
+    if (node1->type != node2->type) return false;
     if ((node1->type != XML_ELEMENT_NODE) && (node1->type != XML_ATTRIBUTE_NODE))
       return false;
     xmlNsPtr ns1 = GetNamespace(node1);
@@ -71,8 +75,8 @@ namespace Arc {
   }
 
   static bool MatchXMLNamespace(xmlNodePtr node, const char *uri) {
-    if (uri == NULL)
-      return false;
+    if (node == NULL) return false;
+    if (uri == NULL) return false;
     xmlNsPtr ns_ = GetNamespace(node);
     if ((ns_ == NULL) || (ns_->href == NULL))
       return false;
