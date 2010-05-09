@@ -182,14 +182,20 @@ Arc::MCC_Status Service_SP::process(Arc::Message& inmsg,Arc::Message& outmsg) {
   };
   // Both input and output are supposed to be HTTP 
   // Extracting payload
-  Arc::PayloadRawInterface* inpayload = dynamic_cast<Arc::PayloadRawInterface*>(inmsg.Payload());
-  if(!inpayload) {
-    logger.msg(Arc::WARNING, "empty input payload");
-  };
+  std::string msg_content;
+  if(!inmsg.Payload()) {
+    logger.msg(Arc::WARNING, "no input payload");
+  } else {
+    const char* payload_content = ContentFromPayload(*inmsg.Payload());
+    if(!payload_content) {
+      logger.msg(Arc::WARNING, "empty input payload");
+    } else {
+      msg_content = payload_content;
+    }
+  }
 
   //Analyzing http request from user agent
 
-  std::string msg_content(inpayload->Content());
   //SP service is supposed to get two types of http content from user agent:
   //1. The IdP name, which user agent sends to SP, and then SP uses to generate AuthnRequest
   //2. The saml assertion, which user agent gets from IdP, and then sends to SP 
