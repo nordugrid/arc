@@ -9,6 +9,7 @@
 #include <fstream>
 
 #include "GlobusSigningPolicy.h"
+#include "GlobusHack.h"
 
 #include "PayloadTLSMCC.h"
 #include <openssl/err.h>
@@ -234,6 +235,7 @@ PayloadTLSMCC::PayloadTLSMCC(MCCInterface* mcc, const ConfigTLSMCC& cfg, Logger&
    SSL_CTX_set_session_cache_mode(sslctx_,SSL_SESS_CACHE_OFF);
    if(!config_.Set(sslctx_,logger_)) goto error;
    SSL_CTX_set_verify(sslctx_, SSL_VERIFY_PEER |  SSL_VERIFY_FAIL_IF_NO_PEER_CERT, &verify_callback);
+   GlobusSetVerifyCertCallback(sslctx_);
 
    // Allow proxies, request CRL check
 #ifdef HAVE_OPENSSL_X509_VERIFY_PARAM
@@ -310,6 +312,7 @@ PayloadTLSMCC::PayloadTLSMCC(PayloadStreamInterface* stream, const ConfigTLSMCC&
    else {
      SSL_CTX_set_verify(sslctx_, SSL_VERIFY_NONE, NULL);
    }
+   GlobusSetVerifyCertCallback(sslctx_);
    if(!config_.Set(sslctx_,logger_)) goto error;
 
    // Allow proxies, request CRL check

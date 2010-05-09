@@ -18,6 +18,11 @@ namespace Arc {
     // No harm even if not needed - shall trun proxies on for code 
     // which was written with no proxies in mind
     SetEnv("OPENSSL_ALLOW_PROXY_CERTS","1");
+    return true;
+// Following algorithm is unsafe because if mixes callbacks
+// meant to work with different structures. It is now replaced
+// with NID precalculation hack. See TLS MCC for more information.
+/*
 #if OPENSSL_VERSION_NUMBER > 0x0090804f
 #  warning *********************************************************
 #  warning ** Since OpenSSL 0.9.8e proxy extension is const.      **
@@ -29,7 +34,6 @@ namespace Arc {
 #  warning *********************************************************
     return true;
 #else
-    // OBJ_create(OBJ_proxyCertInfo,SN_proxyCertInfo,LN_proxyCertInfo);
     // Use OpenSSL hack to make proxies work with Globus disabled
     const char* sn = "proxyCertInfo";
     const char* gsn = "PROXYCERTINFO";
@@ -61,6 +65,7 @@ namespace Arc {
     }
     return false;
 #endif // OPENSSL_VERSION_NUMBER > 0x0090804f
+*/
 #else  // HAVE_OPENSSL_PROXY
     return true;
 #endif // HAVE_OPENSSL_PROXY
