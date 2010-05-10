@@ -298,7 +298,7 @@ namespace Arc {
 
       //Send the encrypted saml assertion to service side through this main message chain
       //Get the encrypted saml assertion in this saml response
-      Arc::XMLNode assertion_nd = samlresp_nd["saml:EncryptedAssertion"];
+      Arc::XMLNode assertion_nd = samlresp_nd["EncryptedAssertion"];
       std::string saml_assertion;
       assertion_nd.GetXML(saml_assertion);
       //std::cout<<"Encrypted saml assertion: "<<saml_assertion<<std::endl;

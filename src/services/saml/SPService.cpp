@@ -341,28 +341,31 @@ Arc::MCC_Status Service_SP::process(Arc::Message& inmsg,Arc::Message& outmsg) {
       logger.msg(Arc::DEBUG,"Decrypted SAML Assertion: %s", decrypted_saml_assertion.c_str());
      
       //Decrypt the <saml:EncryptedID/> if it exists in the above saml assertion
-      Arc::XMLNode nameid_nd = decrypted_assertion_nd["saml:Subject"]["saml:EncryptedID"];
-      std::string nameid;
-      nameid_nd.GetXML(nameid);
-      logger.msg(Arc::DEBUG,"Encrypted name id: %s", nameid.c_str());
+      Arc::XMLNode nameid_nd = decrypted_assertion_nd["Subject"]["EncryptedID"];
+    
+      if((bool)nameid_nd) {
+        std::string nameid;
+        nameid_nd.GetXML(nameid);
+        logger.msg(Arc::DEBUG,"Encrypted name id: %s", nameid.c_str());
+     
+        Arc::XMLSecNode sec_nameid_nd(nameid_nd);
+        Arc::XMLNode decrypted_nameid_nd;
+        r = sec_nameid_nd.DecryptNode(privkey_file_, decrypted_nameid_nd);
+        if(!r) { logger.msg(Arc::ERROR,"Can not decrypt the EncryptedID from saml assertion"); return Arc::MCC_Status(); }
 
-      Arc::XMLSecNode sec_nameid_nd(nameid_nd);
-      Arc::XMLNode decrypted_nameid_nd;
-      r = sec_nameid_nd.DecryptNode(privkey_file_, decrypted_nameid_nd);
-      if(!r) { logger.msg(Arc::ERROR,"Can not decrypt the EncryptedID from saml assertion"); return Arc::MCC_Status(); }
+        std::string decrypted_nameid;
+        decrypted_nameid_nd.GetXML(decrypted_nameid);
+        logger.msg(Arc::DEBUG,"Decrypted SAML NameID: %s", decrypted_nameid.c_str());
 
-      std::string decrypted_nameid;
-      decrypted_nameid_nd.GetXML(decrypted_nameid);
-      logger.msg(Arc::DEBUG,"Decrypted SAML NameID: %s", decrypted_nameid.c_str());
-
-      //Replace the <saml:EncryptedID/> with <saml:NameID/>
-      nameid_nd.Replace(decrypted_nameid_nd);
+        //Replace the <saml:EncryptedID/> with <saml:NameID/>
+        nameid_nd.Replace(decrypted_nameid_nd);
+      }
 
       //Check the <saml:Condition/> <saml:AuthnStatement/> 
       //and <saml:/Subject> part of saml assertion
-      XMLNode subject   = decrypted_assertion_nd["saml:Subject"];
-      XMLNode conditions = decrypted_assertion_nd["saml:Conditions"];
-      XMLNode authnstatement = decrypted_assertion_nd["saml:AuthnStatement"];
+      XMLNode subject   = decrypted_assertion_nd["Subject"];
+      XMLNode conditions = decrypted_assertion_nd["Conditions"];
+      XMLNode authnstatement = decrypted_assertion_nd["AuthnStatement"];
 
       std::string notbefore_str = (std::string)(conditions.Attribute("NotBefore"));
       Time notbefore = notbefore_str;
@@ -377,7 +380,7 @@ Arc::MCC_Status Service_SP::process(Arc::Message& inmsg,Arc::Message& outmsg) {
         return Arc::MCC_Status(); 
       }     
 
-      XMLNode subject_confirmation = subject["saml:SubjectConfirmation"];
+      XMLNode subject_confirmation = subject["SubjectConfirmation"];
       std::string confirm_method = (std::string)(subject_confirmation.Attribute("Method"));
       if(confirm_method == "urn:oasis:names:tc:SAML:2.0:cm:bearer") {
         //TODO
