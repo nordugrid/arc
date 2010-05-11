@@ -155,7 +155,7 @@ namespace Arc {
       if (sec == SSL3Sec) 
         comp.NewChild("Handshake") = "SSLv3";
     }
-    else if (sec == GSISec) {
+    else if ((sec == GSISec) || (sec == GSIIOSec)) {
       comp = ConfigMakeComponent(xmlcfg["Chain"], "tls.client", "gsi", "tcp");
       if (!cfg.key.empty())
         comp.NewChild("KeyPath") = cfg.key;
@@ -167,7 +167,11 @@ namespace Arc {
         comp.NewChild("CACertificatePath") = cfg.cafile;
       if (!cfg.cadir.empty())
         comp.NewChild("CACertificatesDir") = cfg.cadir;
-      comp.NewChild("GSI") = "globus";
+      if (sec == GSISec) {
+        comp.NewChild("GSI") = "globus";
+      } else {
+        comp.NewChild("GSI") = "globusio";
+      }
       comp.NewAttribute("entry") = "gsi";
     }
   }
@@ -222,11 +226,11 @@ namespace Arc {
   }
 
   void ClientTCP::AddSecHandler(XMLNode handlercfg, SecurityLayer sec, const std::string& libname, const std::string& libpath) {
-    if (sec == TLSSec)
+    if ((sec == TLSSec) || (sec == SSL3Sec))
       ClientInterface::AddSecHandler(
         ConfigFindComponent(xmlcfg["Chain"], "tls.client", "tls"),
         handlercfg);
-    else if (sec == GSISec)
+    else if ((sec == GSISec) || (sec == GSIIOSec))
       ClientInterface::AddSecHandler(
         ConfigFindComponent(xmlcfg["Chain"], "gsi.client", "gsi"),
         handlercfg);
@@ -274,24 +278,30 @@ namespace Arc {
     return port;
   }
 
+  static SecurityLayer http_url_to_sec(const URL& url) {
+    if(url.Protocol() == "https") {
+      return TLSSec;
+    } else if(url.Protocol() == "httpg") {
+      if(url.Option("protocol") == "gsi") return GSIIOSec;
+      return GSISec;
+    }
+    return NoSec;
+  }
+
   ClientHTTP::ClientHTTP(const BaseConfig& cfg, const URL& url, int timeout, const std::string& proxy_host, int proxy_port)
     : ClientTCP(cfg,
                 get_http_proxy_host(url,proxy_host,proxy_port),
                 get_http_proxy_port(url,proxy_host,proxy_port),
-                url.Protocol() == "https" ? TLSSec
-                  : url.Protocol() == "httpg" ? GSISec
-                    : NoSec,
+                http_url_to_sec(url),
                 timeout,
                 url.Option("tcpnodelay") == "yes"),
       http_entry(NULL),
       default_url(url),
       relative_uri(false),
-      sec(url.Protocol() == "https" ? TLSSec
-            : url.Protocol() == "httpg" ? GSISec
-                : NoSec) {
+      sec(http_url_to_sec(url)) {
     XMLNode comp = ConfigMakeComponent(xmlcfg["Chain"], "http.client", "http",
-                                       sec == TLSSec ? "tls" :
-                                       sec == GSISec ? "gsi" : "tcp");
+                     ((sec == TLSSec) || (sec == SSL3Sec)) ? "tls" :
+                     ((sec == GSISec) || (sec == GSIIOSec)) ? "gsi" : "tcp");
     comp.NewAttribute("entry") = "http";
     comp.NewChild("Method") = "POST"; // Override using attributes if needed
     comp.NewChild("Endpoint") = url.str();

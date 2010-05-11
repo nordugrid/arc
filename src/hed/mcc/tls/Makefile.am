@@ -1,14 +1,16 @@
 SUBDIRS=schema
 pkglib_LTLIBRARIES = libmcctls.la
 
-libmcctls_la_SOURCES = PayloadTLSStream.cpp MCCTLS.cpp BIOMCC.cpp \
+libmcctls_la_SOURCES = PayloadTLSStream.cpp MCCTLS.cpp \
                        ConfigTLSMCC.cpp PayloadTLSMCC.cpp \
                        GlobusSigningPolicy.cpp DelegationSecAttr.cpp \
                        DelegationCollector.cpp GlobusHack.cpp \
-                       PayloadTLSStream.h   MCCTLS.h   BIOMCC.h   \
+                       BIOMCC.cpp BIOGSIMCC.cpp \
+                       PayloadTLSStream.h   MCCTLS.h   \
                        ConfigTLSMCC.h   PayloadTLSMCC.h   \
                        GlobusSigningPolicy.h   DelegationSecAttr.h   \
-                       DelegationCollector.h   GlobusHack.h
+                       DelegationCollector.h   GlobusHack.h \
+                       BIOMCC.h   BIOGSIMCC.h
 libmcctls_la_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS) -I$(top_srcdir)/include
 libmcctls_la_LIBADD   = $(top_srcdir)/src/hed/libs/common/libarccommon.la \
                         $(top_srcdir)/src/hed/libs/crypto/libarccrypto.la \

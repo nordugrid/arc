@@ -220,7 +220,7 @@ PayloadTLSMCC::PayloadTLSMCC(MCCInterface* mcc, const ConfigTLSMCC& cfg, Logger&
    master_=true;
    // Creating BIO for communication through stream which it will
    // extract from provided MCC
-   BIO* bio = BIO_new_MCC(mcc);
+   BIO* bio = config_.GlobusIOGSI()?BIO_new_GSIMCC(mcc):BIO_new_MCC(mcc);
    // Initialize the SSL Context object
    if(cfg.IfTLSHandshake()) {
      sslctx_=SSL_CTX_new(SSLv23_client_method());
@@ -276,7 +276,7 @@ PayloadTLSMCC::PayloadTLSMCC(MCCInterface* mcc, const ConfigTLSMCC& cfg, Logger&
    // if(SSL_in_init(ssl_)){
    //handle error
    // }
-   if(config_.GlobusGSI()) {
+   if(config_.GlobusGSI() || config_.GlobusIOGSI()) {
      Put(gsi_cmd,1);
    }
    return;
@@ -293,7 +293,7 @@ PayloadTLSMCC::PayloadTLSMCC(PayloadStreamInterface* stream, const ConfigTLSMCC&
    int err = SSL_ERROR_NONE;
    master_=true;
    // Creating BIO for communication through provided stream
-   BIO* bio = BIO_new_MCC(stream);
+   BIO* bio = config_.GlobusIOGSI()?BIO_new_GSIMCC(stream):BIO_new_MCC(stream);
    // Initialize the SSL Context object
    if(cfg.IfTLSHandshake()) {
      sslctx_=SSL_CTX_new(SSLv23_server_method());

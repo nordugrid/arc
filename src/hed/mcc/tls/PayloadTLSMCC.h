@@ -9,6 +9,7 @@
 #include <arc/Logger.h>
 
 #include "BIOMCC.h"
+#include "BIOGSIMCC.h"
 #include "PayloadTLSStream.h"
 #include "ConfigTLSMCC.h"
 

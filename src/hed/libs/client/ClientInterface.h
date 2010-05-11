@@ -54,7 +54,7 @@ namespace Arc {
   };
 
   enum SecurityLayer {
-    NoSec, TLSSec, GSISec, SSL3Sec
+    NoSec, TLSSec, GSISec, SSL3Sec, GSIIOSec
   };
 
   //! Class for setting up a MCC chain for TCP communication
