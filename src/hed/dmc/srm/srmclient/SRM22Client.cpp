@@ -770,7 +770,8 @@
     if (response_inst->requestToken) req.request_token(response_inst->requestToken);
   
     // deal with response code - successful ones first
-    if (return_status == SRMv2__TStatusCode__SRM_USCORESUCCESS) {
+    if (return_status == SRMv2__TStatusCode__SRM_USCORESUCCESS ||
+        return_status == SRMv2__TStatusCode__SRM_USCORETOO_USCOREMANY_USCORERESULTS) {
       // request is finished - we can get all the details
     }
     else if (return_status == SRMv2__TStatusCode__SRM_USCOREREQUEST_USCOREQUEUED ||
@@ -901,14 +902,17 @@
     if (offset == 0 && subpaths->__sizepathDetailArray > 0)
       metadata.clear();
   
-    // if there are more entries than max_files_list, we have to call info()
-    // multiple times, setting offset and count
+    // if there are more entries than max_files_list or we get the too many
+    // results return code, we have to call info() multiple times, setting offset and count
     for (int i = 0; i<subpaths->__sizepathDetailArray; i++) {
-      if (i == max_files_list) {
-        // call multiple times
+      if (i == max_files_list ||
+         (offset == 0 && return_status == SRMv2__TStatusCode__SRM_USCORETOO_USCOREMANY_USCORERESULTS)) {
+        // it shoudn't be possible to get this return status after setting offset
+        // but some implemetations like castor don't behave properly) {
         logger.msg(Arc::INFO, "Directory size is larger than %i files, will have to call multiple times", max_files_list);
         std::list<SRMFileMetaData> list_metadata;
-        int list_no = 1;
+        // if too many results return code, start from 0 again
+        int list_no = (i == max_files_list) ? 1 : 0;
         int list_offset = 0;
         int list_count = 0;
         do {
