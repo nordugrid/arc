@@ -542,7 +542,7 @@ if test "$enables_gsoap" = "yes"; then
       # gSOAP package does not report third number of version. Hence we
       # have to extract it
       AC_MSG_CHECKING(for gSOAP version)
-      gsoap_version=`${SOAPCPP2} -v 2>&1 | sed -e 's/.*version \([[^ ]]*\).*/\1/' -e 't new' -e 's/^.*Compiler for C and C++ *\([[^ ]]*\).*/\1/' -e 't matched' -e 's/.*//' -e ':matched' -e ':new' | grep '.'`
+      gsoap_version=`${SOAPCPP2} -v 2>&1 | sed -e 's/.*release \([[^ ]]*\).*/\1/' -e 't new' -e 's/^.*Compiler for C and C++ *\([[^ ]]*\).*/\1/' -e 't matched' -e 's/.*//' -e ':matched' -e ':new' | grep '.'`
       if test "x$gsoap_version" = "x"; then
         gsoap=no
         AC_MSG_WARN([Could not determine version.])
