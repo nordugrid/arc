@@ -89,8 +89,9 @@ GridSchedulerService::GetActivities(Arc::XMLNode &in, Arc::XMLNode &out, const s
     Arc::Job *job = NULL;
     Arc::XMLNode domain = in.Child(0);
     MatchSelector *selector = new MatchSelector(domain);
-    for (Arc::JobQueueIterator jobs = jobq.getAll((Arc::JobSelector *)selector); 
-         jobs.hasMore(); jobs++){
+    Arc::JobQueueIterator jobs = jobq.getAll((Arc::JobSelector *)selector);
+    delete selector;
+    for (; jobs.hasMore(); jobs++) {
         Arc::Job *j = *jobs;
         Arc::XMLNode a = activities.NewChild("ibes:Activity");
     

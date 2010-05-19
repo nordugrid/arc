@@ -44,7 +44,7 @@ Resource::Resource(const std::string &url_str, std::map<std::string, std::string
 
 Resource::~Resource(void) 
 {
-    //if (client) delete client;
+    if (client) delete client;
 }
 
 bool Resource::refresh(void) 
