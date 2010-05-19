@@ -40,6 +40,7 @@ void JobQueueIterator::next(void)
         // free(key.get_data());
         ByteArray a(value.get_data(), value.get_size());
         // free(value.get_data());
+        if (job_) delete job_;
         job_ = new Job(a);
         if (have_status_ == false) {
             // only one query
@@ -81,7 +82,7 @@ JobQueueIterator::JobQueueIterator(DbTxn *tid, Dbc *cursor, JobSelector *selecto
 
 const JobQueueIterator &JobQueueIterator::operator++()
 {
-    delete job_;
+    if (job_) delete job_;
     job_ = NULL;
     next();
     return *this;
@@ -89,7 +90,7 @@ const JobQueueIterator &JobQueueIterator::operator++()
 
 const JobQueueIterator &JobQueueIterator::operator++(int)
 {
-    delete job_;
+    if (job_) delete job_;
     job_ = NULL;
     next();
     return *this;
