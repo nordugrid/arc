@@ -92,7 +92,7 @@ namespace Arc {
     std::list<ExecutionTarget*>::iterator iter = PossibleTargets.begin();
 
     while (iter != PossibleTargets.end()) {
-      if ((*iter)->Implementation >= Software("ARC", "1")) {
+      if (!((*iter)->Implementation >= Software("ARC", "1"))) {
         iter = PossibleTargets.erase(iter);
         continue;
       }
