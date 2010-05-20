@@ -419,8 +419,8 @@ namespace Arc {
     }
     // buffer->wait_eof_write();
     transfer_cond.wait();         /* wait till writing thread exited */
-    // validate file size
-    if (additional_checks && CheckSize()) {
+    // validate file size, if transfer succeeded
+    if (!buffer->error() && additional_checks && CheckSize()) {
       struct stat st;
       std::string path = url.Path();
       if (stat(path.c_str(), &st) != 0 && errno != ENOENT) {
