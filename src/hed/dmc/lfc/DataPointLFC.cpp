@@ -316,21 +316,27 @@ namespace Arc {
       }
     }
     if (CheckCheckSum()) {
-      std::string ckstype;
-      std::string cksumvalue = GetCheckSum();
-      std::string::size_type p = cksumvalue.find(':');
-      if (p == std::string::npos)
-        ckstype = "cksum";
-      else {
-        ckstype = cksumvalue.substr(0, p);
-        cksumvalue = cksumvalue.substr(p + 1);
+      std::string cksum = GetCheckSum();
+      std::string::size_type p = cksum.find(':');
+      if (p == std::string::npos) {
+        std::string ckstype = cksum.substr(0,p);
+        if (ckstype=="md5")
+          ckstype = "MD";
+        if (ckstype=="adler32")
+          ckstype = "AD";
+        // only md5 and adler32 are supported by LFC
+        if (ckstype == "MD" || ckstype == "AD") {
+          std::string cksumvalue = cksum.substr(p+1);
+          if (CheckSize()) {
+            if (lfc_setfsizeg(guid.c_str(), GetSize(), ckstype.c_str(), const_cast<char*>(cksumvalue.c_str())) != 0)
+              logger.msg(ERROR, "Error entering metadata: %s", sstrerror(serrno));
+          }
+          else if (lfc_setfsizeg(guid.c_str(), 0, ckstype.c_str(), const_cast<char*>(cksumvalue.c_str())) != 0)
+            logger.msg(ERROR, "Error entering metadata: %s", sstrerror(serrno));
+        }
+        else
+          logger.msg(WARNING, "Warning: only md5 and adler32 checksums are supported by LFC");
       }
-      if (CheckSize()) {
-        if (lfc_setfsizeg(guid.c_str(), GetSize(), ckstype.c_str(), const_cast<char*>(cksumvalue.c_str())) != 0)
-          logger.msg(ERROR, "Error entering metadata: %s", sstrerror(serrno));
-      }
-      else if (lfc_setfsizeg(guid.c_str(), 0, ckstype.c_str(), const_cast<char*>(cksumvalue.c_str())) != 0)
-          logger.msg(ERROR, "Error entering metadata: %s", sstrerror(serrno));
     }
     else if (CheckSize())
       if (lfc_setfsizeg(guid.c_str(), GetSize(), NULL, NULL) != 0)
@@ -367,26 +373,28 @@ namespace Arc {
       return DataStatus::PostRegisterError;
     }
     if (CheckCheckSum()) {
-      std::string ckstype;
-      std::string cksumvalue = GetCheckSum();
-      std::string::size_type p = cksumvalue.find(':');
-      if (p == std::string::npos)
-        ckstype = "cksum";
-      else {
-        ckstype = cksumvalue.substr(0, p);
-        if (ckstype == "md5")
+      std::string cksum = GetCheckSum();
+      std::string::size_type p = cksum.find(':');
+      if(p != std::string::npos) {
+        std::string ckstype = cksum.substr(0,p);
+        if (ckstype=="md5")
           ckstype = "MD";
-        if (ckstype == "adler32")
+        if (ckstype=="adler32")
           ckstype = "AD";
-        cksumvalue = cksumvalue.substr(p + 1);
-        logger.msg(VERBOSE, "Entering checksum type %s, value %s, file size %llu", ckstype, cksumvalue, GetSize());
+        // only md5 and adler32 are supported by LFC
+        if (ckstype == "MD" || ckstype == "AD") {
+          std::string cksumvalue = cksum.substr(p+1);
+          if (CheckSize()) {
+            logger.msg(VERBOSE, "Entering checksum type %s, value %s, file size %llu", ckstype, cksumvalue, GetSize());
+            if (lfc_setfsizeg(guid.c_str(), GetSize(), ckstype.c_str(), const_cast<char*>(cksumvalue.c_str())) != 0)
+              logger.msg(ERROR, "Error entering metadata: %s", sstrerror(serrno));
+          }
+          else if (lfc_setfsizeg(guid.c_str(), 0, ckstype.c_str(), const_cast<char*>(cksumvalue.c_str())) != 0)
+            logger.msg(ERROR, "Error entering metadata: %s", sstrerror(serrno));
+        }
+        else
+          logger.msg(WARNING, "Warning: only md5 and adler32 checksums are supported by LFC");
       }
-      if (CheckSize()) {
-        if (lfc_setfsizeg(guid.c_str(), GetSize(), ckstype.c_str(), const_cast<char*>(cksumvalue.c_str())) != 0)
-          logger.msg(ERROR, "Error entering metadata: %s", sstrerror(serrno));
-      }
-      else if (lfc_setfsizeg(guid.c_str(), 0, ckstype.c_str(), const_cast<char*>(cksumvalue.c_str())) != 0)
-        logger.msg(ERROR, "Error entering metadata: %s", sstrerror(serrno));
     }
     else if (CheckSize())
       if (lfc_setfsizeg(guid.c_str(), GetSize(), NULL, NULL) != 0)
