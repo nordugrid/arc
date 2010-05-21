@@ -42,7 +42,7 @@ class counters_t {
  public:
   unsigned int jobs_num[JOB_STATE_NUM];
   const static unsigned int jobs_pending;
-  unsigned int& operator[](int n) { jobs_num[n]; };
+  unsigned int& operator[](int n) { return jobs_num[n]; };
 };
 
 const unsigned int counters_t::jobs_pending = 0;
