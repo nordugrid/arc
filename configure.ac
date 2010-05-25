@@ -39,26 +39,20 @@ AC_ARG_WITH(sysv-scripts-location,
   [ initddir="$withval" ],
   [
     initddir=
-    for i in init.d rc.d/init.d rc.d; do
-      if test -d "/etc/$i" -a ! -h "/etc/$i" ; then
-        initddir="$sysconfdir/$i"
-        break
-      fi
-    done
+    case "${host}" in
+      *linux*)
+        for i in init.d rc.d/init.d rc.d; do
+          if test -d "/etc/$i" -a ! -h "/etc/$i" ; then
+            initddir="$sysconfdir/$i"
+            break
+          fi
+        done
 
-    if test -z "$initddir" && test -d "/Library/LaunchDaemons" -a ! -h " /Library/LaunchDaemons"; then
-      initddir="/Library/LaunchDaemons"
-    fi
-
-    # We need to find a solution for WIN32
-
-    if test -z "$initddir" && test -d "/c" -a ! -h " /c"; then
-        initddir="/c"
-    fi
-
-    if test -z "$initddir"; then
-      AC_MSG_WARN(could not find a suitable location for the SYSV init scripts - not installing)
-    fi
+        if test -z "$initddir"; then
+          AC_MSG_WARN(could not find a suitable location for the SYSV init scripts - not installing)
+        fi
+        ;;
+    esac
   ]
 )
 AM_CONDITIONAL([SYSV_SCRIPTS_ENABLED],[test "x$initddir" != "x"])
