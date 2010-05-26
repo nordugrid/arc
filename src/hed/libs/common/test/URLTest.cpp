@@ -320,6 +320,9 @@ void URLTest::TestLfcUrl() {
   CPPUNIT_ASSERT_EQUAL(std::string("ad"), lfcurl->MetaDataOption("checksumtype"));
   CPPUNIT_ASSERT_EQUAL(std::string("12345678"), lfcurl->MetaDataOption("checksumvalue"));
   CPPUNIT_ASSERT_EQUAL(std::string("lfc://atlaslfc.nordugrid.org:5010;cache=no/grid/atlas/file1:checksumtype=ad:checksumvalue=12345678:guid=7d36da04-430f-403c-adfb-540b27506cfa"), lfcurl->fullstr());
+  lfcurl->AddMetaDataOption("checksumvalue", "87654321", true);
+  CPPUNIT_ASSERT_EQUAL(std::string("87654321"), lfcurl->MetaDataOption("checksumvalue"));
+  CPPUNIT_ASSERT_EQUAL(std::string("lfc://atlaslfc.nordugrid.org:5010;cache=no/grid/atlas/file1:checksumtype=ad:checksumvalue=87654321:guid=7d36da04-430f-403c-adfb-540b27506cfa"), lfcurl->fullstr());
 }
 
 void URLTest::TestSrmUrl() {

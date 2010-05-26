@@ -177,6 +177,10 @@ namespace Arc {
     void AddOption(const std::string& option, const std::string& value,
                    bool overwrite = true);
 
+    /** Adds a metadata option */
+    void AddMetaDataOption(const std::string& option, const std::string& value,
+                           bool overwrite = true);
+
     /** Returns the locations if any. */
     const std::list<URLLocation>& Locations() const;
 

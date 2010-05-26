@@ -615,6 +615,13 @@ namespace Arc {
     urloptions[option] = value;
   }
 
+  void URL::AddMetaDataOption(const std::string& option, const std::string& value,
+                              bool overwrite) {
+    if (!overwrite && metadataoptions.find(option) != metadataoptions.end())
+      return;
+    metadataoptions[option] = value;
+  }
+
   const std::list<URLLocation>& URL::Locations() const {
     return locations;
   }
