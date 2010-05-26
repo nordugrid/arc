@@ -37,6 +37,40 @@
 
 #include <openssl/ui.h>
 
+static int create_proxy_file(const std::string& path) {
+  int f = -1;
+  int err = 0;
+
+  if((::unlink(path.c_str()) != 0) && (errno != ENOENT)) {
+    throw std::runtime_error("Failed to remove proxy file " + path);
+  }
+  f = ::open(path.c_str(), O_WRONLY | O_CREAT | O_EXCL | O_TRUNC, S_IRUSR | S_IWUSR);
+  if (f == -1) {
+    throw std::runtime_error("Failed to create proxy file " + path);
+  }
+  if(::chmod(path.c_str(), S_IRUSR | S_IWUSR) != 0) {
+    ::unlink(path.c_str());
+    ::close(f);
+    throw std::runtime_error("Failed to change permissions of proxy file " + path);
+  }
+  return f;
+}
+
+static void write_proxy_file(const std::string& path, const std::string& content) {
+  std::string::size_type off = 0;
+  int f = create_proxy_file(path);
+  while(off < content.length()) {
+    ssize_t l = ::write(f, content.c_str(), content.length()-off);
+    if(l < 0) {
+      ::unlink(path.c_str());
+      ::close(f);
+      throw std::runtime_error("Failed to write into proxy file " + path);
+    }
+    off += (std::string::size_type)l;
+  }
+  ::close(f);
+}
+
 static void tls_process_error(Arc::Logger& logger) {
   unsigned long err;
   err = ERR_get_error();
@@ -462,12 +496,7 @@ int main(int argc, char *argv[]) {
       myproxyopt["lifetime"] = "43200";
       if(!cstore.Retrieve(myproxyopt,proxy_cred_str_pem))
         throw std::invalid_argument("Failed to retrieve proxy from MyProxy service");
-      int f = ::open(proxy_path.c_str(), O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
-      if (f == -1)
-        throw std::runtime_error("Failed to open proxy file " + proxy_path);
-      if (::write(f, proxy_cred_str_pem.c_str(), proxy_cred_str_pem.length()) != proxy_cred_str_pem.length())
-        throw std::runtime_error("Failed to write into proxy file " + proxy_path);
-      ::close(f);
+      write_proxy_file(proxy_path,proxy_cred_str_pem);
 
       //return EXIT_SUCCESS;
       //Assign proxy_path to cert_path and key_path,
@@ -523,12 +552,7 @@ int main(int argc, char *argv[]) {
       if (!signer.SignRequest(&cred_request, proxy_cert))
         throw std::runtime_error("Failed to sign proxy");
       proxy_cert.append(private_key).append(signing_cert).append(signing_cert_chain);
-      int f = ::open(proxy_path.c_str(), O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
-      if (f == -1)
-        throw std::runtime_error("Failed to open proxy file " + proxy_path);
-      if (::write(f, proxy_cert.c_str(), proxy_cert.length()) != proxy_cert.length())
-        throw std::runtime_error("Failed to write into proxy file " + proxy_path);
-      ::close(f);
+      write_proxy_file(proxy_path,proxy_cert);
 /*
       signer.SignRequest(&cred_request, proxy_path.c_str());
       std::ofstream out_f(proxy_path.c_str(), std::ofstream::app);
@@ -804,12 +828,7 @@ int main(int argc, char *argv[]) {
 
     proxy_cert.append(private_key).append(signing_cert).append(signing_cert_chain);
 
-    int f = ::open(proxy_path.c_str(), O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
-    if (f == -1)
-      throw std::runtime_error("Failed to open proxy file " + proxy_path);
-    if (::write(f, proxy_cert.c_str(), proxy_cert.length()) != proxy_cert.length())
-      throw std::runtime_error("Failed to write into proxy file " + proxy_path);
-    ::close(f);
+    write_proxy_file(proxy_path,proxy_cert);
 
     Arc::Credential proxy_cred(proxy_path, proxy_path, ca_dir, "");
     Arc::Time left = proxy_cred.GetEndTime();
