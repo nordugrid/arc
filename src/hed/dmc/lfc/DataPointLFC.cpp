@@ -181,6 +181,9 @@ namespace Arc {
         for (std::map<std::string, std::string>::const_iterator i = url.CommonLocOptions().begin();
              i != url.CommonLocOptions().end(); i++)
           uloc.AddOption(i->first, i->second, false);
+        for (std::map<std::string, std::string>::const_iterator i = url.MetaDataOptions().begin();
+             i != url.MetaDataOptions().end(); i++)
+          uloc.AddMetaDataOption(i->first, i->second, false);
         if (AddLocation(uloc, url.ConnectionURL()) == DataStatus::LocationAlreadyExistsError)
           logger.msg(WARNING, "Duplicate replica location: %s", uloc.str());
         else

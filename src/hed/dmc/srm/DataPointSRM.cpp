@@ -332,6 +332,7 @@ namespace Arc {
     if (!srm_request) {
       delete client;
       client = NULL;
+      writing = false;
       return DataStatus::WriteStartError;
     }
 
@@ -371,6 +372,7 @@ namespace Arc {
     client = NULL;
     
     if (res != SRM_OK) {
+      writing = false;
       if (res == SRM_ERROR_TEMPORARY) return DataStatus::WriteStartErrorRetryable;
       return DataStatus::WriteStartError;
     }
@@ -424,7 +426,6 @@ namespace Arc {
     if (!(*r_handle)->StartWriting(buf)) {
       delete r_handle;
       r_handle = NULL;
-      reading = false;
       return DataStatus::WriteStartError;
     }
     return DataStatus::Success;
@@ -443,9 +444,9 @@ namespace Arc {
     if (r_handle) {
       r = (*r_handle)->StopWriting();
       // disable checksum check at this level if was done at lower level
-      // gsiftp turls should provide checksum
-      if ((*r_handle)->ProvidesMeta())
-        additional_checks = false; 
+      // gsiftp turls should provide checksum, but don't, so do checks at srm level
+      //if ((*r_handle)->ProvidesMeta())
+      //  additional_checks = false;
       delete r_handle;
       r_handle = NULL;
     }
@@ -453,7 +454,9 @@ namespace Arc {
     if (!r) {
       SRMClient *client = SRMClient::getInstance(usercfg, url.fullstr(), timeout, buffer->speed.get_max_inactivity_time());
       if(client) {
+        // abort() may not delete the file, so call remove() after
         client->abort(*srm_request);
+        client->remove(*srm_request);
         delete client;
         client = NULL;
       }
@@ -465,24 +468,33 @@ namespace Arc {
     SRMClient * client = SRMClient::getInstance(usercfg, url.fullstr(), timeout, buffer->speed.get_max_inactivity_time());
     if(client) {
       // call abort if failure, or releasePut on success
-      if(buffer->error() || srm_request->status() == SRM_REQUEST_SHOULD_ABORT) 
+      if(buffer->error() || srm_request->status() == SRM_REQUEST_SHOULD_ABORT) {
         client->abort(*srm_request);
+        client->remove(*srm_request);
+      }
       else {
         // checksum verification
-        // TODO: checksum for writing to srm is not enabled in DataMover
-        const CheckSumAny * cs = (CheckSumAny*)buffer->checksum_object();
-        if(additional_checks && cs && *cs && buffer->checksum_valid()) {
-          char buf[100];
-          cs->print(buf,100);
-          std::string checksum = buf;
-          if (cs->Type() == CheckSumAny::adler32) {
+        if (additional_checks) {
+          std::string csum;
+          // is checksum supplied or calculated?
+          if (CheckCheckSum()) {
+            csum = checksum;
+          } else {
+            const CheckSumAny * cs = (CheckSumAny*)buffer->checksum_object();
+            if (cs && *cs && buffer->checksum_valid()) {
+              char buf[100];
+              cs->print(buf,100);
+              csum = buf;
+            }
+          }
+          if (!csum.empty() && csum.find(':') != std::string::npos) {
             // get checksum info for checksum verification
-            logger.msg(DEBUG, "start_reading_srm: looking for metadata: %s", url.str());
+            logger.msg(VERBOSE, "StopWriting: looking for metadata: %s", url.str());
             srm_request->long_list(true);
             std::list<struct SRMFileMetaData> metadata;
             SRMReturnCode res = client->info(*srm_request,metadata);
             if (res != SRM_OK) {
-              client->abort(*srm_request);
+              client->abort(*srm_request); // if we can't list then we can't remove either
               if (res == SRM_ERROR_TEMPORARY)
                 return DataStatus::WriteStopErrorRetryable;              
               return DataStatus::WriteStopError;
@@ -491,30 +503,27 @@ namespace Arc {
             if(!metadata.empty()){
               if(metadata.front().checkSumValue.length() > 0 &&
                  metadata.front().checkSumType.length() > 0) {
-                std::string csum(metadata.front().checkSumType+":"+metadata.front().checkSumValue);
-                logger.msg(INFO, "start_reading_srm: obtained checksum: %s", csum);
-                if (checksum.substr(0, checksum.find(':')) == metadata.front().checkSumType) { // should always be true
-                  if (checksum.substr(checksum.find(':')+1) == metadata.front().checkSumValue) {
-                    logger.msg(VERBOSE, "Calculated transfer checksum %s matches checksum reported by SRM destination %s", checksum, csum);
+                std::string servercsum(metadata.front().checkSumType+":"+metadata.front().checkSumValue);
+                logger.msg(INFO, "StopWriting: obtained checksum: %s", servercsum);
+                if (csum.substr(0, csum.find(':')) == metadata.front().checkSumType) {
+                  if (csum.substr(csum.find(':')+1) == metadata.front().checkSumValue) {
+                    logger.msg(INFO, "Calculated/supplied transfer checksum %s matches checksum reported by SRM destination %s", csum, servercsum);
                   }
                   else {
-                    logger.msg(VERBOSE, "Error: Checksum mismatch between calculated checksum %s and checksum reported by SRM destination ", checksum, csum);
+                    logger.msg(ERROR, "Checksum mismatch between calculated/supplied checksum (%s) and checksum reported by SRM destination (%s)", csum, servercsum);
                     r = DataStatus::WriteStopErrorRetryable;
                   }
-                }
-                else 
-                  logger.msg(VERBOSE, "Checksum type of SRM and calculated checksum %s differ, cannot compare", checksum);
-              }
-            }
-          }
-          else 
-            logger.msg(VERBOSE, "Checksum type of SRM and calculated checksum %s differ, cannot compare", checksum);
+                } else logger.msg(WARNING, "Checksum type of SRM (%s) and calculated/supplied checksum (%s) differ, cannot compare", servercsum, csum);
+              } else logger.msg(WARNING, "No checksum information from server");
+            } else logger.msg(WARNING, "No checksum information from server");
+          } else logger.msg(INFO, "No checksum verification possible");
         }
         if (r) {
           if (srm_request->status() == SRM_REQUEST_FINISHED_SUCCESS)
             client->releasePut(*srm_request);
         } else {
           client->abort(*srm_request);
+          client->remove(*srm_request);
         }
       }
     }
@@ -558,15 +567,6 @@ namespace Arc {
     int recursion = 0;
     if (metadata) recursion = -1; // get info on directory rather than contents
     SRMReturnCode res = client->info(*srm_request, srm_metadata, recursion);
-    /* Reverted back to gsi protocol by default so this code is not needed
-    if (res == SRM_ERROR_SOAP) {
-      logger.msg(ERROR, "Retrying with gsi protocol...\n");
-      URL gsiurl(url);
-      gsiurl.AddOption("protocol", "gsi", true);
-      client = SRMClient::getInstance(std::string(gsiurl.fullstr()));
-      if(!client) return DataStatus::ListError;
-      res = client->info(*srm_request, srm_metadata, recursion);
-    }*/
     delete client;
     client = NULL;
     delete srm_request;
@@ -654,6 +654,10 @@ namespace Arc {
 
   const std::string DataPointSRM::DefaultCheckSum() const {
     return std::string("adler32");
+  }
+
+  bool DataPointSRM::ProvidesMeta() {
+    return true;
   }
 
 } // namespace Arc

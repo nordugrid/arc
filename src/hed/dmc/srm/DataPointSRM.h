@@ -31,6 +31,7 @@ namespace Arc {
                                  bool resolve = false,
                                  bool metadata = false);
     virtual const std::string DefaultCheckSum() const;
+    virtual bool ProvidesMeta();
   private:
     SRMClientRequest *srm_request; /* holds SRM request ID between Start* and Stop* */
     static Logger logger;

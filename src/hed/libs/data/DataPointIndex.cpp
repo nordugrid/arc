@@ -64,8 +64,10 @@ namespace Arc {
     // TODO: pass various options from old handler to new
     if (h)
       delete h;
-    if (locations.end() != location)
+    if (locations.end() != location) {
       h = new DataHandle(*location, usercfg);
+      (*h)->SetMeta(*this);
+    }
     else
       h = NULL;
   }
@@ -152,6 +154,32 @@ namespace Arc {
 
   bool DataPointIndex::ProvidesMeta() {
     return true;
+  }
+
+  void DataPointIndex::SetMeta(const DataPoint& p) {
+    if (!CheckSize())
+      SetSize(p.GetSize());
+    if (!CheckCheckSum())
+      SetCheckSum(p.GetCheckSum());
+    if (!CheckCreated())
+      SetCreated(p.GetCreated());
+    if (!CheckValid())
+      SetValid(p.GetValid());
+    // set for current handle
+    if (h && *h)
+      (*h)->SetMeta(p);
+  }
+
+  void DataPointIndex::SetCheckSum(const std::string& val) {
+    checksum = val;
+    if (h && *h)
+      (*h)->SetCheckSum(val);
+  }
+
+  void DataPointIndex::SetSize(const unsigned long long int val) {
+    size = val;
+    if (h && *h)
+      (*h)->SetSize(val);
   }
 
   bool DataPointIndex::Registered() const {

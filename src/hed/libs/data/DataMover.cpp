@@ -362,7 +362,7 @@ namespace Arc {
             break;
           if (!destination.IsIndex()) {
             // pfn has chance to be overwritten directly
-            logger.msg(INFO, "Failed to delete %s but will still try to upload", del_url.str());
+            logger.msg(ERROR, "Failed to delete %s but will still try to upload", del_url.str());
             break;
           }
           logger.msg(INFO, "Failed to delete %s", del_url.str());
@@ -447,24 +447,57 @@ namespace Arc {
       }
       bufnum = bufnum * 2;
       logger.msg(VERBOSE, "Creating buffer: %lli x %i", bufsize, bufnum);
-      /* prepare crc */
+
+      // Checksum logic:
+      // if destination has meta, use default checksum it accepts, or override
+      // with url option. If not check source checksum and calculate that one.
+      // If not available calculate default checksum for source even if source
+      // doesn't have it at the moment since it might be available after start_reading().
+
       CheckSumAny crc;
-      // Shold we trust indexing service or always compute checksum ?
-      // Let's trust.
-      if (destination.AcceptsMeta()) { // may need to compute crc
-        // Let it be CRC32 by default.
-        std::string crc_type = destination.GetURL().Option("checksum", destination.DefaultCheckSum());
-        logger.msg(VERBOSE, "DataMover::Transfer: checksum type is %s", crc_type);
-        if (!source.CheckCheckSum()) {
-          crc = crc_type.c_str();
-          logger.msg(VERBOSE, "DataMover::Transfer: will try to compute crc");
-        }
-        else if (CheckSumAny::Type(crc_type.c_str())
-                 != CheckSumAny::Type(source.GetCheckSum().c_str())) {
-          crc = crc_type.c_str();
-          logger.msg(VERBOSE, "DataMover::Transfer: will try to compute crc");
+      std::string crc_type("");
+
+      /***********************************************************************
+       * Disabling on the fly checksum by default until bug 1598 is resolved *
+       * It can still be enabled using URL options                           *
+       ***********************************************************************/
+
+      // check if checksumming is turned off
+      if ((source.GetURL().Option("checksum") == "no") ||
+          (destination.GetURL().Option("checksum") == "no")) {
+        logger.msg(VERBOSE, "DataMove::Transfer: no checksum calculation for %s", source.str());
+      }
+      // check if checksum is specified as a metadata attribute
+      else if (!destination.GetURL().MetaDataOption("checksumtype").empty() && !destination.GetURL().MetaDataOption("checksumvalue").empty()) {
+        //crc_type = destination.GetURL().MetaDataOption("checksumtype");
+        logger.msg(VERBOSE, "DataMove::Transfer: using supplied checksum %s:%s",
+            destination.GetURL().MetaDataOption("checksumtype"), destination.GetURL().MetaDataOption("checksumvalue"));
+        std::string csum = destination.GetURL().MetaDataOption("checksumtype") + ':' + destination.GetURL().MetaDataOption("checksumvalue");
+        destination.SetCheckSum(csum);
+      }
+      else if (destination.AcceptsMeta() || destination.ProvidesMeta()) {
+        if (destination.GetURL().Option("checksum").empty()) {
+          //crc_type = destination.DefaultCheckSum();
+        } else {
+          crc_type = destination.GetURL().Option("checksum");
         }
       }
+      else if (source.CheckCheckSum() || source.ProvidesMeta()) {
+        crc_type = source.GetURL().Option("checksum");
+      }
+      /*
+      else if (source.CheckCheckSum()) {
+        crc_type = source.GetCheckSum();
+        crc_type = crc_type.substr(0, crc_type.find(':'));
+      }
+      else if (source.ProvidesMeta()) crc_type = source.DefaultCheckSum();
+      */
+
+      if (!crc_type.empty()) {
+        crc = crc_type.c_str();
+        if (crc.Type() != CheckSumAny::none) logger.msg(VERBOSE, "DataMove::Transfer: will calculate %s checksum", crc_type);
+      }
+
       /* create buffer and tune speed control */
       buffer.set(&crc, bufsize, bufnum);
       if (!buffer)
@@ -875,21 +908,63 @@ namespace Arc {
         }
         continue;
       }
-      // check if checksum is specified as a metadata attribute
-      if (!destination.GetURL().MetaDataOption("checksumtype").empty() &&
-          !destination.GetURL().MetaDataOption("checksumvalue").empty()) {
-        std::string csum = destination.GetURL().MetaDataOption("checksumtype") + ":" + destination.GetURL().MetaDataOption("checksumvalue");
-        source.SetCheckSum(csum.c_str());
-        logger.msg(VERBOSE, "DataMove::Transfer: using supplied checksum %s", csum);
-      }
-      else if (crc)
+
+      // compare checksum. For uploads this is done in StopWriting, but we also
+      // need to check here if the sum is given in meta attributes. For downloads
+      // compare to the original source (if available).
+      if (crc) {
         if (buffer.checksum_valid()) {
-          // source.meta_checksum(crc.end());
           char buf[100];
-          crc.print(buf, 100);
-          source.SetCheckSum(buf);
-          logger.msg(VERBOSE, "DataMover::Transfer: have valid checksum");
+          crc.print(buf,100);
+          std::string calc_csum(buf);
+          // compare calculated to any checksum given as a meta option
+          if (!destination.GetURL().MetaDataOption("checksumtype").empty() &&
+             !destination.GetURL().MetaDataOption("checksumvalue").empty() &&
+             calc_csum.substr(0, calc_csum.find(":")) == destination.GetURL().MetaDataOption("checksumtype") &&
+             calc_csum.substr(calc_csum.find(":")+1) != destination.GetURL().MetaDataOption("checksumvalue")) {
+            // error here? yes since we'll have an inconsistent catalog otherwise
+            logger.msg(ERROR, "Checksum mismatch between checksum given as meta option (%s:%s) and calculated checksum (%s)",
+                destination.GetURL().MetaDataOption("checksumtype"), destination.GetURL().MetaDataOption("checksumvalue"), calc_csum);
+#ifndef WIN32
+            if (cacheable)
+              cache.StopAndDelete(canonic_url);
+#endif
+            if (!destination.Unregister(replication || destination_meta_initially_stored))
+              logger.msg(WARNING, "Failed to unregister preregistered lfn, You may need to unregister it manually");
+            res = DataStatus(DataStatus::TransferError, "Checksum mismatch");
+            if (!Delete(destination, true))
+              logger.msg(WARNING, "Failed to delete destination, retry may fail");
+            if (destination.NextLocation())
+              logger.msg(VERBOSE, "(Re)Trying next destination");
+            continue;
+          }
+          if (source.CheckCheckSum()) {
+            std::string src_csum_s(source.GetCheckSum());
+            if (src_csum_s.find(':') == src_csum_s.length() -1)
+              logger.msg(VERBOSE, "Cannot compare empty checksum");
+            else if (calc_csum.substr(0, calc_csum.find(":")) != src_csum_s.substr(0, src_csum_s.find(":")))
+              logger.msg(VERBOSE, "Checksum type of source and calculated checksum differ, cannot compare");
+            else if (calc_csum.substr(calc_csum.find(":")) != src_csum_s.substr(src_csum_s.find(":"))) {
+              logger.msg(ERROR, "Checksum mismatch between calcuated checksum %s and source checksum %s", calc_csum, source.GetCheckSum());
+#ifndef WIN32
+              if(cacheable)
+                cache.StopAndDelete(canonic_url);
+#endif
+              res = DataStatus::TransferError;
+              if (source.NextLocation())
+                logger.msg(VERBOSE, "(Re)Trying next source");
+              continue;
+            }
+            else
+              logger.msg(VERBOSE, "Calculated transfer checksum %s matches source checksum", calc_csum);
+          }
+          // set the destination checksum to be what we calculated
+          destination.SetCheckSum(buf);
         }
+        else
+          logger.msg(VERBOSE, "Checksum invalid");
+      }
+
       destination.SetMeta(source); // pass more metadata (checksum)
       datares = destination.PostRegister(replication);
       if (!datares.Passed()) {

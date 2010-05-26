@@ -34,6 +34,9 @@ namespace Arc {
     virtual bool IsIndex() const;
     virtual bool AcceptsMeta();
     virtual bool ProvidesMeta();
+    virtual void SetMeta(const DataPoint& p);
+    virtual void SetCheckSum(const std::string& val);
+    virtual void SetSize(const unsigned long long int val);
     virtual bool Registered() const;
 
     virtual void SetTries(const int n);
