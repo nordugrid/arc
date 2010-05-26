@@ -62,7 +62,7 @@ Daemon::Daemon(const std::string& pid_file, const std::string& log_file_) : pid_
         default:
             /* write pid to pid file */
             std::fstream pf(pid_file.c_str(), std::fstream::out);
-            pf << pid;
+            pf << pid << std::endl;
             pf.close();
             /* succesful exit from parent */
             _exit(0);
