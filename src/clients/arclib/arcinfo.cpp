@@ -32,7 +32,7 @@ int main(int argc, char **argv) {
 
   Arc::OptionParser options(istring("[cluster ...]"),
                             istring("The arcinfo command is used for "
-                                    "obtaining the status of clusters\n"
+                                    "obtaining the status of clusters "
                                     "on the grid."),
                             istring("Argument to -i has the format "
                                     "Flavour:URL e.g.\n"
@@ -49,13 +49,13 @@ int main(int argc, char **argv) {
 
   std::list<std::string> clusters;
   options.AddOption('c', "cluster",
-                    istring("explicity select or reject a specific cluster"),
+                    istring("explicitly select or reject a specific cluster"),
                     istring("[-]name"),
                     clusters);
 
   std::list<std::string> indexurls;
   options.AddOption('i', "index",
-                    istring("explicity select or reject an index server"),
+                    istring("explicitly select or reject an index server"),
                     istring("[-]name"),
                     indexurls);
 

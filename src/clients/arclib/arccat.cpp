@@ -52,7 +52,7 @@ int main(int argc, char **argv) {
 
   std::list<std::string> clusters;
   options.AddOption('c', "cluster",
-                    istring("explicity select or reject a specific cluster"),
+                    istring("explicitly select or reject a specific cluster"),
                     istring("[-]name"),
                     clusters);
 

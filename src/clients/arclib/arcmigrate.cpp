@@ -42,10 +42,9 @@ int main(int argc, char **argv) {
 
   Arc::OptionParser options(istring("[job ...]"),
                             istring("The arcmigrate command is used for "
-                                    "migrating queud jobs to another cluster.\n"
+                                    "migrating queued jobs to another cluster.\n"
                                     "Note that migration is only supported "
-                                    "between ARC1 clusters."),
-                            istring(" "));
+                                    "between ARC1 clusters."));
 
   bool all = false;
   options.AddOption('a', "all",

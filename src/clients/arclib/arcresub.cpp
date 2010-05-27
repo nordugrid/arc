@@ -43,7 +43,7 @@ int main(int argc, char **argv) {
 
   Arc::ArcLocation::Init(argv[0]);
 
-  Arc::OptionParser options(istring("[job ...]\n"));
+  Arc::OptionParser options(istring("[job ...]"));
 
   bool all = false;
   options.AddOption('a', "all",
@@ -58,20 +58,20 @@ int main(int argc, char **argv) {
 
   std::list<std::string> clusters;
   options.AddOption('c', "cluster",
-                    istring("explicity select or reject a specific cluster"),
+                    istring("explicitly select or reject a specific cluster"),
                     istring("[-]name"),
                     clusters);
 
   std::list<std::string> qlusters;
   options.AddOption('q', "qluster",
-                    istring("explicity select or reject a specific cluster "
+                    istring("explicitly select or reject a specific cluster "
                             "for the new job"),
                     istring("[-]name"),
                     qlusters);
 
   std::list<std::string> indexurls;
   options.AddOption('i', "index",
-                    istring("explicity select or reject an index server"),
+                    istring("explicitly select or reject an index server"),
                     istring("[-]name"),
                     indexurls);
 

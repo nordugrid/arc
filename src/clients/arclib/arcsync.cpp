@@ -36,10 +36,10 @@ int main(int argc, char **argv) {
 
   Arc::ArcLocation::Init(argv[0]);
 
-  Arc::OptionParser options(istring(" "),
-                            istring("The command synchronized your local job"
-                                    "list with the information at a given "
-                                    "cluster or index server"),
+  Arc::OptionParser options("",
+                            istring("The arcsync command synchronizes your "
+                                    "local job list with the information at\n"
+                                    "the given clusters or index servers."),
                             istring("Argument to -i has the format "
                                     "Flavour:URL e.g.\n"
                                     "ARC0:ldap://grid.tsl.uu.se:2135/"
@@ -55,13 +55,13 @@ int main(int argc, char **argv) {
 
   std::list<std::string> clusters;
   options.AddOption('c', "cluster",
-                    istring("explicity select or reject a specific cluster"),
+                    istring("explicitly select or reject a specific cluster"),
                     istring("[-]name"),
                     clusters);
 
   std::list<std::string> indexurls;
   options.AddOption('i', "index",
-                    istring("explicity select or reject an index server"),
+                    istring("explicitly select or reject an index server"),
                     istring("[-]name"),
                     indexurls);
 
@@ -122,10 +122,10 @@ int main(int argc, char **argv) {
 
   //sanity check
   if (!force) {
-    std::cout << Arc::IString("Synchronizing the local list of active jobs with the information in the MDS\n"
-                              "can result in some inconsistencies. Very recently submitted jobs might not\n"
-                              "yet be present in the MDS information, whereas jobs very recently scheduled\n"
-                              "for deletion can still be present."
+    std::cout << Arc::IString("Synchronizing the local list of active jobs with the information in the\n"
+                              "information system can result in some inconsistencies. Very recently submitted\n"
+                              "jobs might not yet be present, whereas jobs very recently scheduled for\n"
+                              "deletion can still be present."
                               ) << std::endl;
     std::cout << Arc::IString("Are you sure you want to synchronize your local job list?") << " ["
               << Arc::IString("y") << "/" << Arc::IString("n") << "] ";

@@ -170,13 +170,13 @@ int main(int argc, char *argv[]) {
   options.AddOption('S', "url", istring("URL of SLCS service"),
                     istring("url"), slcs_url);
 
-  options.AddOption('I', "idp", istring("IdP name"),
+  options.AddOption('I', "idp", istring("Identity provider name"),
                     istring("string"), idp_name);
 
-  options.AddOption('U', "user", istring("User account to IdP"),
+  options.AddOption('U', "user", istring("User account to identity provider"),
                     istring("string"), username);
 
-  options.AddOption('P', "password", istring("Password for user account to IdP"),
+  options.AddOption('P', "password", istring("Password for user account to identity provider"),
                     istring("string"), password);
 
   options.AddOption('Z', "keysize", istring("Key size of the private key (512, 1024, 2048)"),

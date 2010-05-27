@@ -144,7 +144,7 @@ int main(int argc, char *argv[]) {
 
   Arc::ArcLocation::Init(argv[0]);
 
-  Arc::OptionParser options(" ",
+  Arc::OptionParser options("",
                             istring("The arcproxy command creates a proxy from a key/certificate pair for use in\n"
                                     "the ARC middleware"),
                             istring("Supported constraints are:\n"
@@ -604,7 +604,7 @@ int main(int argc, char *argv[]) {
                     tmp4.append("etc").append(G_DIR_SEPARATOR_S).append("vomses");
                     std::string tmp5 = user.Home() + G_DIR_SEPARATOR_S + ".voms" + G_DIR_SEPARATOR_S + "vomses";
                     logger.msg(Arc::ERROR, "Cannot find vomses at %s, %s, %s, %s and %s",
-                               tmp1.c_str(), tmp2.c_str(), tmp3.c_str(), tmp4.c_str(), tmp5.c_str());
+                               tmp1, tmp2, tmp3, tmp4, tmp5);
                     return EXIT_FAILURE;
                   }
                 }
@@ -662,15 +662,15 @@ int main(int argc, char *argv[]) {
       }
       //Judge if we can not find any of the voms server in the command line from 'vomses' file
       //if(matched_voms_line.empty()) {
-      //  logger.msg(Arc::ERROR, "Cannot get voms server information from file: %s ", vomses_path.c_str());
+      //  logger.msg(Arc::ERROR, "Cannot get voms server information from file: %s", vomses_path);
       // throw std::runtime_error("Cannot get voms server information from file: " + vomses_path);
       //}
       if (matched_voms_line.size() != server_command_map.size())
         for (std::multimap<std::string, std::string>::iterator it = server_command_map.begin();
              it != server_command_map.end(); it++)
           if (matched_voms_line.find((*it).first) == matched_voms_line.end())
-            logger.msg(Arc::ERROR, "Cannot get voms server %s information from file: %s ",
-                       (*it).first, vomses_path.c_str());
+            logger.msg(Arc::ERROR, "Cannot get voms server %s information from file: %s",
+                       (*it).first, vomses_path);
 
       //Contact the voms server to retrieve attribute certificate
       std::string voms_server;
@@ -687,7 +687,7 @@ int main(int argc, char *argv[]) {
         voms_server = (*it).first;
         voms_line = (*it).second;
         int count = server_command_map.count(voms_server);
-        logger.msg(Arc::DEBUG, "There are %d commands to the same voms server %s\n", count, voms_server.c_str());
+        logger.msg(Arc::DEBUG, "There are %d commands to the same voms server %s", count, voms_server);
 
         std::multimap<std::string, std::string>::iterator command_it;
         for(command_it = server_command_map.equal_range(voms_server).first; command_it!=server_command_map.equal_range(voms_server).second; ++command_it) {
@@ -698,8 +698,8 @@ int main(int argc, char *argv[]) {
         for (int i = 0; i < 3; i++) {
           p = voms_line.find("\"", p);
           if (p == std::string::npos) {
-            logger.msg(Arc::ERROR, "Cannot get voms server address information from voms line: %s\"", voms_line.c_str());
-            throw std::runtime_error("Cannot get voms server address information from voms line:" + voms_line + "\"");
+            logger.msg(Arc::ERROR, "Cannot get voms server address information from voms line: \"%s\"", voms_line);
+            throw std::runtime_error("Cannot get voms server address information from voms line: \"" + voms_line + "\"");
           }
           p = p + 1;
         }
@@ -710,7 +710,7 @@ int main(int argc, char *argv[]) {
         p1 = voms_line.find("\"", p + 1);
         std::string port = voms_line.substr(p + 1, p1 - p - 1);
         logger.msg(Arc::INFO, "Contacting VOMS server (named %s): %s on port: %s",
-                   voms_server.c_str(), address.c_str(), port.c_str());
+                   voms_server, address, port);
         std::cout << Arc::IString("Contacting VOMS server (named %s): %s on port: %s", voms_server, address, port) << std::endl;
 
         std::string send_msg;
@@ -742,7 +742,7 @@ int main(int argc, char *argv[]) {
         for(std::list<std::string>::iterator o_it = orderlist.begin(); o_it != orderlist.end(); o_it++) {
           ordering.append(o_it == orderlist.begin() ? "" : ",").append(*o_it);
         }
-        logger.msg(Arc::VERBOSE, "Try to get attribute from voms server with order: %s ", ordering.c_str());
+        logger.msg(Arc::VERBOSE, "Try to get attribute from voms server with order: %s", ordering);
         send_msg.append("<order>").append(ordering).append("</order>");
 
         send_msg.append("<lifetime>").append(voms_period).append("</lifetime></voms>");
@@ -771,7 +771,7 @@ int main(int argc, char *argv[]) {
           ret_str.append(ret_buf, len);
           memset(ret_buf, 0, 1024);
         } while (len == 1024);
-        logger.msg(Arc::VERBOSE, "Returned msg from voms server: %s ", ret_str.c_str());
+        logger.msg(Arc::VERBOSE, "Returned message from voms server: %s", ret_str);
         Arc::XMLNode node(ret_str);
 
         if (ret_str.find("error") != std::string::npos) {
@@ -797,7 +797,7 @@ int main(int argc, char *argv[]) {
 
         if (command == "list") {
           //logger.msg(Arc::INFO, "The attribute information from voms server: %s is list as following:\n%s",
-          //           voms_server.c_str(), decodedac.c_str());
+          //           voms_server, decodedac);
           std::cout << Arc::IString("The attribute information from voms server: %s is list as following", voms_server) << std::endl << decodedac;
           if (response)
             delete response;

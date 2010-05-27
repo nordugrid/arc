@@ -60,13 +60,13 @@ int main(int argc, char **argv) {
 
   std::list<std::string> clusters;
   options.AddOption('c', "cluster",
-                    istring("explicity select or reject a specific cluster"),
+                    istring("explicitly select or reject a specific cluster"),
                     istring("[-]name"),
                     clusters);
 
   std::list<std::string> indexurls;
   options.AddOption('i', "index",
-                    istring("explicity select or reject an index server"),
+                    istring("explicitly select or reject an index server"),
                     istring("[-]name"),
                     indexurls);
 
@@ -289,7 +289,7 @@ int main(int argc, char **argv) {
           return 1;
         }
 
-        std::cout << Arc::IString("Job description to be send to ") << target->Cluster.str() << ":" << std::endl;
+        std::cout << Arc::IString("Job description to be sent to %s:", target->Cluster.str()) << std::endl;
         std::cout << jobdesc << std::endl;
         return 0;
       }
