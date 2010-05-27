@@ -234,7 +234,8 @@ namespace Arc {
       path(path),
       destination(),
       maxsize(-1),
-      backups(-1) {
+      backups(-1),
+      reopen(false) {
     if(path.empty()) {
       //logger.msg(Arc::ERROR,"Log file path is not specified");
       return;
@@ -251,7 +252,8 @@ namespace Arc {
       path(path),
       destination(),
       maxsize(-1),
-      backups(-1) {
+      backups(-1),
+      reopen(false) {
     if(path.empty()) {
       //logger.msg(Arc::ERROR,"Log file path is not specified");
       return;
@@ -271,14 +273,25 @@ namespace Arc {
     backups = newbackups;
   }
 
+  void LogFile::setReopen(bool newreopen) {
+    reopen = newreopen;
+    if(reopen) {
+      destination.close();
+    } else {
+      if(!destination.is_open()) {
+        destination.open(path.c_str(), std::fstream::out | std::fstream::app);
+      }
+    }
+  }
+
   LogFile::LogFile(void)
-    : LogDestination(), maxsize(-1), backups(-1) {
+    : LogDestination(), maxsize(-1), backups(-1), reopen(false) {
     // Executing this code should be impossible!
     exit(EXIT_FAILURE);
   }
 
   LogFile::LogFile(const LogFile&)
-    : LogDestination(), maxsize(-1), backups(-1) {
+    : LogDestination(), maxsize(-1), backups(-1), reopen(false) {
     // Executing this code should be impossible!
     exit(EXIT_FAILURE);
   }
@@ -299,14 +312,18 @@ namespace Arc {
 
   void LogFile::log(const LogMessage& message) {
     Glib::Mutex::Lock lock(mutex);
-    if(!destination.is_open()) return;
     const char *loc = NULL;
+    if (reopen) {
+      destination.open(path.c_str(), std::fstream::out | std::fstream::app);
+    }
+    if(!destination.is_open()) return;
     if (!locale.empty()) {
       loc = setlocale(LC_ALL, NULL);
       setlocale(LC_ALL, locale.c_str());
     }
     destination << LoggerFormat(format) << message << std::endl;
     if (!locale.empty()) setlocale(LC_ALL, loc);
+    if (reopen) destination.close();
     backup();
   }
 
@@ -329,7 +346,7 @@ namespace Arc {
     } else {
       if(::unlink(path.c_str()) != 0) backup_done=false;
     }
-    if(backup_done) {
+    if((backup_done) && (!reopen)) {
       destination.close();
       destination.open(path.c_str(), std::fstream::out | std::fstream::app);
     }

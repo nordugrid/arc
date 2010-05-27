@@ -78,6 +78,13 @@ static std::string init_logger(Arc::Config& cfg)
       }   
     }
 
+    if(log["Reopen"]) {
+      std::string reopen = (std::string)(log["Reopen"]);
+      bool reopen_b = false;
+      if((reopen == "true") || (reopen == "1")) reopen_b = true;
+      sd->setReopen(reopen_b);
+    }
+
     Arc::Logger::rootLogger.removeDestinations();
     if(sd) Arc::Logger::rootLogger.addDestination(*sd);
     if ((bool)cfg["Server"]["Foreground"]) {

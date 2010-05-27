@@ -337,6 +337,13 @@ namespace Arc {
      */
     void setBackups(int newbackup);
 
+    //! Set file reopen on every write.
+    /*! Set file reopen on every write. If set to true file is opened 
+       before writing every log record and closed afterward.
+       @param newreopen If file to be reopened for every log record.
+     */
+    void setReopen(bool newreopen);
+
     //! Returns true if this instance is valid.
     operator bool(void);
 
@@ -360,6 +367,7 @@ namespace Arc {
     std::ofstream destination;
     int maxsize;
     int backups;
+    bool reopen;
     Glib::Mutex mutex;
   };
 

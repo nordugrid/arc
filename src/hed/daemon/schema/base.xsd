@@ -124,6 +124,13 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="Reopen" type="xsd:boolean" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation xml:lang="en">
+                    Defines if logger opens file before writing every record and closes after that. Default behavior is to keep file open continiously.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:all>
     </xsd:complexType>
 </xsd:element>
