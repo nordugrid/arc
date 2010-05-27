@@ -163,7 +163,7 @@ int main(int argc, char *argv[]) {
 
   Arc::ArcLocation::Init(argv[0]);
 
-  Arc::OptionParser options("", "", "");
+  Arc::OptionParser options(" ", "", "");
 
   Arc::init_xmlsec();
 

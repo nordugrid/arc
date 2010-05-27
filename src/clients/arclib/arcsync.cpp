@@ -36,7 +36,7 @@ int main(int argc, char **argv) {
 
   Arc::ArcLocation::Init(argv[0]);
 
-  Arc::OptionParser options("",
+  Arc::OptionParser options(" ",
                             istring("The arcsync command synchronizes your "
                                     "local job list with the information at\n"
                                     "the given clusters or index servers."),

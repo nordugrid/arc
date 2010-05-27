@@ -57,7 +57,7 @@ int main(int argc, char* argv[]) {
   Arc::Logger::getRootLogger().addDestination(logcerr);
   Arc::Logger::getRootLogger().setThreshold(Arc::DEBUG);
   
-  Arc::OptionParser options("",
+  Arc::OptionParser options(" ",
                             istring("gm-jobs displays information on "
                                     "current jobs in the system."));
   

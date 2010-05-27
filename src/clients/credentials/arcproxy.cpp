@@ -144,7 +144,7 @@ int main(int argc, char *argv[]) {
 
   Arc::ArcLocation::Init(argv[0]);
 
-  Arc::OptionParser options("",
+  Arc::OptionParser options(" ",
                             istring("The arcproxy command creates a proxy from a key/certificate pair for use in\n"
                                     "the ARC middleware"),
                             istring("Supported constraints are:\n"
