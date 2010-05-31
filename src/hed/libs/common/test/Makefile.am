@@ -1,4 +1,4 @@
-TESTS = URLTest LoggerTest RunTest XMLNodeTest FileUtilsTest ThreadTest XMLNodeTest FileUtilsTest
+TESTS = URLTest LoggerTest RunTest XMLNodeTest FileUtilsTest ThreadTest
 check_PROGRAMS = $(TESTS)
 
 URLTest_SOURCES = $(top_srcdir)/src/Test.cpp URLTest.cpp
