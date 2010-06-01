@@ -6,6 +6,7 @@ debian/tmp/usr/lib/arc/gm-kick
 debian/tmp/usr/lib/arc/smtp-send
 debian/tmp/usr/lib/arc/smtp-send.sh
 debian/tmp/usr/lib/arc/uploader
+debian/tmp/usr/lib/arc/inputcheck
 
 debian/tmp/usr/lib/arc/cancel-*-job
 debian/tmp/usr/lib/arc/scan-*-job

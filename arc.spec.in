@@ -653,6 +653,7 @@ exit 0
 %{_libexecdir}/%{pkgdir}/smtp-send
 %{_libexecdir}/%{pkgdir}/smtp-send.sh
 %{_libexecdir}/%{pkgdir}/uploader
+%{_libexecdir}/%{pkgdir}/inputcheck
 %{_libexecdir}/%{pkgdir}/cancel-*-job
 %{_libexecdir}/%{pkgdir}/scan-*-job
 %{_libexecdir}/%{pkgdir}/submit-*-job
@@ -795,7 +796,7 @@ exit 0
 %doc doc/tech_doc/doxygen/ARC1-API.pdf
 %doc doc/tech_doc/doxygen/ARC1-ChainComponents.pdf
 %doc doc/tech_doc/doxygen/ARC1-Services.pdf
-%doc doc/tech_doc/hed/ARCHED_article.pdf
+%doc doc/tech_doc/hed/ARCHED.pdf
 %doc doc/tech_doc/chelonia/arc-storage-documentation.pdf
 %doc doc/tech_doc/a-rex/arex_tech_doc.pdf
 %doc doc/tech_doc/backend_interface/Backends-arc1.pdf
