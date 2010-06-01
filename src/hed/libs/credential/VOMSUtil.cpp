@@ -1538,7 +1538,7 @@ err:
       if (verifyVOMSAC(ac, ca_cert_dir, ca_cert_file, vomscert_trust_dn, 
           holder, output, vo_name, period_left, verify)) {
         verified = true;
-        std::cout<<"======AC extenstion information for VO "<<vo_name<<"======"<<std::endl;
+        std::cout<<"======AC extension information for VO "<<vo_name<<"======"<<std::endl;
         for(int i = 0; i < output.size(); i++) {
           std::cout<<"Attribute: "<<output[i]<<std::endl;
         }
