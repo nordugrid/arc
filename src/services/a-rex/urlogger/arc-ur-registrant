@@ -10,6 +10,7 @@ deployment easy (no imports, problems setting up PYTHONPATH, etc).
 
 Author: Henrik Thostrup Jensen <htj@ndgf.org>
 Copyright: Nordic Data Grid Facility (2009)
+TODO: configuration parsing
 """
 
 import sys

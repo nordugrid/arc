@@ -1,6 +1,7 @@
 #! /usr/bin/env python
 
 # Plugin for the ARC middleware to generate usage records on job completion.
+# TODO: configuration parsing
 #
 # Author: Henrik Thostrup Jensen <htj@ndgf.org>
 
