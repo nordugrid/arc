@@ -1738,6 +1738,7 @@ AC_CONFIG_FILES([Makefile
                  src/services/a-rex/lrms/gridfactory/scan-gridfactory-job
                  src/services/a-rex/lrms/gridfactory/submit-gridfactory-job
                  src/services/a-rex/logger/Makefile
+                 src/services/a-rex/urlogger/Makefile
                  src/services/a-rex/schema/Makefile
                  src/services/charon/Makefile
                  src/services/charon/schema/Makefile
