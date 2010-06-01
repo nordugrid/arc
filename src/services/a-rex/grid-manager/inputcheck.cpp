@@ -27,7 +27,7 @@ class lfn_t {
   lfn_t(const char* l):lfn(l),done(false),failed(false) { };
 };
 
-void* check_url(void *arg) {
+void check_url(void *arg) {
   lfn_t* lfn = (lfn_t*)arg;
   logger.msg(Arc::INFO,"%s",lfn->lfn);
 
@@ -36,12 +36,12 @@ void* check_url(void *arg) {
   if(!source) {
     logger.msg(Arc::ERROR,"Failed to acquire source: %s",lfn->lfn);
     lfn->failed=true; lfn->done=true; cond.signal();
-    return NULL;
+    return;
   };
   if(!source->Resolve(true)) {
     logger.msg(Arc::ERROR,"Failed to resolve %s",lfn->lfn);
     lfn->failed=true; lfn->done=true; cond.signal();
-    return NULL;
+    return;
   };
   source->SetTries(1);
   // TODO. Run every URL in separate thread.
@@ -56,10 +56,10 @@ void* check_url(void *arg) {
   if(!check_passed) {
     logger.msg(Arc::ERROR,"Failed to check %s",lfn->lfn);
     lfn->failed=true; lfn->done=true; cond.signal();
-    return NULL;
+    return;
   };
   lfn->done=true; cond.signal();
-  return NULL;
+  return;
 }
 
 static void usage(void) {
@@ -115,9 +115,7 @@ int main(int argc,char* argv[]) {
       pthread_attr_t thread_attr;
       lfn_t* lfn = new lfn_t(file->lfn.c_str());
       lfns.push_back(lfn);
-      pthread_attr_init(&thread_attr);
-      pthread_attr_setdetachstate(&thread_attr,PTHREAD_CREATE_DETACHED);
-      pthread_create(&thread,&thread_attr,&check_url,lfn);
+      Arc::CreateThreadFunction(&check_url,lfn);
       has_lfns=true;
     };
   };
