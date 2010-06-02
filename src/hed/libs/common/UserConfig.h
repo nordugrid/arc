@@ -1069,11 +1069,12 @@ namespace Arc {
      * Some DataPoints can store information on remote services in local
      * files. This method sets the path to the directory containing these
      * files. For example arc* tools set it to ARCUSERDIRECTORY and A-REX
-     * sets it to the control directory.
+     * sets it to the control directory. The directory is created if it
+     * does not exist.
      * @param path is the new utils dir path.
      * @return This method always returns \c true.
      */
-    bool UtilsDirPath(const std::string& dir) { utilsdir = dir; return true; }
+    bool UtilsDirPath(const std::string& dir);
     /// Get path to directory storing utility files for DataPoints
     /**
      * @return The utils dir path

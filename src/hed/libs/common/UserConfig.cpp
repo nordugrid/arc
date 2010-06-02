@@ -11,6 +11,7 @@
 #include <giomm/error.h>
 #else
 #include <sys/stat.h>
+#include <arc/FileUtils.h>
 #endif
 
 #include <arc/ArcLocation.h>
@@ -1048,6 +1049,27 @@ namespace Arc {
 
     return true;
 #endif
+  }
+
+  bool UserConfig::UtilsDirPath(const std::string& dir) {
+#ifdef HAVE_GIOMM
+    if (Gio::File::create_for_path(dir)->query_exists())
+      utilsdir = dir;
+    else if (!Gio::File::create_for_path(dir)->make_directory_with_parents())
+      logger.msg(WARNING, "Failed to create directory %s", dir);
+    else
+      utilsdir = dir;
+
+#else
+    struct stat st;
+    if (FileStat (dir.c_str(), &st))
+      utils_dir = dir;
+    else if (!DirCreate(dir.c_str(), 0700)) {
+      logger.msg(WARNING, "Failed to create directory %s", dir);
+    else
+        utils_dir = dir;
+#endif
+    return true;
   }
 
 } // namespace Arc

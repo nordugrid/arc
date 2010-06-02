@@ -449,20 +449,20 @@ namespace Arc {
       //  additional_checks = false;
       delete r_handle;
       r_handle = NULL;
-    }
       
-    if (!r) {
-      SRMClient *client = SRMClient::getInstance(usercfg, url.fullstr(), timeout, buffer->speed.get_max_inactivity_time());
-      if(client) {
-        // abort() may not delete the file, so call remove() after
-        client->abort(*srm_request);
-        client->remove(*srm_request);
-        delete client;
-        client = NULL;
+      if (!r) {
+        SRMClient *client = SRMClient::getInstance(usercfg, url.fullstr(), timeout, buffer->speed.get_max_inactivity_time());
+        if(client) {
+          // abort() may not delete the file, so call remove() after
+          client->abort(*srm_request);
+          client->remove(*srm_request);
+          delete client;
+          client = NULL;
+        }
+        delete srm_request;
+        srm_request = NULL;
+        return r;
       }
-      delete srm_request;
-      srm_request = NULL;
-      return r;
     }
 
     SRMClient * client = SRMClient::getInstance(usercfg, url.fullstr(), timeout, buffer->speed.get_max_inactivity_time());
@@ -474,7 +474,7 @@ namespace Arc {
       }
       else {
         // checksum verification
-        if (additional_checks) {
+        if (srm_request->status() == SRM_REQUEST_FINISHED_SUCCESS && additional_checks) {
           std::string csum;
           // is checksum supplied or calculated?
           if (CheckCheckSum()) {
