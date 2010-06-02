@@ -51,12 +51,19 @@ static std::string init_logger(Arc::Config& cfg)
 {   
     /* setup root logger */
     Arc::LogFile* sd = NULL;
-    Arc::LogLevel level = Arc::WARNING;
     Arc::XMLNode log = cfg["Server"]["Logger"];
-    if((bool)log["Level"] && !string_to_level((std::string)log["Level"], level)) {
-      logger.msg(Arc::WARNING, "Unknown log level %s", (std::string)log["Level"]);
-    }   
-    Arc::Logger::rootLogger.setThreshold(level);
+    Arc::XMLNode xlevel = log["Level"];
+
+    Arc::Logger::rootLogger.setThreshold(Arc::WARNING);
+    for(;(bool)xlevel;++xlevel) {
+      std::string domain = xlevel.Attribute("Domain");
+      Arc::LogLevel level = Arc::WARNING;
+      if(!string_to_level((std::string)xlevel, level)) {
+        logger.msg(Arc::WARNING, "Unknown log level %s", (std::string)xlevel);
+      } else {
+        Arc::Logger::setThreshold(level,domain);
+      }
+    }
 
     std::string log_file = (log["File"] ? (std::string)log["File"] :  Glib::build_filename(Glib::get_tmp_dir(), "arched.log"));
     sd = new Arc::LogFile(log_file);

@@ -72,21 +72,29 @@
 </xsd:element>
 
 <!-- Logger -->
-<xsd:simpleType name="LoggerLevel_Type">
+<xsd:complexType name="LoggerLevel_Type">
     <xsd:annotation>
         <xsd:documentation xml:lang="en">
         The enumeration lists the supported log levels.
+        Optional attribute called Domain makes it possible to 
+        assign level to specific domain. If Domain is missing 
+        or is "Arc" level is assigned to root logger and is 
+        inherited by all other domains unless they have level 
+        specified expilicitely.
         </xsd:documentation>
     </xsd:annotation>
-    <xsd:restriction base="xsd:string">
-        <xsd:enumeration value="FATAL"/>
-        <xsd:enumeration value="ERROR"/>
-        <xsd:enumeration value="WARNING"/>
-        <xsd:enumeration value="INFO"/>
-        <xsd:enumeration value="VERBOSE"/>
-        <xsd:enumeration value="DEBUG"/>
-    </xsd:restriction>
-</xsd:simpleType>
+    <xsd:simpleContent>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="FATAL"/>
+            <xsd:enumeration value="ERROR"/>
+            <xsd:enumeration value="WARNING"/>
+            <xsd:enumeration value="INFO"/>
+            <xsd:enumeration value="VERBOSE"/>
+            <xsd:enumeration value="DEBUG"/>
+        </xsd:restriction>
+    </xsd:simpleContent>
+    <xsd:attribute name="Domain" type="xsd:string" use="optional"/>
+</xsd:complexType>
 
 <xsd:element name="Logger">
     <xsd:complexType>
@@ -103,7 +111,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="Level" type="LoggerLevel_Type" minOccurs="0" maxOccurs="1" default="WARNING">
+            <xsd:element name="Level" type="LoggerLevel_Type" minOccurs="0" maxOccurs="unbounded" default="WARNING">
                 <xsd:annotation>
                     <xsd:documentation xml:lang="en">
                     Specifies the log level of the messages which should be logged.

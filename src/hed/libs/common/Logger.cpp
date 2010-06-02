@@ -22,6 +22,15 @@
 
 namespace Arc {
 
+  static std::string list_to_domain(const std::list<std::string>& subdomains) {
+    std::string domain;
+    for(std::list<std::string>::const_iterator subdomain = subdomains.begin();
+        subdomain != subdomains.end();++subdomain) {
+      domain += "."+(*subdomain);
+    }
+    return domain;
+  }
+
   std::ostream& operator<<(std::ostream& os, LogLevel level) {
     if (level == DEBUG)
       os << "DEBUG";
@@ -352,25 +361,29 @@ namespace Arc {
     }
   }
 
-  Logger*Logger::rootLogger = NULL;
+  Logger* Logger::rootLogger = NULL;
+  std::map<std::string,LogLevel>* Logger::defaultThresholds = NULL;
   unsigned int Logger::rootLoggerMark = ~rootLoggerMagic;
 
   Logger& Logger::getRootLogger(void) {
     if ((rootLogger == NULL) || (rootLoggerMark != rootLoggerMagic)) {
       rootLogger = new Logger();
+      defaultThresholds = new std::map<std::string,LogLevel>;
       rootLoggerMark = rootLoggerMagic;
     }
     return *rootLogger;
   }
 
-  // LogStream Logger::cerr(std::cerr);
-
   Logger::Logger(Logger& parent,
                  const std::string& subdomain)
     : parent(&parent),
       domain(parent.getDomain() + "." + subdomain),
-      threshold(parent.getThreshold()) {
-    // Nothing else needs to be done.
+      threshold((LogLevel)0) {
+    std::map<std::string,LogLevel>::const_iterator thr =
+                                   defaultThresholds->find(domain);
+    if(thr != defaultThresholds->end()) {
+      threshold = thr->second;
+    }
   }
 
   Logger::Logger(Logger& parent,
@@ -379,7 +392,6 @@ namespace Arc {
     : parent(&parent),
       domain(parent.getDomain() + "." + subdomain),
       threshold(threshold) {
-    // Nothing else needs to be done.
   }
 
   Logger::~Logger() {
@@ -397,13 +409,30 @@ namespace Arc {
     this->threshold = threshold;
   }
 
+  void Logger::setThreshold(LogLevel threshold, const std::list<std::string>& subdomains) {
+    setThreshold(threshold, list_to_domain(subdomains));
+  }
+
+  void Logger::setThreshold(LogLevel threshold, const std::string& domain) {
+    getRootLogger();
+    if(domain.empty() || (domain == "Arc")) {
+      getRootLogger().setThreshold(threshold);
+    } else {
+      (*defaultThresholds)[domain] = threshold;
+    }
+  }
+
   LogLevel Logger::getThreshold() const {
-    return threshold;
+    if(threshold != (LogLevel)0) return threshold;
+    if(parent) return parent->getThreshold();
+    return (LogLevel)0;
   }
 
   void Logger::msg(LogMessage message) {
     message.setDomain(domain);
-    log(message);
+    if (message.getLevel() >= getThreshold()) {
+      log(message);
+    }
   }
 
   Logger::Logger()
@@ -428,15 +457,13 @@ namespace Arc {
   }
 
   void Logger::log(const LogMessage& message) {
-    if (message.getLevel() >= threshold) {
-      std::list<LogDestination*>::iterator dest;
-      std::list<LogDestination*>::iterator begin = destinations.begin();
-      std::list<LogDestination*>::iterator end = destinations.end();
-      for (dest = begin; dest != end; ++dest)
-        (*dest)->log(message);
-      if (parent != 0)
-        parent->log(message);
-    }
+    std::list<LogDestination*>::iterator dest;
+    std::list<LogDestination*>::iterator begin = destinations.begin();
+    std::list<LogDestination*>::iterator end = destinations.end();
+    for (dest = begin; dest != end; ++dest)
+      (*dest)->log(message);
+    if (parent)
+      parent->log(message);
   }
 
 }

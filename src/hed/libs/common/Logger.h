@@ -4,6 +4,8 @@
 #define __ARC_LOGGER__
 
 #include <string>
+#include <list>
+#include <map>
 #include <iostream>
 #include <fstream>
 
@@ -443,6 +445,10 @@ namespace Arc {
      */
     void setThreshold(LogLevel threshold);
 
+    static void setThreshold(LogLevel threshold, const std::list<std::string>& subdomains);
+
+    static void setThreshold(LogLevel threshold, const std::string& domain);
+
     //! Returns the threshold.
     /*! Returns the threshold.
        @return The threshold of this Logger.
@@ -573,6 +579,7 @@ namespace Arc {
 
 #define rootLoggerMagic (0xF6569201)
     static Logger *rootLogger;
+    static std::map<std::string,LogLevel>* defaultThresholds;
     static unsigned int rootLoggerMark;
   };
 
