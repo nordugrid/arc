@@ -917,7 +917,17 @@ exist in WS-ARC, ordered by serverity: \texttt{FATAL}, \texttt{ERROR},
 the \texttt{Level} element the level of messages being reported can be
 specified. Log messages with a higher or same level as specified by the
 \texttt{Level} element will be written to the log file. The default log level is
-\texttt{WARNING}. \newline
+\texttt{WARNING}.
+
+The log messages are also assigned different domains. Domain is a string
+indicating where message came from. Domains follow hierarchical layout with
+top level called \texttt{Arc} and subdomains added to it separated by dot -
+like \texttt{Arc.MCC.TCP}. It is possible to assign different logging levels
+to different domains by using multiple \texttt{Level} elemets each with
+\texttt{Domain} attribute containing affected domain name. The \texttt{Level}
+without \texttt{Domain} is assigned to \texttt{Arc} domain and is inherited
+by all other domains unless they have theirs levels specified explicitely.
+
 By default the log file is not limited in size, neither
 will any log rotation be done. The \texttt{Maxsize} and \texttt{Backups}
 elements can be used to change this behaviour. The \texttt{Maxsize} element sets
@@ -931,6 +941,12 @@ size is only allowed to exceed the specified limit by the size of one log
 message. If the \texttt{Maxsize} element have been specified and no
 \texttt{Backups} element is specified then log rotation will not be carried out,
 thus the log file is truncated when the limit is exceeded.
+
+By default log file is kept continiously open. For compatibility with external
+log rotating utilities it is possible to force log file being closed after
+every log record is written and re-opened for new one. For that optional
+\texttt{Reopen} element is used. If set to \texttt{true} it turns compatibility
+mode on.
 
 Plugins which should be used later in the configuration should be specified
 under the \texttt{Plugins} element where the \texttt{Name} element specifies the
@@ -948,8 +964,10 @@ The following example show the use of the above configuration options:
     <Logger>
       <File>/tmp/arched.log</File>
       <Level>WARNING</Level>
+      <Level Domain="Arc.MCC.TCP">DEBUG</Level>
       <MaxSize>1000000</MaxSize>
       <Backups>5</Backups>
+      <Reopen>false</Reopen>
     </Logger>
   </Server>
   <ModuleManager>
