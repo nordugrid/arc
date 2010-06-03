@@ -136,32 +136,5 @@ int main(int argc,char* argv[]) {
   remove_proxy();
   exit(0);
 }
-/* Gross hack */
-//#include "../run/run_commands.h"
 
-/*
-RunElement* RunCommands::fork(const JobUser& user,const char* cmdname) {
-  return NULL;
-}
-
-#include "../run/run_commands.h"
-
-int RunCommands::wait(RunElement* re,int timeout,const char* cmdname) {
-  return -1;
-}
-
-int mkdir(JobUser& user,const char *pathname, mode_t mode) { return -1; }
-int open(JobUser& user,const char *pathname, int flags) { return -1; }
-int open(JobUser& user,const char *pathname, int flags, mode_t mode) { return -1; }
-int creat(JobUser& user,const char *pathname, mode_t mode)  { return -1; }
-int stat(JobUser& user,const char *file_name, struct stat *buf) { return -1; }
-int lstat(JobUser& user,const char *file_name, struct stat *buf) { return -1; }
-int delete_all_files(JobUser& user,const std::string &dir_base,
-     std::list<FileData> &files,bool excl,bool lfn_exs,bool lfn_mis) { return -1; }
-int remove(JobUser& user,const char *pathname)  { return -1; }
-int rmdir(JobUser& user,const char *pathname) { return -1; }
-int unlink(JobUser& user,const char *pathname) { return -1; }
-bool fix_file_permissions(JobUser& user,const std::string &fname,bool executable) { return false; }
-
-*/
 
