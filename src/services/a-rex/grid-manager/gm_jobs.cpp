@@ -25,6 +25,15 @@ void get_arex_xml(Arc::XMLNode& arex,GMEnvironment& env) {
   Arc::Config cfg(env.nordugrid_config_loc().c_str());
   if (!cfg) return;
 
+  if(cfg.Name() == "Service") {
+    if (cfg.Attribute("name") == "a-rex") {
+      cfg.New(arex);
+    }
+    return;
+  }
+
+  if(cfg.Name() != "ArcConfig") return;
+
   for (int i=0;; i++) {
 
     Arc::XMLNode node = cfg["Chain"];
