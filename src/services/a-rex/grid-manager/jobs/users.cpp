@@ -147,6 +147,7 @@ bool JobUser::CreateDirectories(void) {
   %L - default lrms
   %W - installation path
   %G - globus path
+  %F - configuration file
 */
 
 bool JobUser::substitute(std::string& param) const {
@@ -168,6 +169,7 @@ bool JobUser::substitute(std::string& param) const {
       case 'u': to_put=Arc::tostring(get_uid()); break;
       case 'g': to_put=Arc::tostring(get_gid()); break;
       case 'W': to_put=gm_env.nordugrid_loc(); break;
+      case 'F': to_put=gm_env.nordugrid_config_loc(); break;
       case 'G': 
         logger.msg(Arc::ERROR,"Globus location variable substitution is not supported anymore. Please specify path directly.");
         break;

@@ -182,7 +182,8 @@ void ContinuationPlugins::run(const JobDescription &job,const JobUser& user,std:
     re.KeepStdin();
     std::string response;
     if(re.Start()) {
-      if(!re.Wait(to)) {
+      bool r = to?re.Wait(to):re.Wait();
+      if(!r) {
         response="TIMEOUT";
         act=command->ontimeout;
       } else {
