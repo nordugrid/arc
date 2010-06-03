@@ -31,6 +31,10 @@ only select jobs whose status is statusstr
 explicitly select or reject an index server
 .IP "\fB-l\fR, \fB--long\fR"
 long format (more information)
+.IP "\fB-S\fR, \fB--sort\fR"
+sort jobs according to jobid, submissiontime or jobname
+.IP "\fB-R\fR, \fB--rsort\fR"
+reverse sorting of jobs according to jobid, submissiontime or jobname
 .IP "\fB-t\fR, \fB--timeout\fR=\fIseconds\fR"
 timeout in seconds (default 20)
 .IP "\fB-z\fR, \fB--conffile\fR=\fIfilename\fR"
@@ -53,7 +57,7 @@ list of jobids and/or jobnames
 
 The
 .B arcstat
-command gives the status of a job submitted an ARC enabled
+command gives the status of a job submitted to a ARC enabled
 resource. The job can be referred to either by the jobid that was
 returned by
 .BR arcsub (1)
@@ -70,6 +74,19 @@ specified filename. By specifying the
 option, the status of all active jobs will be shown. If the
 .B --long
 option is given more detailed information is given.
+
+Jobs can be sorted according to the jobid, submissiontime or jobname, either
+in normal or reverse order. By using the
+.B --sort
+or
+.B --rsort
+option
+followed by the desired ordering ('jobid', 'submissiontime' or 'jobname'), jobs
+will be sorted in normal or reverse order. Note that the options
+.B --sort
+and
+.B --rsort
+cannot be used at the same time.
 
 The
 .B --cluster

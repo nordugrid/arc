@@ -7,6 +7,7 @@
 #include <iostream>
 #include <list>
 #include <string>
+#include <algorithm>
 
 #include <arc/ArcLocation.h>
 #include <arc/IString.h>
@@ -67,6 +68,19 @@ int main(int argc, char **argv) {
                     istring("long format (more information)"),
                     longlist);
 
+  typedef bool (*JobSorting)(const Arc::Job*, const Arc::Job*);
+  std::string sort = "", rsort = "";
+  std::map<std::string, JobSorting> orderings;
+  orderings["jobid"] = &Arc::Job::CompareJobID;
+  orderings["submissiontime"] = &Arc::Job::CompareSubmissionTime;
+  orderings["jobname"] = &Arc::Job::CompareJobName;
+  options.AddOption('S', "sort",
+                    istring("sort jobs according to jobid, submissiontime or jobname"),
+                    istring("order"), sort);
+  options.AddOption('R', "rsort",
+                    istring("reverse sorting of jobs according to jobid, submissiontime or jobname"),
+                    istring("order"), rsort);
+
   int timeout = -1;
   options.AddOption('t', "timeout", istring("timeout in seconds (default 20)"),
                     istring("seconds"), timeout);
@@ -110,6 +124,23 @@ int main(int argc, char **argv) {
     return 0;
   }
 
+  if (!sort.empty() && !rsort.empty()) {
+    logger.msg(Arc::ERROR, "The 'sort' and 'rsort' flags cannot be specified at the same time.");
+    return 1;
+  }
+
+  if (!rsort.empty()) {
+    sort = rsort;
+  }
+
+  if (!sort.empty() && orderings.find(sort) == orderings.end()) {
+    std::cerr << "Jobs cannot be sorted by \"" << sort << "\", the following orderings are supported:" << std::endl;
+    for (std::map<std::string, JobSorting>::const_iterator it = orderings.begin();
+         it != orderings.end(); it++)
+      std::cerr << it->first << std::endl;
+    return 1;
+  }
+
   if ((!joblist.empty() || !status.empty()) && jobs.empty() && clusters.empty())
     all = true;
 
@@ -139,10 +170,25 @@ int main(int argc, char **argv) {
   }
 
   int retval = 0;
-  for (std::list<Arc::JobController*>::iterator it = jobcont.begin();
-       it != jobcont.end(); it++) {
-    if (!(*it)->PrintJobStatus(status, longlist))
-      retval = 1;
+  if (!sort.empty()) {
+    std::vector<const Arc::Job*> jobs;
+    for (std::list<Arc::JobController*>::iterator it = jobcont.begin();
+         it != jobcont.end(); it++)
+      (*it)->FetchJobs(status, jobs);
+
+    rsort.empty() ? std::sort(jobs.begin(),  jobs.end(),  orderings[sort]) :
+                    std::sort(jobs.rbegin(), jobs.rend(), orderings[sort]);
+
+    for (std::vector<const Arc::Job*>::const_iterator it = jobs.begin();
+         it != jobs.end(); it++)
+      (*it)->Print(longlist);
+  }
+  else {
+    for (std::list<Arc::JobController*>::iterator it = jobcont.begin();
+         it != jobcont.end(); it++) {
+      if (!(*it)->PrintJobStatus(status, longlist))
+        retval = 1;
+    }
   }
 
   return retval;

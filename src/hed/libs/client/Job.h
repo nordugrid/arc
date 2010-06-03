@@ -9,8 +9,8 @@
 #include <string>
 
 namespace Arc {
-  
-  
+
+
   /// Job
   /**
    * This class describe a Grid job. Most of the members contained in
@@ -19,7 +19,7 @@ namespace Arc {
    */
   class Job {
   public:
-    
+
     /// Create a Job object
     /**
      * Default constructor. Takes no arguments.
@@ -105,6 +105,10 @@ namespace Arc {
      * @param longlist is boolean for long listing (more details).
      */
     void Print(bool longlist) const;
+
+    static bool CompareJobID(const Job* a, const Job* b);
+    static bool CompareSubmissionTime(const Job* a, const Job* b);
+    static bool CompareJobName(const Job* a, const Job* b);
   };
 
 } // namespace Arc

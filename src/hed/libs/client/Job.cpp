@@ -123,4 +123,15 @@ namespace Arc {
 
   } // end Print
 
+  bool Job::CompareJobID(const Job* a, const Job* b) {
+    return a->JobID.fullstr().compare(b->JobID.fullstr()) < 0;
+  }
+
+  bool Job::CompareSubmissionTime(const Job* a, const Job* b) {
+    return a->SubmissionTime < b->SubmissionTime;
+  }
+
+  bool Job::CompareJobName(const Job* a, const Job* b) {
+    return a->Name.compare(b->Name) < 0;
+  }
 } // namespace Arc

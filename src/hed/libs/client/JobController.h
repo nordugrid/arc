@@ -4,6 +4,7 @@
 #define __ARC_JOBCONTROLLER_H__
 
 #include <list>
+#include <vector>
 #include <string>
 
 #include <arc/ArcConfig.h>
@@ -45,7 +46,7 @@ namespace Arc {
 
     /// Fill jobstore
     /**
-     * Method to fill the jobstore with jobs that should be managed. 
+     * Method to fill the jobstore with jobs that should be managed.
      *
      * @param jobids List of jobids to be loaded to the jobstore. If
      * empty all jobs of the specialized grid flavour present in the
@@ -106,7 +107,7 @@ namespace Arc {
      * @param forcemigration boolean which specifies whether a
      * migrated job should persist if the new cluster does not succeed
      * sending a kill/terminate request for the job.
-     * 
+     *
      **/
     bool Migrate(TargetGenerator& targetGen,
                  Broker *broker,
@@ -127,6 +128,8 @@ namespace Arc {
                                       const bool getlocal);
 
     void CheckLocalDescription(std::list<Job>& jobs);
+
+    void FetchJobs(const std::list<std::string>& status, std::vector<const Job*>& jobs);
 
     const std::list<Job>& GetJobs() const {
       return jobstore;

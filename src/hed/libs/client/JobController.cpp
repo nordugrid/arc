@@ -495,7 +495,7 @@ namespace Arc {
 
     GetJobInformation();
 
-    for (std::list<Job>::iterator it = jobstore.begin();
+    for (std::list<Job>::const_iterator it = jobstore.begin();
          it != jobstore.end(); it++) {
       if (!it->State) {
         logger.msg(WARNING, "Job information not found: %s", it->JobID.str());
@@ -514,6 +514,30 @@ namespace Arc {
       it->Print(longlist);
     }
     return true;
+  }
+
+  void JobController::FetchJobs(const std::list<std::string>& status,
+                                std::vector<const Job*>& jobs) {
+    GetJobInformation();
+
+    for (std::list<Job>::const_iterator it = jobstore.begin();
+         it != jobstore.end(); it++) {
+      if (!it->State) {
+        logger.msg(WARNING, "Job information not found: %s", it->JobID.str());
+        if (Time() - it->LocalSubmissionTime < 90)
+          logger.msg(WARNING, "This job was very recently "
+                     "submitted and might not yet "
+                     "have reached the information-system");
+        continue;
+      }
+
+      if (!status.empty() &&
+          std::find(status.begin(), status.end(), it->State()) == status.end() &&
+          std::find(status.begin(), status.end(), it->State.GetGeneralState()) == status.end())
+        continue;
+
+      jobs.push_back(&*it);
+    }
   }
 
   bool JobController::Migrate(TargetGenerator& targetGen,
