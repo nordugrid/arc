@@ -206,7 +206,7 @@ static bool read_env_vars(bool guess) {
     std::string tmp = Arc::GetEnv("ARC_CONFIG");
     if(tmp.empty()) {
       tmp=Arc::GetEnv("NORDUGRID_CONFIG");
-      if(tmp.empty()) {
+      if(tmp.empty() && guess) {
         tmp="/etc/arc.conf";
         nordugrid_config_loc_=tmp;
         if(!file_exists(tmp.c_str())) {
