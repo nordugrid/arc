@@ -579,35 +579,36 @@ int main(int argc, char *argv[]) {
       if (vomses_path.empty())
         vomses_path = Arc::GetEnv("X509_VOMS_DIR");
       if (vomses_path.empty())
+        vomses_path = Arc::GetEnv("X509_VOMS_FILE");
+      if (vomses_path.empty())
+        vomses_path = Arc::GetEnv("X509_VOMSES");
+      if (vomses_path.empty())
         vomses_path = usercfg.VOMSServerPath();
 
       if (vomses_path.empty()) {
-        vomses_path = "/etc/grid-security/vomses";
+        vomses_path = user.Home() + G_DIR_SEPARATOR_S + ".vomses";
         if (!Glib::file_test(vomses_path, Glib::FILE_TEST_IS_REGULAR)) {
-          vomses_path = Arc::ArcLocation::Get() + G_DIR_SEPARATOR_S + "etc" + G_DIR_SEPARATOR_S + "grid-security" + G_DIR_SEPARATOR_S + "vomses";
+          vomses_path = user.Home() + G_DIR_SEPARATOR_S + ".voms" + G_DIR_SEPARATOR_S + "vomses";
           if (!Glib::file_test(vomses_path, Glib::FILE_TEST_IS_REGULAR)) {
-            vomses_path = user.Home() + G_DIR_SEPARATOR_S + ".vomses";
+            vomses_path = G_DIR_SEPARATOR_S;
+            vomses_path.append("etc").append(G_DIR_SEPARATOR_S).append("grid-security").append(G_DIR_SEPARATOR_S).append("vomses");
             if (!Glib::file_test(vomses_path, Glib::FILE_TEST_IS_REGULAR)) {
-              vomses_path = G_DIR_SEPARATOR_S;
-              vomses_path.append("etc").append(G_DIR_SEPARATOR_S).append("grid-security").append(G_DIR_SEPARATOR_S).append("vomses");
+              vomses_path = Arc::ArcLocation::Get() + G_DIR_SEPARATOR_S + "etc" + G_DIR_SEPARATOR_S + "grid-security" + G_DIR_SEPARATOR_S + "vomses";
               if (!Glib::file_test(vomses_path, Glib::FILE_TEST_IS_REGULAR)) {
                 vomses_path = G_DIR_SEPARATOR_S;
                 vomses_path.append("etc").append(G_DIR_SEPARATOR_S).append("vomses");
                 if (!Glib::file_test(vomses_path, Glib::FILE_TEST_IS_REGULAR)) {
-                  vomses_path = user.Home() + G_DIR_SEPARATOR_S + ".voms" + G_DIR_SEPARATOR_S + "vomses";
-                  if (!Glib::file_test(vomses_path, Glib::FILE_TEST_IS_REGULAR)) {
-                    std::string tmp1 = Arc::ArcLocation::Get() + G_DIR_SEPARATOR_S + "etc" + G_DIR_SEPARATOR_S + "grid-security" + G_DIR_SEPARATOR_S + "vomses";
-                    std::string tmp2 = user.Home() + G_DIR_SEPARATOR_S + ".vomses";
-                    std::string tmp3 = G_DIR_SEPARATOR_S;
-                    tmp3.append("etc").append(G_DIR_SEPARATOR_S).append("grid-security").append(G_DIR_SEPARATOR_S).append("vomses");
-                    std::string tmp4 = G_DIR_SEPARATOR_S;
-                    tmp4.append("etc").append(G_DIR_SEPARATOR_S).append("vomses");
-                    std::string tmp5 = user.Home() + G_DIR_SEPARATOR_S + ".voms" + G_DIR_SEPARATOR_S + "vomses";
-                    logger.msg(Arc::ERROR, "Cannot find vomses at %s, %s, %s, %s and %s",
-                               tmp1, tmp2, tmp3, tmp4, tmp5);
-                    return EXIT_FAILURE;
-                  }
-                }
+                  std::string tmp1 = user.Home() + G_DIR_SEPARATOR_S + ".vomses";
+                  std::string tmp2 = user.Home() + G_DIR_SEPARATOR_S + ".voms" + G_DIR_SEPARATOR_S + "vomses";
+                  std::string tmp3 = G_DIR_SEPARATOR_S;
+                  tmp3.append("etc").append(G_DIR_SEPARATOR_S).append("grid-security").append(G_DIR_SEPARATOR_S).append("vomses");
+                  std::string tmp4 = Arc::ArcLocation::Get() + "etc" + G_DIR_SEPARATOR_S + "grid-security" + G_DIR_SEPARATOR_S + "vomses";
+                  std::string tmp5 = G_DIR_SEPARATOR_S;
+                  tmp5.append("etc").append(G_DIR_SEPARATOR_S).append("vomses");
+                  logger.msg(Arc::ERROR, "$X509_VOMS_DIR, $X509_VOMS_FILE, and $X509_VOMSES are not set;\n there is also not vomses location information in user's configuration file;\n Cannot find vomses at %s, %s, %s, %s and %s",
+                             tmp1, tmp2, tmp3, tmp4, tmp5);
+                  return EXIT_FAILURE;
+                }              
               }
             }
           }
