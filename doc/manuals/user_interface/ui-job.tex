@@ -192,6 +192,9 @@ Command line option \verb#-v# prints out version of the installed ARC client, an
    \texttt{-s, --status}& \textit{statusstr} &only select jobs whose status is \textit{statusstr}\\
 %   \texttt{-i, --index}& \textit{url} &URL of an index service\\
    \texttt{-l, --long}& & long format (extended information)\\
+   \texttt{-S, --sort}& \textit{criterion} & sort jobs according to jobid, submissiontime or jobname\\
+   \texttt{-R, --rsort}& \textit{criterion} & reverse sorting of jobs according to jobid, submissiontime or jobname\\
+
    \texttt{-t, --timeout}& \textit{time}& timeout for queries (default 20 sec)\\
    \texttt{-d, --debug}& \textit{debuglevel}&debug level is one of  FATAL, ERROR, WARNING, INFO, VERBOSE or DEBUG\\
    \texttt{-z, --conffile}&\textit{filename}& configuration file (default {\$}HOME/.arc/client.conf)\\
@@ -216,6 +219,14 @@ More than one job ID and/or name can be given.
 \end{framed}
 
 If the \verb#-l# option is given, extended information is printed.
+
+Jobs can be sorted according to the \texttt{jobid},
+\texttt{submissiontime} or \texttt{jobname}, either in normal or
+reverse order. By using the \verb#--sort# or \verb#--rsort# option
+followed by the desired ordering (\texttt{jobid},
+\texttt{submissiontime} or \texttt{jobname}), jobs will be sorted in
+normal or reverse order. Note that the options \verb#--sort# and
+\verb#--rsort# cannot be used at the same time.
 
 Options \verb#-a#, \verb#-c#, \verb#-s# and \verb#-j# do not use job ID or names. By
 specifying the \verb#-a# option, the status of all active jobs will be shown. If the \verb#-j# option
