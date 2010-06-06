@@ -6,13 +6,7 @@
 
 #include <fstream>
 #include <glibmm.h>
-#ifdef HAVE_GIOMM
-#include <giomm/file.h>
-#include <giomm/error.h>
-#else
-#include <sys/stat.h>
 #include <arc/FileUtils.h>
-#endif
 
 #include <arc/ArcLocation.h>
 #include <arc/IniConfig.h>
@@ -1006,23 +1000,19 @@ namespace Arc {
 
   bool UserConfig::makeDir(const std::string& path) {
     bool dirCreated = false;
-#ifdef HAVE_GIOMM
-    try {
-      dirCreated = Gio::File::create_for_path(path)->make_directory();
-    } catch (Glib::Error e) {
-      logger.msg(WARNING, "%s", (std::string)e.what());
-    }
-#else
-    dirCreated = (mkdir(path.c_str(), 0755) == 0);
-#endif
+    dirCreated = DirCreate(path.c_str(), 0755);
 
     if (dirCreated)
       logger.msg(INFO, "%s directory created", path);
+    else
+      logger.msg(WARNING, "Failed to create directory %s", path);
 
     return dirCreated;
   }
 
   bool UserConfig::copyFile(const std::string& source, const std::string& destination) {
+/*
+TODO: Make FileUtils function to this
 #ifdef HAVE_GIOMM
     try {
       return Gio::File::create_for_path(source)->copy(Gio::File::create_for_path(destination), Gio::FILE_COPY_NONE);
@@ -1031,6 +1021,7 @@ namespace Arc {
       return false;
     }
 #else
+*/
     std::ifstream ifsSource(source.c_str(), std::ios::in | std::ios::binary);
     if (!ifsSource)
       return false;
@@ -1048,27 +1039,14 @@ namespace Arc {
     }
 
     return true;
-#endif
+//#endif
   }
 
   bool UserConfig::UtilsDirPath(const std::string& dir) {
-#ifdef HAVE_GIOMM
-    if (Gio::File::create_for_path(dir)->query_exists())
-      utilsdir = dir;
-    else if (!Gio::File::create_for_path(dir)->make_directory_with_parents())
+    if (!DirCreate(dir.c_str(), 0700, true))
       logger.msg(WARNING, "Failed to create directory %s", dir);
     else
       utilsdir = dir;
-
-#else
-    struct stat st;
-    if (FileStat (dir.c_str(), &st))
-      utils_dir = dir;
-    else if (!DirCreate(dir.c_str(), 0700)) {
-      logger.msg(WARNING, "Failed to create directory %s", dir);
-    else
-        utils_dir = dir;
-#endif
     return true;
   }
 

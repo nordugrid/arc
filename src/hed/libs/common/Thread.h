@@ -5,8 +5,6 @@
 
 #include <glibmm/thread.h>
 
-#include <arc/User.h>
-
 namespace Arc {
 
   class SimpleCondition;

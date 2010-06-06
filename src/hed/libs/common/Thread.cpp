@@ -20,6 +20,7 @@
 
 #include "Thread.h"
 #include "Logger.h"
+#include "User.h"
 
 
 namespace Arc {
