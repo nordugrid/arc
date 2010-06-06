@@ -9,6 +9,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -92,27 +93,59 @@ bool FileStat(const char* path,struct stat *st,uid_t uid,gid_t gid,bool follow_s
     UserSwitch usw(uid,gid);
     if(!usw) return false;
     if(follow_symlinks) {
-      r = stat(path,st);
+      r = ::stat(path,st);
     } else {
-      r = lstat(path,st);
+      r = ::lstat(path,st);
     };
   };
   return (r == 0);
 }
 
-bool DirCreate(const char* path,mode_t mode) {
-  return DirCreate(path,0,0,mode);
+bool DirCreate(const char* path,mode_t mode,bool with_parents) {
+  return DirCreate(path,0,0,mode,with_parents);
 }
 
 // TODO: find non-blocking way to create directory
-bool DirCreate(const char* path,uid_t uid,gid_t gid,mode_t mode) {
+bool DirCreate(const char* path,uid_t uid,gid_t gid,mode_t mode,bool with_parents) {
   int r = -1;
   {
     UserSwitch usw(uid,gid);
     if(!usw) return false;
-    r = mkdir(path,mode);
-  };
-  return (r == 0);
+    if(::mkdir(path,mode) == 0) return true;
+  }
+  if(errno == EEXIST) {
+    /*
+    Should it be just dumb mkdir or something clever?
+    struct stat st; 
+    r = ::stat(path,&st);
+    if((r == 0) && (S_ISDIR(st.st_mode))) {
+      if((uid == 0) || (st.st_uid == uid)) {
+        if((gid == 0) || (st.st_gid == gid) ||
+           (::chown(path,(uid_t)(-1),gid) == 0)) {
+          // mode ?
+          return true;
+        }
+      }
+    }
+    */
+    return true;
+  } else if(errno == ENOENT) {
+    if(with_parents) {
+      std::string ppath(path);
+      if(!Glib::path_is_absolute(ppath)) {
+        ppath=Glib::get_current_dir()+G_DIR_SEPARATOR_S+ppath;
+      }
+      std::string::size_type pos = ppath.rfind(G_DIR_SEPARATOR_S);
+      if((pos != 0) && (pos != std::string::npos)) {
+        ppath.resize(pos);
+        if(!DirCreate(ppath.c_str(),uid,gid,mode,true)) return false;
+        UserSwitch usw(uid,gid);
+        if(!usw) return false;
+        if(::mkdir(path,mode) == 0) return true;
+      }
+    }
+  }
+  return false;
 }
 
 
@@ -130,7 +163,7 @@ bool DirDelete(const char* path,uid_t uid,gid_t gid) {
 bool DirDelete(const char* path) {
 
   struct stat st;
-  if (stat(path, &st) != 0 || ! S_ISDIR(st.st_mode))
+  if (::stat(path, &st) != 0 || ! S_ISDIR(st.st_mode))
     return false;
   try {
     Glib::Dir dir(path);
@@ -138,13 +171,13 @@ bool DirDelete(const char* path) {
     while ((file_name = dir.read_name()) != "") {
       std::string fullpath(path);
       fullpath += '/' + file_name;
-      if (lstat(fullpath.c_str(), &st) != 0) return false;
+      if (::lstat(fullpath.c_str(), &st) != 0) return false;
       if (S_ISDIR(st.st_mode)) {
         if (!DirDelete(fullpath.c_str())) {
           return false;
         }
       } else {
-        if (remove(fullpath.c_str()) != 0) {
+        if (::remove(fullpath.c_str()) != 0) {
           return false;
         }
       }
