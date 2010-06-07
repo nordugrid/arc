@@ -46,53 +46,68 @@ Arc::MCC_Status Service_SLCS::process(Arc::Message& inmsg,Arc::Message& outmsg) 
 
   //Get identity-related information from saml assertion which has been put 
   //as MessageAuthContext by SPService on the same connection as this slcs service
+  Arc::SecAttr* samlattr;
+  Arc::MessageAuthContext* mauthctx = outmsg.AuthContext();
+  if(mauthctx) {
+    samlattr = mauthctx->get("SAMLAssertion");
+    if(samlattr) {
+      Arc::XMLNode node;
+      Arc::SecAttrFormat format = Arc::SecAttr::SAML;
+      samlattr->Export(format, node);
+      std::string str;
+      node.GetXML(str);
+      logger_.msg(Arc::VERBOSE, "SAML Assertion parsed from SP Service:\n%s",str); 
+    }
+    else {
+      logger_.msg(Arc::ERROR, "Can not get SAMLAssertion SecAttr from outgoing message AuthContext");
+      return Arc::MCC_Status();
+    }
+  }
+  else { 
+    logger_.msg(Arc::ERROR, "MessageAuthContext can not be parsed from outgoing message");
+    return Arc::MCC_Status();
+  }
+
   std::string identity;
   std::string ou, cn;
   std::string saml_assertion_str; 
-  {
-    Arc::SecAttr* sattr = inmsg.Auth()->get("SAMLAssertion");
-    if(!sattr) { 
-      logger_.msg(Arc::ERROR, "Can not get SAMLAssertion SecAttr from message context");
-      return Arc::MCC_Status();
-    }
-    Arc::XMLNode saml_assertion_nd;
-    if(sattr->Export(Arc::SecAttr::SAML, saml_assertion_nd)) {
-      saml_assertion_nd.GetXML(saml_assertion_str);
-      //The following code is IdP implementation specific. So for
-      //different types of saml assertion got from IdP, different 
-      //ways should be implemented here to get the identity-related
-      //information. 
-      //Probably, a specific sec handler is needed here for the identity parsing.
-      Arc::XMLNode attr_statement = saml_assertion_nd["AttributeStatement"];
-      for(int i=0;; i++) {
-        Arc::XMLNode cnd = attr_statement.Child(i);
-        if(!cnd) break;
-        //Since here we are specifically using shibboleth as IdP, and there
-        //is one distinguished attribute value which is created by Shibboleth IdP,
-        //see the following as an example:
-        //<saml:Attribute FriendlyName="eduPersonPrincipalName" 
-        //   Name="urn:oid:1.3.6.1.4.1.5923.1.1.1.6" 
-        //   NameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:uri">
-        //   <saml:AttributeValue xmlns:xs="http://www.w3.org/2001/XMLSchema" 
-        //      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
-        //      xsi:type="xs:string">
-        //      staff@knowarc.eu
-        //   </saml:AttributeValue>
-        //</saml:Attribute>
-        //Therefore we base on "eduPersonPrincipalName" to create the DN 
-        //for the short-lived certificate. In addition, the "O=KnowARC" is 
-        //fixedly used as "/O=KnowARC".
-        //So in case of the above example, the DN is: /CN=staff/OU=knowarc.eu/O=KnowARC
-        //
-        //However, there should be more elegant and configurable way for creating DN.
-        if((std::string)(cnd.Attribute("FriendlyName")) == "eduPersonPrincipalName") {
-          identity = (std::string)(cnd["AttributeValue"]);
-          std::size_t pos;
-          pos = identity.find("@");
-          if(pos != std::string::npos) {
-            cn = identity.substr(0, pos);
-            ou = identity.substr(pos+1);
-          };
+  Arc::XMLNode saml_assertion_nd;
+  if(samlattr->Export(Arc::SecAttr::SAML, saml_assertion_nd)) {
+    saml_assertion_nd.GetXML(saml_assertion_str);
+    //The following code is IdP implementation specific. So for
+    //different types of saml assertion got from IdP, different 
+    //ways should be implemented here to get the identity-related
+    //information. 
+    //Probably, a specific sec handler is needed here for the identity parsing.
+    Arc::XMLNode attr_statement = saml_assertion_nd["AttributeStatement"];
+    for(int i=0;; i++) {
+      Arc::XMLNode cnd = attr_statement.Child(i);
+      if(!cnd) break;
+      //Since here we are specifically using shibboleth as IdP, and there
+      //is one distinguished attribute value which is created by Shibboleth IdP,
+      //see the following as an example:
+      //<saml:Attribute FriendlyName="eduPersonPrincipalName" 
+      //   Name="urn:oid:1.3.6.1.4.1.5923.1.1.1.6" 
+      //   NameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:uri">
+      //   <saml:AttributeValue xmlns:xs="http://www.w3.org/2001/XMLSchema" 
+      //      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+      //      xsi:type="xs:string">
+      //      staff@knowarc.eu
+      //   </saml:AttributeValue>
+      //</saml:Attribute>
+      //Therefore we base on "eduPersonPrincipalName" to create the DN 
+      //for the short-lived certificate. In addition, the "O=KnowARC" is 
+      //fixedly used as "/O=KnowARC".
+      //So in case of the above example, the DN is: /CN=staff/OU=knowarc.eu/O=KnowARC
+      //
+      //However, there should be more elegant and configurable way for creating DN.
+      if((std::string)(cnd.Attribute("FriendlyName")) == "eduPersonPrincipalName") {
+        identity = (std::string)(cnd["AttributeValue"]);
+        std::size_t pos;
+        pos = identity.find("@");
+        if(pos != std::string::npos) {
+          cn = identity.substr(0, pos);
+          ou = identity.substr(pos+1);
         };
       };
     };
@@ -149,7 +164,6 @@ Arc::MCC_Status Service_SLCS::process(Arc::Message& inmsg,Arc::Message& outmsg) 
     dn.append(ou).append("/CN=").append(cn);
     logger_.msg(Arc::INFO, "Composed DN: %s",dn.c_str());
 
-
     //Sign the certificate
     std::string x509_cert;
     ca_credential_->SignEECRequest(&eec, dn, x509_cert);
@@ -179,6 +193,7 @@ Arc::MCC_Status Service_SLCS::process(Arc::Message& inmsg,Arc::Message& outmsg) 
     logger.msg(Arc::VERBOSE, "process: %s: not supported",method);
     return Arc::MCC_Status();
   }
+
   return Arc::MCC_Status();
 }
 

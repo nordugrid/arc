@@ -409,8 +409,12 @@ Arc::MCC_Status Service_SP::process(Arc::Message& inmsg,Arc::Message& outmsg) {
       //as this saml2sso process
 
       SAMLAssertionSecAttr* sattr = new SAMLAssertionSecAttr(decrypted_assertion_nd);
-      inmsg.Auth()->set("SAMLAssertion", sattr);
-
+      Arc::MessageAuthContext* mauthctx = outmsg.AuthContext();
+      if(mauthctx) {
+        mauthctx->set("SAMLAssertion", sattr);
+      }
+      else { std::cout<<"MessageAuthContext is empty"<<std::endl; }
+      
       Arc::PayloadRaw* outpayload = NULL;
       outpayload = new Arc::PayloadRaw;
       //std::string authorization_info("SAML2SSO process succeeded");
