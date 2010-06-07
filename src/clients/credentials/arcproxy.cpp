@@ -577,8 +577,6 @@ int main(int argc, char *argv[]) {
       //Parse the 'vomses' file to find configure lines corresponding to
       //the information from the command line
       if (vomses_path.empty())
-        vomses_path = Arc::GetEnv("X509_VOMS_DIR");
-      if (vomses_path.empty())
         vomses_path = Arc::GetEnv("X509_VOMS_FILE");
       if (vomses_path.empty())
         vomses_path = Arc::GetEnv("X509_VOMSES");
@@ -586,9 +584,9 @@ int main(int argc, char *argv[]) {
         vomses_path = usercfg.VOMSServerPath();
 
       if (vomses_path.empty()) {
-        vomses_path = user.Home() + G_DIR_SEPARATOR_S + ".vomses";
+        vomses_path = user.Home() + G_DIR_SEPARATOR_S + ".voms" + G_DIR_SEPARATOR_S + "vomses";
         if (!Glib::file_test(vomses_path, Glib::FILE_TEST_IS_REGULAR)) {
-          vomses_path = user.Home() + G_DIR_SEPARATOR_S + ".voms" + G_DIR_SEPARATOR_S + "vomses";
+          vomses_path = user.Home() + G_DIR_SEPARATOR_S + ".arc" + G_DIR_SEPARATOR_S + "vomses";
           if (!Glib::file_test(vomses_path, Glib::FILE_TEST_IS_REGULAR)) {
             vomses_path = G_DIR_SEPARATOR_S;
             vomses_path.append("etc").append(G_DIR_SEPARATOR_S).append("grid-security").append(G_DIR_SEPARATOR_S).append("vomses");
@@ -598,8 +596,8 @@ int main(int argc, char *argv[]) {
                 vomses_path = G_DIR_SEPARATOR_S;
                 vomses_path.append("etc").append(G_DIR_SEPARATOR_S).append("vomses");
                 if (!Glib::file_test(vomses_path, Glib::FILE_TEST_IS_REGULAR)) {
-                  std::string tmp1 = user.Home() + G_DIR_SEPARATOR_S + ".vomses";
-                  std::string tmp2 = user.Home() + G_DIR_SEPARATOR_S + ".voms" + G_DIR_SEPARATOR_S + "vomses";
+                  std::string tmp1 = user.Home() + G_DIR_SEPARATOR_S + ".voms" + G_DIR_SEPARATOR_S + "vomses";
+                  std::string tmp2 = user.Home() + G_DIR_SEPARATOR_S + ".arc" + G_DIR_SEPARATOR_S + "vomses";
                   std::string tmp3 = G_DIR_SEPARATOR_S;
                   tmp3.append("etc").append(G_DIR_SEPARATOR_S).append("grid-security").append(G_DIR_SEPARATOR_S).append("vomses");
                   std::string tmp4 = Arc::ArcLocation::Get() + "etc" + G_DIR_SEPARATOR_S + "grid-security" + G_DIR_SEPARATOR_S + "vomses";
