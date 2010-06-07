@@ -12,6 +12,7 @@
 #include <string.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/mman.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <poll.h>
@@ -24,6 +25,16 @@
 namespace Arc {
 
 Glib::Mutex suid_lock;
+
+static bool write_all(int h,const void* buf,size_t l) {
+  for(;l>0;) {
+    ssize_t ll = write(h,buf,l);
+    if(ll == -1) return false;
+    buf = (const void*)(((const char*)buf)+ll);
+    l-=ll;
+  }
+  return true;
+}
 
 int FileOpen(const char* path,int flags,mode_t mode) {
   return FileOpen(path,flags,0,0,mode);
@@ -60,6 +71,78 @@ int FileOpen(const char* path,int flags,uid_t uid,gid_t gid,mode_t mode) {
     return -1;
   };
   return h;
+}
+
+bool FileCopy(const char* source_path,const char* destination_path) {
+  struct stat st;
+  int source_handle = FileOpen(source_path,O_RDONLY,0,0,0);
+  if(source_handle == -1) return false;
+  if(!FileStat(source_path,&st,true)) return false;
+  int destination_handle = FileOpen(destination_path,O_WRONLY | O_CREAT | O_TRUNC,0,0,st.st_mode);
+  if(destination_handle == -1) {
+    ::close(source_handle);
+    return false;
+  }
+  bool r = FileCopy(source_handle,destination_handle);
+  ::close(source_handle);
+  ::close(destination_handle);
+  return r;
+}
+
+bool FileCopy(const char* source_path,int destination_handle) {
+  int source_handle = FileOpen(source_path,O_RDONLY,0,0,0);
+  if(source_handle == -1) return false;
+  if(::ftruncate(destination_handle,0) != 0) {
+    ::close(source_handle);
+    return false;
+  }
+  bool r = FileCopy(source_handle,destination_handle);
+  ::close(source_handle);
+  return r;
+}
+
+bool FileCopy(int source_handle,const char* destination_path) {
+  int destination_handle = FileOpen(destination_path,O_WRONLY | O_CREAT | O_TRUNC,0,0,0600);
+  if(destination_handle == -1) return false;
+  bool r = FileCopy(source_handle,destination_handle);
+  ::close(destination_handle);
+  return r;
+}
+
+#define FileCopyBigThreshold (50*1024*1024)
+#define FileCopyBufSize (4*1024)
+
+bool FileCopy(int source_handle,int destination_handle) {
+  size_t source_size = lseek(source_handle,0,SEEK_END);
+  if( source_size == (off_t)(-1)) return false;
+  if(source_size == 0) return true;
+  if(source_size <= FileCopyBigThreshold) {
+    void* source_addr = mmap(NULL,source_size,PROT_READ,MAP_SHARED,source_handle,0);
+    if(source_addr != (void *)(-1)) {
+      bool r = write_all(destination_handle,source_addr,source_size);
+      munmap(source_addr,source_size);
+      return r;
+    }
+  }
+  if(lseek(source_handle,0,SEEK_SET) != 0) return false;
+  char* buf = new char[FileCopyBufSize];
+  if(!buf) return false;
+  bool r = true;
+  for(;;) {
+    ssize_t l = FileCopyBufSize;
+    l=::read(source_handle,buf,l);
+    if(l == 0) break; // less than expected
+    if(l == -1) {
+      // EWOULDBLOCK
+      r = false;
+      break;
+    }
+    if(!write_all(destination_handle,buf,l)) {
+      r = false;
+      break;
+    }
+  }
+  return r;
 }
 
 Glib::Dir* DirOpen(const char* path) {
