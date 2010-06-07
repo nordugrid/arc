@@ -53,7 +53,7 @@
         </Plexer>
         <Component name="soap.service" id="soap">
 	    <next id="slcs"/>
-            <SecHandler name="saml2ssoassertionconsumer.handler" id="saml2ssosp" event="incoming"/>
+            <!--SecHandler name="saml2ssoassertionconsumer.handler" id="saml2ssosp" event="incoming"/-->
         </Component>
         <Service name='saml.sp' id='samlsp'>
             <MetaDataLocation>./test_metadata.xml</MetaDataLocation>
