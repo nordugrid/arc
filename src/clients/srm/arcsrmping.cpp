@@ -55,6 +55,12 @@ int main(int argc, char **argv) {
 
   std::list<std::string> args = options.Parse(argc, argv);
 
+  if (version) {
+    std::cout << Arc::IString("%s version %s", "arcsrmping", VERSION)
+              << std::endl;
+    return 0;
+  }
+
   // If debug is specified as argument, it should be set before loading the configuration.
   if (!debug.empty())
     Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(debug));
@@ -64,18 +70,12 @@ int main(int argc, char **argv) {
     logger.msg(Arc::ERROR, "Failed configuration initialization");
     return 1;
   }
-  
+
   if (debug.empty() && !usercfg.Verbosity().empty())
     Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(usercfg.Verbosity()));
-  
+
   if (timeout > 0)
     usercfg.Timeout(timeout);
-
-  if (version) {
-    std::cout << Arc::IString("%s version %s", "arcsrmping", VERSION)
-              << std::endl;
-    return 0;
-  }
 
   if (args.size() != 1) {
     logger.msg(Arc::ERROR, "Wrong number of arguments!");

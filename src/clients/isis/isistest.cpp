@@ -1,3 +1,6 @@
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 #include <sys/stat.h>
 #include <time.h>
@@ -317,7 +320,18 @@ int main(int argc, char** argv) {
                 istring("configuration file (default ~/.arc/client.conf)"),
                 istring("filename"), conffile);
 
+    bool version = false;
+    options.AddOption('v', "version", istring("print version information"),
+                      version);
+
     std::list<std::string> parameters = options.Parse(argc, argv);
+
+    if (version) {
+      std::cout << Arc::IString("%s version %s", "isistest", VERSION)
+                << std::endl;
+      return 0;
+    }
+
     if (!method.empty() && parameters.empty()) {
        std::cout << "Use --help option for detailed usage information" << std::endl;
        return 1;

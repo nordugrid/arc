@@ -46,7 +46,7 @@ int main(int argc, char **argv) {
   int timeout = -1;
   options.AddOption('t', "timeout", istring("timeout in seconds (default 20)"),
                     istring("seconds"), timeout);
-                    
+
   std::string conffile;
   options.AddOption('z', "conffile",
                     istring("configuration file (default ~/.arc/client.conf)"),
@@ -67,7 +67,7 @@ int main(int argc, char **argv) {
     std::list<std::string> args = options.Parse(argc, argv);
 
     if (version) {
-      std::cout << Arc::IString("%s version %s", "arcinfo", VERSION)
+      std::cout << Arc::IString("%s version %s", "arcwsrf", VERSION)
                 << std::endl;
       return 0;
     }
@@ -97,7 +97,7 @@ int main(int argc, char **argv) {
     logger.msg(Arc::ERROR, "Failed configuration initialization");
     return 1;
   }
-  
+
   if (timeout > 0)
     usercfg.Timeout(timeout);
 
@@ -135,7 +135,7 @@ int main(int argc, char **argv) {
     return 1;
   }
   //SOAPEnvelope* SOAP(void);
- 
+
   URL u(url);
   if(!u) {
     logger.msg(Arc::ERROR, "Specified URL is not valid");

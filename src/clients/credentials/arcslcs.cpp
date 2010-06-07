@@ -208,6 +208,11 @@ int main(int argc, char *argv[]) {
 
   std::list<std::string> params = options.Parse(argc, argv);
 
+  if (version) {
+    std::cout << Arc::IString("%s version %s", "arcslcs", VERSION) << std::endl;
+    return 0;
+  }
+
   // If debug is specified as argument, it should be set before loading the configuration.
   if (!debug.empty())
     Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(debug));
@@ -252,11 +257,6 @@ int main(int argc, char *argv[]) {
 
   trusted_ca_path = usercfg.CACertificatePath();
   trusted_ca_dir = usercfg.CACertificatesDirectory();
-
-  if (version) {
-    std::cout << Arc::IString("%s version %s", "arcslcs", VERSION) << std::endl;
-    return 0;
-  }
 
   try {
     if (params.size() != 0)

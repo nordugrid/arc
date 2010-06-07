@@ -255,6 +255,11 @@ int main(int argc, char *argv[]) {
 
   std::list<std::string> params = options.Parse(argc, argv);
 
+  if (version) {
+    std::cout << Arc::IString("%s version %s", "arcproxy", VERSION) << std::endl;
+    return EXIT_SUCCESS;
+  }
+
   // If debug is specified as argument, it should be set before loading the configuration.
   if (!debug.empty())
     Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(debug));
@@ -270,11 +275,6 @@ int main(int argc, char *argv[]) {
 
   if (timeout > 0)
     usercfg.Timeout(timeout);
-
-  if (version) {
-    std::cout << Arc::IString("%s version %s", "arcproxy", VERSION) << std::endl;
-    return EXIT_SUCCESS;
-  }
 
   Arc::User user;
 
@@ -606,7 +606,7 @@ int main(int argc, char *argv[]) {
                   logger.msg(Arc::ERROR, "$X509_VOMS_DIR, $X509_VOMS_FILE, and $X509_VOMSES are not set;\n there is also not vomses location information in user's configuration file;\n Cannot find vomses at %s, %s, %s, %s and %s",
                              tmp1, tmp2, tmp3, tmp4, tmp5);
                   return EXIT_FAILURE;
-                }              
+                }
               }
             }
           }
@@ -861,7 +861,7 @@ int main(int argc, char *argv[]) {
 
       std::string proxy_cred_str_pem;
       std::ifstream proxy_cred_file(proxy_path.c_str());
-      if(!proxy_cred_file) 
+      if(!proxy_cred_file)
         throw std::invalid_argument("Failed to read proxy file "+proxy_path);
       std::getline(proxy_cred_file,proxy_cred_str_pem,'\0');
       if(proxy_cred_str_pem.empty())

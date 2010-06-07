@@ -105,6 +105,12 @@ int main(int argc, char **argv) {
 
   std::list<std::string> jobs = options.Parse(argc, argv);
 
+  if (version) {
+    std::cout << Arc::IString("%s version %s", "arcmigrate", VERSION)
+              << std::endl;
+    return 0;
+  }
+
   // If debug is specified as argument, it should be set before loading the configuration.
   if (!debug.empty())
     Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(debug));
@@ -123,12 +129,6 @@ int main(int argc, char **argv) {
 
   if (!broker.empty())
     usercfg.Broker(broker);
-
-  if (version) {
-    std::cout << Arc::IString("%s version %s", "arcmigrate", VERSION)
-              << std::endl;
-    return 0;
-  }
 
   if (!joblist.empty() && jobs.empty() && clusters.empty())
     all = true;

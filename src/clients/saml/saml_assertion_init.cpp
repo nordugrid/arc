@@ -58,14 +58,14 @@ int main(int argc, char* argv[]){
 
     std::list<std::string> params = options.Parse(argc, argv);
 
-    if (!debug.empty())
-        Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(debug));
-
     if (version) {
-        std::cout << Arc::IString("%s version %s", "voms_assertion_init", VERSION)
+        std::cout << Arc::IString("%s version %s", "saml_assertion_init", VERSION)
                   << std::endl;
         return 0;
     }
+
+    if (!debug.empty())
+        Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(debug));
 
     try{
       if (params.size()!=1) {
@@ -84,8 +84,8 @@ int main(int argc, char* argv[]){
 
       //Compose the soap which include <samlp:AttributeQuery/>
 
-      //Use the credential which is configured in MCCConfig for the 
-      //credential setup in <samlp:AttributeQuery> 
+      //Use the credential which is configured in MCCConfig for the
+      //credential setup in <samlp:AttributeQuery>
       std::string cert = (std::string)(cfg.overlay["Chain"]["Component"]["CertificatePath"]);
       std::string key = (std::string)(cfg.overlay["Chain"]["Component"]["KeyPath"]);
       std::string cafile = (std::string)(cfg.overlay["Chain"]["Component"]["CACertificatePath"]);
@@ -94,8 +94,8 @@ int main(int argc, char* argv[]){
       Arc::Credential cred(cert, key, cadir, cafile);
       std::string local_dn_str = cred.GetDN();
       std::string local_dn = Arc::convert_to_rdn(local_dn_str);
-       
-      //Compose <samlp:AttributeQuery/> 
+
+      //Compose <samlp:AttributeQuery/>
       Arc::NS ns;
       ns["saml"] = SAML_NAMESPACE;
       ns["samlp"] = SAMLP_NAMESPACE;
@@ -119,8 +119,8 @@ int main(int argc, char* argv[]){
       Arc::XMLNode name_id = subject.NewChild("saml:NameID");
       name_id.NewAttribute("Format")=std::string("urn:oasis:names:tc:SAML:1.1:nameid-format:x509SubjectName");
       name_id = local_dn;
- 
-      //Add one or more <Attribute>s into AttributeQuery here, which means the 
+
+      //Add one or more <Attribute>s into AttributeQuery here, which means the
       //Requestor would get these <Attribute>s from AA <saml:Attribute/>
       //TODO
 
@@ -150,7 +150,7 @@ int main(int argc, char* argv[]){
         logger.msg(Arc::ERROR, "No <saml:Response/> in SOAP response");
         throw std::runtime_error("No <saml:Response/> in SOAP response");
       }
-      
+
       Arc::XMLNode saml_assertion = saml_response["Assertion"];
       if(!saml_assertion) {
         logger.msg(Arc::ERROR, "No <saml:Assertion/> in SAML response");

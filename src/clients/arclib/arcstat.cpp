@@ -101,6 +101,12 @@ int main(int argc, char **argv) {
 
   std::list<std::string> jobs = options.Parse(argc, argv);
 
+  if (version) {
+    std::cout << Arc::IString("%s version %s", "arcstat", VERSION)
+              << std::endl;
+    return 0;
+  }
+
   // If debug is specified as argument, it should be set before loading the configuration.
   if (!debug.empty())
     Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(debug));
@@ -116,13 +122,6 @@ int main(int argc, char **argv) {
 
   if (timeout > 0)
     usercfg.Timeout(timeout);
-
-
-  if (version) {
-    std::cout << Arc::IString("%s version %s", "arcstat", VERSION)
-              << std::endl;
-    return 0;
-  }
 
   if (!sort.empty() && !rsort.empty()) {
     logger.msg(Arc::ERROR, "The 'sort' and 'rsort' flags cannot be specified at the same time.");

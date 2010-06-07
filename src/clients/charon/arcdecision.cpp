@@ -69,7 +69,7 @@ int main(int argc, char* argv[]){
     int timeout = -1;
     options.AddOption('t', "timeout", istring("timeout in seconds (default 20)"),
                       istring("seconds"), timeout);
-                      
+
     std::string debug;
     options.AddOption('d', "debug",
                       istring("FATAL, ERROR, WARNING, INFO, VERBOSE or DEBUG"),
@@ -81,6 +81,12 @@ int main(int argc, char* argv[]){
 
     std::list<std::string> params = options.Parse(argc, argv);
 
+    if (version) {
+        std::cout << Arc::IString("%s version %s", "arcdecision", VERSION)
+                  << std::endl;
+        return 0;
+    }
+
     // If debug is specified as argument, it should be set before loading the configuration.
     if (!debug.empty())
       Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(debug));
@@ -90,18 +96,12 @@ int main(int argc, char* argv[]){
       std::cerr<<"Failed configuration initialization"<<std::endl;
       return EXIT_FAILURE;
     }
-  
+
     if (debug.empty() && !usercfg.Verbosity().empty())
       Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(usercfg.Verbosity()));
 
     if (timeout > 0)
       usercfg.Timeout(timeout);
-  
-    if (version) {
-        std::cout << Arc::IString("%s version %s", "arcdecision", VERSION)
-                  << std::endl;
-        return 0;
-    }
 
     try{
       const std::string& key_path = usercfg.KeyPath();
@@ -127,13 +127,13 @@ int main(int argc, char* argv[]){
       if (!requestfile)
         throw std::invalid_argument("Could not open " + request_path);
       getline(requestfile, request_str, '\0');
-      Arc::XMLNode request_xml(request_str); 
+      Arc::XMLNode request_xml(request_str);
 
       if(use_saml) {
         Arc::NS ns;
         ns["saml"] = SAML_NAMESPACE;
         ns["samlp"] = SAMLP_NAMESPACE;
-        ns["xacml-samlp"] = XACML_SAMLP_NAMESPACE; 
+        ns["xacml-samlp"] = XACML_SAMLP_NAMESPACE;
         Arc::XMLNode authz_query(ns, "xacml-samlp:XACMLAuthzDecisionQuery");
         std::string query_id = Arc::UUID();
         authz_query.NewAttribute("ID") = query_id;
@@ -142,7 +142,7 @@ int main(int argc, char* argv[]){
         authz_query.NewAttribute("IssueInstant") = current_time;
         authz_query.NewAttribute("Version") = std::string("2.0");
 
-        Arc::Credential cred(cert_path.empty() ? proxy_path : cert_path, 
+        Arc::Credential cred(cert_path.empty() ? proxy_path : cert_path,
            cert_path.empty() ? proxy_path : key_path, ca_dir, ca_file);
         std::string local_dn_str = cred.GetDN();
         std::string local_dn = Arc::convert_to_rdn(local_dn_str);
@@ -169,7 +169,7 @@ int main(int argc, char* argv[]){
           std::cerr<<"There was no SOAP response"<<std::endl;
           throw std::runtime_error("There was no SOAP response");
         }
-        std::string str;     
+        std::string str;
         resp->GetXML(str);
         std::cout<<"Response: "<<str<<std::endl;
 
@@ -213,7 +213,7 @@ int main(int argc, char* argv[]){
 
         if(authz_res == "PERMIT") { std::cout<<"Authorized from remote pdp service"<<std::endl; }
         else { std::cout<<"Unauthorized from remote pdp service"<<std::endl; }
-      }      
+      }
       return EXIT_SUCCESS;
     } catch (std::exception& e){
       // Notify the user about the failure

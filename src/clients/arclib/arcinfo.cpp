@@ -87,6 +87,12 @@ int main(int argc, char **argv) {
     clusters.insert(clusters.end(), clusterstmp.begin(), clusterstmp.end());
   }
 
+  if (version) {
+    std::cout << Arc::IString("%s version %s", "arcinfo", VERSION)
+              << std::endl;
+    return 0;
+  }
+
   // If debug is specified as argument, it should be set before loading the configuration.
   if (!debug.empty())
     Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(debug));
@@ -102,12 +108,6 @@ int main(int argc, char **argv) {
 
   if (timeout > 0)
     usercfg.Timeout(timeout);
-
-  if (version) {
-    std::cout << Arc::IString("%s version %s", "arcinfo", VERSION)
-              << std::endl;
-    return 0;
-  }
 
   if (!clusters.empty() || !indexurls.empty())
     usercfg.ClearSelectedServices();
