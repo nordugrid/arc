@@ -537,7 +537,7 @@ namespace Arc {
 
     // for generic URL just make sure path has leading /
     else if ((path[0] != '/') && (!path.empty())) {
-      URLLogger.msg(WARNING, "Attempt to assign relative path to URL - making it absolute");
+      URLLogger.msg(VERBOSE, "Attempt to assign relative path to URL - making it absolute");
       path = "/" + path;
     }
 
