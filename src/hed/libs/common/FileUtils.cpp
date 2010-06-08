@@ -2,22 +2,23 @@
 #include "config.h"
 #endif
 
-#ifndef WIN32
-// These utilities are POSIX specific.
-// They may work in MinGW but that needs testing.
-// So currently they are disabled in windows environment.
+// These utilities are implemented using POSIX.
+// But most used features are availble in MinGW
+// and hence code should compile in windows environment.
 
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <sys/mman.h>
 #include <fcntl.h>
 #include <unistd.h>
-#include <poll.h>
 #include <errno.h>
 #include <glibmm.h>
+#ifndef WIN32
+#include <poll.h>
+#include <sys/mman.h>
+#endif
 
 #include "FileUtils.h"
 #include "User.h"
@@ -42,6 +43,7 @@ int FileOpen(const char* path,int flags,mode_t mode) {
 
 int FileOpen(const char* path,int flags,uid_t uid,gid_t gid,mode_t mode) {
   int h = -1;
+#ifndef WIN32
   {
     UserSwitch usw(uid,gid);
     if(!usw) return -1;
@@ -70,6 +72,13 @@ int FileOpen(const char* path,int flags,uid_t uid,gid_t gid,mode_t mode) {
     close(h);
     return -1;
   };
+#else
+  {
+    UserSwitch usw(uid,gid);
+    if(!usw) return -1;
+    h = open(path,flags,mode);
+  };
+#endif
   return h;
 }
 
@@ -114,8 +123,9 @@ bool FileCopy(int source_handle,const char* destination_path) {
 
 bool FileCopy(int source_handle,int destination_handle) {
   size_t source_size = lseek(source_handle,0,SEEK_END);
-  if( source_size == (off_t)(-1)) return false;
+  if(source_size == (off_t)(-1)) return false;
   if(source_size == 0) return true;
+#ifndef WIN32
   if(source_size <= FileCopyBigThreshold) {
     void* source_addr = mmap(NULL,source_size,PROT_READ,MAP_SHARED,source_handle,0);
     if(source_addr != (void *)(-1)) {
@@ -124,6 +134,7 @@ bool FileCopy(int source_handle,int destination_handle) {
       return r;
     }
   }
+#endif
   if(lseek(source_handle,0,SEEK_SET) != 0) return false;
   char* buf = new char[FileCopyBufSize];
   if(!buf) return false;
@@ -175,11 +186,15 @@ bool FileStat(const char* path,struct stat *st,uid_t uid,gid_t gid,bool follow_s
   {
     UserSwitch usw(uid,gid);
     if(!usw) return false;
+#ifndef WIN32
     if(follow_symlinks) {
       r = ::stat(path,st);
     } else {
       r = ::lstat(path,st);
     };
+#else
+    r = ::stat(path,st);
+#endif
   };
   return (r == 0);
 }
@@ -194,7 +209,11 @@ bool DirCreate(const char* path,uid_t uid,gid_t gid,mode_t mode,bool with_parent
   {
     UserSwitch usw(uid,gid);
     if(!usw) return false;
+#ifndef WIN32
     if(::mkdir(path,mode) == 0) return true;
+#else
+    if(::mkdir(path) == 0) return true;
+#endif
   }
   if(errno == EEXIST) {
     /*
@@ -224,7 +243,11 @@ bool DirCreate(const char* path,uid_t uid,gid_t gid,mode_t mode,bool with_parent
         if(!DirCreate(ppath.c_str(),uid,gid,mode,true)) return false;
         UserSwitch usw(uid,gid);
         if(!usw) return false;
+#ifndef WIN32
         if(::mkdir(path,mode) == 0) return true;
+#else
+        if(::mkdir(path) == 0) return true;
+#endif
       }
     }
   }
@@ -254,7 +277,11 @@ bool DirDelete(const char* path) {
     while ((file_name = dir.read_name()) != "") {
       std::string fullpath(path);
       fullpath += '/' + file_name;
+#ifndef WIN32
       if (::lstat(fullpath.c_str(), &st) != 0) return false;
+#else
+      if (::stat(fullpath.c_str(), &st) != 0) return false;
+#endif
       if (S_ISDIR(st.st_mode)) {
         if (!DirDelete(fullpath.c_str())) {
           return false;
@@ -276,5 +303,4 @@ bool DirDelete(const char* path) {
 
 } // namespace Arc
 
-#endif
 
