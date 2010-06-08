@@ -346,9 +346,8 @@ bool PayloadHTTP::Flush(void) {
         std::string::size_type p1 = uri_.find("://");
         if(p1 != std::string::npos) {
           std::string::size_type p2 = uri_.find('/',p1+3);
-          if(p2 != std::string::npos) {
-            host=uri_.substr(p1+3,p2-p1-3);
-          };
+          if(p2 == std::string::npos) p2 = uri_.length();
+          host=uri_.substr(p1+3,p2-p1-3);
         };
       };
       header+="Host: "+host+"\r\n";
@@ -373,6 +372,7 @@ bool PayloadHTTP::Flush(void) {
       if(sbody_) {
         // stream to stream transfer
         // TODO: choose optimal buffer size
+        // TODO: parallel read and write for better performance
         int tbufsize = (length_>1024*1024)?(1024*1024):length_;
         char* tbuf = new char[tbufsize];
         if(!tbuf) return false;
