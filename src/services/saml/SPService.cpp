@@ -372,11 +372,11 @@ Arc::MCC_Status Service_SP::process(Arc::Message& inmsg,Arc::Message& outmsg) {
       std::string notonorafter_str = (std::string)(conditions.Attribute("NotOnOrAfter"));
       Time notonorafter = notonorafter_str;
       Time now = Time();
-      if(!notbefore_str.empty() && notbefore >= now) {
-        logger.msg(Arc::ERROR,"saml:Conditions, current time is before the start time"); 
+      if(!notbefore_str.empty() && (notbefore - Period(1)) >= now) { // one second tolerance 
+        logger.msg(Arc::ERROR,"saml:Conditions, current time: %s is before the start time: %s", now.str().c_str(), notbefore_str.c_str()); 
         return Arc::MCC_Status(); 
-      } else if (!notonorafter_str.empty() && notonorafter < now) {
-        logger.msg(Arc::ERROR,"saml:Conditions, current time is after the end time"); 
+      } else if (!notonorafter_str.empty() && (notonorafter + Period(1)) < now) {
+        logger.msg(Arc::ERROR,"saml:Conditions, current time: %s is after the end time: %s", now.str().c_str(), notonorafter_str.c_str()); 
         return Arc::MCC_Status(); 
       }     
 
