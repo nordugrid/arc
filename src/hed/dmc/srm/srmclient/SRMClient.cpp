@@ -43,18 +43,27 @@ Arc::Logger SRMClient::logger(Arc::Logger::getRootLogger(), "SRMClient");
     SRMFileInfo srm_file_info;
     // lists of ports and protocols in the order to try them
     std::vector<int> ports;
-    ports.push_back(srm_url.Port());
-    if (srm_url.Port() != 8443) ports.push_back(8443);
-    if (srm_url.Port() != 8446) ports.push_back(8446);
-    if (srm_url.Port() != 8444) ports.push_back(8444);
     std::vector<std::string> protocols;
-    if (srm_url.GSSAPI()) {
-      protocols.push_back("gssapi");
-      protocols.push_back("gsi");
+
+    // take hints from certain keywords in the url
+    if (srm_url.Path().find("/dpm/") != std::string::npos) {
+      ports.push_back(8446);
+      ports.push_back(8443);
+      ports.push_back(8444);
     }
     else {
+      ports.push_back(srm_url.Port());
+      if (srm_url.Port() != 8443) ports.push_back(8443);
+      if (srm_url.Port() != 8446) ports.push_back(8446);
+      if (srm_url.Port() != 8444) ports.push_back(8444);
+    }
+    if (!srm_url.GSSAPI() || srm_url.Host().find("dcache") != std::string::npos) {
       protocols.push_back("gsi");
       protocols.push_back("gssapi");
+    }
+    else {
+      protocols.push_back("gssapi");
+      protocols.push_back("gsi");
     }    
     
     srm_file_info.host = srm_url.Host();
