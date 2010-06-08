@@ -619,6 +619,7 @@ namespace Arc {
     HTTPInfo_t& info = *((HTTPInfo_t*)arg);
     DataPointHTTP& point = *(info.point);
     ClientHTTP *client = info.client;
+    URL client_url = point.url;
     bool transfer_failure = false;
     int retries = 0;
     point.transfer_lock.lock();
@@ -657,14 +658,13 @@ namespace Arc {
         // Return buffer
         point.buffer->is_read(transfer_handle, 0, 0);
         point.chunks->Unclaim(transfer_offset, chunk_length);
-        if (inbuf)
-          delete inbuf;
+        if (inbuf) delete inbuf;
         // Recreate connection
         delete client;
         client = NULL;
         MCCConfig cfg;
         point.usercfg.ApplyToConfig(cfg);
-        client = new ClientHTTP(cfg, point.url, point.usercfg.Timeout());
+        client = new ClientHTTP(cfg, client_url, point.usercfg.Timeout());
         continue;
       }
       if (transfer_info.code == 416) { // EOF
@@ -675,17 +675,43 @@ namespace Arc {
         // TODO: report file size to chunk control
         break;
       }
+      if((transfer_info.code == 301) || // permanent redirection
+         (transfer_info.code == 302) || // temporary redirection
+         (transfer_info.code == 303) || // POST to GET redirection
+         (transfer_info.code == 304)) { // redirection to cache
+        // 305 - redirection to proxy - unhandled
+        // Return buffer
+        point.buffer->is_read(transfer_handle, 0, 0);
+        point.chunks->Unclaim(transfer_offset, chunk_length);
+        if (inbuf) delete inbuf;
+        // Recreate connection now to new URL
+        delete client;
+        client = NULL;
+        MCCConfig cfg;
+        point.usercfg.ApplyToConfig(cfg);
+        client_url = transfer_info.location;
+        logger.msg(VERBOSE,"Redirecting to %s",transfer_info.location);
+        if(client_url && (
+            (client_url.Protocol() == "http") ||
+            (client_url.Protocol() == "https") ||
+            (client_url.Protocol() == "httpg"))) {
+          client = new ClientHTTP(cfg, client_url, point.usercfg.Timeout());
+          continue;
+        }
+        transfer_failure = true;
+        break;
+      }
       if ((transfer_info.code != 200) &&
           (transfer_info.code != 206)) { // HTTP error - retry?
         point.buffer->is_read(transfer_handle, 0, 0);
         point.chunks->Unclaim(transfer_offset, chunk_length);
-        if (inbuf)
-          delete inbuf;
+        if (inbuf) delete inbuf;
         if ((transfer_info.code == 500) ||
             (transfer_info.code == 503) ||
-            (transfer_info.code == 504))
-          if ((++retries) <= 10)
-            continue;
+            (transfer_info.code == 504)) {
+          if ((++retries) <= 10) continue;
+        }
+        logger.msg(VERBOSE,"HTTP failure %u - %s",transfer_info.code,transfer_info.reason);
         transfer_failure = true;
         break;
       }
@@ -700,11 +726,9 @@ namespace Arc {
       point.chunks->Unclaim(transfer_offset, chunk_length);
       uint64_t transfer_pos = 0;
       for (unsigned int n = 0;; ++n) {
-        if (!inbuf)
-          break;
+        if (!inbuf) break;
         char *buf = inbuf->Buffer(n);
-        if (!buf)
-          break;
+        if (!buf) break;
         uint64_t pos = inbuf->BufferPos(n);
         unsigned int length = inbuf->BufferSize(n);
         transfer_pos = inbuf->BufferPos(n) + inbuf->BufferSize(n);
@@ -756,8 +780,7 @@ namespace Arc {
     if (point.transfers_finished == point.transfers_started)
       // TODO: process/report failure?
       point.buffer->eof_read(true);
-    if (client)
-      delete client;
+    if (client) delete client;
     delete &info;
     point.transfer_lock.unlock();
   }
