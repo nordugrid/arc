@@ -569,6 +569,7 @@ int main(int argc, char *argv[]) {
         std::string voms_server;
         std::string command;
         p = (*it).find(":");
+        //here user could give voms name or voms nick name
         voms_server = (p == std::string::npos) ? (*it) : (*it).substr(0, p);
         command = (p == std::string::npos) ? "" : (*it).substr(p + 1);
         server_command_map.insert(std::pair<std::string, std::string>(voms_server, command));
@@ -641,7 +642,7 @@ int main(int argc, char *argv[]) {
           };
         };
 
-        //you can also use the acronym name of the voms server
+        //you can also use the nick name of the voms server
         size_t pos1 = voms_line.find("\"");
         if (pos1 != std::string::npos) {
           size_t pos2 = voms_line.find("\"", pos1+1);
@@ -651,7 +652,7 @@ int main(int argc, char *argv[]) {
                  it != server_command_map.end(); it++) {
               std::string voms_server = (*it).first;
               if (str1 == voms_server) {
-                matched_voms_line[str] = voms_line;
+                matched_voms_line[str1] = voms_line;
                 break;
               };
             };
@@ -664,12 +665,12 @@ int main(int argc, char *argv[]) {
       //  logger.msg(Arc::ERROR, "Cannot get voms server information from file: %s", vomses_path);
       // throw std::runtime_error("Cannot get voms server information from file: " + vomses_path);
       //}
-      if (matched_voms_line.size() != server_command_map.size())
-        for (std::multimap<std::string, std::string>::iterator it = server_command_map.begin();
-             it != server_command_map.end(); it++)
-          if (matched_voms_line.find((*it).first) == matched_voms_line.end())
-            logger.msg(Arc::ERROR, "Cannot get voms server %s information from file: %s",
-                       (*it).first, vomses_path);
+      //if (matched_voms_line.size() != server_command_map.size())
+      for (std::multimap<std::string, std::string>::iterator it = server_command_map.begin();
+           it != server_command_map.end(); it++)
+        if (matched_voms_line.find((*it).first) == matched_voms_line.end())
+          logger.msg(Arc::ERROR, "Cannot get voms server %s information from file: %s",
+                     (*it).first, vomses_path);
 
       //Contact the voms server to retrieve attribute certificate
       std::string voms_server;
@@ -708,9 +709,16 @@ int main(int argc, char *argv[]) {
         p = voms_line.find("\"", p1 + 1);
         p1 = voms_line.find("\"", p + 1);
         std::string port = voms_line.substr(p + 1, p1 - p - 1);
+
+        size_t pos2 = voms_line.rfind("\"");
+        std::string voms_name;
+        pos2 = voms_line.rfind("\"");
+        if (pos2 != std::string::npos)
+          voms_name = voms_line.substr(pos2 + 1);
+  
         logger.msg(Arc::INFO, "Contacting VOMS server (named %s): %s on port: %s",
-                   voms_server, address, port);
-        std::cout << Arc::IString("Contacting VOMS server (named %s): %s on port: %s", voms_server, address, port) << std::endl;
+                   voms_name, address, port);
+        std::cout << Arc::IString("Contacting VOMS server (named %s): %s on port: %s", voms_name, address, port) << std::endl;
 
         std::string send_msg;
         send_msg.append("<?xml version=\"1.0\" encoding = \"US-ASCII\"?><voms>");
@@ -720,7 +728,7 @@ int main(int argc, char *argv[]) {
           std::string command_2server;
           command = *c_it;
           if (command.empty())
-            command_2server.append("G/").append(voms_server);
+            command_2server.append("G/").append(voms_name);
           else if (command == "all" || command == "ALL")
             command_2server.append("A");
           else if (command == "list")
