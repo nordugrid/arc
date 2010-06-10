@@ -107,15 +107,22 @@
                         <Scheme>basic</Scheme>
                         <Rule>vo:atlas</Rule>
                         <Rule>vo:cms</Rule>
+                        <Associations>
+                            <UserDomainID>urn:ogf:UserDomain:atlas</UserDomainID>
+                            <UserDomainID>urn:ogf:UserDomain:cms</UserDomainID>
+                        </Associations>
                     </AccessPolicy>
                     <AccessPolicy CreationTime="2008-04-21T10:05:12Z" Validity="500" BaseType="Policy">
                         <ID>urn:ogf:AccessPolicy:ce01.niif.hu:60000/delegation/2</ID>
                         <Name>Allow Testers</Name>
                         <OtherInfo>Allow users doing monitoring</OtherInfo>
                         <Scheme>basic</Scheme>
-                        <Rule>vo:dteam</Rule>
+                        <Rule>vo:atlas/cgadmin</Rule>
                         <Rule>dn:/DC=eu/DC=KnowARC/O=GPC-Grid/CN=demo1</Rule>
                         <Rule>dn:/DC=eu/DC=KnowARC/O=GPC-Grid/CN=demo2</Rule>
+                        <Associations>
+                            <UserDomainID>urn:ogf:UserDomain:atlas/lcgadmin</UserDomainID>
+                        </Associations>
                     </AccessPolicy>
                     <Activities>
                         <Activity CreationTime="2008-04-21T10:05:12Z" Validity="500" BaseType="Activity">
@@ -207,6 +214,10 @@
                         <Scheme>basic</Scheme>
                         <Rule>vo:atlas</Rule>
                         <Rule>vo:cms</Rule>
+                        <Associations>
+                            <UserDomainID>urn:ogf:UserDomain:atlas</UserDomainID>
+                            <UserDomainID>urn:ogf:UserDomain:cms</UserDomainID>
+                        </Associations>
                     </AccessPolicy>
                     <!-- Computing endpoint specific attributes -->
                     <Staging>staginginout</Staging>
@@ -287,7 +298,7 @@
                             <State>bes:running</State>
                             <State>nordugrid:PREPARING</State>
                             <WaitingPosition>0</WaitingPosition>
-                            <UserDomain>vo:dteam</UserDomain>
+                            <UserDomain>vo:atlas/lcgadmin</UserDomain>
                             <Owner>/O=grid/OU=nordugrid/CN=Joe Tester</Owner>
                             <LocalOwner>grid05</LocalOwner>
                             <RequestedTotalWallTime>4000</RequestedTotalWallTime>
@@ -328,12 +339,19 @@
                         <Scheme>basic</Scheme>
                         <Rule>vo:atlas</Rule>
                         <Rule>vo:cms</Rule>
+                        <Associations>
+                            <UserDomainID>urn:ogf:UserDomain:atlas</UserDomainID>
+                            <UserDomainID>urn:ogf:UserDomain:cms</UserDomainID>
+                        </Associations>
                     </MappingPolicy>
                     <MappingPolicy CreationTime="2008-04-21T10:05:12Z" Validity="500" BaseType="Policy">
                         <ID>urn:ogsa:MappingPolicy:HU/NIIF/PGS-CE/atlas/2</ID>
                         <Name>Map Testers</Name>
                         <Scheme>basic</Scheme>
-                        <Rule>vo:dteam</Rule>
+                        <Rule>vo:atlas/lcgadmin</Rule>
+                        <Associations>
+                            <UserDomainID>urn:ogf:UserDomain:atlas/lcgadmin</UserDomainID>
+                        </Associations>
                     </MappingPolicy>
                     <!-- Computing share specific attributes -->
                     <MappingQueue>pbs-short</MappingQueue>
@@ -398,6 +416,9 @@
                         <Scheme>basic</Scheme>
                         <Rule>dn:/DC=eu/DC=KnowARC/O=GPC-Grid/CN=demo1</Rule>
                         <Rule>dn:/DC=eu/DC=KnowARC/O=GPC-Grid/CN=demo2</Rule>
+                        <Associations>
+                            <UserDomainID>urn:ogf:UserDomain:testers</UserDomainID>
+                        </Associations>
                     </MappingPolicy>
                     <!-- Computing share specific attributes -->
                     <MappingQueue>pbs-long</MappingQueue>
@@ -748,6 +769,13 @@
         <Member>/VO=atlas/GROUP=atlas/no</Member>
     </UserDomain>
     <UserDomain CreationTime="2008-04-21T10:05:12Z" Validity="500" BaseType="Domain">
+        <ID>urn:ogf:UserDomain:atlas/lcgadmin</ID>
+        <Name>ATLAS VO Admins</Name>
+        <Level>0</Level>
+        <UserManager>https://lcg-voms.cern.ch:8443/vo/atlas/vomrs</UserManager>
+        <Member>/VO=atlas/GROUP=/atlas/ROLE=lcgadmin</Member>
+    </UserDomain>
+    <UserDomain CreationTime="2008-04-21T10:05:12Z" Validity="500" BaseType="Domain">
         <ID>urn:ogf:UserDomain:nordugrid.org</ID>
         <Name>Nordugrid VO</Name>
         <Description>Members of the Nordugrid VO</Description>
@@ -790,6 +818,16 @@
         <UserManager>https://voms-backup.ndgf.org:8443/voms/nordugrid.org</UserManager>
         <Member>/nordugrid.org/Role=developer</Member>
         <Member>/VO=nordugrid.org/GROUP=nordugrid.org/Role=developer</Member>
+    </UserDomain>
+    <UserDomain CreationTime="2008-04-21T10:05:12Z" Validity="500" BaseType="Domain">
+        <ID>urn:ogf:UserDomain:cms</ID>
+        <Name>CMS VO</Name>
+        <Description>HEP CMS USER GROUP</Description>
+        <WWW>http://cms.web.cern.ch</WWW>
+        <Level>0</Level>
+        <UserManager>https://lcg-voms.cern.ch:8443/vo/cms/vomrs</UserManager>
+        <Member>/cms</Member>
+        <Member>/VO=cms/GROUP=cms</Member>
     </UserDomain>
 </glue:Domains>
 
