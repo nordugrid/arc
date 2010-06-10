@@ -139,9 +139,9 @@
         </xsd:documentation>
     </xsd:annotation>
     <xsd:sequence>
-       <xsd:element name="Regex" type="xsd:string" maxOccurs="unbounded"/>
-       <xsd:element name="Tag" type="xsd:string" maxOccurs="unbounded"/>
-       <xsd:element name="Command" type="xsd:string" maxOccurs="unbounded"/>
+       <xsd:element name="Regex" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+       <xsd:element name="Tag" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+       <xsd:element name="Command" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
     </xsd:sequence>
 </xsd:complexType>
 

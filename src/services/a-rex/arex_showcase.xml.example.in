@@ -24,6 +24,7 @@ appropiate.
   xmlns:arex="http://www.nordugrid.org/schemas/a-rex/2009/08"
   xmlns:ip="http://www.nordugrid.org/schemas/a-rex/InfoProvider/2009/08"
   xmlns:lrms="http://www.nordugrid.org/schemas/a-rex/LRMS/2009/08"
+  xmlns:janitor="http://www.nordugrid.org/schemas/Janitor/2009/08"
 >
   <!-- Common configuration of the daemon -->
   <Server>
@@ -351,6 +352,24 @@ appropiate.
               <ip:Preemption>true</ip:Preemption>
           </ip:ComputingShare>
       </arex:InfoProvider>
+
+      <arex:janitor>
+          <janitor:enabled>1</janitor:enabled>
+          <janitor:logconf>/etc/janitor/log.conf</janitor:logconf>
+          <janitor:registrationdir>/var/spool/nordugrid/janitor</janitor:registrationdir>
+          <janitor:installationdir>/var/spool/nordugrid/janitor/runtime</janitor:installationdir>
+          <janitor:downloaddir>/var/spool/nordugrid/janitor/download</janitor:downloaddir>
+          <janitor:jobexpirytime>7200</janitor:jobexpirytime>
+          <janitor:rteexpirytime>36</janitor:rteexpirytime>
+          <janitor:uid>root</janitor:uid>
+          <janitor:gid>0</janitor:gid>
+          <janitor:allow_base>*</janitor:allow_base>
+          <janitor:allow_rte>*</janitor:allow_rte>
+          <janitor:catalog name="nordugrid">
+              <janitor:location>/var/spool/nordugrid/janitor/catalog/knowarc.rdf</janitor:location>
+          </janitor:catalog>
+      </arex:janitor>
+
     </loader:Service>
   </loader:Chain>
 </ArcConfig>
