@@ -9,33 +9,22 @@
 
 #include <openssl/opensslv.h>
 
-#if (OPENSSL_VERSION_NUMBER >= 0x10000000L)
-// workaround for buggy openssl headers
-
-#define i2d_ASN1_SET i2d_ASN1_SET_buggy
-#define d2i_ASN1_SET d2i_ASN1_SET_buggy
-#define ASN1_seq_unpack ASN1_seq_unpack_buggy
-#define ASN1_seq_pack ASN1_seq_pack_buggy
-#include <openssl/asn1.h>
-#undef i2d_ASN1_SET
-#undef d2i_ASN1_SET
-#undef ASN1_seq_unpack
-#undef ASN1_seq_pack
-
-extern "C" {
-int i2d_ASN1_SET(void *a, unsigned char **pp,
-		 i2d_of_void *i2d, int ex_tag, int ex_class,
-		 int is_set);
-void *d2i_ASN1_SET(void *a, const unsigned char **pp,
-		   long length, d2i_of_void *d2i,
-		   void (*free_func)(void*), int ex_tag,
-		   int ex_class);
-void *ASN1_seq_unpack(const unsigned char *buf, int len,
-		      d2i_of_void *d2i, void (*free_func)(void*));
-unsigned char *ASN1_seq_pack(void *safes, i2d_of_void *i2d,
-			     unsigned char **buf, int *len );
-}
-
+#if (OPENSSL_VERSION_NUMBER >= 0x10000000L) && \
+    (OPENSSL_VERSION_NUMBER <  0x1000001fL)
+// Workaround for broken header in openssl 1.0.0 - fixed in openssl 1.0.0a
+#include <openssl/safestack.h>
+#undef SKM_ASN1_SET_OF_d2i
+#define	SKM_ASN1_SET_OF_d2i(type, st, pp, length, d2i_func, free_func, ex_tag, ex_class) \
+  (STACK_OF(type) *)d2i_ASN1_SET((STACK_OF(OPENSSL_BLOCK) **)CHECKED_STACK_OF(type, st), \
+				pp, length, \
+				CHECKED_D2I_OF(type, d2i_func), \
+				CHECKED_SK_FREE_FUNC(type, free_func), \
+				ex_tag, ex_class)
+#undef SKM_ASN1_SET_OF_i2d
+#define	SKM_ASN1_SET_OF_i2d(type, st, pp, i2d_func, ex_tag, ex_class, is_set) \
+  i2d_ASN1_SET((STACK_OF(OPENSSL_BLOCK) *)CHECKED_STACK_OF(type, st), pp, \
+				CHECKED_I2D_OF(type, i2d_func), \
+				ex_tag, ex_class, is_set)
 #endif
 
 #include <openssl/evp.h>
@@ -246,16 +235,16 @@ typedef struct ACFULLATTRIBUTES {
   type  *sk_##type##_pop (STACK_OF(type) *st) { return (type *)sk_pop(CHECKED_STACK_OF(type, st)); } \
   void   sk_##type##_sort (STACK_OF(type) *st) { sk_sort(CHECKED_STACK_OF(type, st)); }		\
   STACK_OF(type) *d2i_ASN1_SET_OF_##type (STACK_OF(type) *st, const unsigned char **pp, long length, type *(*d2ifunc)(type**, const unsigned char**, long), void (*freefunc)(type *), int ex_tag, int ex_class) \
-    { return (STACK_OF(type) *)d2i_ASN1_SET(CHECKED_STACK_OF(type, st), \
+    { return (STACK_OF(type) *)d2i_ASN1_SET((STACK_OF(OPENSSL_BLOCK)**)CHECKED_STACK_OF(type, st), \
 				pp, length, \
 				CHECKED_D2I_OF(type, d2ifunc), \
 				CHECKED_SK_FREE_FUNC(type, freefunc), \
 				ex_tag, ex_class); } \
   int i2d_ASN1_SET_OF_##type (STACK_OF(type) *st, unsigned char **pp, int (*i2dfunc)(type*, unsigned char**), int ex_tag, int ex_class, int is_set) \
-  { return i2d_ASN1_SET(CHECKED_STACK_OF(type, st), pp, \
+  { return i2d_ASN1_SET((STACK_OF(OPENSSL_BLOCK)*)CHECKED_STACK_OF(type, st), pp, \
 				CHECKED_I2D_OF(type, i2dfunc), \
 				ex_tag, ex_class, is_set); }	\
-  unsigned char *ASN1_seq_pack_##type (STACK_OF(type) *st, int (*i2dfunc)(type*, unsigned char**), unsigned char **buf, int *len) { return ASN1_seq_pack(CHECKED_PTR_OF(STACK_OF(type), st), \
+  unsigned char *ASN1_seq_pack_##type (STACK_OF(type) *st, int (*i2dfunc)(type*, unsigned char**), unsigned char **buf, int *len) { return ASN1_seq_pack((STACK_OF(OPENSSL_BLOCK)*)CHECKED_PTR_OF(STACK_OF(type), st), \
 			CHECKED_I2D_OF(type, i2dfunc), buf, len); } \
   STACK_OF(type) *ASN1_seq_unpack_##type (unsigned char *buf, int len, type *(*d2ifunc)(type**, const unsigned char**, long), void (*freefunc)(type *)) \
        { return (STACK_OF(type) *)ASN1_seq_unpack(buf, len, CHECKED_D2I_OF(type, d2ifunc), CHECKED_SK_FREE_FUNC(type, freefunc)); }
