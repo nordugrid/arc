@@ -813,13 +813,16 @@ bool configure_serviced_users(Arc::XMLNode cfg,JobUsers &users,uid_t my_uid,cons
     std::string options;
     Arc::XMLNode onode;
     onode = tmp_node.Attribute("timeout");
-    if(onode) options+="timeout="+(std::string)onode;
+    if(onode) options+="timeout="+(std::string)onode+',';
     onode = tmp_node.Attribute("onSuccess");
-    if(onode) options+="onsuccess="+Arc::lower((std::string)onode);
+    if(onode) options+="onsuccess="+Arc::lower((std::string)onode)+',';
     onode = tmp_node.Attribute("onFailure");
-    if(onode) options+="onfailure="+Arc::lower((std::string)onode);
+    if(onode) options+="onfailure="+Arc::lower((std::string)onode)+',';
     onode = tmp_node.Attribute("onTimeout");
-    if(onode) options+="ontimeout="+Arc::lower((std::string)onode);
+    if(onode) options+="ontimeout="+Arc::lower((std::string)onode)+',';
+    if(!options.empty()) options=options.substr(0,options.length()-1);
+    logger.msg(Arc::DEBUG,"Registering plugin for state %s; options: %s; commnad: %s",
+        state_name.c_str(),options.c_str(),command.c_str());
     if(!plugins.add(state_name.c_str(),options.c_str(),command.c_str())) {
       logger.msg(Arc::ERROR,"Failed to register plugin for state %s",state_name);
       return false;
