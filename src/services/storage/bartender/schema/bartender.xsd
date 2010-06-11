@@ -35,6 +35,16 @@
     </xsd:annotation>
 </xsd:element>
 
+<!-- ISISCheckingPeriod -->
+<xsd:element name="ISISCheckingPeriod" default="120">
+    <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+	  Specifies in seconds the period the Bartender should get new Librarian URLs from the ISIS.
+        </xsd:documentation>
+    </xsd:annotation>
+</xsd:element>
+
+
 <!-- ProxyStore -->
 <xsd:element name="ProxyStore" default="/var/spool/arc/proxy_store">
     <xsd:annotation>

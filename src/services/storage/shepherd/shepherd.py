@@ -65,6 +65,11 @@ class Shepherd:
         except:
             self.checksum_lifetime = 3600
 
+        try:
+            self.isis_checking_period = float(str(cfg.Get('ISISCheckingPeriod')))
+        except:
+            self.isis_checking_period = 120
+
         librarian_urls =  get_child_values_by_name(cfg, 'LibrarianURL')
         self.librarian = LibrarianClient(librarian_urls, ssl_config = self.ssl_config)
         if librarian_urls:
@@ -116,7 +121,7 @@ class Shepherd:
         while self.service_is_running:
             try:
                 if self.librarian.urls:
-                    time.sleep(30)
+                    time.sleep(self.isis_checking_period)
                 else:
                     time.sleep(3)
                 log.msg(arc.INFO,'Getting Librarians from ISISes')
@@ -138,7 +143,7 @@ class Shepherd:
         while self.service_is_running:
             try:
                 if self.bartender.urls:
-                    time.sleep(30)
+                    time.sleep(self.isis_checking_period)
                 else:
                     time.sleep(3)
                 log.msg(arc.INFO,'Getting Bartenders from ISISes')

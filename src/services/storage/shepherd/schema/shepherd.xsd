@@ -63,6 +63,15 @@
     </xsd:annotation>
 </xsd:element>
 
+<!-- ISISCheckingPeriod -->
+<xsd:element name="ISISCheckingPeriod" default="120">
+    <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+	  Specifies in seconds the period the Shepherd should get new Librarian and Bartender URLs from the ISIS.
+        </xsd:documentation>
+    </xsd:annotation>
+</xsd:element>
+
 <!-- StoreClass -->
 <xsd:element name="StoreClass" default="arcom.store.cachedpicklestore.CachedPickleStore">
     <xsd:annotation>

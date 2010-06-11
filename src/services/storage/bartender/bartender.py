@@ -39,6 +39,11 @@ class Bartender:
             log.msg(arc.INFO, 'cannot connect to gateway. Access of third party store required gateway.')
         self.ssl_config = ssl_config
         
+        try:
+            self.isis_checking_period = float(str(cfg.Get('ISISCheckginPeriod')));
+        except:
+            self.isis_checking_period = 120;
+            
         # get the URLs of the Librarians from the config file
         librarian_urls =  get_child_values_by_name(cfg, 'LibrarianURL')
         if librarian_urls:
@@ -79,7 +84,7 @@ class Bartender:
     def isisThread(self, isis_urls):
         while self.service_state.running:
             try:
-                time.sleep(30)
+                time.sleep(self.isis_checking_period)
                 log.msg(arc.INFO,'Getting Librarians from ISISes')
                 for isis_url in isis_urls:
                     if not self.service_state.running:
