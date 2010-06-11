@@ -96,25 +96,10 @@ found within the corresponding class.
 
 # export NORDUGRID_CONFIG="/nfshome/knowarc/dredesign/src/services/janitor2/conf/arc.conf"
 
-# Log4perl :rescurrect does not work, if this is not the first command
 BEGIN {
 	# get the path of this file and add it to @INC
-	if ($0 =~ m#^(.+)/[^/]+$#) {
+	if ($0 =~ m{^(.+)/[^/]+$}) {
 		push @INC, $1;
-	}
-
-	# if $resurrect is defined, Log4perl will be used
-	$resurrect=":resurrect";
-	if (defined($resurrect)) { 
-		eval 'require Log::Log4perl';
-		if ($@) {
-			print STDERR "janitor: Log::Log4perl not found, doing without logging\n";
-			$resurrect = undef;
-		} else { 
-			import Log::Log4perl qw(:resurrect get_logger); 
-			import Log::Log4perl::Level; 
-                        # TODO: define some kind of minimalistic logger
-		}
 	}
 }
 
@@ -135,6 +120,7 @@ use Janitor::Installer;
 use Janitor::Execute;
 use Janitor::Filefetcher;
 use Janitor::ArcConfig;
+use Janitor::Logger;
 use Janitor::Common qw(get_catalog);
 use Janitor::Util qw(remove_directory all_runscripts sane_rte_name sane_job_id);
 use Janitor::Job;
@@ -147,11 +133,15 @@ use Janitor::Response;
 
 
 
+######################################################################
+# Loging in this module is difficult, as the logger might not be
+# configured yet. Thus, log messages go just to stderr.
+######################################################################
 
+# uncomment this to force debugging
+#Janitor::Logger::destination(*STDERR, $Janitor::Logger::DEBUG);
 
-# set to one for debug output of some operations prior initialisation of
-# Log4perl
-my $DEBUG = 0;
+my $logger = Janitor::Logger->get_logger("Janitor");
 
 my $INITSTATE = 4;
 
@@ -161,15 +151,15 @@ my $INITSTATE = 4;
 my $conffile = $ENV{'ARC_CONFIG'};
 $conffile = "/etc/arc.conf" unless defined $conffile;
 
-printf STDERR "janitor: DEBUG: using configuration file \"%s\"\n", $conffile	if $DEBUG;
+$logger->debug("using configuration file \"$conffile\"");
 if(! -e $conffile){
-	printf STDERR "janitor: ERROR: Could not find configuration file \"%s\", change location with -c <filename>.\n", $conffile;
+	$logger->fatal("Could not find configuration file \"$conffile\", change location with -c <filename>");
 	return 4;
 }
 
 my $config = Janitor::ArcConfig->parse($conffile);
 if ( !defined $config->{'janitor'} ) {
-	printf STDERR "janitor: There is no valid [janitor]-section in \"%s\"\n", $conffile;
+	$logger->fatal("There is no valid [janitor]-section in \"$conffile\"");
 	$INITSTATE = 3;
 	return 3;
 }
@@ -181,15 +171,15 @@ if (defined $config->{'janitor'}{'gid'}) {
 	my $gn = $config->{'janitor'}{'gid'};
 	my $gi = Janitor::Util::asGID($gn);
 	unless (defined $gi) {
-		printf STDERR "janitor: no such group: \"%s\"\n", $gn;
+		$logger->fatal("No such group: \"$gn\"");
 		return 4;
 	}
 	$) = $gi; # set the effective group id
 	if ( $) != $gi ) {
-		printf STDERR "janitor: FATAL: Can not set effective group id to %d: $!\n", $gi;
+		$logger->fatal("Can not set effective group id to $gi: $!");
 		return 4;
 	}
-	printf STDERR "janitor: setting effective group id to %s\n", $gn		if $DEBUG;
+	$logger->debug("Setting effective group id to $gn");
 }
 
 ######################################################################
@@ -199,25 +189,25 @@ if (defined $config->{'janitor'}{'uid'}) {
 	my $un = $config->{'janitor'}{'uid'};
 	my $ui = Janitor::Util::asUID($un);
 	unless (defined $ui) {
-		printf STDERR "janitor: no such user: \"%s\"\n", $un;
+		$logger->fatal("No such user: \"$un\"");
 		return 4;
 	}
 	$> = $ui; # set the effective user id
 	if ( $> != $ui ) {
-		printf STDERR "janitor: FATAL: Can not set effective user id to %d: $!\n", $ui;
+		$logger->fatal("Can not set effective user id to $ui: $!");
 		return 4;
 	}
-	printf STDERR "janitor: setting effective user id to %s\n", $un if $DEBUG;
+	$logger->debug("Setting effective user id to $un");
 }
 
 ######################################################################
 # warn if we are running as root
 ######################################################################
 if ($> == 0) {
-	printf STDERR "janitor: Warning: running as user root.\n";
+	$logger->warning("Running as user root");
 }
 if ($) == 0) {
-	printf STDERR "janitor: Warning: running with group root.\n";
+	$logger->warning("Running with group root");
 }
 	
 
@@ -228,19 +218,10 @@ umask 0022;
 ######################################################################
 # Logging setup
 ######################################################################
-###l4p my $logconffile = $config->{'janitor'}{'logconf'};
-###l4p Log::Log4perl->init( $logconffile ) if defined $logconffile;
-###l4p  my $logger = get_logger();
-# ARC libexec utilities are required to
-# log to stderr - that channel is collected in
-# some unified way and output then goes to client
-# and/or administrator. Probably ARC specific parts
-# should be isolated into dedicated module.
-###l4p  my $stderr_layout = Log::Log4perl::Layout::PatternLayout->new("[%C] %d %p> %m%n");
-###l4p  my $stderr_appender = Log::Log4perl::Appender->new("Log::Log4perl::Appender::Screen");
-###l4p  $stderr_appender->layout($stderr_layout);
-###l4p  $logger->add_appender($stderr_appender);
-###l4p  $logger->level($INFO);
+# my $logfile = $config->{'janitor'}{'logfile'};
+# my $loglevel = $config->{'janitor'}{'loglevel'};
+# Janitor::Logger::destination($logfile, $loglevel);
+Janitor::Logger::destination(*STDERR, $Janitor::Logger::INFO);
 
 ######################################################################
 #directory where we keep the current state
@@ -257,8 +238,7 @@ if (not defined $registrationDir) {
 	$msg = "Can not write to directory $registrationDir\n";
 }
 if (defined $msg) {
-###l4p	$logger->fatal($msg);
-	printf STDERR "janitor: $msg";
+	$logger->fatal($msg);
 	return 4;
 }
 
@@ -286,8 +266,7 @@ foreach my $dir ( ($regDirJob, $regDirRTE, $regDirPackages) ) {
 	}
 	
 	if (defined $msg) {
-###l4p		$logger->fatal($msg);
-		printf STDERR "janitor: $msg";
+		$logger->fatal($msg);
 		return 4;
 	}
 }
@@ -307,8 +286,7 @@ if (not defined $instdir) {
     $msg = "$instdir is not writable\n";
 }
 if (defined $msg) {
-###l4p    $logger->fatal($msg);
-    printf STDERR "janitor: $msg";
+    $logger->fatal($msg);
     return 4
 }
 
@@ -327,8 +305,7 @@ if (not defined $downloaddir) {
     $msg = "$downloaddir is not writable\n";
 }
 if (defined $msg) {
-###l4p    $logger->fatal($msg);
-    printf STDERR "janitor: $msg";
+    $logger->fatal($msg);
     return 4
 }
 
@@ -347,8 +324,7 @@ if (not defined $manualRuntimeDir) {
     $msg = "$manualRuntimeDir is not writable\n";
 }
 if (defined $msg) {
-###l4p    $logger->fatal($msg);
-    printf STDERR "janitor: $msg";
+    $logger->fatal($msg);
     return 4
 }
 
@@ -476,24 +452,24 @@ sub register_job {
 	my ($job_id, @rte_list) = @_;
 	my $response = new Janitor::Response(Janitor::Response::REGISTER, $job_id, \@rte_list);
 
-###l4p	$logger->info("$job_id: registering new job (@rte_list)");
+	$logger->info("$job_id: registering new job (@rte_list)");
 
 	my $job = new Janitor::Job($job_id, $regDirJob);
 
 	my $ret = $job->create(@rte_list);	
 
 	unless (defined $ret) {
-###l4p		$logger->fatal("Could not register job $job_id. Maybe there is already such a job registered.");
+		$logger->info("Could not register job $job_id. Maybe there is already such a job registered.");
 		$response->result(2, "Could not register job $job_id. Maybe there is already such a job registered.");
 		return $response;
 	}
 
 	# maybe this job needs no RTE at all. Check this.
 	if (scalar @rte_list == 0) {
-###l4p		$logger->info("$job_id: sucessfully registered job");
+		$logger->info("$job_id: sucessfully registered job");
 		$job->initialize();
 		$job->disconnect;
-###l4p		$logger->info("$job_id: sucessfully initialized job");
+		$logger->info("$job_id: sucessfully initialized job");
 		$response->result(0, "Sucessfully initialized job.");
 		return $response;
 	}
@@ -514,10 +490,10 @@ sub register_job {
 		@rte_list = @temp;
 	}
 	if (scalar @rte_list == 0) {
-###l4p		$logger->info("$job_id: sucessfully registered job");
+		$logger->info("$job_id: sucessfully registered job");
 		$job->initialize(undef, @manual_runscripts);
 		$job->disconnect;
-###l4p		$logger->info("$job_id: sucessfully initialized job");
+		$logger->info("$job_id: sucessfully initialized job");
 		$response->result(0, "Sucessfully initialized job.");
 		return $response;
 	}
@@ -531,14 +507,14 @@ sub register_job {
 	my $state = $response->state($rte->state);
 
 	if ($state == Janitor::RTE::FAILED) {
-###l4p		$logger->info("$job_id: Cannot provide requested RTEs: installation FAILED previously");
+		$logger->info("$job_id: Cannot provide requested RTEs: installation FAILED previously");
 		$rte->disconnect;
 		$job->remove;
 		$response->result(2, "Cannot provide requested RTEs: installation FAILED previously.");
 		return $response;
 
 	} elsif ($state == Janitor::RTE::REMOVAL_PENDING) {
-###l4p		$logger->info("$job_id: Cannot provide requested RTEs: its waiting for removal");
+		$logger->info("$job_id: Cannot provide requested RTEs: its waiting for removal");
 		$rte->disconnect;
 		$job->remove;
 		$response->result(2, "Cannot provide requested RTEs: its waiting for removal.");
@@ -548,9 +524,9 @@ sub register_job {
 			or $state == Janitor::RTE::VALIDATED or $state == Janitor::RTE::BROKEN) {
 		# its already there, maybe broken but still: It is there. So just use it.
 		$rte->used($job_id);
-###l4p		$logger->info("$job_id: sucessfully registered job");
+		$logger->info("$job_id: sucessfully registered job");
 		$job->initialize($rte->id, @manual_runscripts);
-###l4p		$logger->info("$job_id: sucessfully initialized job");
+		$logger->info("$job_id: sucessfully initialized job");
 		$rte->disconnect;
 		$job->disconnect;
 		$response->result(0, "Sucessfully initialized job.");
@@ -563,14 +539,14 @@ sub register_job {
 
 		if ( @bslist ) {
 			# ok, there is a way to deploy
-###l4p			$logger->info("$job_id: sucessfully registered job");
+			$logger->info("$job_id: sucessfully registered job");
 			$rte->state(Janitor::RTE::INSTALLABLE);
 			$rte->disconnect;
 			$job->disconnect;
 			$response->result(1, "Sucessfully initialized job.");
 			return $response;
 		} else {
-###l4p 			$logger->info("$job_id: Cannot provide requested RTEs: not supported");
+ 			$logger->info("$job_id: Cannot provide requested RTEs: not supported");
 #			The following two lines are replaced by the third line beneath this comment.
 #			Reason: Excogitated RTE names are leading to this state, in which a folder remains
 #				after the registration process. This is not desired for the amount is not limited!
@@ -606,7 +582,7 @@ sub deploy_for_job {
 	my $job = new Janitor::Job($job_id, $regDirJob);
 	$ret = $job->open;
 	unless (defined $ret and $ret == 0) {
-###l4p		$logger->error("$job_id: Cannot deploy: no such job");
+		$logger->info("$job_id: Cannot deploy: no such job");
 		$response->result(1, "Cannot deploy: no such job.");
 		return $response;
 	}
@@ -615,12 +591,12 @@ sub deploy_for_job {
 
 	if ($state == Janitor::Job::INITIALIZED) {
 		$job->disconnect;
-###l4p		$logger->info("$job_id: already initialized");
+		$logger->info("$job_id: already initialized");
 		$response->result(0, "Already initialized.");
 		return $response;
 	} elsif ($state != Janitor::Job::PREPARED) {
 		$job->disconnect;
-###l4p		$logger->error("$job_id: unknown state, giving up");
+		$logger->info("$job_id: unknown state, giving up");
 		$response->result(1, "Unknown state, giving up.");
 		return $response;
 	}
@@ -652,7 +628,7 @@ sub deploy_for_job {
 		# minutes everything manually
 		$job->initialize(undef, @manual_runscripts);
 		$job->disconnect;
-###l4p		$logger->info("$job_id: sucessfully initialized job");
+		$logger->info("$job_id: sucessfully initialized job");
 		$response->result(0, "Sucessfully initialized job.");
 		return $response;
 	}
@@ -666,13 +642,13 @@ sub deploy_for_job {
 	$state = $response->state($rte->state);
 
 	if ($state == Janitor::RTE::FAILED) {
-###l4p		$logger->info("$job_id: Cannot provide requested RTEs: installation FAILED previously");
+		$logger->info("$job_id: Cannot provide requested RTEs: installation FAILED previously");
 		$rte->disconnect;
 		$job->remove;
 		$response->result(1, "Cannot provide requested RTEs: installation FAILED previously.");
 		return $response;
 	} elsif ($state == Janitor::RTE::REMOVAL_PENDING) {
-###l4p		$logger->info("$job_id: Cannot provide requested RTEs: its waiting for removal");
+		$logger->info("$job_id: Cannot provide requested RTEs: its waiting for removal");
 		$rte->disconnect;
 		$job->remove;
 		$response->result(1, "Cannot provide requested RTEs: its waiting for removal.");
@@ -682,7 +658,7 @@ sub deploy_for_job {
 		# its already there, maybe broken but still: It is there. So just use it.
 		$rte->used($job_id);
 		$job->initialize($rte->id, @manual_runscripts);
-###l4p		$logger->info("$job_id: sucessfully initialized job");
+		$logger->info("$job_id: sucessfully initialized job");
 		$rte->disconnect;
 		$job->disconnect;
 		$response->result(0, "Sucessfully initialized job.");
@@ -693,7 +669,7 @@ sub deploy_for_job {
 		my $catalog = &get_catalog;
 		my @bslist = $catalog->basesystems_supporting_metapackages(@rte_list);
 		unless ( @bslist ) {
-###l4p 			$logger->info("$job_id: Cannot provide requested RTEs: not supported");
+ 			$logger->info("$job_id: Cannot provide requested RTEs: not supported");
 			$rte->state(Janitor::RTE::UNKNOWN);
 			$rte->disconnect;
 			$job->remove;
@@ -708,7 +684,7 @@ sub deploy_for_job {
 			$ret = deploy_rte_for_job($job_id, $rte, \@rte_list, $catalog, \@bslist);
 		};
 		if ($@ or $ret != 0) {
-###l4p			$logger->error("$job_id: Cannot provide requested RTEs: installation FAILED (".$@.")");
+			$logger->info("$job_id: Cannot provide requested RTEs: installation FAILED (".$@.")");
 			$rte->state($response->state(Janitor::RTE::FAILED));
 			$rte->disconnect;
 			$job->remove;
@@ -719,7 +695,7 @@ sub deploy_for_job {
 		$rte->state($response->state(Janitor::RTE::INSTALLED_A));
 		$rte->used($job_id);
 		$job->initialize($rte->id, @manual_runscripts);
-###l4p		$logger->info("$job_id: sucessfully initialized job");
+		$logger->info("$job_id: sucessfully initialized job");
 
 		$rte->disconnect;
 		$job->disconnect;
@@ -749,7 +725,7 @@ sub deploy_rte_for_job {
 	# the first one for deploying
 	my $bs = $$bslistref[0];
 
-###l4p	$logger->info("$job_id: use basesystem \"".$bs->name."\" for dynamically installed rte");
+	$logger->info("$job_id: use basesystem \"".$bs->name."\" for dynamically installed rte");
 
 	my (undef, @packages) = $catalog->PackagesToBeInstalled($bs, @$RTE);
 			
@@ -759,7 +735,7 @@ sub deploy_rte_for_job {
 
 		unless (defined $package_id) {
 			my $msg = "$job_id: Error while installing " . $p->url;
-###l4p			$logger->error($msg);
+			$logger->error($msg);
 			return 1;				
  		}
 
@@ -775,9 +751,9 @@ sub deploy_rte_for_job {
 sub setup_runtime_package {
 	my ($p, $job, $catalog, $used_by) = @_;
 
-###l4p 	$logger->debug("processing package " . $p->url . " (Catalog: " . $catalog->name . ")");
+ 	$logger->debug("processing package " . $p->url . " (Catalog: " . $catalog->name . ")");
 	unless ($p->isa("Janitor::Catalog::TarPackage")){
-###l4p 		$logger->fatal("Currently only TarPackages are supported.");
+ 		$logger->fatal("Currently only TarPackages are supported.");
 		return undef;	
 	}
 
@@ -799,7 +775,7 @@ sub setup_runtime_package {
 
 	my $state = $tarpackage->state;
 	if (! defined $state) {
-		print STDERR "janitor: package state not defined!\n";
+		$logger->warning("package state not defined!");
 	}
 	if ($state == Janitor::TarPackageShared::INSTALLED) {
 		# everything available and nothing to do
@@ -817,7 +793,7 @@ sub setup_runtime_package {
 
 	# ok, so we are in the state UNKNOWN, which means we have to install
 
-###l4p 	$logger->info("installing package " . $p->url . " (Catalog: " . $catalog->name . ")");
+ 	$logger->info("installing package " . $p->url . " (Catalog: " . $catalog->name . ")");
 #
 	#Check if the tarfile is in our filessystem and accessible. If not fetch it.
 	unless ($url =~ m#^/# and -r $url) {
@@ -825,7 +801,7 @@ sub setup_runtime_package {
 		unless ($ff->fetch()) {
 			$tarpackage->remove;
 			my $msg = "Error while fetching $url\n";
-###l4p 			$logger->error($msg);
+ 			$logger->error($msg);
 			return undef;				
 		}
 		$url = $ff->getFile();
@@ -846,7 +822,7 @@ sub setup_runtime_package {
 		# this might have happened due to dependencies.
 		my @mps = $catalog->MetapackagesByPackageKey($p->id);
 		if(scalar(@mps) > 1){
-###l4p			$logger->info("Several Metapackges are refering to one installed package!");
+			$logger->info("Several Metapackges are refering to one installed package!");
 		}
 		for my $mp(@mps){
 			my @mpNameTokens = split(/\//,$mp->name());
@@ -857,7 +833,7 @@ sub setup_runtime_package {
 				if(! -d $currentpath){
 					$result = $e->execute("mkdir", $currentpath);
 					if( $result != 1){
-###l4p 						$logger->error("Failed creating directory ".$currentpath." for ".$mp->name());
+ 						$logger->error("Failed creating directory ".$currentpath." for ".$mp->name());
 						last;
 					}
 # 					print STDERR "mkdir ".$currentpath."  =>  $result\n";
@@ -867,7 +843,7 @@ sub setup_runtime_package {
 			if( (! -e $currentpath) and (! -l $currentpath) and $result == 1){
 				$result = $e->execute("ln", "-s", $installed."/runtime", $currentpath);
 				if($result != 1){
-###l4p 						$logger->error("Failed creating symbolic link ".$currentpath);
+ 						$logger->error("Failed creating symbolic link ".$currentpath);
 				}
 # 				print STDERR "ln -s ".$installed."/runtime ".$currentpath."  =>  $result\n";
 			}
@@ -881,7 +857,7 @@ sub setup_runtime_package {
 		# installation failed. clean up and exit
 		$tarpackage->remove;
 
-###l4p 		$logger->error("Installation of $tarfile failed.");
+ 		$logger->error("Installation of $tarfile failed.");
 		return undef;
 	};
 
@@ -910,16 +886,16 @@ sub remove_job {
 		$job = $job_id; # already opened Janitor Job object
 		$job_id = $response->jobid($job->id);
 
-###l4p		$logger->info("force sweeping job $job_id");
+		$logger->info("force sweeping job $job_id");
 	} else {
 		$response->jobid($job_id);
-###l4p		$logger->info("removing job $job_id");
+		$logger->info("removing job $job_id");
 
 
 
 		$job = new Janitor::Job($job_id, $regDirJob);
 		if ($job->open != 0) {
-###l4p			$logger->error("$job_id: no such job");
+			$logger->error("$job_id: no such job");
 			$response->result(0, "No such job.");
 			return $response;
 		}
@@ -934,7 +910,7 @@ sub remove_job {
 	}
 
 	$job->remove;
-###l4p	$logger->info("$job_id: removed");
+	$logger->info("$job_id: removed");
 	$response->result(0, "Removed.");
 	return $response;
 }
@@ -952,7 +928,7 @@ sub sweep_package
 {
 	my ($package) = @_;
 
-###l4p 	$logger->info("Removing ". $package->id);
+ 	$logger->info("Removing ". $package->id);
 
 	my $instdir = $package->inst_dir;
 
@@ -963,12 +939,12 @@ sub sweep_package
 	if ( $e->execute("/bin/sh", "../remove") ){
 		#unlink the installation directory
 		unless ( remove_directory($instdir) ) {
-###l4p 			$logger->warn("Removing directory $instdir failed.");
+ 			$logger->warn("Removing directory $instdir failed.");
 			$error_flag = 1;
 		}
 	} else {
-###l4p 		$logger->warn("Execution of remove script in $instdir failed.");
-###l4p 		$logger->warn("So I don't delete $instdir! But I will orphan it.");
+ 		$logger->warn("Execution of remove script in $instdir failed.");
+ 		$logger->warn("So I don't delete $instdir! But I will orphan it.");
 		$error_flag = 1;
 	}
 
@@ -992,20 +968,20 @@ sub sweep_rte {
 		if(-l $currentpath){
 			my $result = $e->execute("rm", $currentpath);
 			if($result != 1){
-###l4p 				$logger->error("Failed removing symbolic link ".$currentpath);
+ 				$logger->error("Failed removing symbolic link ".$currentpath);
 			}
 # 			print STDERR "rm ".$currentpath."  =>  $result\n";
 		}
 	}
 
-###l4p 	$logger->info("Removing ". join " ", $rte->rte_list);
+ 	$logger->info("Removing ". join " ", $rte->rte_list);
 	foreach my $p ($rte->retrieve_data) {
 		if(defined $p){ # In case job registration fails, $p may be undefined
 			my $package = new Janitor::TarPackageShared($p, $regDirPackages);
 			$package->connect;
 			eval { $package->not_used($rte->id); };
 			if ($@) {
-				printf STDERR "janitor: Error while removing used flag on package: $@\n";
+				$logger->warning("Error while removing used flag on package: $@");
 			}
 			$package->disconnect;
 		}
@@ -1033,13 +1009,13 @@ sub sweep {
 
 		my $created = $job->created;
 		if (! defined $created) {
-###l4p 			$logger->warn("Job " . $job->id . " has no creation time. Please check and remove manually.");
+ 			$logger->warn("Job " . $job->id . " has no creation time. Please check and remove manually.");
 		} elsif ($now - $created > $jobExpiryTime) {
 			if (defined $force and $force) {
 				remove_job($job, 1);
 				next;
 			} else {
-###l4p 				$logger->info("Job " . $job->id . " is old. Use --force to remove.");
+ 				$logger->info("Job " . $job->id . " is old. Use --force to remove.");
 			}
 		}
 
@@ -1063,20 +1039,20 @@ sub sweep {
 				sweep_rte($rte);
 				$flag = 1;
 			} elsif (! defined $last_used) {
-###l4p 				$logger->warn("RTE " . $rte->id . " has no last_used time. Please check manually.");
+ 				$logger->warn("RTE " . $rte->id . " has no last_used time. Please check manually.");
 			} elsif ($state == Janitor::RTE::INSTALLED_A and $now - $last_used > $rteExpiryTime) {
 				# automatically installed and not used for some time
 				sweep_rte($rte);
 				$flag = 1;
 			} elsif ($state == Janitor::RTE::FAILED ) {
-###l4p 				$logger->fatal("Runtime environment ".$rte->id." has a failed state. "
-###l4p              ."To allow removal run: janitor setstate REMOVAL_PENDING '".join("' '",$rte->rte_list())."'");
+ 				$logger->fatal("Runtime environment ".$rte->id." has a failed state. "
+              ."To allow removal run: janitor setstate REMOVAL_PENDING '".join("' '",$rte->rte_list())."'");
 			} elsif ($state == Janitor::RTE::UNKNOWN){ # may still be INSTALLED_A
-###l4p 				$logger->fatal("Runtime environment ".$rte->id." has an unknown state.");
+ 				$logger->fatal("Runtime environment ".$rte->id." has an unknown state.");
 			}
 		};
 		if ($@) {
-			printf STDERR "janitor: Error while trying to remove a RTE!: $@\n";
+			$logger->warning("Error while trying to remove a RTE!: $@");
 		}
 
 		$rte->disconnect unless $flag;
@@ -1304,7 +1280,7 @@ sub setstate {
 
 	my $newstate = Janitor::RTE::string2state($state);
 	unless (defined $newstate) {
-		print STDERR "janitor: $state: not a valid statename\n";
+		$logger->warning("$state: not a valid statename"); # adi?
 		$response->result(1,$state.": is not a valid state.");
 		return $response;
 	}

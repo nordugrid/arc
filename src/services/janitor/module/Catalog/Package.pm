@@ -71,7 +71,7 @@ sub basesystem {
 # XXX currently not used
 sub _depends {
 	my ($self, @depends) = @_;
-	$self->{_depends} = @depends if @depends;
+	$self->{_depends} = [ @depends ] if @depends;
 	return $self->{_depends};
 }
 

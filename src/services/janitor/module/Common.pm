@@ -1,15 +1,5 @@
 package Janitor::Common;
 
-BEGIN { 
-	if (defined(Janitor::Janitor::resurrect)) { 
-		eval 'require Log::Log4perl';
-		unless ($@) { 
-			import Log::Log4perl qw(:resurrect get_logger);
-		}
-	}
-}
-###l4p my $logger = get_logger("Janitor::Common");
-
 
 use Exporter;
 @ISA = qw(Exporter);     # Inherit from Exporter
@@ -41,11 +31,10 @@ use warnings;
 use strict;
  
 
-
-
-
-
+use Janitor::Logger;
 use Janitor::ArcConfig qw(get_ArcConfig);
+
+my $logger = Janitor::Logger->get_logger("Janitor::Common");
 my $config = get_ArcConfig();
 
 #use Janitor::ArcConfig;
@@ -86,22 +75,22 @@ sub get_catalog
 {
 	my $catalog = new Janitor::Catalog;
 	unless ( defined($catalog) ) {
-###l4p 		$logger->fatal("Could not create Janitor::Catalog object");
-		die "Could not create Janitor::Catalog object";
+ 		$logger->fatal("Could not create Janitor::Catalog object");
+		exit(255);
 	}
 
 	foreach my $section ( keys %$config ) {
-		next unless $section =~ m#^janitor/(.+)$#;
+		next unless $section =~ m{^janitor/(.+)$};
 
 		my ($catalog_name) = $1;
 
-###l4p 	$logger->debug("reading Catalog $catalog_name");
+		$logger->debug("reading Catalog $catalog_name");
 
 		# get the catalog file
 		my $catalog_file = $config->{"janitor/$catalog_name"}{"catalog"};
 		if ( !defined $catalog_file ) {
-###l4p			$logger->fatal("Catalog $catalog_name has no catalog property");
-			die "Catalog $catalog_name has no catalog property";
+			$logger->fatal("Catalog $catalog_name has no catalog property");
+			exit(255);
 		}
 		# Check if catalog is URL
 		if($catalog_file =~ /^[[:alpha:]]*:/) {
@@ -137,18 +126,18 @@ sub get_catalog
 						utime time(), time(), $ff->getFile();
 						unless(rename $ff->getFile(), $cachefile) {
 							my $msg = "Failed to replace catalog $catalog_name from $catalog_file - using temporary new";
-###l4p							$logger->error($msg);
+							$logger->warning($msg);
 							$cachefile = $ff->getFile();
 							$need_remove = 1;
 						}
 					} else {
 						if($cachefiletime) {
 							my $msg = "Failed to fetch catalog $catalog_name from $catalog_file - using old";
-###l4p							$logger->error($msg);
+							$logger->warning($msg);
 						} else {
 							my $msg = "Failed to fetch catalog $catalog_name from $catalog_file to cache";
-###l4p							$logger->error($msg);
-							# die "$msg";
+							$logger->error($msg);
+							#exit(255);
 							# there is still chance we will be able to dowmload catalog to another place
 							$cachefile = "";
 						}
@@ -164,9 +153,8 @@ sub get_catalog
 				# Fetch URL to temporary file and then delete it
 				my $ff = new Janitor::Filefetcher($catalog_file,$config->{'janitor'}{'downloaddir'});
 				unless ($ff->fetch()) {
-					my $msg = "Failed to fetch catalog $catalog_name from $catalog_file";
-###l4p					$logger->fatal($msg);
-					die "$msg";
+					$logger->fatal("Failed to fetch catalog $catalog_name from $catalog_file");
+					exit(255);
 				}
 				my $catalog_tmp_file = $ff->getFile();
 				$catalog->add($catalog_tmp_file);
@@ -187,20 +175,20 @@ sub get_catalog
 	my $deny_rte = $config->{"janitor"}{"deny_rte"};
 
 	if (!defined $allow_base or !defined $allow_rte) {
-###l4p		$logger->warn("I'm not allowed to use RTEs from the Catalogs. Configuration error?");
+		$logger->warn("I'm not allowed to use RTEs from the Catalogs. Configuration error?");
 		# This is odd but not an error!	
 		return $catalog;
 	}
 
 	# process basesystems
 	foreach my $b ( split /\[separator\]/, $allow_base ) {
-###l4p 		$logger->debug("CONFIG - allowing basesytems matching to $b");
+ 		$logger->debug("CONFIG - allowing basesytems matching to $b");
 		$b = glob2regex($b);
 		$catalog->AllowBaseSystem($b);
 	}	
 	if (defined $deny_base) {
 		foreach my $b ( split /\[separator\]/, $deny_base ) {
-###l4p 			$logger->debug("CONFIG - denying basesytems matching to $b");
+ 			$logger->debug("CONFIG - denying basesytems matching to $b");
 			$b = glob2regex($b);
 			$catalog->DenyBaseSystem($b);
 		}	
@@ -208,13 +196,13 @@ sub get_catalog
 
 	# process metapackages
 	foreach my $b ( split /\[separator\]/, $allow_rte ) {
-###l4p 		$logger->debug("CONFIG - allowing meta packages  matching to $b");
+ 		$logger->debug("CONFIG - allowing meta packages  matching to $b");
 		$b = glob2regex($b);
 		$catalog->AllowMetaPackage($b);
 	}	
 	if (defined $deny_rte) {
 		foreach my $b ( split /\[separator\]/, $deny_rte ) {
-###l4p 			$logger->debug("CONFIG - denying meta packages matching to $b");
+ 			$logger->debug("CONFIG - denying meta packages matching to $b");
 			$b = glob2regex($b);
 			$catalog->DenyMetaPackage($b);
 		}	

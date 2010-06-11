@@ -21,22 +21,14 @@ http, https and ftp.
 =cut
 
 
-
-BEGIN {
-	if (defined(Janitor::Janitor::resurrect)) { 
-		eval 'require Log::Log4perl';
-		unless ($@) { 
-			import Log::Log4perl qw(:resurrect get_logger);
-		}
-	}
-}
-###l4p my $logger = get_logger("Janitor::Filefetcher");
-
 use warnings;
 use strict;
 
-use Janitor::Execute;
 use File::Temp qw(tempfile);
+use Janitor::Execute;
+use Janitor::Logger;
+
+my $logger = Janitor::Logger->get_logger("Janitor::Filefetcher");
 
 =item Janitor::Filefetcher::new($url, $destination)
 
@@ -68,7 +60,7 @@ sub fetch() {
 	my ($self) = @_;
 
 	if (! (-w $self->{_destination} and -d $self->{_destination} ) ) {
-###l4p 		$logger->fatal("Cannot access destination directory ".$self->{_destination});
+ 		$logger->fatal("Cannot access destination directory ".$self->{_destination});
 		return 0;
 	}
 	
@@ -87,7 +79,7 @@ sub fetch() {
 	if ($url =~ /^(http[s]?)|(ftp):\/\//) {
 		my $e = new Janitor::Execute( $self->{_destination} );
 		if ( ! $e->execute("/usr/bin/wget",$url,"-O$file") ) {
-###l4p			$logger->error("Error while executing 'wget $url -O$file'. ".$!);
+			$logger->error("Error while executing 'wget $url -O$file'. ".$!);
 			return 0;
 		}
 	}

@@ -20,14 +20,6 @@ syncronous way, i.e. this process waits until the child process has died.
 
 =cut
  
-BEGIN {
-	if (defined(Janitor::Janitor::resurrect)) { 
-		eval 'require Log::Log4perl';
-		unless ($@) { 
-			import Log::Log4perl qw(:resurrect get_logger);
-		}
-	}
-}
 
 use warnings;
 use strict;
@@ -36,8 +28,9 @@ use POSIX qw(:sys_wait_h EAGAIN setgid getgid getegid setuid getuid geteuid);
 use Cwd qw(getcwd);
 
 use Janitor::InstallLogger;
+use Janitor::Logger;
 
-###l4p my $logger = Log::Log4perl::get_logger("Janitor::Execute");
+my $logger = Janitor::Logger->get_logger("Janitor::Execute");
 
 =item Janitor::Execute::new($workdir, $logfile, $chroot)
 
@@ -130,7 +123,7 @@ sub execute {
 	# info. If not, the pipe to the child is not created.
 	my $info = defined $self->{_logfile};
 
-###l4p 	$logger->debug("Execute::execute: ".join(" ", @command));
+ 	$logger->debug("Execute::execute: ".join(" ", @command));
 
 	if ($info) {
  		$instlogger->info("current time: " . scalar localtime);
@@ -142,7 +135,7 @@ sub execute {
 		
 		# we only need the pipe if we are at info level
 		unless (pipe(READ, WRITE)) {
-###l4p 			$logger->error("Can not create pipe: " . $!);
+ 			$logger->error("Can not create pipe: " . $!);
  			$instlogger->error("Can not create pipe: " . $!);
 			return 0;
 		}
@@ -173,7 +166,7 @@ sub execute {
 			if ($ret == -1) {
 				my $msg = "Somebody else reaped my child,"
 					. " assuming it did well...";
-###l4p 				$logger->error($msg);
+ 				$logger->error($msg);
  				$instlogger->error($msg);
 			}
 
@@ -181,19 +174,19 @@ sub execute {
 			if (WIFEXITED($?)) {
 				my $msg = "Child returned " . WEXITSTATUS($?);
  				$instlogger->info($msg) if $info;
-###l4p 				$logger->debug($msg);
+ 				$logger->debug($msg);
 				$self->{_retval} = WEXITSTATUS($?);
-###l4p 				#$logger->debug("$self->{_retval}");
+ 				#$logger->debug("$self->{_retval}");
 			} elsif (WIFSIGNALED($?)) {
 				my $msg = "Child killed by INT " . WTERMSIG($?);
  				$instlogger->error($msg);
-###l4p 				$logger->error($msg);
+ 				$logger->error($msg);
 				$self->{_signal} = WTERMSIG($?);
 			} else {
 				my $msg = "Something odd happened to my child... "
 					. "Assume this is an error\n";
  				$instlogger->error($msg);
-###l4p 				$logger->error($msg);
+				$logger->error($msg);
  				$instlogger->info("current time: " . scalar localtime) if $info;
 				return 0;
 			}
@@ -211,7 +204,7 @@ sub execute {
 				unless ($ret) {
 					my $msg = "Cannot chdir into \""
 						.  $self->{_workdir} . "\": $!";
-###l4p 					$logger->error($msg);
+ 					$logger->error($msg);
  					$instlogger->fatal($msg);
 					exit(1);
 				}	
@@ -225,7 +218,7 @@ sub execute {
  				$instlogger->info("chroot to working directory") if $info;
 				unless (chroot "." and chdir "/") {
 					my $msg = "Cannot chroot to working directory: $!";
-###l4p 					$logger->error($msg);
+ 					$logger->error($msg);
  					$instlogger->fatal($msg);
 					exit(1);
 				}
@@ -272,7 +265,7 @@ sub execute {
 				    $) ne "$new" and $) !~ m/^$new\s+/) {
 					my $msg = "Can not change gid: $err, $(, $new, $)";
  					$instlogger->fatal($msg);
-###l4p 					$logger->error($msg);
+ 					$logger->error($msg);
 					exit 1;
 				}
 
@@ -295,7 +288,7 @@ sub execute {
 				if ($< ne $new or $> ne $new) {
 					my $msg = "Can not change uid: $err";
  					$instlogger->fatal($msg);
-###l4p 					$logger->error($msg);
+ 					$logger->error($msg);
 					exit 1;
 				}
 			}
@@ -326,7 +319,7 @@ sub execute {
 			unless (exec { $command[0] } @command) {
 				my $msg = "can not exec command: $!";
  				$instlogger->fatal($msg);
-###l4p 				$logger->error($msg);
+ 				$logger->error($msg);
 				exit 1;
 			}
 		} elsif ($! == EAGAIN) {
@@ -335,7 +328,7 @@ sub execute {
 			redo FORK;
 		} else {
 			# some real error
-###l4p 			$logger->error("can not fork(): $!");
+ 			$logger->error("can not fork(): $!");
 			return 0;
 		}
 	}

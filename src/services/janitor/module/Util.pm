@@ -19,17 +19,6 @@ use Jantior::Util qw(remove_directory all_runscripts asGID asUID dir_lock dir_un
 =cut
 
 
-
-BEGIN {
-	if (defined(Janitor::Janitor::resurrect)) { 
-		eval 'require Log::Log4perl';
-		unless ($@) { 
-			import Log::Log4perl qw(:resurrect get_logger);
-		}
-	}
-}
-###l4p my $logger = get_logger("Janitor::Util");
-
 use warnings;
 use strict;
 
@@ -38,6 +27,9 @@ use Sys::Hostname;
 use File::Temp qw(tempdir);
 use File::stat;
 
+use Janitor::Logger;
+
+my $logger = Janitor::Logger->get_logger("Janitor::Util");
 
 ######################################################################
 ######################################################################
@@ -104,7 +96,7 @@ sub all_runscripts {
 		my ($dir, $part_dir, $r) = @_;
 		my $d = new DirHandle($dir); 
 		unless (defined $d) {
-###l4p 			$logger->error("Cannot open directory $dir: $!");
+ 			$logger->error("Cannot open directory $dir: $!");
 			return;
 		}
 		while (my $e = $d->read) {
@@ -142,9 +134,9 @@ sub asUID {
 		} elsif ($in =~ m/^[0-9]+$/) {
 			return $in;
 		}
-###l4p 		$logger->error("Unknown user: \"". $in . "\"");
+ 		$logger->error("Unknown user: \"". $in . "\"");
 	} else {
-###l4p 		$logger->debug("asUID called with argument <undef>, expected UID");
+ 		$logger->debug("asUID called with argument <undef>, expected UID");
 	}
 
 	return undef;
@@ -171,9 +163,9 @@ sub asGID {
 		} elsif ($in =~ m/^[0-9]+$/) {
 			return $in;
 		}
-###l4p 		$logger->error("Unknown group: \"". $in . "\"");
+ 		$logger->error("Unknown group: \"". $in . "\"");
 	} else {
-###l4p 		$logger->debug("asGID called with argument <undef>, expected GID");
+ 		$logger->debug("asGID called with argument <undef>, expected GID");
 	}
 
 	return undef;
@@ -205,19 +197,19 @@ sub dir_lock {
 		$maxwait = 0;
 	}
 
-###l4p	my $lastlog = time;
+	my $lastlog = time;
 
 	WAITAGAIN: {
 		# wait until it is not locked
 		while ( -e "$dir/lock" ) {
 			if ( $maxwait and time > $maxwait ) {
-###l4p				$logger->info("Job $job: giving up waiting on lock on $dir!");
+				$logger->info("Job $job: giving up waiting on lock on $dir!");
 				return 0;
 			}
-###l4p			if ( time - $lastlog >= 5 ) {
-###l4p				$lastlog = time;
-###l4p				$logger->info("Job $job: waiting for lock on $dir!");
-###l4p			}
+			if ( time - $lastlog >= 5 ) {
+				$lastlog = time;
+				$logger->info("Job $job: waiting for lock on $dir!");
+			}
 			sleep 1;
 		}
 
@@ -242,9 +234,8 @@ sub dir_lock {
 			my $tmpdir = tempdir(".tempXXXXXXX", DIR => $updir);	
 			chmod(0755, $tmpdir);
 			unless ( open(my $f ,">".$tmpdir."/lock") ) {
-				my $msg = "Can not create lockfile in $tmpdir: $!\n";
-###l4p 				$logger->fatal($msg);
-				die $msg;
+ 				$logger->fatal("Can not create lockfile in $tmpdir: $!");
+				exit(255);
 			}
 			my $ret = rename($tmpdir,$dir);
 			unless ($ret) { # it seems somebody else was faster, retry
@@ -294,7 +285,7 @@ sub dir_lock_remove {
 
 	rename $dir, "$tmpdir/dir";
 	unless (remove_directory($tmpdir)) {
-###l4p 		$logger->error("Removing directory $tmpdir failed. Clean up yourself!\n");
+ 		$logger->error("Removing directory $tmpdir failed. Clean up yourself!\n");
 		return 0;		
 	}
 

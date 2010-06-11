@@ -1,15 +1,8 @@
 package Janitor::InstallLogger;
 
-BEGIN {
-	if (defined(Janitor::Janitor::resurrect)) { 
-		eval 'require Log::Log4perl';
-		unless ($@) { 
-			import Log::Log4perl qw(:resurrect get_logger);
-		}
-	}
-}
+use Janitor::Logger;
 
-###l4p my $logger = get_logger("Janitor::Installer");
+my $logger = Janitor::Logger->get_logger("Janitor::Installer");
 
 =head1 NAME
 
@@ -54,18 +47,12 @@ sub new {
 		$self->{_log} = \$f;
 		if (defined $mode and $logfile ne "/dev/null") {
 			unless (chmod $mode, $logfile) {
-				my $msg = "Can not chmod $logfile: $!\n";
-###l4p				if (1) { $logger->error($msg); } else {
-					print STDERR "janitor: $msg";
-###l4p				}
+				$logger->error("Can not chmod $logfile: $!");
 			}
 		}
 	} else {
 		$self->{_log} = undef;
-		my $msg = "Can not open $logfile: $!\n";
-###l4p		if (1) { $logger->error($msg); } else {
-			print STDERR "janitor: $msg";
-###l4p		}
+		$logger->error("Can not open $logfile: $!");
 	}
 	
 	return $self;
@@ -78,7 +65,7 @@ sub _log {
 		my $f = ${$self->{_log}};
 		print $f "$level $msg\n";
 	} else {
-###l4p		$logger->info("can not write this to logfile: $msg");
+		$logger->info("can not write this to logfile: $msg");
 	}
 	return;
 }

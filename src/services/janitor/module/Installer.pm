@@ -1,15 +1,5 @@
 package Janitor::Installer;
 
-BEGIN {
-	if (defined(Janitor::Janitor::resurrect)) { 
-		eval 'require Log::Log4perl';
-		unless ($@) { 
-			import Log::Log4perl qw(:resurrect get_logger);
-		}
-	}
-}
-
-
 use Exporter;
 @ISA = qw(Exporter);	# Inherit from Exporter
 @EXPORT_OK = qw();
@@ -38,6 +28,7 @@ use strict;
 
 
 use File::Temp qw(tempdir);
+use Janitor::Logger;
 use Janitor::Execute qw(new);
 use Janitor::ArcConfig qw(get_ArcConfig);
 
@@ -45,7 +36,7 @@ use Janitor::ArcConfig qw(get_ArcConfig);
 
 use Janitor::Util qw(remove_directory);
 
-###l4p my $logger = get_logger("Janitor::Installer");
+my $logger = Janitor::Logger->get_logger("Janitor::Installer");
 my $config = get_ArcConfig();
 
 =item Janitor::Installer::new($instdir)
@@ -79,7 +70,7 @@ include the registration of this new package within the registration directory.
 sub install {
 	my ($self,$url) = @_;
 
-###l4p 	$logger->info("Installing $url");
+ 	$logger->info("Installing $url");
 
 	#get the first characters of the package name for tempdir creation
 	$url =~ m#/([^/]{4})[^/]*$#;
@@ -87,16 +78,16 @@ sub install {
 
 	#create directories
 	my $installdir = tempdir( $template."_XXXXXXXXXX", DIR => $self->{_instdir});	
-###l4p 	$logger->debug("Tempdir $installdir");
+ 	$logger->debug("Tempdir $installdir");
 
 	#the directory is created with permissions 0700, change this to 0755
 	chmod 0755, $installdir;
 
-###l4p 	$logger->debug($self->{_instdir});
+ 	$logger->debug($self->{_instdir});
 
 	my $tmpdir = "$installdir/temp";
 	unless ( mkdir $tmpdir and mkdir($installdir."/pkg") ) {
-###l4p 		$logger->error("Can not create directories in $installdir: $!");
+ 		$logger->error("Can not create directories in $installdir: $!");
 		remove_directory($installdir);	# cleanup
 		return (0,undef);
 	}
@@ -108,14 +99,14 @@ sub install {
 
 	#untar package
 	unless ( $self->untar($url,$tmpdir,$comptype) ) {
-###l4p 		$logger->error("Failed to extract from $url");
+ 		$logger->error("Failed to extract from $url");
 		remove_directory($installdir);	# cleanup
 		return (0,undef);	
 	} 
 
 	#move data
 	unless ( &_movecontent("$tmpdir/data","$installdir/pkg") ) {
-###l4p 		$logger->error("Could not move data in $tmpdir");
+ 		$logger->error("Could not move data in $tmpdir");
 		remove_directory($installdir);	# cleanup
 		return (0,undef);
 	}
@@ -125,37 +116,37 @@ sub install {
 	#execute the installskript
 	my $e = new Janitor::Execute($installdir."/pkg",$installdir."/install.log");
 	if ( ! $e->execute("/bin/sh","$tmpdir/control/install") ) {
-###l4p 		$logger->error("Error while executing /bin/sh $tmpdir/control/install");
+ 		$logger->error("Error while executing /bin/sh $tmpdir/control/install");
 		$errorflag=1;
 	}
 
 	# process the runtime script	
 	elsif ( ! &_process_runtime_script($tmpdir,$installdir) ) {
-###l4p 		$logger->error("Error while processing runtime script");
+ 		$logger->error("Error while processing runtime script");
 		$errorflag=1;
 	}
 
 	# move the remove script
 	elsif ( ! rename ("$tmpdir/control/remove", "$installdir/remove") ) {
-###l4p 		$logger->error("Can not rename $tmpdir/control/remove to $installdir/remove: $!");
+ 		$logger->error("Can not rename $tmpdir/control/remove to $installdir/remove: $!");
 		$errorflag=1;
 	}
 
 	# and finaly remove the temporary directory
 	elsif ( ! remove_directory($tmpdir) ) {
-###l4p 		$logger->error("Could not remove $tmpdir. $!");
+ 		$logger->error("Could not remove $tmpdir. $!");
 		$errorflag=1;
 	}
 
 
 
-###l4p	if ($errorflag) {
-###l4p 		$logger->error("Some error occured. Keeping installation"
-###l4p			. " directory \"$installdir\" for investigation");
-###l4p 		$logger->error("Clean up yourself.");
-###l4p	} else {
-###l4p 		$logger->info("Successfully installed \"$url\" in \"$installdir\"");
-###l4p	}
+	if ($errorflag) {
+ 		$logger->error("Some error occured. Keeping installation"
+			. " directory \"$installdir\" for investigation");
+ 		$logger->error("Clean up yourself.");
+	} else {
+ 		$logger->info("Successfully installed \"$url\" in \"$installdir\"");
+	}
 
 	return (($errorflag==0), $installdir);
 }
@@ -174,7 +165,7 @@ sub _process_runtime_script {
 	my ($tmpdir, $installdir) = @_;
 
 	unless ( open RUNTIME_IN, "< $tmpdir/control/runtime" ) {
-###l4p 		$logger->error("Could not read $tmpdir/control/runtime. $!");
+ 		$logger->error("Could not read $tmpdir/control/runtime. $!");
 		return 0;
 	}
 	my @runtime = <RUNTIME_IN>;
@@ -186,12 +177,12 @@ sub _process_runtime_script {
 
 	my $pkgdir = $installdir."/runtime";
 	unless ( open RUNTIME_OUT, "> $pkgdir" ) {
-###l4p 		$logger->error("Could not write $pkgdir. $!");
+ 		$logger->error("Could not write $pkgdir. $!");
 		return 0;
 	}
 	print RUNTIME_OUT @runtime;
 	unless (close RUNTIME_OUT) {
-###l4p 		$logger->error("Error while closing runtime file: $!");
+ 		$logger->error("Error while closing runtime file: $!");
 		return 0;
 	}
 
@@ -212,7 +203,7 @@ sub _movecontent {
 	my ($src, $dst) = @_;
 
 	unless (opendir(TEMPDIR, "$src")) {
-###l4p 		$logger->error("Can't open directory \"$src\": $!");
+ 		$logger->error("Can't open directory \"$src\": $!");
 		return 0;
 	}
 
@@ -222,7 +213,7 @@ sub _movecontent {
 		next if $name eq "..";
 
 		unless (rename ("$src/$name", "$dst/$name")) {
-###l4p 			$logger->error("renaming $src/$name to $dst/$name failed: $!");
+ 			$logger->error("renaming $src/$name to $dst/$name failed: $!");
 			$errorflag = 1;
 		}
 	}	
@@ -250,7 +241,7 @@ sub untar {
 	my $e = new Janitor::Execute($tmpdir);
 	
 	unless ( $e->execute("/bin/tar","xf",$url,$compType) ) {
-###l4p 		$logger->error("Execution of tar xf $url $compType failed.");
+ 		$logger->error("Execution of tar xf $url $compType failed.");
 		$errorflag=1;
 	}
 

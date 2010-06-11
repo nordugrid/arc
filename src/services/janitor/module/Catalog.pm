@@ -1,19 +1,11 @@
 package Janitor::Catalog;
 
 BEGIN {
-	if (defined(Janitor::Janitor::resurrect)) { 
-		eval 'require Log::Log4perl';
-		unless ($@) { 
-			import Log::Log4perl qw(:resurrect get_logger);
-		}
-	}
-
 	eval 'require Time::HiRes';
 	unless ($@) {
 		import Time::HiRes qw(time);
 	}
 }
-###l4p my $logger = get_logger("Janitor::Catalog");
 
 use Exporter;
 @ISA = qw(Exporter);
@@ -46,8 +38,6 @@ implemented.
 use strict;
 use warnings;
 
-
-
 use RDF::Redland;
 
 use Janitor::Catalog::BaseSystem;
@@ -59,6 +49,10 @@ use Janitor::Catalog::DebianPackage;
 use Janitor::Catalog::NoteCollection;
 use Janitor::Catalog::MetaPackageCollection;
 use Janitor::Catalog::Tag;
+
+use Janitor::Logger;
+
+my $logger = Janitor::Logger->get_logger("Janitor::Catalog");
 
 ######################################################################
 # Constructor, opens the catalog and returns a object for accessing it.
@@ -80,14 +74,14 @@ sub new {
 	my $storage = new RDF::Redland::Storage("hashes", "",
 				"new='yes',hash-type='memory'");
 	unless (defined  $storage) {
-		printf STDERR "janitor: Can not create RDF::Redland::Storage\n";
+		$logger->error("Can not create RDF::Redland::Storage");
 		return undef;
 	}
 
 	# create model
 	my $model = new RDF::Redland::Model($storage, "");
 	unless (defined $model) {
-		printf STDERR "janitor: Can not create RDF::Redland::Model for storage\n";
+		$logger->error("Can not create RDF::Redland::Model for storage");
 		return undef;
 	}
 
@@ -136,16 +130,14 @@ sub add {
 	my ($self, $file) = @_;
 
 	unless ( -e $file) {
-		print STDERR "janitor: Can not add file to catalog: $file does not exist\n";
-###l4p 		$logger->error("Can not add file to catalog: "
-###l4p					. "$file does not exist");
+ 		$logger->error("Can not add file to catalog: $file does not exist");
 		return;
 	}
 
 	my $uri = new RDF::Redland::URI("file:$file");	
 	my $parser = new RDF::Redland::Parser("rdfxml", "application/rdf+xml");
 	unless (defined $parser) {
-		printf STDERR "janitor: Can not create RDF::Redland::Parser\n";
+		$logger->error("Can not create RDF::Redland::Parser");
 		return undef;
 	}
 
@@ -310,18 +302,16 @@ sub _check_dependencies {
 		# check if there is such an instance
 		my $b = $self->get_object($instance, "kb:basesystem");
 		if (! defined $b) {
-			printf STDERR "janitor: Can not find package with id \"%s\" "
-				. "while checking dependencies of \"%s\"\n",
-				$instance, $packageid;
+			$logger->warning("Can not find package with id \"$instance\" "
+				. "while checking dependencies of \"$packageid\"");
 			return (0,undef);
 		}
 
 		# check if the basesystem is right
 		$b = prepare_uri($b);
 		if ($baseid ne $b) {
-			printf STDERR "janitor: found unexpected basesystem entry \"%s\" "
-				. "while checking meta package \"%s\". Expected \"%s\"\n",
-				$b, $packageid, $baseid;
+			$logger->warning("found unexpected basesystem entry \"$b\" "
+				. "while checking meta package \"$packageid\". Expected \"$baseid\"");
 			return (0,undef);
 		}
  
@@ -462,8 +452,8 @@ sub _BaseSystemByKey {
 	$bs->immutable(1);
 
 	unless (defined $bs->name) {
-		printf STDERR "janitor: There is no valid basesystem with id \"%s\" " .
-			"in the catalog.\n", $key;
+		$logger->warning("There is no valid basesystem with id \"$key\" " .
+			"in the catalog.");
 		return undef;
 	}
 
@@ -606,8 +596,8 @@ sub _MetaPackageByKey {
 	$mp->immutable(1);
 
 	unless (defined $mp->name) {
-		printf STDERR "janitor: There is no valid MetaPackage with id \"%s\" " .
-			"in the catalog.\n", $key;
+		$logger->warning("There is no valid MetaPackage with id \"$key\" " .
+			"in the catalog.");
 		return undef;
 	}
 
@@ -652,8 +642,8 @@ sub _TagByKey {
 	$tag->immutable(1);
 
 	unless (defined $tag->name) {
-		printf STDERR "janitor: There is no valid Tag with id \"%s\" " .
-			"in the catalog.\n", $key;
+		$logger->warning("There is no valid Tag with id \"$key\" " .
+			"in the catalog.");
 		return undef; }
 
 	Janitor::Catalog::NoteCollection->add($key, $tag);
@@ -917,7 +907,7 @@ sub _Allow_DenyHelper {
 			for (my $i = 0; $i < $res->bindings_count; $i++) {
 				my $val = $res->binding_value($i);
 				next unless defined $val; # optionals
-###l4p				$logger->debug(($flag ? 'allow' : 'deny') . prepare_uri($val->as_string));
+				$logger->debug(($flag ? 'allow' : 'deny') . prepare_uri($val->as_string));
 				$self->{_mask}->{prepare_uri($val->as_string)} = $flag;
 			}
 		}
@@ -988,8 +978,8 @@ sub query_with_one_answer {
 			my $val = $res->binding_value($i);
 			next unless defined $val; # optionals
 			if (defined $ret) {
-				printf STDERR "more than one answer in query_with_one_answer()\n";
-				printf STDERR "query was: %s\n", $query;
+				$logger->fatal("more than one answer in query_with_one_answer()");
+				$logger->info("query was: $query");
 				exit 1;
 			}
 			$ret = $val->as_string;

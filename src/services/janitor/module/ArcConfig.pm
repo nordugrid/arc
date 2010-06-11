@@ -1,16 +1,5 @@
 package Janitor::ArcConfig;
 
-# set to one to enable debug output of some operation prior to the
-###l4p # initialisation of the logger
-my $DEBUG = 0;
-######################################################################
-###l4p # Loging in this modul is difficult, as the logger might not be
-###l4p # ArcConfigured yet. For example if the place of the logger conffile is
-# read from the ArcConfig.
-#
-###l4p # So if the logger is not initialized we just print to stderr.
-######################################################################
-
 use Exporter;
 @ISA = qw(Exporter);     # Inherit from Exporter
 @EXPORT_OK = qw(get_ArcConfig);
@@ -57,6 +46,17 @@ use XML::Simple;
 use warnings;
 use strict;
 
+use Janitor::Logger;
+
+######################################################################
+# Loging in this module is difficult, as the logger might not be
+# configured yet. Thus, log messages go just to stderr.
+######################################################################
+
+# uncomment this to force debugging
+#Janitor::Logger::destination(*STDERR, $Janitor::Logger::DEBUG);
+
+my $logger = Janitor::Logger->get_logger("Janitor::ArcConfig");
 
 
 # our singleton :-)
@@ -102,10 +102,9 @@ ArcConfiguration file.
 
 sub get_ArcConfig {
 	if (!defined $singleton) {
-		my $msg = "Janitor::ArcConfig::get_ArcConfig: returning " .
+		my $msg = "get_ArcConfig: returning " .
 			"reference to empty hash; call parse() to fill it";
-			printf STDERR "janitor: DEBUG: %s\n", $msg if $DEBUG;
-
+		$logger->debug($msg);
 	}
 	return Janitor::ArcConfig->get();
 }
@@ -179,7 +178,7 @@ sub _parse {
 sub isXML {
     my $file = shift;
     unless (open CONFIGFILE, "<$file") {
-        print STDERR "janitor: FATAL: can not open $file: $!\n";
+		$logger->fatal("can not open $file: $!");
         exit 1;
     }
     my $isxml = 0;
@@ -233,13 +232,13 @@ sub read_arex_xml {
     my $xml;
     eval { $xml = XML::Simple->new(%xmlopts) };
     if ($@) {
-        print STDERR "janitor: FATAL: $@\n";
+		$logger->fatal($@);
         exit 1;
     }
     my $data;
     eval { $data = $xml->XMLin($file) };
     if ($@) {
-        print STDERR "janitor: FATAL: $@\n";
+		$logger->fatal("$@");
         exit 1;
     }
     hash_tree_apply $data, \&hash_strip_prefixes;
@@ -261,7 +260,7 @@ sub read_arex_xml {
         return $srv if $srv->{name} eq 'a-rex';
     }
 
-    printf STDERR "janitor: FATAL: A-REX config not found in $file\n";
+	$logger->fatal("A-REX config not found in $file");
     exit 1;
 }
 
@@ -330,8 +329,7 @@ sub _parse_ini {
 	# $self->{blockname}{variable_name}
 
 	unless ( open (ArcConfigFILE, "<$conf_file") ) {
-		my $msg = "can not open $conf_file: $!";
-		printf STDERR "janitor: FATAL: %s\n", $msg;
+		$logger->fatal("can not open $conf_file: $!");
 		exit 1;
 	}
 
@@ -348,8 +346,7 @@ sub _parse_ini {
 			next;}
 
 		unless ($line =~ m/^(\w+)\s*=\s*(["']?)(.*)(\2)\s*$/) {
-			my $msg =  "skipping incorrect $conf_file line ($c): $line";
-			printf STDERR "janitor: WARNING: %s\n", $msg;
+			$logger->warning("skipping incorrect $conf_file line ($c): $line");
 			next;
 		}
 		$variable_name=$1;
