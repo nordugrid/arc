@@ -61,7 +61,7 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
   std::string jobreport_key("");
   std::string jobreport_cert("");
   std::string jobreport_cadir("");
-  JobsListConfig jcfg = users.Env().jobs_cfg();
+  JobsListConfig& jcfg = users.Env().jobs_cfg();
 
   /* read configuration and add users and other things */
   if(!config_open(cfile,users.Env())) {
