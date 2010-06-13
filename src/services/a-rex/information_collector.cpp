@@ -15,6 +15,7 @@
 #include <arc/Run.h>
 #include <arc/wsrf/WSResourceProperties.h>
 #include <arc/message/PayloadSOAP.h>
+#include <arc/FileUtils.h>
 
 #include "ldif/LDIFtoXML.h"
 #include "grid-manager/conf/environment.h"
@@ -280,7 +281,7 @@ void OptimizedInformationContainer::AssignFile(const std::string& filename) {
   filename_ = filename;
   handle_ = -1;
   if(!filename_.empty()) {
-    handle_ = ::open(filename_.c_str(),O_RDONLY);
+    handle_ = Arc::FileOpen(filename_.c_str(),O_RDONLY);
     lock_.lock();
     doc_.ReadFromFile(filename_);
     lock_.unlock();

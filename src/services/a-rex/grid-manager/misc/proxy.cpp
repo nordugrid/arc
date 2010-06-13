@@ -15,6 +15,7 @@
 #include <arc/Utils.h>
 #include <arc/StringConv.h>
 #include <arc/URL.h>
+#include <arc/FileUtils.h>
 #include <arc/credential/Credential.h>
 #include <arc/credentialstore/CredentialStore.h>
 
@@ -28,7 +29,7 @@ int prepare_proxy(void) {
   if(getuid() == 0) { /* create temporary proxy */
     std::string proxy_file=Arc::GetEnv("X509_USER_PROXY");
     if(proxy_file.empty()) goto exit;
-    h=open(proxy_file.c_str(),O_RDONLY);
+    h=Arc::FileOpen(proxy_file.c_str(),O_RDONLY);
     if(h==-1) goto exit;
     if((len=lseek(h,0,SEEK_END))==-1) goto exit;
     if(lseek(h,0,SEEK_SET) != 0) goto exit;
@@ -43,7 +44,7 @@ int prepare_proxy(void) {
     close(h); h=-1; len=l;
     std::string proxy_file_tmp = proxy_file;
     proxy_file_tmp+=".tmp";
-    h=open(proxy_file_tmp.c_str(),O_WRONLY | O_CREAT,S_IRUSR | S_IWUSR);
+    h=Arc::FileOpen(proxy_file_tmp.c_str(),O_WRONLY | O_CREAT,S_IRUSR | S_IWUSR);
     if(h==-1) goto exit;
     (void)chmod(proxy_file_tmp.c_str(),S_IRUSR | S_IWUSR);
     for(l=0;l<len;) {
@@ -78,7 +79,7 @@ int renew_proxy(const char* old_proxy,const char* new_proxy) {
   struct stat st;
   int res = -1;
 
-  h=open(new_proxy,O_RDONLY);
+  h=Arc::FileOpen(new_proxy,O_RDONLY);
   if(h==-1) {
     fprintf(stderr,"Can't open new proxy: %s\n",new_proxy);
     goto exit;
@@ -102,7 +103,7 @@ int renew_proxy(const char* old_proxy,const char* new_proxy) {
   proxy_file_tmp=old_proxy;
   proxy_file_tmp+=".renew";
   remove(proxy_file_tmp.c_str());
-  h=open(proxy_file_tmp.c_str(),O_WRONLY | O_CREAT | O_EXCL,S_IRUSR | S_IWUSR);
+  h=Arc::FileOpen(proxy_file_tmp.c_str(),O_WRONLY | O_CREAT | O_EXCL,S_IRUSR | S_IWUSR);
   if(h==-1) {
     fprintf(stderr,"Can't create temporary proxy: %s\n",proxy_file_tmp.c_str());
     goto exit;

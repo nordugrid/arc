@@ -565,7 +565,7 @@ bool ARexJob::update_credentials(const std::string& credentials) {
   if(credentials.empty()) return true;
   std::string fname=config_.User()->ControlDir()+"/job."+id_+".proxy";
   ::unlink(fname.c_str());
-  int h=::open(fname.c_str(),O_WRONLY | O_CREAT | O_EXCL,0600);
+  int h=Arc::FileOpen(fname.c_str(),O_WRONLY | O_CREAT | O_EXCL,0600);
   if(h == -1) return false;
   fix_file_owner(fname,*config_.User());
   const char* s = credentials.c_str();
@@ -589,7 +589,7 @@ bool ARexJob::make_job_id(const std::string &id) {
   std::string fname=user->ControlDir()+"/job."+id+".description";
   struct stat st;
   if(stat(fname.c_str(),&st) == 0) return false;
-  int h = ::open(fname.c_str(),O_RDWR | O_CREAT | O_EXCL,S_IRWXU);
+  int h = Arc::FileOpen(fname.c_str(),O_RDWR | O_CREAT | O_EXCL,S_IRWXU);
   // So far assume control directory is on local fs.
   // TODO: add locks or links for NFS
   if(h == -1) return false;
@@ -612,7 +612,7 @@ bool ARexJob::make_job_id(void) {
     std::string fname=config_.User()->ControlDir()+"/job."+id_+".description";
     struct stat st;
     if(stat(fname.c_str(),&st) == 0) continue;
-    int h = ::open(fname.c_str(),O_RDWR | O_CREAT | O_EXCL,0600);
+    int h = Arc::FileOpen(fname.c_str(),O_RDWR | O_CREAT | O_EXCL,0600);
     // So far assume control directory is on local fs.
     // TODO: add locks or links for NFS
     int err = errno;

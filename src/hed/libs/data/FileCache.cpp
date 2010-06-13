@@ -21,6 +21,7 @@
 #include <glibmm.h>
 
 #include <arc/Logger.h>
+#include <arc/FileUtils.h>
 
 #include "FileCache.h"
 
@@ -508,45 +509,29 @@ namespace Arc {
       if (remote_cache_link == "replicate") {
         // copy the file to the local cache, remove remote lock and exit with available=true
         logger.msg(VERBOSE, "Replicating file %s to local cache file %s", remote_cache_file, filename);
-          // do the copy - taken directly from old datacache.cc
-        char copybuf[65536];
-        int fdest = open(filename.c_str(), O_WRONLY | O_CREAT | O_EXCL, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+
+        int fdest = FileOpen(filename.c_str(), O_WRONLY | O_CREAT | O_EXCL, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
         if(fdest == -1) {
           logger.msg(ERROR, "Failed to create file %s for writing: %s",filename, strerror(errno));
           return false;
         };
         
-        int fsource = open(remote_cache_file.c_str(), O_RDONLY);
+        int fsource = FileOpen(remote_cache_file.c_str(), O_RDONLY, 0);
         if(fsource == -1) {
           close(fdest);
           logger.msg(ERROR, "Failed to open file %s for reading: %s", remote_cache_file, strerror(errno));
           return false;
         };
         
-        // source and dest opened ok - copy in chunks
-        for(;;) {
-          ssize_t lin = read(fsource, copybuf, sizeof(copybuf));
-          if(lin == -1) {
-            close(fdest); close(fsource);
-            logger.msg(ERROR, "Failed to read file %s: %s", remote_cache_file, strerror(errno));
-            return false;
-          };
-          if(lin == 0) break; // eof
-          
-          for(ssize_t lout = 0; lout < lin;) {
-            ssize_t lwritten = write(fdest, copybuf+lout, lin-lout);
-            if(lwritten == -1) {
-              close(fdest); close(fsource);
-              logger.msg(ERROR, "Failed to write file %s: %s", filename, strerror(errno));
-              return false;
-            };
-            lout += lwritten;
-          };
+        if(!FileCopy(fsource,fdest)) {
+          close(fdest); close(fsource);
+          logger.msg(ERROR, "Failed to copy file %s to %s: %s", remote_cache_file, filename, strerror(errno));
+          return false;
         };
         close(fdest); close(fsource);
         if (remove(remote_lock_file.c_str()) != 0) {
           logger.msg(ERROR, "Failed to remove remote lock file %s: %s. Some manual intervention may be required", remote_lock_file, strerror(errno));
-          return true;
+          return true; // ?
         }
       }
       // create symlink from file in this cache to other cache
@@ -867,12 +852,10 @@ namespace Arc {
       return false;
     }
 
-    // do the copy - taken directly from old datacache.cc
-    char buf[65536];
     mode_t perm = S_IRUSR | S_IWUSR;
     if (executable)
       perm |= S_IXUSR;
-    int fdest = open(dest_path.c_str(), O_WRONLY | O_CREAT | O_EXCL, perm);
+    int fdest = FileOpen(dest_path.c_str(), O_WRONLY | O_CREAT | O_EXCL, perm);
     if (fdest == -1) {
       logger.msg(ERROR, "Failed to create file %s for writing: %s", dest_path, strerror(errno));
       return false;
@@ -883,35 +866,18 @@ namespace Arc {
       return false;
     }
 
-    int fsource = open(cache_file.c_str(), O_RDONLY);
+    int fsource = FileOpen(cache_file.c_str(), O_RDONLY, 0);
     if (fsource == -1) {
       close(fdest);
       logger.msg(ERROR, "Failed to open file %s for reading: %s", cache_file, strerror(errno));
       return false;
     }
 
-    // source and dest opened ok - copy in chunks
-    for (;;) {
-      ssize_t lin = read(fsource, buf, sizeof(buf));
-      if (lin == -1) {
-        close(fdest);
-        close(fsource);
-        logger.msg(ERROR, "Failed to read file %s: %s", cache_file, strerror(errno));
-        return false;
-      }
-      if (lin == 0)
-        break;          // eof
-
-      for (ssize_t lout = 0; lout < lin;) {
-        ssize_t lwritten = write(fdest, buf + lout, lin - lout);
-        if (lwritten == -1) {
-          close(fdest);
-          close(fsource);
-          logger.msg(ERROR, "Failed to write file %s: %s", dest_path, strerror(errno));
-          return false;
-        }
-        lout += lwritten;
-      }
+    if(!FileCopy(fsource, fdest)) {
+      close(fdest);
+      close(fsource);
+      logger.msg(ERROR, "Failed to copy file %s to %s: %s", cache_file, dest_path, strerror(errno));
+      return false;
     }
     close(fdest);
     close(fsource);

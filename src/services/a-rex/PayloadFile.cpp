@@ -10,6 +10,7 @@
 #include <sys/mman.h>
 #endif
 #include <iostream>
+#include <arc/FileUtils.h>
 #include "PayloadFile.h"
 
 namespace ARex {
@@ -17,7 +18,7 @@ namespace ARex {
 PayloadBigFile::Size_t PayloadBigFile::threshold_ = 1024*1024*10; // 10MB by default
 
 PayloadFile::PayloadFile(const char* filename,Size_t start,Size_t end) {
-  handle_=::open(filename,O_RDONLY);
+  handle_=Arc::FileOpen(filename,O_RDONLY);
   SetRead(handle_,start,end);
 }
 
@@ -124,11 +125,11 @@ bool PayloadFile::Truncate(Size_t /*size*/) {
 }
 
 static int open_file_read(const char* filename) {
-  return ::open(filename,O_RDONLY);
+  return Arc::FileOpen(filename,O_RDONLY);
 }
 
 static int open_file_write(const char* filename) {
-  return ::open(filename,O_WRONLY | O_CREAT,S_IRUSR | S_IWUSR);
+  return Arc::FileOpen(filename,O_WRONLY | O_CREAT,S_IRUSR | S_IWUSR);
 }
 
 PayloadBigFile::PayloadBigFile(int h,Size_t start,Size_t end):

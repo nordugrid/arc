@@ -243,6 +243,10 @@ static Glib::Mutex suid_lock;
 
 #ifndef WIN32
   UserSwitch::UserSwitch(int uid,int gid):valid(false) {
+    if((!uid) && (!gid)) {
+      valid=true;
+      return;
+    };
     suid_lock.lock();
     old_gid = getegid();
     old_uid = geteuid();

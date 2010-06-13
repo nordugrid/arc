@@ -10,6 +10,7 @@
 #include <unistd.h>
 
 #include <arc/Logger.h>
+#include <arc/FileUtils.h>
 #include <arc/data/URLMap.h>
 
 namespace Arc {
@@ -29,7 +30,7 @@ namespace Arc {
         URL newurl = tmp_url;
         /* must return semi-valid url */
         if (newurl.Protocol() == "file") { /* local file - check permissions */
-          int h = open(newurl.Path().c_str(), O_RDONLY);
+          int h = FileOpen(newurl.Path().c_str(), O_RDONLY, 0);
           if (h == -1) {
             logger.msg(ERROR, "file %s is not accessible", newurl.Path());
             return false;

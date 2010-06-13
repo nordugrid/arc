@@ -10,6 +10,9 @@
 #include <sys/mman.h>
 #endif
 #include <iostream>
+
+#include <arc/FileUtils.h>
+
 #include "PayloadFile.h"
 
 namespace Hopi {
@@ -21,7 +24,7 @@ PayloadBigFile::Size_t PayloadBigFile::threshold_ = 1024*1024*10; // 10MB by def
 PayloadFile::PayloadFile(const char* filename,Size_t start,Size_t end):handle_(-1),addr_(NULL),size_(0) {
   start_=start;
   end_=end;
-  handle_=open(filename,O_RDONLY);
+  handle_=Arc::FileOpen(filename,O_RDONLY);
   if(handle_ == -1) return;
   struct stat st;
   if(fstat(handle_,&st) != 0) goto error;
@@ -108,11 +111,11 @@ bool PayloadFile::Truncate(Size_t /*size*/) {
 #endif
 
 static int open_file_read(const char* filename) {
-  return ::open(filename,O_RDONLY);
+  return Arc::FileOpen(filename,O_RDONLY);
 }
 
 static int open_file_write(const char* filename) {
-  return ::open(filename,O_WRONLY | O_CREAT,S_IRUSR | S_IWUSR);
+  return Arc::FileOpen(filename,O_WRONLY | O_CREAT,S_IRUSR | S_IWUSR);
 }
 
 PayloadBigFile::PayloadBigFile(const char* filename,Size_t start,Size_t end):

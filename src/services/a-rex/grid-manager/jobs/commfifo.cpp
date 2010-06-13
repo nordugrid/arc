@@ -13,6 +13,8 @@
 #include "commfifo.h"
 
 
+#ifndef WIN32
+
 CommFIFO::CommFIFO(void) {
   timeout_=-1;
   lock.lock();
@@ -143,4 +145,30 @@ bool PingFIFO(const JobUser& user) {
   close(fd);
   return true;
 }
+
+#else
+
+CommFIFO::CommFIFO(void) {
+}
+
+CommFIFO::~CommFIFO(void) {
+}
+
+JobUser* CommFIFO::wait(int timeout) {
+  return NULL;
+}
+
+bool CommFIFO::add(JobUser& user) {
+  retrn false;
+}
+
+bool SignalFIFO(const JobUser& user) {
+  return false;
+}
+
+bool PingFIFO(const JobUser& user) {
+  return false;
+}
+
+#endif
 

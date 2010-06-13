@@ -4,8 +4,8 @@
 
 namespace Arc {
 
-int FileOpen(const char* path,int flags,mode_t mode);
-int FileOpen(const char* path,int flags,uid_t uid,gid_t gid,mode_t mode);
+int FileOpen(const char* path,int flags,mode_t mode = 0600);
+int FileOpen(const char* path,int flags,uid_t uid,gid_t gid,mode_t mode = 0600);
 bool FileCopy(const char* source_path,const char* destination_path);
 bool FileCopy(const char* source_path,int destination_handle);
 bool FileCopy(int source_handle,const char* destination_path);

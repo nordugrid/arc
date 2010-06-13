@@ -34,6 +34,7 @@
 #include <arc/credential/Credential.h>
 #include <arc/credentialstore/CredentialStore.h>
 #include <arc/crypto/OpenSSL.h>
+#include <arc/FileUtils.h>
 
 #include <openssl/ui.h>
 
@@ -44,7 +45,7 @@ static int create_proxy_file(const std::string& path) {
   if((::unlink(path.c_str()) != 0) && (errno != ENOENT)) {
     throw std::runtime_error("Failed to remove proxy file " + path);
   }
-  f = ::open(path.c_str(), O_WRONLY | O_CREAT | O_EXCL | O_TRUNC, S_IRUSR | S_IWUSR);
+  f = Arc::FileOpen(path.c_str(), O_WRONLY | O_CREAT | O_EXCL | O_TRUNC, S_IRUSR | S_IWUSR);
   if (f == -1) {
     throw std::runtime_error("Failed to create proxy file " + path);
   }

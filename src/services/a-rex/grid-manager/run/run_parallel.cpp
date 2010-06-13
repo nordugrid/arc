@@ -9,6 +9,7 @@
 
 #include <arc/Logger.h>
 #include <arc/Utils.h>
+#include <arc/FileUtils.h>
 
 #include "../conf/environment.h"
 #include "run_parallel.h"
@@ -122,17 +123,17 @@ void RunParallel::initializer(void* arg) {
   for(int i=0;i<max_files;i++) { close(i); };
   int h;
   // set up stdin,stdout and stderr
-  h=open("/dev/null",O_RDONLY); 
+  h=Arc::FileOpen("/dev/null",O_RDONLY); 
   if(h != 0) { if(dup2(h,0) != 0) { sleep(10); exit(1); }; close(h); };
-  h=open("/dev/null",O_WRONLY);
+  h=Arc::FileOpen("/dev/null",O_WRONLY);
   if(h != 1) { if(dup2(h,1) != 1) { sleep(10); exit(1); }; close(h); };
   std::string errlog;
   if(!(it->jobid_.empty())) { 
     errlog = it->user_.ControlDir() + "/job." + it->jobid_ + ".errors";
-    h=open(errlog.c_str(),O_WRONLY | O_CREAT | O_APPEND,S_IRUSR | S_IWUSR);
-    if(h==-1) { h=open("/dev/null",O_WRONLY); };
+    h=Arc::FileOpen(errlog.c_str(),O_WRONLY | O_CREAT | O_APPEND,S_IRUSR | S_IWUSR);
+    if(h==-1) { h=Arc::FileOpen("/dev/null",O_WRONLY); };
   }
-  else { h=open("/dev/null",O_WRONLY); };
+  else { h=Arc::FileOpen("/dev/null",O_WRONLY); };
   if(h != 2) { if(dup2(h,2) != 2) { sleep(10); exit(1); }; close(h); };
   // setting environment  - TODO - better environment 
   if(it->job_proxy_) {
