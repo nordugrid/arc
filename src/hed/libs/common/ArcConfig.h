@@ -5,7 +5,7 @@
 
 #include <string>
 #include <list>
-#include "XMLNode.h"
+#include <arc/XMLNode.h>
 
 namespace Arc {
 

@@ -2,6 +2,8 @@
 #include <unistd.h>
 #include <glibmm.h>
 
+#include <arc/Thread.h>
+
 namespace Arc {
 
   /// Utility functions for handling files and directories

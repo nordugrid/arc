@@ -7,7 +7,8 @@
 #include <vector>
 #include <ctype.h>
 #include <algorithm>
-#include "Logger.h"
+#include <arc/Logger.h>
+#include "StringConv.h"
 
 namespace Arc {
 
@@ -26,7 +27,7 @@ namespace Arc {
   }
 
   void tokenize(const std::string& str, std::vector<std::string>& tokens,
-                const std::string& delimiters = " ") {
+                const std::string& delimiters) {
     // Skip delimiters at beginning.
     std::string::size_type lastPos = str.find_first_not_of(delimiters, 0);
     // Find first "non-delimiter".
@@ -43,7 +44,7 @@ namespace Arc {
   }
 
   void tokenize(const std::string& str, std::list<std::string>& tokens,
-                const std::string& delimiters = " ") {
+                const std::string& delimiters) {
     // Skip delimiters at beginning.
     std::string::size_type lastPos = str.find_first_not_of(delimiters, 0);
     // Find first "non-delimiter".
@@ -60,7 +61,7 @@ namespace Arc {
   }
 
   static const char kBlankChars[] = " \t\n\r";
-  std::string trim(const std::string& str, const char *sep = NULL) {
+  std::string trim(const std::string& str, const char *sep) {
     if (sep == NULL)
       sep = kBlankChars;
     std::string::size_type const first = str.find_first_not_of(sep);

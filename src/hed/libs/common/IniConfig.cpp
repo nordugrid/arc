@@ -9,9 +9,9 @@
 #include <glibmm/miscutils.h>
 
 #include <arc/ArcLocation.h>
-#include <arc/IniConfig.h>
 #include <arc/Profile.h>
 #include <arc/StringConv.h>
+#include "IniConfig.h"
 
 namespace Arc {
 

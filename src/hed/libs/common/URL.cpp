@@ -11,12 +11,12 @@
 #include <glibmm/miscutils.h>
 
 #ifdef WIN32
-#include "win32.h"
+#include <arc/win32.h>
 #endif
 
 #include <arc/Logger.h>
 #include <arc/StringConv.h>
-#include <arc/URL.h>
+#include "URL.h"
 
 
 namespace Arc {

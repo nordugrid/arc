@@ -35,6 +35,8 @@
 #include <arc/StringConv.h>
 #include <arc/Thread.h>
 
+#include "Utils.h"
+
 #ifndef BUFLEN
 #define BUFLEN 1024
 #endif

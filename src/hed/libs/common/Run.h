@@ -4,6 +4,7 @@
 #define __ARC_RUN_H__
 
 #include <glibmm.h>
+#include <arc/Thread.h>
 
 namespace Arc {
 

@@ -18,9 +18,10 @@
 #endif
 #endif
 
+#include <arc/Logger.h>
+#include <arc/User.h>
+
 #include "Thread.h"
-#include "Logger.h"
-#include "User.h"
 
 
 namespace Arc {

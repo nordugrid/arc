@@ -4,8 +4,8 @@
 #include <config.h>
 #endif
 
-#include <arc/Profile.h>
 #include <arc/StringConv.h>
+#include "Profile.h"
 
 namespace Arc {
 

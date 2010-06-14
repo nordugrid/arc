@@ -14,8 +14,8 @@
 #include <arc/StringConv.h>
 #include <arc/URL.h>
 #include <arc/User.h>
-#include <arc/UserConfig.h>
 #include <arc/Utils.h>
+#include "UserConfig.h"
 
 #define HANDLESTRATT(ATT, SETTER) \
   if (common[ATT]) {\

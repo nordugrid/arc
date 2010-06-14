@@ -7,7 +7,7 @@
 #include <map>
 #include <vector>
 #include <mysql.h>
-#include "DBInterface.h"
+#include <arc/DBInterface.h>
 
 namespace Arc {
   ///Implement the database accessing interface in DBInterface.h by using mysql client library

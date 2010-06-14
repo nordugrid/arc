@@ -1,5 +1,5 @@
 #ifdef HAVE_CONFIG_H
-#include "config.h"
+#include <config.h>
 #endif
 
 // These utilities are implemented using POSIX.
@@ -20,8 +20,8 @@
 #include <sys/mman.h>
 #endif
 
+#include <arc/User.h>
 #include "FileUtils.h"
-#include "User.h"
 
 namespace Arc {
 

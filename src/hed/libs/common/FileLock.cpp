@@ -14,7 +14,7 @@
 #include <unistd.h>
 #include <glibmm.h>
 
-#include <arc/FileLock.h>
+#include "FileLock.h"
 
 namespace Arc {
 

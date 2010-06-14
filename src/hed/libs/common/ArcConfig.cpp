@@ -10,9 +10,9 @@
 
 #include <glibmm/miscutils.h>
 
-#include <arc/ArcConfig.h>
 #include <arc/ArcLocation.h>
 #include <arc/User.h>
+#include "ArcConfig.h"
 
 namespace Arc {
 

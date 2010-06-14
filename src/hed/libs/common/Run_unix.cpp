@@ -17,8 +17,8 @@
 
 #include <arc/Thread.h>
 #include <arc/Logger.h>
+#include <arc/User.h>
 
-#include "User.h"
 #include "Run.h"
 
 

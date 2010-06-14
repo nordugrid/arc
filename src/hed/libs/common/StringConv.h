@@ -8,7 +8,7 @@
 #include <string>
 #include <vector>
 
-#include "Logger.h"
+#include <arc/Logger.h>
 
 namespace Arc {
   extern Logger stringLogger;

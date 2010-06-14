@@ -10,7 +10,7 @@
 
 #include <arc/Thread.h>
 
-#include "Counter.h"
+#include <arc/Counter.h>
 
 namespace Arc {
 
