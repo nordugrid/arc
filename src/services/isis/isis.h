@@ -10,6 +10,8 @@
 #include <arc/infosys/InformationInterface.h>
 #include <arc/dbxml/XmlDatabase.h>
 
+#include <glibmm/thread.h>
+
 namespace ISIS {
     class Neighbor_Container {
         private:
@@ -56,11 +58,11 @@ namespace ISIS {
             void BootStrap(int retry_count);
             bool neighbors_update_needed;
             bool available_provider;
-            bool connection_lock;    // It is need for the connection ignoring  to the InfoProvider because it is circular dependency.
+            Glib::Mutex connection_lock;    // It is need for the connection ignoring  to the InfoProvider because it is circular dependency.
 
             // List of known neighbor's endpoint URL, key, cert, proxy and cadir in string
             int neighbors_count;
-            bool neighbors_lock;
+            Glib::Mutex neighbors_lock;
             std::vector<Arc::ISIS_description> neighbors_;
             Neighbor_Container not_availables_neighbors_;
             void Neighbors_Calculate(std::multimap<std::string,Arc::ISIS_description>::const_iterator it, int count);
@@ -86,6 +88,7 @@ namespace ISIS {
 
             Arc::MCC_Status Connect(Arc::XMLNode &request, Arc::XMLNode &response);
 
+            
         public:
             ISIService(Arc::Config *cfg);
             virtual ~ISIService(void);

@@ -240,7 +240,7 @@ static void soft_state_thread(void *data) {
     (*(self->threads_count))++;
 
     // "sleep_period" is the time, when the thread wakes up and checks the "KillTread" variable's value and then sleep away.
-    unsigned int sleep_period = 60;
+    unsigned int sleep_period = 10;
     while (true){
         thread_logger.msg(Arc::VERBOSE, "%s: %d seconds to the next database cleaning.", method, sleep_time);
 
@@ -340,7 +340,7 @@ static void soft_state_thread(void *data) {
     }
 }
 
-    ISIService::ISIService(Arc::Config *cfg):RegisteredService(cfg),logger_(Arc::Logger::rootLogger, "ISIS"),valid("PT1D"),remove("PT1D"),db_(NULL),neighbors_update_needed(false),available_provider(false),neighbors_count(0),neighbors_lock(false),connection_lock(false) {
+    ISIService::ISIService(Arc::Config *cfg):RegisteredService(cfg),logger_(Arc::Logger::rootLogger, "ISIS"),valid("PT1D"),remove("PT1D"),db_(NULL),neighbors_update_needed(false),available_provider(false),neighbors_count(0) {
 
         logger_.msg(Arc::VERBOSE, "Parsing configuration parameters");
 
@@ -836,10 +836,9 @@ static void soft_state_thread(void *data) {
         if ( db_ == NULL ) return make_soap_fault(outmsg);
 
         if ( neighbors_count == 0 || (!available_provider && infoproviders_.size() > 0) ) {
-            if ( !connection_lock ) {
-                connection_lock = true;
-                BootStrap(1);
-                connection_lock = false;
+            {
+                Glib::Mutex::Lock lock(connection_lock, Glib::TRY_LOCK);
+                if (lock.locked()) BootStrap(1);
             }
             neighbors_update_needed = false;
         } else if ( neighbors_count > 0 && neighbors_.size() == not_availables_neighbors_.count() ){
@@ -848,10 +847,9 @@ static void soft_state_thread(void *data) {
             // the network
             FileCacheHash md5;
             my_hash = md5.getHash(my_hash);
-            if ( !connection_lock ) {
-                connection_lock = true;
-                BootStrap(retry);
-                connection_lock = false;
+            {
+                Glib::Mutex::Lock lock(connection_lock, Glib::TRY_LOCK);
+                if (lock.locked()) BootStrap(retry);
             }
             neighbors_update_needed = false;
         } else if (neighbors_update_needed) {
@@ -986,13 +984,8 @@ static void soft_state_thread(void *data) {
     }
 
     void ISIService::Neighbors_Update() {
-        // wait until the neighbors list in used
-        while ( neighbors_lock ) {
-           //sleep(10);
-        }
-
-        // neighbors lock start
-        neighbors_lock = true;
+        
+        Glib::Mutex::Lock lock(neighbors_lock);
 
         // -hash_table recalculate
         hash_table.clear();
@@ -1027,8 +1020,6 @@ static void soft_state_thread(void *data) {
         Neighbors_Calculate(it, new_neighbors_count);
         neighbors_count = new_neighbors_count;
 
-        // neighbors lock end
-        neighbors_lock = false;
         return;
     }
 
