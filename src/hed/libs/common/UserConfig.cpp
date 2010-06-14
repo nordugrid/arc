@@ -1000,7 +1000,7 @@ namespace Arc {
 
   bool UserConfig::makeDir(const std::string& path) {
     bool dirCreated = false;
-    dirCreated = DirCreate(path.c_str(), 0755);
+    dirCreated = DirCreate(path, 0755);
 
     if (dirCreated)
       logger.msg(INFO, "%s directory created", path);
@@ -1043,7 +1043,7 @@ TODO: Make FileUtils function to this
   }
 
   bool UserConfig::UtilsDirPath(const std::string& dir) {
-    if (!DirCreate(dir.c_str(), 0700, true))
+    if (!DirCreate(dir, 0700, true))
       logger.msg(WARNING, "Failed to create directory %s", dir);
     else
       utilsdir = dir;

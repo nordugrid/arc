@@ -510,13 +510,13 @@ namespace Arc {
         // copy the file to the local cache, remove remote lock and exit with available=true
         logger.msg(VERBOSE, "Replicating file %s to local cache file %s", remote_cache_file, filename);
 
-        int fdest = FileOpen(filename.c_str(), O_WRONLY | O_CREAT | O_EXCL, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+        int fdest = FileOpen(filename, O_WRONLY | O_CREAT | O_EXCL, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
         if(fdest == -1) {
           logger.msg(ERROR, "Failed to create file %s for writing: %s",filename, strerror(errno));
           return false;
         };
         
-        int fsource = FileOpen(remote_cache_file.c_str(), O_RDONLY, 0);
+        int fsource = FileOpen(remote_cache_file, O_RDONLY, 0);
         if(fsource == -1) {
           close(fdest);
           logger.msg(ERROR, "Failed to open file %s for reading: %s", remote_cache_file, strerror(errno));
@@ -855,7 +855,7 @@ namespace Arc {
     mode_t perm = S_IRUSR | S_IWUSR;
     if (executable)
       perm |= S_IXUSR;
-    int fdest = FileOpen(dest_path.c_str(), O_WRONLY | O_CREAT | O_EXCL, perm);
+    int fdest = FileOpen(dest_path, O_WRONLY | O_CREAT | O_EXCL, perm);
     if (fdest == -1) {
       logger.msg(ERROR, "Failed to create file %s for writing: %s", dest_path, strerror(errno));
       return false;
@@ -866,7 +866,7 @@ namespace Arc {
       return false;
     }
 
-    int fsource = FileOpen(cache_file.c_str(), O_RDONLY, 0);
+    int fsource = FileOpen(cache_file, O_RDONLY, 0);
     if (fsource == -1) {
       close(fdest);
       logger.msg(ERROR, "Failed to open file %s for reading: %s", cache_file, strerror(errno));

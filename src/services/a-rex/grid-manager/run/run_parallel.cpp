@@ -130,7 +130,7 @@ void RunParallel::initializer(void* arg) {
   std::string errlog;
   if(!(it->jobid_.empty())) { 
     errlog = it->user_.ControlDir() + "/job." + it->jobid_ + ".errors";
-    h=Arc::FileOpen(errlog.c_str(),O_WRONLY | O_CREAT | O_APPEND,S_IRUSR | S_IWUSR);
+    h=Arc::FileOpen(errlog,O_WRONLY | O_CREAT | O_APPEND,S_IRUSR | S_IWUSR);
     if(h==-1) { h=Arc::FileOpen("/dev/null",O_WRONLY); };
   }
   else { h=Arc::FileOpen("/dev/null",O_WRONLY); };

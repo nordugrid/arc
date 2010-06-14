@@ -253,7 +253,7 @@ namespace Arc {
         reading = false;
         return DataStatus::ReadStartError;
       }
-      fd = FileOpen((url.Path()).c_str(), flags);
+      fd = FileOpen(url.Path(), flags);
     }
     if (fd == -1) {
       reading = false;
@@ -337,9 +337,9 @@ namespace Arc {
 
       /* try to create file, if failed - try to open it */
       int flags = O_WRONLY;
-      fd = FileOpen((url.Path()).c_str(), flags | O_CREAT | O_EXCL, S_IRUSR | S_IWUSR);
+      fd = FileOpen(url.Path(), flags | O_CREAT | O_EXCL, S_IRUSR | S_IWUSR);
       if (fd == -1)
-        fd = FileOpen((url.Path()).c_str(), flags | O_TRUNC, S_IRUSR | S_IWUSR);
+        fd = FileOpen(url.Path(), flags | O_TRUNC, S_IRUSR | S_IWUSR);
       else  /* this file was created by us. Hence we can set it's owner */
         (fchown(fd, user.get_uid(), user.get_gid()) != 0);
       if (fd == -1) {

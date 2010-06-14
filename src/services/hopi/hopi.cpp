@@ -222,17 +222,17 @@ HopiFile::HopiFile(const std::string& path,bool for_read,bool slave):handle(-1),
   HopiFile::slave=slave;
   HopiFile::path=path;
   if(for_read) {
-    handle=Arc::FileOpen(path.c_str(),O_RDONLY);
+    handle=Arc::FileOpen(path,O_RDONLY);
   } else {
     if(slave) {
-      handle=Arc::FileOpen(path.c_str(),O_WRONLY);
+      handle=Arc::FileOpen(path,O_WRONLY);
       if(handle == -1) {
         if(errno == ENOENT) {
           Hopi::logger.msg(Arc::ERROR, "Hopi SlaveMode is active, PUT is only allowed to existing files");
         }
       }
     } else {
-      handle=Arc::FileOpen(path.c_str(),O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR);
+      handle=Arc::FileOpen(path,O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR);
     }
   }
   if(handle == -1) {

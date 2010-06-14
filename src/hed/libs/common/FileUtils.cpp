@@ -37,17 +37,17 @@ static bool write_all(int h,const void* buf,size_t l) {
   return true;
 }
 
-int FileOpen(const char* path,int flags,mode_t mode) {
+int FileOpen(const std::string& path,int flags,mode_t mode) {
   return FileOpen(path,flags,0,0,mode);
 }
 
-int FileOpen(const char* path,int flags,uid_t uid,gid_t gid,mode_t mode) {
+int FileOpen(const std::string& path,int flags,uid_t uid,gid_t gid,mode_t mode) {
   int h = -1;
 #ifndef WIN32
   {
     UserSwitch usw(uid,gid);
     if(!usw) return -1;
-    h = open(path,flags | O_NONBLOCK,mode);
+    h = open(path.c_str(),flags | O_NONBLOCK,mode);
   };
   if(h == -1) return -1;
   if(flags & O_NONBLOCK) return h;
@@ -76,13 +76,13 @@ int FileOpen(const char* path,int flags,uid_t uid,gid_t gid,mode_t mode) {
   {
     UserSwitch usw(uid,gid);
     if(!usw) return -1;
-    h = open(path,flags,mode);
+    h = open(path.c_str(),flags,mode);
   };
 #endif
   return h;
 }
 
-bool FileCopy(const char* source_path,const char* destination_path) {
+bool FileCopy(const std::string& source_path,const std::string& destination_path) {
   struct stat st;
   int source_handle = FileOpen(source_path,O_RDONLY,0,0,0);
   if(source_handle == -1) return false;
@@ -98,7 +98,7 @@ bool FileCopy(const char* source_path,const char* destination_path) {
   return r;
 }
 
-bool FileCopy(const char* source_path,int destination_handle) {
+bool FileCopy(const std::string& source_path,int destination_handle) {
   int source_handle = FileOpen(source_path,O_RDONLY,0,0,0);
   if(source_handle == -1) return false;
   if(::ftruncate(destination_handle,0) != 0) {
@@ -110,7 +110,7 @@ bool FileCopy(const char* source_path,int destination_handle) {
   return r;
 }
 
-bool FileCopy(int source_handle,const char* destination_path) {
+bool FileCopy(int source_handle,const std::string& destination_path) {
   int destination_handle = FileOpen(destination_path,O_WRONLY | O_CREAT | O_TRUNC,0,0,0600);
   if(destination_handle == -1) return false;
   bool r = FileCopy(source_handle,destination_handle);
@@ -156,12 +156,12 @@ bool FileCopy(int source_handle,int destination_handle) {
   return r;
 }
 
-Glib::Dir* DirOpen(const char* path) {
+Glib::Dir* DirOpen(const std::string& path) {
   return DirOpen(path,0,0);
 }
 
 // TODO: find non-blocking way to open directory
-Glib::Dir* DirOpen(const char* path,uid_t uid,gid_t gid) {
+Glib::Dir* DirOpen(const std::string& path,uid_t uid,gid_t gid) {
   Glib::Dir* dir = NULL;
   {
     UserSwitch usw(uid,gid);
@@ -175,55 +175,54 @@ Glib::Dir* DirOpen(const char* path,uid_t uid,gid_t gid) {
   return dir;
 }
 
-bool FileStat(const char* path,struct stat *st,bool follow_symlinks) {
+bool FileStat(const std::string& path,struct stat *st,bool follow_symlinks) {
   return FileStat(path,st,0,0,follow_symlinks);
 }
 
 // TODO: maybe by using open + fstat it would be possible to 
 // make this functin less blocking
-bool FileStat(const char* path,struct stat *st,uid_t uid,gid_t gid,bool follow_symlinks) {
+bool FileStat(const std::string& path,struct stat *st,uid_t uid,gid_t gid,bool follow_symlinks) {
   int r = -1;
   {
     UserSwitch usw(uid,gid);
     if(!usw) return false;
 #ifndef WIN32
     if(follow_symlinks) {
-      r = ::stat(path,st);
+      r = ::stat(path.c_str(),st);
     } else {
-      r = ::lstat(path,st);
+      r = ::lstat(path.c_str(),st);
     };
 #else
-    r = ::stat(path,st);
+    r = ::stat(path.c_str(),st);
 #endif
   };
   return (r == 0);
 }
 
-bool DirCreate(const char* path,mode_t mode,bool with_parents) {
+bool DirCreate(const std::string& path,mode_t mode,bool with_parents) {
   return DirCreate(path,0,0,mode,with_parents);
 }
 
 // TODO: find non-blocking way to create directory
-bool DirCreate(const char* path,uid_t uid,gid_t gid,mode_t mode,bool with_parents) {
-  int r = -1;
+bool DirCreate(const std::string& path,uid_t uid,gid_t gid,mode_t mode,bool with_parents) {
   {
     UserSwitch usw(uid,gid);
     if(!usw) return false;
 #ifndef WIN32
-    if(::mkdir(path,mode) == 0) return true;
+    if(::mkdir(path.c_str(),mode) == 0) return true;
 #else
-    if(::mkdir(path) == 0) return true;
+    if(::mkdir(path.c_str()) == 0) return true;
 #endif
   }
   if(errno == EEXIST) {
     /*
     Should it be just dumb mkdir or something clever?
     struct stat st; 
-    r = ::stat(path,&st);
+    int r = ::stat(path.c_str(),&st);
     if((r == 0) && (S_ISDIR(st.st_mode))) {
       if((uid == 0) || (st.st_uid == uid)) {
         if((gid == 0) || (st.st_gid == gid) ||
-           (::chown(path,(uid_t)(-1),gid) == 0)) {
+           (::chown(path.c_str(),(uid_t)(-1),gid) == 0)) {
           // mode ?
           return true;
         }
@@ -240,13 +239,13 @@ bool DirCreate(const char* path,uid_t uid,gid_t gid,mode_t mode,bool with_parent
       std::string::size_type pos = ppath.rfind(G_DIR_SEPARATOR_S);
       if((pos != 0) && (pos != std::string::npos)) {
         ppath.resize(pos);
-        if(!DirCreate(ppath.c_str(),uid,gid,mode,true)) return false;
+        if(!DirCreate(ppath,uid,gid,mode,true)) return false;
         UserSwitch usw(uid,gid);
         if(!usw) return false;
 #ifndef WIN32
-        if(::mkdir(path,mode) == 0) return true;
+        if(::mkdir(path.c_str(),mode) == 0) return true;
 #else
-        if(::mkdir(path) == 0) return true;
+        if(::mkdir(path.c_str()) == 0) return true;
 #endif
       }
     }
@@ -255,7 +254,7 @@ bool DirCreate(const char* path,uid_t uid,gid_t gid,mode_t mode,bool with_parent
 }
 
 
-bool DirDelete(const char* path,uid_t uid,gid_t gid) {
+bool DirDelete(const std::string& path,uid_t uid,gid_t gid) {
 
   bool r = false;
   {
@@ -266,10 +265,10 @@ bool DirDelete(const char* path,uid_t uid,gid_t gid) {
   return r;
 }  
 
-bool DirDelete(const char* path) {
+bool DirDelete(const std::string& path) {
 
   struct stat st;
-  if (::stat(path, &st) != 0 || ! S_ISDIR(st.st_mode))
+  if (::stat(path.c_str(), &st) != 0 || ! S_ISDIR(st.st_mode))
     return false;
   try {
     Glib::Dir dir(path);
@@ -296,7 +295,7 @@ bool DirDelete(const char* path) {
   catch (Glib::FileError& e) {
     return false;
   }
-  if (rmdir(path) != 0) return false;
+  if (rmdir(path.c_str()) != 0) return false;
       
   return true;
 }
