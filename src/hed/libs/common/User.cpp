@@ -242,8 +242,8 @@ static Glib::Mutex suid_lock;
 #endif
 
 #ifndef WIN32
-  UserSwitch::UserSwitch(int uid,int gid):valid(false) {
-    if((!uid) && (!gid)) {
+  UserSwitch::UserSwitch(int uid,int gid):old_uid(0),old_gid(0),valid(false) {
+    if((uid == 0) && (gid == 0)) {
       valid=true;
       return;
     };
