@@ -18,6 +18,7 @@
 #include <glibmm/miscutils.h>
 #endif
 
+#include <arc/Thread.h>
 #include <arc/StringConv.h>
 #include <arc/Utils.h>
 #include "User.h"
@@ -243,13 +244,13 @@ static Glib::Mutex suid_lock;
 
 #ifndef WIN32
   UserSwitch::UserSwitch(int uid,int gid):old_uid(0),old_gid(0),valid(false) {
+    suid_lock.lock();
+    old_gid = getegid();
+    old_uid = geteuid();
     if((uid == 0) && (gid == 0)) {
       valid=true;
       return;
     };
-    suid_lock.lock();
-    old_gid = getegid();
-    old_uid = geteuid();
     if(gid) {
       if(old_gid != gid) {
         if(setegid(gid) == -1) {
