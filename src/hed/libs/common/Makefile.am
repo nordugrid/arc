@@ -37,33 +37,3 @@ libarccommon_la_CXXFLAGS = -I$(top_srcdir)/include \
 libarccommon_la_LIBADD   = $(LIBXML2_LIBS) $(GLIBMM_LIBS) $(GTHREAD_LIBS) \
 	$(REGEX_LIBS) $(UUID_LIBS) $(EXTRA_LIBS) $(SOCKET_LIBS) \
 	$(MYSQL_LIBS) $(LIBINTL)
-
-if MYSQL_LIBRARY_ENABLED
-TEST_DB_PROGRAM = test_db
-else
-TEST_DB_PROGRAM =
-endif
-
-noinst_PROGRAMS = testxpath test_run test_regex $(TEST_DB_PROGRAM)
-
-testxpath_SOURCES=testxpath.cpp
-testxpath_CXXFLAGS=$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
-testxpath_LDFLAGS=$(GLIBMM_LIBS) $(LIBXML2_LIBS) 
-testxpath_LDADD=./libarccommon.la
-
-test_run_SOURCES=test_run.cpp
-test_run_CXXFLAGS=$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) -I$(top_srcdir)/include
-test_run_LDFLAGS=$(LIBXML2_LIBS) $(EXTRA_LIBS)
-test_run_LDADD=./libarccommon.la
-
-test_regex_SOURCES=test_regex.cpp
-test_regex_CXXFLAGS=$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) -I$(top_srcdir)/include
-test_regex_LDFLAGS=$(LIBXML2_LIBS) $(EXTRA_LIBS)
-test_regex_LDADD=./libarccommon.la
-
-if MYSQL_LIBRARY_ENABLED
-test_db_SOURCES=test_db.cpp
-test_db_CXXFLAGS=$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(MYSQL_CFLAGS) -I$(top_srcdir)/include
-test_db_LDFLAGS=$(LIBXML2_LIBS) $(MYSQL_LIBS) $(EXTRA_LIBS)
-test_db_LDADD=./libarccommon.la
-endif

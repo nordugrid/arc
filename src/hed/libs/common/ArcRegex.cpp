@@ -49,6 +49,7 @@ namespace Arc {
       int st;
       regmatch_t rm[256];
       unmatched.clear();
+      matched.clear();
       st = regexec(&preg, str.c_str(), 256, rm, 0);
       if (st != 0)
         return false;

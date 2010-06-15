@@ -1,5 +1,3 @@
-#include <sys/types.h>
-#include <unistd.h>
 #include <glibmm.h>
 
 #include <arc/Thread.h>

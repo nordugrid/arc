@@ -7,9 +7,11 @@
 
 namespace Arc {
 
-  /// This function generates a random identifier which is quite unique as well
+  /// Utilities for generating unique identifiers in the form 12345678-90ab-cdef-1234-567890abcdef
+
+  /// Generates a unique identifier using information such as IP address, current time etc.
   void GUID(std::string& guid);
-  /// This function generates uuid
+  /// Generates a unique identifier using the system uuid libraries
   std::string UUID(void);
 
 } // namespace Arc

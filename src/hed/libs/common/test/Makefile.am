@@ -1,4 +1,10 @@
-TESTS = URLTest LoggerTest RunTest XMLNodeTest FileUtilsTest ThreadTest
+if MYSQL_LIBRARY_ENABLED
+MYSQL_WRAPPER_TEST = MysqlWrapperTest
+else
+MYSQL_WRAPPER_TEST = 
+endif
+
+TESTS = URLTest LoggerTest RunTest XMLNodeTest FileUtilsTest ArcRegexTest ThreadTest $(MYSQL_WRAPPER_TEST)
 check_PROGRAMS = $(TESTS)
 
 URLTest_SOURCES = $(top_srcdir)/src/Test.cpp URLTest.cpp
@@ -24,5 +30,15 @@ XMLNodeTest_LDADD = $(CPPUNIT_LIBS) ../libarccommon.la
 FileUtilsTest_SOURCES = $(top_srcdir)/src/Test.cpp FileUtilsTest.cpp
 FileUtilsTest_CXXFLAGS = $(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
 FileUtilsTest_LDADD = $(CPPUNIT_LIBS) ../libarccommon.la
+
+ArcRegexTest_SOURCES = $(top_srcdir)/src/Test.cpp ArcRegexTest.cpp
+ArcRegexTest_CXXFLAGS = $(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
+ArcRegexTest_LDADD = $(CPPUNIT_LIBS) ../libarccommon.la
+
+if MYSQL_LIBRARY_ENABLED
+MysqlWrapperTest_SOURCES = $(top_srcdir)/src/Test.cpp MysqlWrapperTest.cpp
+MysqlWrapperTest_CXXFLAGS = $(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(MYSQL_CFLAGS) -I$(top_srcdir)/include
+MysqlWrapperTest_LDADD = $(CPPUNIT_LIBS) $(MYSQL_LIBS) ../libarccommon.la
+endif
 
 EXTRA_DIST = rcode

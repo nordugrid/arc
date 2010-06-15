@@ -41,11 +41,15 @@ namespace Arc {
     bool match(const std::string& str) const;
 
     //! Returns true if this regex matches the string provided.
-    //! Unmatched parts of the string are stored in 'unmatched'.
-    //! Matched parts of the string are stored in 'matched'.
+    /*! Unmatched parts of the string are stored in 'unmatched'.
+     *  Matched parts of the string are stored in 'matched'. The
+     *  first entry in matched is the string that matched the regex,
+     *  and the following entries are parenthesised elements
+     *  of the regex
+     */
     bool match(const std::string& str, std::list<std::string>& unmatched, std::list<std::string>& matched) const;
 
-    //! Returns patter
+    //! Returns pattern
     std::string getPattern() const;
 
   private:
