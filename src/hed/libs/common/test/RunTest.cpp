@@ -5,6 +5,7 @@
 #include <cppunit/extensions/HelperMacros.h>
 
 #include <arc/Run.h>
+#include <arc/User.h>
 
 class RunTest
   : public CppUnit::TestFixture {
@@ -31,12 +32,18 @@ void RunTest::setUp() {
 void RunTest::tearDown() {
 }
 
+static void initializer_func(void* arg) {
+  Arc::UserSwitch u(0,0);
+  CPPUNIT_ASSERT(arg == (void*)1);
+}
+
 void RunTest::TestRun0() {
   std::string outstr;
   std::string errstr;
   Arc::Run run("./rcode 0");
   run.AssignStdout(outstr);
   run.AssignStderr(errstr);
+  run.AssignInitializer(&initializer_func,(void*)1);
   CPPUNIT_ASSERT((bool)run);
   CPPUNIT_ASSERT(run.Start());
   CPPUNIT_ASSERT(run.Wait(10));

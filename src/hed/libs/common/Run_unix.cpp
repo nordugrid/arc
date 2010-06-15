@@ -88,24 +88,27 @@ namespace Arc {
   private:
     void *arg_;
     void (*func_)(void*);
+    UserSwitch* usw_;
   public:
-    RunInitializerArgument(void(*func)(void*), void *arg)
+    RunInitializerArgument(void(*func)(void*), void *arg, UserSwitch* usw)
       : arg_(arg),
-        func_(func) {}
+        func_(func),
+        usw_(usw) {}
     void Run(void);
   };
 
   void RunInitializerArgument::Run(void) {
     void *arg = arg_;
     void (*func)(void*) = func_;
+    if(usw_) delete usw_;
     delete this;
-    // To leave clean environment reset all signal.
+    // To leave clean environment reset all signals.
     // Otherwise we may get some signals non-intentionally ignored.
     // Glib takes care of open handles.
 #ifdef SIGRTMIN
     for(int n = SIGHUP; n < SIGRTMIN; ++n)
 #else
-    // At least reset all signals whoe numbers are well defined
+    // At least reset all signals whose numbers are well defined
     for(int n = SIGHUP; n < SIGTERM; ++n)
 #endif
       signal(n,SIG_DFL);
@@ -308,12 +311,15 @@ namespace Arc {
     if (argv_.size() < 1)
       return false;
     RunPump& pump = RunPump::Instance();
+    UserSwitch* usw = NULL;
     RunInitializerArgument *arg = NULL;
     try {
-      UserSwitch usw(0,0);
       running_ = true;
       Glib::Pid pid;
-      arg = new RunInitializerArgument(initializer_func_, initializer_arg_);
+      // Locking user switching to make sure fork is 
+      // is done with proper uid
+      usw = new UserSwitch(0,0);
+      arg = new RunInitializerArgument(initializer_func_, initializer_arg_, usw);
       spawn_async_with_pipes(working_directory, argv_,
                              Glib::SpawnFlags(Glib::SPAWN_DO_NOT_REAP_CHILD),
                              sigc::mem_fun(*arg, &RunInitializerArgument::Run),
@@ -330,16 +336,20 @@ namespace Arc {
         fcntl(stderr_, F_SETFL, fcntl(stderr_, F_GETFL) | O_NONBLOCK);
       started_ = true;
     } catch (Glib::Exception& e) {
+      if(usw) delete usw;
+      if(arg) delete arg;
       running_ = false;
       // TODO: report error
       return false;
     } catch (std::exception& e) {
+      if(usw) delete usw;
+      if(arg) delete arg;
       running_ = false;
       return false;
     };
     pump.Add(this);
-    if (arg)
-      delete arg;
+    if(usw) delete usw;
+    if(arg) delete arg;
     return true;
   }
 
