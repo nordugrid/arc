@@ -84,8 +84,11 @@ void FileUtilsTest::TestDirOpen() {
   std::list<std::string> entries (dir->begin(), dir->end());
   CPPUNIT_ASSERT_EQUAL(2, (int)entries.size());
   dir->rewind();
-  CPPUNIT_ASSERT_EQUAL(std::string("file2"), dir->read_name());
-  CPPUNIT_ASSERT_EQUAL(std::string("file1"), dir->read_name());
+  std::string name;
+  name = dir->read_name();
+  CPPUNIT_ASSERT((name == "file1") || (name == "file2"));
+  name = dir->read_name();
+  CPPUNIT_ASSERT((name == "file1") || (name == "file2"));
   delete dir;
 }
 
