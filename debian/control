@@ -95,6 +95,18 @@ Description: ARC Charon service
  securing the communication, when the request or response  information
  are critical.
 
+Package: nordugrid-arc-nox-chelonia
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, nordugrid-arc-nox-python, python-fuse
+Description: ARC Chelonia service
+ The NorduGrid is a collaboration aiming at development, maintenance
+ and support of the free Grid middleware, known as the Advanced Resource
+ Connector (ARC).
+ .
+ The NorduGrid storage service Chelonia consists of a set of SOAP based
+ services residing within HED. Together, the services provide a self-healing,
+ reliable, robust, scalable, resilient and consistent data storage system.
+
 Package: nordugrid-arc-nox-hopi
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, nordugrid-arc-nox-hed
@@ -246,7 +258,7 @@ Provides: nordugrid-arc1-python
 Replaces: nordugrid-arc1-python (<< 1.0.0~)
 Conflicts: nordugrid-arc1-python (<< 1.0.0~)
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, ${python:Depends}, python-fuse
+Depends: ${shlibs:Depends}, ${misc:Depends}, ${python:Depends}
 XB-Python-Version: ${python:Versions}
 Description: ARC Python wrapper
  The NorduGrid is a collaboration aiming at development, maintenance

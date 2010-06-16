@@ -151,6 +151,22 @@ running a CHARON (within the HED), the TLS layer can be used for
 securing the communication, when the request or response  information
 are critical.
 
+%package chelonia
+Summary: ARC chelonia service
+Group: System Environment/Libraries
+Requires: %{name} = %{version}
+Requires: %{name}-hed = %{version}
+Requires: %{name}-python = %{version}
+
+%description chelonia
+The NorduGrid is a collaboration aiming at development, maintenance
+and support of the free Grid middleware, known as the Advanced Resource
+Connector (ARC).
+
+The NorduGrid storage service Chelonia consists of a set of SOAP based
+services residing within HED. Together, the services provide a self-healing,
+reliable, robust, scalable, resilient and consistent data storage system.
+
 %package hopi
 Summary: ARC hopi service
 Group: System Environment/Libraries
@@ -602,6 +618,12 @@ exit 0
 %doc %{_datadir}/%{pkgdir}/examples/charon/charon_policy_xacml.xml.example
 %doc %{_datadir}/%{pkgdir}/examples/charon/charon_service.xml.example
 
+%files chelonia
+%defattr(-,root,root,-)
+%{_bindir}/arcfs
+%{python_sitearch}/storage
+%doc %{_datadir}/%{pkgdir}/examples/storage_service.xml.example
+
 %files hopi
 %defattr(-,root,root,-)
 %{_libdir}/%{pkgdir}/libhopi.so
@@ -764,15 +786,15 @@ exit 0
 
 %files python
 %defattr(-,root,root,-)
-%{python_sitearch}/*
+%{python_sitearch}/_arc.so
+%{python_sitearch}/arc.py*
+%{python_sitearch}/arcom
+%{python_sitearch}/echo_python
 %{_libdir}/%{pkgdir}/libaccPythonBroker.so
 %{_libdir}/%{pkgdir}/libaccPythonBroker.apd
 %{ifpy}%{_libdir}/%{pkgdir}/libpythonservice.so
 %{ifpy}%{_libdir}/%{pkgdir}/libpythonservice.apd
-%{_datadir}/%{pkgdir}/examples/storage_service.xml.example
 %doc %{_datadir}/%{pkgdir}/examples/PythonBroker/SampleBroker.py*
-%{_bindir}/arcfs
-#%{_bindir}/arcfs.1*
 
 %if %{with_java}
 %files java
