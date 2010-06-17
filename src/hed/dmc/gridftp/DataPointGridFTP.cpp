@@ -753,6 +753,14 @@ namespace Arc {
     globus_ftp_client_operationattr_set_type(&ftp_opattr,
                                              GLOBUS_FTP_CONTROL_TYPE_IMAGE);
     if (!is_secure) { // plain ftp protocol
+      GlobusResult r = globus_ftp_client_operationattr_set_authorization(
+                     &ftp_opattr,
+                     GSS_C_NO_CREDENTIAL, url.Username().c_str(), url.Passwd().c_str(),
+                     GLOBUS_NULL, GLOBUS_NULL);
+      if(!r) {
+        logger.msg(VERBOSE, "globus_ftp_client_operationattr_set_authorization: error: %s", r.str());
+      }
+
       globus_ftp_client_operationattr_set_mode(&ftp_opattr,
                                                GLOBUS_FTP_CONTROL_MODE_STREAM);
       globus_ftp_client_operationattr_set_data_protection(&ftp_opattr,
