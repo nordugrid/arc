@@ -101,6 +101,19 @@ find_by_grami() {
   | head -n 1
 }
 
+# set_job_vars takes a line from pbs logs and splits it, returning information
+# in pbs_date, pbs_code, pbs_server, pbs_job, job_id, job_message and rest_line
+
+set_job_vars() {
+  pbs_date=$1
+  pbs_code=$2
+  pbs_server=$3
+  pbs_job=$4
+  job_id=$5
+  job_message=$6
+  rest_line=$7
+}
+
 #
 #  Main function for processing one PBS log.
 #  Extracts log lines with code 0010 (job exited) and 0008 (job killed)
@@ -132,14 +145,14 @@ process_log_file () {
   exited_killed_jobs=`echo "$exited_killed_jobs" | sort -u`
 
   # force word splitting to happen only on newlines
-  old_IFS=$IFS; IFS=$'\n'
+  old_IFS=$IFS; IFS='
+'
   for job in $exited_killed_jobs; do
-    IFS=$old_IFS
 
-    # Split line into fields, split on ";" read is done by process
-    # substitution and redirection. This does not work in plain sh.
-    # I have not found any other nice way of doing this.
-    IFS=";" read pbs_date pbs_code pbs_server pbs_job job_id job_message rest_line < <(echo "$job")
+    # Split line into fields by forcing word splitting to happen on ";" 
+    IFS=";"
+    set_job_vars $job
+    IFS=$old_IFS
 
     # Try to extract exit code of PBS (note: if executable fails it's code goes to PBS)
     exit_code=`echo "$job_message" | sed -n 's/^.*Exit_status=\([-0-9]*\).*/\1/p'`
