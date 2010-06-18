@@ -68,8 +68,11 @@ GridSchedulerService::make_soap_fault(Arc::Message& outmsg)
         fault->Code(Arc::SOAPFault::Sender);
         fault->Reason("Failed processing request");
     }
-
     outmsg.Payload(outpayload);
+
+    if (!outpayload)
+      delete outpayload;
+
     return Arc::MCC_Status(Arc::STATUS_OK);
 }
 
@@ -147,6 +150,7 @@ GridSchedulerService::process(Arc::Message& inmsg, Arc::Message& outmsg)
     } else if(MatchXMLName(op, "DelegateCredentialsInit")) {
         if(!delegations_.DelegateCredentialsInit(*inpayload,*outpayload)) {
           delete inpayload;
+          delete outpayload;
           return make_soap_fault(outmsg);
         };
     // WS-Property
@@ -161,9 +165,9 @@ GridSchedulerService::process(Arc::Message& inmsg, Arc::Message& outmsg)
         };
     // Undefined operation
     } else {
+        delete outpayload;
         logger_.msg(Arc::ERROR, "SOAP operation is not supported: %s", op.Name());
         return make_soap_fault(outmsg);
-    
     }
     {
         // VERBOSE
