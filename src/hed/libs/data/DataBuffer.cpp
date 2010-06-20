@@ -590,7 +590,7 @@ namespace Arc {
 
   bool DataBuffer::checksum_valid() const {
     if (checksums.size() != 0)
-      return checksums.begin()->ready;
+      return (checksums.begin()->ready && (checksums.begin()->offset == eof_pos));
     else
       return false;
   }
