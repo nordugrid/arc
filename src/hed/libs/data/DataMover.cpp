@@ -8,15 +8,18 @@
 // NOTE: On Solaris errno is not working properly if cerrno is included first
 #include <cerrno>
 
+#include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
 
 #include <glibmm.h>
 
 #include <arc/DateTime.h>
+#include <arc/FileUtils.h>
 #include <arc/Logger.h>
 #include <arc/Thread.h>
 #include <arc/URL.h>
+#include <arc/User.h>
 #include <arc/UserConfig.h>
 #include <arc/Utils.h>
 #include <arc/credential/Credential.h>
@@ -26,7 +29,6 @@
 #include <arc/data/DataPoint.h>
 #include <arc/data/DataHandle.h>
 #include <arc/data/FileCache.h>
-#include <arc/data/MkDirRecursive.h>
 #include <arc/data/URLMap.h>
 
 #ifdef WIN32
@@ -669,15 +671,12 @@ namespace Arc {
               User user;
               std::string dirpath = Glib::path_get_dirname(link_name);
               if(dirpath == ".") dirpath = G_DIR_SEPARATOR_S;
-              if (mkdir_recursive("", dirpath.c_str(), S_IRWXU, user) != 0) {
-                if (errno != EEXIST) {
-                  logger.msg(ERROR, "Failed to create/find directory %s : %s",
-                             dirpath, StrError());
-                  source.NextLocation(); /* try another source */
-                  logger.msg(VERBOSE, "source.next_location");
-                  res = DataStatus::ReadStartError;
-                  continue;
-                }
+              if (!DirCreate(dirpath, user.get_uid(), user.get_gid(), S_IRWXU, true) != 0) {
+                logger.msg(ERROR, "Failed to create directory %s", dirpath);
+                source.NextLocation(); /* try another source */
+                logger.msg(VERBOSE, "source.next_location");
+                res = DataStatus::ReadStartError;
+                continue;
               }
             }
             // make link

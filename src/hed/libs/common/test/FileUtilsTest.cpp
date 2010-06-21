@@ -101,10 +101,12 @@ void FileUtilsTest::TestMakeAndDeleteDir() {
   CPPUNIT_ASSERT(stat(std::string(testroot + "/dir1").c_str(), &st) == 0);
   CPPUNIT_ASSERT(S_ISDIR(st.st_mode));
   CPPUNIT_ASSERT(_createFile(testroot + "/dir1/file2"));
-  CPPUNIT_ASSERT(Arc::DirCreate(std::string(testroot + "/dir1/dir2"), S_IRUSR | S_IWUSR | S_IXUSR));
-  CPPUNIT_ASSERT(stat(std::string(testroot + "/dir1/dir2").c_str(), &st) == 0);
+  // should fail if with_parents is set to false
+  CPPUNIT_ASSERT(!Arc::DirCreate(std::string(testroot + "/dir1/dir2/dir3"), S_IRUSR | S_IWUSR | S_IXUSR, false));
+  CPPUNIT_ASSERT(Arc::DirCreate(std::string(testroot + "/dir1/dir2/dir3"), S_IRUSR | S_IWUSR | S_IXUSR, true));
+  CPPUNIT_ASSERT(stat(std::string(testroot + "/dir1/dir2/dir3").c_str(), &st) == 0);
   CPPUNIT_ASSERT(S_ISDIR(st.st_mode));
-  CPPUNIT_ASSERT(_createFile(testroot + "/dir1/dir2/file3"));
+  CPPUNIT_ASSERT(_createFile(testroot + "/dir1/dir2/dir3/file4"));
   CPPUNIT_ASSERT(symlink(std::string(testroot + "/dir1/dir2").c_str(), std::string(testroot + "/dir1/dir2/link1").c_str()) == 0);
 
   CPPUNIT_ASSERT(Arc::DirDelete(testroot));

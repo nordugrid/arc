@@ -19,10 +19,10 @@
 #include <arc/Thread.h>
 #include <arc/Logger.h>
 #include <arc/URL.h>
+#include <arc/User.h>
 #include <arc/StringConv.h>
 #include <arc/data/DataBuffer.h>
 #include <arc/data/DataCallback.h>
-#include <arc/data/MkDirRecursive.h>
 #include <arc/FileUtils.h>
 
 #ifdef WIN32
@@ -326,14 +326,13 @@ namespace Arc {
       }
       std::string dirpath = Glib::path_get_dirname(url.Path());
       if(dirpath == ".") dirpath = G_DIR_SEPARATOR_S; // shouldn't happen
-      if (mkdir_recursive("", dirpath, S_IRWXU, user) != 0)
-        if (errno != EEXIST) {
-          logger.msg(ERROR, "Failed to create/find directory %s, (%d)", dirpath, errno);
-          buffer->error_write(true);
-          buffer->eof_write(true);
-          writing = false;
-          return DataStatus::WriteStartError;
-        }
+      if (!DirCreate(dirpath, user.get_uid(), user.get_gid(), S_IRWXU, true)) {
+        logger.msg(ERROR, "Failed to create directory %s", dirpath);
+        buffer->error_write(true);
+        buffer->eof_write(true);
+        writing = false;
+        return DataStatus::WriteStartError;
+      }
 
       /* try to create file, if failed - try to open it */
       int flags = O_WRONLY;
