@@ -26,21 +26,14 @@ GMKICK=${basedir}/gm-kick
 
 umask 022
 
-# Prints the owner of the file given as argument
-# Perl is used because it's more portable than using the stat command
-printowner () {
-  code='$f=$ARGV[0];if(@s=stat $f){@p=getpwuid $s[4];if(@p){print $p[0]}else{exit 1}}else{die "$f: $!\n"}'
-  /usr/bin/perl -we "$code" "$1"
-}
-
-if [ -z "$1" ] ; then 
+if [ -z "$1" ] ; then
     echo "Missing Input Script file as arg1" 1>&2
-    exit 1 ; 
+    exit 1 ;
 fi
 
 # first control_dir is used for storing own files
 
-echo `date`" : control_dir=$1" 1>&2 
+echo `date`" : control_dir=$1" 1>&2
 
 control_dir=$1
 control_dirs=
@@ -50,27 +43,6 @@ while [ $# -gt 0 ] ; do
 done
 
 my_id=`id -u`
-
-my_name=`id -un`
-
-# Append .comment (containing STDOUT & STDERR of the job wrapper) to .errors
-save_commentfile () {
-  username=$1
-  commentfile=$2
-  errorsfile=$3
-  action="
-    { echo '---------- Contents of output stream forwarded by LSF -----------'
-      cat '$commentfile' 2> /dev/null
-      echo '------------------------- End of output -------------------------'
-    } >> '$errorsfile'
-  "
-  if [ -z "$username" ] ; then
-    eval "$action"
-  else
-    su "$username" -c "eval \"$action\""
-  fi
-}
-
 
 # Get all running jobs
 #
@@ -97,7 +69,7 @@ for ctr_dir in $control_dir ; do
     ids=`find ${ctr_dir} -name 'job.*.local' -print0 | xargs -0 grep -h "^localid=" 2>/dev/null | sed 's/^localid=\([0-9]*\).*/\1/'`
 
     if [ -z "$ids" ] ; then continue ; fi
-	
+
     # compare them to running jobs and find missing
     bids=
     for id in $ids ; do
@@ -125,50 +97,60 @@ for ctr_dir in $control_dir ; do
 	status=`cat "$statusfile"`
 	if [ "$status" != "INLRMS" ] && [ "$status" != "CANCELING" ] ; then continue ; fi
 
-	if [ "$my_id" = '0' ] ; then
-	    username=`printowner "${jobfile}"`
-	else
-	    username=
-	fi
+        if [ "$my_id" != '0' ] ; then
+          if [ ! -O "$jobfile" ] ; then continue ; fi
+        fi
+        uid=$(get_owner_uid "$jobfile")
+        [ -z "$uid" ] && { log "Failed to stat $jobfile"; continue; }
 
-	# Handle start and end time of job.
-	ctr_diag="${ctr_dir}/job.${gridid}.diag"
+
+	# get session directory of this job
+	sessiondir=`grep -h '^sessiondir=' "$jobfile" | sed 's/^sessiondir=\(.*\)/\1/'`
+
 	# get job specific output and remove header
 	bjobs_output="`${LSF_BIN_PATH}/bjobs -W -w $id 2>/dev/null | sed -e'1,1d'`"
 	job_status="`echo $bjobs_output | awk '{print $3}'`"
 	# DONE if exit_code is 0, EXIT if non zero
 	if [ "${job_status}" = "DONE" ] || [ "${job_status}" = "EXIT" ]; then
+
+            job_read_diag
+
 	    starttime="`echo $bjobs_output | awk '{print $14}' | sed 's/-/ /g'`"
 	    endtime="`echo $bjobs_output | awk '{print $15}' | sed 's/-/ /g'`"
 	    date_to_utc_seconds "$starttime"
+	    starttime_seconds="$return_date_seconds"
 	    seconds_to_mds_date "$return_date_seconds"
 	    LRMSStartTime=$return_mds_date
 	    date_to_utc_seconds "$endtime"
+	    endtime_seconds="$return_date_seconds"
 	    seconds_to_mds_date "$return_date_seconds"
 	    LRMSEndTime=$return_mds_date
-	    
-	    echo "LRMSStartTime=$LRMSStartTime" >> ${ctr_diag}
-	    echo "LRMSEndTime=$LRMSEndTime" >> ${ctr_diag}
 
+	    #TODO handle cputime (walltime * count?) etc.
+            walltime=$(( $endtime_seconds - $starttime_seconds))
+	    #cputime=$(( $walltime * $count))
+            # Values to write to diag. These will override values already written.
+            [ -n "$walltime" ] && WallTime=$walltime
+            #[ -n "$cputime" ] && UserTime=$cputime
+            #[ -n "$cputime" ] && KernelTime=0
+            [ -n "$starttime" ] && LRMSStartTime=$starttime
+            [ -n "$endtime" ] && LRMSEndTime=$endtime
+
+            job_write_diag
 	fi
-	# get session directory of this job
-	session=`grep -h '^sessiondir=' "$jobfile" | sed 's/^sessiondir=\(.*\)/\1/'`
-	if [ ! -z "$session" ] ; then
-	    # have chance to obtain exit code
-	    diagfile="${session}.diag"
 
-	    if [ ! -z "$session" ] ; then
+	if [ -n "$sessiondir" ] ; then
+	    # have chance to obtain exit code
+	    diagfile="${sessiondir}.diag"
+
+	    if [ -n "$sessiondir" ] ; then
 		# have chance to obtain exit code
-		if [ -z "$username" ] ; then
-		    exitcode=`grep '^exitcode=' "$diagfile" | sed 's/^exitcode=//'`
-		else
-		    exitcode=`su "${username}" -c "grep '^exitcode=' $diagfile" | sed 's/^exitcode=//'`
-		fi
+                exitcode=$(do_as_uid "$uid" "grep '^exitcode=' '$diagfile'" | sed 's/^exitcode=//')
 	    fi
 
-	    if [ ! -z "$exitcode" ] ; then
+	    if [ -n "$exitcode" ] ; then
 		# job finished and exit code is known
-                save_commentfile "$username" "${session}.comment" "${ctr_dir}/job.${gridid}.errors"
+                save_commentfile "$uid" "${sessiondir}.comment" "${ctr_dir}/job.${gridid}.errors"
 		echo "$exitcode Executable finished with exit code $exitcode" > "$donefile"
 		${GMKICK} "$statusfile"
 		continue
@@ -186,15 +168,15 @@ for ctr_dir in $control_dir ; do
 
 	if [ "$counter" -gt 5 ] ; then
 	    rm -f "$countfile"
-            save_commentfile "$username" "${session}.comment" "${ctr_dir}/job.${gridid}.errors"
+            save_commentfile "$uid" "${sessiondir}.comment" "${ctr_dir}/job.${gridid}.errors"
 	    echo "$exitcode Job was lost with unknown exit code" > "$donefile"
 	    ${GMKICK} "$statusfile"
 	else
 	    echo "$counter" > "$countfile"
 	fi
-  
 
-    done 
+
+    done
 
     # go through existing ids
     for id in $pids ; do
@@ -207,7 +189,7 @@ for ctr_dir in $control_dir ; do
 	rm -f "$countfile"
     done
 
-done 
+done
 
 sleep 60
 exit 0

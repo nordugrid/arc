@@ -175,3 +175,17 @@ job_write_diag() {
     [ $? = 0 ] || { log "cannot write diag file at: $diagfile"; return 1; }
 }
 
+# Append .comment (containing STDOUT & STDERR of the job wrapper) to .errors
+# This file can also contain a message from PBS (i.e. the reason for killing the job).
+save_commentfile () {
+  uid=$1
+  commentfile=$2
+  errorsfile=$3
+  action="
+    { echo '---------- Contents of output stream forwarded by PBS -----------'
+      cat '$commentfile' 2> /dev/null
+      echo '------------------------- End of output -------------------------'
+    } >> '$errorsfile'
+  "
+  do_as_uid "$uid" "$action"
+}

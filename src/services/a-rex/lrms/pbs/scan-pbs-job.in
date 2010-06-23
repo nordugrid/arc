@@ -62,28 +62,6 @@ ldate=$(( $ldt + 0 ))
 if [ -z "$lines_skip" ] ; then lines_skip='0' ; fi
 if [ -z "$ldate" ] ; then ldate='0' ; fi
 
-# Prints the owner of the file given as argument
-# Perl is used because it's more portable than using the stat command
-printowner () {
-  code='$f=$ARGV[0];if(@s=stat $f){@p=getpwuid $s[4];if(@p){print $p[0]}else{exit 1}}else{die "$f: $!\n"}'
-  /usr/bin/perl -we "$code" "$1"
-}
-
-# Append .comment (containing STDOUT & STDERR of the job wrapper) to .errors
-# This file can also contain a message from PBS (i.e. the reason for killing the job).
-save_commentfile () {
-  uid=$1
-  commentfile=$2
-  errorsfile=$3
-  action="
-    { echo '---------- Contents of output stream forwarded by PBS -----------'
-      cat '$commentfile' 2> /dev/null
-      echo '------------------------- End of output -------------------------'
-    } >> '$errorsfile'
-  "
-  do_as_uid "$uid" "$action"
-}
-
 find_by_local() {
   eval "set -- $control_dirs"
   for ctr_dir in "$@"; do
@@ -237,16 +215,16 @@ process_log_file () {
 
     # Values to write to diag. These will override values already written.
     interval_to_seconds "$walltime"
-    [ ! -z "$return_interval_seconds" ] && WallTime=$return_interval_seconds
+    [ -n "$return_interval_seconds" ] && WallTime=$return_interval_seconds
     interval_to_seconds "$cputime"
-    [ ! -z "$return_interval_seconds" ] && UserTime=$return_interval_seconds
-    [ ! -z "$return_interval_seconds" ] && KernelTime=0
-    [ ! -z "$mem" ]                     && UsedMemory=$mem
-    [ ! -z "$vmem" ]                    && TotalMemory=$vmem
-    [ ! -z "$starttime" ]               && LRMSStartTime=$starttime
-    [ ! -z "$endtime" ]                 && LRMSEndTime=$endtime
-    [ ! -z "$pbs_comment" ]             && LRMSMessage=$pbs_comment
-    [ ! -z "$exit_code" ]               && LRMSExitcode=$exit_code
+    [ -n "$return_interval_seconds" ] && UserTime=$return_interval_seconds
+    [ -n "$return_interval_seconds" ] && KernelTime=0
+    [ -n "$mem" ]                     && UsedMemory=$mem
+    [ -n "$vmem" ]                    && TotalMemory=$vmem
+    [ -n "$starttime" ]               && LRMSStartTime=$starttime
+    [ -n "$endtime" ]                 && LRMSEndTime=$endtime
+    [ -n "$pbs_comment" ]             && LRMSMessage=$pbs_comment
+    [ -n "$exit_code" ]               && LRMSExitcode=$exit_code
     job_write_diag
 
     if [ -z "$exitcode" ] ; then

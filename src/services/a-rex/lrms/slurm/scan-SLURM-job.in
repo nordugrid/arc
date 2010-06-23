@@ -50,8 +50,6 @@ trap 'rm $lockfile' EXIT KILL TERM
 #Default sleep-time is 30 seconds
 sleep ${CONFIG_SLURM_wakeupperiod:-30}
 
-
-
 ### If GM sees the session dirs... copied from scan-pbs-jobs
 RUNTIME_NODE_SEES_FRONTEND=$CONFIG_shared_filesystem
 #default is NFS
@@ -63,32 +61,6 @@ if [ "${RUNTIME_NODE_SEES_FRONTEND}" = 'no' ] ; then
   RUNTIME_NODE_SEES_FRONTEND=
 fi
 
-# Prints the owner of the file given as argument
-# Perl is used because it's more portable than using the stat command
-printowner () {
-  code='$f=$ARGV[0];if(@s=stat $f){@p=getpwuid $s[4];if(@p){print $p[0]}else{exit 1}}else{die "$f: $!\n"}'
-  /usr/bin/perl -we "$code" "$1"
-}
-
-# Append .comment (containing STDOUT & STDERR of the job wrapper) to .errors
-save_commentfile () {
-  username=$1
-  commentfile=$2
-  errorsfile=$3
-  action="
-    { echo '--------- Contents of output stream forwarded by SLURM ----------'
-      cat '$commentfile' 2> /dev/null
-      echo '------------------------- End of output -------------------------'
-    } >> '$errorsfile'
-  "
-  if [ -z "$username" ] ; then
-    eval "$action"
-  else
-    su "$username" -c "eval \"$action\""
-  fi
-}
-
-
 #Validate control directories supplied on command-line
 if [ -z "$1" ] ; then
     echo "no control_dir specified" 1>&2; exit 1
@@ -99,7 +71,6 @@ for ctr_dir in "$@"; do
 	exit 1
     fi
 done
-
 
 # List of SLURM jobids for grid-jobs with state INLRMS
 declare -a localids
@@ -144,13 +115,13 @@ unset jobstate_squeue
 
 handle_commentfile () {
     localid=$1
-    session=`grep -h '^sessiondir=' "${basenames[$localid]}.local" | sed 's/^sessiondir=\(.*\)/\1/'`
-    if [ "$my_id" = '0' ] ; then
-        username=`printowner "${basenames[$localid]}.local"`
-    else
-        username=
+    sessiondir=`grep -h '^sessiondir=' "${basenames[$localid]}.local" | sed 's/^sessiondir=\(.*\)/\1/'`
+    if [ "$my_id" != '0' ] ; then
+      if [ ! -O "$jobfile" ] ; then continue ; fi
     fi
-    save_commentfile "$username" "${session}.comment" "${basenames[$localid]}.errors"
+    uid=$(get_owner_uid "$jobfile")
+    [ -z "$uid" ] && { log "Failed to stat $jobfile"; continue; }
+    save_commentfile "$uid" "${sessiondir}.comment" "${basenames[$localid]}.errors"
 }
 
 # Call scontrol and find the exitcode of a job. Write this, together with a
@@ -159,7 +130,7 @@ function handle_exitcode {
     localid="$1"
     tmpexitcode="$2"
     reason="$3"
-    
+
     jobinfostring=$("$scontrol" -o show job $localid)
 
     exitcode1=$(echo $jobinfostring|sed -n 's/.*ExitCode=\([0-9]*\):\([0-9]*\).*/\1/p')
@@ -171,18 +142,24 @@ function handle_exitcode {
 	exitcode=$(( $exitcode2 + 256 ))
     elif [ $exitcode1 -ne 0 ]; then
 	exitcode=$exitcode1
-    else 
+    else
 	exitcode=0
     fi
-    
+
     echo "$exitcode $reason" > "${basenames[$localid]}.lrms_done"
     kicklist=(${kicklist[@]} $localid)
 }
 
-function handle_start_end_time {
+#This function filters out WallTime from the .diag-file if present and
+#replaces it with output from the LRMS, it also adds StartTime and
+#EndTime for accounting.
+
+function handle_diag_file {
     localid="$1"
     ctr_diag="$2"
     jobinfostring=$("$scontrol" -o show job $localid)
+
+    job_read_diag
 
     #Slurm can report StartTime and EndTime in at least these two formats:
     #2010-02-15T15:30:29
@@ -196,14 +173,23 @@ function handle_start_end_time {
 	sed 's,\([0-9]\+/[0-9]\+\)-\([0-9:]\+\),\1 \2,g')
 
     date_to_utc_seconds "$starttime"
+    starttime_seconds="$return_date_seconds"
     seconds_to_mds_date "$return_date_seconds"
     LRMSStartTime=$return_mds_date
     date_to_utc_seconds "$endtime"
+    endtime_seconds="$return_date_seconds"
     seconds_to_mds_date "$return_date_seconds"
     LRMSEndTime=$return_mds_date
 
-    echo "LRMSStartTime=$LRMSStartTime" >> ${ctr_diag}
-    echo "LRMSEndTime=$LRMSEndTime" >> ${ctr_diag}
+    #TODO handle cputime, exitcode etc.
+    walltime=$(( $endtime_seconds - $starttime_seconds))
+    #cputime=$(( $walltime * $count))
+    # Values to write to diag. These will override values already written.
+    [ -n "$walltime" ] && WallTime=$walltime
+    #[ -n "$cputime" ] && UserTime=$cputime
+    #[ -n "$cputime" ] && KernelTime=0
+
+    job_write_diag
 }
 
 # Look at the list of jobstates and determine which jobs that have
@@ -213,19 +199,20 @@ for localid in ${localids[@]}; do
 #     case $state in
     case "${jobstates[$localid]}" in
  	"")
-	    # Job is missing (no state) from slurm but INLRMS.
-	    
-	    exitcode=''
+            # Job is missing (no state) from slurm but INLRMS.
+
+            exitcode=''
             # get session directory of this job
-	    session=`grep -h '^sessiondir=' "${basenames[$localid]}.local" | sed 's/^sessiondir=\(.*\)/\1/'`
-	    diagfile="${session}.diag"
-	    commentfile="${session}.comment"
-	    if [ "$my_id" = '0' ] ; then
-		username=`printowner "${basenames[$localid]}.local"`
-	    else
-		username=
-	    fi
-	    if [ ! -z "$session" ] ; then
+            sessiondir=`grep -h '^sessiondir=' "${basenames[$localid]}.local" | sed 's/^sessiondir=\(.*\)/\1/'`
+            diagfile="${sessiondir}.diag"
+	    commentfile="${sessiondir}.comment"
+            if [ "$my_id" != '0' ] ; then
+                if [ ! -O "$jobfile" ] ; then continue ; fi
+            fi
+            uid=$(get_owner_uid "$jobfile")
+            [ -z "$uid" ] && { log "Failed to stat $jobfile"; continue; }
+
+            if [ ! -z "$sessiondir" ] ; then
             # have chance to obtain exit code
 		if [ -z "${RUNTIME_NODE_SEES_FRONTEND}" ] ; then
             # In case of non-NFS setup it may take some time till
@@ -259,7 +246,7 @@ for localid in ${localids[@]}; do
 	    save_commentfile "$username" "$commentfile" "${basenames[$localid]}.errors"
 	    echo  "$jobstatus" > "${basenames[$localid]}.lrms_done"
 	    kicklist=(${kicklist[@]} $localid)
-	    
+
  	    ;;
   	PENDING|RUNNING|SUSPENDE|COMPLETING)
   	#Job is running, nothing to do.
@@ -269,27 +256,27 @@ for localid in ${localids[@]}; do
 	    echo "-1 Job was cancelled" > "${basenames[$localid]}.lrms_done"
 	    kicklist=(${kicklist[@]} $localid)
 	    handle_exitcode $localid "-1" "Job was cancelled"
-	    handle_start_end_time "$localid" "${basenames[$localid]}.diag"
+	    handle_diag_file "$localid" "${basenames[$localid]}.diag"
 	    ;;
   	COMPLETED)
 	    handle_commentfile $localid
 	    handle_exitcode $localid "0" ""
-	    handle_start_end_time "$localid" "${basenames[$localid]}.diag"
+	    handle_diag_file "$localid" "${basenames[$localid]}.diag"
   	    ;;
   	FAILED)
 	    handle_commentfile $localid
 	    handle_exitcode $localid "-1" "Job failed"
-	    handle_start_end_time "$localid" "${basenames[$localid]}.diag"
+	    handle_diag_file "$localid" "${basenames[$localid]}.diag"
   	    ;;
   	TIMEOUT)
 	    handle_commentfile $localid
 	    handle_exitcode $localid "-1" "Job timeout"
-	    handle_start_end_time "$localid" "${basenames[$localid]}.diag"
+	    handle_diag_file "$localid" "${basenames[$localid]}.diag"
   	    ;;
   	NODE_FAIL)
 	    handle_commentfile $localid
 	    handle_exitcode $localid "-1" "Node fail"
-	    handle_start_end_time "$localid" "${basenames[$localid]}.diag"
+	    handle_diag_file "$localid" "${basenames[$localid]}.diag"
   	    ;;
     esac
 done

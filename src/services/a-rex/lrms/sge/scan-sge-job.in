@@ -32,35 +32,6 @@ umask 022
 
 my_id=`id -u`
 
-# Prints the uid of the owner of the file given as argument
-# Perl is used because it's more portable than using the stat command
-printuid () {
-  code='my @s = stat($ARGV[0]); print($s[4] || 0)'
-  /usr/bin/perl -we "$code" "$1"
-}
-
-#
-# Attempts to switch to uid passed as the first argument and then runs the
-# commands passed as the second argument in a shell. The remaining arguments
-# are passed as arguments to the shell. No warning is given in case switching
-# uid is not possible.
-#
-do_as_uid () {
-    test $# -ge 2 || { log "do_as_uid requires 2 arguments"; return 1; }
-
-    script='use English;
-            my ($uid, @args) = @ARGV;
-            if ( $UID == 0 ) {
-                eval { $UID = $uid };
-                print STDERR "Cannot switch to uid($UID): $@\n" if $@;
-            }
-            system("@posix_shell@","-c",@args);
-            exit ($?>>8||128+($?&127));
-    '
-    /usr/bin/perl -we "$script" "$@"
-}
-
-
 if [ -z "$1" ] ; then exit 1 ; fi
 
 TMP_DIR=${TMPDIR:-@tmp_dir@}
@@ -73,20 +44,6 @@ while [ $# -gt 0 ] ; do
   control_dirs="${control_dirs} $1"
   shift
 done
-
-# Append .comment (containing STDOUT & STDERR of the job wrapper) to .errors
-save_commentfile () {
-  uid=$1
-  commentfile=$2
-  errorsfile=$3
-  action="
-    { echo '---------- Contents of output stream forwarded by SGE -----------'
-      cat '$commentfile' 2> /dev/null
-      echo '------------------------- End of output -------------------------'
-    } >> '$errorsfile'
-  "
-  do_as_uid "$uid" "$action" 
-}
 
 # Takes diagfile_acct, SGE qacct command, id and extraargs
 # writes output to diagfile_acct (temporary file for accounting info)
@@ -419,7 +376,8 @@ for ctr_dir in $control_dirs ; do
       if [ ! -O "$jobfile" ] ; then continue ; fi
     fi
     # find who runs this job
-    uid=`printuid "${jobfile}"`
+    uid=$(get_owner_uid "$jobfile")
+    [ -z "$uid" ] && { log "Failed to stat $jobfile"; continue; }
     # extract grid id
     gridid=`basename "$jobfile" '.local' | sed 's/^job\.//'`
     donefile="${ctr_dir}/job.${gridid}.lrms_done"

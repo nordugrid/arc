@@ -28,31 +28,6 @@ test -d "$control_dir" || exit 1
 
 my_id=`id -u`
 
-# Prints the owner of the file given as argument
-# Perl is used because it's more portable than using the stat command
-printowner () {
-  code='$f=$ARGV[0];if(@s=stat $f){@p=getpwuid $s[4];if(@p){print $p[0]}else{exit 1}}else{die "$f: $!\n"}'
-  /usr/bin/perl -we "$code" "$1"
-}
-
-# Append .comment (containing STDOUT & STDERR of the job wrapper) to .errors
-save_commentfile () {
-  username=$1
-  commentfile=$2
-  errorsfile=$3
-  action="
-    { echo '---------- Contents of output stream forwarded by LL ------------'
-      cat '$commentfile' 2> /dev/null
-      echo '------------------------- End of output -------------------------'
-    } >> '$errorsfile'
-  "
-  if [ -z "$username" ] ; then
-    eval "$action"
-  else
-    su "$username" -c "eval \"$action\""
-  fi
-}
-
 #for i in "$control_dir"/job.*.local
 find $control_dir -maxdepth 1 -type f -name job\*.local | while read i
 do
@@ -60,18 +35,18 @@ do
   test -f "$i" || continue
 
   jobid=`basename $i .local|sed 's/^job.//'`
-  donefile="${control_dir}/job.${jobid}.lrms_done"    
+  donefile="${control_dir}/job.${jobid}.lrms_done"
   statusfile="${control_dir}/job.${jobid}.status"
   jobfile="${control_dir}/job.${jobid}.local"
   errorsfile="${control_dir}/job.${jobid}.errors"
-  
+
   # Continue if the job is already flagged as done?
   test -f "$donefile" && continue
 
   if [ ! -f "$statusfile" ] ; then continue ; fi
   gmstatus=`cat "$statusfile"`
   if [ "$gmstatus" != "INLRMS" ] && [ "$gmstatus" != "CANCELING" ] ; then continue ; fi
- 
+
   # Get local LRMS id of job by evaluating the line with localid
   localid=`grep ^localid= $i|head -1`
   eval $localid
@@ -79,7 +54,7 @@ do
   # Did we get a local id?
   test "$localid" = "" && continue
 
-  # Get job status 
+  # Get job status
   if status=`$LL_BIN_PATH/llq -l $localid|grep '^ *Status'`
   then
     status=`echo $status | sed 's/^ *Status: //'`
@@ -93,66 +68,68 @@ do
   exitcode=''
 
   # get session directory of this job
-  session=`grep -h '^sessiondir=' "$control_dir/job.${jobid}.local" | sed 's/^sessiondir=\(.*\)/\1/'`
-  diagfile="${session}.diag"
-  commentfile="${session}.comment"
+  sessiondir=`grep -h '^sessiondir=' "$control_dir/job.${jobid}.local" | sed 's/^sessiondir=\(.*\)/\1/'`
+  diagfile="${sessiondir}.diag"
+  commentfile="${sessiondir}.comment"
 
-  if [ "$my_id" = '0' ] ; then
-      username=`printowner "${jobfile}"`
-  else
-      username=
+  if [ "$my_id" != '0' ] ; then
+    if [ ! -O "$jobfile" ] ; then continue ; fi
   fi
+  uid=$(get_owner_uid "$jobfile")
+  [ -z "$uid" ] && { log "Failed to stat $jobfile"; continue; }
 
-  if [ ! -z "$session" ] ; then
+  if [ ! -z "$sessiondir" ] ; then
     # have chance to obtain exit code
-    if [ -z "$username" ] ; then
-      exitcode=`grep '^exitcode=' "$diagfile" 2>/dev/null | sed 's/^exitcode=//'`
-    else
-      exitcode=`su "${username}" -c "grep '^exitcode=' $diagfile" 2>/dev/null | sed 's/^exitcode=//'`
-    fi
+    exitcode=$(do_as_uid "$uid" "grep '^exitcode=' '$diagfile'" | sed 's/^exitcode=//')
   else
     continue
   fi
-  
+
   if [ ! -z "$exitcode" ] ; then
     if [ "$exitcode" = "152" -o $exitcode = "24" ] ; then
-	exitcode="24"     
-        save_commentfile "$username" "${session}.comment" "$errorsfile"
-    	echo "$exitcode Job exceeded time limit." > "$donefile"
-        # If job exceeded time, then it will have been killed and no cputime/walltime has been written
-        walltime=`$LL_BIN_PATH/llq -l $localid|sed -n 's/^ *Wall Clk Hard Limit:.*(\([0-9]*\) seconds.*/\1/p'`
-        usertime=`$LL_BIN_PATH/llq -l $localid|sed -n 's/^ *Step Cpu Hard Limit:.*(\([0-9]*\) seconds.*/\1/p'`
-	starttime=`$LL_BIN_PATH/llq -l $localid|sed -n 's/^ *Dispatch Time: \(.*\)/\1/p'`
-	endtime=`$LL_BIN_PATH/llq -l $localid|sed -n 's/^ *Completion Date: \(.*\)/\1/p'`
+      exitcode="24"
+      save_commentfile "$uid" "${sessiondir}.comment" "$errorsfile"
+      echo "$exitcode Job exceeded time limit." > "$donefile"
+      # If job exceeded time, then it will have been killed and no cputime/walltime has been written
+      walltime=`$LL_BIN_PATH/llq -l $localid|sed -n 's/^ *Wall Clk Hard Limit:.*(\([0-9]*\) seconds.*/\1/p'`
+      usertime=`$LL_BIN_PATH/llq -l $localid|sed -n 's/^ *Step Cpu Hard Limit:.*(\([0-9]*\) seconds.*/\1/p'`
+      starttime=`$LL_BIN_PATH/llq -l $localid|sed -n 's/^ *Dispatch Time: \(.*\)/\1/p'`
+      endtime=`$LL_BIN_PATH/llq -l $localid|sed -n 's/^ *Completion Date: \(.*\)/\1/p'`
 
-        [ -n "$walltime" ] && echo "WallTime=${walltime}s" >> $control_dir/job.${jobid}.diag
-        [ -n "$usertime" ] && echo "UserTime=${usertime}s" >> $control_dir/job.${jobid}.diag
-        [ -n "$usertime" ] && echo "KernelTime=0s" >> $control_dir/job.${jobid}.diag
+      if [ -n "$starttime" ]; then
+        date_to_utc_seconds "$starttime"
+        seconds_to_mds_date "$return_date_seconds"
+        starttime=$return_mds_date
+      fi
+      if [ -n "$endtime" ]; then
+        date_to_utc_seconds "$endtime"
+        seconds_to_mds_date "$return_date_seconds"
+        endtime=$return_mds_date
+      fi
 
-	if [ -n "$starttime" ]; then
-	    date_to_utc_seconds "$starttime"
-	    seconds_to_mds_date "$return_date_seconds" 
-	    starttime=$return_mds_date
-	    echo "LRMSStartTime=${starttime}" >> $control_dir/job.${jobid}.diag
-	fi
-	if [ -n "$endtime" ]; then
-	    date_to_utc_seconds "$endtime"
-	    seconds_to_mds_date "$return_date_seconds"
-	    endtime=$return_mds_date
-	    echo "LRMSEndTime=${endtime}" >> $control_dir/job.${jobid}.diag
-	fi
+      job_read_diag
 
-        ${GMKICK} "$statusfile"
-        continue  
+      [ -n "$walltime" ] && WallTime=${walltime}
+      [ -n "$usertime" ] && UserTime=${usertime}
+      [ -n "$usertime" ] && KernelTime=0
+      [ -n "$starttime" ] && LRMSStartTime=${starttime}
+      [ -n "$endtime" ] && LRMSEndTime=${endtime}
+      #This needs investigating, might be user program exit code
+      [ -n "$exitcode" ] && LRMSExitcode=$exitcode
+
+      job_write_diag
+
+      ${GMKICK} "$statusfile"
+      continue
     fi
     # job finished and exit code is known
-    save_commentfile "$username" "${session}.comment" "$errorsfile"
-    echo "$exitcode Executable finished with exit code $exitcode" >> "$donefile"               
+    save_commentfile "$uid" "${sessiondir}.comment" "$errorsfile"
+    echo "$exitcode Executable finished with exit code $exitcode" >> "$donefile"
     ${GMKICK} "$statusfile"
     continue
   fi
   exitcode=-1
-  save_commentfile "$username" "${session}.comment" "$errorsfile"
+  save_commentfile "$uid" "${sessiondir}.comment" "$errorsfile"
   echo "$exitcode Job finished with unknown exit code" >> "$donefile"
   ${GMKICK} "$statusfile"
 done
