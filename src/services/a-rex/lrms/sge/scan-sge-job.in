@@ -14,7 +14,7 @@ basedir=`cd $basedir > /dev/null && pwd` || exit $?
 pkglibdir="$basedir/@pkglibdir_rel_to_pkglibexecdir@"
 pkglibdir=`cd $pkglibdir > /dev/null && pwd` || exit $?
 
-# Assume that gm-kick and scan_common is installed in the same directory
+# Assume that gm-kick and scan_common are installed in the same directory
 GMKICK=${basedir}/gm-kick
 . "${pkglibdir}/scan_common.sh" || exit $?
 
@@ -201,7 +201,7 @@ add_accounting_to_diag () {
   diagfile_acct=$2
   diagfile_tmp=$3
   errorsfile=$4
-  username=$5
+  uid=$5
   commentfile=$6
   ctr_dir=$7
   
@@ -222,7 +222,7 @@ add_accounting_to_diag () {
 
     # Remove attributes from existing diagfile that we should have
     # gotten from qacct this time, otherwise we will get duplicates
-    as_owner cat "$diagfile" \
+    do_as_uid "$uid" "cat '$diagfile'" \
       | grep -v "^nodename=" \
       | grep -v "^WallTime=" \
       | grep -v "^KernelTime=" \
@@ -237,7 +237,7 @@ add_accounting_to_diag () {
 
     cat "$diagfile_tmp" "$diagfile_acct" \
       | grep -v '^sgeexitcode=' \
-      | as_owner "cat > '$diagfile'"
+      | do_as_uid "$uid" "cat > '$diagfile'"
 	
     # Check for exceeded resources limits
     overlimit=
@@ -245,7 +245,7 @@ add_accounting_to_diag () {
       check_exceeded_resources_grami "$gramifile" "$errorsfile" "$used_cputime" "$used_walltime" "$used_memory"
     fi # grami file
 	
-    save_commentfile "$username" "$commentfile" "$errorsfile"
+    save_commentfile "$uid" "$commentfile" "$errorsfile"
 	
     handle_failedcode "$failedcode" "$donefile" "$exitcode" "sgeexitcode" "$overlimit"
 	
@@ -267,7 +267,7 @@ add_accounting_to_diag () {
 # Handle missing accounting info
 handle_missing_accounting () {
   countfile=$1
-  username=$2
+  uid=$2
   commentfile=$3
   errorsfile=$4
   donefile=$5
@@ -311,7 +311,7 @@ handle_missing_accounting () {
     echo "scan-sge-job: WARNING: No SGE accounting record found for this job" >> "$errorsfile"
     echo "scan-sge-job: WARNING: Resource usage reported for this job may be inaccurate or incomplete" >> "$errorsfile"
 
-    save_commentfile "$username" "$commentfile" "$errorsfile"
+    save_commentfile "$uid" "$commentfile" "$errorsfile"
 
     if [ -z "$exitcode" ]; then
       olog "No SGE accounting record found for job $id. No exitcode in diag file"
@@ -430,7 +430,7 @@ for ctr_dir in $control_dirs ; do
       fi
 
       # Add accounting info to $diagfile
-      add_accounting_to_diag "$diagfile" "$diagfile_acct" "$diagfile_tmp" "$errorsfile" "$username" "$commentfile" "$ctr_dir"
+      add_accounting_to_diag "$diagfile" "$diagfile_acct" "$diagfile_tmp" "$errorsfile" "$uid" "$commentfile" "$ctr_dir"
       if [ $? == 0 ]; then
 	  continue
       fi
@@ -438,7 +438,7 @@ for ctr_dir in $control_dirs ; do
 
     # This section is only reached when accounting info is not present
 
-    handle_missing_accounting "$countfile" "$username" "$commentfile" "$errorsfile" "$donefile" "$exitcode" "$statusfile" "$GMKICK" "$SGE_BIN_PATH" "$id"
+    handle_missing_accounting "$countfile" "$uid" "$commentfile" "$errorsfile" "$donefile" "$exitcode" "$statusfile" "$GMKICK" "$SGE_BIN_PATH" "$id"
 
   done # loop over bids
 
