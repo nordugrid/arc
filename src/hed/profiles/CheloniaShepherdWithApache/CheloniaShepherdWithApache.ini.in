@@ -1,4 +1,4 @@
-profile=@datadir@/@PACKAGE@/profiles/CheloniaShepherdWithApache.xml
+profile=CheloniaShepherdWithApache
 
 pidfile=/tmp/arched.pid
 logfile=/var/log/arched.log
@@ -6,7 +6,7 @@ debug=ERROR
 
 port=60001
 
-cacert=/etc/grid-security/certificates
+ca_dir=/etc/grid-security/certificates
 host_cert=/etc/grid-security/hostcert.pem
 host_key=/etc/grid-security/hostkey.pem
 client_cert=/etc/grid-security/hostcert.pem

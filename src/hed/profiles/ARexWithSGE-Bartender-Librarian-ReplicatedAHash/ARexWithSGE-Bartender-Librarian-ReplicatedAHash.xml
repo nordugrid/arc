@@ -174,8 +174,8 @@
 			</ahash:ClientSSLConfig>
 			<infosys:InfoRegister>
 				<infosys:Endpoint inisections="ahash" initag="endpoint"/>
-				<infosys:Period inisections="ahash register" initag="period">PT20S</infosys:Period>
-				<infosys:Expiration inisections="ahash register" initag="expiration">PT100S</infosys:Expiration>
+				<infosys:Period inisections="ahash register" initag="period">PT2M</infosys:Period>
+				<infosys:Expiration inisections="ahash register" initag="expiration">PT3M</infosys:Expiration>
 				<infosys:Registrar>
 					<infosys:URL inisections="ahash register" initag="index_server1"/>
 					<infosys:KeyPath inisections="ahash common" initag="client_key"/>
@@ -208,8 +208,8 @@
 			</bar:ClientSSLConfig>
 			<infosys:InfoRegister>
 				<infosys:Endpoint inisections="bartender" initag="endpoint"/>
-				<infosys:Period inisections="bartender register" initag="period">PT20S</infosys:Period>
-				<infosys:Expiration inisections="bartender register" initag="expiration">PT100S</infosys:Expiration>
+				<infosys:Period inisections="bartender register" initag="period">PT2M</infosys:Period>
+				<infosys:Expiration inisections="bartender register" initag="expiration">PT3M</infosys:Expiration>
 				<infosys:Registrar>
 					<infosys:URL inisections="bartender register" initag="index_server1"/>
 					<infosys:KeyPath inisections="bartender common" initag="client_key"/>
@@ -235,7 +235,7 @@
 			<lib:ISISURL inisections="librarian register" initag="index_server1"/>
 			<lib:ISISURL inisections="librarian register" initag="index_server2"/>
 			<lib:ISISURL inisections="librarian register" initag="index_server3"/>
-			<lib:HeartbeatTimeout inisections="librarian" initag="heartbeattimeout">60</lib:HeartbeatTimeout>
+			<lib:HeartbeatTimeout inisections="librarian" initag="heartbeattimeout">120</lib:HeartbeatTimeout>
 			<lib:CheckPeriod inisections="librarian" initag="checkperiod">20</lib:CheckPeriod>
 			<lib:ClientSSLConfig>
 				<lib:KeyPath inisections="librarian common" initag="client_key"/>
@@ -244,8 +244,8 @@
 			</lib:ClientSSLConfig>
 			<infosys:InfoRegister>
 				<infosys:Endpoint inisections="librarian" initag="endpoint"/>
-				<infosys:Period inisections="librarian register" initag="period">PT20S</infosys:Period>
-				<infosys:Expiration inisections="librarian register" initag="expiration">PT100S</infosys:Expiration>
+				<infosys:Period inisections="librarian register" initag="period">PT2M</infosys:Period>
+				<infosys:Expiration inisections="librarian register" initag="expiration">PT3M</infosys:Expiration>
 				<infosys:Registrar>
 					<infosys:URL inisections="librarian register" initag="index_server1"/>
 					<infosys:KeyPath inisections="librarian common" initag="client_key"/>

@@ -41,26 +41,26 @@
             <echo:prefix inisections="echo" initag="prefix">[</echo:prefix>
             <echo:suffix inisections="echo" initag="suffix">]</echo:suffix>
             <infosys:InfoRegister>
-                <infosys:Period inisections="register echo" initag="period">PT20S</infosys:Period>
+                <infosys:Period inisections="register echo" initag="period">PT2M</infosys:Period>
                 <infosys:Endpoint inisections="echo" initag="endpoint"/>
-                <infosys:Expiration inisections="register echo" initag="expiration">PT100S</infosys:Expiration>
+                <infosys:Expiration inisections="register echo" initag="expiration">PT3M</infosys:Expiration>
                 <infosys:Registrar>
                     <infosys:URL inisections="register echo" initag="index_server1"/>
                     <infosys:KeyPath inisections="common echo" initag="client_key"/>
                     <infosys:CertificatePath inisections="common echo" initag="client_cert"/>
-                    <infosys:CACertificatesDir inisections="common echo" initag="cacert"/>
+                    <infosys:CACertificatesDir inisections="common echo" initag="ca_dir"/>
                 </infosys:Registrar>
                 <infosys:Registrar>
                     <infosys:URL inisections="register echo" initag="index_server2"/>
                     <infosys:KeyPath inisections="common echo" initag="client_key"/>
                     <infosys:CertificatePath inisections="common echo" initag="client_cert"/>
-                    <infosys:CACertificatesDir inisections="common echo" initag="cacert"/>
+                    <infosys:CACertificatesDir inisections="common echo" initag="ca_dir"/>
                 </infosys:Registrar>
                 <infosys:Registrar>
                     <infosys:URL inisections="register echo" initag="index_server3"/>
                     <infosys:KeyPath inisections="common echo" initag="client_key"/>
                     <infosys:CertificatePath inisections="common echo" initag="client_cert"/>
-                    <infosys:CACertificatesDir inisections="common echo" initag="cacert"/>
+                    <infosys:CACertificatesDir inisections="common echo" initag="ca_dir"/>
                 </infosys:Registrar>
             </infosys:InfoRegister>
         </Service>

@@ -31,7 +31,7 @@
             <next id="http"/>
             <tls:KeyPath inisections="common" initag="host_key"/>
             <tls:CertificatePath inisections="common" initag="host_cert"/>
-            <tls:CACertificatesDir inisections="common" initag="cacert"/>
+            <tls:CACertificatesDir inisections="common" initag="ca_dir"/>
         </Component>
         <Component name="http.service" id="http">
             <next id="soap">POST</next>

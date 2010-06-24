@@ -1,4 +1,4 @@
-profile=@datadir@/@PACKAGE@/profiles/HopiServiceNonSecure.xml
+profile=HopiServiceNonSecure
 
 pidfile=/tmp/arched.pid
 logfile=/tmp/arched.log

@@ -2,14 +2,14 @@
 # Where is _this_ file located?
 gmconfig=/etc/arc.conf
 
-profile=@datadir@/@PACKAGE@/profiles/SecureComputingElementWithMapfile.xml
+profile=SecureComputingElementWithMapfile
 
 debugLevel=VERBOSE
 pidfile=/tmp/arched.pid
 logfile=/var/log/arched.log
 host_key=/etc/grid-security/hostkey.pem
 host_cert=/etc/grid-security/hostcert.pem
-cacert=/etc/grid-security/certificates
+ca_dir=/etc/grid-security/certificates
 gridmap=/etc/grid-security/grid-mapfile
 # the default ComputingShare must be given
 lrms=pbs default

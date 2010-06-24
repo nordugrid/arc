@@ -42,7 +42,7 @@
       <next id="http"/>
       <tls:KeyPath inisections="common" initag="host_key"/>
       <tls:CertificatePath inisections="common" initag="host_cert"/>
-      <tls:CACertificatesDir inisections="common" initag="cacert"/>
+      <tls:CACertificatesDir inisections="common" initag="ca_dir"/>
       <SecHandler name="identity.map" id="map" event="incoming">
         <imap:PDP name="allow.pdp">
           <imap:LocalList inisections="common" initag="mapfile">/etc/grid-security/grid-mapfile</imap:LocalName>

@@ -1,4 +1,4 @@
-profile=@datadir@/@PACKAGE@/profiles/EchoServicePython.xml
+profile=EchoServicePython
 
 pidfile=/tmp/arched.pid
 logfile=/tmp/arched.log
@@ -6,7 +6,7 @@ debug=DEBUG
 
 port=60000
 
-cacert=/etc/grid-security/certificates
+ca_dir=/etc/grid-security/certificates
 host_cert=/etc/grid-security/hostcert.pem
 host_key=/etc/grid-security/hostkey.pem
 

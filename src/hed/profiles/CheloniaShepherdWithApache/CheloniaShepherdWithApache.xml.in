@@ -5,6 +5,8 @@
         <cfg:Logger>
             <cfg:File inisections="common" initag="logfile">/var/log/arched.log</cfg:File>
             <cfg:Level inisections="common" initag="debug">ERROR</cfg:Level>
+            <cfg:Maxsize inisections="common" initag="logmaxsize">10000000</cfg:Maxsize>
+            <cfg:Backups inisections="common" initag="logbackups">10</cfg:Backups>
         </cfg:Logger>
     </cfg:Server>
     <ModuleManager>
@@ -31,7 +33,7 @@
             <next id="http"/>
             <tls:KeyPath inisections="common" initag="host_key"/>
             <tls:CertificatePath inisections="common" initag="host_cert"/>
-            <tls:CACertificatesDir inisections="common" initag="cacert"/>
+            <tls:CACertificatesDir inisections="common" initag="ca_dir"/>
         </Component>
         <Component name="http.service" id="http">
             <next id="soap">POST</next>
@@ -68,29 +70,29 @@
             <shep:ClientSSLConfig>
                 <shep:KeyPath inisections="shepherd common" initag="client_key"/>
                 <shep:CertificatePath inisections="shepherd common" initag="client_cert"/>
-                <shep:CACertificatesDir inisections="shepherd common" initag="cacert"/>
+                <shep:CACertificatesDir inisections="shepherd common" initag="ca_dir"/>
             </shep:ClientSSLConfig>
             <infosys:InfoRegister>
-                <infosys:Period inisections="shepherd register" initag="period">PT20S</infosys:Period>
+                <infosys:Period inisections="shepherd register" initag="period">PT2M</infosys:Period>
                 <infosys:Endpoint inisections="shepherd" initag="endpoint"/>
-                <infosys:Expiration inisections="shepherd register" initag="expiration">PT100S</infosys:Expiration>
+                <infosys:Expiration inisections="shepherd register" initag="expiration">PT3M</infosys:Expiration>
                 <infosys:Registrar>
                     <infosys:URL inisections="shepherd register" initag="index_server1"/>
                     <infosys:KeyPath inisections="shepherd common" initag="client_key"/>
                     <infosys:CertificatePath inisections="shepherd common" initag="client_cert"/>
-                    <infosys:CACertificatesDir inisections="shepherd common" initag="cacert"/>
+                    <infosys:CACertificatesDir inisections="shepherd common" initag="ca_dir"/>
                 </infosys:Registrar>
                 <infosys:Registrar>
                     <infosys:URL inisections="shepherd register" initag="index_server2"/>
                     <infosys:KeyPath inisections="shepherd common" initag="client_key"/>
                     <infosys:CertificatePath inisections="shepherd common" initag="client_cert"/>
-                    <infosys:CACertificatesDir inisections="shepherd common" initag="cacert"/>
+                    <infosys:CACertificatesDir inisections="shepherd common" initag="ca_dir"/>
                 </infosys:Registrar>
                 <infosys:Registrar>
                     <infosys:URL inisections="shepherd register" initag="index_server3"/>
                     <infosys:KeyPath inisections="shepherd common" initag="client_key"/>
                     <infosys:CertificatePath inisections="shepherd common" initag="client_cert"/>
-                    <infosys:CACertificatesDir inisections="shepherd common" initag="cacert"/>
+                    <infosys:CACertificatesDir inisections="shepherd common" initag="ca_dir"/>
                 </infosys:Registrar>
             </infosys:InfoRegister>
         </Service>
