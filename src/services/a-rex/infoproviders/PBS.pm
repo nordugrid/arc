@@ -99,6 +99,7 @@ sub split_hostlist {
 	}
     }
     warning("failed counting nodes in expression: $exec_host_string") if $err;
+    return @nodes;
 }
 
 # Deduces the number of requested cpus from the values of these job properties:
