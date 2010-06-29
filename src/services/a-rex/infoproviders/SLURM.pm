@@ -320,6 +320,9 @@ sub cluster_info ($) {
     $lrms_cluster{lrms_type} = "SLURM";
     $lrms_cluster{lrms_version} = $scont_config{"SLURM_VERSION"};
 
+    # SLURM has no cputime limit at all
+    $lrms_cluster{has_total_cputime_limit} = 0;
+
     #determine number of processors
     my $totalcpus=0;
 
@@ -467,14 +470,14 @@ sub jobs_info ($$$) {
 	$lrms_jobs{$jid}{mem} = $scont_nodes{$node}{"RealMemory"};
 
 	my $walltime = $scont_jobs{$jid}{"TimeUsed"};
-
+	my $count = $scont_jobs{$jid}{ReqCPUs};
 	$lrms_jobs{$jid}{walltime} = $walltime;
 	# TODO: multiply walltime by number of cores to get cputime?
-	$lrms_jobs{$jid}{cputime} = $walltime;
+	$lrms_jobs{$jid}{cputime} = $walltime*$count;
 
 	$lrms_jobs{$jid}{reqwalltime} = $scont_jobs{$jid}{"TimeLimit"};
 	# TODO: cputime/walltime confusion again...
-	$lrms_jobs{$jid}{reqcputime} = $scont_jobs{$jid}{"TimeLimit"};
+	$lrms_jobs{$jid}{reqcputime} = $scont_jobs{$jid}{"TimeLimit"}*$count;
 	$lrms_jobs{$jid}{nodes} = [ split(",",slurm_expand_nodes($scont_jobs{$jid}{"NodeList"}) ) ];
 	$lrms_jobs{$jid}{comment} = [$scont_jobs{$jid}{"Name"}];
 

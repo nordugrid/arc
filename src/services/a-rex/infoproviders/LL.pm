@@ -403,6 +403,12 @@ sub cluster_info ($) {
     $status_string =~ /^\S+\s+(\S+)/;
     $lrms_cluster{lrms_version} = $1;
 
+	# LL tracks total cpu time but the cpu time limit that the user asked is
+	# first scaled up with the number of requested job slots before enforcing
+	# the cpu time limit. Effectively the cpu time limit is the maxmum average
+	# per-slot cputime
+	$lrms_cluster{has_total_cputime_limit} = 0;
+
     my ($ll_consumable_resources) = $$config{ll_consumable_resources};
 
     if ($ll_consumable_resources ne "yes") {
@@ -552,7 +558,7 @@ sub jobs_info ($$$) {
         my (@cput) = split(/:/,$jobinfo{$id}{Step_Total_Time});       
 	$lrms_jobs{$id}{cputime} = int($cput[0]*60 + $cput[1] + $cput[2]/60); 
 	if ($jobinfo{$id}{Wall_Clk_Hard_Limit} =~ / \(([0-9]*) seconds\)/) {
-		$lrms_jobs{$id}{reqwalltime} = $1;
+		$lrms_jobs{$id}{reqwalltime} = $1 / 60;
 	}
 	$lrms_jobs{$id}{reqcputime} = $lrms_jobs{$id}{reqwalltime};
 	$lrms_jobs{$id}{comment} = [ "LRMS: $jobinfo{$id}{Status}" ];

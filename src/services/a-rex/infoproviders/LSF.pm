@@ -116,6 +116,7 @@ sub type_and_version {
     my @s = split(/ +/,$lsf_version[0]);
     $type=$s[1];
     $version=$s[2];
+    $version=~s/,$//;
   }
   
   my (@result) = [$type,$version];
@@ -147,7 +148,11 @@ sub queue_info_user ($$$) {
          }else{
             $lrms_queue{totalcpus} = "$q_mjobs";
          }
-         $lrms_queue{maxuserrun} = "$q_mslots";
+	 if ($q_mslots eq "-"){
+	     $lrms_queue{maxuserrun} = $lrms_queue{totalcpus};
+	 } else {
+	     $lrms_queue{maxuserrun} = "$q_mslots";
+	 }
          $lrms_queue{running}= $q_job_running;
          $lrms_queue{status} = $q_status;
          $lrms_queue{queued} = $q_job_pending;
@@ -172,6 +177,8 @@ sub queue_info_user ($$$) {
          my $line2=<BQOUTPUT>;
          chomp($line2);
          my (@mcput)= split(" ", $line2);
+	 #change from float to int.
+	 $mcput[0]=~ s/(\d+).*/\1/;
 	 if ($lastline =~ '^DEFAULT'){
             $lrms_queue{defaultcput} = "$mcput[0]";
          } else {
@@ -267,6 +274,10 @@ sub cluster_info ($) {
     #lookup batch type and version
     ($lrms_cluster{lrms_type},$lrms_cluster{lrms_version}) = type_and_version();   
 
+    # cputime limit for parallel/multi-cpu jobs is treated as job-total
+    # OBS: Assuming LSB_JOB_CPULIMIT=y !
+    $lrms_cluster{has_total_cputime_limit} = 1;
+
     #get info on nodes in cluster
     read_lsfnodes(\%lsfnodes);
 
@@ -316,6 +327,20 @@ sub queue_info($$){
     return queue_info_user($$config{lsf_bin_path},$qname,""); 
 }
 
+#LSF time is on format: 000:00:00.28
+#output should be an integer in minutes, rounded up.
+
+sub translate_time_lsf_to_minutes ($@) {
+    my ($cputime) = shift;
+    my ($days,$hours,$rest) = split(/:/,$cputime);
+    my ($minutes, $seconds)=split(/\./,$rest);
+    if ( $seconds > 0){
+	$minutes++;
+    }
+    $minutes=$days*24*60+$hours*60+$minutes;
+    return $minutes;
+}
+
 sub jobs_info ($$@) {
     my ($config) = shift;
     my ($qname) = shift;
@@ -331,7 +356,7 @@ sub jobs_info ($$@) {
        $lrms_jobs{$id}{status}=$job{status};
        $lrms_jobs{$id}{nodes}=$job{nodes};
        $lrms_jobs{$id}{mem}=$job{mem};
-       $lrms_jobs{$id}{cputime}=$job{cput};
+       $lrms_jobs{$id}{cputime}=translate_time_lsf_to_minutes($job{cput});
        $lrms_jobs{$id}{walltime}="";
 
        $lrms_jobs{$id}{reqwalltime}="";

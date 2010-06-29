@@ -419,6 +419,10 @@ sub cluster_info ($) {
 
     ( $lrms_cluster{lrms_type}, $lrms_cluster{lrms_version} ) = type_and_version();
 
+    # not sure how Condor counts RemoteUserCpu and RemoteSysCpu but it should
+    # not matter anyway since we don't support parallel jobs under Condor
+    $lrms_cluster{has_total_cputime_limit} = 0;
+
     # Count used/free CPUs and queued jobs in the cluster
     
     # Note: SGE has the concept of "slots", which roughly corresponds to
