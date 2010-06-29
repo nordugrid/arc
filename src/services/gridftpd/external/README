@@ -1,0 +1,2 @@
+This directory contains external packages which are not developed by NorduGrid team. 
+They are kept in NorduGrid CVS only because they need some adaptation/modification before they can be used by other parts of NorduGrid software.

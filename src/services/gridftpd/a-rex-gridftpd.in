@@ -1,0 +1,224 @@
+#!/bin/bash
+#
+# Init file for the NorduGrid gridftpd
+#
+# chkconfig: - 55 25
+# description: NorduGrid gridftpd
+#
+# config: /etc/sysconfig/globus
+# config: /etc/sysconfig/nordugrid
+# config: @prefix@/etc/arc.conf
+# config: /etc/arc.conf
+
+# source function library
+if [ -f @initddir@/functions ]; then
+  . @initddir@/functions
+else
+  success() { echo -n "OK"
+  }
+  failure() { echo -n "FAILURE"
+  }
+  status() {
+    pid=`pidof -o $$ -o $PPID -o %PPID -x $1`
+    if test "x$pid" != "x"; then
+      echo "$1 (pid $pid) is running..."
+      return 0
+    fi
+
+    if test -f "$PID_FILE"; then
+      read pid < "$PID_FILE"
+      if test "$pid" != ""; then
+        echo "$1 stopped but pid file exists"
+        return 1
+      fi
+    fi
+    if test -f $LOCKFILE; then
+      echo "$1 stopped but lockfile exist"
+      return 2
+    fi
+    echo "$1 is stopped"
+    return 3
+  }
+fi
+
+add_library_path() {
+  location="$1"
+  if [ ! "x$location" = "x" ] ; then
+    if [ ! "$location" = "/usr" ] ; then
+      libdir="$location/lib"
+      libdir64="$location/lib64"
+      if [ -d "$libdir64" ] ; then
+        LD_LIBRARY_PATH="$libdir64:$LD_LIBRARY_PATH"
+      fi
+      if [ -d "$libdir" ] ; then
+        LD_LIBRARY_PATH="$libdir:$LD_LIBRARY_PATH"
+      fi
+    fi
+  fi
+}
+
+# sysconfig files
+if [ -f /etc/sysconfig/globus ]; then
+    . /etc/sysconfig/globus
+fi
+if [ -f /etc/sysconfig/nordugrid ]; then
+    . /etc/sysconfig/nordugrid
+fi
+
+prog=gridftpd
+
+# GLOBUS_LOCATION
+GLOBUS_LOCATION=${GLOBUS_LOCATION:-@DEFAULT_GLOBUS_LOCATION@}
+if [ ! -d "$GLOBUS_LOCATION" ]; then
+  echo "GLOBUS_LOCATION ($GLOBUS_LOCATION) not found"
+  exit 1
+fi
+export GLOBUS_LOCATION
+
+# NORDUGRID_LOCATION
+NORDUGRID_LOCATION=${NORDUGRID_LOCATION:-@prefix@}
+if [ ! -d "$NORDUGRID_LOCATION" ]; then
+  echo "NORDUGRID_LOCATION ($NORDUGRID_LOCATION) not found"
+  exit 1
+fi
+export NORDUGRID_LOCATION
+
+CMD="$NORDUGRID_LOCATION/sbin/$prog"
+if ! test -x "$CMD"; then
+    failure "Missing executable"
+    echo
+    exit 1
+fi
+
+# ARC_CONFIG
+if test "x$ARC_CONFIG" = "x"; then
+  if [ -r $NORDUGRID_LOCATION/etc/arc.conf ]; then
+    ARC_CONFIG=$NORDUGRID_LOCATION/etc/arc.conf
+  elif [ -r /etc/arc.conf ]; then
+    ARC_CONFIG=/etc/arc.conf
+  fi
+fi
+if [ ! -r "$ARC_CONFIG" ]; then
+   echo "NorduGrid configuration not found (usually /etc/arc.conf)"
+   exit 1
+fi
+
+CMD="$CMD -c '$ARC_CONFIG'"
+
+# VOMS_LOCATION
+VOMS_LOCATION=${VOMS_LOCATION:-@DEFAULT_VOMS_LOCATION@}
+
+# GRIDSITE_LOCATION
+GRIDSITE_LOCATION=${GRIDSITE_LOCATION:-@DEFAULT_GRIDSITE_LOCATION@}
+
+add_library_path "$LFC_LOCATION"
+add_library_path "$GRIDSITE_LOCATION"
+add_library_path "$VOMS_LOCATION"
+add_library_path "$GLOBUS_LOCATION"
+LD_LIBRARY_PATH=$NORDUGRID_LOCATION/@libsubdir@:$LD_LIBRARY_PATH
+SASL_PATH=${SASL_PATH:-$GLOBUS_LOCATION/lib/sasl}
+export LD_LIBRARY_PATH SASL_PATH
+
+if [ `id -u` = 0 ] ; then
+  # Debian does not have /var/lock/subsys
+  if test -d /var/lock/subsys; then
+    LOCKFILE=/var/lock/subsys/$prog
+  else
+    LOCKFILE=/var/lock/$prog
+  fi
+  PID_FILE=/var/run/$prog.pid
+else
+  LOCKFILE=$HOME/$prog.lock
+  PID_FILE=$HOME/$prog.pid
+fi
+
+parser="$NORDUGRID_LOCATION/@pkglibsubdir@/config_parser.sh"
+if ! . "$parser"; then
+    failure "Failed sourcing config parser"
+    echo
+    exit 1
+fi
+
+config_parse_file "$ARC_CONFIG"
+config_import_section gridftpd
+PID_FILE=${CONFIG_pidfile:-$PID_FILE}
+config_reset
+
+CMD="$CMD -P '$PID_FILE'"
+
+start()
+{
+    echo -n "Starting $prog: "
+
+    # Check if we are already running
+    if test -f $PID_FILE; then
+      read pid < $PID_FILE
+      if test "x$pid" != "x"; then
+        ps -p "$pid" -o comm 2>/dev/null | grep "^$prog$" 1>/dev/null 2>/dev/null
+        if [ "$?" -eq '0' ] ; then
+          failure "Error: already running ($pid)"
+          echo
+          return 1
+        fi
+      fi
+      rm -f "$PID_FILE" "$LOCKFILE"
+    fi
+
+    eval "$CMD"
+    RETVAL=$?
+
+    if [ $RETVAL -ne 0 ]; then
+        failure "$prog startup"
+    else
+       touch $LOCKFILE
+       success "$prog startup"
+    fi
+    echo
+    return $RETVAL
+}
+
+stop()
+{
+    echo -n "Stopping $prog: "
+
+    if test -f "$PID_FILE"; then
+      kill `cat "$PID_FILE"` && success "$prog shutdown" || failure "$prog shutdown"
+      RETVAL=$?
+      sleep 1
+      kill -9 `cat "$PID_FILE"` 1>/dev/null 2>&1
+      rm -f "$PID_FILE" "$LOCKFILE"
+    else
+      failure "$prog shutdown - pidfile missing"
+    fi
+    echo
+    return $RETVAL
+}
+
+restart()
+{
+    stop
+    start
+}
+
+case "$1" in
+  start)
+        start
+        ;;
+  stop)
+        stop
+        ;;
+  status)
+	status $prog
+        ;;
+  restart|reload)
+        restart
+        ;;
+  condrestart)
+        test -f $LOCKFILE && restart || :
+        ;;
+  *)
+        echo "Usage: $0 {start|stop|status|restart|reload|condrestart}"
+        exit 1
+esac
+
+exit $?

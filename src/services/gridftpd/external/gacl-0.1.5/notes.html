@@ -1,0 +1,405 @@
+<title>GACL 0.1.5 Release Notes</title>
+<body bgcolor=white>
+<h1 align=center>GACL 0.1.5 Release Notes</h1>
+
+<p>
+GACL is a C library for manipulating Grid Access Control Lists, written in
+XML-based Access Control Languages. The aim of GACL is to insulate
+application authors from changes in ACL format and to provide easy access
+to ACL information (ie to remove the need for every application to know how
+to parse XML and evaluate ACL's.)
+
+<h2>Getting GACL</h2>
+
+<p>
+The GACL homepage is at 
+<a href="http://www.gridpp.ac.uk/authz/gacl/">http://www.gridpp.ac.uk/gacl/</a>
+and the current source code is available from the EDG CVS at
+<a href="http://datagrid.in2p3.fr/cgi-bin/cvsweb.cgi/gacl/">
+http://datagrid.in2p3.fr/cgi-bin/cvsweb.cgi/gacl/</a>
+
+<h2>Installation</h2>
+
+<p>
+From 0.1.5, GACL requires libxml2 and libxml2-devel 
+and has been validated with libxml2
+version 2.4.22. Suitable versions of libxml2 RPM's for use on EDG RedHat 6.2 
+machines are available from
+<a href="http://datagrid.in2p3.fr/distribution/external/RPMS">
+http://datagrid.in2p3.fr/distribution/external/RPMS</a>
+
+<p>
+To build GACL,
+unpack the source tar ball and in the gacl-VERSION directory, just do
+<b>make</b>, followed by <b>make install</b> as root. This will install the
+gacl.h in /usr/include and the static and shared libraries in /usr/lib
+
+<p>
+The current copy of these release notes is installed as
+/usr/share/doc/gacl-VERSION/notes.html and there is the source of a test
+program, gaclexample.c, which can be used to test the installation and
+demonstrate basic use of the library.
+
+<p>
+The source tarball also contains an RPM spec file, gacl.spec, which can be
+used to build RPM's in the normal way.
+
+<h2>API</h2>
+
+<p>
+Features planned but not yet implemented are indicated by [...]
+
+<h2>GACL types</h2>
+
+<p>
+<dl>
+<dt>GACLcred
+<dd>A single credential required by an ACL, consisting of string giving the
+    type of credential and zero or more name/value string pairs, depending
+    on the type.
+    <br>
+    Credential types currently defined in GACL version 0.1.5 are 
+    ldap-group, cas-cred, voms-cred, any-user and auth-user.
+<p>
+<dt>GACLperm
+<dd>An access perm.
+    <br>
+    Currently, GACL_PERM_NONE, GACL_PERM_READ, GACL_PERM_LIST,
+    GACL_PERM_WRITE, and GACL_PERM_ADMIN (ie the ability to modify the
+    ACL itself.)
+<p>
+<dt>GACLentry
+<dd>A set of one or more credentials in an ACL, and associated allow and
+    denys for specified access perms. If more than one credential is
+    given, they must all be satisfied for the entry to apply to a given
+    identity (ie AND is the operation within an entry.)
+<p>
+<dt>GACLacl
+<dd>A set of one or more entries.
+    <br>
+    When evaluated, a user is tested against the entries in turn, resulting
+    in an OR between entries. Allow and Denies are evaluated
+    seperately and combined at the end of ACL processing in such a way that
+    any Denies for a specific permission type override any Allows. In this
+    way, the order of Entries in the ACL is not significant.
+<p>
+<dt>GACLuser
+<dd>A set of credentials owned by a user. 
+    <br>
+    In 0.1.5, Person DN and EDG VOMS credential types are supported in
+    GACLuser (DN Lists, including EDG LDAP VO, in GACLacl matches against 
+    Person DN in GACLuser.)
+</dl>
+
+<h2>Credential type mapping into GACL</h2>
+
+
+<p>
+The following list shows how the properties of different credential types
+are stored in GACL XML Access Control Lists.
+
+<dl>
+<dt><b>Person</b> &quot;/O=Grid/OU=...&quot;
+
+<dd>
+&lt;person&gt;
+<br>
+&lt;dn&gt;/O=Grid/OU=...&lt;/dn&gt;
+<br>
+&lt;/person&gt;
+<p>
+
+<dt><b>DN List / EDG LDAP VO</b> ldap://a.b.com:389/ou=d,dc=a,dc=b,dc=com
+
+<dd>
+&lt;dn-list&gt;
+<br>
+&lt;url&gt;ldap://a.b.com:389/ou=d,dc=a,dc=b,dc=com&lt;/url&gt;
+<br>
+&lt;/dn-list&gt;
+<p>
+
+<dt><b>VOMS credential</b>
+
+<dd>
+&lt;voms-cred&gt;
+<br>
+&lt;voms&gt;DN of VOMS&lt;/voms&gt;
+&lt;vo&gt;VO&lt;/vo&gt;
+&lt;group&gt;Group&lt;/group&gt;
+&lt;group&gt;Subgroup&lt;/group&gt;
+&lt;role&gt;Role&lt;/role&gt;
+&lt;capability&gt;Capability&lt;/capability&gt;
+<br>
+&lt;/voms-cred&gt;
+<p>
+
+</dl>
+
+<h2>GACL functions</h2>
+
+<p>
+Unless otherwise noted, functions returning int values, return 1 for success
+or 0 on failure. Functions returning pointers, return NULL on failure.
+
+<dl>
+<!--
+<dt>int GACLsetLocalGDir(char *s)
+<dd>Sets the directory holding Local Group files, consisting of lists of
+    people in that group, one DN per line.
+<p>
+-->
+
+<dt>GACLcred *GACLnewCred(char *type)
+<dd>Create and initialise a new credential of type *type.
+<p>
+
+<dt>int GACLaddToCred(GACLcred *cred, char *name, char *value)
+<dd>Add a name/value pair to the end of this credential's list of name/value
+    pairs.
+<p>
+
+<dt>int GACLfreeCred(GACLcred *cred)
+<dd>Free the memory used by an existing credential.
+<p>
+
+<dt>int GACLaddCred(GACLentry *entry, GACLcred *cred)
+<dd>Add a credential to an existing entry.
+<p>
+
+<dt>int GACLdelCred(GACLentry *entry, GACLcred *cred)
+<dd>Remove a credential from an existing entry.
+<p>
+
+<dt>int GACLprintCred(GACLcred *cred, FILE *fp)
+<dd>Print a credential to file fp as an XML fragment.
+<p>
+
+<dt>GACLentry *GACLnewEntry(void)
+<dd>Create a new and empty entry.
+<p>
+
+<dt>int GACLfreeEntry(GACLentry *entry)
+<dd>Free the memory used by an existing entry, and the memory used by
+    all the credentials it contains.
+<p>
+
+<dt>int GACLaddEntry(GACLacl *acl, GACLentry *entry)
+<dd>Add an entry to an existing ACL [inserting it in the correct place in
+    the list of entries, according to a deterministic priority. This
+    allows unique hashing for each equivalent ACL.]
+<p>
+
+<dt>int GACLprintEntry(GACLentry *entry, FILE *fp)
+<dd>Print an entry to file fp as an XML fragment.
+<p>
+
+<dt>int GACLprintPerm(GACLperm perm, FILE *fp)
+<dd>Print a perm to file fp as an XML tag (eg GACL_PERM_READ gives
+    &lt;read/&gt;)
+<p>
+
+<dt>int GACLallowPerm(GACLentry *entry, GACLperm perm)
+<dd>Set a perm to be explicitly allowed in an entry, ignoring the previous
+    allow state of that perm.
+<p>
+
+<dt>int GACLunallowPerm(GACLentry *entry, GACLperm perm)
+<dd>Prevent a perm being explicitly allowed by an entry, ignoring the
+    previous allow state of that perm.                      	
+<p>
+
+<dt>int GACLdenyPerm(GACLentry *entry, GACLperm perm)
+<dd>Set a perm to be explicitly denied in an entry, ignoring the previous
+    deny state of that perm.
+<p>
+
+<dt>int GACLundenyPerm(GACLentry *entry, GACLperm perm)
+<dd>Prevent a perm being explicitly denied by an entry, ignoring the
+    previous deny state of that perm.
+<p>
+
+<dt>char *GACLpermToChar(GACLperm perm)
+<dd>Return a pointer to a static string containing the name of a given
+    perm. (The string must not be freed after use.)
+<p>
+
+<dt>GACLperm GACLcharToPerm(char *s)
+<dd>Return the perm associated with a given perm name.
+<p>
+
+<dt>GACLacl *GACLnewAcl(void)
+<dd>Creating a new and empty ACL.
+<p>
+
+<dt>int GACLfreeAcl(GACLacl *acl)
+<dd>Free the memory used by an existing ACL, and the memory used by
+    any entries and credentials it may contain.
+<p>
+
+<dt>int GACLprintAcl(GACLacl *acl, FILE *fp)
+<dd>Print a complete XML ACL to file fp, enclosed by
+    &lt;gacl&gt;...&lt;/gacl&gt; (You should prefix this with an XML
+    version tag yourself if the file is to contain only an ACL.)
+<p>
+
+<dt>int GACLsaveAcl(char *filename, GACLacl *acl)
+<dd>Write out a complete XML ACL to a file.
+<p>
+
+<dt>GACLacl *GACLloadAcl(char *filename)
+<dd>Load an XML ACL from a file.
+<p>
+
+<dt>GACLacl *GACLloadAclForFile(char *filename)
+<dd>Load the ACL which governs a given file. This is done by looking for
+    file .gacl in the same directory as the file. If no such ACL
+    exists, parent directories are searched in ascending order. [This
+    will be extended to also search for per-file ACL's of the form 
+    .gacl-filename in a future release.]  
+<p>
+
+<dt>int GACLisAclFile(char *filename)
+<dd>Returns 1 if the full pathname filename is an ACL (ie is .gacl
+    when the path is removed.) [Support for per-file ACL's will be added.]
+<p>
+
+<dt>int GACLtestDnList(char *listurl, GACLuser *user)
+<dd>Test whether a given user is a member of a given DN List group,
+    such as an EDG LDAP VO group.
+<p>
+
+<dt>GACLuser *GACLnewUser(GACLcred *cred)
+<dd>Create a new user with a single credential.
+<p>
+
+<dt>int GACLfreeUser(GACLuser *user)
+<dd>Free the storage used by *user.
+<p>
+
+<dt>int GACLuserAddCred(GACLuser *user, GACLcred *cred)
+<dd>Add a credential to those a given user already has.
+<p>
+
+<dt>int GACLuserHasCred(GACLuser *user, GACLcred *cred)
+<dd>Test if the user has the given credential.
+<p>
+
+<dt>GACLcred *GACLuserFindCredType(GACLuser *user, char *type)
+<dd>Find the first credential of a given type for this user.
+<p>
+
+<dt>GACLperm GACLtestUserAcl(GACLacl *acl, GACLuser *user)
+<dd>Find the access perm of a given user implied by an ACL. *user should
+    be NULL if the user has no credentials.
+<p>
+
+<dt>GACLperm GACLtestExclAcl(GACLacl *acl, GACLuser *user)
+<dd>Find the permissions which are exclusive to this user for the given ACL.
+    That is, those permissions which no other user could obtain when
+    presenting their credentials to this ACL. This is useful for testing
+    whether files such as private keys are in fact world or group readable.
+<p>
+
+<dt>int GACLhasNone(GACLperm perm)<br>
+    int GACLhasRead(GACLperm perm)<br>
+    int GACLhasList(GACLperm perm)<br>
+    int GACLhasWrite(GACLperm perm)<br>
+    int GACLhasAdmin(GACLperm perm)
+<dd>Macros to test whether perm gives the user a specific access permission.
+<p>
+
+<dt>char *GACLurlEncode(char *string)
+<dd>URL-encode a string, converting all characters other than 0-9, A-Z, a-z,
+    . = and - to %HH where HH is their ASCII value in hexadecimal. This can
+    be used to produced filesystem-safe filenames from arbitrary strings.
+<p>
+
+<dt>char *GACLmildUrlEncode(char *string)
+<dd>Partially URL-encode a string, converting all characters other than 
+    0-9, A-Z, a-z, 
+    . = _ @ / and - to %HH where HH is their ASCII value in hexadecimal.
+    This preserves more of the readability of the string than
+    GACLurlEncode() and in particular, any directory-like structure, since /
+    is passed through unmodified. 
+<p>
+
+</dl>
+
+<h2>Other defined symbols</h2>
+
+<dl>
+<dt>#define GACL_ACL_FILE &quot;.gacl&quot; 
+<dd>Used as the filename of per-directory ACL's, and as the prefix of per-file 
+    ACL's.
+<p>
+<dt>#define GACL_DN_LISTS &quot;/etc/grid-security/dn-lists&quot; 
+<dd>The default directory holding lists of DN's forming groups - can be 
+    overridden at runtime by the environment variable GACL_DN_LISTS
+<p>
+</dl>
+
+<h2>DN Lists</h2>
+
+<p>
+DN Lists, such as EDG VO LDAP groups, are stored by default in the directory
+/etc/grid-security/dn-lists (this location can be overridden at runtime by
+the environment variable GACL_DN_LISTS) Each list takes the form of a plain
+text file with one DN per line. The file name is the URL-encoded URL of the
+original location of the list (eg ldap://a.b.com:389/ou=d,dc=a,dc=b,dc=com
+for an EDG VO LDAP group.) 
+
+<p>
+In the current release, the lists directory must be populated by an external 
+program, rather than by GACL itself. (For EDG VO LDAP groups, a tool like
+mkgridmap can easily be used to do this periodically from cron.)
+
+<h2>An example ACL</h2>
+
+<p>
+
+<pre>
+&lt;gacl&gt;
+&lt;entry&gt;
+&lt;person&gt;
+&lt;dn&gt;/O=Grid/CN=Andrew&lt;/dn&gt;
+&lt;/person&gt;
+&lt;allow&gt;&lt;read/&gt;&lt;write/&gt;&lt;admin/&gt;&lt;/allow&gt;
+&lt;deny&gt;&lt;list/&gt;&lt;admin/&gt;&lt;/deny&gt;
+&lt;/entry&gt;
+&lt;entry&gt;
+&lt;dn-list&gt;
+&lt;url&gt;ldap://a.b.com:389/ou=d,dc=a,dc=b,dc=com&lt;/url&gt;
+&lt;/dn-list&gt;
+&lt;allow&gt;&lt;read/&gt;&lt;/allow&gt;
+&lt;/entry&gt;
+&lt;/gacl&gt;
+</pre>
+
+<h2>Changes</h2>
+
+<p>
+For a full list of changes, see the CHANGELOG included in the source tarball
+or installed in /usr/share/doc/gacl-VERSION.
+
+<p>
+There is one very important API change since 0.1.1: GACLnewCred() now has only
+1 parameter and does not initialise the name/value pairs associated with the
+cred. This is now done with GACLaddToCred(), allowing credentials of
+arbitrary complexity.
+
+<p>
+Also, the function GACLtestCredAcl() has been removed - you can achieve the
+same functionality with GACLtestUserAcl by creating a temporary GACLuser for
+the test.
+
+<h2>More information</h2>
+
+<p>
+For information about GACL see
+<a href="http://www.gridpp.ac.uk/authz/gacl/">
+http://www.gridpp.ac.uk/authz/gacl/</a>
+
+<p>
+Andrew McNab &lt;mcnab@hep.man.ac.uk&gt; 24 January 2003
+</body>

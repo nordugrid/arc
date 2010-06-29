@@ -1,4 +1,10 @@
-SUBDIRS = jobs run conf misc log mail files loaders
+if GRIDFTPD_SERVICE_ENABLED
+JOBPLUGIN_DIR = jobplugin
+else
+JOBPLUGIN_DIR =
+endif
+
+SUBDIRS = jobs run conf misc log mail files loaders $(JOBPLUGIN_DIR)
 
 noinst_LTLIBRARIES = libgridmanager.la
 pkglibexec_PROGRAMS = gm-kick gm-jobs inputcheck

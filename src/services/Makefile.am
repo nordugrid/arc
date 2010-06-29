@@ -4,6 +4,12 @@ else
 AREX_SERVICE =
 endif
 
+if GRIDFTPD_SERVICE_ENABLED
+GRIDFTPD_SERVICE = gridftpd
+else
+GRIDFTPD_SERVICE =
+endif
+
 if ISIS_SERVICE_ENABLED
 ISIS_SERVICE = isis
 else
@@ -64,5 +70,5 @@ else
 PYTHON_SERVICE =
 endif
 
-SUBDIRS=$(AREX_SERVICE) $(ISIS_SERVICE) $(CHARON_SERVICE) $(COMPILER_SERVICE) $(HOPI_SERVICE) $(PAUL_SERVICE) $(SCHED_SERVICE) $(STORAGE_SERVICE) $(JANITOR_SERVICE) arex2 wrappers $(SAML) $(PYTHON_SERVICE) slcs delegation
-DIST_SUBDIRS = echo_java echo_python a-rex isis charon compiler hopi paul sched storage janitor arex2 wrappers saml slcs delegation
+SUBDIRS=$(GRIDFTPD_SERVICE) $(AREX_SERVICE) $(ISIS_SERVICE) $(CHARON_SERVICE) $(COMPILER_SERVICE) $(HOPI_SERVICE) $(PAUL_SERVICE) $(SCHED_SERVICE) $(STORAGE_SERVICE) $(JANITOR_SERVICE) arex2 wrappers $(SAML) $(PYTHON_SERVICE) slcs delegation
+DIST_SUBDIRS = echo_java echo_python gridftpd a-rex isis charon compiler hopi paul sched storage janitor arex2 wrappers saml slcs delegation

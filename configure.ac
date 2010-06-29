@@ -95,6 +95,7 @@ enables_xmlsec1=yes
 enables_hed=yes
 #  Services
 enables_a_rex_service=yes
+enables_gridftpd_service=yes
 enables_compiler_service=yes
 enables_hopi_service=yes
 enables_isis_service=yes
@@ -121,6 +122,7 @@ enables_doc=yes
 AC_ARG_ENABLE(all, AC_HELP_STRING([--disable-all], [disables all buildable components. Can be overwritten with --enable-* for group or specific component. It is also possible to use --enable-all to overwrite defaults.]),
 [
 enables_a_rex_service=$enableval
+enables_gridftpd_service=$enableval
 enables_compiler_service=$enableval
 enables_hopi_service=$enableval
 enables_isis_service=$enableval
@@ -173,6 +175,7 @@ enables_srm_client=$enableval
 AC_ARG_ENABLE(all-services, AC_HELP_STRING([--disable-all-services], [disables all buildable service componets. Can be overwritten with --enable-* for specific component. It is also possible to use --enable-all-services to overwrite defaults and --enable-all.]),
 [
 enables_a_rex_service=$enableval
+enables_gridftpd_service=$enableval
 enables_compiler_service=$enableval
 enables_hopi_service=$enableval
 enables_isis_service=$enableval
@@ -791,6 +794,35 @@ AC_CHECK_HEADER([zlib.h],,AC_MSG_ERROR([unable to find zlib header files]))
 AC_CHECK_LIB([z],[deflateInit2_],,AC_MSG_ERROR([unable to link with zlib library]))
 fi
 
+# check GACL. NG-bundled GACL is used by default
+GACL_LOCATION="$PWD/src/services/gridftpd/external/gacl-0.1.5"
+gridsite=
+AC_SUBST(GACL_LOCATION)
+AC_MSG_CHECKING(for GACL)
+AC_ARG_WITH(gacl,
+  AC_HELP_STRING([--with-gacl=PATH], [Gridsite installation path]),
+  [ GACL_LOCATION=$with_gacl_location ],
+  [
+    if test -d "$withval"; then
+      if test -f "$withval/lib/libgridsite.a"; then
+        GACL_LOCATION="$withval"
+        gridsite=yes
+      fi
+    fi
+  ]
+)
+AC_MSG_RESULT($GACL_LOCATION)  
+AC_SUBST(GACL_LOCATION)
+AM_CONDITIONAL(NG_GACL, test "x$gridsite" = "x")
+AM_CONDITIONAL(GRIDSITE_GACL, test "x$gridsite" != "x")
+if test "x$gridsite" = "x"; then
+  AC_CHECK_HEADER([$GACL_LOCATION/gacl.h],,AC_MSG_ERROR([unable to find gacl header files]))
+  AC_DEFINE(NG_GACL,,[GACL patched by NG])
+else
+  AC_CHECK_HEADER([$GACL_LOCATION/include/gridsite.h],,AC_MSG_ERROR([unable to find gridsite gacl header files]))
+  AC_DEFINE(GRIDSITE_GACL,,[Gridsite GACL (also patched by NG)])
+fi
+
 ###############################################
 #
 # Check for Berkeley DB C++
@@ -1331,6 +1363,18 @@ fi
 AC_MSG_NOTICE([A-Rex service enabled: $enables_a_rex_service])
 AM_CONDITIONAL([A_REX_SERVICE_ENABLED],[test "x$enables_a_rex_service" = "xyes"])
 
+# Gridftpd
+AC_ARG_ENABLE(gridftpd_service, AC_HELP_STRING([--disable-gridftpd-service], [disable building Gridftpd service]),
+  [enables_gridftpd_service=$enableval],[])
+if test "$enables_gridftpd_service" = "yes"; then
+  if test "x$WIN32" = "xyes" ; then
+    AC_MSG_NOTICE([Gridftpd can't be built for WIN32 environment - disabling])
+    enables_griftpds_service="no"
+  fi
+fi
+AC_MSG_NOTICE([Gridftpd service enabled: $enables_gridftpd_service])
+AM_CONDITIONAL([GRIDFTPD_SERVICE_ENABLED],[test "x$enables_gridftpd_service" = "xyes"])
+
 # ISIS
 AC_ARG_ENABLE(isis_service, AC_HELP_STRING([--disable-isis-service], [disable building ISIS Service]),
   [enables_isis_service=$enableval],[])
@@ -1691,6 +1735,7 @@ AC_CONFIG_FILES([Makefile
                  src/services/a-rex/grid-manager/conf/Makefile
                  src/services/a-rex/grid-manager/files/Makefile
                  src/services/a-rex/grid-manager/jobs/Makefile
+                 src/services/a-rex/grid-manager/jobplugin/Makefile
                  src/services/a-rex/grid-manager/loaders/Makefile
                  src/services/a-rex/grid-manager/log/Makefile
                  src/services/a-rex/grid-manager/mail/Makefile
@@ -1745,6 +1790,16 @@ AC_CONFIG_FILES([Makefile
                  src/services/charon/charon_service.xml.example
                  src/services/compiler/Makefile
                  src/services/compiler/schema/Makefile
+                 src/services/gridftpd/Makefile
+                 src/services/gridftpd/a-rex-gridftpd
+                 src/services/gridftpd/auth/Makefile
+                 src/services/gridftpd/conf/Makefile
+                 src/services/gridftpd/external/Makefile
+                 src/services/gridftpd/external/gacl-0.1.5/Makefile
+                 src/services/gridftpd/misc/Makefile
+                 src/services/gridftpd/run/Makefile
+                 src/services/gridftpd/fileplugin/Makefile
+                 src/services/gridftpd/gaclplugin/Makefile
                  src/services/hopi/Makefile
                  src/services/hopi/hopi_service.xml.example
                  src/services/arex2/Makefile
@@ -1921,6 +1976,7 @@ Included components:
 HED:                ${enables_hed}
 
 A-REX service:      ${enables_a_rex_service}
+GRIDFTPD service:   ${enables_gridftpd_service}
 ISIS service:       ${enables_isis_service}
 CHARON service:     ${enables_charon_service}
 HOPI service:       ${enables_hopi_service}
