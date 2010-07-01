@@ -4,9 +4,11 @@
 
 #include <ldap.h>
 #ifdef HAVE_SASL_H
+#include <signal.h>
 #include <sasl.h>
 #endif
 #ifdef HAVE_SASL_SASL_H
+#include <signal.h>
 #include <sasl/sasl.h>
 #endif
 #include <string.h>
@@ -344,8 +346,8 @@ namespace gridftpd {
     else {
   #if defined(HAVE_SASL_H) || defined(HAVE_SASL_SASL_H)
       int ldapflag = LDAP_SASL_QUIET;
-      if (GetNotifyLevel() >= DEBUG)
-        ldapflag = LDAP_SASL_AUTOMATIC;
+      //if (GetNotifyLevel() >= DEBUG)
+      //  ldapflag = LDAP_SASL_AUTOMATIC;
       sasl_defaults defaults = sasl_defaults (arg->connection,
                                               SASLMECH,
                                               "",
