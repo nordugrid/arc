@@ -6,17 +6,19 @@
 #include <globus_io.h>
 #include <globus_ftp_control.h>
 
+#include <arc/globusutils/GlobusErrorUtils.h>
+#include <arc/Logger.h>
+
 #include "fileroot.h"
 #include "names.h"
 #include "commands.h"
 #include "misc/canonical_dir.h"
-#include <arc/globusutils/GlobusErrorUtils.h>
 #include "misc/proxy.h"
 
 /* timeout if nothing happened during 10 minutes */
 #define FTP_TIMEOUT 600
 
-#define oilog(int) std::cerr
+static Arc::Logger logger(Arc::Logger::getRootLogger(),"GridFTP_Commands");
 
 extern unsigned long long int max_data_buffer_size;
 extern unsigned long long int default_data_buffer_size;
@@ -40,11 +42,11 @@ int GridFTP_Commands::send_response(const char* response) {
       if((n=s.find('\r'))==std::string::npos) {break;} else {s[n]='\\';};
     for(std::string::size_type n=0;;)
       if((n=s.find('\n'))==std::string::npos) {break;} else {s[n]='\\';};
-    oilog(log_id)<<"response: "<<s<<std::endl;
+    logger.msg(Arc::VERBOSE, "response: %s", s);
   };
   res = globus_ftp_control_send_response(&handle,response,&response_callback,this);
   if(res != GLOBUS_SUCCESS) {
-    oilog(log_id)<<"Send response failed:"<<Arc::GlobusResult(res).str()<<'\n';
+    logger.msg(Arc::ERROR, "Send response failed: %s", Arc::GlobusResult(res).str());
     globus_mutex_lock(&response_lock);
     response_done=2;
     globus_cond_signal(&response_cond);
@@ -74,7 +76,7 @@ void GridFTP_Commands::response_callback(void* arg,globus_ftp_control_handle_t *
   GridFTP_Commands *it = (GridFTP_Commands*)arg;
   globus_mutex_lock(&(it->response_lock));
   if(error != GLOBUS_SUCCESS) { 
-    oilog(it->log_id)<<"Response sending error\n"; 
+    logger.msg(Arc::ERROR, "Response sending error");
     it->response_done=2;
   }
   else {
@@ -87,7 +89,7 @@ void GridFTP_Commands::response_callback(void* arg,globus_ftp_control_handle_t *
 void GridFTP_Commands::close_callback(void *arg,globus_ftp_control_handle_t *handle,globus_object_t *error, globus_ftp_control_response_t *ftp_response) {
   GridFTP_Commands *it = (GridFTP_Commands*)arg;
   if(it) {
-    oilog(it->log_id)<<"Closed connection\n";
+    logger.msg(Arc::INFO, "Closed connection");
     delete it;
   };
   // GridFTP_Commands::response_callback(arg,handle,error);
@@ -113,7 +115,6 @@ GridFTP_Commands::close_semaphor_t::close_semaphor_t(void) {
 
 GridFTP_Commands::close_semaphor_t::~close_semaphor_t(void) {
   globus_mutex_lock(&fork_lock);
-// oilog(it->log_id)<<"Signaling exit condition"<<std::endl;
   fork_done=1;
   globus_cond_signal(&fork_cond);
   globus_mutex_unlock(&fork_lock);
@@ -133,7 +134,7 @@ int GridFTP_Commands::new_connection_callback(void* arg,int sock) {
   globus_io_attr_set_tcp_nodelay(&attr, GLOBUS_TRUE);
   res = globus_io_tcp_posix_convert(sock,&attr,&(it->handle.cc_handle.io_handle));
   if(res != GLOBUS_SUCCESS) {
-    oilog(it->log_id)<<"Socket conversion failed: "<<Arc::GlobusResult(res)<<std::endl;
+    logger.msg(Arc::ERROR, "Socket conversion failed: %s", Arc::GlobusResult(res).str());
     return -1;
   };
   it->handle.cc_handle.cc_state=GLOBUS_FTP_CONTROL_CONNECTED;
@@ -172,7 +173,7 @@ void GridFTP_Commands::new_connection_callback(void* arg,globus_ftp_control_serv
   globus_ftp_control_local_mode(&(it->handle),GLOBUS_FTP_CONTROL_MODE_STREAM);
   globus_ftp_control_local_type(&(it->handle),GLOBUS_FTP_CONTROL_TYPE_IMAGE);
   if(globus_ftp_control_server_accept(server_handle,&(it->handle),&accepted_callback,it) != GLOBUS_SUCCESS) {
-    oilog(it->log_id)<<"Accept failed\n";
+    logger.msg(Arc::ERROR, "Accept failed");
   };
 }
 #endif
@@ -180,21 +181,22 @@ void GridFTP_Commands::new_connection_callback(void* arg,globus_ftp_control_serv
 void GridFTP_Commands::accepted_callback(void* arg,globus_ftp_control_handle_t *handle,globus_object_t *error) {
   GridFTP_Commands *it = (GridFTP_Commands*)arg;
   if(error != GLOBUS_SUCCESS) {
-    oilog(it->log_id)<<"Accept failed: "<<error<<std::endl;
+    logger.msg(Arc::ERROR, "Accept failed: %s", Arc::globus_object_to_string(error));
     delete it;
     return;
   };
   int remote_host[4] = { 0, 0, 0, 0 };
   unsigned short remote_port = 0;
   globus_io_tcp_get_remote_address(&(handle->cc_handle.io_handle),remote_host,&remote_port);
-  oilog(it->log_id)<<"Accepted connection from "<<
-        (unsigned int)(remote_host[0])<<"."<<
-        (unsigned int)(remote_host[1])<<"."<<
-        (unsigned int)(remote_host[2])<<"."<<
-        (unsigned int)(remote_host[3])<<":"<<remote_port<<std::endl;
+  logger.msg(Arc::INFO, "Accepted connection from %u.%u.%u.%u:%u",
+        (unsigned int)(remote_host[0]),
+        (unsigned int)(remote_host[1]),
+        (unsigned int)(remote_host[2]),
+        (unsigned int)(remote_host[3]),
+        remote_port);
   it->send_response("220 Server ready\r\n");
   if(globus_ftp_control_server_authenticate(&(it->handle),GLOBUS_FTP_CONTROL_AUTH_REQ_GSSAPI,&authenticate_callback,it) != GLOBUS_SUCCESS) {
-    oilog(it->log_id)<<"Authenticate in commands failed\n";
+    logger.msg(Arc::ERROR, "Authenticate in commands failed");
     delete it; 
     return;
   };
@@ -203,23 +205,22 @@ void GridFTP_Commands::accepted_callback(void* arg,globus_ftp_control_handle_t *
 void GridFTP_Commands::authenticate_callback(void* arg,globus_ftp_control_handle_t *handle,globus_object_t *error,globus_ftp_control_auth_info_t *result) {
   GridFTP_Commands *it = (GridFTP_Commands*)arg;
   if((result == GLOBUS_NULL) || (error != GLOBUS_SUCCESS)) {
-    oilog(it->log_id)<<"Authentication failure\n";
-    oilog(it->log_id)<<error<<std::endl;
+    logger.msg(Arc::ERROR, "Authentication failure");
+    logger.msg(Arc::ERROR, Arc::globus_object_to_string(error));
     if(it->send_response("535 Authentication failed\r\n") == 0) {
       it->wait_response();
     };
     delete it;
     return;
   };
-  oilog(it->log_id)<<"User subject: "<<result->auth_gssapi_subject<<std::endl;
-  oilog(it->log_id)<<"Encrypt: "<<(int)(result->encrypt)<<std::endl;
+  logger.msg(Arc::INFO, "User subject: %s", result->auth_gssapi_subject);
+  logger.msg(Arc::INFO, "Encrypt: %i", (int)(result->encrypt));
   it->delegated_cred=result->delegated_credential_handle;
 //
 //const char* fname = write_cert_chain(result->auth_gssapi_context);
-//if(fname) std::cerr<<"Credentials chain stored in "<<fname<<std::endl;
 //
   if(it->froot.config(result,handle) != 0) {
-    oilog(it->log_id)<<"User has no proper configuration associated\n";
+    logger.msg(Arc::ERROR, "User has no proper configuration associated");
     if(it->send_response("535 Not allowed\r\n") == 0) {
       it->wait_response();
     };
@@ -227,7 +228,7 @@ void GridFTP_Commands::authenticate_callback(void* arg,globus_ftp_control_handle
     return;
   };
   if(it->froot.nodes.size() == 0) {
-    oilog(it->log_id)<<"User has empty virtual directory tree.\nEither user has no authorised plugins or there are no plugins configured at all.\n";
+    logger.msg(Arc::ERROR, "User has empty virtual directory tree.\nEither user has no authorised plugins or there are no plugins configured at all.");
     if(it->send_response("535 Nothing to serve\r\n") == 0) {
       it->wait_response();
     };
@@ -244,7 +245,7 @@ void GridFTP_Commands::authenticate_callback(void* arg,globus_ftp_control_handle
   globus_ftp_control_local_mode(&(it->handle),GLOBUS_FTP_CONTROL_MODE_STREAM);
   globus_ftp_control_local_type(&(it->handle),GLOBUS_FTP_CONTROL_TYPE_IMAGE,0);
   if(globus_ftp_control_read_commands(&(it->handle),&commands_callback,it) != GLOBUS_SUCCESS) {
-    oilog(it->log_id)<<"Read commands in authenticate failed\n";
+    logger.msg(Arc::ERROR, "Read commands in authenticate failed");
     delete it;
     return;
   };
@@ -338,15 +339,14 @@ void GridFTP_Commands::commands_callback(void* arg,globus_ftp_control_handle_t *
   GridFTP_Commands *it = (GridFTP_Commands*)arg;
   it->last_action_time=time(NULL);
   if(command == GLOBUS_NULL) {
-    oilog(it->log_id)<<"Control connection (probably) closed\n";
+    logger.msg(Arc::INFO, "Control connection (probably) closed");
     if(error) {
-      oilog(it->log_id)<<error<<std::endl;
+      logger.msg(Arc::ERROR, Arc::globus_object_to_string(error));
     };
     it->make_abort();
     delete it;
     return;
   }
-//  oilog(it->log_id)<<"Raw command: "<<command->base.raw_command<<std::endl;
 #ifndef HAVE_FTP_COMMAND_MLSD
 #define GLOBUS_FTP_CONTROL_COMMAND_MLSD \
     ((globus_ftp_control_command_code_t)(GLOBUS_FTP_CONTROL_COMMAND_UNKNOWN+1))
@@ -376,20 +376,20 @@ void GridFTP_Commands::commands_callback(void* arg,globus_ftp_control_handle_t *
     }; break;
     case GLOBUS_FTP_CONTROL_COMMAND_USER: {
       fix_string_arg(command->user.string_arg);
-  oilog(it->log_id)<<"Command USER "<<command->user.string_arg<<std::endl;
+      logger.msg(Arc::VERBOSE, "Command USER %s", command->user.string_arg);
       it->send_response("230 No need for username\r\n");
     }; break;
     case GLOBUS_FTP_CONTROL_COMMAND_PASS: {
       it->send_response("230 No need for password\r\n");
     }; break;
     case GLOBUS_FTP_CONTROL_COMMAND_CDUP: {
-  oilog(it->log_id)<<"Command CDUP\n";
+      logger.msg(Arc::VERBOSE, "Command CDUP");
       command->code=GLOBUS_FTP_CONTROL_COMMAND_CWD;
       command->cwd.string_arg=(char*)"..";
     };
     case GLOBUS_FTP_CONTROL_COMMAND_CWD: {
       fix_string_arg(command->cwd.string_arg);
-  oilog(it->log_id)<<"Command CWD "<<command->cwd.string_arg<<std::endl;
+      logger.msg(Arc::VERBOSE, "Command CWD %s", command->cwd.string_arg);
       std::string pwd = command->cwd.string_arg;
       if(it->froot.cwd(pwd) == 0) {
         pwd = "250 \""+pwd+"\" is current directory\r\n";
@@ -405,7 +405,7 @@ void GridFTP_Commands::commands_callback(void* arg,globus_ftp_control_handle_t *
     }; break;
     case GLOBUS_FTP_CONTROL_COMMAND_MKD: {
       fix_string_arg(command->mkd.string_arg);
-  oilog(it->log_id)<<"Command MKD "<<command->mkd.string_arg<<std::endl;
+      logger.msg(Arc::VERBOSE, "Command MKD %s", command->mkd.string_arg);
       std::string pwd = command->mkd.string_arg;
       if(it->froot.mkd(pwd) == 0) {
         it->send_response("250 MKD command ok.\r\n");
@@ -425,7 +425,7 @@ void GridFTP_Commands::commands_callback(void* arg,globus_ftp_control_handle_t *
     }; break;
     case GLOBUS_FTP_CONTROL_COMMAND_SIZE: {
       fix_string_arg(command->size.string_arg);
-  oilog(it->log_id)<<"Command SIZE "<<command->size.string_arg<<std::endl;
+      logger.msg(Arc::VERBOSE, "Command SIZE %s", command->size.string_arg);
       unsigned long long size;
       if(it->froot.size(command->size.string_arg,&size) != 0) {
         if(it->froot.error.length()) {
@@ -440,7 +440,7 @@ void GridFTP_Commands::commands_callback(void* arg,globus_ftp_control_handle_t *
     }; break;
     case GLOBUS_FTP_CONTROL_COMMAND_SBUF: {
       CHECK_TRANSFER;
-  oilog(it->log_id)<<"Command SBUF: "<<command->sbuf.buffer_size<<std::endl;
+      logger.msg(Arc::VERBOSE, "Command SBUF: %i", command->sbuf.buffer_size);
       // Because Globus wants SBUF to apply for all following data 
       // connections, there is no way to reset to system defaults.
       // Let's make a little extension
@@ -461,7 +461,7 @@ void GridFTP_Commands::commands_callback(void* arg,globus_ftp_control_handle_t *
     }; break;
     case GLOBUS_FTP_CONTROL_COMMAND_MLST: {
       fix_string_arg(command->list.string_arg);
-      oilog(it->log_id)<<"Command MLST "<<command->list.string_arg<<std::endl;
+      logger.msg(Arc::VERBOSE, "Command MLST %s", command->list.string_arg);
       DirEntry info;
       if(it->froot.checkfile(command->list.string_arg,info,DirEntry::full_object_info) != 0) {
         if(it->froot.error.length()) {
@@ -484,7 +484,7 @@ void GridFTP_Commands::commands_callback(void* arg,globus_ftp_control_handle_t *
     }; break;
     case GLOBUS_FTP_CONTROL_COMMAND_DELE: {
       fix_string_arg(command->dele.string_arg);
-      oilog(it->log_id)<<"Command DELE "<<command->dele.string_arg<<std::endl;
+      logger.msg(Arc::VERBOSE, "Command DELE %s", command->dele.string_arg);
       std::string file = command->dele.string_arg;
       if(it->froot.rm(file) == 0) {
         it->send_response("250 File deleted.\r\n");
@@ -499,7 +499,7 @@ void GridFTP_Commands::commands_callback(void* arg,globus_ftp_control_handle_t *
     }; break;
     case GLOBUS_FTP_CONTROL_COMMAND_RMD: {
       fix_string_arg(command->rmd.string_arg);
-      oilog(it->log_id)<<"Command RMD "<<command->rmd.string_arg<<std::endl;
+      logger.msg(Arc::VERBOSE, "Command RMD %s", command->rmd.string_arg);
       std::string dfile = command->rmd.string_arg;
       if(it->froot.rmd(dfile) == 0) {
         it->send_response("250 Directory deleted.\r\n");
@@ -513,7 +513,7 @@ void GridFTP_Commands::commands_callback(void* arg,globus_ftp_control_handle_t *
       };
     }; break;
     case GLOBUS_FTP_CONTROL_COMMAND_TYPE: {
-  oilog(it->log_id)<<"Command TYPE "<<(char)(command->type.type)<<std::endl;
+      logger.msg(Arc::VERBOSE, "Command TYPE %c", (char)(command->type.type));
       CHECK_TRANSFER;
       if(command->type.type==GLOBUS_FTP_CONTROL_TYPE_NONE) {
         it->send_response("504 Unsupported type\r\n");
@@ -524,7 +524,7 @@ void GridFTP_Commands::commands_callback(void* arg,globus_ftp_control_handle_t *
       };
     }; break;
     case GLOBUS_FTP_CONTROL_COMMAND_MODE: {
-  oilog(it->log_id)<<"Command MODE "<<(char)(command->mode.mode)<<std::endl;
+      logger.msg(Arc::VERBOSE, "Command MODE %c", (char)(command->mode.mode));
       CHECK_TRANSFER;
       if((command->mode.mode!=GLOBUS_FTP_CONTROL_MODE_STREAM) &&
          (command->mode.mode!=GLOBUS_FTP_CONTROL_MODE_EXTENDED_BLOCK)) {
@@ -536,7 +536,7 @@ void GridFTP_Commands::commands_callback(void* arg,globus_ftp_control_handle_t *
       };
     }; break;
     case GLOBUS_FTP_CONTROL_COMMAND_ABOR: {
-  oilog(it->log_id)<<"Command ABOR\n";
+      logger.msg(Arc::VERBOSE, "Command ABOR");
       globus_mutex_lock(&(it->abort_lock));
       if(!(it->transfer_mode)) { 
         globus_mutex_unlock(&(it->abort_lock));
@@ -549,7 +549,7 @@ void GridFTP_Commands::commands_callback(void* arg,globus_ftp_control_handle_t *
     }; break;
     case GLOBUS_FTP_CONTROL_COMMAND_REST: { /* for the beginning stream mode only */
       fix_string_arg(command->rest.string_arg);
-  oilog(it->log_id)<<"Command REST "<<command->rest.string_arg<<std::endl;
+      logger.msg(Arc::VERBOSE, "Command REST %s", command->rest.string_arg);
       CHECK_TRANSFER;
       it->virt_restrict=false;
       if(sscanf(command->rest.string_arg,"%llu",&(it->virt_offset)) != 1) {
@@ -560,7 +560,7 @@ void GridFTP_Commands::commands_callback(void* arg,globus_ftp_control_handle_t *
     }; break;
     case GLOBUS_FTP_CONTROL_COMMAND_SPAS:
     case GLOBUS_FTP_CONTROL_COMMAND_PASV: {
-      oilog(it->log_id)<<"Command PASV/SPAS\n";
+      logger.msg(Arc::VERBOSE, "Command PASV/SPAS");
       CHECK_TRANSFER;
       globus_ftp_control_host_port_t node;
       memset(&node,0,sizeof(node));
@@ -569,8 +569,8 @@ void GridFTP_Commands::commands_callback(void* arg,globus_ftp_control_handle_t *
         globus_result_t res_tmp;
         if((res_tmp=globus_ftp_control_local_pasv(&(it->handle),&node))
                                                              !=GLOBUS_SUCCESS){
-          oilog(it->log_id)<<"local_pasv failed\n";
-          oilog(it->log_id)<<Arc::GlobusResult(res_tmp)<<std::endl;
+          logger.msg(Arc::ERROR, "local_pasv failed");
+          logger.msg(Arc::ERROR, Arc::GlobusResult(res_tmp).str());
           it->send_response("553 Failed to allocate port for data transfer\r\n"); break;
         };
         if(it->firewall[0]) { // replace address
@@ -588,8 +588,8 @@ void GridFTP_Commands::commands_callback(void* arg,globus_ftp_control_handle_t *
         globus_result_t res_tmp;
         if((res_tmp=globus_ftp_control_local_spas(&(it->handle),&node,1))
                                                              !=GLOBUS_SUCCESS){
-          oilog(it->log_id)<<"local_spas failed\n";
-          oilog(it->log_id)<<Arc::GlobusResult(res_tmp)<<std::endl;
+          logger.msg(Arc::ERROR, "local_spas failed");
+          logger.msg(Arc::ERROR, Arc::GlobusResult(res_tmp).str());
           it->send_response("553 Failed to allocate port for data transfer\r\n"); break;
         };
         if(it->firewall[0]) { // replace address
@@ -607,14 +607,14 @@ void GridFTP_Commands::commands_callback(void* arg,globus_ftp_control_handle_t *
       it->send_response(buf);
     }; break;
     case GLOBUS_FTP_CONTROL_COMMAND_PORT: {
-  oilog(it->log_id)<<"Command PORT\n";
+      logger.msg(Arc::VERBOSE, "Command PORT");
       CHECK_TRANSFER;
       globus_ftp_control_host_port_t node;
       node=command->port.host_port;
       globus_result_t res_tmp = globus_ftp_control_local_port(&(it->handle),&node);
       if(res_tmp != GLOBUS_SUCCESS) {
-        oilog(it->log_id)<<"local_port failed\n";
-        oilog(it->log_id)<<Arc::GlobusResult(res_tmp)<<std::endl;
+        logger.msg(Arc::ERROR, "local_port failed");
+        logger.msg(Arc::ERROR, Arc::GlobusResult(res_tmp).str());
         it->send_response("553 Failed to accept port for data transfer\r\n");
         break;
       };
@@ -626,11 +626,11 @@ void GridFTP_Commands::commands_callback(void* arg,globus_ftp_control_handle_t *
     case GLOBUS_FTP_CONTROL_COMMAND_LIST: {
       fix_string_arg(command->list.string_arg);
       if(command->code == GLOBUS_FTP_CONTROL_COMMAND_MLSD) {
-        oilog(it->log_id)<<"Command MLSD "<<command->list.string_arg<<std::endl;
+        logger.msg(Arc::VERBOSE, "Command MLSD %s", command->list.string_arg);
       } else if(command->code == GLOBUS_FTP_CONTROL_COMMAND_NLST) {
-        oilog(it->log_id)<<"Command NLST "<<command->list.string_arg<<std::endl;
+        logger.msg(Arc::VERBOSE, "Command NLST %s", command->list.string_arg);
       } else {
-        oilog(it->log_id)<<"Command LIST "<<command->list.string_arg<<std::endl;
+        logger.msg(Arc::VERBOSE, "Command LIST %s", command->list.string_arg);
       };
       CHECK_TRANSFER;
       DirEntry::object_info_level mode;
@@ -681,7 +681,7 @@ void GridFTP_Commands::commands_callback(void* arg,globus_ftp_control_handle_t *
     }; break;
     case GLOBUS_FTP_CONTROL_COMMAND_ERET: {
       fix_string_arg(command->eret.string_arg);
-  oilog(it->log_id)<<"Command ERET "<<command->eret.string_arg<<std::endl;
+      logger.msg(Arc::VERBOSE, "Command ERET %s", command->eret.string_arg);
       char* args[4];
       if(parse_args(command->eret.raw_command,args,4)<4) {
         it->send_response("500 parsing failed\r\n"); break;
@@ -711,7 +711,7 @@ void GridFTP_Commands::commands_callback(void* arg,globus_ftp_control_handle_t *
     case GLOBUS_FTP_CONTROL_COMMAND_RETR: {
       if(command->code == GLOBUS_FTP_CONTROL_COMMAND_RETR) {
         fix_string_arg(command->retr.string_arg);
-  oilog(it->log_id)<<"Command RETR "<<command->retr.string_arg<<std::endl;
+        logger.msg(Arc::VERBOSE, "Command RETR %s", command->retr.string_arg);
         CHECK_TRANSFER;
         /* try to open file */
         if(it->froot.open(command->retr.string_arg,GRIDFTP_OPEN_RETRIEVE)!=0) {
@@ -740,7 +740,7 @@ void GridFTP_Commands::commands_callback(void* arg,globus_ftp_control_handle_t *
     }; break;
     case GLOBUS_FTP_CONTROL_COMMAND_STOR: {
       fix_string_arg(command->stor.string_arg);
-  oilog(it->log_id)<<"Command STOR "<<command->stor.string_arg<<std::endl;
+      logger.msg(Arc::VERBOSE, "Command STOR %s", command->stor.string_arg);
       CHECK_TRANSFER;
       /* try to open file */
       if(it->froot.open(command->stor.string_arg,GRIDFTP_OPEN_STORE) != 0) {
@@ -768,7 +768,7 @@ void GridFTP_Commands::commands_callback(void* arg,globus_ftp_control_handle_t *
       else { it->send_response("501 PORT or PASV command needed\r\n"); };
     }; break;
     case GLOBUS_FTP_CONTROL_COMMAND_ALLO: {
-  oilog(it->log_id)<<"Command ALLO "<<command->allo.size<<"\n";
+      logger.msg(Arc::VERBOSE, "Command ALLO %i", command->allo.size);
       it->file_size=0;
       char* args[4];
       int n = parse_args(command->allo.raw_command,args,4);
@@ -791,10 +791,10 @@ void GridFTP_Commands::commands_callback(void* arg,globus_ftp_control_handle_t *
       it->send_response("200 Size accepted\r\n");
     }; break;
     case GLOBUS_FTP_CONTROL_COMMAND_OPTS: {
-  oilog(it->log_id)<<"Command OPTS\n";
+      logger.msg(Arc::VERBOSE, "Command OPTS");
       CHECK_TRANSFER;
       if(!strncasecmp(command->opts.cmd_name,"RETR",4)) {
-  oilog(it->log_id)<<"Command OPTS RETR\n";
+        logger.msg(Arc::VERBOSE, "Command OPTS RETR");
         char* args[3];
         char* val;
         int v;
@@ -804,7 +804,7 @@ void GridFTP_Commands::commands_callback(void* arg,globus_ftp_control_handle_t *
         globus_ftp_control_parallelism_t dp;
         dp.mode=GLOBUS_FTP_CONTROL_PARALLELISM_NONE;
         for(i=0;i<n;i++) {
-  oilog(it->log_id)<<"Option: "<<args[i]<<std::endl;
+          logger.msg(Arc::VERBOSE, "Option: %s", args[i]);
           val=strchr(args[i],'=');
           if(!val) {
             it->send_response("500 Syntax failure\r\n"); break;
@@ -848,22 +848,21 @@ void GridFTP_Commands::commands_callback(void* arg,globus_ftp_control_handle_t *
       };
     }; break;
     case GLOBUS_FTP_CONTROL_COMMAND_NOOP: {
-  oilog(it->log_id)<<"Command NOOP\n";
+      logger.msg(Arc::VERBOSE, "Command NOOP");
       it->send_response("200 Doing nothing.\r\n");
     }; break;
     case GLOBUS_FTP_CONTROL_COMMAND_QUIT: {
-  oilog(it->log_id)<<"Command QUIT\n";
+      logger.msg(Arc::VERBOSE, "Command QUIT");
       it->make_abort();
       if(it->send_response("221 Quitting.\r\n") == 0) {
         it->wait_response();
       };
-      ////oilog(it->log_id)<<"Deleting client\n";
       //globus_ftp_control_force_close(&(it->handle),&close_callback,it);
       //// delete it;
-      oilog(it->log_id)<<"Closing connection\n";
+      logger.msg(Arc::INFO, "Closing connection");
       if(globus_ftp_control_force_close(&(it->handle),&close_callback,it)
                                        != GLOBUS_SUCCESS) { 
-        oilog(it->log_id)<<"Warning: failed to close, deleting client\n";
+        logger.msg(Arc::WARNING, "Failed to close, deleting client");
         delete it;
       //} else {
       //  it->wait_response();
@@ -877,7 +876,7 @@ void GridFTP_Commands::commands_callback(void* arg,globus_ftp_control_handle_t *
       if(!strncasecmp("DCAU",command->base.raw_command,4)) {
         char* args[2];
         int n = parse_args(command->base.raw_command,args,2);
-        oilog(it->log_id)<<"Command DCAU: "<<n<<" '"<<args[0]<<"'\n";
+        logger.msg(Arc::VERBOSE, "Command DCAU: %i '%s'", n, args[0]);
         if((n < 1) || (n > 2) || (strlen(args[0]) != 1)) {
           it->send_response("500 Wrong number of arguments\r\n"); break;
         };
@@ -905,7 +904,7 @@ void GridFTP_Commands::commands_callback(void* arg,globus_ftp_control_handle_t *
         CHECK_TRANSFER;
         char* args[1];
         int n = parse_args(command->base.raw_command,args,1);
-  oilog(it->log_id)<<"Command PBZS: "<<args[0]<<std::endl;
+        logger.msg(Arc::VERBOSE, "Command PBZS: %s", args[0]);
         if(n > 1) { it->send_response("501 Need only one argument\r\n"); break; };
         unsigned long pbsz;
         unsigned long npbsz;
@@ -913,7 +912,7 @@ void GridFTP_Commands::commands_callback(void* arg,globus_ftp_control_handle_t *
         if((n <= 0) || (n>1000000)) {  /* let's not support TOO BIG buffers */
           it->send_response("501 Wrong number\r\n"); break; 
         };
-  oilog(it->log_id)<<"Setting pbsz to "<<pbsz<<std::endl;
+        logger.msg(Arc::VERBOSE, "Setting pbsz to %lu", pbsz);
         globus_ftp_control_local_pbsz(&(it->handle),pbsz);
         globus_ftp_control_get_pbsz(&(it->handle),&npbsz);
         if(pbsz == npbsz) {
@@ -929,7 +928,7 @@ void GridFTP_Commands::commands_callback(void* arg,globus_ftp_control_handle_t *
         CHECK_TRANSFER;
         char* args[1];
         int n = parse_args(command->base.raw_command,args,1);
-  oilog(it->log_id)<<"Command PROT: "<<args[0]<<std::endl;
+        logger.msg(Arc::VERBOSE, "Command PROT: %s", args[0]);
         if(n > 1) { it->send_response("501 Need only one argument\r\n"); break; };
         if(strlen(args[0]) != 1) { it->send_response("504 Protection level is not supported\r\n"); break; };
         bool allow_protection = true;
@@ -954,7 +953,7 @@ void GridFTP_Commands::commands_callback(void* arg,globus_ftp_control_handle_t *
       }
       else if(!strncasecmp("MDTM",command->base.raw_command,4)) {
         char* arg = get_arg(command->base.raw_command);
-  oilog(it->log_id)<<"Command MDTM"<<(arg?arg:"<empty>")<<std::endl;
+        logger.msg(Arc::VERBOSE, "Command MDTM %s", (arg?arg:"<empty>"));
         if(arg == NULL) { it->send_response("501 Need name\r\n"); break; };
         time_t t;
         struct tm tt;
@@ -976,7 +975,7 @@ void GridFTP_Commands::commands_callback(void* arg,globus_ftp_control_handle_t *
         it->send_response(buf);
       }
       else {
-        oilog(it->log_id)<<"Raw command: "<<command->base.raw_command<<std::endl;
+        logger.msg(Arc::VERBOSE, "Raw command: %s", command->base.raw_command);
         it->send_response("500 Do not understand\r\n");
       };
     };
@@ -1024,24 +1023,24 @@ bool GridFTP_Commands::allocate_data_buffer(void) {
     data_buffer[i].used=0;
     data_buffer[i].data=(unsigned char*)malloc(data_buffer_size);
     if(data_buffer[i].data == NULL) {
-      oilog(log_id)<<"ERROR: Failed to allocate memory for buffer"<<std::endl;
+      logger.msg(Arc::ERROR, "Failed to allocate memory for buffer");
       break;
     };
   };
   if(i == 0) {
     free(data_buffer); data_buffer=NULL; return false;
   };
-  oilog(log_id)<<"Allocated "<<i<<" buffers "<<data_buffer_size<<" bytes each."<<std::endl;
+  logger.msg(Arc::INFO, "Allocated %u buffers %llu bytes each.", i, data_buffer_size);
   data_buffer_num=i;
   return true;
 }
 
 void GridFTP_Commands::abort_callback(void* arg,globus_ftp_control_handle_t *handle,globus_object_t *error) {
   GridFTP_Commands *it = (GridFTP_Commands*)arg;
-  oilog(it->log_id)<<"abort_callback: start"<<std::endl;
+  logger.msg(Arc::VERBOSE, "abort_callback: start");
   globus_mutex_lock(&(it->abort_lock));
   if(error != GLOBUS_SUCCESS) {
-    oilog(it->log_id)<<"abort_callback: Globus error: "<<error<<std::endl;
+    logger.msg(Arc::ERROR, "abort_callback: Globus error: %s", Arc::globus_object_to_string(error));
   };
   /* check for flag just in case */
   if(it->transfer_abort) {
@@ -1055,7 +1054,7 @@ void GridFTP_Commands::abort_callback(void* arg,globus_ftp_control_handle_t *han
 
 /* perform data transfer abort */
 void GridFTP_Commands::make_abort(bool already_locked,bool wait_abort) {
-  oilog(log_id)<<"make_abort: start"<<std::endl;
+  logger.msg(Arc::VERBOSE, "make_abort: start");
   if(!already_locked) globus_mutex_lock(&abort_lock);
   if(!transfer_mode) {   /* leave if not transfering */
     globus_mutex_unlock(&abort_lock);
@@ -1067,7 +1066,7 @@ void GridFTP_Commands::make_abort(bool already_locked,bool wait_abort) {
                   == GLOBUS_SUCCESS) {
       transfer_abort=true;
     } else {
-      oilog(log_id)<<"Failed to abort data connection - ignoring and recovering"<<std::endl;
+      logger.msg(Arc::ERROR, "Failed to abort data connection - ignoring and recovering");
       globus_mutex_unlock(&abort_lock);
       abort_callback(this,&handle,GLOBUS_SUCCESS);
       globus_mutex_lock(&abort_lock);
@@ -1075,7 +1074,7 @@ void GridFTP_Commands::make_abort(bool already_locked,bool wait_abort) {
   };
   last_action_time=time(NULL);
   if(wait_abort) while(transfer_abort) {
-    oilog(log_id)<<"make_abort: wait for abort flag to be reset"<<std::endl;
+    logger.msg(Arc::INFO, "make_abort: wait for abort flag to be reset");
     globus_cond_wait(&abort_cond,&abort_lock);
   };
   if(t) {
@@ -1085,7 +1084,7 @@ void GridFTP_Commands::make_abort(bool already_locked,bool wait_abort) {
     virt_offset=0;
     virt_restrict=false;
   };
-  oilog(log_id)<<"make_abort: leaving"<<std::endl;
+  logger.msg(Arc::VERBOSE, "make_abort: leaving");
   globus_mutex_unlock(&abort_lock);
 }
 
@@ -1100,11 +1099,11 @@ bool GridFTP_Commands::check_abort(globus_object_t *error) {
     return true;  /* just leave telling to stop registering buffers */
   };
   if((error != GLOBUS_SUCCESS)) {
-    oilog(log_id)<<"check_abort: have Globus error"<<std::endl;
-    oilog(log_id)<<"Abort request caused by transfer error"<<std::endl;
-    oilog(log_id)<<"Globus error: "<<error<<std::endl;
+    logger.msg(Arc::ERROR, "check_abort: have Globus error");
+    logger.msg(Arc::ERROR, "Abort request caused by transfer error");
+    logger.msg(Arc::ERROR, "Globus error: %s", Arc::globus_object_to_string(error));
     /* TODO !!!!!!!!!!! should be only one 426 !!!!!!!!!! */
-    oilog(log_id)<<"check_abort: sending 426"<<std::endl;
+    logger.msg(Arc::INFO, "check_abort: sending 426");
     send_response("426 Transfer terminated.\r\n");
     globus_mutex_unlock(&data_lock); /* release other waiting threads */
     make_abort(true,false);
@@ -1125,7 +1124,7 @@ void GridFTP_Commands::force_abort(void) {
     globus_mutex_unlock(&abort_lock);
     return; 
   };
-  oilog(log_id) << "Abort request caused by error in transfer function"<<std::endl;
+  logger.msg(Arc::INFO, "Abort request caused by error in transfer function");
   /* TODO !!!!!!!!!!! should be only one 426 !!!!!!!!!! */
   if(froot.error.length()) {
     send_response("426 "+froot.error+"\r\n");
@@ -1172,7 +1171,6 @@ GridFTP_Commands::GridFTP_Commands(int n,unsigned int* f) {
 
 GridFTP_Commands::~GridFTP_Commands(void) {
 /* here all connections should be closed and all callbacks unregistered */
-//  oilog(it->log_id)<<"Destroying client\n";
   globus_mutex_destroy(&response_lock);
   globus_cond_destroy(&response_cond);
   globus_mutex_destroy(&abort_lock);
@@ -1183,7 +1181,6 @@ GridFTP_Commands::~GridFTP_Commands(void) {
   delete timeouter;
 /*
   globus_mutex_lock(&fork_lock);
-// oilog(it->log_id)<<"Signaling exit condition"<<std::endl;
   fork_done=1;
   globus_cond_signal(&fork_cond);
   globus_mutex_unlock(&fork_lock);
@@ -1199,7 +1196,7 @@ GridFTP_Commands_timeout::GridFTP_Commands_timeout(void) {
   globus_cond_init(&cond,GLOBUS_NULL);
   globus_cond_init(&exit_cond,GLOBUS_NULL);
   if(globus_thread_create(&timer_thread,NULL,&timer_func,(void*)this)!=0){
-    olog << "Failed to start timer thread - timeout won't work" << std::endl;
+    logger.msg(Arc::ERROR, "Failed to start timer thread - timeout won't work");
     globus_mutex_destroy(&lock);
     globus_cond_destroy(&cond);
     globus_cond_destroy(&exit_cond);
@@ -1251,7 +1248,7 @@ void* GridFTP_Commands_timeout::timer_func(void* arg) {
       if((*i)->last_action_time != (time_t)(-1)) {
         time_t time_passed = curr_time - (*i)->last_action_time;
         if(time_passed >= FTP_TIMEOUT) {  /* cancel connection */
-          oilog((*i)->log_id)<<"Killing connection due to timeout"<<std::endl;
+          logger.msg(Arc::ERROR, "Killing connection due to timeout");
 #if GLOBUS_IO_VERSION<5
           shutdown((*i)->handle.cc_handle.io_handle.fd,2);
 #else

@@ -12,8 +12,6 @@
 #include "conf/conf_sections.h"
 #include "conf/daemon.h"
 
-#define olog std::cerr
-
 typedef enum {
   GRIDFTP_OPEN_RETRIEVE = 1,
   GRIDFTP_OPEN_STORE = 2
@@ -82,16 +80,16 @@ class FilePlugin { /* this is the base class for plugins */
  public:
   std::string error_description;
   /* virtual functions are not defined in base class */
-  virtual int open(const char*,open_modes,unsigned long long int size = 0) { olog << "virtual open" << std::endl; return 1; };
-  virtual int close(bool eof = true) { olog << "virtual close" << std::endl; return 1; };
-  virtual int read(unsigned char *,unsigned long long int offset,unsigned long long int *size) { olog << "virtual read" << std::endl; return 1; };
-  virtual int write(unsigned char *,unsigned long long int offset,unsigned long long int size) { olog << "virtual write" << std::endl; return 1; };
-  virtual int readdir(const char* name,std::list<DirEntry> &dir_list,DirEntry::object_info_level mode = DirEntry::basic_object_info) { olog << "virtual readdir" << std::endl; return 1; };
-  virtual int checkdir(std::string &dirname) { olog << "virtual checkdir" << std::endl; return 1; };
-  virtual int checkfile(std::string &name,DirEntry &info,DirEntry::object_info_level mode) { olog << "virtual checkfile" << std::endl; return 1; };
-  virtual int makedir(std::string &dirname) { olog << "virtual makekdir" << std::endl; return 1; };
-  virtual int removefile(std::string &name) { olog << "virtual removefile" << std::endl; return 1; };
-  virtual int removedir(std::string &dirname) { olog << "virtual removedir" << std::endl; return 1; };
+  virtual int open(const char*,open_modes,unsigned long long int size = 0) { return 1; };
+  virtual int close(bool eof = true) { return 1; };
+  virtual int read(unsigned char *,unsigned long long int offset,unsigned long long int *size) { return 1; };
+  virtual int write(unsigned char *,unsigned long long int offset,unsigned long long int size) { return 1; };
+  virtual int readdir(const char* name,std::list<DirEntry> &dir_list,DirEntry::object_info_level mode = DirEntry::basic_object_info) { return 1; };
+  virtual int checkdir(std::string &dirname) { return 1; };
+  virtual int checkfile(std::string &name,DirEntry &info,DirEntry::object_info_level mode) { return 1; };
+  virtual int makedir(std::string &dirname) { return 1; };
+  virtual int removefile(std::string &name) { return 1; };
+  virtual int removedir(std::string &dirname) { return 1; };
   int                count;  
   FilePlugin(void) {
     count=0; /* after creation acquire MUST be called */
@@ -99,14 +97,7 @@ class FilePlugin { /* this is the base class for plugins */
   int acquire(void) {
     count++; return count;
   };
-  int release(void) {
-    count--;
-    if(count < 0) {
-      olog << "Warning: FilePlugin: more unload than load" << std::endl;
-      count=0; 
-    };
-    return count;
-  };
+  int release(void);
   virtual ~FilePlugin(void) { /* dlclose is done externally - yet */
   };
 };
@@ -135,16 +126,7 @@ class FileNode {
     plug=node.plug; handle=node.handle;
     if(plug) plug->acquire();
   };
-  FileNode& operator= (const FileNode &node) { 
-olog << "FileNode: operator= (" << point << " <- " << node.point << ") " << (unsigned long int)this << " <- " << (unsigned long int)(&node) << std::endl;
-    if(plug) if(plug->release() == 0) {
-olog << "Copying with dlclose" << std::endl;
-      delete plug; dlclose(handle); handle=NULL; init=NULL; plug=NULL;
-    };
-    point=node.point; plugname=node.plugname;
-    plug=node.plug; handle=node.handle;
-    return *this;
-  }
+  FileNode& operator= (const FileNode &node);
   FileNode(const char* dirname) {
     plug=NULL;
     init=NULL;
@@ -154,40 +136,9 @@ olog << "Copying with dlclose" << std::endl;
   };
   /* this constructor is for real load of plugin - 
      it should be used to create really new FileNode */
-  FileNode(char* dirname,char* plugin,std::istream &cfile,userspec_t &user) {
-// olog << "FileNode: constructor real(" << dirname << "," << plugin << ") " << (unsigned long int)(this) << std::endl;
-    plug=NULL;
-    init=NULL;
-    point=std::string(dirname);
-    plugname=std::string(plugin);
-//    handle=dlopen(plugin,RTLD_LAZY);
-    handle=dlopen(plugin,RTLD_NOW);
-    if(!handle) {
-      olog << dlerror() << std::endl;
-      olog << "Can't load plugin " << plugin << " for access point " << dirname <<std::endl;
-      return;
-    };
-    init=(plugin_init_t)dlsym(handle,"init");
-    if(init == NULL) {
-      olog << "Plugin " << plugin << " for access point " << dirname << " is broken." << std::endl;
-      dlclose(handle); handle=NULL; return;
-    };
-    if((plug=init(cfile,user)) == NULL) {
-      olog << "Plugin " << plugin << " for access point " << dirname << " is broken." << std::endl;
-      dlclose(handle); handle=NULL; init=NULL; return;
-    };
-    if(plug->acquire() != 1) { 
-      olog << "Plugin " << plugin << " for access point " << dirname << " acquire failed (should never happen)." << std::endl;
-      delete plug; dlclose(handle); handle=NULL; init=NULL; plug=NULL; return;
-    };
-  };
-  ~FileNode(void) { 
-//    olog << "FileNode: destructor " << point << std::endl;
-    if(plug) if(plug->release() == 0) {
-olog << "Destructor with dlclose (" << point << ")" << std::endl;
-      delete plug; dlclose(handle); handle=NULL; init=NULL; plug=NULL;
-    };
-  };
+  FileNode(char* dirname,char* plugin,std::istream &cfile,userspec_t &user);
+  ~FileNode(void);
+
   bool has_plugin(void) { return (plug != NULL); };
   static bool compare(const FileNode &left,const FileNode &right) { return (left.point.length() > right.point.length()); };
   bool operator> (const FileNode &right) { return (point.length() > right.point.length()); };

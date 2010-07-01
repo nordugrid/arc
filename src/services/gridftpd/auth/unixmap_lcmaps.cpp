@@ -7,13 +7,15 @@
 #include <dlfcn.h>
 #include <stdio.h>
 
+#include <arc/Logger.h>
+#include <arc/Thread.h>
+
 #include "../misc/escaped.h"
 #include "../misc/proxy.h"
 #include "../run/run_plugin.h"
-#include <arc/Thread.h>
 #include "unixmap.h"
 
-#define odlog(int) std::cerr
+static Arc::Logger logger(Arc::Logger::getRootLogger(),"UnixMap");
 
 #ifdef HAVE_LCMAPS
 #define ALLOW_EMPTY_CREDENTIALS 1
@@ -74,7 +76,7 @@ bool UnixMap::map_lcmaps(const AuthUser& user,unix_user_t& unix_user,const char*
   std::string lcmaps_dir;
   n=gridftpd::input_escaped_string(line,lcmaps_library,' ','"'); line+=n;
   if(lcmaps_library.length() == 0) {
-    odlog(ERROR)<<"Missing name of LCMAPS library"<<std::endl;
+    logger.msg(Arc::ERROR, "Missing name of LCMAPS library");
     return false;
   };
   n=gridftpd::input_escaped_string(line,lcmaps_dir,' ','"'); line+=n;
@@ -91,7 +93,7 @@ bool UnixMap::map_lcmaps(const AuthUser& user,unix_user_t& unix_user,const char*
     policynames=gridftpd::string_to_args(s);
   };
   if(policynames == NULL) {
-    odlog(ERROR)<<"Can't read policy names"<<std::endl;
+    logger.msg(Arc::ERROR, "Can't read policy names");
     return false;
   };
   for(;policynames[npols];npols++) { };
@@ -99,7 +101,7 @@ bool UnixMap::map_lcmaps(const AuthUser& user,unix_user_t& unix_user,const char*
   void* lcmaps_handle = dlopen(lcmaps_library.c_str(),RTLD_NOW | RTLD_GLOBAL);
   if(lcmaps_handle == NULL) {
     recover_lcmaps_env(); gridftpd::free_args(policynames);
-    odlog(ERROR)<<"Can't load LCMAPS library "<<lcmaps_library<<": "<<dlerror()<<std::endl;
+    logger.msg(Arc::ERROR, "Can't load LCMAPS library %s: %s", lcmaps_library, dlerror());
     return false;
   };
   lcmaps_init_t lcmaps_init_f = (lcmaps_init_t)dlsym(lcmaps_handle,"lcmaps_init");
@@ -110,14 +112,14 @@ bool UnixMap::map_lcmaps(const AuthUser& user,unix_user_t& unix_user,const char*
      (lcmaps_term_f == NULL)) {
     dlclose(lcmaps_handle);
     recover_lcmaps_env(); gridftpd::free_args(policynames);
-    odlog(ERROR)<<"Can't find LCMAPS functions in a library "<<lcmaps_library<<std::endl;
+    logger.msg(Arc::ERROR, "Can't find LCMAPS functions in a library %s", lcmaps_library);
     return false;
   };
   FILE* lcmaps_log = fdopen(STDERR_FILENO,"a");
   if((*lcmaps_init_f)(lcmaps_log) != 0) {
     dlclose(lcmaps_handle);
     recover_lcmaps_env(); gridftpd::free_args(policynames);
-    odlog(ERROR)<<"Failed to initialize LCMAPS"<<std::endl;
+    logger.msg(Arc::ERROR, "Failed to initialize LCMAPS");
     return false;
   };
   gss_cred_id_t cred = NULL;
@@ -135,7 +137,7 @@ bool UnixMap::map_lcmaps(const AuthUser& user,unix_user_t& unix_user,const char*
     };
   };
   if((*lcmaps_term_f)() != 0) {
-    odlog(ERROR)<<"Failed to terminate LCMAPS - has to keep library loaded"<<std::endl;
+    logger.msg(Arc::ERROR, "Failed to terminate LCMAPS - has to keep library loaded");
   } else {
     dlclose(lcmaps_handle);
   };

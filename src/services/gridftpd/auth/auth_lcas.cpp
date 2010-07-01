@@ -3,12 +3,14 @@
 #include <dlfcn.h>
 #include <stdio.h>
 
+#include <arc/Thread.h>
+#include <arc/Logger.h>
+
 #include "../misc/escaped.h"
 #include "../misc/proxy.h"
-#include <arc/Thread.h>
 #include "auth.h"
 
-#define odlog(int) std::cerr
+static Arc::Logger logger(Arc::Logger::getRootLogger(),"AuthUserLCAS");
 
 #ifdef HAVE_LCAS
 #define ALLOW_EMPTY_CREDENTIALS 1
@@ -74,7 +76,7 @@ int AuthUser::match_lcas(const char* line) {
   std::string lcas_dir;
   n=gridftpd::input_escaped_string(line,lcas_library,' ','"'); line+=n;
   if(lcas_library.length() == 0) {
-    odlog(ERROR)<<"Missing name of LCAS library"<<std::endl;
+    logger.msg(Arc::ERROR, "Missing name of LCAS library");
     return AAA_FAILURE;
   };
   n=gridftpd::input_escaped_string(line,lcas_dir,' ','"'); line+=n;
@@ -88,7 +90,7 @@ int AuthUser::match_lcas(const char* line) {
   void* lcas_handle = dlopen(lcas_library.c_str(),RTLD_NOW | RTLD_GLOBAL);
   if(lcas_handle == NULL) {
     recover_lcas_env();
-    odlog(ERROR)<<"Can't load LCAS library "<<lcas_library<<": "<<dlerror()<<std::endl;
+    logger.msg(Arc::ERROR, "Can't load LCAS library %s: %s", lcas_library, dlerror());
     return AAA_FAILURE;
   };
   lcas_init_t lcas_init_f = (lcas_init_t)dlsym(lcas_handle,"lcas_init");
@@ -99,14 +101,14 @@ int AuthUser::match_lcas(const char* line) {
      (lcas_term_f == NULL)) {
     dlclose(lcas_handle);
     recover_lcas_env();
-    odlog(ERROR)<<"Can't find LCAS functions in a library "<<lcas_library<<std::endl;
+    logger.msg(Arc::ERROR, "Can't find LCAS functions in a library %s", lcas_library);
     return AAA_FAILURE;
   };
   FILE* lcas_log = fdopen(STDERR_FILENO,"a");
   if((*lcas_init_f)(lcas_log) != 0) {
     dlclose(lcas_handle);
     recover_lcas_env();
-    odlog(ERROR)<<"Failed to initialize LCAS"<<std::endl;
+    logger.msg(Arc::ERROR, "Failed to initialize LCAS");
     return AAA_FAILURE;
   };
   gss_cred_id_t cred = NULL;
@@ -119,7 +121,7 @@ int AuthUser::match_lcas(const char* line) {
   };
   gridftpd::free_proxy(cred);
   if((*lcas_term_f)() != 0) {
-    odlog(ERROR)<<"Failed to terminate LCAS - has to keep library loaded"<<std::endl;
+    logger.msg(Arc::ERROR, "Failed to terminate LCAS - has to keep library loaded");
   } else {
     dlclose(lcas_handle);
   };

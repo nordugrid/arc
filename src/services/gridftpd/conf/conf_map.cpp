@@ -15,21 +15,21 @@
 
 namespace gridftpd {
 
-  static Arc::Logger& glogger = Arc::Logger::getRootLogger();
+  Arc::Logger UrlMapConfig::logger(Arc::Logger::getRootLogger(),"UrlMapConfig");
 
   UrlMapConfig::UrlMapConfig(GMEnvironment& env) {
     std::ifstream cfile;
     ConfigSections* cf = NULL;
     //if(nordugrid_config_loc().empty()) read_env_vars(true);
     if(!config_open(cfile,env)) {
-      glogger.msg(Arc::ERROR,"Can't open configuration file");
+      logger.msg(Arc::ERROR,"Can't open configuration file");
       return;
     };
     switch(config_detect(cfile)) {
       case config_file_XML: {
         Arc::XMLNode cfg;
         if(!cfg.ReadFromStream(cfile)) {
-          glogger.msg(Arc::ERROR,"Can't interpret configuration file as XML");
+          logger.msg(Arc::ERROR,"Can't interpret configuration file as XML");
         } else {
           /*
            dataTransfer
@@ -43,15 +43,15 @@ namespace gridftpd {
             Arc::XMLNode mapnode = datanode["mapURL"];
             for(;mapnode;++mapnode) {
               bool is_link = false;
-              if(!elementtobool(mapnode,"link",is_link,&glogger)) continue;
+              if(!elementtobool(mapnode,"link",is_link,&logger)) continue;
               std::string initial = mapnode["from"];
               std::string replacement = mapnode["to"];
               if(initial.empty()) {
-                glogger.msg(Arc::ERROR,"Missing 'from' element in mapURL");
+                logger.msg(Arc::ERROR,"Missing 'from' element in mapURL");
                 continue;
               };
               if(replacement.empty()) {
-                glogger.msg(Arc::ERROR,"Missing 'to' element in mapURL");
+                logger.msg(Arc::ERROR,"Missing 'to' element in mapURL");
                 continue;
               };
               if(is_link) {
@@ -78,7 +78,7 @@ namespace gridftpd {
             std::string initial = config_next_arg(rest);
             std::string replacement = config_next_arg(rest);
             if((initial.length() == 0) || (replacement.length() == 0)) {
-              glogger.msg(Arc::ERROR,"Not enough parameters in copyurl");
+              logger.msg(Arc::ERROR,"Not enough parameters in copyurl");
               continue;
             };
             add(initial,replacement);
@@ -87,7 +87,7 @@ namespace gridftpd {
             std::string initial = config_next_arg(rest);
             std::string replacement = config_next_arg(rest);
             if((initial.length() == 0) || (replacement.length() == 0)) {
-              glogger.msg(Arc::ERROR,"Not enough parameters in linkurl");
+              logger.msg(Arc::ERROR,"Not enough parameters in linkurl");
               continue;
             };
             std::string access = config_next_arg(rest);
@@ -97,7 +97,7 @@ namespace gridftpd {
         };
       }; break;
       default: {
-        glogger.msg(Arc::ERROR,"Can't recognize type of configuration file");
+        logger.msg(Arc::ERROR,"Can't recognize type of configuration file");
       }; break;
     };
     config_close(cfile);

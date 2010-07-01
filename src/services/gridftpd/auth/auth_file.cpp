@@ -2,10 +2,12 @@
 #include <fstream>
 #include <iostream>
 
+#include <arc/Logger.h>
+
 #include "../misc/escaped.h"
 #include "auth.h"
 
-#define olog std::cerr
+static Arc::Logger logger(Arc::Logger::getRootLogger(),"AuthUser");
 
 int AuthUser::match_file(const char* line) {
   for(;;) {
@@ -15,7 +17,7 @@ int AuthUser::match_file(const char* line) {
     line+=n;
     std::ifstream f(s.c_str());
     if(!f.is_open()) {
-      olog<<"Failed to read file "<<s<<std::endl;
+      logger.msg(Arc::ERROR, "Failed to read file %s", s);
       return AAA_FAILURE;
     };
     for(;!f.eof();) {

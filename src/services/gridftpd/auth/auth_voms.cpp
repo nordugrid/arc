@@ -5,11 +5,12 @@
 
 #include <arc/globusutils/GlobusErrorUtils.h>
 #include <arc/credential/VOMSUtil.h>
+#include <arc/Logger.h>
 
 #include "../misc/escaped.h"
 #include "auth.h"
 
-#define odlog(int) std::cerr
+static Arc::Logger logger(Arc::Logger::getRootLogger(),"AuthUserVOMS");
 
 int process_vomsproxy(const char* filename,std::vector<struct voms> &data,bool auto_cert = false);
 
@@ -18,7 +19,7 @@ int AuthUser::process_voms(void) {
     if(filename.length() > 0) {
       int err = process_vomsproxy(filename.c_str(),voms_data);
       voms_extracted=true;
-      odlog(DEBUG)<<"VOMS proxy processing returns: "<<err<<std::endl;
+      logger.msg(Arc::DEBUG, "VOMS proxy processing returns: %i", err);
       if(err != AAA_POSITIVE_MATCH) return err;
     };
   };
@@ -36,51 +37,51 @@ int AuthUser::match_voms(const char* line) {
   int n;
   n=gridftpd::input_escaped_string(line,vo,' ','"');
   if(n == 0) {
-    odlog(ERROR)<<"Missing VO in configuration"<<std::endl; 
+    logger.msg(Arc::ERROR, "Missing VO in configuration");
     return AAA_FAILURE;
   };
   line+=n;
   n=gridftpd::input_escaped_string(line,group,' ','"');
   if(n == 0) {
-    odlog(ERROR)<<"Missing group in configuration"<<std::endl; 
+    logger.msg(Arc::ERROR, "Missing group in configuration");
     return AAA_FAILURE;
   };
   line+=n;
   n=gridftpd::input_escaped_string(line,role,' ','"');
   if(n == 0) {
-    odlog(ERROR)<<"Missing role in configuration"<<std::endl; 
+    logger.msg(Arc::ERROR, "Missing role in configuration");
     return AAA_FAILURE;
   };
   line+=n;
   n=gridftpd::input_escaped_string(line,capabilities,' ','"');
   if(n == 0) {
-    odlog(ERROR)<<"Missing capabilities in configuration"<<std::endl; 
+    logger.msg(Arc::ERROR, "Missing capabilities in configuration");
     return AAA_FAILURE;
   };
   n=gridftpd::input_escaped_string(line,auto_c,' ','"');
   if(n != 0) {
     if(auto_c == "auto") auto_cert=true;
   };
-  odlog(VERBOSE)<<"VOMS config: vo: "<<vo<<std::endl;
-  odlog(VERBOSE)<<"VOMS config: group: "<<group<<std::endl;
-  odlog(VERBOSE)<<"VOMS config: role: "<<role<<std::endl;
-  odlog(VERBOSE)<<"VOMS config: capabilities: "<<capabilities<<std::endl;
+  logger.msg(Arc::VERBOSE, "VOMS config: vo: %s", vo);
+  logger.msg(Arc::VERBOSE, "VOMS config: group: %s", group);
+  logger.msg(Arc::VERBOSE, "VOMS config: role: %s", role);
+  logger.msg(Arc::VERBOSE, "VOMS config: capabilities: %s", capabilities);
   // extract info from voms proxy
   // if(voms_data->size() == 0) {
   process_voms();
   if(voms_data.size() == 0) return AAA_NO_MATCH;
   // analyse permissions
   for(std::vector<struct voms>::iterator v = voms_data.begin();v!=voms_data.end();++v) {
-    odlog(DEBUG)<<"match vo: "<<v->voname<<std::endl;
+    logger.msg(Arc::DEBUG, "match vo: %s", v->voname);
     if((vo == "*") || (vo == v->voname)) {
       for(std::vector<struct voms_attrs>::iterator d=v->std.begin();d!=v->std.end();++d) {
-        odlog(VERBOSE)<<"match group: "<<d->group<<std::endl;
-        odlog(VERBOSE)<<"match role: "<<d->role<<std::endl;
-        odlog(VERBOSE)<<"match capabilities: "<<d->cap<<std::endl;
+        logger.msg(Arc::VERBOSE, "match group: %s", d->group);
+        logger.msg(Arc::VERBOSE, "match role: %s", d->role);
+        logger.msg(Arc::VERBOSE, "match capabilities: %s", d->cap);
         if(((group == "*") || (group == d->group)) &&
            ((role == "*") || (role == d->role)) &&
            ((capabilities == "*") || (capabilities == d->cap))) {
-          odlog(VERBOSE)<<"VOMS matched"<<std::endl;
+          logger.msg(Arc::VERBOSE, "VOMS matched");
           default_voms_=v->server.c_str();
           default_vo_=v->voname.c_str();
           default_role_=d->role.c_str();
@@ -91,7 +92,7 @@ int AuthUser::match_voms(const char* line) {
       };
     };
   };
-  odlog(VERBOSE)<<"VOMS matched nothing"<<std::endl;
+  logger.msg(Arc::VERBOSE, "VOMS matched nothing");
   return AAA_NO_MATCH;
 }
 
@@ -117,20 +118,20 @@ int process_vomsproxy(const char* filename,std::vector<struct voms> &data,bool a
   Arc::VOMSTrustList emptylist;
 
   if((bio = BIO_new_file(filename, "r")) == NULL) {
-    odlog(ERROR)<<"Failed to open file "<<filename<<std::endl;
+    logger.msg(Arc::ERROR, "Failed to open file %s", filename);
     goto error_exit;
   };
   if(!PEM_read_bio_X509(bio,&cert, NULL, NULL)) {
-    odlog(ERROR)<<"Failed to read PEM from file "<<filename<<std::endl;
+    logger.msg(Arc::ERROR, "Failed to read PEM from file %s", filename);
     goto error_exit;
   };
   key=PEM_read_bio_PrivateKey(bio,NULL,NULL,NULL);
   if(!key) {
-    odlog(ERROR)<<"Failed to read private key from file "<<filename<<" - probably no delegation was done"<<std::endl;
+    logger.msg(Arc::ERROR, "Failed to read private key from file %s - probably no delegation was done", filename);
     // goto error_exit;
   };
   if((cert_chain = sk_X509_new_null()) == NULL) {
-    odlog(ERROR)<<"Failed in SSL (sk_X509_new_null)"<<std::endl;
+    logger.msg(Arc::ERROR, "Failed in SSL (sk_X509_new_null)");
     goto error_exit;
   };
   while(!BIO_eof(bio)) {
@@ -142,7 +143,7 @@ int process_vomsproxy(const char* filename,std::vector<struct voms> &data,bool a
       X509_free(cert); cert=tmp_cert;
     } else { 
       if(!sk_X509_insert(cert_chain, tmp_cert, n-1)) {
-        odlog(ERROR)<<"failed in SSL (sk_X509_insert)"<<std::endl;
+        logger.msg(Arc::ERROR, "failed in SSL (sk_X509_insert)");
         goto error_exit;
       };
     };
@@ -150,7 +151,7 @@ int process_vomsproxy(const char* filename,std::vector<struct voms> &data,bool a
   };
 
   if (!parseVOMSAC(c, emptystring, emptystring, emptylist, output, false)) {
-    odlog(ERROR)<<"Error: no VOMS extension found"<<std::endl;
+    logger.msg(Arc::ERROR, "Error: no VOMS extension found");
     goto error_exit;
   }
   data = AuthUser::arc_to_voms(output);

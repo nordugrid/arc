@@ -9,11 +9,13 @@
 #include <arc/ArcLocation.h>
 #include <arc/Utils.h>
 #include <arc/Thread.h>
+#include <arc/Logger.h>
 #include "environment.h"
 
-#define olog std::cerr
 
 namespace gridftpd {
+
+  static Arc::Logger logger(Arc::Logger::getRootLogger(),"GMEnvironment");
 
   static bool read_env_vars(bool guess);
 
@@ -188,12 +190,6 @@ namespace gridftpd {
     return true;
   }
 
-  static bool dir_exists(const char* name) {
-    struct stat st;
-    if(lstat(name,&st) != 0) return false;
-    if(!S_ISDIR(st.st_mode)) return false;
-    return true;
-  }
 
   static bool read_env_vars(bool guess) {
     if(nordugrid_loc_.empty()) {
@@ -213,10 +209,9 @@ namespace gridftpd {
           tmp="/etc/arc.conf";
           nordugrid_config_loc_=tmp;
           if(!file_exists(tmp.c_str())) {
-            olog<<"Central configuration file is missing at guessed location:\n"
-                <<"  /etc/arc.conf\n"
-                <<"Use ARC_CONFIG variable for non-standard location"
-                <<std::endl;
+            logger.msg(Arc::ERROR, "Central configuration file is missing at guessed location:\n",
+                "  /etc/arc.conf\n",
+                "Use ARC_CONFIG variable for non-standard location");
             return false;
           };
         };

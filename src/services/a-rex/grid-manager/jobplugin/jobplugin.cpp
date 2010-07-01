@@ -21,6 +21,7 @@
 #include <arc/StringConv.h>
 #include <arc/FileUtils.h>
 #include <arc/DateTime.h>
+#include <arc/Logger.h>
 #include <arc/credential/Credential.h>
 
 #include "../conf/conf.h"
@@ -44,6 +45,8 @@
 #include "../../../gridftpd/auth/permission_gacl.h"
 
 #include "jobplugin.h"
+
+static Arc::Logger& logger = Arc::Logger::getRootLogger();
 
 typedef struct {
   const JobUser* user;
@@ -103,11 +106,11 @@ static void job_subst(std::string& str,void* arg) {
     subst_arg.job=J;                                         \
     subst_arg.reason=O;                                      \
     if(!cred_plugin->run(job_subst,&subst_arg)) {            \
-      olog << "Failed to run plugin" << std::endl;                \
+      logger.msg(Arc::ERROR, "Failed to run plugin");                \
       return 1;                                              \
     };                                                       \
     if(cred_plugin->result() != 0) {                         \
-      olog << "Plugin failed: " << cred_plugin->result() << std::endl;  \
+      logger.msg(Arc::ERROR, "Plugin failed: %s", cred_plugin->result());  \
       return 1;                                              \
     };                                                       \
   };                                                         \
@@ -147,14 +150,14 @@ JobPlugin::JobPlugin(std::istream &cfile,userspec_t &user_s):user_a(user_s.user)
     } else if(command == "remotegmdirs") {
       std::string remotedir = config_next_arg(rest);
       if(remotedir.length() == 0) {
-        olog << "empty argument to remotedirs" << std::endl;
+        logger.msg(Arc::ERROR, "empty argument to remotedirs");
         initialized=false;
       };
       struct gm_dirs_ dirs;
       dirs.control_dir = remotedir;
       remotedir = config_next_arg(rest);
       if(remotedir.length() == 0) {
-        olog << "bad arguments to remotedirs" << std::endl;
+        logger.msg(Arc::ERROR, "bad arguments to remotedirs");
         initialized=false;
       };
       dirs.session_dir = remotedir;
@@ -166,13 +169,13 @@ JobPlugin::JobPlugin(std::istream &cfile,userspec_t &user_s):user_a(user_s.user)
       if(rest.empty()) {
         job_rsl_max_size = 0;
       } else if(sscanf(rest.c_str(),"%u",&job_rsl_max_size) != 1) {
-        olog<<"Wrong number in maxjobdesc\n";
+        logger.msg(Arc::ERROR, "Wrong number in maxjobdesc");
         initialized=false;
       };
     } else if(command == "end") {
       break; /* end of section */
     } else {
-      olog<<"Warning: unsupported configuration command: "<<command<<std::endl;
+      logger.msg(Arc::WARNING, "Unsupported configuration command: %s", command);
     };
   };
   JobLog job_log;
@@ -202,10 +205,10 @@ JobPlugin::JobPlugin(std::istream &cfile,userspec_t &user_s):user_a(user_s.user)
           session_dirs_non_draining,
           default_lrms,default_queue,avail_queues,*cont_plugins,*cred_plugin,
           allowsubmit,strict_session, env)) {
-          olog<<"Failed processing grid-manager configuration"<<std::endl;
+          logger.msg(Arc::ERROR, "Failed processing grid-manager configuration");
           initialized=false;
         } else if (gm_dirs_info.size() > 0 && session_roots.size() > 1) {
-          olog<<"Cannot use multiple session dirs and remotegmdirs at the same time"<<std::endl;
+          logger.msg(Arc::ERROR, "Cannot use multiple session dirs and remotegmdirs at the same time");
           initialized=false;
         } else {                  
           if(default_queue.empty() && (avail_queues.size() == 1)) {
@@ -219,7 +222,7 @@ JobPlugin::JobPlugin(std::istream &cfile,userspec_t &user_s):user_a(user_s.user)
             std::string group = config_next_arg(allowsubmit);
             if(user_a.check_group(group)) { readonly=false; break; };
           };
-          if(readonly) olog<<"This user is denied to submit new jobs."<<std::endl;
+          if(readonly) logger.msg(Arc::ERROR, "This user is denied to submit new jobs.");
           struct gm_dirs_ dirs;
           dirs.control_dir = user->ControlDir();
           dirs.session_dir = user->SessionRoot();
@@ -273,8 +276,7 @@ JobPlugin::JobPlugin(std::istream &cfile,userspec_t &user_s):user_a(user_s.user)
             }
           }
           if((bool)job_map) {
-            olog<<"Job submission user: "<<uname<<
-                  " ("<<user->get_uid()<<":"<<user->get_gid()<<")"<<std::endl;
+            logger.msg(Arc::INFO, "Job submission user: %s (%i:%i)", uname, user->get_uid(), user->get_gid());
           };
         };
       } else {
@@ -285,7 +287,7 @@ JobPlugin::JobPlugin(std::istream &cfile,userspec_t &user_s):user_a(user_s.user)
   if(!initialized) if(user) { delete user; user=NULL; };
   if((!user_a.is_proxy()) ||
      (user_a.proxy() == NULL) || (user_a.proxy()[0] == 0)) {
-    olog<<"WARNING: no delegated credentials were passed"<<std::endl;
+    logger.msg(Arc::WARNING, "No delegated credentials were passed");
   } else {
     proxy_fname=user_a.proxy();
   };
@@ -312,7 +314,6 @@ JobPlugin::~JobPlugin(void) {
   for (unsigned int i = 0; i < file_plugins.size(); i++) {
     if (file_plugins.at(i)) delete file_plugins.at(i);
   }
-//  olog << "JobPlugin: destructor " << count << std::endl;
 };
  
 
@@ -449,7 +450,7 @@ int JobPlugin::removedir(std::string &dname) {
 int JobPlugin::open(const char* name,open_modes mode,unsigned long long int size) {
   if(!initialized) return 1;
   if(rsl_opened) {  /* unfinished request - cancel */
-    olog<<"Request to open file with storing in progress"<<std::endl;
+    logger.msg(Arc::ERROR, "Request to open file with storing in progress");
     rsl_opened=false;
     delete_job_id();
     error_description="Job submission is still in progress.";
@@ -526,16 +527,16 @@ int JobPlugin::open(const char* name,open_modes mode,unsigned long long int size
         if(job_id.length() == 0) {
           if(readonly) {
             error_description="You are not allowed to submit new jobs to this service.";
-            olog<<error_description<<std::endl;
+            logger.msg(Arc::ERROR, error_description);
             return 1;
           };
           if(!make_job_id()) {
             error_description="Failed to allocate ID for job.";
-            olog<<error_description<<std::endl;
+            logger.msg(Arc::ERROR, error_description);
             return 1;
           };
         };
-        olog<<"Accepting submission of new job: "<<job_id<<std::endl;
+        logger.msg(Arc::INFO, "Accepting submission of new job: %s", job_id);
         rsl_opened=true;
         chosenFilePlugin = selectFilePlugin(job_id);
         return 0;
@@ -581,7 +582,7 @@ int JobPlugin::open(const char* name,open_modes mode,unsigned long long int size
     return 1;
   }
   else {
-    olog << "ERROR: unknown open mode " << mode << std::endl;
+    logger.msg(Arc::ERROR, "Unknown open mode %i", mode);
     error_description="Unknown/unsupported request.";
     return 1;
   };
@@ -613,7 +614,7 @@ int JobPlugin::close(bool eof) {
   JobLocalDescription job_desc;
   if(parse_job_req(rsl_fname.c_str(),job_desc,&acl) != JobReqSuccess) {
     error_description="Failed to parse job/action description.";
-    olog<<error_description<<std::endl;
+    logger.msg(Arc::ERROR, error_description);
     delete_job_id();
     return 1;
   };
@@ -622,7 +623,7 @@ int JobPlugin::close(bool eof) {
     delete_job_id();
     if(job_desc.jobid.length() == 0) {
       error_description="Missing ID in request to cancel job.";
-      olog<<error_description<<std::endl;
+      logger.msg(Arc::ERROR, error_description);
       return 1;
     };
     return removefile(job_desc.jobid);
@@ -631,7 +632,7 @@ int JobPlugin::close(bool eof) {
     delete_job_id();
     if(job_desc.jobid.length() == 0) {
       error_description="Missing ID in request to clean job.";
-      olog<<error_description<<std::endl;
+      logger.msg(Arc::ERROR, error_description);
       return 1;
     };
     return removedir(job_desc.jobid);
@@ -640,7 +641,7 @@ int JobPlugin::close(bool eof) {
     delete_job_id();
     if(job_desc.jobid.length() == 0) {
       error_description="Missing ID in request to renew credentials.";
-      olog<<error_description<<std::endl;
+      logger.msg(Arc::ERROR, error_description);
       return 1;
     };
     return checkdir(job_desc.jobid);
@@ -649,7 +650,7 @@ int JobPlugin::close(bool eof) {
     delete_job_id();
     if(job_desc.jobid.length() == 0) {
       error_description="Missing ID in request to clean job.";
-      olog<<error_description<<std::endl;
+      logger.msg(Arc::ERROR, error_description);
       return 1;
     };
     const char* logname;
@@ -657,39 +658,39 @@ int JobPlugin::close(bool eof) {
     if(!(is_allowed(job_desc.jobid.c_str(),false,NULL,&id,&logname) & 
                                                        IS_ALLOWED_LIST)) {
       error_description="Not allowed for this job.";
-      olog<<error_description<<std::endl;
+      logger.msg(Arc::ERROR, error_description);
       return 1;
     };
     if(job_desc.jobid != id) {
       error_description="Wrong ID specified.";
-      olog<<error_description<<std::endl;
+      logger.msg(Arc::ERROR, error_description);
       return 1;
     };
     JobLocalDescription job_desc;
     if(!job_local_read_file(id,*user,job_desc)) {
       error_description="Job is probably corrupted: can't read internal information.";
-      olog<<error_description<<std::endl;
+      logger.msg(Arc::ERROR, error_description);
       return 1;
     };
     if(job_desc.failedstate.length() == 0) {
       error_description="Job can't be restarted.";
-      olog<<error_description<<std::endl;
+      logger.msg(Arc::ERROR, error_description);
       return 1;
     };
     if(job_desc.reruns <= 0) {
       error_description="Job run out number of allowed retries.";
-      olog<<error_description<<std::endl;
+      logger.msg(Arc::ERROR, error_description);
       return 1;
     };
     if(!job_restart_mark_put(JobDescription(id,""),*user)) {
       error_description="Failed to report restart request.";
-      olog<<error_description<<std::endl;
+      logger.msg(Arc::ERROR, error_description);
       return 1;
     };
     return 0;
   };
   if(job_desc.action != "request") {
-    olog<<"action("<<job_desc.action<<") != request"<<std::endl;
+    logger.msg(Arc::ERROR, "action(%s) != request", job_desc.action);
     error_description="Wrong action in job RSL description.";
     delete_job_id();
     return 1;
@@ -702,14 +703,14 @@ int JobPlugin::close(bool eof) {
       ::close(h_old);
       remove(rsl_fname.c_str());
       error_description="New jobs are not allowed.";
-      olog<<error_description<<std::endl;
+      logger.msg(Arc::ERROR, error_description);
       return 1;
     };
     if(!make_job_id(job_desc.jobid)) {
       ::close(h_old);
       remove(rsl_fname.c_str());
       error_description="Failed to allocate requested job ID: "+job_desc.jobid;
-      olog<<error_description<<std::endl;
+      logger.msg(Arc::ERROR, error_description);
       return 1;
     };
     rsl_fname=user->ControlDir()+"/job."+job_id+".description";
@@ -735,7 +736,7 @@ int JobPlugin::close(bool eof) {
         ::close(h_old);
       };
       if(l == -1) {
-        olog<<"Failed writing RSL"<<std::endl;
+        logger.msg(Arc::ERROR, "Failed writing RSL");
         remove(rsl_fname.c_str());
         error_description="Failed to store job RSL description.";
         delete_job_id(); return 1;
@@ -748,7 +749,7 @@ int JobPlugin::close(bool eof) {
   if((!job_desc.lrms.empty()) && (!user->DefaultLRMS().empty())) {
     if(job_desc.lrms != user->DefaultLRMS()) {
       error_description="Request for LRMS "+job_desc.lrms+" is not allowed.";
-      olog<<error_description<<std::endl;
+      logger.msg(Arc::ERROR, error_description);
       delete_job_id(); 
       return 1;
     };
@@ -758,7 +759,7 @@ int JobPlugin::close(bool eof) {
   if(job_desc.queue.empty()) job_desc.queue=user->DefaultQueue();
   if(job_desc.queue.empty()) {
     error_description="Request has no queue defined.";
-    olog<<error_description<<std::endl;
+    logger.msg(Arc::ERROR, error_description);
     delete_job_id(); 
     return 1;
   };
@@ -766,7 +767,7 @@ int JobPlugin::close(bool eof) {
     for(std::list<std::string>::iterator q = avail_queues.begin();;++q) {
       if(q == avail_queues.end()) {
         error_description="Requested queue "+job_desc.queue+" does not match any of available queues.";
-        olog<<error_description<<std::endl;
+        logger.msg(Arc::ERROR, error_description);
         delete_job_id(); 
         return 1;
       };
@@ -776,7 +777,7 @@ int JobPlugin::close(bool eof) {
   JobDescription job(job_id,"",JOB_STATE_ACCEPTED);
   if(!process_job_req(*user, job, job_desc)) {
     error_description="Failed to preprocess job description.";
-    olog<<error_description<<std::endl;
+    logger.msg(Arc::ERROR, error_description);
     delete_job_id(); 
     return 1;
   };
@@ -836,14 +837,14 @@ int JobPlugin::close(bool eof) {
    * Write local file                         *
    ****************************************** */
   if(!job_local_write_file(job,*user,job_desc)) {
-    olog<<"Failed writing local description"<<std::endl;
+    logger.msg(Arc::ERROR, "Failed writing local description");
     delete_job_id(); 
     error_description="Failed to create job description.";
     return 1;
   };
   if(acl.length() != 0) {
     if(!job_acl_write_file(job_id,*user,acl)) {
-      olog<<"Failed writing ACL"<<std::endl;
+      logger.msg(Arc::ERROR, "Failed writing ACL");
       delete_job_id(); 
       error_description="Failed to process/store job ACL.";
       return 1;
@@ -859,20 +860,20 @@ int JobPlugin::close(bool eof) {
   std::list<ContinuationPlugins::result_t>::iterator result = results.begin();
   for(;result != results.end();++result) {
     if(result->action == ContinuationPlugins::act_fail) {
-      olog<<"Failed to run external plugin: "<<result->response<<std::endl;
+      logger.msg(Arc::ERROR, "Failed to run external plugin: %s", result->response);
       delete_job_id();
       error_description="Job is not allowed by external plugin: "+
                         result->response;
       return 1;
     } else if(result->action == ContinuationPlugins::act_log) {
       // Scream but go ahead
-      olog<<"Failed to run external plugin: "<<result->response<<std::endl;
+      logger.msg(Arc::ERROR, "Failed to run external plugin: %s", result->response);
     } else if(result->action == ContinuationPlugins::act_pass) {
       // Just continue
       if(result->response.length())
-        olog<<"Plugin response: "<<result->response<<std::endl;
+        logger.msg(Arc::INFO, "Plugin response: %s", result->response);
     } else {
-      olog<<"Failed to run external plugin"<<std::endl;
+      logger.msg(Arc::ERROR, "Failed to run external plugin");
       delete_job_id();
       error_description="Failed to pass external plugin.";
       return 1;
@@ -888,13 +889,13 @@ int JobPlugin::close(bool eof) {
     subst_arg.reason="new";
     // run external plugin to acquire non-unix local credentials
     if(!cred_plugin->run(job_subst,&subst_arg)) {
-      olog << "Failed to run plugin" << std::endl;
+      logger.msg(Arc::ERROR, "Failed to run plugin");
       delete_job_id();
       error_description="Failed to obtain external credentials.";
       return 1;
     };
     if(cred_plugin->result() != 0) {
-      olog << "Plugin failed: " << cred_plugin->result() << std::endl;
+      logger.msg(Arc::ERROR, "Plugin failed: %s", cred_plugin->result());
       delete_job_id();
       error_description="Failed to obtain external credentials.";
       return 1;
@@ -911,7 +912,7 @@ int JobPlugin::close(bool eof) {
     if((getuid()==0) && (user) && (user->StrictSession())) {
       RESET_USER_UID;
     };
-    olog<<"Failed to create session directory"<<std::endl;
+    logger.msg(Arc::ERROR, "Failed to create session directory");
     delete_job_id();
     error_description="Failed to create session directory.";
     return 1;
@@ -924,7 +925,7 @@ int JobPlugin::close(bool eof) {
    * Create status file (do it last so GM picks job up here)  *
    ********************************************************** */
   if(!job_state_write_file(job,*user,JOB_STATE_ACCEPTED)) {
-    olog<<"Failed writing status"<<std::endl;
+    logger.msg(Arc::ERROR, "Failed writing status");
     delete_job_id(); 
     error_description="Failed registering job in grid-manager.";
     return 1;
@@ -1113,12 +1114,12 @@ int JobPlugin::checkdir(std::string &dirname) {
   if(dirname == "new") { /* new job */
     if(readonly) {
       error_description="New jobs are not allowed.";
-      olog<<error_description<<std::endl;
+      logger.msg(Arc::ERROR, error_description);
       return 1;
     };
     if(!make_job_id()) {
       error_description="Failed to allocate ID for job.";
-      olog<<error_description<<std::endl;
+      logger.msg(Arc::ERROR, error_description);
       return 1;
     };
     dirname=job_id;
@@ -1147,7 +1148,7 @@ int JobPlugin::checkdir(std::string &dirname) {
       JobLocalDescription job_desc;
       if(!job_local_read_file(id,*user,job_desc)) {
         error_description="Job is probably corrupted: can't read internal information.";
-        olog<<error_description<<std::endl;
+        logger.msg(Arc::ERROR, error_description);
         return 1;
       };
       /* check if new proxy is better than old one */
@@ -1169,11 +1170,11 @@ int JobPlugin::checkdir(std::string &dirname) {
         /* try to renew proxy */
         if(renew_proxy(old_proxy_fname.c_str(),proxy_fname.c_str()) == 0) {
           fix_file_owner(old_proxy_fname,*user);
-          olog<<"New proxy expires at "<<Arc::TimeStamp(Arc::Time(new_proxy_expires), Arc::MDSTime)<<std::endl;
+          logger.msg(Arc::INFO, "New proxy expires at %s", Arc::TimeStamp(Arc::Time(new_proxy_expires), Arc::MDSTime));
           JobDescription job(id,"",JOB_STATE_ACCEPTED);
           job_desc.expiretime=new_proxy_expires;
           if(!job_local_write_file(job,*user,job_desc)) {
-            olog<<"Failed to write 'local' information"<<std::endl;
+            logger.msg(Arc::ERROR, "Failed to write 'local' information");
           };
           error_description="Applying external credentials locally failed.";
           ApplyLocalCred(user,&id,"renew");
@@ -1187,13 +1188,13 @@ int JobPlugin::checkdir(std::string &dirname) {
                     JobDescription::get_state_name(JOB_STATE_FINISHING))
              )
             ) {
-            olog<<"Job could have died due to expired proxy: restarting"<<std::endl;
+            logger.msg(Arc::INFO, "Job could have died due to expired proxy: restarting");
             if(!job_restart_mark_put(JobDescription(id,""),*user)) {
-              olog<<"Failed to report renewed proxy to job"<<std::endl;
+              logger.msg(Arc::ERROR, "Failed to report renewed proxy to job");
             };
           };
         } else {
-          olog<<"Failed to renew proxy"<<std::endl;
+          logger.msg(Arc::ERROR, "Failed to renew proxy");
         };
       };
     };
@@ -1290,7 +1291,7 @@ bool JobPlugin::delete_job_id(void) {
 
 bool JobPlugin::make_job_id(const std::string &id) {
   if((id.find('/') != std::string::npos) || (id.find('\n') != std::string::npos)) {
-    olog<<"ID contains forbidden characters"<<std::endl;
+    logger.msg(Arc::ERROR, "ID contains forbidden characters");
     return false;
   };
   if((id == "new") || (id == "info")) return false;
@@ -1336,7 +1337,7 @@ bool JobPlugin::make_job_id(void) {
     // TODO: add locks or links for NFS
     if(h == -1) {
       if(errno == EEXIST) continue;
-      olog << "Failed to create file in " << user->ControlDir()<< std::endl;
+      logger.msg(Arc::ERROR, "Failed to create file in %s", user->ControlDir());
       return false;
     };
     for (std::vector<gm_dirs_>::iterator i = gm_dirs_info.begin(); i != gm_dirs_info.end(); i++) {
@@ -1361,7 +1362,7 @@ bool JobPlugin::make_job_id(void) {
     break;
   };
   if(i>=100) {
-    olog << "Out of tries while allocating new job id" << std::endl;
+    logger.msg(Arc::ERROR, "Out of tries while allocating new job id");
     job_id=""; return false;
   };
   return true;
@@ -1490,16 +1491,14 @@ int JobPlugin::is_allowed(const char* name,bool locked,bool* spec_dir,std::strin
                 res|=(IS_ALLOWED_READ | IS_ALLOWED_WRITE | IS_ALLOWED_LIST);
             };
           } else {
-            olog << "Failed to read job's ACL for job " << id <<
-                    " from " << user->ControlDir() << std::endl;
+            logger.msg(Arc::ERROR, "Failed to read job's ACL for job %s from %s", id, user->ControlDir());
           };
         };
       };
     };
     return res; 
   } else {
-    olog << "Failed to read job's local description for job " << id <<
-            " from " << user->ControlDir() << std::endl;
+    logger.msg(Arc::ERROR, "Failed to read job's local description for job %s from %s", id, user->ControlDir());
   };
   return 0;
 }
@@ -1541,7 +1540,7 @@ bool JobPlugin::chooseControlAndSessionDir(std::string job_id, std::string& cont
 
   if (gm_dirs_non_draining.size() == 0 || session_dirs_non_draining.size() == 0) {
     // no active control or session dirs available
-    olog << "No non-draining control or session dirs available" << std::endl;
+    logger.msg(Arc::ERROR, "No non-draining control or session dirs available");
     return false;
   }
   // if multiple session dirs are defined, don't use remote dirs
@@ -1557,8 +1556,8 @@ bool JobPlugin::chooseControlAndSessionDir(std::string job_id, std::string& cont
     controldir = gm_dirs_non_draining.at(i).control_dir; 
     sessiondir = gm_dirs_non_draining.at(i).session_dir;
   } 
-  olog << "Using control dir " << controldir <<std::endl;
-  olog << "Using session dir " << sessiondir <<std::endl;
+  logger.msg(Arc::INFO, "Using control dir %s", controldir);
+  logger.msg(Arc::INFO, "Using session dir %s", sessiondir);
   return true;
 }  
   

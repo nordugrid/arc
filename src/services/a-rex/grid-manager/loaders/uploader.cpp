@@ -422,7 +422,6 @@ int main(int argc,char** argv) {
   if(!job_output_read_file(desc.get_id(),user,job_files_)) {
     failure_reason+="Internal error in uploader\n";
     logger.msg(Arc::ERROR, "Can't read list of output files"); res=1; goto exit;
-    //olog << "WARNING: Can't read list of output files - whole output will be removed" << std::endl;
   }
   // add any output files dynamically added by the user during the job
   for(it = job_files_.begin(); it != job_files_.end() ; ++it) {

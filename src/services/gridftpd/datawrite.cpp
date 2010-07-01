@@ -2,13 +2,15 @@
 #include <globus_io.h>
 #include <globus_ftp_control.h>
 
+#include <arc/globusutils/GlobusErrorUtils.h>
+#include <arc/Logger.h>
+
 #include "fileroot.h"
 #include "names.h"
 #include "commands.h"
 #include "misc/canonical_dir.h"
-#include <arc/globusutils/GlobusErrorUtils.h>
 
-#define oilog(int) std::cerr
+static Arc::Logger logger(Arc::Logger::getRootLogger(),"GridFTP_Commands");
 
 /* 
   file store callbacks 
@@ -16,13 +18,13 @@
 
 void GridFTP_Commands::data_connect_store_callback(void* arg,globus_ftp_control_handle_t *handle,unsigned int stripendx,globus_bool_t reused,globus_object_t *error) {
   GridFTP_Commands *it = (GridFTP_Commands*)arg;
-  oilog(it->log_id)<<"data_connect_store_callback"<<std::endl;
+  logger.msg(Arc::VERBOSE, "data_connect_store_callback");
   globus_thread_blocking_will_block();
   globus_mutex_lock(&(it->data_lock));
   it->time_spent_disc=0;
   it->time_spent_network=0;
   it->last_action_time=time(NULL);
-  oilog(it->log_id)<<"Data channel connected (store)\n";
+  logger.msg(Arc::INFO, "Data channel connected (store)");
   if(it->check_abort(error)) {
     it->froot.close(false);
     globus_mutex_unlock(&(it->data_lock)); return;
@@ -49,9 +51,9 @@ void GridFTP_Commands::data_connect_store_callback(void* arg,globus_ftp_control_
     else { break; };
   };
   if(it->data_callbacks==0) {
-    oilog(it->log_id)<<"Failed to register any buffer"<<std::endl;
+    logger.msg(Arc::ERROR, "Failed to register any buffer");
     if(res != GLOBUS_SUCCESS) {
-      oilog(it->log_id)<<"Globus error: "<<Arc::GlobusResult(res)<<std::endl;
+      logger.msg(Arc::ERROR, "Globus error: %s", Arc::GlobusResult(res).str());
     };
     it->froot.close(false);
     it->free_data_buffer();
@@ -68,7 +70,7 @@ void GridFTP_Commands::data_store_callback(void* arg,globus_ftp_control_handle_t
   gettimeofday(&tv,&tz);
   globus_mutex_lock(&(it->data_lock));
   it->last_action_time=time(NULL);
-// oilog(it->log_id)<<"Data channel (store) "<<(int)offset<<" "<<(int)length<<" "<<(int)eof<<std::endl;
+  logger.msg(Arc::VERBOSE, "Data channel (store) %i %i %i", (int)offset, (int)length, (int)eof);
   it->data_callbacks--;
   if(it->check_abort(error)) {
     if(it->data_callbacks==0){it->free_data_buffer();it->froot.close(false);};
@@ -81,7 +83,7 @@ void GridFTP_Commands::data_store_callback(void* arg,globus_ftp_control_handle_t
     if((it->data_buffer)[i].data == (unsigned char*)buffer) break;
   };
   if(i >= it->data_buffer_num) { /* lost buffer - probably memory corruption */
-    oilog(it->log_id)<<"ERROR: data_store_callback: lost buffer"<<std::endl;
+    logger.msg(Arc::ERROR, "data_store_callback: lost buffer");
     it->force_abort();
     if(it->data_callbacks==0){it->free_data_buffer();it->froot.close(false);};
     globus_mutex_unlock(&(it->data_lock)); return;
@@ -97,7 +99,7 @@ void GridFTP_Commands::data_store_callback(void* arg,globus_ftp_control_handle_t
   gettimeofday(&tv_last,&tz);
   if(it->froot.write(it->data_buffer[i].data,
                 (it->virt_offset)+offset,length) != 0) {
-    oilog(it->log_id)<<"Closing channel (store) due to error:"<<it->froot.error<<"\n";
+    logger.msg(Arc::ERROR, "Closing channel (store) due to error: %s", it->froot.error);
     it->force_abort();
     if(it->data_callbacks==0){it->free_data_buffer();it->froot.close(false);};
     globus_mutex_unlock(&(it->data_lock)); return;
@@ -107,7 +109,7 @@ void GridFTP_Commands::data_store_callback(void* arg,globus_ftp_control_handle_t
   it->time_spent_disc+=time_diff;
   if(it->data_eof) {
     if(it->data_callbacks==0) {
-      oilog(it->log_id)<<"Closing channel (store)\n";
+      logger.msg(Arc::INFO, "Closing channel (store)");
       it->free_data_buffer();
       it->virt_offset=0;
       it->virt_restrict=false;
@@ -120,8 +122,8 @@ void GridFTP_Commands::data_store_callback(void* arg,globus_ftp_control_handle_t
         };
       }
       else {
-        oilog(it->log_id)<<"Time spent waiting for network: "<<it->time_spent_network<<"mkS"<<std::endl;
-        oilog(it->log_id)<<"Time spent waiting for disc: "<<it->time_spent_disc<<"mkS"<<std::endl;
+        logger.msg(Arc::VERBOSE, "Time spent waiting for network: %llu mkS", it->time_spent_network);
+        logger.msg(Arc::VERBOSE, "Time spent waiting for disc: %llu mkS", it->time_spent_disc);
         it->send_response("226 Requested file transfer completed\r\n");
       };
     };
@@ -138,7 +140,7 @@ void GridFTP_Commands::data_store_callback(void* arg,globus_ftp_control_handle_t
     /* Because this error can be caused by EOF, abort should not be
        called unless this is last buffer */
     if(it->data_callbacks==0) {
-      oilog(it->log_id)<<"Globus error: "<<Arc::GlobusResult(res)<<std::endl;
+      logger.msg(Arc::ERROR, "Globus error: %s", Arc::GlobusResult(res).str());
       it->force_abort();
       it->free_data_buffer();it->froot.close(false);
     };

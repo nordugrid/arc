@@ -13,7 +13,7 @@
 
 #include "gaclplugin.h"
 
-#define olog std::cerr
+static Arc::Logger logger(Arc::Logger::getRootLogger(),"GACLPlugin");
 
 #ifndef HAVE_STRERROR_R
 static char * strerror_r (int errnum, char * buf, size_t buflen) {
@@ -76,7 +76,7 @@ static int makedirs(std::string &name) {
     errmgsbuf[0]=0; errmsg=errmgsbuf;
     strerror_r(errno,errmgsbuf,sizeof(errmgsbuf));
 #endif
-    olog<<"mkdir failed: "<<errmsg<<std::endl;
+    logger.msg(Arc::ERROR, "mkdir failed: %s", errmsg);
     return 1;
   };
   return 0;
@@ -107,14 +107,14 @@ GACLPlugin::GACLPlugin(std::istream &cfile,userspec_t &u) {
     const char* p = line.c_str();
     for(;*p;) if(!isspace(*p)) break;
     if(!*p) {
-      olog<<"Error: empty root directory for GACL plugin"<<std::endl;
+      logger.msg(Arc::ERROR, "Empty root directory for GACL plugin");
       return;
     };
     if((strncmp("gacl ",p,5) != 0) &&
        (strncmp("mount ",p,6) != 0)) {
       gridftpd::make_unescaped_string(line);
       if((line.length() == 0) || (line == "end")) {
-        olog<<"Error: empty root directory for GACL plugin"<<std::endl;
+        logger.msg(Arc::ERROR, "Empty root directory for GACL plugin");
         return;
       };
       basepath=line;
@@ -148,19 +148,19 @@ GACLPlugin::GACLPlugin(std::istream &cfile,userspec_t &u) {
         line = gridftpd::config_read_line(cfile);
       };
       if(basepath.length() == 0) {
-        olog<<"Error: empty root directory for GACL plugin"<<std::endl;
+        logger.msg(Arc::ERROR, "Empty root directory for GACL plugin");
         return;
       };
     };
   };
   if(basepath.length() == 0) {
-    olog<<"Error: empty root directory for GACL plugin"<<std::endl;
+    logger.msg(Arc::ERROR, "Empty root directory for GACL plugin");
     return;
   };
   if(xml.length()) {
     acl=GACLacquireAcl(xml.c_str());
     if(acl == NULL) {
-      olog<<"Error: failed to parse default GACL document"<<std::endl;
+      logger.msg(Arc::ERROR, "Failed to parse default GACL document");
     };
   };
   {
@@ -169,12 +169,12 @@ GACLPlugin::GACLPlugin(std::istream &cfile,userspec_t &u) {
     if((stat(fname.c_str(),&st) != 0) || (!S_ISREG(st.st_mode))) {
       /* There is no top-level .gacl file - create one */
       if(makedirs(basepath) != 0) {
-        olog << "Warning: mount point " << basepath << " creation failed." << std::endl;
+        logger.msg(Arc::WARNING, "Mount point %s creation failed.", basepath);
       } else {
         unlink(fname.c_str());
         int h = ::open(fname.c_str(),O_WRONLY | O_CREAT | O_EXCL,S_IRUSR | S_IWUSR);
         if(h == -1) {
-          olog << "Warning: creation of top level ACL " << fname << " failed." << std::endl;
+          logger.msg(Arc::WARNING, "Creation of top level ACL %s failed.", fname);
         } else {
           ::write(h,default_top_gacl,strlen(default_top_gacl));
           ::close(h);
@@ -257,7 +257,7 @@ int GACLPlugin::removefile(std::string &name) {
 int GACLPlugin::makedir(std::string &name) {
   std::string dname=basepath;
   if(makedirs(dname) != 0) { /* can't make mount point */
-    olog << "Warning: mount point " << dname << " creation failed." << std::endl;
+    logger.msg(Arc::WARNING, "Mount point %s creation failed.", dname);
     return 1; 
   };
   std::string dirname = basepath+"/"+name;
@@ -307,7 +307,7 @@ int GACLPlugin::makedir(std::string &name) {
 }
 
 int GACLPlugin::open(const char* name,open_modes mode,unsigned long long int size) {
-  olog<<"plugin(gacl): open: "<<name<<std::endl;
+  logger.msg(Arc::VERBOSE, "plugin(gacl): open: %s", name);
   file_mode=file_access_none;
   std::string filename = basepath+"/"+name;
   std::string dname=name; if(!remove_last_name(dname)) { return 1; };
@@ -382,7 +382,7 @@ int GACLPlugin::open(const char* name,open_modes mode,unsigned long long int siz
             struct statfs dst;
             if(statfs((char*)(filename.c_str()),&dst) == 0) {
               if(size > ((dst.f_bfree*dst.f_bsize) + st.st_size)) {
-                olog<<"Not enough space to store file"<<std::endl;
+                logger.msg(Arc::ERROR, "Not enough space to store file");
                 return 1;
               };
             };
@@ -409,7 +409,7 @@ int GACLPlugin::open(const char* name,open_modes mode,unsigned long long int siz
           struct statfs dst;
           if(statfs((char*)(filename.c_str()),&dst) == 0) {
             if(size > (dst.f_bfree*dst.f_bsize)) {
-              olog<<"Not enough space to store file"<<std::endl;
+              logger.msg(Arc::ERROR, "Not enough space to store file");
               return 1;
             };
           };
@@ -424,7 +424,7 @@ int GACLPlugin::open(const char* name,open_modes mode,unsigned long long int siz
     };
   }
   else {
-    olog << "Warning: unknown open mode " << mode << std::endl;
+    logger.msg(Arc::WARNING, "Unknown open mode %s", mode);
     return 1;
   };
   return 1;
@@ -451,19 +451,19 @@ int GACLPlugin::close(bool eof) {
         };
         GACLacl* acl = GACLacquireAcl(acl_buf);
         if(acl == NULL) {
-          olog<<"Error: failed to parse GACL"<<std::endl;
+          logger.msg(Arc::ERROR, "Failed to parse GACL");
           error_description="This ACL could not be interpreted.";
           return 1;
         };
         std::list<std::string> identities;
         GACLextractAdmin(acl,identities);
         if(identities.size() == 0) {
-          olog<<"Error: GACL without </admin> is not allowed"<<std::endl;
+          logger.msg(Arc::ERROR, "GACL without </admin> is not allowed");
           error_description="This ACL has no admin access defined.";
           return 1;
         };
         if(!GACLsaveAcl((char*)(gname.c_str()),acl)) {
-          olog<<"Error: failed to save GACL"<<std::endl;
+          logger.msg(Arc::ERROR, "Failed to save GACL");
           GACLfreeAcl(acl);
           return 1;
         };
@@ -516,7 +516,7 @@ int GACLPlugin::read(unsigned char *buf,unsigned long long int offset,unsigned l
     (*size)=0; return 0; /* can't read anymore */
   };
   if((l=::read(data_file,buf,(*size))) == -1) {
-    olog <<"Warning: error while reading file"<<std::endl;
+    logger.msg(Arc::WARNING, "Error while reading file");
     (*size)=0; return 1;
   };
   (*size)=l;
@@ -532,7 +532,7 @@ int GACLPlugin::write(unsigned char *buf,unsigned long long int offset,unsigned 
   };
   ssize_t l;
   size_t ll;
-//  olog << "plugin: write\n";
+  logger.msg(Arc::VERBOSE, "plugin: write");
   if(data_file == -1) return 1;
   if(lseek(data_file,offset,SEEK_SET) != offset) {
     perror("lseek");
@@ -543,7 +543,7 @@ int GACLPlugin::write(unsigned char *buf,unsigned long long int offset,unsigned 
       perror("write");
       return 1;
     };
-    if(l==0) olog << "Warning: zero bytes written to file" << std::endl;
+    if(l==0) logger.msg(Arc::WARNING, "Zero bytes written to file");
   };
   return 0;
 }

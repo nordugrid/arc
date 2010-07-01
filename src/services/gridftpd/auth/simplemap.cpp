@@ -8,9 +8,11 @@
 #include <dirent.h>
 #include <linux/limits.h>
 
+#include <arc/Logger.h>
+
 #include "simplemap.h"
 
-#define odlog(int) std::cerr
+static Arc::Logger logger(Arc::Logger::getRootLogger(),"SimpleMap");
 
 class FileLock {
  private:
@@ -52,12 +54,12 @@ SimpleMap::~SimpleMap(void) {
 }
 
 #define failure(S) { \
-  odlog(ERROR)<<"SimpleMap: "<<(S)<<std::endl; \
+  logger.msg(Arc::ERROR, "SimpleMap: %s", (S)); \
   return ""; \
 }
 
 #define info(S) { \
-  odlog(INFO)<<"SimpleMap: "<<(S)<<std::endl; \
+  logger.msg(Arc::INFO, "SimpleMap: %s", (S)); \
 }
 
 std::string SimpleMap::map(const char* subject) {

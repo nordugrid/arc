@@ -22,6 +22,7 @@ static char * strerror_r (int errnum, char * buf, size_t buflen) {
 }
 #endif
 
+static Arc::Logger logger(Arc::Logger::getRootLogger(),"DirectFilePlugin");
 
 static bool parse_id(std::string s,int &id,int base = 10) {
   if((s.length()==1) && (s[0] == '*')) { id=-1; return true; }
@@ -41,20 +42,20 @@ static bool parse_owner_rights(std::string &rest,int &uid,int &gid,int &orbits,i
   std::string owner = gridftpd::config_next_arg(rest);
   std::string acc_rights = gridftpd::config_next_arg(rest);
   if(acc_rights.length() == 0) {
-    olog << "Warning: can't parse access rights in configuration line" << std::endl;
+    logger.msg(Arc::WARNING, "Can't parse access rights in configuration line");
     return false;
   };
   std::string::size_type n;
   n=owner.find(':');
   if(n == std::string::npos) {
-    olog << "Warning: can't parse user:group in configuration line" << std::endl;
+    logger.msg(Arc::WARNING, "Can't parse user:group in configuration line");
     return false;
   };
   if(!parse_id(owner.substr(0,n),uid)) {
     /* not number, must be name */
     getpwnam_r(owner.substr(0,n).c_str(),&pw_,buf,BUFSIZ,&pw);
     if(pw == NULL) {
-      olog << "Warning: can't recognize user in configuration line" << std::endl;
+      logger.msg(Arc::WARNING, "Can't recognize user in configuration line");
       return false;
     };
     uid=pw->pw_uid;
@@ -63,26 +64,25 @@ static bool parse_owner_rights(std::string &rest,int &uid,int &gid,int &orbits,i
     /* not number, must be name */
     getgrnam_r(owner.substr(n+1).c_str(),&gr_,buf,BUFSIZ,&gr);
     if(gr == NULL) {
-      olog << "Warning: can't recognize group in configuration line" << std::endl;
+      logger.msg(Arc::WARNING, "Can't recognize group in configuration line");
       return false;
     };
     gid=gr->gr_gid;
   };
   n=acc_rights.find(':');
   if(n == std::string::npos) {
-    olog << "Warning: can't parse or:and in configuration line" << std::endl;
+    logger.msg(Arc::WARNING, "Can't parse or:and in configuration line");
     return false;
   };
   if((!parse_id(acc_rights.substr(0,n),orbits,8)) ||
      (!parse_id(acc_rights.substr(0,n),andbits,8))) {
-    olog << "Warning: can't parse or:and in configuration line" << std::endl;
+    logger.msg(Arc::WARNING, "Can't parse or:and in configuration line");
     return false;
   };
   return true;
 }
 
 DirectFilePlugin::DirectFilePlugin(std::istream &cfile,userspec_t &user) {
-//  olog << "DirectFilePlugin: constructor" << std::endl;
   data_file=-1;
   uid=user.get_uid();
   gid=user.get_gid();
@@ -103,11 +103,11 @@ DirectFilePlugin::DirectFilePlugin(std::istream &cfile,userspec_t &user) {
       rest=subst_user_spec(rest,&user);
       std::string dir = gridftpd::config_next_arg(rest);
       if(dir.length() == 0) {
-        olog << "Warning: can't parse configuration line" << std::endl;
+        logger.msg(Arc::WARNING, "Can't parse configuration line");
         continue;
       };
       if(gridftpd::canonical_dir(dir,false) != 0) {
-        olog << "Warning: bad directory name: " << dir << std::endl;
+        logger.msg(Arc::WARNING, "Bad directory name: %s", dir);
         continue;
       };
       for(;;) {
@@ -124,7 +124,7 @@ DirectFilePlugin::DirectFilePlugin(std::istream &cfile,userspec_t &user) {
           if(!parse_owner_rights(rest,
                  laccess.creat_uid,laccess.creat_gid,
                  laccess.creat_perm_or,laccess.creat_perm_and)) {
-             olog << "Warning: can't parse create arguments in configuration line" << std::endl;
+             logger.msg(Arc::WARNING, "Can't parse create arguments in configuration line");
              break;
           };
         }
@@ -133,7 +133,7 @@ DirectFilePlugin::DirectFilePlugin(std::istream &cfile,userspec_t &user) {
           if(!parse_owner_rights(rest,
                  laccess.mkdir_uid,laccess.mkdir_gid,
                  laccess.mkdir_perm_or,laccess.mkdir_perm_and)) {
-             olog << "Warning: can't parse mkdir arguments in configuration line" << std::endl;
+             logger.msg(Arc::WARNING, "Can't parse mkdir arguments in configuration line");
              break;
           }; 
         }
@@ -150,12 +150,11 @@ DirectFilePlugin::DirectFilePlugin(std::istream &cfile,userspec_t &user) {
           laccess.access=DirectAccess::local_none_access;
         }
         else {
-          olog << "Warning: bad subcommand in configuration line: " << subcommand << std::endl;
+          logger.msg(Arc::WARNING, "Bad subcommand in configuration line: %s", subcommand);
           continue;
         };
       };
       if(parsed_line) {
-        //olog << "DirectFileAccess: adding directory " << dir << std::endl;
         access.push_back(DirectAccess(dir,laccess));
       };
     }
@@ -163,21 +162,18 @@ DirectFilePlugin::DirectFilePlugin(std::istream &cfile,userspec_t &user) {
       rest=subst_user_spec(rest,&user);
       mount=gridftpd::config_next_arg(rest);
       if((mount.length() == 0) || (gridftpd::canonical_dir(mount,false) != 0)) {
-        olog << "Warning: bad mount directory specified" << std::endl;
+        logger.msg(Arc::WARNING, "Bad mount directory specified");
       };
-      olog << "Mount point " << mount << std::endl;
+      logger.msg(Arc::INFO, "Mount point %s", mount);
     }
     else if(command == "end") {
       break; /* end of section */
     }
     else {
-      olog << "Warning: unsupported configuration command: " << command << std::endl;
+      logger.msg(Arc::WARNING, "Unsupported configuration command: %s", command);
     };
   };
   access.sort(DirectAccess::comp);
-//  for(std::list<DirectAccess>::iterator i=access.begin();i!=access.end();++i) {
-//    olog << "Access: " << (*i).name << " - " << (*i).access.dirlist << std::endl;
-//  };
   file_mode=file_access_none;
 }
 
@@ -209,7 +205,7 @@ int makedirs(std::string &name) {
     errmgsbuf[0]=0; errmsg=errmgsbuf;
     strerror_r(errno,errmgsbuf,sizeof(errmgsbuf));
 #endif
-    olog<<"mkdir failed: "<<errmsg<<std::endl;
+    logger.msg(Arc::ERROR, "mkdir failed: %s", errmsg);
     return 1; /* directory creation failed */
   };
   return 0;
@@ -220,7 +216,7 @@ int DirectFilePlugin::makedir(std::string &dname) {
   /* first check for mount point */
   std::string mname='/'+mount;
   if(makedirs(mname) != 0) { /* can't make mount point */
-    olog << "Warning: mount point " << mname << " creation failed." << std::endl;
+    logger.msg(Arc::WARNING, "Warning: mount point %s creation failed.", mname);
     return 1; 
   };
   /* now go through rest of directories */
@@ -273,7 +269,7 @@ int DirectFilePlugin::makedir(std::string &dname) {
     errmgsbuf[0]=0; errmsg=errmgsbuf;
     strerror_r(errno,errmgsbuf,sizeof(errmgsbuf));
 #endif
-    olog<<"mkdir failed: "<<errmsg<<std::endl;
+    logger.msg(Arc::ERROR, "mkdir failed: %s", errmsg);
     return 1; /* directory creation failed */
   };
   return 0;
@@ -312,7 +308,7 @@ int DirectFilePlugin::removedir(std::string &dname) {
 }
 
 int DirectFilePlugin::open(const char* name,open_modes mode,unsigned long long int size) {
-  olog << "plugin: open: " << name << std::endl;
+  logger.msg(Arc::VERBOSE, "plugin: open: %s", name);
   std::string fname = real_name(name);
   if( mode == GRIDFTP_OPEN_RETRIEVE ) {  /* open for reading */
     std::list<DirectAccess>::iterator i=control_dir(name,true);
@@ -351,7 +347,7 @@ int DirectFilePlugin::open(const char* name,open_modes mode,unsigned long long i
               bool is_file_;
               i->unix_info(fname,uid_,gid_,size_,changed_,modified_,is_file_);
               if(size > ((dst.f_bfree*dst.f_bsize) + size_)) {
-                olog<<"Not enough space to store file"<<std::endl;
+                logger.msg(Arc::ERROR, "Not enough space to store file");
                 return 1;
               };
             };
@@ -382,7 +378,7 @@ int DirectFilePlugin::open(const char* name,open_modes mode,unsigned long long i
             struct statfs dst;
             if(statfs((char*)(fname.c_str()),&dst) == 0) {
               if(size > (dst.f_bfree*dst.f_bsize)) {
-                olog<<"Not enough space to store file"<<std::endl;
+                logger.msg(Arc::ERROR, "Not enough space to store file");
                 return 1;
               };
             };
@@ -395,14 +391,14 @@ int DirectFilePlugin::open(const char* name,open_modes mode,unsigned long long i
           uid_t u = i->access.creat_uid;
           gid_t g = i->access.creat_gid;
           if(u == ((uid_t)(-1))) u=uid; if(g == ((gid_t)(-1))) g=gid;
-// olog<<"open: changing owner for "<<fname<<" "<<u<<" "<<gid<<std::endl;
+          logger.msg(Arc::VERBOSE, "open: changing owner for %s, %i, %i", fname, u, gid);
           (void)chown(fname.c_str(),u,g);
           /* adjust permissions because open uses umask */
           (void)chmod(fname.c_str(),
                 i->access.creat_perm_or & i->access.creat_perm_and);
           struct stat st;
           stat(fname.c_str(),&st);
-// olog<<"open: owner: "<<st.st_uid<<" "<<st.st_gid<<std::endl;
+          logger.msg(Arc::VERBOSE, "open: owner: %i %i", st.st_uid, st.st_gid);
           file_mode=file_access_create;
           file_name=fname;
           return 0;
@@ -412,13 +408,13 @@ int DirectFilePlugin::open(const char* name,open_modes mode,unsigned long long i
     return 1;
   }
   else {
-    olog << "Warning: unknown open mode " << mode << std::endl;
+    logger.msg(Arc::WARNING, "Unknown open mode %s",  mode);
     return 1;
   };
 }
 
 int DirectFilePlugin::close(bool eof) {
-//  olog << "plugin: close\n";
+  logger.msg(Arc::VERBOSE, "plugin: close");
   if(data_file != -1) {
     if(eof) {
       ::close(data_file);
@@ -454,20 +450,20 @@ int DirectFilePlugin::open_direct(const char* name,open_modes mode) {
     return 0;
   }
   else {
-    olog << "Warning: unknown open mode " << mode << std::endl;
+    logger.msg(Arc::WARNING, "Unknown open mode %s",  mode);
     return 1;
   };
 }
 
 int DirectFilePlugin::read(unsigned char *buf,unsigned long long int offset,unsigned long long int *size) {
   ssize_t l;
-//  olog << "plugin: read\n";
+  logger.msg(Arc::VERBOSE, "plugin: read");
   if(data_file == -1) return 1;
   if(lseek(data_file,offset,SEEK_SET) != offset) {
     (*size)=0; return 0; /* can't read anymore */
   };
   if((l=::read(data_file,buf,(*size))) == -1) {
-    olog <<"Warning: error while reading file"<<std::endl;
+    logger.msg(Arc::WARNING, "Error while reading file");
     (*size)=0; return 1;
   };
   (*size)=l;
@@ -477,7 +473,7 @@ int DirectFilePlugin::read(unsigned char *buf,unsigned long long int offset,unsi
 int DirectFilePlugin::write(unsigned char *buf,unsigned long long int offset,unsigned long long int size) {
   ssize_t l;
   size_t ll;
-//  olog << "plugin: write\n";
+  logger.msg(Arc::VERBOSE, "plugin: write");
   if(data_file == -1) return 1;
   if(lseek(data_file,offset,SEEK_SET) != offset) {
     perror("lseek");
@@ -488,7 +484,7 @@ int DirectFilePlugin::write(unsigned char *buf,unsigned long long int offset,uns
       perror("write");
       return 1;
     };
-    if(l==0) olog << "Warning: zero bytes written to file" << std::endl;
+    if(l==0) logger.msg(Arc::WARNING, "Zero bytes written to file");
   };
   return 0;
 }
@@ -584,7 +580,6 @@ std::list<DirectAccess>::iterator DirectFilePlugin::control_dir(const char* name
   for(i=access.begin();i!=access.end();++i) {
     if(i->belongs(name,indir)) break;
   };
-// if(i!=access.end()) olog << "control_dir: is in: "<<i->name<<std::endl;
   return i;
 }
 
@@ -690,15 +685,15 @@ int DirectFilePlugin::readdir(const char* name,std::list<DirEntry> &dir_list,Dir
 
 /* checkdir is allowed to change dirname to show actual target of cd */
 int DirectFilePlugin::checkdir(std::string &dirname) {
-//  olog << "plugin: checkdir: " << dirname << std::endl;
+  logger.msg(Arc::VERBOSE, "plugin: checkdir: %s", dirname);
   std::list<DirectAccess>::iterator i=control_dir(dirname,false);
   if(i==access.end()) return 0; /* error ? */
-//  olog << "plugin: checkdir: access: " << (*i).name << std::endl;
+  logger.msg(Arc::VERBOSE, "plugin: checkdir: access: %s", (*i).name);
   std::string fname = real_name(dirname);
   if(i->access.cd) {
     int ur=(*i).unix_rights(fname,uid,gid);
     if((ur & S_IXUSR) && (ur & S_IFDIR)) {
-//  olog << "plugin: checkdir: access: allowed: " << fname << std::endl;
+  logger.msg(Arc::VERBOSE, "plugin: checkdir: access: allowed: %s", fname);
       return 0;
     };
   };

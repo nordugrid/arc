@@ -1,8 +1,10 @@
 #include <iostream>
 
+#include <arc/Logger.h>
+
 #include "util++.h"
 
-#define olog std::cerr
+static Arc::Logger logger(Arc::Logger::getRootLogger(),"GACLUtil");
 
 GACLperm GACLtestFileAclForVOMS(const char *filename,const AuthUser& user,bool gacl_itself) {
   char* gname;
@@ -16,7 +18,7 @@ GACLperm GACLtestFileAclForVOMS(const char *filename,const AuthUser& user,bool g
     if(gname == NULL) return GACL_PERM_NONE;
     if(lstat(gname,&st) == 0) {
       if(!S_ISREG(st.st_mode)) {
-        olog<<"GACL file "<<gname<<" is not an ordinary file"<<std::endl;
+        logger.msg(Arc::ERROR, "GACL file %s is not an ordinary file", gname);
         free(gname); return GACL_PERM_NONE;
       };
       acl=GACLloadAcl(gname);
@@ -27,7 +29,7 @@ GACLperm GACLtestFileAclForVOMS(const char *filename,const AuthUser& user,bool g
   } else {
     if(lstat(filename,&st) == 0) {
       if(!S_ISREG(st.st_mode)) {
-        olog<<"GACL file "<<filename<<" is not an ordinary file"<<std::endl;
+        logger.msg(Arc::ERROR, "GACL file %s is not an ordinary file", filename);
         return GACL_PERM_NONE;
       };
       acl=GACLloadAcl((char*)filename);
@@ -36,7 +38,7 @@ GACLperm GACLtestFileAclForVOMS(const char *filename,const AuthUser& user,bool g
     };
   };
   if(acl == NULL) {
-    olog<<"GACL description for file "<<filename<<" could not be loaded"<<std::endl;
+    logger.msg(Arc::ERROR, "GACL description for file %s could not be loaded", filename);
     return GACL_PERM_NONE;
   };
   perm=AuthUserGACLTest(acl,(AuthUser&)user);

@@ -3,15 +3,17 @@
 #include <globus_common.h>
 #include <globus_io.h>
 #include <globus_ftp_control.h>
+
 #include <arc/StringConv.h>
+#include <arc/Logger.h>
+
 #include "fileroot.h"
 #include "names.h"
 #include "commands.h"
 #include "misc/canonical_dir.h"
-//#include "../misc/log_time.h"
 #include "misc.h"
 
-#define oilog(int) std::cerr
+static Arc::Logger logger(Arc::Logger::getRootLogger(),"GridFTP_Commands");
 
 static std::string timetostring_rfc3659(time_t t) {
   struct tm tt;
@@ -94,7 +96,7 @@ void GridFTP_Commands::list_retrieve_callback(void* arg,globus_ftp_control_handl
     it->virt_offset=0;
     it->transfer_mode=false;
     it->free_data_buffer();
-    oilog(it->log_id)<<"Closing channel (list)\n";
+    logger.msg(Arc::INFO, "Closing channel (list)");
     it->send_response("226 Transfer completed.\r\n");
     globus_mutex_unlock(&(it->data_lock));
     return;
@@ -110,7 +112,6 @@ void GridFTP_Commands::list_retrieve_callback(void* arg,globus_ftp_control_handl
                         it->list_name_prefix.c_str());
     eodf=GLOBUS_FALSE;
   };
-//  oilog(it->log_id)<<"Data channel (list) "<<(int)(it->list_offset)<<" "<<(int)eodf<<endl;
   globus_result_t res;
   res=globus_ftp_control_data_write(&(it->handle),
                    (globus_byte_t*)(it->data_buffer[0].data),
@@ -151,7 +152,7 @@ void GridFTP_Commands::list_connect_retrieve_callback(void* arg,globus_ftp_contr
     eodf=GLOBUS_FALSE;
   };
   it->list_offset = 0;
-  oilog(it->log_id)<<"Data channel connected (list)\n";
+  logger.msg(Arc::INFO, "Data channel connected (list)");
   globus_ftp_control_local_send_eof(&(it->handle),GLOBUS_TRUE);
   globus_result_t res;
   res=globus_ftp_control_data_write(&(it->handle),

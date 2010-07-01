@@ -31,9 +31,10 @@
 #define _(A) (A)
 #endif
 
-#define notify(int) std::cerr
 
 namespace gridftpd {
+
+  static Arc::Logger logger(Arc::Logger::getRootLogger(),"LdapQuery");
 
   class sigpipe_ingore {
     public:
@@ -135,7 +136,7 @@ namespace gridftpd {
     sasl_defaults *   defaults = (sasl_defaults *)   defaults_;
 
     if (flags == LDAP_SASL_INTERACTIVE) {
-      notify(VERBOSE) << _("SASL Interaction") << std::endl;
+      logger.msg(Arc::VERBOSE, _("SASL Interaction"));
     }
 
     while (interact->id != SASL_CB_LIST_END) {
@@ -179,12 +180,10 @@ namespace gridftpd {
         if (flags == LDAP_SASL_QUIET) return 1;
 
         if (challenge && interact->challenge)
-          notify(VERBOSE) << _("Challenge") << ": "
-                          << interact->challenge << std::endl;
+          logger.msg(Arc::VERBOSE "%s: %s", _("Challenge"), interact->challenge);
 
         if (interact->defresult)
-          notify(VERBOSE) << _("Default") << ": " << interact->defresult
-                        << std::endl;
+          logger.msg(Arc::VERBOSE "%s: %s", _("Default"), interact->defresult);
 
         std::string prompt;
         std::string input;
@@ -251,8 +250,7 @@ namespace gridftpd {
 
     const int version = LDAP_VERSION3;
 
-    notify(DEBUG) << _("LdapQuery: Initializing connection to") << ": "
-                  << host << ":" << port << std::endl;
+    logger.msg(Arc::VERBOSE, "%s: %s:%i", _("LdapQuery: Initializing connection to"), host, port);
 
     if (connection)
       throw LdapQueryError(
@@ -346,8 +344,8 @@ namespace gridftpd {
     else {
   #if defined(HAVE_SASL_H) || defined(HAVE_SASL_SASL_H)
       int ldapflag = LDAP_SASL_QUIET;
-      //if (GetNotifyLevel() >= DEBUG)
-      //  ldapflag = LDAP_SASL_AUTOMATIC;
+      if (logger.getThreshold() <= Arc::VERBOSE)
+        ldapflag = LDAP_SASL_AUTOMATIC;
       sasl_defaults defaults = sasl_defaults (arg->connection,
                                               SASLMECH,
                                               "",
@@ -389,16 +387,16 @@ namespace gridftpd {
 
     Connect();
 
-    notify(DEBUG) << _("LdapQuery: Querying") << " " << host << std::endl;
+    logger.msg(Arc::VERBOSE, "%s %s", _("LdapQuery: Querying"), host);
 
-    notify(VERBOSE) << "  " << _("base dn") << ": " << base << std::endl;
+    logger.msg(Arc::VERBOSE, "%s: %s", _("base dn"), base);
     if (!filter.empty())
-      notify(VERBOSE) << "  " << _("filter") << ": " << filter << std::endl;
+      logger.msg(Arc::VERBOSE, "  %s: %s", _("filter"), filter);
     if (!attributes.empty()) {
-      notify(VERBOSE) << "  " << _("attributes") << ":" << std::endl;
+      logger.msg(Arc::VERBOSE, "  %s:", _("attributes"));
       for (std::vector<std::string>::const_iterator vs = attributes.begin();
            vs != attributes.end(); vs++)
-        notify(VERBOSE) << "    " << *vs << std::endl;
+        logger.msg(Arc::VERBOSE, "    %s", *vs);
     }
 
     timeval tout;
@@ -467,8 +465,7 @@ namespace gridftpd {
 
   void LdapQuery::HandleResult(ldap_callback callback, void* ref) {
 
-    notify(DEBUG) << _("LdapQuery: Getting results from") << " " << host
-                  << std::endl;
+    logger.msg(Arc::VERBOSE, "%s %s", _("LdapQuery: Getting results from"), host);
 
     if (!messageid)
       throw LdapQueryError(
@@ -618,7 +615,7 @@ namespace gridftpd {
       pthread_mutex_unlock(&plq->lock);
     } catch (LdapQueryError e) {
       pthread_mutex_unlock(&plq->lock);
-      notify(DEBUG) << _("Warning") << ": " << e.what() << std::endl;
+      logger.msg(Arc::VERBOSE, "%s: %s", _("Warning"), e.what());
       pthread_exit(NULL);
     }
 
@@ -627,7 +624,7 @@ namespace gridftpd {
     try {
       ldapq.Result(plq->callback, plq->object);
     } catch (LdapQueryError e) {
-      notify(DEBUG) << _("Warning") << ": " << e.what() << std::endl;
+      logger.msg(Arc::VERBOSE, "%s: %s", _("Warning"), e.what());
     }
 
     pthread_mutex_unlock(&plq->lock);

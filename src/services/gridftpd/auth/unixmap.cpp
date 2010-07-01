@@ -1,13 +1,15 @@
 #include <fstream>
 #include <iostream>
 
+#include <arc/Logger.h>
+
 #include "../run/run_plugin.h"
 #include "../misc/escaped.h"
 #include "simplemap.h"
 
 #include "unixmap.h"
 
-#define odlog(int) std::cerr
+static Arc::Logger logger(Arc::Logger::getRootLogger(),"UnixMap");
 
 UnixMap::source_t UnixMap::sources[] = {
   { "mapfile", &UnixMap::map_mapfile, NULL },
@@ -178,7 +180,7 @@ bool UnixMap::map_mapfile(const AuthUser& user,unix_user_t& unix_user,const char
   std::ifstream f(line);
   if(user.DN()[0] == 0) return false;
   if(!f.is_open() ) {
-    odlog(ERROR)<<"Mapfile at "<<line<<" can't be open."<<std::endl;
+    logger.msg(Arc::ERROR, "Mapfile at %s can't be opened.", line);
     return false;
   };
   for(;!f.eof();) {
@@ -204,7 +206,7 @@ bool UnixMap::map_simplepool(const AuthUser& user,unix_user_t& unix_user,const c
   if(user.DN()[0] == 0) return false;
   SimpleMap pool(line);
   if(!pool) {
-    odlog(ERROR)<<"User pool at "<<line<<" can't be open."<<std::endl;
+    logger.msg(Arc::ERROR, "User pool at %s can't be opened.", line);
     return false;
   };
   unix_user.name=pool.map(user.DN());

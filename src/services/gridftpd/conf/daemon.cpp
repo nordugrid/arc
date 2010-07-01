@@ -8,15 +8,18 @@
 #include <fcntl.h>
 #include <pwd.h>
 #include <grp.h>
+
+#include <arc/Logger.h>
+
 #include "conf.h"
 #include "environment.h"
 
-
 #include "daemon.h"
 
-#define olog std::cerr
 
 namespace gridftpd {
+
+  static Arc::Logger logger(Arc::Logger::getRootLogger(),"Daemon");
 
   Daemon::Daemon(void):logfile_(""),logsize_(0),lognum_(5),uid_((uid_t)(-1)),gid_((gid_t)(-1)),daemon_(true),pidfile_(""),debug_(-1) {
   }
@@ -43,7 +46,7 @@ namespace gridftpd {
           char buf[BUFSIZ];
           getpwnam_r(username.c_str(),&pw_,buf,BUFSIZ,&pw);
           if(pw == NULL) {
-            olog<<"No such user: "<<username<<std::endl;
+            logger.msg(Arc::ERROR, "No such user: %s", username);
             uid_=0; gid_=0; return -1;
           };
           uid_=pw->pw_uid;
@@ -55,7 +58,7 @@ namespace gridftpd {
           char buf[BUFSIZ];
           getgrnam_r(groupname.c_str(),&gr_,buf,BUFSIZ,&gr);
           if(gr == NULL) {
-            olog<<"No such group: "<<groupname<<std::endl;
+            logger.msg(Arc::ERROR, "No such group: %s", groupname);
             gid_=0; return -1;
           };
           gid_=gr->gr_gid;
@@ -68,7 +71,7 @@ namespace gridftpd {
         char* p;
         debug_ = strtol(optarg,&p,10);
         if(((*p) != 0) || (debug_<0)) {
-          olog<<"Improper debug level '"<<optarg<<"'"<<std::endl;
+          logger.msg(Arc::ERROR, "Improper debug level '%s'", optarg);
           return 1;
         };
       }; break;
@@ -100,12 +103,12 @@ namespace gridftpd {
       if(daemon_) {
         std::string arg = config_next_arg(rest);
         if(arg=="") {
-          olog<<"Missing option for command daemon"<<std::endl;
+          logger.msg(Arc::ERROR, "Missing option for command daemon");
           return -1;
         };
         if(strcasecmp("yes",arg.c_str()) == 0) { daemon_=true; }
         else if(strcasecmp("no",arg.c_str()) == 0) { daemon_=false; }
-        else { olog<<"Wrong option in daemon"<<std::endl; return -1; };
+        else { logger.msg(Arc::ERROR, "Wrong option in daemon"); return -1; };
       };
     } else if(cmd == "logfile") {
       if(logfile_.length() == 0) logfile_=config_next_arg(rest);
@@ -115,7 +118,7 @@ namespace gridftpd {
         logsize_ = strtol(rest.c_str(),&p,10);
         if(logsize_ < 0) {
           logsize_=0;
-          olog<<"Improper size of log '"<<rest<<"'"<<std::endl;
+          logger.msg(Arc::ERROR, "Improper size of log '%s'", rest);
           return -1;
         };
         if((*p) == ' ') {
@@ -124,13 +127,13 @@ namespace gridftpd {
             lognum_ = strtol(p,&p,10);
             if(lognum_ < 0) {
               logsize_=0; lognum_=0;
-              olog<<"Improper number of logs '"<<rest<<"'"<<std::endl;
+              logger.msg(Arc::ERROR, "Improper number of logs '%s'", rest);
               return -1;
             };
           };
         } else if((*p) != 0) {
           logsize_=0; lognum_=0;
-          olog<<"Improper argument for logsize '"<<rest<<"'"<<std::endl;
+          logger.msg(Arc::ERROR, "Improper argument for logsize '%s'", rest);
           return -1;
         };
       };
@@ -147,7 +150,7 @@ namespace gridftpd {
           getpwnam_r(username.c_str(),&pw_,buf,BUFSIZ,&pw);
 
           if(pw == NULL) {
-            olog<<"No such user: "<<username<<std::endl;
+            logger.msg(Arc::ERROR, "No such user: %s", username);
             uid_=0; gid_=0; return -1;
           };
           uid_=pw->pw_uid;
@@ -159,7 +162,7 @@ namespace gridftpd {
           char buf[BUFSIZ];
           getgrnam_r(groupname.c_str(),&gr_,buf,BUFSIZ,&gr);
           if(gr == NULL) {
-            olog<<"No such group: "<<groupname<<std::endl;
+            logger.msg(Arc::ERROR, "No such group: %s", groupname);
             gid_=0; return -1;
           };
           gid_=gr->gr_gid;
@@ -172,7 +175,7 @@ namespace gridftpd {
         char* p;
         debug_ = strtol(rest.c_str(),&p,10);
         if(((*p) != 0) || (debug_<0)) {
-          olog<<"Improper debug level '"<<rest<<"'"<<std::endl;
+          logger.msg(Arc::ERROR, "Improper debug level '%s'", rest);
           return -1;
         };
       };

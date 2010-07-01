@@ -17,11 +17,12 @@
 #include "../conf/conf.h"
 #include "run.h"
 
-#define olog std::cerr
 
 extern char** environ;
 
 namespace gridftpd {
+
+  static Arc::Logger logger(Arc::Logger::getRootLogger(),"Run");
 
   bool Run::hup_detected = false;
   bool Run::int_detected = false;
@@ -109,7 +110,7 @@ namespace gridftpd {
       act.sa_flags=SA_NOCLDSTOP | SA_SIGINFO;
       if(sigaction(SIGCHLD,&act,&old_sig_chld) == -1) {
         pthread_mutex_unlock(&list_lock);
-        olog << "Failed setting signal handler for SIGHUP" << std::endl; return false;
+        logger.msg(Arc::ERROR, "Failed setting signal handler for SIGHUP"); return false;
       };
       old_sig_chld_inited=true;
     };
@@ -119,7 +120,7 @@ namespace gridftpd {
       act.sa_flags=SA_SIGINFO;
       if(sigaction(SIGHUP,&act,&old_sig_hup) == -1) {
         pthread_mutex_unlock(&list_lock);
-        olog << "Failed setting signal handler for SIGCHLD" << std::endl; return false;
+        logger.msg(Arc::ERROR, "Failed setting signal handler for SIGCHLD"); return false;
       };
       old_sig_hup_inited=true;
     };
@@ -129,7 +130,7 @@ namespace gridftpd {
       act.sa_flags=SA_SIGINFO;
       if(sigaction(SIGTERM,&act,&old_sig_hup) == -1) {
         pthread_mutex_unlock(&list_lock);
-        olog << "Failed setting signal handler for SIGTERM" << std::endl; return false;
+        logger.msg(Arc::ERROR, "Failed setting signal handler for SIGTERM"); return false;
       };
       old_sig_term_inited=true;
     };
@@ -139,14 +140,14 @@ namespace gridftpd {
       act.sa_flags=SA_SIGINFO;
       if(sigaction(SIGINT,&act,&old_sig_int) == -1) {
         pthread_mutex_unlock(&list_lock);
-        olog << "Failed setting signal handler for SIGINT" << std::endl; return false;
+        logger.msg(Arc::ERROR, "Failed setting signal handler for SIGINT"); return false;
       };
       old_sig_int_inited=true;
     };
     if(!handler_thread_inited) {
   #ifndef NONPOSIX_SIGNALS_IN_THREADS
       if(pthread_create(&handler_thread,NULL,&signal_handler,this) != 0) {
-        olog << "Failed to create thread for handling signals"<<std::endl;
+        logger.msg(Arc::ERROR, "Failed to create thread for handling signals");
       };
   #endif
       handler_thread_inited=true;
@@ -241,7 +242,6 @@ namespace gridftpd {
   void Run::sig_hup(int signum,siginfo_t *info,void* arg) {
     hup_detected = true;
     if(cond) { pthread_cond_signal(cond); };
-  //  else { olog << "Warning: sleep condition is undefined" << endl; };
     /* assuming that with SA_SIGINFO always come proper handler */
     /* Disable chain of handlers - more race auditing needed
     if(old_sig_hup_inited) {
@@ -359,7 +359,7 @@ namespace gridftpd {
   bool Run::plain_run_redirected(char *const args[],int din,int dout,int derr,int& timeout,int* result) {
     RunElement* re = add_handled();
     if(re == NULL) {
-      olog << "Failure creating slot for child process." << std::endl;
+      logger.msg(Arc::ERROR, "Failure creating slot for child process.");
       return false;
     };
     block();
@@ -369,7 +369,7 @@ namespace gridftpd {
     if((*p_pid)==-1) {
       unblock();
       // { sigset_t sig; sigemptyset(&sig); sigaddset(&sig,SIGCHLD); if(sigprocmask(SIG_UNBLOCK,&sig,NULL)) perror("sigprocmask"); };
-      olog << "Failure forking child process." << std::endl;
+      logger.msg(Arc::ERROR, "Failure forking child process.");
       release(re);
       return false;
     };
@@ -383,7 +383,7 @@ namespace gridftpd {
       while(re->get_pid() != -1) {
         ct=time(NULL);
         if(ct>=lt) {
-          olog << "Timeout waiting for child to finish"<< std::endl;
+          logger.msg(Arc::ERROR, "Timeout waiting for child to finish");
           re->kill(); release(re); timeout=-1;
           return false;
         };
@@ -424,14 +424,14 @@ namespace gridftpd {
     /* run executable */
     execv(args[0],args);
     perror("execv");
-    std::cerr<<"Failed to start external program: "<<args[0]<<std::endl;
+    logger.msg(Arc::ERROR, " Failed to start external program: %s", args[0]);
     exit(1);
   }
 
   bool Run::plain_run_piped(char *const args[],const std::string *Din,std::string *Dout,std::string *Derr,int& timeout,int* result) {
     int p[2];
     if(access(args[0], X_OK) == -1) {
-      olog<<"Run: "<<strerror(errno)<<": "<<args[0]<<std::endl;
+      logger.msg(Arc::ERROR, "Run: %s: %s", strerror(errno), args[0]);
     }
     // establsh pipes and/or handles
     int din = -1;
@@ -456,7 +456,7 @@ namespace gridftpd {
       derr_=open("/dev/null",O_WRONLY);
     };
     if((din_==-1) || (dout_==-1) || (derr_==-1)) {
-      olog << "Failure opening pipes." << std::endl;
+      logger.msg(Arc::ERROR, "Failure opening pipes.");
       if(din != -1) close(din);   if(din_ != -1) close(din_);
       if(dout != -1) close(dout); if(dout_ != -1) close(dout_);
       if(derr != -1) close(derr); if(derr_ != -1) close(derr_);
@@ -465,7 +465,7 @@ namespace gridftpd {
     /* create slot */
     RunElement* re = add_handled();
     if(re == NULL) {
-      olog << "Failure creating slot for child process." << std::endl;
+      logger.msg(Arc::ERROR, "Failure creating slot for child process.");
       if(din != -1) close(din);   if(din_ != -1) close(din_);
       if(dout != -1) close(dout); if(dout_ != -1) close(dout_);
       if(derr != -1) close(derr); if(derr_ != -1) close(derr_);
@@ -478,7 +478,7 @@ namespace gridftpd {
     if((*p_pid)==-1) {
       unblock();
       // { sigset_t sig; sigemptyset(&sig); sigaddset(&sig,SIGCHLD); if(sigprocmask(SIG_UNBLOCK,&sig,NULL)) perror("sigprocmask"); };
-      olog << "Failure forking child process." << std::endl;
+      logger.msg(Arc::ERROR, "Failure forking child process.");
       release(re);
       if(din != -1) close(din);   if(din_ != -1) close(din_);
       if(dout != -1) close(dout); if(dout_ != -1) close(dout_);
@@ -505,7 +505,7 @@ namespace gridftpd {
           to.tv_usec=0; to.tv_sec=lt-ct;
           int n = select(sdmax+1,&sdin,&sdout,&sderr,&to);
           if(n==0) { // timeout
-            olog << "Timeout waiting for child to finish"<< std::endl;
+            logger.msg(Arc::ERROR, "Timeout waiting for child to finish");
             if(dout!=-1) { close(dout); dout=-1; };
             if(derr!=-1) { close(derr); derr=-1; };
             re->kill(); release(re); timeout=-1;
@@ -526,7 +526,7 @@ namespace gridftpd {
           if((dout==-1) && (derr==-1)) break;
           ct=time(NULL);
           if(ct>=lt) { // timeout
-            olog << "Timeout waiting for child to finish"<< std::endl;
+            logger.msg(Arc::ERROR, "Timeout waiting for child to finish");
             if(dout!=-1) { close(dout); dout=-1; };
             if(derr!=-1) { close(derr); derr=-1; };
             re->kill(); release(re); timeout=-1;
@@ -538,7 +538,7 @@ namespace gridftpd {
       while(re->get_pid() != -1) {
         ct=time(NULL);
         if(ct>=lt) {
-          olog << "Timeout waiting for child to finish"<< std::endl;
+          logger.msg(Arc::ERROR, "Timeout waiting for child to finish");
           re->kill(); release(re); timeout=-1;
           return false;
         };
@@ -571,7 +571,7 @@ namespace gridftpd {
     /* run executable */
     execv(args[0],args);
     perror("execv");
-    std::cerr<<Arc::TimeStamp(Arc::MDSTime)<<" Failed to start external program: "<<args[0]<<std::endl;
+    logger.msg(Arc::ERROR, " Failed to start external program: %s", args[0]);
     exit(1);
   }
 

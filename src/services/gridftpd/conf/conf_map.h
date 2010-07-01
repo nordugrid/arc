@@ -7,6 +7,8 @@
 
 namespace gridftpd {
 
+  class Logger;
+
   /*
     Look URLMap.h for functionality.
     This object automatically reads configuration file
@@ -16,6 +18,8 @@ namespace gridftpd {
    public:
     UrlMapConfig(GMEnvironment& env);
     ~UrlMapConfig(void);
+   private:
+    static Arc::Logger logger;
   };
 
 } // namespace gridftpd

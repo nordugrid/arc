@@ -2,6 +2,8 @@
 #include <vector>
 
 #include <arc/URL.h>
+#include <arc/Logger.h>
+
 #include "../misc/ldapquery.h"
 #include "../misc/escaped.h"
 #include "auth.h"
@@ -9,7 +11,8 @@
 #define LDAP_CONNECT_TIMEOUT 10
 #define LDAP_QUERY_TIMEOUT 20
 #define LDAP_RESULT_TIMEOUT 60
-#define olog std::cerr
+
+static Arc::Logger logger(Arc::Logger::getRootLogger(),"AuthUserLDAP");
 
 class result_t {
  public:
@@ -43,20 +46,20 @@ int AuthUser::match_ldap(const char* line) {
       if(url.Protocol() != "ldap") return AAA_FAILURE;
       std::string usersn("");
       gridftpd::LdapQuery ldap(url.Host(), url.Port(), false, usersn);
-      olog<<"Connecting to "<<url.Host()<<":"<<url.Port()<<std::endl;
-      olog<<"Quering at "<<url.Path()<<std::endl;
+      logger.msg(Arc::INFO, "Connecting to %s:%i", url.Host(), url.Port());
+      logger.msg(Arc::INFO, "Quering at %s", url.Path());
       std::vector<std::string> attrs; attrs.push_back("description");
       try {
         ldap.Query(url.Path(),"",attrs,gridftpd::LdapQuery::onelevel);
       } catch (gridftpd::LdapQueryError e) {
-        olog<<"Failed to query ldap server "<<u<<std::endl;
+        logger.msg(Arc::ERROR, "Failed to query ldap server %s", u);
         return AAA_FAILURE;
       };
       result_t r(subject.c_str());
       try {
         ldap.Result(&result_callback,&r) ;
       } catch (gridftpd::LdapQueryError e) {
-        olog<<"Failed to get results from ldap server "<<u<<std::endl;
+        logger.msg(Arc::ERROR, "Failed to get results from ldap server %s", u);
         return AAA_FAILURE;
       };
       if(r.decision==AAA_POSITIVE_MATCH) {  // just a placeholder
