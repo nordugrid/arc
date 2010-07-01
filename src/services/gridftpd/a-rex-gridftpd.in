@@ -65,7 +65,7 @@ if [ -f /etc/sysconfig/nordugrid ]; then
     . /etc/sysconfig/nordugrid
 fi
 
-prog=gridftpd
+prog=a-rex-gridftpd
 
 # GLOBUS_LOCATION
 GLOBUS_LOCATION=${GLOBUS_LOCATION:-@DEFAULT_GLOBUS_LOCATION@}
