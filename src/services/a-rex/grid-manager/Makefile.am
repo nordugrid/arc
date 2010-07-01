@@ -1,5 +1,7 @@
 if GRIDFTPD_SERVICE_ENABLED
+if XMLSEC_ENABLED
 JOBPLUGIN_DIR = jobplugin
+endif
 else
 JOBPLUGIN_DIR =
 endif
