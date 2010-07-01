@@ -666,7 +666,7 @@ namespace Arc {
         std::string action;
         if (!SingleValue(c, action))
           return false;
-        if (action != "request" && action != "cancel" && action != "clean") {
+        if (action != "request" && action != "cancel" && action != "clean" && action != "renew" && action != "restart") {
           logger.msg(VERBOSE, "Invalid action value %s", action);
           return false;
         }
