@@ -977,6 +977,8 @@ bool configure_serviced_users(Arc::XMLNode cfg,JobUsers &users,uid_t my_uid,cons
           make_escaped_string(control_dir_);
           cmd_+="/scan-"+default_lrms+"-job";
           make_escaped_string(cmd_);
+          cmd_+=" --config ";
+          cmd_+=users.Env().nordugrid_config_loc();
           cmd_+=" ";
           cmd_+=control_dir_;
           user->add_helper(cmd_);
