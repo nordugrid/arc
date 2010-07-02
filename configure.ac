@@ -99,6 +99,8 @@ enables_gridftpd_service=yes
 enables_compiler_service=yes
 enables_hopi_service=yes
 enables_isis_service=yes
+enables_ldap_service=yes
+enables_giis_service=yes
 enables_janitor_service=yes
 enables_paul_service=yes
 enables_sched_service=yes
@@ -126,6 +128,8 @@ enables_gridftpd_service=$enableval
 enables_compiler_service=$enableval
 enables_hopi_service=$enableval
 enables_isis_service=$enableval
+enables_ldap_service=$enableval
+enables_giis_service=$enableval
 enables_janitor_service=$enableval
 enables_paul_service=$enableval
 enables_sched_service=$enableval
@@ -179,6 +183,8 @@ enables_gridftpd_service=$enableval
 enables_compiler_service=$enableval
 enables_hopi_service=$enableval
 enables_isis_service=$enableval
+enables_ldap_service=$enableval
+enables_giis_service=$enableval
 enables_janitor_service=$enableval
 enables_paul_service=$enableval
 enables_sched_service=$enableval
@@ -1094,12 +1100,19 @@ AM_CONDITIONAL([XMLSEC_ENABLED], test x$XMLSEC_INSTALLED = xyes)
 
 enables_srm_dmc=no
 if test "$enables_hed" = "yes"; then
-if test "x$gsoap" = 'xyes'; then
-  if test ! "x$GLOBUS_IO_LIBS" = "x"; then
-    enables_srm_dmc=yes
+  if test "x$gsoap" = 'xyes'; then
+    if test ! "x$GLOBUS_IO_LIBS" = "x"; then
+      enables_srm_dmc=yes
+    fi
   fi
 fi
+
+if test "$enables_giis_service" = "yes"; then
+  if test "$enables_ldap_service" = "no"; then
+    enables_ldap_service="yes"
+  fi
 fi
+
 AM_CONDITIONAL([SRM_DMC_ENABLED],[test "x$enables_srm_dmc" = "xyes"])
 
 enables_gsi_mcc=no
@@ -1392,6 +1405,37 @@ if test "$enables_isis_service" = "yes"; then
 fi
 AC_MSG_NOTICE([ISIS service enabled: $enables_isis_service])
 AM_CONDITIONAL([ISIS_SERVICE_ENABLED],[test "x$enables_isis_service" = "xyes"])
+
+# LDAP service
+AC_ARG_ENABLE(ldap_service, AC_HELP_STRING([--disable-ldap-service], [disable building LDAP Infosystem Service]),
+  [enables_ldap_service=$enableval],[])
+if test "$enables_ldap_service" = "yes"; then
+  if test "x$WIN32" = "xyes" ; then
+    AC_MSG_NOTICE([LDAP infosystem can't be built for WIN32 environment - disabling])
+    enables_ldap_service="no"
+  fi
+fi
+
+AC_MSG_NOTICE([LDAP Infosystem service enabled: $enables_ldap_service])
+AM_CONDITIONAL([LDAP_SERVICE_ENABLED],[test "x$enables_ldap_service" = "xyes"])
+
+# GIIS service
+AC_ARG_ENABLE(giis_service, AC_HELP_STRING([--disable-giis-service], [disable building GIIS Service]),
+  [enables_giis_service=$enableval],[])
+if test "$enables_giis_service" = "yes"; then
+  if test "x$WIN32" = "xyes" ; then
+    AC_MSG_NOTICE([GIIS can't be built for WIN32 environment - disabling])
+    enables_giis_service="no"
+  fi
+fi
+if test "$enables_ldap_service" = "no"; then
+  if test "$enables_giis_service" = "yes"; then
+    enables_giis_service="no"
+    AC_MSG_NOTICE([WARNING: GIIS service can't be enabled without LDAP Infosys, disabling GIIS])
+  fi
+fi
+AC_MSG_NOTICE([GIIS service enabled: $enables_giis_service])
+AM_CONDITIONAL([GIIS_SERVICE_ENABLED],[test "x$enables_giis_service" = "xyes"])
 
 # Charon service
 AC_ARG_ENABLE(charon_service, AC_HELP_STRING([--disable-charon-service], [disable building Charon Service]),
@@ -1743,6 +1787,9 @@ AC_CONFIG_FILES([Makefile
                  src/services/a-rex/grid-manager/run/Makefile
                  src/services/a-rex/infoproviders/Makefile
                  src/services/a-rex/infoproviders/CEinfo.pl
+                 src/services/a-rex/infoproviders/qju.pl
+                 src/services/a-rex/infoproviders/cluster.pl
+                 src/services/a-rex/infoproviders/se.pl
                  src/services/a-rex/infoproviders/test/Makefile
                  src/services/a-rex/ldif/Makefile
                  src/services/a-rex/lrms/Makefile
@@ -1805,6 +1852,11 @@ AC_CONFIG_FILES([Makefile
                  src/services/arex2/Makefile
                  src/services/isis/Makefile
                  src/services/isis/schema/Makefile
+                 src/services/ldap-infosys/Makefile
+                 src/services/ldap-infosys/grid-infosys
+                 src/services/ldap-infosys/grid-infosys-bdii4
+                 src/services/ldap-infosys/grid-infosys-bdii5
+                 src/services/ldap-infosys/giis/Makefile
                  src/services/saml/Makefile
                  src/services/saml/schema/Makefile
                  src/services/slcs/Makefile
@@ -1978,6 +2030,8 @@ HED:                ${enables_hed}
 A-REX service:      ${enables_a_rex_service}
 GRIDFTPD service:   ${enables_gridftpd_service}
 ISIS service:       ${enables_isis_service}
+LDAP Info service:  ${enables_ldap_service}
+GIIS service:       ${enables_giis_service}
 CHARON service:     ${enables_charon_service}
 HOPI service:       ${enables_hopi_service}
 SCHED service:      ${enables_sched_service}

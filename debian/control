@@ -133,6 +133,31 @@ Description: ARC Isis service
  grants grid participants an increase in flexibility, robustness and it
  also offers easier configuration and self-healing capability.
 
+Package: nordugrid-arc-nox-ldap-infosys
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: ARC LDAP infosys service
+ The NorduGrid is a collaboration aiming at development, maintenance
+ and support of the free Grid middleware, known as the Advanced Resource
+ Connector (ARC).
+ .
+ This package contains the LDAP based information system for ARC.
+ This package is not self-contained. it should be pulled in by either
+ nordugrid-arc-nox-arex to be a part of a local information system or
+ by nordugrid-arc-nox-giis to be a part of a GIIS service.
+
+Package: nordugrid-arc-nox-giis
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, nordugrid-arc-ldap-infosys
+Description: ARC GIIS service
+ The NorduGrid is a collaboration aiming at development, maintenance
+ and support of the free Grid middleware, known as the Advanced Resource
+ Connector (ARC). 
+ .
+ The GIIS is the Information Index Service used by ARC, This service is
+ used to set up a ldap-based server that local information systems register
+ to.
+
 Package: nordugrid-arc-nox-compiler
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, nordugrid-arc-nox-hed
@@ -199,7 +224,7 @@ Provides: nordugrid-arc1-arex
 Replaces: nordugrid-arc1-arex (<< 1.0.0~)
 Conflicts: nordugrid-arc1-arex (<< 1.0.0~)
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, ${perl:Depends}, nordugrid-arc-nox-hed, nordugrid-arc-nox-plugins-base, libxml-simple-perl
+Depends: ${shlibs:Depends}, ${misc:Depends}, ${perl:Depends}, nordugrid-arc-nox-hed, nordugrid-arc-nox-ldap-infosys, nordugrid-arc-nox-plugins-base, libxml-simple-perl
 Description: ARC Remote EXecution service
  The NorduGrid is a collaboration aiming at development, maintenance
  and support of the free Grid middleware, known as the Advanced Resource

@@ -1,0 +1,1229 @@
+#!/usr/bin/perl
+
+use File::Basename;
+use Cwd;
+
+BEGIN {
+    my $oldcwd = getcwd();
+
+    my $basedir = dirname($0);
+    chdir $basedir or die "$basedir: $!";
+    $basedir = getcwd();
+
+    my $pkglibdir = $basedir.'/@pkglibdir_rel_to_pkglibexecdir@';
+    chdir $pkglibdir or die "$pkglibdir: $!";
+    $pkglibdir = getcwd();
+
+    chdir $oldcwd or die "$oldcwd: $!";
+
+    unshift @INC, $pkglibdir;
+}
+
+use Getopt::Long;
+use POSIX qw(ceil);
+use List::MoreUtils qw(uniq);
+use LogUtils ( 'start_logging', 'error', 'warning', 'debug' ); 
+use LRMS ( 'select_lrms',
+	   'cluster_info',
+	   'queue_info',
+	   'jobs_info',
+	   'users_info');
+use Shared ( 'print_ldif_data','post_process_config', 'get_gm_users', 'diskspace');
+use ConfigParser;
+use strict;
+
+# Constructs queueldif, userldif and jobldif for NorduGrid Information System
+#
+
+####################################################################
+# Full definitions of the infosys attributes are documented in
+# "The NorduGrid/ARC Information System", 2005-05-09.
+####################################################################
+
+####################################################################
+# The "output" or interface towards Grid Information system is
+# defined by elements in @qen, @jen and @uen arrays. The interface
+# towards LRMS is defined in %Shared::lrms_info hash
+####################################################################
+
+# From the queue
+my (@qen) = ('dn',
+	     'objectclass',
+	     'nordugrid-queue-name',
+	     'nordugrid-queue-status',
+	     'nordugrid-queue-comment',
+	     'nordugrid-queue-schedulingpolicy',
+	     'nordugrid-queue-homogeneity',
+	     'nordugrid-queue-nodecpu',
+	     'nordugrid-queue-nodememory',
+	     'nordugrid-queue-architecture',
+	     'nordugrid-queue-opsys',
+	     'nordugrid-queue-benchmark',
+	     'nordugrid-queue-maxrunning',
+	     'nordugrid-queue-maxqueuable',
+	     'nordugrid-queue-maxuserrun',
+	     'nordugrid-queue-maxcputime',
+	     'nordugrid-queue-maxtotalcputime',
+	     'nordugrid-queue-mincputime',
+	     'nordugrid-queue-defaultcputime',
+	     'nordugrid-queue-maxwalltime',
+	     'nordugrid-queue-minwalltime',
+	     'nordugrid-queue-defaultwalltime',
+	     'nordugrid-queue-running',
+	     'nordugrid-queue-gridrunning',
+	     'nordugrid-queue-localqueued',
+	     'nordugrid-queue-gridqueued',
+	     'nordugrid-queue-prelrmsqueued',
+	     'nordugrid-queue-totalcpus',
+	     'Mds-validfrom',
+	     'Mds-validto'
+	     );
+
+# Nordugrid info group
+my (@gen) = ('dn',
+	     'objectclass',
+	     'nordugrid-info-group-name',
+	     'Mds-validfrom',
+	     'Mds-validto');
+
+# From every job
+my (@jen) = ('dn',
+	     'objectclass',
+	     'nordugrid-job-globalid',
+	     'nordugrid-job-globalowner',
+	     'nordugrid-job-jobname',
+	     'nordugrid-job-execcluster',
+	     'nordugrid-job-execqueue',
+	     'nordugrid-job-executionnodes',
+	     'nordugrid-job-submissionui',
+	     'nordugrid-job-submissiontime',
+	     'nordugrid-job-sessiondirerasetime',
+	     'nordugrid-job-proxyexpirationtime',
+	     'nordugrid-job-completiontime',
+	     'nordugrid-job-runtimeenvironment',
+	     'nordugrid-job-gmlog',
+	     'nordugrid-job-clientsoftware',
+	     'nordugrid-job-stdout',
+	     'nordugrid-job-stderr',
+	     'nordugrid-job-stdin',
+	     'nordugrid-job-cpucount',
+	     'nordugrid-job-reqcputime',
+	     'nordugrid-job-reqwalltime',
+	     'nordugrid-job-queuerank',
+	     'nordugrid-job-comment',
+	     'nordugrid-job-usedcputime',
+	     'nordugrid-job-usedwalltime',
+	     'nordugrid-job-usedmem',
+	     'nordugrid-job-exitcode',
+	     'nordugrid-job-errors',
+	     'nordugrid-job-status',
+	     'nordugrid-job-rerunable',
+	     'Mds-validfrom',
+	     'Mds-validto');
+
+# From every user
+my (@uen) = ('dn',
+	     'objectclass',
+	     'nordugrid-authuser-name',
+	     'nordugrid-authuser-sn',
+	     'nordugrid-authuser-freecpus',
+	     'nordugrid-authuser-diskspace',
+	     'nordugrid-authuser-queuelength',
+	     'Mds-validfrom',
+	     'Mds-validto');
+
+########################################################
+# qju.pl's (internal) data structures
+########################################################
+
+my ($totaltime) = time;
+
+our ( %config, %gmusers, %gmjobs, %gm_queued, %users, %frontend_status,
+      $gridrunning, $gridqueued, $queue_pendingprelrms, $queue_prelrmsqueued );
+
+########################################################
+# qju.pl's subroutines
+########################################################
+
+sub sort_by_cn{
+    $a    =~ m/\/CN=([^\/]+)(\/Email)?/;
+    my ($cn_a) = $1;
+    $b    =~ m/\/CN=([^\/]+)(\/Email)?/;
+    my ($cn_b) = $1;	
+    $cn_a cmp $cn_b;
+}
+
+sub qju_parse_command_line_options() { 
+
+    # Config defaults
+
+    $config{ttl}                =  600;
+    $config{loglevel}           =  1;
+    $config{gm_mount_point}     = "/jobs";
+    $config{gm_port}            = 2811;
+    $config{homogeneity}        = "True";
+    $config{defaultttl}         = "604800";
+    $config{"x509_user_cert"}   = "/etc/grid-security/hostcert.pem";
+    $config{"x509_cert_dir"}    = "/etc/grid-security/certificates";
+    $config{ng_location}        = $ENV{NORDUGRID_LOCATION} ||= "@nordugrid_location@";
+    $config{gridmap} 	 = "/etc/grid-security/grid-mapfile";
+
+    my ($print_help);
+
+    #Command line option "queue" refers to queue block name, the name of
+    # the corresponding actual lrms queue is read into $config{name}
+
+    GetOptions("dn:s" => \$config{dn},	     	  
+	       "queue:s" => \$config{queue}, 
+	       "config:s" => \$config{conf_file}, 
+	       "valid-to:i" => \$config{ttl},   
+	       "loglevel:i" => \$config{loglevel},
+	       "help|h" => \$print_help   
+	       ); 
+ 
+    if ($print_help) { 
+	print "\n  
+		script usage: 
+		mandatory arguments: --dn
+		                     --queue
+		                     --config
+		
+		optional arguments:  --valid-to 
+		                     --loglevel
+		
+		this help:           --help
+		\n";
+	exit;
+    }
+
+
+
+    if (! ( $config{dn} and
+	    $config{queue} and
+	    $config{conf_file} ) ) {
+	error("a command line argument is missing, see --help ");
+    };
+}
+
+sub certs_valid {
+    my ($config) = @_;
+    my $hostcert = $config->{x509_user_cert};
+    my $certdir = $config->{x509_cert_dir};
+    error("Option x509_user_cert not set") unless $hostcert;
+
+    # find path to openssl
+    my $openssl_command = '';
+    my ($globus_location) ||= $ENV{GLOBUS_LOCATION} ||= "/usr";
+    for my $path (split ':', "$ENV{PATH}:$globus_location/bin") {
+        $openssl_command = "$path/openssl" and last if -x "$path/openssl";
+    }
+    error("Could not find openssl command") unless $openssl_command;
+
+    my $openssl_version=`$openssl_command version`;
+    my $issuerhash="";
+    if ( $openssl_version =~ "0.9.7" ) {
+        warning("Failed obtaining issuer_hash for '$hostcert', you need openssl 0.9.8 in order to report expired host certificates.");
+        return 1;
+    } else {
+        chomp ($issuerhash =`$openssl_command x509 -noout -issuer_hash -in $hostcert`);
+        if ($?) {
+            warning("Failed obtaining issuer_hash for '$hostcert'");
+            return 0;
+        }
+    }
+    `$openssl_command x509 -noout -checkend 60 -in $hostcert`;
+    if ($?) {
+        warning("Host certificate has expired");
+        return 0;
+    }
+
+    my $cacert = "$certdir/$issuerhash.0";
+    if (! -e "$cacert") {
+        warning("CA certificate not found at '$cacert'");
+        return 0;
+    }
+    `$openssl_command x509 -noout -in $cacert`;
+    if ($?) {
+        warning("Failed reading '$cacert' with openssl");
+        return 0;
+    }
+    `$openssl_command x509 -noout -checkend 60 -in $cacert`;
+    if ($?) {
+        warning("CA certificate has expired");
+        return 0;
+    }
+
+    return 1;
+}
+
+sub qju_read_conf_file () {
+
+    my ($cf) = $config{conf_file};
+
+    # Whole content of the config file
+    my $parser = ConfigParser->new($config{conf_file})
+        or die 'Cannot parse config file';
+
+    # Copy blocks that are relevant to qju.pl
+    %config = ( %config, $parser->get_section('common') );
+    %config = ( %config, $parser->get_section('grid-manager') );
+    %config = ( %config, $parser->get_section('gridftpd/jobs') );
+    %config = ( %config, $parser->get_section('cluster') );
+    %config = ( %config, $parser->get_section("queue/$config{queue}") );
+
+    my $gmjobs_exe = "$config{ng_location}/bin/gm-jobs";
+    my $conf_file = $config{conf_file};
+    %gmusers = get_gm_users($gmjobs_exe, $conf_file);
+}
+
+sub qju_get_host_name () {
+   if (! (exists $config{hostname})){
+      chomp ($config{hostname} = `/bin/hostname -f`);
+   }
+}
+
+sub read_grid_mapfile () {
+    
+    unless (open MAPFILE, "<$config{gridmap}") {
+	error("can't open gridmapfile at $config{gridmap}");
+    }   
+    while(my $line = <MAPFILE>) {
+	chomp($line);
+	if ( $line =~ m/\"([^\"]+)\"\s+(\S+)/ ) {
+	    $users{$1}{localid} = $2; 	
+	}
+    }
+    close MAPFILE;
+
+    return %users;
+}
+
+sub process_status (@) {
+
+    my (@names) = @_;
+
+    # return the PIDs of named processes, or zero if not running
+
+    my (%ids);
+
+    my @pslines = `ps -e -o pid= -o comm=`;
+    warning("Failed running ps: $!") and return () unless $? == 0;
+
+    $ids{$_} = 0 for @names;
+    for my $line (@pslines) {
+        next unless $line =~ /^\s*(\d+)\s+(\S+)/;
+        my ($pid, $name) = ($1, $2);
+        $name =~ s/.*\///; # remvove leading path
+        $ids{$name} = $pid if grep {$name eq $_} @names;
+    }
+    return %ids;
+}
+
+
+sub gmjobs_info () {
+    
+    my (%gmjobs);
+
+    my (%gm_queued);
+    
+    my (@gmkeys) = ( "lrms",
+		     "queue",
+		     "localid",
+		     "args",
+		     "subject",
+		     "starttime",
+		     "notify",
+		     "rerun",
+		     "downloads",
+		     "uploads",
+		     "jobname",
+		     "gmlog",
+		     "cleanuptime",
+		     "delegexpiretime",
+		     "clientname",
+		     "clientsoftware",
+		     "sessiondir",
+		     "diskspace",
+		     "failedstate",
+		     "exitcode",
+		     "stdin",
+		     "comment",
+		     "mem",
+		     "WallTime",
+		     "CpuTime",
+		     "reqwalltime",
+		     "reqcputime",
+		     "completiontime",
+		     "runtimeenvironment");
+    
+    my $queue_pendingprelrms=0;
+    my $queue_prelrmsqueued=0;
+    my @gmqueued_states = ("ACCEPTED","PENDING:ACCEPTED","PREPARING","PENDING:PREPARING","SUBMIT"); 
+    my @gmpendingprelrms_states =("PENDING:ACCEPTED","PENDING:PREPARING" );
+
+    # read the list of jobs from the jobdir and create the @gridmanager_jobs 
+    # the @gridmanager_jobs contains the IDs from the job.ID.status
+    #
+
+    my %controldirs; $controldirs{$_->{control}} = 1 for values %gmusers;
+    my @controldirs = keys %controldirs;
+
+    if ($config{remotegmdirs}) {
+        my @remotedirs = split /\[separator\]/, $config{remotegmdirs};
+        for (@remotedirs) {
+            my ($ctrl, $sess) = split;
+            push @controldirs, $ctrl;
+        }
+    }
+    error("No control directories configured") unless @controldirs;
+
+    for my $controldir (@controldirs) {
+
+    unless (opendir JOBDIR,  $controldir ) {
+	error("can't read controldir: $controldir: $!");
+    }
+
+    my (@allfiles) = readdir JOBDIR;
+    @allfiles= grep /\.status/, @allfiles;
+    closedir JOBDIR;
+    my (@gridmanager_jobs) = map {$_=~m/job\.(.+)\.status/; $_=$1;} @allfiles;
+
+    # read the gridmanager jobinfo into a hash of hashes %gmjobs 
+    # filter out jobs not belonging to this $queue
+    # fill the %gm_queued{SN} with number of gm_queued jobs for every grid user
+    # count the prelrmsqueued, pendingprelrms grid jobs belonging to this queue
+
+    foreach my $ID (@gridmanager_jobs) {
+	my $gmjob_local       = $controldir."/job.".$ID.".local";
+	my $gmjob_status      = $controldir."/job.".$ID.".status";
+	my $gmjob_failed      = $controldir."/job.".$ID.".failed";  
+	my $gmjob_description = $controldir."/job.".$ID.".description"; 
+	my $gmjob_diag        = $controldir."/job.".$ID.".diag"; 
+	
+	unless ( open (GMJOB_LOCAL, "<$gmjob_local") ) {
+	    warning( "Can't read the $gmjob_local jobfile, skipping..." );
+            next;
+	}
+	my @local_allines = <GMJOB_LOCAL>;
+	
+	# Check that this job belongs to correct queue (block).  
+	# Accepted values are
+	# 1. /^queue=/ line missing completely
+	# 2. /^queue=$/ 
+	# 3. /^queue=$config{queue}$/
+
+	my ( @queue_line ) = grep /^queue=/, @local_allines;
+        
+	unless ( scalar(@queue_line) == 0 ) {
+	    chomp $queue_line[0];
+	    unless ( ( $queue_line[0] eq "queue=" )
+		     or ( $queue_line[0] eq "queue=$config{queue}" )
+		     ) {
+		close GMJOB_LOCAL;
+		next;
+	    }
+	}
+	
+	# parse the content of the job.ID.local into the %gmjobs hash 
+	foreach my $line (@local_allines) {		  
+	    $line=~m/^(\w+)=(.+)$/; 		   	
+	    $gmjobs{$ID}{$1}=$2;    
+	}	 
+	close GMJOB_LOCAL;
+	
+	# read the job.ID.status into "status"
+	open (GMJOB_STATUS, "<$gmjob_status");
+	my @status_allines=<GMJOB_STATUS>;    
+	chomp (my $job_status_firstline=$status_allines[0]);    
+	$gmjobs{$ID}{"status"}= $job_status_firstline;
+	close GMJOB_STATUS;    
+
+        # set the job_gridowner of the job (read from the job.id.local)
+        # which is used as the key of the %gm_queued
+        my $job_gridowner = $gmjobs{$ID}{"subject"};
+
+        # count the gm_queued jobs per grid users (SNs) and the total
+        if ( grep /^$gmjobs{$ID}{"status"}$/, @gmqueued_states ) {
+	    $gm_queued{$job_gridowner}++;
+            $queue_prelrmsqueued++;
+        }
+
+        # count the GM PRE-LRMS pending jobs
+        if ( grep /^$gmjobs{$ID}{"status"}$/, @gmpendingprelrms_states ) {
+           $queue_pendingprelrms++;      
+        }
+	
+	#Skip the remaining files if the jobstate "DELETED"
+	next if ( $gmjobs{$ID}{"status"} eq "DELETED");
+
+	# Grid Manager job state mappings to Infosys job states
+
+	my (%map_always) = ( 'ACCEPTED' => 'ACCEPTING',
+			     'PENDING:ACCEPTED' => 'ACCEPTED',
+			     'PENDING:PREPARING' => 'PREPARED',
+			     'PENDING:INLRMS' => 'EXECUTED',
+			     'CANCELING' => 'KILLING');
+
+	my (%map_if_gm_up) = ( 'SUBMIT' => 'SUBMITTING');
+
+	my (%map_if_gm_down) = ( 'PREPARING' => 'ACCEPTED',
+				 'FINISHING' => 'EXECUTED',
+				 'SUBMIT' => 'PREPARED');
+	
+	if ( grep ( /^$gmjobs{$ID}{status}$/, keys %map_always ) ) {
+	    $gmjobs{$ID}{status} = $map_always{$gmjobs{$ID}{status}};
+	}
+	if ( grep ( /^$gmjobs{$ID}{status}$/, keys %map_if_gm_up ) and
+	     ($frontend_status{'grid-manager'} or $frontend_status{'arched'}) ) {
+	    $gmjobs{$ID}{status} = $map_if_gm_up{$gmjobs{$ID}{status}};
+	}
+	if ( grep( /^$gmjobs{$ID}{status}$/, keys %map_if_gm_down ) and
+	     not ($frontend_status{'grid-manager'} or $frontend_status{'arched'}) ) {
+	    $gmjobs{$ID}{status} = $map_if_gm_down{$gmjobs{$ID}{status}};
+	}
+	
+	# Comes the splitting of the terminal job state
+	# check for job failure, (job.ID.failed )   "errors"
+	
+	if (-e $gmjob_failed) {
+	    open (GMJOB_FAILED, "<$gmjob_failed");
+	    my @failed_allines=<GMJOB_FAILED>;    
+	    chomp  @failed_allines;
+	    my ($temp_errorstring) = join " ", @failed_allines;
+	    $temp_errorstring =~ s/\s+$//;     
+	    if (length $temp_errorstring >= 87) {
+		$temp_errorstring = substr ($temp_errorstring, 0, 87);
+	    }       
+	    $gmjobs{$ID}{"errors"}="$temp_errorstring";
+	    
+	    #PBS backend doesn't write to .diag when walltime is exceeded
+	    if ($temp_errorstring =~ /PBS: job killed: walltime (\d*) exceeded limit (\d*)/){
+		$gmjobs{$ID}{"WallTime"} = ceil($2/60);
+	    }
+
+	    close GMJOB_FAILED;
+	}
+
+	
+	if ($gmjobs{$ID}{"status"} eq "FINISHED") {
+
+	    #terminal job state mapping
+
+	    if ( defined $gmjobs{$ID}{"errors"} ) {
+		if ($gmjobs{$ID}{"errors"} =~
+		    /User requested to cancel the job/) {
+		    $gmjobs{$ID}{"status"} = "KILLED";
+		} elsif ( defined $gmjobs{$ID}{"errors"} ) {
+		    $gmjobs{$ID}{"status"} = "FAILED";
+		}
+	    }
+
+	    #job-completiontime
+
+	    my @file_stat = stat $gmjob_status;
+	    my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst)
+		= gmtime ($file_stat[9]);
+	    my $file_time = sprintf ( "%4d%02d%02d%02d%02d%02d%1s",
+				      $year+1900,$mon+1,$mday,$hour,
+				      $min,$sec,"Z");    
+	    $gmjobs{$ID}{"completiontime"} = "$file_time";	
+	}
+	
+	# Make a job comment if the GM is dead
+
+	unless ($frontend_status{'grid-manager'} or $frontend_status{'arched'}) {
+	    $gmjobs{$ID}{comment} = "GM: The grid-manager is down";
+	}         
+	
+	# do something with the job.ID.description file
+	# read the stdin,stdout,stderr
+
+	open (GMJOB_DESC, "<$gmjob_description");
+        my $desc_allines;
+        { local $/; $desc_allines = <GMJOB_DESC>; } # read in the whole file
+        close GMJOB_DESC;
+
+        my @runtimes = ();
+
+        if (not $desc_allines =~ /^<\?xml/) {
+
+            # XRSL job description
+            chomp (my $rsl_string = $desc_allines);
+            if ($rsl_string=~m/"stdin"\s+=\s+"(\S+)"/) {
+                $gmjobs{$ID}{"stdin"}=$1;
+            }
+            if ($rsl_string=~m/"stdout"\s+=\s+"(\S+)"/) {
+                $gmjobs{$ID}{"stdout"}=$1;
+            }
+            if ($rsl_string=~m/"stderr"\s+=\s+"(\S+)"/) {
+                $gmjobs{$ID}{"stderr"}=$1;
+            }
+            if ($rsl_string=~m/"count"\s+=\s+"(\S+)"/) {
+                $gmjobs{$ID}{"count"}=$1;
+            }
+            else {
+                $gmjobs{$ID}{"count"}="1";
+            }
+            if ($rsl_string=~m/"cputime"\s+=\s+"(\S+)"/i) {
+                my $reqcputime_sec=$1;
+                $gmjobs{$ID}{"reqcputime"}= int $reqcputime_sec/60;
+            }
+            if ($rsl_string=~m/"walltime"\s+=\s+"(\S+)"/i) {
+                my $reqwalltime_sec=$1;
+                $gmjobs{$ID}{"reqwalltime"}= int $reqwalltime_sec/60;
+            }
+    
+            while ($rsl_string =~ m/\("runtimeenvironment"\s+=\s+([^\)]+)/ig) {
+                my $tmp_string = $1;
+                push(@runtimes, $1) while ($tmp_string =~ m/"(\S+)"/g);
+            }
+
+        } else {
+
+            # JSDL job description
+
+            my $any_name_re = '[\w\.-]+';
+            my $any_ns_re = "(?:$any_name_re:)?";
+
+            # strip comments
+            $desc_allines =~ s/<!--.*?-->//gs;
+
+            if ($desc_allines =~ m!xmlns(?::($any_name_re))?\s*=\s*"http://schemas.ggf.org/jsdl/2005/11/jsdl"!o) {
+                my $jsdl_ns_re = $1 ? "$1:" : "";
+
+                # extract the lower limit of a RangeValue_Type expression
+                sub get_range_minimum {
+                    my ($range_str, $element) = @_;
+                    my $min;
+                    my $any_range_re = "${jsdl_ns_re}(?:Exact|(?:Lower|Upper)Bound(?:edRange)?)";
+                    while ($range_str =~ m!<($any_range_re)\b[^>]*>[\s\n]*(-?[\d.]+)[\s\n]*</\1>!omg) {
+                        $min = $2 if not defined $min or $min > $2;
+                    }
+                    warning("Failed to extract lower limit of $element in JSDL description of job $ID")
+                        unless defined $min;
+                    return $min;
+                }
+    
+                if ($desc_allines =~ m!xmlns:(\S+)\s*=\s*"http://schemas.ggf.org/jsdl/2005/11/jsdl-posix"!) {
+                    my $posix_ns = $1;
+    
+                    if ($desc_allines =~ m!<$posix_ns:Input>([^<]+)</$posix_ns:Input>!) {
+                        $gmjobs{$ID}{"stdin"}=$1;
+                    }
+                    if ($desc_allines =~ m!<$posix_ns:Output>([^<]+)</$posix_ns:Output>!) {
+                        $gmjobs{$ID}{"stdout"}=$1;
+                    }
+                    if ($desc_allines =~ m!<$posix_ns:Error>([^<]+)</$posix_ns:Error>!) {
+                        $gmjobs{$ID}{"stderr"}=$1;
+                    }
+                    if ($desc_allines =~ m!<$posix_ns:WallTimeLimit>([^<]+)</$posix_ns:WallTimeLimit>!) {
+                        my $reqwalltime_sec=$1;
+                        $gmjobs{$ID}{"reqwalltime"}= int $reqwalltime_sec/60;
+                    }
+    
+                } else {
+                    warning("Could not find jsdl-posix xmlns in JSDL description of job $ID");
+                }
+    
+                if ($desc_allines =~ m!<(${jsdl_ns_re}Resources)\b[^>]*>(.+?)</\1>!s) {
+                    my $resources_string = $2;
+    
+                    while ($resources_string =~ m!<(${any_ns_re}RunTimeEnvironment)\b[^>]*>(.+?)</\1>!sg) {
+                        my $rte_string = $2;
+                        if ($rte_string =~ m!<(${any_ns_re}Name)\b[^>]*>([^<]+)</\1>!) {
+                            my $rte_name = $2;
+                            if ($rte_string =~ m!<(${any_ns_re}Version)\b[^>]*>(.+?)</\1>!s) {
+                                my $range_string = $2;
+                                if ($range_string =~ m!<(${jsdl_ns_re}Exact)\b[^>]*>([^<]+)</\1>!) {
+                                    $rte_name .= "-$2";
+                                } else {
+                                    warning("Exact range expected for RunTimeEnvironment Version in JSDL description of job $ID");
+                                }
+                            }
+                            push @runtimes, $rte_name;
+                        } else {
+                            warning("Name element of RunTimeEnvironment missing in JSDL description of job $ID");
+                        }
+                    }
+                    my $resourcecount = 1;
+                    if ($resources_string =~ m!<(${jsdl_ns_re}TotalResourceCount)\b[^>]*>(.+?)</\1>!s) {
+                        my $min = get_range_minimum($2,"TotalResourceCount");
+                        $resourcecount = $min if $min;
+                    }
+                    if ($resources_string =~ m!<(${jsdl_ns_re}TotalCPUCount)\b[^>]*>(.+?)</\1>!s) {
+                        my $min = get_range_minimum($2,"TotalCPUCount");
+                        $gmjobs{$ID}{"count"} = int $min if defined $min;
+                    } elsif ($resources_string =~ m!<(${jsdl_ns_re}IndividualCPUCount)\b[^>]*>(.+?)</\1>!s) {
+                        my $min = get_range_minimum($2,"IndividualCPUCount");
+                        $gmjobs{$ID}{"count"} = int($min*$resourcecount) if defined $min;
+                    }
+                    if ($resources_string =~ m!<(${jsdl_ns_re}TotalCPUTime)\b[^>]*>(.+?)</\1>!s) {
+                        my $min = get_range_minimum($2,"TotalCPUTime");
+                        $gmjobs{$ID}{"reqcputime"} = int($min/60) if defined $min;
+                    } elsif ($resources_string =~ m!<(${jsdl_ns_re}IndividualCPUTime)\b[^>]*>(.+?)</\1>!s) {
+                        my $min = get_range_minimum($2,"IndividualCPUTime");
+                        $gmjobs{$ID}{"reqcputime"} = int($min*$resourcecount/60) if defined $min;
+                    }
+                }
+            } else {
+                warning("jsdl namespace declaration is missing from JSDL description of job $ID");
+            }
+        }
+        $gmjobs{$ID}{"runtimeenvironment"} = \@runtimes;
+	
+	#read the job.ID.diag file        
+
+	if (-s $gmjob_diag) {
+	    open (GMJOB_DIAG, "<$gmjob_diag");
+	    my ($kerneltime) = "";
+	    my ($usertime) = "";
+	    while ( my $line = <GMJOB_DIAG>) {	       
+		$line=~m/^nodename=(\S+)/ and
+		    $gmjobs{$ID}{"exec_host"}.=$1."+";
+		$line=~m/^WallTime=(\d+)(\.\d*)?/ and
+		    $gmjobs{$ID}{"WallTime"} = ceil($1/60);		 
+		$line=~m/^exitcode=(\d+)/ and
+		    $gmjobs{$ID}{"exitcode"}=$1;
+		$line=~m/^AverageTotalMemory=(\d+)kB/ and
+		    $gmjobs{$ID}{"UsedMem"} = ceil($1);
+		$line=~m/^KernelTime=(\d+)(\.\d*)?/ and
+		    $kerneltime=$1;
+		$line=~m/^UserTime=(\d+)(\.\d*)?/ and
+		    $usertime=$1;  			       
+	    }
+	    if ($kerneltime ne "" and $usertime ne "") {
+		$gmjobs{$ID}{"CpuTime"}= ceil( ($kerneltime + $usertime)/ 60.0);
+	    } else {
+		$gmjobs{$ID}{"CpuTime"} = "0";
+	    }
+	    close GMJOB_DIAG;	   	       
+	}
+
+	foreach my $k (@gmkeys) {
+	    if (not defined $gmjobs{$ID}{$k}) {
+		$gmjobs{$ID}{$k} = "";
+	    }
+	}    
+    }
+    
+    } # loop over controldirs
+
+    return (\%gmjobs, \%gm_queued, \$queue_pendingprelrms, \$queue_prelrmsqueued);
+}
+
+sub count_grid_jobs_in_lrms ($) {
+    my $lrmsjobs = shift;
+    my $gridrunning = 0;
+    my $gridqueued  = 0;
+    my %local2gm;
+    $local2gm{$gmjobs{$_}{localid}} = $_ for keys %gmjobs;
+    foreach my $jid (keys %$lrmsjobs) {
+        next unless exists $local2gm{$jid}; # not a grid job
+        next unless exists $$lrmsjobs{$jid}; # probably executed
+        next unless exists $$lrmsjobs{$jid}{status}; # probably executed
+        my $status = $$lrmsjobs{$jid}{status};
+        next if $status eq ""; # probably executed
+	#queued should be reported as jobs, running as cpus.
+        if ($status eq 'R' || $status eq 'S') {
+            $gridrunning += $$lrmsjobs{$jid}{cpus};
+        } else {
+            $gridqueued++;
+        }
+    }
+    return $gridrunning, $gridqueued;
+}
+
+
+sub grid_diskspace (@) {
+    my (@localids) = @_;
+
+    my (%gridarea, %capacity);
+
+    foreach my $u (@localids) {
+
+        if (exists $gmusers{$u}) {
+            # user is configured as a separate GM user
+            $gridarea{$u} = $gmusers{$u}{session};
+        } elsif (exists $gmusers{''}) {
+            # common config, corresponds to GM user ''
+            $gridarea{$u} = $gmusers{''}{session};
+        } else {
+            # no common config
+            error("Local user $u has no session directory");
+        }
+	$capacity{$u} = @{[ diskspace $gridarea{$u} ]}[1];
+    }
+
+    foreach my $sn (keys %users) {
+	$users{$sn}{gridarea} = $gridarea{$users{$sn}{localid}};
+	$users{$sn}{diskspace} = $capacity{$users{$sn}{localid}};
+    }
+}
+
+
+sub ldif_queue (%) {
+    my ($p) = shift;
+    my (%lrms_queue) = %{$p};
+
+    my (%c);
+
+    $c{'dn'} = [ "$config{dn}" ];
+    $c{'objectclass'} = [ 'Mds', 'nordugrid-queue' ];
+    $c{'nordugrid-queue-name'} = [ "$config{queue}" ];
+    
+    if ($config{allownew} eq "no") {
+	$c{'nordugrid-queue-status'} =
+	    [ 'inactive, grid-manager does not accept new jobs' ];
+    } elsif ( not ($frontend_status{'grid-manager'} or $frontend_status{'arched'}) ) {
+	$c{'nordugrid-queue-status'} = [ 'inactive, grid-manager is down' ];   
+    } elsif  (not ($frontend_status{'gridftpd'}) )  {
+	$c{'nordugrid-queue-status'} = [ 'inactive, gridftpd is down' ];  
+    } elsif ( not certs_valid(\%config) ) {
+        $c{'nordugrid-queue-status'} = [ 'inactive, host credentials expired' ];
+    } elsif ( $lrms_queue{status} < 0 ) {
+	$c{'nordugrid-queue-status'} =
+	    [ 'inactive, LRMS interface returns negative status' ];
+    } else {
+	$c{'nordugrid-queue-status'} = [ 'active' ];}
+
+    if ( defined $config{comment} ) {
+	$c{'nordugrid-queue-comment'} = [ "$config{comment}" ];
+    }
+    $c{'nordugrid-queue-schedulingpolicy'} = [ "$config{scheduling_policy}" ];
+    $c{'nordugrid-queue-homogeneity'} = [ "$config{homogeneity}" ];
+    $c{'nordugrid-queue-nodecpu'} = [ "$config{nodecpu}" ];
+    $c{'nordugrid-queue-nodememory'} = [ "$config{nodememory}" ];
+    if ( defined $config{architecture}) {
+	$c{'nordugrid-queue-architecture'} = [ "$config{architecture}" ];
+    }
+    $c{'nordugrid-queue-opsys'} = [ split /\[separator\]/, $config{opsys} ];
+    
+    $c{'nordugrid-queue-benchmark'} = [];
+
+    if ( defined $config{benchmark} ) {
+	foreach my $listentry (split /\[separator\]/, $config{benchmark}) {
+	    my ($bench_name,$bench_value) = split(/\s+/, $listentry);
+	    push @{$c{'nordugrid-queue-benchmark'}},
+	    "$bench_name \@ $bench_value";}
+    }
+    
+    $c{'nordugrid-queue-maxrunning'} =  [ "$lrms_queue{maxrunning}" ];
+    $c{'nordugrid-queue-maxqueuable'} = [ "$lrms_queue{maxqueuable}" ];
+    $c{'nordugrid-queue-maxuserrun'} =  [ "$lrms_queue{maxuserrun}" ];
+    $c{'nordugrid-queue-maxcputime'} =  [ "$lrms_queue{maxcputime}" ];
+    $c{'nordugrid-queue-mincputime'} =  [ "$lrms_queue{mincputime}" ];
+    $c{'nordugrid-queue-defaultcputime'} =
+	[ "$lrms_queue{defaultcput}" ];
+    # maxcputime is always published for compatibility with old clients
+    $c{'nordugrid-queue-maxtotalcputime'} =  [ "$lrms_queue{maxcputime}" ]
+	if $lrms_queue{has_total_cputime_limit};
+    $c{'nordugrid-queue-maxwalltime'} =  [ "$lrms_queue{maxwalltime}" ];
+    $c{'nordugrid-queue-minwalltime'} =  [ "$lrms_queue{minwalltime}" ];
+    $c{'nordugrid-queue-defaultwalltime'} =
+	[ "$lrms_queue{defaultwallt}" ];
+    $c{'nordugrid-queue-running'} = [ "$lrms_queue{running}" ];
+    $c{'nordugrid-queue-gridrunning'} = [ "$gridrunning" ];   
+    $c{'nordugrid-queue-gridqueued'} = [ "$gridqueued" ];    
+    $c{'nordugrid-queue-localqueued'} = [ ($lrms_queue{queued} - $gridqueued) ];   
+    
+    if (defined $queue_prelrmsqueued) {
+        $c{'nordugrid-queue-prelrmsqueued'} = [ "$queue_prelrmsqueued" ];
+    }
+    if ($config{queue_node_string}) {
+	$c{'nordugrid-queue-totalcpus'} = [ "$lrms_queue{totalcpus}" ];
+    } 
+    elsif ( $config{totalcpus} ) {
+	$c{'nordugrid-queue-totalcpus'} = [ "$config{totalcpus}" ];
+    }
+    elsif ( $lrms_queue{totalcpus} ) {
+	$c{'nordugrid-queue-totalcpus'} = [ "$lrms_queue{totalcpus}" ];      
+    }	
+    
+    my ( $valid_from, $valid_to ) =
+	Shared::mds_valid($config{ttl});
+    $c{'Mds-validfrom'} = [ "$valid_from" ];
+    $c{'Mds-validto'} = [ "$valid_to" ];
+    
+    return %c;
+
+}
+
+sub ldif_jobs_group_entry() {
+    
+    my (%c);
+    
+    $c{dn} = [ "nordugrid-info-group-name=jobs, $config{dn}"];
+    $c{objectclass} = [ 'Mds', 'nordugrid-info-group' ];
+    $c{'nordugrid-info-group-name'} = [ 'jobs' ];
+    my ( $valid_from, $valid_to ) =
+	Shared::mds_valid($config{ttl});
+    $c{'Mds-validfrom'} = [ "$valid_from" ];
+    $c{'Mds-validto'} = [ "$valid_to" ];
+
+    return %c;
+}
+
+
+sub ldif_job ($%$%) {
+    my ($gmid) = shift;
+    my ($gmjob) = shift;
+    my ($lrmsid) = shift;
+    my ($lrmsjob) = shift;
+
+    my (%c);
+
+    my $nordugrid_globalid="gsiftp://".$config{hostname}.
+	":".$config{gm_port}.$config{gm_mount_point}."/".$gmid; 
+    $c{'dn'} = [ "nordugrid-job-globalid=$nordugrid_globalid, nordugrid-info-group-name=jobs, $config{dn}" ];
+    
+    $c{'objectclass'} = [ 'Mds', 'nordugrid-job'];
+    
+    $c{'nordugrid-job-globalid'} = [ "$nordugrid_globalid" ];
+    
+    $c{'nordugrid-job-globalowner'} = [ "$gmjob->{subject}" ];
+    
+    $c{'nordugrid-job-jobname'} = [ "$gmjob->{jobname}" ];
+    
+    $c{'nordugrid-job-submissiontime'} = [ "$gmjob->{starttime}" ];
+    
+    $c{'nordugrid-job-execcluster'} = [ "$config{hostname}" ];
+    
+    $c{'nordugrid-job-execqueue'} = [ "$config{queue}" ];
+    
+    if ( not $gmjob->{count}) {
+	$gmjob->{count} = 1; }
+    $c{'nordugrid-job-cpucount'} = [ "$gmjob->{count}" ];
+
+    if ($gmjob->{"errors"}) {
+	$c{'nordugrid-job-errors'} = [ "$gmjob->{errors}" ];
+    } else {
+	$c{'nordugrid-job-errors'} = [ "" ];
+    }
+
+    if (defined $gmjob->{'exitcode'}) {
+        $c{'nordugrid-job-exitcode'} = [ "$gmjob->{exitcode}" ];
+    } else {
+        $c{'nordugrid-job-exitcode'} = [ "" ];
+    }
+
+    $c{'nordugrid-job-sessiondirerasetime'} =
+	[ "$gmjob->{cleanuptime}" ];
+
+    my (@io) = ('stdin','stdout','stderr','gmlog'); 
+    foreach my $k (@io) {
+	if ( defined $gmjob->{$k} ) {
+	    $c{"nordugrid-job-$k"} = [ "$gmjob->{$k}" ];
+	}
+    }
+
+    $c{'nordugrid-job-runtimeenvironment'} = $gmjob->{"runtimeenvironment"};
+
+    $c{'nordugrid-job-submissionui'} = [ "$gmjob->{clientname}" ];
+
+    $c{'nordugrid-job-clientsoftware'} =
+	[ "$gmjob->{clientsoftware}" ];
+
+    $c{'nordugrid-job-proxyexpirationtime'} =
+	[ "$gmjob->{delegexpiretime}" ];
+
+    if ( $gmjob->{"status"} eq "FAILED" ) {
+       if ( $gmjob->{"failedstate"} ) {
+           $c{'nordugrid-job-rerunable'} = [ "$gmjob->{failedstate}" ];
+       }
+       else {
+           $c{'nordugrid-job-rerunable'} = [ 'none' ];
+       }
+    }
+    
+    $c{'nordugrid-job-comment'} = [ "$gmjob->{comment}" ];
+
+    if ($gmjob->{"status"} eq "INLRMS") {
+
+	$c{'nordugrid-job-usedmem'} = [ "$lrmsjob->{mem}" ];
+	$c{'nordugrid-job-usedwalltime'} = [ "$lrmsjob->{walltime}" ];
+	$c{'nordugrid-job-usedcputime'} = [ "$lrmsjob->{cputime}" ];
+	$c{'nordugrid-job-reqwalltime'} = [ "$lrmsjob->{reqwalltime}" ];
+	$c{'nordugrid-job-reqcputime'} =  [ "$lrmsjob->{reqcputime}" ];
+	@c{'nordugrid-job-executionnodes'} = uniq($lrmsjob->{nodes}) if ref $lrmsjob->{nodes} eq 'ARRAY'
+                                                              and @{$lrmsjob->{nodes}};
+
+	# LRMS-dependent attributes taken from LRMS when the job
+	# is in state 'INLRMS'
+
+	#nordugrid-job-status
+	# take care of the GM latency, check if the job is in LRMS
+	# according to both GM and LRMS, GM might think the job 
+	# is still in LRMS while the job have already left LRMS		     
+
+	if ($lrmsjob->{status}) {
+	    $c{'nordugrid-job-status'} = [ "INLRMS: $lrmsjob->{status}" ];
+	    if ( $c{'nordugrid-job-comment'}[0] eq "" ) {
+		@{ $c{'nordugrid-job-comment'} } = @{ $lrmsjob->{comment} };
+	    } else {
+		push ( @{ $c{'nordugrid-job-comment'} },
+		       @{ $lrmsjob->{comment} } );
+	    }
+	} else {
+	    $c{'nordugrid-job-status'} = [ 'EXECUTED' ];
+	}      
+
+	$c{'nordugrid-job-queuerank'} = [ "$lrmsjob->{rank}" ];
+
+    } else {  
+
+	# LRMS-dependent attributes taken from GM when
+	# the job has passed the 'INLRMS' state
+
+	$c{'nordugrid-job-status'} = [ "$gmjob->{status}" ];
+	
+	if ( $gmjob->{WallTime} ) {
+	   $c{'nordugrid-job-usedwalltime'} = ["$gmjob->{WallTime}"];	  
+	}	
+        else {
+	   $c{'nordugrid-job-usedwalltime'} = ["0"];
+	}
+	if ( $gmjob->{CpuTime} ) {
+	   $c{'nordugrid-job-usedcputime'} = ["$gmjob->{CpuTime}"];	
+	}
+        else {
+	   $c{'nordugrid-job-usedcputime'} = ["0"];
+	}
+	if ( $gmjob->{exec_host} ) {
+	   @c{'nordugrid-job-executionnodes'} = [ uniq(split /\+/, $gmjob->{exec_host}) ];
+	}
+	if ( $gmjob->{UsedMem} ) {
+	   $c{'nordugrid-job-usedmem'} = ["$gmjob->{UsedMem}"];
+	}
+	if ( $gmjob->{reqcputime} ) {
+	   $c{'nordugrid-job-reqcputime'} = ["$gmjob->{reqcputime}"];
+	}
+	if ( $gmjob->{reqwalltime} ) {
+	   $c{'nordugrid-job-reqwalltime'} = ["$gmjob->{reqwalltime}"];
+	}
+	$c{'nordugrid-job-completiontime'} =
+	    [ "$gmjob->{completiontime}" ];
+    }  	 
+
+    my ( $valid_from, $valid_to ) =
+	Shared::mds_valid($config{ttl});
+    $c{'Mds-validfrom'} = [ "$valid_from" ];
+    $c{'Mds-validto'} = [ "$valid_to" ];
+
+    return %c;
+}
+
+
+sub ldif_users_group_entry() {
+    
+    my (%c);
+    
+    $c{dn} = [ "nordugrid-info-group-name=users, $config{dn}" ];
+    $c{objectclass} = [ 'Mds', 'nordugrid-info-group' ];
+    $c{'nordugrid-info-group-name'} = [ 'users' ];
+    my ( $valid_from, $valid_to ) =
+	Shared::mds_valid($config{ttl});
+    $c{'Mds-validfrom'} = [ "$valid_from" ];
+    $c{'Mds-validto'} = [ "$valid_to" ];
+
+    return %c;
+}
+
+    
+sub ldif_user ($$%) {
+    
+    my ($usernumber) = shift;
+    my ($sn) = shift;
+    my ($lrms_users) = shift;
+
+    my (%c);
+
+    #nordugrid-authuser-name= CN from the SN  + unique number 
+    $sn =~ m/\/CN=([^\/]+)(\/Email)?/;
+    my ($cn) = $1;
+    
+    $c{dn} = [ "nordugrid-authuser-name=${cn}...$usernumber, nordugrid-info-group-name=users, $config{dn}" ];
+    $c{objectclass} = [ 'Mds', 'nordugrid-authuser' ];
+    $c{'nordugrid-authuser-name'} = [ "${cn}...$usernumber" ];
+    $c{'nordugrid-authuser-sn'} = [ "$sn" ];
+    
+    #nordugrid-authuser-diskspace
+    $c{'nordugrid-authuser-diskspace'} = [ "$users{$sn}{diskspace}" ];
+    
+    #nordugrid-authuser-freecpus
+    if ( $queue_pendingprelrms ) {    
+       $c{'nordugrid-authuser-freecpus'} = [ "0" ];
+    }
+    elsif ( $$lrms_users{$users{$sn}{localid}}{freecpus} ) {
+       $c{'nordugrid-authuser-freecpus'} =
+	 [ "$$lrms_users{$users{$sn}{localid}}{freecpus}" ];
+    }
+    else {
+       $c{'nordugrid-authuser-freecpus'} = [ "0" ];
+    }   
+    #nordugrid-authuser-queuelength  
+    $c{'nordugrid-authuser-queuelength'} =
+	[ ( $gm_queued{$sn} + $$lrms_users{$users{$sn}{localid}}{queuelength} ) ];   
+    
+    my ( $valid_from, $valid_to ) =
+	Shared::mds_valid($config{ttl});
+    $c{'Mds-validfrom'} = [ "$valid_from" ];
+    $c{'Mds-validto'} = [ "$valid_to" ];
+    
+    return %c;
+}
+
+
+###############################################
+#  main
+###############################################
+
+# --- Digest /etc/arc.conf ----------------------
+
+qju_parse_command_line_options();
+
+qju_read_conf_file();
+
+qju_get_host_name();
+
+post_process_config(\%config);
+
+start_logging( $config{loglevel} );
+
+# --- Select LRMS and check if services are running ---
+
+select_lrms( \%config );
+
+my (@checklist) = ('grid-manager', 'gridftpd', 'arched' );
+%frontend_status = process_status ( @checklist );
+
+# --- Queue info from lrms ----------------------------------------
+
+my ($timing) = time;
+
+my (%lrms_queue) = queue_info( \%config, $config{queue} );
+
+$timing = time - $timing;
+debug("LRMS queue_info timing: $timing");
+
+# --- Jobs info from grid-manager -----------------
+
+$timing = time;
+
+(my $gmjobsref, my $gm_queuedref, my $pendingprelrmsref, my $prelrmsqueuedref) = gmjobs_info();
+
+%gmjobs = %{$gmjobsref};
+
+%gm_queued = %{$gm_queuedref};
+
+$queue_pendingprelrms = ${$pendingprelrmsref};
+
+$queue_prelrmsqueued = ${$prelrmsqueuedref};
+
+
+$timing = time - $timing;
+debug("gmjobs_info timing: $timing");
+
+# --- Jobs info from lrms  -----------------
+
+$timing = time;
+
+my @lrms_jids = map {$_->{localid}} grep {$_->{status} =~ /INLRMS/ and length $_->{localid}} values %gmjobs;
+
+my (%lrms_jobs) = jobs_info( \%config,
+			     $config{queue},
+			     \@lrms_jids);
+
+$timing = time - $timing;
+debug("LRMS jobs_info timing: $timing");
+
+# --- The number of running and queued grid jobs in lrms ---
+
+( $gridrunning, $gridqueued ) = count_grid_jobs_in_lrms( \%lrms_jobs );
+
+# --- User info from grid-mapfile and filesystem goes to %users -------
+
+# Due to common many to one mapping from grid identities to local
+# unix accounts different queries here are indexed with localids
+
+$timing = time;
+
+read_grid_mapfile();
+my (@localids);
+foreach my $sn ( keys %users) {
+    my ($a) = $users{$sn}{localid};
+    if ( ! grep /^$a$/, @localids) {push @localids, $a};
+}
+
+grid_diskspace(@localids);
+
+$timing = time - $timing;
+debug("User info timing: $timing");
+
+# --- User info from lrms -------
+
+$timing = time;
+
+my (%lrms_users) = users_info( \%config,
+			       $config{queue},
+			       \@localids );
+
+$timing = time - $timing;
+debug("lrms_users timing: $timing");
+
+
+############################
+# start printing ldif data #
+############################
+
+$timing = time;
+
+# queue
+
+my (%ldif_queue_data) = ldif_queue( \%lrms_queue );
+print_ldif_data(\@qen,\%ldif_queue_data);
+
+# Jobs
+
+# The nordugrid-info-group=jobs entry
+my (%ldif_jobs_group_entry_data) = ldif_jobs_group_entry();
+print_ldif_data( \@gen, \%ldif_jobs_group_entry_data );
+
+foreach my $gmid (sort { $gmjobs{$b}{"starttime"} cmp
+			     $gmjobs{$a}{"starttime"} } keys %gmjobs) {
+
+    my ($lrmsid) = $gmjobs{$gmid}{localid};
+    my (%ldif_job_data) = ldif_job( $gmid,   \%{$gmjobs{$gmid}},
+				    $lrmsid, \%{$lrms_jobs{$lrmsid}}
+				    );
+    print_ldif_data(\@jen,\%ldif_job_data);
+}
+
+# Users
+
+# The nordugrid-info-group=users entry 
+my (%ldif_users_group_entry_data) = ldif_users_group_entry();
+print_ldif_data( \@gen, \%ldif_users_group_entry_data );
+
+# create the user entries from the LRMS-authorized members of
+# the %users hash
+
+my $usernumber = 0;
+foreach my $sn (sort sort_by_cn keys %users) {
+    # check if there is an "acl list" of authorized LRMS users
+    # and if the mapping of the grid user is on this list
+    if ( defined $config{acl_users} and !(grep { $_ eq $users{$sn}{localid} } @{$config{acl_users}}) ) {
+	#   print "we skip $users{$sn}{localid} \n";
+      next;
+    }
+    $usernumber++;
+    my (%ldif_user_data) = ldif_user( $usernumber, $sn, \%lrms_users );
+    print_ldif_data( \@uen, \%ldif_user_data );
+}
+
+$timing = time - $timing;
+debug("ldif output timing: $timing");
+
+$totaltime = time - $totaltime;
+debug("TOTALTIME in qju.pl: $totaltime");
+
+exit;

@@ -21,7 +21,9 @@ debian/tmp/usr/lib/arc/libarex.apd
 
 debian/tmp/usr/lib/arc/ARC0mod.pm
 debian/tmp/usr/lib/arc/FORKmod.pm
+debian/tmp/usr/lib/arc/Fork.pm
 debian/tmp/usr/lib/arc/SGEmod.pm
+debian/tmp/usr/lib/arc/SGE.pm
 debian/tmp/usr/lib/arc/LL.pm
 debian/tmp/usr/lib/arc/LSF.pm
 debian/tmp/usr/lib/arc/PBS.pm
@@ -39,7 +41,6 @@ debian/tmp/usr/lib/arc/HostInfo.pm
 debian/tmp/usr/lib/arc/RTEInfo.pm
 debian/tmp/usr/lib/arc/InfoChecker.pm
 debian/tmp/usr/lib/arc/IniParser.pm
-debian/tmp/usr/lib/arc/LogUtils.pm
 debian/tmp/usr/lib/arc/LRMSInfo.pm
 debian/tmp/usr/lib/arc/Sysinfo.pm
 
@@ -50,8 +51,6 @@ debian/tmp/usr/lib/arc/config_parser.sh
 debian/tmp/usr/lib/arc/configure-*-env.sh
 debian/tmp/usr/lib/arc/submit_common.sh
 debian/tmp/usr/lib/arc/scan_common.sh
-
-debian/tmp/usr/share/arc/nordugrid.schema
 
 debian/tmp/usr/share/man/man1/cache-clean.1
 debian/tmp/usr/share/man/man1/cache-list.1

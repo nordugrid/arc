@@ -199,6 +199,36 @@ comes with P2P capabilities and a web-services interface. The new system
 grants grid participants an increase in flexibility, robustness and it
 also offers easier configuration and self-healing capability.
 
+%package ldap-infosys
+Summary: ARC LDAP information service
+Group: System Environment/Libraries
+Requires: %{name} = %{version}
+
+%description ldap-infosys
+ The NorduGrid is a collaboration aiming at development, maintenance
+ and support of the free Grid middleware, known as the Advanced Resource
+ Connector (ARC).
+ 
+ This package contains the LDAP based information system for ARC.
+ This package is not self-contained. it should be pulled in by either
+ nordugrid-arc-nox-arex to be a part of a local information system or
+ by nordugrid-arc-nox-giis to be a part of a GIIS service.
+
+%package giis
+Summary: ARC GIIS service
+Group: System Environment/Libraries
+Requires: %{name} = %{version}
+Requires: %{name}-ldap-infosys = %{version}
+
+%description giis
+ The NorduGrid is a collaboration aiming at development, maintenance
+ and support of the free Grid middleware, known as the Advanced Resource
+ Connector (ARC). 
+ 
+ The GIIS is the Information Index Service used by ARC, This service is
+ used to set up a ldap-based server that local information systems register
+ to.
+
 %package compiler
 Summary: ARC compiler service
 Group: System Environment/Libraries
@@ -284,6 +314,7 @@ Requires: %{name}-hed = %{version}
 Requires: mktemp
 Requires: perl-XML-Simple
 Requires: perl-Digest-SHA1
+Requires: %{name}-ldap-infosys = %{version}
 Provides: nordugrid-arc1-arex = %{version}
 Obsoletes: nordugrid-arc1-arex < 1.0.0
 
@@ -635,6 +666,22 @@ exit 0
 %{_libdir}/%{pkgdir}/libisis.so
 %{_libdir}/%{pkgdir}/libisis.apd
 
+%files ldap-infosys
+%{_datadir}/%{pkgdir}schema
+%{_libdir}/%{pkgdir}/grid-info-soft-register
+%{_libdir}/%{pkgdir}/qju.pl
+%{_libdir}/%{pkgdir}/cluster.pl
+%{_libdir}/%{pkgdir}/se.pl
+%{_libdir}/%{pkgdir}/LRMS.pm
+%{_libdir}/%{pkgdir}/Shared.pm
+%{_libdir}/%{pkgdir}/ConfigParser.pm
+%{_libdir}/%{pkgdir}/LogUtils.pm
+
+%files giis
+%{_sbindir}/arc-infoindex-relay
+%{_sbindir}/arc-infoindex-server
+%{_libdir}/%{pkgdir}/arc-infoindex-slapd-wrapper.so
+
 %files compiler
 %defattr(-,root,root,-)
 %{_libdir}/%{pkgdir}/libcompiler.so
@@ -687,7 +734,9 @@ exit 0
 %{_libdir}/%{pkgdir}/libarex.apd
 %{_libdir}/%{pkgdir}/ARC0mod.pm
 %{_libdir}/%{pkgdir}/FORKmod.pm
+%{_libdir}/%{pkgdir}/Fork.pm
 %{_libdir}/%{pkgdir}/SGEmod.pm
+%{_libdir}/%{pkgdir}/SGE.pm
 %{_libdir}/%{pkgdir}/LL.pm
 %{_libdir}/%{pkgdir}/LSF.pm
 %{_libdir}/%{pkgdir}/PBS.pm
@@ -704,7 +753,6 @@ exit 0
 %{_libdir}/%{pkgdir}/RTEInfo.pm
 %{_libdir}/%{pkgdir}/InfoChecker.pm
 %{_libdir}/%{pkgdir}/IniParser.pm
-%{_libdir}/%{pkgdir}/LogUtils.pm
 %{_libdir}/%{pkgdir}/LRMSInfo.pm
 %{_libdir}/%{pkgdir}/Sysinfo.pm
 %{_libdir}/%{pkgdir}/cancel_common.sh
@@ -714,7 +762,6 @@ exit 0
 %{_libdir}/%{pkgdir}/configure-*-env.sh
 %{_libdir}/%{pkgdir}/submit_common.sh
 %{_libdir}/%{pkgdir}/scan_common.sh
-%{_datadir}/%{pkgdir}/nordugrid.schema
 %doc %{_mandir}/man1/cache-clean.1*
 %doc %{_mandir}/man1/cache-list.1*
 %doc %{_datadir}/%{pkgdir}/examples/a-rex/arex.xml.example

@@ -1,0 +1,79 @@
+#!/bin/bash
+#
+# Init file for the NorduGrid/ARC Information System
+#
+# chkconfig: - 55 25
+# description: NorduGrid Information system
+#
+# Originally based on globus-mds v0.27.
+#
+# Written by:
+#    Anders Waananen <waananen@nbi.dk>
+#    Daniel Johansson <daniel@nsc.liu.se>
+#    Mattias Ellert <mattias.ellert@fysast.uu.se>
+#
+# description:
+#   generates BDII config and starts up the BDII
+#   starts up the GIIS replacement server
+#   generates GIIS registration config and starts up the registration
+#
+# config: /etc/sysconfig/nordugrid
+# config: /etc/arc.conf
+#
+######################################################################
+
+### BEGIN INIT INFO
+# Provides:          grid-infosys
+# Required-Start:    $remote_fs $syslog
+# Required-Stop:     $remote_fs $syslog
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: grid-infosys for ARC middleware
+# Description:       ldap-based grid information system for the ARC middleware
+### END INIT INFO
+
+if [ -f /usr/sbin/bdii4-update ]; then
+    . @nordugrid_location@/@libsubdir@/grid-infosys-bdii4 $1
+elif [ -f /usr/sbin/bdii-update ]; then
+    . @nordugrid_location@/@libsubdir@/grid-infosys-bdii5 $1
+else
+    echo "You don't have BDII 4 or 5 installed, this is a necessary component for the ARC LDAP information system."
+fi
+
+case "$1" in
+    start)
+        start
+	do_exit_start $RETVAL
+        ;;
+    stop)
+        stop
+	do_exit_stop $RETVAL
+        ;;
+    restart|reload)
+        stop
+        # avoid race
+        sleep 3
+        start
+        ;;
+    status)
+	status
+	do_exit_status $RETVAL
+        ;;
+    condrestart)
+	if [ -f /usr/sbin/bdii4-update ]; then
+	    if [ -f "$PID_FILE" ] ; then
+		restart
+	    fi
+	else
+            if [ -f ${slapd_lock_file} ] || [ -f ${update_lock_file} ]; then
+		restart
+	    fi
+	fi
+	;;
+    *)
+        echo "Usage: $0 {start|stop|restart|reload|condrestart|status}"
+        exit 1
+        ;;
+esac
+
+exit $RETVAL

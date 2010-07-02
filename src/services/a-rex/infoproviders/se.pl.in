@@ -1,0 +1,350 @@
+#!/usr/bin/perl
+use Getopt::Long;
+use lib "$ENV{PWD}/";
+use File::Basename;
+use Cwd;
+
+BEGIN {
+    my $oldcwd = getcwd();
+
+    my $basedir = dirname($0);
+    chdir $basedir or die "$basedir: $!";
+    $basedir = getcwd();
+
+    my $pkglibdir = $basedir.'/@pkglibdir_rel_to_pkglibexecdir@';
+    chdir $pkglibdir or die "$pkglibdir: $!";
+    $pkglibdir = getcwd();
+
+    chdir $oldcwd or die "$oldcwd: $!";
+
+    unshift @INC, $pkglibdir;
+}
+
+use LogUtils ( 'start_logging', 'error', 'warning', 'debug' );
+use Shared;
+
+#
+# populates the nordugrid-se LDAP entry
+#
+
+
+GetOptions("dn:s" => \$config{dn},	
+     	   "se:s" => \$config{se}, 
+	   "config:s" => \$config{conf_file},
+	   "valid-to:i" => \$config{ttl},
+	   "loglevel:i" => \$config{loglevel},
+	   "help|h" => \$print_help   
+	  ); 
+
+my $USAGE=<<EOUSAGE
+script usage:
+       mandatory arguments: --dn         
+                            --config    
+			    --se	 
+			    
+       optional arguments:  --valid-to   
+                            --loglevel   
+
+       this help:           --help
+EOUSAGE
+;
+
+if ($print_help) { 
+    print "$USAGE\n";
+		exit;
+}
+
+if (($config{dn} and $config{conf_file} and $config{se}) eq "") {
+    error("a command line argument is missing, see --help ");
+    die "a command line argument is missing, see --help "
+};
+
+
+#
+#  default values
+#
+$config{ttl} 		||= 600;
+$config{port} 		= "2811";
+$config{gridmap} 	= "/etc/grid-security/grid-mapfile";
+$config{"x509_user_cert"} = "/etc/grid-security/hostcert.pem";
+$config{"x509_cert_dir"} = "/etc/grid-security/certificates/";
+$config{ng_location}	||= $ENV{NORDUGRID_LOCATION} ||= "@nordugrid_location@";
+my $globus_location	||= $ENV{GLOBUS_LOCATION} ||= "/usr";
+chomp ($config{hostname} = `/bin/hostname -f`);
+
+
+#parse the arc.conf directly into a hash $parsedconfig{blockname}{variable_name}
+unless (open (CONFIGFILE, "<$config{conf_file}")) {
+    error("can't open $config{conf_file} configuration file");
+    die "Can't open $config{conf_file} configuration file\n";
+}
+my $blockname;
+while (my $line =<CONFIGFILE>) {
+   next if $line =~/^#/;
+   next if $line =~/^$/;
+   next if $line =~/^\s+$/;
+   
+   if ($line =~/\[(.+)\]/ ) {
+      $blockname = $1;
+      next;
+   }
+   
+   unless ($line =~ /=\s*".*"\s*$/) {
+      warning("skipping incorrect arc.conf line: $line");
+      next;
+   }
+    
+   $line =~m/^(\w+)\s*=\s*"(.*)"\s*$/;
+   $variable_name=$1;
+   $variable_value=$2;
+   unless ($parsedconfig{$blockname}{$variable_name}) {
+      $parsedconfig{$blockname}{$variable_name} = $variable_value;
+   }
+   else {
+      $parsedconfig{$blockname}{$variable_name} .= "[separator]".$variable_value;
+   }   
+}
+close CONFIGFILE;
+
+
+#fill the %config hash from the %parsedconfig taking into account the block hierarchy
+foreach $variable (keys %{ $parsedconfig{"common"} } ) {
+   $config{$variable} = $parsedconfig{"common"}{$variable};
+}
+foreach $variable (keys %{ $parsedconfig{"infosys"} } ) {
+   $config{$variable} = $parsedconfig{"infosys"}{$variable};
+}
+foreach $variable (keys %{ $parsedconfig{"gridftpd"} } ) {
+   $config{$variable} = $parsedconfig{"gridftpd"}{$variable};
+}
+foreach $variable (keys %{ $parsedconfig{"se/".$config{se}} } ) {
+   $config{$variable} = $parsedconfig{"se/".$config{se}}{$variable};
+}
+if ( $parsedconfig{"se/".$config{se}}{assigned_storage} ) {
+   my $assigned_storage = $parsedconfig{"se/".$config{se}}{assigned_storage};
+   foreach $variable (keys %{ $parsedconfig{"gridftpd/".$assigned_storage} } ) {
+      $config{$variable} = $parsedconfig{"gridftpd/".$assigned_storage}{$variable};
+   }
+   foreach $variable (keys %{ $parsedconfig{"httpsd/".$assigned_storage} } ) {
+      $config{$variable} = $parsedconfig{"httpsd/".$assigned_storage}{$variable};
+   }   
+}
+
+
+if (! defined ($config{name})) {
+   $config{name} = $config{se};
+}
+
+
+#foreach $variable (keys %config) {
+#   print "$variable: $config{$variable}\n";
+#}
+#exit;
+   
+#
+# read the mappings from the grid-mapfile to a %users hash
+#
+
+unless (open mapfile, "<$config{gridmap}") {
+ error("can't open gridmapfile $config{gridmap}");
+ die "can't open gridmapfile $config{gridmap}";
+}
+
+while($line = <mapfile>) {
+    chomp($line);  
+    if ( ($sn,$unix_user)= $line =~ m/\"([^"]+)\"\s+(\S+)/) {
+        $users{$1}=$unix_user; 	
+    }  	
+}				    
+close mapfile;	
+
+
+# The DN of the entry
+print "dn: $config{dn}\n";
+
+# The objectclasses
+print "objectclass: Mds\n";
+print "objectclass: nordugrid-se\n";
+
+# The attributes
+print "nordugrid-se-name: $config{name}:$config{hostname}\n";
+
+
+#nordugrid-se-url
+if ( $config{type} =~/sse/i ) {
+    # TODO: figure out which port(s) to use   
+    my $sse_url = "sse://$config{hostname}".$config{path};
+    print "nordugrid-se-url: $sse_url\n";
+}
+else {
+    print "nordugrid-se-url: gsiftp://$config{hostname}:$config{port}","$config{path}\n";
+}
+
+
+$config{alias} and print "nordugrid-se-aliasname: $config{alias}\n";
+$config{type} and print "nordugrid-se-type: $config{type}\n";
+$config{comment} and print "nordugrid-se-comment: $config{comment}\n";
+
+#nordugrid-se-accesscontrol
+if ($config{plugin} =~/gacl/i) {
+    print "nordugrid-se-accesscontrol: gacl\n";
+}
+elsif ($config{plugin} =~/file/i) {
+    print "nordugrid-se-accesscontrol: trivial\n";
+}
+elsif ( $config{type} =~/sse/i ) {
+    print "nordugrid-se-accesscontrol: gacl\n";
+}
+else {
+    print "nordugrid-se-accesscontrol: other\n";
+}
+
+#nordugrid-se-acl
+my @se_acl = split /\[separator\]/, $config{authorizedvo};
+foreach my $listentry (@se_acl) {
+   print "nordugrid-se-acl: VO:$listentry\n";
+}
+
+#nordugrid-se-totalspace/freespace
+my $diskfree;
+my $disktotal;
+my $diskarea;
+if ( $config{type} =~/sse/i ) {
+    $diskarea = $config{storage};
+}
+else {
+    $diskarea = $config{mount};
+}
+
+if ( -d $diskarea) {
+  # check if on afs  
+  if ($diskarea =~ /\/afs\//) {
+	$diskfree =`fs listquota $diskarea 2>/dev/null`;   
+	if ($diskfree) {
+	  $diskfree =~ /\n\S+\s+(\d+)\s+(\d+)\s+\d+%\s+\d+%/;
+	  $diskfree = int (($1 - $2)/1024);
+	  $disktotal= int $1/1024;
+	} 
+	else {
+	  $diskfree = 0;
+	  $disktotal = 0;
+	}  
+  } 
+  # "ordinary" disk 
+  else {
+	$dfstring =`df -k -P $diskarea 2>/dev/null`;   
+	if ($dfstring) {
+	  $dfstring =~ /\n\S+\s+(\d+)\s+\d+\s+(\d+)\s+\d+/;
+	  $diskfree = int $2/1024;
+	  $disktotal = int $1/1024;
+	}
+	else {
+	  $diskfree = 0;
+	  $disktotal = 0;
+	}
+  }
+}
+else { 
+  $diskfree = 0;
+  $disktotal = 0;
+  warning("SE mount directory $diskarea is not found");
+}
+print "nordugrid-se-totalspace: $disktotal\n";
+print "nordugrid-se-freespace: $diskfree\n";
+
+#nordugrid-se-middleware
+
+#NorduGrid toolkit
+#nordugridlocation/sbin/grid-manager -v
+$ENV{LD_LIBRARY_PATH}.=":" if $ENV{LD_LIBRARY_PATH};
+$ENV{LD_LIBRARY_PATH}.="$config{ng_location}/@libsubdir@:$globus_location/lib";
+my $ngversionstring = `$config{ng_location}/sbin/grid-manager -v 2>/dev/null`;
+if ($?) {								          
+   warning("error in executing $config{ng_location}/sbin/grid-manager command")
+}
+$ngversionstring =~ /grid-manager: version\s*(.+)$/ and $ngversion="-".$1;
+if ($ngversionstring) {
+    print "nordugrid-se-middleware: nordugrid$ngversion\n";
+}
+
+#Globus Toolkit version 									          
+#globuslocation/share/doc/VERSION								          
+if (-r "$globus_location/share/doc/VERSION" ) { 						          
+   chomp ( $globusversion =  `cat $globus_location/share/doc/VERSION 2>/dev/null`);	 	          
+   if ($?) {								          
+      warning("error in reading the globus version file")	     		          
+   }												          
+}												          
+#globuslocation/bin/globus-version 								          
+elsif (-x "$globus_location/bin/globus-version" ) {						          
+   chomp ( $globusversion =  `$globus_location/bin/globus-version 2>/dev/null`);        	          
+   if ($?) {								          
+      warning("error in executing the $globus_location/bin/globus-version command")    
+   }												          
+}												          
+if ($globusversion) {										          
+   print "nordugrid-se-middleware: globus-$globusversion\n";
+}												          
+
+#nordugrid-se-issuerca
+my $hostcert = $config{"x509_user_cert"};    
+# find an openssl
+my $openssl_command = '';
+for my $path (split ':', "$ENV{PATH}:$globus_location/bin") {
+    $openssl_command = "$path/openssl" and last if -x "$path/openssl";
+}
+error("Could not find openssl command") unless $openssl_command;
+my $issuerca=`$openssl_command x509 -noout -issuer -in $hostcert 2>/dev/null`;
+if ( $? ) {
+   warning("error in executing $openssl_command x509 -noout -issuer -in $hostcert")
+}
+if ( $issuerca =~ s/issuer= // ) {
+   chomp($issuerca);
+   print "nordugrid-se-issuerca: $issuerca\n";
+}
+       
+#nordugrid-se-issuerca-hash
+@certfiles = `ls $config{"x509_cert_dir"}/*.0 2>/dev/null`;			       
+foreach $cert ( @certfiles ) {							       
+   my $ca_sn = `$openssl_command x509 -checkend 60 -noout -subject -in $cert`;	       
+   $ca_sn =~ s/subject= //;							       
+   chomp($ca_sn);								       
+   if ( $ca_sn eq $issuerca) {							       
+      $issuerca_hash = `$openssl_command x509 -checkend 60 -noout -hash -in $cert`;    
+   }										       
+   if ($?) {									       
+     warning("CA $ca_sn is expired");	       
+     next;
+   }										       
+   push @trustedca, $ca_sn;							       
+}										       
+if ( $issuerca_hash ) { 							       
+   chomp ($issuerca_hash);							       
+   print "nordugrid-se-issuerca-hash: $issuerca_hash\n";
+}
+										       
+#nordugrid-se-trustedca	
+foreach my $listentry (@trustedca) {	
+   print "nordugrid-se-trustedca: $listentry\n";
+}		
+
+
+#nordugrid-se-authuser
+foreach $listentry (keys %users) {
+   print "nordugrid-se-authuser: $listentry\n";
+}
+
+#Mds-validfrom/to
+my ( $valid_from, $valid_to ) = Shared::mds_valid($config{ttl});
+
+print "Mds-validfrom: $valid_from\n";
+print "Mds-validto: $valid_to\n";
+
+
+my $runtime =  time - $^T;
+debug("execution time: $runtime");
+if ($runtime >= 4 ) {  
+   warning("SLOW script: $runtime");  
+}
+
+exit;
