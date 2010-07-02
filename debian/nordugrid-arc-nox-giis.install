@@ -1,3 +1,5 @@
 debian/tmp/usr/sbin/arc-infoindex-relay
 debian/tmp/usr/sbin/arc-infoindex-server
 debian/tmp/usr/lib/arc/arc-infoindex-slapd-wrapper.so
+debian/tmp/usr/lib/arc/arc-infoindex-slapd-wrapper.la
+debian/tmp/usr/lib/arc/arc-infoindex-slapd-wrapper.apd
