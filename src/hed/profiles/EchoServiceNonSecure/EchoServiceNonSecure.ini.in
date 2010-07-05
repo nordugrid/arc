@@ -6,6 +6,11 @@ debug=DEBUG
 
 port=60000
 
+ca_dir=/etc/grid-security/certificates
+client_cert=/etc/grid-security/hostcert.pem
+client_key=/etc/grid-security/hostkey.pem
+
 [echo]
+endpoint=http://myhostname:60000/Echo
 prefix=[[
 suffix=]]
