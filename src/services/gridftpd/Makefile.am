@@ -26,8 +26,4 @@ a_rex_gridftpd_bin_LDADD = libgridftpd.la conf/libconf.la run/librun.la \
 
 a_rex_gridftpd_bin_LDFLAGS = -rdynamic
 
-if XMLSEC_ENABLED
 SUBDIRS = misc conf run external auth . fileplugin gaclplugin
-else
-SUBDIRS = misc conf run auth . fileplugin
-endif
