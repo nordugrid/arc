@@ -6,7 +6,7 @@ msgstr ""
 "Project-Id-Version: Arc\n"
 "Report-Msgid-Bugs-To: support@nordugrid.org\n"
 "POT-Creation-Date: 2010-07-02 17:03+0100\n"
-"PO-Revision-Date: 2010-07-02 17:30+0100\n"
+"PO-Revision-Date: 2010-07-05 12:25+0100\n"
 "Last-Translator: Gábor Rőczei <roczei@niif.hu>\n"
 "Language-Team: Hungarian\n"
 "MIME-Version: 1.0\n"
@@ -115,7 +115,7 @@ msgstr "fájlnév"
 #: src/clients/arclib/arcsub.cpp:63
 #: src/clients/arclib/arcsync.cpp:58
 msgid "explicitly select or reject a specific cluster"
-msgstr ""
+msgstr "egy klaszter egyértelmű kiválasztása vagy tiltása"
 
 #: src/clients/arclib/arccat.cpp:56
 #: src/clients/arclib/arcclean.cpp:55
@@ -138,7 +138,7 @@ msgstr ""
 #: src/clients/arclib/arcsync.cpp:65
 #: src/clients/wsrf/arcwsrf.cpp:43
 msgid "[-]name"
-msgstr ""
+msgstr "[-]név"
 
 #: src/clients/arclib/arccat.cpp:61
 #: src/clients/arclib/arcclean.cpp:60
@@ -194,7 +194,7 @@ msgstr ""
 #: src/clients/srm/arcsrmping.cpp:39
 #: src/clients/wsrf/arcwsrf.cpp:47
 msgid "timeout in seconds (default 20)"
-msgstr ""
+msgstr "időkorlát másodpercben (alapbeállítás 20)"
 
 #: src/clients/arclib/arccat.cpp:82
 #: src/clients/arclib/arcclean.cpp:72
@@ -216,7 +216,7 @@ msgstr ""
 #: src/clients/srm/arcsrmping.cpp:40
 #: src/clients/wsrf/arcwsrf.cpp:48
 msgid "seconds"
-msgstr ""
+msgstr "másodpercek"
 
 #: src/clients/arclib/arccat.cpp:86
 #: src/clients/arclib/arcclean.cpp:76
@@ -240,7 +240,7 @@ msgstr ""
 #: src/clients/srm/arcsrmping.cpp:44
 #: src/clients/wsrf/arcwsrf.cpp:52
 msgid "configuration file (default ~/.arc/client.conf)"
-msgstr ""
+msgstr "konfigurációs fájl (alapbeállítás ~/.arc/client.conf)"
 
 #: src/clients/arclib/arccat.cpp:91
 #: src/clients/arclib/arcclean.cpp:81
@@ -267,7 +267,7 @@ msgstr ""
 #: src/clients/wsrf/arcwsrf.cpp:57
 #: src/hed/libs/client/test_jobdescription.cpp:38
 msgid "FATAL, ERROR, WARNING, INFO, VERBOSE or DEBUG"
-msgstr ""
+msgstr "FATAL, ERROR, WARNING, INFO, VERBOSE vagy DEBUG"
 
 #: src/clients/arclib/arccat.cpp:92
 #: src/clients/arclib/arcclean.cpp:82
@@ -294,7 +294,7 @@ msgstr ""
 #: src/clients/wsrf/arcwsrf.cpp:58
 #: src/hed/libs/client/test_jobdescription.cpp:39
 msgid "debuglevel"
-msgstr ""
+msgstr "logolási szint"
 
 #: src/clients/arclib/arccat.cpp:95
 #: src/clients/arclib/arcclean.cpp:85
@@ -320,7 +320,7 @@ msgstr ""
 #: src/clients/srm/arcsrmping.cpp:53
 #: src/clients/wsrf/arcwsrf.cpp:61
 msgid "print version information"
-msgstr ""
+msgstr "verzió információ kiírása"
 
 #: src/clients/arclib/arccat.cpp:101
 #: src/clients/arclib/arcclean.cpp:91
@@ -349,7 +349,7 @@ msgstr ""
 #: src/hed/daemon/win32/main_win32.cpp:125
 #, c-format
 msgid "%s version %s"
-msgstr ""
+msgstr "%s verzió %s"
 
 #: src/clients/arclib/arccat.cpp:112
 #: src/clients/arclib/arcclean.cpp:102
@@ -372,7 +372,7 @@ msgstr ""
 #: src/clients/srm/arcsrmping.cpp:70
 #: src/clients/wsrf/arcwsrf.cpp:97
 msgid "Failed configuration initialization"
-msgstr ""
+msgstr "Nem sikerült betölteni a konfigurációt"
 
 #: src/clients/arclib/arccat.cpp:126
 #: src/clients/arclib/arcclean.cpp:116
@@ -384,7 +384,7 @@ msgstr ""
 #: src/clients/arclib/arcresume.cpp:103
 #: src/clients/arclib/arcstat.cpp:147
 msgid "No jobs given"
-msgstr ""
+msgstr "Nem adott meg feladatot"
 
 #: src/clients/arclib/arccat.cpp:148
 #: src/clients/arclib/arcclean.cpp:138
@@ -397,41 +397,41 @@ msgstr ""
 #: src/clients/arclib/arcresume.cpp:125
 #: src/clients/arclib/arcstat.cpp:167
 msgid "No job controller plugins loaded"
-msgstr ""
+msgstr "A feladat vezérlő modult nem sikerült betölteni"
 
 #: src/clients/arclib/arcclean.cpp:33
 msgid "The arcclean command removes a job from the remote cluster."
-msgstr ""
+msgstr "Az arcclean parancs eltávolít egy feladatot a távoli klaszterröl"
 
 #: src/clients/arclib/arcclean.cpp:66
 msgid "remove the job from the local list of jobs even if the job is not found in the infosys"
-msgstr ""
+msgstr "feladat eltávolítása a helyi listából ha az nem található az információs rendszerben"
 
 #: src/clients/arclib/arcget.cpp:33
 msgid "The arcget command is used for retrieving the results from a job."
-msgstr ""
+msgstr "Az arcget parancsot arra lehet használni, hogy a feladat eredményeit megjelenítse"
 
 #: src/clients/arclib/arcget.cpp:66
 msgid "download directory (the job directory will be created in this directory)"
-msgstr ""
+msgstr "könyvtár letöltése (a feladat könyvtára ebben a könyvtárban fog létrejönni)"
 
 #: src/clients/arclib/arcget.cpp:68
 msgid "dirname"
-msgstr ""
+msgstr "könyvtárnév"
 
 #: src/clients/arclib/arcget.cpp:73
 #: src/clients/arclib/arckill.cpp:66
 #: src/clients/arclib/arcresub.cpp:80
 msgid "keep the files on the server (do not clean)"
-msgstr ""
+msgstr "fájlok megőrzése a szerveren (nincs törlés)"
 
 #: src/clients/arclib/arcinfo.cpp:33
 msgid "[cluster ...]"
-msgstr ""
+msgstr "[klaszter ...]"
 
 #: src/clients/arclib/arcinfo.cpp:34
 msgid "The arcinfo command is used for obtaining the status of clusters on the grid."
-msgstr ""
+msgstr "Az arcinfo paranccsal lehet lekérdezni az egyes klaszterek állapotát a grid-ben."
 
 #: src/clients/arclib/arcinfo.cpp:37
 #: src/clients/arclib/arcsub.cpp:48
@@ -451,27 +451,30 @@ msgstr ""
 #: src/clients/arclib/arcsub.cpp:69
 #: src/clients/arclib/arcsync.cpp:64
 msgid "explicitly select or reject an index server"
-msgstr ""
+msgstr "egy index szerver egyértelmű kiválasztása vagy tiltása"
 
 #: src/clients/arclib/arcinfo.cpp:64
 #: src/clients/arclib/arcstat.cpp:68
 #: src/clients/data/arcls.cpp:150
 msgid "long format (more information)"
-msgstr ""
+msgstr "részletes formátum (több információ)"
 
 #: src/clients/arclib/arckill.cpp:33
 msgid "The arckill command is used to kill running jobs."
-msgstr ""
+msgstr "Az arckill paranccsal lehet megölni egy futó feladatot"
 
 #: src/clients/arclib/arcmigrate.cpp:44
 msgid ""
 "The arcmigrate command is used for migrating queued jobs to another cluster.\n"
 "Note that migration is only supported between ARC1 clusters."
 msgstr ""
+"Az arcmigrate paraccsot arra lehet használni, hogy egy várakozó sorban\n"
+"lévő feladatot átmozgassunk egy másik klaszterre. Jelenleg csak az ARC1-es\n"
+"klaszterek esetén lehet csak használni"
 
 #: src/clients/arclib/arcmigrate.cpp:56
 msgid "force migration, ignore kill failure"
-msgstr ""
+msgstr "migráció kikényszerítése, megölési hiba figyelmen kívül hagyása"
 
 #: src/clients/arclib/arcmigrate.cpp:67
 msgid "explicitly select or reject a cluster holding queued jobs"
@@ -479,13 +482,13 @@ msgstr ""
 
 #: src/clients/arclib/arcmigrate.cpp:73
 msgid "explicitly select or reject a cluster to migrate to"
-msgstr ""
+msgstr "egy klaszter egyértelmű kiválasztása vagy tiltása migráció esetére"
 
 #: src/clients/arclib/arcmigrate.cpp:103
 #: src/clients/arclib/arcresub.cpp:110
 #: src/clients/arclib/arcsub.cpp:121
 msgid "select broker method (Random (default), FastestQueue, or custom)"
-msgstr ""
+msgstr "bróker kiválasztása (Random (alapbeállítás), FastestQueue vagy saját)"
 
 #: src/clients/arclib/arcmigrate.cpp:104
 #: src/clients/arclib/arcresub.cpp:111
@@ -502,82 +505,84 @@ msgstr ""
 #: src/clients/arclib/arcsub.cpp:249
 #, c-format
 msgid "Unable to load broker %s"
-msgstr ""
+msgstr "Nem sikerült betölteni a %s bróker modult"
 
 #: src/clients/arclib/arcmigrate.cpp:191
 #: src/clients/arclib/arcresub.cpp:236
 #: src/clients/arclib/arcsub.cpp:252
 #, c-format
 msgid "Broker %s loaded"
-msgstr ""
+msgstr "%s bróker betöltve"
 
 #: src/clients/arclib/arcmigrate.cpp:208
 #, c-format
 msgid "Job migrated with jobid: %s"
-msgstr ""
+msgstr "Feladat migrálásra került ezzel az azonosítóval: %s"
 
 #: src/clients/arclib/arcresub.cpp:55
 #: src/clients/arclib/arcsub.cpp:89
 #: src/clients/arclib/arcsync.cpp:70
 msgid "file where the jobs will be stored"
-msgstr ""
+msgstr "azon fájl, ahol a feladat azonosítók tárolásra kerülnek"
 
 #: src/clients/arclib/arcresub.cpp:67
 msgid "explicitly select or reject a specific cluster for the new job"
-msgstr ""
+msgstr "egy klaszter egyértelmű kiválasztása vagy tiltása új feladat számára"
 
 #: src/clients/arclib/arcresub.cpp:85
 msgid "resubmit to the same cluster"
-msgstr ""
+msgstr "újraküldés ugyanarra a klaszterre"
 
 #: src/clients/arclib/arcresub.cpp:191
 msgid "No jobs to resubmit"
-msgstr ""
+msgstr "Nem sikerült újraküldeni a feladatot"
 
 #: src/clients/arclib/arcresub.cpp:207
 #, c-format
 msgid "Trying to resubmit job to %s"
-msgstr ""
+msgstr "Feladat újraküldésének megkisérlése ide: %s"
 
 #: src/clients/arclib/arcresub.cpp:212
 #, c-format
 msgid "Disregarding %s"
-msgstr ""
+msgstr "Figyelmen kívül hagyás: %s"
 
 #: src/clients/arclib/arcresub.cpp:226
 #: src/clients/arclib/arcsub.cpp:237
 msgid "Job submission aborted because no clusters returned any information"
-msgstr ""
+msgstr "Feladat küldés sikertelen, mert egyetlen klaszter sem adott vissza információt magáról"
 
 #: src/clients/arclib/arcresub.cpp:250
 #: src/clients/arclib/arcsub.cpp:268
 msgid "Job submission failed, no more possible targets"
-msgstr ""
+msgstr "A feladat küldés meghiusúlt, mert nincs több szabad várakozó sor."
 
 #: src/clients/arclib/arcresub.cpp:259
 #: src/clients/arclib/arcsub.cpp:301
 #, c-format
 msgid "Submission to %s failed, trying next target"
-msgstr ""
+msgstr "Feladat küldés erre a klaszterre nem sikerült: %s, megpróbálom a következőt"
 
 #: src/clients/arclib/arcresub.cpp:264
 #, c-format
 msgid "Job resubmitted with new jobid: %s"
-msgstr ""
+msgstr "Feladat újraküldve ezzel az azonosítóval: %s"
 
 #: src/clients/arclib/arcresub.cpp:294
 msgid "Job could not be killed or cleaned"
-msgstr ""
+msgstr "A feladatot nem sikerült megölni vagy letörölni"
 
 #: src/clients/arclib/arcstat.cpp:34
 msgid ""
 "The arcstat command is used for obtaining the status of jobs that have\n"
 "been submitted to grid enabled resources."
 msgstr ""
+"Az arcstat paranccsal lehet lekérdezni azon feladatok állapotát,\n"
+"amelyek el lettek küldve a grid-ben lévő klaszterre."
 
 #: src/clients/arclib/arcstat.cpp:78
 msgid "sort jobs according to jobid, submissiontime or jobname"
-msgstr ""
+msgstr "feladatok rendezése az azonosítójuk, az elküldés ideje vagy a neve alapján"
 
 #: src/clients/arclib/arcstat.cpp:79
 #: src/clients/arclib/arcstat.cpp:82
@@ -586,11 +591,11 @@ msgstr "sorrend"
 
 #: src/clients/arclib/arcstat.cpp:81
 msgid "reverse sorting of jobs according to jobid, submissiontime or jobname"
-msgstr ""
+msgstr "feladatok rendezésének megfordítása az azonosítójuk, az elküldés ideje vagy a neve alapján"
 
 #: src/clients/arclib/arcstat.cpp:127
 msgid "The 'sort' and 'rsort' flags cannot be specified at the same time."
-msgstr ""
+msgstr "A 'sort' vagy az 'rsort' kapcsolókat nem lehet egyszerre használni"
 
 #: src/clients/arclib/arcsub.cpp:44
 msgid "[filename ...]"
@@ -600,11 +605,11 @@ msgstr "[fájlnév ...]"
 msgid ""
 "The arcsub command is used for submitting jobs to grid enabled computing\n"
 "resources."
-msgstr ""
+msgstr "Az arcsub paranccsal lehet feladatot küldeni a grid-be."
 
 #: src/clients/arclib/arcsub.cpp:75
 msgid "jobdescription string describing the job to be submitted"
-msgstr ""
+msgstr "a feladat leíró szöveg tartalmazza magát az elküldendő feladatot"
 
 #: src/clients/arclib/arcsub.cpp:77
 #: src/clients/arclib/arcsub.cpp:84
@@ -623,45 +628,45 @@ msgstr "szöveg"
 
 #: src/clients/arclib/arcsub.cpp:82
 msgid "jobdescription file describing the job to be submitted"
-msgstr ""
+msgstr "a feladat leíró fájl tartalmazza magát az elküldendő feladatot"
 
 #: src/clients/arclib/arcsub.cpp:101
 msgid "do not submit - dump job description in the language accepted by the target"
-msgstr ""
+msgstr "nincs küldés - azon feladat leíró formátumban megjelenítése, amit a távoli klaszter elfogad"
 
 #: src/clients/arclib/arcsub.cpp:176
 msgid "No job description input specified"
-msgstr ""
+msgstr "Nincs megadva feladat leírás bemeneti adatként"
 
 #: src/clients/arclib/arcsub.cpp:189
 #: src/hed/acc/ARC0/JobControllerARC0.cpp:470
 #, c-format
 msgid "Can not open job description file: %s"
-msgstr ""
+msgstr "Nem tudom megnyitni a feladat leíró fájlt: %s"
 
 #: src/clients/arclib/arcsub.cpp:208
 #: src/clients/arclib/arcsub.cpp:227
 #: src/hed/acc/ARC0/JobControllerARC0.cpp:520
 msgid "Invalid JobDescription:"
-msgstr ""
+msgstr "Érvénytelen feladat leírás:"
 
 #: src/clients/arclib/arcsub.cpp:265
 msgid "Unable to print job description: No target found."
-msgstr ""
+msgstr "Nem tudom kiíratni a feladat leírást: Nem található várakozó sor."
 
 #: src/clients/arclib/arcsub.cpp:288
 msgid "An error occurred during the generation of the job description output."
-msgstr ""
+msgstr "Egy hiba lépett fel a feladat leírás elkészítése közben."
 
 #: src/clients/arclib/arcsub.cpp:292
 #, c-format
 msgid "Job description to be sent to %s:"
-msgstr ""
+msgstr "Feladat leírás elküldve ide: %s"
 
 #: src/clients/arclib/arcsub.cpp:306
 #, c-format
 msgid "Job submitted with jobid: %s"
-msgstr ""
+msgstr "Feladat elküldve ezzel az azonítóval: %s"
 
 #: src/clients/arclib/arcsub.cpp:314
 msgid "Job submission summary:"
@@ -670,12 +675,12 @@ msgstr "Job küldési összefoglaló"
 #: src/clients/arclib/arcsub.cpp:317
 #, c-format
 msgid "%d of %d jobs were submitted"
-msgstr ""
+msgstr "%d %d feladatból elküldve"
 
 #: src/clients/arclib/arcsub.cpp:321
 #, c-format
 msgid "The following %d were not submitted"
-msgstr ""
+msgstr "%d nem lett elküldve"
 
 #: src/clients/arclib/arcsync.cpp:40
 msgid ""
@@ -685,11 +690,11 @@ msgstr ""
 
 #: src/clients/arclib/arcsync.cpp:76
 msgid "do not ask for verification"
-msgstr ""
+msgstr "ne kérjen ellenőrzést"
 
 #: src/clients/arclib/arcsync.cpp:81
 msgid "truncate the joblist before sync"
-msgstr ""
+msgstr "feladat lista megcsonkult a szinkronizáció előtt"
 
 #: src/clients/arclib/arcsync.cpp:125
 msgid ""
@@ -705,11 +710,11 @@ msgstr ""
 
 #: src/clients/arclib/arcsync.cpp:131
 msgid "y"
-msgstr ""
+msgstr "y"
 
 #: src/clients/arclib/arcsync.cpp:131
 msgid "n"
-msgstr ""
+msgstr "n"
 
 #: src/clients/arclib/arcsync.cpp:135
 msgid "Cancelling synchronization request"
@@ -717,15 +722,15 @@ msgstr ""
 
 #: src/clients/charon/arcdecision.cpp:49
 msgid "service_url request_file"
-msgstr ""
+msgstr "szolgáltatás_url kérési_fájl"
 
 #: src/clients/charon/arcdecision.cpp:53
 msgid "url of the policy decision service"
-msgstr ""
+msgstr "az eljárásmódot eldöntő szolgáltatás url-je"
 
 #: src/clients/charon/arcdecision.cpp:58
 msgid "path to request file"
-msgstr ""
+msgstr "kérési fájl elérési útvonala"
 
 #: src/clients/charon/arcdecision.cpp:59
 #: src/clients/charon/arcdecision.cpp:67
@@ -737,7 +742,7 @@ msgstr ""
 #: src/clients/data/arccp.cpp:534
 #: src/clients/saml/saml_assertion_init.cpp:48
 msgid "path"
-msgstr ""
+msgstr "elérési útvonal"
 
 #: src/clients/charon/arcdecision.cpp:62
 msgid "use SAML 2.0 profile of XACML v2.0 to contact the service"
@@ -746,7 +751,7 @@ msgstr ""
 #: src/clients/charon/arcdecision.cpp:66
 #: src/clients/saml/saml_assertion_init.cpp:47
 msgid "path to config file"
-msgstr ""
+msgstr "a konfigurációs fájl elérési útvonala"
 
 #: src/clients/credentials/arcproxy.cpp:79
 #: src/clients/credentials/arcslcs.cpp:45
@@ -764,27 +769,29 @@ msgstr "Könyvtár  : %s"
 #: src/clients/credentials/arcslcs.cpp:47
 #, c-format
 msgid "Function : %s"
-msgstr ""
+msgstr "Funkció: %s"
 
 #: src/clients/credentials/arcproxy.cpp:82
 #: src/clients/credentials/arcslcs.cpp:48
 #, c-format
 msgid "Reason   : %s"
-msgstr "Ok   : %s"
+msgstr "Indok   : %s"
 
 #: src/clients/credentials/arcproxy.cpp:119
 msgid "User interface error"
-msgstr ""
+msgstr "Felhasználó oldali hiba"
 
 #: src/clients/credentials/arcproxy.cpp:125
 msgid "Aborted!"
-msgstr ""
+msgstr "Megszakítva!"
 
 #: src/clients/credentials/arcproxy.cpp:149
 msgid ""
 "The arcproxy command creates a proxy from a key/certificate pair for use in\n"
 "the ARC middleware"
 msgstr ""
+"Az arcproxy parancs proxy-t készít a publikus/privát kulcsból,\n"
+"hogy tudja használni az ARC köztesréteget"
 
 #: src/clients/credentials/arcproxy.cpp:151
 msgid ""
@@ -799,23 +806,23 @@ msgstr ""
 
 #: src/clients/credentials/arcproxy.cpp:160
 msgid "path to proxy file"
-msgstr ""
+msgstr "proxy fájl elérési útvonala"
 
 #: src/clients/credentials/arcproxy.cpp:164
 msgid "path to certificate file"
-msgstr ""
+msgstr "publikus kulcs elérési útvonala"
 
 #: src/clients/credentials/arcproxy.cpp:168
 msgid "path to private key file"
-msgstr ""
+msgstr "privát kulcs elérési útvonala"
 
 #: src/clients/credentials/arcproxy.cpp:172
 msgid "path to trusted certificate directory, only needed for voms client functionality"
-msgstr ""
+msgstr "megbízható tanúsítványok könyvtára, csak a voms kliensek használják"
 
 #: src/clients/credentials/arcproxy.cpp:176
 msgid "path to voms server configuration file"
-msgstr ""
+msgstr "voms szerver fájljának az elérési útvonala"
 
 #: src/clients/credentials/arcproxy.cpp:180
 msgid ""
@@ -841,11 +848,11 @@ msgstr ""
 
 #: src/clients/credentials/arcproxy.cpp:201
 msgid "use GSI communication protocol for contacting VOMS services"
-msgstr ""
+msgstr "GSI kommunikációs protokoll használata a VOMS szolgáltatás eléréséhez"
 
 #: src/clients/credentials/arcproxy.cpp:204
 msgid "use GSI proxy (RFC 3820 compliant proxy is default)"
-msgstr ""
+msgstr "GSI proxy használata (RFC 3820-nak megfelelő proxy, ez az alapbeállítás)"
 
 #: src/clients/credentials/arcproxy.cpp:207
 msgid ""
@@ -856,11 +863,11 @@ msgstr ""
 
 #: src/clients/credentials/arcproxy.cpp:214
 msgid "username to myproxy server"
-msgstr ""
+msgstr "myproxy szerverhez szükséges felhasználónév"
 
 #: src/clients/credentials/arcproxy.cpp:222
 msgid "hostname[:port] of myproxy server"
-msgstr ""
+msgstr "szervernév[:port] myproxy szerveré"
 
 #: src/clients/credentials/arcproxy.cpp:226
 msgid ""
@@ -892,16 +899,16 @@ msgstr ""
 #: src/clients/credentials/arcproxy.cpp:388
 #, c-format
 msgid "Subject: %s"
-msgstr ""
+msgstr "Tárgy: %s"
 
 #: src/clients/credentials/arcproxy.cpp:389
 #, c-format
 msgid "Identity: %s"
-msgstr ""
+msgstr "Azonosító: %s"
 
 #: src/clients/credentials/arcproxy.cpp:391
 msgid "Time left for proxy: Proxy expired"
-msgstr ""
+msgstr "Nem használható tovább a proxy: Lejárt a proxy"
 
 #: src/clients/credentials/arcproxy.cpp:393
 #, c-format
@@ -910,23 +917,23 @@ msgstr "Ennyi ideig érvényes még  a proxy: %s"
 
 #: src/clients/credentials/arcproxy.cpp:395
 msgid "Time left for proxy: Proxy not valid"
-msgstr ""
+msgstr "Nem használható tovább a proxy: Nem érvényes a proxy"
 
 #: src/clients/credentials/arcproxy.cpp:396
 #, c-format
 msgid "Proxy path: %s"
-msgstr ""
+msgstr "Proxy elérési útvonal: %s"
 
 #: src/clients/credentials/arcproxy.cpp:397
 #, c-format
 msgid "Proxy type: %s"
-msgstr ""
+msgstr "Proxy típusa: %s"
 
 #: src/clients/credentials/arcproxy.cpp:402
 #: src/hed/mcc/tls/MCCTLS.cpp:149
 #: src/hed/mcc/tls/MCCTLS.cpp:177
 msgid "VOMS attribute parsing failed"
-msgstr ""
+msgstr "VOMS attribútumok értelmezése sikertelen"
 
 #: src/clients/credentials/arcproxy.cpp:409
 msgid "Cannot find the user certificate path, please setup environment X509_USER_CERT, or certificatepath in configuration file"
@@ -943,15 +950,15 @@ msgstr "Azonosítód: %s"
 
 #: src/clients/credentials/arcproxy.cpp:524
 msgid "Proxy generation failed: Certificate has expired."
-msgstr ""
+msgstr "Proxy készítés sikertelen: A publikus kulcs érvényessége lejárt."
 
 #: src/clients/credentials/arcproxy.cpp:526
 msgid "Proxy generation failed: Certificate is not valid yet."
-msgstr ""
+msgstr "Proxy készítés sikertelen: A publikus kulcs érvénytelen."
 
 #: src/clients/credentials/arcproxy.cpp:528
 msgid "Proxy generation failed: Unable to verify certificate."
-msgstr ""
+msgstr "Proxy készítés sikertelen: Nem sikerült leellenőrizni a publikus kulcsot"
 
 #: src/clients/credentials/arcproxy.cpp:608
 #, c-format
@@ -964,12 +971,12 @@ msgstr ""
 #: src/clients/credentials/arcproxy.cpp:673
 #, c-format
 msgid "Cannot get voms server %s information from file: %s"
-msgstr ""
+msgstr "Nem sikerült elérnem a voms szervert %s, ezen fájl alapján: %s"
 
 #: src/clients/credentials/arcproxy.cpp:691
 #, c-format
 msgid "There are %d commands to the same voms server %s"
-msgstr ""
+msgstr "%d számú parancs van ugyanahoz a voms szerverhez: %s"
 
 #: src/clients/credentials/arcproxy.cpp:702
 #, c-format
@@ -980,21 +987,21 @@ msgstr ""
 #: src/clients/credentials/arcproxy.cpp:722
 #, c-format
 msgid "Contacting VOMS server (named %s): %s on port: %s"
-msgstr ""
+msgstr "VOMS szerver elérése (neve: %s): %s ezen a porton: %s"
 
 #: src/clients/credentials/arcproxy.cpp:753
 #, c-format
 msgid "Try to get attribute from voms server with order: %s"
-msgstr ""
+msgstr "Attribútumok lekérdezés a voms szervertől ebben a sorrendben: %s"
 
 #: src/clients/credentials/arcproxy.cpp:769
 msgid "No stream response from voms server"
-msgstr ""
+msgstr "Nincs válasz a voms szervertől"
 
 #: src/clients/credentials/arcproxy.cpp:782
 #, c-format
 msgid "Returned message from voms server: %s"
-msgstr ""
+msgstr "Ez a válasz érkezett a voms szervertől: %s"
 
 #: src/clients/credentials/arcproxy.cpp:809
 #, c-format
@@ -1008,11 +1015,11 @@ msgstr "Proxy készítés sikeres"
 #: src/clients/credentials/arcproxy.cpp:844
 #, c-format
 msgid "Your proxy is valid until: %s"
-msgstr ""
+msgstr "A proxy eddig érvényes: %s"
 
 #: src/clients/credentials/arcslcs.cpp:101
 msgid "Creating and sending soap request"
-msgstr ""
+msgstr "SOAP kérés készítése és küldése"
 
 #: src/clients/credentials/arcslcs.cpp:112
 #: src/tests/client/test_ClientSAML2SSO.cpp:81
@@ -1054,23 +1061,23 @@ msgstr "SLCS szolgáltatás URL-je"
 #: src/clients/data/arcls.cpp:144
 #: src/clients/data/arcrm.cpp:80
 msgid "url"
-msgstr ""
+msgstr "url"
 
 #: src/clients/credentials/arcslcs.cpp:173
 msgid "Identity provider name"
-msgstr ""
+msgstr "Azonító szolgáltatás neve"
 
 #: src/clients/credentials/arcslcs.cpp:176
 msgid "User account to identity provider"
-msgstr ""
+msgstr "Felhasználói név az azonosító szolgáltató részére"
 
 #: src/clients/credentials/arcslcs.cpp:179
 msgid "Password for user account to identity provider"
-msgstr ""
+msgstr "A felhasználói névhez tartozó jelszó az azonosító szolgáltató részére"
 
 #: src/clients/credentials/arcslcs.cpp:182
 msgid "Key size of the private key (512, 1024, 2048)"
-msgstr ""
+msgstr "A privát kulcs mérete (512, 1024, 2048)"
 
 #: src/clients/credentials/arcslcs.cpp:183
 #: src/clients/data/arccp.cpp:544
@@ -1079,7 +1086,7 @@ msgstr "szám"
 
 #: src/clients/credentials/arcslcs.cpp:185
 msgid "Private key passphrase"
-msgstr ""
+msgstr "Privát kulcs jelszava"
 
 #: src/clients/credentials/arcslcs.cpp:186
 msgid "passphrase"
@@ -1091,11 +1098,11 @@ msgstr ""
 
 #: src/clients/credentials/arcslcs.cpp:190
 msgid "period"
-msgstr ""
+msgstr "periódus"
 
 #: src/clients/credentials/arcslcs.cpp:192
 msgid "Store directory for key and signed certificate"
-msgstr ""
+msgstr "A privát és publikus kulcs tárolására szolgáló könyvtár"
 
 #: src/clients/credentials/arcslcs.cpp:193
 msgid "directory"
@@ -1107,7 +1114,7 @@ msgstr "könyvtár"
 #: src/clients/credentials/test2myproxyserver_put.cpp:185
 #: src/clients/credentials/test2vomsserver.cpp:104
 msgid "No stream response"
-msgstr ""
+msgstr "Nincs válasz"
 
 #: src/clients/credentials/test2myproxyserver_get.cpp:107
 #: src/clients/credentials/test2myproxyserver_get.cpp:146
@@ -1117,21 +1124,21 @@ msgstr ""
 #: src/clients/credentials/test2myproxyserver_put.cpp:197
 #, c-format
 msgid "Returned msg from myproxy server: %s   %d"
-msgstr ""
+msgstr "Ezt a választ kaptam a myproxy szervertől: %s   %d"
 
 #: src/clients/credentials/test2myproxyserver_get.cpp:152
 #, c-format
 msgid "There are %d certificates in the returned msg"
-msgstr ""
+msgstr "%d darab publikus tanúsítvány van a válasz üzenetben"
 
 #: src/clients/credentials/test2myproxyserver_put.cpp:138
 msgid "Delegate proxy failed"
-msgstr ""
+msgstr "Proxy delegáció sikertelen"
 
 #: src/clients/credentials/test2vomsserver.cpp:120
 #, c-format
 msgid "Returned msg from voms server: %s "
-msgstr ""
+msgstr "Ezt a választ kaptam a voms szervertől: %s"
 
 #: src/clients/data/arccp.cpp:63
 #: src/clients/data/arccp.cpp:67
@@ -1149,7 +1156,7 @@ msgstr "Érvénytelen URL: %s"
 #: src/clients/data/arccp.cpp:256
 #, c-format
 msgid "Can't read list of sources from file %s"
-msgstr ""
+msgstr "Nem tudom olvasni a forrásokat a fájlból: %s"
 
 #: src/clients/data/arccp.cpp:80
 #: src/clients/data/arccp.cpp:115
@@ -1157,16 +1164,16 @@ msgstr ""
 #: src/clients/data/arccp.cpp:271
 #, c-format
 msgid "Can't read list of destinations from file %s"
-msgstr ""
+msgstr "Nem tudom olvasni a célállomásokat a fájlból: %s"
 
 #: src/clients/data/arccp.cpp:86
 #: src/clients/data/arccp.cpp:241
 msgid "Numbers of sources and destinations do not match"
-msgstr ""
+msgstr "A forrás és céállomások száma nem egyezik meg"
 
 #: src/clients/data/arccp.cpp:128
 msgid "Fileset registration is not supported yet"
-msgstr ""
+msgstr "A fileset regisztcáció nem támogatott még"
 
 #: src/clients/data/arccp.cpp:132
 #, c-format
@@ -1179,14 +1186,14 @@ msgstr ""
 #: src/clients/data/arccp.cpp:430
 #, c-format
 msgid "Unsupported source url: %s"
-msgstr ""
+msgstr "Nem támogatott url: %s"
 
 #: src/clients/data/arccp.cpp:142
 #: src/clients/data/arccp.cpp:361
 #: src/clients/data/arccp.cpp:434
 #, c-format
 msgid "Unsupported destination url: %s"
-msgstr ""
+msgstr "Nem támogatott url: %s"
 
 #: src/clients/data/arccp.cpp:147
 msgid "For registration source must be ordinary URL and destination must be indexing service"
@@ -1198,7 +1205,7 @@ msgstr ""
 
 #: src/clients/data/arccp.cpp:158
 msgid "Problems resolving destination"
-msgstr ""
+msgstr "Nem sikerült feloldani a célállomást"
 
 #: src/clients/data/arccp.cpp:180
 msgid "Failed to accept new file/destination"
@@ -1225,16 +1232,16 @@ msgstr ""
 #: src/clients/data/arccp.cpp:424
 #, c-format
 msgid "Unable to copy file %s: No valid credentials found"
-msgstr ""
+msgstr "Nem tudom másolni a %s fájlt: Nem érvényes tanúsítvány"
 
 #: src/clients/data/arccp.cpp:331
 #: src/clients/data/arcls.cpp:63
 msgid "Failed listing metafiles"
-msgstr ""
+msgstr "Nem sikerült listázni a meta adatokat"
 
 #: src/clients/data/arccp.cpp:337
 msgid "Failed listing files"
-msgstr ""
+msgstr "Nem sikerült listázni a fájlokat"
 
 #: src/clients/data/arccp.cpp:347
 #, c-format
@@ -1249,21 +1256,21 @@ msgstr "Forrás: %s"
 #: src/clients/data/arccp.cpp:353
 #, c-format
 msgid "Destination: %s"
-msgstr ""
+msgstr "Célállomás: %s"
 
 #: src/clients/data/arccp.cpp:381
 #: src/hed/acc/ARC0/JobControllerARC0.cpp:389
 #: src/hed/acc/ARC0/JobControllerARC0.cpp:457
 #, c-format
 msgid "Current transfer FAILED: %s - %s"
-msgstr ""
+msgstr "Az aktuális átvitel MEGSZAKADT: %s - %s"
 
 #: src/clients/data/arccp.cpp:383
 #: src/hed/acc/ARC0/JobControllerARC0.cpp:391
 #: src/hed/acc/ARC0/JobControllerARC0.cpp:459
 #, c-format
 msgid "Current transfer FAILED: %s"
-msgstr ""
+msgstr "Az aktuális átvitel MEGSZAKADT: %s"
 
 #: src/clients/data/arccp.cpp:385
 #: src/clients/data/arccp.cpp:462
@@ -1276,7 +1283,7 @@ msgstr ""
 #: src/hed/acc/ARC0/JobControllerARC0.cpp:396
 #: src/hed/acc/ARC0/JobControllerARC0.cpp:464
 msgid "Current transfer complete"
-msgstr ""
+msgstr "Az aktuális átvitel sikeres"
 
 #: src/clients/data/arccp.cpp:397
 msgid "Some transfers failed"
