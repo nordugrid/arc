@@ -180,10 +180,10 @@ namespace gridftpd {
         if (flags == LDAP_SASL_QUIET) return 1;
 
         if (challenge && interact->challenge)
-          logger.msg(Arc::VERBOSE "%s: %s", _("Challenge"), interact->challenge);
+          logger.msg(Arc::VERBOSE, "%s: %s", _("Challenge"), interact->challenge);
 
         if (interact->defresult)
-          logger.msg(Arc::VERBOSE "%s: %s", _("Default"), interact->defresult);
+          logger.msg(Arc::VERBOSE, "%s: %s", _("Default"), interact->defresult);
 
         std::string prompt;
         std::string input;
