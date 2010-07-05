@@ -1,3 +1,1 @@
-if XMLSEC_ENABLED
 SUBDIRS = gacl-0.1.5
-endif
