@@ -1382,7 +1382,10 @@ AC_ARG_ENABLE(gridftpd_service, AC_HELP_STRING([--disable-gridftpd-service], [di
 if test "$enables_gridftpd_service" = "yes"; then
   if test "x$WIN32" = "xyes" ; then
     AC_MSG_NOTICE([Gridftpd can't be built for WIN32 environment - disabling])
-    enables_griftpds_service="no"
+    enables_gridftpd_service="no"
+  elif test -z "$GLOBUS_COMMON_VERSION" ; then
+    AC_MSG_NOTICE([Gridftpd can't be built without Globus - disabling])
+    enables_gridftpd_service="no"
   fi
 fi
 AC_MSG_NOTICE([Gridftpd service enabled: $enables_gridftpd_service])
