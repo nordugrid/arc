@@ -637,7 +637,16 @@ static void soft_state_thread(void *data) {
                 return Arc::MCC_Status();
             }
             // add data to output
-            response.NewChild(data_);
+            Arc::Time gentime( (std::string)data_["MetaSrcAdv"]["GenTime"]);
+            Arc::Period expiration((std::string)data_["MetaSrcAdv"]["Expiration"]);
+
+            Arc::Time current_time(Current_Time());
+
+            if ( (gentime.GetTime() + 2* expiration.GetPeriod()) > current_time.GetTime() &&
+                 (bool)data_["SrcAdv"]["Type"]) {
+                // Now the information is not expired and valid
+                response.NewChild(data_);
+            }
         }
         return Arc::MCC_Status(Arc::STATUS_OK);
     }
@@ -841,7 +850,7 @@ static void soft_state_thread(void *data) {
                 if (lock.locked()) BootStrap(1);
             }
             neighbors_update_needed = false;
-        } else if ( neighbors_count > 0 && neighbors_.size() == not_availables_neighbors_.count() ){
+        } else if ( neighbors_count > 0 && (int)neighbors_.size() == not_availables_neighbors_.count() ){
             // Reposition itself in the peer-to-peer network
             // if disconnected from every neighbors then reconnect to
             // the network
