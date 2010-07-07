@@ -32,26 +32,20 @@ std::vector<std::string>::iterator Neighbor_Container::find_element(const std::s
 }
 
 bool Neighbor_Container::contains(const std::string val) {
-    while (locked) {}
-    locked = true;
+    Glib::Mutex::Lock lock(container_lock);
     bool ret_val = (content.end() != find(content.begin(), content.end(), val));
-    locked = false;
     return ret_val;
 }
 
 void Neighbor_Container::push(const std::string val) {
-    while (locked) {}
-    locked = true;
+    Glib::Mutex::Lock lock(container_lock);
     content.push_back(val);
-    locked = false;
 }
 
 void Neighbor_Container::remove(std::string value) {
-    while (locked) {}
-    locked = true;
+    Glib::Mutex::Lock lock(container_lock);
     std::vector<std::string>::iterator it = find_element(value);
     if (it != content.end()) content.erase(it);
-    locked = false;
 }
 
 int Neighbor_Container::count() {

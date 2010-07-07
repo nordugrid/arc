@@ -15,7 +15,7 @@
 namespace ISIS {
     class Neighbor_Container {
         private:
-            bool locked;
+            Glib::Mutex container_lock;
             std::vector<std::string> content;
         public:
             Neighbor_Container():locked(false) {}
