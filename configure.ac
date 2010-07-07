@@ -800,6 +800,13 @@ AC_CHECK_HEADER([zlib.h],,AC_MSG_ERROR([unable to find zlib header files]))
 AC_CHECK_LIB([z],[deflateInit2_],,AC_MSG_ERROR([unable to link with zlib library]))
 fi
 
+WIN32=""
+case "${host}" in
+  *-*-mingw32)
+    WIN32="yes"
+  ;;
+esac
+
 # check GACL. NG-bundled GACL is used by default
 GACL_LOCATION="$PWD/src/services/gridftpd/external/gacl-0.1.5"
 gridsite=
@@ -821,6 +828,10 @@ AC_MSG_RESULT($GACL_LOCATION)
 AC_SUBST(GACL_LOCATION)
 AM_CONDITIONAL(NG_GACL, test "x$gridsite" = "x")
 AM_CONDITIONAL(GRIDSITE_GACL, test "x$gridsite" != "x")
+
+if test "x$WIN32" = "xyes" ; then
+    AC_MSG_NOTICE([GACL can't be built for WIN32 environment - disabling])
+else
 if test "x$gridsite" = "x"; then
   AC_CHECK_HEADER([$GACL_LOCATION/gacl.h],,AC_MSG_ERROR([unable to find gacl header files]))
   AC_DEFINE(NG_GACL,,[GACL patched by NG])
@@ -828,6 +839,7 @@ else
   AC_CHECK_HEADER([$GACL_LOCATION/include/gridsite.h],,AC_MSG_ERROR([unable to find gridsite gacl header files]))
   AC_DEFINE(GRIDSITE_GACL,,[Gridsite GACL (also patched by NG)])
 fi
+fi #WIN32 check 
 
 ###############################################
 #
