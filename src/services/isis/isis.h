@@ -18,7 +18,7 @@ namespace ISIS {
             Glib::Mutex container_lock;
             std::vector<std::string> content;
         public:
-            Neighbor_Container():locked(false) {}
+            Neighbor_Container() {}
             std::vector<std::string>::iterator find_element(const std::string);
             bool contains(const std::string);
             void push(const std::string);
