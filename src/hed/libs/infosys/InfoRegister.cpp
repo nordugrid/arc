@@ -52,8 +52,11 @@ InfoRegister::InfoRegister(XMLNode &cfg, Service *service):reg_period_(0),servic
     }
     if ((bool)cfg["InfoRegister"]["Endpoint"])
         endpoint = (std::string)cfg["InfoRegister"]["Endpoint"];
-    if ((bool)cfg["InfoRegister"]["Expiration"])
+    if ((bool)cfg["InfoRegister"]["Expiration"]) {
         expiration = (std::string)cfg["InfoRegister"]["Expiration"];
+        Period p(expiration);
+        if (p.GetPeriod() < 120) expiration = "PT2M";
+    }
 
     //VERBOSE//
     std::string configuration_string;
