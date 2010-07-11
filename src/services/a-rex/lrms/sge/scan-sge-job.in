@@ -247,7 +247,7 @@ add_accounting_to_diag () {
 	
     save_commentfile "$uid" "$commentfile" "$errorsfile"
 	
-    handle_failedcode "$failedcode" "$donefile" "$exitcode" "sgeexitcode" "$overlimit"
+    handle_failedcode "$failedcode" "$donefile" "$exitcode" "$sgeexitcode" "$overlimit"
 	
     # wake up GM
     $GMKICK "$statusfile" >> "$errorsfile"
