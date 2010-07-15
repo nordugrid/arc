@@ -1,9 +1,15 @@
-SUBDIRS = schema
-
-pkglib_LTLIBRARIES = libidentitymap.la
+pkglib_LTLIBRARIES = libidentitymap.la libarguspep.la
 
 libidentitymap_la_SOURCES = IdentityMap.cpp SimpleMap.cpp \
                             IdentityMap.h   SimpleMap.h
 libidentitymap_la_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
 libidentitymap_la_LIBADD   = $(top_srcdir)/src/hed/libs/common/libarccommon.la $(top_srcdir)/src/hed/libs/message/libarcmessage.la $(top_srcdir)/src/hed/libs/loader/libarcloader.la $(top_srcdir)/src/hed/libs/security/libarcsecurity.la $(GLIBMM_LIBS) $(LIBXML2_LIBS) 
 libidentitymap_la_LDFLAGS  = -no-undefined -avoid-version -module
+
+
+libarguspep_la_SOURCES = ArgusPEP.cpp ArgusPEP.h
+libarguspep_la_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include -I/opt/glite/include
+libarguspep_la_LIBADD   =  $(top_srcdir)/src/hed/libs/common/libarccommon.la $(top_srcdir)/src/hed/libs/message/libarcmessage.la $(top_srcdir)/src/hed/libs/loader/libarcloader.la $(top_srcdir)/src/hed/libs/security/libarcsecurity.la $(GLIBMM_LIBS) $(LIBXML2_LIBS) -L/opt/glite/lib -lpep-c
+libarguspep_la_LDFLAGS  = -no-undefined -avoid-version -module
+
+
