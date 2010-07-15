@@ -87,6 +87,7 @@ enables_mysql=no
 enables_python=yes
 enables_swig=yes
 enables_xmlsec1=yes
+enables_argus=no
 #  Libraries and plugins
 # Currently no fine-grained choice is supported.
 # Also this variable is used to check if source
@@ -829,6 +830,32 @@ else
   AC_CHECK_HEADER([$GACL_LOCATION/include/gridsite.h],,AC_MSG_ERROR([unable to find gridsite gacl header files]))
   AC_DEFINE(GRIDSITE_GACL,,[Gridsite GACL (also patched by NG)])
 fi
+
+# check ARGUS
+# TODO: make it more in line with other checks
+ARGUS_LOCATION=
+AC_ARG_WITH(argus,
+  AC_HELP_STRING([--with-argus=PATH], [ARGUS PEP installation path]),
+  [
+    AC_MSG_CHECKING(for ARGUS PEP C shared library)
+    if test -d "$withval"; then
+      if test -f "$withval/lib/libpep-c.so"; then
+        if test -f "$withval/include/pep/pep.h"; then
+          enables_argus="yes"
+          ARGUS_LOCATION="$withval"
+        fi
+      fi
+    fi
+    if test ! "x$ARGUS_LOCATION" = "x"; then
+      AC_MSG_RESULT($ARGUS_LOCATION)
+    else
+      AC_MSG_RESULT([not found])
+    fi
+  ]
+)
+AC_SUBST(ARGUS_LOCATION)
+AM_CONDITIONAL(ARGUS_ENABLED, test ! "x$ARGUS_LOCATION" = "x")
+
 
 ###############################################
 #
@@ -1769,6 +1796,7 @@ AC_CONFIG_FILES([Makefile
                  src/hed/shc/delegationsh/schema/Makefile
                  src/hed/identitymap/Makefile
                  src/hed/identitymap/schema/Makefile
+                 src/hed/argus/Makefile
                  src/services/Makefile
                  src/services/a-rex/Makefile
                  src/services/a-rex/a-rex
@@ -2027,6 +2055,7 @@ MYSQL CLIENT LIB:   ${enables_mysql}
 gSOAP:              ${enables_gsoap}
 LDAP:               ${enables_ldap}
 xmlsec1:            ${enables_xmlsec1}
+ARGUS:              ${enables_argus}
 
 Included components:
 HED:                ${enables_hed}

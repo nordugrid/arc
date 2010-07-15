@@ -68,8 +68,8 @@ bool ArgusPEP::Handle(Arc::Message* msg) const{
    char * subjectid= new char [subject.length()]; 
    strcpy(subjectid, subject.c_str());  
 
-   char * resourceid= "ANY";
-   char * actionid= "ANY";
+   const char * resourceid= "ANY";
+   const char * actionid= "ANY";
     
 
     pep_rc= pep_initialize();
