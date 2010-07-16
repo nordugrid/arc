@@ -168,9 +168,9 @@ function handle_diag_file {
     #the second needs them removed
 
     starttime=$(echo "$jobinfostring"|sed -n 's/.*StartTime=\([^ ]*\) .*/\1/p' | \
-	sed 's,\([0-9]\+/[0-9]\+\)-\([0-9:]\+\),\1 \2,g')
+	sed 's,\([0-9]\+/[0-9]\+\)-\([0-9:]\+\),\1 \2,g' | sed 's/T/ /g')
     endtime=$(echo "$jobinfostring"|sed -n 's/.*EndTime=\([^ ]*\) .*/\1/p' | \
-	sed 's,\([0-9]\+/[0-9]\+\)-\([0-9:]\+\),\1 \2,g')
+	sed 's,\([0-9]\+/[0-9]\+\)-\([0-9:]\+\),\1 \2,g' | sed 's/T/ /g')
 
     date_to_utc_seconds "$starttime"
     starttime_seconds="$return_date_seconds"
