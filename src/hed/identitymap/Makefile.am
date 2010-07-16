@@ -1,3 +1,5 @@
+SUBDIRS = schema
+
 if ARGUS_ENABLED
 pkglib_LTLIBRARIES = libidentitymap.la libarguspep.la
 else
