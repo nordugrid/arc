@@ -19,3 +19,5 @@ pkglib_DATA = grid-infosys-bdii4 grid-infosys-bdii5 ConfigParser.pm
 
 SUBDIRS=$(GIIS_SERVICE)
 DIST_SUBDIRS=giis
+
+EXTRA_DIST = ConfigParser.pm
