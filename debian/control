@@ -133,6 +133,21 @@ Description: ARC Isis service
  grants grid participants an increase in flexibility, robustness and it
  also offers easier configuration and self-healing capability.
 
+Package: nordugrid-arc-nox-gridftp-server
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, nordugrid-arc-nox
+Description: ARC gridftp server
+ The NorduGrid is a collaboration aiming at development, maintenance
+ and support of the free Grid middleware, known as the Advanced Resource
+ Connector (ARC).
+ .
+ This package contains the ARC gridftp server which has a plugin framework.
+ Current plugins include:
+ .
+   fileplugin : Standard gridftp server based on Globus globus-ftp-control
+   gaclplugin : Enhanced server with support for GACL authorization
+   jobplugin  : Classical ARC job submission interface
+
 Package: nordugrid-arc-nox-ldap-infosys
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}

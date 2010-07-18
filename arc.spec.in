@@ -199,6 +199,23 @@ comes with P2P capabilities and a web-services interface. The new system
 grants grid participants an increase in flexibility, robustness and it
 also offers easier configuration and self-healing capability.
 
+%package gridftp-server
+Summary: ARC gridftp server
+Group: System Environment/Libraries
+Requires: %{name} = %{version}
+
+%description gridftp-server
+The NorduGrid is a collaboration aiming at development, maintenance
+and support of the free Grid middleware, known as the Advanced Resource
+Connector (ARC).
+
+This package contains the ARC gridftp server which has a plugin framework.
+Current plugins include:
+
+  fileplugin : Standard gridftp server based on Globus globus-ftp-control
+  gaclplugin : Enhanced server with support for GACL authorization
+  jobplugin  : Classical ARC job submission interface
+
 %package ldap-infosys
 Summary: ARC LDAP information service
 Group: System Environment/Libraries
@@ -666,12 +683,23 @@ exit 0
 %{_libdir}/%{pkgdir}/libisis.so
 %{_libdir}/%{pkgdir}/libisis.apd
 
+%files gridftp-server
+%{_initrddir}/a-rex-gridftpd
+%{_sbindir}/a-rex-gridftpd-bin
+%{_libdir}/%{pkgdir}/jobplugin.*
+%{_libdir}/%{pkgdir}/gaclplugin.*
+%{_libdir}/%{pkgdir}/fileplugin.*
+
 %files ldap-infosys
-%{_datadir}/%{pkgdir}schema
-%{_libdir}/%{pkgdir}/grid-info-soft-register
-%{_libdir}/%{pkgdir}/qju.pl
-%{_libdir}/%{pkgdir}/cluster.pl
-%{_libdir}/%{pkgdir}/se.pl
+%{_initrddir}/grid-infosys
+%{_libdir}/%{pkgdir}/grid-infosys-bdii4
+%{_libdir}/%{pkgdir}/grid-infosys-bdii5
+%{_libdir}/%{pkgdir}/glue-generator.pl
+%{_datadir}/%{pkgdir}/ldap-schema
+%{_libexecdir}/%{pkgdir}/grid-info-soft-register
+%{_libexecdir}/%{pkgdir}/qju.pl
+%{_libexecdir}/%{pkgdir}/cluster.pl
+%{_libexecdir}/%{pkgdir}/se.pl
 %{_libdir}/%{pkgdir}/LRMS.pm
 %{_libdir}/%{pkgdir}/Shared.pm
 %{_libdir}/%{pkgdir}/ConfigParser.pm
@@ -681,6 +709,7 @@ exit 0
 %{_sbindir}/arc-infoindex-relay
 %{_sbindir}/arc-infoindex-server
 %{_libdir}/%{pkgdir}/arc-infoindex-slapd-wrapper.so
+%{_libdir}/%{pkgdir}/arc-infoindex-slapd-wrapper.apd
 
 %files compiler
 %defattr(-,root,root,-)
