@@ -7,6 +7,9 @@
 #include <errno.h>
 #include <dirent.h>
 #include <linux/limits.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
 
 #include <arc/Logger.h>
 
