@@ -70,7 +70,7 @@ Arc::MCC_Status ARexService::CacheCheck(ARexGMConfig& config,Arc::XMLNode in,Arc
   }
 
   if (caches.empty()) {
-     Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"Cache is disabled");  
+     Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"Cache is disabled");
      fault.Detail(true).NewChild("CacheDisabledFault");
 	 out.Destroy();
 	 return Arc::MCC_Status();
@@ -103,11 +103,12 @@ Arc::MCC_Status ARexService::CacheCheck(ARexGMConfig& config,Arc::XMLNode in,Arc
       fileexist = false;
       std::string file_lfn;
       Arc::UserConfig usercfg(Arc::initializeCredentialsType(Arc::initializeCredentialsType::SkipCredentials));
-      Arc::DataHandle d(fileurl, usercfg);
+      Arc::URL url(fileurl);
+      Arc::DataHandle d(url, usercfg);
 
-      // TODO: d->str() errors fixing
-
+      logger.msg(Arc::INFO, "Looking up URL %s", d->str());
       file_lfn = (*cache).File(d->str());
+      logger.msg(Arc::INFO, "Cache file is %s", file_lfn);
 
 	  struct stat fileStat;
 
