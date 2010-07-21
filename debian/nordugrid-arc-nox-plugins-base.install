@@ -7,6 +7,7 @@ debian/tmp/usr/lib/arc/libdmcarc.so
 debian/tmp/usr/lib/arc/libdmcfile.so
 debian/tmp/usr/lib/arc/libdmchttp.so
 debian/tmp/usr/lib/arc/libdmcldap.so
+debian/tmp/usr/lib/arc/libdmclfc.so
 debian/tmp/usr/lib/arc/libidentitymap.so
 debian/tmp/usr/lib/arc/libmcchttp.so
 debian/tmp/usr/lib/arc/libmccmsgvalidator.so
@@ -23,6 +24,7 @@ debian/tmp/usr/lib/arc/libdmcfile.apd
 debian/tmp/usr/lib/arc/libdmchttp.apd
 debian/tmp/usr/lib/arc/libmccmsgvalidator.apd
 debian/tmp/usr/lib/arc/libdmcldap.apd
+debian/tmp/usr/lib/arc/libdmclfc.apd
 debian/tmp/usr/lib/arc/libidentitymap.apd
 debian/tmp/usr/lib/arc/libmcchttp.apd
 debian/tmp/usr/lib/arc/libmccsoap.apd
