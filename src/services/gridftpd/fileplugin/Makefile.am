@@ -8,4 +8,4 @@ fileplugin_la_LDFLAGS = -module -avoid-version
 fileplugin_la_LIBADD  = ../libgridftpd_la-misc.lo ../libgridftpd_la-userspec.lo ../libgridftpd_la-names.lo \
   ../auth/libmap.la \
   $(GLOBUS_FILEPLUGIN_LIBS) \
-  $(top_srcdir)/src/hed/libs/common/libarccommon.la -lpthread
+  $(top_srcdir)/src/hed/libs/common/libarccommon.la

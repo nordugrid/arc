@@ -6,4 +6,4 @@ gaclplugin_la_LDFLAGS = -module -avoid-version
 
 gaclplugin_la_LIBADD = ../libgridftpd_la-misc.lo ../libgridftpd_la-userspec.lo ../libgridftpd_la-names.lo \
 	../auth/libgaclmap.la $(GLOBUS_IO_LIBS) \
-	$(top_srcdir)/src/hed/libs/common/libarccommon.la -lpthread
+	$(top_srcdir)/src/hed/libs/common/libarccommon.la

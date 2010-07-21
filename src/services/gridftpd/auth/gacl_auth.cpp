@@ -23,12 +23,12 @@ GACLuser* AuthUserGACL(AuthUser& auth) {
   };
   for(std::vector<struct voms>::const_iterator v = auth.voms().begin();v!=auth.voms().end();++v) {
     for(std::vector<struct voms_attrs>::const_iterator u = v->std.begin();u!=v->std.end();++u) {
-      if((cred=GACLnewCred("voms")) == NULL) goto err_exit;
-      if(!GACLaddToCred(cred,"voms",(char*)(v->server.c_str()))) goto err_exit;
-      if(!GACLaddToCred(cred,"vo",(char*)(v->voname.c_str()))) goto err_exit;
-      if(!GACLaddToCred(cred,"group",(char*)(u->group.c_str()))) goto err_exit;
-      if(!GACLaddToCred(cred,"role",(char*)(u->role.c_str()))) goto err_exit;
-      if(!GACLaddToCred(cred,"capability",(char*)(u->cap.c_str()))) goto err_exit;
+      if((cred=GACLnewCred((char*)"voms")) == NULL) goto err_exit;
+      if(!GACLaddToCred(cred,(char*)"voms",(char*)(v->server.c_str()))) goto err_exit;
+      if(!GACLaddToCred(cred,(char*)"vo",(char*)(v->voname.c_str()))) goto err_exit;
+      if(!GACLaddToCred(cred,(char*)"group",(char*)(u->group.c_str()))) goto err_exit;
+      if(!GACLaddToCred(cred,(char*)"role",(char*)(u->role.c_str()))) goto err_exit;
+      if(!GACLaddToCred(cred,(char*)"capability",(char*)(u->cap.c_str()))) goto err_exit;
       if(!GACLuserAddCred(user,cred)) goto err_exit;
       cred=NULL;
     };

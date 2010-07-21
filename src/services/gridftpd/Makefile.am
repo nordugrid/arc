@@ -19,8 +19,8 @@ a_rex_gridftpd_bin_SOURCES = commands.cpp config.cpp fileroot.cpp listener.cpp \
 a_rex_gridftpd_bin_CXXFLAGS = $(GLOBUS_FTP_CLIENT_CFLAGS) $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
 
 a_rex_gridftpd_bin_LDADD = libgridftpd.la conf/libconf.la run/librun.la \
-  misc/libmisc.la auth/libauth.la auth/libmap.la \
-	$(GLOBUS_FTP_CLIENT_LIBS) $(GLOBUS_COMMON_LIBS) \
+	misc/libmisc.la auth/libauth.la auth/libmap.la \
+	$(GLOBUS_FTP_CONTROL_LIBS) $(GLOBUS_COMMON_LIBS) \
 	$(top_srcdir)/src/hed/libs/common/libarccommon.la \
 	$(top_srcdir)/src/hed/libs/globusutils/libarcglobusutils.la
 

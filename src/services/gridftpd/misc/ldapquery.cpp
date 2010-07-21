@@ -337,7 +337,7 @@ namespace gridftpd {
 
     int ldresult = 0;
     if (arg->anonymous) {
-      BerValue cred = { 0, "" };
+      BerValue cred = { 0, (char*)"" };
       ldresult = ldap_sasl_bind_s (arg->connection, NULL, LDAP_SASL_SIMPLE,
                                    &cred, NULL, NULL, NULL);
     }
@@ -361,7 +361,7 @@ namespace gridftpd {
                                                my_sasl_interact,
                                                &defaults);
   #else
-      BerValue cred = { 0, "" };
+      BerValue cred = { 0, (char*)"" };
       ldresult = ldap_sasl_bind_s (arg->connection, NULL, LDAP_SASL_SIMPLE,
                                    &cred, NULL, NULL, NULL);
   #endif

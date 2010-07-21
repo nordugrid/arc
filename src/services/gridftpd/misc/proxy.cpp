@@ -295,8 +295,8 @@ namespace gridftpd {
     /* Make temporary file */
     {
       int h;
-      char* prefix = "x509.";
-      char* tmp = getenv("TMP");
+      const char* prefix = "x509.";
+      const char* tmp = getenv("TMP");
       if(tmp == NULL) tmp="/tmp";
       fname = (char*)malloc(strlen(tmp)+1+strlen(prefix)+6+1);
       if(fname == NULL) goto err_exit;

@@ -41,6 +41,7 @@
 #include <sys/stat.h>
 #include <unistd.h>              
 #include <string.h>
+#include <ctype.h>
 
 #ifndef HAVE_OLD_LIBXML_INCLUDES
 #include <libxml/xmlmemory.h>
