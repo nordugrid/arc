@@ -7,6 +7,14 @@ export DH_OPTIONS
 DEB_HOST_GNU_TYPE   ?= $(shell dpkg-architecture -qDEB_HOST_GNU_TYPE)
 DEB_BUILD_GNU_TYPE  ?= $(shell dpkg-architecture -qDEB_BUILD_GNU_TYPE)
 
+LFC_SUPPORT = yes
+
+ifeq ($(LFC_SUPPORT),yes)
+LFC_CONFIGURE_OPTION = --enable-lfc
+else
+LFC_CONFIGURE_OPTION =
+endif
+
 CFLAGS = -Wall -g
 
 ifneq (,$(findstring noopt,$(DEB_BUILD_OPTIONS)))
@@ -19,6 +27,14 @@ ifneq (,$(filter parallel=%,$(DEB_BUILD_OPTIONS)))
 NUMJOBS = $(patsubst parallel=%,%,$(filter parallel=%,$(DEB_BUILD_OPTIONS)))
 MAKEFLAGS += -j$(NUMJOBS)
 endif
+
+debian/nordugrid-arc-nox-plugins-globus.install: debian/nordugrid-arc-nox-plugins-globus.install-stamp
+	:
+
+debian/nordugrid-arc-nox-plugins-globus.install-stamp:
+	touch $@
+	grep -q libdmclfc.so  $(subst -stamp,,$@) || echo debian/tmp/usr/lib/arc/libdmclfc.so  >> $(subst -stamp,,$@)
+	grep -q libdmclfc.apd $(subst -stamp,,$@) || echo debian/tmp/usr/lib/arc/libdmclfc.apd >> $(subst -stamp,,$@)
 
 configure: configure-stamp
 	:
@@ -33,7 +49,7 @@ configure-stamp:
 		    --sysconfdir=/etc \
 		    --localstatedir=/var \
 		    --mandir='$${datadir}/man' \
-		    --infodir='$${datadir}/info'
+		    --infodir='$${datadir}/info' $(LFC_CONFIGURE_OPTION)
 	touch $@
 
 build: build-arch build-indep
@@ -42,7 +58,7 @@ build: build-arch build-indep
 build-arch: build-arch-stamp
 	:
 
-build-arch-stamp: configure-stamp
+build-arch-stamp: configure-stamp debian/nordugrid-arc-nox-plugins-globus.install-stamp
 	$(MAKE)
 	$(MAKE) check
 	touch $@
