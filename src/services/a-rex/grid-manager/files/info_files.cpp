@@ -915,7 +915,7 @@ bool job_input_status_add_file(const JobDescription &desc,JobUser &user,const st
   bool r = true;
   std::string line = file + "\n";
   const char* s = line.c_str();
-  size_t l = file.length();
+  size_t l = line.length();
   for(;l>0;) {
     ssize_t ll = write(h,s,l);
     if(ll == -1) {
