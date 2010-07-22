@@ -31,7 +31,8 @@ Comments on the packaging
 -------------------------
 
 ARC-1 was developed with Debian in mind. No special adaptations were
-required.  For PDF generation, doxygen needs the texlive-extra-utils
+required.  For PDF generation, doxygen needs the texlive-extra-utils,
+texlive-latex-base, texlive-latex-recommended and texlive-latex-extra
 package, which might come as a surprise to some.
 
 --
