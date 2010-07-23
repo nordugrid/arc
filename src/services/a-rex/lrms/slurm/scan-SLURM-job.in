@@ -115,7 +115,7 @@ unset jobstate_squeue
 
 handle_commentfile () {
     localid=$1
-    sessiondir=`grep -h '^sessiondir=' "${basenames[$localid]}.local" | sed 's/^sessiondir=\(.*\)/\1/'`
+    sessiondir=`grep -h '^sessiondir=' $jobfile | sed 's/^sessiondir=\(.*\)/\1/'`
     if [ "$my_id" != '0' ] ; then
       if [ ! -O "$jobfile" ] ; then continue ; fi
     fi
@@ -197,13 +197,15 @@ function handle_diag_file {
 for localid in ${localids[@]}; do
 #    state=${jobstates[$localid]}
 #     case $state in
+    # Initialize jobfile variable since it's used below
+    jobfile="${basenames[$localid]}.local"
     case "${jobstates[$localid]}" in
  	"")
             # Job is missing (no state) from slurm but INLRMS.
 
             exitcode=''
             # get session directory of this job
-            sessiondir=`grep -h '^sessiondir=' "${basenames[$localid]}.local" | sed 's/^sessiondir=\(.*\)/\1/'`
+            sessiondir=`grep -h '^sessiondir=' $jobfile | sed 's/^sessiondir=\(.*\)/\1/'`
             diagfile="${sessiondir}.diag"
 	    commentfile="${sessiondir}.comment"
             if [ "$my_id" != '0' ] ; then
