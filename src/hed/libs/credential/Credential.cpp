@@ -169,7 +169,7 @@ namespace Arc {
     return res;
   }
 
-  void Credential::LogError(void) {
+  void Credential::LogError(void) const {
     ERR_print_errors_cb(&ssl_err_cb, &CredentialLogger);
   }
 
@@ -236,7 +236,7 @@ namespace Arc {
   }
 
   //Parse the BIO for certificate and get the format of it
-  Credformat Credential::getFormat(BIO* bio, const bool is_file) {
+  Credformat Credential::getFormat(BIO* bio, const bool is_file) const {
     Credformat format = CRED_UNKNOWN;
     if(bio == NULL) return format;
     if(is_file) {
@@ -292,7 +292,7 @@ namespace Arc {
     return format;
   }
 
-  std::string Credential::GetDN(void) {
+  std::string Credential::GetDN(void) const {
     X509_NAME *subject = NULL;
     if(!cert_) return "";
     subject = X509_get_subject_name(cert_);
@@ -304,7 +304,7 @@ namespace Arc {
     return str;
   }
 
-  std::string Credential::GetIdentityName(void) {
+  std::string Credential::GetIdentityName(void) const {
     X509_NAME *subject = NULL;
     X509_NAME_ENTRY *ne = NULL;
     if(!cert_) return "";
@@ -349,23 +349,23 @@ namespace Arc {
     return str;
   }
 
-  certType Credential::GetType(void) {
+  certType Credential::GetType(void) const {
     return cert_type_;
   }
 
-  std::string Credential::GetProxyPolicy(void) {
+  std::string Credential::GetProxyPolicy(void) const {
     return (verify_ctx_.proxy_policy);
   }
 
-  Period Credential::GetLifeTime(void) {
+  Period Credential::GetLifeTime(void) const {
     return lifetime_;
   }
 
-  Time Credential::GetStartTime() {
+  Time Credential::GetStartTime() const {
     return start_;
   }
 
-  Time Credential::GetEndTime() {
+  Time Credential::GetEndTime() const {
     return start_+lifetime_;
   }
 
@@ -1047,7 +1047,7 @@ namespace Arc {
     return ext;
   }
 
-  X509_REQ* Credential::GetCertReq(void) {
+  X509_REQ* Credential::GetCertReq(void) const {
     return req_;
   }
 
@@ -1737,7 +1737,7 @@ err:
     return true;
   }
 
-  EVP_PKEY* Credential::GetPrivKey(void){
+  EVP_PKEY* Credential::GetPrivKey(void) const {
     EVP_PKEY* key = NULL;
     BIO*  bio = NULL;
     int length;
@@ -1757,19 +1757,19 @@ err:
     return key;
   }
 
-  EVP_PKEY* Credential::GetPubKey(void){
+  EVP_PKEY* Credential::GetPubKey(void) const {
     EVP_PKEY* key = NULL;
     key = X509_get_pubkey(cert_);
     return key;
   }
 
-  X509* Credential::GetCert(void) {
+  X509* Credential::GetCert(void) const {
     X509* cert = NULL;
     if(cert_) cert = X509_dup(cert_);
     return cert;
   }
 
-  STACK_OF(X509)* Credential::GetCertChain(void) {
+  STACK_OF(X509)* Credential::GetCertChain(void) const {
     STACK_OF(X509)* chain = NULL;
     chain = sk_X509_new_null();
     //Return the cert chain (not including this certificate itself)
@@ -1780,7 +1780,7 @@ err:
     return chain;
   }
 
-  int Credential::GetCertNumofChain(void) {
+  int Credential::GetCertNumofChain(void) const {
     //Return the number of certificates
     //in the issuer chain
     return sk_X509_num(cert_chain_) - 2;

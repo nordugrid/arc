@@ -200,7 +200,7 @@ namespace Arc {
                    std::vector<std::string>& output, bool verify = true);
 
   /**Parse the certificate. The same as the above one */
-  bool parseVOMSAC(Credential& holder_cred,
+  bool parseVOMSAC(const Credential& holder_cred,
                    const std::string& ca_cert_dir,
                    const std::string& ca_cert_file, 
                    const VOMSTrustList& vomscert_trust_dn,
@@ -212,7 +212,7 @@ namespace Arc {
 
   /**Extract the needed field from the certificate
   */
-  const std::string get_property(Arc::Credential& u, const std::string property);
+  const std::string get_property(const Arc::Credential& u, const std::string property);
 }// namespace Arc
 
 #endif /* __ARC_VOMSUTIL_H__ */

@@ -163,55 +163,55 @@ class Credential {
 
   public:
     /**Log error information related with openssl*/
-    void LogError(void);
+    void LogError(void) const;
 
     /************************************/
     /*****Get information from "this" object**/
 
     /**Get the verification result about certificate chain checking*/
-    bool GetVerification(void) {return verification_valid; };
+    bool GetVerification(void) const {return verification_valid; };
 
     /**Get the private key attached to this object*/
-    EVP_PKEY* GetPrivKey(void);
+    EVP_PKEY* GetPrivKey(void) const;
 
     /**Get the public key attached to this object*/
-    EVP_PKEY* GetPubKey(void);
+    EVP_PKEY* GetPubKey(void) const;
 
     /**Get the certificate attached to this object*/
-    X509* GetCert(void);
+    X509* GetCert(void) const;
 
     /** Get the certificate request, if there is any */
-    X509_REQ* GetCertReq(void);
+    X509_REQ* GetCertReq(void) const;
 
     /**Get the certificate chain attached to this object*/
-    STACK_OF(X509)* GetCertChain(void);
+    STACK_OF(X509)* GetCertChain(void) const;
 
     /**Get the number of certificates in the certificate
      * chain attached to this object
      */
-    int GetCertNumofChain(void);
+    int GetCertNumofChain(void) const;
 
     /**Get the certificate format, PEM PKCS12 or DER
     * BIO could be memory or file, they should be processed
     * differently.
     */
-    Credformat getFormat(BIO * in, const bool is_file = true);
+    Credformat getFormat(BIO * in, const bool is_file = true) const;
 
     /**Get the DN of the certificate attached to this object*/
-    std::string GetDN(void);
+    std::string GetDN(void) const;
 
     /**Get the Identity name of the certificate attached to this object,
      * the result will not include proxy CN
      */
-    std::string GetIdentityName(void);
+    std::string GetIdentityName(void) const;
 
     /**Get type of the certificate attached to this object*/
-    ArcCredential::certType GetType(void);
+    ArcCredential::certType GetType(void) const;
 
     /**Get the proxy policy attached to the "proxy certificate
      * information" extension of the proxy certicate
      */
-    std::string GetProxyPolicy(void);
+    std::string GetProxyPolicy(void) const;
 
     /**Set the proxy policy attached to the "proxy certificate
      * information" extension of the proxy certicate
@@ -239,13 +239,13 @@ class Credential {
     bool OutputCertificateChain(std::string &content, bool is_der=false);
 
     /**Returns lifetime of certificate or proxy*/
-    Period GetLifeTime(void);
+    Period GetLifeTime(void) const;
 
     /**Returns validity start time of certificate or proxy*/
-    Time GetStartTime();
+    Time GetStartTime() const;
 
     /**Returns validity end time of certificate or proxy*/
-    Time GetEndTime();
+    Time GetEndTime() const;
 
     /**Set lifetime of certificate or proxy*/
     void SetLifeTime(const Period& period);

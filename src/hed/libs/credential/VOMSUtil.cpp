@@ -1552,7 +1552,7 @@ err:
     return verified;
   }
 
-  bool parseVOMSAC(Credential& holder_cred,
+  bool parseVOMSAC(const Credential& holder_cred,
          const std::string& ca_cert_dir, const std::string& ca_cert_file,
          const VOMSTrustList& vomscert_trust_dn,
          std::vector<std::string>& output, bool verify) {
@@ -1671,7 +1671,7 @@ err:
     return MyDecode(data, size, j);
   }
 
-  const std::string get_property(Arc::Credential& u,const std::string property) {
+  const std::string get_property(const Arc::Credential& u,const std::string property) {
     if (property == "dn"){
         return u.GetIdentityName();
     }
