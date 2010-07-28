@@ -66,7 +66,14 @@ namespace Arc {
       delete h;
     if (locations.end() != location) {
       h = new DataHandle(*location, usercfg);
-      (*h)->SetMeta(*this);
+      if (!h || !(*h)) {
+        logger.msg(WARNING, "Can't handle location %s", location->str());
+        delete h;
+        h = NULL;
+        RemoveLocation();
+      }
+      else
+        (*h)->SetMeta(*this);
     }
     else
       h = NULL;
