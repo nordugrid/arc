@@ -161,12 +161,7 @@ namespace Arc {
     }
     else { // add given locations, checking they don't already exist
       for (std::list<URLLocation>::const_iterator loc = url.Locations().begin(); loc != url.Locations().end(); ++loc) {
-        for (int n = 0; n < nbentries; n++) {
-          if (std::string(entries[n].sfn) == loc->Name()) {
-            logger.msg(ERROR, "Replica %s already exists for LFN %s", entries[n].sfn, url.str());
-            return DataStatus::WriteResolveError;
-          }
-        }
+
         // Make pfn from loc + last part of LFN 
         std::string pfn = loc->fullstr();
         if (pfn.find_last_of("/") != pfn.length() - 1)
@@ -184,6 +179,15 @@ namespace Arc {
         for (std::map<std::string, std::string>::const_iterator i = url.MetaDataOptions().begin();
              i != url.MetaDataOptions().end(); i++)
           uloc.AddMetaDataOption(i->first, i->second, false);
+
+        // check that this replica doesn't exist already
+        for (int n = 0; n < nbentries; n++) {
+          if (std::string(entries[n].sfn) == uloc.str()) {
+            logger.msg(ERROR, "Replica %s already exists for LFN %s", entries[n].sfn, url.str());
+            return DataStatus::WriteResolveError;
+          }
+        }
+
         if (AddLocation(uloc, url.ConnectionURL()) == DataStatus::LocationAlreadyExistsError)
           logger.msg(WARNING, "Duplicate replica location: %s", uloc.str());
         else
