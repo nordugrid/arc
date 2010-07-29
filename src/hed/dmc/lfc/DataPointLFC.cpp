@@ -379,34 +379,35 @@ namespace Arc {
       lfc_endsess();
       return DataStatus::PostRegisterError;
     }
-    if (CheckCheckSum()) {
-      std::string cksum = GetCheckSum();
-      std::string::size_type p = cksum.find(':');
-      if(p != std::string::npos) {
-        std::string ckstype = cksum.substr(0,p);
-        if (ckstype=="md5")
-          ckstype = "MD";
-        if (ckstype=="adler32")
-          ckstype = "AD";
-        // only md5 and adler32 are supported by LFC
-        if (ckstype == "MD" || ckstype == "AD") {
-          std::string cksumvalue = cksum.substr(p+1);
-          if (CheckSize()) {
-            logger.msg(VERBOSE, "Entering checksum type %s, value %s, file size %llu", ckstype, cksumvalue, GetSize());
-            if (lfc_setfsizeg(guid.c_str(), GetSize(), ckstype.c_str(), const_cast<char*>(cksumvalue.c_str())) != 0)
+    if (!replication && !registered) {
+      if (CheckCheckSum()) {
+        std::string cksum = GetCheckSum();
+        std::string::size_type p = cksum.find(':');
+        if(p != std::string::npos) {
+          std::string ckstype = cksum.substr(0,p);
+          if (ckstype=="md5")
+            ckstype = "MD";
+          if (ckstype=="adler32")
+            ckstype = "AD";
+          // only md5 and adler32 are supported by LFC
+          if (ckstype == "MD" || ckstype == "AD") {
+            std::string cksumvalue = cksum.substr(p+1);
+            if (CheckSize()) {
+              logger.msg(VERBOSE, "Entering checksum type %s, value %s, file size %llu", ckstype, cksumvalue, GetSize());
+              if (lfc_setfsizeg(guid.c_str(), GetSize(), ckstype.c_str(), const_cast<char*>(cksumvalue.c_str())) != 0)
+                logger.msg(ERROR, "Error entering metadata: %s", sstrerror(serrno));
+            }
+            else if (lfc_setfsizeg(guid.c_str(), 0, ckstype.c_str(), const_cast<char*>(cksumvalue.c_str())) != 0)
               logger.msg(ERROR, "Error entering metadata: %s", sstrerror(serrno));
           }
-          else if (lfc_setfsizeg(guid.c_str(), 0, ckstype.c_str(), const_cast<char*>(cksumvalue.c_str())) != 0)
-            logger.msg(ERROR, "Error entering metadata: %s", sstrerror(serrno));
+          else
+            logger.msg(WARNING, "Warning: only md5 and adler32 checksums are supported by LFC");
         }
-        else
-          logger.msg(WARNING, "Warning: only md5 and adler32 checksums are supported by LFC");
       }
+      else if (CheckSize())
+        if (lfc_setfsizeg(guid.c_str(), GetSize(), NULL, NULL) != 0)
+          logger.msg(ERROR, "Error entering metadata: %s", sstrerror(serrno));
     }
-    else if (CheckSize())
-      if (lfc_setfsizeg(guid.c_str(), GetSize(), NULL, NULL) != 0)
-        logger.msg(ERROR, "Error entering metadata: %s", sstrerror(serrno));
-
     lfc_endsess();
     return DataStatus::Success;
   }
@@ -421,7 +422,7 @@ namespace Arc {
     }
 #endif
 
-    if (replication)
+    if (replication || registered)
       return DataStatus::Success;
     if (lfc_startsess(const_cast<char*>(url.Host().c_str()),
                       const_cast<char*>("ARC")) != 0) {
