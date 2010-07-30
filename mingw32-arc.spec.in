@@ -186,7 +186,7 @@ rm -rf $RPM_BUILD_ROOT
 %{_mingw32_bindir}/saml_assertion_init.exe
 #
 %{_mingw32_sysconfdir}/arc/client.conf
-%{_mingw32_bindir}/jura.exe
+%{_mingw32_libdir}/%{pkgdir}/jura.exe
 %{_mingw32_bindir}/isistest.exe
 %{_mingw32_bindir}/paul_gui.exe
 #%{_mingw32_bindir}/voms_assertion_init

@@ -21,7 +21,6 @@ debian/tmp/usr/bin/arcsync
 debian/tmp/usr/bin/arcwsrf
 debian/tmp/usr/bin/chelonia
 debian/tmp/usr/bin/isistest
-debian/tmp/usr/bin/jura
 debian/tmp/usr/bin/perftest
 debian/tmp/usr/bin/saml_assertion_init
 debian/tmp/etc/arc/client.conf
@@ -49,7 +48,6 @@ debian/tmp/usr/share/man/man1/arcsync.1
 debian/tmp/usr/share/man/man1/arcwsrf.1
 debian/tmp/usr/share/man/man1/chelonia.1
 debian/tmp/usr/share/man/man1/isistest.1
-debian/tmp/usr/share/man/man1/jura.1
 debian/tmp/usr/share/man/man1/perftest.1
 debian/tmp/usr/share/man/man1/saml_assertion_init.1
 

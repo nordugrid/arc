@@ -612,7 +612,6 @@ exit 0
 %{_bindir}/arcwsrf
 %{_bindir}/chelonia
 %{_bindir}/isistest
-%{_bindir}/jura
 %{_bindir}/perftest
 %{_bindir}/saml_assertion_init
 %config(noreplace) %{_sysconfdir}/%{pkgdir}/client.conf
@@ -640,7 +639,6 @@ exit 0
 %doc %{_mandir}/man1/arcwsrf.1*
 %doc %{_mandir}/man1/chelonia.1*
 %doc %{_mandir}/man1/isistest.1*
-%doc %{_mandir}/man1/jura.1*
 %doc %{_mandir}/man1/perftest.1.gz
 %doc %{_mandir}/man1/saml_assertion_init.1*
 %doc %{_datadir}/%{pkgdir}/examples/charon/charon_client.xml.example
@@ -745,6 +743,7 @@ exit 0
 %{_initrddir}/a-rex
 %{_libexecdir}/%{pkgdir}/cache-clean
 %{_libexecdir}/%{pkgdir}/cache-list
+%{_libexecdir}/%{pkgdir}/jura
 %{_libexecdir}/%{pkgdir}/downloader
 %{_libexecdir}/%{pkgdir}/gm-jobs
 %{_libexecdir}/%{pkgdir}/gm-kick
@@ -793,6 +792,7 @@ exit 0
 %{_libdir}/%{pkgdir}/scan_common.sh
 %doc %{_mandir}/man1/cache-clean.1*
 %doc %{_mandir}/man1/cache-list.1*
+%doc %{_mandir}/man1/jura.1*
 %doc %{_datadir}/%{pkgdir}/examples/a-rex/arex.xml.example
 %doc %{_datadir}/%{pkgdir}/examples/a-rex/arex_minimalistic.xml.example
 %doc %{_datadir}/%{pkgdir}/examples/a-rex/arex_secure.xml.example
