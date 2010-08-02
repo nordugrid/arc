@@ -480,7 +480,7 @@ sub queue_info ($$) {
     # Note we use Wall Clock!
     $_ = $long_queue_info{$queue}{'Wall_clock_limit'};
     if (/\((.*) seconds,/) {
-	$lrms_queue{maxcputime} = $1 / 60;
+	$lrms_queue{maxcputime} = int($1 / 60);
     }
     $lrms_queue{maxwalltime} = $lrms_queue{maxcputime};
 
@@ -490,7 +490,7 @@ sub queue_info ($$) {
 
     $_ = $long_queue_info{$queue}{'Def_wall_clock_limit'};
     if (/\((.*) seconds,/) {
-	$lrms_queue{defaultcput} = $1 / 60;
+	$lrms_queue{defaultcput} = int($1 / 60);
     }
     $lrms_queue{defaultwallt}= $lrms_queue{defaultcput};
     $lrms_queue{running} = $jobstatus{running}; # + $jobstatus{held} + $jobstatus{preempted};
@@ -558,7 +558,7 @@ sub jobs_info ($$$) {
         my (@cput) = split(/:/,$jobinfo{$id}{Step_Total_Time});       
 	$lrms_jobs{$id}{cputime} = int($cput[0]*60 + $cput[1] + $cput[2]/60); 
 	if ($jobinfo{$id}{Wall_Clk_Hard_Limit} =~ / \(([0-9]*) seconds\)/) {
-		$lrms_jobs{$id}{reqwalltime} = $1 / 60;
+		$lrms_jobs{$id}{reqwalltime} = int($1 / 60);
 	}
 	$lrms_jobs{$id}{reqcputime} = $lrms_jobs{$id}{reqwalltime};
 	$lrms_jobs{$id}{comment} = [ "LRMS: $jobinfo{$id}{Status}" ];

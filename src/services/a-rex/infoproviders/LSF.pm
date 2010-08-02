@@ -192,6 +192,8 @@ sub queue_info_user ($$$) {
          my $line2=<BQOUTPUT>;
          chomp($line2);
          my (@mcput)= split(" ", $line2);
+	 #change from float to int.
+	 $mcput[0]=~ s/(\d+).*/\1/;
 	 if ($lastline =~ '^DEFAULT'){
             $lrms_queue{defaultwallt} = "$mcput[0]";
          } else {
