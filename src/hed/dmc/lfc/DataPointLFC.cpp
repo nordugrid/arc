@@ -154,7 +154,7 @@ namespace Arc {
              i != url.CommonLocOptions().end(); i++)
           uloc.AddOption(i->first, i->second, false);
         if (AddLocation(uloc, url.ConnectionURL()) == DataStatus::LocationAlreadyExistsError)
-          logger.msg(WARNING, "Duplicate replica found in LFC: %s", uloc.str());
+          logger.msg(WARNING, "Duplicate replica found in LFC: %s", uloc.plainstr());
         else
           logger.msg(VERBOSE, "Adding location: %s - %s", url.ConnectionURL(), entries[n].sfn);
       }
@@ -173,6 +173,15 @@ namespace Arc {
         else
           pfn += path;
         URL uloc(pfn);
+
+        // check that this replica doesn't exist already
+        for (int n = 0; n < nbentries; n++) {
+          if (std::string(entries[n].sfn) == uloc.plainstr()) {
+            logger.msg(ERROR, "Replica %s already exists for LFN %s", entries[n].sfn, url.plainstr());
+            return DataStatus::WriteResolveError;
+          }
+        }
+
         for (std::map<std::string, std::string>::const_iterator i = url.CommonLocOptions().begin();
              i != url.CommonLocOptions().end(); i++)
           uloc.AddOption(i->first, i->second, false);
@@ -180,18 +189,10 @@ namespace Arc {
              i != url.MetaDataOptions().end(); i++)
           uloc.AddMetaDataOption(i->first, i->second, false);
 
-        // check that this replica doesn't exist already
-        for (int n = 0; n < nbentries; n++) {
-          if (std::string(entries[n].sfn) == uloc.str()) {
-            logger.msg(ERROR, "Replica %s already exists for LFN %s", entries[n].sfn, url.str());
-            return DataStatus::WriteResolveError;
-          }
-        }
-
-        if (AddLocation(uloc, url.ConnectionURL()) == DataStatus::LocationAlreadyExistsError)
-          logger.msg(WARNING, "Duplicate replica location: %s", uloc.str());
+       if (AddLocation(uloc, url.ConnectionURL()) == DataStatus::LocationAlreadyExistsError)
+          logger.msg(WARNING, "Duplicate replica location: %s", uloc.plainstr());
         else
-          logger.msg(VERBOSE, "Adding location: %s - %s", url.ConnectionURL(), uloc.str());
+          logger.msg(VERBOSE, "Adding location: %s - %s", url.ConnectionURL(), uloc.plainstr());
       }
     }
     if (entries)
@@ -367,14 +368,13 @@ namespace Arc {
       logger.msg(ERROR, "No GUID defined for LFN - probably not preregistered");
       return DataStatus::PostRegisterError;
     }
-    std::string pfn(CurrentLocation().str());
     if (lfc_startsess(const_cast<char*>(url.Host().c_str()), const_cast<char*>("ARC")) != 0) {
       logger.msg(ERROR, "Error starting session: %s", sstrerror(serrno));
       if (serrno == SECOMERR || serrno == ENSNACT || serrno == SETIMEDOUT)
         return DataStatus::PostRegisterErrorRetryable;
       return DataStatus::PostRegisterError;
     }
-    if (lfc_addreplica(guid.c_str(), NULL, CurrentLocation().Host().c_str(), CurrentLocation().str().c_str(), '-', 'P', NULL, NULL) != 0) {
+    if (lfc_addreplica(guid.c_str(), NULL, CurrentLocation().Host().c_str(), CurrentLocation().plainstr().c_str(), '-', 'P', NULL, NULL) != 0) {
       logger.msg(ERROR, "Error adding replica: %s", sstrerror(serrno));
       lfc_endsess();
       return DataStatus::PostRegisterError;
@@ -514,7 +514,7 @@ namespace Arc {
       }
       registered = false;
     }
-    else if (lfc_delreplica(guid.c_str(), NULL, CurrentLocation().str().c_str()) != 0) {
+    else if (lfc_delreplica(guid.c_str(), NULL, CurrentLocation().plainstr().c_str()) != 0) {
       lfc_endsess();
       logger.msg(ERROR, "Failed to remove location from LFC: %s", sstrerror(serrno));
       return DataStatus::UnregisterError;

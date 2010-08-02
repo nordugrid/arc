@@ -229,7 +229,7 @@ namespace Arc {
           pfn.AddOption(i->first, i->second, false);
         }
         URL pfn_ = AddPFN(pfn,source);
-        logger.msg(VERBOSE, "Adding location: %s - %s", rlsurl.str(), pfn.str());
+        logger.msg(VERBOSE, "Adding location: %s - %s", rlsurl.str(), pfn.plainstr());
         AddLocation(pfn_, rlsurl.str());
       }
     } else {
@@ -244,7 +244,7 @@ namespace Arc {
             // for RLS URLs are used instead of metanames
             if (pfn == *loc) {
               logger.msg(VERBOSE, "Adding location: %s - %s",
-                         rlsurl.str(), pfn.str());
+                         rlsurl.str(), pfn.plainstr());
               for (std::map<std::string, std::string>::const_iterator i =
                      url.CommonLocOptions().begin();
                    i != url.CommonLocOptions().end(); i++) {
@@ -455,7 +455,7 @@ namespace Arc {
 
     std::string pfn;
     std::string guid;
-    pfn = CurrentLocation().str();
+    pfn = CurrentLocation().plainstr();
     // it is always better to register pure url
     std::string rls_lfn = get_path_str(url);
     if (!replication)
@@ -770,7 +770,7 @@ namespace Arc {
     else { // ! all
       err = globus_rls_client_lrc_delete
               (h, const_cast<char*>(get_path_str(url)),
-              const_cast<char*>(CurrentLocation().str().c_str()));
+              const_cast<char*>(CurrentLocation().plainstr().c_str()));
       if (err != GLOBUS_SUCCESS) {
         globus_rls_client_error_info(err, &errcode, errmsg, MAXERRMSG + 32,
                                      GLOBUS_FALSE);
@@ -919,7 +919,7 @@ namespace Arc {
         else { // ! all
           err = globus_rls_client_lrc_delete
                   (h_, const_cast<char*>(get_path_str(url)),
-                  const_cast<char*>(CurrentLocation().str().c_str()));
+                  const_cast<char*>(CurrentLocation().plainstr().c_str()));
           if (err != GLOBUS_SUCCESS) {
             globus_rls_client_error_info(err, &errcode, errmsg, MAXERRMSG + 32,
                                          GLOBUS_FALSE);

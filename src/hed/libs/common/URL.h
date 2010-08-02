@@ -195,8 +195,11 @@ namespace Arc {
                                        const std::string&
                                        undefined = "") const;
 
-    /** Returns a string representation of the URL. */
+    /** Returns a string representation of the URL including meta-options. */
     virtual std::string str() const;
+
+    /** Returns a string representation of the URL without any options */
+    virtual std::string plainstr() const;
 
     /** Returns a string representation including options and locations */
     virtual std::string fullstr() const;

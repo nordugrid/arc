@@ -728,7 +728,7 @@ namespace Arc {
     return urlstr;
   }
 
-  std::string URL::str() const {
+  std::string URL::plainstr() const {
 
     std::string urlstr;
 
@@ -793,6 +793,13 @@ namespace Arc {
 
     if (!ldapfilter.empty())
       urlstr += '?' + ldapfilter;
+
+    return urlstr;
+  }
+
+  std::string URL::str() const {
+
+    std::string urlstr = plainstr();
 
     if (!metadataoptions.empty())
       urlstr += ':' + OptionString(metadataoptions, ':');
