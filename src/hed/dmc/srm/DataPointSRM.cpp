@@ -490,9 +490,11 @@ namespace Arc {
           if (!csum.empty() && csum.find(':') != std::string::npos) {
             // get checksum info for checksum verification
             logger.msg(VERBOSE, "StopWriting: looking for metadata: %s", url.str());
-            srm_request->long_list(true);
+            // create a new request
+            SRMClientRequest list_request(srm_request->surls());
+            list_request.long_list(true);
             std::list<struct SRMFileMetaData> metadata;
-            SRMReturnCode res = client->info(*srm_request,metadata);
+            SRMReturnCode res = client->info(list_request,metadata);
             if (res != SRM_OK) {
               client->abort(*srm_request); // if we can't list then we can't remove either
               if (res == SRM_ERROR_TEMPORARY)
