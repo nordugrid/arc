@@ -347,8 +347,6 @@ namespace Arc {
         port = HTTPS_DEFAULT_PORT;
       if (protocol == "httpg")
         port = HTTPG_DEFAULT_PORT;
-      if (protocol == "srm")
-        port = SRM_DEFAULT_PORT;
       if (protocol == "ldap")
         port = LDAP_DEFAULT_PORT;
       if (protocol == "ftp")
