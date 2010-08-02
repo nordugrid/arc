@@ -34,7 +34,7 @@ Service_JavaWrapper::Service_JavaWrapper(Arc::Config *cfg)
     JNIEnv *jenv = NULL;
     JavaVMInitArgs jvm_args;
     JavaVMOption options[1];
-    /* Initiliaze java engine */
+    /* Initiliaze Java engine */
     Glib::ModuleFlags flags = Glib::ModuleFlags(0);
     libjvm = new Glib::Module("libjvm.so", flags);
     if (!*libjvm) {
@@ -68,7 +68,7 @@ Service_JavaWrapper::Service_JavaWrapper(Arc::Config *cfg)
     /* Find and construct class */
     serviceClass = jenv->FindClass(class_name.c_str());
     if (serviceClass == NULL) {
-        logger.msg(Arc::ERROR, "There is no service: %s in your java class search path", class_name);
+        logger.msg(Arc::ERROR, "There is no service: %s in your Java class search path", class_name);
         if (jenv->ExceptionOccurred()) {
             jenv->ExceptionDescribe();
         }
@@ -87,7 +87,7 @@ Service_JavaWrapper::Service_JavaWrapper(Arc::Config *cfg)
 }
 
 Service_JavaWrapper::~Service_JavaWrapper(void) {
-    logger.msg(Arc::VERBOSE, "Destroy jvm"); 
+    logger.msg(Arc::VERBOSE, "Destroy JVM"); 
     if (jvm)
         jvm->DestroyJavaVM();
     if (libjvm)
@@ -122,14 +122,14 @@ Arc::MCC_Status Service_JavaWrapper::process(Arc::Message& inmsg, Arc::Message& 
 {
     JNIEnv *jenv = NULL;
     
-    /* Attach to the current java engine thread */
+    /* Attach to the current Java engine thread */
     jvm->AttachCurrentThread((void **)&jenv, NULL);
     /* Get the process function of service */
     jmethodID processID = jenv->GetMethodID(serviceClass, "process", "(Lnordugrid/arc/SOAPMessage;Lnordugrid/arc/SOAPMessage;)Lnordugrid/arc/MCC_Status;");
     if (processID == NULL) {
-        return java_error(jenv, "Cannot find process method of java class");
+        return java_error(jenv, "Cannot find process method of Java class");
     }
-    /* convert inmsg and outmsg to java objects */
+    /* convert inmsg and outmsg to Java objects */
     Arc::SOAPMessage *inmsg_ptr = NULL;
     Arc::SOAPMessage *outmsg_ptr = NULL;
     try {
@@ -149,7 +149,7 @@ Arc::MCC_Status Service_JavaWrapper::process(Arc::Message& inmsg, Arc::Message& 
     if (JSOAPMessageClass == NULL) {
         return java_error(jenv, "Cannot find SOAPMessage object");
     }
-    /* Get the constructor of java object */
+    /* Get the constructor of Java object */
     jmethodID constructorID = jenv->GetMethodID(JSOAPMessageClass, "<init>", "(I)V");
     if (constructorID == NULL) {
         return java_error(jenv, "Cannot find constructor function of message");
@@ -157,25 +157,25 @@ Arc::MCC_Status Service_JavaWrapper::process(Arc::Message& inmsg, Arc::Message& 
     /* Convert C++ object to Java objects */
     jobject jinmsg = jenv->NewObject(JSOAPMessageClass, constructorID, (jlong)((long int)inmsg_ptr));
     if (jinmsg == NULL) {
-        return java_error(jenv, "Cannot convert input message to java object");
+        return java_error(jenv, "Cannot convert input message to Java object");
     }
     jobject joutmsg = jenv->NewObject(JSOAPMessageClass, constructorID, (jlong)((long int)outmsg_ptr));
     if (jinmsg == NULL) {
-        return java_error(jenv, "Cannot convert output message to java object");
+        return java_error(jenv, "Cannot convert output message to Java object");
     }
-    /* Create arguments for java process function */
+    /* Create arguments for Java process function */
     jvalue args[2];
     args[0].l = jinmsg;
     args[1].l = joutmsg;
     /* Call the process method of Java object */
     jobject jmcc_status = jenv->CallObjectMethodA(serviceObj, processID, args);
     if (jmcc_status == NULL) {
-        return java_error(jenv, "Error in call process function of java object");
+        return java_error(jenv, "Error in call process function of Java object");
     }
     /* Get SWIG specific getCPtr function of Message class */
     jmethodID msg_getCPtrID = jenv->GetStaticMethodID(JSOAPMessageClass, "getCPtr", "(Lnordugrid/arc/SOAPMessage;)J");
     if (msg_getCPtrID == NULL) {
-        return java_error(jenv, "Cannot find getCPtr method of java Message class");
+        return java_error(jenv, "Cannot find getCPtr method of Java Message class");
     }
     /* Get Java MCC_Status class */
     jclass JMCC_StatusClass = jenv->FindClass("nordugrid/arc/MCC_Status");
@@ -188,7 +188,7 @@ Arc::MCC_Status Service_JavaWrapper::process(Arc::Message& inmsg, Arc::Message& 
     /* Get SWIG specific getCPtr function of MCC_Status class */
     jmethodID mcc_status_getCPtrID = jenv->GetStaticMethodID(JMCC_StatusClass, "getCPtr", "(Lnordugrid/arc/MCC_Status;)J");
     if (mcc_status_getCPtrID == NULL) {
-        return java_error(jenv, "Cannot find getCPtr method of java MCC_Status class");
+        return java_error(jenv, "Cannot find getCPtr method of Java MCC_Status class");
     }
     
     /* Convert Java status object to C++ class */

@@ -37,7 +37,7 @@ Arc::MCC_Status ARexService::GetActivityDocuments(ARexGMConfig& config,Arc::XMLN
     std::string jobid = Arc::WSAEndpointReference(id).ReferenceParameters()["a-rex:JobID"];
     if(jobid.empty()) {
       // EPR is wrongly formated or not an A-REX EPR
-      logger_.msg(Arc::ERROR, "GetActivityDocuments: non-ARex job requested");
+      logger_.msg(Arc::ERROR, "GetActivityDocuments: non-AREX job requested");
       Arc::SOAPFault fault(resp,Arc::SOAPFault::Sender,"Missing a-rex:JobID in ActivityIdentifier");
       UnknownActivityIdentifierFault(fault,"Unrecognized EPR in ActivityIdentifier");
       continue;

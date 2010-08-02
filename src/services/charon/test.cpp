@@ -117,7 +117,7 @@ int main(void) {
     logger.msg(Arc::ERROR, "Policy Decision Request failed");
     return -1;
   };
-  logger.msg(Arc::INFO, "Policy Decision Request succeed!!!");
+  logger.msg(Arc::INFO, "Policy Decision Request succeeded!!!");
   if(repmsg.Payload() == NULL) {
     logger.msg(Arc::ERROR, "There is no response");
     return -1;
