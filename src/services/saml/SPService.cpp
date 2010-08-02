@@ -322,17 +322,17 @@ Arc::MCC_Status Service_SP::process(Arc::Message& inmsg,Arc::Message& outmsg) {
     //std::cout<<"saml assertion from peer side: "<<msg_content<<std::endl;
     Arc::XMLNode assertion_nd(msg_content);
     if(MatchXMLName(assertion_nd, "EncryptedAssertion")) {
-      //Decrypt the encrypted saml assertion
+      //Decrypt the encrypted SAML assertion
       std::string saml_assertion;
       assertion_nd.GetXML(saml_assertion);
-      logger.msg(Arc::DEBUG,"Encrypted saml assertion: %s", saml_assertion.c_str());
+      logger.msg(Arc::DEBUG,"Encrypted SAML assertion: %s", saml_assertion.c_str());
 
       Arc::XMLSecNode sec_assertion_nd(assertion_nd);
       Arc::XMLNode decrypted_assertion_nd;
 
       bool r = sec_assertion_nd.DecryptNode(privkey_file_, decrypted_assertion_nd);
       if(!r) { 
-        logger.msg(Arc::ERROR,"Can not decrypt the EncryptedAssertion from saml response"); 
+        logger.msg(Arc::ERROR,"Can not decrypt the EncryptedAssertion from SAML response"); 
         return Arc::MCC_Status(); 
       }
 
@@ -340,22 +340,22 @@ Arc::MCC_Status Service_SP::process(Arc::Message& inmsg,Arc::Message& outmsg) {
       decrypted_assertion_nd.GetXML(decrypted_saml_assertion);
       logger.msg(Arc::DEBUG,"Decrypted SAML Assertion: %s", decrypted_saml_assertion.c_str());
      
-      //Decrypt the <saml:EncryptedID/> if it exists in the above saml assertion
+      //Decrypt the <saml:EncryptedID/> if it exists in the above SAML assertion
       Arc::XMLNode nameid_nd = decrypted_assertion_nd["Subject"]["EncryptedID"];
     
       if((bool)nameid_nd) {
         std::string nameid;
         nameid_nd.GetXML(nameid);
-        logger.msg(Arc::DEBUG,"Encrypted name id: %s", nameid.c_str());
+        logger.msg(Arc::DEBUG,"Encrypted name ID: %s", nameid.c_str());
      
         Arc::XMLSecNode sec_nameid_nd(nameid_nd);
         Arc::XMLNode decrypted_nameid_nd;
         r = sec_nameid_nd.DecryptNode(privkey_file_, decrypted_nameid_nd);
-        if(!r) { logger.msg(Arc::ERROR,"Can not decrypt the EncryptedID from saml assertion"); return Arc::MCC_Status(); }
+        if(!r) { logger.msg(Arc::ERROR,"Can not decrypt the EncryptedID from SAML assertion"); return Arc::MCC_Status(); }
 
         std::string decrypted_nameid;
         decrypted_nameid_nd.GetXML(decrypted_nameid);
-        logger.msg(Arc::DEBUG,"Decrypted SAML NameID: %s", decrypted_nameid.c_str());
+        logger.msg(Arc::DEBUG,"Decrypted SAML name ID: %s", decrypted_nameid.c_str());
 
         //Replace the <saml:EncryptedID/> with <saml:NameID/>
         nameid_nd.Replace(decrypted_nameid_nd);

@@ -79,7 +79,7 @@ Arc::MCC_Status Charon::process(Arc::Message& inmsg,Arc::Message& outmsg) {
     if(!request) {
       request = (*inpayload)["XACMLAuthzDecisionQuery"];
       if(!request) {
-        logger.msg(Arc::ERROR, "soap body does not include any request node");
+        logger.msg(Arc::ERROR, "SOAP body does not include any request node");
         return make_soap_fault(outmsg);
       };
     };
