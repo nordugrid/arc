@@ -331,7 +331,8 @@ void URLTest::TestSrmUrl() {
   CPPUNIT_ASSERT(srmurl->Username().empty());
   CPPUNIT_ASSERT(srmurl->Passwd().empty());
   CPPUNIT_ASSERT_EQUAL(std::string("srm.nordugrid.org"), srmurl->Host());
-  CPPUNIT_ASSERT_EQUAL(8443, srmurl->Port());
+  // no default port is defined for SRM
+  CPPUNIT_ASSERT_EQUAL(-1, srmurl->Port());
   CPPUNIT_ASSERT_EQUAL(std::string("/srm/managerv2"), srmurl->Path());
   CPPUNIT_ASSERT_EQUAL(std::string("/data/public:/test.txt"), srmurl->HTTPOption("SFN"));
   CPPUNIT_ASSERT(srmurl->Options().empty());
