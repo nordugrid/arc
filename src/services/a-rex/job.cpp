@@ -626,7 +626,7 @@ bool ARexJob::make_job_id(void) {
     close(h);
     return true;
   };
-  logger_.msg(Arc::ERROR, "Out of tries while allocating new job id in %s", config_.User()->ControlDir());
+  logger_.msg(Arc::ERROR, "Out of tries while allocating new job ID in %s", config_.User()->ControlDir());
   id_="";
   return false;
 }

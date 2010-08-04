@@ -86,7 +86,7 @@ namespace Arc {
 
     lock.unlock();
 
-    logger.msg(DEBUG, "Loading python broker (%i)", refcount);
+    logger.msg(DEBUG, "Loading Python broker (%i)", refcount);
 
     Broker *broker = new PythonBroker(*brokerarg);
 
@@ -106,7 +106,7 @@ namespace Arc {
       object(NULL) {
 
     if (!tstate) {
-      logger.msg(ERROR, "Main python thread is not initialized");
+      logger.msg(ERROR, "Main Python thread is not initialized");
       return;
     }
 
@@ -123,13 +123,13 @@ namespace Arc {
     }
     std::string module_name = args.substr(0, pos);
     std::string class_name = args.substr(pos + 1);
-    logger.msg(VERBOSE, "class name: %s", class_name);
-    logger.msg(VERBOSE, "module name: %s", module_name);
+    logger.msg(VERBOSE, "Class name: %s", class_name);
+    logger.msg(VERBOSE, "Module name: %s", module_name);
 
     // Import arc python module
     PyObjectP py_arc_module_name = PyString_FromString("arc");
     if (!py_arc_module_name) {
-      logger.msg(ERROR, "Cannot convert arc module name to Python string");
+      logger.msg(ERROR, "Cannot convert ARC module name to Python string");
       if (PyErr_Occurred())
         PyErr_Print();
       return;
@@ -137,7 +137,7 @@ namespace Arc {
 
     arc_module = PyImport_Import(py_arc_module_name);
     if (!arc_module) {
-      logger.msg(ERROR, "Cannot import arc module");
+      logger.msg(ERROR, "Cannot import ARC module");
       if (PyErr_Occurred())
         PyErr_Print();
       return;
@@ -146,7 +146,7 @@ namespace Arc {
     // Get dictionary of arc module content (borrowed reference)
     PyObject *arc_dict = PyModule_GetDict(arc_module);
     if (!arc_dict) {
-      logger.msg(ERROR, "Cannot get dictionary of arc module");
+      logger.msg(ERROR, "Cannot get dictionary of ARC module");
       if (PyErr_Occurred())
         PyErr_Print();
       return;
@@ -155,7 +155,7 @@ namespace Arc {
     // Get the Config class (borrowed reference)
     arc_userconfig_klass = PyDict_GetItemString(arc_dict, "UserConfig");
     if (!arc_userconfig_klass) {
-      logger.msg(ERROR, "Cannot find arc UserConfig class");
+      logger.msg(ERROR, "Cannot find ARC UserConfig class");
       if (PyErr_Occurred())
         PyErr_Print();
       return;
@@ -170,7 +170,7 @@ namespace Arc {
     // Get the JobDescription class (borrowed reference)
     arc_jobrepr_klass = PyDict_GetItemString(arc_dict, "JobDescription");
     if (!arc_jobrepr_klass) {
-      logger.msg(ERROR, "Cannot find arc JobDescription class");
+      logger.msg(ERROR, "Cannot find ARC JobDescription class");
       if (PyErr_Occurred())
         PyErr_Print();
       return;
@@ -185,7 +185,7 @@ namespace Arc {
     // Get the ExecutionTarget class (borrowed reference)
     arc_xtarget_klass = PyDict_GetItemString(arc_dict, "ExecutionTarget");
     if (!arc_xtarget_klass) {
-      logger.msg(ERROR, "Cannot find arc ExecutionTarget class");
+      logger.msg(ERROR, "Cannot find ARC ExecutionTarget class");
       if (PyErr_Occurred())
         PyErr_Print();
       return;
@@ -248,7 +248,7 @@ namespace Arc {
 
     PyObject *py_usercfg = PyObject_CallObject(arc_userconfig_klass, usercfgarg);
     if (!py_usercfg) {
-      logger.msg(ERROR, "Cannot convert UserConfig to python object");
+      logger.msg(ERROR, "Cannot convert UserConfig to Python object");
       if (PyErr_Occurred())
         PyErr_Print();
       return;
@@ -265,7 +265,7 @@ namespace Arc {
     // create instance of class
     object = PyObject_CallObject(klass, arg);
     if (!object) {
-      logger.msg(ERROR, "Cannot create instance of python class");
+      logger.msg(ERROR, "Cannot create instance of Python class");
       if (PyErr_Occurred())
         PyErr_Print();
       return;
@@ -321,7 +321,7 @@ namespace Arc {
     // Convert incoming PossibleTargets to python list
     PyObjectP py_list = PyList_New(0);
     if (!py_list) {
-      logger.msg(ERROR, "Cannot create python list");
+      logger.msg(ERROR, "Cannot create Python list");
       if (PyErr_Occurred())
         PyErr_Print();
       return;

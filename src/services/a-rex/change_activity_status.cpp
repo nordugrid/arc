@@ -103,14 +103,14 @@ Arc::MCC_Status ARexService::ChangeActivityStatus(ARexGMConfig& config,Arc::XMLN
   // Old state in request must be checked against current one
   if((!old_bes_state.empty()) && (old_bes_state != bes_state)) {
     logger_.msg(Arc::ERROR, "ChangeActivityStatus: old BES state does not match");
-    Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"OldStatus is not same ass current status");
+    Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"OldStatus is not same as current status");
     CantApplyOperationToCurrentStateFault(fault,gm_state,failed,"OldStatus does not match");
     out.Destroy();
     return Arc::MCC_Status();
   };
   if((!old_arex_state.empty()) && (old_arex_state != arex_state)) {
-    logger_.msg(Arc::ERROR, "ChangeActivityStatus: old A-Rex state does not match");
-    Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"OldStatus is not same ass current status");
+    logger_.msg(Arc::ERROR, "ChangeActivityStatus: old A-REX state does not match");
+    Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"OldStatus is not same as current status");
     CantApplyOperationToCurrentStateFault(fault,gm_state,failed,"OldStatus does not match");
     out.Destroy();
     return Arc::MCC_Status();
@@ -136,19 +136,19 @@ Arc::MCC_Status ARexService::ChangeActivityStatus(ARexGMConfig& config,Arc::XMLN
      (new_arex_state.empty())) { // Not supporting resume into user-defined state
     // Request to resume job
     if(!job.UpdateCredentials(delegation)) {
-      logger_.msg(Arc::ERROR, "ChangeActivityStatus: failed to update credentials");
+      logger_.msg(Arc::ERROR, "ChangeActivityStatus: Failed to update credentials");
       Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"Internal error: Failed to update credentials");
       out.Destroy();
       return Arc::MCC_Status();
     };
     if(!job.Resume()) {
-      logger_.msg(Arc::ERROR, "ChangeActivityStatus: failed to resume job");
+      logger_.msg(Arc::ERROR, "ChangeActivityStatus: Failed to resume job");
       Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"Internal error: Failed to resume activity");
       out.Destroy();
       return Arc::MCC_Status();
     };
   } else {
-    logger_.msg(Arc::ERROR, "ChangeActivityStatus: state change not allowed: from %s/%s to %s/%s",
+    logger_.msg(Arc::ERROR, "ChangeActivityStatus: State change not allowed: from %s/%s to %s/%s",
                 bes_state.c_str(),arex_state.c_str(),new_bes_state.c_str(),new_arex_state.c_str());
     Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"Requested status transition is not supported");
     CantApplyOperationToCurrentStateFault(fault,gm_state,failed,"Requested status transition is not supported");

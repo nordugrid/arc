@@ -30,7 +30,7 @@ Arc::MCC_Status Service_SLCS::make_soap_fault(Arc::Message& outmsg) {
   Arc::SOAPFault* fault = outpayload?outpayload->Fault():NULL;
   if(fault) {
     fault->Code(Arc::SOAPFault::Sender);
-    fault->Reason("Failed processing slcs(short-lived certificate) request");
+    fault->Reason("Failed processing SLCS (short-lived certificate) request");
   };
   outmsg.Payload(outpayload);
   return Arc::MCC_Status(Arc::STATUS_OK);
@@ -116,7 +116,7 @@ Arc::MCC_Status Service_SLCS::process(Arc::Message& inmsg,Arc::Message& outmsg) 
   // Identify which of served endpoints request is for.
   // SLCS can only accept POST method
   if(method == "POST") {
-    logger.msg(Arc::VERBOSE, "process: POST");
+    logger.msg(Arc::VERBOSE, "Process: POST");
     // Both input and output are supposed to be SOAP
     // Extracting payload
     Arc::PayloadSOAP* inpayload = NULL;
@@ -124,13 +124,13 @@ Arc::MCC_Status Service_SLCS::process(Arc::Message& inmsg,Arc::Message& outmsg) 
       inpayload = dynamic_cast<Arc::PayloadSOAP*>(inmsg.Payload());
     } catch(std::exception& e) { };
     if(!inpayload) {
-      logger.msg(Arc::ERROR, "input is not SOAP");
+      logger.msg(Arc::ERROR, "Input is not SOAP");
       return make_soap_fault(outmsg);
     };
     // Analyzing request
     Arc::XMLNode request = (*inpayload)["GetSLCSCertificateRequest"];
     if(!request) {
-      logger.msg(Arc::ERROR, "soap body does not include any request node");
+      logger.msg(Arc::ERROR, "SOAP body does not include any request node");
       return make_soap_fault(outmsg);
     };
     {
@@ -156,7 +156,7 @@ Arc::MCC_Status Service_SLCS::process(Arc::Message& inmsg,Arc::Message& outmsg) 
     eec.InquireRequest(x509_req, true);
 
     if(!(eec.AddExtension("1.3.6.1.4.1.3536.1.1.1.10", saml_assertion_str))) { //Need to investigate the OID 
-      std::cout<<"Failed to add saml extension to certificate"<<std::endl;
+      std::cout<<"Failed to add SAML extension to certificate"<<std::endl;
     }
 
     //TODO: compose the base name from configuration and name from saml assertion?
@@ -190,7 +190,7 @@ Arc::MCC_Status Service_SLCS::process(Arc::Message& inmsg,Arc::Message& outmsg) 
   }
   else {
     delete inmsg.Payload();
-    logger.msg(Arc::VERBOSE, "process: %s: not supported",method);
+    logger.msg(Arc::VERBOSE, "Process: %s: not supported",method);
     return Arc::MCC_Status();
   }
 

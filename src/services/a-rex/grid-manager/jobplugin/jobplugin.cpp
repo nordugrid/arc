@@ -208,7 +208,7 @@ JobPlugin::JobPlugin(std::istream &cfile,userspec_t &user_s):user_a(user_s.user)
           logger.msg(Arc::ERROR, "Failed processing grid-manager configuration");
           initialized=false;
         } else if (gm_dirs_info.size() > 0 && session_roots.size() > 1) {
-          logger.msg(Arc::ERROR, "Cannot use multiple session dirs and remotegmdirs at the same time");
+          logger.msg(Arc::ERROR, "Cannot use multiple session directories and remotegmdirs at the same time");
           initialized=false;
         } else {                  
           if(default_queue.empty() && (avail_queues.size() == 1)) {
@@ -1362,7 +1362,7 @@ bool JobPlugin::make_job_id(void) {
     break;
   };
   if(i>=100) {
-    logger.msg(Arc::ERROR, "Out of tries while allocating new job id");
+    logger.msg(Arc::ERROR, "Out of tries while allocating new job ID");
     job_id=""; return false;
   };
   return true;
@@ -1540,7 +1540,7 @@ bool JobPlugin::chooseControlAndSessionDir(std::string job_id, std::string& cont
 
   if (gm_dirs_non_draining.size() == 0 || session_dirs_non_draining.size() == 0) {
     // no active control or session dirs available
-    logger.msg(Arc::ERROR, "No non-draining control or session dirs available");
+    logger.msg(Arc::ERROR, "No non-draining control or session directories available");
     return false;
   }
   // if multiple session dirs are defined, don't use remote dirs
@@ -1556,8 +1556,8 @@ bool JobPlugin::chooseControlAndSessionDir(std::string job_id, std::string& cont
     controldir = gm_dirs_non_draining.at(i).control_dir; 
     sessiondir = gm_dirs_non_draining.at(i).session_dir;
   } 
-  logger.msg(Arc::INFO, "Using control dir %s", controldir);
-  logger.msg(Arc::INFO, "Using session dir %s", sessiondir);
+  logger.msg(Arc::INFO, "Using control directory %s", controldir);
+  logger.msg(Arc::INFO, "Using session directory %s", sessiondir);
   return true;
 }  
   

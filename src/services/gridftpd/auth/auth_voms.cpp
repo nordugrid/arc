@@ -143,7 +143,7 @@ int process_vomsproxy(const char* filename,std::vector<struct voms> &data,bool a
       X509_free(cert); cert=tmp_cert;
     } else { 
       if(!sk_X509_insert(cert_chain, tmp_cert, n-1)) {
-        logger.msg(Arc::ERROR, "failed in SSL (sk_X509_insert)");
+        logger.msg(Arc::ERROR, "Failed in SSL (sk_X509_insert)");
         goto error_exit;
       };
     };

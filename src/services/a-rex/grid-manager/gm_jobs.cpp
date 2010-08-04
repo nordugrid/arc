@@ -82,7 +82,7 @@ int main(int argc, char* argv[]) {
   
   int my_uid = getuid();
   options.AddOption('u', "userid",
-                    istring("pretend utility is run by user with given uid"),
+                    istring("pretend utility is run by user with given UID"),
                     istring("uid"), my_uid);
   
   std::string conf_file;
@@ -92,7 +92,7 @@ int main(int argc, char* argv[]) {
   
   std::string control_dir;
   options.AddOption('d', "controldir",
-                    istring("read information from specified control dir"),
+                    istring("read information from specified control directory"),
                     istring("dir"), control_dir);
                     
   bool show_share = false;

@@ -153,7 +153,7 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
       int max_jobs, max_jobs_running = -1;
       if(max_jobs_s.length() != 0) {
         if(!Arc::stringto(max_jobs_s,i)) {
-          logger.msg(Arc::ERROR,"wrong number in maxjobs: %s",max_jobs_s);
+          logger.msg(Arc::ERROR,"Wrong number in maxjobs: %s",max_jobs_s);
           goto exit;
         };
         if(i<0) i=-1; max_jobs=i;
@@ -161,7 +161,7 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
       max_jobs_s = config_next_arg(rest);
       if(max_jobs_s.length() != 0) {
         if(!Arc::stringto(max_jobs_s,i)) {
-          logger.msg(Arc::ERROR,"wrong number in maxjobs: %s",max_jobs_s);
+          logger.msg(Arc::ERROR,"Wrong number in maxjobs: %s",max_jobs_s);
           goto exit;
         };
         if(i<0) i=-1; max_jobs_running=i;
@@ -175,7 +175,7 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
       int max_jobs_processing, max_jobs_processing_emergency, max_downloads = -1;
       if(max_jobs_s.length() != 0) {
         if(!Arc::stringto(max_jobs_s,i)) {
-          logger.msg(Arc::ERROR,"wrong number in maxload: %s",max_jobs_s);
+          logger.msg(Arc::ERROR,"Wrong number in maxload: %s",max_jobs_s);
           goto exit;
         };
         if(i<0) i=-1; max_jobs_processing=i;
@@ -183,7 +183,7 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
       max_jobs_s = config_next_arg(rest);
       if(max_jobs_s.length() != 0) {
         if(!Arc::stringto(max_jobs_s,i)) {
-          logger.msg(Arc::ERROR,"wrong number in maxload: %s",max_jobs_s);
+          logger.msg(Arc::ERROR,"Wrong number in maxload: %s",max_jobs_s);
           goto exit;
         };
         if(i<0) i=-1; max_jobs_processing_emergency=i;
@@ -191,7 +191,7 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
       max_jobs_s = config_next_arg(rest);
       if(max_jobs_s.length() != 0) {
         if(!Arc::stringto(max_jobs_s,i)) {
-          logger.msg(Arc::ERROR,"wrong number in maxload: %s",max_jobs_s);
+          logger.msg(Arc::ERROR,"Wrong number in maxload: %s",max_jobs_s);
           goto exit;
         };
         if(i<0) i=-1; max_downloads=i;
@@ -204,12 +204,12 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
         unsigned int max_share = 0;
         if(max_share_s.length() != 0) {
           if(!Arc::stringto(max_share_s,max_share) || max_share<=0) {
-            logger.msg(Arc::ERROR,"wrong number in maxloadshare: %s", max_share_s); goto exit;
+            logger.msg(Arc::ERROR,"Wrong number in maxloadshare: %s", max_share_s); goto exit;
           };
         };
         std::string transfer_share = config_next_arg(rest);
 	if (transfer_share.empty()){
-            logger.msg(Arc::ERROR,"the type of share is not set in maxloadshare"); goto exit;
+            logger.msg(Arc::ERROR,"The type of share is not set in maxloadshare"); goto exit;
 	}
         jcfg.SetTransferShare(max_share, transfer_share);
     }
@@ -224,12 +224,12 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
         temp = config_next_arg(rest);
       }
       if (share_name.empty()) {
-        logger.msg(Arc::ERROR,"the name of share is not set in share_limit"); goto exit;
+        logger.msg(Arc::ERROR,"The name of share is not set in share_limit"); goto exit;
       }
       unsigned int share_limit = 0;
       if(share_limit_s.length() != 0) {
         if(!Arc::stringto(share_limit_s,share_limit) || share_limit<=0){
-          logger.msg(Arc::ERROR,"wrong number in share_limit: %s",share_limit); goto exit;
+          logger.msg(Arc::ERROR,"Wrong number in share_limit: %s",share_limit); goto exit;
         }
       }
       if(!jcfg.AddLimitedShare(share_name,share_limit)) {
@@ -244,28 +244,28 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
       int max_inactivity_time=300;
       if(speed_s.length() != 0) {
         if(!Arc::stringto(speed_s,min_speed)) {
-          logger.msg(Arc::ERROR,"wrong number in speedcontrol: %s",speed_s);
+          logger.msg(Arc::ERROR,"Wrong number in speedcontrol: %s",speed_s);
           goto exit;
         };
       };
       speed_s = config_next_arg(rest);
       if(speed_s.length() != 0) {
         if(!Arc::stringto(speed_s,min_speed_time)) {
-          logger.msg(Arc::ERROR,"wrong number in speedcontrol: ",speed_s);
+          logger.msg(Arc::ERROR,"Wrong number in speedcontrol: ",speed_s);
           goto exit;
         };
       };
       speed_s = config_next_arg(rest);
       if(speed_s.length() != 0) {
         if(!Arc::stringto(speed_s,min_average_speed)) {
-          logger.msg(Arc::ERROR,"wrong number in speedcontrol: %s",speed_s);
+          logger.msg(Arc::ERROR,"Wrong number in speedcontrol: %s",speed_s);
           goto exit;
         };
       };
       speed_s = config_next_arg(rest);
       if(speed_s.length() != 0) {
         if(!Arc::stringto(speed_s,max_inactivity_time)) {
-          logger.msg(Arc::ERROR,"wrong number in speedcontrol: %s",speed_s);
+          logger.msg(Arc::ERROR,"Wrong number in speedcontrol: %s",speed_s);
           goto exit;
         };
       };
@@ -277,7 +277,7 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
       unsigned int wakeup_period;
       if(wakeup_s.length() != 0) {
         if(!Arc::stringto(wakeup_s,wakeup_period)) {
-          logger.msg(Arc::ERROR,"wrong number in wakeupperiod: %s",wakeup_s);
+          logger.msg(Arc::ERROR,"Wrong number in wakeupperiod: %s",wakeup_s);
           goto exit;
         };
         jcfg.SetWakeupPeriod(wakeup_period);
@@ -293,7 +293,7 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
         use_secure_transfer=false;
       }
       else {
-        logger.msg(Arc::ERROR,"wrong option in securetransfer"); goto exit;
+        logger.msg(Arc::ERROR,"Wrong option in securetransfer"); goto exit;
       };
       jcfg.SetSecureTransfer(use_secure_transfer);
     }
@@ -307,7 +307,7 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
         use_passive_transfer=false;
       }
       else {
-        logger.msg(Arc::ERROR,"wrong option in passivetransfer"); goto exit;
+        logger.msg(Arc::ERROR,"Wrong option in passivetransfer"); goto exit;
       };
       jcfg.SetPassiveTransfer(use_passive_transfer);
     }
@@ -316,7 +316,7 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
       int max_retries = DEFAULT_MAX_RETRIES;
       if(maxtries_s.length() != 0) {
         if(!Arc::stringto(maxtries_s,max_retries)) {
-          logger.msg(Arc::ERROR,"wrong number in maxtransfertries"); goto exit;
+          logger.msg(Arc::ERROR,"Wrong number in maxtransfertries"); goto exit;
         };
         jcfg.SetMaxRetries(max_retries);
       };
@@ -330,7 +330,7 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
         strict_session=false;
       }
       else {
-        logger.msg(Arc::ERROR,"wrong option in norootpower"); goto exit;
+        logger.msg(Arc::ERROR,"Wrong option in norootpower"); goto exit;
       };
     }
     else if(command == "localtransfer") {
@@ -343,7 +343,7 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
         use_local_transfer=false;
       }
       else {
-        logger.msg(Arc::ERROR,"wrong option in localtransfer"); goto exit;
+        logger.msg(Arc::ERROR,"Wrong option in localtransfer"); goto exit;
       };
       jcfg.SetLocalTransfer(use_local_transfer);
     }
@@ -361,16 +361,16 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
       };
       default_ttl=strtoul(default_ttl_s.c_str(),&ep,10);
       if(*ep != 0) {
-        logger.msg(Arc::ERROR,"wrong number in defaultttl command"); goto exit;
+        logger.msg(Arc::ERROR,"Wrong number in defaultttl command"); goto exit;
       };
       default_ttl_s = config_next_arg(rest);
       if(default_ttl_s.length() != 0) {
         if(rest.length() != 0) {
-          logger.msg(Arc::ERROR,"junk in defaultttl command"); goto exit;
+          logger.msg(Arc::ERROR,"Junk in defaultttl command"); goto exit;
         };
         default_ttr=strtoul(default_ttl_s.c_str(),&ep,10);
         if(*ep != 0) {
-          logger.msg(Arc::ERROR,"wrong number in defaultttl command"); goto exit;
+          logger.msg(Arc::ERROR,"Wrong number in defaultttl command"); goto exit;
         };
       } else {
         default_ttr=DEFAULT_KEEP_DELETED;
@@ -382,12 +382,12 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
         logger.msg(Arc::ERROR,"maxrerun is empty"); goto exit;
       };
       if(rest.length() != 0) {
-        logger.msg(Arc::ERROR,"junk in maxrerun command"); goto exit;
+        logger.msg(Arc::ERROR,"Junk in maxrerun command"); goto exit;
       };
       char *ep;
       default_reruns=strtoul(default_reruns_s.c_str(),&ep,10);
       if(*ep != 0) {
-        logger.msg(Arc::ERROR,"wrong number in maxrerun command"); goto exit;
+        logger.msg(Arc::ERROR,"Wrong number in maxrerun command"); goto exit;
       };      
     }
     else if(command == "diskspace") { /* maximal amount of disk space */ 
@@ -401,7 +401,7 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
       char *ep;
       default_diskspace=strtoull(default_diskspace_s.c_str(),&ep,10);
       if(*ep != 0) {
-        logger.msg(Arc::ERROR,"wrong number in diskspace command"); goto exit;
+        logger.msg(Arc::ERROR,"Wrong number in diskspace command"); goto exit;
       };      
     }
     else if(command == "lrms") {
@@ -414,7 +414,7 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
         logger.msg(Arc::ERROR,"defaultlrms is empty"); goto exit;
       };
       if(!rest.empty()) {
-        logger.msg(Arc::ERROR,"junk in defaultlrms command"); goto exit;
+        logger.msg(Arc::ERROR,"Junk in defaultlrms command"); goto exit;
       };
       check_lrms_backends(default_lrms,users.Env());
     }
@@ -422,7 +422,7 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
                                           state changes */
       std::string state_name = config_next_arg(rest);
       if(state_name.length() == 0) {
-        logger.msg(Arc::ERROR,"state name for plugin is missing"); goto exit;
+        logger.msg(Arc::ERROR,"State name for plugin is missing"); goto exit;
       };
       std::string options_s = config_next_arg(rest);
       if(options_s.length() == 0) {
@@ -436,12 +436,12 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
     else if(command == "localcred") {
       std::string timeout_s = config_next_arg(rest);
       if(timeout_s.length() == 0) {
-        logger.msg(Arc::ERROR,"timeout for plugin is missing"); goto exit;
+        logger.msg(Arc::ERROR,"Timeout for plugin is missing"); goto exit;
       };
       char *ep;
       int to = strtoul(timeout_s.c_str(),&ep,10);
       if((*ep != 0) || (to<0)) {
-        logger.msg(Arc::ERROR,"wrong number for timeout in plugin command");
+        logger.msg(Arc::ERROR,"Wrong number for timeout in plugin command");
         goto exit;
       };
       cred_plugin = rest;
@@ -452,10 +452,10 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
          to all following 'control' commands */
       std::string session_root = config_next_arg(rest);
       if(session_root.length() == 0) {
-        logger.msg(Arc::ERROR,"session root dir is missing"); goto exit;
+        logger.msg(Arc::ERROR,"Session root directory is missing"); goto exit;
       };
       if(rest.length() != 0 && rest != "drain") {
-        logger.msg(Arc::ERROR,"junk in session root command"); goto exit;
+        logger.msg(Arc::ERROR,"Junk in session root command"); goto exit;
       };
       session_roots.push_back(session_root);
     } else if(command == "controldir") {
@@ -463,7 +463,7 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
     } else if(command == "control") {
       std::string control_dir = config_next_arg(rest);
       if(control_dir.length() == 0) {
-        logger.msg(Arc::ERROR,"missing directory in control command"); goto exit;
+        logger.msg(Arc::ERROR,"Missing directory in control command"); goto exit;
       };
       if(control_dir == "*") control_dir="";
       if(command == "controldir") rest=".";
@@ -540,10 +540,10 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
     else if(command == "helper") {
       std::string helper_user = config_next_arg(rest);
       if(helper_user.length() == 0) {
-        logger.msg(Arc::ERROR,"user for helper program is missing"); goto exit;
+        logger.msg(Arc::ERROR,"User for helper program is missing"); goto exit;
       };
       if(rest.length() == 0) {
-        logger.msg(Arc::ERROR,"helper program is missing"); goto exit;
+        logger.msg(Arc::ERROR,"Helper program is missing"); goto exit;
       };
       if(helper_user == "*") {  /* go through all configured users */
         for(JobUsers::iterator user=users.begin();user!=users.end();++user) {
@@ -784,7 +784,7 @@ bool configure_serviced_users(Arc::XMLNode cfg,JobUsers &users,uid_t my_uid,cons
   if(tmp_node) {
     default_lrms = (std::string)(tmp_node["type"]);
     if(default_lrms.empty()) {
-      logger.msg(Arc::ERROR,"type in LRMS is missing"); return false;
+      logger.msg(Arc::ERROR,"Type in LRMS is missing"); return false;
     };
     default_queue = (std::string)(tmp_node["defaultShare"]);
     check_lrms_backends(default_lrms,users.Env());
@@ -802,12 +802,12 @@ bool configure_serviced_users(Arc::XMLNode cfg,JobUsers &users,uid_t my_uid,cons
   for(;tmp_node;++tmp_node) {
     std::string state_name = tmp_node["state"];
     if(state_name.empty()) {
-      logger.msg(Arc::ERROR,"state name for authPlugin is missing");
+      logger.msg(Arc::ERROR,"State name for authPlugin is missing");
       return false;
     };
     std::string command = tmp_node["command"];
     if(state_name.empty()) {
-      logger.msg(Arc::ERROR,"command for authPlugin is missing");
+      logger.msg(Arc::ERROR,"Command for authPlugin is missing");
       return false;
     };
     std::string options;
@@ -837,19 +837,19 @@ bool configure_serviced_users(Arc::XMLNode cfg,JobUsers &users,uid_t my_uid,cons
   if(tmp_node) {
     std::string command = tmp_node["command"];
     if(command.empty()) {
-      logger.msg(Arc::ERROR,"command for localCred is missing");
+      logger.msg(Arc::ERROR,"Command for localCred is missing");
       return false;
     };
     std::string options;
     Arc::XMLNode onode;
     onode = tmp_node.Attribute("timeout");
     if(!onode) {
-      logger.msg(Arc::ERROR,"timeout for localCred is missing");
+      logger.msg(Arc::ERROR,"Timeout for localCred is missing");
       return false;
     };
     int to;
     if(!elementtoint(onode,NULL,to,&logger)) {
-      logger.msg(Arc::ERROR,"timeout for localCred is incorrect number");
+      logger.msg(Arc::ERROR,"Timeout for localCred is incorrect number");
       return false;
     };
     cred_plugin = command;
@@ -913,10 +913,10 @@ bool configure_serviced_users(Arc::XMLNode cfg,JobUsers &users,uid_t my_uid,cons
     for(;unode;++unode) {
       std::string username = unode;
       if(username.empty()) {
-        logger.msg(Arc::ERROR,"username in control is empty"); return false;
+        logger.msg(Arc::ERROR,"Username in control is empty"); return false;
       };
       if(username == "*") {  /* add all gridmap users */
-        logger.msg(Arc::ERROR,"Gridmap user list feature is not supported anymore. Plase use @filename to specify user list.");
+        logger.msg(Arc::ERROR,"Gridmap user list feature is not supported anymore. Please use @filename to specify user list.");
         return false;
       };
       if(username[0] == '@') {  /* add users from file */
@@ -935,7 +935,7 @@ bool configure_serviced_users(Arc::XMLNode cfg,JobUsers &users,uid_t my_uid,cons
       userlist.push_back(username);
     };
     if(userlist.size() == 0) {
-      logger.msg(Arc::ERROR,"No username entries in control"); return false;
+      logger.msg(Arc::ERROR,"No username entries in control directory"); return false;
     };
     for(std::list<std::string>::iterator username = userlist.begin();
                    username != userlist.end();++username) {
@@ -998,14 +998,14 @@ bool configure_serviced_users(Arc::XMLNode cfg,JobUsers &users,uid_t my_uid,cons
   for(;tmp_node;++tmp_node) {
     std::string command = tmp_node["command"];
     if(command.empty()) {
-      logger.msg(Arc::ERROR,"command in helperUtility is missing");
+      logger.msg(Arc::ERROR,"Command in helperUtility is missing");
       return false;
     };
     Arc::XMLNode unode = tmp_node["username"];
     for(;unode;++unode) {
       std::string username = unode;
       if(username.empty()) {
-        logger.msg(Arc::ERROR,"username in helperUtility is empty");
+        logger.msg(Arc::ERROR,"Username in helperUtility is empty");
         return false;
       };
       if(username == "*") {  /* go through all configured users */
