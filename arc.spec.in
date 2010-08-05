@@ -331,6 +331,8 @@ Requires: %{name}-hed = %{version}
 Requires: mktemp
 Requires: perl-XML-Simple
 Requires: perl-Digest-SHA1
+Requires: python-twisted-core
+Requires: python-twisted-web
 Requires: %{name}-ldap-infosys = %{version}
 Provides: nordugrid-arc1-arex = %{version}
 Obsoletes: nordugrid-arc1-arex < 1.0.0
