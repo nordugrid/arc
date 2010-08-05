@@ -684,6 +684,7 @@ exit 0
 %{_libdir}/%{pkgdir}/libisis.apd
 
 %files gridftp-server
+%defattr(-,root,root,-)
 %{_initrddir}/a-rex-gridftpd
 %{_sbindir}/a-rex-gridftpd-bin
 %{_libdir}/%{pkgdir}/jobplugin.*
@@ -691,6 +692,7 @@ exit 0
 %{_libdir}/%{pkgdir}/fileplugin.*
 
 %files ldap-infosys
+%defattr(-,root,root,-)
 %{_initrddir}/grid-infosys
 %{_libdir}/%{pkgdir}/grid-infosys-bdii4
 %{_libdir}/%{pkgdir}/grid-infosys-bdii5
@@ -706,6 +708,7 @@ exit 0
 %{_libdir}/%{pkgdir}/LogUtils.pm
 
 %files giis
+%defattr(-,root,root,-)
 %{_sbindir}/arc-infoindex-relay
 %{_sbindir}/arc-infoindex-server
 %{_libdir}/%{pkgdir}/arc-infoindex-slapd-wrapper.so
