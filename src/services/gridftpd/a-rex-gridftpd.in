@@ -65,7 +65,7 @@ if [ -f /etc/sysconfig/nordugrid ]; then
     . /etc/sysconfig/nordugrid
 fi
 
-prog=a-rex-gridftpd
+prog=arexgridftpd
 
 # GLOBUS_LOCATION
 GLOBUS_LOCATION=${GLOBUS_LOCATION:-@DEFAULT_GLOBUS_LOCATION@}
@@ -75,15 +75,15 @@ if [ ! -d "$GLOBUS_LOCATION" ]; then
 fi
 export GLOBUS_LOCATION
 
-# NORDUGRID_LOCATION
-NORDUGRID_LOCATION=${NORDUGRID_LOCATION:-@prefix@}
-if [ ! -d "$NORDUGRID_LOCATION" ]; then
-  echo "NORDUGRID_LOCATION ($NORDUGRID_LOCATION) not found"
+# ARC_LOCATION
+ARC_LOCATION=${ARC_LOCATION:-@prefix@}
+if [ ! -d "$ARC_LOCATION" ]; then
+  echo "ARC_LOCATION ($ARC_LOCATION) not found"
   exit 1
 fi
-export NORDUGRID_LOCATION
+export ARC_LOCATION
 
-CMD="$NORDUGRID_LOCATION/sbin/$prog"
+CMD="$ARC_LOCATION/sbin/$prog"
 if ! test -x "$CMD"; then
     failure "Missing executable"
     echo
@@ -92,8 +92,8 @@ fi
 
 # ARC_CONFIG
 if test "x$ARC_CONFIG" = "x"; then
-  if [ -r $NORDUGRID_LOCATION/etc/arc.conf ]; then
-    ARC_CONFIG=$NORDUGRID_LOCATION/etc/arc.conf
+  if [ -r $ARC_LOCATION/etc/arc.conf ]; then
+    ARC_CONFIG=$ARC_LOCATION/etc/arc.conf
   elif [ -r /etc/arc.conf ]; then
     ARC_CONFIG=/etc/arc.conf
   fi
@@ -115,7 +115,7 @@ add_library_path "$LFC_LOCATION"
 add_library_path "$GRIDSITE_LOCATION"
 add_library_path "$VOMS_LOCATION"
 add_library_path "$GLOBUS_LOCATION"
-LD_LIBRARY_PATH=$NORDUGRID_LOCATION/@libsubdir@:$LD_LIBRARY_PATH
+LD_LIBRARY_PATH=$ARC_LOCATION/@libsubdir@:$LD_LIBRARY_PATH
 SASL_PATH=${SASL_PATH:-$GLOBUS_LOCATION/lib/sasl}
 export LD_LIBRARY_PATH SASL_PATH
 
@@ -132,7 +132,7 @@ else
   PID_FILE=$HOME/$prog.pid
 fi
 
-parser="$NORDUGRID_LOCATION/@pkglibsubdir@/config_parser.sh"
+parser="$ARC_LOCATION/@pkglibsubdir@/config_parser.sh"
 if ! . "$parser"; then
     failure "Failed sourcing config parser"
     echo
