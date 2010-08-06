@@ -39,6 +39,7 @@ AC_DEFUN([ARC_RELATIVE_PATHS],
   AC_SUBST([sbindir_rel_to_pkglibexecdir])
   AC_SUBST([bindir_rel_to_pkglibexecdir])
   AC_SUBST([pkgdatadir_rel_to_pkglibexecdir])
+  AC_SUBST([pkgdatalibsubdir])
 
   AC_DEFINE_UNQUOTED([INSTPREFIX], ["${instprefix}"], [installation prefix])
   AC_DEFINE_UNQUOTED([LIBSUBDIR], ["${libsubdir}"], [library installation subdirectory])

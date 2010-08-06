@@ -135,20 +135,16 @@ fi
 
 ###############  Standard configuration  ######################
 
-# sysconfig files
-if [ -r /etc/sysconfig/nordugrid ]; then
-    . /etc/sysconfig/nordugrid
+# ARC_LOCATION
+ARC_LOCATION=${ARC_LOCATION:-@prefix@}
+if [ ! -d "$ARC_LOCATION" ]; then
+  echo "ARC_LOCATION ($ARC_LOCATION) not found"
+  exit 1
 fi
-
-NORDUGRID_LOCATION=${NORDUGRID_LOCATION:-@nordugrid_location@}
-if [ ! -d "$NORDUGRID_LOCATION" ]; then
-    echo "NORDUGRID_LOCATION ($NORDUGRID_LOCATION) not found"
-    exit 1
-fi
-export NORDUGRID_LOCATION
+export ARC_LOCATION
 
 # source the config parsing routines
-. $NORDUGRID_LOCATION/@pkglibsubdir@/config_parser.sh || exit $?
+. $ARC_LOCATION/@pkglibsubdir@/config_parser.sh || exit $?
 
 ARC_CONFIG=${ARC_CONFIG:-/etc/arc.conf}
 
@@ -190,6 +186,7 @@ config_set_defaults () {
 }
 
 # Read arc.conf
+export pkglibdir=$ARC_LOCATION/@pkglibsubdir@
 config_parse_file $ARC_CONFIG || exit $?
 
 # Check for infosys-block
@@ -243,7 +240,7 @@ slapd_loglevel=${CONFIG_slapd_loglevel:-0}
 threads=${CONFIG_threads:-32}
 
 bdii_location=${CONFIG_bdii_location:-/usr}
-giis_location=${CONFIG_giis_location:-$NORDUGRID_LOCATION}
+giis_location=${CONFIG_giis_location:-$ARC_LOCATION}
 
 bdii_tmp_dir=${CONFIG_bdii_tmp_dir:-/var/tmp/bdii4}
 bdii_var_dir=${CONFIG_bdii_var_dir:-/var/run/bdii4}
@@ -512,7 +509,7 @@ create_arc_slapd_conf () {
 
     for i in "/etc/bdii4/BDII.schema" \
              "${bdii_location}/etc/BDII.schema" \
-             "$NORDUGRID_LOCATION/@pkgdatasubdir@/schema/BDII.schema"; do
+             "$ARC_LOCATION/@pkgdatalibsubdir@/ldap-schema/BDII.schema"; do
 
         if [ -r $i ]; then
             bdii_schema=$i
@@ -529,11 +526,11 @@ create_arc_slapd_conf () {
 	include $bdii_schema
 
 	#nordugrid specific schemas
-	include $NORDUGRID_LOCATION/@pkgdatasubdir@/schema/nordugrid.schema
+	include $ARC_LOCATION/@pkgdatalibsubdir@/ldap-schema/nordugrid.schema
 	#glue schemas
-	include $NORDUGRID_LOCATION/@pkgdatasubdir@/schema/glue-1.2/Glue-CORE.schema
-	include $NORDUGRID_LOCATION/@pkgdatasubdir@/schema/glue-1.2/Glue-CE.schema
-	include $NORDUGRID_LOCATION/@pkgdatasubdir@/schema/glue-1.2/Glue-CESEBind.schema
+	include $ARC_LOCATION/@pkgdatalibsubdir@/ldap-schema/glue-1.2/Glue-CORE.schema
+	include $ARC_LOCATION/@pkgdatalibsubdir@/ldap-schema/glue-1.2/Glue-CE.schema
+	include $ARC_LOCATION/@pkgdatalibsubdir@/ldap-schema/glue-1.2/Glue-CESEBind.schema
 
 	$slapd_modulepath
 	$slapd_moduleload
@@ -663,7 +660,7 @@ create_arc_ldif_generator () {
             cachetime=${CONFIG_cachetime:-$bdii_breathe_time}
 
             cat <<-EOF >> ${ldif_generator_file}
-		$NORDUGRID_LOCATION/@pkglibexecsubdir@/cluster.pl --valid-to $cachetime --config $ARC_CONFIG --loglevel $CONFIG_provider_loglevel --dn nordugrid-cluster-name=$CONFIG_hostname,Mds-Vo-name=local,o=Grid 2>> "$providerlog"
+		$ARC_LOCATION/@pkglibexecsubdir@/cluster.pl --valid-to $cachetime --config $ARC_CONFIG --loglevel $CONFIG_provider_loglevel --dn nordugrid-cluster-name=$CONFIG_hostname,Mds-Vo-name=local,o=Grid 2>> "$providerlog"
 		EOF
 
             # Create entries for all queues
@@ -673,7 +670,7 @@ create_arc_ldif_generator () {
                     cachetime=${CONFIG_cachetime:-$bdii_breathe_time}
 
                     cat <<-EOF >> ${ldif_generator_file}
-			$NORDUGRID_LOCATION/@pkglibexecsubdir@/qju.pl --valid-to $cachetime --config $ARC_CONFIG --loglevel $CONFIG_provider_loglevel --dn nordugrid-queue-name=$queue,nordugrid-cluster-name=$CONFIG_hostname,Mds-Vo-name=local,o=Grid --queue $queue 2>> "$providerlog"
+			$ARC_LOCATION/@pkglibexecsubdir@/qju.pl --valid-to $cachetime --config $ARC_CONFIG --loglevel $CONFIG_provider_loglevel --dn nordugrid-queue-name=$queue,nordugrid-cluster-name=$CONFIG_hostname,Mds-Vo-name=local,o=Grid --queue $queue 2>> "$providerlog"
 			EOF
                 )
             done
@@ -691,7 +688,7 @@ create_arc_ldif_generator () {
             cachetime=${CONFIG_cachetime:-$bdii_breathe_time}
 
             cat <<-EOF >> ${ldif_generator_file}
-		$NORDUGRID_LOCATION/@pkglibexecsubdir@/se.pl -valid-to $cachetime -config $ARC_CONFIG -dn nordugrid-se-name=$se:$CONFIG_hostname,Mds-Vo-name=local,o=Grid -se $se 2>> "$providerlog"
+		$ARC_LOCATION/@pkglibexecsubdir@/se.pl -valid-to $cachetime -config $ARC_CONFIG -dn nordugrid-se-name=$se:$CONFIG_hostname,Mds-Vo-name=local,o=Grid -se $se 2>> "$providerlog"
 		EOF
         )
     done
@@ -851,7 +848,7 @@ create_glue_ldif_generator () {
     touch ${ldif_generator_file_glue}
     std_header ${ldif_generator_file_glue}
     # We use , instead of / here to allow for / in path..
-    sed "s,\$ldif_generator_file_ng,$ldif_generator_file_ng,g;s,\$bdii_tmp_dir,$bdii_tmp_dir,g" $NORDUGRID_LOCATION/@pkgdatasubdir@/glue-generator.pl > ${ldif_generator_file_glue}
+    sed "s,\$ldif_generator_file_ng,$ldif_generator_file_ng,g;s,\$bdii_tmp_dir,$bdii_tmp_dir,g" $ARC_LOCATION/@pkglibsubdir@/glue-generator.pl > ${ldif_generator_file_glue}
 
     chmod +x ${ldif_generator_file_glue}
 }
@@ -1032,7 +1029,7 @@ start () {
 
     # Info registration
     if [ "x$infosys_nordugrid" = "xenable" ]; then
-        $NORDUGRID_LOCATION/@pkglibexecsubdir@/grid-info-soft-register -log $registrationlog -f $arc_runtime_config/grid-info-resource-register.conf -p `cat $bdii_var_dir/bdii-update.pid` 1>/dev/null 2>/dev/null &
+        $ARC_LOCATION/@pkglibexecsubdir@/grid-info-soft-register -log $registrationlog -f $arc_runtime_config/grid-info-resource-register.conf -p `cat $bdii_var_dir/bdii-update.pid` 1>/dev/null 2>/dev/null &
     fi
 }
 

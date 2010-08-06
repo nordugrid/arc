@@ -102,7 +102,7 @@ $config{homogeneity}        = "TRUE";
 $config{defaultttl}         = "604800";
 $config{"x509_user_cert"}   = "/etc/grid-security/hostcert.pem";
 $config{"x509_cert_dir"}    = "/etc/grid-security/certificates/";
-$config{ng_location}        = $ENV{NORDUGRID_LOCATION} ||= "@nordugrid_location@";
+$config{ng_location}        = $ENV{ARC_LOCATION} ||= "@prefix@";
 $config{gridmap} 	    = "/etc/grid-security/grid-mapfile";
 
 ########################################################
@@ -252,7 +252,7 @@ if ($cacertenddate and $hostcertenddate) {
 
 #read the gm-jobs information about the number of jobs in different gm states
 
-my $gmjobs_exe = "$config{ng_location}/bin/gm-jobs";
+my $gmjobs_exe = "$config{ng_location}/@pkglibexecsubdir@/gm-jobs";
 my $conf_file = $config{conf_file};
 my %gmusers = get_gm_users($gmjobs_exe, $conf_file);
 
@@ -344,7 +344,7 @@ if ($config{runtimedir}){
 for my $controldir (@controldirs) {
 
     unless (open GMJOBSOUTPUT, 
-        "$config{ng_location}/bin/gm-jobs -u 0 -c $conf_file -d $controldir 2>/dev/null |") {
+        "$config{ng_location}/@pkglibexecsubdir@/gm-jobs -u 0 -c $conf_file -d $controldir 2>/dev/null |") {
         error("Error in executing gm-jobs")
     }
 

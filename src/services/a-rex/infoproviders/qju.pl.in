@@ -165,7 +165,7 @@ sub qju_parse_command_line_options() {
     $config{defaultttl}         = "604800";
     $config{"x509_user_cert"}   = "/etc/grid-security/hostcert.pem";
     $config{"x509_cert_dir"}    = "/etc/grid-security/certificates";
-    $config{ng_location}        = $ENV{NORDUGRID_LOCATION} ||= "@nordugrid_location@";
+    $config{ng_location}        = $ENV{ARC_LOCATION} ||= "@prefix@";
     $config{gridmap} 	 = "/etc/grid-security/grid-mapfile";
 
     my ($print_help);
@@ -271,7 +271,10 @@ sub qju_read_conf_file () {
     %config = ( %config, $parser->get_section('cluster') );
     %config = ( %config, $parser->get_section("queue/$config{queue}") );
 
-    my $gmjobs_exe = "$config{ng_location}/bin/gm-jobs";
+    $ENV{LD_LIBRARY_PATH}.=":" if $ENV{LD_LIBRARY_PATH};
+    $ENV{LD_LIBRARY_PATH}.="$config{ng_location}/lib";
+
+    my $gmjobs_exe = "$config{ng_location}/@pkglibexecsubdir@/gm-jobs";
     my $conf_file = $config{conf_file};
     %gmusers = get_gm_users($gmjobs_exe, $conf_file);
 }

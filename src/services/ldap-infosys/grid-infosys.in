@@ -32,10 +32,18 @@
 # Description:       ldap-based grid information system for the ARC middleware
 ### END INIT INFO
 
+# ARC_LOCATION
+ARC_LOCATION=${ARC_LOCATION:-@prefix@}
+if [ ! -d "$ARC_LOCATION" ]; then
+  echo "ARC_LOCATION ($ARC_LOCATION) not found"
+  exit 1
+fi
+export ARC_LOCATION
+
 if [ -f /usr/sbin/bdii4-update ]; then
-    . @nordugrid_location@/@libsubdir@/grid-infosys-bdii4 $1
+    . $ARC_LOCATION/@pkglibsubdir@/grid-infosys-bdii4 $1
 elif [ -f /usr/sbin/bdii-update ]; then
-    . @nordugrid_location@/@libsubdir@/grid-infosys-bdii5 $1
+    . $ARC_LOCATION/@pkglibsubdir@/grid-infosys-bdii5 $1
 else
     echo "You don't have BDII 4 or 5 installed, this is a necessary component for the ARC LDAP information system."
 fi
