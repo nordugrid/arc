@@ -46,7 +46,7 @@
 
 #include "jobplugin.h"
 
-static Arc::Logger& logger = Arc::Logger::getRootLogger();
+static Arc::Logger logger(Arc::Logger::getRootLogger(),"JobPlugin");
 
 typedef struct {
   const JobUser* user;
@@ -180,15 +180,20 @@ JobPlugin::JobPlugin(std::istream &cfile,userspec_t &user_s):user_a(user_s.user)
   };
   JobLog job_log;
   JobsListConfig jobs_cfg;
-  GMEnvironment env(job_log,jobs_cfg);
-  if(!env)
+  GMEnvironment env(job_log,jobs_cfg,true);
+  if(!env) {
+    logger.msg(Arc::ERROR, "Environment could not be set up");
     initialized = false;
+  }
   else {
     if(configfile.length()) env.nordugrid_config_loc(configfile);
     const char* uname = user_s.get_uname();
     if((bool)job_map) uname=job_map.unix_name();
     user=new JobUser(env, uname);
-    if(!user->is_valid()) { initialized=false; }
+    if(!user->is_valid()) {
+      logger.msg(Arc::ERROR, "User %s is not valid", uname);
+      initialized=false;
+    }
     else {
       /* read configuration */
       if(env.nordugrid_config_loc().length() != 0) {
@@ -280,11 +285,15 @@ JobPlugin::JobPlugin(std::istream &cfile,userspec_t &user_s):user_a(user_s.user)
           };
         };
       } else {
+        logger.msg(Arc::ERROR, "No configuration file found");
         initialized=false;
       };
     };
   };
-  if(!initialized) if(user) { delete user; user=NULL; };
+  if(!initialized) {
+    logger.msg(Arc::ERROR, "Job plugin was not initialised");
+    if(user) { delete user; user=NULL; };
+  }
   if((!user_a.is_proxy()) ||
      (user_a.proxy() == NULL) || (user_a.proxy()[0] == 0)) {
     logger.msg(Arc::WARNING, "No delegated credentials were passed");
