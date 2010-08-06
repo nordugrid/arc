@@ -607,7 +607,10 @@ namespace Arc {
     if (((!r) || (transfer_info.code != 200)) &&
         (url.Protocol() != "http"))
       return DataStatus::CheckError;
+    size = transfer_info.size;
+    logger.msg(VERBOSE, "Check: obtained size %llu", size);
     created = transfer_info.lastModified;
+    logger.msg(VERBOSE, "Check: obtained modification time %s", created.str());
     return DataStatus::Success;
   }
 
