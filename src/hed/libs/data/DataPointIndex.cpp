@@ -60,6 +60,16 @@ namespace Arc {
     return true;
   }
 
+  bool DataPointIndex::LastLocation() {
+    if (location == locations.end())
+      return true;
+    bool last = false;
+    if (++location == locations.end())
+      last = true;
+    location--;
+    return last;
+  }
+
   void DataPointIndex::SetHandle(void) {
     // TODO: pass various options from old handler to new
     if (h)
@@ -285,6 +295,13 @@ namespace Arc {
     if (!h || !*h)
       return false;
     return (*h)->GetSecure();
+  }
+
+  DataPoint::DataPointAccessLatency DataPointIndex::GetAccessLatency() const {
+    if (!h || !*h)
+      return ACCESS_LATENCY_ZERO;
+    return (*h)->GetAccessLatency();
+
   }
 
   void DataPointIndex::Passive(bool v) {

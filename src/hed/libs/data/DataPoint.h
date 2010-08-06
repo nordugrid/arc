@@ -31,6 +31,21 @@ namespace Arc {
   class DataPoint
     : public Plugin {
   public:
+
+    /// Describes the latency to access this URL
+    /** For now this value is one of a small set specified
+       by the enumeration. In the future with more sophisticated
+       protocols or information it could be replaced by a more
+       fine-grained list of possibilities such as an int value. */
+    enum DataPointAccessLatency {
+      /// URL can be accessed instantly
+      ACCESS_LATENCY_ZERO,
+      /// URL has low (but non-zero) access latency, for example staged from disk
+      ACCESS_LATENCY_SMALL,
+      /// URL has a large access latency, for example staged from tape
+      ACCESS_LATENCY_LARGE
+    };
+
     /// Constructor requires URL to be provided.
     /** References to url and usercfg arguments are stored 
        internally and hence corresponding objects must stay
@@ -232,6 +247,12 @@ namespace Arc {
     /// Get value of meta-information 'validity time'.
     virtual const Time& GetValid() const;
 
+    /// Set value of meta-information 'access latency'
+    virtual void SetAccessLatency(const DataPointAccessLatency& latency);
+
+    /// Get value of meta-information 'access latency'
+    virtual DataPointAccessLatency GetAccessLatency() const;
+
     /// Get suggested buffer size for transfers.
     virtual long long int BufSize() const = 0;
 
@@ -296,6 +317,9 @@ namespace Arc {
     /// Returns false if out of retries.
     virtual bool LocationValid() const = 0;
 
+    /// Returns true if the current location is the last
+    virtual bool LastLocation() = 0;
+
     /// Returns true if number of resolved URLs is not 0.
     virtual bool HaveLocations() const = 0;
 
@@ -320,6 +344,7 @@ namespace Arc {
     std::string checksum;
     Time created;
     Time valid;
+    DataPointAccessLatency access_latency;
     int triesleft;
     DataStatus failure_code; /* filled by callback methods */
     bool cache;

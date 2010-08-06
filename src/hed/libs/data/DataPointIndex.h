@@ -27,6 +27,7 @@ namespace Arc {
     virtual bool NextLocation();
     virtual bool LocationValid() const;
     virtual bool HaveLocations() const;
+    virtual bool LastLocation();
     virtual DataStatus RemoveLocation();
     virtual DataStatus RemoveLocations(const DataPoint& p);
     virtual DataStatus AddLocation(const URL& url, const std::string& meta);
@@ -65,6 +66,8 @@ namespace Arc {
 
     virtual void SetSecure(bool v);
     virtual bool GetSecure() const;
+
+    virtual DataPointAccessLatency GetAccessLatency() const;
 
     virtual void Passive(bool v);
 

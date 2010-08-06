@@ -23,6 +23,7 @@ namespace Arc {
       size((unsigned long long int)(-1)),
       created(-1),
       valid(-1),
+      access_latency(ACCESS_LATENCY_ZERO),
       triesleft(1),
       failure_code(DataStatus::UnknownError),
       cache(url.Option("cache") != "no") {
@@ -137,6 +138,14 @@ namespace Arc {
 
   const Time& DataPoint::GetValid() const {
     return valid;
+  }
+
+  void DataPoint::SetAccessLatency(const DataPointAccessLatency& val) {
+    access_latency = val;
+  }
+
+  DataPoint::DataPointAccessLatency DataPoint::GetAccessLatency() const {
+    return access_latency;
   }
 
   int DataPoint::GetTries() const {

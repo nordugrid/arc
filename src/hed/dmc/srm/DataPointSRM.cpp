@@ -120,6 +120,14 @@ namespace Arc {
       logger.msg(INFO, "Check: obtained creation date: %s", Time(metadata.front().createdAtTime).str());
       SetCreated(Time(metadata.front().createdAtTime));
     }
+    if (metadata.front().fileLocality == SRM_ONLINE) {
+      logger.msg(INFO, "Check: obtained access latency: low (ONLINE)");
+      SetAccessLatency(ACCESS_LATENCY_SMALL);
+    }
+    else if (metadata.front().fileLocality == SRM_NEARLINE) {
+      logger.msg(INFO, "Check: obtained access latency: high (NEARLINE)");
+      SetAccessLatency(ACCESS_LATENCY_LARGE);
+    }
 
     return DataStatus::Success;
   }

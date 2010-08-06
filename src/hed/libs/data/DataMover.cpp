@@ -731,7 +731,25 @@ namespace Arc {
 #endif
           continue;
         }
+
+        // check for high latency
+        if (source_url.GetAccessLatency() == Arc::DataPoint::ACCESS_LATENCY_LARGE) {
+          if (source.LastLocation()) {
+            logger.msg(WARNING, "Replica %s has high latency, but no more sources exist so will use this one",
+                       source_url.CurrentLocation().str());
+          }
+          else {
+            logger.msg(INFO, "Replica %s has high latency, trying next source", source_url.CurrentLocation().str());
+            source.NextLocation();
+  #ifndef WIN32
+            if (cacheable)
+              cache.StopAndDelete(canonic_url);
+  #endif
+            continue;
+          }
+        }
       }
+
       DataStatus datares = source_url.StartReading(buffer);
       if (!datares.Passed()) {
         logger.msg(ERROR, "Failed to start reading from source: %s",

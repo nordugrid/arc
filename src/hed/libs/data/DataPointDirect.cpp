@@ -158,6 +158,10 @@ namespace Arc {
     return true;
   }
 
+  bool DataPointDirect::LastLocation() {
+    return (triesleft == 0);
+  }
+
   DataStatus DataPointDirect::AddLocation(const URL&, const std::string&) {
     return DataStatus::NotSupportedForDirectDataPointsError;
   }
