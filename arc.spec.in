@@ -686,7 +686,7 @@ exit 0
 %files gridftp-server
 %defattr(-,root,root,-)
 %{_initrddir}/a-rex-gridftpd
-%{_sbindir}/a-rex-gridftpd-bin
+%{_sbindir}/arexgridftpd
 %{_libdir}/%{pkgdir}/jobplugin.*
 %{_libdir}/%{pkgdir}/gaclplugin.*
 %{_libdir}/%{pkgdir}/fileplugin.*

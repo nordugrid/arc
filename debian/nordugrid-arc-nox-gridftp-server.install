@@ -1,5 +1,5 @@
 debian/tmp/etc/init.d/a-rex-gridftpd
-debian/tmp/usr/sbin/a-rex-gridftpd-bin
+debian/tmp/usr/sbin/arexgridftpd
 
 debian/tmp/usr/lib/arc/gaclplugin.*
 debian/tmp/usr/lib/arc/fileplugin.*
