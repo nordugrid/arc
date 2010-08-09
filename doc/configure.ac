@@ -37,6 +37,7 @@ AC_CONFIG_FILES([Makefile
                  tech_doc/client/Makefile
                  tech_doc/doxygen/Makefile
                  tech_doc/a-rex/Makefile
+                 tech_doc/gridftpd/Makefile
                  tech_doc/hed/Makefile
                  tech_doc/infosys/Makefile
                  tech_doc/infosys/TechnicalHandbook/Makefile

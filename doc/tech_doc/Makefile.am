@@ -1,1 +1,1 @@
-SUBDIRS = a-rex backend_interface client doxygen hed infosys jura chelonia sec
+SUBDIRS = a-rex backend_interface client doxygen hed infosys jura chelonia sec gridftpd
