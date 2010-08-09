@@ -132,19 +132,17 @@ else
   PID_FILE=$HOME/$prog.pid
 fi
 
-parser="$ARC_LOCATION/@pkglibsubdir@/config_parser.sh"
+parser="$ARC_LOCATION/@pkglibsubdir@/config_parser_compat.sh"
 if ! . "$parser"; then
     failure "Failed sourcing config parser"
     echo
     exit 1
 fi
 
-# will not work until bug 1990 is fixed so commenting out
-#
-#config_parse_file "$ARC_CONFIG"
-#config_import_section gridftpd
-#PID_FILE=${CONFIG_pidfile:-$PID_FILE}
-#config_reset
+config_parse_file "$ARC_CONFIG"
+config_import_section gridftpd
+PID_FILE=${CONFIG_pidfile:-$PID_FILE}
+config_reset
 
 CMD="$CMD -P '$PID_FILE'"
 
