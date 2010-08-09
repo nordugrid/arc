@@ -915,6 +915,7 @@ exit 0
 %doc doc/manuals/user_interface/ui.pdf
 %doc doc/manuals/ws-quick-guide/ws-quick-guide.pdf
 %doc doc/tutorials/ws-programming-tutorial/doc/WS-tutorial.pdf
+%doc doc/tech_doc/gridftpd/gridftpd.pdf
 
 %changelog
 * @SPECDATE@ Anders Waananen <waananen@nbi.dk> - @VERSION@-1
