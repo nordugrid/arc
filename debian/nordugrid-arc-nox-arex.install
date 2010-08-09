@@ -49,6 +49,7 @@ debian/tmp/usr/lib/arc/cancel_common.sh
 debian/tmp/usr/lib/arc/change-lsf-mode.sh
 debian/tmp/usr/lib/arc/condor_env.pm
 debian/tmp/usr/lib/arc/config_parser.sh
+debian/tmp/usr/lib/arc/config_parser_compat.sh
 debian/tmp/usr/lib/arc/configure-*-env.sh
 debian/tmp/usr/lib/arc/submit_common.sh
 debian/tmp/usr/lib/arc/scan_common.sh

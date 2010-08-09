@@ -792,6 +792,7 @@ exit 0
 %{_libdir}/%{pkgdir}/change-lsf-mode.sh
 %{_libdir}/%{pkgdir}/condor_env.pm
 %{_libdir}/%{pkgdir}/config_parser.sh
+%{_libdir}/%{pkgdir}/config_parser_compat.sh
 %{_libdir}/%{pkgdir}/configure-*-env.sh
 %{_libdir}/%{pkgdir}/submit_common.sh
 %{_libdir}/%{pkgdir}/scan_common.sh
