@@ -150,6 +150,10 @@ namespace Arc {
     if (source) { // add locations resolved above
       for (int n = 0; n < nbentries; n++) {
         URL uloc(entries[n].sfn);
+        if (!uloc) {
+          logger.msg(WARNING, "Skipping invalid location: %s - %s", url.ConnectionURL(), entries[n].sfn);
+          continue;
+        }
         for (std::map<std::string, std::string>::const_iterator i = url.CommonLocOptions().begin();
              i != url.CommonLocOptions().end(); i++)
           uloc.AddOption(i->first, i->second, false);
@@ -172,7 +176,12 @@ namespace Arc {
           pfn += path.substr(slash_index + 1);
         else
           pfn += path;
+
         URL uloc(pfn);
+        if (!uloc) {
+          logger.msg(WARNING, "Skipping invalid location: %s - %s", url.ConnectionURL(), pfn);
+          continue;
+        }
 
         // check that this replica doesn't exist already
         for (int n = 0; n < nbentries; n++) {

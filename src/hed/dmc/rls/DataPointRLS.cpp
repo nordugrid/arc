@@ -229,8 +229,12 @@ namespace Arc {
           pfn.AddOption(i->first, i->second, false);
         }
         URL pfn_ = AddPFN(pfn,source);
-        logger.msg(VERBOSE, "Adding location: %s - %s", rlsurl.str(), pfn.plainstr());
-        AddLocation(pfn_, rlsurl.str());
+        if (!pfn_) {
+          logger.msg(WARNING, "Skipping invalid location %s - %s", rlsurl.str(), pfn.plainstr());
+        } else {
+          logger.msg(VERBOSE, "Adding location: %s - %s", rlsurl.str(), pfn.plainstr());
+          AddLocation(pfn_, rlsurl.str());
+        }
       }
     } else {
       for (std::list<URLLocation>::const_iterator loc = url.Locations().begin();
@@ -251,20 +255,29 @@ namespace Arc {
                 pfn.AddOption(i->first, i->second, false);
               }
               URL pfn_ = AddPFN(pfn,source);
-              AddLocation(pfn_, rlsurl.str());
+              if (!pfn_) {
+                logger.msg(WARNING, "Skipping invalid location %s - %s", rlsurl.str(), pfn.plainstr());
+              } else {
+                logger.msg(VERBOSE, "Adding location: %s - %s", rlsurl.str(), pfn.plainstr());
+                AddLocation(pfn_, rlsurl.str());
+              }
               break;
             }
           }
         } else {
           // for destination accept specified locations
           URL pfn_(*loc);
-          for (std::map<std::string, std::string>::const_iterator i =
-                 url.CommonLocOptions().begin();
-            i != url.CommonLocOptions().end(); i++) {
-            pfn_.AddOption(i->first, i->second, false);
+          if (!pfn_) {
+            logger.msg(WARNING, "Skipping invalid location %s - %s", rlsurl.str(), loc->str());
+          } else {
+            for (std::map<std::string, std::string>::const_iterator i =
+                   url.CommonLocOptions().begin();
+              i != url.CommonLocOptions().end(); i++) {
+              pfn_.AddOption(i->first, i->second, false);
+            }
+            pfn_ = AddPFN(pfn_,source);
+            AddLocation(pfn_, rlsurl.str());
           }
-          pfn_ = AddPFN(pfn_,source);
-          AddLocation(pfn_, rlsurl.str());
         }
       }
     }
