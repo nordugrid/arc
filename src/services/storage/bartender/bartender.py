@@ -73,7 +73,7 @@ class Bartender:
                             self.librarian = LibrarianClient(librarian_urls, ssl_config = self.ssl_config)
                             librarian_found = True
                     except:
-                        log.msg(arc.VERBOSE, 'Error connecting to ISIS %{iu}s, reason: %{r}s' % {'iu' : isis_url, 'r' : traceback.format_exc()})
+                        log.msg(arc.VERBOSE, 'Error connecting to ISIS %(iu)s, reason: %(r)s' % {'iu' : isis_url, 'r' : traceback.format_exc()})
                 time.sleep(3)
             except Exception, e:
                 log.msg(arc.WARNING, 'Error in initThread: %s' % e)                
