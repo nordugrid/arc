@@ -715,6 +715,14 @@ namespace Arc {
     return std::string("adler32");
   }
 
+  std::string DataPointLFC::str() const {
+    std::string tmp = url.plainstr(); // url with no options or meta-options
+    // add guid if supplied
+    if (!url.MetaDataOption("guid").empty())
+      tmp += ":guid=" + url.MetaDataOption("guid");
+    return tmp;
+  }
+
 } // namespace Arc
 
 Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
