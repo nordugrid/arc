@@ -121,6 +121,7 @@ appropiate.
           <arex:secureTransfer>true</arex:secureTransfer>
           <arex:passiveTransfer>true</arex:passiveTransfer>
           <arex:localTransfer>false</arex:localTransfer>
+          <arex:preferredPattern>http://mysite.ac.uk|.uk$|.ndgf.org$</arex:preferredPattern>
           <arex:timeouts>
               <arex:minSpeed>50</arex:minSpeed>
               <arex:minSpeedTime>300</arex:minSpeedTime>
