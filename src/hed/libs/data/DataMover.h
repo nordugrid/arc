@@ -34,6 +34,7 @@ namespace Arc {
     unsigned long long int default_min_average_speed;
     time_t default_max_inactivity_time;
     DataSpeed::show_progress_t show_progress;
+    std::string preferred_pattern;
     static Logger logger;
   public:
     typedef void (*callback)(DataMover*, DataStatus, void*);
@@ -122,6 +123,9 @@ namespace Arc {
     }
     void set_progress_indicator(DataSpeed::show_progress_t func = NULL) {
       show_progress = func;
+    }
+    void set_preferred_pattern(const std::string& pattern) {
+      preferred_pattern = pattern;
     }
   };
 

@@ -447,6 +447,13 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
       cred_plugin = rest;
       cred_plugin.timeout(to);
     }
+    else if(command == "preferredpattern") {
+      std::string preferred_pattern = config_next_arg(rest);
+      if(preferred_pattern.length() == 0) {
+        logger.msg(Arc::ERROR, "preferredpattern value is missing");
+      };
+      jcfg.SetPreferredPattern(preferred_pattern);
+    }
     else if(command == "sessiondir") {
       /* set session root directory - applied
          to all following 'control' commands */
@@ -714,6 +721,7 @@ bool configure_serviced_users(Arc::XMLNode cfg,JobUsers &users,uid_t my_uid,cons
     secureTransfer
     passiveTransfer
     localTransfer
+    preferredPattern
     timeouts
       minSpeed
       minSpeedTime
@@ -760,8 +768,8 @@ bool configure_serviced_users(Arc::XMLNode cfg,JobUsers &users,uid_t my_uid,cons
     if(elementtoint(tmp_node,"maxRetries",max_retries,&logger) && (max_retries > 0)) {
         jcfg.SetMaxRetries(max_retries);
     }
-
-
+    std::string preferred_pattern = tmp_node["preferredPattern"];
+    jcfg.SetPreferredPattern(preferred_pattern);
   };
   /*
   serviceMail

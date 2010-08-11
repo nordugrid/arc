@@ -189,7 +189,7 @@ int main(int argc,char** argv) {
   // process optional arguments
   for(;;) {
     opterr=0;
-    int optc=getopt(argc,argv,"+hclpfC:n:t:u:U:s:S:a:i:d:");
+    int optc=getopt(argc,argv,"+hclpfC:n:t:u:U:s:S:a:i:d:r:");
     if(optc == -1) break;
     switch(optc) {
       case 'h': {
@@ -217,6 +217,9 @@ int main(int argc,char** argv) {
       }; break;
       case 'd': {
         Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(optarg));
+      }; break;
+      case 'r': {
+        // not relevant for uploader
       }; break;
       case 't': {
         n_threads=atoi(optarg);

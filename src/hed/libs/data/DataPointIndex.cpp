@@ -7,6 +7,7 @@
 #include <list>
 
 #include <arc/Logger.h>
+#include <arc/StringConv.h>
 #include <arc/data/DataPointIndex.h>
 
 namespace Arc {
@@ -151,6 +152,70 @@ namespace Arc {
     }
     return DataStatus::Success;
   }
+
+  void DataPointIndex::SortLocations(const std::string& pattern) {
+    if (locations.size() < 2 || pattern.empty())
+      return;
+    logger.msg(VERBOSE, "Sorting replicas according to preferred pattern %s", pattern);
+    std::list<URLLocation> sorted_locations;
+
+    // go through each pattern in pattern - if match then add to sorted list
+    std::list<std::string> patterns;
+    Arc::tokenize(pattern, patterns, "|");
+
+    for (std::list<std::string>::iterator p = patterns.begin(); p != patterns.end(); ++p) {
+      std::string to_match = *p;
+      bool match_host = false;
+      if (to_match.rfind('$') == to_match.length()-1) { // only match host
+        to_match.erase(to_match.length()-1);
+        match_host = true;
+      }
+      for (std::list<URLLocation>::iterator l = locations.begin(); l != locations.end(); ++l) {
+        if (match_host) {
+          if ((l->Host().length() >= to_match.length()) &&
+              (l->Host().rfind(to_match) == (l->Host().length() - to_match.length()))) {
+            // check if already present
+            bool present = false;
+            for (std::list<URLLocation>::iterator j = sorted_locations.begin();j!=sorted_locations.end();++j) {
+              if (*j == *l)
+                present = true;
+            }
+            if (!present) {
+              logger.msg(VERBOSE, "Replica %s matches host pattern %s", l->str(), to_match);
+              sorted_locations.push_back(*l);
+            }
+          }
+        }
+        else if (l->str().find(*p) != std::string::npos) {
+          // check if already present
+          bool present = false;
+          for (std::list<URLLocation>::iterator j = sorted_locations.begin();j!=sorted_locations.end();++j) {
+            if (*j == *l)
+              present = true;
+          }
+          if (!present) {
+            logger.msg(VERBOSE, "Replica %s matches pattern %s", l->str(), *p);
+            sorted_locations.push_back(*l);
+          }
+        }
+      }
+    }
+
+    // add anything left
+    for (std::list<URLLocation>::iterator i = locations.begin();i!=locations.end();++i) {
+      bool present = false;
+      for (std::list<URLLocation>::iterator j = sorted_locations.begin();j!=sorted_locations.end();++j) {
+        if (*j == *i)
+          present = true;
+      }
+      if (!present) {
+        logger.msg(VERBOSE, "Replica %s doesn't match preferred pattern", i->str());
+        sorted_locations.push_back(*i);
+      }
+    }
+    locations = sorted_locations;
+  }
+
 
   void DataPointIndex::SetTries(const int n) {
     triesleft = std::max(0, n);

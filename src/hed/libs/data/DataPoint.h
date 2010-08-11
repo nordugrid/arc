@@ -335,6 +335,11 @@ namespace Arc {
     /// Remove locations present in another DataPoint object
     virtual DataStatus RemoveLocations(const DataPoint& p) = 0;
 
+    /// Sort locations according to the specified pattern.
+    /// \param pattern a set of strings, separated by |, to match against.
+    virtual void SortLocations(const std::string& pattern) = 0;
+
+
   protected:
     const URL& url;
     const UserConfig& usercfg;

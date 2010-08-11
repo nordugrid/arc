@@ -130,6 +130,7 @@ class JobsListConfig {
   bool use_passive_transfer;
   bool use_local_transfer;
   unsigned int wakeup_period;
+  std::string preferred_pattern;
   /* the list of shares with defined limits */
   std::map<std::string, int> limited_share;
  public:
@@ -171,6 +172,7 @@ class JobsListConfig {
   unsigned int WakeupPeriod(void) { return wakeup_period; };
   void SetMaxRetries(int r) { max_retries = r; };
   int MaxRetries() { return max_retries; };
+  void SetPreferredPattern(const std::string& pattern) { preferred_pattern = pattern; };
   void SetTransferShare(unsigned int max_share, std::string type){
     max_processing_share = max_share;
     share_type = type;

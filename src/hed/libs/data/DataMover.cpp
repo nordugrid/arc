@@ -349,6 +349,8 @@ namespace Arc {
       if (strcasecmp(value.c_str(), "no") != 0)
         destination_overwrite = true;
     }
+    // sort source replicas according to the expression supplied
+    source.SortLocations(preferred_pattern);
     if (destination_overwrite) {
       if ((destination.IsIndex() && destination_meta_initially_stored)
           || (!destination.IsIndex())) {

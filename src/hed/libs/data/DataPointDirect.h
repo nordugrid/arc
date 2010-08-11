@@ -71,6 +71,7 @@ namespace Arc {
     virtual DataStatus AddLocation(const URL& url, const std::string& meta);
     virtual DataStatus RemoveLocation();
     virtual DataStatus RemoveLocations(const DataPoint& p);
+    virtual void SortLocations(const std::string& pattern) {};
 
   protected:
     DataBuffer *buffer;

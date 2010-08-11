@@ -274,6 +274,7 @@ int main(int argc,char** argv) {
   bool secure = true;
   bool userfiles_only = false;
   bool passive = false;
+  std::string preferred_pattern("");
   std::string failure_reason("");
   std::string x509_proxy, x509_cert, x509_key, x509_cadir;
   srand(time(NULL) + getpid()); 
@@ -284,15 +285,15 @@ int main(int argc,char** argv) {
   // process optional arguments
   for(;;) {
     opterr=0;
-    int optc=getopt(argc,argv,"+hclpfC:n:t:n:u:U:s:S:a:i:d:");
+    int optc=getopt(argc,argv,"+hclpfC:n:t:n:u:U:s:S:a:i:d:r:");
     if(optc == -1) break;
     switch(optc) {
       case 'h': {
         std::cerr<<"Usage: downloader [-hclpf] [-C conf_file] [-n files] [-t threads] [-U uid]"<<std::endl;
         std::cerr<<"                  [-u username] [-s min_speed] [-S min_speed_time]"<<std::endl;
         std::cerr<<"                  [-a min_average_speed] [-i min_activity_time]"<<std::endl;
-        std::cerr<<"                  [-d debug_level] job_id control_directory"<<std::endl;
-        std::cerr<<"                  session_directory [cache options]"<<std::endl;
+        std::cerr<<"                  [-d debug_level] [-r preferred_pattern job_id"<<std::endl;
+        std::cerr<<"                  control_directory session_directory [cache options]"<<std::endl;
         exit(1);
       }; break;
       case 'c': {
@@ -312,6 +313,9 @@ int main(int argc,char** argv) {
       }; break;
       case 'd': {
         Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(optarg));
+      }; break;
+      case 'r': {
+        preferred_pattern = optarg;
       }; break;
       case 't': {
         n_threads=atoi(optarg);
@@ -505,6 +509,7 @@ int main(int argc,char** argv) {
   mover.secure(secure);
   mover.passive(passive);
   mover.verbose(true); // statistics will be shown if logging is higher than VERBOSE
+  mover.set_preferred_pattern(preferred_pattern);
   if(min_speed != 0)
     mover.set_default_min_speed(min_speed,min_speed_time);
   if(min_average_speed != 0)

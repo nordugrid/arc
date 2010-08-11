@@ -156,18 +156,19 @@ files are gathered in the SD or in the associated cache area. There
 are two ways to put a file into the SD:
 
 \begin{itemize}
-
+  
 \item Download is initiated by the A-REX -- This is the case for files
-  defined in the JD (with name and source). The A-REX alone is
-  responsible to ensure that all required files will be available in
-  the SD.\\ The supported protocols for sources at the moment are (in
-  case of full installation): GridFTP, FTP, HTTP, HTTPS (HTTP over
-  SSLv3). Some less standard sources and \emph{Indexing Services} are
-  also supported, these are described in Section~\ref{sec:urls}. The
-  A-REX fully relies on the HED framework~\cite{hed} for data
-  transferring capabilities and so the actual set of supported
-  protocols depends on the installed Data Management Components of the
-  HED.
+  defined in the JD (with name and source). The A-REX alone is responsible to
+  ensure that all required files will be available in the SD.\\ The supported
+  protocols for sources at the moment are (in case of full installation):
+  GridFTP, FTP, HTTP, HTTPS (HTTP over SSLv3). Some less standard sources and
+  \emph{Indexing Services} are also supported, these are described in
+  Section~\ref{sec:urls}. In the case where a file in an indexing service
+  resolves to multiple physical replicas, some selection of the ``best'' replica
+  may be performed based on any available information on the access latency of
+  those replicas. The A-REX fully relies on the HED framework~\cite{hed} for data
+  transferring capabilities and so the actual set of supported protocols depends
+  on the installed Data Management Components of the HED.
 
 \item Upload is initiated by the user directly or through the User
   Interface (UI). Because the SD becomes available immediately at the
@@ -1365,6 +1366,13 @@ or if average rate is lower than \emph{min\_average\_speed}, or no
 data is received for longer than \textit{max\_inactivity} seconds. To
 allow statistics to build up, no transfers will be stopped within the
 first 3 minutes.
+\item \textbf{\textit{preferredpattern}}\textit{=pattern} - specifies
+  a preferred pattern on which to sort multiple replicas of an input
+  file. It consists of one or more patterns separated by a pipe
+  character ($|$) listed in order of preference. Replicas will be
+  ordered by the earliest match. If the dollar character (\$) is used
+  at the end of a pattern, the pattern will be matched to the end of
+  the hostname of the replica.
 \item \textbf{\textit{copyurl}}\textit{=template replacement} -- specifies
 that URLs starting from \emph{template} should be accessed in a different
 way (most probably Unix open). The \textit{template} part of the URL
