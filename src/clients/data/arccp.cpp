@@ -345,20 +345,18 @@ bool arccp(const Arc::URL& source_url_,
             (i->GetType() != Arc::FileInfo::file_type_file))
           continue;
         logger.msg(Arc::INFO, "Name: %s", i->GetName());
-        std::string s_url(source_url.str());
-        std::string d_url(destination_url.str());
-        s_url += i->GetName();
-        d_url += i->GetName();
-        logger.msg(Arc::INFO, "Source: %s", s_url);
-        logger.msg(Arc::INFO, "Destination: %s", d_url);
+        Arc::URL s_url(std::string(source_url.str() + i->GetName()));
+        Arc::URL d_url(std::string(destination_url.str() + i->GetName()));
+        logger.msg(Arc::INFO, "Source: %s", s_url.str());
+        logger.msg(Arc::INFO, "Destination: %s", d_url.str());
         Arc::DataHandle source(s_url, usercfg);
         Arc::DataHandle destination(d_url, usercfg);
         if (!source) {
-          logger.msg(Arc::INFO, "Unsupported source url: %s", s_url);
+          logger.msg(Arc::INFO, "Unsupported source url: %s", s_url.str());
           continue;
         }
         if (!destination) {
-          logger.msg(Arc::INFO, "Unsupported destination url: %s", d_url);
+          logger.msg(Arc::INFO, "Unsupported destination url: %s", d_url.str());
           continue;
         }
         Arc::DataMover mover;
