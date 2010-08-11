@@ -39,7 +39,7 @@ if [ -f @initddir@/functions ]; then
 else
   success() { echo -n "OK"
   }
-  failure() { echo -n "FAILURE"
+  failure() { echo -n "FAILURE ($@)"
   }
   status() {
     pid=`pidof -o $$ -o $PPID -o %PPID -x $1`
@@ -424,9 +424,9 @@ start()
       if test "x$pid" != "x"; then
         ps -p "$pid" -o comm 2>/dev/null | grep "^$prog$" 1>/dev/null 2>/dev/null
         if [ "$?" == '0' ] ; then
-          success "Error: already running ($pid)"
+          failure "Error: already running (pid $pid)"
           echo
-          return 0
+          return 1
         fi
       fi
       rm -f "$PID_FILE" "$LOCKFILE"
