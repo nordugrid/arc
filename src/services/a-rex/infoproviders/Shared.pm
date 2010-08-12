@@ -55,9 +55,9 @@ sub post_process_config (%) {
 
 sub get_gm_users($$) {
     my ($gmjobs_exe, $conf_file) = @_;
-    unless (open GMJOBSOUTPUT, "$gmjobs_exe -q -u 0 -c $conf_file 2>&1 |") {
+    unless (open GMJOBSOUTPUT, "$gmjobs_exe -J -S -u 0 -c $conf_file 2>&1 |") {
         error("Error in executing gm-jobs, executed as "
-        ."'$gmjobs_exe -q -u 0 -c $conf_file 2>&1'.")
+        ."'$gmjobs_exe -J -S -u 0 -c $conf_file 2>&1'.")
     }
     my $username;
     my %users = ();
