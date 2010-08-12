@@ -104,7 +104,7 @@ communicate with each other, the Hosting Environment Daemon
 (HED)~\cite{HED} framework and associated Advanced Resource Execution
 Service (A-REX) web service were developed to replace the aging GFS
 and GM with a modern standards-compliant product. However, the
-transistion to a new framework takes time and so the legacy GFS is
+transition to a new framework takes time and so the legacy GFS is
 still supported and maintained until such time as it becomes
 obsolete. This document is designed for administrators who wish to run
 the GFS alongside A-REX and describes how to configure and run the GFS
@@ -138,7 +138,7 @@ directories of the jobs owned by the user. It also provides an
 interface (virtual directory and virtual operations) to submit,
 cancel, clean, renew credentials and obtain information about the job.
 
-To make GFS to interoperate with other parts of ARC only one
+To make GFS to inter-operate with other parts of ARC only one
 \emph{jobplugin.so} needs to be configured.
 
 
@@ -183,6 +183,20 @@ The following parameters are defined in the \emph{{[}gridftpd]}
 section of the configuration file.
 
 \begin{itemize}
+\item \textbf{\textit{pidfile}}\textit{=path} -- specifies file where
+  process id of the gridftpd process will be stored. Defaults to
+  \emph{/var/run/gridftpd.pid} if running as root and
+  \emph{\$HOME/gridftpd.pid} otherwise.
+\item \textbf{\textit{logfile}}\textit{=path} -- specifies name of file
+  for logging debug/informational output. Defaults to
+  \emph{/var/log/gridftpd.log}.
+\item \textbf{\textit{logsize}}\textit{=size number} -- restricts
+  log file size to \emph{size} and keeps \emph{number} archived log
+  files.
+\item \textbf{\textit{debug}}\textit{=number} -- specifies level of
+  debug information. More information is printed for higher
+  levels. Currently the highest effective number is 5 (DEBUG) and
+  lowest 0 (FATAL). Defaults to 3 (INFO).
 \item \textbf{\textit{port}}\textit{=number} - specifies TCP/IP port
   number.  Default is 2811.
 \item \textbf{\textit{include}}\textit{=path} - include contents of
@@ -240,7 +254,7 @@ section of the configuration file.
   applied before the plugin is started:
 
 \begin{itemize}
-\item \%D - subject of users's cerificate,
+\item \%D - subject of user's certificate,
 \item \%P - name of credentials' proxy file.
 \end{itemize}
 
@@ -445,10 +459,10 @@ The following \textit{rule words} and arguments are supported:
     function(char{*},char{*},char{*},...)} from shared library
   \emph{path} is called (\emph{timeout} is not functional in that
   case). Rule matches if exit code is 0. In arguments following
-  substitions are applied before plugin is started:
+  substitutions are applied before plugin is started:
 
 \begin{itemize}
-\item \%D - subject of users's cerificate,
+\item \%D - subject of user's certificate,
 \item \%P - name of credentials' proxy file.
 \end{itemize}
 
@@ -459,7 +473,7 @@ The following \textit{rule words} and arguments are supported:
   directory, equivalent of LCAS\_DIR variable; \textit{database} is
   path to LCAS database, equivalent to LCAS\_DB\_FILE variable. Each
   arguments except \textit{library} is optional and may be either
-  skiped or replaced with '{*}'.
+  skipped or replaced with '{*}'.
 \item \textbf{\textit{all}} - accept any user
 \end{itemize}
 
@@ -481,7 +495,7 @@ the identity presented is part of the group ``admins'':
   is rejected
 \item If the identity is in the mapfile
   ``/etc/grid-security/internal-staff'' the identity is accepted
-\item If the identity is a VOMS proxy with a nordugrid VO extension
+\item If the identity is a VOMS proxy with a NorduGrid VO extension
   and admin capability, the identity is accepted
 \end{itemize}
 
@@ -502,7 +516,7 @@ commands are supported:
 
 \section{Configuration Examples}
 
-The examples presented below contain a full configuration examples for
+The examples presented below contain full configuration examples for
 the GridFTP server. The A-REX and information system configurations
 are not shown - this is described in other documents.
 
@@ -556,12 +570,12 @@ A-REX serves as front-end to a batch-system that provides a
 different queues is done via local user identites.  More precisely,
 the local users "smscg001, smscg002, smscg003" will be assigned to the
 low\_prio\_queue, whereas users "smscgP001, smscgP002, smscgP003" to
-the high\_prio\_queue (the configration of the batch-system to support
+the high\_prio\_queue (the configuration of the batch-system to support
 this is out of scope of this example).
 
 Users sending jobs to A-REX should be assigned to one of the queues
 depending on the credentials they present in their proxy
-certificate. The assigment shall look as follows:
+certificate. The assignment shall look as follows:
 \begin{itemize}
 \item /smscg , /smscg/Role=test , /smscg/Role=production => shall map
   to one of the smscg00[1-3] local identities (thus low\_prio\_queue)
@@ -595,7 +609,7 @@ Notes:
   information system (GIIS) to make the grid resource look eligible
   for jobs submitted by John.
 \item the DN based grid-mapfile per se does not permit John to access
-  the grid resource under different local identies (e.g. once as
+  the grid resource under different local identities (e.g. once as
   smscg001 and later as smscgP001), since the first matching DN
   defines the local identity John is to be mapped to. This is not a
   flaw since NorduGrid has support for lcmaps, which allows a
@@ -655,11 +669,11 @@ mapped_unixid="smscg001"
 [group]
 # In this authorization group we are going to check if user presents
 # any proof that he belongs to 'smscg' VO. We can use that information 
-# later to explicitely limit access to resources. If such access 
+# later to explicitly limit access to resources. If such access 
 # control is not needed this group can be removed.
 name="smscg_auth"
 
-# Here we can use internal support of ARC for VOMS attrbutes
+# Here we can use internal support of ARC for VOMS attributes
 # voms="smscg * * *"
 # If we want to limit access to resources also by other VOMS
 # attributes then other voms rules similar to those defined
@@ -671,13 +685,13 @@ name="smscg_auth"
 # proxy certificate and second - required VO name.
 # plugin="10 /opt/external/bin/vomatch %P smscg"
 
-# Or - probably prefered way in this use case - we can use 
+# Or - probably preferred way in this use case - we can use 
 # LCAS to analyze delegated proxy.
 # First element after '=' sign is path to LCAS library whatever
 # it is called in current implementation. Second is LCAS installation
 # path - it will be used to set environment variable LCAS_DIR.
 # And third element is path to LCAS database file - it will be passed
-# to environemnt variable LCAS_DB_FILE.
+# to environment variable LCAS_DB_FILE.
 # Function 'lcas_get_fabric_authorization' of specified LCAS library
 # will be called with following 3 arguments
 #  1. char* pointer to string containing DN of user
@@ -701,7 +715,7 @@ port="2811"
 pluginpath="/usr/local/lib/arc"
 encryption="no"
 
-# By specifying 'no' here we limit users allowed to exatblish
+# By specifying 'no' here we limit users allowed to establish
 # connection to this server to those specified in grid-mapfile. This
 # may be not necessary if additional authorization is applied as done
 # below. But this provides additional layer of protection so let it
@@ -736,20 +750,20 @@ maxconnections="200"
 
 # Or if we want to use all 6 local accounts and let mapping choose
 # randomly within 2 group accounts 'simplepool' may be used. In
-# example below 'unixgroup' ensures proper choise of group and
-# 'simplepool' makes a choise from acoounts in pool. Last argument
+# example below 'unixgroup' ensures proper choice of group and
+# 'simplepool' makes a choise from accounts in pool. Last argument
 # specifies directory containing file named 'pool'. That file contains
 # list of local user accounts. Also this directory will be used for
 # writing information about current mappings.
 #unixgroup="smscg_high simplepool /var/nordugrid/smscg_high"
 #unixgroup="smscg_low simplepool /var/nordugrid/smscg_low"
 
-# And mapping prefered in this use case - through LCMAPS.  First
+# And mapping preferred in this use case - through LCMAPS.  First
 # element after '=' sign is path to LCMAPS library whatever it is
 # called in current implementation. Second is LCMAPS installation path
 # - it will be used to set environment variable LCMAPS_DIR.  And third
 # element is path to LCMAPS database file - it will be passed to
-# environemnt variable LCMAPS_DB_FILE. Those 3 arguments are followed
+# environment variable LCMAPS_DB_FILE. Those 3 arguments are followed
 # list of policy names.
 # Function 'lcmaps_run_and_return_username' of specified LCMAPS library
 # will be called with following arguments
@@ -766,7 +780,7 @@ unixmap="* lcmaps /opt/glite/lib/liblcmaps.so /opt/glite \
 
 # Here we can specify mapping to some harmless local user account for
 # safety reasons. If that account is not allowed to submit jobs to
-# LRMS then this will also work as authorization effectively cuting
+# LRMS then this will also work as authorization effectively cutting
 # off users without proper VOMS attributes.
 unixmap="nobody:nobody all"
 
