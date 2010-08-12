@@ -180,6 +180,7 @@ int main(int argc, char* argv[]) {
       std::cout<<"No suitable users found in configuration."<<std::endl;
       return 1;
     }
+    print_serviced_users(users);
   }
   else {
     ContinuationPlugins plugins;

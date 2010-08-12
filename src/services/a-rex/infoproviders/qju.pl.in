@@ -750,6 +750,10 @@ sub grid_diskspace (@) {
         } elsif (exists $gmusers{''}) {
             # common config, corresponds to GM user ''
             $gridarea{$u} = $gmusers{''}{session};
+        } elsif (exists $gmusers{'(empty)'}) {
+            # common config, corresponds to GM user ''
+            $gridarea{$u} = $gmusers{'(empty)'}{session};
+        }
         } else {
             # no common config
             error("Local user $u has no session directory");
