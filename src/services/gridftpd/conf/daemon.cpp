@@ -173,12 +173,11 @@ namespace gridftpd {
     } else if(cmd == "debug") {
       if(debug_ == -1) {
         char* p;
-        debug_ = strtoul(rest.c_str(),&p,10);
+        debug_ = strtol(rest.c_str(),&p,10);
         if(((*p) != 0) || (debug_<0)) {
           logger.msg(Arc::ERROR, "Improper debug level '%s'", rest);
           return -1;
         };
-        Arc::Logger::getRootLogger().setThreshold(Arc::old_level_to_level(debug_));
       };
     } else {
       return 1;
@@ -216,6 +215,23 @@ namespace gridftpd {
   }
 
   int Daemon::daemon(bool close_fds) {
+    // set up logging
+    // this must be a pointer which is not deleted because log destinations
+    // are added by reference...
+    Arc::LogFile* logger_file = new Arc::LogFile(logfile_);
+    if (!logger_file || !(*logger_file)) {
+      logger.msg(Arc::ERROR, "Failed to open log file %s", logfile_);
+      return 1;
+    }
+    if (logsize_ > 0)
+      logger_file->setMaxSize(logsize_);
+    if (lognum_ > 0)
+      logger_file->setBackups(lognum_);
+    if (debug_ > 0)
+      Arc::Logger::getRootLogger().setThreshold(Arc::old_level_to_level((unsigned int)debug_));
+    Arc::Logger::getRootLogger().removeDestinations();
+    Arc::Logger::getRootLogger().addDestination(*logger_file);
+
     if(close_fds) {
       struct rlimit lim;
       int max_files;

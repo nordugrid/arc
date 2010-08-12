@@ -107,6 +107,12 @@ void sig_term(int signum) {
 int main_internal(int argc,char** argv);
 
 int main(int argc,char** argv) {
+
+  // temporary stderr destination until configuration is read and used in daemon.daemon()
+  Arc::LogStream logcerr(std::cerr);
+  Arc::Logger::getRootLogger().addDestination(logcerr);
+  Arc::Logger::getRootLogger().setThreshold(Arc::INFO);
+
   globus_module_deactivate_all();
   setpgrp();
   sig_old_term=signal(SIGTERM,&sig_term);
@@ -161,6 +167,7 @@ int main(int argc,char** argv) {
   setpgrp();
 #endif
 
+  // temporary stderr destination until configuration is read and used in daemon.daemon()
   Arc::LogStream logcerr(std::cerr);
   Arc::Logger::getRootLogger().addDestination(logcerr);
   Arc::Logger::getRootLogger().setThreshold(Arc::INFO);
