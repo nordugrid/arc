@@ -782,7 +782,7 @@ sub ldif_queue (%) {
 	    [ 'inactive, grid-manager does not accept new jobs' ];
     } elsif ( not ($frontend_status{'grid-manager'} or $frontend_status{'arched'}) ) {
 	$c{'nordugrid-queue-status'} = [ 'inactive, grid-manager is down' ];   
-    } elsif  (not ($frontend_status{'gridftpd'}) )  {
+    } elsif ( not ($frontend_status{'gridftpd'} or $frontend_status{'arexgridftpd'}) )  {
 	$c{'nordugrid-queue-status'} = [ 'inactive, gridftpd is down' ];  
     } elsif ( not certs_valid(\%config) ) {
         $c{'nordugrid-queue-status'} = [ 'inactive, host credentials expired' ];
@@ -1099,7 +1099,7 @@ start_logging( $config{loglevel} );
 
 select_lrms( \%config );
 
-my (@checklist) = ('grid-manager', 'gridftpd', 'arched' );
+my (@checklist) = ('grid-manager', , 'gridftpd', 'arexgridftpd', 'arched' );
 %frontend_status = process_status ( @checklist );
 
 # --- Queue info from lrms ----------------------------------------
