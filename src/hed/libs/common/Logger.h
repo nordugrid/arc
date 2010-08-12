@@ -77,6 +77,8 @@ namespace Arc {
   bool string_to_level(const std::string& str, LogLevel& ll);
   //! Convert LogLevel to a string
   std::string level_to_string(const LogLevel& level);
+  //! Convert an old-style log level (int from 0 to 5) to a LogLevel
+  LogLevel old_level_to_level(unsigned int old_level);
 
 
 

@@ -124,6 +124,23 @@ namespace Arc {
     }
   }
 
+  LogLevel old_level_to_level(unsigned int old_level) {
+    if (old_level >= 5)
+      return DEBUG;
+    else if (old_level == 4)
+      return VERBOSE;
+    else if (old_level == 3)
+      return INFO;
+    else if (old_level == 2)
+      return WARNING;
+    else if (old_level == 1)
+      return ERROR;
+    else if (old_level == 0)
+      return FATAL;
+    else  // cannot happen...
+      return FATAL;
+  }
+
   LogMessage::LogMessage(LogLevel level,
                          const IString& message)
     : time(TimeStamp()),
