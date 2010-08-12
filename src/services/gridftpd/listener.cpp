@@ -161,6 +161,10 @@ int main(int argc,char** argv) {
   setpgrp();
 #endif
 
+  Arc::LogStream logcerr(std::cerr);
+  Arc::Logger::getRootLogger().addDestination(logcerr);
+  Arc::Logger::getRootLogger().setThreshold(Arc::INFO);
+
 #ifndef __DONT_USE_FORK__
   signal(SIGTERM,&sig_term_fork);
   sig_old_chld=signal(SIGCHLD,&sig_chld);
@@ -223,9 +227,6 @@ int main(int argc,char** argv) {
       default: break;
     };
   };
-  Arc::LogStream logcerr(std::cerr);
-  Arc::Logger::getRootLogger().addDestination(logcerr);
-  Arc::Logger::getRootLogger().setThreshold(Arc::VERBOSE);
 
   //if(config_file) nordugrid_config_loc=config_file;
   // Read configuration (for daemon commands and port)

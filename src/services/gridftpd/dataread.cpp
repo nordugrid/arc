@@ -24,7 +24,7 @@ void GridFTP_Commands::data_connect_retrieve_callback(void* arg,globus_ftp_contr
   it->time_spent_disc=0;
   it->time_spent_network=0;
   it->last_action_time=time(NULL);
-  logger.msg(Arc::INFO, "Data channel connected (retrieve)");
+  logger.msg(Arc::VERBOSE, "Data channel connected (retrieve)");
   if(it->check_abort(error)) {
     it->froot.close(false);
     globus_mutex_unlock(&(it->data_lock)); return;
@@ -34,7 +34,7 @@ void GridFTP_Commands::data_connect_retrieve_callback(void* arg,globus_ftp_contr
   logger.msg(Arc::VERBOSE, "data_connect_retrieve_callback: allocate_data_buffer");
   it->compute_data_buffer();
   if(!(it->allocate_data_buffer())) {
-    logger.msg(Arc::VERBOSE, "data_connect_retrieve_callback: allocate_data_buffer failed");
+    logger.msg(Arc::ERROR, "data_connect_retrieve_callback: allocate_data_buffer failed");
     it->froot.close(false);
     it->force_abort(); globus_mutex_unlock(&(it->data_lock)); return;
   };
@@ -98,7 +98,7 @@ void GridFTP_Commands::data_retrieve_callback(void* arg,globus_ftp_control_handl
   };
   if(it->data_eof) {
     if(it->data_callbacks==0) {
-      logger.msg(Arc::INFO, "Closing channel (retrieve)");
+      logger.msg(Arc::VERBOSE, "Closing channel (retrieve)");
       it->free_data_buffer();
       it->virt_offset=0;
       it->virt_restrict=false;

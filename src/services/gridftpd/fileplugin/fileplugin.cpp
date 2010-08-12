@@ -318,6 +318,7 @@ int DirectFilePlugin::open(const char* name,open_modes mode,unsigned long long i
       if((ur & S_IFREG) && (ur & S_IRUSR)) {
         /* so open it */
         if(i->unix_set(uid,gid) != 0) return 1;
+        logger.msg(Arc::INFO, "Retrieving file %s", fname);
         data_file=::open(fname.c_str(),O_RDONLY);
         i->unix_reset();
         if(data_file == -1) return 1;
@@ -353,6 +354,7 @@ int DirectFilePlugin::open(const char* name,open_modes mode,unsigned long long i
             };
           };
           if(i->unix_set(uid,gid) != 0) return 1;
+          logger.msg(Arc::INFO, "Storing file %s", fname);
           data_file=::open(fname.c_str(),O_WRONLY);
           i->unix_reset();
           if(data_file == -1) return 1;
@@ -384,6 +386,7 @@ int DirectFilePlugin::open(const char* name,open_modes mode,unsigned long long i
             };
           };
           if(i->unix_set(uid,gid) != 0) return 1;
+          logger.msg(Arc::INFO, "Storing file %s", fname);
           data_file=::open(fname.c_str(),O_WRONLY | O_CREAT | O_EXCL,
                  i->access.creat_perm_or & i->access.creat_perm_and);
           i->unix_reset();

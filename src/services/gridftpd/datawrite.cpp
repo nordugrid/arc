@@ -24,7 +24,7 @@ void GridFTP_Commands::data_connect_store_callback(void* arg,globus_ftp_control_
   it->time_spent_disc=0;
   it->time_spent_network=0;
   it->last_action_time=time(NULL);
-  logger.msg(Arc::INFO, "Data channel connected (store)");
+  logger.msg(Arc::VERBOSE, "Data channel connected (store)");
   if(it->check_abort(error)) {
     it->froot.close(false);
     globus_mutex_unlock(&(it->data_lock)); return;
@@ -109,7 +109,7 @@ void GridFTP_Commands::data_store_callback(void* arg,globus_ftp_control_handle_t
   it->time_spent_disc+=time_diff;
   if(it->data_eof) {
     if(it->data_callbacks==0) {
-      logger.msg(Arc::INFO, "Closing channel (store)");
+      logger.msg(Arc::VERBOSE, "Closing channel (store)");
       it->free_data_buffer();
       it->virt_offset=0;
       it->virt_restrict=false;

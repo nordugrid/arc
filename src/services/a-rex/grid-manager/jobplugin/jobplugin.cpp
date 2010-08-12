@@ -365,6 +365,7 @@ int JobPlugin::removefile(std::string &name) {
         return 1;
       }    
       user->SetControlDir(controldir);
+      logger.msg(Arc::INFO, "Cancelling job %s", id);
       if(job_cancel_mark_put(job_desc,*user)) return 0;
     };
     error_description="Not allowed to cancel this job.";
@@ -418,6 +419,7 @@ int JobPlugin::removedir(std::string &dname) {
       }    
       user->SetSessionRoot(sessiondir);
       job_state_t status=job_state_read_file(id,*user);
+      logger.msg(Arc::INFO, "Cleaning job %s", id);
       if((status == JOB_STATE_FINISHED) ||
          (status == JOB_STATE_DELETED)) { /* remove files */
         if(job_clean_final(JobDescription(id,user->SessionRoot()+"/"+id),
@@ -492,6 +494,7 @@ int JobPlugin::open(const char* name,open_modes mode,unsigned long long int size
             return 1;
           }; 
           fname=user->ControlDir()+"/job."+fname+"."+logname;
+          logger.msg(Arc::INFO, "Retrieving file %s", fname);
           return chosenFilePlugin->open_direct(fname.c_str(),mode);
         };
       };
@@ -566,6 +569,7 @@ int JobPlugin::open(const char* name,open_modes mode,unsigned long long int size
       }    
       user->SetControlDir(controldir);
       chosenFilePlugin = selectFilePlugin(id);
+      logger.msg(Arc::INFO, "Storing file %s", name);
       if(spec_dir) {
         // It is allowed to modify ACL
         if(logname) {
@@ -1177,6 +1181,7 @@ int JobPlugin::checkdir(std::string &dirname) {
       } catch (std::exception) { };
       if(((int)(new_proxy_expires-old_proxy_expires)) > 0) {
         /* try to renew proxy */
+        logger.msg(Arc::INFO, "Renewing proxy for job %s", id);
         if(renew_proxy(old_proxy_fname.c_str(),proxy_fname.c_str()) == 0) {
           fix_file_owner(old_proxy_fname,*user);
           logger.msg(Arc::INFO, "New proxy expires at %s", Arc::TimeStamp(Arc::Time(new_proxy_expires), Arc::MDSTime));
@@ -1250,6 +1255,7 @@ int JobPlugin::checkfile(std::string &name,DirEntry &info,DirEntry::object_info_
           return 1;
         };
         id=user->ControlDir()+"/job."+id+"."+logname;
+        logger.msg(Arc::INFO, "Checking file %s", id);
         struct stat st;
         if(::stat(id.c_str(),&st) != 0) {
           error_description="There is no such special file.";

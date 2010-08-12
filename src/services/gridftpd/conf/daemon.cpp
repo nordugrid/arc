@@ -173,11 +173,12 @@ namespace gridftpd {
     } else if(cmd == "debug") {
       if(debug_ == -1) {
         char* p;
-        debug_ = strtol(rest.c_str(),&p,10);
+        debug_ = strtoul(rest.c_str(),&p,10);
         if(((*p) != 0) || (debug_<0)) {
           logger.msg(Arc::ERROR, "Improper debug level '%s'", rest);
           return -1;
         };
+        Arc::Logger::getRootLogger().setThreshold(Arc::old_level_to_level(debug_));
       };
     } else {
       return 1;

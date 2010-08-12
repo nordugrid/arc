@@ -214,7 +214,7 @@ void GridFTP_Commands::authenticate_callback(void* arg,globus_ftp_control_handle
     return;
   };
   logger.msg(Arc::INFO, "User subject: %s", result->auth_gssapi_subject);
-  logger.msg(Arc::INFO, "Encrypt: %i", (int)(result->encrypt));
+  logger.msg(Arc::INFO, "Encrypted: %s", (result->encrypt ? "true" : "false"));
   it->delegated_cred=result->delegated_credential_handle;
 //
 //const char* fname = write_cert_chain(result->auth_gssapi_context);
@@ -1030,7 +1030,7 @@ bool GridFTP_Commands::allocate_data_buffer(void) {
   if(i == 0) {
     free(data_buffer); data_buffer=NULL; return false;
   };
-  logger.msg(Arc::INFO, "Allocated %u buffers %llu bytes each.", i, data_buffer_size);
+  logger.msg(Arc::VERBOSE, "Allocated %u buffers %llu bytes each.", i, data_buffer_size);
   data_buffer_num=i;
   return true;
 }

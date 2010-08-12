@@ -96,7 +96,7 @@ void GridFTP_Commands::list_retrieve_callback(void* arg,globus_ftp_control_handl
     it->virt_offset=0;
     it->transfer_mode=false;
     it->free_data_buffer();
-    logger.msg(Arc::INFO, "Closing channel (list)");
+    logger.msg(Arc::VERBOSE, "Closing channel (list)");
     it->send_response("226 Transfer completed.\r\n");
     globus_mutex_unlock(&(it->data_lock));
     return;
@@ -152,7 +152,7 @@ void GridFTP_Commands::list_connect_retrieve_callback(void* arg,globus_ftp_contr
     eodf=GLOBUS_FALSE;
   };
   it->list_offset = 0;
-  logger.msg(Arc::INFO, "Data channel connected (list)");
+  logger.msg(Arc::VERBOSE, "Data channel connected (list)");
   globus_ftp_control_local_send_eof(&(it->handle),GLOBUS_TRUE);
   globus_result_t res;
   res=globus_ftp_control_data_write(&(it->handle),

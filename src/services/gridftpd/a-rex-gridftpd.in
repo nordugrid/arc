@@ -16,7 +16,7 @@ if [ -f @initddir@/functions ]; then
 else
   success() { echo -n "OK"
   }
-  failure() { echo -n "FAILURE"
+  failure() { echo -n "FAILURE ($@)"
   }
   status() {
     pid=`pidof -o $$ -o $PPID -o %PPID -x $1`
