@@ -734,6 +734,7 @@ sub printLRMSConfigScript {
     for my $sname (keys %{$config->{shares}}) {
         my $queue = {};
         move_keys $config->{shares}{$sname}, $queue, [keys %$lrms_options, keys %$lrms_share_options];
+        rename_keys $config->{shares}{$sname}, $queue, {MaxVirtualMemory => 'nodememory'};
 
         my $qname = $config->{shares}{$sname}{MappingQueue};
         $queue->{MappingQueue} = $qname if $qname;
