@@ -95,44 +95,23 @@ namespace Arc {
       return source ? DataStatus::ReadResolveError : DataStatus::WriteResolveError;
     }
 
-    std::string path;
+    std::string path = url.Path();
 
-    if (source) {
+    if (source || path.empty() || path == "/") {
       path = ResolveGUIDToLFN();
       if (path.empty()) {
         lfc_endsess();
-        return DataStatus::ReadResolveError;
+        return source ? DataStatus::ReadResolveError : DataStatus::WriteResolveError;
       }
     }
-    else
-      path = url.Path();
-
-    if (!source && !url.MetaDataOption("guid").empty()) {
-      guid = url.MetaDataOption("guid");
-      logger.msg(VERBOSE, "Using supplied guid %s", guid);
+    if (!source && url.Locations().size() == 0) {
+      logger.msg(ERROR, "Locations are missing in destination LFC URL");
+      lfc_endsess();
+      return DataStatus::WriteResolveError;
     }
 
     resolved = false;
     registered = false;
-    if (source) {
-      if (path.empty()) {
-        logger.msg(ERROR, "Source must contain LFN");
-        lfc_endsess();
-        return DataStatus::ReadResolveError;
-      }
-    }
-    else {
-      if (path.empty()) {
-        logger.msg(ERROR, "Destination must contain LFN");
-        lfc_endsess();
-        return DataStatus::WriteResolveError;
-      }
-      if (url.Locations().size() == 0) {
-        logger.msg(ERROR, "Locations are missing in destination LFC URL");
-        lfc_endsess();
-        return DataStatus::WriteResolveError;
-      }
-    }
     int nbentries = 0;
     struct lfc_filereplica *entries = NULL;
     if (lfc_getreplica(path.c_str(), NULL, NULL, &nbentries, &entries) != 0) {
@@ -272,12 +251,13 @@ namespace Arc {
         return DataStatus::PreRegisterErrorRetryable;      
       return DataStatus::PreRegisterError;
     }
-    if (guid.empty())
-      guid = UUID();
-    else if (!url.MetaDataOption("guid").empty()) {
+    if (!url.MetaDataOption("guid").empty()) {
       guid = url.MetaDataOption("guid");
       logger.msg(VERBOSE, "Using supplied guid %s", guid);
     }
+    else if (guid.empty())
+      guid = UUID();
+
     if (lfc_creatg(url.Path().c_str(), guid.c_str(),
                    S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP) != 0) {
 
