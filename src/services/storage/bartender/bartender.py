@@ -702,8 +702,74 @@ class Bartender:
 
     ###   ###
 
+    def _listLN(self, auth_request, LN, metadata, neededMetadata, dirname = ''):
+        """ list one LN """
+        decision = make_decision_metadata(metadata, auth_request)
+        if decision != arc.DECISION_PERMIT:
+            entries = {}
+            status = 'denied'
+        else:
+            # let's get the type
+            type = metadata[('entry', 'type')]
+            if type == 'file': # files have no contents, we do not list them
+                status = 'is a file'
+                entries = {}
+            elif type == 'mountpoint':
+                url = metadata[('mountpoint', 'externalURL')]
+                res = self._externalStore(auth, url, 'list')[url]
+                status = res['status']
+                entries = dict([(name, ('', {})) for name in res['list']])
+            elif type == 'collection':
+                # get all the properties and values from the 'entries' metadata section of the collection
+                #   these are the names and GUIDs: the contents of the collection
+                status = 'found'
+                GUIDs = dict([(name, GUID)
+                              for (section, name), GUID in metadata.items() if section == 'entries'])
+                metadata = self.librarian.get(GUIDs.values(), neededMetadata)
+                if dirname:
+                    entries = dict([(os.path.join(LN.split(dirname+'/', 1)[-1], entry), (GUID, metadata[GUID]))
+                                    for entry, GUID in GUIDs.items()])
+                else:
+                    entries = dict([(name, (GUID, metadata[GUID])) for name, GUID in GUIDs.items()])
+            else:
+                status = 'unknown'
+                entries = {}
+        return entries, status
 
-    def list(self, auth, requests, neededMetadata = []):
+    def _listRecursive(self, auth_request, LN, metadata, neededMetadata):
+        """ recursive listing of collection """
+        entries, status = self._listLN(auth_request, LN, metadata, neededMetadata)
+        dirname = LN
+        subentries = entries
+        more_requests = True
+        while more_requests:
+            requests = {}
+            for entry in subentries.keys():
+                try:
+                    if subentries[entry][1][('entry', 'type')] == 'collection': 
+                        requests[entry] = [os.path.join(dirname, entry)]
+                except:
+                    log.msg(arc.WARNING, "Could not read entry", entry, "recursively")
+            if requests:
+                subentries = {}
+                requests, traverse_response = self._traverse(requests)
+                for requestID, [LN] in requests:
+                    try:
+                        # for each LN
+                        metadata, GUID, traversedLN, restLN, wasComplete, traversedlist = traverse_response[requestID]
+                        if wasComplete:
+                            subsubentries, status = self._listLN(auth_request, LN, metadata, neededMetadata, dirname = dirname)
+                            subentries = dict(subentries.items() + subsubentries.items())
+                    except Exception, e:
+                        status = 'internal error (%s)' % traceback.format_exc()
+                        log.msg(arc.WARNING, status)
+                entries = dict(entries.items()+subentries.items())
+            else:
+                # no more collections to recurse through
+                more_requests = False
+        return entries, status
+
+    def list(self, auth, requests, neededMetadata = [], recursive = False):
         """ List the contents of a collection.
         
         list(requests, neededMetadata = [])
@@ -724,33 +790,11 @@ class Bartender:
                 #print 'metadata'
                 #print metadata
                 if wasComplete:
-                    # this means the LN exists
-                    decision = make_decision_metadata(metadata, auth_request)
-                    if decision != arc.DECISION_PERMIT:
-                        entries = {}
-                        status = 'denied'
-                    else:
-                        # let's get the type
-                        type = metadata[('entry', 'type')]
-                        if type == 'file': # files have no contents, we do not list them
-                            status = 'is a file'
-                            entries = {}
-                        elif type == 'mountpoint':
-                            url = metadata[('mountpoint', 'externalURL')]
-                            res = self._externalStore(auth, url, 'list')[url]
-                            status = res['status']
-                            entries = dict([(name, ('', {})) for name in res['list']])
-                        else: #if it is not a file, it must be a collection (currently there is no other type)
-                            status = 'found'
-                            # get all the properties and values from the 'entries' metadata section of the collection
-                            #   these are the names and GUIDs: the contents of the collection
-                            GUIDs = dict([(name, GUID)
-                                for (section, name), GUID in metadata.items() if section == 'entries'])
-                            # get the needed metadata of all the entries
-                            metadata = self.librarian.get(GUIDs.values(), neededMetadata)
-                            # create a dictionary with the name of the entry as key and (GUID, metadata) as value
-                            entries = dict([(name, (GUID, metadata[GUID])) for name, GUID in GUIDs.items()])
+                    # this means that the LN was found
+                    entries, status = recursive and self._listRecursive(auth_request, LN, metadata, neededMetadata) \
+                                      or self._listLN(auth_request, LN, metadata, neededMetadata)
                 elif metadata.get(('entry', 'type'), '') == 'mountpoint':
+                    # todo: recursive listing of mountpoint
                     url = metadata[('mountpoint', 'externalURL')] + '/' + restLN
                     res = self._externalStore(auth, url, 'list')[url]
                     status = res['status']
@@ -1371,7 +1415,8 @@ class BartenderService(Service):
             node_to_data(node, ['section', 'property'], single = True)
                 for node in get_child_nodes(inpayload.Child().Get('neededMetadataList'))
         ]
-        response0 = self.bartender.list(inpayload.auth, requests, neededMetadata)
+        recursive = ['yes'] in parse_node(inpayload.Child().Get('listRecursive'), ['requestID', 'doRecursive'], single = False).values()
+        response0 = self.bartender.list(inpayload.auth, requests, neededMetadata, recursive)
         response = dict([
             (requestID,
             ([('bar:entry', [
