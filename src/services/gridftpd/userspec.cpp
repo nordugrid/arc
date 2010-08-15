@@ -156,11 +156,11 @@ bool userspec_t::fill(globus_ftp_control_auth_info_t *auth,globus_ftp_control_ha
   if(pw) {
     uid=pw->pw_uid;
     gid=pw->pw_gid;
-    logger.msg(Arc::VERBOSE, "Mapped to local id: %i", pw->pw_uid);
+    logger.msg(Arc::INFO, "Mapped to local id: %i", pw->pw_uid);
     home=pw->pw_dir;
     getgrgid_r(pw->pw_gid,&gr_,buf,BUFSIZ,&gr);
     if(gr == NULL) {
-      logger.msg(Arc::INFO, "No group %i for mapped user", gid);
+      logger.msg(Arc::ERROR, "No group %i for mapped user", gid);
     };
     std::string mapstr;
     if(name) mapstr+=name;
@@ -168,8 +168,8 @@ bool userspec_t::fill(globus_ftp_control_auth_info_t *auth,globus_ftp_control_ha
     if(gr) mapstr+=gr->gr_name;
     mapstr+=" all";
     default_map.mapname(mapstr.c_str());
-    logger.msg(Arc::VERBOSE, "Mapped to local group id: %i", pw->pw_gid);
-    if(gr) logger.msg(Arc::VERBOSE, "Mapped to local group name: %s", gr->gr_name);
+    logger.msg(Arc::INFO, "Mapped to local group id: %i", pw->pw_gid);
+    if(gr) logger.msg(Arc::INFO, "Mapped to local group name: %s", gr->gr_name);
     logger.msg(Arc::VERBOSE, "Mapped user's home: %s", home);
   };
   if(name) std::free(name);
