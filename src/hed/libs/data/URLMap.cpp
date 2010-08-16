@@ -29,6 +29,10 @@ namespace Arc {
         tmp_url.replace(0, i->initial.str().length(), i->replacement.str());
         URL newurl = tmp_url;
         /* must return semi-valid url */
+        if (!newurl) {
+          logger.msg(Arc::ERROR, "Can't use URL %s", tmp_url);
+          return false;
+        }
         if (newurl.Protocol() == "file") { /* local file - check permissions */
           int h = FileOpen(newurl.Path(), O_RDONLY, 0);
           if (h == -1) {

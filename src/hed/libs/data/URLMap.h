@@ -31,6 +31,8 @@ namespace Arc {
     bool map(URL& url) const;
     bool local(const URL& url) const;
     void add(const URL& templ, const URL& repl, const URL& accs = URL());
+    operator bool() const { return entries.size() != 0; };
+    bool operator!() const { return entries.size() == 0; };
   };
 
 } // namespace Arc
