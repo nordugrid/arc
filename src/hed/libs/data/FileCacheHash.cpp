@@ -25,8 +25,6 @@ std::string FileCacheHash::getHash(std::string url) {
   unsigned char md_value[EVP_MAX_MD_SIZE];
   unsigned int md_len, i;
 
-  OpenSSL_add_all_digests();
-
   EVP_MD_CTX_init(&mdctx);
   EVP_DigestInit_ex(&mdctx, md, NULL);
   EVP_DigestUpdate(&mdctx, mess1, strlen(mess1));
