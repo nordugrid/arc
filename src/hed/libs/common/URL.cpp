@@ -180,7 +180,7 @@ namespace Arc {
       path = url.substr(pos2);
       // This must be only path - we can accept path only for
       // limited set of protocols
-      if ((protocol == "file" || protocol == "urllist")) {
+      if ((protocol == "file" || protocol == "urllist" || protocol == "link")) {
         if (!Glib::path_is_absolute(path)) {
           char cwd[PATH_MAX];
           if (getcwd(cwd, PATH_MAX))
