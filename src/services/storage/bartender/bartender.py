@@ -73,7 +73,7 @@ class Bartender:
                             self.librarian = LibrarianClient(librarian_urls, ssl_config = self.ssl_config)
                             librarian_found = True
                     except:
-                        log.msg(arc.VERBOSE, 'Error connecting to ISIS %(iu)s, reason: %(r)s' % {'iu' : isis_url, 'r' : traceback.format_exc()})
+                        log.msg(arc.VERBOSE, 'Error connecting to ISIS %{iu}s, reason: %{r}s' % {'iu' : isis_url, 'r' : traceback.format_exc()})
                 time.sleep(3)
             except Exception, e:
                 log.msg(arc.WARNING, 'Error in initThread: %s' % e)                
@@ -727,7 +727,7 @@ class Bartender:
                               for (section, name), GUID in metadata.items() if section == 'entries'])
                 metadata = self.librarian.get(GUIDs.values(), neededMetadata)
                 if dirname:
-                    entries = dict([(os.path.join(LN.split(dirname+'/', 1)[-1], entry), (GUID, metadata[GUID]))
+                    entries = dict([(os.path.join(dirname == '/' and LN[1:] or LN.split(dirname+'/', 1)[-1], entry), (GUID, metadata[GUID]))
                                     for entry, GUID in GUIDs.items()])
                 else:
                     entries = dict([(name, (GUID, metadata[GUID])) for name, GUID in GUIDs.items()])
@@ -739,7 +739,7 @@ class Bartender:
     def _listRecursive(self, auth_request, LN, metadata, neededMetadata):
         """ recursive listing of collection """
         entries, status = self._listLN(auth_request, LN, metadata, neededMetadata)
-        dirname = LN
+        dirname = LN and LN or '/'
         subentries = entries
         more_requests = True
         while more_requests:
