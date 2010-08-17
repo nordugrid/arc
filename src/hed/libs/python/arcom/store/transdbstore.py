@@ -82,10 +82,10 @@ class TransDBStore(BaseStore):
             self.cachesize = 10 * 1024 * 1024
             log.msg(arc.WARNING, "couldn't find CacheSize, using %d as default"%self.cachesize)
         try:
-            self.cachesize = int(str(storecfg.Get('SleepTime')))
+            self.sleeptime = int(str(storecfg.Get('SleepTime')))
         except:
             self.sleeptime = 2
-            log.msg(arc.WARNING, "couldn't find SleepTime, using %d as default"%self.cachesize)
+            log.msg(arc.WARNING, "couldn't find SleepTime, using %d as default"%self.sleeptime)
 
     def __err(self):
         """
