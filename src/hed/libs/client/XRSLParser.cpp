@@ -534,7 +534,7 @@ namespace Arc {
         if (!ListValue(c, l))
           return false;
         if (l.size() < 1) {
-          logger.msg(VERBOSE, "Syntax error in notify attribute. At least one notification description must be specified.");
+          logger.msg(ERROR, "Syntax error in notify attribute. At least one notification description must be specified.");
           return false;
         }
         for (std::list<std::string>::iterator notf = l.begin();
@@ -542,22 +542,22 @@ namespace Arc {
           std::list<std::string> ll;
           tokenize(*notf, ll, " \t");
           if (ll.size() < 2) {
-            logger.msg(VERBOSE, "Syntax error in notify attribute. One or more job states and one or more email addresses must be specified.");
+            logger.msg(ERROR, "Syntax error in notify attribute. One or more job states and one or more email addresses must be specified.");
             return false;
           }
           if (ll.front().find('@') != std::string::npos) {
-            logger.msg(VERBOSE, "Syntax error in notify attribute. Item cannot begin with an email address.");
+            logger.msg(ERROR, "Syntax error in notify attribute. Item cannot begin with an email address.");
             return false;
           }
           std::list<std::string>::iterator it = ll.begin();
           std::string states = *it;
           for (it++; it != ll.end(); it++) {
             if (it->find('@') == std::string::npos) {
-              logger.msg(VERBOSE, "Syntax error in notify attribute. Item must contain only an email addresses after state flags.");
+              logger.msg(ERROR, "Syntax error in notify attribute. Item must contain only an email addresses after state flags.");
               return false;
             }
             if(!AddNotification(j.Application.Notification,states,*it)) {
-              logger.msg(VERBOSE, "Syntax error in notify attribute. Item contains wrong state flags.");
+              logger.msg(ERROR, "Syntax error in notify attribute. Item contains wrong state flags.");
               return false;
             }
           }
