@@ -10,6 +10,7 @@
 #include <arc/URL.h>
 #include <arc/data/DataStatus.h>
 #include <arc/data/FileInfo.h>
+#include <arc/data/URLMap.h>
 #include <arc/loader/Loader.h>
 #include <arc/loader/Plugin.h>
 
@@ -337,7 +338,8 @@ namespace Arc {
 
     /// Sort locations according to the specified pattern.
     /// \param pattern a set of strings, separated by |, to match against.
-    virtual void SortLocations(const std::string& pattern) = 0;
+    virtual void SortLocations(const std::string& pattern,
+                               const URLMap& url_map) = 0;
 
 
   protected:

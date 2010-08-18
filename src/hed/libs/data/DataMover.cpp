@@ -350,7 +350,7 @@ namespace Arc {
         destination_overwrite = true;
     }
     // sort source replicas according to the expression supplied
-    source.SortLocations(preferred_pattern);
+    source.SortLocations(preferred_pattern, map);
     if (destination_overwrite) {
       if ((destination.IsIndex() && destination_meta_initially_stored)
           || (!destination.IsIndex())) {
