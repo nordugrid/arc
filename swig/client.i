@@ -1,3 +1,9 @@
+/**
+ * Note that the order of the "%include" statements are important! If a
+ * "%include" depends on other "%include"s, it should be placed after these
+ * "%include" dependencies.
+ */
+
 %{
 #include <arc/client/ClientInterface.h>
 #include <arc/client/ClientX509Delegation.h>
@@ -66,7 +72,7 @@ void stream(std::ostream& os) {
 std::ostream& getStdout() {
   return std::cout;
 }
-%} 
+%}
 #endif
 
 

@@ -1,8 +1,14 @@
+/**
+ * Note that the order of the "%include" statements are important! If a
+ * "%include" depends on other "%include"s, it should be placed after these
+ * "%include" dependencies.
+ */
+
 %{
 #include <arc/message/MCC.h>
 #include <arc/message/MCC_Status.h>
 #include <arc/message/MessageAttributes.h>
-#include <arc/message/SecAttr.h> 
+#include <arc/message/SecAttr.h>
 #include <arc/message/MessageAuth.h>
 #include <arc/message/Message.h>
 #include <arc/message/PayloadRaw.h>
@@ -10,7 +16,7 @@
 #include <arc/message/SOAPMessage.h>
 #include <arc/message/PayloadSOAP.h>
 #include <arc/message/PayloadStream.h>
-#include <arc/message/Service.h> 
+#include <arc/message/Service.h>
 %}
 %include <typemaps.i>
 
@@ -62,7 +68,7 @@
 %include "../src/hed/libs/message/MCC.h"
 %include "../src/hed/libs/message/PayloadRaw.h"
 
-%apply std::string& OUTPUT { std::string& out_xml_str }; 
+%apply std::string& OUTPUT { std::string& out_xml_str };
 %include "../src/hed/libs/message/SOAPEnvelope.h"
 %clear std::string& out_xml_str;
 

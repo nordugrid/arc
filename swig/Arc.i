@@ -1,3 +1,9 @@
+/**
+ * Note that the order of the "%include" statements are important! If a
+ * "%include" depends on other "%include"s, it should be placed after these
+ * "%include" dependencies.
+ */
+
 %module arc
 
 %include <stl.i>

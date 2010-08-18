@@ -1,3 +1,9 @@
+/**
+ * Note that the order of the "%include" statements are important! If a
+ * "%include" depends on other "%include"s, it should be placed after these
+ * "%include" dependencies.
+ */
+
 %{
 #include <arc/security/ArcPDP/Evaluator.h>
 #include <arc/security/ArcPDP/EvaluationCtx.h>
@@ -9,24 +15,24 @@
 %}
 
 namespace ArcSec {
-   
+
     %nodefaultctor Policy;
     class Policy  {};
-    
+
     %nodefaultctor Request;
-    class Request {};    
-   
+    class Request {};
+
     typedef enum {
       DECISION_PERMIT = 0,
       DECISION_DENY = 1,
       DECISION_INDETERMINATE = 2,
       DECISION_NOT_APPLICABLE = 3
     } Result;
-   
+
     typedef struct {
       Result res;
     } ResponseItem;
-   
+
     class ResponseList {
     public:
       int size() ;
@@ -34,12 +40,12 @@ namespace ArcSec {
       ResponseItem* operator[](int n);
       bool empty();
     };
-    
+
     class Response {
     public:
       ResponseList& getResponseItems ();
     };
-   
+
     class Source {
      public:
       Source(const Source& s):node(s.node);
@@ -62,7 +68,7 @@ namespace ArcSec {
       SourceURL(const char* url);
       SourceURL(const std::string& url);
     };
-    
+
     %nodefaultctor Evaluator;
     %newobject Evaluator::evaluate;
     class Evaluator {
