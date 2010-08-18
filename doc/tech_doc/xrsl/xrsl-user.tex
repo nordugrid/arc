@@ -854,7 +854,7 @@
 
   \begin{tabular}{llp{10cm}}
     \hspace*{1cm}&\texttt{string} & string of the format:
-    \verb#[b][q][f][e][c] user1@domain1 [user2@domain2] ...#\\
+    \verb#[b][q][f][e][c][d] user1@domain1 [user2@domain2] ...#\\
     \hspace*{1cm}&&here flags indicating the job status are:\\
     \hspace*{1cm}&&\texttt{b} -- begin (PREPARING)\\
     \hspace*{1cm}&&\texttt{q} -- queued (INLRMS)\\
@@ -863,6 +863,10 @@
     \hspace*{1cm}&&\texttt{c} -- cancellation (CANCELLED)\\
     \hspace*{1cm}&&\texttt{d} -- deleted (DELETED)\\
   \end{tabular}
+
+  When no notification flags are specified, default value of ``\verb#eb#''
+  will be used, i.e., notifications will be sent at the job's beginning
+  and at its end.
 
   No more than 3 e-mail addresses per status change accepted.
 
