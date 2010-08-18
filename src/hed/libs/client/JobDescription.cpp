@@ -337,7 +337,6 @@ namespace Arc {
       }
     }
 
-    logger.msg(ERROR, "The parsing of the job description was unsuccessful");
     return false;
   }
 
