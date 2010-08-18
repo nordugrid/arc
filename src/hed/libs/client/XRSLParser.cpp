@@ -227,17 +227,15 @@ namespace Arc {
         for (std::list<RSL*>::const_iterator it = b->begin();
              it != b->end(); it++)
           if (!Parse(*it, j)) {
-            logger.msg(ERROR, "XRSL parsing problem");
             return false;
           }
       }
       else if (b->Op() == RSLOr) {
         if (b->size() != 1) {
-          logger.msg(ERROR, "RSL conditionals currentsly not yet supported");
+          logger.msg(ERROR, "RSL conditionals currently not yet supported");
           return false;
         }
         if (!Parse(*b->begin(), j)) {
-          logger.msg(ERROR, "XRSL parsing problem");
           return false;
         }
       }
