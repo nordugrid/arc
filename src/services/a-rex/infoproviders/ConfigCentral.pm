@@ -730,6 +730,11 @@ sub printLRMSConfigScript {
     $gmopts->{shared_filesystem} = $config->{shared_filesystem} if $config->{shared_filesystem};
 
     _print_shell_section('grid-manager', $gmopts);
+
+    my $cluster = {};
+    rename_keys $config->{service}, $cluster, {MaxVirtualMemory => 'nodememory'};
+
+    _print_shell_section('cluster', $cluster) if %$cluster;
     
     for my $sname (keys %{$config->{shares}}) {
         my $queue = {};
