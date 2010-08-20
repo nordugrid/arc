@@ -22,7 +22,7 @@ pkglibdir=`cd $pkglibdir > /dev/null && pwd` || exit $?
 . "${pkglibdir}/scan_common.sh" || exit $?
 
 # Prevent multiple instances of scan-slurm-job to run concurrently
-lockfile="${TMPDIR:-@tmp_dir@}/scan-slurm-job.lock"
+lockfile="${CONFIG_tmpdir:-@tmp_dir@}/scan-slurm-job.lock"
 #Check if lockfile exist, if not, create it.
 (set -C; : > "$lockfile") 2> /dev/null
 if [ "$?" != "0" ]; then
@@ -61,6 +61,8 @@ if [ "${RUNTIME_NODE_SEES_FRONTEND}" = 'no' ] ; then
   RUNTIME_NODE_SEES_FRONTEND=
 fi
 
+my_id=`id -u`
+
 #Validate control directories supplied on command-line
 if [ -z "$1" ] ; then
     echo "no control_dir specified" 1>&2; exit 1
@@ -97,7 +99,7 @@ for basename in $(find "$@" -name 'job.*.status' -print0 \
 done
 
 # No need to continue further if no jobs have status INLRMS
-if [ "${localids[@]}" = "" ];then
+if [ "x${localids[@]}" = "x" ];then
     exit 0
 fi
 
@@ -221,20 +223,20 @@ for localid in ${localids[@]}; do
             # diagnostics file is delivered. Wait for it max 2 minutes.
 		    diag_tries=20
 		    while [ "$diag_tries" -gt 0 ] ; do
-			if [ -z "$username" ] ; then
+			if [ -z "$uid" ] ; then
 			    exitcode=`grep '^exitcode=' "$diagfile" 2>/dev/null | sed 's/^exitcode=//'`
 			else
-			    exitcode=`su "${username}" -c "grep '^exitcode=' $diagfile" 2>/dev/null | sed 's/^exitcode=//'`
+			    exitcode=$(do_as_uid "$uid" "grep '^exitcode=' '$diagfile'" | sed 's/^exitcode=//')
 			fi
 			if [ ! -z "$exitcode" ] ; then break ; fi
 			sleep 10
 			diag_tries=$(( $diag_tries - 1 ))
 		    done
 		else
-		    if [ -z "$username" ] ; then
+		    if [ -z "$uid" ] ; then
 			exitcode=`grep '^exitcode=' "$diagfile" 2>/dev/null | sed 's/^exitcode=//'`
 		    else
-			exitcode=`su "${username}" -c "grep '^exitcode=' $diagfile" 2>/dev/null | sed 's/^exitcode=//'`
+			exitcode=$(do_as_uid "$uid" "grep '^exitcode=' '$diagfile'" | sed 's/^exitcode=//')
 		    fi
 		fi
 	    fi
@@ -245,7 +247,7 @@ for localid in ${localids[@]}; do
 		jobstatus="$exitcode Job missing from SLURM"
 	    fi
 
-	    save_commentfile "$username" "$commentfile" "${basenames[$localid]}.errors"
+	    save_commentfile "$uid" "$commentfile" "${basenames[$localid]}.errors"
 	    echo  "$jobstatus" > "${basenames[$localid]}.lrms_done"
 	    kicklist=(${kicklist[@]} $localid)
 

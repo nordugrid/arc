@@ -46,7 +46,7 @@ function verify_jobid {
 	return 1
     fi
     # jobid in slurm is always an integer, so anything else is an error.
-    if [ "" != $(sed s/[0-9]//g <(echo ${joboption_jobid})) ];then
+    if [ "x" != "x$(sed s/[0-9]//g <(echo ${joboption_jobid}))" ];then
 	echo "error: non-numeric characters in joboption_jobid: ${joboption_jobid}" 1>&2
 	return 1
     fi

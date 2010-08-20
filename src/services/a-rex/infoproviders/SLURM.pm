@@ -56,7 +56,7 @@ sub slurm_read_jobs($){
     my ($path) = ($$config{SLURM_bin_path} or "/usr/bin");
     # get SLURM jobs, store dictionary in scont_jobs
     my %scont_jobs;
-    open (SCPIPE,"$path/squeue -a -h -o \"JobId=%i TimeUsed=%M Partition=%P JobState=%T ReqNodes=%D ReqCPUs=%C TimeLimit=%l Name=%j NodeList=%N\"|");
+    open (SCPIPE,"$path/squeue -a -h -t all -o \"JobId=%i TimeUsed=%M Partition=%P JobState=%T ReqNodes=%D ReqCPUs=%C TimeLimit=%l Name=%j NodeList=%N\"|");
     while(<SCPIPE>){
 	my %job;
 	my $string = $_;
