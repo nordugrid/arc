@@ -226,6 +226,7 @@ namespace Arc {
              */
             url.ChangeProtocol("file");
             url.ChangeHost("");
+            url.ChangePort(-1);
           }
           it->Target.front().URI = url;
           it->KeepData = (it->Target.front().URI.Protocol() == "file");
