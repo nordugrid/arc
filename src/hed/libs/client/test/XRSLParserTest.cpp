@@ -41,6 +41,7 @@ class XRSLParserTest
   CPPUNIT_TEST(TestDataStagingDownloadUpload);
   CPPUNIT_TEST(TestDataStagingUploadUpload);
   CPPUNIT_TEST(TestNotify);
+  CPPUNIT_TEST(TestJoin);
   CPPUNIT_TEST_SUITE_END();
 
 public:
@@ -59,6 +60,7 @@ public:
   void TestDataStagingDownloadUpload();
   void TestDataStagingUploadUpload();
   void TestNotify();
+  void TestJoin();
 
 private:
   Arc::JobDescription INJOB, OUTJOB;
@@ -594,6 +596,60 @@ void XRSLParserTest::TestNotify() {
 
   INJOB = PARSER.Parse(xrsl);
   PARSE_ASSERT(!INJOB);
+}
+
+void XRSLParserTest::TestJoin() {
+  MESSAGE = "Error parsing the join attribute.";
+
+  std::string xrsl = "&(executable = \"executable\")(stdout = \"output-file\")(join = \"yes\")";
+
+  INJOB = PARSER.Parse(xrsl);
+  UNPARSE_PARSE;
+
+  PARSE_ASSERT(INJOB);
+  PARSE_ASSERT(OUTJOB);
+  // When first parsed the JobDescription attribute Application.Join will be
+  // set, while the Application.Error attribute will be left empty.
+  PARSE_ASSERT_EQUAL2((std::string)"output-file", INJOB.Application.Output);
+  PARSE_ASSERT(INJOB.Application.Error.empty());
+  PARSE_ASSERT(INJOB.Application.Join);
+  // When the description have been unparsed by the parser the join attribute
+  // will no longer be set, instead stdout and stderr will be identical.
+  PARSE_ASSERT_EQUAL2((std::string)"output-file", OUTJOB.Application.Output);
+  PARSE_ASSERT_EQUAL2((std::string)"output-file", OUTJOB.Application.Error);
+  PARSE_ASSERT(!OUTJOB.Application.Join);
+
+  xrsl = "&(executable = \"executable\")(stderr = \"error-file\")(join = \"yes\")";
+
+  INJOB = PARSER.Parse(xrsl);
+  UNPARSE_PARSE;
+
+  PARSE_ASSERT(INJOB);
+  PARSE_ASSERT(OUTJOB);
+  // When first parsed the JobDescription attribute Application.Join will be
+  // set, while the Application.Error attribute will be left empty.
+  PARSE_ASSERT(INJOB.Application.Output.empty());
+  PARSE_ASSERT_EQUAL2((std::string)"error-file", INJOB.Application.Error);
+  PARSE_ASSERT(INJOB.Application.Join);
+  // When the description have been unparsed by the parser the join attribute
+  // will no longer be set, instead stdout and stderr will be identical.
+  PARSE_ASSERT_EQUAL2((std::string)"error-file", OUTJOB.Application.Output);
+  PARSE_ASSERT_EQUAL2((std::string)"error-file", OUTJOB.Application.Error);
+  PARSE_ASSERT(!OUTJOB.Application.Join);
+
+  xrsl = "&(executable = \"executable\")(stdout = \"output-file\")(join = \"no\")";
+
+  INJOB = PARSER.Parse(xrsl);
+  UNPARSE_PARSE;
+
+  PARSE_ASSERT(INJOB);
+  PARSE_ASSERT(OUTJOB);
+  PARSE_ASSERT_EQUAL2((std::string)"output-file", INJOB.Application.Output);
+  PARSE_ASSERT_EQUAL2((std::string)"output-file", OUTJOB.Application.Output);
+  PARSE_ASSERT(INJOB.Application.Error.empty());
+  PARSE_ASSERT(OUTJOB.Application.Error.empty());
+  PARSE_ASSERT(!INJOB.Application.Join);
+  PARSE_ASSERT(!OUTJOB.Application.Join);
 }
 
 CPPUNIT_TEST_SUITE_REGISTRATION(XRSLParserTest);

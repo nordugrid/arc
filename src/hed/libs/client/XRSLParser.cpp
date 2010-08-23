@@ -506,7 +506,7 @@ namespace Arc {
         std::string join;
         if (!SingleValue(c, join))
           return false;
-        j.Application.Join = (lower(join) == "true");
+        j.Application.Join = (lower(join) == "yes");
         return true;
       }
 
@@ -813,7 +813,7 @@ namespace Arc {
         logger.msg(ERROR, "Incompatible RSL attributes");
         return "";
       }
-      if (!j.Application.Output.empty() || j.Application.Error.empty()) {
+      if (!j.Application.Output.empty() || !j.Application.Error.empty()) {
         const std::string& eo = !j.Application.Output.empty() ? j.Application.Output : j.Application.Error;
         RSLList *l1 = new RSLList;
         l1->Add(new RSLLiteral(eo));
