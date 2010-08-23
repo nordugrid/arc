@@ -31,6 +31,8 @@ joboption_localtransfer='no'
 
 init $1
 
+read_arc_conf
+
 # GD enforce this for the moment
 RUNTIME_FRONTEND_SEES_NODE=''
 RUNTIME_NODE_SEES_FRONTEND='yes'
