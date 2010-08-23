@@ -24,8 +24,6 @@ if [ ! -z "$PBS_BIN_PATH" ] ; then
   PBS_QDEL="${PBS_BIN_PATH}/${PBS_QDEL}"
 fi
 
-tmpdir=${TMP_DIR:-/tmp}
-
 echo executing qdel with job id $joboption_jobid 1>&2
 "${PBS_QDEL}" "${joboption_jobid}"
 
