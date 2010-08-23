@@ -32,6 +32,8 @@ joboption_localtransfer='no'
 init $1
 cat $1 1>&2
 
+read_arc_conf
+
 ##############################################################
 # Zero stage of runtime environments
 ##############################################################
