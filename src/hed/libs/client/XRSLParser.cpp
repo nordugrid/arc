@@ -162,26 +162,46 @@ namespace Arc {
   }
 
   static char StateToShortcut(const std::string& state) {
-    if(state == "ACCEPTED") return 'a'; // not supported
-    if(state == "PREPARING") return 'b';
-    if(state == "SUBMIT") return 's'; // not supported
-    if(state == "INLRMS") return 'q';
-    if(state == "FINISHING") return 'f';
-    if(state == "FINISHED") return 'e';
-    if(state == "DELETED") return 'd';
-    if(state == "CANCELING") return 'c';
+    if(state == "PREPARING") {
+      return 'b';
+    }
+    if(state == "INLRMS") {
+      return 'q';
+    }
+    if(state == "FINISHING") {
+      return 'f';
+    }
+    if(state == "FINISHED") {
+      return 'e';
+    }
+    if(state == "DELETED") {
+      return 'd';
+    }
+    if(state == "CANCELING") {
+      return 'c';
+    }
     return ' ';
   }
 
   static std::string ShortcutToState(char state) {
-    if(state == 'a') return "ACCEPTED"; // not supported
-    if(state == 'b') return "PREPARING";
-    if(state == 's') return "SUBMIT"; // not supported
-    if(state == 'q') return "INLRMS";
-    if(state == 'f') return "FINISHING";
-    if(state == 'e') return "FINISHED";
-    if(state == 'd') return "DELETED";
-    if(state == 'c') return "CANCELING";
+    if(state == 'b') {
+      return "PREPARING";
+    }
+    if(state == 'q') {
+      return "INLRMS";
+    }
+    if(state == 'f') {
+      return "FINISHING";
+    }
+    if(state == 'e') {
+      return "FINISHED";
+    }
+    if(state == 'd') {
+      return "DELETED";
+    }
+    if(state == 'c') {
+      return "CANCELING";
+    }
     return "";
   }
 
@@ -190,15 +210,19 @@ namespace Arc {
          const std::string& states) {
     for (int n = 0; n<states.length(); n++) {
       std::string state = ShortcutToState(states[n]);
-      if(state.empty()) return false;
-      for (std::list<std::string>::iterator s = notification.States.begin();
-                     s != notification.States.end(); s++) {
-        if(*s == state) {
+      if (state.empty()) {
+        return false;
+      }
+      for (std::list<std::string>::const_iterator s = notification.States.begin();
+           s != notification.States.end(); s++) {
+        if(*s == state) { // Check if state is already added.
           state.resize(0);
           break;
         }
       }
-      if(!state.empty()) notification.States.push_back(state);
+      if (!state.empty()) {
+        notification.States.push_back(state);
+      }
     }
     return true;
   }
@@ -206,16 +230,20 @@ namespace Arc {
   static bool AddNotification(
          std::list<NotificationType> &notifications,
          const std::string& states, const std::string& email) {
-    for(std::list<NotificationType>::iterator it =
-                 notifications.begin(); it != notifications.end(); it++) {
-      if(it->Email == email) {
+    for (std::list<NotificationType>::iterator it = notifications.begin();
+         it != notifications.end(); it++) {
+      if (it->Email == email) { // If email already exist in the list add states to that entry.
         return AddNotificationState(*it,states);
       }
     }
+
     NotificationType notification;
     notification.Email = email;
-    if(!AddNotificationState(notification,states)) return false;
+    if (!AddNotificationState(notification,states)) {
+      return false;
+    }
     notifications.push_back(notification);
+
     return true;
   }
 
@@ -533,31 +561,27 @@ namespace Arc {
         std::list<std::string> l;
         if (!ListValue(c, l))
           return false;
-        if (l.size() < 1) {
-          logger.msg(ERROR, "Syntax error in notify attribute. At least one notification description must be specified.");
-          return false;
-        }
-        for (std::list<std::string>::iterator notf = l.begin();
-                                 notf != l.end(); ++notf) {
+        for (std::list<std::string>::const_iterator notf = l.begin();
+             notf != l.end(); ++notf) {
           std::list<std::string> ll;
           tokenize(*notf, ll, " \t");
-          if (ll.size() < 2) {
-            logger.msg(ERROR, "Syntax error in notify attribute. One or more job states and one or more email addresses must be specified.");
-            return false;
+          std::list<std::string>::const_iterator it = ll.begin();
+          std::string states = "be"; // Default value.
+          if (it->find('@') == std::string::npos) { // The first string is state flags.
+            if (ll.size() == 1) { // Only state flags in value.
+              logger.msg(ERROR, "Syntax error in notify attribute value ('%s'), it must contain an email address.", *notf);
+              return false;
+            }
+            states = *it;
+            it++;
           }
-          if (ll.front().find('@') != std::string::npos) {
-            logger.msg(ERROR, "Syntax error in notify attribute. Item cannot begin with an email address.");
-            return false;
-          }
-          std::list<std::string>::iterator it = ll.begin();
-          std::string states = *it;
-          for (it++; it != ll.end(); it++) {
+          for (; it != ll.end(); it++) {
             if (it->find('@') == std::string::npos) {
-              logger.msg(ERROR, "Syntax error in notify attribute. Item must contain only an email addresses after state flags.");
+              logger.msg(ERROR, "Syntax error in notify attribute value ('%s'), it must only contain email addresses after state flag(s).", *notf);
               return false;
             }
             if(!AddNotification(j.Application.Notification,states,*it)) {
-              logger.msg(ERROR, "Syntax error in notify attribute. Item contains wrong state flags.");
+              logger.msg(ERROR, "Syntax error in notify attribute value ('%s'), it contains unknown state flags.", *notf);
               return false;
             }
           }

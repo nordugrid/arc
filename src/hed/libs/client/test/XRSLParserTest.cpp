@@ -40,6 +40,7 @@ class XRSLParserTest
   CPPUNIT_TEST(TestDataStagingCreateUpload);
   CPPUNIT_TEST(TestDataStagingDownloadUpload);
   CPPUNIT_TEST(TestDataStagingUploadUpload);
+  CPPUNIT_TEST(TestNotify);
   CPPUNIT_TEST_SUITE_END();
 
 public:
@@ -59,6 +60,7 @@ public:
   void TestDataStagingCreateUpload();
   void TestDataStagingDownloadUpload();
   void TestDataStagingUploadUpload();
+  void TestNotify();
 
 private:
   Arc::JobDescription INJOB, OUTJOB;
@@ -456,6 +458,141 @@ void XRSLParserTest::TestDataStagingUploadUpload() {
   PARSE_ASSERT_EQUAL2(0, (int)it->Source.size());
   PARSE_ASSERT_EQUAL2(1, (int)it->Target.size());
   PARSE_ASSERT_EQUAL2(target.URI, it->Target.front().URI);
+}
+
+void XRSLParserTest::TestNotify() {
+  /**
+   * The value of the notify attribute must take the form:
+   *   notify = <string> [string] ...
+   * with first string being mandatory, and following strings being optional the
+   * string should take the form:
+   *   [b][q][f][e][d][c] user1@domain1.tld [user2@domain2.tld] ...
+   * Thus one email address must be specified for the notify attribute to be
+   * valid. States are optional, along with multiple email addresses. Also only
+   * the listed states are allowed. If no states are specified the defaults (be)
+   * will be used.
+   **/
+
+  MESSAGE = "Error parsing the notify attribute.";
+
+  // Test default option.
+  std::string xrsl = "&(executable = \"executable\")(notify = \"someone@example.com\")";
+
+  INJOB = PARSER.Parse(xrsl);
+  UNPARSE_PARSE;
+
+  PARSE_ASSERT(INJOB);
+  PARSE_ASSERT(OUTJOB);
+  PARSE_ASSERT_EQUAL2(1, (int)INJOB.Application.Notification.size());
+  PARSE_ASSERT_EQUAL2(1, (int)OUTJOB.Application.Notification.size());
+  PARSE_ASSERT_EQUAL2((std::string)"someone@example.com", INJOB.Application.Notification.front().Email);
+  PARSE_ASSERT_EQUAL2((std::string)"someone@example.com", OUTJOB.Application.Notification.front().Email);
+  PARSE_ASSERT_EQUAL2(2, (int)INJOB.Application.Notification.front().States.size());
+  PARSE_ASSERT_EQUAL2(2, (int)OUTJOB.Application.Notification.front().States.size());
+  PARSE_ASSERT_EQUAL2((std::string)"PREPARING", INJOB.Application.Notification.front().States.front());
+  PARSE_ASSERT_EQUAL2((std::string)"FINISHED", INJOB.Application.Notification.front().States.back());
+  PARSE_ASSERT_EQUAL2((std::string)"PREPARING", OUTJOB.Application.Notification.front().States.front());
+  PARSE_ASSERT_EQUAL2((std::string)"FINISHED", OUTJOB.Application.Notification.front().States.back());
+
+  // Test all flags.
+  xrsl = "&(executable = \"executable\")(notify = \"bqfedc someone@example.com\")";
+
+  INJOB = PARSER.Parse(xrsl);
+  UNPARSE_PARSE;
+
+  PARSE_ASSERT(INJOB);
+  PARSE_ASSERT(OUTJOB);
+  PARSE_ASSERT_EQUAL2(1, (int)INJOB.Application.Notification.size());
+  PARSE_ASSERT_EQUAL2(1, (int)OUTJOB.Application.Notification.size());
+  PARSE_ASSERT_EQUAL2((std::string)"someone@example.com", INJOB.Application.Notification.front().Email);
+  PARSE_ASSERT_EQUAL2((std::string)"someone@example.com", OUTJOB.Application.Notification.front().Email);
+  PARSE_ASSERT_EQUAL2(6, (int)INJOB.Application.Notification.front().States.size());
+  {
+    std::list<std::string>::const_iterator it = INJOB.Application.Notification.front().States.begin();
+    PARSE_ASSERT_EQUAL2((std::string)"PREPARING", *it++);
+    PARSE_ASSERT_EQUAL2((std::string)"INLRMS", *it++);
+    PARSE_ASSERT_EQUAL2((std::string)"FINISHING", *it++);
+    PARSE_ASSERT_EQUAL2((std::string)"FINISHED", *it++);
+    PARSE_ASSERT_EQUAL2((std::string)"DELETED", *it++);
+    PARSE_ASSERT_EQUAL2((std::string)"CANCELING", *it);
+  }
+  PARSE_ASSERT_EQUAL2(6, (int)OUTJOB.Application.Notification.front().States.size());
+  {
+    std::list<std::string>::const_iterator it = OUTJOB.Application.Notification.front().States.begin();
+    PARSE_ASSERT_EQUAL2((std::string)"PREPARING", *it++);
+    PARSE_ASSERT_EQUAL2((std::string)"INLRMS", *it++);
+    PARSE_ASSERT_EQUAL2((std::string)"FINISHING", *it++);
+    PARSE_ASSERT_EQUAL2((std::string)"FINISHED", *it++);
+    PARSE_ASSERT_EQUAL2((std::string)"DELETED", *it++);
+    PARSE_ASSERT_EQUAL2((std::string)"CANCELING", *it);
+  }
+
+  // Test multiple entries and overlapping states.
+  xrsl = "&(executable = \"executable\")(notify = \"bqfedc someone@example.com\" \"bqf someone@example.com anotherone@example.com\")";
+
+  INJOB = PARSER.Parse(xrsl);
+  UNPARSE_PARSE;
+
+  PARSE_ASSERT(INJOB);
+  PARSE_ASSERT(OUTJOB);
+  PARSE_ASSERT_EQUAL2(2, (int)INJOB.Application.Notification.size());
+  PARSE_ASSERT_EQUAL2(2, (int)OUTJOB.Application.Notification.size());
+  PARSE_ASSERT_EQUAL2((std::string)"someone@example.com", INJOB.Application.Notification.front().Email);
+  PARSE_ASSERT_EQUAL2((std::string)"someone@example.com", OUTJOB.Application.Notification.front().Email);
+  PARSE_ASSERT_EQUAL2((std::string)"anotherone@example.com", INJOB.Application.Notification.back().Email);
+  PARSE_ASSERT_EQUAL2((std::string)"anotherone@example.com", OUTJOB.Application.Notification.back().Email);
+  PARSE_ASSERT_EQUAL2(6, (int)INJOB.Application.Notification.front().States.size());
+  {
+    std::list<std::string>::const_iterator it = INJOB.Application.Notification.front().States.begin();
+    PARSE_ASSERT_EQUAL2((std::string)"PREPARING", *it++);
+    PARSE_ASSERT_EQUAL2((std::string)"INLRMS", *it++);
+    PARSE_ASSERT_EQUAL2((std::string)"FINISHING", *it++);
+    PARSE_ASSERT_EQUAL2((std::string)"FINISHED", *it++);
+    PARSE_ASSERT_EQUAL2((std::string)"DELETED", *it++);
+    PARSE_ASSERT_EQUAL2((std::string)"CANCELING", *it);
+  }
+  PARSE_ASSERT_EQUAL2(6, (int)OUTJOB.Application.Notification.front().States.size());
+  {
+    std::list<std::string>::const_iterator it = OUTJOB.Application.Notification.front().States.begin();
+    PARSE_ASSERT_EQUAL2((std::string)"PREPARING", *it++);
+    PARSE_ASSERT_EQUAL2((std::string)"INLRMS", *it++);
+    PARSE_ASSERT_EQUAL2((std::string)"FINISHING", *it++);
+    PARSE_ASSERT_EQUAL2((std::string)"FINISHED", *it++);
+    PARSE_ASSERT_EQUAL2((std::string)"DELETED", *it++);
+    PARSE_ASSERT_EQUAL2((std::string)"CANCELING", *it);
+  }
+  PARSE_ASSERT_EQUAL2(3, (int)INJOB.Application.Notification.back().States.size());
+  {
+    std::list<std::string>::const_iterator it = INJOB.Application.Notification.front().States.begin();
+    PARSE_ASSERT_EQUAL2((std::string)"PREPARING", *it++);
+    PARSE_ASSERT_EQUAL2((std::string)"INLRMS", *it++);
+    PARSE_ASSERT_EQUAL2((std::string)"FINISHING", *it);
+  }
+  PARSE_ASSERT_EQUAL2(3, (int)OUTJOB.Application.Notification.back().States.size());
+  {
+    std::list<std::string>::const_iterator it = OUTJOB.Application.Notification.front().States.begin();
+    PARSE_ASSERT_EQUAL2((std::string)"PREPARING", *it++);
+    PARSE_ASSERT_EQUAL2((std::string)"INLRMS", *it++);
+    PARSE_ASSERT_EQUAL2((std::string)"FINISHING", *it);
+  }
+
+  // Test invalid email address.
+  xrsl = "&(executable = \"executable\")(notify = \"someoneAexample.com\")";
+
+  INJOB = PARSER.Parse(xrsl);
+  PARSE_ASSERT(!INJOB);
+
+  // Test invalid email address with state flags.
+  xrsl = "&(executable = \"executable\")(notify = \"bqfecd someoneAexample.com\")";
+
+  INJOB = PARSER.Parse(xrsl);
+  PARSE_ASSERT(!INJOB);
+
+  // Test unknown state flags.
+  xrsl = "&(executable = \"executable\")(notify = \"xyz someone@example.com\")";
+
+  INJOB = PARSER.Parse(xrsl);
+  PARSE_ASSERT(!INJOB);
 }
 
 CPPUNIT_TEST_SUITE_REGISTRATION(XRSLParserTest);
