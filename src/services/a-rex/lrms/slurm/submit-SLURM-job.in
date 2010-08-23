@@ -29,6 +29,8 @@ pkglibdir=`cd $pkglibdir > /dev/null && pwd` || exit $?
 
 init $1
 
+read_arc_conf
+
 failures_file="$joboption_controldir/job.$joboption_gridid.failed"
 
 if [ -z "${RUNTIME_NODE_SEES_FRONTEND}" ] ; then
