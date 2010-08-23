@@ -91,6 +91,7 @@ void XRSLParserTest::setUp() {
 }
 
 void XRSLParserTest::tearDown() {
+  remove("executable");
 }
 
 void XRSLParserTest::TestExecutable() {
@@ -103,8 +104,8 @@ void XRSLParserTest::TestExecutable() {
 void XRSLParserTest::TestInputOutputError() {
   INJOB.Application.Input = "input-file";
   // The file need to be there, otherwise the XRSLParser will fail.
-  std::ofstream f("input-file", std::ifstream::trunc);
-  f << "input-file";
+  std::ofstream f(INJOB.Application.Input.c_str(), std::ifstream::trunc);
+  f << INJOB.Application.Input;
   f.close();
 
   INJOB.Application.Output = "output-file";
@@ -114,6 +115,8 @@ void XRSLParserTest::TestInputOutputError() {
   PARSE_ASSERT_EQUAL(Application.Input);
   PARSE_ASSERT_EQUAL(Application.Output);
   PARSE_ASSERT_EQUAL(Application.Error);
+
+  remove(INJOB.Application.Input.c_str());
 }
 
 /**
@@ -192,8 +195,8 @@ void XRSLParserTest::TestDataStagingUploadDelete() {
   INJOB.DataStaging.File.push_back(file);
 
   // The file need to be there, otherwise the XRSLParser will fail.
-  std::ofstream f("3-Upload-Delete", std::ifstream::trunc);
-  f << "3-Upload-Delete";
+  std::ofstream f(file.Name.c_str(), std::ifstream::trunc);
+  f << file.Name;
   f.close();
 
   UNPARSE_PARSE;
@@ -213,6 +216,8 @@ void XRSLParserTest::TestDataStagingUploadDelete() {
   PARSE_ASSERT_EQUAL2(1, (int)it->Source.size());
   PARSE_ASSERT_EQUAL2(Arc::URL("executable"), it->Source.front().URI);
   PARSE_ASSERT_EQUAL2(0, (int)it->Target.size());
+
+  remove(file.Name.c_str());
 }
 
 /** 4-Create-Download */
@@ -298,7 +303,7 @@ void XRSLParserTest::TestDataStagingUploadDownload() {
 
   // The file need to be there, otherwise the XRSLParser will fail.
   std::ofstream f(file.Name.c_str(), std::ifstream::trunc);
-  f << "6-Upload-Download";
+  f << file.Name;
   f.close();
 
   UNPARSE_PARSE;
@@ -324,6 +329,8 @@ void XRSLParserTest::TestDataStagingUploadDownload() {
   PARSE_ASSERT_EQUAL2(file.KeepData, it->KeepData);
   PARSE_ASSERT_EQUAL2(0, (int)it->Source.size());
   PARSE_ASSERT_EQUAL2(0, (int)it->Target.size());
+
+  remove(file.Name.c_str());
 }
 
 /** 7-Create-Upload */
@@ -423,7 +430,7 @@ void XRSLParserTest::TestDataStagingUploadUpload() {
 
   // The file need to be there, otherwise the XRSLParser will fail.
   std::ofstream f(file.Name.c_str(), std::ifstream::trunc);
-  f << "9-Upload-Upload";
+  f << file.Name;
   f.close();
 
   UNPARSE_PARSE;
@@ -450,6 +457,8 @@ void XRSLParserTest::TestDataStagingUploadUpload() {
   PARSE_ASSERT_EQUAL2(0, (int)it->Source.size());
   PARSE_ASSERT_EQUAL2(1, (int)it->Target.size());
   PARSE_ASSERT_EQUAL2(target.URI, it->Target.front().URI);
+
+  remove(file.Name.c_str());
 }
 
 void XRSLParserTest::TestNotify() {
