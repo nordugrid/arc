@@ -43,10 +43,8 @@ class ARCJSDLParserTest
   CPPUNIT_TEST_SUITE_END();
 
 public:
-  ARCJSDLParserTest()
-    : logger(Arc::Logger::getRootLogger(), "ARCJSDLParserTest"),
-      logcerr(std::cout)
-    {}
+  ARCJSDLParserTest() {}
+
   void setUp();
   void tearDown();
   void TestExecutable();
@@ -68,9 +66,6 @@ private:
   Arc::ARCJSDLParser PARSER;
 
   std::string MESSAGE;
-
-  Arc::LogStream logcerr;
-  Arc::Logger logger;
 };
 
 std::ostream& operator<<(std::ostream& os, const std::list<std::string>& strings) {
@@ -89,9 +84,6 @@ void ARCJSDLParserTest::setUp() {
   INJOB.Application.Executable.Argument.push_back("arg1");
   INJOB.Application.Executable.Argument.push_back("arg2");
   INJOB.Application.Executable.Argument.push_back("arg3");
-
-  Arc::Logger::getRootLogger().addDestination(logcerr);
-  Arc::Logger::getRootLogger().setThreshold(Arc::WARNING);
 }
 
 void ARCJSDLParserTest::tearDown() {

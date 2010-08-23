@@ -43,10 +43,8 @@ class JDLParserTest
   CPPUNIT_TEST_SUITE_END();
 
 public:
-  JDLParserTest()
-    : logger(Arc::Logger::getRootLogger(), "JDLParserTest"),
-      logcerr(std::cout)
-    {}
+  JDLParserTest() {}
+
   void setUp();
   void tearDown();
   void TestExecutable();
@@ -65,9 +63,6 @@ private:
   Arc::JDLParser PARSER;
 
   std::string MESSAGE;
-
-  Arc::LogStream logcerr;
-  Arc::Logger logger;
 };
 
 std::ostream& operator<<(std::ostream& os, const std::list<std::string>& strings) {
@@ -87,9 +82,6 @@ void JDLParserTest::setUp() {
   INJOB.Application.Executable.Argument.push_back("arg1");
   INJOB.Application.Executable.Argument.push_back("arg2");
   INJOB.Application.Executable.Argument.push_back("arg3");
-
-  Arc::Logger::getRootLogger().addDestination(logcerr);
-  Arc::Logger::getRootLogger().setThreshold(Arc::WARNING);
 }
 
 void JDLParserTest::tearDown() {

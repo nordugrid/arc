@@ -44,10 +44,8 @@ class XRSLParserTest
   CPPUNIT_TEST_SUITE_END();
 
 public:
-  XRSLParserTest()
-    : logger(Arc::Logger::getRootLogger(), "XRSLParserTest"),
-      logcerr(std::cout)
-    {}
+  XRSLParserTest() {}
+
   void setUp();
   void tearDown();
   void TestExecutable();
@@ -67,9 +65,6 @@ private:
   Arc::XRSLParser PARSER;
 
   std::string MESSAGE;
-
-  Arc::LogStream logcerr;
-  Arc::Logger logger;
 };
 
 std::ostream& operator<<(std::ostream& os, const std::list<std::string>& strings) {
@@ -93,9 +88,6 @@ void XRSLParserTest::setUp() {
   std::ofstream f("executable", std::ifstream::trunc);
   f << "executable";
   f.close();
-
-  Arc::Logger::getRootLogger().addDestination(logcerr);
-  Arc::Logger::getRootLogger().setThreshold(Arc::WARNING);
 }
 
 void XRSLParserTest::tearDown() {
