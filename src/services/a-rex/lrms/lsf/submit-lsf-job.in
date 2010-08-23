@@ -32,6 +32,8 @@ pkglibdir=`cd $pkglibdir > /dev/null && pwd` || exit $?
 
 init $1
 
+read_arc_conf
+
 # enforce this 
 RUNTIME_FRONTEND_SEES_NODE='yes'
 RUNTIME_NODE_SEES_FRONTEND='yes'
@@ -291,7 +293,6 @@ cd_and_run
 ##############################################################
 #  End of RESULT checks
 ##############################################################
-echo "fi" >> $LRMS_JOB_SCRIPT
 echo "fi" >> $LRMS_JOB_SCRIPT
 
 ##############################################################
