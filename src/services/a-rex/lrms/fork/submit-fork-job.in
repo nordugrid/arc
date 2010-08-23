@@ -23,6 +23,8 @@ pkglibdir=`cd $pkglibdir > /dev/null && pwd` || exit $?
 ##############################################################
 init $1
 
+read_arc_conf
+
 RUNTIME_NODE_SEES_FRONTEND=yes
 
 ##############################################################
