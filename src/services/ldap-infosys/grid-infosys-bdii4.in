@@ -179,7 +179,6 @@ prog=grid-infosys
 debug=${debug:-0}
 
 config_set_defaults () {
-    CONFIG_user=`id -un`
     CONFIG_hostname=`hostname`
     CONFIG_port="2135"
     CONFIG_provider_loglevel=1
@@ -217,27 +216,24 @@ check_ownership () {
     fi
 }
 
-if [ "x$CONFIG_user" = "xroot" ] ; then
-    registrationlog=${CONFIG_registrationlog:-/var/log/inforegistration.log}
-    arc_runtime_config="/var/run/nordugrid"
-    mkdir -p ${arc_runtime_config}
-    check_ownership ${arc_runtime_config} root
-else
-    registrationlog=${CONFIG_registrationlog:-/var/tmp/${CONFIG_user}-inforegistration.log}
-    arc_runtime_config="/var/tmp/${CONFIG_user}-nordugrid"
-    if [ -d ${arc_runtime_config} ]; then
-        check_ownership ${arc_runtime_config} ${CONFIG_user}
-    else
-        mkdir -p ${arc_runtime_config}
-        chown ${CONFIG_user} ${arc_runtime_config}
-        check_ownership ${arc_runtime_config} ${CONFIG_user}
+get_ldap_user () {
+    ldap_user=`getent passwd | grep ldap | sed 's/\([az]*\):.*/\1/g'`
+    if [ ! "xldap" = "x$ldap_user" ] && [ ! "xopenldap" = "x$ldap_user" ]; then
+	debug_echo "Warning, could not find ldap or openldap user and no user specified in arc.conf"
+	debug_echo "resorting to using the root user."
+	ldap_user=root
     fi
-fi
+}
+
+# Get ldap user from passwd
+get_ldap_user
 
 # These values may be set in arc.conf, otherwise use sensible defaults
 
+bdii_user=${CONFIG_user:-$ldap_user}
 slapd_loglevel=${CONFIG_slapd_loglevel:-0}
 threads=${CONFIG_threads:-32}
+providerlog=${CONFIG_providerlog:-/var/log/infoprovider.log}
 
 bdii_location=${CONFIG_bdii_location:-/usr}
 giis_location=${CONFIG_giis_location:-$ARC_LOCATION}
@@ -259,7 +255,6 @@ bdii_default_ldif_ng=${bdii_tmp_dir}/arc-default.ldif.pl
 bdii_port_read=${CONFIG_port:-2135}
 bdii_ports_write="$(( $bdii_port_read + 1 )) $(( $bdii_port_read + 2 ))"
 
-bdii_user=${CONFIG_user:-root}
 bdii_bind="o=Grid"
 bdii_search_filter='*'
 bdii_search_timeout=${CONFIG_bdii_search_timeout:-30}
@@ -282,6 +277,28 @@ infosys_debug=${CONFIG_infosys_debug:-"disable"}
 bdii_infosys="no"
 if [ "x$infosys_debug" = "xenable" ]; then
     bdii_infosys="yes"
+fi
+
+# Check directories and permissions
+if [ "x$bdii_user" = "xroot" ] ; then
+    registrationlog=${CONFIG_registrationlog:-/var/log/inforegistration.log}
+    arc_runtime_config="/var/run/nordugrid"
+    mkdir -p ${arc_runtime_config}
+    check_ownership ${arc_runtime_config} root
+    check_ownership ${bdii_log_dir} root
+    check_ownership ${providerlog} root
+else
+    registrationlog=${CONFIG_registrationlog:-/var/tmp/${bdii_user}-inforegistration.log}
+    arc_runtime_config="/var/tmp/${bdii_user}-nordugrid"
+    if [ -d ${arc_runtime_config} ]; then
+        check_ownership ${arc_runtime_config} ${bdii_user}
+    else
+        mkdir -p ${arc_runtime_config}
+        chown ${bdii_user} ${arc_runtime_config}
+        check_ownership ${arc_runtime_config} ${bdii_user}
+    fi
+    check_ownership ${bdii_log_dir} ${bdii_user}
+    check_ownership ${providerlog} ${bdii_user}
 fi
 
 # Check for existance of core ldap schema
@@ -655,7 +672,6 @@ create_arc_ldif_generator () {
             config_set_defaults
             config_import_section common
             config_import_section infosys
-            providerlog=${CONFIG_providerlog:-/var/log/infoprovider.log}
             config_import_section cluster
             cachetime=${CONFIG_cachetime:-$bdii_breathe_time}
 
@@ -683,7 +699,6 @@ create_arc_ldif_generator () {
             config_set_defaults
             config_import_section common
             config_import_section infosys
-            providerlog=${CONFIG_providerlog:-/var/log/infoprovider.log}
             config_import_section se/$se
             cachetime=${CONFIG_cachetime:-$bdii_breathe_time}
 
@@ -1009,7 +1024,7 @@ start () {
 
     echo -n "Starting grid-infosys"
 
-    su - $bdii_user -c "
+    su -m $bdii_user -c "(
         export LANG=C
 
         #This is to make infoindex relocateable.
@@ -1017,7 +1032,7 @@ start () {
 
         ${bdii_update_cmd} ${BDII_CONF} &
         echo \$! > $PID_FILE
-    "
+    )"
 
     if [ $? = 0 ]; then
         success
@@ -1045,10 +1060,10 @@ stop () {
     fi
 
     #Try to term all slapd processes.
-    su - $bdii_user -c 'killall -15 bdii4-fwd bdii4-update' 2>/dev/null
+    su -m $bdii_user -c 'killall -15 bdii4-fwd bdii4-update' 2>/dev/null
     for port in $bdii_ports_write; do
         if [ -s ${bdii_var_dir}/${port}/slapd.pid ]; then
-            su - $bdii_user -c "kill -15 $(cat ${bdii_var_dir}/${port}/slapd.pid)" 2>/dev/null
+            su -m $bdii_user -c "kill -15 $(cat ${bdii_var_dir}/${port}/slapd.pid)" 2>/dev/null
         fi
     done
 
@@ -1057,10 +1072,10 @@ stop () {
     sleep 5
 
     #Send kill -9 to any remaining slapd processes.
-    su - $bdii_user -c 'killall -9 bdii4-fwd bdii4-update' 2>/dev/null
+    su -m $bdii_user -c 'killall -9 bdii4-fwd bdii4-update' 2>/dev/null
     for port in $bdii_ports_write; do
         if [ -s ${bdii_var_dir}/${port}/slapd.pid ]; then
-            su - $bdii_user -c "kill -9 $(cat ${bdii_var_dir}/${port}/slapd.pid)" 2>/dev/null
+            su -m $bdii_user -c "kill -9 $(cat ${bdii_var_dir}/${port}/slapd.pid)" 2>/dev/null
         fi
     done
 
