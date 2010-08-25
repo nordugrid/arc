@@ -456,6 +456,10 @@ sub queue_info ($$) {
 		 ($hoh_pbsnodes{$node}{'properties'} =~ m/$qname/ ||
 		  $hoh_pbsnodes{$node}{"properties"} =~ m/$$config{dedicated_node_string}/) ){
 		my $cpus;
+
+		next if $hoh_pbsnodes{$node}{'state'} =~ m/offline/;
+		next if $hoh_pbsnodes{$node}{'state'} =~ m/down/;
+
 		if ($hoh_pbsnodes{$node}{'np'}) {
 		    $cpus = $hoh_pbsnodes{$node}{'np'};
 		} elsif ($hoh_pbsnodes{$node}{'resources_available.ncpus'}) {
@@ -478,7 +482,11 @@ sub queue_info ($$) {
 	$lrms_queue{status} = $torque_freecpus;
 	$lrms_queue{status}=0 if $lrms_queue{status} < 0;
 
-	$lrms_queue{running} = $lrms_queue{totalcpus} - $lrms_queue{status};
+	if ( $qstat{state_count} =~ m/.*Running:([0-9]*).*/ ){
+	    $lrms_queue{running}=$1;
+	} else {
+	    $lrms_queue{running}=0;
+	}
 
 	if ($lrms_queue{totalcpus} eq 0) {
 	    warning("Can't determine number of cpus for queue $qname");
