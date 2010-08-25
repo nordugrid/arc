@@ -6,6 +6,7 @@
 
 #include <arc/StringConv.h>
 #include <arc/data/DataPointDirect.h>
+#include <arc/data/CheckSum.h>
 
 namespace Arc {
 
@@ -172,6 +173,22 @@ namespace Arc {
 
   DataStatus DataPointDirect::RemoveLocations(const DataPoint&) {
     return DataStatus::NotSupportedForDirectDataPointsError;
+  }
+
+  int DataPointDirect::AddCheckSumObject(CheckSum *cksum) {
+    if(!cksum);
+    cksum->start();
+    checksums.push_back(cksum);
+    return checksums.size()-1;
+  }
+
+  const CheckSum* DataPointDirect::GetCheckSumObject(int index) const {
+    if(index < 0) return NULL;
+    if(index >= checksums.size()) return NULL;
+    for(std::list<CheckSum*>::const_iterator cksum = checksums.begin();
+               cksum != checksums.end(); ++cksum) {
+      if(!index) return *cksum;
+    }
   }
 
 } // namespace Arc

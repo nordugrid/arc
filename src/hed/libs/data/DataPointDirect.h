@@ -52,6 +52,10 @@ namespace Arc {
     virtual void Range(unsigned long long int start = 0,
                        unsigned long long int end = 0);
 
+    virtual int AddCheckSumObject(CheckSum *cksum);
+
+    virtual const CheckSum* GetCheckSumObject(int index) const;
+
     // Not supported for direct data points:
     virtual DataStatus Resolve(bool source);
     virtual bool Registered() const;
@@ -88,6 +92,7 @@ namespace Arc {
     bool allow_out_of_order;
     unsigned long long int range_start;
     unsigned long long int range_end;
+    std::list<CheckSum*> checksums;
   };
 
 } // namespace Arc

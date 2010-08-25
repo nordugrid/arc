@@ -21,6 +21,7 @@ namespace Arc {
   class DataCallback;
   class UserConfig;
   class XMLNode;
+  class CheckSum;
 
   /// This base class is an abstraction of URL.
   /** Specializations should be provided for different kind of direct
@@ -335,6 +336,14 @@ namespace Arc {
 
     /// Remove locations present in another DataPoint object
     virtual DataStatus RemoveLocations(const DataPoint& p) = 0;
+
+    /// Add a checksum object which will compute checksum during transmission.
+    /// \param cksum object which will compute checksum. Should not be
+    /// destroyed till DataPointer itself.
+    /// \return integer position in the list of checksum objects.
+    virtual int AddCheckSumObject(CheckSum *cksum) = 0;
+
+    virtual const CheckSum* GetCheckSumObject(int index) const = 0;
 
     /// Sort locations according to the specified pattern.
     /// \param pattern a set of strings, separated by |, to match against.

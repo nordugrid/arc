@@ -459,6 +459,8 @@ namespace Arc {
       // doesn't have it at the moment since it might be available after start_reading().
 
       CheckSumAny crc;
+      CheckSumAny crc_source;
+      CheckSumAny crc_dest;
       std::string crc_type("");
 
       /***********************************************************************
@@ -499,6 +501,8 @@ namespace Arc {
 
       if (!crc_type.empty()) {
         crc = crc_type.c_str();
+        crc_source = crc_type.c_str();
+        crc_dest = crc_type.c_str();
         if (crc.Type() != CheckSumAny::none) logger.msg(VERBOSE, "DataMove::Transfer: will calculate %s checksum", crc_type);
       }
 
@@ -751,6 +755,7 @@ namespace Arc {
           }
         }
       }
+      source_url.AddCheckSumObject(&crc_source);
 
       DataStatus datares = source_url.StartReading(buffer);
       if (!datares.Passed()) {
@@ -811,6 +816,7 @@ namespace Arc {
       DataStatus read_failure = DataStatus::Success;
       DataStatus write_failure = DataStatus::Success;
       if (!cacheable) {
+        destination.AddCheckSumObject(&crc_dest);
         datares = destination.StartWriting(buffer);
         if (!datares.Passed()) {
           logger.msg(ERROR, "Failed to start writing to destination: %s",
@@ -831,6 +837,7 @@ namespace Arc {
       }
       else {
 #ifndef WIN32
+        chdest.AddCheckSumObject(&crc_dest);
         datares = chdest.StartWriting(buffer);
         if (!datares.Passed()) {
           // TODO: put callback to clean cache into FileCache
@@ -931,11 +938,21 @@ namespace Arc {
       // compare checksum. For uploads this is done in StopWriting, but we also
       // need to check here if the sum is given in meta attributes. For downloads
       // compare to the original source (if available).
-      if (crc) {
-        if (buffer.checksum_valid()) {
-          char buf[100];
-          crc.print(buf,100);
-          std::string calc_csum(buf);
+      std::string calc_csum;
+      if (crc && buffer.checksum_valid()) {
+        char buf[100];
+        crc.print(buf,100);
+        calc_csum = buf;
+      } else if(crc_source) {
+        char buf[100];
+        crc_source.print(buf,100);
+        calc_csum = buf;
+      } else if(crc_dest) {
+        char buf[100];
+        crc_dest.print(buf,100);
+        calc_csum = buf;
+      }
+      if (!calc_csum.empty()) {
           // compare calculated to any checksum given as a meta option
           if (!destination.GetURL().MetaDataOption("checksumtype").empty() &&
              !destination.GetURL().MetaDataOption("checksumvalue").empty() &&
@@ -978,10 +995,9 @@ namespace Arc {
               logger.msg(VERBOSE, "Calculated transfer checksum %s matches source checksum", calc_csum);
           }
           // set the destination checksum to be what we calculated
-          destination.SetCheckSum(buf);
-        }
-        else
-          logger.msg(VERBOSE, "Checksum invalid");
+          destination.SetCheckSum(calc_csum.c_str());
+      } else {
+          logger.msg(VERBOSE, "Checksum not computed");
       }
 
       destination.SetMeta(source); // pass more metadata (checksum)
