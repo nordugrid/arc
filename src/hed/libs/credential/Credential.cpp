@@ -74,7 +74,7 @@ namespace Arc {
     const char *prompt_info;
   } PW_CB_DATA;
 
-  static int passwordcb(char *buf, int bufsiz, int verify, PW_CB_DATA *cb_tmp) {
+  static int passwordcb(char *buf, int bufsiz, int verify, void *cb_tmp) {
     UI *ui = NULL;
     int res = 0;
     const char *prompt_info = NULL;
@@ -112,7 +112,7 @@ namespace Arc {
       prompt = UI_construct_prompt(ui, "pass phrase", cb_data->prompt_info);
 
       ui_flags |= UI_INPUT_FLAG_DEFAULT_PWD;
-      UI_ctrl(ui, UI_CTRL_PRINT_ERRORS, 1, 0, 0);
+//      UI_ctrl(ui, UI_CTRL_PRINT_ERRORS, 1, 0, 0);
 
       if (ok >= 0) {
         ok = -1;
@@ -131,6 +131,20 @@ namespace Arc {
       if (ok >= 0)
         do{
           ok = UI_process(ui);
+          if(ok == -2) break; // Abort request
+          if(ok == -1) { // Password error
+            unsigned long errcode = ERR_get_error();
+            const char* errstr = ERR_reason_error_string(errcode);
+            if(errstr == NULL) {
+              CredentialLogger.msg(Arc::ERROR, "error code %");
+            } else if(strstr(errstr,"result too small")) {
+              CredentialLogger.msg(Arc::ERROR, "Password is too short, need at least %u charcters", PASS_MIN_LENGTH);
+            } else if(strstr(errstr,"result too large")) {
+              CredentialLogger.msg(Arc::ERROR, "Password is too long, need at most %u characters", PASS_MAX_LENGTH);
+            } else {
+              CredentialLogger.msg(Arc::ERROR, "%s", errstr);
+            };
+          };
         }while (ok < 0 && UI_ctrl(ui, UI_CTRL_IS_REDOABLE, 0, 0, 0));
 
       if (buf2){
@@ -152,13 +166,12 @@ namespace Arc {
       }
 
       if (ok == -1){
-        std::cerr<<"User interface error\n"<<std::endl;
+        CredentialLogger.msg(Arc::ERROR, "User interface error");
         ERR_print_errors_cb(&ssl_err_cb, &CredentialLogger);
         if(buf) memset(buf,0,(unsigned int)bufsiz);
         res = 0;
       }
       if (ok == -2) {
-        std::cerr<<"Aborted!\n"<<std::endl;
         if(buf) memset(buf,0,(unsigned int)bufsiz);
         res = 0;
       }
@@ -245,7 +258,7 @@ namespace Arc {
       int position;
       if((position = BIO_tell(bio))<0 || BIO_read(bio, buf, 1)<=0 || BIO_seek(bio, position)<0) {
         LogError();
-        CredentialLogger.msg(ERROR,"Can't get the first byte of input BIO to get its format");
+        CredentialLogger.msg(ERROR,"Can't get the first byte of input to determine its format");
         return format;
       }
       firstbyte = buf[0];
@@ -259,7 +272,7 @@ namespace Arc {
         else { format = CRED_PKCS; PKCS12_free(pkcs12); }
         if( BIO_seek(bio, position) < 0 ) {
           LogError();
-          CredentialLogger.msg(ERROR,"Can't reset the BIO");
+          CredentialLogger.msg(ERROR,"Can't reset the input");
           return format;
         }
       }
@@ -540,14 +553,17 @@ namespace Arc {
         PW_CB_DATA cb_data;
         cb_data.password = (passphrase.empty()) ? NULL : (void*)(passphrase.c_str());
         cb_data.prompt_info = prompt_info.empty() ? NULL : prompt_info.c_str();
-        if(!(pkey = PEM_read_bio_PrivateKey(keybio, NULL, (pem_password_cb *)passwordcb, &cb_data))) {
+        if(!(pkey = PEM_read_bio_PrivateKey(keybio, NULL, passwordcb, &cb_data))) {
           int reason = ERR_GET_REASON(ERR_peek_error());
-          if(reason == PEM_R_BAD_BASE64_DECODE ||
-            reason == PEM_R_BAD_DECRYPT ||
-            reason == PEM_R_BAD_PASSWORD_READ ||
-            reason == PEM_R_PROBLEMS_GETTING_PASSWORD)
-            throw CredentialError("Can not read PEM private key: Bad password");
-          else throw CredentialError("Can not read PEM private key");
+          if(reason == PEM_R_BAD_BASE64_DECODE) 
+            throw CredentialError("Can not read PEM private key: probably bad password");
+          if(reason == PEM_R_BAD_DECRYPT)
+            throw CredentialError("Can not read PEM private key: failed to decrypt");
+          if(reason == PEM_R_BAD_PASSWORD_READ)
+            throw CredentialError("Can not read PEM private key: failed to obtain password");
+          if(reason == PEM_R_PROBLEMS_GETTING_PASSWORD)
+            throw CredentialError("Can not read PEM private key: failed to obtain password");
+          throw CredentialError("Can not read PEM private key");
         }
         break;
 
