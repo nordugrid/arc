@@ -1,3 +1,7 @@
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <string>
 #include <vector>
 
@@ -36,6 +40,7 @@ void result_callback(const std::string & attr,const std::string & value,void * r
 }
 
 int AuthUser::match_ldap(const char* line) {
+#ifdef HAVE_LDAP
   for(;;) {
     std::string u("");
     int n = gridftpd::input_escaped_string(line,u,' ','"');
@@ -75,4 +80,8 @@ int AuthUser::match_ldap(const char* line) {
     };
   };
   return AAA_NO_MATCH;
+#else
+  logger.msg(Arc::ERROR, "LDAP authorization is not supported");
+  return AAA_FAILURE
+#endif
 }

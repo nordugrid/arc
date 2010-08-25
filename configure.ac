@@ -1236,6 +1236,9 @@ else
   enables_ldap="no"
 fi
 AM_CONDITIONAL([LDAP_ENABLED], test x$LDAP = xyes)
+if test "x$LDAP" = "xyes"; then
+  AC_DEFINE(HAVE_LDAP,[],[Define if OpenLDAP is available])
+fi
 
 # Check for the uuid lib
 UUID_LIBS=""
