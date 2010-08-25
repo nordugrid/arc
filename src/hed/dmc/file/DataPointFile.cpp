@@ -23,6 +23,7 @@
 #include <arc/StringConv.h>
 #include <arc/data/DataBuffer.h>
 #include <arc/data/DataCallback.h>
+#include <arc/data/CheckSum.h>
 #include <arc/FileUtils.h>
 
 #ifdef WIN32
@@ -73,11 +74,16 @@ namespace Arc {
     bool limit_length = false;
     unsigned long long int range_length = 0;
     unsigned long long int offset = 0;
+    bool do_cksum = true;
     if (range_end > range_start) {
       range_length = range_end - range_start;
       limit_length = true;
       lseek(fd, range_start, SEEK_SET);
       offset = range_start;
+      if(offset > 0) {
+        // Note: checksum calculation not possible
+        do_cksum = false;
+      }
     }
     else
       lseek(fd, 0, SEEK_SET);
@@ -113,7 +119,19 @@ namespace Arc {
       }
       if (ll == 0) { /* eof */
         buffer->is_read(h, 0, 0);
+        if(do_cksum) {
+          for(std::list<CheckSum*>::iterator cksum = checksums.begin();
+                    cksum != checksums.end(); ++cksum) {
+            if(*cksum) (*cksum)->end();
+          }
+        }
         break;
+      }
+      if(do_cksum) {
+        for(std::list<CheckSum*>::iterator cksum = checksums.begin();
+                  cksum != checksums.end(); ++cksum) {
+          if(*cksum) (*cksum)->add((*(buffer))[h], ll);
+        }
       }
       /* 3. announce */
       buffer->is_read(h, ll, p);
@@ -134,7 +152,54 @@ namespace Arc {
     ((DataPointFile*)arg)->write_file();
   }
 
+  class write_file_chunks {
+   private:
+    typedef struct {
+      unsigned long long int start;
+      unsigned long long int end;
+    } chunk_t;
+    std::list<chunk_t> chunks;
+   public:
+    write_file_chunks(void) {
+    };
+    unsigned long long int eof(void) {
+      if(chunks.size() <= 0) return 0;
+      return (--(chunks.end()))->end;
+    };
+    unsigned long long int extends(void) {
+      if(chunks.size() <= 0) return 0;
+      return chunks.begin()->end;
+    };
+    void add(unsigned long long int start, unsigned long long int end) {
+      chunk_t c;
+      c.start = start;
+      c.end = end;
+      if(chunks.size() <= 0) {
+        chunks.push_back(c);
+        return;
+      };
+      for(std::list<chunk_t>::iterator chunk = chunks.begin();
+                  chunk != chunks.end();++chunk) {
+        if(end < chunk->start) {
+          chunks.insert(chunk,c);
+          break;
+        };
+        if(((start >= chunk->start) && (start <= chunk->end)) ||
+           ((end >= chunk->start) && (end <= chunk->end))) {
+          if(chunk->start < start) start = chunk->start;
+          if(chunk->end > end) end = chunk->end;
+          chunks.erase(chunk);
+          add(start,end);
+          break;
+        };
+      };
+    };
+  };
+
   void DataPointFile::write_file() {
+    unsigned long long int cksum_p = 0;
+    bool do_cksum = (checksums.size() > 0);
+    write_file_chunks cksum_chunks;
     for (;;) {
       /* take from buffer and write to fd */
       /* 1. claim buffer */
@@ -152,6 +217,37 @@ namespace Arc {
         buffer->is_written(h);
         buffer->eof_write(true);
         break;
+      }
+      if(do_cksum) {
+        cksum_chunks.add(p,p+l);
+        if(p == cksum_p) {
+          for(std::list<CheckSum*>::iterator cksum = checksums.begin();
+                    cksum != checksums.end(); ++cksum) {
+            if(*cksum) (*cksum)->add((*(buffer))[h], l);
+          }
+          cksum_p = p+l;
+        } else {
+          if(cksum_chunks.extends() > cksum_p) {
+            // from file
+            if(lseek(fd, cksum_p, SEEK_SET) == cksum_p) {
+              const unsigned int tbuf_size = 4096;
+              char* tbuf = new char[tbuf_size];
+              for(;cksum_chunks.extends() > cksum_p;) {
+                unsigned int l = tbuf_size;
+                if(l > (cksum_chunks.extends()-cksum_p))
+                  l=cksum_chunks.extends()-cksum_p;
+                int ll = read(fd,tbuf,l);
+                if(ll < 0) { do_cksum=false; break; };
+                for(std::list<CheckSum*>::iterator cksum = checksums.begin();
+                          cksum != checksums.end(); ++cksum) {
+                  if(*cksum) (*cksum)->add(tbuf, ll);
+                }
+                cksum_p += ll;
+              }
+              delete tbuf;
+            }
+          }
+        }
       }
       /* 2. write */
       lseek(fd, p, SEEK_SET);
@@ -183,6 +279,12 @@ namespace Arc {
       logger.msg(ERROR, "closing file %s failed: %s", url.Path(), strerror(errno));
       buffer->error_write(true);
     }    
+    if(do_cksum) {
+      for(std::list<CheckSum*>::iterator cksum = checksums.begin();
+                cksum != checksums.end(); ++cksum) {
+        if(*cksum) (*cksum)->end();
+      }
+    }
     transfer_cond.signal();
   }
 
