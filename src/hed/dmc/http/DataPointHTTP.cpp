@@ -497,9 +497,10 @@ namespace Arc {
     }
     transfer_lock.lock();
     while (transfers_started < started) {
-      transfer_lock.unlock();
-      sleep(1);
-      transfer_lock.lock();
+      Glib::TimeVal etime;
+      etime.assign_current_time();
+      etime.add_milliseconds(10000); // Just in case
+      transfer_cond.timed_wait(transfer_lock,etime);
     }
     transfer_lock.unlock();
     return DataStatus::Success;
@@ -512,9 +513,10 @@ namespace Arc {
     if (transfers_finished < transfers_started) {
       buffer->error_read(true);
       while (transfers_finished < transfers_started) {
-        transfer_lock.unlock();
-        sleep(1);
-        transfer_lock.lock();
+        Glib::TimeVal etime;
+        etime.assign_current_time();
+        etime.add_milliseconds(10000); // Just in case
+        transfer_cond.timed_wait(transfer_lock,etime);
       }
     }
     transfer_lock.unlock();
@@ -558,9 +560,10 @@ namespace Arc {
     }
     transfer_lock.lock();
     while (transfers_started < started) {
-      transfer_lock.unlock();
-      sleep(1);
-      transfer_lock.lock();
+      Glib::TimeVal etime;
+      etime.assign_current_time();
+      etime.add_milliseconds(10000); // Just in case
+      transfer_cond.timed_wait(transfer_lock,etime);
     }
     transfer_lock.unlock();
     return DataStatus::Success;
@@ -573,9 +576,10 @@ namespace Arc {
     if (transfers_finished < transfers_started) {
       buffer->error_write(true);
       while (transfers_finished < transfers_started) {
-        transfer_lock.unlock();
-        sleep(1);
-        transfer_lock.lock();
+        Glib::TimeVal etime;
+        etime.assign_current_time();
+        etime.add_milliseconds(10000); // Just in case
+        transfer_cond.timed_wait(transfer_lock,etime);
       }
     }
     transfer_lock.unlock();
@@ -627,6 +631,7 @@ namespace Arc {
     int retries = 0;
     point.transfer_lock.lock();
     ++(point.transfers_started);
+    point.transfer_cond.signal();
     point.transfer_lock.unlock();
     for (;;) {
       unsigned int transfer_size = 0;
@@ -778,6 +783,7 @@ namespace Arc {
     }
     point.transfer_lock.lock();
     ++(point.transfers_finished);
+    point.transfer_cond.signal();
     if (transfer_failure)
       point.buffer->error_read(true);
     if (point.transfers_finished == point.transfers_started)
@@ -796,6 +802,7 @@ namespace Arc {
     int retries = 0;
     point.transfer_lock.lock();
     ++(point.transfers_started);
+    point.transfer_cond.signal();
     point.transfer_lock.unlock();
     for (;;) {
       unsigned int transfer_size = 0;
@@ -855,6 +862,7 @@ namespace Arc {
     }
     point.transfer_lock.lock();
     ++(point.transfers_finished);
+    point.transfer_cond.signal();
     if (transfer_failure)
       point.buffer->error_write(true);
     if (point.transfers_finished == point.transfers_started) {

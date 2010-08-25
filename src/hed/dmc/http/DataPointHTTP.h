@@ -32,6 +32,7 @@ namespace Arc {
     int transfers_started;
     int transfers_finished;
     Glib::Mutex transfer_lock;
+    Glib::Cond transfer_cond;
   };
 
 } // namespace Arc
