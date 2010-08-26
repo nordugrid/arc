@@ -220,55 +220,67 @@ JDK_CFLAGS=
 AC_ARG_ENABLE(java, AC_HELP_STRING([--disable-java], [disable the Java binding]),
 [enables_java=$enableval],[])
 if test "$enables_java" = "yes"; then
-  AC_ARG_WITH(jdk, AC_HELP_STRING([--with-jdk=(JDK)], [path to SUN JDK. If unset the system JDK will be used]))
-  if test "X$with_jdk" != "X"; then
+  AC_ARG_WITH(jdk, AC_HELP_STRING([--with-jdk=(JDK)], [path to JDK. If unset the system JDK will be used]))
 
-    # user-specified SUN JDK
+  JPATH=
+  if test "x$with_jdk" != "x"; then
+    # User specified JDK!
+    JPATH=$with_jdk
+  else
+    # Look for system JDK.
+    for i in /usr/lib/jvm/java-*-openjdk /usr/lib/jvm/java-*-gcj* /usr/lib/jvm/java-*-sun*; do
+      if test -f $i/include/jni.h; then
+        JPATH=$i
+        break
+      fi
+    done
+  fi
 
-    JAVA="$with_jdk/bin/java"
-    JAVAC="$with_jdk/bin/javac"
-    JAR="$with_jdk/bin/jar"
-    JDK_CFLAGS="-I$with_jdk/include"
-    SUN_EXTRA_INCLUDE=
+  if test "x$JPATH" != "x"; then
+    JDK_CFLAGS="-I$JPATH/include"
+
+    # Any extra includes? Look for them.
+    JAVA_EXTRA_INCLUDE=
     case "${host}" in
-      *-pc-mingw32)
-        SUN_EXTRA_INCLUDE="win32"
-        ;;
-      *-pc-cygwin)
-        SUN_EXTRA_INCLUDE="win32"
+      *-pc-mingw32 | *-pc-cygwin)
+        JAVA_EXTRA_INCLUDE="win32"
         ;;
       *linux*)
-        SUN_EXTRA_INCLUDE="linux"
+        JAVA_EXTRA_INCLUDE="linux"
         ;;
       *solaris*)
-        SUN_EXTRA_INCLUDE="solaris"
+        JAVA_EXTRA_INCLUDE="solaris"
         ;;
     esac
-    JDK_CFLAGS="$JDK_CFLAGS $JDK_CFLAGS/$SUN_EXTRA_INCLUDE"
+    if test "x$JAVA_EXTRA_INCLUDE" != "x" && test -d $JPATH/include/$JAVA_EXTRA_INCLUDE; then
+      JDK_CFLAGS="$JDK_CFLAGS $JDK_CFLAGS/$JAVA_EXTRA_INCLUDE"
+    fi
 
     SAVE_CPPFLAGS=$CPPFLAGS
     CPPFLAGS="$CPPFLAGS $JDK_CFLAGS"
     AC_CHECK_HEADERS(jni.h,[jni_h="yes"],[jni_h="no"])
     CPPFLAGS=$SAVE_CPPFLAGS
 
-  else
-
-    # System JDK
-
-    AC_CHECK_HEADERS(jni.h JavaVM/jni.h,[jni_h="yes"; break],[jni_h="no"])
-
+    AC_CHECK_PROGS(JAVA, java gij, , $JPATH/bin)
+    AC_CHECK_PROGS(JAVAC, gcj javac ecj, , $JPATH/bin)
+    AC_CHECK_PROGS(JAR, fastjar jar, , $JPATH/bin)
+    break
   fi
 
-  AC_CHECK_PROGS(JAVA, java gij)
-  AC_CHECK_PROGS(JAVAC, gcj javac ecj)
-  AC_CHECK_PROGS(JAR, fastjar jar)
+  if test "x$with_jdk" = "x" && test "x$JDK_CFLAGS" = "x"; then
+    # If JDK was not found in any of the above locations try system locations.
+    AC_CHECK_HEADERS(jni.h JavaVM/jni.h,[jni_h="yes"; break],[jni_h="no"])
+    AC_CHECK_PROGS(JAVA, java gij)
+    AC_CHECK_PROGS(JAVAC, gcj javac ecj)
+    AC_CHECK_PROGS(JAR, fastjar jar)
+  fi
 
-  if test "X$JAVAC" != "X" && test "X`basename $JAVAC`" = "Xgcj"; then
+  if test "x$JAVAC" != "x" && test "x`basename $JAVAC`" = "xgcj"; then
     JAVAC_FLAGS=-C
   fi
 
   JAVAWRAP=no
-  if test -f java/arc_wrap.cpp || test "X$SWIG" != "X" ; then
+  if test -f java/arc_wrap.cpp || test "x$SWIG" != "x" ; then
     JAVAWRAP=yes
   fi
 
