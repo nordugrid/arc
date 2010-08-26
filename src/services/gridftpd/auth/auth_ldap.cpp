@@ -8,7 +8,9 @@
 #include <arc/URL.h>
 #include <arc/Logger.h>
 
+#ifdef HAVE_LDAP
 #include "../misc/ldapquery.h"
+#endif
 #include "../misc/escaped.h"
 #include "auth.h"
 
@@ -25,7 +27,7 @@ class result_t {
   result_t(const char* s):subject(s),decision(AAA_NO_MATCH) {};
 };
 
-void result_callback(const std::string & attr,const std::string & value,void * ref) {
+static void result_callback(const std::string & attr,const std::string & value,void * ref) {
   result_t* r = (result_t*)ref;
   if(r->decision != AAA_NO_MATCH) return;
   if(attr == "description") {
@@ -82,6 +84,6 @@ int AuthUser::match_ldap(const char* line) {
   return AAA_NO_MATCH;
 #else
   logger.msg(Arc::ERROR, "LDAP authorization is not supported");
-  return AAA_FAILURE
+  return AAA_FAILURE;
 #endif
 }
