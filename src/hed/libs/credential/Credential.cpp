@@ -136,7 +136,7 @@ namespace Arc {
             unsigned long errcode = ERR_get_error();
             const char* errstr = ERR_reason_error_string(errcode);
             if(errstr == NULL) {
-              CredentialLogger.msg(Arc::ERROR, "error code %");
+              CredentialLogger.msg(Arc::ERROR, "error code %lu",errcode);
             } else if(strstr(errstr,"result too small")) {
               CredentialLogger.msg(Arc::ERROR, "Password is too short, need at least %u charcters", PASS_MIN_LENGTH);
             } else if(strstr(errstr,"result too large")) {
