@@ -283,13 +283,23 @@ fi
 if [ "x$bdii_user" = "xroot" ] ; then
     registrationlog=${CONFIG_registrationlog:-/var/log/inforegistration.log}
     arc_runtime_config="/var/run/nordugrid"
+    arc_runtime_exec="/var/tmp/nordugrid"
     mkdir -p ${arc_runtime_config}
+    mkdir -p ${arc_runtime_exec}
+    mkdir -p ${bdii_log_dir}
     check_ownership ${arc_runtime_config} root
+    check_ownership ${arc_runtime_exec} root
+
+    chown root ${bdii_log_dir}
     check_ownership ${bdii_log_dir} root
+
+    touch ${providerlog}
+    chown root ${providerlog}
     check_ownership ${providerlog} root
 else
     registrationlog=${CONFIG_registrationlog:-/var/tmp/${bdii_user}-inforegistration.log}
-    arc_runtime_config="/var/tmp/${bdii_user}-nordugrid"
+    arc_runtime_config="/var/run/${bdii_user}-nordugrid"
+    arc_runtime_exec="/var/tmp/${bdii_user}-nordugrid"
     if [ -d ${arc_runtime_config} ]; then
         check_ownership ${arc_runtime_config} ${bdii_user}
     else
@@ -297,7 +307,20 @@ else
         chown ${bdii_user} ${arc_runtime_config}
         check_ownership ${arc_runtime_config} ${bdii_user}
     fi
+    if [ -d ${arc_runtime_exec} ]; then
+        check_ownership ${arc_runtime_exec} ${bdii_user}
+    else
+        mkdir -p ${arc_runtime_exec}
+        chown ${bdii_user} ${arc_runtime_exec}
+        check_ownership ${arc_runtime_exec} ${bdii_user}
+    fi
+
+    mkdir -p ${bdii_log_dir}
+    chown ${bdii_user} ${bdii_log_dir}
     check_ownership ${bdii_log_dir} ${bdii_user}
+
+    touch ${providerlog}
+    chown ${bdii_user} ${providerlog}
     check_ownership ${providerlog} ${bdii_user}
 fi
 
@@ -326,16 +349,16 @@ fi
 
 #This is the slapd command that should be used by bdii
 if [ "`config_subsections infosys/index`" ]; then
-    rm -f ${arc_runtime_config}/slapd
-    cat <<-EOF > ${arc_runtime_config}/slapd
+    rm -f ${arc_runtime_exec}/slapd
+    cat <<-EOF > ${arc_runtime_exec}/slapd
 	#!/bin/sh
 	LD_PRELOAD=${giis_location}/@pkglibsubdir@/arc-infoindex-slapd-wrapper.so setsid ${slapd_cmd} -d 0 "\$@" </dev/null 1>/dev/null 2>/dev/null &
 	sid=\$!
 	dir=\$(dirname \$2)
 	echo \$sid > \$dir/slapd.pid
 	EOF
-    chmod +x ${arc_runtime_config}/slapd
-    bdii_slapd_cmd=${arc_runtime_config}/slapd
+    chmod +x ${arc_runtime_exec}/slapd
+    bdii_slapd_cmd=${arc_runtime_exec}/slapd
 else
     bdii_slapd_cmd=${slapd_cmd}
 fi
@@ -434,13 +457,13 @@ if [ "x$infosys_glue12" = "xenable" ]; then
 fi
 
 # bdii-update.conf is put into nordugrid runtime directory
-bdii_update_conf=${CONFIG_bdii_update_conf:-/var/run/nordugrid/bdii-update.conf}
+bdii_update_conf=${CONFIG_bdii_update_conf:-$arc_runtime_config/bdii-update.conf}
 # bdii.conf is put into nordugrid runtime directory
 # together with other temporary files, needs to be exported so bdii can start
-BDII_CONF=${CONFIG_bdii_conf:-/var/run/nordugrid/bdii.conf}
+BDII_CONF=${CONFIG_bdii_conf:-$arc_runtime_config/bdii.conf}
 export BDII_CONF
 
-giis_fifo=${CONFIG_giis_fifo:-$arc_runtime_config/giis-fifo}
+giis_fifo=${CONFIG_giis_fifo:-$arc_runtime_exec/giis-fifo}
 
 # Call with: create_bdii_conf bdii_dir var_dir slapd_conf default_ldif port_read ports_write
 # Will create bdii.conf file in /var/run/nordugrid/bdii.conf
@@ -1029,6 +1052,9 @@ start () {
 
         #This is to make infoindex relocateable.
         export ARC_LDAPLIB_SHELL=$ldaplib/back_shell.so
+
+        # It should be irrelevant where you are standing where you start the script
+        cd /
 
         ${bdii_update_cmd} ${BDII_CONF} &
         echo \$! > $PID_FILE
