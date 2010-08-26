@@ -55,13 +55,13 @@ fi
 debug_echo () {
     if test $debug -gt 0; then
         info_string="`date +'%b %d %H:%M:%S'` `hostname` `basename $0`[$$]"
-        echo "${info_string} $*" >> /var/log/${prog}.log
+        echo "${info_string} $*" >> ${infosyslog}
     fi
 }
 
 error_echo () {
     info_string="`date +'%b %d %H:%M:%S'` `hostname` `basename $0`[$$]"
-    echo "${info_string} $*" >> /var/log/${prog}.log
+    echo "${info_string} $*" >> ${infosyslog}
 }
 
 do_exit_start () {
@@ -222,6 +222,12 @@ fi
 config_hide_all
 config_set_defaults
 config_import_section common
+
+# These must come from infosys section
+unset CONFIG_logfile
+unset CONFIG_user
+unset CONFIG_port
+
 config_import_section infosys
 
 debug=${CONFIG_debug:-$debug}
@@ -261,6 +267,7 @@ hostname=${CONFIG_hostname:-$hostname_f}
 slapd_hostnamebind=${CONFIG_slapd_hostnamebind:-$hostname}
 threads=${CONFIG_threads:-32}
 providerlog=${CONFIG_providerlog:-/var/log/infoprovider.log}
+infosyslog=${CONFIG_logfile:-/var/log/grid-infosys.log}
 
 bdii_location=${CONFIG_bdii_location:-/usr}
 giis_location=${CONFIG_giis_location:-$ARC_LOCATION}
