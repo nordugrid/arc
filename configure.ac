@@ -270,14 +270,13 @@ if test "$enables_java" = "yes"; then
   JAVAWRAP=no
   if test -f java/arc_wrap.cpp || test "X$SWIG" != "X" ; then
     JAVAWRAP=yes
-  else
-    AC_MSG_NOTICE([Missing pre-compiled Java wrapper or SWIG - skipping Java bindings])
   fi
 
   if test "x$jni_h" != "xyes"; then
     AC_MSG_NOTICE([Missing Java headers - skipping Java bindings])
     enables_java="no"
   elif test "x$JAVAWRAP" != "xyes"; then
+    AC_MSG_NOTICE([Missing pre-compiled Java wrapper or SWIG - skipping Java bindings])
     enables_java="no"
   elif test "x$JAVAC" == "x"; then
     AC_MSG_NOTICE([Missing Java compiler - skipping Java bindings])
@@ -818,7 +817,7 @@ AC_ARG_WITH(gacl,
     fi
   ]
 )
-AC_MSG_RESULT($GACL_LOCATION)  
+AC_MSG_RESULT($GACL_LOCATION)
 AC_SUBST(GACL_LOCATION)
 AM_CONDITIONAL(NG_GACL, test "x$gridsite" = "x")
 AM_CONDITIONAL(GRIDSITE_GACL, test "x$gridsite" != "x")
