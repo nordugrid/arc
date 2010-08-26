@@ -75,6 +75,11 @@ namespace Arc {
 
     virtual void Range(unsigned long long int start = 0,
                        unsigned long long int end = 0);
+
+    virtual int AddCheckSumObject(CheckSum *cksum);
+
+    virtual const CheckSum* GetCheckSumObject(int index) const;
+
   protected:
     bool resolved;
     bool registered;
