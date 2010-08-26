@@ -51,95 +51,168 @@ job description files describing the jobs to be submitted
 
 .SH EXTENDED DESCRIPTION
 
-The
-.B arcsub
-command is used for submitting jobs to grid enabled computing
-resources.
+\fBarcsub\fR is the key command when submitting jobs to grid enabled computing
+resources with the ARC client. As default \fBarcsub\fR is able to submit jobs to
+A-REX and CREAM computing elements (CEs), and as always for successful
+submission you need to be authenticated at the computing element. Since
+\fBarcsub\fR is build on a modular library, modules can be installed which
+enables submission to other targets, e.g. the classic ARC CE Grid-Manager.
 
-The
-.B --cluster
-option can be used to force the job to be submitted to a particular
-cluster, or to reject submission to a particular cluster. The
-.B --cluster
-option can be repeated several times. The name of the cluster should
-be given in the format
+Job submission can be accomplished by invoking the \fBarcsub\fR command
+with the \fB--cluster\fR option set to the target CE, and the job description
+file given as argument. The \fB--cluster\fR option should follow the
+format below:
+.br
+.ce
+\fB<middleware_flavor>:<URL>\fR
+.br
+where \fBmiddleware_flavor\fR specifies the CE type, e.g. for A-REX 'ARC1'
+should be used, 'CREAM' for CREAM and 'ARC0' for Grid-Manager, and <URL>
+specifies the information endpoint of the CE, including protocol (e.g. http,
+ldap, etc.). Multiple CEs can be targeted for submission by specifying the
+\fB--cluster\fB option multiple times, in which case the CEs will be ranked by
+the resource broker. If no \fB--cluster\fR or \fB--index\fR (see below) options
+have been specified, then the defaults, which is read from the configuration
+file (see the files section), will be used. That also makes it possible to
+define own defaults, so it makes it superfluous to specify the CE usually used
+for submission. In the same manner aliases, defined in the configuration file,
+can be utilized, and should be used as argument to the \fB--cluster\fR or
+\fB--index\fR options.
 
-.B Flavor:protocol://hostname[:port]/path
+Job descriptions can also be specified using the \fB--jobdescrfile\fR option
+which expect the file name of the description as argument, or the
+\fB--jobdescrstring\fR option which expect as argument a the job description as
+a string, and both options can be specified multiple times and one does not
+exclude the other. The default supported job description languages are XRSL,
+JSDL and JDL.
 
-.IR Examples :
-.IP "\fBarcsub -c ARC0:ldap://grid.nbi.dk:2135/nordugrid-cluster-name=grid.nbi.dk,Mds-Vo-name=local,o=grid -c ARC0:ldap://grid.tsl.uu.se:2135/nordugrid-cluster-name=grid.tsl.uu.se,Mds-Vo-name=local,o=grid\fR ..."
-submit the job to either grid.nbi.dk or grid.tsl.uu.se
-.IP "\fBarcsub -c -ARC0:ldap://quark.hep.lu.se:2135/nordugrid-cluster-name=quark.hep.lu.se,Mds-Vo-name=local,o=grid -c -ARC0:ldap://grid.nbi.dk:2135/nordugrid-cluster-name=grid.nbi.dk,Mds-Vo-name=local,o=grid\fR ..."
-don't submit the job to quark.hep.lu.se or grid.nbi.dk
-.LP
+If the job description is successfully submitted a job-ID is returned and
+printed. This job-ID uniquely identifies the job while it is being executed.
+On the other hand it is also possible that no CEs matches the constraints
+defined in the description in which case no submission will be done. Upon
+successful submission, the job-ID along with more technical job information is
+stored in the job-list file (described below). The stored information enables
+the job management commands of the ARC client to manage jobs easily, and thus
+the job-ID need not to be saved manually. By default the job-list file is
+stored in the .arc directory in the home directory of the user, however another
+location can be specified using the \fB--joblist\fR option taking the location
+of this file as argument. If the \fB--joblist\fR option was used during
+submission, it should also be specified in the consecutive commands when
+managing the job.
 
-The job description that describes the job can be given either on the
-command line using the \fB--jobdescrstring\fR option or be read from a
-file using the \fB--jobdescrfile\fR option. Several jobs can be
-requested at the same time by giving more than one
-\fB--jobdescrstring\fR or \fB--jobdescrfile\fR option. It is also
-possible to mix \fB--jobdescrstring\fR and \fB--jobdescrfile\fR options
-in the same \fBarcsub\fR command.
+Instead of directly targeting a CE for submission, using the \fB--cluster\fR
+option, an information index server can be specified with the \fB--index\fR
+option. Specifying one or multiple index servers instructs the \fBarcsub\fR
+command to query the servers for registered CEs, the returned CEs will then be
+matched against the job description and those matching will be ranked by the
+chosen broker (see below) and submission will be tried in order until
+successful or reaching the end. The format of the argument to the \fB--index\fR
+option follows the one for the \fB--cluster\fR option described above, however
+here \fBmiddleware_flavor\fR designates the type of information index
+server, e.g. for ISIS 'ARC1' should be used, 'CREAM' for BDII and 'ARC0' for
+GIIS. From the returned list of CEs it might happen that a troublesome or
+undesirable CE is selected for submission, in that case it possible to specify
+that cluster using the \fB--cluster\fR option and prepending the argument it
+with a '-', which will disregard that CE as a target for submission.
 
-If the job is successfully submitted a jobid is printed to
-stdout. This jobid uniquely identifies the job while it is being
-executed.
+When multiple CEs are targeted for submission, the resource broker will be used
+to rank the CEs. The broker used by default will rank the CEs randomly,
+however a different broker can be chosen by using the \fB--broker\fR option,
+which takes the name of the broker as argument. Two other brokers are
+by default available. The FastestQueue and Benchmark brokers. The former ranks
+CEs according to the length of the job queue at the CEs, ranking those with
+shortest queue first/highest. The latter ranks CEs according to a specified
+benchmark, which should be specified by appending the broker name with ':' and
+then the name of the benchmark. If no option is given to the Benchmark broker
+then CEs will be ranked according to the 'specint2000' benchmark. For examples
+see the respective section.
 
-Before submitting a job description to a target, it might get modified
-by \fB arcsub \fR to fit the chosen target. The modified job description
-can be printed to stdout by specifying the \fB --dumpdescription \fR
-option. The format of the printed job description cannot be specified,
-and will be that accepted by the chosen target.
+Before submission, \fBarcsub\fR performs an intelligent modification of the job
+description (adding or modifying attributes) ensuring that it is valid. The
+modified job description can be printed by specifying the
+\fB--dumpdescription\fR option. The format, i.e. job description language, of
+the printed job description cannot be specified, and will be that which will
+be sent to and accepted by the chosen target. Further information from
+\fBarcsub\fR can be obtained by increasing the verbosity, which is done with
+the \fB--debug\fR option where the default verbosity level is WARNING. Setting
+the level to DEBUG will show all messages, while setting it to FATAL will
+only show fatal log messages.
 
-Information about active jobs are stored in a local joblist file. By
-using the
-.B --joblist
-option a customized location for this file can be defined. If this
-option is used when submitting a job using
-.BR arcsub ,
-the same joblist
-file must be specified using the
-.B --joblist
-option for all subsequent handling of the job using
-.BR arcstat (1),
-.BR arcget (1),
-etc.
+.SH EXAMPLES
 
-The
-.B arcsub
-command locates the available clusters by querying information index
-servers. Which servers to query can be specified by giving the
-.B --index
-option to the command. The name of the index server should be given in
-the format
+Submission of a job description file "helloworld.jsdl" to the A-REX CE located
+at "example.com":
+.br
+\fBarcsub --cluster ARC1:https://example.com:60000/arex helloworld.jsdl\fR
 
-.B Flavor:protocol://hostname[:port]/path
+Similar submission to a CREAM CE:
+.br
+\fBarcsub --cluster CREAM:ldap://example.com:2170/o=grid helloworld.jsdl\fR
 
-.IR Example :
-.IP "\fBarcsub -i ARC0:ldap://index1.nordugrid.org:2135/Mds-Vo-name=NorduGrid,o=grid ..."
-use the NorduGrid index at index1.nordugrid.org
-.IP "\fBarcsub -i -ARC0:ldap://grid.tsl.uu.se:2135/Mds-Vo-name=Sweden,o=grid ..."
-do not use the Sweden index at grid.tsl.uu.se
+And if the "ARC0" module is installed submission to a Grid-Manager CE can be
+done as:
+.br
+\fBarcsub --cluster ARC0:ldap://example.com:2135/\\
+.br
+nordugrid-cluster-name=example.com,Mds-Vo-name=local,o=grid \\
+.br
+helloworld.jsdl\fR
+
+A ISIS information index server can also be queried for CEs to submit to:
+.br
+\fBarcsub --index ARC1:https://example.com/isis helloworld.jsdl\fR
+
+The job description can also be specified directly on the command line as shown
+in the example, using the XRSL job description language:
+.br
+\fBarcsub --cluster ARC1:https://example.com/arex --jobdescrstring \\
+.br
+\'&(executable="/bin/echo")(arguments="Hello World!")\'\fR
+
+When submitting against CEs retrieved from information index servers it might
+be useful to do resource brokering:
+.br
+\fBarcsub --index ARC1:https://example.com/isis --broker FastestQueue \\
+.br
+helloworld.jsdl\fR
+
+Disregarding a specific CE for submission submitting against an information
+index server:
+.br
+\fBarcsub --index ARC1:https://example.com/isis \\
+.br --cluster
+ARC1:https://badcomputingelement.com/arex helloworld.jsdl\fR
+
+Dumping the job description is done as follows:
+.br
+\fBarcsub --cluster ARC1:https://example.com/arex --dumpdescription \\
+.br
+helloworld.jsdl\fR
+
 
 .SH FILES
 
 .TP
 .B ~/.arc/client.conf
-Some options can be given default values by specifying them in the
-ARC client configuration file. By using the
-.B --conffile
-option a different configuration file can be used than the default.
+Some options can be given default values by specifying them in the ARC client
+configuration file. The default services can be specified by the
+'defaultservices' attribute, thus when no \fB--cluster\fR or \fB--index\fR
+options are given these will be used for submission. It is also possible to
+define aliases, and a alias can consist of multiple CEs and index servers. By
+using the \fB--conffile\fR option a different configuration file can be used
+than the default. Note that some installations also have a system client
+configuration file, however attributes in the client one takes precedence,
+and then command line options takes precedence over configuration file
+attributes.
 
 .TP
 .B ~/.arc/jobs.xml
-This a local list of the user's active jobs. When a job is
-successfully submitted it is added to this list and when it is removed
-from the remote cluster it is removed from this list. This list is
-used as the list of all active jobs when the user specifies the
-.B --all
-option to the various NorduGrid ARC user interface commands. By using the
-.B --joblist
-option a different file can be used than the default.
+This a local list of the user's active jobs. When a job is successfully
+submitted it is added to this list and when it is removed from the remote
+cluster it is removed from this list. This list is used as the list of all
+active jobs when the user specifies the \fB--all\fR option to the various
+NorduGrid ARC user interface commands. By using the \fB--joblist\fR option a
+different file can be used than the default.
 
 .SH ENVIRONMENT VARIABLES
 
