@@ -21,7 +21,6 @@ BEGIN {
 
 use Getopt::Long;
 use POSIX qw(ceil);
-use List::MoreUtils qw(uniq);
 use LogUtils ( 'start_logging', 'error', 'warning', 'debug' ); 
 use LRMS ( 'select_lrms',
 	   'cluster_info',
@@ -31,6 +30,11 @@ use LRMS ( 'select_lrms',
 use Shared ( 'print_ldif_data','post_process_config', 'get_gm_users', 'diskspace');
 use ConfigParser;
 use strict;
+
+# Uniq is not available from any standard libraries in Red Hat 4, therefore we implement it here.
+sub uniq (@) {
+    keys %{{ map { $_ => 1 } @_ }};
+}
 
 # Constructs queueldif, userldif and jobldif for NorduGrid Information System
 #
