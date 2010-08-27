@@ -933,6 +933,19 @@ create_bdii_config_files () {
 
 }
 
+# Print some information about where to find bdii logs
+notify_about_bdii () {
+    debug_echo "Nordugrid ARC as of version 0.8 uses BDII for"
+    debug_echo "information handling instead of the globus based infosys"
+    debug_echo "that was used before. The change is backwards compatible."
+    debug_echo "BDII writes logs here that you may want to check if something"
+    debug_echo "is not working: "
+    debug_echo " /var/log/bdii"
+    debug_echo "Also, if the BDII run-directory is here:"
+    debug_echo " /var/run/bdii"
+    debug_echo "That can also be worth checking up on if something is broken."
+}
+
 start () {
     # Check status
     if [ -f "${slapd_lock_file}" ] || [ -f "${update_lock_file}" ] ; then
@@ -947,6 +960,9 @@ start () {
             do_exit_start 0
         fi
     fi
+
+    # Print help-message about new logs
+    notify_about_bdii
 
     # Create directories for storing temporary scripts and check permissions etc
     create_directory $bdii_var_dir "BDII_VAR_DIR"

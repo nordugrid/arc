@@ -983,6 +983,17 @@ create_bdii_config_files () {
 
 }
 
+# Print some information about where to find bdii logs
+notify_about_bdii () {
+    debug_echo "Nordugrid ARC as of version 0.8 uses BDII for"
+    debug_echo "information handling instead of the globus based infosys"
+    debug_echo "that was used before. The change is backwards compatible."
+    debug_echo "BDII writes logs in two places, these might be worth checking"
+    debug_echo "if you encounter any problems."
+    debug_echo " /var/run/bdii4/tmp/stderr.log"
+    debug_echo " /var/log/bdii4"
+}
+
 start () {
 
     #Check to see if the process is already started
@@ -998,7 +1009,9 @@ start () {
         fi
     fi
 
-
+    # Print help-message about new logs
+    notify_about_bdii
+    
     # Create directories for storing temporary scripts and check permissions etc
     create_directory $bdii_var_dir "BDII_VAR_DIR"
     create_directory $bdii_tmp_dir "BDII_TMP_DIR"
