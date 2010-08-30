@@ -426,7 +426,9 @@ namespace Arc {
         continue;
       }
 
-      if (!it->State.IsFinished() &&
+      // The GM-log might be available before the job has started (middleware dependent).
+      if (whichfile != "gmlog" &&
+          !it->State.IsFinished() &&
           it->State != JobState::RUNNING &&
           it->State != JobState::FINISHING) {
         logger.msg(WARNING, "Job has not started yet: %s", it->JobID.str());
