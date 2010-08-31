@@ -55,7 +55,8 @@ class JobUser {
   std::string home;
   uid_t uid;
   gid_t gid;
-  jobinfo_share_t sharelevel;
+  uid_t share_uid;
+  gid_t share_gid;
   /* How long jobs are kept after job finished. This is 
      default and maximal value. */
   time_t keep_finished;
@@ -97,7 +98,7 @@ class JobUser {
   void SetReruns(int n) { reruns=n; };
   void SetDiskSpace(unsigned long long int n) { diskspace=n; };
   void SetStrictSession(bool v) { strict_session=v; };
-  void SetShareLevel(jobinfo_share_t s) { sharelevel=s; };
+  void SetShareID(uid_t suid,gid_t sgid) { share_uid=suid; share_gid=sgid; };
   bool CreateDirectories(void);
   bool is_valid(void) { return valid; };
   const std::string & ControlDir(void) const { return control_dir; };
@@ -112,7 +113,8 @@ class JobUser {
   time_t KeepFinished(void) const { return keep_finished; };
   time_t KeepDeleted(void) const { return keep_deleted; };
   bool StrictSession(void) const { return strict_session; };
-  jobinfo_share_t ShareLevel(void) const { return sharelevel; };
+  uid_t get_share_uid(void) const { return share_uid; };
+  uid_t get_share_gid(void) const { return share_gid; };
   uid_t get_uid(void) const { return uid; };
   gid_t get_gid(void) const { return gid; };
   int Reruns(void) const { return reruns; };

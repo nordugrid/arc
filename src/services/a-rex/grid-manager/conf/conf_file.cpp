@@ -596,13 +596,7 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
     if(pw != NULL) {
       if(pw->pw_uid != 0) {
         for(JobUsers::iterator user=users.begin();user!=users.end();++user) {
-          if(pw->pw_uid != user->get_uid()) {
-            if(pw->pw_gid != user->get_gid()) {
-              user->SetShareLevel(JobUser::jobinfo_share_group);
-            } else {
-              user->SetShareLevel(JobUser::jobinfo_share_all);
-            };
-          };
+          user->SetShareID(pw->pw_uid,pw->pw_gid);
         };
       };
     };

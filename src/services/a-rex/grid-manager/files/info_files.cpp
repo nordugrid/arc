@@ -62,7 +62,7 @@ const char * const sfx_diag        = ".diag";
 const char * const sfx_lrmsoutput  = ".comment";
 const char * const sfx_diskusage   = ".disk";
 const char * const sfx_acl         = ".acl";
-const char * const sfx_proxy         = ".proxy";
+const char * const sfx_proxy       = ".proxy";
 
 static Arc::Logger& logger = Arc::Logger::getRootLogger();
 
@@ -74,10 +74,11 @@ bool fix_file_permissions(const std::string &fname,bool executable) {
 
 static bool fix_file_permissions(const std::string &fname,const JobUser &user) {
   mode_t mode = S_IRUSR | S_IWUSR;
-  if(user.ShareLevel() == JobUser::jobinfo_share_group) {
+  if((user.get_share_uid() != 0) && (user.get_share_uid() != user.get_uid())) {
     mode |= S_IRGRP;
-  } else if(user.ShareLevel() == JobUser::jobinfo_share_all) {
-    mode |= S_IRGRP | S_IROTH;
+    if((user.get_share_gid() != 0) && (user.get_share_gid() != user.get_gid())) {
+      mode |= S_IROTH;
+    };
   };
   return (chmod(fname.c_str(),mode) == 0);
 }
