@@ -52,6 +52,11 @@ class CentralAHash:
         storecfg = cfg.Get('StoreCfg')
 
         try:
+            self.store_cache_ttl = int(cfg.Get('StoreCacheTTL'))
+        except:
+            self.store_cache_ttl = 20
+            
+        try:
             if not hasattr(self, "store"):
                 cl = import_class_from_string(storeclass)
         except:
@@ -118,19 +123,22 @@ class CentralAHash:
         """
         # prepare the dictionary which will hold the response
         response = {}
+        grouped_changes = {}
+
+        # lock the store to avoid inconsistency
+        self.store.lock()
+
+        store_cache = self.store_cache_ttl
         for (changeID, (ID, changeType, section, property, value, conditionList)) in changes.items():
-            # for each change in the changes list
-            # lock the store to avoid inconsistency
-            while not self.store.lock(blocking = False):
-                #print 'A-Hash cannot acquire lock, waiting...'
-                time.sleep(0.2)
             # prepare the 'success' of this change
             success = 'unknown'
             # prepare the 'conditionID' for an unmet condition
             unmetConditionID = ''
             try:
                 # get the current content of the object
-                obj = self.store.get(ID)
+                if not grouped_changes.has_key(ID):
+                    grouped_changes[ID] = self.store.get(ID)
+                obj = grouped_changes[ID]
                 # now check all the conditions if there is any
                 ok = True
                 for (conditionID, (conditionType, conditionSection,
@@ -167,20 +175,16 @@ class CentralAHash:
                     if changeType == 'set':
                         # sets the new value (overwrites old value of this (section, property))
                         obj[(section, property)] = value
-                        # store the changed object
-                        self.store.set(ID, obj)
                         # set the result of this change
                         success = 'set'
                     elif changeType == 'unset':
                         # removes the entry of (section, property)
                         del obj[(section, property)]
-                        # store the changed object
-                        self.store.set(ID, obj)
                         # set the result of this change
                         success = 'unset'
                     elif changeType == 'delete':
                         # remove the whole object
-                        self.store.set(ID, None)
+                        grouped_changes[ID] = {}
                         success = 'deleted'
                     else:
                         # there is no other changeType
@@ -191,10 +195,22 @@ class CentralAHash:
                 # if there was an exception, set this to failed
                 success = 'failed'
                 log.msg()
-            # we are done, release the lock
-            self.store.unlock()
             # append the result of the change to the response list
             response[changeID] = (success, unmetConditionID)
+            store_cache -= 1
+            if store_cache == 0:
+                store_cache = self.store_cache_ttl
+                for ID in grouped_changes.keys():
+                    self.store.set(ID, grouped_changes[ID])
+                    del(grouped_changes[ID])
+                # refresh the lock
+                self.store.unlock()
+                self.store.lock()
+                
+        for ID in grouped_changes.keys():
+            self.store.set(ID, grouped_changes[ID])
+        # we are done, release the lock
+        self.store.unlock()
         return response
 
 from arcom.xmltree import XMLTree
