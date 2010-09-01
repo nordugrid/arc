@@ -180,6 +180,51 @@ sub get_ncpus {
     return 1;
 }
 
+sub get_variable($$){
+    my $match = shift;
+    my $string = shift;
+    $string =~ m/(\w\s)*?$match\s?[=:] ((\w|\s|\/|,|.|:|;|\[|\]|\(|\)|-)*?)($| \w+=.*)/ ;
+    my $var = $2;
+    return $var;
+}
+sub read_qstat_f () {
+
+    unless ( open QSTAT_F, "qstat -f1 2>/dev/null |") {
+	error("Error in executing qstat");
+    }
+    
+    my $jobid="";
+    my %qstat_jobs;
+    while (<QSTAT_F>) {
+        my $string = $_;
+        if ($string =~ /Job Id/) {
+            $jobid= get_variable("Job Id", $string);
+        }
+        if ( $jobid == "" ) {
+            next;
+        }
+        if ($string =~ /Resource_List.nodes/){
+            $qstat_jobs{$jobid}{"Resource_List.nodes"}= get_variable("Resource_List.nodes",$string);
+        }
+        if ($string =~ /exec_host/){
+            $qstat_jobs{$jobid}{"exec_host"}= get_variable("exec_host",$string);
+        }
+        if ($string =~ /job_state/){
+            $qstat_jobs{$jobid}{"job_state"}= get_variable("job_state",$string);
+        }
+        if ($string =~ /Resource_List.select/){
+            $qstat_jobs{$jobid}{"Resource_List.select"}= get_variable("Resource_List.select",$string);
+        }
+        if ($string =~ /Resource_List.ncpus/){
+            $qstat_jobs{$jobid}{"Resource_List.ncpus"}= get_variable("Resource_List.ncpus",$string);
+        }
+    };
+    
+    close QSTAT_F;
+
+    return %qstat_jobs;
+}
+
 ############################################
 # Public subs
 #############################################
@@ -283,55 +328,26 @@ sub cluster_info ($) {
     # queued cpus, total number of cpus in all jobs
 
     $lrms_cluster{usedcpus} = 0;
-    my ($totalcpus) = 0;
+    $lrms_cluster{queuedcpus} = 0;
     $lrms_cluster{queuedjobs} = 0;
     $lrms_cluster{runningjobs} = 0;
-    unless (open QSTATOUTPUT,  "$path/qstat -n 2>/dev/null |") {
-	error("Error in executing qstat");
-    }
-    #This variable is used so we know what state the job is in when
-    #counting nodes
-    my $statusline;
-    while (my $line= <QSTATOUTPUT>) {       
-	if ( $line =~ m/^\d+/ ) {
-	    my ($jid, $user, $queue, $jname, $sid, $nds, $tsk, $reqmem,
-		$reqtime, $state, $etime) = split " ", $line;
-	    if ( $state eq "R" ) {
-		$lrms_cluster{runningjobs}++;
-	    } elsif( $state =~ /^(W|T|Q)$/){
-		$lrms_cluster{queuedjobs}++;
-	    }
-	    $statusline=$line;
+
+    my %qstat_jobs = read_qstat_f();
+
+    for my $key (keys %qstat_jobs){
+	if ( $qstat_jobs{$key}{job_state} =~ /R/){
+	    my $count;
+	    $lrms_cluster{runningjobs}++;
+	    ++$count while ( $qstat_jobs{$key}{exec_host} =~ /\//g);
+	    $lrms_cluster{usedcpus}+=$count;
 	}
-	#NOTE This does not take dedicated  nodes into account, is it possible to do that?
-	#     Should it do that?
-	#TODO Lines that are split funny will not be counted
-	#nodelist is of the format: nodename/cpunumber+nodename/cpunumber
-	elsif ( $line =~ m/\w*[a-zA-Z0-9]+\/[0-9]+/ ){
-	    #Count slashes to decide how many cpus are used.
-	    #Alternative way would be to get resource_list.nodes
-	    #from qstat -f, but that is also a free-format string
-	    #which can contain cumbersome attributes.
-	    my $count=0;
-	    $count++ while $line =~ /\//g;
-
-	    my ($jid, $user, $queue, $jname, $sid, $nds, $tsk, $reqmem,
-		$reqtime, $state, $etime) = split " ", $statusline;
-	    if ( $state eq "R" ){
-		$lrms_cluster{usedcpus} += $count;
-		$totalcpus+=$count;
-	    }
-	    elsif ($state =~ /^(W|T|Q)$/){
-		$totalcpus+=$count;
-	    }
-
+	if ( $qstat_jobs{$key}{job_state} =~ /(W|T|Q)/){
+        $lrms_cluster{queuedjobs}++;
+        $lrms_cluster{queuedcpus}+=count_usedcpus($qstat_jobs{$key}{"Resource_List.select"},
+						  $qstat_jobs{$key}{"Resource_List.nodes"},
+						  $qstat_jobs{$key}{"Resource_List.ncpus"});
 	}
     }
-
-    close QSTATOUTPUT;
-    $lrms_cluster{queuedcpus} = $totalcpus - $lrms_cluster{usedcpus};
-
-
 
     # Names of all LRMS queues
 
