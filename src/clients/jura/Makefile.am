@@ -5,6 +5,7 @@ jura_SOURCES  = main.cpp jura.h UsageReporter.cpp UsageReporter.h JobLogFile.cpp
 jura_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include -ggdb
 jura_LDADD    = $(top_srcdir)/src/hed/libs/common/libarccommon.la \
 	$(top_srcdir)/src/hed/libs/message/libarcmessage.la \
+        $(top_srcdir)/src/hed/libs/client/libarcclient_la-ClientInterface.lo \
 	$(GLIBMM_LIBS) $(LIBXML2_LIBS)
 
 man_MANS = jura.1

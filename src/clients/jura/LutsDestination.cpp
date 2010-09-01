@@ -6,6 +6,7 @@
 
 #include "jura.h"
 #include "arc/Utils.h"
+#include "arc/client/ClientInterface.h"
 #include <sstream>
 
 namespace Arc
@@ -16,14 +17,6 @@ namespace Arc
     usagerecordset(Arc::NS("","http://schema.ogf.org/urf/2003/09/urf"),
                    "UsageRecords")
   {
-    std::string dump;
-
-    //Set up the Client Message Chain:
-    Arc::NS ns;
-    ns[""]="http://www.nordugrid.org/schemas/ArcConfig/2007";
-    ns["tcp"]="http://www.nordugrid.org/schemas/ArcMCCTCP/2007";
-    clientchain.Namespaces(ns);
-
     //Get service URL, cert, key, CA path from job log file
     std::string serviceurl=joblog["loggerurl"];
     std::string certfile=joblog["certificate_path"];
@@ -44,6 +37,10 @@ namespace Arc
     if (cadir.empty())
       cadir=JURA_DEFAULT_CA_DIR;
 
+    cfg.AddCertificate(certfile);
+    cfg.AddPrivateKey(keyfile);
+    cfg.AddCADir(cadir);
+
     //  Tokenize service URL
     std::string host, port, endpoint;
     if (serviceurl.empty())
@@ -53,6 +50,7 @@ namespace Arc
     else
       {
         Arc::URL url(serviceurl);
+        service_url = url;
         if (url.Protocol()!="https")
           {
             logger.msg(Arc::ERROR, "Protocol is %s, should be https",
@@ -64,64 +62,6 @@ namespace Arc
         port=os.str();
         endpoint=url.Path();
       }
-
-#ifdef HAVE_CONFIG_H
-    //MCC module path(s):
-    clientchain.NewChild("ModuleManager").NewChild("Path")=
-      INSTPREFIX "/" LIBSUBDIR;
-    clientchain["ModuleManager"].NewChild("Path")=
-      INSTPREFIX "/" PKGLIBSUBDIR;
-#endif
-
-    //The protocol stack: SOAP over HTTP over SSL over TCP
-    clientchain.NewChild("Plugins").NewChild("Name")="mcctcp";
-    clientchain.NewChild("Plugins").NewChild("Name")="mcctls";
-    clientchain.NewChild("Plugins").NewChild("Name")="mcchttp";
-    clientchain.NewChild("Plugins").NewChild("Name")="mccsoap";
-
-
-    //The chain
-    Arc::XMLNode chain=clientchain.NewChild("Chain");
-    Arc::XMLNode component;
-  
-    //  TCP
-    component=chain.NewChild("Component");
-    component.NewAttribute("name")="tcp.client";
-    component.NewAttribute("id")="tcp";
-    Arc::XMLNode connect=component.NewChild("tcp:Connect");
-    connect.NewChild("tcp:Host")=host;
-    connect.NewChild("tcp:Port")=port;
-
-    //  TLS (SSL)
-    component=chain.NewChild("Component");
-    component.NewAttribute("name")="tls.client";
-    component.NewAttribute("id")="tls";
-    component.NewChild("next").NewAttribute("id")="tcp";
-    if (!certfile.empty())
-      component.NewChild("CertificatePath")=certfile;
-    if (!keyfile.empty())
-      component.NewChild("KeyPath")=keyfile;
-    if (!cadir.empty())
-      component.NewChild("CACertificatesDir")=cadir;
-  
-    //  HTTP
-    component=chain.NewChild("Component");
-    component.NewAttribute("name")="http.client";
-    component.NewAttribute("id")="http";
-    component.NewChild("next").NewAttribute("id")="tls";
-    component.NewChild("Method")="POST";
-    component.NewChild("Endpoint")=endpoint;
-  
-    //  SOAP
-    component=chain.NewChild("Component");
-    component.NewAttribute("name")="soap.client";
-    component.NewAttribute("id")="soap";
-    component.NewAttribute("entry")="soap";
-    component.NewChild("next").NewAttribute("id")="http";
-
-    clientchain.GetDoc(dump,true);
-    logger.msg(Arc::VERBOSE, "Client chain configuration: %s",
-               dump.c_str() );
 
     //Get Batch Size:
     //Default value:
@@ -212,76 +152,58 @@ namespace Arc
 
   Arc::MCC_Status LutsDestination::send_request(const std::string &urset)
   {
-    Arc::NS _empty_ns;
-    Arc::PayloadSOAP req(_empty_ns);
-    Arc::PayloadSOAP *resp=NULL;
-    Arc::Message inmsg,outmsg;
+    ClientHTTP httpclient(cfg, service_url);
+    //TODO: Absolute or relative url was in the configuration?
+    httpclient.RelativeURI(true);
 
-    //Create MCC loader. This also sets up TCP connection!
-    mccloader=new Arc::MCCLoader(clientchain);
-    //(and we also get a load of log entries)
-
-    soapmcc=(*mccloader)["soap"];
-    if (!soapmcc)
-    {
-      delete mccloader;
-      return Arc::MCC_Status(Arc::GENERIC_ERROR,
-                             "lutsclient",
-                             "No SOAP entry point in chain");
-    }
-
-    //TODO ws-addressing!
-
-    //Build request structure:
-    Arc::NS ns_wsrp("",
-     "http://docs.oasis-open.org/wsrf/2004/06/wsrf-WS-ResourceProperties-1.2-draft-01.xsd"
-                    );
-    Arc::XMLNode query=req.NewChild("QueryResourceProperties",ns_wsrp).
-                           NewChild("QueryExpression");
-    query.NewAttribute("Dialect")=
-      "http://www.sgas.se/namespaces/2005/06/publish/query";
-    query=urset;
-    //put into message:
-    inmsg.Payload(&req);
-
-    //Send
+    PayloadRaw http_request;
+    PayloadRawInterface *http_response = NULL;
+    HTTPClientInfo http_info;
+    std::multimap<std::string, std::string> http_attributes;
     Arc::MCC_Status status;
 
-    status=soapmcc->process(inmsg, outmsg);
+    //Message transformation
+    char mess[urset.length()];
+    strcpy(mess, urset.c_str());
 
-    //extract response:
+    //Add the message into the request
+    http_request.Insert(mess);
+    
     try
     {
-      resp=dynamic_cast<Arc::PayloadSOAP*>(outmsg.Payload());
-    }
+      //Send
+      status=httpclient.process("POST", http_attributes, &http_request, &http_info, &http_response);
+      logger.msg(Arc::DEBUG, 
+               "UsageRecords registration response: %s",
+               http_response->Content());
+     }
     catch (std::exception&) {}
 
-    if (resp==NULL)
+    if (http_response==NULL)
       {
-        //Unintelligible non-SOAP response
-        delete mccloader;
+        //Unintelligible non-HTTP response
         return Arc::MCC_Status(Arc::PROTOCOL_RECOGNIZED_ERROR,
                                "lutsclient",
-                               "Response not SOAP");
+                               "Response not HTTP");
       }
 
-    if (status && ! ((*resp)["QueryResourcePropertiesResponse"]))
+    if (status && ((std::string)http_response->Content()).substr(0,1) != "{" )
       {
-        // Status OK, but wrong response
-        std::string soapfault;
-        resp->GetDoc(soapfault,false);
+        // Status OK, but some error
+        std::string httpfault;
+        httpfault = http_response->Content();
 
-        delete mccloader;
+        delete http_response;
         return Arc::MCC_Status(Arc::PARSING_ERROR,
                "lutsclient",
                std::string(
-                 "No QueryResourcePropertiesResponse element in response: "
+                 "Response from the server: "
                            )+ 
-               soapfault
+               httpfault
                );
       }
-    
-    delete mccloader;
+  
+    delete http_response;  
     return status;
   }
 

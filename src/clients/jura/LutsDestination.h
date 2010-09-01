@@ -21,9 +21,8 @@ namespace Arc
   {
   private:
     Arc::Logger logger;
-    Arc::MCCLoader *mccloader;
-    Arc::MCC* soapmcc;
-    Arc::Config clientchain;
+    Arc::MCCConfig cfg;
+    Arc::URL service_url;
     /** Max number of URs to put in a set before submitting it */
     int max_ur_set_size;
     /** Actual number of usage records in set */
