@@ -65,7 +65,7 @@ namespace Arc {
 
           if (std::find(controllers.begin(), controllers.end(),
                         flavour) == controllers.end()) {
-            logger.msg(VERBOSE, "Need job controller for grid flavour %s",
+            logger.msg(VERBOSE, "Need job controller for Grid flavour %s",
                        flavour);
             controllers.push_back(flavour);
           }
@@ -76,7 +76,7 @@ namespace Arc {
     if (!usercfg.GetSelectedServices(COMPUTING).empty()) {
 
       logger.msg(VERBOSE, "Identifying needed job controllers according to "
-                 "specified clusters");
+                 "specified resources");
 
       for (URLListMap::const_iterator it = usercfg.GetSelectedServices(COMPUTING).begin();
            it != usercfg.GetSelectedServices(COMPUTING).end(); it++) {
@@ -91,7 +91,7 @@ namespace Arc {
             break;
 
           jobsFound = true;
-          logger.msg(VERBOSE, "Need job controller for grid flavour %s",
+          logger.msg(VERBOSE, "Need job controller for Grid flavour %s",
                      it->first);
           controllers.push_back(it->first);
         }
@@ -115,7 +115,7 @@ namespace Arc {
         if (std::find(controllers.begin(), controllers.end(),
                       (std::string)(*it)["Flavour"]) == controllers.end()) {
           std::string flavour = (*it)["Flavour"];
-          logger.msg(VERBOSE, "Need job controller for grid flavour %s",
+          logger.msg(VERBOSE, "Need job controller for Grid flavour %s",
                      flavour);
           controllers.push_back(flavour);
         }

@@ -52,7 +52,7 @@ int main(int argc, char **argv) {
 
   std::list<std::string> clusters;
   options.AddOption('c', "cluster",
-                    istring("explicitly select or reject a specific cluster"),
+                    istring("explicitly select or reject a specific resource"),
                     istring("[-]name"),
                     clusters);
 
@@ -74,7 +74,7 @@ int main(int argc, char **argv) {
 
   bool show_gmlog = false;
   options.AddOption('l', "gmlog",
-                    istring("show the grid manager's error log of the job"),
+                    istring("show the Grid Manager's error log of the job"),
                     show_gmlog);
 
   int timeout = -1;

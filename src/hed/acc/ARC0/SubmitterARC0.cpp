@@ -105,7 +105,7 @@ namespace Arc {
 
   URL SubmitterARC0::Migrate(const URL& jobid, const JobDescription& jobdesc,
                              const ExecutionTarget& et, bool forcemigration) const {
-    logger.msg(INFO, "Trying to migrate to %s: Migration to a ARC0 cluster is not supported.", et.url.str());
+    logger.msg(INFO, "Trying to migrate to %s: Migration to a ARC GM-powered resource is not supported.", et.url.str());
     return URL();
   }
 
@@ -191,7 +191,7 @@ namespace Arc {
     if (!jobdesc.Resources.RunTimeEnvironment.empty() &&
         !jobdesc.Resources.RunTimeEnvironment.selectSoftware(et.ApplicationEnvironments)) {
       // This error should never happen since RTE is checked in the Broker.
-      logger.msg(VERBOSE, "Unable to select run time environment");
+      logger.msg(VERBOSE, "Unable to select runtime environment");
       return false;
     }
 

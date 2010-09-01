@@ -42,9 +42,9 @@ int main(int argc, char **argv) {
 
   Arc::OptionParser options(istring("[job ...]"),
                             istring("The arcmigrate command is used for "
-                                    "migrating queued jobs to another cluster.\n"
+                                    "migrating queued jobs to another resource.\n"
                                     "Note that migration is only supported "
-                                    "between ARC1 clusters."));
+                                    "between A-REX powered resources."));
 
   bool all = false;
   options.AddOption('a', "all",
@@ -64,13 +64,13 @@ int main(int argc, char **argv) {
 
   std::list<std::string> clusters;
   options.AddOption('c', "cluster",
-                    istring("explicitly select or reject a cluster holding queued jobs"),
+                    istring("explicitly select or reject a resource holding queued jobs"),
                     istring("[-]name"),
                     clusters);
 
   std::list<std::string> qlusters;
   options.AddOption('q', "qluster",
-                    istring("explicitly select or reject a cluster to migrate to"),
+                    istring("explicitly select or reject a resource to migrate to"),
                     istring("[-]name"),
                     qlusters);
 
@@ -178,7 +178,7 @@ int main(int argc, char **argv) {
   targetGen.GetTargets(0, 1);
 
   if (targetGen.FoundTargets().empty()) {
-    std::cout << Arc::IString("Job migration aborted because no clusters returned any information") << std::endl;
+    std::cout << Arc::IString("Job migration aborted because no resource returned any information") << std::endl;
     return 1;
   }
 

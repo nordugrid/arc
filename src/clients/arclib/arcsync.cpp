@@ -39,7 +39,7 @@ int main(int argc, char **argv) {
   Arc::OptionParser options(" ",
                             istring("The arcsync command synchronizes your "
                                     "local job list with the information at\n"
-                                    "the given clusters or index servers."),
+                                    "the given resources or index servers."),
                             istring("Argument to -i has the format "
                                     "Flavour:URL e.g.\n"
                                     "ARC0:ldap://grid.tsl.uu.se:2135/"
@@ -55,7 +55,7 @@ int main(int argc, char **argv) {
 
   std::list<std::string> clusters;
   options.AddOption('c', "cluster",
-                    istring("explicitly select or reject a specific cluster"),
+                    istring("explicitly select or reject a specific resource"),
                     istring("[-]name"),
                     clusters);
 
@@ -78,7 +78,7 @@ int main(int argc, char **argv) {
 
   bool truncate = false;
   options.AddOption('T', "truncate",
-                    istring("truncate the joblist before sync"),
+                    istring("truncate the joblist before synchronizing"),
                     truncate);
 
   int timeout = -1;

@@ -32,7 +32,7 @@ int main(int argc, char **argv) {
   Arc::Logger::getRootLogger().setThreshold(Arc::WARNING);
 
   //Arc::ArcLocation::Init(argv[0]);
-  Arc::OptionParser options(istring("url [query]"),
+  Arc::OptionParser options(istring("URL [query]"),
                             istring("The arcwsrf command is used for "
                                     "obtaining the WS-ResourceProperties of\n"
                                     "services."));
@@ -116,7 +116,7 @@ int main(int argc, char **argv) {
   if(!query.empty()) {
     XMLNode q(query);
     if(!q) {
-      logger.msg(Arc::ERROR, "Query is not valid XML");
+      logger.msg(Arc::ERROR, "Query is not a valid XML");
       return 1;
     }
     request = new InformationRequest(q);
@@ -160,7 +160,7 @@ int main(int argc, char **argv) {
   std::string o;
   resp->Body().Child().GetXML(o);
   if(resp->IsFault()) {
-    logger.msg(Arc::ERROR, "SOAP Fault received");
+    logger.msg(Arc::ERROR, "SOAP fault received");
     std::cerr<<o<<std::endl;
     return 1;
   }

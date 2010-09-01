@@ -58,13 +58,13 @@ int main(int argc, char **argv) {
 
   std::list<std::string> clusters;
   options.AddOption('c', "cluster",
-                    istring("explicitly select or reject a specific cluster"),
+                    istring("explicitly select or reject a specific resource"),
                     istring("[-]name"),
                     clusters);
 
   std::list<std::string> qlusters;
   options.AddOption('q', "qluster",
-                    istring("explicitly select or reject a specific cluster "
+                    istring("explicitly select or reject a specific resource "
                             "for the new job"),
                     istring("[-]name"),
                     qlusters);
@@ -82,7 +82,7 @@ int main(int argc, char **argv) {
 
   bool same = false;
   options.AddOption('m', "same",
-                    istring("resubmit to the same cluster"),
+                    istring("resubmit to the same resource"),
                     same);
 
   std::list<std::string> status;
@@ -223,7 +223,7 @@ int main(int argc, char **argv) {
   targen.GetTargets(0, 1);
 
   if (targen.FoundTargets().empty()) {
-    std::cout << Arc::IString("Job submission aborted because no clusters returned any information") << std::endl;
+    std::cout << Arc::IString("Job submission aborted because no resource returned any information") << std::endl;
     return 1;
   }
 

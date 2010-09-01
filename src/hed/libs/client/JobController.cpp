@@ -54,7 +54,7 @@ namespace Arc {
 
     if (!jobids.empty()) {
       logger.msg(VERBOSE, "Filling job store with jobs according to "
-                 "specified jobids");
+                 "specified jobIDs");
 
       for (std::list<URL>::const_iterator it = jobids.begin();
            it != jobids.end(); it++) {
@@ -63,7 +63,7 @@ namespace Arc {
           jobstorage.XPathLookup("//Job[JobID='" + it->str() + "']", NS());
 
         if (xmljobs.empty()) {
-          logger.msg(VERBOSE, "Job not found in job list: %s", it->str());
+          logger.msg(VERBOSE, "Job not found in the job list: %s", it->str());
           continue;
         }
 
@@ -96,8 +96,8 @@ namespace Arc {
     if (itSelectedClusters != usercfg.GetSelectedServices(COMPUTING).end() &&
         !itSelectedClusters->second.empty()) {
       const std::list<URL>& selectedClusters = itSelectedClusters->second;
-      logger.msg(VERBOSE, "Filling job store with jobs according to list of "
-                 "selected clusters");
+      logger.msg(VERBOSE, "Filling job store with jobs according to the list of "
+                 "selected resources");
 
       XMLNodeList xmljobs =
         jobstorage.XPathLookup("//Job[Flavour='" + flavour + "']", NS());
@@ -138,14 +138,14 @@ namespace Arc {
         const std::list<URL>& rejectedClusters = itRejectedClusters->second;
 
         logger.msg(VERBOSE, "Removing jobs from job store according to list of "
-                   "rejected clusters");
+                   "rejected resources");
 
         std::list<Job>::iterator it = jobstore.begin();
         while (it != jobstore.end())
           if (std::find(rejectedClusters.begin(), rejectedClusters.end(),
                         it->Cluster) != rejectedClusters.end()) {
             logger.msg(VERBOSE, "Removing job %s from job store since it runs "
-                       "on a rejected cluster", it->JobID.str());
+                       "on a rejected resource", it->JobID.str());
             it = jobstore.erase(it);
           }
           else
@@ -154,7 +154,7 @@ namespace Arc {
 
     if (jobids.empty() && usercfg.GetSelectedServices(COMPUTING).empty()) {
       logger.msg(VERBOSE, "Filling job store with all jobs, except those "
-                 "running on rejected clusters");
+                 "running on rejected resources");
 
       const std::list<URL>* rejectedClusters = (itRejectedClusters == usercfg.GetRejectedServices(COMPUTING).end() ? NULL : &itRejectedClusters->second);
 
@@ -208,7 +208,7 @@ namespace Arc {
     }
 
     if (!job.Cluster) {
-      logger.msg(WARNING, "The cluster URL is not a valid URL", job.Cluster.str());
+      logger.msg(WARNING, "The resource URL is not a valid URL", job.Cluster.str());
       return;
     }
 
@@ -453,7 +453,7 @@ namespace Arc {
       int tmp_h = Glib::mkstemp(filename);
       if (tmp_h == -1) {
         logger.msg(INFO, "Could not create temporary file \"%s\"", filename);
-        logger.msg(ERROR, "Cannot output %s for job (%s)", whichfile, (*it)->JobID.str());
+        logger.msg(ERROR, "Cannot create output of %s for job (%s)", whichfile, (*it)->JobID.str());
         ok = false;
         continue;
       }
@@ -463,13 +463,13 @@ namespace Arc {
 
       URL src = GetFileUrlForJob((**it), whichfile);
       if (!src) {
-        logger.msg(ERROR, "Cannot output %s for job (%s): Invalid source %s", whichfile, (*it)->JobID.str(), src.str());
+        logger.msg(ERROR, "Cannot create output of %s for job (%s): Invalid source %s", whichfile, (*it)->JobID.str(), src.str());
         continue;
       }
 
       URL dst(filename);
       if (!dst) {
-        logger.msg(ERROR, "Cannot output %s for job (%s): Invalid destination %s", whichfile, (*it)->JobID.str(), dst.str());
+        logger.msg(ERROR, "Cannot create output of %s for job (%s): Invalid destination %s", whichfile, (*it)->JobID.str(), dst.str());
         continue;
       }
 
@@ -504,7 +504,7 @@ namespace Arc {
         if (Time() - it->LocalSubmissionTime < 90)
           logger.msg(WARNING, "This job was very recently "
                      "submitted and might not yet "
-                     "have reached the information-system");
+                     "have reached the information system");
         continue;
       }
 
@@ -529,7 +529,7 @@ namespace Arc {
         if (Time() - it->LocalSubmissionTime < 90)
           logger.msg(WARNING, "This job was very recently "
                      "submitted and might not yet "
-                     "have reached the information-system");
+                     "have reached the information system");
         continue;
       }
 
@@ -809,11 +809,11 @@ namespace Arc {
 
     //First try to get descriptions from local job file
     if (getlocal) {
-      logger.msg(VERBOSE, "Getting job decriptions from local job file");
+      logger.msg(VERBOSE, "Getting job descriptions from local job file");
       CheckLocalDescription(gettable);
     }
     else
-      logger.msg(VERBOSE, "Disregarding job decriptions from local job file");
+      logger.msg(VERBOSE, "Disregarding job descriptions from local job file");
 
     // Try to get description from cluster
     for (std::list<Job>::iterator it = gettable.begin();
@@ -855,9 +855,9 @@ namespace Arc {
 
         // Check for valid job description
         if (jobdesc)
-          logger.msg(VERBOSE, "Valid jobdescription found for: %s", it->JobID.str());
+          logger.msg(VERBOSE, "Valid job description found for: %s", it->JobID.str());
         else {
-          logger.msg(INFO, "Invalid jobdescription found for: %s", it->JobID.str());
+          logger.msg(INFO, "Invalid job description found for: %s", it->JobID.str());
           it++;
           continue;
         }

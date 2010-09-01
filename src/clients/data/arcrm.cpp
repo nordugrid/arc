@@ -50,7 +50,7 @@ bool arcrm(const Arc::URL& file_url,
 
   Arc::DataHandle url(file_url, usercfg);
   if (!url) {
-    logger.msg(Arc::ERROR, "Unsupported url given");
+    logger.msg(Arc::ERROR, "Unsupported URL given");
     return false;
   }
   // only one try

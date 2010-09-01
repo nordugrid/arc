@@ -31,7 +31,7 @@ int main(int argc, char **argv) {
 
   Arc::OptionParser options(istring("[job ...]"),
                             istring("The arcclean command removes a job "
-                                    "from the remote cluster."),
+                                    "from the computing resource."),
                             istring("Argument to -c has the format "
                                     "Flavour:URL e.g.\n"
                                     "ARC0:ldap://grid.tsl.uu.se:2135/"
@@ -51,7 +51,7 @@ int main(int argc, char **argv) {
 
   std::list<std::string> clusters;
   options.AddOption('c', "cluster",
-                    istring("explicitly select or reject a specific cluster"),
+                    istring("explicitly select or reject a specific resource"),
                     istring("[-]name"),
                     clusters);
 

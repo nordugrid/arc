@@ -59,14 +59,14 @@ int AuthUser::match_ldap(const char* line) {
       try {
         ldap.Query(url.Path(),"",attrs,gridftpd::LdapQuery::onelevel);
       } catch (gridftpd::LdapQueryError e) {
-        logger.msg(Arc::ERROR, "Failed to query ldap server %s", u);
+        logger.msg(Arc::ERROR, "Failed to query LDAP server %s", u);
         return AAA_FAILURE;
       };
       result_t r(subject.c_str());
       try {
         ldap.Result(&result_callback,&r) ;
       } catch (gridftpd::LdapQueryError e) {
-        logger.msg(Arc::ERROR, "Failed to get results from ldap server %s", u);
+        logger.msg(Arc::ERROR, "Failed to get results from LDAP server %s", u);
         return AAA_FAILURE;
       };
       if(r.decision==AAA_POSITIVE_MATCH) {  // just a placeholder

@@ -276,7 +276,7 @@ namespace Arc {
 
   void ExecutionTarget::Print(bool longlist) const {
 
-    std::cout << IString("Cluster: %s", DomainName) << std::endl;
+    std::cout << IString("Resource: %s", DomainName) << std::endl;
     if (!HealthState.empty())
       std::cout << IString(" Health State: %s", HealthState) << std::endl;
 
@@ -349,7 +349,7 @@ namespace Arc {
         std::cout << IString(" Implementation Name: %s", (std::string)Implementation)
                   << std::endl;
       if (!QualityLevel.empty())
-        std::cout << IString(" QualityLevel: %s", QualityLevel) << std::endl;
+        std::cout << IString(" Quality Level: %s", QualityLevel) << std::endl;
       if (!HealthState.empty())
         std::cout << IString(" Health State: %s", HealthState) << std::endl;
       if (!HealthStateInfo.empty())
@@ -436,7 +436,7 @@ namespace Arc {
         std::cout << IString(" Max Waiting Jobs: %i", MaxWaitingJobs)
                   << std::endl;
       if (MaxPreLRMSWaitingJobs != -1)
-        std::cout << IString(" Max Pre LRMS Waiting Jobs: %i",
+        std::cout << IString(" Max Pre-LRMS Waiting Jobs: %i",
                              MaxPreLRMSWaitingJobs) << std::endl;
       if (MaxUserRunningJobs != -1)
         std::cout << IString(" Max User Running Jobs: %i", MaxUserRunningJobs)

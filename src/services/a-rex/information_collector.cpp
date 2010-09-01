@@ -41,17 +41,17 @@ void ARexService::InformationCollector(void) {
       run.AssignStdin(stdin_str);
       run.AssignStdout(xml_str);
       run.AssignStderr(stderr_str);
-      logger_.msg(Arc::DEBUG,"Cluster information provider: %s",cmd);
+      logger_.msg(Arc::DEBUG,"Resource information provider: %s",cmd);
       if(!run.Start()) {
       };
       if(!run.Wait(infoprovider_wakeup_period_*10)) {
-        logger_.msg(Arc::WARNING,"Cluster information provider timeout: %u seconds",
+        logger_.msg(Arc::WARNING,"Resource information provider timeout: %u seconds",
                     infoprovider_wakeup_period_*10);
       } else {
         r = run.Result();
-        if (r!=0) logger_.msg(Arc::WARNING,"Cluster information provider failed with exit status: %i",r);
+        if (r!=0) logger_.msg(Arc::WARNING,"Resource information provider failed with exit status: %i",r);
       };
-      logger_.msg(Arc::DEBUG,"Cluster information provider log:\n%s",stderr_str);
+      logger_.msg(Arc::DEBUG,"Resource information provider log:\n%s",stderr_str);
     };
     if (r!=0) {
       logger_.msg(Arc::DEBUG,"No new informational document assigned");

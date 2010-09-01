@@ -76,7 +76,7 @@ static void tls_process_error(Arc::Logger& logger) {
   unsigned long err;
   err = ERR_get_error();
   if (err != 0) {
-    logger.msg(Arc::ERROR, "OpenSSL Error -- %s", ERR_error_string(err, NULL));
+    logger.msg(Arc::ERROR, "OpenSSL error -- %s", ERR_error_string(err, NULL));
     logger.msg(Arc::ERROR, "Library  : %s", ERR_lib_error_string(err));
     logger.msg(Arc::ERROR, "Function : %s", ERR_func_error_string(err));
     logger.msg(Arc::ERROR, "Reason   : %s", ERR_reason_error_string(err));
@@ -157,35 +157,35 @@ int main(int argc, char *argv[]) {
                                     "  proxyPolicyFile=policy file"));
 
   std::string proxy_path;
-  options.AddOption('P', "proxy", istring("path to proxy file"),
+  options.AddOption('P', "proxy", istring("path to the proxy file"),
                     istring("path"), proxy_path);
 
   std::string cert_path;
-  options.AddOption('C', "cert", istring("path to certificate file"),
+  options.AddOption('C', "cert", istring("path to the certificate file"),
                     istring("path"), cert_path);
 
   std::string key_path;
-  options.AddOption('K', "key", istring("path to private key file"),
+  options.AddOption('K', "key", istring("path to the private key file"),
                     istring("path"), key_path);
 
   std::string ca_dir;
-  options.AddOption('T', "cadir", istring("path to trusted certificate directory, only needed for voms client functionality"),
+  options.AddOption('T', "cadir", istring("path to the trusted certificate directory, only needed for the VOMS client functionality"),
                     istring("path"), ca_dir);
 
   std::string vomses_path;
-  options.AddOption('V', "vomses", istring("path to voms server configuration file"),
+  options.AddOption('V', "vomses", istring("path to the VOMS server configuration file"),
                     istring("path"), vomses_path);
 
   std::list<std::string> vomslist;
-  options.AddOption('S', "voms", istring("voms<:command>. Specify voms server (More than one voms server \n"
+  options.AddOption('S', "voms", istring("voms<:command>. Specify VOMS server (More than one VOMS server \n"
                                          "              can be specified like this: --voms VOa:command1 --voms VOb:command2). \n"
                                          "              :command is optional, and is used to ask for specific attributes(e.g: roles)\n"
-                                         "              command option is:\n"
+                                         "              command options are:\n"
                                          "              all --- put all of this DN's attributes into AC; \n"
-                                         "              list ---list all of the DN's attribute,will not create AC extension; \n"
+                                         "              list ---list all of the DN's attribute, will not create AC extension; \n"
                                          "              /Role=yourRole --- specify the role, if this DN \n"
                                          "                               has such a role, the role will be put into AC \n"
-                                         "              /voname/groupname/Role=yourRole --- specify the vo,group and role if this DN \n"
+                                         "              /voname/groupname/Role=yourRole --- specify the VO, group and role; if this DN \n"
                                          "                               has such a role, the role will be put into AC \n"
                                          ),
                     istring("string"), vomslist);
@@ -194,7 +194,7 @@ int main(int argc, char *argv[]) {
   options.AddOption('o', "order", istring("group<:role>. Specify ordering of attributes \n"
                     "              Example: --order /knowarc.eu/coredev:Developer,/knowarc.eu/testers:Tester \n"
                     "              or: --order /knowarc.eu/coredev:Developer --order /knowarc.eu/testers:Tester \n"
-                    " Note that it does not make sense to specify the order if you have two or more different voms server specified"),
+                    " Note that it does not make sense to specify the order if you have two or more different VOMS servers specified"),
                     istring("string"), orderlist);
 
   bool use_gsi_comm = false;
@@ -205,29 +205,29 @@ int main(int argc, char *argv[]) {
 
   bool info = false;
   options.AddOption('I', "info", istring("print all information about this proxy. \n"
-                                         "              In order to show the Identity (DN without CN as subfix for proxy) \n"
+                                         "              In order to show the Identity (DN without CN as suffix for proxy) \n"
                                          "              of the certificate, the 'trusted certdir' is needed."
                                          ),
                     info);
 
-  std::string user_name; //user name to myproxy server
-  options.AddOption('U', "user", istring("username to myproxy server"),
+  std::string user_name; //user name to MyProxy server
+  options.AddOption('U', "user", istring("username to MyProxy server"),
                     istring("string"), user_name);
 
   std::string passphrase; //passphrase to myproxy server
-//  options.AddOption('R', "pass", istring("passphrase to myproxy server"),
+//  options.AddOption('R', "pass", istring("passphrase to MyProxy server"),
 //                    istring("string"), passphrase);
 
-  std::string myproxy_server; //url of myproxy server
-  options.AddOption('L', "myproxysrv", istring("hostname[:port] of myproxy server"),
+  std::string myproxy_server; //url of MyProxy server
+  options.AddOption('L', "myproxysrv", istring("hostname[:port] of MyProxy server"),
                     istring("string"), myproxy_server);
 
   std::string myproxy_command; //command to myproxy server
-  options.AddOption('M', "myproxycmd", istring("command to myproxy server. The command can be PUT and GET.\n"
-                                               "              PUT/put -- put a delegated credential to myproxy server; \n"
-                                               "              GET/get -- get a delegated credential from myproxy server, \n"
+  options.AddOption('M', "myproxycmd", istring("command to MyProxy server. The command can be PUT or GET.\n"
+                                               "              PUT/put -- put a delegated credential to the MyProxy server; \n"
+                                               "              GET/get -- get a delegated credential from the MyProxy server, \n"
                                                "              credential (certificate and key) is not needed in this case. \n"
-                                               "              myproxy functionality can be used together with voms\n"
+                                               "              MyProxy functionality can be used together with VOMS\n"
                                                "              functionality.\n"
                                                ),
                     istring("string"), myproxy_command);
@@ -362,7 +362,7 @@ int main(int argc, char *argv[]) {
   if (ca_dir.empty()) {
     logger.msg(Arc::ERROR, "Cannot find the CA Certificate Directory path, "
                "please setup environment X509_CERT_DIR, "
-               "or cacertificatesdirectory in configuration file");
+               "or cacertificatesdirectory in a configuration file");
     return EXIT_FAILURE;
   }
 
@@ -375,7 +375,7 @@ int main(int argc, char *argv[]) {
     if (proxy_path.empty()) {
       logger.msg(Arc::ERROR, "Cannot find the path of the proxy file, "
                  "please setup environment X509_USER_PROXY, "
-                 "or proxypath in configuration file");
+                 "or proxypath in a configuration file");
       return EXIT_FAILURE;
     }
     else if (!(Glib::file_test(proxy_path, Glib::FILE_TEST_EXISTS))) {
@@ -408,11 +408,11 @@ int main(int argc, char *argv[]) {
     if (cert_path.empty())
       logger.msg(Arc::ERROR, "Cannot find the user certificate path, "
                  "please setup environment X509_USER_CERT, "
-                 "or certificatepath in configuration file");
+                 "or certificatepath in a configuration file");
     if (key_path.empty())
       logger.msg(Arc::ERROR, "Cannot find the user private key path, "
                  "please setup environment X509_USER_KEY, "
-                 "or keypath in configuration file");
+                 "or keypath in a configuration file");
     return EXIT_FAILURE;
   }
 
@@ -478,11 +478,11 @@ int main(int argc, char *argv[]) {
   try {
     if (myproxy_command == "get" || myproxy_command == "GET") {
       if (myproxy_server.empty())
-        throw std::invalid_argument("URL of myproxy server is missing");
+        throw std::invalid_argument("URL of MyProxy server is missing");
       if (user_name.empty())
-        throw std::invalid_argument("Username to myproxy server is missing");
+        throw std::invalid_argument("Username to MyProxy server is missing");
 //      if (passphrase.empty())
-//        throw std::invalid_argument("Passphrase to myproxy server is missing");
+//        throw std::invalid_argument("Passphrase to MyProxy server is missing");
       std::string prompt1 = "MyProxy server";
       char password[256];
       int res = input_password(password, 256, false, prompt1, "", logger);
@@ -670,7 +670,7 @@ int main(int argc, char *argv[]) {
       for (std::multimap<std::string, std::string>::iterator it = server_command_map.begin();
            it != server_command_map.end(); it++)
         if (matched_voms_line.find((*it).first) == matched_voms_line.end())
-          logger.msg(Arc::ERROR, "Cannot get voms server %s information from file: %s",
+          logger.msg(Arc::ERROR, "Cannot get VOMS server %s information from file: %s",
                      (*it).first, vomses_path);
 
       //Contact the voms server to retrieve attribute certificate
@@ -688,7 +688,7 @@ int main(int argc, char *argv[]) {
         voms_server = (*it).first;
         voms_line = (*it).second;
         int count = server_command_map.count(voms_server);
-        logger.msg(Arc::DEBUG, "There are %d commands to the same voms server %s", count, voms_server);
+        logger.msg(Arc::DEBUG, "There are %d commands to the same VOMS server %s", count, voms_server);
 
         std::multimap<std::string, std::string>::iterator command_it;
         for(command_it = server_command_map.equal_range(voms_server).first; command_it!=server_command_map.equal_range(voms_server).second; ++command_it) {
@@ -699,8 +699,8 @@ int main(int argc, char *argv[]) {
         for (int i = 0; i < 3; i++) {
           p = voms_line.find("\"", p);
           if (p == std::string::npos) {
-            logger.msg(Arc::ERROR, "Cannot get voms server address information from voms line: \"%s\"", voms_line);
-            throw std::runtime_error("Cannot get voms server address information from voms line: \"" + voms_line + "\"");
+            logger.msg(Arc::ERROR, "Cannot get VOMS server address information from vomses line: \"%s\"", voms_line);
+            throw std::runtime_error("Cannot get VOMS server address information from vomses line: \"" + voms_line + "\"");
           }
           p = p + 1;
         }
@@ -750,7 +750,7 @@ int main(int argc, char *argv[]) {
         for(std::list<std::string>::iterator o_it = orderlist.begin(); o_it != orderlist.end(); o_it++) {
           ordering.append(o_it == orderlist.begin() ? "" : ",").append(*o_it);
         }
-        logger.msg(Arc::VERBOSE, "Try to get attribute from voms server with order: %s", ordering);
+        logger.msg(Arc::VERBOSE, "Try to get attribute from VOMS server with order: %s", ordering);
         send_msg.append("<order>").append(ordering).append("</order>");
 
         send_msg.append("<lifetime>").append(voms_period).append("</lifetime></voms>");
@@ -766,7 +766,7 @@ int main(int argc, char *argv[]) {
           return EXIT_FAILURE;
         }
         if (!response) {
-          logger.msg(Arc::ERROR, "No stream response from voms server");
+          logger.msg(Arc::ERROR, "No stream response from VOMS server");
           return EXIT_FAILURE;
         }
         std::string ret_str;
@@ -779,12 +779,12 @@ int main(int argc, char *argv[]) {
           ret_str.append(ret_buf, len);
           memset(ret_buf, 0, 1024);
         } while (len == 1024);
-        logger.msg(Arc::VERBOSE, "Returned message from voms server: %s", ret_str);
+        logger.msg(Arc::VERBOSE, "Returned message from VOMS server: %s", ret_str);
         Arc::XMLNode node(ret_str);
 
         if (ret_str.find("error") != std::string::npos) {
           std::string str = node["error"]["item"]["message"];
-          throw std::runtime_error("Cannot get any AC or attributes info from voms server: " + voms_server + ";\n       Returned msg from voms server: " + str);
+          throw std::runtime_error("Cannot get any AC or attributes info from VOMS server: " + voms_server + ";\n       Returned message from VOMS server: " + str);
         }
 
         //Put the return attribute certificate into proxy certificate as the extension part
@@ -806,7 +806,7 @@ int main(int argc, char *argv[]) {
         if (command == "list") {
           //logger.msg(Arc::INFO, "The attribute information from voms server: %s is list as following:\n%s",
           //           voms_server, decodedac);
-          std::cout << Arc::IString("The attribute information from voms server: %s is list as following", voms_server) << std::endl << decodedac;
+          std::cout << Arc::IString("The attribute information from VOMS server: %s is list as following", voms_server) << std::endl << decodedac;
           if (response)
             delete response;
           return EXIT_SUCCESS;
@@ -855,9 +855,9 @@ int main(int argc, char *argv[]) {
   try {
     if (myproxy_command == "put" || myproxy_command == "PUT") {
       if (myproxy_server.empty())
-        throw std::invalid_argument("URL of myproxy server is missing");
+        throw std::invalid_argument("URL of MyProxy server is missing");
       if (user_name.empty())
-        throw std::invalid_argument("Username to myproxy server is missing");
+        throw std::invalid_argument("Username to MyProxy server is missing");
 //      if (passphrase.empty())
 //        throw std::invalid_argument("Passphrase to myproxy server is missing");
       std::string prompt1 = "MyProxy server";

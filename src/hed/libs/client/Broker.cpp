@@ -74,7 +74,7 @@ namespace Arc {
           }
         }
         else {
-          logger.msg(VERBOSE, "Neither URL or ComputingShareName is reported by the cluster");
+          logger.msg(VERBOSE, "Neither URL or ComputingShareName is reported by the resource");
           continue;
         }
       }
@@ -392,7 +392,7 @@ namespace Arc {
     std::list<ExecutionTarget*>::iterator iter = PossibleTargets.begin();
 
     for (int i = 1; iter != PossibleTargets.end(); iter++, i++) {
-      logger.msg(VERBOSE, "%d. Cluster: %s; Queue: %s", i, (*iter)->DomainName, (*iter)->ComputingShareName);
+      logger.msg(VERBOSE, "%d. Resource: %s; Queue: %s", i, (*iter)->DomainName, (*iter)->ComputingShareName);
       logger.msg(VERBOSE, "Health State: %s", (*iter)->HealthState);
     }
 

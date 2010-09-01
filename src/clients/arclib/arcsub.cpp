@@ -43,7 +43,7 @@ int main(int argc, char **argv) {
 
   Arc::OptionParser options(istring("[filename ...]"),
                             istring("The arcsub command is used for "
-                                    "submitting jobs to grid enabled "
+                                    "submitting jobs to Grid enabled "
                                     "computing\nresources."),
                             istring("Argument to -i has the format "
                                     "Flavour:URL e.g.\n"
@@ -60,7 +60,7 @@ int main(int argc, char **argv) {
 
   std::list<std::string> clusters;
   options.AddOption('c', "cluster",
-                    istring("explicitly select or reject a specific cluster"),
+                    istring("explicitly select or reject a specific resource"),
                     istring("[-]name"),
                     clusters);
 
@@ -234,7 +234,7 @@ int main(int argc, char **argv) {
   targen.GetTargets(0, 1);
 
   if (targen.FoundTargets().empty()) {
-    std::cout << Arc::IString("Job submission aborted because no clusters returned any information") << std::endl;
+    std::cout << Arc::IString("Job submission aborted because no resource returned any information") << std::endl;
     return 1;
   }
 
@@ -274,7 +274,7 @@ int main(int argc, char **argv) {
       if (dumpdescription) {
         Arc::JobDescription jobdescdump(*it);
         if (!submitter->ModifyJobDescription(jobdescdump, *target)) {
-          std::cout << "Unable to modify job description according to needs for target cluster." << std::endl;
+          std::cout << "Unable to modify job description according to needs of the target resource." << std::endl;
           return 1;
         }
 

@@ -30,10 +30,10 @@ int main(int argc, char **argv) {
 
   Arc::ArcLocation::Init(argv[0]);
 
-  Arc::OptionParser options(istring("[cluster ...]"),
+  Arc::OptionParser options(istring("[resource ...]"),
                             istring("The arcinfo command is used for "
-                                    "obtaining the status of clusters "
-                                    "on the grid."),
+                                    "obtaining the status of computing "
+                                    "resources on the Grid."),
                             istring("Argument to -i has the format "
                                     "Flavour:URL e.g.\n"
                                     "ARC0:ldap://grid.tsl.uu.se:2135/"
@@ -49,7 +49,7 @@ int main(int argc, char **argv) {
 
   std::list<std::string> clusters;
   options.AddOption('c', "cluster",
-                    istring("explicitly select or reject a specific cluster"),
+                    istring("explicitly select or reject a specific resource"),
                     istring("[-]name"),
                     clusters);
 

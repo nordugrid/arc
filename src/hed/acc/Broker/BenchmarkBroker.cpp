@@ -94,11 +94,11 @@ namespace Arc {
     iter = PossibleTargets.begin();
 
     for (int i = 1; iter != PossibleTargets.end(); iter++, i++)
-      logger.msg(VERBOSE, "%d. Cluster: %s; Queue: %s", i, (*iter)->DomainName, (*iter)->ComputingShareName);
+      logger.msg(VERBOSE, "%d. Resource: %s; Queue: %s", i, (*iter)->DomainName, (*iter)->ComputingShareName);
 
     cmp Cmp(benchmark);
 
-    logger.msg(VERBOSE, "Cluster will be ranked according to the %s benchmark scenario", benchmark);
+    logger.msg(VERBOSE, "Resource will be ranked according to the %s benchmark scenario", benchmark);
 
     PossibleTargets.sort(sigc::mem_fun(Cmp, &cmp::ComparePerformance));
 
@@ -107,7 +107,7 @@ namespace Arc {
     iter = PossibleTargets.begin();
 
     for (int i = 1; iter != PossibleTargets.end(); iter++, i++)
-      logger.msg(VERBOSE, "%d. Cluster: %s; Queue: %s", i, (*iter)->DomainName, (*iter)->ComputingShareName);
+      logger.msg(VERBOSE, "%d. Resource: %s; Queue: %s", i, (*iter)->DomainName, (*iter)->ComputingShareName);
 
     TargetSortingDone = true;
 

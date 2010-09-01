@@ -57,7 +57,7 @@ namespace Arc {
     logger.msg(VERBOSE, "FastestQueueBroker will rank the following %d targets", PossibleTargets.size());
     iter = PossibleTargets.begin();
     for (int i = 1; iter != PossibleTargets.end(); iter++, i++)
-      logger.msg(VERBOSE, "%d. Cluster: %s; Queue: %s", i, (*iter)->DomainName, (*iter)->ComputingShareName);
+      logger.msg(VERBOSE, "%d. Resource: %s; Queue: %s", i, (*iter)->DomainName, (*iter)->ComputingShareName);
 
     //Sort the targets according to the number of waiting jobs (in % of the cluster size)
     PossibleTargets.sort(CompareExecutionTarget);
@@ -95,7 +95,7 @@ namespace Arc {
     iter = PossibleTargets.begin();
 
     for (int i = 1; iter != PossibleTargets.end(); iter++, i++)
-      logger.msg(VERBOSE, "%d. Cluster: %s; Queue: %s", i, (*iter)->DomainName, (*iter)->ComputingShareName);
+      logger.msg(VERBOSE, "%d. Resource: %s; Queue: %s", i, (*iter)->DomainName, (*iter)->ComputingShareName);
 
     TargetSortingDone = true;
 

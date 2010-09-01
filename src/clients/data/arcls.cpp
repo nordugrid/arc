@@ -52,7 +52,7 @@ bool arcls(const Arc::URL& dir_url,
 
   Arc::DataHandle url(dir_url, usercfg);
   if (!url) {
-    logger.msg(Arc::ERROR, "Unsupported url given");
+    logger.msg(Arc::ERROR, "Unsupported URL given");
     return false;
   }
   std::list<Arc::FileInfo> files;

@@ -179,7 +179,7 @@ Service_PythonWrapper::Service_PythonWrapper(Arc::Config *cfg):RegisteredService
     // Load arc module
     arc_module = PyImport_Import(py_arc_module_name);
     if (arc_module == NULL) {
-        logger.msg(Arc::ERROR, "Cannot import arc module");
+        logger.msg(Arc::ERROR, "Cannot import ARC module");
         if (PyErr_Occurred()) PyErr_Print();
         Py_DECREF(py_arc_module_name);
         return;
@@ -518,7 +518,7 @@ bool Service_PythonWrapper::RegistrationCollector(Arc::XMLNode& doc) {
     // arc_xmlnode_klass is a borrowed reference
     PyObject *arc_xmlnode_klass = PyDict_GetItemString(arc_dict, "XMLNode");
     if (arc_xmlnode_klass == NULL) {
-        logger.msg(Arc::ERROR, "Cannot find arc XMLNode class");
+        logger.msg(Arc::ERROR, "Cannot find ARC XMLNode class");
         if (PyErr_Occurred()) PyErr_Print();
         return false;
     }

@@ -83,7 +83,7 @@ namespace Arc {
   URL SubmitterBES::Migrate(const URL& jobid, const JobDescription& jobdesc,
                              const ExecutionTarget& et,
                              bool forcemigration) const {
-    logger.msg(INFO, "Trying to migrate to %s: Migration to a BES cluster is not supported.", et.url.str());
+    logger.msg(INFO, "Trying to migrate to %s: Migration to a BES resource is not supported.", et.url.str());
     return URL();
   }
 

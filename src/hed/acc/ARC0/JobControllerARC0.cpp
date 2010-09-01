@@ -71,7 +71,7 @@ namespace Arc {
       DataBuffer buffer;
 
       if (!handler) {
-        logger.msg(INFO, "Can't create information handle - is the ARC ldap DMC plugin available?");
+        logger.msg(INFO, "Can't create information handle - is the ARC LDAP DMC plugin available?");
         return;
       }
 
@@ -221,7 +221,7 @@ namespace Arc {
       src.ChangePath(srcpath + *it);
       dst.ChangePath(dstpath + *it);
       if (!ARCCopyFile(src, dst)) {
-        logger.msg(INFO, "Failed dowloading %s to %s", src.str(), dst.str());
+        logger.msg(INFO, "Failed downloading %s to %s", src.str(), dst.str());
         ok = false;
       }
     }
@@ -350,7 +350,7 @@ namespace Arc {
     std::string urlstr = job.JobID.str();
     std::string::size_type pos = urlstr.rfind('/');
     if (pos == std::string::npos || pos == 0) {
-      logger.msg(INFO, "Illegal jobid specified");
+      logger.msg(INFO, "Illegal jobID specified");
       return false;
     }
     std::string jobnr = urlstr.substr(pos + 1);
@@ -424,11 +424,11 @@ namespace Arc {
   bool JobControllerARC0::GetJobDescription(const Job& job, std::string& desc_str) {
 
     std::string jobid = job.JobID.str();
-    logger.msg(VERBOSE, "Trying to retrieve job description of %s from cluster", jobid);
+    logger.msg(VERBOSE, "Trying to retrieve job description of %s from computing resource", jobid);
 
     std::string::size_type pos = jobid.rfind("/");
     if (pos == std::string::npos) {
-      logger.msg(INFO, "invalid jobid: %s", jobid);
+      logger.msg(INFO, "invalid jobID: %s", jobid);
       return false;
     }
     std::string cluster = jobid.substr(0, pos);

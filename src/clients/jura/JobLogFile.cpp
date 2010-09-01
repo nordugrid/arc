@@ -96,7 +96,7 @@ namespace Arc
 	    return;
 	  }
 	Arc::Logger::rootLogger.msg(Arc::VERBOSE,
-	   "Could not read archive file %s for job log file %s (%s), generating new UR",
+	   "Could not read archive file %s for job log file %s (%s), generating new Usage Record",
 	   archive_fn.c_str(),
 	   filename.c_str(),
 	   strerror(errno));
@@ -174,7 +174,7 @@ namespace Arc
     {
       //TODO what if not valid?
       Arc::Logger::rootLogger.msg(Arc::VERBOSE,
-		      "Missing required UR element \"RecordIdentity\", in job log file %s",
+		      "Missing required Usage Record element \"RecordIdentity\", in job log file %s",
 		      filename.c_str());
       usagerecord.Destroy();
       return;
@@ -384,7 +384,7 @@ namespace Arc
 	  }
 	
 	Arc::Logger::rootLogger.msg(Arc::VERBOSE,
-				    "Archiving UR to file %s",
+				    "Archiving Usage Record to file %s",
 				    archive_fn.c_str());
 	errno=0;
 	if (!ur.SaveToFile(archive_fn.c_str()))
