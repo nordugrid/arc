@@ -596,7 +596,7 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
     if(pw != NULL) {
       if(pw->pw_uid != 0) {
         for(JobUsers::iterator user=users.begin();user!=users.end();++user) {
-          user->SetShareID(pw->pw_uid,pw->pw_gid);
+          user->SetShareID(pw->pw_uid);
         };
       };
     };

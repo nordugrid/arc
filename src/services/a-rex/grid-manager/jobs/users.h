@@ -34,12 +34,6 @@ class JobUserHelper {
   Description of user - owner of jobs
 */
 class JobUser {
- public:
-  typedef enum {
-    jobinfo_share_private = 0,
-    jobinfo_share_group = 1,
-    jobinfo_share_all = 2
-  } jobinfo_share_t;
  private:
   /* directory where files explaining jobs are stored */
   std::string control_dir;
@@ -56,7 +50,7 @@ class JobUser {
   uid_t uid;
   gid_t gid;
   uid_t share_uid;
-  gid_t share_gid;
+  std::list<gid_t> share_gids;
   /* How long jobs are kept after job finished. This is 
      default and maximal value. */
   time_t keep_finished;
@@ -98,7 +92,7 @@ class JobUser {
   void SetReruns(int n) { reruns=n; };
   void SetDiskSpace(unsigned long long int n) { diskspace=n; };
   void SetStrictSession(bool v) { strict_session=v; };
-  void SetShareID(uid_t suid,gid_t sgid) { share_uid=suid; share_gid=sgid; };
+  void SetShareID(uid_t suid);
   bool CreateDirectories(void);
   bool is_valid(void) { return valid; };
   const std::string & ControlDir(void) const { return control_dir; };
@@ -113,8 +107,8 @@ class JobUser {
   time_t KeepFinished(void) const { return keep_finished; };
   time_t KeepDeleted(void) const { return keep_deleted; };
   bool StrictSession(void) const { return strict_session; };
-  uid_t get_share_uid(void) const { return share_uid; };
-  uid_t get_share_gid(void) const { return share_gid; };
+  bool match_share_uid(uid_t suid) const { return ((share_uid==0) || (share_uid==suid)); };
+  bool match_share_gid(gid_t sgid) const;
   uid_t get_uid(void) const { return uid; };
   gid_t get_gid(void) const { return gid; };
   int Reruns(void) const { return reruns; };

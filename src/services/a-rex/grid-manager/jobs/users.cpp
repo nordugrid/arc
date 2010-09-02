@@ -11,6 +11,8 @@
 #include <unistd.h>
 #include <errno.h>
 #include <pwd.h>
+#include <grp.h>
+#include <cstdlib>
 #include <arc/StringConv.h>
 #include <arc/Logger.h>
 #include <arc/Utils.h>
@@ -38,7 +40,6 @@ JobUser::JobUser(const GMEnvironment& env):gm_env(env) {
   cred_plugin=NULL;
   strict_session=false;
   share_uid=0;
-  share_gid=0;
 }
 
 void JobUser::SetLRMS(const std::string &lrms_name,const std::string &queue_name) {
@@ -247,7 +248,6 @@ JobUser::JobUser(const GMEnvironment& env,uid_t uid_,RunPlugin* cred):gm_env(env
   keep_deleted=DEFAULT_KEEP_DELETED;
   strict_session=false;
   share_uid=0;
-  share_gid=0;
 }
 
 JobUser::JobUser(const GMEnvironment& env,const std::string &u_name,RunPlugin* cred):gm_env(env) {
@@ -282,7 +282,6 @@ JobUser::JobUser(const GMEnvironment& env,const std::string &u_name,RunPlugin* c
   keep_deleted=DEFAULT_KEEP_DELETED;
   strict_session=false;
   share_uid=0;
-  share_gid=0;
 }
 
 JobUser::JobUser(const JobUser &user):gm_env(user.gm_env) {
@@ -301,11 +300,50 @@ JobUser::JobUser(const JobUser &user):gm_env(user.gm_env) {
   cred_plugin=user.cred_plugin;
   strict_session=user.strict_session;
   share_uid=user.share_uid;
-  share_gid=user.share_gid;
+  share_gids=user.share_gids;
 }
 
 JobUser::~JobUser(void) { 
   delete cache_params;
+}
+
+void JobUser::SetShareID(uid_t suid) {
+  share_uid=suid;
+  share_gids.clear();
+  if(suid <= 0) return;
+  struct passwd pwd_buf;
+  struct passwd* pwd = NULL;
+#ifdef _SC_GETPW_R_SIZE_MAX
+  int buflen = sysconf(_SC_GETPW_R_SIZE_MAX);
+  if (buflen <= 0) buflen = 16384;
+#else
+  int buflen = 16384;
+#endif
+  char* buf = (char*)malloc(buflen);
+  if(!buf) return;
+  if(getpwuid_r(suid, &pwd_buf, buf, buflen, &pwd) == 0) {
+    if(pwd) {
+#ifdef HAVE_GETGROUPLIST
+      gid_t groups[100];
+      int ngroups = 100;
+      if(getgrouplist(pwd->pw_name, pwd->pw_gid, groups, &ngroups) >= 0) {
+        for(int n = 0; n<ngroups;++n) {
+          share_gids.push_back(groups[n]);
+        };
+      };
+#endif
+      share_gids.push_back(pwd->pw_gid);
+    };
+  };
+  free(buf);
+}
+
+bool JobUser::match_share_gid(gid_t sgid) const {
+  for(std::list<gid_t>::const_iterator i = share_gids.begin();
+                       i != share_gids.end();++i) {
+    if(sgid == *i) return true;
+  };
+  return false;
 }
 
 JobUsers::JobUsers(GMEnvironment& env):gm_env(env) {

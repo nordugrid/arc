@@ -74,9 +74,25 @@ bool fix_file_permissions(const std::string &fname,bool executable) {
 
 static bool fix_file_permissions(const std::string &fname,const JobUser &user) {
   mode_t mode = S_IRUSR | S_IWUSR;
-  if((user.get_share_uid() != 0) && (user.get_share_uid() != user.get_uid())) {
+  if(!user.match_share_uid(user.get_uid())) {
     mode |= S_IRGRP;
-    if((user.get_share_gid() != 0) && (user.get_share_gid() != user.get_gid())) {
+    if(!user.match_share_gid(user.get_gid())) {
+      mode |= S_IROTH;
+    };
+  };
+  return (chmod(fname.c_str(),mode) == 0);
+}
+
+static bool fix_file_permissions(const std::string &fname,const JobDescription &desc,const JobUser &user) {
+  mode_t mode = S_IRUSR | S_IWUSR;
+  uid_t uid = desc.get_uid();
+  gid_t gid = desc.get_gid();
+  if( uid == 0 ) {
+    uid=user.get_uid(); gid=user.get_gid();
+  };
+  if(!user.match_share_uid(uid)) {
+    mode |= S_IRGRP;
+    if(!user.match_share_gid(gid)) {
       mode |= S_IROTH;
     };
   };
@@ -218,12 +234,12 @@ bool job_errors_mark_put(const JobDescription &desc,JobUser &user) {
 bool job_failed_mark_put(const JobDescription &desc,JobUser &user,const std::string &content) {
   std::string fname = user.ControlDir() + "/job." + desc.get_id() + sfx_failed;
   if(job_mark_size(fname) > 0) return true;
-  return job_mark_write_s(fname,content) & fix_file_owner(fname,desc,user) & fix_file_permissions(fname,user);
+  return job_mark_write_s(fname,content) & fix_file_owner(fname,desc,user) & fix_file_permissions(fname,desc,user);
 }
 
 bool job_failed_mark_add(const JobDescription &desc,JobUser &user,const std::string &content) {
   std::string fname = user.ControlDir() + "/job." + desc.get_id() + sfx_failed;
-  return job_mark_add_s(fname,content) & fix_file_owner(fname,desc,user) & fix_file_permissions(fname,user);
+  return job_mark_add_s(fname,content) & fix_file_owner(fname,desc,user) & fix_file_permissions(fname,desc,user);
 }
 
 bool job_failed_mark_check(const JobId &id,JobUser &user) {
@@ -385,7 +401,7 @@ bool job_diagnostics_mark_move(const JobDescription &desc,JobUser &user) {
   int h2=open(fname2.c_str(),O_WRONLY | O_APPEND,S_IRUSR | S_IWUSR);
   if(h2==-1) return false;
   fix_file_owner(fname2,desc,user);
-  fix_file_permissions(fname2,user);
+  fix_file_permissions(fname2,desc,user);
   std::string fname1 = user.SessionRoot(desc.get_id()) + "/" + desc.get_id() + sfx_diag;
   if(user.StrictSession()) {
     JobUser tmp_user(user.Env(),user.get_uid()==0?desc.get_uid():user.get_uid());
@@ -572,7 +588,7 @@ job_state_t job_state_read_file(const JobId &id,const JobUser &user,bool& pendin
 
 bool job_state_write_file(const JobDescription &desc,JobUser &user,job_state_t state,bool pending) {
   std::string fname = user.ControlDir() + "/job." + desc.get_id() + sfx_status;
-  return job_state_write_file(fname,state,pending) & fix_file_owner(fname,desc,user) & fix_file_permissions(fname,user);
+  return job_state_write_file(fname,state,pending) & fix_file_owner(fname,desc,user) & fix_file_permissions(fname,desc,user);
 }
 
 job_state_t job_state_read_file(const std::string &fname,bool &pending) {
@@ -647,7 +663,7 @@ bool job_acl_write_file(JobId &id,JobUser &user,std::string &acl) {
 
 bool job_local_write_file(const JobDescription &desc,const JobUser &user,const JobLocalDescription &job_desc) {
   std::string fname = user.ControlDir() + "/job." + desc.get_id() + sfx_local;
-  return job_local_write_file(fname,job_desc) & fix_file_owner(fname,desc,user) & fix_file_permissions(fname,user);
+  return job_local_write_file(fname,job_desc) & fix_file_owner(fname,desc,user) & fix_file_permissions(fname,desc,user);
 }
 
 inline void write_pair(std::ofstream &f,const std::string &name,const std::string &value) {
