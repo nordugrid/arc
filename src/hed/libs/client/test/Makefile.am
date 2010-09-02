@@ -1,4 +1,4 @@
-TESTS = SoftwareTest ARCJSDLParserTest JDLParserTest XRSLParserTest BrokerTest
+TESTS = SoftwareTest ARCJSDLParserTest JDLParserTest BrokerTest
 check_PROGRAMS = $(TESTS)
 
 SoftwareTest_SOURCES = $(top_srcdir)/src/Test.cpp SoftwareTest.cpp
