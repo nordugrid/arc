@@ -176,13 +176,13 @@ job_write_diag() {
 }
 
 # Append .comment (containing STDOUT & STDERR of the job wrapper) to .errors
-# This file can also contain a message from PBS (i.e. the reason for killing the job).
+# This file can also contain a message from the LRMS (i.e. the reason for killing the job).
 save_commentfile () {
   uid=$1
   commentfile=$2
   errorsfile=$3
   action="
-    { echo '---------- Contents of output stream forwarded by PBS -----------'
+    { echo '------- Contents of output stream forwarded by the LRMS ---------'
       cat '$commentfile' 2> /dev/null
       echo '------------------------- End of output -------------------------'
     } >> '$errorsfile'
