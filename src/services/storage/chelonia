@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 
-import sys, time, os, socket, traceback
+import sys, time, os, socket, traceback, errno
 import xml.dom.minidom
+import os, errno
 
 # This part is copied from common.py
 
@@ -842,6 +843,8 @@ class Client:
         self.https = (proto == 'https')
         if ':' in host_port:
             host, port = host_port.split(':')
+            if ';' in port:
+                port, _ = port.split(';')
         else:
             host = host_port
             port = 80
@@ -852,6 +855,7 @@ class Client:
         self.url = url
         self.print_xml = print_xml
         self.xmlnode_class = FakeXMLNode
+        self.timeout = 60
         try:
             import arc
             self.call_raw = self.call_raw_hed
@@ -971,8 +975,10 @@ class Client:
             #x = arc.XMLNode('<dummy/>')
             #self.cfg.MakeConfig(x)
             #print x.GetXML()
-            s = arc.ClientSOAP(self.cfg, self.url)
-            resp, status = s.process(outpayload)
+            if not hasattr(self, 's'):
+                self.s = arc.ClientSOAP(self.cfg, self.url, self.timeout)
+            start = time.time()
+            resp, status = self.s.process(outpayload)
         except:
             raise socket.error, (-1, "Wrong status from server")
         if not status.isOk():
@@ -1311,7 +1317,7 @@ class BartenderClient(Client):
         return parse_node(get_data_node(xml), ['requestID', 'success'], single = True)
         ###    ###
 
-    def list(self, requests, neededMetadata = []):
+    def list(self, requests, neededMetadata = [], recursive = False):
         """ List the contents of a collection.
 
         list(requests, neededMetadata = [])
@@ -1349,21 +1355,27 @@ class BartenderClient(Client):
                         ('bar:section', section),
                         ('bar:property', property)
                     ]) for section, property in neededMetadata
+                ]),
+                ('bar:listRecursive', [
+                    ('bar:listRequestRecursive', [
+                        ('bar:requestID', 'recursive'),
+                        ('bar:doRecursive', recursive and 'yes' or 'no')
+                    ])
                 ])
             ])
         )
-
         msg = self.call(tree)
         xml = self.xmlnode_class(msg)
         elements = parse_node(get_data_node(xml),
             ['requestID', 'entries', 'status'], string = False)
-        return dict([
+        resp = dict([
             (   str(requestID),
                 (dict([(str(name), (str(GUID), parse_metadata(metadataList))) for name, (GUID, metadataList) in
                     parse_node(entries, ['name', 'GUID', 'metadataList'], string = False).items()]),
                 str(status))
             ) for requestID, (entries, status) in elements.items()
         ])
+        return resp
 
     def move(self, requests):
         """ Move a file or collection within the global namespace.
@@ -1408,6 +1420,7 @@ class BartenderClient(Client):
                         ('bar:value', value)
                     ]) for changeID, (LN, changeType, section, property, value) in requests.items()
                 ])
+
             ])
         )
         response = self.call(tree)
@@ -1478,8 +1491,12 @@ if verbose:
     else:
         print '- Using default user config.'
 
-
-def call_it(method_name, *args):
+bartender = None
+def call_it(method_name, *args, **kwargs):
+    # use global bartender to only initiate once
+    # usefull for recursivity
+    global bartender
+    timeout = kwargs.get('timeout', 60)
     if verbose:
         print '- Calling the Bartender\'s %s method...' % method_name
     start = time.time()
@@ -1488,7 +1505,9 @@ def call_it(method_name, *args):
         if verbose:
             print '- Trying', bartender_url + '...'
         try:
-            bartender = BartenderClient(bartender_url, print_xml, ssl_config = ssl_config)
+            if not bartender:
+                bartender = BartenderClient(bartender_url, print_xml, ssl_config = ssl_config)
+                bartender.timeout = timeout
             response = getattr(bartender, method_name)(*args)
             if verbose:
                 print '- done in %0.2f seconds.' % (time.time()-start)
@@ -1516,6 +1535,33 @@ def call_it(method_name, *args):
     if not verbose:
         print "(use the '-v' flag for more details, e.g. 'chelonia -v list /')"
     sys.exit(-1)
+
+# funcs for recursivity
+def getRecursiveList(LN):
+    recursive = True
+    request = {'0': LN}
+    response = call_it('list', request, [('entry','')], recursive, timeout = 3600)
+    LNs = {}
+    rootGUID, dirname, basename = splitLN(LN)
+    for rID, (entries, status) in response.items():
+        for entry in entries.keys():
+            if dirname:
+                LNs['/'.join((rootGUID, dirname, basename, entry))] = entries[entry]
+            elif basename:
+                LNs['/'.join((rootGUID, basename, entry))] = entries[entry]
+            else:
+                # then it is the root collection
+                LNs['/'.join((rootGUID, entry))] = entries[entry]
+    return LNs
+
+def mkdir_p(path):
+    try:
+        os.makedirs(path)
+    except Exception, e:
+        if e.errno == errno.EEXIST:
+            pass
+        else:
+            raise
 
 if len(args) == 0 or args[0][0:3] not in ['sta', 'mak', 'mkd', 'unm', 'rmd', 'lis', 'ls', 'mov', 'mv', 'put', 'get', 'del', 'rm', 'mod', 'pol', 'unl', 'cre', 'rem']:
     print 'Usage:'
@@ -1710,109 +1756,268 @@ else:
         response = call_it('removeCredentials', request)
         print response['message']
     elif command in ['del', 'rm']:
+        recursive = False
+        while (len(args) > 0) and (args[0].startswith('-')):
+            flag = args.pop(0)[1:]
+            if flag in ['r']:
+                recursive = True
+        # todo: maybe add command line option for setting bulk length. sat to 1 here
+        bulk_length = 1
         if len(args) < 1:
-            print 'Usage: delFile <LN> [<LN> ...]'
+            print 'Usage: delFile [-r] <LN> [<LN> ...]'
         else:
             request = dict([(str(i), args[i]) for i in range(len(args))])
-            #print 'delFile', request
-            response = call_it('delFile', request)
-            #print response
-            for i in request.keys():
-                print '%s: %s' % (request[i], response[i])
+            if recursive:
+                entrytype = 'file'
+                LNs = {}
+                for LN in request.values():
+                    LNs = dict(LNs.items() + [(ln, entry) for ln, entry in getRecursiveList(LN).items()])
+                request = dict([(ln, ln) for ln, entries in LNs.items() if entrytype in entries[1].get(('entry', 'type'), '')])
+            if request:
+                LNkeys = []
+                for i in range(0, len(request), bulk_length):
+                    if i+bulk_length < len(request):
+                        bulk_request = dict(request.items()[i:i+bulk_length])
+                    else:
+                        bulk_request = dict(request.items()[i:])
+                    response = call_it('delFile', bulk_request)
+                    LNkeys += response.keys()
+                LNkeys.sort()
+                for ln in LNkeys:
+                    print "%s: %s." % (ln, response[ln])
+            if recursive:
+                # remove collections hierarchically if recursive
+                entrytype = 'collection'
+                request = dict([(ln, ln) for ln, entries in LNs.items() if entrytype in entries[1].get(('entry', 'type'), '')])
+                if request:
+                    deepestlevel = 1
+                    lowestlevel = 1e32
+                    for ln in request.keys():
+                        if len(ln.split('/')) > deepestlevel:
+                            deepestlevel = len(ln.split('/'))
+                        if len(ln.split('/')) < lowestlevel:
+                            lowestlevel = len(ln.split('/'))
+                    # loop backwards from deepest level
+                    for level in range(deepestlevel, lowestlevel-1, -1):
+                        subrequest = dict([(key, (ln)) for key, ln in request.items() if len(ln.split('/')) == level])
+                        response = {}
+                        for i in range(0, len(subrequest), bulk_length):
+                            if i+bulk_length < len(subrequest):
+                                bulk_request = dict(subrequest.items()[i:i+bulk_length])
+                            else:
+                                bulk_request = dict(subrequest.items()[i:])
+                            bulk_response = call_it('unmakeCollection', bulk_request)
+                            for br in bulk_response.keys():
+                                response[br] = bulk_response[br]
+                        LNkeys = response.keys()
+                        LNkeys.sort()
+                        for ln in LNkeys:
+                            print "%s: %s." % (ln, response[ln])
+                    # then remove the LN which we now know is a collection
+                    response = call_it('unmakeCollection', {LN:LN})
+                    print "%s: %s." % (LN, response[LN])
     elif command in ['get']:
+        recursive = False
+        while (len(args) > 0) and (args[0].startswith('-')):
+            flag = args.pop(0)[1:]
+            if flag in ['r']:
+                recursive = True
+        # todo: maybe add command line option for setting bulk length. sat to 1 here
+        bulk_length = 1
+        
         if len(args) < 1:
-            print 'Usage: getFile <source LN> [<target filename>]'
+            print 'Usage: getFile [-r] <source LN> [<target filename>]'
         else:
             LN = args[0]
-            try:
-                filename = args[1]
-                if os.path.isdir(filename):
-                    _, _, LN_name = splitLN(LN)
-                    filename = os.path.join(filename, LN_name)
-            except:
-                filename = '.'
-            if filename == '.':
-                _, _, filename = splitLN(LN)
-            if filename == '':
-                filename, _, _ = splitLN(LN)
-            if os.path.exists(filename):
+            if recursive:
+                try:
+                    locdirname = args[1]
+                except:
+                    rootGUID, _, locdirname = splitLN(LN)
+                    if rootGUID and not locdirname:
+                        locdirname = rootGUID
+                if os.path.isdir(locdirname):
+                    if locdirname.endswith(os.path.sep):
+                        _, _, LN_name = splitLN(LN)
+                        locdirname = os.path.join(locdirname, LN_name)
+                    else:
+                        if os.path.isdir(locdirname):
+                            print "ERROR: local path '%s'" % locdirname, 'already exists!'
+                            sys.exit(-1)
+            else:
+                try:
+                    filename = args[1]
+                    if os.path.isdir(filename):
+                        _, _, LN_name = splitLN(LN)
+                        filename = os.path.join(filename, LN_name)
+                except:
+                    filename = '.'
+                if filename == '.':
+                    _, _, filename = splitLN(LN)
+                if filename == '':
+                    filename, _, _ = splitLN(LN)
+            if not recursive and os.path.exists(filename):
                 print "ERROR: local path '%s'" % filename, 'already exists!'
             else:
-                request = {'0' : (LN, supported_protocols)}
-                #print 'getFile', request
-                response = call_it('getFile', request)
-                #print response
-                success, turl, protocol = response['0']
-                if success == 'done':
-                    f = file(filename, 'wb')
-                    if verbose:
-                        print '- Got transfer URL:', turl
-                        print "- Downloading from '%s' to '%s' with %s..." % (turl, filename, protocol)
-                    start = time.time()
-                    try:
-                        download_from_turl(turl, protocol, f, ssl_config = ssl_config, verbose = verbose)
-                        f.close()
-                        size = os.path.getsize(filename)
-                        if verbose:
-                            print '- done in %.4f seconds.' % (time.time()-start)
-                        print "'%s' (%s bytes) downloaded as '%s'." % (LN, size, filename)
-                    except Exception, e:
-                        print "ERROR:", str(e)
-                        sys.exit(-1)
+                if recursive:
+                    LNs = getRecursiveList(LN)
+                    # parse LNs to get hierarchy
+                    collections = [ln for ln, entries in LNs.items() if 'collection' in entries[1].get(('entry', 'type'), 'unknown')]
+                    # create local hierarchy based on LN basename
+                    for col in collections:
+                        mkdir_p(os.path.sep.join([locdirname]+col.split(LN, 1)[1].strip('/').split('/')))
+                    # get TURLs
+                    request = dict([(ln, (ln, supported_protocols)) for ln, entries in LNs.items() if 'file' in entries[1].get(('entry', 'type'), 'unknown')])
                 else:
-                    print '%s: %s' % (LN, success)
+                    request = {LN : (LN, supported_protocols)}
+                    #print 'getFile', request
+                for i in range(0, len(request), bulk_length):
+                    if i+bulk_length < len(request):
+                        bulk_request = dict(request.items()[i:i+bulk_length])
+                    else:
+                        bulk_request = dict(request.items()[i:])
+                    response = call_it('getFile', bulk_request)
+                    for ln, (success, turl, protocol) in response.items():
+                        if recursive:
+                            filename = os.path.sep.join([locdirname]+ln.split(LN, 1)[1].strip('/').split('/'))
+                        if success == 'done':
+                            f = file(filename, 'wb')
+                            if verbose:
+                                print '- Got transfer URL:', turl
+                                print "- Downloading from '%s' to '%s' with %s..." % (turl, filename, protocol)
+                            start = time.time()
+                            try:
+                                download_from_turl(turl, protocol, f, ssl_config = ssl_config, verbose = verbose)
+                                f.close()
+                                size = os.path.getsize(filename)
+                                if verbose:
+                                    print '- done in %.4f seconds.' % (time.time()-start)
+                                print "'%s' (%s bytes) downloaded as '%s'." % (ln, size, filename)
+                            except Exception, e:
+                                print "ERROR:", str(e)
+                                sys.exit(-1)
+                        else:
+                            print '%s: %s' % (LN, success)
     elif command in ['put']:
+        recursive = False
+        while (len(args) > 0) and (args[0].startswith('-')):
+            flag = args.pop(0)[1:]
+            if flag in ['r']:
+                recursive = True
+        # todo: maybe add command line option for setting bulk length. sat to 1 here
+        bulk_length = 1
         if len(args) < 2:
-            print 'Usage: putFile <source filename> <target LN> [<number of replicas needed>]'
+            print 'Usage: putFile [-r] <source filename> <target LN> [<number of replicas needed>]'
         else:
             filename = args[0]
-            try:
-                size = os.path.getsize(filename)
-            except:
-                print 'ERROR: local file', "'%s'" % filename, 'does not exist!'
-                sys.exit(-1)
-            if verbose:
-                print '- The size of the file is', size, 'bytes'
-            f = file(filename,'rb')
-            if verbose:
-                print '- Calculating md5 checksum...'
-            start = time.time()
-            checksum = create_checksum(f, 'md5')
-            if verbose:
-                print '- done in %.4f seconds, md5 checksum is %s' % ((time.time()-start), checksum)
+            if not os.path.isdir(filename):
+                recursive = False
             LN = args[1]
-            if LN.endswith('/'):
-                LN = LN + filename.split('/')[-1]
-            needed_replicas_for_this = needed_replicas
-            if len(args) > 2:
+            allstart = time.time()
+            if recursive:
+                # get local hierarchy
+                entrylist = dict([(dir, (subdirs, subfiles)) for dir, subdirs, subfiles in os.walk(filename)])
+                dirs = entrylist.keys()
+                dirs.sort()
+                filenames = []
+                for dir, (subdirs, subfiles) in entrylist.items():
+                    if subfiles:
+                        filenames += [os.path.join(dir, subfile) for subfile in subfiles]
+                # check if LN exists
                 try:
-                    needed_replicas_for_this = int(args[2])
+                    stat = call_it('stat', {'0': LN})['0']
+                    if stat:
+                        if stat.get(('entry', 'type'), 'unknown') == 'file':
+                            print "ERROR: target LN is a file, cannot do recursive put to a file"
+                            sys.exit(-1)
+                        # unix cp creates new dir inside if destination is dir and it exists
+                        LN = '/'.join((LN, os.path.basename(filename)))
+                        stat = call_it('stat', {'0': LN})['0']
+                        if stat:
+                            print "ERROR: target collection, '%s', already exists"%LN
+                            sys.exit(-1)
+                except Exception, e:
+                    if not isinstance(e, SystemExit):
+                        print "ERROR:", str(e)
+                    sys.exit(-1)
+                # make corresponding collections
+                print time.time()-allstart, "making collections"
+                request = {'0': (LN, {('states', 'closed') : 'no'})}
+                response = call_it('makeCollection', request)
+                if response.get('0', 'unknown') == 'done':
+                    for dir in dirs[1:]:
+                        targetLN = '/'.join(LN.split('/') + dir[len(dirs[0]):].split(os.path.sep))
+                        request = {targetLN: (targetLN, {('states', 'closed') : 'no'})}
+                        response = call_it('makeCollection', request)
+                        if not response.get(targetLN, 'unknown') == 'done':
+                            print "ERROR: Failed to make", targetLN
+                else:
+                    print "ERROR: Failed to make", LN
+                    sys.exit(-1)
+                print time.time()-allstart, "made collections"
+            else:
+                filenames = [filename]
+                
+            request = {}
+            for filename in filenames:
+                try:
+                    size = os.path.getsize(filename)
                 except:
-                    needed_replicas_for_this = needed_replicas
-            metadata = {('states', 'size') : size, ('states', 'checksum') : checksum,
-                    ('states', 'checksumType') : 'md5', ('states', 'neededReplicas') : needed_replicas_for_this}
-            request = {'0': (LN, metadata, supported_protocols)}
-            #print 'putFile', request
-            response = call_it('putFile', request)
-            #print response
-            success, turl, protocol = response['0']
-            if success == 'done':
+                    print 'ERROR: local file', "'%s'" % filename, 'does not exist!'
+                    sys.exit(-1)
                 if verbose:
-                    print '- Got transfer URL:', turl
+                    print '- The size of the file is', size, 'bytes'
                 f = file(filename,'rb')
                 if verbose:
-                    print "- Uploading from '%s' to '%s' with %s..." % (filename, turl, protocol)
+                    print '- Calculating md5 checksum...'
                 start = time.time()
-                try:
-                    upload_to_turl(turl, protocol, f, ssl_config = ssl_config, verbose = verbose)
-                    if verbose:
-                        print '- done in %.4f seconds.' % (time.time()-start)
-                    print "'%s' (%s bytes) uploaded as '%s'." % (filename, size, LN)
-                except Exception, e:
-                    print "ERROR:", str(e)
-                    sys.exit(-1)
-            else:
-                print '%s: %s' % (LN, success)
+                checksum = create_checksum(f, 'md5')
+                if verbose:
+                    print '- done in %.4f seconds, md5 checksum is %s' % ((time.time()-start), checksum)
+                needed_replicas_for_this = needed_replicas
+                if len(args) > 2:
+                    try:
+                        needed_replicas_for_this = int(args[2])
+                    except:
+                        needed_replicas_for_this = needed_replicas
+                metadata = {('states', 'size') : size, ('states', 'checksum') : checksum,
+                        ('states', 'checksumType') : 'md5', ('states', 'neededReplicas') : needed_replicas_for_this}
+                if recursive:
+                    targetLN = '/'.join(LN.split('/') + filename[len(dirs[0]):].split(os.path.sep))
+                    request[filename] = (targetLN, metadata, supported_protocols)
+                else:
+                    request[filename] = (LN, metadata, supported_protocols)
+            #print 'putFile', request
+            print time.time()-allstart, "request to put %d files"%len(request)
+            for i in range(0, len(request), bulk_length):
+                if i+bulk_length < len(request):
+                    bulk_request = dict(request.items()[i:i+bulk_length])
+                else:
+                    bulk_request = dict(request.items()[i:])
+                response = call_it('putFile', bulk_request)
+                for filename, (success, turl, protocol) in response.items():
+                    # todo: threaded uploading?
+                    if success == 'done':
+                        if verbose:
+                            print '- Got transfer URL:', turl
+                        f = file(filename,'rb')
+                        if verbose:
+                            print "- Uploading from '%s' to '%s' with %s..." % (filename, turl, protocol)
+                        start = time.time()
+                        try:
+                            upload_to_turl(turl, protocol, f, ssl_config = ssl_config, verbose = verbose)
+                            if verbose:
+                                print '- done in %.4f seconds.' % (time.time()-start)
+                            targetLN = recursive and  '/'.join(LN.split('/') + filename[len(dirs[0]):].split(os.path.sep)) or LN
+                            # stupid cleaning of // before printout
+                            while '//' in targetLN:
+                                targetLN = targetLN.replace('//', '/')
+                            print "'%s' (%s bytes) uploaded to '%s'." % (filename, size, targetLN)
+                        except Exception, e:
+                            print "ERROR:", str(e)
+                            sys.exit(-1)
+                    else:
+                        print '%s: %s' % (recursive and targetLN or LN, success)
     elif command in ['unl']:
         if len(args) < 1:
             print 'Usage: unlink <LN>'
@@ -1830,7 +2035,7 @@ else:
                 print "Removing mountpoint '%s': %s" % (args[0], response['0'])
         else:
             if len(args) < 1:
-                print 'Usage: unmakeCollection <LN>'
+                print 'Usage: unmakeCollection [-p] <LN>'
             else:
                 request = {'0': (args[0])}
                 #print 'unmakeCollection', request
@@ -1856,23 +2061,51 @@ else:
                 print "Creating collection '%s': %s" % (args[0], response['0'])
     elif command in ['lis', 'ls']:
         if len(args) < 1:
-            print 'Usage: list <LN> [<LN> ...]'
+            print 'Usage: list [-r] <LN> [<LN> ...]'
         else:
+            recursive = False
+            while (len(args) > 0) and (args[0].startswith('-')):
+                flag = args.pop(0)[1:]
+                if flag in ['r']:
+                    recursive = True
             request = dict([(str(i), args[i]) for i in range(len(args))])
-            #print 'list', request
-            response = call_it('list', request, [('entry','')])
+            print 'list', request
+            response = call_it('list', request, [('entry','')], recursive)
             #print response
-
             for rID, (entries, status) in response.items():
                 if status == 'found':
                     print "'%s':" % request[rID], 'collection'
                     if entries:
                         longest = 0
+                        deepestlevel = 1
                         for name in entries.keys():
                             if len(name) > longest:
                                 longest = len(name)
-                        for name, (GUID, metadata) in entries.items():
-                            print '  %s%s<%s>' % (name, ' ' + ' '*(longest-len(name)), metadata.get(('entry', 'type'),'unknown'))
+                            if len(name.split('/')) > deepestlevel:
+                                deepestlevel = len(name.split('/'))
+                        if deepestlevel == 1:
+                            for name, (GUID, metadata) in entries.items():
+                                #if metadata.get(('entry', 'type'),'unknown') == 'collection':
+                                #    os.system('chelonia list %s'%os.path.join(args[0],name))
+                                print '  %s%s<%s>' % (name, ' ' + ' '*(longest-len(name)), metadata.get(('entry', 'type'),'unknown'))
+                        else:
+                            groupedentries = {}
+                            for grouplen in range(1, deepestlevel):
+                                for name, (GUID, metadata) in entries.items():
+                                    if len(name.split('/')) == grouplen and metadata.get(('entry', 'type'),'unknown') == 'collection':
+                                        groupedentries[name] = {}
+                                for name in entries.keys():
+                                    if len(name.split('/')) == grouplen+1:
+                                        rootGUID, LN_dirname, LN_basename = splitLN(name)
+                                        groupname =  LN_dirname and '/'.join((rootGUID, LN_dirname)) or rootGUID
+                                        groupedentries[groupname][name] = entries[name]
+                            groupkeys = groupedentries.keys()
+                            groupkeys.sort()
+                            for groupname in groupkeys:
+                                print "'%s':" % '/'.join((request[rID], groupname)), 'collection'
+                                for name, (GUID, metadata) in groupedentries[groupname].items():
+                                    _, _, basename = splitLN(name)
+                                    print '  %s%s<%s>' % (basename, ' ' + ' '*(longest-len(basename)), metadata.get(('entry', 'type'),'unknown'))
                     else:
                         print '    empty.'
                 else:
@@ -1893,8 +2126,15 @@ else:
             #print response
             print "Moving '%s' to '%s': %s" % (sourceLN, targetLN, response['0'][0])
     elif command == 'mod':
+        recursive = False
+        while (len(args) > 0) and (args[0].startswith('-')):
+            flag = args.pop(0)[1:]
+            if flag in ['r']:
+                recursive = True
+        # todo: maybe add command line option for setting bulk length. sat to 1 here
+        bulk_length = 1
         if len(args) < 4 or (args[1] not in ['set', 'unset', 'add']) or (args[1] in ['set', 'add'] and len(args) == 4):
-            print 'Usage: modify <LN> <changeType> <section> <property> <value>'
+            print 'Usage: modify [-r] <LN> <changeType> <section> <property> <value>'
             print "  <changeType> could be 'set', 'unset', 'add'"
             print "    'set' : sets the property to value within the given section"
             print "    'unset' : removes the property from the given section"
@@ -1914,6 +2154,7 @@ else:
             if len(args) == 4:
                 args.append('')
             LN, changeType, section, property, value = args
+            entrytype = ''
             if section == 'states':
                 if property not in ['neededReplicas', 'closed']:
                     print "ERROR: in the 'states' section only the 'neededReplicas' and 'closed' can be changed."
@@ -1928,17 +2169,38 @@ else:
                         except Exception:
                             print "ERROR: the number of needed replicas should be an integer"
                             sys.exit(-1)
+                        entrytype = 'file'
                     if property == 'closed':
                         if value != 'yes':
                             print "ERROR: you can set the 'closed' state only to 'yes'"
                             sys.exit(-1)
-            request = {'0' : args}
-            #print 'modify', request
-            mod_response = call_it('modify', request)['0']
-            print "Modifying '%s', %s in section '%s' property '%s' value '%s': %s." % (LN, changeType, section, property, value, mod_response)
+                        entrytype = 'collection'
+            if recursive:
+                LNs = getRecursiveList(LN)
+                request = dict([(ln, [ln, changeType, section, property, value]) for ln, entries in LNs.items() if entrytype in entries[1][('entry', 'type')]])
+            else:
+                request = {LN: args}
+            LNkeys = []
+            for i in range(0, len(request), bulk_length):
+                if i+bulk_length < len(request):
+                    bulk_request = dict(request.items()[i:i+bulk_length])
+                else:
+                    bulk_request = dict(request.items()[i:])
+                mod_response = call_it('modify', bulk_request)
+                LNkeys += mod_response.keys()
+            LNkeys.sort()
+            for ln in LNkeys:
+                print "Modifying '%s', %s in section '%s' property '%s' value '%s': %s." % (ln, changeType, section, property, value, mod_response)
     elif command == 'pol':
+        recursive = False
+        while (len(args) > 0) and (args[0].startswith('-')):
+            flag = args.pop(0)[1:]
+            if flag in ['r']:
+                recursive = True
+        # todo: maybe add command line option for setting bulk length. sat to 1 here
+        bulk_length = 1
         if len(args) < 3:
-            print "Usage: policy <LN> <changeType> <identity> <action list>"
+            print "Usage: policy [-r] <LN> <changeType> <identity> <action list>"
             print "  <changeType> could be 'set', 'change' or 'clear'"
             print "    'set': sets the action list to the given user overwriting the old one"
             print "    'change': modify the current action list with adding and removing actions"
@@ -1969,17 +2231,45 @@ else:
                 else:
                     if changeType == 'set':
                         action_list = ' '.join(args)
+                        if recursive:
+                            LNs = getRecursiveList(LN).keys()+[LN]
+                            LN_actions = dict([(ln, action_list) for ln in LNs])
                     elif changeType == 'change':
-                        stat = call_it('stat', {'policy' : LN})
-                        old_list = stat['policy'].get(('policy',identity),'')
-                        #print "old action list for the user %s was '%s'" % (identity, old_list)
-                        action_dict = dict([(paction[1:], (paction[0] == '+')) for paction in old_list.split()])
-                        for paction in args:
-                            action_dict[paction[1:]] = (paction[0] == '+')
-                        action_list = ' '.join([(permit and '+' or '-') + action for action, permit in action_dict.items()])
+                        if recursive:
+                            LNs = getRecursiveList(LN)
+                            request = dict([(ln, ln) for ln in LNs.keys()+[LN]])
+                        else:
+                            request = {LN: LN}
+                        LN_actions = {}
+                        for i in range(0, len(request), bulk_length):
+                            if i+bulk_length < len(request):
+                                bulk_request = dict(request.items()[i:i+bulk_length])
+                            else:
+                                bulk_request = dict(request.items()[i:])
+                            stat = call_it('stat', bulk_request)
+                            for ln in stat.keys():
+                                old_list = stat[ln].get(('policy', identity), '')
+                                # dont change addEntry for files
+                                action_dict = dict([(paction[1:], (paction[0] == '+')) for paction in old_list.split()])
+                                for paction in args:
+                                    action_dict[paction[1:]] = (paction[0] == '+')
+                                LN_actions[ln] = ' '.join([(permit and '+' or '-') + action for action, permit in action_dict.items()])
                     elif changeType == 'clear':
                         action_list = ''
-                    print "Setting action list of '%s' for user %s to %s:" % (LN, identity, action_list),
-                    mod_response = call_it('modify', {'policy' : (LN, 'set', 'policy', identity, action_list)})
-                    print mod_response['policy'] + '.'
+                        if recursive:
+                            LNs = getRecursiveList(LN).keys()+[LN]
+                        else:
+                            LNs = [LN]
+                        LN_actions = dict([(ln, action_list) for ln in LNs])
+                    request = dict([(ln, (ln, 'set', 'policy', identity, action_list)) for ln, action_list in LN_actions.items()])
+                    for i in range(0, len(request), bulk_length):
+                        if i+bulk_length < len(request):
+                            bulk_request = dict(request.items()[i:i+bulk_length])
+                        else:
+                            bulk_request = dict(request.items()[i:])
+                        mod_response = call_it('modify', bulk_request)
+                        for ln in mod_response.keys():
+                            action_list = LN_actions[ln]
+                            print "Setting action list of '%s' for user %s to %s:" % (ln, identity, action_list and action_list or "empty"),
+                            print mod_response[ln]
 
