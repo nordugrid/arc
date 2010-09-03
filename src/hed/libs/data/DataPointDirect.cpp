@@ -189,6 +189,7 @@ namespace Arc {
                cksum != checksums.end(); ++cksum) {
       if(!index) return *cksum;
     }
+    return NULL;
   }
 
 } // namespace Arc
