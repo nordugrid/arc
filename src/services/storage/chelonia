@@ -1913,7 +1913,6 @@ else:
             if not os.path.isdir(filename):
                 recursive = False
             LN = args[1]
-            allstart = time.time()
             if recursive:
                 # get local hierarchy
                 entrylist = dict([(dir, (subdirs, subfiles)) for dir, subdirs, subfiles in os.walk(filename)])
@@ -1941,7 +1940,6 @@ else:
                         print "ERROR:", str(e)
                     sys.exit(-1)
                 # make corresponding collections
-                print time.time()-allstart, "making collections"
                 request = {'0': (LN, {('states', 'closed') : 'no'})}
                 response = call_it('makeCollection', request)
                 if response.get('0', 'unknown') == 'done':
@@ -1954,7 +1952,6 @@ else:
                 else:
                     print "ERROR: Failed to make", LN
                     sys.exit(-1)
-                print time.time()-allstart, "made collections"
             else:
                 filenames = [filename]
                 
@@ -1988,7 +1985,6 @@ else:
                 else:
                     request[filename] = (LN, metadata, supported_protocols)
             #print 'putFile', request
-            print time.time()-allstart, "request to put %d files"%len(request)
             for i in range(0, len(request), bulk_length):
                 if i+bulk_length < len(request):
                     bulk_request = dict(request.items()[i:i+bulk_length])
