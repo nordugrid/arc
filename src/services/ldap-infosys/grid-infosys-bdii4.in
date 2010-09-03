@@ -264,7 +264,7 @@ bdii_ports_write="$(( $bdii_port_read + 1 )) $(( $bdii_port_read + 2 ))"
 
 bdii_bind="o=Grid"
 bdii_search_filter='*'
-bdii_search_timeout=${CONFIG_bdii_search_timeout:-30}
+bdii_search_timeout=${CONFIG_bdii_search_timeout:-300}
 bdii_breathe_time=${CONFIG_bdii_breathe_time:-30}
 bdii_auto_update=${CONFIG_bdii_auto_update:-no}
 bdii_auto_modify=${CONFIG_bdii_auto_modify:-no}
