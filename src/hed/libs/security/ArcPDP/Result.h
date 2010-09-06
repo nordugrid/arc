@@ -20,7 +20,7 @@ namespace ArcSec {
       case DECISION_NOT_APPLICABLE: return o<<"Not Applicable";
     };
     return o<<"Undefined";
-  };
+  }
 
   ///Match result
   enum MatchResult {

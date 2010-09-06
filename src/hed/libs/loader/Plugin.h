@@ -179,7 +179,7 @@ namespace Arc {
         P* p = dynamic_cast<P*>(plugin);
         if(!p) delete plugin;
         return p;
-      };
+      }
       template<class P>
       P* GetInstance(const std::string& kind,const std::string& name,PluginArgument* arg,bool search = true) {
         Plugin* plugin = get_instance(kind,name,arg,search);
@@ -187,7 +187,7 @@ namespace Arc {
         P* p = dynamic_cast<P*>(plugin);
         if(!p) delete plugin;
         return p;
-      };
+      }
   };
 
   template<class P>
