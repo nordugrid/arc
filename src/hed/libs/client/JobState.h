@@ -30,7 +30,6 @@ namespace Arc {
   class JobState {
   public:
 #define JOBSTATE_TABLE \
-    JOBSTATE_X(UNDEFINED, "Undefined")\
     JOBSTATE_X(ACCEPTED, "Accepted")\
     JOBSTATE_X(PREPARING, "Preparing")\
     JOBSTATE_X(SUBMITTING, "Submitting")\
@@ -44,8 +43,8 @@ namespace Arc {
     JOBSTATE_X(DELETED, "Deleted")\
     JOBSTATE_X(OTHER, "Other")
 
-#define JOBSTATE_X(a, b) a,
-    enum StateType { JOBSTATE_TABLE };
+#define JOBSTATE_X(a, b) , a
+    enum StateType { UNDEFINED JOBSTATE_TABLE };
 #undef JOBSTATE_X
     static const std::string StateTypeString[];
 

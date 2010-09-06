@@ -9,7 +9,7 @@ namespace Arc {
 #undef JOBSTATE_X
 #endif
 
-#define JOBSTATE_X(a, b) b,
-const std::string JobState::StateTypeString[] = { JOBSTATE_TABLE };
+#define JOBSTATE_X(a, b) , b
+const std::string JobState::StateTypeString[] = { "Undefined" JOBSTATE_TABLE };
 #undef JOBSTATE_X
 }
