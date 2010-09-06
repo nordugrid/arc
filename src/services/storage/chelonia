@@ -1774,14 +1774,16 @@ else:
                     LNs = dict(LNs.items() + [(ln, entry) for ln, entry in getRecursiveList(LN).items()])
                 request = dict([(ln, ln) for ln, entries in LNs.items() if entrytype in entries[1].get(('entry', 'type'), '')])
             if request:
-                LNkeys = []
+                response = {}
                 for i in range(0, len(request), bulk_length):
                     if i+bulk_length < len(request):
                         bulk_request = dict(request.items()[i:i+bulk_length])
                     else:
                         bulk_request = dict(request.items()[i:])
-                    response = call_it('delFile', bulk_request)
-                    LNkeys += response.keys()
+                    bulk_response = call_it('delFile', bulk_request)
+                    for br in bulk_response.keys():
+                        response[br] = bulk_response[br]
+                LNkeys = response.keys()
                 LNkeys.sort()
                 for ln in LNkeys:
                     print "%s: %s." % (ln, response[ln])
