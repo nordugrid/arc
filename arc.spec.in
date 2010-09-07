@@ -584,6 +584,8 @@ exit 0
 # We need to have libmodcredential.so close to libarccredential
 %{_libdir}/%{pkgdir}/libmodcredential.so
 %{_libdir}/%{pkgdir}/libmodcredential.apd
+%{_bindir}/ngconfigtest
+%doc %{_mandir}/man1/ngconfigtest.1*
 %{_datadir}/%{pkgdir}/schema
 %dir %{_datadir}/%{pkgdir}/perl
 %dir %{_datadir}/%{pkgdir}

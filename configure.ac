@@ -1990,8 +1990,11 @@ AC_CONFIG_FILES([Makefile
                  src/tests/arcpolicy/Makefile
                  src/tests/perf/Makefile
                  src/tests/client/Makefile
-                 src/utils/wsdl2hed.1
-                 src/utils/arcplugin.1
+                 src/utils/hed/wsdl2hed.1
+                 src/utils/hed/arcplugin.1
+                 src/utils/hed/Makefile
+                 src/utils/testing/ngconfigtest.1
+                 src/utils/testing/Makefile
                  src/utils/Makefile
                  swig/Makefile
                  java/Makefile
