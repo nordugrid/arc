@@ -52,7 +52,7 @@ namespace Arc {
   }
 
   void ByteArray::append(const void *buf, size_t s) {
-    unsigned int new_size = size_ + s;
+    size_t new_size = size_ + s;
     if (new_size > length_)
       resize(new_size);
     memcpy(data_ + size_, buf, s);
@@ -76,7 +76,7 @@ namespace Arc {
 
   ByteArray::operator std::string(void) const {
     std::ostringstream o;
-    for (int i = 0; i < length_; i++) {
+    for (size_t i = 0; i < length_; i++) {
       o << std::hex << std::setiosflags(std::ios_base::showbase);
       o << (int)data_[i] << " ";
     }
