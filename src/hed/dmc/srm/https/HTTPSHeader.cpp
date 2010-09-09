@@ -2,7 +2,7 @@
 
 namespace Arc {
   
-  HTTPResponseHeader::HTTPResponseHeader(bool alive):keep_alive(alive),content_length_passed(false),content_range_passed(false) { };
+  HTTPResponseHeader::HTTPResponseHeader(bool alive):keep_alive(alive),content_length_passed(false),content_range_passed(false) { }
   
   void HTTPResponseHeader::reset(bool alive) {
     keep_alive=alive;

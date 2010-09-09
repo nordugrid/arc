@@ -83,7 +83,7 @@
     };
     logger.msg(Arc::ERROR, "Could not determine version of server");
     return SRM_ERROR_OTHER;
-  };
+  }
   
   SRMReturnCode SRM22Client::getSpaceTokens(std::list<std::string>& tokens,
                                             std::string description) {
@@ -120,7 +120,7 @@
     };
   
     return SRM_OK;
-  };
+  }
   
   
   SRMReturnCode SRM22Client::getRequestTokens(std::list<std::string>& tokens,
@@ -164,7 +164,7 @@
     };
   
     return SRM_OK;
-  };
+  }
   
   
   SRMReturnCode SRM22Client::getTURLs(SRMClientRequest& req,
@@ -396,7 +396,7 @@
     if (return_status == SRMv2__TStatusCode__SRM_USCOREINTERNAL_USCOREERROR)
       return SRM_ERROR_TEMPORARY;
     return SRM_ERROR_PERMANENT;  
-  };
+  }
   
   
   SRMReturnCode SRM22Client::requestBringOnlineStatus(SRMClientRequest& req) {
@@ -488,7 +488,7 @@
     if (return_status == SRMv2__TStatusCode__SRM_USCOREINTERNAL_USCOREERROR)
       return SRM_ERROR_TEMPORARY;
     return SRM_ERROR_PERMANENT;
-  };
+  }
   
   void SRM22Client::fileStatus(SRMClientRequest& req,
                                SRMv2__ArrayOfTBringOnlineRequestFileStatus * file_statuses) {
@@ -524,7 +524,7 @@
       };
     };
     req.waiting_time(wait_time);
-  };
+  }
   
   
   SRMReturnCode SRM22Client::putTURLs(SRMClientRequest& req,
@@ -1113,7 +1113,7 @@
     logger.msg(Arc::VERBOSE, "Files associated with request token %s released successfully", req.request_token());
     return SRM_OK;
   
-  };
+  }
   
   
   SRMReturnCode SRM22Client::releasePut(SRMClientRequest& req) {
@@ -1164,7 +1164,7 @@
     logger.msg(Arc::VERBOSE, "Files associated with request token %s put done successfully", req.request_token());
     return SRM_OK;
   
-  };
+  }
   
   SRMReturnCode SRM22Client::abort(SRMClientRequest& req) {
   
@@ -1201,7 +1201,7 @@
     logger.msg(Arc::VERBOSE, "Files associated with request token %s aborted successfully", req.request_token());
     return SRM_OK;
   
-  };
+  }
   
   SRMReturnCode SRM22Client::remove(SRMClientRequest& req) {
   
@@ -1232,7 +1232,7 @@
       return SRM_OK;
     logger.msg(Arc::WARNING, "File delete failed, attempting directory delete");
     return removeDir(req);
-  };
+  }
   
   SRMReturnCode SRM22Client::removeFile(SRMClientRequest& req) {
   
@@ -1278,7 +1278,7 @@
     logger.msg(Arc::VERBOSE, "File %s removed successfully", req.surls().front());
     return SRM_OK;
   
-  };
+  }
   
   
   SRMReturnCode SRM22Client::removeDir(SRMClientRequest& req) {
@@ -1318,7 +1318,7 @@
     logger.msg(Arc::VERBOSE, "Directory %s removed successfully", req.surls().front());
     return SRM_OK;
   
-  };
+  }
   
   SRMReturnCode SRM22Client::copy(SRMClientRequest& req, const std::string& source) {
     
@@ -1439,7 +1439,7 @@
     };
     req.finished_success();
     return SRM_OK;
-  };
+  }
   
   SRMReturnCode SRM22Client::mkDir(SRMClientRequest& req) {
     
@@ -1499,6 +1499,6 @@
       };
     };
     return SRM_OK;
-  };
+  }
 
 //} // namespace Arc

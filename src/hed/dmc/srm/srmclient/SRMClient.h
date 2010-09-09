@@ -21,7 +21,7 @@
   enum SRMVersion {
     SRM_V1,
     SRM_V2_2,
-    SRM_VNULL,
+    SRM_VNULL
   };
   
   /**
@@ -35,7 +35,7 @@
     SRM_ERROR_TEMPORARY, // eg SRM_INTERNAL_ERROR, SRM_FILE_BUSY
     SRM_ERROR_PERMANENT, // eg no such file, permission denied
     SRM_ERROR_NOT_SUPPORTED, // not supported by this version of the protocol
-    SRM_ERROR_OTHER, // eg bad input parameters, unexpected result format
+    SRM_ERROR_OTHER // eg bad input parameters, unexpected result format
   };
   
   /**
@@ -45,7 +45,7 @@
     SRM_ONLINE,
     SRM_NEARLINE,
     SRM_UNKNOWN,
-    SRM_STAGE_ERROR,
+    SRM_STAGE_ERROR
   };
    
   /**
@@ -55,7 +55,7 @@
     SRM_REPLICA,
     SRM_OUTPUT,
     SRM_CUSTODIAL,
-    SRM_RETENTION_UNKNOWN,
+    SRM_RETENTION_UNKNOWN
   };
   
   /**
@@ -65,7 +65,7 @@
     SRM_VOLATILE,
     SRM_DURABLE,
     SRM_PERMANENT,
-    SRM_FILE_STORAGE_UNKNOWN,
+    SRM_FILE_STORAGE_UNKNOWN
   };
   
   /**
@@ -86,7 +86,7 @@
     SRM_IMPLEMENTATION_CASTOR,
     SRM_IMPLEMENTATION_DPM,
     SRM_IMPLEMENTATION_STORM,
-    SRM_IMPLEMENTATION_UNKNOWN,
+    SRM_IMPLEMENTATION_UNKNOWN
   };
   
   /**
@@ -122,7 +122,7 @@
     SRM_REQUEST_FINISHED_PARTIAL_SUCCESS,
     SRM_REQUEST_FINISHED_ERROR,
     SRM_REQUEST_SHOULD_ABORT,
-    SRM_REQUEST_CANCELLED,
+    SRM_REQUEST_CANCELLED
   };
   
   /**

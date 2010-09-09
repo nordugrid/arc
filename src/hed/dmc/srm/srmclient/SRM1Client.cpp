@@ -273,7 +273,7 @@
     for(;file_id!=file_ids.end();) {
       SRMv1Meth__setFileStatusResponse r; r._Result=NULL;
       if((soap_err=soap_call_SRMv1Meth__setFileStatus(&soapobj,csoap->SOAP_URL(),
-              "setFileStatus",req.request_id(),*file_id,"Running",r)) != SOAP_OK) {
+              "setFileStatus",req.request_id(),*file_id,(char*)"Running",r)) != SOAP_OK) {
         logger.msg(Arc::INFO, "SOAP request failed (setFileStatus)");
         if(logger.getThreshold() > Arc::FATAL) soap_print_fault(&soapobj, stderr);
         file_id=file_ids.erase(file_id); f_url=urls.erase(f_url);
@@ -397,7 +397,7 @@
     for(;file_id!=file_ids.end();) {
       SRMv1Meth__setFileStatusResponse r; r._Result=NULL;
       if((soap_err=soap_call_SRMv1Meth__setFileStatus(&soapobj,csoap->SOAP_URL(),
-              "setFileStatus",req.request_id(),*file_id,"Done",r)) != SOAP_OK) {
+              "setFileStatus",req.request_id(),*file_id,(char*)"Done",r)) != SOAP_OK) {
         logger.msg(Arc::INFO, "SOAP request failed (setFileStatus)");
         if(logger.getThreshold() > Arc::FATAL) soap_print_fault(&soapobj, stderr);
         ++file_id; continue;

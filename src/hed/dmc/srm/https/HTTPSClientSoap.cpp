@@ -48,7 +48,7 @@ namespace Arc {
     if(it->connect() != 0) return -1;
     sp->socket=0;
     return 0;
-  };
+  }
   
   int HTTPSClientSOAP::local_fclose(struct soap* sp) {
     if(sp->socket == -1) return 0;
@@ -56,7 +56,7 @@ namespace Arc {
     if(it->disconnect() != 0) return -1;
     sp->socket=-1;
     return 0;
-  };
+  }
   
   
   HTTPSClientSOAP::HTTPSClientSOAP(const UserConfig& usercfg, const char* base,struct soap *sp,bool gssapi_server, int soap_timeout, bool check_host_cert)
