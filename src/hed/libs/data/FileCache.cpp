@@ -37,6 +37,22 @@ namespace Arc {
 
   Logger FileCache::logger(Logger::getRootLogger(), "FileCache");
 
+  static bool fgets(FILE *file, int size, std::string& str) {
+    bool res = false;
+    char* tstr = NULL;
+    try {
+      tstr = new char[size+1];
+      if (tstr) {
+        if (fgets(tstr, size+1, file) != NULL) {
+          str = tstr;
+          res = true;
+        }
+      }
+    } catch(std::exception& e) { }
+    if(tstr) delete[] tstr;
+    return res;
+  }
+ 
   FileCache::FileCache(std::string cache_path,
                        std::string id,
                        uid_t job_uid,
@@ -80,7 +96,7 @@ namespace Arc {
     if (! _init(caches, remote_caches, draining_caches, id, job_uid, job_gid, cache_max, cache_min))
       _caches.clear();
   }
- 
+
   bool FileCache::_init(std::vector<std::string> caches,
                         std::vector<std::string> remote_caches,
                         std::vector<std::string> draining_caches,
@@ -370,21 +386,20 @@ namespace Arc {
     if (0 == err) {
       // check URL inside file for possible hash collisions
       FILE *pFile;
-      char mystring[fileStat.st_size+1];
-      pFile = fopen((char*)_getMetaFileName(url).c_str(), "r");
+      pFile = fopen((char*)meta_file.c_str(), "r");
       if (pFile == NULL) {
         logger.msg(ERROR, "Error opening meta file %s: %s", _getMetaFileName(url), strerror(errno));
         remove(lock_file.c_str());
         return false;
       }
-      if (fgets(mystring, sizeof(mystring), pFile) == NULL) {
+      std::string meta_str;
+      if(!fgets(pFile, fileStat.st_size, meta_str)) {
         logger.msg(ERROR, "Error reading valid and existing lock file %s: %s", lock_file, strerror(errno));
         fclose(pFile);
         return false;
       }
       fclose(pFile);
 
-      std::string meta_str(mystring);
       // get the first line
       if (meta_str.find('\n') != std::string::npos)
         meta_str.resize(meta_str.find('\n'));
@@ -954,17 +969,19 @@ namespace Arc {
       return false;
     }
     FILE *pFile;
-    char mystring[fileStat.st_size + 1];
     pFile = fopen(meta_file.c_str(), "r");
     if (pFile == NULL) {
       logger.msg(ERROR, "Error opening meta file %s: %s", meta_file, strerror(errno));
       return false;
     }
     // get the first line
-    fgets(mystring, sizeof(mystring), pFile);
+    std::string first_line;
+    if(!fgets(pFile, fileStat.st_size, first_line)) {
+      logger.msg(ERROR, "Error reading meta file %s: %s", meta_file, strerror(errno));
+      return false;
+    }
 
     // check for correct formatting and possible hash collisions between URLs
-    std::string first_line(mystring);
     if (first_line.find('\n') == std::string::npos)
       first_line += '\n';
     std::string::size_type space_pos = first_line.rfind(' ');
@@ -981,13 +998,13 @@ namespace Arc {
     std::vector<std::string> dnlist;
     dnlist.push_back(DN + ' ' + expiry_time.str(MDSTime) + '\n');
 
-    char *res = fgets(mystring, sizeof(mystring), pFile);
+    std::string dnstring;
+    bool res = fgets(pFile, fileStat.st_size, dnstring);
     while (res) {
-      std::string dnstring(mystring);
       space_pos = dnstring.rfind(' ');
       if (space_pos == std::string::npos) {
         logger.msg(WARNING, "Bad format detected in file %s, in line %s", meta_file, dnstring);
-        res = fgets (mystring, sizeof(mystring), pFile);
+        res = fgets(pFile, fileStat.st_size, dnstring);
         continue;
       }
       // remove expired DNs (after some grace period)
@@ -998,7 +1015,7 @@ namespace Arc {
         if (exp_time > Time(time(NULL) - CACHE_DEFAULT_AUTH_VALIDITY))
           dnlist.push_back(dnstring + '\n');
       }
-      res = fgets(mystring, sizeof(mystring), pFile);
+      res = fgets(pFile, fileStat.st_size, dnstring);
     }
     fclose(pFile);
 
@@ -1029,18 +1046,17 @@ namespace Arc {
       return false;
     }
     FILE *pFile;
-    char mystring[fileStat.st_size + 1];
     pFile = fopen(meta_file.c_str(), "r");
     if (pFile == NULL) {
       logger.msg(ERROR, "Error opening meta file %s: %s", meta_file, strerror(errno));
       return false;
     }
-    fgets(mystring, sizeof(mystring), pFile); // first line
 
+    std::string dnstring;
+    fgets(pFile, fileStat.st_size, dnstring); // first line
     // read in list of DNs
-    char *res = fgets(mystring, sizeof(mystring), pFile);
+    bool res = fgets(pFile, fileStat.st_size, dnstring);
     while (res) {
-      std::string dnstring(mystring);
       std::string::size_type space_pos = dnstring.rfind(' ');
       if (dnstring.substr(0, space_pos) == DN) {
         if (dnstring.find('\n') != std::string::npos)
@@ -1057,7 +1073,7 @@ namespace Arc {
           return false;
         }
       }
-      res = fgets(mystring, sizeof(mystring), pFile);
+      res = fgets(pFile, fileStat.st_size, dnstring);
     }
     fclose(pFile);
     return false;
