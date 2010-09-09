@@ -572,7 +572,7 @@ namespace gridftpd {
 
   void ParallelLdapQueries::Query() {
     const int numqueries = clusters.size();
-    pthread_t threads[numqueries];
+    pthread_t* threads = new pthread_t[numqueries];
     int res;
 
     for (unsigned int i = 0; i<clusters.size(); i++) {
@@ -580,18 +580,23 @@ namespace gridftpd {
                            NULL,
                            ParallelLdapQueries::DoLdapQuery,
                            (void*)this);
-      if (res!=0)
+      if (res!=0) {
+        delete[] threads;
         throw LdapQueryError(
           _("Thread creation in ParallelLdapQueries failed"));
+      }
     }
 
     void* result;
     for (unsigned int i = 0; i<clusters.size(); i++) {
       res = pthread_join(threads[i], &result);
-      if (res!=0)
+      if (res!=0) {
+        delete[] threads;
         throw LdapQueryError(
           _("Thread joining in ParallelLdapQueries failed"));
+      }
     }
+    delete[] threads;
   }
 
 
