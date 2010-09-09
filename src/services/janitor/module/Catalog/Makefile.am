@@ -24,9 +24,6 @@ Janitor\:\:NoteCollection.$(JanitorPerlModuleManSection): NoteCollection.pm
 Janitor\:\:Note.$(JanitorPerlModuleManSection): Note.pm
 	pod2man $< > $@
 
-Janitor\:\:MetaPackage.$(JanitorPerlModuleManSection): MetaPackage.pm
-	pod2man $< > $@
-
 Janitor\:\:Package.$(JanitorPerlModuleManSection): Package.pm
 	pod2man $< > $@
 
