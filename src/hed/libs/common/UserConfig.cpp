@@ -59,6 +59,11 @@ namespace Arc {
       if ((!CredentialsFound()) && (initializeCredentials == initializeCredentialsType::RequireCredentials))
         return;
     }
+    else if (initializeCredentials == initializeCredentialsType::SkipCACredentials) {
+      InitializeCredentials();
+      if(proxyPath.empty() && (certificatePath.empty() || keyPath.empty()))
+        return;
+    }
 
     ok = true;
 
@@ -116,6 +121,12 @@ namespace Arc {
       if ((!CredentialsFound()) && (initializeCredentials == initializeCredentialsType::RequireCredentials))
         return;
     }
+    else if (initializeCredentials == initializeCredentialsType::SkipCACredentials) {
+      InitializeCredentials();
+      if(proxyPath.empty() && (certificatePath.empty() || keyPath.empty()))
+        return;
+    }
+
 
     ok = true;
 
@@ -182,6 +193,12 @@ namespace Arc {
       if ((!CredentialsFound()) && (initializeCredentials == initializeCredentialsType::RequireCredentials))
         return;
     }
+    else if (initializeCredentials == initializeCredentialsType::SkipCACredentials) {
+      InitializeCredentials();
+      if(proxyPath.empty() && (certificatePath.empty() || keyPath.empty()))
+        return;
+    }
+
 
     ok = true;
 
@@ -333,13 +350,13 @@ namespace Arc {
 
     if (!GetEnv("X509_CERT_DIR").empty()) {
       if (!Glib::file_test(caCertificatesDirectory = GetEnv("X509_CERT_DIR"), Glib::FILE_TEST_IS_DIR)) {
-        logger.msg(ERROR, "Can not access CA certificate directory: %s", caCertificatesDirectory);
+        logger.msg(WARNING, "Can not access CA certificate directory: %s. The certificates will not be verified.", caCertificatesDirectory);
         caCertificatesDirectory.clear();
       }
     }
     else if (!caCertificatesDirectory.empty()) {
       if (!Glib::file_test(caCertificatesDirectory, Glib::FILE_TEST_IS_DIR)) {
-        logger.msg(ERROR, "Can not access CA certificate directory: %s", caCertificatesDirectory);
+        logger.msg(WARNING, "Can not access CA certificate directory: %s. The certificates will not be verified", caCertificatesDirectory);
         caCertificatesDirectory.clear();
       }
     }
@@ -350,7 +367,7 @@ namespace Arc {
              !Glib::file_test(caCertificatesDirectory = ArcLocation::Get() + G_DIR_SEPARATOR_S + "share" + G_DIR_SEPARATOR_S + "certificates", Glib::FILE_TEST_IS_DIR)) {
       caCertificatesDirectory = Glib::build_filename(G_DIR_SEPARATOR_S + std::string("etc"), std::string("grid-security") + G_DIR_SEPARATOR_S + std::string("certificates"));
       if (!Glib::file_test(caCertificatesDirectory.c_str(), Glib::FILE_TEST_IS_DIR)) {
-        logger.msg(ERROR, "Can not locate CA certificate directory.");
+        logger.msg(WARNING, "Can not locate CA certificate directory on the default directories: ~/.globus/certificates, $ARC_LOCATION/etc/certificates, $ARC_LOCATION/etc/grid-security/certificates, $ARC_LOCATION/share/certificates, /etc/grid-security/certificates. The certificate will not be verified.");
         caCertificatesDirectory.clear();
       }
     }

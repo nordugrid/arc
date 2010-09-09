@@ -30,10 +30,12 @@ namespace Arc {
    public:
     typedef enum {
       SkipCredentials,
+      SkipCACredentials,
       TryCredentials,
       RequireCredentials
     } initializeType;
-    initializeCredentialsType(void):val(RequireCredentials) { };
+    //initializeCredentialsType(void):val(RequireCredentials) { };
+    initializeCredentialsType(void):val(SkipCACredentials) { };
     initializeCredentialsType(initializeType v):val(v) { };
     bool operator==(initializeType v) { return (val == v); };
     bool operator!=(initializeType v) { return (val != v); };
