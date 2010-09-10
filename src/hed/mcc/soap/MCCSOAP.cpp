@@ -151,8 +151,8 @@ static MCC_Status make_raw_fault(Message& outmsg,const char* reason = NULL)
   NS ns;
   SOAPEnvelope soap(ns,true);
   soap.Fault()->Code(SOAPFault::Receiver);
-  std::string xml; soap.GetXML(xml);
   if(reason != NULL) soap.Fault()->Reason(0, reason);
+  std::string xml; soap.GetXML(xml);
   PayloadRaw* payload = new PayloadRaw;
   payload->Insert(xml.c_str());
   outmsg.Payload(payload);
@@ -216,8 +216,12 @@ MCC_Status MCC_SOAP_Service::process(Message& inmsg,Message& outmsg) {
   // Do checks and extract SOAP response
   if(!ret) {
     if(nextoutmsg.Payload()) delete nextoutmsg.Payload();
-    logger.msg(WARNING, "next element of the chain returned error status");
-    return make_raw_fault(outmsg,"Internal error");
+    logger.msg(WARNING, "next element of the chain returned error status: %s",(std::string)ret);
+    if(ret.getKind() == UNKNOWN_SERVICE_ERROR) {
+      return make_raw_fault(outmsg,"No requested service found");
+    } else {
+      return make_raw_fault(outmsg,"Internal error");
+    }
   }
   if(!nextoutmsg.Payload()) {
     logger.msg(WARNING, "next element of the chain returned empty payload");
