@@ -404,26 +404,18 @@ std::string job_submit(const std::string job_name, const std::string site_url, c
 	
 	std::stringstream out;
 	out << ptm->tm_year<< ptm->tm_mon<< ptm->tm_mday<< ptm->tm_hour<< ptm->tm_min<< ptm->tm_sec;
-	std::string local_string;
-	local_string = out.str() +job_name+ ".jsdl";
+	std::string jsdl_file_name = out.str() +job_name+ ".jsdl";
 
-	char  jsdl_file_name[ local_string.size()];
-	for(size_t i = 0; i < local_string.size(); i++)
-	{
-	    jsdl_file_name[i] = local_string[i];
-	}
-	jsdl_file_name[local_string.size()]='\0';		//close character
-
-	local_logger.msg(Arc::VERBOSE, "The submited JSDL file's name: " + (std::string)jsdl_file_name);
+	local_logger.msg(Arc::VERBOSE, "The submited JSDL file's name: " + jsdl_file_name);
 	std::ofstream jsdlfile_o;
-	jsdlfile_o.open((const char *)&jsdl_file_name);
+	jsdlfile_o.open(jsdl_file_name.c_str());
 	jsdlfile_o << jsdl_file;
 	jsdlfile_o.close();
 	
-	std::ifstream jsdlfile((const char *)&jsdl_file_name);
+	std::ifstream jsdlfile(jsdl_file_name.c_str());
 	if (!jsdlfile)
 	    throw std::invalid_argument(std::string("Could not open ")+
-				             std::string(jsdl_file_name));
+				             jsdl_file_name);
 	
 	Arc::Compiler_AREXFileList files;
     
@@ -432,9 +424,9 @@ std::string job_submit(const std::string job_name, const std::string site_url, c
 	jobid = ac.submit(jsdlfile, files, delegate);
 	if (!jsdlfile)
 	    throw std::invalid_argument(std::string("Failed when reading from ")+
-					std::string(jsdl_file_name)); 
+					jsdl_file_name); 
 	
-	remove((const char *)&jsdl_file_name);
+	remove(jsdl_file_name.c_str());
 	local_logger.msg(Arc::INFO, "Jod Id:  "+ jobid);
 
     }  catch(std::exception& err) {
