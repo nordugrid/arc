@@ -153,6 +153,8 @@ rm -rf $RPM_BUILD_ROOT
 # We need to have libmodcredential.dll close to libarccredential
 %{_mingw32_libdir}/%{pkgdir}/libmodcredential.dll*
 %{_mingw32_datadir}/%{pkgdir}/schema
+%{_mingw32_bindir}/ngconfigtest
+%doc %{_mingw32_mandir}/man1/ngconfigtest.1*
 
 %files client
 %defattr(-,root,root,-)
