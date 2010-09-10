@@ -698,6 +698,10 @@ case "${host}" in
     ;;
 esac
 
+if test "x$MACOS" = "xyes"; then
+  AC_DEFINE(_MACOSX,,[Define if compiling for MacOSX])
+fi
+
 if test "$enables_hed" = "yes"; then
 XMLSEC_MIN_VERSION="1.2.4"
 XMLSEC_OPENSSL_MIN_VERSION="1.2.4"

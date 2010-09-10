@@ -324,11 +324,15 @@ void JobUser::SetShareID(uid_t suid) {
   if(getpwuid_r(suid, &pwd_buf, buf, buflen, &pwd) == 0) {
     if(pwd) {
 #ifdef HAVE_GETGROUPLIST
+#ifdef _MACOSX
+      int groups[100];
+#else
       gid_t groups[100];
+#endif
       int ngroups = 100;
       if(getgrouplist(pwd->pw_name, pwd->pw_gid, groups, &ngroups) >= 0) {
         for(int n = 0; n<ngroups;++n) {
-          share_gids.push_back(groups[n]);
+          share_gids.push_back((gid_t)(groups[n]));
         };
       };
 #endif
