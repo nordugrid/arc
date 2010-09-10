@@ -249,7 +249,11 @@ MCC_Status MCC_HTTP_Service::process(Message& inmsg,Message& outmsg) {
   if(!ret) {
     if(nextoutmsg.Payload()) delete nextoutmsg.Payload();
     logger.msg(WARNING, "next element of the chain returned error status");
-    return make_http_fault(logger,*inpayload,outmsg,HTTP_INTERNAL_ERR);
+    if(ret.getKind() == UNKNOWN_SERVICE_ERROR) {
+      return make_http_fault(logger,*inpayload,outmsg,HTTP_NOT_FOUND);
+    } else {
+      return make_http_fault(logger,*inpayload,outmsg,HTTP_INTERNAL_ERR);
+    }
   }
   if(!nextoutmsg.Payload()) {
     logger.msg(WARNING, "next element of the chain returned empty payload");
