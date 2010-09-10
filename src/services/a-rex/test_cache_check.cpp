@@ -53,5 +53,5 @@ int main(void) {
     std::cout << str << std::endl;
 
    return 0;  
-};
+}
 

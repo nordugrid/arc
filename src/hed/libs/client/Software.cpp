@@ -79,7 +79,7 @@ bool Software::operator>(const Software& sv) const {
         continue;
     }
     else {
-      logger.msg(VERBOSE, "%s > %s => false: \%s contains non numbers in the version part.", (std::string)*this, (std::string)sv, (!stringto(*lhsIt, lhsInt) ? (std::string)*this : (std::string)sv));
+      logger.msg(VERBOSE, "%s > %s => false: %s contains non numbers in the version part.", (std::string)*this, (std::string)sv, (!stringto(*lhsIt, lhsInt) ? (std::string)*this : (std::string)sv));
       return false;
     }
 

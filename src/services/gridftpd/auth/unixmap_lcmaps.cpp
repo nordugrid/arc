@@ -30,7 +30,7 @@ extern "C" {
 #undef lcmaps_run_and_return_username
 #undef lcmaps_term
 #undef extern
-};
+}
 #else
 #warning Using hardcoded definition of LCMAPS functions - software will break during runtime if interface changed
 extern "C" {
@@ -38,7 +38,7 @@ typedef char* lcmaps_request_t;
 typedef int (*lcmaps_init_t)(FILE *fp);
 typedef int (*lcmaps_run_and_return_username_t)(char *user_dn_tmp,gss_cred_id_t user_cred,lcmaps_request_t request,char **usernamep,int npols,char **policynames);
 typedef int (*lcmaps_term_t)(void);
-};
+}
 #endif
 
 static Arc::SimpleCondition lcmaps_global_lock;

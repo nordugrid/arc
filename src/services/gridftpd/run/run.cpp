@@ -212,19 +212,19 @@ namespace gridftpd {
     bool res = hup_detected;
     hup_detected = false;
     return res;
-  };
+  }
 
   bool Run::was_int(void) {
     bool res = int_detected;
     int_detected = false;
     return res;
-  };
+  }
 
   bool Run::was_term(void) {
     bool res = term_detected;
     term_detected = false;
     return res;
-  };
+  }
 
   // Termination signal
   void Run::sig_term(int signum,siginfo_t *info,void* arg) {

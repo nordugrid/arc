@@ -144,7 +144,7 @@ static void* wrapper(void *arg) {
 
   if(backendInfo)
     for(i = 0; i < 100; i++) {
-      if(backendInfo[i] == shell_back_search) {
+      if(backendInfo[i] == (void*)shell_back_search) {
 	backendInfo[i] = (void*)&shell_back_search_wrapper;
 	break;
       }

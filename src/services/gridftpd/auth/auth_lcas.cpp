@@ -42,7 +42,7 @@ typedef char* lcas_request_t;
 typedef int (*lcas_init_t)(FILE *fp);
 typedef int (*lcas_term_t)(void);
 typedef int (*lcas_get_fabric_authorization_t)(char *user_dn_tmp,gss_cred_id_t user_cred,lcas_request_t request);
-};
+}
 #endif
 
 static Arc::SimpleCondition lcas_global_lock;

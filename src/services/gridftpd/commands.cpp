@@ -1167,7 +1167,7 @@ GridFTP_Commands::GridFTP_Commands(int n,unsigned int* f) {
     if(!timeouter) { timeouter=t; } else { delete t; };
   };
   timeouter->add(*this);
-};
+}
 
 GridFTP_Commands::~GridFTP_Commands(void) {
 /* here all connections should be closed and all callbacks unregistered */
@@ -1186,7 +1186,7 @@ GridFTP_Commands::~GridFTP_Commands(void) {
   globus_mutex_unlock(&fork_lock);
 */
 #endif
-};
+}
 
 
 GridFTP_Commands_timeout::GridFTP_Commands_timeout(void) {
@@ -1272,5 +1272,5 @@ void* GridFTP_Commands_timeout::timer_func(void* arg) {
   globus_cond_signal(&(it->exit_cond));
   globus_mutex_unlock(&(it->lock));
   return NULL;
-};
+}
 

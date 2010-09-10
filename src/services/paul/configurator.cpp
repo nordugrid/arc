@@ -17,7 +17,7 @@ namespace Paul
 
 Configurator::Configurator(Arc::Config *cfg):logger_(Arc::Logger::rootLogger, "Paul::Configurator"),cfg_(*cfg) { 
     cfg_.setFileName(cfg->getFileName());
-};
+}
 
 int
 Configurator::getPeriod(void)
