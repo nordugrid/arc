@@ -323,7 +323,7 @@ JobPlugin::~JobPlugin(void) {
   for (unsigned int i = 0; i < file_plugins.size(); i++) {
     if (file_plugins.at(i)) delete file_plugins.at(i);
   }
-};
+}
  
 
 int JobPlugin::makedir(std::string &dname) {

@@ -76,7 +76,7 @@ static void* cache_func(void* arg) {
         // TODO: use GM log?
         gmuser.SetControlDir(cacheuser->ControlDir()); // Should this requirement be removed ?
         int argc=0;
-        char* args[9+cache_info_dirs.size()+1];
+        char** args = new char*[9+cache_info_dirs.size()+1];
         
         // do cache-clean -h for explanation of options
         std::string cmd = users->Env().nordugrid_libexec_loc() + "/cache-clean";
@@ -101,6 +101,7 @@ static void* cache_func(void* arg) {
         if(!RunParallel::run(gmuser,"cache-clean",args,&proc,false,false)) {
           logger.msg(Arc::ERROR,"Failed to run cache cleanup script: %s", cmd);
         };
+        delete[] args;
       };
       for(unsigned int t=CACHE_CLEAN_PERIOD;t;) t=sleep(t);
     };

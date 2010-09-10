@@ -139,7 +139,7 @@ static int set_execs_callback(void* arg) {
   const std::string& session_dir = *(((set_execs_t*)arg)->session_dir);
   if (set_execs(arc_job_desc, session_dir)) return 0;
   return -1;
-};
+}
 
 /* parse job description and set specified file permissions to executable */
 bool set_execs(const JobDescription &desc,const JobUser &user,const std::string &session_dir) {

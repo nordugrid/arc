@@ -244,7 +244,7 @@ JobLocalDescription& JobLocalDescription::operator=(const Arc::JobDescription& a
     reruns = arc_job_desc.Application.Rerun;
 
   return *this;
-};
+}
 
 const char* const JobLocalDescription::transfersharedefault = "_default";
 
