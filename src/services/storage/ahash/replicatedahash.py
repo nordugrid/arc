@@ -332,7 +332,7 @@ class ReplicationStore(TransDBStore):
                         new_obj[('client', "%s:%s"%(url, status))] = url
                     # store the site list
                     while not self.lock(False):
-                        time.sleep(0.2)
+                        time.sleep(2)
                     self.set(ahash_list_guid, new_obj)
                     self.unlock()
                     log.msg(arc.VERBOSE, "wrote ahash list %s"%str(new_obj))
@@ -788,6 +788,7 @@ class ReplicationManager:
                 log.msg(arc.VERBOSE, "I am now a master")
                 log.msg(arc.VERBOSE, "received DB_EVENT_REP_MASTER")
                 self.setRole(db.DB_REP_MASTER)
+                self.masterID = self.eid
                 self.dbReady(True)
                 # use threaded send to avoid blocking
                 #threading.Thread(target=self.sendNewMasterMsg, args=[]).start()
