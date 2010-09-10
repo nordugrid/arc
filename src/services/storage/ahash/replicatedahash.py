@@ -313,6 +313,9 @@ class ReplicationStore(TransDBStore):
             # self.site_list is set in event_callback when elected to master
             # and deleted if not elected in the event of election
             try:
+                deadlocks = self.repmgr.dbenv.lock_detect(db.DB_LOCK_DEFAULT)
+                if deadlocks:
+                    log.msg(arc.VERBOSE, "Resolved %d deadlocks"%deadlocks)
                 if self.repmgr.isMaster():
                     # get list of all registered client sites
                     site_list = self.repmgr.getSiteList()
