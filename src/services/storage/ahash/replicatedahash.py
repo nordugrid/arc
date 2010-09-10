@@ -218,8 +218,8 @@ class ReplicationStore(TransDBStore):
             # In seconds, how often should we check for connected nodes
             self.check_period = float(str(cfg.Get('CheckPeriod')))
         except:
-            log.msg(arc.WARNING, "Could not find checking period, using default 10s")
-            self.check_period = 10.0
+            log.msg(arc.WARNING, "Could not find checking period, using default 30s")
+            self.check_period = 30.0
         try:
             # amount of db cached in memory
             # Must be integer. Optionally in order of kB, MB, GB, TB or PB,
