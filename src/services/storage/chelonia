@@ -1958,6 +1958,7 @@ else:
                 filenames = [filename]
                 
             request = {}
+            filesize = {}
             for filename in filenames:
                 try:
                     size = os.path.getsize(filename)
@@ -1986,6 +1987,7 @@ else:
                     request[filename] = (targetLN, metadata, supported_protocols)
                 else:
                     request[filename] = (LN, metadata, supported_protocols)
+                filesize[filename] = size
             #print 'putFile', request
             for i in range(0, len(request), bulk_length):
                 if i+bulk_length < len(request):
@@ -2010,7 +2012,7 @@ else:
                             # stupid cleaning of // before printout
                             while '//' in targetLN:
                                 targetLN = targetLN.replace('//', '/')
-                            print "'%s' (%s bytes) uploaded to '%s'." % (filename, size, targetLN)
+                            print "'%s' (%s bytes) uploaded to '%s'." % (filename, filesize[filename], targetLN)
                         except Exception, e:
                             print "ERROR:", str(e)
                             sys.exit(-1)
