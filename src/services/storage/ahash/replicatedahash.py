@@ -130,6 +130,22 @@ class ReplicatedAHash(CentralAHash):
         log.msg(arc.VERBOSE, "processing message... Finished")
         return out
 
+    def get(self, ids, neededMetadata = []):
+        """ ReplicatedAHash-specific part of get method, see CentralizedAHash.get for details
+        """
+        if not self.store.getDBReady():
+            raise Exception, "db not ready"
+        return CentralAHash.get(self, ids, neededMetadata)
+
+    def change(self, changes):
+        """ ReplicatedAHash-specific part of change method, see CentralizedAHash.change for details
+        """
+        if not self.store.getDBReady():
+            raise Exception, "db not ready"
+        if not self.store.repmgr.isMaster():
+            raise Exception, "db is not master"
+        return CentralAHash.change(self, changes)
+ 
 class ReplicationStore(TransDBStore):
     """
     Wrapper class for enabling replication in TransDBStore
