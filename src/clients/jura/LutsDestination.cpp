@@ -162,12 +162,8 @@ namespace Arc
     std::multimap<std::string, std::string> http_attributes;
     Arc::MCC_Status status;
 
-    //Message transformation
-    char mess[urset.length()];
-    strcpy(mess, urset.c_str());
-
     //Add the message into the request
-    http_request.Insert(mess);
+    http_request.Insert(urset.c_str());
     
     try
     {
