@@ -35,7 +35,7 @@ static Glib::Mutex suid_lock;
     std::string user_s = GetEnv("USER_ID");
     if (user_s.empty())
       return 0;
-    user_id = stringtoui(user_s);
+    stringto(user_s, user_id);
     return user_id;
   }
 
