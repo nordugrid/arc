@@ -397,7 +397,7 @@ bool JobUser::SwitchUser(bool su) const {
   //if(!Arc::SetEnv("USER_NAME",unix_name)) if(!su) return false;
 
   static char uid_s[64];
-  snprintf(uid_s,63,"%llu",uid);
+  snprintf(uid_s,63,"%llu",(long long unsigned int)uid);
   uid_s[63]=0;
 #ifdef HAVE_SETENV
   if(setenv("USER_ID",uid_s,1) != 0) if(!su) return false;
