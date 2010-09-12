@@ -386,11 +386,33 @@ std::string JobUsers::ControlDir(const std::string user) {
 
 #ifndef NO_GLOBUS_CODE
 
-/* change effective user - real switch is done only if running as root */
+/* Change effective user - real switch is done only if running as root.
+   This method is caled in single-threaded environment and in 
+   post-multi-threaded right after fork. So it must avoid 
+   using anything that could internally inlcude calls to thread 
+   functions. */
 bool JobUser::SwitchUser(bool su) const {
-  std::string uid_s = Arc::tostring(uid);
-  if(!Arc::SetEnv("USER_ID",uid_s)) if(!su) return false;
-  if(!Arc::SetEnv("USER_NAME",unix_name)) if(!su) return false;
+  //std::string uid_s = Arc::tostring(uid);
+  //if(!Arc::SetEnv("USER_ID",uid_s)) if(!su) return false;
+  //if(!Arc::SetEnv("USER_NAME",unix_name)) if(!su) return false;
+
+  static char uid_s[64];
+  snprintf(uid_s,63,"%llu",uid);
+  uid_s[63]=0;
+#ifdef HAVE_SETENV
+  if(setenv("USER_ID",uid_s,1) != 0) if(!su) return false;
+  if(setenv("USER_NAME",unix_name.c_str(),1) != 0) if(!su) return false;
+#else
+  static char user_id_s[64];
+  static char user_name_s[64];
+  strncpy(user_id_s,"USER_ID",63); user_id_s[63]=0;
+  strncat(user_id_s,uid_s,63-strlen(user_id_s)); user_id_s[63]=0;
+  strncpy(user_name_s,"USER_ID",63); user_id_s[63]=0;
+  strncat(user_name_s,unix_name.c_str(),63-strlen(user_name_s)); user_name_s[63]=0;
+  if(putenv(user_id_s) != 0) if(!su) return false;
+  if(putenv(user_name_s) != 0) if(!su) return false;
+#endif
+
   /* set proper umask */
   umask(0177);
   if(!su) return true;

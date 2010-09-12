@@ -117,7 +117,12 @@ class JobUser {
   const GMEnvironment& Env(void) const { return gm_env; };
   bool operator==(std::string name) { return (name == unix_name); };
   /* Change owner of the process to this user if su=true.
-     Otherwise just set environment variables USER_ID and USER_NAME */
+     Otherwise just set environment variables USER_ID and USER_NAME.
+     Real switch is done only if running as root.
+     This method is caled in single-threaded environment and in 
+     post-multi-threaded right after fork. So it does not include
+     calls to fancy functions. Do not use this method in other
+     circumstances. */
   bool SwitchUser(bool su = true) const;
   void add_helper(const std::string &helper) {
     helpers.push_back(JobUserHelper(helper));
