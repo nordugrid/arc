@@ -55,7 +55,7 @@ AC_ATTR *d2i_AC_ATTR(AC_ATTR **a, SSLCONST unsigned char **pp, long length)
 
   if (strcmp(text, "idatcap") == 0)
 #if (OPENSSL_VERSION_NUMBER >= 0x10000000L)
-    M_ASN1_D2I_get_set_type(AC_IETFATTR, *ret->ietfattr, d2i_AC_IETFATTR, AC_IETFATTR_free);
+    M_ASN1_D2I_get_set_type(AC_IETFATTR, ret->ietfattr, d2i_AC_IETFATTR, AC_IETFATTR_free);
 #else
     M_ASN1_D2I_get_set_type(AC_IETFATTR, ret->ietfattr, (AC_IETFATTR* (*)())d2i_AC_IETFATTR, AC_IETFATTR_free);
 #endif
@@ -115,7 +115,7 @@ AC_IETFATTR *d2i_AC_IETFATTR(AC_IETFATTR **a, SSLCONST unsigned char **pp, long 
   M_ASN1_D2I_start_sequence();
   M_ASN1_D2I_get_IMP_opt(ret->names, d2i_GENERAL_NAMES, 0, V_ASN1_SEQUENCE);
 #if (OPENSSL_VERSION_NUMBER >= 0x10000000L)
-  M_ASN1_D2I_get_seq_type(AC_IETFATTRVAL, *ret->values, d2i_AC_IETFATTRVAL, AC_IETFATTRVAL_free);
+  M_ASN1_D2I_get_seq_type(AC_IETFATTRVAL, ret->values, d2i_AC_IETFATTRVAL, AC_IETFATTRVAL_free);
 #else
   M_ASN1_D2I_get_seq_type(AC_IETFATTRVAL, ret->values, (AC_IETFATTRVAL* (*)())d2i_AC_IETFATTRVAL, AC_IETFATTRVAL_free);
 #endif
@@ -535,16 +535,12 @@ AC_INFO *d2i_AC_INFO(AC_INFO **a, SSLCONST unsigned char **pp, long length)
   M_ASN1_D2I_get(ret->serial,     d2i_ASN1_INTEGER);
   M_ASN1_D2I_get(ret->validity, d2i_AC_VAL);
 #if (OPENSSL_VERSION_NUMBER >= 0x10000000L)
-  M_ASN1_D2I_get_seq_type(AC_ATTR, *ret->attrib, d2i_AC_ATTR, AC_ATTR_free);
+  M_ASN1_D2I_get_seq_type(AC_ATTR, ret->attrib, d2i_AC_ATTR, AC_ATTR_free);
 #else
   M_ASN1_D2I_get_seq_type(AC_ATTR, ret->attrib, (AC_ATTR* (*)())d2i_AC_ATTR, AC_ATTR_free);
 #endif
   M_ASN1_D2I_get_opt(ret->id,     d2i_ASN1_BIT_STRING, V_ASN1_BIT_STRING);
-#if (OPENSSL_VERSION_NUMBER >= 0x10000000L)
-  M_ASN1_D2I_get_seq_opt_type(X509_EXTENSION, *ret->exts, d2i_X509_EXTENSION, X509_EXTENSION_free);
-#else
   M_ASN1_D2I_get_seq_opt_type(X509_EXTENSION, ret->exts, d2i_X509_EXTENSION, X509_EXTENSION_free);
-#endif
   M_ASN1_D2I_Finish(a, AC_INFO_free, AC_F_D2I_AC);
 }
 
@@ -662,7 +658,7 @@ AC_SEQ *d2i_AC_SEQ(AC_SEQ **a, SSLCONST unsigned char **pp, long length)
   M_ASN1_D2I_Init();
   M_ASN1_D2I_start_sequence();
 #if (OPENSSL_VERSION_NUMBER >= 0x10000000L)
-  M_ASN1_D2I_get_seq_type(AC, *ret->acs, d2i_AC, AC_free);
+  M_ASN1_D2I_get_seq_type(AC, ret->acs, d2i_AC, AC_free);
 #else
   M_ASN1_D2I_get_seq_type(AC, ret->acs, (AC* (*)())d2i_AC, AC_free);
 #endif
@@ -714,7 +710,7 @@ AC_TARGETS *d2i_AC_TARGETS(AC_TARGETS **a, SSLCONST unsigned char **pp, long len
   M_ASN1_D2I_Init();
   M_ASN1_D2I_start_sequence();
 #if (OPENSSL_VERSION_NUMBER >= 0x10000000L)
-  M_ASN1_D2I_get_seq_type(AC_TARGET, *ret->targets, d2i_AC_TARGET, AC_TARGET_free);
+  M_ASN1_D2I_get_seq_type(AC_TARGET, ret->targets, d2i_AC_TARGET, AC_TARGET_free);
 #else
   M_ASN1_D2I_get_seq_type(AC_TARGET, ret->targets, (AC_TARGET* (*)())d2i_AC_TARGET, AC_TARGET_free);
 #endif
@@ -811,11 +807,7 @@ AC_CERTS *d2i_AC_CERTS(AC_CERTS **a, SSLCONST unsigned char **pp, long length)
 
   M_ASN1_D2I_Init();
   M_ASN1_D2I_start_sequence();
-#if (OPENSSL_VERSION_NUMBER >= 0x10000000L)
-  M_ASN1_D2I_get_seq_type(X509, *ret->stackcert, d2i_X509, X509_free);
-#else
   M_ASN1_D2I_get_seq_type(X509, ret->stackcert, d2i_X509, X509_free);
-#endif
   M_ASN1_D2I_Finish(a, AC_CERTS_free, ASN1_F_D2I_AC_CERTS);
 }
 
@@ -922,7 +914,7 @@ AC_ATT_HOLDER *d2i_AC_ATT_HOLDER(AC_ATT_HOLDER **a, SSLCONST unsigned char **pp,
   M_ASN1_D2I_start_sequence();
   M_ASN1_D2I_get(ret->grantor, d2i_GENERAL_NAMES);
 #if (OPENSSL_VERSION_NUMBER >= 0x10000000L)
-  M_ASN1_D2I_get_seq_type(AC_ATTRIBUTE, *ret->attributes, d2i_AC_ATTRIBUTE, AC_ATTRIBUTE_free);
+  M_ASN1_D2I_get_seq_type(AC_ATTRIBUTE, ret->attributes, d2i_AC_ATTRIBUTE, AC_ATTRIBUTE_free);
 #else
   M_ASN1_D2I_get_seq_type(AC_ATTRIBUTE, ret->attributes, (AC_ATTRIBUTE* (*)())d2i_AC_ATTRIBUTE, AC_ATTRIBUTE_free);
 #endif
@@ -977,7 +969,7 @@ AC_FULL_ATTRIBUTES *d2i_AC_FULL_ATTRIBUTES(AC_FULL_ATTRIBUTES **a, SSLCONST unsi
   M_ASN1_D2I_Init();
   M_ASN1_D2I_start_sequence();
 #if (OPENSSL_VERSION_NUMBER >= 0x10000000L)
-  M_ASN1_D2I_get_seq_type(AC_ATT_HOLDER, *ret->providers, d2i_AC_ATT_HOLDER, AC_ATT_HOLDER_free);
+  M_ASN1_D2I_get_seq_type(AC_ATT_HOLDER, ret->providers, d2i_AC_ATT_HOLDER, AC_ATT_HOLDER_free);
 #else
   M_ASN1_D2I_get_seq_type(AC_ATT_HOLDER, ret->providers, (AC_ATT_HOLDER* (*)())d2i_AC_ATT_HOLDER, AC_ATT_HOLDER_free);
 #endif

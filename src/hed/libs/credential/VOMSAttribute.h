@@ -9,13 +9,12 @@
 
 #include <openssl/opensslv.h>
 
-#if (OPENSSL_VERSION_NUMBER >= 0x10000000L) && \
-    (OPENSSL_VERSION_NUMBER <  0x1000001fL)
-// Workaround for broken header in openssl 1.0.0 - fixed in openssl 1.0.0a
+#if (OPENSSL_VERSION_NUMBER >= 0x10000000L)
+// Workaround for broken header in openssl 1.0.0
 #include <openssl/safestack.h>
 #undef SKM_ASN1_SET_OF_d2i
 #define	SKM_ASN1_SET_OF_d2i(type, st, pp, length, d2i_func, free_func, ex_tag, ex_class) \
-  (STACK_OF(type) *)d2i_ASN1_SET((STACK_OF(OPENSSL_BLOCK) **)CHECKED_STACK_OF(type, st), \
+  (STACK_OF(type) *)d2i_ASN1_SET((STACK_OF(OPENSSL_BLOCK) **)CHECKED_PTR_OF(STACK_OF(type)*, st), \
 				pp, length, \
 				CHECKED_D2I_OF(type, d2i_func), \
 				CHECKED_SK_FREE_FUNC(type, free_func), \
@@ -234,8 +233,8 @@ typedef struct ACFULLATTRIBUTES {
   type  *sk_##type##_shift (STACK_OF(type) *st) { return (type *)sk_shift(CHECKED_STACK_OF(type, st)); } \
   type  *sk_##type##_pop (STACK_OF(type) *st) { return (type *)sk_pop(CHECKED_STACK_OF(type, st)); } \
   void   sk_##type##_sort (STACK_OF(type) *st) { sk_sort(CHECKED_STACK_OF(type, st)); }		\
-  STACK_OF(type) *d2i_ASN1_SET_OF_##type (STACK_OF(type) *st, const unsigned char **pp, long length, type *(*d2ifunc)(type**, const unsigned char**, long), void (*freefunc)(type *), int ex_tag, int ex_class) \
-    { return (STACK_OF(type) *)d2i_ASN1_SET((STACK_OF(OPENSSL_BLOCK)**)CHECKED_STACK_OF(type, st), \
+  STACK_OF(type) *d2i_ASN1_SET_OF_##type (STACK_OF(type) **st, const unsigned char **pp, long length, type *(*d2ifunc)(type**, const unsigned char**, long), void (*freefunc)(type *), int ex_tag, int ex_class) \
+    { return (STACK_OF(type) *)d2i_ASN1_SET((STACK_OF(OPENSSL_BLOCK)**)CHECKED_PTR_OF(STACK_OF(type)*, st), \
 				pp, length, \
 				CHECKED_D2I_OF(type, d2ifunc), \
 				CHECKED_SK_FREE_FUNC(type, freefunc), \
@@ -270,7 +269,7 @@ typedef struct ACFULLATTRIBUTES {
    type  *sk_##type##_shift (STACK_OF(type) *); \
    type  *sk_##type##_pop (STACK_OF(type) *); \
    void   sk_##type##_sort (STACK_OF(type) *); \
-   STACK_OF(type) *d2i_ASN1_SET_OF_##type (STACK_OF(type) *, const unsigned char **, long, type *(*)(type**, const unsigned char **, long), void (*)(type *), int, int); \
+   STACK_OF(type) *d2i_ASN1_SET_OF_##type (STACK_OF(type) **, const unsigned char **, long, type *(*)(type**, const unsigned char **, long), void (*)(type *), int, int); \
    int i2d_ASN1_SET_OF_##type (STACK_OF(type) *, unsigned char **, int (*)(type*, unsigned char**), int, int, int); \
    unsigned char *ASN1_seq_pack_##type (STACK_OF(type) *, int (*)(type*, unsigned char**), unsigned char **, int *); \
    STACK_OF(type) *ASN1_seq_unpack_##type (unsigned char *, int, type *(*)(), void (*)(type *)) ;
