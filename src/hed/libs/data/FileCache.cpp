@@ -355,21 +355,26 @@ namespace Arc {
         logger.msg(WARNING, "Warning: This process already owns the lock");
       else {
         // check if the pid owning the lock is still running - if not we can claim the lock
-        // this is not really portable... but no other way to do it
+        // this check only works on systems with /proc. On other systems locks will always be valid
         std::string procdir("/proc/");
-        procdir = procdir.append(lock_pid);
-        if (stat(procdir.c_str(), &fileStat) != 0 && errno == ENOENT) {
-          logger.msg(VERBOSE, "The process owning the lock is no longer running, will remove lock");
-          if (remove(lock_file.c_str()) != 0) {
-            logger.msg(ERROR, "Failed to unlock file %s: %s", lock_file, strerror(errno));
-            return false;
+        if (stat(procdir.c_str(), &fileStat) == 0) {
+          procdir = procdir.append(lock_pid);
+          if (stat(procdir.c_str(), &fileStat) != 0 && errno == ENOENT) {
+            logger.msg(VERBOSE, "The process owning the lock is no longer running, will remove lock");
+            if (remove(lock_file.c_str()) != 0) {
+              logger.msg(ERROR, "Failed to unlock file %s: %s", lock_file, strerror(errno));
+              return false;
+            }
+            // lock has been removed. try to delete cache file and call Start() again
+            if (remove(filename.c_str()) != 0 && errno != ENOENT) {
+              logger.msg(ERROR, "Error removing cache file %s: %s", filename, strerror(errno));
+              return false;
+            }
+            return Start(url, available, is_locked, use_remote);
           }
-          // lock has been removed. try to delete cache file and call Start() again
-          if (remove(filename.c_str()) != 0 && errno != ENOENT) {
-            logger.msg(ERROR, "Error removing cache file %s: %s", filename, strerror(errno));
-            return false;
-          }
-          return Start(url, available, is_locked, use_remote);
+        }
+        else {
+          logger.msg(INFO, "Cannot check process info - assuming lock is still valid");
         }
       }
 

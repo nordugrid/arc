@@ -219,11 +219,15 @@ void FileCacheTest::testStart() {
   CPPUNIT_ASSERT(is_locked);
 
   // delete lock file and try again with a non-existent pid
-  CPPUNIT_ASSERT_EQUAL(0, remove(std::string(_fc1->File(_url) + ".lock").c_str()));
-  _createFile(_fc1->File(_url) + ".lock", "99999@" + host);
-  CPPUNIT_ASSERT(_fc1->Start(_url, available, is_locked));
-  CPPUNIT_ASSERT(!available);
-  CPPUNIT_ASSERT(!is_locked);
+  // only test this if processes can be checked through /proc
+  std::string procdir = "/proc";
+  if (stat(procdir.c_str(), &fileStat) == 0) {
+    CPPUNIT_ASSERT_EQUAL(0, remove(std::string(_fc1->File(_url) + ".lock").c_str()));
+    _createFile(_fc1->File(_url) + ".lock", "99999@" + host);
+    CPPUNIT_ASSERT(_fc1->Start(_url, available, is_locked));
+    CPPUNIT_ASSERT(!available);
+    CPPUNIT_ASSERT(!is_locked);
+  }
 
   // Stop cache
   CPPUNIT_ASSERT(_fc1->Stop(_url));
