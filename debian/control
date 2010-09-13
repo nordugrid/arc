@@ -163,7 +163,7 @@ Description: ARC LDAP infosys service
 
 Package: nordugrid-arc-nox-giis
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, nordugrid-arc-ldap-infosys
+Depends: ${shlibs:Depends}, ${misc:Depends}, nordugrid-arc-nox-ldap-infosys
 Description: ARC GIIS service
  The NorduGrid is a collaboration aiming at development, maintenance
  and support of the free Grid middleware, known as the Advanced Resource
