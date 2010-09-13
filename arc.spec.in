@@ -745,6 +745,11 @@ exit 0
 %{_libdir}/%{pkgdir}/libslcs.so
 %{_libdir}/%{pkgdir}/libslcs.apd
 
+%files cache_service
+%defattr(-,root,root,-)
+%{_libdir}/%{pkgdir}/libcacheservice.so
+%{_libdir}/%{pkgdir}/libcacheservice.apd
+
 %files arex
 %defattr(-,root,root,-)
 %{_initrddir}/a-rex

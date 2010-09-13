@@ -1,0 +1,2 @@
+The cache service is a service inside HED which exposes some operations on 
+the A-REX cache to remote clients through a WS interface.

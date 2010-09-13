@@ -107,6 +107,7 @@ enables_paul_service=yes
 enables_sched_service=yes
 enables_charon_service=yes
 enables_storage_service=yes
+enables_cache_service=yes
 #  Clients
 enables_arclib_client=yes
 enables_charon_client=yes
@@ -136,6 +137,7 @@ enables_paul_service=$enableval
 enables_sched_service=$enableval
 enables_charon_service=$enableval
 enables_storage_service=$enableval
+enables_cache_service=$enableval
 enables_arclib_client=$enableval
 enables_charon_client=$enableval
 enables_credentials_client=$enableval
@@ -191,6 +193,7 @@ enables_paul_service=$enableval
 enables_sched_service=$enableval
 enables_charon_service=$enableval
 enables_storage_service=$enableval
+enables_cache_service=$enableval
 ],
 [])
 
@@ -1577,6 +1580,20 @@ AC_MSG_NOTICE([JANITOR Service enabled: $enables_janitor_service])
 AM_CONDITIONAL([JANITOR_SERVICE_ENABLED],[test "x$enables_janitor_service" = "xyes"])
 AM_CONDITIONAL([JANITOR_WEBSERVICE_ENABLED],[test "x$enables_janitor_service" = "xyes"])
 
+# Cache service
+AC_ARG_ENABLE(cache_service, AC_HELP_STRING([--disable-cache-service], [disable building cache service]),
+  [enables_cache_service=$enableval],[])
+if test "$enables_cache_service" = "yes"; then
+  if test "x$WIN32" = "xyes" ; then
+    enables_cache_service="no"
+    AC_MSG_NOTICE([Cache service can't be built for WIN32 environment - disabling])
+  fi
+fi
+AC_MSG_NOTICE([Cache service enabled: $enables_service_service])
+AM_CONDITIONAL([CACHE_SERVICE_ENABLED],[test "x$enables_cache_service" = "xyes"])
+AM_CONDITIONAL([CACHE_WEBSERVICE_ENABLED],[test "x$enables_cache_service" = "xyes"])
+
+
 # Check for explicitely and implicitely disabled clients
 AC_ARG_ENABLE(arclib_client, AC_HELP_STRING([--disable-arclib-client], [disable building Arclib (job management) client tools]),
   [enables_arclib_client=$enableval],[])
@@ -1646,6 +1663,7 @@ if test "$enables_hed" = "no"; then
           "$enables_sched_service" = "yes" -o \
           "$enables_charon_service" = "yes" -o \
           "$enables_storage_service" = "yes" -o \
+          "$enables_cache_service" = "yes" -o \
           "$enables_arclib_client" = "yes" -o \
           "$enables_charon_client" = "yes" -o \
           "$enables_credentials_client" = "yes" -o \
@@ -1881,6 +1899,7 @@ AC_CONFIG_FILES([Makefile
                  src/services/a-rex/logger/Makefile
                  src/services/a-rex/urlogger/Makefile
                  src/services/a-rex/schema/Makefile
+                 src/services/cache_service/Makefile
                  src/services/charon/Makefile
                  src/services/charon/schema/Makefile
                  src/services/charon/charon_service.xml.example
@@ -2092,6 +2111,7 @@ STORAGE service:    ${enables_storage_service}
 JANITOR service:    ${enables_janitor_service}
 PAUL service:       ${enables_paul_service}
 COMPILER service:   ${enables_compiler_service}
+CACHE service:      ${enables_cache_service}
 
 ARCLIB clients:     ${enables_arclib_client}
 ISIS client:        ${enables_isis_client}
