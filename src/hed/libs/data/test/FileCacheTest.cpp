@@ -227,10 +227,8 @@ void FileCacheTest::testStart() {
     CPPUNIT_ASSERT(_fc1->Start(_url, available, is_locked));
     CPPUNIT_ASSERT(!available);
     CPPUNIT_ASSERT(!is_locked);
+    CPPUNIT_ASSERT(_fc1->Stop(_url));
   }
-
-  // Stop cache
-  CPPUNIT_ASSERT(_fc1->Stop(_url));
 
   // put different url in meta file
   _createFile(_fc1->File(_url) + ".meta", "http://badfile 1234567890");
@@ -589,7 +587,7 @@ void FileCacheTest::testCopyFile() {
 
   // create bad copy
   if (_uid != 0 && stat("/lost+found/sessiondir", &fileStat) != 0 && errno == EACCES)
-    CPPUNIT_ASSERT(!_fc1->Copy("/lost_found/sessiondir/file1", _url));
+    CPPUNIT_ASSERT(!_fc1->Copy("/lost+found/sessiondir/file1", _url));
 
   // Stop cache to release lock
   CPPUNIT_ASSERT(_fc1->Stop(_url));
