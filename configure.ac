@@ -119,6 +119,7 @@ enables_jura_client=yes
 enables_saml_client=yes
 enables_srm_client=yes
 enables_wsrf_client=yes
+enables_cache_client=yes
 #  Documentation
 enables_doc=yes
 
@@ -148,6 +149,7 @@ enables_jura_client=$enableval
 enables_saml_client=$enableval
 enables_srm_client=$enableval
 enables_wsrf_client=$enableval
+enables_cache_client=$enableval
 enables_hed=$enableval
 enables_java=$enableval
 enables_python=$enableval
@@ -168,6 +170,7 @@ enables_jura_client=$enableval
 enables_saml_client=$enableval
 enables_srm_client=$enableval
 enables_wsrf_client=$enableval
+enables_cache_client=$enableval
 enables_doc=$enableval
 ],
 [])
@@ -1651,6 +1654,11 @@ AC_ARG_ENABLE(wsrf_client, AC_HELP_STRING([--disable-wsrf-client], [disable buil
 AC_MSG_NOTICE([WSRF client tool enabled: $enables_wsrf_client])
 AM_CONDITIONAL([WSRF_CLIENT_ENABLED],[test "x$enables_wsrf_client" = "xyes"])
 
+AC_ARG_ENABLE(cache_client, AC_HELP_STRING([--disable-cache-client], [disable building client tools for cache service.]),
+  [enables_cache_client=$enableval],[])
+AC_MSG_NOTICE([Cache client tool enabled: $enables_cache_client])
+AM_CONDITIONAL([CACHE_CLIENT_ENABLED],[test "x$enables_cache_client" = "xyes"])
+
 
 # Check for consistency among disabled components
 if test "$enables_hed" = "no"; then
@@ -1673,8 +1681,9 @@ if test "$enables_hed" = "no"; then
           "$enables_jura_client" = "yes" -o \
           "$enables_saml_client" = "yes" -o \
           "$enables_srm_client" = "yes" -o \
-          "$enables_wsrf_client" = "yes"; then
-    AC_MSG_ERROR(HED is needed for building any of client or service tools. Please enabled HED by using --enable-hed.)
+          "$enables_wsrf_client" = "yes" -o \
+          "$enables_cache_client" = "yes"; then
+    AC_MSG_ERROR(HED is needed for building any of the client or service tools. Please enable HED by using --enable-hed.)
   fi
 fi
 AM_CONDITIONAL([HED_ENABLED],[test "x$enables_hed" = "xyes"])
@@ -2001,6 +2010,7 @@ AC_CONFIG_FILES([Makefile
                  src/clients/jura/Makefile
                  src/clients/jura/jura.1
                  src/clients/wsrf/Makefile
+                 src/clients/cache/Makefile
                  src/tests/Makefile
                  src/tests/echo/Makefile
                  src/tests/echo/perftest.1
@@ -2123,6 +2133,7 @@ ECHO client:        ${enables_echo_client}
 JURA client:        ${enables_jura_client}
 SAML VOMS client:   ${enables_saml_client}
 WSRF client:        ${enables_wsrf_client}
+CACHE client:       ${enables_cache_client}
 
 SRM client (DMC):   ${enables_srm_dmc}
 GSI channel (MCC):  ${enables_gsi_mcc}

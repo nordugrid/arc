@@ -58,8 +58,14 @@ else
 WSRF_CLIENT =
 endif
 
-SUBDIRS = $(DATA_CLIENT) $(ECHO_CLIENT) $(ISIS_CLIENT) $(CREDENTIALS_CLIENT) $(ARCLIB_CLIENT) $(CHARON_CLIENT) $(SAML_CLIENT) $(SRM_CLIENT) $(JURA_CLIENT) $(WSRF_CLIENT)
-DIST_SUBDIRS = data echo isis credentials arclib charon saml srm jura wsrf
+if CACHE_CLIENT_ENABLED
+CACHE_CLIENT = cache
+else
+CACHE_CLIENT =
+endif
+
+SUBDIRS = $(DATA_CLIENT) $(ECHO_CLIENT) $(ISIS_CLIENT) $(CREDENTIALS_CLIENT) $(ARCLIB_CLIENT) $(CHARON_CLIENT) $(SAML_CLIENT) $(SRM_CLIENT) $(JURA_CLIENT) $(WSRF_CLIENT) $(CACHE_CLIENT)
+DIST_SUBDIRS = data echo isis credentials arclib charon saml srm jura wsrf cache
 
 arcsysconfdir = $(sysconfdir)/@PACKAGE@
 arcsysconf_DATA = client.conf
