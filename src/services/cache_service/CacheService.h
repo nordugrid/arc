@@ -12,13 +12,22 @@ namespace Cache {
 
 /**
  * CacheService provides functionality for A-REX cache operations that can be
- * performed by remote clients.
+ * performed by remote clients. It currently consists of two operations:
+ * CacheCheck - allows querying of the cache for the presence of files.
+ * CacheLink - enables a running job to dynamically request cache files to
+ * be linked to its working (session) directory. This is especially useful
+ * in the case of pilot job workflows where job submission does not follow
+ * the usual ARC workflow. In order for input files to be available to jobs,
+ * the pilot job can call the cache service to prepare them. If requested files
+ * are not present in the cache, they may be downloaded by the cache service
+ * depending on configuration settings. (TODO: how exactly download will be
+ * done).
  */
 class CacheService: public Arc::RegisteredService {
 
  private:
-  /** Construct a SOAP error message */
-  Arc::MCC_Status make_soap_fault(Arc::Message& outmsg);
+  /** Construct a SOAP error message with optional extra reason string */
+  Arc::MCC_Status make_soap_fault(Arc::Message& outmsg, const std::string& reason = "");
   /** CacheService namespace */
   Arc::NS ns;
   /** Caches as taken from the configuration */

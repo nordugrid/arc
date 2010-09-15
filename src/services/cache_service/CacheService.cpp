@@ -167,6 +167,8 @@ Arc::MCC_Status CacheService::CacheCheck(Arc::XMLNode in,Arc::XMLNode out) {
 }
 
 Arc::MCC_Status CacheService::CacheLink(Arc::XMLNode in,Arc::XMLNode out) {
+
+  // create new cache for the user calling this method
   return Arc::MCC_Status(Arc::STATUS_OK);
 }
 
@@ -175,7 +177,7 @@ Arc::MCC_Status CacheService::process(Arc::Message &inmsg, Arc::Message &outmsg)
   // Check authorization
   if(!ProcessSecHandlers(inmsg, "incoming")) {
     logger.msg(Arc::ERROR, "CacheService: Unauthorized");
-    return Arc::MCC_Status(Arc::GENERIC_ERROR);
+    return make_soap_fault(outmsg, "Authorization failed");
   }
 
   std::string method = inmsg.Attributes()->get("HTTP:METHOD");
@@ -250,12 +252,15 @@ bool CacheService::RegistrationCollector(Arc::XMLNode &doc) {
   return true;
 }
 
-Arc::MCC_Status CacheService::make_soap_fault(Arc::Message& outmsg) {
+Arc::MCC_Status CacheService::make_soap_fault(Arc::Message& outmsg, const std::string& reason) {
   Arc::PayloadSOAP* outpayload = new Arc::PayloadSOAP(ns,true);
   Arc::SOAPFault* fault = outpayload?outpayload->Fault():NULL;
   if(fault) {
     fault->Code(Arc::SOAPFault::Sender);
-    fault->Reason("Failed processing request");
+    if (reason.empty())
+      fault->Reason("Failed processing request");
+    else
+      fault->Reason("Failed processing request: "+reason);
   }
   outmsg.Payload(outpayload);
   return Arc::MCC_Status(Arc::STATUS_OK);
