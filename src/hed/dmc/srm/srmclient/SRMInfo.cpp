@@ -102,7 +102,7 @@ bool SRMInfo::getSRMFileInfo(SRMFileInfo& srm_file_info) {
       filelock->unlock();
       return true;
     }
-    res = fgets (mystring, sizeof(mystring), pFile);
+    res = fgets (mystring, fileStat.st_size+1, pFile);
   }
   delete[] mystring;
   fclose(pFile);
