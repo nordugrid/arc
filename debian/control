@@ -148,6 +148,18 @@ Description: ARC gridftp server
    gaclplugin : Enhanced server with support for GACL authorization
    jobplugin  : Classical ARC job submission interface
 
+Package: nordugrid-arc-nox-cache-service
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, nordugrid-arc-nox
+Description: ARC cache service
+ The NorduGrid is a collaboration aiming at development, maintenance
+ and support of the free Grid middleware, known as the Advanced Resource
+ Connector (ARC).
+ .
+ This package contains the ARC cache service. It provides a way to perform
+ some operations on the A-REX cache remotely. It can be especially helpful
+ for data management within a pilot job framework.
+
 Package: nordugrid-arc-nox-ldap-infosys
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
