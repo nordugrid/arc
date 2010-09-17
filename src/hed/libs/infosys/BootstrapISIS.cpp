@@ -55,7 +55,7 @@ struct Registrar_data {
         logger_.msg(VERBOSE, "Remove ISIS (%s) from list", isis.url);
         // Remove isis from myISISList
         for (std::vector<ISIS_description>::iterator it = myISISList.begin();
-             it < myISISList.end() && ((*it).url != myISIS.url || myISISList.erase(it) == it); it++);
+             (it < myISISList.end()) && (((*it).url != myISIS.url) || (myISISList.erase(it) == it)); it++) { };
 
         // If the 'isis' is the currently used (myISIS) isis
         if ( isis.url == myISIS.url && myISISList.size() != 0 ) {
@@ -123,8 +123,7 @@ struct Registrar_data {
         while((bool)(*response)["GetISISListResponse"]["EPR"][i]) {
             bool ISIS_found = false;
             for (std::vector<ISIS_description>::iterator it = myISISList.begin();
-                it < myISISList.end() && ((*it).url != (std::string) (*response)["GetISISListResponse"]["EPR"][i]
-                || (ISIS_found = true)); it++);
+                (it < myISISList.end()) && (((*it).url != (std::string) (*response)["GetISISListResponse"]["EPR"][i]) || (ISIS_found = true)); it++) {};
             if ( !ISIS_found ) {
                 ISIS_description new_ISIS;
                 new_ISIS.url = (std::string)(*response)["GetISISListResponse"]["EPR"][i];

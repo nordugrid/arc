@@ -609,7 +609,7 @@ namespace Arc {
          */
         if (!it->Source.empty())
           inputSandboxList.push_back(it->Source.front().URI ? it->Source.front().URI.fullstr() : it->Name);
-        if (!it->Target.empty() && it->Target.front().URI || it->KeepData) {
+        if ((!it->Target.empty() && it->Target.front().URI) || it->KeepData) {
           outputSandboxList.push_back(it->Name);
           /* User downloadable files should go to the local grid ftp
            * server (local to CREAM). See comments on the parsing of the

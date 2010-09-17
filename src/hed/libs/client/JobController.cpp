@@ -435,9 +435,9 @@ namespace Arc {
         continue;
       }
 
-      if (whichfile == "stdout" && it->StdOut.empty() ||
-          whichfile == "stderr" && it->StdErr.empty() ||
-          whichfile == "gmlog" && it->LogDir.empty()) {
+      if (((whichfile == "stdout") && (it->StdOut.empty())) ||
+          ((whichfile == "stderr") && (it->StdErr.empty())) ||
+          ((whichfile == "gmlog") && (it->LogDir.empty()))) {
         logger.msg(ERROR, "Can not determine the %s location: %s",
                    whichfile, it->JobID.str());
         continue;

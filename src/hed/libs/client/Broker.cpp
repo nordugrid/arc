@@ -134,12 +134,12 @@ namespace Arc {
         int i = 0;
         for (; i < 4; i++) {
           JobTimePair *jTime = &jobTime[i/2];
-          if (i%2 == 0 && jTime->second->range.max != -1 ||
-              i%2 == 1 && jTime->second->range.min != -1) {
+          if (((i%2 == 0) && (jTime->second->range.max != -1)) ||
+              ((i%2 == 1) && (jTime->second->range.min != -1))) {
             if (etTime[i].second != -1) {
               if (jTime->second->benchmark.first.empty()) { // No benchmark defined, do not scale.
-                if (i%2 == 0 && jTime->second->range.max > etTime[i].second ||
-                    i%2 == 1 && jTime->second->range.min < etTime[i].second) {
+                if (((i%2 == 0) && (jTime->second->range.max > etTime[i].second)) ||
+                    ((i%2 == 1) && (jTime->second->range.min < etTime[i].second))) {
                   logger.msg(VERBOSE,
                              "Matchmaking, %s (%d) is %s than %s (%d) published by the ExecutionTarget.",
                              jTime->first,
@@ -153,8 +153,8 @@ namespace Arc {
               }
               else { // Benchmark defined => scale using benchmark.
                 if (target->Benchmarks.find(jTime->second->benchmark.first) != target->Benchmarks.end()) {
-                  if (i%2 == 0 && jTime->second->scaleMax(target->Benchmarks.find(jTime->second->benchmark.first)->second) > etTime[i].second ||
-                      i%2 == 1 && jTime->second->scaleMin(target->Benchmarks.find(jTime->second->benchmark.first)->second) < etTime[i].second) {
+                  if (((i%2 == 0) && (jTime->second->scaleMax(target->Benchmarks.find(jTime->second->benchmark.first)->second) > etTime[i].second)) ||
+                      ((i%2 == 1) && (jTime->second->scaleMin(target->Benchmarks.find(jTime->second->benchmark.first)->second) < etTime[i].second))) {
                     logger.msg(VERBOSE,
                                "Matchmaking, The %s scaled %s (%d) is %s than the %s (%d) published by the ExecutionTarget.",
                                jTime->second->benchmark.first,

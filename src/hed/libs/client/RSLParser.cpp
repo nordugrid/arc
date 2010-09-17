@@ -750,6 +750,8 @@ namespace Arc {
     case RSLOr:
       return os << '|';
     }
+
+    return os;
   }
 
   std::ostream& operator<<(std::ostream& os, const RSLRelOp op) {
@@ -775,6 +777,8 @@ namespace Arc {
     case RSLGreaterOrEqual:
       return os << ">=";
     }
+
+    return os;
   }
 
   std::ostream& operator<<(std::ostream& os, const RSLValue& value) {

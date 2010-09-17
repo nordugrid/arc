@@ -69,6 +69,7 @@ namespace Arc {
       if ((comp.Attribute("name") == name) &&
           (comp.Attribute("id") == id))
         return comp;
+    return XMLNode();
   }
 
   ClientInterface::ClientInterface(const BaseConfig& cfg)
