@@ -83,7 +83,7 @@ static bool fix_file_permissions(const std::string &fname,const JobUser &user) {
   return (chmod(fname.c_str(),mode) == 0);
 }
 
-static bool fix_file_permissions(const std::string &fname,const JobDescription &desc,const JobUser &user) {
+bool fix_file_permissions(const std::string &fname,const JobDescription &desc,const JobUser &user) {
   mode_t mode = S_IRUSR | S_IWUSR;
   uid_t uid = desc.get_uid();
   gid_t gid = desc.get_gid();

@@ -35,8 +35,8 @@ bool write_grami(const Arc::JobDescription& arc_job_desc, const JobDescription& 
   const std::string fgrami = user.ControlDir() + "/job." + job_desc.get_id() + ".grami";
   std::ofstream f(fgrami.c_str(),std::ios::out | std::ios::trunc);
   if(!f.is_open()) return false;
+  if(!fix_file_permissions(fgrami,job_desc,user)) return false;
   if(!fix_file_owner(fgrami,job_desc,user)) return false;
-
 
   f<<"joboption_directory='"<<session_dir<<"'"<<std::endl;
 
