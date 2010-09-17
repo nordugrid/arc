@@ -537,18 +537,18 @@ int JobPlugin::open(const char* name,open_modes mode,unsigned long long int size
         user->SetControlDir(controldir);
         user->SetSessionRoot(sessiondir);
         if(job_id.length() == 0) {
-          if(readonly) {
-            error_description="You are not allowed to submit new jobs to this service.";
-            logger.msg(Arc::ERROR, error_description);
-            return 1;
-          };
+          //if(readonly) {
+          //  error_description="You are not allowed to submit new jobs to this service.";
+          //  logger.msg(Arc::ERROR, "%s", error_description);
+          //  return 1;
+          //};
           if(!make_job_id()) {
             error_description="Failed to allocate ID for job.";
-            logger.msg(Arc::ERROR, error_description);
+            logger.msg(Arc::ERROR, "%s", error_description);
             return 1;
           };
         };
-        logger.msg(Arc::INFO, "Accepting submission of new job: %s", job_id);
+        logger.msg(Arc::INFO, "Accepting submission of new job or modification request: %s", job_id);
         rsl_opened=true;
         chosenFilePlugin = selectFilePlugin(job_id);
         return 0;
@@ -615,6 +615,7 @@ int JobPlugin::close(bool eof) {
   rsl_opened=false;
   if(job_id.length() == 0) {
     error_description="There is no job ID defined.";
+    logger.msg(Arc::ERROR, "%s", error_description);
     return 1;
   };
   if(!eof) { delete_job_id(); return 0; }; /* download was canceled */
@@ -627,7 +628,7 @@ int JobPlugin::close(bool eof) {
   JobLocalDescription job_desc;
   if(parse_job_req(rsl_fname.c_str(),job_desc,&acl) != JobReqSuccess) {
     error_description="Failed to parse job/action description.";
-    logger.msg(Arc::ERROR, error_description);
+    logger.msg(Arc::ERROR, "%s", error_description);
     delete_job_id();
     return 1;
   };
@@ -636,7 +637,7 @@ int JobPlugin::close(bool eof) {
     delete_job_id();
     if(job_desc.jobid.length() == 0) {
       error_description="Missing ID in request to cancel job.";
-      logger.msg(Arc::ERROR, error_description);
+      logger.msg(Arc::ERROR, "%s", error_description);
       return 1;
     };
     return removefile(job_desc.jobid);
@@ -645,7 +646,7 @@ int JobPlugin::close(bool eof) {
     delete_job_id();
     if(job_desc.jobid.length() == 0) {
       error_description="Missing ID in request to clean job.";
-      logger.msg(Arc::ERROR, error_description);
+      logger.msg(Arc::ERROR, "%s", error_description);
       return 1;
     };
     return removedir(job_desc.jobid);
@@ -654,7 +655,7 @@ int JobPlugin::close(bool eof) {
     delete_job_id();
     if(job_desc.jobid.length() == 0) {
       error_description="Missing ID in request to renew credentials.";
-      logger.msg(Arc::ERROR, error_description);
+      logger.msg(Arc::ERROR, "%s", error_description);
       return 1;
     };
     return checkdir(job_desc.jobid);
@@ -662,8 +663,8 @@ int JobPlugin::close(bool eof) {
   if(job_desc.action == "restart") {
     delete_job_id();
     if(job_desc.jobid.length() == 0) {
-      error_description="Missing ID in request to clean job.";
-      logger.msg(Arc::ERROR, error_description);
+      error_description="Missing ID in request to restart job.";
+      logger.msg(Arc::ERROR, "%s", error_description);
       return 1;
     };
     const char* logname;
@@ -671,41 +672,48 @@ int JobPlugin::close(bool eof) {
     if(!(is_allowed(job_desc.jobid.c_str(),false,NULL,&id,&logname) & 
                                                        IS_ALLOWED_LIST)) {
       error_description="Not allowed for this job.";
-      logger.msg(Arc::ERROR, error_description);
+      logger.msg(Arc::ERROR, "%s", error_description);
       return 1;
     };
     if(job_desc.jobid != id) {
       error_description="Wrong ID specified.";
-      logger.msg(Arc::ERROR, error_description);
+      logger.msg(Arc::ERROR, "%s", error_description);
       return 1;
     };
     JobLocalDescription job_desc;
     if(!job_local_read_file(id,*user,job_desc)) {
       error_description="Job is probably corrupted: can't read internal information.";
-      logger.msg(Arc::ERROR, error_description);
+      logger.msg(Arc::ERROR, "%s", error_description);
       return 1;
     };
     if(job_desc.failedstate.length() == 0) {
       error_description="Job can't be restarted.";
-      logger.msg(Arc::ERROR, error_description);
+      logger.msg(Arc::ERROR, "%s", error_description);
       return 1;
     };
     if(job_desc.reruns <= 0) {
       error_description="Job run out number of allowed retries.";
-      logger.msg(Arc::ERROR, error_description);
+      logger.msg(Arc::ERROR, "%s", error_description);
       return 1;
     };
     if(!job_restart_mark_put(JobDescription(id,""),*user)) {
       error_description="Failed to report restart request.";
-      logger.msg(Arc::ERROR, error_description);
+      logger.msg(Arc::ERROR, "%s", error_description);
       return 1;
     };
     return 0;
   };
   if(job_desc.action != "request") {
-    logger.msg(Arc::ERROR, "action(%s) != request", job_desc.action);
-    error_description="Wrong action in job RSL description.";
     delete_job_id();
+    error_description="Wrong action in job RSL description.";
+    logger.msg(Arc::ERROR, "%s", error_description);
+    logger.msg(Arc::ERROR, "action(%s) != request", job_desc.action);
+    return 1;
+  };
+  if(readonly) {
+    delete_job_id();
+    error_description="You are not allowed to submit new jobs to this service.";
+    logger.msg(Arc::ERROR, "%s", error_description);
     return 1;
   };
   if((job_desc.jobid.length() != 0) && (job_desc.jobid != job_id)) {
@@ -716,14 +724,14 @@ int JobPlugin::close(bool eof) {
       ::close(h_old);
       remove(rsl_fname.c_str());
       error_description="New jobs are not allowed.";
-      logger.msg(Arc::ERROR, error_description);
+      logger.msg(Arc::ERROR, "%s", error_description);
       return 1;
     };
     if(!make_job_id(job_desc.jobid)) {
       ::close(h_old);
       remove(rsl_fname.c_str());
       error_description="Failed to allocate requested job ID: "+job_desc.jobid;
-      logger.msg(Arc::ERROR, error_description);
+      logger.msg(Arc::ERROR, "%s", error_description);
       return 1;
     };
     rsl_fname=user->ControlDir()+"/job."+job_id+".description";
@@ -762,7 +770,7 @@ int JobPlugin::close(bool eof) {
   if((!job_desc.lrms.empty()) && (!user->DefaultLRMS().empty())) {
     if(job_desc.lrms != user->DefaultLRMS()) {
       error_description="Request for LRMS "+job_desc.lrms+" is not allowed.";
-      logger.msg(Arc::ERROR, error_description);
+      logger.msg(Arc::ERROR, "%s", error_description);
       delete_job_id(); 
       return 1;
     };
@@ -772,7 +780,7 @@ int JobPlugin::close(bool eof) {
   if(job_desc.queue.empty()) job_desc.queue=user->DefaultQueue();
   if(job_desc.queue.empty()) {
     error_description="Request has no queue defined.";
-    logger.msg(Arc::ERROR, error_description);
+    logger.msg(Arc::ERROR, "%s", error_description);
     delete_job_id(); 
     return 1;
   };
@@ -780,7 +788,7 @@ int JobPlugin::close(bool eof) {
     for(std::list<std::string>::iterator q = avail_queues.begin();;++q) {
       if(q == avail_queues.end()) {
         error_description="Requested queue "+job_desc.queue+" does not match any of available queues.";
-        logger.msg(Arc::ERROR, error_description);
+        logger.msg(Arc::ERROR, "%s", error_description);
         delete_job_id(); 
         return 1;
       };
@@ -790,7 +798,7 @@ int JobPlugin::close(bool eof) {
   JobDescription job(job_id,"",JOB_STATE_ACCEPTED);
   if(!process_job_req(*user, job, job_desc)) {
     error_description="Failed to preprocess job description.";
-    logger.msg(Arc::ERROR, error_description);
+    logger.msg(Arc::ERROR, "%s", error_description);
     delete_job_id(); 
     return 1;
   };
@@ -1127,12 +1135,12 @@ int JobPlugin::checkdir(std::string &dirname) {
   if(dirname == "new") { /* new job */
     if(readonly) {
       error_description="New jobs are not allowed.";
-      logger.msg(Arc::ERROR, error_description);
+      logger.msg(Arc::ERROR, "%s", error_description);
       return 1;
     };
     if(!make_job_id()) {
       error_description="Failed to allocate ID for job.";
-      logger.msg(Arc::ERROR, error_description);
+      logger.msg(Arc::ERROR, "%s", error_description);
       return 1;
     };
     dirname=job_id;
@@ -1161,7 +1169,7 @@ int JobPlugin::checkdir(std::string &dirname) {
       JobLocalDescription job_desc;
       if(!job_local_read_file(id,*user,job_desc)) {
         error_description="Job is probably corrupted: can't read internal information.";
-        logger.msg(Arc::ERROR, error_description);
+        logger.msg(Arc::ERROR, "%s", error_description);
         return 1;
       };
       /* check if new proxy is better than old one */

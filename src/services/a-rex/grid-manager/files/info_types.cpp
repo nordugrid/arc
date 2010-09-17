@@ -119,6 +119,8 @@ static char StateToShortcut(const std::string& state) {
 JobLocalDescription& JobLocalDescription::operator=(const Arc::JobDescription& arc_job_desc)
 {
   action = "request";
+  std::map<std::string, std::string>::const_iterator act_i = arc_job_desc.XRSL_elements.find("action");
+  if(act_i != arc_job_desc.XRSL_elements.end()) action = act_i->second;
 
   projectnames.clear();
   projectnames.push_back(arc_job_desc.Identification.JobVOName);
