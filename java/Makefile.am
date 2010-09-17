@@ -6,7 +6,7 @@ javasharedir = $(libdir)/java
 javalib_LTLIBRARIES = libjarc.la
 javashare_DATA = arc.jar
 
-libjarc_la_SOURCES = arc_wrap.cpp JNI.h
+libjarc_la_SOURCES = arc_init.cpp arc_wrap.cpp JNI.h
 libjarc_la_CXXFLAGS = -fno-strict-aliasing $(JDK_CFLAGS) -I$(top_srcdir)/include $(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS)
 libjarc_la_LIBADD = $(top_srcdir)/src/hed/libs/common/libarccommon.la $(top_srcdir)/src/hed/libs/loader/libarcloader.la $(top_srcdir)/src/hed/libs/message/libarcmessage.la $(top_srcdir)/src/hed/libs/client/libarcclient.la $(top_srcdir)/src/hed/libs/data/libarcdata2.la $(top_srcdir)/src/hed/libs/credential/libarccredential.la $(LIBXML2_LIBS) $(GLIBMM_LIBS)
 libjarc_la_LDFLAGS = -no-undefined -avoid-version -module

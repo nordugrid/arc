@@ -1,3 +1,7 @@
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <cstdlib>
 #include <dlfcn.h>
 
@@ -40,7 +44,7 @@ seems to be present.
     path = pythonpath.substr(start,end-start);
     modulepath = Glib::build_filename(path,std::string("_arc.")+G_MODULE_SUFFIX);
 #ifdef HAVE_GLIBMM_BIND_LOCAL
-    module = new Glib::Module(modulepath,Glib::MODULE_BIND_GLOBAL);
+    module = new Glib::Module(modulepath,Glib::ModuleFlags(0));
 #else
     module = new Glib::Module(modulepath);
 #endif
@@ -51,7 +55,7 @@ seems to be present.
     path = Glib::build_filename(path,"site-packages");
     modulepath = Glib::build_filename(path,std::string("_arc.")+G_MODULE_SUFFIX);
 #ifdef HAVE_GLIBMM_BIND_LOCAL
-    module = new Glib::Module(modulepath,Glib::MODULE_BIND_GLOBAL);
+    module = new Glib::Module(modulepath,Glib::ModuleFlags(0));
 #else
     module = new Glib::Module(modulepath);
 #endif
