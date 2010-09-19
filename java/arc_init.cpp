@@ -17,7 +17,6 @@
 __attribute__((constructor)) void __arc_init(void) {
 
   Glib::Module* module = NULL;
-std::ofstream o("logg");
   std::string modulepath;
   modulepath = std::string("libjarc.")+G_MODULE_SUFFIX;
 #ifdef HAVE_GLIBMM_BIND_LOCAL
