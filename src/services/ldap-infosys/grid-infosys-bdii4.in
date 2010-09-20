@@ -175,7 +175,7 @@ fi
 
 # Overall defaults
 RETVAL=0
-prog=grid-infosys
+prog=a-rex-grid-infosys
 debug=${debug:-0}
 
 config_set_defaults () {

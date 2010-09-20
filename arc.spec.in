@@ -695,7 +695,7 @@ exit 0
 
 %files ldap-infosys
 %defattr(-,root,root,-)
-%{_initrddir}/grid-infosys
+%{_initrddir}/a-rex-grid-infosys
 %{_libdir}/%{pkgdir}/grid-infosys-bdii4
 %{_libdir}/%{pkgdir}/grid-infosys-bdii5
 %{_libdir}/%{pkgdir}/glue-generator.pl

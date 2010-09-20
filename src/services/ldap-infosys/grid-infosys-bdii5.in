@@ -34,7 +34,7 @@
 
 # Overall defaults
 RETVAL=0
-prog=grid-infosys
+prog=a-rex-grid-infosys
 debug=${debug:-0}
 RUN=yes
 
