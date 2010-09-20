@@ -331,7 +331,7 @@ sub get_long_job_info($$$) {
 
     my $lrmsidstr = join(" ", @{$lrms_ids});
 
-    if ($queue == "") {
+    if (!$queue) {
 	unless (open LLQOUT, "$path/llq -l -x $lrmsidstr |") {
 	    error("Error in executing llq");
 	}
@@ -420,7 +420,7 @@ sub cluster_info ($) {
 	my $sep = "";
 	foreach my $key (keys %cpudist) {
 	    $lrms_cluster{cpudistribution} .= $sep.$key."cpu:".$cpudist{$key};
-	    if ($sep == "") {
+	    if (!$sep) {
 		$sep = " ";
 	    }
 	    $lrms_cluster{totalcpus} += $key * $cpudist{$key};

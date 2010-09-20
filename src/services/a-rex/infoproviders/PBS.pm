@@ -200,7 +200,7 @@ sub read_qstat_f () {
         if ($string =~ /Job Id/) {
             $jobid= get_variable("Job Id", $string);
         }
-        if ( $jobid == "" ) {
+        if (!$jobid) {
             next;
         }
         if ($string =~ /Resource_List.nodes/){
