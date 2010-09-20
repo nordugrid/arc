@@ -241,9 +241,11 @@ providerlog=${CONFIG_providerlog:-/var/log/arc/infoprovider.log}
 infosyslog=${CONFIG_logfile:-/var/log/arc/grid-infosys.log}
 if [ ! -d `dirname $providerlog` ]; then
     error_echo "Could not find directory for arc info-provider log:  `dirname $providerlog`"
+    do_exit_start 1
 fi
 if [ ! -d `dirname $infosyslog` ]; then
     error_echo "Could not find directory for arc infosys log:  `dirname $infosyslog`"
+    do_exit_start 1
 fi
 
 # Get ldap user from passwd
@@ -258,6 +260,7 @@ bdii_var_dir=${CONFIG_bdii_var_dir:-/var/run/bdii4}
 bdii_log_dir=${CONFIG_bdii_log_dir:-/var/log/arc/bdii4}
 if [ ! -d $bdii_log_dir ]; then
     error_echo "Could not find bdii log directory: `dirname $bdii_log_dir`"
+    do_exit_start 1
 fi
 
 bdii_slapd_conf=$bdii_var_dir/arc-slapd.conf
@@ -303,6 +306,7 @@ if [ "x$bdii_user" = "xroot" ] ; then
     registrationlog=${CONFIG_registrationlog:-/var/log/arc/inforegistration.log}
     if [ ! -d `dirname $registrationlog` ]; then
 	error_echo "Could not find registrationlog directory: `dirname $registrationlog`"
+        do_exit_start 1
     fi
 
     touch ${registrationlog}
@@ -326,6 +330,7 @@ else
     registrationlog=${CONFIG_registrationlog:-/var/log/arc/${bdii_user}-inforegistration.log}
     if [ ! -d `dirname $registrationlog` ]; then
 	error_echo "Could not find registrationlog directory: `dirname $registrationlog`"
+        do_exit_start 1
     fi
 
     touch ${registrationlog}
@@ -360,7 +365,7 @@ fi
 coreschema=$(find /etc/ -name core.schema -printf "%h/%f\n" 2>/dev/null)
 if [ "x" = "x$coreschema" ]; then
     error_echo "Error, could not find ldap core schema file under /etc"
-    exit 1
+    do_exit_start 1
 fi
 
 # Check for existence of a system ldap, this command will be used by bdii
@@ -398,7 +403,7 @@ fi
 if [ ! -x $slapd_cmd ]; then
     error_echo "Error, could not find ldap server binary (usually /usr/bin/slapd),"
     error_echo "please update your PATH-variable."
-    exit 1
+    do_exit_start 1
 fi
 
 
@@ -409,7 +414,7 @@ if [ $(strings $slapd_cmd | grep -Ec "${bdii_database}_db_init|${bdii_database}_
     ldaplib=$(find /usr/lib/ -name "back_${bdii_database}.so" -printf "%h/\n" 2>/dev/null)
     if [ "x" = "x$ldaplib" ]; then
         error_echo "Error, could not find ldap libraries under /usr/lib/"
-        exit 1
+        do_exit_start 1
     fi
 
     # This will get written to bdii slapd.conf:
@@ -425,7 +430,7 @@ if [ "`config_subsections infosys/index`" ]; then
         ldaplib=${ldaplib:-$(find /usr/lib/ -name "back_shell.so" -printf "%h/\n" 2>/dev/null)}
         if [ "x" = "x$ldaplib" ]; then
             error_echo "Error, could not find ldap libraries under /usr/lib/"
-            exit 1
+            do_exit_start 1
         fi
 
         # This will get written to bdii slapd.conf:
@@ -440,7 +445,7 @@ slapadd=${CONFIG_slapadd:-/usr/sbin/slapadd}
 
 if [ ! -x $slapadd ]; then
     error_echo "slapadd command was not found"
-    exit 1
+    do_exit_start 1
 fi
 
 
@@ -472,19 +477,19 @@ if [ "x$infosys_glue12" = "xenable" ]; then
         error_echo "If infosys_glue12 is enabled, then resource_location must be set."
         error_echo "It should be set to a free-form string describing the location,"
         error_echo "for example: 'Kastrup, Denmark'"
-        exit 1
+        do_exit_start 1
     fi
     if [ "x$resource_latitude" = "x" ]; then
         error_echo "If infosys_glue12 is enabled, then resource_latitude must be set."
         error_echo "It should be set to the latitude for the location,"
         error_echo "for example: '55.75000'"
-        exit 1
+        do_exit_start 1
     fi
     if [ "x$resource_longitude" = "x" ]; then
         error_echo "If infosys_glue12 is enabled, then resource_longitude must be set."
         error_echo "It should be set to the longitude for the location,"
         error_echo "for example: '12.41670'"
-        exit 1
+        do_exit_start 1
     fi
 fi
 
@@ -939,7 +944,7 @@ create_directory () {
 
     if [ ${#dir} -le "1" ]; then
         error_echo "$string error: directory string: $dir is too short"
-        exit 1
+        do_exit_start 1
     fi
 
     if [ -e ${dir} ]; then
@@ -953,7 +958,7 @@ create_directory () {
     #check ownership just to be sure
     if [ ! -O ${dir} ]; then
         error_echo "$string error: $dir should be owned by uid:$id"
-        exit 1
+        do_exit_start 1
     fi
 }
 
