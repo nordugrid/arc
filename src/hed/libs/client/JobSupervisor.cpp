@@ -88,7 +88,7 @@ namespace Arc {
               break;
 
           if (itCluster == it->second.end()) // No jobs found at the specified cluster.
-            break;
+            continue;
 
           jobsFound = true;
           logger.msg(VERBOSE, "Need job controller for Grid flavour %s",
