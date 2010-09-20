@@ -375,7 +375,11 @@ download_input_files () {
     fi
     export GLOBUS_LOCATION
     export ARC_LOCATION
-    export LD_LIBRARY_PATH="$GLOBUS_LOCATION/lib:$LD_LIBRARY_PATH"
+    if [ "x$LD_LIBRARY_PATH" = "x" ]; then
+      export LD_LIBRARY_PATH="$GLOBUS_LOCATION/lib"
+    else
+      export LD_LIBRARY_PATH="$GLOBUS_LOCATION/lib:$LD_LIBRARY_PATH"
+    fi
     export SASL_PATH="$GLOBUS_LOCATION/lib/sasl"
     export X509_USER_KEY="${RUNTIME_CONTROL_DIR}/job.local.proxy"
     export X509_USER_CERT="${RUNTIME_CONTROL_DIR}/job.local.proxy"
