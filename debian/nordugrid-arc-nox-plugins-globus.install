@@ -8,3 +8,5 @@ debian/tmp/usr/lib/arc/libdmcgridftp.apd
 debian/tmp/usr/lib/arc/libdmcrls.apd
 debian/tmp/usr/lib/arc/libdmcsrm.apd
 debian/tmp/usr/lib/arc/libmccgsi.apd
+debian/tmp/usr/lib/arc/libdmclfc.so
+debian/tmp/usr/lib/arc/libdmclfc.apd
