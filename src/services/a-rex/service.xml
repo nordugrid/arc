@@ -9,7 +9,7 @@
     <Foreground/>
     <Pidfile>./arcserver.pid</Pidfile>
     <Logger>
-      <File>/var/log/arched.log</File>
+      <File>/var/log/arc/arched.log</File>
       <Level>DEBUG</Level>
     </Logger>
   </Server>

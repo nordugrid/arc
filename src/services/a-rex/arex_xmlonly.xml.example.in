@@ -15,7 +15,7 @@
   <Server>
     <PidFile>/var/run/arched.pid</PidFile>
     <Logger>
-      <File>/var/log/arched.log</File>
+      <File>/var/log/arc/arched.log</File>
       <Level>DEBUG</Level>
     </Logger>
   </Server>
@@ -109,7 +109,7 @@
           </arex:Globus>
 	  <arex:maxRetries>10</arex:maxRetries>
       </arex:dataTransfer>
-      <arex:jobLogPath>/var/log/arex-jobs.log</arex:jobLogPath>
+      <arex:jobLogPath>/var/log/arc/arex-jobs.log</arex:jobLogPath>
       <arex:control>
           <arex:username>.</arex:username>
           <arex:controlDir>/var/spool/arc/jobstatus</arex:controlDir>

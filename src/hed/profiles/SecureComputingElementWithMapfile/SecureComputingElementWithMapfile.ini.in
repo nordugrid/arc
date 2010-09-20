@@ -6,7 +6,7 @@ profile=SecureComputingElementWithMapfile
 
 debugLevel=VERBOSE
 pidfile=/tmp/arched.pid
-logfile=/var/log/arched.log
+logfile=/var/log/arc/arched.log
 host_key=/etc/grid-security/hostkey.pem
 host_cert=/etc/grid-security/hostcert.pem
 ca_dir=/etc/grid-security/certificates
@@ -50,7 +50,7 @@ controldir=/var/spool/arc/jobstatus
 sessiondir=/export/sessions
 runtimedir=/export/SOFTWARE/runtime
 cachedir=/var/spool/nordugrid/cache
-joblog=/var/log/gm-jobs.log
+joblog=/var/log/arc/gm-jobs.log
 securetransfer=no
 maxjobs=1000 10
 maxload=20 2 4

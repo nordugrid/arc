@@ -167,8 +167,8 @@ $ arched -c arcecho_no_ssl.xml && echo Daemon started || echo Daemon failed
 $
 \end{lstlisting}
 
-% $ rm -f /var/log/arched.log
-% $ tail -n100 -f /var/log/arched.log
+% $ rm -f /var/log/arc/arched.log
+% $ tail -n100 -f /var/log/arc/arched.log
 %...
 %$ killall arched
 %
@@ -187,7 +187,7 @@ $ arcecho http://localhost:60000/Echo text
 
 In this example, the server and the client are running on the same computer such that the hostname \textit{localhost} can be utilized. 
 For debugging it is advisable to check the logfile which was assigned inside the server configuration file.
-It is commonly found at /var/log/arched.log.
+It is commonly found at /var/log/arc/arched.log.
 
 The following chapters explain how to develop custom Web Services.
 The first one will be the simple Time Web Service.

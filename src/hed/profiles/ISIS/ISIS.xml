@@ -2,7 +2,7 @@
     <Server>
         <PidFile inisections="common" initag="pidfile">/var/log/arched.pid</PidFile>
         <Logger>
-            <File inisections="common" initag="logfile">/var/log/arched.log</File>
+            <File inisections="common" initag="logfile">/var/log/arc/arched.log</File>
             <Level inisections="common" initag="loglevel">DEBUG</Level>
             <Maxsize inisections="common" initag="logmaxsize">10000000</Maxsize>
             <Backups inisections="common" initag="logbackups">10</Backups>

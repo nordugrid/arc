@@ -910,7 +910,7 @@ elements. These can also be set on the command line.
 Logging options should be specified under the \texttt{Logger} element under the
 \texttt{Server} element. The \texttt{File} element specifies which file to write
 log messages to and if not present log messages will be written to the
-\texttt{/var/log/arched.log} file. Each log message is associated with a log
+\texttt{/var/log/arc/arched.log} file. Each log message is associated with a log
 level which indicates the serverity of the message. The following log levels
 exist in WS-ARC, ordered by serverity: \texttt{FATAL}, \texttt{ERROR},
 \texttt{WARNING}, \texttt{INFO}, \texttt{VERBOSE} and \texttt{DEBUG}. With
@@ -995,7 +995,7 @@ The following example show the use of the above configuration options:
   <cfg:Server>
     <cfg:PidFile>/tmp/arched.pid</cfg:PidFile>
     <cfg:Logger>
-      <cfg:File>/var/log/arched.log</cfg:File>
+      <cfg:File>/var/log/arc/arched.log</cfg:File>
       <cfg:Level>WARNING</cfg:Level>
     </cfg:Logger>
   </cfg:Server>
@@ -1068,7 +1068,7 @@ shown in the listing below:
   ...
   <Logger>
     <File inisections="special common"
-          initag="logfile">/var/log/arched.log</File>
+          initag="logfile">/var/log/arc/arched.log</File>
     ...
   </Logger>
 </Server>
@@ -1288,7 +1288,7 @@ conventions for leaf XML elements (element with no children).
 /Server/PidFile & pidfile & /var/run/arched.pid\\
 /Server/User & user & \textrm{None} \\
 /Server/Group & group & \textrm{None} \\
-/Server/Logger/File & logfile & /var/log/arched.log \\
+/Server/Logger/File & logfile & /var/log/arc/arched.log \\
 /Server/Logger/Level & loglevel & WARNING \\
 /Server/Logger/Maxsize & logmaxsize & \textrm{None} \\
 /Server/Logger/Backups & logbackups & \textrm{None} \\

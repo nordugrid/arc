@@ -1,0 +1,24 @@
+/var/log/arc/grid-infosys.log {
+  missingok
+  compress
+  delaycompress
+  daily
+  rotate 14
+  create
+}
+/var/log/arc/infoprovider.log {
+  missingok
+  compress
+  delaycompress
+  daily
+  rotate 14
+  create
+}
+/var/log/arc/inforegistration.log {
+  missingok
+  compress
+  delaycompress
+  daily
+  rotate 14
+  create
+}

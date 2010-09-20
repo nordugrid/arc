@@ -14,7 +14,7 @@
     <PidFile>/var/run/arched.pid</PidFile>
     <Logger>
       <Level>DEBUG</Level>
-      <File>/var/log/arched.log</File>
+      <File>/var/log/arc/arched.log</File>
     </Logger>
   </Server>
   <!-- Where to find plugins -->

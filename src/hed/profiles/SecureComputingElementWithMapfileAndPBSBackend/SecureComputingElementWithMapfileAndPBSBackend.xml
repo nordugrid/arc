@@ -14,7 +14,7 @@
   <cfg:Server>
     <cfg:PidFile inisections="common" initag="pidfile">/tmp/arched.pid</cfg:PidFile>
     <cfg:Logger>
-      <cfg:File inisections="common" initag="logfile">/var/log/arched.log</cfg:File>
+      <cfg:File inisections="common" initag="logfile">/var/log/arc/arched.log</cfg:File>
       <cfg:Level inisections="common" initag="debug">ERROR</cfg:Level>
     </cfg:Logger>
   </cfg:Server>
@@ -88,7 +88,7 @@
           <arex:keypath inisections="common" initag="host_key">/etc/grid-security/hostkey.pem</arex:keypath>
         </arex:Globus>
       </arex:dataTransfer>
-      <arex:jobLogPath inisections="common" initag="jobslog">/var/log/arex-jobs.log</arex:jobLogPath>
+      <arex:jobLogPath inisections="common" initag="jobslog">/var/log/arc/arex-jobs.log</arex:jobLogPath>
       <arex:control>
         <arex:username>.</arex:username>
         <arex:controlDir inisections="common" initag="controldir">/var/spool/arc/jobstatus</arex:controlDir>

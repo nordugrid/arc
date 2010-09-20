@@ -5,7 +5,7 @@
 >
     <Server>
         <Pidfile>/var/run/arched.pid</Pidfile>
-        <Logger level="ERROR">/var/log/arched.log</Logger>
+        <Logger level="ERROR">/var/log/arc/arched.log</Logger>
     </Server>
     <ModuleManager>
         <Path>/home/jonkni/repos/nordugrid/usr/lib/arc/</Path>

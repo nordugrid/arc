@@ -1,5 +1,5 @@
 /etc/janitor
-/var/log/janitor
+/var/log/arc/janitor
 /var/spool/nordugrid
 /var/spool/nordugrid/janitor
 /var/spool/nordugrid/janitor/catalog

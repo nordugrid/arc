@@ -46,7 +46,7 @@ CONFIG_LOG_DIR         = 'log_dir'
 ARC_DEFAULT_CONFIG_FILE       = "/etc/arc.conf"
 NORDUGRID_DEFAULT_CONFIG_FILE = "/etc/nordugrid.conf"
 GRID_VO_MAPFILE               = "/etc/grid-security/grid-vo-mapfile"
-LOG_FILENAME                  = "/var/log/arc-ur-logger.log"
+LOG_FILENAME                  = "/var/log/arc/arc-ur-logger.log"
 
 # executables
 VOMS_PROXY_INFO = 'voms-proxy-info'

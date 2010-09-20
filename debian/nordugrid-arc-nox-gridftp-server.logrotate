@@ -1,0 +1,8 @@
+/var/log/arc/gridftpd.log {
+  missingok
+  compress
+  delaycompress
+  daily
+  rotate 14
+  create
+}

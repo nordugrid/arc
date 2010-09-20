@@ -125,6 +125,7 @@ binary-arch: install-arch
 	dh_installdocs -a
 	dh_installexamples -a
 	dh_installman -a
+	dh_installlogrotate -a
 	dh_install -a --fail-missing
 	dh_installchangelogs -a
 	dh_installinit --name arched

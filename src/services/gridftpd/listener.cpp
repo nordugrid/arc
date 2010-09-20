@@ -16,7 +16,7 @@
 #define DEFAULT_BUFFER_SIZE (65536)
 #define DEFAULT_MAX_CONECTIONS (100)
 #define DEFAULT_GRIDFTP_PORT 2811
-#define DEFAULT_LOG_FILE "/var/log/gridftpd.log"
+#define DEFAULT_LOG_FILE "/var/log/arc/gridftpd.log"
 #define DEFAULT_PID_FILE "/var/run/gridftpd.pid"
 
 GridFTP_Commands *client;

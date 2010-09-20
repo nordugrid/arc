@@ -7,7 +7,7 @@
 >
 	<Server>
 	<Pidfile>/var/run/arched.pid</Pidfile>
-	<Logger level="DEBUG">/var/log/arched.log</Logger>
+	<Logger level="DEBUG">/var/log/arc/arched.log</Logger>
 	</Server>
 	<ModuleManager>
 		<Path>/tmp/arc/tutorial/lib/</Path>

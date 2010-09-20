@@ -104,7 +104,7 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:all>
-            <xsd:element name="File" type="xsd:string" minOccurs="0" maxOccurs="1" default="/var/log/arched.log">
+            <xsd:element name="File" type="xsd:string" minOccurs="0" maxOccurs="1" default="/var/log/arc/arched.log">
                 <xsd:annotation>
                     <xsd:documentation xml:lang="en">
                     This element configures the file which should be used for storing log messages.

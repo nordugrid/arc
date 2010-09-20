@@ -296,7 +296,7 @@ if [ "$USERNAME" = "root" ] ; then
   USERNAME=""
 fi
 
-LOGFILE=${LOGFILE:-/var/log/grid-manager.log}
+LOGFILE=${LOGFILE:-/var/log/arc/grid-manager.log}
 LOGSIZE=${LOGSIZE:--1 -1}
 LOGNUM=`echo "$LOGSIZE" | sed 's/^ *[-+0-9]* *//'`
 LOGSIZE=`echo "$LOGSIZE" | sed 's/^ *\([-+0-9]*\).*/\1/'`
@@ -317,7 +317,7 @@ AREXCFG="\
       <File>$LOGFILE</File>\
       <Level>$LOGLEVEL</Level>\
       <Backups>$LOGNUM</Backups>\
-      <Maxsize>$LOGSIZE</Maxsize>\      
+      <Maxsize>$LOGSIZE</Maxsize>\
     </Logger>\
   </Server>\
   <ModuleManager>\
@@ -345,7 +345,7 @@ AREXCFGWSS="\
       <File>$LOGFILE</File>\
       <Level>$LOGLEVEL</Level>\
       <Backups>$LOGNUM</Backups>\
-      <Maxsize>$LOGSIZE</Maxsize>\      
+      <Maxsize>$LOGSIZE</Maxsize>\
     </Logger>\
   </Server>\
   <ModuleManager>\

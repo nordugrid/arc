@@ -189,7 +189,8 @@ section of the configuration file.
   \emph{\$HOME/gridftpd.pid} otherwise.
 \item \textbf{\textit{logfile}}\textit{=path} -- specifies name of file
   for logging debug/informational output. Defaults to
-  \emph{/var/log/gridftpd.log}.
+  \emph{/var/log/arc/gridftpd.log}. If installed from packages, the
+  default log is managed by logrotate.
 \item \textbf{\textit{logsize}}\textit{=size number} -- restricts
   log file size to \emph{size} and keeps \emph{number} archived log
   files.
@@ -534,7 +535,7 @@ gridmap="/etc/grid-security/grid-mapfile"
 
 [gridftpd]
 debug="3"
-logfile="/var/log/gridftpd.log"
+logfile="/var/log/arc/gridftpd.log"
 logsize="10000000 2"
 pidfile="/var/run/gridftpd.pid"
 pluginpath="/usr/local/lib/arc"
@@ -708,8 +709,8 @@ lcas="/opt/glite/lib/liblcas.so /opt/glite /opt/glite/share/lcas.db"
 
 [gridftpd]
 debug="2"
-logfile="/var/log/gridftpd.log"
-logsize="100000 2"
+logfile="/var/log/arc/gridftpd.log"
+logsize="10000000 2"
 pidfile="/var/run/gridftpd.pid"
 port="2811"
 pluginpath="/usr/local/lib/arc"

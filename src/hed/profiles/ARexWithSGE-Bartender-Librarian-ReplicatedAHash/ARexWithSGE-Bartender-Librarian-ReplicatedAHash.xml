@@ -3,7 +3,7 @@
 	<Server>
 		<PidFile inisections="common" initag="pidfile">/var/log/arched.pid</PidFile>
 		<Logger>
-			<File inisections="common" initag="logfile">/var/log/arched.log</File>
+			<File inisections="common" initag="logfile">/var/log/arc/arched.log</File>
 			<Level inisections="common" initag="loglevel">DEBUG</Level>
 			<Maxsize inisections="common" initag="logmaxsize">10000000</Maxsize>
 			<Backups inisections="common" initag="logbackups">10</Backups>
@@ -68,7 +68,7 @@
 			<arex:serviceMail inisections="arex" initag="service_mail">knowarc@niif.hu</arex:serviceMail>
 			<arex:debugLevel inisections="arex" initag="debug">VERBOSE</arex:debugLevel>
 			<arex:InfoproviderWakeupPeriod inisections="arex" initag="wakeupperiod">15</arex:InfoproviderWakeupPeriod>
-			<arex:jobLogPath inisections="arex" initag="joblogpath">/var/log/arex-jobs.log</arex:jobLogPath>
+			<arex:jobLogPath inisections="arex" initag="joblogpath">/var/log/arc/arex-jobs.log</arex:jobLogPath>
 			<arex:control>
 				<arex:username inisections="arex/control" initag="username">.</arex:username>
 				<arex:controlDir inisections="arex/control" initag="controldir">/var/spool/arc/control</arex:controlDir>

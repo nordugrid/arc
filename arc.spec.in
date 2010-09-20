@@ -510,6 +510,12 @@ rm -rf $RPM_BUILD_ROOT
 
 make install DESTDIR=$RPM_BUILD_ROOT
 
+# Install Logrotate.
+mkdir -p $RPM_BUILD_ROOT/etc/logrotate.d
+install -p -m 644 debian/nordugrid-arc-nox-arex.logrotate $RPM_BUILD_ROOT/etc/logrotate.d/nordugrid-arc-nox-arex
+install -p -m 644 debian/nordugrid-arc-nox-gridftp-server.logrotate $RPM_BUILD_ROOT/etc/logrotate.d/nordugrid-arc-nox-gridftp-server
+install -p -m 644 debian/nordugrid-arc-nox-ldap-infosys.logrotate $RPM_BUILD_ROOT/etc/logrotate.d/nordugrid-arc-nox-ldap-infosys
+
 find $RPM_BUILD_ROOT -type f -name \*.la -exec rm -fv '{}' ';'
 
 # Turn off default enabling of the services
@@ -692,6 +698,7 @@ exit 0
 %{_libdir}/%{pkgdir}/jobplugin.*
 %{_libdir}/%{pkgdir}/gaclplugin.*
 %{_libdir}/%{pkgdir}/fileplugin.*
+%config %{_sysconfdir}/logrotate.d/nordugrid-arc-nox-gridftp-server
 
 %files ldap-infosys
 %defattr(-,root,root,-)
@@ -708,6 +715,7 @@ exit 0
 %{_libdir}/%{pkgdir}/Shared.pm
 %{_libdir}/%{pkgdir}/ConfigParser.pm
 %{_libdir}/%{pkgdir}/LogUtils.pm
+%config %{_sysconfdir}/logrotate.d/nordugrid-arc-nox-ldap-infosys
 
 %files giis
 %defattr(-,root,root,-)
@@ -812,6 +820,8 @@ exit 0
 %doc %{_datadir}/%{pkgdir}/examples/a-rex/arex_showcase.xml.example
 %doc %{_datadir}/%{pkgdir}/examples/a-rex/arex_janitor.xml.example
 %doc %{_datadir}/%{pkgdir}/examples/a-rex/arex_xmlonly.xml.example
+%config %{_sysconfdir}/logrotate.d/nordugrid-arc-nox-arex
+%dir /var/log/arc
 
 %files devel
 %defattr(-,root,root,-)

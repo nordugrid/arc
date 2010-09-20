@@ -1241,7 +1241,8 @@ Commands affecting the A-REX process and logging:
   \emph{\$HOME/arched.pid} otherwise.
 \item \textbf{\textit{logfile}}\textit{=path} -- specifies name of file
   for logging debug/informational output. Defaults to
-  \emph{/var/log/grid-manager.log}.
+  \emph{/var/log/arc/grid-manager.log}. If installed from packages, the
+  default log is managed by logrotate.
 \item \textbf{\textit{logsize}}\textit{=size number} -- restricts
   log file size to \emph{size} and keeps \emph{number} archived log
   files.
@@ -1906,7 +1907,7 @@ A-REX service definition:
     <PidFile>/var/run/arched.pid</PidFile>
     <Logger>
       <Level>VERBOSE</Level>
-      <File>/var/log/arched.log</File>
+      <File>/var/log/arc/arched.log</File>
       <MaxSize>100000000</MaxSize>
       <Backups>10</Backups>
     </Logger>

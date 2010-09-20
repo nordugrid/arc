@@ -36,7 +36,7 @@ ERROR = False
 
 
 # static file locations
-LOG_FILENAME         = '/var/log/arc-ur-registration.log'
+LOG_FILENAME         = '/var/log/arc/arc-ur-registration.log'
 
 # config sections
 CONFIG_SECTION_COMMON  = 'common'

@@ -5,7 +5,7 @@
         <Pidfile>/var/run/arched.pid</Pidfile>
         <Logger>
 	 		<Level>ERROR</Level>
-			<File>/var/log/arched.log</File>
+			<File>/var/log/arc/arched.log</File>
 		</Logger>
     </Server>
     <ModuleManager>

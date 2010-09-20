@@ -5,7 +5,7 @@
 >
 <Server>
 	<Pidfile>/var/run/arched_hopi.pid</Pidfile>
-	<Logger level="DEBUG">/var/log/arched_hopi.log</Logger>
+	<Logger level="DEBUG">/var/log/arc/arched_hopi.log</Logger>
 </Server>
 <ModuleManager>
 	<Path>/usr/lib/arc</Path>

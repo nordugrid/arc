@@ -14,7 +14,7 @@
   <Server>
     <PidFile inisections="common" initag="pidfile">/tmp/arched.pid</PidFile>
     <Logger>
-      <File inisections="common" initag="logfile">/var/log/arched.log</File>
+      <File inisections="common" initag="logfile">/var/log/arc/arched.log</File>
       <Level inisections="common" initag="debugLevel">ERROR</Level>
     </Logger>
   </Server>

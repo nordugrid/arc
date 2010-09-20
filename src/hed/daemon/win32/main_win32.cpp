@@ -74,17 +74,16 @@ static std::string init_logger(Arc::Config& cfg)
     if(log["Backups"]) {
       int backups;
       if(Arc::stringto((std::string)log["Backups"], backups)) {
-        sd->setBackups(backups);
+	sd->setBackups(backups);
       }   
     }   
     
     if(log["Maxsize"]) {
       int maxsize;
       if(Arc::stringto((std::string)log["Maxsize"], maxsize)) {
-        sd->setMaxSize(maxsize);
+	sd->setMaxSize(maxsize);
       }   
-    }
-
+    }    
     if(log["Reopen"]) {
       std::string reopen = (std::string)(log["Reopen"]);
       bool reopen_b = false;

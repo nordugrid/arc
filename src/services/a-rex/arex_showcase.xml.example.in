@@ -30,7 +30,7 @@ appropiate.
   <Server>
     <PidFile>/var/run/arched.pid</PidFile>
     <Logger>
-      <File>/var/log/arched.log</File>
+      <File>/var/log/arc/arched.log</File>
       <Level>DEBUG</Level>
     </Logger>
   </Server>
@@ -149,7 +149,7 @@ appropiate.
           </arex:Globus>
           <arex:httpProxy>http://proxy.org:8080</arex:httpProxy>
       </arex:dataTransfer>
-      <arex:jobLogPath>/var/log/arex-jobs.log</arex:jobLogPath>
+      <arex:jobLogPath>/var/log/arc/arex-jobs.log</arex:jobLogPath>
       <arex:jobReport>
           <arex:destination>https://grid.uio.no:8001/logger</arex:destination>
           <arex:expiration>26800</arex:expiration>

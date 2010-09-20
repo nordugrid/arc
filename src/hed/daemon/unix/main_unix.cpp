@@ -97,7 +97,7 @@ static std::string init_logger(Arc::XMLNode log, bool foreground)
       }
     }
 
-    std::string log_file = (log["File"] ? (std::string)log["File"] : "/var/log/arched.log");
+    std::string log_file = (log["File"] ? (std::string)log["File"] : "/var/log/arc/arched.log");
     sd = new Arc::LogFile(log_file);
     if((!sd) || (!(*sd))) {
       logger.msg(Arc::ERROR, "Failed to open log file: %s", (std::string)log["File"]);
@@ -106,13 +106,13 @@ static std::string init_logger(Arc::XMLNode log, bool foreground)
     if(log["Backups"]) {
       int backups;
       if(Arc::stringto((std::string)log["Backups"], backups)) {
-        sd->setBackups(backups);
+	sd->setBackups(backups);
       }
     }
     if(log["Maxsize"]) {
       int maxsize;
       if(Arc::stringto((std::string)log["Maxsize"], maxsize)) {
-        sd->setMaxSize(maxsize);
+	sd->setMaxSize(maxsize);
       }
     }
     if(log["Reopen"]) {

@@ -1,0 +1,8 @@
+/var/log/arc/grid-manager.log {
+  missingok
+  compress
+  delaycompress
+  daily
+  rotate 14
+  create
+}

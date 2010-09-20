@@ -3,7 +3,7 @@
   <!-- Configuration of the server entities -->
   <Server><!--(@*\label{lst_code:arched_arcecho_Server}*@)-->
     <Pidfile>/var/run/arched.pid</Pidfile>
-    <Logger level="DEBUG">/var/log/arched.log</Logger>
+    <Logger level="DEBUG">/var/log/arc/arched.log</Logger>
   </Server>
   <!-- Path to the module libraries -->
   <ModuleManager><!--(@*\label{lst_code:arched_arcecho_ModuleManager}*@)-->

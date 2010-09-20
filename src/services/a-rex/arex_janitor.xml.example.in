@@ -16,7 +16,7 @@
   <Server>
     <PidFile>/var/run/arched.pid</PidFile>
     <Logger>
-      <File>/var/log/arched.log</File>
+      <File>/var/log/arc/arched.log</File>
       <Level>DEBUG</Level>
     </Logger>
   </Server>

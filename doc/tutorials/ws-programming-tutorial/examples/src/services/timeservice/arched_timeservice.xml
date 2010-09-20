@@ -2,7 +2,7 @@
 	<ArcConfig xmlns="http://www.nordugrid.org/schemas/ArcConfig/2007" xmlns:tcp="http://www.nordugrid.org/schemas/ArcMCCTCP/2007" xmlns:time="urn:time_config">
 	<Server>
 		<Pidfile>/var/run/arched.pid</Pidfile>
-		<Logger level="DEBUG">/var/log/arched.log</Logger>
+		<Logger level="DEBUG">/var/log/arc/arched.log</Logger>
 	</Server>
 	<ModuleManager><!--(@*\label{lst_code:arched_time_moduleManager}*@)-->
 		<!-- Own library path. The order is important!-->

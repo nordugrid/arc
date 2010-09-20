@@ -341,6 +341,8 @@ namespace Arc {
      */
     void setBackups(int newbackup);
 
+
+
     //! Set file reopen on every write.
     /*! Set file reopen on every write. If set to true file is opened 
        before writing every log record and closed afterward.

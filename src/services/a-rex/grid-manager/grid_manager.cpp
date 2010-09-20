@@ -34,7 +34,7 @@
 /* cache cleaning every 5 minutes */
 #define CACHE_CLEAN_PERIOD 300
 
-#define DEFAULT_LOG_FILE "/var/log/grid-manager.log"
+#define DEFAULT_LOG_FILE "/var/log/arc/grid-manager.log"
 #define DEFAULT_PID_FILE "/var/run/grid-manager.pid"
 
 namespace ARex {

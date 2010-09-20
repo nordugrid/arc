@@ -291,7 +291,6 @@ namespace Arc {
       return;
     }
   }
-
   void LogFile::setMaxSize(int newsize) {
     maxsize = newsize;
   }
@@ -299,7 +298,6 @@ namespace Arc {
   void LogFile::setBackups(int newbackups) {
     backups = newbackups;
   }
-
   void LogFile::setReopen(bool newreopen) {
     reopen = newreopen;
     if(reopen) {
@@ -353,7 +351,6 @@ namespace Arc {
     if (reopen) destination.close();
     backup();
   }
-
   void LogFile::backup(void) {
     if(maxsize <= 0) return;
     if(destination.tellp() < maxsize) return;
