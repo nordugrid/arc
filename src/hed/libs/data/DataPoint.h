@@ -119,9 +119,10 @@ namespace Arc {
        listed.
        \param files will contain list of file names and optionally
        their attributes.
-       \param long)list if true, list additional properties of each file.
+       \param long_list if true, list additional properties of each file.
        \param resolve if true, resolve physical locations (relevant
-         for indexing services only). */
+         for indexing services only).
+       \param metadata if true, find all available metadata. */
     virtual DataStatus ListFiles(std::list<FileInfo>& files,
                                  bool long_list = false,
                                  bool resolve = false,
