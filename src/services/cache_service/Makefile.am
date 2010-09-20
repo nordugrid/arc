@@ -7,5 +7,6 @@ libcacheservice_la_LIBADD = $(top_srcdir)/src/hed/libs/common/libarccommon.la \
 					$(top_srcdir)/src/hed/libs/message/libarcmessage.la \
 					$(top_srcdir)/src/hed/libs/ws/libarcws.la \
 					$(top_srcdir)/src/hed/libs/data/libarcdata2.la \
+					../a-rex/grid-manager/libgridmanager.la \
 					$(GLIBMM_LIBS)
 libcacheservice_la_LDFLAGS = -no-defined -avoid-version -module

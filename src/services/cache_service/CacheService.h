@@ -8,6 +8,8 @@
 #include <arc/XMLNode.h>
 #include <string>
 
+#include "../a-rex/grid-manager/jobs/users.h"
+
 namespace Cache {
 
 /**
@@ -32,8 +34,10 @@ class CacheService: public Arc::RegisteredService {
   Arc::NS ns;
   /** Caches as taken from the configuration */
   std::vector<std::string> caches;
-  /** FileCache object */
-  Arc::FileCache* cache;
+  /** Users read from A-REX configuration */
+  JobUsers* users;
+  /** Current user */
+  JobUser* user;
   /** Flag to say whether CacheService is valid */
   bool valid;
   /** Logger object */
@@ -45,16 +49,18 @@ class CacheService: public Arc::RegisteredService {
    * Check whether the URLs supplied in the input are present in any cache.
    * Returns in the out message for each file true or false, and if true,
    * the size of the file on cache disk.
+   * @param user User representing the local identity the caller is mapped to
    */
-  Arc::MCC_Status CacheCheck(Arc::XMLNode in,Arc::XMLNode out);
+  Arc::MCC_Status CacheCheck(Arc::XMLNode in, Arc::XMLNode out, const JobUser& user);
   /**
    * This method is used to link cache files to the session dir. A list of
    * URLs is supplied and if they are present in the cache and the user
    * calling the service has permission to access them, then they are linked
    * to the given session directory.
    * TODO: What to do when files are missing
+   * @param user User representing the local identity the caller is mapped to
    */
-  Arc::MCC_Status CacheLink(Arc::XMLNode in,Arc::XMLNode out);
+  Arc::MCC_Status CacheLink(Arc::XMLNode in, Arc::XMLNode out, const JobUser& user);
 
  public:
   /**

@@ -14,6 +14,11 @@
 #include <arc/message/PayloadStream.h>
 #include <arc/message/PayloadSOAP.h>
 
+// A-REX includes for configuration
+#include "../a-rex/grid-manager/conf/conf_file.h"
+#include "../a-rex/grid-manager/log/job_log.h"
+#include "../a-rex/grid-manager/jobs/states.h"
+
 #include "CacheService.h"
 
 namespace Cache {
@@ -33,95 +38,64 @@ static Arc::Plugin *get_service(Arc::PluginArgument* arg)
 Arc::Logger CacheService::logger(Arc::Logger::rootLogger, "CacheService");
 
 CacheService::CacheService(Arc::Config *cfg) : RegisteredService(cfg),
+                                               user(NULL),
                                                valid(false) {
-  // read configuration information about caches
-  /* conf format is like
-  <cacheservice:cache>
-    <cacheservice:location>
-      <cacheservice:path>/var/cache</cacheservice:path>
-      <cacheservice:link>.</cacheservice:link>
-    </cacheservice:location>
-    <cacheservice:location>
-      ...
-  </cacheservice:cache>
+  // read configuration information
+  /*
+  cacheservice config specifies A-REX conf file
+  <cacheservice:config>/etc/arc.conf</cacheservice:config>
   */
   ns["cacheservice"] = "urn:cacheservice_config";
 
-  Arc::XMLNode cache_node = (*cfg)["cache"];
-  if(cache_node) {
-    Arc::XMLNode location_node = cache_node["location"];
-    for(;location_node;++location_node) {
-      std::string cache_dir = location_node["path"];
-      std::string cache_link_dir = location_node["link"];
-      if(cache_dir.length() == 0) {
-        logger.msg(Arc::ERROR, "Missing path in cache location element");
-        return;
-      }
-      // validation of paths
-      while (cache_dir.length() > 1 && cache_dir.rfind("/") == cache_dir.length()-1)
-        cache_dir = cache_dir.substr(0, cache_dir.length()-1);
-      if (cache_dir[0] != '/') {
-        logger.msg(Arc::ERROR, "Cache path must start with '/'");
-        return;
-      }
-      if (cache_dir.find("..") != std::string::npos) {
-        logger.msg(Arc::ERROR, "Cache path cannot contain '..'");
-        return;
-      }
-      if (!cache_link_dir.empty() && cache_link_dir != "." && cache_link_dir != "drain") {
-        while (cache_link_dir.rfind("/") == cache_link_dir.length()-1)
-          cache_link_dir = cache_link_dir.substr(0, cache_link_dir.length()-1);
-        if (cache_link_dir[0] != '/') {
-          logger.msg(Arc::ERROR, "Cache link path must start with '/'");
-          return;
-        }
-        if (cache_link_dir.find("..") != std::string::npos) {
-          logger.msg(Arc::ERROR, "Cache link path cannot contain '..'");
-          return;
-        }
-      }
-      // don't use draining dirs
-      if (cache_link_dir == "drain")
-        continue;
+  if (!(*cfg)["cache"] || !(*cfg)["cache"]["config"]) {
+    // error - no config defined
+    logger.msg(Arc::ERROR, "No A-REX config file found in cache service configuration");
+    return;
+  }
+  std::string arex_config = (*cfg)["cache"]["config"];
 
-      std::string cache = cache_dir;
-      if (!cache_link_dir.empty())
-        cache += " "+cache_link_dir;
+  JobLog job_log;
+  JobsListConfig jobs_cfg;
+  GMEnvironment gm_env(job_log, jobs_cfg);
+  gm_env.nordugrid_config_loc(arex_config);
+  users = new JobUsers(gm_env);
 
-      logger.msg(Arc::INFO, "Adding cache dir %s", cache);
-      caches.push_back(cache);
-    }
-  }
-  else {
-    // error - no caches defined
-    logger.msg(Arc::ERROR, "No cache information found in configuration");
+  // read A-REX config
+  // user running this service
+  Arc::User u;
+  JobUser my_user(gm_env);
+  if (!configure_serviced_users(*users, u.get_uid(), u.Name(), my_user)) {
+    logger.msg(Arc::ERROR, "Failed to process A-REX configuration in %s", gm_env.nordugrid_config_loc());
     return;
   }
-  if (caches.empty()) {
-    logger.msg(Arc::ERROR, "No valid caches found in configuration");
-    return;
-  }
-  Arc::User user;
-  cache = new Arc::FileCache(caches, "0", user.get_uid(), user.get_gid());
-  if (!cache || !(*cache)) {
-    logger.msg(Arc::ERROR, "Error with cache configuration");
-    delete cache;
-    return;
-  }
+  print_serviced_users(*users);
 
   valid = true;
 }
 
 CacheService::~CacheService(void) {
-  if (cache) {
-    delete cache;
-    cache = NULL;
+  if (users) {
+    delete users;
+    users = NULL;
   }
 }
 
-Arc::MCC_Status CacheService::CacheCheck(Arc::XMLNode in,Arc::XMLNode out) {
+Arc::MCC_Status CacheService::CacheCheck(Arc::XMLNode in, Arc::XMLNode out, const JobUser& user) {
 
-  bool fileexist;
+  std::vector<std::string> caches = user.CacheParams()->getCacheDirs();
+  if (caches.empty()) {
+    logger.msg(Arc::ERROR, "No caches configured for user %s", user.UnixName());
+    return Arc::MCC_Status(Arc::GENERIC_ERROR, "CacheCheck", "No caches configured for local user");
+  }
+  Arc::User u(user.UnixName());
+
+  // create cache
+  Arc::FileCache cache(caches, "0", u.get_uid(), u.get_gid());
+  if (!cache) {
+    logger.msg(Arc::ERROR, "Error creating cache");
+    return Arc::MCC_Status(Arc::GENERIC_ERROR, "CacheCheck", "Server error with cache");
+  }
+
   Arc::XMLNode resp = out.NewChild("CacheCheckResponse");
   Arc::XMLNode results = resp.NewChild("CacheCheckResult");
 
@@ -132,7 +106,7 @@ Arc::MCC_Status CacheService::CacheCheck(Arc::XMLNode in,Arc::XMLNode out) {
 
     std::string fileurl = (std::string)in["CacheCheck"]["TheseFilesNeedToCheck"]["FileURL"][n];
     Arc::XMLNode resultelement = results.NewChild("Result");
-    fileexist = false;
+    bool fileexist = false;
     std::string file_lfn;
     Arc::UserConfig usercfg(Arc::initializeCredentialsType(Arc::initializeCredentialsType::SkipCredentials));
     Arc::URL url(fileurl);
@@ -140,7 +114,7 @@ Arc::MCC_Status CacheService::CacheCheck(Arc::XMLNode in,Arc::XMLNode out) {
 
     logger.msg(Arc::INFO, "Looking up URL %s", d->str());
 
-    file_lfn = cache->File(d->str());
+    file_lfn = cache.File(d->str());
     if (file_lfn.empty()) {
       logger.msg(Arc::ERROR, "Empty filename returned from FileCache");
       resultelement.NewChild("ExistInTheCache") = "false";
@@ -166,7 +140,7 @@ Arc::MCC_Status CacheService::CacheCheck(Arc::XMLNode in,Arc::XMLNode out) {
   return Arc::MCC_Status(Arc::STATUS_OK);
 }
 
-Arc::MCC_Status CacheService::CacheLink(Arc::XMLNode in,Arc::XMLNode out) {
+Arc::MCC_Status CacheService::CacheLink(Arc::XMLNode in, Arc::XMLNode out, const JobUser& user) {
 
   // create new cache for the user calling this method
   return Arc::MCC_Status(Arc::STATUS_OK);
@@ -181,6 +155,25 @@ Arc::MCC_Status CacheService::process(Arc::Message &inmsg, Arc::Message &outmsg)
   }
 
   std::string method = inmsg.Attributes()->get("HTTP:METHOD");
+
+  // find local user
+  std::string username = inmsg.Attributes()->get("SEC:LOCALID");
+  if (username.empty()) {
+    logger.msg(Arc::ERROR, "No local user mapping found");
+    return make_soap_fault(outmsg, "No local user mapping found");
+  }
+  if (users->find(username) != users->end()) {
+    user = &(*(users->find(username)));
+  } else if (users->find("") != users->end()) {
+    user = &(*(users->find("")));
+  } else {
+    logger.msg(Arc::ERROR, "No configuration found for user %s in A-REX configuration", username);
+    return make_soap_fault(outmsg, "Server configuration error");
+  }
+  if (!user || !user->is_valid()) {
+    logger.msg(Arc::ERROR, "No configuration found for user %s in A-REX configuration", username);
+    return make_soap_fault(outmsg, "Server configuration error");
+  }
   if(method == "POST") {
     logger.msg(Arc::VERBOSE, "process: POST");
     logger.msg(Arc::INFO, "Identity is %s", inmsg.Attributes()->get("TLS:PEERDN"));
@@ -211,11 +204,14 @@ Arc::MCC_Status CacheService::process(Arc::Message &inmsg, Arc::Message &outmsg)
 
     Arc::PayloadSOAP* outpayload = new Arc::PayloadSOAP(ns);
     outpayload->Namespaces(ns);
+
+    Arc::MCC_Status result(Arc::STATUS_OK);
+    // choose operation
     if (MatchXMLName(op,"CacheCheck")) {
-      CacheCheck(*inpayload, *outpayload);
+      result = CacheCheck(*inpayload, *outpayload, *user);
     }
     else if (MatchXMLName(op, "CacheLink")) {
-      CacheLink(*inpayload, *outpayload);
+      result = CacheLink(*inpayload, *outpayload, *user);
     }
     else {
       // unknown operation
@@ -223,6 +219,10 @@ Arc::MCC_Status CacheService::process(Arc::Message &inmsg, Arc::Message &outmsg)
       delete outpayload;
       return make_soap_fault(outmsg);
     }
+
+    if (!result)
+      return make_soap_fault(outmsg, result.getExplanation());
+
     if (logger.getThreshold() <= Arc::VERBOSE) {
       std::string str;
       outpayload->GetDoc(str, true);
