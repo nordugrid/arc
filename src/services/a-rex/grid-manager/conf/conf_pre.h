@@ -9,6 +9,7 @@
 class JobUsers;
 class ContinuationPlugins;
 class RunPlugin;
+class GMEnvironment;
 
 /*
   Reads configuration file to find directories associated with
