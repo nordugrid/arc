@@ -63,13 +63,7 @@ xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"><SOAP-ENV:Body><bes-fact
   {
       public:
           /** Example contructor - Server takes at least it's configuration subtree */
-          MyRegisteredService(Arc::Config* cfg):RegisteredService(cfg) 
-                      { std::cout << "My Service called!" << std::endl;
-                        // VERBOSE                    
-                        std::string config_str;
-                        cfg->GetXML(config_str, true);
-                        logger.msg(Arc::VERBOSE, "The config: \n%s \n", config_str);
-                      };
+          MyRegisteredService(Arc::Config* cfg):RegisteredService(cfg) {};
 
           virtual ~MyRegisteredService(void) { };
           virtual Arc::MCC_Status process(Arc::Message&,Arc::Message&) {return Arc::MCC_Status(Arc::STATUS_OK);};
@@ -85,14 +79,8 @@ void RegisteredServiceTest::tearDown() {
 
 
 void RegisteredServiceTest::TestRegisteredService() {
-  Arc::Logger logger(Arc::Logger::rootLogger, "RegisteredService-Test");
-  Arc::LogStream logcerr(std::cerr);
-  Arc::Logger::rootLogger.addDestination(logcerr);
 
   Arc::SOAPEnvelope soap(xml_str);
-
-
-  Arc::MessagePayload *m = new Arc::PayloadRaw();
 
   std::string cfg_str="";
   cfg_str +="\n";
