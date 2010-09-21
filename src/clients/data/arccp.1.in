@@ -31,8 +31,6 @@ do not transfer file, just register it - destination must be non-existing meta-u
 use secure transfer (insecure by default)
 .IP "\fB-y\fR, \fB--cache\fR=\fIpath\fR"
 path to local cache (use to put file into cache)
-.IP "\fB-Y\fR, \fB--cachedata\fR=\fIpath\fR"
-path for cache data (if different from -y)
 .IP "\fB-r\fR, \fB--recursive\fR=\fIlevel\fR"
 operate recursively up to specified level
 .IP "\fB-R\fR, \fB--retries\fR=\fInumber\fR"
@@ -64,8 +62,24 @@ command copies files to, from and between grid storage elements. It can
 also be used to register files in file index catalogues, either
 automatically as the result of a file transfer, or by using the
 .B --notransfer
-option.
+option. For more information on ARC URL syntax please read "Protocols, Uniform
+Resource Locators (URL) and Extensions Supported in ARC" [NORDUGRID-TECH-7]
 
+
+If
+.B source
+and/or
+.B destination
+start from '@', the remaining argument is assumed to be a
+path to a local file containing a list of URLs, one per line.
+In this case
+.B arccp
+performs like it were called multiple times - once for every URL.
+
+Depending on the installed libraries, the
+following protocols may be used: file  (file://  prefix  may  be
+omitted), http, https, httpg, ftp, gsiftp, lfc, rls, srm.
+ 
 .SH FILES
 
 .TP
@@ -94,6 +108,9 @@ location which will be used.
 The location of ARC plugins can be specified by this variable. Multiple
 locations can be specified by separating them by : (; in Windows). The
 default location is \fB$ARC_LOCATION\fR/lib/arc (\\ in Windows).
+
+.SH EXAMPLE
+arccp -i lfc://lfc.org/grid/file1.dat /tmp/file1.dat
 
 .SH COPYRIGHT
 

@@ -19,21 +19,33 @@ catalogues.
 .SH OPTIONS
 
 .IP "\fB-l\fR, \fB--long\fR"
-long format (more information)
+long format (like ls -l). The name of the object is followed by
+these elements: filetype of  object,  size  in  bytes,  creation  time,
+validity  time,  checksum  and  (if  the  protocol  supports it) access
+latency (ONLINE or NEARLINE).
+
 .IP "\fB-L\fR, \fB--locations\fR"
-show URLs of file locations
+show URLs of file locations (replicas) registered in index services.
+
 .IP "\fB-m\fR, \fB--metadata\fR"
-list all available metadata
+list all available metadata. This option suppresses directory listing
+when url is a directory.
+
 .IP "\fB-r\fR, \fB--recursive\fR=\fIlevel\fR"
 operate recursively up to specified level
+
 .IP "\fB-t\fR, \fB--timeout\fR=\fIseconds\fR"
 timeout in seconds (default 20)
+
 .IP "\fB-z\fR, \fB--conffile\fR=\fIfilename\fR"
 configuration file (default ~/.arc/client.conf)
+
 .IP "\fB-d\fR, \fB--debug\fR=\fIdebuglevel\fR"
 FATAL, ERROR, WARNING, INFO, VERBOSE or DEBUG
+
 .IP "\fB-v\fR, \fB--version\fR"
 print version information
+
 .IP "\fB-?\fR, \fB--help\fR"
 print help
 
@@ -48,7 +60,18 @@ the location to list
 The
 .B arcls
 command lists files and directories on grid storage elements and in
-file index catalogues.
+file index catalogues. Depending on the installed libraries, the
+following protocols may be used: file  (file://  prefix  may  be
+omitted), http, https, httpg, ftp, gsiftp, lfc, rls, srm.
+ 
+In the case of a directory/fileset, attributes of objects belonging
+to it will be retrieved.
+
+If url starts from '@', the remainder should be a path to a local file
+containing list of URLs, one per line. Then arcls acts as if it was
+called multiple times, once for each URL. For more information on ARC
+URL syntax please read "Protocols, Uniform Resource Locators (URL) and
+Extensions Supported in ARC" [NORDUGRID-TECH-7]
 
 .SH FILES
 
@@ -78,6 +101,10 @@ location which will be used.
 The location of ARC plugins can be specified by this variable. Multiple
 locations can be specified by separating them by : (; in Windows). The
 default location is \fB$ARC_LOCATION\fR/lib/arc (\\ in Windows).
+
+.SH EXAMPLE
+
+arcls -lL lfc://lfc.org/grid/file.dat
 
 .SH COPYRIGHT
 
