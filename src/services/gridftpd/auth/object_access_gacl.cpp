@@ -5,10 +5,6 @@
 
 #include "object_access_gacl.h"
 
-extern "C" {
-  extern GACLentry *GACLparseEntry(xmlNodePtr cur);
-}
-
 std::string GACLstrPerm(GACLperm perm) {
   GACLperm i;
   std::string s;
@@ -22,21 +18,10 @@ std::string GACLstrPerm(GACLperm perm) {
 }
 
 std::string GACLstrCred(GACLcred *cred) {
-  struct _GACLnamevalue *p;
   std::string s;
-  if(cred->firstname != NULL) {
-    s+="<"; s+=cred->type; s+=">\n";
-    p=cred->firstname;
-    do {
-      s+="<"; s+=p->name; s+=">";
-      s+=p->value?p->value:"";
-      s+="</"; s+=p->name; s+=">\n";
-      p = p->next;
-    } while (p != NULL);
-    s+="</"; s+=cred->type; s+=">\n";
-  } else {
-    s+="<"; s+=cred->type; s+="/>\n";
-  };
+  s+="<auri>";
+  s+=cred->auri;
+  s+="</auri>\n";
   return s;
 }
 
@@ -44,7 +29,7 @@ std::string GACLstrEntry(GACLentry *entry) {
   GACLcred  *cred;
   GACLperm  i;
   std::string s = "<entry>\n";
-  for (cred = entry->firstcred; cred != NULL; cred = cred->next)
+  for (cred = entry->firstcred; cred != NULL; cred = (GACLcred*) cred->next)
                                             s+=GACLstrCred(cred);
   if(entry->allowed) {
     s+="<allow>";
@@ -78,34 +63,8 @@ ObjectAccessGACL::ObjectAccessGACL(const ObjectAccess& o):ObjectAccess(o) {
 }
 
 ObjectAccessGACL::ObjectAccessGACL(const char* str) {
-  GACLacl    *acl = NULL;
+  GACLacl *acl = NGACLacquireAcl(str);
   GACLentry  *entry;
-  {
-    xmlDocPtr   doc;
-    xmlNodePtr  cur;
-    doc = xmlParseMemory(str,strlen(str));
-    if (doc == NULL) return;
-    cur = xmlDocGetRootElement(doc);
-    if (xmlStrcmp(cur->name, (const xmlChar *) "gacl")) {
-      free(doc);
-      free(cur);
-      return;
-    };
-    cur = cur->xmlChildrenNode;
-    acl = GACLnewAcl();
-    while (cur != NULL) {
-      if(xmlNodeIsText(cur)) { cur=cur->next; continue; };
-      entry = GACLparseEntry(cur);
-      if (entry == NULL) {
-        GACLfreeAcl(acl);
-        xmlFreeDoc(doc);
-        return;
-      };
-      GACLaddEntry(acl, entry);
-      cur=cur->next;
-    };
-    xmlFreeDoc(doc);
-  };
   if(acl == NULL) return;
   for(entry=acl->firstentry;entry;entry=(GACLentry*)(entry->next)) {
     GACLuser user; user.firstcred=entry->firstcred;

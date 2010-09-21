@@ -5,33 +5,7 @@
 #include <string.h>
 #include <list>
 
-#ifndef HAVE_OLD_LIBXML_INCLUDES
-#include <libxml/parser.h>
-#else
-#include <parser.h>
-#ifndef xmlChildrenNode
-#define xmlChildrenNode childs
-#endif
-#endif
-
-extern "C" {
-#ifndef __INCLUDED_GACL_H__
-#define __INCLUDED_GACL_H__
-// #ifdef NG_GACL
-  #include <gacl.h>
-  typedef struct _GACLnamevalue GACLnamevalue;
-  #define HAVE_GACL
-// #else
- #ifdef GRIDSITE_GACL
-  #define GACLnamevalue GRSTgaclNamevalue
-  #include <gridsite.h>
-  #include <gridsite-gacl.h>
-  #define HAVE_GACL
- #endif
-// #endif
- extern GACLentry *GACLparseEntry(xmlNodePtr cur);
-#endif
-}
+#include <gacl.h>
 
 #include "identity_dn.h"
 #include "identity_voms.h"
@@ -52,43 +26,35 @@ Identity* IdentityGACL::duplicate(void) const {
 IdentityGACL::IdentityGACL(GACLuser* u) {
   if(!u) return;
   for(GACLcred* cred = u->firstcred;cred;cred=(GACLcred*)(cred->next)) {
-    if(!(cred->type)) continue;
-    if(strcmp(cred->type,"person") == 0) {
-      for(GACLnamevalue* nv = cred->firstname;nv;nv=(GACLnamevalue*)(nv->next)) {
-        if(!(nv->name)) continue;
-        if((strcmp(nv->name,"dn") == 0) && (nv->value)) {
-          use(new IdentityItemDN(nv->value));
-          break;
-        };
-      };
-      continue;
-    };
-    if(strcmp(cred->type,"voms") == 0) {
+    if(!(cred->auri)) continue;
+    if(strncmp(cred->auri,"dn:",3) == 0) {
+      use(new IdentityItemDN(&(cred->auri[3])));
+    }
+    else if(strncmp(cred->auri,"fqan:",5) == 0) {
       std::string vo;
       std::string voms;
       std::string group;
       std::string role;
       std::string cap;
-      for(GACLnamevalue* nv = cred->firstname;nv;nv=(GACLnamevalue*)(nv->next)) {
-        if(!(nv->name)) continue;
-        if((strcmp(nv->name,"vo") == 0) && (nv->value)) {
-          vo=nv->value; continue;
-        };
-        if((strcmp(nv->name,"voms") == 0) && (nv->value)) {
-          voms=nv->value; continue;
-        };
-        if((strcmp(nv->name,"group") == 0) && (nv->value)) {
-          group=nv->value; continue;
-        };
-        if((strcmp(nv->name,"role") == 0) && (nv->value)) {
-          role=nv->value; continue;
-        };
-        if((strcmp(nv->name,"capability") == 0) && (nv->value)) {
-          cap=nv->value; continue;
-        };
+      std::string fqan = cred->auri;
+      std::string::size_type pos = fqan.find('/');
+      while (pos != std::string::npos) {
+        pos++;
+        std::string::size_type pos2 = fqan.find('/', pos);
+        std::string::size_type pos3 = fqan.find('=', pos);
+        if (pos3 < pos2) {
+          if (fqan.substr(pos, pos3 - pos) == "Role")
+            role=fqan.substr(pos3 + 1, pos2 - pos3 - 1);
+          else if(fqan.substr(pos, pos3 - pos) == "Capability")
+            cap=fqan.substr(pos3 + 1, pos2 - pos3 - 1);
+        }
+        else if(vo.empty())
+          vo=fqan.substr(pos, pos2 - pos);
+        else
+          group=fqan.substr(pos, pos2 - pos);
+        pos = pos2;
       };
       use(new IdentityItemVOMS(vo.c_str(),voms.c_str(),group.c_str(),role.c_str(),cap.c_str()));
-      continue;
     };
   };
 }

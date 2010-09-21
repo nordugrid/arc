@@ -4,6 +4,7 @@
 #include <string.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <string>
 
 #include "util.h"
 
@@ -17,7 +18,7 @@ int GACLsaveSubstituted(GACLacl* acl,GACLnamevalue *subst,const char* filename) 
   };
   close(h);
   if(!GACLsaveAcl((char*)filename,acl)) { remove(filename); return 0; };
-  acl_ = GACLloadAcl((char*)filename);
+  acl_ = NGACLloadAcl((char*)filename);
   if(acl_ == NULL) { remove(filename); GACLfreeAcl(acl_); return 1; };
   if(!GACLsubstitute(acl_,subst)) { remove(filename); GACLfreeAcl(acl_); return 1; };
   if(!GACLsaveAcl((char*)filename,acl_)) { remove(filename); GACLfreeAcl(acl_); return 1; };
@@ -29,71 +30,30 @@ int GACLsubstitute(GACLacl* acl,GACLnamevalue *subst) {
   GACLentry* entry;
   for(entry=(GACLentry*)acl->firstentry;entry;entry=(GACLentry*)entry->next) {
     GACLcred *cred;
-    for(cred=entry->firstcred;cred;cred=cred->next) {
-      GACLnamevalue *namevalue;
-      for(namevalue=cred->firstname;namevalue;namevalue=(GACLnamevalue*)(namevalue->next)) {
-        if((namevalue->value) && ((namevalue->value)[0] == '$')) {
-          GACLnamevalue* sub;
-          for(sub=subst;sub;sub=(GACLnamevalue*)(sub->next)) {
-            if(strcmp(sub->name,namevalue->value+1) == 0) {
-              char* tmp = strdup(sub->value);
-              if(tmp) {
-                free(namevalue->value);
-                namevalue->value=tmp;
-              };
-              break;
-            };
-          };
-          if(!sub) { free(namevalue->value); namevalue->value=strdup(""); };
-        };
-      };
-    };
-  };
-  return 1;
-}
-
-extern GACLentry *GACLparseEntry(xmlNodePtr cur);
-
-GACLacl *GACLacquireAcl(const char *str) {
-  xmlDocPtr   doc;
-  xmlNodePtr  cur;
-  GACLacl    *acl;
-  GACLentry  *entry;
-
-  doc = xmlParseMemory(str,strlen(str));
-  if (doc == NULL) return NULL;
-
-  cur = xmlDocGetRootElement(doc);
-
-  if (xmlStrcmp(cur->name, (const xmlChar *) "gacl"))
-    {
-      free(doc);
-      free(cur);
-      return NULL;
+    for(cred=entry->firstcred;cred;cred=(GACLcred*)cred->next) {
+      std::string auri = cred->auri;
+      bool replace = false;
+      std::string::size_type pos;
+      while((pos = auri.find("%24")) != std::string::npos) {
+        replace = true;
+        std::string::size_type pos2 = pos + 3;
+        while((pos2 < auri.size()) && isalnum(auri[pos2])) pos2++;
+        GACLnamevalue* sub;
+        for(sub=subst;sub;sub=(GACLnamevalue*)(sub->next))
+          if(auri.substr(pos + 3, pos2 - pos - 3) == sub->name) {
+            auri.replace(pos, pos2 - pos, GACLmildUrlEncode(sub->value));
+            break;
+          }
+        if (!sub)
+          auri.erase(pos, pos2 - pos);
+      }
+      if (replace) {
+        free(cred->auri);
+        cred->auri = strdup(auri.c_str());
+      }
     }
-
-  cur = cur->xmlChildrenNode;
-
-  acl = GACLnewAcl();
-
-  while (cur != NULL)
-       {
-         if(xmlNodeIsText(cur)) { cur=cur->next; continue; };
-         entry = GACLparseEntry(cur);
-         if (entry == NULL)
-           {
-             GACLfreeAcl(acl);
-             xmlFreeDoc(doc);
-             return NULL;
-           }
-
-         GACLaddEntry(acl, entry);
-
-         cur=cur->next;
-       }
-
-  xmlFreeDoc(doc);
-  return acl;
+  }
+  return 1;
 }
 
 char* GACLmakeName(const char* filename) {
@@ -130,43 +90,3 @@ int GACLdeleteFileAcl(const char *filename) {
   free(gname);
   return 0;
 }
-
-/*
-GACLperm GACLtestFileAclForSubject(const char *filename,const char* subject) {
-  const char* name;
-  int path_l;
-  char* gname;
-  GACLacl* acl;
-  struct stat st;
-  GACLuser* user;
-  GACLperm perm;
-  GACLcred* cred;
-  const char* gacl_name = ".gacl-";
-
-  if(subject[0] == 0) return GACL_PERM_NONE;
-  gname=GACLmakeName(filename);
-  if(gname == NULL) return GACL_PERM_NONE;
-  if(stat(gname,&st) == 0) {
-    if(!S_ISREG(st.st_mode)) { free(gname); return GACL_PERM_NONE; };
-    acl=GACLloadAcl(gname);
-  } else {
-    acl=GACLloadAclForFile((char*)filename);
-  };
-  free(gname);
-  if(acl == NULL) return GACL_PERM_NONE;
-  cred=GACLnewCred("person");
-  if(cred==NULL) { GACLfreeAcl(acl); return GACL_PERM_NONE; };
-  if(!GACLaddToCred(cred,"dn",(char*)subject)) {
-    GACLfreeCred(cred); GACLfreeAcl(acl); return GACL_PERM_NONE;
-  };
-  * GACLnewUser does not create copy of cred. But GACLfreeUser destoyrs cred *
-  user=GACLnewUser(cred);
-  if(user == NULL) {
-    GACLfreeAcl(acl); GACLfreeCred(cred); return GACL_PERM_NONE;
-  };
-  perm=GACLtestUserAcl(acl,user);
-  GACLfreeAcl(acl);
-  GACLfreeUser(user);
-  return perm;
-}
-*/

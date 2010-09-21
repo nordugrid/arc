@@ -1,7 +1,6 @@
 #include "identity.h"
 
-struct _GACLuser;
-typedef struct _GACLuser GACLuser;
+#include <gacl.h>
 
 class IdentityGACL: public Identity {
  public:

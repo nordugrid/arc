@@ -1,13 +1,4 @@
-INCLUDES = $(LIBXML2_CFLAGS)
-
 noinst_LTLIBRARIES = libgacl.la
-
-libgacl_la_SOURCES = libgacl.c gacl.h
-libgacl_la_LDFLAGS = -avoid-version
-
-docdir   = @docdir@
-doc_DATA = LICENSE.gacl
-
-EXTRA_DIST =  $(doc_DATA)
-
-dist-hook:
+libgacl_la_CPPFLAGS = $(LIBXML2_CFLAGS)
+libgacl_la_SOURCES = gacl-compat.cpp gacl.h
+libgacl_la_LIBADD = -lgridsite $(LIBXML2_LIBS)

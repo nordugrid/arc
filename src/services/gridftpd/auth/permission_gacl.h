@@ -2,23 +2,7 @@
 
 #include "permission.h"
 
-extern "C" {
-#ifndef __INCLUDED_GACL_H__
-#define __INCLUDED_GACL_H__
-// #ifdef NG_GACL
-  #include <gacl.h>
-  typedef struct _GACLnamevalue GACLnamevalue;
-  #define HAVE_GACL
-// #else
-  #ifdef GRIDSITE_GACL
-   #define GACLnamevalue GRSTgaclNamevalue
-   #include <gridsite.h>
-   #include <gridsite-gacl.h>
-   #define HAVE_GACL
-  #endif
-// #endif
-#endif
-}
+#include <gacl.h>
 
 class PermissionGACL: public Permission {
  private:

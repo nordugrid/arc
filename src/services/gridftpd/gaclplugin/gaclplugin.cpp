@@ -23,18 +23,6 @@ static char * strerror_r (int errnum, char * buf, size_t buflen) {
 }
 #endif
 
-#ifdef GRIDSITE_GACL
-#define  ADD_SUBSTITUTE_VALUE(nam,val) \
-  if(val) { \
-    GACLnamevalue *s = \
-       (GACLnamevalue *)malloc(sizeof(GACLnamevalue)); \
-    if(s) { \
-      (s->next)=(struct _GRSTgaclNamevalue*)subst; subst=s; \
-      subst->name=strdup(nam); \
-      subst->value=strdup(val); \
-    }; \
-  }
-#else
 #define  ADD_SUBSTITUTE_VALUE(nam,val) \
   if(val) { \
     GACLnamevalue *s = \
@@ -45,7 +33,6 @@ static char * strerror_r (int errnum, char * buf, size_t buflen) {
       subst->value=strdup(val); \
     }; \
   }
-#endif
 
 #define DEFAULT_TOP_GACL "<?xml version=\"1.0\"?><gacl version=\"0.0.1\"><entry><any-user/><deny><admin/><write/><read/><list/></deny></entry></gacl>"
 static const char* default_top_gacl = DEFAULT_TOP_GACL;
@@ -96,7 +83,7 @@ GACLPlugin::GACLPlugin(std::istream &cfile,userspec_t &u) {
     subst->name=strdup("subject");
     subst->value=strdup(subject.c_str());
   };
-  ADD_SUBSTITUTE_VALUE("vo",(u.user.default_vo()));
+  ADD_SUBSTITUTE_VALUE("vo",u.user.default_vo());
   ADD_SUBSTITUTE_VALUE("role",u.user.default_role());
   ADD_SUBSTITUTE_VALUE("capability",u.user.default_capability());
   ADD_SUBSTITUTE_VALUE("group",u.user.default_vgroup());
@@ -158,7 +145,7 @@ GACLPlugin::GACLPlugin(std::istream &cfile,userspec_t &u) {
     return;
   };
   if(xml.length()) {
-    acl=GACLacquireAcl(xml.c_str());
+    acl=NGACLacquireAcl(xml.c_str());
     if(acl == NULL) {
       logger.msg(Arc::ERROR, "Failed to parse default GACL document");
     };
@@ -449,7 +436,7 @@ int GACLPlugin::close(bool eof) {
           if(errno == ENOENT) return 0;
           return 1;
         };
-        GACLacl* acl = GACLacquireAcl(acl_buf);
+        GACLacl* acl = NGACLacquireAcl(acl_buf);
         if(acl == NULL) {
           logger.msg(Arc::ERROR, "Failed to parse GACL");
           error_description="This ACL could not be interpreted.";

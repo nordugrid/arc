@@ -48,6 +48,7 @@ BuildRequires: globus-rls-client-devel
 %if %{with_lfc}
 BuildRequires: lfc-devel
 %endif
+BuildRequires: gridsite-devel
 %if %{_vendor} == "redhat"
 BuildRequires: db4-devel
 %endif

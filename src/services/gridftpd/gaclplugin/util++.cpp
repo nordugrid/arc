@@ -1,5 +1,3 @@
-#include <iostream>
-
 #include <arc/Logger.h>
 
 #include "util++.h"
@@ -21,9 +19,9 @@ GACLperm GACLtestFileAclForVOMS(const char *filename,const AuthUser& user,bool g
         logger.msg(Arc::ERROR, "GACL file %s is not an ordinary file", gname);
         free(gname); return GACL_PERM_NONE;
       };
-      acl=GACLloadAcl(gname);
+      acl=NGACLloadAcl(gname);
     } else {
-      acl=GACLloadAclForFile((char*)filename); // take inherited
+      acl=NGACLloadAclForFile((char*)filename); // take inherited
     };
     free(gname);
   } else {
@@ -32,9 +30,9 @@ GACLperm GACLtestFileAclForVOMS(const char *filename,const AuthUser& user,bool g
         logger.msg(Arc::ERROR, "GACL file %s is not an ordinary file", filename);
         return GACL_PERM_NONE;
       };
-      acl=GACLloadAcl((char*)filename);
+      acl=NGACLloadAcl((char*)filename);
     } else {
-      acl=GACLloadAclForFile((char*)filename); // take inherited 
+      acl=NGACLloadAclForFile((char*)filename); // take inherited 
     };
   };
   if(acl == NULL) {
@@ -60,17 +58,17 @@ void GACLextractAdmin(const char *filename,std::list<std::string>& identities,bo
       if(!S_ISREG(st.st_mode)) {
         free(gname); return;
       };
-      acl=GACLloadAcl(gname);
+      acl=NGACLloadAcl(gname);
     } else {
-      acl=GACLloadAclForFile((char*)filename); // take inherited
+      acl=NGACLloadAclForFile((char*)filename); // take inherited
     };
     free(gname);
   } else {
     if(lstat(filename,&st) == 0) {
       if(!S_ISREG(st.st_mode)) return; 
-      acl=GACLloadAcl((char*)filename);
+      acl=NGACLloadAcl((char*)filename);
     } else {
-      acl=GACLloadAclForFile((char*)filename); // take inherited
+      acl=NGACLloadAclForFile((char*)filename); // take inherited
     };
   };
   GACLextractAdmin(acl,identities);
@@ -85,18 +83,7 @@ void GACLextractAdmin(GACLacl* acl,std::list<std::string>& identities) {
     if(GACLhasAdmin((cur_entry->allowed & (~cur_entry->denied)))) {
       GACLcred* cur_cred = cur_entry->firstcred;
       for(;cur_cred;cur_cred=(GACLcred*)(cur_cred->next)) {
-        GACLnamevalue* cur_name = cur_cred->firstname;
-        std::string cred_desc = cur_cred->type?cur_cred->type:"";
-        bool first_name=true;
-        for(;cur_name;cur_name=(GACLnamevalue*)(cur_name->next)) {
-          if(cur_name->name && cur_name->value) {
-            if(first_name) { cred_desc+=": "; } else { cred_desc+=", "; };
-            cred_desc+=cur_name->name;
-            cred_desc+="=";
-            cred_desc+=cur_name->value;
-          };
-        };
-        identities.push_back(cred_desc);
+        identities.push_back(cur_cred->auri);
       };
     };
   };
