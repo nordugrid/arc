@@ -24,14 +24,8 @@ static char * strerror_r (int errnum, char * buf, size_t buflen) {
 #endif
 
 #define  ADD_SUBSTITUTE_VALUE(nam,val) \
-  if(val) { \
-    GACLnamevalue *s = \
-       (GACLnamevalue *)malloc(sizeof(GACLnamevalue)); \
-    if(s) { \
-      s->next=subst; subst=s; \
-      subst->name=strdup(nam); \
-      subst->value=strdup(val); \
-    }; \
+  if(val) {			       \
+    subst[nam] = val;		       \
   }
 
 #define DEFAULT_TOP_GACL "<?xml version=\"1.0\"?><gacl version=\"0.0.1\"><entry><any-user/><deny><admin/><write/><read/><list/></deny></entry></gacl>"
@@ -71,18 +65,12 @@ static int makedirs(std::string &name) {
 
 GACLPlugin::GACLPlugin(std::istream &cfile,userspec_t &u) {
   data_file=-1;
-  subst=NULL;
   /* read configuration */
   std::string xml;
   acl=NULL;
   subject=u.user.DN();
   user=&(u.user);
-  subst=(GACLnamevalue *)malloc(sizeof(GACLnamevalue));
-  if(subst) {
-    subst->next=NULL;
-    subst->name=strdup("subject");
-    subst->value=strdup(subject.c_str());
-  };
+  subst["subject"] = subject;
   ADD_SUBSTITUTE_VALUE("vo",u.user.default_vo());
   ADD_SUBSTITUTE_VALUE("role",u.user.default_role());
   ADD_SUBSTITUTE_VALUE("capability",u.user.default_capability());
@@ -172,13 +160,6 @@ GACLPlugin::GACLPlugin(std::istream &cfile,userspec_t &u) {
 }
 
 GACLPlugin::~GACLPlugin(void) {
-  for(;subst;) {
-    GACLnamevalue *s = (GACLnamevalue*)subst->next;
-    if(subst->name) free(subst->name);
-    if(subst->value) free(subst->value);
-    free(subst);
-    subst=s;
-  };
   if(acl) GACLfreeAcl(acl);
 }
 

@@ -8,7 +8,9 @@
 
 #include "util.h"
 
-int GACLsaveSubstituted(GACLacl* acl,GACLnamevalue *subst,const char* filename) {
+int GACLsaveSubstituted(GACLacl *acl,
+                        const std::map<std::string, std::string>& subst,
+                        const char *filename) {
   int h;
   GACLacl* acl_;
   h = open(filename,O_CREAT | O_EXCL | O_WRONLY,S_IRUSR | S_IWUSR);
@@ -26,7 +28,8 @@ int GACLsaveSubstituted(GACLacl* acl,GACLnamevalue *subst,const char* filename) 
   return 0; 
 }
 
-int GACLsubstitute(GACLacl* acl,GACLnamevalue *subst) {
+int GACLsubstitute(GACLacl *acl,
+                   const std::map<std::string, std::string>& subst) {
   GACLentry* entry;
   for(entry=(GACLentry*)acl->firstentry;entry;entry=(GACLentry*)entry->next) {
     GACLcred *cred;
@@ -38,13 +41,14 @@ int GACLsubstitute(GACLacl* acl,GACLnamevalue *subst) {
         replace = true;
         std::string::size_type pos2 = pos + 3;
         while((pos2 < auri.size()) && isalnum(auri[pos2])) pos2++;
-        GACLnamevalue* sub;
-        for(sub=subst;sub;sub=(GACLnamevalue*)(sub->next))
-          if(auri.substr(pos + 3, pos2 - pos - 3) == sub->name) {
-            auri.replace(pos, pos2 - pos, GACLmildUrlEncode(sub->value));
+        std::map<std::string, std::string>::const_iterator sub;
+        for(sub = subst.begin(); sub != subst.end(); sub++)
+          if(auri.substr(pos + 3, pos2 - pos - 3) == sub->first) {
+            auri.replace(pos, pos2 - pos,
+                         GACLmildUrlEncode(const_cast<char*>(sub->second.c_str())));
             break;
           }
-        if (!sub)
+        if (sub == subst.end())
           auri.erase(pos, pos2 - pos);
       }
       if (replace) {

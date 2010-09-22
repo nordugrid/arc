@@ -31,7 +31,7 @@ class GACLPlugin: public FilePlugin {
   } file_access_mode_t;
   file_access_mode_t file_mode;
   std::string file_name;
-  GACLnamevalue *subst;
+  std::map<std::string, std::string> subst;
   bool fill_object_info(DirEntry &dent,std::string dirname,DirEntry::object_info_level mode);
  public:
   GACLPlugin(std::istream &cfile,userspec_t &user);

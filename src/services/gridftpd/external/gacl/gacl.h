@@ -8,7 +8,6 @@ extern "C" {
 #include <libxml/tree.h>
 #include <gridsite.h>
 #include <gridsite-gacl.h>
-#define GACLnamevalue GRSTgaclNamevalue
 
 #ifdef __cplusplus
 }
