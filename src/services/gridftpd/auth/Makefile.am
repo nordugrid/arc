@@ -1,4 +1,4 @@
-GACL_LOCATION = ../external/gacl-0.1.5
+GACL_LOCATION = ../external/gacl
 
 GACL_LIB = $(GACL_LOCATION)/libgacl.la
 

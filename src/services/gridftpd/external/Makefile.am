@@ -1,1 +1,1 @@
-SUBDIRS = gacl-0.1.5
+SUBDIRS = gacl

@@ -1,6 +1,6 @@
 GLOBUS_JOBPLUGIN_LIBS = $(GLOBUS_RSL_LIBS) $(GLOBUS_IO_LIBS)
 
-GACL_LOCATION = ../../../gridftpd/external/gacl-0.1.5
+GACL_LOCATION = ../../../gridftpd/external/gacl
 
 pkglib_LTLIBRARIES = jobplugin.la
 
@@ -15,4 +15,3 @@ jobplugin_la_LIBADD = ../../../gridftpd/fileplugin/fileplugin_la-fileplugin.lo \
 	../jobs/libjobs.la ../mail/libmail.la ../conf/libconf.la \
 	../log/liblog.la ../files/libfiles.la ../run/librun.la \
 	$(GLOBUS_JOBPLUGIN_LIBS) -lpthread
-	

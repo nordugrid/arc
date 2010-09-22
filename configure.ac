@@ -1424,7 +1424,7 @@ if test "$enables_gridftpd_service" = "yes"; then
   elif test -z "$GLOBUS_COMMON_VERSION" ; then
     AC_MSG_NOTICE([Gridftpd can't be built without Globus - disabling])
     enables_gridftpd_service="no"
-  elif test "x$gridsite" != "yes" ; then
+  elif test "x$gridsite" != "xyes" ; then
     AC_MSG_NOTICE([Gridftpd can't be built without gridsite - disabling])
     enables_gridftpd_service="no"
   fi
@@ -1908,7 +1908,7 @@ AC_CONFIG_FILES([Makefile
                  src/services/gridftpd/auth/Makefile
                  src/services/gridftpd/conf/Makefile
                  src/services/gridftpd/external/Makefile
-                 src/services/gridftpd/external/gacl-0.1.5/Makefile
+                 src/services/gridftpd/external/gacl/Makefile
                  src/services/gridftpd/misc/Makefile
                  src/services/gridftpd/run/Makefile
                  src/services/gridftpd/fileplugin/Makefile

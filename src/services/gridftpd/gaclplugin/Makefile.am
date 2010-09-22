@@ -1,6 +1,6 @@
 pkglib_LTLIBRARIES = gaclplugin.la
 
-GACL_LOCATION = ../external/gacl-0.1.5
+GACL_LOCATION = ../external/gacl
 
 gaclplugin_la_SOURCES = init.cpp util.cpp util.h util++.cpp util++.h gaclplugin.cpp gaclplugin.h
 gaclplugin_la_CXXFLAGS = $(GLOBUS_IO_CFLAGS) $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(GACL_LOCATION) -I$(top_srcdir)/include
