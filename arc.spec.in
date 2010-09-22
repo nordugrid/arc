@@ -202,7 +202,7 @@ also offers easier configuration and self-healing capability.
 
 %package gridftp-server
 Summary: ARC gridftp server
-Group: System Environment/Libraries
+Group: System Environment/Daemons
 Requires: %{name} = %{version}
 
 %description gridftp-server
@@ -217,20 +217,34 @@ Current plugins include:
   gaclplugin : Enhanced server with support for GACL authorization
   jobplugin  : Classical ARC job submission interface
 
+%package cache-service
+Summary: ARC cache service
+Group: System Environment/Libraries
+Requires: %{name} = %{version}
+
+%description cache-service
+The NorduGrid is a collaboration aiming at development, maintenance
+and support of the free Grid middleware, known as the Advanced Resource
+Connector (ARC).
+
+This package contains the ARC cache service. It provides a way to perform
+some operations on the A-REX cache remotely. It can be especially helpful
+for data management within a pilot job framework.
+
 %package ldap-infosys
 Summary: ARC LDAP information service
 Group: System Environment/Libraries
 Requires: %{name} = %{version}
 
 %description ldap-infosys
- The NorduGrid is a collaboration aiming at development, maintenance
- and support of the free Grid middleware, known as the Advanced Resource
- Connector (ARC).
- 
- This package contains the LDAP based information system for ARC.
- This package is not self-contained. it should be pulled in by either
- nordugrid-arc-nox-arex to be a part of a local information system or
- by nordugrid-arc-nox-giis to be a part of a GIIS service.
+The NorduGrid is a collaboration aiming at development, maintenance
+and support of the free Grid middleware, known as the Advanced Resource
+Connector (ARC).
+
+This package contains the LDAP based information system for ARC.
+This package is not self-contained. it should be pulled in by either
+nordugrid-arc-nox-arex to be a part of a local information system or
+by nordugrid-arc-nox-giis to be a part of a GIIS service.
 
 %package giis
 Summary: ARC GIIS service
@@ -754,7 +768,7 @@ exit 0
 %{_libdir}/%{pkgdir}/libslcs.so
 %{_libdir}/%{pkgdir}/libslcs.apd
 
-%files cache_service
+%files cache-service
 %defattr(-,root,root,-)
 %{_libdir}/%{pkgdir}/libcacheservice.so
 %{_libdir}/%{pkgdir}/libcacheservice.apd
