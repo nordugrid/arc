@@ -822,38 +822,21 @@ AC_CHECK_HEADER([zlib.h],,AC_MSG_ERROR([unable to find zlib header files]))
 AC_CHECK_LIB([z],[deflateInit2_],,AC_MSG_ERROR([unable to link with zlib library]))
 fi
 
-# check GACL. NG-bundled GACL is used by default
-GACL_LOCATION="$PWD/src/services/gridftpd/external/gacl-0.1.5"
-gridsite=
-AC_SUBST(GACL_LOCATION)
-AC_MSG_CHECKING(for GACL)
-AC_ARG_WITH(gacl,
-  AC_HELP_STRING([--with-gacl=PATH], [Gridsite installation path]),
-  [ GACL_LOCATION=$with_gacl_location ],
+# check gridsite
+AC_ARG_WITH(gridsite,
+  AC_HELP_STRING([--with-gridsite=PATH], [where gridsite is installed]),
   [
     if test -d "$withval"; then
-      if test -f "$withval/lib/libgridsite.a"; then
-        GACL_LOCATION="$withval"
-        gridsite=yes
-      fi
+        CPPFLAGS="${CPPFLAGS} -I$withval/include"
+        LDFLAGS="${LDFLAGS} -L$withval/lib"
     fi
   ]
 )
-AC_MSG_RESULT($GACL_LOCATION)
-AC_SUBST(GACL_LOCATION)
-AM_CONDITIONAL(NG_GACL, test "x$gridsite" = "x")
-AM_CONDITIONAL(GRIDSITE_GACL, test "x$gridsite" != "x")
-
-if test "x$gridsite" = "x"; then
-  SAVE_CPPFLAGS=$CPPFLAGS
-  CPPFLAGS="$CPPFLAGS $LIBXML2_CFLAGS"
-  AC_CHECK_HEADER([$GACL_LOCATION/gacl.h],,AC_MSG_NOTICE([unable to find gacl header files]))
-  CPPFLAGS=$SAVE_CPPFLAGS
-  AC_DEFINE(NG_GACL,,[GACL patched by NG])
-else
-  AC_CHECK_HEADER([$GACL_LOCATION/include/gridsite.h],,AC_MSG_ERROR([unable to find gridsite gacl header files]))
-  AC_DEFINE(GRIDSITE_GACL,,[Gridsite GACL (also patched by NG)])
-fi
+gridsite="yes"
+SAVE_LIBS=$LIBS
+AC_CHECK_HEADER([gridsite.h],, gridsite="no")
+AC_CHECK_LIB([gridsite], [GRSTgaclInit],, gridsite="no")
+LIBS=$SAVE_LIBS
 
 # check ARGUS
 # TODO: make it more in line with other checks
@@ -1440,6 +1423,9 @@ if test "$enables_gridftpd_service" = "yes"; then
     enables_gridftpd_service="no"
   elif test -z "$GLOBUS_COMMON_VERSION" ; then
     AC_MSG_NOTICE([Gridftpd can't be built without Globus - disabling])
+    enables_gridftpd_service="no"
+  elif test "x$gridsite" != "yes" ; then
+    AC_MSG_NOTICE([Gridftpd can't be built without gridsite - disabling])
     enables_gridftpd_service="no"
   fi
 fi
