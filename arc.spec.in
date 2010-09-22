@@ -906,6 +906,7 @@ exit 0
 %{python_sitearch}/_arc.so
 %{python_sitearch}/arc.py*
 %{python_sitearch}/arcom
+%{python_sitearch}/cache
 %{python_sitearch}/echo_python
 %{_libdir}/%{pkgdir}/libaccPythonBroker.so
 %{_libdir}/%{pkgdir}/libaccPythonBroker.apd
