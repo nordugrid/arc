@@ -526,10 +526,10 @@ rm -rf $RPM_BUILD_ROOT
 make install DESTDIR=$RPM_BUILD_ROOT
 
 # Install Logrotate.
-mkdir -p $RPM_BUILD_ROOT/etc/logrotate.d
-install -p -m 644 debian/nordugrid-arc-nox-arex.logrotate $RPM_BUILD_ROOT/etc/logrotate.d/nordugrid-arc-nox-arex
-install -p -m 644 debian/nordugrid-arc-nox-gridftp-server.logrotate $RPM_BUILD_ROOT/etc/logrotate.d/nordugrid-arc-nox-gridftp-server
-install -p -m 644 debian/nordugrid-arc-nox-ldap-infosys.logrotate $RPM_BUILD_ROOT/etc/logrotate.d/nordugrid-arc-nox-ldap-infosys
+mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/logrotate.d
+install -p -m 644 debian/nordugrid-arc-nox-arex.logrotate $RPM_BUILD_ROOT%{_sysconfdir}/logrotate.d/nordugrid-arc-nox-arex
+install -p -m 644 debian/nordugrid-arc-nox-gridftp-server.logrotate $RPM_BUILD_ROOT%{_sysconfdir}/logrotate.d/nordugrid-arc-nox-gridftp-server
+install -p -m 644 debian/nordugrid-arc-nox-ldap-infosys.logrotate $RPM_BUILD_ROOT%{_sysconfdir}/logrotate.d/nordugrid-arc-nox-ldap-infosys
 
 find $RPM_BUILD_ROOT -type f -name \*.la -exec rm -fv '{}' ';'
 
@@ -542,6 +542,9 @@ sed -e 's/\(chkconfig: \)\w*/\1-/' \
 
 # RPM does it's own doc handling
 rm -fr $RPM_BUILD_ROOT%{_datadir}/doc/%{pkgdir}
+
+# Create log directory
+mkdir -p $RPM_BUILD_ROOT%{_localstatedir}/log/arc
 
 %find_lang arc
 
@@ -836,7 +839,7 @@ exit 0
 %doc %{_datadir}/%{pkgdir}/examples/a-rex/arex_janitor.xml.example
 %doc %{_datadir}/%{pkgdir}/examples/a-rex/arex_xmlonly.xml.example
 %config %{_sysconfdir}/logrotate.d/nordugrid-arc-nox-arex
-%dir /var/log/arc
+%dir %{_localstatedir}/log/arc
 
 %files devel
 %defattr(-,root,root,-)
