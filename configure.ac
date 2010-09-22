@@ -234,7 +234,7 @@ if test "$enables_java" = "yes"; then
     JPATH=$with_jdk
   else
     # Look for system JDK.
-    for i in /usr/lib/jvm/java-*-openjdk-* /usr/lib/jvm/java-*-gcj* /usr/lib/jvm/java-*-sun*; do
+    for i in /usr/lib/jvm/java-*-openjdk* /usr/lib/jvm/java-*-gcj* /usr/lib/jvm/java-*-sun*; do
       if test -f $i/include/jni.h; then
         JPATH=$i
         break
