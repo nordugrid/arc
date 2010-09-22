@@ -847,7 +847,7 @@ AM_CONDITIONAL(GRIDSITE_GACL, test "x$gridsite" != "x")
 if test "x$gridsite" = "x"; then
   SAVE_CPPFLAGS=$CPPFLAGS
   CPPFLAGS="$CPPFLAGS $LIBXML2_CFLAGS"
-  AC_CHECK_HEADER([$GACL_LOCATION/gacl.h],,AC_MSG_ERROR([unable to find gacl header files]))
+  AC_CHECK_HEADER([$GACL_LOCATION/gacl.h],,AC_MSG_NOTICE([unable to find gacl header files]))
   CPPFLAGS=$SAVE_CPPFLAGS
   AC_DEFINE(NG_GACL,,[GACL patched by NG])
 else
