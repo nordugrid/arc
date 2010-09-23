@@ -26,4 +26,12 @@ arexgridftpd_LDADD = libgridftpd.la conf/libconf.la run/librun.la \
 
 arexgridftpd_LDFLAGS = -rdynamic
 
-SUBDIRS = misc conf run external auth . fileplugin gaclplugin
+if GACL_ENABLED
+GACL_PLUGIN = gaclplugin
+else
+GACL_PLUGIN =
+endif
+
+SUBDIRS = misc conf run external auth . fileplugin $(GACL_PLUGIN)
+
+DIST_SUBDIRS = misc conf run external auth . fileplugin gaclplugin

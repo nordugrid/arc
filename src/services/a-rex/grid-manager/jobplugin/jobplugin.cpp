@@ -41,8 +41,11 @@
 #include "../../../gridftpd/names.h"
 #include "../../../gridftpd/misc.h"
 #include "../../../gridftpd/fileplugin/fileplugin.h"
+
+#ifdef HAVE_GACL
 #include "../../../gridftpd/auth/gacl_auth.h"
 #include "../../../gridftpd/auth/permission_gacl.h"
+#endif
 
 #include "jobplugin.h"
 
@@ -1429,6 +1432,7 @@ int JobPlugin::is_allowed(const char* name,bool locked,bool* spec_dir,std::strin
     if(!job_local_read_file(id,*user,job_desc)) return false;
     if(job_desc.DN != subject) {
       // Not an owner. Check acl.
+#ifdef HAVE_GACL
       std::string acl_file = user->ControlDir()+"/job."+id+".acl";
       struct stat st;
       if(stat(acl_file.c_str(),&st) == 0) {
@@ -1449,6 +1453,7 @@ int JobPlugin::is_allowed(const char* name,bool locked,bool* spec_dir,std::strin
           };
         };
       };
+#endif
       return 0;
     };
     //if(strncmp(l_name,"proxy",5) == 0) return (IS_ALLOWED_LIST);
@@ -1492,6 +1497,7 @@ int JobPlugin::is_allowed(const char* name,bool locked,bool* spec_dir,std::strin
       res|=(IS_ALLOWED_READ | IS_ALLOWED_WRITE | IS_ALLOWED_LIST);
     } else {
       // Not an owner. Check acl.
+#ifdef HAVE_GACL
       std::string acl_file = user->ControlDir()+"/job."+id+".acl";
       struct stat st;
       if(stat(acl_file.c_str(),&st) == 0) {
@@ -1518,6 +1524,7 @@ int JobPlugin::is_allowed(const char* name,bool locked,bool* spec_dir,std::strin
           };
         };
       };
+#endif
     };
     return res; 
   } else {

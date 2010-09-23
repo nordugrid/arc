@@ -88,6 +88,7 @@ enables_python=yes
 enables_swig=yes
 enables_xmlsec1=yes
 enables_argus=no
+enables_gacl=yes
 #  Libraries and plugins
 # Currently no fine-grained choice is supported.
 # Also this variable is used to check if source
@@ -832,11 +833,15 @@ AC_ARG_WITH(gridsite,
     fi
   ]
 )
-gridsite="yes"
 SAVE_LIBS=$LIBS
-AC_CHECK_HEADER([gridsite.h],, gridsite="no")
-AC_CHECK_LIB([gridsite], [GRSTgaclInit],, gridsite="no")
+if test "x$enables_gacl" = "xyes"; then
+  AC_CHECK_HEADER([gridsite.h],, enables_gacl="no")
+fi
+if test "x$enables_gacl" = "xyes"; then
+  AC_CHECK_LIB([gridsite], [GRSTgaclInit],, enables_gacl="no")
+fi
 LIBS=$SAVE_LIBS
+AM_CONDITIONAL(GACL_ENABLED, test "x$enables_gacl" = "xyes")
 
 # check ARGUS
 # TODO: make it more in line with other checks
@@ -1423,9 +1428,6 @@ if test "$enables_gridftpd_service" = "yes"; then
     enables_gridftpd_service="no"
   elif test -z "$GLOBUS_COMMON_VERSION" ; then
     AC_MSG_NOTICE([Gridftpd can't be built without Globus - disabling])
-    enables_gridftpd_service="no"
-  elif test "x$gridsite" != "xyes" ; then
-    AC_MSG_NOTICE([Gridftpd can't be built without gridsite - disabling])
     enables_gridftpd_service="no"
   fi
 fi
@@ -2100,6 +2102,7 @@ gSOAP:              ${enables_gsoap}
 LDAP:               ${enables_ldap}
 xmlsec1:            ${enables_xmlsec1}
 ARGUS:              ${enables_argus}
+GACL:               ${enables_gacl}
 
 Included components:
 HED:                ${enables_hed}
