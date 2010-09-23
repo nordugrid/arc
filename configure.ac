@@ -1645,6 +1645,12 @@ AM_CONDITIONAL([WSRF_CLIENT_ENABLED],[test "x$enables_wsrf_client" = "xyes"])
 
 AC_ARG_ENABLE(cache_client, AC_HELP_STRING([--disable-cache-client], [disable building client tools for cache service.]),
   [enables_cache_client=$enableval],[])
+if test "$enables_cache_client" = "yes"; then
+  if test "x$enables_python" != "xyes"; then
+    enables_cache_client="no"
+    AC_MSG_NOTICE([Cache client requires python - disabling])
+  fi
+fi
 AC_MSG_NOTICE([Cache client tool enabled: $enables_cache_client])
 AM_CONDITIONAL([CACHE_CLIENT_ENABLED],[test "x$enables_cache_client" = "xyes"])
 
