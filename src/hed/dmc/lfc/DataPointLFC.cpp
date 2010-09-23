@@ -75,6 +75,24 @@ namespace Arc {
     return new DataPointLFC(*dmcarg, *dmcarg);
   }
 
+  DataStatus DataPointLFC::Check() {
+    // simply check that the file can be listed
+    std::list<FileInfo> files;
+    DataStatus res = ListFiles(files);
+    if (!res.Passed() || files.size() == 0)
+      return res;
+    // set some metadata
+    if (files.front().CheckSize())
+      SetSize(files.front().GetSize());
+    if (files.front().CheckCheckSum())
+      SetCheckSum(files.front().GetCheckSum());
+    if (files.front().CheckCreated())
+      SetCreated(files.front().GetCreated());
+    if (files.front().CheckValid())
+      SetValid(files.front().GetValid());
+    return DataStatus::Success;
+  }
+
   /* perform resolve operation, which can take long time */
   DataStatus DataPointLFC::Resolve(bool source) {
 

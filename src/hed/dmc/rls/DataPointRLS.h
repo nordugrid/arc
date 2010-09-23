@@ -23,6 +23,7 @@ namespace Arc {
     ~DataPointRLS();
     static Plugin* Instance(PluginArgument *arg);
     virtual DataStatus Resolve(bool source);
+    virtual DataStatus Check();
     virtual DataStatus PreRegister(bool replication, bool force = false);
     virtual DataStatus PostRegister(bool replication);
     virtual DataStatus PreUnregister(bool replication);

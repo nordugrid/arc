@@ -1173,6 +1173,24 @@ namespace Arc {
     return true;
   }
 
+  DataStatus DataPointRLS::Check() {
+    // simply check that the file can be listed
+    std::list<FileInfo> files;
+    DataStatus res = ListFiles(files, true);
+    if (!res.Passed() || files.size() == 0)
+      return res;
+    // set some metadata
+    if (files.front().CheckSize())
+      SetSize(files.front().GetSize());
+    if (files.front().CheckCheckSum())
+      SetCheckSum(files.front().GetCheckSum());
+    if (files.front().CheckCreated())
+      SetCreated(files.front().GetCreated());
+    if (files.front().CheckValid())
+      SetValid(files.front().GetValid());
+    return DataStatus::Success;
+  }
+
   DataStatus DataPointRLS::ListFiles(std::list<FileInfo>& files, bool long_list, bool resolve, bool metadata) {
     std::list<URL> rlis;
     std::list<URL> lrcs;
