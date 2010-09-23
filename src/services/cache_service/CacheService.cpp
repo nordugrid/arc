@@ -1,6 +1,7 @@
 #include <sys/stat.h>
 #include <errno.h>
 
+#include <arc/credential/Credential.h>
 #include <arc/data/FileCache.h>
 #include <arc/data/DataHandle.h>
 #include <arc/URL.h>
@@ -44,6 +45,8 @@ CacheService::CacheService(Arc::Config *cfg) : RegisteredService(cfg),
   /*
   cacheservice config specifies A-REX conf file
   <cacheservice:config>/etc/arc.conf</cacheservice:config>
+  max simultaneous downloads
+  <cacheservice:maxload>10</cacheservice:maxload>
   */
   ns["cacheservice"] = "urn:cacheservice_config";
 
@@ -81,16 +84,30 @@ CacheService::~CacheService(void) {
 }
 
 Arc::MCC_Status CacheService::CacheCheck(Arc::XMLNode in, Arc::XMLNode out, const JobUser& user) {
+  /*
+   Accepts:
+   <CacheCheck>
+     <TheseFilesNeedToCheck>
+       <FileURL>url</FileURL>
+       ...
+     </TheseFilesNeedToCheck>
+   </CacheCheck>
 
-  std::vector<std::string> caches = user.CacheParams()->getCacheDirs();
-  if (caches.empty()) {
-    logger.msg(Arc::ERROR, "No caches configured for user %s", user.UnixName());
-    return Arc::MCC_Status(Arc::GENERIC_ERROR, "CacheCheck", "No caches configured for local user");
-  }
-  Arc::User u(user.UnixName());
+   Returns
+   <CacheCheckResponse>
+     <CacheCheckResult>
+       <Result>
+         <FileURL>url</FileURL>
+         <ExistInTheCache>true</ExistInTheCache>
+         <FileSize>1234</FileSize>
+       </Result>
+       ...
+     </CacheCheckResult>
+   </CacheCheckResponse>
+   */
 
   // create cache
-  Arc::FileCache cache(caches, "0", u.get_uid(), u.get_gid());
+  Arc::FileCache cache(user.CacheParams()->getCacheDirs(), "0", user.get_uid(), user.get_gid());
   if (!cache) {
     logger.msg(Arc::ERROR, "Error creating cache");
     return Arc::MCC_Status(Arc::GENERIC_ERROR, "CacheCheck", "Server error with cache");
@@ -140,9 +157,191 @@ Arc::MCC_Status CacheService::CacheCheck(Arc::XMLNode in, Arc::XMLNode out, cons
   return Arc::MCC_Status(Arc::STATUS_OK);
 }
 
-Arc::MCC_Status CacheService::CacheLink(Arc::XMLNode in, Arc::XMLNode out, const JobUser& user) {
+Arc::MCC_Status CacheService::CacheLink(Arc::XMLNode in, Arc::XMLNode out,
+                                        const JobUser& user, const Arc::User& mapped_user) {
+  /*
+   Accepts:
+   <CacheLink>
+     <TheseFilesNeedToLink>
+       <File>
+         <FileURL>url</FileURL>    // remote file
+         <FileName>name</FileName> // local file on session dir
+       </File>
+       ...
+     </TheseFilesNeedToLink>
+     <Username>uname</Username>
+     <JobID>123456789</JobID>
+     <Stage>false</Stage>
+   </CacheLink>
 
-  // create new cache for the user calling this method
+   Returns:
+   <CacheLinkResponse>
+     <CacheLinkResult>
+       <Result>
+         <FileURL>url</FileURL>
+         <ReturnCode>0</ReturnCode>
+         <ReturnExplanation>success</ReturnExplanation>
+       </Result>
+       ...
+     </CacheLinkResult>
+   </CacheLinkResponse>
+   */
+
+  // read in inputs
+  bool dostage = false;
+  if (in["CacheLink"]["Stage"])
+    dostage = ((std::string)in["CacheLink"]["Stage"] == "true") ? true : false;
+
+  Arc::XMLNode jobidnode = in["CacheLink"]["JobID"];
+  if (!jobidnode) {
+    logger.msg(Arc::ERROR, "No job ID supplied");
+    return Arc::MCC_Status(Arc::GENERIC_ERROR, "CacheLink", "Bad input (no JobID specified)");
+  }
+  std::string jobid = (std::string)jobidnode;
+
+  Arc::XMLNode uname = in["CacheLink"]["Username"];
+  if (!uname) {
+    logger.msg(Arc::ERROR, "No username supplied");
+    return Arc::MCC_Status(Arc::GENERIC_ERROR, "CacheLink", "Bad input (no Username specified)");
+  }
+  std::string username = (std::string)uname;
+
+  // TODO: try to force mapping to supplied user
+  if (username != mapped_user.Name()) {
+    logger.msg(Arc::ERROR, "Supplied username %s does not match mapped username %s", username, mapped_user.Name());
+    return Arc::MCC_Status(Arc::GENERIC_ERROR, "CacheLink", "Supplied username does not match mapped user");
+  }
+
+  // check job id and session dir are ok
+  std::string session_root = user.SessionRoot(jobid);
+  if (session_root.empty()) {
+    logger.msg(Arc::ERROR, "No session directory found");
+    return Arc::MCC_Status(Arc::GENERIC_ERROR, "CacheLink", "No session directory found for supplied Job ID");
+  }
+  std::string session_dir = session_root + '/' + jobid;
+  logger.msg(Arc::INFO, "Using session dir %s", session_dir);
+
+  struct stat fileStat;
+  if (!Arc::FileStat(session_dir, &fileStat, true)) {
+    logger.msg(Arc::ERROR, "Failed to stat session dir %s", session_dir);
+    return Arc::MCC_Status(Arc::GENERIC_ERROR, "CacheLink", "Failed to access session dir");
+  }
+  // check permissions - owner must be same as mapped user
+  if (fileStat.st_uid != mapped_user.get_uid()) {
+    logger.msg(Arc::ERROR, "Session dir %s is owned by %i, but current mapped user is %i", session_dir, fileStat.st_uid, mapped_user.get_uid());
+    return Arc::MCC_Status(Arc::GENERIC_ERROR, "CacheLink", "Failed to access session dir");
+  }
+
+  // get delegated proxy info to check permission on cached files
+  // TODO: use credentials of caller of this service. For now use the
+  // proxy of the specified job in the control dir
+
+  std::string proxy_path = user.ControlDir() + "/job." + jobid + ".proxy";
+  if (!Arc::FileStat(proxy_path, &fileStat, true)) {
+    logger.msg(Arc::ERROR, "Failed to access proxy of given job id at %s", proxy_path);
+    return Arc::MCC_Status(Arc::GENERIC_ERROR, "CacheLink", "Failed to access proxy");
+  }
+  Arc::UserConfig usercfg;
+  usercfg.UtilsDirPath(user.ControlDir());
+  usercfg.ProxyPath(proxy_path);
+  usercfg.InitializeCredentials();
+  std::string dn;
+  Arc::Time exp_time;
+  try {
+    Arc::Credential ci(usercfg.ProxyPath(), usercfg.ProxyPath(), usercfg.CACertificatesDirectory(), "");
+    dn = ci.GetIdentityName();
+    exp_time = ci.GetEndTime();
+  } catch (Arc::CredentialError e) {
+    logger.msg(Arc::ERROR, "Couldn't handle certificate: %s", e.what());
+    return Arc::MCC_Status(Arc::GENERIC_ERROR, "CacheLink", std::string("Error with proxy at "+proxy_path));
+  }
+  logger.msg(Arc::INFO, "DN is %s", dn);
+
+  // create cache
+  Arc::FileCache cache(user.CacheParams()->getCacheDirs(), jobid, mapped_user.get_uid(), mapped_user.get_gid());
+  if (!cache) {
+    logger.msg(Arc::ERROR, "Error with cache configuration");
+    return Arc::MCC_Status(Arc::GENERIC_ERROR, "CacheCheck", "Server error with cache");
+  }
+
+  // set up response structure
+  Arc::XMLNode resp = out.NewChild("CacheLinkResponse");
+  Arc::XMLNode results = resp.NewChild("CacheLinkResult");
+
+  // loop through all files
+  for (int n = 0;;++n) {
+    Arc::XMLNode id = in["CacheLink"]["TheseFilesNeedToLink"]["File"][n];
+    if (!id) break;
+
+    Arc::XMLNode f_url = id["FileURL"];
+    if (!f_url) break;
+    Arc::XMLNode f_name = id["FileName"];
+    if (!f_name) break;
+
+    std::string fileurl = (std::string)f_url;
+    std::string filename = (std::string)f_name;
+
+    logger.msg(Arc::INFO, "Looking up URL %s", fileurl);
+
+    Arc::XMLNode resultelement = results.NewChild("Result");
+    resultelement.NewChild("FileURL") = fileurl;
+    Arc::URL u(fileurl);
+    Arc::DataHandle d(u, usercfg);
+    d->SetSecure(false);
+    // the actual url used with the cache
+    std::string url = d->str();
+
+    bool available = false;
+    bool is_locked = false;
+    if (!cache.Start(url, available, is_locked, true)) {
+      if (is_locked) {
+        resultelement.NewChild("ReturnCode") = Arc::tostring(CacheService::Locked);
+        resultelement.NewChild("ReturnCodeExplanation") = "File is locked";
+      } else {
+        resultelement.NewChild("ReturnCode") = Arc::tostring(CacheService::CacheError);
+        resultelement.NewChild("ReturnCodeExplanation") = "Error starting cache";
+      }
+      continue;
+    }
+    if (!available) {
+      if (dostage) {
+        // launch download
+      } else {
+        resultelement.NewChild("ReturnCode") = Arc::tostring(CacheService::NotAvailable);
+        resultelement.NewChild("ReturnCodeExplanation") = "File not available";
+      }
+      cache.Stop(url);
+      continue;
+    }
+    // file is in cache - check permissions
+    if (!cache.CheckDN(url, dn)) {
+      Arc::DataStatus res = d->Check();
+      if (!res.Passed()) {
+        logger.msg(Arc::ERROR, "Permission checking failed: %s", url);
+        cache.Stop(url);
+        resultelement.NewChild("ReturnCode") = Arc::tostring(CacheService::PermissionError);
+        resultelement.NewChild("ReturnCodeExplanation") = "Permission denied";
+        continue;
+      }
+      cache.AddDN(url, dn, exp_time);
+      logger.msg(Arc::VERBOSE, "Permission checking passed for url %s", url);
+    }
+
+    // link file
+    std::string session_file = session_dir + '/' + filename;
+    if (!cache.Link(session_file, url)) {
+      // failed to link - report as if not there
+      cache.Stop(url);
+      resultelement.NewChild("ReturnCode") = Arc::tostring(CacheService::LinkError);
+      resultelement.NewChild("ReturnCodeExplanation") = "Failed to link to session dir";
+      continue;
+    }
+    // everything went ok so stop cache and report success
+    cache.Stop(url);
+    resultelement.NewChild("ReturnCode") = Arc::tostring(CacheService::Success);
+    resultelement.NewChild("ReturnCodeExplanation") = "Success";
+  }
+
   return Arc::MCC_Status(Arc::STATUS_OK);
 }
 
@@ -157,23 +356,31 @@ Arc::MCC_Status CacheService::process(Arc::Message &inmsg, Arc::Message &outmsg)
   std::string method = inmsg.Attributes()->get("HTTP:METHOD");
 
   // find local user
-  std::string username = inmsg.Attributes()->get("SEC:LOCALID");
-  if (username.empty()) {
+  std::string mapped_username = inmsg.Attributes()->get("SEC:LOCALID");
+  if (mapped_username.empty()) {
     logger.msg(Arc::ERROR, "No local user mapping found");
     return make_soap_fault(outmsg, "No local user mapping found");
   }
-  if (users->find(username) != users->end()) {
-    user = &(*(users->find(username)));
+  Arc::User mapped_user(mapped_username);
+
+  if (users->find(mapped_username) != users->end()) {
+    user = &(*(users->find(mapped_username)));
   } else if (users->find("") != users->end()) {
     user = &(*(users->find("")));
   } else {
-    logger.msg(Arc::ERROR, "No configuration found for user %s in A-REX configuration", username);
+    logger.msg(Arc::ERROR, "No configuration found for user %s in A-REX configuration", mapped_username);
     return make_soap_fault(outmsg, "Server configuration error");
   }
   if (!user || !user->is_valid()) {
-    logger.msg(Arc::ERROR, "No configuration found for user %s in A-REX configuration", username);
+    logger.msg(Arc::ERROR, "No configuration found for user %s in A-REX configuration", mapped_username);
     return make_soap_fault(outmsg, "Server configuration error");
   }
+  std::vector<std::string> caches = user->CacheParams()->getCacheDirs();
+  if (caches.empty()) {
+    logger.msg(Arc::ERROR, "No caches configured for user %s", user->UnixName());
+    return make_soap_fault(outmsg, "No caches configured for local user");
+  }
+
   if(method == "POST") {
     logger.msg(Arc::VERBOSE, "process: POST");
     logger.msg(Arc::INFO, "Identity is %s", inmsg.Attributes()->get("TLS:PEERDN"));
@@ -211,7 +418,7 @@ Arc::MCC_Status CacheService::process(Arc::Message &inmsg, Arc::Message &outmsg)
       result = CacheCheck(*inpayload, *outpayload, *user);
     }
     else if (MatchXMLName(op, "CacheLink")) {
-      result = CacheLink(*inpayload, *outpayload, *user);
+      result = CacheLink(*inpayload, *outpayload, *user, mapped_user);
     }
     else {
       // unknown operation

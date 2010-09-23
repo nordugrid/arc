@@ -28,6 +28,17 @@ namespace Cache {
 class CacheService: public Arc::RegisteredService {
 
  private:
+  /** Return codes of cache link */
+  enum CacheLinkReturnCode {
+    Success,                 // everything went ok
+    NotAvailable,            // cache file doesn't exist and dostage is false
+    Locked,                  // cache file is locked (being downloaded by other process)
+    CacheError,              // error with cache (configuration, filesystem etc)
+    PermissionError,         // user doesn't have permission on original source
+    LinkError,               // error while linking to session dir
+    DownloadError,           // error downloading cache file
+    TooManyDownloadsError    // current number of downloads exceeds limit
+  };
   /** Construct a SOAP error message with optional extra reason string */
   Arc::MCC_Status make_soap_fault(Arc::Message& outmsg, const std::string& reason = "");
   /** CacheService namespace */
@@ -49,7 +60,7 @@ class CacheService: public Arc::RegisteredService {
    * Check whether the URLs supplied in the input are present in any cache.
    * Returns in the out message for each file true or false, and if true,
    * the size of the file on cache disk.
-   * @param user User representing the local identity the caller is mapped to
+   * @param user A-REX user configuration for the mapped user
    */
   Arc::MCC_Status CacheCheck(Arc::XMLNode in, Arc::XMLNode out, const JobUser& user);
   /**
@@ -58,9 +69,11 @@ class CacheService: public Arc::RegisteredService {
    * calling the service has permission to access them, then they are linked
    * to the given session directory.
    * TODO: What to do when files are missing
-   * @param user User representing the local identity the caller is mapped to
+   * @param user A-REX user configuration for the mapped user
+   * @param mapped_user The local user to which the client DN was mapped
    */
-  Arc::MCC_Status CacheLink(Arc::XMLNode in, Arc::XMLNode out, const JobUser& user);
+  Arc::MCC_Status CacheLink(Arc::XMLNode in, Arc::XMLNode out,
+                            const JobUser& user, const Arc::User& mapped_user);
 
  public:
   /**
