@@ -82,9 +82,9 @@ def cacheCheck(service, proxy, urls):
     conn = httplib.HTTPSConnection(host, port, proxy, proxy)
     try:
         conn.request('POST', path, request)
+        resp = conn.getresponse()
     except Exception, e:
         raise CacheException('Error connecting to service: ' + str(e))
-    resp = conn.getresponse()
     
     if resp.status != 200:
         conn.close()
@@ -97,7 +97,7 @@ def cacheCheck(service, proxy, urls):
     checkSOAPFault(response)
     
     try:
-        cache_result = response[0][0][0]
+        cache_result = response.find('{http://schemas.xmlsoap.org/soap/envelope/}Body').find('CacheCheckResponse').find('CacheCheckResult')
         results = cache_result.findall('Result')
     except:
         raise CacheException('Error with XML structure received from echo service')
@@ -113,7 +113,84 @@ def cacheCheck(service, proxy, urls):
 
     return cachefiles
 
+def cacheLink(service, proxy, user, jobid, urls, dostage):
+    """
+    Call the cache service at service to link the given dictionary of urls
+    to the session directory corresponding to jobid. The url dictionary
+    maps remote URLs corresponding to the original source files to local
+    filenames on the session directory. If dostage is true then any files not
+    in the cache will be downloaded from source. The best way to use this
+    method may be to call once with dostage=False, and then if there are
+    missing files, make a decision whether to call again with doStage=True.
+    Alternatively cacheCheck can be called first.
+    
+    Returns a tuple of (return code, urls) where urls is a dictionary
+    representing the state of each requested url.
+    
+    Possible return codes:
+    all successful
+    one or more cache files is locked
+    permission denied on one or more cache files
+    download of one or more cache files failed
+    one or more cache files is not present and dostage is false
+    cache service errors (failed to connect, not authorised, bad config etc)
+    too many downloads already in progress according to configured limit on server
+    """
         
+    (protocol, host, port, path) = splitURL(service)
+    
+    # create request with etree
+    soap = ET.Element('soap-env:Envelope', attrib={'xmlns:echo': 'urn:echo', 'xmlns:soap-enc': 'http://schemas.xmlsoap.org/soap/encoding/', 'xmlns:soap-env': 'http://schemas.xmlsoap.org/soap/envelope/', 'xmlns:xsd': 'http://www.w3.org/2001/XMLSchema', 'xmlns:xsi': 'http://www.w3.org/2001/XMLSchema-instance' })
+    
+    body = ET.SubElement(soap, 'soap-env:Body')
+    cachecheck = ET.SubElement(body, 'CacheLink')
+    files = ET.SubElement(cachecheck, 'TheseFilesNeedToLink')
+    for url in urls:
+        file = ET.SubElement(files, 'File')
+        addETElement(file, 'FileURL', url)
+        addETElement(file, 'FileName', urls[url])
+    addETElement(cachecheck, 'Username', user)
+    addETElement(cachecheck, 'JobID', jobid)
+    addETElement(cachecheck, 'Stage', 'true' if dostage else 'false')
+        
+    request = ET.tostring(soap)
+        
+    conn = httplib.HTTPSConnection(host, port, proxy, proxy)
+    try:
+        conn.request('POST', path, request)
+        resp = conn.getresponse()
+    except Exception, e:
+        raise CacheException('Error connecting to service: ' + str(e))
+    
+    if resp.status != 200:
+        conn.close()
+        raise CacheException('Error code '+resp.status+' returned: '+resp.reason)
+
+    xmldata = resp.read()
+    
+    conn.close()
+    response = ET.XML(xmldata)
+    checkSOAPFault(response)
+    
+    try:
+        cache_result = response.find('{http://schemas.xmlsoap.org/soap/envelope/}Body').find('CacheLinkResponse').find('CacheLinkResult')
+        results = cache_result.findall('Result')
+    except:
+        raise CacheException('Error with XML structure received from echo service')
+    
+    if len(results) == 0:
+        raise CacheException('No results returned')
+    
+    cachefiles = {}
+    for result in results:
+        url = result.find('FileURL').text
+        link_result_code = result.find('ReturnCode').text
+        link_result_text = result.find('ReturnCodeExplanation').text
+        cachefiles[url] = (link_result_code, link_result_text)
+
+    return cachefiles
+
+
 def echo(service, proxy, say):
     """
     Call the echo service at the given location and print the response to
@@ -160,7 +237,7 @@ if __name__ == '__main__':
     
     proxy = '/tmp/x509up_u1000'
     #proxy = '/home/cameron/dev/userCerts/userproxy-demo5'
-    endpoint = 'https://localhost:60000/cacheservice'
+    endpoint = 'https://localhost:60001/cacheservice'
     
     urls_to_check = ['srm://srm.ndgf.org/ops/jens1', 'lfc://lfc1.ndgf.org/:guid=8471134f-494e-41cb-b81e-b341f6a18caf']
     try:
@@ -171,3 +248,12 @@ if __name__ == '__main__':
         
     print(cacheurls)
     
+    urls_to_link = {'srm://srm.ndgf.org/ops/jens1': 'file1',
+                    'lfc://lfc1.ndgf.org/:guid=8471134f-494e-41cb-b81e-b341f6a18caf': 'file3'}
+    try:
+        cacheurls = cacheLink(endpoint, proxy, 'cameron', '1', urls_to_link, False)
+    except CacheException, e:
+        print('Error calling cacheLink: ' + str(e))
+        sys.exit(1)
+    
+    print(cacheurls)
