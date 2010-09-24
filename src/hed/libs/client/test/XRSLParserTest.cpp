@@ -165,7 +165,7 @@ void XRSLParserTest::TestDataStagingDownloadDelete() {
 
   UNPARSE_PARSE;
   PARSE_ASSERT(OUTJOB);
-  PARSE_ASSERT_EQUAL2(2, (int)OUTJOB.DataStaging.File.size());
+  PARSE_ASSERT_EQUAL2(1, (int)OUTJOB.DataStaging.File.size());
 
   std::list<Arc::FileType>::const_iterator it = OUTJOB.DataStaging.File.begin();
   PARSE_ASSERT_EQUAL2(file.Name, it->Name);
@@ -174,12 +174,16 @@ void XRSLParserTest::TestDataStagingDownloadDelete() {
   PARSE_ASSERT_EQUAL2(source.URI, it->Source.front().URI);
   PARSE_ASSERT_EQUAL2(0, (int)it->Target.size());
 
+  /* When unparsing the job description, the executable will not be added. The
+   * Submitter::ModifyJobDescription(ExecutionTarget) method need to be called
+   * to add the executable. This might change in the future.
   it++;
   PARSE_ASSERT_EQUAL2((std::string)"executable", it->Name);
   PARSE_ASSERT_EQUAL2(false, it->KeepData);
   PARSE_ASSERT_EQUAL2(1, (int)it->Source.size());
   PARSE_ASSERT_EQUAL2(Arc::URL("executable"), it->Source.front().URI);
   PARSE_ASSERT_EQUAL2(0, (int)it->Target.size());
+  */
 }
 
 /** 3-Upload-Delete */
@@ -203,7 +207,7 @@ void XRSLParserTest::TestDataStagingUploadDelete() {
 
   UNPARSE_PARSE;
   PARSE_ASSERT(OUTJOB);
-  PARSE_ASSERT_EQUAL2(2, (int)OUTJOB.DataStaging.File.size());
+  PARSE_ASSERT_EQUAL2(1, (int)OUTJOB.DataStaging.File.size());
 
   std::list<Arc::FileType>::const_iterator it = OUTJOB.DataStaging.File.begin();
   PARSE_ASSERT_EQUAL2(file.Name, it->Name);
@@ -212,12 +216,16 @@ void XRSLParserTest::TestDataStagingUploadDelete() {
   PARSE_ASSERT_EQUAL2(source.URI, it->Source.front().URI);
   PARSE_ASSERT_EQUAL2(0, (int)it->Target.size());
 
+  /* When unparsing the job description, the executable will not be added. The
+   * Submitter::ModifyJobDescription(ExecutionTarget) method need to be called
+   * to add the executable. This might change in the future.
   it++;
   PARSE_ASSERT_EQUAL2((std::string)"executable", it->Name);
   PARSE_ASSERT_EQUAL2(false, it->KeepData);
   PARSE_ASSERT_EQUAL2(1, (int)it->Source.size());
   PARSE_ASSERT_EQUAL2(Arc::URL("executable"), it->Source.front().URI);
   PARSE_ASSERT_EQUAL2(0, (int)it->Target.size());
+  */
 
   remove(file.Name.c_str());
 }
@@ -234,16 +242,20 @@ void XRSLParserTest::TestDataStagingCreateDownload() {
 
   UNPARSE_PARSE;
   PARSE_ASSERT(OUTJOB);
-  PARSE_ASSERT_EQUAL2(2, (int)OUTJOB.DataStaging.File.size());
+  PARSE_ASSERT_EQUAL2(1, (int)OUTJOB.DataStaging.File.size());
 
   std::list<Arc::FileType>::const_iterator it = OUTJOB.DataStaging.File.begin();
+  /* When unparsing the job description, the executable will not be added. The
+   * Submitter::ModifyJobDescription(ExecutionTarget) method need to be called
+   * to add the executable. This might change in the future.
   PARSE_ASSERT_EQUAL2((std::string)"executable", it->Name);
   PARSE_ASSERT_EQUAL2(false, it->KeepData);
   PARSE_ASSERT_EQUAL2(1, (int)it->Source.size());
   PARSE_ASSERT_EQUAL2(Arc::URL("executable"), it->Source.front().URI);
   PARSE_ASSERT_EQUAL2(0, (int)it->Target.size());
-
   it++;
+  */
+
   PARSE_ASSERT_EQUAL2(file.Name, it->Name);
   PARSE_ASSERT_EQUAL2(file.KeepData, it->KeepData);
   PARSE_ASSERT_EQUAL2(0, (int)it->Source.size());
@@ -266,7 +278,7 @@ void XRSLParserTest::TestDataStagingDownloadDownload() {
 
   UNPARSE_PARSE;
   PARSE_ASSERT(OUTJOB);
-  PARSE_ASSERT_EQUAL2(3, (int)OUTJOB.DataStaging.File.size());
+  PARSE_ASSERT_EQUAL2(2, (int)OUTJOB.DataStaging.File.size());
 
   std::list<Arc::FileType>::const_iterator it = OUTJOB.DataStaging.File.begin();
   PARSE_ASSERT_EQUAL2(file.Name, it->Name);
@@ -275,12 +287,16 @@ void XRSLParserTest::TestDataStagingDownloadDownload() {
   PARSE_ASSERT_EQUAL2(source.URI, it->Source.front().URI);
   PARSE_ASSERT_EQUAL2(0, (int)it->Target.size());
 
+  /* When unparsing the job description, the executable will not be added. The
+   * Submitter::ModifyJobDescription(ExecutionTarget) method need to be called
+   * to add the executable. This might change in the future.
   it++;
   PARSE_ASSERT_EQUAL2((std::string)"executable", it->Name);
   PARSE_ASSERT_EQUAL2(false, it->KeepData);
   PARSE_ASSERT_EQUAL2(1, (int)it->Source.size());
   PARSE_ASSERT_EQUAL2(Arc::URL("executable"), it->Source.front().URI);
   PARSE_ASSERT_EQUAL2(0, (int)it->Target.size());
+  */
 
   it++;
   PARSE_ASSERT_EQUAL2(file.Name, it->Name);
@@ -310,7 +326,7 @@ void XRSLParserTest::TestDataStagingUploadDownload() {
 
   UNPARSE_PARSE;
   PARSE_ASSERT(OUTJOB);
-  PARSE_ASSERT_EQUAL2(3, (int)OUTJOB.DataStaging.File.size());
+  PARSE_ASSERT_EQUAL2(2, (int)OUTJOB.DataStaging.File.size());
 
   std::list<Arc::FileType>::const_iterator it = OUTJOB.DataStaging.File.begin();
   PARSE_ASSERT_EQUAL2(file.Name, it->Name);
@@ -319,12 +335,16 @@ void XRSLParserTest::TestDataStagingUploadDownload() {
   PARSE_ASSERT_EQUAL2(source.URI, it->Source.front().URI);
   PARSE_ASSERT_EQUAL2(0, (int)it->Target.size());
 
+  /* When unparsing the job description, the executable will not be added. The
+   * Submitter::ModifyJobDescription(ExecutionTarget) method need to be called
+   * to add the executable. This might change in the future.
   it++;
   PARSE_ASSERT_EQUAL2((std::string)"executable", it->Name);
   PARSE_ASSERT_EQUAL2(false, it->KeepData);
   PARSE_ASSERT_EQUAL2(1, (int)it->Source.size());
   PARSE_ASSERT_EQUAL2(Arc::URL("executable"), it->Source.front().URI);
   PARSE_ASSERT_EQUAL2(0, (int)it->Target.size());
+  */
 
   it++;
   PARSE_ASSERT_EQUAL2(file.Name, it->Name);
@@ -351,16 +371,21 @@ void XRSLParserTest::TestDataStagingCreateUpload() {
 
   UNPARSE_PARSE;
   PARSE_ASSERT(OUTJOB);
-  PARSE_ASSERT_EQUAL2(2, (int)OUTJOB.DataStaging.File.size());
+  PARSE_ASSERT_EQUAL2(1, (int)OUTJOB.DataStaging.File.size());
 
   std::list<Arc::FileType>::const_iterator it = OUTJOB.DataStaging.File.begin();
+
+  /* When unparsing the job description, the executable will not be added. The
+   * Submitter::ModifyJobDescription(ExecutionTarget) method need to be called
+   * to add the executable. This might change in the future.
   PARSE_ASSERT_EQUAL2((std::string)"executable", it->Name);
   PARSE_ASSERT_EQUAL2(false, it->KeepData);
   PARSE_ASSERT_EQUAL2(1, (int)it->Source.size());
   PARSE_ASSERT_EQUAL2(Arc::URL("executable"), it->Source.front().URI);
   PARSE_ASSERT_EQUAL2(0, (int)it->Target.size());
-
   it++;
+  */
+
   PARSE_ASSERT_EQUAL2(file.Name, it->Name);
   PARSE_ASSERT_EQUAL2(file.KeepData, it->KeepData);
   PARSE_ASSERT_EQUAL2(0, (int)it->Source.size());
@@ -388,7 +413,7 @@ void XRSLParserTest::TestDataStagingDownloadUpload() {
 
   UNPARSE_PARSE;
   PARSE_ASSERT(OUTJOB);
-  PARSE_ASSERT_EQUAL2(3, (int)OUTJOB.DataStaging.File.size());
+  PARSE_ASSERT_EQUAL2(2, (int)OUTJOB.DataStaging.File.size());
 
   std::list<Arc::FileType>::const_iterator it = OUTJOB.DataStaging.File.begin();
   PARSE_ASSERT_EQUAL2(file.Name, it->Name);
@@ -397,12 +422,16 @@ void XRSLParserTest::TestDataStagingDownloadUpload() {
   PARSE_ASSERT_EQUAL2(source.URI, it->Source.front().URI);
   PARSE_ASSERT_EQUAL2(0, (int)it->Target.size());
 
+  /* When unparsing the job description, the executable will not be added. The
+   * Submitter::ModifyJobDescription(ExecutionTarget) method need to be called
+   * to add the executable. This might change in the future.
   it++;
   PARSE_ASSERT_EQUAL2((std::string)"executable", it->Name);
   PARSE_ASSERT_EQUAL2(false, it->KeepData);
   PARSE_ASSERT_EQUAL2(1, (int)it->Source.size());
   PARSE_ASSERT_EQUAL2(Arc::URL("executable"), it->Source.front().URI);
   PARSE_ASSERT_EQUAL2(0, (int)it->Target.size());
+  */
 
   it++;
   PARSE_ASSERT_EQUAL2(file.Name, it->Name);
@@ -436,8 +465,9 @@ void XRSLParserTest::TestDataStagingUploadUpload() {
   f.close();
 
   UNPARSE_PARSE;
+
   PARSE_ASSERT(OUTJOB);
-  PARSE_ASSERT_EQUAL2(3, (int)OUTJOB.DataStaging.File.size());
+  PARSE_ASSERT_EQUAL2(2, (int)OUTJOB.DataStaging.File.size());
 
   std::list<Arc::FileType>::const_iterator it = OUTJOB.DataStaging.File.begin();
   PARSE_ASSERT_EQUAL2(file.Name, it->Name);
@@ -446,12 +476,16 @@ void XRSLParserTest::TestDataStagingUploadUpload() {
   PARSE_ASSERT_EQUAL2(source.URI, it->Source.front().URI);
   PARSE_ASSERT_EQUAL2(0, (int)it->Target.size());
 
+  /* When unparsing the job description, the executable will not be added. The
+   * Submitter::ModifyJobDescription(ExecutionTarget) method need to be called
+   * to add the executable. This might change in the future.
   it++;
   PARSE_ASSERT_EQUAL2((std::string)"executable", it->Name);
   PARSE_ASSERT_EQUAL2(false, it->KeepData);
   PARSE_ASSERT_EQUAL2(1, (int)it->Source.size());
   PARSE_ASSERT_EQUAL2(Arc::URL("executable"), it->Source.front().URI);
   PARSE_ASSERT_EQUAL2(0, (int)it->Target.size());
+  */
 
   it++;
   PARSE_ASSERT_EQUAL2(file.Name, it->Name);
