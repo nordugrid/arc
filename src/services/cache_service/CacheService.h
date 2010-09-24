@@ -47,8 +47,8 @@ class CacheService: public Arc::RegisteredService {
   std::vector<std::string> caches;
   /** Users read from A-REX configuration */
   JobUsers* users;
-  /** Current user */
-  JobUser* user;
+  /** Holds environment state, eg config files etc */
+  GMEnvironment* gm_env;
   /** Flag to say whether CacheService is valid */
   bool valid;
   /** Logger object */

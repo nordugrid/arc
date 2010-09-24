@@ -39,7 +39,7 @@ static Arc::Plugin *get_service(Arc::PluginArgument* arg)
 Arc::Logger CacheService::logger(Arc::Logger::rootLogger, "CacheService");
 
 CacheService::CacheService(Arc::Config *cfg) : RegisteredService(cfg),
-                                               user(NULL),
+                                               gm_env(NULL),
                                                valid(false) {
   // read configuration information
   /*
@@ -59,16 +59,16 @@ CacheService::CacheService(Arc::Config *cfg) : RegisteredService(cfg),
 
   JobLog job_log;
   JobsListConfig jobs_cfg;
-  GMEnvironment gm_env(job_log, jobs_cfg);
-  gm_env.nordugrid_config_loc(arex_config);
-  users = new JobUsers(gm_env);
+  gm_env = new GMEnvironment(job_log, jobs_cfg);
+  gm_env->nordugrid_config_loc(arex_config);
+  users = new JobUsers(*gm_env);
 
   // read A-REX config
   // user running this service
   Arc::User u;
-  JobUser my_user(gm_env);
+  JobUser my_user(*gm_env);
   if (!configure_serviced_users(*users, u.get_uid(), u.Name(), my_user)) {
-    logger.msg(Arc::ERROR, "Failed to process A-REX configuration in %s", gm_env.nordugrid_config_loc());
+    logger.msg(Arc::ERROR, "Failed to process A-REX configuration in %s", gm_env->nordugrid_config_loc());
     return;
   }
   print_serviced_users(*users);
@@ -80,6 +80,10 @@ CacheService::~CacheService(void) {
   if (users) {
     delete users;
     users = NULL;
+  }
+  if (gm_env) {
+    delete gm_env;
+    gm_env = NULL;
   }
 }
 
@@ -107,7 +111,7 @@ Arc::MCC_Status CacheService::CacheCheck(Arc::XMLNode in, Arc::XMLNode out, cons
    */
 
   // create cache
-  Arc::FileCache cache(user.CacheParams()->getCacheDirs(), "0", user.get_uid(), user.get_gid());
+  Arc::FileCache cache(user.CacheParams().getCacheDirs(), "0", user.get_uid(), user.get_gid());
   if (!cache) {
     logger.msg(Arc::ERROR, "Error creating cache");
     return Arc::MCC_Status(Arc::GENERIC_ERROR, "CacheCheck", "Server error with cache");
@@ -258,7 +262,7 @@ Arc::MCC_Status CacheService::CacheLink(Arc::XMLNode in, Arc::XMLNode out,
   logger.msg(Arc::INFO, "DN is %s", dn);
 
   // create cache
-  Arc::FileCache cache(user.CacheParams()->getCacheDirs(), jobid, mapped_user.get_uid(), mapped_user.get_gid());
+  Arc::FileCache cache(user.CacheParams().getCacheDirs(), jobid, mapped_user.get_uid(), mapped_user.get_gid());
   if (!cache) {
     logger.msg(Arc::ERROR, "Error with cache configuration");
     return Arc::MCC_Status(Arc::GENERIC_ERROR, "CacheCheck", "Server error with cache");
@@ -363,21 +367,26 @@ Arc::MCC_Status CacheService::process(Arc::Message &inmsg, Arc::Message &outmsg)
   }
   Arc::User mapped_user(mapped_username);
 
+  // temporary user created for this call
+  // we don't care about validity of this user, it is just a place to store
+  // config information
+  JobUser jobuser(*gm_env);
   if (users->find(mapped_username) != users->end()) {
-    user = &(*(users->find(mapped_username)));
+    jobuser.SetCacheParams(users->find(mapped_username)->CacheParams());
+    jobuser.SetControlDir(users->find(mapped_username)->ControlDir());
+    jobuser.SetSessionRoot(users->find(mapped_username)->SessionRoots());
   } else if (users->find("") != users->end()) {
-    user = &(*(users->find("")));
+    jobuser.SetCacheParams(users->find("")->CacheParams());
+    jobuser.SetControlDir(users->find("")->ControlDir());
+    jobuser.SetSessionRoot(users->find("")->SessionRoots());
   } else {
     logger.msg(Arc::ERROR, "No configuration found for user %s in A-REX configuration", mapped_username);
     return make_soap_fault(outmsg, "Server configuration error");
   }
-  if (!user || !user->is_valid()) {
-    logger.msg(Arc::ERROR, "No configuration found for user %s in A-REX configuration", mapped_username);
-    return make_soap_fault(outmsg, "Server configuration error");
-  }
-  std::vector<std::string> caches = user->CacheParams()->getCacheDirs();
+
+  std::vector<std::string> caches = jobuser.CacheParams().getCacheDirs();
   if (caches.empty()) {
-    logger.msg(Arc::ERROR, "No caches configured for user %s", user->UnixName());
+    logger.msg(Arc::ERROR, "No caches configured for user %s", jobuser.UnixName());
     return make_soap_fault(outmsg, "No caches configured for local user");
   }
 
@@ -415,10 +424,10 @@ Arc::MCC_Status CacheService::process(Arc::Message &inmsg, Arc::Message &outmsg)
     Arc::MCC_Status result(Arc::STATUS_OK);
     // choose operation
     if (MatchXMLName(op,"CacheCheck")) {
-      result = CacheCheck(*inpayload, *outpayload, *user);
+      result = CacheCheck(*inpayload, *outpayload, jobuser);
     }
     else if (MatchXMLName(op, "CacheLink")) {
-      result = CacheLink(*inpayload, *outpayload, *user, mapped_user);
+      result = CacheLink(*inpayload, *outpayload, jobuser, mapped_user);
     }
     else {
       // unknown operation
