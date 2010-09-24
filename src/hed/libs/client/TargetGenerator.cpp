@@ -32,7 +32,7 @@ namespace Arc {
          it != usercfg.GetSelectedServices(COMPUTING).end(); it++)
       for (std::list<URL>::const_iterator it2 = it->second.begin();
            it2 != it->second.end(); it2++) {
-        if ((pluginLoaded[it->first] = (loader.load(it->first, usercfg, *it2, COMPUTING)) != NULL))
+        if (!(pluginLoaded[it->first] = (loader.load(it->first, usercfg, *it2, COMPUTING)) != NULL))
           break;
       }
 
