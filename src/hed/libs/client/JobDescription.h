@@ -86,6 +86,7 @@ namespace Arc {
 
   class ExecutableType {
   public:
+    ExecutableType() : Name(), Argument() {}
     std::string Name;
     std::list<std::string> Argument;
   };
