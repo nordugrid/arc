@@ -33,7 +33,6 @@ static std::string empty_string("");
 JobUser::JobUser(const GMEnvironment& env):gm_env(env) {
   control_dir="";
   unix_name=""; home=""; uid=0; gid=0;
-  cache_params=NULL;
   valid=false; jobs=NULL;
   keep_finished=DEFAULT_KEEP_FINISHED;
   keep_deleted=DEFAULT_KEEP_DELETED;
@@ -86,17 +85,17 @@ const std::string & JobUser::SessionRoot(std::string job_id) const {
   return empty_string; // not found
 }
 
-void JobUser::SetCacheParams(CacheConfig* params) {
-  std::vector<std::string> cache_dirs = params->getCacheDirs();
+void JobUser::SetCacheParams(CacheConfig params) {
+  std::vector<std::string> cache_dirs = params.getCacheDirs();
   for (std::vector<std::string>::iterator i = cache_dirs.begin(); i != cache_dirs.end(); i++) {
     substitute(*i);
   }
-  params->setCacheDirs(cache_dirs);
-  std::vector<std::string> drain_cache_dirs = params->getDrainingCacheDirs();
+  params.setCacheDirs(cache_dirs);
+  std::vector<std::string> drain_cache_dirs = params.getDrainingCacheDirs();
   for (std::vector<std::string>::iterator i = drain_cache_dirs.begin(); i != drain_cache_dirs.end(); i++) {
     substitute(*i);
   }
-  params->setDrainingCacheDirs(drain_cache_dirs);
+  params.setDrainingCacheDirs(drain_cache_dirs);
   cache_params = params;
 }
 
@@ -240,7 +239,6 @@ JobUser::JobUser(const GMEnvironment& env,uid_t uid_,RunPlugin* cred):gm_env(env
     };
   };
   jobs=NULL;
-  cache_params=NULL;
   SetControlDir("");
   SetSessionRoot("");
   SetLRMS("","");
@@ -277,7 +275,6 @@ JobUser::JobUser(const GMEnvironment& env,const std::string &u_name,RunPlugin* c
   SetSessionRoot("");
   SetLRMS("","");
   jobs=NULL;
-  cache_params=NULL;
   keep_finished=DEFAULT_KEEP_FINISHED;
   keep_deleted=DEFAULT_KEEP_DELETED;
   strict_session=false;
@@ -304,7 +301,6 @@ JobUser::JobUser(const JobUser &user):gm_env(user.gm_env) {
 }
 
 JobUser::~JobUser(void) { 
-  delete cache_params;
 }
 
 void JobUser::SetShareID(uid_t suid) {

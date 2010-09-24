@@ -49,23 +49,21 @@ Arc::MCC_Status ARexService::CacheCheck(ARexGMConfig& config,Arc::XMLNode in,Arc
 
   if(pw->pw_name) file_owner_username=pw->pw_name;
   // use cache dir(s) from conf file
-  CacheConfig *cache_config;
+  CacheConfig cache_config;
   try {
-      cache_config = new CacheConfig(*gm_env_,std::string(file_owner_username));
-      std::vector<std::string> conf_caches = cache_config->getCacheDirs();
+      cache_config = CacheConfig(*gm_env_,std::string(file_owner_username));
+      std::vector<std::string> conf_caches = cache_config.getCacheDirs();
       // add each cache to our list
       for (std::vector<std::string>::iterator i = conf_caches.begin(); i != conf_caches.end(); i++) {
         user.substitute(*i);
         caches.push_back(*i);
      }
-     delete cache_config;
   }
   catch (CacheConfigException e) {
      logger.msg(Arc::ERROR, "Error with cache configuration: %s", e.what()); 
      Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"Error with cache configuration");  
      fault.Detail(true).NewChild("CacheConfigurationFault");
 	 out.Destroy();
-     delete cache_config;
 	 return Arc::MCC_Status();
   }
 

@@ -1300,10 +1300,10 @@ void JobsList::ActJobFinished(JobsList::iterator &i,bool hard_job,
               logger.msg(Arc::INFO,"%s: Job is too old - deleting",i->job_id);
               if(i->keep_deleted) {
                 // here we have to get the cache per-job dirs to be deleted
-                CacheConfig * cache_config;
+                CacheConfig cache_config;
                 std::list<std::string> cache_per_job_dirs;
                 try {
-                  cache_config = new CacheConfig(user->Env());
+                  cache_config = CacheConfig(user->Env());
                 }
                 catch (CacheConfigException e) {
                   logger.msg(Arc::ERROR, "Error with cache configuration: %s", e.what());
@@ -1312,18 +1312,18 @@ void JobsList::ActJobFinished(JobsList::iterator &i,bool hard_job,
                   state_changed=true;
                   return;
                 }
-                std::vector<std::string> conf_caches = cache_config->getCacheDirs();
+                std::vector<std::string> conf_caches = cache_config.getCacheDirs();
                 // add each dir to our list
                 for (std::vector<std::string>::iterator it = conf_caches.begin(); it != conf_caches.end(); it++) {
                   cache_per_job_dirs.push_back(it->substr(0, it->find(" "))+"/joblinks");
                 }
                 // add remote caches
-                std::vector<std::string> remote_caches = cache_config->getRemoteCacheDirs();
+                std::vector<std::string> remote_caches = cache_config.getRemoteCacheDirs();
                 for (std::vector<std::string>::iterator it = remote_caches.begin(); it != remote_caches.end(); it++) {
                   cache_per_job_dirs.push_back(it->substr(0, it->find(" "))+"/joblinks");
                 }
                 // add draining caches
-                std::vector<std::string> draining_caches = cache_config->getDrainingCacheDirs();
+                std::vector<std::string> draining_caches = cache_config.getDrainingCacheDirs();
                 for (std::vector<std::string>::iterator it = draining_caches.begin(); it != draining_caches.end(); it++) {
                   cache_per_job_dirs.push_back(it->substr(0, it->find(" "))+"/joblinks");
                 }

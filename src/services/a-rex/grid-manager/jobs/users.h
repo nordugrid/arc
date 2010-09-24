@@ -40,7 +40,7 @@ class JobUser {
   /* directories where directories used to run jobs are created */
   std::vector<std::string> session_roots;
   /* cache information */
-  CacheConfig * cache_params;
+  CacheConfig cache_params;
   /* default LRMS and queue to use */
   std::string default_lrms;
   std::string default_queue;
@@ -85,7 +85,7 @@ class JobUser {
   void SetControlDir(const std::string &dir);
   void SetSessionRoot(const std::string &dir);
   void SetSessionRoot(const std::vector<std::string> &dirs);
-  void SetCacheParams(CacheConfig* params);
+  void SetCacheParams(CacheConfig params);
   void SetLRMS(const std::string &lrms_name,const std::string &queue_name);
   void SetKeepFinished(time_t ttl) { keep_finished=ttl; };
   void SetKeepDeleted(time_t ttr) { keep_deleted=ttr; };
@@ -98,7 +98,7 @@ class JobUser {
   const std::string & ControlDir(void) const { return control_dir; };
   const std::string & SessionRoot(std::string job_id = "") const;
   const std::vector<std::string> & SessionRoots() const { return session_roots; };
-  CacheConfig * CacheParams(void) const { return cache_params; };
+  CacheConfig CacheParams(void) const { return cache_params; };
   bool CachePrivate(void) const { return false; };
   const std::string & DefaultLRMS(void) const { return default_lrms; };
   const std::string & DefaultQueue(void) const { return default_queue; };

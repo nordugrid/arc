@@ -60,17 +60,17 @@ static void* cache_func(void* arg) {
         };
       };
       if(proc == NULL) { // previous already exited
-        CacheConfig * cache_info = cacheuser->CacheParams();
-        if (!cache_info->cleanCache()) continue;
+        CacheConfig cache_info = cacheuser->CacheParams();
+        if (!cache_info.cleanCache()) continue;
         
         // get the cache dirs
-        std::vector<std::string> cache_info_dirs = cache_info->getCacheDirs();
+        std::vector<std::string> cache_info_dirs = cache_info.getCacheDirs();
         if (cache_info_dirs.empty()) continue;
         
         // in arc.conf % of used space is given, but cleanbyage uses % of free space
-        std::string minfreespace = Arc::tostring(100-cache_info->getCacheMax());
-        std::string maxfreespace = Arc::tostring(100-cache_info->getCacheMin());  
-        std::string cachelifetime = cache_info->getLifeTime();
+        std::string minfreespace = Arc::tostring(100-cache_info.getCacheMax());
+        std::string maxfreespace = Arc::tostring(100-cache_info.getCacheMin());
+        std::string cachelifetime = cache_info.getLifeTime();
         
         // set log file location - controldir/job.cache-clean.errors
         // TODO: use GM log?
@@ -88,7 +88,7 @@ static void* cache_func(void* arg) {
         args[argc++]=(char*)"-E";
         args[argc++]=(char*)cachelifetime.c_str();        
         args[argc++]=(char*)"-D";
-        args[argc++]=(char*)cache_info->getLogLevel().c_str();
+        args[argc++]=(char*)cache_info.getLogLevel().c_str();
         std::vector<std::string> cache_dirs;
         // have to loop over twice to avoid repeating the same pointer in args
         for (std::vector<std::string>::iterator i = cache_info_dirs.begin(); i != cache_info_dirs.end(); i++) {
@@ -300,7 +300,7 @@ static void grid_manager(void* arg) {
   };
   // check if cleaning is enabled for any user, if so activate cleaning thread
   for (JobUsers::const_iterator cacheuser = users.begin(); cacheuser != users.end(); ++cacheuser) {
-    if (cacheuser->CacheParams() && cacheuser->CacheParams()->cleanCache()) {
+    if (!cacheuser->CacheParams().getCacheDirs().empty() && cacheuser->CacheParams().cleanCache()) {
       if(pthread_create(&cache_thread,NULL,&cache_func,(void*)(&users))!=0) {
         logger.msg(Arc::INFO,"Failed to start new thread: cache won't be cleaned");
       }

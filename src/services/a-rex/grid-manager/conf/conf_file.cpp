@@ -518,7 +518,7 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
             user->SetStrictSession(strict_session);
             // get cache parameters for this user
             try {
-              CacheConfig * cache_config = new CacheConfig(users.Env(),user->UnixName());
+              CacheConfig cache_config = CacheConfig(users.Env(),user->UnixName());
               user->SetCacheParams(cache_config);
             }
             catch (CacheConfigException e) {
@@ -967,7 +967,7 @@ bool configure_serviced_users(Arc::XMLNode cfg,JobUsers &users,uid_t my_uid,cons
           user->SetStrictSession(strict_session);
           // get cache parameters for this user
           try {
-            CacheConfig * cache_config = new CacheConfig(users.Env(),user->UnixName());
+            CacheConfig cache_config(users.Env(),user->UnixName());
             user->SetCacheParams(cache_config);
           }
           catch (CacheConfigException e) {
@@ -1058,15 +1058,10 @@ bool print_serviced_users(const JobUsers &users) {
     logger.msg(Arc::INFO,"\tdefault queue    : %s",user->DefaultQueue());
     logger.msg(Arc::INFO,"\tdefault ttl      : %u",user->KeepFinished());
 
-    CacheConfig * cache_config = user->CacheParams();
+    CacheConfig cache_config = user->CacheParams();
 
-    if(!cache_config) {
-      logger.msg(Arc::INFO,"No valid caches found in configuration, caching is disabled");
-      continue;
-    }
-
-    std::vector<std::string> conf_caches = cache_config->getCacheDirs();
-    std::vector<std::string> remote_conf_caches = cache_config->getRemoteCacheDirs();
+    std::vector<std::string> conf_caches = cache_config.getCacheDirs();
+    std::vector<std::string> remote_conf_caches = cache_config.getRemoteCacheDirs();
     if(conf_caches.empty()) {
       logger.msg(Arc::INFO,"No valid caches found in configuration, caching is disabled");
       continue;
@@ -1083,7 +1078,7 @@ bool print_serviced_users(const JobUsers &users) {
       if ((*i).find(" ") != std::string::npos) 
         logger.msg(Arc::INFO, "\tRemote cache link: %s", (*i).substr((*i).find_last_of(" ")+1, (*i).length()-(*i).find_last_of(" ")+1));
     }
-    if (cache_config->cleanCache())
+    if (cache_config.cleanCache())
       logger.msg(Arc::INFO, "\tCache cleaning enabled");
     else
       logger.msg(Arc::INFO, "\tCache cleaning disabled");

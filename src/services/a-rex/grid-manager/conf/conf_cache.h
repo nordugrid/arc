@@ -60,6 +60,10 @@ class CacheConfig {
     */
   CacheConfig(const GMEnvironment& env,std::string username = "");
   /**
+   * Empty CacheConfig
+   */
+  CacheConfig(): _cache_max(0), _cache_min(0) {};
+  /**
    * Parsers for the two different conf styles
    */
   void parseINIConf(std::string username, ConfigSections* cf);
@@ -75,7 +79,7 @@ class CacheConfig {
   void setDrainingCacheDirs(std::vector<std::string> draining_cache_dirs) { _draining_cache_dirs = draining_cache_dirs; }; 
   int getCacheMax() { return _cache_max; };
   int getCacheMin() { return _cache_min; };
-  bool cleanCache() { return _cache_max < 100; };
+  bool cleanCache() { return (_cache_max > 0 && _cache_max < 100); };
   std::string getLogLevel() { return _log_level; };
   std::string getLifeTime() { return _lifetime; };
 };
