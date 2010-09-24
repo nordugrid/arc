@@ -151,6 +151,15 @@ readconfigvar()
   }
 }
 
+# ARC_CONFIG
+if test "x$ARC_CONFIG" = "x"; then
+  if [ -r $ARC_LOCATION/etc/arc.conf ]; then
+    ARC_CONFIG=$ARC_LOCATION/etc/arc.conf
+  elif [ -r /etc/arc.conf ]; then
+    ARC_CONFIG=/etc/arc.conf
+  fi
+fi
+
 # PID and lock file
 PID_FILE=`readconfigvar "$ARC_CONFIG" grid-manager pidfile`
 
@@ -182,14 +191,6 @@ if ! test -x "$CMD"; then
     exit 1
 fi
 
-# ARC_CONFIG
-if test "x$ARC_CONFIG" = "x"; then
-  if [ -r $ARC_LOCATION/etc/arc.conf ]; then
-    ARC_CONFIG=$ARC_LOCATION/etc/arc.conf
-  elif [ -r /etc/arc.conf ]; then
-    ARC_CONFIG=/etc/arc.conf
-  fi
-fi
 if [ ! -r "$ARC_CONFIG" ]; then
   echo "NorduGrid configuration not found (usually /etc/arc.conf)"
   exit 1
