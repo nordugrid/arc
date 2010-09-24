@@ -1531,6 +1531,7 @@ err:
 
     bool verified = false;
     int num = sk_AC_num(aclist->acs);
+    int count = 0;
     for (int i = 0; i < num; i++) {
       AC *ac = (AC *)sk_AC_value(aclist->acs, i);
       std::string vo_name;
@@ -1539,8 +1540,11 @@ err:
           holder, output, vo_name, period_left, verify)) {
         verified = true;
         std::cout<<"======AC extension information for VO "<<vo_name<<"======"<<std::endl;
-        for(int i = 0; i < output.size(); i++) {
+        for(int i = count; i < output.size(); i++) {
           std::cout<<"Attribute: "<<output[i]<<std::endl;
+          count = output.size(); 
+          //does not display those attributes that have already been displayed 
+          //(this happen when there are multiple voms server )
         }
         std::cout << IString("Timeleft for AC: %s", period_left.istr())<<std::endl;
       }

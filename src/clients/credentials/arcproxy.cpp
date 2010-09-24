@@ -684,7 +684,6 @@ int main(int argc, char *argv[]) {
 
       for (std::map<std::string, std::string>::iterator it = matched_voms_line.begin();
            it != matched_voms_line.end(); it++) {
-        std::map<std::string, std::string>::iterator it = matched_voms_line.begin();
         voms_server = (*it).first;
         voms_line = (*it).second;
         int count = server_command_map.count(voms_server);
