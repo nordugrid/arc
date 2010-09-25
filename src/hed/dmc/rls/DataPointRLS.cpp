@@ -24,6 +24,8 @@
 namespace Arc {
 
   static bool proxy_initialized = false;
+  static bool globus_initialized = false;
+  static bool persistent_initialized = false;
 
   Logger DataPointRLS::logger(DataPoint::logger, "RLS");
 
@@ -31,20 +33,25 @@ namespace Arc {
     : DataPointIndex(url, usercfg),
       guid_enabled(false) {
     valid_url_options.push_back("guid");
-    globus_module_activate(GLOBUS_COMMON_MODULE);
-    globus_module_activate(GLOBUS_IO_MODULE);
-    globus_module_activate(GLOBUS_RLS_CLIENT_MODULE);
-    if (!proxy_initialized)
-      proxy_initialized = GlobusRecoverProxyOpenSSL();
+    if(!globus_initialized) {
+      globus_module_activate(GLOBUS_COMMON_MODULE);
+      globus_module_activate(GLOBUS_IO_MODULE);
+      globus_module_activate(GLOBUS_RLS_CLIENT_MODULE);
+      if (!proxy_initialized)
+        proxy_initialized = GlobusRecoverProxyOpenSSL();
+    }
     std::string guidopt = url.Option("guid", "no");
     if ((guidopt == "yes") || (guidopt == ""))
       guid_enabled = true;
   }
 
   DataPointRLS::~DataPointRLS() {
-    globus_module_deactivate(GLOBUS_RLS_CLIENT_MODULE);
-    globus_module_deactivate(GLOBUS_IO_MODULE);
-    globus_module_deactivate(GLOBUS_COMMON_MODULE);
+    if(!persistent_initialized) {
+      globus_module_deactivate(GLOBUS_RLS_CLIENT_MODULE);
+      globus_module_deactivate(GLOBUS_IO_MODULE);
+      globus_module_deactivate(GLOBUS_COMMON_MODULE);
+      globus_initialized = false;
+    }
   }
 
   Plugin* DataPointRLS::Instance(PluginArgument *arg) {
@@ -58,7 +65,10 @@ namespace Arc {
     // may have problems with unloading
     Glib::Module* module = dmcarg->get_module();
     PluginsFactory* factory = dmcarg->get_factory();
-    if(factory && module) factory->makePersistent(module);
+    if(factory && module) {
+      factory->makePersistent(module);
+      persistent_initialized = true;
+    }
     return new DataPointRLS(*dmcarg, *dmcarg);
   }
 
