@@ -842,6 +842,9 @@ if test "x$enables_gacl" = "xyes"; then
 fi
 LIBS=$SAVE_LIBS
 AM_CONDITIONAL(GACL_ENABLED, test "x$enables_gacl" = "xyes")
+if test "x$enables_gacl" = "xyes"; then
+   AC_DEFINE(HAVE_GACL,, [define is gridsite GACL is available])
+fi
 
 # check ARGUS
 # TODO: make it more in line with other checks

@@ -59,4 +59,4 @@ libmap_la_LIBADD = libauth.la $(top_srcdir)/src/hed/libs/common/libarccommon.la
 libgaclmap_la_SOURCES = unixmap.h unixmap.cpp unixmap_lcmaps.cpp \
 	simplemap.h simplemap.cpp
 libgaclmap_la_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
-libgaclmap_la_LIBADD = libgaclauth.la $(top_srcdir)/src/hed/libs/common/libarccommon.la
+libgaclmap_la_LIBADD = $(GACL_LTLIB) $(top_srcdir)/src/hed/libs/common/libarccommon.la
