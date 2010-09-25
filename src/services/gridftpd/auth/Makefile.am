@@ -38,7 +38,7 @@ libaccess_la_LIBADD = $(GACL_LIB) $(XML_LIBS)
 if GACL_ENABLED
 libgaclauth_la_SOURCES = gacl_auth.cpp gacl_auth.h
 libgaclauth_la_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
-libgaclauth_la_LIBADD = libauth.la $(GACL_LIB) $(XML_LIBS) $(top_srcdir)/src/hed/libs/common/libarccommon.la
+libgaclauth_la_LIBADD = $(GACL_LIB) $(XML_LIBS) $(top_srcdir)/src/hed/libs/common/libarccommon.la
 
 libgaclaccess_la_SOURCES = identity.cpp identity.h \
 	identity_gacl.cpp identity_gacl.h \
