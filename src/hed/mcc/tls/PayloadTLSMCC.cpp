@@ -136,16 +136,16 @@ static int verify_callback(int ok,X509_STORE_CTX *sctx) {
       if((it->Config().GlobusPolicy()) && (!(it->Config().CADir().empty()))) {
 #ifdef HAVE_OPENSSL_PROXY
         int pos = X509_get_ext_by_NID(cert,NID_proxyCertInfo,-1);
-        if(pos < 0) {
-#else
-        {
+        if(pos < 0)
 #endif
+        {
           std::istream* in = open_globus_policy(X509_get_issuer_name(cert),it->Config().CADir());
           if(in) {
             if(!match_globus_policy(*in,X509_get_issuer_name(cert),X509_get_subject_name(cert))) {
               Logger::getRootLogger().msg(ERROR,"Certificate %s failed Globus signing policy",subject_name);
               ok=0;
-              X509_STORE_CTX_set_error(sctx,X509_V_ERR_SUBJECT_ISSUER_MISMATCH);            };
+              X509_STORE_CTX_set_error(sctx,X509_V_ERR_SUBJECT_ISSUER_MISMATCH);
+            };
             delete in;
           };
         };
@@ -158,7 +158,7 @@ static int verify_callback(int ok,X509_STORE_CTX *sctx) {
     if(exptime <= Time()) {
       Logger::getRootLogger().msg(WARNING,"Certificate %s already expired",subject_name);
     } else {
-      Arc::Period timeleft = asn1_to_utctime(X509_get_notAfter(cert)) - Time();
+      Arc::Period timeleft = exptime - Time();
 #ifdef HAVE_OPENSSL_PROXY
       int pos = X509_get_ext_by_NID(cert,NID_proxyCertInfo,-1);
 #else
