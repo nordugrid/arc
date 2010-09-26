@@ -7,6 +7,7 @@
 
 #include <arc/ArcConfig.h>
 #include <arc/IniConfig.h>
+#include <arc/Logger.h>
 #include <arc/XMLNode.h>
 
 namespace Arc {
@@ -16,7 +17,7 @@ namespace Arc {
   public:
     Profile(const std::string& filename);
     ~Profile();
-    void Evaluate(Config &cfg, const IniConfig& ini);
+    void Evaluate(Config &cfg, IniConfig ini);
   };
 
 } // namespace Arc

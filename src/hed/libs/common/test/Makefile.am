@@ -1,10 +1,11 @@
 if MYSQL_LIBRARY_ENABLED
 MYSQL_WRAPPER_TEST = MysqlWrapperTest
 else
-MYSQL_WRAPPER_TEST = 
+MYSQL_WRAPPER_TEST =
 endif
 
-TESTS = URLTest LoggerTest RunTest XMLNodeTest FileUtilsTest ArcRegexTest ThreadTest $(MYSQL_WRAPPER_TEST)
+TESTS = URLTest LoggerTest RunTest XMLNodeTest FileUtilsTest ProfileTest ArcRegexTest ThreadTest $(MYSQL_WRAPPER_TEST)
+
 check_PROGRAMS = $(TESTS)
 
 URLTest_SOURCES = $(top_srcdir)/src/Test.cpp URLTest.cpp
@@ -18,6 +19,10 @@ LoggerTest_LDADD = $(CPPUNIT_LIBS) ../libarccommon.la
 RunTest_SOURCES = $(top_srcdir)/src/Test.cpp RunTest.cpp
 RunTest_CXXFLAGS = $(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) -I$(top_srcdir)/include
 RunTest_LDADD = $(CPPUNIT_LIBS) ../libarccommon.la
+
+ProfileTest_SOURCES = $(top_srcdir)/src/Test.cpp ProfileTest.cpp
+ProfileTest_CXXFLAGS = $(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
+ProfileTest_LDADD = $(CPPUNIT_LIBS) ../libarccommon.la
 
 ThreadTest_SOURCES = $(top_srcdir)/src/Test.cpp ThreadTest.cpp
 ThreadTest_CXXFLAGS = $(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) -I$(top_srcdir)/include

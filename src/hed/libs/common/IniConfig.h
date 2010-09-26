@@ -13,6 +13,8 @@ namespace Arc {
   class IniConfig
     : public XMLNode {
   public:
+    // Dummy constructor.
+    IniConfig() : XMLNode(NS(), "IniConfig") {}
     IniConfig(const std::string& filename);
     ~IniConfig();
     bool Evaluate(Config &cfg);
