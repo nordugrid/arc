@@ -39,6 +39,9 @@ static Arc::Plugin *get_service(Arc::PluginArgument* arg)
 Arc::Logger CacheService::logger(Arc::Logger::rootLogger, "CacheService");
 
 CacheService::CacheService(Arc::Config *cfg) : RegisteredService(cfg),
+                                               max_downloads(10),
+                                               current_downloads(0),
+                                               users(NULL),
                                                gm_env(NULL),
                                                valid(false) {
   // read configuration information
@@ -55,7 +58,17 @@ CacheService::CacheService(Arc::Config *cfg) : RegisteredService(cfg),
     logger.msg(Arc::ERROR, "No A-REX config file found in cache service configuration");
     return;
   }
-  std::string arex_config = (*cfg)["cache"]["config"];
+  std::string arex_config = (std::string)(*cfg)["cache"]["config"];
+  logger.msg(Arc::INFO, "Using A-REX config file %s", arex_config);
+
+  if ((*cfg)["cache"]["maxload"]) {
+    std::string maxload = (std::string)(*cfg)["cache"]["maxload"];
+    if (maxload.empty() || !Arc::stringto(maxload, max_downloads)) {
+      logger.msg(Arc::ERROR, "Error converting maxload parameter %s to integer", maxload);
+      return;
+    }
+  }
+  logger.msg(Arc::INFO, "Setting max downloads to %u", max_downloads);
 
   JobLog job_log;
   JobsListConfig jobs_cfg;
@@ -272,6 +285,9 @@ Arc::MCC_Status CacheService::CacheLink(Arc::XMLNode in, Arc::XMLNode out,
   Arc::XMLNode resp = out.NewChild("CacheLinkResponse");
   Arc::XMLNode results = resp.NewChild("CacheLinkResult");
 
+  std::vector<std::string> to_download; // files not in cache
+  bool error_happened = false; // if true then don't bother with downloads at the end
+
   // loop through all files
   for (int n = 0;;++n) {
     Arc::XMLNode id = in["CacheLink"]["TheseFilesNeedToLink"]["File"][n];
@@ -297,6 +313,7 @@ Arc::MCC_Status CacheService::CacheLink(Arc::XMLNode in, Arc::XMLNode out,
 
     bool available = false;
     bool is_locked = false;
+
     if (!cache.Start(url, available, is_locked, true)) {
       if (is_locked) {
         resultelement.NewChild("ReturnCode") = Arc::tostring(CacheService::Locked);
@@ -305,16 +322,13 @@ Arc::MCC_Status CacheService::CacheLink(Arc::XMLNode in, Arc::XMLNode out,
         resultelement.NewChild("ReturnCode") = Arc::tostring(CacheService::CacheError);
         resultelement.NewChild("ReturnCodeExplanation") = "Error starting cache";
       }
+      error_happened = true;
       continue;
     }
     if (!available) {
-      if (dostage) {
-        // launch download
-      } else {
-        resultelement.NewChild("ReturnCode") = Arc::tostring(CacheService::NotAvailable);
-        resultelement.NewChild("ReturnCodeExplanation") = "File not available";
-      }
       cache.Stop(url);
+      // file not in cache - the result status for these files will be set later
+      to_download.push_back(url);
       continue;
     }
     // file is in cache - check permissions
@@ -325,6 +339,7 @@ Arc::MCC_Status CacheService::CacheLink(Arc::XMLNode in, Arc::XMLNode out,
         cache.Stop(url);
         resultelement.NewChild("ReturnCode") = Arc::tostring(CacheService::PermissionError);
         resultelement.NewChild("ReturnCodeExplanation") = "Permission denied";
+        error_happened = true;
         continue;
       }
       cache.AddDN(url, dn, exp_time);
@@ -338,6 +353,7 @@ Arc::MCC_Status CacheService::CacheLink(Arc::XMLNode in, Arc::XMLNode out,
       cache.Stop(url);
       resultelement.NewChild("ReturnCode") = Arc::tostring(CacheService::LinkError);
       resultelement.NewChild("ReturnCodeExplanation") = "Failed to link to session dir";
+      error_happened = true;
       continue;
     }
     // everything went ok so stop cache and report success
@@ -346,6 +362,41 @@ Arc::MCC_Status CacheService::CacheLink(Arc::XMLNode in, Arc::XMLNode out,
     resultelement.NewChild("ReturnCodeExplanation") = "Success";
   }
 
+  // check for any downloads to perform, only if requested and there were no previous errors
+  if (error_happened || !dostage) {
+    for (std::vector<std::string>::iterator i = to_download.begin(); i != to_download.end(); ++i) {
+      Arc::XMLNode resultelement = results.NewChild("Result");
+      resultelement.NewChild("FileURL") = *i;
+      resultelement.NewChild("ReturnCode") = Arc::tostring(CacheService::NotAvailable);
+      resultelement.NewChild("ReturnCodeExplanation") = "File not available";
+    }
+    return Arc::MCC_Status(Arc::STATUS_OK);
+  }
+
+  // check max_downloads
+  if (current_downloads >= max_downloads) {
+    for (std::vector<std::string>::iterator i = to_download.begin(); i != to_download.end(); ++i) {
+      Arc::XMLNode resultelement = results.NewChild("Result");
+      resultelement.NewChild("FileURL") = *i;
+      // fill in this status for unavailable files
+      resultelement.NewChild("ReturnCode") = Arc::tostring(CacheService::TooManyDownloadsError);
+      resultelement.NewChild("ReturnCodeExplanation") = "Currently at maximum limit of downloads";
+    }
+    return Arc::MCC_Status(Arc::STATUS_OK);
+  }
+
+  // launch download
+  current_downloads++;
+  // create job.id.input file, then run new downloader process
+  // wait for result with some timeout
+  current_downloads--;
+  // if successful return success for each file
+  for (std::vector<std::string>::iterator i = to_download.begin(); i != to_download.end(); ++i) {
+    Arc::XMLNode resultelement = results.NewChild("Result");
+    resultelement.NewChild("FileURL") = *i;
+    resultelement.NewChild("ReturnCode") = Arc::tostring(CacheService::Success);
+    resultelement.NewChild("ReturnCodeExplanation") = "Success";
+  }
   return Arc::MCC_Status(Arc::STATUS_OK);
 }
 

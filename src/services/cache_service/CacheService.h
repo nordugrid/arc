@@ -43,8 +43,10 @@ class CacheService: public Arc::RegisteredService {
   Arc::MCC_Status make_soap_fault(Arc::Message& outmsg, const std::string& reason = "");
   /** CacheService namespace */
   Arc::NS ns;
-  /** Caches as taken from the configuration */
-  std::vector<std::string> caches;
+  /** Download limit read from cache service configuration */
+  unsigned int max_downloads;
+  /** Current downloads - may need a lock around it */
+  unsigned int current_downloads;
   /** Users read from A-REX configuration */
   JobUsers* users;
   /** Holds environment state, eg config files etc */
