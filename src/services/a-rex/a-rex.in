@@ -310,6 +310,9 @@ if [ "$USERNAME" = "root" ] ; then
 fi
 
 LOGFILE=${LOGFILE:-/var/log/arc/grid-manager.log}
+if [ ! -d `dirname $LOGFILE` ]; then
+ mkdir -p `dirname $LOGFILE` ]
+fi
 LOGSIZE=${LOGSIZE:--1 -1}
 LOGNUM=`echo "$LOGSIZE" | sed 's/^ *[-+0-9]* *//'`
 LOGSIZE=`echo "$LOGSIZE" | sed 's/^ *\([-+0-9]*\).*/\1/'`

@@ -154,6 +154,10 @@ fi
 config_parse_file "$ARC_CONFIG"
 config_import_section gridftpd
 PID_FILE=${CONFIG_pidfile:-$PID_FILE}
+logfile=${CONFIG_logfile:-/var/log/arc/gridftpd.log}
+if [ ! -d `dirname $logfile` ]; then
+  mkdir -p `dirname $logfile`
+fi
 config_reset
 
 CMD="$CMD -P '$PID_FILE'"

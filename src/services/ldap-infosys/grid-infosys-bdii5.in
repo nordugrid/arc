@@ -266,12 +266,12 @@ threads=${CONFIG_threads:-32}
 providerlog=${CONFIG_providerlog:-/var/log/arc/infoprovider.log}
 infosyslog=${CONFIG_logfile:-/var/log/arc/grid-infosys.log}
 if [ ! -d `dirname $providerlog` ]; then
-    error_echo "Could not find directory for arc info-provider log:  `dirname $providerlog`"
-    do_exit_start 1
+    debug_echo "Could not find directory for arc info-provider log: `dirname $providerlog`, creating it now."
+    mkdir -p `dirname $providerlog`
 fi
 if [ ! -d `dirname $infosyslog` ]; then
-    error_echo "Could not find directory for arc infosys log:  `dirname $infosyslog`"
-    do_exit_start 1
+    debug_echo "Could not find directory for arc infosys log: `dirname $infosyslog`, creating it now."
+    mkdir -p `dirname $infosyslog`
 fi
 
 # Get ldap user from passwd
@@ -286,8 +286,8 @@ bdii_var_dir=${CONFIG_bdii_var_dir:-/var/run/bdii}
 bdii_log_dir=${CONFIG_bdii_log_dir:-/var/log/arc/bdii/}
 bdii_log_file="${bdii_log_dir}/bdii-update.log"
 if [ ! -d $bdii_log_dir ]; then
-    error_echo "Could not find bdii log directory: `dirname $bdii_log_dir`"
-    do_exit_start 1
+    error_echo "Could not find bdii log directory: $bdii_log_dir"
+    mkdir -p $bdii_log_dir
 fi
 bdii_slapd_conf=$bdii_var_dir/bdii-slapd.conf
 
@@ -336,8 +336,8 @@ fi
 if [ "x$bdii_user" = "xroot" ] ; then
     registrationlog=${CONFIG_registrationlog:-/var/log/arc/inforegistration.log}
     if [ ! -d `dirname $registrationlog` ]; then
-	error_echo "Could not find registrationlog directory: `dirname $registrationlog`"
-	do_exit_start 1
+	debug_echo "Could not find registrationlog directory: `dirname $registrationlog`, creating it now."
+	mkdir -p `dirname $registrationlog`
     fi
 
     touch ${registrationlog}
@@ -355,8 +355,8 @@ if [ "x$bdii_user" = "xroot" ] ; then
 else
     registrationlog=${CONFIG_registrationlog:-/var/log/arc/${bdii_user}-inforegistration.log}
     if [ ! -d `dirname $registrationlog` ]; then
-	error_echo "Could not find registrationlog directory: `dirname $registrationlog`"
-	do_exit_start 1
+	debug_echo "Could not find registrationlog directory: `dirname $registrationlog`, creating it now."
+	mkdir -p `dirname $registrationlog`
     fi
     
     touch ${registrationlog}
@@ -491,22 +491,22 @@ if [ "x$infosys_glue12" = "xenable" ]; then
         exit 1
     fi
     if [ "x$cpuscalingreferencesi00" = "x" ]; then
-        log_failure_msg "If infosys_glue12 is enabled, then cpu_scaling_reference_si00 must be set."
-        log_failure_msg "It should be set to the SI00 value,"
-        log_failure_msg "for example: '2400'"
+        eval log_failure_msg "If infosys_glue12 is enabled, then cpu_scaling_reference_si00 must be set."
+        eval log_failure_msg "It should be set to the SI00 value,"
+        eval log_failure_msg "for example: '2400'"
         exit 1
     fi
     if [ "x$processorotherdescription" = "x" ]; then
-        log_failure_msg "If infosys_glue12 is enabled, then processor_other_description must be set."
-        log_failure_msg "It should be set to a value like in the example,where cores is the average number"
-        log_failure_msg "of cores in the machine"
-        log_failure_msg "for example: 'Cores=3,Benchmark=9.8-HEP-SPEC06'"
+        eval log_failure_msg "If infosys_glue12 is enabled, then processor_other_description must be set."
+        eval log_failure_msg "It should be set to a value like in the example,where cores is the average number"
+        eval log_failure_msg "of cores in the machine"
+        eval log_failure_msg "for example: 'Cores=3,Benchmark=9.8-HEP-SPEC06'"
         exit 1
     fi
     if [ "x$gluesiteweb" = "x" ]; then
-        log_failure_msg "If infosys_glue12 is enabled, then gluesiteweb must be set."
-        log_failure_msg "It should be set to a url for the website belonging to the institution holding the resource,"
-        log_failure_msg "for example: 'http://www.ndgf.org'"
+        eval log_failure_msg "If infosys_glue12 is enabled, then gluesiteweb must be set."
+        eval log_failure_msg "It should be set to a url for the website belonging to the institution holding the resource,"
+        eval log_failure_msg "for example: 'http://www.ndgf.org'"
         exit 1
     fi
 
@@ -1007,9 +1007,9 @@ notify_about_bdii () {
     debug_echo "that was used before. The change is backwards compatible."
     debug_echo "BDII writes logs here that you may want to check if something"
     debug_echo "is not working: "
-    debug_echo " /var/log/arc/bdii"
+    debug_echo " ${bdii_log_dir}"
     debug_echo "Also, if the BDII run-directory is here:"
-    debug_echo " /var/run/bdii"
+    debug_echo " ${bdii_var_dir}"
     debug_echo "That can also be worth checking up on if something is broken."
 }
 
