@@ -336,6 +336,14 @@ if test "$enables_python" = "yes"; then
        ;;
     esac
 
+    case $host in
+       *-*-mingw*)
+    # Use non-mingw32 python here
+    PYTHON_CFLAGS=-I`python -c "from distutils import sysconfig; sysconfig.PREFIX = \"${prefix}\" ; print sysconfig.get_python_inc()"`
+    PYTHON_SITE_PACKAGES=`python -c "from distutils import sysconfig; sysconfig.PREFIX = \"${prefix}\" ; print sysconfig.get_python_lib(1,0,\"${prefix}\")"`
+    PYTHON_LIBS="-L${prefix}/bin -lpython$SAVE_PYTHON_VERSION"
+       ;;
+                *)
     PYTHON_CFLAGS=-I`$PYTHON -c 'from distutils import sysconfig; print sysconfig.get_python_inc()'`
     PY_LIBS=`$PYTHON -c "from distutils import sysconfig; print sysconfig.get_config_vars().get('LIBS')" | sed s/None//`
     PY_SYSLIBS=`$PYTHON -c "from distutils import sysconfig; print sysconfig.get_config_vars().get('SYSLIBS')" | sed s/None//`
@@ -360,6 +368,8 @@ if test "$enables_python" = "yes"; then
         AC_DEFINE(HAVE_PYTHON_INITIALIZE_EX,,[Define if you have Py_InitializeEx function])],[AC_MSG_NOTICE([Python does not include functionality of skipping initialization registration of signal handlers, since its version is below 2.4])])
 
     LDFLAGS=$SAVE_LDFLAGS
+       ;;
+    esac
     AC_SUBST(PYTHON_VERSION)
     AC_SUBST(PYTHON_CFLAGS)
     AC_SUBST(PYTHON_LIBS)
