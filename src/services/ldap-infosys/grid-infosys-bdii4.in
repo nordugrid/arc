@@ -511,7 +511,7 @@ if [ "x$infosys_glue12" = "xenable" ]; then
         exit 1
     fi
     if [ "x$gluesiteweb" = "x" ]; then
-        error_echo "If infosys_glue12 is enabled, then gluesiteweb must be set."
+        error_echo "If infosys_glue12 is enabled, then glue_site_web must be set."
         error_echo "It should be set to a url for the website belonging to the institution holding the resource,"
         error_echo "for example: 'http://www.ndgf.org'"
         exit 1
@@ -955,7 +955,7 @@ create_glue_ldif_generator () {
          s/\$LONG/$resource_longitude/g;
          s/\$CPUSCALINGREFERENCESI00/$cpuscalingreferencesi00/g;
          s/\$PROCESSOROTHERDESCRIPTION/$processorotherdescription/g;
-         s/\$GLUESITEWEB/$gluesiteweb/g;
+         s,\$GLUESITEWEB,$gluesiteweb,g;
         " $NORDUGRID_LOCATION/@pkgdatadir@/glue-generator.pl > ${ldif_generator_file_glue}
 
     chmod +x ${ldif_generator_file_glue}
