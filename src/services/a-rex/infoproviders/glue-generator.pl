@@ -4,6 +4,7 @@
 # Corrections and Performance enhancements by M.Flechl (2006-08-17)
 # Merged with adjusted bdii-update (David Groep, L.Field, M.Litmaath) by L.Field and M.Flechl (2006-08-21)
 # ARC GIIS traversal and some sanity checks for failing GRISes by Mattias Wadenstein (2007-07-03)
+# Updated to work at a resource bdii-level by Daniel (2009-2010)
 # $Id: glite-info-provider-ndgf,v 1.1 2006/08/30 12:13:15 lfield Exp $ 
 
 use strict;
@@ -13,26 +14,20 @@ use IO::Handle;
 
 sub translator;
 
-# "nordugrid" for the general arc bdii, "ndgf" for bdii.ndgf.org
-my $usemode = "ndgf";
-
-####Global variables for translator
-##################################
+# Global variables for translator
 use vars qw($DEFAULT); $DEFAULT = -1;
 use vars qw($outbIP $inbIP $glueSubClusterUniqueID $norduBenchmark $norduOpsys $norduNodecput $norduNodecpu);
 use vars qw($glueHostMainMemoryRAMSize $glueHostArchitecturePlatformType $glueSubClusterUniqueID $GlueHostBenchmarkSI00 $GlueHostBenchmarkSF00);
-use vars qw($glueSubClusterName $glueSubClusterPhysicalCPUs $glueClusterUniqueID);
+use vars qw($glueSubClusterName $glueSubClusterPhysicalCPUs $glueSubClusterLogicalCPUs $glueClusterUniqueID);
 use vars qw($AssignedSlots $mappedStatus $waitingJobs $totalJobs $waitingJobs $freeSlots);
 use vars qw(%attr @envs);
-##################################
 
 #Create nordugrid ldif
 #TODO read this from optarg
-#my $ldif_generator_file_ng="/tmp/foo";
-my $ldif_input=`$ldif_generator_file_ng`;
+my $ldif_input=`$LDIF_GENERATOR_FILE_NG`;
 
 #Translate and print glue ldif
-#TODO this should perhaps be able to write do different rootdn:s, not just mds-vo-name=glue12,o=grid.
+#TODO this should perhaps be able to write do different rootdn:s, not just mds-vo-name=resource,o=grid.
 translator($ldif_input);
 
 exit;
@@ -40,143 +35,115 @@ exit;
 #translator takes an ldif-output in a scalar variable as input and prints the output to stdout
 sub translator(){
 
-my $temp=$_[0];
+    my $temp=$_[0];
 
-#$DEFAULT = -1;
+    #$DEFAULT = -1;
 
-my @ldif;
+    my @ldif;
 
-my @lines;
-my $file;
+    #Remove black space at the start of the line
+    $temp=~s/\n //gm;
+    @ldif=split "\n", $temp;
+    push @ldif, "EOF";
+    
+    #my $hostname=hostname();
 
-open (DEF,"$bdii_tmp_dir/ndgf-coord.def") || die "Couldn't open site coordinates file\n";
-while (<DEF>) {
-    $file=$file . $_;
-}
-close (DEF);
+    %attr=(
+	'nordugrid-cluster-location' => '',
+	'nordugrid-cluster-support' => '',
+	'nordugrid-cluster-name' => '',
+	'nordugrid-cluster-runtimeenvironment' => '',
+	'nordugrid-cluster-contactstring' => '',
+	'nordugrid-cluster-aliasname' => '',
+	'nordugrid-cluster-lrms-type' => '',
+	'nordugrid-cluster-lrms-version' => '',
+	'nordugrid-cluster-totalcpus' => '',
+	'nordugrid-cluster-opsys' => '',
+	'nordugrid-cluster-benchmark' => '',
+	'nordugrid-cluster-nodecpu' => '',
+	'nordugrid-cluster-nodememory' => '',
+	'nordugrid-cluster-nodeaccess' => '',
+	'nordugrid-cluster-architecture' => '',
+	'nordugrid-cluster-acl' => '',
+	'nordugrid-cluster-homogeneity' => '',
+	'nordugrid-cluster-comment' => '',
+	'nordugrid-cluster-owner' => '',
+	);
 
-#Remove black space at the start of the line
-$file=~s/\n //gm;
-@lines=split "\n", $file;
-push @lines, "EOF";
+    #all these values will be checked if they are numeric only:
+    my @attr_num = ('totalcpus','nodememory');
+    for (my $i=0; $i<=$#attr_num; $i++){ $attr_num[$i] = 'nordugrid-cluster-'.$attr_num[$i]; }
+    
+    my $queue="false";
+    my @queue;
+    my %queue=(
+	'nordugrid-queue-name' => '',
+	'nordugrid-queue-running' => '',
+	'nordugrid-queue-maxrunning' => '',
+	'nordugrid-queue-maxcputime' => '',
+	'nordugrid-queue-maxqueuable' => '',
+	'nordugrid-queue-totalcpus' => '',
+	'nordugrid-queue-opsys' => '',
+	'nordugrid-queue-nodecpu' => '',           
+	'nordugrid-queue-nodememory' => '',
+	'nordugrid-queue-architecture' => '',
+	'nordugrid-queue-status' => '',
+	'nordugrid-queue-gridqueued' => '',
+	'nordugrid-queue-localqueued' => '',
+	'nordugrid-queue-prelrmsqueued' => '',
+	);
 
-#Remove black space at the start of the line
-$temp=~s/\n //gm;
-@ldif=split "\n", $temp;
-push @ldif, "EOF";
-
-#my $hostname=hostname();
-
-%attr=(
-	  'nordugrid-cluster-location' => '',
-	  'nordugrid-cluster-support' => '',
-	  'nordugrid-cluster-name' => '',
-	  'nordugrid-cluster-runtimeenvironment' => '',
-	  'nordugrid-cluster-contactstring' => '',
-	  'nordugrid-cluster-aliasname' => '',
-	  'nordugrid-cluster-lrms-type' => '',
-	  'nordugrid-cluster-lrms-version' => '',
-	  'nordugrid-cluster-totalcpus' => '',
-	  'nordugrid-cluster-opsys' => '',
-          'nordugrid-cluster-benchmark' => '',
-          'nordugrid-cluster-nodecpu' => '',
-          'nordugrid-cluster-nodememory' => '',
-          'nordugrid-cluster-nodeaccess' => '',
-          'nordugrid-cluster-architecture' => '',
-          'nordugrid-cluster-acl' => '',
-	  'nordugrid-cluster-homogeneity' => '',
-          'nordugrid-cluster-comment' => '',
-          'nordugrid-cluster-owner' => '',
-	  );
-
-#all these values will be checked if they are numeric only:
-my @attr_num = ('totalcpus','nodememory');
-for (my $i=0; $i<=$#attr_num; $i++){ $attr_num[$i] = 'nordugrid-cluster-'.$attr_num[$i]; }
-
-my $queue="false";
-my @queue;
-my %queue=(
-	   'nordugrid-queue-name' => '',
-	   'nordugrid-queue-running' => '',
-	   'nordugrid-queue-maxrunning' => '',
-	   'nordugrid-queue-maxcputime' => '',
-	   'nordugrid-queue-maxqueuable' => '',
-	   'nordugrid-queue-totalcpus' => '',
-           'nordugrid-queue-opsys' => '',
-           'nordugrid-queue-nodecpu' => '',           
-           'nordugrid-queue-nodememory' => '',
-           'nordugrid-queue-architecture' => '',
-           'nordugrid-queue-status' => '',
-	   'nordugrid-queue-gridqueued' => '',
-	   'nordugrid-queue-localqueued' => '',
-	   'nordugrid-queue-prelrmsqueued' => '',
-	  );
-
-#all these values will be checked if they are numeric only:
-my @queue_num = ('running','maxrunning','maxcputime','maxqueuable','totalcpus','nodememory','gridqueued','localqueued','prelrmsqueued');
-for (my $i=0; $i<=$#queue_num; $i++){ $queue_num[$i] = 'nordugrid-queue-'.$queue_num[$i]; }
+    #all these values will be checked if they are numeric only:
+    my @queue_num = ('running','maxrunning','maxcputime','maxqueuable','totalcpus','nodememory','gridqueued','localqueued','prelrmsqueued');
+    for (my $i=0; $i<=$#queue_num; $i++){ $queue_num[$i] = 'nordugrid-queue-'.$queue_num[$i]; }
 
 
-#set the attributes from the ldif
-for my $key ( keys %attr ) {
-    $attr{$key} = join (" ", grep { /^$key/ } @ldif);
-    chomp $attr{$key};
-    if ($key eq "nordugrid-cluster-opsys" or $key eq "nordugrid-cluster-owner"
-	or $key eq "nordugrid-cluster-benchmark") {
-       $attr{$key}=~s/ ?$key//g;
-    } else {
-       $attr{$key}=~s/$key: //g;
+    #set the attributes from the ldif
+    for my $key ( keys %attr ) {
+	$attr{$key} = join (" ", grep { /^$key/ } @ldif);
+	chomp $attr{$key};
+	if ($key eq "nordugrid-cluster-opsys" or $key eq "nordugrid-cluster-owner"
+	    or $key eq "nordugrid-cluster-benchmark") {
+	    $attr{$key}=~s/ ?$key//g;
+	} else {
+	    $attr{$key}=~s/$key: //g;
+	}
+	if ($attr{$key}=~/^$/) { $attr{$key}="$DEFAULT" }
     }
-    if ($attr{$key}=~/^$/) { $attr{$key}="$DEFAULT" }
-}
-@envs = split / /, $attr{'nordugrid-cluster-runtimeenvironment'};
-
-$outbIP = "FALSE";
-$inbIP = "FALSE";
-if ($attr{'nordugrid-cluster-nodeaccess'} eq "outbound"){
-    $outbIP = "TRUE";
-} elsif ($attr{'nordugrid-cluster-nodeaccess'} eq "inbound"){
-    $inbIP = "TRUE";
-}
-if ($attr{'nordugrid-cluster-acl'} eq "$DEFAULT") {
+    @envs = split / /, $attr{'nordugrid-cluster-runtimeenvironment'};
+    
+    $outbIP = "FALSE";
+    $inbIP = "FALSE";
+    if ($attr{'nordugrid-cluster-nodeaccess'} eq "outbound"){
+	$outbIP = "TRUE";
+    } elsif ($attr{'nordugrid-cluster-nodeaccess'} eq "inbound"){
+	$inbIP = "TRUE";
+    }
+    if ($attr{'nordugrid-cluster-acl'} eq "$DEFAULT") {
 	$attr{'nordugrid-cluster-acl'}="VO:ops";
-}
+    }
+    
+    my @owner  = split /: /, $attr{'nordugrid-cluster-owner'};
+    
+    my $nclocation=$attr{'nordugrid-cluster-location'};
+    
+    my $loc = $LOC; 
+    my $lat = $LAT; 
+    my $long = $LONG;
 
-my @owner  = split /: /, $attr{'nordugrid-cluster-owner'};
+    #set numeric values to $DEFAULT if they are on the list and not numeric
+	for (my $i=0; $i<=$#attr_num; $i++){
+	    if (! ($attr{$attr_num[$i]} =~ /^\d+$/) ){ $attr{$attr_num[$i]} = $DEFAULT; }
+    }
 
-my $nclocation=$attr{'nordugrid-cluster-location'};
-#find info
-my $locinfo = join ("", grep { /^$nclocation\s+/ } @lines);
-
-my $loc = "Kastrup, Denmark";
-my $lat = "55.75000";
-my $long = "12.41670";
-
-$locinfo =~ s/^[-\w\s]+\s{2,}([,\.\w\s]+)\s{2,}([-.\d]+)\s+([-.\d]+)\s*$//;
-
-if ( defined($1) ) { $loc = $1; }
-if ( defined($2) ) { $lat = $2; }
-if ( defined($3) ) { $long = $3; }
-$loc =~ s/\s+$//;
-
-
-#set numeric values to $DEFAULT if they are on the list and not numeric
-for (my $i=0; $i<=$#attr_num; $i++){
-    if (! ($attr{$attr_num[$i]} =~ /^\d+$/) ){ $attr{$attr_num[$i]} = $DEFAULT; }
-}
-
-if($usemode eq "nordugrid") {
-###################################
-###################################
-###########write Site Entries
-
-print "
-dn: GlueSiteUniqueID=$attr{'nordugrid-cluster-location'},mds-vo-name=glue12,o=grid
+    # Write Site Entries
+    print "
+dn: GlueSiteUniqueID=$attr{'nordugrid-cluster-aliasname'},mds-vo-name=resource,o=grid
 objectClass: GlueTop
 objectClass: GlueSite
 objectClass: GlueKey
 objectClass: GlueSchemaVersion
-GlueSiteUniqueID: $attr{'nordugrid-cluster-name'}
+GlueSiteUniqueID: $attr{'nordugrid-cluster-aliasname'}
 GlueSiteName: $attr{'nordugrid-cluster-aliasname'}
 GlueSiteDescription: ARC-$attr{'nordugrid-cluster-comment'}
 GlueSiteUserSupportContact: mailto: $attr{'nordugrid-cluster-support'}
@@ -185,34 +152,27 @@ GlueSiteSecurityContact: mailto: $attr{'nordugrid-cluster-support'}
 GlueSiteLocation: $loc
 GlueSiteLatitude: $lat
 GlueSiteLongitude: $long
-GlueSiteWeb: http://www.ndgf.org";
+GlueSiteWeb: $GLUESITEWEB";
 
-for (my $i=1; $i<=$#owner; $i++){
-    print "\nGlueSiteSponsor: $owner[$i]";
-}
+    for (my $i=1; $i<=$#owner; $i++){
+	print "\nGlueSiteSponsor: $owner[$i]";
+    }
 
-print "
+    print "
 GlueSiteOtherInfo: Middleware=ARC
 GlueForeignKey: None
 GlueSchemaVersionMajor: 1
 GlueSchemaVersionMinor: 2
 
 ";
+    
 
-}
-###################################
-###################################
-###########write Cluster Entries
+    # Write Cluster Entries
 
-my $GlueSiteUniqueID;
-if($usemode eq "ndgf") {
-	$GlueSiteUniqueID="NDGF-T1"
-} else {
-	$GlueSiteUniqueID="ARC-$attr{'nordugrid-cluster-location'}";
-}
-
-print "
-dn: GlueClusterUniqueID=$attr{'nordugrid-cluster-name'},mds-vo-name=glue12,o=grid
+    my $GlueSiteUniqueID=$attr{'nordugrid-cluster-aliasname'};
+    
+    print "
+dn: GlueClusterUniqueID=$attr{'nordugrid-cluster-name'},mds-vo-name=resource,o=grid
 objectClass: GlueClusterTop
 objectClass: GlueCluster
 objectClass: GlueSchemaVersion
@@ -229,120 +189,111 @@ GlueSchemaVersionMinor: 2
 ";
 
 
-if ($attr{'nordugrid-cluster-homogeneity'} =~ /true/i){
-
-$glueSubClusterUniqueID=$attr{'nordugrid-cluster-name'};
-$norduOpsys=$attr{'nordugrid-cluster-opsys'};
-$norduBenchmark=$attr{'nordugrid-cluster-benchmark'};
-$norduNodecpu=$attr{'nordugrid-cluster-nodecpu'};
-$glueHostMainMemoryRAMSize=$attr{'nordugrid-cluster-nodememory'};
-$glueHostArchitecturePlatformType=$attr{'nordugrid-cluster-architecture'};
-$glueSubClusterUniqueID=$attr{'nordugrid-cluster-name'};
-$glueSubClusterName=$attr{'nordugrid-cluster-aliasname'};
-$glueSubClusterPhysicalCPUs=$attr{'nordugrid-cluster-totalcpus'};
-$glueClusterUniqueID=$attr{'nordugrid-cluster-name'};
-
-WriteSubCluster();
-#####YYYYY
-
-####YYYYY
-
-}
-#end if ([...]-homogenity==true)
-
-#Do GlueCE entry for each nordugrid queue
-foreach(@ldif){
-    push @queue, $_;
-    if(m/^dn:\s+nordugrid-queue-name/){
-	$queue="true";
-	undef @queue;
+    if ($attr{'nordugrid-cluster-homogeneity'} =~ /true/i){
+	$glueSubClusterUniqueID=$attr{'nordugrid-cluster-name'};
+	$norduOpsys=$attr{'nordugrid-cluster-opsys'};
+	$norduBenchmark=$attr{'nordugrid-cluster-benchmark'};
+	$norduNodecpu=$attr{'nordugrid-cluster-nodecpu'};
+	$glueHostMainMemoryRAMSize=$attr{'nordugrid-cluster-nodememory'};
+	$glueHostArchitecturePlatformType=$attr{'nordugrid-cluster-architecture'};
+	$glueSubClusterUniqueID=$attr{'nordugrid-cluster-name'};
+	$glueSubClusterName=$attr{'nordugrid-cluster-aliasname'};
+	$glueSubClusterPhysicalCPUs=$attr{'nordugrid-cluster-totalcpus'};
+	$glueSubClusterLogicalCPUs=$attr{'nordugrid-cluster-totalcpus'};
+	$glueClusterUniqueID=$attr{'nordugrid-cluster-name'};
+    
+	WriteSubCluster();
     }
 
-    if( ( (m/^\s*$/) || (m/^EOF/) ) && ( $queue eq "true" )  ){
-	$queue = "false";
+    #Do GlueCE entry for each nordugrid queue
+    foreach(@ldif){
+	push @queue, $_;
+	if(m/^dn:\s+nordugrid-queue-name/){
+	    $queue="true";
+	    undef @queue;
+	}
 	
-	#Set the queue attributes from the ldif
-	for my $key ( keys %queue ) {
-	    $queue{$key} = join (" ", grep { /^$key/ } @queue);
-	    chomp $queue{$key};
-
-	    if ($key eq "nordugrid-queue-opsys"){
-		$queue{$key}=~s/$key//g;
-	    } else {
-		$queue{$key}=~s/$key: //g;
+	if( ( (m/^\s*$/) || (m/^EOF/) ) && ( $queue eq "true" )  ){
+	    $queue = "false";
+	    
+	    #Set the queue attributes from the ldif
+	    for my $key ( keys %queue ) {
+		$queue{$key} = join (" ", grep { /^$key/ } @queue);
+		chomp $queue{$key};
+		
+		if ($key eq "nordugrid-queue-opsys"){
+		    $queue{$key}=~s/$key//g;
+		} else {
+		    $queue{$key}=~s/$key: //g;
+		}
+		if ($queue{$key}=~/^$/) { $queue{$key}="$DEFAULT" }
+		
 	    }
-	    if ($queue{$key}=~/^$/) { $queue{$key}="$DEFAULT" }
-
-	}
-
-        #set non-numeric values to $DEFAULT if they are on the list
-	for (my $i=0; $i<=$#queue_num; $i++){
-	    if (! ($queue{$queue_num[$i]} =~ /^\d+$/) ){
-               #print "XXX Change $queue{$queue_num[$i]} to $DEFAULT\n";
-               $queue{$queue_num[$i]} = $DEFAULT;
-            }
-	}
+	    
+	    #set non-numeric values to $DEFAULT if they are on the list
+	    for (my $i=0; $i<=$#queue_num; $i++){
+		if (! ($queue{$queue_num[$i]} =~ /^\d+$/) ){
+		    #print "XXX Change $queue{$queue_num[$i]} to $DEFAULT\n";
+		    $queue{$queue_num[$i]} = $DEFAULT;
+		}
+	    }
 
 
-	if ($attr{'nordugrid-cluster-homogeneity'} =~ /false/i){
+	    if ($attr{'nordugrid-cluster-homogeneity'} =~ /false/i){
 
-$glueSubClusterUniqueID=$queue{'nordugrid-queue-name'}; ##XX
-$norduOpsys=$queue{'nordugrid-queue-opsys'}; ##XX
-$norduBenchmark=$queue{'nordugrid-queue-benchmark'}; ##XX
-$norduNodecpu=$queue{'nordugrid-queue-nodecpu'}; ##XX
-$glueHostMainMemoryRAMSize=$queue{'nordugrid-queue-nodememory'}; ##XX
-$glueHostArchitecturePlatformType=$queue{'nordugrid-queue-architecture'}; ##XX
-$glueSubClusterUniqueID=$queue{'nordugrid-queue-name'};  ##XX
-$glueSubClusterName=$queue{'nordugrid-queue-name'};  ##XX
-$glueSubClusterPhysicalCPUs=$queue{'nordugrid-queue-totalcpus'};  ##XX
-$glueClusterUniqueID=$attr{'nordugrid-cluster-name'};  ##XX
+		$glueSubClusterUniqueID=$queue{'nordugrid-queue-name'}; ##XX
+		$norduOpsys=$queue{'nordugrid-queue-opsys'}; ##XX
+		$norduBenchmark=$queue{'nordugrid-queue-benchmark'}; ##XX
+		$norduNodecpu=$queue{'nordugrid-queue-nodecpu'}; ##XX
+		$glueHostMainMemoryRAMSize=$queue{'nordugrid-queue-nodememory'}; ##XX
+		$glueHostArchitecturePlatformType=$queue{'nordugrid-queue-architecture'}; ##XX
+		$glueSubClusterUniqueID=$queue{'nordugrid-queue-name'};  ##XX
+		$glueSubClusterName=$queue{'nordugrid-queue-name'};  ##XX
+		$glueSubClusterPhysicalCPUs=$queue{'nordugrid-queue-totalcpus'};  ##XX
+		$glueSubClusterLogicalCPUs=$queue{'nordugrid-queue-totalcpus'};  ##XX
+		$glueClusterUniqueID=$attr{'nordugrid-cluster-name'};  ##XX
 
-WriteSubCluster();
-#####YYYYY
+		WriteSubCluster();
+	    }
+	    
 
-####YYYYY
-        }#end if ...-homogenity==false
+	    $AssignedSlots = 0;
+	    if ($queue{'nordugrid-queue-totalcpus'} ne $DEFAULT){
+		$AssignedSlots = $queue{'nordugrid-queue-totalcpus'};
+	    } elsif ($queue{'nordugrid-queue-maxrunning'} ne $DEFAULT)  {
+		$AssignedSlots = $queue{'nordugrid-queue-maxrunning'};
+	    } elsif ($attr{'nordugrid-cluster-totalcpus'} ne $DEFAULT)  {
+		$AssignedSlots = $attr{'nordugrid-cluster-totalcpus'};
+	    }
+	    
+	    if ($queue{'nordugrid-queue-totalcpus'} eq $DEFAULT){
+		$queue{'nordugrid-queue-totalcpus'} = $attr{'nordugrid-cluster-totalcpus'};
+	    }
+	    
+	    $mappedStatus="";
+	    if ($queue{'nordugrid-queue-status'} eq "active"){
+		$mappedStatus = "Production";
+	    } else{
+		$mappedStatus = "Closed";
+	    }
+	    
+	    $waitingJobs = 0;
+	    if ($queue{'nordugrid-queue-gridqueued'} ne $DEFAULT) {$waitingJobs += $queue{'nordugrid-queue-gridqueued'};}
+	    if ($queue{'nordugrid-queue-localqueued'} ne $DEFAULT) {$waitingJobs += $queue{'nordugrid-queue-localqueued'};}
+	    if ($queue{'nordugrid-queue-prelrmsqueued'} ne $DEFAULT) {$waitingJobs += $queue{'nordugrid-queue-prelrmsqueued'};}
+	    
+	    $totalJobs = $waitingJobs;
+	    if ($queue{'nordugrid-queue-prelrmsqueued'} ne $DEFAULT) { $totalJobs += $queue{'nordugrid-queue-running'}; }
 
-        $AssignedSlots = 0;
-        if ($queue{'nordugrid-queue-totalcpus'} ne $DEFAULT){
-	    $AssignedSlots = $queue{'nordugrid-queue-totalcpus'};
-        } elsif ($queue{'nordugrid-queue-maxrunning'} ne $DEFAULT)  {
-	    $AssignedSlots = $queue{'nordugrid-queue-maxrunning'};
-        } elsif ($attr{'nordugrid-cluster-totalcpus'} ne $DEFAULT)  {
-            $AssignedSlots = $attr{'nordugrid-cluster-totalcpus'};
-        }
+	    $freeSlots=$DEFAULT;
+	    if ( ($queue{'nordugrid-queue-totalcpus'} ne $DEFAULT) && ($queue{'nordugrid-queue-running'} ne $DEFAULT) ){
+		$freeSlots = $queue{'nordugrid-queue-totalcpus'} - $queue{'nordugrid-queue-running'};
+	    }
 
-	if ($queue{'nordugrid-queue-totalcpus'} eq $DEFAULT){
-          $queue{'nordugrid-queue-totalcpus'} = $attr{'nordugrid-cluster-totalcpus'};
-        }
-        
-        $mappedStatus="";
-        if ($queue{'nordugrid-queue-status'} eq "active"){
-	    $mappedStatus = "Production";
-        } else{
-            $mappedStatus = "Closed";
-        }
-
-        $waitingJobs = 0;
-	if ($queue{'nordugrid-queue-gridqueued'} ne $DEFAULT) {$waitingJobs += $queue{'nordugrid-queue-gridqueued'};}
-        if ($queue{'nordugrid-queue-localqueued'} ne $DEFAULT) {$waitingJobs += $queue{'nordugrid-queue-localqueued'};}
-        if ($queue{'nordugrid-queue-prelrmsqueued'} ne $DEFAULT) {$waitingJobs += $queue{'nordugrid-queue-prelrmsqueued'};}
-
-        $totalJobs = $waitingJobs;
-	if ($queue{'nordugrid-queue-prelrmsqueued'} ne $DEFAULT) { $totalJobs += $queue{'nordugrid-queue-running'}; }
-        if ($waitingJobs == 0){ $waitingJobs = $DEFAULT; }
-
-        $freeSlots=$DEFAULT;
-        if ( ($queue{'nordugrid-queue-totalcpus'} ne $DEFAULT) && ($queue{'nordugrid-queue-running'} ne $DEFAULT) ){
-          $freeSlots = $queue{'nordugrid-queue-totalcpus'} - $queue{'nordugrid-queue-running'};
-        }
-
-###################################
-###################################
-###########write CE Entries
-
-	print "
-dn: GlueCEUniqueID=$attr{'nordugrid-cluster-contactstring'}?queue\\=$queue{'nordugrid-queue-name'},mds-vo-name=glue12,o=grid
+	    # Write CE Entries
+	    
+	    print "
+dn: GlueCEUniqueID=$attr{'nordugrid-cluster-contactstring'}?queue\\=$queue{'nordugrid-queue-name'},mds-vo-name=resource,o=grid
 objectClass: GlueCETop
 objectClass: GlueCE
 objectClass: GlueSchemaVersion
@@ -361,9 +312,10 @@ GlueCEInfoLRMSType: $attr{'nordugrid-cluster-lrms-type'}
 GlueCEInfoLRMSVersion: $attr{'nordugrid-cluster-lrms-version'}
 GlueCEInfoGRAMVersion: $DEFAULT
 GlueCEInfoTotalCPUs: $queue{'nordugrid-queue-totalcpus'}
+GlueCECapability: CPUScalingReferenceSI00=$CPUSCALINGREFERENCESI00
 GlueCEInfoJobManager: arc
 GlueCEInfoContactString: $attr{'nordugrid-cluster-contactstring'}?queue=$queue{'nordugrid-queue-name'}
-GlueInformationServiceURL: ldap://$attr{'nordugrid-cluster-name'}:2170/mds-vo-name=glue12,o=grid
+GlueInformationServiceURL: ldap://$attr{'nordugrid-cluster-name'}:2170/mds-vo-name=resource,o=grid
 GlueCEStateEstimatedResponseTime: 1000
 GlueCEStateRunningJobs: $queue{'nordugrid-queue-running'}
 GlueCEStateStatus: $mappedStatus
@@ -382,24 +334,20 @@ GlueForeignKey: GlueClusterUniqueID=$attr{'nordugrid-cluster-name'}
 GlueSchemaVersionMajor: 1
 GlueSchemaVersionMinor: 2
 ";
-
+	    
+	}
     }
 }
 
-}
 
-
-###################################
-###################################
-###########write SubCluster Entries
+# Write SubCluster Entries
 
 sub WriteSubCluster {
-#####YYYYY
+    
+#dn: GlueSubClusterUniqueID=$glueSubClusterUniqueID,GlueClusterUniqueID=$attr{'nordugrid-cluster-name'},mds-vo-name=resource,o=grid
 
-#dn: GlueSubClusterUniqueID=$glueSubClusterUniqueID,GlueClusterUniqueID=$attr{'nordugrid-cluster-name'},mds-vo-name=glue12,o=grid
-
-             print "
-dn: GlueSubClusterUniqueID=$glueSubClusterUniqueID,GlueClusterUniqueID=$attr{'nordugrid-cluster-name'},mds-vo-name=glue12,o=grid
+    print "
+dn: GlueSubClusterUniqueID=$glueSubClusterUniqueID,GlueClusterUniqueID=$attr{'nordugrid-cluster-name'},mds-vo-name=resource,o=grid
 objectClass: GlueClusterTop
 objectClass: GlueSubCluster
 objectClass: GlueSchemaVersion
@@ -414,52 +362,52 @@ objectClass: GlueInformationService
 objectClass: GlueKey
 ";
  
-        foreach (@envs){
-           chomp;
-           print "GlueHostApplicationSoftwareRunTimeEnvironment:  $_\n"
-        }
+    foreach (@envs){
+	chomp;
+	print "GlueHostApplicationSoftwareRunTimeEnvironment:  $_\n"
+    }
  
-        print "GlueHostArchitectureSMPSize: 2
+    print "GlueHostArchitectureSMPSize: 2
 GlueHostNetworkAdapterInboundIP: $inbIP
 GlueHostNetworkAdapterOutboundIP: $outbIP";
  
-        my @opsys = split /: /, $norduOpsys;
-        for (my $i=0; $i<=3; $i++){
-           if ($i > $#opsys) { $opsys[$i]=$DEFAULT; }
-	   chomp($opsys[$i]);
-		$opsys[$i]=~s/\s+$//;
-        }
-	$GlueHostBenchmarkSI00 = $DEFAULT;
-	$GlueHostBenchmarkSF00 = $DEFAULT;
-	my $benchmark;
-	if($norduBenchmark) {
-        	foreach $benchmark (split /: /, $norduBenchmark) {
-			if($benchmark =~ /SPECINT2000 @ (\d+)/) {
-				$GlueHostBenchmarkSI00 = $1;
-			}
-			if($benchmark =~ /SPECFP2000 @ (\d+)/) {
-				$GlueHostBenchmarkSF00 = $1;
-			}
-		}
-	}
- 
-        my @nodecpu  = split / /, $norduNodecpu;
-        my $clockSpeed=$DEFAULT;
-        my $cpuVer=$DEFAULT;
-        for (my $i=0; $i<=$#nodecpu; $i++){
-	    if ($i >= 2){
-		if ($nodecpu[$i -2] =~ /@/) { $clockSpeed = $nodecpu[$i -1]." ".$nodecpu[$i]; }
+    my @opsys = split /: /, $norduOpsys;
+    for (my $i=0; $i<=3; $i++){
+	if ($i > $#opsys) { $opsys[$i]=$DEFAULT; }
+	chomp($opsys[$i]);
+	$opsys[$i]=~s/\s+$//;
+    }
+    $GlueHostBenchmarkSI00 = $DEFAULT;
+    $GlueHostBenchmarkSF00 = $DEFAULT;
+    my $benchmark;
+    if($norduBenchmark) {
+	foreach $benchmark (split /: /, $norduBenchmark) {
+	    if($benchmark =~ /SPECINT2000 @ (\d+)/) {
+		$GlueHostBenchmarkSI00 = $1;
 	    }
-	    if ($nodecpu[$i] =~ /I$/) { $cpuVer = $nodecpu[$i]; }
-        }
-	for (my $i=0; $i<=1; $i++){ if ($i > $#nodecpu) { $nodecpu[$i]=$DEFAULT; } }
-
-        $clockSpeed=~s/\.[0-9]*//;
-	$clockSpeed=~s/MHz//i;
-	$clockSpeed=~s/GHz/000/i;
-	$clockSpeed=~s/[^0-9]//g;
-	if (! $clockSpeed=~m/[0-9]/) { $clockSpeed=$DEFAULT; } 
-        print "
+	    if($benchmark =~ /SPECFP2000 @ (\d+)/) {
+		$GlueHostBenchmarkSF00 = $1;
+	    }
+	}
+    }
+ 
+    my @nodecpu  = split / /, $norduNodecpu;
+    my $clockSpeed=$DEFAULT;
+    my $cpuVer=$DEFAULT;
+    for (my $i=0; $i<=$#nodecpu; $i++){
+	if ($i >= 2){
+	    if ($nodecpu[$i -2] =~ /@/) { $clockSpeed = $nodecpu[$i -1]." ".$nodecpu[$i]; }
+	}
+	if ($nodecpu[$i] =~ /I$/) { $cpuVer = $nodecpu[$i]; }
+    }
+    for (my $i=0; $i<=1; $i++){ if ($i > $#nodecpu) { $nodecpu[$i]=$DEFAULT; } }
+    
+    $clockSpeed=~s/\.[0-9]*//;
+    $clockSpeed=~s/MHz//i;
+    $clockSpeed=~s/GHz/000/i;
+    $clockSpeed=~s/[^0-9]//g;
+    if (! $clockSpeed=~m/[0-9]/) { $clockSpeed=$DEFAULT; } 
+    print "
 GlueHostOperatingSystemName: $opsys[1]
 GlueHostOperatingSystemRelease: $opsys[2]
 GlueHostOperatingSystemVersion: $opsys[3]
@@ -467,6 +415,7 @@ GlueHostProcessorVendor: $nodecpu[0]
 GlueHostProcessorModel: $nodecpu[1]
 GlueHostProcessorVersion: $cpuVer
 GlueHostProcessorClockSpeed: $clockSpeed
+GlueHostProcessorOtherDescription: $PROCESSOROTHERDESCRIPTION
 GlueHostMainMemoryRAMSize: $glueHostMainMemoryRAMSize
 GlueHostArchitecturePlatformType: $glueHostArchitecturePlatformType
 GlueHostBenchmarkSI00: $GlueHostBenchmarkSI00
@@ -474,12 +423,11 @@ GlueHostBenchmarkSF00: $GlueHostBenchmarkSF00
 GlueSubClusterUniqueID: $glueSubClusterUniqueID
 GlueSubClusterName: $glueSubClusterName
 GlueSubClusterPhysicalCPUs: $glueSubClusterPhysicalCPUs
+GlueSubClusterLogicalCPUs: $glueSubClusterLogicalCPUs
 GlueChunkKey: GlueClusterUniqueID=$glueClusterUniqueID
 GlueSchemaVersionMajor: 1
 GlueSchemaVersionMinor: 2
 ";
-####YYYYY
 }
 
-
-EOF
+#EOF

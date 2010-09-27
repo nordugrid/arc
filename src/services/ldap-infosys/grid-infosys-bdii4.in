@@ -460,11 +460,14 @@ fi
 resource_location=""
 resource_latitude=""
 resource_longitude=""
+cpuscalingreferencesi00=""
+processorotherdescription=""
+gluesiteweb=""
 
 if [ "x$infosys_glue12" = "xenable" ]; then
 
     if ! config_match_section infosys/glue12 ; then
-        error_echo "Missing infosys/glue12 block"
+        error_echo "Error: infosys_glue12 is set to enable, but infosys/glue12 block is missing."
         do_exit_start 1
     fi
 
@@ -472,6 +475,9 @@ if [ "x$infosys_glue12" = "xenable" ]; then
     resource_location=${CONFIG_resource_location}
     resource_latitude=${CONFIG_resource_latitude}
     resource_longitude=${CONFIG_resource_longitude}
+    cpuscalingreferencesi00=${CONFIG_cpu_scaling_reference_si00}
+    processorotherdescription=${CONFIG_processor_other_description}
+    gluesiteweb=${CONFIG_glue_site_web}
 
     if [ "x$resource_location" = "x" ]; then
         error_echo "If infosys_glue12 is enabled, then resource_location must be set."
@@ -490,6 +496,25 @@ if [ "x$infosys_glue12" = "xenable" ]; then
         error_echo "It should be set to the longitude for the location,"
         error_echo "for example: '12.41670'"
         do_exit_start 1
+    fi
+    if [ "x$cpuscalingreferencesi00" = "x" ]; then
+        error_echo "If infosys_glue12 is enabled, then cpu_scaling_reference_si00 must be set."
+        error_echo "It should be set to the SI00 value,"
+        error_echo "for example: '2400'"
+        exit 1
+    fi
+    if [ "x$processorotherdescription" = "x" ]; then
+        error_echo "If infosys_glue12 is enabled, then processor_other_description must be set."
+        error_echo "It should be set to a value like in the example,where cores is the average number"
+        error_echo "of cores in the machine"
+        error_echo "for example: 'Cores=3,Benchmark=9.8-HEP-SPEC06'"
+        exit 1
+    fi
+    if [ "x$gluesiteweb" = "x" ]; then
+        error_echo "If infosys_glue12 is enabled, then gluesiteweb must be set."
+        error_echo "It should be set to a url for the website belonging to the institution holding the resource,"
+        error_echo "for example: 'http://www.ndgf.org'"
+        exit 1
     fi
 fi
 
@@ -698,10 +723,10 @@ create_default_ldif () {
 	print "Mds-validto: " . strftime("%Y%m%d%H%M%SZ\n", gmtime(time() + 3600));
 	print "\n";
 
-	print "dn: Mds-Vo-name=glue12,o=Grid\n";
+	print "dn: Mds-Vo-name=resource,o=Grid\n";
 	print "objectClass: Mds\n";
 	print "objectClass: MdsVo\n";
-	print "Mds-Vo-name: glue12\n";
+	print "Mds-Vo-name: resource\n";
 	print "Mds-validfrom: " . strftime("%Y%m%d%H%M%SZ\n", gmtime());
 	print "Mds-validto: " . strftime("%Y%m%d%H%M%SZ\n", gmtime(time() + 3600));
 	EOF
@@ -922,8 +947,16 @@ create_glue_ldif_generator () {
     rm -f ${ldif_generator_file_glue}
     touch ${ldif_generator_file_glue}
     std_header ${ldif_generator_file_glue}
-    # We use , instead of / here to allow for / in path..
-    sed "s,\$ldif_generator_file_ng,$ldif_generator_file_ng,g;s,\$bdii_tmp_dir,$bdii_tmp_dir,g" $ARC_LOCATION/@pkglibsubdir@/glue-generator.pl > ${ldif_generator_file_glue}
+
+    # We use , instead of / here to allow for / in path, resource_location though, can contain commas..
+    sed "s,\$LDIF_GENERATOR_FILE_NG,$ldif_generator_file_ng,g;
+         s/\$LOC/\"$resource_location\"/g;
+         s/\$LAT/$resource_latitude/g;
+         s/\$LONG/$resource_longitude/g;
+         s/\$CPUSCALINGREFERENCESI00/$cpuscalingreferencesi00/g;
+         s/\$PROCESSOROTHERDESCRIPTION/$processorotherdescription/g;
+         s/\$GLUESITEWEB/$gluesiteweb/g;
+        " $NORDUGRID_LOCATION/@pkgdatadir@/glue-generator.pl > ${ldif_generator_file_glue}
 
     chmod +x ${ldif_generator_file_glue}
 }
@@ -991,12 +1024,6 @@ create_bdii_config_files () {
 
     # Create arc-glue-bdii-ldif, generates ldif-files for glue schema
     if [ "x$infosys_glue12" = "xenable" ]; then
-        cat <<-EOF > ${bdii_tmp_dir}/ndgf-coord.def
-	loc: $resource_location
-	lat: $resource_latitude
-	long: $resource_longitude
-	EOF
-
         # Call with create_glue_ldif_generator bdii_tmp_dir ldif_generator_file_ng ldif_generator_file_glue
         create_glue_ldif_generator $bdii_tmp_dir ${bdii_tmp_dir}/arc-nordugrid-bdii-ldif ${bdii_tmp_dir}/arc-glue-bdii-ldif
     fi
