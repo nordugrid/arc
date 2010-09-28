@@ -164,11 +164,11 @@ job_read_diag() {
     [ -n "$uid" ] && [ -n "$sessiondir" ] \
     || { log "job_read_diag requires the following to be set: uid sessiondir"; return 1; }
 
-    diagfile=$sessiondir.diag;
-    [ -f "$diagfile" ] || { log "diag file not found at: $sessiondir.diag"; return 1; }
+    commentfile=$sessiondir.comment;
+    [ -f "$commentfile" ] || { log "job wrapper output not found at: $sessiondir.comment"; return 1; }
 
-    diagstring=$(do_as_uid $uid "tail -n 1000 '$diagfile'")
-    [ $? = 0 ] || { log "cannot read diag file at: $diagfile"; return 1; }
+    diagstring=$(do_as_uid $uid "tail -n 1000 '$commentfile' | sed -n 's/^_DIAG_ //p'")
+    [ $? = 0 ] || { log "cannot read job wrapper output at: $commentfile"; return 1; }
 
     nodename=$(echo "$diagstring" | sed -n 's/^nodename=\(..*\)/\1/p')
     WallTime=$(echo "$diagstring" | sed -n 's/^WallTime=\([0-9.]*\)s/\1/p' | tail -n 1)
@@ -340,7 +340,7 @@ job_print_comment() {
     commentfile=$sessiondir.comment
     [ -f "$commentfile" ] && do_as_uid "$uid" "
         echo '--------- Contents of output stream forwarded by $LRMS ------------'
-        cat '$commentfile'
+        grep -v '^_DIAG_ ' '$commentfile'
         echo '------------------------- End of output -------------------------'
     " || log "failed reading: $commentfile"
 }

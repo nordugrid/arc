@@ -52,7 +52,7 @@ save_commentfile () {
   errorsfile=$3
   action="
     { echo '---------- Output of the job wrapper script -----------'
-      cat '$commentfile' 2> /dev/null
+      grep -v '^_DIAG_ ' '$commentfile' 2> /dev/null
       echo '------------------------- End of output -------------------------'
     } >> '$errorsfile'
   "

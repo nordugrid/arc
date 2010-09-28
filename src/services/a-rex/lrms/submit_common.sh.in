@@ -561,6 +561,10 @@ setup_runtime_env () {
   echo "  RUNTIME_JOB_DIAG=\`echo \"\$RUNTIME_JOB_DIAG\" | sed \"s#^$joboption_directory#\$RUNTIME_JOB_DIR#\"\`" >> $LRMS_JOB_SCRIPT
   echo "  RUNTIME_CONTROL_DIR=\`echo \"\$RUNTIME_CONTROL_DIR\" | sed \"s#^$joboption_directory#\$RUNTIME_JOB_DIR#\"\`" >> $LRMS_JOB_SCRIPT
   echo "fi" >> $LRMS_JOB_SCRIPT
+
+  # On exit, send contents of diag to STDOUT
+  echo 'diag_to_stdout () { sed "s/^/_DIAG_ /" "$RUNTIME_JOB_DIAG"; }' >> $LRMS_JOB_SCRIPT
+  echo 'trap diag_to_stdout EXIT' >> $LRMS_JOB_SCRIPT
 }
 
 
