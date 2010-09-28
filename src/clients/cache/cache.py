@@ -30,7 +30,7 @@ def splitURL(url):
     """
     Split url into (protocol, host, port, path) and return this tuple.
     """
-    match = re.match('(\w*)://(\w*):?(\d*)/?(.*)', url)
+    match = re.match('(\w*)://([^/?#:]*):?(\d*)/?(.*)', url)
     if match is None:
         raise CacheException('URL '+url+' is malformed')
     
@@ -84,7 +84,7 @@ def cacheCheck(service, proxy, urls):
         conn.request('POST', path, request)
         resp = conn.getresponse()
     except Exception, e:
-        raise CacheException('Error connecting to service: ' + str(e))
+        raise CacheException('Error connecting to service at ' + host + ': ' + str(e))
     
     if resp.status != 200:
         conn.close()
@@ -160,7 +160,7 @@ def cacheLink(service, proxy, user, jobid, urls, dostage):
         conn.request('POST', path, request)
         resp = conn.getresponse()
     except Exception, e:
-        raise CacheException('Error connecting to service: ' + str(e))
+        raise CacheException('Error connecting to service at ' + host + ': ' + str(e))
     
     if resp.status != 200:
         conn.close()
@@ -212,7 +212,7 @@ def echo(service, proxy, say):
     try:
         conn.request('POST', path, request)
     except Exception, e:
-        raise CacheException('Error connecting to service: ' + str(e))
+        raise CacheException('Error connecting to service at ' + host + ': ' + str(e))
     resp = conn.getresponse()
    
     print(resp.status, resp.reason)
@@ -240,6 +240,7 @@ if __name__ == '__main__':
     endpoint = 'https://localhost:60001/cacheservice'
     
     urls_to_check = ['srm://srm.ndgf.org/ops/jens1', 'lfc://lfc1.ndgf.org/:guid=8471134f-494e-41cb-b81e-b341f6a18caf']
+    
     try:
         cacheurls = cacheCheck(endpoint, proxy, urls_to_check)
     except CacheException, e:
