@@ -221,6 +221,8 @@ Current plugins include:
 Summary: ARC cache service
 Group: System Environment/Libraries
 Requires: %{name} = %{version}
+Requires: %{name}-hed = %{version}
+Requires: %{name}-plugins-base = %{version}
 
 %description cache-service
 The NorduGrid is a collaboration aiming at development, maintenance
