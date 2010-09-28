@@ -151,16 +151,8 @@ handle_failedcode () {
 	
     if [ -z "$exitcode" ]; then
       olog "SGE job $id failed with unknown exit code"
-      if [ -z "$sgeexitcode" ]; then
-        echo "-1 Job failed with unknown exit code" > "$donefile"
-      elif [ "$sgeexitcode" = 0 ]; then
-        # SGE reports success but the diag file is incomplete
-        # OBS: temporary hack until bug #1956 is properly fixed
-        echo "0" > "$donefile"
-        #echo "-1 Job failed with unknown exit code" > "$donefile"
-      else
-        echo "$sgeexitcode Job failed with unknown exit code" > "$donefile"
-      fi
+      if [ -z "$sgeexitcode" ] || [ "$sgeexitcode" = 0 ]; then sgeexitcode="-1"; fi
+      echo "$sgeexitcode Job failed with unknown exit code" > "$donefile"
       
     elif [ "$exitcode" = "0" ]; then
       #olog "SGE job $id finished succesfully"
@@ -400,7 +392,6 @@ for ctr_dir in $control_dirs ; do
     # get session directory of this job
     session=`grep -h '^sessiondir=' "$jobfile" | sed 's/^sessiondir=\(.*\)/\1/'`
     commentfile="${session}.comment"
-    exitcode=
     if [  -d "$session" ] ; then
       diagfile="${session}.diag"
       # try to obtain the exit code
