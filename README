@@ -73,6 +73,7 @@ Build & runtime:
   o LHC File Catalog (LFC DMC)
   o Berkeley DB C++ interface (ISIS)
   o xmlsec1 1.2.4 or higher (Security)
+  o GridSite (GridFTP)
 
 Runtime dependencies:
   o Perl, libxml-simple-perl, perl-Digest-SHA1 (A-rex)
