@@ -183,7 +183,7 @@ save_commentfile () {
   errorsfile=$3
   action="
     { echo '------- Contents of output stream forwarded by the LRMS ---------'
-      grep -v '^_DIAG_ ' '$commentfile' 2> /dev/null
+      cat '$commentfile' 2> /dev/null
       echo '------------------------- End of output -------------------------'
     } >> '$errorsfile'
   "

@@ -189,7 +189,7 @@ process_log_file () {
       fi
     fi
     # Try to obtain message from PBS if any
-    pbs_comment=$(do_as_uid "$uid" "grep -v '^_DIAG_ ' '$commentfile' | tail -n 1")
+    pbs_comment=$(do_as_uid "$uid" "tail -n 1 '$commentfile'")
     save_commentfile "$uid" "$commentfile" "${base_name}.errors"
 
     # Extract values from PBS
