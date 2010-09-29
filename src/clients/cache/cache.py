@@ -6,7 +6,6 @@ Python client for the HED cache service.
 
 import sys
 import httplib
-import ssl
 import re
 
 try:
@@ -34,7 +33,13 @@ def splitURL(url):
     if match is None:
         raise CacheException('URL '+url+' is malformed')
     
-    urltuple = (match.group(1), match.group(2), match.group(3), '/'+match.group(4))
+    port_s = match.group(3)
+    if (len(port_s) > 0):
+        port = int(port_s)
+    else:
+        port = None
+        
+    urltuple = (match.group(1), match.group(2), port, '/'+match.group(4))
     return urltuple
     
 def addETElement(root, child, text):
