@@ -304,7 +304,6 @@ Arc::MCC_Status CacheService::CacheLink(Arc::XMLNode in, Arc::XMLNode out,
     logger.msg(Arc::INFO, "Looking up URL %s", fileurl);
 
     Arc::XMLNode resultelement = results.NewChild("Result");
-    resultelement.NewChild("FileURL") = fileurl;
     Arc::URL u(fileurl);
     Arc::DataHandle d(u, usercfg);
     d->SetSecure(false);
@@ -315,6 +314,7 @@ Arc::MCC_Status CacheService::CacheLink(Arc::XMLNode in, Arc::XMLNode out,
     bool is_locked = false;
 
     if (!cache.Start(url, available, is_locked, true)) {
+      resultelement.NewChild("FileURL") = fileurl;
       if (is_locked) {
         resultelement.NewChild("ReturnCode") = Arc::tostring(CacheService::Locked);
         resultelement.NewChild("ReturnCodeExplanation") = "File is locked";
@@ -331,6 +331,7 @@ Arc::MCC_Status CacheService::CacheLink(Arc::XMLNode in, Arc::XMLNode out,
       to_download.push_back(url);
       continue;
     }
+    resultelement.NewChild("FileURL") = fileurl;
     // file is in cache - check permissions
     if (!cache.CheckDN(url, dn)) {
       Arc::DataStatus res = d->Check();
