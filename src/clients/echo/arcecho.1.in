@@ -41,6 +41,15 @@ The message the service should return
 is a simple test tool: we can send a message to the echo service and
 it will respond with the same message.
 
+.SH FILES
+
+.TP
+.B ~/.arc/client.conf
+Some options can be given default values by specifying them in the
+ARC client configuration file. By using the
+.B --conffile
+option a different configuration file can be used than the default.
+
 .SH ENVIRONMENT VARIABLES
 
 .TP
