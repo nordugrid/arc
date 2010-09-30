@@ -28,7 +28,7 @@ explicitly select or reject an index server
 file where the jobs will be stored
 .IP "\fB-a\fR, \fB--all\fR"
 all jobs specified in the jobfile will be tried migrated
-.IP "\fB-f\fR, \fB--forcemigration\fR"
+.IP "\fB-f\fR, \fB--force\fR"
 force migration, ignore kill failure
 .IP "\fB-t\fR, \fB--timeout\fR=\fIseconds\fR"
 timeout in seconds (default 20)
@@ -36,8 +36,8 @@ timeout in seconds (default 20)
 configuration file (default ~/.arc/client.conf)
 .IP "\fB-d\fR, \fB--debug\fR=\fIdebuglevel\fR"
 FATAL, ERROR, WARNING, INFO, VERBOSE or DEBUG
-.IP "\fB-b\fR, \fB--broker\fR"
-selected broker (default  Random)
+.IP "\fB-b\fR, \fB--broker\fR=\fIbroker\fR"
+selected broker: Random (default), FastestQueue or custom
 .IP "\fB-v\fR, \fB--version\fR"
 print version information
 .IP "\fB-?\fR, \fB--help\fR"
