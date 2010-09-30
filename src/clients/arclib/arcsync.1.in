@@ -16,7 +16,7 @@ information at a given cluster or index server.
 
 .SH OPTIONS
 
-.IP "\fB-c\fR [-]\fIname\fR, \fB--cluster\fR [-]\fIname\fR"
+.IP "\fB-c\fR, \fB--cluster\fR=[-]\fIname\fR"
 explicitly select or reject a specific cluster
 .IP "\fB-i\fR, \fB--index\fR=[-]\fIname\fR"
 explicitly select or reject an index server
