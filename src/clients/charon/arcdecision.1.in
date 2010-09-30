@@ -19,19 +19,21 @@ command is a prototype client which is used for sending a policy decision reques
 
 .SH OPTIONS
 
-.IP "\fB-c\fR [-]\fIconfigurefile\fR, \fB-conf\fR [-]\fIconfigurefile\fR"
+.IP "\fB-c\fR, \fB--config\fR=\fIconfigurefile\fR"
 specify the configuration file of pdp client
-.IP "\fB-s\fR [-]\fIserviceurl\fR, \fB-service\fR [-]\fIserviceurl\fR"
+.IP "\fB-s\fR, \fB--service\fR=\fIserviceurl\fR"
 specify the url to pdp service
-.IP "\fB-r\fR [-]\frequestfile\fR, \fB-request\fR [-]\fIrequestfile\fR"
+.IP "\fB-r\fR, \fB--request\fR=\fIrequestfile\fR"
 specify the request file that includes the formatted request (arc or xacml format)
-.IP "\fB-p\fR [-]\fIsamlprofile\fR, \fB-saml\fR [-]\fIsamlprofile\fR"
-specify the usage of the SAML2.0 profile of XACML
-.IP "\fB-d\fR \fIdebuglevel\fR, \fB-debug\fR \fIdebuglevel\fR"
+.IP "\fB-p\fR, \fB--saml\fR"
+enable the usage of the SAML2.0 profile of XACML
+.IP "\fB-t\fR, \fB--timeout\fR=\fIseconds\fR"
+timeout in seconds (default 20)
+.IP "\fB-d\fR, \fB--debug\fR=\fIdebuglevel\fR"
 FATAL, ERROR, WARNING, INFO, VERBOSE or DEBUG
-.IP "\fB-v\fR, \fB-version\fR"
+.IP "\fB-v\fR, \fB--version\fR"
 print version information
-.IP "\fB-?\fR, \fB-help\fR"
+.IP "\fB-?\fR, \fB-h\fR, \fB--help\fR"
 print help
 .LP
 
@@ -49,7 +51,7 @@ send the request to https://127.0.0.1:60001
 .SH FILES
 
 .TP
-.B .arc/config.xml
+.B .arc/config.conf
 Some options can be given default values by specifying them in the
 ARC configuration file.
 
