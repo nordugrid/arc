@@ -921,6 +921,7 @@ create_glue_ldif_generator () {
          s/\$CPUSCALINGREFERENCESI00/$cpuscalingreferencesi00/g;
          s/\$PROCESSOROTHERDESCRIPTION/$processorotherdescription/g;
          s,\$GLUESITEWEB,$gluesiteweb,g;
+         s,\$BDIIPORT,$bdii_port,g;
         " $NORDUGRID_LOCATION/@pkgdatadir@/glue-generator.pl > ${ldif_generator_file_glue}
 
 

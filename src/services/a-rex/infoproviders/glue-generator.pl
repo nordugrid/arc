@@ -315,7 +315,7 @@ GlueCEInfoTotalCPUs: $queue{'nordugrid-queue-totalcpus'}
 GlueCECapability: CPUScalingReferenceSI00=$CPUSCALINGREFERENCESI00
 GlueCEInfoJobManager: arc
 GlueCEInfoContactString: $attr{'nordugrid-cluster-contactstring'}?queue=$queue{'nordugrid-queue-name'}
-GlueInformationServiceURL: ldap://$attr{'nordugrid-cluster-name'}:2170/mds-vo-name=resource,o=grid
+GlueInformationServiceURL: ldap://$attr{'nordugrid-cluster-name'}:$BDIIPORT/mds-vo-name=resource,o=grid
 GlueCEStateEstimatedResponseTime: 1000
 GlueCEStateRunningJobs: $queue{'nordugrid-queue-running'}
 GlueCEStateStatus: $mappedStatus
