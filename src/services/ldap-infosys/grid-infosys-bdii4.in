@@ -957,7 +957,7 @@ create_glue_ldif_generator () {
          s/\$PROCESSOROTHERDESCRIPTION/$processorotherdescription/g;
          s,\$GLUESITEWEB,$gluesiteweb,g;
          s,\$BDIIPORT,$bdii_port_read,g;
-        " $NORDUGRID_LOCATION/@pkgdatadir@/glue-generator.pl > ${ldif_generator_file_glue}
+        " $ARC_LOCATION/@pkgdatasubdir@/glue-generator.pl > ${ldif_generator_file_glue}
 
     chmod +x ${ldif_generator_file_glue}
 }
