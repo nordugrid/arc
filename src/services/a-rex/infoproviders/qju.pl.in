@@ -954,7 +954,7 @@ sub ldif_job ($%$%) {
 	$c{'nordugrid-job-usedcputime'} = [ "$lrmsjob->{cputime}" ];
 	$c{'nordugrid-job-reqwalltime'} = [ "$lrmsjob->{reqwalltime}" ];
 	$c{'nordugrid-job-reqcputime'} =  [ "$lrmsjob->{reqcputime}" ];
-	@c{'nordugrid-job-executionnodes'} = uniq($lrmsjob->{nodes}) if ref $lrmsjob->{nodes} eq 'ARRAY'
+	$c{'nordugrid-job-executionnodes'} = [ uniq(@{$lrmsjob->{nodes}}) ] if ref $lrmsjob->{nodes} eq 'ARRAY'
                                                               and @{$lrmsjob->{nodes}};
 
 	# LRMS-dependent attributes taken from LRMS when the job
@@ -999,7 +999,7 @@ sub ldif_job ($%$%) {
 	   $c{'nordugrid-job-usedcputime'} = ["0"];
 	}
 	if ( $gmjob->{exec_host} ) {
-	   @c{'nordugrid-job-executionnodes'} = [ uniq(split /\+/, $gmjob->{exec_host}) ];
+	   $c{'nordugrid-job-executionnodes'} = [ uniq(split /\+/, $gmjob->{exec_host}) ];
 	}
 	if ( $gmjob->{UsedMem} ) {
 	   $c{'nordugrid-job-usedmem'} = ["$gmjob->{UsedMem}"];
