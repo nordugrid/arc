@@ -456,6 +456,7 @@ resource_longitude=""
 cpuscalingreferencesi00=""
 processorotherdescription=""
 gluesiteweb=""
+gluesiteuniqueid=""
 
 if [ "x$infosys_glue12" = "xenable" ]; then
 
@@ -471,6 +472,7 @@ if [ "x$infosys_glue12" = "xenable" ]; then
     cpuscalingreferencesi00=${CONFIG_cpu_scaling_reference_si00}
     processorotherdescription=${CONFIG_processor_other_description}
     gluesiteweb=${CONFIG_glue_site_web}
+    gluesiteuniqueid=${CONFIG_glue_site_unique_id}
 
     if [ "x$resource_location" = "x" ]; then
         eval log_failure_msg "If infosys_glue12 is enabled, then resource_location must be set."
@@ -509,6 +511,13 @@ if [ "x$infosys_glue12" = "xenable" ]; then
         eval log_failure_msg "for example: 'http://www.ndgf.org'"
         exit 1
     fi
+    if [ "x$gluesiteuniqueid" = "x" ]; then
+        eval log_failure_msg "If infosys_glue12 is enabled, then glue_site_unique_id must be set."
+        eval log_failure_msg "It should be set to a unique id to the resource, this should be entered into the GocDb"
+        eval log_failure_msg "for example: 'NDGF-T1'"
+        exit 1
+    fi
+
 
 fi
 
@@ -922,6 +931,7 @@ create_glue_ldif_generator () {
          s/\$PROCESSOROTHERDESCRIPTION/$processorotherdescription/g;
          s,\$GLUESITEWEB,$gluesiteweb,g;
          s,\$BDIIPORT,$bdii_port,g;
+         s,\$GLUESITEUNIQUEID,$gluesiteuniqueid,g;
         " $ARC_LOCATION/@pkgdatasubdir@/glue-generator.pl > ${ldif_generator_file_glue}
 
 

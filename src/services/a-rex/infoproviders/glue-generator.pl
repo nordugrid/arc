@@ -110,6 +110,7 @@ sub translator(){
 	}
 	if ($attr{$key}=~/^$/) { $attr{$key}="$DEFAULT" }
     }
+    my $glue_site_unique_id="$GLUESITEUNIQUEID";
     @envs = split / /, $attr{'nordugrid-cluster-runtimeenvironment'};
     
     $outbIP = "FALSE";
@@ -138,13 +139,13 @@ sub translator(){
 
     # Write Site Entries
     print "
-dn: GlueSiteUniqueID=$attr{'nordugrid-cluster-aliasname'},mds-vo-name=resource,o=grid
+dn: GlueSiteUniqueID=$glue_site_unique_id,mds-vo-name=resource,o=grid
 objectClass: GlueTop
 objectClass: GlueSite
 objectClass: GlueKey
 objectClass: GlueSchemaVersion
-GlueSiteUniqueID: $attr{'nordugrid-cluster-aliasname'}
-GlueSiteName: $attr{'nordugrid-cluster-aliasname'}
+GlueSiteUniqueID: $glue_site_unique_id
+GlueSiteName: $glue_site_unique_id
 GlueSiteDescription: ARC-$attr{'nordugrid-cluster-comment'}
 GlueSiteUserSupportContact: mailto: $attr{'nordugrid-cluster-support'}
 GlueSiteSysAdminContact: mailto: $attr{'nordugrid-cluster-support'}
@@ -168,8 +169,6 @@ GlueSchemaVersionMinor: 2
     
 
     # Write Cluster Entries
-
-    my $GlueSiteUniqueID=$attr{'nordugrid-cluster-aliasname'};
     
     print "
 dn: GlueClusterUniqueID=$attr{'nordugrid-cluster-name'},mds-vo-name=resource,o=grid
@@ -178,11 +177,11 @@ objectClass: GlueCluster
 objectClass: GlueSchemaVersion
 objectClass: GlueInformationService
 objectClass: GlueKey
-GlueClusterName: $attr{'nordugrid-cluster-aliasname'}
+GlueClusterName: $glue_site_unique_id
 GlueClusterService: $attr{'nordugrid-cluster-name'}
 GlueClusterUniqueID: $attr{'nordugrid-cluster-name'}
 GlueForeignKey: GlueCEUniqueID=$attr{'nordugrid-cluster-contactstring'}
-GlueForeignKey: GlueSiteUniqueID=$GlueSiteUniqueID
+GlueForeignKey: GlueSiteUniqueID=$glue_site_unique_id
 GlueSchemaVersionMajor: 1
 GlueSchemaVersionMinor: 2
 
@@ -197,7 +196,7 @@ GlueSchemaVersionMinor: 2
 	$glueHostMainMemoryRAMSize=$attr{'nordugrid-cluster-nodememory'};
 	$glueHostArchitecturePlatformType=$attr{'nordugrid-cluster-architecture'};
 	$glueSubClusterUniqueID=$attr{'nordugrid-cluster-name'};
-	$glueSubClusterName=$attr{'nordugrid-cluster-aliasname'};
+	$glueSubClusterName=$glue_site_unique_id;
 	$glueSubClusterPhysicalCPUs=$attr{'nordugrid-cluster-totalcpus'};
 	$glueSubClusterLogicalCPUs=$attr{'nordugrid-cluster-totalcpus'};
 	$glueClusterUniqueID=$attr{'nordugrid-cluster-name'};
