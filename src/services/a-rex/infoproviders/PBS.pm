@@ -187,9 +187,9 @@ sub get_variable($$){
     my $var = $2;
     return $var;
 }
-sub read_qstat_f () {
-
-    unless ( open QSTAT_F, "qstat -f1 2>/dev/null |") {
+sub read_qstat_f ($) {
+    my $path=shift;
+    unless ( open QSTAT_F, "$path/qstat -f1 2>/dev/null |") {
 	error("Error in executing qstat");
     }
     
@@ -332,7 +332,7 @@ sub cluster_info ($) {
     $lrms_cluster{queuedjobs} = 0;
     $lrms_cluster{runningjobs} = 0;
 
-    my %qstat_jobs = read_qstat_f();
+    my %qstat_jobs = read_qstat_f($path);
 
     for my $key (keys %qstat_jobs){
 	if ( $qstat_jobs{$key}{job_state} =~ /R/){
