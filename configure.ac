@@ -268,9 +268,9 @@ if test "$enables_java" = "yes"; then
     AC_CHECK_HEADERS(jni.h,[jni_h="yes"],[jni_h="no"])
     CPPFLAGS=$SAVE_CPPFLAGS
 
-    AC_CHECK_PROGS(JAVA, java gij, , $JPATH/bin)
-    AC_CHECK_PROGS(JAVAC, gcj javac ecj, , $JPATH/bin)
-    AC_CHECK_PROGS(JAR, fastjar jar, , $JPATH/bin)
+    AC_PATH_PROGS(JAVA, java gij, , $JPATH/bin)
+    AC_PATH_PROGS(JAVAC, gcj javac ecj, , $JPATH/bin)
+    AC_PATH_PROGS(JAR, fastjar jar, , $JPATH/bin)
     break
   fi
 
@@ -284,6 +284,10 @@ if test "$enables_java" = "yes"; then
 
   if test "x$JAVAC" != "x" && test "x`basename $JAVAC`" = "xgcj"; then
     JAVAC_FLAGS=-C
+  fi
+
+  if test `echo $JAVAC | grep -c gcj` -eq 1; then
+    JAVAC_FLAGS="$JAVAC_FLAG -cp ."
   fi
 
   JAVAWRAP=no
