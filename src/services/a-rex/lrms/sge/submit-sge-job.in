@@ -62,7 +62,7 @@ echo "#$ -m n" >> $LRMS_JOB_SCRIPT
 # Mix standard output and standard error:
 echo "#$ -j y" >> $LRMS_JOB_SCRIPT
 # Write output to comment file:
-echo "#$ -o ${joboption_directory}.comment" >> $LRMS_JOB_SCRIPT
+echo "#$ -o ${joboption_directory}/.comment" >> $LRMS_JOB_SCRIPT
 
 # Choose queue.
 echo "#$ -q $joboption_queue" >> $LRMS_JOB_SCRIPT
@@ -233,6 +233,9 @@ if [ "$joboption_localtransfer" = 'yes' ] ; then
 fi
 
 setup_runtime_env
+
+# Override location of .diag file: put it under the working directory
+echo 'RUNTIME_JOB_DIAG=$RUNTIME_JOB_DIR/.diag' >> $LRMS_JOB_SCRIPT
 
 ##############################################################
 # Add std... to job arguments

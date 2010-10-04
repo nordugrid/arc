@@ -392,8 +392,12 @@ for ctr_dir in $control_dirs ; do
     # get session directory of this job
     session=`grep -h '^sessiondir=' "$jobfile" | sed 's/^sessiondir=\(.*\)/\1/'`
     commentfile="${session}.comment"
+    commentfile2="${session}/.comment"
+    do_as_uid "$uid" "cat '$commentfile2' >> '$commentfile' 2> /dev/null; rm -f '$commentfile2'";
     if [  -d "$session" ] ; then
       diagfile="${session}.diag"
+      diagfile2="${session}/.diag"
+      do_as_uid "$uid" "cat '$diagfile2' >> '$diagfile' 2> /dev/null; rm -f '$diagfile2'";
       # try to obtain the exit code
       # $diagfile is owned by the user running the job. Switch user to access it.
       exitcode=`do_as_uid "$uid" "sed -n 's/^exitcode=//p' '$diagfile'" | tail -n 1`
