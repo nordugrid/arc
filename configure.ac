@@ -680,6 +680,7 @@ if test "$enables_cppunit" = "yes"; then
         AC_MSG_WARN([cppunit-config not found - no UNIT testing will be performed])
         CPPUNIT_CFLAGS=
         CPPUNIT_LIBS=
+        enables_cppunit="no"
     else
         CPPUNIT_CFLAGS="`$CPPUNIT_CONFIG --cflags`"
         CPPUNIT_LIBS="`$CPPUNIT_CONFIG --libs`"
@@ -863,15 +864,24 @@ fi
 # check ARGUS
 # TODO: make it more in line with other checks
 ARGUS_LOCATION=
+ARGUS_LIBS=
+ARGUS_INCLUDES=
 AC_ARG_WITH(argus,
   AC_HELP_STRING([--with-argus=PATH], [ARGUS PEP installation path]),
   [
     AC_MSG_CHECKING(for ARGUS PEP C shared library)
     if test -d "$withval"; then
-      if test -f "$withval/lib/libpep-c.so"; then
-        if test -f "$withval/include/pep/pep.h"; then
+      if test -f "$withval/include/pep/pep.h"; then
+        if test -f "$withval/lib/libpep-c.so"; then
           enables_argus="yes"
           ARGUS_LOCATION="$withval"
+          ARGUS_LIBS="-L$ARGUS_LOCATION/lib -lpep-c"
+          ARGUS_INCLUDES="-I$ARGUS_LOCATION/include"
+        elif test -f "$withval/lib64/libpep-c.so"; then
+          enables_argus="yes"
+          ARGUS_LOCATION="$withval"
+          ARGUS_LIBS="-L$ARGUS_LOCATION/lib64 -lpep-c"
+          ARGUS_INCLUDES="-I$ARGUS_LOCATION/include"
         fi
       fi
     fi
@@ -883,6 +893,8 @@ AC_ARG_WITH(argus,
   ]
 )
 AC_SUBST(ARGUS_LOCATION)
+AC_SUBST(ARGUS_LIBS)
+AC_SUBST(ARGUS_INCLUDES)
 AM_CONDITIONAL(ARGUS_ENABLED, test ! "x$ARGUS_LOCATION" = "x")
 
 
