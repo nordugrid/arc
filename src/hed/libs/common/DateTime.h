@@ -3,6 +3,7 @@
 #ifndef ARCLIB_TIME
 #define ARCLIB_TIME
 
+#include <stdint.h>
 #include <sigc++/slot.h>
 
 #include <ctime>

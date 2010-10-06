@@ -7,6 +7,7 @@
 #include <cstdio>
 #include <iomanip>
 #include <sstream>
+#include <sys/time.h>
 
 #include <arc/StringConv.h>
 #include <arc/Logger.h>
@@ -59,7 +60,15 @@ namespace Arc {
 
 
   Time::Time()
-    : gtime(time(NULL)), gnano(0) {}
+    : gtime(0), gnano(0) {
+    timeval tv;
+    if(gettimeofday(&tv, NULL) != 0) {
+      gtime = time(NULL);
+    } else {
+      gtime = tv.tv_sec;
+      gnano = tv.tv_usec * 1000;
+    }
+  }
 
 
   Time::Time(time_t time)
