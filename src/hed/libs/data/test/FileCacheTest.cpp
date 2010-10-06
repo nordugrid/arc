@@ -889,6 +889,7 @@ void FileCacheTest::testValidityDate() {
 
   // set validity time to now
   Arc::Time now;
+  now = now.GetTime(); // smash resolition to seconds
   CPPUNIT_ASSERT(_fc1->SetValid(_url, now));
   CPPUNIT_ASSERT(_fc1->CheckValid(_url));
   CPPUNIT_ASSERT_EQUAL(now, _fc1->GetValid(_url));
