@@ -368,9 +368,11 @@ Arc::MCC_Status Service_SP::process(Arc::Message& inmsg,Arc::Message& outmsg) {
       XMLNode authnstatement = decrypted_assertion_nd["AuthnStatement"];
 
       std::string notbefore_str = (std::string)(conditions.Attribute("NotBefore"));
-      Time notbefore = notbefore_str;
+      Time notbefore;
+      if(!notbefore_str.empty()) notbefore = notbefore_str;
       std::string notonorafter_str = (std::string)(conditions.Attribute("NotOnOrAfter"));
-      Time notonorafter = notonorafter_str;
+      Time notonorafter;
+      if(!notonorafter_str.empty()) notonorafter = notonorafter_str;
       Time now = Time();
       if(!notbefore_str.empty() && (notbefore - Period(1)) >= now) { // one second tolerance 
         logger.msg(Arc::ERROR,"saml:Conditions, current time: %s is before the start time: %s", now.str().c_str(), notbefore_str.c_str()); 
@@ -388,9 +390,9 @@ Arc::MCC_Status Service_SP::process(Arc::Message& inmsg,Arc::Message& outmsg) {
         //TODO
       }
       notbefore_str = (std::string)(subject_confirmation.Attribute("NotBefore"));
-      notbefore = notbefore_str;
+      if(!notbefore_str.empty()) notbefore = notbefore_str;
       notonorafter_str = (std::string)(subject_confirmation.Attribute("NotOnOrAfter"));
-      notonorafter = notonorafter_str;
+      if(!notonorafter_str.empty()) notonorafter = notonorafter_str;
       now = Time();
       if(!notbefore_str.empty() && notbefore >= now) {
         logger.msg(Arc::ERROR,"saml:Subject, current time is before the start time");
