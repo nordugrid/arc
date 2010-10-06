@@ -23,6 +23,8 @@ namespace Arc {
   };
 
   enum PeriodBase {
+    PeriodNanoseconds,
+    PeriodMicroseconds,
     PeriodMiliseconds,
     PeriodSeconds,
     PeriodMinutes,
@@ -37,22 +39,27 @@ namespace Arc {
     Period();
 
     /** Constructor that takes a time_t variable and stores it. */
-    Period(const time_t&);
+    Period(time_t);
+
+    /** Constructor that takes seconds and nanoseconds and stores them. */
+    Period(time_t seconds, uint32_t nanoseconds);
 
     /** Constructor that tries to convert a string. */
     Period(const std::string&, PeriodBase base = PeriodSeconds);
 
     /** Assignment operator from a time_t. */
-    Period& operator=(const time_t&);
+    Period& operator=(time_t);
 
     /** Assignment operator from a Period. */
     Period& operator=(const Period&);
 
     /** sets the period */
-    void SetPeriod(const time_t&);
+    void SetPeriod(time_t);
+    void SetPeriod(time_t sec, uint32_t nanosec);
 
     /** gets the period */
     time_t GetPeriod() const;
+    time_t GetPeriodNanoseconds() const;
 
     /** For use with IString */
     const sigc::slot<const char*>* istr() const;
@@ -80,6 +87,7 @@ namespace Arc {
 
   private:
     /** The duration of the period */
+    uint32_t nanoseconds;
     time_t seconds;
 
     /** Internal IString implementation */
@@ -100,13 +108,16 @@ namespace Arc {
     Time();
 
     /** Constructor that takes a time_t variable and stores it. */
-    Time(const time_t&);
+    Time(time_t);
+
+    /** Constructor that takes a fine grained time variables and stores them. */
+    Time(time_t time, uint32_t nanosec);
 
     /** Constructor that tries to convert a string into a time_t. */
     Time(const std::string&);
 
     /** Assignment operator from a time_t. */
-    Time& operator=(const time_t&);
+    Time& operator=(time_t);
 
     /** Assignment operator from a Time. */
     Time& operator=(const Time&);
@@ -118,10 +129,14 @@ namespace Arc {
     Time& operator=(const std::string&);
 
     /** sets the time */
-    void SetTime(const time_t&);
+    void SetTime(time_t);
+
+    /** sets the fine grained time */
+    void SetTime(time_t time, uint32_t nanosec);
 
     /** gets the time */
     time_t GetTime() const;
+    time_t GetTimeNanosec() const;
 
     /** Returns a string representation of the time,
         using the default format. */
@@ -173,6 +188,9 @@ namespace Arc {
   private:
     /** The time stored -- by default it is equal to the current time. */
     time_t gtime;
+
+    /** The nanosecond part of time stored -- by default it is 0. */
+    uint32_t gnano;
 
     /** The time-format stored. By default it is equal to UserTime */
     static TimeFormat time_format;

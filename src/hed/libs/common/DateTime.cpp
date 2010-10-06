@@ -59,15 +59,19 @@ namespace Arc {
 
 
   Time::Time()
-    : gtime(time(NULL)) {}
+    : gtime(time(NULL)), gnano(0) {}
 
 
-  Time::Time(const time_t& time)
-    : gtime(time) {}
+  Time::Time(time_t time)
+    : gtime(time), gnano(0) {}
+
+
+  Time::Time(time_t time, uint32_t nanosec)
+    : gtime(time), gnano(nanosec) {}
 
 
   Time::Time(const std::string& timestring)
-    : gtime(-1) {
+    : gtime(-1), gnano(0) {
 
     if (timestring.empty()) {
       dateTimeLogger.msg(ERROR, "Empty string");
@@ -279,13 +283,25 @@ namespace Arc {
   }
 
 
-  void Time::SetTime(const time_t& time) {
+  void Time::SetTime(time_t time) {
     gtime = time;
+    gnano = 0;
+  }
+
+
+  void Time::SetTime(time_t time, uint32_t nanosec) {
+    gtime = time;
+    gnano = nanosec;
   }
 
 
   time_t Time::GetTime() const {
     return gtime;
+  }
+
+
+  time_t Time::GetTimeNanosec() const {
+    return gnano;
   }
 
 
@@ -445,59 +461,81 @@ namespace Arc {
 
 
   bool Time::operator<(const Time& othertime) const {
-    return gtime < othertime.GetTime();
+    if(gtime == othertime.gtime) return gnano < othertime.gnano;
+    return gtime < othertime.gtime;
   }
 
 
   bool Time::operator>(const Time& othertime) const {
-    return gtime > othertime.GetTime();
+    if(gtime == othertime.gtime) return gnano > othertime.gnano;
+    return gtime > othertime.gtime;
   }
 
 
   bool Time::operator<=(const Time& othertime) const {
-    return gtime <= othertime.GetTime();
+    if(gtime == othertime.gtime) return gnano <= othertime.gnano;
+    return gtime <= othertime.gtime;
   }
 
 
   bool Time::operator>=(const Time& othertime) const {
-    return gtime >= othertime.GetTime();
+    if(gtime == othertime.gtime) return gnano >= othertime.gnano;
+    return gtime >= othertime.gtime;
   }
 
 
   bool Time::operator==(const Time& othertime) const {
-    return gtime == othertime.GetTime();
+    return (gtime == othertime.gtime) && (gnano == othertime.gnano);
   }
 
 
   bool Time::operator!=(const Time& othertime) const {
-    return gtime != othertime.GetTime();
+    return (gtime != othertime.gtime) || (gnano != othertime.gnano);
   }
 
   Time Time::operator+(const Period& duration) const {
     time_t t;
+    uint32_t n;
     t = gtime + duration.GetPeriod();
-    return (Time(t));
+    n = gnano + duration.GetPeriodNanoseconds();
+    t += n / 1000000000;
+    n = n % 1000000000;
+    return (Time(t,n));
   }
 
   Time Time::operator-(const Period& duration) const {
     time_t t;
+    uint32_t n = 0;
     t = gtime - duration.GetPeriod();
-    return (Time(t));
+    if(duration.GetPeriodNanoseconds() > gnano) {
+      --t;
+      n = 1000000000;
+    }
+    n += gnano - duration.GetPeriodNanoseconds();
+    return (Time(t,n));
   }
 
   Period Time::operator-(const Time& other) const {
     time_t t;
-    t = gtime - other.GetTime();
-    return (Period(t));
+    uint32_t n = 0;
+    t = gtime - other.gtime;
+    if(gnano < other.gnano) {
+      --t;
+      n = 1000000000;
+    }
+    n += gnano - other.gnano;
+    return (Period(t,n));
   }
 
-  Time& Time::operator=(const time_t& newtime) {
+  Time& Time::operator=(time_t newtime) {
     gtime = newtime;
+    gnano = 0;
     return *this;
   }
 
   Time& Time::operator=(const Time& newtime) {
-    gtime = newtime.GetTime();
+    gtime = newtime.gtime;
+    gnano = newtime.gnano;
     return *this;
   }
 
@@ -526,11 +564,15 @@ namespace Arc {
 
 
   Period::Period()
-    : seconds(0) {}
+    : seconds(0), nanoseconds(0) {}
 
 
-  Period::Period(const time_t& length)
-    : seconds(length) {}
+  Period::Period(time_t sec)
+    : seconds(sec), nanoseconds(0) {}
+
+
+  Period::Period(time_t sec, uint32_t nanosec )
+    : seconds(sec), nanoseconds(nanosec) {}
 
 
   Period::Period(const std::string& period, PeriodBase base)
@@ -667,54 +709,81 @@ namespace Arc {
       }
 
       if (pos != std::string::npos) {
-        int n = stringtoi(period.substr(pos, len));
-        switch (base) {
-        case PeriodMiliseconds:
-          n /= 1000;
-          break;
+        uint64_t n;
+        uint32_t nn = 0;
+        if(stringto(period.substr(pos, len), n)) {
+          switch (base) {
+          case PeriodNanoseconds:
+            nn = n % 1000000000;
+            n /= 1000000000;
+            break;
 
-        case PeriodSeconds:
-          break;
+          case PeriodMicroseconds:
+            nn = (n % 1000000) * 1000;
+            n /= 1000000;
+            break;
 
-        case PeriodMinutes:
-          n *= 60;
-          break;
+          case PeriodMiliseconds:
+            nn = (n % 1000) * 1000000;
+            n /= 1000;
+            break;
 
-        case PeriodHours:
-          n *= Time::HOUR;
-          break;
+          case PeriodSeconds:
+            break;
 
-        case PeriodDays:
-          n *= Time::DAY;
-          break;
+          case PeriodMinutes:
+            n *= 60;
+            break;
 
-        case PeriodWeeks:
-          n *= Time::WEEK;
-          break;
+          case PeriodHours:
+            n *= Time::HOUR;
+            break;
+
+          case PeriodDays:
+            n *= Time::DAY;
+            break;
+
+          case PeriodWeeks:
+            n *= Time::WEEK;
+            break;
+          }
+          seconds += n;
+          nanoseconds += nn;
         }
-        seconds += n;
       }
     }
   }
 
 
-  Period& Period::operator=(const time_t& length) {
+  Period& Period::operator=(time_t length) {
     seconds = length;
+    nanoseconds = 0;
     return *this;
   }
 
   Period& Period::operator=(const Period& newperiod) {
-    seconds = newperiod.GetPeriod();
+    seconds = newperiod.seconds;
+    nanoseconds = newperiod.nanoseconds;
     return *this;
   }
 
-  void Period::SetPeriod(const time_t& length) {
-    seconds = length;
+  void Period::SetPeriod(time_t sec) {
+    seconds = sec;
+    nanoseconds = 0;
+  }
+
+  void Period::SetPeriod(time_t sec, uint32_t nanosec) {
+    seconds = sec;
+    nanoseconds = nanosec;
   }
 
 
   time_t Period::GetPeriod() const {
     return seconds;
+  }
+
+  time_t Period::GetPeriodNanoseconds() const {
+    return nanoseconds;
   }
 
   const sigc::slot<const char*>* Period::istr() const {
@@ -803,32 +872,36 @@ namespace Arc {
 
 
   bool Period::operator<(const Period& othertime) const {
-    return seconds < othertime.GetPeriod();
+    if(seconds != othertime.seconds) return seconds < othertime.seconds;
+    return nanoseconds < othertime.nanoseconds;
   }
 
 
   bool Period::operator>(const Period& othertime) const {
-    return seconds > othertime.GetPeriod();
+    if(seconds != othertime.seconds) return seconds > othertime.seconds;
+    return nanoseconds > othertime.nanoseconds;
   }
 
 
   bool Period::operator<=(const Period& othertime) const {
-    return seconds <= othertime.GetPeriod();
+    if(seconds != othertime.seconds) return seconds <= othertime.seconds;
+    return nanoseconds <= othertime.nanoseconds;
   }
 
 
   bool Period::operator>=(const Period& othertime) const {
-    return seconds >= othertime.GetPeriod();
+    if(seconds != othertime.seconds) return seconds >= othertime.seconds;
+    return nanoseconds >= othertime.nanoseconds;
   }
 
 
   bool Period::operator==(const Period& othertime) const {
-    return seconds == othertime.GetPeriod();
+    return (seconds == othertime.seconds) && (nanoseconds == othertime.nanoseconds);
   }
 
 
   bool Period::operator!=(const Period& othertime) const {
-    return seconds != othertime.GetPeriod();
+    return (seconds != othertime.seconds) || (nanoseconds != othertime.nanoseconds);
   }
 
 
