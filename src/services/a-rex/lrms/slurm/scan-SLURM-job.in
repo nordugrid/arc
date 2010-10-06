@@ -22,7 +22,7 @@ pkglibdir=`cd $pkglibdir > /dev/null && pwd` || exit $?
 . "${pkglibdir}/scan_common.sh" || exit $?
 
 # Prevent multiple instances of scan-slurm-job to run concurrently
-lockfile="${CONFIG_tmpdir:-@tmp_dir@}/scan-slurm-job.lock"
+lockfile="${TMPDIR:-@tmp_dir@}/scan-slurm-job.lock"
 #Check if lockfile exist, if not, create it.
 (set -C; : > "$lockfile") 2> /dev/null
 if [ "$?" != "0" ]; then

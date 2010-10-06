@@ -56,7 +56,7 @@ init () {
    # Use specified memory requirement as soft limit, allow a bit more before hard limit
    memory_hardlimit_ratio='1/1'
    # Where to store temporary files on gatekeeper
-   TMP_DIR=${TMPDIR:-@tmp_dir@}
+   TMPDIR=${TMPDIR:-@tmp_dir@}
    # Where GNU time utility is located on computing nodes (empty if does not exist)
    GNU_TIME=${CONFIG_gnu_time:-@gnu_time@}
    # Command to get name of executing node
@@ -208,7 +208,7 @@ RTE_stage0 () {
 
 mktempscript () {
    # File name to be used for temporary job script
-   LRMS_JOB_SCRIPT=`mktemp ${TMP_DIR}/${joboption_lrms}_job_script.XXXXXX`
+   LRMS_JOB_SCRIPT=`mktemp ${TMPDIR}/${joboption_lrms}_job_script.XXXXXX`
    echo "Created file $LRMS_JOB_SCRIPT"
    if [ -z "$LRMS_JOB_SCRIPT" ] ; then
       echo "Creation of temporary file failed"
@@ -220,7 +220,7 @@ mktempscript () {
    LRMS_JOB_ERR="${LRMS_JOB_SCRIPT}.err"
    touch $LRMS_JOB_ERR
    if [ ! -f "$LRMS_JOB_SCRIPT" ] || [ ! -f "$LRMS_JOB_OUT" ] || [ ! -f "$LRMS_JOB_ERR" ] ; then
-      echo "Something is wrong. Either somebody is deleting files or I cannot write to ${TMP_DIR}"
+      echo "Something is wrong. Either somebody is deleting files or I cannot write to ${TMPDIR}"
       rm -f "$LRMS_JOB_SCRIPT" "$LRMS_JOB_OUT" "$LRMS_JOB_ERR"
       exit 1
    fi

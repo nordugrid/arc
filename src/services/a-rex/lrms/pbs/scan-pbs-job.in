@@ -26,7 +26,7 @@ GMKICK=${basedir}/gm-kick
 . "${pkglibdir}/scan_common.sh" || exit $?
 
 # Where to store temporary files
-TMP_DIR=${TMPDIR:-@tmp_dir@}
+TMPDIR=${TMPDIR:-@tmp_dir@}
 
 # directory containing PBS server logs
 pbs_log_dir=${CONFIG_pbs_log_path:-@pbs_log_path@}
@@ -307,7 +307,7 @@ fi
 eval "set -- $control_dirs"
 # Get all running jobs
 
-pidslist=`mktemp "$TMP_DIR/qstat.XXXXXX"` || 
+pidslist=`mktemp "$TMPDIR/qstat.XXXXXX"` || 
 if [ ! "$?" = '0' ] ; then
   # FS problems ?
   # TODO debug output here

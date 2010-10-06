@@ -155,7 +155,7 @@ sub run_rte0 {
         $script .= "echo STATUS=\$ret\n";
 
         # write script to temporary file and run it.
-        my $dir = $config{tmpdir} || $ENV{TMPDIR} || File::Spec->tmpdir;
+        my $dir = $ENV{TMPDIR} || File::Spec->tmpdir;
         my ($fh, $fname) = tempfile('condor_XXXXXXXX', DIR => $dir);
         print $fh $script or die "$0: write $fname: $!\n";
         close $fh           or die "$0: close $fname: $!\n";

@@ -10,12 +10,12 @@ id=`id -u`
 options=$@
 
 # Where to store temporary files on gatekeeper
-TMP_DIR=${TMP_DIR:-/tmp}
+TMPDIR=${TMPDIR:-@tmp_dir@}
 
 # ARC1 passes first the config file.
 if [ "$1" = "--config" ]; then shift; ARC_CONFIG=$1; shift; fi
 
-#debug='eval echo >> $TMP_DIR/parse-gridfactory-log.$id'
+#debug='eval echo >> $TMPDIR/parse-gridfactory-log.$id'
 debug=:
 
 $debug "run at `date`"

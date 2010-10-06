@@ -458,7 +458,6 @@ scan_init () {
 
     trap 'sleep $wakeupperiod' EXIT TERM
 
-    TMPDIR=${TMPDIR:-$CONFIG_tmpdir}
     TMPDIR=${TMPDIR:-@tmp_dir@}
     export TMPDIR
 

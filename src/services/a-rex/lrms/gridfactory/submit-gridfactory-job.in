@@ -16,7 +16,7 @@ walltime_ratio='1'
 # Path to pbs commands
 GF_BIN_PATH=${GF_BIN_PATH:-/usr/share/gridfactory/cli}
 # Where to store temporary files on gatekeeper
-TMP_DIR=${TMP_DIR:-/tmp}
+TMPDIR=${TMPDIR:-@tmp_dir@}
 
 # ARC1 passes first the config file.
 if [ "$1" = "--config" ]; then shift; ARC_CONFIG=$1; shift; fi
@@ -52,7 +52,7 @@ fi
 # Zero stage of runtime environments
 ##############################################################
 joboption_args=`basename "$joboption_arg_0"`
-tmpdir=${TMP_DIR:-/tmp}
+tmpdir=${TMPDIR:-@tmp_dir@}
 # File name to be used for temporary job script
 LRMS_JOB_SCRIPT=`mktemp ${tmpdir}/gridfactory_job_script.XXXXXX`
 if [ -z "$LRMS_JOB_SCRIPT" ] ; then 

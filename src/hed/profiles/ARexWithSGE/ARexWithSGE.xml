@@ -78,7 +78,6 @@
 			<arex:LRMS>
 				<arex:type>sge</arex:type>
 				<arex:defaultShare inisections="arex/lrms" initag="queue_name"/>
-				<arex:tmpDir inisections="arex/lrms" initag="tmp_dir">/tmp</arex:tmpDir>
 				<arex:sharedFilesystem inisections="arex/lrms" initag="shared_filesystem">true</arex:sharedFilesystem>
 				<arex:GNUTimeUtility inisections="arex/lrms" initag="gnu_time_utility">/usr/bin/time</arex:GNUTimeUtility>
 				<lrms:sge_bin_path inisections="arex/lrms" initag="sge_bin_path">/usr/bin</lrms:sge_bin_path>
