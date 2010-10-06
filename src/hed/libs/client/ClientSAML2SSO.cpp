@@ -75,7 +75,7 @@ namespace Arc {
     requestSP.Insert(idp_name.c_str(), 0, idp_name.size());
     //Call the peer http endpoint with path "saml2sp", which
     //is the endpoint of saml SP service
-    Arc::MCC_Status statusSP = http_client->process("POST", "saml2sp", &requestSP, &infoSP, &responseSP);
+    Arc::MCC_Status statusSP = http_client->process("POST", "/saml2sp", &requestSP, &infoSP, &responseSP);
     if (!responseSP) {
       logger.msg(Arc::ERROR, "Request failed: No response from SPService");
       return MCC_Status();
@@ -304,7 +304,7 @@ namespace Arc {
       //std::cout<<"Encrypted saml assertion: "<<saml_assertion<<std::endl;
       requestSP.Truncate(0);
       requestSP.Insert(saml_assertion.c_str(), 0, saml_assertion.size());
-      statusSP = http_client->process("POST", "saml2sp", &requestSP, &infoSP, &responseSP);
+      statusSP = http_client->process("POST", "/saml2sp", &requestSP, &infoSP, &responseSP);
 
       if (!responseSP) {
         logger.msg(Arc::ERROR, "Request failed: No response from SP Service when sending saml assertion to SP");
