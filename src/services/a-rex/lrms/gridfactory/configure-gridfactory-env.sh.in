@@ -1,6 +1,31 @@
-#!@posix_shell@
+#
 # set environment gridfactory variables:
-# none at the moment
 #
 
+##############################################################
+# Reading configuration from $ARC_CONFIG
+##############################################################
+
+if [ -z "$pkglibdir" ]; then echo 'pkglibdir must be set' 1>&2; exit 1; fi
+
+. "$pkglibdir/config_parser.sh" || exit $?
+
+ARC_CONFIG=${ARC_CONFIG:-/etc/arc.conf}
+config_parse_file $ARC_CONFIG 1>&2 || exit $?
+
+config_import_section "common"
+config_import_section "infosys"
+config_import_section "grid-manager"
+config_import_section "cluster"
+
+# Also read queue section
+if [ ! -z "$joboption_queue" ]; then
+  config_import_section "queue/$joboption_queue"
+fi
+
+# Paths to gridfactory commands and gridfactory settings
+GF_BIN_PATH=${CONFIG_gridfactory_bin_path:-/usr/share/gridfactory/cli}
+PSTAT="$GF_BIN_PATH/pstat.sh -f dummy -b localhost"
+PKILL="$GF_BIN_PATH/pkill.sh -f dummy"
+PCLEAN="$GF_BIN_PATH/pclean.sh"
 

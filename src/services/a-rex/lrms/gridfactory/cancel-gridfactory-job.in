@@ -6,22 +6,16 @@
 
 echo "----- starting cancel_gridfactory_job -----" 1>&2
 
-# These should be set automatically
-# Paths to gridfactory commands and gridfactory settings
-GF_BIN_PATH=${GF_BIN_PATH:-/usr/share/gridfactory/cli}
-PKILL="pkill.sh -f dummy"
-PCLEAN="pclean.sh"
-PSTAT="pstat.sh -f dummy"
-if [ -n $GF_BIN_PATH ]; then
-    PKILL="$GF_BIN_PATH/$PKILL"
-    PCLEAN="$GF_BIN_PATH/$PCLEAN"
-    PSTAT="$GF_BIN_PATH/$PSTAT"
-fi
-
 joboption_lrms=gridfactory
 
 # ARC1 passes first the config file.
 if [ "$1" = "--config" ]; then shift; ARC_CONFIG=$1; shift; fi
+
+basedir=`dirname $0`
+basedir=`cd $basedir > /dev/null && pwd` || exit $?
+
+pkglibdir="$basedir/@pkglibdir_rel_to_pkglibexecdir@"
+pkglibdir=`cd $pkglibdir > /dev/null && pwd` || exit $?
 
 . ${pkglibdir}/cancel_common.sh $1 || exit $?
 
@@ -46,8 +40,8 @@ fi
 case X`cat "$job_control_dir/job.${joboption_gridid}.status"` in
     XINLRMS)
 
-	$debug `su -c "$PSTAT -b localhost $joboption_jobid" - $joboption_user|sed 's,$joboption_jobid ,,'`
-	case `su -c "$PSTAT -b localhost $joboption_jobid" - $joboption_user|sed 's,$joboption_jobid ,,'` in
+	$debug `su -c "$PSTAT $joboption_jobid" - $joboption_user|sed 's,$joboption_jobid ,,'`
+	case `su -c "$PSTAT $joboption_jobid" - $joboption_user|sed 's,$joboption_jobid ,,'` in
 
 	    ready | requested | prepared | submitted )
 		su -c "$PCLEAN $joboption_jobid" - $joboption_user

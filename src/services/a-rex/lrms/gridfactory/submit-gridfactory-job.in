@@ -9,52 +9,32 @@ printenv |sort
 echo "----- starting submit_gridfactory_job -----" 1>&2
 joboption_lrms=gridfactory
 
-walltime_ratio='1'
-##############################################################
-# These should be set automatically
-##############################################################
-# Path to pbs commands
-GF_BIN_PATH=${GF_BIN_PATH:-/usr/share/gridfactory/cli}
-# Where to store temporary files on gatekeeper
-TMPDIR=${TMPDIR:-@tmp_dir@}
-
 # ARC1 passes first the config file.
 if [ "$1" = "--config" ]; then shift; ARC_CONFIG=$1; shift; fi
 
+basedir=`dirname $0`
+basedir=`cd $basedir > /dev/null && pwd` || exit $?
+
+pkglibdir="$basedir/@pkglibdir_rel_to_pkglibexecdir@"
+pkglibdir=`cd $pkglibdir > /dev/null && pwd` || exit $?
+
+. ${pkglibdir}/submit_common.sh || exit $?
+
+##############################################################
+# Parse grami file, read arc config
+##############################################################
 arg_file=$1
-##############################################################
-# Source the argument file. 
-##############################################################
-if [ -z "$arg_file" ] ; then
-   echo "Arguments file should be specified" 1>&2
-   exit 1
-fi
-if [ ! -f $arg_file ] ; then
-   echo "Missing arguments file" 1>&2
-   echo $* 1>&2
-   exit 1
-fi
-. $arg_file
+
+init $arg_file
 
 echo "joboption_user=`whoami`" >> $arg_file
-
-if [ -z "$joboption_controldir" ] ; then
-  joboption_controldir=`dirname "$arg_file"`
-  if [ "$joboption_controldir" = '.' ] ; then
-    joboption_controldir="$PWD"
-  fi
-fi
-if [ -z "$joboption_gridid" ] ; then
-  joboption_gridid=`basename "$arg_file" | sed 's/^job\.\(.*\)\.grami$/\1/'`
-fi
 
 ##############################################################
 # Zero stage of runtime environments
 ##############################################################
 joboption_args=`basename "$joboption_arg_0"`
-tmpdir=${TMPDIR:-@tmp_dir@}
 # File name to be used for temporary job script
-LRMS_JOB_SCRIPT=`mktemp ${tmpdir}/gridfactory_job_script.XXXXXX`
+LRMS_JOB_SCRIPT=`mktemp ${TMPDIR}/gridfactory_job_script.XXXXXX`
 if [ -z "$LRMS_JOB_SCRIPT" ] ; then 
   echo "Creation of temporary file failed"
   exit 1
@@ -65,7 +45,7 @@ touch $LRMS_JOB_SCRIPT_OUT
 LRMS_JOB_SCRIPT_ERR="${LRMS_JOB_SCRIPT}.err"
 touch $LRMS_JOB_SCRIPT_ERR
 if [ ! -f "$LRMS_JOB_SCRIPT" ] || [ ! -f "$LRMS_JOB_SCRIPT_OUT" ] || [ ! -f "$LRMS_JOB_SCRIPT_ERR" ] ; then 
-  echo "Something is wrong. Either somebody is playing bad or can't write to ${tmpdir}"
+  echo "Something is wrong. Either somebody is playing bad or can't write to ${TMPDIR}"
   exit 1
 fi
 
@@ -80,7 +60,7 @@ if [ ! -z "${joboption_jobname}" ] ; then
            sed 's/[^[:alnum:]]/_/g' | \
            sed 's/\(...............\).*/\1/'`
 else
-  jobname="$joboption_rsl_executable"
+  jobname=`basename "$joboption_arg_0"`
 fi
 echo "#GRIDFACTORY -n $jobname" >> $LRMS_JOB_SCRIPT
 
@@ -112,7 +92,7 @@ IFS=:
 for file in $tmp_str; do
   if test "x$skip" = "x"
   then
-    if test "$file" != "$joboption_rsl_stdout" -a "$file" != "$joboption_rsl_stderr" -a "$file" != "$joboption_rsl_gmlog"
+    if test "$file" != "$joboption_stdout" -a "$file" != "$joboption_stderr" -a "$file" != "$joboption_gmlog"
     then
       echo "#GRIDFACTORY -o $file" >> $LRMS_JOB_SCRIPT
     fi
@@ -160,11 +140,7 @@ echo "exit \$exitcode" >> $LRMS_JOB_SCRIPT
 #   Execute psub command
 #######################################
 
-# Setting up psub commands
-GF_PSUB="psub.sh $inputfiles -b localhost"
-if [ -n "$GF_BIN_PATH" ] ; then
-  GF_PSUB=${GF_BIN_PATH}/${GF_PSUB}
-fi
+GF_PSUB="$GF_BIN_PATH/psub.sh $inputfiles -b localhost"
 
 cd "$joboption_directory"
 echo $GF_PSUB $LRMS_JOB_SCRIPT 1>&2
