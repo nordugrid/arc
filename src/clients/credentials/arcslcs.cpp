@@ -91,6 +91,7 @@ void handleSLCS() {
     std::ofstream out_key(key_path.c_str(), std::ofstream::out);
     out_key.write(private_key.c_str(), private_key.size());
     out_key.close();
+    std::cout<<"Write key to file: "<<key_path<<std::endl;
 
     //Send soap message to service, implicitly including the SAML2SSO profile
 
@@ -107,7 +108,7 @@ void handleSLCS() {
 
     Arc::PayloadSOAP *resp_soap = NULL;
     if (client_soap) {
-      Arc::MCC_Status status = client_soap->process(&req_soap, &resp_soap, idp_name, username, password);
+      Arc::MCC_Status status = client_soap->process(&req_soap, &resp_soap, idp_name, username, password);//, true);
       if (!status) {
         logger.msg(Arc::ERROR, "SOAP with SAML2SSO invokation failed");
         delete client_soap;
@@ -131,6 +132,7 @@ void handleSLCS() {
     std::ofstream out_cert(cert_path.c_str(), std::ofstream::out);
     out_cert.write(cert_str.c_str(), cert_str.size());
     out_cert.close();
+    std::cout<<"Write certificate to file: "<<cert_path<<std::endl;
 
     char ca_name[20];
     if (!ca_str.empty()) {
