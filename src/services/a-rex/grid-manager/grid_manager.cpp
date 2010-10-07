@@ -49,6 +49,7 @@ static void* cache_func(void* arg) {
   // run cache cleaning periodically 
   for(;;) {
     // go through each user and clean their caches. One user is processed per clean period
+    bool have_caches = false;
     for (JobUsers::const_iterator cacheuser = users->begin(); cacheuser != users->end(); ++cacheuser) {
       int exit_code = -1;
       // if previous process has not finished
@@ -66,6 +67,7 @@ static void* cache_func(void* arg) {
         // get the cache dirs
         std::vector<std::string> cache_info_dirs = cache_info.getCacheDirs();
         if (cache_info_dirs.empty()) continue;
+        have_caches = true;
         
         // in arc.conf % of used space is given, but cleanbyage uses % of free space
         std::string minfreespace = Arc::tostring(100-cache_info.getCacheMax());
@@ -105,6 +107,7 @@ static void* cache_func(void* arg) {
       };
       for(unsigned int t=CACHE_CLEAN_PERIOD;t;) t=sleep(t);
     };
+    if(!have_caches) break;
   };
   return NULL;
 }
