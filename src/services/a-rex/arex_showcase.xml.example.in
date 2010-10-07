@@ -223,8 +223,8 @@ appropiate.
           <lrms:lsf_architecture>ia64</lrms:lsf_architecture>
           <lrms:ll_bin_path>/opt/ibmll/LoadL/full/bin</lrms:ll_bin_path>
           <lrms:ll_consumable_resources>yes</lrms:ll_consumable_resources>
-          <lrms:SLURM_bin_path>/usr/bin</lrms:SLURM_bin_path>
-          <lrms:SLURM_wakeupperiod>30</lrms:SLURM_wakeupperiod>
+          <lrms:slurm_bin_path>/usr/bin</lrms:slurm_bin_path>
+          <lrms:slurm_wakeupperiod>30</lrms:slurm_wakeupperiod>
       </arex:LRMS>
 
       <arex:InfoProvider>

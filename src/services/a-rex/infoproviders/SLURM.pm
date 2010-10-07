@@ -29,7 +29,7 @@ our(%scont_config, %scont_part, %scont_jobs, %scont_nodes, %sinfo_cpuinfo);
 
 sub slurm_read_config($){
     my ($config) = shift;
-    my ($path) = ($$config{SLURM_bin_path} or "/usr/bin");
+    my ($path) = ($$config{slurm_bin_path} or "/usr/bin");
     # get SLURM config, store dictionary in scont_config
     my %scont_config;
     open (SCPIPE,"$path/scontrol show config| grep -Ev \"primary|Configuration|^\$\"|");
@@ -53,7 +53,7 @@ sub get_variable($$){
 }
 sub slurm_read_jobs($){
     my ($config) = shift;
-    my ($path) = ($$config{SLURM_bin_path} or "/usr/bin");
+    my ($path) = ($$config{slurm_bin_path} or "/usr/bin");
     # get SLURM jobs, store dictionary in scont_jobs
     my %scont_jobs;
     open (SCPIPE,"$path/squeue -a -h -t all -o \"JobId=%i TimeUsed=%M Partition=%P JobState=%T ReqNodes=%D ReqCPUs=%C TimeLimit=%l Name=%j NodeList=%N\"|");
@@ -86,7 +86,7 @@ sub slurm_read_jobs($){
 
 sub slurm_read_partitions($){
     my ($config) = shift;
-    my ($path) = ($$config{SLURM_bin_path} or "/usr/bin");
+    my ($path) = ($$config{slurm_bin_path} or "/usr/bin");
     # get SLURM partitions, store dictionary in scont_part
     my %scont_part;
     open (SCPIPE,"$path/sinfo -a -h -o \"PartitionName=%P TotalCPUs=%C TotalNodes=%D MaxTime=%l\"|");
@@ -124,7 +124,7 @@ sub slurm_read_partitions($){
 
 sub slurm_read_cpuinfo($){
     my ($config) = shift;
-    my ($path) = ($$config{SLURM_bin_path} or "/usr/bin");
+    my ($path) = ($$config{slurm_bin_path} or "/usr/bin");
     # get SLURM partitions, store dictionary in scont_part
     my %sinfo_cpuinfo;
     my $cpuinfo;
@@ -146,7 +146,7 @@ sub slurm_read_cpuinfo($){
 
 sub slurm_read_nodes($){
     my ($config) = shift;
-    my ($path) = ($$config{SLURM_bin_path} or "/usr/bin");
+    my ($path) = ($$config{slurm_bin_path} or "/usr/bin");
     # get SLURM nodes, store dictionary in scont_nodes
     my %scont_nodes;
     open (SCPIPE,"$path/sinfo -e -a -h -o \"NodeList=%N CPUs=%c RealMemory=%m\"|");
@@ -296,7 +296,7 @@ sub cluster_info ($) {
 
     # config array
     my ($config) = shift;
-    my ($path) = ($$config{SLURM_bin_path} or "/usr/bin");
+    my ($path) = ($$config{slurm_bin_path} or "/usr/bin");
     # Get Data needed by this function, stored in the global variables
     # scont_nodes, scont_part, scont_jobs
     slurm_get_data($config);
@@ -361,7 +361,7 @@ sub queue_info ($$) {
 
     # config array
     my ($config) = shift;
-    my ($path) = ($$config{SLURM_bin_path} or "/usr/bin");
+    my ($path) = ($$config{slurm_bin_path} or "/usr/bin");
 
     # Name of the queue to query
     my ($queue) = shift;
@@ -423,7 +423,7 @@ sub jobs_info ($$$) {
 
     # config array
     my ($config) = shift;
-    my ($path) = ($$config{SLURM_bin_path} or "/usr/bin");
+    my ($path) = ($$config{slurm_bin_path} or "/usr/bin");
     # Name of the queue to query
     my ($queue) = shift;
     # LRMS job IDs from Grid Manager (jobs with "INLRMS" GM status)
@@ -490,7 +490,7 @@ sub jobs_info ($$$) {
 sub users_info($$@) {
     # config array
     my ($config) = shift;
-    my ($path) = ($$config{SLURM_bin_path} or "/usr/bin");
+    my ($path) = ($$config{slurm_bin_path} or "/usr/bin");
     # name of queue to query
     my ($queue) = shift;
     # user accounts 

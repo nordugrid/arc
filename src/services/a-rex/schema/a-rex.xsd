@@ -104,7 +104,7 @@
                   * condor_location="/opt/condor"
                   * condor_config="/opt/condor/etc/condor_config"
                   * condor_rank="(1-LoadAvg/2)*(1-LoadAvg/2)*Memory/1000*KFlops/1000000"
-                  * SLURM_bin_path="/usr/bin"
+                  * slurm_bin_path="/usr/bin"
                   * sge_bin_path="/opt/n1ge6/bin/lx24-x86"
                   * sge_root="/opt/n1ge6"
                   * sge_cell="default"

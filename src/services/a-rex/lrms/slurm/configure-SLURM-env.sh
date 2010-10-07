@@ -22,9 +22,14 @@ if [ ! -z "$joboption_queue" ]; then
   config_import_section "queue/$joboption_queue"
 fi
 
+# Workaround to smoothen transition to lowercase option names
+CONFIG_slurm_bin_path=$CONFIG_SLURM_bin_path
+CONFIG_slurm_wakeupperiod=$CONFIG_SLURM_wakeupperiod
+CONFIG_slurm_project=$CONFIG_SLURM_project
+
 # Path to slurm commands
-#SLURM_BIN_PATH=${SLURM_BIN_PATH:-$CONFIG_SLURM_bin_path}
-SLURM_BIN_PATH=${CONFIG_SLURM_bin_path:-/usr/bin}
+#SLURM_BIN_PATH=${SLURM_BIN_PATH:-$CONFIG_slurm_bin_path}
+SLURM_BIN_PATH=${CONFIG_slurm_bin_path:-/usr/bin}
 if [ ! -d ${SLURM_BIN_PATH} ] ; then
     echo "Could not set SLURM_BIN_PATH." 1>&2
     exit 1

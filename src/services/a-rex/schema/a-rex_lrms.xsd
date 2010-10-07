@@ -156,21 +156,21 @@
         </xsd:annotation>
     </xsd:element>
 
-    <xsd:element name="SLURM_bin_path" type="xsd:string">
+    <xsd:element name="slurm_bin_path" type="xsd:string">
         <xsd:annotation>
             <xsd:documentation xml:lang="en">
             </xsd:documentation>
         </xsd:annotation>
     </xsd:element>
 
-    <xsd:element name="SLURM_wakeupperiod" type="xsd:string">
+    <xsd:element name="slurm_wakeupperiod" type="xsd:string">
         <xsd:annotation>
             <xsd:documentation xml:lang="en">
             </xsd:documentation>
         </xsd:annotation>
     </xsd:element>
 
-    <xsd:element name="SLURM_project" type="xsd:string">
+    <xsd:element name="slurm_project" type="xsd:string">
         <xsd:annotation>
             <xsd:documentation xml:lang="en">
                 SLURM project associated to a clusterShare
