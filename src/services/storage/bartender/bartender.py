@@ -40,7 +40,7 @@ class Bartender:
         self.ssl_config = ssl_config
         
         try:
-            self.isis_checking_period = float(str(cfg.Get('ISISCheckginPeriod')));
+            self.isis_checking_period = float(str(cfg.Get('ISISCheckingPeriod')));
         except:
             self.isis_checking_period = 120;
             
