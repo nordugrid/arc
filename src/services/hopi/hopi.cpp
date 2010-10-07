@@ -415,7 +415,7 @@ Hopi::Hopi(Arc::Config *cfg):RegisteredService(cfg),slave_mode(false)
         doc_root = "./";
     }
     logger.msg(Arc::INFO, "Hopi DocumentRoot is " + doc_root);
-    slave_mode = (((std::string)((*cfg)["SlaveMode"])) == "1");
+    slave_mode = (((std::string)((*cfg)["SlaveMode"])) == "1" || ((std::string)((*cfg)["SlaveMode"])) == "yes");
     if (slave_mode) logger.msg(Arc::INFO, "Hopi SlaveMode is on!");
     int timeout;
     if(Arc::stringto((std::string)((*cfg)["UploadTimeout"]),timeout)) {
