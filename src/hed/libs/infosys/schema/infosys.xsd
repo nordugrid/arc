@@ -13,13 +13,13 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
-
+ 
             <xsd:element name="URL" type="xsd:string" minOccurs="1" maxOccurs="unbounded"> 
                 <xsd:annotation>
                     <xsd:documentation xml:lang="en">
-                     URL specifies contact endpoint of a bootstrap Information 
-                     Registration service. Further ISIS addresses will be queried 
-                     from this service.
+                        URL specifies contact endpoint of a bootstrap Information 
+                        Registration service. Further ISIS addresses will be queried 
+                        from this service.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -27,11 +27,49 @@
             <xsd:element name="Retry" type="xsd:string" minOccurs="0" maxOccurs="1" default="5">
                 <xsd:annotation>
                     <xsd:documentation xml:lang="en">
-                     Retry count. Specified how many times have an ISIS to timeout to handle it as 
-                     unavailable. If there is no value specified the default value: 5 will be used. 
+                        Retry count. Specifies how many times the InfoRegister retries
+                        connecting to an ISIS before treats it as unavailable.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+
+            <xsd:element name="Endpoint" type="xsd:string" minOccurs="1" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation xml:lang="en">
+                        This element defines URL of the service as seen from outside.
+                        Custom value for this Registrar.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+
+            <xsd:element name="ServiceID" type="xsd:string" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation xml:lang="en">
+                        Element defines the unique id of the service propagated outside.
+                        Custom value for this Registrar.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+
+            <xsd:element name="Expiration" type="xsd:duration" minOccurs="1" maxOccurs="1" default="PT10M">
+                <xsd:annotation>
+                    <xsd:documentation xml:lang="en">
+                        This element defines the expiration time of the
+                        information provided by the service (at least 2 minutes).
+                        Custom value for this Registrar.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            
+            <xsd:element name="Period" type="xsd:duration" minOccurs="1" maxOccurs="1" default="PT3M">
+                <xsd:annotation>
+                    <xsd:documentation xml:lang="en">
+                        Period specifies how often registration has to be done (at least 2 minutes).
+                        Custom value for this Registrar.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+
 
             <xsd:element name="KeyPath" type="xsd:string"  minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
@@ -71,8 +109,8 @@
                      Optional CACertificatePath for SSL connection
                     </xsd:documentation>
                 </xsd:annotation>
-            </xsd:element>
-            
+            </xsd:element>        
+              
         </xsd:sequence>
     </xsd:complexType>
 
@@ -86,6 +124,7 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
+        
             <xsd:element name="Endpoint" type="xsd:string" minOccurs="1" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation xml:lang="en">
