@@ -133,8 +133,6 @@ for ctr_dir in $control_dir ; do
             [ -n "$walltime" ] && WallTime=$walltime
             #[ -n "$cputime" ] && UserTime=$cputime
             #[ -n "$cputime" ] && KernelTime=0
-            [ -n "$starttime" ] && LRMSStartTime=$starttime
-            [ -n "$endtime" ] && LRMSEndTime=$endtime
 
             job_write_diag
 	fi
