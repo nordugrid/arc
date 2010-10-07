@@ -58,7 +58,7 @@ class Shepherd:
         try:
             self.creating_timeout = float(str(cfg.Get('CreatingTimeout')))
         except:
-            self.creating_timeout = 0
+            self.creating_timeout = 600
             
         try:
             self.checksum_lifetime = float(str(cfg.Get('ChecksumLifetime')))
@@ -186,9 +186,11 @@ class Shepherd:
                     #print 'reporting', self.serviceID, filelist
                     # call the report method of the librarian with the collected filelist and with our serviceID
                     try:
+                        log.msg(arc.DEBUG, 'Shepherd', self.serviceID, 'calling Librarian with file list', filelist)
                         next_report = self.librarian.report(self.serviceID, filelist)
+                        log.msg(arc.DEBUG, 'Shepherd', self.serviceID, 'got reply from Librarian', next_report)
                     except:
-                        log.msg(arc.VERBOSE, 'Error sending report message to the Librarian, reason:', traceback.format_exc())
+                        log.msg(arc.WARNING, 'Error sending report message to the Librarian, reason:', traceback.format_exc())
                         # if next_report is below zero, then we will send everything again
                         next_report = -1
                     # we should get the time of the next report
