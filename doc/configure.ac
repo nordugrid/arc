@@ -12,14 +12,12 @@ AC_PROG_LN_S
 
 # Checks for libraries.
 AC_CHECK_PROGS(PDFLATEX, pdflatex)
-AC_CHECK_PROGS(DOXYGEN, doxygen)
 AC_CHECK_PROGS(DOT, dot)
 if test "x$PDFLATEX" = "x"; then
   enable_doc="no"
   AC_MSG_NOTICE([WARNING: Missing pdflatex - documentation won't be built])
 elif test "x$DOXYGEN" = "x"; then
   enable_doc="no"
-  AC_MSG_NOTICE([WARNING: Missing doxygen - documentation won't be built])
 elif test "x$DOT" = "x"; then
   enable_doc="no"
   AC_MSG_NOTICE([WARNING: Missing dot - documentation won't be built])
@@ -35,7 +33,6 @@ AC_SUBST(DOXYGEN)
 AC_CONFIG_FILES([Makefile
                  tech_doc/Makefile
                  tech_doc/client/Makefile
-                 tech_doc/doxygen/Makefile
                  tech_doc/a-rex/Makefile
                  tech_doc/gridftpd/Makefile
                  tech_doc/hed/Makefile

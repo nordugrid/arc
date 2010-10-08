@@ -1,11 +1,15 @@
 if HED_ENABLED
+if DOC_ENABLED
+BUILD_SOURCES = hed tests services clients utils doxygen
+else
 BUILD_SOURCES = hed tests services clients utils
+endif
 else
 BUILD_SOURCES =
 endif
 
 SUBDIRS = $(BUILD_SOURCES)
-DIST_SUBDIRS = hed tests services clients utils
+DIST_SUBDIRS = hed tests services clients utils doxygen
 
 # This won't work in case of cross-compilation. Please
 # some autotools experts fix it.

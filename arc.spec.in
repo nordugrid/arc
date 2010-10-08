@@ -843,6 +843,11 @@ exit 0
 %config %{_sysconfdir}/logrotate.d/nordugrid-arc-nox-arex
 %dir %{_localstatedir}/log/arc
 
+%files doxygen
+%doc src/doxygen/ARC1-API.pdf
+%doc src/doxygen/ARC1-ChainComponents.pdf
+%doc src/doxygen/ARC1-Services.pdf
+
 %files devel
 %defattr(-,root,root,-)
 %{_includedir}/%{pkgdir}
@@ -937,9 +942,6 @@ exit 0
 
 %files doc
 %defattr(-,root,root,-)
-%doc doc/tech_doc/doxygen/ARC1-API.pdf
-%doc doc/tech_doc/doxygen/ARC1-ChainComponents.pdf
-%doc doc/tech_doc/doxygen/ARC1-Services.pdf
 %doc doc/tech_doc/hed/ARCHED_article.pdf
 %doc doc/tech_doc/chelonia/arc-storage-documentation.pdf
 %doc doc/tech_doc/a-rex/arex_tech_doc.pdf

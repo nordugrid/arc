@@ -2112,6 +2112,7 @@ AC_CONFIG_FILES([Makefile
                  src/hed/profiles/SecureComputingElementWithMapfile/SecureComputingElementWithMapfile.ini
                  src/hed/profiles/SecureP2PIIS/SecureP2PIIS.xml
                  src/hed/profiles/SecureStandaloneIIS/SecureStandaloneIIS.xml
+                 src/doxygen/Makefile
 ])
 AC_OUTPUT
 
