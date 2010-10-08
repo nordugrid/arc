@@ -5,6 +5,8 @@ doc_DATA = ARC1-API.pdf ARC1-Services.pdf ARC1-ChainComponents.pdf
 ARC1-API.pdf: Doxyfile.api
 	doxygen Doxyfile.api && make -C latex && cp latex/refman.pdf $@
 	rm -rf latex
+	python doxy2swig.py xml/index.xml ../../swig/pydoxygen.i
+	rm -rf xml
 
 ARC1-Services.pdf: Doxyfile.services
 	doxygen Doxyfile.services && make -C latex && cp latex/refman.pdf $@

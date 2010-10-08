@@ -10,6 +10,9 @@
 
 #ifdef SWIGPYTHON
 %include <std_list.i>
+#ifdef PYDOXYGEN
+%include "pydoxygen.i"
+#endif
 #endif
 
 #ifdef SWIGJAVA

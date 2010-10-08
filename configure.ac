@@ -1431,6 +1431,7 @@ fi
 AC_MSG_NOTICE([Documentation enabled: $enables_doc])
 AM_CONDITIONAL([DOC_ENABLED],[test "x$enables_doc" = "xyes"])
 
+AM_CONDITIONAL([PYDOXYGEN],[test "x$enables_doc" = "xyes" -a "x$enables_swig" = "xyes" -a "x$enables_python" = "xyes"])
 
 # Check for explicitely and implicitely disabled services
 if test "x$WIN32" = "xyes" ; then
