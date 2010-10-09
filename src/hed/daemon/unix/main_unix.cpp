@@ -41,6 +41,14 @@ static void shutdown(int)
     _exit(exit_code);
 }
 
+static Arc::LogFile* sighup_dest = NULL;
+
+static void sighup_handler(int) {
+  if(!sighup_dest) return;
+  sighup_dest->setReopen(true);
+  sighup_dest->setReopen(false);
+}
+
 static void merge_options_and_config(Arc::Config& cfg, Arc::ServerOptions& opt)
 {
     Arc::XMLNode srv = cfg["Server"];
@@ -115,12 +123,13 @@ static std::string init_logger(Arc::XMLNode log, bool foreground)
 	sd->setMaxSize(maxsize);
       }
     }
+    bool reopen_b = false;
     if(log["Reopen"]) {
       std::string reopen = (std::string)(log["Reopen"]);
-      bool reopen_b = false;
       if((reopen == "true") || (reopen == "1")) reopen_b = true;
       sd->setReopen(reopen_b);
     }
+    if(!reopen_b) sighup_dest = sd;
     Arc::Logger::rootLogger.removeDestinations();
     Arc::Logger::rootLogger.addDestination(*sd);
     if (foreground) {
@@ -213,6 +222,7 @@ int main(int argc, char **argv)
     // Ignore some signals
     signal(SIGTTOU,SIG_IGN);
     signal(SIGPIPE,SIG_IGN);
+    signal(SIGHUP,&sighup_handler);
     // Temporary stderr destination for error messages
     Arc::LogStream logcerr(std::cerr);
     Arc::Logger::getRootLogger().addDestination(logcerr);
