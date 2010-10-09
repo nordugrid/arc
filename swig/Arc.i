@@ -11,7 +11,7 @@
 #ifdef SWIGPYTHON
 %include <std_list.i>
 #ifdef PYDOXYGEN
-%include "pydoxygen.i"
+%include "../src/doxygen/pydoxygen.i"
 #endif
 #endif
 
