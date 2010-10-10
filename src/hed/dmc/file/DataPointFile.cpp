@@ -309,6 +309,88 @@ namespace Arc {
     return DataStatus::Success;
   }
 
+  static DataStatus do_stat(const std::string& path, FileInfo& file, DataPoint::DataPointInfoType verb) {
+    struct stat st;
+    if (stat(path.c_str(), &st) != 0) {
+      return DataStatus::ListError;
+    }
+    if(S_ISREG(st.st_mode)) {
+      file.SetType(FileInfo::file_type_file);
+      file.SetMetaData("type", "file");
+    } else if(S_ISDIR(st.st_mode)) {
+      file.SetType(FileInfo::file_type_dir);
+      file.SetMetaData("type", "dir");
+    } else {
+      file.SetType(FileInfo::file_type_unknown);
+    }
+    file.SetMetaData("path", path);
+    file.SetSize(st.st_size);
+    file.SetMetaData("size", tostring(st.st_size));
+    file.SetCreated(st.st_mtime);
+    file.SetMetaData("mtime", (Time(st.st_mtime)).str());
+    file.SetMetaData("atime", (Time(st.st_atime)).str());
+    file.SetMetaData("ctime", (Time(st.st_ctime)).str());
+    file.SetMetaData("group", tostring(st.st_gid));
+    file.SetMetaData("owner", tostring(st.st_uid));
+    std::string perms;
+    if (st.st_mode & S_IRUSR) perms += 'r'; else perms += '-';
+    if (st.st_mode & S_IWUSR) perms += 'w'; else perms += '-';
+    if (st.st_mode & S_IXUSR) perms += 'x'; else perms += '-';
+#ifndef WIN32
+    if (st.st_mode & S_IRGRP) perms += 'r'; else perms += '-';
+    if (st.st_mode & S_IWGRP) perms += 'w'; else perms += '-';
+    if (st.st_mode & S_IXGRP) perms += 'x'; else perms += '-';
+    if (st.st_mode & S_IROTH) perms += 'r'; else perms += '-';
+    if (st.st_mode & S_IWOTH) perms += 'w'; else perms += '-';
+    if (st.st_mode & S_IXOTH) perms += 'x'; else perms += '-';
+#endif
+    file.SetMetaData("accessperm", perms);
+    return DataStatus::Success;
+  }
+
+  DataStatus DataPointFile::Stat(FileInfo& file, DataPointInfoType verb) {
+    std::string name = url.Path();
+    std::string::size_type p = name.rfind(G_DIR_SEPARATOR);
+    while(p != std::string::npos) {
+      if(p != (name.length()-1)) {
+        name = name.substr(p);
+        break;
+      }
+      name.resize(p);
+      p = name.rfind(G_DIR_SEPARATOR);
+    }
+    file.SetName(name);
+    if(!do_stat(url.Path(), file, verb)) {
+      logger.msg(INFO, "Can't stat file: %s", url.Path());
+      return DataStatus::ListError;
+    }
+    SetSize(file.GetSize());
+    SetCreated(file.GetCreated());
+    return DataStatus::Success;
+  }
+
+  DataStatus DataPointFile::List(std::list<FileInfo>& files, DataPointInfoType verb) {
+    FileInfo file;
+    if(!Stat(file, verb)) return DataStatus::ListError;
+    if(file.GetType() != FileInfo::file_type_dir) return DataStatus::ListError;
+    try {
+      Glib::Dir dir(url.Path());
+      std::string file_name;
+      while ((file_name = dir.read_name()) != "") {
+        std::string fname = url.Path() + G_DIR_SEPARATOR_S + file_name;
+        std::list<FileInfo>::iterator f =
+          files.insert(files.end(), FileInfo(file_name.c_str()));
+        if (verb & (INFO_TYPE_TYPE | INFO_TYPE_TIMES | INFO_TYPE_CONTENT | INFO_TYPE_ACL)) {
+          do_stat(fname, *f, verb);
+        }
+      }
+    } catch (Glib::FileError& e) {
+      logger.msg(INFO, "Failed to read object %s", url.Path());
+      return DataStatus::ListError;
+    }
+    return DataStatus::Success;
+  }
+
   DataStatus DataPointFile::Remove() {
     if (reading)
       return DataStatus::IsReadingError;
@@ -535,6 +617,7 @@ namespace Arc {
     return DataStatus::Success;
   }
 
+/*
   DataStatus DataPointFile::ListFiles(std::list<FileInfo>& files,
                                       bool long_list,
                                       bool resolve,
@@ -617,6 +700,7 @@ namespace Arc {
     }
     return DataStatus::Success;
   }
+*/
 
   bool DataPointFile::WriteOutOfOrder() {
     if (!url)

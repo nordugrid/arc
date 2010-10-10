@@ -677,7 +677,11 @@ namespace Arc {
       logger.msg(INFO, "Unable to list files at %s", dir.str());
       return files;
     }
-    handle->ListFiles(outputfiles, true, false, false);
+    if(!handle->List(outputfiles, (Arc::DataPoint::DataPointInfoType)
+                                  (DataPoint::INFO_TYPE_NAME | DataPoint::INFO_TYPE_TYPE))) {
+      logger.msg(INFO, "Unable to list files at %s", dir.str());
+      return files;
+    }
 
     for (std::list<FileInfo>::iterator i = outputfiles.begin();
          i != outputfiles.end(); i++) {

@@ -15,17 +15,20 @@
 #include <arc/UserConfig.h>
 #include <arc/credential/Credential.h>
 #include <arc/data/DataHandle.h>
+#include <arc/data/DataPoint.h>
 #include <arc/OptionParser.h>
 
 static Arc::Logger logger(Arc::Logger::getRootLogger(), "arcls");
 
-bool arcls(const Arc::URL& dir_url,
+static bool arcls(const Arc::URL& dir_url,
            const Arc::UserConfig& usercfg,
-           bool show_details,
-           bool show_urls,
-           bool show_meta,
-           int recursion,
-           int timeout) {
+           bool show_details, // longlist
+           bool show_urls,    // locations
+           bool show_meta,    // metadata
+           bool no_list,      // nolist
+           bool check_access, // checkaccess
+           int recursion,     // recursion 
+           int timeout) {     // timeout
   if (!dir_url) {
     logger.msg(Arc::ERROR, "Invalid URL: %s", dir_url.fullstr());
     return false;
@@ -40,8 +43,8 @@ bool arcls(const Arc::URL& dir_url,
     bool r = true;
     for (std::list<Arc::URL>::iterator dir = dirs.begin();
          dir != dirs.end(); dir++)
-      if(!arcls(*dir, usercfg, show_details, show_urls, show_meta,
-               recursion, timeout)) r = false;
+      if(!arcls(*dir, usercfg, show_details, show_urls, show_meta, no_list,
+               check_access, recursion, timeout)) r = false;
     return r;
   }
 
@@ -55,22 +58,63 @@ bool arcls(const Arc::URL& dir_url,
     logger.msg(Arc::ERROR, "Unsupported URL given");
     return false;
   }
+
+  if(check_access) {
+    std::cout << dir_url << " - ";
+    if(url->Check()) {
+      std::cout << "passed" << std::endl;
+      return true;
+    } else {
+      std::cout << "failed" << std::endl;
+      return false;
+    }
+  }
+
+  Arc::DataPoint::DataPointInfoType verb = (Arc::DataPoint::DataPointInfoType)
+                                           (Arc::DataPoint::INFO_TYPE_MINIMAL |
+                                            Arc::DataPoint::INFO_TYPE_NAME);
+  if(show_urls) verb = (Arc::DataPoint::DataPointInfoType)
+                       (verb | Arc::DataPoint::INFO_TYPE_STRUCT);
+  if(show_meta) verb = (Arc::DataPoint::DataPointInfoType)
+                       (verb | Arc::DataPoint::INFO_TYPE_REST);
+  if(show_details) verb = (Arc::DataPoint::DataPointInfoType)
+                          (verb |
+                           Arc::DataPoint::INFO_TYPE_TYPE |
+                           Arc::DataPoint::INFO_TYPE_TIMES |
+                           Arc::DataPoint::INFO_TYPE_CONTENT |
+                           Arc::DataPoint::INFO_TYPE_ACL); 
+  if(recursion > 0) verb = (Arc::DataPoint::DataPointInfoType)
+                           (verb | Arc::DataPoint::INFO_TYPE_TYPE);
+
+  Arc::DataStatus res;
+  Arc::FileInfo file;
   std::list<Arc::FileInfo> files;
   url->SetSecure(false);
-  Arc::DataStatus res = url->ListFiles(files, (show_details || recursion > 0), show_urls, show_meta);
+  if(no_list) {
+    res = url->Stat(file, verb);
+    if(res) {
+      files.push_back(file);
+    }
+  } else {
+    res = url->Stat(file, (Arc::DataPoint::DataPointInfoType)(verb | Arc::DataPoint::INFO_TYPE_TYPE));
+    if(file.GetType() == Arc::FileInfo::file_type_dir) {
+      res = url->List(files, verb);
+    }
+  }
   if (!res.Passed()) {
     if (files.size() == 0) {
-      logger.msg(Arc::ERROR, "Failed listing metafiles");
+      logger.msg(Arc::ERROR, "Failed listing files");
       if (res.Retryable())
         logger.msg(Arc::ERROR, "This seems like a temporary error, please try again later");
       return false;
     }
     logger.msg(Arc::INFO, "Warning: "
-               "Failed listing metafiles but some information is obtained");
+               "Failed listing files but some information is obtained");
   }
   for (std::list<Arc::FileInfo>::iterator i = files.begin();
        i != files.end(); i++) {
-    if(!show_meta || show_details || show_urls) std::cout << i->GetName();
+    //if(!show_meta || show_details || show_urls) std::cout << i->GetName();
+    std::cout << i->GetName();
     if (show_details) {
       switch (i->GetType()) {
       case Arc::FileInfo::file_type_file:
@@ -104,28 +148,39 @@ bool arcls(const Arc::URL& dir_url,
       if (i->CheckLatency())
         std::cout << " " << i->GetLatency();
     }
-    if(!show_meta || show_details || show_urls) std::cout << std::endl;
-    if (show_urls)
+    //if(!show_meta || show_details || show_urls) std::cout << std::endl;
+    std::cout << std::endl;
+    if (show_urls) {
       for (std::list<Arc::URL>::const_iterator u = i->GetURLs().begin();
            u != i->GetURLs().end(); u++)
         std::cout << "\t" << *u << std::endl;
+    }
     if (show_meta) {
       std::map<std::string, std::string> md = i->GetMetaData();
       for (std::map<std::string, std::string>::iterator mi = md.begin(); mi != md.end(); ++mi)
         std::cout<<mi->first<<":"<<mi->second<<std::endl;
     }
     // Do recursion
-    else if (recursion > 0)
+    if (recursion > 0) {
       if (i->GetType() == Arc::FileInfo::file_type_dir) {
         Arc::URL suburl = dir_url;
-        if (suburl.Path()[suburl.Path().length() - 1] != '/')
-          suburl.ChangePath(suburl.Path() + "/" + i->GetName());
-        else
-          suburl.ChangePath(suburl.Path() + i->GetName());
+        if(suburl.Protocol() != "file") {
+          if (suburl.Path()[suburl.Path().length() - 1] != '/')
+            suburl.ChangePath(suburl.Path() + "/" + i->GetName());
+          else
+            suburl.ChangePath(suburl.Path() + i->GetName());
+        } else {
+          if (suburl.Path()[suburl.Path().length() - 1] != G_DIR_SEPARATOR)
+            suburl.ChangePath(suburl.Path() + G_DIR_SEPARATOR_S + i->GetName());
+          else
+            suburl.ChangePath(suburl.Path() + i->GetName());
+        }
+        std::cout << std::endl;
         std::cout << suburl.str() << ":" << std::endl;
-        arcls(suburl, usercfg, show_details, show_urls, show_meta, recursion - 1, timeout);
+        arcls(suburl, usercfg, show_details, show_urls, show_meta, no_list, check_access, recursion - 1, timeout);
         std::cout << std::endl;
       }
+    }
   }
   return true;
 }
@@ -162,6 +217,14 @@ int main(int argc, char **argv) {
   options.AddOption('r', "recursive",
                     istring("operate recursively up to specified level"),
                     istring("level"), recursion);
+
+  bool nolist = false;
+  options.AddOption('n', "nolist", istring("show only description of requested object, do not list content of directories"),
+        nolist);
+
+  bool checkaccess = false;
+  options.AddOption('c', "checkaccess", istring("check readability of object, does not show any information about object"),
+        checkaccess);
 
   int timeout = 20;
   options.AddOption('t', "timeout", istring("timeout in seconds (default 20)"),
@@ -209,7 +272,7 @@ int main(int argc, char **argv) {
 
   std::list<std::string>::iterator it = params.begin();
 
-  if(!arcls(*it, usercfg, longlist, locations, metadata, recursion, timeout))
+  if(!arcls(*it, usercfg, longlist, locations, metadata, nolist, checkaccess, recursion, timeout))
     return 1;
 
   return 0;

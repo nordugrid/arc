@@ -338,7 +338,7 @@ namespace Arc {
             if (u.str().substr(0, b.size()) == b)
               url = u.str().substr(b.size());
           }
-          if (url[0] != '?' && url[0] != '/')
+          if (url[0] != '?' && url[0] != '/') {
             if (url.find('/') == url.size() - 1) {
               std::list<FileInfo>::iterator f = files.insert(files.end(), url);
               f->SetType(FileInfo::file_type_dir);
@@ -347,6 +347,7 @@ namespace Arc {
               std::list<FileInfo>::iterator f = files.insert(files.end(), url);
               f->SetType(FileInfo::file_type_file);
             }
+          }
         }
       }
       pos = tag_end + 1;
@@ -354,6 +355,154 @@ namespace Arc {
     return true;
   }
 
+  static DataStatus do_stat(const std::string& path, ClientHTTP& client, FileInfo& file) {
+    PayloadRaw request;
+    PayloadRawInterface *inbuf;
+    HTTPClientInfo info;
+    info.lastModified = (time_t)(-1);
+    // Do HEAD to obtain some metadata
+    MCC_Status r = client.process("HEAD", path, &request, &info, &inbuf);
+    if (inbuf) delete inbuf;
+    // TODO: handle redirects
+    if ((!r) || (info.code != 200)) return DataStatus::ListError;
+    // Fetch known metadata
+    file.SetMetaData("path", path);
+    std::string type = info.type;
+    std::string::size_type pos = type.find(';');
+    if (pos != std::string::npos) type = type.substr(0, pos);
+
+    // Treat every html as potential directory/set of links
+    if(type == "text/html") {
+      file.SetType(FileInfo::file_type_dir);
+      file.SetMetaData("type", "dir");
+    } else {
+      file.SetType(FileInfo::file_type_file);
+      file.SetMetaData("type", "file");
+    }
+    if(info.size != (uint64_t)(-1)) {
+      file.SetSize(info.size);
+      file.SetMetaData("size", tostring(info.size));
+    }
+    if(info.lastModified != (time_t)(-1)) {
+      file.SetCreated(info.lastModified);
+      file.SetMetaData("mtime", info.lastModified.str());
+    }
+    // Not sure
+    if(!info.location.empty()) file.AddURL(info.location);
+    return DataStatus::Success;
+  }
+
+  DataStatus DataPointHTTP::Stat(FileInfo& file, DataPointInfoType verb) {
+    // verb is not used
+    MCCConfig cfg;
+    usercfg.ApplyToConfig(cfg);
+    ClientHTTP client(cfg, url, usercfg.Timeout());
+
+    DataStatus r = do_stat(url.FullPath(), client, file);
+    if(!r) return r;
+    std::string name = url.FullPath();
+    std::string::size_type p = name.rfind('/');
+    while(p != std::string::npos) {
+      if(p != name.length()-1) {
+        name = name.substr(p+1);
+        break;
+      }
+      name.resize(p);
+      p = name.rfind('/');
+    }
+    file.SetName(name);
+    if(file.CheckSize()) {
+      size = file.GetSize();
+      logger.msg(VERBOSE, "Stat: obtained size %llu", size);
+    }
+    if(file.CheckCreated()) {
+      created = file.GetCreated();
+      logger.msg(VERBOSE, "Stat: obtained modification time %s", created.str());
+    }
+    return DataStatus::Success;
+  }
+
+  DataStatus DataPointHTTP::List(std::list<FileInfo>& files, DataPointInfoType verb) {
+    if (transfers_started != 0) return DataStatus::ListError;
+    URL curl = url;
+    MCCConfig cfg;
+    usercfg.ApplyToConfig(cfg);
+    ClientHTTP* client = new ClientHTTP(cfg, curl, usercfg.Timeout());
+
+    FileInfo file;
+    DataStatus r = do_stat(curl.FullPath(), *client, file);
+    if(!r) return r;
+    if(file.CheckSize()) size = file.GetSize();
+    if(file.CheckCreated()) created = file.GetCreated();
+    if(file.GetType() != FileInfo::file_type_dir) return DataStatus::ListError;
+
+    DataBuffer buffer;
+
+    // TODO: Reuse connection
+    if (!StartReading(buffer)) return DataStatus::ListError;
+
+    int handle;
+    unsigned int length;
+    unsigned long long int offset;
+    std::string result;
+
+    // TODO: limit size
+    while (buffer.for_write() || !buffer.eof_read()) {
+      if (buffer.for_write(handle, length, offset, true)) {
+        result.append(buffer[handle], length);
+        buffer.is_written(handle);
+      }
+    }
+
+    if (!StopReading()) return DataStatus::ListError;
+
+    bool is_html = false;
+    bool is_body = false;
+    std::string::size_type tagstart = 0;
+    std::string::size_type tagend = 0;
+    std::string::size_type titlestart = std::string::npos;
+    std::string::size_type titleend = std::string::npos;
+    do {
+      tagstart = result.find('<', tagend);
+      if (tagstart == std::string::npos) break;
+      tagend = result.find('>', tagstart);
+      if (tagend == std::string::npos) break;
+      std::string tag = result.substr(tagstart + 1, tagend - tagstart - 1);
+      std::string::size_type tag_e = tag.find(' ');
+      if (tag_e != std::string::npos) tag.resize(tag_e);
+      if (strcasecmp(tag.c_str(), "title") == 0) titlestart = tagend + 1;
+      else if (strcasecmp(tag.c_str(), "/title") == 0) titleend = tagstart - 1;
+      else if (strcasecmp(tag.c_str(), "html") == 0) is_html = true;
+      else if (strcasecmp(tag.c_str(), "body") == 0) is_body = is_html;
+    } while (!is_body);
+
+    std::string title;
+    if (titlestart != std::string::npos && titleend != std::string::npos)
+      title = result.substr(titlestart, titleend - titlestart + 1);
+
+    if (is_body) {
+      html2list(result.c_str(), url, files);
+      if(verb & (INFO_TYPE_TYPE | INFO_TYPE_TIMES | INFO_TYPE_CONTENT)) {
+        for(std::list<FileInfo>::iterator f = files.begin(); f != files.end(); ++f) {
+          URL furl(url.str()+'/'+(f->GetName()));
+          /* for future use
+          if((furl.Host() != curl.Host()) ||
+             (furl.Port() != curl.Port()) ||
+             (furl.Protocol() != curl.Protocol())) {
+            curl = furl;
+            delete client;
+            client = new ClientHTTP(cfg, curl, usercfg.Timeout());
+          }
+          */
+          FileInfo file;
+          do_stat(furl.FullPath(), *client, *f);
+        }
+      }
+    }
+    return DataStatus::Success;
+  }
+
+/*
   DataStatus DataPointHTTP::ListFiles(std::list<FileInfo>& files,
                                       bool long_list, bool resolve,
                                       bool metadata) {
@@ -470,6 +619,7 @@ namespace Arc {
 
     return DataStatus::Success;
   }
+*/
 
   DataStatus DataPointHTTP::StartReading(DataBuffer& buffer) {
     if (transfers_started != 0)
@@ -602,18 +752,15 @@ namespace Arc {
     ClientHTTP client(cfg, url, usercfg.Timeout());
     PayloadRaw request;
     PayloadRawInterface *inbuf;
-    HTTPClientInfo transfer_info;
-    // Do HEAD to obtain some metadata
-    MCC_Status r = client.process("HEAD", &request, &transfer_info, &inbuf);
+    HTTPClientInfo info;
+    MCC_Status r = client.process("GET", url.FullPath(), 0, 15,
+                                  &request, &info, &inbuf);
     if (inbuf)
       delete inbuf;
-    // Fail only if protocol involves authentication
-    if (((!r) || (transfer_info.code != 200)) &&
-        (url.Protocol() != "http"))
-      return DataStatus::CheckError;
-    size = transfer_info.size;
+    if ((!r) || ((info.code != 200) && (info.code != 206))) return DataStatus::CheckError;
+    size = info.size;
     logger.msg(VERBOSE, "Check: obtained size %llu", size);
-    created = transfer_info.lastModified;
+    created = info.lastModified;
     logger.msg(VERBOSE, "Check: obtained modification time %s", created.str());
     return DataStatus::Success;
   }

@@ -558,6 +558,34 @@ namespace Arc {
     return;
   }
 
+  DataStatus Stat(FileInfo& file, DataPointInfoType verb) {
+  }
+
+  DataStatus List(std::list<FileInfo>& files, DataPointInfoType verb) {
+    if (!ftp_active)
+      return DataStatus::NotInitializedError;
+    if (reading)
+      return DataStatus::IsReadingError;
+    if (writing)
+      return DataStatus::IsWritingError;
+    set_attributes();
+    Lister lister(*credential);
+    if (lister.retrieve_dir_info(url,!(long_list | resolve | metadata)) != 0) {
+      logger.msg(ERROR, "Failed to obtain listing from ftp: %s", url.str());
+      return DataStatus::ListError;
+    }
+    lister.close_connection();
+    DataStatus result = DataStatus::Success;
+    for (std::list<FileInfo>::iterator i = lister.begin();
+         i != lister.end(); ++i) {
+      std::list<FileInfo>::iterator f =
+        files.insert(files.end(), FileInfo(i->GetLastName()));
+
+
+
+    }
+  }
+
   DataStatus DataPointGridFTP::ListFiles(std::list<FileInfo>& files,
                                          bool long_list,
                                          bool resolve,
