@@ -17,9 +17,10 @@
             <xsd:element name="URL" type="xsd:string" minOccurs="1" maxOccurs="unbounded"> 
                 <xsd:annotation>
                     <xsd:documentation xml:lang="en">
-                        URL specifies contact endpoint of a bootstrap Information 
-                        Registration service. Further ISIS addresses will be queried 
-                        from this service.
+                        URL specifies an ISIS service, which will be used for bootstraping the registration process:
+                        it will be queried for a list of ISIS services, then one of these will be chosen and the registration
+                        will be sent to the chosen one until it is not available anymore, then another one will be chosen.
+                        If every ISIS on this list is unavailable, then the URL from the config will be used again.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
