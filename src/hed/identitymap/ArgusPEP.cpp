@@ -87,7 +87,9 @@ bool ArgusPEP::Handle(Arc::Message* msg) const{
     }
     rc= create_xacml_request(&request,subjectid,resourceid,actionid);
     if (rc != 0) {
-         logger.msg(Arc::INFO,"Failed to create XACML request\n" );
+         logger.msg(Arc::INFO,"Failed to create XACML request\n %d", rc);
+         logger.msg(Arc::INFO, "Subject ID: %s", subjectid);
+         
 	return false;
     }
     pep_rc= pep_authorize(&request,&response);
