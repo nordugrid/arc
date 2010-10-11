@@ -163,13 +163,13 @@ int ArgusPEP::create_xacml_request(xacml_request_t ** request,const char * subje
     xacml_subject_addattribute(subject,subject_attr_id); 
     xacml_resource_t * resource= xacml_resource_create();
     if (resource == NULL) {
-        logger.msg(Arc::DEBUG,"an not create XACML Resource \n");
+        logger.msg(Arc::DEBUG,"Can not create XACML Resource \n");
         xacml_subject_delete(subject);
         return 2;
     }
     xacml_attribute_t * resource_attr_id= xacml_attribute_create(XACML_RESOURCE_ID);
     if (resource_attr_id == NULL) {
-        logger.msg(Arc::DEBUG,"can not create XACML ResourceAttribute:%s\n",XACML_RESOURCE_ID);
+        logger.msg(Arc::DEBUG,"Can not create XACML ResourceAttribute:%s\n",XACML_RESOURCE_ID);
 	xacml_subject_delete(subject);
         xacml_resource_delete(resource);
         return 2;
@@ -178,7 +178,7 @@ int ArgusPEP::create_xacml_request(xacml_request_t ** request,const char * subje
     xacml_resource_addattribute(resource,resource_attr_id);
     xacml_action_t * action= xacml_action_create();
     if (action == NULL) {
-        logger.msg(Arc::DEBUG,"can not create XACML Action\n");
+        logger.msg(Arc::DEBUG,"Can not create XACML Action\n");
         xacml_subject_delete(subject);
         xacml_resource_delete(resource);
         return 3;
@@ -194,7 +194,7 @@ int ArgusPEP::create_xacml_request(xacml_request_t ** request,const char * subje
     xacml_action_addattribute(action,action_attr_id);
     *request= xacml_request_create();
     if (*request == NULL) {
-	logger.msg(Arc::DEBUG,"Can not creare XACML request\n");
+	logger.msg(Arc::DEBUG,"Can not create XACML request\n");
 	xacml_subject_delete(subject);
         xacml_resource_delete(resource);
         xacml_action_delete(action);
