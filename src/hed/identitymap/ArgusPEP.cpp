@@ -74,7 +74,7 @@ bool ArgusPEP::Handle(Arc::Message* msg) const{
 
     pep_rc= pep_initialize();
     if (pep_rc != PEP_OK) {
-       logger.msg(Arc::INFO,"Failed to initialize PEP client: %s\n", pep_strerror(pep_rc));
+       logger.msg(Arc::DEBUG,"Failed to initialize PEP client: %s\n", pep_strerror(pep_rc));
        return false;
     }
 
@@ -82,19 +82,19 @@ bool ArgusPEP::Handle(Arc::Message* msg) const{
     strcpy(pep_url,pepdlocation.c_str());
     pep_rc= pep_setoption(PEP_OPTION_ENDPOINT_URL,pep_url);
     if (pep_rc != PEP_OK) {
-       logger.msg(Arc::INFO,"Failed to set PEPd URL: '%s'",pep_url );
+       logger.msg(Arc::DEBUG,"Failed to set PEPd URL: '%s'",pep_url );
        return false;
     }
     rc= create_xacml_request(&request,subjectid,resourceid,actionid);
     if (rc != 0) {
-         logger.msg(Arc::INFO,"Failed to create XACML request\n %d", rc);
-         logger.msg(Arc::INFO, "Subject ID: %s", subjectid);
+         logger.msg(Arc::DEBUG,"Failed to create XACML request\n %d", rc);
+         logger.msg(Arc::DEBUG, "Subject ID: %s", subjectid);
          
 	return false;
     }
     pep_rc= pep_authorize(&request,&response);
     if (pep_rc != PEP_OK) {
-      logger.msg(Arc::INFO,"Failed to authorize XACML request: %s\n",pep_strerror(pep_rc));
+      logger.msg(Arc::DEBUG,"Failed to authorize XACML request: %s\n",pep_strerror(pep_rc));
        return false;
     }   
 
@@ -105,7 +105,7 @@ bool ArgusPEP::Handle(Arc::Message* msg) const{
 
     xacml_decision_t decision; 
     if (response== NULL) {
-            logger.msg (Arc::INFO, "Response is null");
+            logger.msg (Arc::DEBUG, "Response is null");
            return false;
       }
 
@@ -126,7 +126,7 @@ bool ArgusPEP::Handle(Arc::Message* msg) const{
     }
 
    if (decision != XACML_DECISION_PERMIT ){
-     logger.msg(Arc::INFO,"%s is not authorized", subjectid);
+     logger.msg(Arc::DEBUG,"%s is not authorized", subjectid);
       return false;   
    }	 
     // Delete resquest and response
@@ -136,10 +136,10 @@ bool ArgusPEP::Handle(Arc::Message* msg) const{
     // Release the PEP client 
     pep_rc= pep_destroy();
     if (pep_rc != PEP_OK) {
-        logger.msg(Arc::INFO,"Failed to release PEP client request: %s\n",pep_strerror(pep_rc));
+        logger.msg(Arc::DEBUG,"Failed to release PEP client request: %s\n",pep_strerror(pep_rc));
         return false;
     }
-    logger.msg(Arc::INFO,"Grid identity is mapped to local identity '%s'",local_id);
+    logger.msg(Arc::DEBUG,"Grid identity is mapped to local identity '%s'",local_id);
     msg->Attributes()->set("SEC:LOCALID",local_id);
 
      return true;
@@ -149,12 +149,12 @@ bool ArgusPEP::Handle(Arc::Message* msg) const{
 int ArgusPEP::create_xacml_request(xacml_request_t ** request,const char * subjectid, const char * resourceid, const char * actionid) const {
     xacml_subject_t * subject= xacml_subject_create();
     if (subject == NULL) {
-        logger.msg(Arc::INFO, "Subject of request is null \n");
+        logger.msg(Arc::DEBUG, "Subject of request is null \n");
         return 1;
     }
     xacml_attribute_t * subject_attr_id= xacml_attribute_create(XACML_SUBJECT_ID);
     if (subject_attr_id == NULL) {
-	logger.msg(Arc::INFO,"Can not create XACML SubjectAttribute:%s\n",XACML_SUBJECT_ID);
+	logger.msg(Arc::DEBUG,"Can not create XACML SubjectAttribute:%s\n",XACML_SUBJECT_ID);
         xacml_subject_delete(subject);
         return 1;
     }
@@ -163,13 +163,13 @@ int ArgusPEP::create_xacml_request(xacml_request_t ** request,const char * subje
     xacml_subject_addattribute(subject,subject_attr_id); 
     xacml_resource_t * resource= xacml_resource_create();
     if (resource == NULL) {
-        logger.msg(Arc::INFO,"an not create XACML Resource \n");
+        logger.msg(Arc::DEBUG,"an not create XACML Resource \n");
         xacml_subject_delete(subject);
         return 2;
     }
     xacml_attribute_t * resource_attr_id= xacml_attribute_create(XACML_RESOURCE_ID);
     if (resource_attr_id == NULL) {
-        logger.msg(Arc::INFO,"can not create XACML ResourceAttribute:%s\n",XACML_RESOURCE_ID);
+        logger.msg(Arc::DEBUG,"can not create XACML ResourceAttribute:%s\n",XACML_RESOURCE_ID);
 	xacml_subject_delete(subject);
         xacml_resource_delete(resource);
         return 2;
@@ -178,7 +178,7 @@ int ArgusPEP::create_xacml_request(xacml_request_t ** request,const char * subje
     xacml_resource_addattribute(resource,resource_attr_id);
     xacml_action_t * action= xacml_action_create();
     if (action == NULL) {
-        logger.msg(Arc::INFO,"can not create XACML Action\n");
+        logger.msg(Arc::DEBUG,"can not create XACML Action\n");
         xacml_subject_delete(subject);
         xacml_resource_delete(resource);
         return 3;
@@ -194,7 +194,7 @@ int ArgusPEP::create_xacml_request(xacml_request_t ** request,const char * subje
     xacml_action_addattribute(action,action_attr_id);
     *request= xacml_request_create();
     if (*request == NULL) {
-	logger.msg(Arc::INFO,"Can not creare XACML request\n");
+	logger.msg(Arc::DEBUG,"Can not creare XACML request\n");
 	xacml_subject_delete(subject);
         xacml_resource_delete(resource);
         xacml_action_delete(action);
