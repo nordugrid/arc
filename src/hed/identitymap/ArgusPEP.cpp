@@ -149,11 +149,12 @@ bool ArgusPEP::Handle(Arc::Message* msg) const{
 int ArgusPEP::create_xacml_request(xacml_request_t ** request,const char * subjectid, const char * resourceid, const char * actionid) const {
     xacml_subject_t * subject= xacml_subject_create();
     if (subject == NULL) {
+        logger.msg(Arc::INFO, "Subject of request is null \n");
         return 1;
     }
     xacml_attribute_t * subject_attr_id= xacml_attribute_create(XACML_SUBJECT_ID);
     if (subject_attr_id == NULL) {
-	logger.msg(Arc::DEBUG,"Can not create XACML SubjectAttribute:%s\n",XACML_SUBJECT_ID);
+	logger.msg(Arc::INFO,"Can not create XACML SubjectAttribute:%s\n",XACML_SUBJECT_ID);
         xacml_subject_delete(subject);
         return 1;
     }
