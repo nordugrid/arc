@@ -113,7 +113,9 @@ def cacheCheck(service, proxy, urls):
     cachefiles = {}
     for result in results:
         url = result.find('FileURL').text
-        incache = True if result.find('ExistInTheCache').text == 'true' else False
+        incache = False
+        if result.find('ExistInTheCache').text == 'true':
+            incache = True
         cachefiles[url] = incache 
 
     return cachefiles
@@ -156,7 +158,10 @@ def cacheLink(service, proxy, user, jobid, urls, dostage):
         addETElement(file, 'FileName', urls[url])
     addETElement(cachecheck, 'Username', user)
     addETElement(cachecheck, 'JobID', jobid)
-    addETElement(cachecheck, 'Stage', 'true' if dostage else 'false')
+    stage = 'false'
+    if dostage:
+        stage = 'true'
+    addETElement(cachecheck, 'Stage', stage)
         
     request = ET.tostring(soap)
         
