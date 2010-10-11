@@ -843,11 +843,6 @@ exit 0
 %config %{_sysconfdir}/logrotate.d/nordugrid-arc-nox-arex
 %dir %{_localstatedir}/log/arc
 
-%files doxygen
-%doc src/doxygen/ARC1-API.pdf
-%doc src/doxygen/ARC1-ChainComponents.pdf
-%doc src/doxygen/ARC1-Services.pdf
-
 %files devel
 %defattr(-,root,root,-)
 %{_includedir}/%{pkgdir}
@@ -956,6 +951,9 @@ exit 0
 %doc doc/manuals/ws-quick-guide/ws-quick-guide.pdf
 %doc doc/tutorials/ws-programming-tutorial/doc/WS-tutorial.pdf
 %doc doc/tech_doc/gridftpd/gridftpd.pdf
+%doc src/doxygen/ARC1-API.pdf
+%doc src/doxygen/ARC1-ChainComponents.pdf
+%doc src/doxygen/ARC1-Services.pdf
 
 %changelog
 * @SPECDATE@ Anders Waananen <waananen@nbi.dk> - @VERSION@-1
