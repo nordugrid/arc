@@ -107,11 +107,16 @@ class JobsList {
 
 };
 
+/**
+ * Class to represent information read from configuration.
+ */
 class JobsListConfig {
  friend class JobsList;
  private:
   /* number of jobs for every state */
   int jobs_num[JOB_STATE_NUM];
+  /* map of number of active jobs for each DN */
+  std::map<std::string, unsigned int> jobs_dn;
   int jobs_pending;
   /* maximal allowed values */
   int max_jobs_running;
@@ -138,41 +143,69 @@ class JobsListConfig {
   void SetMaxJobs(int max = -1,int max_running = -1) {
     max_jobs=max;
     max_jobs_running=max_running;
-  };
+  }
   void SetMaxJobsLoad(int max_processing = -1,int max_processing_emergency = 1,int max_down = -1) {
     max_jobs_processing=max_processing;
     max_jobs_processing_emergency=max_processing_emergency;
     max_downloads=max_down;
-  };
-  void GetMaxJobs(int &max,int &max_running) {
+  }
+  void GetMaxJobs(int &max,int &max_running) const {
     max=max_jobs;
     max_running=max_jobs_running;
-  };
-  void GetMaxJobsLoad(int &max_processing,int &max_processing_emergency,int &max_down) {
+  }
+  void GetMaxJobsLoad(int &max_processing,int &max_processing_emergency,int &max_down) const {
     max_processing=max_jobs_processing;
     max_processing_emergency=max_jobs_processing_emergency;
     max_down=max_downloads;
-  };
+  }
   void SetSpeedControl(unsigned long long int min=0,time_t min_time=300,unsigned long long int min_average=0,time_t max_time=300) {
     min_speed = min;
     min_speed_time = min_time;
     min_average_speed = min_average;
     max_inactivity_time = max_time;
-  };
+  }
+  void GetSpeedControl(unsigned long long int& min, time_t& min_time, unsigned long long int& min_average, time_t& max_time) const {
+    min = min_speed;
+    min_time = min_speed_time;
+    min_average = min_average_speed;
+    max_time = max_inactivity_time;
+  }
   void SetSecureTransfer(bool val) {
     use_secure_transfer=val;
-  };
+  }
+  bool GetSecureTransfer() const {
+    return use_secure_transfer;
+  }
   void SetPassiveTransfer(bool val) {
     use_passive_transfer=val;
-  };
+  }
+  bool GetPassiveTransfer() const {
+    return use_passive_transfer;
+  }
   void SetLocalTransfer(bool val) {
     use_local_transfer=val;
-  };
-  void SetWakeupPeriod(unsigned int t) { wakeup_period=t; };
-  unsigned int WakeupPeriod(void) { return wakeup_period; };
-  void SetMaxRetries(int r) { max_retries = r; };
-  int MaxRetries() { return max_retries; };
-  void SetPreferredPattern(const std::string& pattern) { preferred_pattern = pattern; };
+  }
+  bool GetLocalTransfer() const {
+    return use_local_transfer;
+  }
+  void SetWakeupPeriod(unsigned int t) {
+    wakeup_period=t;
+  }
+  unsigned int WakeupPeriod(void) const {
+    return wakeup_period;
+  }
+  void SetMaxRetries(int r) {
+    max_retries = r;
+  }
+  int MaxRetries() const {
+    return max_retries;
+  }
+  void SetPreferredPattern(const std::string& pattern) {
+    preferred_pattern = pattern;
+  }
+  std::string GetPreferredPattern() const {
+    return preferred_pattern;
+  }
   void SetTransferShare(unsigned int max_share, std::string type){
     max_processing_share = max_share;
     share_type = type;
