@@ -18,6 +18,11 @@ namespace Arc {
 
   Profile::~Profile() {}
 
+  /* From the space separated list of sections 'sections' this function sets the
+   * 'sectionName' variable to the first ini section existing in the
+   * IniConfig object 'ini'. The function returns true if one of the sections in
+   * space separated list 'sections' is found, otherwise false.
+   */
   static bool locateSection(const std::string& sections, IniConfig ini, std::string& sectionName) {
     std::list<std::string> sectionList;
     tokenize(sections, sectionList);
@@ -54,6 +59,24 @@ namespace Arc {
   static int MapTags(XMLNode node, const std::string& sections, const std::string& tag, const std::string& type, IniConfig iniNode, int nodePosition) {
     std::string sectionName = "";
     if (!locateSectionWithTag(sections, tag, iniNode, sectionName)) {
+      // initag not found in any sections.
+      if (node.Attribute("inidefaultvalue")) {
+        // Set the default value.
+        if (type == "attribute") {
+          node.Parent().NewAttribute(tag) = (std::string)node.Attribute("inidefaultvalue");
+        }
+        else if (type == "multi") {
+          node.Parent().NewChild(node.FullName(), nodePosition, true) = (std::string)node.Attribute("inidefaultvalue");
+        }
+        else {
+          node = (std::string)node.Attribute("inidefaultvalue");
+          node.Attribute("inidefaultvalue").Destroy();
+        }
+      }
+      else {
+        // No value allowed when inisections and initag is specified, unless specified in the INI file, or by the inidefaultvalue attribute.
+        node = "";
+      }
       return 0;
     }
 
@@ -103,9 +126,12 @@ namespace Arc {
       }
 
       const std::string childFullName = node.Child(i).FullName();
-      const std::string type = node.Child(i).Attribute("initype");
       const std::string sections = node.Child(i).Attribute("inisections");
       const std::string tag = node.Child(i).Attribute("initag");
+      // If inisections and initag attributes have been set, but not initype, then the initype is "single".
+      const std::string type = (!node.Child(i).Attribute("initype") &&
+                                 node.Child(i).Attribute("inisections") &&
+                                 node.Child(i).Attribute("initag") ? "single" : node.Child(i).Attribute("initype"));
 
       if (type.empty() && sections.empty() && tag.empty()) {
         if (node.Child(i).Size() == 0) {
@@ -135,19 +161,23 @@ namespace Arc {
           if (iniNode[thisSectionName][thisTagName][j]) {
             it->NewChild(childFullName) = (std::string)iniNode[thisSectionName][thisTagName][j];
           }
+          else if (node.Child(i).Attribute("inidefaultvalue")) {
+            it->NewChild(childFullName) = (std::string)node.Child(i).Attribute("inidefaultvalue");
+          }
         }
       }
       else if ((type == "single" || type == "attribute") && !sections.empty() && !tag.empty()) {
         const std::string tagName = tag;
         std::string sectionName = "";
-        if (locateSectionWithTag(sections, tagName, iniNode, sectionName)) {
+        if (locateSectionWithTag(sections, tagName, iniNode, sectionName) || node.Child(i).Attribute("inidefaultvalue")) {
+          const std::string value = (!sectionName.empty() ? iniNode[sectionName][tagName] : node.Child(i).Attribute("inidefaultvalue"));
           for (XMLNodeList::iterator it = parentNodes.begin();
                it != parentNodes.end(); it++) {
             if (type == "attribute") {
-              it->NewAttribute(childFullName) = (std::string)iniNode[sectionName][tagName];
+              it->NewAttribute(childFullName) = value;
             }
             else {
-              it->NewChild(childFullName) = (std::string)iniNode[sectionName][tagName];
+              it->NewChild(childFullName) = value;
             }
           }
         }
@@ -165,7 +195,10 @@ namespace Arc {
       const std::string childFullName = node.Child(i).FullName();
       const std::string sections = node.Child(i).Attribute("inisections");
       const std::string tag = node.Child(i).Attribute("initag");
-      const std::string type = node.Child(i).Attribute("initype");
+      // If inisections and initag attributes have been set, but not initype, then the initype is "single".
+      const std::string type = (!node.Child(i).Attribute("initype") &&
+                                 node.Child(i).Attribute("inisections") &&
+                                 node.Child(i).Attribute("initag") ? "single" : node.Child(i).Attribute("initype"));
 
       if (sections.empty() && tag.empty()) {
         if (node.Child(i).Size() == 0) {
@@ -192,14 +225,14 @@ namespace Arc {
         std::list<std::string> sectionList;
         tokenize(sections, sectionList);
         bool tagInMultisections = false;
-        // First populate XML elements with default values.
+        int j = 0;
+        // First populate XML elements with common values.
         for (std::list<std::string>::const_iterator it = sectionList.begin();
              it != sectionList.end(); it++) {
           if (*it == "#this") {
             tagInMultisections = true;
             continue;
           }
-          int j = 0;
           // Map tag to node for every existing section.
           for (; (type == "multi" || j == 0) && iniNode[*it][tag][j]; j++) {
             for (XMLNodeList::iterator itMNodes = parentNodes.begin();
@@ -213,9 +246,22 @@ namespace Arc {
             }
           }
 
-          // Only assign default values from one section.
+          // Only assign common values from one section.
           if (j != 0) {
             break;
+          }
+        }
+
+        if (j == 0 && node.Child(i).Attribute("inidefaultvalue")) {
+          // Set default value of node/attribute for every existing section.
+          for (XMLNodeList::iterator itMNodes = parentNodes.begin();
+               itMNodes != parentNodes.end(); itMNodes++) {
+            if (type == "attribute") {
+              itMNodes->NewAttribute(childFullName) = (std::string)node.Child(i).Attribute("inidefaultvalue");
+            }
+            else {
+              itMNodes->NewChild(childFullName) = (std::string)node.Child(i).Attribute("inidefaultvalue");
+            }
           }
         }
 
@@ -224,7 +270,7 @@ namespace Arc {
         }
 
         // And then assign/overwrite values from multisections.
-        int j = 0;
+        j = 0;
         for (XMLNodeList::iterator itMNodes = parentNodes.begin();
              itMNodes != parentNodes.end(); itMNodes++, j++) { // Loop over parent nodes and #this sections. They are of the same size.
           int k = 0;
@@ -245,7 +291,7 @@ namespace Arc {
 
           /*
            * The following code only executes for type == "multi" ( (*itMNodes)[childFullName][1] does only exist for type == "multi").
-           * It removes any default elements which exist as child of *itMNodes. These should
+           * It removes any common elements which exist as child of *itMNodes. These should
            * be removed since specific values was assigned in this section.
            */
           while (k != 0 && (*itMNodes)[childFullName][k]) {
@@ -271,7 +317,8 @@ namespace Arc {
 
     XMLNode sections = n.Attribute("inisections");
     XMLNode tag = n.Attribute("initag");
-    const std::string type = n.Attribute("initype");
+    // If inisections and initag attributes have been set, but not initype, then the initype is "single".
+    const std::string type = (!n.Attribute("initype") && tag && sections ? "single" : n.Attribute("initype"));
 
     if (type == "multisection") {
       const std::string tagName = tag;
@@ -352,7 +399,7 @@ namespace Arc {
         return nChilds;
       }
       else {
-        // Delete orignal node for multi type.
+        // Delete orignal node for multi and attribute type.
         n.Destroy();
         return nChilds-1;
       }
