@@ -114,7 +114,7 @@ int CacheService::Download(const std::map<std::string, std::string>& urls,
                            const Arc::User& mapped_user) {
   // create job.id.input file, then run new downloader process
   // wait for result with some timeout
-  current_downloads++;
+  g_atomic_int_inc(&current_downloads);
 
   // set up objects for writing .input file
   JobDescription job_desc(job_id, user.SessionRoot(job_id) + "/" + job_id);
@@ -253,7 +253,7 @@ int CacheService::Download(const std::map<std::string, std::string>& urls,
   logger.msg(Arc::INFO, "Downloader exited with code: %i", result);
   delete child;
 
-  current_downloads--;
+  g_atomic_int_dec_and_test(&current_downloads);
   return result;
 }
 
@@ -533,7 +533,7 @@ Arc::MCC_Status CacheService::CacheLink(Arc::XMLNode in, Arc::XMLNode out,
   }
 
   // check max_downloads
-  if (current_downloads >= max_downloads) {
+  if (g_atomic_int_get(&current_downloads) >= max_downloads) {
     for (std::map<std::string, std::string>::iterator i = to_download.begin(); i != to_download.end(); ++i) {
       Arc::XMLNode resultelement = results.NewChild("Result");
       resultelement.NewChild("FileURL") = i->first;

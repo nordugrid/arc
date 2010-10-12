@@ -45,8 +45,8 @@ class CacheService: public Arc::RegisteredService {
   Arc::NS ns;
   /** Download limit read from cache service configuration */
   unsigned int max_downloads;
-  /** Current downloads - may need a lock around it */
-  unsigned int current_downloads;
+  /** Current downloads - using gint to guarantee atomic thread-safe operations */
+  gint current_downloads;
   /** Users read from A-REX configuration */
   JobUsers* users;
   /** Holds environment state, eg config files etc */
