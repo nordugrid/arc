@@ -887,7 +887,7 @@ bool job_local_read_string(const std::string &fname,unsigned int num,std::string
 
 /* job.ID.input functions */
 
-bool job_input_write_file(const JobDescription &desc,JobUser &user,std::list<FileData> &files) {
+bool job_input_write_file(const JobDescription &desc,const JobUser &user,std::list<FileData> &files) {
   std::string fname = user.ControlDir() + "/job." + desc.get_id() + ".input";
   return job_Xput_write_file(fname,files) & fix_file_owner(fname,desc,user) & fix_file_permissions(fname);
 }

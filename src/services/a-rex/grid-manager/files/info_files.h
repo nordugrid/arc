@@ -197,7 +197,7 @@ bool job_output_read_file(const JobId &id,JobUser &user,std::list<FileData> &fil
 /*
   Same for input files and their sources.
 */
-bool job_input_write_file(const JobDescription &desc,JobUser &user,std::list<FileData> &files);
+bool job_input_write_file(const JobDescription &desc,const JobUser &user,std::list<FileData> &files);
 bool job_input_read_file(const JobId &id,JobUser &user,std::list<FileData> &files);
 
 bool job_input_status_add_file(const JobDescription &desc,JobUser &user,const std::string& file = "");

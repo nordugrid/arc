@@ -46,7 +46,7 @@ static void job_subst(std::string& str,void* arg) {
   subs->user->substitute(str);
 }
 
-bool RunParallel::run(JobUser& user,const JobDescription& desc,const char *const args[],Arc::Run** ere,bool su) {
+bool RunParallel::run(const JobUser& user,const JobDescription& desc,const char *const args[],Arc::Run** ere,bool su) {
   RunPlugin* cred = user.CredPlugin();
   job_subst_t subs; subs.user=&user; subs.job=&desc; subs.reason="external";
   if((!cred) || (!(*cred))) { cred=NULL; };
@@ -65,7 +65,7 @@ bool RunParallel::run(JobUser& user,const JobDescription& desc,const char *const
 
 /* fork & execute child process with stderr redirected 
    to job.ID.errors, stdin and stdout to /dev/null */
-bool RunParallel::run(JobUser& user,const char* jobid,const char *const args[],Arc::Run** ere,bool su,bool job_proxy,RunPlugin* cred,RunPlugin::substitute_t subst,void* subst_arg) {
+bool RunParallel::run(const JobUser& user,const char* jobid,const char *const args[],Arc::Run** ere,bool su,bool job_proxy,RunPlugin* cred,RunPlugin::substitute_t subst,void* subst_arg) {
   *ere=NULL;
   std::list<std::string> args_;
   for(int n = 0;args[n];++n) args_.push_back(std::string(args[n]));

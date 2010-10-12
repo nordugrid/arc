@@ -112,8 +112,8 @@ class JobUser {
   uid_t get_uid(void) const { return uid; };
   gid_t get_gid(void) const { return gid; };
   int Reruns(void) const { return reruns; };
-  RunPlugin* CredPlugin(void) { return cred_plugin; };
-  unsigned long long int DiskSpace(void) { return diskspace; };
+  RunPlugin* CredPlugin(void) const { return cred_plugin; };
+  unsigned long long int DiskSpace(void) const { return diskspace; };
   const GMEnvironment& Env(void) const { return gm_env; };
   bool operator==(std::string name) { return (name == unix_name); };
   /* Change owner of the process to this user if su=true.
