@@ -15,7 +15,7 @@
 #include <arc/message/PayloadStream.h>
 #include <arc/message/PayloadSOAP.h>
 
-// A-REX includes for configuration
+// A-REX includes for configuration and running downloader
 #include "../a-rex/grid-manager/conf/conf_file.h"
 #include "../a-rex/grid-manager/log/job_log.h"
 #include "../a-rex/grid-manager/jobs/states.h"
@@ -248,7 +248,7 @@ int CacheService::Download(const std::map<std::string, std::string>& urls,
     return -1;
   }
 
-  /* child was run - check exit code */
+  // child finished - check exit code
   int result = child->Result();
   logger.msg(Arc::INFO, "Downloader exited with code: %i", result);
   delete child;

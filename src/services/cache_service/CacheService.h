@@ -21,9 +21,8 @@ namespace Cache {
  * in the case of pilot job workflows where job submission does not follow
  * the usual ARC workflow. In order for input files to be available to jobs,
  * the pilot job can call the cache service to prepare them. If requested files
- * are not present in the cache, they may be downloaded by the cache service
- * depending on configuration settings. (TODO: how exactly download will be
- * done).
+ * are not present in the cache, they can be downloaded by the cache service
+ * if requested, using the A-REX downloader utility.
  */
 class CacheService: public Arc::RegisteredService {
 
@@ -59,7 +58,15 @@ class CacheService: public Arc::RegisteredService {
   /** Logger object */
   static Arc::Logger logger;
 
-  /** Launch a download process for the given URLs */
+  /** Launch a download process for the given URLs
+   * @param urls A map of (remote file, local filename relative to session
+   * dir) which gives sources and destinations for transfer
+   * @param user A-REX user configuration for the mapped user
+   * @param job_id ID of the job
+   * @param mapped_user The local user to which the client DN was mapped
+   * @return -1 if an error occurred outside the downloader process, or
+   * the return code of the downloader process.
+   */
   int Download(const std::map<std::string, std::string>& urls,
                const JobUser& user,
                const std::string& job_id,
@@ -78,8 +85,8 @@ class CacheService: public Arc::RegisteredService {
    * This method is used to link cache files to the session dir. A list of
    * URLs is supplied and if they are present in the cache and the user
    * calling the service has permission to access them, then they are linked
-   * to the given session directory.
-   * TODO: What to do when files are missing
+   * to the given session directory. If the user requests that missing files
+   * be staged, then a downloader process is launched to obtain them.
    * @param user A-REX user configuration for the mapped user
    * @param mapped_user The local user to which the client DN was mapped
    */
