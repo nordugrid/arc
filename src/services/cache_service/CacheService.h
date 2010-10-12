@@ -51,10 +51,19 @@ class CacheService: public Arc::RegisteredService {
   JobUsers* users;
   /** Holds environment state, eg config files etc */
   GMEnvironment* gm_env;
+  /** Configuration information, held by reference inside gm_env so must
+      not be deleted before it. */
+  JobsListConfig* jcfg;
   /** Flag to say whether CacheService is valid */
   bool valid;
   /** Logger object */
   static Arc::Logger logger;
+
+  /** Launch a download process for the given URLs */
+  int Download(const std::map<std::string, std::string>& urls,
+               const JobUser& user,
+               const std::string& job_id,
+               const Arc::User& mapped_user);
 
  protected:
   /* Cache operations */

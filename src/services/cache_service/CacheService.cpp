@@ -19,6 +19,9 @@
 #include "../a-rex/grid-manager/conf/conf_file.h"
 #include "../a-rex/grid-manager/log/job_log.h"
 #include "../a-rex/grid-manager/jobs/states.h"
+#include "../a-rex/grid-manager/files/info_types.h"
+#include "../a-rex/grid-manager/files/info_files.h"
+#include "../a-rex/grid-manager/run/run_parallel.h"
 
 #include "CacheService.h"
 
@@ -43,13 +46,14 @@ CacheService::CacheService(Arc::Config *cfg) : RegisteredService(cfg),
                                                current_downloads(0),
                                                users(NULL),
                                                gm_env(NULL),
+                                               jcfg(NULL),
                                                valid(false) {
   // read configuration information
   /*
   cacheservice config specifies A-REX conf file
-  <cacheservice:config>/etc/arc.conf</cacheservice:config>
+    <cacheservice:config>/etc/arc.conf</cacheservice:config>
   max simultaneous downloads
-  <cacheservice:maxload>10</cacheservice:maxload>
+    <cacheservice:maxload>10</cacheservice:maxload>
   */
   ns["cacheservice"] = "urn:cacheservice_config";
 
@@ -71,8 +75,8 @@ CacheService::CacheService(Arc::Config *cfg) : RegisteredService(cfg),
   logger.msg(Arc::INFO, "Setting max downloads to %u", max_downloads);
 
   JobLog job_log;
-  JobsListConfig jobs_cfg;
-  gm_env = new GMEnvironment(job_log, jobs_cfg);
+  jcfg = new JobsListConfig;
+  gm_env = new GMEnvironment(job_log, *jcfg);
   gm_env->nordugrid_config_loc(arex_config);
   users = new JobUsers(*gm_env);
 
@@ -98,6 +102,159 @@ CacheService::~CacheService(void) {
     delete gm_env;
     gm_env = NULL;
   }
+  if (jcfg) {
+    delete jcfg;
+    jcfg = NULL;
+  }
+}
+
+int CacheService::Download(const std::map<std::string, std::string>& urls,
+                           const JobUser& user,
+                           const std::string& job_id,
+                           const Arc::User& mapped_user) {
+  // create job.id.input file, then run new downloader process
+  // wait for result with some timeout
+  current_downloads++;
+
+  // set up objects for writing .input file
+  JobDescription job_desc(job_id, user.SessionRoot(job_id) + "/" + job_id);
+  job_desc.set_uid(mapped_user.get_uid(), mapped_user.get_gid());
+  std::list<FileData> files;
+  for (std::map<std::string, std::string>::const_iterator i = urls.begin(); i != urls.end(); ++i) {
+    FileData filedata(i->second.c_str(), i->first.c_str());
+    files.push_back(filedata);
+  }
+  if (!job_input_write_file(job_desc, user, files)) {
+    logger.msg(Arc::ERROR, "Failed writing file with inputs");
+    return -1;
+  }
+
+  // get parameters from JobListConfig
+  bool switch_user = false; // download to cache should always be done as root
+  std::string cmd = user.Env().nordugrid_libexec_loc()+"/downloader";
+  std::string user_id = Arc::tostring(mapped_user.get_uid());
+  std::string max_files_s;
+  std::string min_speed_s;
+  std::string min_time_s;
+  std::string min_average_s;
+  std::string max_inactivity_time_s;
+  int argn=4;
+  const char* args[] = {
+    cmd.c_str(),
+    "-U",
+    user_id.c_str(),
+    "-f",
+    NULL, // -n
+    NULL, // (-n)
+    NULL, // -c
+    NULL, // -p
+    NULL, // -l
+    NULL, // -s
+    NULL, // (-s)
+    NULL, // -S
+    NULL, // (-S)
+    NULL, // -a
+    NULL, // (-a)
+    NULL, // -i
+    NULL, // (-i)
+    NULL, // -d
+    NULL, // (-d)
+    NULL, // -C
+    NULL, // (-C)
+    NULL, // -r
+    NULL, // (-r)
+    NULL, // id
+    NULL, // control
+    NULL, // session
+    NULL,
+    NULL
+  };
+  int max_processing, max_processing_emergency, max_down;
+  jcfg->GetMaxJobsLoad(max_processing, max_processing_emergency, max_down);
+  if (max_down > 0) {
+    max_files_s=Arc::tostring(max_down);
+    args[argn]="-n"; argn++;
+    args[argn]=(char*)(max_files_s.c_str()); argn++;
+  };
+  if (!jcfg->GetSecureTransfer()) {
+    args[argn]="-c"; argn++;
+  };
+  if (jcfg->GetPassiveTransfer()) {
+    args[argn]="-p"; argn++;
+  };
+  if (jcfg->GetLocalTransfer()) {
+    args[argn]="-l"; argn++;
+  };
+  unsigned long long int min_speed, min_average_speed;
+  time_t min_time, max_inactivity_time;
+  jcfg->GetSpeedControl(min_speed, min_time, min_average_speed, max_inactivity_time);
+  if (min_speed > 0) {
+    min_speed_s = Arc::tostring(min_speed);
+    min_time_s = Arc::tostring(min_time);
+    args[argn]="-s"; argn++;
+    args[argn]=(char*)(min_speed_s.c_str()); argn++;
+    args[argn]="-S"; argn++;
+    args[argn]=(char*)(min_time_s.c_str()); argn++;
+  };
+  if (min_average_speed > 0) {
+    min_average_s = Arc::tostring(min_average_speed);
+    args[argn]="-a"; argn++;
+    args[argn]=(char*)(min_average_s.c_str()); argn++;
+  };
+  if (max_inactivity_time > 0) {
+    max_inactivity_time_s=Arc::tostring(max_inactivity_time);
+    args[argn]="-i"; argn++;
+    args[argn]=(char*)(max_inactivity_time_s.c_str()); argn++;
+  };
+  std::string debug_level = Arc::level_to_string(Arc::Logger::getRootLogger().getThreshold());
+  if (!debug_level.empty()) {
+    args[argn]="-d"; argn++;
+    args[argn]=(char*)(debug_level.c_str()); argn++;
+  }
+  std::string cfg_path = user.Env().nordugrid_config_loc();
+  if (!cfg_path.empty()) {
+    args[argn]="-C"; argn++;
+    args[argn]=(char*)(cfg_path.c_str()); argn++;
+  }
+  if (!jcfg->GetPreferredPattern().empty()) {
+    args[argn]="-r"; argn++;
+    args[argn]=(char*)(jcfg->GetPreferredPattern().c_str()); argn++;
+  }
+  args[argn]=(char*)(job_id.c_str()); argn++;
+  args[argn]=(char*)(user.ControlDir().c_str()); argn++;
+  args[argn]=(char*)(job_desc.SessionDir().c_str()); argn++;
+
+  Arc::Run* child = new Arc::Run(cmd);
+  logger.msg(Arc::INFO, "Starting child downloader process");
+  for (int i = 0; i < argn; ++i)
+    logger.msg(Arc::VERBOSE, args[i]);
+  if(!RunParallel::run(user, job_desc, (char**)args, &child, switch_user)) {
+    logger.msg(Arc::ERROR, "Failed to run downloader process for job id %s", job_id);
+    delete child;
+    return false;
+  }
+
+  // wait for child to finish
+  Arc::Time timeout;
+  timeout = timeout + 3600; // timeout 1 hour TODO make configurable
+  while (child->Running() && (Arc::Time() < timeout)) {
+    logger.msg(Arc::DEBUG, "%s: child is running", job_id);
+    sleep(1);
+  }
+  if (Arc::Time() >= timeout) {
+    // timeout so kill child process
+    delete child;
+    logger.msg(Arc::ERROR, "Download process for job %s timed out", job_id);
+    return -1;
+  }
+
+  /* child was run - check exit code */
+  int result = child->Result();
+  logger.msg(Arc::INFO, "Downloader exited with code: %i", result);
+  delete child;
+
+  current_downloads--;
+  return result;
 }
 
 Arc::MCC_Status CacheService::CacheCheck(Arc::XMLNode in, Arc::XMLNode out, const JobUser& user) {
@@ -285,7 +442,7 @@ Arc::MCC_Status CacheService::CacheLink(Arc::XMLNode in, Arc::XMLNode out,
   Arc::XMLNode resp = out.NewChild("CacheLinkResponse");
   Arc::XMLNode results = resp.NewChild("CacheLinkResult");
 
-  std::vector<std::string> to_download; // files not in cache
+  std::map<std::string, std::string> to_download; // files not in cache (remote, local)
   bool error_happened = false; // if true then don't bother with downloads at the end
 
   // loop through all files
@@ -303,7 +460,6 @@ Arc::MCC_Status CacheService::CacheLink(Arc::XMLNode in, Arc::XMLNode out,
 
     logger.msg(Arc::INFO, "Looking up URL %s", fileurl);
 
-    Arc::XMLNode resultelement = results.NewChild("Result");
     Arc::URL u(fileurl);
     Arc::DataHandle d(u, usercfg);
     d->SetSecure(false);
@@ -314,6 +470,7 @@ Arc::MCC_Status CacheService::CacheLink(Arc::XMLNode in, Arc::XMLNode out,
     bool is_locked = false;
 
     if (!cache.Start(url, available, is_locked, true)) {
+      Arc::XMLNode resultelement = results.NewChild("Result");
       resultelement.NewChild("FileURL") = fileurl;
       if (is_locked) {
         resultelement.NewChild("ReturnCode") = Arc::tostring(CacheService::Locked);
@@ -328,9 +485,10 @@ Arc::MCC_Status CacheService::CacheLink(Arc::XMLNode in, Arc::XMLNode out,
     if (!available) {
       cache.Stop(url);
       // file not in cache - the result status for these files will be set later
-      to_download.push_back(url);
+      to_download[fileurl] = filename;
       continue;
     }
+    Arc::XMLNode resultelement = results.NewChild("Result");
     resultelement.NewChild("FileURL") = fileurl;
     // file is in cache - check permissions
     if (!cache.CheckDN(url, dn)) {
@@ -364,10 +522,10 @@ Arc::MCC_Status CacheService::CacheLink(Arc::XMLNode in, Arc::XMLNode out,
   }
 
   // check for any downloads to perform, only if requested and there were no previous errors
-  if (error_happened || !dostage) {
-    for (std::vector<std::string>::iterator i = to_download.begin(); i != to_download.end(); ++i) {
+  if (to_download.empty() || error_happened || !dostage) {
+    for (std::map<std::string, std::string>::iterator i = to_download.begin(); i != to_download.end(); ++i) {
       Arc::XMLNode resultelement = results.NewChild("Result");
-      resultelement.NewChild("FileURL") = *i;
+      resultelement.NewChild("FileURL") = i->first;
       resultelement.NewChild("ReturnCode") = Arc::tostring(CacheService::NotAvailable);
       resultelement.NewChild("ReturnCodeExplanation") = "File not available";
     }
@@ -376,9 +534,9 @@ Arc::MCC_Status CacheService::CacheLink(Arc::XMLNode in, Arc::XMLNode out,
 
   // check max_downloads
   if (current_downloads >= max_downloads) {
-    for (std::vector<std::string>::iterator i = to_download.begin(); i != to_download.end(); ++i) {
+    for (std::map<std::string, std::string>::iterator i = to_download.begin(); i != to_download.end(); ++i) {
       Arc::XMLNode resultelement = results.NewChild("Result");
-      resultelement.NewChild("FileURL") = *i;
+      resultelement.NewChild("FileURL") = i->first;
       // fill in this status for unavailable files
       resultelement.NewChild("ReturnCode") = Arc::tostring(CacheService::TooManyDownloadsError);
       resultelement.NewChild("ReturnCodeExplanation") = "Currently at maximum limit of downloads";
@@ -386,17 +544,22 @@ Arc::MCC_Status CacheService::CacheLink(Arc::XMLNode in, Arc::XMLNode out,
     return Arc::MCC_Status(Arc::STATUS_OK);
   }
 
-  // launch download
-  current_downloads++;
-  // create job.id.input file, then run new downloader process
-  // wait for result with some timeout
-  current_downloads--;
+  // launch download and wait for completion
+  int result = Download(to_download, user, jobid, mapped_user);
+
   // if successful return success for each file
-  for (std::vector<std::string>::iterator i = to_download.begin(); i != to_download.end(); ++i) {
+  // TODO: retry on cache lock? (result == 4)
+  for (std::map<std::string, std::string>::iterator i = to_download.begin(); i != to_download.end(); ++i) {
     Arc::XMLNode resultelement = results.NewChild("Result");
-    resultelement.NewChild("FileURL") = *i;
-    resultelement.NewChild("ReturnCode") = Arc::tostring(CacheService::Success);
-    resultelement.NewChild("ReturnCodeExplanation") = "Success";
+    resultelement.NewChild("FileURL") = i->first;
+    if (result == 0) {
+      resultelement.NewChild("ReturnCode") = Arc::tostring(CacheService::Success);
+      resultelement.NewChild("ReturnCodeExplanation") = "Success";
+    }
+    else {
+      resultelement.NewChild("ReturnCode") = Arc::tostring(CacheService::DownloadError);
+      resultelement.NewChild("ReturnCodeExplanation") = "Download failed";
+    }
   }
   return Arc::MCC_Status(Arc::STATUS_OK);
 }
