@@ -88,8 +88,8 @@ namespace Arc {
 
   private:
     /** The duration of the period */
-    uint32_t nanoseconds;
     time_t seconds;
+    uint32_t nanoseconds;
 
     /** Internal IString implementation */
     const char* IStr() const;

@@ -118,6 +118,7 @@ namespace Arc {
         }
 
         return ok;*/
+    return false;
   }
 
   bool JobControllerUNICORE::CleanJob(const Job& job, bool force) {
@@ -141,6 +142,7 @@ namespace Arc {
     //     std::string idstr;
     //     id.GetXML(idstr);
     //     return ac.clean(idstr);
+    return false;
   }
 
   bool JobControllerUNICORE::CancelJob(const Job& job) {
@@ -164,6 +166,7 @@ namespace Arc {
     //     std::string idstr;
     //     id.GetXML(idstr);
     //     return ac.kill(idstr);
+    return false;
   }
 
   bool JobControllerUNICORE::RenewJob(const Job& job) {
@@ -179,6 +182,8 @@ namespace Arc {
   URL JobControllerUNICORE::GetFileUrlForJob(const Job& job,
                                              const std::string& whichfile) { return URL(); }
 
-  bool JobControllerUNICORE::GetJobDescription(const Job& job, std::string& desc_str) {}
+  bool JobControllerUNICORE::GetJobDescription(const Job& job, std::string& desc_str) {
+    return false;
+  }
 
 } // namespace Arc

@@ -91,7 +91,6 @@ ConfigTLSMCC::ConfigTLSMCC(XMLNode cfg,Logger& logger,bool client) {
 }
 
 bool ConfigTLSMCC::Set(SSL_CTX* sslctx,Logger& logger) {
-  int r;
   if((!ca_file_.empty()) || (!ca_dir_.empty())) {
     if(!SSL_CTX_load_verify_locations(sslctx, ca_file_.empty()?NULL:ca_file_.c_str(), ca_dir_.empty()?NULL:ca_dir_.c_str())) {
       logger.msg(ERROR, "Can not assign CA location - %s",ca_dir_.empty()?ca_file_:ca_dir_);

@@ -253,7 +253,6 @@ bool CredentialStore::Retrieve(const std::map<std::string,std::string>& options,
   std::string credresp = read_response(*response,false);
   delete response; response=NULL;
   if(credresp.empty()) return false;
-  unsigned char ncerts = credresp[0];
   credresp.erase(0,1);
   std::string credkey;
   requester.OutputPrivatekey(credkey);

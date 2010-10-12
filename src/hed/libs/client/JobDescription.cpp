@@ -181,6 +181,8 @@ namespace Arc {
       }
 
       switch (Resources.NodeAccess) {
+      case NAT_NONE:
+        break;
       case NAT_INBOUND:
         std::cout << IString(" NodeAccess: Inbound") << std::endl;
         break;

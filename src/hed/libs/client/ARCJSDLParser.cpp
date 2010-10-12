@@ -95,7 +95,7 @@ namespace Arc {
         range.max = undefValue;
     }
     else if (bool(xmlRange["UpperBoundedRange"])) {
-      if (!stringto<T>((std::string)xmlRange["UpperBoundedRange"]), range.max)
+      if (!stringto<T>((std::string)xmlRange["UpperBoundedRange"], range.max))
         range.max = undefValue;
     }
   }
@@ -787,6 +787,8 @@ namespace Arc {
 
     // NodeAccessType NodeAccess;
     switch (job.Resources.NodeAccess) {
+    case NAT_NONE:
+      break;
     case NAT_INBOUND:
       xmlResources.NewChild("NodeAccess") = "inbound";
       break;

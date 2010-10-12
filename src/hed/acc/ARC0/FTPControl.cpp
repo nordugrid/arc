@@ -116,10 +116,6 @@ namespace Arc {
     cb->cond.signal();
   }
 
-  static int pwck(char*, int, int) {
-    return -1;
-  }
-
   Logger FTPControl::logger(Logger::getRootLogger(), "FTPControl");
 
   FTPControl::FTPControl() {

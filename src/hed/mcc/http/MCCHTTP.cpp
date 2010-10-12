@@ -279,8 +279,8 @@ MCC_Status MCC_HTTP_Service::process(Message& inmsg,Message& outmsg) {
   // Use stream payload of inmsg to send HTTP response
   int http_code = HTTP_OK;
   const char* http_resp = "OK";
-  int l = 0;
 /*
+  int l = 0;
   if(retpayload) {
     if(retpayload->BufferPos(0) != 0) {
       http_code=HTTP_PARTIAL;

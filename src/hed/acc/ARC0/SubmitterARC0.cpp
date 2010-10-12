@@ -122,8 +122,8 @@ namespace Arc {
            it2 != jobdesc.DataStaging.File.end(); it2++) {
         if (it1 == it2) continue;
 
-        if (it1->Name == it2->Name && (!it1->Source.empty() && !it2->Source.empty() ||
-                                       !it1->Target.empty() && !it2->Target.empty())) {
+        if (it1->Name == it2->Name && ((!it1->Source.empty() && !it2->Source.empty()) ||
+                                       (!it1->Target.empty() && !it2->Target.empty()))) {
           logger.msg(VERBOSE, "Two files have identical file name '%s'.", it1->Name);
           return false;
         }

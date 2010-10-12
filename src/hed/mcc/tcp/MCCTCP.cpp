@@ -351,7 +351,7 @@ class TCPSecAttr: public SecAttr {
 };
 
 TCPSecAttr::TCPSecAttr(const std::string& remote_ip, const std::string &remote_port, const std::string& local_ip, const std::string& local_port) :
- remote_ip_(remote_ip), remote_port_(remote_port), local_ip_(local_ip), local_port_(local_port) {
+  local_ip_(local_ip), local_port_(local_port), remote_ip_(remote_ip), remote_port_(remote_port) {
 }
 
 TCPSecAttr::~TCPSecAttr(void) {

@@ -180,13 +180,14 @@ namespace Arc {
             target.SupportedProfile.push_back((std::string)n);
         if (ComputingEndpoint["Implementor"])
           target.Implementor = (std::string)ComputingEndpoint["Implementor"];
-        if (ComputingEndpoint["ImplementationName"])
+        if (ComputingEndpoint["ImplementationName"]) {
           if (ComputingEndpoint["ImplementationVersion"])
             target.Implementation =
               Software((std::string)ComputingEndpoint["ImplementationName"],
                        (std::string)ComputingEndpoint["ImplementationVersion"]);
           else
             target.Implementation = Software((std::string)ComputingEndpoint["ImplementationName"]);
+        }
         if (ComputingEndpoint["ServingState"])
           target.ServingState = (std::string)ComputingEndpoint["ServingState"];
         else

@@ -266,6 +266,7 @@ PROXYCERTINFO * PROXYCERTINFO_dup(PROXYCERTINFO * proxycertinfo) {
   }
   new_proxycertinfo->version = proxycertinfo->version;
   PROXYCERTINFO_set_proxypolicy(new_proxycertinfo,proxycertinfo->proxypolicy);
+  return new_proxycertinfo;
 }
 
 int PROXYCERTINFO_print(BIO* bp, PROXYCERTINFO* cert_info) {

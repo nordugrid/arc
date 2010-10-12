@@ -34,7 +34,6 @@ namespace Arc {
     for (int i = 1; iter != PossibleTargets.end(); iter++, i++)
       logger.msg(VERBOSE, "%d. Resource: %s; Queue: %s", i, (*iter)->DomainName, (*iter)->ComputingShareName);
 
-    int i, j;
     std::srand(time(NULL));
 
     for (unsigned int k = 1; k < 2 * (std::rand() % PossibleTargets.size()) + 1; k++) {

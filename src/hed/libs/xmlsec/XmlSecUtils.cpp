@@ -129,6 +129,7 @@ bool final_xmlsec(void) {
     //Shutdown libxml
     xmlCleanupParser();
   }
+  return true;
 }
 
 //Get certificate piece (the string under BEGIN CERTIFICATE : END CERTIFICATE) from a certificate file
@@ -263,7 +264,6 @@ xmlSecKey* get_key_from_certstr(const std::string& value) {
     (xmlSecKeyDataFormat)0
   };
 
-  int rc;
   xmlSecErrorsDefaultCallbackEnableOutput(FALSE);
 
   BIO* certbio = NULL;

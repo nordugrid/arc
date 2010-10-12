@@ -16,7 +16,7 @@ namespace Arc {
 
   const std::string Software::VERSIONTOKENS = "-.";
 
-Software::Software(const std::string& name_version) : version(""), family("") {
+Software::Software(const std::string& name_version) : family(""), version("") {
   std::size_t pos = 0;
 
   while (pos != std::string::npos) {
@@ -41,7 +41,7 @@ Software::Software(const std::string& name_version) : version(""), family("") {
 }
 
 Software::Software(const std::string& name, const std::string& version)
-  : name(name), version(version), family("") {
+  : family(""), name(name), version(version) {
   tokenize(version, tokenizedVersion, VERSIONTOKENS);
 }
 
@@ -131,20 +131,21 @@ Software::ComparisonOperator Software::convert(const Software::ComparisonOperato
   case Software::LESSTHANOREQUAL:
     return &Software::operator<=;
   };
+  return &Software::operator!=; // Avoid compilation warning
 }
 
 SoftwareRequirement::SoftwareRequirement(const Software& sw,
                                          Software::ComparisonOperatorEnum co,
                                          bool requiresAll)
-  : requiresAll(requiresAll), softwareList(1, sw), comparisonOperatorList(1, Software::convert(co)),
-    orderedSoftwareList(1, std::list<SWRelPair>(1, SWRelPair(&softwareList.front(), comparisonOperatorList.front())))
+  : softwareList(1, sw), comparisonOperatorList(1, Software::convert(co)),
+    orderedSoftwareList(1, std::list<SWRelPair>(1, SWRelPair(&softwareList.front(), comparisonOperatorList.front()))), requiresAll(requiresAll)
 {}
 
 SoftwareRequirement::SoftwareRequirement(const Software& sw,
                                          Software::ComparisonOperator swComOp,
                                          bool requiresAll)
-  : softwareList(1, sw), comparisonOperatorList(1, swComOp), requiresAll(requiresAll),
-    orderedSoftwareList(1, std::list<SWRelPair>(1, SWRelPair(&softwareList.front(), comparisonOperatorList.front())))
+  : softwareList(1, sw), comparisonOperatorList(1, swComOp),
+    orderedSoftwareList(1, std::list<SWRelPair>(1, SWRelPair(&softwareList.front(), comparisonOperatorList.front()))), requiresAll(requiresAll)
 {}
 
 SoftwareRequirement& SoftwareRequirement::operator=(const SoftwareRequirement& sr) {
@@ -256,8 +257,8 @@ bool SoftwareRequirement::selectSoftware(const std::list<Software>& swList) {
           break;
       }
 
-      if (requiresAll && itSRP == itOSL->end() || // All requirements satisfied by this software.
-          !requiresAll && itSRP != itOSL->end()) { // One requirement satisfied by this software.
+      if ((requiresAll && itSRP == itOSL->end()) || // All requirements satisfied by this software.
+          (!requiresAll && itSRP != itOSL->end())) { // One requirement satisfied by this software.
         if (currentSelectedSoftware == NULL) { // First software to satisfy requirement. Push it to the selected software.
           sr.softwareList.push_back(*itSWList);
           sr.comparisonOperatorList.push_back(&Software::operator ==);

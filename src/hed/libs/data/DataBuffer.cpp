@@ -61,7 +61,7 @@ namespace Arc {
     checksum_desc cs = cksum;
     cs.sum->start();
     for (int i = 0; i < bufs_n; i++)
-      if (bufs[i].used != 0)
+      if (bufs[i].used != 0) {
         if (bufs[i].offset == cs.offset) {
           cs.sum->add(bufs[i].start, bufs[i].used);
           cs.offset += bufs[i].used;
@@ -70,6 +70,7 @@ namespace Arc {
         }
         else if (cs.offset < bufs[i].offset)
           cs.ready = false;
+      }
     if (eof_read_flag && cs.ready)
       cs.sum->end();
     checksums.push_back(cs);
@@ -379,7 +380,7 @@ namespace Arc {
          itCheckSum != checksums.end(); itCheckSum++)
       if ((itCheckSum->sum != NULL) && (offset == itCheckSum->offset))
         for (int i = handle; i < bufs_n; i++)
-          if (bufs[i].used != 0)
+          if (bufs[i].used != 0) {
             if (bufs[i].offset == itCheckSum->offset) {
               itCheckSum->sum->add(bufs[i].start, bufs[i].used);
               itCheckSum->offset += bufs[i].used;
@@ -388,6 +389,7 @@ namespace Arc {
             }
             else if (itCheckSum->offset < bufs[i].offset)
               itCheckSum->ready = false;
+          }
     cond.broadcast();
     lock.unlock();
     return true;

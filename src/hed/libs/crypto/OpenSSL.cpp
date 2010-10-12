@@ -125,6 +125,7 @@ namespace Arc {
       OpenSSL_add_all_algorithms();
     }
     initialized=true;
+    return true;
   }
 
 } // namespace Arc

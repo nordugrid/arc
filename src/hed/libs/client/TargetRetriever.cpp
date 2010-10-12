@@ -16,10 +16,10 @@ namespace Arc {
   TargetRetriever::TargetRetriever(const UserConfig& usercfg,
                                    const URL& url, ServiceType st,
                                    const std::string& flavour)
-    : usercfg(usercfg),
+    : flavour(flavour),
+      usercfg(usercfg),
       url(url),
-      serviceType(st),
-      flavour(flavour) {}
+      serviceType(st) {}
 
   TargetRetriever::~TargetRetriever() {}
 

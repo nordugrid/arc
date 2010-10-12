@@ -38,8 +38,9 @@ namespace Arc {
     PyObjectP(PyObject *obj)
       : obj(obj) {}
     ~PyObjectP() {
-      if (obj)
+      if (obj) {
         Py_DECREF(obj);
+      }
     }
     operator bool() {
       return obj;
@@ -276,10 +277,12 @@ namespace Arc {
 
   PythonBroker::~PythonBroker() {
 
-    if (module)
+    if (module) {
       Py_DECREF(module);
-    if (arc_module)
+    }
+    if (arc_module) {
       Py_DECREF(arc_module);
+    }
 
     lock.lock();
 

@@ -629,6 +629,7 @@ err:
     return(ok);
   }
 
+#if 0
   static bool check_cert(X509 *cert, const std::string& ca_cert_dir, const std::string& ca_cert_file) {
     X509_STORE *ctx = NULL;
     X509_STORE_CTX *csc = NULL;
@@ -666,6 +667,7 @@ err:
 
     return (i != 0);
   }
+#endif
 
   static bool check_cert(STACK_OF(X509) *stack, const std::string& ca_cert_dir, const std::string& ca_cert_file) {
     X509_STORE *ctx = NULL;
@@ -766,6 +768,7 @@ err:
     return (res == 1);
   }
 
+#if 0
   static bool regex_match(std::string& label, std::string& value) {
     bool match=false;
     RegularExpression regex(label);
@@ -776,6 +779,7 @@ err:
     }
     return match;
   }
+#endif
 
   static bool check_trust(const VOMSTrustChain& chain,STACK_OF(X509)* certstack) {
     int n = 0;
@@ -1574,7 +1578,8 @@ err:
       for(int idx = 0;;++idx) {
         if(idx >= sk_X509_num(certchain)) break;
         X509* cert = sk_X509_value(certchain,sk_X509_num(certchain)-idx-1);
-        bool res = parseVOMSAC(cert, ca_cert_dir, ca_cert_file, vomscert_trust_dn, output, verify);
+        bool res2 = parseVOMSAC(cert, ca_cert_dir, ca_cert_file, vomscert_trust_dn, output, verify);
+        if (!res2) res = res2;
       };
     }
 
@@ -1697,7 +1702,7 @@ err:
 	if (output.empty()) return "";
         else{
                 size_t pos1, pos2;
-                unsigned int i,j;
+                unsigned int i;
                 std::string role = "null";
                 std::string vo_name;
                 pos1 = output[0].find("=",1);
@@ -1723,7 +1728,7 @@ err:
         if (output.empty()) return "";
         else{
                 size_t pos1, pos2;
-                unsigned int i,j;
+                unsigned int i;
                 std::string group = "";
                 std::string vo_name;
                 pos1 = output[0].find("=",1);

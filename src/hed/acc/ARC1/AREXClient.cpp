@@ -501,7 +501,6 @@ namespace Arc {
     action = "ChangeActivityStatus";
     logger.msg(VERBOSE, "Creating and sending job resume request to %s", rurl.str());
 
-    bool delegate = true;
     PayloadSOAP req(arex_ns);
     XMLNode op = req.NewChild("a-rex:" + action);
     op.NewChild(XMLNode(jobid));

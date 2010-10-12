@@ -372,7 +372,7 @@ SAMLToken::SAMLToken(SOAPEnvelope& soap, const std::string& certfile, const std:
     xmlAddID(NULL, docPtr, (xmlChar *)id, id_attr);
     xmlFree(id);
 
-    xmlNodePtr key_info = xmlSecTmplSignatureEnsureKeyInfo(wsse_signature, NULL);
+    xmlSecTmplSignatureEnsureKeyInfo(wsse_signature, NULL);
     XMLNode keyinfo_nd = wsse["Signature"]["KeyInfo"];
     XMLNode st_ref_nd = keyinfo_nd.NewChild("wsse:SecurityTokenReference");
     st_ref_nd.NewAttribute("wsu:Id") = "STR1";

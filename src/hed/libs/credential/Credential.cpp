@@ -204,7 +204,7 @@ namespace Arc {
     BIO* bio_;
    public:
     AutoBIO(BIO* bio):bio_(bio) { };
-    ~AutoBIO(void) { if(bio_) { BIO_set_close(bio_,BIO_CLOSE); BIO_free_all(bio_); } };
+    ~AutoBIO(void) { if(bio_) { (BIO_set_close(bio_,BIO_CLOSE) == 1); BIO_free_all(bio_); } };
     operator bool(void) { return (bio_ != NULL); };
     operator BIO*(void) { return bio_; };
     BIO& operator*(void) const { return *bio_; };
@@ -907,9 +907,10 @@ namespace Arc {
         const std::string& cadir, const std::string& cafile,
         const std::string& passphrase4key, const bool is_file) :
         cacertfile_(cafile), cacertdir_(cadir), certfile_(certfile), keyfile_(keyfile),
+        verification_valid(false),
         cert_(NULL), pkey_(NULL), cert_chain_(NULL), proxy_cert_info_(NULL),
         req_(NULL), rsa_key_(NULL), signing_alg_((EVP_MD*)EVP_sha1()),
-        keybits_(1024), extensions_(NULL), verification_valid(false) {
+        keybits_(1024), extensions_(NULL) {
 
     OpenSSLInit();
     //EVP_add_digest(EVP_sha1());
@@ -1716,8 +1717,6 @@ err:
   }
 
   bool Credential::SetProxyPeriod(X509* tosign, X509* issuer, Time& start, Period& lifetime) {
-    ASN1_UTCTIME* notBefore = NULL;
-    ASN1_UTCTIME* notAfter = NULL;
     time_t t1 = start.GetTime();
     Time tmp = start + lifetime;
     time_t t2 = tmp.GetTime();
@@ -2205,9 +2204,9 @@ err:
   Credential::Credential(const std::string& CAcertfile, const std::string& CAkeyfile,
        const std::string& CAserial, bool CAcreateserial, const std::string& extfile,
        const std::string& extsect, const std::string& passphrase4key) : certfile_(CAcertfile), keyfile_(CAkeyfile),
-       CAserial_(CAserial), CAcreateserial_(CAcreateserial), extfile_(extfile), extsect_(extsect),
        cert_(NULL), pkey_(NULL), cert_chain_(NULL), proxy_cert_info_(NULL),
-       req_(NULL), rsa_key_(NULL), signing_alg_((EVP_MD*)EVP_sha1()), keybits_(1024), extensions_(NULL) {
+       req_(NULL), rsa_key_(NULL), signing_alg_((EVP_MD*)EVP_sha1()), keybits_(1024), extensions_(NULL),
+       CAserial_(CAserial), CAcreateserial_(CAcreateserial), extfile_(extfile), extsect_(extsect) {
     OpenSSLInit();
 
     InitVerification();
@@ -2229,7 +2228,7 @@ err:
 
   static void print_ssl_errors() {
     unsigned long err;
-    while(err = ERR_get_error()) {
+    while((err = ERR_get_error())) {
       CredentialLogger.msg(DEBUG,"SSL error: %s, libs: %s, func: %s, reason: %s",
         ERR_error_string(err, NULL),ERR_lib_error_string(err),
         ERR_func_error_string(err),ERR_reason_error_string(err));
