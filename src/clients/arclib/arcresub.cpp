@@ -32,11 +32,11 @@
 #include <arc/client/Broker.h>
 
 #ifdef TEST
-#define RUN(X) test_arcresub_##X
+#define RUNRESUB(X) test_arcresub_##X
 #else
-#define RUN(X) X
+#define RUNRESUB(X) X
 #endif
-int RUN(main)(int argc, char **argv) {
+int RUNRESUB(main)(int argc, char **argv) {
 
   setlocale(LC_ALL, "");
 

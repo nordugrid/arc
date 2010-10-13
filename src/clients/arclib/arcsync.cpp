@@ -25,11 +25,11 @@
 #include <arc/UserConfig.h>
 
 #ifdef TEST
-#define RUN(X) test_arcsync_##X
+#define RUNSYNC(X) test_arcsync_##X
 #else
-#define RUN(X) X
+#define RUNSYNC(X) X
 #endif
-int RUN(main)(int argc, char **argv) {
+int RUNSYNC(main)(int argc, char **argv) {
 
   setlocale(LC_ALL, "");
 

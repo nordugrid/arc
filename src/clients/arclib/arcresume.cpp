@@ -18,11 +18,11 @@
 #include <arc/UserConfig.h>
 
 #ifdef TEST
-#define RUN(X) test_arcresume_##X
+#define RUNRESUME(X) test_arcresume_##X
 #else
-#define RUN(X) X
+#define RUNRESUME(X) X
 #endif
-int RUN(main)(int argc, char **argv) {
+int RUNRESUME(main)(int argc, char **argv) {
 
   setlocale(LC_ALL, "");
 
@@ -137,7 +137,7 @@ int RUN(main)(int argc, char **argv) {
     if (!(*it)->Resume(status))
       retval = 1;
 
-  if (retval = 0)
+  if (retval == 0)
     std::cout << "All jobs were resumed" << std::endl;
   return retval;
 }

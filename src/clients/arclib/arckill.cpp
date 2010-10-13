@@ -18,11 +18,11 @@
 #include <arc/UserConfig.h>
 
 #ifdef TEST
-#define RUN(X) test_arckill_##X
+#define RUNKILL(X) test_arckill_##X
 #else
-#define RUN(X) X
+#define RUNKILL(X) X
 #endif
-int RUN(main)(int argc, char **argv) {
+int RUNKILL(main)(int argc, char **argv) {
 
   setlocale(LC_ALL, "");
 

@@ -18,11 +18,11 @@
 #include <arc/UserConfig.h>
 
 #ifdef TEST
-#define RUN(X) test_arcclean_##X
+#define RUNCLEAN(X) test_arcclean_##X
 #else
-#define RUN(X) X
+#define RUNCLEAN(X) X
 #endif
-int RUN(main)(int argc, char **argv) {
+int RUNCLEAN(main)(int argc, char **argv) {
 
   setlocale(LC_ALL, "");
 

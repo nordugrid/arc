@@ -29,11 +29,11 @@
 #include <arc/client/Broker.h>
 
 #ifdef TEST
-#define RUN(X) test_arcmigrate_##X
+#define RUNMIGRATE(X) test_arcmigrate_##X
 #else
-#define RUN(X) X
+#define RUNMIGRATE(X) X
 #endif
-int RUN(main)(int argc, char **argv) {
+int RUNMIGRATE(main)(int argc, char **argv) {
 
   setlocale(LC_ALL, "");
 

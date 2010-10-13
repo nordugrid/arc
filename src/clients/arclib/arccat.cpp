@@ -18,11 +18,11 @@
 #include <arc/UserConfig.h>
 
 #ifdef TEST
-#define RUN(X) test_arccat_##X
+#define RUNCAT(X) test_arccat_##X
 #else
-#define RUN(X) X
+#define RUNCAT(X) X
 #endif
-int RUN(main)(int argc, char **argv) {
+int RUNCAT(main)(int argc, char **argv) {
 
   setlocale(LC_ALL, "");
 

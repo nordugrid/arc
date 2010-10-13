@@ -19,11 +19,11 @@
 #include <arc/UserConfig.h>
 
 #ifdef TEST
-#define RUN(X) test_arcinfo_##X
+#define RUNINFO(X) test_arcinfo_##X
 #else
-#define RUN(X) X
+#define RUNINFO(X) X
 #endif
-int RUN(main)(int argc, char **argv) {
+int RUNINFO(main)(int argc, char **argv) {
 
   setlocale(LC_ALL, "");
 

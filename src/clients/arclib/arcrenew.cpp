@@ -18,11 +18,11 @@
 #include <arc/UserConfig.h>
 
 #ifdef TEST
-#define RUN(X) test_arcrenew_##X
+#define RUNRENEW(X) test_arcrenew_##X
 #else
-#define RUN(X) X
+#define RUNRENEW(X) X
 #endif
-int RUN(main)(int argc, char **argv) {
+int RUNRENEW(main)(int argc, char **argv) {
 
   setlocale(LC_ALL, "");
 
@@ -137,7 +137,7 @@ int RUN(main)(int argc, char **argv) {
     if (!(*it)->Renew(status))
       retval = 1;
 
-  if (retval = 0)
+  if (retval == 0)
     std::cout << "The credentials renewed" << std::endl;
 
   return retval;

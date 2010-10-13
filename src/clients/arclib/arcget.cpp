@@ -18,11 +18,11 @@
 #include <arc/UserConfig.h>
 
 #ifdef TEST
-#define RUN(X) test_arcget_##X
+#define RUNGET(X) test_arcget_##X
 #else
-#define RUN(X) X
+#define RUNGET(X) X
 #endif
-int RUN(main)(int argc, char **argv) {
+int RUNGET(main)(int argc, char **argv) {
 
   setlocale(LC_ALL, "");
 
