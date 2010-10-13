@@ -277,13 +277,13 @@ namespace Arc {
     return true;
   }
   
-  void HTTPSClientConnectorGlobus::general_callback(void *arg,globus_io_handle_t *handle,globus_result_t  result) {
+  void HTTPSClientConnectorGlobus::general_callback(void *arg,globus_io_handle_t*,globus_result_t  result) {
     HTTPSClientConnectorGlobus* it = (HTTPSClientConnectorGlobus*)arg;
     if(result != GLOBUS_SUCCESS) logger.msg(ERROR, "Globus error: %s", GlobusResult(result).str());
     it->cond.signal();
   }
   
-  void HTTPSClientConnectorGlobus::read_callback(void *arg,globus_io_handle_t *handle,globus_result_t result,globus_byte_t *buf,globus_size_t nbytes) {
+  void HTTPSClientConnectorGlobus::read_callback(void *arg,globus_io_handle_t*,globus_result_t result,globus_byte_t *buf,globus_size_t nbytes) {
     HTTPSClientConnectorGlobus* it = (HTTPSClientConnectorGlobus*)arg;
     int res = 0;
     if(result != GLOBUS_SUCCESS) {
@@ -308,7 +308,7 @@ namespace Arc {
     it->cond.unlock();
   }
   
-  void HTTPSClientConnectorGlobus::write_callback(void *arg,globus_io_handle_t *handle,globus_result_t result,globus_byte_t *buf,globus_size_t nbytes) {
+  void HTTPSClientConnectorGlobus::write_callback(void *arg,globus_io_handle_t*,globus_result_t result,globus_byte_t *buf,globus_size_t nbytes) {
     HTTPSClientConnectorGlobus* it = (HTTPSClientConnectorGlobus*)arg;
     int res = 0;
     if(result != GLOBUS_SUCCESS) {
@@ -324,7 +324,7 @@ namespace Arc {
     it->cond.unlock();
   }
   
-  globus_bool_t HTTPSClientConnectorGlobus::authorization_callback(void* arg,globus_io_handle_t* h,globus_result_t result,char* identity,gss_ctx_id_t context_handle) {
+  globus_bool_t HTTPSClientConnectorGlobus::authorization_callback(void* /* arg */,globus_io_handle_t*,globus_result_t /* result */,char* identity,gss_ctx_id_t /* context_handle */) {
     logger.msg(DEBUG, "Authenticating: %s", identity);
     return GLOBUS_TRUE;
   }
@@ -371,7 +371,7 @@ namespace Arc {
   }
   
   HTTPSClientConnectorGSSAPI::HTTPSClientConnectorGSSAPI(const char* base,
-                                                         bool heavy_encryption,
+                                                         bool /* heavy_encryption */,
                                                          int timeout_,
                                                          gss_cred_id_t cred_,
                                                          bool check_host) try: base_url(base), 
@@ -385,7 +385,7 @@ namespace Arc {
     valid=false;
   }
   
-  bool HTTPSClientConnectorGSSAPI::connect(bool &timedout) {
+  bool HTTPSClientConnectorGSSAPI::connect(bool& /* timedout */) {
     if(!valid) return false;
     if(s != -1) return true;
     read_buf=NULL; read_size=0; read_size_result=NULL;

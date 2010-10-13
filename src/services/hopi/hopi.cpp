@@ -328,7 +328,7 @@ int HopiFile::Read(void* buf,off_t offset,int size) {
   return read(handle,buf,size);
 }
 
-int HopiFile::Read(off_t offset,int size) {
+int HopiFile::Read(off_t /* offset */,int size) {
   if(handle == -1) return -1;
   if(!for_read) return -1;
   return size;

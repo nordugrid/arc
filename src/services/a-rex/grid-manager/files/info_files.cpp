@@ -72,17 +72,6 @@ bool fix_file_permissions(const std::string &fname,bool executable) {
   return (chmod(fname.c_str(),mode) == 0);
 }
 
-static bool fix_file_permissions(const std::string &fname,const JobUser &user) {
-  mode_t mode = S_IRUSR | S_IWUSR;
-  if(!user.match_share_uid(user.get_uid())) {
-    mode |= S_IRGRP;
-    if(!user.match_share_gid(user.get_gid())) {
-      mode |= S_IROTH;
-    };
-  };
-  return (chmod(fname.c_str(),mode) == 0);
-}
-
 bool fix_file_permissions(const std::string &fname,const JobDescription &desc,const JobUser &user) {
   mode_t mode = S_IRUSR | S_IWUSR;
   uid_t uid = desc.get_uid();

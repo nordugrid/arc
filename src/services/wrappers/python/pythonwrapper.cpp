@@ -5,12 +5,13 @@
 #include <config.h>
 #endif
 
+#include "pythonwrapper.h"
+
 #include <iostream>
 #include <arc/message/SOAPMessage.h>
 #include <arc/message/PayloadSOAP.h>
 #include <arc/message/MCCLoader.h>
 #include <arc/Thread.h>
-#include "pythonwrapper.h"
 
 #ifndef WIN32
 #include <dlfcn.h>
@@ -283,9 +284,9 @@ Service_PythonWrapper::~Service_PythonWrapper(void)
     PyEval_AcquireThread(tstate);
     // Release python objects - it is needed for Python
     // destructors to be called
-    if(arc_module) Py_DECREF(arc_module);
-    if(module) Py_DECREF(module);
-    if(object) Py_DECREF(object);
+    if(arc_module) { Py_DECREF(arc_module); }
+    if(module) { Py_DECREF(module); }
+    if(object) { Py_DECREF(object); }
     // Finish the Python Interpreter
     python_service_counter--;
     logger.msg(Arc::VERBOSE, "Python Wrapper destructor (%d)", python_service_counter);
@@ -372,7 +373,7 @@ class PyObjectP {
     PyObject* obj_;
   public:
     PyObjectP(PyObject* obj):obj_(obj) { };
-    ~PyObjectP(void) { if(obj_) Py_DECREF(obj_); };
+  ~PyObjectP(void) { if(obj_) { Py_DECREF(obj_); } };
     operator bool(void) { return (obj_ != NULL); };
     bool operator!(void) { return (obj_ == NULL); };
     operator PyObject*(void) { return obj_; };

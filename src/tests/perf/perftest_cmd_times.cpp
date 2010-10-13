@@ -130,7 +130,6 @@ void execCommand() {
 int main(int argc, char* argv[]){
   // Some variables...
   //int numberOfProcesses;
-  int i;
  
   // Extract command line arguments.
   if (argc<3){

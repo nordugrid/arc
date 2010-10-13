@@ -19,7 +19,7 @@ public:
 
   virtual Result eval(EvaluationCtx* ctx);
 
-  virtual MatchResult match(EvaluationCtx* ctx) { };
+  virtual MatchResult match(EvaluationCtx* /* ctx */) { return NO_MATCH; };
 
   virtual std::string getEffect() const { return ""; };
 

@@ -317,6 +317,7 @@ Result ArcRule::eval(EvaluationCtx* ctx){
     else if(effect == "Deny") evalres.effect = "Deny";
     return DECISION_NOT_APPLICABLE;
   }
+  return DECISION_NOT_APPLICABLE;
 }
 
 std::string ArcRule::getEffect() const {

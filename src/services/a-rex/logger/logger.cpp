@@ -93,7 +93,6 @@ int logger(const char* url,char const * const * dirs,int num,time_t ex_period) {
       odlog(INFO)<<"Processing file: "<<logfile<<std::endl;
       bool result = true;
       /* read file */
-      char buf[4096];
       std::ifstream f(logfile.c_str());
       if(!f.is_open() ) continue; /* can't open file */
       JobRecord j(f);

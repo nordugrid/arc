@@ -183,7 +183,7 @@ namespace Arc {
     const std::string& Attr() const {
       return attr;
     }
-    const RSLRelOp Op() const {
+    RSLRelOp Op() const {
       return op;
     }
     std::list<RSLValue*>::iterator begin() {

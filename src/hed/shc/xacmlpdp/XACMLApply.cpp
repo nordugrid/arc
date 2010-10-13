@@ -111,10 +111,6 @@ std::list<AttributeValue*> XACMLApply::evaluate(EvaluationCtx* ctx) {
   std::list<AttributeValue*> attrlist;
   std::list<AttributeValue*> attrlist_to_remove;
 
-  AttributeValue* attrval = NULL;
-  AttributeSelector* selector = NULL;
-  AttributeDesignator* designator = NULL;
-  XACMLApply* apply = NULL;
   std::map<int, AttributeValue*>::iterator attrval_it;
   std::map<int, AttributeSelector*>::iterator selector_it;
   std::map<int, AttributeDesignator*>::iterator designator_it;

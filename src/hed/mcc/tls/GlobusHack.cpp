@@ -40,7 +40,7 @@ namespace Arc {
     }
   }
 
-  static int verify_cert_callback(X509_STORE_CTX *sctx,void* arg) {
+  static int verify_cert_callback(X509_STORE_CTX *sctx,void* /* arg */) {
     const char* sn = "proxyCertInfo";
     const char* gsn = "PROXYCERTINFO";
     int nid = OBJ_sn2nid(sn);

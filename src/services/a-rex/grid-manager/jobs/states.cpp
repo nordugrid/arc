@@ -1067,7 +1067,7 @@ void JobsList::ActJobPreparing(JobsList::iterator &i,bool /*hard_job*/,
 void JobsList::ActJobSubmitting(JobsList::iterator &i,bool /*hard_job*/,
                                 bool& once_more,bool& /*delete_job*/,
                                 bool& job_error,bool& state_changed) {
-        JobsListConfig& jcfg = user->Env().jobs_cfg();
+        // JobsListConfig& jcfg = user->Env().jobs_cfg();
         /* state submitting - everything is ready for submission - 
            so run submission */
         logger.msg(Arc::VERBOSE,"%s: State: SUBMITTING",i->job_id);
@@ -1086,7 +1086,7 @@ void JobsList::ActJobSubmitting(JobsList::iterator &i,bool /*hard_job*/,
 void JobsList::ActJobCanceling(JobsList::iterator &i,bool /*hard_job*/,
                                bool& once_more,bool& /*delete_job*/,
                                bool& job_error,bool& state_changed) {
-        JobsListConfig& jcfg = user->Env().jobs_cfg();
+        // JobsListConfig& jcfg = user->Env().jobs_cfg();
         /* This state is like submitting, only -rm instead of -submit */
         logger.msg(Arc::VERBOSE,"%s: State: CANCELING",i->job_id);
         if(state_submitting(i,state_changed,true)) {

@@ -32,7 +32,7 @@ extern "C" {
 #undef extern
 }
 #else
-#warning Using hardcoded definition of LCMAPS functions - software will break during runtime if interface changed
+//#warning Using hardcoded definition of LCMAPS functions - software will break during runtime if interface changed
 extern "C" {
 typedef char* lcmaps_request_t;
 typedef int (*lcmaps_init_t)(FILE *fp);

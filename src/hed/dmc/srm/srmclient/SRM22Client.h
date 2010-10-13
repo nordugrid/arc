@@ -141,7 +141,7 @@ const static unsigned int max_files_list = 999;
     /**
      * Not used in this version of SRM
      */
-    SRMReturnCode release(SRMClientRequest& req) {return SRM_ERROR_NOT_SUPPORTED;};
+    SRMReturnCode release(SRMClientRequest& /* req */) {return SRM_ERROR_NOT_SUPPORTED;};
   
     /**
      * Abort request. Called after any failure in the data transfer or putDone calls

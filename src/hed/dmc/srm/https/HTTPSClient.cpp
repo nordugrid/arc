@@ -279,7 +279,7 @@ namespace Arc {
   */
   int HTTPSClient::PUT(const char* path,
         unsigned long long int offset,unsigned long long int size,
-        const unsigned char* buf,unsigned long long int fd_size,bool wait) {
+        const unsigned char* buf,unsigned long long int fd_size,bool /* wait */) {
     if(!connected) {
       logger.msg(ERROR, "Not connected");
       return -1;
@@ -531,17 +531,17 @@ namespace Arc {
 
   SimpleCondition * HTTPSClientConnector::connect_lock = new SimpleCondition();
 
-  bool HTTPSClientConnector::connect(bool& timeout) { return false; }
+  bool HTTPSClientConnector::connect(bool& /* timeout */) { return false; }
   
   bool HTTPSClientConnector::disconnect(void)  { return false; }
   
   bool HTTPSClientConnector::clear(void) { return false; }
   
-  bool HTTPSClientConnector::read(char* buf,unsigned int* size) { return false; }
+  bool HTTPSClientConnector::read(char* /* buf */,unsigned int* /* size */) { return false; }
   
-  bool HTTPSClientConnector::write(const char* buf,unsigned int size) { return false; }
+  bool HTTPSClientConnector::write(const char* /* buf */,unsigned int /* size */) { return false; }
   
-  bool HTTPSClientConnector::transfer(bool& read,bool& write,int timeout) { return false; }
+  bool HTTPSClientConnector::transfer(bool& /* read */,bool& /* write */,int /* timeout */) { return false; }
   
   bool HTTPSClientConnector::eofread(void) { return false; }
   
@@ -551,6 +551,6 @@ namespace Arc {
   
   HTTPSClientConnector::~HTTPSClientConnector(void) { }
   
-  bool HTTPSClientConnector::credentials(gss_cred_id_t cred) { return false; }
+  bool HTTPSClientConnector::credentials(gss_cred_id_t /* cred */) { return false; }
   
 } // namespace Arc

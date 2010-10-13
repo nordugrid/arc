@@ -131,7 +131,7 @@ static unsigned long string_hash(const std::string& value){
 bool DelegationSH::Handle(Arc::Message* msg) const {
   if(delegation_type_ == delegation_x509) {
     try {
-      PayloadSOAP* soap = dynamic_cast<PayloadSOAP*>(msg->Payload());
+      dynamic_cast<PayloadSOAP*>(msg->Payload());
 
       if(delegation_role_ == delegation_delegatee) {
         //Try to get the delegation service and delegation ID
@@ -347,10 +347,7 @@ bool DelegationSH::Handle(Arc::Message* msg) const {
     }  
   } else if(delegation_type_ == delegation_saml) {
     try {
-      PayloadSOAP* soap = dynamic_cast<PayloadSOAP*>(msg->Payload());
-
-
-
+      dynamic_cast<PayloadSOAP*>(msg->Payload());
     } catch(std::exception) {
       logger.msg(ERROR,"Outgoing Message is not SOAP");
       return false;

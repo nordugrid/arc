@@ -106,7 +106,6 @@ int main(void) {
   }
 
   std::string ret_str;
-  int length;
   char ret_buf[1024];
   memset(ret_buf, 0, 1024);
   int len;

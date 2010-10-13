@@ -15,7 +15,7 @@
 namespace Paul
 {
 
-Configurator::Configurator(Arc::Config *cfg):logger_(Arc::Logger::rootLogger, "Paul::Configurator"),cfg_(*cfg) { 
+Configurator::Configurator(Arc::Config *cfg):cfg_(*cfg), logger_(Arc::Logger::rootLogger, "Paul::Configurator") { 
     cfg_.setFileName(cfg->getFileName());
 }
 
@@ -108,14 +108,14 @@ HTMLRequest::HTMLRequest(Arc::Message &in)
 }
 
 void
-Configurator::style(Configurator *self, HTMLRequest &request, HTMLResponse &response)
+Configurator::style(Configurator* /* self */, HTMLRequest& /* request */, HTMLResponse& response)
 {
     response += Glib::file_get_contents("style.css");
     response.content_type = "text/plain";
 }
 
 void 
-Configurator::index(Configurator *self, HTMLRequest &request, HTMLResponse &response)
+Configurator::index(Configurator* /* self */, HTMLRequest& request, HTMLResponse& response)
 {
     response += response.header;
     response += "<ul>";
@@ -129,7 +129,7 @@ Configurator::index(Configurator *self, HTMLRequest &request, HTMLResponse &resp
 }
 
 void 
-Configurator::conf(Configurator *self, HTMLRequest &request, HTMLResponse &response)
+Configurator::conf(Configurator *self, HTMLRequest& /* request */, HTMLResponse& response)
 {
     response += response.header;
     response += "<div id=\"content-table\">";
@@ -331,7 +331,7 @@ tail(std::string file_name, int line_n)
 }
 
 void
-Configurator::log(Configurator *self, HTMLRequest &request, HTMLResponse &response)
+Configurator::log(Configurator *self, HTMLRequest& /* request */, HTMLResponse& response)
 {
     response += response.header;
     Arc::Config cfg;
@@ -471,17 +471,17 @@ Configurator::jobs(Configurator *self, HTMLRequest &request, HTMLResponse &respo
 }
 
 void 
-Configurator::job(Configurator *self, HTMLRequest &request, HTMLResponse &response)
+Configurator::job(Configurator* /* self */, HTMLRequest& /* request */, HTMLResponse& /* response*/)
 {
 }
 
 void 
-Configurator::job_stop(Configurator *self, HTMLRequest &request, HTMLResponse &response)
+Configurator::job_stop(Configurator* /* self */, HTMLRequest& /* request */, HTMLResponse& /* response*/)
 {
 }
 
 void
-Configurator::icon(Configurator *self, HTMLRequest &request, HTMLResponse &response)
+Configurator::icon(Configurator* /* self */, HTMLRequest& /* request */, HTMLResponse& /* response*/)
 {
     // XXX read arc.ico if exist and return it
 }

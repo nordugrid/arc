@@ -74,18 +74,11 @@ class TestSecAttr: public Arc::SecAttr {
   virtual operator bool(void) const { return true; };
   virtual bool Export(SecAttrFormat format,XMLNode &val) const;
  protected:
-  virtual bool equal(const SecAttr &b) const { return false; };
+  virtual bool equal(const SecAttr& /* b */) const { return false; };
  private:
   std::string id_;
 };
 
-
-static void add_subject_attribute(XMLNode item,const std::string& subject,const
-char* id) {
-   XMLNode attr = item.NewChild("ra:SubjectAttribute");
-   attr=subject; attr.NewAttribute("Type")="string";
-   attr.NewAttribute("AttributeId")=id;
-}
 
 bool TestSecAttr::Export(SecAttrFormat format,XMLNode &val) const {
   if(format != ARCAuth) return false;

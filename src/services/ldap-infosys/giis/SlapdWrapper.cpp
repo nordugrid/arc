@@ -103,7 +103,7 @@ public:
   ~SlapdWrapper() {}
 };
 
-static void* wrapper(void *arg) {
+static void* wrapper(void*) {
   void *handle = dlopen(NULL, RTLD_LAZY); /* handle for main program */
   backend_info_t backend_info = (backend_info_t) dlsym(handle, "backend_info");
   if(!backend_info) {

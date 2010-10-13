@@ -36,7 +36,7 @@ extern "C" {
 #undef extern
 };
 #else
-#warning Using hardcoded definition of LCAS functions - software will break if interface changed
+//#warning Using hardcoded definition of LCAS functions - software will break if interface changed
 extern "C" {
 typedef char* lcas_request_t;
 typedef int (*lcas_init_t)(FILE *fp);

@@ -9,7 +9,7 @@ class Entry {
   Entry(const std::list<std::string>& query);
   ~Entry();
   const std::string& Host() const;
-  const int Port() const;
+  int Port() const;
   const std::string& Suffix() const;
   std::string SearchEntry() const;
   bool operator!() const;

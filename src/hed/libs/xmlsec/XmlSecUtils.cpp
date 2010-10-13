@@ -42,7 +42,7 @@
 
 namespace Arc {
 
-int passphrase_callback(char* buf, int size, int rwflag, void *) {
+int passphrase_callback(char* buf, int size, int /* rwflag */, void *) {
   int len;
   char prompt[128];
   snprintf(prompt, sizeof(prompt), "Enter passphrase for the key file: \n");

@@ -2,7 +2,7 @@
 
 extern "C" {
 
-SOAP_NMAC struct Namespace namespaces[] = { { NULL, NULL} };
+  SOAP_NMAC struct Namespace namespaces[] = { { NULL, NULL, NULL, NULL } };
 
 }
 

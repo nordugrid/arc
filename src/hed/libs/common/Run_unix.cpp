@@ -240,7 +240,7 @@ namespace Arc {
     list_lock_.unlock();
   }
 
-  void RunPump::child_handler(Glib::Pid pid, int result) {
+  void RunPump::child_handler(Glib::Pid pid, int /* result */) {
     abandoned_lock_.lock();
     for(std::list<Abandoned>::iterator a = abandoned_.begin();
                         a != abandoned_.end();++a) {

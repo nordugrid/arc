@@ -1,8 +1,6 @@
 #include <sys/stat.h>
 #include "conf.h"
 
-static const char* default_config_file = DEFAULT_CONFIG_FILE;
-static const char* default_config_file_rel = DEFAULT_CONFIG_FILE;
 static const char* default_central_config_file = DEFAULT_CENTRAL_CONFIG_FILE;
 static const char* default_central_config_file2 = DEFAULT_CENTRAL_CONFIG_FILE2;
 const char* config_file = NULL;

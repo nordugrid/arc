@@ -2,6 +2,8 @@
 #include <config.h>
 #endif
 
+#include <Python.h>
+
 #include <cstdlib>
 #include <dlfcn.h>
 
@@ -12,9 +14,6 @@
 #include <arc/ArcLocation.h>
 #include <arc/Utils.h>
 #include <arc/Logger.h>
-
-#include <Python.h>
-
 
 __attribute__((constructor)) void __arc_init(void) {
 

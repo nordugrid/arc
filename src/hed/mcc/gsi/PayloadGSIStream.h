@@ -32,7 +32,7 @@ namespace Arc {
       return buf;
     }
 
-    virtual bool Put(const char *buf, Size_t size) {
+    virtual bool Put(const char* /* buf */, Size_t /* size */) {
       return false;
     }
 

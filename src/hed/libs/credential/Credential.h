@@ -120,7 +120,7 @@ class Credential {
   private:
 
     /** Credential object so far is not supposed to be copied */
-    Credential(const Credential& cred) { };
+    Credential(const Credential& /* cred */) { };
 
     /**load key from argument keybio, and put key information into argument pkey */
     void loadKeyString(const std::string& key, EVP_PKEY* &pkey, const std::string& passphrase = "");

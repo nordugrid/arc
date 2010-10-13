@@ -11,7 +11,7 @@ using namespace ArcSec;
 
 Logger XACMLEvaluationCtx::logger(Arc::Logger::rootLogger, "XACMLEvaluationCtx");
 
-XACMLEvaluationCtx::XACMLEvaluationCtx(Request* request) : req(NULL), EvaluationCtx(request) {
+XACMLEvaluationCtx::XACMLEvaluationCtx(Request* request) : EvaluationCtx(request), req(NULL) {
   req = request;
   XMLNode req_node = req->getReqNode();
 }

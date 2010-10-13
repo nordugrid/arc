@@ -16,7 +16,7 @@ static Arc::Logger logger(Arc::Logger::getRootLogger(),"GridFTP_Commands");
   file retrieve callbacks 
 */
 
-void GridFTP_Commands::data_connect_retrieve_callback(void* arg,globus_ftp_control_handle_t *handle,unsigned int stripendx,globus_bool_t reused,globus_object_t *error) {
+void GridFTP_Commands::data_connect_retrieve_callback(void* arg,globus_ftp_control_handle_t*,unsigned int /* stripendx */,globus_bool_t /* reused */,globus_object_t *error) {
   GridFTP_Commands *it = (GridFTP_Commands*)arg;
   logger.msg(Arc::VERBOSE, "data_connect_retrieve_callback");
   globus_thread_blocking_will_block();
@@ -81,7 +81,7 @@ void GridFTP_Commands::data_connect_retrieve_callback(void* arg,globus_ftp_contr
   globus_mutex_unlock(&(it->data_lock)); return;
 }
 
-void GridFTP_Commands::data_retrieve_callback(void* arg,globus_ftp_control_handle_t *handle,globus_object_t *error,globus_byte_t *buffer,globus_size_t length,globus_off_t offset,globus_bool_t eof) {
+void GridFTP_Commands::data_retrieve_callback(void* arg,globus_ftp_control_handle_t*,globus_object_t *error,globus_byte_t *buffer,globus_size_t length,globus_off_t offset,globus_bool_t eof) {
   logger.msg(Arc::VERBOSE, "data_retrieve_callback");
   globus_thread_blocking_will_block();
   GridFTP_Commands *it = (GridFTP_Commands*)arg;

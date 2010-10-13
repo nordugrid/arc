@@ -42,7 +42,7 @@ const std::string& IdentityItemVOMS::value(unsigned int n) {
   return empty_;
 }
 
-const std::string& IdentityItemVOMS::value(const char* name,unsigned int n) {
+const std::string& IdentityItemVOMS::value(const char* name,unsigned int /* n */) {
   if(vo_name_ == name) return vo_;
   if(voms_name_ == name) return voms_;
   if(group_name_ == name) return group_;

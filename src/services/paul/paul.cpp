@@ -456,7 +456,7 @@ void PaulService::report_and_action_loop(void *arg)
 }
 
 // Constructor
-PaulService::PaulService(Arc::Config *cfg):RegisteredService(cfg),in_shutdown(false),logger_(Arc::Logger::rootLogger, "Paul"),configurator(cfg)
+PaulService::PaulService(Arc::Config *cfg):RegisteredService(cfg),configurator(cfg),in_shutdown(false),logger_(Arc::Logger::rootLogger, "Paul")
 {
     // Define supported namespaces
     ns_["ibes"] = "http://www.nordugrid.org/schemas/ibes";

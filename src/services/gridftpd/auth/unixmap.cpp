@@ -17,7 +17,7 @@ UnixMap::source_t UnixMap::sources[] = {
   { "unixuser", &UnixMap::map_unixuser, NULL },
   { "lcmaps", &UnixMap::map_lcmaps, NULL },
   { "mapplugin", &UnixMap::map_mapplugin, NULL },
-  { NULL, NULL }
+  { NULL, NULL, NULL }
 };
 
 UnixMap::UnixMap(AuthUser& user,const std::string& id):
@@ -151,7 +151,7 @@ static void subst_arg(std::string& str,void* arg) {
   AuthUserSubst(str,*it);
 }
 
-bool UnixMap::map_mapplugin(const AuthUser& user,unix_user_t& unix_user,const char* line) {
+bool UnixMap::map_mapplugin(const AuthUser& /* user */ ,unix_user_t& unix_user,const char* line) {
   // timeout path arg ...
   if(!line) return false;
   for(;*line;line++) if(!isspace(*line)) break;
@@ -215,7 +215,7 @@ bool UnixMap::map_simplepool(const AuthUser& user,unix_user_t& unix_user,const c
   return true;
 }
 
-bool UnixMap::map_unixuser(const AuthUser& user,unix_user_t& unix_user,const char* line) {
+bool UnixMap::map_unixuser(const AuthUser& /* user */,unix_user_t& unix_user,const char* line) {
   // Maping is always positive - just fill specified username
   std::string unixname(line);
   std::string unixgroup;

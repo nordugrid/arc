@@ -9,7 +9,7 @@
 #include "auth.h"
 
 
-int AuthUser::match_all(const char* line) {
+int AuthUser::match_all(const char* /* line */) {
   default_voms_=NULL;
   default_vo_=NULL;
   default_role_=NULL;

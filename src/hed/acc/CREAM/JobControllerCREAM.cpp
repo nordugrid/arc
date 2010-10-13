@@ -84,7 +84,7 @@ namespace Arc {
     return ok;
   }
 
-  bool JobControllerCREAM::CleanJob(const Job& job, bool force) {
+  bool JobControllerCREAM::CleanJob(const Job& job, bool /* force */) {
 
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);
@@ -122,18 +122,23 @@ namespace Arc {
     return true;
   }
 
-  bool JobControllerCREAM::RenewJob(const Job& job) {
+  bool JobControllerCREAM::RenewJob(const Job& /* job */) {
     logger.msg(INFO, "Renewal of CREAM jobs is not supported");
     return false;
   }
 
-  bool JobControllerCREAM::ResumeJob(const Job& job) {
+  bool JobControllerCREAM::ResumeJob(const Job& /* job */) {
     logger.msg(INFO, "Resumation of CREAM jobs is not supported");
     return false;
   }
 
-  URL JobControllerCREAM::GetFileUrlForJob(const Job& job,
-                                           const std::string& whichfile) { return URL(); }
-  bool JobControllerCREAM::GetJobDescription(const Job& job, std::string& desc_str) { return false; }
+  URL JobControllerCREAM::GetFileUrlForJob(const Job& /* job */,
+                                           const std::string& /* whichfile */) {
+    return URL();
+  }
+
+  bool JobControllerCREAM::GetJobDescription(const Job& /* job */, std::string& /* desc_str */) {
+    return false;
+  }
 
 } // namespace Arc

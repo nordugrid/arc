@@ -231,7 +231,7 @@ namespace Arc {
 
   bool ClientX509Delegation::acquireDelegation(DelegationType deleg, std::string& delegation_cred, std::string& delegation_id,
                                                const std::string cred_identity, const std::string cred_delegator_ip,
-                                               const std::string username, const std::string password) {
+                                               const std::string /* username */, const std::string /* password */) {
     if (deleg == DELEG_ARC) {
       //Use the DelegationInterface class for ARC delegation service
       logger.msg(INFO, "Getting delegation credential from ARC delegation service");

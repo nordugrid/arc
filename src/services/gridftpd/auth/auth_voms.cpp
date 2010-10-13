@@ -97,7 +97,7 @@ int AuthUser::match_voms(const char* line) {
 }
 
 
-int process_vomsproxy(const char* filename,std::vector<struct voms> &data,bool auto_cert) {
+int process_vomsproxy(const char* filename,std::vector<struct voms> &data,bool /* auto_cert */) {
   X509 * cert = NULL;
   STACK_OF(X509) * cert_chain = NULL;
   EVP_PKEY * key = NULL;

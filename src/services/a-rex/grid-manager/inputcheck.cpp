@@ -111,8 +111,6 @@ int main(int argc,char* argv[]) {
   std::list<lfn_t*> lfns;
   for(file=job.inputdata.begin();file!=job.inputdata.end();++file) {
     if(file->has_lfn()) {
-      pthread_t thread;
-      pthread_attr_t thread_attr;
       lfn_t* lfn = new lfn_t(file->lfn.c_str());
       lfns.push_back(lfn);
       Arc::CreateThreadFunction(&check_url,lfn);

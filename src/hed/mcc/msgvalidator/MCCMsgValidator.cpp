@@ -187,21 +187,6 @@ static MCC_Status make_raw_fault(Message& outmsg,const char* = NULL)
   return MCC_Status(GENERIC_ERROR);
 }
 
-static MCC_Status make_soap_fault(Message& outmsg,const char* = NULL) {
-  PayloadSOAP* soap = new PayloadSOAP(NS(),true);
-  soap->Fault()->Code(SOAPFault::Receiver);
-  outmsg.Payload(soap);
-  return MCC_Status(GENERIC_ERROR);
-}
-
-static MCC_Status make_soap_fault(Message& outmsg,Message& oldmsg,const char* desc = NULL) {
-  if(oldmsg.Payload()) {
-    delete oldmsg.Payload();
-    oldmsg.Payload(NULL);
-  };
-  return make_soap_fault(outmsg,desc);
-}
-
 MCC_Status MCC_MsgValidator_Service::process(Message& inmsg,Message& outmsg) {
   // Extracting payload
   MessagePayload* inpayload = inmsg.Payload();

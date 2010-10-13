@@ -329,7 +329,7 @@
   
   SRMReturnCode SRM1Client::info(SRMClientRequest& req,
                                  std::list<struct SRMFileMetaData>& metadata,
-                                 const int recursive,
+                                 const int /* recursive */,
                                  bool report_error) {
     SRMReturnCode rc = connect();
     if (rc != SRM_OK) return rc;

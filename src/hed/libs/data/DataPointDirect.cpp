@@ -176,7 +176,8 @@ namespace Arc {
   }
 
   int DataPointDirect::AddCheckSumObject(CheckSum *cksum) {
-    if(!cksum);
+    if(!cksum)
+      return -1;
     cksum->start();
     checksums.push_back(cksum);
     return checksums.size()-1;

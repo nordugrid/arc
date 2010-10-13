@@ -645,7 +645,7 @@ static void soft_state_thread(void *data) {
         return Arc::MCC_Status(Arc::STATUS_OK);
     }
 
-    Arc::MCC_Status ISIService::Register(Arc::XMLNode &request, Arc::XMLNode &response) {
+    Arc::MCC_Status ISIService::Register(Arc::XMLNode& request, Arc::XMLNode& /* response */) {
         int i=0;
         while ((bool) request["RegEntry"][i]) {
             Arc::XMLNode regentry_ = request["RegEntry"][i++];
@@ -694,7 +694,7 @@ static void soft_state_thread(void *data) {
         return Arc::MCC_Status(Arc::STATUS_OK);
     }
 
-    Arc::MCC_Status ISIService::RemoveRegistrations(Arc::XMLNode &request, Arc::XMLNode &response) {
+    Arc::MCC_Status ISIService::RemoveRegistrations(Arc::XMLNode& request, Arc::XMLNode& /* response */) {
         int i=0;
         while ((bool) request["ServiceID"][i]) {
             std::string service_id = (std::string) request["ServiceID"][i];
@@ -763,7 +763,7 @@ static void soft_state_thread(void *data) {
         return Arc::MCC_Status(Arc::STATUS_OK);
     }
 
-    Arc::MCC_Status ISIService::GetISISList(Arc::XMLNode &request, Arc::XMLNode &response) {
+    Arc::MCC_Status ISIService::GetISISList(Arc::XMLNode& /* request */, Arc::XMLNode& response) {
         logger_.msg(Arc::VERBOSE, "GetISISList received");
         // If the neighbors_ vector is empty, then return with the own
         // address else with the list of neighbors.
@@ -776,7 +776,7 @@ static void soft_state_thread(void *data) {
         return Arc::MCC_Status(Arc::STATUS_OK);
     }
 
-    Arc::MCC_Status ISIService::Connect(Arc::XMLNode &request, Arc::XMLNode &response) {
+    Arc::MCC_Status ISIService::Connect(Arc::XMLNode& /* request */, Arc::XMLNode& response) {
         logger_.msg(Arc::VERBOSE, "Connect received");
 
         // Database Dump

@@ -436,8 +436,8 @@ namespace Arc {
       connected(false),
       pasv_set(false),
       data_activated(false),
-      credential(credential),
-      port((unsigned short int)(-1)) {
+      port((unsigned short int)(-1)),
+      credential(credential) {
     if (globus_cond_init(&cond, GLOBUS_NULL) != GLOBUS_SUCCESS) {
       logger.msg(ERROR, "Failed initing condition");
       return;

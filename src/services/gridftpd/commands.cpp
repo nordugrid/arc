@@ -72,7 +72,7 @@ int GridFTP_Commands::wait_response(void) {
   return res;
 }
 
-void GridFTP_Commands::response_callback(void* arg,globus_ftp_control_handle_t *handle,globus_object_t *error) {
+void GridFTP_Commands::response_callback(void* arg,globus_ftp_control_handle_t*,globus_object_t *error) {
   GridFTP_Commands *it = (GridFTP_Commands*)arg;
   globus_mutex_lock(&(it->response_lock));
   if(error != GLOBUS_SUCCESS) { 
@@ -86,7 +86,7 @@ void GridFTP_Commands::response_callback(void* arg,globus_ftp_control_handle_t *
   globus_mutex_unlock(&(it->response_lock));
 }
 
-void GridFTP_Commands::close_callback(void *arg,globus_ftp_control_handle_t *handle,globus_object_t *error, globus_ftp_control_response_t *ftp_response) {
+void GridFTP_Commands::close_callback(void *arg,globus_ftp_control_handle_t*,globus_object_t* /* error */, globus_ftp_control_response_t* /* ftp_response */) {
   GridFTP_Commands *it = (GridFTP_Commands*)arg;
   if(it) {
     logger.msg(Arc::INFO, "Closed connection");
@@ -96,19 +96,12 @@ void GridFTP_Commands::close_callback(void *arg,globus_ftp_control_handle_t *han
 }
 
 #if GLOBUS_IO_VERSION>=5
-static void io_close_cb(void* callback_arg,globus_io_handle_t* handle,globus_result_t result) {
+static void io_close_cb(void* /* callback_arg */,globus_io_handle_t*, globus_result_t /* result */) {
 }
 #endif
 
 
 #ifndef __DONT_USE_FORK__
-
-static void io_listen_cb(void* arg,globus_io_handle_t* handle,globus_result_t result) {
-  globus_mutex_lock(&fork_lock);
-  fork_done=1;
-  globus_cond_signal(&fork_cond);
-  globus_mutex_unlock(&fork_lock);
-}
 
 GridFTP_Commands::close_semaphor_t::close_semaphor_t(void) {
 }
@@ -1035,7 +1028,7 @@ bool GridFTP_Commands::allocate_data_buffer(void) {
   return true;
 }
 
-void GridFTP_Commands::abort_callback(void* arg,globus_ftp_control_handle_t *handle,globus_object_t *error) {
+void GridFTP_Commands::abort_callback(void* arg,globus_ftp_control_handle_t*,globus_object_t *error) {
   GridFTP_Commands *it = (GridFTP_Commands*)arg;
   logger.msg(Arc::VERBOSE, "abort_callback: start");
   globus_mutex_lock(&(it->abort_lock));

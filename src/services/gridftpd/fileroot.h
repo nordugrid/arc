@@ -80,16 +80,16 @@ class FilePlugin { /* this is the base class for plugins */
  public:
   std::string error_description;
   /* virtual functions are not defined in base class */
-  virtual int open(const char*,open_modes,unsigned long long int size = 0) { return 1; };
-  virtual int close(bool eof = true) { return 1; };
-  virtual int read(unsigned char *,unsigned long long int offset,unsigned long long int *size) { return 1; };
-  virtual int write(unsigned char *,unsigned long long int offset,unsigned long long int size) { return 1; };
-  virtual int readdir(const char* name,std::list<DirEntry> &dir_list,DirEntry::object_info_level mode = DirEntry::basic_object_info) { return 1; };
-  virtual int checkdir(std::string &dirname) { return 1; };
-  virtual int checkfile(std::string &name,DirEntry &info,DirEntry::object_info_level mode) { return 1; };
-  virtual int makedir(std::string &dirname) { return 1; };
-  virtual int removefile(std::string &name) { return 1; };
-  virtual int removedir(std::string &dirname) { return 1; };
+  virtual int open(const char*,open_modes,unsigned long long int /* size */ = 0) { return 1; };
+  virtual int close(bool /* eof */ = true) { return 1; };
+  virtual int read(unsigned char *,unsigned long long int /* offset */,unsigned long long int* /* size */) { return 1; };
+  virtual int write(unsigned char *,unsigned long long int /* offset */,unsigned long long int /* size */) { return 1; };
+  virtual int readdir(const char* /* name */,std::list<DirEntry>& /* dir_list */,DirEntry::object_info_level /* mode */ = DirEntry::basic_object_info) { return 1; };
+  virtual int checkdir(std::string& /* dirname */) { return 1; };
+  virtual int checkfile(std::string& /* name */,DirEntry& /* info */,DirEntry::object_info_level /* mode */) { return 1; };
+  virtual int makedir(std::string& /* dirname */) { return 1; };
+  virtual int removefile(std::string& /* name */) { return 1; };
+  virtual int removedir(std::string& /* dirname */) { return 1; };
   int                count;  
   FilePlugin(void) {
     count=0; /* after creation acquire MUST be called */

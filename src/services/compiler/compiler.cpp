@@ -255,7 +255,7 @@ std::string job_submit(const std::string job_name, const std::string site_url, c
 		       std::vector<std::string> sources, const std::string architecture="", 
 		       const std::string makefile="",   const std::string cpu_number="1",
 		       const std::string parameters="", bool tar = true,  std::string compiler="make", 
-		       bool march = false   ){
+		       bool /* march */ = false   ){
     std::string jobid("");
     // call parameter check
     if( site_url == "" || script_url == "" ) return jobid;

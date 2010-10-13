@@ -80,7 +80,7 @@ int make_list_string(const DirEntry &entr,GridFTP_Commands::list_mode_t mode,
 };
 
 /* *** list transfer callbacks *** */
-void GridFTP_Commands::list_retrieve_callback(void* arg,globus_ftp_control_handle_t *handle,globus_object_t *error,globus_byte_t *buffer,globus_size_t length,globus_off_t offset,globus_bool_t eof) {
+void GridFTP_Commands::list_retrieve_callback(void* arg,globus_ftp_control_handle_t*,globus_object_t *error,globus_byte_t* /* buffer */,globus_size_t /* length */,globus_off_t /* offset */,globus_bool_t /* eof */) {
   GridFTP_Commands *it = (GridFTP_Commands*)arg;
   globus_mutex_lock(&(it->data_lock));
   it->last_action_time=time(NULL);
@@ -89,7 +89,6 @@ void GridFTP_Commands::list_retrieve_callback(void* arg,globus_ftp_control_handl
     globus_mutex_unlock(&(it->data_lock));
     return;
   };
-  const char* data_buf;
   globus_bool_t eodf;
   globus_size_t size;
   if(it->dir_list_pointer == it->dir_list.end()) {
@@ -126,7 +125,7 @@ void GridFTP_Commands::list_retrieve_callback(void* arg,globus_ftp_control_handl
   globus_mutex_unlock(&(it->data_lock));
 }
 
-void GridFTP_Commands::list_connect_retrieve_callback(void* arg,globus_ftp_control_handle_t *handle,unsigned int stripendx,globus_bool_t reused,globus_object_t *error) {
+void GridFTP_Commands::list_connect_retrieve_callback(void* arg,globus_ftp_control_handle_t*,unsigned int /* stripendx */,globus_bool_t /* reused */,globus_object_t *error) {
   GridFTP_Commands *it = (GridFTP_Commands*)arg;
   globus_mutex_lock(&(it->data_lock));
   it->last_action_time=time(NULL);

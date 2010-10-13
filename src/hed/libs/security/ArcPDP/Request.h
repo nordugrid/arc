@@ -60,10 +60,10 @@ public:
   virtual ReqItemList getRequestItems () const { ReqItemList list; return list; };
 
   /**Set the content of the container*/
-  virtual void setRequestItems (ReqItemList sl) { };
+  virtual void setRequestItems (ReqItemList /* sl */) { };
 
   /**Add request tuple from non-XMLNode*/
-  virtual void addRequestItem(Attrs& sub, Attrs& res, Attrs& act, Attrs& ctx) { };
+  virtual void addRequestItem(Attrs& /* sub */, Attrs& /* res */, Attrs& /* act */ , Attrs& /* ctx */) { };
 
   /**Set the attribute factory for the usage of Request*/
   virtual void setAttributeFactory(AttributeFactory* attributefactory) = 0;

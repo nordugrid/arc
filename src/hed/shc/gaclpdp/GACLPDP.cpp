@@ -160,7 +160,6 @@ bool GACLPDP::isPermitted(Message *msg) const{
   Response *resp = eval->evaluate(requestxml);
   if(!resp) return false;
   ResponseList rlist = resp->getResponseItems();
-  int size = rlist.size();
 
   // Current implementation of GACL Evaluator returns only one item
   // and only PERMIT/DENY results.

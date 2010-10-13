@@ -537,7 +537,7 @@ namespace Arc {
 
   DataStatus DataPointFile::ListFiles(std::list<FileInfo>& files,
                                       bool long_list,
-                                      bool resolve,
+                                      bool /* resolve */,
                                       bool metadata) {
     if (reading)
       return DataStatus::IsReadingError;

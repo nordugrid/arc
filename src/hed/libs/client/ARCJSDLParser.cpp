@@ -23,7 +23,7 @@ namespace Arc {
 
   ARCJSDLParser::~ARCJSDLParser() {}
 
-  static void XmlErrorHandler(void* ctx, const char* msg) {
+  static void XmlErrorHandler(void* /* ctx */, const char* /* msg */) {
     return;
   }
 

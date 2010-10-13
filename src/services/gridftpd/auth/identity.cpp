@@ -64,15 +64,15 @@ Identity::Item* Identity::Item::duplicate(void) const {
   return new Identity::Item;
 }
 
-const std::string& Identity::Item::name(unsigned int n) {
+const std::string& Identity::Item::name(unsigned int /* n */) {
   return empty_;
 }
 
-const std::string& Identity::Item::value(unsigned int n) {
+const std::string& Identity::Item::value(unsigned int /* n */) {
   return empty_;
 }
 
-const std::string& Identity::Item::value(const char* name,unsigned int n) {
+const std::string& Identity::Item::value(const char* /* name */,unsigned int /* n */) {
   return empty_;
 }
 

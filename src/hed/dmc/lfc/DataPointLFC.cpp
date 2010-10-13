@@ -532,7 +532,7 @@ namespace Arc {
 
 
   DataStatus DataPointLFC::ListFiles(std::list<FileInfo>& files,
-                                     bool long_list,
+                                     bool /* long_list */,
                                      bool resolve,
                                      bool metadata) {
 

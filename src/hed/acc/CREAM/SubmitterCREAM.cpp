@@ -79,9 +79,9 @@ namespace Arc {
     return submissionurl.str() + '/' + jobInfo.jobId;
   }
 
-  URL SubmitterCREAM::Migrate(const URL& jobid, const JobDescription& jobdesc,
+  URL SubmitterCREAM::Migrate(const URL& /* jobid */, const JobDescription& /* jobdesc */,
                               const ExecutionTarget& et,
-                              bool forcemigration) const {
+                              bool /* forcemigration */) const {
     logger.msg(INFO, "Trying to migrate to %s: Migration to a CREAM resource is not supported.", et.url.str());
     return URL();
   }

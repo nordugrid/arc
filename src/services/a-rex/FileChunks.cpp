@@ -9,7 +9,7 @@
 namespace ARex {
 
 void FileChunks::Print(void) {
-  int n = 0;
+  //int n = 0;
   lock.lock();
   for(chunks_t::iterator c = chunks.begin();c!=chunks.end();++c) {
     //Hopi::logger.msg(Arc::DEBUG, "Chunk %u: %u - %u",n,c->first,c->second);

@@ -48,11 +48,11 @@ private:
 };
 
 BrokerTest::BrokerTest()
-  : usercfg(Arc::initializeCredentialsType(Arc::initializeCredentialsType::SkipCredentials)),
-    tb(usercfg),
-    etl(1, Arc::ExecutionTarget()),
+  : logcerr(std::cerr),
     logger(Arc::Logger::getRootLogger(), "BrokerTest"),
-    logcerr(std::cerr) {}
+    usercfg(Arc::initializeCredentialsType(Arc::initializeCredentialsType::SkipCredentials)),
+    tb(usercfg),
+    etl(1, Arc::ExecutionTarget()) {}
 
 void BrokerTest::setUp() {
   etl.front().url = Arc::URL("http://localhost/test");

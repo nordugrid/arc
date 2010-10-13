@@ -142,7 +142,7 @@ typedef struct {
 } args_st;
 
 static void grid_manager(void* arg) {
-  const char* config_filename = (const char*)arg;
+  //const char* config_filename = (const char*)arg;
   GMEnvironment* env = (GMEnvironment*)arg;
   if(!arg) return;
   unsigned int clean_first_level=0;

@@ -1404,7 +1404,7 @@ bool JobPlugin::make_job_id(void) {
   returns access rights. For special files superset of all  rights is
   returned. Distinction between files is processed at higher levels.
 */
-int JobPlugin::is_allowed(const char* name,bool locked,bool* spec_dir,std::string* jobid,char const ** logname,std::string* log) {
+int JobPlugin::is_allowed(const char* name,bool /* locked */,bool* spec_dir,std::string* jobid,char const ** logname,std::string* log) {
   if(logname) (*logname) = NULL;
   if(log) (*log)="";
   if(spec_dir) (*spec_dir)=false;
@@ -1566,7 +1566,7 @@ DirectFilePlugin * JobPlugin::selectFilePlugin(std::string id) {
   return file_plugins.at(0);
 }
 
-bool JobPlugin::chooseControlAndSessionDir(std::string job_id, std::string& controldir, std::string& sessiondir) {
+bool JobPlugin::chooseControlAndSessionDir(std::string /* job_id */, std::string& controldir, std::string& sessiondir) {
 
   if (gm_dirs_non_draining.size() == 0 || session_dirs_non_draining.size() == 0) {
     // no active control or session dirs available

@@ -44,6 +44,7 @@ Policy& Policy::operator=(const Policy& p){
   port = p.port;
   suffix = p.suffix;
   RegComp();
+  return *this;
 }
 
 Policy::~Policy() {

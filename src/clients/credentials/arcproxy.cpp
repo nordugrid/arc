@@ -40,7 +40,6 @@
 
 static int create_proxy_file(const std::string& path) {
   int f = -1;
-  int err = 0;
 
   if((::unlink(path.c_str()) != 0) && (errno != ENOENT)) {
     throw std::runtime_error("Failed to remove proxy file " + path);

@@ -245,11 +245,6 @@ static void sequenceprintnamed(const std::string& cppspace,const std::string& nt
                            ntype,ns,cppspace);
 }
 
-static void simplecontentprintnamed(const std::string& cppspace,const std::string& ntype,Arc::XMLNode content,const std::string& ns,std::ostream& h_file,std::ostream& cpp_file) {
-    
-
-}
-
 static void complextypeprintnamed(const std::string& cppspace,const std::string& ntype,Arc::XMLNode ctype,const std::string& ns,std::ostream& h_file,std::ostream& cpp_file) {
   h_file<<"//complex type: "<<ntype<<std::endl;
   XMLNode sequence = ctype["xsd:sequence"];

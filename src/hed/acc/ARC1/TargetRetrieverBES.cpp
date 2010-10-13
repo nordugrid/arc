@@ -42,8 +42,8 @@ namespace Arc {
     return new TargetRetrieverBES(*trarg, *trarg, *trarg);
   }
 
-  void TargetRetrieverBES::GetTargets(TargetGenerator& mom, int targetType,
-                                       int detailLevel) {
+  void TargetRetrieverBES::GetTargets(TargetGenerator& mom, int /* targetType */,
+                                      int /* detailLevel */) {
 
     logger.msg(VERBOSE, "TargetRetriverBES initialized with %s service url: %s",
                serviceType, url.str());

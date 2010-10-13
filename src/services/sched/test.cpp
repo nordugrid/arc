@@ -55,7 +55,7 @@ int TestDB::put(void)
     try {
         unsigned long int id = (unsigned long int)(void*)Glib::Thread::self();
         int ret = env_->txn_begin(NULL, &txn, 0);
-        printf("(%d) put(%d): %p\n", id, ret, txn);
+        printf("(%ld) put(%d): %p\n", id, ret, txn);
     } catch (std::exception &e) {
         std::cerr << "Error: " << e.what() << std::endl;
         return counter_;

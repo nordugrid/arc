@@ -635,15 +635,15 @@ std::string PayloadHTTP::Get(void) {
 
 // Stream interface is meant to be used only
 // for reading HTTP body.
-bool PayloadHTTP::Put(const char* buf,PayloadStreamInterface::Size_t size) {
+bool PayloadHTTP::Put(const char* /* buf */,PayloadStreamInterface::Size_t /* size */) {
   return false;
 }
 
-bool PayloadHTTP::Put(const std::string& buf) {
+bool PayloadHTTP::Put(const std::string& /* buf */) {
   return false;
 }
 
-bool PayloadHTTP::Put(const char* buf) {
+bool PayloadHTTP::Put(const char* /* buf */) {
   return false;
 }
 

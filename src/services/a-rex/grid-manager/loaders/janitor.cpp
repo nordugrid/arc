@@ -38,8 +38,8 @@ static Arc::Logger logger(Arc::Logger::rootLogger, "Janitor Control");
 
 Janitor::Janitor(const std::string& id,const std::string& cdir,
                  const GMEnvironment& env):
-         id_(id),cdir_(cdir),running_(false),result_(FAILED),
-         enabled_(false),env_(env) {
+         enabled_(false),id_(id),cdir_(cdir),
+         running_(false),result_(FAILED),env_(env) {
   if(!readConfig()) return;
   if(!enabled()) return;
   if(id_.empty()) return;

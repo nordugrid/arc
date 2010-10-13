@@ -309,7 +309,7 @@ namespace Arc {
   }
 
   DataStatus DataPointSRM::StartWriting(DataBuffer& buf,
-                                        DataCallback *space_cb) {
+                                        DataCallback* /* space_cb */) {
 
     logger.msg(VERBOSE, "StartWriting");
     if (reading)
@@ -546,7 +546,7 @@ namespace Arc {
 
   DataStatus DataPointSRM::ListFiles(std::list<FileInfo>& files,
                                      bool long_list,
-                                     bool resolve,
+                                     bool /* resolve */,
                                      bool metadata) {
 
     SRMClient * client = SRMClient::getInstance(usercfg, url.fullstr(), timeout);

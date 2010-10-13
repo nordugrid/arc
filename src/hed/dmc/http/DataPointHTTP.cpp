@@ -338,7 +338,7 @@ namespace Arc {
             if (u.str().substr(0, b.size()) == b)
               url = u.str().substr(b.size());
           }
-          if (url[0] != '?' && url[0] != '/')
+          if (url[0] != '?' && url[0] != '/') {
             if (url.find('/') == url.size() - 1) {
               std::list<FileInfo>::iterator f = files.insert(files.end(), url);
               f->SetType(FileInfo::file_type_dir);
@@ -347,6 +347,7 @@ namespace Arc {
               std::list<FileInfo>::iterator f = files.insert(files.end(), url);
               f->SetType(FileInfo::file_type_file);
             }
+          }
         }
       }
       pos = tag_end + 1;
@@ -355,7 +356,7 @@ namespace Arc {
   }
 
   DataStatus DataPointHTTP::ListFiles(std::list<FileInfo>& files,
-                                      bool long_list, bool resolve,
+                                      bool /* long_list */, bool /* resolve */,
                                       bool metadata) {
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);
@@ -726,9 +727,9 @@ namespace Arc {
       // pick up usefull information from HTTP header
       point.created = transfer_info.lastModified;
       retries = 0;
-      bool whole = (inbuf && ((transfer_info.size == inbuf->Size()) &&
-                              (inbuf->BufferPos(0) == 0)) ||
-                    (inbuf->Size() == -1));
+      bool whole = (inbuf && (((transfer_info.size == inbuf->Size() &&
+                               (inbuf->BufferPos(0) == 0))) ||
+                    inbuf->Size() == -1));
       // Temporary solution - copy data between buffers
       point.transfer_lock.lock();
       point.chunks->Unclaim(transfer_offset, chunk_length);

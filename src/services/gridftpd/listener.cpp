@@ -70,7 +70,7 @@ void new_conn_callback(void* arg,globus_ftp_control_server_t *handle,globus_obje
 }
 #endif
 
-void serv_stop_callback(void* arg,globus_ftp_control_server_t *handle,globus_object_t *error) {
+void serv_stop_callback(void* /* arg */,globus_ftp_control_server_t* /* handle */,globus_object_t* /* error */) {
   logger.msg(Arc::INFO, "Server stopped");
 }
 
@@ -78,7 +78,7 @@ static volatile int chid = -1;
 static volatile int server_done = 0;
 static void (*sig_old_chld)(int) = SIG_ERR;
 
-void sig_chld(int signum) {
+void sig_chld(int /* signum */) {
   int status;
   for(;;) {
     int id=waitpid(-1,&status,WNOHANG);
@@ -152,7 +152,7 @@ int main(int argc,char** argv) {
 
 int main_internal(int argc,char** argv) {
 #else
-void sig_term_fork(int signum) {
+void sig_term_fork(int /* signum */) {
   int static passed = 0;
   if(passed) return;
   server_done=1;

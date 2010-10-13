@@ -67,7 +67,6 @@ namespace gridftpd {
         name=config_next_arg(rest);
       };
       if(name.length() == 0) continue;
-      std::string::size_type pos;
       for(std::list<std::string>::iterator u = ulist.begin();
                             u != ulist.end(); ++u) {
         if(name == *u) { name.resize(0); break; };

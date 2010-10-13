@@ -12,11 +12,11 @@ class GACLRequest : public Request {
 public:
   virtual ReqItemList getRequestItems () const { return rlist; };
   
-  virtual void setRequestItems (ReqItemList sl) { };
+  virtual void setRequestItems (ReqItemList /* sl */) { };
 
-  virtual void addRequestItem(Attrs& sub, Attrs& res, Attrs& act, Attrs& ctx) { };
+  virtual void addRequestItem(Attrs& /* sub */, Attrs& /* res */, Attrs& /* act */, Attrs& /* ctx */) { };
 
-  virtual void setAttributeFactory(AttributeFactory* attributefactory) { };
+  virtual void setAttributeFactory(AttributeFactory* /* attributefactory */) { };
 
   virtual void make_request() { };
 

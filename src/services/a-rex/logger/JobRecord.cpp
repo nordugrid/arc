@@ -41,7 +41,7 @@ class JobRecord: public Arc::XMLNode {
   ~JobRecord(void);
 };
 
-JobRecord::JobRecord(const JobRecord& j) {
+JobRecord::JobRecord(const JobRecord& j) : XMLNode() {
   valid=j.valid;
   url=j.url; // ???
   j.New(*this);

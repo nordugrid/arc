@@ -82,8 +82,8 @@ namespace Arc {
 
   }
 
-  bool JobControllerUNICORE::GetJob(const Job& job,
-                                    const std::string& downloaddir) {
+  bool JobControllerUNICORE::GetJob(const Job& /* job */,
+                                    const std::string& /* downloaddir */) {
     /*
         logger.msg(VERBOSE, "Downloading job: %s", job.JobID.str());
 
@@ -121,7 +121,7 @@ namespace Arc {
     return false;
   }
 
-  bool JobControllerUNICORE::CleanJob(const Job& job, bool force) {
+  bool JobControllerUNICORE::CleanJob(const Job& /* job */, bool /* force */) {
     //     MCCConfig cfg;
     //     usercfg.ApplyToConfig(cfg);
     //     PathIterator pi(job.JobID.Path(), true);
@@ -145,7 +145,7 @@ namespace Arc {
     return false;
   }
 
-  bool JobControllerUNICORE::CancelJob(const Job& job) {
+  bool JobControllerUNICORE::CancelJob(const Job& /* job */) {
     //     MCCConfig cfg;
     //     usercfg.ApplyToConfig(cfg);
     //     PathIterator pi(job.JobID.Path(), true);
@@ -169,20 +169,22 @@ namespace Arc {
     return false;
   }
 
-  bool JobControllerUNICORE::RenewJob(const Job& job) {
+  bool JobControllerUNICORE::RenewJob(const Job& /* job */) {
     logger.msg(ERROR, "Renewal of UNICORE jobs is not supported");
     return false;
   }
 
-  bool JobControllerUNICORE::ResumeJob(const Job& job) {
+  bool JobControllerUNICORE::ResumeJob(const Job& /* job */) {
     logger.msg(ERROR, "Resumation of UNICORE jobs is not supported");
     return false;
   }
 
-  URL JobControllerUNICORE::GetFileUrlForJob(const Job& job,
-                                             const std::string& whichfile) { return URL(); }
+  URL JobControllerUNICORE::GetFileUrlForJob(const Job& /* job */,
+                                             const std::string& /* whichfile */) {
+    return URL();
+  }
 
-  bool JobControllerUNICORE::GetJobDescription(const Job& job, std::string& desc_str) {
+  bool JobControllerUNICORE::GetJobDescription(const Job& /* job */, std::string& /* desc_str */) {
     return false;
   }
 

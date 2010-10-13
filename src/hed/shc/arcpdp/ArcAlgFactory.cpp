@@ -32,7 +32,6 @@ void ArcAlgFactory::initCombiningAlg(CombiningAlg* alg) {
 
 void ArcAlgFactory::initCombiningAlgs(){
   //Some Arc specified algorithm types
-  CombiningAlg* alg = NULL;
   initCombiningAlg(new DenyOverridesCombiningAlg);
   initCombiningAlg(new PermitOverridesCombiningAlg);
   initCombiningAlg(new PermitDenyIndeterminateNotApplicableCombiningAlg);

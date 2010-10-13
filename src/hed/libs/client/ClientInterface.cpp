@@ -252,7 +252,7 @@ namespace Arc {
     return "";
   }
 
-  static std::string get_http_proxy_host(const URL& url, const std::string& proxy_host, int proxy_port) {
+  static std::string get_http_proxy_host(const URL& url, const std::string& proxy_host, int /* proxy_port */) {
     if(!proxy_host.empty()) return proxy_host;
     std::string proxy = get_http_proxy(url);
     if(proxy.empty()) return url.Host();

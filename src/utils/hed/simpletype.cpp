@@ -42,7 +42,7 @@ static const char* simple_type_pattern_cpp = "\
 \n\
 ";
 
-void simpletypeprintnamed(const std::string& cppspace,const std::string& ntype,XMLNode stype,const std::string& ns,std::ostream& h_file,std::ostream& cpp_file) {
+void simpletypeprintnamed(const std::string& /* cppspace */,const std::string& ntype,XMLNode /* stype */,const std::string& ns,std::ostream& h_file,std::ostream& cpp_file) {
   strprintf(h_file,simple_type_pattern_h,ntype);
   strprintf(cpp_file,simple_type_pattern_cpp,ntype,ns);
 }

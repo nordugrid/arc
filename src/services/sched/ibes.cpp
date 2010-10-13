@@ -86,7 +86,6 @@ GridSchedulerService::GetActivities(Arc::XMLNode &in, Arc::XMLNode &out, const s
     }
     
     // XXX error handling
-    Arc::Job *job = NULL;
     Arc::XMLNode domain = in.Child(0);
     MatchSelector *selector = new MatchSelector(domain);
     Arc::JobQueueIterator jobs = jobq.getAll((Arc::JobSelector *)selector);
@@ -121,7 +120,7 @@ GridSchedulerService::GetActivities(Arc::XMLNode &in, Arc::XMLNode &out, const s
 }
 
 Arc::MCC_Status 
-GridSchedulerService::GetActivitiesStatusChanges(Arc::XMLNode &in, Arc::XMLNode &out, const std::string &resource_id) 
+GridSchedulerService::GetActivitiesStatusChanges(Arc::XMLNode &in, Arc::XMLNode &out, const std::string& /*resource_id */) 
 {
     Arc::XMLNode id_node;
     Arc::XMLNode activities = out.NewChild("ibes:Activities");

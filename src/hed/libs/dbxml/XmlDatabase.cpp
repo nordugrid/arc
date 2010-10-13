@@ -69,8 +69,8 @@ XmlDatabase::queryAll(const std::string &q,
 }
 
 void
-XmlDatabase::update(const std::string &name, const std::string &query,
-                    Arc::XMLNode &new_value)
+XmlDatabase::update(const std::string& /* name */, const std::string& /* query */,
+                    Arc::XMLNode& /* new_value */)
 {
     container_->start_update();
     // get content

@@ -74,13 +74,13 @@ namespace Arc {
     }
   }
 
-  bool JobControllerBES::GetJob(const Job& job,
-                                 const std::string& downloaddir) {
+  bool JobControllerBES::GetJob(const Job& /* job */,
+                                const std::string& /* downloaddir */) {
     logger.msg(INFO, "Getting BES jobs is not supported");
     return false;
   }
 
-  bool JobControllerBES::CleanJob(const Job& job, bool force) {
+  bool JobControllerBES::CleanJob(const Job& /* job */, bool /* force */) {
     logger.msg(INFO, "Cleaning of BES jobs is not supported");
     return false;
   }
@@ -93,12 +93,12 @@ namespace Arc {
     return ac.kill(idstr);
   }
 
-  bool JobControllerBES::RenewJob(const Job& job) {
+  bool JobControllerBES::RenewJob(const Job& /* job */) {
     logger.msg(INFO, "Renewal of BES jobs is not supported");
     return false;
   }
 
-  bool JobControllerBES::ResumeJob(const Job& job) {
+  bool JobControllerBES::ResumeJob(const Job& /* job */) {
     logger.msg(INFO, "Resuming BES jobs is not supported");
     return false;
   }
@@ -119,7 +119,7 @@ namespace Arc {
     return false;
   }
 
-  URL JobControllerBES::GetFileUrlForJob(const Job& job, const std::string& whichfile) {
+  URL JobControllerBES::GetFileUrlForJob(const Job& /* job */, const std::string& /* whichfile */) {
     return URL();
   }
 

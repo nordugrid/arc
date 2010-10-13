@@ -127,7 +127,7 @@ namespace gridftpd {
   }
 
 
-  int my_sasl_interact(ldap *ld,
+  int my_sasl_interact(ldap* /* ld */,
                        unsigned int flags,
                        void * defaults_,
                        void * interact_) {

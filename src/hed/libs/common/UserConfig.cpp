@@ -811,7 +811,7 @@ namespace Arc {
   }
 
   bool UserConfig::AddServices(const std::list<std::string>& selected,
-                               const std::list<std::string>& rejected,
+                               const std::list<std::string>& /* rejected */,
                                ServiceType st) {
     bool isSelectedNotRejected = true;
     const std::string serviceType = tostring(st);

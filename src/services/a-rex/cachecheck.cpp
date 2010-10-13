@@ -23,7 +23,7 @@
 
 namespace ARex {
 
-Arc::MCC_Status ARexService::CacheCheck(ARexGMConfig& config,Arc::XMLNode in,Arc::XMLNode out) {
+Arc::MCC_Status ARexService::CacheCheck(ARexGMConfig& /* config */,Arc::XMLNode in,Arc::XMLNode out) {
 
   // We are supporting only this cachedir format for checking: cachedir="/tmp/cache"
   // The cachedir="/tmp/%U/cache" format cannot be implemented at the moment 

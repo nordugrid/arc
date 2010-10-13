@@ -128,9 +128,9 @@ static int open_file_read(const char* filename) {
   return Arc::FileOpen(filename,O_RDONLY);
 }
 
-static int open_file_write(const char* filename) {
-  return Arc::FileOpen(filename,O_WRONLY | O_CREAT,S_IRUSR | S_IWUSR);
-}
+//static int open_file_write(const char* filename) {
+//  return Arc::FileOpen(filename,O_WRONLY | O_CREAT,S_IRUSR | S_IWUSR);
+//}
 
 PayloadBigFile::PayloadBigFile(int h,Size_t start,Size_t end):
                        PayloadStream(h) {

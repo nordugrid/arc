@@ -42,10 +42,10 @@ namespace gridftpd {
   /* Linux specific - stupid g++ limitation */
   // struct sigaction Run::old_sig_chld = { SIG_ERR, { }, ~SA_SIGINFO };
   // struct sigaction Run::old_sig_hup  = { SIG_ERR, { }, ~SA_SIGINFO };
-  struct sigaction Run::old_sig_chld = {  };
-  struct sigaction Run::old_sig_hup  = {  };
-  struct sigaction Run::old_sig_int  = {  };
-  struct sigaction Run::old_sig_term  = {  };
+  struct sigaction Run::old_sig_chld;
+  struct sigaction Run::old_sig_hup;
+  struct sigaction Run::old_sig_int;
+  struct sigaction Run::old_sig_term;
   bool Run::old_sig_chld_inited = false;
   bool Run::old_sig_hup_inited  = false;
   bool Run::old_sig_int_inited  = false;
@@ -156,7 +156,7 @@ namespace gridftpd {
     return true;
   }
 
-  void* Run::signal_handler(void *arg) {
+  void* Run::signal_handler(void* /* arg */) {
     for(;;) {
       sigset_t sig;
       sigemptyset(&sig);
@@ -227,19 +227,19 @@ namespace gridftpd {
   }
 
   // Termination signal
-  void Run::sig_term(int signum,siginfo_t *info,void* arg) {
+  void Run::sig_term(int /* signum */,siginfo_t* /* info */,void* /* arg */) {
     term_detected = true;
     if(cond) { pthread_cond_signal(cond); };
   }
 
   // Termination signal
-  void Run::sig_int(int signum,siginfo_t *info,void* arg) {
+  void Run::sig_int(int /* signum */,siginfo_t* /* info */,void* /* arg */) {
     int_detected = true;
     if(cond) { pthread_cond_signal(cond); };
   }
 
   // Wake up kind signal
-  void Run::sig_hup(int signum,siginfo_t *info,void* arg) {
+  void Run::sig_hup(int /* signum */,siginfo_t* /* info */,void* /* arg */) {
     hup_detected = true;
     if(cond) { pthread_cond_signal(cond); };
     /* assuming that with SA_SIGINFO always come proper handler */
@@ -270,7 +270,7 @@ namespace gridftpd {
   }
 
   // Child terminated signal
-  void Run::sig_chld(int signum,siginfo_t *info,void* arg) {
+  void Run::sig_chld(int /* signum */,siginfo_t* /* info */,void* /* arg */) {
     // Make sure signal is re-delivered to proper thread
   #ifndef NONPOSIX_SIGNALS_IN_THREADS
     pthread_kill(handler_thread,SIGCHLD);
@@ -280,7 +280,7 @@ namespace gridftpd {
   }
 
   // Process child terminated signal synchronously
-  void Run::sig_chld_process(int signum,siginfo_t *info,void* arg) {
+  void Run::sig_chld_process(int /* signum */,siginfo_t* info,void* /* arg */) {
    /* You can not be sure if current implementation of
       posix threads does not use SIGCHLD, so lets check
       only our children */
@@ -409,7 +409,7 @@ namespace gridftpd {
       if(dup2(derr,2) != 2) { perror("dup2"); exit(1); };
     };
     struct rlimit lim;
-    unsigned int max_files = 4096;
+    unsigned long int max_files = 4096;
     if(getrlimit(RLIMIT_NOFILE,&lim) == 0) { max_files=lim.rlim_cur; };
     /* close all handles inherited from parent */
     if(max_files == RLIM_INFINITY) max_files=4096;
@@ -556,7 +556,7 @@ namespace gridftpd {
     if(dup2(dout_,1) != 1) { perror("dup2"); exit(1); };
     if(dup2(derr_,2) != 2) { perror("dup2"); exit(1); };
     struct rlimit lim;
-    unsigned int max_files = 4096;
+    unsigned long int max_files = 4096;
     if(getrlimit(RLIMIT_NOFILE,&lim) == 0) { max_files=lim.rlim_cur; };
     /* close all handles inherited from parent */
     if(max_files == RLIM_INFINITY) max_files=4096;

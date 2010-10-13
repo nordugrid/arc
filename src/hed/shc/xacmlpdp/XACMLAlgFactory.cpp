@@ -26,7 +26,6 @@ void XACMLAlgFactory::initCombiningAlg(CombiningAlg* alg) {
 
 void XACMLAlgFactory::initCombiningAlgs(){
   //Some XACML specified algorithm types
-  CombiningAlg* alg = NULL;
   initCombiningAlg(new DenyOverridesCombiningAlg);
   initCombiningAlg(new PermitOverridesCombiningAlg);
   initCombiningAlg(new PermitDenyIndeterminateNotApplicableCombiningAlg);

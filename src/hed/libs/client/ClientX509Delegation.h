@@ -68,7 +68,7 @@ namespace Arc {
      *       it is treated as output.
      */
     bool createDelegation(DelegationType deleg, std::string& delegation_id);
-    bool destroyDelegation(DelegationType deleg) {
+    bool destroyDelegation(DelegationType /* deleg */) {
       return false;
     }
     /** Acquire delegation credential from delegation service.

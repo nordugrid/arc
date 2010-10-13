@@ -188,10 +188,10 @@ class PrefixedFilePayload: public Arc::PayloadRawInterface {
   virtual Size_t Size(void) const {
     return (prefix_.length() + length_ + postfix_.length());
   };
-  virtual char* Insert(Size_t pos = 0,Size_t size = 0) {
+  virtual char* Insert(Size_t /* pos */ = 0,Size_t /* size */ = 0) {
     return NULL;
   };
-  virtual char* Insert(const char* s,Size_t pos = 0,Size_t size = -1) {
+  virtual char* Insert(const char* /* s */,Size_t /* pos */ = 0,Size_t /* size */ = -1) {
     return NULL;
   };
   virtual char* Buffer(unsigned int num = 0) {
@@ -224,7 +224,7 @@ class PrefixedFilePayload: public Arc::PayloadRawInterface {
     if(num == 2) return (prefix_.length() + length_);
     return (prefix_.length() + length_ + postfix_.length());
   };
-  virtual bool Truncate(Size_t size) { return false; };
+  virtual bool Truncate(Size_t /* size */) { return false; };
 };
 
 OptimizedInformationContainer::OptimizedInformationContainer(void) {

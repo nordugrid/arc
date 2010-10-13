@@ -19,6 +19,7 @@
 namespace Paul
 {
 
+#ifdef WIN32
 static std::string save_filename(const std::string &in)
 {
     std::string out = "";
@@ -31,6 +32,7 @@ static std::string save_filename(const std::string &in)
     }
     return out;
 }
+#endif
 
 bool PaulService::run(Job &j)
 {
@@ -145,8 +147,6 @@ bool PaulService::run(Job &j)
     } catch (Glib::SpawnError &e) {
         logger_.msg(Arc::ERROR, "SpawnError");
         goto error;
-    } catch (Glib::SpawnError &e) {
-        std::cerr << e.what() << std::endl;
     }
 
 error:

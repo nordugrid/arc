@@ -53,8 +53,8 @@ namespace Arc {
   }
 
   static void CloseCallback(void *arg, globus_ftp_control_handle_t*,
-                            globus_object_t *error,
-                            globus_ftp_control_response_t *response) {
+                            globus_object_t* /* error */,
+                            globus_ftp_control_response_t* /* response */) {
     FTPControl::CBArg *cb = (FTPControl::CBArg*)arg;
     // TODO: handle error - if ever can happen here
     cb->close = true;

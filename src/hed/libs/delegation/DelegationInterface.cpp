@@ -887,7 +887,7 @@ bool DelegationProviderSOAP::DelegateCredentialsInit(MCCInterface& interface,Mes
   return true;
 }
 
-bool DelegationProviderSOAP::UpdateCredentials(MCCInterface& interface,MessageContext* context,const DelegationRestrictions& restrictions) {
+bool DelegationProviderSOAP::UpdateCredentials(MCCInterface& interface,MessageContext* context,const DelegationRestrictions& /* restrictions */) {
   MessageAttributes attributes_in;
   MessageAttributes attributes_out;
   return UpdateCredentials(interface,&attributes_in,&attributes_out,context);

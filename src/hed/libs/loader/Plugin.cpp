@@ -298,7 +298,7 @@ namespace Arc {
     return get_instance(kind,name,0,INT_MAX,arg,search);
   }
 
-  Plugin* PluginsFactory::get_instance(const std::string& kind,const std::string& name,int version,PluginArgument* arg,bool search) {
+  Plugin* PluginsFactory::get_instance(const std::string& kind,const std::string& /* name */,int version,PluginArgument* arg,bool search) {
     return get_instance(kind,version,version,arg,search);
   }
 
@@ -405,7 +405,7 @@ namespace Arc {
     return load(name,kinds,pnames);
   }
 
-  bool PluginsFactory::load(const std::string& name,const std::list<std::string>& kinds,const std::list<std::string>& pnames) {
+  bool PluginsFactory::load(const std::string& name,const std::list<std::string>& kinds,const std::list<std::string>& /* pnames */) {
     // In real use-case all combinations of kinds and pnames
     // have no sense. So normally if both are defined each contains
     // only onr item.

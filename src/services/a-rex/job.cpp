@@ -641,7 +641,7 @@ bool ARexJob::delete_job_id(void) {
   return true;
 }
 
-int ARexJob::TotalJobs(ARexGMConfig& config,Arc::Logger& logger) {
+int ARexJob::TotalJobs(ARexGMConfig& config,Arc::Logger& /* logger */) {
   ContinuationPlugins plugins;
   JobsList jobs(*config.User(),plugins);
   jobs.ScanNewJobs();
@@ -790,7 +790,7 @@ std::string ARexJob::GetLogFilePath(const std::string& name) {
   return config_.User()->ControlDir() + "/job." + id_ + "." + name;
 }
 
-bool ARexJob::ChooseSessionDir(const std::string& jobid, std::string& sessiondir) {
+bool ARexJob::ChooseSessionDir(const std::string& /* jobid */, std::string& sessiondir) {
   if (config_.SessionRootsNonDraining().size() == 0) {
     // no active session dirs available
     logger_.msg(Arc::ERROR, "No non-draining session dirs available");

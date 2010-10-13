@@ -79,7 +79,7 @@ static GRSTgaclAcl *NGACLparse(xmlDocPtr doc)
   // parse converted tree
 
   xmlNodePtr  cur;
-  GRSTgaclAcl    *acl;
+  GRSTgaclAcl    *acl = NULL;
 
   cur = xmlDocGetRootElement(doc);
   if (cur == NULL) 

@@ -52,17 +52,17 @@ public:
   virtual void removePolicies(void) { plstore->removePolicies(); };
 
   virtual void setCombiningAlg(EvaluatorCombiningAlg alg) { combining_alg = alg; } ;
-  virtual void setCombiningAlg(CombiningAlg* alg) { } ;
+  virtual void setCombiningAlg(CombiningAlg* /* alg */) { } ;
 
   virtual const char* getName() const { return "gacl.evaluator"; };
 
   static Arc::Plugin* get_evaluator(Arc::PluginArgument* arg);
 
 protected:
-  virtual Response* evaluate(EvaluationCtx* ctx) { };
+  virtual Response* evaluate(EvaluationCtx* /* ctx */) { return NULL; };
 
 private:
-  virtual void parsecfg(Arc::XMLNode& cfg) { };
+  virtual void parsecfg(Arc::XMLNode& /* cfg */) { };
   EvaluatorCombiningAlg combining_alg;
 };
 

@@ -229,7 +229,7 @@ namespace Arc {
     return ok;
   }
 
-  bool JobControllerARC0::CleanJob(const Job& job, bool force) {
+  bool JobControllerARC0::CleanJob(const Job& job, bool /* force */) {
 
     logger.msg(VERBOSE, "Cleaning job: %s", job.JobID.str());
 

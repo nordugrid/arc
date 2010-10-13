@@ -125,15 +125,15 @@ namespace Arc {
     return (std::string)id["Address"];
   }
 
-  URL SubmitterUNICORE::Migrate(const URL& jobid,
-                                const JobDescription& jobdesc,
+  URL SubmitterUNICORE::Migrate(const URL& /* jobid */,
+                                const JobDescription& /* jobdesc */,
                                 const ExecutionTarget& et,
-                                bool forcemigration) const {
+                                bool /* forcemigration */) const {
     logger.msg(INFO, "Trying to migrate to %s: Migration to a UNICORE resource is not supported.", et.url.str());
     return URL();
   }
 
-  bool SubmitterUNICORE::ModifyJobDescription(JobDescription& jobdesc, const ExecutionTarget& et) const {
+  bool SubmitterUNICORE::ModifyJobDescription(JobDescription& /* jobdesc */, const ExecutionTarget& /* et */) const {
     return true;
   }
 } // namespace Arc

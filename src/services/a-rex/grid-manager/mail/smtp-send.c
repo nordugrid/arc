@@ -29,7 +29,7 @@ void usage(void) {
   exit(1);
 }
 
-int send_mail(char* mail_server,char* mail_from,char* mail_to) {
+int send_mail(char* mail_server ,char* mail_from,char* mail_to) {
   char buf[256];
   int s,i;
   FILE* S;
@@ -92,7 +92,7 @@ int send_mail(char* mail_server,char* mail_from,char* mail_to) {
   for(;;) {
     buf[0]=0;
     if((i=fscanf(stdin,"%255[^\n]",buf)) == EOF) break; 
-    (fscanf(stdin,"%*[^\n]") != EOF); fgetc(stdin);
+    fscanf(stdin,"%*[^\n]"); fgetc(stdin);
     if(!strcmp(".",buf)) { fputc(' ',S); };
     fprintf(S,"%s\r\n",buf); fflush(S);
   };

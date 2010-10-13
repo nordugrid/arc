@@ -18,10 +18,10 @@ class XACMLRequest : public Request {
 
 public:
   /**Get the name of corresponding evaulator*/
-  virtual const char* getEvalName() const { };
+  virtual const char* getEvalName() const { return NULL; };
 
   /**Get the name of this request*/
-  virtual const char* getName() const { };
+  virtual const char* getName() const { return NULL; };
 
   virtual Arc::XMLNode& getReqNode() { return reqnode; };
 

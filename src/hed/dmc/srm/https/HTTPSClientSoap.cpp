@@ -38,9 +38,9 @@ namespace Arc {
   }
 
 #ifndef WIN32  
-  int HTTPSClientSOAP::local_fopen(struct soap* sp, const char* endpoint, const char* host, int port) {
+  int HTTPSClientSOAP::local_fopen(struct soap* sp, const char* /* endpoint */, const char* /* host */, int /* port */) {
 #else
-  SOCKET HTTPSClientSOAP::local_fopen(struct soap* sp, const char* endpoint, const char* host, int port) {
+  SOCKET HTTPSClientSOAP::local_fopen(struct soap* sp, const char* /* endpoint */, const char* /* host */, int /* port */) {
 #endif
 
     if(sp->socket == 0) return 0;

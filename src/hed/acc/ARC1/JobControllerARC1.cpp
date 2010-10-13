@@ -86,7 +86,7 @@ namespace Arc {
     return ok;
   }
 
-  bool JobControllerARC1::CleanJob(const Job& job, bool force) {
+  bool JobControllerARC1::CleanJob(const Job& job, bool /* force */) {
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);
     AREXClient ac(job.Cluster, cfg, usercfg.Timeout());
@@ -104,7 +104,7 @@ namespace Arc {
     return ac.kill(idstr);
   }
 
-  bool JobControllerARC1::RenewJob(const Job& job) {
+  bool JobControllerARC1::RenewJob(const Job& /* job */) {
     logger.msg(INFO, "Renewal of ARC1 jobs is not supported");
     return false;
   }

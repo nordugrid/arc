@@ -5,7 +5,7 @@
 #include <arc/StringConv.h>
 #include "sysinfo.h"
 
-int main(int argc, char **argv)
+int main(int /* argc */, char **argv)
 {
 #if 0
     Paul::SysInfo si;

@@ -396,11 +396,11 @@ namespace Arc {
       (*h)->Range(start, end);
   }
 
-  int DataPointIndex::AddCheckSumObject(CheckSum *cksum) {
+  int DataPointIndex::AddCheckSumObject(CheckSum* /* cksum */) {
     return -1;
   }
 
-  const CheckSum* DataPointIndex::GetCheckSumObject(int index) const {
+  const CheckSum* DataPointIndex::GetCheckSumObject(int /* index */) const {
     return NULL;
   }
 

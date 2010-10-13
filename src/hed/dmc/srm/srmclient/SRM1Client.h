@@ -29,23 +29,23 @@ const static SOAP_NMAC struct Namespace srm1_soap_namespaces[] =
     ~SRM1Client(void);
     
     // not supported in v1
-    SRMReturnCode ping(std::string& version,
-                       bool report_error = true)
+    SRMReturnCode ping(std::string& /* version */,
+                       bool /* report_error */ = true)
       {return SRM_ERROR_NOT_SUPPORTED;};
     // not supported in v1
-    SRMReturnCode getSpaceTokens(std::list<std::string>& tokens,
-                                 std::string description = "")
+    SRMReturnCode getSpaceTokens(std::list<std::string>& /* tokens */,
+                                 std::string /* description */ = "")
       {return SRM_ERROR_NOT_SUPPORTED;};
     // not supported in v1
-    SRMReturnCode getRequestTokens(std::list<std::string>& tokens,
-                                   std::string description = "")
+    SRMReturnCode getRequestTokens(std::list<std::string>& /* tokens */,
+                                   std::string /* description */ = "")
       {return SRM_ERROR_NOT_SUPPORTED;};
     // not supported in v1
-    SRMReturnCode requestBringOnline(SRMClientRequest& req) {return SRM_ERROR_NOT_SUPPORTED;};
+    SRMReturnCode requestBringOnline(SRMClientRequest& /* req */) {return SRM_ERROR_NOT_SUPPORTED;};
     // not supported in v1
-    SRMReturnCode requestBringOnlineStatus(SRMClientRequest& req) {return SRM_ERROR_NOT_SUPPORTED;};
+    SRMReturnCode requestBringOnlineStatus(SRMClientRequest& /* req */) {return SRM_ERROR_NOT_SUPPORTED;};
     // not supported
-    SRMReturnCode mkDir(SRMClientRequest& req) { return SRM_ERROR_NOT_SUPPORTED; };
+    SRMReturnCode mkDir(SRMClientRequest& /* req */) { return SRM_ERROR_NOT_SUPPORTED; };
   
     SRMReturnCode getTURLs(SRMClientRequest& req, std::list<std::string>& urls);
     SRMReturnCode putTURLs(SRMClientRequest& req, std::list<std::string>& urls,unsigned long long size = 0);

@@ -18,7 +18,7 @@ using namespace Arc;
 using namespace ArcSec;
 
 XACMLTargetMatch::XACMLTargetMatch(XMLNode& node, EvaluatorContext* ctx) : matchnode(node), 
-  attrval(NULL), function(NULL), selector(NULL), designator(NULL){
+  attrval(NULL), function(NULL), designator(NULL), selector(NULL) {
   attrfactory = (AttributeFactory*)(*ctx);
   fnfactory = (FnFactory*)(*ctx); 
 

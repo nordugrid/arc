@@ -6,9 +6,9 @@
 #include <cstdlib>
 
 Entry::Entry(const std::list<std::string>& query) : port(-1),
-						    cachetime(0),
+						    sizelimit(0),
 						    timelimit(30),
-						    sizelimit(0) {
+						    cachetime(0) {
   for(std::list<std::string>::const_iterator it = query.begin();
       it != query.end(); it++) {
     if(it->substr(0, 4) == "dn: ")
@@ -46,7 +46,7 @@ const std::string& Entry::Host() const {
   return hn;
 }
 
-const int Entry::Port() const {
+int Entry::Port() const {
   return port;
 }
 

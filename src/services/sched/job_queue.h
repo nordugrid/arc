@@ -21,7 +21,7 @@ class JobSelector
     public:
         JobSelector() {};
         virtual ~JobSelector() {};
-        virtual bool match(Job *job) { return true; };
+        virtual bool match(Job* /* job */) { return true; };
 };
 
 class JobQueueIterator

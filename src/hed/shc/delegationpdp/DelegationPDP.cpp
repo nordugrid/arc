@@ -169,7 +169,6 @@ bool DelegationPDP::isPermitted(Message *msg) const {
     int size = rlist.size();
     for(int i = 0; i < size; i++) {
       ResponseItem* item = rlist[i];
-      RequestTuple* tp = item->reqtp;
       if(item->res == DECISION_DENY) atleast_onedeny = true;
       if(item->res == DECISION_PERMIT) atleast_onepermit = true;
     }

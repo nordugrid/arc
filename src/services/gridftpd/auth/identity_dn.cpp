@@ -22,7 +22,7 @@ const std::string& IdentityItemDN::value(unsigned int n) {
   return dn_;
 }
 
-const std::string& IdentityItemDN::value(const char* name,unsigned int n) {
+const std::string& IdentityItemDN::value(const char* name,unsigned int /* n */) {
   std::string name_s = name;
   if(name_s != "dn") return empty_;
   return dn_;

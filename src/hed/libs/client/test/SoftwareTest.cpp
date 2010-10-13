@@ -29,8 +29,8 @@ class SoftwareTest
 
 public:
   SoftwareTest()
-    : logger(Arc::Logger::getRootLogger(), "SoftwareTest"),
-      logcerr(std::cerr) {}
+    : logcerr(std::cerr),
+      logger(Arc::Logger::getRootLogger(), "SoftwareTest") {}
   void setUp();
   void tearDown();
   void EqualityTest();

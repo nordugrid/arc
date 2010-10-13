@@ -841,7 +841,7 @@ err:
   }
 
   static bool check_signature(AC* ac, std::string& voname, 
-    std::string& hostname, 
+    std::string& /* hostname */, 
     const std::string& ca_cert_dir, const std::string& ca_cert_file, 
     const VOMSTrustList& vomscert_trust_dn, 
     //const std::vector<std::string>& vomscert_trust_dn, 

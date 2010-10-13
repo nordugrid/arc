@@ -80,10 +80,10 @@ namespace Arc {
   DataPointARC::DataPointARC(const URL& url, const UserConfig& usercfg)
     : DataPointDirect(url, usercfg),
       transfer(NULL),
-      md5sum(NULL),
       reading(false),
       writing(false),
-      bartender_url(url.HTTPOption("BartenderURL")) {
+      bartender_url(url.HTTPOption("BartenderURL")),
+      md5sum(NULL) {
     if (!bartender_url) {
       if (!usercfg.Bartender().empty()){
         std::vector<int> shuffledKeys;
