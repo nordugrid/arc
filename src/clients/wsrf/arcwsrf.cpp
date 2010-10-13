@@ -20,8 +20,12 @@
 #include <arc/client/ClientInterface.h>
 
 using namespace Arc;
-
-int main(int argc, char **argv) {
+#ifdef TEST
+#define RUN(X) test_arcwsrf_##X
+#else
+#define RUN(X) X
+#endif
+int RUN(main)(int argc, char **argv) {
 
   setlocale(LC_ALL, "");
 

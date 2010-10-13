@@ -18,7 +18,12 @@
 #include <arc/client/TargetGenerator.h>
 #include <arc/UserConfig.h>
 
-int main(int argc, char **argv) {
+#ifdef TEST
+#define RUN(X) test_arcinfo_##X
+#else
+#define RUN(X) X
+#endif
+int RUN(main)(int argc, char **argv) {
 
   setlocale(LC_ALL, "");
 
