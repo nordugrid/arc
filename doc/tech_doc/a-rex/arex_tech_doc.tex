@@ -1288,15 +1288,18 @@ submitted to the LRMS in order that the LRMS can execute file tranfer. This
 requires installation of A-REX and all related software to be accessible
 from computing nodes and environment variable ARC\_LOCATION to be
 set accordingly. Default is \emph{no}.
-\item \textbf{\textit{maxjobs}}\textit{={[}max\_processed\_jobs {[}max\_running\_jobs]]}
--- specifies maximum number of jobs being processed by the A-REX at
-different stages:\\
+\item \textbf{\textit{maxjobs}}\textit{={[}max\_processed\_jobs
+{[}max\_running\_jobs {[}max\_jobs\_per\_dn]]]} -- specifies maximum number of
+jobs being processed by the A-REX at different stages:\\
 \textit{max\_processed\_jobs} -- maximum number of concurrent jobs
-processed by A-REX. This does not limit the amount of jobs, which can
+processed by A-REX. This does not limit the amount of jobs which can
 be submitted to the cluster.\\
-\textit{max\_running jobs} -- maximum number of jobs passed to Local
+\textit{max\_running\_jobs} -- maximum number of jobs passed to Local
 Resource Management System\\
-Missing value or -1 means no limit.
+\textit{max\_jobs\_per\_dn} -- maximum number of concurrent jobs processed by
+A-REX per user DN. If this option is used the total maximum number of jobs
+processed is still \textit{max\_processed\_jobs}.
+\\ Missing value or -1 means no limit.
 \item \textbf{\textit{maxload}}\textit{={[}max\_frontend\_jobs {[}emergency\_frontend\_jobs
 {[}max\_transferred\_files]]]} -- specifies maximum load caused by
 jobs being processed on frontend:\\
