@@ -411,7 +411,9 @@ namespace Arc {
         if (ini["common"]) {
           XMLNode common = ini["common"];
           HANDLESTRATT("verbosity", Verbosity)
-          HANDLESTRATT("joblist", JobListFile)
+          if (!ignoreJobListFile) {
+            HANDLESTRATT("joblist", JobListFile)
+          }
           if (common["timeout"]) {
             if (!stringto(common["timeout"], timeout))
               logger.msg(WARNING, "The value of the timeout attribute in the configuration file (%s) was only partially parsed", conffile);
