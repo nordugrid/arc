@@ -295,8 +295,9 @@ int main(int argc, char* argv[]) {
   int max_processing;
   int max_processing_emergency;
   int max_down;
+  int max_per_dn;
 
-  env.jobs_cfg().GetMaxJobs(max, max_running);
+  env.jobs_cfg().GetMaxJobs(max, max_running, max_per_dn);
   env.jobs_cfg().GetMaxJobsLoad(max_processing, max_processing_emergency, max_down);
 
 //  #undef jobs_pending

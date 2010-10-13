@@ -110,6 +110,7 @@ appropiate.
       <arex:loadLimits>
           <arex:maxJobsTracked>1000</arex:maxJobsTracked>
           <arex:maxJobsRun>100</arex:maxJobsRun>
+          <arex:maxJobsPerDN>200</arex:maxJobsPerDN>
           <arex:maxJobsTransfered>20</arex:maxJobsTransfered>
           <arex:maxJobsTransferedAdditional>2</arex:maxJobsTransferedAdditional>
           <arex:maxFilesTransfered>4</arex:maxFilesTransfered>

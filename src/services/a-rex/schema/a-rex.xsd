@@ -137,6 +137,7 @@
                 * maxJobsTracked - jobs which are not in FINISHED state (jobs
                   tracked in RAM)
                 * maxJobsRun - jobs being run (SUBMITTING, INLRMS states)
+                * maxJobsPerDN - maximum jobs in the system per user DN
                 * maxJobsTransfered - jobs being processed on frontend 
                   (PREPARING, FINISHING states)
                 * maxJobsTransferedAdditional - additional reserved number 
@@ -169,6 +170,8 @@
             <xsd:element name="maxJobsTracked" type="xsd:nonNegativeInteger"
                          minOccurs="0"/>
             <xsd:element name="maxJobsRun" type="xsd:nonNegativeInteger"
+                         minOccurs="0"/>
+            <xsd:element name="maxJobsPerDN" type="xsd:nonNegativeInteger"
                          minOccurs="0"/>
             <xsd:element name="maxJobsTransfered" type="xsd:nonNegativeInteger"
                          minOccurs="0"/>

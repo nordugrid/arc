@@ -150,7 +150,9 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
     else if(command == "maxjobs") { /* maximum number of the jobs to support */ 
       std::string max_jobs_s = config_next_arg(rest);
       long int i;
-      int max_jobs, max_jobs_running = -1;
+      int max_jobs = -1;
+      int max_jobs_running = -1;
+      int max_per_dn = -1;
       if(max_jobs_s.length() != 0) {
         if(!Arc::stringto(max_jobs_s,i)) {
           logger.msg(Arc::ERROR,"Wrong number in maxjobs: %s",max_jobs_s);
@@ -166,8 +168,16 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
         };
         if(i<0) i=-1; max_jobs_running=i;
       };
+      max_jobs_s = config_next_arg(rest);
+      if(max_jobs_s.length() != 0) {
+        if(!Arc::stringto(max_jobs_s,i)) {
+          logger.msg(Arc::ERROR,"Wrong number in maxjobs: %s",max_jobs_s);
+          goto exit;
+        };
+        if(i<0) i=-1; max_per_dn=i;
+      }
       jcfg.SetMaxJobs(
-              max_jobs,max_jobs_running);
+              max_jobs,max_jobs_running,max_per_dn);
     }
     else if(command == "maxload") { /* maximum number of the jobs processed on frontend */
       std::string max_jobs_s = config_next_arg(rest);
@@ -681,11 +691,13 @@ bool configure_serviced_users(Arc::XMLNode cfg,JobUsers &users,uid_t my_uid,cons
     int max_jobs_processing = -1;
     int max_jobs_processing_emergency = -1;
     int max_downloads = -1;
+    int max_jobs_per_dn = -1;
     int max_share;
     unsigned int wakeup_period = jcfg.WakeupPeriod();
     elementtoint(tmp_node,"maxJobsTracked",max_jobs,&logger);
     elementtoint(tmp_node,"maxJobsRun",max_jobs_running,&logger);
-    jcfg.SetMaxJobs(max_jobs,max_jobs_running);
+    elementtoint(tmp_node,"maxJobsPerDN",max_jobs_per_dn,&logger);
+    jcfg.SetMaxJobs(max_jobs,max_jobs_running,max_jobs_per_dn);
     elementtoint(tmp_node,"maxJobsTransfered",max_jobs_processing,&logger);
     elementtoint(tmp_node,"maxJobsTransferedAdditional",max_jobs_processing_emergency,&logger);
     elementtoint(tmp_node,"maxFilesTransfered",max_downloads,&logger);

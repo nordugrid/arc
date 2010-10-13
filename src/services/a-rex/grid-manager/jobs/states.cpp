@@ -48,6 +48,7 @@ JobsListConfig::JobsListConfig(void) {
   max_jobs_processing_emergency=1;
   max_jobs_running=-1;
   max_jobs=-1;
+  max_jobs_per_dn=-1;
   max_downloads=-1;
   max_processing_share = 0;
   //limited_share;
@@ -317,6 +318,12 @@ bool JobsList::ActJobs(bool hard_job) {
   if(once_more) for(iterator i=jobs.begin();i!=jobs.end();) {
     res &= ActJob(i,hard_job);
   };
+
+  // debug info on jobs per DN
+  logger.msg(Arc::VERBOSE, "Current DN map (%i entries)", jcfg.jobs_dn.size());
+  for (std::map<std::string, unsigned int>::iterator it = jcfg.jobs_dn.begin(); it != jcfg.jobs_dn.end(); ++it)
+    logger.msg(Arc::VERBOSE, "%s: %i", it->first, it->second);
+
   return res;
 }
 
@@ -919,7 +926,6 @@ void JobsList::ActJobUndefined(JobsList::iterator &i,bool /*hard_job*/,
             job_desc->transfershare = i->transfer_share;
             job_local_write_file(*i,*user,*job_desc);
             i->local->transfershare=i->transfer_share;
-
             // prepare information for logger
             user->Env().job_log().make_file(*i,*user);
           } else if(new_state == JOB_STATE_FINISHED) {
@@ -944,10 +950,20 @@ void JobsList::ActJobUndefined(JobsList::iterator &i,bool /*hard_job*/,
                 i->set_share(share);
                 logger.msg(Arc::INFO, "%s: adding to transfer share %s",i->get_id(),i->transfer_share);
             }
+            job_local_read_file(i->job_id, *user, job_desc);
             job_desc.transfershare = i->transfer_share;
             job_local_write_file(*i,*user,job_desc);
             if (new_state == JOB_STATE_PREPARING) preparing_job_share[i->transfer_share]++;
             if (new_state == JOB_STATE_FINISHING) finishing_job_share[i->transfer_share]++;
+            // add to DN map
+            // here we don't enforce the per-DN limit since the jobs are
+            // already in the system
+            if (job_desc.DN.empty()) {
+              logger.msg(Arc::ERROR, "Failed to get DN information from .local file for job %s", i->job_id);
+              job_error=true; i->AddFailure("Could not get DN information for job");
+              return; /* go to next job */
+            }
+            jcfg.jobs_dn[job_desc.DN]++;
           };
         }; // Not doing JobPending here because that job kind of does not exist.
         return;
@@ -956,7 +972,7 @@ void JobsList::ActJobUndefined(JobsList::iterator &i,bool /*hard_job*/,
 void JobsList::ActJobAccepted(JobsList::iterator &i,bool /*hard_job*/,
                               bool& once_more,bool& /*delete_job*/,
                               bool& job_error,bool& state_changed) {
-      JobsListConfig& jcfg = user->Env().jobs_cfg();
+        JobsListConfig& jcfg = user->Env().jobs_cfg();
       /* accepted state - job was just accepted by jobmager-ng and we already
          know that it is accepted - now we are analyzing/parsing request,
          or it can also happen we are waiting for user specified time */
@@ -975,11 +991,14 @@ void JobsList::ActJobAccepted(JobsList::iterator &i,bool /*hard_job*/,
            (jcfg.use_local_transfer) ||
            ((i->local->downloads == 0) && (i->local->rtes == 0)) ||
            (((JOB_NUM_PROCESSING < jcfg.max_jobs_processing) ||
-            ((JOB_NUM_FINISHING >= jcfg.max_jobs_processing) && 
-            (JOB_NUM_PREPARING < jcfg.max_jobs_processing_emergency))) &&
-           (i->next_retry <= time(NULL)) && 
-           (jcfg.share_type.empty() || preparing_job_share[i->transfer_share] < preparing_max_share[i->transfer_share])))
+             ((JOB_NUM_FINISHING >= jcfg.max_jobs_processing) &&
+             (JOB_NUM_PREPARING < jcfg.max_jobs_processing_emergency))) &&
+            (i->next_retry <= time(NULL)) &&
+            (jcfg.share_type.empty() || preparing_job_share[i->transfer_share] < preparing_max_share[i->transfer_share]) &&
+            (jcfg.max_jobs_per_dn < 0 || jcfg.jobs_dn[i->local->DN] < jcfg.max_jobs_per_dn)))
         {
+          // add to per-DN job list
+          jcfg.jobs_dn[i->local->DN]++;
           /* check for user specified time */
           if(i->retries == 0 && i->local->processtime != -1) {
             logger.msg(Arc::INFO,"%s: State: ACCEPTED: have processtime %s",i->job_id.c_str(),
@@ -1067,7 +1086,6 @@ void JobsList::ActJobPreparing(JobsList::iterator &i,bool /*hard_job*/,
 void JobsList::ActJobSubmitting(JobsList::iterator &i,bool /*hard_job*/,
                                 bool& once_more,bool& /*delete_job*/,
                                 bool& job_error,bool& state_changed) {
-        // JobsListConfig& jcfg = user->Env().jobs_cfg();
         /* state submitting - everything is ready for submission - 
            so run submission */
         logger.msg(Arc::VERBOSE,"%s: State: SUBMITTING",i->job_id);
@@ -1086,7 +1104,6 @@ void JobsList::ActJobSubmitting(JobsList::iterator &i,bool /*hard_job*/,
 void JobsList::ActJobCanceling(JobsList::iterator &i,bool /*hard_job*/,
                                bool& once_more,bool& /*delete_job*/,
                                bool& job_error,bool& state_changed) {
-        // JobsListConfig& jcfg = user->Env().jobs_cfg();
         /* This state is like submitting, only -rm instead of -submit */
         logger.msg(Arc::VERBOSE,"%s: State: CANCELING",i->job_id);
         if(state_submitting(i,state_changed,true)) {
@@ -1212,6 +1229,8 @@ void JobsList::ActJobFinishing(JobsList::iterator &i,bool hard_job,
           else if(state_changed) {
             finishing_job_share[i->transfer_share]--;
             i->job_state = JOB_STATE_FINISHED;
+            if (--(jcfg.jobs_dn[i->local->DN]) == 0)
+              jcfg.jobs_dn.erase(i->local->DN);
             once_more=true; hard_job=true;
           };
         } else {
@@ -1409,6 +1428,8 @@ bool JobsList::ActJob(JobsList::iterator &i,bool hard_job) {
         }
         else if(i->job_state == JOB_STATE_FINISHING) {
           i->job_state = JOB_STATE_FINISHED;
+          if (--(jcfg.jobs_dn[i->local->DN]) == 0)
+            jcfg.jobs_dn.erase(i->local->DN);
         }
         else {
           i->job_state = JOB_STATE_FINISHING;
@@ -1470,6 +1491,8 @@ bool JobsList::ActJob(JobsList::iterator &i,bool hard_job) {
           } else if(i->job_state == JOB_STATE_FINISHING) {
             // No matter if FINISHING fails - it still goes to FINISHED
             i->job_state = JOB_STATE_FINISHED;
+            if (--(jcfg.jobs_dn[i->local->DN]) == 0)
+              jcfg.jobs_dn.erase(i->local->DN);
             state_changed=true;
             once_more=true;
           } else {
@@ -1552,6 +1575,8 @@ bool JobsList::ActJob(JobsList::iterator &i,bool hard_job) {
       logger.msg(Arc::ERROR,"%s: Delete request due to internal problems",i->job_id);
       i->job_state = JOB_STATE_FINISHED; /* move to finished in order to 
                                             remove from list */
+      if (--(jcfg.jobs_dn[i->local->DN]) == 0)
+        jcfg.jobs_dn.erase(i->local->DN);
       i->job_pending=false;
       job_state_write_file(*i,*user,i->job_state); 
       i->AddFailure("Serious troubles (problems during processing problems)");
@@ -1569,7 +1594,7 @@ bool JobsList::ActJob(JobsList::iterator &i,bool hard_job) {
   if((i->job_state == JOB_STATE_FINISHED) ||
      (i->job_state == JOB_STATE_DELETED) ||
      (i->job_state == JOB_STATE_UNDEFINED)) {
-    /* this is the ONLY place there jobs are removed from memory */
+    /* this is the ONLY place where jobs are removed from memory */
     /* update counters */
     if(!old_pending) {
       jcfg.jobs_num[old_state]--;

@@ -123,6 +123,7 @@ class JobsListConfig {
   int max_jobs_processing;
   int max_jobs_processing_emergency;
   int max_jobs;
+  int max_jobs_per_dn;
   unsigned int max_processing_share;
   std::string share_type;
   unsigned long long int min_speed;
@@ -140,18 +141,20 @@ class JobsListConfig {
   std::map<std::string, int> limited_share;
  public:
   JobsListConfig(void);
-  void SetMaxJobs(int max = -1,int max_running = -1) {
+  void SetMaxJobs(int max = -1,int max_running = -1, int max_per_dn = -1) {
     max_jobs=max;
     max_jobs_running=max_running;
+    max_jobs_per_dn=max_per_dn;
   }
   void SetMaxJobsLoad(int max_processing = -1,int max_processing_emergency = 1,int max_down = -1) {
     max_jobs_processing=max_processing;
     max_jobs_processing_emergency=max_processing_emergency;
     max_downloads=max_down;
   }
-  void GetMaxJobs(int &max,int &max_running) const {
+  void GetMaxJobs(int &max,int &max_running,int &max_per_dn) const {
     max=max_jobs;
     max_running=max_jobs_running;
+    max_per_dn=max_jobs_per_dn;
   }
   void GetMaxJobsLoad(int &max_processing,int &max_processing_emergency,int &max_down) const {
     max_processing=max_jobs_processing;
