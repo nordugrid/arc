@@ -101,7 +101,7 @@ static std::string init_logger(Arc::XMLNode log, bool foreground)
       if(!string_to_level((std::string)xlevel, level)) {
         logger.msg(Arc::WARNING, "Unknown log level %s", (std::string)xlevel);
       } else {
-        Arc::Logger::setThreshold(level,domain);
+        Arc::Logger::setThresholdForDomain(level,domain);
       }
     }
 

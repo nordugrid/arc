@@ -424,11 +424,13 @@ namespace Arc {
     this->threshold = threshold;
   }
 
-  void Logger::setThreshold(LogLevel threshold, const std::list<std::string>& subdomains) {
-    setThreshold(threshold, list_to_domain(subdomains));
+  void Logger::setThresholdForDomain(LogLevel threshold,
+                                     const std::list<std::string>& subdomains) {
+    setThresholdForDomain(threshold, list_to_domain(subdomains));
   }
 
-  void Logger::setThreshold(LogLevel threshold, const std::string& domain) {
+  void Logger::setThresholdForDomain(LogLevel threshold,
+                                     const std::string& domain) {
     getRootLogger();
     if(domain.empty() || (domain == "Arc")) {
       getRootLogger().setThreshold(threshold);

@@ -449,9 +449,11 @@ namespace Arc {
      */
     void setThreshold(LogLevel threshold);
 
-    static void setThreshold(LogLevel threshold, const std::list<std::string>& subdomains);
+    static void setThresholdForDomain(LogLevel threshold,
+                                      const std::list<std::string>& subdomains);
 
-    static void setThreshold(LogLevel threshold, const std::string& domain);
+    static void setThresholdForDomain(LogLevel threshold,
+                                      const std::string& domain);
 
     //! Returns the threshold.
     /*! Returns the threshold.
