@@ -8,6 +8,6 @@ Test_LDADD    = $(top_srcdir)/src/hed/libs/common/libarccommon.la \
                     $(top_srcdir)/src/hed/libs/message/libarcmessage.la \
                     $(top_srcdir)/src/hed/libs/client/libarcclient.la \
                     $(top_srcdir)/src/hed/libs/data/libarcdata2.la \
-                /usr/lib/libcppunit.la \
+                -lcppunit \
                 $(top_srcdir)/src/hed/libs/ws/libarcws.la
 
