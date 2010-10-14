@@ -16,9 +16,11 @@ Sample configuration:
         <Service name="pythonservice" id="ahash">
             <ClassName>storage.ahash.ahash.AHashService</ClassName>
             <AHashClass>storage.ahash.replicatedahash.ReplicatedAHash</AHashClass>
-            <LocalDir>ahash_data</LocalDir>
-            <MyURL>http://localhost:60000/RepAHash</MyURL>
-            <OtherURL>http://otherhost:60000/RepAHash</OtherURL>
+            <StoreCfg>
+                <DataDir>ahash_data</DataDir>
+            </StoreCfg>
+            <Endpoint>http://localhost:60000/RepAHash</Endpoint>
+            <PeerURL>http://otherhost:60000/RepAHash</PeerURL>
         </Service>
 """
 import arc
@@ -168,16 +170,11 @@ class ReplicationStore(TransDBStore):
                       db.DB_INIT_MPOOL | \
                       db.DB_INIT_TXN    
 
-        storecfg = XMLTree(from_tree = 
-                           ['StoreCfg', 
-                            [('DataDir', 
-                              (str(cfg.Get('LocalDir')))),
-                              ('Priority', (int(str(cfg.Get('Priority'))))),
-                               ('CheckPeriod',(5)),
-                              ('DBEnvFlags',
-                               (str(dbenv_flags)))
-                            ]])
-        storecfg = arc.XMLNode(storecfg.pretty_xml()) 
+        storecfg = cfg.Get('StoreCfg')
+        if storecfg.Name() != 'StoreCfg': # StoreCfg missing, maybe old config, trying to create one from LocalDir
+            storecfg = arc.XMLNode('<StoreCfg><DataDir>%s</DataDir></StoreCfg>' % cfg.Get('LocalDir'))
+        if not str(storecfg.Get('DBEnvFlags')):
+            storecfg.NewChild('DBEnvFlags').Set(str(dbenv_flags))
 
         # db environment is opened in TransDBStore.__init__
         TransDBStore.__init__(self, storecfg, non_existent_object)
@@ -218,8 +215,10 @@ class ReplicationStore(TransDBStore):
 
 
     def __configureReplication(self, cfg):
-        self.my_url = str(cfg.Get('MyURL'))
-        self.other_urls = get_child_values_by_name(cfg, 'OtherURL')
+        self.my_url = str(cfg.Get('Endpoint'))
+        if not self.my_url: # backward compatibility with old config
+            self.my_url = str(cfg.Get('MyURL'))
+        self.other_urls = get_child_values_by_name(cfg, 'PeerURL') + get_child_values_by_name(cfg, 'OtherURL') # backward compatibility with old config
         # make sure my_url is not in other_urls
         self.other_urls = [url for url in self.other_urls if url != self.my_url]
         try:

@@ -58,11 +58,13 @@
         <Service name="pythonservice" id="ahash">
             <ahash:ClassName>storage.ahash.ahash.AHashService</ahash:ClassName>
             <ahash:AHashClass>storage.ahash.replicatedahash.ReplicatedAHash</ahash:AHashClass>
-            <ahash:LocalDir inisections="ahash" initag="datadir">/var/spool/arc/ahash_data</ahash:LocalDir>
-            <ahash:MyURL inisections="ahash" initag="endpoint"/>
-            <ahash:OtherURL inisections="ahash" initag="peerurl1"/>
-            <ahash:OtherURL inisections="ahash" initag="peerurl2"/>
-            <ahash:OtherURL inisections="ahash" initag="peerurl3"/>
+            <ahash:StoreCfg>
+                <ahash:DataDir inisections="ahash" initag="datadir">/var/spool/arc/ahash_data</ahash:DataDir>
+            </ahash:StoreCfg>
+            <ahash:Endpoint inisections="ahash" initag="endpoint"/>
+            <ahash:PeerURL inisections="ahash" initag="peerurl1"/>
+            <ahash:PeerURL inisections="ahash" initag="peerurl2"/>
+            <ahash:PeerURL inisections="ahash" initag="peerurl3"/>
             <ahash:Priority inisections="ahash" initag="priority">50</ahash:Priority>
             <ahash:ClientSSLConfig>
                 <ahash:KeyPath inisections="ahash common" initag="client_key"/>

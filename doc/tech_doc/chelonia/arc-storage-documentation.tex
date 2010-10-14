@@ -611,22 +611,20 @@ The A-Hash has the following configuration variables:
 \begin{description}
     \item[AHashClass] tells the A-Hash service the name of the business-logic A-Hash class. Currently there are two implementations, the \verb!CentralAHash! is a centralized version, and the \verb!ReplicatedAHash! is a replicated version.
     \item[StoreClass] specifies the name of the store class, used to store the data on disk. Currently there are several store classes each has the same interface but uses different mechanisms (\verb!PickelStore!, \verb!CachedPickleStore!, \verb!StringStore!, \verb!ZODBStore!, \verb!TransDBStore!), however only the \verb!TransDBStore! class is suitable for use in a replicated deployment. All the others are only for a centralized deployement, so this variable is only configurable for the centralized deployement. Based on our tests, currently the \verb!CachedPickleStore! has the best performance.
-    \item[StoreCfg] contains parameters for the different store classes, and it almost always contains a \emph{DataDir} parameter which specifies a directory on the (local) filesystem where the A-Hash can save its files. This variable is only configurable for the centralized deployment.
+    \item[StoreCfg] contains parameters for the different store classes, and it almost always contains a \emph{DataDir} parameter which specifies a directory on the (local) filesystem where the A-Hash can save its files. For the TransDBStore and for the Replicated A-Hash also some additional options can be set here, e.g. \emph{CacheSize} configures the amount of the storage to be cached in memory.
 \end{description}
 
 For the replicated A-Hash there are some additional mandatory configuration variables:
 
 \begin{description}
-    \item[LocalDir] specifies a directory on the local filesystem where this A-Hash replica should be stored. This directory must be unique for this replica, i.e., no two A-Hash replicas can share the same \verb!LocalDir! since doing so will most likely leave both replicas broken beyond repair.
-    \item[MyURL] is the URL to this A-Hash service and is used as an ID for this service in the replication group.
-    \item[OtherURL] is the URL of another A-Hash in the replication group. More than one URL can be specified here.
+    \item[Endpoint] is the URL to this A-Hash service and is used as an ID for this service in the replication group.
+    \item[PeerURL] is the URL of another A-Hash in the replication group. More than one URL can be specified here.
 \end{description}
 
 Even though the default settings are useable, there are some optional variables available for the replicated A-Hash:
 \begin{description}
     \item[Priority] is related to the master election. If a master dies, there will be an election to decide which client will be the new master. Higher priority means a higher chance to be elected. A priority of 0 means that this replica can never be elected. The defaults is 10.
     \item[CheckPeriod] specifies in seconds how frequently the A-Hash should update the replica list. The default is 10 seconds.
-    \item[CacheSize] configures the amount of the storage to be cached in memory. The default is 10MB
 \end{description}
 
 
@@ -648,9 +646,11 @@ Example of a replicated A-Hash configuration:
     <Service name="pythonservice" id="ahash1">
         <ClassName>storage.ahash.ahash.AHashService</ClassName>
         <AHashClass>storage.ahash.replicatedahash.ReplicatedAHash</AHashClass>
-        <LocalDir>ahash_data1</LocalDir>
-        <MyURL>http://localhost:60000/AHash1</MyURL>
-        <OtherURL>http://localhost:60001/AHash2</OtherURL>
+        <StoreCfg>
+            <DataDir>ahash_data1</DataDir>
+        </StoreCfg>
+        <Endpoint>http://localhost:60000/AHash1</Endpoint>
+        <PeerURL>http://localhost:60001/AHash2</PeerURL>
         <Priority>50</Priority>
         <ClientSSLConfig FromFile='clientsslconfig.xml'/>
     </Service>

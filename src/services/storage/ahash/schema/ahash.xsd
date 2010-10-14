@@ -42,35 +42,45 @@
         </xsd:documentation>
     </xsd:annotation>
     <xsd:sequence>
-    <xsd:element name="DataDir" default="/var/spool/arc/ahash_data">
-      <xsd:annotation>
-        <xsd:documentation xml:lang="en">
-          Specifies local dir to store data in
-        </xsd:documentation>
-      </xsd:annotation>    
-    </xsd:element>
+        <!-- DataDir -->
+        <xsd:element name="DataDir" default="/var/spool/arc/ahash_data">
+          <xsd:annotation>
+            <xsd:documentation xml:lang="en">
+              Specifies local dir to store data in
+            </xsd:documentation>
+          </xsd:annotation>    
+        </xsd:element>
+        
+        <!-- CacheSize -->
+        <xsd:element name="CacheSize" default="10MB">
+            <xsd:annotation>
+                <xsd:documentation xml:lang="en">
+        	        Amount of local storage to be cached in memory (in case of TransDBStore)
+                </xsd:documentation>
+            </xsd:annotation>
+        </xsd:element>
     </xsd:sequence>
     </xsd:complexType>
 </xsd:element>
 
 <!-- Replicated A-Hash specific parameters -->
-<!-- LocalDir -->
-<xsd:element name="LocalDir" default="/var/spool/arc/rep_ahash_data">
-    <xsd:annotation>
-        <xsd:documentation xml:lang="en">
-	  Specifies a directory on the local filesystem where this
-	  A-Hash replica should be stored
+ 
+<!-- Endpoint --> 
+<xsd:element name="Endpoint" default="https://localhost:60000/AHash1"> 
+    <xsd:annotation> 
+        <xsd:documentation xml:lang="en"> 
+            URL to this A-Hash service and is used as an ID for this 
+            service in the replication group 
         </xsd:documentation>
     </xsd:annotation>
 </xsd:element>
 
-<!-- OtherURL -->
-<!-- Todo: check if more than one url can be specified in ini-config -->
-<xsd:element name="MyURL" default="https://localhost:60000/AHash2">
+<!-- PeerURL -->
+<xsd:element name="PeerURL" default="https://localhost:60000/AHash2">
     <xsd:annotation>
         <xsd:documentation xml:lang="en">
-	  URL of another A-Hash in the replication group. More than
-	  one URL can be specified here.
+	        URL of another A-Hash in the replication group. More than
+	        one URL can be specified here.
         </xsd:documentation>
     </xsd:annotation>
 </xsd:element>
@@ -91,15 +101,6 @@
     <xsd:annotation>
         <xsd:documentation xml:lang="en">
 	  Period between updates to replication list (in seconds)
-        </xsd:documentation>
-    </xsd:annotation>
-</xsd:element>
-
-<!-- CacheSize -->
-<xsd:element name="CacheSize" default="10MB">
-    <xsd:annotation>
-        <xsd:documentation xml:lang="en">
-	  Amount of local storage to be cached in memory
         </xsd:documentation>
     </xsd:annotation>
 </xsd:element>
