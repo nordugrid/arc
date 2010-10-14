@@ -54,38 +54,40 @@ else
 fi
 
 RUN=yes
+DAEMON=@sbindir@/arched
+NAME=`basename $DAEMON`
 
-if [ -f /etc/sysconfig/arched ]; then
-    . /etc/sysconfig/arched
+if [ -f /etc/sysconfig/$NAME ]; then
+    . /etc/sysconfig/$NAME
 fi
-if [ -f /etc/default/arched ]; then
-    . /etc/default/arched
+if [ -f /etc/default/$NAME ]; then
+    . /etc/default/$NAME
 fi
 
 if [ `id -u` = 0 ] ; then
     # Debian does not have /var/lock/subsys
     if test -d /var/lock/subsys; then
-	LOCKFILE=/var/lock/subsys/arched
+	LOCKFILE=/var/lock/subsys/$NAME
     else
-	LOCKFILE=/var/lock/arched
+	LOCKFILE=/var/lock/$NAME
     fi
-    PID_FILE=/var/run/arched.pid
+    PID_FILE=/var/run/$NAME.pid
 else
-    LOCKFILE=$HOME/arched.lock
-    PID_FILE=$HOME/arched.pid
+    LOCKFILE=$HOME/$NAME.lock
+    PID_FILE=$HOME/$NAME.pid
 fi
 
 RETVAL=0
 
 start() {
 	if [ "$RUN" != "yes" ] ; then
-	    echo $"arched disabled in configuration"
+	    echo $"$NAME disabled in configuration"
 	    return 0
 	fi
         # Check if it is already running
         if [ ! -f $LOCKFILE ]; then
  	    echo -n $"Starting ARC HED service: "
-	    daemon arched
+	    daemon $DAEMON
             RETVAL=$?
             [ $RETVAL -eq 0 ] && touch $LOCKFILE
             echo
@@ -95,7 +97,7 @@ start() {
 
 stop() {
 	echo -n $"Stopping ARC HED service: "
-	killproc arched
+	killproc $DAEMON
 	RETVAL=$?
 	echo
 	[ $RETVAL -eq 0 ] && rm -f $LOCKFILE
@@ -116,7 +118,7 @@ case "$1" in
 	stop
 	;;
  status)
-	status arched
+	status $DAEMON
 	;;
  restart | force-reload)
 	restart
