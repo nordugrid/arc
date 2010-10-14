@@ -21,8 +21,8 @@ docsrcdeps = $(images) \
              tex_installation/installation.tex tex_introduction/introduction.tex tex_layout/layout.tex \
              tex_maintenance/maintenance.tex tex_titlepage/titlepage.tex tex_usage/usage.tex
 
-images/dependencies.png: images/dependencies.dot
-	dot -Tpng $< -o $@
+#images/dependencies.png: images/dependencies.dot
+#	dot -Tpng $< -o $@
 
 JANITOR_SOURCECODE = $(top_srcdir)/src/services/janitor/module
 
@@ -66,4 +66,4 @@ EXTRA_DIST = $(doc_DATA) $(STYLES) $(docsource) $(docsrcdeps)
 
 CLEANFILES = *.blg *.bbl *.ind *.ilg *.out *.log *.idx *.aux *.toc
 
-MAINTAINERCLEANFILES = $(doc_DATA) $(STYLES) images/dependencies.png
+MAINTAINERCLEANFILES = $(doc_DATA) $(STYLES) #images/dependencies.png

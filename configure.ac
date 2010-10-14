@@ -1416,16 +1416,16 @@ AC_ARG_ENABLE(doc, AC_HELP_STRING([--disable-doc], [disable building documentati
 if test "x$enables_doc" = "xyes"; then
   AC_CHECK_PROGS(PDFLATEX, pdflatex)
   AC_CHECK_PROGS(DOXYGEN, doxygen)
-  AC_CHECK_PROGS(DOT, dot)
+#  AC_CHECK_PROGS(DOT, dot)
   if test "x$PDFLATEX" = "x"; then
     enables_doc="no"
     AC_MSG_NOTICE([WARNING: Missing pdflatex - documentation won't be built])
   elif test "x$DOXYGEN" = "x"; then
     enables_doc="no"
     AC_MSG_NOTICE([WARNING: Missing doxygen - documentation won't be built])
-  elif test "x$DOT" = "x"; then
-    enables_doc="no"
-    AC_MSG_NOTICE([WARNING: Missing dot - documentation won't be built])
+#  elif test "x$DOT" = "x"; then
+#    enables_doc="no"
+#    AC_MSG_NOTICE([WARNING: Missing dot - documentation won't be built])
   fi
 fi
 AC_MSG_NOTICE([Documentation enabled: $enables_doc])
