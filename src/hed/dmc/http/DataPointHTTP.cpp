@@ -44,13 +44,13 @@ namespace Arc {
   public:
     ChunkControl(uint64_t size = UINT64_MAX);
     ~ChunkControl();
-    // Get chunk to be transfered. On input 'length'
+    // Get chunk to be transferred. On input 'length'
     // contains maximal acceptable chunk size.
     bool Get(uint64_t& start, uint64_t& length);
-    // Report chunk transfered. It may be _different_
+    // Report chunk transferred. It may be _different_
     // from one obtained through Get().
     void Claim(uint64_t start, uint64_t length);
-    // Report chunk not transfered. It must be
+    // Report chunk not transferred. It must be
     // _same_ as one obtained by Get().
     void Unclaim(uint64_t start, uint64_t length);
   };

@@ -111,9 +111,9 @@ appropiate.
           <arex:maxJobsTracked>1000</arex:maxJobsTracked>
           <arex:maxJobsRun>100</arex:maxJobsRun>
           <arex:maxJobsPerDN>200</arex:maxJobsPerDN>
-          <arex:maxJobsTransfered>20</arex:maxJobsTransfered>
-          <arex:maxJobsTransferedAdditional>2</arex:maxJobsTransferedAdditional>
-          <arex:maxFilesTransfered>4</arex:maxFilesTransfered>
+          <arex:maxJobsTransferred>20</arex:maxJobsTransferred>
+          <arex:maxJobsTransferredAdditional>2</arex:maxJobsTransferredAdditional>
+          <arex:maxFilesTransferred>4</arex:maxFilesTransferred>
           <arex:wakeupPeriod>30</arex:wakeupPeriod>
           <arex:maxLoadShare>4</arex:maxLoadShare>
           <arex:loadShareType>voms:role</arex:loadShareType>

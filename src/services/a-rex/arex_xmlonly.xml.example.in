@@ -94,11 +94,11 @@
       <arex:loadLimits>
           <arex:maxJobsTracked>1000</arex:maxJobsTracked>
           <arex:maxJobsRun>100</arex:maxJobsRun>
-          <arex:maxJobsTransfered>20</arex:maxJobsTransfered>
-          <arex:maxJobsTransferedAdditional>2</arex:maxJobsTransferedAdditional>
+          <arex:maxJobsTransferred>20</arex:maxJobsTransferred>
+          <arex:maxJobsTransferredAdditional>2</arex:maxJobsTransferredAdditional>
 	  <arex:maxLoadShare>5</arex:maxLoadShare>
 	  <arex:loadShareType>dn</arex:loadShareType>
-          <arex:maxFilesTransfered>4</arex:maxFilesTransfered>
+          <arex:maxFilesTransferred>4</arex:maxFilesTransferred>
       </arex:loadLimits>
       <arex:dataTransfer>
           <arex:Globus>

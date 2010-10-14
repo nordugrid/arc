@@ -189,7 +189,7 @@ bool job_cache_read_file(const JobId &id,JobUser &user,std::list<FileData> &file
 /*
   Write and read file containing list of output files. Each line of file
   contains name of output file relative to session directory and optionally
-  destination, to which it should be transfered.
+  destination, to which it should be transferred.
 */
 bool job_output_write_file(const JobDescription &desc,JobUser &user,std::list<FileData> &files);
 bool job_output_read_file(const JobId &id,JobUser &user,std::list<FileData> &files);

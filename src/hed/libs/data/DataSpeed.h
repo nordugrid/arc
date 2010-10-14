@@ -68,7 +68,7 @@ namespace Arc {
     /// Destructor
     ~DataSpeed(void);
     /// Activate printing information about current time speeds, amount
-    /// of transfered data.
+    /// of transferred data.
     void verbose(bool val);
     /// Print information about current speed and amout of data.
     /// \param 'prefix'  add this string at the beginning of every string.
@@ -95,7 +95,7 @@ namespace Arc {
     /// Set averaging time period.
     /// \param base time period used to average values (default 1 minute).
     void set_base(time_t base_ = DATASPEED_AVERAGING_PERIOD);
-    /// Set amount of data to be transfered. Used in verbose messages.
+    /// Set amount of data to be transferred. Used in verbose messages.
     /// \param max amount of data in bytes.
     void set_max_data(unsigned long long int max = 0);
     /// Specify which external function will print verbose messages.
@@ -104,10 +104,10 @@ namespace Arc {
     void set_progress_indicator(show_progress_t func = NULL);
     /// Reset all counters and triggers.
     void reset(void);
-    /// Inform object, about amount of data has been transfered.
+    /// Inform object, about amount of data has been transferred.
     /// All errors are triggered by this method. To make them work
     /// application must call this method periodically even with zero value.
-    /// \param n amount of data transfered (bytes).
+    /// \param n amount of data transferred (bytes).
     bool transfer(unsigned long long int n = 0);
     /// Turn off speed control.
     /// \param disable true to turn off.
@@ -125,7 +125,7 @@ namespace Arc {
       return max_inactivity_time_failed;
     }
     /// Returns amount of data this object knows about.
-    unsigned long long int transfered_size(void) {
+    unsigned long long int transferred_size(void) {
       return Nall;
     }
   };

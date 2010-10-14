@@ -416,7 +416,7 @@ int main(int argc,char** argv) {
     mover.set_default_min_average_speed(min_average_speed);
   if(max_inactivity_time != 0)
     mover.set_default_max_inactivity_time(max_inactivity_time);
-  bool transfered = true;
+  bool transferred = true;
   bool credentials_expired = false;
   std::list<FileData>::iterator it = job_files_.begin();
   std::list<FileData>::iterator it2 = job_files_.begin();
@@ -570,10 +570,10 @@ int main(int argc,char** argv) {
     failure_reason+="Output file: "+i->lfn+" - "+(std::string)(i->res)+"\n";
     if(i->res == Arc::DataStatus::CredentialsExpiredError)
       credentials_expired=true;
-    transfered=false;
+    transferred=false;
   };
   // Check if all files have been properly uploaded
-  if(!transfered) {
+  if(!transferred) {
     logger.msg(Arc::INFO, "Some uploads failed"); res=2;
     if(credentials_expired) res=3;
     goto exit;

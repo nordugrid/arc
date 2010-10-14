@@ -36,7 +36,7 @@ class MessageAuth {
     /// Creates new instance of MessageAuth with attributes filtered
     /** In new instance all attributes with keys listed in @rejected_keys are
       removed. If @selected_keys is not empty only corresponding attributes
-      are transfered to new instance. Created instance does not own refered
+      are transferred to new instance. Created instance does not own refered
       attributes. Hence parent instance must not be deleted as long as
       this one is in use. */
     MessageAuth* Filter(const std::list<std::string>& selected_keys,const std::list<std::string>& rejected_keys);

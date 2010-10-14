@@ -48,7 +48,7 @@ caption={[Example of a SecHandler within the component \textit{http.service}.]
 %					realised by a message attribut.\\
  	\textbf{arc.authz}            & Grants access to the next layer.\\
  	\textbf{delegation.collector} & Processes a request for another service located on a different HED.
-                                        A certificate, which has a delegation policy embedded, is transfered to the service running that \textit{SecHandler}. Once the has been extracted and verified it will be transfered
+                                        A certificate, which has a delegation policy embedded, is transferred to the service running that \textit{SecHandler}. Once the has been extracted and verified it will be transferred
                                         to the requested service.
                                         The policy is now available within the HED of the service such that the client is enabled to access the service.\\
                                         % Question how does the client creates the request - with the SecHandler?
@@ -71,7 +71,7 @@ caption={[Example of a SecHandler within the component \textit{http.service}.]
                                        maps the identity to an user of the workstation.\\
  	\textbf{arc.pdp}             & Evaluates the result based on a policy XML file.\\
  	\textbf{delegate.pdp}        & Similar to \textit{arc.pdp} a policy file will be evaluated. But here, the policy document is 
-                                       extracted and transfered
+                                       extracted and transferred
                                        by delegation.collector.\\
  	\textbf{pdpservice.invoker}  & Establishes a connection to special service in order to get a policy decision. The PDP service 
                                        implements the same functionality as ARC PDP, except that the evaluation request and 

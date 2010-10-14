@@ -422,7 +422,7 @@ int DirectFilePlugin::close(bool eof) {
     if(eof) {
       ::close(data_file);
     }
-    else {  /* file was not transfered properly */
+    else {  /* file was not transferred properly */
       if((file_mode==file_access_create) || 
          (file_mode==file_access_overwrite)) { /* destroy file */
         ::close(data_file);

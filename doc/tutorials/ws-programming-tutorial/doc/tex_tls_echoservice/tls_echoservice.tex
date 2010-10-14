@@ -261,7 +261,7 @@ Listing~\ref{lst:tls_echo_client_cpp} shows the source code of the client progra
 
 The file containing the client configuration is specified within the command line. 
 Its content will be loaded in the code fragment starting at line~\ref{lst_code:tls_echo_client_cpp_getfilecontent}. 
-Later, in line~\ref{lst_code:tls_echo_client_cpp_loadconfiguration}, the configuration will be parsed into XML and than transfered into a chain of components which is wrapped by the object \textit{loader}. In order to process a message, an entry point within the chain has to be disclosed. To implement a SOAP client, we are looking for the SOAP component. 
+Later, in line~\ref{lst_code:tls_echo_client_cpp_loadconfiguration}, the configuration will be parsed into XML and than transferred into a chain of components which is wrapped by the object \textit{loader}. In order to process a message, an entry point within the chain has to be disclosed. To implement a SOAP client, we are looking for the SOAP component. 
 To get the proper component an operator of MCCLoader is used in line~\ref{lst_code:tls_echo_client_cpp_cliententry}.
 The previously used class \textit{ClientSOAP} has eased some workload which now has to be done within the client program.
 The payloads now have to be wrapped by message objects which have to be initialised with an \textit{MessageAttribute} object and a \textit{MessageContext} object. After the payload has been wrapped within the message it gets transmitted in almost the same way like before, see lines following by line~\ref{lst_code:tls_echo_client_cpp_createandprocess}. The remainder of the source code is identical to the Echo Client.\\

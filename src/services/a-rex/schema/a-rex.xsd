@@ -138,11 +138,11 @@
                   tracked in RAM)
                 * maxJobsRun - jobs being run (SUBMITTING, INLRMS states)
                 * maxJobsPerDN - maximum jobs in the system per user DN
-                * maxJobsTransfered - jobs being processed on frontend 
+                * maxJobsTransferred - jobs being processed on frontend 
                   (PREPARING, FINISHING states)
-                * maxJobsTransferedAdditional - additional reserved number 
+                * maxJobsTransferredAdditional - additional reserved number 
                   of jobs being processed on frontend
-                * maxFilesTransfered - number of files being transfered 
+                * maxFilesTransferred - number of files being transferred 
                   simultaneously by jobs in PREPARING and FINISHING states.
                   Value is per job.
                 * maxLoadShare - sharing mechanism for data transfer - 
@@ -173,11 +173,11 @@
                          minOccurs="0"/>
             <xsd:element name="maxJobsPerDN" type="xsd:nonNegativeInteger"
                          minOccurs="0"/>
-            <xsd:element name="maxJobsTransfered" type="xsd:nonNegativeInteger"
+            <xsd:element name="maxJobsTransferred" type="xsd:nonNegativeInteger"
                          minOccurs="0"/>
-            <xsd:element name="maxJobsTransferedAdditional"
+            <xsd:element name="maxJobsTransferredAdditional"
                          type="xsd:nonNegativeInteger" minOccurs="0"/>
-            <xsd:element name="maxFilesTransfered"
+            <xsd:element name="maxFilesTransferred"
                          type="xsd:nonNegativeInteger" minOccurs="0"/>
             <xsd:element name="maxLoadShare"
                          type="xsd:nonNegativeInteger" minOccurs="0"/>

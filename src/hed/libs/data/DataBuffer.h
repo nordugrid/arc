@@ -202,7 +202,7 @@ namespace Arc {
     bool wait_write();
     /// Wait till end of transfer happens on any side.
     bool wait_eof();
-    /// Returns offset following last piece of data transfered.
+    /// Returns offset following last piece of data transferred.
     unsigned long long int eof_position() const {
       return eof_pos;
     }

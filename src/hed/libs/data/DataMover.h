@@ -91,7 +91,7 @@ namespace Arc {
     void secure(bool);
     /// Set if passive transfer should be used for FTP-like transfers.
     void passive(bool);
-    /// Set if file should be transfered and registered even if such LFN
+    /// Set if file should be transferred and registered even if such LFN
     /// is already registered and source is not one of registered locations.
     void force_to_meta(bool);
     /// Check if check for existance of remote file is done before

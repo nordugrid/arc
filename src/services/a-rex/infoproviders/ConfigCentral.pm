@@ -398,9 +398,9 @@ sub build_config_from_xmlfile {
     my $load = hash_get_hashref($arex, 'loadLimits');
     my $mj = $load->{maxJobsTracked} || '-1';
     my $mjr = $load->{maxJobsRun} || '-1';
-    my $mjt = $load->{maxJobsTransfered} || '-1';
-    my $mjta = $load->{maxJobsTransferedAdditional} || '-1';
-    my $mft = $load->{maxFilesTransfered} || '-1';
+    my $mjt = $load->{maxJobsTransferred} || '-1';
+    my $mjta = $load->{maxJobsTransferredAdditional} || '-1';
+    my $mft = $load->{maxFilesTransferred} || '-1';
     $config->{maxjobs} = "$mj $mjr";
     $config->{maxload} = "$mjt $mjta $mft";
 

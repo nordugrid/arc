@@ -75,7 +75,7 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
         config_close(cfile);
         logger.msg(Arc::ERROR,"Can't interpret configuration file as XML");
         return false;
-      }; 
+      };
       config_close(cfile);
       return configure_serviced_users(cfg,users,my_uid,my_username,my_user);
     }; break;
@@ -120,15 +120,15 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
         break;
       };
     };
-    if(command == "runtimedir") { 
+    if(command == "runtimedir") {
       users.Env().runtime_config_dir(rest);
-    } else if(command == "joblog") { /* where to write job inforamtion */ 
+    } else if(command == "joblog") { /* where to write job inforamtion */
       std::string fname = config_next_arg(rest);  /* empty is allowed too */
       users.Env().job_log().SetOutput(fname.c_str());
     }
-    else if(command == "jobreport") { /* service to report information to */ 
+    else if(command == "jobreport") { /* service to report information to */
       for(;;) {
-        std::string url = config_next_arg(rest); 
+        std::string url = config_next_arg(rest);
         if(url.length() == 0) break;
         unsigned int i;
         if(Arc::stringto(url,i)) {
@@ -139,15 +139,15 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
       };
     }
     else if(command == "jobreport_credentials") {
-      jobreport_key = config_next_arg(rest); 
-      jobreport_cert = config_next_arg(rest); 
-      jobreport_cadir = config_next_arg(rest); 
+      jobreport_key = config_next_arg(rest);
+      jobreport_cert = config_next_arg(rest);
+      jobreport_cadir = config_next_arg(rest);
     }
-    else if(command == "jobreport_options") { /* e.g. for SGAS, interpreted by usage reporter */ 
-      std::string accounting_options = config_next_arg(rest); 
+    else if(command == "jobreport_options") { /* e.g. for SGAS, interpreted by usage reporter */
+      std::string accounting_options = config_next_arg(rest);
       users.Env().job_log().set_options(accounting_options);
     }
-    else if(command == "maxjobs") { /* maximum number of the jobs to support */ 
+    else if(command == "maxjobs") { /* maximum number of the jobs to support */
       std::string max_jobs_s = config_next_arg(rest);
       long int i;
       int max_jobs = -1;
@@ -210,7 +210,7 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
               max_jobs_processing,max_jobs_processing_emergency,max_downloads);
     }
     else if(command == "maxloadshare") {
-	std::string max_share_s = config_next_arg(rest);
+  std::string max_share_s = config_next_arg(rest);
         unsigned int max_share = 0;
         if(max_share_s.length() != 0) {
           if(!Arc::stringto(max_share_s,max_share) || max_share<=0) {
@@ -218,9 +218,9 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
           };
         };
         std::string transfer_share = config_next_arg(rest);
-	if (transfer_share.empty()){
+  if (transfer_share.empty()){
             logger.msg(Arc::ERROR,"The type of share is not set in maxloadshare"); goto exit;
-	}
+  }
         jcfg.SetTransferShare(max_share, transfer_share);
     }
     else if(command == "share_limit") {
@@ -246,7 +246,7 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
         logger.msg(Arc::ERROR,"share_limit should be located after maxloadshare"); goto exit;
       }
     }
-    else if(command == "speedcontrol") {  
+    else if(command == "speedcontrol") {
       std::string speed_s = config_next_arg(rest);
       int min_speed=0;
       int min_speed_time=300;
@@ -282,7 +282,7 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
       jcfg.SetSpeedControl(
               min_speed,min_speed_time,min_average_speed,max_inactivity_time);
     }
-    else if(command == "wakeupperiod") { 
+    else if(command == "wakeupperiod") {
       std::string wakeup_s = config_next_arg(rest);
       unsigned int wakeup_period;
       if(wakeup_s.length() != 0) {
@@ -298,7 +298,7 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
       bool use_secure_transfer;
       if(strcasecmp("yes",s.c_str()) == 0) {
         use_secure_transfer=true;
-      } 
+      }
       else if(strcasecmp("no",s.c_str()) == 0) {
         use_secure_transfer=false;
       }
@@ -357,13 +357,13 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
       };
       jcfg.SetLocalTransfer(use_local_transfer);
     }
-    else if(command == "mail") { /* internal address from which to send mail */ 
+    else if(command == "mail") { /* internal address from which to send mail */
       users.Env().support_mail_address(config_next_arg(rest));
       if(users.Env().support_mail_address().empty()) {
         logger.msg(Arc::ERROR,"mail is empty"); goto exit;
       };
     }
-    else if(command == "defaultttl") { /* time to keep job after finished */ 
+    else if(command == "defaultttl") { /* time to keep job after finished */
       char *ep;
       std::string default_ttl_s = config_next_arg(rest);
       if(default_ttl_s.length() == 0) {
@@ -386,7 +386,7 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
         default_ttr=DEFAULT_KEEP_DELETED;
       };
     }
-    else if(command == "maxrerun") { /* number of retries allowed */ 
+    else if(command == "maxrerun") { /* number of retries allowed */
       std::string default_reruns_s = config_next_arg(rest);
       if(default_reruns_s.length() == 0) {
         logger.msg(Arc::ERROR,"maxrerun is empty"); goto exit;
@@ -398,9 +398,9 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
       default_reruns=strtoul(default_reruns_s.c_str(),&ep,10);
       if(*ep != 0) {
         logger.msg(Arc::ERROR,"Wrong number in maxrerun command"); goto exit;
-      };      
+      };
     }
-    else if(command == "diskspace") { /* maximal amount of disk space */ 
+    else if(command == "diskspace") { /* maximal amount of disk space */
       std::string default_diskspace_s = config_next_arg(rest);
       if(default_diskspace_s.length() == 0) {
         logger.msg(Arc::ERROR,"diskspace is empty"); goto exit;
@@ -412,10 +412,10 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
       default_diskspace=strtoull(default_diskspace_s.c_str(),&ep,10);
       if(*ep != 0) {
         logger.msg(Arc::ERROR,"Wrong number in diskspace command"); goto exit;
-      };      
+      };
     }
     else if(command == "lrms") {
-      /* set default lrms type and queue 
+      /* set default lrms type and queue
          (optionally). Applied to all following
          'control' commands. MUST BE thing */
       default_lrms = config_next_arg(rest);
@@ -428,7 +428,7 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
       };
       check_lrms_backends(default_lrms,users.Env());
     }
-    else if(command == "authplugin") { /* set plugin to be called on 
+    else if(command == "authplugin") { /* set plugin to be called on
                                           state changes */
       std::string state_name = config_next_arg(rest);
       if(state_name.length() == 0) {
@@ -439,7 +439,7 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
         logger.msg(Arc::ERROR,"Options for plugin are missing"); goto exit;
       };
       if(!plugins.add(state_name.c_str(),options_s.c_str(),rest.c_str())) {
-        logger.msg(Arc::ERROR,"Failed to register plugin for state %s",state_name);      
+        logger.msg(Arc::ERROR,"Failed to register plugin for state %s",state_name);
         goto exit;
       };
     }
@@ -546,7 +546,7 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
             cmd_+=user->ControlDir();
             user->add_helper(cmd_);
             /* creating empty list of jobs */
-            JobsList *jobs = new JobsList(*user,plugins); 
+            JobsList *jobs = new JobsList(*user,plugins);
             (*user)=jobs; /* back-associate jobs with user :) */
           };
         };
@@ -568,7 +568,7 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
             std::string rest_=rest;
             user->substitute(rest_);
             user->add_helper(rest_);
-          };    
+          };
         };
       }
       else if(helper_user == ".") { /* special helper */
@@ -677,9 +677,9 @@ bool configure_serviced_users(Arc::XMLNode cfg,JobUsers &users,uid_t my_uid,cons
   loadLimits
     maxJobsTracked
     maxJobsRun
-    maxJobsTransfered
-    maxJobsTransferedAdditional
-    maxFilesTransfered
+    maxJobsTransferred
+    maxJobsTransferredAdditional
+    maxFilesTransferred
     maxLoadShare
     loadShareType
     wakeupPeriod
@@ -698,15 +698,27 @@ bool configure_serviced_users(Arc::XMLNode cfg,JobUsers &users,uid_t my_uid,cons
     elementtoint(tmp_node,"maxJobsRun",max_jobs_running,&logger);
     elementtoint(tmp_node,"maxJobsPerDN",max_jobs_per_dn,&logger);
     jcfg.SetMaxJobs(max_jobs,max_jobs_running,max_jobs_per_dn);
-    elementtoint(tmp_node,"maxJobsTransfered",max_jobs_processing,&logger);
-    elementtoint(tmp_node,"maxJobsTransferedAdditional",max_jobs_processing_emergency,&logger);
-    elementtoint(tmp_node,"maxFilesTransfered",max_downloads,&logger);
+    elementtoint(tmp_node,"maxJobsTransferred",max_jobs_processing,&logger);
+    // Included for backward compatibility.
+    if (!tmp_node["maxJobsTransferred"] && tmp_node["maxJobsTransfered"]) {
+      elementtoint(tmp_node,"maxJobsTransfered",max_jobs_processing,&logger);
+    }
+    elementtoint(tmp_node,"maxJobsTransferredAdditional",max_jobs_processing_emergency,&logger);
+    // Included for backward compatibility.
+    if (!tmp_node["maxJobsTransferredAdditional"] && tmp_node["maxJobsTransferedAdditional"]) {
+      elementtoint(tmp_node,"maxJobsTransferedAdditional",max_jobs_processing,&logger);
+    }
+    elementtoint(tmp_node,"maxFilesTransferred",max_downloads,&logger);
+    // Included for backward compatibility.
+    if (!tmp_node["maxFilesTransferred"] && tmp_node["maxFilesTransfered"]) {
+      elementtoint(tmp_node,"maxFilesTransfered",max_jobs_processing,&logger);
+    }
     jcfg.SetMaxJobsLoad(max_jobs_processing,
                              max_jobs_processing_emergency,
                              max_downloads);
     std::string transfer_share = tmp_node["loadShareType"];
     if(elementtoint(tmp_node,"maxLoadShare",max_share,&logger) && (max_share > 0) && ! transfer_share.empty()){
-	jcfg.SetTransferShare(max_share, transfer_share);
+  jcfg.SetTransferShare(max_share, transfer_share);
     }
     if(elementtoint(tmp_node,"wakeupPeriod",wakeup_period,&logger)) {
       jcfg.SetWakeupPeriod(wakeup_period);
@@ -1087,7 +1099,7 @@ bool print_serviced_users(const JobUsers &users) {
     // list each remote cache
     for (std::vector<std::string>::iterator i = remote_conf_caches.begin(); i != remote_conf_caches.end(); i++) {
       logger.msg(Arc::INFO, "\tRemote cache     : %s", (*i).substr(0, (*i).find(" ")));
-      if ((*i).find(" ") != std::string::npos) 
+      if ((*i).find(" ") != std::string::npos)
         logger.msg(Arc::INFO, "\tRemote cache link: %s", (*i).substr((*i).find_last_of(" ")+1, (*i).length()-(*i).find_last_of(" ")+1));
     }
     if (cache_config.cleanCache())
