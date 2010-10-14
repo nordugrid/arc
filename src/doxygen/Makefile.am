@@ -3,7 +3,7 @@ docdir = @docdir@
 doc_DATA = ARC1-API.pdf ARC1-Services.pdf ARC1-ChainComponents.pdf
 
 ARC1-API.pdf pydoxygen.i: Doxyfile.api
-	doxygen Doxyfile.api && make -C latex && cp latex/refman.pdf $@
+	doxygen Doxyfile.api && make -C latex && cp latex/refman.pdf ARC1-API.pdf
 	rm -rf latex
 	python doxy2swig.py xml/index.xml pydoxygen.i
 	rm -rf xml
