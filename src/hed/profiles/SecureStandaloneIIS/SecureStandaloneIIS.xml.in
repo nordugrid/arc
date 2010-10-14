@@ -46,9 +46,7 @@
     </Plexer>
     <Service name="isis" id="isis1">
         <DBPath>/tmp/isis1</DBPath>
-        <infosys:serviceid>https://localhost:50000/isis1</infosys:serviceid>
-        <infosys:endpoint>https://localhost:50000/isis1</infosys:endpoint>
-        <infosys:expiration>PT3M</infosys:expiration>
+        <Endpoint>https://localhost:50000/isis1</Endpoint>
         <SecHandler name="arc.authz" id="authz" event="incoming">
           <PDP name="arc.pdp">
             <pdp:PolicyStore>

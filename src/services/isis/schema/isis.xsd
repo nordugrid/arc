@@ -49,7 +49,7 @@
       </xsd:annotation>
   </xsd:element>
 
-  <xsd:element name="endpoint" type="xsd:anyURI">
+  <xsd:element name="Endpoint" type="xsd:anyURI">
       <xsd:annotation>
           <xsd:documentation xml:lang="en">
               The URL where the service can be accessed from outside.
@@ -57,7 +57,7 @@
       </xsd:annotation>
   </xsd:element>
 
-  <xsd:element name="retry" type="xsd:nonNegativeInteger" default="5">
+  <xsd:element name="Retry" type="xsd:nonNegativeInteger" default="5">
       <xsd:annotation>
           <xsd:documentation xml:lang="en">
               Retry specifies how many times communication to ISIS have to fail/timeout to start treating it as unavailable.
@@ -65,7 +65,7 @@
       </xsd:annotation>
   </xsd:element>
 
-  <xsd:element name="sparsity" type="xsd:nonNegativeInteger" default="2">
+  <xsd:element name="Sparsity" type="xsd:nonNegativeInteger" default="2">
       <xsd:annotation>
           <xsd:documentation xml:lang="en">
               It determines the number of neighbors as a function of the actual number of member nodes of the network.
@@ -97,19 +97,13 @@
       </xsd:annotation>
   </xsd:element>
 
-  <xsd:complexType name="InfoProvider_Type">
-    <xsd:sequence>
-      <xsd:element name="URL" type="xsd:anyURI">
-          <xsd:annotation>
-              <xsd:documentation xml:lang="en">
-                  The URL of another ISIS to form a cloud.
-              </xsd:documentation>
-          </xsd:annotation>
-      </xsd:element>
-    </xsd:sequence>
-  </xsd:complexType>
-
-  <xsd:element name="InfoProvider" type="icfg:InfoProvider_Type"/>
+  <xsd:element name="InfoProvider" type="xsd:anyURI">
+      <xsd:annotation>
+          <xsd:documentation xml:lang="en">
+              The URL of another ISIS to form a cloud.
+          </xsd:documentation>
+      </xsd:annotation>
+  </xsd:element>
 
 </xsd:schema>
 

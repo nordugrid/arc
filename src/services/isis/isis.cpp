@@ -339,11 +339,16 @@ static void soft_state_thread(void *data) {
         logger_.msg(Arc::VERBOSE, "Parsing configuration parameters");
 
         // Endpoint url from the configuration
-        endpoint_=(std::string)((*cfg)["endpoint"]);
+        if ((*cfg)["endpoint"]) endpoint_=(std::string)((*cfg)["endpoint"]);
+        if ((*cfg)["Endpoint"]) endpoint_=(std::string)((*cfg)["Endpoint"]);
+        if (((*cfg)["Endpoint"]) && ((*cfg)["endpoint"]))
+            logger_.msg(Arc::WARNING,
+                        "The Endpoint element is defined multiple time in ISIS configuration. The '%s' value will be used.",
+                        endpoint_);
         logger_.msg(Arc::VERBOSE, "Endpoint: %s", endpoint_);
         if ( endpoint_.empty()){
-           logger_.msg(Arc::ERROR, "Empty endpoint element in the configuration!");
-           return;
+            logger_.msg(Arc::ERROR, "Empty endpoint element in the configuration!");
+            return;
         }
          // Key from the configuration
          my_key=(std::string)((*cfg)["KeyPath"]);
@@ -386,28 +391,36 @@ static void soft_state_thread(void *data) {
         ),true);
 
 
-        if ((bool)(*cfg)["retry"]) {
-            if (!((std::string)(*cfg)["retry"]).empty()) {
-                if(EOF == sscanf(((std::string)(*cfg)["retry"]).c_str(), "%d", &retry) || retry < 1)
-                {
-                    logger_.msg(Arc::ERROR, "Configuration error. Retry: \"%s\" is not a valid value. Default value will be used.",(std::string)(*cfg)["retry"]);
-                    retry = 5;
-                }
-            } else retry = 5;
-        } else retry = 5;
-
+        // Retry from the configuration
+        std::string _retry = "5"; // Default value
+        if ((*cfg)["retry"]) _retry = (std::string)((*cfg)["retry"]);
+        if ((*cfg)["Retry"]) _retry = (std::string)((*cfg)["Retry"]);
+        if (EOF == sscanf(_retry.c_str(), "%d", &retry) || retry < 1) {
+            retry = 5;
+            logger_.msg(Arc::ERROR,
+                        "Configuration error. Retry: \"%d\" is not a valid value. Default value will be used.",
+                        retry);
+        }
+        if (((*cfg)["Retry"]) && ((*cfg)["retry"]))
+            logger_.msg(Arc::WARNING,
+                        "The Retry element is defined multiple time in ISIS configuration. The '%d' value will be used.",
+                        retry);
         logger_.msg(Arc::VERBOSE, "Retry: %d", retry);
 
-        if ((bool)(*cfg)["sparsity"]) {
-            if (!((std::string)(*cfg)["sparsity"]).empty()) {
-                if(EOF == sscanf(((std::string)(*cfg)["sparsity"]).c_str(), "%d", &sparsity) || sparsity < 2)
-                {
-                    logger_.msg(Arc::ERROR, "Configuration error. Sparsity: \"%s\" is not a valid value. Default value will be used.",(std::string)(*cfg)["sparsity"]);
-                    sparsity = 2;
-                }
-            } else sparsity = 2;
-        } else sparsity = 2;
-
+        // Sparsity from the configuration
+        std::string _sparsity = "2"; // Default value
+        if ((*cfg)["sparsity"]) _sparsity = (std::string)((*cfg)["sparsity"]);
+        if ((*cfg)["Sparsity"]) _sparsity = (std::string)((*cfg)["Sparsity"]);
+        if (EOF == sscanf(_sparsity.c_str(), "%d", &sparsity) || sparsity < 2) {
+            sparsity = 2;
+            logger_.msg(Arc::ERROR,
+                        "Configuration error. Sparsity: \"%d\" is not a valid value. Default value will be used.",
+                        sparsity);
+        }
+        if (((*cfg)["Sparsity"]) && ((*cfg)["sparsity"]))
+            logger_.msg(Arc::WARNING,
+                        "The Sparsity element is defined multiple time in ISIS configuration. The '%d' value will be used.",
+                        sparsity);
         logger_.msg(Arc::VERBOSE, "Sparsity: %d", sparsity);
 
         ThreadsCount = 0;
@@ -477,13 +490,19 @@ static void soft_state_thread(void *data) {
         // 1. step: Put it's own EndpoingURL(s) from configuration in the set of neighbors for testing purpose.
         int i=0;
         while ((bool)(*cfg)["InfoProvider"][i]) {
-            if ( endpoint_ != (std::string)(*cfg)["InfoProvider"][i]["URL"] ) {
-               if ((std::string)(*cfg)["InfoProvider"][i]["URL"] == "") {
+            std::string _url;
+            if ( not ((std::string)(*cfg)["InfoProvider"][i]).empty() ) _url = (std::string)(*cfg)["InfoProvider"][i];
+            else {
+                if ( not ((std::string)(*cfg)["InfoProvider"][i]["URL"]).empty() )
+                    _url = (std::string)(*cfg)["InfoProvider"][i]["URL"];
+            }
+            if ( endpoint_ != _url ) {
+               if (_url== "") {
                   available_provider = true;
-                  logger_.msg(Arc::WARNING, "The InfoProvider URL is empty.");
+                  logger_.msg(Arc::WARNING, "The InfoProvider element in ISIS configuration is empty.");
                } else {
                  Arc::ISIS_description isisdesc;
-                 isisdesc.url = (std::string)(*cfg)["InfoProvider"][i]["URL"];
+                 isisdesc.url = _url;
                  infoproviders_.push_back(isisdesc);
                }
             }

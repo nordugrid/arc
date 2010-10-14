@@ -58,15 +58,10 @@
 	        <isis:KeyPath inisections="common isis" initag="client_key">/etc/grid-security/hostkey.pem</isis:KeyPath>
 	        <isis:CertificatePath inisections="common isis" initag="client_cert">/etc/grid-security/hostcert.pem</isis:CertificatePath>
 	        <isis:CACertificatesDir inisections="common isis" initag="cacert">/etc/grid-security/certificates</isis:CACertificatesDir>
-            <isis:InfoProvider>
-                <isis:URL inisections="isis" initag="infoprovider0">https://localhost:50000/isis1</isis:URL>
-            </isis:InfoProvider>
-            <isis:InfoProvider>
-                <isis:URL inisections="isis" initag="infoprovider1">https://example1.isis.org:50000/isis1</isis:URL>
-            </isis:InfoProvider>
-            <isis:InfoProvider>
-                <isis:URL inisections="isis" initag="infoprovider2">https://example1.isis.org:50000/isis1</isis:URL>
-            </isis:InfoProvider>
+            <isis:Endpoint inisections="isis" initag="endpoint">https://localhost:50000/isis1</isis:Endpoint>
+            <isis:InfoProvider inisections="isis" initag="infoprovider0">https://localhost:50000/isis1</isis:InfoProvider>
+            <isis:InfoProvider inisections="isis" initag="infoprovider1">https://example1.isis.org:50000/isis1</isis:InfoProvider>
+            <isis:InfoProvider inisections="isis" initag="infoprovider2">https://example1.isis.org:50000/isis1</isis:InfoProvider>
             <SecHandler name="arc.authz" id="authz" event="incoming">
                 <authz:PDP name="arc.pdp">
                     <pdp:PolicyStore>

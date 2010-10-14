@@ -156,22 +156,16 @@
 			</infosys:InfoRegister>
 		</loader:Service>
 		<loader:Service name="isis" id="isis">
-            <isis:endpoint inisections="isis" initag="endpoint"/>
+            <isis:Endpoint inisections="isis" initag="endpoint"/>
             <isis:DBPath inisections="isis" initag="dbpath">/var/spool/arc/isis_data</isis:DBPath>
-            <isis:InfoProvider>
-                <isis:URL inisections="isis" initag="peerurl1"/>
-            </isis:InfoProvider>
-            <isis:InfoProvider>
-                <isis:URL inisections="isis" initag="peerurl2"/>
-            </isis:InfoProvider>
-            <isis:InfoProvider>
-                <isis:URL inisections="isis" initag="peerurl3"/>
-            </isis:InfoProvider>
+            <isis:InfoProvider inisections="isis" initag="peerurl1"/>
+            <isis:InfoProvider inisections="isis" initag="peerurl2"/>
+            <isis:InfoProvider inisections="isis" initag="peerurl3"/>
             <isis:KeyPath inisections="isis common" initag="client_key"/>
             <isis:CertificatePath inisections="isis common" initag="client_cert"/>
             <isis:CACertificatesDir inisections="isis common" initag="ca_dir"/>
             <infosys:InfoRegister>
-	            <infosys:Endpoint inisections="isis" initag="endpoint"/>
+                <infosys:Endpoint inisections="isis" initag="endpoint"/>
                 <infosys:Period inisections="isis register" initag="period">PT30S</infosys:Period>
                 <infosys:Expiration inisections="isis register" initag="expiration">PT1M</infosys:Expiration>
                 <infosys:Registrar>
@@ -194,5 +188,5 @@
                 </infosys:Registrar>
             </infosys:InfoRegister>
         </loader:Service>
-	</loader:Chain>
+    </loader:Chain>
 </ArcConfig>

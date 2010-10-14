@@ -34,7 +34,7 @@ ISIS via this address. Do not use local addresses in this attribute!
 
 IV. InfoProvider nodes reference
 
-The list of InfoProviderISIS elements contain ISIS nodes that are already 
+The list of InfoProvider elements contain URL of ISIS nodes that are already 
 connected to the peer-to-peer network at a high probability. If there 
 is no such ISIS defined than the current one will initialize a new ISIS 
 network. If there is any, but not working yet, then the entering ISIS
@@ -51,14 +51,12 @@ V. Sample ISIS configuration
 Sample ISIS service configuration:
     <Service name="isis" id="isis1">
         <!-- DBPath: File location where the database is physically stored -->
-        <DBPath>/storage/arc1/isis1</DBPath>
+        <isis:DBPath>/storage/arc1/isis1</isis:DBPath>
         <!-- endpoint: The URL where the service can be accessed from outside -->
-        <infosys:endpoint>http://knowarc2.grid.niif.hu:50000/isis1</infosys:endpoint>
-        <!-- InfoProviderISIS: Contact details to one or more ISIS where the other
+        <isis:Endpoint>http://grid1.example.com:60000/isis</isis:Endpoint>
+        <!-- InfoProvider: Contact details to one or more ISIS where the other
             ISIS's can be queried. -->
-        <InfoProviderISIS>
-            <URL>http://knowarc3.grid.niif.hu:50000/isis1</URL>
-        </InfoProviderISIS>
+        <isis:InfoProvider>http://grid2.example.com:60000/isis</isis:InfoProvider>
         <!-- This element explicitly says that the service have not to be registered.
             It has the same effect then the missing InfoRegister element. -->
         <infosys:NoRegister />

@@ -37,9 +37,7 @@
     </Plexer>
     <Service name="isis" id="isis1">
         <DBPath>/tmp/isis1</DBPath>
-        <infosys:serviceid>http://localhost:50000/isis1</infosys:serviceid>
-        <infosys:endpoint>http://localhost:50000/isis1</infosys:endpoint>
-        <infosys:expiration>PT3M</infosys:expiration>
+        <Endpoint>http://localhost:50000/isis1</Endpoint>
     </Service>
   </Chain>
 </ArcConfig>

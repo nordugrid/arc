@@ -38,17 +38,11 @@
             <loader:next id="isis" inisections="isis" initag="urlpattern">^/isis$</loader:next>            
         </loader:Plexer>
         <loader:Service name="isis" id="isis">
-            <isis:endpoint inisections="isis" initag="endpoint"/>
+            <isis:Endpoint inisections="isis" initag="endpoint"/>
             <isis:DBPath inisections="isis" initag="dbpath">/var/spool/arc/isis_data</isis:DBPath>
-            <isis:InfoProvider>
-                <isis:URL inisections="isis" initag="peerurl1"/>
-            </isis:InfoProvider>
-            <isis:InfoProvider>
-                <isis:URL inisections="isis" initag="peerurl2"/>
-            </isis:InfoProvider>
-            <isis:InfoProvider>
-                <isis:URL inisections="isis" initag="peerurl3"/>
-            </isis:InfoProvider>
+            <isis:InfoProvider inisections="isis" initag="peerurl1"/>
+            <isis:InfoProvider inisections="isis" initag="peerurl2"/>
+            <isis:InfoProvider inisections="isis" initag="peerurl3"/>
             <isis:KeyPath inisections="isis common" initag="client_key"/>
             <isis:CertificatePath inisections="isis common" initag="client_cert"/>
             <isis:CACertificatesDir inisections="isis common" initag="ca_dir"/>
@@ -78,11 +72,4 @@
         </loader:Service>
     </loader:Chain>
 </ArcConfig>
-
-
-
-
-
-
-
 

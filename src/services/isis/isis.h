@@ -50,7 +50,7 @@ namespace ISIS {
             Arc::NS ns_;
             Arc::MCC_Status make_soap_fault(Arc::Message &outmsg, const std::string& reason = "");
             void make_soap_fault(Arc::XMLNode &response, const std::string& reason = "");
-            // List of known InfoProviderISIS's endpoint URL, key, cert, proxy and cadir in string
+            // List of known InfoProviders endpoint URL, key, cert, proxy and cadir in string
             std::vector<Arc::ISIS_description> infoproviders_;
             std::string bootstrapISIS;
             std::string my_hash;

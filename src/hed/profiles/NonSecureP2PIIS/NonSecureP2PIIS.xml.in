@@ -43,25 +43,16 @@
     </Plexer>
     <Service name="isis" id="isis1">
         <DBPath>/tmp/isis1</DBPath>
-        <infosys:serviceid>http://localhost:50000/isis1</infosys:serviceid>
-        <infosys:endpoint>http://localhost:50000/isis1</infosys:endpoint>
-        <infosys:expiration>PT3M</infosys:expiration>
-        <InfoProvider>
-           <URL>http://localhost:50000/isis1</URL>
-        </InfoProvider>
-        <InfoProvider>
-           <URL>http://example1.isis.org:50000/isis1</URL>
-        </InfoProvider>
-        <InfoProvider>
-           <URL>http://example1.isis.org:50000/isis1</URL>
-        </InfoProvider>
-	<infosys:InfoRegister>
+        <Endpoint>http://localhost:50000/isis1</Endpoint>
+        <InfoProvider>http://localhost:50000/isis1</InfoProvider>
+        <InfoProvider>http://example1.isis.org:50000/isis1</InfoProvider>
+        <InfoProvider>http://example1.isis.org:50000/isis1</InfoProvider>
+        <infosys:InfoRegister>
                 <infosys:Period>PT75S</infosys:Period>
                 <infosys:Endpoint>http://localhost:50000/isis1</infosys:Endpoint>
                 <infosys:Expiration>PT1M</infosys:Expiration>
                 <infosys:Registrar id="ExampleCloud1"></infosys:Registrar>
         </infosys:InfoRegister>
-
     </Service>
   </Chain>
 </ArcConfig>

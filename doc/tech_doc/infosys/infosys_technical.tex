@@ -1248,19 +1248,13 @@ type="wsrf-rpw:GetResourcePropertyDocument">
       </xsd:annotation>
   </xsd:element>
 
-  <xsd:complexType name="InfoProvider_Type">
-    <xsd:sequence>
-      <xsd:element name="URL" type="xsd:anyURI">
-          <xsd:annotation>
-              <xsd:documentation xml:lang="en">
-                  The URL of one or more ISIS where the other ISIS's can be queried.
-              </xsd:documentation>
-          </xsd:annotation>
-      </xsd:element>
-    </xsd:sequence>
-  </xsd:complexType>
-
-  <xsd:element name="InfoProvider" type="icfg:InfoProvider_Type"/>
+  <xsd:element name="InfoProvider" type="xsd:anyURI">
+      <xsd:annotation>
+          <xsd:documentation xml:lang="en">
+              The URL of one or more ISIS where the other ISIS's can be queried.
+          </xsd:documentation>
+      </xsd:annotation>
+  </xsd:element>
 
 </xsd:schema>
 
