@@ -1,6 +1,7 @@
 docdir = @docdir@
 
 doc_DATA = ARC1-API.pdf ARC1-Services.pdf ARC1-ChainComponents.pdf
+noinst_DATA = pydoxygen.i
 
 ARC1-API.pdf pydoxygen.i: Doxyfile.api
 	doxygen Doxyfile.api && make -C latex && cp latex/refman.pdf ARC1-API.pdf
@@ -19,6 +20,6 @@ ARC1-ChainComponents.pdf: Doxyfile.chain
 
 EXTRA_DIST = Doxyfile.api Doxyfile.services Doxyfile.chain $(doc_DATA) doxy2swig.py
 
-CLEANFILES = latex
+CLEANFILES = latex xml
 
-MAINTAINERCLEANFILES = $(doc_DATA)
+MAINTAINERCLEANFILES = $(doc_DATA) $(noinst_DATA)
