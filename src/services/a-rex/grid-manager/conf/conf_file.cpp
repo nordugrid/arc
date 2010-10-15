@@ -706,12 +706,12 @@ bool configure_serviced_users(Arc::XMLNode cfg,JobUsers &users,uid_t my_uid,cons
     elementtoint(tmp_node,"maxJobsTransferredAdditional",max_jobs_processing_emergency,&logger);
     // Included for backward compatibility.
     if (!tmp_node["maxJobsTransferredAdditional"] && tmp_node["maxJobsTransferedAdditional"]) {
-      elementtoint(tmp_node,"maxJobsTransferedAdditional",max_jobs_processing,&logger);
+      elementtoint(tmp_node,"maxJobsTransferedAdditional",max_jobs_processing_emergency,&logger);
     }
     elementtoint(tmp_node,"maxFilesTransferred",max_downloads,&logger);
     // Included for backward compatibility.
     if (!tmp_node["maxFilesTransferred"] && tmp_node["maxFilesTransfered"]) {
-      elementtoint(tmp_node,"maxFilesTransfered",max_jobs_processing,&logger);
+      elementtoint(tmp_node,"maxFilesTransfered",max_downloads,&logger);
     }
     jcfg.SetMaxJobsLoad(max_jobs_processing,
                              max_jobs_processing_emergency,

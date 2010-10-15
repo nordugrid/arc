@@ -398,9 +398,10 @@ sub build_config_from_xmlfile {
     my $load = hash_get_hashref($arex, 'loadLimits');
     my $mj = $load->{maxJobsTracked} || '-1';
     my $mjr = $load->{maxJobsRun} || '-1';
-    my $mjt = $load->{maxJobsTransferred} || '-1';
-    my $mjta = $load->{maxJobsTransferredAdditional} || '-1';
-    my $mft = $load->{maxFilesTransferred} || '-1';
+    # maxJobsTransfered, maxJobsTransferedAddtional and maxFilesTransfered are parsed for backward compatibility.
+    my $mjt = $load->{maxJobsTransferred} || $load->{maxJobsTransfered} || '-1';
+    my $mjta = $load->{maxJobsTransferredAdditional} || $load->{maxJobsTransferedAdditional} || '-1';
+    my $mft = $load->{maxFilesTransferred} || $load->{maxFilesTransfered} || '-1';
     $config->{maxjobs} = "$mj $mjr";
     $config->{maxload} = "$mjt $mjta $mft";
 
@@ -411,7 +412,7 @@ sub build_config_from_xmlfile {
     my $lrms = hash_get_hashref($arex, 'LRMS');
     $config->{lrms} = $lrms->{type} if $lrms->{type};
     $config->{lrms} .= " ".$lrms->{defaultShare} if $lrms->{defaultShare};
-    
+
     move_keys $lrms, $config, [keys %$lrms_options, keys %$lrms_share_options];
     rename_keys $lrms, $config, {runtimeDir => 'runtimedir', scratchDir => 'scratchdir',
              sharedScratch => 'shared_scratch', sharedFilesystem => 'shared_filesystem',
@@ -673,7 +674,7 @@ sub parseConfig {
 
     sub _print_shell_start { my $nb = 0 }
     sub _print_shell_end { print "_CONFIG_NUM_BLOCKS=$nb\n" }
-    
+
     sub _print_shell_section {
         my ($bn,$opts) = @_;
         $nb++;
@@ -683,7 +684,7 @@ sub parseConfig {
         my $no=0;
         while (my ($opt,$val)=each %$opts) {
             unless ($opt =~ m/^\w+$/) {
-                print "echo config_parser: Skipping malformed option \Q$opt\E 1>&2\n"; 
+                print "echo config_parser: Skipping malformed option \Q$opt\E 1>&2\n";
                 next;
             }
             if (not ref $val) {
@@ -735,7 +736,7 @@ sub printLRMSConfigScript {
     rename_keys $config->{service}, $cluster, {MaxVirtualMemory => 'nodememory'};
 
     _print_shell_section('cluster', $cluster) if %$cluster;
-    
+
     for my $sname (keys %{$config->{shares}}) {
         my $queue = {};
         move_keys $config->{shares}{$sname}, $queue, [keys %$lrms_options, keys %$lrms_share_options];
