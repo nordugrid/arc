@@ -13,7 +13,7 @@ class ProfileTest
   CPPUNIT_TEST(TestMulti);
   CPPUNIT_TEST(TestMultiElement);
   CPPUNIT_TEST(TestMultiSection);
-  CPPUNIT_TEST(TestSectionEnables);
+  CPPUNIT_TEST(TestTokenEnables);
   CPPUNIT_TEST(TestDefaultValue);
   CPPUNIT_TEST(TestOthers);
   CPPUNIT_TEST_SUITE_END();
@@ -29,7 +29,7 @@ public:
   void TestMulti();
   void TestMultiElement();
   void TestMultiSection();
-  void TestSectionEnables();
+  void TestTokenEnables();
   void TestDefaultValue();
   void TestOthers();
 
@@ -568,36 +568,65 @@ void ProfileTest::TestMultiSection()
   ClearNodes();
 }
 
-void ProfileTest::TestSectionEnables()
+void ProfileTest::TestTokenEnables()
 {
   /*
    * Profile:
      <ArcConfig>
-       <bara inisectionenables="first">
+       <bara initokenenables="first">
          <baza initype="single" inisections="non-existent first second" initag="baza"/>
        </bara>
-       <barb inisectionenables="non-existent">
+       <barb initokenenables="non-existent">
          <bazb initype="single" inisections="non-existent first second" initag="bazb"/>
        </barb>
        <foo initype="multisection" inisections="first second">
-         <geea inisectionenables="first" initype="single" inisections="first common" initag="geea"/>
-         <geeb inisectionenables="non-existent" initype="single" inisections="non-existent common" initag="geeb"/>
+         <geea initokenenables="first" initype="single" inisections="first common" initag="geea"/>
+         <geeb initokenenables="non-existent" initype="single" inisections="non-existent common" initag="geeb"/>
        </foo>
        <bax initype="multielement" inisections="first second" initag="bax">
-         <hufa inisectionenables="first" initype="single" inisections="first common" initag="hufa"/>
-         <hufb inisectionenables="non-existent" initype="single" inisections="non-existent common" initag="hufb"/>
-       </foo>
+         <hufa initokenenables="first" initype="single" inisections="first common" initag="hufa"/>
+         <hufb initokenenables="non-existent" initype="single" inisections="non-existent common" initag="hufb"/>
+       </bax>
+       <xbara initokenenables="first#xbaza=enabled-xbaza">
+         <xbaza initype="single" inisections="first second" initag="xbaza"/>
+       </xbara>
+       <xbarb initokenenables="first#non-existent=disabled-xbazb">
+         <xbazb initype="single" inisections="non-existent first second" initag="xbazb"/>
+       </xbarb>
+       <xbarc initokenenables="first#xbazc=disabled-xbazc">
+         <xbazc initype="single" inisections="first second" initag="xbazc"/>
+       </xbarc>
+       <xfoo initype="multisection" inisections="first second">
+         <xgeea initokenenables="common#xgeea=enabled-xgeea" initype="single" inisections="first common" initag="xgeea"/>
+         <xgeeb initokenenables="common#non-existent=disabled-xgeeb" initype="single" inisections="non-existent common" initag="xgeeb"/>
+         <xgeec initokenenables="common#xgeec=disabled-xgeec" initype="single" inisections="non-existent common" initag="xgeec"/>
+       </xfoo>
+       <xbax initype="multielement" inisections="first second" initag="xbax">
+         <xhufa initokenenables="common#xhufa=enabled-xhufa" initype="single" inisections="first common" initag="xhufa"/>
+         <xhufb initokenenables="common#non-existent=disabled-xhufb" initype="single" inisections="non-existent common" initag="xhufb"/>
+         <xhufc initokenenables="common#xhufc=disabled-xhufc" initype="single" inisections="non-existent common" initag="xhufc"/>
+       </xbax>
      </ArcConfig>
    * Ini:
      [ first ]
      baza = first-baza
+     xbaza = enabled-xbaza
      bazb = first-bazb
+     xbazb = enabled-xbazb
+     xbazc = enabled-xbazc
      bax = empty
+     xbax = empty
      [ common ]
      geea = common-geea
+     xgeea = enabled-xgeea
      geeb = common-geeb
+     xgeeb = enabled-xgeeb
+     xgeec = enabled-xgeec
      hufa = common-hufa
+     xhufa = enabled-xhufa
      hufb = common-hufb
+     xhufb = enabled-xhufb
+     xhufc = enabled-xhufc
    * Config:
      <ArcConfig>
        <bara>
@@ -609,18 +638,27 @@ void ProfileTest::TestSectionEnables()
        <bax>
          <hufa>common-hufa</hufa>
        </bax>
+       <xbara>
+         <xbaza>enabled</xbaza>
+       </bara>
+       <xfoo>
+         <xgeea>enabled</xgeea>
+       </xfoo>
+       <xbax>
+         <xhufa>enabled</xhufa>
+       </xbax>
      </ArcConfig>
    */
 
   p.NewChild("bara");
-  p["bara"].NewAttribute("inisectionenables") = "first";
+  p["bara"].NewAttribute("initokenenables") = "first";
   p["bara"].NewChild("baza");
   p["bara"]["baza"].NewAttribute("initype") = "single";
   p["bara"]["baza"].NewAttribute("inisections") = "non-existent first second";
   p["bara"]["baza"].NewAttribute("initag") = "baza";
 
   p.NewChild("barb");
-  p["barb"].NewAttribute("inisectionenables") = "non-existent";
+  p["barb"].NewAttribute("initokenenables") = "non-existent";
   p["barb"].NewChild("bazb");
   p["barb"]["bazb"].NewAttribute("initype") = "single";
   p["barb"]["bazb"].NewAttribute("inisections") = "non-existent first second";
@@ -631,13 +669,13 @@ void ProfileTest::TestSectionEnables()
   p["foo"].NewAttribute("inisections") = "first second";
 
   p["foo"].NewChild("geea");
-  p["foo"]["geea"].NewAttribute("inisectionenables") = "first";
+  p["foo"]["geea"].NewAttribute("initokenenables") = "first";
   p["foo"]["geea"].NewAttribute("initype") = "single";
   p["foo"]["geea"].NewAttribute("inisections") = "first common";
   p["foo"]["geea"].NewAttribute("initag") = "geea";
 
   p["foo"].NewChild("geeb");
-  p["foo"]["geeb"].NewAttribute("inisectionenables") = "non-existent";
+  p["foo"]["geeb"].NewAttribute("initokenenables") = "non-existent";
   p["foo"]["geeb"].NewAttribute("initype") = "single";
   p["foo"]["geeb"].NewAttribute("inisections") = "first common";
   p["foo"]["geeb"].NewAttribute("initag") = "geeb";
@@ -648,41 +686,123 @@ void ProfileTest::TestSectionEnables()
   p["bax"].NewAttribute("initag") = "bax";
 
   p["bax"].NewChild("hufa");
-  p["bax"]["hufa"].NewAttribute("inisectionenables") = "first";
+  p["bax"]["hufa"].NewAttribute("initokenenables") = "first";
   p["bax"]["hufa"].NewAttribute("initype") = "single";
   p["bax"]["hufa"].NewAttribute("inisections") = "first common";
   p["bax"]["hufa"].NewAttribute("initag") = "hufa";
 
   p["bax"].NewChild("hufb");
-  p["bax"]["hufb"].NewAttribute("inisectionenables") = "non-existent";
+  p["bax"]["hufb"].NewAttribute("initokenenables") = "non-existent";
   p["bax"]["hufb"].NewAttribute("initype") = "single";
   p["bax"]["hufb"].NewAttribute("inisections") = "first common";
   p["bax"]["hufb"].NewAttribute("initag") = "hufb";
+
+  p.NewChild("xbara");
+  p["xbara"].NewAttribute("initokenenables") = "first#xbaza=enabled-xbaza";
+  p["xbara"].NewChild("xbaza");
+  p["xbara"]["xbaza"].NewAttribute("initype") = "single";
+  p["xbara"]["xbaza"].NewAttribute("inisections") = "first second";
+  p["xbara"]["xbaza"].NewAttribute("initag") = "xbaza";
+
+  p.NewChild("xbarb");
+  p["xbarb"].NewAttribute("initokenenables") = "first#non-existent=disabled-xbazb";
+  p["xbarb"].NewChild("xbazb");
+  p["xbarb"]["xbazb"].NewAttribute("initype") = "single";
+  p["xbarb"]["xbazb"].NewAttribute("inisections") = "first second";
+  p["xbarb"]["xbazb"].NewAttribute("initag") = "xbazb";
+
+  p.NewChild("xbarc");
+  p["xbarc"].NewAttribute("initokenenables") = "first#xbazc=disabled-xbazc";
+  p["xbarc"].NewChild("xbazc");
+  p["xbarc"]["xbazc"].NewAttribute("initype") = "single";
+  p["xbarc"]["xbazc"].NewAttribute("inisections") = "first second";
+  p["xbarc"]["xbazc"].NewAttribute("initag") = "xbazc";
+
+  p.NewChild("xfoo");
+  p["xfoo"].NewAttribute("initype") = "multisection";
+  p["xfoo"].NewAttribute("inisections") = "first second";
+
+  p["xfoo"].NewChild("xgeea");
+  p["xfoo"]["xgeea"].NewAttribute("initokenenables") = "common#xgeea=enabled-xgeea";
+  p["xfoo"]["xgeea"].NewAttribute("initype") = "single";
+  p["xfoo"]["xgeea"].NewAttribute("inisections") = "first common";
+  p["xfoo"]["xgeea"].NewAttribute("initag") = "xgeea";
+
+  p["xfoo"].NewChild("xgeeb");
+  p["xfoo"]["xgeeb"].NewAttribute("initokenenables") = "common#non-existent=disabled-xgeeb";
+  p["xfoo"]["xgeeb"].NewAttribute("initype") = "single";
+  p["xfoo"]["xgeeb"].NewAttribute("inisections") = "first common";
+  p["xfoo"]["xgeeb"].NewAttribute("initag") = "xgeeb";
+
+  p["xfoo"].NewChild("xgeec");
+  p["xfoo"]["xgeec"].NewAttribute("initokenenables") = "common#xgeec=disabled-xgeec";
+  p["xfoo"]["xgeec"].NewAttribute("initype") = "single";
+  p["xfoo"]["xgeec"].NewAttribute("inisections") = "first common";
+  p["xfoo"]["xgeec"].NewAttribute("initag") = "xgeec";
+
+  p.NewChild("xbax");
+  p["xbax"].NewAttribute("initype") = "multielement";
+  p["xbax"].NewAttribute("inisections") = "first second";
+  p["xbax"].NewAttribute("initag") = "xbax";
+
+  p["xbax"].NewChild("xhufa");
+  p["xbax"]["xhufa"].NewAttribute("initokenenables") = "common#xhufa=enabled-xhufa";
+  p["xbax"]["xhufa"].NewAttribute("initype") = "single";
+  p["xbax"]["xhufa"].NewAttribute("inisections") = "first common";
+  p["xbax"]["xhufa"].NewAttribute("initag") = "xhufa";
+
+  p["xbax"].NewChild("hufb");
+  p["xbax"]["xhufb"].NewAttribute("initokenenables") = "common#non-existent=disabled-xhufb";
+  p["xbax"]["xhufb"].NewAttribute("initype") = "single";
+  p["xbax"]["xhufb"].NewAttribute("inisections") = "first common";
+  p["xbax"]["xhufb"].NewAttribute("initag") = "xhufb";
+
+  p["xbax"].NewChild("hufc");
+  p["xbax"]["xhufc"].NewAttribute("initokenenables") = "common#xhufc=disabled-xhufc";
+  p["xbax"]["xhufc"].NewAttribute("initype") = "single";
+  p["xbax"]["xhufc"].NewAttribute("inisections") = "first common";
+  p["xbax"]["xhufc"].NewAttribute("initag") = "xhufc";
 
   const std::string first = "first", common = "common";
 
   i.NewChild(first);
   i[first].NewChild("baza") = first + "-baza";
+  i[first].NewChild("xbaza") = "enabled-xbaza";
   i[first].NewChild("bazb") = first + "-bazb";
+  i[first].NewChild("xbazb") = "enabled-xbazb";
+  i[first].NewChild("xbazc") = "enabled-xbazc";
   i[first].NewChild("bax") = "empty";
+  i[first].NewChild("xbax") = "empty";
 
   i.NewChild(common);
   i[common].NewChild("geea") = common + "-geea";
-  i[common].NewChild("geeb") = common + "-geeb";
+  i[common].NewChild("xgeea") = "enabled-xgeea";
+  i[common].NewChild("geeb") = "-geeb";
+  i[common].NewChild("xgeeb") = "enabled-xgeeb";
+  i[common].NewChild("xgeec") = "enabled-xgeec";
   i[common].NewChild("hufa") = common + "-hufa";
+  i[common].NewChild("xhufa") = "enabled-xhufa";
   i[common].NewChild("hufb") = common + "-hufb";
+  i[common].NewChild("xhufb") = "enabled-xhufb";
+  i[common].NewChild("xhufc") = "enabled-xhufc";
 
   Arc::Config c;
   p.Evaluate(c, i);
 
   CPPUNIT_ASSERT_EQUAL(0, c.AttributesSize());
-  CPPUNIT_ASSERT_EQUAL(3, c.Size());
+  CPPUNIT_ASSERT_EQUAL(6, c.Size());
   CPPUNIT_ASSERT_EQUAL(1, c.Child(0).Size());
   CPPUNIT_ASSERT_EQUAL(first + "-baza", (std::string)c.Child(0).Child(0));
   CPPUNIT_ASSERT_EQUAL(1, c.Child(1).Size());
   CPPUNIT_ASSERT_EQUAL(common + "-geea", (std::string)c.Child(1).Child(0));
   CPPUNIT_ASSERT_EQUAL(1, c.Child(2).Size());
   CPPUNIT_ASSERT_EQUAL(common + "-hufa", (std::string)c.Child(2).Child(0));
+  CPPUNIT_ASSERT_EQUAL(1, c.Child(3).Size());
+  CPPUNIT_ASSERT_EQUAL((std::string)"enabled-xbaza", (std::string)c.Child(3).Child(0));
+  CPPUNIT_ASSERT_EQUAL(1, c.Child(4).Size());
+  CPPUNIT_ASSERT_EQUAL((std::string)"enabled-xgeea", (std::string)c.Child(4).Child(0));
+  CPPUNIT_ASSERT_EQUAL(1, c.Child(5).Size());
+  CPPUNIT_ASSERT_EQUAL((std::string)"enabled-xhufa", (std::string)c.Child(5).Child(0));
 
   ClearNodes();
 }

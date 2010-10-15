@@ -18,6 +18,47 @@ namespace Arc {
 
   Profile::~Profile() {}
 
+  /*
+   * This function parses the initokenenables attribute and returns a boolean
+   * acoording to the following.
+   * With the initokenenables attribute elements in a profile can be
+   * enabled/disabled from INI either by specifying/not specifying a given
+   * section or a INI tag/value pair in a given section.
+   * The format is: <section>[#<tag>=<value>]
+   * So either a section, or a section/tag/value can be specified. If the
+   * section or section/tag/value pair respectively is found in IniConfig then
+   * true is returned, otherwise false. Also section and tag must be non-empty
+   * otherwise false is returned.
+   */
+  static bool isenabled(XMLNode node, IniConfig ini) {
+    if (!node.Attribute("initokenenables")) {
+      return true;
+    }
+    const std::string initokenenables = node.Attribute("initokenenables");
+    std::string::size_type pos, lastpos;
+    std::string section = "", tag = "", value = "";
+    pos = initokenenables.find_first_of("#");
+    section = initokenenables.substr(0, pos);
+
+    if (section.empty()) {
+      return false;
+    }
+
+    if (pos != std::string::npos) {
+      lastpos = pos;
+      pos = initokenenables.find_first_of("=", lastpos);
+      if (pos != std::string::npos) {
+        tag = initokenenables.substr(lastpos+1, pos-(lastpos+1));
+        value = initokenenables.substr(pos+1);
+        return !tag.empty() && ini[section][tag] && ((std::string)ini[section][tag] == value);
+      }
+    }
+    else {
+      return ini[section];
+    }
+    return false;
+  }
+
   /* From the space separated list of sections 'sections' this function sets the
    * 'sectionName' variable to the first ini section existing in the
    * IniConfig object 'ini'. The function returns true if one of the sections in
@@ -120,8 +161,7 @@ namespace Arc {
                               const std::string thisTagName,
                               IniConfig iniNode) {
     for (int i = 0; node.Child(i); i++) {
-      const std::string sectionenables = node.Child(i).Attribute("inisectionenables");
-      if (!sectionenables.empty() && !iniNode[sectionenables]) {
+      if (!isenabled(node.Child(i), iniNode)) {
         continue;
       }
 
@@ -188,8 +228,7 @@ namespace Arc {
   static void MapMultiSection(XMLNode node, XMLNodeList& parentNodes, const std::string& sectionName, IniConfig iniNode) {
     // Loop over child nodes under multisection XML element.
     for (int i = 0; node.Child(i); i++) {
-      const std::string sectionenables = node.Child(i).Attribute("inisectionenables");
-      if (!sectionenables.empty() && !iniNode[sectionenables]) {
+      if (!isenabled(node.Child(i), iniNode)) {
         continue;
       }
       const std::string childFullName = node.Child(i).FullName();
@@ -306,13 +345,12 @@ namespace Arc {
    * Returns number of child's added (positive) or removed (negative).
    */
   int EvaluateNode (XMLNode n, IniConfig ini, int nodePosition) {
-    const std::string sectionenables = n.Attribute("inisectionenables");
-    if (!sectionenables.empty() && !ini[sectionenables]) {
+    if (!isenabled(n, ini)) {
       n.Destroy();
       return -1;
     }
-    if (n.Attribute("inisectionenables")) {
-      n.Attribute("inisectionenables").Destroy();
+    if (n.Attribute("initokenenables")) {
+      n.Attribute("initokenenables").Destroy();
     }
 
     XMLNode sections = n.Attribute("inisections");
