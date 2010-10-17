@@ -312,7 +312,7 @@ namespace Arc {
   static DataStatus do_stat(const std::string& path, FileInfo& file, DataPoint::DataPointInfoType verb) {
     struct stat st;
     if (stat(path.c_str(), &st) != 0) {
-      return DataStatus::ListError;
+      return DataStatus::StatError;
     }
     if(S_ISREG(st.st_mode)) {
       file.SetType(FileInfo::file_type_file);
@@ -362,7 +362,7 @@ namespace Arc {
     file.SetName(name);
     if(!do_stat(url.Path(), file, verb)) {
       logger.msg(INFO, "Can't stat file: %s", url.Path());
-      return DataStatus::ListError;
+      return DataStatus::StatError;
     }
     SetSize(file.GetSize());
     SetCreated(file.GetCreated());
@@ -380,7 +380,7 @@ namespace Arc {
         std::string fname = url.Path() + G_DIR_SEPARATOR_S + file_name;
         std::list<FileInfo>::iterator f =
           files.insert(files.end(), FileInfo(file_name.c_str()));
-        if (verb & (INFO_TYPE_TYPE | INFO_TYPE_TIMES | INFO_TYPE_CONTENT | INFO_TYPE_ACL)) {
+        if (verb & (INFO_TYPE_TYPE | INFO_TYPE_TIMES | INFO_TYPE_CONTENT | INFO_TYPE_ACCESS)) {
           do_stat(fname, *f, verb);
         }
       }

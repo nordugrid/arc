@@ -69,6 +69,7 @@ namespace Arc {
     char ftp_buf[16];
     bool check_credentials();
     void set_attributes();
+    DataStatus do_more_stat(FileInfo& f);
   public:
     DataPointGridFTP(const URL& url, const UserConfig& usercfg);
     virtual ~DataPointGridFTP();

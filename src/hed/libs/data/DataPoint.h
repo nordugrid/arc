@@ -55,7 +55,7 @@ namespace Arc {
       INFO_TYPE_TYPE = 2, /// Type of object - currently file or dir.
       INFO_TYPE_TIMES = 4, /// Timestamps associated with object.
       INFO_TYPE_CONTENT = 8, /// Metadata describing content, like size, checksum, etc.
-      INFO_TYPE_ACL = 16, /// Access control - ownership, permission, etc.
+      INFO_TYPE_ACCESS = 16, /// Access control - ownership, permission, etc.
       INFO_TYPE_STRUCT = 32, /// Fine structure - replicas, transfer locations, redirections.
       INFO_TYPE_REST = 64, /// All the other parameters.
       INFO_TYPE_ALL = 127 /// All the parameters.

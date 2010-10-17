@@ -1185,36 +1185,41 @@ namespace Arc {
 
   DataStatus DataPointRLS::Check() {
     // simply check that the file can be listed
-    std::list<FileInfo> files;
-    DataStatus res = ListFiles(files, true);
-    if (!res.Passed() || files.size() == 0)
-      return res;
-    // set some metadata
-    if (files.front().CheckSize())
-      SetSize(files.front().GetSize());
-    if (files.front().CheckCheckSum())
-      SetCheckSum(files.front().GetCheckSum());
-    if (files.front().CheckCreated())
-      SetCreated(files.front().GetCreated());
-    if (files.front().CheckValid())
-      SetValid(files.front().GetValid());
-    return DataStatus::Success;
+    FileInfo file;
+    DataStatus r = Stat(file,DataPoint::INFO_TYPE_MINIMAL);
+    if(r == DataStatus::StatErrorRetryable) r = DataStatus::CheckErrorRetryable;
+    if(r == DataStatus::StatError) r = DataStatus::CheckError;
+    return r;
   }
 
-  DataStatus DataPointRLS::ListFiles(std::list<FileInfo>& files, bool long_list, bool resolve, bool metadata) {
+  DataStatus DataPointRLS::Stat(FileInfo& file, DataPointInfoType verb) {
     std::list<URL> rlis;
     std::list<URL> lrcs;
+    std::list<FileInfo> files;
     if (url.Host().empty()) {
       logger.msg(INFO, "RLS URL must contain host");
-      return DataStatus::ListError;
+      return DataStatus::StatError;
     }
     rlis.push_back(url.ConnectionURL());
     lrcs.push_back(url.ConnectionURL());
 
-    list_files_rls_t arg(*this, files, long_list);
+    list_files_rls_t arg(*this, files, (verb | INFO_TYPE_NAME) != INFO_TYPE_NAME);
     rls_find_lrcs(rlis, lrcs, true, false,
                   &list_files_callback, (void*)&arg);
+    if ((files.size() > 0) && (arg.success.Passed())) {
+      file = files.front();
+      // set some metadata
+      if (file.CheckSize()) SetSize(file.GetSize());
+      if (file.CheckCheckSum()) SetCheckSum(file.GetCheckSum());
+      if (file.CheckCreated()) SetCreated(file.GetCreated());
+      if (file.CheckValid()) SetValid(file.GetValid());
+    }
     return arg.success;
+  }
+
+  DataStatus DataPointRLS::List(std::list<FileInfo>& files, DataPointInfoType verb) {
+    // RLS has flat struture
+    return DataStatus::ListError;
   }
 
 } // namespace Arc
