@@ -642,6 +642,13 @@ namespace Arc {
     }
     lister.close_connection();
     DataStatus result = DataStatus::Success;
+    if((lister.size() != 1) || (lister.begin()->GetLastName() != url.Path())) {
+      logger.msg(VERBOSE, "Wrong number of objects for stat from ftp: %s", url.str());
+      // guess - that probably means it is directory 
+      file.SetName(FileInfo(url.Path()).GetLastName());
+      file.SetType(FileInfo::file_type_dir);
+      return result;
+    }
     std::list<FileInfo>::iterator i = lister.begin();
     if(i == lister.end()) {
       result = DataStatus::StatError;
