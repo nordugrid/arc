@@ -106,43 +106,41 @@ namespace Arc {
         if (type == "attribute") {
           node.Parent().NewAttribute(tag) = (std::string)node.Attribute("inidefaultvalue");
         }
-        else if (type == "multi") {
-          node.Parent().NewChild(node.FullName(), nodePosition, true) = (std::string)node.Attribute("inidefaultvalue");
-        }
         else {
-          node = (std::string)node.Attribute("inidefaultvalue");
-          node.Attribute("inidefaultvalue").Destroy();
+          XMLNode newNode = node.Parent().NewChild(node.FullName(), nodePosition, true) = (std::string)node.Attribute("inidefaultvalue");
+          for (int i = 0; i < node.AttributesSize(); i++) {
+            const std::string attName = node.Attribute(i).Name();
+            if (!(attName == "inisections" || attName == "initag" || attName == "inidefaultvalue" || attName == "initype")) {
+              newNode.NewAttribute(node.Attribute(i).FullName()) = (std::string)node.Attribute(i);
+            }
+          }
+          return 1;
         }
       }
-      else {
-        // No value allowed when inisections and initag is specified, unless specified in the INI file, or by the inidefaultvalue attribute.
-        node = "";
-      }
       return 0;
     }
 
-    if (type != "multi") {
-      if (type == "attribute") {
-        node.Parent().NewAttribute(tag) = (std::string)iniNode[sectionName][tag];
-      }
-      else {
-        node = (std::string)iniNode[sectionName][tag];
-      }
 
+    if (type == "attribute") {
+      node.Parent().NewAttribute(tag) = (std::string)iniNode[sectionName][tag];
       return 0;
     }
-    else {
-      // Loop over tags in section 'it'.
-      int i = 0;
-      for (XMLNode in = iniNode[sectionName][tag]; in; ++in, i++) {
-          node.Parent().NewChild(node.FullName(), nodePosition + i, true) = (std::string)in;
-      }
 
-      return i;
+    int i = 0;
+    for (XMLNode in = iniNode[sectionName][tag]; (type == "multi" || i == 0) && in; ++in, i++) {
+      XMLNode newNode = node.Parent().NewChild(node.FullName(), nodePosition + i, true) = (std::string)in;
+      for (int j = 0; j < node.AttributesSize(); j++) {
+        const std::string attName = node.Attribute(j).Name();
+        if (!(attName == "inisections" || attName == "initag" || attName == "inidefaultvalue" || attName == "initype")) {
+          newNode.NewAttribute(node.Attribute(j).FullName()) = (std::string)node.Attribute(j);
+        }
+      }
     }
+
+    return i;
   }
 
-  /**
+  /*
    * This function processes a parent element and its child elements where the
    * initype of the parent is 'multielement'. The parent element has inisections
    * and initag specified which enable a child element to refer to those by
@@ -354,9 +352,30 @@ namespace Arc {
     }
 
     XMLNode sections = n.Attribute("inisections");
+    if (sections && ((std::string)sections).empty()) {
+      profileLogger.msg(WARNING, "Element \"%s\" in the profile ignored: the value of the \"inisections\" attribute cannot be the empty string.", n.FullName());
+      n.Destroy();
+      return -1;
+    }
+
     XMLNode tag = n.Attribute("initag");
-    // If inisections and initag attributes have been set, but not initype, then the initype is "single".
-    const std::string type = (!n.Attribute("initype") && tag && sections ? "single" : n.Attribute("initype"));
+    if (tag && ((std::string)tag).empty()) {
+      profileLogger.msg(WARNING, "Element \"%s\" in the profile ignored: the value of the \"initag\" attribute cannot be the empty string.", n.FullName());
+      n.Destroy();
+      return -1;
+    }
+
+    const std::string type = (n.Attribute("initype") ? (std::string)n.Attribute("initype") : (tag && sections ? "single" : ""));
+    if (type.empty() && (n.Attribute("initype") || n.Attribute("inidefaultvalue"))) {
+      if (n.Attribute("initype")) {
+        profileLogger.msg(WARNING, "Element \"%s\" in the profile ignored: the value of the \"initype\" attribute cannot be the empty string.", n.FullName());
+      }
+      else {
+        profileLogger.msg(WARNING, "Element \"%s\" in the profile ignored: the \"inidefaultvalue\" attribute cannot be specified when the \"inisections\" and \"initag\" attributes have not been specified.", n.FullName());
+      }
+      n.Destroy();
+      return -1;
+    }
 
     if (type == "multisection") {
       const std::string tagName = tag;
@@ -422,25 +441,9 @@ namespace Arc {
       return mNodes.size()-1;
     }
     else if ((type == "single" || type == "attribute" || type == "multi")) {
-      if (!sections || ((std::string)sections).empty() ||
-          !tag      || ((std::string)tag).empty()) {
-        profileLogger.msg(WARNING, "In the configuration profile the 'inisections' and/or 'initag' attribute is missing on the \"%s\" element. The element will be ignored.", n.Prefix().empty() ? n.Name() : n.FullName());
-        n.Destroy();
-        return -1;
-      }
-
       int nChilds = MapTags(n, sections, tag, type, ini, nodePosition);
-      if (type == "single") {
-        n.Attribute("initype").Destroy();
-        sections.Destroy();
-        tag.Destroy();
-        return nChilds;
-      }
-      else {
-        // Delete orignal node for multi and attribute type.
-        n.Destroy();
-        return nChilds-1;
-      }
+      n.Destroy();
+      return nChilds - 1;
     }
     else if (!type.empty()) {
       profileLogger.msg(WARNING, "In the configuration profile the 'initype' attribute on the \"%s\" element has a invalid value \"%s\".", n.Prefix().empty() ? n.Name() : n.FullName(), type);
