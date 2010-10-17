@@ -85,11 +85,12 @@ bool ArgusPEP::Handle(Arc::Message* msg) const{
        logger.msg(Arc::DEBUG,"Failed to set PEPd URL: '%s'",pep_url );
        return false;
     }
-    rc= create_xacml_request(&request,subjectid,resourceid,actionid);
+
+    rc= create_xacml_request_to_pepd(&request,subjectid,resourceid,actionid);
+ 
     if (rc != 0) {
-         logger.msg(Arc::DEBUG,"Failed to create XACML request\n %d", rc);
-         logger.msg(Arc::DEBUG, "Subject ID: %s", subjectid);
-         
+       logger.msg(Arc::DEBUG,"Failed to create XACML request: %d", rc);
+
 	return false;
     }
     pep_rc= pep_authorize(&request,&response);
@@ -139,14 +140,14 @@ bool ArgusPEP::Handle(Arc::Message* msg) const{
         logger.msg(Arc::DEBUG,"Failed to release PEP client request: %s\n",pep_strerror(pep_rc));
         return false;
     }
-    logger.msg(Arc::DEBUG,"Grid identity is mapped to local identity '%s'",local_id);
+    logger.msg(Arc::INFO,"Grid identity is mapped to local identity '%s'",local_id);
     msg->Attributes()->set("SEC:LOCALID",local_id);
 
      return true;
  }
 
 
-int ArgusPEP::create_xacml_request(xacml_request_t ** request,const char * subjectid, const char * resourceid, const char * actionid) const {
+int ArgusPEP::create_xacml_request_to_pepd(xacml_request_t ** request,const char * subjectid, const char * resourceid, const char * actionid) const {
     xacml_subject_t * subject= xacml_subject_create();
     if (subject == NULL) {
         logger.msg(Arc::DEBUG, "Subject of request is null \n");
@@ -203,5 +204,6 @@ int ArgusPEP::create_xacml_request(xacml_request_t ** request,const char * subje
     xacml_request_addsubject(*request,subject);
     xacml_request_addresource(*request,resource);
     xacml_request_setaction(*request,action);
-  }   
+  return 0;  
+}   
 } 
