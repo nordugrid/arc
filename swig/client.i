@@ -36,6 +36,16 @@
 #ifdef SWIGJAVA
 %template(ExecutionTargetListIteratorHandler) listiteratorhandler<Arc::ExecutionTarget>;
 %template(JobControllerListIteratorHandler) listiteratorhandler<Arc::JobController *>;
+%template(JobListIteratorHandler) listiteratorhandler<Arc::Job>;
+%template(JobStateListIteratorHandler) listiteratorhandler<Arc::JobState>;
+%template(SourceTypeListIteratorHandler) listiteratorhandler<Arc::DataSourceType>;
+%template(TargetTypeListIteratorHandler) listiteratorhandler<Arc::DataTargetType>;
+%template(FileTypeListIteratorHandler) listiteratorhandler<Arc::FileType>;
+%template(DirectoryTypeListIteratorHandler) listiteratorhandler<Arc::DirectoryType>;
+%template(ApplicationEnvironmentListIteratorHandler) listiteratorhandler<Arc::ApplicationEnvironment>;
+%template(SoftwareListIteratorHandler) listiteratorhandler<Arc::Software>;
+%template(SoftwareRequirementListIteratorHandler) listiteratorhandler<Arc::SoftwareRequirement>;
+%template(ResourceTargetTypeListIteratorHandler) listiteratorhandler<Arc::ResourceTargetType>;
 #endif
 
 
