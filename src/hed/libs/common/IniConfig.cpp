@@ -45,8 +45,9 @@ namespace Arc {
 
   bool IniConfig::Evaluate(Config &cfg) {
     std::string profilename = (*this)["common"]["profile"];
-    if (profilename.empty())
-      return false;
+    if (profilename.empty()) {
+      profilename = "general";
+    }
     if (Glib::file_test(profilename, Glib::FILE_TEST_EXISTS) == false) {
       // If profilename does not contain directory separators and do not have xml suffix, then look for the profile in ARC profile directory.
       if (profilename.find(G_DIR_SEPARATOR_S) == std::string::npos && profilename.substr(profilename.size()-4, 4) != ".xml") {
