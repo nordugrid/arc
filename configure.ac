@@ -823,18 +823,29 @@ fi
 AM_CONDITIONAL([MYSQL_LIBRARY_ENABLED],[test "x$MYSQL_INSTALLED" = "xyes"])
 
 # check zlib
+ZLIB_CFLAGS=
+ZLIB_LDFLAGS=
+ZLIB_LIBS=
 if test "$enables_hed" = "yes"; then
+SAVE_CPPFLAGS=$CPPFLAGS
+SAVE_LDFLAGS=$LDFLAGS
 AC_ARG_WITH(zlib,
   AC_HELP_STRING([--with-zlib=PATH], [where zlib is installed]),
     [ if test -d "$withval"; then
-        CPPFLAGS="${CPPFLAGS} -I$withval/include"
-        LDFLAGS="${LDFLAGS} -L$withval/lib"
+        ZLIB_CFLAGS="${CPPFLAGS} -I$withval/include"
+        ZLIB_LDFLAGS="${LDFLAGS} -L$withval/lib"
       fi
     ]
 )
-AC_CHECK_HEADER([zlib.h],,AC_MSG_ERROR([unable to find zlib header files]))
-AC_CHECK_LIB([z],[deflateInit2_],,AC_MSG_ERROR([unable to link with zlib library]))
+CPPFLAGS="$CPPFLAGS $ZLIB_CFLAGS"
+LDFLAGS="$LDFLAGS $ZLIB_LDFLAGS"
+AC_CHECK_HEADER([zlib.h],[ZLIB_CFLAGS="$ZLIB_CFLAGS"],AC_MSG_ERROR([unable to find zlib header files]))
+AC_CHECK_LIB([z],[deflateInit2_],[ZLIB_LIBS="$ZLIB_LDFLAGS -lz"],AC_MSG_ERROR([unable to link with zlib library]))
+CPPFLAGS=$SAVE_CPPFLAGS
+LDFLAGS=$SAVE_LDFLAGS
 fi
+AC_SUBST(ZLIB_CFLAGS)
+AC_SUBST(ZLIB_LIBS)
 
 # check gridsite
 AC_ARG_WITH(gridsite,
@@ -851,7 +862,7 @@ if test "x$enables_gacl" = "xyes"; then
   AC_CHECK_HEADER([gridsite.h],, enables_gacl="no")
 fi
 if test "x$enables_gacl" = "xyes"; then
-  AC_CHECK_LIB([gridsite], [GRSTgaclInit],, enables_gacl="no")
+  AC_CHECK_LIB([gridsite], [GRSTgaclInit], [AC_MSG_NOTICE([passed])], enables_gacl="no")
 fi
 LIBS=$SAVE_LIBS
 AM_CONDITIONAL(GACL_ENABLED, test "x$enables_gacl" = "xyes")
@@ -1149,7 +1160,7 @@ if test "x$enables_lfc" = "xyes"; then
                [LFC_LIBS="$LFC_LDFLAGS -llfc"], [enables_lfc="no"])
   # Check if lcgdm is a separate library
   AC_CHECK_LIB([lcgdm], [C__serrno], [LFC_LIBS="$LFC_LIBS -llcgdm"],
-  AC_CHECK_LIB([lfc], [C__serrno], [], [enables_lfc="no"]))
+  AC_CHECK_LIB([lfc], [C__serrno], [LFC_LIBS="$LFC_LIBS"], [enables_lfc="no"]))
   LDFLAGS=$SAVE_LDFLAGS
 fi
 AC_SUBST(LFC_CFLAGS)
