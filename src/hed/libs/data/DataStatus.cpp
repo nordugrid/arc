@@ -5,7 +5,7 @@
 
 namespace Arc {
 
-  static const char *status_string[DataStatus::UnknownError + 1] = {
+  static const char *status_string[DataStatus::SuccessCached + 1] = {
     istring("Operation completed successfully"),
     istring("Source is bad URL or can't be used due to some reason"),
     istring("Destination is bad URL or can't be used due to some reason"),
@@ -35,13 +35,14 @@ namespace Arc {
     istring("Object not initialized (internal error)"),
     istring("System error"),
     istring("Failed to stage file(s)"),
-    istring("Unknown error")
+    istring("Unknown error"),
+    istring("Data was already cached")
   };
 
   DataStatus::operator std::string() const {
     unsigned int status_ = status;
     if (status_ >= DataStatusRetryableBase) status_-=DataStatusRetryableBase;
-    if (status_ > UnknownError) status_=UnknownError;
+    if (status_ > SuccessCached) status_=UnknownError;
     return status_string[status_];
   }
 

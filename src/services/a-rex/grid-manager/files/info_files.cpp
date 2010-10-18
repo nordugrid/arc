@@ -1097,6 +1097,7 @@ bool job_clean_final(const JobDescription &desc,JobUser &user) {
   job_clean_deleted(desc,user);
   std::string fname;
   fname = user.ControlDir()+"/job."+id+sfx_local;  remove(fname.c_str());
+  fname = user.ControlDir()+"/job."+id+".statistics"; remove(fname.c_str());
   fname = user.ControlDir()+"/job."+id+".grami"; remove(fname.c_str());
   fname = user.ControlDir()+"/job."+id+sfx_failed; remove(fname.c_str());
   job_diagnostics_mark_remove(desc,user);

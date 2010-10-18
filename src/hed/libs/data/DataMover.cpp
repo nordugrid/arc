@@ -287,7 +287,7 @@ namespace Arc {
             source.NextLocation(); /* to decrease retry counter */
             if (!cache_link_result)
               return DataStatus::CacheError;           
-            return DataStatus::Success;
+            return DataStatus::SuccessCached;
           }
         }
         cache.Stop(canonic_url);
@@ -639,7 +639,7 @@ namespace Arc {
               }
             }
             cache.Stop(canonic_url);
-            return DataStatus::Success;
+            return DataStatus::SuccessCached;
             // Leave here. Rest of code below is for transfer.
           }
           break;

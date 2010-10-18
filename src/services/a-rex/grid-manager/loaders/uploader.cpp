@@ -23,6 +23,7 @@
 #include <arc/URL.h>
 #include <arc/UserConfig.h>
 #include <arc/Utils.h>
+#include <arc/FileUtils.h>
 
 #include "../jobs/job.h"
 #include "../jobs/users.h"
@@ -50,6 +51,18 @@ class FileDataEx : public FileData {
   typedef std::list<FileDataEx>::iterator iterator;
   Arc::DataStatus res;
   PointPair* pair;
+  int size; /* size of the file in bytes */
+  /* Times are string to eliminate the need to convert
+   * string to time_t while reading from local file
+   */
+  std::string starttime; /* time of transfer started */
+  std::string endtime; /* time of trnasfer finished */
+  /* the status of file in cache: 
+   *  - "yes" -- was before;
+   *  - "linked" -- downloaded and got in cache right now;
+   *  - "no" -- downloaded but didn't get in cache 
+   */
+  std::string incache;
   FileDataEx(const FileData& f) : 
       FileData(f),
       res(Arc::DataStatus::Success),
@@ -115,6 +128,7 @@ class PointPair {
     } else {
       logger.msg(Arc::INFO, "Uploaded file %s", it->lfn);
       delete it->pair; it->pair=NULL;
+      it->endtime=Arc::Time().str(Arc::UserTime);
       processed_files.push_back(*it);
     };
     job_files.erase(it);
@@ -538,6 +552,7 @@ int main(int argc,char** argv) {
         FileDataEx::iterator* it = new FileDataEx::iterator(i);
         std::string prefix = i->pfn;
         if (prefix.find('/') != std::string::npos) prefix.erase(0, prefix.find('/')+1);
+        i->starttime=Arc::Time().str(Arc::UserTime);
         Arc::DataStatus dres = mover.Transfer(*(i->pair->source), *(i->pair->destination), *cache,
                                               url_map, min_speed, min_speed_time,
                                               min_average_speed, max_inactivity_time,
@@ -555,10 +570,35 @@ int main(int argc,char** argv) {
     // Processing initiated - now wait for event
     pair_condition.wait_nonblock();
   };
-  // Print upload summary
-  for(FileDataEx::iterator i=processed_files.begin();i!=processed_files.end();++i) {
-    logger.msg(Arc::INFO, "Uploaded %s", i->lfn);
-  };
+  // Print upload summary and update transfer accounting information
+  {
+    std::list<std::string> transfer_stats;
+    transfer_stats.clear(); // paranoid initialization
+    std::string transfer_parameters;
+    
+    for(FileDataEx::iterator i=processed_files.begin();i!=processed_files.end();++i) {
+      logger.msg(Arc::INFO, "Uploaded %s", i->lfn);
+      struct stat st;
+      Arc::FileStat(desc.SessionDir() + i->pfn, &st, true);
+      transfer_parameters = "outputfile=";
+      transfer_parameters += "url=" + i->lfn + ',';
+      transfer_parameters += "size=" + Arc::tostring(st.st_size) + ',';
+      transfer_parameters += "starttime=" + i->starttime + ',';
+      transfer_parameters += "endtime=" + i->endtime;
+      transfer_stats.push_back(transfer_parameters);
+    };
+    
+    std::string fname = user.ControlDir() + "/job." + desc.get_id() + ".statistics";
+    std::ofstream f(fname.c_str(),std::ios::out | std::ios::app);
+    if(f.is_open() ) {
+  	  for (std::list<std::string>::iterator it=transfer_stats.begin(); it != transfer_stats.end(); ++it)
+  	    f << *it << std::endl;
+      f.close();
+      fix_file_owner(fname,desc,user);
+    }
+   
+  }
+  
   for(FileDataEx::iterator i=failed_files.begin();i!=failed_files.end();++i) {
     if(i->res.Retryable()) {
       job_files.push_back(*i);

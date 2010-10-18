@@ -129,7 +129,11 @@ namespace Arc {
       InconsistentMetadataError = 29,
  
       /// Undefined
-      UnknownError = 30
+      UnknownError = 30,
+      
+      /// Data was already cached
+      SuccessCached = 31
+      
     };
 
     DataStatus(const DataStatusType& status, std::string desc="")
@@ -158,14 +162,15 @@ namespace Arc {
     }
 
     bool operator!() {
-      return status != Success;
+      return (status != Success) && (status != SuccessCached);
     }
     operator bool() {
-      return status == Success;
+      return (status == Success) || (status == SuccessCached);
     }
 
     bool Passed(void) {
-      return (status == Success) || (status == NotSupportedForDirectDataPointsError);
+      return (status == Success) || (status == NotSupportedForDirectDataPointsError) || 
+             (status == SuccessCached);
     }
   
     bool Retryable() {
