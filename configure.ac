@@ -1835,6 +1835,7 @@ AC_CONFIG_FILES([Makefile
                  src/hed/acc/Makefile
                  src/hed/acc/ARC0/Makefile
                  src/hed/acc/ARC1/Makefile
+                 src/hed/acc/ARC1/test/Makefile
                  src/hed/acc/CREAM/Makefile
                  src/hed/acc/UNICORE/Makefile
                  src/hed/acc/Broker/Makefile

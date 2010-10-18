@@ -34,3 +34,6 @@ libarexclient_la_LIBADD   = $(LIBXML2_LIBS) $(GLIBMM_LIBS) \
 			 $(top_srcdir)/src/hed/libs/delegation/libarcdelegation.la \
 			 $(top_srcdir)/src/hed/libs/ws/libarcws.la
 libarexclient_la_LDFLAGS  =
+
+DIST_SUBDIRS = test
+SUBDIRS = $(TEST_DIR)

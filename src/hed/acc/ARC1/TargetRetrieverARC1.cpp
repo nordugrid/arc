@@ -10,7 +10,6 @@
 #include <arc/Thread.h>
 #include <arc/URL.h>
 #include <arc/XMLNode.h>
-#include <arc/client/ExecutionTarget.h>
 #include <arc/client/TargetGenerator.h>
 #include <arc/message/MCC.h>
 #include <arc/data/DataHandle.h>
@@ -122,298 +121,10 @@ namespace Arc {
         return;
       }
 
-      for (XMLNode GLUEService = servicesQueryResponse["ComputingService"];
-           GLUEService; ++GLUEService) {
-        ExecutionTarget target;
-
-        target.GridFlavour = "ARC1";
-        target.Cluster = thrarg->url;
-        target.url = url;
-        target.InterfaceName = "BES";
-        target.Implementor = "NorduGrid";
-
-        target.DomainName = url.Host();
-
-        logger.msg(VERBOSE, "Generating A-REX target: %s", target.Cluster.str());
-
-        XMLNode ComputingEndpoint = GLUEService["ComputingEndpoint"];
-        if (ComputingEndpoint["HealthState"])
-          target.HealthState = (std::string)ComputingEndpoint["HealthState"];
-        else
-          logger.msg(VERBOSE, "The Service advertises no Health State.");
-        if (ComputingEndpoint["HealthStateInfo"])
-          target.HealthState = (std::string)ComputingEndpoint["HealthStateInfo"];
-        if (GLUEService["Name"])
-          target.ServiceName = (std::string)GLUEService["Name"];
-        if (ComputingEndpoint["Capability"])
-          for (XMLNode n = ComputingEndpoint["Capability"]; n; ++n)
-            target.Capability.push_back((std::string)n);
-        else if (GLUEService["Capability"])
-          for (XMLNode n = GLUEService["Capability"]; n; ++n)
-            target.Capability.push_back((std::string)n);
-        if (GLUEService["Type"])
-          target.ServiceType = (std::string)GLUEService["Type"];
-        else
-          logger.msg(VERBOSE, "The Service doesn't advertise its Type.");
-        if (ComputingEndpoint["QualityLevel"])
-          target.QualityLevel = (std::string)ComputingEndpoint["QualityLevel"];
-        else if (GLUEService["QualityLevel"])
-          target.QualityLevel = (std::string)GLUEService["QualityLevel"];
-        else
-          logger.msg(VERBOSE, "The Service doesn't advertise its Quality Level.");
-
-        if (ComputingEndpoint["Technology"])
-          target.Technology = (std::string)ComputingEndpoint["Technology"];
-        if (ComputingEndpoint["InterfaceName"])
-          target.InterfaceName = (std::string)ComputingEndpoint["InterfaceName"];
-        else if (ComputingEndpoint["Interface"])
-          target.InterfaceName = (std::string)ComputingEndpoint["Interface"];
-        else
-          logger.msg(VERBOSE, "The Service doesn't advertise its Interface.");
-        if (ComputingEndpoint["InterfaceVersion"])
-          target.InterfaceName = (std::string)ComputingEndpoint["InterfaceVersion"];
-        if (ComputingEndpoint["InterfaceExtension"])
-          for (XMLNode n = ComputingEndpoint["InterfaceExtension"]; n; ++n)
-            target.InterfaceExtension.push_back((std::string)n);
-        if (ComputingEndpoint["SupportedProfile"])
-          for (XMLNode n = ComputingEndpoint["SupportedProfile"]; n; ++n)
-            target.SupportedProfile.push_back((std::string)n);
-        if (ComputingEndpoint["Implementor"])
-          target.Implementor = (std::string)ComputingEndpoint["Implementor"];
-        if (ComputingEndpoint["ImplementationName"]) {
-          if (ComputingEndpoint["ImplementationVersion"])
-            target.Implementation =
-              Software((std::string)ComputingEndpoint["ImplementationName"],
-                       (std::string)ComputingEndpoint["ImplementationVersion"]);
-          else
-            target.Implementation = Software((std::string)ComputingEndpoint["ImplementationName"]);
-        }
-        if (ComputingEndpoint["ServingState"])
-          target.ServingState = (std::string)ComputingEndpoint["ServingState"];
-        else
-          logger.msg(VERBOSE, "The Service doesn't advertise its Serving State.");
-        if (ComputingEndpoint["IssuerCA"])
-          target.IssuerCA = (std::string)ComputingEndpoint["IssuerCA"];
-        if (ComputingEndpoint["TrustedCA"]) {
-          XMLNode n = ComputingEndpoint["TrustedCA"];
-          while (n) {
-            target.TrustedCA.push_back((std::string)n);
-            ++n; //The increment operator works in an unusual manner (returns void)
-          }
-        }
-        if (ComputingEndpoint["DowntimeStart"])
-          target.DowntimeStarts = (std::string)ComputingEndpoint["DowntimeStart"];
-        if (ComputingEndpoint["DowntimeEnd"])
-          target.DowntimeEnds = (std::string)ComputingEndpoint["DowntimeEnd"];
-        if (ComputingEndpoint["Staging"])
-          target.Staging = (std::string)ComputingEndpoint["Staging"];
-        if (ComputingEndpoint["JobDescription"])
-          for (XMLNode n = ComputingEndpoint["JobDescription"]; n; ++n)
-            target.JobDescriptions.push_back((std::string)n);
-
-        //Attributes below should possibly consider elements in different places (Service/Endpoint/Share etc).
-        if (ComputingEndpoint["TotalJobs"])
-          target.TotalJobs = stringtoi((std::string)ComputingEndpoint["TotalJobs"]);
-        else if (GLUEService["TotalJobs"])
-          target.TotalJobs = stringtoi((std::string)GLUEService["TotalJobs"]);
-        if (ComputingEndpoint["RunningJobs"])
-          target.RunningJobs = stringtoi((std::string)ComputingEndpoint["RunningJobs"]);
-        else if (GLUEService["RunningJobs"])
-          target.RunningJobs = stringtoi((std::string)GLUEService["RunningJobs"]);
-        if (ComputingEndpoint["WaitingJobs"])
-          target.WaitingJobs = stringtoi((std::string)ComputingEndpoint["WaitingJobs"]);
-        else if (GLUEService["WaitingJobs"])
-          target.WaitingJobs = stringtoi((std::string)GLUEService["WaitingJobs"]);
-        if (ComputingEndpoint["StagingJobs"])
-          target.StagingJobs = stringtoi((std::string)ComputingEndpoint["StagingJobs"]);
-        else if (GLUEService["StagingJobs"])
-          target.StagingJobs = stringtoi((std::string)GLUEService["StagingJobs"]);
-        if (ComputingEndpoint["SuspendedJobs"])
-          target.SuspendedJobs = stringtoi((std::string)ComputingEndpoint["SuspendedJobs"]);
-        else if (GLUEService["SuspendedJobs"])
-          target.SuspendedJobs = stringtoi((std::string)GLUEService["SuspendedJobs"]);
-        if (ComputingEndpoint["PreLRMSWaitingJobs"])
-          target.PreLRMSWaitingJobs = stringtoi((std::string)ComputingEndpoint["PreLRMSWaitingJobs"]);
-        else if (GLUEService["PreLRMSWaitingJobs"])
-          target.PreLRMSWaitingJobs = stringtoi((std::string)GLUEService["PreLRMSWaitingJobs"]);
-        if (ComputingEndpoint["LocalRunningJobs"])
-          target.LocalRunningJobs = stringtoi((std::string)ComputingEndpoint["LocalRunningJobs"]);
-        else if (GLUEService["LocalRunningJobs"])
-          target.LocalRunningJobs = stringtoi((std::string)GLUEService["LocalRunningJobs"]);
-        if (ComputingEndpoint["LocalWaitingJobs"])
-          target.LocalWaitingJobs = stringtoi((std::string)ComputingEndpoint["LocalWaitingJobs"]);
-        else if (GLUEService["LocalWaitingJobs"])
-          target.LocalWaitingJobs = stringtoi((std::string)GLUEService["LocalWaitingJobs"]);
-        if (ComputingEndpoint["LocalSuspendedJobs"])
-          target.LocalSuspendedJobs = stringtoi((std::string)ComputingEndpoint["LocalSuspendedJobs"]);
-        else if (GLUEService["LocalSuspendedJobs"])
-          target.LocalWaitingJobs = stringtoi((std::string)GLUEService["LocalSuspendedJobs"]);
-
-        /*
-         * The following target attributes might be problematic since there might be many shares and
-         * the relevant one is ill defined. Only the first share is currently stored.
-         */
-        XMLNode ComputingShare = GLUEService["ComputingShares"]["ComputingShare"];
-        if (ComputingShare["FreeSlots"])
-          target.FreeSlots = stringtoi((std::string)ComputingShare["FreeSlots"]);
-        if (ComputingShare["FreeSlotsWithDuration"]) {
-          std::string value = (std::string)ComputingShare["FreeSlotsWithDuration"];
-          std::string::size_type pos = 0;
-          do {
-            std::string::size_type spacepos = value.find(' ', pos);
-            std::string entry;
-            if (spacepos == std::string::npos)
-              entry = value.substr(pos);
-            else
-              entry = value.substr(pos, spacepos - pos);
-            int num_cpus;
-            Period time;
-            std::string::size_type colonpos = entry.find(':');
-            if (colonpos == std::string::npos) {
-              num_cpus = stringtoi(entry);
-              time = LONG_MAX;
-            }
-            else {
-              num_cpus = stringtoi(entry.substr(0, colonpos));
-              time = stringtoi(entry.substr(colonpos + 1)) * 60;
-            }
-            target.FreeSlotsWithDuration[time] = num_cpus;
-            pos = spacepos;
-            if (pos != std::string::npos)
-              pos++;
-          } while (pos != std::string::npos);
-        }
-        if (ComputingShare["UsedSlots"])
-          target.UsedSlots = stringtoi((std::string)ComputingShare["UsedSlots"]);
-        if (ComputingShare["RequestedSlots"])
-          target.RequestedSlots = stringtoi((std::string)ComputingShare["RequestedSlots"]);
-        if (ComputingShare["Name"])
-          target.ComputingShareName = (std::string)ComputingShare["Name"];
-        if (ComputingShare["MaxWallTime"])
-          target.MaxWallTime = (std::string)ComputingShare["MaxWallTime"];
-        if (ComputingShare["MaxTotalWallTime"])
-          target.MaxTotalWallTime = (std::string)ComputingShare["MaxTotalWallTime"];
-        if (ComputingShare["MinWallTime"])
-          target.MinWallTime = (std::string)ComputingShare["MinWallTime"];
-        if (ComputingShare["DefaultWallTime"])
-          target.DefaultWallTime = (std::string)ComputingShare["DefaultWallTime"];
-        if (ComputingShare["MaxCPUTime"])
-          target.MaxCPUTime = (std::string)ComputingShare["MaxCPUTime"];
-        if (ComputingShare["MaxTotalCPUTime"])
-          target.MaxTotalCPUTime = (std::string)ComputingShare["MaxTotalCPUTime"];
-        if (ComputingShare["MinCPUTime"])
-          target.MinCPUTime = (std::string)ComputingShare["MinCPUTime"];
-        if (ComputingShare["DefaultCPUTime"])
-          target.DefaultCPUTime = (std::string)ComputingShare["DefaultCPUTime"];
-        if (ComputingShare["MaxTotalJobs"])
-          target.MaxTotalJobs = stringtoi((std::string)ComputingShare["MaxTotalJobs"]);
-        if (ComputingShare["MaxRunningJobs"])
-          target.MaxRunningJobs = stringtoi((std::string)ComputingShare["MaxRunningJobs"]);
-        if (ComputingShare["MaxWaitingJobs"])
-          target.MaxWaitingJobs = stringtoi((std::string)ComputingShare["MaxWaitingJobs"]);
-        if (ComputingShare["MaxPreLRMSWaitingJobs"])
-          target.MaxPreLRMSWaitingJobs = stringtoi((std::string)ComputingShare["MaxPreLRMSWaitingJobs"]);
-        if (ComputingShare["MaxUserRunningJobs"])
-          target.MaxUserRunningJobs = stringtoi((std::string)ComputingShare["MaxUserRunningJobs"]);
-        if (ComputingShare["MaxSlotsPerJob"])
-          target.MaxSlotsPerJob = stringtoi((std::string)ComputingShare["MaxSlotsPerJob"]);
-        if (ComputingShare["MaxStageInStreams"])
-          target.MaxStageInStreams = stringtoi((std::string)ComputingShare["MaxStageInStreams"]);
-        if (ComputingShare["MaxStageOutStreams"])
-          target.MaxStageOutStreams = stringtoi((std::string)ComputingShare["MaxStageOutStreams"]);
-        if (ComputingShare["SchedulingPolicy"])
-          target.SchedulingPolicy = (std::string)ComputingShare["SchedulingPolicy"];
-        if (ComputingShare["MaxMainMemory"])
-          target.MaxMainMemory = stringtoi((std::string)ComputingShare["MaxMainMemory"]);
-        if (ComputingShare["MaxVirtualMemory"])
-          target.MaxVirtualMemory = stringtoi((std::string)ComputingShare["MaxVirtualMemory"]);
-        if (ComputingShare["MaxDiskSpace"])
-          target.MaxDiskSpace = stringtoi((std::string)ComputingShare["MaxDiskSpace"]);
-        if (ComputingShare["DefaultStorageService"])
-          target.DefaultStorageService = (std::string)ComputingShare["DefaultStorageService"];
-        if (ComputingShare["Preemption"])
-          target.Preemption = ((std::string)ComputingShare["Preemption"] == "true") ? true : false;
-        if (ComputingShare["EstimatedAverageWaitingTime"])
-          target.EstimatedAverageWaitingTime = (std::string)ComputingShare["EstimatedAverageWaitingTime"];
-        if (ComputingShare["EstimatedWorstWaitingTime"])
-          target.EstimatedWorstWaitingTime = stringtoi((std::string)ComputingShare["EstimatedWorstWaitingTime"]);
-        if (ComputingShare["ReservationPolicy"])
-          target.ReservationPolicy = stringtoi((std::string)ComputingShare["ReservationPolicy"]);
-
-        XMLNode ComputingManager = GLUEService["ComputingManager"];
-        if (ComputingManager["ProductName"])
-          target.ManagerProductName = (std::string)ComputingManager["ProductName"];
-        else if (ComputingManager["Type"]) // is this non-standard fallback needed?
-          target.ManagerProductName = (std::string)ComputingManager["Type"];
-        if (ComputingManager["ProductVersion"])
-          target.ManagerProductName = (std::string)ComputingManager["ProductVersion"];
-        if (ComputingManager["Reservation"])
-          target.Reservation = ((std::string)ComputingManager["Reservation"] == "true") ? true : false;
-        if (ComputingManager["BulkSubmission"])
-          target.BulkSubmission = ((std::string)ComputingManager["BulkSubmission"] == "true") ? true : false;
-        if (ComputingManager["TotalPhysicalCPUs"])
-          target.TotalPhysicalCPUs = stringtoi((std::string)ComputingManager["TotalPhysicalCPUs"]);
-        if (ComputingManager["TotalLogicalCPUs"])
-          target.TotalLogicalCPUs = stringtoi((std::string)ComputingManager["TotalLogicalCPUs"]);
-        if (ComputingManager["TotalSlots"])
-          target.TotalSlots = stringtoi((std::string)ComputingManager["TotalSlots"]);
-        if (ComputingManager["Homogeneous"])
-          target.Homogeneous = ((std::string)ComputingManager["Homogeneous"] == "true") ? true : false;
-        if (ComputingManager["NetworkInfo"])
-          for (XMLNode n = ComputingManager["NetworkInfo"]; n; ++n)
-            target.NetworkInfo.push_back((std::string)n);
-        if (ComputingManager["WorkingAreaShared"])
-          target.WorkingAreaShared = ((std::string)ComputingManager["WorkingAreaShared"] == "true") ? true : false;
-        if (ComputingManager["WorkingAreaFree"])
-          target.WorkingAreaFree = stringtoi((std::string)ComputingManager["WorkingAreaFree"]);
-        if (ComputingManager["WorkingAreaTotal"])
-          target.WorkingAreaTotal = stringtoi((std::string)ComputingManager["WorkingAreaTotal"]);
-        if (ComputingManager["WorkingAreaLifeTime"])
-          target.WorkingAreaLifeTime = (std::string)ComputingManager["WorkingAreaLifeTime"];
-        if (ComputingManager["CacheFree"])
-          target.CacheFree = stringtoi((std::string)ComputingManager["CacheFree"]);
-        if (ComputingManager["CacheTotal"])
-          target.CacheTotal = stringtoi((std::string)ComputingManager["CacheTotal"]);
-        for (XMLNode n = ComputingManager["Benchmark"]; n; ++n) {
-          double value;
-          if (n["Type"] && n["Value"] &&
-              stringto((std::string)n["Value"], value))
-            target.Benchmarks[(std::string)n["Type"]] = value;
-          else {
-            logger.msg(VERBOSE, "Couldn't parse benchmark XML:\n%s", (std::string)n);
-            continue;
-          }
-        }
-        for (XMLNode n = ComputingManager["ApplicationEnvironments"]["ApplicationEnvironment"]; n; ++n) {
-          ApplicationEnvironment ae((std::string)n["AppName"], (std::string)n["AppVersion"]);
-          ae.State = (std::string)n["State"];
-          if (n["FreeSlots"])
-            ae.FreeSlots = stringtoi((std::string)n["FreeSlots"]);
-          else
-            ae.FreeSlots = target.FreeSlots;
-          if (n["FreeJobs"])
-            ae.FreeJobs = stringtoi((std::string)n["FreeJobs"]);
-          else
-            ae.FreeJobs = -1;
-          if (n["FreeUserSeats"])
-            ae.FreeUserSeats = stringtoi((std::string)n["FreeUserSeats"]);
-          else
-            ae.FreeUserSeats = -1;
-          target.ApplicationEnvironments.push_back(ae);
-        }
-
-       // TODO: What need to do if there are more then one execution environment?
-
-        XMLNode ExecutionEnvironment = ComputingManager["ExecutionEnvironments"]["ExecutionEnvironment"];
-        if (ExecutionEnvironment["ConnectivityIn"])
-            if (lower((std::string)ExecutionEnvironment["ConnectivityIn"]) == "true")
-              target.ConnectivityIn = true;
-           
-        if (ExecutionEnvironment["ConnectivityOut"])
-            if (lower((std::string)ExecutionEnvironment["ConnectivityOut"]) == "true")
-              target.ConnectivityOut = true;
-
-        mom.AddTarget(target);
+      std::list<ExecutionTarget> targets;
+      ExtractTargets(url, servicesQueryResponse, targets);
+      for (std::list<ExecutionTarget>::const_iterator it = targets.begin(); it != targets.end(); it++) {
+        mom.AddTarget(*it);
       }
     }
     else if (targetType == 1) {
@@ -452,6 +163,332 @@ namespace Arc {
     }
 
     delete thrarg;
+  }
+
+  void TargetRetrieverARC1::ExtractTargets(const URL& url, XMLNode response, std::list<ExecutionTarget>& targets) {
+    targets.clear();
+
+    /*
+     * A-REX will not return multiple ComputingService elements, but if the
+     * response comes from an index server then there might be multiple.
+     */
+    for (XMLNode GLUEService = response["ComputingService"];
+         GLUEService; ++GLUEService) {
+      targets.push_back(ExecutionTarget());
+
+      targets.back().GridFlavour = "ARC1";
+      targets.back().Cluster = url;
+      targets.back().url = url;
+      targets.back().InterfaceName = "BES";
+      targets.back().Implementor = "NorduGrid";
+
+      targets.back().DomainName = url.Host();
+
+      logger.msg(VERBOSE, "Generating A-REX target: %s", targets.back().Cluster.str());
+
+      XMLNode ComputingEndpoint = GLUEService["ComputingEndpoint"];
+      if (ComputingEndpoint["HealthState"])
+        targets.back().HealthState = (std::string)ComputingEndpoint["HealthState"];
+      else
+        logger.msg(VERBOSE, "The Service advertises no Health State.");
+      if (ComputingEndpoint["HealthStateInfo"])
+        targets.back().HealthState = (std::string)ComputingEndpoint["HealthStateInfo"];
+      if (GLUEService["Name"])
+        targets.back().ServiceName = (std::string)GLUEService["Name"];
+      if (ComputingEndpoint["Capability"])
+        for (XMLNode n = ComputingEndpoint["Capability"]; n; ++n)
+          targets.back().Capability.push_back((std::string)n);
+      else if (GLUEService["Capability"])
+        for (XMLNode n = GLUEService["Capability"]; n; ++n)
+          targets.back().Capability.push_back((std::string)n);
+      if (GLUEService["Type"])
+        targets.back().ServiceType = (std::string)GLUEService["Type"];
+      else
+        logger.msg(VERBOSE, "The Service doesn't advertise its Type.");
+      if (ComputingEndpoint["QualityLevel"])
+        targets.back().QualityLevel = (std::string)ComputingEndpoint["QualityLevel"];
+      else if (GLUEService["QualityLevel"])
+        targets.back().QualityLevel = (std::string)GLUEService["QualityLevel"];
+      else
+        logger.msg(VERBOSE, "The Service doesn't advertise its Quality Level.");
+
+      if (ComputingEndpoint["Technology"])
+        targets.back().Technology = (std::string)ComputingEndpoint["Technology"];
+      if (ComputingEndpoint["InterfaceName"])
+        targets.back().InterfaceName = (std::string)ComputingEndpoint["InterfaceName"];
+      else if (ComputingEndpoint["Interface"])
+        targets.back().InterfaceName = (std::string)ComputingEndpoint["Interface"];
+      else
+        logger.msg(VERBOSE, "The Service doesn't advertise its Interface.");
+      if (ComputingEndpoint["InterfaceVersion"])
+        targets.back().InterfaceName = (std::string)ComputingEndpoint["InterfaceVersion"];
+      if (ComputingEndpoint["InterfaceExtension"])
+        for (XMLNode n = ComputingEndpoint["InterfaceExtension"]; n; ++n)
+          targets.back().InterfaceExtension.push_back((std::string)n);
+      if (ComputingEndpoint["SupportedProfile"])
+        for (XMLNode n = ComputingEndpoint["SupportedProfile"]; n; ++n)
+          targets.back().SupportedProfile.push_back((std::string)n);
+      if (ComputingEndpoint["Implementor"])
+        targets.back().Implementor = (std::string)ComputingEndpoint["Implementor"];
+      if (ComputingEndpoint["ImplementationName"]) {
+        if (ComputingEndpoint["ImplementationVersion"])
+          targets.back().Implementation =
+            Software((std::string)ComputingEndpoint["ImplementationName"],
+                     (std::string)ComputingEndpoint["ImplementationVersion"]);
+        else
+          targets.back().Implementation = Software((std::string)ComputingEndpoint["ImplementationName"]);
+      }
+      if (ComputingEndpoint["ServingState"])
+        targets.back().ServingState = (std::string)ComputingEndpoint["ServingState"];
+      else
+        logger.msg(VERBOSE, "The Service doesn't advertise its Serving State.");
+      if (ComputingEndpoint["IssuerCA"])
+        targets.back().IssuerCA = (std::string)ComputingEndpoint["IssuerCA"];
+      if (ComputingEndpoint["TrustedCA"]) {
+        XMLNode n = ComputingEndpoint["TrustedCA"];
+        while (n) {
+          targets.back().TrustedCA.push_back((std::string)n);
+          ++n; //The increment operator works in an unusual manner (returns void)
+        }
+      }
+      if (ComputingEndpoint["DowntimeStart"])
+        targets.back().DowntimeStarts = (std::string)ComputingEndpoint["DowntimeStart"];
+      if (ComputingEndpoint["DowntimeEnd"])
+        targets.back().DowntimeEnds = (std::string)ComputingEndpoint["DowntimeEnd"];
+      if (ComputingEndpoint["Staging"])
+        targets.back().Staging = (std::string)ComputingEndpoint["Staging"];
+      if (ComputingEndpoint["JobDescription"])
+        for (XMLNode n = ComputingEndpoint["JobDescription"]; n; ++n)
+          targets.back().JobDescriptions.push_back((std::string)n);
+
+      //Attributes below should possibly consider elements in different places (Service/Endpoint/Share etc).
+      if (ComputingEndpoint["TotalJobs"])
+        targets.back().TotalJobs = stringtoi((std::string)ComputingEndpoint["TotalJobs"]);
+      else if (GLUEService["TotalJobs"])
+        targets.back().TotalJobs = stringtoi((std::string)GLUEService["TotalJobs"]);
+      if (ComputingEndpoint["RunningJobs"])
+        targets.back().RunningJobs = stringtoi((std::string)ComputingEndpoint["RunningJobs"]);
+      else if (GLUEService["RunningJobs"])
+        targets.back().RunningJobs = stringtoi((std::string)GLUEService["RunningJobs"]);
+      if (ComputingEndpoint["WaitingJobs"])
+        targets.back().WaitingJobs = stringtoi((std::string)ComputingEndpoint["WaitingJobs"]);
+      else if (GLUEService["WaitingJobs"])
+        targets.back().WaitingJobs = stringtoi((std::string)GLUEService["WaitingJobs"]);
+      if (ComputingEndpoint["StagingJobs"])
+        targets.back().StagingJobs = stringtoi((std::string)ComputingEndpoint["StagingJobs"]);
+      else if (GLUEService["StagingJobs"])
+        targets.back().StagingJobs = stringtoi((std::string)GLUEService["StagingJobs"]);
+      if (ComputingEndpoint["SuspendedJobs"])
+        targets.back().SuspendedJobs = stringtoi((std::string)ComputingEndpoint["SuspendedJobs"]);
+      else if (GLUEService["SuspendedJobs"])
+        targets.back().SuspendedJobs = stringtoi((std::string)GLUEService["SuspendedJobs"]);
+      if (ComputingEndpoint["PreLRMSWaitingJobs"])
+        targets.back().PreLRMSWaitingJobs = stringtoi((std::string)ComputingEndpoint["PreLRMSWaitingJobs"]);
+      else if (GLUEService["PreLRMSWaitingJobs"])
+        targets.back().PreLRMSWaitingJobs = stringtoi((std::string)GLUEService["PreLRMSWaitingJobs"]);
+      if (ComputingEndpoint["LocalRunningJobs"])
+        targets.back().LocalRunningJobs = stringtoi((std::string)ComputingEndpoint["LocalRunningJobs"]);
+      else if (GLUEService["LocalRunningJobs"])
+        targets.back().LocalRunningJobs = stringtoi((std::string)GLUEService["LocalRunningJobs"]);
+      if (ComputingEndpoint["LocalWaitingJobs"])
+        targets.back().LocalWaitingJobs = stringtoi((std::string)ComputingEndpoint["LocalWaitingJobs"]);
+      else if (GLUEService["LocalWaitingJobs"])
+        targets.back().LocalWaitingJobs = stringtoi((std::string)GLUEService["LocalWaitingJobs"]);
+      if (ComputingEndpoint["LocalSuspendedJobs"])
+        targets.back().LocalSuspendedJobs = stringtoi((std::string)ComputingEndpoint["LocalSuspendedJobs"]);
+      else if (GLUEService["LocalSuspendedJobs"])
+        targets.back().LocalWaitingJobs = stringtoi((std::string)GLUEService["LocalSuspendedJobs"]);
+
+      XMLNode ComputingManager = GLUEService["ComputingManager"];
+      if (ComputingManager["ProductName"])
+        targets.back().ManagerProductName = (std::string)ComputingManager["ProductName"];
+      else if (ComputingManager["Type"]) // is this non-standard fallback needed?
+        targets.back().ManagerProductName = (std::string)ComputingManager["Type"];
+      if (ComputingManager["ProductVersion"])
+        targets.back().ManagerProductName = (std::string)ComputingManager["ProductVersion"];
+      if (ComputingManager["Reservation"])
+        targets.back().Reservation = ((std::string)ComputingManager["Reservation"] == "true") ? true : false;
+      if (ComputingManager["BulkSubmission"])
+        targets.back().BulkSubmission = ((std::string)ComputingManager["BulkSubmission"] == "true") ? true : false;
+      if (ComputingManager["TotalPhysicalCPUs"])
+        targets.back().TotalPhysicalCPUs = stringtoi((std::string)ComputingManager["TotalPhysicalCPUs"]);
+      if (ComputingManager["TotalLogicalCPUs"])
+        targets.back().TotalLogicalCPUs = stringtoi((std::string)ComputingManager["TotalLogicalCPUs"]);
+      if (ComputingManager["TotalSlots"])
+        targets.back().TotalSlots = stringtoi((std::string)ComputingManager["TotalSlots"]);
+      if (ComputingManager["Homogeneous"])
+        targets.back().Homogeneous = ((std::string)ComputingManager["Homogeneous"] == "true") ? true : false;
+      if (ComputingManager["NetworkInfo"])
+        for (XMLNode n = ComputingManager["NetworkInfo"]; n; ++n)
+          targets.back().NetworkInfo.push_back((std::string)n);
+      if (ComputingManager["WorkingAreaShared"])
+        targets.back().WorkingAreaShared = ((std::string)ComputingManager["WorkingAreaShared"] == "true") ? true : false;
+      if (ComputingManager["WorkingAreaFree"])
+        targets.back().WorkingAreaFree = stringtoi((std::string)ComputingManager["WorkingAreaFree"]);
+      if (ComputingManager["WorkingAreaTotal"])
+        targets.back().WorkingAreaTotal = stringtoi((std::string)ComputingManager["WorkingAreaTotal"]);
+      if (ComputingManager["WorkingAreaLifeTime"])
+        targets.back().WorkingAreaLifeTime = (std::string)ComputingManager["WorkingAreaLifeTime"];
+      if (ComputingManager["CacheFree"])
+        targets.back().CacheFree = stringtoi((std::string)ComputingManager["CacheFree"]);
+      if (ComputingManager["CacheTotal"])
+        targets.back().CacheTotal = stringtoi((std::string)ComputingManager["CacheTotal"]);
+      for (XMLNode n = ComputingManager["Benchmark"]; n; ++n) {
+        double value;
+        if (n["Type"] && n["Value"] &&
+            stringto((std::string)n["Value"], value))
+          targets.back().Benchmarks[(std::string)n["Type"]] = value;
+        else {
+          logger.msg(VERBOSE, "Couldn't parse benchmark XML:\n%s", (std::string)n);
+          continue;
+        }
+      }
+
+      for (XMLNode n = ComputingManager["ApplicationEnvironments"]["ApplicationEnvironment"]; n; ++n) {
+        ApplicationEnvironment ae((std::string)n["AppName"], (std::string)n["AppVersion"]);
+        ae.State = (std::string)n["State"];
+        if (n["FreeSlots"])
+          ae.FreeSlots = stringtoi((std::string)n["FreeSlots"]);
+        else
+          ae.FreeSlots = targets.back().FreeSlots;
+        if (n["FreeJobs"])
+          ae.FreeJobs = stringtoi((std::string)n["FreeJobs"]);
+        else
+          ae.FreeJobs = -1;
+        if (n["FreeUserSeats"])
+          ae.FreeUserSeats = stringtoi((std::string)n["FreeUserSeats"]);
+        else
+          ae.FreeUserSeats = -1;
+        targets.back().ApplicationEnvironments.push_back(ae);
+      }
+
+      XMLNode ComputingShare = GLUEService["ComputingShares"]["ComputingShare"];
+      for (int i = 0; ComputingShare[i]; i++) {
+        ExecutionTarget& currentTarget = targets.back();
+        if (ComputingShare[i+1]) {
+          targets.push_back(ExecutionTarget(targets.back()));
+        }
+
+        if (ComputingShare[i]["FreeSlots"])
+          currentTarget.FreeSlots = stringtoi((std::string)ComputingShare[i]["FreeSlots"]);
+        if (ComputingShare[i]["FreeSlotsWithDuration"]) {
+          std::string value = (std::string)ComputingShare[i]["FreeSlotsWithDuration"];
+          std::string::size_type pos = 0;
+          do {
+            std::string::size_type spacepos = value.find(' ', pos);
+            std::string entry;
+            if (spacepos == std::string::npos)
+              entry = value.substr(pos);
+            else
+              entry = value.substr(pos, spacepos - pos);
+            int num_cpus;
+            Period time;
+            std::string::size_type colonpos = entry.find(':');
+            if (colonpos == std::string::npos) {
+              num_cpus = stringtoi(entry);
+              time = LONG_MAX;
+            }
+            else {
+              num_cpus = stringtoi(entry.substr(0, colonpos));
+              time = stringtoi(entry.substr(colonpos + 1)) * 60;
+            }
+            currentTarget.FreeSlotsWithDuration[time] = num_cpus;
+            pos = spacepos;
+            if (pos != std::string::npos)
+              pos++;
+          } while (pos != std::string::npos);
+        }
+        if (ComputingShare[i]["UsedSlots"])
+          currentTarget.UsedSlots = stringtoi((std::string)ComputingShare[i]["UsedSlots"]);
+        if (ComputingShare[i]["RequestedSlots"])
+          currentTarget.RequestedSlots = stringtoi((std::string)ComputingShare[i]["RequestedSlots"]);
+        if (ComputingShare[i]["Name"])
+          currentTarget.ComputingShareName = (std::string)ComputingShare[i]["Name"];
+        if (ComputingShare[i]["MaxWallTime"])
+          currentTarget.MaxWallTime = (std::string)ComputingShare[i]["MaxWallTime"];
+        if (ComputingShare[i]["MaxTotalWallTime"])
+          currentTarget.MaxTotalWallTime = (std::string)ComputingShare[i]["MaxTotalWallTime"];
+        if (ComputingShare[i]["MinWallTime"])
+          currentTarget.MinWallTime = (std::string)ComputingShare[i]["MinWallTime"];
+        if (ComputingShare[i]["DefaultWallTime"])
+          currentTarget.DefaultWallTime = (std::string)ComputingShare[i]["DefaultWallTime"];
+        if (ComputingShare[i]["MaxCPUTime"])
+          currentTarget.MaxCPUTime = (std::string)ComputingShare[i]["MaxCPUTime"];
+        if (ComputingShare[i]["MaxTotalCPUTime"])
+          currentTarget.MaxTotalCPUTime = (std::string)ComputingShare[i]["MaxTotalCPUTime"];
+        if (ComputingShare[i]["MinCPUTime"])
+          currentTarget.MinCPUTime = (std::string)ComputingShare[i]["MinCPUTime"];
+        if (ComputingShare[i]["DefaultCPUTime"])
+          currentTarget.DefaultCPUTime = (std::string)ComputingShare[i]["DefaultCPUTime"];
+        if (ComputingShare[i]["MaxTotalJobs"])
+          currentTarget.MaxTotalJobs = stringtoi((std::string)ComputingShare[i]["MaxTotalJobs"]);
+        if (ComputingShare[i]["MaxRunningJobs"])
+          currentTarget.MaxRunningJobs = stringtoi((std::string)ComputingShare[i]["MaxRunningJobs"]);
+        if (ComputingShare[i]["MaxWaitingJobs"])
+          currentTarget.MaxWaitingJobs = stringtoi((std::string)ComputingShare[i]["MaxWaitingJobs"]);
+        if (ComputingShare[i]["MaxPreLRMSWaitingJobs"])
+          currentTarget.MaxPreLRMSWaitingJobs = stringtoi((std::string)ComputingShare[i]["MaxPreLRMSWaitingJobs"]);
+        if (ComputingShare[i]["MaxUserRunningJobs"])
+          currentTarget.MaxUserRunningJobs = stringtoi((std::string)ComputingShare[i]["MaxUserRunningJobs"]);
+        if (ComputingShare[i]["MaxSlotsPerJob"])
+          currentTarget.MaxSlotsPerJob = stringtoi((std::string)ComputingShare[i]["MaxSlotsPerJob"]);
+        if (ComputingShare[i]["MaxStageInStreams"])
+          currentTarget.MaxStageInStreams = stringtoi((std::string)ComputingShare[i]["MaxStageInStreams"]);
+        if (ComputingShare[i]["MaxStageOutStreams"])
+          currentTarget.MaxStageOutStreams = stringtoi((std::string)ComputingShare[i]["MaxStageOutStreams"]);
+        if (ComputingShare[i]["SchedulingPolicy"])
+          currentTarget.SchedulingPolicy = (std::string)ComputingShare[i]["SchedulingPolicy"];
+        if (ComputingShare[i]["MaxMainMemory"])
+          currentTarget.MaxMainMemory = stringtoi((std::string)ComputingShare[i]["MaxMainMemory"]);
+        if (ComputingShare[i]["MaxVirtualMemory"])
+          currentTarget.MaxVirtualMemory = stringtoi((std::string)ComputingShare[i]["MaxVirtualMemory"]);
+        if (ComputingShare[i]["MaxDiskSpace"])
+          currentTarget.MaxDiskSpace = stringtoi((std::string)ComputingShare[i]["MaxDiskSpace"]);
+        if (ComputingShare[i]["DefaultStorageService"])
+          currentTarget.DefaultStorageService = (std::string)ComputingShare[i]["DefaultStorageService"];
+        if (ComputingShare[i]["Preemption"])
+          currentTarget.Preemption = ((std::string)ComputingShare[i]["Preemption"] == "true") ? true : false;
+        if (ComputingShare[i]["EstimatedAverageWaitingTime"])
+          currentTarget.EstimatedAverageWaitingTime = (std::string)ComputingShare[i]["EstimatedAverageWaitingTime"];
+        if (ComputingShare[i]["EstimatedWorstWaitingTime"])
+          currentTarget.EstimatedWorstWaitingTime = stringtoi((std::string)ComputingShare[i]["EstimatedWorstWaitingTime"]);
+        if (ComputingShare[i]["ReservationPolicy"])
+          currentTarget.ReservationPolicy = stringtoi((std::string)ComputingShare[i]["ReservationPolicy"]);
+
+        /*
+         * A ComputingShare is linked to multiple ExecutionEnvironments.
+         * Due to bug 2101 multiple ExecutionEnvironments per ComputingShare
+         * will be ignored. The ExecutionEnvironment information will only be
+         * stored if there is one ExecutionEnvironment associated with a
+         * ComputingShare.
+         */
+        if (ComputingShare[i]["Associations"]["ExecutionEnvironmentID"][1]) { // Check if there are multiple ExecutionEnvironments associated with this ComputingShare.
+          logger.msg(WARNING, "Multiple execution environments per queue specified for target: \"%s\". Execution environment information will be ignored.", url.str());
+        }
+        else {
+          if (ComputingShare[i]["Associations"]["ExecutionEnvironmentID"]) {
+            logger.msg(DEBUG, "ComputingShare is associated with the ExecutionEnvironment \"%s\"", (std::string)ComputingShare[i]["Associations"]["ExecutionEnvironmentID"]);
+            XMLNode ExecutionEnvironment = ComputingManager["ExecutionEnvironments"]["ExecutionEnvironment"];
+            for (int j = 0; ExecutionEnvironment[j]; j++) {
+              if (ExecutionEnvironment[j]["Name"] &&
+                  (std::string)ExecutionEnvironment[j]["Name"] == (std::string)ComputingShare[i]["Associations"]["ExecutionEnvironmentID"]) {
+                ExecutionEnvironment = ExecutionEnvironment[j];
+              }
+            }
+
+            if (ExecutionEnvironment) {
+              logger.msg(DEBUG, "ExecutionEnvironment \"%s\" located", (std::string)ComputingShare[i]["Associations"]["ExecutionEnvironmentID"]);
+
+              if (ExecutionEnvironment["ConnectivityIn"])
+                currentTarget.ConnectivityIn = (lower((std::string)ExecutionEnvironment["ConnectivityIn"]) == "true");
+
+              if (ExecutionEnvironment["ConnectivityOut"])
+                currentTarget.ConnectivityOut = (lower((std::string)ExecutionEnvironment["ConnectivityOut"]) == "true");
+            }
+          }
+        }
+      }
+    }
   }
 
 } // namespace Arc
