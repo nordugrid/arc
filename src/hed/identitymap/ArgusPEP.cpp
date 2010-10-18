@@ -86,7 +86,7 @@ bool ArgusPEP::Handle(Arc::Message* msg) const{
        return false;
     }
 
-    rc= create_xacml_request_to_pepd(&request,subjectid,resourceid,actionid);
+    rc= create_xacml_request(&request,subjectid,resourceid,actionid);
  
     if (rc != 0) {
        logger.msg(Arc::DEBUG,"Failed to create XACML request: %d", rc);
@@ -147,7 +147,7 @@ bool ArgusPEP::Handle(Arc::Message* msg) const{
  }
 
 
-int ArgusPEP::create_xacml_request_to_pepd(xacml_request_t ** request,const char * subjectid, const char * resourceid, const char * actionid) const {
+int ArgusPEP::create_xacml_request(xacml_request_t ** request,const char * subjectid, const char * resourceid, const char * actionid) const {
     xacml_subject_t * subject= xacml_subject_create();
     if (subject == NULL) {
         logger.msg(Arc::DEBUG, "Subject of request is null \n");
