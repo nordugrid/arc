@@ -439,9 +439,9 @@
         <!-- ServiceID: defines the unique id of the service propagated outside. (Optional, if omitted, the Endpoint will be used as a ServiceID) -->
         <infosys:ServiceID inisections="arex" initag="serviceid"/>
         <!-- Expiration: defines the expiration time of the information provided by the service (at least 2 minutes). In xsd:duration format. -->
-        <infosys:Expiration inisections="register" initag="expiration"/>
+        <infosys:Expiration inisections="register" initag="expiration" inidefaultvalue="PT10M"/>
         <!-- Period: specifies how often registration has to be done (at least 2 minutes). In xsd:duration format. -->
-        <infosys:Period inisections="register" initag="period"/>
+        <infosys:Period inisections="register" initag="period" inidefaultvalue="PT3M"/>
         <!-- Registrar: One or more Registrars sections specify where to send the registration message -->
         <infosys:Registrar initype="multielement" inisections="register" initag="registrar">
           <!-- URL: The URL of the ISIS service where we want to register this service -->
@@ -453,9 +453,9 @@
           <!-- ServiceID: defines the unique id of the service propagated outside. Optional, custom for this Registrar.-->
           <infosys:ServiceID inisections="arex" initag="endpoint"/>
           <!-- Expiration: defines the expiration time of the information provided by the service. Optional, custom for this Registrar.-->
-          <infosys:Expiration inisections="register" initag="expiration"/>
+          <infosys:Expiration inisections="register" initag="expiration" inidefaultvalue="PT10M"/>
           <!-- Period: specifies how often registration has to be done. Optional, custom for this Registrar.-->
-          <infosys:Period inisections="register" initag="period"/>
+          <infosys:Period inisections="register" initag="period" inidefaultvalue="PT3M"/>
           <tls:KeyPath inisections="common" initag="x509_user_key" inidefaultvalue="/etc/grid-security/hostkey.pem"/>
           <tls:CertificatePath inisections="common" initag="x509_user_cert" inidefaultvalue="/etc/grid-security/hostcert.pem"/>
           <tls:CACertificatesDir inisections="common" initag="x509_cert_dir" inidefaultvalue="/etc/grid-security/certificates"/>
@@ -499,15 +499,15 @@
       <tls:CertificatePath inisections="common" initag="x509_user_cert" inidefaultvalue="/etc/grid-security/hostcert.pem"/>
       <tls:CACertificatesDir inisections="common" initag="x509_cert_dir" inidefaultvalue="/etc/grid-security/certificates"/>
       <!-- The URL where the service can be accessed from outside. -->
-      <isis:endpoint inisections="isis" initag="endpoint"/>
-      <!-- retry: Retry specifies how many times communication to ISIS have to fail/timeout to start treating it as unavailable. -->
-      <isis:retry inisections="isis" initag="retry"/>
-      <!-- sparsity: It determines the number of neighbors as a function of the actual number of member nodes of the network. -->
-      <isis:sparsity inisections="isis" initag="sparsity"/>
+      <isis:Endpoint inisections="isis" initag="endpoint"/>
+      <!-- Retry: Retry specifies how many times communication to ISIS have to fail/timeout to start treating it as unavailable. -->
+      <isis:Retry inisections="isis" initag="retry" inidefaultvalue="5"/>
+      <!-- Sparsity: It determines the number of neighbors as a function of the actual number of member nodes of the network. -->
+      <isis:Sparsity inisections="isis" initag="sparsity" inidefaultvalue="2"/>
       <!-- ETValid: Period for checking the entries in the soft state database and strip the expired entries (but still keep them). -->
-      <isis:ETValid inisections="isis" initag="etvalid"/>
+      <isis:ETValid inisections="isis" initag="etvalid" inidefaultvalue="43200"/>
       <!-- ETRemove: Period for checking the entries in the soft state database and remove the expired entries. -->
-      <isis:ETRemove inisections="isis" initag="etremove"/>
+      <isis:ETRemove inisections="isis" initag="etremove" inidefaultvalue="86400"/>
       <!-- DBPath: Path of directory where the database is locally stored. -->
       <isis:DBPath inisections="isis" initag="dbpath"/>
       <!-- The URLs of other ISISes to form a cloud - could be zero or more. -->
@@ -518,9 +518,9 @@
         <!-- ServiceID: defines the unique id of the service propagated outside. (Optional, if omitted, the Endpoint will be used as a ServiceID) -->
         <infosys:ServiceID inisections="isis" initag="serviceid"/>
         <!-- Expiration: defines the expiration time of the information provided by the service (at least 2 minutes). In xsd:duration format. -->
-        <infosys:Expiration inisections="register" initag="expiration"/>
+        <infosys:Expiration inisections="register" initag="expiration" inidefaultvalue="PT10M"/>
         <!-- Period: specifies how often registration has to be done (at least 2 minutes). In xsd:duration format. -->
-        <infosys:Period inisections="register" initag="period"/>
+        <infosys:Period inisections="register" initag="period" inidefaultvalue="PT3M"/>
         <!-- Registrar: One or more Registrars sections specify where to send the registration message -->
         <infosys:Registrar initype="multielement" inisections="register" initag="registrar">
           <!-- URL: The URL of the ISIS service where we want to register this service -->
@@ -532,9 +532,9 @@
           <!-- ServiceID: defines the unique id of the service propagated outside. Optional, custom for this Registrar.-->
           <infosys:ServiceID inisections="isis" initag="endpoint"/>
           <!-- Expiration: defines the expiration time of the information provided by the service. Optional, custom for this Registrar.-->
-          <infosys:Expiration inisections="register" initag="expiration"/>
+          <infosys:Expiration inisections="register" initag="expiration" inidefaultvalue="PT10M"/>
           <!-- Period: specifies how often registration has to be done. Optional, custom for this Registrar.-->
-          <infosys:Period inisections="register" initag="period"/>
+          <infosys:Period inisections="register" initag="period" inidefaultvalue="PT3M"/>
           <tls:KeyPath inisections="common" initag="x509_user_key" inidefaultvalue="/etc/grid-security/hostkey.pem"/>
           <tls:CertificatePath inisections="common" initag="x509_user_cert" inidefaultvalue="/etc/grid-security/hostcert.pem"/>
           <tls:CACertificatesDir inisections="common" initag="x509_cert_dir" inidefaultvalue="/etc/grid-security/certificates"/>
@@ -583,9 +583,9 @@
         <!-- ServiceID: defines the unique id of the service propagated outside. (Optional, if omitted, the Endpoint will be used as a ServiceID) -->
         <infosys:ServiceID inisections="echo" initag="serviceid"/>
         <!-- Expiration: defines the expiration time of the information provided by the service (at least 2 minutes). In xsd:duration format. -->
-        <infosys:Expiration inisections="register" initag="expiration"/>
+        <infosys:Expiration inisections="register" initag="expiration" inidefaultvalue="PT10M"/>
         <!-- Period: specifies how often registration has to be done (at least 2 minutes). In xsd:duration format. -->
-        <infosys:Period inisections="register" initag="period"/>
+        <infosys:Period inisections="register" initag="period" inidefaultvalue="PT3M"/>
         <!-- Registrar: One or more Registrars sections specify where to send the registration message -->
         <infosys:Registrar initype="multielement" inisections="register" initag="registrarurl">
           <!-- URL: The URL of the ISIS service where we want to register this service -->
@@ -595,7 +595,7 @@
           <!-- ServiceID: defines the unique id of the service propagated outside. (Optional, if omitted, the Endpoint will be used as a ServiceID) -->
           <infosys:ServiceID inisections="register" initag="serviceid"/>
           <!-- Expiration: defines the expiration time of the information provided by the service (at least 2 minutes). In xsd:duration format. -->
-          <infosys:Expiration inisections="register" initag="expiration"/>
+          <infosys:Expiration inisections="register" initag="expiration" inidefaultvalue="PT10M"/>
           <tls:KeyPath inisections="common" initag="x509_user_key" inidefaultvalue="/etc/grid-security/hostkey.pem"/>
           <tls:CertificatePath inisections="common" initag="x509_user_cert" inidefaultvalue="/etc/grid-security/hostcert.pem"/>
           <tls:CACertificatesDir inisections="common" initag="x509_cert_dir" inidefaultvalue="/etc/grid-security/certificates"/>
@@ -645,9 +645,9 @@
         <!-- ServiceID: defines the unique id of the service propagated outside. (Optional, if omitted, the Endpoint will be used as a ServiceID) -->
         <infosys:ServiceID inisections="pyecho" initag="serviceid"/>
         <!-- Expiration: defines the expiration time of the information provided by the service (at least 2 minutes). In xsd:duration format. -->
-        <infosys:Expiration inisections="register" initag="expiration"/>
+        <infosys:Expiration inisections="register" initag="expiration" inidefaultvalue="PT10M"/>
         <!-- Period: specifies how often registration has to be done (at least 2 minutes). In xsd:duration format. -->
-        <infosys:Period inisections="register" initag="period"/>
+        <infosys:Period inisections="register" initag="period" inidefaultvalue="PT3M"/>
         <!-- Registrar: One or more Registrars sections specify where to send the registration message -->
         <infosys:Registrar initype="multielement" inisections="register" initag="registrar">
           <!-- URL: The URL of the ISIS service where we want to register this service -->
@@ -659,9 +659,9 @@
           <!-- ServiceID: defines the unique id of the service propagated outside. Optional, custom for this Registrar.-->
           <infosys:ServiceID inisections="pyecho" initag="endpoint"/>
           <!-- Expiration: defines the expiration time of the information provided by the service. Optional, custom for this Registrar.-->
-          <infosys:Expiration inisections="register" initag="expiration"/>
+          <infosys:Expiration inisections="register" initag="expiration" inidefaultvalue="PT10M"/>
           <!-- Period: specifies how often registration has to be done. Optional, custom for this Registrar.-->
-          <infosys:Period inisections="register" initag="period"/>
+          <infosys:Period inisections="register" initag="period" inidefaultvalue="PT3M"/>
           <tls:KeyPath inisections="common" initag="x509_user_key" inidefaultvalue="/etc/grid-security/hostkey.pem"/>
           <tls:CertificatePath inisections="common" initag="x509_user_cert" inidefaultvalue="/etc/grid-security/hostcert.pem"/>
           <tls:CACertificatesDir inisections="common" initag="x509_cert_dir" inidefaultvalue="/etc/grid-security/certificates"/>
@@ -712,9 +712,9 @@
         <!-- ServiceID: defines the unique id of the service propagated outside. (Optional, if omitted, the Endpoint will be used as a ServiceID) -->
         <infosys:ServiceID inisections="javaecho" initag="serviceid"/>
         <!-- Expiration: defines the expiration time of the information provided by the service (at least 2 minutes). In xsd:duration format. -->
-        <infosys:Expiration inisections="register" initag="expiration"/>
+        <infosys:Expiration inisections="register" initag="expiration" inidefaultvalue="PT10M"/>
         <!-- Period: specifies how often registration has to be done (at least 2 minutes). In xsd:duration format. -->
-        <infosys:Period inisections="register" initag="period"/>
+        <infosys:Period inisections="register" initag="period" inidefaultvalue="PT3M"/>
         <!-- Registrar: One or more Registrars sections specify where to send the registration message -->
         <infosys:Registrar initype="multielement" inisections="register" initag="registrarurl">
           <!-- URL: The URL of the ISIS service where we want to register this service -->
@@ -726,9 +726,9 @@
           <!-- ServiceID: defines the unique id of the service propagated outside. Optional, custom for this Registrar.-->
           <infosys:ServiceID inisections="javaecho" initag="serviceid"/>
           <!-- Expiration: defines the expiration time of the information provided by the service. Optional, custom for this Registrar.-->
-          <infosys:Expiration inisections="register" initag="expiration"/>
+          <infosys:Expiration inisections="register" initag="expiration" inidefaultvalue="PT10M"/>
           <!-- Period: specifies how often registration has to be done. Optional, custom for this Registrar.-->
-          <infosys:Period inisections="register" initag="period"/>
+          <infosys:Period inisections="register" initag="period" inidefaultvalue="PT3M"/>
           <tls:KeyPath inisections="common" initag="x509_user_key" inidefaultvalue="/etc/grid-security/hostkey.pem"/>
           <tls:CertificatePath inisections="common" initag="x509_user_cert" inidefaultvalue="/etc/grid-security/hostcert.pem"/>
           <tls:CACertificatesDir inisections="common" initag="x509_cert_dir" inidefaultvalue="/etc/grid-security/certificates"/>
@@ -804,9 +804,9 @@
         <!-- ServiceID: defines the unique id of the service propagated outside. (Optional, if omitted, the Endpoint will be used as a ServiceID) -->
         <infosys:ServiceID inisections="bartender" initag="serviceid"/>
         <!-- Expiration: defines the expiration time of the information provided by the service (at least 2 minutes). In xsd:duration format. -->
-        <infosys:Expiration inisections="register" initag="expiration"/>
+        <infosys:Expiration inisections="register" initag="expiration" inidefaultvalue="PT10M"/>
         <!-- Period: specifies how often registration has to be done (at least 2 minutes). In xsd:duration format. -->
-        <infosys:Period inisections="register" initag="period"/>
+        <infosys:Period inisections="register" initag="period" inidefaultvalue="PT3M"/>
         <!-- Registrar: One or more Registrars sections specify where to send the registration message -->
         <infosys:Registrar initype="multielement" inisections="register" initag="registrarurl">
           <!-- URL: The URL of the ISIS service where we want to register this service -->
@@ -818,9 +818,9 @@
           <!-- ServiceID: defines the unique id of the service propagated outside. Optional, custom for this Registrar.-->
           <infosys:ServiceID inisections="register" initag="endpoint"/>
           <!-- Expiration: defines the expiration time of the information provided by the service. Optional, custom for this Registrar.-->
-          <infosys:Expiration inisections="register" initag="expiration"/>
+          <infosys:Expiration inisections="register" initag="expiration" inidefaultvalue="PT10M"/>
           <!-- Period: specifies how often registration has to be done. Optional, custom for this Registrar.-->
-          <infosys:Period inisections="register" initag="period"/>
+          <infosys:Period inisections="register" initag="period" inidefaultvalue="PT3M"/>
           <tls:KeyPath inisections="common" initag="x509_user_key" inidefaultvalue="/etc/grid-security/hostkey.pem"/>
           <tls:CertificatePath inisections="common" initag="x509_user_cert" inidefaultvalue="/etc/grid-security/hostcert.pem"/>
           <tls:CACertificatesDir inisections="common" initag="x509_cert_dir" inidefaultvalue="/etc/grid-security/certificates"/>
@@ -899,9 +899,9 @@
         <!-- ServiceID: defines the unique id of the service propagated outside. (Optional, if omitted, the Endpoint will be used as a ServiceID) -->
         <infosys:ServiceID inisections="ahash" initag="serviceid"/>
         <!-- Expiration: defines the expiration time of the information provided by the service (at least 2 minutes). In xsd:duration format. -->
-        <infosys:Expiration inisections="register" initag="expiration"/>
+        <infosys:Expiration inisections="register" initag="expiration" inidefaultvalue="PT10M"/>
         <!-- Period: specifies how often registration has to be done (at least 2 minutes). In xsd:duration format. -->
-        <infosys:Period inisections="register" initag="period"/>
+        <infosys:Period inisections="register" initag="period" inidefaultvalue="PT3M"/>
         <!-- Registrar: One or more Registrars sections specify where to send the registration message -->
         <infosys:Registrar initype="multielement" inisections="register" initag="registrar">
           <!-- URL: The URL of the ISIS service where we want to register this service -->
@@ -913,9 +913,9 @@
           <!-- ServiceID: defines the unique id of the service propagated outside. Optional, custom for this Registrar.-->
           <infosys:ServiceID inisections="ahash" initag="endpoint"/>
           <!-- Expiration: defines the expiration time of the information provided by the service. Optional, custom for this Registrar.-->
-          <infosys:Expiration inisections="register" initag="expiration"/>
+          <infosys:Expiration inisections="register" initag="expiration" inidefaultvalue="PT10M"/>
           <!-- Period: specifies how often registration has to be done. Optional, custom for this Registrar.-->
-          <infosys:Period inisections="register" initag="period"/>
+          <infosys:Period inisections="register" initag="period" inidefaultvalue="PT3M"/>
           <tls:KeyPath inisections="common" initag="x509_user_key" inidefaultvalue="/etc/grid-security/hostkey.pem"/>
           <tls:CertificatePath inisections="common" initag="x509_user_cert" inidefaultvalue="/etc/grid-security/hostcert.pem"/>
           <tls:CACertificatesDir inisections="common" initag="x509_cert_dir" inidefaultvalue="/etc/grid-security/certificates"/>
@@ -980,9 +980,9 @@
         <!-- ServiceID: defines the unique id of the service propagated outside. (Optional, if omitted, the Endpoint will be used as a ServiceID) -->
         <infosys:ServiceID inisections="librarian" initag="serviceid"/>
         <!-- Expiration: defines the expiration time of the information provided by the service (at least 2 minutes). In xsd:duration format. -->
-        <infosys:Expiration inisections="register" initag="expiration"/>
+        <infosys:Expiration inisections="register" initag="expiration" inidefaultvalue="PT10M"/>
         <!-- Period: specifies how often registration has to be done (at least 2 minutes). In xsd:duration format. -->
-        <infosys:Period inisections="register" initag="period"/>
+        <infosys:Period inisections="register" initag="period" inidefaultvalue="PT3M"/>
         <!-- Registrar: One or more Registrars sections specify where to send the registration message -->
         <infosys:Registrar initype="multielement" inisections="register" initag="registrarurl">
           <!-- URL: The URL of the ISIS service where we want to register this service -->
@@ -994,9 +994,9 @@
           <!-- ServiceID: defines the unique id of the service propagated outside. Optional, custom for this Registrar.-->
           <infosys:ServiceID inisections="librarian" initag="serviceid"/>
           <!-- Expiration: defines the expiration time of the information provided by the service. Optional, custom for this Registrar.-->
-          <infosys:Expiration inisections="register" initag="expiration"/>
+          <infosys:Expiration inisections="register" initag="expiration" inidefaultvalue="PT10M"/>
           <!-- Period: specifies how often registration has to be done. Optional, custom for this Registrar.-->
-          <infosys:Period inisections="register" initag="period"/>
+          <infosys:Period inisections="register" initag="period" inidefaultvalue="PT3M"/>
           <tls:KeyPath inisections="common" initag="x509_user_key" inidefaultvalue="/etc/grid-security/hostkey.pem"/>
           <tls:CertificatePath inisections="common" initag="x509_user_cert" inidefaultvalue="/etc/grid-security/hostcert.pem"/>
           <tls:CACertificatesDir inisections="common" initag="x509_cert_dir" inidefaultvalue="/etc/grid-security/certificates"/>
@@ -1090,9 +1090,9 @@
         <!-- ServiceID: defines the unique id of the service propagated outside. (Optional, if omitted, the Endpoint will be used as a ServiceID) -->
         <infosys:ServiceID inisections="shepherd" initag="serviceid"/>
         <!-- Expiration: defines the expiration time of the information provided by the service (at least 2 minutes). In xsd:duration format. -->
-        <infosys:Expiration inisections="register" initag="expiration"/>
+        <infosys:Expiration inisections="register" initag="expiration" inidefaultvalue="PT10M"/>
         <!-- Period: specifies how often registration has to be done (at least 2 minutes). In xsd:duration format. -->
-        <infosys:Period inisections="register" initag="period"/>
+        <infosys:Period inisections="register" initag="period" inidefaultvalue="PT3M"/>
         <!-- Registrar: One or more Registrars sections specify where to send the registration message -->
         <infosys:Registrar initype="multielement" inisections="register" initag="registrarurl">
           <!-- URL: The URL of the ISIS service where we want to register this service -->
@@ -1104,9 +1104,9 @@
           <!-- ServiceID: defines the unique id of the service propagated outside. Optional, custom for this Registrar.-->
           <infosys:ServiceID inisections="shepherd" initag="serviceid"/>
           <!-- Expiration: defines the expiration time of the information provided by the service. Optional, custom for this Registrar.-->
-          <infosys:Expiration inisections="register" initag="expiration"/>
+          <infosys:Expiration inisections="register" initag="expiration" inidefaultvalue="PT10M"/>
           <!-- Period: specifies how often registration has to be done. Optional, custom for this Registrar.-->
-          <infosys:Period inisections="register" initag="period"/>
+          <infosys:Period inisections="register" initag="period" inidefaultvalue="PT3M"/>
           <tls:KeyPath inisections="common" initag="x509_user_key" inidefaultvalue="/etc/grid-security/hostkey.pem"/>
           <tls:CertificatePath inisections="common" initag="x509_user_cert" inidefaultvalue="/etc/grid-security/hostcert.pem"/>
           <tls:CACertificatesDir inisections="common" initag="x509_cert_dir" inidefaultvalue="/etc/grid-security/certificates"/>
@@ -1159,9 +1159,9 @@
         <!-- ServiceID: defines the unique id of the service propagated outside. (Optional, if omitted, the Endpoint will be used as a ServiceID) -->
         <infosys:ServiceID inisections="hopi" initag="serviceid"/>
         <!-- Expiration: defines the expiration time of the information provided by the service (at least 2 minutes). In xsd:duration format. -->
-        <infosys:Expiration inisections="register" initag="expiration"/>
+        <infosys:Expiration inisections="register" initag="expiration" inidefaultvalue="PT10M"/>
         <!-- Period: specifies how often registration has to be done (at least 2 minutes). In xsd:duration format. -->
-        <infosys:Period inisections="register" initag="period"/>
+        <infosys:Period inisections="register" initag="period" inidefaultvalue="PT3M"/>
         <!-- Registrar: One or more Registrars sections specify where to send the registration message -->
         <infosys:Registrar initype="multielement" inisections="register" initag="registrarurl">
           <!-- URL: The URL of the ISIS service where we want to register this service -->
@@ -1173,9 +1173,9 @@
           <!-- ServiceID: defines the unique id of the service propagated outside. Optional, custom for this Registrar.-->
           <infosys:ServiceID inisections="hopi" initag="serviceid"/>
           <!-- Expiration: defines the expiration time of the information provided by the service. Optional, custom for this Registrar.-->
-          <infosys:Expiration inisections="register" initag="expiration"/>
+          <infosys:Expiration inisections="register" initag="expiration" inidefaultvalue="PT10M"/>
           <!-- Period: specifies how often registration has to be done. Optional, custom for this Registrar.-->
-          <infosys:Period inisections="register" initag="period"/>
+          <infosys:Period inisections="register" initag="period" inidefaultvalue="PT3M"/>
           <tls:KeyPath inisections="common" initag="x509_user_key" inidefaultvalue="/etc/grid-security/hostkey.pem"/>
           <tls:CertificatePath inisections="common" initag="x509_user_cert" inidefaultvalue="/etc/grid-security/hostcert.pem"/>
           <tls:CACertificatesDir inisections="common" initag="x509_cert_dir" inidefaultvalue="/etc/grid-security/certificates"/>
