@@ -127,7 +127,8 @@ bool ArgusPEP::Handle(Arc::Message* msg) const{
     }
 
    if (decision != XACML_DECISION_PERMIT ){
-     logger.msg(Arc::DEBUG,"%s is not authorized", subjectid);
+     logger.msg(Arc::INFO,"%s is not authorized to do action %s in resource %s ", subjectid, actionid, resourceid);
+     logger.msg(Arc::DEBUG,"The reached decision is: %s ", decision);
       return false;   
    }	 
     // Delete resquest and response
@@ -137,7 +138,7 @@ bool ArgusPEP::Handle(Arc::Message* msg) const{
     // Release the PEP client 
     pep_rc= pep_destroy();
     if (pep_rc != PEP_OK) {
-        logger.msg(Arc::DEBUG,"Failed to release PEP client request: %s\n",pep_strerror(pep_rc));
+        logger.msg(Arc::DEBUG,"Failed to release PEP client request: %s\n",pep_strerror(pep_rc));   
         return false;
     }
     logger.msg(Arc::INFO,"Grid identity is mapped to local identity '%s'",local_id);
