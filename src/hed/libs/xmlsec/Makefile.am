@@ -6,7 +6,7 @@ libarcxmlsec_la_SOURCES  = XmlSecUtils.cpp XMLSecNode.cpp saml_util.cpp
 libarcxmlsec_la_CXXFLAGS = $(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(OPENSSL_CFLAGS) $(XMLSEC_OPENSSL_CFLAGS) $(XMLSEC_CFAGS) -I$(top_srcdir)/include
 libarcxmlsec_la_LIBADD   = $(top_srcdir)/src/hed/libs/common/libarccommon.la \
                            $(top_srcdir)/src/hed/libs/message/libarcmessage.la \
-                           $(LIBXML2_LIBS) $(GLIBMM_LIBS) $(OPENSSL_LIBS) $(XMLSEC_OPENSSL_LIBS) $(XMLSEC_LIBS)
+                           $(LIBXML2_LIBS) $(GLIBMM_LIBS) $(OPENSSL_LIBS) $(XMLSEC_OPENSSL_LIBS) $(XMLSEC_LIBS) $(ZLIB_LIBS)
 
 noinst_PROGRAMS = test_xmlsecnode
 
