@@ -518,7 +518,7 @@ static void soft_state_thread(void *data) {
         // or not, and if yes, then destroy itself and free the relevant pointer.
         valid_data = new Soft_State();
         valid_data->function = "ETValid";
-        valid_data->sleep = ((int)valid.GetPeriod())/2;
+        valid_data->sleep = ((int)valid.GetPeriod());
         valid_data->query = "//RegEntry/MetaSrcAdv[count(Expiration)=1]/ServiceID";
         valid_data->database = db_;
         valid_data->kill_thread = &KillThread;
@@ -535,7 +535,7 @@ static void soft_state_thread(void *data) {
         // or not, and if yes, then destroy itself and free the relevant pointer.
         remove_data = new Soft_State();
         remove_data->function = "ETRemove";
-        remove_data->sleep = ((int)remove.GetPeriod())/2;
+        remove_data->sleep = ((int)remove.GetPeriod());
         remove_data->query = "//RegEntry/MetaSrcAdv[count(Expiration)=0]/ServiceID";
         remove_data->database = db_;
         remove_data->kill_thread = &KillThread;
