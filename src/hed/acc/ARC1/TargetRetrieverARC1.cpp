@@ -390,31 +390,6 @@ namespace Arc {
 
             currentTarget.FreeSlotsWithDuration[Period(duration)] = freeSlots;
           }
-          /*
-          do {
-            std::string::size_type spacepos = value.find(' ', pos);
-            std::string entry;
-            if (spacepos == std::string::npos)
-              entry = value.substr(pos);
-            else
-              entry = value.substr(pos, spacepos - pos);
-            int num_cpus;
-            Period time;
-            std::string::size_type colonpos = entry.find(':');
-            if (colonpos == std::string::npos) {
-              num_cpus = stringtoi(entry);
-              time = LONG_MAX;
-            }
-            else {
-              num_cpus = stringtoi(entry.substr(0, colonpos));
-              time = stringtoi(entry.substr(colonpos + 1)) * 60;
-            }
-            currentTarget.FreeSlotsWithDuration[time] = num_cpus;
-            pos = spacepos;
-            if (pos != std::string::npos)
-              pos++;
-          } while (pos != std::string::npos);
-          */
         }
         if (ComputingShare[i]["UsedSlots"])
           currentTarget.UsedSlots = stringtoi((std::string)ComputingShare[i]["UsedSlots"]);
