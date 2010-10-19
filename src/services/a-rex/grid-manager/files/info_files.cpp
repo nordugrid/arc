@@ -1059,6 +1059,7 @@ bool job_clean_deleted(const JobDescription &desc,JobUser &user,std::list<std::s
   fname = user.ControlDir()+"/job."+id+".input"; remove(fname.c_str());
   fname = user.ControlDir()+"/job."+id+".rte"; remove(fname.c_str());
   fname = user.ControlDir()+"/job."+id+".grami_log"; remove(fname.c_str());
+  fname = user.ControlDir()+"/job."+id+".statistics"; remove(fname.c_str());
   fname = user.SessionRoot(id)+"/"+id+sfx_lrmsoutput; remove(fname.c_str());
   fname = user.SessionRoot(id)+"/"+id+".input_status"; remove(fname.c_str());
   /* remove session directory */
