@@ -207,7 +207,7 @@ void TargetRetrieverARC1Test::TestExtractTargets()
         "<EstimatedAverageWaitingTime>200</EstimatedAverageWaitingTime>"
         "<EstimatedWorstWaitingTime>2000</EstimatedWorstWaitingTime>"
         "<FreeSlots>14</FreeSlots>"
-        "<FreeSlotsWithDuration>1:2000 7:1000</FreeSlotsWithDuration>"
+        "<FreeSlotsWithDuration>1:2000 7</FreeSlotsWithDuration>"
         "<UsedSlots>7</UsedSlots>"
         "<RequestedSlots>378</RequestedSlots>"
         "<ReservationPolicy>none</ReservationPolicy>"
@@ -386,6 +386,23 @@ void TargetRetrieverARC1Test::TestExtractTargets()
   testLogger.msg(Arc::DEBUG, "targets.size() = %d", targets.size());
 
   CPPUNIT_ASSERT_EQUAL(2, (int)targets.size());
+
+  /*
+   * FreeSlotsWithDuration. In the ExecutionTarget the FreeSlotsWithDuration is
+   * stored as a std::map, which mean that the keys are sorted from lower to
+   * higher key value, thus they are not stored in the order they are parsed.
+   */
+  CPPUNIT_ASSERT_EQUAL(2, (int)targets.front().FreeSlotsWithDuration.size());
+  CPPUNIT_ASSERT_EQUAL(Arc::Period(3000), targets.front().FreeSlotsWithDuration.begin()->first);
+  CPPUNIT_ASSERT_EQUAL(14, targets.front().FreeSlotsWithDuration.begin()->second);
+  CPPUNIT_ASSERT_EQUAL(Arc::Period(12000), targets.front().FreeSlotsWithDuration.rbegin()->first);
+  CPPUNIT_ASSERT_EQUAL(4, targets.front().FreeSlotsWithDuration.rbegin()->second);
+  CPPUNIT_ASSERT_EQUAL(Arc::Period(2000), targets.back().FreeSlotsWithDuration.begin()->first);
+  CPPUNIT_ASSERT_EQUAL(1, targets.back().FreeSlotsWithDuration.begin()->second);
+  CPPUNIT_ASSERT_EQUAL(Arc::Period(LONG_MAX), targets.back().FreeSlotsWithDuration.rbegin()->first);
+  CPPUNIT_ASSERT_EQUAL(7, targets.back().FreeSlotsWithDuration.rbegin()->second);
+
+
   CPPUNIT_ASSERT_EQUAL(true, targets.front().ConnectivityIn);
   CPPUNIT_ASSERT_EQUAL(false, targets.front().ConnectivityOut);
   CPPUNIT_ASSERT_EQUAL(false, targets.back().ConnectivityIn);

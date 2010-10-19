@@ -372,8 +372,25 @@ namespace Arc {
         if (ComputingShare[i]["FreeSlots"])
           currentTarget.FreeSlots = stringtoi((std::string)ComputingShare[i]["FreeSlots"]);
         if (ComputingShare[i]["FreeSlotsWithDuration"]) {
-          std::string value = (std::string)ComputingShare[i]["FreeSlotsWithDuration"];
-          std::string::size_type pos = 0;
+          // Format: ns[:t] [ns[:t]]..., where ns is number of slots and t is the duration.
+          currentTarget.FreeSlotsWithDuration.clear();
+
+          const std::string fswdValue = (std::string)ComputingShare[i]["FreeSlotsWithDuration"];
+          std::list<std::string> fswdList;
+          tokenize(fswdValue, fswdList);
+          for (std::list<std::string>::iterator it = fswdList.begin();
+               it != fswdList.end(); it++) {
+            std::list<std::string> fswdPair;
+            tokenize(*it, fswdPair, ":");
+            int duration = LONG_MAX, freeSlots = 0;
+            if (fswdPair.size() > 2 || !stringto(fswdPair.front(), freeSlots) || fswdPair.size() == 2 && !stringto(fswdPair.back(), duration)) {
+              logger.msg(VERBOSE, "The \"FreeSlotsWithDuration\" attribute published by \"%s\" is wrongly formatted. Ignoring it.");
+              logger.msg(DEBUG, "Wrong format of the \"FreeSlotsWithDuration\" = \"%s\" (\"%s\")", fswdValue, *it);
+            }
+
+            currentTarget.FreeSlotsWithDuration[Period(duration)] = freeSlots;
+          }
+          /*
           do {
             std::string::size_type spacepos = value.find(' ', pos);
             std::string entry;
@@ -397,6 +414,7 @@ namespace Arc {
             if (pos != std::string::npos)
               pos++;
           } while (pos != std::string::npos);
+          */
         }
         if (ComputingShare[i]["UsedSlots"])
           currentTarget.UsedSlots = stringtoi((std::string)ComputingShare[i]["UsedSlots"]);

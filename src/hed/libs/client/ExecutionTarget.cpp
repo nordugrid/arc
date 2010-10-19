@@ -501,12 +501,19 @@ namespace Arc {
       if (FreeSlots != -1)
         std::cout << IString(" Free Slots: %i", FreeSlots) << std::endl;
       if (!FreeSlotsWithDuration.empty()) {
-        std::cout << IString(" Free Slots With Duration:") << std::endl;
+        std::cout << IString(" Free Slots Grouped According To Time Limits (limit: free slots):") << std::endl;
         for (std::map<Period, int>::const_iterator it =
                FreeSlotsWithDuration.begin();
-             it != FreeSlotsWithDuration.end(); it++)
-          std::cout << IString("  %s: %i", it->first.istr(), it->second)
-                    << std::endl;
+             it != FreeSlotsWithDuration.end(); it++) {
+          if (it->first != Period(LONG_MAX)) {
+            std::cout << IString("  %s: %i", it->first.istr(), it->second)
+                      << std::endl;
+          }
+          else {
+            std::cout << IString("  unspecified: %i", it->second)
+                      << std::endl;
+          }
+        }
       }
       if (UsedSlots != -1)
         std::cout << IString(" Used Slots: %i", UsedSlots) << std::endl;

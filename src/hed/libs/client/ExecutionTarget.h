@@ -239,6 +239,14 @@ namespace Arc {
     Period EstimatedAverageWaitingTime;
     Period EstimatedWorstWaitingTime;
     int FreeSlots;
+
+    /// FreeSlotsWithDuration std::map<Period, int>
+    /**
+     * This attribute express the number of free slots with their time limits.
+     * The keys in the std::map are the time limit (Period) for the number of
+     * free slots stored as the value (int). If no time limit has been specified
+     * for a set of free slots then the key will equal Period(LONG_MAX).
+     */
     std::map<Period, int> FreeSlotsWithDuration;
     int UsedSlots;
     int RequestedSlots;
