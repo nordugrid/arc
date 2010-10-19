@@ -164,12 +164,20 @@ namespace Arc {
       }
 
       const std::string childFullName = node.Child(i).FullName();
+
       const std::string sections = node.Child(i).Attribute("inisections");
+      if (node.Child(i).Attribute("inisections") && sections.empty()) {
+        profileLogger.msg(WARNING, "Element \"%s\" in the profile ignored: the value of the \"inisections\" attribute cannot be the empty string.", node.Child(i).FullName());
+        continue;
+      }
+
       const std::string tag = node.Child(i).Attribute("initag");
-      // If inisections and initag attributes have been set, but not initype, then the initype is "single".
-      const std::string type = (!node.Child(i).Attribute("initype") &&
-                                 node.Child(i).Attribute("inisections") &&
-                                 node.Child(i).Attribute("initag") ? "single" : node.Child(i).Attribute("initype"));
+      if (node.Child(i).Attribute("initag") && tag.empty()) {
+        profileLogger.msg(WARNING, "Element \"%s\" in the profile ignored: the value of the \"initag\" attribute cannot be the empty string.", node.Child(i).FullName());
+        continue;
+      }
+
+      const std::string type = (node.Child(i).Attribute("initype") ? (std::string)node.Child(i).Attribute("initype") : (!tag.empty() && !sections.empty() ? "single" : ""));
 
       if (type.empty() && sections.empty() && tag.empty()) {
         if (node.Child(i).Size() == 0) {
@@ -230,12 +238,20 @@ namespace Arc {
         continue;
       }
       const std::string childFullName = node.Child(i).FullName();
+
       const std::string sections = node.Child(i).Attribute("inisections");
+      if (node.Child(i).Attribute("inisections") && sections.empty()) {
+        profileLogger.msg(WARNING, "Element \"%s\" in the profile ignored: the value of the \"inisections\" attribute cannot be the empty string.", node.Child(i).FullName());
+        continue;
+      }
+
       const std::string tag = node.Child(i).Attribute("initag");
-      // If inisections and initag attributes have been set, but not initype, then the initype is "single".
-      const std::string type = (!node.Child(i).Attribute("initype") &&
-                                 node.Child(i).Attribute("inisections") &&
-                                 node.Child(i).Attribute("initag") ? "single" : node.Child(i).Attribute("initype"));
+      if (node.Child(i).Attribute("initag") && tag.empty()) {
+        profileLogger.msg(WARNING, "Element \"%s\" in the profile ignored: the value of the \"initag\" attribute cannot be the empty string.", node.Child(i).FullName());
+        continue;
+      }
+
+      const std::string type = (node.Child(i).Attribute("initype") ? (std::string)node.Child(i).Attribute("initype") : (!tag.empty() && !sections.empty() ? "single" : ""));
 
       if (sections.empty() && tag.empty()) {
         if (node.Child(i).Size() == 0) {

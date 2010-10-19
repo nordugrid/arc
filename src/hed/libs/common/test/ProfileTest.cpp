@@ -254,7 +254,9 @@ void ProfileTest::TestMultiElement()
           "<foo initype=\"multielement\" inisections=\"first second\" initag=\"baz\">"
             "<fox initype=\"single\" inisections=\"first second\" initag=\"fox\"/>"
             "<bar>"
-              "<gee initype=\"attribute\" inisections=\"first second\" initag=\"gee\"/>"
+              "<geea inisections=\"first second\" initag=\"geea\"/>"
+              "<geeb initype=\"single\" inisections=\"first second\" initag=\"geeb\"/>"
+              "<geec initype=\"attribute\" inisections=\"first second\" initag=\"geec\"/>"
               "<baz initype=\"#this\"/>"
             "</bar>"
             "<dummy><dummy/></dummy>"
@@ -269,32 +271,40 @@ void ProfileTest::TestMultiElement()
   i[first].NewChild("baz") = first + "-multielement2";
   i[first].NewChild("baz") = first + "-multielement3";
   i[first].NewChild("fox") = first + "-fox";
+  i[first].NewChild("geea") = first + "-geea";
+  i[first].NewChild("geeb") = first + "-geeb";
 
   i.NewChild(second);
   i[second].NewChild("baz") = second + "-multielement1";
   i[second].NewChild("baz") = second + "-multielement2";
   i[second].NewChild("baz") = second + "-multielement3";
   i[second].NewChild("fox") = second + "-fox";
-  i[second].NewChild("gee") = "attr";
+  i[second].NewChild("geec") = second + "-geec-attr";
 
   /*
    * Config:
      <ArcConfig>
        <foo>
          <fox>first-fox</fox>
-         <bar gee="attr">
+         <bar geec="second-geec-attr">
+           <geea>first-geea</geea>
+           <geeb>first-geeb</geeb>
            <baz>first-multielement1</baz>
          </bar>
        </foo>
        <foo>
          <fox>first-fox</fox>
-         <bar gee="attr">
+         <bar geec="second-geec-attr">
+           <geea>first-geea</geea>
+           <geeb>first-geeb</geeb>
            <baz>first-multielement2</baz>
          </bar>
        </foo>
        <foo>
          <fox>first-fox</fox>
-         <bar gee="attr">
+         <bar geec="second-geec-attr">
+           <geea>first-geea</geea>
+           <geeb>first-geeb</geeb>
            <baz>first-multielement3</baz>
          </bar>
        </foo>
@@ -304,25 +314,65 @@ void ProfileTest::TestMultiElement()
   Arc::Config c;
   p.Evaluate(c, i);
 
-  CPPUNIT_ASSERT_EQUAL(first + "-multielement1", (std::string)c["foo"][0]["bar"]["baz"]);
-  CPPUNIT_ASSERT_EQUAL(first + "-multielement2", (std::string)c["foo"][1]["bar"]["baz"]);
-  CPPUNIT_ASSERT_EQUAL(first + "-multielement3", (std::string)c["foo"][2]["bar"]["baz"]);
-
-  CPPUNIT_ASSERT_EQUAL(first + "-fox", (std::string)c["foo"][0]["fox"]);
-  CPPUNIT_ASSERT_EQUAL(first + "-fox", (std::string)c["foo"][1]["fox"]);
-  CPPUNIT_ASSERT_EQUAL(first + "-fox", (std::string)c["foo"][2]["fox"]);
-
-  CPPUNIT_ASSERT_EQUAL((std::string)"attr", (std::string)c["foo"][0]["bar"].Attribute("gee"));
-  CPPUNIT_ASSERT_EQUAL((std::string)"attr", (std::string)c["foo"][1]["bar"].Attribute("gee"));
-  CPPUNIT_ASSERT_EQUAL((std::string)"attr", (std::string)c["foo"][2]["bar"].Attribute("gee"));
-
-  CPPUNIT_ASSERT_EQUAL(0, c.AttributesSize());
-  CPPUNIT_ASSERT_EQUAL(0, c["foo"][1].AttributesSize());
-  CPPUNIT_ASSERT_EQUAL(1, c["foo"][1]["bar"].AttributesSize());
-  CPPUNIT_ASSERT_EQUAL(0, c["foo"][1]["bar"]["foo"].AttributesSize());
   CPPUNIT_ASSERT_EQUAL(3, c.Size());
-  CPPUNIT_ASSERT_EQUAL(2, c["foo"][1].Size());
-  CPPUNIT_ASSERT_EQUAL(1, c["foo"][1]["bar"].Size());
+  CPPUNIT_ASSERT_EQUAL(0, c.AttributesSize());
+
+  CPPUNIT_ASSERT_EQUAL(2, c.Child(0).Size());
+  CPPUNIT_ASSERT_EQUAL(0, c.Child(0).AttributesSize());
+  CPPUNIT_ASSERT_EQUAL((std::string)"foo", (std::string)c.Child(0).Name());
+  CPPUNIT_ASSERT_EQUAL(0, c.Child(0).Child(0).Size());
+  CPPUNIT_ASSERT_EQUAL(0, c.Child(0).Child(0).AttributesSize());
+  CPPUNIT_ASSERT_EQUAL((std::string)"fox", (std::string)c.Child(0).Child(0).Name());
+  CPPUNIT_ASSERT_EQUAL((std::string)"first-fox", (std::string)c.Child(0).Child(0));
+  CPPUNIT_ASSERT_EQUAL(3, c.Child(0).Child(1).Size());
+  CPPUNIT_ASSERT_EQUAL(1, c.Child(0).Child(1).AttributesSize());
+  CPPUNIT_ASSERT_EQUAL((std::string)"bar", (std::string)c.Child(0).Child(1).Name());
+  CPPUNIT_ASSERT_EQUAL((std::string)"geea", (std::string)c.Child(0).Child(1).Child(0).Name());
+  CPPUNIT_ASSERT_EQUAL((std::string)"first-geea", (std::string)c.Child(0).Child(1).Child(0));
+  CPPUNIT_ASSERT_EQUAL((std::string)"geeb", (std::string)c.Child(0).Child(1).Child(1).Name());
+  CPPUNIT_ASSERT_EQUAL((std::string)"first-geeb", (std::string)c.Child(0).Child(1).Child(1));
+  CPPUNIT_ASSERT_EQUAL((std::string)"baz", (std::string)c.Child(0).Child(1).Child(2).Name());
+  CPPUNIT_ASSERT_EQUAL((std::string)"first-multielement1", (std::string)c.Child(0).Child(1).Child(2));
+  CPPUNIT_ASSERT_EQUAL((std::string)"geec", (std::string)c.Child(0).Child(1).Attribute(0).Name());
+  CPPUNIT_ASSERT_EQUAL((std::string)"second-geec-attr", (std::string)c.Child(0).Child(1).Attribute(0));
+
+  CPPUNIT_ASSERT_EQUAL(2, c.Child(1).Size());
+  CPPUNIT_ASSERT_EQUAL(0, c.Child(1).AttributesSize());
+  CPPUNIT_ASSERT_EQUAL((std::string)"foo", (std::string)c.Child(1).Name());
+  CPPUNIT_ASSERT_EQUAL(0, c.Child(1).Child(0).Size());
+  CPPUNIT_ASSERT_EQUAL(0, c.Child(1).Child(0).AttributesSize());
+  CPPUNIT_ASSERT_EQUAL((std::string)"fox", (std::string)c.Child(1).Child(0).Name());
+  CPPUNIT_ASSERT_EQUAL((std::string)"first-fox", (std::string)c.Child(1).Child(0));
+  CPPUNIT_ASSERT_EQUAL(3, c.Child(1).Child(1).Size());
+  CPPUNIT_ASSERT_EQUAL(1, c.Child(1).Child(1).AttributesSize());
+  CPPUNIT_ASSERT_EQUAL((std::string)"bar", (std::string)c.Child(1).Child(1).Name());
+  CPPUNIT_ASSERT_EQUAL((std::string)"geea", (std::string)c.Child(1).Child(1).Child(0).Name());
+  CPPUNIT_ASSERT_EQUAL((std::string)"first-geea", (std::string)c.Child(1).Child(1).Child(0));
+  CPPUNIT_ASSERT_EQUAL((std::string)"geeb", (std::string)c.Child(1).Child(1).Child(1).Name());
+  CPPUNIT_ASSERT_EQUAL((std::string)"first-geeb", (std::string)c.Child(1).Child(1).Child(1));
+  CPPUNIT_ASSERT_EQUAL((std::string)"baz", (std::string)c.Child(1).Child(1).Child(2).Name());
+  CPPUNIT_ASSERT_EQUAL((std::string)"first-multielement2", (std::string)c.Child(1).Child(1).Child(2));
+  CPPUNIT_ASSERT_EQUAL((std::string)"geec", (std::string)c.Child(1).Child(1).Attribute(0).Name());
+  CPPUNIT_ASSERT_EQUAL((std::string)"second-geec-attr", (std::string)c.Child(1).Child(1).Attribute(0));
+
+  CPPUNIT_ASSERT_EQUAL(2, c.Child(2).Size());
+  CPPUNIT_ASSERT_EQUAL(0, c.Child(2).AttributesSize());
+  CPPUNIT_ASSERT_EQUAL((std::string)"foo", (std::string)c.Child(2).Name());
+  CPPUNIT_ASSERT_EQUAL(0, c.Child(2).Child(0).Size());
+  CPPUNIT_ASSERT_EQUAL(0, c.Child(2).Child(0).AttributesSize());
+  CPPUNIT_ASSERT_EQUAL((std::string)"fox", (std::string)c.Child(2).Child(0).Name());
+  CPPUNIT_ASSERT_EQUAL((std::string)"first-fox", (std::string)c.Child(2).Child(0));
+  CPPUNIT_ASSERT_EQUAL(3, c.Child(2).Child(1).Size());
+  CPPUNIT_ASSERT_EQUAL(1, c.Child(2).Child(1).AttributesSize());
+  CPPUNIT_ASSERT_EQUAL((std::string)"bar", (std::string)c.Child(2).Child(1).Name());
+  CPPUNIT_ASSERT_EQUAL((std::string)"geea", (std::string)c.Child(2).Child(1).Child(0).Name());
+  CPPUNIT_ASSERT_EQUAL((std::string)"first-geea", (std::string)c.Child(2).Child(1).Child(0));
+  CPPUNIT_ASSERT_EQUAL((std::string)"geeb", (std::string)c.Child(2).Child(1).Child(1).Name());
+  CPPUNIT_ASSERT_EQUAL((std::string)"first-geeb", (std::string)c.Child(2).Child(1).Child(1));
+  CPPUNIT_ASSERT_EQUAL((std::string)"baz", (std::string)c.Child(2).Child(1).Child(2).Name());
+  CPPUNIT_ASSERT_EQUAL((std::string)"first-multielement3", (std::string)c.Child(2).Child(1).Child(2));
+  CPPUNIT_ASSERT_EQUAL((std::string)"geec", (std::string)c.Child(2).Child(1).Attribute(0).Name());
+  CPPUNIT_ASSERT_EQUAL((std::string)"second-geec-attr", (std::string)c.Child(2).Child(1).Attribute(0));
 
   ClearNodes();
 }
@@ -339,6 +389,10 @@ void ProfileTest::TestMultiSection()
             "<baza initype=\"multi\" inisections=\"#this default\" initag=\"baza\"/>"
             "<bazb initype=\"multi\" inisections=\"#this default\" initag=\"bazb\"/>"
             "<bazc initype=\"multi\" inisections=\"default\" initag=\"bazc\"/>"
+            "<wija inisections=\"#this default\" initag=\"wija\"/>"
+            "<wijb initype=\"single\" inisections=\"#this default\" initag=\"wijb\"/>"
+            "<wijc inisections=\"#this default\" initag=\"wijc\"/>"
+            "<wijd initype=\"single\" inisections=\"#this default\" initag=\"wijd\"/>"
             "<geea initype=\"attribute\" inisections=\"#this default\" initag=\"geea\"/>"
             "<geeb initype=\"attribute\" inisections=\"#this default\" initag=\"geeb\"/>"
             "<dummy><dummy/></dummy>"
@@ -351,11 +405,13 @@ void ProfileTest::TestMultiSection()
   i["default"].NewChild("baza") = "default-baza-2";
   i["default"].NewChild("baza") = "default-baza-3";
   i["default"].NewChild("bazb") = "default-bazb";
+  i["default"].NewChild("wija") = "default-wija";
+  i["default"].NewChild("wijb") = "default-wijb";
+  i["default"].NewChild("wijc") = "default-wijc";
+  i["default"].NewChild("wijd") = "default-wijd";
   i["default"].NewChild("bazc") = "default-bazc";
   i["default"].NewChild("geea") = "default-geea";
-  i.NewChild("multi-first");
-  i.NewChild("multi-first");
-  i.NewChild("multi-first");
+
   i.NewChild("multi-first");
   i["multi-first"][0].NewChild("foo") = "1";
   i["multi-first"][0].NewChild("baza") = "multi-first-1.1";
@@ -363,27 +419,34 @@ void ProfileTest::TestMultiSection()
   i["multi-first"][0].NewChild("baza") = "multi-first-1.3";
   i["multi-first"][0].NewChild("geea") = "multi-first-geea-1";
   i["multi-first"][0].NewChild("geeb") = "multi-first-geeb-1";
+  i["multi-first"][0].NewChild("wijc") = "multi-first-wijc-1";
 
+  i.NewChild("multi-first");
   i["multi-first"][1].NewChild("foo"); // Included for coverage.
   i["multi-first"][1].NewChild("baza") = "multi-first-2.1";
   i["multi-first"][1].NewChild("baza") = "multi-first-2.2";
   i["multi-first"][1].NewChild("geea") = "multi-first-geea-2";
 
+  i.NewChild("multi-first");
   i["multi-first"][2].NewChild("foo") = "3";
   i["multi-first"][2].NewChild("foo") = "3-a";
   i["multi-first"][2].NewChild("geea") = "multi-first-geea-3";
+  i["multi-first"][2].NewChild("wijc") = "multi-first-wijc-2";
 
+  i.NewChild("multi-first");
   i["multi-first"][3].NewChild("foo") = "4";
   i["multi-first"][3].NewChild("baza") = "multi-first-3.1";
   i["multi-first"][3].NewChild("baza") = "multi-first-3.2";
   i["multi-first"][3].NewChild("baza") = "multi-first-3.3";
   i["multi-first"][3].NewChild("baza") = "multi-first-3.4";
   i["multi-first"][3].NewChild("geeb") = "multi-first-geeb-2";
+  i["multi-first"][3].NewChild("wijc") = "multi-first-wijc-3";
 
   i.NewChild("multi-second");
   i["multi-second"].NewChild("foo") = "1-second";
   i["multi-second"].NewChild("baza") = "multi-second-1.1";
   i["multi-second"].NewChild("geea") = "multi-second-geea";
+  i["multi-second"].NewChild("wijd") = "multi-second-wijd-1";
 
   /*
    * Config:
@@ -397,12 +460,20 @@ void ProfileTest::TestMultiSection()
          <baza>multi-first-1.3</baza>
          <bazb>default-bazb</bazb>
          <bazc>default-bazc</bazc>
+         <wija>default-wija</wija>
+         <wijb>default-wijb</wijb>
+         <wijc>multi-first-wijc-1</wijc>
+         <wijd>multi-second-wijd-1</wijd>
        </bar>
        <bar geea="multi-first-geea-2">
          <baza>multi-first-2.1</baza>
          <baza>multi-first-2.2</baza>
          <bazb>default-bazb</bazb>
          <bazc>default-bazc</bazc>
+         <wija>default-wija</wija>
+         <wijb>default-wijb</wijb>
+         <wijc>default-wijc</wijc>
+         <wijd>default-wijd</wijd>
        </bar>
        <bar geea="multi-first-geea-3">
          <baza>default-baza-1</baza>
@@ -410,6 +481,10 @@ void ProfileTest::TestMultiSection()
          <baza>default-baza-3</baza>
          <bazb>default-bazb</bazb>
          <bazc>default-bazc</bazc>
+         <wija>default-wija</wija>
+         <wijb>default-wijb</wijb>
+         <wijc>multi-first-wijc-2</wijc>
+         <wijd>default-wijb</wijd>
        </bar>
        <bar geea="default-geea" geeb="multi-first-geeb-2">
          <baza>multi-first-3.1</baza>
@@ -418,6 +493,10 @@ void ProfileTest::TestMultiSection()
          <baza>multi-first-3.4</baza>
          <bazb>default-bazb</bazb>
          <bazc>default-bazc</bazc>
+         <wija>default-wija</wija>
+         <wijb>default-wijb</wijb>
+         <wijc>multi-first-wijc-3</wijc>
+         <wijd>default-wijd</wijd>
        </bar>
      </ArcConfig>
    */
@@ -434,34 +513,46 @@ void ProfileTest::TestMultiSection()
   CPPUNIT_ASSERT_EQUAL((std::string)"3", (std::string)c.Child(1));
   CPPUNIT_ASSERT_EQUAL((std::string)"4", (std::string)c.Child(2));
 
-  CPPUNIT_ASSERT_EQUAL(5, c.Child(3).Size());
+  CPPUNIT_ASSERT_EQUAL(9, c.Child(3).Size());
   CPPUNIT_ASSERT_EQUAL(2, c.Child(3).AttributesSize());
   CPPUNIT_ASSERT_EQUAL((std::string)"multi-first-1.1", (std::string)c.Child(3).Child(0));
   CPPUNIT_ASSERT_EQUAL((std::string)"multi-first-1.2", (std::string)c.Child(3).Child(1));
   CPPUNIT_ASSERT_EQUAL((std::string)"multi-first-1.3", (std::string)c.Child(3).Child(2));
   CPPUNIT_ASSERT_EQUAL((std::string)"default-bazb", (std::string)c.Child(3).Child(3));
   CPPUNIT_ASSERT_EQUAL((std::string)"default-bazc", (std::string)c.Child(3).Child(4));
+  CPPUNIT_ASSERT_EQUAL((std::string)"default-wija", (std::string)c.Child(3).Child(5));
+  CPPUNIT_ASSERT_EQUAL((std::string)"default-wijb", (std::string)c.Child(3).Child(6));
+  CPPUNIT_ASSERT_EQUAL((std::string)"multi-first-wijc-1", (std::string)c.Child(3).Child(7));
+  CPPUNIT_ASSERT_EQUAL((std::string)"default-wijd", (std::string)c.Child(3).Child(8));
   CPPUNIT_ASSERT_EQUAL((std::string)"multi-first-geea-1", (std::string)c.Child(3).Attribute("geea"));
   CPPUNIT_ASSERT_EQUAL((std::string)"multi-first-geeb-1", (std::string)c.Child(3).Attribute("geeb"));
 
-  CPPUNIT_ASSERT_EQUAL(4, c.Child(4).Size());
+  CPPUNIT_ASSERT_EQUAL(8, c.Child(4).Size());
   CPPUNIT_ASSERT_EQUAL(1, c.Child(4).AttributesSize());
   CPPUNIT_ASSERT_EQUAL((std::string)"multi-first-2.1", (std::string)c.Child(4).Child(0));
   CPPUNIT_ASSERT_EQUAL((std::string)"multi-first-2.2", (std::string)c.Child(4).Child(1));
   CPPUNIT_ASSERT_EQUAL((std::string)"default-bazb", (std::string)c.Child(4).Child(2));
   CPPUNIT_ASSERT_EQUAL((std::string)"default-bazc", (std::string)c.Child(4).Child(3));
+  CPPUNIT_ASSERT_EQUAL((std::string)"default-wija", (std::string)c.Child(4).Child(4));
+  CPPUNIT_ASSERT_EQUAL((std::string)"default-wijb", (std::string)c.Child(4).Child(5));
+  CPPUNIT_ASSERT_EQUAL((std::string)"default-wijc", (std::string)c.Child(4).Child(6));
+  CPPUNIT_ASSERT_EQUAL((std::string)"default-wijd", (std::string)c.Child(4).Child(7));
   CPPUNIT_ASSERT_EQUAL((std::string)"multi-first-geea-2", (std::string)c.Child(4).Attribute("geea"));
 
-  CPPUNIT_ASSERT_EQUAL(5, c.Child(5).Size());
+  CPPUNIT_ASSERT_EQUAL(9, c.Child(5).Size());
   CPPUNIT_ASSERT_EQUAL(1, c.Child(5).AttributesSize());
   CPPUNIT_ASSERT_EQUAL((std::string)"default-baza-1", (std::string)c.Child(5).Child(0));
   CPPUNIT_ASSERT_EQUAL((std::string)"default-baza-2", (std::string)c.Child(5).Child(1));
   CPPUNIT_ASSERT_EQUAL((std::string)"default-baza-3", (std::string)c.Child(5).Child(2));
   CPPUNIT_ASSERT_EQUAL((std::string)"default-bazb", (std::string)c.Child(5).Child(3));
   CPPUNIT_ASSERT_EQUAL((std::string)"default-bazc", (std::string)c.Child(5).Child(4));
+  CPPUNIT_ASSERT_EQUAL((std::string)"default-wija", (std::string)c.Child(5).Child(5));
+  CPPUNIT_ASSERT_EQUAL((std::string)"default-wijb", (std::string)c.Child(5).Child(6));
+  CPPUNIT_ASSERT_EQUAL((std::string)"multi-first-wijc-2", (std::string)c.Child(5).Child(7));
+  CPPUNIT_ASSERT_EQUAL((std::string)"default-wijd", (std::string)c.Child(5).Child(8));
   CPPUNIT_ASSERT_EQUAL((std::string)"multi-first-geea-3", (std::string)c.Child(5).Attribute("geea"));
 
-  CPPUNIT_ASSERT_EQUAL(6, c.Child(6).Size());
+  CPPUNIT_ASSERT_EQUAL(10, c.Child(6).Size());
   CPPUNIT_ASSERT_EQUAL(2, c.Child(6).AttributesSize());
   CPPUNIT_ASSERT_EQUAL((std::string)"multi-first-3.1", (std::string)c.Child(6).Child(0));
   CPPUNIT_ASSERT_EQUAL((std::string)"multi-first-3.2", (std::string)c.Child(6).Child(1));
@@ -469,6 +560,10 @@ void ProfileTest::TestMultiSection()
   CPPUNIT_ASSERT_EQUAL((std::string)"multi-first-3.4", (std::string)c.Child(6).Child(3));
   CPPUNIT_ASSERT_EQUAL((std::string)"default-bazb", (std::string)c.Child(6).Child(4));
   CPPUNIT_ASSERT_EQUAL((std::string)"default-bazc", (std::string)c.Child(6).Child(5));
+  CPPUNIT_ASSERT_EQUAL((std::string)"default-wija", (std::string)c.Child(6).Child(6));
+  CPPUNIT_ASSERT_EQUAL((std::string)"default-wijb", (std::string)c.Child(6).Child(7));
+  CPPUNIT_ASSERT_EQUAL((std::string)"multi-first-wijc-3", (std::string)c.Child(6).Child(8));
+  CPPUNIT_ASSERT_EQUAL((std::string)"default-wijd", (std::string)c.Child(6).Child(9));
   CPPUNIT_ASSERT_EQUAL((std::string)"default-geea", (std::string)c.Child(6).Attribute("geea"));
   CPPUNIT_ASSERT_EQUAL((std::string)"multi-first-geeb-2", (std::string)c.Child(6).Attribute("geeb"));
 

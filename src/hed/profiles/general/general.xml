@@ -587,7 +587,7 @@
         <!-- Period: specifies how often registration has to be done (at least 2 minutes). In xsd:duration format. -->
         <infosys:Period inisections="register" initag="period" inidefaultvalue="PT3M"/>
         <!-- Registrar: One or more Registrars sections specify where to send the registration message -->
-        <infosys:Registrar initype="multielement" inisections="register" initag="registrarurl">
+        <infosys:Registrar initype="multielement" inisections="register" initag="registrar">
           <!-- URL: The URL of the ISIS service where we want to register this service -->
           <infosys:URL initype="#this"/>
           <!-- Retry: How many times we retry connecting to an ISIS before treat it as unavailable. -->
@@ -716,7 +716,7 @@
         <!-- Period: specifies how often registration has to be done (at least 2 minutes). In xsd:duration format. -->
         <infosys:Period inisections="register" initag="period" inidefaultvalue="PT3M"/>
         <!-- Registrar: One or more Registrars sections specify where to send the registration message -->
-        <infosys:Registrar initype="multielement" inisections="register" initag="registrarurl">
+        <infosys:Registrar initype="multielement" inisections="register" initag="registrar">
           <!-- URL: The URL of the ISIS service where we want to register this service -->
           <infosys:URL initype="#this"/>
           <!-- Retry: How many times we retry connecting to an ISIS before treat it as unavailable. -->
@@ -808,7 +808,7 @@
         <!-- Period: specifies how often registration has to be done (at least 2 minutes). In xsd:duration format. -->
         <infosys:Period inisections="register" initag="period" inidefaultvalue="PT3M"/>
         <!-- Registrar: One or more Registrars sections specify where to send the registration message -->
-        <infosys:Registrar initype="multielement" inisections="register" initag="registrarurl">
+        <infosys:Registrar initype="multielement" inisections="register" initag="registrar">
           <!-- URL: The URL of the ISIS service where we want to register this service -->
           <infosys:URL initype="#this"/>
           <!-- Retry: How many times we retry connecting to an ISIS before treat it as unavailable. -->
@@ -984,7 +984,7 @@
         <!-- Period: specifies how often registration has to be done (at least 2 minutes). In xsd:duration format. -->
         <infosys:Period inisections="register" initag="period" inidefaultvalue="PT3M"/>
         <!-- Registrar: One or more Registrars sections specify where to send the registration message -->
-        <infosys:Registrar initype="multielement" inisections="register" initag="registrarurl">
+        <infosys:Registrar initype="multielement" inisections="register" initag="registrar">
           <!-- URL: The URL of the ISIS service where we want to register this service -->
           <infosys:URL initype="#this"/>
           <!-- Retry: How many times we retry connecting to an ISIS before treat it as unavailable. -->
@@ -1094,7 +1094,7 @@
         <!-- Period: specifies how often registration has to be done (at least 2 minutes). In xsd:duration format. -->
         <infosys:Period inisections="register" initag="period" inidefaultvalue="PT3M"/>
         <!-- Registrar: One or more Registrars sections specify where to send the registration message -->
-        <infosys:Registrar initype="multielement" inisections="register" initag="registrarurl">
+        <infosys:Registrar initype="multielement" inisections="register" initag="registrar">
           <!-- URL: The URL of the ISIS service where we want to register this service -->
           <infosys:URL initype="#this"/>
           <!-- Retry: How many times we retry connecting to an ISIS before treat it as unavailable. -->
@@ -1163,7 +1163,7 @@
         <!-- Period: specifies how often registration has to be done (at least 2 minutes). In xsd:duration format. -->
         <infosys:Period inisections="register" initag="period" inidefaultvalue="PT3M"/>
         <!-- Registrar: One or more Registrars sections specify where to send the registration message -->
-        <infosys:Registrar initype="multielement" inisections="register" initag="registrarurl">
+        <infosys:Registrar initype="multielement" inisections="register" initag="registrar">
           <!-- URL: The URL of the ISIS service where we want to register this service -->
           <infosys:URL initype="#this"/>
           <!-- Retry: How many times we retry connecting to an ISIS before treat it as unavailable. -->
