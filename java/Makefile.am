@@ -42,6 +42,9 @@ arc_wrap.cpp $(JAVA_PATH)/*.java: $(top_srcdir)/swig/*.i
 		>> $(DEPDIR)/arc_wrap.deps ; \
 	done
 
+# Do not try to compile libjarc.la and start a java vm at the same time in parallel builds
+libjarc.la: arc.jar
+
 $(JAVA_PATH)/arc.class: $(JAVA_PATH)/arc.java
 
 .java.class:
@@ -49,4 +52,4 @@ $(JAVA_PATH)/arc.class: $(JAVA_PATH)/arc.java
 
 arc.jar: $(JAVA_PATH)/arc.class
 	rm -f $@
-	$(JAR) cf $@ $(JAVA_PATH)/*.class 
+	$(JAR) cf $@ $(JAVA_PATH)/*.class
