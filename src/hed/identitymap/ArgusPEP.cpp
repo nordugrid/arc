@@ -75,6 +75,8 @@ bool ArgusPEP::Handle(Arc::Message* msg) const{
     pep_rc= pep_initialize();
     if (pep_rc != PEP_OK) {
        logger.msg(Arc::DEBUG,"Failed to initialize PEP client: %s\n", pep_strerror(pep_rc));
+       pep_destroy();
+
        return false;
     }
 
@@ -90,13 +92,27 @@ bool ArgusPEP::Handle(Arc::Message* msg) const{
  
     if (rc != 0) {
        logger.msg(Arc::DEBUG,"Failed to create XACML request: %d", rc);
+     
+       xacml_request_delete(request);
+       xacml_response_delete(response);
+    
+       // Release the PEP client 
+       pep_rc= pep_destroy();
 
 	return false;
     }
     pep_rc= pep_authorize(&request,&response);
+   
     if (pep_rc != PEP_OK) {
       logger.msg(Arc::DEBUG,"Failed to authorize XACML request: %s\n",pep_strerror(pep_rc));
-       return false;
+         
+      xacml_request_delete(request);
+      xacml_response_delete(response);
+    
+      // Release the PEP client 
+      pep_rc= pep_destroy();
+
+      return false;
     }   
 
     /* Extrac the local user name from the response to be mapped to the GID */
@@ -107,8 +123,14 @@ bool ArgusPEP::Handle(Arc::Message* msg) const{
     xacml_decision_t decision; 
     if (response== NULL) {
             logger.msg (Arc::DEBUG, "Response is null");
-           return false;
-      }
+     
+	     xacml_request_delete(request);
+	     xacml_response_delete(response);
+    	     // Release the PEP client 
+	     pep_rc= pep_destroy();
+   
+         return false;
+    }
 
     for(i= 0; i<results_l; i++) {
         xacml_result_t * result= xacml_response_getresult(response,i);        
@@ -129,6 +151,13 @@ bool ArgusPEP::Handle(Arc::Message* msg) const{
    if (decision != XACML_DECISION_PERMIT ){
      logger.msg(Arc::INFO,"%s is not authorized to do action %s in resource %s ", subjectid, actionid, resourceid);
      logger.msg(Arc::DEBUG,"The reached decision is: %s ", decision);
+ 
+     xacml_request_delete(request);
+     xacml_response_delete(response);
+
+     // Release the PEP client 
+     pep_rc= pep_destroy();
+
       return false;   
    }	 
     // Delete resquest and response
