@@ -80,11 +80,11 @@ class FileDataEx : public FileData {
    */
   std::string starttime; /* time of transfer started */
   std::string endtime; /* time of trnasfer finished */
-  /* the status of file in cache: 
-   *  - "yes" -- was before;
-   *  - "no" -- downloaded but didn't get in cache 
+  /* if the file was retrieved from cache: 
+   *  - "yes";
+   *  - "no"; 
    */
-  std::string incache;
+  std::string fromcache;
   FileDataEx(const FileData& f)
     : FileData(f),
       res(Arc::DataStatus::Success),
@@ -255,9 +255,9 @@ class PointPair {
       delete it->pair; it->pair=NULL;
       it->endtime=Arc::Time().str(Arc::UserTime);
       if (res == Arc::DataStatus::SuccessCached) 
-        it->incache="yes";
+        it->fromcache="yes";
       else
-        it->incache="no";
+        it->fromcache="no";
       processed_files.push_back(*it);
     };
     job_files.erase(it);
@@ -679,7 +679,7 @@ int main(int argc,char** argv) {
       transfer_parameters += "size=" + Arc::tostring(st.st_size) + ',';
       transfer_parameters += "starttime=" + i->starttime + ',';
       transfer_parameters += "endtime=" + i->endtime + ',';
-      transfer_parameters += "incache=" + i->incache; 
+      transfer_parameters += "fromcache=" + i->fromcache; 
       transfer_stats.push_back(transfer_parameters);
       if(Arc::URL(i->lfn).Option("exec") == "yes") {
         fix_file_permissions(session_dir+i->pfn,true);
