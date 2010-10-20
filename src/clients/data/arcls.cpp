@@ -82,7 +82,7 @@ static bool arcls(const Arc::URL& dir_url,
                            Arc::DataPoint::INFO_TYPE_TYPE |
                            Arc::DataPoint::INFO_TYPE_TIMES |
                            Arc::DataPoint::INFO_TYPE_CONTENT |
-                           Arc::DataPoint::INFO_TYPE_ACL); 
+                           Arc::DataPoint::INFO_TYPE_ACCESS); 
   if(recursion > 0) verb = (Arc::DataPoint::DataPointInfoType)
                            (verb | Arc::DataPoint::INFO_TYPE_TYPE);
 
