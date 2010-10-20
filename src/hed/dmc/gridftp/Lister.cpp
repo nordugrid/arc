@@ -737,6 +737,7 @@ namespace Arc {
           int nlength = strlen(nresp);
           if(nlength > sizeof(readbuf)) nlength=sizeof(readbuf);
           memcpy(readbuf,nresp,nlength);
+          data_activated = true;
           list_read_callback(this,handle,GLOBUS_SUCCESS,
                              (globus_byte_t*)readbuf,nlength,0,1);
         };

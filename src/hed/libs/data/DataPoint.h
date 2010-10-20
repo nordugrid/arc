@@ -48,6 +48,19 @@ namespace Arc {
       ACCESS_LATENCY_LARGE
     };
 
+    /// Describes type of information about URL to request
+    enum DataPointInfoType {
+      INFO_TYPE_MINIMAL = 0, /// Whatever protocol can get with no additional effort. 
+      INFO_TYPE_NAME = 1, /// Only name of object (relative).
+      INFO_TYPE_TYPE = 2, /// Type of object - currently file or dir.
+      INFO_TYPE_TIMES = 4, /// Timestamps associated with object.
+      INFO_TYPE_CONTENT = 8, /// Metadata describing content, like size, checksum, etc.
+      INFO_TYPE_ACCESS = 16, /// Access control - ownership, permission, etc.
+      INFO_TYPE_STRUCT = 32, /// Fine structure - replicas, transfer locations, redirections.
+      INFO_TYPE_REST = 64, /// All the other parameters.
+      INFO_TYPE_ALL = 127 /// All the parameters.
+    };
+
     /// Constructor requires URL to be provided.
     /** References to url and usercfg arguments are stored 
        internally and hence corresponding objects must stay
@@ -108,11 +121,34 @@ namespace Arc {
 
     /// Query the DataPoint to check if object is accessible.
     /** If possible this method will also try to provide meta
-       information about the object. */
+       information about the object. It returns positive response
+       if object's content can be retrieved. */
     virtual DataStatus Check() = 0;
 
     /// Remove/delete object at URL.
     virtual DataStatus Remove() = 0;
+
+    /// Retrieve information about this object
+    /** If the DataPoint represents a directory or something similar its 
+       contents will be listed.
+       \param file will contain object name and requested attributes.
+       There may be more attributes than requested. There may be less 
+       if object can't provide particular information.
+       \param verb defines attribute types which method must try to
+       retireve. It is not a failure if some attributes could not
+       be retrieved due to limitation of protocol or access control. */
+    virtual DataStatus Stat(FileInfo& file, DataPointInfoType verb = INFO_TYPE_ALL) = 0;
+
+    /// List hierarchical content of this object.
+    /** If the DataPoint represents a directory or something similar its 
+       contents will be listed.
+       \param files will contain list of file names and requested
+       attributes. There may be more attributes than requested. There
+       may be less if object can't provide particular information.
+       \param verb defines attribute types which method must try to
+       retireve. It is not a failure if some attributes could not
+       be retrieved due to limitation of protocol or access control. */
+    virtual DataStatus List(std::list<FileInfo>& files, DataPointInfoType verb = INFO_TYPE_ALL) = 0;
 
     /// List file(s).
     /** If the DataPoint represents a directory its contents will be
@@ -123,10 +159,10 @@ namespace Arc {
        \param resolve if true, resolve physical locations (relevant
          for indexing services only).
        \param metadata if true, find all available metadata. */
-    virtual DataStatus ListFiles(std::list<FileInfo>& files,
-                                 bool long_list = false,
-                                 bool resolve = false,
-                                 bool metadata = false) = 0;
+//    virtual DataStatus ListFiles(std::list<FileInfo>& files,
+//                                 bool long_list = false,
+//                                 bool resolve = false,
+//                                 bool metadata = false) = 0;
 
     /// Allow/disallow DataPoint to produce scattered data during
     /// *reading* operation.

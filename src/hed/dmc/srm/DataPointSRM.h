@@ -26,10 +26,8 @@ namespace Arc {
     virtual DataStatus StopWriting();
     virtual DataStatus Check();
     virtual DataStatus Remove();
-    virtual DataStatus ListFiles(std::list<FileInfo>& files,
-                                 bool long_list = false,
-                                 bool resolve = false,
-                                 bool metadata = false);
+    DataStatus Stat(FileInfo& file, DataPointInfoType verb = INFO_TYPE_ALL);
+    DataStatus List(std::list<FileInfo>& files, DataPointInfoType verb = INFO_TYPE_ALL);
     virtual const std::string DefaultCheckSum() const;
     virtual bool ProvidesMeta();
   private:
@@ -40,6 +38,7 @@ namespace Arc {
     bool reading;
     bool writing;
     bool timeout; /* flag to say whether connection timed out */
+    DataStatus ListFiles(std::list<FileInfo>& files, DataPointInfoType verb, int recursion);
   };
 
 } // namespace Arc

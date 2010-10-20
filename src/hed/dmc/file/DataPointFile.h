@@ -22,10 +22,9 @@ namespace Arc {
     virtual DataStatus StopReading();
     virtual DataStatus StopWriting();
     virtual DataStatus Check();
+    virtual DataStatus Stat(FileInfo& file, DataPointInfoType verb = INFO_TYPE_ALL);
+    virtual DataStatus List(std::list<FileInfo>& files, DataPointInfoType verb = INFO_TYPE_ALL);
     virtual DataStatus Remove();
-    virtual DataStatus ListFiles(std::list<FileInfo>& files,
-                                 bool long_list = false, bool resolve = false,
-                                 bool metadata = false);
     virtual bool WriteOutOfOrder();
   private:
     SimpleCondition transfer_cond;

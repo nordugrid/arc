@@ -26,9 +26,8 @@ namespace Arc {
     virtual DataStatus StopWriting();
     virtual DataStatus Check();
     virtual DataStatus Remove();
-    virtual DataStatus ListFiles(std::list<FileInfo>& files,
-                                 bool long_list = false, bool resolve = false,
-                                 bool metadata = false);
+    virtual DataStatus Stat(FileInfo& file, DataPoint::DataPointInfoType verb);
+    virtual DataStatus List(std::list<FileInfo>& file, DataPoint::DataPointInfoType verb);
   private:
     XMLNode node;
     XMLNode entry;

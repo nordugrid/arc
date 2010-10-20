@@ -142,7 +142,7 @@ namespace Arc {
 
       dir_url->SetSecure(false);
       std::list<FileInfo> files;
-      if (!dir_url->ListFiles(files, false, false, false)) {
+      if (!dir_url->List(files, DataPoint::INFO_TYPE_NAME)) {
         if (files.size() == 0) {
           logger.msg(INFO, "Failed retrieving job IDs");
           delete thrarg;

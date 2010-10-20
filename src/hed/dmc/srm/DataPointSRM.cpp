@@ -544,10 +544,21 @@ namespace Arc {
     return r;
   }
 
-  DataStatus DataPointSRM::ListFiles(std::list<FileInfo>& files,
-                                     bool long_list,
-                                     bool /* resolve */,
-                                     bool metadata) {
+  DataStatus DataPointSRM::Stat(FileInfo& file, DataPointInfoType verb) {
+    std::list<FileInfo> files;
+    DataStatus r = ListFiles(files,verb,-1);
+    if(files.size() != 1) return DataStatus::StatError;
+    file = *(files.begin());
+    if(r == DataStatus::ListErrorRetryable) r = DataStatus::StatErrorRetryable;
+    if(r == DataStatus::ListError) r = DataStatus::StatError;
+    return r;
+  }
+
+  DataStatus DataPointSRM::List(std::list<FileInfo>& files, DataPointInfoType verb) {
+    return ListFiles(files,verb,0);
+  }
+
+  DataStatus DataPointSRM::ListFiles(std::list<FileInfo>& files, DataPointInfoType verb, int recursion) {
 
     SRMClient * client = SRMClient::getInstance(usercfg, url.fullstr(), timeout);
     if(!client) {
@@ -570,12 +581,10 @@ namespace Arc {
       return DataStatus::ListError;
     }
     logger.msg(VERBOSE, "ListFiles: looking for metadata: %s", CurrentLocation().str());
-    if (long_list || metadata) srm_request->long_list(true);
+    if ((verb | INFO_TYPE_NAME) != INFO_TYPE_NAME) srm_request->long_list(true);
     std::list<struct SRMFileMetaData> srm_metadata;
 
     // get info from SRM
-    int recursion = 0;
-    if (metadata) recursion = -1; // get info on directory rather than contents
     SRMReturnCode res = client->info(*srm_request, srm_metadata, recursion);
     delete client;
     client = NULL;

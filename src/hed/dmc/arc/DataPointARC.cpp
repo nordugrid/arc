@@ -128,7 +128,82 @@ namespace Arc {
     return new DataPointARC(*dmcarg, *dmcarg);
   }
 
-  DataStatus DataPointARC::ListFiles(std::list<FileInfo>& files, bool, bool, bool) {
+  static void set_stat(XMLNode metadata, FileInfo& file) {
+    for(;(bool)metadata;++metadata) {
+      std::string section = metadata["section"];
+      std::string property = metadata["property"];
+      std::string value = metadata["value"];
+      if((section == "entry") && (property == "type")) {
+        if (value == "collection") {
+          file.SetType(FileInfo::file_type_dir);
+        } else {
+          file.SetType(FileInfo::file_type_file);
+        }
+      } else if((section == "timestamps") && (property == "created")) {
+        file.SetCreated(value);
+      } else if((section == "states") && (property == "size")) {
+        unsigned long long int s;
+        if(stringto(value, s)) file.SetSize(s);
+      } else if((section == "locations") /*&& (property == "size")*/) {
+        file.AddURL(value);
+      }
+      file.SetMetaData(section+"."+property, value);
+    }
+  }
+
+  DataStatus DataPointARC::Stat(FileInfo& file, DataPoint::DataPointInfoType verb) {
+    if (!url.Host().empty()){
+      logger.msg(ERROR, "Hostname is not implemented for arc protocol");
+      return DataStatus::UnimplementedError;
+    }
+    MCCConfig cfg;
+    usercfg.ApplyToConfig(cfg);
+
+    ClientSOAP client(cfg, bartender_url, usercfg.Timeout());
+    std::string xml;
+
+    NS ns("bar", "http://www.nordugrid.org/schemas/bartender");
+    PayloadSOAP request(ns);
+    XMLNode el = request.NewChild("bar:stat").NewChild("bar:statRequestList").NewChild("bar:statRequestElement");
+    el.NewChild("bar:requestID") = "0";
+    el.NewChild("bar:LN") = url.Path();
+    request.GetXML(xml, true);
+    logger.msg(INFO, "Request:\n%s", xml);
+
+    PayloadSOAP *response = NULL;
+
+    MCC_Status status = client.process(&request, &response);
+
+    if (!status) {
+      logger.msg(ERROR, (std::string)status);
+      if (response) delete response;
+      return DataStatus::ListError;
+    }
+
+    if (!response) {
+      logger.msg(ERROR, "No SOAP response");
+      return DataStatus::ListError;
+    }
+
+    response->Child().GetXML(xml, true);
+    logger.msg(INFO, "Response:\n%s", xml);
+
+    XMLNode nd = (*response).Child()["statResponseList"]["statResponseElement"];
+
+    if (nd["requestID"] != "0") return DataStatus::ListError;
+
+    XMLNode metadata = nd["metadataList"]["metadata"];
+    std::string file_name = url.Path();
+    std::string::size_type i = file_name.rfind('/', file_name.length());
+    if(i != std::string::npos) file_name = file_name.substr(i+1);
+    file.SetName(file_name);
+    set_stat(metadata, file);
+    SetSize(file.GetSize());
+    SetCreated(file.GetCreated());
+    return DataStatus::Success;
+  }
+
+  DataStatus DataPointARC::List(std::list<FileInfo>& files, DataPoint::DataPointInfoType verb) {
     if (!url.Host().empty()){
       logger.msg(ERROR, "Hostname is not implemented for arc protocol");
       return DataStatus::UnimplementedError;
@@ -154,8 +229,7 @@ namespace Arc {
 
     if (!status) {
       logger.msg(ERROR, (std::string)status);
-      if (response)
-        delete response;
+      if (response) delete response;
       return DataStatus::ListError;
     }
 
@@ -172,38 +246,24 @@ namespace Arc {
 
     logger.msg(INFO, "nd:\n%s", xml);
 
-    if (nd["status"] == "not found")
+    if (nd["status"] == "not found") {
+      delete response;
       return DataStatus::ListError;
+    }
 
-    if (nd["status"] == "found")
-      for (int i = 0;; i++) {
-        XMLNode cnd = nd["entries"]["entry"][i];
-        if (!cnd)
-          break;
+    if (nd["status"] == "found") {
+      XMLNode cnd = nd["entries"]["entry"];
+      for (; (bool)cnd; ++cnd) {
         std::string file_name = cnd["name"];
         std::string type;
-        for (int j = 0;; j++) {
-          XMLNode ccnd = cnd["metadataList"]["metadata"][j];
-          if (!ccnd)
-            break;
-          if (ccnd["property"] == "type")
-            type = (std::string)ccnd["value"];
-        }
-        logger.msg(INFO, "cnd:\n%s is a %s", file_name, type);
+        XMLNode ccnd = cnd["metadataList"]["metadata"];
         std::list<FileInfo>::iterator f = files.insert(files.end(), FileInfo(file_name.c_str()));
-        if (type == "collection")
-          f->SetType(FileInfo::file_type_dir);
-        else
-          f->SetType(FileInfo::file_type_file);
+        set_stat(ccnd, *f);
       }
-    else {
-      // its a file or something
-      // we know it exists so we use file name from url
-      std::string path = url.Path();
-      std::string::size_type i = path.rfind(G_DIR_SEPARATOR, path.length());
-      std::string file_name = path.substr((i != std::string::npos)?(i+1):0);
-      std::list<FileInfo>::iterator f = files.insert(files.end(), FileInfo(file_name.c_str()));
-      f->SetType(FileInfo::file_type_file);
+    } else {
+      delete response;
+      logger.msg(ERROR, "Not a collection");
+      return DataStatus::ListError;
     }
 
     std::string answer = (std::string)((*response).Child().Name());
@@ -484,6 +544,58 @@ namespace Arc {
       logger.msg(ERROR, "Hostname is not implemented for arc protocol");
       return DataStatus::CheckError;
     }
+    // TODO: check access, either 
+    // 1. Read policy and apply to supplied credentials
+    // 2. Try to initiate read but do not do any transfers
+    logger.msg(VERBOSE, "Check");
+    if (reading)
+      return DataStatus::IsReadingError;
+    if (writing)
+      return DataStatus::IsWritingError;
+
+    MCCConfig cfg;
+    usercfg.ApplyToConfig(cfg);
+
+    // get TURL from bartender
+    ClientSOAP client(cfg, bartender_url, usercfg.Timeout());
+    std::string xml;
+
+    NS ns("bar", "http://www.nordugrid.org/schemas/bartender");
+    PayloadSOAP request(ns);
+    request.NewChild("bar:getFile").NewChild("bar:getFileRequestList").NewChild("bar:getFileRequestElement").NewChild("bar:requestID") = "0";
+    request["bar:getFile"]["bar:getFileRequestList"]["bar:getFileRequestElement"].NewChild("bar:LN") = url.Path();
+    // only supports http protocol:
+    request["bar:getFile"]["bar:getFileRequestList"]["bar:getFileRequestElement"].NewChild("bar:protocol") = "http";
+    request.GetXML(xml, true);
+    logger.msg(INFO, "Request:\n%s", xml);
+
+    PayloadSOAP *response = NULL;
+
+    MCC_Status status = client.process(&request, &response);
+
+    if (!status) {
+      logger.msg(ERROR, (std::string)status);
+      if (response) delete response;
+      return DataStatus::CheckError;
+    }
+
+    if (!response) {
+      logger.msg(ERROR, "No SOAP response");
+      return DataStatus::CheckError;
+    }
+
+    response->Child().GetXML(xml, true);
+    logger.msg(INFO, "Response:\n%s", xml);
+
+    XMLNode nd = (*response).Child()["getFileResponseList"]["getFileResponseElement"];
+
+    if (nd["success"] != "done" || !nd["TURL"]) {
+      delete response;
+      return DataStatus::CheckError;
+    }
+
+    logger.msg(INFO, "Recieved transfer URL: %s", (std::string)nd["TURL"]);
+    delete response;
     return DataStatus::Success;
   }
 

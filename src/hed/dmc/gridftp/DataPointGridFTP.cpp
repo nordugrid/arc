@@ -558,10 +558,75 @@ namespace Arc {
     return;
   }
 
-  DataStatus DataPointGridFTP::ListFiles(std::list<FileInfo>& files,
-                                         bool long_list,
-                                         bool resolve,
-                                         bool metadata) {
+  DataStatus DataPointGridFTP::do_more_stat(FileInfo& f) {
+    DataStatus result = DataStatus::Success;
+    GlobusResult res;
+    globus_off_t size = 0;
+    globus_abstime_t gl_modify_time;
+    time_t modify_time;
+    int modify_utime;
+    std::string f_url = url.ConnectionURL() + f.GetName();
+    if ((!f.CheckSize()) && (f.GetType() != FileInfo::file_type_dir)) {
+      logger.msg(DEBUG, "list_files_ftp: looking for size of %s", f_url);
+      res = globus_ftp_client_size(&ftp_handle, f_url.c_str(), &ftp_opattr,
+                                   &size, &ftp_complete_callback, this);
+      if (!res) {
+        logger.msg(VERBOSE, "list_files_ftp: globus_ftp_client_size failed");
+        logger.msg(INFO, "Globus error: %s", res.str());
+        result = DataStatus::StatError;
+      }
+      else if (!cond.wait(1000*usercfg.Timeout())) {
+        logger.msg(INFO, "list_files_ftp: timeout waiting for size");
+        logger.msg(INFO, "list_files_ftp: timeout waiting for size");
+        globus_ftp_client_abort(&ftp_handle);
+        cond.wait();
+        result = DataStatus::StatError;
+      }
+      else if (!condstatus) {
+        logger.msg(INFO, "list_files_ftp: failed to get file's size");
+        result = DataStatus::StatError;
+        // Guessing - directories usually have no size
+        f.SetType(FileInfo::file_type_dir);
+      }
+      else {
+        f.SetSize(size);
+        // Guessing - only files usually have size
+        f.SetType(FileInfo::file_type_file);
+      }
+    }
+    if (!f.CheckCreated()) {
+      logger.msg(DEBUG, "list_files_ftp: "
+                        "looking for modification time of %s", f_url);
+      res = globus_ftp_client_modification_time(&ftp_handle, f_url.c_str(),
+                                                &ftp_opattr, &gl_modify_time,
+                                                &ftp_complete_callback, this);
+      if (!res) {
+        logger.msg(VERBOSE, "list_files_ftp: "
+                            "globus_ftp_client_modification_time failed");
+        logger.msg(INFO, "Globus error: %s", res.str());
+        result = DataStatus::StatError;
+      }
+      else if (!cond.wait(1000*usercfg.Timeout())) {
+        logger.msg(INFO, "list_files_ftp: "
+                         "timeout waiting for modification_time");
+        globus_ftp_client_abort(&ftp_handle);
+        cond.wait();
+        result = DataStatus::StatError;
+      }
+      else if (!condstatus) {
+        logger.msg(INFO, "list_files_ftp: "
+                         "failed to get file's modification time");
+        result = DataStatus::StatError;
+      }
+      else {
+        GlobusTimeAbstimeGet(gl_modify_time, modify_time, modify_utime);
+        f.SetCreated(modify_time);
+      }
+    }
+    return result;
+  }
+
+  DataStatus DataPointGridFTP::Stat(FileInfo& file, DataPoint::DataPointInfoType verb) {
     if (!ftp_active)
       return DataStatus::NotInitializedError;
     if (reading)
@@ -570,11 +635,49 @@ namespace Arc {
       return DataStatus::IsWritingError;
     set_attributes();
     Lister lister(*credential);
-    if (lister.retrieve_dir_info(url,!(long_list | resolve | metadata)) != 0) {
-      if (lister.retrieve_file_info(url,!(long_list | resolve | metadata)) != 0) {
-        logger.msg(ERROR, "Failed to obtain listing from ftp: %s", url.str());
-        return DataStatus::ListError;
+    bool more_info = ((verb | INFO_TYPE_NAME) != INFO_TYPE_NAME);
+    if (lister.retrieve_file_info(url,!more_info) != 0) {
+      logger.msg(ERROR, "Failed to obtain stat from ftp: %s", url.str());
+      return DataStatus::StatError;
+    }
+    lister.close_connection();
+    DataStatus result = DataStatus::Success;
+    if((lister.size() != 1) || (lister.begin()->GetLastName() != url.Path())) {
+      logger.msg(VERBOSE, "Wrong number of objects for stat from ftp: %s", url.str());
+      // guess - that probably means it is directory 
+      file.SetName(FileInfo(url.Path()).GetLastName());
+      file.SetType(FileInfo::file_type_dir);
+      return result;
+    }
+    std::list<FileInfo>::iterator i = lister.begin();
+    if(i == lister.end()) {
+      result = DataStatus::StatError;
+    } else {
+      file.SetName(i->GetLastName());
+      if (more_info) {
+        DataStatus r = do_more_stat(*i);
+        if(!r) result = r;
       }
+      file.SetType(i->GetType());
+      if (i->CheckSize()) file.SetSize(i->GetSize());
+      if (i->CheckCreated()) file.SetCreated(i->GetCreated());
+    }
+    return result;
+  }
+
+  DataStatus DataPointGridFTP::List(std::list<FileInfo>& files, DataPoint::DataPointInfoType verb) {
+    if (!ftp_active)
+      return DataStatus::NotInitializedError;
+    if (reading)
+      return DataStatus::IsReadingError;
+    if (writing)
+      return DataStatus::IsWritingError;
+    set_attributes();
+    Lister lister(*credential);
+    bool more_info = ((verb | INFO_TYPE_NAME) != INFO_TYPE_NAME);
+    if (lister.retrieve_dir_info(url,!more_info) != 0) {
+      logger.msg(ERROR, "Failed to obtain listing from ftp: %s", url.str());
+      return DataStatus::ListError;
     }
     lister.close_connection();
     DataStatus result = DataStatus::Success;
@@ -582,77 +685,16 @@ namespace Arc {
          i != lister.end(); ++i) {
       std::list<FileInfo>::iterator f =
         files.insert(files.end(), FileInfo(i->GetLastName()));
-      if (long_list) {
-        GlobusResult res;
-        globus_off_t size = 0;
-        globus_abstime_t gl_modify_time;
-        time_t modify_time;
-        int modify_utime;
-        // Lister should always return full path to file
-        std::string f_url = url.ConnectionURL() + i->GetName();
+      if (more_info) {
+        DataStatus r = do_more_stat(*i);
+        if(!r) {
+          if(r == DataStatus::StatError) r = DataStatus::ListError;
+          result = r;
+        }
         f->SetType(i->GetType());
-        if (i->CheckSize())
-          f->SetSize(i->GetSize());
-        else if (i->GetType() != FileInfo::file_type_dir) {
-          logger.msg(DEBUG, "list_files_ftp: looking for size of %s", f_url);
-          res = globus_ftp_client_size(&ftp_handle, f_url.c_str(), &ftp_opattr,
-                                       &size, &ftp_complete_callback, this);
-          if (!res) {
-            logger.msg(VERBOSE, "list_files_ftp: globus_ftp_client_size failed");
-            logger.msg(INFO, "Globus error: %s", res.str());
-            result = DataStatus::ListError;
-          }
-          else if (!cond.wait(1000*usercfg.Timeout())) {
-            logger.msg(INFO, "list_files_ftp: timeout waiting for size");
-            globus_ftp_client_abort(&ftp_handle);
-            cond.wait();
-            result = DataStatus::ListError;
-          }
-          else if (!condstatus) {
-            logger.msg(INFO, "list_files_ftp: failed to get file's size");
-            result = DataStatus::ListError;
-            // Guessing - directories usually have no size
-            f->SetType(FileInfo::file_type_dir);
-          }
-          else {
-            f->SetSize(size);
-            // Guessing - only files usually have size
-            f->SetType(FileInfo::file_type_file);
-          }
-        }
-        if (i->CheckCreated())
-          f->SetCreated(i->GetCreated());
-        else {
-          logger.msg(DEBUG, "list_files_ftp: "
-                     "looking for modification time of %s", f_url);
-          res =
-            globus_ftp_client_modification_time(&ftp_handle, f_url.c_str(),
-                                                &ftp_opattr, &gl_modify_time,
-                                                &ftp_complete_callback, this);
-          if (!res) {
-            logger.msg(VERBOSE, "list_files_ftp: "
-                       "globus_ftp_client_modification_time failed");
-            logger.msg(INFO, "Globus error: %s", res.str());
-            result = DataStatus::ListError;
-          }
-          else if (!cond.wait(1000*usercfg.Timeout())) {
-            logger.msg(INFO, "list_files_ftp: "
-                       "timeout waiting for modification_time");
-            globus_ftp_client_abort(&ftp_handle);
-            cond.wait();
-            result = DataStatus::ListError;
-          }
-          else if (!condstatus) {
-            logger.msg(INFO, "list_files_ftp: "
-                       "failed to get file's modification time");
-            result = DataStatus::ListError;
-          }
-          else {
-            GlobusTimeAbstimeGet(gl_modify_time, modify_time, modify_utime);
-            f->SetCreated(modify_time);
-          }
-        }
       }
+      if (i->CheckSize()) f->SetSize(i->GetSize());
+      if (i->CheckCreated()) f->SetCreated(i->GetCreated());
     }
     return result;
   }

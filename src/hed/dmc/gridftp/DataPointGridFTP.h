@@ -69,6 +69,7 @@ namespace Arc {
     char ftp_buf[16];
     bool check_credentials();
     void set_attributes();
+    DataStatus do_more_stat(FileInfo& f);
   public:
     DataPointGridFTP(const URL& url, const UserConfig& usercfg);
     virtual ~DataPointGridFTP();
@@ -80,7 +81,8 @@ namespace Arc {
     virtual DataStatus StopWriting();
     virtual DataStatus Check();
     virtual DataStatus Remove();
-    virtual DataStatus ListFiles(std::list<FileInfo>& files, bool long_list = false, bool resolve = false, bool metadata = false);
+    virtual DataStatus Stat(FileInfo& file, DataPointInfoType verb = INFO_TYPE_ALL);
+    virtual DataStatus List(std::list<FileInfo>& files, DataPointInfoType verb = INFO_TYPE_ALL);
     virtual bool WriteOutOfOrder();
     virtual bool ProvidesMeta();
   };

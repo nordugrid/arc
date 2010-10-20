@@ -327,13 +327,15 @@ bool arccp(const Arc::URL& source_url_,
       }
       std::list<Arc::FileInfo> files;
       if (source->IsIndex()) {
-        if (!source->ListFiles(files, true, false, false)) {
+        if (!source->List(files, (Arc::DataPoint::DataPointInfoType)
+                  (Arc::DataPoint::INFO_TYPE_NAME | Arc::DataPoint::INFO_TYPE_TYPE))) {
           logger.msg(Arc::ERROR, "Failed listing metafiles");
           return false;
         }
       }
       else
-        if (!source->ListFiles(files, true, false, false)) {
+        if (!source->List(files, (Arc::DataPoint::DataPointInfoType)
+                  (Arc::DataPoint::INFO_TYPE_NAME | Arc::DataPoint::INFO_TYPE_TYPE))) {
           logger.msg(Arc::ERROR, "Failed listing files");
           return false;
         }

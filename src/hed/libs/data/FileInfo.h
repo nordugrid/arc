@@ -44,6 +44,10 @@ namespace Arc {
         return name;
     }
 
+    void SetName(const std::string& n) {
+      name = n;
+    }
+
     const std::list<URL>& GetURLs() const {
       return urls;
     }

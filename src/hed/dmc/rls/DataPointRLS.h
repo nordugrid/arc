@@ -28,9 +28,8 @@ namespace Arc {
     virtual DataStatus PostRegister(bool replication);
     virtual DataStatus PreUnregister(bool replication);
     virtual DataStatus Unregister(bool all);
-    virtual DataStatus ListFiles(std::list<FileInfo>& files,
-                                 bool long_list = false, bool resolve = false,
-                                 bool metadata = false);
+    virtual DataStatus Stat(FileInfo& file, DataPointInfoType verb = INFO_TYPE_ALL);
+    virtual DataStatus List(std::list<FileInfo>& files, DataPointInfoType verb = INFO_TYPE_ALL);
     bool ResolveCallback(globus_rls_handle_t *h, const URL& url, void *arg);
     bool ListFilesCallback(globus_rls_handle_t *h, const URL& url, void *arg);
     bool UnregisterCallback(globus_rls_handle_t *h, const URL& url, void *arg);

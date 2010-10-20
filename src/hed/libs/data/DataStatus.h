@@ -113,27 +113,31 @@ namespace Arc {
 
       /// File listing failed
       ListError = 25,
+      ListNonDirError = 26,
       ListErrorRetryable = DataStatusRetryableBase+ListError,
 
+      /// File/dir stating failed
+      StatError = 27,
+      StatErrorRetryable = DataStatusRetryableBase+ListError,
+
       /// Object initialization failed
-      NotInitializedError = 26,
+      NotInitializedError = 28,
 
       /// Error in OS
-      SystemError = 27,
+      SystemError = 29,
     
       /// Staging error
-      StageError = 28,
+      StageError = 30,
       StageErrorRetryable = DataStatusRetryableBase+StageError,
       
       /// Inconsistent metadata
-      InconsistentMetadataError = 29,
+      InconsistentMetadataError = 31,
  
-      /// Undefined
-      UnknownError = 30,
-      
       /// Data was already cached
-      SuccessCached = 31
+      SuccessCached = 32,
       
+      /// Undefined
+      UnknownError = 33
     };
 
     DataStatus(const DataStatusType& status, std::string desc="")

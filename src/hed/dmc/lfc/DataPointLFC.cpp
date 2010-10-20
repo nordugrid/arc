@@ -78,18 +78,13 @@ namespace Arc {
   DataStatus DataPointLFC::Check() {
     // simply check that the file can be listed
     std::list<FileInfo> files;
-    DataStatus res = ListFiles(files);
-    if (!res.Passed() || files.size() == 0)
-      return res;
-    // set some metadata
-    if (files.front().CheckSize())
-      SetSize(files.front().GetSize());
-    if (files.front().CheckCheckSum())
-      SetCheckSum(files.front().GetCheckSum());
-    if (files.front().CheckCreated())
-      SetCreated(files.front().GetCreated());
-    if (files.front().CheckValid())
-      SetValid(files.front().GetValid());
+    DataStatus r = ListFiles(files,INFO_TYPE_MINIMAL,false);
+    if(!r) {
+      if(r == DataStatus::ListErrorRetryable) r = DataStatus::CheckErrorRetryable;
+      if(r == DataStatus::ListError) r = DataStatus::CheckError;
+      return r;
+    }
+    if(files.size() == 0) return DataStatus::CheckError;
     return DataStatus::Success;
   }
 
@@ -531,10 +526,24 @@ namespace Arc {
   }
 
 
-  DataStatus DataPointLFC::ListFiles(std::list<FileInfo>& files,
-                                     bool /* long_list */,
-                                     bool resolve,
-                                     bool metadata) {
+  DataStatus DataPointLFC::Stat(FileInfo& file, DataPoint::DataPointInfoType verb) {
+    std::list<FileInfo> files;
+    DataStatus r = ListFiles(files,verb,true);
+    if(!r) {
+      if(r == DataStatus::ListErrorRetryable) r = DataStatus::StatErrorRetryable;
+      if(r == DataStatus::ListError) r = DataStatus::StatError;
+      return r;
+    }
+    if(files.size() < 1) return DataStatus::StatError;
+    file = files.front();
+    return DataStatus::Success;
+  }
+
+  DataStatus DataPointLFC::List(std::list<FileInfo>& files, DataPoint::DataPointInfoType verb) {
+    return ListFiles(files,verb,true);
+  }
+ 
+  DataStatus DataPointLFC::ListFiles(std::list<FileInfo>& files, DataPointInfoType verb, bool listdir) {
 
 #ifndef WITH_CTHREAD
     /* Initialize Cthread library - should be called before any LFC-API function */
@@ -565,8 +574,12 @@ namespace Arc {
       return DataStatus::ListError;
     }
 
-    // if it's a directory, list entries
-    if (st.filemode & S_IFDIR && !metadata) {
+    if (listdir) {
+      if(!(st.filemode & S_IFDIR)) {
+        logger.msg(ERROR, "Not a directory");
+        lfc_endsess();
+        return DataStatus::ListNonDirError;
+      }
       lfc_DIR *dir = lfc_opendirxg(const_cast<char*>(url.Host().c_str()), path.c_str(), NULL);
       if (dir == NULL) {
         logger.msg(ERROR, "Error opening directory: %s", sstrerror(serrno));
@@ -576,12 +589,13 @@ namespace Arc {
 
       // list entries. If not long list use readdir
       // does funny things with pointers, so always use long listing for now
-      if (false) { // if (!long_list) {
-        struct dirent *direntry;
-        while ((direntry = lfc_readdir(dir)))
-          std::list<FileInfo>::iterator f = files.insert(files.end(), FileInfo(direntry->d_name));
-      }
-      else { // for long list use readdirg
+      //if (false) { // if (!long_list) { // causes compiler warnings so just comment
+      //  struct dirent *direntry;
+      //  while ((direntry = lfc_readdir(dir)))
+      //    std::list<FileInfo>::iterator f = files.insert(files.end(), FileInfo(direntry->d_name));
+      //}
+      //else { // for long list use readdirg
+      {
         struct lfc_direnstatg *direntry;
         while ((direntry = lfc_readdirg(dir))) {
           std::list<FileInfo>::iterator f = files.insert(files.end(), FileInfo(direntry->d_name));
@@ -605,7 +619,7 @@ namespace Arc {
       }
 
       // if we want to resolve replicas call readdirxr
-      if (resolve) {
+      if (verb & INFO_TYPE_STRUCT) {
         lfc_rewinddir(dir);
         struct lfc_direnrep *direntry;
 
@@ -626,7 +640,7 @@ namespace Arc {
         }
       }
       lfc_closedir(dir);
-    } // if (dir)
+    } // if (listdir)
     else {
       std::list<FileInfo>::iterator f = files.insert(files.end(), FileInfo(path.c_str()));
       f->SetMetaData("path", path);
@@ -643,7 +657,7 @@ namespace Arc {
       f->SetMetaData("mtime", f->GetCreated().str());
       f->SetType((st.filemode & S_IFDIR) ? FileInfo::file_type_dir : FileInfo::file_type_file);
       f->SetMetaData("type", (st.filemode & S_IFDIR) ? "dir" : "file");
-      if (resolve) {
+      if (verb & INFO_TYPE_STRUCT) {
         int nbentries = 0;
         struct lfc_filereplica *entries = NULL;
 
@@ -657,7 +671,7 @@ namespace Arc {
       }
       // fill some more metadata
       if (st.guid[0] != '\0') f->SetMetaData("guid", std::string(st.guid));
-      if(metadata) {
+      if (verb & INFO_TYPE_ACCESS) {
         char username[256];
         if (lfc_getusrbyuid(st.uid, username) == 0) f->SetMetaData("owner", username);
         char groupname[256];

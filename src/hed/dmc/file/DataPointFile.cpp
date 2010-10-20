@@ -309,6 +309,88 @@ namespace Arc {
     return DataStatus::Success;
   }
 
+  static DataStatus do_stat(const std::string& path, FileInfo& file, DataPoint::DataPointInfoType verb) {
+    struct stat st;
+    if (stat(path.c_str(), &st) != 0) {
+      return DataStatus::StatError;
+    }
+    if(S_ISREG(st.st_mode)) {
+      file.SetType(FileInfo::file_type_file);
+      file.SetMetaData("type", "file");
+    } else if(S_ISDIR(st.st_mode)) {
+      file.SetType(FileInfo::file_type_dir);
+      file.SetMetaData("type", "dir");
+    } else {
+      file.SetType(FileInfo::file_type_unknown);
+    }
+    file.SetMetaData("path", path);
+    file.SetSize(st.st_size);
+    file.SetMetaData("size", tostring(st.st_size));
+    file.SetCreated(st.st_mtime);
+    file.SetMetaData("mtime", (Time(st.st_mtime)).str());
+    file.SetMetaData("atime", (Time(st.st_atime)).str());
+    file.SetMetaData("ctime", (Time(st.st_ctime)).str());
+    file.SetMetaData("group", tostring(st.st_gid));
+    file.SetMetaData("owner", tostring(st.st_uid));
+    std::string perms;
+    if (st.st_mode & S_IRUSR) perms += 'r'; else perms += '-';
+    if (st.st_mode & S_IWUSR) perms += 'w'; else perms += '-';
+    if (st.st_mode & S_IXUSR) perms += 'x'; else perms += '-';
+#ifndef WIN32
+    if (st.st_mode & S_IRGRP) perms += 'r'; else perms += '-';
+    if (st.st_mode & S_IWGRP) perms += 'w'; else perms += '-';
+    if (st.st_mode & S_IXGRP) perms += 'x'; else perms += '-';
+    if (st.st_mode & S_IROTH) perms += 'r'; else perms += '-';
+    if (st.st_mode & S_IWOTH) perms += 'w'; else perms += '-';
+    if (st.st_mode & S_IXOTH) perms += 'x'; else perms += '-';
+#endif
+    file.SetMetaData("accessperm", perms);
+    return DataStatus::Success;
+  }
+
+  DataStatus DataPointFile::Stat(FileInfo& file, DataPointInfoType verb) {
+    std::string name = url.Path();
+    std::string::size_type p = name.rfind(G_DIR_SEPARATOR);
+    while(p != std::string::npos) {
+      if(p != (name.length()-1)) {
+        name = name.substr(p);
+        break;
+      }
+      name.resize(p);
+      p = name.rfind(G_DIR_SEPARATOR);
+    }
+    file.SetName(name);
+    if(!do_stat(url.Path(), file, verb)) {
+      logger.msg(INFO, "Can't stat file: %s", url.Path());
+      return DataStatus::StatError;
+    }
+    SetSize(file.GetSize());
+    SetCreated(file.GetCreated());
+    return DataStatus::Success;
+  }
+
+  DataStatus DataPointFile::List(std::list<FileInfo>& files, DataPointInfoType verb) {
+    FileInfo file;
+    if(!Stat(file, verb)) return DataStatus::ListError;
+    if(file.GetType() != FileInfo::file_type_dir) return DataStatus::ListError;
+    try {
+      Glib::Dir dir(url.Path());
+      std::string file_name;
+      while ((file_name = dir.read_name()) != "") {
+        std::string fname = url.Path() + G_DIR_SEPARATOR_S + file_name;
+        std::list<FileInfo>::iterator f =
+          files.insert(files.end(), FileInfo(file_name.c_str()));
+        if (verb & (INFO_TYPE_TYPE | INFO_TYPE_TIMES | INFO_TYPE_CONTENT | INFO_TYPE_ACCESS)) {
+          do_stat(fname, *f, verb);
+        }
+      }
+    } catch (Glib::FileError& e) {
+      logger.msg(INFO, "Failed to read object %s", url.Path());
+      return DataStatus::ListError;
+    }
+    return DataStatus::Success;
+  }
+
   DataStatus DataPointFile::Remove() {
     if (reading)
       return DataStatus::IsReadingError;
@@ -532,89 +614,6 @@ namespace Arc {
     
     if (buffer->error_write())
       return DataStatus::WriteError;
-    return DataStatus::Success;
-  }
-
-  DataStatus DataPointFile::ListFiles(std::list<FileInfo>& files,
-                                      bool long_list,
-                                      bool /* resolve */,
-                                      bool metadata) {
-    if (reading)
-      return DataStatus::IsReadingError;
-    if (writing)
-      return DataStatus::IsWritingError;
-    std::string dirname = url.Path();
-    if (dirname[dirname.length() - 1] == '/')
-      dirname.resize(dirname.length() - 1);
-
-    struct stat st;
-    if (stat(dirname.c_str(), &st) != 0) {
-      logger.msg(INFO, "Failed to read object %s: %s", dirname, strerror(errno));
-      return DataStatus::ListError;
-    }
-    if (S_ISDIR(st.st_mode) && !metadata) {
-      try {
-        Glib::Dir dir(dirname);
-        std::string file_name;
-        while ((file_name = dir.read_name()) != "") {
-          std::list<FileInfo>::iterator f =
-            files.insert(files.end(), FileInfo(file_name.c_str()));
-          if (long_list) {
-            std::string fname = dirname + "/" + file_name;
-            struct stat st;
-            if (stat(fname.c_str(), &st) == 0) {
-              f->SetSize(st.st_size);
-              f->SetCreated(st.st_mtime);
-              if (S_ISDIR(st.st_mode))
-                f->SetType(FileInfo::file_type_dir);
-              else if (S_ISREG(st.st_mode))
-                f->SetType(FileInfo::file_type_file);
-            }
-          }
-        }
-      }
-      catch (Glib::FileError& e) {
-        logger.msg(INFO, "Failed to read object %s", dirname);
-        return DataStatus::ListError;
-      }
-    }
-    else {
-      std::list<FileInfo>::iterator f =
-        files.insert(files.end(), FileInfo(dirname));
-      f->SetMetaData("path", dirname);
-      f->SetSize(st.st_size);
-      f->SetMetaData("size", tostring(st.st_size));
-      logger.msg(INFO, "size is %s", tostring(st.st_size));
-      f->SetCreated(st.st_mtime);
-      f->SetMetaData("mtime", (Time(st.st_mtime)).str());
-    	if (S_ISDIR(st.st_mode)) {
-     	  f->SetType(FileInfo::file_type_dir);
-        f->SetMetaData("type", "dir");
-      }
-      else if (S_ISREG(st.st_mode)) {
-        f->SetType(FileInfo::file_type_file);
-        f->SetMetaData("type", "file");
-      }
-      // fill some more metadata
-      f->SetMetaData("atime", (Time(st.st_atime)).str());
-      f->SetMetaData("ctime", (Time(st.st_ctime)).str());
-      f->SetMetaData("group", tostring(st.st_gid));
-      f->SetMetaData("owner", tostring(st.st_uid));
-      unsigned int mode = st.st_mode;
-      std::string perms;
-      if (mode & S_IRUSR) perms += 'r'; else perms += '-';
-      if (mode & S_IWUSR) perms += 'w'; else perms += '-';
-      if (mode & S_IXUSR) perms += 'x'; else perms += '-';
-#ifndef WIN32
-      if (mode & S_IRGRP) perms += 'r'; else perms += '-';
-      if (mode & S_IWGRP) perms += 'w'; else perms += '-';
-      if (mode & S_IXGRP) perms += 'x'; else perms += '-';
-      if (mode & S_IROTH) perms += 'r'; else perms += '-';
-      if (mode & S_IWOTH) perms += 'w'; else perms += '-';
-      if (mode & S_IXOTH) perms += 'x'; else perms += '-';
-#endif
-      f->SetMetaData("accessperm", perms);
-    }
     return DataStatus::Success;
   }
 
