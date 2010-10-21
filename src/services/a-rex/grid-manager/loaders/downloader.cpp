@@ -674,7 +674,7 @@ int main(int argc,char** argv) {
       logger.msg(Arc::INFO, "Downloaded %s", i->lfn);
       struct stat st;
       Arc::FileStat(desc.SessionDir() + i->pfn, &st, true);
-      transfer_parameters = "inputfile=";
+      transfer_parameters = "inputfile:";
       transfer_parameters += "url=" + i->lfn + ',';
       transfer_parameters += "size=" + Arc::tostring(st.st_size) + ',';
       transfer_parameters += "starttime=" + i->starttime + ',';

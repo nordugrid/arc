@@ -580,7 +580,7 @@ int main(int argc,char** argv) {
       logger.msg(Arc::INFO, "Uploaded %s", i->lfn);
       struct stat st;
       Arc::FileStat(desc.SessionDir() + i->pfn, &st, true);
-      transfer_parameters = "outputfile=";
+      transfer_parameters = "outputfile:";
       transfer_parameters += "url=" + i->lfn + ',';
       transfer_parameters += "size=" + Arc::tostring(st.st_size) + ',';
       transfer_parameters += "starttime=" + i->starttime + ',';
