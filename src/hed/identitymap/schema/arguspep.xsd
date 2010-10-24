@@ -15,7 +15,7 @@
             <xsd:documentation xml:lang="en">
               This element defines how to compose message to PEPD service.
               The "subject" option means only X.509 subject will be sent 
-              using predefined XACML attribute.
+              using predefined XACML attribute. This is default behavior.
               In case of "direct" request will be translated from usual 
               ARC authorization request.
             </xsd:documentation>
