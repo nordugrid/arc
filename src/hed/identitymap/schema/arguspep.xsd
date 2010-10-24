@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    targetNamespace="http://www.nordugrid.org/schemas/arguspep/2009/10"
+    xmlns="http://www.nordugrid.org/schemas/arguspep/2010/10"
+    elementFormDefault="qualified"
+    attributeFormDefault="unqualified">
+
+
+  <xsd:element name="PEPD" type="xsd:anyURI"/>
+
+  <xsd:element name="Conversion">
+    <xsd:simpleType>
+        <xsd:annotation>
+            <xsd:documentation xml:lang="en">
+              This element defines how to compose message to PEPD service.
+              The "subject" option means only X.509 subject will be sent 
+              using predefined XACML attribute.
+              In case of "direct" request will be translated from usual 
+              ARC authorization request.
+            </xsd:documentation>
+        </xsd:annotation>
+      <xsd:restriction base="xsd:string">
+        <xsd:enumeration value="subject"/>
+        <xsd:enumeration value="direct"/>
+      </xsd:restriction>
+    </xsd:simpleType>
+  </xsd:element>
+
+  <xsd:element name="Filter">
+    <xsd:complexType>
+        <xsd:annotation>
+            <xsd:documentation xml:lang="en">
+              This element defines Security Attributes to select and reject.
+              If there are no Select elements all Attributes are used except
+              those listed in Reject elements.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="Select" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="Reject" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+    </xsd:complexType>
+  </xsd:element>
+
+</xsd:schema>

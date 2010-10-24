@@ -2,6 +2,7 @@
 #define __ARC_SEC_ARGUSPEP_H__
 
 #include <arc/ArcConfig.h>
+#include <arc/XMLNode.h>
 #include <arc/message/Message.h>
 #include <arc/message/SecHandler.h>
 #include <arc/security/PDP.h>
@@ -12,8 +13,15 @@ namespace ArcSec {
 class ArgusPEP : public SecHandler {
  private:
 
- std::string pepdlocation;
+ typedef enum {
+   conversion_subject,
+   conversion_direct
+ } conversion_type;
 
+ std::string pepdlocation;
+ std::list<std::string> select_attrs;
+ std::list<std::string> reject_attrs;
+ conversion_type conversion;
 
  bool valid_; 
   // XACML request and response
@@ -29,6 +37,7 @@ class ArgusPEP : public SecHandler {
   
  private:
   int create_xacml_request(xacml_request_t** request, const char * subjectid, const char * resourceid, const char * actionid) const ;
+  int create_xacml_request(std::list<xacml_request_t*>& requests,Arc::XMLNode arcreq) const;
  // const char * decision_tostring(xacml_decision_t decision);
  // const char * fulfillon_tostring(xacml_fulfillon_t fulfillon);
 
