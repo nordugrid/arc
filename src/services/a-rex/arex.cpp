@@ -394,7 +394,7 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
         logger_.msg(Arc::VERBOSE, "process: request=%s",str);
     };
     // Analyzing request
-    Arc::XMLNode op = inpayload->Child(0);
+    op = inpayload->Child(0);
     if(!op) {
       logger_.msg(Arc::ERROR, "input does not define operation");
       return make_soap_fault(outmsg);
