@@ -120,7 +120,7 @@ ARexSecAttr::ARexSecAttr(const Arc::XMLNode op) {
     action_=JOB_POLICY_OPERATION_MODIFY;
   } else if(MatchXMLNamespace(op,"http://docs.oasis-open.org/wsrf/rp-2")) {
     id_=AREX_POLICY_OPERATION_URN;
-    action_=AREX_POLICY_OPERATION_READ;
+    action_=AREX_POLICY_OPERATION_INFO;
   }
 }
 
