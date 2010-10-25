@@ -29,7 +29,9 @@ Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
 
 namespace ArcSec {
 
-ArgusPEP::ArgusPEP(Arc::Config *cfg):ArcSec::SecHandler(cfg),valid_(false){  
+Arc::Logger ArgusPEP::logger(SecHandler::logger,"Argus");
+
+ArgusPEP::ArgusPEP(Arc::Config *cfg):ArcSec::SecHandler(cfg),valid_(false) {  
     pepdlocation = (std::string)(*cfg)["PEPD"];  
     if(pepdlocation.empty()) {
       logger.msg(Arc::ERROR, "PEPD location is missing");
@@ -63,7 +65,7 @@ class pep_ex {
     pep_ex(const std::string& desc_):desc(desc_) {};
 };
 
-bool ArgusPEP::Handle(Arc::Message* msg) const{
+bool ArgusPEP::Handle(Arc::Message* msg) const {
   
     bool res = true;
     pep_error_t pep_rc; 
@@ -76,10 +78,6 @@ bool ArgusPEP::Handle(Arc::Message* msg) const{
 
     try {
   
-    Arc::XMLNode secattr;   
-    msg->Auth()->Export(Arc::SecAttr::ARCAuth, secattr);
-    msg->AuthContext()->Export(Arc::SecAttr::ARCAuth, secattr);
-
     pep_rc= pep_initialize();
     if (pep_rc != PEP_OK) {
         throw pep_ex(std::string("Failed to initialize PEP client: ")+pep_strerror(pep_rc));
@@ -91,8 +89,11 @@ bool ArgusPEP::Handle(Arc::Message* msg) const{
     }
 
     std::string subject , resource , action;
+    Arc::XMLNode secattr;   
 
     if(conversion == conversion_direct) {
+        msg->Auth()->Export(Arc::SecAttr::ARCAuth, secattr);
+        msg->AuthContext()->Export(Arc::SecAttr::ARCAuth, secattr);
         rc= create_xacml_request(requests,secattr);
     } else {
         //resource= (std::string) secattr["RequestItem"][0]["Resource"][0];
@@ -130,10 +131,10 @@ bool ArgusPEP::Handle(Arc::Message* msg) const{
         requests.pop_front();
         pep_rc= pep_authorize(&request,&response);
         if (pep_rc != PEP_OK) {
-           throw pep_ex(std::string("Failed to authorize XACML request: ")+pep_strerror(pep_rc));
+           throw pep_ex(std::string("Failed to process XACML request: ")+pep_strerror(pep_rc));
         }   
         if (response== NULL) {
-            throw pep_ex("Response is null");
+            throw pep_ex("XACML response is empty");
         }
         /* Extract the local user name from the response to be mapped to the GID */
         size_t results_l= xacml_response_results_length(response);

@@ -24,6 +24,7 @@ class ArgusPEP : public SecHandler {
  conversion_type conversion;
 
  bool valid_; 
+ static Arc::Logger logger;
   // XACML request and response
   // xacml_request_t * request;
   // xacml_response_t * response;
