@@ -13,6 +13,11 @@
 
 namespace ARex {
 
+#define JOB_POLICY_OPERATION_URN "http://www.nordugrid.org/schemas/policy-arc/types/a-rex/joboperation"
+#define JOB_POLICY_OPERATION_CREATE "Create"
+#define JOB_POLICY_OPERATION_MODIFY "Modify"
+#define JOB_POLICY_OPERATION_READ   "Read"
+
 class ARexGMConfig {
  private:
   JobUser *user_;

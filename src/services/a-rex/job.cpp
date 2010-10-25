@@ -34,24 +34,6 @@
 
 using namespace ARex;
 
-#define JOB_POLICY_OPERATION_URN "http://www.nordugrid.org/schemas/policy-arc/types/a-rex/joboperation"
-
-//static bool env_initialized = false;
-//Glib::StaticMutex env_lock = GLIBMM_STATIC_MUTEX_INIT;
-
-/*
-bool ARexGMConfig::InitEnvironment(const std::string& configfile) {
-  if(env_initialized) return true;
-  env_lock.lock();
-  if(!env_initialized) {
-    if(!configfile.empty()) nordugrid_config_loc(configfile);
-    env_initialized=read_env_vars();
-  };
-  env_lock.unlock();
-  return env_initialized;
-}
-*/
-
 ARexGMConfig::~ARexGMConfig(void) {
   if(user_) delete user_;
 }
@@ -201,10 +183,10 @@ bool ARexJob::is_allowed(bool fast) {
     // Possible operations are Modify and Read
     Arc::XMLNode action;
     action=item.NewChild("ra:Action");
-    action="Read"; action.NewAttribute("Type")="string";
+    action=JOB_POLICY_OPERATION_READ; action.NewAttribute("Type")="string";
     action.NewAttribute("AttributeId")=JOB_POLICY_OPERATION_URN;
     action=item.NewChild("ra:Action");
-    action="Modify"; action.NewAttribute("Type")="string";
+    action=JOB_POLICY_OPERATION_MODIFY; action.NewAttribute("Type")="string";
     action.NewAttribute("AttributeId")=JOB_POLICY_OPERATION_URN;
     // Evaluating policy
     ArcSec::Response *resp = eval->evaluate(request,policy);

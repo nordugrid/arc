@@ -15,6 +15,7 @@
 #include <arc/message/PayloadSOAP.h>
 #include <arc/message/PayloadRaw.h>
 #include <arc/message/PayloadStream.h>
+#include <arc/message/SecAttr.h>
 #include <arc/ws-addressing/WSA.h>
 #include <arc/Thread.h>
 #include <arc/StringConv.h>
@@ -47,6 +48,115 @@ static const std::string BES_ARC_NAMESPACE("http://www.nordugrid.org/schemas/a-r
 static const std::string BES_GLUE_NPREFIX("glue");
 static const std::string BES_GLUE_NAMESPACE("http://schemas.ogf.org/glue/2008/05/spec_2.0_d41_r01");
 
+
+#define AREX_POLICY_OPERATION_URN "http://www.nordugrid.org/schemas/policy-arc/types/a-rex/operation"
+#define AREX_POLICY_OPERATION_ADMIN "Admin"
+#define AREX_POLICY_OPERATION_INFO  "Info"
+
+// Id: http://www.nordugrid.org/schemas/policy-arc/types/arex/joboperation
+// Value: 
+//        Create - creation of new job
+//        Modify - modification of job paramaeters - change state, write data.
+//        Read   - accessing job information - get status information, read data.
+// Id: http://www.nordugrid.org/schemas/policy-arc/types/arex/operation
+// Value: 
+//        Admin  - administrator level operation
+//        Info   - information about service
+
+class ARexSecAttr: public Arc::SecAttr {
+ public:
+  ARexSecAttr(const std::string& action);
+  ARexSecAttr(const Arc::XMLNode op);
+  virtual ~ARexSecAttr(void);
+  virtual operator bool(void) const;
+  virtual bool Export(Arc::SecAttrFormat format,Arc::XMLNode &val) const;
+ protected:
+  std::string action_;
+  std::string id_;
+  virtual bool equal(const Arc::SecAttr &b) const;
+};
+
+ARexSecAttr::ARexSecAttr(const std::string& action) {
+  id_=JOB_POLICY_OPERATION_URN;
+  action_=action;
+}
+
+ARexSecAttr::ARexSecAttr(const Arc::XMLNode op) {
+  if(MatchXMLName(op,"CreateActivity")) {
+    id_=JOB_POLICY_OPERATION_URN;
+    action_=JOB_POLICY_OPERATION_CREATE;
+  } else if(MatchXMLName(op,"GetActivityStatuses")) {
+    id_=JOB_POLICY_OPERATION_URN;
+    action_=JOB_POLICY_OPERATION_READ;
+  } else if(MatchXMLName(op,"TerminateActivities")) {
+    id_=JOB_POLICY_OPERATION_URN;
+    action_=JOB_POLICY_OPERATION_MODIFY;
+  } else if(MatchXMLName(op,"GetActivityDocuments")) {
+    id_=JOB_POLICY_OPERATION_URN;
+    action_=JOB_POLICY_OPERATION_READ;
+  } else if(MatchXMLName(op,"GetFactoryAttributesDocument")) {
+    id_=AREX_POLICY_OPERATION_URN;
+    action_=AREX_POLICY_OPERATION_INFO;
+  } else if(MatchXMLName(op,"StopAcceptingNewActivities")) {
+    id_=AREX_POLICY_OPERATION_URN;
+    action_=AREX_POLICY_OPERATION_ADMIN;
+  } else if(MatchXMLName(op,"StartAcceptingNewActivities")) {
+    id_=AREX_POLICY_OPERATION_URN;
+    action_=AREX_POLICY_OPERATION_ADMIN;
+  } else if(MatchXMLName(op,"ChangeActivityStatus")) {
+    id_=JOB_POLICY_OPERATION_URN;
+    action_=JOB_POLICY_OPERATION_MODIFY;
+  } else if(MatchXMLName(op,"MigrateActivity")) {
+    id_=JOB_POLICY_OPERATION_URN;
+    action_=JOB_POLICY_OPERATION_MODIFY;
+  } else if(MatchXMLName(op,"CacheCheck")) {
+    id_=AREX_POLICY_OPERATION_URN;
+    action_=AREX_POLICY_OPERATION_INFO;
+  } else if(MatchXMLName(op,"DelegateCredentialsInit")) {
+    id_=JOB_POLICY_OPERATION_URN;
+    action_=JOB_POLICY_OPERATION_CREATE;
+  } else if(MatchXMLName(op,"UpdateCredentials")) {
+    id_=JOB_POLICY_OPERATION_URN;
+    action_=JOB_POLICY_OPERATION_MODIFY;
+  } else if(MatchXMLNamespace(op,"http://docs.oasis-open.org/wsrf/rp-2")) {
+    id_=AREX_POLICY_OPERATION_URN;
+    action_=AREX_POLICY_OPERATION_READ;
+  }
+}
+
+ARexSecAttr::~ARexSecAttr(void) {
+}
+
+ARexSecAttr::operator bool(void) const {
+  return !action_.empty();
+}
+
+bool ARexSecAttr::equal(const SecAttr &b) const {
+  try {
+    const ARexSecAttr& a = (const ARexSecAttr&)b;
+    return ((id_ == a.id_) && (action_ == a.action_));
+  } catch(std::exception&) { };
+  return false;
+}
+
+bool ARexSecAttr::Export(Arc::SecAttrFormat format,Arc::XMLNode &val) const {
+  if(format == UNDEFINED) {
+  } else if(format == ARCAuth) {
+    Arc::NS ns;
+    ns["ra"]="http://www.nordugrid.org/schemas/request-arc";
+    val.Namespaces(ns); val.Name("ra:Request");
+    Arc::XMLNode item = val.NewChild("ra:RequestItem");
+    if(!action_.empty()) {
+      Arc::XMLNode action = item.NewChild("ra:Action");
+      action=action_;
+      action.NewAttribute("Type")="string";
+      action.NewAttribute("AttributeId")=JOB_POLICY_OPERATION_URN;
+    };
+    return true;
+  } else {
+  };
+  return false;
+}
 
 static Arc::XMLNode BESFactoryResponse(Arc::PayloadSOAP& res,const char* opname) {
   Arc::XMLNode response = res.NewChild(BES_FACTORY_NPREFIX + ":" + opname + "Response");
@@ -262,31 +372,13 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
   logger_.msg(Arc::VERBOSE, "process: id: %s", id);
   logger_.msg(Arc::VERBOSE, "process: subpath: %s", subpath);
 
-  // Process grid-manager configuration if not done yet
-  ARexConfigContext* config = get_configuration(inmsg);
-  if(!config) {
-    logger_.msg(Arc::ERROR, "Can't obtain configuration");
-    // Service is not operational
-    return Arc::MCC_Status();
-  };
-  config->ClearAuths();
-  config->AddAuth(inmsg.Auth());
-  config->AddAuth(inmsg.AuthContext());
-
-  // Collect any service specific Security Attributes here
-  if(!ProcessSecHandlers(inmsg,"incoming")) {
-    logger_.msg(Arc::ERROR, "Security Handlers processing failed");
-    return Arc::MCC_Status();
-  };
-
-  // Identify which of served endpoints request is for.
-  // Using simplified algorithm - POST for SOAP messages,
-  // GET and PUT for data transfer
+  // Sort out request
+  Arc::PayloadSOAP* inpayload = NULL;
+  Arc::XMLNode op;
   if(method == "POST") {
     logger_.msg(Arc::VERBOSE, "process: POST");
     // Both input and output are supposed to be SOAP
     // Extracting payload
-    Arc::PayloadSOAP* inpayload = NULL;
     try {
       inpayload = dynamic_cast<Arc::PayloadSOAP*>(inmsg.Payload());
     } catch(std::exception& e) { };
@@ -308,6 +400,34 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
       return make_soap_fault(outmsg);
     };
     logger_.msg(Arc::VERBOSE, "process: operation: %s",op.Name());
+    // Adding A-REX attributes
+    inmsg.Auth()->set("AREX",new ARexSecAttr(op));
+  } else if(method == "GET") {
+    inmsg.Auth()->set("AREX",new ARexSecAttr(std::string(JOB_POLICY_OPERATION_READ)));
+  } else if(method == "PUT") {
+    inmsg.Auth()->set("AREX",new ARexSecAttr(std::string(JOB_POLICY_OPERATION_MODIFY)));
+  }
+
+  if(!ProcessSecHandlers(inmsg,"incoming")) {
+    logger_.msg(Arc::ERROR, "Security Handlers processing failed");
+    return Arc::MCC_Status();
+  };
+
+  // Process grid-manager configuration if not done yet
+  ARexConfigContext* config = get_configuration(inmsg);
+  if(!config) {
+    logger_.msg(Arc::ERROR, "Can't obtain configuration");
+    // Service is not operational
+    return Arc::MCC_Status();
+  };
+  config->ClearAuths();
+  config->AddAuth(inmsg.Auth());
+  config->AddAuth(inmsg.AuthContext());
+
+  // Identify which of served endpoints request is for.
+  // Using simplified algorithm - POST for SOAP messages,
+  // GET and PUT for data transfer
+  if(method == "POST") {
     // Check if request is for top of tree (BES factory) or particular 
     // job (listing activity)
     if(id.empty()) {
