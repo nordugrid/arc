@@ -386,8 +386,10 @@ sub gmjobs_info () {
 
     for my $controldir (@controldirs) {
 
-    unless (opendir JOBDIR,  $controldir ) {
-	error("can't read controldir: $controldir: $!");
+    for my $controlsubdir ("$conroldir/accepting", "$conroldir/processing", "$conroldir/finished") {
+
+    unless (opendir JOBDIR,  $controlsubdir ) {
+	error("can't read controldir: $controlsubdir: $!");
     }
 
     my (@allfiles) = readdir JOBDIR;
@@ -402,7 +404,7 @@ sub gmjobs_info () {
 
     foreach my $ID (@gridmanager_jobs) {
 	my $gmjob_local       = $controldir."/job.".$ID.".local";
-	my $gmjob_status      = $controldir."/job.".$ID.".status";
+	my $gmjob_status      = $controlsubdir."/job.".$ID.".status";
 	my $gmjob_failed      = $controldir."/job.".$ID.".failed";  
 	my $gmjob_description = $controldir."/job.".$ID.".description"; 
 	my $gmjob_diag        = $controldir."/job.".$ID.".diag"; 
@@ -713,6 +715,8 @@ sub gmjobs_info () {
 	}    
     }
     
+    } # loop over controlsubdirs
+
     } # loop over controldirs
 
     return (\%gmjobs, \%gm_queued, \$queue_pendingprelrms, \$queue_prelrmsqueued);

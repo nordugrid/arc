@@ -926,12 +926,16 @@ void JobsList::ActJobUndefined(JobsList::iterator &i,bool /*hard_job*/,
             job_desc->transfershare = i->transfer_share;
             job_local_write_file(*i,*user,*job_desc);
             i->local->transfershare=i->transfer_share;
+            job_state_write_file(*i,*user,i->job_state);
+
             // prepare information for logger
             user->Env().job_log().make_file(*i,*user);
           } else if(new_state == JOB_STATE_FINISHED) {
             once_more=true;
+            job_state_write_file(*i,*user,i->job_state);
           } else if(new_state == JOB_STATE_DELETED) {
             once_more=true;
+            job_state_write_file(*i,*user,i->job_state);
           } else {
             logger.msg(Arc::INFO,"%s: %s: New job belongs to %i/%i",i->job_id.c_str(),
                 JobDescription::get_state_name(new_state),i->get_uid(),i->get_gid());
@@ -1633,15 +1637,11 @@ class JobFDesc {
   bool operator<(JobFDesc &right) { return (t < right.t); };
 };
 
-/* find new jobs - sort by date to implement FIFO */
-bool JobsList::ScanNewJobs(bool /*hard_job*/) {
-  std::string file;
-  std::string cdir=user->ControlDir();
-  std::list<JobFDesc> ids;
+bool JobsList::ScanJobs(const std::string& cdir,std::list<JobFDesc>& ids) {
   try {
     Glib::Dir dir(cdir);
     for(;;) {
-      file=dir.read_name();
+      std::string file=dir.read_name();
       if(file.empty()) break;
       int l=file.length();
       if(l>(4+7)) {  /* job id contains at least 1 character */
@@ -1667,6 +1667,16 @@ bool JobsList::ScanNewJobs(bool /*hard_job*/) {
     logger.msg(Arc::ERROR,"Failed reading control directory: %s",user->ControlDir());
     return false;
   };
+  return true;
+}
+
+/* find new jobs - sort by date to implement FIFO */
+bool JobsList::ScanNewJobs(bool /*hard_job*/) {
+  std::string cdir=user->ControlDir();
+  std::list<JobFDesc> ids;
+  if(!ScanJobs(cdir,ids)) return false;
+  cdir+="/accepting";
+  if(!ScanJobs(cdir,ids)) return false;
   /* sorting by date */
   ids.sort();
   for(std::list<JobFDesc>::iterator id=ids.begin();id!=ids.end();++id) {

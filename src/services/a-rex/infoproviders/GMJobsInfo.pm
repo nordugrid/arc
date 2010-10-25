@@ -76,8 +76,10 @@ sub collect($) {
     # read the list of jobs from the jobdir and create the @gridmanager_jobs
     # the @gridmanager_jobs contains the IDs from the job.ID.status
 
-    unless (opendir JOBDIR,  $controldir ) {
-        $log->warning("Can't access the job control directory: $controldir") and return {};
+    foreach my $controlsubdir ("$controldir/accepting", "$controldir/processing", "$controldir/finished") {
+
+    unless (opendir JOBDIR,  $controlsubdir ) {
+        $log->warning("Can't access the job control directory: $controlsubdir") and return {};
     }
     my @allfiles = grep /\.status/, readdir JOBDIR;
     closedir JOBDIR;
@@ -89,7 +91,7 @@ sub collect($) {
         my $job = $gmjobs{$ID} = {};
 
         my $gmjob_local       = $controldir."/job.".$ID.".local";
-        my $gmjob_status      = $controldir."/job.".$ID.".status";
+        my $gmjob_status      = $controlsubdir."/job.".$ID.".status";
         my $gmjob_failed      = $controldir."/job.".$ID.".failed";
         my $gmjob_description = $controldir."/job.".$ID.".description";
         my $gmjob_grami       = $controldir."/job.".$ID.".grami";
@@ -270,7 +272,7 @@ sub collect($) {
             }
         }
     }
-
+    }
     return \%gmjobs;
 }
 

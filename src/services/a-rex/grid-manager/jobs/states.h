@@ -24,6 +24,7 @@ class JobLocalDescription;
 class ContinuationPlugins;
 class RunPlugin;
 class JobsListConfig;
+class JobFDesc;
 
 /*
   List of jobs. This object is cross-linked to JobUser object, which
@@ -66,6 +67,7 @@ class JobsList {
   job_state_t JobFailStateGet(const iterator &i);
   bool JobFailStateRemember(const iterator &i,job_state_t state);
   bool RecreateTransferLists(const JobsList::iterator &i);
+  bool ScanJobs(const std::string& cdir,std::list<JobFDesc>& ids);
  public:
   /* Constructor. 'user' contains associated user */ 
   JobsList(JobUser &user,ContinuationPlugins &plugins);

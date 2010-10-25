@@ -135,6 +135,7 @@ bool job_lrmsoutput_mark_get(JobDescription &desc,JobUser &user);
 /*
   Common purpose functions, used by previous functions.
 */
+bool job_Xput_read_file(const std::string &fname,std::list<FileData> &files);
 std::string job_mark_read_s(const std::string &fname);
 long int job_mark_read_i(const std::string &fname);
 bool job_mark_write_s(const std::string &fname,const std::string &content);
@@ -162,9 +163,7 @@ time_t job_state_time(const JobId &id,JobUser &user);
 */
 job_state_t job_state_read_file(const JobId &id,const JobUser &user);
 job_state_t job_state_read_file(const JobId &id,const JobUser &user,bool &pending);
-job_state_t job_state_read_file(const std::string &fname,bool &pending);
 bool job_state_write_file(const JobDescription &desc,JobUser &user,job_state_t state,bool pending = false);
-bool job_state_write_file(const std::string &fname,job_state_t state,bool pending = false);
 
 /*
   Read and write file used to store RSL description of job.
@@ -213,10 +212,6 @@ bool job_rte_read_file(const JobId &id,JobUser &user,std::list<std::string> &rte
 /*
   Functions used by previous functions.
 */
-bool job_Xput_write_file(const std::string &fname,std::list<FileData> &files);
-bool job_Xput_read_file(const std::string &fname,std::list<FileData> &files);
-bool job_Xput_read_file(std::list<FileData> &files);
-bool job_strings_write_file(const std::string &fname,std::list<std::string> &strs);
 bool job_strings_read_file(const std::string &fname,std::list<std::string> &strs);
 
 /*

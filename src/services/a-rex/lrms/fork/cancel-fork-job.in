@@ -43,20 +43,27 @@ if [ -z "$joboption_jobid" ] ; then
   joboption_jobid=`cat "$job_control_dir/job.${joboption_gridid}.local" | grep '^localid=' | sed 's/^localid=//'`
 fi
 
-if [ ! -r "$job_control_dir/job.${joboption_gridid}.status" ]; then
+job_control_subdir=
+if [ -r "$job_control_dir/accepting/job.${joboption_gridid}.status" ]; then
+  job_control_subdir="$job_control_dir/accepting"
+elif [ -r "$job_control_dir/processing/job.${joboption_gridid}.status" ]; then
+  job_control_subdir="$job_control_dir/processing"
+elif [ -r "$job_control_dir/finished/job.${joboption_gridid}.status" ]; then
+  job_control_subdir="$job_control_dir/finished"
+else
   echo "Status file of job ${joboption_gridid} not found at '$job_control_dir/job.${joboption_gridid}.status'. Job was not killed, if running at all." 1>&2
   exit 1
 fi
 
-case X`cat "$job_control_dir/job.${joboption_gridid}.status"` in
+case X`cat "$job_control_subdir/job.${joboption_gridid}.status"` in
     XINLRMS | XCANCELING)
         if [ -z "$joboption_jobid" ] ; then
             echo "Can't find local id of job" 1>&2
             exit 1
         fi
         kill -TERM $joboption_jobid
-	sleep 5
-	kill -KILL $joboption_jobid
+        sleep 5
+        kill -KILL $joboption_jobid
         ;;
 
     XFINISHED | XDELETED)

@@ -63,8 +63,18 @@ const char * const sfx_lrmsoutput  = ".comment";
 const char * const sfx_diskusage   = ".disk";
 const char * const sfx_acl         = ".acl";
 const char * const sfx_proxy       = ".proxy";
+const char * const subdir_new      = "accepting";
+const char * const subdir_cur      = "processing";
+const char * const subdir_old      = "finished";
 
 static Arc::Logger& logger = Arc::Logger::getRootLogger();
+
+static job_state_t job_state_read_file(const std::string &fname,bool &pending);
+static bool job_state_write_file(const std::string &fname,job_state_t state,bool pending = false);
+static bool job_Xput_write_file(const std::string &fname,std::list<FileData> &files);
+static bool job_Xput_read_file(std::list<FileData> &files);
+static bool job_strings_write_file(const std::string &fname,std::list<std::string> &str);
+
 
 bool fix_file_permissions(const std::string &fname,bool executable) {
   mode_t mode = S_IRUSR | S_IWUSR;
@@ -561,28 +571,75 @@ bool job_diskusage_remove_file(const JobDescription &desc,JobUser& /*user*/) {
 
 time_t job_state_time(const JobId &id,JobUser &user) {
   std::string fname = user.ControlDir() + "/job." + id + sfx_status;
+  time_t t = job_mark_time(fname);
+  if(t != 0) return t;
+  fname = user.ControlDir() + "/" + subdir_cur + "/job." + id + sfx_status;
+  t = job_mark_time(fname);
+  if(t != 0) return t;
+  fname = user.ControlDir() + "/" + subdir_new + "/job." + id + sfx_status;
+  t = job_mark_time(fname);
+  if(t != 0) return t;
+  fname = user.ControlDir() + "/" + subdir_old + "/job." + id + sfx_status;
   return job_mark_time(fname);
 }
 
 job_state_t job_state_read_file(const JobId &id,const JobUser &user) {
   std::string fname = user.ControlDir() + "/job." + id + sfx_status;
   bool pending;
+  job_state_t st = job_state_read_file(fname,pending);
+  if(st != JOB_STATE_DELETED) return st;
+  fname = user.ControlDir() + "/" + subdir_cur + "/job." + id + sfx_status;
+  st = job_state_read_file(fname,pending);
+  if(st != JOB_STATE_DELETED) return st;
+  fname = user.ControlDir() + "/" + subdir_new + "/job." + id + sfx_status;
+  st = job_state_read_file(fname,pending);
+  if(st != JOB_STATE_DELETED) return st;
+  fname = user.ControlDir() + "/" + subdir_old + "/job." + id + sfx_status;
   return job_state_read_file(fname,pending);
 }
 
 job_state_t job_state_read_file(const JobId &id,const JobUser &user,bool& pending) {
   std::string fname = user.ControlDir() + "/job." + id + sfx_status;
+  job_state_t st = job_state_read_file(fname,pending);
+  if(st != JOB_STATE_DELETED) return st;
+  fname = user.ControlDir() + "/" + subdir_cur + "/job." + id + sfx_status;
+  st = job_state_read_file(fname,pending);
+  if(st != JOB_STATE_DELETED) return st;
+  fname = user.ControlDir() + "/" + subdir_new + "/job." + id + sfx_status;
+  st = job_state_read_file(fname,pending);
+  if(st != JOB_STATE_DELETED) return st;
+  fname = user.ControlDir() + "/" + subdir_old + "/job." + id + sfx_status;
   return job_state_read_file(fname,pending);
 }
 
 bool job_state_write_file(const JobDescription &desc,JobUser &user,job_state_t state,bool pending) {
-  std::string fname = user.ControlDir() + "/job." + desc.get_id() + sfx_status;
+  std::string fname;
+  if(state == JOB_STATE_ACCEPTED) { 
+    fname = user.ControlDir() + "/" + subdir_old + "/job." + desc.get_id() + sfx_status; remove(fname.c_str());
+    fname = user.ControlDir() + "/" + subdir_cur + "/job." + desc.get_id() + sfx_status; remove(fname.c_str());
+    fname = user.ControlDir() + "/job." + desc.get_id() + sfx_status; remove(fname.c_str());
+    fname = user.ControlDir() + "/" + subdir_new + "/job." + desc.get_id() + sfx_status;
+  } else if((state == JOB_STATE_FINISHED) || (state == JOB_STATE_DELETED)) {
+    fname = user.ControlDir() + "/" + subdir_new + "/job." + desc.get_id() + sfx_status; remove(fname.c_str());
+    fname = user.ControlDir() + "/" + subdir_cur + "/job." + desc.get_id() + sfx_status; remove(fname.c_str());
+    fname = user.ControlDir() + "/job." + desc.get_id() + sfx_status; remove(fname.c_str());
+    fname = user.ControlDir() + "/" + subdir_old + "/job." + desc.get_id() + sfx_status;
+  } else {
+    fname = user.ControlDir() + "/" + subdir_new + "/job." + desc.get_id() + sfx_status; remove(fname.c_str());
+    fname = user.ControlDir() + "/" + subdir_old + "/job." + desc.get_id() + sfx_status; remove(fname.c_str());
+    fname = user.ControlDir() + "/job." + desc.get_id() + sfx_status; remove(fname.c_str());
+    fname = user.ControlDir() + "/" + subdir_cur + "/job." + desc.get_id() + sfx_status;
+  };
   return job_state_write_file(fname,state,pending) & fix_file_owner(fname,desc,user) & fix_file_permissions(fname,desc,user);
 }
 
-job_state_t job_state_read_file(const std::string &fname,bool &pending) {
+static job_state_t job_state_read_file(const std::string &fname,bool &pending) {
   std::ifstream f(fname.c_str());
-  if(!f.is_open() ) return JOB_STATE_UNDEFINED; /* can't open file */
+  if(!f.is_open() ) {
+    if(!job_mark_check(fname)) return JOB_STATE_DELETED; /* job does not exist */
+    return JOB_STATE_UNDEFINED; /* can't open file */
+  };
+
   char buf[32];
   f.getline(buf,30);
   /* interpret information */
@@ -598,7 +655,7 @@ job_state_t job_state_read_file(const std::string &fname,bool &pending) {
   return JOB_STATE_UNDEFINED; /* broken file */
 }
 
-bool job_state_write_file(const std::string &fname,job_state_t state,bool pending) {
+static bool job_state_write_file(const std::string &fname,job_state_t state,bool pending) {
   std::ofstream f(fname.c_str(),std::ios::out | std::ios::trunc);
   if(! f.is_open() ) return false; /* can't open file */
   if(pending) f<<"PENDING:";
@@ -983,7 +1040,7 @@ bool job_output_read_file(const JobId &id,JobUser &user,std::list<FileData> &fil
 
 /* common finctions */
 
-bool job_Xput_write_file(const std::string &fname,std::list<FileData> &files) {
+static bool job_Xput_write_file(const std::string &fname,std::list<FileData> &files) {
   std::ofstream f(fname.c_str(),std::ios::out | std::ios::trunc);
   if(! f.is_open() ) return false; /* can't open file */
   for(FileData::iterator i=files.begin();i!=files.end(); ++i) { 
@@ -993,7 +1050,7 @@ bool job_Xput_write_file(const std::string &fname,std::list<FileData> &files) {
   return true;
 }
 
-bool job_Xput_read_file(std::list<FileData> &files) {
+static bool job_Xput_read_file(std::list<FileData> &files) {
   for(;!std::cin.eof();) {
     FileData fd; std::cin >> fd;
 //    if((fd.pfn.length() != 0) && (fd.pfn != "/")) {
@@ -1018,7 +1075,7 @@ bool job_Xput_read_file(const std::string &fname,std::list<FileData> &files) {
   return true;
 }
 
-bool job_strings_write_file(const std::string &fname,std::list<std::string> &strs) {
+static bool job_strings_write_file(const std::string &fname,std::list<std::string> &strs) {
   std::ofstream f(fname.c_str(),std::ios::out | std::ios::trunc);
   if(! f.is_open() ) return false; /* can't open file */
   for(std::list<std::string>::iterator i=strs.begin();i!=strs.end(); ++i) {
@@ -1104,6 +1161,9 @@ bool job_clean_final(const JobDescription &desc,JobUser &user) {
   job_diagnostics_mark_remove(desc,user);
   job_lrmsoutput_mark_remove(desc,user);
   fname = user.ControlDir()+"/job."+id+sfx_status; remove(fname.c_str());
+  fname = user.ControlDir()+"/"+subdir_new+"/job."+id+sfx_status; remove(fname.c_str());
+  fname = user.ControlDir()+"/"+subdir_cur+"/job."+id+sfx_status; remove(fname.c_str());
+  fname = user.ControlDir()+"/"+subdir_old+"/job."+id+sfx_status; remove(fname.c_str());
   fname = user.ControlDir()+"/job."+id+sfx_rsl;    remove(fname.c_str());
   return true;
 }

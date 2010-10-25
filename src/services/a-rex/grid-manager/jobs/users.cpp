@@ -117,6 +117,21 @@ bool JobUser::CreateDirectories(void) {
     } else {
       (chown((control_dir+"/logs").c_str(),uid,gid) != 0);
     };
+    if(mkdir((control_dir+"/accepting").c_str(),S_IRWXU) != 0) {
+      if(errno != EEXIST) res=false;
+    } else {
+      (chown((control_dir+"/accepting").c_str(),uid,gid) != 0);
+    };
+    if(mkdir((control_dir+"/processing").c_str(),S_IRWXU) != 0) {
+      if(errno != EEXIST) res=false;
+    } else {
+      (chown((control_dir+"/processing").c_str(),uid,gid) != 0);
+    };
+    if(mkdir((control_dir+"/finished").c_str(),S_IRWXU) != 0) {
+      if(errno != EEXIST) res=false;
+    } else {
+      (chown((control_dir+"/finished").c_str(),uid,gid) != 0);
+    };
   };
   if(session_roots.size() != 0) {
     for(std::vector<std::string>::iterator i = session_roots.begin(); i != session_roots.end(); i++) {
