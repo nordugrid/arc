@@ -405,7 +405,7 @@ job_write_donefile() {
     echo "${LRMSExitcode:--1} $msg" > $donefile || log "failed writing file: $PWD/$donefile"
 
     # wake up GM
-    statusfile=job.$gridid.status
+    statusfile=processing/job.$gridid.status
     "${basedir}"/gm-kick "$statusfile"
 }
 
@@ -487,20 +487,20 @@ scan_main() {
         cd "$myworkdir" || { log "cannot cd to $myworkdir"; exit 1; }
         cd "$ctr_dir" || { log "erroneous control dir: $ctr_dir"; exit 1; }
 
-        # This perl script scans the current directory for grid jobs in INLRMS
-        # and CANCELING states. If not running as the superuser, also filter
-        # out any jobs not belonging to the current user.  Finally, prints to
-        # STDOUT onle line for each job containing:
+        # This perl script scans the 'processing' sub-directory for grid jobs
+        # in INLRMS and CANCELING states. If not running as the superuser, also
+        # filter out any jobs not belonging to the current user.  Finally,
+        # prints to STDOUT onle line for each job containing:
         #   * grid ID, only the digits
         #   * local ID, as in LRMS
         #   * uid of owner of the job.*.local file
         listscript='use English;
-                    exit 1 unless opendir(DIR,".");
+                    exit 1 unless opendir(DIR,"processing");
                     while (my $fname = readdir DIR) {
                         my ($gridid, $lrmsid, $status);
                         ($gridid) = ($fname =~ m/^job\.(\d+)\.status$/);
                         next unless defined $gridid;
-                        next unless open(STATUS,"< $fname");
+                        next unless open(STATUS,"< processing/$fname");
                         $status = <STATUS>;
                         close STATUS;
                         next unless $status and $status =~ m/^INLRMS|CANCELING$/;

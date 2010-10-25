@@ -51,7 +51,7 @@ elif [ -r "$job_control_dir/processing/job.${joboption_gridid}.status" ]; then
 elif [ -r "$job_control_dir/finished/job.${joboption_gridid}.status" ]; then
   job_control_subdir="$job_control_dir/finished"
 else
-  echo "Status file of job ${joboption_gridid} not found at '$job_control_dir/job.${joboption_gridid}.status'. Job was not killed, if running at all." 1>&2
+  echo "Status file of job ${joboption_gridid} not found in '$job_control_dir'. Job was not killed, if running at all." 1>&2
   exit 1
 fi
 

@@ -65,7 +65,9 @@ if [ -z "$ldate" ] ; then ldate='0' ; fi
 find_by_local() {
   eval "set -- $control_dirs"
   for ctr_dir in "$@"; do
-    find ${ctr_dir} -name 'job.*.local' -print0 | xargs -0 grep -F -l "localid=$job_id" 2>/dev/null
+    find ${ctr_dir}/processing -name 'job.*.status' -print0 \
+    | sed 's/processing\/job\.\([^\.]*\)\.status/job.\1.local/g' \
+    | xargs -0 grep -F -l "localid=$job_id" 2>/dev/null
   done \
   | head -n 1
 }
@@ -73,7 +75,9 @@ find_by_local() {
 find_by_grami() {
   eval "set -- $control_dirs"
   for ctr_dir in "$@"; do
-    find ${ctr_dir} -name 'job.*.grami' -print0 | xargs -0 grep -F -l "joboption_jobid=$job_id" 2>/dev/null
+    find ${ctr_dir}/processing -name 'job.*.status' -print0 \
+    | sed 's/processing\/job\.\([^\.]*\)\.status/job.\1.grami/g' \
+    | xargs -0 grep -F -l "joboption_jobid=$job_id" 2>/dev/null
   done \
   | sed 's/\.grami$/.local/' \
   | head -n 1
@@ -154,8 +158,10 @@ process_log_file () {
     # check if job already reported
     if [ -f "${base_name}.lrms_done" ] ; then continue ; fi
 
+    statusfile=`echo "$name" 2>/dev/null | sed -n 's/job\.\([^\.]*\)\.local$/processing\/job.\1.status/p'`
+
     # more protection - check if grid-manager thinks job is still running
-    egrep 'INLRMS|SUBMIT|CANCELING' "${base_name}.status" >/dev/null 2>&1
+    egrep 'INLRMS|SUBMIT|CANCELING' "$statusfile" >/dev/null 2>&1
     if [ ! $? = '0' ] ; then continue ; fi
 
     # So far only PBS exit code is available
@@ -261,7 +267,7 @@ process_log_file () {
       fi
     fi
     # wake up GM
-    ${GMKICK} "${base_name}.status"
+    ${GMKICK} "$statusfile"
   done
   IFS=$old_IFS
 }
@@ -331,7 +337,9 @@ rm -f "$pidslist"
 # Go through directories
 for ctr_dir in "$@" ; do
   # Obtain ids stored in job.*.local
-  ids=`find ${ctr_dir} -name 'job.*.local' -print0 | xargs -0 grep -h "^localid=" 2>/dev/null | sed 's/^localid=\([0-9]*\).*/\1/'`
+  ids=`find ${ctr_dir}/processing -name 'job.*.status' -print0 \
+       | sed 's/processing\/job\.\([^\.]*\)\.status/job.\1.local/g' \
+       | xargs -0 grep -h "^localid=" 2>/dev/null | sed 's/^localid=\([0-9]*\).*/\1/'`
   if [ -z "$ids" ] ; then continue ; fi
   # compare them to running jobs and find missing
   bids=
@@ -344,7 +352,9 @@ for ctr_dir in "$@" ; do
   # go through missing ids
   for id in $bids ; do
     # find grid job corresponding to curent local id
-    jobfile=`find ${ctr_dir} -name 'job.*.local' -print0 | xargs -0 grep -F -l "localid=$id." 2>/dev/null`
+    jobfile=`find ${ctr_dir}/processing -name 'job.*.status' -print0 \
+             | sed 's/processing\/job\.\([^\.]*\)\.status/job.\1.local/g' \
+             | xargs -0 grep -F -l "localid=$id." 2>/dev/null`
     if [ -z "$jobfile" ] ; then continue ; fi
     if [ "$my_id" != '0' ] ; then
       if [ ! -O "$jobfile" ] ; then continue ; fi
@@ -355,7 +365,7 @@ for ctr_dir in "$@" ; do
     gridid=`basename "$jobfile" '.local' | sed 's/^job\.//'`
     donefile="${ctr_dir}/job.${gridid}.lrms_done"
     if [ -f "$donefile" ] ; then continue ; fi
-    statusfile="${ctr_dir}/job.${gridid}.status"
+    statusfile="${ctr_dir}/processing/job.${gridid}.status"
     if [ ! -f "$statusfile" ] ; then continue ; fi
     status=`cat "$statusfile"`
     if [ "$status" != "INLRMS" ] && [ "$status" != "CANCELING" ]; then continue ; fi
