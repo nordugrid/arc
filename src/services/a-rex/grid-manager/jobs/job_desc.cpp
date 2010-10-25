@@ -105,6 +105,23 @@ bool write_grami(const Arc::JobDescription& arc_job_desc, const JobDescription& 
   f<<"joboption_starttime="<<(job_local_desc.exectime != -1?job_local_desc.exectime.str(Arc::MDSTime):"")<<std::endl;
   f<<"joboption_gridid="<<value_for_shell(job_desc.get_id(),true)<<std::endl;
 
+  // Here we need another 'local' description because some info is not
+  // stored in job.#.local and still we do not want to mix both.
+  // TODO: clean this. 
+  {
+    JobLocalDescription stageinfo;
+    stageinfo = arc_job_desc;
+    int i = 0;
+    for(FileData::iterator s=stageinfo.inputdata.begin();
+                           s!=stageinfo.inputdata.end(); ++s) {
+      f<<"joboption_inputfile_"<<(i++)<<"="<<value_for_shell(s->pfn,true)<<std::endl;
+    }
+    i = 0;
+    for(FileData::iterator s=stageinfo.outputdata.begin();
+                           s!=stageinfo.outputdata.end(); ++s) {
+      f<<"joboption_outputfile_"<<(i++)<<"="<<value_for_shell(s->pfn,true)<<std::endl;
+    }
+  } 
   if(opt_add) f<<opt_add<<std::endl;
 
   return true;
