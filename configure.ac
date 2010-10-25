@@ -284,7 +284,7 @@ if test "$enables_java" = "yes"; then
 
   if test "x$JAVAC" != "x" && test "x`basename $JAVAC`" = "xgcj"; then
     JAVAC_FLAGS="-C --classpath=."
-  elif test `echo $JAVAC | grep -c gcj` -eq 1 && test "x`basename $JAVAC`" = "xjavac"; then
+  elif test "x`basename $JAVAC`" = "xjavac"; then
     JAVAC_FLAGS="-cp ."
   fi
 
