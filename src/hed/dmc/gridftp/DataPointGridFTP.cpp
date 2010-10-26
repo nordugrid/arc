@@ -642,7 +642,8 @@ namespace Arc {
     }
     lister.close_connection();
     DataStatus result = DataStatus::Success;
-    if((lister.size() != 1) || (lister.begin()->GetLastName() != url.Path())) {
+    if((lister.size() != 1) || 
+       (trim(lister.begin()->GetName(),"/") != trim(url.Path(),"/"))) {
       logger.msg(VERBOSE, "Wrong number of objects for stat from ftp: %s", url.str());
       // guess - that probably means it is directory 
       file.SetName(FileInfo(url.Path()).GetLastName());
