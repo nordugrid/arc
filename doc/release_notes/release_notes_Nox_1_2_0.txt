@@ -4,7 +4,7 @@ Advanced Resource Connector (ARC)
 Release Announcement for version Nox-1.2
 ----------------------------------------
 
-                                                     September 30, 2010
+                                                     October 22, 2010
 
 Advanced Resource Connector (ARC) version Nox-1.2 is a a new release in
 the ARC Nox series. It comes with a number of bugfixes and new features.
@@ -16,12 +16,15 @@ listed below.
 
 New features:
 
-* Added ARC0 infoprovider, LDAP infosys and GIIS
-* Adding arc-ur-* tools to A-REX
-* Added Hungarian translation
+* ARC0 infoprovider, LDAP infosys and GIIS
+* arc-ur-* tools to A-REX
+* Java bindings
+* Hungarian translation
 
 Extensions/Enhancements:
 
+* Added possibility to define default value in profiles and enable/disable an XML element from INI with a tag/value pair
+* Doxygen moved into src tree
 * Use of Logrotate instead of built-in log rotation
 * Moving to system GACL instead of a custom bundled version
 * Support newer gsoap versions (Fedora 14/RHEL 6)
@@ -76,9 +79,15 @@ Extensions/Enhancements:
 * Updated logging, now create log directory on service start if it is missing
 * Extended Russian translation
 * Number of improvements in man pages and other documentation
+* Removed dependency on dot from graphviz package for documentation build
+* Improved GridFactory backend
 
 Fixed bugs:
 
+* Fixed bug 2096 (arcinfo only prints info about one queue): Create multiple ExecutionTargets when multiple ComputingShares exist
+* Fixed bug 2097 (arcsub finds only 1 target even if there are two queues): Create multiple ExecutionTargets when multiple ComputingShares exist
+* Fix problem with arched init script not working on Ubuntu (bug 2099 arched init script doesn't work)
+* Fixed LSF backend's generated time-format within job.<number>.diag file had a wrong format (bug 2088)
 * Fixed missed sizeof of dynamic array in SRM client
 * Fixed listing of large SRM directories (bug 1929: Can't list long SRM directories)
 * Memory leak fixes, bugreports: 1711, 1712, 1713, 1714, 1717
@@ -119,3 +128,8 @@ Fixed bugs:
 * allownew=no in gridftpd's configuration affects only new job submission requests now
 * Fixed bug 2074 (arcproxy contacts the first voms server multiple times instead of once for each server)
 * Updated glue-generator to generate proper output for a resource bdii
+
+Known issues:
+
+* Some of RPM binary packages (e.g. arex and ldap-infosys) are circulary interdependent via Perl modules. Installation in one transaction (or use of --nodeps rpm option) circumvents the problem.
+
