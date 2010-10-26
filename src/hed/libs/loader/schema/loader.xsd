@@ -89,12 +89,12 @@
         <xsd:sequence>
             <xsd:element ref="next" minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element ref="SecHandler" minOccurs="0" maxOccurs="unbounded"/>
-            <xsd:any namespace="##other" processContents="strict" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:any namespace="##other" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
         <xsd:attribute name="name" type="xsd:string" use="required"/>
         <xsd:attribute name="id" type="xsd:string" use="required"/>
         <xsd:attribute name="entry" type="xsd:string" use="optional"/>
-        <xsd:anyAttribute namespace="##other" processContents="strict"/>
+        <xsd:anyAttribute namespace="##other" processContents="lax"/>
     </xsd:complexType>
 </xsd:element>
 
@@ -116,10 +116,10 @@
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element ref="next" minOccurs="0" maxOccurs="unbounded"/>
-            <xsd:any namespace="##other" processContents="strict" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:any namespace="##other" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:string" use="optional"/>
-        <xsd:anyAttribute namespace="##other" processContents="strict"/>
+        <xsd:anyAttribute namespace="##other" processContents="lax"/>
     </xsd:complexType>
 </xsd:element>
 
@@ -133,11 +133,11 @@
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element ref="SecHandler" minOccurs="0" maxOccurs="unbounded"/>
-            <xsd:any namespace="##other" processContents="strict" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:any namespace="##other" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
         <xsd:attribute name="name" type="xsd:string" use="required"/>
         <xsd:attribute name="id" type="xsd:string" use="required"/>
-        <xsd:anyAttribute namespace="##other" processContents="strict"/>
+        <xsd:anyAttribute namespace="##other" processContents="lax"/>
     </xsd:complexType>
 </xsd:element>
 
@@ -150,13 +150,13 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:any namespace="##other" processContents="strict" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:any namespace="##other" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
         <xsd:attribute name="name" type="xsd:string" use="required"/>
         <xsd:attribute name="id" type="xsd:string" use="optional"/>
         <xsd:attribute name="refid" type="xsd:string" use="optional"/>
         <xsd:attribute name="event" type="xsd:string" use="optional"/>
-        <xsd:anyAttribute namespace="##other" processContents="strict"/>
+        <xsd:anyAttribute namespace="##other" processContents="lax"/>
     </xsd:complexType>
 </xsd:element>
 
