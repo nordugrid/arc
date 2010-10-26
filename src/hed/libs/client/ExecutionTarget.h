@@ -15,6 +15,7 @@
 
 namespace Arc {
 
+  class Logger;
   class Submitter;
   class UserConfig;
 
@@ -125,13 +126,24 @@ namespace Arc {
      **/
     void Update(const JobDescription& jobdesc);
 
-    /// Print the ExecutionTarget information to std::cout
+    /// DEPRECATED: Print the ExecutionTarget information to std::cout
     /**
-     * Method to print the ExecutionTarget attributes to std::cout
+     * This method is deprecated, use the SaveToStream method instead. Method to
+     * print the ExecutionTarget attributes to std::cout
      *
      * @param longlist is true for long list printing.
+     * @see SaveToStream
      **/
     void Print(bool longlist) const;
+
+    /// Print the ExecutionTarget information to a std::ostream object
+    /**
+     * Method to print the ExecutionTarget attributes to a std::ostream object.
+     *
+     * @param out is the std::ostream to print the attributes to.
+     * @param longlist should be set to true for printing a long list.
+     **/
+    void SaveToStream(std::ostream& out, bool longlist) const;
 
     // Attributes from 5.3 Location
 
@@ -315,6 +327,8 @@ namespace Arc {
 
   private:
     SubmitterLoader loader;
+
+    static Logger logger;
   };
 
 } // namespace Arc

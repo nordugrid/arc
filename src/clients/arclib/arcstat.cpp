@@ -185,12 +185,12 @@ int RUNSTAT(main)(int argc, char **argv) {
 
     for (std::vector<const Arc::Job*>::const_iterator it = jobs.begin();
          it != jobs.end(); it++)
-      (*it)->Print(longlist);
+      (*it)->SaveToStream(std::cout, longlist);
   }
   else {
     for (std::list<Arc::JobController*>::iterator it = jobcont.begin();
          it != jobcont.end(); it++) {
-      if (!(*it)->PrintJobStatus(status, longlist))
+      if (!(*it)->SaveJobStatusToStream(std::cout, status, longlist))
         retval = 1;
     }
   }

@@ -13,10 +13,10 @@
 #include "ARCJSDLParser.h"
 
 
-#define INTPRINT(X, Y) if ((X) > -1) \
-  std::cout << IString(#Y ": %d", X) << std::endl;
-#define STRPRINT(X, Y) if (!(X).empty()) \
-  std::cout << IString(#Y ": %s", X) << std::endl;
+#define INTPRINT(OUT, X, Y) if ((X) > -1) \
+  OUT << IString(#Y ": %d", X) << std::endl;
+#define STRPRINT(OUT, X, Y) if (!(X).empty()) \
+  OUT << IString(#Y ": %s", X) << std::endl;
 
 
 namespace Arc {
@@ -26,157 +26,168 @@ namespace Arc {
   JobDescription::JobDescription(const long int& ptraddr) { *this = *((JobDescription*)ptraddr); }
 
   void JobDescription::Print(bool longlist) const {
+    logger.msg(WARNING, "The JobDescription::Print method is DEPRECATED, use the JobDescription::SaveToStream method instead.");
+    SaveToStream(std::cout, (!longlist ? "user" : "userlong")); // ??? Prepend "user*" with a character to avoid clashes?
+  }
 
-    STRPRINT(Application.Executable.Name, Executable);
-    STRPRINT(Application.LogDir, Log Directory)
-    STRPRINT(Identification.JobName, JobName)
-    STRPRINT(Identification.Description, Description)
-    STRPRINT(Identification.JobVOName, Virtual Organization)
+  bool JobDescription::SaveToStream(std::ostream& out, const std::string& format) const {
+
+    if (format != "user" && format != "userlong") {
+      const std::string outjobdesc = UnParse((!format.empty() ? format : sourceFormat));
+      out << outjobdesc;
+      return !outjobdesc.empty();
+    }
+
+    STRPRINT(out, Application.Executable.Name, Executable);
+    STRPRINT(out, Application.LogDir, Log Directory)
+    STRPRINT(out, Identification.JobName, JobName)
+    STRPRINT(out, Identification.Description, Description)
+    STRPRINT(out, Identification.JobVOName, Virtual Organization)
 
     switch (Identification.JobType) {
     case SINGLE:
-      std::cout << IString("Job type: single") << std::endl;
+      out << IString("Job type: single") << std::endl;
       break;
     case COLLECTIONELEMENT:
-      std::cout << IString("Job type: collection") << std::endl;
+      out << IString("Job type: collection") << std::endl;
       break;
     case PARALLELELEMENT:
-      std::cout << IString("Job type: parallel") << std::endl;
+      out << IString("Job type: parallel") << std::endl;
       break;
     case WORKFLOWNODE:
-      std::cout << IString("Job type: workflownode") << std::endl;
+      out << IString("Job type: workflownode") << std::endl;
       break;
     }
 
-    if (longlist) {
+    if (format == "userlong") {
       if (!Identification.UserTag.empty()) {
         std::list<std::string>::const_iterator iter = Identification.UserTag.begin();
         for (; iter != Identification.UserTag.end(); iter++)
-          std::cout << IString(" UserTag: %s", *iter) << std::endl;
+          out << IString(" UserTag: %s", *iter) << std::endl;
       }
 
       if (!Identification.ActivityOldId.empty()) {
         std::list<std::string>::const_iterator iter = Identification.ActivityOldId.begin();
         for (; iter != Identification.ActivityOldId.end(); iter++)
-          std::cout << IString(" Activity Old Id: %s", *iter) << std::endl;
+          out << IString(" Activity Old Id: %s", *iter) << std::endl;
       }
 
-      STRPRINT(JobMeta.Author, Author)
+      STRPRINT(out, JobMeta.Author, Author)
       if (JobMeta.DocumentExpiration.GetTime() > 0)
-        std::cout << IString(" DocumentExpiration: %s", JobMeta.DocumentExpiration.str()) << std::endl;
+        out << IString(" DocumentExpiration: %s", JobMeta.DocumentExpiration.str()) << std::endl;
 
       if (!Application.Executable.Argument.empty()) {
         std::list<std::string>::const_iterator iter = Application.Executable.Argument.begin();
         for (; iter != Application.Executable.Argument.end(); iter++)
-          std::cout << IString(" Argument: %s", *iter) << std::endl;
+          out << IString(" Argument: %s", *iter) << std::endl;
       }
 
-      STRPRINT(Application.Input, Input)
-      STRPRINT(Application.Output, Output)
-      STRPRINT(Application.Error, Error)
+      STRPRINT(out, Application.Input, Input)
+      STRPRINT(out, Application.Output, Output)
+      STRPRINT(out, Application.Error, Error)
 
       if (!Application.RemoteLogging.empty()) {
         std::list<URL>::const_iterator iter = Application.RemoteLogging.begin();
         for (; iter != Application.RemoteLogging.end(); iter++) {
-          std::cout << IString(" RemoteLogging: %s", iter->fullstr()) << std::endl;
+          out << IString(" RemoteLogging: %s", iter->fullstr()) << std::endl;
         }
       }
 
       if (!Application.Environment.empty()) {
         std::list< std::pair<std::string, std::string> >::const_iterator iter = Application.Environment.begin();
         for (; iter != Application.Environment.end(); iter++) {
-          std::cout << IString(" Environment.name: %s", iter->first) << std::endl;
-          std::cout << IString(" Environment: %s", iter->second) << std::endl;
+          out << IString(" Environment.name: %s", iter->first) << std::endl;
+          out << IString(" Environment: %s", iter->second) << std::endl;
         }
       }
 
-      INTPRINT(Application.Rerun, Rerun)
+      INTPRINT(out, Application.Rerun, Rerun)
 
-      STRPRINT(Application.Prologue.Name, Prologue)
+      STRPRINT(out, Application.Prologue.Name, Prologue)
       if (!Application.Prologue.Argument.empty()) {
         std::list<std::string>::const_iterator iter = Application.Prologue.Argument.begin();
         for (; iter != Application.Prologue.Argument.end(); iter++)
-          std::cout << IString(" Prologue.Arguments: %s", *iter) << std::endl;
+          out << IString(" Prologue.Arguments: %s", *iter) << std::endl;
       }
 
-      STRPRINT(Application.Epilogue.Name, Epilogue)
+      STRPRINT(out, Application.Epilogue.Name, Epilogue)
       if (!Application.Epilogue.Argument.empty()) {
         std::list<std::string>::const_iterator iter = Application.Epilogue.Argument.begin();
         for (; iter != Application.Epilogue.Argument.end(); iter++)
-          std::cout << IString(" Epilogue.Arguments: %s", *iter) << std::endl;
+          out << IString(" Epilogue.Arguments: %s", *iter) << std::endl;
       }
 
-      INTPRINT(Resources.SessionLifeTime.GetPeriod(), SessionLifeTime)
+      INTPRINT(out, Resources.SessionLifeTime.GetPeriod(), SessionLifeTime)
 
       if (bool(Application.AccessControl)) {
         std::string str;
         Application.AccessControl.GetXML(str, true);
-        std::cout << IString(" AccessControl: %s", str) << std::endl;
+        out << IString(" AccessControl: %s", str) << std::endl;
       }
 
       if (Application.ProcessingStartTime.GetTime() > 0)
-        std::cout << IString(" ProcessingStartTime: %s", Application.ProcessingStartTime.str()) << std::endl;
+        out << IString(" ProcessingStartTime: %s", Application.ProcessingStartTime.str()) << std::endl;
 
       if (Application.Notification.size() > 0) {
-        std::cout << IString(" Notify:") << std::endl;
+        out << IString(" Notify:") << std::endl;
         for (std::list<NotificationType>::const_iterator it = Application.Notification.begin();
              it != Application.Notification.end(); it++) {
           for (std::list<std::string>::const_iterator it2 = it->States.begin();
                it2 != it->States.end(); it2++) {
-            std::cout << " " << *it2;
+            out << " " << *it2;
           }
-          std::cout << ":   " << it->Email << std::endl;
+          out << ":   " << it->Email << std::endl;
         }
       }
 
       if (!Application.CredentialService.empty()) {
         std::list<URL>::const_iterator iter = Application.CredentialService.begin();
         for (; iter != Application.CredentialService.end(); iter++)
-          std::cout << IString(" CredentialService: %s", iter->str()) << std::endl;
+          out << IString(" CredentialService: %s", iter->str()) << std::endl;
       }
 
       if (Application.Join)
-        std::cout << " Join: true" << std::endl;
+        out << " Join: true" << std::endl;
 
-      INTPRINT(Resources.TotalCPUTime.range.max, TotalCPUTime)
-      INTPRINT(Resources.IndividualCPUTime.range.max, IndividualCPUTime)
-      INTPRINT(Resources.TotalWallTime.range.max, TotalWallTime)
-      INTPRINT(Resources.IndividualWallTime.range.max, IndividualWallTime)
+      INTPRINT(out, Resources.TotalCPUTime.range.max, TotalCPUTime)
+      INTPRINT(out, Resources.IndividualCPUTime.range.max, IndividualCPUTime)
+      INTPRINT(out, Resources.TotalWallTime.range.max, TotalWallTime)
+      INTPRINT(out, Resources.IndividualWallTime.range.max, IndividualWallTime)
 
-      STRPRINT(Resources.NetworkInfo, NetworkInfo)
+      STRPRINT(out, Resources.NetworkInfo, NetworkInfo)
 
       if (!Resources.OperatingSystem.empty()) {
-        std::cout << IString(" Operating system requirements:") << std::endl;
+        out << IString(" Operating system requirements:") << std::endl;
         std::list<Software>::const_iterator itOS = Resources.OperatingSystem.getSoftwareList().begin();
         std::list<Software::ComparisonOperator>::const_iterator itCO = Resources.OperatingSystem.getComparisonOperatorList().begin();
         for (; itOS != Resources.OperatingSystem.getSoftwareList().end(); itOS++, itCO++) {
-          if (*itCO != &Software::operator==) std::cout << Software::toString(*itCO) << " ";
-          std::cout << *itOS << std::endl;
+          if (*itCO != &Software::operator==) out << Software::toString(*itCO) << " ";
+          out << *itOS << std::endl;
         }
       }
 
-      STRPRINT(Resources.Platform, Platform)
-      INTPRINT(Resources.IndividualPhysicalMemory.max, IndividualPhysicalMemory)
-      INTPRINT(Resources.IndividualVirtualMemory.max, IndividualVirtualMemory)
-      INTPRINT(Resources.DiskSpaceRequirement.DiskSpace.max, DiskSpace)
-      INTPRINT(Resources.DiskSpaceRequirement.CacheDiskSpace, CacheDiskSpace)
-      INTPRINT(Resources.DiskSpaceRequirement.SessionDiskSpace, SessionDiskSpace)
+      STRPRINT(out, Resources.Platform, Platform)
+      INTPRINT(out, Resources.IndividualPhysicalMemory.max, IndividualPhysicalMemory)
+      INTPRINT(out, Resources.IndividualVirtualMemory.max, IndividualVirtualMemory)
+      INTPRINT(out, Resources.DiskSpaceRequirement.DiskSpace.max, DiskSpace)
+      INTPRINT(out, Resources.DiskSpaceRequirement.CacheDiskSpace, CacheDiskSpace)
+      INTPRINT(out, Resources.DiskSpaceRequirement.SessionDiskSpace, SessionDiskSpace)
 
       for (std::list<ResourceTargetType>::const_iterator it = Resources.CandidateTarget.begin();
            it != Resources.CandidateTarget.end(); it++) {
         if (it->EndPointURL)
-          std::cout << IString(" EndPointURL: %s", it->EndPointURL.str()) << std::endl;
+          out << IString(" EndPointURL: %s", it->EndPointURL.str()) << std::endl;
         if (!it->QueueName.empty())
-          std::cout << IString(" QueueName: %s", it->QueueName) << std::endl;
+          out << IString(" QueueName: %s", it->QueueName) << std::endl;
       }
 
       if (!Resources.CEType.empty()) {
-        std::cout << IString(" Computing endpoint requirements:") << std::endl;
+        out << IString(" Computing endpoint requirements:") << std::endl;
         std::list<Software>::const_iterator itCE = Resources.CEType.getSoftwareList().begin();
         std::list<Software::ComparisonOperator>::const_iterator itCO = Resources.CEType.getComparisonOperatorList().begin();
         for (; itCE != Resources.CEType.getSoftwareList().end(); itCE++, itCO++) {
-          if (*itCO != &Software::operator==) std::cout << Software::toString(*itCO) << " ";
-          std::cout << *itCE << std::endl;
+          if (*itCO != &Software::operator==) out << Software::toString(*itCO) << " ";
+          out << *itCE << std::endl;
         }
       }
 
@@ -184,96 +195,96 @@ namespace Arc {
       case NAT_NONE:
         break;
       case NAT_INBOUND:
-        std::cout << IString(" NodeAccess: Inbound") << std::endl;
+        out << IString(" NodeAccess: Inbound") << std::endl;
         break;
       case NAT_OUTBOUND:
-        std::cout << IString(" NodeAccess: Outbound") << std::endl;
+        out << IString(" NodeAccess: Outbound") << std::endl;
         break;
       case NAT_INOUTBOUND:
-        std::cout << IString(" NodeAccess: Inbound and Outbound") << std::endl;
+        out << IString(" NodeAccess: Inbound and Outbound") << std::endl;
         break;
       }
 
-      INTPRINT(Resources.SlotRequirement.NumberOfSlots.max, NumberOfSlots)
-      INTPRINT(Resources.SlotRequirement.ProcessPerHost.max, ProcessPerHost)
-      INTPRINT(Resources.SlotRequirement.ThreadsPerProcesses.max, ThreadsPerProcesses)
-      STRPRINT(Resources.SlotRequirement.SPMDVariation, SPMDVariation)
+      INTPRINT(out, Resources.SlotRequirement.NumberOfSlots.max, NumberOfSlots)
+      INTPRINT(out, Resources.SlotRequirement.ProcessPerHost.max, ProcessPerHost)
+      INTPRINT(out, Resources.SlotRequirement.ThreadsPerProcesses.max, ThreadsPerProcesses)
+      STRPRINT(out, Resources.SlotRequirement.SPMDVariation, SPMDVariation)
 
       if (!Resources.RunTimeEnvironment.empty()) {
-        std::cout << IString(" Run time environment requirements:") << std::endl;
+        out << IString(" Run time environment requirements:") << std::endl;
         std::list<Software>::const_iterator itSW = Resources.RunTimeEnvironment.getSoftwareList().begin();
         std::list<Software::ComparisonOperator>::const_iterator itCO = Resources.RunTimeEnvironment.getComparisonOperatorList().begin();
         for (; itSW != Resources.RunTimeEnvironment.getSoftwareList().end(); itSW++, itCO++) {
-          if (*itCO != &Software::operator==) std::cout << Software::toString(*itCO) << " ";
-          std::cout << *itSW << std::endl;
+          if (*itCO != &Software::operator==) out << Software::toString(*itCO) << " ";
+          out << *itSW << std::endl;
         }
       }
 
       if (!DataStaging.File.empty()) {
         std::list<FileType>::const_iterator iter = DataStaging.File.begin();
         for (; iter != DataStaging.File.end(); iter++) {
-          std::cout << IString(" File element:") << std::endl;
-          std::cout << IString("     Name: %s", iter->Name) << std::endl;
+          out << IString(" File element:") << std::endl;
+          out << IString("     Name: %s", iter->Name) << std::endl;
 
           std::list<DataSourceType>::const_iterator itSource = iter->Source.begin();
           for (; itSource != iter->Source.end(); itSource++) {
-            std::cout << IString("     Source.URI: %s", itSource->URI.fullstr()) << std::endl;
-            INTPRINT(itSource->Threads, Source.Threads)
+            out << IString("     Source.URI: %s", itSource->URI.fullstr()) << std::endl;
+            INTPRINT(out, itSource->Threads, Source.Threads)
           }
 
           std::list<DataTargetType>::const_iterator itTarget = iter->Target.begin();
           for (; itTarget != iter->Target.end(); itTarget++) {
-            std::cout << IString("     Target.URI: %s", itTarget->URI.fullstr()) << std::endl;
-            INTPRINT(itTarget->Threads, Target.Threads)
+            out << IString("     Target.URI: %s", itTarget->URI.fullstr()) << std::endl;
+            INTPRINT(out, itTarget->Threads, Target.Threads)
             if (itTarget->Mandatory)
-              std::cout << IString("     Target.Mandatory: true") << std::endl;
-            INTPRINT(itTarget->NeededReplica, NeededReplica)
+              out << IString("     Target.Mandatory: true") << std::endl;
+            INTPRINT(out, itTarget->NeededReplica, NeededReplica)
           }
           if (iter->KeepData)
-            std::cout << IString("     KeepData: true") << std::endl;
+            out << IString("     KeepData: true") << std::endl;
           if (iter->IsExecutable)
-            std::cout << IString("     IsExecutable: true") << std::endl;
+            out << IString("     IsExecutable: true") << std::endl;
           if (!iter->DataIndexingService.empty()) {
             std::list<URL>::const_iterator itDIS = iter->DataIndexingService.begin();
             for (; itDIS != iter->DataIndexingService.end(); itDIS++)
-              std::cout << IString("     DataIndexingService: %s", itDIS->fullstr()) << std::endl;
+              out << IString("     DataIndexingService: %s", itDIS->fullstr()) << std::endl;
           }
           if (iter->DownloadToCache)
-            std::cout << IString("     DownloadToCache: true") << std::endl;
+            out << IString("     DownloadToCache: true") << std::endl;
         }
       }
 
       if (!DataStaging.Directory.empty()) {
         std::list<DirectoryType>::const_iterator iter = DataStaging.Directory.begin();
         for (; iter != DataStaging.Directory.end(); iter++) {
-          std::cout << IString(" Directory element:") << std::endl;
-          std::cout << IString("     Name: %s", iter->Name) << std::endl;
+          out << IString(" Directory element:") << std::endl;
+          out << IString("     Name: %s", iter->Name) << std::endl;
 
           std::list<DataSourceType>::const_iterator itSource = iter->Source.begin();
           for (; itSource != iter->Source.end(); itSource++) {
-            std::cout << IString("     Source.URI: %s", itSource->URI.fullstr()) << std::endl;
-            INTPRINT(itSource->Threads, Source.Threads)
+            out << IString("     Source.URI: %s", itSource->URI.fullstr()) << std::endl;
+            INTPRINT(out, itSource->Threads, Source.Threads)
           }
 
           std::list<DataTargetType>::const_iterator itTarget = iter->Target.begin();
           for (; itTarget != iter->Target.end(); itTarget++) {
-            std::cout << IString("     Target.URI: %s", itTarget->URI.fullstr()) << std::endl;
-            INTPRINT(itTarget->Threads, Target.Threads)
+            out << IString("     Target.URI: %s", itTarget->URI.fullstr()) << std::endl;
+            INTPRINT(out, itTarget->Threads, Target.Threads)
             if (itTarget->Mandatory)
-              std::cout << IString("     Target.Mandatory: true") << std::endl;
-            INTPRINT(itTarget->NeededReplica, NeededReplica)
+              out << IString("     Target.Mandatory: true") << std::endl;
+            INTPRINT(out, itTarget->NeededReplica, NeededReplica)
           }
           if (iter->KeepData)
-            std::cout << IString("     KeepData: true") << std::endl;
+            out << IString("     KeepData: true") << std::endl;
           if (iter->IsExecutable)
-            std::cout << IString("     IsExecutable: true") << std::endl;
+            out << IString("     IsExecutable: true") << std::endl;
           if (!iter->DataIndexingService.empty()) {
             std::list<URL>::const_iterator itDIS = iter->DataIndexingService.begin();
             for (; itDIS != iter->DataIndexingService.end(); itDIS++)
-              std::cout << IString("     DataIndexingService: %s", itDIS->fullstr()) << std::endl;
+              out << IString("     DataIndexingService: %s", itDIS->fullstr()) << std::endl;
           }
           if (iter->DownloadToCache)
-            std::cout << IString("     DownloadToCache: true") << std::endl;
+            out << IString("     DownloadToCache: true") << std::endl;
         }
       }
     }
@@ -281,16 +292,18 @@ namespace Arc {
     if (!XRSL_elements.empty()) {
       std::map<std::string, std::string>::const_iterator it;
       for (it = XRSL_elements.begin(); it != XRSL_elements.end(); it++)
-        std::cout << IString(" XRSL_elements: [%s], %s", it->first, it->second) << std::endl;
+        out << IString(" XRSL_elements: [%s], %s", it->first, it->second) << std::endl;
     }
 
     if (!JDL_elements.empty()) {
       std::map<std::string, std::string>::const_iterator it;
       for (it = JDL_elements.begin(); it != JDL_elements.end(); it++)
-        std::cout << IString(" JDL_elements: [%s], %s", it->first, it->second) << std::endl;
+        out << IString(" JDL_elements: [%s], %s", it->first, it->second) << std::endl;
     }
 
-    std::cout << std::endl;
+    out << std::endl;
+
+    return true;
   } // end of Print
 
   bool JobDescription::Parse(const XMLNode& xmlSource)

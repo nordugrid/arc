@@ -4,11 +4,14 @@
 #include <config.h>
 #endif
 
-#include <arc/IString.h>
 #include <arc/ArcConfig.h>
+#include <arc/IString.h>
+#include <arc/Logger.h>
 #include <arc/client/Job.h>
 
 namespace Arc {
+
+  Logger Job::logger(Logger::getRootLogger(), "Job");
 
   Job::Job()
     : ExitCode(-1),
@@ -35,91 +38,96 @@ namespace Arc {
   Job::~Job() {}
 
   void Job::Print(bool longlist) const {
+    logger.msg(WARNING, "The Job::Print method is DEPRECATED, use the Job::SaveToStream method instead.");
+    SaveToStream(std::cout, longlist);
+  }
 
-    std::cout << IString("Job: %s", JobID.str()) << std::endl;
+  void Job::SaveToStream(std::ostream& out, bool longlist) const {
+
+    out << IString("Job: %s", JobID.str()) << std::endl;
     if (!Name.empty())
-      std::cout << IString(" Name: %s", Name) << std::endl;
+      out << IString(" Name: %s", Name) << std::endl;
     if (!State().empty())
-      std::cout << IString(" State: %s (%s)", State.GetGeneralState(), State())
+      out << IString(" State: %s (%s)", State.GetGeneralState(), State())
                 << std::endl;
     if (ExitCode != -1)
-      std::cout << IString(" Exit Code: %d", ExitCode) << std::endl;
+      out << IString(" Exit Code: %d", ExitCode) << std::endl;
     if (!Error.empty()) {
       std::list<std::string>::const_iterator iter;
       for (iter = Error.begin(); iter != Error.end(); iter++)
-        std::cout << IString(" Error: %s", *iter) << std::endl;
+        out << IString(" Error: %s", *iter) << std::endl;
     }
     if (longlist) {
       if (!Owner.empty())
-        std::cout << IString(" Owner: %s", Owner) << std::endl;
+        out << IString(" Owner: %s", Owner) << std::endl;
       if (!OtherMessages.empty())
         for (std::list<std::string>::const_iterator iter = OtherMessages.begin();
              iter != OtherMessages.end(); iter++)
-          std::cout << IString(" Other Messages: %s", *iter)
+          out << IString(" Other Messages: %s", *iter)
                     << std::endl;
       if (!ExecutionCE.empty())
-        std::cout << IString(" ExecutionCE: %s", ExecutionCE)
+        out << IString(" ExecutionCE: %s", ExecutionCE)
                   << std::endl;
       if (!Queue.empty())
-        std::cout << IString(" Queue: %s", Queue) << std::endl;
+        out << IString(" Queue: %s", Queue) << std::endl;
       if (UsedSlots != -1)
-        std::cout << IString(" Used Slots: %d", UsedSlots) << std::endl;
+        out << IString(" Used Slots: %d", UsedSlots) << std::endl;
       if (WaitingPosition != -1)
-        std::cout << IString(" Waiting Position: %d", WaitingPosition)
+        out << IString(" Waiting Position: %d", WaitingPosition)
                   << std::endl;
       if (!StdIn.empty())
-        std::cout << IString(" Stdin: %s", StdIn) << std::endl;
+        out << IString(" Stdin: %s", StdIn) << std::endl;
       if (!StdOut.empty())
-        std::cout << IString(" Stdout: %s", StdOut) << std::endl;
+        out << IString(" Stdout: %s", StdOut) << std::endl;
       if (!StdErr.empty())
-        std::cout << IString(" Stderr: %s", StdErr) << std::endl;
+        out << IString(" Stderr: %s", StdErr) << std::endl;
       if (!LogDir.empty())
-        std::cout << IString(" Grid Manager Log Directory: %s", LogDir)
+        out << IString(" Grid Manager Log Directory: %s", LogDir)
                   << std::endl;
       if (SubmissionTime != -1)
-        std::cout << IString(" Submitted: %s",
+        out << IString(" Submitted: %s",
                              (std::string)SubmissionTime) << std::endl;
       if (EndTime != -1)
-        std::cout << IString(" End Time: %s", (std::string)EndTime)
+        out << IString(" End Time: %s", (std::string)EndTime)
                   << std::endl;
       if (!SubmissionHost.empty())
-        std::cout << IString(" Submitted from: %s", SubmissionHost)
+        out << IString(" Submitted from: %s", SubmissionHost)
                   << std::endl;
       if (!SubmissionClientName.empty())
-        std::cout << IString(" Submitting client: %s",
+        out << IString(" Submitting client: %s",
                              SubmissionClientName) << std::endl;
       if (RequestedTotalCPUTime != -1)
-        std::cout << IString(" Requested CPU Time: %s",
+        out << IString(" Requested CPU Time: %s",
                              RequestedTotalCPUTime.istr())
                   << std::endl;
       if (UsedTotalCPUTime != -1)
-        std::cout << IString(" Used CPU Time: %s",
+        out << IString(" Used CPU Time: %s",
                              UsedTotalCPUTime.istr()) << std::endl;
       if (UsedTotalWallTime != -1)
-        std::cout << IString(" Used Wall Time: %s",
+        out << IString(" Used Wall Time: %s",
                              UsedTotalWallTime.istr()) << std::endl;
       if (UsedMainMemory != -1)
-        std::cout << IString(" Used Memory: %d", UsedMainMemory)
+        out << IString(" Used Memory: %d", UsedMainMemory)
                   << std::endl;
       if (WorkingAreaEraseTime != -1)
-        std::cout << IString((State == JobState::DELETED) ?
+        out << IString((State == JobState::DELETED) ?
                              istring(" Results were deleted: %s") :
                              istring(" Results must be retrieved before: %s"),
                              (std::string)WorkingAreaEraseTime)
                   << std::endl;
       if (ProxyExpirationTime != -1)
-        std::cout << IString(" Proxy valid until: %s",
+        out << IString(" Proxy valid until: %s",
                              (std::string)ProxyExpirationTime)
                   << std::endl;
       if (CreationTime != -1)
-        std::cout << IString(" Entry valid from: %s",
+        out << IString(" Entry valid from: %s",
                              (std::string)CreationTime) << std::endl;
       if (Validity != -1)
-        std::cout << IString(" Entry valid for: %s",
+        out << IString(" Entry valid for: %s",
                              Validity.istr()) << std::endl;
     }
 
-    std::cout << std::endl;
+    out << std::endl;
 
   } // end Print
 

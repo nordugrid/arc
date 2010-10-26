@@ -146,9 +146,14 @@ namespace Arc {
   }
 
   void TargetGenerator::PrintTargetInfo(bool longlist) const {
+    logger.msg(WARNING, "The TargetGenerator::PrintTargetInfo method is DEPRECATED, use the TargetGenerator::SaveTargetInfoToStream method instead.");
+    SaveTargetInfoToStream(std::cout, longlist);
+  }
+
+  void TargetGenerator::SaveTargetInfoToStream(std::ostream& out, bool longlist) const {
     for (std::list<ExecutionTarget>::const_iterator cli = foundTargets.begin();
          cli != foundTargets.end(); cli++)
-      cli->Print(longlist);
+      cli->SaveToStream(out, longlist);
   }
 
   SimpleCounter& TargetGenerator::ServiceCounter(void) {

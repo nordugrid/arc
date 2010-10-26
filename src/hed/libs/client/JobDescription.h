@@ -275,8 +275,33 @@ namespace Arc {
     // "jsdl", "jdl", "xrsl". If there is an other parser written for another language, then this set can be extended.
     bool getSourceFormat(std::string& _sourceFormat) const;
 
-    // Print all value to the standard output.
+    /// DEPRECATED: Print all values to standard output.
+    /**
+     * This method is DEPRECATED, use the SaveToStream method instead.
+     *
+     * @param longlist
+     * @see SaveToStream
+     */
     void Print(bool longlist = false) const;
+
+    /// Print job description to a std::ostream object.
+    /**
+     * The job description will be written to the passed std::ostream object
+     * out in the format indicated by the format parameter. The format parameter
+     * should specify the format of one of the job description languages
+     * supported by the library. Or by specifying the special "user" or
+     * "userlong" format the job description will be written as a
+     * attribute/value pair list with respectively less or more attributes.
+     *
+     * The mote
+     *
+     * @return true if writing the job description to the out object succeeds,
+     *              otherwise false.
+     * @param out a std::ostream reference specifying the ostream to write the
+     *            job description to.
+     * @param format specifies the format the job description should written in.
+     */
+    bool SaveToStream(std::ostream& out, const std::string& format) const;
 
     void AddHint(const std::string& key,const std::string& value);
 

@@ -43,7 +43,7 @@ namespace Arc {
      * UserConfig:GetSelectedServices method. From each URL a matching
      * specialized TargetRetriever plugin is loaded using the
      * TargetRetrieverLoader.
-     * 
+     *
      * @param usercfg Reference to UserConfig object with URL objects
      * to computing and/or index services and paths to user
      * credentials.
@@ -70,21 +70,21 @@ namespace Arc {
      * only supported Target type) found by the GetTarget method.
      **/
     const std::list<ExecutionTarget>& FoundTargets() const;
-    
+
     /// Return targets found by GetTargets
     /**
      * Method to return the list of ExecutionTarget objects (currently
      * only supported Target type) found by the GetTarget method.
      **/
     std::list<ExecutionTarget>& ModifyFoundTargets();
-    
+
     /// Return Grid jobs found by GetTargets
     /**
      * Method to return the list of Grid jobs found by a call to the
      * GetTargets method.
      **/
     const std::list<XMLNode*>& FoundJobs() const;
-    
+
     /// Add a new computing service to the foundServices list
     /**
      * Method to add a new service to the list of foundServices in a
@@ -96,7 +96,7 @@ namespace Arc {
      *
      **/
     bool AddService(const URL& url);
-    
+
     /// Add a new index server to the foundIndexServers list
     /**
      * Method to add a new index server to the list of
@@ -109,44 +109,54 @@ namespace Arc {
      *
      **/
     bool AddIndexServer(const URL& url);
-    
+
     /// Add a new ExecutionTarget to the foundTargets list
     /**
      * Method to add a new ExecutionTarget (usually discovered by a TargetRetriever) to the list of
-     * foundTargets in a thread secure way. 
+     * foundTargets in a thread secure way.
      *
      * @param target ExecutionTarget to be added.
      *
      **/
     void AddTarget(const ExecutionTarget& target);
-    
+
     /// Add a new Job to the foundJobs list
     /**
      * Method to add a new Job (usually discovered by a TargetRetriever) to the list of
-     * foundJobs in a thread secure way. 
+     * foundJobs in a thread secure way.
      *
      * @param job XMLNode describing the job.
      *
      **/
     // XMLNode is reference by itself - passing it as const& has no sense
     void AddJob(const XMLNode& job);
-    
-    /// Prints target information
+
+    /// DEPRECATED: Prints target information
     /**
-     * Method to print information of the found targets to std::cout. 
+     * This method is DEPRECATED, use the SaveTargetInfoToStream method instead.
+     * Method to print information of the found targets to std::cout.
      *
      * @param longlist false for minimal information, true for detailed information
-     *
+     * @see SaveTargetInfoToStream
      **/
     void PrintTargetInfo(bool longlist) const;
+
+    /// Prints target information
+    /**
+     * Method to print information of the found targets to std::cout.
+     *
+     * @param out is a std::ostream object which to direct target informetion to.
+     * @param longlist false for minimal information, true for detailed information
+     **/
+    void SaveTargetInfoToStream(std::ostream& out, bool longlist) const;
 
     /// Returns reference to worker counter
     /**
      * This method returns reference to counter which keeps
-     * amount of started worker threads communicating with 
+     * amount of started worker threads communicating with
      * services asynchronously. The counter must be incremented
      * for every thread started and decremented when thread
-     * exits. Main thread will then wait till counters 
+     * exits. Main thread will then wait till counters
      * drops to zero.
      **/
     SimpleCounter& ServiceCounter(void);

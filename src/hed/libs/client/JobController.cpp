@@ -398,8 +398,20 @@ namespace Arc {
 
   bool JobController::Cat(const std::list<std::string>& status,
                           const std::string& whichfile) {
+    logger.msg(WARNING, "The JobController::Cat(const std::list<std::string>&, const std::string&) method is DEPRECATED, use the JobController::Cat(std::ostream&, const std::list<std::string>&, const std::string&) method instead.");
+    return Cat(std::cout, status, whichfile);
+  }
 
-    if (whichfile != "stdout" && whichfile != "stderr" && whichfile != "gmlog") {
+  bool JobController::Cat(std::ostream& out,
+                          const std::list<std::string>& status,
+                          const std::string& whichfile_) {
+    std::string whichfile(whichfile_);
+    if (whichfile == "joblog") {
+      logger.msg(WARNING, "Specifying the \"gmlog\" value for the whichfile parameter in the Job::Cat method is DEPRECATED, use the \"joblog\" value instead.");
+      whichfile = "joblog";
+    }
+
+    if (whichfile != "stdout" && whichfile != "stderr" && whichfile != "joblog") {
       logger.msg(ERROR, "Unknown output %s", whichfile);
       return false;
     }
@@ -426,8 +438,8 @@ namespace Arc {
         continue;
       }
 
-      // The GM-log might be available before the job has started (middleware dependent).
-      if (whichfile != "gmlog" &&
+      // The job-log might be available before the job has started (middleware dependent).
+      if (whichfile != "joblog" &&
           !it->State.IsFinished() &&
           it->State != JobState::RUNNING &&
           it->State != JobState::FINISHING) {
@@ -437,7 +449,7 @@ namespace Arc {
 
       if (((whichfile == "stdout") && (it->StdOut.empty())) ||
           ((whichfile == "stderr") && (it->StdErr.empty())) ||
-          ((whichfile == "gmlog") && (it->LogDir.empty()))) {
+          ((whichfile == "joblog") && (it->LogDir.empty()))) {
         logger.msg(ERROR, "Can not determine the %s location: %s",
                    whichfile, it->JobID.str());
         continue;
@@ -476,12 +488,13 @@ namespace Arc {
       bool copied = ARCCopyFile(src, dst);
 
       if (copied) {
-        std::cout << IString("%s from job %s", whichfile,
+        out << IString("%s from job %s", whichfile,
                              (*it)->JobID.str()) << std::endl;
         std::ifstream is(filename.c_str());
         char c;
-        while (is.get(c))
-          std::cout.put(c);
+        while (is.get(c)) {
+          out.put(c);
+        }
         is.close();
         unlink(filename.c_str());
       }
@@ -494,6 +507,13 @@ namespace Arc {
 
   bool JobController::PrintJobStatus(const std::list<std::string>& status,
                                      const bool longlist) {
+    logger.msg(WARNING, "The JobController::PrintJobStatus method is DEPRECATED, use the Job::SaveJobStatusToStream method instead.");
+    return SaveJobStatusToStream(std::cout, status, longlist);
+  }
+
+  bool JobController::SaveJobStatusToStream(std::ostream& out,
+                                            const std::list<std::string>& status,
+                                            bool longlist) {
 
     GetJobInformation();
 
@@ -513,7 +533,7 @@ namespace Arc {
           std::find(status.begin(), status.end(), it->State.GetGeneralState()) == status.end())
         continue;
 
-      it->Print(longlist);
+      it->SaveToStream(out, longlist);
     }
     return true;
   }

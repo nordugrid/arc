@@ -66,14 +66,79 @@ namespace Arc {
     bool Clean(const std::list<std::string>& status,
                const bool force);
 
+    /// DEPRECATED: Catenate a log-file to standard out
+    /**
+     * This method is DEPRECATED, use the Cat(std::ostream&, const std::list<std::string>&, const std::string&)
+     * instead.
+     *
+     * This method is not supposed to be overloaded by extending
+     * classes.
+     *
+     * @param status a list of strings representing states to be
+     *        considered.
+     * @param longlist a boolean indicating whether verbose job
+     *        information should be printed.
+     * @return This method always returns true.
+     * @see Cat(std::ostream&, const std::list<std::string>&, const std::string&)
+     * @see GetJobInformation
+     * @see JobState
+     **/
     bool Cat(const std::list<std::string>& status,
              const std::string& whichfile);
 
-    /// Print job status to stdout
+    /// Catenate a output log-file to a std::ostream object
     /**
-     * The job status is printed to stdout when calling this method.
-     * More specifically the Job::Print method is called on each of the
-     * Job objects stored in this object, and the boolean argument
+     * The method catenates one of the log-files standard out or error, or the
+     * job log file from the CE for each of the jobs contained in this object.
+     * A file can only be catenated if the location
+     * relative to the session directory are set in Job::StdOut, Job::StdErr and
+     * Job::LogDir respectively, and if supported so in the specialised ACC
+     * module. If the status parameter is non-empty only jobs having a job
+     * status specified in this list will considered. The whichfile parameter
+     * specifies what log-file to catenate. Possible values are "stdout",
+     * "stderr" and "joblog" respectively specifying standard out, error and job
+     * log file.
+     *
+     * This method is not supposed to be overloaded by extending
+     * classes.
+     *
+     * @param status a list of strings representing states to be
+     *        considered.
+     * @param longlist a boolean indicating whether verbose job
+     *        information should be printed.
+     * @return This method always returns true.
+     * @see SaveJobStatusToStream
+     * @see GetJobInformation
+     * @see JobState
+     **/
+    bool Cat(std::ostream& out,
+             const std::list<std::string>& status,
+             const std::string& whichfile);
+
+    /// DEPRECATED: Print job status to std::cout
+    /**
+     * This method is DEPRECATED, use the SaveJobStatusToStream instead.
+     *
+     * This method is not supposed to be overloaded by extending
+     * classes.
+     *
+     * @param status a list of strings representing states to be
+     *        considered.
+     * @param longlist a boolean indicating whether verbose job
+     *        information should be printed.
+     * @return This method always returns true.
+     * @see SaveJobStatusToStream
+     * @see GetJobInformation
+     * @see JobState
+     **/
+    bool PrintJobStatus(const std::list<std::string>& status,
+                        const bool longlist);
+
+    /// Print job status to a std::ostream object
+    /**
+     * The job status is printed to a std::ostream object when calling this
+     * method. More specifically the Job::SaveToStream method is called on each
+     * of the  Job objects stored in this object, and the boolean argument
      * \a longlist is passed directly to the method indicating whether
      * verbose job status should be printed. The \a status argument is
      * a list of strings each representing a job state (JobState) which
@@ -84,17 +149,19 @@ namespace Arc {
      * This method is not supposed to be overloaded by extending
      * classes.
      *
+     * @param out a std::ostream object to direct job status information to.
      * @param status a list of strings representing states to be
      *        considered.
      * @param longlist a boolean indicating whether verbose job
      *        information should be printed.
      * @return This method always returns true.
      * @see GetJobInformation
-     * @see Job::Print
+     * @see Job::SaveToStream
      * @see JobState
      **/
-    bool PrintJobStatus(const std::list<std::string>& status,
-                        const bool longlist);
+    bool SaveJobStatusToStream(std::ostream& out,
+                               const std::list<std::string>& status,
+                               bool longlist);
 
     /// Migrate job from cluster A to Cluster B
     /**  Method to migrate the jobs contained in the jobstore.

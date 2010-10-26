@@ -77,10 +77,10 @@ int RUNCAT(main)(int argc, char **argv) {
                     istring("show the stderr of the job"),
                     show_stderr);
 
-  bool show_gmlog = false;
-  options.AddOption('l', "gmlog",
-                    istring("show the Grid Manager's error log of the job"),
-                    show_gmlog);
+  bool show_joblog = false;
+  options.AddOption('l', "joblog",
+                    istring("show the CE's error log of the job"),
+                    show_joblog);
 
   int timeout = -1;
   options.AddOption('t', "timeout", istring("timeout in seconds (default 20)"),
@@ -155,8 +155,8 @@ int RUNCAT(main)(int argc, char **argv) {
   }
 
   std::string whichfile;
-  if (show_gmlog)
-    whichfile = "gmlog";
+  if (show_joblog)
+    whichfile = "joblog";
   else if (show_stderr)
     whichfile = "stderr";
   else
@@ -165,7 +165,7 @@ int RUNCAT(main)(int argc, char **argv) {
   int retval = 0;
   for (std::list<Arc::JobController*>::iterator it = jobcont.begin();
        it != jobcont.end(); it++)
-    if (!(*it)->Cat(status, whichfile))
+    if (!(*it)->Cat(std::cout, status, whichfile))
       retval = 1;
 
   return retval;

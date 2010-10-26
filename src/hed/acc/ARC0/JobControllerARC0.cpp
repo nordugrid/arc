@@ -412,7 +412,7 @@ namespace Arc {
       url.ChangePath(url.Path() + '/' + job.StdOut);
     else if (whichfile == "stderr")
       url.ChangePath(url.Path() + '/' + job.StdErr);
-    else if (whichfile == "gmlog") {
+    else if (whichfile == "joblog") {
       std::string path = url.Path();
       path.insert(path.rfind('/'), "/info");
       url.ChangePath(path + "/errors");

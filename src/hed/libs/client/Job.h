@@ -10,6 +10,7 @@
 
 namespace Arc {
 
+  class Logger;
 
   /// Job
   /**
@@ -98,17 +99,31 @@ namespace Arc {
     std::string UsedOSFamily;
     std::string UsedPlatform;
 
-    /// Print the Job information to std::cout
+    /// DEPRECATED: Print the Job information to std::cout
     /**
-     * Method to print the Job attributes to std::cout
+     * This method is DEPRECATED, use the SaveToStream method instead. Method to
+     * print the Job attributes to std::cout
      *
      * @param longlist is boolean for long listing (more details).
+     * @see SaveToStream
      */
     void Print(bool longlist) const;
+
+    /// Print the Job information to a std::ostream object
+    /**
+     * This method is used to print Job attributes to a std::ostream object.
+     *
+     * @param out is the std::ostream object to print the attributes to.
+     * @param longlist is boolean for long listing (more details).
+     */
+    void SaveToStream(std::ostream& out, bool longlist) const;
 
     static bool CompareJobID(const Job* a, const Job* b);
     static bool CompareSubmissionTime(const Job* a, const Job* b);
     static bool CompareJobName(const Job* a, const Job* b);
+
+  private:
+    static Logger logger;
   };
 
 } // namespace Arc

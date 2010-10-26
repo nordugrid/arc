@@ -14,6 +14,8 @@
 
 namespace Arc {
 
+  Logger ExecutionTarget::logger(Logger::getRootLogger(), "ExecutionTarget");
+
   ExecutionTarget::ExecutionTarget()
     : Latitude(0),
       Longitude(0),
@@ -275,354 +277,358 @@ namespace Arc {
   }
 
   void ExecutionTarget::Print(bool longlist) const {
+    logger.msg(WARNING, "The ExecutionTarget::Print method is DEPRECATED, use the ExecutionTarget::SaveToStream method instead.");
+    SaveToStream(std::cout, longlist);
+  }
 
-    std::cout << IString("Resource: %s", DomainName) << std::endl;
+  void ExecutionTarget::SaveToStream(std::ostream& out, bool longlist) const {
+    out << IString("Resource: %s", DomainName) << std::endl;
     if (!HealthState.empty())
-      std::cout << IString(" Health State: %s", HealthState) << std::endl;
+      out << IString(" Health State: %s", HealthState) << std::endl;
 
     if (longlist) {
 
-      std::cout << std::endl << IString("Location information:") << std::endl;
+      out << std::endl << IString("Location information:") << std::endl;
 
       if (!Address.empty())
-        std::cout << IString(" Address: %s", Address) << std::endl;
+        out << IString(" Address: %s", Address) << std::endl;
       if (!Place.empty())
-        std::cout << IString(" Place: %s", Place) << std::endl;
+        out << IString(" Place: %s", Place) << std::endl;
       if (!Country.empty())
-        std::cout << IString(" Country: %s", Country) << std::endl;
+        out << IString(" Country: %s", Country) << std::endl;
       if (!PostCode.empty())
-        std::cout << IString(" Postal Code: %s", PostCode) << std::endl;
+        out << IString(" Postal Code: %s", PostCode) << std::endl;
       if (Latitude != 0)
-        std::cout << IString(" Latitude: %f", Latitude) << std::endl;
+        out << IString(" Latitude: %f", Latitude) << std::endl;
       if (Longitude != 0)
-        std::cout << IString(" Longitude: %f", Longitude) << std::endl;
+        out << IString(" Longitude: %f", Longitude) << std::endl;
 
-      std::cout << std::endl << IString("Domain information:") << std::endl;
+      out << std::endl << IString("Domain information:") << std::endl;
 
       if (!Owner.empty())
-        std::cout << IString(" Owner: %s", Owner) << std::endl;
+        out << IString(" Owner: %s", Owner) << std::endl;
 
-      std::cout << std::endl << IString("Service information:") << std::endl;
+      out << std::endl << IString("Service information:") << std::endl;
 
       if (!ServiceName.empty())
-        std::cout << IString(" Service Name: %s", ServiceName) << std::endl;
+        out << IString(" Service Name: %s", ServiceName) << std::endl;
       if (!ServiceName.empty())
-        std::cout << IString(" Service Type: %s", ServiceType) << std::endl;
+        out << IString(" Service Type: %s", ServiceType) << std::endl;
 
-      std::cout << std::endl << IString("Endpoint information:") << std::endl;
+      out << std::endl << IString("Endpoint information:") << std::endl;
 
       if (url)
-        std::cout << IString(" URL: %s", url.str()) << std::endl;
+        out << IString(" URL: %s", url.str()) << std::endl;
       if (!Capability.empty()) {
-        std::cout << IString(" Capabilities:") << std::endl;
+        out << IString(" Capabilities:") << std::endl;
         for (std::list<std::string>::const_iterator it = Capability.begin();
              it != Capability.end(); it++)
-          std::cout << "  " << *it << std::endl;
+          out << "  " << *it << std::endl;
       }
       if (!Technology.empty())
-        std::cout << IString(" Technology: %s", Technology) << std::endl;
+        out << IString(" Technology: %s", Technology) << std::endl;
       if (!InterfaceName.empty())
-        std::cout << IString(" Interface Name: %s", InterfaceName)
+        out << IString(" Interface Name: %s", InterfaceName)
                   << std::endl;
       if (!InterfaceVersion.empty()) {
-        std::cout << IString(" Interface Versions:") << std::endl;
+        out << IString(" Interface Versions:") << std::endl;
         for (std::list<std::string>::const_iterator it =
                InterfaceVersion.begin(); it != InterfaceVersion.end(); it++)
-          std::cout << "  " << *it << std::endl;
+          out << "  " << *it << std::endl;
       }
       if (!InterfaceExtension.empty()) {
-        std::cout << IString(" Interface Extensions:") << std::endl;
+        out << IString(" Interface Extensions:") << std::endl;
         for (std::list<std::string>::const_iterator it =
                InterfaceExtension.begin();
              it != InterfaceExtension.end(); it++)
-          std::cout << "  " << *it << std::endl;
+          out << "  " << *it << std::endl;
       }
       if (!SupportedProfile.empty()) {
-        std::cout << IString(" Supported Profiles:") << std::endl;
+        out << IString(" Supported Profiles:") << std::endl;
         for (std::list<std::string>::const_iterator it =
                SupportedProfile.begin(); it != SupportedProfile.end(); it++)
-          std::cout << "  " << *it << std::endl;
+          out << "  " << *it << std::endl;
       }
       if (!Implementor.empty())
-        std::cout << IString(" Implementor: %s", Implementor) << std::endl;
+        out << IString(" Implementor: %s", Implementor) << std::endl;
       if (!Implementation().empty())
-        std::cout << IString(" Implementation Name: %s", (std::string)Implementation)
+        out << IString(" Implementation Name: %s", (std::string)Implementation)
                   << std::endl;
       if (!QualityLevel.empty())
-        std::cout << IString(" Quality Level: %s", QualityLevel) << std::endl;
+        out << IString(" Quality Level: %s", QualityLevel) << std::endl;
       if (!HealthState.empty())
-        std::cout << IString(" Health State: %s", HealthState) << std::endl;
+        out << IString(" Health State: %s", HealthState) << std::endl;
       if (!HealthStateInfo.empty())
-        std::cout << IString(" Health State Info: %s", HealthStateInfo)
+        out << IString(" Health State Info: %s", HealthStateInfo)
                   << std::endl;
       if (!ServingState.empty())
-        std::cout << IString(" Serving State: %s", ServingState) << std::endl;
+        out << IString(" Serving State: %s", ServingState) << std::endl;
 
       if (ApplicationEnvironments.size() > 0) {
-        std::cout << IString(" Installed application environments:") << std::endl;
+        out << IString(" Installed application environments:") << std::endl;
         for (std::list<ApplicationEnvironment>::const_iterator it = ApplicationEnvironments.begin();
              it != ApplicationEnvironments.end(); it++) {
-          std::cout << "  " << *it << std::endl;
+          out << "  " << *it << std::endl;
         }
       }
 
       if (ConnectivityIn)
-        std::cout << IString(" Execution environment"
+        out << IString(" Execution environment"
                              " supports inbound connections") << std::endl;
       else
-        std::cout << IString(" Execution environment does not"
+        out << IString(" Execution environment does not"
                              " support inbound connections") << std::endl;
       if (ConnectivityOut)
-        std::cout << IString(" Execution environment"
+        out << IString(" Execution environment"
                              " supports outbound connections") << std::endl;
       else
-        std::cout << IString(" Execution environment does not"
+        out << IString(" Execution environment does not"
                              " support outbound connections") << std::endl;
 
       if (!IssuerCA.empty())
-        std::cout << IString(" Issuer CA: %s", IssuerCA) << std::endl;
+        out << IString(" Issuer CA: %s", IssuerCA) << std::endl;
       if (!TrustedCA.empty()) {
-        std::cout << IString(" Trusted CAs:") << std::endl;
+        out << IString(" Trusted CAs:") << std::endl;
         for (std::list<std::string>::const_iterator it = TrustedCA.begin();
              it != TrustedCA.end(); it++)
-          std::cout << "  " << *it << std::endl;
+          out << "  " << *it << std::endl;
       }
       if (DowntimeStarts != -1)
-        std::cout << IString(" Downtime Starts: %s", DowntimeStarts.str())
+        out << IString(" Downtime Starts: %s", DowntimeStarts.str())
                   << std::endl;
       if (DowntimeEnds != -1)
-        std::cout << IString(" Downtime Ends: %s", DowntimeEnds.str())
+        out << IString(" Downtime Ends: %s", DowntimeEnds.str())
                   << std::endl;
       if (!Staging.empty())
-        std::cout << IString(" Staging: %s", Staging) << std::endl;
+        out << IString(" Staging: %s", Staging) << std::endl;
       if (!JobDescriptions.empty()) {
-        std::cout << IString(" Job Descriptions:") << std::endl;
+        out << IString(" Job Descriptions:") << std::endl;
         for (std::list<std::string>::const_iterator it =
                JobDescriptions.begin(); it != JobDescriptions.end(); it++)
-          std::cout << "  " << *it << std::endl;
+          out << "  " << *it << std::endl;
       }
 
-      std::cout << std::endl << IString("Queue information:") << std::endl;
+      out << std::endl << IString("Queue information:") << std::endl;
 
       if (!ComputingShareName.empty())
-        std::cout << IString(" Mapping Queue: %s", ComputingShareName) << std::endl;
+        out << IString(" Mapping Queue: %s", ComputingShareName) << std::endl;
       if (MaxWallTime != -1)
-        std::cout << IString(" Max Wall Time: %s", MaxWallTime.istr())
+        out << IString(" Max Wall Time: %s", MaxWallTime.istr())
                   << std::endl;
       if (MaxTotalWallTime != -1)
-        std::cout << IString(" Max Total Wall Time: %s",
+        out << IString(" Max Total Wall Time: %s",
                              MaxTotalWallTime.istr()) << std::endl;
       if (MinWallTime != -1)
-        std::cout << IString(" Min Wall Time: %s", MinWallTime.istr())
+        out << IString(" Min Wall Time: %s", MinWallTime.istr())
                   << std::endl;
       if (DefaultWallTime != -1)
-        std::cout << IString(" Default Wall Time: %s",
+        out << IString(" Default Wall Time: %s",
                              DefaultWallTime.istr()) << std::endl;
       if (MaxCPUTime != -1)
-        std::cout << IString(" Max CPU Time: %s", MaxCPUTime.istr())
+        out << IString(" Max CPU Time: %s", MaxCPUTime.istr())
                   << std::endl;
       if (MinCPUTime != -1)
-        std::cout << IString(" Min CPU Time: %s", MinCPUTime.istr())
+        out << IString(" Min CPU Time: %s", MinCPUTime.istr())
                   << std::endl;
       if (DefaultCPUTime != -1)
-        std::cout << IString(" Default CPU Time: %s",
+        out << IString(" Default CPU Time: %s",
                              DefaultCPUTime.istr()) << std::endl;
       if (MaxTotalJobs != -1)
-        std::cout << IString(" Max Total Jobs: %i", MaxTotalJobs) << std::endl;
+        out << IString(" Max Total Jobs: %i", MaxTotalJobs) << std::endl;
       if (MaxRunningJobs != -1)
-        std::cout << IString(" Max Running Jobs: %i", MaxRunningJobs)
+        out << IString(" Max Running Jobs: %i", MaxRunningJobs)
                   << std::endl;
       if (MaxWaitingJobs != -1)
-        std::cout << IString(" Max Waiting Jobs: %i", MaxWaitingJobs)
+        out << IString(" Max Waiting Jobs: %i", MaxWaitingJobs)
                   << std::endl;
       if (MaxPreLRMSWaitingJobs != -1)
-        std::cout << IString(" Max Pre-LRMS Waiting Jobs: %i",
+        out << IString(" Max Pre-LRMS Waiting Jobs: %i",
                              MaxPreLRMSWaitingJobs) << std::endl;
       if (MaxUserRunningJobs != -1)
-        std::cout << IString(" Max User Running Jobs: %i", MaxUserRunningJobs)
+        out << IString(" Max User Running Jobs: %i", MaxUserRunningJobs)
                   << std::endl;
       if (MaxSlotsPerJob != -1)
-        std::cout << IString(" Max Slots Per Job: %i", MaxSlotsPerJob)
+        out << IString(" Max Slots Per Job: %i", MaxSlotsPerJob)
                   << std::endl;
       if (MaxStageInStreams != -1)
-        std::cout << IString(" Max Stage In Streams: %i", MaxStageInStreams)
+        out << IString(" Max Stage In Streams: %i", MaxStageInStreams)
                   << std::endl;
       if (MaxStageOutStreams != -1)
-        std::cout << IString(" Max Stage Out Streams: %i", MaxStageOutStreams)
+        out << IString(" Max Stage Out Streams: %i", MaxStageOutStreams)
                   << std::endl;
       if (!SchedulingPolicy.empty())
-        std::cout << IString(" Scheduling Policy: %s", SchedulingPolicy)
+        out << IString(" Scheduling Policy: %s", SchedulingPolicy)
                   << std::endl;
       if (MaxMainMemory != -1)
-        std::cout << IString(" Max Memory: %i", MaxMainMemory) << std::endl;
+        out << IString(" Max Memory: %i", MaxMainMemory) << std::endl;
       if (MaxVirtualMemory != -1)
-        std::cout << IString(" Max Virtual Memory: %i", MaxVirtualMemory)
+        out << IString(" Max Virtual Memory: %i", MaxVirtualMemory)
                   << std::endl;
       if (MaxDiskSpace != -1)
-        std::cout << IString(" Max Disk Space: %i", MaxDiskSpace) << std::endl;
+        out << IString(" Max Disk Space: %i", MaxDiskSpace) << std::endl;
       if (DefaultStorageService)
-        std::cout << IString(" Default Storage Service: %s",
+        out << IString(" Default Storage Service: %s",
                              DefaultStorageService.str()) << std::endl;
       if (Preemption)
-        std::cout << IString(" Supports Preemption") << std::endl;
+        out << IString(" Supports Preemption") << std::endl;
       else
-        std::cout << IString(" Doesn't Support Preemption") << std::endl;
+        out << IString(" Doesn't Support Preemption") << std::endl;
       if (TotalJobs != -1)
-        std::cout << IString(" Total Jobs: %i", TotalJobs) << std::endl;
+        out << IString(" Total Jobs: %i", TotalJobs) << std::endl;
       if (RunningJobs != -1)
-        std::cout << IString(" Running Jobs: %i", RunningJobs) << std::endl;
+        out << IString(" Running Jobs: %i", RunningJobs) << std::endl;
       if (LocalRunningJobs != -1)
-        std::cout << IString(" Local Running Jobs: %i", LocalRunningJobs)
+        out << IString(" Local Running Jobs: %i", LocalRunningJobs)
                   << std::endl;
       if (WaitingJobs != -1)
-        std::cout << IString(" Waiting Jobs: %i", WaitingJobs) << std::endl;
+        out << IString(" Waiting Jobs: %i", WaitingJobs) << std::endl;
       if (LocalWaitingJobs != -1)
-        std::cout << IString(" Local Waiting Jobs: %i", LocalWaitingJobs)
+        out << IString(" Local Waiting Jobs: %i", LocalWaitingJobs)
                   << std::endl;
       if (SuspendedJobs != -1)
-        std::cout << IString(" Suspended Jobs: %i", SuspendedJobs)
+        out << IString(" Suspended Jobs: %i", SuspendedJobs)
                   << std::endl;
       if (LocalSuspendedJobs != -1)
-        std::cout << IString(" Local Suspended Jobs: %i", LocalSuspendedJobs)
+        out << IString(" Local Suspended Jobs: %i", LocalSuspendedJobs)
                   << std::endl;
       if (StagingJobs != -1)
-        std::cout << IString(" Staging Jobs: %i", StagingJobs) << std::endl;
+        out << IString(" Staging Jobs: %i", StagingJobs) << std::endl;
       if (PreLRMSWaitingJobs != -1)
-        std::cout << IString(" Pre-LRMS Waiting Jobs: %i", PreLRMSWaitingJobs)
+        out << IString(" Pre-LRMS Waiting Jobs: %i", PreLRMSWaitingJobs)
                   << std::endl;
       if (EstimatedAverageWaitingTime != -1)
-        std::cout << IString(" Estimated Average Waiting Time: %s",
+        out << IString(" Estimated Average Waiting Time: %s",
                              EstimatedAverageWaitingTime.istr())
                   << std::endl;
       if (EstimatedWorstWaitingTime != -1)
-        std::cout << IString(" Estimated Worst Waiting Time: %s",
+        out << IString(" Estimated Worst Waiting Time: %s",
                              EstimatedWorstWaitingTime.istr())
                   << std::endl;
       if (FreeSlots != -1)
-        std::cout << IString(" Free Slots: %i", FreeSlots) << std::endl;
+        out << IString(" Free Slots: %i", FreeSlots) << std::endl;
       if (!FreeSlotsWithDuration.empty()) {
-        std::cout << IString(" Free Slots Grouped According To Time Limits (limit: free slots):") << std::endl;
+        out << IString(" Free Slots Grouped According To Time Limits (limit: free slots):") << std::endl;
         for (std::map<Period, int>::const_iterator it =
                FreeSlotsWithDuration.begin();
              it != FreeSlotsWithDuration.end(); it++) {
           if (it->first != Period(LONG_MAX)) {
-            std::cout << IString("  %s: %i", it->first.istr(), it->second)
+            out << IString("  %s: %i", it->first.istr(), it->second)
                       << std::endl;
           }
           else {
-            std::cout << IString("  unspecified: %i", it->second)
+            out << IString("  unspecified: %i", it->second)
                       << std::endl;
           }
         }
       }
       if (UsedSlots != -1)
-        std::cout << IString(" Used Slots: %i", UsedSlots) << std::endl;
+        out << IString(" Used Slots: %i", UsedSlots) << std::endl;
       if (RequestedSlots != -1)
-        std::cout << IString(" Requested Slots: %i", RequestedSlots)
+        out << IString(" Requested Slots: %i", RequestedSlots)
                   << std::endl;
       if (!ReservationPolicy.empty())
-        std::cout << IString(" Reservation Policy: %s", ReservationPolicy)
+        out << IString(" Reservation Policy: %s", ReservationPolicy)
                   << std::endl;
 
-      std::cout << std::endl << IString("Manager information:") << std::endl;
+      out << std::endl << IString("Manager information:") << std::endl;
 
       if (!ManagerProductName.empty())
-        std::cout << IString(" Resource Manager: %s", ManagerProductName)
+        out << IString(" Resource Manager: %s", ManagerProductName)
                   << std::endl;
       if (!ManagerProductVersion.empty())
-        std::cout << IString(" Resource Manager Version: %s",
+        out << IString(" Resource Manager Version: %s",
                              ManagerProductVersion) << std::endl;
       if (Reservation)
-        std::cout << IString(" Supports Advance Reservations") << std::endl;
+        out << IString(" Supports Advance Reservations") << std::endl;
       else
-        std::cout << IString(" Doesn't Support Advance Reservations")
+        out << IString(" Doesn't Support Advance Reservations")
                   << std::endl;
       if (BulkSubmission)
-        std::cout << IString(" Supports Bulk Submission") << std::endl;
+        out << IString(" Supports Bulk Submission") << std::endl;
       else
-        std::cout << IString(" Doesn't Support Bulk Submission") << std::endl;
+        out << IString(" Doesn't Support Bulk Submission") << std::endl;
       if (TotalPhysicalCPUs != -1)
-        std::cout << IString(" Total Physical CPUs: %i", TotalPhysicalCPUs)
+        out << IString(" Total Physical CPUs: %i", TotalPhysicalCPUs)
                   << std::endl;
       if (TotalLogicalCPUs != -1)
-        std::cout << IString(" Total Logical CPUs: %i", TotalLogicalCPUs)
+        out << IString(" Total Logical CPUs: %i", TotalLogicalCPUs)
                   << std::endl;
       if (TotalSlots != -1)
-        std::cout << IString(" Total Slots: %i", TotalSlots) << std::endl;
+        out << IString(" Total Slots: %i", TotalSlots) << std::endl;
       if (Homogeneous)
-        std::cout << IString(" Homogeneous Resource") << std::endl;
+        out << IString(" Homogeneous Resource") << std::endl;
       else
-        std::cout << IString(" Non-homogeneous Resource") << std::endl;
+        out << IString(" Non-homogeneous Resource") << std::endl;
       if (!NetworkInfo.empty()) {
-        std::cout << IString(" Network Information:") << std::endl;
+        out << IString(" Network Information:") << std::endl;
         for (std::list<std::string>::const_iterator it = NetworkInfo.begin();
              it != NetworkInfo.end(); it++)
-          std::cout << "  " << *it << std::endl;
+          out << "  " << *it << std::endl;
       }
       if (WorkingAreaShared)
-        std::cout << IString(" Working area is shared among jobs")
+        out << IString(" Working area is shared among jobs")
                   << std::endl;
       else
-        std::cout << IString(" Working area is not shared among jobs")
+        out << IString(" Working area is not shared among jobs")
                   << std::endl;
       if (WorkingAreaTotal != -1)
-        std::cout << IString(" Working Area Total Size: %i", WorkingAreaTotal)
+        out << IString(" Working Area Total Size: %i", WorkingAreaTotal)
                   << std::endl;
       if (WorkingAreaFree != -1)
-        std::cout << IString(" Working Area Free Size: %i", WorkingAreaFree)
+        out << IString(" Working Area Free Size: %i", WorkingAreaFree)
                   << std::endl;
       if (WorkingAreaLifeTime != -1)
-        std::cout << IString(" Working Area Life Time: %s",
+        out << IString(" Working Area Life Time: %s",
                              WorkingAreaLifeTime.istr()) << std::endl;
       if (CacheTotal != -1)
-        std::cout << IString(" Cache Area Total Size: %i", CacheTotal)
+        out << IString(" Cache Area Total Size: %i", CacheTotal)
                   << std::endl;
       if (CacheFree != -1)
-        std::cout << IString(" Cache Area Free Size: %i", CacheFree)
+        out << IString(" Cache Area Free Size: %i", CacheFree)
                   << std::endl;
 
       // Benchmarks
 
       if (!Benchmarks.empty()) {
-        std::cout << IString(" Benchmark Information:") << std::endl;
+        out << IString(" Benchmark Information:") << std::endl;
         for (std::map<std::string, double>::const_iterator it =
                Benchmarks.begin(); it != Benchmarks.end(); it++)
-          std::cout << "  " << it->first << ": " << it->second << std::endl;
+          out << "  " << it->first << ": " << it->second << std::endl;
       }
 
-      std::cout << std::endl << IString("Execution Environment information:")
+      out << std::endl << IString("Execution Environment information:")
                 << std::endl;
 
       if (!Platform.empty())
-        std::cout << IString(" Platform: %s", Platform) << std::endl;
+        out << IString(" Platform: %s", Platform) << std::endl;
       if (VirtualMachine)
-        std::cout << IString(" Execution environment is a virtual machine")
+        out << IString(" Execution environment is a virtual machine")
                   << std::endl;
       else
-        std::cout << IString(" Execution environment is a physical machine")
+        out << IString(" Execution environment is a physical machine")
                   << std::endl;
       if (!CPUVendor.empty())
-        std::cout << IString(" CPU Vendor: %s", CPUVendor) << std::endl;
+        out << IString(" CPU Vendor: %s", CPUVendor) << std::endl;
       if (!CPUModel.empty())
-        std::cout << IString(" CPU Model: %s", CPUModel) << std::endl;
+        out << IString(" CPU Model: %s", CPUModel) << std::endl;
       if (!CPUVersion.empty())
-        std::cout << IString(" CPU Version: %s", CPUVersion) << std::endl;
+        out << IString(" CPU Version: %s", CPUVersion) << std::endl;
       if (CPUClockSpeed != -1)
-        std::cout << IString(" CPU Clock Speed: %i", CPUClockSpeed)
+        out << IString(" CPU Clock Speed: %i", CPUClockSpeed)
                   << std::endl;
       if (MainMemorySize != -1)
-        std::cout << IString(" Main Memory Size: %i", MainMemorySize)
+        out << IString(" Main Memory Size: %i", MainMemorySize)
                   << std::endl;
 
       if (!OperatingSystem.getFamily().empty())
-        std::cout << IString(" OS Family: %s", OperatingSystem.getFamily()) << std::endl;
+        out << IString(" OS Family: %s", OperatingSystem.getFamily()) << std::endl;
       if (!OperatingSystem.getName().empty())
-        std::cout << IString(" OS Name: %s", OperatingSystem.getName()) << std::endl;
+        out << IString(" OS Name: %s", OperatingSystem.getName()) << std::endl;
       if (!OperatingSystem.getVersion().empty())
-        std::cout << IString(" OS Version: %s", OperatingSystem.getVersion()) << std::endl;
+        out << IString(" OS Version: %s", OperatingSystem.getVersion()) << std::endl;
     } // end if long
 
-    std::cout << std::endl;
+    out << std::endl;
 
   } // end print
 
