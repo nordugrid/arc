@@ -329,7 +329,7 @@ if test "$enables_python" = "yes"; then
 
   if test "X$PYTHON" != "X"; then
     changequote(<<, >>)dnl
-    PYTHON_VERSION=`$PYTHON -c 'import sys; print sys.version[:3]'`
+    PYTHON_VERSION=`$PYTHON -c 'import sys; print(sys.version[:3])'`
 
     case $host in
        *-*-mingw*)
@@ -341,16 +341,16 @@ if test "$enables_python" = "yes"; then
     case $host in
        *-*-mingw*)
     # Use non-mingw32 python here
-    PYTHON_CFLAGS=-I`python -c "from distutils import sysconfig; sysconfig.PREFIX = \"${prefix}\" ; print sysconfig.get_python_inc()"`
-    PYTHON_SITE_PACKAGES=`python -c "from distutils import sysconfig; sysconfig.PREFIX = \"${prefix}\" ; print sysconfig.get_python_lib(1,0,\"${prefix}\")"`
+    PYTHON_CFLAGS=-I`python -c "from distutils import sysconfig; sysconfig.PREFIX = \"${prefix}\" ; print(sysconfig.get_python_inc())"`
+    PYTHON_SITE_PACKAGES=`python -c "from distutils import sysconfig; sysconfig.PREFIX = \"${prefix}\" ; print(sysconfig.get_python_lib(1,0,\"${prefix}\"))"`
     PYTHON_LIBS="-L${prefix}/bin -lpython$SAVE_PYTHON_VERSION"
        ;;
                 *)
-    PYTHON_CFLAGS=-I`$PYTHON -c 'from distutils import sysconfig; print sysconfig.get_python_inc()'`
-    PY_LIBS=`$PYTHON -c "from distutils import sysconfig; print sysconfig.get_config_vars().get('LIBS')" | sed s/None//`
-    PY_SYSLIBS=`$PYTHON -c "from distutils import sysconfig; print sysconfig.get_config_vars().get('SYSLIBS')" | sed s/None//`
-    PY_LIBDEST=`$PYTHON -c "from distutils import sysconfig; print sysconfig.get_config_vars().get('LIBDEST')" | sed s/None//`
-    PYTHON_SITE_PACKAGES=`$PYTHON -c 'from distutils import sysconfig; print sysconfig.get_python_lib(1,0,"${prefix}")'`
+    PYTHON_CFLAGS=-I`$PYTHON -c 'from distutils import sysconfig; print(sysconfig.get_python_inc())'`
+    PY_LIBS=`$PYTHON -c "from distutils import sysconfig; print(sysconfig.get_config_vars().get('LIBS'))" | sed s/None//`
+    PY_SYSLIBS=`$PYTHON -c "from distutils import sysconfig; print(sysconfig.get_config_vars().get('SYSLIBS'))" | sed s/None//`
+    PY_LIBDEST=`$PYTHON -c "from distutils import sysconfig; print(sysconfig.get_config_vars().get('LIBDEST'))" | sed s/None//`
+    PYTHON_SITE_PACKAGES=`$PYTHON -c 'from distutils import sysconfig; print(sysconfig.get_python_lib(1,0,"${prefix}"))'`
     changequote([, ])dnl
     PYTHON_LIBS="$PY_LIBS $PY_SYSLIBS"
     SAVE_LDFLAGS=$LDFLAGS
