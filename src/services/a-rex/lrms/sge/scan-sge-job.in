@@ -209,7 +209,7 @@ add_accounting_to_diag () {
   donefile="${ctr_dir}/job.${gridid}.lrms_done"
   countfile="${ctr_dir}/job.${gridid}.lrms_job"
   errorsfile="${ctr_dir}/job.${gridid}.errors"
-  statusfile="${ctr_dir}/processing/job.${gridid}.status" 
+  localfile="${ctr_dir}/job.${gridid}.local" 
   
   used_walltime=`sed -n 's/^WallTime=\(.*\).0s/\1/p' "$diagfile_acct" | tail -n 1`
   used_cputime=`sed -n 's/^CPUTime=\(.*\).0s/\1/p' "$diagfile_acct" | tail -n 1`
@@ -250,7 +250,7 @@ add_accounting_to_diag () {
     handle_failedcode "$failedcode" "$donefile" "$exitcode" "$sgeexitcode" "$overlimit"
 	
     # wake up GM
-    $GMKICK "$statusfile" >> "$errorsfile"
+    $GMKICK "$localfile" >> "$errorsfile"
 
     rm -f "$countfile"
     rm -f "$diagfile_tmp" "$diagfile_acct"
@@ -272,7 +272,7 @@ handle_missing_accounting () {
   errorsfile=$4
   donefile=$5
   exitcode=$6
-  statusfile=$7
+  localfile=$7
   GMKICK=$8
   SGE_BIN_PATH=$9
   id=$10
@@ -291,7 +291,7 @@ handle_missing_accounting () {
       echo "$exitcode Job failed with exit code $exitcode" > "$donefile"
     fi
 
-    $GMKICK "$statusfile" >> "$errorsfile"
+    $GMKICK "$localfile" >> "$errorsfile"
 
     return
   fi
@@ -326,7 +326,7 @@ handle_missing_accounting () {
     rm -f "$countfile"
 
     # wake up GM
-    $GMKICK "$statusfile" >> "$errorsfile"
+    $GMKICK "$localfile" >> "$errorsfile"
 
   else
     # test again for job existence, only count if not known
@@ -355,7 +355,6 @@ fi
 for ctr_dir in $control_dirs ; do
   # Obtain ids of pending/running jobs stored in job.*.local
   rjobs=`find "$ctr_dir/processing" -name 'job.*.status' 2>/dev/null \
-         | xargs egrep -lv 'DELETED|FINISHED' 2>/dev/null \
          | sed 's/processing\/job\.\([^\.]*\)\.status$/job.\1.local/'`
   if [ -z "$rjobs" ] ; then continue ; fi
   ids=`echo $rjobs | xargs grep -h '^localid=' 2>/dev/null | sed 's/^localid=\([^ ]*\)/\1/'`
@@ -371,7 +370,9 @@ for ctr_dir in $control_dirs ; do
   # go through missing ids
   for id in $bids ; do
     # find grid job corresponding to current local id
-    jobfile=`find $ctr_dir -name 'job.*.local' 2>/dev/null | xargs grep -l "localid=$id\$" 2>/dev/null`
+    jobfile=`find "$ctr_dir/processing" -name 'job.*.status' 2>/dev/null \
+             | sed 's/processing\/job\.\([^\.]*\)\.status$/job.\1.local/' \
+             | xargs grep -l "localid=$id\$" 2>/dev/null`
     if [ -z "$jobfile" ] ; then continue ; fi
     # unless running as superuser, skip jobs not belonging to the current user
     if [ "$my_id" != '0' ] ; then
@@ -386,6 +387,7 @@ for ctr_dir in $control_dirs ; do
     countfile="${ctr_dir}/job.${gridid}.lrms_job"
     failedfile="${ctr_dir}/job.${gridid}.failed"
     errorsfile="${ctr_dir}/job.${gridid}.errors"
+    localfile="${ctr_dir}/job.${gridid}.local"
     if [ -f "$donefile" ] ; then continue ; fi
     statusfile="${ctr_dir}/processing/job.${gridid}.status"
     if [ ! -f "$statusfile" ] ; then continue ; fi
@@ -444,7 +446,7 @@ for ctr_dir in $control_dirs ; do
 
     # This section is only reached when accounting info is not present
 
-    handle_missing_accounting "$countfile" "$uid" "$commentfile" "$errorsfile" "$donefile" "$exitcode" "$statusfile" "$GMKICK" "$SGE_BIN_PATH" "$id"
+    handle_missing_accounting "$countfile" "$uid" "$commentfile" "$errorsfile" "$donefile" "$exitcode" "$localfile" "$GMKICK" "$SGE_BIN_PATH" "$id"
 
   done # loop over bids
 

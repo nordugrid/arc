@@ -29,14 +29,16 @@ test -d "$control_dir" || exit 1
 my_id=`id -u`
 
 #for i in "$control_dir"/job.*.local
-find $control_dir -maxdepth 1 -type f -name job\*.local | while read i
+find "$control_dir/processing" -maxdepth 1 -type f -name 'job.*.status' \
+| sed 's/processing\/job\.\([^\.]*\)\.status$/job.\1.local/' \
+| while read i
 do
   # Continue if no glob expansion or other problems
   test -f "$i" || continue
 
   jobid=`basename $i .local|sed 's/^job.//'`
   donefile="${control_dir}/job.${jobid}.lrms_done"
-  statusfile="${control_dir}/job.${jobid}.status"
+  statusfile="${control_dir}/processing/job.${jobid}.status"
   jobfile="${control_dir}/job.${jobid}.local"
   errorsfile="${control_dir}/job.${jobid}.errors"
 
@@ -119,19 +121,19 @@ do
 
       job_write_diag
 
-      ${GMKICK} "$statusfile"
+      ${GMKICK} "$jobfile"
       continue
     fi
     # job finished and exit code is known
     save_commentfile "$uid" "${sessiondir}.comment" "$errorsfile"
     echo "$exitcode Executable finished with exit code $exitcode" >> "$donefile"
-    ${GMKICK} "$statusfile"
+    ${GMKICK} "$jobfile"
     continue
   fi
   exitcode=-1
   save_commentfile "$uid" "${sessiondir}.comment" "$errorsfile"
   echo "$exitcode Job finished with unknown exit code" >> "$donefile"
-  ${GMKICK} "$statusfile"
+  ${GMKICK} "$jobfile"
 done
 
 sleep 60

@@ -66,7 +66,9 @@ eval "set -- $control_dirs"
 for ctr_dir in $control_dir ; do
 
   # Obtain ids stored in job.*.local
-    ids=`find ${ctr_dir} -name 'job.*.local' -print0 | xargs -0 grep -h "^localid=" 2>/dev/null | sed 's/^localid=\([0-9]*\).*/\1/'`
+    ids=`find ${ctr_dir}/processing -name 'job.*.status' -print0 \
+         | sed 's/processing\/job\.\([^\.]*\)\.status/job.\1.local/g' \
+         | xargs -0 grep -h "^localid=" 2>/dev/null | sed 's/^localid=\([0-9]*\).*/\1/'`
 
     if [ -z "$ids" ] ; then continue ; fi
 
@@ -83,7 +85,9 @@ for ctr_dir in $control_dir ; do
     for id in $bids ; do
 
 	# find grid job corresponding to curent local id
-	jobfile=`find ${ctr_dir} -name 'job.*.local' -print0 | xargs -0 grep -F -l "localid=$id" 2>/dev/null`
+        jobfile=`find ${ctr_dir}/processing -name 'job.*.status' -print0 \
+                 | sed 's/processing\/job\.\([^\.]*\)\.status/job.\1.local/g' \
+                 | xargs -0 grep -F -l "localid=$id" 2>/dev/null`
 	if [ -z "$jobfile" ] ; then continue ; fi
 
 	# extract grid id
@@ -91,7 +95,7 @@ for ctr_dir in $control_dir ; do
 	donefile="${ctr_dir}/job.${gridid}.lrms_done"
 	if [ -f "$donefile" ] ; then continue ; fi
 
-	statusfile="${ctr_dir}/job.${gridid}.status"
+	statusfile="${ctr_dir}/processing/job.${gridid}.status"
 	if [ ! -f "$statusfile" ] ; then continue ; fi
 
 	status=`cat "$statusfile"`
@@ -150,7 +154,7 @@ for ctr_dir in $control_dir ; do
 		# job finished and exit code is known
                 save_commentfile "$uid" "${sessiondir}.comment" "${ctr_dir}/job.${gridid}.errors"
 		echo "$exitcode Executable finished with exit code $exitcode" > "$donefile"
-		${GMKICK} "$statusfile"
+		${GMKICK} "$jobfile"
 		continue
 	    fi
 	fi
@@ -168,7 +172,7 @@ for ctr_dir in $control_dir ; do
 	    rm -f "$countfile"
             save_commentfile "$uid" "${sessiondir}.comment" "${ctr_dir}/job.${gridid}.errors"
 	    echo "$exitcode Job was lost with unknown exit code" > "$donefile"
-	    ${GMKICK} "$statusfile"
+	    ${GMKICK} "$jobfile"
 	else
 	    echo "$counter" > "$countfile"
 	fi

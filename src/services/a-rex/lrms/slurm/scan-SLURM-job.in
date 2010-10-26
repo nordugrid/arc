@@ -86,9 +86,10 @@ declare -a kicklist
 
 # Find list of grid jobs with status INLRMS, store localid and
 # basename for those jobs
-for basename in $(find "$@" -name 'job.*.status' -print0 \
+for ctr_dir in "$@"; do
+for basename in $(find "$ctr_dir/processing" -name 'job.*.status' -print0 \
     | xargs -0 egrep -l "INLRMS|CANCELING" \
-    | sed 's/.status$//')
+    | sed 's/processing\/job\.\([^\.]*\)\.status$/job.\1/')
   do
   localid=$(grep ^localid= "${basename}.local" | cut -d= -f2)
 
@@ -96,6 +97,7 @@ for basename in $(find "$@" -name 'job.*.status' -print0 \
 
   localids[${#localids[@]}]="$localid"
   basenames[$localid]="$basename"
+done
 done
 
 # No need to continue further if no jobs have status INLRMS
@@ -289,7 +291,7 @@ done
 if [ -n "${kicklist[*]}" ];then
     "${basedir}/gm-kick" \
 	$(for localid in "${kicklist[@]}";do
-	    echo "${basenames[$localid]}.status"
+	    echo "${basenames[$localid]}.local"
 	    done | xargs)
 fi
 

@@ -42,7 +42,7 @@ for control_dir in "$options" ; do
         continue
     fi
     # Select jobs in LRMS state
-    for job in `grep -H INLRMS ${control_dir}/job.*.status 2>/dev/null | sed -e 's/.*job.//' -e 's/.status.*$//'` ; do
+    for job in `grep -H INLRMS ${control_dir}/processing/job.*.status 2>/dev/null | sed -e 's/.*job.//' -e 's/.status.*$//'` ; do
         $debug "scanning job = $job"
         unset joboption_jobid
 	unset joboption_user

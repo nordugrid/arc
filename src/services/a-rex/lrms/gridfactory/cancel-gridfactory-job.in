@@ -37,7 +37,7 @@ if [ -z "$joboption_jobid" ] ; then
   joboption_jobid=`cat "$job_control_dir/job.${joboption_gridid}.local" | grep '^localid=' | sed 's/^localid=//'`
 fi
 
-case X`cat "$job_control_dir/job.${joboption_gridid}.status"` in
+case X`cat "$job_control_dir/processing/job.${joboption_gridid}.status"` in
     XINLRMS)
 
 	$debug `su -c "$PSTAT $joboption_jobid" - $joboption_user|sed 's,$joboption_jobid ,,'`

@@ -31,9 +31,6 @@ int main(int argc,char* argv[]) {
     std::string::size_type l = path.rfind('/');
     if(l == std::string::npos) continue;
     path.resize(l); 
-    l = path.rfind('/');
-    if(l == std::string::npos) continue;
-    path.resize(l); 
     user.SetControlDir(path);
     SignalFIFO(user);
   };

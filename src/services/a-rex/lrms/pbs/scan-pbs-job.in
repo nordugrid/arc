@@ -267,7 +267,7 @@ process_log_file () {
       fi
     fi
     # wake up GM
-    ${GMKICK} "$statusfile"
+    ${GMKICK} "${base_name}.local"
   done
   IFS=$old_IFS
 }
@@ -383,7 +383,7 @@ for ctr_dir in "$@" ; do
         # job finished and exit code is known
         save_commentfile "$uid" "${session}.comment" "${ctr_dir}/job.${gridid}.errors"
         echo "$exitcode Executable finished with exit code $exitcode" > "$donefile"
-        ${GMKICK} "$statusfile"
+        ${GMKICK} "$jobfile"
         echo "Job $gridid finished with exit code $exitcode"
         continue
       fi
@@ -400,7 +400,7 @@ for ctr_dir in "$@" ; do
       rm -f "$countfile"
       save_commentfile "$uid" "${session}.comment" "${ctr_dir}/job.${gridid}.errors"
       echo "$exitcode Job was lost with unknown exit code" > "$donefile"
-      ${GMKICK} "$statusfile"
+      ${GMKICK} "$jobfile"
       echo "Job $gridid finished with unknown exit code"
     else
       echo "$counter" > "$countfile"

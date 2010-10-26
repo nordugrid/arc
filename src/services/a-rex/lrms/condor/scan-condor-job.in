@@ -405,8 +405,7 @@ job_write_donefile() {
     echo "${LRMSExitcode:--1} $msg" > $donefile || log "failed writing file: $PWD/$donefile"
 
     # wake up GM
-    statusfile=processing/job.$gridid.status
-    "${basedir}"/gm-kick "$statusfile"
+    "${basedir}"/gm-kick "job.$gridid.local"
 }
 
 #
