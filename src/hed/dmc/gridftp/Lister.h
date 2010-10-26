@@ -66,7 +66,7 @@ namespace Arc {
                                    globus_object_t *error);
     globus_ftp_control_response_class_t
     send_command(const char *command, const char *arg, bool wait_for_response,
-                 char **sresp, char delim = 0);
+                 char **sresp = NULL, int *code = NULL, char delim = 0);
     int setup_pasv(globus_ftp_control_host_port_t& pasv_addr);
     int handle_connect(const URL& url);
     int transfer_list(void);

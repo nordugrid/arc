@@ -160,7 +160,7 @@ namespace Arc {
       it->callback_status = CALLBACK_DONE;
       if(response->response_buffer) {
         dos_to_unix((char*)(response->response_buffer));
-        logger.msg(VERBOSE, "Response(%i): %s", (int)(response->response_length), response->response_buffer);
+        logger.msg(VERBOSE, "Response: %s", response->response_buffer);
       }
     }
     globus_cond_signal(&(it->cond));
@@ -317,10 +317,11 @@ namespace Arc {
     }
   }
 
-  globus_ftp_control_response_class_t Lister::send_command(const char *command, const char *arg, bool wait_for_response, char **sresp, char delim) {
+  globus_ftp_control_response_class_t Lister::send_command(const char *command, const char *arg, bool wait_for_response, char **sresp, int* code, char delim) {
     char *cmd = NULL;
     if (sresp)
       (*sresp) = NULL;
+    if (code) *code = 0;
     if (command) { /* if no command - waiting for second reply */
       globus_mutex_lock(&mutex);
       for (int i = 0; i < resp_n; i++)
@@ -413,14 +414,17 @@ namespace Arc {
       }
       globus_ftp_control_response_class_t resp_class =
         GLOBUS_FTP_UNKNOWN_REPLY;
+      int resp_code = 0;
       if (resp_n > 0) {
         resp_class = resp[resp_n - 1].response_class;
+        resp_code = resp[resp_n - 1].code;
         globus_ftp_control_response_destroy(resp + (resp_n - 1));
         resp_n--;
       }
       if (resp_n == 0)
         callback_status = CALLBACK_NOTREADY;
       globus_mutex_unlock(&mutex);
+      if (code) *code = resp_code;
       return resp_class;
     }
     else
@@ -512,7 +516,7 @@ namespace Arc {
     if(pasv_set) return 0;
     char *sresp;
     GlobusResult res;
-    if (send_command("PASV", NULL, true, &sresp, '(') !=
+    if (send_command("PASV", NULL, true, &sresp, NULL, '(') !=
         GLOBUS_FTP_POSITIVE_COMPLETION_REPLY) {
       if (sresp) {
         logger.msg(INFO, "PASV failed: %s", sresp);
@@ -671,7 +675,7 @@ namespace Arc {
     globus_ftp_control_response_class_t cmd_resp;
     char *sresp;
     if (url.Protocol() == "gsiftp") {
-      cmd_resp = send_command("DCAU", "N", true, &sresp, '"');
+      cmd_resp = send_command("DCAU", "N", true, &sresp, NULL, '"');
       if ((cmd_resp != GLOBUS_FTP_POSITIVE_COMPLETION_REPLY) &&
           (cmd_resp != GLOBUS_FTP_PERMANENT_NEGATIVE_COMPLETION_REPLY)) {
         if (sresp) {
@@ -692,16 +696,18 @@ namespace Arc {
     free_format = false;
     if(!names_only) {
       /* try MLST */
-      cmd_resp = send_command("MLST", path.c_str(), true, &sresp);
+      int code = 0;
+      cmd_resp = send_command("MLST", path.c_str(), true, &sresp, &code);
       if (cmd_resp == GLOBUS_FTP_PERMANENT_NEGATIVE_COMPLETION_REPLY) {
-        logger.msg(INFO, "MLST is not supported - trying LIST");
-        free(sresp);
-        /* run NLST */
-        if (setup_pasv(pasv_addr) != 0)
-          return -1;
-        facts = false;
-        free_format = true;
-        cmd_resp = send_command("LIST", path.c_str(), true, &sresp);
+        if((code == 500) || (code == 550)) { // 550 - workaround for old bug
+          logger.msg(INFO, "MLST is not supported - trying LIST");
+          free(sresp);
+          /* run NLST */
+          if (setup_pasv(pasv_addr) != 0) return -1;
+          facts = false;
+          free_format = true;
+          cmd_resp = send_command("LIST", path.c_str(), true, &sresp);
+        }
       } else {
         // MLST replies through control channel
         // 250 -
@@ -788,7 +794,7 @@ namespace Arc {
     globus_ftp_control_response_class_t cmd_resp;
     char *sresp = NULL;
     if (url.Protocol() == "gsiftp") {
-      cmd_resp = send_command("DCAU", "N", true, &sresp, '"');
+      cmd_resp = send_command("DCAU", "N", true, &sresp, NULL, '"');
       if ((cmd_resp != GLOBUS_FTP_POSITIVE_COMPLETION_REPLY) &&
           (cmd_resp != GLOBUS_FTP_PERMANENT_NEGATIVE_COMPLETION_REPLY)) {
         if (sresp) {
@@ -811,13 +817,16 @@ namespace Arc {
       return -1;
     if(!names_only) {
       /* try MLSD */
-      cmd_resp = send_command("MLSD", path.c_str(), true, &sresp);
+      int code = 0;
+      cmd_resp = send_command("MLSD", path.c_str(), true, &sresp, &code);
       if (cmd_resp == GLOBUS_FTP_PERMANENT_NEGATIVE_COMPLETION_REPLY) {
-        logger.msg(INFO, "MLSD is not supported - trying NLST");
-        free(sresp);
-        /* run NLST */
-        facts = false;
-        cmd_resp = send_command("NLST", path.c_str(), true, &sresp);
+        if (code == 500) {
+          logger.msg(INFO, "MLSD is not supported - trying NLST");
+          free(sresp);
+          /* run NLST */
+          facts = false;
+          cmd_resp = send_command("NLST", path.c_str(), true, &sresp);
+        }
       }
     } else {
       facts = false;
