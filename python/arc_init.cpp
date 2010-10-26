@@ -28,11 +28,16 @@ Macintosh. The returned string points into static storage; the caller should
 not modify its value. The value is available to Python code as the list
 sys.path, which may be modified to change the future search path for loaded
 modules.
-Note: it seems like Python is hiding site-packages part of path. Maybe it 
+Note: it seems like Python is hiding site-packages part of path. Maybe it
 is hardcoded inside Python somewhere. But at least part till site-packages
 seems to be present.
 */
+#if PY_MAJOR_VERSION >= 3
+  std::wstring pythonwpath = Py_GetPath();
+  std::string pythonpath(pythonwpath.begin(), pythonwpath.end());
+#else
   std::string pythonpath = Py_GetPath();
+#endif
   std::string::size_type start = 0;
   std::string::size_type end = pythonpath.find_first_of(";:\n");
   if(end == std::string::npos) end=pythonpath.length();

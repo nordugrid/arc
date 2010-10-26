@@ -153,7 +153,11 @@ Service_PythonWrapper::Service_PythonWrapper(Arc::Config *cfg):RegisteredService
     logger.msg(Arc::VERBOSE, "module name: %s", module_name);
 
     // Convert module name to Python string
+#if PY_MAJOR_VERSION >= 3
+    py_module_name = PyUnicode_FromString(module_name.c_str());
+#else
     py_module_name = PyString_FromString(module_name.c_str());
+#endif
     if (py_module_name == NULL) {
         logger.msg(Arc::ERROR, "Cannot convert module name to Python string");
         if (PyErr_Occurred()) PyErr_Print();
@@ -170,7 +174,11 @@ Service_PythonWrapper::Service_PythonWrapper(Arc::Config *cfg):RegisteredService
     Py_DECREF(py_module_name);
 
     // Import ARC python wrapper
+#if PY_MAJOR_VERSION >= 3
+    py_arc_module_name = PyUnicode_FromString("arc");
+#else
     py_arc_module_name = PyString_FromString("arc");
+#endif
     if (py_arc_module_name == NULL) {
         logger.msg(Arc::ERROR, "Cannot convert ARC module name to Python string");
         if (PyErr_Occurred()) PyErr_Print();
