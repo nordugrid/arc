@@ -59,7 +59,7 @@ Build:
   o swig version 1.3.28 or later (Chelonia, bindings)
 
 Build & runtime:
-  o open-ldap (LDAP DMC)
+  o open-ldap (LDAP Infosys, LDAP DMC)
   o gsoap 2.7.2 (HED)
   o python 2.4 or higher (Chelonia, bindings)
   o java sdk 1.4 or later (bindings)
