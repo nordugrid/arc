@@ -19,9 +19,9 @@
         <xsd:sequence>
             <xsd:element ref="Server" minOccurs="0" maxOccurs="1"/>
             <xsd:element ref="loader:ModuleManager" minOccurs="0" maxOccurs="1"/>
-            <xsd:element ref="loader:Plugins" minOccurs="0" maxOccurs="1"/>
-            <xsd:element ref="loader:Component" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element ref="loader:Plugins" minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element ref="loader:Chain" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element ref="loader:Component" minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element ref="loader:Plexer" minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element ref="loader:Service" minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element ref="loader:SecHandler" minOccurs="0" maxOccurs="unbounded"/>
@@ -72,6 +72,17 @@
 </xsd:element>
 
 <!-- Logger -->
+<xsd:simpleType name="LoggerLevelNames_Type">
+    <xsd:restriction base="xsd:string">
+        <xsd:enumeration value="FATAL"/>
+        <xsd:enumeration value="ERROR"/>
+        <xsd:enumeration value="WARNING"/>
+        <xsd:enumeration value="INFO"/>
+        <xsd:enumeration value="VERBOSE"/>
+        <xsd:enumeration value="DEBUG"/>
+    </xsd:restriction>
+</xsd:simpleType>
+
 <xsd:complexType name="LoggerLevel_Type">
     <xsd:annotation>
         <xsd:documentation xml:lang="en">
@@ -84,16 +95,10 @@
         </xsd:documentation>
     </xsd:annotation>
     <xsd:simpleContent>
-        <xsd:restriction base="xsd:string">
-            <xsd:enumeration value="FATAL"/>
-            <xsd:enumeration value="ERROR"/>
-            <xsd:enumeration value="WARNING"/>
-            <xsd:enumeration value="INFO"/>
-            <xsd:enumeration value="VERBOSE"/>
-            <xsd:enumeration value="DEBUG"/>
-        </xsd:restriction>
+        <xsd:extension base="LoggerLevelNames_Type">
+            <xsd:attribute name="Domain" type="xsd:string" use="optional"/>
+        </xsd:extension>
     </xsd:simpleContent>
-    <xsd:attribute name="Domain" type="xsd:string" use="optional"/>
 </xsd:complexType>
 
 <xsd:element name="Logger">
@@ -103,18 +108,11 @@
             Logger configuration element.
             </xsd:documentation>
         </xsd:annotation>
-        <xsd:all>
+        <xsd:sequence>
             <xsd:element name="File" type="xsd:string" minOccurs="0" maxOccurs="1" default="/var/log/arc/arched.log">
                 <xsd:annotation>
                     <xsd:documentation xml:lang="en">
                     This element configures the file which should be used for storing log messages.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="Level" type="LoggerLevel_Type" minOccurs="0" maxOccurs="unbounded" default="WARNING">
-                <xsd:annotation>
-                    <xsd:documentation xml:lang="en">
-                    Specifies the log level of the messages which should be logged.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -139,7 +137,14 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-        </xsd:all>
+            <xsd:element name="Level" type="LoggerLevel_Type" minOccurs="0" maxOccurs="unbounded" default="WARNING">
+                <xsd:annotation>
+                    <xsd:documentation xml:lang="en">
+                    Specifies the log level of the messages which should be logged.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
     </xsd:complexType>
 </xsd:element>
 </xsd:schema>
