@@ -107,6 +107,10 @@ int FileRoot::size(const char* name,unsigned long long int *size) {
   else { new_name=name; };
   error=FileNode::no_error;
   if(gridftpd::canonical_dir(new_name,false) != 0) return 1;
+  if(new_name.empty()) {
+    (*size)=0;
+    return 0;
+  }
   for(std::list<FileNode>::iterator i=nodes.begin();i!=nodes.end();++i) {
     if(i->belongs(new_name.c_str())) {
       DirEntry info;
@@ -127,6 +131,10 @@ int FileRoot::time(const char* name,time_t *time) {
   else { new_name=name; };
   error=FileNode::no_error;
   if(gridftpd::canonical_dir(new_name,false) != 0) return 1;
+  if(new_name.empty()) {
+    (*time)=0;
+    return 0;
+  };
   for(std::list<FileNode>::iterator i=nodes.begin();i!=nodes.end();++i) {
     if(i->belongs(new_name.c_str())) {
       DirEntry info;
@@ -147,6 +155,12 @@ int FileRoot::checkfile(const char* name,DirEntry &info,DirEntry::object_info_le
   else { new_name=name; };
   error=FileNode::no_error;
   if(gridftpd::canonical_dir(new_name,false) != 0) return 1;
+  if(new_name.empty()) {
+    info.reset();
+    info.name="/";
+    info.is_file=false;
+    return 0;
+  };
   for(std::list<FileNode>::iterator i=nodes.begin();i!=nodes.end();++i) {
     if(i->belongs(new_name.c_str())) {
       if(i->checkfile(new_name,info,mode) != 0) {
