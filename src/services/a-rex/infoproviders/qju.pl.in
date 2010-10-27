@@ -386,7 +386,7 @@ sub gmjobs_info () {
 
     for my $controldir (@controldirs) {
 
-    for my $controlsubdir ("$conroldir/accepting", "$conroldir/processing", "$conroldir/finished") {
+    for my $controlsubdir ("$controldir/accepting", "$controldir/processing", "$controldir/finished") {
 
     unless (opendir JOBDIR,  $controlsubdir ) {
 	error("can't read controldir: $controlsubdir: $!");
