@@ -2,7 +2,6 @@
 
 #include <list>
 
-#include <arc/Logger.h>
 #include <arc/client/Software.h>
 #include <arc/client/ExecutionTarget.h>
 
@@ -28,11 +27,9 @@ class SoftwareTest
   CPPUNIT_TEST_SUITE_END();
 
 public:
-  SoftwareTest()
-    : logcerr(std::cerr),
-      logger(Arc::Logger::getRootLogger(), "SoftwareTest") {}
-  void setUp();
-  void tearDown();
+  SoftwareTest() {}
+  void setUp() {}
+  void tearDown() {}
   void EqualityTest();
   void ComparisonTest();
   void BasicRequirementsTest();
@@ -47,19 +44,9 @@ public:
   void ApplicationEnvironmentCastTest();
 
 private:
-  Arc::LogStream logcerr;
-  Arc::Logger logger;
   std::list<SV> versions;
 };
 
-
-void SoftwareTest::setUp() {
-  Arc::Logger::getRootLogger().setThreshold(Arc::WARNING);
-  Arc::Logger::getRootLogger().addDestination(logcerr);
-}
-
-void SoftwareTest::tearDown() {
-}
 
 void SoftwareTest::EqualityTest() {
   CPPUNIT_ASSERT(SV("XX") == SV("XX"));

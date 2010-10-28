@@ -3,7 +3,6 @@
 
 #include <cppunit/extensions/HelperMacros.h>
 
-#include <arc/Logger.h>
 #include <arc/StringConv.h>
 
 #include "../JDLParser.h"

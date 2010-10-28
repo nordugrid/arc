@@ -2,7 +2,6 @@
 
 #include <cppunit/extensions/HelperMacros.h>
 
-#include <arc/Logger.h>
 #include <arc/UserConfig.h>
 #include <arc/client/Broker.h>
 #include <arc/client/ExecutionTarget.h>
@@ -39,8 +38,6 @@ public:
   };
 
 private:
-  Arc::LogStream logcerr;
-  Arc::Logger logger;
   const Arc::UserConfig usercfg;
   TestBroker tb;
   std::list<Arc::ExecutionTarget> etl;
@@ -48,9 +45,7 @@ private:
 };
 
 BrokerTest::BrokerTest()
-  : logcerr(std::cerr),
-    logger(Arc::Logger::getRootLogger(), "BrokerTest"),
-    usercfg(Arc::initializeCredentialsType(Arc::initializeCredentialsType::SkipCredentials)),
+  : usercfg(Arc::initializeCredentialsType(Arc::initializeCredentialsType::SkipCredentials)),
     tb(usercfg),
     etl(1, Arc::ExecutionTarget()) {}
 
