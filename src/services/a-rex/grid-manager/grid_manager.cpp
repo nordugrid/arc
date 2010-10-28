@@ -311,8 +311,10 @@ static void grid_manager(void* arg) {
     }
   }
   /* create control and session directories */
+  logger.msg(Arc::INFO,"Preparing directories");
   for(JobUsers::iterator user = users.begin();user != users.end();++user) {
     user->CreateDirectories();
+    user->get_jobs()->RestartJobs();
   };
   /* main loop - forewer */
   logger.msg(Arc::INFO,"Starting jobs' monitoring");

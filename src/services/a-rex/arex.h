@@ -38,12 +38,13 @@ class CountedResource {
 
 class OptimizedInformationContainer: public Arc::InformationContainer {
  private:
+  bool parse_xml_;
   std::string filename_;
   int handle_;
   Arc::XMLNode doc_;
   Glib::Mutex olock_;
  public:
-  OptimizedInformationContainer(void);
+  OptimizedInformationContainer(bool parse_xml = true);
   ~OptimizedInformationContainer(void);
   int OpenDocument(void);
   Arc::MessagePayload* Process(Arc::SOAPEnvelope& in);
@@ -71,6 +72,7 @@ class ARexService: public Arc::RegisteredService {
   std::string lrms_name_;
   std::string os_name_;
   unsigned int infoprovider_wakeup_period_;
+  Glib::Mutex glue_states_lock_;
   std::map<std::string,std::string> glue_states_;
   FileChunksList files_chunks_;
   JobLog* job_log_;

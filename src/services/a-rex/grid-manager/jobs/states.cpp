@@ -47,6 +47,7 @@ JobsListConfig::JobsListConfig(void) {
   max_jobs_processing=DEFAULT_MAX_JOBS;
   max_jobs_processing_emergency=1;
   max_jobs_running=-1;
+  max_jobs_total=-1;
   max_jobs=-1;
   max_jobs_per_dn=-1;
   max_downloads=-1;
@@ -321,8 +322,8 @@ bool JobsList::ActJobs(bool hard_job) {
 
   // debug info on jobs per DN
   logger.msg(Arc::VERBOSE, "Current DN map (%i entries)", jcfg.jobs_dn.size());
-  for (std::map<std::string, unsigned int>::iterator it = jcfg.jobs_dn.begin(); it != jcfg.jobs_dn.end(); ++it)
-    logger.msg(Arc::VERBOSE, "%s: %i", it->first, it->second);
+  for (std::map<std::string, ZeroUInt>::iterator it = jcfg.jobs_dn.begin(); it != jcfg.jobs_dn.end(); ++it)
+    logger.msg(Arc::VERBOSE, "%s: %i", it->first, (unsigned int)(it->second));
 
   return res;
 }
@@ -1233,8 +1234,10 @@ void JobsList::ActJobFinishing(JobsList::iterator &i,bool hard_job,
           else if(state_changed) {
             finishing_job_share[i->transfer_share]--;
             i->job_state = JOB_STATE_FINISHED;
-            if (--(jcfg.jobs_dn[i->local->DN]) == 0)
-              jcfg.jobs_dn.erase(i->local->DN);
+            if(GetLocalDescription(i)) {
+              if (--(jcfg.jobs_dn[i->local->DN]) <= 0)
+                jcfg.jobs_dn.erase(i->local->DN);
+            }
             once_more=true; hard_job=true;
           };
         } else {
@@ -1432,8 +1435,10 @@ bool JobsList::ActJob(JobsList::iterator &i,bool hard_job) {
         }
         else if(i->job_state == JOB_STATE_FINISHING) {
           i->job_state = JOB_STATE_FINISHED;
-          if (--(jcfg.jobs_dn[i->local->DN]) == 0)
-            jcfg.jobs_dn.erase(i->local->DN);
+          if(GetLocalDescription(i)) {
+            if (--(jcfg.jobs_dn[i->local->DN]) <= 0)
+              jcfg.jobs_dn.erase(i->local->DN);
+          }
         }
         else {
           i->job_state = JOB_STATE_FINISHING;
@@ -1495,8 +1500,10 @@ bool JobsList::ActJob(JobsList::iterator &i,bool hard_job) {
           } else if(i->job_state == JOB_STATE_FINISHING) {
             // No matter if FINISHING fails - it still goes to FINISHED
             i->job_state = JOB_STATE_FINISHED;
-            if (--(jcfg.jobs_dn[i->local->DN]) == 0)
-              jcfg.jobs_dn.erase(i->local->DN);
+            if(GetLocalDescription(i)) {
+              if (--(jcfg.jobs_dn[i->local->DN]) <= 0)
+                jcfg.jobs_dn.erase(i->local->DN);
+            }
             state_changed=true;
             once_more=true;
           } else {
@@ -1579,8 +1586,10 @@ bool JobsList::ActJob(JobsList::iterator &i,bool hard_job) {
       logger.msg(Arc::ERROR,"%s: Delete request due to internal problems",i->job_id);
       i->job_state = JOB_STATE_FINISHED; /* move to finished in order to 
                                             remove from list */
-      if (--(jcfg.jobs_dn[i->local->DN]) == 0)
-        jcfg.jobs_dn.erase(i->local->DN);
+      if(i->GetLocalDescription(*user)) {
+        if (--(jcfg.jobs_dn[i->local->DN]) == 0)
+          jcfg.jobs_dn.erase(i->local->DN);
+      }
       i->job_pending=false;
       job_state_write_file(*i,*user,i->job_state); 
       i->AddFailure("Serious troubles (problems during processing problems)");
@@ -1637,6 +1646,50 @@ class JobFDesc {
   bool operator<(JobFDesc &right) { return (t < right.t); };
 };
 
+bool JobsList::RestartJobs(const std::string& cdir,const std::string& odir) {
+  bool res = true;
+  try {
+    Glib::Dir dir(cdir);
+    for(;;) {
+      std::string file=dir.read_name();
+      if(file.empty()) break;
+      int l=file.length();
+      if(l>(4+7)) {  /* job id contains at least 1 character */
+        if(!strncmp(file.c_str(),"job.",4)) {
+          if(!strncmp((file.c_str())+(l-7),".status",7)) {
+            uid_t uid;
+            gid_t gid;
+            time_t t;
+            std::string fname=cdir+'/'+file.c_str();
+            std::string oname=odir+'/'+file.c_str();
+            if(check_file_owner(fname,*user,uid,gid,t)) {
+              if(::rename(fname.c_str(),oname.c_str()) != 0) {
+                logger.msg(Arc::ERROR,"Failed to move file %s to %s",fname,oname);
+                res=false;
+              };
+            };
+          };
+        };
+      };
+    };
+    dir.close();
+  } catch(Glib::FileError& e) {
+    logger.msg(Arc::ERROR,"Failed reading control directory: %s",cdir);
+    return false;
+  };
+  return res;
+}
+
+// This code is run at service restart
+bool JobsList::RestartJobs(void) {
+  std::string cdir=user->ControlDir();
+  // Jobs from old version
+  bool res1 = RestartJobs(cdir,cdir+"/restarting");
+  // Jobs after service restart
+  bool res2 = RestartJobs(cdir+"/processing",cdir+"/restarting");
+  return res1 && res2;
+}
+
 bool JobsList::ScanJobs(const std::string& cdir,std::list<JobFDesc>& ids) {
   try {
     Glib::Dir dir(cdir);
@@ -1674,18 +1727,25 @@ bool JobsList::ScanJobs(const std::string& cdir,std::list<JobFDesc>& ids) {
 bool JobsList::ScanNewJobs(bool /*hard_job*/) {
   std::string cdir=user->ControlDir();
   std::list<JobFDesc> ids;
-  if(!ScanJobs(cdir,ids)) return false;
-  cdir+="/accepting";
-  if(!ScanJobs(cdir,ids)) return false;
-  /* sorting by date */
+  // For picking up jobs after service restart
+  std::string odir=cdir+"/restarting";
+  if(!ScanJobs(odir,ids)) return false;
+  // sorting by date
+  ids.sort();
+  for(std::list<JobFDesc>::iterator id=ids.begin();id!=ids.end();++id) {
+    iterator i;
+    AddJobNoCheck(id->id,i,id->uid,id->gid);
+  }
+  ids.clear();
+  // For new jobs
+  std::string ndir=cdir+"/accepting";
+  if(!ScanJobs(ndir,ids)) return false;
+  // sorting by date
   ids.sort();
   for(std::list<JobFDesc>::iterator id=ids.begin();id!=ids.end();++id) {
     iterator i;
     /* adding job with file's uid/gid */
-    if(AddJobNoCheck(id->id,i,id->uid,id->gid)) {
-/*    ActJob(i,hard_job);  */
-    };
- /* failed AddJob most probably means it is already in list or limit exceeded */
+    AddJobNoCheck(id->id,i,id->uid,id->gid);
   };
   return true;
 }

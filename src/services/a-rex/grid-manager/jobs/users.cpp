@@ -122,6 +122,11 @@ bool JobUser::CreateDirectories(void) {
     } else {
       (chown((control_dir+"/accepting").c_str(),uid,gid) != 0);
     };
+    if(mkdir((control_dir+"/restarting").c_str(),S_IRWXU) != 0) {
+      if(errno != EEXIST) res=false;
+    } else {
+      (chown((control_dir+"/restarting").c_str(),uid,gid) != 0);
+    };
     if(mkdir((control_dir+"/processing").c_str(),S_IRWXU) != 0) {
       if(errno != EEXIST) res=false;
     } else {

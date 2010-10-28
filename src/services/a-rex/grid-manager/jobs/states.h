@@ -68,6 +68,7 @@ class JobsList {
   bool JobFailStateRemember(const iterator &i,job_state_t state);
   bool RecreateTransferLists(const JobsList::iterator &i);
   bool ScanJobs(const std::string& cdir,std::list<JobFDesc>& ids);
+  bool RestartJobs(const std::string& cdir,const std::string& odir);
  public:
   /* Constructor. 'user' contains associated user */ 
   JobsList(JobUser &user,ContinuationPlugins &plugins);
@@ -90,6 +91,8 @@ class JobsList {
   /* Look for new (or old FINISHED) jobs. Jobs are added to list
      with state undefined */
   bool ScanNewJobs(bool hard_job = false);
+  /* Rearange status files on service restart */
+  bool RestartJobs(void);
   /*
     Destroy all jobs in list according to 'finished' an 'active'.
     (See DestroyJob).
@@ -109,6 +112,23 @@ class JobsList {
 
 };
 
+
+class ZeroUInt {
+ private:
+  unsigned int value_;
+ public:
+  ZeroUInt(void):value_(0) { };
+  ZeroUInt(unsigned int v):value_(v) { };
+  ZeroUInt(const ZeroUInt& v):value_(v.value_) { };
+  ZeroUInt& operator=(unsigned int v) { value_=v; };
+  ZeroUInt& operator=(const ZeroUInt& v) { value_=v.value_; };
+  ZeroUInt& operator++(void) { ++value_; return *this; };
+  ZeroUInt operator++(int) { ZeroUInt temp(value_); ++value_; return temp; };
+  ZeroUInt& operator--(void) { if(value_) --value_; return *this; };
+  ZeroUInt operator--(int) { ZeroUInt temp(value_); if(value_) --value_; return temp; };
+  operator unsigned int(void) const { return value_; };
+};
+
 /**
  * Class to represent information read from configuration.
  */
@@ -118,10 +138,11 @@ class JobsListConfig {
   /* number of jobs for every state */
   int jobs_num[JOB_STATE_NUM];
   /* map of number of active jobs for each DN */
-  std::map<std::string, unsigned int> jobs_dn;
+  std::map<std::string, ZeroUInt> jobs_dn;
   int jobs_pending;
   /* maximal allowed values */
   int max_jobs_running;
+  int max_jobs_total;
   int max_jobs_processing;
   int max_jobs_processing_emergency;
   int max_jobs;
@@ -143,20 +164,22 @@ class JobsListConfig {
   std::map<std::string, int> limited_share;
  public:
   JobsListConfig(void);
-  void SetMaxJobs(int max = -1,int max_running = -1, int max_per_dn = -1) {
+  void SetMaxJobs(int max = -1,int max_running = -1, int max_per_dn = -1, int max_total = -1) {
     max_jobs=max;
     max_jobs_running=max_running;
     max_jobs_per_dn=max_per_dn;
+    max_jobs_total=max_total;
   }
   void SetMaxJobsLoad(int max_processing = -1,int max_processing_emergency = 1,int max_down = -1) {
     max_jobs_processing=max_processing;
     max_jobs_processing_emergency=max_processing_emergency;
     max_downloads=max_down;
   }
-  void GetMaxJobs(int &max,int &max_running,int &max_per_dn) const {
+  void GetMaxJobs(int &max,int &max_running,int &max_per_dn,int &max_total) const {
     max=max_jobs;
     max_running=max_jobs_running;
     max_per_dn=max_jobs_per_dn;
+    max_total=max_jobs_total;
   }
   void GetMaxJobsLoad(int &max_processing,int &max_processing_emergency,int &max_down) const {
     max_processing=max_jobs_processing;

@@ -61,7 +61,9 @@ void ARexService::InformationCollector(void) {
       Arc::XMLNode root(xml_str);
       if(root) {
         // Collect job states
+        glue_states_lock_.lock();
         GetGlueStates(root,glue_states_);
+        glue_states_lock_.unlock();
         // Put result into container
         infodoc_.Arc::InformationContainer::Assign(root,true);
         logger_.msg(Arc::DEBUG,"Assigned new informational document");
@@ -75,7 +77,9 @@ void ARexService::InformationCollector(void) {
         if(root) {
           logger_.msg(Arc::DEBUG,"Assigned new informational document");
           // Collect job states
+          glue_states_lock_.lock();
           GetGlueStates(root,glue_states_);
+          glue_states_lock_.unlock();
         } else {
           logger_.msg(Arc::ERROR,"Failed to create informational document");
         };
@@ -117,6 +121,7 @@ std::string ARexService::getID() {
 
 static void GetGlueStates(Arc::XMLNode infodoc,std::map<std::string,std::string>& states) {
   std::string path = "Domains/AdminDomain/Services/ComputingService/ComputingEndpoint/ComputingActivities/ComputingActivity";
+  states.clear();
   // Obtaining all job descriptions
   Arc::XMLNodeList nodes = infodoc.Path(path);
   // Pulling ids and states
@@ -227,8 +232,9 @@ class PrefixedFilePayload: public Arc::PayloadRawInterface {
   virtual bool Truncate(Size_t /* size */) { return false; };
 };
 
-OptimizedInformationContainer::OptimizedInformationContainer(void) {
+OptimizedInformationContainer::OptimizedInformationContainer(bool parse_xml) {
   handle_=-1;
+  parse_xml_=parse_xml;
 }
 
 OptimizedInformationContainer::~OptimizedInformationContainer(void) {
@@ -265,6 +271,7 @@ Arc::MessagePayload* OptimizedInformationContainer::Process(Arc::SOAPEnvelope& i
     return outpayload;
   } catch(std::exception& e) { };
   delete &wsrp;
+  if(!parse_xml_) return NULL; // No XML document available
   Arc::NS ns;
   Arc::SOAPEnvelope* out = InformationContainer::Process(in);
   if(!out) return NULL;
@@ -282,10 +289,12 @@ void OptimizedInformationContainer::AssignFile(const std::string& filename) {
   handle_ = -1;
   if(!filename_.empty()) {
     handle_ = Arc::FileOpen(filename_,O_RDONLY);
-    lock_.lock();
-    doc_.ReadFromFile(filename_);
-    lock_.unlock();
-    Arc::InformationContainer::Assign(doc_,false);
+    if(parse_xml_) {
+      lock_.lock();
+      doc_.ReadFromFile(filename_);
+      lock_.unlock();
+      Arc::InformationContainer::Assign(doc_,false);
+    };
   };
   olock_.unlock();
 }
@@ -308,24 +317,34 @@ void OptimizedInformationContainer::Assign(const std::string& xml) {
     };
     p+=l;
   };
-  Arc::XMLNode newxml(xml);
-  if(!newxml) {
-    ::unlink(filename.c_str());
-    ::close(h);
-    Arc::Logger::getRootLogger().msg(Arc::ERROR,"OptimizedInformationContainer failed to parse XML");
-    return;
+  if(parse_xml_) {
+    Arc::XMLNode newxml(xml);
+    if(!newxml) {
+      ::unlink(filename.c_str());
+      ::close(h);
+      Arc::Logger::getRootLogger().msg(Arc::ERROR,"OptimizedInformationContainer failed to parse XML");
+      return;
+    };
+    // Here we have XML stored in file and parsed
+    olock_.lock();
+    if(!filename_.empty()) ::unlink(filename_.c_str());
+    if(handle_ != -1) ::close(handle_);
+    filename_ = filename;
+    handle_ = h;
+    lock_.lock();
+    doc_.Swap(newxml);
+    lock_.unlock();
+    Arc::InformationContainer::Assign(doc_,false);
+    olock_.unlock();
+  } else {
+    // Here we have XML stored in file
+    olock_.lock();
+    if(!filename_.empty()) ::unlink(filename_.c_str());
+    if(handle_ != -1) ::close(handle_);
+    filename_ = filename;
+    handle_ = h;
+    olock_.unlock();
   };
-  // Here we have XML stored in file and parsed
-  olock_.lock();
-  if(!filename_.empty()) ::unlink(filename_.c_str());
-  if(handle_ != -1) ::close(handle_);
-  filename_ = filename;
-  handle_ = h;
-  lock_.lock();
-  doc_.Swap(newxml);
-  lock_.unlock();
-  Arc::InformationContainer::Assign(doc_,false);
-  olock_.unlock();
 }
 
 }

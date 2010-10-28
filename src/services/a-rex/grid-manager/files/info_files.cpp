@@ -66,6 +66,7 @@ const char * const sfx_proxy       = ".proxy";
 const char * const subdir_new      = "accepting";
 const char * const subdir_cur      = "processing";
 const char * const subdir_old      = "finished";
+const char * const subdir_rew      = "restarting";
 
 static Arc::Logger& logger = Arc::Logger::getRootLogger();
 
@@ -579,6 +580,9 @@ time_t job_state_time(const JobId &id,JobUser &user) {
   fname = user.ControlDir() + "/" + subdir_new + "/job." + id + sfx_status;
   t = job_mark_time(fname);
   if(t != 0) return t;
+  fname = user.ControlDir() + "/" + subdir_rew + "/job." + id + sfx_status;
+  t = job_mark_time(fname);
+  if(t != 0) return t;
   fname = user.ControlDir() + "/" + subdir_old + "/job." + id + sfx_status;
   return job_mark_time(fname);
 }
@@ -592,6 +596,9 @@ job_state_t job_state_read_file(const JobId &id,const JobUser &user) {
   st = job_state_read_file(fname,pending);
   if(st != JOB_STATE_DELETED) return st;
   fname = user.ControlDir() + "/" + subdir_new + "/job." + id + sfx_status;
+  st = job_state_read_file(fname,pending);
+  if(st != JOB_STATE_DELETED) return st;
+  fname = user.ControlDir() + "/" + subdir_rew + "/job." + id + sfx_status;
   st = job_state_read_file(fname,pending);
   if(st != JOB_STATE_DELETED) return st;
   fname = user.ControlDir() + "/" + subdir_old + "/job." + id + sfx_status;
@@ -608,6 +615,9 @@ job_state_t job_state_read_file(const JobId &id,const JobUser &user,bool& pendin
   fname = user.ControlDir() + "/" + subdir_new + "/job." + id + sfx_status;
   st = job_state_read_file(fname,pending);
   if(st != JOB_STATE_DELETED) return st;
+  fname = user.ControlDir() + "/" + subdir_rew + "/job." + id + sfx_status;
+  st = job_state_read_file(fname,pending);
+  if(st != JOB_STATE_DELETED) return st;
   fname = user.ControlDir() + "/" + subdir_old + "/job." + id + sfx_status;
   return job_state_read_file(fname,pending);
 }
@@ -617,16 +627,19 @@ bool job_state_write_file(const JobDescription &desc,JobUser &user,job_state_t s
   if(state == JOB_STATE_ACCEPTED) { 
     fname = user.ControlDir() + "/" + subdir_old + "/job." + desc.get_id() + sfx_status; remove(fname.c_str());
     fname = user.ControlDir() + "/" + subdir_cur + "/job." + desc.get_id() + sfx_status; remove(fname.c_str());
+    fname = user.ControlDir() + "/" + subdir_rew + "/job." + desc.get_id() + sfx_status; remove(fname.c_str());
     fname = user.ControlDir() + "/job." + desc.get_id() + sfx_status; remove(fname.c_str());
     fname = user.ControlDir() + "/" + subdir_new + "/job." + desc.get_id() + sfx_status;
   } else if((state == JOB_STATE_FINISHED) || (state == JOB_STATE_DELETED)) {
     fname = user.ControlDir() + "/" + subdir_new + "/job." + desc.get_id() + sfx_status; remove(fname.c_str());
     fname = user.ControlDir() + "/" + subdir_cur + "/job." + desc.get_id() + sfx_status; remove(fname.c_str());
+    fname = user.ControlDir() + "/" + subdir_rew + "/job." + desc.get_id() + sfx_status; remove(fname.c_str());
     fname = user.ControlDir() + "/job." + desc.get_id() + sfx_status; remove(fname.c_str());
     fname = user.ControlDir() + "/" + subdir_old + "/job." + desc.get_id() + sfx_status;
   } else {
     fname = user.ControlDir() + "/" + subdir_new + "/job." + desc.get_id() + sfx_status; remove(fname.c_str());
     fname = user.ControlDir() + "/" + subdir_old + "/job." + desc.get_id() + sfx_status; remove(fname.c_str());
+    fname = user.ControlDir() + "/" + subdir_rew + "/job." + desc.get_id() + sfx_status; remove(fname.c_str());
     fname = user.ControlDir() + "/job." + desc.get_id() + sfx_status; remove(fname.c_str());
     fname = user.ControlDir() + "/" + subdir_cur + "/job." + desc.get_id() + sfx_status;
   };
@@ -1164,6 +1177,7 @@ bool job_clean_final(const JobDescription &desc,JobUser &user) {
   fname = user.ControlDir()+"/"+subdir_new+"/job."+id+sfx_status; remove(fname.c_str());
   fname = user.ControlDir()+"/"+subdir_cur+"/job."+id+sfx_status; remove(fname.c_str());
   fname = user.ControlDir()+"/"+subdir_old+"/job."+id+sfx_status; remove(fname.c_str());
+  fname = user.ControlDir()+"/"+subdir_rew+"/job."+id+sfx_status; remove(fname.c_str());
   fname = user.ControlDir()+"/job."+id+sfx_rsl;    remove(fname.c_str());
   return true;
 }

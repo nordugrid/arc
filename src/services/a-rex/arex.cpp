@@ -581,6 +581,7 @@ static void information_collector_starter(void* arg) {
 
 ARexService::ARexService(Arc::Config *cfg):RegisteredService(cfg),
               logger_(Arc::Logger::rootLogger, "A-REX"),
+              infodoc_(true),
               inforeg_(*cfg,this),
               gmconfig_temporary_(false),
               job_log_(NULL),

@@ -292,12 +292,13 @@ int main(int argc, char* argv[]) {
   }
   int max;
   int max_running;
+  int max_total;
   int max_processing;
   int max_processing_emergency;
   int max_down;
   int max_per_dn;
 
-  env.jobs_cfg().GetMaxJobs(max, max_running, max_per_dn);
+  env.jobs_cfg().GetMaxJobs(max, max_running, max_per_dn, max_total);
   env.jobs_cfg().GetMaxJobsLoad(max_processing, max_processing_emergency, max_down);
 
 //  #undef jobs_pending
@@ -317,6 +318,7 @@ int main(int argc, char* argv[]) {
   
   std::cout<<" Accepted: "<<accepted<<"/"<<max<<std::endl;
   std::cout<<" Running: "<<running<<"/"<<max_running<<std::endl;
+  std::cout<<" Total: "<<jobs_total<<"/"<<max_total<<std::endl;
   std::cout<<" Processing: "<<
     counters[JOB_STATE_PREPARING]-counters_pending[JOB_STATE_PREPARING]<<"+"<<
     counters[JOB_STATE_FINISHING]-counters_pending[JOB_STATE_FINISHING]<<"/"<<

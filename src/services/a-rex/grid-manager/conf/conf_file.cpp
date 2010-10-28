@@ -152,6 +152,7 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
       long int i;
       int max_jobs = -1;
       int max_jobs_running = -1;
+      int max_jobs_total = -1;
       int max_per_dn = -1;
       if(max_jobs_s.length() != 0) {
         if(!Arc::stringto(max_jobs_s,i)) {
@@ -176,8 +177,15 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
         };
         if(i<0) i=-1; max_per_dn=i;
       }
-      jcfg.SetMaxJobs(
-              max_jobs,max_jobs_running,max_per_dn);
+      max_jobs_s = config_next_arg(rest);
+      if(max_jobs_s.length() != 0) {
+        if(!Arc::stringto(max_jobs_s,i)) {
+          logger.msg(Arc::ERROR,"Wrong number in maxjobs: %s",max_jobs_s);
+          goto exit;
+        };
+        if(i<0) i=-1; max_jobs_total=i;
+      };
+      jcfg.SetMaxJobs(max_jobs,max_jobs_running,max_per_dn,max_jobs_total);
     }
     else if(command == "maxload") { /* maximum number of the jobs processed on frontend */
       std::string max_jobs_s = config_next_arg(rest);
@@ -677,6 +685,7 @@ bool configure_serviced_users(Arc::XMLNode cfg,JobUsers &users,uid_t my_uid,cons
   loadLimits
     maxJobsTracked
     maxJobsRun
+    maxJobsTotal
     maxJobsTransferred
     maxJobsTransferredAdditional
     maxFilesTransferred
@@ -688,6 +697,7 @@ bool configure_serviced_users(Arc::XMLNode cfg,JobUsers &users,uid_t my_uid,cons
   if(tmp_node) {
     int max_jobs = -1;
     int max_jobs_running = -1;
+    int max_jobs_total = -1;
     int max_jobs_processing = -1;
     int max_jobs_processing_emergency = -1;
     int max_downloads = -1;
@@ -696,8 +706,9 @@ bool configure_serviced_users(Arc::XMLNode cfg,JobUsers &users,uid_t my_uid,cons
     unsigned int wakeup_period = jcfg.WakeupPeriod();
     elementtoint(tmp_node,"maxJobsTracked",max_jobs,&logger);
     elementtoint(tmp_node,"maxJobsRun",max_jobs_running,&logger);
+    elementtoint(tmp_node,"maxJobsTotal",max_jobs_total,&logger);
     elementtoint(tmp_node,"maxJobsPerDN",max_jobs_per_dn,&logger);
-    jcfg.SetMaxJobs(max_jobs,max_jobs_running,max_jobs_per_dn);
+    jcfg.SetMaxJobs(max_jobs,max_jobs_running,max_jobs_per_dn,max_jobs_total);
     elementtoint(tmp_node,"maxJobsTransferred",max_jobs_processing,&logger);
     // Included for backward compatibility.
     if (!tmp_node["maxJobsTransferred"] && tmp_node["maxJobsTransfered"]) {
