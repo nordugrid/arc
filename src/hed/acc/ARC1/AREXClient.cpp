@@ -18,8 +18,6 @@
 #define BES_FACTORY_ACTIONS_BASE_URL "http://schemas.ggf.org/bes/2006/08/bes-factory/BESFactoryPortType/"
 
 namespace Arc {
-  const std::string AREXClient::mainStateModel = "nordugrid";
-
   // TODO: probably worth moving it to common library
   // Of course xpath can be used too. But such solution is probably an overkill.
   static XMLNode find_xml_node(XMLNode node,
@@ -216,18 +214,14 @@ namespace Arc {
 
     if(arex_enabled) {
       // Fetch the proper state.
-      for (int i = 0; response["ComputingActivity"]["State"][i]; i++) {
-        const std::string rawState = (std::string)response["ComputingActivity"]["State"][i];
-        const std::size_t pos = rawState.find_first_of(':');
-        if (pos == std::string::npos) {
-          logger.msg(VERBOSE, "Found malformed job state string: %s", rawState);
-          continue;
+      for (XMLNode n = response["ComputingActivity"]["State"]; n; ++n) {
+        std::list<std::string> gluestate;
+        tokenize((std::string)n, gluestate, ":");
+
+        if (gluestate.size() == 2 && gluestate.front() == "nordugrid") {
+          job.State = JobStateARC1(gluestate.back());
+          break;
         }
-        const std::string model = rawState.substr(0, pos);
-        const std::string state = rawState.substr(pos + 1);
-        if (model == mainStateModel)
-          job.State = JobStateARC1(state);
-        job.AuxStates[model] = state;
       }
     } else {
       XMLNode activity = response["Response"]["ActivityStatus"];
@@ -248,8 +242,6 @@ namespace Arc {
           }
           if(!nstates.empty()) {
             job.State = JobStateARC1(nstates);
-            job.AuxStates["nordugrid"] = nstates;
-            job.AuxStates["bes"] = state;
           }
         }
       }
@@ -283,8 +275,18 @@ namespace Arc {
       job.Name = (std::string)jobNode["Name"];
     if (jobNode["JobDescription"])
       job.JobDescription = (std::string)jobNode["JobDescription"];
-    if (jobNode["RestartState"])
-      job.RestartState = (std::string)jobNode["RestartState"];
+    if (jobNode["RestartState"]) {
+      // Fetch the proper state.
+      for (XMLNode n = jobNode["RestartState"]; n; ++n) {
+        std::list<std::string> gluestate;
+        tokenize((std::string)n, gluestate, ":");
+
+        if (gluestate.size() == 2 && gluestate.front() == "nordugrid") {
+          job.RestartState = JobStateARC1(gluestate.back());
+          break;
+        }
+      }
+    }
     if (jobNode["ExitCode"])
       job.ExitCode = stringtoi(jobNode["ExitCode"]);
     if (jobNode["ComputingManagerExitCode"])

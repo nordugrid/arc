@@ -161,8 +161,7 @@ namespace Arc {
           (*it)->RequestedTotalWallTime =
             (std::string)(jobinfo["nordugrid-job-reqwalltime"]);
         if (jobinfo["nordugrid-job-rerunable"])
-          (*it)->RestartState =
-            (std::string)(jobinfo["nordugrid-job-rerunable"]);
+          (*it)->RestartState = JobStateARC0((std::string)(jobinfo["nordugrid-job-rerunable"]));
         if (jobinfo["nordugrid-job-queuerank"])
           (*it)->WaitingPosition =
             stringtoi(jobinfo["nordugrid-job-queuerank"]);
@@ -338,11 +337,11 @@ namespace Arc {
   }
 
   bool JobControllerARC0::ResumeJob(const Job& job) {
-    if (job.RestartState.empty()) {
+    if (!job.RestartState) {
       logger.msg(INFO, "Job %s does not report a resumable state", job.JobID.str());
       return false;
     }
-    std::cout << "Resuming job " << job.JobID.str() << " at state " << job.RestartState << std::endl;
+    std::cout << "Resuming job " << job.JobID.str() << " at state " << job.RestartState.GetGeneralState() << " (" << job.RestartState() << ")" << std::endl;
 
     RenewJob(job);
 

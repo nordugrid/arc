@@ -49,9 +49,7 @@ namespace Arc {
     std::string LocalIDFromManager;
     std::string JobDescription;
     JobState State;
-    std::string RestartState;
-    std::map<std::string, std::string> AuxStates; //for all state models
-    std::map<std::string, std::string> RestartStates; //for all state models
+    JobState RestartState;
     int ExitCode;
     std::string ComputingManagerExitCode;
     std::list<std::string> Error;

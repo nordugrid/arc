@@ -111,12 +111,12 @@ namespace Arc {
 
   bool JobControllerARC1::ResumeJob(const Job& job) {
 
-    if (job.RestartState.empty()) {
+    if (!job.RestartState) {
       logger.msg(INFO, "Job %s does not report a resumable state", job.JobID.str());
       return false;
     }
 
-    logger.msg(VERBOSE, "Resuming job: %s at state: %s", job.JobID.str(), job.RestartState);
+    logger.msg(VERBOSE, "Resuming job: %s at state: %s (%s)", job.JobID.str(), job.RestartState.GetGeneralState(), job.RestartState());
 
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);
