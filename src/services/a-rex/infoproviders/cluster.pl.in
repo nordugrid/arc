@@ -281,8 +281,8 @@ my %cachedirs;
 my $no_cache = 0;
 
 # only report central cache and not private caches
-if (exists $gmusers{''}) {
-    my $centralcfg = $gmusers{''};
+my $centralcfg = $gmusers{''} || $gmusers{'(empty)'};
+if ($centralcfg) {
     my $dirs = $centralcfg->{cachedata};
     if (defined $dirs) {
         $cachedirs{$_} = 1 for @$dirs;
