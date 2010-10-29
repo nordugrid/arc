@@ -132,6 +132,7 @@ bool ArgusPEP::Handle(Arc::Message* msg) const {
         pep_rc= pep_authorize(&request,&response);
         if (pep_rc != PEP_OK) {
            throw pep_ex(std::string("Failed to process XACML request: ")+pep_strerror(pep_rc));
+            pep_destroy();
         }   
         if (response== NULL) {
             throw pep_ex("XACML response is empty");
@@ -190,6 +191,15 @@ bool ArgusPEP::Handle(Arc::Message* msg) const {
         res = false;
     }
 
+   /*  clean up */
+   if(client_initialized) {
+      // Release the PEP client 
+      pep_rc= pep_destroy();
+      if (pep_rc != PEP_OK) {
+          logger.msg(Arc::DEBUG,"Failed to release PEP client request: %s\n",pep_strerror(pep_rc));
+      }
+    }
+
     // Delete resquest and response
     if(response) xacml_response_delete(response);
     if(request) xacml_request_delete(request);
@@ -197,14 +207,7 @@ bool ArgusPEP::Handle(Arc::Message* msg) const {
       xacml_request_delete(requests.front());
       requests.pop_front();
     }
-    if(client_initialized) {
-      // Release the PEP client 
-      pep_rc= pep_destroy();
-      if (pep_rc != PEP_OK) {
-          logger.msg(Arc::DEBUG,"Failed to release PEP client request: %s\n",pep_strerror(pep_rc));
-          res = false;
-      }
-    }
+
 
     return res;
  }
