@@ -1512,6 +1512,8 @@ if test "$enables_giis_service" = "yes"; then
     AC_MSG_NOTICE([GIIS can't be built for WIN32 environment - disabling])
     enables_giis_service="no"
   fi
+  AC_CHECK_HEADERS(lber.h, [],[enables_giis_service=no])
+  AC_CHECK_HEADERS(ldap_features.h, [],[enables_giis_service=no])
 fi
 if test "$enables_ldap_service" = "no"; then
   if test "$enables_giis_service" = "yes"; then
