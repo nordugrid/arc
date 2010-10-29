@@ -74,7 +74,16 @@ UsernameTokenSH::~UsernameTokenSH() {
 bool UsernameTokenSH::Handle(Arc::Message* msg) const {
   if(process_type_ == process_extract) {
     try {
-      PayloadSOAP* soap = dynamic_cast<PayloadSOAP*>(msg->Payload());
+      MessagePayload* payload = msg->Payload();
+      if(!payload) {
+        logger.msg(ERROR,"The payload of incoming message is empty");
+        return false;
+      }
+      PayloadSOAP* soap = dynamic_cast<PayloadSOAP*>(payload);
+      if(!soap) {
+        logger.msg(ERROR,"Failed to cast PayloadSOAP from incoming payload");     
+        return false;
+      }
       UsernameToken ut(*soap);
       if(!ut) {
         logger.msg(ERROR,"Failed to parse Username Token from incoming SOAP");
@@ -94,7 +103,16 @@ bool UsernameTokenSH::Handle(Arc::Message* msg) const {
     }  
   } else if(process_type_ == process_generate) {
     try {
-      PayloadSOAP* soap = dynamic_cast<PayloadSOAP*>(msg->Payload());
+      MessagePayload* payload = msg->Payload();
+      if(!payload) {
+        logger.msg(ERROR,"The payload of outgoing message is empty");
+        return false;
+      }
+      PayloadSOAP* soap = dynamic_cast<PayloadSOAP*>(payload);
+      if(!soap) {
+        logger.msg(ERROR,"Failed to cast PayloadSOAP from outgoing payload");
+        return false;
+      }
       UsernameToken ut(*soap,username_,password_,std::string(""),
          (password_type_==password_digest)?(UsernameToken::PasswordDigest):(UsernameToken::PasswordText));
       if(!ut) {
